@@ -32,5 +32,6 @@ begin
      writeln('Error: ',linuxerror,'.');
      halt(1);
      end;
+   Writeln ('Send USR1 signal or press <ENTER> to exit'); 
    readln;
 end.

@@ -93,12 +93,12 @@ endif
 # Conversion from types
 #####################################################################
 
-.PHONY: all clean dvi help html ps psdist htmldist htm txt pdf refex
+.PHONY: clean dvi help html ps psdist htmldist pdfdist txtdist \
+        htm txt pdf refex alldist
 
 .SUFFIXES: .dvi .tex .ps .txt .pdf
 
 # default show help
-all: help
 
 .dvi.ps:
 	$(DVIPS) $<
@@ -119,6 +119,7 @@ all: help
 	$(PDFLATEX) $*pdf
 	-$(MAKEINDEX) $*pdf
 	$(PDFLATEX) $*pdf
+	mv $*pdf.pdf $*.pdf
 
 $(TXT) : %.txt: %.dvi
 
@@ -132,11 +133,19 @@ $(PDF) : %.pdf: %.tex
 
 help:
 	@echo 'Possible targets :'
-	@echo ' dvi   : Make documentation using latex.'
-	@echo ' ps    : Make documentation using latex and dvips.'
-	@echo ' html  : Make documentation using latex2html.'
-	@echo ' htm   : Convert .html to .htm files, zip result'
-	@echo ' clean : Clean up the mess.'
+	@echo ' dvi           : Make documentation using latex.'
+	@echo ' ps            : Make documentation using latex and dvips.'
+	@echo ' html          : Make documentation using latex2html.'
+	@echo ' pdf           : Make documentation using pdflatex'
+	@echo ' txt           : dvi, convert to text using dvi2tty'
+	@echo ' htm           : Convert .html to .htm files, zip result'
+	@echo ' clean         : Clean up the mess.'
+	@echo ' linuxexamples : Compile all examples for linux'
+	@echo ' dosexamples   : Compile all examples for dos'
+	@echo ' htmldist      : html, and rchive result.'
+	@echo ' psdist        : ps, and archive result.'
+	@echo ' pdfdist       : pdf, and archive result.'
+ 
 
 clean:
 	-rm -rf $(HTML)
@@ -169,13 +178,19 @@ units.dvi: units.tex $(CHAPTERS) unitex.chk
 
 ref.dvi: ref.tex refex.chk
 
+units.pdf: units.tex $(CHAPTERS) unitex.chk
+
+ref.pdf: ref.tex refex.chk
+
 dvi : $(DVI)
 
 txt : dvi $(TXT)
 
 ps : dvi $(PS)
 
-pdf : unitex.chk refex.chk $(PDF)
+pdf : $(PDF)
+
+all : dvi ps pdf txt html
 
 user: user.chk
 
@@ -220,13 +235,13 @@ prog.chk: prog.tex
 
 html: $(HTML)
 
-htm:
+htm: html
 	makehtm `find . -name '*.html'`
-	zip fpcdoc `find . -name '*.htm'`
+	zip -q fpcdoc `find . -name '*.htm'` `find . -name '*.gif'`
 	rm `find -name '*.htm'`
 	
-all-formats: ps txt pdf html
-	
+htmdist: htm
+
 #####################################################################
 # Installation
 #####################################################################
@@ -242,26 +257,52 @@ www-install: psdist htmldist htm
 	ssh tfdec1 '(cd htdocs/fpk/docs ; /usr/local/bin/tar -xzf ../fpcdoc.tar.gz)'
 
 #####################################################################
-# Distribution
+# Archives
 #####################################################################
 
-psdist: ps
-	tar -cvzf fpcdocps.tar.gz *.ps
-	zip fpcdocps *.ps
+psdist: $(PS)
+	tar -cvzf fpcdocps.tar.gz $(PS)
+	zip fpcdocps $(PS)
 
 pdfdist: pdf
-	zip fpcdocpdf *.pdf
+	zip fpcdocpdf $(PDF)
+
+dvidist: dvi
+	zip fpcdocdvi $(DVI)
 
 htmldist: html
 	find . -name '*.html' >htmllist
 	find . -name '*.gif' >>htmllist
-	tar -czvf fpcdoc.tar.gz --files-from=htmllist
+	tar -czf fpcdoc.tar.gz --files-from=htmllist
 	rm -f htmllist
-	
-dist:
-	-mkdir $(DISTDIR)/docs
-	cp Makefile README.DOCS makehtm fpktoc.html $(DISTDIR)/docs
-	cp *.tex *.sty *.perl *.doc $(DISTDIR)/docs
 
+txtdist: txt
+	zip fpcdoctxt $(TXT)
+
+alldist: dvidist psdist txtdist pdfdist htmldist htmdist
+		
 distclean: clean
 	-rm -f *.tar.gz *.zip
+
+#####################################################################
+# Examples
+#####################################################################
+
+examples:
+	$(MAKE) -C crtex
+	$(MAKE) -C dosex
+	$(MAKE) -C crtex
+	$(MAKE) -C dosex
+	$(MAKE) -C optex
+	$(MAKE) -C printex
+	$(MAKE) -C refex
+	$(MAKE) -C sockex
+	$(MAKE) -C stringex
+
+dosexamples: examples
+	$(MAKE) -C go32ex
+	$(MAKE) -C mouseex
+
+linuxexamples: examples
+	$(MAKE) -C linuxex
+	$(MAKE) -C sockex

@@ -36,7 +36,7 @@ begin
   writeln ('ctime   : ',info.ctime);
 
   If not SymLink ('test.fil','test.lnk') then
-    writeln ('Link failed !': linuxerror);
+    writeln ('Link failed ! Errno :',linuxerror);
 
   if not lstat ('test.lnk',info) then 
      begin

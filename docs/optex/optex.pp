@@ -2,11 +2,18 @@ program testopt;
 
 { Program to depmonstrate the getopts function. }
 
+{
+  Valid calls to this program are 
+  optex --verbose --add me --delete you
+  optex --append --create child
+  optex -ab -c me -d you
+  and so on
+}
 uses getopts;
 
 var c : char;
-    optionindex : integer;
-    theopts : array[1..7] of option;
+    optionindex : Longint;
+    theopts : array[1..7] of TOption;
 
 begin
   with theopts[1] do 

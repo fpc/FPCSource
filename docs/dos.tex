@@ -98,39 +98,47 @@ Under \linux, the \var{Fill} array is replaced with the following:
 This is because the searching meachanism on Unix systems is substantially
 different from \dos's, and the calls have to be mimicked.
 \begin{verbatim}
-{$PACKRECORDS 2}
-  FileRec = Record
-    Handle : word;
-    Mode : word;
-    RecSize : word;
-    _private : array[1..26] of byte;
-    UserData: array[1..16] of byte;
-    Name: array[0..255] of char;
-    End;
+const
+  filerecnamelength = 255;
+
+type
+  FileRec = Packed Record
+    Handle,
+    Mode,  
+    RecSize   : longint;
+    _private  : array[1..32] of byte;
+    UserData  : array[1..16] of byte;
+    name      : array[0..filerecnamelength] of char;
+  End;
 \end{verbatim}
 \var{FileRec} is used for internal representation of typed and untyped files.
 Text files are handled by the following types :
 \begin{verbatim}
-  TextBuf = array[0..127] of char;
+const
+  TextRecNameLength = 256;
+  TextRecBufSize    = 256;
 
-  TextRec = record
-    handle : word;
-    mode : word;
-    bufSize : word;
-    _private : word;
-    bufpos : word;
-    bufend : word;
-    bufptr : ^textbuf;
-    openfunc : pointer;
-    inoutfunc : pointer;
-    flushfunc : pointer;
+type
+  TextBuf = array[0..TextRecBufSize-1] of char;
+  TextRec = Packed Record
+    Handle,
+    Mode,  
+    bufsize,
+    _private,
+    bufpos,  
+    bufend    : longint;
+    bufptr    : ^textbuf;
+    openfunc,
+    inoutfunc,
+    flushfunc,
     closefunc : pointer;
-    userdata : array[1..16] of byte;
-    name : array[0..127] of char;
-    buffer : textbuf;
-    End;
+    UserData  : array[1..16] of byte;
+    name      : array[0..textrecnamelength-1] of char;
+    buffer    : textbuf;
+  End;
 \end{verbatim}
-The size of the \var{name} field is 255 under \linux.
+Remark that this is not binary compatible with the Turbo Pascal definition
+of \var{TextRec}, since the sizes of the different fields are different.
 \begin{verbatim}
     Registers = record
       case i : integer of
@@ -183,9 +191,15 @@ Other values are possible, but are not documented.
 \section{Functions and Procedures}
 
 \procedure{AddDisk}{(Const S : String)}
-{\var{AddDisk} adds a filenme \var{S} to the internal list of filenames.
+{\var{AddDisk} adds a filename \var{S} to the internal list of disks. It is
+implemented for \linux only.
  This list is used to determine which disks to use in the \seef{DiskFree}
-and \seef{DiskSize} calls. The names are added sequentially. The dos
+and \seef{DiskSize} calls. 
+
+The \seef{DiskFree} and \seef{DiskSize} functions need a file on the 
+specified drive, since this is required for the \var{statfs} system call.
+
+The names are added sequentially. The dos
 initialization code presets the first three disks to:
 \begin{itemize}
 \item \var{'.'} for the current drive, 
@@ -195,7 +209,7 @@ initialization code presets the first three disks to:
 \end{itemize}
 The first call to \var{AddDisk} will therefore add a name for the second
 harddisk, The second call for the third drive, and so on until 23 drives
-have been added (corresponding to \var{'D:'} to \var{'Z:'})
+have been added (corresponding to drives \var{'D:'} to \var{'Z:'})
 }{None}{\seef{DiskFree}, \seef{DiskSize} }
 
 \function{DiskFree}{(Drive: byte)}{longint}{
@@ -208,9 +222,10 @@ Typically, the free space is the size of a disk block, multiplied by the
 number of free blocks on the disk.
 
 \textbf{For \linux only:}\\
-The \var{diskfree} and \var{disksize} functions need a file on the specified drive, since this
-is required for the \var{statfs} system call.
-  These filenames are set in the initialization of the dos unit, and have 
+The \var{diskfree} and \var{disksize} functions need a file on the 
+specified drive, since this is required for the \var{statfs} system call.
+
+These filenames are set in the initialization of the dos unit, and have 
 been preset to :
 \begin{itemize}
 \item \var{'.'} for the current drive, 
@@ -223,7 +238,7 @@ There is room for 1-26 drives. You can add a drive with the
 
 These settings can be coded in \var{dos.pp}, in the initialization part.
 }{-1 when a failure occurs, or an invalid \var{drivenr} is given.}  
-{\seef{DiskSize}}
+{\seef{DiskSize}, \seep{AddDisk}}
 
 \input{dosex/ex6.tex}
 
@@ -249,7 +264,7 @@ There is room for 1-26 drives. You can add a drive with the
 
 These settings can be coded in \var{dos.pp}, in the initialization part.
 }{-1 when a failure occurs, or an invalid drive number is given.}  
-{\seef{DiskFree}}
+{\seef{DiskFree}, \seep{AddDisk}}
 
 For an example, see \seef{DiskFree}.
 

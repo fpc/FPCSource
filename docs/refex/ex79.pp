@@ -1,4 +1,4 @@
-program example79
+program example79;
 
 { Program to demonstrate the setjmp, longjmp functions }
 

@@ -27,6 +27,9 @@
 \usepackage{html}
 \latex{\usepackage{fpc}}
 \html{\input{fpc-html.tex}}
+\usepackage{fancyheadings}
+\pagestyle{fancy}
+\renewcommand{\chaptermark}[1]{\markboth{#1}{}}
 \makeindex
 %
 % start of document.
@@ -123,14 +126,16 @@ The true Turbo Pascal compatible types are listed in
  \begin{FPCltable}{lccr}{Supported Real types}{Reals}
 Type & Range & Significant digits & Size\footnote{In Turbo Pascal.} \\ \hline
 Single & 1.5E-45 .. 3.4E38 & 7-8 & 4 \\
+Real & 5.0E-324 .. 1.7E308 & 15-16 & 8 \\
 Double & 5.0E-324 .. 1.7E308 & 15-16 & 8 \\
 Extended & 1.9E-4951 .. 1.1E4932 & 19-20 & 10\\
-%Comp\footnote{\var{Comp} only holds integer values.} & -2E64+1 .. 2E63-1 & 19-20 & 8  \\
+Comp\footnote{\var{Comp} only holds integer values.} & -2E64+1 .. 2E63-1 & 19-20 & 8  \\
 \end{FPCltable}
 
 Until version 0.9.1 of the compiler, all the real types are mapped to type
 \var{Double}, meaning that they all have size 8. The \seef{SizeOf} function
-is your friend here.
+is your friend here. The \var{Real} type of turbo pascal is automatically
+mappe to Double.
 
 \subsection{Character types}
 \subsubsection{Char}
@@ -355,7 +360,22 @@ begin
 end.
 \end{verbatim}
 \end{CodEx}
-\fpc doesn't support pointer arithmetic as C does, however.
+\fpc supports pointer arithmetic as C does. This means that, if \var{P} is a
+typed pointer, the instructions
+\begin{verbatim}
+Inc(P);
+Dec(P);
+\end{verbatim}
+Will increase, respecively descrease the address the pointer points to
+with the size of the type \var{P} is a pointer to. For example
+\begin{verbatim}
+Var P : ^Longint;
+
+...
+
+ Inc (p);
+\end{verbatim}
+will increase \var{P} with 4.
 
 \subsection{Procedural types}
 \fpc has support for procedural types, although it differs from the Turbo
@@ -384,7 +404,29 @@ Func:=@Pi;
 \end{verbatim}
 From this example, the difference with Turbo Pascal is clear: In Turbo
 Pascal it isn't necessary to use the address operator (\var{@}) 
-when assigning a procedural type variable, whereas in \fpc it is required.
+when assigning a procedural type variable, whereas in \fpc it is required
+(unless you use the \var{-So} switch)
+
+Remark that the modifiers concerning the calling conventions (\var{cdecl},
+\var{pascal}, \var{stdcall} and \var{popstack} stick to the declaration;
+i.e. the following code would give an error:
+\begin{verbatim}
+Type TOneArgCcall = Procedure (Var X : integer);cdecl;
+
+var proc : TOneArgCcall;
+
+Procedure printit (Var X : Integer);
+
+begin
+  writeln (x);
+end;
+
+begin
+P:=@printit;
+end.
+\end{verbatim}
+Because the \var{TOneArgCcall} type is a procedure that uses the cdecl
+calling convention. 
 
 \subsection{Records}
 
@@ -508,9 +550,10 @@ Intersection & * \\ \hline
 You can compare two sets with the \var{<>} and \var{=} operators, but not
 (yet) with the \var{<} and \var{>} operators. 
 
-From compiler version 0.9.5, the compiler stores small sets (less than 32
+As of compiler version 0.9.5, the compiler stores small sets (less than 32
 elements) in a longint, if the type range allows it. This allows for faster
-processing and decreases program size.
+processing and decreases program size. Otherwise, sets are stored in 32
+bytes.
 
 \subsection{Enumeration types}
 
@@ -533,10 +576,39 @@ Type
 \end{verbatim}
 It is necessary to keep \var{forty} and \var{Thirty} in the correct order.
 
-{\em Remark :} You cannot use the \var{Pred} and \var{Succ} functions on
+{\em Remarks :}
+\begin{enumerate}
+\item You cannot use the \var{Pred} and \var{Succ} functions on
 this kind of enumeration types. If you try to do that, you'll get a compiler
 error.
+\item Enumeration types are by default stored in 4 bytes. You can change
+this behaviour with the \var{\{\$PACKENUM \}} compiler directive, which
+tells the compiler the minimal number of bytes to be used for enumeration
+types.
+For instance
+\begin{verbatim}
 
+Type 
+  LargeEnum = ( BigOne, BigTwo, BigThree );
+{$PACKENUM 1}
+  SmallEnum = ( one, two, three );
+
+Var S : SmallEnum;
+    L : LargeEnum;
+
+begin
+  Writeln ('Small enum : ',Sizeof(S));
+  Writeln ('Large enum : ',SizeOf(L));
+end.
+\end{verbatim}
+will, when run, print the following: 
+\begin{verbatim}
+Small enum : 1
+Large enum : 4
+\end{verbatim}
+\end{enumerate}
+More information can be found in the \progref, in the compiler directives
+section.
 \section{Constants}
 
 Just as in Turbo Pascal, \fpc supports both normal and typed constants.
@@ -613,20 +685,15 @@ Const
 The order of the fields in a constant record needs to be the same as in the type declaration,
 otherwise you'll get a compile-time error.
 
+
 \section{Objects}
 \fpc supports object oriented programming. In fact, part of the compiler is
 written using objects. Here we present some technical questions regarding
 object oriented programming in \fpc.
 
-\fpc supports 2 programming models for object-oriented programming.
-You can choose to program object oriented using the Turbo Pascal approach,
-or you can prefer the Delphi approach.
-
-\subsection{The Turbo Pascal approach}
-In the Turbo Pascal approach, Objects should be treated as a special kind of
-record. The record contains all the fields that are declared in the objects
-definition, and pointers to the methods that are associated to the objects'
-type.
+Objects should be treated as a special kind of record. The record contains 
+all the fields that are declared in the objects definition, and pointers 
+to the methods that are associated to the objects' type.
 
 An object is declared just as you would declare a record; except that you
 can now declare procedures and fuctions as of they were part of the record.
@@ -667,7 +734,25 @@ TObj = Object [(ParentObjectType)]
   end;
 \end{verbatim}
 You can repeat as many \var{private} and \var{public} blocks as you want.
-\var{Method}s are normal function or procedure declarations. 
+\var{Method}s are normal function or procedure declarations. You cannot put
+fields after methods in the same block, i.e. the following will generate an
+error when compiling:
+\begin{verbatim}
+Type MyObj = Object
+       Procedure Doit;
+       Field : Longint;
+     end; 
+\end{verbatim}
+But the following will be accepted:
+\begin{verbatim}
+Type MyObj = Object
+      Public
+       Procedure Doit;
+      Private
+       Field : Longint;
+     end; 
+\end{verbatim}
+because the field is in a different section.
 
 As can be seen in the prototype object declaration, \fpc supports
 constructors and destructors. You are responsible for calling the 
@@ -731,11 +816,17 @@ Var PP : Pobj;
 \end{verbatim}  
 Similarly, the \var{\{\$PACKRECORDS \}} directive acts on objects as well.
 
-\subsection{The Delphi approach}
+\section{Classes}
 In the Delphi approach to Object Oriented Programming, everything revolves
-around  the concept of 'Classes'. 
-A class can be seen as a pointer to an object, or a pointer to a record. 
+around  the concept of 'Classes'.  A class can be seen as a pointer to an 
+object, or a pointer to a record. 
 
+In order to use objects, it is necessary to put the \file{objpas} unit in the
+uses clause of your unit or program. This unit contains the basic
+definitions of \var{TObject} and \var{TClass}, as well as some auxiliary
+methods for using classes.
+
+\subsection{Class definitions}
 The prototype declaration of a class is as follows :
 \begin{verbatim}
 TObj = Class [(ParentClassType)]
@@ -752,15 +843,38 @@ TObj = Class [(ParentClassType)]
   PrFieldn : PrTypen;
   PrMethod1;
   ...
-  PrMethodn;]
+  PrMethodn;
+  ]
+  [protected
+  PuField1 : PuType1;
+  ..
+  Pufield1 : PuTypen;
+  PuMethod1;
+  ...
+  PuMethodn;
+  Property1;
+  ...
+  Propertyn;
   [public
   PuField1 : PuType1;
   ..
   Pufield1 : PuTypen;
   PuMethod1;
   ...
-  PuMethodn;]
-  end;
+  PuMethodn;
+  Property1;
+  ...
+  Propertyn;]
+  [published
+  PuField1 : PuType1;
+  ..
+  Pufield1 : PuTypen;
+  PuMethod1;
+  ...
+  PuMethodn;
+  Property1;
+  ...
+  Propertyn;]
 \end{verbatim}
 You can repeat as many \var{private} and \var{public} blocks as you want.
 \var{Method}s are normal function or procedure declarations. 
@@ -769,7 +883,23 @@ As you can see, the declaration of a class is almost identical to the
 declaration of an object. The real difference between objects and classes
 is in the way they are created;
 
-Classes must be created using their constructor. Remember that A class is a
+The visibility of the different sections is as follows:
+\begin{description}
+\item [Private\ ] All fields and methods that are in a \var{private} block, can 
+only be accessed in the module (i.e. unit) that contains the class definition.
+They can be accessed from inside the classes' methods or from outside them
+(e.g. from other classes' methods)
+\item [Protected\ ] Is the same as \var{Private}, except that the members of
+a \var{Protected section} are also accessible to descendent types, even if
+they are implemented in other modules.
+\item [Public\ ] sections are always accessible.
+\item [Published\ ] Is the same as a \var{Public} section, but the compiler
+generates also type information that is needed for automatic streaming of
+these classes. Fields defined in a \var{published} section must be of class type.
+Array peroperties cannot be in a \var{published} section.
+\end{description}
+
+Classes must be created using their constructor. Remember that a class is a
 pointer to an object, so when you declare a variable of some class, the
 compiler just allocates a pointer, not the entire object. The constructor of
 a class returns a pointer to an initialized instance of the object.
@@ -781,7 +911,6 @@ So, to initialize an instance of some class, you do the following :
 
 {\em Remark :}
 \begin{itemize}
-\item \fpc doesn't support the concept of properties yet.
 \item The \var{\{\$Packrecords \}} directive also affects classes.
 i.e. the alignment in memory of the different fields depends on the
 value of  the \var{\{\$Packrecords \}} directive.
@@ -789,6 +918,139 @@ value of  the \var{\{\$Packrecords \}} directive.
 This has the same effect as on an object, or record, namely that the
 elements are aligned on 1-byte boundaries. i.e. as close as possible.
 \end{itemize}
+
+\subsection{Properties}
+
+Classes can contain properties as part of their fields list. A property
+acts like a normal field, i.e. you can get or set it's value, but allows to redirect the access of the field through
+functions and procedures. Moreover, properties can be read-only.
+
+the prototype declaration of a property is
+\begin{verbatim}
+property Name : Type [Read ReadSpecifier [write WriteSpecifier]];
+\end{verbatim}
+A \var{ReadSpecifier} is either the name of a field that contains the
+property, or the name of a method function that has the same return type as 
+the property type. In the case of a simple type, this
+function must not accept an argument.
+
+A \var{WriteSpecifier} is optional: If there is no write specifier, the
+property is read-only. A write specifier is either the name of a field, or
+the name of a method procedure that accepts as a sole argument a variable of
+the same type as the property. You cannot specify only a write specifier.
+
+The section (\var{private}, \var{published} in which the specified function or 
+procedure resides is irrelevant. Usually, however, this will be a protected
+or private method.
+
+Example:
+Given the following declaration:
+\begin{verbatim}
+Type
+  MyClass = Class
+    Private
+    Field1 : Longint;
+    Field2 : Longint;
+    Field3 : Longint;
+    Procedure  Sety (value : Longint);
+    Function Gety : Longint; 
+    Function Getz : Longint;
+    Public
+    Property X : Longint Read Field1 write Field2;
+    Property Y : Longint Read GetY Write Sety;
+    Property Z : Longint Read GetZ;
+    end;
+
+Var MyClass : TMyClass; 
+\end{verbatim}
+The following are valid statements:
+\begin{verbatim}
+Writeln ('X : ',MyClass.X);
+Writeln ('Y : ',MyClass.Y);
+Writeln ('Z : ',MyClass.Z);
+MyClass.X:=0;
+MyClass.Y:=0;
+\end{verbatim}
+But the following would generate an error:
+\begin{verbatim}
+MyClass.Z:=0;
+\end{verbatim}
+because Z is a read-only property.
+
+What happens in the above statements is that when a value needs to be read,
+the compiler inserts a call to the various \var{getNNN} methods of the
+object, and the result of this call is used. When an assignment is made, 
+the compiler passes the value that must be assigned as a paramater to 
+the various \var{setNNN} methods.
+
+Because of this mechanism, properties cannot be passed as var arguments to a
+function or procedure, since there is no known address of the property (at
+least, not always).
+
+You can also have array properties. These are properties that accept an
+index, just as an array. Only now the index doesn't have to be an ordinal
+type, but can be any type. An array Property is defined as follows:
+\begin{verbatim}
+property Name[Index : IndexType]: Type [Read ReadSpecifier [write WriteSpecifier]];
+\end{verbatim}
+A \var{ReadSpecifier} is the name method function that has the same return 
+type as  the property type. The function must accept as a sole arguent a
+variable of the same type as the index type. You cannot specify fields as
+arrar types.
+
+A \var{WriteSpecifier} is optional: If there is no write specifier, the
+property is read-only. A write specifier is the name of a method procedure 
+that accepts two arguments: The first argument has the same type as the
+index, and the second argument is a variable of the same type as the
+property type. You cannot specify only a write specifier.
+
+As an example, see the following declaration:
+\begin{verbatim}
+Type TIntList = Class
+      Private
+      Function GetInt (I : Longint);
+      Function GetAsString (A : String) : String;
+      Procedure SetInt (I : Longint; Value : longint;);
+      Procedure SetAsString (A : String; Value : String);
+      Public
+      Property Items [i : Longint] : Longint Read GetInt Write SetInt;
+      Property StrItems [S : String] : String Read GetAsString Write SetAsstring;
+      end;
+
+Var AIntList : TIntList;
+\end{verbatim}
+Then the following statements would be valid:
+\begin{verbatim}
+AIntList.Items[26]:=1;
+AIntList.StrItems['twenty-five']:='zero';
+
+Writeln ('Item 26 : ',AIntList.Items[26]);
+Writeln ('Item 25 : ',AIntList.StrItems['twenty-five']);
+\end{verbatim}
+While the following statements would generate errors:
+\begin{verbatim}
+AIntList.Items['twenty-five']:=1;
+AIntList.StrItems[26]:='zero';
+\end{verbatim}
+Because the index types are wrong.
+
+Array properties can be declared as \var{default} properties. This means that
+it is not necessary to specifiy the property name when assigning or readin
+it. If, in the previous example, the definition of the items property would 
+have been
+\begin{verbatim}
+ Property Items [i : Longint] : Longint Read GetInt Write SetInt; Default;
+\end{verbatim}
+Then the assignment
+\begin{verbatim}
+AIntList.Items[26]:=1;
+\end{verbatim}
+Would be equivalent to the following abbreviation.
+\begin{verbatim}
+AIntList[26]:=1;
+\end{verbatim}
+You can have only one default property per class, and descendent classes
+cannot redeclare the default property.
 
 \section{Statements controlling program flow.}
 
@@ -847,30 +1109,6 @@ end;
 The compiler will generate a \var{Duplicate case label} error when compiling
 this, because the 3 also appears (implicitly) in the range \var{1..5}
 
-{\em Remark:} In versions earlier than 0.9.7, there was an incompatibility here 
-with Turbo Pascal. Where in Turbo Pascal you could do the following:
-\begin{verbatim}
-case Pivot of
-  ...
-Else
-  begin
-  Statement1
-  Statement2
-  end;
-\end{verbatim}
-You needed to do the following in \fpc :
-\begin{verbatim}
-case Pivot of
-  ...
-Else
-  begin
-  Statement1
-  Statement2
-  end;
-end;
-\end{verbatim}
-So there's an extra \var{end} keyword at the end. But from version 0.9.7
-this has been fixed.
 \subsection{The \var{For..to/downto..do} statement}
 \fpc supports the \var{For} loop construction. The prototypes are:
 \begin{verbatim}
@@ -882,7 +1120,12 @@ For Counter:=Upperbound downto Lowerbound Do Statement;
 \end{verbatim}
 \var{Statement} can be a compound statement. In the first case, if
 \var{Lowerbound} is larger than \var{Upperbound} then \var{Statement} will
-never be executed.
+never be executed. \var{Counter} must be an ordinal type, no other types can
+be used as counters in a loop.
+
+{\em Remark:} Contrary to ANSI pascal specifications, \fpc first initializes
+the counter variable, and only then calculates the upper bound.
+
 \subsection{The \var{Goto} statement}
 \fpc supports the \var{goto} jump statement. Its prototype is
 \begin{verbatim}
@@ -986,6 +1229,159 @@ Compound statements are a group of statements, separated by semicolons,
 that are surrounded by the keywords \var{Begin} and \var{End}. The
 Last statement doesn't need to be followed by a semicolon, although it is
 allowed.
+
+\subsection{Exceptions}
+
+As of version 0.99.7, \fpc supports exceptions. Exceptions provide a
+convenient way to program error and error-recovery mechanisms, and are
+closely related to classes. 
+
+Exception support is based on 3 constructs:
+\begin{description}
+\item [Raise\ ] statements. To raise an exeption. This is usually done to signal an
+error condition.
+\item [Try ... Except\ ] blocks. These block serve to catch exceptions
+raised within the scope of the block, and to provide exception-recovery 
+code.
+\item [Try ... Finally\ ] blocks. These block serve to force code to be
+executed irrespective of an exception occurrence or not. They generally
+serve to clean up memory or close files in case an exception occurs. 
+code.
+\end{description}
+
+The \var{raise} statement is as follows:
+\begin{verbatim}
+  Raise [ExceptionInstance [at Address]];
+\end{verbatim}
+This statement will raise an exception. If specified, \var{ExceptionInstance} 
+must be an initialized instance of a class, which is the raise type. If
+specified, \var{Address} must be an expression that returns an address.
+
+If \var{ExceptionInstance} is omitted, then the Current exception is
+re-raised. This construct can only be used in an exception handling
+block.
+
+As an example: The following division checks whether the denominator is
+zero, and if so, raises an exception of type \var{EDivException}
+\begin{verbatim}
+Type EDivException = Class(Exception);
+
+Function DoDiv (X,Y : Longint) : Integer;
+
+begin
+  If Y=0 then 
+    Raise EDivException.Create ('Division by Zero would occur');
+  Result:=X Div Y;
+end;
+\end{verbatim}
+The class \var{Exception} is defined in the \file{Sysutils} unit of the rtl.
+
+An exception handling block is of the following form :
+\begin{verbatim}
+  Try
+    ...Statement List...
+  Except
+    [On [E:] ExceptionClass do CompoundStatement;] 
+    [ Default exception handler]
+  end;
+\end{verbatim}
+If an exception occurs during the execution of the \var{statement list}, the
+program flow fill be transferred to the except block. There, the type of the
+exception is checked, and if there is a \var{On ExcType} statement where
+\var{ExcType} matches the exception object type, or is a parent type of
+the exception object type, then the statements follwing the corresponding 
+\var{Do} will be executed. The first matching type is used. After the
+\var{Do} block was executed, the program continues after the \var{End}
+statement.
+
+The identifier \var{E} is optional, and declares an exception object. It
+can be used to manipulate the exception object in the exception handling 
+code. The scope of this declaration is the statement block foillowing the
+\var{Do} keyword.
+
+If none of the \var{On} handlers matches the exception object type, then the
+\var{Default exception handler} is executed. If no such default handler is 
+found, then the exception is automatically re-raised. This process allows
+to nest \var{try...except} blocks.
+
+As an example, given the previous declaration of the \var{DoDiv} function,
+consider the following
+\begin{verbatim}
+Try
+  Z:=DoDiv (X,Y);
+Except
+  On EDivException do Z:=0;
+end;
+\end{verbatim}
+If \var{Y} happens to be zero, then the DoDiv function code will raise an
+exception. When this happens, program flow is transferred to the except
+statement, where the Exception handler will set the value of \var{Z} to
+zero. If no exception is raised, then program flow continues past the last
+\var{end} statement.
+
+To allow error recovery, the \var{Try ... Finally} block is supported.
+A \var{Try...Finally} block ensures that the statements following the
+\var{Finally} keyword are guaranteed to be executed, even if an exception
+occurs.
+
+A \var{Try..Finally} block has the following form:
+
+\begin{verbatim}
+  Try
+    ...Statement List...
+  Finally
+    [ Finally Statements ]
+  end;
+\end{verbatim}
+If no exception occurs inside the \var{Statement List}, then the program
+runs as if the \var{Try}, \var{Finally} and \var{End} keywords were not
+present.
+
+If, however, an exception occurs, the program flow is immediatly
+transferred to the first statement of the \var{Finally statements}. 
+All statements of the \var{Finally Statements} will be executed, and then
+the exception will be automatically re-raised. Any statements between the
+place where the exception was raised and the first statement of the
+\var{Finally Statements} are skipped.
+
+As an example consider the following routine:
+
+\begin{verbatim}
+Procedure Doit (Name : string);
+
+Var F : Text;
+
+begin
+  Try
+    Assign (F,Name);
+    Rewrite (name);
+
+    ... File handling ...
+
+  Finally
+    Close(F);
+  end;  
+\end{verbatim}
+If during the execution of the file handling an excption occurs, then
+program flow will continue at the \var{close(F)} statement, skipping any
+file operations that might follow between the place where the exception
+was raised, and the \var{Close} statement.
+
+If no exception occurred, all file operations will be executed, and the file
+will be closed at the end.
+
+It is possible to nest \var{Try...Except} blocks with \var{Try...Finally}
+blocks. Program flow will be done according to a \var{lifo} (last in, first
+out) principle: The code of the last encountered \var{Try...Except} or
+ \var{Try...Finally} block will be executed first. If the exception is not
+caught, or it was a finally statement, program flow will we transferred to
+the last but-one block, {\em ad infinitum}.
+
+If an exception occurs, and there is no exception handler present, then a
+runerror 217 will be generated. If you use the \file{sysutils} unit, a default
+handler is installed which ioll show the exception object message, and the
+address where the exception occurred, after which the program will exit with
+a \var{Halt} instruction.
 
 \section{Using functions and procedures}
 \fpc supports the use of functions and procedures, but with some extras:
@@ -1199,6 +1595,9 @@ an external object file. It allows you to use the function in
 your code, and at linking time, you must link the object file containing the
 implementation of the function or procedure.
 
+It replaces, in effect, the function or procedure code block. As such, it
+can be present only in an implementation block of a unit, or in a program. 
+
 As an example:
 \begin{CodEx}
 \begin{verbatim}
@@ -1354,7 +1753,7 @@ listed in \seet{Modifs}.
 Modifier & Why not supported ? \\ \hline
 Near & \fpc is a 32-bit compiler.\\
 Far & \fpc is a 32-bit compiler. \\
-External & Replaced by \var{C} modifier. \\ \hline
+%External & Replaced by \var{C} modifier. \\ \hline
 \end{FPCltable}
 
 %

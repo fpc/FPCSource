@@ -45,16 +45,16 @@ TGlob = record
 The following types are used in the signal-processing procedures.
 \begin{verbatim}
 {$Packrecords 1}
-SignalHandler   = Procedure ( Sig : Integer);
+SignalHandler   = Procedure ( Sig : Integer);cdecl;
 PSignalHandler  = SignalHandler;
-SignalRestorer  = Procedure;
+SignalRestorer  = Procedure;cdecl;
 PSignalrestorer = SignalRestorer;
 
 SigActionRec = Record
-  Sa_Handler  : PSignalhandler;
+  Sa_Handler  : Signalhandler;
   Sa_Mask     : Longint;
   Sa_flags    : Integer;
-  Sa_Restorer : PSignalRestorer;
+  Sa_Restorer : SignalRestorer;
 end;
 PSigActionRec = ^SigActionRec;
 \end{verbatim}
@@ -1782,7 +1782,7 @@ given in \var{Mask}, and then suspends the process until a signal is received.
 {\seep{SigAction}, \seep{SigProcMask}, \seef{SigPending}, \seef{Signal},
 \seef{Kill}, \seem{SigSuspend}{2} }
 
-\function{Signal}{(SigNum : Integer; Handler : PSignalHandler)}{PSignalHandler}
+\function{Signal}{(SigNum : Integer; Handler : SignalHandler)}{SignalHandler}
 {
 Signal installs a new signal handler for signal \var{SigNum}. This call has
 the same functionality as the \textbf{SigAction} call.
@@ -1795,6 +1795,8 @@ The return value for Signal is the old signal handler, or nil on error.
 \end{description}
 }
 {\seep{SigAction},\seef{Kill}, \seem{Signal}{2} }
+
+\input{linuxex/ex58.tex}
 
 \function{SymLink}{(OldPath,NewPath : pathstr)}{Boolean}
 {\var{SymLink} makes \var{Newpath} point to the file in \var{OldPath}, which doesn't

@@ -151,7 +151,7 @@ Not implemented on \linux.}
 
 \procedure{Delay}{(DTime: Word)}
 {Delay waits a specified number of milliseconds. The number of specified
-seconds is a approximation, and may be off a lot, if system load is high.}
+seconds is an approximation, and may be off a lot, if system load is high.}
 {None}{\seep{Sound}, \seep{NoSound}}
 
 \input{crtex/ex15.tex}
@@ -194,7 +194,7 @@ The cursor doesn't move.}
 \Function {KeyPressed}{Boolean}
 { The Keypressed function scans the keyboard buffer and sees if a key has
 been pressed. If this is the case, \var{True} is returned. If not,
-\var{False} is returned. The \var{Shift, Alt, Ctrl} are not reported.
+\var{False} is returned. The \var{Shift, Alt, Ctrl} keys are not reported.
 The key is not removed from the buffer, and can hence still be read after
 the KeyPressed function has been called.
 }

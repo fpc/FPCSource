@@ -98,6 +98,47 @@ compiler's behaviour from the moment they're encountered until the moment
 another switch annihilates their behaviour, or the end of the unit or
 program is reached.
 
+\subsection{\var{\$A} or \var{\$ALIGN}: Align Data}
+
+This switch is recognized for Turbo Pascal Compatibility, but is not
+yet implemented. The alignment of data will be different in any case, since
+\fpc is a 32-bit compiler.
+
+\subsection{\var{\$ASMMODE} : Assembler mode}
+\label{se:AsmReader}
+
+The \var{\{\$ASMMODE XXX} directive informs the compiler what kind of assembler 
+it can expect in an \var{asm} block. The \var{XXX} should be replaced by one 
+of the following:
+\begin{description}
+\item [att\ ] Indicates that \var{asm} blocks contain AT\&T syntax assembler.
+\item [intel\ ] Indicates that \var{asm} blocks contain Intel syntax
+assembler.
+\item [direct\ ] Tells the compiler that asm blocks should be copied
+directly to the assembler file.
+\end{description}
+These switches are local, and retain their value to the end of the unit that
+is compiled, unless they are replaced by another directive of the same type.
+The command-line switch that corresponds to this switch is \var{-R}.
+
+\subsection{\var{\$B} or \var{\$BOOLEVAL}: Complete boolean evaluation}
+
+This switch is understood by the \fpc compiler, but is ignored. The compiler
+always uses shortcut evaluation, i.e. the evaluation of a boolean expression
+is stopped once the result of the total exression is known with certainty.
+
+So, in the following example, the function \var{Bofu}, which has a boolean
+result, will never get called.
+\begin{verbatim}
+If False and Bofu then
+  ...
+\end{verbatim}
+
+\subsection{\var{\$C} or \var{\$ASSERTIONS} : Assertion support}
+
+This switch is recognised for Delphi compatibility only. Assertions are not
+yet supported by the compiler, but will be implemented in the future.
+
 \subsection{\var{\$DEFINE} : Define a symbol}
 
 The directive
@@ -364,20 +405,9 @@ an environment variable. It's value will be fetched.
 
 % Assembler type
 \subsection{\var{\$I386\_XXX} : Specify assembler format}
-This switch can only be used in the i386 assembler.
 
-This switch informs the compiler what kind of assembler it can expect in an
-\var{asm} block. The \var{XXX} should be replaced by one of the following:
-\begin{description}
-\item [att\ ] Indicates that \var{asm} blocks contain AT\&T syntax assembler.
-\item [intel\ ] Indicates that \var{asm} blocks contain Intel syntax
-assembler.
-\item [direct\ ] Tells the compiler that asm blocks should be copied
-directly to the assembler file.
-\end{description}
-These switches are local, and retain their value to the end of the unit that
-is compiled, unless they are replaced by another directive of the same type.
-The command-line switch that corresponds to this switch is \var{-R}.
+This switch selects the assembler reader. \var{\{\$I386\_XXX\}}
+has the same effect as \var{\{\$ASMMODE XXX\}}, \sees{AsmReader}
 
 \subsection{\var{\$L} or \var{\$LINK} : Link object file}
 The \var{\{\$L filename\}} or \var{\{\$LINK filename\}} directive 
@@ -445,6 +475,17 @@ ppc386 -k-lc foo.pp
 
 This switch is recognized for Delphi compatibility only since the generation
 of type information isn't fully implemented yet.
+
+\subsection{\var{\$MESSAGE} : Generate info message}
+
+If the generation of info is turned on, through the \var{-vi} command-line
+option, then 
+\begin{verbatim}
+{$MESSAGE This was coded on a rainy day by Bugs Bunny }
+\end{verbatim}
+will display an info message when the compiler encounters it. The effect is
+the same as the \var{\{\$INFO\}} directive.
+
  
 \subsection{\var{\$MMX} : Intel MMX support}
 As of version 0.9.8, \fpc supports optimization for the \textbf{MMX} Intel
@@ -558,6 +599,9 @@ Type
           saturday, sunday);
 \end{verbatim}
 
+{\em Remark:}
+Sets are always put in 32 bit or 32 bytes, this cannot be changed
+
 \subsection{\var{\$PACKRECORDS} : Alignment of record elements}
 
 This directive controls the byte alignment of the elements in a record,
@@ -578,6 +622,49 @@ contrary to Turbo Pascal, where it is 1.
 More information of this can be found in the reference guide, in the section
 about record types.
 
+{\em Remark:}
+Sets are always put in 32 bit or 32 bytes, this cannot be changed
+
+\subsection{\var{\$Q} \var{\$OVERFLOWCHECKS}: Overflow checking}
+The \var{\{\$Q+\}} or \var{\{\$OVERFLOWCHECKS ON\}} directive turns on 
+integer overflow checking. This means that the compiler inserts code 
+to check for overflow when doing computations with integers.
+When an overflow occurs, the run-time library will print a message
+\var{Overflow at xxx}, and exit the program with exit code 215.
+
+\emph{ Remark: } Overflow checking behaviour is not the same as in
+Turbo Pascal since all arithmetic operations are done via 32-bit
+values. Furthermore, the Inc() and Dec() standard system procedures
+\emph{ are } checked for overflow in \fpc, while in Turbo Pascal they
+are not.
+
+Using the \var{\{\$Q-\}} switch switches off the overflow checking code
+generation.
+
+The generation of overflow checking code can also be controlled
+using the \var{-Co} command line compiler option (see \userref).
+
+\subsection{\var{\$R} or \var{\$RANGECHECKS} : Range checking}
+By default, the computer doesn't generate code to check the ranges of array
+indices, enumeration types, subrange types, etc. Specifying the
+\var{\{\$R+\}} switch tells the computer to generate code to check these
+indices. If, at run-time, an index or enumeration type is specified that is
+out of the declared range of the compiler, then a run-time error is
+generated, and the program exits with exit code 201.
+
+The \var{\{\$RANGECHECKS OFF\}} switch tells the compiler not to generate range checking
+code. This may result in faulty program behaviour, but no run-time errors
+will be generated.
+
+{\em Remark: } Range checking for sets and enumerations are not yet fully
+implemented.
+
+\subsection{\var{\$SATURATION} : Saturation operations}
+This works only on the intel compiler, and MMX support must be on
+(\var{\{\$MMX +\}}) for this to have any effect. See the section on
+saturation support (\sees{SaturationSupport}) for more information 
+on the effect of this directive.
+
 \subsection{\var{\$STOP} : Generate fatal error message}
 
 The following code
@@ -589,6 +676,13 @@ The compiler will immediatly stop the compilation process.
 
 It has the same effect as the \var{\{\$FATAL\}} directive.
 
+\subsection{\var{\$T} or \var{\$TYPEDADDRESS} : Typed address operator (@)}
+
+In the \var{\{\$T+\}} or \var{\{\$TYPEDADDRESS ON\}} state the @ operator,
+when applied to a variable, returns a result of type \var{\^{}T}, if the 
+type of the variable is \var{T}. In the \var{\{\$T-\}} state, the result is
+always an untyped pointer, which is assignment compatible with all other 
+pointer types.
 
 \subsection{\var{\$UNDEF} : Undefine a symbol}
 
@@ -637,6 +731,33 @@ will display a warning message when the compiler encounters it.
 Contrary to the command-line option \var{-vw} this
 is a local switch, this is useful for checking parts of your code.
 
+\subsection{\var{\$X} or \var{\$EXTENDEDSYNTAX} : Extended syntax}
+Extended syntax allows you to drop the result of a function. This means that
+you can use a function call as if it were a procedure. Standard this feature
+is on. You can switch it off using the \var{\{\$X-\}} or
+\var{\{\$EXTENDEDSYNTAX OFF\}}directive.
+
+The following, for instance, will not compile :
+\begin{verbatim}
+function Func (var Arg : sometype) : longint;
+begin
+...          { declaration of Func }
+end;
+
+...
+
+{$X-}
+Func (A);
+\end{verbatim}
+The reason this construct is supported is that you may wish to call a
+function for certain side-effects it has, but you don't need the function
+result. In this case you don't need to assign the function result, saving
+you an extra variable.
+
+The command-line compiler switch \var{-Sa1} has the same effect as the
+\var{\{\$X+\}} directive.
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Global switches
 \section{Global directives}
@@ -644,25 +765,6 @@ is a local switch, this is useful for checking parts of your code.
 Global directives affect the whole of the compilation process. That is why
 they also have a command - line counterpart. The command-line counterpart is
 given for each of the directives.
-
-\subsection{\var{\$A} or \var{\$ALIGN}: Align Data}
-
-This switch is recognized for Turbo Pascal Compatibility, but is not
-yet implemented. The alignment of data will be different in any case, since
-\fpc is a 32-bit compiler.
-
-\subsection{\var{\$B} or \var{\$BOOLEVAL}: Complete boolean evaluation}
-
-This switch is understood by the \fpc compiler, but is ignored. The compiler
-always uses shortcut evaluation, i.e. the evaluation of a boolean expression
-is stopped once the result of the total exression is known with certainty.
-
-So, in the following example, the function \var{Bofu}, which has a boolean
-result, will never get called.
-\begin{verbatim}
-If False and Bofu then
-  ...
-\end{verbatim}
 
 \subsection{\var{\$D} or \var{\$DEBUGINFO}: Debugging symbols}
 
@@ -685,7 +787,8 @@ a warning.
 The compiler itself doesn't do the emulation of the coprocessor.
 
 To use coprocessor emulation under \dos go32v1 there is nothing special
-required, as it is handled automatically.
+required, as it is handled automatically. (As of version 0.99.10, the 
+go32v1 platform will no longer be supported)
 
 To use coprocessor emulation under \dos go32v2 you must use the
 emu387 unit, which contains correct initialization code for the
@@ -739,40 +842,6 @@ mathematics.
 This switch is recognised for Turbo Pascal compatibility, but is otherwise
 ignored.
 
-\subsection{\var{\$Q} \var{\$OVERFLOWCHECKS}: Overflow checking}
-The \var{\{\$Q+\}} or \var{\{\$OVERFLOWCHECKS ON\}} directive turns on 
-integer overflow checking. This means that the compiler inserts code 
-to check for overflow when doing computations with integers.
-When an overflow occurs, the run-time library will print a message
-\var{Overflow at xxx}, and exit the program with exit code 215.
-
-\emph{ Remark: } Overflow checking behaviour is not the same as in
-Turbo Pascal since all arithmetic operations are done via 32-bit
-values. Furthermore, the Inc() and Dec() standard system procedures
-\emph{ are } checked for overflow in \fpc, while in Turbo Pascal they
-are not.
-
-Using the \var{\{\$Q-\}} switch switches off the overflow checking code
-generation.
-
-The generation of overflow checking code can also be controlled
-using the \var{-Co} command line compiler option (see \userref).
-
-\subsection{\var{\$R} or \var{\$RANGECHECKS} : Range checking}
-By default, the computer doesn't generate code to check the ranges of array
-indices, enumeration types, subrange types, etc. Specifying the
-\var{\{\$R+\}} switch tells the computer to generate code to check these
-indices. If, at run-time, an index or enumeration type is specified that is
-out of the declared range of the compiler, then a run-time error is
-generated, and the program exits with exit code 201.
-
-The \var{\{\$RANGECHECKS OFF\}} switch tells the compiler not to generate range checking
-code. This may result in faulty program behaviour, but no run-time errors
-will be generated.
-
-{\em Remark: } Range checking for sets and enumerations are not yet fully
-implemented.
-
 \subsection{\var{\$S} : Stack checking}
 The \var{\{\$S+\}} directive tells the compiler to generate stack checking
 code. This generates code to check if a stack overflow occurred, i.e. to see
@@ -785,39 +854,23 @@ Specifying \var{\{\$S-\}} will turn generation of stack-checking code off.
 The command-line compiler switch \var{-Ct} has the same effect as the
 \var{\{\$S+\}} directive.
 
-\subsection{\var{\$T} or \var{\$TYPEDADDRESS} : Typed address operator (@)}
 
-In the \var{\{\$T+\}} or \var{\{\$TYPEDADDRESS ON\}} state the @ operator,
-when applied to a variable, returns a result of type \var{\^{}T}, if the 
-type of the variable is \var{T}. In the \var{\{\$T-\}} state, the result is
-always an untyped pointer, which is assignment compatible with all other 
-pointer types.
+\subsection{\var{\$W} or \var{\$STACKFRAMES} : Generate stackframes}
 
-\subsection{\var{\$X} or \var{\$EXTENDEDSYNTAX} : Extended syntax}
-Extended syntax allows you to drop the result of a function. This means that
-you can use a function call as if it were a procedure. Standard this feature
-is on. You can switch it off using the \var{\{\$X-\}} or
-\var{\{\$EXTENDEDSYNTAX OFF\}}directive.
+The \var{\{\$W\}} switch directove controls the generation of stackframes.
+In the on state (\var{\{\$STACKFRAMES ON\}}), the compiler will generate a
+stackframe for every procedure or function.
 
-The following, for instance, will not compile :
-\begin{verbatim}
-function Func (var Arg : sometype) : longint;
-begin
-...          { declaration of Func }
-end;
-
-...
-
-{$X-}
-Func (A);
-\end{verbatim}
-The reason this construct is supported is that you may wish to call a
-function for certain side-effects it has, but you don't need the function
-result. In this case you don't need to assign the function result, saving
-you an extra variable.
-
-The command-line compiler switch \var{-Sa1} has the same effect as the
-\var{\{\$X+\}} directive.
+In the off state, the compiler will omit the generation of a stackframe if
+the following conditions are satisfied:
+\begin{itemize}
+\item The procedure has no parameters.
+\item The procedure has no local variables.
+\item If the procedure is not an \var{assembler} procedure, it must not have
+a \var{asm ... end;} block.
+\item it is not a constuctor or desctructor.
+\end{itemize}
+If these conditions are satisfied, the stack frame will be omitted.
 
 \subsection{\var{\$Y} or \var{\$REFERENCEINFO} : Insert Browser information}
 
@@ -1524,7 +1577,6 @@ More about this can be found in \seec{Linking} on linking.
 
 
 \subsection{ Ix86 calling conventions }
-
 Standard entry code for procedures and functions is as follows on the
 x86 architecture:
 \begin{verbatim}
@@ -1541,7 +1593,7 @@ The generated exit sequence for procedure and functions looks as follows:
 Where \var{xx} is the total size of the pushed parameters.
 
 To have more information on function return values take a look at the
-\seec{RegConvs} section.
+\sees{RegConvs} section.
 
 
 \subsection{ M680x0 calling conventions }
@@ -1564,7 +1616,7 @@ The generated exit sequence for procedure and functions looks as follows:
 Where \var{xx} is the total size of the pushed parameters.
 
 To have more information on function return values take a look at the
-\seec{RegConvs} section.
+\sees{RegConvs} section.
 
 
 
@@ -1634,9 +1686,7 @@ However, there are times that you want to C libraries, or to external
 object files that are generated using a C compiler (or even another pascal
 compiler). The \fpc compiler can generate calls to a C function,
 and can generate functions that can be called from C (exported functions).
-However, these exported functions cannot be called from
-inside Pascal anymore. More on these calling conventions can be found in
-\sees{Calling}.
+More on these calling conventions can be found in \sees{Calling}.
 
 In general, there are 2 things you must do to use a function that resides in
 an external library or object file:
@@ -1646,16 +1696,21 @@ want to use.
 \item You must tell the compiler where the function resides, i.e. in what
 object file or what library, so the compiler can link the necessary code in.
 \end{enumerate}
+The same holds for variables. To access a variable that resides in an
+external object file, you ust declare it, and tell the compiler where to
+find it.
 The following sections attempt to explain how to do this.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Declaring an external function or procedure
-\section{Declaring an external function or procedure}
-\label{se:ExternalDeclaration}
+\section{Using external functions or procedures}
+\label{se:ExternalFunction}
 
 The first step in using external code blocks is declaring the function you
 want to use. \fpc supports Delphi syntax, i.e. you must use the
-\var{external} directive.
+\var{external} directive. The \var{external} directive replaces, in effect,
+the code block of the function. As such, It cannot be used in an interface
+section of a unit, but must always reside in the implementation section.
 
 There exist four variants of the external direcive :
 \begin{enumerate}
@@ -1722,19 +1777,95 @@ This method is equivalent to the following statement:
 \begin{verbatim}
 Procedure ProcName (Args : TPRocArgs); cdecl; external;
 \end{verbatim}
-However, the \var{[ C ]} directive is no longer supoerted as of version
-0.99.5  of \fpc, therefore you should use the
-\var{external} directive, with the \var{cdecl} directive, if needed.
+However, the \var{[ C ]} directive is no longer supported as of version
+0.99.5  of \fpc, therefore you should use the \var{external} directive, 
+with the \var{cdecl} directive, if needed.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Declaring an external variabl
+\section{Using external variables}
+\label{se:ExternalVars}
+
+Some libaries or code blocks have variables which they export. You can access
+these variables much in the same way as external functions. To access an
+external variable, you declare it as follows:
+
+\begin{verbatim}
+Var
+  MyVar : MyType; external name 'varname';
+\end{verbatim}
+The effect of this declaration is twofold:
+\begin{enumerate}
+\item No space is allocated for this variable.
+\item The name of the variable used in the assebler code is \var{varname}.
+This is a case sensitive name, so you must be careful. 
+\end{enumerate}
+The variable will be
+accessible with it's declared name, i.e. \var{MyVar} in this case.
+
+A second possibility is the declaration:
+\begin{verbatim}
+Var
+  varname : MyType; cvar; external;
+\end{verbatim}
+The effect of this declaration is twofold as in the previous case:
+\begin{enumerate}
+\item The \var{external} modifier ensures that no space is allocated for 
+this variable.
+\item The \var{cvar} modifier tells the compiler that the name of the 
+variable used in the assebler code is exactly as specified in the
+declaration. This is a case sensitive name, so you must be careful. 
+\end{enumerate}
+In this case, you access the variable with it's C name, but case
+insensitive. The first possibility allows you to change the name of the 
+external variable for  internal use.
+
+In order to be able to compile such statements, the compiler switch \var{-Sv}
+must be used.
+
+As an example, let's look at the following C file (in \file{extvar.c}):
+\begin{verbatim}
+/* 
+Declare a variable, allocate storage 
+*/
+int extvar = 12;
+\end{verbatim}
+And the following program (in \file{extdemo.pp}):
+\begin{verbatim}
+Program ExtDemo;
+
+{$L extvar.o}
+
+Var { Case sensitive declaration !! }
+    extvar : longint; cvar;external;
+    I : longint; external name 'extvar';
+begin
+  { Extvar can be used case insensitive !! }
+  Writeln ('Variable ''extvar'' has value : ',ExtVar);
+  Writeln ('Variable ''I''      has value : ',i);
+end.
+\end{verbatim}
+Compiling the C file, and the pascal program:
+\begin{verbatim}
+gcc -c -o extvar.o extvar.c
+ppc386 -Sv extdemo
+\end{verbatim}
+Will produce a program \file{extdemo} which will print 
+\begin{verbatim}
+Variable 'extvar' has value : 12
+Variable 'I'      has value : 12
+\end{verbatim}
+on your screen.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Linking an object file in your program
 \section{Linking to an object file}
 \label{se:LinkIn}
 
-Having declared the external function that resides in an object file,
+Having declared the external function or variable that resides in an object file,
 you can use it as if it was defined in your own program or unit.
 To produce an executable, you must still link the object file in.
-This can be done with the \var{\{\$L 'file.o'\}} directive.
+This can be done with the \var{\{\$L file.o\}} directive.
 
 This will cause the linker to link in the object file \file{file.o}. On
 \linux systems, this filename is case sensitive. Under \dos, case isn't
@@ -1790,7 +1921,7 @@ end.
 With just two commands, this can be made into a program :
 \begin{verbatim}
 as -o fib.o fib.s
-pp fibo.pp
+ppc386 fibo.pp
 \end{verbatim}
 This example supposes that you have your assembler routine in \file{fib.s},
 and your Pascal program in \file{fibo.pp}.
@@ -1801,16 +1932,19 @@ and your Pascal program in \file{fibo.pp}.
 \label{se:LinkOut}
 
 To link your program to a library, the procedure depends on how you declared
-the external procedure. If you used thediffers a little from the
-procedure when you link in an object file. although the declaration step
-remains the same (see \ref{se:ExternalDeclaration} on how to do that).
+the external procedure. 
+%If you used thediffers a little from the
+%procedure when you link in an object file. although the declaration step
+%remains the same (see \ref{se:ExternalFunction} on how to do that).
 
 In case you used the follwing syntax to declare your procedure:
 \begin{verbatim}
 Procedure ProcName (Args : TPRocArgs); external 'Name';
 \end{verbatim}
 You don't need to take additional steps to link your file in, the compiler
-will do all that is needed for you.
+will do all that is needed for you. On \windowsnt it will link to
+\file{Name.dll}, on \linux your program will be linked to library 
+\file{libname}, which can be a static or dynamic library.
 
 In case you used
 \begin{verbatim}
@@ -1851,7 +1985,7 @@ end.
 \end{verbatim}
 This program can be compiled with :
 \begin{verbatim}
-pp  prlen.pp
+ppc386  prlen.pp
 \end{verbatim}
 Supposing, of course, that the program source resides in \file{prlen.pp}.
 
@@ -1860,29 +1994,55 @@ arguments in C. Pascal doesn't support this feature of C.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Making a shared library
-\section{Making a shared library}
+\section{Making libraries}
 \label{se:SharedLib}
 
-\fpc supports making shared libraries in a straightforward and easy manner.
+\fpc supports making shared or static libraries in a straightforward and 
+easy manner.
 If you want to make libraries for other \fpc programmers, you just need to
 provide a command line switch. If you want C programmers to be able to use
 your code as well, you will need to adapt your code a little. This process
 is described first.
 
-% Adapting your code
-\subsection{Adapting your code}
+% Exporting functions.
+\subsection{Exporting functions}
+
+When exporting functions from a library, there are 2 things you must take in
+account:
+
+\begin{enumerate}
+\item Calling conventions.
+\item Naming scheme.
+\end{enumerate}
+The calling conventions are controlled by the modifiers \var{cdecl},
+\var{popstack}, \var{pascal}, \var{stdcall}. See \sees{Calling} for more
+information on the different kinds of calling scheme.
+
+The naming conventions can be controlled by 3 modifiers:
+\begin{description}
+\item [cdecl:\ ] A function that has a \var{cdecl} modifier, will used
+with C calling conventions, that is, the caller clears the stack. Also
+the mangled name will be the name {\em exactly} as in the declaration.
+\var{cdecl} is part of the function declaration, and hence must be present
+both in the interface and implementation section of a unit.
+
+\item [export:\ ] A function that has an export modifier, uses also the
+exact declaration name as its mangled name. Under \windowsnt and \ostwo,
+this modifier signals a function that is exported from a DLL.
+The calling conventions used by a \var{export} procedure depend on the OS.
+this keyword can be used only in the implementation section.
+\item [Alias: ] The \var{alias} modifier can be used to give a supplementary
+assembler name to your function. This doesn't modify the calling conventions
+of the function.
+\end{description}
 
 If you want to make your procedures and functions available to C
 programmers, you can do this very easily. All you need to do is declare the
-functions and procedures that you want to make available as \var{Export}, as
+functions and procedures that you want to make available as \var{export}, as
 follows:
 \begin{verbatim}
-Procedure ExportedProcedure ; export;
+Procedure ExportedProcedure; export;
 \end{verbatim}
-This tells the compiler that it shouldn't clear the stack upon exiting the
-procedure (see \sees{Calling}), thus enabling a C program to call your
-function. It also means that your Pascal program can't call this function,
-since it will be using the C calling mechanism.
 
 {\em Remark :} You can only declare a function as exported in the
 \var{Implementation} section of a unit. This function may {\em not} appear
@@ -1892,11 +2052,11 @@ cannot call an exported function, anyway.
 However, the generated object file will not contain the name of the function
 as you declared it. The \fpc compiler ''mangles'' the name you give your
 function. It makes the name all-uppercase, and adds the types of all
-parameters to it. For \fpc units, this doesn't matter, since the \file{.ppu}
-unit file contains all information to map your function declaration onto the
-mangled name in the object file. For a C programmer, who has no access to
-the \var{.ppu} file, this is not very convenient. That is why \fpc
-has the \var{Alias} modifier. The \var{Alias} modifier allows you to specify
+parameters to it. There are cases when you want to provide a mangled name
+without changing the calling convention. In such cases, you can use the
+\var{Alias} modifier. 
+
+The \var{Alias} modifier allows you to specify
 another name (a nickname) for your function or procedure.
 
 The prototype for an aliased function or procedure is as follows :
@@ -1906,18 +2066,30 @@ Procedure AliasedProc; [ Alias : 'AliasName'];
 The procedure \var{AliasedProc} will also be known as \var{AliasName}. Take
 care, the name you specify is case sensitive (as C is).
 
-Of course, you want to combine these two features of \fpc, to export a
-function under a reasonable name; If you want to do that, you must first
-specify that the function is to be exported, and then only declare an alias:
-\begin{verbatim}
-Procedure ExportToCProc; Export; [Alias : 'procname'];
-\end{verbatim}
-After that, any C program will be able to use your procedure or function.
-
 {\em Remark: }
 If you use in your unit functions that are in other units, or
 system functions, then the C program will need to link in the object files
 from the units too.
+
+% Exporting variable.
+\subsection{Exporting variables}
+
+Similarly as when you export functions, you can export variables.
+when exportig variables, one should only consider the names of the
+variables. To declare a variable that should be used by a C program,
+one declares it with the \var{cvar} modifier:
+\begin{verbatim}
+Var MyVar : MyTpe; cvar;
+\end{verbatim}
+This will tell the compiler that the assembler name of the variable (the one
+which is used by C programs) should be exactly as specified in the 
+declaration, i.e., case sensitive.
+
+It is not allowed to declare multiple variables as \var{cvar} in one
+statement, i.e. the following code will produce an error:
+\begin{verbatim}
+var Z1,Z2 : longint;cvar;
+\end{verbatim}
 
 % Compiling libraries
 \subsection {Compiling libraries}
@@ -1929,27 +2101,27 @@ to transform it into a \var{static} or \var{shared} (\var{dynamical}) library.
 
 You can do this as follows, for a dynamical library:
 \begin{verbatim}
-ppc386 -Uld myunit
+ppc386 -CD myunit
 \end{verbatim}
 On \linux this will leave you with a file \file{libmyunit.so}. On \windows
 and \ostwo, this will leave you with \file{myunit.dll}.
 
 If you want a static library, you can do
 \begin{verbatim}
-ppc386 -Uls myunit
+ppc386 -CS myunit
 \end{verbatim}
-This will leave you with \file{libmyunit.a} and a file \file{myunit.ppl}.
-The \file{myunit.ppl} is the unit file needed by the \fpc compiler.
-The extension \file{.ppl} means that the file describes a unit that resides
-in a library.
+This will leave you with \file{libmyunit.a} and a file \file{myunit.ppu}.
+The \file{myunit.ppu} is the unit file needed by the \fpc compiler.
 
 The resulting files are then libraries. To make static libraries, you need
 the \file{ranlib} or \var{ar} program on your system. It is standard on any
 \linux system, and is provided with the \file{GCC} compiler under \dos.
+For the dos distribution, a copy of ar is included in the file 
+\file{gnuutils.zip}.
 
 {\em BEWARE:} This command doesn't include anything but the current unit in
-thelibrary. Other units are left out, so if you use code from other units,
-you must dpley them together with your library.
+the library. Other units are left out, so if you use code from other units,
+you must deploy them together with your library.
 
 % Moving units
 \subsection{Moving units into a library}
@@ -1957,7 +2129,7 @@ You can put multiple units into a library with the \var{ppumove} command, as
 follows:
 
 \begin{verbatim}
-ppumove unit1 unit2 unit3 name
+ppumove -e ppl -o name unit1 unit2 unit3
 \end{verbatim}
 This will move 3 units in 1 library (called \file{libname.so} on linux,
 \file{name.dll} on \windows) and it will create 3 files \file{unit1.ppl},
@@ -1972,13 +2144,74 @@ libraries. It is provided with the compiler.
 
 When you compile a program or unit, the compiler will by
 default always look for \file{.ppl} files. If it doesn't find one, it will
-look for a \file{.ppu} file. You can disable this behaviour by
-specifying the \var{-Cs} switch. This tells the compiler to make a static
-binary, and refrains it from looking for units which reside in a library.
+look for a \file{.ppu} file. 
 
-You can tell the compiler only to use dynamic libraries by specifying
-the \var{-Cd} switch; the compiler will then only look for \var{.ppl} files,
-and will give an error if it doesn't find one.
+To be able to differentiate between units that have been compiled as static
+or dynamic libraries, there are 2 switches:
+
+\begin{description} 
+\item [-XD:\ ] This will define the symbol \var{FPC\_LINK\_DYNAMIC}
+\item [-XS:\ ] This will define the symbol \var{FPC\_LINK\_STATIC}
+\end{description}
+Definition of one symbol will automatically undefine the other.
+
+These two switches can be used in conjunction with the configuration file
+\file{ppc386.cfg}. The existence of one of these symbols can be used to
+decide which unit search path to set. For example:
+\begin{verbatim}
+# Set unit paths
+
+#IFDEF FPC_LINK_STATIC
+-Up/usr/lib/fpc/linuxunits/staticunits
+#ENDIF
+#IFDEF FPC_LINK_DYNAMIC
+-Up/usr/lib/fpc/linuxunits/sharedunits
+#ENDIF
+\end{verbatim}
+With such a configuration file, the compiler will look for it's units in
+different directories, depending on whether \var{-XD} or \var{-XS} is used.
+
+\section{Using smart linking}
+\label{se:SmartLinking}
+
+You can compile your units using smart linking. When you use smartl linking,
+the compiler creates a series of code blocks that are as small as possible,
+i.e. a code block will contain only the code for one procedure or function.
+ 
+When you compile a program that uses a smart-linked unit, the compiler will
+only link in the code that you actually need, and will leave out all other
+code. This will result in a smaller binary, which is loaded in memory  
+faster, thus speeding up execution.
+
+To enable smartlinking, one can give the smartlink option on the command
+line : \var{-Cx}, or one can put the \var{\{\$SMARTLINK ON\}} directive in
+the unit file:
+\begin{verbatim}
+Unit Testunit
+
+{SMARTLINK ON}
+Interface
+... 
+\end{verbatim}
+Smartlinking will slow down the compilation process, expecially for large
+units.
+
+When a unit \file{foo.pp} is smartlinked, the name of the codefile is 
+changed to \file{libfoo.a}.
+
+Technically speaking, the compiler makes small assembler files for each
+procedure and function in the unit, as well as for all global defined
+variables (whether they're in the interface section or not). It then
+assembles all these small files, and uses \file{ar} to collect the resulting
+object fioles in one archive.
+
+Smartlinking and the creation of shared (or dynamic) libraries are mutually
+exclusive, that is, if you turn on smartlinking, then the creation of shared
+libraries is turned of. The creation of static libraries is still possible.
+The reason for this is that it has little sense in making a smarlinked
+dynamica library. The whole shared library is loaded into memory anyway by
+the dynamic linker (or \windowsnt), so there would be no gain in size by 
+making it smartinked.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Objects
@@ -2069,7 +2302,8 @@ what is generated when you compile a unit or a program.
 \label{se:Units}
 When you compile a unit, the \fpc compiler generates 2 files :
 \begin{enumerate}
-\item A unit description file (with extension \file{.ppu}).
+\item A unit description file (with extension \file{.ppu}, or \file{.ppw on
+\windowsnt}).
 \item An assembly language file (with extension \file{.s}).
 \end{enumerate}
 The assembly language file contains the actual source code for the
@@ -2081,7 +2315,8 @@ units and your program, to form an executable.
 By default (compiler version 0.9.4 and up), the assembly file is removed
 after it has been compiled. Only in the case of the \var{-s} command-line
 option, the assembly file must be left on disk, so the assembler can be
-called later.
+called later. You can disable the erasing of the assembler file with the
+\var{-a} switch.
 
 The unit file contains all the information the compiler needs to use the
 unit:
@@ -2671,9 +2906,9 @@ were evaluted.
 \subsection{ Constant set inlining }
 
 Using the \var{in} operator is always more efficient then using the
-equivalent <>, =, <=, >=, < and > operators. This is because
-range comparisons can be done more easily with \var{in} then with
-normal comparison operators.
+equivalent \verb|<>|, \verb|=|, \verb|<=|, \verb|>=|, \verb|<| and \verb|>| 
+operators. This is because range comparisons can be done more easily with 
+\var{in} then with normal comparison operators.
 
 \subsection{ Small sets }
 
@@ -2731,6 +2966,9 @@ look at the reference manual under the \var{record} heading.
 This feature removes all unreferenced code in the final executable
 file, making the executable file much smaller.
 
+Smart linking is switched on with the \var{-Cx} command-line switch, or
+using the \var{\{\$SMARTLINK ON\}} global directive.
+
 \emph{ Remark: } Smart linking was implemented starting with
 version 0.99.6 of \fpc.
 
@@ -2752,33 +2990,35 @@ case statement execute faster.
 
 \subsection{ Stack frame omission }
 
-When using the \var{-Ox} switch, under certain specific conditions,
-the stack frame (entry and exit code for the routine) will be omitted, and
+Under certain specific conditions, the stack frame (entry and exit code 
+for the routine, see section \ref{se:Calling}) will be omitted, and
 the variable will directly be accessed via the stack pointer.
 
 Conditions for omission of the stack frame :
 
 \begin{itemize}
-\item Routine does not call other routines
-\item Routine does not contain assembler statements
-\item Routine is not declared using the \var{Interrupt} directive
-\item Routine is not a constructor or destructor
+\item The function has no parameters nor local variables.
+\item Routine does not call other routines.
+\item Routine does not contain assembler statements. However, 
+a \var{assembler} routine may omit it's stack frame.
+\item Routine is not declared using the \var{Interrupt} directive.
+\item Routine is not a constructor or destructor.
 \end{itemize}
 
 \subsection{ Register variables }
 
-When using the \var{-Ox} switch, local variables or parameters
+When using the \var{-Or} switch, local variables or parameters
 which are used very often will be moved to registers for faster
 access.
 
 \emph{ Remark: } Register variable allocation is currently
-broken and should not be used.
+an experimental feature, and should be used with caution.
 
 \subsection{ Intel x86 specific }
 
 Here follows a listing of the opimizing techniques used in the compiler:
 \begin{enumerate}
-\item When optimizing for a specific Processor (\var{-O3, -O4, -O5 -O6},
+\item When optimizing for a specific Processor (\var{-Op1, -Op2, -Op3},
 the following is done:
 \begin{itemize}
 \item In \var{case} statements, a check is done whether a jump table
@@ -2787,18 +3027,18 @@ or a sequence of conditional jumps should be used for optimal performance.
 \var{movzbl (\%ebp), \%eax} on PentiumPro and PII systems will be changed
 into \var{xorl \%eax,\%eax; movb (\%ebp),\%al } for lesser systems.
 \end{itemize}
-Cyrix \var{6x86} processor owners should optimize with \var{-O4} instead of
-\var{-O5}, because \var{-O5} leads to larger code, and thus to smaller
+Cyrix \var{6x86} processor owners should optimize with \var{-Op3} instead of
+\var{-Op2}, because \var{-Op2} leads to larger code, and thus to smaller
 speed, according to the Cyrix developers FAQ.
-  \item When optimizing for speed (\var{-OG}) or size (\var{-Og}), a choice is
+  \item When optimizing for speed (\var{-OG}, the default) or size (\var{-Og}), a choice is
 made between using shorter instructions (for size) such as \var{enter \$4},
 or longer instructions \var{subl \$4,\%esp} for speed. When smaller size is
 requested, things aren't aligned on 4-byte boundaries.  When speed is
 requested, things are aligned on 4-byte boundaries as much as possible.
 \item Simple optimization (\var{-Oa}) makes sure the peephole optimizer is
 used, as well as the reloading optimizer.
-\item Uncertain optimizations (\var{-Oz}): With this switch, the reloading
-optimizer (enabled with \var{-Oa}) can be forced into making uncertain
+\item Uncertain optimizations (\var{-Ou}): With this switch, the reloading
+optimizer can be forced into making uncertain
 optimizations.
 
 You can enable uncertain optimizations only in certain cases,
@@ -2903,6 +3143,86 @@ runtime library call will be generated
 runtime library call will be generated
 \end{itemize}
 
+\section{Optimization switches}
+This is where the various optimizing switches and their actions are 
+described, grouped per switch.
+
+\begin{description}
+\item [-On:\ ] with n = 1..3: these switches activate the optimizer. 
+A higher level automatically includes all lower levels.
+\begin{itemize}	
+\item Level 1 (\var{-O1}) activates the peephole optimizer 
+ (common instruction sequences are replaced by faster equivalents).
+\item Level 2 (\var{-O2}) enables the assembler data flow analyzer, 
+which allows the common subexpression elimination procedure to 
+remove unnecessary reloads of registers with values they already contain.
+\item Level 3 (\var{-O3}) enables uncertain optimizations. For more info, see -Ou.
+\end{itemize}
+\item[-OG:\ ] 
+This causes the code generator (and optimizer, IF activated), to favor 
+faster, but code-wise larger, instruction sequences (such as 
+"\verb|subl $4,%esp|") instead of slower, smaller instructions 
+("\verb|enter $4|").  This is the default setting.
+
+\item[-Og:\ ] This one is exactly the reverse of -OG, and as such these 
+switches are mutually exclusive: enabling one will disable the other.
+
+\item[-Or:\ ] this setting (once it's fixed) causes the code generator to 
+check which variables are used most, so it can keep those in a register.
+
+\item[-Opn:\ ] with n = 1..3: setting the target processor does NOT 
+activate the optimizer. It merely influences the code generator and, 
+if activated, the optimizer:
+\begin{itemize}
+\item During the code generation process, this setting is used to 
+decide whether a jump table or a sequence of successive jumps provides 
+the best performance in a case statement.
+\item The peephole optimizer takes a number of decisions based on this 
+setting, for example it translates certain complex instructions, such 
+as 
+\begin{verbatim}
+movzbl (mem), %eax|
+\end{verbatim}
+to a combination of simpler instructions 
+\begin{verbatim}
+xorl %eax, %eax
+movb (mem), %al
+\end{verbatim}
+for the Pentium.
+\end{itemize}
+\item[-Ou:\ ] This enables uncertain optimizations. You cannot use these
+always, however. The previous section explains when they can be used, and
+when they cannot be used.
+\end{description}
+
+\section{Tips to get faster code}
+Here some general tips for getting better code are presented. They are
+mainly concerned with coding style.
+
+\begin{itemize}
+\item Find a better algorithm. No matter how muck you and the compiler 
+tweak the code, a quicksort will (almost) always outperform a bubble 
+sort, for example.
+
+\item Use variables of the native size of the processor you're writing 
+for. For the 80x86 and compatibles, this is 32 bit, so you're best of 
+using longint and cardinal variables.
+
+\item Turn on the optimizer.
+
+\item If you are allocating and disposing a lot of small memory blocks, 
+check out the heapblocks variable. (\refref)
+
+\item Profile your code (see the -pg switch) to find out where the 
+bottlenecks are. If you want, you can rewrite those parts in assembler. 
+You can take the code generated by the compiler as a starting point. When
+given the \var{-a} command-line switch, the compiler will not erase the
+assembler file at the end of the assembly process, so you can study the
+assembler file.
+ 
+{\em Note:} code blocks which contain an assembler block, are not processed 
+at all by the optimizer at this time.
+\end{itemize}
 
 \section{ Floating point }
 

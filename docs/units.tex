@@ -29,8 +29,10 @@
 \usepackage{html}
 \latex{\usepackage{fpc}}
 \html{\input{fpc-html.tex}}
+\usepackage{fancyheadings}
+\pagestyle{fancy}
+\renewcommand{\chaptermark}[1]{\markboth{#1}{}}
 \makeindex
-
 %
 % start of document.
 %
