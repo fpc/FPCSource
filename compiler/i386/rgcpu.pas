@@ -33,7 +33,7 @@ unit rgcpu;
       cpuinfo,
       cpuasm,
       tainst,
-      cclasses,globtype,cgbase,aasm,rgobj;
+      cclasses,globtype,cgbase,aasm,cginfo,rgobj;
 
     type
        trgcpu = class(trgobj)
@@ -47,6 +47,13 @@ unit rgcpu;
           procedure ungetregisterfpu(list: taasmoutput; r : tregister); override;
 
           procedure ungetreference(list: taasmoutput; const ref : treference); override;
+          
+          {# Returns a subset register of the register r with the specified size. 
+             WARNING: There is no clearing of the upper parts of the register,
+             if a 8-bit / 16-bit register is converted to a 32-bit register. 
+             It is up to the code generator to correctly zero fill the register
+          }
+          function makeregsize(reg: tregister; size: tcgsize): tregister; override;
 
           { pushes and restores registers }
           procedure pushusedregisters(list: taasmoutput;
@@ -73,8 +80,73 @@ unit rgcpu;
     uses
        systems,
        globals,verbose,
-       cginfo,tgobj,cga;
+       tgobj,cga;
 
+{************************************************************************}
+{                         routine helpers                                }
+{************************************************************************}
+  const
+    reg2reg32 : array[tregister] of tregister = (R_NO,
+      R_EAX,R_ECX,R_EDX,R_EBX,R_ESP,R_EBP,R_ESI,R_EDI,
+      R_EAX,R_ECX,R_EDX,R_EBX,R_ESP,R_EBP,R_ESI,R_EDI,
+      R_EAX,R_ECX,R_EDX,R_EBX,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO
+    );
+    reg2reg16 : array[tregister] of tregister = (R_NO,
+      R_AX,R_CX,R_DX,R_BX,R_SP,R_BP,R_SI,R_DI,
+      R_AX,R_CX,R_DX,R_BX,R_SP,R_BP,R_SI,R_DI,
+      R_AX,R_CX,R_DX,R_BX,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO
+    );
+    reg2reg8 : array[tregister] of tregister = (R_NO,
+      R_AL,R_CL,R_DL,R_BL,R_NO,R_NO,R_NO,R_NO,
+      R_AL,R_CL,R_DL,R_BL,R_NO,R_NO,R_NO,R_NO,
+      R_AL,R_CL,R_DL,R_BL,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO
+    );
+
+    { convert a register to a specfied register size }
+    function changeregsize(r:tregister;size:topsize):tregister;
+      var
+        reg : tregister;
+      begin
+        case size of
+          S_B :
+            reg:=reg2reg8[r];
+          S_W :
+            reg:=reg2reg16[r];
+          S_L :
+            reg:=reg2reg32[r];
+          else
+            internalerror(200204101);
+        end;
+        if reg=R_NO then
+         internalerror(200204102);
+        changeregsize:=reg;
+      end;
+
+
+{************************************************************************}
+{                               trgcpu                                   }
+{************************************************************************}
 
     function trgcpu.getregisterint(list: taasmoutput): tregister;
       begin
@@ -139,7 +211,7 @@ unit rgcpu;
       begin
          if r=R_NO then
           exit;
-         r := changeregsize(r,S_L);
+         r := makeregsize(r,OS_INT);
          if (r = R_EDI) or
             ((not assigned(procinfo^._class)) and (r = R_ESI)) then
            begin
@@ -326,13 +398,43 @@ unit rgcpu;
      end;
 
 
+    function trgcpu.makeregsize(reg: tregister; size: tcgsize): tregister;
+  
+      var
+        _result : topsize;
+      begin
+        case size of
+          OS_32,OS_S32:
+            begin
+              _result := S_L;
+            end;
+          OS_8,OS_S8:
+            begin
+              _result := S_B;
+            end;
+          OS_16,OS_S16:
+            begin
+              _result := S_W;
+            end;
+          else
+            internalerror(2001092312);
+        end;
+        makeregsize := changeregsize(reg,_result);
+      end;
+
+
+
 initialization
   rg := trgcpu.create;
 end.
 
 {
   $Log$
-  Revision 1.4  2002-04-15 19:44:22  peter
+  Revision 1.5  2002-04-21 15:43:32  carl
+  * changeregsize -> rg.makeregsize
+  * changeregsize moved from cpubase to here
+
+  Revision 1.4  2002/04/15 19:44:22  peter
     * fixed stackcheck that would be called recursively when a stack
       error was found
     * generic changeregsize(reg,size) for i386 register resizing
