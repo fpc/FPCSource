@@ -1019,7 +1019,7 @@ implementation
           aktmodeswitches:=gpcmodeswitches
         else
          b:=false;
-        
+
         if b and changeInit then
           initmodeswitches := aktmodeswitches;
 
@@ -1027,9 +1027,17 @@ implementation
          begin
            { turn ansistrings on by default ? }
            if (m_default_ansistring in aktmodeswitches) then
-            include(aktlocalswitches,cs_ansistrings)
+            begin
+              include(aktlocalswitches,cs_ansistrings);
+              if changeinit then
+               include(initlocalswitches,cs_ansistrings);
+            end
            else
-            exclude(aktlocalswitches,cs_ansistrings);
+            begin
+              exclude(aktlocalswitches,cs_ansistrings);
+              if changeinit then
+               exclude(initlocalswitches,cs_ansistrings);
+            end;
          end;
 
         SetCompileMode:=b;
@@ -1175,7 +1183,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2000-09-26 10:50:41  jonas
+  Revision 1.15  2000-09-27 21:20:56  peter
+    * also set initlocalswitches in setcompilemode (merged)
+
+  Revision 1.14  2000/09/26 10:50:41  jonas
     * initmodeswitches is changed is you change the compiler mode from the
       command line (the -S<x> switches didn't work anymore for changing the
       compiler mode) (merged from fixes branch)
