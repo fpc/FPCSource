@@ -24,6 +24,7 @@ interface
 uses
   go32,dos;
 
+{$DEFINE HAS_SLEEP}
 { Include platform independent interface part }
 {$i sysutilh.inc}
 
@@ -778,6 +779,70 @@ begin
     end;
 end;
 
+{*************************************************************************
+                                   Sleep (copied from crt.Delay)
+*************************************************************************}
+
+var
+  DelayCnt : Longint;
+
+
+procedure Delayloop;assembler;
+asm
+.LDelayLoop1:
+        subl    $1,%eax
+        jc      .LDelayLoop2
+        cmpl    %fs:(%edi),%ebx
+        je      .LDelayLoop1
+.LDelayLoop2:
+end;
+
+
+procedure initdelay;assembler;
+asm
+	pushl %ebx
+	pushl %edi
+        { for some reason, using int $31/ax=$901 doesn't work here }
+        { and interrupts are always disabled at this point when    }
+        { running a program inside gdb(pas). Web bug 1345 (JM)     }
+        sti
+        movl    $0x46c,%edi
+        movl    $-28,%edx
+        movl    %fs:(%edi),%ebx
+.LInitDel1:
+        cmpl    %fs:(%edi),%ebx
+        je      .LInitDel1
+        movl    %fs:(%edi),%ebx
+        movl    %edx,%eax
+        call    DelayLoop
+
+        notl    %eax
+        xorl    %edx,%edx
+        movl    $55,%ecx
+        divl    %ecx
+        movl    %eax,DelayCnt
+	popl %edi
+	popl %ebx
+end;
+
+
+procedure Sleep(MilliSeconds: Cardinal);assembler;
+asm
+	pushl %ebx
+	pushl %edi
+        movl  MilliSeconds,%ecx
+        jecxz   .LDelay2
+        movl    $0x400,%edi
+        movl    DelayCnt,%edx
+        movl    %fs:(%edi),%ebx
+.LDelay1:
+        movl    %edx,%eax
+        call    DelayLoop
+        loop    .LDelay1
+.LDelay2:
+	popl %edi
+	popl %ebx
+end;
 
 {****************************************************************************
                               Initialization code
@@ -791,7 +856,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.20  2004-01-10 10:49:24  jonas
+  Revision 1.21  2004-01-10 20:25:14  michael
+  + Added rtlconst dependency to classes.ppu and implemented sysutils.sleep
+
+  Revision 1.20  2004/01/10 10:49:24  jonas
     * fixed compilation
 
   Revision 1.19  2003/11/26 20:00:19  florian
