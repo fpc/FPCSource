@@ -55,7 +55,7 @@ type
     pPid     = ^pid_t;
 
     size_t   = cuint32;         { as definied in the C standard}
-   TSize    = size_t;
+    TSize    = size_t;
     pSize    = ^size_t;         
 
     ssize_t  = cint32;          { used by function for returning number of bytes }
@@ -73,10 +73,27 @@ type
     time_t   = clong;           { used for returning the time  }
     TTime    = time_t; 
     pTime    = ^time_t;
+    ptime_t =  ^time_t;
 
     socklen_t= cuint32;
     TSocklen = socklen_t;
     pSocklen = ^socklen_t;
+
+    timeval = record
+        tv_sec: cint;
+        tv_usec: cint;
+    end;
+    ptimeval = ^timeval;
+    TTimeVal = timeval;
+
+  timespec = packed record
+    tv_sec   : time_t;
+    tv_nsec  : clong;
+  end;
+  ptimespec= ^timespec;
+  Ttimespec= timespec;
+
+
 
 CONST
    { System limits, POSIX value in parentheses, used for buffer and stack allocation }
@@ -86,9 +103,49 @@ CONST
 
     SYS_NMLN = 32;              {BSD utsname struct limit}
 
+    SIG_MAXSIG      = 32;	// highest signal version
+    wordsinsigset   = 1;		// words in sigset_t
+
+
+    MFSNAMELEN = 15;
+    MNAMELEN   = 90;
+
+  type
+     fsid_t = record
+          val: array[0..1] of cint32;
+     end;
+
+     tstatfs = record
+          otype : cint16;
+          oflags : cint16;
+          bsize : cint32;
+          iosize : cint32;
+          blocks : cint32;
+          bfree : cint32;
+          bavail : cint32;
+          files : cint32;
+          ffree : cint32;
+          fsid : fsid_t;
+          fowner : uid_t;
+          reserved1 : cint16;
+          ftype : cint16;
+          fflags : cint32;
+          reserved2 : array[0..1] of cint32;
+          fstypename : array[0..(MFSNAMELEN)-1] of char;
+          mountpoint : array[0..(MNAMELEN)-1] of char;
+          mntfromname : array[0..(MNAMELEN)-1] of char;
+       end;
+    pstatfs = ^tstatfs;
+
+
+
 {
   $Log$
-  Revision 1.2  2003-05-25 12:59:57  jonas
+  Revision 1.3  2004-01-04 20:05:38  jonas
+    * first working version of the Darwin/Mac OS X (for PowerPC) RTL
+      Several non-essential units are still missing, but make cycle works
+
+  Revision 1.2  2003/05/25 12:59:57  jonas
     * several fixes, addition of Mach trap numbers (thye are simply syscalls
       with a negative number)
 

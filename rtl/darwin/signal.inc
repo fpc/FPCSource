@@ -64,10 +64,10 @@
     }
 
 {$ifdef cpupowerpc}
-{$include powerpc/signal.inc}    { sigcontext }
+{$include powerpc/sig_cpu.inc}    { sigcontext }
 {$else cpupowerpc}
 {$ifdef cpui386}
-{$include i386/signal.inc}    { sigcontext }
+{$include i386/sig_cpu.inc}       { sigcontext }
 {$else cpui386}
 {$error Unsupported cpu type!}
 {$endif cpui386}
@@ -75,6 +75,15 @@
 
 
   const
+    SA_NOCLDSTOP = 8;
+    SA_ONSTACK   = $001; { take signal on signal stack }
+    SA_RESTART   = $002; { restart system call on signal return }
+    SA_RESETHAND = $004; { reset to SIG_DFL when taking signal }
+    SA_NODEFER   = $010; { don't mask the signal we're delivering }
+    SA_NOCLDWAIT = $020; { don't keep zombies around }
+    SA_SIGINFO   = $040; { signal handler with SA_SIGINFO args }
+    SA_USERTRAMP = $100; { SUNOS compat: Do not bounce off kernel's sigtramp }
+
   { hangup  }
      SIGHUP = 1;
   { interrupt  }
@@ -144,16 +153,43 @@
      SIG_ERR = -1;
 
   type
-     sigset_t = dword;
+     sigset_t = array[0..0] of cuint;
+
+  Sigval = Record
+            Case Boolean OF
+        { Members as suggested by Annex C of POSIX 1003.1b. }
+                false : (sigval_int : cint);
+                True  : (sigval_ptr : Pointer);
+            End;
+
+  TSigInfo_t = record
+                si_signo,                       { signal number }
+                si_errno,                       { errno association }
+        {
+         * Cause of signal, one of the SI_ macros or signal-specific
+         * values, i.e. one of the FPE_... values for SIGFPE. This
+         * value is equivalent to the second argument to an old-style
+         * FreeBSD signal handler.
+         }
+                si_code,                        { signal code }
+                si_pid          : cint;         { sending process }
+                si_uid          : cuint;        { sender's ruid }
+                si_status       : cint;         { exit value }
+                si_addr         : Pointer;      { faulting instruction }
+                si_value        : SigVal;       { signal value }
+                si_band         : cuint;        { band event for SIGPOLL }
+                pad             : array[0..6] of cint; { Reserved for Future Use }
+               end;
 
     SignalHandler   = Procedure(Sig : Longint);cdecl;
     PSignalHandler  = ^SignalHandler;
     SignalRestorer  = Procedure;cdecl;
     PSignalRestorer = ^SignalRestorer;
-    TSigAction = procedure(Sig: Longint; SigContext: SigContextRec;someptr:pointer);cdecl;
+    TSigAction = procedure (Sig: cint; var info : tsiginfo_t;Var SigContext:SigContextRec); cdecl;
 
+    TSigset=sigset_t;
     Sigset=sigset_t;
-    PSigSet = ^SigSet;
+    PSigSet = ^TSigSet;
 
     SigActionRec = packed record
 {
@@ -161,24 +197,16 @@
         0: (Sh: SignalHandler; Sa_Flags: longint; Sa_Mask: SigSet);
         1: (sa_handler: TSigAction);
 }
-      Sa_Handler: SignalHandler;
+      Sa_Handler: TSigAction;
       Sa_Flags: longint;
-      Sa_Mask: SigSet;
+      Sa_Mask: TSigSet;
    end;
+   PSigActionRec = ^SigActionRec;
 
-  const
-     SA_ONSTACK = $0001;
-  { restart system on signal return  }
-     SA_RESTART = $0002;
-  { disable taking signals on alternate stack  }
-     SA_DISABLE = $0004;
-  { do not bounce off kernel's sigtramp  }
-     SA_USERTRAMP = $0100;
-  { do not generate SIGCHLD on child stop  }
-     SA_NOCLDSTOP = $0008;
   {
      Flags for sigprocmask:
     }
+const
   { block specified signal set  }
      SIG_BLOCK = 1;
   { unblock specified signal set  }
@@ -205,19 +233,20 @@
   const
      MINSIGSTKSZ = 8192;
   { recommended stack size  }
-     SIGSTKSZ = MINSIGSTKSZ + 32768;
+  { already defined in another BSD include file }
+//     SIGSTKSZ = MINSIGSTKSZ + 32768;
   {
      4.3 compatibility:
      Signal vector "template" used in sigvec call.
     }
-  { signal handler  }
-  { signal mask to apply  }
-  { see signal options below  }
 
   type
      sigvec = record
+  { signal handler  }
           sv_handler : procedure ;
+  { signal mask to apply  }
           sv_mask : longint;
+  { see signal options below  }
           sv_flags : longint;
        end;
 
@@ -226,6 +255,16 @@
      SV_ONSTACK = SA_ONSTACK;
   { same bit, opposite sense  }
      SV_INTERRUPT = SA_RESTART;
+
+{ Codes for SIGFPE }
+     FPE_NOOP      =  0;       { if only I knew... }
+     FPE_FLTDIV    =  1;       { floating point divide by zero }
+     FPE_INTDIV    =  FPE_FLTDIV;
+     FPE_FLTOVF    =  2;       { floating point overflow }
+     FPE_FLTUND    =  3;       { floating point underflow }
+     FPE_FLTRES    =  4;       { floating point inexact result }
+     FPE_FLTINV    =  5;       { invalid floating point operation }
+
 
 (*
   {
@@ -243,7 +282,11 @@
 
 {
   $Log$
-  Revision 1.3  2003-08-21 22:25:17  olle
+  Revision 1.4  2004-01-04 20:05:38  jonas
+    * first working version of the Darwin/Mac OS X (for PowerPC) RTL
+      Several non-essential units are still missing, but make cycle works
+
+  Revision 1.3  2003/08/21 22:25:17  olle
     - removed parameter from fpc_iocheck
 
   Revision 1.2  2003/05/25 12:59:57  jonas

@@ -1,0 +1,97 @@
+{
+    $Id$
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 1999-2000 by Peter Vreman
+    member of the Free Pascal development team.
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This file contains the implementation of several termio(s) functions
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+
+{******************************************************************************
+                         IOCtl and Termios calls
+******************************************************************************}
+
+Function TCGetAttr(fd:cint;var tios:TermIOS):cint; cdecl; external 'c' name 'tcgetattr';
+Function TCSetAttr(fd:cint;OptAct:cint;const tios:TermIOS):cint; cdecl; external 'c' name 'tcsetattr';
+Procedure CFSetISpeed(var tios:TermIOS;speed:Cardinal); cdecl; external 'c' name 'cfsetispeed';
+Procedure CFSetOSpeed(var tios:TermIOS;speed:Cardinal); cdecl; external 'c' name 'cfsetospeed';
+Procedure CFMakeRaw(var tios:TermIOS); cdecl; external 'c' name 'cfmakeraw';
+
+Function TCSendBreak(fd,duration:cint):cint;
+begin
+  TCSendBreak:=fpIOCtl(fd,TIOCSBRK,nil);
+end;
+
+
+Function TCSetPGrp(fd,id:cint):cint;
+begin
+  TCSetPGrp:=fpIOCtl(fd,TIOCSPGRP,pointer(id));
+end;
+
+
+Function TCGetPGrp(fd:cint;var id:cint):cint;
+begin
+  TCGetPGrp:=fpIOCtl(fd,TIOCGPGRP,@id);
+end;
+
+Function TCDrain(fd:cint):cint;
+begin
+  TCDrain:=fpIOCtl(fd,TIOCDRAIN,nil); {Should set timeout to 1 first?}
+end;
+
+
+Function TCFlow(fd,act:cint):cint;
+begin
+    case act OF
+     TCOOFF :  TCFlow:=fpIoctl(fd,TIOCSTOP,nil);
+     TCOOn  :  TCFlow:=fpIOctl(Fd,TIOCStart,nil);
+     TCIOFF :  {N/I}
+    end;
+end;
+
+Function TCFlush(fd,qsel:cint):cint;
+begin
+  TCFlush:=fpIOCtl(fd,TIOCFLUSH,pointer(qsel));
+end;
+
+Function IsATTY (Handle:cint):cint;
+{
+  Check if the filehandle described by 'handle' is a TTY (Terminal)
+}
+var
+  t : Termios;
+begin
+ IsAtty:=TCGetAttr(Handle,t);
+end;
+
+
+Function IsATTY(var f: text):cint;
+{
+  Idem as previous, only now for text variables.
+}
+begin
+  IsATTY:=IsaTTY(textrec(f).handle);
+end;
+
+{
+   $Log$
+   Revision 1.1  2004-01-04 20:05:38  jonas
+     * first working version of the Darwin/Mac OS X (for PowerPC) RTL
+       Several non-essential units are still missing, but make cycle works
+
+   Revision 1.2  2003/12/16 19:43:53  marco
+    * nil <-> 0 changes
+
+   Revision 1.1  2003/11/19 17:15:31  marco
+    * termio new includefile
+
+
+}
