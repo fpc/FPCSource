@@ -146,13 +146,17 @@ implementation
     function genintconstnode(v : TConstExprInt) : tordconstnode;
 
       var
-         i : TConstExprInt;
+         i,i2 : TConstExprInt;
 
       begin
          { we need to bootstrap this code, so it's a little bit messy }
          i:=2147483647;
+         { maxcardinal }
+         i2 := i+i+1;
          if (v<=i) and (v>=-i-1) then
            genintconstnode:=genordinalconstnode(v,s32bitdef)
+         else if (v > i) and (v <= i2) then
+           genintconstnode:=genordinalconstnode(v,u32bitdef)
          else
            genintconstnode:=genordinalconstnode(v,cs64bitdef);
       end;
@@ -658,7 +662,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2000-12-15 13:26:01  jonas
+  Revision 1.14  2000-12-16 15:58:48  jonas
+    * genintconstnode now returns cardinals instead of int64 constants if possible
+
+  Revision 1.13  2000/12/15 13:26:01  jonas
     * only return int64's from functions if it int64funcresok is defined
     + added int64funcresok define to options.pas
 
