@@ -21,6 +21,9 @@ unit timer;
 
 interface
 
+uses
+  exec;
+
 var 
   TimerBase : Pointer;
 
@@ -34,7 +37,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2004-06-26 20:46:17  karoly
+  Revision 1.2  2004-08-03 19:45:18  karoly
+    * fixed missing uses exec
+
+  Revision 1.1  2004/06/26 20:46:17  karoly
     * initial revision
 
 }
