@@ -52,6 +52,7 @@ interface
           is_used : boolean;
           buftext : pchar;
           buflen  : longint;
+          fileinfo : tfileposinfo;
           constructor Create(const n : string);
           destructor  destroy;override;
        end;
@@ -117,7 +118,7 @@ interface
           procedure nextfile;
           procedure addfile(hp:tinputfile);
           procedure reload;
-          procedure insertmacro(const macname:string;p:pchar;len:longint);
+          procedure insertmacro(const macname:string;p:pchar;len,line,fileindex:longint);
         { Scanner things }
           procedure def_macro(const s : string);
           procedure set_macro(const s : string;value : string);
@@ -737,7 +738,8 @@ implementation
             Message1(scan_w_include_env_not_found,path);
            { make it a stringconst }
            hs:=''''+hs+'''';
-           current_scanner.insertmacro(path,@hs[1],length(hs));
+           current_scanner.insertmacro(path,@hs[1],length(hs),
+            current_scanner.line_no,current_scanner.inputfile.ref_index);
          end
         else
          begin
@@ -789,6 +791,7 @@ implementation
          inherited createname(n);
          defined:=true;
          defined_at_startup:=false;
+         fileinfo:=akttokenpos;
          is_used:=false;
          buftext:=nil;
          buflen:=0;
@@ -1148,7 +1151,7 @@ implementation
       end;
 
 
-    procedure tscannerfile.insertmacro(const macname:string;p:pchar;len:longint);
+    procedure tscannerfile.insertmacro(const macname:string;p:pchar;len,line,fileindex:longint);
       var
         hp : tinputfile;
       begin
@@ -1168,9 +1171,10 @@ implementation
            inputbuffer:=buf;
            inputpointer:=buf;
            inputstart:=bufstart;
+           ref_index:=fileindex;
          end;
       { reset line }
-        line_no:=0;
+        line_no:=line;
         lastlinepos:=0;
         lasttokenpos:=0;
       { load new c }
@@ -2049,7 +2053,8 @@ implementation
                  mac:=tmacro(macros.search(pattern));
                  if assigned(mac) and (assigned(mac.buftext)) then
                   begin
-                    insertmacro(pattern,mac.buftext,mac.buflen);
+                    insertmacro(pattern,mac.buftext,mac.buflen,
+                      mac.fileinfo.line,mac.fileinfo.fileindex);
                   { handle empty macros }
                     if c=#0 then
                      begin
@@ -2775,7 +2780,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.44  2002-08-12 16:46:04  peter
+  Revision 1.45  2002-09-05 14:17:27  pierre
+   * fix for bug 2004 merged
+
+  Revision 1.44  2002/08/12 16:46:04  peter
     * tscannerfile is now destroyed in tmodule.reset and current_scanner
       is updated accordingly. This removes all the loading and saving of
       the old scanner and the invalid flag marking
