@@ -63,7 +63,7 @@ implementation
 
 function sys_unlink (a:cardinal;name:pchar):longint; cdecl; external name 'sys_unlink';
 function sys_rename (a:cardinal;p1:pchar;b:cardinal;p2:pchar):longint; cdecl; external name 'sys_rename';
-function sys_create_area (name:pchar; var start:longint; a,b,c,d:longint):longint; cdecl; external name 'sys_create_area';
+function sys_create_area (name:pchar; var start:pointer; a,b,c,d:longint):longint; cdecl; external name 'sys_create_area';
 function sys_resize_area (handle:cardinal; size:longint):longint; cdecl; external name 'sys_resize_area';
 function sys_mkdir (a:cardinal; name:pchar; mode:cardinal):longint; cdecl; external name 'sys_mkdir';
 function sys_chdir (a:cardinal; name:pchar):longint; cdecl; external name 'sys_chdir';
@@ -134,7 +134,7 @@ end;
                               Heap Management
 *****************************************************************************}
 
-var myheapstart:longint;
+var myheapstart:pointer;
     myheapsize:longint;
     myheaprealsize:longint;
     heap_handle:longint;
@@ -143,7 +143,7 @@ var myheapstart:longint;
 { first address of heap }
 function getheapstart:pointer;
 begin
-   getheapstart:=pointer(myheapstart);
+   getheapstart:=myheapstart;
 end;
 
 { current length of heap }
@@ -153,8 +153,8 @@ begin
 end;
 
 { function to allocate size bytes more for the program }
-{ must return the first address of new data space or -1 if fail }
-function Sbrk(size : longint):longint;
+{ must return the first address of new data space or nil if fail }
+function Sbrk(size : longint):pointer;
 var newsize,newrealsize:longint;
 begin
   if (myheapsize+size)<=myheaprealsize then begin
@@ -170,7 +170,7 @@ begin
         myheaprealsize:=newrealsize;
         exit;
   end;
-  Sbrk:=-1;
+  Sbrk:=nil;
 end;
 
 
@@ -517,8 +517,8 @@ begin
   zero:=0;
   myheapsize:=$2000;
   myheaprealsize:=$2000;
-  myheapstart:=0;
-  heap_handle:=sys_create_area('fpcheap',myheapstart,0,myheaprealsize,0,3);
+  myheapstart:=nil;
+  heap_handle:=sys_create_area('fpcheap',myheapstart,0,myheaprealsize,0,3);//!!
   if heap_handle>0 then begin
     InitHeap;
   end else system_exit;
@@ -535,7 +535,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2003-01-08 22:32:28  marco
+  Revision 1.9  2003-09-27 11:52:35  peter
+    * sbrk returns pointer
+
+  Revision 1.8  2003/01/08 22:32:28  marco
    * Small fixes and quick merge with 1.0.x. At least the compiler builds now,
       but it could crash hard, since there are lots of unimplemented funcs.
 

@@ -1132,8 +1132,8 @@ end;
 
 function growheap(size : SizeInt) : integer;
 var
-  sizeleft,s1,
-  NewPos    : SizeInt;
+  sizeleft,s1 : longword;
+  NewPos    : pointer;
   pcurr     : pfreerecord;
 begin
 {$ifdef DUMPGROW}
@@ -1146,7 +1146,7 @@ begin
   if size<=GrowHeapSize1 then
    begin
      NewPos:=Sbrk(GrowHeapSize1);
-     if NewPos>=0 then
+     if NewPos<>nil then
       size:=GrowHeapSize1;
    end
   else
@@ -1154,17 +1154,17 @@ begin
    if size<=GrowHeapSize2 then
     begin
       NewPos:=Sbrk(GrowHeapSize2);
-      if NewPos>=0 then
+      if NewPos<>nil then
        size:=GrowHeapSize2;
     end
   { else alloate the needed bytes }
   else
     NewPos:=SBrk(size);
   { try again }
-  if NewPos<0 then
+  if NewPos=nil then
    begin
      NewPos:=Sbrk(size);
-     if NewPos<0 then
+     if NewPos<>nil then
       begin
         if ReturnNilIfGrowHeapFails then
           GrowHeap:=1
@@ -1174,9 +1174,9 @@ begin
       end;
    end;
 { increase heapend or add to freelist }
-  if heapend=pointer(newpos) then
+  if heapend=newpos then
    begin
-     heapend:=pointer(newpos+size);
+     heapend:=newpos+size;
    end
   else
    begin
@@ -1200,8 +1200,8 @@ begin
 {$endif SYSTEMDEBUG}
       end;
      { now set the new heapptr,heapend to the new block }
-     heapptr:=pointer(newpos);
-     heapend:=pointer(newpos+size);
+     heapptr:=newpos;
+     heapend:=newpos+size;
    end;
 { set the total new heap size }
   inc(internal_memavail,size);
@@ -1265,7 +1265,10 @@ end;
 
 {
   $Log$
-  Revision 1.21  2003-05-23 14:53:48  peter
+  Revision 1.22  2003-09-27 11:52:35  peter
+    * sbrk returns pointer
+
+  Revision 1.21  2003/05/23 14:53:48  peter
     * check newpos < 0 instead of = -1
 
   Revision 1.20  2003/05/01 08:05:23  florian

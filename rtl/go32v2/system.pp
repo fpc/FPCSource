@@ -846,12 +846,12 @@ end;
 
 function ___sbrk(size:longint):longint;cdecl;external name '___sbrk';
 
-function Sbrk(size : longint):longint;assembler;
+function Sbrk(size : longint):pointer;assembler;
 asm
 {$ifdef SYSTEMDEBUG}
         cmpb    $1,accept_sbrk
         je      .Lsbrk
-        movl    $-1,%eax
+        movl    $0,%eax
         jmp     .Lsbrk_fail
       .Lsbrk:
 {$endif}
@@ -1494,7 +1494,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.23  2002-10-14 19:39:16  peter
+  Revision 1.24  2003-09-27 11:52:35  peter
+    * sbrk returns pointer
+
+  Revision 1.23  2002/10/14 19:39:16  peter
     * threads unit added for thread support
 
   Revision 1.22  2002/10/13 09:28:44  florian

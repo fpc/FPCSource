@@ -295,10 +295,10 @@ end;
 { this function allows to extend the heap by calling
 syscall $7f00 resizes the brk area}
 
-function sbrk(size:longint):longint;
+function sbrk(size:longint):pointer;
 {$IFDEF DUMPGROW}
 var
-  L: longint;
+  L: longword;
 begin
   WriteLn ('Trying to grow heap by ', Size, ' to ', HeapSize + Size);
 {$IFDEF CONTHEAP}
@@ -311,7 +311,7 @@ begin
     mov  %eax,L
   end;
   WriteLn ('New heap at ', L);
-  Sbrk := L;
+  Sbrk := pointer(L);
 end;
 {$ELSE DUMPGROW}
                                      assembler;
@@ -1241,7 +1241,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  2003-03-30 09:20:30  hajny
+  Revision 1.33  2003-09-27 11:52:36  peter
+    * sbrk returns pointer
+
+  Revision 1.32  2003/03/30 09:20:30  hajny
     * platform extension unification
 
   Revision 1.31  2003/01/15 22:16:12  hajny

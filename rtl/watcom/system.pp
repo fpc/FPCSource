@@ -49,6 +49,9 @@ const
 
   FileNameCaseSensitive : boolean = false;
 
+  sLineBreak = LineEnding;
+  DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCRLF;
+
 { Default memory segments (Tp7 compatibility) }
   seg0040 = $0040;
   segA000 = $A000;
@@ -93,7 +96,6 @@ Const
   procedure sysrealintr(intnr : word;var regs : trealregs);
 
   var tb:longint;
-      transfer_buffer:longint absolute tb;
       tb_segment:word;
 
   const tb_offset=0;
@@ -115,11 +117,9 @@ type
     segment : word;
   end;
 
-{$ifndef EXCEPTIONS_IN_SYSTEM}
 var
   old_int00 : tseginfo;cvar;
   old_int75 : tseginfo;cvar;
-{$endif ndef EXCEPTIONS_IN_SYSTEM}
 
 {$asmmode ATT}
 
@@ -390,23 +390,23 @@ begin
          if h>=5 then
            do_close(h);
       end;
-  { halt is not always called !! }
+  { halt is not allways called !! }
   { not on normal exit !! PM }
-{$ifndef EXCEPTIONS_IN_SYSTEM}
   set_pm_interrupt($00,old_int00);
+{$ifndef EXCEPTIONS_IN_SYSTEM}
   set_pm_interrupt($75,old_int75);
 {$endif EXCEPTIONS_IN_SYSTEM}
   ___exit(exitcode);
 end;
 
 
-{$ifndef EXCEPTIONS_IN_SYSTEM}
 procedure new_int00;
 begin
   HandleError(200);
 end;
 
 
+{$ifndef EXCEPTIONS_IN_SYSTEM}
 procedure new_int75;
 begin
   asm
@@ -424,44 +424,6 @@ end;
 var
   __stkbottom : longint;//###########external name '__stkbottom';
 
-procedure int_stackcheck(stack_size:longint);[public,alias:'FPC_STACKCHECK'];
-{
-  called when trying to get local stack if the compiler directive $S
-  is set this function must preserve esi !!!! because esi is set by
-  the calling proc for methods it must preserve all registers !!
-
-  With a 2048 byte safe area used to write to StdIo without crossing
-  the stack boundary
-}
-begin
-  asm
-        pushl   %eax
-        pushl   %ebx
-        movl    stack_size,%ebx
-        addl    $2048,%ebx
-        movl    %esp,%eax
-        subl    %ebx,%eax
-{$ifdef SYSTEMDEBUG}
-        movl    loweststack,%ebx
-        cmpl    %eax,%ebx
-        jb      .L_is_not_lowest
-        movl    %eax,loweststack
-.L_is_not_lowest:
-{$endif SYSTEMDEBUG}
-        movl    __stkbottom,%ebx
-        cmpl    %eax,%ebx
-        jae     .L__short_on_stack
-        popl    %ebx
-        popl    %eax
-        leave
-        ret     $4
-.L__short_on_stack:
-        { can be usefull for error recovery !! }
-        popl    %ebx
-        popl    %eax
-  end['EAX','EBX'];
-  HandleError(202);
-end;
 
 
 {*****************************************************************************
@@ -512,14 +474,14 @@ begin
   getheapsize:=int_heapsize;
 end;
 
-function ___sbrk(size:longint):longint;cdecl; external name '___sbrk';
+function ___sbrk(size:longint):pointer;cdecl; external name '___sbrk';
 
-function Sbrk(size : longint):longint;assembler;
+function Sbrk(size : longint):pointer;assembler;
 asm
 {$ifdef SYSTEMDEBUG}
         cmpb    $1,accept_sbrk
         je      .Lsbrk
-        movl    $-1,%eax
+        movl    $0,%eax
         jmp     .Lsbrk_fail
       .Lsbrk:
 {$endif}
@@ -581,11 +543,9 @@ begin
   syscopytodos(longint(p),strlen(p)+1);
   regs.realedx:=tb_offset;
   regs.realds:=tb_segment;
-{$ifndef RTLLITE}
   if LFNSupport then
    regs.realeax:=$7141
   else
-{$endif RTLLITE}
    regs.realeax:=$4100;
   regs.realesi:=0;
   regs.realecx:=0;
@@ -608,11 +568,9 @@ begin
   regs.realedx:=tb_offset + strlen(p2)+2;
   regs.realds:=tb_segment;
   regs.reales:=tb_segment;
-{$ifndef RTLLITE}
   if LFNSupport then
    regs.realeax:=$7156
   else
-{$endif RTLLITE}
    regs.realeax:=$5600;
   regs.realecx:=$ff;            { attribute problem here ! }
   sysrealintr($21,regs);
@@ -769,7 +727,6 @@ begin
    GetInOutRes(lo(regs.realeax));
 end;
 
-{$ifndef RTLLITE}
 const
   FileHandleCount : longint = 20;
 
@@ -789,7 +746,6 @@ begin
   else
     Increase_file_handle_count:=true;
 end;
-{$endif not RTLLITE}
 
 procedure do_open(var f;p:pchar;flags:longint);
 {
@@ -847,11 +803,9 @@ begin
    end;
 { real dos call }
   syscopytodos(longint(p),strlen(p)+1);
-{$ifndef RTLLITE}
   if LFNSupport then
    regs.realeax:=$716c
   else
-{$endif RTLLITE}
    regs.realeax:=$6c00;
   regs.realedx:=action;
   regs.realds:=tb_segment;
@@ -859,7 +813,6 @@ begin
   regs.realebx:=$2000+(flags and $ff);
   regs.realecx:=$20;
   sysrealintr($21,regs);
-{$ifndef RTLLITE}
   if (regs.realflags and carryflag) <> 0 then
     if lo(regs.realeax)=4 then
       if Increase_file_handle_count then
@@ -876,7 +829,6 @@ begin
           regs.realecx:=$20;
           sysrealintr($21,regs);
         end;
-{$endif RTLLITE}
   if (regs.realflags and carryflag) <> 0 then
     begin
       GetInOutRes(lo(regs.realeax));
@@ -885,11 +837,9 @@ begin
   else
     begin
       filerec(f).handle:=lo(regs.realeax);
-{$ifndef RTLLITE}
       { for systems that have more then 20 by default ! }
       if lo(regs.realeax)>FileHandleCount then
         FileHandleCount:=lo(regs.realeax);
-{$endif RTLLITE}
     end;
   if lo(regs.realeax)<max_files then
     begin
@@ -977,11 +927,9 @@ begin
   syscopytodos(longint(@buffer),length(s)+1);
   regs.realedx:=tb_offset;
   regs.realds:=tb_segment;
-{$ifndef RTLLITE}
   if LFNSupport then
    regs.realeax:=$7100+func
   else
-{$endif RTLLITE}
    regs.realeax:=func shl 8;
   sysrealintr($21,regs);
   if (regs.realflags and carryflag) <> 0 then
@@ -1045,11 +993,9 @@ begin
   regs.realedx:=drivenr;
   regs.realesi:=tb_offset;
   regs.realds:=tb_segment;
-{$ifndef RTLLITE}
   if LFNSupport then
    regs.realeax:=$7147
   else
-{$endif RTLLITE}
    regs.realeax:=$4700;
   sysrealintr($21,regs);
   if (regs.realflags and carryflag) <> 0 then
@@ -1092,7 +1038,6 @@ end;
                          SystemUnit Initialization
 *****************************************************************************}
 
-{$ifndef RTLLITE}
 function CheckLFN:boolean;
 var
   regs     : TRealRegs;
@@ -1109,77 +1054,76 @@ begin
   regs.realds:=tb_segment;
   regs.realedx:=tb_offset;
   regs.realflags:=carryflag;
-  sysrealintr($21,regs);
+//!!  sysrealintr($21,regs); //!!wik
 { If carryflag=0 and LFN API bit in ebx is set then use Long file names }
   CheckLFN:=(regs.realflags and carryflag=0) and (regs.realebx and $4000=$4000);
 end;
-{$endif RTLLITE}
 
-{$ifdef MT}
-{$I thread.inc}
-{$endif MT}
-
-{$ifndef RTLLITE}
 {$ifdef  EXCEPTIONS_IN_SYSTEM}
 {$define IN_SYSTEM}
 {$i dpmiexcp.pp}
 {$endif  EXCEPTIONS_IN_SYSTEM}
-{$endif RTLLITE}
+
+procedure SysInitStdIO;
+begin
+  OpenStdIO(Input,fmInput,StdInputHandle);
+  OpenStdIO(Output,fmOutput,StdOutputHandle);
+  OpenStdIO(StdOut,fmOutput,StdOutputHandle);
+  OpenStdIO(StdErr,fmOutput,StdErrorHandle);
+end;
+
 
 var
   temp_int : tseginfo;
 Begin
   alloc_tb;
-{$ifndef EXCEPTIONS_IN_SYSTEM}
+  StackLength := InitialStkLen;
+  StackBottom := __stkbottom;
+  { To be set if this is a GUI or console application }
+  IsConsole := TRUE;
+  { To be set if this is a library and not a program  }
+  IsLibrary := FALSE;
 { save old int 0 and 75 }
   get_pm_interrupt($00,old_int00);
   get_pm_interrupt($75,old_int75);
   temp_int.segment:=get_cs;
   temp_int.offset:=@new_int00;
   set_pm_interrupt($00,temp_int);
+{$ifndef EXCEPTIONS_IN_SYSTEM}
   temp_int.offset:=@new_int75;
   set_pm_interrupt($75,temp_int);
 {$endif EXCEPTIONS_IN_SYSTEM}
-{$IFDEF SYSTEMDEBUG}
-{ to test stack depth }
-  loweststack:=maxlongint;
-{$ENDIF}
 { Setup heap }
   InitHeap;
-{$ifdef MT}
-  { before this, you can't use thread vars !!!! }
-  { threadvarblocksize is calculate before the initialization }
-  { of the system unit                                        }
-  mainprogramthreadblock :=  sysgetmem(threadvarblocksize);
-{$endif MT}
-  InitExceptions;
+  SysInitExceptions;
 { Setup stdin, stdout and stderr }
-  OpenStdIO(Input,fmInput,StdInputHandle);
-  OpenStdIO(Output,fmOutput,StdOutputHandle);
-  OpenStdIO(StdOut,fmOutput,StdOutputHandle);
-  OpenStdIO(StdErr,fmOutput,StdErrorHandle);
+  SysInitStdIO;
 { Setup environment and arguments }
-  Setup_Environment;
-  Setup_Arguments;
+//  Setup_Environment;
+//  Setup_Arguments;
 { Use LFNSupport LFN }
   LFNSupport:=CheckLFN;
   if LFNSupport then
    FileNameCaseSensitive:=true;
 { Reset IO Error }
   InOutRes:=0;
-{$ifndef RTLLITE}
 {$ifdef  EXCEPTIONS_IN_SYSTEM}
   InitDPMIExcp;
   InstallDefaultHandlers;
 {$endif  EXCEPTIONS_IN_SYSTEM}
-{$endif RTLLITE}
+{$ifdef HASVARIANT}
+  initvariantmanager;
+{$endif HASVARIANT}
 End.
 
 END.
 
 {
   $Log$
-  Revision 1.2  2003-09-07 22:29:26  hajny
+  Revision 1.3  2003-09-27 11:52:36  peter
+    * sbrk returns pointer
+
+  Revision 1.2  2003/09/07 22:29:26  hajny
     * syswat renamed to system, CVS log added
 
 

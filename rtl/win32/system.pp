@@ -271,17 +271,15 @@ asm
 end ['EAX'];
 
 
-function Sbrk(size : longint):longint;
+function Sbrk(size : longint):pointer;
 var
-  l : longint;
+  l : longword;
 begin
   l := HeapAlloc(GetProcessHeap(), 0, size);
-  if (l = 0) then
-    l := -1;
 {$ifdef DUMPGROW}
   Writeln('new heap part at $',hexstr(l,8), ' size = ',WinAPIHeapSize(GetProcessHeap()));
 {$endif}
-  sbrk:=l;
+  sbrk:=pointer(l);
 end;
 
 { include standard heap management }
@@ -1532,7 +1530,10 @@ end.
 
 {
   $Log$
-  Revision 1.43  2003-09-26 07:30:34  michael
+  Revision 1.44  2003-09-27 11:52:36  peter
+    * sbrk returns pointer
+
+  Revision 1.43  2003/09/26 07:30:34  michael
   + Win32 Do_open crahs on append
 
   Revision 1.42  2003/09/17 15:06:36  peter

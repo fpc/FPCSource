@@ -127,8 +127,8 @@ begin
 end;
 
 { function to allocate size bytes more for the program }
-{ must return the first address of new data space or -1 if fail }
-function Sbrk(size : longint):longint;{assembler;
+{ must return the first address of new data space or nil if fail }
+function Sbrk(size : longint):pointer;{assembler;
 asm
         movl    size,%eax
         pushl   %eax
@@ -136,7 +136,7 @@ asm
         addl    $4,%esp
 end;}
 begin
-  Sbrk:=-1;
+  Sbrk:=nil;
 end;
 
 
@@ -291,7 +291,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.8  2002-09-07 16:01:27  peter
+  Revision 1.9  2003-09-27 11:52:36  peter
+    * sbrk returns pointer
+
+  Revision 1.8  2002/09/07 16:01:27  peter
     * old logs removed and tabs fixed
 
   Revision 1.7  2002/04/21 15:55:14  carl

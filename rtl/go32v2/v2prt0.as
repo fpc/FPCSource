@@ -481,7 +481,7 @@ brk_nochange:                              /* successful return */
 brk_error:                                    /* error return */
         movl    __what_we_return_to_app_as_old_size, %eax
         movl    %eax, __what_size_app_thinks_it_is
-        movl    $-1, %eax
+        movl    $0, %eax
 
 brk_return:
         popl    %ebx
@@ -935,7 +935,10 @@ ___PROXY_LEN:
 
 /*
   $Log$
-  Revision 1.6  2002-09-08 09:16:15  jonas
+  Revision 1.7  2003-09-27 11:52:35  peter
+    * sbrk returns pointer
+
+  Revision 1.6  2002/09/08 09:16:15  jonas
     * added closing of comment for logs to avoid warning
 
   Revision 1.5  2002/09/07 16:01:19  peter

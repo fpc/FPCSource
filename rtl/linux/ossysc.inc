@@ -380,12 +380,11 @@ begin
   Fpmunmap:=do_syscall(syscall_nr_munmap,TSysParam(Adr),TSysParam(Len));
 end;
 
-Function sbrk(size : longint) : longint;
+Function sbrk(size : longint) : pointer;
 begin
-  sbrk:=longint(Fpmmap(0,Size,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0));
-  if sbrk<>-1 then
+  sbrk:=pointer(Fpmmap(0,Size,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0));
+  if sbrk<>nil then
    errno:=0;
-  {! It must be -1, not 0 as before, see heap.inc. Should be in sysmmap?}
 end;
 
 {
@@ -454,7 +453,10 @@ end;
 
 {
  $Log$
- Revision 1.5  2003-09-15 20:29:50  marco
+ Revision 1.6  2003-09-27 11:52:35  peter
+   * sbrk returns pointer
+
+ Revision 1.5  2003/09/15 20:29:50  marco
   * small fix
 
  Revision 1.4  2003/09/14 20:15:01  marco

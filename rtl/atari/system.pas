@@ -259,10 +259,10 @@ end ['D0'];
   { This routine is used to grow the heap.  }
   { But here we do a trick, we say that the }
   { heap cannot be regrown!                 }
-  function sbrk( size: longint): longint;
-  { on exit -1 = if fails.               }
+  function sbrk( size: longint): pointer;
+  { on exit nil = if fails.               }
   Begin
-   sbrk:=-1;
+   sbrk:=nil;
   end;
 
 {$I heap.inc}
@@ -758,7 +758,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2002-10-20 12:00:52  carl
+  Revision 1.7  2003-09-27 11:52:35  peter
+    * sbrk returns pointer
+
+  Revision 1.6  2002/10/20 12:00:52  carl
     - remove objinc.inc (unused file)
     * update makefiles accordingly
 

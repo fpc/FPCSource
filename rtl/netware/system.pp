@@ -253,24 +253,21 @@ var  HeapSbrkBlockList : ^THeapSbrkBlockList = nil;
      HeapSbrkAllocated : dword = 0;
 
 { function to allocate size bytes more for the program }
-{ must return the first address of new data space or -1 if fail }
+{ must return the first address of new data space or nil if fail }
 { for netware all allocated blocks are saved to free them at }
 { exit (to avoid message "Module did not release xx resources") }
-Function Sbrk(size : longint):longint;
-var P,P2 : POINTER;
+Function Sbrk(size : longint):pointer;
+var P2 : POINTER;
 begin
-  P := _malloc (size);
-  if P = nil then
-    Sbrk := -1
-  else begin
-    Sbrk := LONGINT (P);
+  Sbrk := _malloc (size);
+  if Sbrk <> nil then begin
     if HeapSbrkBlockList = nil then
     begin
       Pointer (HeapSbrkBlockList) := _malloc (sizeof (HeapSbrkBlockList^));
       if HeapSbrkBlockList = nil then
       begin
-        _free (P);
-        Sbrk := -1;
+        _free (Sbrk);
+        Sbrk := nil;
         exit;
       end;
       fillchar (HeapSbrkBlockList^,sizeof(HeapSbrkBlockList^),0);
@@ -281,14 +278,14 @@ begin
       p2 := _realloc (HeapSbrkBlockList, HeapSbrkAllocated + HeapInitialMaxBlocks);
       if p2 = nil then
       begin
-        _free (P);
-         Sbrk := -1;
+        _free (Sbrk);
+         Sbrk := nil;
          exit;
       end;
       inc (HeapSbrkAllocated, HeapInitialMaxBlocks);
     end;
     inc (HeapSbrkLastUsed);
-    HeapSbrkBlockList^[HeapSbrkLastUsed] := P;
+    HeapSbrkBlockList^[HeapSbrkLastUsed] := Sbrk;
   end;
 end;
 
@@ -815,7 +812,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.17  2003-03-25 18:17:54  armin
+  Revision 1.18  2003-09-27 11:52:35  peter
+    * sbrk returns pointer
+
+  Revision 1.17  2003/03/25 18:17:54  armin
   * support for fcl, support for linking without debug info
   * renamed winsock2 to winsock for win32 compatinility
   * new sockets unit for netware

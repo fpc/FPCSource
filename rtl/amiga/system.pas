@@ -914,7 +914,7 @@ end ['D0'];
   { This routine is used to grow the heap.  }
   { But here we do a trick, we say that the }
   { heap cannot be regrown!                 }
-  function sbrk( size: longint): longint;
+  function sbrk( size: longint): pointer;
   var
   { on exit -1 = if fails.               }
    p: longint;
@@ -925,13 +925,13 @@ end ['D0'];
     if pointerlist[8] <> 0 then
     begin
      { yes, then don't allocate and simply exit }
-     sbrk:=-1;
+     sbrk:=nil;
      exit;
     end;
     { Allocate best available memory }
     p:=AllocVec(size,0);
     if p = 0 then
-     sbrk:=-1
+     sbrk:=nil
     else
     Begin
        i:=1;
@@ -940,7 +940,7 @@ end ['D0'];
        while (i < 8) and (pointerlist[i] <> 0) do
          i:=i+1;
        pointerlist[i]:=p;
-       sbrk:=p;
+       sbrk:=pointer(p);
     end;
   end;
 
@@ -1826,7 +1826,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2002-10-20 12:00:52  carl
+  Revision 1.7  2003-09-27 11:52:35  peter
+    * sbrk returns pointer
+
+  Revision 1.6  2002/10/20 12:00:52  carl
     - remove objinc.inc (unused file)
     * update makefiles accordingly
 

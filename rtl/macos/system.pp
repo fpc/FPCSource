@@ -50,7 +50,7 @@ var
 implementation
 
 {$define MACOS_USE_STDCLIB}
- 
+
 
 { include system independent routines }
 {$I system.inc}
@@ -61,7 +61,7 @@ implementation
 ensure it is a supported version. }
 
 {Below is some MacOS API routines needed for internal use.
-Note, because the System unit is the most low level, it should not 
+Note, because the System unit is the most low level, it should not
 depend on any other units, and in particcular not the MacOS unit.
 
 Note: Types like Mac_XXX corresponds to the type XXX defined
@@ -94,8 +94,8 @@ const
   fsFromStart = 1;
   fsFromLEOF = 2;
 
-function NewPtr(logicalSize: Longint): Mac_Ptr ;
-external 'InterfaceLib';
+function Sbrk(logicalSize: Longint): Mac_Ptr ;
+external 'InterfaceLib' name 'NewPtr';
 
 procedure DisposeHandle(hdl: Mac_Handle);
 external 'InterfaceLib';
@@ -164,15 +164,15 @@ external 'InterfaceLib';
 {The reason StdCLib is used is that it can easily be connected
 to either SIOW or, in case of MPWTOOL, to MPW }
 
-{The prefix C_ or c_ is used where names conflicts with pascal 
+{The prefix C_ or c_ is used where names conflicts with pascal
 keywords and names. Suffix Ptr is added for pointer to a type.}
 
 type
   size_t = Longint;
   off_t = Longint;
   C_int = Longint;
-  C_short = Integer;  
-  C_long = Longint;  
+  C_short = Integer;
+  C_long = Longint;
   C_unsigned_int = Cardinal;
 
 var
@@ -204,16 +204,16 @@ const
 
   FIOINTERACTIVE = $00006602; // If device is interactive
   FIOBUFSIZE     = $00006603; // Return optimal buffer size
-  FIOFNAME       = $00006604;	// Return filename
-  FIOREFNUM	     = $00006605; // Return fs refnum
-  FIOSETEOF	     = $00006606; // Set file length
+  FIOFNAME       = $00006604;   // Return filename
+  FIOREFNUM          = $00006605; // Return fs refnum
+  FIOSETEOF          = $00006606; // Set file length
 
-  TIOFLUSH = $00007408;	      // discard unread input.  arg is ignored
+  TIOFLUSH = $00007408;       // discard unread input.  arg is ignored
 
 function C_open(path: PChar; oflag: C_int): C_int;
   external 'StdCLib' name 'open';
 
-function C_close(filedes: C_int): C_int; 
+function C_close(filedes: C_int): C_int;
   external 'StdCLib' name 'close';
 
 function C_write(filedes: C_int; buf: pointer; nbyte: size_t): size_t;
@@ -354,7 +354,7 @@ end;
 *****************************************************************************}
 
 var
-  { Pointer to a block allocated with the MacOS Memory Manager, which 
+  { Pointer to a block allocated with the MacOS Memory Manager, which
     is used as the initial FPC heap. }
   theHeap: Mac_Ptr;
   intern_heapsize : longint;external name 'HEAPSIZE';
@@ -369,21 +369,6 @@ end;
 function getheapsize:longint;
 begin
   getheapsize:= intern_heapsize ;
-end;
-
-{ function to allocate size bytes more for the program }
-{ must return the first address of new data space or -1 if fail }
-function Sbrk(size : longint):longint;
-
-var
-  p: Mac_Ptr;
-
-begin
-  p:= NewPtr(size);
-  if p = nil then
-    Sbrk:= -1	//Tell its failed
-  else
-    Sbrk:= longint(p)
 end;
 
 { include standard heap management }
@@ -417,7 +402,7 @@ begin
   remove(p);
   Errno2InoutRes;
   {$else}
-  InOutRes:=1;  
+  InOutRes:=1;
   {$endif}
 end;
 
@@ -427,7 +412,7 @@ begin
   c_rename(p1,p2);
   Errno2InoutRes;
   {$else}
-  InOutRes:=1;  
+  InOutRes:=1;
   {$endif}
 end;
 
@@ -437,9 +422,9 @@ begin
   do_write:= C_write(h, pointer(addr), len);
   Errno2InoutRes;
   {$else}
-  InOutRes:=1;	
+  InOutRes:=1;
   if FSWrite(h, len, Mac_Ptr(addr)) = noErr then
-    InOutRes:=0;	
+    InOutRes:=0;
   do_write:= len;
   {$endif}
 end;
@@ -464,7 +449,7 @@ begin
   {$else}
   InOutRes:=1;
   if FSread(h, len, Mac_Ptr(addr)) = noErr then
-    InOutRes:=0;	
+    InOutRes:=0;
   do_read:= len;
   {$endif}
 end;
@@ -523,7 +508,7 @@ begin
     begin
       do_filesize := lseek(handle, 0, SEEK_END);
       Errno2InOutRes; {Report the error from this operation.}
-      lseek(handle, aktfilepos, SEEK_SET);   {Always try to move back, 
+      lseek(handle, aktfilepos, SEEK_SET);   {Always try to move back,
          even in presence of error.}
     end
   else
@@ -544,7 +529,7 @@ begin
   Errno2InoutRes;
   {$else}
   InOutRes:=1;
-  do_seek(handle,pos);	//TODO: Is this needed (Does the user anticipate the filemarker is at the end?) 
+  do_seek(handle,pos);  //TODO: Is this needed (Does the user anticipate the filemarker is at the end?)
   if SetEOF(handle, pos) = noErr then
     InOutRes:=0;
   {$endif}
@@ -566,7 +551,7 @@ begin
              fullPath, nullString, nullString, alias);
   if res = noErr then
     begin
-      res:= ResolveAlias(nil, alias, spec, wasChanged);    
+      res:= ResolveAlias(nil, alias, spec, wasChanged);
       DisposeHandle(Mac_Handle(alias));
 end;
   FSpLocationFromFullPath:= res;
@@ -671,10 +656,10 @@ begin
   {$else}
 
   InOutRes:=1;
-  //creator:= $522A6368;	{'MPS ' -- MPW}
-  //creator:= $74747874;	{'ttxt'}
-  creator:= $522A6368;	{'R*ch' -- BBEdit}
-  fileType:= $54455854;	{'TEXT'}
+  //creator:= $522A6368;        {'MPS ' -- MPW}
+  //creator:= $74747874;        {'ttxt'}
+  creator:= $522A6368;  {'R*ch' -- BBEdit}
+  fileType:= $54455854; {'TEXT'}
 
   { reset file handle }
   filerec(f).handle:=UnusedHandle;
@@ -787,7 +772,7 @@ end;
 begin
   if false then //To save it from the dead code stripper
     begin
-      //Included only to make them available for debugging in asm. 
+      //Included only to make them available for debugging in asm.
       Debugger;
       DebugStr('');
     end;
@@ -802,7 +787,7 @@ begin
   { Setup heap }
   if Mac_FreeMem - intern_heapsize < 30000 then
     Halt(3);
-  theHeap:= NewPtr(intern_heapsize);
+  theHeap:= Sbrk(intern_heapsize);
   if theHeap = nil then
     Halt(3);  //According to MPW
   InitHeap;
@@ -822,7 +807,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2003-09-12 12:45:15  olle
+  Revision 1.7  2003-09-27 11:52:35  peter
+    * sbrk returns pointer
+
+  Revision 1.6  2003/09/12 12:45:15  olle
     + filehandling complete
     + heaphandling complete
     + support for random

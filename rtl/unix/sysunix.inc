@@ -161,12 +161,11 @@ end;
 {$endif not fpc_getheapsize_ok}
 
 
-Function sbrk(size : longint) : Longint;
+Function sbrk(size : longint) : pointer;
 begin
-  sbrk:=Sys_mmap(0,Size,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0);
-  if sbrk<>-1 then
+  sbrk:=pointer(Sys_mmap(0,Size,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0));
+  if sbrk<>nil then
    errno:=0;
-  {! It must be -1, not 0 as before, see heap.inc. Should be in sysmmap?}
 end;
 
 
@@ -804,7 +803,10 @@ End.
 
 {
   $Log$
-  Revision 1.33  2003-09-03 14:09:37  florian
+  Revision 1.34  2003-09-27 11:52:36  peter
+    * sbrk returns pointer
+
+  Revision 1.33  2003/09/03 14:09:37  florian
     * arm fixes to the common rtl code
     * some generic math code fixed
     * ...
