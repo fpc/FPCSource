@@ -223,7 +223,6 @@ var
   StdErr      : Text;
   ExitCode    : Word;
   StackBottom,
-  LowestStack,
   RandSeed    : Cardinal;
 { Delphi compatible }
   IsLibrary,IsConsole : boolean;
@@ -558,7 +557,10 @@ const
 
 {
   $Log$
-  Revision 1.43  2002-01-25 17:41:05  peter
+  Revision 1.44  2002-04-12 17:35:24  carl
+  - removed unused variable
+
+  Revision 1.43  2002/01/25 17:41:05  peter
     * moved array types to objpas unit
 
   Revision 1.42  2002/01/25 17:39:35  peter
