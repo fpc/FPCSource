@@ -1,4 +1,4 @@
-{$APPTYPE CONSOLE}
+{$ifndef macos}{$APPTYPE CONSOLE}{$endif}
 {$ifdef fpc}{$mode delphi}{$endif}
 
 procedure wideansi;
