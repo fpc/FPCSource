@@ -10,8 +10,13 @@ end;
 
 begin
  if @test <> @test2 then
-   writeln('different!');
+   writeln('different!')
+ else
+   writeln('error');
+ m:=@test;
 
- if @m <> @test then
-   writeln('hi!');
+ { here also the syntax was wrong !! }
+ {  @m <> @test have different types !! }
+ if m <> @test then
+   writeln('error');
 end.

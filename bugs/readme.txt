@@ -216,6 +216,10 @@ Fixed bugs:
   bug0182.pp   @record.field doesn't work in constant expr           OK 0.99.9 (PM)
   bug0184.pp   multiple copies of the same constant set are stored in executable OK 0.99.9 (PFV)
   bug0186.pp   Erroneous array syntax is accepted.                   OK 0.99.9 (PFV)
+  bug0188.pp   can't print function result of procedural var that returns a
+               function. Not a bug : wrong syntax !! See source (PM)
+  bug0189.pp   cant compare adresses of function variables !!
+               As bug0188 FPC syntax problem see source (PM)
 
 Unproducable bugs:
 ------------------
@@ -250,9 +254,6 @@ bug0171.pp   missing typecasting in constant expressions
 bug0183.pp   internal error 10
 bug0185.pp   missing range checking for Val and subrange types
 bug0187.pp   constructor in a WIth statement isn't called correct.
-bug0188.pp   can't print function result of procedural var that returns a
-             function.
-bug0189.pp   cant compare adresses of function variables !!
 bug0190.pp   can't have typecast for var params ??
 bug0191.pp   missing vecn constant evaluation
 bug0192.pp   can't compare boolean result with true/false, because the
