@@ -14,44 +14,19 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  **********************************************************************}
 
-{ *********************************************************************** }
-{  Parts are Copyright (c) 2005 Andreas Hausladen                         }
-{                                                                         }
-{  This software is provided 'as-is', without any express or              }
-{  implied warranty. In no event will the author be held liable           }
-{  for any damages arising from the use of this software.                 }
-{                                                                         }
-{  Permission is granted to anyone to use this software for any           }
-{  purpose, including commercial applications, and to alter it            }
-{  and redistribute it freely, subject to the following                   }
-{  restrictions:                                                          }
-{                                                                         }
-{    1. The origin of this software must not be misrepresented,           }
-{       you must not claim that you wrote the original software.          }
-{       If you use this software in a product, an acknowledgment          }
-{       in the product documentation would be appreciated but is          }
-{       not required.                                                     }
-{                                                                         }
-{    2. Altered source versions must be plainly marked as such, and       }
-{       must not be misrepresented as being the original software.        }
-{                                                                         }
-{    3. This notice may not be removed or altered from any source         }
-{       distribution.                                                     }
-{                                                                         }
-{ *********************************************************************** }
-
 {$mode objfpc}
 
 unit cwstring;
 
 interface
 
- {$linklib c}
-
-Procedure SetCWidestringManager;
+{$ifdef HASWIDESTRING}
+procedure SetCWidestringManager;
+{$endif HASWIDESTRING}
 
 implementation
 
+{$ifdef HASWIDESTRING}
 {$linklib c}
 
 Uses
@@ -109,6 +84,7 @@ procedure Wide2AnsiMove(source:pwidechar;var dest:ansistring;len:SizeInt);
   var
     outlength,
     outoffset,
+    srclen,
     outleft : size_t;
     srcpos : pwidechar;
     destpos: pchar;
@@ -120,15 +96,24 @@ procedure Wide2AnsiMove(source:pwidechar;var dest:ansistring;len:SizeInt);
     { rought estimation }
     setlength(dest,len*3);
     outlength:=len*3;
+    srclen:=len*2;
     srcpos:=source;
     destpos:=pchar(dest);
     outleft:=outlength;
-    while iconv(iconv_wide2ansi,@srcpos,@len,@destpos,@outleft)=size_t(-1) do
+    while iconv(iconv_wide2ansi,@srcpos,@srclen,@destpos,@outleft)=size_t(-1) do
       begin
         case fpgetCerrno of
-          ESysEINVAL:
-            { sometimes it seems to be necessary to reset the conversion context }
-            iconv(iconv_wide2ansi,@mynil,@my0,@mynil,@my0);
+          ESysEILSEQ:
+            begin
+              { skip and set to '?' }
+              inc(srcpos);
+              dec(srclen,2);
+              destpos^:='?';
+              inc(destpos);
+              dec(outleft);
+              { reset }
+              iconv(iconv_wide2ansi,@mynil,@my0,@mynil,@my0);
+            end;
           ESysE2BIG:
             begin
               outoffset:=destpos-pchar(dest);
@@ -160,17 +145,16 @@ procedure Ansi2WideMove(source:pchar;var dest:widestring;len:SizeInt);
   begin
     mynil:=nil;
     my0:=0;
-    setlength(dest,len);
-    outlength:=len;
+    // extra space
+    outlength:=len+1;
+    setlength(dest,outlength);
+    outlength:=len+1;
     srcpos:=source;
     destpos:=pchar(dest);
     outleft:=outlength*2;
     while iconv(iconv_ansi2wide,@srcpos,@len,@destpos,@outleft)=size_t(-1) do
       begin
         case fpgetCerrno of
-          ESysEINVAL:
-            { sometimes it seems to be necessary to reset the conversion context }
-            iconv(iconv_wide2ansi,@mynil,@my0,@mynil,@my0);
           ESysE2BIG:
             begin
               outoffset:=destpos-pchar(dest);
@@ -253,45 +237,25 @@ begin
 end;
 
 
-procedure InitCharArrays;
-  var
-    i: longint;
-  begin
-{$ifdef dummy}
-    // first initialize the WideChar arrays
-    SetLength(WideUpperChars, +1);
-    SetLength(WideLowerChars, High(WideChar)+1);
-    for i := 0 to High(WideChar) do
-      WideUpperChars[i+1]:=WideChar(towupper(wint_t(i)));
-    for i := 0 to High(WideChar) do
-      WideLowerChars[i+1]:=WideChar(towlower(wint_t(i)));
-
-    // use the widechar array to initialize the AnsiChar arrays
-    SetLength(AnsiUpperChars, Byte(High(Char)) + 1);
-    SetLength(AnsiLowerChars, Byte(High(Char)) + 1);
-    for i:=0 to High(Char) do
-      AnsiUpperChars[i+1]:=AnsiChar(i);
-    for i:=0 to High(Char) do
-      AnsiLowerChars[i+1]:=AnsiChar(i);
-    AnsiUpperChars:=WideUpperCase(AnsiUpperChars);
-    AnsiLowerChars:=WideLowerCase(AnsiLowerChars);
-{$endif}
-  end;
-
 initialization
   SetCWideStringManager;
-  InitCharArrays;
   { init conversion tables }
-  writeln(nl_langinfo(CODESET));
-  iconv_ansi2wide:=iconv_open(nl_langinfo(CODESET),unicode_encoding);
-  iconv_wide2ansi:=iconv_open(unicode_encoding,nl_langinfo(CODESET));
+  iconv_wide2ansi:=iconv_open(nl_langinfo(CODESET),unicode_encoding);
+  iconv_ansi2wide:=iconv_open(unicode_encoding,nl_langinfo(CODESET));
 finalization
   iconv_close(iconv_ansi2wide);
 end.
 
+{$else HASWIDESTRING}
+end.
+{$endif HASWIDESTRING}
+
 {
   $Log$
-  Revision 1.4  2005-03-16 22:26:12  florian
+  Revision 1.5  2005-03-17 19:11:04  florian
+    * first working version
+
+  Revision 1.4  2005/03/16 22:26:12  florian
     + ansi<->wide implemented using iconv
 
   Revision 1.3  2005/02/14 17:13:31  peter
