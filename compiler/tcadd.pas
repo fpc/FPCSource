@@ -34,7 +34,7 @@ implementation
     uses
       globtype,systems,tokens,
       cobjects,verbose,globals,
-      symtable,aasm,types,
+      symconst,symtable,aasm,types,
       hcodegen,htypechk,pass_1
 {$ifdef i386}
       ,i386base
@@ -115,7 +115,7 @@ implementation
               (porddef(parraydef(ld)^.definition)^.typ<>uchar))) or
             { <> and = are defined for classes }
             ((ld^.deftype=objectdef) and
-             (not(pobjectdef(ld)^.isclass) or
+             (not(pobjectdef(ld)^.is_class) or
               not(p^.treetype in [equaln,unequaln])
              )
             ) or
@@ -126,7 +126,7 @@ implementation
               (porddef(parraydef(rd)^.definition)^.typ<>uchar))) or
             { <> and = are defined for classes }
             ((rd^.deftype=objectdef) and
-             (not(pobjectdef(rd)^.isclass) or
+             (not(pobjectdef(rd)^.is_class) or
               not(p^.treetype in [equaln,unequaln])
              )
             ) then
@@ -456,16 +456,16 @@ implementation
                  convdone:=true;
                end
               { is there a 64 bit type ? }
-             else if (porddef(rd)^.typ=s64bitint) or (porddef(ld)^.typ=s64bitint) then
+             else if (porddef(rd)^.typ=s64bit) or (porddef(ld)^.typ=s64bit) then
                begin
-                  if (porddef(ld)^.typ<>s64bitint) then
+                  if (porddef(ld)^.typ<>s64bit) then
                     begin
-                      p^.left:=gentypeconvnode(p^.left,cs64bitintdef);
+                      p^.left:=gentypeconvnode(p^.left,cs64bitdef);
                       firstpass(p^.left);
                     end;
-                  if (porddef(rd)^.typ<>s64bitint) then
+                  if (porddef(rd)^.typ<>s64bit) then
                     begin
-                       p^.right:=gentypeconvnode(p^.right,cs64bitintdef);
+                       p^.right:=gentypeconvnode(p^.right,cs64bitdef);
                        firstpass(p^.right);
                     end;
                   calcregisters(p,2,0,0);
@@ -831,10 +831,10 @@ implementation
          else
 
            if (rd^.deftype=objectdef) and (ld^.deftype=objectdef) and
-              pobjectdef(rd)^.isclass and pobjectdef(ld)^.isclass then
+              pobjectdef(rd)^.is_class and pobjectdef(ld)^.is_class then
             begin
               p^.location.loc:=LOC_REGISTER;
-              if pobjectdef(rd)^.isrelated(pobjectdef(ld)) then
+              if pobjectdef(rd)^.is_related(pobjectdef(ld)) then
                 p^.right:=gentypeconvnode(p^.right,ld)
               else
                 p^.left:=gentypeconvnode(p^.left,rd);
@@ -852,7 +852,7 @@ implementation
            if (rd^.deftype=classrefdef) and (ld^.deftype=classrefdef) then
             begin
               p^.location.loc:=LOC_REGISTER;
-              if pobjectdef(pclassrefdef(rd)^.definition)^.isrelated(pobjectdef(
+              if pobjectdef(pclassrefdef(rd)^.definition)^.is_related(pobjectdef(
                 pclassrefdef(ld)^.definition)) then
                 p^.right:=gentypeconvnode(p^.right,ld)
               else
@@ -870,7 +870,7 @@ implementation
 
          { allows comperasion with nil pointer }
            if (rd^.deftype=objectdef) and
-              pobjectdef(rd)^.isclass then
+              pobjectdef(rd)^.is_class then
             begin
               p^.location.loc:=LOC_REGISTER;
               p^.left:=gentypeconvnode(p^.left,rd);
@@ -885,7 +885,7 @@ implementation
          else
 
            if (ld^.deftype=objectdef) and
-              pobjectdef(ld)^.isclass then
+              pobjectdef(ld)^.is_class then
             begin
               p^.location.loc:=LOC_REGISTER;
               p^.right:=gentypeconvnode(p^.right,ld);
@@ -1117,7 +1117,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.37  1999-07-16 10:04:37  peter
+  Revision 1.38  1999-08-03 22:03:24  peter
+    * moved bitmask constants to sets
+    * some other type/const renamings
+
+  Revision 1.37  1999/07/16 10:04:37  peter
     * merged
 
   Revision 1.36  1999/06/17 15:32:48  pierre

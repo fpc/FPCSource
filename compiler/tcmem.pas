@@ -45,7 +45,7 @@ implementation
     uses
       globtype,systems,
       cobjects,verbose,globals,
-      symtable,aasm,types,
+      symconst,symtable,aasm,types,
       hcodegen,htypechk,pass_1
 {$ifdef i386}
       ,i386base
@@ -195,7 +195,7 @@ implementation
                         begin
                           { generate a methodcallnode or proccallnode }
                           if (p^.left^.symtableprocentry^.owner^.symtabletype=objectsymtable) and
-                             (pobjectdef(p^.left^.symtableprocentry^.owner^.defowner)^.isclass) then
+                             (pobjectdef(p^.left^.symtableprocentry^.owner^.defowner)^.is_class) then
                            begin
                              hp:=genloadmethodcallnode(pprocsym(p^.left^.symtableprocentry),p^.left^.symtableproc,
                                getcopy(p^.left^.methodpointer));
@@ -221,14 +221,19 @@ implementation
                         else
                          hp3:=pabstractprocdef(pprocsym(p^.left^.symtableprocentry)^.definition);
 
-                        pprocvardef(p^.resulttype)^.options:=hp3^.options;
+                        pprocvardef(p^.resulttype)^.proctypeoption:=hp3^.proctypeoption;
+                        pprocvardef(p^.resulttype)^.proccalloptions:=hp3^.proccalloptions;
+                        pprocvardef(p^.resulttype)^.procoptions:=hp3^.procoptions;
                         pprocvardef(p^.resulttype)^.retdef:=hp3^.retdef;
 
                       { method ? then set the methodpointer flag }
                         if (hp3^.owner^.symtabletype=objectsymtable) and
-                           (pobjectdef(hp3^.owner^.defowner)^.isclass) then
-                          pprocvardef(p^.resulttype)^.options:=pprocvardef(p^.resulttype)^.options or pomethodpointer;
-
+                           (pobjectdef(hp3^.owner^.defowner)^.is_class) then
+{$ifdef INCLUDEOK}
+                          include(pprocvardef(p^.resulttype)^.procoptions,po_methodpointer);
+{$else}
+                          pprocvardef(p^.resulttype)^.procoptions:=pprocvardef(p^.resulttype)^.procoptions+[po_methodpointer];
+{$endif}
                         hp2:=hp3^.para1;
                         while assigned(hp2) do
                           begin
@@ -383,7 +388,7 @@ implementation
 {$endif SUPPORT_MMX}
          { classes must be dereferenced implicit }
          if (p^.left^.resulttype^.deftype=objectdef) and
-           pobjectdef(p^.left^.resulttype)^.isclass then
+           pobjectdef(p^.left^.resulttype)^.is_class then
            begin
               if p^.registers32=0 then
                 p^.registers32:=1;
@@ -541,7 +546,7 @@ implementation
       begin
          if (p^.resulttype^.deftype=classrefdef) or
            ((p^.resulttype^.deftype=objectdef)
-             and pobjectdef(p^.resulttype)^.isclass
+             and pobjectdef(p^.resulttype)^.is_class
            ) then
            p^.location.loc:=LOC_CREGISTER
          else
@@ -591,7 +596,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  1999-07-16 10:04:39  peter
+  Revision 1.22  1999-08-03 22:03:35  peter
+    * moved bitmask constants to sets
+    * some other type/const renamings
+
+  Revision 1.21  1999/07/16 10:04:39  peter
     * merged
 
   Revision 1.20  1999/07/05 20:25:41  peter

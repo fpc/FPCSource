@@ -40,7 +40,7 @@ implementation
     uses
        strings,cobjects,
        globtype,globals,verbose,
-       types,
+       symconst,types,
        hcodegen;
 
 
@@ -105,7 +105,7 @@ implementation
               hp:=pprocsym(p)^.definition;
               while assigned(hp) do
                 begin
-                   if (hp^.options and pomsgstr)<>0 then
+                   if (po_msgstr in hp^.procoptions) then
                      begin
                         new(pt);
                         pt^.p:=hp;
@@ -149,7 +149,7 @@ implementation
               hp:=pprocsym(p)^.definition;
               while assigned(hp) do
                 begin
-                   if (hp^.options and pomsgint)<>0 then
+                   if (po_msgint in hp^.procoptions) then
                      begin
                         new(pt);
                         pt^.p:=hp;
@@ -199,7 +199,7 @@ implementation
          root:=nil;
          count:=0;
          { insert all message handlers into a tree, sorted by name }
-         _class^.publicsyms^.foreach({$ifndef TP}@{$endif}insertmsgstr);
+         _class^.symtable^.foreach({$ifndef TP}@{$endif}insertmsgstr);
 
          { write all names }
          if assigned(root) then
@@ -241,7 +241,7 @@ implementation
          root:=nil;
          count:=0;
          { insert all message handlers into a tree, sorted by name }
-         _class^.publicsyms^.foreach({$ifndef TP}@{$endif}insertmsgint);
+         _class^.symtable^.foreach({$ifndef TP}@{$endif}insertmsgint);
 
          { now start writing of the message string table }
          getdatalabel(r);
@@ -312,7 +312,7 @@ implementation
                 symcoll^.data:=procdefcoll;
 
                 { if it's a virtual method }
-                if (hp^.options and povirtualmethod)<>0 then
+                if (po_virtualmethod in hp^.procoptions) then
                   begin
                      { then it gets a number ... }
                      hp^.extnumber:=nextvirtnumber;
@@ -321,11 +321,11 @@ implementation
                      has_virtual_method:=true;
                   end;
 
-                if (hp^.options and poconstructor)<>0 then
+                if (hp^.proctypeoption=potype_constructor) then
                   has_constructor:=true;
 
                 { check, if a method should be overridden }
-                if (hp^.options and pooverridingmethod)<>0 then
+                if (po_overridingmethod in hp^.procoptions) then
                   Message1(parser_e_nothing_to_be_overridden,_c^.objname^+'.'+_name);
                 { next overloaded method }
                 hp:=hp^.nextoverloaded;
@@ -355,18 +355,18 @@ implementation
                                   { compare parameters }
                                   if equal_paras(procdefcoll^.data^.para1,hp^.para1,false) and
                                      (
-                                       ((procdefcoll^.data^.options and povirtualmethod)<>0) or
-                                       ((hp^.options and povirtualmethod)<>0)
+                                       (po_virtualmethod in procdefcoll^.data^.procoptions) or
+                                       (po_virtualmethod in hp^.procoptions)
                                      ) then
                                     begin { same parameters }
                                        { wenn sie gleich sind }
                                        { und eine davon virtual deklariert ist }
                                        { Fehler falls nur eine VIRTUAL }
-                                       if (procdefcoll^.data^.options and povirtualmethod)<>
-                                          (hp^.options and povirtualmethod) then
+                                       if (po_virtualmethod in procdefcoll^.data^.procoptions)<>
+                                          (po_virtualmethod in hp^.procoptions) then
                                          begin
                                             { in classes, we hide the old method }
-                                            if _c^.isclass then
+                                            if _c^.is_class then
                                               begin
                                                  { warn only if it is the first time,
                                                    we hide the method }
@@ -378,7 +378,7 @@ implementation
                                             else
                                               if _c=hp^._class then
                                                 begin
-                                                   if (procdefcoll^.data^.options and povirtualmethod)<>0 then
+                                                   if (po_virtualmethod in procdefcoll^.data^.procoptions) then
                                                      Message1(parser_w_overloaded_are_not_both_virtual,_c^.objname^+'.'+_name)
                                                    else
                                                      Message1(parser_w_overloaded_are_not_both_non_virtual,
@@ -391,16 +391,18 @@ implementation
                                        { the flags have to match      }
                                        { except abstract and override }
                                        { only if both are virtual !!  }
-                                       if (procdefcoll^.data^.options and not(poabstractmethod or pooverridingmethod))<>
-                                         (hp^.options and not(poabstractmethod or pooverridingmethod)) then
-                                            Message1(parser_e_header_dont_match_forward,_c^.objname^+'.'+_name);
+                                       if (procdefcoll^.data^.proccalloptions<>hp^.proccalloptions) or
+                                          (procdefcoll^.data^.proctypeoption<>hp^.proctypeoption) or
+                                          ((procdefcoll^.data^.procoptions-[po_abstractmethod,po_overridingmethod])<>
+                                           (hp^.procoptions-[po_abstractmethod,po_overridingmethod])) then
+                                         Message1(parser_e_header_dont_match_forward,_c^.objname^+'.'+_name);
 
                                        { check, if the overridden directive is set }
                                        { (povirtualmethod is set! }
 
                                        { class ? }
-                                       if _c^.isclass and
-                                         ((hp^.options and pooverridingmethod)=0) then
+                                       if _c^.is_class and
+                                          not(po_overridingmethod in hp^.procoptions) then
                                          begin
                                             { warn only if it is the first time,
                                               we hide the method }
@@ -414,9 +416,9 @@ implementation
                                        if not(is_equal(procdefcoll^.data^.retdef,hp^.retdef)) and
                                          not((procdefcoll^.data^.retdef^.deftype=objectdef) and
                                            (hp^.retdef^.deftype=objectdef) and
-                                           (pobjectdef(procdefcoll^.data^.retdef)^.isclass) and
-                                           (pobjectdef(hp^.retdef)^.isclass) and
-                                           (pobjectdef(hp^.retdef)^.isrelated(pobjectdef(procdefcoll^.data^.retdef)))) then
+                                           (pobjectdef(procdefcoll^.data^.retdef)^.is_class) and
+                                           (pobjectdef(hp^.retdef)^.is_class) and
+                                           (pobjectdef(hp^.retdef)^.is_related(pobjectdef(procdefcoll^.data^.retdef)))) then
                                          Message1(parser_e_overloaded_methodes_not_same_ret,_c^.objname^+'.'+_name);
 
 
@@ -437,14 +439,14 @@ implementation
                                   procdefcoll^.next:=symcoll^.data;
                                   symcoll^.data:=procdefcoll;
                                   { if the method is virtual ... }
-                                  if (hp^.options and povirtualmethod)<>0 then
+                                  if (po_virtualmethod in hp^.procoptions) then
                                     begin
                                        { ... it will get a number }
                                        hp^.extnumber:=nextvirtnumber;
                                        inc(nextvirtnumber);
                                     end;
                                   { check, if a method should be overridden }
-                                  if (hp^.options and pooverridingmethod)<>0 then
+                                  if (po_overridingmethod in hp^.procoptions) then
                                    Message1(parser_e_nothing_to_be_overridden,_c^.objname^+'.'+_name);
                                end;
                              hp:=hp^.nextoverloaded;
@@ -471,7 +473,7 @@ implementation
            {_c:=_class;}
            _c:=p;
            { Florian, please check if you agree (PM) }
-           p^.publicsyms^.foreach({$ifndef TP}@{$endif}eachsym);
+           p^.symtable^.foreach({$ifndef TP}@{$endif}eachsym);
         end;
 
       var
@@ -513,16 +515,19 @@ implementation
                         { but only this which are declared as virtual }
                         if procdefcoll^.data^.extnumber=i then
                           begin
-                             if (procdefcoll^.data^.options and povirtualmethod)<>0 then
+                             if (po_virtualmethod in procdefcoll^.data^.procoptions) then
                                begin
                                   { if a method is abstract, then is also the }
                                   { class abstract and it's not allow to      }
                                   { generates an instance                     }
-                                  if (procdefcoll^.data^.options and poabstractmethod)<>0 then
+                                  if (po_abstractmethod in procdefcoll^.data^.procoptions) then
                                     begin
-                                       _class^.options:=_class^.options or oo_is_abstract;
-                                       datasegment^.concat(new(pai_const_symbol,
-                                         initname('FPC_ABSTRACTERROR')));
+{$ifdef INCLUDEOK}
+                                       include(_class^.objectoptions,oo_has_abstract);
+{$else}
+                                       _class^.objectoptions:=_class^.objectoptions+[oo_has_abstract];
+{$endif}
+                                       datasegment^.concat(new(pai_const_symbol,initname('FPC_ABSTRACTERROR')));
                                     end
                                   else
                                     begin
@@ -558,7 +563,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  1999-07-11 20:10:23  peter
+  Revision 1.14  1999-08-03 22:02:52  peter
+    * moved bitmask constants to sets
+    * some other type/const renamings
+
+  Revision 1.13  1999/07/11 20:10:23  peter
     * merged
 
   Revision 1.12  1999/07/08 10:40:37  peter

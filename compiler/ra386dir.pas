@@ -34,7 +34,7 @@ unit Ra386dir;
      uses
         files,hcodegen,globals,scanner,aasm
         ,i386base,i386asm
-        ,cobjects,symtable,types,verbose,
+        ,cobjects,symconst,symtable,types,verbose,
         rautils,ra386;
 
     function assemble : ptree;
@@ -161,11 +161,11 @@ unit Ra386dir;
                                              {variables set are after a comma }
                                              {like in movl %eax,I }
                                              if pos(',',s) > 0 then
-                                               pvarsym(sym)^.is_valid:=1
+                                               pvarsym(sym)^.varstate:=vs_used
                                              else
-                                             if (pos('MOV',upper(s)) > 0) and (pvarsym(sym)^.is_valid=0) then
+                                             if (pos('MOV',upper(s)) > 0) and (pvarsym(sym)^.varstate=vs_declared) then
                                               Message1(sym_n_uninitialized_local_variable,hs);
-                                             if ((pvarsym(sym)^.var_options and vo_is_external)<>0) then
+                                             if (vo_is_external in pvarsym(sym)^.varoptions) then
                                                hs:=pvarsym(sym)^.mangledname
                                              else
                                                hs:='-'+tostr(pvarsym(sym)^.address)+'('+att_reg2str[procinfo.framepointer]+')';
@@ -193,7 +193,7 @@ unit Ra386dir;
                                                      inc(l,aktprocsym^.definition^.parast^.address_fixup);
                                                      hs:=tostr(l)+'('+att_reg2str[procinfo.framepointer]+')';
                                                      if pos(',',s) > 0 then
-                                                       pvarsym(sym)^.is_valid:=1;
+                                                       pvarsym(sym)^.varstate:=vs_used;
                                                   end;
                                              end
                                       { I added that but it creates a problem in line.ppi
@@ -291,7 +291,11 @@ unit Ra386dir;
 end.
 {
   $Log$
-  Revision 1.21  1999-05-27 19:44:57  peter
+  Revision 1.22  1999-08-03 22:03:11  peter
+    * moved bitmask constants to sets
+    * some other type/const renamings
+
+  Revision 1.21  1999/05/27 19:44:57  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly

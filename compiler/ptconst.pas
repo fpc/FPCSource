@@ -35,8 +35,9 @@ unit ptconst;
 
     uses
        globtype,systems,tokens,
-       cobjects,globals,scanner,aasm,tree,pass_1,
-       types,verbose
+       cobjects,globals,scanner,
+       symconst,aasm,types,verbose,
+       tree,pass_1
        { parser specific stuff }
        ,pbase,pexpr
        { processor specific stuff }
@@ -85,12 +86,12 @@ unit ptconst;
              end;
         end;
 
-      function is_po_equal(o1,o2:longint):boolean;
+(*      function is_po_equal(o1,o2:longint):boolean;
         begin
         { assembler does not affect }
           is_po_equal:=(o1 and not(poassembler))=
                        (o2 and not(poassembler));
-        end;
+        end; *)
 
 {$R-}  {Range check creates problem with init_8bit(-1) !!}
       begin
@@ -157,7 +158,7 @@ unit ptconst;
                                 curconstsegment^.concat(new(pai_const,init_16bit(p^.value)));
                                 check_range;
                             end;
-                    s64bitint,
+                    s64bit,
                     u64bit:
                       begin
                          if not is_constintnode(p) then
@@ -581,27 +582,8 @@ unit ptconst;
                    pd:=pprocsym(srsym)^.definition;
                    if assigned(pd^.nextoverloaded) then
                      Message(parser_e_no_overloaded_procvars);
-                   if is_po_equal(pprocvardef(def)^.options,pd^.options) and
-                      is_equal(pprocvardef(def)^.retdef,pd^.retdef) then
-                     begin
-                       hp1:=pprocvardef(def)^.para1;
-                       hp2:=pd^.para1;
-                       while assigned(hp1) and assigned(hp2) do
-                        begin
-                          if not(is_equal(hp1^.data,hp2^.data)) or
-                             not(hp1^.paratyp=hp2^.paratyp) then
-                            begin
-                              Message(type_e_mismatch);
-                              break;
-                            end;
-                           hp1:=hp1^.next;
-                           hp2:=hp2^.next;
-                         end;
-                        if not((hp1=nil) and (hp2=nil)) then
-                          Message(type_e_mismatch);
-                     end
-                   else
-                     Message(type_e_mismatch);
+                   if not proc_to_procvar_equal(pd,pprocvardef(def)) then
+                     Message2(type_e_incompatible_types,pd^.typename,pprocvardef(def)^.typename);
                    curconstsegment^.concat(new(pai_const_symbol,initname(pd^.mangledname)));
                 end;
            end;
@@ -615,7 +597,7 @@ unit ptconst;
                    s:=pattern;
                    consume(ID);
                    consume(COLON);
-                   srsym:=precdef(def)^.symtable^.search(s);
+                   srsym:=precorddef(def)^.symtable^.search(s);
                    if srsym=nil then
                      begin
                         Message1(sym_e_id_not_found,s);
@@ -650,7 +632,7 @@ unit ptconst;
          { reads a typed object }
          objectdef:
            begin
-              if (pobjectdef(def)^.options and (oo_hasvmt or oo_is_class))<>0 then
+              if ([oo_has_vmt,oo_is_class]*pobjectdef(def)^.objectoptions)<>[] then
                 begin
                    Message(parser_e_type_const_not_possible);
                    consume_all_until(RKLAMMER);
@@ -666,14 +648,14 @@ unit ptconst;
                         consume(COLON);
                         srsym:=nil;
                         obj:=pobjectdef(def);
-                        symt:=obj^.publicsyms;
+                        symt:=obj^.symtable;
                         while (srsym=nil) and assigned(symt) do
                           begin
                              srsym:=symt^.search(s);
                              if assigned(obj) then
                                obj:=obj^.childof;
                              if assigned(obj) then
-                               symt:=obj^.publicsyms
+                               symt:=obj^.symtable
                              else
                                symt:=nil;
                           end;
@@ -725,7 +707,11 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.48  1999-07-23 16:05:26  peter
+  Revision 1.49  1999-08-03 22:03:08  peter
+    * moved bitmask constants to sets
+    * some other type/const renamings
+
+  Revision 1.48  1999/07/23 16:05:26  peter
     * alignment is now saved in the symtable
     * C alignment added for records
     * PPU version increased to solve .12 <-> .13 probs

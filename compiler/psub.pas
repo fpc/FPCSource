@@ -23,7 +23,9 @@
 unit psub;
 interface
 
-uses cobjects,symtable;
+uses
+  cobjects,
+  symconst,symtable;
 
 const
   pd_global    = $1;    { directive must be global }
@@ -36,7 +38,7 @@ const
 
 procedure compile_proc_body(const proc_names:Tstringcontainer;
                             make_global,parent_has_class:boolean);
-procedure parse_proc_head(options : word);
+procedure parse_proc_head(options:tproctypeoption);
 procedure parse_proc_dec;
 procedure parse_var_proc_directives(var sym : ptypesym);
 procedure parse_object_proc_directives(var sym : pprocsym);
@@ -118,7 +120,7 @@ begin
     if idtoken=_SELF then
       begin
          { we parse the defintion in the class definition }
-         if assigned(procinfo._class) and procinfo._class^.isclass then
+         if assigned(procinfo._class) and procinfo._class^.is_class then
            begin
 {$ifndef UseNiceNames}
             hs2:=hs2+'$'+'self';
@@ -129,8 +131,11 @@ begin
             vs^.varspez:=vs_var;
           { insert the sym in the parasymtable }
             aktprocsym^.definition^.parast^.insert(vs);
-
-            aktprocsym^.definition^.options:=aktprocsym^.definition^.options or pocontainsself;
+{$ifdef INCLUDEOK}
+            include(aktprocsym^.definition^.procoptions,po_containsself);
+{$else}
+            aktprocsym^.definition^.procoptions:=aktprocsym^.definition^.procoptions+[po_containsself];
+{$endif}
             inc(procinfo.ESI_offset,vs^.address);
             consume(idtoken);
             consume(COLON);
@@ -234,7 +239,11 @@ begin
             vs^.varspez:=varspez;
           { we have to add this to avoid var param to be in registers !!!}
             if (varspez in [vs_var,vs_const]) and push_addr_param(p) then
-              vs^.var_options := vs^.var_options or vo_regable;
+{$ifdef INCLUDEOK}
+              include(vs^.varoptions,vo_regable);
+{$else}
+              vs^.varoptions:=vs^.varoptions+[vo_regable];
+{$endif}
 
             { search for duplicate ids in object members/methods    }
             { but only the current class, I don't know why ...      }
@@ -242,7 +251,7 @@ begin
             if assigned(procinfo._class) and
                (lexlevel=normal_function_level) then
              begin
-               hsym:=procinfo._class^.publicsyms^.search(vs^.name);
+               hsym:=procinfo._class^.symtable^.search(vs^.name);
                if assigned(hsym) then
                 DuplicateSym(hsym);
              end;
@@ -275,7 +284,7 @@ end;
 
 
 
-procedure parse_proc_head(options : word);
+procedure parse_proc_head(options:tproctypeoption);
 var sp:stringid;
     pd:Pprocdef;
     paramoffset:longint;
@@ -290,7 +299,7 @@ begin
   procstartfilepos:=aktfilepos;
   procstartfilepos.column:=1;
 
-  if (options and pooperator) <> 0 then
+  if (options=potype_operator) then
     begin
       sp:=overloaded_names[optoken];
       realname:=sp;
@@ -323,7 +332,7 @@ begin
           realname:=orgpattern;
           consume(ID);
           procinfo._class:=pobjectdef(ptypesym(sym)^.definition);
-          aktprocsym:=pprocsym(procinfo._class^.publicsyms^.search(sp));
+          aktprocsym:=pprocsym(procinfo._class^.symtable^.search(sp));
           aktobjectdef:=nil;
           { we solve this below }
           if not(assigned(aktprocsym)) then
@@ -334,7 +343,7 @@ begin
    begin
      { check for constructor/destructor which is not allowed here }
      if (not parse_only) and
-        ((options and (poconstructor or podestructor))<>0) then
+        (options in [potype_constructor,potype_destructor]) then
         Message(parser_e_constructors_always_objects);
 
      aktprocsym:=pprocsym(symtablestack^.search(sp));
@@ -425,7 +434,7 @@ begin
      aktprocsym:=new(pprocsym,init(sp));
      { for operator we have only one definition for each overloaded
        operation }
-     if ((options and pooperator) <> 0) then
+     if (options=potype_operator) then
        begin
           { the only problem is that nextoverloaded might not be in a unit
             known for the unit itself }
@@ -436,7 +445,7 @@ begin
    end;
 
   { create a new procdef }
-  { register object/class methods in publicsyms symtable }
+  { register object/class methods in symtable symtable }
   { but not internal functions !!! }
   st:=symtablestack;
   if assigned(procinfo._class) and
@@ -452,7 +461,7 @@ begin
     pd^._class := procinfo._class;
 
   { set the options from the caller (podestructor or poconstructor) }
-  pd^.options:=pd^.options or options;
+  pd^.proctypeoption:=options;
 
   { calculate the offset of the parameters }
   paramoffset:=8;
@@ -468,10 +477,9 @@ begin
     end;
 
   if assigned (Procinfo._Class)  and
-     not(Procinfo._Class^.isclass) and
-     (((pd^.options and poconstructor)<>0)
-     or ((pd^.options and podestructor)<>0)) then
-     inc(paramoffset,target_os.size_of_pointer);
+     not(Procinfo._Class^.is_class) and
+     (pd^.proctypeoption in [potype_constructor,potype_destructor]) then
+    inc(paramoffset,target_os.size_of_pointer);
 
   { self pointer offset                       }
   { self isn't pushed in nested procedure of methods }
@@ -479,15 +487,15 @@ begin
     begin
       procinfo.ESI_offset:=paramoffset;
       if assigned(aktprocsym^.definition) and
-         ((aktprocsym^.definition^.options and pocontainsself)=0) then
+         not(po_containsself in aktprocsym^.definition^.procoptions) then
         inc(paramoffset,target_os.size_of_pointer);
     end;
 
   { destructor flag ? }
   if assigned (Procinfo._Class) and
-     procinfo._class^.isclass
-     and ((pd^.options and podestructor)<>0) then
-     inc(paramoffset,target_os.size_of_pointer);
+     procinfo._class^.is_class and
+     (pd^.proctypeoption=potype_destructor) then
+    inc(paramoffset,target_os.size_of_pointer);
 
   procinfo.call_offset:=paramoffset;
 
@@ -528,7 +536,7 @@ begin
     formal_parameter_list;
   { so we only restore the symtable now }
   symtablestack:=st;
-  if ((options and pooperator)<>0) {and (overloaded_operators[optoken]=nil) } then
+  if (options=potype_operator) then
     overloaded_operators[optoken]:=aktprocsym;
 end;
 
@@ -550,7 +558,7 @@ begin
   case token of
      _FUNCTION : begin
                    consume(_FUNCTION);
-                   parse_proc_head(0);
+                   parse_proc_head(potype_none);
                    if token<>COLON then
                     begin
                        if not(aktprocsym^.definition^.forwarddef) or
@@ -571,13 +579,13 @@ begin
                  end;
     _PROCEDURE : begin
                    consume(_PROCEDURE);
-                   parse_proc_head(0);
+                   parse_proc_head(potype_none);
                    aktprocsym^.definition^.retdef:=voiddef;
                  end;
   _CONSTRUCTOR : begin
                    consume(_CONSTRUCTOR);
-                   parse_proc_head(poconstructor);
-                   if (procinfo._class^.options and oo_is_class)<>0 then
+                   parse_proc_head(potype_constructor);
+                   if procinfo._class^.is_class then
                     begin
                       { CLASS constructors return the created instance }
                       aktprocsym^.definition^.retdef:=procinfo._class;
@@ -595,7 +603,7 @@ begin
                  end;
    _DESTRUCTOR : begin
                    consume(_DESTRUCTOR);
-                   parse_proc_head(podestructor);
+                   parse_proc_head(potype_destructor);
                    aktprocsym^.definition^.retdef:=voiddef;
                  end;
      _OPERATOR : begin
@@ -607,7 +615,7 @@ begin
                    optoken:=token;
                    consume(Token);
                    procinfo.flags:=procinfo.flags or pi_operator;
-                   parse_proc_head(pooperator);
+                   parse_proc_head(potype_operator);
                    if token<>ID then
                      begin
                         opsym:=nil;
@@ -646,7 +654,11 @@ begin
   end;
   if isclassmethod and
      assigned(aktprocsym) then
-    aktprocsym^.definition^.options:=aktprocsym^.definition^.options or poclassmethod;
+{$ifdef INCLUDEOK}
+    include(aktprocsym^.definition^.procoptions,po_classmethod);
+{$else}
+    aktprocsym^.definition^.procoptions:=aktprocsym^.definition^.procoptions+[po_classmethod];
+{$endif}
   consume(SEMICOLON);
   dec(lexlevel);
 end;
@@ -672,14 +684,18 @@ end;
 
 procedure pd_export(const procnames:Tstringcontainer);
 begin
-  procnames.insert(realname);
-  procinfo.exported:=true;
-  if cs_link_deffile in aktglobalswitches then
-    deffile.AddExport(aktprocsym^.definition^.mangledname);
   if assigned(procinfo._class) then
     Message(parser_e_methods_dont_be_export);
   if lexlevel<>normal_function_level then
     Message(parser_e_dont_nest_export);
+  { only os/2 needs this }
+  if target_info.target=target_i386_os2 then
+   begin
+     procnames.insert(realname);
+     procinfo.exported:=true;
+     if cs_link_deffile in aktglobalswitches then
+       deffile.AddExport(aktprocsym^.definition^.mangledname);
+   end;
 end;
 
 procedure pd_inline(const procnames:Tstringcontainer);
@@ -691,7 +707,11 @@ end;
 procedure pd_forward(const procnames:Tstringcontainer);
 begin
   aktprocsym^.definition^.forwarddef:=true;
-  aktprocsym^.properties:=aktprocsym^.properties or sp_forwarddef;
+{$ifdef INCLUDEOK}
+  include(aktprocsym^.symoptions,sp_forwarddef);
+{$else}
+  aktprocsym^.symoptions:=aktprocsym^.symoptions+[sp_forwarddef];
+{$endif}
 end;
 
 procedure pd_stdcall(const procnames:Tstringcontainer);
@@ -732,8 +752,12 @@ end;
 
 procedure pd_abstract(const procnames:Tstringcontainer);
 begin
-  if (aktprocsym^.definition^.options and povirtualmethod)<>0 then
-    aktprocsym^.definition^.options:=aktprocsym^.definition^.options or poabstractmethod
+  if (po_virtualmethod in aktprocsym^.definition^.procoptions) then
+{$ifdef INCLUDEOK}
+    include(aktprocsym^.definition^.procoptions,po_abstractmethod)
+{$else}
+    aktprocsym^.definition^.procoptions:=aktprocsym^.definition^.procoptions+[po_abstractmethod]
+{$endif}
   else
     Message(parser_e_only_virtual_methods_abstract);
   { the method is defined }
@@ -742,24 +766,28 @@ end;
 
 procedure pd_virtual(const procnames:Tstringcontainer);
 begin
-  if (aktprocsym^.definition^._class^.options and oo_is_class=0) and
-     ((aktprocsym^.definition^.options and poconstructor)<>0) then
+  if (aktprocsym^.definition^.proctypeoption=potype_constructor) and
+     not(aktprocsym^.definition^._class^.is_class) then
     Message(parser_e_constructor_cannot_be_not_virtual);
 end;
 
 procedure pd_static(const procnames:Tstringcontainer);
 begin
   if (cs_static_keyword in aktmoduleswitches) then
-   {and (idtoken=_STATIC) was wrong idtoken is already consumed (PM) }
     begin
-      aktprocsym^.properties:=aktprocsym^.properties or sp_static;
-      aktprocsym^.definition^.options:=aktprocsym^.definition^.options or postaticmethod;
+{$ifdef INCLUDEOK}
+      include(aktprocsym^.symoptions,sp_static);
+      include(aktprocsym^.definition^.procoptions,po_staticmethod);
+{$else}
+      aktprocsym^.symoptions:=aktprocsym^.symoptions+[sp_static];
+      aktprocsym^.definition^.procoptions:=aktprocsym^.definition^.procoptions+[po_staticmethod];
+{$endif}
     end;
 end;
 
 procedure pd_override(const procnames:Tstringcontainer);
 begin
-  if (aktprocsym^.definition^._class^.options and oo_is_class=0) then
+  if not(aktprocsym^.definition^._class^.is_class) then
     Message(parser_e_no_object_override);
 end;
 
@@ -768,7 +796,7 @@ var
   pt : ptree;
 begin
   { check parameter type }
-  if ((aktprocsym^.definition^.options and pocontainsself)=0) and
+  if not(po_containsself in aktprocsym^.definition^.procoptions) and
      (assigned(aktprocsym^.definition^.para1^.next) or
       (aktprocsym^.definition^.para1^.paratyp<>vs_var)) then
    Message(parser_e_ill_msg_param);
@@ -776,13 +804,21 @@ begin
   do_firstpass(pt);
   if pt^.treetype=stringconstn then
     begin
-      aktprocsym^.definition^.options:=aktprocsym^.definition^.options or pomsgstr;
+{$ifdef INCLUDEOK}
+      include(aktprocsym^.definition^.procoptions,po_msgstr);
+{$else}
+      aktprocsym^.definition^.procoptions:=aktprocsym^.definition^.procoptions+[po_msgstr];
+{$endif}
       aktprocsym^.definition^.messageinf.str:=strnew(pt^.value_str);
     end
   else
    if is_constintnode(pt) then
     begin
-      aktprocsym^.definition^.options:=aktprocsym^.definition^.options or pomsgint;
+{$ifdef INCLUDEOK}
+      include(aktprocsym^.definition^.procoptions,po_msgint);
+{$else}
+      aktprocsym^.definition^.procoptions:=aktprocsym^.definition^.procoptions+[po_msgint];
+{$endif}
       aktprocsym^.definition^.messageinf.i:=pt^.value;
     end
   else
@@ -806,7 +842,6 @@ end;
 
 procedure pd_syscall(const procnames:Tstringcontainer);
 begin
-  aktprocsym^.definition^.options:=aktprocsym^.definition^.options or poclearstack;
   aktprocsym^.definition^.forwarddef:=false;
   aktprocsym^.definition^.extnumber:=get_intconst;
 end;
@@ -882,7 +917,7 @@ begin
       else
        begin
          { external shouldn't override the cdecl/system name }
-         if (aktprocsym^.definition^.options and poclearstack)=0 then
+         if (pocall_clearstack in aktprocsym^.definition^.proccalloptions) then
            aktprocsym^.definition^.setmangledname(aktprocsym^.name);
        end;
     end;
@@ -901,186 +936,281 @@ const
 type
    pd_handler=procedure(const procnames:Tstringcontainer);
    proc_dir_rec=record
-     idtok    : ttoken;
-     handler  : pd_handler;      {Handler.}
-     flag     : longint;            {Procedure flag. May be zero}
-     pd_flags : longint;             {Parse options}
-     mut_excl : longint;             {List of mutually exclusive flags.}
+     idtok     : ttoken;
+     pd_flags  : longint;
+     handler   : pd_handler;
+     pocall    : tproccalloptions;
+     pooption  : tprocoptions;
+     mutexclpocall : tproccalloptions;
+     mutexclpotype : tproctypeoptions;
+     mutexclpo     : tprocoptions;
    end;
 const
   {Should contain the number of procedure directives we support.}
-  num_proc_directives=28;
+  num_proc_directives=29;
   proc_direcdata:array[1..num_proc_directives] of proc_dir_rec=
    (
     (
       idtok:_ABSTRACT;
-      handler:{$ifndef TP}@{$endif}pd_abstract;
-      flag:poabstractmethod;
-      pd_flags:pd_interface+pd_object;
-      mut_excl:poexports+poinline+pointernproc+pointerrupt+poexternal+poconstructor+podestructor
+      pd_flags : pd_interface+pd_object;
+      handler  : {$ifndef TP}@{$endif}pd_abstract;
+      pocall   : [];
+      pooption : [po_abstractmethod];
+      mutexclpocall : [pocall_internproc,pocall_inline];
+      mutexclpotype : [potype_constructor,potype_destructor];
+      mutexclpo     : [po_exports,po_interrupt,po_external]
     ),(
       idtok:_ALIAS;
-      handler:{$ifndef TP}@{$endif}pd_alias;
-      flag:0;
-      pd_flags:pd_implemen+pd_body;
-      mut_excl:poinline+poexternal
+      pd_flags : pd_implemen+pd_body;
+      handler  : {$ifndef TP}@{$endif}pd_alias;
+      pocall   : [];
+      pooption : [];
+      mutexclpocall : [pocall_inline];
+      mutexclpotype : [];
+      mutexclpo     : [po_external]
     ),(
       idtok:_ASMNAME;
-      handler:{$ifndef TP}@{$endif}pd_asmname;
-      flag:pocdecl+poclearstack+poexternal;
-      pd_flags:pd_interface+pd_implemen;
-      mut_excl:pointernproc+poexternal
+      pd_flags : pd_interface+pd_implemen;
+      handler  : {$ifndef TP}@{$endif}pd_asmname;
+      pocall   : [pocall_cdecl,pocall_clearstack];
+      pooption : [po_external];
+      mutexclpocall : [pocall_internproc];
+      mutexclpotype : [];
+      mutexclpo     : [po_external]
     ),(
       idtok:_ASSEMBLER;
-      handler:nil;
-      flag:poassembler;pd_flags:pd_implemen+pd_body;
-      mut_excl:pointernproc+poexternal
+      pd_flags : pd_implemen+pd_body;
+      handler  : nil;
+      pocall   : [];
+      pooption : [po_assembler];
+      mutexclpocall : [];
+      mutexclpotype : [];
+      mutexclpo     : [po_external]
     ),(
       idtok:_CDECL;
-      handler:{$ifndef TP}@{$endif}pd_cdecl;
-      flag:pocdecl+poclearstack+posavestdregs;
-      pd_flags:pd_interface+pd_implemen+pd_body+pd_procvar;
-      mut_excl:poleftright+poinline+poassembler+pointernproc+poexternal
+      pd_flags : pd_interface+pd_implemen+pd_body+pd_procvar;
+      handler  : {$ifndef TP}@{$endif}pd_cdecl;
+      pocall   : [pocall_cdecl,pocall_clearstack];
+      pooption : [po_savestdregs];
+      mutexclpocall : [pocall_internproc,pocall_leftright,pocall_inline];
+      mutexclpotype : [];
+      mutexclpo     : [po_assembler,po_external]
     ),(
       idtok:_DYNAMIC;
-      handler:{$ifndef TP}@{$endif}pd_virtual;
-      flag:povirtualmethod;
-      pd_flags:pd_interface+pd_object;
-      mut_excl:poexports+poinline+pointernproc+pointerrupt+poexternal
+      pd_flags : pd_interface+pd_object;
+      handler  : {$ifndef TP}@{$endif}pd_virtual;
+      pocall   : [];
+      pooption : [po_virtualmethod];
+      mutexclpocall : [pocall_internproc,pocall_inline];
+      mutexclpotype : [];
+      mutexclpo     : [po_exports,po_interrupt,po_external]
     ),(
       idtok:_EXPORT;
-      handler:{$ifndef TP}@{$endif}pd_export;
-      flag:poexports;
-      pd_flags:pd_body+pd_global+pd_interface+pd_implemen{??};
-      mut_excl:poexternal+poinline+pointernproc+pointerrupt
+      pd_flags : pd_body+pd_global+pd_interface+pd_implemen{??};
+      handler  : {$ifndef TP}@{$endif}pd_export;
+      pocall   : [];
+      pooption : [po_exports];
+      mutexclpocall : [pocall_internproc,pocall_inline];
+      mutexclpotype : [];
+      mutexclpo     : [po_external,po_interrupt]
     ),(
       idtok:_EXTERNAL;
-      handler:{$ifndef TP}@{$endif}pd_external;
-      flag:poexternal;
-      pd_flags:pd_implemen+pd_interface;
-      mut_excl:poexports+poinline+pointernproc+pointerrupt+poassembler+popalmossyscall
+      pd_flags : pd_implemen+pd_interface;
+      handler  : {$ifndef TP}@{$endif}pd_external;
+      pocall   : [];
+      pooption : [po_external];
+      mutexclpocall : [pocall_internproc,pocall_inline,pocall_palmossyscall];
+      mutexclpotype : [];
+      mutexclpo     : [po_exports,po_interrupt,po_assembler]
     ),(
-      idtok:_FAR;handler:{$ifndef TP}@{$endif}pd_far;
-      flag:0;
-      pd_flags:pd_implemen+pd_body+pd_interface+pd_procvar;
-      mut_excl:pointernproc
+      idtok:_FAR;
+      pd_flags : pd_implemen+pd_body+pd_interface+pd_procvar;
+      handler  : {$ifndef TP}@{$endif}pd_far;
+      pocall   : [];
+      pooption : [];
+      mutexclpocall : [pocall_internproc,pocall_inline];
+      mutexclpotype : [];
+      mutexclpo     : []
     ),(
       idtok:_FORWARD;
-      handler:{$ifndef TP}@{$endif}pd_forward;
-      flag:0;
-      pd_flags:pd_implemen;
-      mut_excl:pointernproc+poexternal
+      pd_flags : pd_implemen;
+      handler  : {$ifndef TP}@{$endif}pd_forward;
+      pocall   : [];
+      pooption : [];
+      mutexclpocall : [pocall_internproc,pocall_inline];
+      mutexclpotype : [];
+      mutexclpo     : [po_external]
     ),(
       idtok:_INLINE;
-      handler:{$ifndef TP}@{$endif}pd_inline;
-      flag:poinline;
-      pd_flags:pd_implemen+pd_body;
-      mut_excl:poexports+poexternal+pointernproc+pointerrupt+poconstructor+podestructor
+      pd_flags : pd_implemen+pd_body;
+      handler  : {$ifndef TP}@{$endif}pd_inline;
+      pocall   : [pocall_inline];
+      pooption : [];
+      mutexclpocall : [pocall_internproc];
+      mutexclpotype : [potype_constructor,potype_destructor];
+      mutexclpo     : [po_exports,po_external,po_interrupt]
     ),(
       idtok:_INTERNCONST;
-      handler:{$ifndef TP}@{$endif}pd_intern;
-      flag:pointernconst;
-      pd_flags:pd_implemen+pd_body;
-      mut_excl:pointernproc+pooperator
+      pd_flags : pd_implemen+pd_body;
+      handler  : {$ifndef TP}@{$endif}pd_intern;
+      pocall   : [pocall_internconst];
+      pooption : [];
+      mutexclpocall : [pocall_internproc];
+      mutexclpotype : [potype_operator];
+      mutexclpo     : []
     ),(
       idtok:_INTERNPROC;
-      handler:{$ifndef TP}@{$endif}pd_intern;
-      flag:pointernproc;
-      pd_flags:pd_implemen;
-      mut_excl:poexports+poexternal+pointerrupt+poassembler+poclearstack+poleftright+poiocheck+
-               poconstructor+podestructor+pooperator
+      pd_flags : pd_implemen;
+      handler  : {$ifndef TP}@{$endif}pd_intern;
+      pocall   : [pocall_internproc];
+      pooption : [];
+      mutexclpocall : [pocall_internconst,pocall_inline,pocall_clearstack,pocall_leftright,pocall_cdecl];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_operator];
+      mutexclpo     : [po_exports,po_external,po_interrupt,po_assembler,po_iocheck]
     ),(
       idtok:_INTERRUPT;
-      handler:nil;
-      flag:pointerrupt;
-      pd_flags:pd_implemen+pd_body;
-      mut_excl:pointernproc+poclearstack+poleftright+poinline+
-               poconstructor+podestructor+pooperator+poexternal
+      pd_flags : pd_implemen+pd_body;
+      handler  : nil;
+      pocall   : [];
+      pooption : [po_interrupt];
+      mutexclpocall : [pocall_internproc,pocall_cdecl,pocall_clearstack,pocall_leftright,pocall_inline];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_operator];
+      mutexclpo     : [po_external]
     ),(
       idtok:_IOCHECK;
-      handler:nil;
-      flag:poiocheck;
-      pd_flags:pd_implemen+pd_body;
-      mut_excl:pointernproc+poexternal
+      pd_flags : pd_implemen+pd_body;
+      handler  : nil;
+      pocall   : [];
+      pooption : [po_iocheck];
+      mutexclpocall : [pocall_internproc];
+      mutexclpotype : [];
+      mutexclpo     : [po_external]
     ),(
       idtok:_MESSAGE;
-      handler:{$ifndef TP}@{$endif}pd_message;
-      flag:0; { can be pomsgstr or pomsgint }
-      pd_flags:pd_interface+pd_object;
-      mut_excl:poinline+pointernproc+pointerrupt+poexternal
+      pd_flags : pd_interface+pd_object;
+      handler  : {$ifndef TP}@{$endif}pd_message;
+      pocall   : [];
+      pooption : []; { can be po_msgstr or po_msgint }
+      mutexclpocall : [pocall_inline,pocall_internproc];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_operator];
+      mutexclpo     : [po_interrupt,po_external]
     ),(
       idtok:_NEAR;
-      handler:{$ifndef TP}@{$endif}pd_near;
-      flag:0;
-      pd_flags:pd_implemen+pd_body+pd_procvar;
-      mut_excl:pointernproc
+      pd_flags : pd_implemen+pd_body+pd_procvar;
+      handler  : {$ifndef TP}@{$endif}pd_near;
+      pocall   : [];
+      pooption : [];
+      mutexclpocall : [pocall_internproc];
+      mutexclpotype : [];
+      mutexclpo     : []
     ),(
       idtok:_OVERRIDE;
-      handler:{$ifndef TP}@{$endif}pd_override;
-      flag:pooverridingmethod or povirtualmethod;
-      pd_flags:pd_interface+pd_object;
-      mut_excl:poexports+poinline+pointernproc+pointerrupt+poexternal
+      pd_flags : pd_interface+pd_object;
+      handler  : {$ifndef TP}@{$endif}pd_override;
+      pocall   : [];
+      pooption : [po_overridingmethod,po_virtualmethod];
+      mutexclpocall : [pocall_inline,pocall_internproc];
+      mutexclpotype : [];
+      mutexclpo     : [po_exports,po_external,po_interrupt]
     ),(
       idtok:_PASCAL;
-      handler:nil;
-      flag:poleftright;
-      pd_flags:pd_implemen+pd_body+pd_procvar;
-      mut_excl:pointernproc+poexternal
+      pd_flags : pd_implemen+pd_body+pd_procvar;
+      handler  : nil;
+      pocall   : [pocall_leftright];
+      pooption : [];
+      mutexclpocall : [pocall_internproc];
+      mutexclpotype : [];
+      mutexclpo     : [po_external]
     ),(
       idtok:_POPSTACK;
-      handler:nil;
-      flag:poclearstack;
-      pd_flags:pd_interface+pd_implemen+pd_body+pd_procvar;
-      mut_excl:poinline+pointernproc+poassembler+poexternal
+      pd_flags : pd_interface+pd_implemen+pd_body+pd_procvar;
+      handler  : nil;
+      pocall   : [pocall_clearstack];
+      pooption : [];
+      mutexclpocall : [pocall_inline,pocall_internproc];
+      mutexclpotype : [];
+      mutexclpo     : [po_assembler,po_external]
     ),(
       idtok:_PUBLIC;
-      handler:nil;
-      flag:0;
-      pd_flags:pd_implemen+pd_body+pd_global+pd_notobject;
-      mut_excl:pointernproc+poinline+poexternal
+      pd_flags : pd_implemen+pd_body+pd_global+pd_notobject;
+      handler  : nil;
+      pocall   : [];
+      pooption : [];
+      mutexclpocall : [pocall_internproc,pocall_inline];
+      mutexclpotype : [];
+      mutexclpo     : [po_external]
     ),(
       idtok:_REGISTER;
-      handler:{$ifndef TP}@{$endif}pd_register;
-      flag:poregister;
-      pd_flags:pd_interface+pd_implemen+pd_body+pd_procvar;
-      mut_excl:poleftright+pocdecl+pointernproc+poexternal
+      pd_flags : pd_interface+pd_implemen+pd_body+pd_procvar;
+      handler  : {$ifndef TP}@{$endif}pd_register;
+      pocall   : [pocall_register];
+      pooption : [];
+      mutexclpocall : [pocall_leftright,pocall_cdecl,pocall_internproc];
+      mutexclpotype : [];
+      mutexclpo     : [po_external]
     ),(
       idtok:_SAFECALL;
-      handler:{$ifndef TP}@{$endif}pd_safecall;
-      flag:posafecall+posavestdregs;
-      pd_flags:pd_interface+pd_implemen+pd_body+pd_procvar;
-      mut_excl:poleftright+pocdecl+pointernproc+poinline+poexternal
+      pd_flags : pd_interface+pd_implemen+pd_body+pd_procvar;
+      handler  : {$ifndef TP}@{$endif}pd_safecall;
+      pocall   : [pocall_safecall];
+      pooption : [po_savestdregs];
+      mutexclpocall : [pocall_leftright,pocall_cdecl,pocall_internproc,pocall_inline];
+      mutexclpotype : [];
+      mutexclpo     : [po_external]
+    ),(
+      idtok:_SAVEREGISTERS;
+      pd_flags : pd_interface+pd_implemen+pd_body+pd_procvar;
+      handler  : nil;
+      pocall   : [];
+      pooption : [po_saveregisters];
+      mutexclpocall : [pocall_internproc];
+      mutexclpotype : [];
+      mutexclpo     : [po_external]
     ),(
       idtok:_STATIC;
-      handler:{$ifndef TP}@{$endif}pd_static;
-      flag:postaticmethod;
-      pd_flags:pd_interface+pd_object;
-      mut_excl:poexports+poinline+pointernproc+pointerrupt+poexternal+
-               poconstructor+podestructor
+      pd_flags : pd_interface+pd_object;
+      handler  : {$ifndef TP}@{$endif}pd_static;
+      pocall   : [];
+      pooption : [po_staticmethod];
+      mutexclpocall : [pocall_inline,pocall_internproc];
+      mutexclpotype : [potype_constructor,potype_destructor];
+      mutexclpo     : [po_external,po_interrupt,po_exports]
     ),(
       idtok:_STDCALL;
-      handler:{$ifndef TP}@{$endif}pd_stdcall;
-      flag:postdcall+posavestdregs;
-      pd_flags:pd_interface+pd_implemen+pd_body+pd_procvar;
-      mut_excl:poleftright+pocdecl+pointernproc+poinline+poexternal
+      pd_flags : pd_interface+pd_implemen+pd_body+pd_procvar;
+      handler  : {$ifndef TP}@{$endif}pd_stdcall;
+      pocall   : [pocall_stdcall];
+      pooption : [po_savestdregs];
+      mutexclpocall : [pocall_leftright,pocall_cdecl,pocall_inline,pocall_internproc];
+      mutexclpotype : [];
+      mutexclpo     : [po_external]
     ),(
       idtok:_SYSCALL;
-      handler:{$ifndef TP}@{$endif}pd_syscall;
-      flag:popalmossyscall;
-      pd_flags:pd_interface;
-      mut_excl:poexports+poinline+pointernproc+pointerrupt+poassembler+poexternal
+      pd_flags : pd_interface;
+      handler  : {$ifndef TP}@{$endif}pd_syscall;
+      pocall   : [pocall_palmossyscall];
+      pooption : [];
+      mutexclpocall : [pocall_cdecl,pocall_inline,pocall_internproc];
+      mutexclpotype : [];
+      mutexclpo     : [po_external,po_assembler,po_interrupt,po_exports]
     ),(
       idtok:_SYSTEM;
-      handler:{$ifndef TP}@{$endif}pd_system;
-      flag:poclearstack;
-      pd_flags:pd_implemen;
-      mut_excl:poleftright+poinline+poassembler+pointernproc+poexternal
+      pd_flags : pd_implemen;
+      handler  : {$ifndef TP}@{$endif}pd_system;
+      pocall   : [pocall_clearstack];
+      pooption : [];
+      mutexclpocall : [pocall_leftright,pocall_inline,pocall_internproc];
+      mutexclpotype : [];
+      mutexclpo     : [po_external,po_assembler,po_interrupt]
     ),(
       idtok:_VIRTUAL;
-      handler:{$ifndef TP}@{$endif}pd_virtual;
-      flag:povirtualmethod;
-      pd_flags:pd_interface+pd_object;
-      mut_excl:poexports+poinline+pointernproc+pointerrupt+poexternal
+      pd_flags : pd_interface+pd_object;
+      handler  : {$ifndef TP}@{$endif}pd_virtual;
+      pocall   : [];
+      pooption : [po_virtualmethod];
+      mutexclpocall : [pocall_inline,pocall_internproc];
+      mutexclpotype : [];
+      mutexclpo     : [po_external,po_interrupt,po_exports]
     )
    );
 
@@ -1114,7 +1244,9 @@ begin
     exit;
 
 { Conflicts between directives ? }
-  if (aktprocsym^.definition^.options and proc_direcdata[p].mut_excl)<>0 then
+  if (aktprocsym^.definition^.proctypeoption in proc_direcdata[p].mutexclpotype) or
+     ((aktprocsym^.definition^.proccalloptions*proc_direcdata[p].mutexclpocall)<>[]) or
+     ((aktprocsym^.definition^.procoptions*proc_direcdata[p].mutexclpo)<>[]) then
    begin
      Message1(parser_e_proc_dir_conflict,name);
      exit;
@@ -1164,11 +1296,12 @@ begin
     pdflags:=pdflags or pd_global;
 
 { Add the correct flag }
-  aktprocsym^.definition^.options:=aktprocsym^.definition^.options or proc_direcdata[p].flag;
+  aktprocsym^.definition^.proccalloptions:=aktprocsym^.definition^.proccalloptions+proc_direcdata[p].pocall;
+  aktprocsym^.definition^.procoptions:=aktprocsym^.definition^.procoptions+proc_direcdata[p].pooption;
 
  { Adjust positions of args for cdecl or stdcall }
    if (aktprocsym^.definition^.deftype=procdef) and
-      ((aktprocsym^.definition^.options and (pocdecl or postdcall))<>0) then
+      (([pocall_cdecl,pocall_stdcall]*aktprocsym^.definition^.proccalloptions)<>[]) then
      aktprocsym^.definition^.parast^.set_alignment(target_os.size_of_longint);
 
 { Call the handler }
@@ -1187,12 +1320,6 @@ function check_identical : boolean;
 
   Removed from unter_dec to keep the source readable
 }
-const
-{List of procedure options that affect the procedure type.}
-  po_type_params=poconstructor+podestructor+pooperator;
-
-  po_call_params=pocdecl+poclearstack+poleftright+poregister;
-
 var
   hd,pd : Pprocdef;
   storeparast : psymtable;
@@ -1212,7 +1339,7 @@ begin
            if not(m_repeat_forward in aktmodeswitches) or
               (equal_paras(aktprocsym^.definition^.para1,pd^.nextoverloaded^.para1,false) and
               { for operators equal_paras is not enough !! }
-              (((aktprocsym^.definition^.options and pooperator)=0) or (optoken<>ASSIGNMENT) or
+              ((aktprocsym^.definition^.proctypeoption<>potype_operator) or (optoken<>ASSIGNMENT) or
                is_equal(pd^.nextoverloaded^.retdef,aktprocsym^.definition^.retdef))) then
              begin
                if pd^.nextoverloaded^.forwarddef then
@@ -1221,15 +1348,17 @@ begin
                  begin
                    hd:=pd^.nextoverloaded;
                  { Check if the procedure type and return type are correct }
-                   if ((hd^.options and po_type_params)<>(aktprocsym^.definition^.options and po_type_params)) or
+                   if (hd^.proctypeoption<>aktprocsym^.definition^.proctypeoption) or
                       (not(is_equal(hd^.retdef,aktprocsym^.definition^.retdef)) and
                       (m_repeat_forward in aktmodeswitches)) then
                      begin
                        Message1(parser_e_header_dont_match_forward,aktprocsym^.demangledName);
                        exit;
                      end;
-                 { Check calling convention }
-                   if ((hd^.options and po_call_params)<>(aktprocsym^.definition^.options and po_call_params)) then
+                 { Check calling convention, no check for internconst,internproc which
+                   are only defined in interface or implementation }
+                   if (hd^.proccalloptions-[pocall_internconst,pocall_internproc]<>
+                       aktprocsym^.definition^.proccalloptions-[pocall_internconst,pocall_internproc]) then
                     begin
                       { only trigger an error, becuase it doesn't hurt }
                       Message(parser_e_call_convention_dont_match_forward);
@@ -1248,7 +1377,7 @@ begin
                             exit;
                           end;
 
-                         if (aktprocsym^.definition^.options and poexternal)=0 then
+                         if not(po_external in aktprocsym^.definition^.procoptions) then
                            Message2(parser_n_interface_name_diff_implementation_name,hd^.mangledname,
                              aktprocsym^.definition^.mangledname);
                        { reset the mangledname of the interface part to be sure }
@@ -1311,7 +1440,8 @@ begin
                  { Alert! All fields of aktprocsym^.definition that are modified
                    by the procdir handlers must be copied here!.}
                    hd^.forwarddef:=false;
-                   hd^.options:=hd^.options or aktprocsym^.definition^.options;
+                   hd^.proccalloptions:=hd^.proccalloptions + aktprocsym^.definition^.proccalloptions;
+                   hd^.procoptions:=hd^.procoptions + aktprocsym^.definition^.procoptions;
                    if aktprocsym^.definition^.extnumber=-1 then
                      aktprocsym^.definition^.extnumber:=hd^.extnumber
                    else
@@ -1331,7 +1461,7 @@ begin
                else
                { abstract methods aren't forward defined, but this }
                { needs another error message                   }
-                 if (pd^.nextoverloaded^.options and poabstractmethod)=0 then
+                 if not(po_abstractmethod in pd^.nextoverloaded^.procoptions) then
                    Message(parser_e_overloaded_have_same_parameters)
                  else
                    Message(parser_e_abstract_no_definition);
@@ -1398,7 +1528,7 @@ begin
     Message(parser_e_too_much_lexlevel);
 
    { static is also important for local procedures !! }
-   if ((aktprocsym^.definition^.options and postaticmethod)<>0) then
+   if (po_staticmethod in aktprocsym^.definition^.procoptions) then
      allow_only_static:=true
    else if (lexlevel=normal_function_level) then
      allow_only_static:=false;
@@ -1411,7 +1541,7 @@ begin
    getlabel(aktexitlabel);
    getlabel(aktexit2label);
    { exit for fail in constructors }
-   if (aktprocsym^.definition^.options and poconstructor)<>0 then
+   if (aktprocsym^.definition^.proctypeoption=potype_constructor) then
      getlabel(quickexitlabel);
    { reset break and continue labels }
    in_except_block:=false;
@@ -1428,8 +1558,8 @@ begin
          while _class^.childof<>hp do
            _class:=_class^.childof;
          hp:=_class;
-         _class^.publicsyms^.next:=symtablestack;
-         symtablestack:=_class^.publicsyms;
+         _class^.symtable^.next:=symtablestack;
+         symtablestack:=_class^.symtable;
        until hp=procinfo._class;
      end;
 
@@ -1463,13 +1593,13 @@ begin
    entryswitches:=aktlocalswitches;
 {$ifdef newcg}
    { parse the code ... }
-   if (aktprocsym^.definition^.options and poassembler)<> 0 then
+   if (po_assembler in aktprocsym^.definition^.procoptions) then
      code:=convtree2node(assembler_block)
    else
      code:=convtree2node(block(current_module^.islibrary));
 {$else newcg}
    { parse the code ... }
-   if (aktprocsym^.definition^.options and poassembler)<> 0 then
+   if (po_assembler in aktprocsym^.definition^.procoptions) then
      code:=assembler_block
    else
      code:=block(current_module^.islibrary);
@@ -1604,7 +1734,7 @@ begin
          begin
             { not for unit init, becuase the var can be used in finalize,
               it will be done in proc_unit }
-            if (aktprocsym^.definition^.options and (pounitinit or pounitfinalize))=0 then
+            if not(aktprocsym^.definition^.proctypeoption in [potype_unitinit,potype_unitfinalize]) then
               aktprocsym^.definition^.localst^.allsymbolsused;
             aktprocsym^.definition^.parast^.allsymbolsused;
          end;
@@ -1618,7 +1748,7 @@ begin
    { so no dispose here !!                              }
    if assigned(code) and
       not(cs_browser in aktmoduleswitches) and
-      ((aktprocsym^.definition^.options and poinline)=0) then
+      not(pocall_inline in aktprocsym^.definition^.proccalloptions) then
      begin
        if lexlevel>=normal_function_level then
          dispose(aktprocsym^.definition^.localst,done);
@@ -1629,7 +1759,7 @@ begin
    resettempgen;
 
    { remove code tree, if not inline procedure }
-   if assigned(code) and ((aktprocsym^.definition^.options and poinline)=0) then
+   if assigned(code) and not(pocall_inline in aktprocsym^.definition^.proccalloptions) then
 {$ifdef newcg}
      dispose(code,done);
 {$else newcg}
@@ -1645,7 +1775,7 @@ begin
    { free labels }
    freelabel(aktexitlabel);
    freelabel(aktexit2label);
-   if (aktprocsym^.definition^.options and poconstructor)<>0 then
+   if (aktprocsym^.definition^.proctypeoption=potype_constructor) then
     freelabel(quickexitlabel);
    { restore labels }
    aktexitlabel:=oldexitlabel;
@@ -1724,10 +1854,9 @@ begin
   parse_proc_directives(anames,pdflags);
   dec(lexlevel);
   dispose(anames,done);
-  if ((aktprocsym^.definition^.options and pocontainsself)<>0) and
-    ((aktprocsym^.definition^.options and pomsgstr)=0) and
-    ((aktprocsym^.definition^.options and pomsgint)=0) then
-    message(parser_e_self_in_non_message_handler);
+  if (po_containsself in aktprocsym^.definition^.procoptions) and
+     (([po_msgstr,po_msgint]*aktprocsym^.definition^.procoptions)=[]) then
+    Message(parser_e_self_in_non_message_handler);
 end;
 
 procedure checkvaluepara(p:pnamedindexobject);{$ifndef FPC}far;{$endif}
@@ -1740,14 +1869,14 @@ begin
      if copy(name,1,3)='val' then
       begin
         s:=Copy(name,4,255);
-        if ((aktprocsym^.definition^.options and poassembler)=0) then
+        if not(po_assembler in aktprocsym^.definition^.procoptions) then
          begin
            vs:=new(Pvarsym,init(s,definition));
            vs^.fileinfo:=fileinfo;
            vs^.varspez:=varspez;
            aktprocsym^.definition^.localst^.insert(vs);
            vs^.islocalcopy:=true;
-           vs^.is_valid:=1;
+           vs^.varstate:=vs_used;
            localvarsym:=vs;
          end
         else
@@ -1798,7 +1927,11 @@ begin
 { set the default function options }
    if parse_only then
     begin
-      aktprocsym^.properties:=aktprocsym^.properties or sp_forwarddef;
+{$ifdef INCLUDEOK}
+      include(aktprocsym^.symoptions,sp_forwarddef);
+{$else}
+      aktprocsym^.symoptions:=aktprocsym^.symoptions+[sp_forwarddef];
+{$endif}
       aktprocsym^.definition^.forwarddef:=true;
       { set also the interface flag, for better error message when the
         implementation doesn't much this header }
@@ -1875,7 +2008,7 @@ begin
        Message1(parser_p_procedure_start,aktprocsym^.demangledname);
        names^.insert(aktprocsym^.definition^.mangledname);
       { set _FAIL as keyword if constructor }
-      if (aktprocsym^.definition^.options and poconstructor)<>0 then
+      if (aktprocsym^.definition^.proctypeoption=potype_constructor) then
         tokeninfo[_FAIL].keyword:=m_all;
       if assigned(aktprocsym^.definition^._class) then
         tokeninfo[_SELF].keyword:=m_all;
@@ -1883,7 +2016,7 @@ begin
        compile_proc_body(names^,((pdflags and pd_global)<>0),assigned(oldprocinfo._class));
 
       { reset _FAIL as normal }
-      if (aktprocsym^.definition^.options and poconstructor)<>0 then
+      if (aktprocsym^.definition^.proctypeoption=potype_constructor) then
         tokeninfo[_FAIL].keyword:=m_none;
       if assigned(aktprocsym^.definition^._class) and (lexlevel=main_program_level) then
         tokeninfo[_SELF].keyword:=m_none;
@@ -1907,7 +2040,11 @@ end.
 
 {
   $Log$
-  Revision 1.8  1999-08-03 17:09:42  florian
+  Revision 1.9  1999-08-03 22:03:05  peter
+    * moved bitmask constants to sets
+    * some other type/const renamings
+
+  Revision 1.8  1999/08/03 17:09:42  florian
     * the alpha compiler can be compiled now
 
   Revision 1.7  1999/08/02 21:29:01  florian

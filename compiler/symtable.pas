@@ -34,6 +34,7 @@ unit symtable;
 {$endif}
        strings,cobjects,
        globtype,globals,tokens,systems,verbose,
+       symconst,
        aasm
 {$ifdef i386}
        ,i386base
@@ -61,13 +62,6 @@ unit symtable;
   {$else}
        indexgrowsize    = 64;
   {$endif}
-
-
-{************************************************
-                Constants
-************************************************}
-
-{$i symconst.inc}
 
 
 {************************************************
@@ -247,7 +241,7 @@ unit symtable;
     const
        systemunit           : punitsymtable = nil; { pointer to the system unit }
        objpasunit           : punitsymtable = nil; { pointer to the objpas unit }
-       current_object_option : symprop = sp_public;
+       current_object_option : tsymoptions = [sp_public];
 
     var
        { for STAB debugging }
@@ -286,7 +280,7 @@ unit symtable;
        s32bitdef : porddef;     { Pointer to 32-Bit signed        }
 
        cu64bitdef : porddef;       { pointer to 64 bit unsigned def }
-       cs64bitintdef : porddef;    { pointer to 64 bit signed def, }
+       cs64bitdef : porddef;    { pointer to 64 bit signed def, }
                                    { calculated by the int unit on i386 }
 
        s32floatdef : pfloatdef;    { pointer for realconstn         }
@@ -701,9 +695,9 @@ implementation
                  pd:=st^.getdefnr(p^.index);
                  case pd^.deftype of
                    recorddef :
-                     st:=precdef(pd)^.symtable;
+                     st:=precorddef(pd)^.symtable;
                    objectdef :
-                     st:=pobjectdef(pd)^.publicsyms;
+                     st:=pobjectdef(pd)^.symtable;
                  else
                    internalerror(556658);
                  end;
@@ -967,7 +961,7 @@ implementation
               while (srsymtable^.symtabletype in [objectsymtable,recordsymtable]) do
                    srsymtable:=srsymtable^.next;
               srsym:=new(ptypesym,init(s,nil));
-              srsym^.properties:=sp_forwarddef;
+              srsym^.symoptions:=[sp_forwarddef];
               srsymtable^.insert(srsym);
            end
          else if notfounderror then
@@ -1133,7 +1127,7 @@ implementation
            iblongstringdef : hp:=new(pstringdef,longload);
            ibansistringdef : hp:=new(pstringdef,ansiload);
            ibwidestringdef : hp:=new(pstringdef,wideload);
-               ibrecorddef : hp:=new(precdef,load);
+               ibrecorddef : hp:=new(precorddef,load);
                ibobjectdef : hp:=new(pobjectdef,load);
                  ibenumdef : hp:=new(penumdef,load);
                   ibsetdef : hp:=new(psetdef,load);
@@ -1457,8 +1451,8 @@ implementation
                    if hp^.symtabletype in [staticsymtable,globalsymtable] then
                     begin
                        hsym:=hp^.search(sym^.name);
-                       if (assigned(hsym)) and
-                          (hsym^.properties and sp_forwarddef=0) then
+                       if assigned(hsym) and
+                          not(sp_forwarddef in hsym^.symoptions) then
                          DuplicateSym(hsym);
                     end;
                   hp:=hp^.next;
@@ -1491,7 +1485,7 @@ implementation
               hsym:=search_class_member(pobjectdef(next^.next^.defowner),sym^.name);
               { but private ids can be reused }
               if assigned(hsym) and
-                ((hsym^.properties<>sp_private) or
+                (not(sp_private in hsym^.symoptions) or
                  (hsym^.owner^.defowner^.owner^.symtabletype<>unitsymtable)) then
                 DuplicateSym(hsym);
            end;
@@ -1503,26 +1497,26 @@ implementation
               hsym:=search_class_member(pobjectdef(defowner),sym^.name);
               { but private ids can be reused }
               if assigned(hsym) and
-                ((hsym^.properties<>sp_private) or
+                (not(sp_private in hsym^.symoptions) or
                  (hsym^.owner^.defowner^.owner^.symtabletype<>unitsymtable)) then
                 DuplicateSym(hsym);
            end;
-
-         if sym^.typ = typesym then
-           if assigned(ptypesym(sym)^.definition) then
-             begin
-             if not assigned(ptypesym(sym)^.definition^.owner) and
-                (ptypesym(sym)^.definition^.deftype<>errordef) then
+         { register definition of typesym }
+         if (sym^.typ = typesym) and
+            assigned(ptypesym(sym)^.definition) then
+          begin
+            if not(assigned(ptypesym(sym)^.definition^.owner)) and
+               (ptypesym(sym)^.definition^.deftype<>errordef) then
               registerdef(ptypesym(sym)^.definition);
 {$ifdef GDB}
-             if (cs_debuginfo in aktmoduleswitches) and assigned(debuglist)
-                and (symtabletype in [globalsymtable,staticsymtable]) then
-                   begin
-                   ptypesym(sym)^.isusedinstab := true;
-                   sym^.concatstabto(debuglist);
-                   end;
+            if (cs_debuginfo in aktmoduleswitches) and assigned(debuglist) and
+               (symtabletype in [globalsymtable,staticsymtable]) then
+              begin
+                ptypesym(sym)^.isusedinstab := true;
+                sym^.concatstabto(debuglist);
+              end;
 {$endif GDB}
-             end;
+          end;
          { insert in index and search hash }
          symindex^.insert(sym);
          symsearch^.insert(sym);
@@ -1549,7 +1543,7 @@ implementation
              be carefull aktprocsym^.definition is not allways
              loaded already (PFV) }
            if (symtabletype=objectsymtable) and
-              ((hp^.properties and sp_static)=0) and
+              not(sp_static in hp^.symoptions) and
               allow_only_static
               {assigned(aktprocsym) and
               assigned(aktprocsym^.definition) and
@@ -2138,7 +2132,7 @@ implementation
          sym:=nil;
          while assigned(pd) do
            begin
-              sym:=pd^.publicsyms^.search(n);
+              sym:=pd^.symtable^.search(n);
               if assigned(sym) then
                 break;
               pd:=pd^.childof;
@@ -2147,7 +2141,7 @@ implementation
            caused bug0214 }
          if assigned(sym) then
            begin
-             srsymtable:=pd^.publicsyms;
+             srsymtable:=pd^.symtable;
            end;
          search_class_member:=sym;
       end;
@@ -2157,7 +2151,8 @@ implementation
 
    procedure testfordefaultproperty(p : pnamedindexobject);
      begin
-        if (psym(p)^.typ=propertysym) and ((ppropertysym(p)^.options and ppo_defaultproperty)<>0) then
+        if (psym(p)^.typ=propertysym) and
+           (ppo_defaultproperty in ppropertysym(p)^.propoptions) then
           _defaultprop:=ppropertysym(p);
      end;
 
@@ -2168,7 +2163,7 @@ implementation
         _defaultprop:=nil;
         while assigned(pd) do
           begin
-             pd^.publicsyms^.foreach({$ifndef TP}@{$endif}testfordefaultproperty);
+             pd^.symtable^.foreach({$ifndef TP}@{$endif}testfordefaultproperty);
              if assigned(_defaultprop) then
                break;
              pd:=pd^.childof;
@@ -2348,7 +2343,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.34  1999-08-03 17:51:45  florian
+  Revision 1.35  1999-08-03 22:03:22  peter
+    * moved bitmask constants to sets
+    * some other type/const renamings
+
+  Revision 1.34  1999/08/03 17:51:45  florian
     * reduced memory usage by factor 2-3 (it
       improved also the speed) by reducing the
       growsize of the symbol tables

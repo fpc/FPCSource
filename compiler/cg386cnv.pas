@@ -42,7 +42,7 @@ implementation
 
    uses
       cobjects,verbose,globtype,globals,systems,
-      symtable,aasm,types,
+      symconst,symtable,aasm,types,
       hcodegen,temp_gen,pass_2,pass_1,
       i386base,i386asm,
       cgai386,tgeni386;
@@ -339,7 +339,7 @@ implementation
               begin
                  exprasmlist^.concat(new(pai386,op_reg_reg(A_XOR,S_L,
                    hregister2,hregister2)));
-                 if (porddef(pto^.resulttype)^.typ=s64bitint) and
+                 if (porddef(pto^.resulttype)^.typ=s64bit) and
                    is_signed(pfrom^.resulttype) then
                    begin
                       getlabel(l);
@@ -683,7 +683,7 @@ implementation
                  u16bit : exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVZX,S_WL,pfrom^.location.register,R_EDI)));
                  u32bit,s32bit:
                    hregister:=pfrom^.location.register;
-                 u64bit,s64bitint:
+                 u64bit,s64bit:
                    begin
                       exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,pfrom^.location.registerhigh)));
                       hregister:=pfrom^.location.registerlow;
@@ -705,7 +705,7 @@ implementation
                    exprasmlist^.concat(new(pai386,op_ref_reg(A_MOVZX,S_WL,r,R_EDI)));
                  u32bit,s32bit:
                    exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,r,R_EDI)));
-                 u64bit,s64bitint:
+                 u64bit,s64bit:
                    begin
                       inc(r^.offset,4);
                       exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,r,R_EDI)));
@@ -726,7 +726,7 @@ implementation
                 exprasmlist^.concat(new(pai386,op_ref(A_FILD,S_IQ,r)));
                 exprasmlist^.concat(new(pai386,op_const_reg(A_ADD,S_L,8,R_ESP)));
              end;
-           s64bitint:
+           s64bit:
              begin
                 exprasmlist^.concat(new(pai386,op_ref(A_FILD,S_IQ,r)));
                 exprasmlist^.concat(new(pai386,op_const_reg(A_ADD,S_L,8,R_ESP)));
@@ -1463,7 +1463,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.80  1999-08-01 23:36:38  florian
+  Revision 1.81  1999-08-03 22:02:36  peter
+    * moved bitmask constants to sets
+    * some other type/const renamings
+
+  Revision 1.80  1999/08/01 23:36:38  florian
     * some changes to compile the new code generator
 
   Revision 1.79  1999/07/22 09:37:34  florian

@@ -45,7 +45,7 @@ implementation
 
     uses
       cobjects,verbose,globals,systems,
-      symtable,aasm,types,
+      symconst,symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
       i386base,i386asm,
       cgai386,tgeni386;
@@ -233,7 +233,7 @@ implementation
                  concatcopy(p^.right^.location.reference,temp1,hs,false,false);
            end
          else
-	   temptovalue:=false;
+           temptovalue:=false;
 
          { produce start assignment }
          cleartempgen;
@@ -772,7 +772,11 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.43  1999-07-26 12:13:45  florian
+  Revision 1.44  1999-08-03 22:02:39  peter
+    * moved bitmask constants to sets
+    * some other type/const renamings
+
+  Revision 1.43  1999/07/26 12:13:45  florian
     * exit in try..finally blocks needed a second fix
     * a raise in a try..finally lead into a endless loop, fixed
 

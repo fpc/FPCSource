@@ -30,7 +30,7 @@ unit cgai386;
 {$ifdef dummy}
        end { to get correct syntax highlighting }
 {$endif dummy}
-       aasm,symtable,win_targ;
+       symconst,symtable,aasm,win_targ;
 
 {$define TESTGETTEMP to store const that
  are written into temps for later release PM }
@@ -1401,7 +1401,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                is_open_array(p^.resulttype)))
                             ) or
                             ((p^.resulttype^.deftype=objectdef) and
-                             pobjectdef(p^.resulttype)^.isclass) then
+                             pobjectdef(p^.resulttype)^.is_class) then
                            begin
                               inc(pushedparasize,4);
                               if inlined then
@@ -2132,7 +2132,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
     var
       pl : pasmlabel;
     begin
-      if (aktprocsym^.definition^.options and poassembler)<>0 then
+      if (po_assembler in aktprocsym^.definition^.procoptions) then
        exit;
       case target_info.target of
          target_i386_linux:
@@ -2203,7 +2203,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 
     begin
        if (psym(p)^.typ=varsym) and
-         ((pvarsym(p)^.var_options and vo_is_thread_var)<>0) then
+          (vo_is_thread_var in pvarsym(p)^.varoptions) then
          begin
             exprasmlist^.concat(new(pai386,op_const(A_PUSH,S_L,pvarsym(p)^.getsize)));
             reset_reference(hr);
@@ -2283,7 +2283,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
        if (psym(p)^.typ=varsym) and
           assigned(pvarsym(p)^.definition) and
           not((pvarsym(p)^.definition^.deftype=objectdef) and
-            pobjectdef(pvarsym(p)^.definition)^.isclass) and
+            pobjectdef(pvarsym(p)^.definition)^.is_class) and
           pvarsym(p)^.definition^.needs_inittable then
          begin
             procinfo.flags:=procinfo.flags or pi_needs_implicit_finally;
@@ -2310,7 +2310,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
     begin
        if (psym(p)^.typ=varsym) and
           not((pvarsym(p)^.definition^.deftype=objectdef) and
-            pobjectdef(pvarsym(p)^.definition)^.isclass) and
+            pobjectdef(pvarsym(p)^.definition)^.is_class) and
           pvarsym(p)^.definition^.needs_inittable and
           ((pvarsym(p)^.varspez=vs_value) {or
            (pvarsym(p)^.varspez=vs_const) and
@@ -2342,7 +2342,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
        if (psym(p)^.typ=varsym) and
           assigned(pvarsym(p)^.definition) and
           not((pvarsym(p)^.definition^.deftype=objectdef) and
-          pobjectdef(pvarsym(p)^.definition)^.isclass) and
+          pobjectdef(pvarsym(p)^.definition)^.is_class) and
           pvarsym(p)^.definition^.needs_inittable then
          begin
             { not all kind of parameters need to be finalized  }
@@ -2603,7 +2603,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
     begin
        oldexprasmlist:=exprasmlist;
        exprasmlist:=alist;
-       if (not inlined) and ((aktprocsym^.definition^.options and poproginit)<>0) then
+       if (not inlined) and (aktprocsym^.definition^.proctypeoption=potype_proginit) then
            begin
               exprasmlist^.insert(new(pai386,
                 op_sym(A_CALL,S_NO,newasmsymbol('FPC_INITIALIZEUNITS'))));
@@ -2634,9 +2634,9 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
            end;
 
       { a constructor needs a help procedure }
-      if (aktprocsym^.definition^.options and poconstructor)<>0 then
+      if (aktprocsym^.definition^.proctypeoption=potype_constructor) then
         begin
-          if procinfo._class^.isclass then
+          if procinfo._class^.is_class then
             begin
               exprasmlist^.insert(new(pai386,op_cond_sym(A_Jcc,C_Z,S_NO,quickexitlabel)));
               exprasmlist^.insert(new(pai386,op_sym(A_CALL,S_NO,newasmsymbol('FPC_NEW_CLASS'))));
@@ -2653,7 +2653,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 
       { When message method contains self as a parameter,
         we must load it into ESI }
-      If ((aktprocsym^.definition^.options and pocontainsself)<>0) then
+      If (po_containsself in aktprocsym^.definition^.procoptions) then
         begin
            new(hr);
            reset_reference(hr^);
@@ -2661,8 +2661,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
            hr^.base:=procinfo.framepointer;
            exprasmlist^.insert(new(pai386,op_ref_reg(A_MOV,S_L,hr,R_ESI)));
         end;
-      { should we save edi ? }
-      if ((aktprocsym^.definition^.options and posavestdregs)<>0) then
+      { should we save edi,esi,ebx like C ? }
+      if (po_savestdregs in aktprocsym^.definition^.procoptions) then
        begin
          if (aktprocsym^.definition^.usedregisters and ($80 shr byte(R_EBX)))<>0 then
            exprasmlist^.insert(new(pai386,op_reg(A_PUSH,S_L,R_EBX)));
@@ -2677,14 +2677,14 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
           begin
               CGMessage(cg_d_stackframe_omited);
               nostackframe:=true;
-              if (aktprocsym^.definition^.options and (pounitinit or poproginit or pounitfinalize)<>0) then
+              if (aktprocsym^.definition^.proctypeoption in [potype_unitinit,potype_proginit,potype_unitfinalize]) then
                 parasize:=0
               else
                 parasize:=aktprocsym^.definition^.parast^.datasize+procinfo.call_offset-4;
           end
       else
           begin
-              if (aktprocsym^.definition^.options and (pounitinit or poproginit or pounitfinalize)<>0) then
+              if (aktprocsym^.definition^.proctypeoption in [potype_unitinit,potype_proginit,potype_unitfinalize]) then
                 parasize:=0
               else
                 parasize:=aktprocsym^.definition^.parast^.datasize+procinfo.call_offset-8;
@@ -2771,14 +2771,14 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                  end;
           end;
 
-      if (aktprocsym^.definition^.options and pointerrupt)<>0 then
+      if (po_interrupt in aktprocsym^.definition^.procoptions) then
           generate_interrupt_stackframe_entry;
 
       { initialize return value }
       if (procinfo.retdef<>pdef(voiddef)) and
         (procinfo.retdef^.needs_inittable) and
         ((procinfo.retdef^.deftype<>objectdef) or
-        not(pobjectdef(procinfo.retdef)^.isclass)) then
+        not(pobjectdef(procinfo.retdef)^.is_class)) then
         begin
            procinfo.flags:=procinfo.flags or pi_needs_implicit_finally;
            reset_reference(r);
@@ -2788,7 +2788,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
         end;
 
       { generate copies of call by value parameters }
-      if (aktprocsym^.definition^.options and poassembler=0) then
+      if not(po_assembler in aktprocsym^.definition^.procoptions) then
         aktprocsym^.definition^.parast^.foreach({$ifndef TP}@{$endif}copyvalueparas);
 
       { initialisizes local data }
@@ -2947,9 +2947,9 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
         exprasmlist^.insert(new(pai_label,init(aktexitlabel)));
 
       { call the destructor help procedure }
-      if (aktprocsym^.definition^.options and podestructor)<>0 then
+      if (aktprocsym^.definition^.proctypeoption=potype_destructor) then
         begin
-          if procinfo._class^.isclass then
+          if procinfo._class^.is_class then
             begin
               exprasmlist^.insert(new(pai386,op_sym(A_CALL,S_NO,
                 newasmsymbol('FPC_DISPOSE_CLASS'))));
@@ -2987,7 +2987,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
            if (procinfo.retdef<>pdef(voiddef)) and
              (procinfo.retdef^.needs_inittable) and
              ((procinfo.retdef^.deftype<>objectdef) or
-             not(pobjectdef(procinfo.retdef)^.isclass)) then
+             not(pobjectdef(procinfo.retdef)^.is_class)) then
              begin
                 reset_reference(hr);
                 hr.offset:=procinfo.retoffset;
@@ -3001,14 +3001,14 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
         end;
 
       { call __EXIT for main program }
-      if (not DLLsource) and (not inlined) and ((aktprocsym^.definition^.options and poproginit)<>0) then
+      if (not DLLsource) and (not inlined) and (aktprocsym^.definition^.proctypeoption=potype_proginit) then
        begin
          exprasmlist^.concat(new(pai386,op_sym(A_CALL,S_NO,newasmsymbol('FPC_DO_EXIT'))));
        end;
 
       { handle return value }
-      if (aktprocsym^.definition^.options and poassembler)=0 then
-          if (aktprocsym^.definition^.options and poconstructor)=0 then
+      if not(po_assembler in aktprocsym^.definition^.procoptions) then
+          if (aktprocsym^.definition^.proctypeoption<>potype_constructor) then
             handle_return_value(inlined)
           else
               begin
@@ -3029,7 +3029,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 
       { should we restore edi ? }
       { for all i386 gcc implementations }
-      if ((aktprocsym^.definition^.options and posavestdregs)<>0) then
+      if (po_savestdregs in aktprocsym^.definition^.procoptions) then
         begin
           if (aktprocsym^.definition^.usedregisters and ($80 shr byte(R_EBX)))<>0 then
            exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EBX)));
@@ -3048,19 +3048,19 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
           exprasmlist^.concat(new(pai386,op_none(A_LEAVE,S_NO)));
       { parameters are limited to 65535 bytes because }
       { ret allows only imm16                    }
-      if (parasize>65535) and not(aktprocsym^.definition^.options and poclearstack<>0) then
+      if (parasize>65535) and not(pocall_clearstack in aktprocsym^.definition^.proccalloptions) then
        CGMessage(cg_e_parasize_too_big);
 
       { at last, the return is generated }
 
       if not inlined then
-      if (aktprocsym^.definition^.options and pointerrupt)<>0 then
+      if (po_interrupt in aktprocsym^.definition^.procoptions) then
           generate_interrupt_stackframe_exit
       else
        begin
        {Routines with the poclearstack flag set use only a ret.}
        { also routines with parasize=0     }
-         if (parasize=0) or (aktprocsym^.definition^.options and poclearstack<>0) then
+         if (parasize=0) or (pocall_clearstack in aktprocsym^.definition^.proccalloptions) then
           exprasmlist^.concat(new(pai386,op_none(A_RET,S_NO)))
          else
           exprasmlist^.concat(new(pai386,op_const(A_RET,S_NO,parasize)));
@@ -3140,7 +3140,11 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.22  1999-08-01 23:36:39  florian
+  Revision 1.23  1999-08-03 22:02:49  peter
+    * moved bitmask constants to sets
+    * some other type/const renamings
+
+  Revision 1.22  1999/08/01 23:36:39  florian
     * some changes to compile the new code generator
 
   Revision 1.21  1999/08/01 17:32:31  florian

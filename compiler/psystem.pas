@@ -33,7 +33,7 @@ procedure createconstdefs;
 implementation
 
 uses
-  globtype,globals,tree;
+  globtype,globals,symconst,tree;
 
 procedure insertinternsyms(p : psymtable);
 {
@@ -74,7 +74,7 @@ procedure insert_intern_types(p : psymtable);
 }
 var
   { several defs to simulate more or less C++ objects for GDB }
-  vmtdef      : precdef;
+  vmtdef      : precorddef;
   pvmtdef     : ppointerdef;
   vmtarraydef : parraydef;
   vmtsymtable : psymtable;
@@ -87,7 +87,7 @@ begin
   p^.insert(new(ptypesym,init('ulong',u32bitdef)));
   p^.insert(new(ptypesym,init('longint',s32bitdef)));
   p^.insert(new(ptypesym,init('qword',cu64bitdef)));
-  p^.insert(new(ptypesym,init('int64',cs64bitintdef)));
+  p^.insert(new(ptypesym,init('int64',cs64bitdef)));
   p^.insert(new(ptypesym,init('char',cchardef)));
   p^.insert(new(ptypesym,init('shortstring',cshortstringdef)));
   p^.insert(new(ptypesym,init('longstring',clongstringdef)));
@@ -107,7 +107,7 @@ begin
   { Add a type for virtual method tables in lowercase }
   { so it isn't reachable!                            }
   vmtsymtable:=new(psymtable,init(recordsymtable));
-  vmtdef:=new(precdef,init(vmtsymtable));
+  vmtdef:=new(precorddef,init(vmtsymtable));
   pvmtdef:=new(ppointerdef,init(vmtdef));
   vmtsymtable^.insert(new(pvarsym,init('parent',pvmtdef)));
   vmtsymtable^.insert(new(pvarsym,init('length',globaldef('longint'))));
@@ -146,7 +146,7 @@ begin
   p^.insert(new(ptypesym,init('FIXED',new(pfloatdef,init(f32bit)))));
   p^.insert(new(ptypesym,init('FIXED16',new(pfloatdef,init(f16bit)))));
   p^.insert(new(ptypesym,init('QWORD',cu64bitdef)));
-  p^.insert(new(ptypesym,init('INT64',cs64bitintdef)));
+  p^.insert(new(ptypesym,init('INT64',cs64bitdef)));
   p^.insert(new(ptypesym,init('TYPEDFILE',new(pfiledef,init(ft_typed,voiddef)))));
 end;
 
@@ -161,7 +161,7 @@ begin
   u32bitdef:=porddef(globaldef('ulong'));
   s32bitdef:=porddef(globaldef('longint'));
   cu64bitdef:=porddef(globaldef('qword'));
-  cs64bitintdef:=porddef(globaldef('int64'));
+  cs64bitdef:=porddef(globaldef('int64'));
   cformaldef:=pformaldef(globaldef('formal'));
   voiddef:=porddef(globaldef('void'));
   cchardef:=porddef(globaldef('char'));
@@ -200,7 +200,7 @@ begin
   u32bitdef:=new(porddef,init(u32bit,0,$ffffffff));
   s32bitdef:=new(porddef,init(s32bit,$80000000,$7fffffff));
   cu64bitdef:=new(porddef,init(u64bit,0,0));
-  cs64bitintdef:=new(porddef,init(s64bitint,0,0));
+  cs64bitdef:=new(porddef,init(s64bit,0,0));
   booldef:=new(porddef,init(bool8bit,0,1));
   cchardef:=new(porddef,init(uchar,0,255));
   cshortstringdef:=new(pstringdef,shortinit(255));
@@ -238,7 +238,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.25  1999-07-05 20:13:17  peter
+  Revision 1.26  1999-08-03 22:03:07  peter
+    * moved bitmask constants to sets
+    * some other type/const renamings
+
+  Revision 1.25  1999/07/05 20:13:17  peter
     * removed temp defines
 
   Revision 1.24  1999/07/01 15:49:20  florian

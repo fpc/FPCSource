@@ -37,7 +37,7 @@ implementation
     uses
       globtype,systems,
       cobjects,verbose,globals,
-      symtable,aasm,types,
+      symconst,symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
       i386base,i386asm,
 {$ifdef dummy}
@@ -930,7 +930,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.27  1999-06-28 22:29:14  florian
+  Revision 1.28  1999-08-03 22:02:45  peter
+    * moved bitmask constants to sets
+    * some other type/const renamings
+
+  Revision 1.27  1999/06/28 22:29:14  florian
     * qword division fixed
     + code for qword/int64 type casting added:
       range checking isn't implemented yet

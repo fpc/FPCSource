@@ -39,7 +39,7 @@ implementation
     uses
       globtype,systems,
       cobjects,verbose,globals,
-      symtable,aasm,types,
+      symconst,symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
       i386base,i386asm,
       cgai386,tgeni386;
@@ -401,7 +401,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.37  1999-07-05 20:13:08  peter
+  Revision 1.38  1999-08-03 22:02:38  peter
+    * moved bitmask constants to sets
+    * some other type/const renamings
+
+  Revision 1.37  1999/07/05 20:13:08  peter
     * removed temp defines
 
   Revision 1.36  1999/05/27 19:44:10  peter

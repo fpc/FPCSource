@@ -24,9 +24,10 @@ Unit RAUtils;
 Interface
 
 Uses
-  globtype,systems,
-  symtable,aasm,hcodegen,verbose,globals,files,strings,
-  cobjects
+  strings,
+  cobjects,
+  globtype,systems,verbose,globals,files,
+  symconst,symtable,aasm,hcodegen
 {$ifdef i386}
   ,i386base,i386asm
 {$endif}
@@ -737,7 +738,7 @@ Begin
       begin
         { we always assume in asm statements that     }
         { that the variable is valid.                 }
-        pvarsym(sym)^.is_valid:=1;
+        pvarsym(sym)^.varstate:=vs_used;
         inc(pvarsym(sym)^.refs);
         case pvarsym(sym)^.owner^.symtabletype of
           unitsymtable,
@@ -753,7 +754,7 @@ Begin
             end;
           localsymtable :
             begin
-              if (pvarsym(sym)^.var_options and vo_is_external)<>0 then
+              if (vo_is_external in pvarsym(sym)^.varoptions) then
                 opr.ref.symbol:=newasmsymbol(pvarsym(sym)^.mangledname)
               else
                 begin
@@ -1138,27 +1139,27 @@ Begin
       begin
         case pvarsym(sym)^.definition^.deftype of
           recorddef :
-            st:=precdef(pvarsym(sym)^.definition)^.symtable;
+            st:=precorddef(pvarsym(sym)^.definition)^.symtable;
           objectdef :
-            st:=pobjectdef(pvarsym(sym)^.definition)^.publicsyms;
+            st:=pobjectdef(pvarsym(sym)^.definition)^.symtable;
         end;
       end;
     typesym :
       begin
         case ptypesym(sym)^.definition^.deftype of
           recorddef :
-            st:=precdef(ptypesym(sym)^.definition)^.symtable;
+            st:=precorddef(ptypesym(sym)^.definition)^.symtable;
           objectdef :
-            st:=pobjectdef(ptypesym(sym)^.definition)^.publicsyms;
+            st:=pobjectdef(ptypesym(sym)^.definition)^.symtable;
         end;
       end;
     typedconstsym :
       begin
         case pvarsym(sym)^.definition^.deftype of
           recorddef :
-            st:=precdef(ptypedconstsym(sym)^.definition)^.symtable;
+            st:=precorddef(ptypedconstsym(sym)^.definition)^.symtable;
           objectdef :
-            st:=pobjectdef(ptypedconstsym(sym)^.definition)^.publicsyms;
+            st:=pobjectdef(ptypedconstsym(sym)^.definition)^.symtable;
         end;
       end;
   end;
@@ -1180,9 +1181,9 @@ Begin
            Size:=PVarsym(sym)^.getsize;
            case pvarsym(sym)^.definition^.deftype of
              recorddef :
-               st:=precdef(pvarsym(sym)^.definition)^.symtable;
+               st:=precorddef(pvarsym(sym)^.definition)^.symtable;
              objectdef :
-               st:=pobjectdef(pvarsym(sym)^.definition)^.publicsyms;
+               st:=pobjectdef(pvarsym(sym)^.definition)^.symtable;
            end;
          end;
      end;
@@ -1383,7 +1384,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.20  1999-07-29 20:54:06  peter
+  Revision 1.21  1999-08-03 22:03:12  peter
+    * moved bitmask constants to sets
+    * some other type/const renamings
+
+  Revision 1.20  1999/07/29 20:54:06  peter
     * write .size also
 
   Revision 1.19  1999/06/02 22:44:17  pierre

@@ -37,7 +37,7 @@ Implementation
 Uses
   globtype,
   strings,cobjects,systems,verbose,globals,
-  files,aasm,types,symtable,scanner,hcodegen
+  files,aasm,types,symconst,symtable,scanner,hcodegen
   ,i386base
   ,rautils,ra386;
 
@@ -1955,7 +1955,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.54  1999-07-24 11:17:12  peter
+  Revision 1.55  1999-08-03 22:03:09  peter
+    * moved bitmask constants to sets
+    * some other type/const renamings
+
+  Revision 1.54  1999/07/24 11:17:12  peter
     * suffix parsing for at&t fixed for things like movsbl
     * string constants are now handle correctly and also allowed in
       constant expressions

@@ -22,38 +22,89 @@
 unit symconst;
 interface
 
+const
+  def_alignment = 4;
+
 type
+  { symbol options }
+  tsymoption=(sp_none,
+    sp_public,
+    sp_private,
+    sp_published,
+    sp_protected,
+    sp_forwarddef,
+    sp_static,
+    sp_primary_typesym    { this is for typesym, to know who is the primary symbol of a def }
+  );
+  tsymoptions=set of tsymoption;
+
+  { flags for a definition }
+  tdefoption=(df_none,
+    df_need_rtti,          { the definitions needs rtti }
+    df_has_rtti            { the rtti is generated      }
+  );
+  tdefoptions=set of tdefoption;
+
+  { base types for orddef }
+  tbasetype = (
+    uauto,uvoid,uchar,
+    u8bit,u16bit,u32bit,
+    s8bit,s16bit,s32bit,
+    bool8bit,bool16bit,bool32bit,
+    u64bit,s64bit
+  );
+
+  { float types }
+  tfloattype = (
+    s32real,s64real,s80real,
+    s64comp,
+    f16bit,f32bit
+  );
+
+  { string types }
+  tstringtype = (
+    st_shortstring, st_longstring, st_ansistring, st_widestring
+  );
+
+  { set types }
+  tsettype = (
+    normset,smallset,varset
+  );
+
   { calling convention for tprocdef and tprocvardef }
-  pocalloption=(pocall_none,
+  tproccalloption=(pocall_none,
     pocall_clearstack,    { Use IBM flat calling convention. (Used by GCC.) }
     pocall_leftright,     { Push parameters from left to right }
     pocall_cdecl,         { procedure uses C styled calling }
     pocall_register,      { procedure uses register (fastcall) calling }
     pocall_stdcall,       { procedure uses stdcall call }
     pocall_safecall,      { safe call calling conventions }
-    pocall_palmossyscall  { procedure is a PalmOS system call }
+    pocall_palmossyscall, { procedure is a PalmOS system call }
+    pocall_system,
+    pocall_inline,        { Procedure is an assembler macro }
+    pocall_internproc,    { Procedure has compiler magic}
+    pocall_internconst    { procedure has constant evaluator intern }
   );
+  tproccalloptions=set of tproccalloption;
 
   { basic type for tprocdef and tprocvardef }
-  potypeoption=(potype_none,
+  tproctypeoption=(potype_none,
     potype_proginit,     { Program initialization }
     potype_unitinit,     { unit initialization }
     potype_unitfinalize, { unit finalization }
     potype_constructor,  { Procedure is a constructor }
     potype_destructor,   { Procedure is a destructor }
-    potype_internproc,   { Procedure has compiler magic}
-    potype_internconst,  { procedure has constant evaluator intern }
     potype_operator      { Procedure defines an operator }
   );
+  tproctypeoptions=set of tproctypeoption;
 
   { other options for tprocdef and tprocvardef }
-  pooption=(po_none,
+  tprocoption=(po_none,
     po_classmethod,       { class method }
     po_virtualmethod,     { Procedure is a virtual method }
     po_abstractmethod,    { Procedure is an abstract method }
     po_staticmethod,      { static method }
     po_overridingmethod,  { method with override directive }
-    po_inline,            { Procedure is an assembler macro }
     po_methodpointer,     { method pointer, only in procvardef, also used for 'with object do' }
     po_containsself,      { self is passed explicit to the compiler }
     po_interrupt,         { Procedure is an interrupt handler }
@@ -66,22 +117,10 @@ type
     po_savestdregs,       { save std regs cdecl and stdcall need that ! }
     po_saveregisters      { save all registers }
   );
-  pooptions=set of pooption;
-
-  { symbol options }
-  spoption=(sp_none,
-    sp_public,
-    sp_private,
-    sp_published,
-    sp_protected,
-    sp_forwarddef,
-    sp_static
-    sp_primary_typesym; { this is for typesym, to know who is the primary symbol of a def }
-  );
-  spoptions=set of spoption;
+  tprocoptions=set of tprocoption;
 
   { options for objects and classes }
-  oooption=(
+  tobjectoption=(oo_none,
     oo_is_class,
     oo_is_forward,         { the class is only a forward declared yet }
     oo_has_virtual,        { the object/class has virtual methods }
@@ -94,108 +133,55 @@ type
     oo_has_msgint,
     oo_has_abstract,       { the object/class has an abstract method => no instances can be created }
     oo_can_have_published, { the class has rtti, i.e. you can publish properties }
-    oo_cppvmt,             { the object/class uses an C++ compatible }
+    oo_cppvmt              { the object/class uses an C++ compatible }
                            { vmt, all members of the same class tree }
                            { must use then a C++ compatible vmt      }
   );
-  oooptions=set of oooption;
+  tobjectoptions=set of tobjectoption;
+
+  { options for properties }
+  tpropertyoption=(ppo_none,
+    ppo_indexed,
+    ppo_defaultproperty,
+    ppo_stored
+  );
+  tpropertyoptions=set of tpropertyoption;
+
+  { options for variables }
+  tvaroption=(vo_none,
+    vo_regable,
+    vo_is_C_var,
+    vo_is_external,
+    vo_is_dll_var,
+    vo_is_thread_var
+  );
+  tvaroptions=set of tvaroption;
+
+  { State of the variable, if it's declared, assigned or used }
+  tvarstate=(vs_none,
+    vs_declared,vs_declared2,vs_assigned,vs_used
+  );
 
 const
-  def_alignment = 4;
-
-  { flags for a definition }
-  df_needsrtti = $1;           { the definitions needs rtti }
-  df_hasrtti   = $2;           { the rtti is generated      }
-
   { relevant options for assigning a proc or a procvar to a procvar }
   po_compatibility_options = [
     po_classmethod,
     po_staticmethod,
-    po_inline,
     po_methodpointer,
     po_containsself,
     po_interrupt,
     po_iocheck,
-    po_exports,
+    po_exports
   ];
 
-  { options for properties }
-  ppo_indexed = $1;
-  ppo_defaultproperty = $2;
-  ppo_stored = $4;
+implementation
 
-  { options for variables }
-  vo_regable     = $1;
-  vo_is_C_var    = $2;
-  vo_is_external = $4;
-  vo_is_dll_var  = $8;
-  vo_is_thread_var = $10;
-
+end.
 {
   $Log$
-  Revision 1.13  1999-08-03 22:03:13  peter
+  Revision 1.1  1999-08-03 22:03:14  peter
     * moved bitmask constants to sets
     * some other type/const renamings
-
-  Revision 1.12  1999/07/06 21:48:26  florian
-    * a lot bug fixes:
-       - po_external isn't any longer necessary for procedure compatibility
-       - m_tp_procvar is in -Sd now available
-       - error messages of procedure variables improved
-       - return values with init./finalization fixed
-       - data types with init./finalization aren't any longer allowed in variant
-         record
-
-  Revision 1.11  1999/06/03 09:34:11  peter
-    * better methodpointer check for proc->procvar
-
-  Revision 1.10  1999/06/01 19:27:56  peter
-    * better checks for procvar and methodpointer
-
-  Revision 1.9  1999/05/24 08:55:29  florian
-    * non working safecall directiv implemented, I don't know if we
-      need it
-
-  Revision 1.8  1999/05/20 22:22:42  pierre
-    + added synonym filed for ttypesym
-      allows a clean disposal of tdefs and related ttypesyms
-
-  Revision 1.7  1999/05/12 22:36:13  florian
-    * override isn't allowed in objects!
-
-  Revision 1.6  1999/04/28 06:02:10  florian
-    * changes of Bruessel:
-       + message handler can now take an explicit self
-       * typinfo fixed: sometimes the type names weren't written
-       * the type checking for pointer comparisations and subtraction
-         and are now more strict (was also buggy)
-       * small bug fix to link.pas to support compiling on another
-         drive
-       * probable bug in popt386 fixed: call/jmp => push/jmp
-         transformation didn't count correctly the jmp references
-       + threadvar support
-       * warning if ln/sqrt gets an invalid constant argument
-
-  Revision 1.5  1999/04/26 13:31:46  peter
-    * release storenumber,double_checksum
-
-  Revision 1.4  1999/04/16 10:28:26  pierre
-    + added posavestdregs used for cdecl AND stdcall functions
-      (saves ESI EDI and EBX for i386)
-
-  Revision 1.3  1999/03/05 01:14:23  pierre
-    * bug0198 : call conventions for methods
-      not yet implemented is the control of same calling convention
-      for virtual and child's virtual
-    * msgstr and msgint only created if message was found
-      who implemented this by the way ?
-      it leaks lots of plabels !!!! (check with heaptrc !)
-
-  Revision 1.2  1999/02/22 20:13:37  florian
-    + first implementation of message keyword
-
-  Revision 1.1  1999/01/12 14:32:49  peter
-    * splitted from symtable.pas
 
 }
 

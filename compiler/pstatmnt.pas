@@ -41,7 +41,7 @@ unit pstatmnt;
     uses
        globtype,systems,tokens,
        strings,cobjects,globals,files,verbose,
-       symtable,aasm,pass_1,types,scanner,hcodegen,ppu
+       symconst,symtable,aasm,pass_1,types,scanner,hcodegen,ppu
        ,pbase,pexpr,pdecl
 {$ifdef i386}
        ,i386base,i386asm
@@ -373,7 +373,7 @@ unit pstatmnt;
              objectdef : begin
                            obj:=pobjectdef(p^.resulttype);
                            withsymtable:=new(pwithsymtable,init);
-                           withsymtable^.symsearch:=obj^.publicsyms^.symsearch;
+                           withsymtable^.symsearch:=obj^.symtable^.symsearch;
                            withsymtable^.defowner:=obj;
                            symtab:=withsymtable;
                            if (p^.treetype=loadn) and
@@ -387,7 +387,7 @@ unit pstatmnt;
                             begin
                               symtab^.next:=new(pwithsymtable,init);
                               symtab:=symtab^.next;
-                              symtab^.symsearch:=obj^.publicsyms^.symsearch;
+                              symtab^.symsearch:=obj^.symtable^.symsearch;
                               if (p^.treetype=loadn) and
                                  (p^.symtable=aktprocsym^.definition^.localst) then
                                 pwithsymtable(symtab)^.direct_with:=true;
@@ -401,7 +401,7 @@ unit pstatmnt;
                            symtablestack:=withsymtable;
                          end;
              recorddef : begin
-                           symtab:=precdef(p^.resulttype)^.symtable;
+                           symtab:=precorddef(p^.resulttype)^.symtable;
                            levelcount:=1;
                            withsymtable:=new(pwithsymtable,init);
                            withsymtable^.symsearch:=symtab^.symsearch;
@@ -572,7 +572,7 @@ unit pstatmnt;
                                  end;
                                if (srsym^.typ=typesym) and
                                  (ptypesym(srsym)^.definition^.deftype=objectdef) and
-                                 pobjectdef(ptypesym(srsym)^.definition)^.isclass then
+                                 pobjectdef(ptypesym(srsym)^.definition)^.is_class then
                                  ot:=pobjectdef(ptypesym(srsym)^.definition)
                                else
                                  begin
@@ -597,7 +597,7 @@ unit pstatmnt;
                                  end;
                                if (srsym^.typ=typesym) and
                                  (ptypesym(srsym)^.definition^.deftype=objectdef) and
-                                 pobjectdef(ptypesym(srsym)^.definition)^.isclass then
+                                 pobjectdef(ptypesym(srsym)^.definition)^.is_class then
                                  ot:=pobjectdef(ptypesym(srsym)^.definition)
                                else
                                  begin
@@ -708,11 +708,15 @@ unit pstatmnt;
              begin
                if not target_asm.allowdirect then
                  Message(parser_f_direct_assembler_not_allowed);
-               if (aktprocsym^.definition^.options and poinline)<>0 then
+               if (pocall_inline in aktprocsym^.definition^.proccalloptions) then
                  Begin
                     Message1(parser_w_not_supported_for_inline,'direct asm');
                     Message(parser_w_inlining_disabled);
-                    aktprocsym^.definition^.options:= aktprocsym^.definition^.options and not poinline;
+{$ifdef INCLUDEOK}
+                    exclude(aktprocsym^.definition^.proccalloptions,pocall_inline);
+{$else}
+                    aktprocsym^.definition^.proccalloptions:=aktprocsym^.definition^.proccalloptions-[pocall_inline];
+{$endif}
                  End;
                asmstat:=ra386dir.assemble;
              end;
@@ -865,16 +869,14 @@ unit pstatmnt;
                      end;
                    { check, if the first parameter is a pointer to a _class_ }
                    classh:=pobjectdef(ppointerdef(pd)^.definition);
-                   if (classh^.options and oo_is_class)<>0 then
-                         begin
-                            Message(parser_e_no_new_or_dispose_for_classes);
-                            new_dispose_statement:=factor(false);
-                            { while token<>RKLAMMER do
-                                  consume(token); }
-                            consume_all_until(RKLAMMER);
-                            consume(RKLAMMER);
-                            exit;
-                         end;
+                   if classh^.is_class then
+                     begin
+                        Message(parser_e_no_new_or_dispose_for_classes);
+                        new_dispose_statement:=factor(false);
+                        consume_all_until(RKLAMMER);
+                        consume(RKLAMMER);
+                        exit;
+                     end;
                    { search cons-/destructor, also in parent classes }
                    sym:=search_class_member(classh,pattern);
                    { the second parameter of new/dispose must be a call }
@@ -903,9 +905,9 @@ unit pstatmnt;
 
                            if not codegenerror then
                             begin
-                              if (ht=_NEW) and ((p2^.procdefinition^.options and poconstructor)=0) then
+                              if (ht=_NEW) and (p2^.procdefinition^.proctypeoption<>potype_constructor) then
                                 Message(parser_e_expr_have_to_be_constructor_call);
-                              if (ht=_DISPOSE) and ((p2^.procdefinition^.options and podestructor)=0) then
+                              if (ht=_DISPOSE) and (p2^.procdefinition^.proctypeoption<>potype_destructor) then
                                 Message(parser_e_expr_have_to_be_destructor_call);
 
                               if ht=_NEW then
@@ -927,7 +929,7 @@ unit pstatmnt;
                else
                  begin
                     if (ppointerdef(p^.resulttype)^.definition^.deftype=objectdef) and
-                       ((pobjectdef(ppointerdef(p^.resulttype)^.definition)^.options and oo_hasvmt) <> 0)  then
+                       (oo_has_vmt in pobjectdef(ppointerdef(p^.resulttype)^.definition)^.objectoptions) then
                       Message(parser_w_use_extended_syntax_for_objects);
                     if (ppointerdef(p^.resulttype)^.definition^.deftype=orddef) and
                        (porddef(ppointerdef(p^.resulttype)^.definition)^.typ=uvoid) then
@@ -1056,7 +1058,7 @@ unit pstatmnt;
               code:=genzeronode(niln);
             _FAIL : begin
                        { internalerror(100); }
-                       if (aktprocsym^.definition^.options and poconstructor)=0 then
+                       if (aktprocsym^.definition^.proctypeoption<>potype_constructor) then
                         Message(parser_e_fail_only_in_constructor);
                        consume(_FAIL);
                        code:=genzeronode(failn);
@@ -1127,7 +1129,7 @@ unit pstatmnt;
 
       var
          funcretsym : pfuncretsym;
-         storepos : tfileposinfo; 
+         storepos : tfileposinfo;
 
       begin
          if procinfo.retdef<>pdef(voiddef) then
@@ -1265,16 +1267,16 @@ unit pstatmnt;
            { set the framepointer to esp for assembler functions }
            { but only if the are no local variables           }
            { added no parameter also (PM)                       }
-           if ((aktprocsym^.definition^.options and poassembler)<>0) and
-               (aktprocsym^.definition^.localst^.datasize=0) and
-               (aktprocsym^.definition^.parast^.datasize=0) and
-               not(ret_in_param(aktprocsym^.definition^.retdef)) then
-               begin
-                  procinfo.framepointer:=stack_pointer;
-                  { set the right value for parameters }
-                  dec(aktprocsym^.definition^.parast^.address_fixup,target_os.size_of_pointer);
-                  dec(procinfo.call_offset,target_os.size_of_pointer);
-              end;
+           if (po_assembler in aktprocsym^.definition^.procoptions) and
+              (aktprocsym^.definition^.localst^.datasize=0) and
+              (aktprocsym^.definition^.parast^.datasize=0) and
+              not(ret_in_param(aktprocsym^.definition^.retdef)) then
+             begin
+               procinfo.framepointer:=stack_pointer;
+               { set the right value for parameters }
+               dec(aktprocsym^.definition^.parast^.address_fixup,target_os.size_of_pointer);
+               dec(procinfo.call_offset,target_os.size_of_pointer);
+             end;
           { force the asm statement }
             if token<>_ASM then
              consume(_ASM);
@@ -1288,7 +1290,11 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.94  1999-08-03 17:09:39  florian
+  Revision 1.95  1999-08-03 22:03:03  peter
+    * moved bitmask constants to sets
+    * some other type/const renamings
+
+  Revision 1.94  1999/08/03 17:09:39  florian
     * the alpha compiler can be compiled now
 
   Revision 1.93  1999/08/02 21:28:59  florian

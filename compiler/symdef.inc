@@ -995,7 +995,7 @@
                 bool32bit:
                   savesize:=4;
 
-                u64bit,s64bitint:
+                u64bit,s64bit:
                   savesize:=8;
              else
                savesize:=0;
@@ -1072,7 +1072,7 @@
         bool16bit : stabstring := strpnew('-22;');
         bool32bit : stabstring := strpnew('-23;');
         u64bit    : stabstring := strpnew('-32;');
-        s64bitint : stabstring := strpnew('-31;');
+        s64bit    : stabstring := strpnew('-31;');
 {$endif not Use_integer_types_for_boolean}
          { u32bit : stabstring := strpnew('r'+
               s32bitdef^.numberstring+';0;-1;'); }
@@ -1570,7 +1570,12 @@
 {$ifdef GDB}
     function tsetdef.stabstring : pchar;
       begin
-         stabstring := strpnew('S'+setof^.numberstring);
+         { For small sets write a longint, which can at least be seen
+           in the current GDB's (PFV) }
+         if settype=smallset then
+           stabstring := strpnew('r'+s32bitdef^.numberstring+';0;0xffffffff;')
+         else
+           stabstring := strpnew('S'+setof^.numberstring);
       end;
 
 
@@ -1842,10 +1847,10 @@
       end;
 
 {***************************************************************************
-                                  TRECDEF
+                                  trecorddef
 ***************************************************************************}
 
-    constructor trecdef.init(p : psymtable);
+    constructor trecorddef.init(p : psymtable);
       begin
          inherited init;
          deftype:=recorddef;
@@ -1855,7 +1860,7 @@
       end;
 
 
-    constructor trecdef.load;
+    constructor trecorddef.load;
       var
          oldread_member : boolean;
       begin
@@ -1870,7 +1875,7 @@
       end;
 
 
-    destructor trecdef.done;
+    destructor trecorddef.done;
       begin
          if assigned(symtable) then
            dispose(symtable,done);
@@ -1886,12 +1891,12 @@
       begin
          if (psym(s)^.typ=varsym) and
             ((pvarsym(s)^.definition^.deftype<>objectdef) or
-             not(pobjectdef(pvarsym(s)^.definition)^.isclass)) then
+             not(pobjectdef(pvarsym(s)^.definition)^.is_class)) then
             binittable:=pvarsym(s)^.definition^.needs_inittable;
       end;
 
 
-    function trecdef.needs_inittable : boolean;
+    function trecorddef.needs_inittable : boolean;
       var
          oldb : boolean;
       begin
@@ -1907,7 +1912,7 @@
       end;
 
 
-    procedure trecdef.deref;
+    procedure trecorddef.deref;
       var
          oldrecsyms : psymtable;
       begin
@@ -1919,7 +1924,7 @@
       end;
 
 
-    procedure trecdef.write;
+    procedure trecorddef.write;
       var
          oldread_member : boolean;
       begin
@@ -1932,13 +1937,13 @@
          read_member:=oldread_member;
       end;
 
-    function trecdef.size:longint;
+    function trecorddef.size:longint;
       begin
         size:=symtable^.datasize;
       end;
 
 
-    function trecdef.alignment:longint;
+    function trecorddef.alignment:longint;
       begin
         alignment:=symtable^.dataalignment;
       end;
@@ -1955,11 +1960,11 @@
       size : longint;
     begin
     { static variables from objects are like global objects }
-    if ((psym(p)^.properties and sp_static)<>0) then
+    if (sp_static in psym(p)^.symoptions) then
       exit;
-    if ((psym(p)^.properties and sp_protected)<>0) then
+    if (sp_protected in psym(p)^.symoptions) then
       spec:='/1'
-    else if ((psym(p)^.properties and sp_private)<>0) then
+    else if (sp_private in psym(p)^.symoptions) then
       spec:='/0'
     else
       spec:='';
@@ -1989,7 +1994,7 @@
     end;
 
 
-    function trecdef.stabstring : pchar;
+    function trecorddef.stabstring : pchar;
       Var oldrec : pchar;
           oldsize : longint;
       begin
@@ -2010,7 +2015,7 @@
       end;
 
 
-    procedure trecdef.concatstabto(asmlist : paasmoutput);
+    procedure trecorddef.concatstabto(asmlist : paasmoutput);
       begin
         if (not assigned(sym) or sym^.isusedinstab or (cs_gdb_dbx in aktglobalswitches)) and
            (not is_def_stab_written) then
@@ -2068,19 +2073,19 @@
       end;
 
 
-    procedure trecdef.write_child_rtti_data;
+    procedure trecorddef.write_child_rtti_data;
       begin
          symtable^.foreach({$ifndef TP}@{$endif}generate_child_rtti);
       end;
 
 
-    procedure trecdef.write_child_init_data;
+    procedure trecorddef.write_child_init_data;
       begin
          symtable^.foreach({$ifndef TP}@{$endif}generate_child_inittable);
       end;
 
 
-    procedure trecdef.write_rtti_data;
+    procedure trecorddef.write_rtti_data;
       begin
          rttilist^.concat(new(pai_const,init_8bit(tkrecord)));
          write_rtti_name;
@@ -2092,7 +2097,7 @@
       end;
 
 
-    procedure trecdef.write_init_data;
+    procedure trecorddef.write_init_data;
       begin
          rttilist^.concat(new(pai_const,init_8bit(14)));
          write_rtti_name;
@@ -2103,7 +2108,7 @@
          symtable^.foreach({$ifndef TP}@{$endif}write_field_inittable);
       end;
 
-    function trecdef.gettypename : string;
+    function trecorddef.gettypename : string;
 
       begin
          gettypename:='<record type>'
@@ -2113,17 +2118,6 @@
 {***************************************************************************
                        TABSTRACTPROCDEF
 ***************************************************************************}
-
-    constructor tabstractprocdef.init;
-      begin
-         inherited init;
-         para1:=nil;
-         fpu_used:=0;
-         options:=0;
-         retdef:=voiddef;
-         savesize:=target_os.size_of_pointer;
-      end;
-
 
     procedure disposepdefcoll(var para1 : pdefcoll);
       var
@@ -2137,6 +2131,20 @@
               hp:=para1;
            end;
       end;
+
+
+    constructor tabstractprocdef.init;
+      begin
+         inherited init;
+         para1:=nil;
+         fpu_used:=0;
+         proctypeoption:=potype_none;
+         proccalloptions:=[];
+         procoptions:=[];
+         retdef:=voiddef;
+         savesize:=target_os.size_of_pointer;
+      end;
+
 
     destructor tabstractprocdef.done;
       begin
@@ -2158,6 +2166,7 @@
          para1:=hp;
       end;
 
+
     procedure tabstractprocdef.concattypesym(p : ptypesym;vsp : tvarspez);
       var
          hp : pdefcoll;
@@ -2170,6 +2179,7 @@
          hp^.register:=R_NO;
          para1:=hp;
       end;
+
 
     { all functions returning in FPU are
       assume to use 2 FPU registers
@@ -2211,7 +2221,9 @@
          inherited load;
          retdef:=readdefref;
          fpu_used:=readbyte;
-         options:=readlong;
+         proctypeoption:=tproctypeoption(readlong);
+         readsmallset(proccalloptions);
+         readsmallset(procoptions);
          count:=readword;
          para1:=nil;
          savesize:=target_os.size_of_pointer;
@@ -2233,29 +2245,6 @@
       end;
 
 
-    function tabstractprocdef.para_size : longint;
-      var
-         pdc : pdefcoll;
-         l : longint;
-      begin
-         l:=0;
-         pdc:=para1;
-         while assigned(pdc) do
-          begin
-            case pdc^.paratyp of
-              vs_var   : inc(l,target_os.size_of_pointer);
-              vs_value,
-              vs_const : if push_addr_param(pdc^.data) then
-                          inc(l,target_os.size_of_pointer)
-                         else
-                          inc(l,align(pdc^.data^.size,target_os.stackalignment));
-            end;
-            pdc:=pdc^.next;
-          end;
-         para_size:=l;
-      end;
-
-
     procedure tabstractprocdef.write;
       var
          count : word;
@@ -2265,7 +2254,9 @@
          writedefref(retdef);
          current_ppu^.do_interface_crc:=false;
          writebyte(fpu_used);
-         writelong(options);
+         writelong(ord(proctypeoption));
+         writesmallset(proccalloptions);
+         writesmallset(procoptions);
          hp:=para1;
          count:=0;
          while assigned(hp) do
@@ -2291,6 +2282,29 @@
                end;
               hp:=hp^.next;
            end;
+      end;
+
+
+    function tabstractprocdef.para_size : longint;
+      var
+         pdc : pdefcoll;
+         l : longint;
+      begin
+         l:=0;
+         pdc:=para1;
+         while assigned(pdc) do
+          begin
+            case pdc^.paratyp of
+              vs_var   : inc(l,target_os.size_of_pointer);
+              vs_value,
+              vs_const : if push_addr_param(pdc^.data) then
+                          inc(l,target_os.size_of_pointer)
+                         else
+                          inc(l,align(pdc^.data^.size,target_os.stackalignment));
+            end;
+            pdc:=pdc^.next;
+          end;
+         para_size:=l;
       end;
 
 
@@ -2428,7 +2442,9 @@
          _class := pobjectdef(readdefref);
          readposinfo(fileinfo);
 
-         if (cs_link_deffile in aktglobalswitches) and ((options and poexports)<>0) then
+         if (cs_link_deffile in aktglobalswitches) and
+            (tf_need_export in target_info.flags) and
+            (po_exports in procoptions) then
            deffile.AddExport(mangledname);
 
          parast:=nil;
@@ -2526,9 +2542,9 @@ Const local_symtable_index : longint = $8001;
              if (owner^.symtabletype<>localsymtable) then
                while assigned(pdo) do
                  begin
-                    if pdo^.publicsyms<>aktrecordsymtable then
+                    if pdo^.symtable<>aktrecordsymtable then
                       begin
-                         pdo^.publicsyms^.unitid:=local_symtable_index;
+                         pdo^.symtable^.unitid:=local_symtable_index;
                          inc(local_symtable_index);
                       end;
                     pdo:=pdo^.childof;
@@ -2554,7 +2570,7 @@ Const local_symtable_index : longint = $8001;
              if (owner^.symtabletype<>localsymtable) then
                while assigned(pdo) do
                  begin
-                    if pdo^.publicsyms<>aktrecordsymtable then
+                    if pdo^.symtable<>aktrecordsymtable then
                       dec(local_symtable_index);
                     pdo:=pdo^.childof;
                  end;
@@ -2590,9 +2606,9 @@ Const local_symtable_index : longint = $8001;
            dispose(parast,done);
          if assigned(localst) and (localst^.symtabletype<>staticsymtable) then
            dispose(localst,done);
-         if ((options and poinline) <> 0) and assigned(code) then
+         if (pocall_inline in proccalloptions) and assigned(code) then
            disposetree(ptree(code));
-         if (options and pomsgstr)<>0 then
+         if (po_msgstr in procoptions) then
            strdispose(messageinf.str);
          if
 {$ifdef tp}
@@ -2625,7 +2641,7 @@ Const local_symtable_index : longint = $8001;
          writestring(mangledname);
          current_ppu^.do_interface_crc:=true;
          writelong(extnumber);
-         if (options and pooperator) = 0 then
+         if (proctypeoption<>potype_operator) then
            writedefref(nextoverloaded)
          else
            begin
@@ -2638,7 +2654,7 @@ Const local_symtable_index : longint = $8001;
            end;
          writedefref(_class);
          writeposinfo(fileinfo);
-         if (options and poinline) <> 0 then
+         if (pocall_inline in proccalloptions) then
            begin
               { we need to save
                 - the para and the local symtable
@@ -2830,10 +2846,10 @@ Const local_symtable_index : longint = $8001;
 
     function tprocvardef.size : longint;
       begin
-         if (options and pomethodpointer)=0 then
-           size:=target_os.size_of_pointer
+         if (po_methodpointer in procoptions) then
+           size:=2*target_os.size_of_pointer
          else
-           size:=2*target_os.size_of_pointer;
+           size:=target_os.size_of_pointer;
       end;
 
 
@@ -2904,8 +2920,9 @@ Const local_symtable_index : longint = $8001;
 
     function tprocvardef.is_publishable : boolean;
       begin
-         is_publishable:=(options and pomethodpointer)<>0;
+         is_publishable:=(po_methodpointer in procoptions);
       end;
+
 
     function tprocvardef.gettypename : string;
 
@@ -2931,51 +2948,19 @@ Const local_symtable_index : longint = $8001;
      begin
         tdef.init;
         deftype:=objectdef;
-        options:=0;
+        objectoptions:=[];
         childof:=nil;
-        publicsyms:=new(psymtable,init(objectsymtable));
-        publicsyms^.name := stringdup(n);
+        symtable:=new(psymtable,init(objectsymtable));
+        symtable^.name := stringdup(n);
         { create space for vmt !! }
-        options:=0;
         vmt_offset:=0;
-        publicsyms^.datasize:=0;
-        publicsyms^.defowner:=@self;
-        publicsyms^.dataalignment:=packrecordalignment[aktpackrecords];
+        symtable^.datasize:=0;
+        symtable^.defowner:=@self;
+        symtable^.dataalignment:=packrecordalignment[aktpackrecords];
         set_parent(c);
         objname:=stringdup(n);
      end;
 
-
-    procedure tobjectdef.set_parent( c : pobjectdef);
-      begin
-        { nothing to do if the parent was not forward !}
-        if assigned(childof) then
-          exit;
-        childof:=c;
-        { some options are inherited !! }
-        if assigned(c) then
-          begin
-             options:= options or (c^.options and
-                    (oo_hasvirtual or oo_hasprivate or
-                     oo_hasprotected or
-                     oo_hasconstructor or oo_hasdestructor
-                     ));
-             { add the data of the anchestor class }
-             publicsyms^.datasize:=publicsyms^.datasize
-               +childof^.publicsyms^.datasize;
-             if ((options and oo_hasvmt)<>0) and
-                ((c^.options and oo_hasvmt)<>0) then
-               publicsyms^.datasize:=publicsyms^.datasize-target_os.size_of_pointer;
-             { if parent has a vmt field then
-               the offset is the same for the child PM }
-             if ((c^.options and oo_hasvmt)<>0) or isclass then
-               begin
-                  vmt_offset:=c^.vmt_offset;
-                  options:=options or oo_hasvmt;
-               end;
-          end;
-        savesize := publicsyms^.datasize;
-      end;
 
     constructor tobjectdef.load;
       var
@@ -2987,102 +2972,52 @@ Const local_symtable_index : longint = $8001;
          vmt_offset:=readlong;
          objname:=stringdup(readstring);
          childof:=pobjectdef(readdefref);
-         options:=readlong;
+         readsmallset(objectoptions);
          oldread_member:=read_member;
          read_member:=true;
-         publicsyms:=new(psymtable,loadas(objectsymtable));
+         symtable:=new(psymtable,loadas(objectsymtable));
          read_member:=oldread_member;
-         publicsyms^.defowner:=@self;
-         publicsyms^.name := stringdup(objname^);
+         symtable^.defowner:=@self;
+         symtable^.name := stringdup(objname^);
 
          { handles the predefined class tobject  }
          { the last TOBJECT which is loaded gets }
          { it !                                  }
-         if (objname^='TOBJECT') and
-           isclass and (childof=nil) then
+         if (childof=nil) and
+            is_class and
+            (objname^='TOBJECT') then
            class_tobject:=@self;
          has_rtti:=true;
        end;
 
 
-   procedure tobjectdef.insertvmt;
-     begin
-        if (options and oo_hasvmt)<>0 then
-          internalerror(12345)
-        else
-          begin
-             { first round up to multiple of 4 }
-             if (publicsyms^.dataalignment=2) then
-               begin
-                 if (publicsyms^.datasize and 1)<>0 then
-                   inc(publicsyms^.datasize);
-               end
-             else
-              if (publicsyms^.dataalignment>=4) then
-               begin
-                 if (publicsyms^.datasize mod 4) <> 0 then
-                   publicsyms^.datasize:=publicsyms^.datasize+4-(publicsyms^.datasize mod 4);
-               end;
-             vmt_offset:=publicsyms^.datasize;
-             publicsyms^.datasize:=publicsyms^.datasize+target_os.size_of_pointer;
-             options:=options or oo_hasvmt;
-          end;
-     end;
-
-   procedure tobjectdef.check_forwards;
-     begin
-        publicsyms^.check_forwards;
-        if (options and oo_isforward)<>0 then
-          begin
-             { ok, in future, the forward can be resolved }
-             Message1(sym_e_class_forward_not_resolved,objname^);
-             options:=options and not(oo_isforward);
-          end;
-     end;
-
-
    destructor tobjectdef.done;
      begin
-        if assigned(publicsyms) then
-          dispose(publicsyms,done);
-        if (options and oo_isforward)<>0 then
-         Message1(sym_e_class_forward_not_resolved,objname^);
+        if assigned(symtable) then
+          dispose(symtable,done);
+        if (oo_is_forward in objectoptions) then
+          Message1(sym_e_class_forward_not_resolved,objname^);
         stringdispose(objname);
         tdef.done;
      end;
 
 
-   { true, if self inherits from d (or if they are equal) }
-   function tobjectdef.isrelated(d : pobjectdef) : boolean;
-     var
-        hp : pobjectdef;
-     begin
-        hp:=@self;
-        while assigned(hp) do
-          begin
-             if hp=d then
-               begin
-                  isrelated:=true;
-                  exit;
-               end;
-             hp:=hp^.childof;
-          end;
-        isrelated:=false;
-     end;
-
-
-    function tobjectdef.size : longint;
+    procedure tobjectdef.write;
+      var
+         oldread_member : boolean;
       begin
-        if (options and oo_is_class)<>0 then
-          size:=target_os.size_of_pointer
-        else
-          size:=publicsyms^.datasize;
-      end;
+         tdef.write;
+         writelong(size);
+         writelong(vmt_offset);
+         writestring(objname^);
+         writedefref(childof);
+         writesmallset(objectoptions);
+         current_ppu^.writeentry(ibobjectdef);
 
-
-    function tobjectdef.alignment:longint;
-      begin
-        alignment:=publicsyms^.dataalignment;
+         oldread_member:=read_member;
+         read_member:=true;
+         symtable^.writeas;
+         read_member:=oldread_member;
       end;
 
 
@@ -3092,9 +3027,120 @@ Const local_symtable_index : longint = $8001;
       begin
          resolvedef(pdef(childof));
          oldrecsyms:=aktrecordsymtable;
-         aktrecordsymtable:=publicsyms;
-         publicsyms^.deref;
+         aktrecordsymtable:=symtable;
+         symtable^.deref;
          aktrecordsymtable:=oldrecsyms;
+      end;
+
+
+    procedure tobjectdef.set_parent( c : pobjectdef);
+      begin
+        { nothing to do if the parent was not forward !}
+        if assigned(childof) then
+          exit;
+        childof:=c;
+        { some options are inherited !! }
+        if assigned(c) then
+          begin
+             objectoptions:=objectoptions+(c^.objectoptions*
+               [oo_has_virtual,oo_has_private,oo_has_protected,oo_has_constructor,oo_has_destructor]);
+             { add the data of the anchestor class }
+             inc(symtable^.datasize,c^.symtable^.datasize);
+             if (oo_has_vmt in objectoptions) and
+                (oo_has_vmt in c^.objectoptions) then
+               dec(symtable^.datasize,target_os.size_of_pointer);
+             { if parent has a vmt field then
+               the offset is the same for the child PM }
+             if (oo_has_vmt in c^.objectoptions) or is_class then
+               begin
+                  vmt_offset:=c^.vmt_offset;
+{$ifdef INCLUDEOK}
+                  include(objectoptions,oo_has_vmt);
+{$else}
+                  objectoptions:=objectoptions+[oo_has_vmt];
+{$endif}
+               end;
+          end;
+        savesize := symtable^.datasize;
+      end;
+
+
+   procedure tobjectdef.insertvmt;
+     begin
+        if (oo_has_vmt in objectoptions) then
+          internalerror(12345)
+        else
+          begin
+             { first round up to multiple of 4 }
+             if (symtable^.dataalignment=2) then
+               begin
+                 if (symtable^.datasize and 1)<>0 then
+                   inc(symtable^.datasize);
+               end
+             else
+              if (symtable^.dataalignment>=4) then
+               begin
+                 if (symtable^.datasize mod 4) <> 0 then
+                   inc(symtable^.datasize,4-(symtable^.datasize mod 4));
+               end;
+             vmt_offset:=symtable^.datasize;
+             inc(symtable^.datasize,target_os.size_of_pointer);
+{$ifdef INCLUDEOK}
+             include(objectoptions,oo_has_vmt);
+{$else}
+             objectoptions:=objectoptions+[oo_has_vmt];
+{$endif}
+          end;
+     end;
+
+
+   procedure tobjectdef.check_forwards;
+     begin
+        symtable^.check_forwards;
+        if (oo_is_forward in objectoptions) then
+          begin
+             { ok, in future, the forward can be resolved }
+             Message1(sym_e_class_forward_not_resolved,objname^);
+{$ifdef INCLUDEOK}
+             exclude(objectoptions,oo_is_forward);
+{$else}
+             objectoptions:=objectoptions-[oo_is_forward];
+{$endif}
+          end;
+     end;
+
+
+   { true, if self inherits from d (or if they are equal) }
+   function tobjectdef.is_related(d : pobjectdef) : boolean;
+     var
+        hp : pobjectdef;
+     begin
+        hp:=@self;
+        while assigned(hp) do
+          begin
+             if hp=d then
+               begin
+                  is_related:=true;
+                  exit;
+               end;
+             hp:=hp^.childof;
+          end;
+        is_related:=false;
+     end;
+
+
+    function tobjectdef.size : longint;
+      begin
+        if (oo_is_class in objectoptions) then
+          size:=target_os.size_of_pointer
+        else
+          size:=symtable^.datasize;
+      end;
+
+
+    function tobjectdef.alignment:longint;
+      begin
+        alignment:=symtable^.dataalignment;
       end;
 
 
@@ -3105,17 +3151,16 @@ Const local_symtable_index : longint = $8001;
     var
       s1,s2:string;
     begin
-        if (options and oo_hasvmt)=0 then
-          {internalerror(12346);}
+        if not(oo_has_vmt in objectoptions) then
           Message1(parser_object_has_no_vmt,objname^);
         if owner^.name=nil then
-            s1:=''
+          s1:=''
         else
-            s1:=owner^.name^;
+          s1:=owner^.name^;
         if objname=nil then
-            s2:=''
+          s2:=''
         else
-            s2:=objname^;
+          s2:=objname^;
         vmt_mangledname:='VMT_'+s1+'$_'+s2;
     end;
 
@@ -3136,28 +3181,9 @@ Const local_symtable_index : longint = $8001;
     end;
 
 
-    function tobjectdef.isclass : boolean;
+    function tobjectdef.is_class : boolean;
       begin
-         isclass:=(options and oo_is_class)<>0;
-      end;
-
-
-    procedure tobjectdef.write;
-      var
-         oldread_member : boolean;
-      begin
-         tdef.write;
-         writelong(size);
-         writelong(vmt_offset);
-         writestring(objname^);
-         writedefref(childof);
-         writelong(options);
-         current_ppu^.writeentry(ibobjectdef);
-
-         oldread_member:=read_member;
-         read_member:=true;
-         publicsyms^.writeas;
-         read_member:=oldread_member;
+         is_class:=(oo_is_class in objectoptions);
       end;
 
 
@@ -3179,7 +3205,7 @@ Const local_symtable_index : longint = $8001;
                 not yet done }
                 ipd := pd;
                 while assigned(ipd^.nextoverloaded) do ipd := ipd^.nextoverloaded;
-                if (pd^.options and povirtualmethod) <> 0 then
+                if (po_virtualmethod in pd^.procoptions) then
                    begin
                    lindex := pd^.extnumber;
                    {doesnt seem to be necessary
@@ -3190,9 +3216,9 @@ Const local_symtable_index : longint = $8001;
                 {we don't need another definition}
                  para := pd^.para1;
                  { used by gdbpas to recognize constructor and destructors }
-                 if (pd^.options and poconstructor) <> 0 then
+                 if (pd^.proctypeoption=potype_constructor) then
                    argnames:='__ct__'
-                 else if (pd^.options and podestructor) <> 0 then
+                 else if (pd^.proctypeoption=potype_destructor) then
                    argnames:='__dt__'
                  else
                    argnames := '';
@@ -3225,8 +3251,8 @@ Const local_symtable_index : longint = $8001;
                 ipd^.is_def_stab_written := true;
                 { here 2A must be changed for private and protected }
                 { 0 is private 1 protected and 2 public }
-                if (psym(p)^.properties and sp_private)<>0 then sp:='0'
-                else if (psym(p)^.properties and sp_protected)<>0 then sp:='1'
+                if (sp_private in psym(p)^.symoptions) then sp:='0'
+                else if (sp_protected in psym(p)^.symoptions) then sp:='1'
                 else sp:='2';
                 newrec := strpnew(p^.name+'::'+ipd^.numberstring
                      +'=##'+pd^.retdef^.numberstring+';:'+argnames+';'+sp+'A'
@@ -3266,18 +3292,18 @@ Const local_symtable_index : longint = $8001;
           strpcopy(strend(stabrecstring),'!1,020,'+childof^.numberstring+';');
         {virtual table to implement yet}
         RecOffset := 0;
-        publicsyms^.foreach({$ifndef TP}@{$endif}addname);
-      if (options and oo_hasvmt) <> 0 then
-        if not assigned(childof) or ((childof^.options and oo_hasvmt) = 0) then
+        symtable^.foreach({$ifndef TP}@{$endif}addname);
+      if (oo_has_vmt in objectoptions) then
+        if not assigned(childof) or not(oo_has_vmt in childof^.objectoptions) then
            begin
               strpcopy(strend(stabrecstring),'$vf'+numberstring+':'+typeglobalnumber('vtblarray')
                 +','+tostr(vmt_offset*8)+';');
            end;
-        publicsyms^.foreach({$ifndef TP}@{$endif}addprocname);
-        if (options and oo_hasvmt) <> 0  then
+        symtable^.foreach({$ifndef TP}@{$endif}addprocname);
+        if (oo_has_vmt in objectoptions) then
           begin
              anc := @self;
-             while assigned(anc^.childof) and ((anc^.childof^.options and oo_hasvmt) <> 0) do
+             while assigned(anc^.childof) and (oo_has_vmt in anc^.childof^.objectoptions) do
                anc := anc^.childof;
              str_end:=';~%'+anc^.numberstring+';';
           end
@@ -3294,13 +3320,13 @@ Const local_symtable_index : longint = $8001;
 
     procedure tobjectdef.write_child_init_data;
       begin
-         publicsyms^.foreach({$ifndef TP}@{$endif}generate_child_inittable);
+         symtable^.foreach({$ifndef TP}@{$endif}generate_child_inittable);
       end;
 
 
     procedure tobjectdef.write_init_data;
       begin
-         if isclass then
+         if is_class then
            rttilist^.concat(new(pai_const,init_8bit(tkclass)))
          else
            rttilist^.concat(new(pai_const,init_8bit(tkobject)));
@@ -3311,9 +3337,9 @@ Const local_symtable_index : longint = $8001;
 
          rttilist^.concat(new(pai_const,init_32bit(size)));
          count:=0;
-         publicsyms^.foreach({$ifndef TP}@{$endif}count_inittable_fields);
+         symtable^.foreach({$ifndef TP}@{$endif}count_inittable_fields);
          rttilist^.concat(new(pai_const,init_32bit(count)));
-         publicsyms^.foreach({$ifndef TP}@{$endif}write_field_inittable);
+         symtable^.foreach({$ifndef TP}@{$endif}write_field_inittable);
       end;
 
 
@@ -3327,7 +3353,7 @@ Const local_symtable_index : longint = $8001;
          { procedure of needs_rtti !                              }
          oldb:=binittable;
          binittable:=false;
-         publicsyms^.foreach({$ifndef TP}@{$endif}check_rec_inittable);
+         symtable^.foreach({$ifndef TP}@{$endif}check_rec_inittable);
          needs_inittable:=binittable;
          binittable:=oldb;
       end;
@@ -3336,7 +3362,8 @@ Const local_symtable_index : longint = $8001;
     procedure count_published_properties(sym:pnamedindexobject);
       {$ifndef fpc}far;{$endif}
       begin
-         if (psym(sym)^.typ=propertysym) and ((psym(sym)^.properties and sp_published)<>0) then
+         if (psym(sym)^.typ=propertysym) and
+            (sp_published in psym(sym)^.symoptions) then
            inc(count);
       end;
 
@@ -3362,7 +3389,7 @@ Const local_symtable_index : longint = $8001;
              end
            else
              begin
-                if (pprocdef(def)^.options and povirtualmethod)=0 then
+                if not(po_virtualmethod in pprocdef(def)^.procoptions) then
                   begin
                      rttilist^.concat(new(pai_const_symbol,initname(pprocdef(def)^.mangledname)));
                      typvalue:=1;
@@ -3380,18 +3407,18 @@ Const local_symtable_index : longint = $8001;
       begin
 
          if (psym(sym)^.typ=propertysym) and
-            ((ppropertysym(sym)^.options and ppo_indexed)<>0) then
+            (ppo_indexed in ppropertysym(sym)^.propoptions) then
            proctypesinfo:=$40
          else
            proctypesinfo:=0;
          if (psym(sym)^.typ=propertysym) and
-            ((psym(sym)^.properties and sp_published)<>0) then
+            (sp_published in psym(sym)^.symoptions) then
            begin
               rttilist^.concat(new(pai_const_symbol,initname(ppropertysym(sym)^.proptype^.get_rtti_label)));
               writeproc(ppropertysym(sym)^.readaccesssym,ppropertysym(sym)^.readaccessdef,0);
               writeproc(ppropertysym(sym)^.writeaccesssym,ppropertysym(sym)^.writeaccessdef,2);
               { isn't it stored ? }
-              if (ppropertysym(sym)^.options and ppo_stored)=0 then
+              if not(ppo_stored in ppropertysym(sym)^.propoptions) then
                 begin
                    rttilist^.concat(new(pai_const,init_32bit(1)));
                    proctypesinfo:=proctypesinfo or (3 shl 4);
@@ -3409,18 +3436,17 @@ Const local_symtable_index : longint = $8001;
       end;
 
 
-    procedure generate_published_child_rtti(sym : pnamedindexobject);
-      {$ifndef fpc}far;{$endif}
+    procedure generate_published_child_rtti(sym : pnamedindexobject);{$ifndef fpc}far;{$endif}
       begin
          if (psym(sym)^.typ=propertysym) and
-            ((psym(sym)^.properties and sp_published)<>0) then
+            (sp_published in psym(sym)^.symoptions) then
            ppropertysym(sym)^.proptype^.get_rtti_label;
       end;
 
 
     procedure tobjectdef.write_child_rtti_data;
       begin
-         publicsyms^.foreach({$ifndef TP}@{$endif}generate_published_child_rtti);
+         symtable^.foreach({$ifndef TP}@{$endif}generate_published_child_rtti);
       end;
 
 
@@ -3440,19 +3466,19 @@ Const local_symtable_index : longint = $8001;
       var
          i : longint;
       begin
-         if assigned(childof) and ((childof^.options and oo_can_have_published)<>0) then
+         if assigned(childof) and (oo_can_have_published in childof^.objectoptions) then
            i:=childof^.next_free_name_index
          else
            i:=0;
          count:=0;
-         publicsyms^.foreach({$ifndef TP}@{$endif}count_published_properties);
+         symtable^.foreach({$ifndef TP}@{$endif}count_published_properties);
          next_free_name_index:=i+count;
       end;
 
 
     procedure tobjectdef.write_rtti_data;
       begin
-         if isclass then
+         if is_class then
            rttilist^.concat(new(pai_const,init_8bit(tkclass)))
          else
            rttilist^.concat(new(pai_const,init_8bit(tkobject)));
@@ -3465,19 +3491,19 @@ Const local_symtable_index : longint = $8001;
          rttilist^.concat(new(pai_const_symbol,initname(vmt_mangledname)));
 
          { write owner typeinfo }
-         if assigned(childof) and ((childof^.options and oo_can_have_published)<>0) then
+         if assigned(childof) and (oo_can_have_published in childof^.objectoptions) then
            rttilist^.concat(new(pai_const_symbol,initname(childof^.get_rtti_label)))
          else
            rttilist^.concat(new(pai_const,init_32bit(0)));
 
          { count total number of properties }
-         if assigned(childof) and ((childof^.options and oo_can_have_published)<>0) then
+         if assigned(childof) and (oo_can_have_published in childof^.objectoptions) then
            count:=childof^.next_free_name_index
          else
            count:=0;
 
          { write it }
-         publicsyms^.foreach({$ifndef TP}@{$endif}count_published_properties);
+         symtable^.foreach({$ifndef TP}@{$endif}count_published_properties);
          rttilist^.concat(new(pai_const,init_16bit(count)));
 
          { write unit name }
@@ -3491,24 +3517,24 @@ Const local_symtable_index : longint = $8001;
 
          { write published properties count }
          count:=0;
-         publicsyms^.foreach({$ifndef TP}@{$endif}count_published_properties);
+         symtable^.foreach({$ifndef TP}@{$endif}count_published_properties);
          rttilist^.concat(new(pai_const,init_16bit(count)));
 
          { count is used to write nameindex   }
          { but we need an offset of the owner }
          { to give each property an own slot  }
-         if assigned(childof) and ((childof^.options and oo_can_have_published)<>0) then
+         if assigned(childof) and (oo_can_have_published in childof^.objectoptions) then
            count:=childof^.next_free_name_index
          else
            count:=0;
 
-         publicsyms^.foreach({$ifndef TP}@{$endif}write_property_info);
+         symtable^.foreach({$ifndef TP}@{$endif}write_property_info);
       end;
 
 
     function tobjectdef.is_publishable : boolean;
       begin
-         is_publishable:=isclass;
+         is_publishable:=is_class;
       end;
 
     function  tobjectdef.get_rtti_label : string;
@@ -3543,7 +3569,11 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.138  1999-08-02 21:29:02  florian
+  Revision 1.139  1999-08-03 22:03:14  peter
+    * moved bitmask constants to sets
+    * some other type/const renamings
+
+  Revision 1.138  1999/08/02 21:29:02  florian
     * the main branch psub.pas is now used for
       newcg compiler
 
@@ -3886,7 +3916,7 @@ Const local_symtable_index : longint = $8001;
     * range checking in units doesn't work if the units are smartlinked, fixed
 
   Revision 1.51  1998/09/25 12:01:41  florian
-    * tobjectdef.publicsyms.datasize was set to savesize, this is wrong now
+    * tobjectdef.symtable.datasize was set to savesize, this is wrong now
       because the symtable size is read from the ppu file
 
   Revision 1.50  1998/09/23 15:46:40  florian

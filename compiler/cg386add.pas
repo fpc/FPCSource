@@ -35,7 +35,7 @@ implementation
     uses
       globtype,systems,
       cobjects,verbose,globals,
-      symtable,aasm,types,
+      symconst,symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
       i386base,i386asm,
       cgai386,tgeni386;
@@ -815,9 +815,9 @@ implementation
                  (p^.right^.resulttype^.deftype=pointerdef) or
 
                  ((p^.right^.resulttype^.deftype=objectdef) and
-                  pobjectdef(p^.right^.resulttype)^.isclass and
+                  pobjectdef(p^.right^.resulttype)^.is_class and
                  (p^.left^.resulttype^.deftype=objectdef) and
-                  pobjectdef(p^.left^.resulttype)^.isclass
+                  pobjectdef(p^.left^.resulttype)^.is_class
                  ) or
 
                  (p^.left^.resulttype^.deftype=classrefdef) or
@@ -2091,7 +2091,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.69  1999-07-05 20:13:06  peter
+  Revision 1.70  1999-08-03 22:02:31  peter
+    * moved bitmask constants to sets
+    * some other type/const renamings
+
+  Revision 1.69  1999/07/05 20:13:06  peter
     * removed temp defines
 
   Revision 1.68  1999/07/02 12:18:46  jonas

@@ -195,6 +195,7 @@ type
     _INTERNCONST,
     _SHORTSTRING,
     _FINALIZATION,
+    _SAVEREGISTERS,
     _IMPLEMENTATION,
     _INITIALIZATION,
     _RESOURCESTRING
@@ -375,6 +376,7 @@ const
       (str:'INTERNCONST'   ;special:false;keyword:m_none),
       (str:'SHORTSTRING'   ;special:false;keyword:m_none),
       (str:'FINALIZATION'  ;special:false;keyword:m_initfinal),
+      (str:'SAVEREGISTERS' ;special:false;keyword:m_none),
       (str:'IMPLEMENTATION';special:false;keyword:m_all),
       (str:'INITIALIZATION';special:false;keyword:m_initfinal),
       (str:'RESOURCESTRING';special:false;keyword:m_class)
@@ -385,7 +387,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  1999-07-22 09:38:01  florian
+  Revision 1.10  1999-08-03 22:03:39  peter
+    * moved bitmask constants to sets
+    * some other type/const renamings
+
+  Revision 1.9  1999/07/22 09:38:01  florian
     + resourcestring implemented
     + start of longstring support
 

@@ -74,12 +74,11 @@ implementation
          firstpass(p^.left);
          if codegenerror then
            exit;
-         if not((p^.left^.resulttype^.deftype=orddef) and
-            (porddef(p^.left^.resulttype)^.typ in [bool8bit,bool16bit,bool32bit])) then
-            begin
-               CGMessage(type_e_mismatch);
-               exit;
-            end;
+         if not is_boolean(p^.left^.resulttype) then
+           begin
+             CGMessage(type_e_mismatch);
+             exit;
+           end;
 
          p^.registers32:=p^.left^.registers32;
          p^.registersfpu:=p^.left^.registersfpu;
@@ -381,7 +380,7 @@ implementation
 
               { this must be a _class_ }
               if (p^.left^.resulttype^.deftype<>objectdef) or
-                ((pobjectdef(p^.left^.resulttype)^.options and oo_is_class)=0) then
+                 not(pobjectdef(p^.left^.resulttype)^.is_class) then
                 CGMessage(type_e_mismatch);
 
               p^.registersfpu:=p^.left^.registersfpu;
@@ -493,7 +492,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  1999-08-01 18:28:15  florian
+  Revision 1.14  1999-08-03 22:03:30  peter
+    * moved bitmask constants to sets
+    * some other type/const renamings
+
+  Revision 1.13  1999/08/01 18:28:15  florian
     * modifications for the new code generator
 
   Revision 1.12  1999/06/30 22:16:25  florian

@@ -346,9 +346,9 @@ implementation
                      if ptypesym(sym)^.definition^.deftype in [recorddef,objectdef] then
                        begin
                           if ptypesym(sym)^.definition^.deftype=recorddef then
-                            symt:=precdef(ptypesym(sym)^.definition)^.symtable
+                            symt:=precorddef(ptypesym(sym)^.definition)^.symtable
                           else
-                            symt:=pobjectdef(ptypesym(sym)^.definition)^.publicsyms;
+                            symt:=pobjectdef(ptypesym(sym)^.definition)^.symtable;
                           sym:=symt^.search(ss);
                           if sym=nil then
                             sym:=symt^.search(upper(ss));
@@ -359,9 +359,9 @@ implementation
                      if pvarsym(sym)^.definition^.deftype in [recorddef,objectdef] then
                        begin
                           if pvarsym(sym)^.definition^.deftype=recorddef then
-                            symt:=precdef(pvarsym(sym)^.definition)^.symtable
+                            symt:=precorddef(pvarsym(sym)^.definition)^.symtable
                           else
-                            symt:=pobjectdef(pvarsym(sym)^.definition)^.publicsyms;
+                            symt:=pobjectdef(pvarsym(sym)^.definition)^.symtable;
                           sym:=symt^.search(ss);
                           if sym=nil then
                             sym:=symt^.search(upper(ss));
@@ -448,7 +448,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  1999-01-12 14:25:24  peter
+  Revision 1.2  1999-08-03 22:02:30  peter
+    * moved bitmask constants to sets
+    * some other type/const renamings
+
+  Revision 1.1  1999/01/12 14:25:24  peter
     + BrowserLog for browser.log generation
     + BrowserCol for browser info in TCollections
     * released all other UseBrowser

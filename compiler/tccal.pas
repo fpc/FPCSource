@@ -39,7 +39,7 @@ implementation
     uses
       globtype,systems,
       cobjects,verbose,globals,
-      aasm,types,
+      symconst,aasm,types,
       hcodegen,htypechk,pass_1
 {$ifdef i386}
       ,i386base,tgeni386
@@ -221,7 +221,7 @@ implementation
                      not(
                         (p^.left^.resulttype^.deftype=objectdef) and
                         (defcoll^.data^.deftype=objectdef) and
-                        pobjectdef(p^.left^.resulttype)^.isrelated(pobjectdef(defcoll^.data))
+                        pobjectdef(p^.left^.resulttype)^.is_related(pobjectdef(defcoll^.data))
                         ) and
                    { passing a single element to a openarray of the same type }
                      not(
@@ -244,8 +244,8 @@ implementation
                    { process cargs arrayconstructor }
                    if is_array_constructor(p^.left^.resulttype) and
                       assigned(aktcallprocsym) and
-                      (aktcallprocsym^.definition^.options and pocdecl<>0) and
-                      (aktcallprocsym^.definition^.options and poexternal<>0) then
+                      (pocall_cdecl in aktcallprocsym^.definition^.proccalloptions) and
+                      (po_external in aktcallprocsym^.definition^.procoptions) then
                     begin
                       p^.left^.cargs:=true;
                       old_array_constructor:=allow_array_constructor;
@@ -434,18 +434,22 @@ implementation
 
          inlined:=false;
          if assigned(p^.procdefinition) and
-            ((p^.procdefinition^.options and poinline)<>0) then
+            (pocall_inline in p^.procdefinition^.proccalloptions) then
            begin
               inlinecode:=p^.right;
               if assigned(inlinecode) then
                 begin
                    inlined:=true;
-                   p^.procdefinition^.options:=p^.procdefinition^.options and (not poinline);
+{$ifdef INCLUDEOK}
+                   exclude(p^.procdefinition^.proccalloptions,pocall_inline);
+{$else}
+                   p^.procdefinition^.proccalloptions:=p^.procdefinition^.proccalloptions-[pocall_inline];
+{$endif}
                 end;
               p^.right:=nil;
            end;
          if assigned(p^.procdefinition) and
-            ((p^.procdefinition^.options and pocontainsself)<>0) then
+            (po_containsself in p^.procdefinition^.procoptions) then
            message(cg_e_cannot_call_message_direct);
 
          { procedure variable ? }
@@ -962,11 +966,11 @@ implementation
 {$endif CHAINPROCSYMS}
                end; { end of procedure to call determination }
 
-              is_const:=((p^.procdefinition^.options and pointernconst)<>0) and
+              is_const:=(pocall_internconst in p^.procdefinition^.proccalloptions) and
                         ((block_type=bt_const) or
                          (assigned(p^.left) and (p^.left^.left^.treetype in [realconstn,ordconstn])));
               { handle predefined procedures }
-              if ((p^.procdefinition^.options and pointernproc)<>0) or is_const then
+              if (pocall_internproc in p^.procdefinition^.proccalloptions) or is_const then
                 begin
                    if assigned(p^.left) then
                      begin
@@ -992,7 +996,7 @@ implementation
                 { no intern procedure => we do a call }
               { calc the correture value for the register }
               { handle predefined procedures }
-              if (p^.procdefinition^.options and poinline)<>0 then
+              if (pocall_inline in p^.procdefinition^.proccalloptions) then
                 begin
                    if assigned(p^.methodpointer) then
                      CGMessage(cg_e_unable_inline_object_methods);
@@ -1009,7 +1013,11 @@ implementation
                           begin
                              { consider it has not inlined if called
                                again inside the args }
-                             p^.procdefinition^.options:=p^.procdefinition^.options and (not poinline);
+{$ifdef INCLUDEOK}
+                             exclude(p^.procdefinition^.proccalloptions,pocall_inline);
+{$else}
+                             p^.procdefinition^.proccalloptions:=p^.procdefinition^.proccalloptions-[pocall_inline];
+{$endif}
                              firstpass(inlinecode);
                              inlined:=true;
                           end;
@@ -1047,7 +1055,7 @@ implementation
          { get a register for the return value }
          if (p^.resulttype<>pdef(voiddef)) then
            begin
-              if (p^.procdefinition^.options and poconstructor)<>0 then
+              if (p^.procdefinition^.proctypeoption=potype_constructor) then
                 begin
                    { extra handling of classes }
                    { p^.methodpointer should be assigned! }
@@ -1109,7 +1117,7 @@ implementation
                 typen,hnewn : ;
                 else
                   begin
-                     if ((p^.procdefinition^.options and (poconstructor or podestructor)) <> 0) and
+                     if (p^.procdefinition^.proctypeoption in [potype_constructor,potype_destructor]) and
                         assigned(p^.symtable) and (p^.symtable^.symtabletype=withsymtable) and
                         not pwithsymtable(p^.symtable)^.direct_with then
                        begin
@@ -1120,9 +1128,9 @@ implementation
 
                      { R.Assign is not a constructor !!! }
                      { but for R^.Assign, R must be valid !! }
-                     if ((p^.procdefinition^.options and poconstructor) <> 0) or
+                     if (p^.procdefinition^.proctypeoption=potype_constructor) or
                         ((p^.methodpointer^.treetype=loadn) and
-                        ((pobjectdef(p^.methodpointer^.resulttype)^.options and oo_hasvirtual) = 0)) then
+                        (not(oo_has_virtual in pobjectdef(p^.methodpointer^.resulttype)^.objectoptions))) then
                        must_be_valid:=false
                      else
                        must_be_valid:=true;
@@ -1162,7 +1170,11 @@ implementation
          if assigned(procs) then
            dispose(procs);
          if inlined then
-           p^.procdefinition^.options:=p^.procdefinition^.options or poinline;
+{$ifdef INCLUDEOK}
+           include(p^.procdefinition^.proccalloptions,pocall_inline);
+{$else}
+           p^.procdefinition^.proccalloptions:=p^.procdefinition^.proccalloptions+[pocall_inline];
+{$endif}
          aktcallprocsym:=oldcallprocsym;
          must_be_valid:=store_valid;
       end;
@@ -1183,7 +1195,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.54  1999-07-01 21:33:58  peter
+  Revision 1.55  1999-08-03 22:03:27  peter
+    * moved bitmask constants to sets
+    * some other type/const renamings
+
+  Revision 1.54  1999/07/01 21:33:58  peter
     * merged
 
   Revision 1.53  1999/06/29 14:02:33  peter

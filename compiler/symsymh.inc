@@ -24,8 +24,6 @@
                    TSym
 ************************************************}
 
-       symprop = byte;
-
        { possible types for symtable entries }
        tsymtyp = (abstractsym,varsym,typesym,procsym,unitsym,programsym,
                   constsym,enumsym,typedconstsym,errorsym,syssym,
@@ -36,7 +34,7 @@
        psym = ^tsym;
        tsym = object(tsymtableentry)
           typ        : tsymtyp;
-          properties : symprop;
+          symoptions : tsymoptions;
           fileinfo   : tfileposinfo;
 {$ifdef GDB}
           isstabwritten : boolean;
@@ -65,7 +63,7 @@
 
        plabelsym = ^tlabelsym;
        tlabelsym = object(tsym)
-          lab : pasmlabel;
+          lab     : pasmlabel;
           defined : boolean;
           constructor init(const n : string; l : pasmlabel);
           destructor done;virtual;
@@ -77,8 +75,8 @@
        punitsym = ^tunitsym;
        tunitsym = object(tsym)
           unitsymtable : punitsymtable;
-          prevsym : punitsym;
-          refs : longint;
+          prevsym      : punitsym;
+          refs         : longint;
           constructor init(const n : string;ref : punitsymtable);
           constructor load;
           destructor done;virtual;
@@ -92,7 +90,7 @@
        tmacrosym = object(tsym)
           defined : boolean;
           buftext : pchar;
-          buflen : longint;
+          buflen  : longint;
           { macros aren't written to PPU files ! }
           constructor init(const n : string);
           destructor done;virtual;
@@ -105,12 +103,12 @@
 
        pprocsym = ^tprocsym;
        tprocsym = object(tsym)
-          definition : pprocdef;
+          definition  : pprocdef;
 {$ifdef CHAINPROCSYMS}
           nextprocsym : pprocsym;
 {$endif CHAINPROCSYMS}
 {$ifdef GDB}
-          is_global : boolean;{necessary for stab}
+          is_global   : boolean; { necessary for stab }
 {$endif GDB}
           constructor init(const n : string);
           constructor load;
@@ -169,17 +167,16 @@
 
        pvarsym = ^tvarsym;
        tvarsym = object(tsym)
-          address      : longint;
-          localvarsym  : pvarsym;
-          islocalcopy  : boolean;
-          definition   : pdef;
+          address       : longint;
+          localvarsym   : pvarsym;
+          islocalcopy   : boolean;
+          definition    : pdef;
           definitionsym : ptypesym;
-          refs         : longint;
-          var_options  : byte;
-          _mangledname : pchar;
-          reg          : tregister; { if reg<>R_NO, then the variable is an register variable }
-          varspez      : tvarspez;  { sets the type of access }
-          is_valid     : byte;
+          refs          : longint;
+          varoptions    : tvaroptions;
+          reg           : tregister; { if reg<>R_NO, then the variable is an register variable }
+          varspez       : tvarspez;  { sets the type of access }
+          varstate      : tvarstate;
           constructor init(const n : string;p : pdef);
           constructor init_dll(const n : string;p : pdef);
           constructor init_C(const n,mangled : string;p : pdef);
@@ -187,7 +184,7 @@
           constructor initsym_dll(const n : string;p : ptypesym);
           constructor initsym_C(const n,mangled : string;p : ptypesym);
           constructor load;
-          destructor done;virtual;
+          destructor  done;virtual;
           procedure write;virtual;
           procedure deref;virtual;
           procedure setmangledname(const s : string);
@@ -196,28 +193,28 @@
           function  getsize : longint;
           function  getpushsize : longint;
 {$ifdef GDB}
-          function stabstring : pchar;virtual;
+          function  stabstring : pchar;virtual;
           procedure concatstabto(asmlist : paasmoutput);virtual;
 {$endif GDB}
+       private
+          _mangledname  : pchar;
        end;
 
        ppropertysym = ^tpropertysym;
        tpropertysym = object(tsym)
-          options : longint;
-          proptype : pdef;
-          { proppara : pdefcoll; }
+          propoptions : tpropertyoptions;
+          proptype    : pdef;
           readaccesssym,writeaccesssym,storedsym : psym;
           readaccessdef,writeaccessdef,storeddef : pdef;
           index,default : longint;
           constructor init(const n : string);
-          destructor done;virtual;
+          destructor  done;virtual;
           constructor load;
-          function getsize : longint;virtual;
+          function  getsize : longint;virtual;
           procedure write;virtual;
           procedure deref;virtual;
 {$ifdef GDB}
-          { I don't know how (FK) }
-          function stabstring : pchar;virtual;
+          function  stabstring : pchar;virtual;
           procedure concatstabto(asmlist : paasmoutput);virtual;
 {$endif GDB}
        end;
@@ -226,7 +223,7 @@
        tfuncretsym = object(tsym)
           funcretprocinfo : pointer{ should be pprocinfo};
           funcretdef : pdef;
-          address : longint;
+          address    : longint;
           constructor init(const n : string;approcinfo : pointer{pprocinfo});
           constructor load;
           procedure write;virtual;
@@ -241,20 +238,16 @@
 
        pabsolutesym = ^tabsolutesym;
        tabsolutesym = object(tvarsym)
-          abstyp : absolutetyp;
-          absseg : boolean;
-          ref : psym;
+          abstyp  : absolutetyp;
+          absseg  : boolean;
+          ref     : psym;
           asmname : pstring;
           constructor init(const n : string;p : pdef);
           constructor load;
           procedure deref;virtual;
-          function mangledname : string;virtual;
+          function  mangledname : string;virtual;
           procedure write;virtual;
           procedure insert_in_data;virtual;
-          { this creates a problem in gen_vmt !!!!!
-          because the pdef is not resolved yet !!
-          we should fix this
-          constructor init(const s : string;p : pdef;newref : psym);}
 {$ifdef GDB}
           procedure concatstabto(asmlist : paasmoutput);virtual;
 {$endif GDB}
@@ -262,9 +255,9 @@
 
        ptypedconstsym = ^ttypedconstsym;
        ttypedconstsym = object(tsym)
-          prefix : pstring;
-          definition : pdef;
-          definitionsym : ptypesym;
+          prefix          : pstring;
+          definition      : pdef;
+          definitionsym   : ptypesym;
           is_really_const : boolean;
           constructor init(const n : string;p : pdef;really_const : boolean);
           constructor initsym(const n : string;p : ptypesym;really_const : boolean);
@@ -276,7 +269,7 @@
           function  getsize:longint;
           procedure insert_in_data;virtual;
 {$ifdef GDB}
-          function stabstring : pchar;virtual;
+          function  stabstring : pchar;virtual;
 {$endif GDB}
        end;
 
@@ -300,15 +293,15 @@
           procedure deref;virtual;
           procedure write;virtual;
 {$ifdef GDB}
-          function stabstring : pchar;virtual;
+          function  stabstring : pchar;virtual;
           procedure concatstabto(asmlist : paasmoutput);virtual;
 {$endif GDB}
        end;
 
        tenumsym = object(tsym)
-          value : longint;
+          value      : longint;
           definition : penumdef;
-          nextenum : penumsym;
+          nextenum   : penumsym;
           constructor init(const n : string;def : penumdef;v : longint);
           constructor load;
           procedure write;virtual;
@@ -329,7 +322,7 @@
           number : longint;
           constructor init(const n : string;l : longint);
           constructor load;
-          destructor done;virtual;
+          destructor  done;virtual;
           procedure write;virtual;
 {$ifdef GDB}
           procedure concatstabto(asmlist : paasmoutput);virtual;
@@ -338,7 +331,11 @@
 
 {
   $Log$
-  Revision 1.29  1999-07-27 23:42:23  peter
+  Revision 1.30  1999-08-03 22:03:21  peter
+    * moved bitmask constants to sets
+    * some other type/const renamings
+
+  Revision 1.29  1999/07/27 23:42:23  peter
     * indirect type referencing is now allowed
 
   Revision 1.28  1999/07/24 15:13:01  michael

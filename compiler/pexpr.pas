@@ -47,11 +47,13 @@ unit pexpr;
 
     uses
        globtype,systems,tokens,
-       cobjects,globals,scanner,aasm,pass_1,
-       hcodegen,types,verbose,strings
+       cobjects,globals,scanner,
+       symconst,aasm,
+       hcodegen,types,verbose,strings,
 {$ifndef newcg}
-       ,tccal
+       tccal,
 {$endif newcg}
+       pass_1
        { parser specific stuff }
        ,pbase,pdecl
        { processor specific stuff }
@@ -252,7 +254,7 @@ unit pexpr;
                  Must_be_valid:=false;
                  do_firstpass(p1);
                  if ((p1^.resulttype^.deftype=objectdef) and
-                     ((pobjectdef(p1^.resulttype)^.options and oo_hasconstructor)<>0)) or
+                     (oo_has_constructor in pobjectdef(p1^.resulttype)^.objectoptions)) or
                     is_open_array(p1^.resulttype) or
                     is_open_string(p1^.resulttype) then
                   statement_syssym:=geninlinenode(in_sizeof_x,false,p1)
@@ -276,7 +278,7 @@ unit pexpr;
            pointerdef,
            procvardef,
           classrefdef : ;
-            objectdef : if not(pobjectdef(p1^.resulttype)^.isclass) then
+            objectdef : if not(pobjectdef(p1^.resulttype)^.is_class) then
                          Message(parser_e_illegal_parameter_list);
               else
                 Message(parser_e_illegal_parameter_list);
@@ -583,7 +585,7 @@ unit pexpr;
         hp:=nil;
         if (proc_to_procvar_equal(pprocsym(t^.symtableentry)^.definition,procvar)) then
          begin
-           if ((procvar^.options and pomethodpointer)<>0) then
+           if (po_methodpointer in procvar^.procoptions) then
              hp:=genloadmethodcallnode(pprocsym(t^.symtableprocentry),t^.symtable,getcopy(t^.methodpointer))
            else
              hp:=genloadcallnode(pprocsym(t^.symtableprocentry),t^.symtable);
@@ -613,7 +615,7 @@ unit pexpr;
               consume(RECKKLAMMER);
            end;
          { indexed property }
-         if (ppropertysym(sym)^.options and ppo_indexed)<>0 then
+         if (ppo_indexed in ppropertysym(sym)^.propoptions) then
            begin
               p2:=genordinalconstnode(ppropertysym(sym)^.index,s32bitdef);
               paras:=gencallparanode(p2,paras);
@@ -744,20 +746,19 @@ unit pexpr;
            begin
               isclassref:=pd^.deftype=classrefdef;
 
-              { check protected and private members     }
+              { check protected and private members        }
               { please leave this code as it is,           }
               { it has now the same behaviaor as TP/Delphi }
-              if ((sym^.properties and sp_private)<>0) and
-                (pobjectdef(pd)^.owner^.symtabletype=unitsymtable) then
+              if (sp_private in sym^.symoptions) and
+                 (pobjectdef(pd)^.owner^.symtabletype=unitsymtable) then
                Message(parser_e_cant_access_private_member);
 
-              if ((sym^.properties and sp_protected)<>0) and
+              if (sp_protected in sym^.symoptions) and
                  (pobjectdef(pd)^.owner^.symtabletype=unitsymtable) then
                 begin
                   if assigned(aktprocsym^.definition^._class) then
                     begin
-                       if not aktprocsym^.definition^._class^.isrelated(
-                          pobjectdef(sym^.owner^.defowner)) then
+                       if not aktprocsym^.definition^._class^.is_related(pobjectdef(sym^.owner^.defowner)) then
                          Message(parser_e_cant_access_protected_member);
                     end
                   else
@@ -777,14 +778,16 @@ unit pexpr;
                         ,again,p1,pd);
                       { now we know the real method e.g. we can check for }
                       { a class method                              }
-                      if isclassref and ((p1^.procdefinition^.options and (poclassmethod or poconstructor))=0) then
+                      if isclassref and
+                         not(po_classmethod in p1^.procdefinition^.procoptions) and
+                         not(p1^.procdefinition^.proctypeoption=potype_constructor) then
                         Message(parser_e_only_class_methods_via_class_ref);
                    end;
                  varsym:
                    begin
                       if isclassref then
                         Message(parser_e_only_class_methods_via_class_ref);
-                      if (sym^.properties and sp_static)<>0 then
+                      if (sp_static in sym^.symoptions) then
                         begin
                            { static_name:=lower(srsymtable^.name^)+'_'+sym^.name;
                              this is wrong for static field in with symtable (PM) }
@@ -941,7 +944,7 @@ unit pexpr;
                      if (srsym^.typ in [propertysym,procsym,varsym]) and
                         (srsymtable^.symtabletype=objectsymtable) then
                       begin
-                         if ((srsym^.properties and sp_private)<>0) and
+                         if (sp_private in srsym^.symoptions) and
                             (pobjectdef(srsym^.owner^.defowner)^.owner^.symtabletype=unitsymtable) then
                             Message(parser_e_cant_access_private_member);
                       end;
@@ -954,19 +957,19 @@ unit pexpr;
                               { are we in a class method ? }
                               if (srsymtable^.symtabletype=objectsymtable) and
                                  assigned(aktprocsym) and
-                                 ((aktprocsym^.definition^.options and poclassmethod)<>0) then
+                                 (po_classmethod in aktprocsym^.definition^.procoptions) then
                                 Message(parser_e_only_class_methods);
-                              if (srsym^.properties and sp_static)<>0 then
+                              if (sp_static in srsym^.symoptions) then
                                begin
                                  static_name:=lower(srsym^.owner^.name^)+'_'+srsym^.name;
                                  getsym(static_name,true);
                                end;
                               p1:=genloadnode(pvarsym(srsym),srsymtable);
-                              if pvarsym(srsym)^.is_valid=0 then
+                              if pvarsym(srsym)^.varstate=vs_declared then
                                begin
                                  p1^.is_first := true;
                                  { set special between first loaded until checked in firstpass }
-                                 pvarsym(srsym)^.is_valid:=2;
+                                 pvarsym(srsym)^.varstate:=vs_declared2;
                                end;
                               pd:=pvarsym(srsym)^.definition;
                             end;
@@ -1014,22 +1017,22 @@ unit pexpr;
                                     else { not LKLAMMER}
                                      if (token=POINT) and
                                         (pd^.deftype=objectdef) and
-                                        not(pobjectdef(pd)^.isclass) then
+                                        not(pobjectdef(pd)^.is_class) then
                                        begin
                                          consume(POINT);
                                          if assigned(procinfo._class) then
                                           begin
-                                            if procinfo._class^.isrelated(pobjectdef(pd)) then
+                                            if procinfo._class^.is_related(pobjectdef(pd)) then
                                              begin
                                                p1:=gentypenode(pd,ptypesym(srsym));
                                                p1^.resulttype:=pd;
-                                               srsymtable:=pobjectdef(pd)^.publicsyms;
+                                               srsymtable:=pobjectdef(pd)^.symtable;
                                                sym:=pvarsym(srsymtable^.search(pattern));
                                                { search also in inherited methods }
                                                while sym=nil do
                                                 begin
                                                   pd:=pobjectdef(pd)^.childof;
-                                                  srsymtable:=pobjectdef(pd)^.publicsyms;
+                                                  srsymtable:=pobjectdef(pd)^.symtable;
                                                   sym:=pvarsym(srsymtable^.search(pattern));
                                                 end;
                                                consume(ID);
@@ -1048,7 +1051,7 @@ unit pexpr;
                                             { also allows static methods and variables }
                                             p1:=genzeronode(typen);
                                             p1^.resulttype:=pd;
-                                            { srsymtable:=pobjectdef(pd)^.publicsyms;
+                                            { srsymtable:=pobjectdef(pd)^.symtable;
                                               sym:=pvarsym(srsymtable^.search(pattern)); }
 
                                             { TP allows also @TMenu.Load if Load is only }
@@ -1056,7 +1059,7 @@ unit pexpr;
                                             sym:=pvarsym(search_class_member(pobjectdef(pd),pattern));
                                             if not assigned(sym) then
                                               Message1(sym_e_id_no_member,pattern)
-                                            else if not(getaddr) and ((sym^.properties and sp_static)=0) then
+                                            else if not(getaddr) and not(sp_static in sym^.symoptions) then
                                               Message(sym_e_only_static_in_static)
                                             else
                                              begin
@@ -1069,7 +1072,7 @@ unit pexpr;
                                        begin
                                           { class reference ? }
                                           if (pd^.deftype=objectdef)
-                                            and pobjectdef(pd)^.isclass then
+                                            and pobjectdef(pd)^.is_class then
                                             begin
                                                p1:=gentypenode(pd,nil);
                                                p1^.resulttype:=pd;
@@ -1139,7 +1142,7 @@ unit pexpr;
                               { are we in a class method ? }
                               possible_error:=(srsymtable^.symtabletype=objectsymtable) and
                                               assigned(aktprocsym) and
-                                              ((aktprocsym^.definition^.options and poclassmethod)<>0);
+                                              (po_classmethod in aktprocsym^.definition^.procoptions);
                               p1:=gencallnode(pprocsym(srsym),srsymtable);
                               p1^.unit_specific:=unit_specific;
                               do_proc_call(getaddr or
@@ -1148,7 +1151,7 @@ unit pexpr;
                                  proc_to_procvar_equal(pprocsym(srsym)^.definition,getprocvardef)),
                                 again,p1,pd);
                               if possible_error and
-                                 ((p1^.procdefinition^.options and poclassmethod)=0) then
+                                 not(po_classmethod in p1^.procdefinition^.procoptions) then
                                 Message(parser_e_only_class_methods);
                             end;
               propertysym : begin
@@ -1156,7 +1159,7 @@ unit pexpr;
                               { are we in a class method ? }
                               if (srsymtable^.symtabletype=objectsymtable) and
                                  assigned(aktprocsym) and
-                                 ((aktprocsym^.definition^.options and poclassmethod)<>0) then
+                                 (po_classmethod in aktprocsym^.definition^.procoptions) then
                                Message(parser_e_only_class_methods);
                               { no method pointer }
                               p1:=nil;
@@ -1312,7 +1315,7 @@ unit pexpr;
 
                 LECKKLAMMER:
                   begin
-                    if (pd^.deftype=objectdef) and pobjectdef(pd)^.isclass then
+                    if (pd^.deftype=objectdef) and pobjectdef(pd)^.is_class then
                       begin
                         { default property }
                         propsym:=search_default_property(pobjectdef(pd));
@@ -1402,7 +1405,7 @@ unit pexpr;
                     case pd^.deftype of
                        recorddef:
                          begin
-                            sym:=pvarsym(precdef(pd)^.symtable^.search(pattern));
+                            sym:=pvarsym(precorddef(pd)^.symtable^.search(pattern));
                             if sym=nil then
                               begin
                                 Message1(sym_e_illegal_field,pattern);
@@ -1423,8 +1426,8 @@ unit pexpr;
                              sym:=nil;
                              while assigned(classh) do
                               begin
-                                sym:=pvarsym(classh^.publicsyms^.search(pattern));
-                                srsymtable:=classh^.publicsyms;
+                                sym:=pvarsym(classh^.symtable^.search(pattern));
+                                srsymtable:=classh^.symtable;
                                 if assigned(sym) then
                                  break;
                                 classh:=classh^.childof;
@@ -1441,8 +1444,8 @@ unit pexpr;
                              allow_only_static:=false;
                              while assigned(classh) do
                               begin
-                                sym:=pvarsym(classh^.publicsyms^.search(pattern));
-                                srsymtable:=classh^.publicsyms;
+                                sym:=pvarsym(classh^.symtable^.search(pattern));
+                                srsymtable:=classh^.symtable;
                                 if assigned(sym) then
                                  break;
                                 classh:=classh^.childof;
@@ -1559,7 +1562,7 @@ unit pexpr;
                        token=RKLAMMER then
                   begin
                     if (ppointerdef(pd)^.definition^.deftype=objectdef) and
-                       ((pobjectdef(ppointerdef(pd)^.definition)^.options and oo_hasvmt) <> 0)  then
+                       (oo_has_vmt in pobjectdef(ppointerdef(pd)^.definition)^.objectoptions)  then
                      Message(parser_w_use_extended_syntax_for_objects);
                     p1:=gensinglenode(newn,nil);
                     p1^.resulttype:=pd2;
@@ -1590,7 +1593,7 @@ unit pexpr;
                     { determines the current object defintion }
                     classh:=pobjectdef(ppointerdef(pd)^.definition);
                     { check for an abstract class }
-                    if (classh^.options and oo_is_abstract)<>0 then
+                    if (oo_has_abstract in classh^.objectoptions) then
                       Message(sym_e_no_instance_of_abstract_object);
 
                     { search the constructor also in the symbol tables of
@@ -1600,8 +1603,8 @@ unit pexpr;
                     sym:=nil;
                     while assigned(classh) do
                      begin
-                       sym:=pvarsym(classh^.publicsyms^.search(pattern));
-                       srsymtable:=classh^.publicsyms;
+                       sym:=pvarsym(classh^.symtable^.search(pattern));
+                       srsymtable:=classh^.symtable;
                        if assigned(sym) then
                         break;
                        classh:=classh^.childof;
@@ -1611,7 +1614,7 @@ unit pexpr;
                     do_member_read(false,sym,p1,pd,again);
                     if (p1^.treetype<>calln) or
                        (assigned(p1^.procdefinition) and
-                       ((p1^.procdefinition^.options and poconstructor)=0)) then
+                       (p1^.procdefinition^.proctypeoption<>potype_constructor)) then
                       Message(parser_e_expr_have_to_be_constructor_call);
                     p1:=gensinglenode(newn,p1);
                     { set the resulttype }
@@ -1631,7 +1634,7 @@ unit pexpr;
                   end
                  else
                   begin
-                    if (aktprocsym^.definition^.options and poclassmethod)<>0 then
+                    if (po_classmethod in aktprocsym^.definition^.procoptions) then
                      begin
                        { self in class methods is a class reference type }
                        pd:=new(pclassrefdef,init(procinfo._class));
@@ -1655,7 +1658,7 @@ unit pexpr;
                     classh:=procinfo._class^.childof;
                     while assigned(classh) do
                      begin
-                       srsymtable:=pobjectdef(classh)^.publicsyms;
+                       srsymtable:=pobjectdef(classh)^.symtable;
                        sym:=pvarsym(srsymtable^.search(pattern));
                        if assigned(sym) then
                         begin
@@ -2067,7 +2070,11 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.128  1999-08-03 13:50:17  michael
+  Revision 1.129  1999-08-03 22:02:59  peter
+    * moved bitmask constants to sets
+    * some other type/const renamings
+
+  Revision 1.128  1999/08/03 13:50:17  michael
   + Changes for alpha
 
   Revision 1.127  1999/08/01 18:28:13  florian

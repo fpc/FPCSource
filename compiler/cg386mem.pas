@@ -45,7 +45,7 @@ implementation
     uses
       globtype,systems,
       cobjects,verbose,globals,
-      symtable,aasm,types,
+      symconst,symtable,aasm,types,
       hcodegen,temp_gen,pass_2,pass_1,
       i386base,i386asm,
       cgai386,tgeni386;
@@ -332,7 +332,7 @@ implementation
            exit;
          { classes must be dereferenced implicit }
          if (p^.left^.resulttype^.deftype=objectdef) and
-           pobjectdef(p^.left^.resulttype)^.isclass then
+           pobjectdef(p^.left^.resulttype)^.is_class then
            begin
              reset_reference(p^.location.reference);
              case p^.left^.location.loc of
@@ -775,7 +775,7 @@ implementation
          reset_reference(p^.location.reference);
          if (p^.resulttype^.deftype=classrefdef) or
            ((p^.resulttype^.deftype=objectdef)
-             and pobjectdef(p^.resulttype)^.isclass
+             and pobjectdef(p^.resulttype)^.is_class
            ) then
            p^.location.register:=R_ESI
          else
@@ -809,7 +809,7 @@ implementation
                  end
                else
                 if (p^.left^.resulttype^.deftype=objectdef) and
-                   pobjectdef(p^.left^.resulttype)^.isclass then
+                   pobjectdef(p^.left^.resulttype)^.is_class then
                  begin
                     exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
                       newreference(p^.left^.location.reference),R_EDI)));
@@ -849,7 +849,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.47  1999-06-02 10:11:45  florian
+  Revision 1.48  1999-08-03 22:02:47  peter
+    * moved bitmask constants to sets
+    * some other type/const renamings
+
+  Revision 1.47  1999/06/02 10:11:45  florian
     * make cycle fixed i.e. compilation with 0.99.10
     * some fixes for qword
     * start of register calling conventions

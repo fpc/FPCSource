@@ -38,7 +38,7 @@ implementation
 
     uses
       cobjects,verbose,globals,systems,
-      symtable,aasm,types,
+      symconst,symtable,aasm,types,
       hcodegen,pass_1
 {$ifdef i386}
       ,i386base
@@ -126,7 +126,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  1999-05-27 19:45:16  peter
+  Revision 1.7  1999-08-03 22:03:29  peter
+    * moved bitmask constants to sets
+    * some other type/const renamings
+
+  Revision 1.6  1999/05/27 19:45:16  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly

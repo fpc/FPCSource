@@ -32,7 +32,7 @@ unit pexports;
     uses
       globtype,systems,tokens,
       strings,cobjects,globals,verbose,
-      scanner,symtable,pbase,
+      scanner,symconst,symtable,pbase,
       export,GenDef;
 
     procedure read_exports;
@@ -64,9 +64,9 @@ unit pexports;
                      begin
                         hp^.sym:=srsym;
                         if ((srsym^.typ<>procsym) or
-                          ((pprocdef(pprocsym(srsym)^.definition)^.options and poexports)=0)) and
-                          (srsym^.typ<>varsym) and (srsym^.typ<>typedconstsym) then
-                          Message(parser_e_illegal_symbol_exported)
+                            not(po_exports in pprocdef(pprocsym(srsym)^.definition)^.procoptions)) and
+                           (srsym^.typ<>varsym) and (srsym^.typ<>typedconstsym) then
+                         Message(parser_e_illegal_symbol_exported)
                         else
                          begin
                           ProcName:=hp^.sym^.name;
@@ -120,7 +120,11 @@ end.
 
 {
   $Log$
-  Revision 1.9  1999-05-04 21:44:56  florian
+  Revision 1.10  1999-08-03 22:02:58  peter
+    * moved bitmask constants to sets
+    * some other type/const renamings
+
+  Revision 1.9  1999/05/04 21:44:56  florian
     * changes to compile it with Delphi 4.0
 
   Revision 1.8  1999/03/26 00:05:35  peter

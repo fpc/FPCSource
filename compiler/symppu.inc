@@ -72,6 +72,12 @@
       end;
 
 
+    procedure writesmallset(var s);
+      begin
+        current_ppu^.putdata(s,4);
+      end;
+
+
     procedure writeposinfo(const p:tfileposinfo);
       begin
         current_ppu^.putword(p.fileindex);
@@ -99,8 +105,6 @@
               current_ppu^.putword(p^.indexnr);
             end
            else
-{           else if p^.owner^.unitid>$8000 then
-            current_ppu^.putword(p^.owner^.unitid) }
             begin
               current_ppu^.putbyte(ord(derefindex));
               current_ppu^.putword(p^.indexnr);
@@ -222,27 +226,6 @@
       end;
 
 
-{    procedure writelinkother(var p:tstringcontainer;id:byte;strippath:boolean);
-      var
-        hcontainer : tstringcontainer;
-        s : string;
-      begin
-        hcontainer.init;
-        while not p.empty do
-         begin
-           s:=p.get;
-           if strippath then
-            current_ppu^.putstring(SplitFileName(s))
-           else
-            current_ppu^.putstring(s);
-           hcontainer.insert(s);
-         end;
-        current_ppu^.writeentry(id);
-        p:=hcontainer;
-      end; }
-
-
-
     procedure writeunitas(const s : string;unittable : punitsymtable;only_crc : boolean);
       begin
          Message1(unit_u_ppu_write,s);
@@ -321,6 +304,7 @@
 {$endif Test_Double_checksum_write}
       end;
 
+
     procedure closecurrentppu;
       begin
 {$ifdef Test_Double_checksum}
@@ -381,6 +365,14 @@
     procedure readnormalset(var s);   {You cannot pass an array [0..31] of byte.}
       begin
         current_ppu^.getdata(s,sizeof(tnormalset));
+        if current_ppu^.error then
+         Message(unit_f_ppu_read_error);
+      end;
+
+
+    procedure readsmallset(var s);
+      begin
+        current_ppu^.getdata(s,4);
         if current_ppu^.error then
          Message(unit_f_ppu_read_error);
       end;
@@ -614,7 +606,11 @@
 
 {
   $Log$
-  Revision 1.44  1999-07-14 21:19:12  florian
+  Revision 1.45  1999-08-03 22:03:17  peter
+    * moved bitmask constants to sets
+    * some other type/const renamings
+
+  Revision 1.44  1999/07/14 21:19:12  florian
     + implemented a better error message if a PPU file isn't found as suggested
       by Lee John
 

@@ -29,7 +29,8 @@ unit tree;
   interface
 
     uses
-       globtype,cobjects,symtable,aasm
+       globtype,cobjects,
+       symconst,symtable,aasm
 {$ifdef i386}
        ,i386base
 {$endif}
@@ -1730,7 +1731,11 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.84  1999-07-27 23:42:24  peter
+  Revision 1.85  1999-08-03 22:03:40  peter
+    * moved bitmask constants to sets
+    * some other type/const renamings
+
+  Revision 1.84  1999/07/27 23:42:24  peter
     * indirect type referencing is now allowed
 
   Revision 1.83  1999/05/27 19:45:29  peter

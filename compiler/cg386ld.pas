@@ -37,7 +37,7 @@ implementation
     uses
       globtype,systems,
       cobjects,verbose,globals,
-      symtable,aasm,types,
+      symconst,symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
       i386base,i386asm,
       cgai386,tgeni386,cg386cnv,cresstr;
@@ -102,12 +102,12 @@ implementation
                  begin
                     hregister:=R_NO;
                     { C variable }
-                    if (pvarsym(p^.symtableentry)^.var_options and vo_is_C_var)<>0 then
+                    if (vo_is_C_var in pvarsym(p^.symtableentry)^.varoptions) then
                       begin
                          p^.location.reference.symbol:=newasmsymbol(p^.symtableentry^.mangledname);
                       end
                     { DLL variable }
-                    else if (pvarsym(p^.symtableentry)^.var_options and vo_is_dll_var)<>0 then
+                    else if (vo_is_dll_var in pvarsym(p^.symtableentry)^.varoptions) then
                       begin
                          hregister:=getregister32;
                          p^.location.reference.symbol:=newasmsymbol(p^.symtableentry^.mangledname);
@@ -116,12 +116,12 @@ implementation
                          p^.location.reference.base:=hregister;
                       end
                     { external variable }
-                    else if (pvarsym(p^.symtableentry)^.var_options and vo_is_external)<>0 then
+                    else if (vo_is_external in pvarsym(p^.symtableentry)^.varoptions) then
                       begin
                          p^.location.reference.symbol:=newasmsymbol(p^.symtableentry^.mangledname);
                       end
                     { thread variable }
-                    else if (pvarsym(p^.symtableentry)^.var_options and vo_is_thread_var)<>0 then
+                    else if (vo_is_thread_var in pvarsym(p^.symtableentry)^.varoptions) then
                       begin
                          popeax:=not(R_EAX in unused);
                          if popeax then
@@ -196,7 +196,7 @@ implementation
                                      end;
                                    objectsymtable:
                                      begin
-                                        if (pvarsym(p^.symtableentry)^.properties and sp_static)<>0 then
+                                        if (sp_static in pvarsym(p^.symtableentry)^.symoptions) then
                                           begin
                                              p^.location.reference.symbol:=newasmsymbol(p^.symtableentry^.mangledname);
                                           end
@@ -301,7 +301,7 @@ implementation
                            hregister,hp)));
 
                          { virtual method ? }
-                         if (pprocsym(p^.symtableentry)^.definition^.options and povirtualmethod)<>0 then
+                         if (po_virtualmethod in pprocsym(p^.symtableentry)^.definition^.procoptions) then
                            begin
                               new(hp);
                               reset_reference(hp^);
@@ -530,7 +530,7 @@ implementation
                            begin
                               if (p^.right^.resulttype^.needs_inittable) and
                                 ( (p^.right^.resulttype^.deftype<>objectdef) or
-                                  not(pobjectdef(p^.right^.resulttype)^.isclass)) then
+                                  not(pobjectdef(p^.right^.resulttype)^.is_class)) then
                                 begin
                                    { this would be a problem }
                                    if not(p^.left^.resulttype^.needs_inittable) then
@@ -875,7 +875,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.67  1999-07-27 23:36:36  peter
+  Revision 1.68  1999-08-03 22:02:43  peter
+    * moved bitmask constants to sets
+    * some other type/const renamings
+
+  Revision 1.67  1999/07/27 23:36:36  peter
     * try to determine the fpu type needed in assignment
 
   Revision 1.66  1999/07/24 15:12:56  michael

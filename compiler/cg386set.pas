@@ -36,7 +36,7 @@ implementation
     uses
       globtype,systems,
       cobjects,verbose,globals,
-      symtable,aasm,types,
+      symconst,symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
       i386base,i386asm,
       cgai386,tgeni386;
@@ -411,7 +411,7 @@ implementation
                   p^.location.resflags:=F_C;
                   getlabel(l);
                   getlabel(l2);
-                  
+
                   { Is this treated in firstpass ?? }
                   if p^.left^.treetype=ordconstn then
                     begin
@@ -918,7 +918,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35  1999-07-18 14:01:16  florian
+  Revision 1.36  1999-08-03 22:02:48  peter
+    * moved bitmask constants to sets
+    * some other type/const renamings
+
+  Revision 1.35  1999/07/18 14:01:16  florian
     * handling of integer and shortint in case was wrong, if a case
       label was negative and a jump table was generated
 

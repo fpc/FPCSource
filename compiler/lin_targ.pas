@@ -40,6 +40,7 @@ implementation
 
   uses
     verbose,strings,cobjects,systems,globtype,globals,
+    symconst,
     files,aasm,symtable;
 
 
@@ -66,7 +67,11 @@ implementation
         current_module^.linkothersharedlibs.insert(SplitName(module),link_allways);
         { reset the mangledname and turn off the dll_var option }
         aktvarsym^.setmangledname(name);
-        aktvarsym^.var_options:=aktvarsym^.var_options and (not vo_is_dll_var);
+{$ifdef INCLUDEOK}
+        exclude(aktvarsym^.varoptions,vo_is_dll_var);
+{$else}
+        aktvarsym^.varoptions:=aktvarsym^.varoptions-[vo_is_dll_var];
+{$endif}
       end;
 
 
@@ -78,7 +83,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  1999-07-03 00:29:50  peter
+  Revision 1.5  1999-08-03 22:02:54  peter
+    * moved bitmask constants to sets
+    * some other type/const renamings
+
+  Revision 1.4  1999/07/03 00:29:50  peter
     * new link writing to the ppu, one .ppu is needed for all link types,
       static (.o) is now always created also when smartlinking is used
 

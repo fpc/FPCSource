@@ -56,7 +56,8 @@ unit pdecl;
   implementation
 
     uses
-       cobjects,scanner,aasm,tree,pass_1,strings,
+       cobjects,scanner,
+       symconst,aasm,tree,pass_1,strings,
        files,types,verbose,systems,import
 {$ifndef newcg}
        ,tccnv
@@ -87,7 +88,7 @@ unit pdecl;
       begin
          if not(psym(p)^.typ=typesym) then
           exit;
-         if ((psym(p)^.properties and sp_forwarddef)<>0) then
+         if (sp_forwarddef in psym(p)^.symoptions) then
            begin
              oldaktfilepos:=aktfilepos;
              aktfilepos:=psym(p)^.fileinfo;
@@ -95,15 +96,19 @@ unit pdecl;
              aktfilepos:=oldaktfilepos;
              { try to recover }
              ptypesym(p)^.definition:=generrordef;
-             psym(p)^.properties:=psym(p)^.properties and (not sp_forwarddef);
+{$ifdef INCLUDEOK}
+             exclude(psym(p)^.symoptions,sp_forwarddef);
+{$else}
+             psym(p)^.symoptions:=psym(p)^.symoptions-[sp_forwarddef];
+{$endif}
            end
          else
           if (ptypesym(p)^.definition^.deftype in [recorddef,objectdef]) then
            begin
              if (ptypesym(p)^.definition^.deftype=recorddef) then
-               reaktvarsymtable:=precdef(ptypesym(p)^.definition)^.symtable
+               reaktvarsymtable:=precorddef(ptypesym(p)^.definition)^.symtable
              else
-               reaktvarsymtable:=pobjectdef(ptypesym(p)^.definition)^.publicsyms;
+               reaktvarsymtable:=pobjectdef(ptypesym(p)^.definition)^.symtable;
              reaktvarsymtable^.foreach({$ifndef TP}@{$endif}testforward_type);
            end;
       end;
@@ -281,11 +286,15 @@ unit pdecl;
                 else
                  ss:=new(pvarsym,init(s,def));
                 if is_threadvar then
-                  ss^.var_options:=ss^.var_options or vo_is_thread_var;
+{$ifdef INCLUDEOK}
+                  include(ss^.varoptions,vo_is_thread_var);
+{$else}
+                  ss^.varoptions:=ss^.varoptions+[vo_is_thread_var];
+{$endif}
                 st^.insert(ss);
                 { static data fields are inserted in the globalsymtable }
                 if (st^.symtabletype=objectsymtable) and
-                   ((current_object_option and sp_static)<>0) then
+                   (sp_static in current_object_option) then
                   begin
                      s:=lower(st^.name^)+'_'+s;
                      st^.defowner^.owner^.insert(new(pvarsym,init(s,def)));
@@ -361,7 +370,11 @@ unit pdecl;
                    Message(parser_e_absolute_only_one_var);
                   dispose(sc,done);
                   aktvarsym:=new(pvarsym,init_C(s,target_os.Cprefix+C_name,p));
-                  aktvarsym^.var_options:=aktvarsym^.var_options or vo_is_external;
+{$ifdef INCLUDEOK}
+                  include(aktvarsym^.varoptions,vo_is_external);
+{$else}
+                  aktvarsym^.varoptions:=aktvarsym^.varoptions+[vo_is_external];
+{$endif}
                   symtablestack^.insert(aktvarsym);
                   tokenpos:=storetokenpos;
                   symdone:=true;
@@ -550,7 +563,11 @@ unit pdecl;
                    if export_aktvarsym then
                     inc(aktvarsym^.refs);
                    if extern_aktvarsym then
-                    aktvarsym^.var_options:=aktvarsym^.var_options or vo_is_external;
+{$ifdef INCLUDEOK}
+                    include(aktvarsym^.varoptions,vo_is_external);
+{$else}
+                    aktvarsym^.varoptions:=aktvarsym^.varoptions+[vo_is_external];
+{$endif}
                    { insert in the stack/datasegment }
                    symtablestack^.insert(aktvarsym);
                    tokenpos:=storetokenpos;
@@ -573,12 +590,20 @@ unit pdecl;
                 else
                  if (is_object) and (cs_static_keyword in aktmoduleswitches) and (idtoken=_STATIC) then
                   begin
-                    current_object_option:=current_object_option or sp_static;
+{$ifdef INCLUDEOK}
+                    include(current_object_option,sp_static);
+{$else}
+                    current_object_option:=current_object_option+[sp_static];
+{$endif}
                     if assigned(readtypesym) then
                      insert_syms(symtablestack,sc,nil,readtypesym,false)
                     else
                      insert_syms(symtablestack,sc,p,nil,false);
-                    current_object_option:=current_object_option - sp_static;
+{$ifdef INCLUDEOK}
+                    exclude(current_object_option,sp_static);
+{$else}
+                    current_object_option:=current_object_option-[sp_static];
+{$endif}
                     consume(_STATIC);
                     consume(SEMICOLON);
                     symdone:=true;
@@ -587,8 +612,8 @@ unit pdecl;
              { insert it in the symtable, if not done yet }
              if not symdone then
                begin
-                  if (current_object_option=sp_published) and
-                    (not((p^.deftype=objectdef) and (pobjectdef(p)^.isclass))) then
+                  if (sp_published in current_object_option) and
+                    (not((p^.deftype=objectdef) and (pobjectdef(p)^.is_class))) then
                     Message(parser_e_cant_publish_that);
                   if assigned(readtypesym) then
                    insert_syms(symtablestack,sc,nil,readtypesym,is_threadvar)
@@ -703,7 +728,7 @@ unit pdecl;
          s:=pattern;
          consume(ID);
          { classes can be used also in classes }
-         if (curobjectname=pattern) and aktobjectdef^.isclass then
+         if (curobjectname=pattern) and aktobjectdef^.is_class then
            begin
               id_type:=aktobjectdef;
               exit;
@@ -789,7 +814,7 @@ unit pdecl;
     function object_dec(const n : stringid;fd : pobjectdef) : pdef;
     { this function parses an object or class declaration }
       var
-         actmembertype : symprop;
+         actmembertype : tsymoptions;
          there_is_a_destructor : boolean;
          is_a_class : boolean;
          childof : pobjectdef;
@@ -801,16 +826,20 @@ unit pdecl;
            consume(_CONSTRUCTOR);
            { must be at same level as in implementation }
            inc(lexlevel);
-           parse_proc_head(poconstructor);
+           parse_proc_head(potype_constructor);
            dec(lexlevel);
 
            if (cs_constructor_name in aktglobalswitches) and (aktprocsym^.name<>'INIT') then
             Message(parser_e_constructorname_must_be_init);
 
-           aktclass^.options:=aktclass^.options or oo_hasconstructor;
+{$ifdef INCLUDEOK}
+           include(aktclass^.objectoptions,oo_has_constructor);
+{$else}
+           aktclass^.objectoptions:=aktclass^.objectoptions+[oo_has_constructor];
+{$endif}
            consume(SEMICOLON);
              begin
-                if (aktclass^.options and oo_is_class)<>0 then
+                if (aktclass^.is_class) then
                   begin
                      { CLASS constructors return the created instance }
                      aktprocsym^.definition^.retdef:=aktclass;
@@ -872,7 +901,7 @@ unit pdecl;
 
         begin
            { check for a class }
-           if (aktclass^.options and oo_is_class=0) then
+           if not(aktclass^.is_class) then
             Message(parser_e_syntax_error);
            consume(_PROPERTY);
            propertyparas:=nil;
@@ -885,7 +914,7 @@ unit pdecl;
                 { property parameters ? }
                 if token=LECKKLAMMER then
                   begin
-                     if current_object_option=sp_published then
+                     if (sp_published in current_object_option) then
                        Message(parser_e_cant_publish_that_property);
 
                      { create a list of the parameters in propertyparas }
@@ -955,7 +984,11 @@ unit pdecl;
                      if (idtoken=_INDEX) then
                        begin
                           consume(_INDEX);
-                          p^.options:=p^.options or ppo_indexed;
+{$ifdef INCLUDEOK}
+                          include(p^.propoptions,ppo_indexed);
+{$else}
+                          p^.propoptions:=p^.propoptions+[ppo_indexed];
+{$endif}
                           if token=INTCONST then
                             val(pattern,p^.index,code);
                           consume(INTCONST);
@@ -974,7 +1007,7 @@ unit pdecl;
                      if assigned(overriden) and (overriden^.typ=propertysym) then
                        begin
                           { take the whole info: }
-                          p^.options:=ppropertysym(overriden)^.options;
+                          p^.propoptions:=ppropertysym(overriden)^.propoptions;
                           p^.index:=ppropertysym(overriden)^.index;
                           p^.proptype:=ppropertysym(overriden)^.proptype;
                           p^.writeaccesssym:=ppropertysym(overriden)^.writeaccesssym;
@@ -992,8 +1025,8 @@ unit pdecl;
                        end;
                   end;
 
-                if (current_object_option=sp_published) and
-                  not(p^.proptype^.is_publishable) then
+                if (sp_published in current_object_option) and
+                   not(p^.proptype^.is_publishable) then
                   Message(parser_e_cant_publish_that_property);
 
                 { create data defcoll to allow correct parameter checks }
@@ -1018,7 +1051,7 @@ unit pdecl;
                              ((sym^.typ=varsym) and (pvarsym(sym)^.definition^.deftype=recorddef)) then
                            begin
                              consume(POINT);
-                             getsymonlyin(precdef(pvarsym(sym)^.definition)^.symtable,pattern);
+                             getsymonlyin(precorddef(pvarsym(sym)^.definition)^.symtable,pattern);
                              if not assigned(srsym) then
                                Message1(sym_e_illegal_field,pattern);
                              sym:=srsym;
@@ -1072,7 +1105,7 @@ unit pdecl;
                              ((sym^.typ=varsym) and (pvarsym(sym)^.definition^.deftype=recorddef)) then
                            begin
                              consume(POINT);
-                             getsymonlyin(precdef(pvarsym(sym)^.definition)^.symtable,pattern);
+                             getsymonlyin(precorddef(pvarsym(sym)^.definition)^.symtable,pattern);
                              if not assigned(srsym) then
                                Message1(sym_e_illegal_field,pattern);
                              sym:=srsym;
@@ -1166,7 +1199,11 @@ unit pdecl;
                          pobjectdef(p2^.owner^.defowner)^.objname^)
                      else
                        begin
-                          p^.options:=p^.options or ppo_defaultproperty;
+{$ifdef INCLUDEOK}
+                          include(p^.propoptions,ppo_defaultproperty);
+{$else}
+                          p^.propoptions:=p^.propoptions+[ppo_defaultproperty];
+{$endif}
                           if not(assigned(propertyparas)) then
                             message(parser_e_property_need_paras);
                        end;
@@ -1189,11 +1226,15 @@ unit pdecl;
         begin
            consume(_DESTRUCTOR);
            inc(lexlevel);
-           parse_proc_head(podestructor);
+           parse_proc_head(potype_destructor);
            dec(lexlevel);
            if (cs_constructor_name in aktglobalswitches) and (aktprocsym^.name<>'DONE') then
             Message(parser_e_destructorname_must_be_done);
-           aktclass^.options:=aktclass^.options or oo_hasdestructor;
+{$ifdef INCLUDEOK}
+           include(aktclass^.objectoptions,oo_has_destructor);
+{$else}
+           aktclass^.objectoptions:=aktclass^.objectoptions+[oo_has_destructor];
+{$endif}
            consume(SEMICOLON);
            if assigned(aktprocsym^.definition^.para1) then
             Message(parser_e_no_paras_for_destructor);
@@ -1216,10 +1257,13 @@ unit pdecl;
          oldprocsym:=aktprocsym;
          { forward is resolved }
          if assigned(fd) then
-           fd^.options:=fd^.options and not(oo_isforward);
-
+{$ifdef INCLUDEOK}
+           exclude(fd^.objectoptions,oo_is_forward);
+{$else}
+           fd^.objectoptions:=fd^.objectoptions-[oo_is_forward];
+{$endif}
          there_is_a_destructor:=false;
-         actmembertype:=sp_public;
+         actmembertype:=[sp_public];
 
          { objects and class types can't be declared local }
          if (symtablestack^.symtabletype<>globalsymtable) and
@@ -1250,18 +1294,17 @@ unit pdecl;
                    hp1:=single_type(hs);
 
                    { accept hp1, if is a forward def ...}
-                   if ((lasttypesym<>nil)
-                       and ((lasttypesym^.properties and sp_forwarddef)<>0)) or
+                   if ((lasttypesym<>nil) and
+                       (sp_forwarddef in lasttypesym^.symoptions)) or
                    { or a class
                      (if the foward defined type is a class is checked, when
                       the forward is resolved)
                    }
-                     ((hp1^.deftype=objectdef) and (
-                     (pobjectdef(hp1)^.options and oo_is_class)<>0)) then
+                     ((hp1^.deftype=objectdef) and pobjectdef(hp1)^.is_class) then
                      begin
                         pcrd:=new(pclassrefdef,init(hp1));
                         object_dec:=pcrd;
-                        if assigned(lasttypesym) and ((lasttypesym^.properties and sp_forwarddef)<>0) then
+                        if assigned(lasttypesym) and (sp_forwarddef in lasttypesym^.symoptions) then
                          lasttypesym^.addforwardpointer(ppointerdef(pcrd));
                         forwardsallowed:=false;
                      end
@@ -1288,9 +1331,9 @@ unit pdecl;
                      end
                    else
                      aktclass:=new(pobjectdef,init(n,nil));
-                   aktclass^.options:=aktclass^.options or oo_is_class or oo_isforward;
+                   aktclass^.objectoptions:=aktclass^.objectoptions+[oo_is_class,oo_is_forward];
                    { all classes must have a vmt !!  at offset zero }
-                   if (aktclass^.options and oo_hasvmt)=0 then
+                   if not(oo_has_vmt in aktclass^.objectoptions) then
                      aktclass^.insertvmt;
 
                    object_dec:=aktclass;
@@ -1320,8 +1363,8 @@ unit pdecl;
               else
                begin
                  { a mix of class and object isn't allowed }
-                 if (((childof^.options and oo_is_class)<>0) and not is_a_class) or
-                    (((childof^.options and oo_is_class)=0) and is_a_class) then
+                 if (childof^.is_class and not is_a_class) or
+                    (not childof^.is_class and is_a_class) then
                   Message(parser_e_mix_of_classes_and_objects);
                end;
               if assigned(fd) then
@@ -1329,7 +1372,7 @@ unit pdecl;
                    { the forward of the child must be resolved to get
                      correct field addresses
                    }
-                   if (childof^.options and oo_isforward)<>0 then
+                   if (oo_is_forward in childof^.objectoptions) then
                      Message1(parser_e_forward_declaration_must_be_resolved,childof^.objname^);
                    aktclass:=fd;
                    { we must inherit several options !!
@@ -1363,7 +1406,7 @@ unit pdecl;
                         { the forward of the child must be resolved to get
                           correct field addresses
                         }
-                        if (childof^.options and oo_isforward)<>0 then
+                        if (oo_is_forward in childof^.objectoptions) then
                           Message1(parser_e_forward_declaration_must_be_resolved,childof^.objname^);
                         aktclass:=fd;
                         aktclass^.set_parent(childof);
@@ -1381,21 +1424,27 @@ unit pdecl;
          { set the class attribute }
          if is_a_class then
            begin
-              aktclass^.options:=aktclass^.options or oo_is_class;
-
+{$ifdef INCLUDEOK}
+              include(aktclass^.objectoptions,oo_is_class);
+{$else}
+              aktclass^.objectoptions:=aktclass^.objectoptions+[oo_is_class];
+{$endif}
               if (cs_generate_rtti in aktlocalswitches) or
                   (assigned(aktclass^.childof) and
-                   ((aktclass^.childof^.options and oo_can_have_published)<>0)
-                  ) then
-                aktclass^.options:=aktclass^.options or oo_can_have_published;
+                   (oo_can_have_published in aktclass^.childof^.objectoptions)) then
+{$ifdef INCLUDEOK}
+                include(aktclass^.objectoptions,oo_can_have_published);
+{$else}
+                aktclass^.objectoptions:=aktclass^.objectoptions+[oo_can_have_published];
+{$endif}
            end;
 
          aktobjectdef:=aktclass;
 
          { default access is public }
-         actmembertype:=sp_public;
-         aktclass^.publicsyms^.next:=symtablestack;
-         symtablestack:=aktclass^.publicsyms;
+         actmembertype:=[sp_public];
+         aktclass^.symtable^.next:=symtablestack;
+         symtablestack:=aktclass^.symtable;
          procinfo._class:=aktclass;
          testcurobject:=1;
          curobjectname:=n;
@@ -1405,34 +1454,42 @@ unit pdecl;
           begin
           { Parse componenten }
             repeat
-              if actmembertype=sp_private then
-                aktclass^.options:=aktclass^.options or oo_hasprivate;
-              if actmembertype=sp_protected then
-                aktclass^.options:=aktclass^.options or oo_hasprotected;
+              if (sp_private in actmembertype) then
+{$ifdef INCLUDEOK}
+                include(aktclass^.objectoptions,oo_has_private);
+{$else}
+                aktclass^.objectoptions:=aktclass^.objectoptions+[oo_has_private];
+{$endif}
+              if (sp_protected in actmembertype) then
+{$ifdef INCLUDEOK}
+                include(aktclass^.objectoptions,oo_has_protected);
+{$else}
+                aktclass^.objectoptions:=aktclass^.objectoptions+[oo_has_protected];
+{$endif}
               case token of
                ID : begin
                       case idtoken of
                        _PRIVATE : begin
                                     consume(_PRIVATE);
-                                    actmembertype:=sp_private;
-                                    current_object_option:=sp_private;
+                                    actmembertype:=[sp_private];
+                                    current_object_option:=[sp_private];
                                   end;
                      _PROTECTED : begin
                                     consume(_PROTECTED);
-                                    current_object_option:=sp_protected;
-                                    actmembertype:=sp_protected;
+                                    current_object_option:=[sp_protected];
+                                    actmembertype:=[sp_protected];
                                   end;
                         _PUBLIC : begin
                                     consume(_PUBLIC);
-                                    current_object_option:=sp_public;
-                                    actmembertype:=sp_public;
+                                    current_object_option:=[sp_public];
+                                    actmembertype:=[sp_public];
                                   end;
                      _PUBLISHED : begin
-                                    if (aktclass^.options and oo_can_have_published)=0 then
+                                    if not(oo_can_have_published in aktclass^.objectoptions) then
                                      Message(parser_e_cant_have_published);
                                     consume(_PUBLISHED);
-                                    current_object_option:=sp_published;
-                                    actmembertype:=sp_published;
+                                    current_object_option:=[sp_published];
+                                    actmembertype:=[sp_published];
                                   end;
                       else
                         read_var_decs(false,true,false);
@@ -1448,16 +1505,28 @@ unit pdecl;
 {$ifndef newcg}
                       parse_object_proc_directives(aktprocsym);
 {$endif newcg}
-                      if (aktprocsym^.definition^.options and pomsgint)<>0 then
-                                aktclass^.options:=aktclass^.options or oo_hasmsgint;
-                      if (aktprocsym^.definition^.options and pomsgstr)<>0 then
-                        aktclass^.options:=aktclass^.options or oo_hasmsgstr;
-                                if (aktprocsym^.definition^.options and povirtualmethod)<>0 then
-                        aktclass^.options:=aktclass^.options or oo_hasvirtual;
+                      if (po_msgint in aktprocsym^.definition^.procoptions) then
+{$ifdef INCLUDEOK}
+                        include(aktclass^.objectoptions,oo_has_msgint);
+{$else}
+                        aktclass^.objectoptions:=aktclass^.objectoptions+[oo_has_msgint];
+{$endif}
+                      if (po_msgstr in aktprocsym^.definition^.procoptions) then
+{$ifdef INCLUDEOK}
+                        include(aktclass^.objectoptions,oo_has_msgstr);
+{$else}
+                        aktclass^.objectoptions:=aktclass^.objectoptions+[oo_has_msgstr];
+{$endif}
+                      if (po_virtualmethod in aktprocsym^.definition^.procoptions) then
+{$ifdef INCLUDEOK}
+                        include(aktclass^.objectoptions,oo_has_virtual);
+{$else}
+                        aktclass^.objectoptions:=aktclass^.objectoptions+[oo_has_virtual];
+{$endif}
                       parse_only:=oldparse_only;
                     end;
      _CONSTRUCTOR : begin
-                      if actmembertype<>sp_public then
+                      if not(sp_public in actmembertype) then
                         Message(parser_w_constructor_should_be_public);
                       oldparse_only:=parse_only;
                       parse_only:=true;
@@ -1465,15 +1534,19 @@ unit pdecl;
 {$ifndef newcg}
                       parse_object_proc_directives(aktprocsym);
 {$endif newcg}
-                      if (aktprocsym^.definition^.options and povirtualmethod)<>0 then
-                        aktclass^.options:=aktclass^.options or oo_hasvirtual;
+                      if (po_virtualmethod in aktprocsym^.definition^.procoptions) then
+{$ifdef INCLUDEOK}
+                        include(aktclass^.objectoptions,oo_has_virtual);
+{$else}
+                        aktclass^.objectoptions:=aktclass^.objectoptions+[oo_has_virtual];
+{$endif}
                       parse_only:=oldparse_only;
                     end;
       _DESTRUCTOR : begin
                       if there_is_a_destructor then
                         Message(parser_n_only_one_destructor);
                       there_is_a_destructor:=true;
-                      if actmembertype<>sp_public then
+                      if not(sp_public in actmembertype) then
                         Message(parser_w_destructor_should_be_public);
                       oldparse_only:=parse_only;
                       parse_only:=true;
@@ -1481,8 +1554,12 @@ unit pdecl;
 {$ifndef newcg}
                       parse_object_proc_directives(aktprocsym);
 {$endif newcg}
-                      if (aktprocsym^.definition^.options and povirtualmethod)<>0 then
-                        aktclass^.options:=aktclass^.options or oo_hasvirtual;
+                      if (po_virtualmethod in aktprocsym^.definition^.procoptions) then
+{$ifdef INCLUDEOK}
+                        include(aktclass^.objectoptions,oo_has_virtual);
+{$else}
+                        aktclass^.objectoptions:=aktclass^.objectoptions+[oo_has_virtual];
+{$endif}
                       parse_only:=oldparse_only;
                     end;
              _END : begin
@@ -1493,25 +1570,22 @@ unit pdecl;
                consume(ID); { Give a ident expected message, like tp7 }
               end;
             until false;
-            current_object_option:=sp_public;
+            current_object_option:=[sp_public];
           end;
          testcurobject:=0;
          curobjectname:='';
          typecanbeforward:=storetypeforwardsallowed;
 
          { generate vmt space if needed }
-         if ((aktclass^.options and
-             (oo_hasvirtual or oo_hasconstructor or
-              oo_hasdestructor or oo_is_class))<>0) and
-            ((aktclass^.options and
-              oo_hasvmt)=0) then
-          aktclass^.insertvmt;
+         if not(oo_has_vmt in aktclass^.objectoptions) and
+            ([oo_has_virtual,oo_has_constructor,oo_has_destructor,oo_is_class]*aktclass^.objectoptions<>[]) then
+           aktclass^.insertvmt;
          if (cs_smartlink in aktmoduleswitches) then
            datasegment^.concat(new(pai_cut,init));
          { write extended info for classes }
          if is_a_class then
            begin
-              if (aktclass^.options and oo_can_have_published)<>0 then
+              if (oo_can_have_published in aktclass^.objectoptions) then
                 aktclass^.generate_rtti;
               { write class name }
               getdatalabel(classnamelabel);
@@ -1520,16 +1594,15 @@ unit pdecl;
               datasegment^.concat(new(pai_string,init(aktclass^.objname^)));
 
               { generate message and dynamic tables }
-              if (aktclass^.options and oo_hasmsgstr)<>0 then
+              if (oo_has_msgstr in aktclass^.objectoptions) then
                 strmessagetable:=genstrmsgtab(aktclass);
-              if (aktclass^.options and oo_hasmsgint)<>0 then
+              if (oo_has_msgint in aktclass^.objectoptions) then
                 intmessagetable:=genintmsgtab(aktclass)
               else
                 datasegment^.concat(new(pai_const,init_32bit(0)));
 
-
               { table for string messages }
-              if (aktclass^.options and oo_hasmsgstr)<>0 then
+              if (oo_has_msgstr in aktclass^.objectoptions) then
                 datasegment^.concat(new(pai_const_symbol,init(strmessagetable)))
               else
                 datasegment^.concat(new(pai_const,init_32bit(0)));
@@ -1547,7 +1620,7 @@ unit pdecl;
                 datasegment^.concat(new(pai_const,init_32bit(0)));
 
               { pointer to type info of published section }
-              if (aktclass^.options and oo_can_have_published)<>0 then
+              if (oo_can_have_published in aktclass^.objectoptions) then
                 datasegment^.concat(new(pai_const_symbol,initname(aktclass^.rtti_name)))
               else
                 datasegment^.concat(new(pai_const,init_32bit(0)));
@@ -1558,7 +1631,7 @@ unit pdecl;
               datasegment^.concat(new(pai_const,init_32bit(0)));
 
               { pointer to dynamic table }
-              if (aktclass^.options and oo_hasmsgint)<>0 then
+              if (oo_has_msgint in aktclass^.objectoptions) then
                 datasegment^.concat(new(pai_const_symbol,init(intmessagetable)))
               else
                 datasegment^.concat(new(pai_const,init_32bit(0)));
@@ -1571,7 +1644,7 @@ unit pdecl;
 {$ifdef GDB}
          { generate the VMT }
          if (cs_debuginfo in aktmoduleswitches) and
-            ((aktclass^.options and oo_hasvmt)<>0) then
+            (oo_has_vmt in aktclass^.objectoptions) then
            begin
               do_count_dbx:=true;
               if assigned(aktclass^.owner) and assigned(aktclass^.owner^.name) then
@@ -1579,24 +1652,22 @@ unit pdecl;
                 typeglobalnumber('__vtbl_ptr_type')+'",'+tostr(N_STSYM)+',0,0,'+aktclass^.vmt_mangledname))));
            end;
 {$endif GDB}
-         if ((aktclass^.options and oo_hasvmt)<>0) then
+         if (oo_has_vmt in aktclass^.objectoptions) then
            begin
               datasegment^.concat(new(pai_symbol,initname_global(aktclass^.vmt_mangledname,0)));
 
-              { determine the size with publicsyms^.datasize, because }
+              { determine the size with symtable^.datasize, because }
               { size gives back 4 for classes                    }
-              datasegment^.concat(new(pai_const,init_32bit(aktclass^.publicsyms^.datasize)));
-              datasegment^.concat(new(pai_const,init_32bit(-aktclass^.publicsyms^.datasize)));
+              datasegment^.concat(new(pai_const,init_32bit(aktclass^.symtable^.datasize)));
+              datasegment^.concat(new(pai_const,init_32bit(-aktclass^.symtable^.datasize)));
 
               { write pointer to parent VMT, this isn't implemented in TP }
               { but this is not used in FPC ? (PM) }
               { it's not used yet, but the delphi-operators as and is need it (FK) }
               { it is not written for parents that don't have any vmt !! }
               if assigned(aktclass^.childof) and
-                 ((aktclass^.childof^.options and oo_hasvmt)<>0) then
-                begin
-                   datasegment^.concat(new(pai_const_symbol,initname(aktclass^.childof^.vmt_mangledname)));
-                end
+                 (oo_has_vmt in aktclass^.childof^.objectoptions) then
+                datasegment^.concat(new(pai_const_symbol,initname(aktclass^.childof^.vmt_mangledname)))
               else
                 datasegment^.concat(new(pai_const,init_32bit(0)));
 
@@ -1627,7 +1698,7 @@ unit pdecl;
       begin
          { create recdef }
          symtable:=new(psymtable,init(recordsymtable));
-         record_dec:=new(precdef,init(symtable));
+         record_dec:=new(precorddef,init(symtable));
          { update symtable stack }
          symtable^.next:=symtablestack;
          symtablestack:=symtable;
@@ -1673,7 +1744,11 @@ unit pdecl;
                   { self method ? }
                   if idtoken=_SELF then
                    begin
-                     procvardef^.options:=procvardef^.options or pocontainsself;
+{$ifdef INCLUDEOK}
+                     include(procvardef^.procoptions,po_containsself);
+{$else}
+                     procvardef^.procoptions:=procvardef^.procoptions+[po_containsself];
+{$endif}
                      consume(idtoken);
                      consume(COLON);
                      p:=single_type(hs1);
@@ -1986,7 +2061,7 @@ unit pdecl;
                   forwardsallowed:=true;
                 hp1:=single_type(hs);
                 p:=new(ppointerdef,init(hp1));
-                if (lasttypesym<>nil) and ((lasttypesym^.properties and sp_forwarddef)<>0) then
+                if (lasttypesym<>nil) and (sp_forwarddef in lasttypesym^.symoptions) then
                   lasttypesym^.addforwardpointer(ppointerdef(p));
                 forwardsallowed:=false;
                 readtypesym:=nil;
@@ -2027,7 +2102,11 @@ unit pdecl;
                   begin
                     consume(_OF);
                     consume(_OBJECT);
-                    pprocvardef(p)^.options:=pprocvardef(p)^.options or pomethodpointer;
+{$ifdef INCLUDEOK}
+                    include(pprocvardef(p)^.procoptions,po_methodpointer);
+{$else}
+                    pprocvardef(p)^.procoptions:=pprocvardef(p)^.procoptions+[po_methodpointer];
+{$endif}
                   end;
                 readtypesym:=nil;
               end;
@@ -2039,9 +2118,13 @@ unit pdecl;
                 pprocvardef(p)^.retdef:=single_type(hs);
                 if token=_OF then
                   begin
-                     consume(_OF);
-                     consume(_OBJECT);
-                     pprocvardef(p)^.options:=pprocvardef(p)^.options or pomethodpointer;
+                    consume(_OF);
+                    consume(_OBJECT);
+{$ifdef INCLUDEOK}
+                    include(pprocvardef(p)^.procoptions,po_methodpointer);
+{$else}
+                    pprocvardef(p)^.procoptions:=pprocvardef(p)^.procoptions+[po_methodpointer];
+{$endif}
                   end;
                 readtypesym:=nil;
               end;
@@ -2101,8 +2184,8 @@ unit pdecl;
                       if (token=_CLASS) and
                          (assigned(ptypesym(sym)^.definition)) and
                          (ptypesym(sym)^.definition^.deftype=objectdef) and
-                         ((pobjectdef(ptypesym(sym)^.definition)^.options and oo_isforward)<>0) and
-                         ((pobjectdef(ptypesym(sym)^.definition)^.options and oo_is_class)<>0) then
+                         pobjectdef(ptypesym(sym)^.definition)^.is_class and
+                         (oo_is_forward in pobjectdef(ptypesym(sym)^.definition)^.objectoptions) then
                        begin
                          { we can ignore the result   }
                          { the definition is modified }
@@ -2110,7 +2193,7 @@ unit pdecl;
                          newtype:=ptypesym(sym);
                        end
                       else
-                       if sym^.properties=sp_forwarddef then
+                       if (sp_forwarddef in sym^.symoptions) then
                         begin
                           ptypesym(sym)^.updateforwarddef(read_type(typename));
                           newtype:=ptypesym(sym);
@@ -2217,11 +2300,15 @@ unit pdecl;
 
       begin
          if assigned(aktprocsym) and
-            ((aktprocsym^.definition^.options and poinline)<>0) then
+            (pocall_inline in aktprocsym^.definition^.proccalloptions) then
            Begin
               Message1(parser_w_not_supported_for_inline,tokenstring(t));
               Message(parser_w_inlining_disabled);
-              aktprocsym^.definition^.options:= aktprocsym^.definition^.options and not poinline;
+{$ifdef INCLUDEOK}
+              exclude(aktprocsym^.definition^.proccalloptions,pocall_inline);
+{$else}
+              aktprocsym^.definition^.proccalloptions:=aktprocsym^.definition^.proccalloptions-[pocall_inline];
+{$endif}
            End;
       end;
 
@@ -2303,7 +2390,11 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.138  1999-08-01 18:28:11  florian
+  Revision 1.139  1999-08-03 22:02:56  peter
+    * moved bitmask constants to sets
+    * some other type/const renamings
+
+  Revision 1.138  1999/08/01 18:28:11  florian
     * modifications for the new code generator
 
   Revision 1.137  1999/07/29 20:54:02  peter

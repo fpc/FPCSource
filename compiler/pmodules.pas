@@ -35,7 +35,7 @@ unit pmodules;
     uses
        globtype,version,systems,tokens,
        cobjects,comphook,globals,verbose,files,
-       symtable,aasm,hcodegen,
+       symconst,symtable,aasm,hcodegen,
        link,assemble,import,export,gendef,ppu,comprsrc,
        cresstr
 {$ifdef i386}
@@ -769,7 +769,7 @@ unit pmodules;
       end;
 
 
-    procedure gen_main_procsym(const name:string;options:longint;st:psymtable);
+    procedure gen_main_procsym(const name:string;options:tproctypeoption;st:psymtable);
       var
         stt : psymtable;
       begin
@@ -781,7 +781,7 @@ unit pmodules;
         symtablestack:=st;
         aktprocsym^.definition:=new(Pprocdef,init);
         symtablestack:=stt;
-        aktprocsym^.definition^.options:=aktprocsym^.definition^.options or options;
+        aktprocsym^.definition^.proctypeoption:=options;
         aktprocsym^.definition^.setmangledname(target_os.cprefix+name);
         aktprocsym^.definition^.forwarddef:=false;
         make_ref:=true;
@@ -1034,7 +1034,7 @@ unit pmodules;
 {$endif Splitheap}
 
          { Generate a procsym }
-         gen_main_procsym(current_module^.modulename^+'_init',pounitinit,st);
+         gen_main_procsym(current_module^.modulename^+'_init',potype_unitinit,st);
 
          { Compile the unit }
          codegen_newprocedure;
@@ -1055,7 +1055,7 @@ unit pmodules;
               current_module^.flags:=current_module^.flags or uf_finalize;
 
               { Generate a procsym }
-              gen_main_procsym(current_module^.modulename^+'_finalize',pounitfinalize,st);
+              gen_main_procsym(current_module^.modulename^+'_finalize',potype_unitfinalize,st);
 
               { Compile the finalize }
               codegen_newprocedure;
@@ -1267,7 +1267,7 @@ unit pmodules;
          constsymtable:=st;
 
          { Generate a procsym for main }
-         gen_main_procsym('main',poproginit,st);
+         gen_main_procsym('main',potype_proginit,st);
 
          { reset }
          procprefix:='';
@@ -1364,7 +1364,11 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.137  1999-08-03 17:09:38  florian
+  Revision 1.138  1999-08-03 22:03:02  peter
+    * moved bitmask constants to sets
+    * some other type/const renamings
+
+  Revision 1.137  1999/08/03 17:09:38  florian
     * the alpha compiler can be compiled now
 
   Revision 1.136  1999/08/02 17:17:10  florian

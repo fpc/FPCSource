@@ -41,7 +41,7 @@ implementation
    uses
       globtype,systems,tokens,
       cobjects,verbose,globals,
-      symtable,aasm,types,
+      symconst,symtable,aasm,types,
       hcodegen,htypechk,pass_1
 {$ifdef i386}
       ,i386base
@@ -819,7 +819,7 @@ implementation
                { the conversion into a strutured type is only }
                { possible, if the source is no register    }
                if ((p^.resulttype^.deftype in [recorddef,stringdef,arraydef]) or
-                   ((p^.resulttype^.deftype=objectdef) and not(pobjectdef(p^.resulttype)^.isclass))
+                   ((p^.resulttype^.deftype=objectdef) and not(pobjectdef(p^.resulttype)^.is_class))
                   ) and (p^.left^.location.loc in [LOC_REGISTER,LOC_CREGISTER]) { and
                    it also works if the assignment is overloaded
                    YES but this code is not executed if assignment is overloaded (PM)
@@ -870,13 +870,13 @@ implementation
 
          { left must be a class }
          if (p^.left^.resulttype^.deftype<>objectdef) or
-            not(pobjectdef(p^.left^.resulttype)^.isclass) then
+            not(pobjectdef(p^.left^.resulttype)^.is_class) then
            CGMessage(type_e_mismatch);
 
          { the operands must be related }
-         if (not(pobjectdef(p^.left^.resulttype)^.isrelated(
+         if (not(pobjectdef(p^.left^.resulttype)^.is_related(
            pobjectdef(pclassrefdef(p^.right^.resulttype)^.definition)))) and
-           (not(pobjectdef(pclassrefdef(p^.right^.resulttype)^.definition)^.isrelated(
+           (not(pobjectdef(pclassrefdef(p^.right^.resulttype)^.definition)^.is_related(
            pobjectdef(p^.left^.resulttype)))) then
            CGMessage(type_e_mismatch);
 
@@ -908,13 +908,13 @@ implementation
 
          { left must be a class }
          if (p^.left^.resulttype^.deftype<>objectdef) or
-           not(pobjectdef(p^.left^.resulttype)^.isclass) then
+           not(pobjectdef(p^.left^.resulttype)^.is_class) then
            CGMessage(type_e_mismatch);
 
          { the operands must be related }
-         if (not(pobjectdef(p^.left^.resulttype)^.isrelated(
+         if (not(pobjectdef(p^.left^.resulttype)^.is_related(
            pobjectdef(pclassrefdef(p^.right^.resulttype)^.definition)))) and
-           (not(pobjectdef(pclassrefdef(p^.right^.resulttype)^.definition)^.isrelated(
+           (not(pobjectdef(pclassrefdef(p^.right^.resulttype)^.definition)^.is_related(
            pobjectdef(p^.left^.resulttype)))) then
            CGMessage(type_e_mismatch);
 
@@ -926,7 +926,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.41  1999-06-30 22:16:23  florian
+  Revision 1.42  1999-08-03 22:03:28  peter
+    * moved bitmask constants to sets
+    * some other type/const renamings
+
+  Revision 1.41  1999/06/30 22:16:23  florian
     * use of is_ordinal checked: often a qword/int64 isn't allowed (case/for ...)
     * small qword problems fixed
 

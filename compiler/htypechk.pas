@@ -58,6 +58,7 @@ implementation
     uses
        globtype,systems,tokens,
        cobjects,verbose,globals,
+       symconst,
        types,
        hcodegen;
 
@@ -304,7 +305,7 @@ implementation
                      if (
                          (ppointerdef(def_from)^.definition^.deftype=objectdef) and
                          (ppointerdef(def_to)^.definition^.deftype=objectdef) and
-                         pobjectdef(ppointerdef(def_from)^.definition)^.isrelated(
+                         pobjectdef(ppointerdef(def_from)^.definition)^.is_related(
                            pobjectdef(ppointerdef(def_to)^.definition))
                         ) or
                         { all pointers can be assigned to void-pointer }
@@ -335,7 +336,7 @@ implementation
                      { class types and class reference type
                        can be assigned to void pointers      }
                      if (
-                         ((def_from^.deftype=objectdef) and pobjectdef(def_from)^.isclass) or
+                         ((def_from^.deftype=objectdef) and pobjectdef(def_from)^.is_class) or
                          (def_from^.deftype=classrefdef)
                         ) and
                         (ppointerdef(def_to)^.definition^.deftype=orddef) and
@@ -394,12 +395,12 @@ implementation
                   pobjectdef(def_from)^.isclass and pobjectdef(def_to)^.isclass }then
                 begin
                   doconv:=tc_equal;
-                  if pobjectdef(def_from)^.isrelated(pobjectdef(def_to)) then
+                  if pobjectdef(def_from)^.is_related(pobjectdef(def_to)) then
                    b:=1;
                 end
                else
                 { nil is compatible with class instances }
-                if (fromtreetype=niln) and (pobjectdef(def_to)^.isclass) then
+                if (fromtreetype=niln) and (pobjectdef(def_to)^.is_class) then
                  begin
                    doconv:=tc_equal;
                    b:=1;
@@ -412,7 +413,7 @@ implementation
                if (def_from^.deftype=classrefdef) then
                 begin
                   doconv:=tc_equal;
-                  if pobjectdef(pclassrefdef(def_from)^.definition)^.isrelated(
+                  if pobjectdef(pclassrefdef(def_from)^.definition)^.is_related(
                        pobjectdef(pclassrefdef(def_to)^.definition)) then
                    b:=1;
                 end
@@ -484,8 +485,11 @@ implementation
               make_not_regable(p^.left);
             loadn :
               if p^.symtableentry^.typ=varsym then
-                pvarsym(p^.symtableentry)^.var_options :=
-                  pvarsym(p^.symtableentry)^.var_options and not vo_regable;
+{$ifdef INCLUDEOK}
+                exclude(pvarsym(p^.symtableentry)^.varoptions,vo_regable);
+{$else}
+                pvarsym(p^.symtableentry)^.varoptions:=pvarsym(p^.symtableentry)^.varoptions-[vo_regable];
+{$endif}
          end;
       end;
 
@@ -567,10 +571,11 @@ implementation
 
     procedure test_protected_sym(sym : psym);
       begin
-         if ((sym^.properties and sp_protected)<>0) and
-           ((sym^.owner^.symtabletype=unitsymtable) or
-            ((sym^.owner^.symtabletype=objectsymtable) and
-           (pobjectdef(sym^.owner^.defowner)^.owner^.symtabletype=unitsymtable))) then
+         if (sp_protected in sym^.symoptions) and
+            ((sym^.owner^.symtabletype=unitsymtable) or
+             ((sym^.owner^.symtabletype=objectsymtable) and
+             (pobjectdef(sym^.owner^.defowner)^.owner^.symtabletype=unitsymtable))
+            ) then
           CGMessage(parser_e_cant_access_protected_member);
       end;
 
@@ -666,7 +671,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.31  1999-07-16 10:04:32  peter
+  Revision 1.32  1999-08-03 22:02:53  peter
+    * moved bitmask constants to sets
+    * some other type/const renamings
+
+  Revision 1.31  1999/07/16 10:04:32  peter
     * merged
 
   Revision 1.30  1999/06/28 16:02:30  peter

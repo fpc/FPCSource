@@ -39,7 +39,7 @@ implementation
     uses
       globtype,systems,
       cobjects,verbose,globals,
-      aasm,types,
+      symconst,aasm,types,
 {$ifdef GDB}
       gdb,
 {$endif GDB}
@@ -244,7 +244,7 @@ implementation
 
          if not assigned(p^.procdefinition) then
           exit;
-         if (p^.procdefinition^.options and poinline)<>0 then
+         if (pocall_inline in p^.procdefinition^.proccalloptions) then
            begin
               inlined:=true;
               inlinecode:=p^.right;
@@ -265,20 +265,23 @@ implementation
               p^.right:=nil;
               { disable further inlining of the same proc
                 in the args }
-              p^.procdefinition^.options:=p^.procdefinition^.options and (not poinline);
+{$ifdef INCLUDEOK}
+              exclude(p^.procdefinition^.proccalloptions,pocall_inline);
+{$else}
+              p^.procdefinition^.proccalloptions:=p^.procdefinition^.proccalloptions-[pocall_inline];
+{$endif}
            end;
          { only if no proc var }
          if not(assigned(p^.right)) then
-           is_con_or_destructor:=((p^.procdefinition^.options and poconstructor)<>0)
-             or ((p^.procdefinition^.options and podestructor)<>0);
+           is_con_or_destructor:=(p^.procdefinition^.proctypeoption in [potype_constructor,potype_destructor]);
          { proc variables destroy all registers }
          if (p^.right=nil) and
             { virtual methods too }
-            ((p^.procdefinition^.options and povirtualmethod)=0) then
+            not(po_virtualmethod in p^.procdefinition^.procoptions) then
            begin
-              if ((p^.procdefinition^.options and poiocheck)<>0) and
-                 ((aktprocsym^.definition^.options and poiocheck)=0) and
-                 (cs_check_io in aktlocalswitches) then
+              if (cs_check_io in aktlocalswitches) and
+                 (po_iocheck in p^.procdefinition^.procoptions) and
+                 not(po_iocheck in aktprocsym^.definition^.procoptions) then
                 begin
                    getlabel(iolabel);
                    emitlab(iolabel);
@@ -361,12 +364,18 @@ implementation
                 para_offset:=0;
               if assigned(p^.right) then
                 secondcallparan(p^.left,pabstractprocdef(p^.right^.resulttype)^.para1,
-                  (p^.procdefinition^.options and poleftright)<>0,
-                  inlined,(p^.procdefinition^.options and (pocdecl or postdcall))<>0,para_offset)
+                  (pocall_leftright in p^.procdefinition^.proccalloptions),
+                  inlined,
+                  (pocall_cdecl in p^.procdefinition^.proccalloptions) or
+                   (pocall_stdcall in p^.procdefinition^.proccalloptions),
+                  para_offset)
               else
                 secondcallparan(p^.left,p^.procdefinition^.para1,
-                  (p^.procdefinition^.options and poleftright)<>0,
-                  inlined,(p^.procdefinition^.options and (pocdecl or postdcall))<>0,para_offset);
+                  (pocall_leftright in p^.procdefinition^.proccalloptions),
+                  inlined,
+                  (pocall_cdecl in p^.procdefinition^.proccalloptions) or
+                   (pocall_stdcall in p^.procdefinition^.proccalloptions),
+                  para_offset);
            end;
          params:=p^.left;
          p^.left:=nil;
@@ -420,7 +429,7 @@ implementation
                      end; }
                    r^:=ptree(pwithsymtable(p^.symtable)^.withnode)^.withreference^;
                    if (not pwithsymtable(p^.symtable)^.direct_with) or
-                      pobjectdef(p^.methodpointer^.resulttype)^.isclass then
+                      pobjectdef(p^.methodpointer^.resulttype)^.is_class then
                      exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,r,R_ESI)))
                    else
                      exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,r,R_ESI)));
@@ -447,7 +456,7 @@ implementation
                                typen:
                                  begin
                                     { direct call to inherited method }
-                                    if (p^.procdefinition^.options and poabstractmethod)<>0 then
+                                    if (po_abstractmethod in p^.procdefinition^.procoptions) then
                                       begin
                                          CGMessage(cg_e_cant_call_abstract_method);
                                          goto dont_call;
@@ -455,20 +464,20 @@ implementation
                                     { generate no virtual call }
                                     no_virtual_call:=true;
 
-                                    if (p^.symtableprocentry^.properties and sp_static)<>0 then
+                                    if (sp_static in p^.symtableprocentry^.symoptions) then
                                       begin
                                          { well lets put the VMT address directly into ESI }
                                          { it is kind of dirty but that is the simplest    }
                                          { way to accept virtual static functions (PM)     }
                                          loadesi:=true;
                                          { if no VMT just use $0 bug0214 PM }
-                                         if (pobjectdef(p^.methodpointer^.resulttype)^.options and oo_hasvmt)=0 then
+                                         if not(oo_has_vmt in pobjectdef(p^.methodpointer^.resulttype)^.objectoptions) then
                                            exprasmlist^.concat(new(pai386,op_const_reg(A_MOV,S_L,0,R_ESI)))
                                          else
                                            begin
                                              exprasmlist^.concat(new(pai386,op_sym_ofs_reg(A_MOV,S_L,
-                                               newasmsymbol(pobjectdef(
-                                               p^.methodpointer^.resulttype)^.vmt_mangledname),0,R_ESI)));
+                                               newasmsymbol(pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname),
+                                               0,R_ESI)));
                                            end;
                                          { exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_ESI)));
                                            this is done below !! }
@@ -478,19 +487,18 @@ implementation
                                       loadesi:=false;
 
                                     { a class destructor needs a flag }
-                                    if pobjectdef(p^.methodpointer^.resulttype)^.isclass and
-                                        assigned(aktprocsym) and
-                                        ((aktprocsym^.definition^.options and
-                                        (podestructor))<>0) then
-                                        begin
-                                           push_int(0);
-                                           exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_ESI)));
-                                        end;
+                                    if pobjectdef(p^.methodpointer^.resulttype)^.is_class and
+                                       assigned(aktprocsym) and
+                                       (aktprocsym^.definition^.proctypeoption=potype_destructor) then
+                                      begin
+                                        push_int(0);
+                                        exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_ESI)));
+                                      end;
 
                                     if not(is_con_or_destructor and
-                                           pobjectdef(p^.methodpointer^.resulttype)^.isclass and
+                                           pobjectdef(p^.methodpointer^.resulttype)^.is_class and
                                            assigned(aktprocsym) and
-                                           ((aktprocsym^.definition^.options and (poconstructor or podestructor))<>0)
+                                           (aktprocsym^.definition^.proctypeoption in [potype_constructor,potype_destructor])
                                           ) then
                                       exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_ESI)));
                                     { if an inherited con- or destructor should be  }
@@ -498,20 +506,18 @@ implementation
                                     { will be made                                }
                                     { con- and destructors need a pointer to the vmt }
                                     if is_con_or_destructor and
-                                    not(pobjectdef(p^.methodpointer^.resulttype)^.isclass) and
+                                    not(pobjectdef(p^.methodpointer^.resulttype)^.is_class) and
                                     assigned(aktprocsym) then
                                       begin
-                                         if not ((aktprocsym^.definition^.options
-                                           and (poconstructor or podestructor))<>0) then
-
+                                         if not(aktprocsym^.definition^.proctypeoption in
+                                                [potype_constructor,potype_destructor]) then
                                           CGMessage(cg_w_member_cd_call_from_method);
                                       end;
                                     { class destructors get there flag below }
                                     if is_con_or_destructor and
-                                        not(pobjectdef(p^.methodpointer^.resulttype)^.isclass and
+                                        not(pobjectdef(p^.methodpointer^.resulttype)^.is_class and
                                         assigned(aktprocsym) and
-                                        ((aktprocsym^.definition^.options and
-                                        (podestructor))<>0)) then
+                                        (aktprocsym^.definition^.proctypeoption=potype_destructor)) then
                                       push_int(0);
                                  end;
                                hnewn:
@@ -555,7 +561,7 @@ implementation
                                               begin
                                                  if (p^.methodpointer^.resulttype^.deftype=classrefdef) or
                                                     ((p^.methodpointer^.resulttype^.deftype=objectdef) and
-                                                   pobjectdef(p^.methodpointer^.resulttype)^.isclass) then
+                                                   pobjectdef(p^.methodpointer^.resulttype)^.is_class) then
                                                    exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
                                                      newreference(p^.methodpointer^.location.reference),R_ESI)))
                                                  else
@@ -567,10 +573,10 @@ implementation
                                       end;
                                     { when calling a class method, we have to load ESI with the VMT !
                                       But, not for a class method via self }
-                                    if ((p^.procdefinition^.options and pocontainsself)=0) then
+                                    if not(po_containsself in p^.procdefinition^.procoptions) then
                                       begin
-                                        if ((p^.procdefinition^.options and poclassmethod)<>0)
-                                           and not(p^.methodpointer^.resulttype^.deftype=classrefdef) then
+                                        if (po_classmethod in p^.procdefinition^.procoptions) and
+                                           not(p^.methodpointer^.resulttype^.deftype=classrefdef) then
                                           begin
                                              { class method needs current VMT }
                                              new(r);
@@ -581,15 +587,15 @@ implementation
                                           end;
 
                                         { direct call to destructor: don't remove data! }
-                                        if ((p^.procdefinition^.options and podestructor)<>0) and
-                                          (p^.methodpointer^.resulttype^.deftype=objectdef) and
-                                          (pobjectdef(p^.methodpointer^.resulttype)^.isclass) then
+                                        if (p^.procdefinition^.proctypeoption=potype_destructor) and
+                                           (p^.methodpointer^.resulttype^.deftype=objectdef) and
+                                           (pobjectdef(p^.methodpointer^.resulttype)^.is_class) then
                                           exprasmlist^.concat(new(pai386,op_const(A_PUSH,S_L,1)));
 
                                         { direct call to class constructor, don't allocate memory }
-                                        if ((p^.procdefinition^.options and poconstructor)<>0) and
-                                          (p^.methodpointer^.resulttype^.deftype=objectdef) and
-                                          (pobjectdef(p^.methodpointer^.resulttype)^.isclass) then
+                                        if (p^.procdefinition^.proctypeoption=potype_constructor) and
+                                           (p^.methodpointer^.resulttype^.deftype=objectdef) and
+                                           (pobjectdef(p^.methodpointer^.resulttype)^.is_class) then
                                           exprasmlist^.concat(new(pai386,op_const(A_PUSH,S_L,0)))
                                         else
                                           exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_ESI)));
@@ -599,9 +605,9 @@ implementation
                                       begin
                                          { classes don't get a VMT pointer pushed }
                                          if (p^.methodpointer^.resulttype^.deftype=objectdef) and
-                                           not(pobjectdef(p^.methodpointer^.resulttype)^.isclass) then
+                                           not(pobjectdef(p^.methodpointer^.resulttype)^.is_class) then
                                            begin
-                                              if ((p^.procdefinition^.options and poconstructor)<>0) then
+                                              if (p^.procdefinition^.proctypeoption=potype_constructor) then
                                                 begin
                                                    { it's no bad idea, to insert the VMT }
                                                    exprasmlist^.concat(new(pai386,op_sym(A_PUSH,S_L,newasmsymbol(
@@ -619,10 +625,10 @@ implementation
                      end
                    else
                      begin
-                        if ((p^.procdefinition^.options and poclassmethod)<>0) and
+                        if (po_classmethod in p^.procdefinition^.procoptions) and
                           not(
                             assigned(aktprocsym) and
-                            ((aktprocsym^.definition^.options and poclassmethod)<>0)
+                            (po_classmethod in aktprocsym^.definition^.procoptions)
                           ) then
                           begin
                              { class method needs current VMT }
@@ -701,7 +707,7 @@ implementation
                      internalerror(25000);
                 end;
 
-              if ((p^.procdefinition^.options and povirtualmethod)<>0) and
+              if (po_virtualmethod in p^.procdefinition^.procoptions) and
                  not(no_virtual_call) then
                 begin
                    { static functions contain the vmt_address in ESI }
@@ -710,14 +716,14 @@ implementation
                    { on the methodpointer                        PM }
                    if assigned(aktprocsym) then
                      begin
-                       if ((((aktprocsym^.properties and sp_static)<>0) or
-                        ((aktprocsym^.definition^.options and poclassmethod)<>0)) and
+                       if (((sp_static in aktprocsym^.symoptions) or
+                        (po_classmethod in aktprocsym^.definition^.procoptions)) and
                         ((p^.methodpointer=nil) or (p^.methodpointer^.treetype=typen)))
                         or
-                        ((p^.procdefinition^.options and postaticmethod)<>0) or
-                        ((p^.procdefinition^.options and poconstructor)<>0) or
+                        (po_staticmethod in p^.procdefinition^.procoptions) or
+                        (p^.procdefinition^.proctypeoption=potype_constructor) or
                         { ESI is loaded earlier }
-                        ((p^.procdefinition^.options and poclassmethod)<>0)then
+                        (po_classmethod in p^.procdefinition^.procoptions) then
                          begin
                             new(r);
                             reset_reference(r^);
@@ -751,7 +757,7 @@ implementation
                      end;
                    }
                    if pprocdef(p^.procdefinition)^.extnumber=-1 then
-                        internalerror($Da);
+                     internalerror(44584);
                    r^.offset:=pprocdef(p^.procdefinition)^.extnumber*4+12;
 {$ifndef TESTOBJEXT}
                    if (cs_check_range in aktlocalswitches) then
@@ -776,7 +782,11 @@ implementation
                 { inlined code is in inlinecode }
                 begin
                    { set poinline again }
-                   p^.procdefinition^.options:=p^.procdefinition^.options or poinline;
+{$ifdef INCLUDEOK}
+                   include(p^.procdefinition^.proccalloptions,pocall_inline);
+{$else}
+                   p^.procdefinition^.proccalloptions:=p^.procdefinition^.proccalloptions+[pocall_inline];
+{$endif}
                    { process the inlinecode }
                    secondpass(inlinecode);
                    { free the args }
@@ -788,7 +798,7 @@ implementation
            begin
               secondpass(p^.right);
               { method pointer ? }
-              if (p^.procdefinition^.options and pomethodpointer)<>0 then
+              if (po_methodpointer in p^.procdefinition^.procoptions) then
                 begin
                    { method pointer can't be in a register }
                    hregister:=R_NO;
@@ -806,7 +816,7 @@ implementation
                      end;
 
 
-                   if ((p^.procdefinition^.options and pocontainsself)=0) then
+                   if (po_containsself in p^.procdefinition^.procoptions) then
                      begin
                        { load ESI }
                        inc(p^.right^.location.reference.offset,4);
@@ -842,7 +852,7 @@ implementation
            { this was only for normal functions
              displaced here so we also get
              it to work for procvars PM }
-           if (not inlined) and ((p^.procdefinition^.options and poclearstack)<>0) then
+           if (not inlined) and (pocall_clearstack in p^.procdefinition^.proccalloptions) then
              begin
                 { consider the alignment with the rest (PM) }
                 inc(pushedparasize,pop_size);
@@ -883,7 +893,7 @@ implementation
            begin
               { a contructor could be a function with boolean result }
               if (p^.right=nil) and
-                 ((p^.procdefinition^.options and poconstructor)<>0) and
+                 (p^.procdefinition^.proctypeoption=potype_constructor) and
                  { quick'n'dirty check if it is a class or an object }
                  (p^.resulttype^.deftype=orddef) then
                 begin
@@ -1077,7 +1087,7 @@ implementation
                    { data which must be finalized ? }
                    if (p^.resulttype^.needs_inittable) and
                      ( (p^.resulttype^.deftype<>objectdef) or
-                       not(pobjectdef(p^.resulttype)^.isclass)) then
+                       not(pobjectdef(p^.resulttype)^.is_class)) then
                       finalize(p^.resulttype,p^.location.reference,ret_in_param(p^.resulttype));
                    { release unused temp }
                    ungetiftemp(p^.location.reference)
@@ -1166,7 +1176,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.94  1999-07-06 21:48:09  florian
+  Revision 1.95  1999-08-03 22:02:34  peter
+    * moved bitmask constants to sets
+    * some other type/const renamings
+
+  Revision 1.94  1999/07/06 21:48:09  florian
     * a lot bug fixes:
        - po_external isn't any longer necessary for procedure compatibility
        - m_tp_procvar is in -Sd now available

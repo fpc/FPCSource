@@ -37,6 +37,7 @@ const
     sfRecord        = $00000001;
     sfObject        = $00000002;
     sfClass         = $00000004;
+    sfHasMemInfo    = $80000000;
 
 type
     TStoreCollection = object(TStringCollection)
@@ -62,6 +63,8 @@ type
       constructor Init(AFileName: PString; ALine, AColumn: Sw_integer);
       function    GetFileName: string;
       destructor  Done; virtual;
+      constructor Load(var S: TStream);
+      procedure   Store(var S: TStream);
     end;
 
     PSymbolMemInfo = ^TSymbolMemInfo;
@@ -96,6 +99,8 @@ type
       function    GetText: string;
       function    GetTypeName: string;
       destructor  Done; virtual;
+      constructor Load(var S: TStream);
+      procedure   Store(var S: TStream);
     end;
 
     PObjectSymbolCollection = ^TObjectSymbolCollection;
@@ -112,6 +117,8 @@ type
       function    GetDescendant(Index: sw_integer): PObjectSymbol;
       procedure   AddDescendant(P: PObjectSymbol);
       destructor  Done; virtual;
+      constructor Load(var S: TStream);
+      procedure   Store(S: TStream);
     private
       Name: PString;
       Descendants: PObjectSymbolCollection;
@@ -159,15 +166,82 @@ procedure CreateBrowserCol;
 procedure InitBrowserCol;
 procedure DoneBrowserCol;
 
+function  LoadBrowserCol(S: PStream): boolean;
+procedure StoreBrowserCol(S: PStream);
+
 procedure BuildObjectInfo;
 
 function SearchObjectForSymbol(O: PSymbol): PObjectSymbol;
 
+procedure RegisterSymbols;
+
 implementation
 
 uses
-  Verbose,
+  Drivers,Views,App,
   aasm,globtype,globals,files,comphook;
+
+const
+  RModuleNameCollection: TStreamRec = (
+     ObjType: 3001;
+     VmtLink: Ofs(TypeOf(TModuleNameCollection)^);
+     Load:    @TModuleNameCollection.Load;
+     Store:   @TModuleNameCollection.Store
+  );
+  RTypeNameCollection: TStreamRec = (
+     ObjType: 3002;
+     VmtLink: Ofs(TypeOf(TTypeNameCollection)^);
+     Load:    @TTypeNameCollection.Load;
+     Store:   @TTypeNameCollection.Store
+  );
+  RReference: TStreamRec = (
+     ObjType: 3003;
+     VmtLink: Ofs(TypeOf(TReference)^);
+     Load:    @TReference.Load;
+     Store:   @TReference.Store
+  );
+  RSymbol: TStreamRec = (
+     ObjType: 3004;
+     VmtLink: Ofs(TypeOf(TSymbol)^);
+     Load:    @TSymbol.Load;
+     Store:   @TSymbol.Store
+  );
+  RObjectSymbol: TStreamRec = (
+     ObjType: 3005;
+     VmtLink: Ofs(TypeOf(TObjectSymbol)^);
+     Load:    @TObjectSymbol.Load;
+     Store:   @TObjectSymbol.Store
+  );
+  RSymbolCollection: TStreamRec = (
+     ObjType: 3006;
+     VmtLink: Ofs(TypeOf(TSymbolCollection)^);
+     Load:    @TSymbolCollection.Load;
+     Store:   @TSymbolCollection.Store
+  );
+  RSortedSymbolCollection: TStreamRec = (
+     ObjType: 3007;
+     VmtLink: Ofs(TypeOf(TSortedSymbolCollection)^);
+     Load:    @TSortedSymbolCollection.Load;
+     Store:   @TSortedSymbolCollection.Store
+  );
+  RIDSortedSymbolCollection: TStreamRec = (
+     ObjType: 3008;
+     VmtLink: Ofs(TypeOf(TIDSortedSymbolCollection)^);
+     Load:    @TIDSortedSymbolCollection.Load;
+     Store:   @TIDSortedSymbolCollection.Store
+  );
+  RObjectSymbolCollection: TStreamRec = (
+     ObjType: 3009;
+     VmtLink: Ofs(TypeOf(TObjectSymbolCollection)^);
+     Load:    @TObjectSymbolCollection.Load;
+     Store:   @TObjectSymbolCollection.Store
+  );
+  RReferenceCollection: TStreamRec = (
+     ObjType: 3010;
+     VmtLink: Ofs(TypeOf(TReferenceCollection)^);
+     Load:    @TReferenceCollection.Load;
+     Store:   @TReferenceCollection.Store
+  );
 
 {****************************************************************************
                                    Helpers
@@ -273,13 +347,7 @@ begin
   S2:=Upper(K2^.GetName);
   if S1<S2 then R:=-1 else
   if S1>S2 then R:=1 else
-    begin
-      S1:=K1^.GetName;
-      S2:=K2^.GetName;
-      if S1<S2 then R:=-1 else
-      if S1>S2 then R:=1 else
-       R:=0;
-    end;
+  R:=0;
   Compare:=R;
 end;
 
@@ -306,12 +374,11 @@ begin
       OLI:=Left; ORI:=Right;
       Mid:=Left+(Right-Left) div 2;
       LeftP:=At(Left); RightP:=At(Right); MidP:=At(Mid);
-      LeftS:=Upper(LeftP^.GetName);
-      MidS:=Upper(MidP^.GetName);
+      LeftS:=Upper(LeftP^.GetName); MidS:=Upper(MidP^.GetName);
       RightS:=Upper(RightP^.GetName);
       if copy(MidS,1,length(UpS))=UpS then
         begin
-          Idx:=Mid; FoundS:=UpS{copy(MidS,1,length(S)) same and easier };
+          Idx:=Mid; FoundS:=copy(MidS,1,length(S));
         end;
 {      else}
         if UpS<MidS then
@@ -375,13 +442,7 @@ begin
   S2:=Upper(K2^.GetName);
   if S1<S2 then R:=-1 else
   if S1>S2 then R:=1 else
-    begin
-      S1:=K1^.GetName;
-      S2:=K2^.GetName;
-      if S1<S2 then R:=-1 else
-      if S1>S2 then R:=1 else
-       R:=0;
-    end;
+  R:=0;
   Compare:=R;
 end;
 
@@ -403,12 +464,11 @@ begin
       OLI:=Left; ORI:=Right;
       Mid:=Left+(Right-Left) div 2;
       LeftP:=At(Left); RightP:=At(Right); MidP:=At(Mid);
-      LeftS:=Upper(LeftP^.GetName);
-      MidS:=Upper(MidP^.GetName);
+      LeftS:=Upper(LeftP^.GetName); MidS:=Upper(MidP^.GetName);
       RightS:=Upper(RightP^.GetName);
       if copy(MidS,1,length(UpS))=UpS then
         begin
-          Idx:=Mid; FoundS:=UpS;
+          Idx:=Mid; FoundS:=copy(MidS,1,length(S));
         end;
 {      else}
         if UpS<MidS then
@@ -444,6 +504,21 @@ begin
   inherited Done;
 end;
 
+constructor TReference.Load(var S: TStream);
+begin
+  S.Read(Position, SizeOf(Position));
+
+  { --- items needing fixup --- }
+  S.Read(FileName, SizeOf(FileName)); { ->ModulesNames^.Item }
+end;
+
+procedure TReference.Store(var S: TStream);
+begin
+  S.Write(Position, SizeOf(Position));
+
+  { --- items needing fixup --- }
+  S.Write(FileName, SizeOf(FileName));
+end;
 
 {****************************************************************************
                                    TSymbol
@@ -466,6 +541,7 @@ procedure TSymbol.SetMemInfo(const AMemInfo: TSymbolMemInfo);
 begin
   if MemInfo=nil then New(MemInfo);
   Move(AMemInfo,MemInfo^,SizeOf(MemInfo^));
+  Flags:=Flags or sfHasMemInfo;
 end;
 
 function TSymbol.GetReferenceCount: Sw_integer;
@@ -586,6 +662,63 @@ begin
     DisposeStr(Ancestor);}
 end;
 
+constructor TSymbol.Load(var S: TStream);
+var MI: TSymbolMemInfo;
+    W: word;
+begin
+  TObject.Init;
+
+  S.Read(Typ,SizeOf(Typ));
+  S.Read(ObjectID, SizeOf(ObjectID));
+  S.Read(AncestorID, SizeOf(AncestorID));
+  S.Read(Flags, SizeOf(Flags));
+  Name:=S.ReadStr;
+  Params:=S.ReadStr;
+  if (Flags and sfHasMemInfo)<>0 then
+    begin
+      S.Read(MI,SizeOf(MI));
+      SetMemInfo(MI);
+    end;
+
+  W:=0;
+  S.Read(W,SizeOf(W));
+  if (W and 1)<>0 then
+    New(References, Load(S));
+  if (W and 2)<>0 then
+    New(Items, Load(S));
+
+  { --- items needing fixup --- }
+  S.Read(DType, SizeOf(DType));
+  S.Read(VType, SizeOf(VType));
+  S.Read(Ancestor, SizeOf(Ancestor));
+end;
+
+procedure TSymbol.Store(var S: TStream);
+var W: word;
+begin
+  S.Write(Typ,SizeOf(Typ));
+  S.Write(ObjectID, SizeOf(ObjectID));
+  S.Write(AncestorID, SizeOf(AncestorID));
+  S.Write(Flags, SizeOf(Flags));
+  S.WriteStr(Name);
+  S.WriteStr(Params);
+
+  if (Flags and sfHasMemInfo)<>0 then
+    S.Write(MemInfo^,SizeOf(MemInfo^));
+
+  W:=0;
+  if Assigned(References) then W:=W or 1;
+  if Assigned(Items) then W:=W or 2;
+  S.Write(W,SizeOf(W));
+  if Assigned(References) then References^.Store(S);
+  if Assigned(Items) then Items^.Store(S);
+
+  { --- items needing fixup --- }
+  S.Write(DType, SizeOf(DType));
+  S.Write(VType, SizeOf(VType));
+  S.Write(Ancestor, SizeOf(Ancestor));
+end;
+
 
 constructor TObjectSymbol.Init(AParent: PObjectSymbol; ASymbol: PSymbol);
 begin
@@ -634,6 +767,15 @@ begin
   if Assigned(Descendants) then Dispose(Descendants, Done); Descendants:=nil;
   inherited Done;
 end;
+
+constructor TObjectSymbol.Load(var S: TStream);
+begin
+end;
+
+procedure TObjectSymbol.Store(S: TStream);
+begin
+end;
+
 
 {*****************************************************************************
                               Main Routines
@@ -990,12 +1132,6 @@ procedure CreateBrowserCol;
             begin
               with pprocsym(sym)^ do
               if assigned(definition) then
-               if assigned(definition^.nextoverloaded) then
-                begin
-                  { Several overloaded functions } 
-                  Symbol^.Params:=TypeNames^.Add('...');
-                end
-               else
               begin
                 if cs_local_browser in aktmoduleswitches then
                   ProcessSymTable(Symbol,Symbol^.Items,definition^.parast);
@@ -1067,15 +1203,7 @@ procedure CreateBrowserCol;
             Ref:=Ref^.nextref;
           end;
         if Assigned(Symbol) then
-          begin
-             If Not Owner^.Search(Symbol,i) then
-               Owner^.Insert(Symbol)
-             else
-               begin
-                 Comment(V_Warning,sym^.name+' already in SymbolCollection '+sym^.owner^.name^);
-                 dispose(Symbol,Done);
-               end;
-          end;
+          Owner^.Insert(Symbol);
         sym:=psym(sym^.next);
       end;
   end;
@@ -1249,8 +1377,205 @@ end;
 procedure DoneBrowserCol;
 begin
   { nothing, the collections are freed in the exitproc }
+  { nothing? then why do we've this routine? IMHO, either we should remove this,
+    or it should destroy the browser info when it's called. - Gabor }
 end;
 
+type
+     PPointerXRef = ^TPointerXRef;
+     TPointerXRef = record
+       PtrValue : pointer;
+       DataPtr  : pointer;
+     end;
+
+     PPointerDictionary = ^TPointerDictionary;
+     TPointerDictionary = object(TSortedCollection)
+       function  At(Index: sw_Integer): PPointerXRef;
+       function  Compare(Key1, Key2: Pointer): sw_Integer; virtual;
+       procedure FreeItem(Item: Pointer); virtual;
+       function  SearchXRef(PtrValue: pointer): PPointerXRef;
+       function  AddPtr(PtrValue, DataPtr: pointer): PPointerXRef;
+       procedure Resolve(var P);
+     end;
+
+function NewPointerXRef(APtrValue, ADataPtr: pointer): PPointerXRef;
+var P: PPointerXRef;
+begin
+  New(P); FillChar(P^,SizeOf(P^),0);
+  with P^ do begin PtrValue:=APtrValue; DataPtr:=ADataPtr; end;
+  NewPointerXRef:=P;
+end;
+
+procedure DisposePointerXRef(P: PPointerXRef);
+begin
+  if Assigned(P) then Dispose(P);
+end;
+
+function TPointerDictionary.At(Index: sw_Integer): PPointerXRef;
+begin
+  At:=inherited At(Index);
+end;
+
+function TPointerDictionary.Compare(Key1, Key2: Pointer): sw_Integer;
+var K1: PPointerXRef absolute Key1;
+    K2: PPointerXRef absolute Key2;
+    R: integer;
+begin
+  if longint(K1^.PtrValue)<longint(K2^.PtrValue) then R:=-1 else
+  if longint(K1^.PtrValue)>longint(K2^.PtrValue) then R:= 1 else
+  R:=0;
+  Compare:=R;
+end;
+
+procedure TPointerDictionary.FreeItem(Item: Pointer);
+begin
+  if Assigned(Item) then DisposePointerXRef(Item);
+end;
+
+function TPointerDictionary.SearchXRef(PtrValue: pointer): PPointerXRef;
+var P: PPointerXRef;
+    T: TPointerXRef;
+    Index: sw_integer;
+begin
+  T.PtrValue:=PtrValue;
+  if Search(@T,Index)=false then P:=nil else
+    P:=At(Index);
+  SearchXRef:=P;
+end;
+
+function TPointerDictionary.AddPtr(PtrValue, DataPtr: pointer): PPointerXRef;
+var P: PPointerXRef;
+begin
+  P:=NewPointerXRef(PtrValue,DataPtr);
+  Insert(P);
+  AddPtr:=P;
+end;
+
+procedure TPointerDictionary.Resolve(var P);
+var X: PPointerXRef;
+    V: pointer;
+begin
+  Move(P,V,SizeOf(V));
+  X:=SearchXRef(V);
+  if X=nil then V:=nil else
+    V:=X^.DataPtr;
+  Move(V,P,SizeOf(V));
+end;
+
+procedure ReadPointers(S: PStream; C: PCollection; D: PPointerDictionary);
+var W,I: sw_integer;
+    P: pointer;
+begin
+  S^.Read(W,SizeOf(W));
+  for I:=0 to W-1 do
+  begin
+    S^.Read(P,SizeOf(P));
+    D^.AddPtr(P,C^.At(I));
+  end;
+end;
+
+function LoadBrowserCol(S: PStream): boolean;
+var PD: PPointerDictionary;
+procedure FixupPointers;
+procedure FixupReference(P: PReference); {$ifndef FPC}far;{$endif}
+begin
+  PD^.Resolve(P^.FileName);
+end;
+procedure FixupSymbol(P: PSymbol); {$ifndef FPC}far;{$endif}
+var I: sw_integer;
+begin
+  PD^.Resolve(P^.DType);
+  PD^.Resolve(P^.VType);
+  PD^.Resolve(P^.Ancestor);
+  if Assigned(P^.References) then
+    with P^.References^ do
+     for I:=0 to Count-1 do
+       FixupReference(At(I));
+  if Assigned(P^.Items) then
+    with P^.Items^ do
+     for I:=0 to Count-1 do
+       FixupSymbol(At(I));
+end;
+begin
+  Modules^.ForEach(@FixupSymbol);
+end;
+procedure ReadSymbolPointers(P: PSymbol); {$ifndef FPC}far;{$endif}
+var I: sw_integer;
+    PV: pointer;
+begin
+  S^.Read(PV, SizeOf(PV));
+  PD^.AddPtr(PV,P);
+  if Assigned(P^.Items) then
+    with P^.Items^ do
+     for I:=0 to Count-1 do
+       ReadSymbolPointers(At(I));
+end;
+begin
+  DisposeBrowserCol;
+
+  New(ModuleNames, Load(S^));
+  New(TypeNames, Load(S^));
+  New(Modules, Load(S^));
+
+  New(PD, Init(4000,1000));
+  ReadPointers(S,ModuleNames,PD);
+  ReadPointers(S,TypeNames,PD);
+  ReadPointers(S,Modules,PD);
+  Modules^.ForEach(@ReadSymbolPointers);
+  FixupPointers;
+  Dispose(PD, Done);
+
+  BuildObjectInfo;
+end;
+
+procedure StorePointers(S: PStream; C: PCollection);
+var W,I: sw_integer;
+    P: pointer;
+begin
+  W:=C^.Count;
+  S^.Write(W,SizeOf(W));
+  for I:=0 to W-1 do
+  begin
+    P:=C^.At(I);
+    S^.Write(P,SizeOf(P));
+  end;
+end;
+
+procedure StoreBrowserCol(S: PStream);
+procedure WriteSymbolPointers(P: PSymbol); {$ifndef FPC}far;{$endif}
+var I: sw_integer;
+begin
+  S^.Write(P, SizeOf(P));
+  if Assigned(P^.Items) then
+    with P^.Items^ do
+     for I:=0 to Count-1 do
+       WriteSymbolPointers(At(I));
+end;
+var W: sw_integer;
+begin
+  ModuleNames^.Store(S^);
+  TypeNames^.Store(S^);
+  Modules^.Store(S^);
+
+  StorePointers(S,ModuleNames);
+  StorePointers(S,TypeNames);
+  StorePointers(S,Modules);
+  Modules^.ForEach(@WriteSymbolPointers);
+end;
+
+procedure RegisterSymbols;
+begin
+  RegisterType(RModuleNameCollection);
+  RegisterType(RTypeNameCollection);
+  RegisterType(RReference);
+  RegisterType(RSymbol);
+  RegisterType(RObjectSymbol);
+  RegisterType(RSymbolCollection);
+  RegisterType(RSortedSymbolCollection);
+  RegisterType(RIDSortedSymbolCollection);
+  RegisterType(RObjectSymbolCollection);
+  RegisterType(RReferenceCollection);
+end;
 
 begin
   oldexit:=exitproc;
@@ -1258,20 +1583,9 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  1999-07-15 08:42:22  michael
-  + Removed TV stuff from brwosercol
-
-  Revision 1.18  1999/06/25 00:27:41  pierre
-   merged from fixes-0_99_12
-
-  Revision 1.16.2.1  1999/06/25 00:22:23  pierre
-    * avoid problem with lowercase symbols
-      (compare returns zero only if excat match,
-       ordering is first done case unsensitive
-       for a correct browser order)
-      this solves memory leaks :
-      TV and FV do not delete not inserted items in
-      a sorted collection without duplicates (is this a bug or a feature ?)
+  Revision 1.20  1999-08-03 22:02:29  peter
+    * moved bitmask constants to sets
+    * some other type/const renamings
 
   Revision 1.17  1999/06/22 16:24:39  pierre
    * local browser stuff corrected

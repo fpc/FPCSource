@@ -34,7 +34,7 @@ implementation
     uses
       cobjects,verbose,globals,systems,
       globtype,
-      symtable,aasm,types,
+      symconst,symtable,aasm,types,
       hcodegen,htypechk,pass_1,
       tccal
 {$ifdef i386}
@@ -668,7 +668,7 @@ implementation
                                           case porddef(hp^.left^.resulttype)^.typ of
                                             uchar,
                                             u32bit,s32bit,
-                                            u64bit,s64bitint:
+                                            u64bit,s64bit:
                                               ;
                                             u8bit,s8bit,
                                             u16bit,s16bit :
@@ -823,7 +823,7 @@ implementation
                       begin
                         case porddef(hp^.left^.resulttype)^.typ of
                           u32bit,s32bit,
-                          s64bitint,u64bit:
+                          s64bit,u64bit:
                             ;
                           u8bit,s8bit,
                           u16bit,s16bit:
@@ -929,7 +929,7 @@ implementation
                            ((hpp^.left^.resulttype^.deftype = orddef) And
                             (POrdDef(hpp^.left^.resulttype)^.typ in
                               [u32bit,s32bit,
-                               u8bit,s8bit,u16bit,s16bit,s64bitint,u64bit])))
+                               u8bit,s8bit,u16bit,s16bit,s64bit,u64bit])))
                         Then CGMessage(type_e_mismatch);
                   must_be_valid:=true;
                  {hp = source (String)}
@@ -1123,7 +1123,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.43  1999-07-30 12:28:43  peter
+  Revision 1.44  1999-08-03 22:03:32  peter
+    * moved bitmask constants to sets
+    * some other type/const renamings
+
+  Revision 1.43  1999/07/30 12:28:43  peter
     * fixed crash with unknown id and colon parameter in write
 
   Revision 1.42  1999/07/18 14:47:35  florian

@@ -28,7 +28,7 @@
       begin
          inherited initname(n);
          typ:=abstractsym;
-         properties:=current_object_option;
+         symoptions:=current_object_option;
 {$ifdef GDB}
          isstabwritten := false;
 {$endif GDB}
@@ -51,7 +51,7 @@
          indexnr:=readword;
          setname(readstring);
          typ:=abstractsym;
-         properties:=symprop(readbyte);
+         readsmallset(symoptions);
          readposinfo(fileinfo);
          lastref:=nil;
          defref:=nil;
@@ -154,7 +154,7 @@
       begin
          writeword(indexnr);
          writestring(name);
-         writebyte(byte(properties));
+         writesmallset(symoptions);
          writeposinfo(fileinfo);
       end;
 
@@ -412,7 +412,7 @@
         last : pprocdef;
       begin
          resolvedef(pdef(definition));
-         if (definition^.options and pooperator) <> 0 then
+         if (definition^.proctypeoption=potype_operator) then
            begin
               last:=definition;
               while assigned(last^.nextoverloaded) do
@@ -532,7 +532,7 @@
 
     procedure tprocsym.concatstabto(asmlist : paasmoutput);
     begin
-      if (definition^.options and pointernproc) <> 0 then exit;
+      if (pocall_internproc in definition^.proccalloptions) then exit;
       if not isstabwritten then
         asmlist^.concat(new(pai_stabs,init(stabstring)));
       isstabwritten := true;
@@ -573,7 +573,7 @@
       begin
          inherited init(n);
          typ:=propertysym;
-         options:=0;
+         propoptions:=[];
          proptype:=nil;
          readaccessdef:=nil;
          writeaccessdef:=nil;
@@ -598,7 +598,7 @@
          inherited load;
          typ:=propertysym;
          proptype:=readdefref;
-         options:=readlong;
+         readsmallset(propoptions);
          index:=readlong;
          default:=readlong;
          { it's hack ... }
@@ -634,7 +634,7 @@
       begin
          tsym.write;
          writedefref(proptype);
-         writelong(options);
+         writesmallset(propoptions);
          writelong(index);
          writelong(default);
          writesymref(readaccesssym);
@@ -772,6 +772,8 @@
 
 
     procedure tabsolutesym.write;
+      var
+        hvo : tvaroptions;
       begin
          { Note: This needs to write everything of tvarsym.write }
          tsym.write;
@@ -789,7 +791,8 @@
             writedefref(definition);
             writesymref(nil);
           end;
-         writebyte(var_options and (not vo_regable));
+         hvo:=varoptions-[vo_regable];
+         writesmallset(hvo);
          writebyte(byte(abstyp));
          case abstyp of
            tovar :
@@ -867,28 +870,48 @@
          islocalcopy:=false;
          localvarsym:=nil;
          refs:=0;
-         is_valid := 1;
-         var_options:=0;
+         varstate:=vs_used;
+         varoptions:=[];
          { can we load the value into a register ? }
          case p^.deftype of
            pointerdef,
            enumdef,
            procvardef :
-             var_options:=var_options or vo_regable;
+{$ifdef INCLUDEOK}
+             include(varoptions,vo_regable);
+{$else}
+             varoptions:=varoptions+[vo_regable];
+{$endif}
            orddef :
              case porddef(p)^.typ of
                bool8bit,bool16bit,bool32bit,
                u8bit,u16bit,u32bit,
                s8bit,s16bit,s32bit :
-                 var_options:=var_options or vo_regable;
+{$ifdef INCLUDEOK}
+                 include(varoptions,vo_regable);
+{$else}
+                 varoptions:=varoptions+[vo_regable];
+{$endif}
                else
-                 var_options:=var_options and not vo_regable;
+{$ifdef INCLUDEOK}
+                 exclude(varoptions,vo_regable);
+{$else}
+                 varoptions:=varoptions-[vo_regable];
+{$endif}
              end;
            setdef:
              if psetdef(p)^.settype=smallset then
-               var_options:=var_options or vo_regable;
-         else
-           var_options:=var_options and not vo_regable;
+{$ifdef INCLUDEOK}
+                 include(varoptions,vo_regable);
+{$else}
+                 varoptions:=varoptions+[vo_regable];
+{$endif}
+           else
+{$ifdef INCLUDEOK}
+             exclude(varoptions,vo_regable);
+{$else}
+             varoptions:=varoptions-[vo_regable];
+{$endif}
          end;
          reg:=R_NO;
       end;
@@ -898,7 +921,11 @@
       begin
       { The tvarsym is necessary for 0.99.5 (PFV) }
          tvarsym.init(n,p);
-         var_options:=var_options or vo_is_dll_var;
+{$ifdef INCLUDEOK}
+         include(varoptions,vo_is_dll_var);
+{$else}
+         varoptions:=varoptions+[vo_is_dll_var];
+{$endif}
       end;
 
 
@@ -906,7 +933,11 @@
       begin
       { The tvarsym is necessary for 0.99.5 (PFV) }
          tvarsym.init(n,p);
-         var_options:=var_options or vo_is_C_var;
+{$ifdef INCLUDEOK}
+         include(varoptions,vo_is_C_var);
+{$else}
+         varoptions:=varoptions+[vo_is_C_var];
+{$endif}
          setmangledname(mangled);
       end;
 
@@ -939,7 +970,7 @@
          _mangledname:=nil;
          reg:=R_NO;
          refs := 0;
-         is_valid := 1;
+         varstate:=vs_used;
          varspez:=tvarspez(readbyte);
          if read_member then
            address:=readlong
@@ -949,8 +980,8 @@
          localvarsym:=nil;
          definition:=readdefref;
          definitionsym:=ptypesym(readsymref);
-         var_options:=readbyte;
-         if (var_options and vo_is_C_var)<>0 then
+         readsmallset(varoptions);
+         if (vo_is_C_var in varoptions) then
            setmangledname(readstring);
       end;
 
@@ -975,6 +1006,8 @@
 
 
     procedure tvarsym.write;
+      var
+        hvo : tvaroptions;
       begin
          tsym.write;
          writebyte(byte(varspez));
@@ -993,9 +1026,10 @@
           end;
          { symbols which are load are never candidates for a register,
            turn off the regable }
-         writebyte(var_options and (not vo_regable));
-         if (var_options and vo_is_C_var)<>0 then
-            writestring(mangledname);
+         hvo:=varoptions-[vo_regable];
+         writesmallset(hvo);
+         if (vo_is_C_var in varoptions) then
+           writestring(mangledname);
          current_ppu^.writeentry(ibvarsym);
       end;
 
@@ -1087,16 +1121,20 @@
          l,ali,modulo : longint;
          storefilepos : tfileposinfo;
       begin
-        if (var_options and vo_is_external)<>0 then
+        if (vo_is_external in varoptions) then
           exit;
         { handle static variables of objects especially }
         if read_member and (owner^.symtabletype=objectsymtable) and
-           ((properties and sp_static)<>0) then
+           (sp_static in symoptions) then
          begin
             { the data filed is generated in parser.pas
               with a tobject_FIELDNAME variable }
             { this symbol can't be loaded to a register }
-            var_options:=var_options and not vo_regable;
+{$ifdef INCLUDEOK}
+            exclude(varoptions,vo_regable);
+{$else}
+            varoptions:=varoptions-[vo_regable];
+{$endif}
          end
         else
          if not(read_member) then
@@ -1110,7 +1148,7 @@
              }
              storefilepos:=aktfilepos;
              aktfilepos:=tokenpos;
-             if ((var_options and vo_is_thread_var)<>0) then
+             if (vo_is_thread_var in varoptions) then
                l:=4
              else
                l:=getsize;
@@ -1120,7 +1158,7 @@
                  ;
                localsymtable :
                  begin
-                   is_valid := 0;
+                   varstate:=vs_declared;
                    modulo:=owner^.datasize and 3;
 {$ifdef m68k}
                  { word alignment required for motorola }
@@ -1139,16 +1177,12 @@
                staticsymtable :
                  begin
                    { enable unitialized warning for local symbols }
-                   is_valid := 0;
+                   varstate:=vs_declared;
                    if (cs_smartlink in aktmoduleswitches) then
                      bsssegment^.concat(new(pai_cut,init));
                    ali:=data_align(l);
                    if ali>1 then
                      begin
-                        (* this is done
-                           either by the assembler or in ag386bin
-
-                        bsssegment^.concat(new(pai_align,init(ali))); *)
                         modulo:=owner^.datasize mod ali;
                         if modulo>0 then
                           inc(owner^.datasize,ali-modulo);
@@ -1159,14 +1193,18 @@
 {$endif GDB}
 
                    if (cs_smartlink in aktmoduleswitches) or
-                      ((var_options and vo_is_c_var)<>0) then
+                      (vo_is_C_var in varoptions) then
                      bsssegment^.concat(new(pai_datablock,init_global(mangledname,l)))
                    else
                      bsssegment^.concat(new(pai_datablock,init(mangledname,l)));
                    { increase datasize }
                    inc(owner^.datasize,l);
                    { this symbol can't be loaded to a register }
-                   var_options:=var_options and not vo_regable;
+{$ifdef INCLUDEOK}
+                   exclude(varoptions,vo_regable);
+{$else}
+                   varoptions:=varoptions-[vo_regable];
+{$endif}
                  end;
                globalsymtable :
                  begin
@@ -1186,13 +1224,21 @@
                    bsssegment^.concat(new(pai_datablock,init_global(mangledname,l)));
                    inc(owner^.datasize,l);
                    { this symbol can't be loaded to a register }
-                   var_options:=var_options and not vo_regable;
+{$ifdef INCLUDEOK}
+                   exclude(varoptions,vo_regable);
+{$else}
+                   varoptions:=varoptions-[vo_regable];
+{$endif}
                  end;
                recordsymtable,
                objectsymtable :
                  begin
                  { this symbol can't be loaded to a register }
-                   var_options:=var_options and not vo_regable;
+{$ifdef INCLUDEOK}
+                   exclude(varoptions,vo_regable);
+{$else}
+                   varoptions:=varoptions-[vo_regable];
+{$endif}
                  { get the alignment size }
                    if (aktpackrecords=packrecord_C) then
                     begin
@@ -1283,7 +1329,7 @@
        st : char;
      begin
        if (owner^.symtabletype = objectsymtable) and
-          ((properties and sp_static)<>0) then
+          (sp_static in symoptions) then
          begin
             if (cs_gdb_gsym in aktglobalswitches) then st := 'G' else st := 'S';
 {$ifndef Delphi}
@@ -1341,7 +1387,7 @@
          else
    {$endif i386}
            { I don't know if this will work (PM) }
-           if (var_options and vo_is_C_var)<>0 then
+           if (vo_is_C_var in varoptions) then
             stabstring := strpnew('"'+name+':S'
                   +definition^.numberstring+'",'+
                   tostr(N_LCSYM)+',0,'+tostr(fileinfo.line)+','+mangledname)
@@ -1809,7 +1855,11 @@
                begin
                   definition^.sym:=@self;
                   synonym:=nil;
-                  properties:=sp_primary_typesym;
+{$ifdef INCLUDEOK}
+                  include(symoptions,sp_primary_typesym);
+{$else}
+                  symoptions:=symoptions+[sp_primary_typesym];
+{$endif}
                end
              else
                begin
@@ -1863,7 +1913,7 @@
          resolvedef(definition);
          if assigned(definition) then
           begin
-            if properties=sp_primary_typesym then
+            if (sp_primary_typesym in symoptions) then
               begin
                  if definition^.sym<>@self then
                    synonym:=definition^.sym;
@@ -1880,9 +1930,9 @@
                  else
                    definition^.sym:=@self;
               end;
-            if (definition^.deftype=recorddef) and assigned(precdef(definition)^.symtable) and
+            if (definition^.deftype=recorddef) and assigned(precorddef(definition)^.symtable) and
                (definition^.sym=@self) then
-              precdef(definition)^.symtable^.name:=stringdup('record '+name);
+              precorddef(definition)^.symtable^.name:=stringdup('record '+name);
           end;
       end;
 
@@ -1900,9 +1950,9 @@
       begin
          inherited load_references;
          if (definition^.deftype=recorddef) then
-           precdef(definition)^.symtable^.load_browser;
+           precorddef(definition)^.symtable^.load_browser;
          if (definition^.deftype=objectdef) then
-           pobjectdef(definition)^.publicsyms^.load_browser;
+           pobjectdef(definition)^.symtable^.load_browser;
       end;
 
 
@@ -1920,9 +1970,9 @@
           end;
          write_references:=true;
          if (definition^.deftype=recorddef) then
-           precdef(definition)^.symtable^.write_browser;
+           precorddef(definition)^.symtable^.write_browser;
          if (definition^.deftype=objectdef) then
-           pobjectdef(definition)^.publicsyms^.write_browser;
+           pobjectdef(definition)^.symtable^.write_browser;
       end;
 
 
@@ -1942,7 +1992,7 @@
         lasthfp,hfp : pforwardpointer;
       begin
         definition:=p;
-        properties:=current_object_option;
+        symoptions:=current_object_option;
         fileinfo:=tokenpos;
         if assigned(definition) and not(assigned(definition^.sym)) then
           definition^.sym:=@self;
@@ -1963,9 +2013,9 @@
       begin
          inherited add_to_browserlog;
          if (definition^.deftype=recorddef) then
-            precdef(definition)^.symtable^.writebrowserlog;
+            precorddef(definition)^.symtable^.writebrowserlog;
          if (definition^.deftype=objectdef) then
-             pobjectdef(definition)^.publicsyms^.writebrowserlog;
+             pobjectdef(definition)^.symtable^.writebrowserlog;
       end;
 {$endif BrowserLog}
 
@@ -2056,7 +2106,11 @@
 
 {
   $Log$
-  Revision 1.105  1999-07-29 20:54:10  peter
+  Revision 1.106  1999-08-03 22:03:19  peter
+    * moved bitmask constants to sets
+    * some other type/const renamings
+
+  Revision 1.105  1999/07/29 20:54:10  peter
     * write .size also
 
   Revision 1.104  1999/07/27 23:42:21  peter

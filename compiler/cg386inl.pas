@@ -34,7 +34,7 @@ implementation
     uses
       globtype,systems,
       cobjects,verbose,globals,files,
-      symtable,aasm,types,
+      symconst,symtable,aasm,types,
       hcodegen,temp_gen,pass_1,pass_2,
       i386base,i386asm,
       cgai386,tgeni386,cg386cal;
@@ -93,7 +93,7 @@ implementation
             floatstore(PFloatDef(dest^.resulttype)^.typ,dest^.location.reference);
           orddef:
             begin
-              if porddef(dest^.resulttype)^.typ in [u64bit,s64bitint] then
+              if porddef(dest^.resulttype)^.typ in [u64bit,s64bit] then
                 begin
                    emit_movq_reg_loc(R_EDX,R_EAX,dest^.location);
                 end
@@ -207,7 +207,7 @@ implementation
            dummycoll.register:=R_NO;
            { I/O check }
            if (cs_check_io in aktlocalswitches) and
-              ((aktprocsym^.definition^.options and poiocheck)=0) then
+              not(po_iocheck in aktprocsym^.definition^.procoptions) then
              begin
                 getlabel(iolabel);
                 emitlab(iolabel);
@@ -426,7 +426,7 @@ implementation
                                     emitcall(rdwrprefix[doread]+'UINT');
                                   uchar :
                                     emitcall(rdwrprefix[doread]+'CHAR');
-                                  s64bitint:
+                                  s64bit :
                                     emitcall(rdwrprefix[doread]+'INT64');
                                   u64bit :
                                     emitcall(rdwrprefix[doread]+'QWORD');
@@ -609,7 +609,7 @@ implementation
                 u64bit:
                   emitcall(procedureprefix+'QWORD');
 
-                s64bitint:
+                s64bit:
                   emitcall(procedureprefix+'INT64');
 
                 else
@@ -784,7 +784,7 @@ implementation
                  u32bit,s32bit:
                    exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV, S_L,
                      hreg,newreference(hr2))));
-                 u64bit,s64bitint:
+                 u64bit,s64bit:
                    begin
                       exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV, S_L,
                         hreg,newreference(hr2))));
@@ -1313,7 +1313,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.63  1999-07-23 16:05:18  peter
+  Revision 1.64  1999-08-03 22:02:42  peter
+    * moved bitmask constants to sets
+    * some other type/const renamings
+
+  Revision 1.63  1999/07/23 16:05:18  peter
     * alignment is now saved in the symtable
     * C alignment added for records
     * PPU version increased to solve .12 <-> .13 probs

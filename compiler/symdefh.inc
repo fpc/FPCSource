@@ -52,23 +52,25 @@
           constructor init;
           constructor load;
           destructor  done;virtual;
-          { registers enumdef inside objects or
-            record directly in the owner symtable !! }
-          procedure correct_owner_symtable;
+          procedure deref;virtual;
+          procedure symderef;virtual;
           function  typename:string;
           procedure write;virtual;
           function  size:longint;virtual;
           function  alignment:longint;virtual;
+          function  gettypename:string;virtual;
+          function  is_publishable : boolean;virtual;
+          function  is_in_current : boolean;
+          procedure correct_owner_symtable; { registers enumdef inside objects or
+                                              record directly in the owner symtable !! }
+          { debug }
 {$ifdef GDB}
+          function  stabstring : pchar;virtual;
+          procedure concatstabto(asmlist : paasmoutput);virtual;
           function  NumberString:string;
           procedure set_globalnb;
-          function  stabstring : pchar;virtual;
           function  allstabstring : pchar;
-          procedure concatstabto(asmlist : paasmoutput);virtual;
 {$endif GDB}
-          procedure deref;virtual;
-          procedure symderef;virtual;
-
           { init. tables }
           function  needs_inittable : boolean;virtual;
           procedure generate_inittable;
@@ -77,20 +79,13 @@
           { if init and rtti data is different these procedures }
           { must be overloaded                                  }
           procedure write_init_data;virtual;
-          { writes rtti of child to avoid mixup of rtti }
           procedure write_child_init_data;virtual;
-
           { rtti }
           procedure write_rtti_name;
           function  get_rtti_label : string;virtual;
           procedure generate_rtti;virtual;
           procedure write_rtti_data;virtual;
           procedure write_child_rtti_data;virtual;
-
-          { returns true, if the definition can be published }
-          function is_publishable : boolean;virtual;
-          function is_in_current : boolean;
-          function gettypename:string;virtual;
        private
           savesize  : longint;
        end;
@@ -120,12 +115,13 @@
           constructor load;
           procedure write;virtual;
           procedure deref;virtual;
+          function  gettypename:string;virtual;
           procedure setsize;
+          { debug }
 {$ifdef GDB}
-          function stabstring : pchar;virtual;
+          function  stabstring : pchar;virtual;
           procedure concatstabto(asmlist : paasmoutput);virtual;
 {$endif GDB}
-          function gettypename:string;virtual;
        end;
 
        pformaldef = ^tformaldef;
@@ -133,20 +129,21 @@
           constructor init;
           constructor load;
           procedure write;virtual;
+          function  gettypename:string;virtual;
 {$ifdef GDB}
-          function stabstring : pchar;virtual;
+          function  stabstring : pchar;virtual;
           procedure concatstabto(asmlist : paasmoutput);virtual;
 {$endif GDB}
-          function gettypename:string;virtual;
        end;
 
        perrordef = ^terrordef;
        terrordef = object(tdef)
           constructor init;
+          function  gettypename:string;virtual;
+          { debug }
 {$ifdef GDB}
-          function stabstring : pchar;virtual;
+          function  stabstring : pchar;virtual;
 {$endif GDB}
-          function gettypename:string;virtual;
        end;
 
        { tpointerdef and tclassrefdef should get a common
@@ -163,66 +160,66 @@
           constructor initfar(def : pdef);
           constructor load;
           procedure write;virtual;
+          procedure deref;virtual;
+          function  gettypename:string;virtual;
+          { debug }
 {$ifdef GDB}
           function  stabstring : pchar;virtual;
           procedure concatstabto(asmlist : paasmoutput);virtual;
 {$endif GDB}
-          procedure deref;virtual;
-          function gettypename:string;virtual;
        end;
-
 
        pobjectdef = ^tobjectdef;
        tobjectdef = object(tdef)
-          childof : pobjectdef;
-          objname : pstring;
-          publicsyms : psymtable;
-          options : longint;
+          childof  : pobjectdef;
+          objname  : pstring;
+          symtable : psymtable;
+          objectoptions : tobjectoptions;
           { to be able to have a variable vmt position }
           { and no vmt field for objects without virtuals }
           vmt_offset : longint;
           constructor init(const n : string;c : pobjectdef);
-          destructor done;virtual;
-          procedure check_forwards;
-          function isrelated(d : pobjectdef) : boolean;
-          function size : longint;virtual;
-          function alignment:longint;virtual;
           constructor load;
+          destructor  done;virtual;
           procedure write;virtual;
-          function vmt_mangledname : string;
-          function rtti_name : string;
-          function isclass : boolean;
+          procedure deref;virtual;
+          function  size : longint;virtual;
+          function  alignment:longint;virtual;
+          function  is_publishable : boolean;virtual;
+          function  vmt_mangledname : string;
+          function  rtti_name : string;
+          procedure check_forwards;
+          function  is_related(d : pobjectdef) : boolean;
+          function  is_class : boolean;
+          function  next_free_name_index : longint;
           procedure insertvmt;
           procedure set_parent(c : pobjectdef);
+          { debug }
 {$ifdef GDB}
           function stabstring : pchar;virtual;
 {$endif GDB}
-          procedure deref;virtual;
-
+          { init/final }
           function  needs_inittable : boolean;virtual;
           procedure write_init_data;virtual;
           procedure write_child_init_data;virtual;
-
           { rtti }
           function  get_rtti_label : string;virtual;
           procedure generate_rtti;virtual;
           procedure write_rtti_data;virtual;
           procedure write_child_rtti_data;virtual;
-          function next_free_name_index : longint;
-          function is_publishable : boolean;virtual;
        end;
-
 
        pclassrefdef = ^tclassrefdef;
        tclassrefdef = object(tpointerdef)
           constructor init(def : pdef);
           constructor load;
           procedure write;virtual;
+          function gettypename:string;virtual;
+          { debug }
 {$ifdef GDB}
           function stabstring : pchar;virtual;
           procedure concatstabto(asmlist : paasmoutput);virtual;
 {$endif GDB}
-          function gettypename:string;virtual;
        end;
 
        parraydef = ^tarraydef;
@@ -260,71 +257,53 @@
           procedure write_child_rtti_data;virtual;
        end;
 
-       precdef = ^trecdef;
-       trecdef = object(tdef)
+       precorddef = ^trecorddef;
+       trecorddef = object(tdef)
           symtable : psymtable;
           constructor init(p : psymtable);
           constructor load;
           destructor done;virtual;
           procedure write;virtual;
-          function size:longint;virtual;
-          function alignment : longint;virtual;
+          procedure deref;virtual;
+          function  size:longint;virtual;
+          function  alignment : longint;virtual;
+          function  gettypename:string;virtual;
+          { debug }
 {$ifdef GDB}
-          function stabstring : pchar;virtual;
+          function  stabstring : pchar;virtual;
           procedure concatstabto(asmlist : paasmoutput);virtual;
 {$endif GDB}
-          procedure deref;virtual;
-          function  needs_inittable : boolean;virtual;
-          procedure write_rtti_data;virtual;
+          { init/final }
           procedure write_init_data;virtual;
-          procedure write_child_rtti_data;virtual;
           procedure write_child_init_data;virtual;
-          function gettypename:string;virtual;
+          function  needs_inittable : boolean;virtual;
+          { rtti }
+          procedure write_rtti_data;virtual;
+          procedure write_child_rtti_data;virtual;
        end;
-
-       { base types }
-       tbasetype = (uauto,uvoid,uchar,
-                    u8bit,u16bit,u32bit,
-                    s8bit,s16bit,s32bit,
-                    bool8bit,bool16bit,bool32bit { uwchar,bool1bit,bitfield},
-                    u64bit,s64bitint);
 
        porddef = ^torddef;
        torddef = object(tdef)
           low,high : longint;
           rangenr  : longint;
           typ      : tbasetype;
-          {
-          bits     : byte;
-          }
           constructor init(t : tbasetype;v,b : longint);
           constructor load;
           procedure write;virtual;
-{$ifdef GDB}
-          function stabstring : pchar;virtual;
-{$endif GDB}
+          function  is_publishable : boolean;virtual;
+          function  gettypename:string;virtual;
           procedure setsize;
-
           { generates the ranges needed by the asm instruction BOUND }
           { or CMP2 (Motorola)                                       }
           procedure genrangecheck;
-          { returns the label of the range check string }
-          function getrangecheckstring : string;
+          function  getrangecheckstring : string;
+          { debug }
+{$ifdef GDB}
+          function  stabstring : pchar;virtual;
+{$endif GDB}
+          { rtti }
           procedure write_rtti_data;virtual;
-          function is_publishable : boolean;virtual;
-          function gettypename:string;virtual;
        end;
-
-       { sextreal is dependant on the cpu, s64bit is also }
-       { dependant on the size (tp = 80bit for both)      }
-       { The EXTENDED format exists on the motorola FPU   }
-       { but it uses 96 bits instead of 80, with some     }
-       { unused bits within the number itself! Pretty     }
-       { complicated to support, so no support for the    }
-       { moment.                                          }
-       { s64 bit is considered as a real because all      }
-       { calculations are done by the fpu.                }
-       tfloattype = (s32real,s64real,s80real,s64comp,f16bit,f32bit);
 
        pfloatdef = ^tfloatdef;
        tfloatdef = object(tdef)
@@ -332,36 +311,41 @@
           constructor init(t : tfloattype);
           constructor load;
           procedure write;virtual;
+          function  gettypename:string;virtual;
+          function  is_publishable : boolean;virtual;
+          procedure setsize;
+          { debug }
 {$ifdef GDB}
           function stabstring : pchar;virtual;
 {$endif GDB}
-          procedure setsize;
-          function is_publishable : boolean;virtual;
+          { rtti }
           procedure write_rtti_data;virtual;
-          function gettypename:string;virtual;
        end;
 
        pabstractprocdef = ^tabstractprocdef;
        tabstractprocdef = object(tdef)
           { saves a definition to the return type }
-          retdef   : pdef;
-          fpu_used : byte;    { how many stack fpu must be empty }
-          options  : longint; { save the procedure options }
-          para1    : pdefcoll;
+          retdef          : pdef;
+          proctypeoption  : tproctypeoption;
+          proccalloptions : tproccalloptions;
+          procoptions     : tprocoptions;
+          para1           : pdefcoll;
+          fpu_used        : byte;    { how many stack fpu must be empty }
           constructor init;
           constructor load;
           destructor done;virtual;
+          procedure  write;virtual;
+          procedure deref;virtual;
           procedure concatdef(p : pdef;vsp : tvarspez);
           procedure concattypesym(p : ptypesym;vsp : tvarspez);
-          procedure deref;virtual;
-          function para_size : longint;
-          function demangled_paras : string;
+          function  para_size : longint;
+          function  demangled_paras : string;
+          procedure test_if_fpu_result;
+          { debug }
 {$ifdef GDB}
-          function stabstring : pchar;virtual;
+          function  stabstring : pchar;virtual;
           procedure concatstabto(asmlist : paasmoutput);virtual;
 {$endif GDB}
-          procedure test_if_fpu_result;
-          procedure write;virtual;
        end;
 
        pprocvardef = ^tprocvardef;
@@ -369,15 +353,17 @@
           constructor init;
           constructor load;
           procedure write;virtual;
-          function size : longint;virtual;
+          function  size : longint;virtual;
+          function gettypename:string;virtual;
+          function is_publishable : boolean;virtual;
+          { debug }
 {$ifdef GDB}
           function stabstring : pchar;virtual;
           procedure concatstabto(asmlist : paasmoutput); virtual;
 {$endif GDB}
+          { rtti }
           procedure write_child_rtti_data;virtual;
-          function is_publishable : boolean;virtual;
           procedure write_rtti_data;virtual;
-          function gettypename:string;virtual;
        end;
 
        tmessageinf = record
@@ -388,7 +374,10 @@
 
        pprocdef = ^tprocdef;
        tprocdef = object(tabstractprocdef)
-          extnumber : longint;
+       private
+          _mangledname : pchar;
+       public
+          extnumber  : longint;
           messageinf : tmessageinf;
           nextoverloaded : pprocdef;
           { where is this function defined, needed here because there
@@ -405,7 +394,6 @@
           lastwritten : pref;
           refcount : longint;
           _class : pobjectdef;
-          _mangledname : pchar;
           { it's a tree, but this not easy to handle }
           { used for inlined procs                   }
           code : pointer;
@@ -417,47 +405,38 @@
           { check the problems of manglednames }
           count      : boolean;
           is_used    : boolean;
-          { set which contains the modified registers }
+          { small set which contains the modified registers }
 {$ifdef newcg}
           usedregisters : tregisterset;
 {$else newcg}
-{$ifdef i386}
-          usedregisters : byte;
-{$endif}
-{$ifdef m68k}
-          usedregisters : word;
-{$endif}
-{$ifdef alpha}
-          usedregisters_int : longint;
-          usedregisters_fpu : longint;
-{$endif}
+          usedregisters : longint;
 {$endif newcg}
           constructor init;
-          destructor done;virtual;
           constructor load;
+          destructor  done;virtual;
           procedure write;virtual;
-{$ifdef GDB}
-          function cplusplusmangledname : string;
-          function stabstring : pchar;virtual;
-          procedure concatstabto(asmlist : paasmoutput);virtual;
-{$endif GDB}
           procedure deref;virtual;
-          function mangledname : string;
+          function  haspara:boolean;
+          function  mangledname : string;
           procedure setmangledname(const s : string);
           procedure load_references;
           function  write_references : boolean;
+          { debug }
+{$ifdef GDB}
+          function  cplusplusmangledname : string;
+          function  stabstring : pchar;virtual;
+          procedure concatstabto(asmlist : paasmoutput);virtual;
+{$endif GDB}
+          { browser }
 {$ifdef BrowserLog}
           procedure add_to_browserlog;
 {$endif BrowserLog}
-          function haspara:boolean;
        end;
-
-       tstringtype = (st_shortstring, st_longstring, st_ansistring, st_widestring);
 
        pstringdef = ^tstringdef;
        tstringdef = object(tdef)
           string_typ : tstringtype;
-          len : longint;
+          len        : longint;
           constructor shortinit(l : byte);
           constructor shortload;
           constructor longinit(l : longint);
@@ -466,17 +445,20 @@
           constructor ansiload;
           constructor wideinit(l : longint);
           constructor wideload;
-          function stringtypname:string;
-          function size : longint;virtual;
+          function  stringtypname:string;
+          function  size : longint;virtual;
           procedure write;virtual;
+          function  gettypename:string;virtual;
+          function  is_publishable : boolean;virtual;
+          { debug }
 {$ifdef GDB}
-          function stabstring : pchar;virtual;
+          function  stabstring : pchar;virtual;
           procedure concatstabto(asmlist : paasmoutput);virtual;
 {$endif GDB}
-          function needs_inittable : boolean;virtual;
+          { init/final }
+          function  needs_inittable : boolean;virtual;
+          { rtti }
           procedure write_rtti_data;virtual;
-          function is_publishable : boolean;virtual;
-          function gettypename:string;virtual;
        end;
 
        penumdef = ^tenumdef;
@@ -493,6 +475,8 @@
           destructor done;virtual;
           procedure write;virtual;
           procedure deref;virtual;
+          function  gettypename:string;virtual;
+          function  is_publishable : boolean;virtual;
           procedure calcsavesize;
           procedure setmax(_max:longint);
           procedure setmin(_min:longint);
@@ -500,38 +484,42 @@
           function  max:longint;
           function  getrangecheckstring:string;
           procedure genrangecheck;
+          { debug }
 {$ifdef GDB}
           function stabstring : pchar;virtual;
 {$endif GDB}
+          { rtti }
           procedure write_child_rtti_data;virtual;
           procedure write_rtti_data;virtual;
-          function is_publishable : boolean;virtual;
-          function  gettypename:string;virtual;
        end;
-
-       tsettype = (normset,smallset,varset);
 
        psetdef = ^tsetdef;
        tsetdef = object(tdef)
-          setof : pdef;
+          setof   : pdef;
           settype : tsettype;
           constructor init(s : pdef;high : longint);
           constructor load;
           procedure write;virtual;
+          procedure deref;virtual;
+          function  gettypename:string;virtual;
+          function  is_publishable : boolean;virtual;
+          { debug }
 {$ifdef GDB}
-          function stabstring : pchar;virtual;
+          function  stabstring : pchar;virtual;
           procedure concatstabto(asmlist : paasmoutput);virtual;
 {$endif GDB}
-          procedure deref;virtual;
-          function is_publishable : boolean;virtual;
+          { rtti }
           procedure write_rtti_data;virtual;
           procedure write_child_rtti_data;virtual;
-          function gettypename:string;virtual;
        end;
 
 {
   $Log$
-  Revision 1.36  1999-08-02 21:29:04  florian
+  Revision 1.37  1999-08-03 22:03:16  peter
+    * moved bitmask constants to sets
+    * some other type/const renamings
+
+  Revision 1.36  1999/08/02 21:29:04  florian
     * the main branch psub.pas is now used for
       newcg compiler
 

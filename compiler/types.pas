@@ -168,7 +168,7 @@ implementation
 
     uses
        strings,globtype,globals,htypechk,
-       tree,verbose;
+       tree,verbose,symconst;
 
 
     function equal_paras(def1,def2 : pdefcoll;value_equal_const : boolean) : boolean;
@@ -245,6 +245,8 @@ implementation
 
     { true if a function can be assigned to a procvar }
     function proc_to_procvar_equal(def1:pprocdef;def2:pprocvardef) : boolean;
+      const
+        po_comp = po_compatibility_options-[po_methodpointer];
       var
         ismethod : boolean;
       begin
@@ -255,9 +257,9 @@ implementation
          ismethod:=assigned(def1^.owner) and
                    (def1^.owner^.symtabletype=objectsymtable) and
                    assigned(def1^.owner^.defowner) and
-                   (pobjectdef(def1^.owner^.defowner)^.isclass);
-         if (ismethod and not ((def2^.options and pomethodpointer)<>0)) or
-            (not(ismethod) and ((def2^.options and pomethodpointer)<>0)) then
+                   (pobjectdef(def1^.owner^.defowner)^.is_class);
+         if (ismethod and not (po_methodpointer in def2^.procoptions)) or
+            (not(ismethod) and (po_methodpointer in def2^.procoptions)) then
           begin
             Message(type_e_no_method_and_procedure_not_compatible);
             exit;
@@ -267,8 +269,7 @@ implementation
          if is_equal(def1^.retdef,def2^.retdef) and
             (equal_paras(def1^.para1,def2^.para1,false) or
              convertable_paras(def1^.para1,def2^.para1,false)) and
-            ((def1^.options and (po_compatibility_options-pomethodpointer))=
-             (def2^.options and (po_compatibility_options-pomethodpointer))) then
+            ((po_comp * def1^.procoptions)= (po_comp * def2^.procoptions)) then
            proc_to_procvar_equal:=true
          else
            proc_to_procvar_equal:=false;
@@ -288,14 +289,18 @@ implementation
          dt : tbasetype;
       begin
          case def^.deftype of
-          orddef : begin
-                     dt:=porddef(def)^.typ;
-                     is_ordinal:=dt in [uchar,u8bit,u16bit,u32bit,u64bit,s8bit,s16bit,s32bit,
-                       s64bitint,bool8bit,bool16bit,bool32bit];
-                   end;
-         enumdef : is_ordinal:=true;
-         else
-           is_ordinal:=false;
+           orddef :
+             begin
+               dt:=porddef(def)^.typ;
+               is_ordinal:=dt in [uchar,
+                                  u8bit,u16bit,u32bit,u64bit,
+                                  s8bit,s16bit,s32bit,s64bit,
+                                  bool8bit,bool16bit,bool32bit];
+             end;
+           enumdef :
+             is_ordinal:=true;
+           else
+             is_ordinal:=false;
          end;
       end;
 
@@ -304,12 +309,12 @@ implementation
     function get_min_value(def : pdef) : longint;
       begin
          case def^.deftype of
-            orddef:
-                get_min_value:=porddef(def)^.low;
-            enumdef:
-                get_min_value:=penumdef(def)^.min;
-         else
-            get_min_value:=0;
+           orddef:
+             get_min_value:=porddef(def)^.low;
+           enumdef:
+             get_min_value:=penumdef(def)^.min;
+           else
+             get_min_value:=0;
          end;
       end;
 
@@ -318,8 +323,8 @@ implementation
     function is_integer(def : pdef) : boolean;
       begin
         is_integer:=(def^.deftype=orddef) and
-                    (porddef(def)^.typ in [uauto,u8bit,u16bit,u32bit,s8bit,
-                                           s16bit,s32bit,u64bit,s64bitint]);
+                    (porddef(def)^.typ in [uauto,u8bit,u16bit,u32bit,u64bit,
+                                           s8bit,s16bit,s32bit,s64bit]);
       end;
 
 
@@ -348,7 +353,7 @@ implementation
            orddef :
              begin
                dt:=porddef(def)^.typ;
-               is_signed:=(dt in [s8bit,s16bit,s32bit,s64bitint]);
+               is_signed:=(dt in [s8bit,s16bit,s32bit,s64bit]);
              end;
            enumdef :
              is_signed:=false;
@@ -483,8 +488,8 @@ implementation
       begin
          ret_in_acc:=(def^.deftype in [orddef,pointerdef,enumdef,classrefdef]) or
                      ((def^.deftype=stringdef) and (pstringdef(def)^.string_typ in [st_ansistring,st_widestring])) or
-                     ((def^.deftype=procvardef) and ((pprocvardef(def)^.options and pomethodpointer)=0)) or
-                     ((def^.deftype=objectdef) and pobjectdef(def)^.isclass) or
+                     ((def^.deftype=procvardef) and not(po_methodpointer in pprocvardef(def)^.procoptions)) or
+                     ((def^.deftype=objectdef) and pobjectdef(def)^.is_class) or
                      ((def^.deftype=setdef) and (psetdef(def)^.settype=smallset)) or
                      ((def^.deftype=floatdef) and (pfloatdef(def)^.typ=f32bit));
       end;
@@ -493,7 +498,7 @@ implementation
     { true, if def is a 64 bit int type }
     function is_64bitint(def : pdef) : boolean;
       begin
-         is_64bitint:=(def^.deftype=orddef) and (porddef(def)^.typ in [u64bit,s64bitint])
+         is_64bitint:=(def^.deftype=orddef) and (porddef(def)^.typ in [u64bit,s64bit])
       end;
 
 
@@ -502,16 +507,17 @@ implementation
       begin
          ret_in_param:=(def^.deftype in [arraydef,recorddef]) or
            ((def^.deftype=stringdef) and (pstringdef(def)^.string_typ in [st_shortstring,st_longstring])) or
-           ((def^.deftype=procvardef) and ((pprocvardef(def)^.options and pomethodpointer)<>0)) or
-           ((def^.deftype=objectdef) and not(pobjectdef(def)^.isclass)) or
+           ((def^.deftype=procvardef) and (po_methodpointer in pprocvardef(def)^.procoptions)) or
+           ((def^.deftype=objectdef) and not(pobjectdef(def)^.is_class)) or
            ((def^.deftype=setdef) and (psetdef(def)^.settype<>smallset));
       end;
 
 
     function push_high_param(def : pdef) : boolean;
       begin
-         push_high_param:=is_open_array(def) or is_open_string(def) or
-           is_array_of_const(def);
+         push_high_param:=is_open_array(def) or
+                          is_open_string(def) or
+                          is_array_of_const(def);
       end;
 
 
@@ -531,9 +537,9 @@ implementation
              )
             )
            ) or
-           ((def^.deftype=objectdef) and not(pobjectdef(def)^.isclass)) or
+           ((def^.deftype=objectdef) and not(pobjectdef(def)^.is_class)) or
            ((def^.deftype=stringdef) and (pstringdef(def)^.string_typ in [st_shortstring,st_longstring])) or
-           ((def^.deftype=procvardef) and ((pprocvardef(def)^.options and pomethodpointer)<>0)) or
+           ((def^.deftype=procvardef) and (po_methodpointer in pprocvardef(def)^.procoptions)) or
            ((def^.deftype=setdef) and (psetdef(def)^.settype<>smallset));
       end;
 
@@ -781,7 +787,7 @@ implementation
              begin
                 { here a problem detected in tabsolutesym }
                 { the types can be forward type !!        }
-                if assigned(def1^.sym) and ((def1^.sym^.properties and sp_forwarddef)<>0) then
+                if assigned(def1^.sym) and (sp_forwarddef in def1^.sym^.symoptions) then
                   b:=(def1^.sym=def2^.sym)
                 else
                   b:=ppointerdef(def1)^.definition=ppointerdef(def2)^.definition;
@@ -851,8 +857,8 @@ implementation
                 { poassembler isn't important for compatibility }
                 { if a method is assigned to a methodpointer    }
                 { is checked before                             }
-                b:=((pprocvardef(def1)^.options and po_compatibility_options)=
-                    (pprocvardef(def2)^.options and po_compatibility_options)) and
+                b:=((pprocvardef(def1)^.procoptions * po_compatibility_options)=
+                    (pprocvardef(def2)^.procoptions * po_compatibility_options)) and
                    is_equal(pprocvardef(def1)^.retdef,pprocvardef(def2)^.retdef);
                 { now evalute the parameters }
                 if b then
@@ -898,7 +904,7 @@ implementation
            if (def1^.deftype=classrefdef) and (def2^.deftype=classrefdef) then
              begin
                 { similar to pointerdef: }
-                if assigned(def1^.sym) and ((def1^.sym^.properties and sp_forwarddef)<>0) then
+                if assigned(def1^.sym) and (sp_forwarddef in def1^.sym^.symoptions) then
                   b:=(def1^.sym=def2^.sym)
                 else
                   b:=is_equal(pclassrefdef(def1)^.definition,pclassrefdef(def2)^.definition);
@@ -968,7 +974,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.78  1999-07-30 12:26:42  peter
+  Revision 1.79  1999-08-03 22:03:41  peter
+    * moved bitmask constants to sets
+    * some other type/const renamings
+
+  Revision 1.78  1999/07/30 12:26:42  peter
     * array is_equal disabled for tp,delphi mode
 
   Revision 1.77  1999/07/29 11:41:51  peter

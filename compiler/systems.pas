@@ -62,7 +62,9 @@ unit systems;
             target_m68k_linux,target_m68k_PalmOS,target_alpha_linux
        );
 
-       ttargetflags = (tf_needs_isconsole,tf_supports_stack_checking);
+       ttargetflags = (tf_none,
+            tf_supports_stack_checking,tf_need_export
+       );
 
      const
        {$ifdef i386} i386targetcnt=5; {$else} i386targetcnt=0; {$endif}
@@ -206,7 +208,7 @@ unit systems;
        ttargetinfo = packed record
           target      : ttarget;
           flags       : set of ttargetflags;
-          cpu    : ttargetcpu;
+          cpu         : ttargetcpu;
           short_name  : string[8];
           unit_env    : string[12];
           system_unit : string[8];
@@ -218,12 +220,12 @@ unit systems;
           resext,
           resobjext,
           exeext      : string[4];
-          os      : tos;
-          link  : tlink;
+          os          : tos;
+          link        : tlink;
           assem       : tasm;
           assemsrc    : tasm; { default source writing assembler }
-          ar      : tar;
-          res    : tres;
+          ar          : tar;
+          res         : tres;
           heapsize,
           maxheapsize,
           stacksize   : longint;
@@ -984,7 +986,7 @@ implementation
           ,(
             target      : target_i386_GO32V1;
             flags       : [];
-            cpu  : i386;
+            cpu         : i386;
             short_name  : 'GO32V1';
             unit_env    : 'GO32V1UNITS';
             system_unit : 'SYSTEM';
@@ -996,12 +998,12 @@ implementation
             resext      : '.res';
             resobjext   : '.o1r';
             exeext      : ''; { The linker produces a.out }
-            os    : os_i386_GO32V1;
+            os          : os_i386_GO32V1;
             link        : link_i386_ldgo32v1;
             assem       : as_i386_as;
             assemsrc    : as_i386_as;
-            ar    : ar_i386_ar;
-            res  : res_none;
+            ar          : ar_i386_ar;
+            res         : res_none;
             heapsize    : 2048*1024;
             maxheapsize : 32768*1024;
             stacksize   : 16384
@@ -1009,7 +1011,7 @@ implementation
           (
             target      : target_i386_GO32V2;
             flags       : [];
-            cpu  : i386;
+            cpu         : i386;
             short_name  : 'GO32V2';
             unit_env    : 'GO32V2UNITS';
             system_unit : 'SYSTEM';
@@ -1021,12 +1023,12 @@ implementation
             resext      : '.res';
             resobjext   : '.or';
             exeext      : '.exe';
-            os    : os_i386_GO32V2;
+            os          : os_i386_GO32V2;
             link        : link_i386_ldgo32v2;
             assem       : as_i386_coff;
             assemsrc    : as_i386_as;
-            ar    : ar_i386_ar;
-            res  : res_none;
+            ar          : ar_i386_ar;
+            res         : res_none;
             heapsize    : 2048*1024;
             maxheapsize : 32768*1024;
             stacksize   : 16384
@@ -1058,7 +1060,7 @@ implementation
           ),
           (
             target      : target_i386_OS2;
-            flags       : [];
+            flags       : [tf_need_export];
             cpu  : i386;
             short_name  : 'OS2';
             unit_env    : 'OS2UNITS';
@@ -1084,7 +1086,7 @@ implementation
           (
             target      : target_i386_WIN32;
             flags       : [];
-            cpu  : i386;
+            cpu         : i386;
             short_name  : 'WIN32';
             unit_env    : 'WIN32UNITS';
             system_unit : 'SYSWIN32';
@@ -1111,7 +1113,7 @@ implementation
           ,(
             target      : target_m68k_Amiga;
             flags       : [];
-            cpu  : m68k;
+            cpu         : m68k;
             short_name  : 'AMIGA';
             unit_env    : '';
             system_unit : 'sysamiga';
@@ -1136,7 +1138,7 @@ implementation
           (
             target      : target_m68k_Atari;
             flags       : [];
-            cpu  : m68k;
+            cpu         : m68k;
             short_name  : 'ATARI';
             unit_env    : '';
             system_unit : 'SYSATARI';
@@ -1161,7 +1163,7 @@ implementation
           (
             target      : target_m68k_Mac;
             flags       : [];
-            cpu  : m68k;
+            cpu         : m68k;
             short_name  : 'MACOS';
             unit_env    : '';
             system_unit : 'sysmac';
@@ -1173,12 +1175,12 @@ implementation
             resext      : '.res';
             resobjext   : '.or';
             exeext      : '';
-            os    : os_m68k_Mac;
+            os          : os_m68k_Mac;
             link        : link_m68k_ld;
             assem       : as_m68k_mpw;
             assemsrc    : as_m68k_mpw;
-            ar    : ar_m68k_ar;
-            res  : res_none;
+            ar          : ar_m68k_ar;
+            res         : res_none;
             heapsize    : 128*1024;
             maxheapsize : 32768*1024;
             stacksize   : 8192
@@ -1186,7 +1188,7 @@ implementation
           (
             target      : target_m68k_linux;
             flags       : [];
-            cpu  : m68k;
+            cpu         : m68k;
             short_name  : 'LINUX';
             unit_env    : 'LINUXUNITS';
             system_unit : 'syslinux';
@@ -1198,12 +1200,12 @@ implementation
             resext      : '.res';
             resobjext   : '.or';
             exeext      : '';
-            os    : os_m68k_Linux;
+            os          : os_m68k_Linux;
             link        : link_m68k_ld;
             assem       : as_m68k_as;
             assemsrc    : as_m68k_as;
-            ar    : ar_m68k_ar;
-            res  : res_none;
+            ar          : ar_m68k_ar;
+            res         : res_none;
             heapsize    : 128*1024;
             maxheapsize : 32768*1024;
             stacksize   : 8192
@@ -1211,7 +1213,7 @@ implementation
           (
             target      : target_m68k_PalmOS;
             flags       : [];
-            cpu  : m68k;
+            cpu         : m68k;
             short_name  : 'PALMOS';
             unit_env    : 'PALMUNITS';
             system_unit : 'syspalm';
@@ -1223,12 +1225,12 @@ implementation
             resext      : '.res';
             resobjext   : '.or';
             exeext      : '';
-            os    : os_m68k_PalmOS;
+            os          : os_m68k_PalmOS;
             link        : link_m68k_ld;
             assem       : as_m68k_as;
             assemsrc    : as_m68k_as;
-            ar    : ar_m68k_ar;
-            res  : res_none;
+            ar          : ar_m68k_ar;
+            res         : res_none;
             heapsize    : 128*1024;
             maxheapsize : 32768*1024;
             stacksize   : 8192
@@ -1624,7 +1626,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.87  1999-08-03 17:09:43  florian
+  Revision 1.88  1999-08-03 22:03:23  peter
+    * moved bitmask constants to sets
+    * some other type/const renamings
+
+  Revision 1.87  1999/08/03 17:09:43  florian
     * the alpha compiler can be compiled now
 
   Revision 1.86  1999/08/03 15:52:00  michael

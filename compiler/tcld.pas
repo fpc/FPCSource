@@ -38,7 +38,7 @@ implementation
 
     uses
       cobjects,verbose,globals,systems,
-      symtable,aasm,types,
+      symconst,symtable,aasm,types,
       hcodegen,htypechk,pass_1,
       tccnv
 {$ifdef i386}
@@ -120,8 +120,11 @@ implementation
                         begin
                           p^.registers32:=1;
                           { further, the variable can't be put into a register }
-                          pvarsym(p^.symtableentry)^.var_options:=
-                            pvarsym(p^.symtableentry)^.var_options and not vo_regable;
+{$ifdef INCLUDEOK}
+                          exclude(pvarsym(p^.symtableentry)^.varoptions,vo_regable);
+{$else}
+                          pvarsym(p^.symtableentry)^.varoptions:=pvarsym(p^.symtableentry)^.varoptions-[vo_regable];
+{$endif}
                         end;
                      end;
                    if (pvarsym(p^.symtableentry)^.varspez=vs_const) then
@@ -136,7 +139,7 @@ implementation
                    if p^.symtable^.symtabletype=withsymtable then
                      inc(p^.registers32);
 
-                   if (pvarsym(p^.symtableentry)^.var_options and (vo_is_thread_var or vo_is_dll_var))<>0 then
+                   if ([vo_is_thread_var,vo_is_dll_var]*pvarsym(p^.symtableentry)^.varoptions)<>[] then
                      p^.registers32:=1;
                    { a class variable is a pointer !!!
                      yes, but we have to resolve the reference in an
@@ -151,24 +154,25 @@ implementation
 
                    if must_be_valid and p^.is_first then
                      begin
-                     if pvarsym(p^.symtableentry)^.is_valid=2 then
-                       if (assigned(pvarsym(p^.symtableentry)^.owner) and assigned(aktprocsym)
-                       and (pvarsym(p^.symtableentry)^.owner = aktprocsym^.definition^.localst)) then
-                       begin
-                          if p^.symtable^.symtabletype=localsymtable then
+                       if pvarsym(p^.symtableentry)^.varstate=vs_declared2 then
+                        if (assigned(pvarsym(p^.symtableentry)^.owner) and
+                           assigned(aktprocsym) and
+                           (pvarsym(p^.symtableentry)^.owner = aktprocsym^.definition^.localst)) then
+                         begin
+                           if p^.symtable^.symtabletype=localsymtable then
                             CGMessage1(sym_n_uninitialized_local_variable,pvarsym(p^.symtableentry)^.name)
-                          else
+                           else
                             CGMessage1(sym_n_uninitialized_variable,pvarsym(p^.symtableentry)^.name);
-                       end;
+                         end;
                      end;
                    if count_ref then
                      begin
                         if (p^.is_first) then
                           begin
-                             if (pvarsym(p^.symtableentry)^.is_valid=2) then
-                               pvarsym(p^.symtableentry)^.is_valid:=1;
-                              p^.is_first:=false;
-                           end;
+                            if pvarsym(p^.symtableentry)^.varstate=vs_declared2 then
+                             pvarsym(p^.symtableentry)^.varstate:=vs_used;
+                            p^.is_first:=false;
+                          end;
                      end;
                      { this will create problem with local var set by
                      under_procedures
@@ -181,8 +185,8 @@ implementation
                      inc(pvarsym(p^.symtableentry)^.refs,t_times);
                 end;
             typedconstsym :
-              if not p^.is_absolute then
-                     p^.resulttype:=ptypedconstsym(p^.symtableentry)^.definition;
+                if not p^.is_absolute then
+                  p^.resulttype:=ptypedconstsym(p^.symtableentry)^.definition;
             procsym :
                 begin
                    if assigned(pprocsym(p^.symtableentry)^.definition^.nextoverloaded) then
@@ -253,7 +257,7 @@ implementation
                   at_minus : p^.right:=gennode(subn,getcopy(p^.left),p^.right);
                   at_star  : p^.right:=gennode(muln,getcopy(p^.left),p^.right);
                   at_slash : p^.right:=gennode(slashn,getcopy(p^.left),p^.right);
-                  end;
+                end;
            end;
 {$endif i386}
          must_be_valid:=true;
@@ -263,7 +267,6 @@ implementation
            exit;
 
          { some string functions don't need conversion, so treat them separatly }
-
          if is_shortstring(p^.left^.resulttype) and (assigned(p^.right^.resulttype)) then
           begin
             if not (is_shortstring(p^.right^.resulttype) or
@@ -301,6 +304,14 @@ implementation
             if codegenerror then
              exit;
           end;
+
+         { set assigned flag for varsyms }
+         if (p^.left^.treetype=loadn) and
+            (p^.left^.symtableentry^.typ=varsym) and
+            (pvarsym(p^.left^.symtableentry)^.varstate=vs_declared) then
+           pvarsym(p^.left^.symtableentry)^.varstate:=vs_assigned;
+
+
 
          p^.resulttype:=voiddef;
          {
@@ -470,7 +481,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.36  1999-07-22 09:38:00  florian
+  Revision 1.37  1999-08-03 22:03:33  peter
+    * moved bitmask constants to sets
+    * some other type/const renamings
+
+  Revision 1.36  1999/07/22 09:38:00  florian
     + resourcestring implemented
     + start of longstring support
 

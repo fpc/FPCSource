@@ -37,7 +37,7 @@ implementation
     uses
       globtype,systems,tokens,
       cobjects,verbose,globals,
-      symtable,aasm,types,
+      symconst,symtable,aasm,types,
       hcodegen,htypechk,pass_1
 {$ifdef i386}
       ,i386base
@@ -89,16 +89,16 @@ implementation
            begin
               rd:=p^.right^.resulttype;
               ld:=p^.left^.resulttype;
-              if (porddef(rd)^.typ=s64bitint) or (porddef(ld)^.typ=s64bitint) then
+              if (porddef(rd)^.typ=s64bit) or (porddef(ld)^.typ=s64bit) then
                 begin
-                   if (porddef(ld)^.typ<>s64bitint) then
+                   if (porddef(ld)^.typ<>s64bit) then
                      begin
-                       p^.left:=gentypeconvnode(p^.left,cs64bitintdef);
+                       p^.left:=gentypeconvnode(p^.left,cs64bitdef);
                        firstpass(p^.left);
                      end;
-                   if (porddef(rd)^.typ<>s64bitint) then
+                   if (porddef(rd)^.typ<>s64bit) then
                      begin
-                        p^.right:=gentypeconvnode(p^.right,cs64bitintdef);
+                        p^.right:=gentypeconvnode(p^.right,cs64bitdef);
                         firstpass(p^.right);
                      end;
                    calcregisters(p,2,0,0);
@@ -413,7 +413,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  1999-06-02 10:11:54  florian
+  Revision 1.17  1999-08-03 22:03:34  peter
+    * moved bitmask constants to sets
+    * some other type/const renamings
+
+  Revision 1.16  1999/06/02 10:11:54  florian
     * make cycle fixed i.e. compilation with 0.99.10
     * some fixes for qword
     * start of register calling conventions
