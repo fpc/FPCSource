@@ -13,3 +13,6 @@ Amiga :  GCC 2.91.66
  (long long/double support is buggy in this version of GCC, so it cannot be used)
 Linux-m68k :  GCC 2.95.4 and 3.0.4
 Linux-i386 : GCC 2.95.4 20011002 (Debian prerelease)
+
+NetBSD-m68k : GCC 2.95.3 on NetBSD elf 1.6
+
