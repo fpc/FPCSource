@@ -157,7 +157,7 @@ Fixed bugs:
   bug0121.pp   cardinal -> byte conversion not work (and crashes)    OK 0.99.6 (FK)
   bug0122.pp   exit() gives a warning that the result is not set     OK 0.99.6 (FK)
   bug0123.pp   Asm, problem with intel assembler (shrd)              OK 0.99.11 (PM)
-  bug0124.pp   Asm, problem with -Rintel switch and indexing 
+  bug0124.pp   Asm, problem with -Rintel switch and indexing
                (whatever the order) fixed
                variable must still be the first inside bracket       OK 0.99.11 (PM)
   bug0125.pp   wrong colors with DOS CRT unit                        OK 0.99.6 (PFV)
@@ -305,7 +305,7 @@ Fixed bugs:
                allowed in -Sd mode OK 0.99.11 (PM)
   bug0248.pp   Asm, Wrong assembler code accepted by new assembler reader OK 0.99.11 (PFV)
   bug0250.pp   error with Ansistrings and loops.                    OK 0.99.11 (PFV)
-  
+
 
 Unproducable bugs:
 ------------------
@@ -339,7 +339,8 @@ bug0232.pp   const. procedure variables need a special syntax
              if they use calling specification modifiers
 bug0237.pp   Can't have sub procedures with names defined in interface
 bug0244.pp   nested procedures can't have same name as global ones
-bug0245.pp   assigning pointers to address of consts is allowed (refused by BP !) 
+bug0245.pp   assigning pointers to address of consts is allowed (refused by BP !)
 bug0246.pp   const para can be changed without error
 bug0249.pp   procedure of object cannot be assigned to property.
-bug0251.pp   typed const are not aligned correctly 
+bug0251.pp   typed const are not aligned correctly
+bug0252.pp   typecasting not possible within typed const
