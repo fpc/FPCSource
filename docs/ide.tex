@@ -1783,7 +1783,7 @@ are not presented for editing.
 If a (optional) filename argument is present, \var{\$PROMPT()} will load
 a dialog description from the filename argument, e.g.
 \begin{verbatim}
-$PROMPT('cvsco.tdf')
+$PROMPT(cvsco.tdf)
 \end{verbatim}
 would parse the file \file{cvsco.tdf}, construct a dialog with it and
 display it. After the dialog closed, the information entered by the user
@@ -1805,9 +1805,171 @@ unsaved files should be saved before executing the command.
 Writes the parsed tool output information to a file with name as in the argument.
 \end{description}	
 
-\subsection{Building tools with a command line dialog box}
+\subsection{Building a command line dialog box}
 \label{se:commanddialogs}
+When defining a tool, it is possible to show a dialog to the user, asking for
+additional arguments, using the \var{\$PROMPT(filename)} command-macro.
+\fpc comes with some dialogs, such as a 'grep' dialog, a 'cvs checkout' dialog
+and a 'cvs check in' dialog. The files for these dialogs are in the binary
+directory and have an extension \file{.tdf}.
 
+In this section, the file format for the dialog description file is explained.
+The format of this file resembles a windows \file{.INI} file, where each section
+in the file describes an element (or control) in the dialog.
+A \var{OK} and \var{Cancel} button will be added to the bottom of the dialog,
+so these should not be specified in the dialog definition.
+
+A special section is the \var{Main} section. It describes how the result of
+the dialog will be passed on the commandline, and the total size of the dialog.
+
+\begin{remark}
+Keywords that contain a string value, should have the string value enclosed
+in double quotes as in
+\begin{verbatim}
+Title="Dialog title"
+\end{verbatim}
+\end{remark}
+
+The \var{Main} section should contain the following keywords:
+\begin{description}
+\item[Title] The title of the dialog. This will appear in the frame title of the dialog.
+The string should be enclosed in quotes.
+\item[Size] The size of the dialog, this is formatted as \var{(Cols,Rows)}, so
+\begin{verbatim}
+Size=(59,9)
+\end{verbatim}
+means the dialog is 59 characters wide, and 9 lines high. This size does not include
+the border of the dialog.
+\item[CommandLine] specifies how the command-line will be passed to the
+program, based on the entries made in the dialog. The text typed here will be passed
+on after replacing some control placeholders with their values.
+
+A control placeholder is the name of some control in the dialog, enclosed in
+percent (\var{\%}) characters. The name of the control will be replaced with
+the text, associated with the control. Consider the following example:
+\begin{verbatim}
+CommandLine="-n %l% %v% %i% %w% %searchstr% %filemask%"
+\end{verbatim}
+Here the values associated with the controls named \var{l, i, v, w} and
+\var{searchstr} and \var{filemask} will be inserted in the command-line
+string.
+\item[Default]
+The name of the control that is the default control, i.e. the control
+that has the focus when the dialog is opened.
+\end{description}
+The following is an example of a valid main section:
+\begin{verbatim}
+[Main]
+Title="GNU Grep"
+Size=(56,9)
+CommandLine="-n %l% %v% %i% %w% %searchstr% %filemask%"
+Default="searchstr"
+\end{verbatim}
+
+After the \var{Main} section, a section must be specified for each control that
+should appear on the dialog. Each section has the name of the control it
+describes, as in the following example:
+\begin{verbatim}
+[CaseSensitive]
+Type=CheckBox
+Name="~C~ase sensitive"
+Origin=(2,6)
+Size=(25,1)
+Default=On
+On="-i"
+\end{verbatim}
+Each control section  must have at least the following keywords associated
+with it:
+\begin{description}
+\item[Type] The type of control. Possible values are:
+\begin{description}
+\item[Label] A plain text label which will be shown on the dialog.
+A control can be linked to this label, so it will be focused when
+the user presses the highlighted letter in the label caption (if any).
+\item[InputLine] An edit field where a text can be entered.
+\item[CheckBox] A Checkbox which can be in a on or off state.
+\end{description}
+\item[Origin] Specifies where the control should be located in the dialog.
+The origin is specified as \var{(left,Top)} and the top-left corned of
+the dialog has coordinate \var{(1,1)} (not counting the frame).
+\item[Size] Specifies the size of the control, which should be specified
+as \var{(Cols,Rows)}.
+\end{description}
+
+Each control has some specific keywords associated with it;
+they will be described below.
+
+A label (\var{Type=Label}) has the following extra keywords associated
+with it:
+\begin{description}
+\item[Text] the text displayed in the label. If one of the letters should
+be highlighted so it can be used as a shortcut, then it should be enclosed
+in tilde characters (\~{}), e.g. in
+\begin{verbatim}
+Text="~T~ext to find"
+\end{verbatim}
+The \var{T} will be highlighted.
+\item[Link] here the name of a control in the dialog may be specified.
+If specified, pressing this letter in combination with the \key{Alt}
+key will put the focus on the control specified here.
+\end{description}
+A label does not contribute to the text of the command-line, it is for
+informational and navigational purposes only. The following is an
+example of a label description section:
+\begin{verbatim}
+[label2]
+Type=Label
+Origin=(2,3)
+Size=(22,1)
+Text="File ~m~ask"
+Link="filemask"
+\end{verbatim}
+
+An edit control (\var{Type=InputLine}) allows to enter arbitrary text.
+The text of the edit control will be pasted in the command-line if it
+is referenced there. The following keyword can be specified in a
+inputline control section:
+\begin{description}
+\item[Value] here a standard value (text) for the edit control can be
+specified. This value will be filled in when the dialog appears.
+\end{description}
+The following is an example of a input line section:
+\begin{verbatim}
+[filemask]
+Type=InputLine
+Origin=(2,4)
+Size=(22,1)
+Value="*.pas *.pp *.inc"
+\end{verbatim}
+
+A combo-box control (\var{Type=CheckBox}) presents a checkbox which
+can be in one of two states, \var{on} or \var{off}. With each of
+these states, a value can be associated which will be passed on to
+the command-line. The following keywords can appear in a checkbox
+type section:
+\begin{description}
+\item[Name] the text that appears after the checkbox.
+If there is a highlighted letter in it, this letter can be used
+to set or unset the checkbox using the \key{Alt}-letter combination.
+\item[Default] specifies whether the checkbox is checked or not when
+the dialog appears (values \var{on} or \var{off})
+\item[On] the text associated with this combobox if it is in the checked
+state.
+\item[Off] the text associated with this combobox if it is in the
+unchecked state.
+\end{description}
+The following is a example of a valid checkbox description:
+\begin{verbatim}
+[i]
+Type=CheckBox
+Name="~C~ase sensitive"
+Origin=(2,6)
+Size=(25,1)
+Default=On
+On="-i"
+\end{verbatim}
+If the checkbox is checked, then the value \var{-i} will be added on
+the command-line of the tool. If it is unchecked, no value will be added.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Project management
@@ -2559,6 +2721,9 @@ Enable code completion. On by default.
 \item[Tab size]
 The number of spaces that are inserted when the \key{Tab} key is pressed.
 The default value is 8.
+\item[Indent size]
+The number of spaces a block is indented when calling the block indent function.
+The default value is 2.
 \item[Highlight extensions]
 When syntax highlighting is on, the list of file masks entered here will be
 used to determine which files are highlighted. File masks should be
@@ -2955,7 +3120,10 @@ Undo & \key{Alt-Backspace} & \\
 \end{FPCltable}
 %
 %  $Log$
-%  Revision 1.1.2.15  2000-12-07 23:19:04  michael
+%  Revision 1.1.2.16  2000-12-08 12:57:21  michael
+%  + Documented tdf format
+%
+%  Revision 1.1.2.15  2000/12/07 23:19:04  michael
 %  + Added memsizes, goto line and debug options
 %
 %  Revision 1.1.2.14  2000/12/06 23:08:56  michael
