@@ -14,15 +14,15 @@ begin
   error:=false;
   str(Inf,s);
   writeln('Inf: "',s,'"');
-  if s<>'                   +Inf' then
+  if s<>'                     +Inf' then
    error:=true;
   str(NaN,s);
   writeln('Nan: "',s,'"');
-  if s<>'                    Nan' then
+  if s<>'                      Nan' then
    error:=true;
   str(MinusInf,s);
   writeln('MinusInf: "',s,'"');
-  if s<>'                   -Inf' then
+  if s<>'                     -Inf' then
    error:=true;
   if error then
    begin
