@@ -165,18 +165,18 @@ Type
 *****************************************************************************}
 
 
-       { Types of operand }
-        toptype=(top_none,top_reg,top_ref,top_const,top_symbol);
+{ Types of operand }
+ toptype=(top_none,top_reg,top_ref,top_const,top_symbol);
 
-        toper=record
-          ot  : longint;
-          case typ : toptype of
-           top_none   : ();
-           top_reg    : (reg:tregister);
-           top_ref    : (ref:preference);
-           top_const  : (val:longint);
-           top_symbol : (sym:pasmsymbol;symofs:longint);
-        end;
+ toper=record
+   ot  : longint;
+   case typ : toptype of
+    top_none   : ();
+    top_reg    : (reg:tregister);
+    top_ref    : (ref:preference);
+    top_const  : (val:longint);
+    top_symbol : (sym:pasmsymbol;symofs:longint);
+ end;
 
 Const
   { offsets for the integer and floating point registers }
@@ -196,6 +196,7 @@ Const
 procedure reset_reference(var ref : treference);
 { set mostly used values of a new reference }
 function new_reference(base : tregister;offset : longint) : preference;
+function newreference(const r : treference) : preference;
 procedure disposereference(var r : preference);
 
 function reg2str(r : tregister) : string;
@@ -232,6 +233,16 @@ begin
   new_reference:=r;
 end;
 
+function newreference(const r : treference) : preference;
+
+var
+   p : preference;
+begin
+   new(p);
+   p^:=r;
+   newreference:=p;
+end;
+
 procedure disposereference(var r : preference);
 
 begin
@@ -242,7 +253,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  1999-08-06 15:53:52  florian
+  Revision 1.12  1999-08-06 16:04:08  michael
+  + introduced tainstruction
+
+  Revision 1.11  1999/08/06 15:53:52  florian
     * made the alpha version compilable
 
   Revision 1.10  1999/08/06 14:15:55  florian

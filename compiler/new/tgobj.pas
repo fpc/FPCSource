@@ -32,6 +32,7 @@ unit tgobj;
       cpubase,
       cpuinfo,
       cpuasm,
+      tainst,
 {$endif i386}
        cobjects,globals,tree,hcodegen,verbose,files,aasm;
 
@@ -695,7 +696,10 @@ unit tgobj;
 end.
 {
   $Log$
-  Revision 1.4  1999-08-03 00:33:23  michael
+  Revision 1.5  1999-08-06 16:04:06  michael
+  + introduced tainstruction
+
+  Revision 1.4  1999/08/03 00:33:23  michael
   + Added cpuasm for alpha
 
   Revision 1.3  1999/08/03 00:32:13  florian

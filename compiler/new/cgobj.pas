@@ -26,7 +26,7 @@ unit cgobj;
   interface
 
     uses
-       cobjects,aasm,symtable,symconst,cpuasm,cpubase,cgbase,cpuinfo;
+       cobjects,aasm,symtable,symconst,cpuasm,cpubase,cgbase,cpuinfo,tainst;
 
     type
        qword = comp;
@@ -176,7 +176,7 @@ unit cgobj;
     constructor tcg.init;
 
       var
-         i : aword;
+         i : longint;
 
       begin
          scratch_register_array_pointer:=1;
@@ -211,7 +211,7 @@ unit cgobj;
 
       var
          r : tregister;
-         i : aword;
+         i : longint;
 
       begin
          if unusedscratchregisters=[] then
@@ -977,7 +977,10 @@ unit cgobj;
 end.
 {
   $Log$
-  Revision 1.15  1999-08-06 15:53:50  florian
+  Revision 1.16  1999-08-06 16:04:05  michael
+  + introduced tainstruction
+
+  Revision 1.15  1999/08/06 15:53:50  florian
     * made the alpha version compilable
 
   Revision 1.14  1999/08/06 14:15:51  florian
