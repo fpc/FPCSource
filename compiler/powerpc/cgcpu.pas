@@ -1189,7 +1189,7 @@ const
                 list.concat(instr);
                 a_label(list,current_procinfo.gotlabel);
                 list.concat(taicpu.op_reg_reg(A_MFSPR,current_procinfo.got,NR_LR));
-                list.concat(taicpu.op_reg_reg(A_MTSPR,NR_R0,NR_LR));
+                list.concat(taicpu.op_reg_reg(A_MTSPR,NR_LR,NR_R0));
               end;
             else
               begin
@@ -2339,7 +2339,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.166  2004-03-02 17:32:12  florian
+  Revision 1.167  2004-03-02 17:48:32  florian
+    * got entry code fixed
+
+  Revision 1.166  2004/03/02 17:32:12  florian
     * make cycle fixed
     + pic support for darwin
     + support of importing vars from shared libs on darwin implemented
