@@ -41,6 +41,7 @@ interface
        tcgcallnode = class(tcallnode)
           procedure pass_2;override;
           procedure load_framepointer;virtual;abstract;
+          procedure extra_interrupt_code;virtual;
        end;
 
        tcgprocinlinenode = class(tprocinlinenode)
@@ -277,6 +278,16 @@ implementation
 {*****************************************************************************
                              TCGCALLNODE
 *****************************************************************************}
+
+    procedure tcgcallnode.extra_interrupt_code;
+
+      begin
+{$ifdef i386}
+         { if the i386 ever uses tcgcal, we've to move this into an overriden method }
+         emit_none(A_PUSHF,S_L);
+         emit_reg(A_PUSH,S_L,R_CS);
+{$endif i386}
+      end;
 
     procedure tcgcallnode.pass_2;
       var
@@ -962,15 +973,10 @@ implementation
 {$endif dummy}
               if not inlined then
                 begin
-{$ifdef i386}
                   { We can call interrupts from within the smae code
                     by just pushing the flags and CS PM }
                   if (po_interrupt in procdefinition.procoptions) then
-                    begin
-                        emit_none(A_PUSHF,S_L);
-                        emit_reg(A_PUSH,S_L,R_CS);
-                    end;
-{$endif i386}
+                    extra_interrupt_code;
                   cg.a_call_name(exprasmlist,tprocdef(procdefinition).mangledname);
                 end
               else { inlined proc }
@@ -982,22 +988,17 @@ implementation
                    if tprocdef(procdefinition).parast.datasize>0 then
                      tg.UnGetTemp(exprasmlist,pararef);
                 end;
-           end;
-{$ifdef dummy}
+           end
          else
            { now procedure variable case }
            begin
               secondpass(right);
-{$ifdef i386}
               if (po_interrupt in procdefinition.procoptions) then
-                begin
-                    emit_none(A_PUSHF,S_L);
-                    emit_reg(A_PUSH,S_L,R_CS);
-                end;
-{$endif i386}
+                extra_interrupt_code;
               { procedure of object? }
               if (po_methodpointer in procdefinition.procoptions) then
                 begin
+{$ifdef dummy}
                    { method pointer can't be in a register }
                    hregister:=R_NO;
 
@@ -1034,6 +1035,7 @@ implementation
                      cg.free_scratch_reg(exprasmlist,hregister);
                    reference_release(exprasmlist,right.location.reference);
                    tg.Ungetiftemp(exprasmlist,right.location.reference);
+{$endif dummy}
                 end
               else
                 begin
@@ -1043,7 +1045,6 @@ implementation
                    location_freetemp(exprasmlist,right.location);
                 end;
            end;
-{$endif dummy}
 
 {$ifdef dummy}
            { this was only for normal functions
@@ -1480,7 +1481,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2002-09-01 21:04:48  florian
+  Revision 1.20  2002-09-02 11:25:20  florian
+    * fixed generic procedure variable calling
+
+  Revision 1.19  2002/09/01 21:04:48  florian
     * several powerpc related stuff fixed
 
   Revision 1.18  2002/09/01 18:43:27  peter
