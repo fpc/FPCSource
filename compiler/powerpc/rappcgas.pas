@@ -2,7 +2,7 @@
     $Id$
     Copyright (c) 1998-2002 by Carl Eric Codere and Peter Vreman
 
-    Does the parsing for the i386 GNU AS styled inline assembler.
+    Does the parsing for the PowerPC GNU AS styled inline assembler.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -758,7 +758,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.8  2003-11-29 22:54:32  jonas
+  Revision 1.9  2004-02-04 15:23:28  olle
+    * uodated header comment
+
+  Revision 1.8  2003/11/29 22:54:32  jonas
     * more ppc fixes, hello world works again under linuxppc
 
   Revision 1.7  2003/11/29 16:27:19  jonas
