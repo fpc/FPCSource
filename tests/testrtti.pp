@@ -1,7 +1,6 @@
 Program testrtti;
 
-Uses Typinfo;
-
+{$Mode Delphi}
 {$M+}
 
 Uses
@@ -55,6 +54,28 @@ Type
        Procedure SetExtended ( Value : Extended );
        Procedure SetAnsiString ( Value : AnsiString );
        Procedure SetMyEnum ( Value : TMyEnum );
+       Function GetVirtualBoolean : Boolean; virtual;
+       Function GetVirtualByte : Byte; virtual;
+       Function GetVirtualChar : Char; virtual;
+       Function GetVirtualWord : Word; virtual;
+       Function GetVirtualInteger : Integer; virtual;
+       Function GetVirtualLongint : Longint; virtual;
+       Function GetVirtualCardinal : Cardinal; virtual;
+       Function GetVirtualReal : Real; virtual;
+       Function GetVirtualExtended : Extended; virtual;
+       Function GetVirtualAnsiString : AnsiString; virtual;
+       Function GetVirtualMyEnum : TMyEnum; virtual;
+       Procedure SetVirtualBoolean ( Value : Boolean); virtual;
+       Procedure SetVirtualByte ( Value : Byte ); virtual;
+       Procedure SetVirtualChar ( Value : Char ); virtual;
+       Procedure SetVirtualWord ( Value : Word ); virtual;
+       Procedure SetVirtualInteger ( Value : Integer ); virtual;
+       Procedure SetVirtualLongint ( Value : Longint ); virtual;
+       Procedure SetVirtualCardinal ( Value : Cardinal ); virtual;
+       Procedure SetVirtualReal ( Value : Real ); virtual;
+       Procedure SetVirtualExtended ( Value : Extended ); virtual;
+       Procedure SetVirtualAnsiString ( Value : AnsiString ); virtual;
+       Procedure SetVirtualMyEnum ( Value : TMyEnum ); virtual;
        Public
        Constructor Create;
        Destructor Destroy;override;       
@@ -81,6 +102,17 @@ Type
        Property ExtendedMethod : Extended Read GetExtended Write SetExtended;       
        Property AnsiStringMethod : AnsiString Read GetAnsiString Write SetAnsiString;       
        Property MyEnumMethod : TMyEnum Read GetMyEnum Write SetMyEnum;
+       Property BooleanVirtualMethod : Boolean Read GetVirtualBoolean Write SetVirtualBoolean;
+       Property ByteVirtualMethod : Byte Read GetVirtualByte Write SetVirtualByte;       
+       Property CharVirtualMethod : Char Read GetVirtualChar Write SetVirtualChar;       
+       Property WordVirtualMethod : Word Read GetVirtualWord Write SetVirtualWord;       
+       Property IntegerVirtualMethod : Integer Read GetVirtualInteger Write SetVirtualInteger;       
+       Property LongintVirtualMethod : Longint Read GetVirtualLongint Write SetVirtualLongint;       
+       Property CardinalVirtualMethod : Cardinal Read GetVirtualCardinal Write SetVirtualCardinal;       
+       Property RealVirtualMethod : Real Read GetVirtualReal Write SetVirtualReal;       
+       Property ExtendedVirtualMethod : Extended Read GetVirtualExtended Write SetVirtualExtended;       
+       Property AnsiStringVirtualMethod : AnsiString Read GetVirtualAnsiString Write SetVirtualAnsiString;       
+       Property MyEnumVirtualMethod : TMyEnum Read GetVirtualMyEnum Write SetVirtualMyEnum;
        end;
 
 Constructor TMyTestObject.Create;
@@ -218,6 +250,119 @@ begin
   FMyEnum:=Value;
 end;
 
+Function TMyTestObject.GetVirtualBoolean : boolean;
+
+begin
+  Result:=FBoolean;
+end;
+
+Function TMyTestObject.GetVirtualByte : Byte;
+
+begin
+  Result:=FByte;
+end;
+
+Function TMyTestObject.GetVirtualChar : Char;
+begin
+  Result:=FChar;
+end;
+
+Function TMyTestObject.GetVirtualWord : Word;
+begin
+  Result:=FWord;
+end;
+
+Function TMyTestObject.GetVirtualInteger : Integer;
+begin
+  Result:=FInteger;
+end;
+
+Function TMyTestObject.GetVirtualLongint : Longint;
+begin
+  Result:=FLongint;
+end;
+
+Function TMyTestObject.GetVirtualCardinal : Cardinal;
+begin
+  Result:=FCardinal;
+end;
+
+Function TMyTestObject.GetVirtualReal : Real;
+begin
+  Result:=FReal;
+end;
+
+Function TMyTestObject.GetVirtualExtended : Extended;
+begin
+  Result:=FExtended;
+end;
+
+Function TMyTestObject.GetVirtualAnsiString : AnsiString;
+begin
+  Result:=FAnsiString;
+end;
+
+Function TMyTestObject.GetVirtualMyEnum : TMyEnum;
+begin
+  Result:=FMyEnum;
+end;
+
+Procedure TMyTestObject.SetVirtualboolean ( Value : boolean );
+begin
+  Fboolean:=Value;
+end;
+
+
+Procedure TMyTestObject.SetVirtualByte ( Value : Byte );
+begin
+  FByte:=Value;
+end;
+
+Procedure TMyTestObject.SetVirtualChar ( Value : Char );
+begin
+  FChar:=Value;
+end;
+
+Procedure TMyTestObject.SetVirtualWord ( Value : Word );
+begin
+  FWord:=Value;
+end;
+
+Procedure TMyTestObject.SetVirtualInteger ( Value : Integer );
+begin
+  FInteger:=Value;
+end;
+
+Procedure TMyTestObject.SetVirtualLongint ( Value : Longint );
+begin
+  FLongint:=Value;
+end;
+
+Procedure TMyTestObject.SetVirtualCardinal ( Value : Cardinal );
+begin
+  FCardinal:=Value;
+end;
+
+Procedure TMyTestObject.SetVirtualReal ( Value : Real );
+begin
+  FReal:=Value;
+end;
+
+Procedure TMyTestObject.SetVirtualExtended ( Value : Extended );
+begin
+  FExtended:=Value;
+end;
+
+Procedure TMyTestObject.SetVirtualAnsiString ( Value : AnsiString );
+begin
+  FAnsiString:=Value;
+end;
+
+Procedure TMyTestObject.SetVirtualMyEnum ( Value : TMyEnum );
+begin
+  FMyEnum:=Value;
+end;
+
 Procedure DumpMem ( PL : PByte );
 
 Var I,j : longint;
@@ -323,6 +468,18 @@ begin
     Writeln ('Property ExtendedMethod   : ',ExtendedMethod);
     Writeln ('Property AnsiStringMethod : ',AnsiStringMethod);
     Writeln ('Property MyEnumMethod     : ',ord(MyEnumMethod));
+    Writeln ('VirtualMethod properties :');
+    Writeln ('Property booleanVirtualMethod    : ',BooleanVirtualMethod);
+    Writeln ('Property ByteVirtualMethod       : ',ByteVirtualMethod);
+    Writeln ('Property CharVirtualMethod       : ',CharVirtualMethod);
+    Writeln ('Property WordVirtualMethod       : ',WordVirtualMethod);
+    Writeln ('Property IntegerVirtualMethod    : ',IntegerVirtualMethod);
+    Writeln ('Property LongintVirtualMethod    : ',LongintVirtualMethod);
+    Writeln ('Property CardinalVirtualMethod   : ',CardinalVirtualMethod);
+    Writeln ('Property RealVirtualMethod       : ',RealVirtualMethod); 
+    Writeln ('Property ExtendedVirtualMethod   : ',ExtendedVirtualMethod);
+    Writeln ('Property AnsiStringVirtualMethod : ',AnsiStringVirtualMethod);
+    Writeln ('Property MyEnumVirtualMethod     : ',ord(MyEnumVirtualMethod));
     end;
 end;
 
