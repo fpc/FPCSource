@@ -165,7 +165,7 @@ begin
               { if smart not avail then try static linking }
               if (flags and uf_static_linked)<>0 then
                begin
-                 Comment(V_Error,'unit '+modulename^+' can''t be smart linked, switching to static linking');
+                 Comment(V_Warning,'unit '+modulename^+' can''t be smart linked, switching to static linking');
                  mask:=mask or link_static;
                end
               else
@@ -182,7 +182,7 @@ begin
               { if shared not avail then try static linking }
               if (flags and uf_static_linked)<>0 then
                begin
-                 Comment(V_Error,'unit '+modulename^+' can''t be shared linked, switching to static linking');
+                 Comment(V_Warning,'unit '+modulename^+' can''t be shared linked, switching to static linking');
                  mask:=mask or link_static;
                end
               else
@@ -715,7 +715,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.59  1999-07-05 16:21:26  peter
+  Revision 1.60  1999-07-07 20:33:53  peter
+    * warning instead of error when switching to static linking
+
+  Revision 1.59  1999/07/05 16:21:26  peter
     * fixed linking for units without linking necessary
 
   Revision 1.58  1999/07/03 00:29:51  peter
