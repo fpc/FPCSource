@@ -21,18 +21,19 @@
  This is necessary for supporting different platforms with different calling
  conventions via a single unit.}
 
-unit GLUT_SL; { version which does statically linking }
+unit GLUT; { version which does statically linking }
 
 
 interface
 
-uses GL_SL;
+uses GL;
 
 {x$DEFINE GLUT_GAME} {enable if you need game mode sub api}
 
 {$IFDEF Win32}
   {$DEFINE glut_dll := external 'glut32.dll'}
   {$DEFINE glut_callback := cdecl}
+  {$DEFINE extdecl := }
 {$ELSE}
   {$MESSAGE Unsupported platform.}
 {$ENDIF}
