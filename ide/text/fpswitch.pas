@@ -130,6 +130,8 @@ var
     OptimizingGoalSwitches,
     ProcessorSwitches,
     AsmReaderSwitches,
+    AsmInfoSwitches,
+    AsmOutputSwitches,
     TargetSwitches,
     ConditionalSwitches,
     MemorySwitches,
@@ -600,6 +602,8 @@ begin
      OptimizingGoalSwitches^.WriteItemsCfg;
      ProcessorSwitches^.WriteItemsCfg;
      AsmReaderSwitches^.WriteItemsCfg;
+     AsmInfoSwitches^.WriteItemsCfg;
+     AsmOutputSwitches^.WriteItemsCfg;
      DirectorySwitches^.WriteItemsCfg;
      MemorySwitches^.WriteItemsCfg;
      ConditionalSwitches^.WriteItemsCfg;
@@ -645,27 +649,29 @@ begin
       res:=false;
       Delete(s,1,2);
       case c of
-       'd' : res:=ConditionalSwitches^.ReadItemsCfg(s);
-       'X' : res:=LibLinkerSwitches^.ReadItemsCfg(s);
-       'g' : res:=DebugInfoSwitches^.ReadItemsCfg(s);
-       'p' : res:=ProfileInfoSwitches^.ReadItemsCfg(s);
-       'S' : res:=SyntaxSwitches^.ReadItemsCfg(s);
-       'F' : res:=DirectorySwitches^.ReadItemsCfg(s);
-       'T' : res:=TargetSwitches^.ReadItemsCfg(s);
-       'R' : res:=AsmReaderSwitches^.ReadItemsCfg(s);
+       'a' : res:=AsmInfoSwitches^.ReadItemsCfg(s);
+       'A' : res:=AsmOutputSwitches^.ReadItemsCfg(s);
+       'b' : res:=BrowserSwitches^.ReadItemsCfg(s);
        'C' : begin
                res:=CodegenSwitches^.ReadItemsCfg(s);
                if not res then
                  res:=MemorySwitches^.ReadItemsCfg(s);
              end;
-       'v' : res:=VerboseSwitches^.ReadItemsCfg(s);
+       'd' : res:=ConditionalSwitches^.ReadItemsCfg(s);
+       'F' : res:=DirectorySwitches^.ReadItemsCfg(s);
+       'g' : res:=DebugInfoSwitches^.ReadItemsCfg(s);
        'O' : begin
                res:=true;
                if not OptimizationSwitches^.ReadItemsCfg(s) then
                  if not ProcessorSwitches^.ReadItemsCfg(s) then
                    res:=OptimizingGoalSwitches^.ReadItemsCfg(s);
              end;
-       'b' : res:=BrowserSwitches^.ReadItemsCfg(s);
+       'p' : res:=ProfileInfoSwitches^.ReadItemsCfg(s);
+       'R' : res:=AsmReaderSwitches^.ReadItemsCfg(s);
+       'S' : res:=SyntaxSwitches^.ReadItemsCfg(s);
+       'T' : res:=TargetSwitches^.ReadItemsCfg(s);
+       'v' : res:=VerboseSwitches^.ReadItemsCfg(s);
+       'X' : res:=LibLinkerSwitches^.ReadItemsCfg(s);
        end;
       { keep all others as a string }
       if not res then
@@ -790,6 +796,25 @@ begin
      AddSelectItem('Di~r~ect assembler','direct');
      AddSelectItem('~A~T&T style assembler','att');
      AddSelectItem('Int~e~l style assembler','intel');
+   end;
+  New(AsmInfoSwitches,InitSelect('a'));
+  with AsmInfoSwitches^ do
+   begin
+     AddBooleanItem('~L~ist source','l');
+     AddBooleanItem('list ~r~egister allocation','r');
+     AddBooleanItem('list ~t~emp allocation','t');
+   end;
+  New(AsmOutputSwitches,InitSelect('A'));
+  with AsmOutputSwitches^ do
+   begin
+     AddSelectItem('Use GNU ~a~s','as');
+     AddSelectItem('Use NASM ~c~off','nasmcoff');
+     AddSelectItem('Use NASM ~e~lf','nasmelf');
+     AddSelectItem('Use NASM ~o~bj','nasmobj');
+     AddSelectItem('Use ~M~ASM','masm');
+     AddSelectItem('Use ~T~ASM','tasm');
+     AddSelectItem('Use ~c~off','coff');
+     AddSelectItem('Use ~p~ecoff','pecoff');
    end;
   New(BrowserSwitches,InitSelect('b'));
   with BrowserSwitches^ do
@@ -936,7 +961,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.17  2000-02-04 14:34:47  pierre
+  Revision 1.18  2000-03-07 21:17:29  pierre
+   +ASMInfoSwitches AsmOutputSwitches
+
+  Revision 1.17  2000/02/04 14:34:47  pierre
   readme.txt
 
   Revision 1.16  2000/02/04 00:05:20  pierre
