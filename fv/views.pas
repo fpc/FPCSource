@@ -2737,6 +2737,9 @@ BEGIN
          I := (I - (P^.Size.X * FontWidth)) DIV 2;    { Calc view offset }
          I := I - (P^.Origin.X * FontWidth);          { Subtract x origin }
        End;
+       { make sure that I is a multiple of FontWidth }
+       if TextModeGFV then
+         I:= (I div FontWidth) * FontWidth;
        P^.DisplaceBy(I, 0);                           { Displace the view }
      End;
      If (P^.Options AND ofCenterY <> 0) Then Begin    { Centre on y axis }
@@ -2750,6 +2753,9 @@ BEGIN
          I := (I - (P^.Size.Y * FontHeight)) DIV 2;   { Calc view offset }
          I := I - (P^.Origin.Y * FontHeight);         { Subtract y origin }
        End;
+       { make sure that I is a multiple of FontHeight }
+       if TextModeGFV then
+         I:= (I div FontHeight) * FontHeight;
        P^.DisplaceBy(0, I);                           { Displace the view }
      End;
      SaveState := P^.State;                           { Save view state }
@@ -5533,7 +5539,10 @@ END.
 
 {
  $Log$
- Revision 1.20  2002-05-21 11:47:36  pierre
+ Revision 1.21  2002-05-23 09:06:01  pierre
+  * force views to have raworigin multiples of cell width and height
+
+ Revision 1.20  2002/05/21 11:47:36  pierre
   * avoid infinite recursions in graphic mode
 
  Revision 1.19  2002/05/16 21:23:34  pierre
