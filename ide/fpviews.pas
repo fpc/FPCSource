@@ -877,7 +877,7 @@ var
 begin
 {$ifdef I386}
   if index <= ord(lastop) - ord(firstop) then
-{$ifdef ver1_0}
+{$ifdef COMPILER_1_0}
     GetAsmReservedWord:=att_op2str[tasmop(Index+ord(firstop))]
 {$else}
     GetAsmReservedWord:=std_op2str[tasmop(Index+ord(firstop))]
@@ -4208,7 +4208,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.14  2002-04-16 18:12:35  carl
+  Revision 1.15  2002-04-17 11:10:13  pierre
+   * fix last commit for corss compilation fir 1.1 IDE from 1.0.6
+
+  Revision 1.14  2002/04/16 18:12:35  carl
   + compilation problems bugfixes
 
   Revision 1.13  2002/04/02 11:17:40  pierre
