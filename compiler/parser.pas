@@ -33,29 +33,13 @@ unit parser;
   implementation
 
     uses
-       dos,cobjects,globals,scanner,systems,symtable,tree,aasm,
-       types,strings,pass_1,hcodegen,files,verbose,script,import,gendef
-{$ifdef i386}
-{       ,i386
-       ,cgi386
-       ,cgai386
-       ,tgeni386
-       ,aopt386}
-{$endif i386}
-{$ifdef m68k}
-        ,m68k
-        ,cg68k
-        ,tgen68k
-        ,cga68k
-{$endif m68k}
-       { parser units }
-       ,pbase,pmodules,pdecl,psystem,
-       { assembling & linking }
-       assemble,
-       link;
+      systems,cobjects,globals,verbose,
+      symtable,files,aasm,hcodegen,import,
+      assemble,link,script,gendef,
+      scanner,pbase,pdecl,psystem,pmodules;
+
 
     procedure initparser;
-
       begin
          forwardsallowed:=false;
 
@@ -357,7 +341,7 @@ unit parser;
                      Linker.SetExeName(FileName);
                    Linker.MakeExecutable;
                  end;
-              end;      
+              end;
 
            end
          else
@@ -458,7 +442,10 @@ done:
 end.
 {
   $Log$
-  Revision 1.21  1998-06-04 23:51:49  peter
+  Revision 1.22  1998-06-05 17:47:28  peter
+    * some better uses clauses
+
+  Revision 1.21  1998/06/04 23:51:49  peter
     * m68k compiles
     + .def file creation moved to gendef.pas so it could also be used
       for win32

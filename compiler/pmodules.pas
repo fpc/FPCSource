@@ -25,32 +25,7 @@ unit pmodules;
   interface
 
     uses
-       dos,strings,
-       cobjects,globals,scanner,symtable,aasm,tree,pass_1,
-       types,hcodegen,files,verbose,systems,link,assemble
-{$ifdef GDB}
-       ,gdb
-{$endif GDB}
-{$ifdef NEWPPU}
-       ,ppu
-{$endif}
-       { parser specific stuff }
-       ,pbase,pdecl,pstatmnt,psub,psystem
-       { processor specific stuff }
-{$ifdef i386}
-       ,i386
-       ,cgai386
-       ,tgeni386
-       ,cgi386
-       ,aopt386
-{$endif}
-{$ifdef m68k}
-       ,m68k
-       ,cga68k
-       ,tgen68k
-       ,cg68k
-{$endif}
-       ;
+      files;
 
     procedure addlinkerfiles(hp:pmodule);
     function  loadunit(const s : string;compile_system, in_uses : boolean) : pmodule;
@@ -60,7 +35,17 @@ unit pmodules;
   implementation
 
     uses
-       parser;
+       cobjects,verbose,systems,globals,
+       symtable,aasm,hcodegen,
+       link,assemble
+{$ifdef i386}
+       ,i386
+{$endif}
+{$ifdef m68k}
+       ,m68k
+{$endif}
+       ,scanner,pbase,psystem,pdecl,psub,parser;
+
 
     procedure addlinkerfiles(hp:pmodule);
       begin
@@ -113,11 +98,11 @@ unit pmodules;
           On OS/2 the heap is also intialized by the RTL. We do
           not output a pointer }
          case target_info.target of
-{$ifdef i386}   
+{$ifdef i386}
 
           target_OS2 : ;
 {$endif i386}
-{$ifdef m68k}   
+{$ifdef m68k}
 
        target_Mac68K : bsssegment^.concat(new(pai_datablock,init_global('HEAP',4)));
 {$endif m68k}
@@ -153,7 +138,7 @@ unit pmodules;
                            importssection^.concat(new(pai_const,init_32bit(0)));
                        end;
         end;
-{$endif i386}   
+{$endif i386}
       end;
 
 
@@ -992,7 +977,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.22  1998-06-05 14:37:34  pierre
+  Revision 1.23  1998-06-05 17:47:29  peter
+    * some better uses clauses
+
+  Revision 1.22  1998/06/05 14:37:34  pierre
     * fixes for inline for operators
     * inline procedure more correctly restricted
 
