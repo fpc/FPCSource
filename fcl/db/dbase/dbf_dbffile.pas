@@ -1,4 +1,4 @@
-unit Dbf_DbfFile;
+unit dbf_dbffile;
 
 interface
 
@@ -46,7 +46,7 @@ type
     FFieldDefs: TDbfFieldDefs;
     FIndexNames: TStringList;
     FIndexFiles: TList;
-    FDbfVersion: xBaseVersion;
+    FDbfVersion: TXBaseVersion;
     FPrevBuffer: PChar;
     FRecordBufferSize: Integer;
     FLockFieldOffset: Integer;
@@ -120,7 +120,7 @@ type
     property FileCodePage: Cardinal read FFileCodePage;
     property UseCodePage: Cardinal read FUseCodePage write FUseCodePage;
     property FileLangId: Byte read FFileLangId write FFileLangId;
-    property DbfVersion: xBaseVersion read FDbfVersion write FDbfVersion;
+    property DbfVersion: TXBaseVersion read FDbfVersion write FDbfVersion;
     property PrevBuffer: PChar read FPrevBuffer;
     property ForceClose: Boolean read FForceClose;
     property HasLockField: Boolean read FHasLockField;
@@ -149,11 +149,6 @@ type
     function GetSequentialRecordCount: Integer; override;
     function GetSequentialRecNo: Integer; override;
     procedure SetSequentialRecNo(RecNo: Integer); override;
-
-    procedure GotoBookmark(Bookmark: rBookmarkData); override;
-    procedure Insert(RecNo: Integer; Buffer: PChar); override;
-    procedure Update(RecNo: Integer; PrevBuffer,NewBuffer: PChar); override;
-    function GetBookMark: rBookmarkData; override;
   end;
 
 //====================================================================
@@ -336,6 +331,7 @@ var
   I: Integer;
   deleteLink: Boolean;
   LangStr: PChar;
+  version: byte;
 begin
   // check if not already opened
   if not Active then
@@ -359,7 +355,8 @@ begin
       //  $03,$8B dBaseIV/V       Header Byte $1d=$00, Float -> N($14.$05) DateTime D($08)
       //  $03,$F5 FoxPro Level 25 Header Byte $1d=$09, Float -> N($14.$05) DateTime D($08)
 
-      case (PDbfHdr(Header).VerDBF and $07) of
+      version := PDbfHdr(Header).VerDBF;
+      case (version and $07) of
         $03:
           if LanguageID = 0 then
             FDbfVersion := xBaseIII
@@ -371,7 +368,7 @@ begin
           FDbfVersion := xFoxPro;
       else
         // check visual foxpro
-        if (PDbfHdr(Header).VerDBF and $70) = $30 then
+        if ((version and $FE) = $30) or (version = $F5) or (version = $FB) then
         begin
           FDbfVersion := xFoxPro;
         end else begin
@@ -458,7 +455,7 @@ begin
           MemoFileClass := TFoxProMemoFile
         else
           MemoFileClass := TDbaseMemoFile;
-        FMemoFile := MemoFileClass.Create;
+        FMemoFile := MemoFileClass.Create(Self);
         FMemoFile.FileName := lMemoFileName;
         FMemoFile.Mode := Mode;
         FMemoFile.AutoCreate := false;
@@ -598,8 +595,9 @@ begin
       RecordSize := SizeOf(rFieldDescIII);
       FillChar(Header^, HeaderSize, #0);
       if FDbfVersion = xFoxPro then
-        PDbfHdr(Header).VerDBF := $05
-      else
+      begin
+        PDbfHdr(Header).VerDBF := $02
+      end else
         PDbfHdr(Header).VerDBF := $03;
       // standard language WE, dBase III no language support
       if FDbfVersion = xBaseIII then
@@ -634,10 +632,10 @@ begin
       // apply field transformation tricks
       lSize := lFieldDef.Size;
       lPrec := lFieldDef.Precision;
-      if lFieldDef.NativeFieldType = 'C' then
+      if (FDbfVersion = xFoxPro) and (lFieldDef.NativeFieldType = 'C') then
       begin
-        lPrec := lSize div 256;
-        lSize := lSize mod 256;
+        lPrec := lSize shr 8;
+        lSize := lSize and $FF;
       end;
 
       // update temp field props
@@ -657,6 +655,13 @@ begin
         lFieldDescIII.FieldType := lFieldDef.NativeFieldType;
         lFieldDescIII.FieldSize := lSize;
         lFieldDescIII.FieldPrecision := lPrec;
+        // TODO: bug-endianness
+        if FDbfVersion = xFoxPro then
+          lFieldDescIII.FieldOffset := lFieldOffset;
+        if (PDbfHdr(Header).VerDBF = $02) and (lFieldDef.NativeFieldType in ['0', 'Y', 'T', 'O', '+']) then
+          PDbfHdr(Header).VerDBF := $30;
+        if (PDbfHdr(Header).VerDBF = $30) and (lFieldDef.NativeFieldType = '+') then
+          PDbfHdr(Header).VerDBF := $31;
       end;
 
       // update our field list
@@ -676,17 +681,28 @@ begin
 
     // write memo bit
     if lHasBlob then
+    begin
       if FDbfVersion = xBaseIII then
         PDbfHdr(Header).VerDBF := PDbfHdr(Header).VerDBF or $80
       else
       if FDbfVersion = xFoxPro then
-        PDbfHdr(Header).VerDBF := PDbfHdr(Header).VerDBF or $F0
-      else
+      begin
+        if PDbfHdr(Header).VerDBF = $02 then
+          PDbfHdr(Header).VerDBF := $F5;
+      end else
         PDbfHdr(Header).VerDBF := PDbfHdr(Header).VerDBF or $88;
+    end;
 
     // update header
     PDbfHdr(Header).RecordSize := lFieldOffset;
     PDbfHdr(Header).FullHdrSize := HeaderSize + RecordSize * FieldDefs.Count + 1;
+    // add empty "back-link" info, whatever it is: 
+    { A 263-byte range that contains the backlink, which is the relative path of 
+      an associated database (.dbc) file, information. If the first byte is 0x00, 
+      the file is not associated with a database. Therefore, database files always 
+      contain 0x00. }
+    if FDbfVersion = xFoxPro then
+      Inc(PDbfHdr(Header).FullHdrSize, 263);
 
     // write dbf header to disk
     inherited WriteHeader;
@@ -702,9 +718,9 @@ begin
   begin
     lMemoFileName := ChangeFileExt(FileName, GetMemoExt);
     if FDbfVersion = xFoxPro then
-      FMemoFile := TFoxProMemoFile.Create
+      FMemoFile := TFoxProMemoFile.Create(Self)
     else
-      FMemoFile := TDbaseMemoFile.Create;
+      FMemoFile := TDbaseMemoFile.Create(Self);
     FMemoFile.FileName := lMemoFileName;
     FMemoFile.Mode := Mode;
     FMemoFile.AutoCreate := AutoCreate;
@@ -826,7 +842,7 @@ begin
       end;
 
       // apply field transformation tricks
-      if lNativeFieldType = 'C' then
+      if (lNativeFieldType = 'C') and (FDbfVersion = xFoxPro) then
       begin
         lSize := lSize + lPrec shl 8;
         lPrec := 0;
@@ -1343,7 +1359,7 @@ var
     //  datetime = msecs == BDE timestamp as we implemented it
     if DataType = ftDateTime then
     begin
-      PDateTimeRec(Dst).DateTime := DateTimeToBDETimeStamp(date);
+      PDateTimeRec(Dst)^.DateTime := date;
     end else begin
       PLongInt(Dst)^ := DateTimeToTimeStamp(date).Date;
     end;
@@ -1365,7 +1381,7 @@ begin
           if FDbfVersion <> xFoxPro then
           begin
             Result := PDWord(Src)^ <> 0;
-            if Result then
+            if Result and (Dst <> nil) then
             begin
               PInteger(Dst)^ := SwapInt(PInteger(Src)^);
               if Result then
@@ -1373,14 +1389,15 @@ begin
             end;
           end else begin
             Result := true;
-            PInteger(Dst)^ := PInteger(Src)^;
+            if Dst <> nil then
+              PInteger(Dst)^ := PInteger(Src)^;
           end;
         end;
       'O':
         begin
 {$ifdef SUPPORT_INT64}
           Result := (PInt64(Src)^ <> 0);
-          if Result then
+          if Result and (Dst <> nil) then
           begin
             SwapInt64(Src, Dst);
             if PInt64(Dst)^ > 0 then
@@ -1392,17 +1409,22 @@ begin
         end;
       '@':
         begin
-{$ifdef SUPPORT_INT64}
-          Result := (PInt64(Src)^ <> 0);
-          if Result then
+          Result := (PInteger(Src)^ <> 0) and (PInteger(PChar(Src)+4)^ <> 0);
+          if Result and (Dst <> nil) then
+          begin
             SwapInt64(Src, Dst);
-{$endif}
+            if FDateTimeHandling = dtBDETimeStamp then
+              date := BDETimeStampToDateTime(PDouble(Dst)^)
+            else
+              date := PDateTime(Dst)^;
+            SaveDateToDst;
+          end;
         end;
       'T':
         begin
           // all binary zeroes -> empty datetime
           Result := (PInteger(Src)^ <> 0) or (PInteger(PChar(Src)+4)^ <> 0);
-          if Result then
+          if Result and (Dst <> nil) then
           begin
             timeStamp.Date := PInteger(Src)^ - 1721425;
             timeStamp.Time := PInteger(PChar(Src)+4)^;
@@ -1414,15 +1436,18 @@ begin
         begin
 {$ifdef SUPPORT_INT64}
           Result := true;
-          SwapInt64(Src, Dst);
-          case DataType of
-            ftCurrency:
-            begin
-              PDouble(Dst)^ := PInt64(Src)^ / 10000.0;
-            end;
-            ftBCD:
-            begin
-              PCurrency(Dst)^ := PCurrency(Src)^;
+          if Dst <> nil then
+          begin
+            SwapInt64(Src, Dst);
+            case DataType of
+              ftCurrency:
+              begin
+                PDouble(Dst)^ := PInt64(Src)^ / 10000.0;
+              end;
+              ftBCD:
+              begin
+                PCurrency(Dst)^ := PCurrency(Src)^;
+              end;
             end;
           end;
 {$endif}
@@ -1537,7 +1562,7 @@ var
     //  datetime = msecs == BDETimeStampToDateTime as we implemented it
     if DataType = ftDateTime then
     begin
-      date := BDETimeStampToDateTime(PDouble(Src)^);
+      date := PDouble(Src)^;
     end else begin
       timeStamp.Time := 0;
       timeStamp.Date := PLongInt(Src)^;
@@ -1557,11 +1582,19 @@ begin
   case TempFieldDef.NativeFieldType of
     '+', 'I':
       begin
-        if Src = nil then
-          IntValue := 0
-        else
-          IntValue := Integer(PDWord(Src)^ + $80000000);
-        PInteger(Dst)^ := SwapInt(IntValue);
+        if FDbfVersion <> xFoxPro then
+        begin
+          if Src = nil then
+            IntValue := 0
+          else
+            IntValue := Integer(PDWord(Src)^ + $80000000);
+          PInteger(Dst)^ := SwapInt(IntValue);
+        end else begin
+          if Src = nil then
+            PInteger(Dst)^ := 0
+          else
+            PInteger(Dst)^ := PInteger(Src)^;
+        end;
       end;
     'O':
       begin
@@ -1580,12 +1613,16 @@ begin
       end;
     '@':
       begin
-{$ifdef SUPPORT_INT64}
         if Src = nil then
-          PInteger(Dst)^ := 0
-        else
-          SwapInt64(Src, Dst);
-{$endif}
+        begin
+          PInteger(Dst)^ := 0;
+          PInteger(PChar(Dst)+4)^ := 0;
+        end else begin
+          LoadDateFromSrc;
+          if FDateTimeHandling = dtBDETimeStamp then
+            date := DateTimeToBDETimeStamp(date);
+          SwapInt64(@date, Dst);
+        end;
       end;
     'T':
       begin
@@ -2391,20 +2428,6 @@ begin
   FPhysicalRecNo := RecNo;
 end;
 
-procedure TDbfCursor.GotoBookmark(Bookmark: rBookmarkData);
-begin
-  FPhysicalRecNo := Bookmark{.RecNo};
-end;
-
-procedure TDbfCursor.Insert(RecNo: Integer; Buffer: PChar); {override;}
-begin
-  FPhysicalRecNo := TDbfFile(PagedFile).RecordCount;
-end;
-
-procedure TDbfCursor.Update(RecNo: Integer; PrevBuffer,NewBuffer: PChar); {override;}
-begin
-end;
-
 // codepage enumeration procedure
 var
   TempCodePageList: TList;
@@ -2418,12 +2441,6 @@ begin
 
   // continue enumeration
   Result := 1;
-end;
-
-function TDbfCursor.GetBookMark: rBookmarkData; {override;}
-begin
-//  Result.IndexBookmark := -1;
-  Result{.RecNo} := FPhysicalRecNo;
 end;
 
 //====================================================================

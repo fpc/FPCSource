@@ -1,6 +1,4 @@
-unit Dbf_PrsSupp;
-
-{force CR/LF fix}
+unit dbf_prssupp;
 
 // parse support
 

@@ -1,4 +1,4 @@
-unit Dbf_Memo;
+unit dbf_memo;
 
 interface
 
@@ -14,7 +14,8 @@ type
 //====================================================================
   TMemoFile = class(TPagedFile)
   protected
-    FDbfVersion: xBaseVersion;
+    FDbfFile: pointer;
+    FDbfVersion: TXBaseVersion;
     FMemoRecordSize: Integer;
     FOpened: Boolean;
     FBuffer: PChar;
@@ -25,7 +26,7 @@ type
     procedure SetNextFreeBlock(BlockNo: Integer); virtual; abstract;
     procedure SetBlockLen(BlockLen: Integer); virtual; abstract;
   public
-    constructor Create;
+    constructor Create(ADbfFile: pointer);
     destructor Destroy; override;
 
     procedure Open;
@@ -34,7 +35,7 @@ type
     procedure ReadMemo(BlockNo: Integer; DestStream: TStream);
     procedure WriteMemo(var BlockNo: Integer; ReadSize: Integer; Src: TStream);
 
-    property DbfVersion: xBaseVersion read FDbfVersion write FDbfVersion;
+    property DbfVersion: TXBaseVersion read FDbfVersion write FDbfVersion;
     property MemoRecordSize: Integer read FMemoRecordSize write FMemoRecordSize;
   end;
 
@@ -79,7 +80,7 @@ type
     procedure SetBlockLen(BlockLen: Integer); override;
 
   public
-    constructor Create;
+    constructor Create(ADbfFile: pointer);
 
     procedure CloseFile; override;
     procedure OpenFile; override;
@@ -94,7 +95,7 @@ type
 implementation
 
 uses
-  SysUtils;
+  SysUtils, Dbf_DbfFile;
 
 //====================================================================
 //=== Memo and binary fields support
@@ -130,14 +131,17 @@ type
 //==========================================================
 //============ Dbtfile
 //==========================================================
-constructor TMemoFile.Create;
+constructor TMemoFile.Create(ADbfFile: pointer);
 begin
   // init vars
   FBuffer := nil;
   FOpened := false;
 
   // call inherited
-  inherited;
+  inherited Create;
+
+  FDbfFile := ADbfFile;
+  FTempMode := TDbfFile(ADbfFile).TempMode;
 end;
 
 destructor TMemoFile.Destroy;
@@ -478,7 +482,7 @@ end;
 // NULL file (no file) specific helper routines
 // ------------------------------------------------------------------
 
-constructor TNullMemoFile.Create;
+constructor TNullMemoFile.Create(ADbfFile: pointer);
 begin
   inherited;
 end;

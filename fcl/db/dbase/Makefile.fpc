@@ -6,7 +6,7 @@
 main=fcl
 
 [target]
-units_i386=Dbf
+units_i386=dbf
 examples_i386=testdbf
 
 [compiler]
@@ -18,21 +18,21 @@ fpcdir=../../..
 
 [install]
 fpcpackage=y
-units_i386=Dbf_Common Dbf_Cursor Dbf_DbfFile Dbf_Fields Dbf_IdxCur \
-      Dbf_IdxFile Dbf_Lang Dbf_Memo Dbf_Parser Dbf_PgFile \
-      Dbf_PrsCore Dbf_PrsDef Dbf_PrsSupp Dbf_Str
+units_i386=dbf_common dbf_cursor dbf_dbffile dbf_fields dbf_idxcur \
+      dbf_idxfile dbf_lang dbf_memo dbf_parser dbf_pgfile \
+      dbf_prscore dbf_prsdef dbf_prssupp dbf_str
 
 [clean]
-units=Dbf_Common Dbf_Cursor Dbf_DbfFile Dbf_Fields Dbf_IdxCur \
-      Dbf_IdxFile Dbf_Lang Dbf_Memo Dbf_Parser Dbf_PgFile \
-      Dbf_PrsCore Dbf_PrsDef Dbf_PrsSupp Dbf_Str
+units=dbf_common dbf_cursor dbf_dbffile dbf_fields dbf_idxcur \
+      dbf_idxfile dbf_lang dbf_memo dbf_parser dbf_pgfile \
+      dbf_prscore dbf_prsdef dbf_prssupp dbf_str
 
 [prerules]
-# Dbf_Wtil is needed on all targets except win32
+# dbf_Wtil is needed on all targets except win32
 ifeq ($(CPU_TARGET),i386)
 ifneq ($(OS_TARGET),win32)
-INSTALL_UNITS+=Dbf_Wtil
-CLEAN_UNITS+=Dbf_Wtil
+INSTALL_UNITS+=dbf_Wtil
+CLEAN_UNITS+=dbf_Wtil
 endif
 endif
 

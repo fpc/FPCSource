@@ -1,4 +1,4 @@
-unit Dbf_Wtil;
+unit dbf_wtil;
 
 {$i Dbf_Common.inc}
 
@@ -6,11 +6,10 @@ interface
 
 {$ifndef WIN32}
 uses
-{$ifdef KYLIX}
-  Libc, 
-{$endif}
 {$ifdef FPC}
   BaseUnix,
+{$else}
+  Libc, 
 {$endif}
   Types, SysUtils, Classes;
 
@@ -550,6 +549,8 @@ end;
 function CompareString(Locale: LCID; dwCmpFlags: DWORD; lpString1: PChar; cchCount1: Integer; lpString2: PChar; cchCount2: Integer): Integer;
 begin
   Result := StrLComp(lpString1, lpString2, cchCount1) + 2;
+  if Result > 2 then Result := 3;
+  if Result < 2 then Result := 1;
 end;
 
 function EnumSystemCodePages(lpCodePageEnumProc: TFNCodepageEnumProc; dwFlags: DWORD): BOOL;

@@ -1,6 +1,4 @@
-unit Dbf_Fields;
-
-{force CR/LF fix}
+unit dbf_fields;
 
 interface
 
@@ -36,7 +34,7 @@ type
     FRequired: Boolean;
     FIsLockField: Boolean;
 
-    function  GetDbfVersion: xBaseVersion;
+    function  GetDbfVersion: TXBaseVersion;
     procedure SetNativeFieldType(lFieldType: TDbfFieldType);
     procedure SetFieldType(lFieldType: TFieldType);
     procedure SetSize(lSize: Integer);
@@ -48,7 +46,7 @@ type
     function  GetDisplayName: string; override;
     procedure AssignTo(Dest: TPersistent); override;
 
-    property DbfVersion: xBaseVersion read GetDbfVersion;
+    property DbfVersion: TXBaseVersion read GetDbfVersion;
   public
     constructor Create(Collection: TCollection); override;
     destructor Destroy; override;
@@ -83,7 +81,7 @@ type
   TDbfFieldDefs = class(TCollection)
   private
     FOwner: TPersistent;
-    FDbfVersion: xBaseVersion;
+    FDbfVersion: TXBaseVersion;
     FUseFloatFields: Boolean;
 
     function GetItem(Idx: Integer): TDbfFieldDef;
@@ -100,7 +98,7 @@ type
     function AddFieldDef: TDbfFieldDef;
 
     property Items[Idx: Integer]: TDbfFieldDef read GetItem;
-    property DbfVersion: xBaseVersion read FDbfVersion write FDbfVersion;
+    property DbfVersion: TXBaseVersion read FDbfVersion write FDbfVersion;
     property UseFloatFields: Boolean read FUseFloatFields write FUseFloatFields;
   end;
 
@@ -289,7 +287,7 @@ begin
     inherited AssignTo(Dest);
 end;
 
-function TDbfFieldDef.GetDbfVersion: xBaseVersion;
+function TDbfFieldDef.GetDbfVersion: TXBaseVersion;
 begin
   Result := TDbfFieldDefs(Collection).DbfVersion;
 end;
@@ -298,7 +296,7 @@ procedure TDbfFieldDef.SetFieldType(lFieldType: tFieldType);
 begin
   FFieldType := lFieldType;
   VCLToNative;
-  CheckSizePrecision;
+  SetDefaultSize;
 end;
 
 procedure TDbfFieldDef.SetNativeFieldType(lFieldType: tDbfFieldType);
@@ -381,11 +379,10 @@ begin
   case FFieldType of
     ftAutoInc  : FNativeFieldType  := '+';
     ftDateTime :
-{$ifdef SUPPORT_INT64}
       if DbfVersion = xBaseVII then
         FNativeFieldType := '@'
       else
-{$endif}
+      if DbfVersion = xFoxPro then
         FNativeFieldType := 'T';
 {$ifdef SUPPORT_FIELDTYPES_V4}
     ftFixedChar,
@@ -417,6 +414,7 @@ end;
 
 procedure TDbfFieldDef.SetDefaultSize;
 begin
+  // choose default values for variable size fields
   case FFieldType of
     ftFloat:
       begin
@@ -433,7 +431,7 @@ begin
         FSize := DIGITS_SMALLINT;
         FPrecision := 0;
       end;
-    ftInteger:
+    ftInteger, ftAutoInc:
       begin
         if DbfVersion = xBaseVII then
           FSize := 4
@@ -448,15 +446,15 @@ begin
         FPrecision := 0;
       end;
 {$endif}
-    ftDate, ftDateTime:
+    ftString {$ifdef SUPPORT_FIELDTYPES_V4}, ftFixedChar, ftWideString{$endif}:
       begin
-        if FNativeFieldType = 'T' then
-          FSize := 14
-        else
-          FSize := 8;
+        FSize := 30;
         FPrecision := 0;
       end;
   end; // case fieldtype
+
+  // set sizes for fields that are restricted to single size/precision
+  CheckSizePrecision;
 end;
 
 procedure TDbfFieldDef.CheckSizePrecision;
@@ -475,8 +473,9 @@ begin
       end;
     'N','F':
       begin
-        if FSize < 1       then FSize := 0;
-        if FSize >= 20     then FSize := 20;
+        // floating point
+        if FSize < 2   then FSize := 2;
+        if FSize >= 20 then FSize := 20;
         if FPrecision > FSize-2 then FPrecision := FSize-2;
         if FPrecision < 0       then FPrecision := 0;
       end;
@@ -502,7 +501,10 @@ begin
       end;
     'T':
       begin
-        FSize := 14;
+        if DbfVersion = xFoxPro then
+          FSize := 8
+        else
+          FSize := 14;
         FPrecision := 0;
       end;
     'Y':

@@ -1,6 +1,4 @@
-unit Dbf_Lang;
-
-{force CR/LF fix}
+unit dbf_lang;
 
 {$i Dbf_Common.inc}
 

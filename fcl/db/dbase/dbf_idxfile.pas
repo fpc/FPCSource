@@ -1,4 +1,4 @@
-unit Dbf_IdxFile;
+unit dbf_idxfile;
 
 interface
 
@@ -156,7 +156,6 @@ type
     procedure RecalcWeight;
     procedure UpdateWeight;
     procedure Flush;
-    procedure DisableRange;
 
     property Key: PChar read GetKeyData;
     property Entry: Pointer read FEntry;
@@ -221,7 +220,7 @@ type
     FIndexHeaders: array[0..MaxIndexes-1] of Pointer;
     FHeaderModified: array[0..MaxIndexes-1] of Boolean;
     FIndexHeader: Pointer;
-    FIndexVersion: xBaseVersion;
+    FIndexVersion: TXBaseVersion;
     FRoots: array[0..MaxIndexes-1] of TIndexPage;
     FLeaves: array[0..MaxIndexes-1] of TIndexPage;
     FCurrentParser: TDbfParser;
@@ -240,11 +239,14 @@ type
     FModifyMode: TIndexModifyMode;
     FHeaderLocked: Integer;   // used to remember which header page we have locked
     FKeyBuffer: array[0..100] of Char;
+    FLowBuffer: array[0..100] of Char;
+    FHighBuffer: array[0..100] of Char;
     FEntryBof: Pointer;
     FEntryEof: Pointer;
     FDbfFile: Pointer;
     FCanEdit: Boolean;
     FOpened: Boolean;
+    FRangeActive: Boolean;
     FUpdateMode: TIndexUpdateMode;
     FUserKey: PChar;        // find / insert key
     FUserRecNo: Integer;    // find / insert recno
@@ -269,16 +271,26 @@ type
     procedure ClearRoots;
     function  CalcTagOffset(AIndex: Integer): Pointer;
 
-    function  FindKey(const Insert: Boolean): Integer;
+    function  FindKey(Insert: boolean): Integer;
     procedure InsertKey(Buffer: PChar);
     procedure DeleteKey(Buffer: PChar);
     procedure InsertCurrent;
     procedure DeleteCurrent;
     procedure UpdateCurrent(PrevBuffer, NewBuffer: PChar);
     procedure ReadIndexes;
+    procedure Resync(Relative: boolean);
     procedure ResyncRoot;
     procedure ResyncTree;
+    procedure ResyncRange(KeepPosition: boolean);
+    procedure ResetRange;
+    procedure SetBracketLow;
+    procedure SetBracketHigh;
 
+    procedure WalkFirst;
+    procedure WalkLast;
+    function  WalkPrev: boolean;
+    function  WalkNext: boolean;
+    
     procedure TranslateToANSI(Src, Dest: PChar);
     function  CompareKeyNumericNDX(Key: PChar): Integer;
     function  CompareKeyNumericMDX(Key: PChar): Integer;
@@ -330,6 +342,7 @@ type
 
     procedure CreateIndex(FieldDesc, TagName: string; Options: TIndexOptions);
     function  ExtractKeyFromBuffer(Buffer: PChar): PChar;
+    function  SearchKey(Key: PChar; SearchType: TSearchKeyType): Boolean;
     function  Find(RecNo: Integer; Buffer: PChar): Integer;
     function  IndexOf(const AIndexName: string): Integer;
 
@@ -343,19 +356,15 @@ type
     function  Next: Boolean;
     function  Prev: Boolean;
 
-    function  GetBookMark: rBookmarkData;
-    function  GotoBookmark(IndexBookmark: rBookmarkData): Boolean;
-
-    procedure SetBracketLow;
-    procedure SetBracketHigh;
+    procedure SetRange(LowRange, HighRange: PChar);
     procedure CancelRange;
-    function  MatchKey: Integer;
+    function  MatchKey(UserKey: PChar): Integer;
     function  CompareKey(Key: PChar): Integer;
     function  CompareKeys(Key1, Key2: PChar): Integer;
     function  PrepareKey(Buffer: PChar; ResultType: TExpressionType): PChar;
 
     property KeyLen: Integer read GetKeyLen;
-    property IndexVersion: xBaseVersion read FIndexVersion;
+    property IndexVersion: TXBaseVersion read FIndexVersion;
     property EntryHeaderSize: Integer read FEntryHeaderSize;
     property KeyType: Char read GetKeyType;
 
@@ -828,7 +837,7 @@ function TIndexPage.FindNearest(ARecNo: Integer): Integer;
   //  Result = 0  -> key,recno found, FEntryNo = found key entryno
   //  Result > 0  -> key,recno larger than current entry
 var
-  recNo, low, high: Integer;
+  low, high, current: Integer;
 begin
   // implement binary search, keys are sorted
   low := FLowIndex;
@@ -845,8 +854,8 @@ begin
   // vf: high + 1 - low
   while low < high do
   begin
-    FEntryNo := (low + high) div 2;
-    FEntry := GetEntry(FEntryNo);
+    current := (low + high) div 2;
+    FEntry := GetEntry(current);
     // calc diff
     Result := MatchKey;
     // test if we need to go lower or higher
@@ -854,68 +863,56 @@ begin
     // result = 0 implies key equal to tested entry
     // result > 0 implies key greater than tested entry
     if (Result < 0) or ((ARecNo<>-3) and (Result=0)) then
-      high := FEntryNo
+      high := current
     else
-      low := FEntryNo+1;
+      low := current+1;
   end;
   // high will contain first greater-or-equal key
   // ARecNo <> -3 -> Entry(high).Key will contain first key that matches    -> go to high
   // ARecNo =  -3 -> Entry(high).Key will contain first key that is greater -> go to high
-  recNo := high;
-  if FEntryNo <> recNo then
-  begin
-    FEntryNo := recNo;
-    FEntry := GetEntry(recNo);
-  end;
+  FEntryNo := -1;
+  EntryNo := high;
   // calc end result: can't inspect high if lowerpage <> nil
   // if this is a leaf, we need to find specific recno
   if (LowerPage = nil) then
   begin
-    // FLowerPage = nil -> can inspect high
-    Result := MatchKey;
-    // test if we need to find a specific recno
-    // result < 0 -> current key greater -> nothing found -> don't search
-    if (ARecNo > 0) then
+    if high > FHighIndex then
     begin
-      // BLS to RecNo
-      high := FHighIndex + 1;
-      low := FEntryNo;
-      // inv: FLowIndex <= FEntryNo <= high <= FHighIndex + 1 /\
-      // (Ai: FLowIndex <= i < FEntryNo: Entry(i).RecNo <> ARecNo)
-      while FEntryNo <> high do
+      Result := 1;
+    end else begin
+      Result := MatchKey;
+      // test if we need to find a specific recno
+      // result < 0 -> current key greater -> nothing found -> don't search
+      if (ARecNo > 0) then
       begin
-        // FEntryNo < high, get new entry
-        if low <> FEntryNo then
+        // BLS to RecNo
+        high := FHighIndex + 1;
+        low := FEntryNo;
+        // inv: FLowIndex <= FEntryNo <= high <= FHighIndex + 1 /\
+        // (Ai: FLowIndex <= i < FEntryNo: Entry(i).RecNo <> ARecNo)
+        while FEntryNo <> high do
         begin
-          FEntry := GetEntry(FEntryNo);
-          // check if entry key still ok
-          Result := MatchKey;
+          // FEntryNo < high, get new entry
+          if low <> FEntryNo then
+          begin
+            FEntry := GetEntry(FEntryNo);
+            // check if entry key still ok
+            Result := MatchKey;
+          end;
+          // test if out of range or found recno
+          if (Result <> 0) or (GetRecNo = ARecNo) then
+            high := FEntryNo
+          else begin
+            // default to EOF
+            inc(FEntryNo);
+            Result := 1;
+          end;
         end;
-        // get recno of current item
-        recNo := GetRecNo;
-        // test if out of range or found
-        if (Result <> 0) or (recNo = ARecNo) then
-          high := FEntryNo
-        else begin
-          // default to EOF
-          inc(FEntryNo);
-          Result := 1;
-        end;
-      end;
-      // if not found, get EOF entry
-      if (Result <> 0) then
-      begin
-        // Entry(FEntryNo) <> Entry
-        // bypass SetEntryNo check
-        FEntryNo := -1;
-        EntryNo := high;
       end;
     end;
   end else begin
     // FLowerPage <> nil -> high contains entry, can not have empty range
     Result := 0;
-    // sync lower page
-    SyncLowerPage;
   end;
 end;
 
@@ -1220,15 +1217,6 @@ begin
     if not IsInnerNode then
       dec(FHighIndex);
   end;
-end;
-
-procedure TIndexPage.DisableRange;
-begin
-  // update low / high index range
-  FLowIndex := 0;
-  FHighIndex := GetNumEntries;
-  if FLowerPage = nil then
-    dec(FHighIndex);
 end;
 
 function TMdxPage.GetIsInnerNode: Boolean;
@@ -1704,6 +1692,7 @@ begin
 
   // clear variables
   FOpened := false;
+  FRangeActive := false;
   FUpdateMode := umCurrent;
   FModifyMode := mmNormal;
   FTempMode := TDbfFile(ADbfFile).TempMode;
@@ -2746,6 +2735,9 @@ begin
   end else begin
     InsertKey(Buffer);
   end;
+
+  // check range, disabled by insert
+  ResyncRange(true);
 end;
 
 function TIndexFile.CheckKeyViolation(Buffer: PChar): Boolean;
@@ -2818,14 +2810,20 @@ begin
           begin
             IntSrc := PInteger(Result)^;
             // handle zero differently: no decimals
-            NumDecimals := GetStrFromInt(IntSrc, @FloatRec.Digits[0]);
+            if IntSrc <> 0 then
+              NumDecimals := GetStrFromInt(IntSrc, @FloatRec.Digits[0])
+            else
+              NumDecimals := 0;
             FloatRec.Negative := IntSrc < 0;
           end;
 {$ifdef SUPPORT_INT64}
         etLargeInt:
           begin
             Int64Src := PLargeInt(Result)^;
-            NumDecimals := GetStrFromInt64(Int64Src, @FloatRec.Digits[0]);
+            if Int64Src <> 0 then
+              NumDecimals := GetStrFromInt64(Int64Src, @FloatRec.Digits[0])
+            else
+              NumDecimals := 0;
             FloatRec.Negative := Int64Src < 0;
           end;
 {$endif}
@@ -2833,7 +2831,10 @@ begin
           begin
             ExtValue := PDouble(Result)^;
             FloatToDecimal(FloatRec, ExtValue, {$ifndef FPC_VERSION}fvExtended,{$endif} 9999, 15);
-            NumDecimals := StrLen(@FloatRec.Digits[0]);
+            if ExtValue <> 0.0 then
+              NumDecimals := StrLen(@FloatRec.Digits[0])
+            else
+              NumDecimals := 0;
             // maximum number of decimals possible to encode in BCD is 16
             if NumDecimals > 16 then
               NumDecimals := 16;
@@ -2905,7 +2906,6 @@ procedure TIndexFile.InsertCurrent;
   // insert in current index
   // assumes: FUserKey is an OEM key
 var
-  TempPage: TIndexPage;
   SearchKey: array[0..100] of Char;
   OemKey: PChar;
 begin
@@ -2920,6 +2920,8 @@ begin
       FUserKey := @SearchKey[0];
       TranslateToANSI(OemKey, FUserKey);
     end;
+    // temporarily remove range to find correct location of key
+    ResetRange;
     // find this record as closely as possible
     // if result = 0 then key already exists
     // if unique index, then don't insert key if already present
@@ -2940,13 +2942,6 @@ begin
         InsertError;
       end;
     end;
-
-    // check range, disabled by insert
-    TempPage := FRoot;
-    repeat
-      TempPage.UpdateBounds(TempPage.LowerPage <> nil);
-      TempPage := TempPage.LowerPage;
-    until TempPage = nil;
   end;
 end;
 
@@ -2980,6 +2975,8 @@ begin
   end else begin
     DeleteKey(Buffer);
   end;
+  // range may be changed
+  ResyncRange(true);
 end;
 
 procedure TIndexFile.DeleteKey(Buffer: PChar);
@@ -3003,6 +3000,8 @@ begin
   // modify = mmDeleteRecall /\ unique = distinct -> key needs to be deleted from index
   if (FModifyMode <> mmDeleteRecall) or (FUniqueMode = iuDistinct) then
   begin
+    // prevent "confined" view of index while deleting
+    ResetRange;
     // search correct entry to delete
     if FLeaf.PhysicalRecNo <> FUserRecNo then
     begin
@@ -3063,6 +3062,8 @@ begin
       // now set userkey to key to insert
       FUserKey := @TempBuffer[0];
       InsertCurrent;
+      // check range, disabled by delete/insert
+      ResyncRange(true);
     end;
   end;
 end;
@@ -3130,6 +3131,41 @@ begin
   FRoot.PageNo := PIndexHdr(FIndexHeader).RootPage;
 end;
 
+function TIndexFile.SearchKey(Key: PChar; SearchType: TSearchKeyType): Boolean;
+var
+  findres, currRecNo: Integer;
+begin
+  // save current position
+  currRecNo := SequentialRecNo;
+  // search, these are always from the root: no need for first
+  findres := Find(-2, Key);
+  // test result
+  case SearchType of
+    stEqual:
+      Result := findres = 0;
+    stGreaterEqual:
+      Result := findres <= 0;
+    stGreater:
+      begin
+        if findres = 0 then
+        begin
+          // find next record that is greater
+          // NOTE: MatchKey assumes key to search for is already specified
+          //   in FUserKey, it is because we have called Find
+          repeat
+            Result := WalkNext;
+          until not Result or (MatchKey(Key) <> 0);
+        end else
+          Result := findres < 0;
+      end;
+    else
+      Result := false;
+  end;
+  // search failed -> restore previous position
+  if not Result then
+    SequentialRecNo := currRecNo;
+end;
+
 function TIndexFile.Find(RecNo: Integer; Buffer: PChar): Integer;
 begin
   // execute find
@@ -3138,7 +3174,7 @@ begin
   Result := FindKey(false);
 end;
 
-function TIndexFile.FindKey(const Insert: Boolean): Integer;
+function TIndexFile.FindKey(Insert: boolean): Integer;
 //
 // if you set Insert = true, you need to re-enable range after insert!!
 //
@@ -3161,16 +3197,6 @@ begin
       searchRecNo := FUserRecNo
   end else begin
     searchRecNo := -2;
-  end;
-  // disable range to prepare for insert
-  if Insert then
-  begin
-    // start from root
-    TempPage := FRoot;
-    repeat
-      TempPage.DisableRange;
-      TempPage := TempPage.LowerPage;
-    until TempPage = nil;
   end;
   // start from root
   TempPage := FRoot;
@@ -3236,7 +3262,7 @@ begin
   until done = 0;
 end;
 
-function TIndexFile.MatchKey: Integer;
+function TIndexFile.MatchKey(UserKey: PChar): Integer;
 begin
   // BOF and EOF always false
   if FLeaf.Entry = FEntryBof then
@@ -3244,8 +3270,18 @@ begin
   else
   if FLeaf.Entry = FEntryEof then
     Result := -1
-  else
+  else begin
+    FUserKey := UserKey;
     Result := FLeaf.MatchKey;
+  end;
+end;
+
+procedure TIndexFile.SetRange(LowRange, HighRange: PChar);
+begin
+  Move(LowRange^, FLowBuffer[0], KeyLen);
+  Move(HighRange^, FHighBuffer[0], KeyLen);
+  FRangeActive := true;
+  ResyncRange(true);
 end;
 
 procedure TIndexFile.RecordDeleted(RecNo: Integer; Buffer: PChar);
@@ -3262,20 +3298,6 @@ begin
   FModifyMode := mmDeleteRecall;
   Insert(RecNo, Buffer);
   FModifyMode := mmNormal;
-end;
-
-function TIndexFile.GotoBookmark(IndexBookmark: rBookmarkData): Boolean;
-begin
-  if (IndexBookmark{.RecNo} = 0) then begin
-    First;
-  end else if (IndexBookmark{.RecNo} = MAXINT) then begin
-    Last;
-  end else begin
-    if (FLeaf.GetRecNo <> IndexBookmark{.RecNo}) then
-      PhysicalRecNo := IndexBookmark{.RecNo};
-  end;
-
-  Result := true;
 end;
 
 procedure TIndexFile.SetLocaleID(const NewID: LCID);
@@ -3302,16 +3324,20 @@ end;
 
 procedure TIndexFile.SetPhysicalRecNo(RecNo: Integer);
 begin
-  // read buffer of this RecNo
-  TDbfFile(FDbfFile).ReadRecord(RecNo, TDbfFile(FDbfFile).PrevBuffer);
-  // extract key
-  FUserKey := ExtractKeyFromBuffer(TDbfFile(FDbfFile).PrevBuffer);
-  // translate to a search key
-  if KeyType = 'C' then
-    TranslateToANSI(FUserKey, FUserKey);
-  // find this key
-  FUserRecNo := RecNo;
-  FindKey(false);
+  // check record actually exists
+  if TDbfFile(FDbfFile).IsRecordPresent(RecNo) then
+  begin
+    // read buffer of this RecNo
+    TDbfFile(FDbfFile).ReadRecord(RecNo, TDbfFile(FDbfFile).PrevBuffer);
+    // extract key
+    FUserKey := ExtractKeyFromBuffer(TDbfFile(FDbfFile).PrevBuffer);
+    // translate to a search key
+    if KeyType = 'C' then
+      TranslateToANSI(FUserKey, FUserKey);
+    // find this key
+    FUserRecNo := RecNo;
+    FindKey(false);
+  end;
 end;
 
 procedure TIndexFile.SetUpdateMode(NewMode: TIndexUpdateMode);
@@ -3323,28 +3349,16 @@ begin
     FUpdateMode := NewMode;
 end;
 
-function TIndexFile.GetBookMark: rBookmarkData;
+procedure TIndexFile.WalkFirst;
 begin
-  // get physical recno
-  Result := FLeaf.GetRecNo;
-end;
-
-procedure TIndexFile.First;
-begin
-  // resync tree
-  if NeedLocks then
-    ResyncRoot;
   // search first node
   FRoot.RecurFirst;
   // out of index - BOF
   FLeaf.EntryNo := FLeaf.EntryNo - 1;
 end;
 
-procedure TIndexFile.Last;
+procedure TIndexFile.WalkLast;
 begin
-  // resync tree
-  if NeedLocks then
-    ResyncRoot;
   // search last node
   FRoot.RecurLast;
   // out of index - EOF
@@ -3352,40 +3366,125 @@ begin
   FLeaf.EntryNo := FLeaf.EntryNo + 2;
 end;
 
-procedure TIndexFile.ResyncTree;
+procedure TIndexFile.First;
 begin
-  // if at BOF or EOF, then we need to resync by first or last
-  if FLeaf.Entry = FEntryBof then
+  // resync tree
+  Resync(false);
+  WalkFirst;
+end;
+
+procedure TIndexFile.Last;
+begin
+  // resync tree
+  Resync(false);
+  WalkLast;
+end;
+
+procedure TIndexFile.ResyncRange(KeepPosition: boolean);
+var
+  Result: Boolean;
+  currRecNo: integer;
+begin
+  if not FRangeActive then
+    exit;
+
+  // disable current range if any
+  if KeepPosition then
+    currRecNo := SequentialRecNo;
+  ResetRange;
+  // search lower bound
+  Result := SearchKey(FLowBuffer, stGreaterEqual);
+  if not Result then
   begin
-    First;
-  end else if FLeaf.Entry = FEntryEof then begin
-    Last;
-  end else begin
-    // read current key into buffer
-    Move(FLeaf.Key^, FKeyBuffer, PIndexHdr(FIndexHeader).KeyLen);
-    // search current in-mem key on disk
-    FUserKey := FKeyBuffer;
-    FUserRecNo := FLeaf.PhysicalRecNo;
-    // translate to searchable key
-    if KeyType = 'C' then
-      TranslateToANSI(FUserKey, FUserKey);
-    if (FindKey(false) <> 0) then
+    // not found? -> make empty range
+    WalkLast;
+  end;
+  // set lower bound
+  SetBracketLow;
+  // search upper bound
+  Result := SearchKey(FHighBuffer, stGreater);
+  // if result true, then need to get previous item <=>
+  //    last of equal/lower than key
+  if Result then
+  begin
+    Result := WalkPrev;
+    if not Result then
     begin
-      // houston, we've got a problem!
-      // our `current' record has gone. we need to find it
-      // find it by using physical recno
-      PhysicalRecNo := FUserRecNo;
+      // cannot go prev -> empty range
+      WalkFirst;
+    end;
+  end else begin
+    // not found -> EOF found, go EOF, then to last record
+    WalkLast;
+    WalkPrev;
+  end;
+  // set upper bound
+  SetBracketHigh;
+  if KeepPosition then
+    SequentialRecNo := currRecNo;
+end;
+
+procedure TIndexFile.Resync(Relative: boolean);
+begin
+  if NeedLocks then
+  begin
+    if not Relative then
+    begin
+      ResyncRoot;
+      ResyncRange(false);
+    end else begin
+      // resyncing tree implies resyncing range
+      ResyncTree;
     end;
   end;
 end;
 
-function TIndexFile.Prev: Boolean;
+procedure TIndexFile.ResyncTree;
+var
+  action, recno: integer;
+begin
+  // if at BOF or EOF, then we need to resync by first or last
+  // remember where the cursor was
+  if FLeaf.Entry = FEntryBof then
+  begin
+    action := 0;
+  end else if FLeaf.Entry = FEntryEof then begin
+    action := 1;
+  end else begin
+    // read current key into buffer
+    Move(FLeaf.Key^, FKeyBuffer, PIndexHdr(FIndexHeader).KeyLen);
+    // translate to searchable key
+    if KeyType = 'C' then
+      TranslateToANSI(FKeyBuffer, FKeyBuffer);
+    recno := FLeaf.PhysicalRecNo;
+    action := 2;
+  end;
+
+  // we now know cursor position, resync possible range
+  ResyncRange(false);
+  
+  // go to cursor position
+  case action of
+    0: WalkFirst;
+    1: WalkLast;
+    2:
+    begin
+      // search current in-mem key on disk
+      if (Find(recno, FKeyBuffer) <> 0) then
+      begin
+        // houston, we've got a problem!
+        // our `current' record has gone. we need to find it
+        // find it by using physical recno
+        PhysicalRecNo := recno;
+      end;
+    end;
+  end;
+end;
+
+function TIndexFile.WalkPrev: boolean;
 var
   curRecNo: Integer;
 begin
-  // resync in-mem tree with tree on disk
-  if NeedLocks then
-    ResyncTree;
   // save current recno, find different next!
   curRecNo := FLeaf.PhysicalRecNo;
   repeat
@@ -3394,19 +3493,30 @@ begin
   until not Result or (curRecNo <> FLeaf.PhysicalRecNo);
 end;
 
-function TIndexFile.Next: Boolean;
+function TIndexFile.WalkNext: boolean;
 var
   curRecNo: Integer;
 begin
-  // resync in-mem tree with tree on disk
-  if NeedLocks then
-    ResyncTree;
   // save current recno, find different prev!
   curRecNo := FLeaf.PhysicalRecNo;
   repeat
     // return false if we are at last entry
     Result := FLeaf.RecurNext;
   until not Result or (curRecNo <> FLeaf.PhysicalRecNo);
+end;
+
+function TIndexFile.Prev: Boolean;
+begin
+  // resync in-mem tree with tree on disk
+  Resync(true);
+  Result := WalkPrev;
+end;
+
+function TIndexFile.Next: Boolean;
+begin
+  // resync in-mem tree with tree on disk
+  Resync(true);
+  Result := WalkNext;
 end;
 
 function TIndexFile.GetKeyLen: Integer;
@@ -3514,6 +3624,12 @@ begin
 end;
 
 procedure TIndexFile.CancelRange;
+begin
+  FRangeActive := false;
+  ResetRange;
+end;
+
+procedure TIndexFile.ResetRange;
 var
   TempPage: TIndexPage;
 begin

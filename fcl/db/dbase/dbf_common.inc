@@ -159,6 +159,10 @@
   {$undef USE_ASSEMBLER_486_UP}
 {$endif}
 
+{$ifndef FPC_LITTLE_ENDIAN}
+  {$message error TDbf is not compatible with non little-endian CPUs. Please contact the author.}
+{$endif}
+
 {$ifdef USE_ASSEMBLER_486_UP}
   {$asmmode intel}
 {$endif}
@@ -170,6 +174,7 @@
   {$define SUPPORT_FIELDDEF_TPERSISTENT}
   {$define SUPPORT_FIELDTYPES_V4}
   {$define SUPPORT_UINT32_CARDINAL}
+  {$define SUPPORT_REINTRODUCE}
 
   // FPC 1.0.x exceptions: no 0/0 support
   {$ifdef VER1_0}
@@ -177,7 +182,7 @@
     {$undef SUPPORT_DEFAULT_PARAMS}
     {$undef SUPPORT_NEW_TRANSLATE}
 
-    #ERROR TDbf needs fpc 1.9 minimum.
+    {$message error TDbf needs fpc 1.9 minimum.}
 
   {$endif}
 

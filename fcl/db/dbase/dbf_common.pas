@@ -1,4 +1,4 @@
-unit Dbf_Common;
+unit dbf_common;
 
 interface
 
@@ -17,7 +17,7 @@ uses
 
 const
   TDBF_MAJOR_VERSION      = 6;
-  TDBF_MINOR_VERSION      = 37;
+  TDBF_MINOR_VERSION      = 40;
   TDBF_SUB_MINOR_VERSION  = 0;
 
   TDBF_TABLELEVEL_FOXPRO = 25;
@@ -27,18 +27,16 @@ type
   EDbfWriteError = class (EDbfError);
 
   TDbfFieldType = char;
-  PBookMarkData = ^rBookMarkData;
-  rBookmarkData = Integer;
 
-  xBaseVersion   = (xUnknown, xClipper, xBaseIII, xBaseIV, xBaseV, xFoxPro, xBaseVII);
+  TXBaseVersion   = (xUnknown, xClipper, xBaseIII, xBaseIV, xBaseV, xFoxPro, xBaseVII);
   TSearchKeyType = (stEqual, stGreaterEqual, stGreater);
 
   TDateTimeHandling       = (dtDateTime, dtBDETimeStamp);
 
 //-------------------------------------
 
-{$ifdef FPC_VERSION}
   PDateTime = ^TDateTime;
+{$ifdef FPC_VERSION}
   TDateTimeAlias = type TDateTime;
   TDateTimeRec = record
     case TFieldType of
@@ -86,10 +84,8 @@ function IncludeTrailingPathDelimiter(const Path: string): string;
 function GetCompletePath(const Base, Path: string): string;
 function GetCompleteFileName(const Base, FileName: string): string;
 function IsFullFilePath(const Path: string): Boolean; // full means not relative
-{$ifndef SUPPORT_NEW_FIELDDATA}
 function DateTimeToBDETimeStamp(aDT: TDateTime): double;
 function BDETimeStampToDateTime(aBT: double): TDateTime;
-{$endif}
 function  GetStrFromInt(Val: Integer; const Dst: PChar): Integer;
 procedure GetStrFromInt_Width(Val: Integer; const Width: Integer; const Dst: PChar; const PadChar: Char);
 {$ifdef SUPPORT_INT64}
@@ -170,9 +166,13 @@ end;
 procedure GetStrFromInt_Width(Val: Integer; const Width: Integer; const Dst: PChar; const PadChar: Char);
 var
   Temp: array[0..10] of Char;
-  I, J, K, Sign: Integer;
+  I, J, K: Integer;
+  NegSign: boolean;
 begin
-  Sign := Val;
+  if Width <= 0 then
+    exit;
+
+  NegSign := Val < 0;
   Val := Abs(Val);
   // we'll have to store characters backwards first
   I := 0;
@@ -183,7 +183,7 @@ begin
     Inc(I);
   until Val = 0;
   // add sign
-  if Sign < 0 then
+  if NegSign then
   begin
     Dst[J] := '-';
     Inc(J);
@@ -212,9 +212,12 @@ procedure GetStrFromInt64_Width(Val: Int64; const Width: Integer; const Dst: PCh
 var
   Temp: array[0..19] of Char;
   I, J, K: Integer;
-  Sign: Int64;
+  NegSign: boolean;
 begin
-  Sign := Val;
+  if Width <= 0 then
+    exit;
+
+  NegSign := Val < 0;
   Val := Abs(Val);
   // we'll have to store characters backwards first
   I := 0;
@@ -225,7 +228,7 @@ begin
     inc(I);
   until Val = 0;
   // add sign
-  if Sign < 0 then
+  if NegSign then
   begin
     Dst[J] := '-';
     inc(J);
@@ -247,6 +250,7 @@ begin
   until I = 0;
   // done!
 end;
+
 {$endif}
 
 // it seems there is no pascal function to convert an integer into a PChar???
@@ -308,8 +312,6 @@ end;
 
 {$endif}
 
-{$ifndef SUPPORT_NEW_FIELDDATA}
-
 function DateTimeToBDETimeStamp(aDT: TDateTime): double;
 var
   aTS: TTimeStamp;
@@ -325,8 +327,6 @@ begin
   aTS := MSecsToTimeStamp(aBT);
   Result := TimeStampToDateTime(aTS);
 end;
-
-{$endif}
 
 //====================================================================
 

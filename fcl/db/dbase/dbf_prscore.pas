@@ -1,6 +1,4 @@
-unit Dbf_PrsCore;
-
-{force CR/LF fix}
+unit dbf_prscore;
 
 {--------------------------------------------------------------
 | TCustomExpressionParser
@@ -427,20 +425,45 @@ function TCustomExpressionParser.MakeTree(Expr: TExprCollection;
 
 var
   I, IArg, IStart, IEnd, lPrec, brCount: Integer;
-  redundantBrackets: boolean;
   ExprWord: TExprWord;
 begin
   // remove redundant brackets
-  repeat
-    redundantBrackets := false;
-    if (TExprWord(Expr.Items[FirstItem]).ResultType = etLeftBracket) and
-        (TExprWord(Expr.Items[LastItem]).ResultType = etRightBracket) then
-    begin
-      Inc(FirstItem);
-      Dec(LastItem);
-      redundantBrackets := true;
+  brCount := 0;
+  while (FirstItem+brCount < LastItem) and (TExprWord(
+      Expr.Items[FirstItem+brCount]).ResultType = etLeftBracket) do
+    Inc(brCount);
+  I := LastItem;
+  while (I > FirstItem) and (TExprWord(
+      Expr.Items[I]).ResultType = etRightBracket) do
+    Dec(I);
+  // test max of start and ending brackets
+  if brCount > (LastItem-I) then
+    brCount := LastItem-I;
+  // count number of bracket pairs completely open from start to end
+  // IArg is min.brCount
+  I := FirstItem + brCount;
+  IArg := brCount;
+  while (I <= LastItem - brCount) and (brCount > 0) do
+  begin
+    case TExprWord(Expr.Items[I]).ResultType of
+      etLeftBracket: Inc(brCount);
+      etRightBracket: 
+        begin
+          Dec(brCount);
+          if brCount < IArg then
+            IArg := brCount;
+        end;
     end;
-  until not redundantBrackets;
+    Inc(I);
+  end;
+  // useful pair bracket count, is in minimum, is IArg
+  brCount := IArg;
+  // check if subexpression closed within (bracket level will be zero)
+  if brCount > 0 then
+  begin
+    Inc(FirstItem, brCount);
+    Dec(LastItem, brCount);
+  end;
 
   // check for empty range
   if LastItem < FirstItem then

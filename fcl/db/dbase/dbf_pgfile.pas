@@ -1,4 +1,4 @@
-unit Dbf_PgFile;
+unit dbf_pgfile;
 
 interface
 
@@ -248,8 +248,6 @@ begin
     begin
       FMode := pfMemoryCreate;
       FStream := TMemoryStream.Create;
-    end else begin
-      FMode := pfMemoryOpen;
     end;
   end;
   // init size var
@@ -269,10 +267,10 @@ begin
   begin
     FlushHeader;
     // don't free the user's stream
-    if FMode <> pfMemoryOpen then
+    if not (FMode in [pfMemoryOpen, pfMemoryCreate]) then
       FreeAndNil(FStream);
 
-    // mode possibly overriden in case of auto-created file
+    // mode possibly overridden in case of auto-created file
     FMode := FUserMode;
     FActive := false;
     FCachedRecordCount := 0;

@@ -1,6 +1,4 @@
-unit Dbf_IdxCur;
-
-{force CR/LF fix}
+unit dbf_idxcur;
 
 interface
 
@@ -38,20 +36,13 @@ type
     procedure First; override;
     procedure Last; override;
 
-    procedure GotoBookmark(Bookmark: rBookmarkData); override;
-    function  GetBookMark: rBookmarkData; override;
-
-    procedure Insert(RecNo: Integer; Buffer: PChar); override;
-    procedure Update(RecNo: Integer; PrevBuffer, NewBuffer: PChar); override;
+    procedure Insert(RecNo: Integer; Buffer: PChar);
+    procedure Update(RecNo: Integer; PrevBuffer, NewBuffer: PChar);
 
 {$ifdef SUPPORT_VARIANTS}
-    procedure VariantToBuffer(Key: Variant; ABuffer: PChar); { override; }
+    procedure VariantToBuffer(Key: Variant; ABuffer: PChar);
 {$endif}
-    function  CheckUserKey(Key: PChar; StringBuf: PChar): PChar; { override; }
-    function  SearchKey(Key: PChar; SearchType: TSearchKeyType): Boolean; { override; }
-    procedure CancelRange; { override; }
-    procedure SetBracketLow; { override;}
-    procedure SetBracketHigh; { override; }
+    function  CheckUserKey(Key: PChar; StringBuf: PChar): PChar;
 
     property IndexFile: TIndexFile read FIndexFile;
   end;
@@ -135,31 +126,6 @@ begin
   TIndexFile(PagedFile).SequentialRecNo := RecNo;
 end;
 
-procedure TIndexCursor.GotoBookmark(Bookmark: rBookmarkData);
-begin
-  TIndexFile(PagedFile).GotoBookMark(Bookmark);
-end;
-
-function TIndexCursor.GetBookMark: rBookmarkData;
-begin
-  Result := TIndexFile(PagedFile).GetBookmark;
-end;
-
-procedure TIndexCursor.SetBracketLow;
-begin
-  TIndexFile(PagedFile).SetBracketLow;
-end;
-
-procedure TIndexCursor.SetBracketHigh;
-begin
-  TIndexFile(PagedFile).SetBracketHigh;
-end;
-
-procedure TIndexCursor.CancelRange;
-begin
-  TIndexFile(PagedFile).CancelRange;
-end;
-
 {$ifdef SUPPORT_VARIANTS}
 
 procedure TIndexCursor.VariantToBuffer(Key: Variant; ABuffer: PChar);
@@ -209,41 +175,6 @@ begin
       Result := StringBuf;
     end;
   end;
-end;
-
-function TIndexCursor.SearchKey(Key: PChar; SearchType: TSearchKeyType): Boolean;
-var
-  findres, currRecNo: Integer;
-begin
-  // save current position
-  currRecNo := TIndexFile(PagedFile).SequentialRecNo;
-  // search, these are always from the root: no need for first
-  findres := TIndexFile(PagedFile).Find(-2, Key);
-  // test result
-  case SearchType of
-    stEqual:
-      Result := findres = 0;
-    stGreaterEqual:
-      Result := findres <= 0;
-    stGreater:
-      begin
-        if findres = 0 then
-        begin
-          // find next record that is greater
-          // NOTE: MatchKey assumes key to search for is already specified
-          //   in FUserKey, it is because we have called Find
-          repeat
-            Result := TIndexFile(PagedFile).Next;
-          until not Result or (TIndexFile(PagedFile).MatchKey <> 0);
-        end else
-          Result := findres < 0;
-      end;
-    else
-      Result := false;
-  end;
-  // search failed -> restore previous position
-  if not Result then
-    TIndexFile(PagedFile).SequentialRecNo := currRecNo;
 end;
 
 end.

@@ -1,6 +1,4 @@
-unit Dbf_PrsDef;
-
-{force CR/LF fix}
+unit dbf_prsdef;
 
 interface
 
