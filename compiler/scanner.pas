@@ -138,7 +138,7 @@ implementation
     const
       { use any special name that is an invalid file name to avoid problems }
       macro_special_name = '____Macro____';
-      
+
     procedure create_tokenidx;
     { create an index with the first and last token for every possible token
       length, so a search only will be done in that small part }
@@ -382,7 +382,7 @@ implementation
                 nextfile;
                 tempopeninputfile;
               { status }
-                Message1(scan_t_back_in,name^);
+                Message1(scan_t_back_in,inputfile^.name^);
               end;
            { load next char }
              c:=inputpointer^;
@@ -1449,7 +1449,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.60  1998-10-09 08:56:31  pierre
+  Revision 1.61  1998-10-09 11:08:15  peter
+    * fixed inputfile^.name^ bug
+
+  Revision 1.60  1998/10/09 08:56:31  pierre
     * several memory leaks fixed
 
   Revision 1.59  1998/10/08 23:29:05  peter
