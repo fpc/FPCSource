@@ -43,8 +43,23 @@ begin
   InsertButtons(D);
   RB^.Select;
   if Desktop^.ExecView(D)=cmOK then
-    TargetSwitches^.SetCurrSel(RB^.Value);
+    begin
+       TargetSwitches^.SetCurrSel(RB^.Value);
+       UpdateTarget;
+    end;
   Dispose(D, Done);
+end;
+
+procedure TIDEApp.UpdateTarget;
+var TargetMenu : PMenuItem;
+begin
+  TargetMenu:=PAdvancedMenuBar(MenuBar)^.GetMenuItem(cmTarget);
+  if assigned(TargetMenu) then
+    begin
+      If assigned(TargetMenu^.Param) then
+        DisposeStr(TargetMenu^.Param);
+      TargetMenu^.Param:=NewStr(KillTilde(TargetSwitches^.ItemName(TargetSwitches^.GetCurrSel)));
+    end;
 end;
 
 procedure TIDEApp.DoPrimaryFile;
@@ -97,7 +112,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  1999-04-07 21:55:49  peter
+  Revision 1.6  1999-06-25 00:37:56  pierre
+   + UpdateTarget to see current target main in Menu
+
+  Revision 1.5  1999/04/07 21:55:49  peter
     + object support for browser
     * html help fixes
     * more desktop saving things
