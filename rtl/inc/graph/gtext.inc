@@ -369,6 +369,7 @@
          charsize      : word;
          WriteMode     : word;
          CurX, CurY    : smallint;
+         curX2, curY2, xpos2, ypos2, x2, y2: graph_float;
          oldvalues     : linesettingstype;
          chr           : char;
 
@@ -493,7 +494,10 @@
               setlinestyle(solidln,oldvalues.pattern,normwidth);
               if Currenttextinfo.direction=vertdir then
                  xpos:=xpos + Textheight(textstring);
-              CurX:=xpos; CurY:=ypos; x:=xpos; y:=ypos;
+              CurX2:=xpos; xpos2 := curX2; x2 := xpos2;
+              CurY2:=ypos; ypos2 := curY2; y2 := ypos2;
+{              x:=xpos; y:=ypos;}
+
               for i:=1 to length(textstring) do
                 begin
                    c:=byte(textstring[i]);
@@ -503,16 +507,15 @@
                    counter:=0;
                    while true do
                      begin
-
                          if CurrentTextInfo.direction=VertDir then
                            begin
-                             xpos:=x-round(Strokes[counter].Y*CurrentXRatio);
-                             ypos:=y-round(Strokes[counter].X*CurrentYRatio);
+                             xpos2:=x2-(Strokes[counter].Y*CurrentYRatio);
+                             ypos2:=y2-(Strokes[counter].X*CurrentXRatio);
                            end
                          else
                            begin
-                             xpos:=x+round(Strokes[counter].X*CurrentXRatio) ;
-                             ypos:=y-round(Strokes[counter].Y*CurrentYRatio) ;
+                             xpos2:=x2+(Strokes[counter].X*CurrentXRatio) ;
+                             ypos2:=y2-(Strokes[counter].Y*CurrentYRatio) ;
                            end;
                          case opcodes(Strokes[counter].opcode) of
                            _END_OF_CHAR: break;
@@ -520,13 +523,13 @@
                                     { Currently unsupported };
                                     end;
                            _MOVE : Begin
-                                     CurX := XPos;
-                                     CurY := YPos;
+                                     CurX2 := XPos2;
+                                     CurY2 := YPos2;
                                    end;
                            _DRAW: Begin
-                                    Line(CurX,CurY,xpos,ypos);
-                                    CurX:=xpos;
-                                    CurY:=ypos;
+                                    Line(trunc(CurX2),trunc(CurY2),trunc(xpos2),trunc(ypos2));
+                                    CurX2:=xpos2;
+                                    CurY2:=ypos2;
                                   end;
                              else
                                Begin
@@ -535,9 +538,9 @@
                         Inc(counter);
                      end; { end while }
                    if Currenttextinfo.direction=VertDir then
-                     y:=y-round(byte(fonts[CurrenttextInfo.font].widths[c])*CurrentXRatio)
+                     y2:=y2-(byte(fonts[CurrenttextInfo.font].widths[c])*CurrentXRatio)
                    else
-                     x:=x+round(byte(fonts[Currenttextinfo.font].widths[c])*CurrentXRatio) ;
+                     x2:=x2+(byte(fonts[Currenttextinfo.font].widths[c])*CurrentXRatio);
                 end;
               setlinestyle( oldvalues.linestyle, oldvalues.pattern, oldvalues.thickness);
            end;
@@ -734,7 +737,10 @@
 
 {
 $Log$
-Revision 1.11  2000-01-02 19:02:39  jonas
+Revision 1.12  2000-01-06 16:17:56  jonas
+  * fixed bug in outTextXY for vertical text
+
+Revision 1.11  2000/01/02 19:02:39  jonas
   * removed/commented out (inited but) unused vars and unused types
 
 Revision 1.10  1999/12/23 16:48:13  jonas
