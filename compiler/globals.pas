@@ -178,6 +178,7 @@ unit globals;
 
     const
        RelocSection : boolean = true;
+       RelocSectionSetExplicitly : boolean = false;
        DLLsource : boolean = false;
        DLLImageBase : pstring = nil;
 
@@ -1350,7 +1351,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  1999-11-12 11:03:50  peter
+  Revision 1.34  1999-11-15 17:42:41  pierre
+   * -g disables reloc section for win32
+
+  Revision 1.33  1999/11/12 11:03:50  peter
     * searchpaths changed to stringqueue object
 
   Revision 1.32  1999/11/09 23:34:46  pierre

@@ -531,6 +531,8 @@ begin
                        begin
 {$ifdef GDB}
                          initmoduleswitches:=initmoduleswitches+[cs_debuginfo];
+                         if not RelocSectionSetExplicitly then
+                           RelocSection:=false;
                          for j:=1 to length(more) do
                           case more[j] of
                            'd' : initglobalswitches:=initglobalswitches+[cs_gdb_dbx];
@@ -712,16 +714,23 @@ begin
                                      DLLImageBase:=StringDup(Copy(More,j+1,255));
                                  end
                                else
-                                 RelocSection:=true;
+                                 begin
+                                   RelocSection:=true;
+                                   RelocSectionSetExplicitly:=true;
+                                 end;
                                break;
                              end;
                         'C': apptype:=at_cui;
                         'G': apptype:=at_gui;
                         'N': begin
                                RelocSection:=false;
+                               RelocSectionSetExplicitly:=true;
                              end;
 
-                        'R': RelocSection:=true;
+                        'R': begin
+                               RelocSection:=true;
+                               RelocSectionSetExplicitly:=true;
+                             end;
                        else
                         IllegalPara(opt);
                        end;
@@ -1260,7 +1269,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.35  1999-11-12 11:03:50  peter
+  Revision 1.36  1999-11-15 17:42:40  pierre
+   * -g disables reloc section for win32
+
+  Revision 1.35  1999/11/12 11:03:50  peter
     * searchpaths changed to stringqueue object
 
   Revision 1.34  1999/11/09 23:06:45  peter
