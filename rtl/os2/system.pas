@@ -494,7 +494,7 @@ var
     (* to argv[idx], which is never allocated before. *)
     { always allocate, even if length is zero, since }
     { the arg. is still present!                     }
-    sysallocmem(argv[idx],len+1);
+    argv[idx] := sysallocmem(len+1);
   end;
 
 begin
@@ -507,7 +507,7 @@ begin
   Arglen:=0;
   repeat
     Inc(Arglen);
-  until (pc[Arglen]^ = #0);
+  until (pc[Arglen] = #0);
   allocarg(count,arglen);
   move(pc^,argv[count]^,arglen);
 
@@ -771,7 +771,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.81  2005-03-27 20:40:54  hajny
+  Revision 1.82  2005-03-27 20:50:35  hajny
+    * correction of previous mistyping
+
+  Revision 1.81  2005/03/27 20:40:54  hajny
     * fix for allocarg
 
   Revision 1.80  2005/03/01 21:59:14  hajny
