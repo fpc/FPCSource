@@ -112,10 +112,10 @@ function  GTK_IS_CTREE(obj:pointer):boolean;
 function  GTK_IS_CTREE_CLASS(klass:pointer):boolean;
 
 function  gtk_ctree_get_type:TGtkType;cdecl;external gtkdll name 'gtk_ctree_get_type';
-procedure gtk_ctree_construct(ctree:PGtkCTree; columns:gint; tree_column:gint; titles:Pgchar);cdecl;external gtkdll name 'gtk_ctree_construct';
-function  gtk_ctree_new_with_titles(columns:gint; tree_column:gint; titles:Pgchar):PGtkWidget;cdecl;external gtkdll name 'gtk_ctree_new_with_titles';
+procedure gtk_ctree_construct(ctree:PGtkCTree; columns:gint; tree_column:gint; titles:PPgchar);cdecl;external gtkdll name 'gtk_ctree_construct';
+function  gtk_ctree_new_with_titles(columns:gint; tree_column:gint; titles:PPgchar):PGtkWidget;cdecl;external gtkdll name 'gtk_ctree_new_with_titles';
 function  gtk_ctree_new(columns:gint; tree_column:gint):PGtkWidget;cdecl;external gtkdll name 'gtk_ctree_new';
-function  gtk_ctree_insert_node(ctree:PGtkCTree; parent:PGtkCTreeNode; sibling:PGtkCTreeNode; text:Pgchar; spacing:guint8; pixmap_closed:PGdkPixmap; mask_closed:PGdkBitmap; pixmap_opened:PGdkPixmap; mask_opened:PGdkBitmap; is_leaf:gboolean; expanded:gboolean):PGtkCTreeNode;cdecl;external gtkdll name 'gtk_ctree_insert_node';
+function  gtk_ctree_insert_node(ctree:PGtkCTree; parent:PGtkCTreeNode; sibling:PGtkCTreeNode; text:PPgchar; spacing:guint8; pixmap_closed:PGdkPixmap; mask_closed:PGdkBitmap; pixmap_opened:PGdkPixmap; mask_opened:PGdkBitmap; is_leaf:gboolean; expanded:gboolean):PGtkCTreeNode;cdecl;external gtkdll name 'gtk_ctree_insert_node';
 procedure gtk_ctree_remove_node(ctree:PGtkCTree; node:PGtkCTreeNode);cdecl;external gtkdll name 'gtk_ctree_remove_node';
 function  gtk_ctree_insert_gnode(ctree:PGtkCTree; parent:PGtkCTreeNode; sibling:PGtkCTreeNode; gnode:PGNode; func:TGtkCTreeGNodeFunc; data:gpointer):PGtkCTreeNode;cdecl;external gtkdll name 'gtk_ctree_insert_gnode';
 function  gtk_ctree_export_to_gnode(ctree:PGtkCTree; parent:PGNode; sibling:PGNode; node:PGtkCTreeNode; func:TGtkCTreeGNodeFunc; data:gpointer):PGNode;cdecl;external gtkdll name 'gtk_ctree_export_to_gnode';
@@ -281,7 +281,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2002-10-31 08:03:39  michael
+  Revision 1.4  2002-12-18 21:29:39  peter
+    * fixed some pgchar to ppgchar, fixes tw2262
+
+  Revision 1.3  2002/10/31 08:03:39  michael
   + Added some missing methods
 
   Revision 1.2  2002/09/07 15:42:59  peter
