@@ -58,6 +58,7 @@ implementation
          lcont,lbreak,lloop,
          oldclabel,oldblabel : plabel;
          otlabel,oflabel : plabel;
+
       begin
          getlabel(lloop);
          getlabel(lcont);
@@ -753,7 +754,10 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.22  1998-10-29 15:42:44  florian
+  Revision 1.23  1998-11-12 16:43:32  florian
+    * functions with ansi strings as result didn't work, solved
+
+  Revision 1.22  1998/10/29 15:42:44  florian
     + partial disposing of temp. ansistrings
 
   Revision 1.21  1998/10/26 22:58:16  florian
