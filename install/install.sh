@@ -8,7 +8,7 @@
 #
 
 # Release Version
-VERSION=1.9.0
+VERSION=1.9.2
 
 # some useful functions
 # ask displays 1st parameter, and ask new value for variable, whose name is
@@ -38,6 +38,12 @@ yesno ()
 unztar ()
 {
  tar -xzf $HERE/$1 --directory $2 $3
+}
+
+# Untar tar.gz file ($2) from file ($1) and untar result to the given directory ($3)
+unztarfromtar ()
+{
+ tar -xOf $HERE/$1 $2 | tar --directory $3 -xzf -
 }
 
 # Make all the necessary directories to get $1
@@ -116,24 +122,25 @@ DEMODIR=$DOCDIR/examples
 
 # Install compiler/RTL. Mandatory.
 echo Unpacking ...
-tar xf binary.tar
+# tar xf binary.tar
 echo Installing compiler and RTL ...
-unztar base${OSNAME}.tar.gz $PREFIX
+unztarfromtar binary.tar base${OSNAME}.tar.gz $PREFIX
 rm -f $EXECDIR/ppc386
 ln -sf $LIBDIR/ppc386 $EXECDIR/ppc386
 echo Installing utilities...
-unztar util${OSNAME}.tar.gz $PREFIX
+unztarfromtar binary.tar util${OSNAME}.tar.gz $PREFIX
 if yesno "Install FCL"; then
-    unztar unitsfcl${OSNAME}.tar.gz $PREFIX
+    unztarfromtar binary.tar unitsfcl${OSNAME}.tar.gz $PREFIX
 fi
 if yesno "Install packages"; then
-  for f in units*.tar.gz 
+  packages=`tar -tvf binary.tar "units*" | awk '{ print $6 }'`
+  for f in $packages 
   do
     if [ $f != unitsfcl${OSNAME}.tar.gz ]; then
       basename $f .tar.gz |\
       sed -e s/units// -e s/${OSNAME}// |\
       xargs echo Installing 
-      unztar $f $PREFIX
+      unztarfromtar binary.tar $f $PREFIX
     fi
   done
 fi
@@ -144,34 +151,35 @@ echo
 # Install the sources. Optional.
 if yesno "Install sources"; then
   echo Unpacking ...
-  tar xf sources.tar
+  # tar xf sources.tar
   echo Installing sources in $SRCDIR ...
-  unztar basesrc.tar.gz $PREFIX
+  unztarfromtar sources.tar  basesrc.tar.gz $PREFIX
   if yesno "Install compiler source"; then
-    unztar compilersrc.tar.gz $PREFIX
+    unztarfromtar sources.tar compilersrc.tar.gz $PREFIX
   fi    
   if yesno "Install RTL source"; then
-    unztar rtlsrc.tar.gz $PREFIX
+    unztarfromtar sources.tar rtlsrc.tar.gz $PREFIX
   fi    
   if yesno "Install FCL source"; then
-    unztar fclsrc.tar.gz $PREFIX
+    unztarfromtar sources.tar fclsrc.tar.gz $PREFIX
   fi    
   if yesno "Install IDE source"; then
-    unztar idesrc.tar.gz $PREFIX
+    unztarfromtar sources.tar idesrc.tar.gz $PREFIX
   fi    
   if yesno "Install installer source"; then
-    unztar installersrc.tar.gz $PREFIX
+    unztarfromtar sources.tar installersrc.tar.gz $PREFIX
   fi    
   if yesno "Install Packages source"; then
-    for f in units*src.tar.gz 
+    packages=`tar -tvf sources.tar "units*" | awk '{ print $6 }'`
+    for f in $packages
     do
       basename $f .tar.gz |\
       sed -e s/units// -e s/src// |\
       xargs echo Installing sources for 
-      unztar $f $PREFIX
+      unztarfromtar sources.tar $f $PREFIX
     done
   fi    
-  rm -f *src.tar.gz
+  # rm -f *src.tar.gz
   echo Done.
 fi
 echo
