@@ -22,16 +22,23 @@ Short & long & Opt & Explanation \\ \hline
 \bdir{E} & & & Coprocessor emulation \\
 \bdir{F} & & & Far or near function (ignored) \\
 \bdir{G} & & & generate 80286 code (ignored) \\
+         & \lbdir{GOTO} & \copt{Sg} & Support \var{GOTO} and \var{Label}\\
+         & \lbdir{HINTS} & \copt{vh} & Show hints \\
 \bdir{H} & \lbdir{LONGSTRINGS} & \copt{Sh} & Use ansistrings\\
 \bdir{I} & \lbdir{IOCHECKS} & \copt{Ci} & Check I/O operation result  \\
+         & \lbdir{INLINE} & \copt{Si} & Allow inline code \\
 \bdir{L} & \lbdir{LOCALSYMBOLS} & & Local symbol information \\
 \bdir{M} & \lbdir{TYPEINFO} & & Generate RTTI for classes \\
+         & \lbdir{MMX} & & Intel MMX support \\
 \bdir{N} & & & Floating point sypport \\
+         & \lbdir{NOTES} & \copt{vn} & Emit notes \\ 
 \bdir{O} & & & Support overlays (ignored) \\
 \bdir{P} & \lbdir{OPENSTRINGS} & & Support open strings \\
 \bdir{Q} & \lbdir{OVERFLOWCHECKS} & \copt{Co} & Overflow checking \\
 \bdir{R} & \lbdir{RANGECHEKS} & \copt{Cr} & Range checks \\
 \bdir{S} & & \copt{Ct} & Stack checks \\ 
+         & \lbdir{SMARTLINK} & \copt{CX} & Use smartlinking \\
+         & \lbdir{STATIC} & \copt{St} & Allow use of \var{static} \\
 \bdir{T} & \lbdir{TYPEDADDRESS} & & Types addresses \\ \hline
 %
 %
@@ -39,16 +46,14 @@ Short & long & Opt & Explanation \\ \hline
 
 \begin{FPCltable}{llll}{Options and directves}{options}
 Short & long & Opt & Explanation \\ \hline
-         & \dir{APPTYPE} &  & Application type (Win32) \\
+         & \dir{APPTYPE} & \copt{W} & Application type (Win32/OS2) \\
          & \dir{ASMMODE} & \copt{R} & Assembler reader modus \\
          & \dir{DEFINE} & \copt{d} & Define symbol \\
          & \dir{DESCRIPTION} & & Set program description \\ 
          & \dir{ELSE} & & Conditional compilation switch \\
          & \dir{ENDIF} & & Conditional compilation end \\
          & \dir{FATAL} & & report fatal error \\
-         & \lbdir{GOTO} & \copt{Sg} & Support \var{GOTO} and \var{Label}\\
          & \dir{HINT} & & Emit hint message\\
-         & \bdir{HINTS} & \copt{vh} & Show hints \\
 \dir{I file} & \dir{INCLUDE} & & Include file or literal text \\
          & \dir{IF} & & Conditional compilation start \\
          & \dir{IFDEF NAME} & & Conditional compilation start \\
@@ -56,26 +61,21 @@ Short & long & Opt & Explanation \\ \hline
          & \dir{IFOPT} & & Conditional compilation start \\
          & \dir{INCLUDEPATH} & \copt{Fi} & set include path \\
          & \dir{INFO} & & Emit information message \\
-         & \bdir{INLINE} & \copt{Si} & Allow inline code \\
 \dir{L file} & \dir{LINK} & & Link object file \\
          & \dir{LIBRARYPATH} & \copt{Fl} & Set library path\\
          & \dir{LINKLIB name} & & link library \\
 \dir{M MIN,MAX}  & \dir{MEMORY} & & Set memory sizes \\
          & \dir{MACRO} & \copt{Sm} & Allow use of macros \\
          & \dir{MESSAGE} & & Emit message \\
-         & \bdir{MMX} & & Intel MMX support \\
          & \dir{MODE} & & Set compatibility mode \\
          & \dir{NOTE} & & Emite note message \\
-         & \dir{NOTES} & \copt{vn} & Emit notes \\ 
          & \dir{OBJECTPATH} & \copt{Fo} & Set object path \\
          & \dir{OUTPUT} & \copt{A} & Set output format \\
          & \dir{PACKENUM} & & Enumeration type size \\
          & \dir{PACKRECORDS} & & Record element alignment \\
          & \dir{SATURATION} & & Saturation (ignored) \\
-         & \bdir{SMARTLINK} & \copt{CX} & Use smartlinking \\
-         & \lbdir{STATIC} & \copt{St} & Allow use of \var{static} \\
          & \dir{STOP} & &  Stop compilation \\
-         & \lbdir{UNDEF} & \copt{u} & Undefine symbol \\ \hline
+         & \dir{UNDEF} & \copt{u} & Undefine symbol \\ \hline
 %
 %        
 \end{FPCltable}
