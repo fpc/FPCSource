@@ -31,6 +31,7 @@ unit cpunode;
     uses
 //       nppcadd,
 //       nppccal,
+         nppccnv,
 //       nppccon,
 //       nppcflw,
        nppcmat,
@@ -47,7 +48,11 @@ unit cpunode;
 end.
 {
   $Log$
-  Revision 1.5  2002-05-18 13:34:26  peter
+  Revision 1.6  2002-07-11 07:42:31  jonas
+    * fixed nppccnv and enabled it
+    - removed PPC specific second_int_to_int and use the generic one instead
+
+  Revision 1.5  2002/05/18 13:34:26  peter
     * readded missing revisions
 
   Revision 1.4  2002/05/16 19:46:53  carl
