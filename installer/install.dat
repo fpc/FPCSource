@@ -231,6 +231,14 @@ package=umysqlsrc.zip,MySQL interface units
 package=ummsystemsrc.zip,MMSystem interface units
 # Source-2 12
 package=uzlibsrc.zip,ZLib interface units
+# Source-2 13
+package=urexxsrc.zip,REXX SAA interface units
+# Source-2 14
+package=uftpapisrc.zip[uftpsrc.zip],FTP API interface units
+# Source-2 15
+package=uhwvideosrc.zip[uhwvsrc.zip],HW Video interface units
+# Source-2 16
+package=ummtksrc.zip,MMOS/2 interface units
 
 
 defaultcfg=
