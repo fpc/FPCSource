@@ -1126,7 +1126,7 @@ begin
             b:=true
           else
             b:=false;
-          W^.Editor^.SetLineFlagState(Line,lfBreakpoint,b);
+          W^.Editor^.SetLineFlagState(Line-1,lfBreakpoint,b);
         end;
     end;
 end;
@@ -1186,7 +1186,7 @@ procedure TBreakpointCollection.ShowBreakpoints(W : PSourceWindow);
   begin
     If assigned(P^.FileName) and
       (GDBFileName(FExpand(P^.FileName^))=GDBFileName(FExpand(W^.Editor^.FileName))) then
-      W^.Editor^.SetLineFlagState(P^.Line,lfBreakpoint,P^.state=bs_enabled);
+      W^.Editor^.SetLineFlagState(P^.Line-1,lfBreakpoint,P^.state=bs_enabled);
   end;
 
 begin
@@ -1203,7 +1203,7 @@ procedure TBreakpointCollection.ShowAllBreakpoints;
       begin
         W:=SearchOnDesktop(P^.FileName^,false);
         if assigned(W) then
-          W^.Editor^.SetLineFlagState(P^.Line,lfBreakpoint,P^.state=bs_enabled);
+          W^.Editor^.SetLineFlagState(P^.Line-1,lfBreakpoint,P^.state=bs_enabled);
       end;
   end;
 
@@ -3340,7 +3340,10 @@ end.
 
 {
   $Log$
-  Revision 1.59  2000-04-18 11:42:36  pierre
+  Revision 1.60  2000-04-18 21:45:35  pierre
+   * Red line for breakpoint was off by one line
+
+  Revision 1.59  2000/04/18 11:42:36  pierre
    lot of Gabor changes : see fixes.txt
 
   Revision 1.58  2000/03/21 23:32:38  pierre
