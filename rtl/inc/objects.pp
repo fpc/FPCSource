@@ -221,6 +221,9 @@ TYPE
 {$IFDEF OS_DOS}
    THandle = Integer;
 {$ENDIF}
+{$IFDEF OS_ATARI}
+   THandle = Integer;
+{$ENDIF}
 {$IFDEF OS_LINUX}
  { values are words, though the OS calls return 32-bit values }
  { to check (CEC)                                             }
@@ -2729,7 +2732,10 @@ END;
 END.
 {
   $Log$
-  Revision 1.6  1998-07-08 12:00:25  carl
+  Revision 1.7  1998-07-15 12:08:33  carl
+    + Atari TOS support
+
+  Revision 1.6  1998/07/08 12:00:25  carl
     * fixed problem with m68k asm syntax
     * i386_att put back in, and only in cpu86 defined
 
