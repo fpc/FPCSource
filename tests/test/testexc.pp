@@ -169,8 +169,9 @@ Procedure Finish;
 
 begin
   Writeln;
-  Write ('Finished. Press enter to continue.');
-  Readln;
+  Write ('Finished.');
+  { Press enter to continue.');
+  Readln; tests/test/test... must be non interactive !! PM }
 end;
 
 
