@@ -780,8 +780,9 @@ implementation
                    inserttypeconv(right,s64currencytype);
                end
              { and,or,xor work on bit patterns and don't care
-               about the sign }
-             else if nodetype in [andn,orn,xorn] then
+               about the sign of integers }
+             else if (nodetype in [andn,orn,xorn]) and
+                     is_integer(ld) and is_integer(rd) then
                begin
                  if rd.size>ld.size then
                    inserttypeconv_explicit(left,right.resulttype)
@@ -2033,7 +2034,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.127  2004-08-17 19:04:36  jonas
+  Revision 1.128  2004-09-13 20:32:53  peter
+    * only make both operands the same for xor,and,or when both are
+      integer types
+
+  Revision 1.127  2004/08/17 19:04:36  jonas
     * fixed "if @procvar_of_object <> nil" in Delphi/TP mode for for non-x86
 
   Revision 1.126  2004/08/08 15:22:29  florian
