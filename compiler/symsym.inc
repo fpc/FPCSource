@@ -409,7 +409,9 @@
     destructor tprocsym.done;
 
       begin
-         check_forward;
+         { don't check if errors !! }
+         if Errorcount=0 then
+           check_forward;
          tsym.done;
       end;
 
@@ -444,9 +446,6 @@
       var
          pd : pprocdef;
       begin
-         { don't check if errors !! }
-         if Errorcount>0 then
-           exit;
          pd:=definition;
          while assigned(pd) do
            begin
@@ -457,7 +456,10 @@
                        demangledparas(pd^.demangled_paras))
                    else
                      MessagePos1(fileinfo,sym_e_forward_not_resolved,name+pd^.demangled_paras);
+                   { Turn futher error messages off }
+                   pd^.forwarddef:=false;
                 end;
+
               pd:=pd^.nextoverloaded;
            end;
       end;
@@ -2016,7 +2018,10 @@
 
 {
   $Log$
-  Revision 1.87  1999-05-08 19:52:38  peter
+  Revision 1.88  1999-05-10 09:01:43  peter
+    * small message fixes
+
+  Revision 1.87  1999/05/08 19:52:38  peter
     + MessagePos() which is enhanced Message() function but also gets the
       position info
     * Removed comp warnings
