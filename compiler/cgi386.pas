@@ -4690,6 +4690,7 @@ do_jmp:
            oldprocsym : pprocsym;
            para_size : longint;
            oldprocinfo : tprocinfo;
+           old_make_const_global : boolean;
            { just dummies for genentrycode }
            nostackframe,make_global : boolean;
            proc_names : tstringcontainer;
@@ -4711,6 +4712,8 @@ do_jmp:
               { set it to the same lexical level }
           st^.symtablelevel:=
             oldprocsym^.definition^.localst^.symtablelevel;
+          old_make_const_global:=make_const_global;
+          make_const_global:=true;
           if st^.datasize>0 then
             st^.call_offset:=gettempofsizepersistant(st^.datasize);
 {$ifdef extdebug}
@@ -4750,6 +4753,7 @@ do_jmp:
           aktexitlabel:=oldexitlabel;
           aktexit2label:=oldexit2label;
           quickexitlabel:=oldquickexitlabel;
+          make_const_global:=old_make_const_global;
           procinfo:=oldprocinfo;
        end;
 
@@ -4926,7 +4930,7 @@ do_jmp:
                    }
                    if assigned(aktprocsym) then
                      begin
-                       if (aktprocsym^.definition^.options and
+                        if (aktprocsym^.definition^.options and
                         poconstructor+podestructor{+poinline}+pointerrupt=0) and
                         ((procinfo.flags and pi_do_call)=0) and (lexlevel>1) then
                        begin
@@ -5042,6 +5046,9 @@ do_jmp:
                           end;
                      end;
                 end;
+              if assigned(aktprocsym) and
+                 ((aktprocsym^.definition^.options and poinline)<>0) then
+                make_const_global:=true;
               do_secondpass(p);
 
 {$ifdef StoreFPULevel}
@@ -5055,7 +5062,7 @@ do_jmp:
               c_usableregs:=4;
            end;
          procinfo.aktproccode^.concatlist(exprasmlist);
-
+         make_const_global:=false;
          current_module^.current_inputfile:=oldis;
          current_module^.current_inputfile^.line_no:=oldnr;
       end;
@@ -5063,7 +5070,10 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.34  1998-06-05 14:37:27  pierre
+  Revision 1.35  1998-06-05 16:13:32  pierre
+    * fix for real and string consts inside inlined procs
+
+  Revision 1.34  1998/06/05 14:37:27  pierre
     * fixes for inline for operators
     * inline procedure more correctly restricted
 

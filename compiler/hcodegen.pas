@@ -53,7 +53,8 @@ unit hcodegen;
           { return type }
           sym : pprocsym;
           { the definition of the proc itself }
-          def : pdef;
+          { why was this a pdef only ?? PM    }
+          def : pprocdef;
           { frame pointer offset }
           framepointer_offset : longint;
           { self pointer offset }
@@ -144,7 +145,10 @@ unit hcodegen;
     function constlabelnb2str(pnb : longint;ctype:tconsttype):string;
     procedure concat_constlabel(p:plabel;ctype:tconsttype);
 
-
+    { to be able to force to have a global label for const }
+    const
+       make_const_global : boolean = false;
+       
 implementation
 
      uses
@@ -356,7 +360,8 @@ implementation
       { we must use the number directly !!! (PM) }
     function constlabel2str(l : plabel;ctype:tconsttype):string;
       begin
-        if (cs_smartlink in aktswitches) {or (aktoutputformat in [as_tasm])} then
+        if (cs_smartlink in aktswitches) or
+           make_const_global {or (aktoutputformat in [as_tasm])} then
          constlabel2str:='_$'+current_module^.modulename^+'$'+consttypestr[ctype]+'_const_'+tostr(l^.nb)
         else
          constlabel2str:=lab2str(l);
@@ -364,7 +369,8 @@ implementation
 
     function constlabelnb2str(pnb : longint;ctype:tconsttype):string;
       begin
-        if (cs_smartlink in aktswitches) {or (aktoutputformat in [as_tasm])} then
+        if (cs_smartlink in aktswitches) or
+           make_const_global {or (aktoutputformat in [as_tasm])} then
          constlabelnb2str:='_$'+current_module^.modulename^+'$'+consttypestr[ctype]+'_const_'+tostr(pnb)
         else
          constlabelnb2str:=target_asm.labelprefix+tostr(pnb);
@@ -375,7 +381,8 @@ implementation
       var
         s : string;
       begin
-        if (cs_smartlink in aktswitches) {or (aktoutputformat in [as_tasm])} then
+        if (cs_smartlink in aktswitches) or
+           make_const_global {or (aktoutputformat in [as_tasm])} then
          begin
            s:='_$'+current_module^.modulename^+'$'+consttypestr[ctype]+'_const_'+tostr(p^.nb);
            if (cs_smartlink in aktswitches) then
@@ -394,7 +401,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  1998-06-04 23:51:40  peter
+  Revision 1.9  1998-06-05 16:13:34  pierre
+    * fix for real and string consts inside inlined procs
+
+  Revision 1.8  1998/06/04 23:51:40  peter
     * m68k compiles
     + .def file creation moved to gendef.pas so it could also be used
       for win32

@@ -205,14 +205,17 @@ implementation
          if assigned(lastlabel) then
            p^.location.reference.symbol:=stringdup(constlabel2str(lastlabel,conststring))
          else
-           p^.location.reference.symbol:=stringdup(constlabelnb2str(p^.labnumber,conststring));
+           p^.location.reference.symbol:=stringdup(constlabelnb2str(p^.labstrnumber,conststring));
          p^.location.loc := LOC_MEM;
       end;
 
 end.
 {
   $Log$
-  Revision 1.1  1998-05-23 01:21:02  peter
+  Revision 1.2  1998-06-05 16:13:31  pierre
+    * fix for real and string consts inside inlined procs
+
+  Revision 1.1  1998/05/23 01:21:02  peter
     + aktasmmode, aktoptprocessor, aktoutputformat
     + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
     + $LIBNAME to set the library name where the unit will be put in
