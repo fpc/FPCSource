@@ -1871,6 +1871,2147 @@ None.
  
 \begin{procedure}{AppendStr}
 \Declaration
+Procedure AppendStr(var Dest: PString; const S: string);
+\Description
+\var{AppendStr}
+\Errors
+\SeeAlso
+\end{procedure}
+
+ 
+\begin{procedure}{AssignStr}
+\Declaration
+Procedure AssignStr(var P: PString; const S: string);
+\Description
+\Errors
+\SeeAlso
+\end{procedure}
+
+ 
+\begin{function}{BCDToInt}
+\Declaration
+Function BCDToInt(Value: integer): integer;
+\Description
+\Errors
+\SeeAlso
+\end{function}
+
+ 
+\begin{function}{CompareMem}
+\Declaration
+Function CompareMem(P1, P2: Pointer; Length: cardinal): integer;
+\Description
+\Errors
+\SeeAlso
+\end{function}
+
+ 
+\begin{function}{CompareStr}
+\Declaration
+Function CompareStr(const S1, S2: string): Integer;
+\Description
+\Errors
+\SeeAlso
+\end{function}
+
+ 
+\begin{function}{CompareText}
+\Declaration
+Function CompareText(const S1, S2: string): integer;
+\Description
+\Errors
+\SeeAlso
+\end{function}
+
+ 
+\begin{procedurel}{DisposeStr}{DisposeStrSys}
+\Declaration
+Procedure DisposeStr(S: PString);
+\Description
+\Errors
+\SeeAlso
+\end{procedurel}
+
+ 
+\begin{function}{FloatToStr}
+\Declaration
+Function FloatToStr(Value: Extended): String;
+\Description
+\Errors
+\SeeAlso
+\end{function}
+
+ 
+\begin{function}{FloatToStrF}
+\Declaration
+Function FloatToStrF(Value: Extended; format: TFloatFormat; Precision, Digits: Integer): String;
+\Description
+\Errors
+\SeeAlso
+\end{function}
+
+ 
+\begin{procedure}{FmtStr}
+\Declaration
+Procedure (Var Res: String; Const Fmt : String; Const args: Array of const);
+\Description
+\Errors
+\SeeAlso
+\end{procedure}
+
+ 
+\begin{function}{Format}
+\Declaration
+Function Format(Const Fmt : String; const Args : Array of const) : String;
+\Description
+\Errors
+\SeeAlso
+\end{function}
+
+ 
+\begin{function}{FormatBuf}
+\Declaration
+Function FormatBuf(Var Buffer; BufLen : Cardinal; Const Fmt; fmtLen : Cardinal; Const Args : Array of const) : Cardinal;
+\Description
+\Errors
+\SeeAlso
+\end{function}
+
+ 
+\begin{function}{IntToHex}
+\Declaration
+Function IntToHex(Value: integer; Digits: integer): string;
+\Description
+\Errors
+\SeeAlso
+\end{function}
+
+ 
+\begin{function}{IntToStr}
+\Declaration
+Function IntToStr(Value: integer): string;
+\Description
+\Errors
+\SeeAlso
+\end{function}
+
+ 
+\begin{function}{IsValidIdent}
+\Declaration
+Function IsValidIdent(const Ident: string): boolean;
+\Description
+\Errors
+\SeeAlso
+\end{function}
+
+ 
+\begin{function}{LeftStr}
+\Declaration
+Function LeftStr(const S: string; Count: integer): string;
+\Description
+\Errors
+\SeeAlso
+\end{function}
+
+ 
+\begin{function}{LoadStr}
+\Declaration
+Function LoadStr(Ident: integer): string;
+\Description
+\Errors
+\SeeAlso
+\end{function}
+
+ 
+\begin{function}{LowerCase}
+\Declaration
+Function LowerCase(const s: string): string;
+\Description
+\Errors
+\SeeAlso
+\end{function}
+
+ 
+\begin{functionl}{NewStr}{NewStrSys}
+\Declaration
+Function NewStr(const S: string): PString;
+\Description
+\Errors
+\SeeAlso
+\end{functionl}
+
+ 
+\begin{function}{QuotedStr}
+\Declaration
+Function QuotedStr(const S: string): string;
+\Description
+\Errors
+\SeeAlso
+\end{function}
+
+ 
+\begin{function}{RightStr}
+\Declaration
+Function RightStr(const S: string; Count: integer): string;
+\Description
+\Errors
+\SeeAlso
+\end{function}
+
+ 
+\begin{function}{StrFmt}
+\Declaration
+Function StrFmt(Buffer,Fmt : PChar; Const args: Array of const) : Pchar;
+\Description
+\Errors
+\SeeAlso
+\end{function}
+
+ 
+\begin{function}{StrLFmt}
+\Declaration
+Function StrLFmt(Buffer : PCHar; Maxlen : Cardinal;Fmt : PChar; Const args: Array of const) : Pchar;
+\Description
+\Errors
+\SeeAlso
+\end{function}
+
+ 
+\begin{function}{StrToInt}
+\Declaration
+Function StrToInt(const s: string): integer;
+\Description
+\Errors
+\SeeAlso
+\end{function}
+
+ 
+\begin{function}{StrToIntDef}
+\Declaration
+Function StrToIntDef(const S: string; Default: integer): integer;
+\Description
+\Errors
+\SeeAlso
+\end{function}
+
+ 
+\begin{function}{Trim}
+\Declaration
+Function Trim(const S: string): string;
+\Description
+\Errors
+\SeeAlso
+\end{function}
+
+ 
+\begin{function}{TrimLeft}
+\Declaration
+Function TrimLeft(const S: string): string;
+\Description
+\Errors
+\SeeAlso
+\end{function}
+
+ 
+\begin{function}{TrimRight}
+\Declaration
+Function TrimRight(const S: string): string;
+\Description
+\Errors
+\SeeAlso
+\end{function}
+
+ 
+\begin{function}{UpperCase}
+\Declaration
+Function UpperCase(const s: string): string;
+\Description
+\Errors
+\SeeAlso
+\end{function}
+
+ 
+
+*** Modified files in JOE when it aborted on Wed May 26 13:43:43 1999
+*** JOE was aborted because the terminal closed
+
+*** File '(Unnamed)'
+sysutils.tex
+
+*** File 'sysutils.tex'
+%
+%   $Id$
+%   This file is part of the FPC documentation.
+%   Copyright (C) 1999, by Michael Van Canneyt
+%
+%   The FPC documentation is free text; you can redistribute it and/or
+%   modify it under the terms of the GNU Library General Public License as
+%   published by the Free Software Foundation; either version 2 of the
+%   License, or (at your option) any later version.
+%
+%   The FPC Documentation is distributed in the hope that it will be useful,
+%   but WITHOUT ANY WARRANTY; without even the implied warranty of
+%   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+%   Library General Public License for more details.
+%
+%   You should have received a copy of the GNU Library General Public
+%   License along with the FPC documentation; see the file COPYING.LIB.  If not,
+%   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+%   Boston, MA 02111-1307, USA. 
+%
+\chapter{The SYSUTILS unit.}
+
+This chapter describes the \file{sysutils} unit. The \var{sysutils} unit 
+was largely written by Gertjan Schouten, and completed by michael Van Canneyt. 
+It aims to be compatible to the Delphi sysutils unit, but in contrast with 
+the latter, it is designed to work on multiple platforms.
+
+This chapter starts out with a definition of all types and constants 
+that are defined, followed by a complete explanation of each function.
+
+\section{Constants and types}
+
+The following general-purpose constants are defined:
+\begin{verbatim}
+const
+   SecsPerDay = 24 * 60 * 60; // Seconds and milliseconds per day
+   MSecsPerDay = SecsPerDay * 1000;
+   DateDelta = 693594;        // Days between 1/1/0001 and 12/31/1899
+   Eoln = #10;
+\end{verbatim}
+The following types are used frequently in date and time functions.
+They are the same on all platforms.
+\begin{verbatim}
+type
+   TSystemTime = record
+      Year, Month, Day: word;
+      Hour, Minute, Second, MilliSecond: word;
+   end ;
+
+   TDateTime = double;
+
+   TTimeStamp = record
+      Time: integer;   { Number of milliseconds since midnight }
+      Date: integer;   { One plus number of days since 1/1/0001 }
+   end ;
+\end{verbatim}
+The following type is used in the \seef{FindFirst},\seef{FindNext} 
+and \seepl{FindClose}{FindCloseSys} functions. The \var{win32} version differs from 
+the other versions. If code is to be portable, that part  shouldn't 
+be used.
+\begin{verbatim}
+Type 
+  THandle = Longint; 
+  TSearchRec = Record
+    Time,Size, Attr : Longint;
+    Name : TFileName;
+    ExcludeAttr : Longint;
+    FindHandle : THandle;
+    {$ifdef Win32}
+    FindData : TWin32FindData;        
+    {$endif}
+    end;
+\end{verbatim}
+The following constants are file-attributes that need to be matched in the 
+findfirst call.
+\begin{verbatim}
+Const 
+  faReadOnly  = $00000001; 
+  faHidden    = $00000002;
+  faSysFile   = $00000004;
+  faVolumeId  = $00000008;
+  faDirectory = $00000010;
+  faArchive   = $00000020;
+  faAnyFile   = $0000003f;
+\end{verbatim}
+The following constants can be used in the \seef{FileOpen} call.
+\begin{verbatim}
+Const
+  fmOpenRead       = $0000;
+  fmOpenWrite      = $0001;
+  fmOpenReadWrite  = $0002;
+\end{verbatim}
+The following constants can be used in the \seef{FileSeek} call.
+\begin{verbatim}
+Const
+  fsFromBeginning = 0;
+  fsFromCurrent   = 1;
+  fsFromEnd       = 2;
+
+\end{verbatim}
+The following variables are used in the case translation routines.
+\begin{verbatim}
+type
+   TCaseTranslationTable = array[0..255] of char;
+var
+   UpperCaseTable: TCaseTranslationTable;
+   LowerCaseTable: TCaseTranslationTable;
+\end{verbatim}
+The initialization code of the \file{sysutils} unit fills these 
+tables with the appropriate values. For the win32 and go32v2
+versions, this information is obtained from the operating system.
+
+The following constants control the formatting of dates.
+For the Win32 version of the \file{sysutils} unit, these 
+constants are set according to the internationalization 
+settings of Windows by the initialization code of the unit.
+\begin{verbatim}
+Const 
+   DateSeparator: char = '-';
+   ShortDateFormat: string = 'd/m/y';
+   LongDateFormat: string = 'dd" "mmmm" "yyyy';
+   ShortMonthNames: array[1..12] of string[128] =
+     ('Jan','Feb','Mar','Apr','May','Jun',
+      'Jul','Aug','Sep','Oct','Nov','Dec');
+   LongMonthNames: array[1..12] of string[128] =
+     ('January','February','March','April',
+      'May','June','July','August',
+      'September','October','November','December');
+   ShortDayNames: array[1..7] of string[128] =
+     ('Sun','Mon','Tue','Wed','Thu','Fri','Sat');
+   LongDayNames: array[1..7] of string[128] =
+     ('Sunday','Monday','Tuesday','Wednesday',
+       'Thursday','Friday','Saturday');
+\end{verbatim}  
+
+The following constants control the formatting of times.
+For the Win32 version of the \file{sysutils} unit, these 
+constants are set according to the internationalization 
+settings of Windows by the initialization code of the unit.
+\begin{verbatim}
+Const
+   ShortTimeFormat: string = 'hh:nn';
+   LongTimeFormat: string = 'hh:nn:ss';
+   TimeSeparator: char = ':';
+   TimeAMString: string[7] = 'AM';
+   TimePMString: string[7] = 'PM';
+\end{verbatim}
+
+The following constants control the formatting of currencies 
+and numbers. For the Win32 version of the \file{sysutils} unit, 
+these  constants are set according to the internationalization 
+settings of Windows by the initialization code of the unit.
+\begin{verbatim}
+Const
+  DecimalSeparator : Char = '.';
+  ThousandSeparator : Char = ',';
+  CurrencyDecimals : Byte = 2;
+  CurrencyString : String[7] = '$';
+  { Format to use when formatting currency :
+    0 = $1        1 = 1$         2 = $ 1      3 = 1 $
+    4 = Currency string replaces decimal indicator. 
+        e.g. 1$50 
+   }
+  CurrencyFormat : Byte = 1;
+  { Same as above, only for negative currencies:
+    0 = ($1)
+    1 = -$1
+    2 = $-1
+    3 = $1-
+    4 = (1$)
+    5 = -1$
+    6 = 1-$
+    7 = 1$-
+    8 = -1 $
+    9 = -$ 1
+    10 = $ 1-
+   }
+  NegCurrFormat : Byte = 5;
+\end{verbatim}
+The following types are used in various string functions.
+\begin{verbatim}
+type
+   PString = ^String;
+   TFloatFormat = (ffGeneral, ffExponent, ffFixed, ffNumber, ffCurrency);
+\end{verbatim}
+The following constants are used in the file name handling routines. Do not
+use a slash of backslash character directly as a path separator; instead 
+use the \var{OsDirSeparator} character.
+\begin{verbatim}
+Const
+  DirSeparators : set of char = ['/','\'];  
+{$ifdef Linux}
+  OSDirSeparator = '/';
+{$else}
+  OsDirSeparator = '\';
+{$endif}
+\end{verbatim}
+
+\section{Date and time functions}
+
+\subsection{Date and time formatting characters}
+\label{se:formatchars}
+
+Various date and time formatting routines accept a format string.
+to format the date and or time. The following characters can be used
+to control the date and time formatting:
+\begin{description}
+\item[c] : shortdateformat + ' ' + shorttimeformat
+\item[d] : day of month
+\item[dd] : day of month (leading zero)
+\item[ddd] : day of week (abbreviation)
+\item[dddd] : day of week (full)
+\item[ddddd] : shortdateformat
+\item[dddddd] : longdateformat
+\item[m] : month
+\item[mm] : month (leading zero)
+\item[mmm] : month (abbreviation)
+\item[mmmm] : month (full)
+\item[y] : year (four digits)
+\item[yy] : year (two digits)
+\item[yyyy] : year (with century)
+\item[h] : hour
+\item[hh] : hour (leading zero)
+\item[n] : minute
+\item[nn] : minute (leading zero)
+\item[s] : second
+\item[ss] : second (leading zero)
+\item[t] : shorttimeformat
+\item[tt] : longtimeformat
+\item[am/pm] : use 12 hour clock and display am and pm accordingly
+\item[a/p] : use 12 hour clock and display a and p accordingly
+\item[/] : insert date seperator
+\item[:] : insert time seperator
+\item["xx"] : literal text
+\item['xx'] : literal text
+\end{description}
+
+\begin{type}{TDateTime}
+\Declaration
+  TDateTime = Double;
+\Description
+Many functions return or require a \var{TDateTime} type, which contains
+a date and time in encoded form. The date and time are converted to a double
+as follows:
+\end{type}
+
+\begin{function}{Date}
+\Declaration
+Function Date: TDateTime;
+\Description
+\var{Date} returns the current date in \var{TDateTime} format. 
+For more information about the \var{TDateTime} type, see \seety{TDateTime}.
+\Errors
+None.
+\SeeAlso
+\seef{Time},\seef{Now}, \seety{TDateTime}.
+\end{function}
+
+\latex{\inputlisting{sysutex/ex1.pp}}
+\html{\input{sysutex/ex1.tex}}
+
+\begin{function}{DateTimeToFileDate}
+\Declaration
+Function DateTimeToFileDate(DateTime : TDateTime) : Longint;
+\Description
+\var{DateTimeToFileDate} function converts a date/time indication in
+\var{TDateTime} format to a filedate function, such as returned for 
+instance by the \seef{FileAge} function.
+\Errors
+None.
+\SeeAlso
+\seef{Time}, \seef{Date}, \seef{FileDateToDateTime},
+\seep{DateTimeToSystemTime}, \seef{DateTimeToTimeStamp}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex2.pp}}
+\html{\input{sysutex/ex2.tex}}
+ 
+\begin{function}{DateTimeToStr}
+\Declaration
+Function DateTimeToStr(DateTime: TDateTime): string;
+\Description
+\var{DateTimeToStr} returns a string representation of 
+\var{DateTime} using the formatting specified in
+\var{ShortDateTimeFormat}. It corresponds to a call to 
+\var{FormatDateTime('c',DateTime)} (see \sees{formatchars}).
+\Errors
+None.
+\SeeAlso
+\seef{FormatDateTime}, \seety{TDateTime}.
+\end{function}
+
+\latex{\inputlisting{sysutex/ex3.pp}}
+\html{\input{sysutex/ex3.tex}}
+ 
+\begin{procedure}{DateTimeToString}
+\Declaration
+Procedure DateTimeToString(var Result: string; const FormatStr: string; const DateTime: TDateTime);
+\Description
+\var{DateTimeToString} returns in \var{Result} a string representation of 
+\var{DateTime} using the formatting specified in \var{FormatStr}. 
+
+for a list of characters that can be used in the \var{FormatStr} formatting
+string, see \sees{formatchars}.
+\Errors
+In case a wrong formatting character is found, an \var{EConvertError} is
+raised.
+\SeeAlso
+\seef{FormatDateTime}, \sees{formatchars}.
+\end{procedure}
+
+\latex{\inputlisting{sysutex/ex4.pp}}
+\html{\input{sysutex/ex4.tex}}
+ 
+\begin{procedure}{DateTimeToSystemTime}
+\Declaration
+Procedure DateTimeToSystemTime(DateTime: TDateTime; var SystemTime: TSystemTime);
+\Description
+\var{DateTimeToSystemTime} converts a date/time pair in \var{DateTime}, with
+\var{TDateTime} format to a system time \var{SystemTime}.
+\Errors
+None.
+\SeeAlso
+\seef{DateTimeToFileDate}, \seef{SystemTimeToDateTime},
+\seef{DateTimeToTimeStamp}
+\end{procedure}
+
+\latex{\inputlisting{sysutex/ex5.pp}}
+\html{\input{sysutex/ex5.tex}}
+
+\begin{function}{DateTimeToTimeStamp}
+\Declaration
+Function DateTimeToTimeStamp(DateTime: TDateTime): TTimeStamp;
+\Description
+\var{DateTimeToSystemTime} converts a date/time pair in \var{DateTime}, with
+\var{TDateTime} format to a \var{TTimeStamp} format.
+\Errors
+None.
+\SeeAlso
+\seef{DateTimeToFileDate}, \seef{SystemTimeToDateTime},
+\seep{DateTimeToSystemTime}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex6.pp}}
+\html{\input{sysutex/ex6.tex}}
+
+\begin{function}{DateToStr}
+\Declaration
+Function DateToStr(Date: TDateTime): string;
+\Description
+\var{DateToStr} converts \var{Date} to a string representation. It uses
+\var{ShortDateFormat} as it's formatting string. It is hence completely
+equivalent to a \var{FormatDateTime('ddddd', Date)}.
+\Errors
+None.
+\SeeAlso
+\seef{TimeToStr}, \seef{DateTimeToStr}, \seef{FormatDateTime},
+\seef{StrToDate}
+\end{function}
+
+
+\latex{\inputlisting{sysutex/ex7.pp}}
+\html{\input{sysutex/ex7.tex}}
+ 
+\begin{function}{DayOfWeek}
+\Declaration
+Function DayOfWeek(DateTime: TDateTime): integer;
+\Description
+\var{DayOfWeek} returns the day of the week from \var{DateTime}.
+\var{Sunday} is counted as day 1, \var{Saturday} is counted as 
+day 7. The result of \var{DayOfWeek} can serve as an index to 
+the \var{LongDayNames} constant array, to retrieve the name of 
+the day.
+\Errors
+None.
+\SeeAlso
+\seef{Date}, \seef{DateToStr}
+\end{function}
+
+
+\latex{\inputlisting{sysutex/ex8.pp}}
+\html{\input{sysutex/ex8.tex}}
+
+\begin{procedure}{DecodeDate}
+\Declaration
+Procedure DecodeDate(Date: TDateTime; var Year, Month, Day: word);
+\Description
+\var{DecodeDate} decodes the Year, Month and Day stored in \var{Date},
+and returns them in the \var{Year}, \var{Month} and \var{Day} variables.
+\Errors
+None.
+\SeeAlso
+\seef{EncodeDate}, \seep{DecodeTime}.
+\end{procedure}
+
+\latex{\inputlisting{sysutex/ex9.pp}}
+\html{\input{sysutex/ex9.tex}}
+
+ 
+\begin{procedure}{DecodeTime}
+\Declaration
+Procedure DecodeTime(Time: TDateTime; var Hour, Minute, Second, MilliSecond: word);
+\Description
+\var{DecodeDate} decodes the hours, minutes, second and milliseconds stored 
+in \var{Time}, and returns them in the \var{Hour}, \var{Minute} and
+\var{Second} and \var{MilliSecond} variables.
+\Errors
+None.
+\SeeAlso
+\seef{EncodeTime}, \seep{DecodeDate}.
+\end{procedure}
+
+\latex{\inputlisting{sysutex/ex10.pp}}
+\html{\input{sysutex/ex10.tex}}
+ 
+\begin{function}{EncodeDate}
+\Declaration
+Function EncodeDate(Year, Month, Day :word): TDateTime;
+\Description
+\var{EncodeDate} encodes the \var{Year}, \var{Month} and \var{Day} variables to 
+a date in \var{TDateTime} format. It does the opposite of the
+\seep{DecodeDate} procedure.
+
+The parameters must lie withing valid ranges (boundaries included):
+\begin{description}
+\item[Year] must be between 1 and 9999.
+\item[Month] must be within the range 1-12.
+\item[Day] msut be between 1 and 31.
+\end{description}
+\Errors
+In case one of the parameters is out of it's valid range, 0 is returned.
+\SeeAlso
+\seef{EncodeTime}, \seep{DecodeDate}.
+\end{function}
+
+\latex{\inputlisting{sysutex/ex11.pp}}
+\html{\input{sysutex/ex11.tex}}
+
+\begin{function}{EncodeTime}
+\Declaration
+Function EncodeTime(Hour, Minute, Second, MilliSecond:word): TDateTime;
+\Description
+\var{EncodeTime} encodes the \var{Hour}, \var{Minute}, \var{Second},
+\var{MilliSecond} variables to a \var{TDateTime} format result.
+It does the opposite of the \seep{DecodeTime} procedure.
+
+The parameters must have a valid range (boundaries included):
+\begin{description}
+\item[Hour] must be between 0 and 23.
+\item[Minute,second] must both be between 0 and 59.
+\item[Millisecond] must be between 0 and 999.
+\end{description}
+\Errors
+In case one of the parameters is outside of it's valid range, 0 is returned.
+\SeeAlso
+\seef{EncodeDate}, \seep{DecodeTime}.
+\end{function}
+
+\latex{\inputlisting{sysutex/ex12.pp}}
+\html{\input{sysutex/ex12.tex}}
+
+ 
+\begin{function}{FileDateToDateTime}
+\Declaration
+Function FileDateToDateTime(Filedate : Longint) : TDateTime;
+\Description
+\var{FileDateToDateTime} converts the date/time encoded in \var{filedate}
+to a \var{TDateTime} encoded form. It can be used to convert date/time values 
+returned by the \seef{FileAge} or \seef{FindFirst}/\seef{FindNext} 
+functions to \var{TDateTime} form.
+\Errors
+None.
+\SeeAlso
+\seef{DateTimeToFileDate}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex13.pp}}
+\html{\input{sysutex/ex13.tex}}
+ 
+\begin{function}{FormatDateTime}
+\Declaration
+Function FormatDateTime(FormatStr: string; DateTime: TDateTime):string;
+\Description
+\var{FormatDateTime} formats the date and time encoded in \var{DateTime}
+according to the formatting given in \var{FormatStr}. The complete list 
+of formatting characters can be found in \sees{formatchars}.
+\Errors
+On error (such as an invalid character in the formatting string), and
+\var{EConvertError} exception is raised.
+\SeeAlso
+\seef{DateTimeToStr}, \seef{DateToStr}, \seef{TimeToStr},
+\seef{StrToDateTime}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex14.pp}}
+\html{\input{sysutex/ex14.tex}}
+
+ 
+\begin{function}{IncMonth}
+\Declaration
+Function IncMonth(const DateTime: TDateTime; NumberOfMonths: integer): TDateTime;
+\Description
+\var{IncMonth} increases the month number in \var{DateTime} with
+\var{NumberOfMonths}. It wraps the result as to get a month between 1 and
+12, and updates the year accordingly. \var{NumberOfMonths} can be negative,
+and can be larger than 12 (in absolute value).
+\Errors
+None.
+\SeeAlso
+\seef{Date}, \seef{Time}, \seef{Now}
+\end{function}
+
+
+\latex{\inputlisting{sysutex/ex15.pp}}
+\html{\input{sysutex/ex15.tex}}
+ 
+\begin{function}{IsLeapYear}
+\Declaration
+Function IsLeapYear(Year: Word): boolean;
+\Description
+\var{IsLeapYear} returns \var{True} if \var{Year} is a leap year,
+\var{False} otherwise.
+\Errors
+None.
+\SeeAlso
+\seef{IncMonth}, \seef{Date}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex16.pp}}
+\html{\input{sysutex/ex16.tex}}
+ 
+\begin{function}{MSecsToTimeStamp}
+\Declaration
+Function MSecsToTimeStamp(MSecs: Comp): TTimeStamp;
+\Description
+\var{MSecsTiTimeStamp} converts the given number of milliseconds to
+a \var{TTimeStamp} date/time notation.
+
+Use \var{TTimeStamp} variables if you need to keep very precise track of
+time.
+\Errors
+None.
+\SeeAlso
+\seef{TimeStampToMSecs}, \seef{DateTimeToTimeStamp}, 
+\end{function}
+
+\latex{\inputlisting{sysutex/ex17.pp}}
+\html{\input{sysutex/ex17.tex}}
+ 
+\begin{function}{Now}
+\Declaration
+Function Now: TDateTime;
+\Description
+\var{Now} returns the current date and time. It is equivalent to 
+\var{Date+Time}.
+\Errors
+None.
+\SeeAlso
+\seef{Date}, \seef{Time}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex18.pp}}
+\html{\input{sysutex/ex18.tex}}
+ 
+\begin{function}{StrToDate}
+\Declaration
+Function StrToDate(const S: string): TDateTime;
+\Description
+\var{StrToDate} converts the string \var{S} to a \var{TDateTime} date 
+value. The Date must consist of 1 to three digits, separated by the 
+\var{DateSeparator} character. If two numbers are given, they
+are supposed to form the day and month of the current year. If only 
+one number is given, it is supposed to represent the day of the 
+current month. (This is \em{not} supported in Delphi)
+
+The order of the digits (y/m/d, m/d/y, d/m/y) is determined from the 
+\var{ShortDateFormat} variable.
+\Errors
+On error (e.g. an invalid date or invalid character), 
+an \var{EConvertError} exception is raised.
+\SeeAlso
+\seef{StrToTime}, \seef{DateToStr}n \seef{TimeToStr}.
+\end{function}
+
+\latex{\inputlisting{sysutex/ex19.pp}}
+\html{\input{sysutex/ex19.tex}}
+
+\begin{function}{StrToDateTime}
+\Declaration
+Function StrToDateTime(const S: string): TDateTime;
+\Description
+\var{StrToDateTime} converts the string \var{S} to a \var{TDateTime} date 
+and time value. The Date must consist of 1 to three digits, separated by the 
+\var{DateSeparator} character. If two numbers are given, they
+are supposed to form the day and month of the current year. If only 
+one number is given, it is supposed to represent the day of the 
+current month. (This is \em{not} supported in Delphi)
+
+The order of the digits (y/m/d, m/d/y, d/m/y) is determined from the 
+\var{ShortDateFormat} variable.
+\Errors
+On error (e.g. an invalid date or invalid character), 
+an \var{EConvertError} exception is raised.
+\SeeAlso
+\seef{StrToDate}, \seef{StrToTime}, \seef{DateTimeToStr}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex20.pp}}
+\html{\input{sysutex/ex20.tex}}
+ 
+\begin{function}{StrToTime}
+\Declaration
+Function StrToTime(const S: string): TDateTime;
+\Description
+\var{StrToTime} converts the string \var{S} to a \var{TDateTime} time 
+value. The time must consist of 1 to 4 digits, separated by the 
+\var{TimeSeparator} character. If two numbers are given, they
+are supposed to form the hour and minutes. 
+\Errors
+On error (e.g. an invalid date or invalid character), 
+an \var{EConvertError} exception is raised.
+\SeeAlso
+\seef{StrToDate}, \seef{StrToDateTime}, \seef{TimeToStr}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex21.pp}}
+\html{\input{sysutex/ex21.tex}}
+
+\begin{function}{SystemTimeToDateTime}
+\Declaration
+Function SystemTimeToDateTime(const SystemTime: TSystemTime): TDateTime;
+\Description
+\var{SystemTimeToDateTime} converts a \var{TSystemTime} record to a
+\var{TDateTime} style date/time indication.
+\Errors
+None.
+\SeeAlso
+\seep{DateTimeToSystemTime}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex22.pp}}
+\html{\input{sysutex/ex22.tex}}
+
+\begin{function}{Time}
+\Declaration
+Function Time: TDateTime;
+\Description
+\var{Time} returns the current time in \var{TDateTime} format. The date
+part of the \var{TDateTimeValue} is set to zero.
+\Errors
+None.
+\SeeAlso
+\seef{Now}, \seef{Date}
+\end{function}
+
+
+\latex{\inputlisting{sysutex/ex23.pp}}
+\html{\input{sysutex/ex23.tex}}
+ 
+\begin{function}{TimeStampToDateTime}
+\Declaration
+Function TimeStampToDateTime(const TimeStamp: TTimeStamp): TDateTime;
+\Description
+\var{TimeStampToDateTime} converts \var{TimeStamp} to a \var{TDateTime}
+format variable. It is the inverse operation of \seef{DateTimeToTimeStamp}.
+\Errors
+None.
+\SeeAlso
+\seef{DateTimeToTimeStamp}, \seef{TimeStampToMSecs}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex24.pp}}
+\html{\input{sysutex/ex24.tex}}
+
+\begin{function}{TimeStampToMSecs}
+\Declaration
+Function TimeStampToMSecs(const TimeStamp: TTimeStamp): comp;
+\Description
+\var{TimeStampToMSecs} converts {TimeStamp} to the number of seconds
+since \var{1/1/0001}.
+
+Use \var{TTimeStamp} variables if you need to keep very precise track of
+time.
+\Errors
+None.
+\SeeAlso
+\seef{MSecsToTimeStamp}, \seef{TimeStampToDateTime}
+\end{function}
+
+For an example, see \seef{MSecsToTimeStamp}.
+
+\begin{function}{TimeToStr}
+\Declaration
+Function TimeToStr(Time: TDateTime): string;
+\Description
+\var{TimeToStr} converts the time in \var{Time} to a string. It uses
+the \var{ShortTimeFormat} variable to see what formatting needs to be
+applied. It is therefor entirely equivalent to a
+\var{FormatDateTime('t',Time)} call.
+\Errors
+None.
+\SeeAlso
+\end{function}
+
+\latex{\inputlisting{sysutex/ex25.pp}}
+\html{\input{sysutex/ex25.tex}}
+ 
+
+\section{Disk functions}
+
+\begin{functionl}{AddDisk (Linux only)}{AddDisk}
+\Declaration
+Function AddDisk (Const PAth : String) : Longint;
+\Description
+On Linux  both the \seef{DiskFree} and \seef{DiskSize} functions need a 
+file on the specified drive, since is required for the statfs system call.
+
+These filenames are set in drivestr[0..26], and the first 4 have been 
+preset to :
+\begin{description}
+\item[Disk 0]  \var{'.'} default drive - hence current directory is used.
+\item[Disk 1]  \var{'/fd0/.'} floppy drive 1.
+\item[Disk 2]  \var{'/fd1/.'} floppy drive 2.
+\item[Disk 3]  \var{'/'} \file{C:} equivalent of DOS is the root partition.
+\end{description}
+Drives 4..26 can be set by your own applications with the \var{AddDisk} call.
+
+The \var{AddDisk} call adds \var{Path} to the names of drive files, and
+returns the number of the disk that corresponds to this drive. If you
+add more than 21 drives, the count is wrapped to 4.
+\Errors
+None. 
+\SeeAlso
+\seefl{DiskFree}{DiskFreeSys}, \seefl{DiskSize}{DiskSizeSys}
+\end{functionl}
+
+\begin{function}{CreateDir}
+\Declaration
+Function CreateDir(Const NewDir : String) : Boolean;
+\Description
+\var{CreateDir} creates a new directory with name \var{NewDir}.
+If the directory doesn't contain an absolute path, then the directory is
+created below the current working directory.
+
+The function returns \var{True} if the directory was successfully 
+created, \var{False} otherwise.
+\Errors
+In case of an error, the function returns \var{False}.
+\SeeAlso
+\seef{RemoveDir}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex26.pp}}
+\html{\input{sysutex/ex26.tex}}
+ 
+\begin{functionl}{DiskFree}{DiskFreeSys}
+\Declaration
+Function DiskFree(Drive : Byte) : Longint;
+\Description
+\var{DiskFree} returns the free space (in bytes) on disk \var{Drive}.
+Drive is the number of the disk drive: 
+\begin{description}
+\item[0] for the current drive.
+\item[1] for the first floppy drive.
+\item[2] for the second floppy drive.
+\item[3] for the first hard-disk parttion.
+\item[4-26] for all other drives and partitions.
+\end{description}
+
+{\em Remark} Under \linux, and Unix in general, the concept of disk is
+different than the \dos one, since the filesystem is seen as one big
+directory tree. For this reason, the \var{DiskFree} and \seef{DiskSize}
+functions must be mimicked using filenames that reside on the partitions.
+For more information, see \seef{AddDisk}
+\Errors
+On error, \var{-1} is returned.
+\SeeAlso
+\seefl{DiskSize}{DiskSizeSys}, \seef{AddDisk}
+\end{functionl}
+
+\latex{\inputlisting{sysutex/ex27.pp}}
+\html{\input{sysutex/ex27.tex}}
+ 
+\begin{functionl}{DiskSize}{DiskSizeSys}
+\Declaration
+Function DiskSize(Drive : Byte) : Longint;
+\Description
+\var{DiskSize} returns the size (in bytes) of disk \var{Drive}.
+Drive is the number of the disk drive: 
+\begin{description}
+\item[0] for the current drive.
+\item[1] for the first floppy drive.
+\item[2] for the second floppy drive.
+\item[3] for the first hard-disk parttion.
+\item[4-26] for all other drives and partitions.
+\end{description}
+
+{\em Remark} Under \linux, and Unix in general, the concept of disk is
+different than the \dos one, since the filesystem is seen as one big
+directory tree. For this reason, the \seef{DiskFree} and \var{DiskSize}
+functions must be mimicked using filenames that reside on the partitions.
+For more information, see \seef{AddDisk}
+\Errors
+On error, \var{-1} is returned.
+\SeeAlso
+\seefl{DiskFree}{DiskFreeSys}, \seef{AddDisk}
+\end{functionl}
+
+For an example, see \seefl{DiskFree}{DiskFreeSys}.
+ 
+\begin{function}{GetCurrentDir}
+\Declaration
+Function GetCurrentDir : String;
+\Description
+\var{GetCurrentDir} returns the current working directory.
+\Errors
+None.
+\SeeAlso
+\seef{SetCurrentDir}, \seef{DiskFree}, \seef{DiskSize}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex28.pp}}
+\html{\input{sysutex/ex28.tex}}
+ 
+\begin{function}{RemoveDir}
+\Declaration
+Function RemoveDir(Const Dir : String) : Boolean;
+\Description
+\var{RemoveDir} removes directory \var{Dir} from the disk.
+If the directory is not absolue, it is appended to the current working 
+directory.
+\Errors
+In case of error (e.g. the directory isn't empty) the function returns 
+\var{False}. If successful, \var{True} is returned.
+\SeeAlso
+\end{function}
+
+For an example, see \seef{CreateDir}.
+ 
+\begin{function}{SetCurrentDir}
+\Declaration
+Function SetCurrentDir(Const NewDir : String) : Boolean;
+\Description
+\var{SetCurrentDir} sets the current working directory of your program
+to \var{NewDir}. It returns \var{True} if the function was successfull,
+\var{False} otherwise.
+\Errors
+In case of error, \var{False} is returned.
+\SeeAlso
+\seef{GetCurrentDir}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex29.pp}}
+\html{\input{sysutex/ex29.tex}}
+
+\section{File handling functions}
+
+\begin{function}{ChangeFileExt}
+\Declaration
+Function ChangeFileExt(const FileName, Extension: string): string;
+\Description
+\var{ChangeFileExt} changes the file extension in \var{FileName} to
+\var{Extension}. 
+The extension \var{Extension} includes the starting \var{.} (dot).
+The previous extension of \var{FileName} are all characters after the
+last \var{.}, the \var{.} character included.
+
+If \var{FileName} doesn't have an extension, \var{Extension} is just
+appended.
+\Errors
+None.
+\SeeAlso
+\seef{ExtractFileName}, \seef{ExtractFilePath}, \seef{ExpandFileName}
+\end{function}
+
+
+\begin{function}{DeleteFile}
+\Declaration
+Function DeleteFile(Const FileName : String) : Boolean;
+\Description
+\var{DeleteFile} deletes file \var{FileName} from disk. The function
+returns \var{True} if the file was successfully removed, \var{False}
+otherwise.
+\Errors
+On error, \var{False} is returned.
+\SeeAlso
+\seef{FileCreate}, \seef{FileExists}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex31.pp}}
+\html{\input{sysutex/ex31.tex}}
+ 
+\begin{procedure}{DoDirSeparators}
+\Declaration
+Procedure DoDirSeparators(Var FileName : String);
+\Description
+This function replaces all directory separators \var{'\' and '/'}
+to the directory separator character for the current system.
+\Errors
+None.
+\SeeAlso
+\seef{ExtractFileName}, \seef{ExtractFilePath}
+\end{procedure}
+
+\latex{\inputlisting{sysutex/ex32.pp}}
+\html{\input{sysutex/ex32.tex}}
+
+\begin{function}{ExpandFileName}
+\Declaration
+Function ExpandFileName(Const FileName : string): String;
+\Description
+\var{ExpandFileName} expands the filename to an absolute filename.
+It changes all directory separator characters to the one appropriate for the
+system first.
+\Errors
+None.
+\SeeAlso
+\seef{ExtractFileName}, \seef{ExtractFilePath}, \seef{ExtractFileDir},
+\seef{ExtractFileDrive}, \seef{ExtractFileExt}, \seef{ExtractRelativePath}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex33.pp}}
+\html{\input{sysutex/ex33.tex}}
+
+ 
+\begin{function}{ExpandUNCFileName}
+\Declaration
+Function ExpandUNCFileName(Const FileName : string): String;
+\Description
+\var{ExpandUNCFileName} runs \seef{ExpandFileName} on \var{FileName}
+and then attempts to replace the driveletter by the name of a shared disk.
+\Errors
+\SeeAlso
+\seef{ExtractFileName}, \seef{ExtractFilePath}, \seef{ExtractFileDir},
+\seef{ExtractFileDrive}, \seef{ExtractFileExt}, \seef{ExtractRelativePath}
+\end{function}
+
+ 
+\begin{function}{ExtractFileDir}
+\Declaration
+Function ExtractFileDir(Const FileName : string): string;
+\Description
+\var{ExtractFileDir} returns only the directory part of \var{FileName},
+not including a driveletter. The directory name has NO ending directory
+separator, in difference with \seef{ExtractFilePath}. 
+\Errors
+None.
+\SeeAlso
+\seef{ExtractFileName}, \seef{ExtractFilePath}, \seef{ExtractFileDir},
+\seef{ExtractFileDrive}, \seef{ExtractFileExt}, \seef{ExtractRelativePath}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex34.pp}}
+\html{\input{sysutex/ex34.tex}}
+
+\begin{function}{ExtractFileDrive}
+\Declaration
+Function ExtractFileDrive(const FileName: string): string;
+\Description
+\var{Extract}
+\Errors
+\SeeAlso
+\seef{ExtractFileName}, \seef{ExtractFilePath}, \seef{ExtractFileDir},
+\seef{ExtractFileDrive}, \seef{ExtractFileExt}, \seef{ExtractRelativePath}
+\end{function}
+
+For an example, see \seef{ExtractFileDir}.
+ 
+\begin{function}{ExtractFileExt}
+\Declaration
+Function ExtractFileExt(const FileName: string): string; 
+\Description
+\var{ExtractFileExt} returns the extension (including the 
+\var{.}(dot) character) of \var{FileName}.
+\Errors
+None.
+\SeeAlso
+\seef{ExtractFileName}, \seef{ExtractFilePath}, \seef{ExtractFileDir},
+\seef{ExtractFileDrive}, \seef{ExtractFileExt}, \seef{ExtractRelativePath}
+\end{function}
+
+For an example, see \seef{ExtractFileDir}.
+ 
+\begin{function}{ExtractFileName}
+\Declaration
+Function ExtractFileName(const FileName: string): string;
+\Description
+\var{ExtractFileName} returns the filename part from \var{FileName}.
+The filename consists of all characters after the last directory separator
+character ('/' or '\') or drive letter. 
+
+The full filename can always be reconstucted by concatenating the result
+of \seef{ExtractFilePath} and \var{ExtractFileName}.
+\Errors
+None.
+\SeeAlso
+\seef{ExtractFileName}, \seef{ExtractFilePath}, \seef{ExtractFileDir},
+\seef{ExtractFileDrive}, \seef{ExtractFileExt},\seef{ExtractRelativePath}
+\end{function}
+
+For an example, see \seef{ExtractFileDir}.
+ 
+\begin{function}{ExtractFilePath}
+\Declaration
+Function ExtractFilePath(const FileName: string): string;
+\Description
+\var{ExtractFilePath} returns the path part (including driveletter) from 
+\var{FileName}. The path consists of all characters before the last 
+directory separator character ('/' or '\'), including the directory
+separator itself. 
+In case there is only a drive letter, that will be returned.
+
+The full filename can always be reconstucted by concatenating the result
+of \var{ExtractFilePath} and \seef{ExtractFileName}.
+\Errors
+None.
+\SeeAlso
+\seef{ExtractFileName}, \seef{ExtractFilePath}, \seef{ExtractFileDir},
+\seef{ExtractFileDrive}, \seef{ExtractFileExt}, \seef{ExtractRelativePath}
+\end{function}
+
+For an example, see \seef{ExtractFileDir}.
+ 
+\begin{function}{ExtractRelativePath}
+\Declaration
+Function ExtractRelativePath(Const BaseName,DestNAme : String): String;
+\Description
+\var{ExtractRelativePath} constructs a relative path to go from
+\var{BaseName} to \var{DestName}. If \var{DestName} is on another drive
+(Not on Linux) then the whole \var{Destname} is returned.
+
+{\em Note:} This function does not exist in the Delphi unit.
+\Errors
+None.
+\SeeAlso
+\seef{ExtractFileName}, \seef{ExtractFilePath}, \seef{ExtractFileDir},
+\seef{ExtractFileDrive}, \seef{ExtractFileExt},
+\end{function}
+
+\latex{\inputlisting{sysutex/ex35.pp}}
+\html{\input{sysutex/ex35.tex}}
+
+\begin{function}{FileAge}
+\Declaration
+Function FileAge(Const FileName : String): Longint;
+\Description
+\var{FileAge} returns the last modification time of file \var{FileName}.
+The FileDate format can be transformed to \var{TDateTime} format with the
+\seef{FileDateToDateTime} function.
+\Errors
+In case of errors, \var{-1} is returned.
+\SeeAlso
+\seef{FileDateToDateTime}, \seef{FileExists}, \seef{FileGetAttr}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex36.pp}}
+\html{\input{sysutex/ex36.tex}}
+
+ 
+\begin{procedure}{FileClose}
+\Declaration
+Procedure FileClose(Handle : Longint);
+\Description
+\var{FileClose} closes the file handle \var{Handle}. After this call,
+attempting to read or write from the handle will result in an error.
+\Errors
+None.
+\SeeAlso
+\seef{FileCreate}, \seef{FileWrite}, \seef{FileOpen}, \seef{FileRead},
+\seef{FileTruncate}, \seef{FileSeek}
+\end{procedure}
+
+For an example, see \seef{FileCreate}
+
+\begin{function}{FileCreate}
+\Declaration
+Function FileCreate(Const FileName : String) : Longint;
+\Description
+\var{FileCreate} creates a new file with name \var{FileName} on the disk and
+returns a file handle which can be used to read or write from the file with
+the \seef{FileRead} and \seef{FileWrite} functions.
+
+If a file with name \var{FileName} already existed on the disk, it is
+overwritten.
+\Errors
+If an error occurs (e.g. disk full or non-existent path), the function
+returns \var{-1}.
+\SeeAlso
+\seep{FileClose}, \seef{FileWrite}, \seef{FileOpen}, \seef{FileRead},
+\seef{FileTruncate}, \seef{FileSeek}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex37.pp}}
+\html{\input{sysutex/ex37.tex}}
+
+\begin{function}{FileExists}
+\Declaration
+Function FileExists(Const FileName : String) : Boolean;
+\Description
+\var{FileExists} returns \var{True} if a file with name \var{FileName}
+exists on the disk, \var{False} otherwise.
+\Errors
+None.
+\SeeAlso
+\seef{FileAge}, \seef{FileGetAttr}, \seef{FileSetAttr}
+\end{function}
+
+
+\latex{\inputlisting{sysutex/ex38.pp}}
+\html{\input{sysutex/ex38.tex}}
+
+ 
+\begin{function}{FileGetAttr}
+\Declaration
+Function FileGetAttr(Const FileName : String) : Longint;
+\Description
+\var{FileGetAttr} returns the attribute settings of file 
+\var{FileName}. The attribute is a \var{OR}-ed combination
+of the following constants: 
+\begin{description}
+\item[faReadOnly] The file is read-only.
+\item[faHidden] The file is hidden. (On \linux, this means that the filename
+starts with a dot)
+\item[faSysFile] The file is a system file (On \linux, this means that the
+file is a character, block or FIFO file).
+\item[faVolumeId] Volume Label. Not possible under \linux.
+\item[faDirectory] File is a directory.
+\item[faArchive] file is an archive. Not possible on \linux.
+\end{description}
+\Errors
+In case of error, -1 is returned.
+\SeeAlso
+\seef{FileSetAttr}, \seef{FileAge}, \seef{FileGetDate}.
+\end{function}
+
+\latex{\inputlisting{sysutex/ex40.pp}}
+\html{\input{sysutex/ex40.tex}}
+
+\begin{function}{FileGetDate}
+\Declaration
+Function FileGetDate(Handle : Longint) : Longint;
+\Description
+\var{FileGetdate} returns the filetime of the opened file with filehandle
+\var{Handle}. It is the same as \seef{FileAge}, with this difference that
+\var{FileAge} only needs the file name, while \var{FilegetDate} needs an
+open file handle.
+\Errors
+On error, -1 is returned.
+\SeeAlso
+\seef{FileAge}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex39.pp}}
+\html{\input{sysutex/ex39.tex}}
+ 
+\begin{function}{FileOpen}
+\Declaration
+Function FileOpen(Const FileName : string; Mode : Integer) : Longint;
+\Description
+\var{FileOpen} opens a file with name \var{FileName} with mode \var{Mode}.
+\var{Mode} can be one of the following constants:
+\begin{description}
+\item[fmOpenRead] The file is opened for reading.
+\item[fmOpenWrite] The file is opened for writing.
+\item[fmOpenReadWrite] The file is opened for reading and writing.
+\end{description}
+If the file has been successfully opened, it can be read  from or written to
+(depending on the \var{Mode} parameter) with the \seef{FileRead} and
+\var{FileWrite} functions.
+
+Remark that you cannot open a file if it doesn't exist yet, i.e. it will not
+be created for you. If you want tp create a new file, or overwrite an old
+one, use the \seef{FileCreate} function.
+\Errors
+On Error, -1 is returned.
+\SeeAlso
+\seep{FileClose}, \seef{FileWrite}, \seef{FileCreate}, \seef{FileRead},
+\seef{FileTruncate}, \seef{FileSeek}
+\end{function}
+
+For an example, see \seef{FileRead}
+ 
+\begin{function}{FileRead}
+\Declaration
+Function FileRead(Handle : Longint; Var Buffer; Count : longint) : Longint;
+\Description
+\var{FileRead} reads \var{Count} bytes from file-handle \var{Handle} and
+stores them into \var{Buffer}. Buffer must be at least \var{Count} bytes
+long. No checking on this is performed, so be careful not to overwrite any
+memory.  \var{Handle} must be the result of a \seef{FileOpen} call.
+\Errors
+On error, -1 is returned.
+\SeeAlso
+\seep{FileClose}, \seef{FileWrite}, \seef{FileCreate}, \seef{FileOpen},
+\seef{FileTruncate}, \seef{FileSeek}
+\end{function}
+
+For an example, see \seef{FileOpen}
+
+\begin{function}{FileSearch}
+\Declaration
+Function FileSearch(Const Name, DirList : String) : String;
+\Description
+\var{FileSearch} looks for the file \var{Name} in \var{DirList}, where
+dirlist is a list of directories, separated by semicolons or colons.
+It returns the full filename of the first match found.
+\Errors
+On error, an empty string is returned.
+\SeeAlso
+\seef{ExpandFileName}, \seef{FindFirst}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex41.pp}}
+\html{\input{sysutex/ex41.tex}}
+
+\begin{function}{FileSeek}
+\Declaration
+Function FileSeek(Handle,Offset,Origin : Longint) : Longint;
+\Description
+\var{FileSeek} sets the file pointer on position \var{Offset}, starting from 
+\var{Origin}. Origin can be one of the following values: 
+\begin{description}
+\item[fsFromBeginning]  \var{Offset} is relative to the first byte of the file. This
+position is zero-based. i.e. the first byte is at offset 0.
+\item[fsFromCurrent]  \var{Offset} is relative to the current position.
+\item[fsFromEnd] \var{Offset} is relative to the end of the file. This means
+that \var{Offset} can only be zero or negative in this case.
+\end{description}
+If successfull, the function returns the new file position, relative to the
+beginning of the file.
+
+{\em Remark:} The abovementioned constants do not exist in Delphi.
+\Errors
+On error, -1 is returned.
+\SeeAlso
+\seep{FileClose}, \seef{FileWrite}, \seef{FileCreate}, \seef{FileOpen}
+\seef{FileRead}, \seef{FileTruncate}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex42.pp}}
+\html{\input{sysutex/ex42.tex}}
+
+For an example, see \seef{FileCreate}
+ 
+\begin{functionl}{FileSetAttr (Not on Linux)}{FileSetAttr}
+\Declaration
+Function FileSetAttr(Const Filename : String; Attr: longint) : Longint;
+\Description
+\var{FileSetAttr} sets the attributes of \var{FileName} to \var{Attr}.
+If the function was successful, 0 is returned, -1 otherwise.
+
+\var{Attr} can be set to an OR-ed combination of the pre-defined 
+\var{faXXX} constants.
+\Errors
+On error, -1 is returned (always on linux). 
+\SeeAlso
+\seef{FileGetAttr}, \seef{FileGetDate}, \seef{FileSetDate}.
+\end{functionl}
+
+ 
+\begin{functionl}{FileSetDate (Not on Linux)}{FileSetDate}
+\Declaration
+Function FileSetDate(Handle,Age : Longint) : Longint;
+\Description
+\var{FileSetDate} sets the file date of the file with handle \var{Handle} 
+to \var{Age}, where \var{Age} is a DOS date-and-time stamp value.
+
+The function returns zero of successfull.
+\Errors
+On Linux, -1 is always returned, since this is impossible to implement.
+On Windows and DOS, a negative error code is returned.
+\SeeAlso
+\end{functionl}
+
+ 
+\begin{function}{FileTruncate}
+\Declaration
+Function FileTruncate(Handle,Size: Longint) : boolean;
+\Description
+\var{FileTruncate} truncates the file with handle \var{Handle} to
+\var{Size} bytes. The file must have been opened for writing prior
+to this call. The function returns \var{True} is successful, \var{False}
+otherwise.
+\Errors
+On error, the function returns \var{False}.
+\SeeAlso
+\seep{FileClose}, \seef{FileWrite}, \seef{FileCreate}, \seef{FileOpen}
+\seef{FileRead}, \seef{FileSeek}
+\end{function}
+
+For an example, see \seef{FileCreate}.
+ 
+\begin{function}{FileWrite}
+\Declaration
+Function FileWrite(Handle : Longint; Var Buffer; Count : Longint) : Longint;
+\Description
+\var{FileWrite} writes \var{Count} bytes from \var{Buffer} to the file with
+handle \var{Handle}. Prior to this call, the file must have been opened 
+for writing. \var{Buffer} must be at least \var{Count} bytes large, or 
+a memory access error may occur.
+
+The function returns the number of bytes written, or -1 in case of an
+error.
+\Errors
+In case of error, -1 is returned.
+\SeeAlso
+\seep{FileClose}, \seef{FileCreate}, \seef{FileOpen}
+\seef{FileRead}, \seef{FileTruncate}, \seef{FileSeek}
+\end{function}
+
+For an example, see \seef{FileCreate}. 
+
+\begin{procedurel}{FindClose}{FindCloseSys}
+\Declaration
+Procedure FindClose(Var F : TSearchrec);
+\Description
+\var{FindClose} ends a series of \seef{FindFirst}/\seef{FindNext} calls,
+and frees any memory used by these calls. It is {\em absolutely} necessary
+to do this call, or huge memory losses may occur.
+\Errors
+None.
+\SeeAlso
+\seef{FindFirst}, \seef{FindNext}.
+\end{procedurel}
+
+For an example, see \seef{FindFirst}.
+ 
+\begin{function}{FindFirst}
+\Declaration
+Function FindFirst(Const Path : String; Attr : Longint; Var Rslt : TSearchRec) : Longint;
+\Description
+\var{FindFirst} looks for files that match the name (possibly with
+wildcards) in \var{Path} and attributes \var{Attr}. It then fills up the
+\var{Rslt} record with data gathered about the file. It returns 0 if a file
+matching the specified criteria is found, a nonzero value (-1 on linux) 
+otherwise.
+
+The \var{Rslt} record can be fed to subsequent calls to \var{FindNext}, in
+order to find other files matching the specifications.
+
+{\em remark:} A \var{FindFirst} call must {\em always} be followed by a
+\seepl{FindClose}{FindCloseSys} call with the same \var{Rslt} record. Failure to do so will
+result in memory loss.
+\Errors
+On error the function returns -1 on linux, a nonzero error code on Windows.
+\SeeAlso
+\seep{FindClose}{FindCloseSys}, \seef{FindNext}.
+\end{function}
+
+\latex{\inputlisting{sysutex/ex43.pp}}
+\html{\input{sysutex/ex43.tex}}
+
+\begin{function}{FindNext}
+\Declaration
+Function FindNext(Var Rslt : TSearchRec) : Longint;
+\Description
+\var{FindNext} finds a next occurrence of a search sequence initiated by
+\var{FindFirst}. If another record matching the criteria in Rslt is found, 0
+is returned, a nonzero constant is returned otherwise.
+
+{\em remark:} The last \var{FindNext} call must {\em always} be followed by a
+\var{FindClose} call with the same \var{Rslt} record. Failure to do so will
+result in memory loss.
+\Errors
+On error (no more file is found), a nonzero constant is returned.
+\SeeAlso
+\seef{FindFirst}, \seep{FindClose}
+\end{function}
+
+For an example, see \seef{FindFirst}
+ 
+\begin{function}{GetDirs}
+\Declaration
+Function GetDirs(Var DirName : String; Var Dirs : Array of pchar) : Longint; 
+\Description
+\var{GetDirs} splits DirName in a null-byte separated list of directory names,
+\var{Dirs} is an array of \var{PChars}, pointing to these directory names.
+The function returns the number of directories found, or -1 if none were found.
+DirName must contain only OSDirSeparator as Directory separator chars.
+\Errors
+None.
+\SeeAlso
+\seef{ExtractRelativePath}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex45.pp}}
+\html{\input{sysutex/ex45.tex}}
+ 
+\begin{function}{RenameFile}
+\Declaration
+Function RenameFile(Const OldName, NewName : String) : Boolean;
+\Description
+\var{RenameFile} renames a file from \var{OldName} to \var{NewName}. The
+function returns \var{True} if successful, \var{False} otherwise.
+
+{\em Remark:} you cannot rename across disks or partitions. 
+\Errors
+On Error, \var{False} is returned.
+\SeeAlso
+\seef{DeleteFile}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex44.pp}}
+\html{\input{sysutex/ex44.tex}}
+
+\begin{function}{SetDirSeparators}
+\Declaration
+Function SetDirSeparators(Const FileName : String) : String;
+\Description
+\var{SetDirSeparators} returns \var{FileName} with all possible
+DirSeparators replaced by \var{OSDirSeparator}.
+\Errors
+None.
+\SeeAlso
+\seef{ExpandFileName}, \seef{ExtractFilePath}, \seef{ExtractFileDir}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex47.pp}}
+\html{\input{sysutex/ex47.tex}}
+
+\section{PChar functions}
+
+\subsection{Introduction}
+
+Most PChar functions are the same as their counterparts in the \file{STRINGS}
+unit. The following functions are the same :
+
+\begin{enumerate}
+\item \seef{StrCat} : Concatenates two \var{PChar} strings.
+\item \seef{StrComp} : Compares two \var{PChar} strings.
+\item \seef{StrCopy} : Copies a \var{PChar} string.
+\item \seef{StrECopy} : Copies a \var{PChar} string and returns a pointer to
+the terminating null byte.
+\item \seef{StrEnd} : Returns a pointer to the terminating null byte.
+\item \seef{StrIComp} : Case insensitive compare of 2 \var{PChar} strings.
+\item \seef{StrLCat} : Appends at most L characters from one \var{PChar} to
+another \var{PChar}.
+\item \seef{StrLComp} : Case sensitive compare of at most L characters of 2
+ \var{PChar} strings.
+\item \seef{StrLCopy} : Copies at most L characters from one \var{PChar} to
+another.
+\item \seef{StrLen} : Returns the length (exclusive terminating null byte)
+of a \var{PChar} string.
+\item \seef{StrLIComp} : Case insensitive compare of at most L characters of 2
+ \var{PChar} strings.  
+\item \seef{StrLower} : Converts a \var{PChar} to all lowercase letters.
+\item \seef{StrMove} : Moves one \var{PChar} to another.
+\item \seef{StrNew} : Makes a copy of a \var{PChar} on the heap, and returns
+a pointer to this copy.
+\item \seef{StrPos} : Returns the position of one \var{PChar} string in
+another?
+\item \seef{StrRScan} : returns a pointer to the last occurrence of on 
+ \var{PChar} string in another one.
+\item \seef{StrScan} : returns a pointer to the first occurrence of on 
+ \var{PChar} string in another one.
+\item \seef{StrUpper} : Converts a \var{PChar} to all uppercase letters.
+\end{enumerate}
+The subsequent functions are different from their counterparts in
+\file{STRINGS}, although the same examples can be used.
+
+
+\begin{functionl}{StrAlloc}{StrAllocSys}
+\Declaration
+Function StrAlloc(Size: cardinal): PChar;
+\Description
+\var{StrAlloc} reserves memory on the heap for a string with length \var{Len},
+terminating \var{\#0} included, and returns a pointer to it.
+
+Additionally, \var{StrAlloc} allocates 4 extra bytes to store the size of
+the allocated memory. Therefore this function is NOT compatible with the 
+\seef{StrAlloc} function of the \var{Strings} unit.
+\Errors
+None.
+\SeeAlso
+\seef{StrBufSize}, \seepl{StrDispose}{StrDisposeSys}, \seef{StrAlloc}
+\end{functionl}
+
+For an example, see \seef{StrBufSize}.
+ 
+\begin{function}{StrBufSize}
+\Declaration
+Function StrBufSize(var Str: PChar): cardinal;
+\Description
+\var{StrBufSize} returns the memory allocated for \var{Str}. This function
+ONLY gives the correct result if \var{Str} was allocated using
+\seefl{StrAlloc}{StrAllocSys}.
+\Errors
+If no more memory is available, a runtime error occurs.
+\SeeAlso
+\seefl{StrAlloc}{StrAllocSys}.\seepl{StrDispose}{StrDisposeSys}.
+\end{function}
+
+\latex{\inputlisting{sysutex/ex46.pp}}
+\html{\input{sysutex/ex46.tex}}
+
+ 
+\begin{procedurel}{StrDispose}{StrDisposeSys}
+\Declaration
+Procedure StrDispose(var Str: PChar);
+\Description
+\var{StrDispose} frees any memory allocated for \var{Str}. This function
+will only function correctly if \var{Str} has been allocated using
+\seefl{StrAlloc}{StrAllocSys} from the \file{SYSUTILS} unit.
+\Errors
+If an invalid pointer is passed, or a pointer not allocated with
+\var{StrAlloc}, an error may occur.
+\SeeAlso
+\seef{StrBufSize}, \seefl{StrAlloc}{StrAllocSys}, \seep{StrDispose}
+\end{procedurel}
+
+For an example, see \seef{StrBufSize}.
+ 
+\begin{functionl}{StrPCopy}{StrPCopySys}
+\Declaration
+Function StrPCopy(Dest: PChar; Source: string): PChar;
+\Description
+\var{StrPCopy} Converts the Ansistring in \var{Source} to a Null-terminated 
+string, and copies it to \var{Dest}. \var{Dest} needs enough room to contain
+the string \var{Source}, i.e. \var{Length(Source)+1} bytes.
+\Errors
+No checking is performed to see whether \var{Dest} points to enough memory
+to contain \var{Source}.
+\SeeAlso
+\seefl{StrPLCopy}{StrPLCopySys}, \seef{StrPCopy}
+\end{functionl}
+
+For an example, see \seef{StrPCopy}.
+
+\begin{functionl}{StrPLCopy}{StrPLCopySys}
+\Declaration
+Function StrPLCopy(Dest: PChar; Source: string; MaxLen: cardinal): PChar;
+\Description
+\var{StrPLCopy} Converts maximally \var{MaxLen} characters of the 
+Ansistring in \var{Source} to a Null-terminated  string, and copies 
+it to \var{Dest}. \var{Dest} needs enough room to contain
+the  characters.
+\Errors
+No checking is performed to see whether \var{Dest} points to enough memory
+to contain L characters of \var{Source}.
+\Errors
+\SeeAlso
+\seefl{StrPCopy}{StrPCopySys}.
+\end{functionl}
+
+
+For an example, see \seef{StrPLCopy}.
+
+ 
+\begin{functionl}{StrPas}{StrPasSys}
+\Declaration
+Function StrPas(Str: PChar): string;
+\Description
+Converts a null terminated string in \var{Str} to an Ansitring, and returns
+this string. This string is NOT truncated at 255 characters as is the 
+\Errors
+None.
+\SeeAlso
+\seef{StrPas}.
+\end{functionl}
+
+For an example, see \seef{StrPas}.
+
+\section{String handling functions}
+
+\begin{function}{AdjustLineBreaks}
+\Declaration
+Function AdjustLineBreaks(const S: string): string;
+\Description
+\var{AdjustLineBreaks} will change all \var{\#13} characters with
+\var{\#13\#10} on \windowsnt and \dos. On \linux, all \var{\#13\#10}
+character pairs are converted to \var{#10} and single \var{\#13}
+characters also.
+\Errors
+None.
+\SeeAlso
+\seef{AnsiCompareStr}, \seef{AnsiCompareText}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex48.pp}}
+\html{\input{sysutex/ex48.tex}}
+ 
+\begin{function}{AnsiCompareStr}
+\Declaration
+Function AnsiCompareStr(const S1, S2: string): integer;
+\Description
+\var{AnsiCompareStr} compares two strings and returns the following
+result:
+\begin{description}
+\item[<0]  if \var{S1<S2}.
+\item[0]  if \var{S1=S2}.
+\item[>0] if \var{S1>S2}.
+\end{description}
+the comparision takes into account Ansi characters, i.e. it takes
+care of strange accented characters. Contrary to \seef{CompareAnsiText}, 
+the comparision is case sensitive.
+\Errors
+None.
+\SeeAlso
+\seef{AdjustLineBreaks}, \seef{AnsiCompareText}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex49.pp}}
+\html{\input{sysutex/ex49.tex}}
+ 
+\begin{function}{AnsiCompareText}
+\Declaration
+Function AnsiCompareText(const S1, S2: string): integer;
+\Description
+\Description
+\var{AnsiCompareText} compares two strings and returns the following
+result:
+\begin{description}
+\item[<0]  if \var{S1<S2}.
+\item[0]  if \var{S1=S2}.
+\item[>0] if \var{S1>S2}.
+\end{description}
+the comparision takes into account Ansi characters, i.e. it takes
+care of strange accented characters. Contrary to \seef{CompareAnsiStr}, 
+the comparision is case insensitive.
+\Errors
+None.
+\SeeAlso
+\seef{AdjustLineBreaks}, \seef{AnsiCompareText}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex50.pp}}
+\html{\input{sysutex/ex50.tex}}
+
+\begin{function}{AnsiExtractQuotedStr}
+\Declaration
+Function AnsiExtractQuotedStr(var Src: PChar; Quote: Char): string;
+\Description
+\var{AnsiExtractQuotedStr} Returns \var{Src} as a string,, with \var{Quute} 
+characters removed from the beginning and end of the string, and double 
+\var{Quote} characters replaced by a single \var{Quote} characters. 
+As such, it revereses the action of \seef{AnsiQuotedStr}.
+\Errors
+None.
+\SeeAlso
+\seef{AnsiQuotedStr}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex51.pp}}
+\html{\input{sysutex/ex51.tex}}
+ 
+\begin{function}{AnsiLastChar}
+\Declaration
+Function AnsiLastChar(const S: string): PChar;
+\Description
+This function returns a pointer to the last character of \var{S}.
+Since multibyte characters are not yet supported, this is the same
+as \var{@S[Length(S)])}.
+\Errors
+None.
+\SeeAlso
+\seef{AnsiStrLastChar}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex52.pp}}
+\html{\input{sysutex/ex52.tex}}
+ 
+\begin{function}{AnsiLowerCase}
+\Declaration
+Function AnsiLowerCase(const s: string): string;
+\Description
+\var{AnsiLowerCase} converts the string \var{S} to lowercase characters 
+and returns the resulting string. 
+It takes into account the operating system language
+settings when doing this, so spcial characters are converted correctly as
+well.
+
+{\em Remark} On linux, no language setting is taken in account yet.
+\Errors
+None.
+\SeeAlso
+\seef{AnsiUpperCase}, \seef{AnsiStrLower}, \seef{AnsiStrUpper}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex53.pp}}
+\html{\input{sysutex/ex53.tex}}
+ 
+\begin{function}{AnsiQuotedStr}
+\Declaration
+Function AnsiQuotedStr(const S: string; Quote: char): string;
+\Description
+\var{AnsiQuotedString} quotes the string \var{S} and returns the result.
+This means that it puts the \var{Quote} character at both the beginning and
+end of the string and replaces any occurrence of \var{Quote} in \var{S} 
+with 2 \var{Quote} characters. The action of \var{AnsiQuotedString} can be
+reversed by \seef{AnsiExtractQuotedStr}.
+\Errors
+None.
+\SeeAlso
+\seef{AnsiExtractQuotedStr}
+\end{function}
+
+For an example, see \seef{AnsiExtractQuotedStr}
+ 
+\begin{function}{AnsiStrComp}
+\Declaration
+Function AnsiStrComp(S1, S2: PChar): integer;
+\Description
+\var{AnsiStrComp} compares 2 \var{PChar} strings, and returns the following
+result:
+\begin{description}
+\item[<0]  if \var{S1<S2}.
+\item[0]  if \var{S1=S2}.
+\item[>0]  if \var{S1>S2}.
+\end{description}
+The comparision of the two strings is case-sensitive.
+The function does not yet take internationalization settings into account.
+\Errors
+None.
+\SeeAlso
+\seef{AnsiCompareText}, \seef{AnsiCompareStr}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex54.pp}}
+\html{\input{sysutex/ex54.tex}}
+ 
+\begin{function}{AnsiStrIComp}
+\Declaration
+Function AnsiStrIComp(S1, S2: PChar): integer;
+\Description
+\var{AnsiStrIComp} compares 2 \var{PChar} strings, and returns the following
+result:
+\begin{description}
+\item[<0]  if \var{S1<S2}.
+\item[0]  if \var{S1=S2}.
+\item[>0]  if \var{S1>S2}.
+\end{description}
+The comparision of the two strings is case-insensitive.
+The function does not yet take internationalization settings into account.
+\Errors
+None.
+\SeeAlso
+\seef{AnsiCompareText}, \seef{AnsiCompareStr}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex55.pp}}
+\html{\input{sysutex/ex55.tex}}
+
+\begin{function}{AnsiStrLastChar}
+\Declaration
+function AnsiStrLastChar(Str: PChar): PChar;
+\Declaration
+\var{AnsiStrLastChar} returns a pointer to the last character of \var{Str}.
+Since multibyte characters are not yet supported, this is the same
+as \var{StrEnd(Str)-1}.
+\Errors
+None.
+\SeeAlso
+\seef{AnsiLastChar}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex58.pp}}
+\html{\input{sysutex/ex58.tex}}
+
+\begin{function}{AnsiStrLComp}
+\Declaration
+Function AnsiStrLComp(S1, S2: PChar; MaxLen: cardinal): integer;
+\Description
+\var{AnsiStrLComp} compares the first \var{Maxlen} characters of
+2 \var{PChar} strings, \var{S1} and \var{S2}, and returns the following
+result:
+\begin{description}
+\item[<0]  if \var{S1<S2}.
+\item[0]  if \var{S1=S2}.
+\item[>0]  if \var{S1>S2}.
+\end{description}
+The comparision of the two strings is case-sensitive.
+The function does not yet take internationalization settings into account.
+\Errors
+None.
+\SeeAlso
+\seef{AnsiCompareText}, \seef{AnsiCompareStr}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex56.pp}}
+\html{\input{sysutex/ex56.tex}}
+
+\begin{function}{AnsiStrLIComp}
+\Declaration
+Function AnsiStrLIComp(S1, S2: PChar; MaxLen: cardinal): integer;
+\Description
+\var{AnsiStrLIComp} compares the first \var{Maxlen} characters of
+2 \var{PChar} strings, \var{S1} and \var{S2}, and returns the following
+result:
+\begin{description}
+\item[<0]  if \var{S1<S2}.
+\item[0]  if \var{S1=S2}.
+\item[>0]  if \var{S1>S2}.
+\end{description}
+The comparision of the two strings is case-insensitive.
+The function does not yet take internationalization settings into account.
+\Errors
+None.
+\SeeAlso
+\seef{AnsiCompareText}, \seef{AnsiCompareStr}
+\end{function}
+ 
+\latex{\inputlisting{sysutex/ex57.pp}}
+\html{\input{sysutex/ex57.tex}}
+
+
+
+\begin{function}{AnsiStrLower}
+\Declaration
+Function AnsiStrLower(Str: PChar): PChar;
+\Description
+\var{AnsiStrLower} converts the PChar \var{Str} to lowercase characters 
+and returns the resulting pchar. Note that \var{Str} itself is modified,
+not a copy, as in the case of \seef{AnsiLowerCase}.
+It takes into account the operating system language
+settings when doing this, so spcial characters are converted correctly as
+well.
+
+{\em Remark} On linux, no language setting is taken in account yet.
+\Errors
+None.
+\SeeAlso
+\seef{AnsiStrUpper}, \seef{AnsiLowercase}
+\end{function}
+\Errors
+\SeeAlso
+\end{function}
+
+\latex{\inputlisting{sysutex/ex59.pp}}
+\html{\input{sysutex/ex59.tex}}
+ 
+\begin{function}{AnsiStrUpper}
+\Declaration
+Function AnsiStrUpper(Str: PChar): PChar;
+\Description
+\var{AnsiStrUpper} converts the \var{PChar} \var{Str} to uppercase characters 
+and returns the resulting string. Note that \var{Str} itself is modified,
+not a copy, as in the case of \seef{AnsiUpperCase}.
+It takes into account the operating system language
+settings when doing this, so spcial characters are converted correctly as
+well.
+
+{\em Remark} On linux, no language setting is taken in account yet.
+\Errors
+None.
+\SeeAlso
+\seef{AnsiUpperCase}, \seef{AnsiStrLower}, \seef{AnsiLowerCase}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex60.pp}}
+\html{\input{sysutex/ex60.tex}}
+ 
+\begin{function}{AnsiUpperCase}
+\Declaration
+Function AnsiUpperCase(const s: string): string;
+\Description
+\var{AnsiUpperCase} converts the string \var{S} to uppercase characters 
+and returns the resulting string. 
+It takes into account the operating system language
+settings when doing this, so spcial characters are converted correctly as
+well.
+
+{\em Remark} On linux, no language setting is taken in account yet.
+\Errors
+None.
+\SeeAlso
+\seef{AnsiStrUpper}, \seef{AnsiStrLower}, \seef{AnsiLowerCase}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex61.pp}}
+\html{\input{sysutex/ex61.tex}}
+ 
+\begin{procedure}{AppendStr}
+\Declaration
 Procedure AppendStr(var Dest: String; const S: string);
 \Description
 \var{AppendStr} appends \var{S} to Dest. 
@@ -2002,7 +4143,7 @@ None.
  
 \begin{function}{FloatToStr}
 \Declaration
-Function FloatToStr(Value: Extended): String;
+Function FloatToStr( Value: Extended): String;
 \Description
 \Errors
 \SeeAlso
@@ -2062,6 +4203,2437 @@ Function IntToStr(Value: integer): string;
 \SeeAlso
 \end{function}
 
+ 
+\begin{function}{IsValidIdent}
+\Declaration
+Function IsValidIdent(const Ident: string): boolean;
+\Description
+\Errors
+\SeeAlso
+\end{function}
+
+ 
+\begin{function}{LeftStr}
+\Declaration
+Function LeftStr(const S: string; Count: integer): string;
+\Description
+\Errors
+\SeeAlso
+\end{function}
+
+ 
+\begin{function}{LoadStr}
+\Declaration
+Function LoadStr(Ident: integer): string;
+\Description
+\Errors
+\SeeAlso
+\end{function}
+
+ 
+\begin{function}{LowerCase}
+\Declaration
+Function LowerCase(const s: string): string;
+\Description
+\Errors
+\SeeAlso
+\end{function}
+
+ 
+\begin{functionl}{NewStr}{NewStrSys}
+\Declaration
+Function NewStr(const S: string): PString;
+\Description
+\Errors
+\SeeAlso
+\end{functionl}
+
+ 
+\begin{function}{QuotedStr}
+\Declaration
+Function QuotedStr(const S: string): string;
+\Description
+\Errors
+\SeeAlso
+\end{function}
+
+ 
+\begin{function}{RightStr}
+\Declaration
+Function RightStr(const S: string; Count: integer): string;
+\Description
+\Errors
+\SeeAlso
+\end{function}
+
+ 
+\begin{function}{StrFmt}
+\Declaration
+Function StrFmt(Buffer,Fmt : PChar; Const args: Array of const) : Pchar;
+\Description
+\Errors
+\SeeAlso
+\end{function}
+
+ 
+\begin{function}{StrLFmt}
+\Declaration
+Function StrLFmt(Buffer : PCHar; Maxlen : Cardinal;Fmt : PChar; Const args: Array of const) : Pchar;
+\Description
+\Errors
+\SeeAlso
+\end{function}
+
+ 
+\begin{function}{StrToInt}
+\Declaration
+Function StrToInt(const s: string): integer;
+\Description
+\Errors
+\SeeAlso
+\end{function}
+
+ 
+\begin{function}{StrToIntDef}
+\Declaration
+Function StrToIntDef(const S: string; Default: integer): integer;
+\Description
+\Errors
+\SeeAlso
+\end{function}
+
+ 
+\begin{function}{Trim}
+\Declaration
+Function Trim(const S: string): string;
+\Description
+\Errors
+\SeeAlso
+\end{function}
+
+ 
+\begin{function}{TrimLeft}
+\Declaration
+Function TrimLeft(const S: string): string;
+\Description
+\Errors
+\SeeAlso
+\end{function}
+
+ 
+\begin{function}{TrimRight}
+\Declaration
+Function TrimRight(const S: string): string;
+\Description
+\Errors
+\SeeAlso
+\end{function}
+
+ 
+\begin{function}{UpperCase}
+\Declaration
+Function UpperCase(const s: string): string;
+\Description
+\Errors
+\SeeAlso
+\end{function}
+
+ 
+
+*** Modified files in JOE when it aborted on Thu May 27 09:57:40 1999
+*** JOE was aborted because the terminal closed
+
+*** File '(Unnamed)'
+DEADJOE
+ex66.pp
+
+*** File '(Unnamed)'
+comparemem
+
+*** File 'sysutils.tex'
+%
+%   $Id$
+%   This file is part of the FPC documentation.
+%   Copyright (C) 1999, by Michael Van Canneyt
+%
+%   The FPC documentation is free text; you can redistribute it and/or
+%   modify it under the terms of the GNU Library General Public License as
+%   published by the Free Software Foundation; either version 2 of the
+%   License, or (at your option) any later version.
+%
+%   The FPC Documentation is distributed in the hope that it will be useful,
+%   but WITHOUT ANY WARRANTY; without even the implied warranty of
+%   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+%   Library General Public License for more details.
+%
+%   You should have received a copy of the GNU Library General Public
+%   License along with the FPC documentation; see the file COPYING.LIB.  If not,
+%   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+%   Boston, MA 02111-1307, USA. 
+%
+\chapter{The SYSUTILS unit.}
+
+This chapter describes the \file{sysutils} unit. The \var{sysutils} unit 
+was largely written by Gertjan Schouten, and completed by michael Van Canneyt. 
+It aims to be compatible to the Delphi sysutils unit, but in contrast with 
+the latter, it is designed to work on multiple platforms.
+
+This chapter starts out with a definition of all types and constants 
+that are defined, followed by a complete explanation of each function.
+
+\section{Constants and types}
+
+The following general-purpose constants are defined:
+\begin{verbatim}
+const
+   SecsPerDay = 24 * 60 * 60; // Seconds and milliseconds per day
+   MSecsPerDay = SecsPerDay * 1000;
+   DateDelta = 693594;        // Days between 1/1/0001 and 12/31/1899
+   Eoln = #10;
+\end{verbatim}
+The following types are used frequently in date and time functions.
+They are the same on all platforms.
+\begin{verbatim}
+type
+   TSystemTime = record
+      Year, Month, Day: word;
+      Hour, Minute, Second, MilliSecond: word;
+   end ;
+
+   TDateTime = double;
+
+   TTimeStamp = record
+      Time: integer;   { Number of milliseconds since midnight }
+      Date: integer;   { One plus number of days since 1/1/0001 }
+   end ;
+\end{verbatim}
+The following type is used in the \seef{FindFirst},\seef{FindNext} 
+and \seepl{FindClose}{FindCloseSys} functions. The \var{win32} version differs from 
+the other versions. If code is to be portable, that part  shouldn't 
+be used.
+\begin{verbatim}
+Type 
+  THandle = Longint; 
+  TSearchRec = Record
+    Time,Size, Attr : Longint;
+    Name : TFileName;
+    ExcludeAttr : Longint;
+    FindHandle : THandle;
+    {$ifdef Win32}
+    FindData : TWin32FindData;        
+    {$endif}
+    end;
+\end{verbatim}
+The following constants are file-attributes that need to be matched in the 
+findfirst call.
+\begin{verbatim}
+Const 
+  faReadOnly  = $00000001; 
+  faHidden    = $00000002;
+  faSysFile   = $00000004;
+  faVolumeId  = $00000008;
+  faDirectory = $00000010;
+  faArchive   = $00000020;
+  faAnyFile   = $0000003f;
+\end{verbatim}
+The following constants can be used in the \seef{FileOpen} call.
+\begin{verbatim}
+Const
+  fmOpenRead       = $0000;
+  fmOpenWrite      = $0001;
+  fmOpenReadWrite  = $0002;
+\end{verbatim}
+The following constants can be used in the \seef{FileSeek} call.
+\begin{verbatim}
+Const
+  fsFromBeginning = 0;
+  fsFromCurrent   = 1;
+  fsFromEnd       = 2;
+
+\end{verbatim}
+The following variables are used in the case translation routines.
+\begin{verbatim}
+type
+   TCaseTranslationTable = array[0..255] of char;
+var
+   UpperCaseTable: TCaseTranslationTable;
+   LowerCaseTable: TCaseTranslationTable;
+\end{verbatim}
+The initialization code of the \file{sysutils} unit fills these 
+tables with the appropriate values. For the win32 and go32v2
+versions, this information is obtained from the operating system.
+
+The following constants control the formatting of dates.
+For the Win32 version of the \file{sysutils} unit, these 
+constants are set according to the internationalization 
+settings of Windows by the initialization code of the unit.
+\begin{verbatim}
+Const 
+   DateSeparator: char = '-';
+   ShortDateFormat: string = 'd/m/y';
+   LongDateFormat: string = 'dd" "mmmm" "yyyy';
+   ShortMonthNames: array[1..12] of string[128] =
+     ('Jan','Feb','Mar','Apr','May','Jun',
+      'Jul','Aug','Sep','Oct','Nov','Dec');
+   LongMonthNames: array[1..12] of string[128] =
+     ('January','February','March','April',
+      'May','June','July','August',
+      'September','October','November','December');
+   ShortDayNames: array[1..7] of string[128] =
+     ('Sun','Mon','Tue','Wed','Thu','Fri','Sat');
+   LongDayNames: array[1..7] of string[128] =
+     ('Sunday','Monday','Tuesday','Wednesday',
+       'Thursday','Friday','Saturday');
+\end{verbatim}  
+
+The following constants control the formatting of times.
+For the Win32 version of the \file{sysutils} unit, these 
+constants are set according to the internationalization 
+settings of Windows by the initialization code of the unit.
+\begin{verbatim}
+Const
+   ShortTimeFormat: string = 'hh:nn';
+   LongTimeFormat: string = 'hh:nn:ss';
+   TimeSeparator: char = ':';
+   TimeAMString: string[7] = 'AM';
+   TimePMString: string[7] = 'PM';
+\end{verbatim}
+
+The following constants control the formatting of currencies 
+and numbers. For the Win32 version of the \file{sysutils} unit, 
+these  constants are set according to the internationalization 
+settings of Windows by the initialization code of the unit.
+\begin{verbatim}
+Const
+  DecimalSeparator : Char = '.';
+  ThousandSeparator : Char = ',';
+  CurrencyDecimals : Byte = 2;
+  CurrencyString : String[7] = '$';
+  { Format to use when formatting currency :
+    0 = $1        1 = 1$         2 = $ 1      3 = 1 $
+    4 = Currency string replaces decimal indicator. 
+        e.g. 1$50 
+   }
+  CurrencyFormat : Byte = 1;
+  { Same as above, only for negative currencies:
+    0 = ($1)
+    1 = -$1
+    2 = $-1
+    3 = $1-
+    4 = (1$)
+    5 = -1$
+    6 = 1-$
+    7 = 1$-
+    8 = -1 $
+    9 = -$ 1
+    10 = $ 1-
+   }
+  NegCurrFormat : Byte = 5;
+\end{verbatim}
+The following types are used in various string functions.
+\begin{verbatim}
+type
+   PString = ^String;
+   TFloatFormat = (ffGeneral, ffExponent, ffFixed, ffNumber, ffCurrency);
+\end{verbatim}
+The following constants are used in the file name handling routines. Do not
+use a slash of backslash character directly as a path separator; instead 
+use the \var{OsDirSeparator} character.
+\begin{verbatim}
+Const
+  DirSeparators : set of char = ['/','\'];  
+{$ifdef Linux}
+  OSDirSeparator = '/';
+{$else}
+  OsDirSeparator = '\';
+{$endif}
+\end{verbatim}
+
+\section{Date and time functions}
+
+\subsection{Date and time formatting characters}
+\label{se:formatchars}
+
+Various date and time formatting routines accept a format string.
+to format the date and or time. The following characters can be used
+to control the date and time formatting:
+\begin{description}
+\item[c] : shortdateformat + ' ' + shorttimeformat
+\item[d] : day of month
+\item[dd] : day of month (leading zero)
+\item[ddd] : day of week (abbreviation)
+\item[dddd] : day of week (full)
+\item[ddddd] : shortdateformat
+\item[dddddd] : longdateformat
+\item[m] : month
+\item[mm] : month (leading zero)
+\item[mmm] : month (abbreviation)
+\item[mmmm] : month (full)
+\item[y] : year (four digits)
+\item[yy] : year (two digits)
+\item[yyyy] : year (with century)
+\item[h] : hour
+\item[hh] : hour (leading zero)
+\item[n] : minute
+\item[nn] : minute (leading zero)
+\item[s] : second
+\item[ss] : second (leading zero)
+\item[t] : shorttimeformat
+\item[tt] : longtimeformat
+\item[am/pm] : use 12 hour clock and display am and pm accordingly
+\item[a/p] : use 12 hour clock and display a and p accordingly
+\item[/] : insert date seperator
+\item[:] : insert time seperator
+\item["xx"] : literal text
+\item['xx'] : literal text
+\end{description}
+
+\begin{type}{TDateTime}
+\Declaration
+  TDateTime = Double;
+\Description
+Many functions return or require a \var{TDateTime} type, which contains
+a date and time in encoded form. The date and time are converted to a double
+as follows:
+\end{type}
+
+\begin{function}{Date}
+\Declaration
+Function Date: TDateTime;
+\Description
+\var{Date} returns the current date in \var{TDateTime} format. 
+For more information about the \var{TDateTime} type, see \seety{TDateTime}.
+\Errors
+None.
+\SeeAlso
+\seef{Time},\seef{Now}, \seety{TDateTime}.
+\end{function}
+
+\latex{\inputlisting{sysutex/ex1.pp}}
+\html{\input{sysutex/ex1.tex}}
+
+\begin{function}{DateTimeToFileDate}
+\Declaration
+Function DateTimeToFileDate(DateTime : TDateTime) : Longint;
+\Description
+\var{DateTimeToFileDate} function converts a date/time indication in
+\var{TDateTime} format to a filedate function, such as returned for 
+instance by the \seef{FileAge} function.
+\Errors
+None.
+\SeeAlso
+\seef{Time}, \seef{Date}, \seef{FileDateToDateTime},
+\seep{DateTimeToSystemTime}, \seef{DateTimeToTimeStamp}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex2.pp}}
+\html{\input{sysutex/ex2.tex}}
+ 
+\begin{function}{DateTimeToStr}
+\Declaration
+Function DateTimeToStr(DateTime: TDateTime): string;
+\Description
+\var{DateTimeToStr} returns a string representation of 
+\var{DateTime} using the formatting specified in
+\var{ShortDateTimeFormat}. It corresponds to a call to 
+\var{FormatDateTime('c',DateTime)} (see \sees{formatchars}).
+\Errors
+None.
+\SeeAlso
+\seef{FormatDateTime}, \seety{TDateTime}.
+\end{function}
+
+\latex{\inputlisting{sysutex/ex3.pp}}
+\html{\input{sysutex/ex3.tex}}
+ 
+\begin{procedure}{DateTimeToString}
+\Declaration
+Procedure DateTimeToString(var Result: string; const FormatStr: string; const DateTime: TDateTime);
+\Description
+\var{DateTimeToString} returns in \var{Result} a string representation of 
+\var{DateTime} using the formatting specified in \var{FormatStr}. 
+
+for a list of characters that can be used in the \var{FormatStr} formatting
+string, see \sees{formatchars}.
+\Errors
+In case a wrong formatting character is found, an \var{EConvertError} is
+raised.
+\SeeAlso
+\seef{FormatDateTime}, \sees{formatchars}.
+\end{procedure}
+
+\latex{\inputlisting{sysutex/ex4.pp}}
+\html{\input{sysutex/ex4.tex}}
+ 
+\begin{procedure}{DateTimeToSystemTime}
+\Declaration
+Procedure DateTimeToSystemTime(DateTime: TDateTime; var SystemTime: TSystemTime);
+\Description
+\var{DateTimeToSystemTime} converts a date/time pair in \var{DateTime}, with
+\var{TDateTime} format to a system time \var{SystemTime}.
+\Errors
+None.
+\SeeAlso
+\seef{DateTimeToFileDate}, \seef{SystemTimeToDateTime},
+\seef{DateTimeToTimeStamp}
+\end{procedure}
+
+\latex{\inputlisting{sysutex/ex5.pp}}
+\html{\input{sysutex/ex5.tex}}
+
+\begin{function}{DateTimeToTimeStamp}
+\Declaration
+Function DateTimeToTimeStamp(DateTime: TDateTime): TTimeStamp;
+\Description
+\var{DateTimeToSystemTime} converts a date/time pair in \var{DateTime}, with
+\var{TDateTime} format to a \var{TTimeStamp} format.
+\Errors
+None.
+\SeeAlso
+\seef{DateTimeToFileDate}, \seef{SystemTimeToDateTime},
+\seep{DateTimeToSystemTime}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex6.pp}}
+\html{\input{sysutex/ex6.tex}}
+
+\begin{function}{DateToStr}
+\Declaration
+Function DateToStr(Date: TDateTime): string;
+\Description
+\var{DateToStr} converts \var{Date} to a string representation. It uses
+\var{ShortDateFormat} as it's formatting string. It is hence completely
+equivalent to a \var{FormatDateTime('ddddd', Date)}.
+\Errors
+None.
+\SeeAlso
+\seef{TimeToStr}, \seef{DateTimeToStr}, \seef{FormatDateTime},
+\seef{StrToDate}
+\end{function}
+
+
+\latex{\inputlisting{sysutex/ex7.pp}}
+\html{\input{sysutex/ex7.tex}}
+ 
+\begin{function}{DayOfWeek}
+\Declaration
+Function DayOfWeek(DateTime: TDateTime): integer;
+\Description
+\var{DayOfWeek} returns the day of the week from \var{DateTime}.
+\var{Sunday} is counted as day 1, \var{Saturday} is counted as 
+day 7. The result of \var{DayOfWeek} can serve as an index to 
+the \var{LongDayNames} constant array, to retrieve the name of 
+the day.
+\Errors
+None.
+\SeeAlso
+\seef{Date}, \seef{DateToStr}
+\end{function}
+
+
+\latex{\inputlisting{sysutex/ex8.pp}}
+\html{\input{sysutex/ex8.tex}}
+
+\begin{procedure}{DecodeDate}
+\Declaration
+Procedure DecodeDate(Date: TDateTime; var Year, Month, Day: word);
+\Description
+\var{DecodeDate} decodes the Year, Month and Day stored in \var{Date},
+and returns them in the \var{Year}, \var{Month} and \var{Day} variables.
+\Errors
+None.
+\SeeAlso
+\seef{EncodeDate}, \seep{DecodeTime}.
+\end{procedure}
+
+\latex{\inputlisting{sysutex/ex9.pp}}
+\html{\input{sysutex/ex9.tex}}
+
+ 
+\begin{procedure}{DecodeTime}
+\Declaration
+Procedure DecodeTime(Time: TDateTime; var Hour, Minute, Second, MilliSecond: word);
+\Description
+\var{DecodeDate} decodes the hours, minutes, second and milliseconds stored 
+in \var{Time}, and returns them in the \var{Hour}, \var{Minute} and
+\var{Second} and \var{MilliSecond} variables.
+\Errors
+None.
+\SeeAlso
+\seef{EncodeTime}, \seep{DecodeDate}.
+\end{procedure}
+
+\latex{\inputlisting{sysutex/ex10.pp}}
+\html{\input{sysutex/ex10.tex}}
+ 
+\begin{function}{EncodeDate}
+\Declaration
+Function EncodeDate(Year, Month, Day :word): TDateTime;
+\Description
+\var{EncodeDate} encodes the \var{Year}, \var{Month} and \var{Day} variables to 
+a date in \var{TDateTime} format. It does the opposite of the
+\seep{DecodeDate} procedure.
+
+The parameters must lie withing valid ranges (boundaries included):
+\begin{description}
+\item[Year] must be between 1 and 9999.
+\item[Month] must be within the range 1-12.
+\item[Day] msut be between 1 and 31.
+\end{description}
+\Errors
+In case one of the parameters is out of it's valid range, 0 is returned.
+\SeeAlso
+\seef{EncodeTime}, \seep{DecodeDate}.
+\end{function}
+
+\latex{\inputlisting{sysutex/ex11.pp}}
+\html{\input{sysutex/ex11.tex}}
+
+\begin{function}{EncodeTime}
+\Declaration
+Function EncodeTime(Hour, Minute, Second, MilliSecond:word): TDateTime;
+\Description
+\var{EncodeTime} encodes the \var{Hour}, \var{Minute}, \var{Second},
+\var{MilliSecond} variables to a \var{TDateTime} format result.
+It does the opposite of the \seep{DecodeTime} procedure.
+
+The parameters must have a valid range (boundaries included):
+\begin{description}
+\item[Hour] must be between 0 and 23.
+\item[Minute,second] must both be between 0 and 59.
+\item[Millisecond] must be between 0 and 999.
+\end{description}
+\Errors
+In case one of the parameters is outside of it's valid range, 0 is returned.
+\SeeAlso
+\seef{EncodeDate}, \seep{DecodeTime}.
+\end{function}
+
+\latex{\inputlisting{sysutex/ex12.pp}}
+\html{\input{sysutex/ex12.tex}}
+
+ 
+\begin{function}{FileDateToDateTime}
+\Declaration
+Function FileDateToDateTime(Filedate : Longint) : TDateTime;
+\Description
+\var{FileDateToDateTime} converts the date/time encoded in \var{filedate}
+to a \var{TDateTime} encoded form. It can be used to convert date/time values 
+returned by the \seef{FileAge} or \seef{FindFirst}/\seef{FindNext} 
+functions to \var{TDateTime} form.
+\Errors
+None.
+\SeeAlso
+\seef{DateTimeToFileDate}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex13.pp}}
+\html{\input{sysutex/ex13.tex}}
+ 
+\begin{function}{FormatDateTime}
+\Declaration
+Function FormatDateTime(FormatStr: string; DateTime: TDateTime):string;
+\Description
+\var{FormatDateTime} formats the date and time encoded in \var{DateTime}
+according to the formatting given in \var{FormatStr}. The complete list 
+of formatting characters can be found in \sees{formatchars}.
+\Errors
+On error (such as an invalid character in the formatting string), and
+\var{EConvertError} exception is raised.
+\SeeAlso
+\seef{DateTimeToStr}, \seef{DateToStr}, \seef{TimeToStr},
+\seef{StrToDateTime}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex14.pp}}
+\html{\input{sysutex/ex14.tex}}
+
+ 
+\begin{function}{IncMonth}
+\Declaration
+Function IncMonth(const DateTime: TDateTime; NumberOfMonths: integer): TDateTime;
+\Description
+\var{IncMonth} increases the month number in \var{DateTime} with
+\var{NumberOfMonths}. It wraps the result as to get a month between 1 and
+12, and updates the year accordingly. \var{NumberOfMonths} can be negative,
+and can be larger than 12 (in absolute value).
+\Errors
+None.
+\SeeAlso
+\seef{Date}, \seef{Time}, \seef{Now}
+\end{function}
+
+
+\latex{\inputlisting{sysutex/ex15.pp}}
+\html{\input{sysutex/ex15.tex}}
+ 
+\begin{function}{IsLeapYear}
+\Declaration
+Function IsLeapYear(Year: Word): boolean;
+\Description
+\var{IsLeapYear} returns \var{True} if \var{Year} is a leap year,
+\var{False} otherwise.
+\Errors
+None.
+\SeeAlso
+\seef{IncMonth}, \seef{Date}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex16.pp}}
+\html{\input{sysutex/ex16.tex}}
+ 
+\begin{function}{MSecsToTimeStamp}
+\Declaration
+Function MSecsToTimeStamp(MSecs: Comp): TTimeStamp;
+\Description
+\var{MSecsTiTimeStamp} converts the given number of milliseconds to
+a \var{TTimeStamp} date/time notation.
+
+Use \var{TTimeStamp} variables if you need to keep very precise track of
+time.
+\Errors
+None.
+\SeeAlso
+\seef{TimeStampToMSecs}, \seef{DateTimeToTimeStamp}, 
+\end{function}
+
+\latex{\inputlisting{sysutex/ex17.pp}}
+\html{\input{sysutex/ex17.tex}}
+ 
+\begin{function}{Now}
+\Declaration
+Function Now: TDateTime;
+\Description
+\var{Now} returns the current date and time. It is equivalent to 
+\var{Date+Time}.
+\Errors
+None.
+\SeeAlso
+\seef{Date}, \seef{Time}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex18.pp}}
+\html{\input{sysutex/ex18.tex}}
+ 
+\begin{function}{StrToDate}
+\Declaration
+Function StrToDate(const S: string): TDateTime;
+\Description
+\var{StrToDate} converts the string \var{S} to a \var{TDateTime} date 
+value. The Date must consist of 1 to three digits, separated by the 
+\var{DateSeparator} character. If two numbers are given, they
+are supposed to form the day and month of the current year. If only 
+one number is given, it is supposed to represent the day of the 
+current month. (This is \em{not} supported in Delphi)
+
+The order of the digits (y/m/d, m/d/y, d/m/y) is determined from the 
+\var{ShortDateFormat} variable.
+\Errors
+On error (e.g. an invalid date or invalid character), 
+an \var{EConvertError} exception is raised.
+\SeeAlso
+\seef{StrToTime}, \seef{DateToStr}n \seef{TimeToStr}.
+\end{function}
+
+\latex{\inputlisting{sysutex/ex19.pp}}
+\html{\input{sysutex/ex19.tex}}
+
+\begin{function}{StrToDateTime}
+\Declaration
+Function StrToDateTime(const S: string): TDateTime;
+\Description
+\var{StrToDateTime} converts the string \var{S} to a \var{TDateTime} date 
+and time value. The Date must consist of 1 to three digits, separated by the 
+\var{DateSeparator} character. If two numbers are given, they
+are supposed to form the day and month of the current year. If only 
+one number is given, it is supposed to represent the day of the 
+current month. (This is \em{not} supported in Delphi)
+
+The order of the digits (y/m/d, m/d/y, d/m/y) is determined from the 
+\var{ShortDateFormat} variable.
+\Errors
+On error (e.g. an invalid date or invalid character), 
+an \var{EConvertError} exception is raised.
+\SeeAlso
+\seef{StrToDate}, \seef{StrToTime}, \seef{DateTimeToStr}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex20.pp}}
+\html{\input{sysutex/ex20.tex}}
+ 
+\begin{function}{StrToTime}
+\Declaration
+Function StrToTime(const S: string): TDateTime;
+\Description
+\var{StrToTime} converts the string \var{S} to a \var{TDateTime} time 
+value. The time must consist of 1 to 4 digits, separated by the 
+\var{TimeSeparator} character. If two numbers are given, they
+are supposed to form the hour and minutes. 
+\Errors
+On error (e.g. an invalid date or invalid character), 
+an \var{EConvertError} exception is raised.
+\SeeAlso
+\seef{StrToDate}, \seef{StrToDateTime}, \seef{TimeToStr}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex21.pp}}
+\html{\input{sysutex/ex21.tex}}
+
+\begin{function}{SystemTimeToDateTime}
+\Declaration
+Function SystemTimeToDateTime(const SystemTime: TSystemTime): TDateTime;
+\Description
+\var{SystemTimeToDateTime} converts a \var{TSystemTime} record to a
+\var{TDateTime} style date/time indication.
+\Errors
+None.
+\SeeAlso
+\seep{DateTimeToSystemTime}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex22.pp}}
+\html{\input{sysutex/ex22.tex}}
+
+\begin{function}{Time}
+\Declaration
+Function Time: TDateTime;
+\Description
+\var{Time} returns the current time in \var{TDateTime} format. The date
+part of the \var{TDateTimeValue} is set to zero.
+\Errors
+None.
+\SeeAlso
+\seef{Now}, \seef{Date}
+\end{function}
+
+
+\latex{\inputlisting{sysutex/ex23.pp}}
+\html{\input{sysutex/ex23.tex}}
+ 
+\begin{function}{TimeStampToDateTime}
+\Declaration
+Function TimeStampToDateTime(const TimeStamp: TTimeStamp): TDateTime;
+\Description
+\var{TimeStampToDateTime} converts \var{TimeStamp} to a \var{TDateTime}
+format variable. It is the inverse operation of \seef{DateTimeToTimeStamp}.
+\Errors
+None.
+\SeeAlso
+\seef{DateTimeToTimeStamp}, \seef{TimeStampToMSecs}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex24.pp}}
+\html{\input{sysutex/ex24.tex}}
+
+\begin{function}{TimeStampToMSecs}
+\Declaration
+Function TimeStampToMSecs(const TimeStamp: TTimeStamp): comp;
+\Description
+\var{TimeStampToMSecs} converts {TimeStamp} to the number of seconds
+since \var{1/1/0001}.
+
+Use \var{TTimeStamp} variables if you need to keep very precise track of
+time.
+\Errors
+None.
+\SeeAlso
+\seef{MSecsToTimeStamp}, \seef{TimeStampToDateTime}
+\end{function}
+
+For an example, see \seef{MSecsToTimeStamp}.
+
+\begin{function}{TimeToStr}
+\Declaration
+Function TimeToStr(Time: TDateTime): string;
+\Description
+\var{TimeToStr} converts the time in \var{Time} to a string. It uses
+the \var{ShortTimeFormat} variable to see what formatting needs to be
+applied. It is therefor entirely equivalent to a
+\var{FormatDateTime('t',Time)} call.
+\Errors
+None.
+\SeeAlso
+\end{function}
+
+\latex{\inputlisting{sysutex/ex25.pp}}
+\html{\input{sysutex/ex25.tex}}
+ 
+
+\section{Disk functions}
+
+\begin{functionl}{AddDisk (Linux only)}{AddDisk}
+\Declaration
+Function AddDisk (Const PAth : String) : Longint;
+\Description
+On Linux  both the \seef{DiskFree} and \seef{DiskSize} functions need a 
+file on the specified drive, since is required for the statfs system call.
+
+These filenames are set in drivestr[0..26], and the first 4 have been 
+preset to :
+\begin{description}
+\item[Disk 0]  \var{'.'} default drive - hence current directory is used.
+\item[Disk 1]  \var{'/fd0/.'} floppy drive 1.
+\item[Disk 2]  \var{'/fd1/.'} floppy drive 2.
+\item[Disk 3]  \var{'/'} \file{C:} equivalent of DOS is the root partition.
+\end{description}
+Drives 4..26 can be set by your own applications with the \var{AddDisk} call.
+
+The \var{AddDisk} call adds \var{Path} to the names of drive files, and
+returns the number of the disk that corresponds to this drive. If you
+add more than 21 drives, the count is wrapped to 4.
+\Errors
+None. 
+\SeeAlso
+\seefl{DiskFree}{DiskFreeSys}, \seefl{DiskSize}{DiskSizeSys}
+\end{functionl}
+
+\begin{function}{CreateDir}
+\Declaration
+Function CreateDir(Const NewDir : String) : Boolean;
+\Description
+\var{CreateDir} creates a new directory with name \var{NewDir}.
+If the directory doesn't contain an absolute path, then the directory is
+created below the current working directory.
+
+The function returns \var{True} if the directory was successfully 
+created, \var{False} otherwise.
+\Errors
+In case of an error, the function returns \var{False}.
+\SeeAlso
+\seef{RemoveDir}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex26.pp}}
+\html{\input{sysutex/ex26.tex}}
+ 
+\begin{functionl}{DiskFree}{DiskFreeSys}
+\Declaration
+Function DiskFree(Drive : Byte) : Longint;
+\Description
+\var{DiskFree} returns the free space (in bytes) on disk \var{Drive}.
+Drive is the number of the disk drive: 
+\begin{description}
+\item[0] for the current drive.
+\item[1] for the first floppy drive.
+\item[2] for the second floppy drive.
+\item[3] for the first hard-disk parttion.
+\item[4-26] for all other drives and partitions.
+\end{description}
+
+{\em Remark} Under \linux, and Unix in general, the concept of disk is
+different than the \dos one, since the filesystem is seen as one big
+directory tree. For this reason, the \var{DiskFree} and \seef{DiskSize}
+functions must be mimicked using filenames that reside on the partitions.
+For more information, see \seef{AddDisk}
+\Errors
+On error, \var{-1} is returned.
+\SeeAlso
+\seefl{DiskSize}{DiskSizeSys}, \seef{AddDisk}
+\end{functionl}
+
+\latex{\inputlisting{sysutex/ex27.pp}}
+\html{\input{sysutex/ex27.tex}}
+ 
+\begin{functionl}{DiskSize}{DiskSizeSys}
+\Declaration
+Function DiskSize(Drive : Byte) : Longint;
+\Description
+\var{DiskSize} returns the size (in bytes) of disk \var{Drive}.
+Drive is the number of the disk drive: 
+\begin{description}
+\item[0] for the current drive.
+\item[1] for the first floppy drive.
+\item[2] for the second floppy drive.
+\item[3] for the first hard-disk parttion.
+\item[4-26] for all other drives and partitions.
+\end{description}
+
+{\em Remark} Under \linux, and Unix in general, the concept of disk is
+different than the \dos one, since the filesystem is seen as one big
+directory tree. For this reason, the \seef{DiskFree} and \var{DiskSize}
+functions must be mimicked using filenames that reside on the partitions.
+For more information, see \seef{AddDisk}
+\Errors
+On error, \var{-1} is returned.
+\SeeAlso
+\seefl{DiskFree}{DiskFreeSys}, \seef{AddDisk}
+\end{functionl}
+
+For an example, see \seefl{DiskFree}{DiskFreeSys}.
+ 
+\begin{function}{GetCurrentDir}
+\Declaration
+Function GetCurrentDir : String;
+\Description
+\var{GetCurrentDir} returns the current working directory.
+\Errors
+None.
+\SeeAlso
+\seef{SetCurrentDir}, \seef{DiskFree}, \seef{DiskSize}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex28.pp}}
+\html{\input{sysutex/ex28.tex}}
+ 
+\begin{function}{RemoveDir}
+\Declaration
+Function RemoveDir(Const Dir : String) : Boolean;
+\Description
+\var{RemoveDir} removes directory \var{Dir} from the disk.
+If the directory is not absolue, it is appended to the current working 
+directory.
+\Errors
+In case of error (e.g. the directory isn't empty) the function returns 
+\var{False}. If successful, \var{True} is returned.
+\SeeAlso
+\end{function}
+
+For an example, see \seef{CreateDir}.
+ 
+\begin{function}{SetCurrentDir}
+\Declaration
+Function SetCurrentDir(Const NewDir : String) : Boolean;
+\Description
+\var{SetCurrentDir} sets the current working directory of your program
+to \var{NewDir}. It returns \var{True} if the function was successfull,
+\var{False} otherwise.
+\Errors
+In case of error, \var{False} is returned.
+\SeeAlso
+\seef{GetCurrentDir}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex29.pp}}
+\html{\input{sysutex/ex29.tex}}
+
+\section{File handling functions}
+
+\begin{function}{ChangeFileExt}
+\Declaration
+Function ChangeFileExt(const FileName, Extension: string): string;
+\Description
+\var{ChangeFileExt} changes the file extension in \var{FileName} to
+\var{Extension}. 
+The extension \var{Extension} includes the starting \var{.} (dot).
+The previous extension of \var{FileName} are all characters after the
+last \var{.}, the \var{.} character included.
+
+If \var{FileName} doesn't have an extension, \var{Extension} is just
+appended.
+\Errors
+None.
+\SeeAlso
+\seef{ExtractFileName}, \seef{ExtractFilePath}, \seef{ExpandFileName}
+\end{function}
+
+
+\begin{function}{DeleteFile}
+\Declaration
+Function DeleteFile(Const FileName : String) : Boolean;
+\Description
+\var{DeleteFile} deletes file \var{FileName} from disk. The function
+returns \var{True} if the file was successfully removed, \var{False}
+otherwise.
+\Errors
+On error, \var{False} is returned.
+\SeeAlso
+\seef{FileCreate}, \seef{FileExists}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex31.pp}}
+\html{\input{sysutex/ex31.tex}}
+ 
+\begin{procedure}{DoDirSeparators}
+\Declaration
+Procedure DoDirSeparators(Var FileName : String);
+\Description
+This function replaces all directory separators \var{'\' and '/'}
+to the directory separator character for the current system.
+\Errors
+None.
+\SeeAlso
+\seef{ExtractFileName}, \seef{ExtractFilePath}
+\end{procedure}
+
+\latex{\inputlisting{sysutex/ex32.pp}}
+\html{\input{sysutex/ex32.tex}}
+
+\begin{function}{ExpandFileName}
+\Declaration
+Function ExpandFileName(Const FileName : string): String;
+\Description
+\var{ExpandFileName} expands the filename to an absolute filename.
+It changes all directory separator characters to the one appropriate for the
+system first.
+\Errors
+None.
+\SeeAlso
+\seef{ExtractFileName}, \seef{ExtractFilePath}, \seef{ExtractFileDir},
+\seef{ExtractFileDrive}, \seef{ExtractFileExt}, \seef{ExtractRelativePath}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex33.pp}}
+\html{\input{sysutex/ex33.tex}}
+
+ 
+\begin{function}{ExpandUNCFileName}
+\Declaration
+Function ExpandUNCFileName(Const FileName : string): String;
+\Description
+\var{ExpandUNCFileName} runs \seef{ExpandFileName} on \var{FileName}
+and then attempts to replace the driveletter by the name of a shared disk.
+\Errors
+\SeeAlso
+\seef{ExtractFileName}, \seef{ExtractFilePath}, \seef{ExtractFileDir},
+\seef{ExtractFileDrive}, \seef{ExtractFileExt}, \seef{ExtractRelativePath}
+\end{function}
+
+ 
+\begin{function}{ExtractFileDir}
+\Declaration
+Function ExtractFileDir(Const FileName : string): string;
+\Description
+\var{ExtractFileDir} returns only the directory part of \var{FileName},
+not including a driveletter. The directory name has NO ending directory
+separator, in difference with \seef{ExtractFilePath}. 
+\Errors
+None.
+\SeeAlso
+\seef{ExtractFileName}, \seef{ExtractFilePath}, \seef{ExtractFileDir},
+\seef{ExtractFileDrive}, \seef{ExtractFileExt}, \seef{ExtractRelativePath}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex34.pp}}
+\html{\input{sysutex/ex34.tex}}
+
+\begin{function}{ExtractFileDrive}
+\Declaration
+Function ExtractFileDrive(const FileName: string): string;
+\Description
+\var{Extract}
+\Errors
+\SeeAlso
+\seef{ExtractFileName}, \seef{ExtractFilePath}, \seef{ExtractFileDir},
+\seef{ExtractFileDrive}, \seef{ExtractFileExt}, \seef{ExtractRelativePath}
+\end{function}
+
+For an example, see \seef{ExtractFileDir}.
+ 
+\begin{function}{ExtractFileExt}
+\Declaration
+Function ExtractFileExt(const FileName: string): string; 
+\Description
+\var{ExtractFileExt} returns the extension (including the 
+\var{.}(dot) character) of \var{FileName}.
+\Errors
+None.
+\SeeAlso
+\seef{ExtractFileName}, \seef{ExtractFilePath}, \seef{ExtractFileDir},
+\seef{ExtractFileDrive}, \seef{ExtractFileExt}, \seef{ExtractRelativePath}
+\end{function}
+
+For an example, see \seef{ExtractFileDir}.
+ 
+\begin{function}{ExtractFileName}
+\Declaration
+Function ExtractFileName(const FileName: string): string;
+\Description
+\var{ExtractFileName} returns the filename part from \var{FileName}.
+The filename consists of all characters after the last directory separator
+character ('/' or '\') or drive letter. 
+
+The full filename can always be reconstucted by concatenating the result
+of \seef{ExtractFilePath} and \var{ExtractFileName}.
+\Errors
+None.
+\SeeAlso
+\seef{ExtractFileName}, \seef{ExtractFilePath}, \seef{ExtractFileDir},
+\seef{ExtractFileDrive}, \seef{ExtractFileExt},\seef{ExtractRelativePath}
+\end{function}
+
+For an example, see \seef{ExtractFileDir}.
+ 
+\begin{function}{ExtractFilePath}
+\Declaration
+Function ExtractFilePath(const FileName: string): string;
+\Description
+\var{ExtractFilePath} returns the path part (including driveletter) from 
+\var{FileName}. The path consists of all characters before the last 
+directory separator character ('/' or '\'), including the directory
+separator itself. 
+In case there is only a drive letter, that will be returned.
+
+The full filename can always be reconstucted by concatenating the result
+of \var{ExtractFilePath} and \seef{ExtractFileName}.
+\Errors
+None.
+\SeeAlso
+\seef{ExtractFileName}, \seef{ExtractFilePath}, \seef{ExtractFileDir},
+\seef{ExtractFileDrive}, \seef{ExtractFileExt}, \seef{ExtractRelativePath}
+\end{function}
+
+For an example, see \seef{ExtractFileDir}.
+ 
+\begin{function}{ExtractRelativePath}
+\Declaration
+Function ExtractRelativePath(Const BaseName,DestNAme : String): String;
+\Description
+\var{ExtractRelativePath} constructs a relative path to go from
+\var{BaseName} to \var{DestName}. If \var{DestName} is on another drive
+(Not on Linux) then the whole \var{Destname} is returned.
+
+{\em Note:} This function does not exist in the Delphi unit.
+\Errors
+None.
+\SeeAlso
+\seef{ExtractFileName}, \seef{ExtractFilePath}, \seef{ExtractFileDir},
+\seef{ExtractFileDrive}, \seef{ExtractFileExt},
+\end{function}
+
+\latex{\inputlisting{sysutex/ex35.pp}}
+\html{\input{sysutex/ex35.tex}}
+
+\begin{function}{FileAge}
+\Declaration
+Function FileAge(Const FileName : String): Longint;
+\Description
+\var{FileAge} returns the last modification time of file \var{FileName}.
+The FileDate format can be transformed to \var{TDateTime} format with the
+\seef{FileDateToDateTime} function.
+\Errors
+In case of errors, \var{-1} is returned.
+\SeeAlso
+\seef{FileDateToDateTime}, \seef{FileExists}, \seef{FileGetAttr}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex36.pp}}
+\html{\input{sysutex/ex36.tex}}
+
+ 
+\begin{procedure}{FileClose}
+\Declaration
+Procedure FileClose(Handle : Longint);
+\Description
+\var{FileClose} closes the file handle \var{Handle}. After this call,
+attempting to read or write from the handle will result in an error.
+\Errors
+None.
+\SeeAlso
+\seef{FileCreate}, \seef{FileWrite}, \seef{FileOpen}, \seef{FileRead},
+\seef{FileTruncate}, \seef{FileSeek}
+\end{procedure}
+
+For an example, see \seef{FileCreate}
+
+\begin{function}{FileCreate}
+\Declaration
+Function FileCreate(Const FileName : String) : Longint;
+\Description
+\var{FileCreate} creates a new file with name \var{FileName} on the disk and
+returns a file handle which can be used to read or write from the file with
+the \seef{FileRead} and \seef{FileWrite} functions.
+
+If a file with name \var{FileName} already existed on the disk, it is
+overwritten.
+\Errors
+If an error occurs (e.g. disk full or non-existent path), the function
+returns \var{-1}.
+\SeeAlso
+\seep{FileClose}, \seef{FileWrite}, \seef{FileOpen}, \seef{FileRead},
+\seef{FileTruncate}, \seef{FileSeek}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex37.pp}}
+\html{\input{sysutex/ex37.tex}}
+
+\begin{function}{FileExists}
+\Declaration
+Function FileExists(Const FileName : String) : Boolean;
+\Description
+\var{FileExists} returns \var{True} if a file with name \var{FileName}
+exists on the disk, \var{False} otherwise.
+\Errors
+None.
+\SeeAlso
+\seef{FileAge}, \seef{FileGetAttr}, \seef{FileSetAttr}
+\end{function}
+
+
+\latex{\inputlisting{sysutex/ex38.pp}}
+\html{\input{sysutex/ex38.tex}}
+
+ 
+\begin{function}{FileGetAttr}
+\Declaration
+Function FileGetAttr(Const FileName : String) : Longint;
+\Description
+\var{FileGetAttr} returns the attribute settings of file 
+\var{FileName}. The attribute is a \var{OR}-ed combination
+of the following constants: 
+\begin{description}
+\item[faReadOnly] The file is read-only.
+\item[faHidden] The file is hidden. (On \linux, this means that the filename
+starts with a dot)
+\item[faSysFile] The file is a system file (On \linux, this means that the
+file is a character, block or FIFO file).
+\item[faVolumeId] Volume Label. Not possible under \linux.
+\item[faDirectory] File is a directory.
+\item[faArchive] file is an archive. Not possible on \linux.
+\end{description}
+\Errors
+In case of error, -1 is returned.
+\SeeAlso
+\seef{FileSetAttr}, \seef{FileAge}, \seef{FileGetDate}.
+\end{function}
+
+\latex{\inputlisting{sysutex/ex40.pp}}
+\html{\input{sysutex/ex40.tex}}
+
+\begin{function}{FileGetDate}
+\Declaration
+Function FileGetDate(Handle : Longint) : Longint;
+\Description
+\var{FileGetdate} returns the filetime of the opened file with filehandle
+\var{Handle}. It is the same as \seef{FileAge}, with this difference that
+\var{FileAge} only needs the file name, while \var{FilegetDate} needs an
+open file handle.
+\Errors
+On error, -1 is returned.
+\SeeAlso
+\seef{FileAge}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex39.pp}}
+\html{\input{sysutex/ex39.tex}}
+ 
+\begin{function}{FileOpen}
+\Declaration
+Function FileOpen(Const FileName : string; Mode : Integer) : Longint;
+\Description
+\var{FileOpen} opens a file with name \var{FileName} with mode \var{Mode}.
+\var{Mode} can be one of the following constants:
+\begin{description}
+\item[fmOpenRead] The file is opened for reading.
+\item[fmOpenWrite] The file is opened for writing.
+\item[fmOpenReadWrite] The file is opened for reading and writing.
+\end{description}
+If the file has been successfully opened, it can be read  from or written to
+(depending on the \var{Mode} parameter) with the \seef{FileRead} and
+\var{FileWrite} functions.
+
+Remark that you cannot open a file if it doesn't exist yet, i.e. it will not
+be created for you. If you want tp create a new file, or overwrite an old
+one, use the \seef{FileCreate} function.
+\Errors
+On Error, -1 is returned.
+\SeeAlso
+\seep{FileClose}, \seef{FileWrite}, \seef{FileCreate}, \seef{FileRead},
+\seef{FileTruncate}, \seef{FileSeek}
+\end{function}
+
+For an example, see \seef{FileRead}
+ 
+\begin{function}{FileRead}
+\Declaration
+Function FileRead(Handle : Longint; Var Buffer; Count : longint) : Longint;
+\Description
+\var{FileRead} reads \var{Count} bytes from file-handle \var{Handle} and
+stores them into \var{Buffer}. Buffer must be at least \var{Count} bytes
+long. No checking on this is performed, so be careful not to overwrite any
+memory.  \var{Handle} must be the result of a \seef{FileOpen} call.
+\Errors
+On error, -1 is returned.
+\SeeAlso
+\seep{FileClose}, \seef{FileWrite}, \seef{FileCreate}, \seef{FileOpen},
+\seef{FileTruncate}, \seef{FileSeek}
+\end{function}
+
+For an example, see \seef{FileOpen}
+
+\begin{function}{FileSearch}
+\Declaration
+Function FileSearch(Const Name, DirList : String) : String;
+\Description
+\var{FileSearch} looks for the file \var{Name} in \var{DirList}, where
+dirlist is a list of directories, separated by semicolons or colons.
+It returns the full filename of the first match found.
+\Errors
+On error, an empty string is returned.
+\SeeAlso
+\seef{ExpandFileName}, \seef{FindFirst}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex41.pp}}
+\html{\input{sysutex/ex41.tex}}
+
+\begin{function}{FileSeek}
+\Declaration
+Function FileSeek(Handle,Offset,Origin : Longint) : Longint;
+\Description
+\var{FileSeek} sets the file pointer on position \var{Offset}, starting from 
+\var{Origin}. Origin can be one of the following values: 
+\begin{description}
+\item[fsFromBeginning]  \var{Offset} is relative to the first byte of the file. This
+position is zero-based. i.e. the first byte is at offset 0.
+\item[fsFromCurrent]  \var{Offset} is relative to the current position.
+\item[fsFromEnd] \var{Offset} is relative to the end of the file. This means
+that \var{Offset} can only be zero or negative in this case.
+\end{description}
+If successfull, the function returns the new file position, relative to the
+beginning of the file.
+
+{\em Remark:} The abovementioned constants do not exist in Delphi.
+\Errors
+On error, -1 is returned.
+\SeeAlso
+\seep{FileClose}, \seef{FileWrite}, \seef{FileCreate}, \seef{FileOpen}
+\seef{FileRead}, \seef{FileTruncate}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex42.pp}}
+\html{\input{sysutex/ex42.tex}}
+
+For an example, see \seef{FileCreate}
+ 
+\begin{functionl}{FileSetAttr (Not on Linux)}{FileSetAttr}
+\Declaration
+Function FileSetAttr(Const Filename : String; Attr: longint) : Longint;
+\Description
+\var{FileSetAttr} sets the attributes of \var{FileName} to \var{Attr}.
+If the function was successful, 0 is returned, -1 otherwise.
+
+\var{Attr} can be set to an OR-ed combination of the pre-defined 
+\var{faXXX} constants.
+\Errors
+On error, -1 is returned (always on linux). 
+\SeeAlso
+\seef{FileGetAttr}, \seef{FileGetDate}, \seef{FileSetDate}.
+\end{functionl}
+
+ 
+\begin{functionl}{FileSetDate (Not on Linux)}{FileSetDate}
+\Declaration
+Function FileSetDate(Handle,Age : Longint) : Longint;
+\Description
+\var{FileSetDate} sets the file date of the file with handle \var{Handle} 
+to \var{Age}, where \var{Age} is a DOS date-and-time stamp value.
+
+The function returns zero of successfull.
+\Errors
+On Linux, -1 is always returned, since this is impossible to implement.
+On Windows and DOS, a negative error code is returned.
+\SeeAlso
+\end{functionl}
+
+ 
+\begin{function}{FileTruncate}
+\Declaration
+Function FileTruncate(Handle,Size: Longint) : boolean;
+\Description
+\var{FileTruncate} truncates the file with handle \var{Handle} to
+\var{Size} bytes. The file must have been opened for writing prior
+to this call. The function returns \var{True} is successful, \var{False}
+otherwise.
+\Errors
+On error, the function returns \var{False}.
+\SeeAlso
+\seep{FileClose}, \seef{FileWrite}, \seef{FileCreate}, \seef{FileOpen}
+\seef{FileRead}, \seef{FileSeek}
+\end{function}
+
+For an example, see \seef{FileCreate}.
+ 
+\begin{function}{FileWrite}
+\Declaration
+Function FileWrite(Handle : Longint; Var Buffer; Count : Longint) : Longint;
+\Description
+\var{FileWrite} writes \var{Count} bytes from \var{Buffer} to the file with
+handle \var{Handle}. Prior to this call, the file must have been opened 
+for writing. \var{Buffer} must be at least \var{Count} bytes large, or 
+a memory access error may occur.
+
+The function returns the number of bytes written, or -1 in case of an
+error.
+\Errors
+In case of error, -1 is returned.
+\SeeAlso
+\seep{FileClose}, \seef{FileCreate}, \seef{FileOpen}
+\seef{FileRead}, \seef{FileTruncate}, \seef{FileSeek}
+\end{function}
+
+For an example, see \seef{FileCreate}. 
+
+\begin{procedurel}{FindClose}{FindCloseSys}
+\Declaration
+Procedure FindClose(Var F : TSearchrec);
+\Description
+\var{FindClose} ends a series of \seef{FindFirst}/\seef{FindNext} calls,
+and frees any memory used by these calls. It is {\em absolutely} necessary
+to do this call, or huge memory losses may occur.
+\Errors
+None.
+\SeeAlso
+\seef{FindFirst}, \seef{FindNext}.
+\end{procedurel}
+
+For an example, see \seef{FindFirst}.
+ 
+\begin{function}{FindFirst}
+\Declaration
+Function FindFirst(Const Path : String; Attr : Longint; Var Rslt : TSearchRec) : Longint;
+\Description
+\var{FindFirst} looks for files that match the name (possibly with
+wildcards) in \var{Path} and attributes \var{Attr}. It then fills up the
+\var{Rslt} record with data gathered about the file. It returns 0 if a file
+matching the specified criteria is found, a nonzero value (-1 on linux) 
+otherwise.
+
+The \var{Rslt} record can be fed to subsequent calls to \var{FindNext}, in
+order to find other files matching the specifications.
+
+{\em remark:} A \var{FindFirst} call must {\em always} be followed by a
+\seepl{FindClose}{FindCloseSys} call with the same \var{Rslt} record. Failure to do so will
+result in memory loss.
+\Errors
+On error the function returns -1 on linux, a nonzero error code on Windows.
+\SeeAlso
+\seep{FindClose}{FindCloseSys}, \seef{FindNext}.
+\end{function}
+
+\latex{\inputlisting{sysutex/ex43.pp}}
+\html{\input{sysutex/ex43.tex}}
+
+\begin{function}{FindNext}
+\Declaration
+Function FindNext(Var Rslt : TSearchRec) : Longint;
+\Description
+\var{FindNext} finds a next occurrence of a search sequence initiated by
+\var{FindFirst}. If another record matching the criteria in Rslt is found, 0
+is returned, a nonzero constant is returned otherwise.
+
+{\em remark:} The last \var{FindNext} call must {\em always} be followed by a
+\var{FindClose} call with the same \var{Rslt} record. Failure to do so will
+result in memory loss.
+\Errors
+On error (no more file is found), a nonzero constant is returned.
+\SeeAlso
+\seef{FindFirst}, \seep{FindClose}
+\end{function}
+
+For an example, see \seef{FindFirst}
+ 
+\begin{function}{GetDirs}
+\Declaration
+Function GetDirs(Var DirName : String; Var Dirs : Array of pchar) : Longint; 
+\Description
+\var{GetDirs} splits DirName in a null-byte separated list of directory names,
+\var{Dirs} is an array of \var{PChars}, pointing to these directory names.
+The function returns the number of directories found, or -1 if none were found.
+DirName must contain only OSDirSeparator as Directory separator chars.
+\Errors
+None.
+\SeeAlso
+\seef{ExtractRelativePath}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex45.pp}}
+\html{\input{sysutex/ex45.tex}}
+ 
+\begin{function}{RenameFile}
+\Declaration
+Function RenameFile(Const OldName, NewName : String) : Boolean;
+\Description
+\var{RenameFile} renames a file from \var{OldName} to \var{NewName}. The
+function returns \var{True} if successful, \var{False} otherwise.
+
+{\em Remark:} you cannot rename across disks or partitions. 
+\Errors
+On Error, \var{False} is returned.
+\SeeAlso
+\seef{DeleteFile}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex44.pp}}
+\html{\input{sysutex/ex44.tex}}
+
+\begin{function}{SetDirSeparators}
+\Declaration
+Function SetDirSeparators(Const FileName : String) : String;
+\Description
+\var{SetDirSeparators} returns \var{FileName} with all possible
+DirSeparators replaced by \var{OSDirSeparator}.
+\Errors
+None.
+\SeeAlso
+\seef{ExpandFileName}, \seef{ExtractFilePath}, \seef{ExtractFileDir}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex47.pp}}
+\html{\input{sysutex/ex47.tex}}
+
+\section{PChar functions}
+
+\subsection{Introduction}
+
+Most PChar functions are the same as their counterparts in the \file{STRINGS}
+unit. The following functions are the same :
+
+\begin{enumerate}
+\item \seef{StrCat} : Concatenates two \var{PChar} strings.
+\item \seef{StrComp} : Compares two \var{PChar} strings.
+\item \seef{StrCopy} : Copies a \var{PChar} string.
+\item \seef{StrECopy} : Copies a \var{PChar} string and returns a pointer to
+the terminating null byte.
+\item \seef{StrEnd} : Returns a pointer to the terminating null byte.
+\item \seef{StrIComp} : Case insensitive compare of 2 \var{PChar} strings.
+\item \seef{StrLCat} : Appends at most L characters from one \var{PChar} to
+another \var{PChar}.
+\item \seef{StrLComp} : Case sensitive compare of at most L characters of 2
+ \var{PChar} strings.
+\item \seef{StrLCopy} : Copies at most L characters from one \var{PChar} to
+another.
+\item \seef{StrLen} : Returns the length (exclusive terminating null byte)
+of a \var{PChar} string.
+\item \seef{StrLIComp} : Case insensitive compare of at most L characters of 2
+ \var{PChar} strings.  
+\item \seef{StrLower} : Converts a \var{PChar} to all lowercase letters.
+\item \seef{StrMove} : Moves one \var{PChar} to another.
+\item \seef{StrNew} : Makes a copy of a \var{PChar} on the heap, and returns
+a pointer to this copy.
+\item \seef{StrPos} : Returns the position of one \var{PChar} string in
+another?
+\item \seef{StrRScan} : returns a pointer to the last occurrence of on 
+ \var{PChar} string in another one.
+\item \seef{StrScan} : returns a pointer to the first occurrence of on 
+ \var{PChar} string in another one.
+\item \seef{StrUpper} : Converts a \var{PChar} to all uppercase letters.
+\end{enumerate}
+The subsequent functions are different from their counterparts in
+\file{STRINGS}, although the same examples can be used.
+
+
+\begin{functionl}{StrAlloc}{StrAllocSys}
+\Declaration
+Function StrAlloc(Size: cardinal): PChar;
+\Description
+\var{StrAlloc} reserves memory on the heap for a string with length \var{Len},
+terminating \var{\#0} included, and returns a pointer to it.
+
+Additionally, \var{StrAlloc} allocates 4 extra bytes to store the size of
+the allocated memory. Therefore this function is NOT compatible with the 
+\seef{StrAlloc} function of the \var{Strings} unit.
+\Errors
+None.
+\SeeAlso
+\seef{StrBufSize}, \seepl{StrDispose}{StrDisposeSys}, \seef{StrAlloc}
+\end{functionl}
+
+For an example, see \seef{StrBufSize}.
+ 
+\begin{function}{StrBufSize}
+\Declaration
+Function StrBufSize(var Str: PChar): cardinal;
+\Description
+\var{StrBufSize} returns the memory allocated for \var{Str}. This function
+ONLY gives the correct result if \var{Str} was allocated using
+\seefl{StrAlloc}{StrAllocSys}.
+\Errors
+If no more memory is available, a runtime error occurs.
+\SeeAlso
+\seefl{StrAlloc}{StrAllocSys}.\seepl{StrDispose}{StrDisposeSys}.
+\end{function}
+
+\latex{\inputlisting{sysutex/ex46.pp}}
+\html{\input{sysutex/ex46.tex}}
+
+ 
+\begin{procedurel}{StrDispose}{StrDisposeSys}
+\Declaration
+Procedure StrDispose(var Str: PChar);
+\Description
+\var{StrDispose} frees any memory allocated for \var{Str}. This function
+will only function correctly if \var{Str} has been allocated using
+\seefl{StrAlloc}{StrAllocSys} from the \file{SYSUTILS} unit.
+\Errors
+If an invalid pointer is passed, or a pointer not allocated with
+\var{StrAlloc}, an error may occur.
+\SeeAlso
+\seef{StrBufSize}, \seefl{StrAlloc}{StrAllocSys}, \seep{StrDispose}
+\end{procedurel}
+
+For an example, see \seef{StrBufSize}.
+ 
+\begin{functionl}{StrPCopy}{StrPCopySys}
+\Declaration
+Function StrPCopy(Dest: PChar; Source: string): PChar;
+\Description
+\var{StrPCopy} Converts the Ansistring in \var{Source} to a Null-terminated 
+string, and copies it to \var{Dest}. \var{Dest} needs enough room to contain
+the string \var{Source}, i.e. \var{Length(Source)+1} bytes.
+\Errors
+No checking is performed to see whether \var{Dest} points to enough memory
+to contain \var{Source}.
+\SeeAlso
+\seefl{StrPLCopy}{StrPLCopySys}, \seef{StrPCopy}
+\end{functionl}
+
+For an example, see \seef{StrPCopy}.
+
+\begin{functionl}{StrPLCopy}{StrPLCopySys}
+\Declaration
+Function StrPLCopy(Dest: PChar; Source: string; MaxLen: cardinal): PChar;
+\Description
+\var{StrPLCopy} Converts maximally \var{MaxLen} characters of the 
+Ansistring in \var{Source} to a Null-terminated  string, and copies 
+it to \var{Dest}. \var{Dest} needs enough room to contain
+the  characters.
+\Errors
+No checking is performed to see whether \var{Dest} points to enough memory
+to contain L characters of \var{Source}.
+\Errors
+\SeeAlso
+\seefl{StrPCopy}{StrPCopySys}.
+\end{functionl}
+
+
+For an example, see \seef{StrPLCopy}.
+
+ 
+\begin{functionl}{StrPas}{StrPasSys}
+\Declaration
+Function StrPas(Str: PChar): string;
+\Description
+Converts a null terminated string in \var{Str} to an Ansitring, and returns
+this string. This string is NOT truncated at 255 characters as is the 
+\Errors
+None.
+\SeeAlso
+\seef{StrPas}.
+\end{functionl}
+
+For an example, see \seef{StrPas}.
+
+\section{String handling functions}
+
+\begin{function}{AdjustLineBreaks}
+\Declaration
+Function AdjustLineBreaks(const S: string): string;
+\Description
+\var{AdjustLineBreaks} will change all \var{\#13} characters with
+\var{\#13\#10} on \windowsnt and \dos. On \linux, all \var{\#13\#10}
+character pairs are converted to \var{#10} and single \var{\#13}
+characters also.
+\Errors
+None.
+\SeeAlso
+\seef{AnsiCompareStr}, \seef{AnsiCompareText}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex48.pp}}
+\html{\input{sysutex/ex48.tex}}
+ 
+\begin{function}{AnsiCompareStr}
+\Declaration
+Function AnsiCompareStr(const S1, S2: string): integer;
+\Description
+\var{AnsiCompareStr} compares two strings and returns the following
+result:
+\begin{description}
+\item[<0]  if \var{S1<S2}.
+\item[0]  if \var{S1=S2}.
+\item[>0] if \var{S1>S2}.
+\end{description}
+the comparision takes into account Ansi characters, i.e. it takes
+care of strange accented characters. Contrary to \seef{CompareAnsiText}, 
+the comparision is case sensitive.
+\Errors
+None.
+\SeeAlso
+\seef{AdjustLineBreaks}, \seef{AnsiCompareText}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex49.pp}}
+\html{\input{sysutex/ex49.tex}}
+ 
+\begin{function}{AnsiCompareText}
+\Declaration
+Function AnsiCompareText(const S1, S2: string): integer;
+\Description
+\Description
+\var{AnsiCompareText} compares two strings and returns the following
+result:
+\begin{description}
+\item[<0]  if \var{S1<S2}.
+\item[0]  if \var{S1=S2}.
+\item[>0] if \var{S1>S2}.
+\end{description}
+the comparision takes into account Ansi characters, i.e. it takes
+care of strange accented characters. Contrary to \seef{CompareAnsiStr}, 
+the comparision is case insensitive.
+\Errors
+None.
+\SeeAlso
+\seef{AdjustLineBreaks}, \seef{AnsiCompareText}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex50.pp}}
+\html{\input{sysutex/ex50.tex}}
+
+\begin{function}{AnsiExtractQuotedStr}
+\Declaration
+Function AnsiExtractQuotedStr(var Src: PChar; Quote: Char): string;
+\Description
+\var{AnsiExtractQuotedStr} Returns \var{Src} as a string,, with \var{Quute} 
+characters removed from the beginning and end of the string, and double 
+\var{Quote} characters replaced by a single \var{Quote} characters. 
+As such, it revereses the action of \seef{AnsiQuotedStr}.
+\Errors
+None.
+\SeeAlso
+\seef{AnsiQuotedStr}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex51.pp}}
+\html{\input{sysutex/ex51.tex}}
+ 
+\begin{function}{AnsiLastChar}
+\Declaration
+Function AnsiLastChar(const S: string): PChar;
+\Description
+This function returns a pointer to the last character of \var{S}.
+Since multibyte characters are not yet supported, this is the same
+as \var{@S[Length(S)])}.
+\Errors
+None.
+\SeeAlso
+\seef{AnsiStrLastChar}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex52.pp}}
+\html{\input{sysutex/ex52.tex}}
+ 
+\begin{function}{AnsiLowerCase}
+\Declaration
+Function AnsiLowerCase(const s: string): string;
+\Description
+\var{AnsiLowerCase} converts the string \var{S} to lowercase characters 
+and returns the resulting string. 
+It takes into account the operating system language
+settings when doing this, so spcial characters are converted correctly as
+well.
+
+{\em Remark} On linux, no language setting is taken in account yet.
+\Errors
+None.
+\SeeAlso
+\seef{AnsiUpperCase}, \seef{AnsiStrLower}, \seef{AnsiStrUpper}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex53.pp}}
+\html{\input{sysutex/ex53.tex}}
+ 
+\begin{function}{AnsiQuotedStr}
+\Declaration
+Function AnsiQuotedStr(const S: string; Quote: char): string;
+\Description
+\var{AnsiQuotedString} quotes the string \var{S} and returns the result.
+This means that it puts the \var{Quote} character at both the beginning and
+end of the string and replaces any occurrence of \var{Quote} in \var{S} 
+with 2 \var{Quote} characters. The action of \var{AnsiQuotedString} can be
+reversed by \seef{AnsiExtractQuotedStr}.
+\Errors
+None.
+\SeeAlso
+\seef{AnsiExtractQuotedStr}
+\end{function}
+
+For an example, see \seef{AnsiExtractQuotedStr}
+ 
+\begin{function}{AnsiStrComp}
+\Declaration
+Function AnsiStrComp(S1, S2: PChar): integer;
+\Description
+\var{AnsiStrComp} compares 2 \var{PChar} strings, and returns the following
+result:
+\begin{description}
+\item[<0]  if \var{S1<S2}.
+\item[0]  if \var{S1=S2}.
+\item[>0]  if \var{S1>S2}.
+\end{description}
+The comparision of the two strings is case-sensitive.
+The function does not yet take internationalization settings into account.
+\Errors
+None.
+\SeeAlso
+\seef{AnsiCompareText}, \seef{AnsiCompareStr}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex54.pp}}
+\html{\input{sysutex/ex54.tex}}
+ 
+\begin{function}{AnsiStrIComp}
+\Declaration
+Function AnsiStrIComp(S1, S2: PChar): integer;
+\Description
+\var{AnsiStrIComp} compares 2 \var{PChar} strings, and returns the following
+result:
+\begin{description}
+\item[<0]  if \var{S1<S2}.
+\item[0]  if \var{S1=S2}.
+\item[>0]  if \var{S1>S2}.
+\end{description}
+The comparision of the two strings is case-insensitive.
+The function does not yet take internationalization settings into account.
+\Errors
+None.
+\SeeAlso
+\seef{AnsiCompareText}, \seef{AnsiCompareStr}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex55.pp}}
+\html{\input{sysutex/ex55.tex}}
+
+\begin{function}{AnsiStrLastChar}
+\Declaration
+function AnsiStrLastChar(Str: PChar): PChar;
+\Declaration
+\var{AnsiStrLastChar} returns a pointer to the last character of \var{Str}.
+Since multibyte characters are not yet supported, this is the same
+as \var{StrEnd(Str)-1}.
+\Errors
+None.
+\SeeAlso
+\seef{AnsiLastChar}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex58.pp}}
+\html{\input{sysutex/ex58.tex}}
+
+\begin{function}{AnsiStrLComp}
+\Declaration
+Function AnsiStrLComp(S1, S2: PChar; MaxLen: cardinal): integer;
+\Description
+\var{AnsiStrLComp} compares the first \var{Maxlen} characters of
+2 \var{PChar} strings, \var{S1} and \var{S2}, and returns the following
+result:
+\begin{description}
+\item[<0]  if \var{S1<S2}.
+\item[0]  if \var{S1=S2}.
+\item[>0]  if \var{S1>S2}.
+\end{description}
+The comparision of the two strings is case-sensitive.
+The function does not yet take internationalization settings into account.
+\Errors
+None.
+\SeeAlso
+\seef{AnsiCompareText}, \seef{AnsiCompareStr}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex56.pp}}
+\html{\input{sysutex/ex56.tex}}
+
+\begin{function}{AnsiStrLIComp}
+\Declaration
+Function AnsiStrLIComp(S1, S2: PChar; MaxLen: cardinal): integer;
+\Description
+\var{AnsiStrLIComp} compares the first \var{Maxlen} characters of
+2 \var{PChar} strings, \var{S1} and \var{S2}, and returns the following
+result:
+\begin{description}
+\item[<0]  if \var{S1<S2}.
+\item[0]  if \var{S1=S2}.
+\item[>0]  if \var{S1>S2}.
+\end{description}
+The comparision of the two strings is case-insensitive.
+The function does not yet take internationalization settings into account.
+\Errors
+None.
+\SeeAlso
+\seef{AnsiCompareText}, \seef{AnsiCompareStr}
+\end{function}
+ 
+\latex{\inputlisting{sysutex/ex57.pp}}
+\html{\input{sysutex/ex57.tex}}
+
+
+
+\begin{function}{AnsiStrLower}
+\Declaration
+Function AnsiStrLower(Str: PChar): PChar;
+\Description
+\var{AnsiStrLower} converts the PChar \var{Str} to lowercase characters 
+and returns the resulting pchar. Note that \var{Str} itself is modified,
+not a copy, as in the case of \seef{AnsiLowerCase}.
+It takes into account the operating system language
+settings when doing this, so spcial characters are converted correctly as
+well.
+
+{\em Remark} On linux, no language setting is taken in account yet.
+\Errors
+None.
+\SeeAlso
+\seef{AnsiStrUpper}, \seef{AnsiLowercase}
+\end{function}
+\Errors
+\SeeAlso
+\end{function}
+
+\latex{\inputlisting{sysutex/ex59.pp}}
+\html{\input{sysutex/ex59.tex}}
+ 
+\begin{function}{AnsiStrUpper}
+\Declaration
+Function AnsiStrUpper(Str: PChar): PChar;
+\Description
+\var{AnsiStrUpper} converts the \var{PChar} \var{Str} to uppercase characters 
+and returns the resulting string. Note that \var{Str} itself is modified,
+not a copy, as in the case of \seef{AnsiUpperCase}.
+It takes into account the operating system language
+settings when doing this, so spcial characters are converted correctly as
+well.
+
+{\em Remark} On linux, no language setting is taken in account yet.
+\Errors
+None.
+\SeeAlso
+\seef{AnsiUpperCase}, \seef{AnsiStrLower}, \seef{AnsiLowerCase}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex60.pp}}
+\html{\input{sysutex/ex60.tex}}
+ 
+\begin{function}{AnsiUpperCase}
+\Declaration
+Function AnsiUpperCase(const s: string): string;
+\Description
+\var{AnsiUpperCase} converts the string \var{S} to uppercase characters 
+and returns the resulting string. 
+It takes into account the operating system language
+settings when doing this, so spcial characters are converted correctly as
+well.
+
+{\em Remark} On linux, no language setting is taken in account yet.
+\Errors
+None.
+\SeeAlso
+\seef{AnsiStrUpper}, \seef{AnsiStrLower}, \seef{AnsiLowerCase}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex61.pp}}
+\html{\input{sysutex/ex61.tex}}
+ 
+\begin{procedure}{AppendStr}
+\Declaration
+Procedure AppendStr(var Dest: String; const S: string);
+\Description
+\var{AppendStr} appends \var{S} to Dest. 
+
+This function is provided for Delphi
+compatibility only, since it is completely equivalent to \var{Dest:=Dest+S}.
+\Errors
+None.
+\SeeAlso
+\seep{AssignStr},\seef{NewStr}, \seep{DisposeStr}
+\end{procedure}
+
+\latex{\inputlisting{sysutex/ex62.pp}}
+\html{\input{sysutex/ex62.tex}}
+ 
+\begin{procedure}{AssignStr}
+\Declaration
+Procedure AssignStr(var P: PString; const S: string);
+\Description
+\var{AssignStr} allocates \var{S} to P. The old value of \var{P} is
+disposed of.
+
+This function is provided for Delphi compatibility only. \var{AnsiStrings}
+are managed on the heap and should be preferred to the mechanism of
+dynamically allocated strings.
+\Errors
+None.
+\SeeAlso
+\seef{NewStr}, \seep{AppendStr}, \seep{DisposeStr}
+\end{procedure}
+
+\latex{\inputlisting{sysutex/ex63.pp}}
+\html{\input{sysutex/ex63.tex}}
+ 
+\begin{function}{BCDToInt}
+\Declaration
+Function BCDToInt(Value: integer): integer;
+\Description
+\var{BCDToInt} converts a \var{BCD} coded integer to a normal integer.
+\Errors
+None.
+\SeeAlso
+\seef{StrToInt}, \seef{IntToStr}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex64.pp}}
+\html{\input{sysutex/ex64.tex}}
+
+ 
+\begin{function}{CompareMem}
+\Declaration
+Function CompareMem(P1, P2: Pointer; Length: cardinal): integer;
+\Description
+\var{CompareMem} compares, byte by byte,  2 memory areas pointed 
+to by \var{P1} and \var{P2}, for a length of \var{L} bytes. 
+
+It returns the following values:
+\begin{description}
+\item[<0] if at some position the byte at \var{P1} is less than the byte at the
+same postion at \var{P2}.
+\item[0] if all \var{L} bytes are the same.
+\item[3]
+\end{description}
+\Errors
+\SeeAlso
+\end{function}
+
+ 
+\begin{function}{CompareStr}
+\Declaration
+Function CompareStr(const S1, S2: string): Integer;
+\Description
+\var{CompareStr} compares two strings, \var{S1} and \var{S2}, 
+and returns the following
+result:
+\begin{description}
+\item[<0]  if \var{S1<S2}.
+\item[0]  if \var{S1=S2}.
+\item[>0]  if \var{S1>S2}.
+\end{description}
+The comparision of the two strings is case-sensitive.
+The function does not take internationalization settings into account, it
+simply compares ASCII values.
+\Errors
+None.
+\SeeAlso
+\seef{AnsiCompareText}, \seef{AnsiCompareStr}, \seef{CompareText}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex65.pp}}
+\html{\input{sysutex/ex65.tex}}
+
+\begin{function}{CompareText}
+\Declaration
+Function CompareText(const S1, S2: string): integer;
+\Description
+\var{CompareText} compares two strings, \var{S1} and \var{S2}, 
+and returns the following
+result:
+\begin{description}
+\item[<0]  if \var{S1<S2}.
+\item[0]  if \var{S1=S2}.
+\item[>0]  if \var{S1>S2}.
+\end{description}
+The comparision of the two strings is case-insensitive.
+The function does not take internationalization settings into account, it
+simply compares ASCII values.
+\Errors
+None.
+\SeeAlso
+\seef{AnsiCompareText}, \seef{AnsiCompareStr}, \seef{CompareStr}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex66.pp}}
+\html{\input{sysutex/ex66.tex}}
+
+
+ 
+\begin{procedurel}{DisposeStr}{DisposeStrSys}
+\Declaration
+Procedure DisposeStr(S: PString);
+\Description
+\var{DisposeStr} removes the dynamically allocated string \var{S} from the
+heap, and releases the occupied memory.
+
+This function is provided for Delphi compatibility only. \var{AnsiStrings}
+are managed on the heap and should be preferred to the mechanism of
+dynamically allocated strings.
+\Errors
+None.
+\SeeAlso
+\seef{NewStr}, \seep{AppendStr}, \seep{AssignStr}
+\end{procedurel}
+
+For an example, see \seep{DisposeStr}.
+ 
+\begin{function}{FloatToStr}
+\Declaration
+Function FloatToStr(Value: Extended): String;
+\Description
+\var{FloatToStr} converts the floating point variable \var{Value} to a 
+string representation.  It will choose the shortest possible notation of the
+two following formats:
+\begin{description}
+\item[Fixed format] will represent the string in fixed notation,
+\item[Decimal format] will represent the string in scientific notation.
+\end{description}
+(more information on these formats can be found in \seef{FloatToStrF})
+\var{FloatToStr} is completely equivalent to a \var{FloatToStrF(Value, ffGeneral,
+15, 0);} call.
+\Errors
+None.
+\SeeAlso
+\seef{FloatToStrF}
+%, \seef{FormatFloat}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex67.pp}}
+\html{\input{sysutex/ex67.tex}}
+
+\begin{function}{FloatToStrF}
+\Declaration
+Function FloatToStrF(Value: Extended; format: TFloatFormat; Precision, Digits: Integer): String;
+\Description
+\var{FloatToStrF} converts the floating point number \var{value} to a string
+representation, according to the settings of the parameters \var{Format},
+\var{Precision} and \var{Digits}.
+
+The meaning of the \var{Precision} and \var{Digits} parameter depends on the
+\var{Format} parameter. The format is controlled mainly by the \var{Format} 
+parameter. It can have one of the following values:
+\begin{description}
+\item[ffcurrency] Money format. \var{Value} is converted to a string using
+the global variables \var{CurrencyString}, \var{CurrencyFormat} and
+\var{NegCurrencyFormat}. The \var{Digits} paramater specifies the number of digits
+following the decimal point and should be in the range -1 to 18. If Digits
+equals \var{-1}, \var{CurrencyDecimals} is assumed. The \var{Precision} parameter is ignored.
+%
+\item[ffExponent] Scientific format. \var{Value} is converted to a 
+string using scientific notation: 1 digit before the decimal point, possibly 
+preceded by a minus sign if \var{Value} is negative. The number of
+digits after the decimal point is controlled by \var{Precision} and must lie
+in the range 0 to 15.  
+%
+\item[ffFixed] Fixed point format. \var{Value} is converted to a string
+using fixed point notation. The result is composed of all digits of the 
+integer part of \var{Value}, preceded by a minus sign if \var{Value} is
+negative. Following the integer part is \var{DecimalSeparator} and then the
+fractional part of \var{Value}, rounded off to \var{Digits} numbers.
+If the number is too large then the result will be in scientific notation.
+%
+\item[ffGeneral] General number format. The argument is converted to a
+string using \var{ffExponent} or \var{ffFixed} format, depending on wich one
+gives the shortest string. There will be no trailing zeroes. If \var{Value}
+is less than \var{0.00001} or if the number of decimals left of the decimal
+point is larger than \var{Precision} then scientific notation is used, and
+\var{Digits} is the minimum number of digits in the exponent. Otherwise
+\var{Digits} is ignored.
+\item[ffnumber] Is the same as \var{ffFixed}, except that thousand separators
+are inserted in the resultig string.
+\end{description}
+\Errors
+None.
+\SeeAlso
+\seef{FloatToStr}, \seef{FoatToText}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex68.pp}}
+\html{\input{sysutex/ex68.tex}}
+
+\begin{function}{FloatToText}
+\Declaration
+Function FloatToText(Buffer : Pchar;Value: Extended; Format: TFloatFormat; Precision, Digits: Integer): Longint;
+\Description
+\var{FloatToText} converts the floating point variable \var{Value} to a 
+string representation and stores it in \var{Buffer}.  The conversion is
+giverned by \var{format}, \var{Precisison} and \var{Digits}.
+more information on these parameters can be found in \seef{FloatToStrF}.
+\var{Buffer} should point to enough space to hold the result. No checking on
+this is performed.
+
+The result is the number of characters that was copied in \var{Buffer}.
+\Errors
+None.
+\SeeAlso
+\seef{FloatToStr}, \seef{FloatToStrF}
+\end{function}
+ 
+\latex{\inputlisting{sysutex/ex69.pp}}
+\html{\input{sysutex/ex69.tex}}
+
+\begin{procedure}{FmtStr}
+\Declaration
+Procedure (Var Res: String; Const Fmt : String; Const args: Array of const);
+\Description
+\var{FmtStr} calls \seef{Format} with \var{Fmt} and \var{Args} as arguments,
+and stores the result in \var{Res}. For more information on how the
+resulting string is composed, see \seef{Format}.
+\Errors
+In case of error, a \var{EConvertError} exception is raised.
+\SeeAlso
+\seef{Format}, \seef{FormatBuf}.
+\end{procedure}
+
+\latex{\inputlisting{sysutex/ex70.pp}}
+\html{\input{sysutex/ex70.tex}}
+
+\begin{function}{Format}
+\Declaration
+Function Format(Const Fmt : String; const Args : Array of const) : String;
+\Description
+Format replaces all placeholders in\var{Fmt} with the arguments passed in
+\var{Args} and returns the resulting string. A placeholder looks as follows:
+\begin{verbatim}
+'%' [Index':'] ['-'] [Width] ['.' Precision] ArgType
+\end{verbatim}
+elements between single quotes must be typed as shown without the quotes,
+and elements between square brackets \var{[ ]} are optional. The meaning 
+of the different elements is shown below:
+\begin{description}
+\item['\%'] starts the placeholder. If you want to insert a literal
+\var{\%} character, then you must insert two of them : \var{\%\%}.
+\item[Index ':'] takes the \var{Index}-th element in the argument array 
+as the element to insert.
+\item['-'] tells \var{Format} to left-align the inserted text. The default
+behaviour is to right-align inserted text. This can only take effect if the
+\var{Width} element is also specified.
+\item[Width] the inserted string must have at least have \var{Width}
+characters. If not, the inserted string will be padded with spaces. By
+default, the string is left-padded, resulting in a right-aligned string.
+This behaviour can be changed by the \var{'-'} character.
+\item['.' Precision] Indicates the precision to be used when converting
+the argument. The exact meaning of this parameter depends on \var{ArgType}.
+\end{description}
+The \var{Index}, \var{Width} and \var{Precision} parameters can be replaced
+by \var{*}, in which case their value will be read from the next element in
+the \var{Args} array. This value must be an integer, or an
+\var{EConvertError} exception will be raised.
+
+The argument type is determined from \var{ArgType}. It can have one of the
+following values (case insensitive):
+\begin{description}
+\item[D] Decimal format. The next argument in the \var{Args} array should be
+an integer. The argument is converted to a decimal string,. If precision is
+specified, then the string will have at least \var{Precision} digits in it.
+If needed, the string is (left) padded with zeroes.
+\item[E] scientific format. The next argument in the \var{Args} array should
+be a Floating point value. The argument is converted to a decimal string
+using scientific notation, using \seef{FormatFloat}, where the optional
+precision is used to specify the total number of decimals. (defalt a valueof
+15 is used). The exponent is formatted using maximally 3 digits.
+
+In short, the \var{E} specifier formats it's arguument as follows:
+\begin{verbatim}
+FloatToStrF(Argument,ffexponent,Precision,3)
+\end{verbatim}
+
+\item[F] fixed point format. The next argument in the \var{Args} array
+should be a floating point value. The argument is converted to a 
+decimal string, using fixed notation (see \seef{FloatToStrF}). 
+\var{Precision} indicates the number of digits following the 
+decimal point.
+
+In short, the \var{F} specifier formats it's arguument as follows:
+\begin{verbatim}
+FloatToStrF(Argument,ffFixed,ffixed,9999,Precision)
+\end{verbatim}
+
+\item[G] General number format. The next argument in the \var{Args} array 
+should be a floating point value. The argument is converted to a decimal
+string using fixed point notation or scientific notation, depending on which
+gives the shortest result. \var{Precision} is used to determine the number
+of digits after the decimal point.
+
+In short, the \var{G} specifier formats it's arguument as follows:
+\begin{verbatim}
+FloatToStrF(Argument,ffGeneral,Precision,3)
+\end{verbatim}
+
+\item[M] Currency format. the next argument in the var{Args} array must 
+be a floating point value. The argument is converted to a decimal string
+using currency notation. This means that fixed-point notation is used, but 
+that the currency symbol is appended. If precision is specified, then 
+then it overrides the \var{CurrencyDecimals} global variable used in the 
+\seef{FloatToStrF}
+
+In short, the \var{M} specifier formats it's arguument as follows:
+\begin{verbatim}
+FloatToStrF(Argument,ffCurrency,9999,Precision)
+\end{verbatim}
+
+\item[N] Number format. This is the same as fixed point format, except that
+thousand separators are inserted in the resulting string.
+
+\item[P] Pointer format. The next argument in the \var{Args} array must be a
+pointer (typed or untyped). The pointer value is converted to a string of
+length 8, representing the hexadecimal value of the pointer. 
+
+\item[S] String format. The next argument in the \var{Args} array must be
+a string. The argument is simply copied to the result string. If
+\var{Precision} is specified, then only \var{Precision} characters are
+copied to the result string.
+
+\item[X] hexadecimal format. The next argument in the \var{Args} array must
+be an integer. The argument is converted to a hexadecimal string with just
+enough characters to contain the value of the integer. If \var{Precision}
+is specified then the resulting hexadecimal representation will have at
+least \var{Precision} characters in it (with a maximum value of 32).
+\end{description}
+\Errors
+In case of error, an \var{EConversionError} exception is raised. Possible
+errors are:
+\begin{enumerate}
+\item Errors in the format specifiers. 
+\item The next argument is not of the type needed by a specifier.
+\item The number of arguments is not sufficient for all format specifiers.
+\end{enumerate}
+\SeeAlso
+\seef{FormatBuf}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex71.pp}}
+\html{\input{sysutex/ex71.tex}}
+ 
+\begin{function}{FormatBuf}
+\Declaration
+Function FormatBuf(Var Buffer; BufLen : Cardinal; Const Fmt; fmtLen : Cardinal; Const Args : Array of const) : Cardinal;
+\Description
+\var{Format}
+\Errors
+\SeeAlso
+\end{function}
+
+\latex{\inputlisting{sysutex/ex72.pp}}
+\html{\input{sysutex/ex72.tex}}
+
+\begin{function}{IntToHex}
+\Declaration
+Function IntToHex(Value: integer; Digits: integer): string;
+\Description
+\var{IntToHex} converts \var{Value} to a hexadecimal string
+representation. The result will contain at least \var{Digits} 
+characters. If \var{Digits} is less than the needed number of characters,
+the string will NOT be truncated. If \var{Digits} is larger than the needed
+number of characters, the result is padded with zeroes.
+\Errors
+None.
+\SeeAlso
+\seef{IntToStr}, \var{StrToInt}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex73.pp}}
+\html{\input{sysutex/ex73.tex}}
+
+\begin{function}{IntToStr}
+\Declaration
+Function IntToStr(Value: integer): string;
+\Description
+\var{IntToStr} coverts \var{Value} to it's string representation.
+The resulting string has only as much characters as needed to represent
+the value. If the value is negative a minus sign is prepended to the 
+string.
+\Errors
+None.
+\SeeAlso
+\seef{IntToHex}, \seef{StrToInt}
+\end{function}
+
+\latex{\inputlisting{sysutex/ex74.pp}}
+\html{\input{sysutex/ex74.tex}}
  
 \begin{function}{IsValidIdent}
 \Declaration
