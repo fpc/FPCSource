@@ -305,6 +305,9 @@ implementation
          if p^.right^.registersmmx>p^.registersmmx then
            p^.registersmmx:=p^.right^.registersmmx;
 {$endif SUPPORT_MMX}
+         { we need at least one register for comparisons PM }
+         if p^.registers32=0 then
+           inc(p^.registers32);
          t_times:=old_t_times;
       end;
 
@@ -488,7 +491,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  1999-08-05 16:53:20  peter
+  Revision 1.17  1999-08-23 23:41:45  pierre
+   * for reg allocation corrected
+
+  Revision 1.16  1999/08/05 16:53:20  peter
     * V_Fatal=1, all other V_ are also increased
     * Check for local procedure when assigning procvar
     * fixed comment parsing because directives
