@@ -15,7 +15,7 @@ units=$(SYSTEMUNIT) objpas macpas strings \
       dateutils strutils convutils \
       charset ucomplex variants \
       rtlconst math varutils freebidi utf8bidi \
-      mouse video keyboard cmem sockets
+      mouse video keyboard cmem sockets ctypes
 
 rsts=math varutils variants convutils typinfo systhrds classes dateutils sysconst rtlconst
 
@@ -245,6 +245,8 @@ video$(PPUEXT) : $(INC)/video.inc $(SYSTEMUNIT)$(PPUEXT)
 keyboard$(PPUEXT) : $(INC)/keyboard.inc $(INC)/keybrdh.inc $(SYSTEMUNIT)$(PPUEXT)
 
 cmem$(PPUEXT) : $(INC)/cmem.pp $(SYSTEMUNIT)$(PPUEXT)
+
+ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
 
 #
 # Other system-dependent RTL Units
