@@ -199,7 +199,7 @@ procedure gdk_gc_set_clip_region(gc:PGdkGC; region:PGdkRegion);cdecl;external gd
 procedure gdk_gc_set_subwindow(gc:PGdkGC; mode:TGdkSubwindowMode);cdecl;external gdkdll name 'gdk_gc_set_subwindow';
 procedure gdk_gc_set_exposures(gc:PGdkGC; exposures:gint);cdecl;external gdkdll name 'gdk_gc_set_exposures';
 procedure gdk_gc_set_line_attributes(gc:PGdkGC; line_width:gint; line_style:TGdkLineStyle; cap_style:TGdkCapStyle; join_style:TGdkJoinStyle);cdecl;external gdkdll name 'gdk_gc_set_line_attributes';
-procedure gdk_gc_set_dashes(gc:PGdkGC;dash_offset:gint;dashlist:array of gchar;n:gint);cdecl;external gdkdll name 'gdk_gc_set_dashes';
+procedure gdk_gc_set_dashes(gc:PGdkGC;dash_offset:gint;dashlist:array of gint8;n:gint);cdecl;external gdkdll name 'gdk_gc_set_dashes';
 procedure gdk_gc_copy(dst_gc:PGdkGC; src_gc:PGdkGC);cdecl;external gdkdll name 'gdk_gc_copy';
 function  gdk_pixmap_new(window:PGdkWindow; width:gint; height:gint; depth:gint):PGdkPixmap;cdecl;external gdkdll name 'gdk_pixmap_new';
 function  gdk_bitmap_create_from_data(window:PGdkWindow; data:Pgchar; width:gint; height:gint):PGdkBitmap;cdecl;external gdkdll name 'gdk_bitmap_create_from_data';
@@ -389,7 +389,57 @@ procedure gdk_threads_leave;cdecl;external gdkdll name 'gdk_threads_leave';
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:19  michael
-  + removed logs
- 
+  Revision 1.1.2.1  2001-01-08 21:51:48  peter
+    * fixed gdk_gc_set_dashes declaration to use array of int8
+
+  Revision 1.1  2000/07/13 06:34:02  michael
+  + Initial import
+
+  Revision 1.4  2000/02/14 19:18:58  peter
+    * win32 updates from vincent snijder
+
+  Revision 1.3  2000/01/26 19:16:24  lazarus
+  Implemented TPen.Style properly for GTK. Done SelectObject for pen objects.
+  Misc bug fixes.
+  Corrected GDK declaration for gdk_gc_set_slashes.
+
+  Revision 1.2  2000/01/24 23:56:58  peter
+    * win32 fixes for the latest dll (2000-01-04)
+
+  Revision 1.1  1999/11/24 23:36:33  peter
+    * moved to packages dir
+
+  Revision 1.10  1999/10/21 14:35:23  peter
+    * removed glibdll constant
+
+  Revision 1.9  1999/10/06 17:42:47  peter
+    * external is now only in the interface
+    * removed gtk 1.0 support
+
+  Revision 1.8  1999/05/11 00:37:49  peter
+    * win32 fixes
+
+  Revision 1.7  1999/05/10 15:18:42  peter
+    * cdecl fixes
+
+  Revision 1.6  1999/05/10 09:02:36  peter
+    * gtk 1.2 port working
+
+  Revision 1.5  1999/05/07 15:09:39  peter
+    * more fixes
+
+  Revision 1.4  1999/05/07 10:40:19  peter
+    * first things for 1.2
+
+  Revision 1.3  1998/11/12 11:35:48  peter
+    + array of const
+
+  Revision 1.2  1998/10/22 11:37:35  peter
+    * fixes for win32
+
+  Revision 1.1  1998/10/21 20:22:02  peter
+    * cdecl, packrecord fixes (from the gtk.tar.gz)
+    * win32 support
+    * gtk.pp,gdk.pp for an all in one unit
+
 }
