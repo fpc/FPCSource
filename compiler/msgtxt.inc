@@ -680,7 +680,7 @@ const msgtxt : array[0..000149,1..240] of char=(
   '11039_E_Unknown code page'#000+
   '11023_Free Pascal Compiler version $FPCVER [$FPCDATE] for $F','PCTARGET'+
   #010+
-  'Copyright (c) 1993-2002 by Florian Klaempfl'#000+
+  'Copyright (c) 1993-2004 by Florian Klaempfl'#000+
   '11024_Free Pascal Compiler version $FPCVER'#010+
   #010+
   'Compiler Date  : $FPCDATE'#010+
