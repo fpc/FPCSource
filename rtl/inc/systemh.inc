@@ -360,6 +360,11 @@ Procedure getdir(drivenr:byte;Var dir:string);
                              Miscelleaous
 *****************************************************************************}
 
+{ os independent calls to allow backtraces }
+function get_frame:longint;
+function get_caller_addr(framebp:longint):longint;
+function get_caller_frame(framebp:longint):longint;
+
 Function IOResult:Word;
 Function Sptr:Longint;
 
@@ -388,7 +393,10 @@ Procedure halt;
 
 {
   $Log$
-  Revision 1.33  1998-09-28 14:02:33  michael
+  Revision 1.34  1998-10-01 14:54:48  peter
+    * export also stackframe functions
+
+  Revision 1.33  1998/09/28 14:02:33  michael
   + AnsiString changes
 
   Revision 1.32  1998/09/22 15:30:55  peter
