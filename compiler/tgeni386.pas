@@ -354,6 +354,13 @@ implementation
     procedure ungetregister32(r : tregister);
 
       begin
+{$ifndef noAllocEdi}
+         if r = R_EDI then
+           begin
+             exprasmlist^.concat(new(pairegalloc,dealloc(r)));
+             exit;
+           end;
+{$endif noAllocEdi}
          if cs_regalloc in aktglobalswitches then
            begin
               { takes much time }
@@ -541,6 +548,14 @@ implementation
     function getexplicitregister32(r : tregister) : tregister;
 
       begin
+{$ifndef noAllocEdi}
+         if r = R_EDI then
+           begin
+             exprasmlist^.concat(new(pairegalloc,alloc(r)));
+             getexplicitregister32 := r;
+             exit;
+           end;
+{$endif noAllocEdi}
          if r in unused then
            begin
               dec(usablereg32);
@@ -615,7 +630,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.37  2000-01-07 01:14:47  peter
+  Revision 1.38  2000-01-09 12:35:02  jonas
+    * changed edi allocation to use getexplicitregister32/ungetregister
+      (adapted tgeni386 a bit for this) and enabled it by default
+    * fixed very big and stupid bug of mine in cg386mat that broke the
+      include() code (and make cycle :( ) if you compiled without
+      -dnewoptimizations
+
+  Revision 1.37  2000/01/07 01:14:47  peter
     * updated copyright to 2000
 
   Revision 1.36  1999/11/06 14:34:31  peter

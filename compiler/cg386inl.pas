@@ -191,9 +191,9 @@ implementation
             reset_reference(r^);
             r^.symbol:=newasmsymbol(
             'U_'+upper(target_info.system_unit)+io[doread]);
-{$ifdef AllocEDI}
-            exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+            getexplicitregister32(R_EDI);
+{$endif noAllocEdi}
             emit_ref_reg(A_LEA,S_L,r,R_EDI)
           end;
 
@@ -236,9 +236,9 @@ implementation
                 loadstream;
                 { save @aktfile in temporary variable }
                 emit_reg_ref(A_MOV,S_L,R_EDI,newreference(aktfile));
-{$ifdef AllocEDI}
-                exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+                ungetregister32(R_EDI);
+{$endif noAllocEdi}
              end
            else
              begin
@@ -264,9 +264,9 @@ implementation
                           CGMessage(cg_e_illegal_expression);
                           exit;
                        end;
-{$ifdef AllocEDI}
-                     exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+                     getexplicitregister32(R_EDI);
+{$endif noAllocEdi}
 
                      emit_ref_reg(A_LEA,S_L,newreference(node^.left^.location.reference),R_EDI);
 
@@ -281,9 +281,9 @@ implementation
 
                 { save @aktfile in temporary variable }
                 emit_reg_ref(A_MOV,S_L,R_EDI,newreference(aktfile));
-{$ifdef AllocEDI}
-                exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+                ungetregister32(R_EDI);
+{$endif noAllocEdi}
                 if doread then
                 { parameter by READ gives call by reference }
                   dummycoll.paratyp:=vs_var
@@ -798,21 +798,21 @@ implementation
               {load the address of the code parameter}
                secondpass(code_para^.left);
               {move the code to its destination}
-{$ifdef AllocEDI}
-               exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+               getexplicitregister32(R_EDI);
+{$endif noAllocEdi}
                emit_ref_reg(A_MOV,S_L,NewReference(hr),R_EDI);
                emit_mov_reg_loc(R_DI,code_para^.left^.location);
-{$ifdef AllocEDI}
-               exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+               ungetregister32(R_EDI);
+{$endif noAllocEdi}
                Disposetree(code_para);
              End;
 
           {restore the address of the result}
-{$ifdef AllocEDI}
-           exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+           getexplicitregister32(R_EDI);
+{$endif noAllocEdi}
            emit_reg(A_POP,S_L,R_EDI);
 
           {set up hr2 to a refernce with EDI as base register}
@@ -845,9 +845,9 @@ implementation
                    end;
                End;
            End;
-{$ifdef AllocEDI}
-           exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+           ungetregister32(R_EDI);
+{$endif noAllocEdi}
            If (cs_check_range in aktlocalswitches) and
               (dest_para^.left^.resulttype^.deftype = orddef) and
               (not(is_64bitint(dest_para^.left^.resulttype))) and
@@ -1380,9 +1380,9 @@ implementation
                              hregister:=p^.left^.right^.left^.location.register
                            else
                              begin
-{$ifdef AllocEDI}
-                                exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+                                getexplicitregister32(R_EDI);
+{$endif noAllocEdi}
                                 hregister:=R_EDI;
                                 opsize:=def2def_opsize(p^.left^.right^.left^.resulttype,u32bitdef);
                                 if opsize in [S_B,S_W,S_L] then
@@ -1398,10 +1398,10 @@ implementation
                           else
                             emit_reg_reg(asmop,S_L,hregister,
                               p^.left^.left^.location.register);
-{$ifdef AllocEDI}
+{$ifndef noAllocEdi}
                         if hregister = R_EDI then
-                          exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
-{$endif AllocEDI}
+                          ungetregister32(R_EDI);
+{$endif noAllocEdi}
                         end
                       else
                         begin
@@ -1510,7 +1510,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.88  2000-01-09 01:44:19  jonas
+  Revision 1.89  2000-01-09 12:35:00  jonas
+    * changed edi allocation to use getexplicitregister32/ungetregister
+      (adapted tgeni386 a bit for this) and enabled it by default
+    * fixed very big and stupid bug of mine in cg386mat that broke the
+      include() code (and make cycle :( ) if you compiled without
+      -dnewoptimizations
+
+  Revision 1.88  2000/01/09 01:44:19  jonas
     + (de)allocation info for EDI to fix reported bug on mailinglist.
       Also some (de)allocation info for ESI added. Between -dallocEDI
       because at this time of the night bugs could easily slip in ;)

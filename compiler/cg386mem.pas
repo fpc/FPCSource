@@ -826,10 +826,10 @@ implementation
                     p^.islocal:=true;
                  end
                else
-                { call can happend with a property }
-{$ifdef AllocEDI}
-                    exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
-{$endif AllocEDI}
+                { call can have happend with a property }
+{$ifndef noAllocEdi}
+                getexplicitregister32(R_EDI);
+{$endif noAllocEdi}
                 if { (p^.left^.treetype=calln) and  Don't think that
                       this is necessary (FK) }
                    (p^.left^.resulttype^.deftype=objectdef) and
@@ -866,9 +866,9 @@ implementation
                   { move to temp reference }
                   emit_reg_ref(A_MOV,S_L,
                     R_EDI,newreference(p^.withreference^));
-{$ifdef AllocEDI}
-                  exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+                  ungetregister32(R_EDI);
+{$endif noAllocEdi}
                   del_reference(p^.left^.location.reference);
                 end;
 
@@ -891,7 +891,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.67  2000-01-09 01:44:20  jonas
+  Revision 1.68  2000-01-09 12:35:02  jonas
+    * changed edi allocation to use getexplicitregister32/ungetregister
+      (adapted tgeni386 a bit for this) and enabled it by default
+    * fixed very big and stupid bug of mine in cg386mat that broke the
+      include() code (and make cycle :( ) if you compiled without
+      -dnewoptimizations
+
+  Revision 1.67  2000/01/09 01:44:20  jonas
     + (de)allocation info for EDI to fix reported bug on mailinglist.
       Also some (de)allocation info for ESI added. Between -dallocEDI
       because at this time of the night bugs could easily slip in ;)

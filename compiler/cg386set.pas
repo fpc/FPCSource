@@ -371,9 +371,9 @@ implementation
                       { the set element isn't never samller than a byte  }
                       { and because it's a small set we need only 5 bits }
                       { but 8 bits are easier to load               }
-{$ifdef AllocEDI}
-                      exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+                      getexplicitregister32(R_EDI);
+{$endif noAllocEdi}
                       emit_ref_reg(A_MOVZX,S_BL,
                         newreference(p^.left^.location.reference),R_EDI);
                       hr:=R_EDI;
@@ -403,11 +403,12 @@ implementation
                           newreference(p^.right^.location.reference));
                     end;
                   end;
-{$ifdef AllocEDI}
-                  if hr = R_EDI then
-                    exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+                  { simply to indicate EDI is deallocated here too (JM) }
                   ungetregister32(hr);
+{$else noAllocEdi}
+                  ungetregister32(hr);
+{$endif noAllocEdi}
                   p^.location.loc:=LOC_FLAGS;
                   p^.location.resflags:=F_C;
                 end;
@@ -905,7 +906,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.46  2000-01-09 01:44:21  jonas
+  Revision 1.47  2000-01-09 12:35:02  jonas
+    * changed edi allocation to use getexplicitregister32/ungetregister
+      (adapted tgeni386 a bit for this) and enabled it by default
+    * fixed very big and stupid bug of mine in cg386mat that broke the
+      include() code (and make cycle :( ) if you compiled without
+      -dnewoptimizations
+
+  Revision 1.46  2000/01/09 01:44:21  jonas
     + (de)allocation info for EDI to fix reported bug on mailinglist.
       Also some (de)allocation info for ESI added. Between -dallocEDI
       because at this time of the night bugs could easily slip in ;)

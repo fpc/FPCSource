@@ -120,16 +120,16 @@ implementation
                      begin
                        if inlined then
                          begin
-{$ifdef AllocEDI}
-                           exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+                           getexplicitregister32(R_EDI);
+{$endif noAllocEdi}
                            emit_ref_reg(A_LEA,S_L,
                              newreference(p^.left^.location.reference),R_EDI);
                            r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                            emit_reg_ref(A_MOV,S_L,R_EDI,r);
-{$ifdef AllocEDI}
-                           exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+                           ungetregister32(R_EDI);
+{$endif noAllocEdi}
                          end
                       else
                         emitpushreferenceaddr(p^.left^.location.reference);
@@ -146,16 +146,16 @@ implementation
               inc(pushedparasize,4);
               if inlined then
                 begin
-{$ifdef AllocEDI}
-                   exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+                   getexplicitregister32(R_EDI);
+{$endif noAllocEdi}
                    emit_ref_reg(A_LEA,S_L,
                      newreference(p^.left^.location.reference),R_EDI);
                    r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                    emit_reg_ref(A_MOV,S_L,R_EDI,r);
-{$ifdef AllocEDI}
-                   exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+                   ungetregister32(R_EDI);
+{$endif noAllocEdi}
                 end
               else
                 emitpushreferenceaddr(p^.left^.location.reference);
@@ -177,17 +177,16 @@ implementation
                    inc(pushedparasize,4);
                    if inlined then
                      begin
-{$ifdef AllocEDI}
-                           exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+                        getexplicitregister32(R_EDI);
+{$endif noAllocEdi}
                         emit_ref_reg(A_LEA,S_L,
                           newreference(p^.left^.location.reference),R_EDI);
                         r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
-                        emit_reg_ref(A_MOV,S_L,
-                          R_EDI,r);
-{$ifdef AllocEDI}
-                        exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
-{$endif AllocEDI}
+                        emit_reg_ref(A_MOV,S_L,R_EDI,r);
+{$ifndef noAllocEdi}
+                        ungetregister32(R_EDI);
+{$endif noAllocEdi}
                      end
                    else
                      emitpushreferenceaddr(p^.left^.location.reference);
@@ -423,16 +422,16 @@ implementation
 {$endif not OLD_C_STACK}
               if inlined then
                 begin
-{$ifdef AllocEDI}
-                   exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+                   getexplicitregister32(R_EDI);
+{$endif noAllocEdi}
                    emit_ref_reg(A_LEA,S_L,
                      newreference(funcretref),R_EDI);
                    r:=new_reference(procinfo^.framepointer,inlinecode^.retoffset);
                    emit_reg_ref(A_MOV,S_L,R_EDI,r);
-{$ifdef AllocEDI}
-                   exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+                   ungetregister32(R_EDI);
+{$endif noAllocEdi}
                 end
               else
                 emitpushreferenceaddr(funcretref);
@@ -778,9 +777,9 @@ implementation
                             r^.base:=R_ESI;
                             { this is one point where we need vmt_offset (PM) }
                             r^.offset:= pprocdef(p^.procdefinition)^._class^.vmt_offset;
-{$ifdef AllocEDI}
-                           exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+                            getexplicitregister32(R_EDI);
+{$endif noAllocEdi}
                             emit_ref_reg(A_MOV,S_L,r,R_EDI);
                             new(r);
                             reset_reference(r^);
@@ -820,9 +819,9 @@ implementation
                      end;
 {$endif TESTOBJEXT}
                    emit_ref(A_CALL,S_NO,r);
-{$ifdef AllocEDI}
-                   exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+                   ungetregister32(R_EDI);
+{$endif noAllocEdi}
                 end
               else if not inlined then
                 emitcall(pprocdef(p^.procdefinition)^.mangledname)
@@ -858,9 +857,9 @@ implementation
                       (p^.right^.location.reference.index=R_ESI) then
                      begin
                         del_reference(p^.right^.location.reference);
-{$ifdef AllocEDI}
-                        exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+                        getexplicitregister32(R_EDI);
+{$endif noAllocEdi}
                         emit_ref_reg(A_MOV,S_L,
                           newreference(p^.right^.location.reference),R_EDI);
                         hregister:=R_EDI;
@@ -882,11 +881,14 @@ implementation
                      emit_ref(A_CALL,S_NO,newreference(p^.right^.location.reference))
                    else
                      begin
-{$ifdef AllocEDI}
-                       if hregister = R_EDI then
-                         exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)))
-                       else ungetregister32(hregister);
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+                       ungetregister32(hregister);
+{$else noAllocEdi}
+                       { the same code, the previous line is just to       }
+                       { indicate EDI actually is deallocated if allocated }
+                       { above (JM)                                        }
+                       ungetregister32(hregister);
+{$endif noAllocEdi}
                        emit_reg(A_CALL,S_NO,hregister);
                      end;
 
@@ -918,13 +920,13 @@ implementation
                 { better than an add on all processors }
                 if pushedparasize=4 then
                   begin
-{$ifdef AllocEDI}
-                    exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+                    getexplicitregister32(R_EDI);
+{$endif noAllocEdi}
                     emit_reg(A_POP,S_L,R_EDI);
-{$ifdef AllocEDI}
-                exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+                    ungetregister32(R_EDI);
+{$endif noAllocEdi}
                   end
                 { the pentium has two pipes and pop reg is pairable }
                 { but the registers must be different!        }
@@ -933,20 +935,20 @@ implementation
                   (aktoptprocessor=ClassP5) and
                   (procinfo^._class=nil) then
                     begin
-{$ifdef AllocEDI}
-                       exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+                       getexplicitregister32(R_EDI);
+{$endif noAllocEdi}
                        emit_reg(A_POP,S_L,R_EDI);
-{$ifdef AllocEDI}
-                       exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
-{$endif AllocEDI}
-{$ifdef AllocEDI}
+{$ifndef noAllocEdi}
+                       ungetregister32(R_EDI);
+{$endif noAllocEdi}
+{$ifndef noAllocEdi}
                        exprasmlist^.concat(new(pairegalloc,alloc(R_ESI)));
-{$endif AllocEDI}
+{$endif noAllocEdi}
                        emit_reg(A_POP,S_L,R_ESI);
-{$ifdef AllocEDI}
+{$ifndef noAllocEdi}
                        exprasmlist^.concat(new(pairegalloc,alloc(R_ESI)));
-{$endif AllocEDI}
+{$endif noAllocEdi}
                     end
                 else if pushedparasize<>0 then
                   emit_const_reg(A_ADD,S_L,pushedparasize,R_ESP);
@@ -1289,7 +1291,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.115  2000-01-09 01:44:19  jonas
+  Revision 1.116  2000-01-09 12:35:00  jonas
+    * changed edi allocation to use getexplicitregister32/ungetregister
+      (adapted tgeni386 a bit for this) and enabled it by default
+    * fixed very big and stupid bug of mine in cg386mat that broke the
+      include() code (and make cycle :( ) if you compiled without
+      -dnewoptimizations
+
+  Revision 1.115  2000/01/09 01:44:19  jonas
     + (de)allocation info for EDI to fix reported bug on mailinglist.
       Also some (de)allocation info for ESI added. Between -dallocEDI
       because at this time of the night bugs could easily slip in ;)

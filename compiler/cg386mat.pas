@@ -152,9 +152,9 @@ implementation
                               end
                             else
                               begin
-{$ifdef AllocEDI}
-                                exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+                                getexplicitregister32(R_EDI);
+{$endif noAllocEdi}
                                 hreg2 := R_EDI;
                                 emit_reg_reg(A_MOV,S_L,hreg1,R_EDI);
                               { if the left value is signed, R_EDI := $ffffffff,
@@ -166,13 +166,13 @@ implementation
                           { add to the left value }
                             emit_reg_reg(A_ADD,S_L,hreg2,hreg1);
                           { release EDX if we used it }
-                            if (hreg2 = R_EDX) then
-                              ungetregister32(hreg2)
-{$ifdef AllocEDI}
-                            else
-                              exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)))
-{$endif AllocEDI}
-                            ;
+{$ifndef noAllocEdi}
+                          { also releas EDI }
+                          ungetregister32(hreg2);
+{$else noAllocEdi}
+                          if (hreg2 = R_EDX) then
+                            ungetregister32(hreg2);
+{$endif noAllocEdi}
                           { do the shift }
                             emit_const_reg(A_SAR,S_L,power,hreg1);
                           end
@@ -188,6 +188,7 @@ implementation
                             else
                               emit_const_reg(A_ADD,S_L,p^.right^.value-1,hreg1);
                             emitlab(hl);
+                            emit_const_reg(A_SAR,S_L,power,hreg1);
                           end
                       End
                     Else
@@ -207,9 +208,9 @@ implementation
                       { EDI is always free, it's }
                       { only used for temporary  }
                       { purposes              }
-{$ifdef AllocEDI}
-                   exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+                   getexplicitregister32(R_EDI);
+{$endif noAllocEdi}
                    if (p^.right^.location.loc<>LOC_REGISTER) and
                       (p^.right^.location.loc<>LOC_CREGISTER) then
                      begin
@@ -261,9 +262,9 @@ implementation
                      emit_reg(A_DIV,S_L,R_EDI)
                    else
                      emit_reg(A_IDIV,S_L,R_EDI);
-{$ifdef AllocEDI}
-                   exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+                   ungetregister32(R_EDI);
+{$endif noAllocEdi}
                    if p^.treetype=divn then
                      begin
                         { if result register is busy then copy }
@@ -889,9 +890,9 @@ implementation
              secondpass(p^.left);
              p^.location.loc:=LOC_MMXREGISTER;
              { prepare EDI }
-{$ifdef AllocEDI}
-             exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+             getexplicitregister32(R_EDI);
+{$endif noAllocEdi}
              emit_const_reg(A_MOV,S_L,$ffffffff,R_EDI);
              { load operand }
              case p^.left^.location.loc of
@@ -912,9 +913,9 @@ implementation
              end;
              { load mask }
              emit_reg_reg(A_MOVD,S_NO,R_EDI,R_MM7);
-{$ifdef AllocEDI}
-             exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+             ungetregister32(R_EDI);
+{$endif noAllocEdi}
              { lower 32 bit }
              emit_reg_reg(A_PXOR,S_D,R_MM7,p^.location.register);
              { shift mask }
@@ -995,7 +996,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.39  2000-01-09 01:44:20  jonas
+  Revision 1.40  2000-01-09 12:35:01  jonas
+    * changed edi allocation to use getexplicitregister32/ungetregister
+      (adapted tgeni386 a bit for this) and enabled it by default
+    * fixed very big and stupid bug of mine in cg386mat that broke the
+      include() code (and make cycle :( ) if you compiled without
+      -dnewoptimizations
+
+  Revision 1.39  2000/01/09 01:44:20  jonas
     + (de)allocation info for EDI to fix reported bug on mailinglist.
       Also some (de)allocation info for ESI added. Between -dallocEDI
       because at this time of the night bugs could easily slip in ;)

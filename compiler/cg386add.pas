@@ -1053,26 +1053,24 @@ implementation
                            popedx:=true;
                           end;
                          { p^.left^.location can be R_EAX !!! }
-{$ifdef AllocEDI}
-                         exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+                         getexplicitregister32(R_EDI);
+{$endif noAllocEdi}
                          emitloadord2reg(p^.left^.location,u32bitdef,R_EDI,true);
                          emitloadord2reg(p^.right^.location,u32bitdef,R_EAX,true);
-{$ifdef AllocEDI}
+{$ifndef noAllocEdi}
                          if R_EDX in unused then
                            exprasmlist^.concat(new(pairegalloc,alloc(R_EDX)));
-{$endif AllocEDI}
+{$endif noAllocEdi}
                          emit_reg(A_MUL,S_L,R_EDI);
-{$ifdef AllocEDI}
-                         exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+                         ungetregister32(R_EDI);
+                         if R_EDX in unused then
+                           exprasmlist^.concat(new(pairegalloc,dealloc(R_EDX)));
+{$endif noAllocEdi}
                          emit_reg_reg(A_MOV,S_L,R_EAX,p^.location.register);
                          if popedx then
                           emit_reg(A_POP,S_L,R_EDX);
-{$ifdef AllocEDI}
-                         if R_EDX in unused then
-                           exprasmlist^.concat(new(pairegalloc,dealloc(R_EDX)));
-{$endif AllocEDI}
                          if popeax then
                           emit_reg(A_POP,S_L,R_EAX);
 {$IfNDef NoShlMul}
@@ -1166,31 +1164,31 @@ implementation
                                begin
                                   if extra_not then
                                     emit_reg(A_NOT,opsize,p^.location.register);
-{$ifdef AllocEDI}
-                                  exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+                                  getexplicitregister32(R_EDI);
+{$endif noAllocEdi}
                                   emit_reg_reg(A_MOV,opsize,p^.right^.location.register,R_EDI);
                                   emit_reg_reg(op,opsize,p^.location.register,R_EDI);
                                   emit_reg_reg(A_MOV,opsize,R_EDI,p^.location.register);
-{$ifdef AllocEDI}
-                                  exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+                                  ungetregister32(R_EDI);
+{$endif noAllocEdi}
                                end
                              else
                                begin
                                   if extra_not then
                                     emit_reg(A_NOT,opsize,p^.location.register);
 
-{$ifdef AllocEDI}
-                                  exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+                                  getexplicitregister32(R_EDI);
+{$endif noAllocEdi}
                                   emit_ref_reg(A_MOV,opsize,
                                     newreference(p^.right^.location.reference),R_EDI);
                                   emit_reg_reg(op,opsize,p^.location.register,R_EDI);
                                   emit_reg_reg(A_MOV,opsize,R_EDI,p^.location.register);
-{$ifdef AllocEDI}
-                                  exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+                                  ungetregister32(R_EDI);
+{$endif noAllocEdi}
                                   ungetiftemp(p^.right^.location.reference);
                                   del_reference(p^.right^.location.reference);
                                end;
@@ -1234,16 +1232,16 @@ implementation
                                     begin
                                        if extra_not then
                                          begin
-{$ifdef AllocEDI}
-                                            exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+                                            getexplicitregister32(R_EDI);
+{$endif noAllocEdi}
                                             emit_reg_reg(A_MOV,S_L,p^.right^.location.register,R_EDI);
                                             emit_reg(A_NOT,S_L,R_EDI);
                                             emit_reg_reg(A_AND,S_L,R_EDI,
                                               p^.location.register);
-{$ifdef AllocEDI}
-                                            exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+                                            ungetregister32(R_EDI);
+{$endif noAllocEdi}
                                          end
                                        else
                                          begin
@@ -1255,17 +1253,17 @@ implementation
                                     begin
                                        if extra_not then
                                          begin
-{$ifdef AllocEDI}
-                                            exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+                                            getexplicitregister32(R_EDI);
+{$endif noAllocEdi}
                                             emit_ref_reg(A_MOV,S_L,newreference(
                                               p^.right^.location.reference),R_EDI);
                                             emit_reg(A_NOT,S_L,R_EDI);
                                             emit_reg_reg(A_AND,S_L,R_EDI,
                                               p^.location.register);
-{$ifdef AllocEDI}
-                                            exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+                                            ungetregister32(R_EDI);
+{$endif noAllocEdi}
                                          end
                                        else
                                          begin
@@ -1659,37 +1657,37 @@ implementation
                                begin
                                   if p^.right^.location.loc=LOC_CREGISTER then
                                     begin
-{$ifdef AllocEDI}
-                                       exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+                                       getexplicitregister32(R_EDI);
+{$endif noAllocEdi}
                                        emit_reg_reg(A_MOV,opsize,p^.right^.location.register,R_EDI);
                                        emit_reg_reg(op,opsize,p^.location.register,R_EDI);
                                        emit_reg_reg(A_MOV,opsize,R_EDI,p^.location.register);
-{$ifdef AllocEDI}
-                                            exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
-                                            exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+                                       ungetregister32(R_EDI);
+                                       getexplicitregister32(R_EDI);
+{$endif noAllocEdi}
                                        emit_reg_reg(A_MOV,opsize,p^.right^.location.registerhigh,R_EDI);
                                        { the carry flag is still ok }
                                        emit_reg_reg(op2,opsize,p^.location.registerhigh,R_EDI);
                                        emit_reg_reg(A_MOV,opsize,R_EDI,p^.location.registerhigh);
-{$ifdef AllocEDI}
-                                       exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+                                       ungetregister32(R_EDI);
+{$endif noAllocEdi}
                                     end
                                   else
                                     begin
-{$ifdef AllocEDI}
-                                       exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+                                       getexplicitregister32(R_EDI);
+{$endif noAllocEdi}
                                        emit_ref_reg(A_MOV,opsize,
                                          newreference(p^.right^.location.reference),R_EDI);
                                        emit_reg_reg(op,opsize,p^.location.registerlow,R_EDI);
                                        emit_reg_reg(A_MOV,opsize,R_EDI,p^.location.registerlow);
-{$ifdef AllocEDI}
-                                       exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
-                                       exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+                                       ungetregister32(R_EDI);
+                                       getexplicitregister32(R_EDI);
+{$endif noAllocEdi}
                                        hr:=newreference(p^.right^.location.reference);
                                        inc(hr^.offset,4);
                                        emit_ref_reg(A_MOV,opsize,
@@ -1698,9 +1696,9 @@ implementation
                                        emit_reg_reg(op2,opsize,p^.location.registerhigh,R_EDI);
                                        emit_reg_reg(A_MOV,opsize,R_EDI,
                                          p^.location.registerhigh);
-{$ifdef AllocEDI}
-                                       exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+                                       ungetregister32(R_EDI);
+{$endif noAllocEdi}
                                        ungetiftemp(p^.right^.location.reference);
                                        del_reference(p^.right^.location.reference);
                                     end;
@@ -1950,9 +1948,9 @@ implementation
                      begin
                        if not(R_EAX in unused) then
                          begin
-{$ifdef AllocEDI}
-                           exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+                           getexplicitregister32(R_EDI);
+{$endif noAllocEdi}
                            emit_reg_reg(A_MOV,S_L,R_EAX,R_EDI);
                          end;
                        emit_reg(A_FNSTSW,S_NO,R_AX);
@@ -1960,9 +1958,9 @@ implementation
                        if not(R_EAX in unused) then
                          begin
                            emit_reg_reg(A_MOV,S_L,R_EDI,R_EAX);
-{$ifdef AllocEDI}
-                           exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+                           ungetregister32(R_EDI);
+{$endif noAllocEdi}
                          end;
                        if p^.swaped then
                         begin
@@ -2143,9 +2141,11 @@ implementation
                              if p^.right^.location.loc=LOC_CMMXREGISTER then
                                begin
                                   emit_reg_reg(A_MOVQ,S_NO,p^.right^.location.register,R_MM7);
-{$ifdef AllocEDI}
-                          { where does the result of this (R_EDI) get used?? }
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+                 { where does the result of this (R_EDI) get used?? No    }
+                 { allocinfo for EDI added, because it doesn't seem to be }
+                 { used anyway                                            }
+{$endif noAllocEdi}
                                   emit_reg_reg(op,S_NO,p^.location.register,R_EDI);
                                   emit_reg_reg(A_MOVQ,S_NO,R_MM7,p^.location.register);
                                end
@@ -2206,7 +2206,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.85  2000-01-09 01:44:18  jonas
+  Revision 1.86  2000-01-09 12:34:59  jonas
+    * changed edi allocation to use getexplicitregister32/ungetregister
+      (adapted tgeni386 a bit for this) and enabled it by default
+    * fixed very big and stupid bug of mine in cg386mat that broke the
+      include() code (and make cycle :( ) if you compiled without
+      -dnewoptimizations
+
+  Revision 1.85  2000/01/09 01:44:18  jonas
     + (de)allocation info for EDI to fix reported bug on mailinglist.
       Also some (de)allocation info for ESI added. Between -dallocEDI
       because at this time of the night bugs could easily slip in ;)

@@ -815,20 +815,6 @@ Begin
                                End;
                           End
                         Else
-               {remove an instruction which never makes sense: we've got
-                "mov mem, %reg1; mov %reg1, %edi" and then EDI isn't used anymore!}
-{                          Begin
-                            If (Paicpu(hp1)^.oper[1].reg = R_EDI) And
-                               Not(GetNextInstruction(hp1, hp2) And
-                                   (Pai(hp2)^.typ = ait_instruction) And
-                                   (Paicpu(hp2)^.oper[1].typ = top_reg) And
-                                   (Paicpu(hp2)^.oper[1] = Pointer(R_ESI))) Then
-                              Begin
-                                AsmL^.Remove(hp1);
-                                Dispose(hp1, Done);
-                                Continue;
-                              End
-                          End}
                     Else
                   {Change "mov %reg1, %reg2; xxx %reg2, ???" to
                    "mov %reg1, %reg2; xxx %reg1, ???" to avoid a write/read
@@ -1743,7 +1729,14 @@ End.
 
 {
  $Log$
- Revision 1.76  2000-01-07 01:14:30  peter
+ Revision 1.77  2000-01-09 12:35:02  jonas
+   * changed edi allocation to use getexplicitregister32/ungetregister
+     (adapted tgeni386 a bit for this) and enabled it by default
+   * fixed very big and stupid bug of mine in cg386mat that broke the
+     include() code (and make cycle :( ) if you compiled without
+     -dnewoptimizations
+
+ Revision 1.76  2000/01/07 01:14:30  peter
    * updated copyright to 2000
 
  Revision 1.75  1999/12/30 17:56:44  peter

@@ -300,9 +300,9 @@ implementation
                             LOC_MEM,
                             LOC_REFERENCE:
                               begin
-{$ifdef AllocEDI}
-                                 exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+                                 getexplicitregister32(R_EDI);
+{$endif noAllocEdi}
                                  hregister:=R_EDI;
                                  if pobjectdef(p^.left^.resulttype)^.is_class then
                                    emit_ref_reg(A_MOV,S_L,
@@ -346,15 +346,15 @@ implementation
                               { ... and store it }
                               emit_reg_ref(A_MOV,S_L,
                                 R_EDI,newreference(p^.location.reference));
-{$ifdef AllocEDI}
-                              exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+                              ungetregister32(R_EDI);
+{$endif noAllocEdi}
                            end
                          else
                            begin
-{$ifdef AllocEDI}
-                              exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
-{$endif AllocEDI}
+{$ifndef noAllocEdi}
+                              ungetregister32(R_EDI);
+{$endif noAllocEdi}
                               s:=newasmsymbol(pprocsym(p^.symtableentry)^.definition^.mangledname);
                               emit_sym_ofs_ref(A_MOV,S_L,s,0,
                                 newreference(p^.location.reference));
@@ -1005,7 +1005,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.95  2000-01-09 01:44:20  jonas
+  Revision 1.96  2000-01-09 12:35:01  jonas
+    * changed edi allocation to use getexplicitregister32/ungetregister
+      (adapted tgeni386 a bit for this) and enabled it by default
+    * fixed very big and stupid bug of mine in cg386mat that broke the
+      include() code (and make cycle :( ) if you compiled without
+      -dnewoptimizations
+
+  Revision 1.95  2000/01/09 01:44:20  jonas
     + (de)allocation info for EDI to fix reported bug on mailinglist.
       Also some (de)allocation info for ESI added. Between -dallocEDI
       because at this time of the night bugs could easily slip in ;)
