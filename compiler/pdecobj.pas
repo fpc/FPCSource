@@ -225,6 +225,7 @@ implementation
            varspez : tvarspez;
            s : string;
            tt : ttype;
+           arraytype : ttype;
            declarepos : tfileposinfo;
            pp : Tprocdef;
            pd : tprocdef;
@@ -297,7 +298,8 @@ implementation
                                  { define range and type of range }
                                  tt.setdef(tarraydef.create(0,-1,s32bittype));
                                  { define field type }
-                                 single_type(tarraydef(tt.def).elementtype,s,false);
+                                 single_type(arraytype,s,false);
+                                 tarraydef(tt.def).setelementtype(arraytype);
                               end
                             else
                               single_type(tt,s,false);
@@ -1150,7 +1152,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.52  2002-09-16 14:11:13  peter
+  Revision 1.53  2002-09-27 21:13:28  carl
+    * low-highval always checked if limit ober 2GB is reached (to avoid overflow)
+
+  Revision 1.52  2002/09/16 14:11:13  peter
     * add argument to equal_paras() to support default values or not
 
   Revision 1.51  2002/09/09 17:34:15  peter

@@ -340,18 +340,21 @@ interface
           rangenr    : longint;
           lowrange,
           highrange  : longint;
-          elementtype,
           rangetype  : ttype;
           IsDynamicArray,
           IsVariant,
           IsConstructor,
           IsArrayOfConst : boolean;
+       protected   
+          _elementtype : ttype;
+       public   
           function elesize : longint;
           constructor create(l,h : longint;const t : ttype);
           constructor ppuload(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function  gettypename:string;override;
           function  getmangledparaname : string;override;
+          procedure setelementtype(t: ttype);
 {$ifdef GDB}
           function stabstring : pchar;override;
           procedure concatstabto(asmlist : taasmoutput);override;
@@ -368,6 +371,7 @@ interface
           function needs_inittable : boolean;override;
           procedure write_child_rtti_data(rt:trttitype);override;
           procedure write_rtti_data(rt:trttitype);override;
+          property elementtype : ttype Read _ElementType;
        end;
 
        torddef = class(tstoreddef)
@@ -2590,7 +2594,7 @@ implementation
          inherited ppuloaddef(ppufile);
          deftype:=arraydef;
          { the addresses are calculated later }
-         ppufile.gettype(elementtype);
+         ppufile.gettype(_elementtype);
          ppufile.gettype(rangetype);
          lowrange:=ppufile.getlongint;
          highrange:=ppufile.getlongint;
@@ -2641,7 +2645,7 @@ implementation
     procedure tarraydef.deref;
       begin
         inherited deref;
-        elementtype.resolve;
+        _elementtype.resolve;
         rangetype.resolve;
       end;
 
@@ -2649,7 +2653,7 @@ implementation
     procedure tarraydef.ppuwrite(ppufile:tcompilerppufile);
       begin
          inherited ppuwritedef(ppufile);
-         ppufile.puttype(elementtype);
+         ppufile.puttype(_elementtype);
          ppufile.puttype(rangetype);
          ppufile.putlongint(lowrange);
          ppufile.putlongint(highrange);
@@ -2663,7 +2667,7 @@ implementation
     function tarraydef.stabstring : pchar;
       begin
       stabstring := strpnew('ar'+tstoreddef(rangetype.def).numberstring+';'
-                    +tostr(lowrange)+';'+tostr(highrange)+';'+tstoreddef(elementtype.def).numberstring);
+                    +tostr(lowrange)+';'+tostr(highrange)+';'+tstoreddef(_elementtype.def).numberstring);
       end;
 
 
@@ -2673,7 +2677,7 @@ implementation
         and (is_def_stab_written = not_written) then
         begin
         {when array are inserted they have no definition yet !!}
-        if assigned(elementtype.def) then
+        if assigned(_elementtype.def) then
           inherited concatstabto(asmlist);
         end;
       end;
@@ -2682,7 +2686,7 @@ implementation
 
     function tarraydef.elesize : longint;
       begin
-        elesize:=elementtype.def.size;
+        elesize:=_elementtype.def.size;
       end;
 
 
@@ -2696,31 +2700,41 @@ implementation
             size:=POINTER_SIZE;
             exit;
           end;
+        cachedsize := elesize;
         {Tarraydef.size may never be called for an open array!}
         if highrange<lowrange then
             internalerror(99080501);
-        cachedsize := elesize;
+        newsize:=(int64(highrange)-int64(lowrange)+1)*cachedsize;
         If (cachedsize>0) and
-           (
-            (TConstExprInt(highrange)-TConstExprInt(lowrange) > $7fffffff) or
-            { () are needed around elesize-1 to avoid a possible
-              integer overflow for elesize=1 !! PM }
-            (($7fffffff div cachedsize + (cachedsize -1)) < (int64(highrange) - int64(lowrange)))
-           ) Then
-          Begin
-            Message(sym_e_segment_too_large);
-            size := 4
-          End
-        Else
-          begin
-            newsize:=(int64(highrange)-int64(lowrange)+1)*cachedsize;
-            { prevent an overflow }
-            if newsize>high(longint) then
-             size:=high(longint)
-            else
-             size:=newsize;
+            (
+             (TConstExprInt(highrange)-TConstExprInt(lowrange) > $7fffffff) or
+             { () are needed around elesize-1 to avoid a possible
+               integer overflow for elesize=1 !! PM }
+             (($7fffffff div cachedsize + (cachedsize -1)) < (int64(highrange) - int64(lowrange)))
+            ) Then
+          Begin  
+             Message(sym_e_segment_too_large);
+             size:=4;
           end
+        else
+        { prevent an overflow }
+        if newsize>high(longint) then
+           size:=high(longint)
+        else
+           size:=newsize;
       end;
+      
+      procedure tarraydef.setelementtype(t: ttype);
+       var
+        cachedsize: TConstExprInt;
+       begin
+         _elementtype:=t;
+         If IsDynamicArray then
+            exit;
+         if (TConstExprInt(highrange)-TConstExprInt(lowrange) > $7fffffff) then
+             Message(sym_e_segment_too_large);
+       end;
+      
 
 
     function tarraydef.alignment : longint;
@@ -5542,7 +5556,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.95  2002-09-16 09:31:10  florian
+  Revision 1.96  2002-09-27 21:13:29  carl
+    * low-highval always checked if limit ober 2GB is reached (to avoid overflow)
+
+  Revision 1.95  2002/09/16 09:31:10  florian
     * fixed  currency size
 
   Revision 1.94  2002/09/09 17:34:15  peter

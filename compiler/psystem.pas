@@ -192,12 +192,12 @@ implementation
         vmtsymtable.insert(tvarsym.create('$length',s32bittype));
         vmtsymtable.insert(tvarsym.create('$mlength',s32bittype));
         vmtarraytype.setdef(tarraydef.create(0,1,s32bittype));
-        tarraydef(vmtarraytype.def).elementtype:=voidpointertype;
+        tarraydef(vmtarraytype.def).setelementtype(voidpointertype);
         vmtsymtable.insert(tvarsym.create('$__pfn',vmtarraytype));
         addtype('$__vtbl_ptr_type',vmttype);
         addtype('$pvmt',pvmttype);
         vmtarraytype.setdef(tarraydef.create(0,1,s32bittype));
-        tarraydef(vmtarraytype.def).elementtype:=pvmttype;
+        tarraydef(vmtarraytype.def).setelementtype(pvmttype);
         addtype('$vtblarray',vmtarraytype);
       { Add functions that require compiler magic }
         insertinternsyms(p);
@@ -283,7 +283,7 @@ implementation
         { length=0 for shortstring is open string (needed for readln(string) }
         openshortstringtype.setdef(tstringdef.createshort(0));
         openchararraytype.setdef(tarraydef.create(0,-1,s32bittype));
-        tarraydef(openchararraytype.def).elementtype:=cchartype;
+        tarraydef(openchararraytype.def).setelementtype(cchartype);
 {$ifdef x86}
   {$ifdef i386}
         ordpointertype:=u32bittype;
@@ -469,7 +469,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.39  2002-09-07 20:46:10  carl
+  Revision 1.40  2002-09-27 21:13:29  carl
+    * low-highval always checked if limit ober 2GB is reached (to avoid overflow)
+
+  Revision 1.39  2002/09/07 20:46:10  carl
     * cardinal -> longword
 
   Revision 1.38  2002/08/23 13:11:11  mazen

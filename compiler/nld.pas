@@ -857,7 +857,7 @@ implementation
          if not assigned(htype.def) then
           htype:=voidtype;
          resulttype.setdef(tarraydef.create(0,len-1,s32bittype));
-         tarraydef(resulttype.def).elementtype:=htype;
+         tarraydef(resulttype.def).setelementtype(htype);
          tarraydef(resulttype.def).IsConstructor:=true;
          tarraydef(resulttype.def).IsVariant:=varia;
       end;
@@ -867,7 +867,7 @@ implementation
       var
         hp : tarrayconstructornode;
       begin
-        tarraydef(resulttype.def).elementtype:=tt;
+        tarraydef(resulttype.def).setelementtype(tt);
         tarraydef(resulttype.def).IsConstructor:=true;
         tarraydef(resulttype.def).IsVariant:=false;
         if assigned(left) then
@@ -1144,7 +1144,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.59  2002-09-26 15:02:05  florian
+  Revision 1.60  2002-09-27 21:13:28  carl
+    * low-highval always checked if limit ober 2GB is reached (to avoid overflow)
+
+  Revision 1.59  2002/09/26 15:02:05  florian
     + support of passing variants to "array of const"
 
   Revision 1.58  2002/09/07 15:25:03  peter

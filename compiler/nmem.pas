@@ -751,7 +751,7 @@ implementation
                 begin
                   { convert pointer to array }
                   htype.setdef(tarraydef.create(0,$7fffffff,s32bittype));
-                  tarraydef(htype.def).elementtype:=tpointerdef(left.resulttype.def).pointertype;
+                  tarraydef(htype.def).setelementtype(tpointerdef(left.resulttype.def).pointertype);
                   inserttypeconv(left,htype);
 
                   resulttype:=tarraydef(htype.def).elementtype;
@@ -1057,7 +1057,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.39  2002-09-01 18:44:17  peter
+  Revision 1.40  2002-09-27 21:13:28  carl
+    * low-highval always checked if limit ober 2GB is reached (to avoid overflow)
+
+  Revision 1.39  2002/09/01 18:44:17  peter
     * cleanup of tvecnode.det_resulttype
     * move 0 element of string access check to resulttype
 

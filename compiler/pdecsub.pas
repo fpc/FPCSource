@@ -105,6 +105,7 @@ implementation
         sc      : tsinglelist;
         htype,
         tt      : ttype;
+        arrayelementtype : ttype;
         hvs,
         vs      : tvarsym;
         srsym   : tsym;
@@ -218,13 +219,14 @@ implementation
                         srsym:=searchsymonlyin(systemunit,'TVARREC');
                         if not assigned(srsym) then
                          InternalError(1234124);
-                        tarraydef(tt.def).elementtype:=ttypesym(srsym).restype;
+                        tarraydef(tt.def).setelementtype(ttypesym(srsym).restype);
                         tarraydef(tt.def).IsArrayOfConst:=true;
                       end
                      else
                       begin
                         { define field type }
-                        single_type(tarraydef(tt.def).elementtype,hs1,false);
+                        single_type(arrayelementtype,hs1,false);
+                        tarraydef(tt.def).setelementtype(arrayelementtype);
                       end;
                      inserthigh:=true;
                    end
@@ -1989,7 +1991,10 @@ const
 end.
 {
   $Log$
-  Revision 1.75  2002-09-16 14:11:13  peter
+  Revision 1.76  2002-09-27 21:13:29  carl
+    * low-highval always checked if limit ober 2GB is reached (to avoid overflow)
+
+  Revision 1.75  2002/09/16 14:11:13  peter
     * add argument to equal_paras() to support default values or not
 
   Revision 1.74  2002/09/10 16:27:28  peter

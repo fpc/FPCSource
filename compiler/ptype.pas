@@ -445,7 +445,7 @@ implementation
            read_type(tt2,'');
            { if no error, set element type }
            if assigned(ap) then
-             ap.elementtype:=tt2;
+             ap.setelementtype(tt2);
         end;
 
       var
@@ -640,7 +640,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.44  2002-09-10 16:26:39  peter
+  Revision 1.45  2002-09-27 21:13:29  carl
+    * low-highval always checked if limit ober 2GB is reached (to avoid overflow)
+
+  Revision 1.44  2002/09/10 16:26:39  peter
     * safety check for typesym added for incomplete type def check
 
   Revision 1.43  2002/09/09 19:34:07  peter
