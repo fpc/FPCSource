@@ -858,11 +858,23 @@ var
 var
   EnumValue: TPasEnumValue;
   Prefix : String;
+  HadPackedModifier : Boolean;           // 12/04/04 - Dave - Added 
    
 begin
   TypeName := CurTokenString;
   ExpectToken(tkEqual);
   NextToken;
+  // 12/04/04 - Dave - allow PACKED for ARRAYs, OBJECTs, CLASSes and RECORDs 
+  HadPackedModifier := False;     { Assume not present }
+  if CurToken = tkPacked then     { If PACKED modifier }
+     begin                        { Handle PACKED modifier for all situations }
+     NextToken;                   { Move to next token for rest of parse }
+     if CurToken in [tkArray, tkRecord, tkObject, tkClass] then  { If allowed }
+       HadPackedModifier := True  { rememeber for later }
+     else                         { otherwise, syntax error }
+       ParseExc(Format(SParserExpectTokenError,['ARRAY, RECORD, OBJECT or CLASS']))
+     end;
+  // 12/04/04 - Dave - End of added code
   case CurToken of
     tkRecord:
       begin
@@ -870,11 +882,13 @@ begin
 	  Parent));
         try
           ParseRecordDecl(TPasRecordType(Result));
+          TPasRecordType(Result).IsPacked := HadPackedModifier;
         except
           Result.Free;
           raise;
         end;
       end;
+    { 12/04/04 - Dave - cannot happen. Handled above. Unnecessary code removed by commenting
     tkPacked:
       begin
         Result := TPasRecordType(CreateElement(TPasRecordType, TypeName,
@@ -887,11 +901,17 @@ begin
           Result.Free;
           raise;
         end;
-      end;
+      end;                   End of removed code  - Dave - 12/04/04 }
     tkObject:
+      begin                                                 // 12/04/04 - Dave - Added
       Result := ParseClassDecl(Parent, TypeName, okObject);
+      TPasClassType(Result).IsPacked := HadPackedModifier;  // 12/04/04 - Dave - Added
+      end;                                                  // 12/04/04 - Dave - Added
     tkClass:
+      begin                                                 // 12/04/04 - Dave - Added 
       Result := ParseClassDecl(Parent, TypeName, okClass);
+      TPasClassType(Result).IsPacked := HadPackedModifier;  // 12/04/04 - Dave - Added
+      end;                                                  // 12/04/04 - Dave - Added
     tkInterface:
       Result := ParseClassDecl(Parent, TypeName, okInterface);
     tkCaret:
@@ -964,6 +984,7 @@ begin
         Result := TPasArrayType(CreateElement(TPasArrayType, TypeName, Parent));
         try
           ParseArrayType(TPasArrayType(Result));
+          TPasArrayType(Result).IsPacked := HadPackedModifier;   // 12/04/04 - Dave - Added
           ExpectToken(tkSemicolon);
         except
           Result.Free;
@@ -1834,7 +1855,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  2004-10-16 18:55:31  michael
+  Revision 1.10  2004-12-06 08:53:47  michael
+  + Fix from Dave Strodtman to properly support packed
+
+  Revision 1.9  2004/10/16 18:55:31  michael
   + Support for cross-unit aliases
 
   Revision 1.8  2004/09/13 16:02:36  peter

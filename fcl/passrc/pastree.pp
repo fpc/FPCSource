@@ -175,6 +175,7 @@ type
     function ElementTypeName: String; override;
     function GetDeclaration(full : boolean) : String; override;
     IndexRange : String;
+    IsPacked : Boolean;          // 12/04/04 - Dave - Added
     ElType: TPasType;
   end;
 
@@ -223,6 +224,7 @@ type
     function ElementTypeName: String; override;
     ObjKind: TPasObjKind;
     AncestorType: TPasType;	// TPasClassType or TPasUnresolvedTypeRef
+    IsPacked: Boolean;        // 12/04/04 - Dave - Added
     Members: TList;	// array of TPasElement objects
   end;
 
@@ -715,6 +717,7 @@ end;
 constructor TPasClassType.Create(const AName: String; AParent: TPasElement);
 begin
   inherited Create(AName, AParent);
+  IsPacked := False;                     // 12/04/04 - Dave - Added
   Members := TList.Create;
 end;
 
@@ -1048,6 +1051,8 @@ end;
 function TPasArrayType.GetDeclaration (full : boolean) : string;
 begin
   Result:='Array['+IndexRange+'] of ';
+  If IsPacked then
+     Result := 'packed '+Result;      // 12/04/04 Dave - Added
   If Assigned(Eltype) then
     Result:=Result+ElType.Name
   else
@@ -1397,7 +1402,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2004-07-24 00:03:13  michael
+  Revision 1.6  2004-12-06 08:53:48  michael
+  + Fix from Dave Strodtman to properly support packed
+
+  Revision 1.5  2004/07/24 00:03:13  michael
   + Fixed getdeclaration of TPasRecordType (semicolons not/wrongly placed)
 
   Revision 1.4  2004/07/23 23:42:02  michael

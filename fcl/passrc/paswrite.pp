@@ -208,6 +208,8 @@ var
 begin
   PrepareDeclSection('type');
   wrt(AClass.Name + ' = ');
+  if AClass.IsPacked then
+     wrt('packed ');                      // 12/04/04 - Dave - Added
   case AClass.ObjKind of
     okObject: wrt('object');
     okClass: wrt('class');
@@ -616,7 +618,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2003-03-13 21:47:42  sg
+  Revision 1.2  2004-12-06 08:53:47  michael
+  + Fix from Dave Strodtman to properly support packed
+
+  Revision 1.1  2003/03/13 21:47:42  sg
   * First version as part of FCL
 
 }
