@@ -7,6 +7,11 @@ program TFExpand;
 (* to be written to the console to make debugging easier.  *)
 
 uses
+{$ifdef FPC}
+  {$ifdef win32}
+    win32err,
+  {$endif win32}
+{$endif FPC}
  Dos;
 
 {$IFDEF OS2}
