@@ -545,9 +545,9 @@ End;
 
 procedure RedirDisableAll;
   begin
-    If RedirChangedIn and InRedirDisabled then
+    If RedirChangedIn and not InRedirDisabled then
       DisableRedirIn;
-    If RedirChangedOut and OutRedirDisabled then
+    If RedirChangedOut and not OutRedirDisabled then
       DisableRedirOut;
     If RedirChangedError and not ErrorRedirDisabled then
       DisableRedirError;
@@ -685,6 +685,7 @@ end;
     StoreInherit:=ExecInheritsHandles;
     ExecInheritsHandles:=true;
 {$endif win32}
+    DosError:=0;
     Dos.Exec (ProgName, ComLine);
 {$ifdef win32}
     ExecInheritsHandles:=StoreInherit;
@@ -717,7 +718,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.24  1999-11-10 17:10:59  pierre
+  Revision 1.25  2000-05-17 10:19:53  pierre
+   * Reset DosError to zero !
+
+  Revision 1.24  1999/11/10 17:10:59  pierre
    + DosExecute to interface
 
   Revision 1.23  1999/09/22 13:03:27  pierre
