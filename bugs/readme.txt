@@ -158,6 +158,7 @@ Fixed bugs:
   bug0129.pp   endless loop with while/continue                      OK 0.99.6 (FK)
   bug0130.pp   in [..#255] problem                                   OK 0.99.6 (PFV)
   bug0131.pp   internal error 10 with highdimension arrays           OK 0.99.6 (MVC)
+  bug0132.pp   segmentation fault with type loop                     OK 0.99.7 (FK)
   bug0134.pp   'continue' keyword is buggy.                          OK 0.99.6 (FK)
   bug0135.pp   Unsupported subrange type construction.               OK 0.99.6
   bug0136.pp   No types necessary in the procedure header            OK 0.99.6 (PFV)
@@ -205,7 +206,6 @@ bug0153.pp   Asm, indexing a local/para var should produce an error like tp7
              because it's doomed to crash
 bug0155.pp   Asm, Missing string return for asm functions
 
-bug0132.pp   segmentation fault with type loop
 bug0145.pp   typed files with huges records (needs filerec.size:longint)
 bug0150.pp   Shows that the assert() macro is missing under Delphi.
 bug0152.pp   End value of loop variable must be calculated before loop
