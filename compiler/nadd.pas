@@ -1043,6 +1043,14 @@ implementation
              CGMessage(type_e_mismatch);
           end
 
+       { support dynamicarray=nil,dynamicarray<>nil }
+         else if (is_dynamic_array(ld) and (rt=niln)) or
+                 (is_dynamic_array(rd) and (lt=niln)) then
+          begin
+            if not(nodetype in [equaln,unequaln]) then
+             CGMessage(type_e_mismatch);
+          end
+
 {$ifdef SUPPORT_MMX}
        { mmx support, this must be before the zero based array
          check }
@@ -1818,7 +1826,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.66  2002-10-04 21:19:28  jonas
+  Revision 1.67  2002-10-05 00:47:03  peter
+    * support dynamicarray<>nil
+
+  Revision 1.66  2002/10/04 21:19:28  jonas
     * fixed web bug 2139: checking for division by zero fixed
 
   Revision 1.65  2002/09/07 15:25:02  peter

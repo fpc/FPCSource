@@ -150,6 +150,8 @@ implementation
            (ld.deftype=variantdef) or
            (rd.deftype=variantdef) or
            ((rd.deftype=pointerdef) and
+            not(is_dynamic_array(ld) and
+                is_voidpointer(rd)) and
             not(is_pchar(rd) and
                 (is_chararray(ld) or
                  (ld.deftype=stringdef) or
@@ -160,6 +162,8 @@ implementation
             (not is_integer(ld) or not (treetyp in [addn,subn]))
            ) or
            ((ld.deftype=pointerdef) and
+            not(is_dynamic_array(rd) and
+                is_voidpointer(ld)) and
             not(is_pchar(ld) and
                 (is_chararray(rd) or
                  (rd.deftype=stringdef) or
@@ -175,6 +179,8 @@ implementation
            ((ld.deftype=arraydef) and
             not((cs_mmx in aktlocalswitches) and
                 is_mmx_able_array(ld)) and
+            not(is_dynamic_array(ld) and
+                is_voidpointer(rd)) and
             not(is_chararray(ld) and
                 (is_char(rd) or
                  is_pchar(rd) or
@@ -186,6 +192,8 @@ implementation
            ((rd.deftype=arraydef) and
             not((cs_mmx in aktlocalswitches) and
                 is_mmx_able_array(rd)) and
+            not(is_dynamic_array(rd) and
+                is_voidpointer(ld)) and
             not(is_chararray(rd) and
                 (is_char(ld) or
                  is_pchar(ld) or
@@ -950,7 +958,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.48  2002-10-04 21:13:59  peter
+  Revision 1.49  2002-10-05 00:47:03  peter
+    * support dynamicarray<>nil
+
+  Revision 1.48  2002/10/04 21:13:59  peter
     * ignore vecn,subscriptn when checking for a procvar loadn
 
   Revision 1.47  2002/09/16 18:09:34  peter
