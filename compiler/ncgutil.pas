@@ -324,7 +324,7 @@ implementation
         cg.deallocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
 
         cg.g_exception_reason_save(list, t.reasonbuf);
-        cg.a_cmp_const_reg_label(list,OS_S32,OC_NE,0,cg.makeregsize(NR_FUNCTION_RESULT_REG,OS_S32),exceptlabel);
+        cg.a_cmp_const_reg_label(list,OS_S32,OC_NE,0,cg.makeregsize(list,NR_FUNCTION_RESULT_REG,OS_S32),exceptlabel);
      end;
 
 
@@ -367,7 +367,7 @@ implementation
               { load a smaller size to OS_64 }
               if l.loc=LOC_REGISTER then
                begin
-                 hregister:=cg.makeregsize(l.registerlow,OS_32);
+                 hregister:=cg.makeregsize(list,l.registerlow,OS_32);
                  cg.a_load_reg_reg(list,l.size,OS_32,l.registerlow,hregister);
                end
               else
@@ -470,7 +470,7 @@ implementation
                  if (TCGSize2Size[dst_size]<TCGSize2Size[l.size]) then
                   begin
                     if (l.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-                      l.register:=cg.makeregsize(l.register,dst_size);
+                      l.register:=cg.makeregsize(list,l.register,dst_size);
                     { for big endian systems, the reference's offset must }
                     { be increased in this case, since they have the      }
                     { MSB first in memory and e.g. byte(word_var) should  }
@@ -538,7 +538,7 @@ implementation
               if (TCGSize2Size[dst_size]<TCGSize2Size[l.size]) then
                begin
                  if (l.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-                   l.register:=cg.makeregsize(l.register,dst_size);
+                   l.register:=cg.makeregsize(list,l.register,dst_size);
                  { for big endian systems, the reference's offset must }
                  { be increased in this case, since they have the      }
                  { MSB first in memory and e.g. byte(word_var) should  }
@@ -1053,7 +1053,7 @@ implementation
     {$endif cpu64bit}
                    begin
                      cg.getexplicitregister(list,NR_FUNCTION_RETURN_REG);
-                     hreg:=cg.makeregsize(NR_FUNCTION_RETURN_REG,resloc.size);
+                     hreg:=cg.makeregsize(list,NR_FUNCTION_RETURN_REG,resloc.size);
                      cg.ungetregister(list,hreg);
                      // for the optimizer
                      cg.a_reg_alloc(list,NR_FUNCTION_RETURN_REG);
@@ -1094,7 +1094,7 @@ implementation
     {$endif cpu64bit}
                       begin
                         cg.getexplicitregister(list,NR_FUNCTION_RETURN_REG);
-                        hreg:=cg.makeregsize(NR_FUNCTION_RETURN_REG,resloc.size);
+                        hreg:=cg.makeregsize(list,NR_FUNCTION_RETURN_REG,resloc.size);
                         cg.ungetregister(list,hreg);
                         // for the optimizer
                         cg.a_reg_alloc(list,NR_FUNCTION_RETURN_REG);
@@ -2139,7 +2139,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.199  2004-05-19 21:16:12  peter
+  Revision 1.200  2004-05-22 23:34:28  peter
+  tai_regalloc.allocation changed to ratype to notify rgobj of register size changes
+
+  Revision 1.199  2004/05/19 21:16:12  peter
     * add DEBUGINFO symbol to reference the .o file that includes the
       stabs info for types and global/static variables
     * debuginfo flag added to ppu to indicate whether debuginfo is

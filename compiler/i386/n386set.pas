@@ -114,7 +114,7 @@ implementation
           end;
         objectlibrary.getlabel(table);
         { make it a 32bit register }
-        indexreg:=cg.makeregsize(hregister,OS_INT);
+        indexreg:=cg.makeregsize(exprasmlist,hregister,OS_INT);
         cg.a_load_reg_reg(exprasmlist,opsize,OS_INT,hregister,indexreg);
         { create reference }
         reference_reset_symbol(href,table,0);
@@ -224,7 +224,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.73  2004-02-27 10:21:05  florian
+  Revision 1.74  2004-05-22 23:34:28  peter
+  tai_regalloc.allocation changed to ratype to notify rgobj of register size changes
+
+  Revision 1.73  2004/02/27 10:21:05  florian
     * top_symbol killed
     + refaddr to treference added
     + refsymbol to treference added

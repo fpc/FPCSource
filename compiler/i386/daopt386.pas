@@ -322,10 +322,12 @@ begin
     while assigned(p) and
           (p.typ=ait_RegAlloc) Do
       begin
-        if tai_regalloc(p).allocation then
-          UsedRegs := UsedRegs + [tai_regalloc(p).reg]
-        else
-          UsedRegs := UsedRegs - [tai_regalloc(p).reg];
+        case tai_regalloc(p).ratype of
+          ra_alloc :
+            UsedRegs := UsedRegs + [tai_regalloc(p).reg];
+          ra_dealloc :
+            UsedRegs := UsedRegs - [tai_regalloc(p).reg];
+        end;
         p := tai(p.next);
       end;
   until not(assigned(p)) or
@@ -338,7 +340,7 @@ end;
 
 {************************ Create the Label table ************************}
 
-function findregalloc(reg: tregister; starttai: tai; alloc: boolean): boolean;
+function findregalloc(reg: tregister; starttai: tai; ratyp: tregalloctype): boolean;
 { Returns true if a ait_alloc object for reg is found in the block of tai's }
 { starting with Starttai and ending with the next "real" instruction        }
 var
@@ -355,7 +357,7 @@ begin
     if assigned(starttai) and
        (starttai.typ = ait_regalloc) then
       begin
-        if (tai_regalloc(Starttai).allocation = alloc) and
+        if (tai_regalloc(Starttai).ratype = ratyp) and
            (getsupreg(tai_regalloc(Starttai).reg) = supreg) then
           begin
             findregalloc:=true;
@@ -379,7 +381,7 @@ procedure RemoveLastDeallocForFuncRes(asml: taasmoutput; p: tai);
       hp2 := tai(hp2.previous);
       if assigned(hp2) and
          (hp2.typ = ait_regalloc) and
-         not(tai_regalloc(hp2).allocation) and
+         (tai_regalloc(hp2).ratype=ra_dealloc) and
          (getregtype(tai_regalloc(hp2).reg) = R_INTREGISTER) and
          (getsupreg(tai_regalloc(hp2).reg) = supreg) then
         begin
@@ -1087,10 +1089,14 @@ begin
           (p.typ=ait_RegAlloc) Do
       begin
         if (getregtype(tai_regalloc(p).reg) = R_INTREGISTER) then
-          if tai_regalloc(p).allocation then
-            UsedRegs := UsedRegs + [getsupreg(tai_regalloc(p).reg)]
-          else
-            UsedRegs := UsedRegs - [getsupreg(tai_regalloc(p).reg)];
+          begin
+            case tai_regalloc(p).ratype of
+              ra_alloc :
+                UsedRegs := UsedRegs + [getsupreg(tai_regalloc(p).reg)];
+              ra_dealloc :
+                UsedRegs := UsedRegs - [getsupreg(tai_regalloc(p).reg)];
+            end;
+          end;
         p := tai(p.next);
       end;
   until not(assigned(p)) or
@@ -1146,10 +1152,10 @@ begin
           begin
             if first then
               begin
-                firstRemovedWasAlloc := tai_regalloc(p1).allocation;
+                firstRemovedWasAlloc := (tai_regalloc(p1).ratype=ra_alloc);
                 first := false;
               end;
-            lastRemovedWasDealloc := not tai_regalloc(p1).allocation;
+            lastRemovedWasDealloc := (tai_regalloc(p1).ratype=ra_dealloc);
             hp := tai(p1.Next);
             asml.Remove(p1);
             p1.free;
@@ -1193,7 +1199,7 @@ begin
       p := tai(p.previous);
       if (p.typ = ait_regalloc) and
          (getsupreg(tai_regalloc(p).reg) = supreg) then
-        if not(tai_regalloc(p).allocation) then
+        if (tai_regalloc(p).ratype=ra_dealloc) then
           if first then
             begin
               findregdealloc := true;
@@ -2010,30 +2016,32 @@ begin
         ait_regalloc:
           begin
             supreg:=getsupreg(tai_regalloc(p).reg);
-            if tai_regalloc(p).allocation then
-              begin
-                if not(supreg in usedregs) then
-                  include(usedregs, supreg)
-                else
-                  addregdeallocfor(list, tai_regalloc(p).reg, p);
-              end
-            else
-              begin
-                exclude(usedregs, supreg);
-                hp1 := p;
-                hp2 := nil;
-                while not(findregalloc(tai_regalloc(p).reg, tai(hp1.next),true)) and
-                      getnextinstruction(hp1, hp1) and
-                      regininstruction(getsupreg(tai_regalloc(p).reg), hp1) Do
-                  hp2 := hp1;
-                if hp2 <> nil then
-                  begin
-                    hp1 := tai(p.previous);
-                    list.remove(p);
-                    insertllitem(list, hp2, tai(hp2.next), p);
-                    p := hp1;
-                  end;
-              end;
+            case tai_regalloc(p).ratype of
+              ra_alloc :
+                begin
+                  if not(supreg in usedregs) then
+                    include(usedregs, supreg)
+                  else
+                    addregdeallocfor(list, tai_regalloc(p).reg, p);
+                end;
+              ra_dealloc :
+                begin
+                  exclude(usedregs, supreg);
+                  hp1 := p;
+                  hp2 := nil;
+                  while not(findregalloc(tai_regalloc(p).reg, tai(hp1.next),ra_alloc)) and
+                        getnextinstruction(hp1, hp1) and
+                        regininstruction(getsupreg(tai_regalloc(p).reg), hp1) Do
+                    hp2 := hp1;
+                  if hp2 <> nil then
+                    begin
+                      hp1 := tai(p.previous);
+                      list.remove(p);
+                      insertllitem(list, hp2, tai(hp2.next), p);
+                      p := hp1;
+                    end;
+                end;
+             end;
            end;
 {$endif i386}
       end;
@@ -2711,7 +2719,10 @@ end.
 
 {
   $Log$
-  Revision 1.66  2004-02-27 19:55:23  jonas
+  Revision 1.67  2004-05-22 23:34:28  peter
+  tai_regalloc.allocation changed to ratype to notify rgobj of register size changes
+
+  Revision 1.66  2004/02/27 19:55:23  jonas
     * fixed optimizer for new treference fields
 
   Revision 1.65  2004/02/27 10:21:05  florian

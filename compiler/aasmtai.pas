@@ -220,6 +220,8 @@ interface
        { cut type, required for alphanumeric ordering of the assembler filenames }
        TCutPlace=(cut_normal,cut_begin,cut_end);
 
+       TRegAllocType = (ra_alloc,ra_dealloc,ra_resize);
+
        TMarker = (NoPropInfoStart,NoPropInfoEnd,
                   AsmBlockStart,AsmBlockEnd,
                   InlineStart,InlineEnd,marker_blockstart,
@@ -466,10 +468,11 @@ interface
        end;
 
        tai_regalloc = class(tai)
-          allocation : boolean;
-          reg        : tregister;
+          reg     : tregister;
+          ratype  : TRegAllocType;
           constructor alloc(r : tregister);
           constructor dealloc(r : tregister);
+          constructor resize(r : tregister);
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
        end;
@@ -1567,7 +1570,7 @@ implementation
       begin
         inherited create;
         typ:=ait_regalloc;
-        allocation:=true;
+        ratype:=ra_alloc;
         reg:=r;
       end;
 
@@ -1576,7 +1579,16 @@ implementation
       begin
         inherited create;
         typ:=ait_regalloc;
-        allocation:=false;
+        ratype:=ra_dealloc;
+        reg:=r;
+      end;
+
+
+    constructor tai_regalloc.resize(r : tregister);
+      begin
+        inherited create;
+        typ:=ait_regalloc;
+        ratype:=ra_resize;
         reg:=r;
       end;
 
@@ -1585,7 +1597,7 @@ implementation
       begin
         inherited ppuload(t,ppufile);
         ppufile.getdata(reg,sizeof(Tregister));
-        allocation:=boolean(ppufile.getbyte);
+        ratype:=tregalloctype(ppufile.getbyte);
       end;
 
 
@@ -1593,7 +1605,7 @@ implementation
       begin
         inherited ppuwrite(ppufile);
         ppufile.putdata(reg,sizeof(Tregister));
-        ppufile.putbyte(byte(allocation));
+        ppufile.putbyte(byte(ratype));
       end;
 
 
@@ -2009,7 +2021,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.82  2004-04-12 18:59:32  florian
+  Revision 1.83  2004-05-22 23:34:27  peter
+  tai_regalloc.allocation changed to ratype to notify rgobj of register size changes
+
+  Revision 1.82  2004/04/12 18:59:32  florian
     * small x86_64 fixes
 
   Revision 1.81  2004/03/16 22:12:10  florian

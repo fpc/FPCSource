@@ -594,7 +594,7 @@ implementation
                       { change register size after the unget because the
                       getregister was done for the full register }
                       location.register:=cg.getintregister(exprasmlist,cgsize);
-                      cg.a_load_reg_reg(exprasmlist,cgsize,cgsize,cg.makeregsize(NR_FUNCTION_RESULT_REG,cgsize),location.register);
+                      cg.a_load_reg_reg(exprasmlist,cgsize,cgsize,cg.makeregsize(exprasmlist,NR_FUNCTION_RESULT_REG,cgsize),location.register);
                     end;
                  end
                 else
@@ -1272,7 +1272,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.165  2004-04-28 15:19:03  florian
+  Revision 1.166  2004-05-22 23:34:27  peter
+  tai_regalloc.allocation changed to ratype to notify rgobj of register size changes
+
+  Revision 1.165  2004/04/28 15:19:03  florian
     + syscall directive support for MorphOS added
 
   Revision 1.164  2004/03/14 20:10:56  peter

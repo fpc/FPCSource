@@ -1504,7 +1504,7 @@ implementation
                   while assigned(p) and
                         assigned(p.previous) and
                         (tai(p.previous).typ=ait_regalloc) and
-                         tai_regalloc(p.previous).allocation and
+                        (tai_regalloc(p.previous).ratype=ra_alloc) and
                         (tai_regalloc(p.previous).reg<>r) do
                     p:=tai(p.previous);
                   list.insertbefore(Tai_regalloc.dealloc(r),p);
@@ -1542,11 +1542,19 @@ implementation
                   if (getregtype(reg)=regtype) then
                     begin
                       supreg:=getsupreg(reg);
-                      if allocation then
-                        live_registers.add(supreg)
-                      else
-                        live_registers.delete(supreg);
-                      add_edges_used(supreg);
+                      case ratype of
+                        ra_alloc :
+                          begin
+                            live_registers.add(supreg);
+                            add_edges_used(supreg);
+                          end;
+                        ra_dealloc :
+                          begin
+                            live_registers.delete(supreg);
+                            add_edges_used(supreg);
+                          end;
+                      end;
+                      { constraints needs always to be updated }
                       add_constraints(reg);
                     end;
                 end;
@@ -1604,7 +1612,7 @@ implementation
                        { deallocation,allocation }
                        { note: do not remove allocation,deallocation, those }
                        {   do have a real meaning                           }
-                       (not(Tai_regalloc(previous).allocation) and allocation) then
+                       (not(Tai_regalloc(previous).ratype=ra_alloc) and (ratype=ra_alloc)) then
                       begin
                         q:=Tai(next);
                         hp:=tai(previous);
@@ -1674,7 +1682,7 @@ implementation
           begin
             supreg:=getsupreg(Tai_regalloc(p).reg);
             {Rewind the register allocation.}
-            if Tai_regalloc(p).allocation then
+            if (Tai_regalloc(p).ratype=ra_alloc) then
               live_registers.delete(supreg)
             else
               begin
@@ -1715,10 +1723,12 @@ implementation
           begin
             if p.typ<>ait_regalloc then
               internalerror(200305311);
-            if Tai_regalloc(p).allocation then
-              live_registers.add(getsupreg(Tai_regalloc(p).reg))
-            else
-              live_registers.delete(getsupreg(Tai_regalloc(p).reg));
+            case Tai_regalloc(p).ratype of
+              ra_alloc :
+                live_registers.add(getsupreg(Tai_regalloc(p).reg));
+              ra_dealloc :
+                live_registers.delete(getsupreg(Tai_regalloc(p).reg));
+            end;
             p:=Tai(p.next);
           end;
       end;
@@ -1779,10 +1789,14 @@ implementation
                             continue;
                           end
                         else
-                          if allocation then
-                            live_registers.add(supreg)
-                          else
-                            live_registers.delete(supreg);
+                          begin
+                            case ratype of
+                              ra_alloc :
+                               live_registers.add(supreg);
+                              ra_dealloc :
+                               live_registers.delete(supreg);
+                            end;
+                          end;
                       end;
                   end;
               ait_instruction:
@@ -2023,7 +2037,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.125  2004-04-26 19:57:50  jonas
+  Revision 1.126  2004-05-22 23:34:28  peter
+  tai_regalloc.allocation changed to ratype to notify rgobj of register size changes
+
+  Revision 1.125  2004/04/26 19:57:50  jonas
     * do not remove "allocation,deallocation" pairs, as those are important
       for the optimizer
 

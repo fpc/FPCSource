@@ -104,7 +104,7 @@ unit cgobj;
 
           procedure do_register_allocation(list:Taasmoutput;headertai:tai);virtual;
 
-          function makeregsize(reg:Tregister;size:Tcgsize):Tregister;
+          function makeregsize(list:Taasmoutput;reg:Tregister;size:Tcgsize):Tregister;
 
           {# Returns the tcgsize corresponding with the size of reg.}
           class function reg_cgsize(const reg: tregister) : tcgsize; virtual;
@@ -547,16 +547,6 @@ implementation
       end;
 
 
-    function Tcg.makeregsize(reg:Tregister;size:Tcgsize):Tregister;
-      var
-        subreg:Tsubregister;
-      begin
-        subreg:=cgsize2subreg(size);
-        result:=reg;
-        setsubreg(result,subreg);
-      end;
-
-
 {*****************************************************************************
                                 register allocation
 ******************************************************************************}
@@ -623,6 +613,19 @@ implementation
               internalerror(200312121);
             result:=rg[R_INTREGISTER].getregister(list,R_SUBWHOLE);
           end;
+      end;
+
+
+    function Tcg.makeregsize(list:Taasmoutput;reg:Tregister;size:Tcgsize):Tregister;
+      var
+        subreg:Tsubregister;
+      begin
+        subreg:=cgsize2subreg(size);
+        result:=reg;
+        setsubreg(result,subreg);
+        { notify RA }
+        if result<>reg then
+          list.concat(tai_regalloc.resize(result));
       end;
 
 
@@ -2137,7 +2140,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.163  2004-04-29 19:56:36  daniel
+  Revision 1.164  2004-05-22 23:34:27  peter
+  tai_regalloc.allocation changed to ratype to notify rgobj of register size changes
+
+  Revision 1.163  2004/04/29 19:56:36  daniel
     * Prepare compiler infrastructure for multiple ansistring types
 
   Revision 1.162  2004/04/18 07:52:43  florian

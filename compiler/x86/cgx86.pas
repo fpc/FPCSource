@@ -451,7 +451,7 @@ unit cgx86;
              (reference.index=NR_STACK_POINTER_REG) then
             begin
               pushsize:=int_cgsize(alignment);
-              list.concat(taicpu.op_reg(A_PUSH,tcgsize2opsize[pushsize],makeregsize(r,pushsize)));
+              list.concat(taicpu.op_reg(A_PUSH,tcgsize2opsize[pushsize],makeregsize(list,r,pushsize)));
             end
           else
             inherited a_param_reg(list,size,r,locpara);
@@ -591,7 +591,7 @@ unit cgx86;
                 which clears the upper 64 bit too, so it could be that s is S_L while the reg is
                 64 bit (FK) }
               if s in [S_BL,S_WL,S_L] then
-                tmpreg:=makeregsize(tmpreg,OS_32);
+                tmpreg:=makeregsize(list,tmpreg,OS_32);
 {$endif x86_64}
               list.concat(taicpu.op_reg_reg(op,s,reg,tmpreg));
               a_load_reg_ref(list,tosize,tosize,tmpreg,ref);
@@ -615,7 +615,7 @@ unit cgx86;
           which clears the upper 64 bit too, so it could be that s is S_L while the reg is
           64 bit (FK) }
         if s in [S_BL,S_WL,S_L] then
-          reg:=makeregsize(reg,OS_32);
+          reg:=makeregsize(list,reg,OS_32);
 {$endif x86_64}
         list.concat(taicpu.op_ref_reg(op,s,ref,reg));
       end;
@@ -631,7 +631,7 @@ unit cgx86;
         check_register_size(tosize,reg2);
         if tcgsize2size[fromsize]>tcgsize2size[tosize] then
           begin
-            reg1:=makeregsize(reg1,tosize);
+            reg1:=makeregsize(list,reg1,tosize);
             s:=tcgsize2opsize[tosize];
             op:=A_MOV;
           end
@@ -642,7 +642,7 @@ unit cgx86;
           which clears the upper 64 bit too, so it could be that s is S_L while the reg is
           64 bit (FK) }
         if s in [S_BL,S_WL,S_L] then
-          reg2:=makeregsize(reg2,OS_32);
+          reg2:=makeregsize(list,reg2,OS_32);
 {$endif x86_64}
         instr:=taicpu.op_reg_reg(op,s,reg1,reg2);
         { Notify the register allocator that we have written a move instruction so
@@ -1053,7 +1053,7 @@ unit cgx86;
           OP_SHR,OP_SHL,OP_SAR:
             begin
               getexplicitregister(list,NR_CL);
-              a_load_reg_reg(list,OS_8,OS_8,makeregsize(src,OS_8),NR_CL);
+              a_load_reg_reg(list,OS_8,OS_8,makeregsize(list,src,OS_8),NR_CL);
               list.concat(taicpu.op_reg_reg(Topcg2asmop[op],tcgsize2opsize[size],NR_CL,src));
               ungetregister(list,NR_CL);
             end;
@@ -1082,7 +1082,7 @@ unit cgx86;
             internalerror(200109239);
           else
             begin
-              reg := makeregsize(reg,size);
+              reg := makeregsize(list,reg,size);
               list.concat(taicpu.op_ref_reg(TOpCG2AsmOp[op],tcgsize2opsize[size],ref,reg));
             end;
         end;
@@ -1268,7 +1268,7 @@ unit cgx86;
         ai : taicpu;
         hreg : tregister;
       begin
-        hreg:=makeregsize(reg,OS_8);
+        hreg:=makeregsize(list,reg,OS_8);
         ai:=Taicpu.op_reg(A_SETcc,S_B,hreg);
         ai.setcondition(flags_to_cond(f));
         list.concat(ai);
@@ -1790,7 +1790,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.121  2004-04-28 15:19:03  florian
+  Revision 1.122  2004-05-22 23:34:28  peter
+  tai_regalloc.allocation changed to ratype to notify rgobj of register size changes
+
+  Revision 1.121  2004/04/28 15:19:03  florian
     + syscall directive support for MorphOS added
 
   Revision 1.120  2004/04/09 14:36:05  peter

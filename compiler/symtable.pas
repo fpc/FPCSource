@@ -1030,7 +1030,7 @@ implementation
         else
           begin
             { packrecords is set explicit, ignore recordalignmax limit }
-            varalignrecord:=used_align(varalign,aktalignment.recordalignmin,varalign);
+            varalignrecord:=used_align(varalign,aktalignment.recordalignmin,usefieldalignment);
           end;
         recordalignment:=max(recordalignment,varalignrecord);
       end;
@@ -2308,7 +2308,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.145  2004-04-29 19:56:37  daniel
+  Revision 1.146  2004-05-22 23:34:28  peter
+  tai_regalloc.allocation changed to ratype to notify rgobj of register size changes
+
+  Revision 1.145  2004/04/29 19:56:37  daniel
     * Prepare compiler infrastructure for multiple ansistring types
 
   Revision 1.144  2004/03/14 20:08:37  peter

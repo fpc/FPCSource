@@ -332,7 +332,7 @@ implementation
            objectlibrary.getlabel(lengthlab);
            cg.a_cmp_const_reg_label(exprasmlist,OS_ADDR,OC_EQ,0,left.location.register,lengthlab);
            reference_reset_base(href,left.location.register,-8);
-           hregister:=cg.makeregsize(left.location.register,OS_32);
+           hregister:=cg.makeregsize(exprasmlist,left.location.register,OS_32);
            cg.a_load_ref_reg(exprasmlist,OS_32,OS_32,href,hregister);
            cg.a_label(exprasmlist,lengthlab);
            location_reset(location,LOC_REGISTER,OS_32);
@@ -678,7 +678,10 @@ end.
 
 {
   $Log$
-  Revision 1.56  2004-03-02 00:36:33  olle
+  Revision 1.57  2004-05-22 23:34:28  peter
+  tai_regalloc.allocation changed to ratype to notify rgobj of register size changes
+
+  Revision 1.56  2004/03/02 00:36:33  olle
     * big transformation of Tai_[const_]Symbol.Create[data]name*
 
   Revision 1.55  2004/02/27 10:21:05  florian

@@ -185,7 +185,7 @@ begin
     end
   else
     cg.a_load_const_ref(exprasmlist,OS_8,tordconstnode(right).value,href2);
-  lengthreg:=cg.makeregsize(lengthreg,OS_8);
+  lengthreg:=cg.makeregsize(exprasmlist,lengthreg,OS_8);
   { increase the string length }
   cg.a_op_const_reg(exprasmlist,OP_ADD,OS_8,1,lengthreg);
   cg.a_load_reg_ref(exprasmlist,OS_8,OS_8,lengthreg,left.location.reference);
@@ -201,7 +201,10 @@ end.
 
 {
   $Log$
-  Revision 1.12  2004-01-31 17:45:17  peter
+  Revision 1.13  2004-05-22 23:34:28  peter
+  tai_regalloc.allocation changed to ratype to notify rgobj of register size changes
+
+  Revision 1.12  2004/01/31 17:45:17  peter
     * Change several $ifdef i386 to x86
     * Change several OS_32 to OS_INT/OS_ADDR
 

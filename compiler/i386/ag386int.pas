@@ -335,7 +335,8 @@ implementation
 
     procedure T386IntelAssembler.WriteTree(p:TAAsmoutput);
     const
-      allocstr : array[boolean] of string[10]=(' released',' allocated');
+      regallocstr : array[tregalloctype] of string[10]=(' released',' allocated','resized');
+      tempallocstr : array[boolean] of string[10]=(' released',' allocated');
     var
       s,
       prefix,
@@ -419,7 +420,7 @@ implementation
              begin
                if (cs_asm_regalloc in aktglobalswitches) then
                  AsmWriteLn(target_asm.comment+'Register '+masm_regname(tai_regalloc(hp).reg)+
-                   allocstr[tai_regalloc(hp).allocation]);
+                   regallocstr[tai_regalloc(hp).ratype]);
              end;
 
            ait_tempalloc :
@@ -433,7 +434,7 @@ implementation
                    else
 {$endif EXTDEBUG}
                      AsmWriteLn(target_asm.comment+'Temp '+tostr(tai_tempalloc(hp).temppos)+','+
-                       tostr(tai_tempalloc(hp).tempsize)+allocstr[tai_tempalloc(hp).allocation]);
+                       tostr(tai_tempalloc(hp).tempsize)+tempallocstr[tai_tempalloc(hp).allocation]);
                  end;
              end;
 
@@ -883,7 +884,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.47  2004-03-17 12:03:00  olle
+  Revision 1.48  2004-05-22 23:34:28  peter
+  tai_regalloc.allocation changed to ratype to notify rgobj of register size changes
+
+  Revision 1.47  2004/03/17 12:03:00  olle
     * bugfix for multiline string constants
 
   Revision 1.46  2004/02/27 10:21:05  florian

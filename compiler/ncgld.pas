@@ -533,7 +533,7 @@ implementation
                       LOC_REGISTER,
                       LOC_CREGISTER :
                         begin
-                          r:=cg.makeregsize(right.location.register,OS_8);
+                          r:=cg.makeregsize(exprasmlist,right.location.register,OS_8);
                           cg.a_load_reg_ref(exprasmlist,OS_8,OS_8,r,href);
                         end;
                       LOC_REFERENCE,
@@ -942,7 +942,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.115  2004-04-29 19:56:37  daniel
+  Revision 1.116  2004-05-22 23:34:28  peter
+  tai_regalloc.allocation changed to ratype to notify rgobj of register size changes
+
+  Revision 1.115  2004/04/29 19:56:37  daniel
     * Prepare compiler infrastructure for multiple ansistring types
 
   Revision 1.114  2004/03/02 17:32:12  florian

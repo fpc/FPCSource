@@ -354,7 +354,8 @@ interface
 
     procedure T386NasmAssembler.WriteTree(p:taasmoutput);
     const
-      allocstr : array[boolean] of string[10]=(' released',' allocated');
+      regallocstr : array[tregalloctype] of string[10]=(' released',' allocated','resized');
+      tempallocstr : array[boolean] of string[10]=(' released',' allocated');
     var
       s : string;
       hp       : tai;
@@ -439,7 +440,7 @@ interface
              begin
                if (cs_asm_regalloc in aktglobalswitches) then
                  AsmWriteLn(#9#9+target_asm.comment+'Register '+nasm_regname(tai_regalloc(hp).reg)+
-                   allocstr[tai_regalloc(hp).allocation]);
+                   regallocstr[tai_regalloc(hp).ratype]);
              end;
 
            ait_tempalloc :
@@ -453,7 +454,7 @@ interface
                    else
 {$endif EXTDEBUG}
                      AsmWriteLn(target_asm.comment+'Temp '+tostr(tai_tempalloc(hp).temppos)+','+
-                       tostr(tai_tempalloc(hp).tempsize)+allocstr[tai_tempalloc(hp).allocation]);
+                       tostr(tai_tempalloc(hp).tempsize)+tempallocstr[tai_tempalloc(hp).allocation]);
                  end;
              end;
 
@@ -924,7 +925,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.44  2004-02-27 10:21:05  florian
+  Revision 1.45  2004-05-22 23:34:28  peter
+  tai_regalloc.allocation changed to ratype to notify rgobj of register size changes
+
+  Revision 1.44  2004/02/27 10:21:05  florian
     * top_symbol killed
     + refaddr to treference added
     + refsymbol to treference added

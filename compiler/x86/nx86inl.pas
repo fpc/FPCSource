@@ -332,7 +332,7 @@ implementation
                 { need a cmp and jmp, but this should be done by the         }
                 { type cast code which does range checking if necessary (FK) }
                 begin
-                  hregister:=cg.makeregsize(Tcallparanode(Tcallparanode(left).right).left.location.register,OS_INT);
+                  hregister:=cg.makeregsize(exprasmlist,Tcallparanode(Tcallparanode(left).right).left.location.register,OS_INT);
                 end
               else
                 begin
@@ -353,7 +353,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2004-02-27 10:21:06  florian
+  Revision 1.3  2004-05-22 23:34:28  peter
+  tai_regalloc.allocation changed to ratype to notify rgobj of register size changes
+
+  Revision 1.2  2004/02/27 10:21:06  florian
     * top_symbol killed
     + refaddr to treference added
     + refsymbol to treference added

@@ -206,7 +206,7 @@ implementation
                { use the register as base in a reference (JM)                }
                if ranges then
                  begin
-                   pleftreg:=cg.makeregsize(left.location.register,OS_ADDR);
+                   pleftreg:=cg.makeregsize(exprasmlist,left.location.register,OS_ADDR);
                    cg.a_load_reg_reg(exprasmlist,left.location.size,OS_ADDR,left.location.register,pleftreg);
                    if opsize<>OS_ADDR then
                      cg.a_op_const_reg(exprasmlist,OP_AND,OS_ADDR,255,pleftreg);
@@ -216,7 +216,7 @@ implementation
                  { otherwise simply use the lower 8 bits (no "and" }
                  { necessary this way) (JM)                        }
                  begin
-                   pleftreg:=cg.makeregsize(left.location.register,OS_8);
+                   pleftreg:=cg.makeregsize(exprasmlist,left.location.register,OS_8);
                    opsize := OS_8;
                  end;
              end
@@ -353,7 +353,7 @@ implementation
                      LOC_REGISTER,
                      LOC_CREGISTER:
                        begin
-                          hr:=cg.makeregsize(left.location.register,OS_32);
+                          hr:=cg.makeregsize(exprasmlist,left.location.register,OS_32);
                           cg.a_load_reg_reg(exprasmlist,left.location.size,OS_32,left.location.register,hr);
                        end;
                   else
@@ -414,7 +414,7 @@ implementation
                      LOC_REGISTER,
                      LOC_CREGISTER:
                        begin
-                          hr:=cg.makeregsize(left.location.register,OS_32);
+                          hr:=cg.makeregsize(exprasmlist,left.location.register,OS_32);
                           cg.a_load_reg_reg(exprasmlist,left.location.size,OS_32,left.location.register,hr);
                           cg.a_cmp_const_reg_label(exprasmlist,OS_32,OC_BE,31,hr,l);
                           { reset carry flag }
@@ -472,7 +472,7 @@ implementation
                else
                 begin
                   if (left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-                    pleftreg:=cg.makeregsize(left.location.register,OS_32)
+                    pleftreg:=cg.makeregsize(exprasmlist,left.location.register,OS_32)
                   else
                     pleftreg:=cg.getintregister(exprasmlist,OS_32);
                   cg.a_load_loc_reg(exprasmlist,OS_32,left.location,pleftreg);
@@ -495,7 +495,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2004-02-27 10:21:06  florian
+  Revision 1.3  2004-05-22 23:34:28  peter
+  tai_regalloc.allocation changed to ratype to notify rgobj of register size changes
+
+  Revision 1.2  2004/02/27 10:21:06  florian
     * top_symbol killed
     + refaddr to treference added
     + refsymbol to treference added
