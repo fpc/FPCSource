@@ -721,6 +721,8 @@ begin
 {$endif SYSTEMDEBUG}
   regs.realeax:=$3e00;
   sysrealintr($21,regs);
+  if (regs.realflags and carryflag) <> 0 then
+   InOutRes:=lo(regs.realeax);
 end;
 
 
@@ -1225,7 +1227,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.23  1998-11-16 14:15:02  pierre
+  Revision 1.24  1998-11-29 22:28:10  peter
+    + io-error 103 added
+
+  Revision 1.23  1998/11/16 14:15:02  pierre
     * changed getdir(byte,string) to getdir(byte,shortstring)
 
   Revision 1.22  1998/10/26 14:49:46  pierre

@@ -86,6 +86,7 @@ type
 var
   stub_info       : p_stub_info;
   go32_info_block : t_go32_info_block;
+  LFNSupport : boolean;
 
 { Needed for CRT unit }
 function do_read(h,addr,len : longint) : longint;
@@ -138,7 +139,6 @@ begin
   end['EAX','EBX'];
   HandleError(202);
 end;
-{$I386_ATT}
 
 procedure halt(errnum : byte);
 begin
@@ -227,6 +227,9 @@ asm
         pushl   %ebp
         intl    $0x21
         popl    %ebp
+        jnc     .LCLOSE1
+        movw    %ax,inoutres
+.LCLOSE1:
 end;
 
 
@@ -609,7 +612,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.10  1998-11-16 14:15:01  pierre
+  Revision 1.11  1998-11-29 22:28:09  peter
+    + io-error 103 added
+
+  Revision 1.10  1998/11/16 14:15:01  pierre
     * changed getdir(byte,string) to getdir(byte,shortstring)
 
   Revision 1.9  1998/09/14 10:48:03  peter
