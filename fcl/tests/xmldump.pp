@@ -62,6 +62,11 @@ begin
 
   WriteLn('Successfully parsed the document. Structure:');
   WriteLn;
+  if Assigned(xml.DocType) then
+  begin
+    WriteLn('DocType: "', xml.DocType.Name, '"');
+    WriteLn;
+  end;
   DumpNode(xml, '| ');
   xml.Free;
 end.
@@ -69,7 +74,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2000-01-30 22:20:57  sg
+  Revision 1.6  2000-06-29 16:45:51  sg
+  * Now also dumps the document type
+
+  Revision 1.5  2000/01/30 22:20:57  sg
   * The XML config object is now freed at the end of the program
     (this enables us to detect memory leaks with this test program)
 
