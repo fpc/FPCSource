@@ -330,8 +330,10 @@ implementation
              putlongint(longint(lo(v)));
              putlongint(longint(hi(v)));
           end
+        else if sizeof(TConstExprInt)=4 then
+          putlongint(longint(v))
         else
-          putlongint(v);
+          internalerror(2002082601);
       end;
 
 
@@ -342,8 +344,10 @@ implementation
              putlongint(longint(lo(v)));
              putlongint(longint(hi(v)));
           end
+        else if sizeof(TConstPtrUInt)=4 then
+          putlongint(longint(v))
         else
-          putlongint(v);
+          internalerror(2002082601);
       end;
 
 
@@ -490,7 +494,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  2002-08-18 20:06:26  peter
+  Revision 1.16  2002-08-26 14:05:57  pierre
+   * fixed compilation cycle with -Cr option by adding explicit
+     longint typecast in PutPtrUInt and putexprint methods.
+   + added checks for sizeof and internalerros if size is not handled.
+
+  Revision 1.15  2002/08/18 20:06:26  peter
     * inlining is now also allowed in interface
     * renamed write/load to ppuwrite/ppuload
     * tnode storing in ppu
