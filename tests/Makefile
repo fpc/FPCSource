@@ -766,6 +766,7 @@ ifneq ($(wildcard fpcmake.loc),)
 include fpcmake.loc
 endif
 TESTSUBDIRS=cg units/system units/dos units/crt
+TESTDIRS:=test $(addprefix test/,$(TESTSUBDIRS))
 ifeq ($(OS_TARGET),linux)
 INUNIX=1
 endif
@@ -800,27 +801,24 @@ endif
 ifdef INTERACTIVE
 override DOTESTOPT+=-i
 endif
-DIRS=webtbs webtbf tbs tbf test testopt
+DIRS=webtbs webtbf tbs tbf test
 %.log : %.pp
 	$(DOTEST) $(DOTESTOPT) $<
 %.elg : %.pp
 	$(DOTEST) $(DOTESTOPT) -e $<
-.PHONY: alltbs alltbf allwebtbs allwebtbf alltest alltestopt alltests
+.PHONY: alltbs alltbf allwebtbs allwebtbf alltest alltests
 alltbs : testcheck $(patsubst %.pp,%.log,$(wildcard tbs/t*.pp))
 alltbf : testcheck $(patsubst %.pp,%.log,$(wildcard tbf/t*.pp))
 allwebtbs : testcheck $(patsubst %.pp,%.log,$(wildcard webtbs/t*.pp))
 allwebtbf : testcheck $(patsubst %.pp,%.log,$(wildcard webtbf/t*.pp))
-TESTDIRS:=test $(addprefix test/,$(TESTSUBDIRS))
 alltest : testcheck $(patsubst %.pp,%.log,$(wildcard $(addsuffix /t*.pp,$(TESTDIRS))))
-alltestopt : testcheck $(patsubst %.pp,%.log,$(wildcard testopt/t*.pp))
 alltests: alltest alltbs alltbf allwebtbs allwebtbf
-.PHONY: allexectbs allexectbf allexecwebtbs allexecwebtbf allexectest allexectestopt allexectests
+.PHONY: allexectbs allexectbf allexecwebtbs allexecwebtbf allexectest allexectests
 allexectbs : testcheck $(patsubst %.pp,%.elg,$(wildcard tbs/t*.pp))
 allexectbf : testcheck $(patsubst %.pp,%.elg,$(wildcard tbf/t*.pp))
 allexecwebtbs : testcheck $(patsubst %.pp,%.elg,$(wildcard webtbs/t*.pp))
 allexecwebtbf : testcheck $(patsubst %.pp,%.elg,$(wildcard webtbf/t*.pp))
-allexectest : testcheck $(patsubst %.pp,%.elg,$(wildcard test/t*.pp))
-allexectestopt : testcheck $(patsubst %.pp,%.elg,$(wildcard testopt/t*.pp))
+allexectest : testcheck $(patsubst %.pp,%.elg,$(wildcard $(addsuffix /t*.pp,$(TESTDIRS))))
 allexectests: allexectest allexectbs allexectbf allexecwebtbs allexecwebtbf
 .PHONY: clean distclean
 clean:
