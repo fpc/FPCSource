@@ -209,6 +209,24 @@
 \newcommand{\exampledir}{.}
 \newcommand{\FPCexampledir}[1]{\renewcommand{\exampledir}{#1}}
 %
+% Categorical Function/procedure overviews
+%
+\newenvironment{funclist}{%
+\par
+\raisebox{-1em}{\makebox[\textwidth]{Name\hfill Description \hfill Page}}\\
+\rule{\textwidth}{1pt}
+\begin{list}{}{%
+\setlength{\rightmargin}{0pt}\setlength{\topsep}{0cm}\setlength{\partopsep}{0pt}%
+\setlength{\itemsep}{0pt}\setlength{\labelwidth}{3.5cm}%
+\setlength{\leftmargin}{4cm}%
+\renewcommand{\makelabel}[1]{\textsf{##1\hfil}}%
+}}%
+{\end{list}}
+\newcommand{\funcrefl}[3]{\item[#1] #3 \hfill\pageref{fu:#2}}
+\newcommand{\funcref}[2]{\item[#1] #2 \hfill\pageref{fu:#1}}
+\newcommand{\procrefl}[3]{\item[#1] #3 \hfill\pageref{pro:#2}}
+\newcommand{\procref}[2]{\item[#1] #2 \hfill\pageref{pro:#1}}
+%
 % Set some listings options.
 %
 \usepackage{listings}%

@@ -27,19 +27,31 @@ functions which aren't covered by the system unit.
 
 This chapter starts out with a definition of all types and constants
 that are defined, followed by a complete explanation of each function.
-{\em Remark} This unit is compiled in Object Pascal mode so all
+
+The following things must be taken into account when using this unit:
+\begin{enumerate}
+\item This unit is compiled in Object Pascal mode so all
 \var{integers} are 32 bit.
+\item Some overloaded functions exist for data arrays of integers and
+floats. When using the address operator (\var{@}) to pass an array of 
+data to such a function, make sure the address is typecasted to the 
+right type, or turn on the 'typed address operator' feature. failing to
+do so, will cause the compiler not be able to decide which function you 
+want to call.
+\end{enumerate}
 
 \section{Constants and types}
 
 The following types are defined in the \file{math} unit:
 \begin{verbatim}
 Type
-   Float = Extended;
+  Float = Extended;
+  PFloat = ^FLoat
 \end{verbatim}
 All calculations are done with the Float type. This allows to
 recompile the unit with a different float type to obtain a
-desired precision.
+desired precision. The pointer type is used in functions that accept
+an array of values of arbitrary length.
 \begin{verbatim}
 Type
    TPaymentTime = (PTEndOfPeriod,PTStartOfPeriod);
@@ -50,6 +62,87 @@ Type
    EInvalidArgument = Class(EMathError);
 \end{verbatim}
 The \var{EInvalidArgument} exception is used to report invalid arguments.
+
+\section{Function list by category}
+What follows is a listing of the available functions, grouped by category.
+Foe each function there is a reference to the page where you can find the
+function.
+\subsection{Min/max determination}
+Functions to determine the minimum or maximum of numbers:
+\begin{funclist}
+\funcref{max}{Maximum of 2 values}
+\funcref{maxIntValue}{Maximum of an array of integer values}
+\funcref{maxvalue}{Maximum of an array of values}
+\funcref{min}{Minimum of 2 values}
+\funcref{minIntValue}{Minimum of an array of integer values}
+\funcref{minvalue}{Minimum of an array of values}
+\end{funclist}
+\subsection{Angle conversion}
+\begin{funclist}
+\funcref{cycletorad}{convert cycles to radians}
+\funcref{degtograd}{convert degrees to grads}
+\funcref{degtorad}{convert degrees to radians}
+\funcref{gradtodeg}{convert grads to degrees}
+\funcref{gradtorad}{convert grads to radians}
+\funcref{radtocycle}{convert radians to cycles}
+\funcref{radtodeg}{convert radians to degrees}
+\funcref{radtograd}{convert radians to grads}
+\end{funclist}
+\subsection{Trigoniometric functions}
+\begin{funclist}
+\funcref{arccos}{calculate reverse cosine}
+\funcref{arcsin}{calculate reverse sine}
+\funcref{arctan2}{calculate reverse tangent}
+\funcref{cotan}{calculate cotangent}
+\procref{sincos}{calculate sine and cosine}
+\funcref{tan}{calculate tangent}
+\end{funclist}
+\subsection{Hyperbolic functions}
+\begin{funclist}
+\funcref{arcosh}{caculate reverse hyperbolic cosine}
+\funcref{arsinh}{caculate reverse hyperbolic sine}
+\funcref{artanh}{caculate reverse hyperbolic tangent}
+\funcref{cosh}{calculate hyperbolic cosine}
+\funcref{sinh}{calculate hyperbolic sine}
+\funcref{tanh}{calculate hyperbolic tangent}
+\end{funclist}
+\subsection{Exponential and logarithmic functions}
+\begin{funclist}
+\funcref{intpower}{Raise float to integer power}
+\funcref{ldexp}{Calculate $2^p x$}
+\funcref{lnxp1}{calculate \var{log(x+1)}}
+\funcref{log10}{calculate 10-base log}
+\funcref{log2}{calculate 2-base log}
+\funcref{logn}{calculate N-base log}
+\funcref{power}{raise float to arbitrary power}
+\end{funclist}
+\subsection{Number converting}
+\begin{funclist}
+\funcref{ceil}{Round to infinity}
+\funcref{floor}{Round to minus infinity}
+\procref{frexp}{Return mantissa and exponent}
+\end{funclist}
+\subsection{Statistical functions}
+\begin{funclist}
+\funcref{mean}{Mean of values}
+\procref{meanandstddev}{Mean and standard deviation of values}
+\procref{momentskewkurtosis}{Moments, skew and kurtosis}
+\funcref{popnstddev}{Population standarddeviation }
+\funcref{popnvariance}{Population variance}
+\funcref{randg}{Gaussian distributed randum value}
+\funcref{stddev}{Standard deviation}
+\funcref{sum}{Sum of values}
+\funcref{sumofsquares}{Sum of squared values}
+\procref{sumsandsquares}{Sum of values and squared values}
+\funcref{totalvariance}{Total variance of values}
+\funcref{variance}{variance of values}
+\end{funclist}
+\subsection{Geometrical functions}
+\begin{funclist}
+\funcref{hypot}{Hypotenuse of triangle}
+\funcref{norm}{Euclidian norm}
+\end{funclist}
+
 \section{Functions and Procedures}
 
 \begin{function}{arccos}
@@ -507,6 +600,7 @@ procedure meanandstddev(const data : PFloat;
 \Description
 \var{meanandstddev} calculates the mean and standard deviation of \var{data}
 and returns the result in \var{mean} and \var{stddev}, respectively.
+Stddev is zero if there is only one value.
 
 The second form accepts a pointer to an array of \var{N} values.
 \Errors
@@ -610,25 +704,41 @@ None.
 \begin{function}{popnstddev}
 \Declaration
 Function popnstddev(const data : array of float) : float;
+Function popnstddev(const data : PFloat; Const N : Integer) : float;
 \Description
+\var{Popnstddev} returns the square root of the population variance of
+the values in the  \var{Data} array. It returns zero if there is only one value.
 
+The second form of this function accepts a pointer to an array of \var{N}
+values.
 \Errors
+None.
 \SeeAlso
+\seef{popnvariance}, \seef{mean}, \seep{meanandstddev}, \seef{stddev},
+\seep{momentskewkurtosis}
 \end{function}
 
-\FPCexample{}
+\FPCexample{ex35}
 
 
 \begin{function}{popnvariance}
 \Declaration
 Function popnvariance(const data : array of float) : float;
+Function popnvariance(const data : PFloat; Const N : Integer) : float;
 \Description
+\var{Popnvariance} returns the square root of the population variance of
+the values in the  \var{Data} array. It returns zero if there is only one value.
 
+The second form of this function accepts a pointer to an array of \var{N}
+values.
 \Errors
+None.
 \SeeAlso
+\seef{popnstddev}, \seef{mean}, \seep{meanandstddev}, \seef{stddev},
+\seep{momentskewkurtosis}
 \end{function}
 
-\FPCexample{}
+\FPCexample{ex36}
 
 
 \begin{function}{power}
@@ -643,173 +753,252 @@ None.
 \seef{intpower}
 \end{function}
 
-\FPCexample{}
+\FPCexample{ex34}
 
 
 \begin{function}{radtocycle}
 \Declaration
 Function radtocycle(rad : float) : float;
 \Description
+\var{Radtocycle} converts its argument \var{rad} (an angle expressed in
+radians) to an angle in cycles.
 
+(1 cycle equals 2 pi radians)
 \Errors
+None.
 \SeeAlso
+\seef{degtograd}, \seef{degtorad}, \seef{radtodeg},
+\seef{radtograd}, \seef{cycletorad}
 \end{function}
 
-\FPCexample{}
+\FPCexample{ex37}
 
 
 \begin{function}{radtodeg}
 \Declaration
 Function radtodeg(rad : float) : float;
 \Description
+\var{Radtodeg} converts its argument \var{rad} (an angle expressed in
+radians) to an angle in degrees.
 
+(180 degrees equals pi radians)
 \Errors
+None.
 \SeeAlso
+\seef{degtograd}, \seef{degtorad}, \seef{radtocycle},
+\seef{radtograd}, \seef{cycletorad}
 \end{function}
 
-\FPCexample{}
+\FPCexample{ex38}
 
 
 \begin{function}{radtograd}
 \Declaration
 Function radtograd(rad : float) : float;
 \Description
+\var{Radtodeg} converts its argument \var{rad} (an angle expressed in
+radians) to an angle in grads.
 
+(200 grads equals pi radians)
 \Errors
+None.
 \SeeAlso
+\seef{degtograd}, \seef{degtorad}, \seef{radtocycle},
+\seef{radtodeg}, \seef{cycletorad}
 \end{function}
 
-\FPCexample{}
+\FPCexample{ex39}
 
 
 \begin{function}{randg}
 \Declaration
 Function randg(mean,stddev : float) : float;
 \Description
-
+\var{randg} returns a random number which - when produced in large
+quantities - has a Gaussian distribution with mean \var{mean} and 
+standarddeviation \var{stddev}. 
 \Errors
+None.
 \SeeAlso
+\seef{mean}, \seef{stddev}, \seep{meanandstddev}
 \end{function}
 
-\FPCexample{}
+\FPCexample{ex40}
 
 
 \begin{procedure}{sincos}
 \Declaration
 Procedure sincos(theta : float;var sinus,cosinus : float);
 \Description
+\var{Sincos} calculates the sine and cosine of the angle \var{theta},
+and returns the result in \var{sinus} and \var{cosinus}.
 
+On Intel hardware, This calculation will be faster than making 2 calls
+to clculatet he sine and cosine separately.
 \Errors
+None.
 \SeeAlso
+\seef{arcsin}, \seef{arccos}.
 \end{procedure}
 
-\FPCexample{}
+\FPCexample{ex41}
 
 
 \begin{function}{sinh}
 \Declaration
 Function sinh(x : float) : float;
 \Description
-
+\var{Sinh} returns the hyperbolic sine of its argument \var{x}.
 \Errors
 \SeeAlso
+\seef{cosh}, \seef{arsinh}, \seef{tanh}, \seef{artanh}
 \end{function}
 
-\FPCexample{}
+\FPCexample{ex42}
 
 
 \begin{function}{stddev}
 \Declaration
 Function stddev(const data : array of float) : float;
+Function stddev(const data : PFloat; Const N : Integer) : float;
 \Description
+\var{Stddev} returns the standard deviation of the values in \var{Data}.
+It returns zero if there is only one value.
 
+The second form of the function accepts a pointer to an array of \var{N}
+values.
 \Errors
+None.
 \SeeAlso
+\seef{mean}, \seep{meanandstddev}, \seef{variance}, \seef{totalvariance}
 \end{function}
 
-\FPCexample{}
+\FPCexample{ex43}
 
 
 \begin{function}{sum}
 \Declaration
 Function sum(const data : array of float) : float;
+Function sum(const data : PFloat; Const N : Integer) : float;
 \Description
+\var{Sum} returns the sum of the values in the \var{data} array.
 
+The second form of the function accepts a pointer to an array of \var{N}
+values.
 \Errors
+None.
 \SeeAlso
+\seef{sumofsquares}, \seep{sumsandsquares}, \seef{totalvariance}
+, \seef{variance}
 \end{function}
 
-\FPCexample{}
+\FPCexample{ex44}
 
 
-  var sum,sumofsquares : float);
 \begin{function}{sumofsquares}
 \Declaration
 Function sumofsquares(const data : array of float) : float;
+Function sumofsquares(const data : PFloat; Const N : Integer) : float;
 \Description
+\var{Sumofsquares} returns the sum of the squares of the values in the \var{data} 
+array.
 
+The second form of the function accepts a pointer to an array of \var{N}
+values.
 \Errors
+None.
 \SeeAlso
+\seef{sum}, \seep{sumsandsquares}, \seef{totalvariance}
+, \seef{variance}
 \end{function}
 
-\FPCexample{}
+\FPCexample{ex45}
 
 
 \begin{procedure}{sumsandsquares}
 \Declaration
 Procedure sumsandsquares(const data : array of float;
+  var sum,sumofsquares : float);
+Procedure sumsandsquares(const data : PFloat; Const N : Integer;
+  var sum,sumofsquares : float);
 \Description
+\var{sumsandsquares} calculates the sum of the values and the sum of 
+the squares of the values in the \var{data} array and returns the
+results in \var{sum} and \var{sumofsquares}.
 
+The second form of the function accepts a pointer to an array of \var{N}
+values.
 \Errors
+None.
 \SeeAlso
+\seef{sum}, \seef{sumofsquares}, \seef{totalvariance}
+, \seef{variance}
 \end{procedure}
 
-\FPCexample{}
+\FPCexample{ex46}
 
 
 \begin{function}{tan}
 \Declaration
 Function tan(x : float) : float;
 \Description
-
+\var{Tan} returns the tangent of \var{x}.
 \Errors
+If \var{x} (normalized) is pi/2 or 3pi/2 then an overflow will occur.
 \SeeAlso
+\seef{tanh}, \seef{arcsin}, \seep{sincos}, \seef{arccos}
 \end{function}
 
-\FPCexample{}
+\FPCexample{ex47}
 
 
 \begin{function}{tanh}
 \Declaration
 Function tanh(x : float) : float;
 \Description
-
+\var{Tanh} returns the hyperbolic tangent of \var{x}.
 \Errors
+None.
 \SeeAlso
+\seef{arcsin}, \seep{sincos}, \seef{arccos}
 \end{function}
 
-\FPCexample{}
+\FPCexample{ex48}
 
 
 \begin{function}{totalvariance}
 \Declaration
 Function totalvariance(const data : array of float) : float;
+Function totalvariance(const data : PFloat; Const N : Integer) : float;
 \Description
+\var{TotalVariance} returns the total variance of the values in the 
+\var{data} array. It returns zero if there is only one value.
 
+The second form of the function accepts a pointer to an array of \var{N}
+values.
 \Errors
+None.
 \SeeAlso
+\seef{variance}, \seef{stddev}, \seef{mean}
 \end{function}
 
-\FPCexample{}
+\FPCexample{ex49}
 
 
 \begin{function}{variance}
 \Declaration
 Function variance(const data : array of float) : float;
+Function variance(const data : PFloat; Const N : Integer) : float;
 \Description
+\var{Variance} returns the variance of the values in the 
+\var{data} array. It returns zero if there is only one value.
 
+The second form of the function accepts a pointer to an array of \var{N}
+values.
 \Errors
+None.
 \SeeAlso
+\seef{totalvariance}, \seef{stddev}, \seef{mean}
 \end{function}
 
-\FPCexample{}
+\FPCexample{ex50}
