@@ -76,7 +76,8 @@ Function NewAnsiString(Len : Longint) : Pointer;
 Var
   P : Pointer;
 begin
-  GetMem(P,Len+AnsiRecLen);
+  { Also add +1 for a terminating zero }
+  GetMem(P,Len+1+AnsiRecLen);
   If P<>Nil then
    begin
      PAnsiRec(P)^.Maxlen:=Len;    { Maximal length }
@@ -158,11 +159,14 @@ Var
   Size,Location : Longint;
   S3 : pointer;
 begin
+  S3:=nil;
   if (S1=Nil) then
     AnsiStr_Assign(S3,S2)
   else
+    if (S2=Nil) then
+      AnsiStr_Assign(S3,S1)
+  else
     begin
-       S3:=Nil;
        Size:=PAnsiRec(S2-FirstOff)^.Len;
        Location:=Length(AnsiString(S1));
        { Setlength takes case of uniqueness
@@ -760,7 +764,10 @@ end;
 
 {
   $Log$
-  Revision 1.17  1999-04-06 11:23:58  peter
+  Revision 1.18  1999-04-08 10:19:55  peter
+    * fixed concat when s1 or s2 was nil
+
+  Revision 1.17  1999/04/06 11:23:58  peter
     * fixed insert on last char
     * saver chararray 2 ansi
 
