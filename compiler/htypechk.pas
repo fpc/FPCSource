@@ -24,8 +24,41 @@ unit htypechk;
 interface
 
     uses
-      tree,symtable;
+      tokens,tree,symtable;
 
+    type
+      Ttok2nodeRec=record
+        tok : ttoken;
+        nod : ttreetyp;
+      end;
+
+    const
+      tok2nodes=23;
+      tok2node:array[1..tok2nodes] of ttok2noderec=(
+        (tok:_PLUS    ;nod:addn),
+        (tok:_MINUS   ;nod:subn),
+        (tok:_STAR    ;nod:muln),
+        (tok:_SLASH   ;nod:slashn),
+        (tok:_EQUAL   ;nod:equaln),
+        (tok:_GT      ;nod:gtn),
+        (tok:_LT      ;nod:ltn),
+        (tok:_GTE     ;nod:gten),
+        (tok:_LTE     ;nod:lten),
+        (tok:_SYMDIF  ;nod:symdifn),
+        (tok:_STARSTAR;nod:starstarn),
+        (tok:_OP_AS     ;nod:asn),
+        (tok:_OP_IN     ;nod:inn),
+        (tok:_OP_IS     ;nod:isn),
+        (tok:_OP_OR     ;nod:orn),
+        (tok:_OP_AND    ;nod:andn),
+        (tok:_OP_DIV    ;nod:divn),
+        (tok:_OP_MOD    ;nod:modn),
+        (tok:_OP_SHL    ;nod:shln),
+        (tok:_OP_SHR    ;nod:shrn),
+        (tok:_OP_XOR    ;nod:xorn),
+        (tok:_CARET   ;nod:caretn),
+        (tok:_UNEQUAL ;nod:unequaln)
+      );
     const
     { firstcallparan without varspez we don't count the ref }
 {$ifdef extdebug}
@@ -39,6 +72,18 @@ interface
     function isconvertable(def_from,def_to : pdef;
              var doconv : tconverttype;fromtreetype : ttreetyp;
              explicit : boolean) : byte;
+    { is overloading of this operator allowed for this
+      binary operator }
+    function isbinaryoperatoroverloadable(ld, rd,dd : pdef;
+             treetyp : ttreetyp) : boolean;
+
+    { is overloading of this operator allowed for this
+      unary operator }
+    function isunaryoperatoroverloadable(rd,dd : pdef;
+             treetyp : ttreetyp) : boolean;
+
+    { check operator args and result type }
+    function isoperatoracceptable(pf : pprocdef; optoken : ttoken) : boolean;
 
     { Register Allocation }
     procedure make_not_regable(p : ptree);
@@ -60,7 +105,7 @@ interface
 implementation
 
     uses
-       globtype,systems,tokens,
+       globtype,systems,
        cobjects,verbose,globals,
        symconst,
        types,pass_1,cpubase,
@@ -535,6 +580,124 @@ implementation
         isconvertable:=b;
       end;
 
+    { ld is the left type definition
+      rd the right type definition
+      dd the result type definition  or voiddef if unkown }
+    function isbinaryoperatoroverloadable(ld, rd, dd : pdef;
+             treetyp : ttreetyp) : boolean;
+      begin
+        isbinaryoperatoroverloadable:=
+           (treetyp=starstarn) or
+           (ld^.deftype=recorddef) or
+           (rd^.deftype=recorddef) or
+           { array def, but not mmx or chararray+[char,string,chararray] }
+           ((ld^.deftype=arraydef) and
+            not((cs_mmx in aktlocalswitches) and
+                is_mmx_able_array(ld)) and
+            not(is_chararray(ld) and
+                (is_char(rd) or
+                is_pchar(rd) or
+                 (rd^.deftype=stringdef) or
+                 is_chararray(rd)))
+           ) or
+           ((rd^.deftype=arraydef) and
+            not((cs_mmx in aktlocalswitches) and
+                is_mmx_able_array(rd)) and
+            not(is_chararray(rd) and
+                (is_char(ld) or
+                 is_pchar(ld) or
+                 (ld^.deftype=stringdef) or
+                 is_chararray(ld)))
+           ) or
+           { <> and = are defined for classes }
+           ((ld^.deftype=objectdef) and
+            (not(pobjectdef(ld)^.is_class) or
+             not(treetyp in [equaln,unequaln])
+            )
+           ) or
+           ((rd^.deftype=objectdef) and
+            (not(pobjectdef(rd)^.is_class) or
+             not(treetyp in [equaln,unequaln])
+            )
+             or
+           { allow other operators that + on strings }
+           (
+            (is_char(rd) or
+             is_pchar(rd) or
+             (rd^.deftype=stringdef) or
+             is_chararray(rd) or
+             is_char(ld) or
+             is_pchar(ld) or
+             (ld^.deftype=stringdef) or
+             is_chararray(ld)
+             ) and
+             not(treetyp in [addn,equaln,unequaln,gtn,gten,ltn,lten]) and
+             not(is_pchar(ld) and
+                 (is_integer(rd) or (rd^.deftype=pointerdef)) and
+                 (treetyp=subn)
+                )
+            )
+           );
+      end;
+
+
+    function isunaryoperatoroverloadable(rd,dd : pdef;
+             treetyp : ttreetyp) : boolean;
+      begin
+        isunaryoperatoroverloadable:=false;
+        { what assignment overloading should be allowed ?? }
+        if (treetyp=assignn) then
+          begin
+            isunaryoperatoroverloadable:=true;
+             { this already get tbs0261 to fail not is_equal(rd,dd); PM }
+          end
+        { should we force that rd and dd are equal ?? }
+        else if (treetyp=unaryminusn) then
+          begin
+            isunaryoperatoroverloadable:=
+              not is_integer(rd) and not (rd^.deftype=floatdef)
+{$ifdef SUPPORT_MMX}
+              and not ((cs_mmx in aktlocalswitches) and
+              is_mmx_able_array(rd))
+{$endif SUPPORT_MMX}
+              ;
+          end;
+      end;
+
+    function isoperatoracceptable(pf : pprocdef; optoken : ttoken) : boolean;
+      var
+        ld,rd,dd : pdef;
+        i : longint;
+      begin
+        case pf^.parast^.symindex^.count of
+          2 : begin
+                isoperatoracceptable:=false;
+                for i:=1 to tok2nodes do
+                  if tok2node[i].tok=optoken then
+                    begin
+                      ld:=pvarsym(pf^.parast^.symindex^.first)^.vartype.def;
+                      rd:=pvarsym(pf^.parast^.symindex^.first^.next)^.vartype.def;
+                      dd:=pf^.rettype.def;
+                      isoperatoracceptable:=isbinaryoperatoroverloadable
+                        (ld,rd,dd,tok2node[i].nod);
+                      break;
+                    end;
+              end;
+          1 : begin
+                rd:=pvarsym(pf^.parast^.symindex^.first)^.vartype.def;
+                dd:=pf^.rettype.def;
+                for i:=1 to tok2nodes do
+                  if tok2node[i].tok=optoken then
+                    begin
+                      isoperatoracceptable:=isunaryoperatoroverloadable
+                        (rd,dd,tok2node[i].nod);
+                      break;
+                    end;
+              end;
+          else
+            isoperatoracceptable:=false;
+          end;
+      end;
 
 {****************************************************************************
                           Register Calculation
@@ -914,7 +1077,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.64  2000-06-01 19:13:02  peter
+  Revision 1.65  2000-06-02 21:22:04  pierre
+    + isbinaryoperatoracceptable and isunaryoperatoracceptable
+      for a more coherent operator overloading implementation
+      tok2node moved from pexpr unit to htypechk
+
+  Revision 1.64  2000/06/01 19:13:02  peter
     * fixed long line for tp7
 
   Revision 1.63  2000/06/01 11:00:52  peter
