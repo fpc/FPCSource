@@ -1286,11 +1286,13 @@ unit pmodules;
          consume(_POINT);
 
          If ResourceStringList<>Nil then
-           begin
-           insertresourcestrings;
-           current_module^.flags:=current_module^.flags or uf_has_resources;
-           WriteResourceFile(Current_module^.ModuleName^);
-           end;
+          begin
+            insertresourcestrings;
+            current_module^.flags:=current_module^.flags or uf_has_resources;
+            { only write if no errors found }
+            if (Errorcount=0) then
+             WriteResourceFile(Current_module^.ModuleName^);
+          end;
 
          { avoid self recursive destructor call !! PM }
          aktprocsym^.definition^.localst:=nil;
@@ -1582,10 +1584,12 @@ unit pmodules;
          current_module^.localsymtable:=nil;
 
          If ResourceStringList<>Nil then
-           begin
-           insertresourcestrings;
-           WriteResourceFile(Current_module^.ModuleName^);
-           end;
+          begin
+            insertresourcestrings;
+            { only write if no errors found }
+            if (Errorcount=0) then
+             WriteResourceFile(Current_module^.ModuleName^);
+          end;
 
          codegen_doneprocedure;
 
@@ -1700,7 +1704,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.192  2000-05-03 14:39:51  pierre
+  Revision 1.193  2000-05-04 20:43:33  peter
+    * don't write rst files if errors found
+
+  Revision 1.192  2000/05/03 14:39:51  pierre
     * Use RestoreUnitsSyms to avoid wrong hints about unused units
     * Avoid hints about unsused units if thet have a init or finalize code
 
