@@ -717,7 +717,17 @@ var temp        : PChar;
     lastchar    : char;
     name        : namestr;
     ext         : extstr;
+    s           : SearchRec;
 begin
+{ check if the file specified exists }
+  findfirst(path,anyfile,s);
+  if doserror=0 then
+   begin
+     findclose(s);
+     fsearch:=path;
+     exit;
+   end;
+{ search the path }
   fsearch:='';
   for i:=1 to length(path) do
    if path[i]='/' then
@@ -1004,7 +1014,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:57  michael
+  Revision 1.3  2000-08-24 19:02:36  peter
+    * fsearch checks if file exists first (merged)
+
+  Revision 1.2  2000/07/13 11:33:57  michael
   + removed logs
  
 }
