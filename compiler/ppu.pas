@@ -38,9 +38,17 @@ type
 
 const
 {$ifdef newcg}
+{$ifdef ORDERSOURCES}
   CurrentPPUVersion=100;
+{$else ORDERSOURCES}
+  CurrentPPUVersion=101;
+{$endif ORDERSOURCES}
 {$else newcg}
+{$ifdef ORDERSOURCES}
   CurrentPPUVersion=17;
+{$else ORDERSOURCES}
+  CurrentPPUVersion=18;
+{$endif ORDERSOURCES}
 {$endif newcg}
 
 { buffer sizes }
@@ -978,7 +986,7 @@ end;
          exit;
         closed:=false;
         tempclosed:=false;
-        
+
       { restore state }
         seek(f,closepos);
         tempopen:=true;
@@ -987,7 +995,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.44  1999-09-16 11:34:58  pierre
+  Revision 1.45  1999-09-16 13:27:08  pierre
+    + error if PPU modulename is different from what is searched
+      (8+3 limitations!)
+    + cond ORDERSOURCES to allow recompilation of FP
+      if symppu.inc is changed (need PPUversion change!)
+
+  Revision 1.44  1999/09/16 11:34:58  pierre
    * typo correction
 
   Revision 1.43  1999/09/10 18:48:09  florian

@@ -31,6 +31,7 @@
     {$ENDIF}
 {$ENDIF}
 
+{ define ORDERSOURCES}
 
 {*****************************************************************************
                                  PPU Writing
@@ -178,16 +179,37 @@
     procedure writesourcefiles;
       var
         hp    : pinputfile;
+{$ifdef ORDERSOURCES}
+        i,j : longint;
+{$endif ORDERSOURCES}
       begin
       { second write the used source files }
         current_ppu^.do_crc:=false;
         hp:=current_module^.sourcefiles^.files;
+{$ifdef ORDERSOURCES}
+      { write source files directly in good order }
+        j:=0;
+        while assigned(hp) do
+          begin
+            inc(j);
+            hp:=hp^.ref_next;
+          end;
+        while j>0 do
+          begin
+            hp:=current_module^.sourcefiles^.files;
+            for i:=1 to j-1 do
+              hp:=hp^.ref_next;
+            current_ppu^.putstring(hp^.name^);
+            dec(j);
+         end;
+{$else not ORDERSOURCES}
         while assigned(hp) do
          begin
          { only name and extension }
            current_ppu^.putstring(hp^.name^);
            hp:=hp^.ref_next;
          end;
+{$endif ORDERSOURCES}
         current_ppu^.writeentry(ibsourcefiles);
         current_ppu^.do_crc:=true;
       end;
@@ -523,10 +545,13 @@
                'in last compilation of '+current_module^.mainsource^);
          end;
       end;
-      
+
     procedure readsourcefiles;
       var
         temp,hs       : string;
+{$ifdef ORDERSOURCES}
+        main_dir      : string;
+{$endif ORDERSOURCES}
         incfile_found,
         main_found,
         is_main       : boolean;
@@ -536,10 +561,16 @@
       begin
         ppufiletime:=getnamedfiletime(current_module^.ppufilename^);
         current_module^.sources_avail:=true;
+{$ifdef ORDERSOURCES}
+        is_main:=true;
+        main_dir:='';
+{$endif ORDERSOURCES}
         while not current_ppu^.endofentry do
          begin
            hs:=current_ppu^.getstring;
+{$ifndef ORDERSOURCES}
            is_main:=current_ppu^.endofentry;
+{$endif ORDERSOURCES}
            temp:='';
            if (current_module^.flags and uf_in_library)<>0 then
             begin
@@ -557,20 +588,38 @@
               { check the date of the source files }
               Source_Time:=GetNamedFileTime(current_module^.path^+hs);
               incfile_found:=false;
+              if Source_Time<>-1 then
+                hs:=current_module^.path^+hs
+{$ifdef ORDERSOURCES}
+              else if not(is_main) then
+                begin
+                  Source_Time:=GetNamedFileTime(main_dir+hs);
+                  if Source_Time<>-1 then
+                    hs:=main_dir+hs;
+                end
+{$endif def ORDERSOURCES}
+                   ;
               if (Source_Time=-1) then
                 begin
                   if is_main then
                     temp:=search(hs,unitsearchpath,main_found)
                   else
                     temp:=search(hs,includesearchpath,incfile_found);
+{$ifdef ORDERSOURCES}
+                  if is_main then
+                    begin
+                      stringdispose(current_module^.mainsource);
+                      current_module^.mainsource:=stringdup(hs);
+                      if main_found then
+                        main_dir:=temp;
+                    end;
+{$endif ORDERSOURCES}
                   if incfile_found or main_found then
                    begin
                      hs:=temp+hs;
                      Source_Time:=GetNamedFileTime(hs);
                    end
-                end
-              else
-                hs:=current_module^.path^+hs;
+                end;
               if Source_Time=-1 then
                begin
                  current_module^.sources_avail:=false;
@@ -599,13 +648,18 @@
               current_module^.sourcefiles^.register_file(hp);
             end;
            Message1(unit_u_ppu_source,hs+temp);
+{$ifdef ORDERSOURCES}
+           is_main:=false;
+{$endif ORDERSOURCES}
          end;
+{$ifndef ORDERSOURCES}
       { main source is always the last }
         stringdispose(current_module^.mainsource);
         current_module^.mainsource:=stringdup(hs);
 
         { the indexing is corrected here PM }
         current_module^.sourcefiles^.inverse_register_indexes;
+{$endif ORDERSOURCES}
       { check if we want to rebuild every unit, only if the sources are
         available }
         if do_build and current_module^.sources_avail then
@@ -651,6 +705,7 @@
     procedure load_interface;
       var
         b : byte;
+        newmodulename : pstring;
       begin
        { read interface part }
          repeat
@@ -658,8 +713,11 @@
            case b of
              ibmodulename :
                begin
+                 newmodulename:=stringdup(current_ppu^.getstring);
+                 if newmodulename^<>current_module^.modulename^ then
+                   Message2(unit_f_unit_name_error,current_module^.modulename^,newmodulename^);
                  stringdispose(current_module^.modulename);
-                 current_module^.modulename:=stringdup(current_ppu^.getstring);
+                 current_module^.modulename:=newmodulename;
                end;
              ibsourcefiles :
                readsourcefiles;
@@ -689,7 +747,13 @@
 
 {
   $Log$
-  Revision 1.50  1999-09-12 15:45:11  florian
+  Revision 1.51  1999-09-16 13:27:08  pierre
+    + error if PPU modulename is different from what is searched
+      (8+3 limitations!)
+    + cond ORDERSOURCES to allow recompilation of FP
+      if symppu.inc is changed (need PPUversion change!)
+
+  Revision 1.50  1999/09/12 15:45:11  florian
     * tnamedindexobject._name should be never accessed direct! Use the
       function name instead
 
