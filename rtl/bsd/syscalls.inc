@@ -374,20 +374,25 @@ end;
 
 Function Sys_ReadDir(p:pdir):pdirent;
 var
-  regs :SysCallregs;
-  dummy:longint;
+    retval : longint;
 begin
-  regs.reg3:=longint(p^.buf);
-  regs.reg2:=p^.fd;
-  regs.reg4:=1;
-  dummy:=SysCall(SysCall_nr_readdir,regs);
-{ the readdir system call returns the number of bytes written }
-  if dummy=0 then 
+ retval:=SIZEOF(dirent) ;
+ asm 
+    mov p,%esi
+    push retval
+    push tdir.buf(%esi)
+    push tdir.fd(%esi)
+    mov  $272,%eax 
+    int  $0x80
+    addl $12,%esp
+    mov  %eax,retval    
+  end; 
+  retval:=checkreturnvalue(retval,retval); 
+  if retval=0 then 
    sys_readdir:=nil 
   else 
    sys_readdir:=p^.buf
 end;
-
 
 {*****************************************************************************
         --- Process:Process & program handling - related calls ---
@@ -410,7 +415,11 @@ end;
 
 {
   $Log$
-  Revision 1.4  2000-02-03 17:04:47  marco
+  Revision 1.5  2000-02-04 16:53:26  marco
+   * Finished Linux (and rest syscalls) roughly. Some things still need to be
+    tested, and checked (off_t calls specially)
+
+  Revision 1.4  2000/02/03 17:04:47  marco
    * additions fixes due to port linux
 
   Revision 1.3  2000/02/02 18:07:27  marco

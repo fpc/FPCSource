@@ -578,8 +578,10 @@ Function  Dup(var oldfile,newfile:file):Boolean;
 Function  Dup2(oldfile,newfile:longint):Boolean;
 Function  Dup2(var oldfile,newfile:text):Boolean;
 Function  Dup2(var oldfile,newfile:file):Boolean;
+{
 Function  Select(N:longint;readfds,writefds,exceptfds:PFDSet;TimeOut:PTimeVal):longint;
 Function  Select(N:longint;readfds,writefds,exceptfds:PFDSet;TimeOut:Longint):longint;
+}
 Function  SelectText(var T:Text;TimeOut :PTimeVal):Longint;
 
 {**************************
@@ -633,9 +635,9 @@ Procedure SigSuspend(Mask:Sigset);
 //Function  Signal(Signum:Integer;Handler:SignalHandler):SignalHandler;
 Function  Kill(Pid:longint;Sig:integer):integer;
 Procedure SigRaise(Sig:integer);
-Function  Alarm(Sec : Longint) : longint;
+{Function  Alarm(Sec : Longint) : longint;
 Procedure Pause;
-
+}
 {**************************
   IOCtl/Termios Functions
 ***************************}
@@ -696,7 +698,9 @@ function MMap(const m:tmmapargs):longint;
      Port IO functions
 ***************************}
 
+{
 Function  IOperm (From,Num : Cardinal; Value : Longint) : boolean;
+}
 {$IFDEF I386}
 Procedure WritePort (Port : Longint; Value : Byte);
 Procedure WritePort (Port : Longint; Value : Word);
@@ -2127,24 +2131,28 @@ begin
   Dup2:=Dup2(filerec(oldfile).handle,filerec(newfile).handle);
 end;
 
-{
+
 Function Select(N:longint;readfds,writefds,exceptfds:PFDSet;TimeOut:PTimeVal):longint;
 {
   Select checks whether the file descriptor sets in readfs/writefs/exceptfs
   have changed.
 }
 Var
-  SelectArray : Array[1..5] of longint;
-  Sr : Syscallregs;
+  Retval : LONGINT;
 begin
-  SelectArray[1]:=n;
-  SelectArray[2]:=longint(Readfds);
-  Selectarray[3]:=longint(Writefds);
-  selectarray[4]:=longint(exceptfds);
-  Selectarray[5]:=longint(TimeOut);
-  sr.reg2:=longint(@selectarray);
-  Select:=SysCall(Syscall_nr_select,sr);
-  LinuxError:=Errno;
+ asm
+  pushl TimeOut
+  pushl exceptfds
+  pushl writefds
+  pushl readfds
+  pushl n
+  mov   $93,%eax
+  int   $0x80
+  addl  $20,%esp
+  mov   %eax,retval
+ end;
+ Select:=checkreturnvalue(retval,retval);
+ LinuxError:=Errno;
 end;
 
 Function  Select(N:longint;readfds,writefds,exceptfds:PFDSet;TimeOut:Longint):longint;
@@ -2167,7 +2175,7 @@ begin
    end;
   Select:=Select(N,Readfds,WriteFds,ExceptFds,p);
 end;
-}
+
 
 
 Function SelectText(var T:Text;TimeOut :PTimeval):Longint;
@@ -2603,7 +2611,7 @@ begin
   or   STAT_IFIFO,%ebx
   push %ebx
   push %ecx
-  mov  $14,$eax
+  mov  $14,%eax
   int  $0x80
   addl $12,%esp
   mov  %eax,retval
@@ -2887,7 +2895,7 @@ begin
  asm
   push Sig
   push Pid
-  mov  $37,$eax
+  mov  $37,%eax
   int  $0x80
   addl $8,%esp
   mov  %eax,retval
@@ -2912,14 +2920,12 @@ begin
   push oldact
   push act
   push signum
-  mov  $46,$eax
+  mov  $46,%eax
   int  $0x80
   addl $12,%esp
   mov  %eax,retval
  end;
- SigAction:=checkreturnvalue(retval,retval);
- if kill<0 THEN
-  Kill:=0; 
+ checkreturnvalue(retval,retval);
  LinuxError:=Errno;
 end;
 
@@ -2944,7 +2950,7 @@ begin
    addl  $12,%esp
    mov  %eax,retval
   end;
- SigProcMask:=checkreturnvalue(retval,retval);
+ checkreturnvalue(retval,retval);
  LinuxError:=Errno;
 end;
 
@@ -2962,6 +2968,7 @@ begin
    mov  $52,%eax
    int  $0x80
    addl $4,%esp
+   mov  %eax,retval
   end;
   sigpending:=checkreturnvalue(retval,dummy);
   LinuxError:=Errno;
@@ -3016,6 +3023,7 @@ begin
   Kill(GetPid,Sig);
 end;
 
+{
 Function  Alarm(Sec : Longint) : longint;
 
 Var Sr : Syscallregs;
@@ -3032,7 +3040,7 @@ Var Sr : Syscallregs;
 begin
   syscall(syscall_nr_pause,sr);
 end;
-
+}
 {******************************************************************************
                          IOCtl and Termios calls
 ******************************************************************************}
@@ -3046,13 +3054,19 @@ Function IOCtl(Handle,Ndx: Longint;Data: Pointer):boolean;
   data is function-dependent.
 }
 var
-  sr: SysCallRegs;
+  retval  : longint;
 begin
-  sr.reg2:=Handle;
-  sr.reg3:=Ndx;
-  sr.reg4:=Longint(Data);
-  IOCtl:=(SysCall(Syscall_nr_ioctl,sr)=0);
-  LinuxError:=Errno;
+  asm
+    push data
+    push ndx
+    push handle
+    mov  $54,%eax
+    int  $0x80
+    addl $12,%esp
+    mov  %eax,retval
+  end;
+ IOctl:=checkreturnvalue(retval,retval)=0;
+ LinuxError:=Errno;
 end;
 
 
@@ -3671,8 +3685,6 @@ begin
   FillChar(fds,sizeof(fdSet),0);
 end;
 
-
-
 Procedure FD_Clr(fd:longint;var fds:fdSet);
 {
   Remove fd from the set of filedescriptors
@@ -3809,18 +3821,31 @@ end;
 
 function MMap(const m:tmmapargs):longint;
 Var
-  Sr : Syscallregs;
+   Retval : longint;
 begin
-  Sr.reg2:=longint(@m);
-  MMap:=syscall(syscall_nr_mmap,sr);
-  LinuxError:=Errno;
+  asm
+   push $0
+   mov  m,%esi
+   push tmmapargs.offset(%esi)
+   push tmmapargs.fd(%esi)
+   push tmmapargs.flags(%esi)
+   push tmmapargs.prot(%esi)
+   push tmmapargs.size(%esi)
+   push tmmapargs.address(%esi)
+   mov $197,%eax
+   int $0x80
+   addl $28,%esp
+   mov %eax,retval
+ end;
+ checkreturnvalue(retval,retval);
+ LinuxError:=Errno;
 end;
 
 
 {--------------------------------
       Port IO functions
 --------------------------------}
-
+{
 Function  IOperm (From,Num : Cardinal; Value : Longint) : boolean;
 {
   Set permissions on NUM ports starting with port FROM to VALUE
@@ -3836,8 +3861,7 @@ begin
   IOPerm:=Syscall(Syscall_nr_ioperm,sr)=0;
   LinuxError:=Errno;
 end;
-
-
+}
 {$IFDEF I386}
 
 {$asmmode direct}
@@ -4039,7 +4063,11 @@ End.
 
 {
   $Log$
-  Revision 1.2  2000-02-04 12:05:04  marco
+  Revision 1.3  2000-02-04 16:53:26  marco
+   * Finished Linux (and rest syscalls) roughly. Some things still need to be
+    tested, and checked (off_t calls specially)
+
+  Revision 1.2  2000/02/04 12:05:04  marco
    * a few functions added.
 
   Revision 1.1  2000/02/03 17:03:36  marco
