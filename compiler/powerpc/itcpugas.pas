@@ -84,11 +84,16 @@ interface
 implementation
 
     uses
+      globtype,globals,
       cutils,verbose;
 
     const
       gas_regname_table : array[tregisterindex] of string[7] = (
         {$i rppcgas.inc}
+      );
+
+      gas_regname_short_table : array[tregisterindex] of string[7] = (
+        {$i rppcgss.inc}
       );
 
       gas_regname_index : array[tregisterindex] of tregisterindex = (
@@ -127,7 +132,10 @@ implementation
       begin
         p:=findreg_by_number(r);
         if p<>0 then
-          result:=gas_regname_table[p]
+          if (cs_create_smart in aktmoduleswitches) then
+            result:=gas_regname_short_table[p]
+          else
+            result:=gas_regname_table[p]
         else
           result:=generic_regname(r);
       end;
@@ -135,7 +143,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2003-11-15 19:00:10  florian
+  Revision 1.3  2003-12-10 22:19:27  florian
+    + short gas register names for smartlinking added
+
+  Revision 1.2  2003/11/15 19:00:10  florian
     * fixed ppc assembler reader
 
   Revision 1.1  2003/11/12 16:05:40  florian
@@ -151,5 +162,4 @@ end.
 
   Revision 1.1  2003/09/03 19:35:24  peter
     * powerpc compiles again
-
 }

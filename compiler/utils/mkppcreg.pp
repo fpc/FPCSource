@@ -29,6 +29,7 @@ var s : string;
     numbers,
     stdnames,
     gasnames,
+    gssnames,
     motnames,
     stabs : array[0..max_regcount-1] of string[63];
     regnumber_index,
@@ -271,6 +272,8 @@ begin
         readcomma;
         gasnames[regcount]:=readstr;
         readcomma;
+        gssnames[regcount]:=readstr;
+        readcomma;
         motnames[regcount]:=readstr;
         readcomma;
         stabs[regcount]:=readstr;
@@ -302,7 +305,7 @@ procedure write_inc_files;
 
 var
     norfile,stdfile,motfile,supfile,
-    numfile,stabfile,confile,gasfile,
+    numfile,stabfile,confile,gasfile,gssfile,
     rnifile,srifile,mrifile,grifile : text;
     first:boolean;
 
@@ -313,6 +316,7 @@ begin
   openinc(numfile,'rppcnum.inc');
   openinc(stdfile,'rppcstd.inc');
   openinc(gasfile,'rppcgas.inc');
+  openinc(gssfile,'rppcgss.inc');
   openinc(motfile,'rppcmot.inc');
   openinc(stabfile,'rppcstab.inc');
   openinc(norfile,'rppcnor.inc');
@@ -328,6 +332,7 @@ begin
           writeln(numfile,',');
           writeln(stdfile,',');
           writeln(gasfile,',');
+          writeln(gssfile,',');
           writeln(motfile,',');
           writeln(stabfile,',');
           writeln(rnifile,',');
@@ -342,6 +347,7 @@ begin
       write(numfile,'NR_',names[i]);
       write(stdfile,'''',stdnames[i],'''');
       write(gasfile,'''',gasnames[i],'''');
+      write(gssfile,'''',gssnames[i],'''');
       write(motfile,'''',motnames[i],'''');
       write(stabfile,stabs[i]);
       write(rnifile,regnumber_index[i]);
@@ -355,6 +361,7 @@ begin
   closeinc(numfile);
   closeinc(stdfile);
   closeinc(gasfile);
+  closeinc(gssfile);
   closeinc(motfile);
   closeinc(stabfile);
   closeinc(norfile);
@@ -383,7 +390,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2003-09-03 20:33:28  peter
+  Revision 1.6  2003-12-10 22:19:28  florian
+    + short gas register names for smartlinking added
+
+  Revision 1.5  2003/09/03 20:33:28  peter
     * fixed sorting of register number
 
   Revision 1.4  2003/09/03 19:37:07  peter
