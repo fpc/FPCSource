@@ -316,3 +316,4 @@ bug0230.pp   several strange happen on the ln function: ln(0): no
 bug0231.pp   Problem with comments
 bug0232.pp   const. procedure variables need a special syntax
              if they use calling specification modifiers
+bug0233.pp   Problem with enum sets in args
