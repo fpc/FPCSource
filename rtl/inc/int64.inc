@@ -66,7 +66,7 @@
          { we can't write qword direct currently }
          divqword:=divqword xor divqword;
          tqwordrec(one).high:=0;
-         tqwordrec(one).high:=1;
+         tqwordrec(one).low:=1;
          lzz:=count_leading_zeros(z);
          lzn:=count_leading_zeros(n);
          { if the denominator contains less zeros }
@@ -233,14 +233,13 @@
          hs : string;
 
       begin
-         {!!!!!!!!!!!
+         {!!!!!!!!!!!      }
          hs:='';
          repeat
            hs:=chr(longint(value mod 10)+48)+hs;
            value:=value div 10;
          until value=0;
          s:=hs;
-         }
       end;
 
     procedure int_str(value : int64;var s : string);
@@ -262,7 +261,10 @@
 
 {
   $Log$
-  Revision 1.6  1999-06-02 10:13:16  florian
+  Revision 1.7  1999-06-25 12:24:44  pierre
+   * qword one was wrong !
+
+  Revision 1.6  1999/06/02 10:13:16  florian
     * multiplication fixed
 
   Revision 1.5  1999/05/25 20:36:41  florian
