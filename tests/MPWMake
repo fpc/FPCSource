@@ -140,15 +140,14 @@ clean Ä clean_test
 	Make clean -f MPWMake > Makeout; Makeout
   Directory ::
 
-distclean Ä clean
-  Directory :utils
-	Make clean -f MPWMake > Makeout; Makeout
-  Directory ::
-
-cleanall Ä clean
+clean_utils Ä
 	Set Exit 0 # To handle the case, when there is no match
 	Delete -y :utils:dotest :utils:digest :utils:fail :utils:testfail
 	Set Exit 1 #Revert error handling
+
+distclean Ä clean clean_utils
+
+cleanall Ä clean clean_utils
 #  Directory :utils
 #	Make cleanall -f MPWMake > Makeout; Makeout
 #  Directory ::
