@@ -121,6 +121,8 @@ type
     PDlgWindow = ^TDlgWindow;
     TDlgWindow = object(TDialog)
       constructor Init(var Bounds: TRect; ATitle: TTitleStr; ANumber: Sw_Integer);
+      procedure   HandleEvent(var Event: TEvent); virtual;
+      procedure Update; virtual;
     end;
 
     PAdvancedStatusLine = ^TAdvancedStatusLine;
@@ -1439,6 +1441,23 @@ begin
 end;
 
 
+procedure TDlgWindow.Update;
+begin
+  DrawView;
+end;
+
+
+procedure TDlgWindow.HandleEvent(var Event: TEvent);
+begin
+  case Event.What of
+    evBroadcast :
+      case Event.Command of
+        cmUpdate : Update;
+      end;
+  end;
+  inherited HandleEvent(Event);
+end;
+
 procedure TLocalMenuListBox.LocalMenu(P: TPoint);
 var M: PMenu;
     MV: PAdvancedMenuPopUp;
@@ -2530,7 +2549,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.11  2004-12-06 19:23:30  peter
+  Revision 1.12  2004-12-06 20:53:55  peter
+  Handle cmUpdate for all DlgWindows
+
+  Revision 1.11  2004/12/06 19:23:30  peter
   dropdownlistbox works better with Enter key
 
   Revision 1.10  2004/11/08 20:28:29  peter
