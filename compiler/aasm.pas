@@ -490,7 +490,7 @@ uses
          typ:=ait_symbol;
          sym:=_sym;
          size:=siz;
-         is_global:=(sym^.bind=AB_GLOBAL);
+         is_global:=(sym^.defbind=AB_GLOBAL);
       end;
 
     constructor tai_symbol.initname(const _name : string;siz:longint);
@@ -744,7 +744,7 @@ uses
         typ:=ait_label;
         l:=_l;
         l^.is_set:=true;
-        is_global:=(l^.bind=AB_GLOBAL);
+        is_global:=(l^.defbind=AB_GLOBAL);
       end;
 
 
@@ -1180,7 +1180,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.9  2000-08-16 18:33:53  peter
+  Revision 1.10  2000-08-20 17:38:21  peter
+    * smartlinking fixed for linux (merged)
+
+  Revision 1.9  2000/08/16 18:33:53  peter
     * splitted namedobjectitem.next into indexnext and listnext so it
       can be used in both lists
     * don't allow "word = word" type definitions (merged)
