@@ -294,8 +294,8 @@ begin
     if mantOne then
       if sign then
         temp := '-Inf'
-      else temp := 'Inf'
-    else temp := 'NaN'
+      else temp := '+Inf'
+    else temp := 'Nan'
   else
     begin
       {  d:=abs(d); this converts d to double so we loose precision }
@@ -442,7 +442,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  2003-09-06 16:48:35  florian
+  Revision 1.10  2003-09-06 17:06:59  florian
+    * fixed Nan and +Inf string
+
+  Revision 1.9  2003/09/06 16:48:35  florian
     * fixed real2str for -Inf and Inf
 
   Revision 1.8  2003/05/16 23:22:31  jonas
