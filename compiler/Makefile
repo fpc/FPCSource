@@ -60,11 +60,6 @@ override LOCALOPT+=-Sg
 # set correct defines (-d$(CPU) is automaticly added in makefile.cfg)
 override LOCALDEF+=-dGDB -dFPC
 
-# for i386 also insert MMX support
-ifneq ($(findstring -di386,$(LOCALDEF)),)
-override LOCALDEF+=-dSUPPORT_MMX
-endif
-
 override LOCALOPT+=$(LOCALDEF)
 
 
@@ -73,6 +68,11 @@ override LOCALOPT+=$(LOCALDEF)
 #####################################################################
 
 include $(CFG)/makefile.cfg
+
+# for i386 also insert MMX support
+ifneq ($(findstring -di386,$(COMPILER)),)
+override LOCALDEF+=-dSUPPORT_MMX
+endif
 
 
 #####################################################################
@@ -216,7 +216,6 @@ msg: msgtxt.inc
 # Make only the compiler
 ifdef inlinux
 $(EXENAME) : $(PPEXENAME)
-	$(EXECPPAS)
 	$(MOVE) $(PPEXENAME) $(EXENAME)
 else
 $(EXENAME) : $(wildcard *.pas) $(wildcard *.inc)
@@ -328,7 +327,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.9  1998-10-09 11:07:44  peter
+# Revision 1.10  1998-10-09 12:59:07  pierre
+#   * MMX_SUPPORT used by default
+#
+# Revision 1.9  1998/10/09 11:07:44  peter
 #   + cycledep
 #
 # Revision 1.8  1998/10/09 08:54:18  pierre
