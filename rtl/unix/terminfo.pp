@@ -605,7 +605,7 @@ var
 {$ifndef darwin}
   cur_term : TerminalCommon_ptr1; cvar; external;
 {$else darwin}
-  cur_term : TerminalCommon_ptr1; external curseslib name '_cur_term';
+  cur_term : TerminalCommon_ptr1; external curseslib name 'cur_term';
 {$endif darwin}
   cur_term_booleans: ^TT_BoolArray;
   cur_term_numbers: ^TT_WordArray;
@@ -747,7 +747,11 @@ function tparam(const char *, char *, int, ...): PChar; cdecl; external;}
 end.
 {
   $Log$
-  Revision 1.5  2004-02-06 22:35:50  jonas
+  Revision 1.6  2004-03-05 22:18:15  jonas
+    * fixed declaration for cur_term for darwin now that the importing of
+      variables from shared libraries works
+
+  Revision 1.5  2004/02/06 22:35:50  jonas
     + some darwin support, doesn't work yet because of imported variables
       problem
 
