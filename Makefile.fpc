@@ -9,6 +9,9 @@ version=1.9.6
 [target]
 dirs=compiler rtl utils fcl fv packages ide installer
 
+[require]
+nortl=y
+
 [install]
 fpcpackage=y
 
