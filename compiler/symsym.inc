@@ -338,10 +338,31 @@
          prevsym:=nil;
       end;
 
+    { we need to remove it from the prevsym chain ! }
+    
     destructor tunitsym.done;
+      var pus,ppus : punitsym;
       begin
-         if assigned(unitsymtable) and (unitsymtable^.unitsym=@self) then
-           unitsymtable^.unitsym:=prevsym;
+         if assigned(unitsymtable) then
+           begin
+             ppus:=nil;
+             pus:=unitsymtable^.unitsym;
+             if pus=@self then
+               unitsymtable^.unitsym:=prevsym
+             else while assigned(pus) do
+               begin
+                  if pus=@self then
+                    begin
+                       ppus^.prevsym:=prevsym;
+                       break;
+                    end
+                  else
+                    begin
+                       ppus:=pus;
+                       pus:=ppus^.prevsym;
+                    end;
+               end;
+           end;
          inherited done;
       end;
 
@@ -1951,7 +1972,10 @@
 
 {
   $Log$
-  Revision 1.83  1999-04-28 06:02:13  florian
+  Revision 1.84  1999-05-04 16:05:13  pierre
+   * fix for unitsym problem
+
+  Revision 1.83  1999/04/28 06:02:13  florian
     * changes of Bruessel:
        + message handler can now take an explicit self
        * typinfo fixed: sometimes the type names weren't written
