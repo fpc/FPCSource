@@ -372,7 +372,7 @@ end;
 procedure TFPMemoryImage.SetUsePalette(Value:boolean);
 var
   OldColors:PFPColorArray;
-  OldPixels:PIntegerArray;
+  OldPixels:PFPIntegerArray;
   r,c:Integer;
 begin
   if Value<>assigned(FPalette)
@@ -391,7 +391,7 @@ begin
       end
     else
       begin
-        OldPixels:=PIntegerArray(FData);
+        OldPixels:=PFPIntegerArray(FData);
         GetMem(FData,FWidth*FHeight*SizeOf(TFPColor));
         for r:=0 to FHeight-1 do
           for c:=0 to FWidth-1 do
