@@ -1238,6 +1238,9 @@ begin
                     begin
                       { only trigger an error, becuase it doesn't hurt }
                       Message(parser_e_call_convention_dont_match_forward);
+                      { set the mangledname to the interface name so it doesn't trigger
+                        the Note about different manglednames (PFV) }
+                      aktprocsym^.definition^.setmangledname(hd^.mangledname);
                     end;
                  { manglednames are equal? }
                    hd^.count:=false;
@@ -1986,7 +1989,11 @@ end.
 
 {
   $Log$
-  Revision 1.50  2000-02-20 20:49:45  florian
+  Revision 1.51  2000-02-27 14:44:39  peter
+    * if calling convention doesn't match don't print note about
+      different manglednames
+
+  Revision 1.50  2000/02/20 20:49:45  florian
     * newcg is compiling
     * fixed the dup id problem reported by Paul Y.
 
