@@ -1623,7 +1623,8 @@ end;
                    inc(cfg.packs);
                    if cfg.packs>maxpacks then
                     begin
-                      writeln('Too many packs');
+                      MessageBox ('Too many packs!', nil,
+                                                         mfError + mfOkButton);
                       if CreateLog then
                       begin
                         WriteLn (Log, 'Too many packs');
@@ -1638,7 +1639,8 @@ end;
                  begin
                    if cfg.packs=0 then
                     begin
-                      writeln('No pack set');
+                      MessageBox ('No pack set found!', nil,
+                                                         mfError + mfOkButton);
                       if CreateLog then
                       begin
                         WriteLn (Log, 'No pack set');
@@ -1653,7 +1655,8 @@ end;
                  begin
                    if cfg.packs=0 then
                     begin
-                      writeln('No pack set');
+                      MessageBox ('No pack set found!', nil,
+                                                         mfError + mfOkButton);
                       if CreateLog then
                       begin
                         WriteLn (Log, 'No pack set');
@@ -1668,7 +1671,8 @@ end;
                  begin
                    if cfg.packs=0 then
                     begin
-                      writeln('No pack set');
+                      MessageBox ('No pack set found!', nil,
+                                                         mfError + mfOkButton);
                       if CreateLog then
                       begin
                         WriteLn (Log, 'No pack set');
@@ -1683,7 +1687,8 @@ end;
                  begin
                    if cfg.packs=0 then
                     begin
-                      writeln('No pack set');
+                      MessageBox ('No pack set found!', nil,
+                                                         mfError + mfOkButton);
                       if CreateLog then
                       begin
                         WriteLn (Log, 'No pack set');
@@ -1698,7 +1703,8 @@ end;
                  begin
                    if cfg.packs=0 then
                     begin
-                      writeln('No pack set');
+                      MessageBox ('No pack set found!', nil,
+                                                         mfError + mfOkButton);
                       if CreateLog then
                       begin
                         WriteLn (Log, 'No pack set');
@@ -1713,7 +1719,8 @@ end;
                  begin
                    if cfg.packs=0 then
                     begin
-                      writeln('No pack set');
+                      MessageBox ('No pack set found!', nil,
+                                                         mfError + mfOkButton);
                       if CreateLog then
                       begin
                         WriteLn (Log, 'No pack set');
@@ -1728,7 +1735,8 @@ end;
                  begin
                    if cfg.packs=0 then
                     begin
-                      writeln('No pack set');
+                      MessageBox ('No pack set found!', nil,
+                                                         mfError + mfOkButton);
                       if CreateLog then
                         WriteLn (Log, 'No pack set');
                       halt(1);
@@ -1740,7 +1748,8 @@ end;
                  begin
                    if cfg.packs=0 then
                     begin
-                      writeln('No pack set');
+                      MessageBox ('No pack set found!', nil,
+                                                         mfError + mfOkButton);
                       if CreateLog then
                       begin
                         WriteLn (Log, 'No pack set');
@@ -1755,7 +1764,8 @@ end;
                  begin
                    if cfg.packs=0 then
                     begin
-                      writeln('No pack set');
+                      MessageBox ('No pack set found!', nil,
+                                                         mfError + mfOkButton);
                       if CreateLog then
                       begin
                         WriteLn (Log, 'No pack set');
@@ -2030,7 +2040,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2005-01-05 17:43:44  armin
+  Revision 1.27  2005-01-05 21:27:55  hajny
+    * error message boxes instead of writeln
+
+  Revision 1.26  2005/01/05 17:43:44  armin
   * maxpacks increased tp 30, close logfile before halt
 
   Revision 1.25  2004/12/31 18:36:44  florian
