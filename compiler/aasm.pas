@@ -319,6 +319,7 @@ type
       asmsymbollist : pasmsymbollist;
 
     function newasmsymbol(const s : string) : pasmsymbol;
+    function renameasmsymbol(const sold, snew : string) : pasmsymbol;
 
   { label functions }
     const
@@ -824,6 +825,38 @@ uses
       end;
 
 
+    { renames an asmsymbol }
+    function renameasmsymbol(const sold, snew : string) : pasmsymbol;
+      var
+        hpold,hpnew : pasmsymbol;
+      begin
+        hpnew:=pasmsymbol(asmsymbollist^.search(snew));
+        if assigned(hpnew) then
+          internalerror(405405);
+        hpold:=pasmsymbol(asmsymbollist^.search(sold));
+        if not assigned(hpold) then
+          internalerror(405406);
+          
+        hpnew:=new(pasmsymbol,init(sold));
+        { replace the old one }
+        { WARNING this heavily depends on the
+          feature that tdictionnary.insert does not delete
+          the tree element that it replaces !! }
+        asmsymbollist^.replace_existing:=true;
+        asmsymbollist^.insert(hpnew);
+        asmsymbollist^.replace_existing:=false;
+        { restore the tree }
+        hpnew^.left:=hpold^.left;
+        hpnew^.right:=hpold^.right;
+        stringdispose(hpold^._name);
+        hpold^._name:=stringdup(snew);
+        hpold^.speedvalue:=getspeedvalue(snew);
+        { now reinsert it at right location !! }
+        asmsymbollist^.insert(hpold);
+        renameasmsymbol:=hpold;
+      end;
+
+
 {*****************************************************************************
                               Label Helpers
 *****************************************************************************}
@@ -937,7 +970,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.31  1999-02-25 21:02:16  peter
+  Revision 1.32  1999-03-01 13:31:59  pierre
+   * external used before implemented problem fixed
+
+  Revision 1.31  1999/02/25 21:02:16  peter
     * ag386bin updates
     + coff writer
 

@@ -163,6 +163,7 @@ unit cobjects;
         Tdictionary=object
             root:Pnamed_object;
             hasharray:Pdictionaryhasharray;
+            replace_existing : boolean;
             constructor init(usehash:boolean);
             procedure clear;virtual;
             procedure foreach(proc2call:Tcallback);
@@ -859,6 +860,7 @@ constructor Tdictionary.init(usehash:boolean);
 begin
     root:=nil;
     hasharray:=nil;
+    replace_existing:=false;
     if usehash then
         begin
             new(hasharray);
@@ -962,7 +964,16 @@ function Tdictionary.insert(obj:Pnamed_object):Pnamed_object;
                                 begin
                                     dispose(s2);
                                     dispose(s1);
-                                    _insert:=osym;
+                                    if replace_existing and
+                                       assigned(osym) then
+                                      begin
+                                        obj^.left:=osym^.left;
+                                        obj^.right:=osym^.right;
+                                        osym:=obj;
+                                        _insert:=obj;
+                                      end
+                                    else
+                                      _insert:=osym;
                                 end;
                     end;
     end;
@@ -1413,7 +1424,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.18  1999-02-24 00:59:13  peter
+  Revision 1.19  1999-03-01 13:32:00  pierre
+   * external used before implemented problem fixed
+
+  Revision 1.18  1999/02/24 00:59:13  peter
     * small updates for ag386bin
 
   Revision 1.17  1999/01/19 11:00:33  daniel
