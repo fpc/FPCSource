@@ -1807,7 +1807,10 @@ const
                 begin
                   a_load_ref_ref(list,int_cgsize(len),source,dest);
                   if delsource then
-                    reference_release(list,source);
+                    begin
+                      reference_release(list,source);
+                      tg.ungetiftemp(list,source);
+                    end;
                 end
               else
                 begin
@@ -1815,7 +1818,10 @@ const
                   a_reg_alloc(list,r);
                   a_loadfpu_ref_reg(list,OS_F64,source,r);
                   if delsource then
-                    reference_release(list,source);
+                    begin
+                      reference_release(list,source);
+                      tg.ungetiftemp(list,source);
+                    end;
                   a_loadfpu_reg_ref(list,OS_F64,r,dest);
                   a_reg_dealloc(list,r);
                 end;
@@ -1951,6 +1957,8 @@ const
          free_scratch_reg(list,src.base);
        if not orgdst then
          free_scratch_reg(list,dst.base);
+       if delsource then
+         tg.ungetiftemp(list,source);
       end;
 
     procedure tcgppc.g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;elesize:integer);
@@ -2476,7 +2484,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.98  2003-05-28 23:58:18  jonas
+  Revision 1.99  2003-05-29 10:06:09  jonas
+    * also free temps in g_concatcopy if delsource is true
+
+  Revision 1.98  2003/05/28 23:58:18  jonas
     * added missing initialization of rg.usedint{in,by}proc
     * ppc now also saves/restores used fpu registers
     * ncgcal doesn't add used registers to usedby/inproc anymore, except for
