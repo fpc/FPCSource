@@ -1,7 +1,7 @@
 { %version=1.1 }
 const
-  {:Header for 'normal' Unicode stream (Intel format).  }
-  CUnicodeNormal  : WideChar = WideChar($FEFF);
+  CUnicodeNormal1  : WideChar = WideChar($FEFF);
+  CUnicodeNormal2  : WideChar = #12;
 
 begin
 end.
