@@ -20,22 +20,51 @@
 
  ****************************************************************************
 }
+{# This unit exports some types which are used across the code generator }
 unit cginfo;
 
 {$i defines.inc}
 
 interface
 
-  uses cpuinfo;
+  uses cpuinfo,symconst;
 
     type
-       TOpCg = (OP_NONE,
-                OP_ADD,OP_AND,OP_DIV,OP_IDIV,OP_IMUL,OP_MUL,OP_NEG,OP_NOT,
-                OP_OR,OP_SAR,OP_SHL,OP_SHR,OP_SUB,OP_XOR
-               );
+       {# Generic opcodes, which must be supporrted by all processors }
+       TOpCg = 
+       (
+          OP_NONE,
+          OP_ADD,       { simple addition          }
+          OP_AND,       { simple logical and       }
+          OP_DIV,       { simple unsigned division }
+          OP_IDIV,      { simple signed division   }
+          OP_IMUL,      { simple signed multiply   }
+          OP_MUL,       { simple unsigned multiply }
+          OP_NEG,       { simple negate            }
+          OP_NOT,       { simple logical not       }
+          OP_OR,        { simple logical or        }
+          OP_SAR,       { arithmetic shift-right   }
+          OP_SHL,       { logical shift left       }
+          OP_SHR,       { logical shift right      }
+          OP_SUB,       { simple subtraction       }
+          OP_XOR        { simple exclusive or      }
+        );
 
-       TOpCmp = (OC_NONE,OC_EQ,OC_GT,OC_LT,OC_GTE,OC_LTE,OC_NE,OC_BE,OC_B,
-                 OC_AE,OC_A);
+       {# Generic flag values - used for jump locations }
+       TOpCmp = 
+       (
+          OC_NONE,          
+          OC_EQ,           { equality comparison }
+          OC_GT,
+          OC_LT,
+          OC_GTE,
+          OC_LTE,
+          OC_NE,
+          OC_BE,
+          OC_B,
+          OC_AE,
+          OC_A
+        );
 
        { OS_NO is also used memory references with large data that can
          not be loaded in a register directly }
@@ -49,29 +78,6 @@ interface
                   OS_M8,OS_M16,OS_M32,OS_M64,OS_M128,OS_MS8,OS_MS16,OS_MS32,
                   OS_MS64,OS_MS128);
 
-    const
-       { defines the default address size for a processor, }
-       { the natural int size for a processor,             }
-       { the maximum float size for a processor,           }
-       { the size of a vector register for a processor     }
-{$ifdef i386}
-       OS_ADDR = OS_32;
-       OS_INT = OS_32;
-       OS_FLOAT = OS_F80;
-       OS_VECTOR = OS_M64;
-{$endif i386}
-{$ifdef m68k}
-       OS_ADDR = OS_32;
-       OS_INT = OS_32;
-       OS_FLOAT = OS_F??; { processor supports 64bit, but does the compiler? }
-       OS_VECTOR = OS_NO;
-{$endif m68k}
-{$ifdef alpha}
-       OS_ADDR = OS_64;
-       OS_INT = OS_64;
-       OS_FLOAT = OS_F??;
-       OS_VECTOR = OS_NO;
-{$endif alpha}
 {$ifdef powerpc}
        OS_ADDR = OS_32;
        OS_INT = OS_32;
@@ -86,13 +92,21 @@ interface
 {$endif ia64}
 
     const
-      TCGSize2Size : Array[tcgsize] of integer =
+       tcgsize2size : Array[tcgsize] of integer =
          { integer values }
         (0,1,2,4,8,1,2,4,8,
          { floating point values } 
          4,8,EXTENDED_SIZE,8,
          { multimedia values }
          1,2,4,8,16,1,2,4,8,16);
+         
+       tfloat2tcgsize: array[tfloattype] of tcgsize =
+         (OS_F32,OS_F64,OS_F80,OS_C64);
+
+       tcgsize2tfloat: array[OS_F32..OS_C64] of tfloattype =
+         (s32real,s64real,s80real,s64comp);
+
+         
 
 
 implementation
@@ -100,7 +114,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2002-04-20 21:32:23  carl
+  Revision 1.4  2002-04-21 15:26:15  carl
+  * move stuff to cpuinfo and cpubase
+  + documented
+
+  Revision 1.3  2002/04/20 21:32:23  carl
   + generic FPC_CHECKPOINTER
   + first parameter offset in stack now portable
   * rename some constants
