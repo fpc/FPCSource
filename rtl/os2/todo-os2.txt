@@ -28,6 +28,7 @@ OS/2 only rtl                                 medium
   - system
   - DOS
   - sysutils.pp
+  - loaders (prt*) for EXEs and DLLs
   - autothunking for 16-bit calls
   - ? linker (ALINK)
 
