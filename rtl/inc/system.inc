@@ -370,6 +370,8 @@ const
 
 VAR
   mt : tMT19937StateArray;
+
+const
   mti: longint=MT19937N+1; // mti=MT19937N+1 means mt[] is not initialized
 
 { Initializing the array with a seed }
@@ -845,7 +847,10 @@ end;
 
 {
   $Log$
-  Revision 1.44  2003-10-26 18:46:02  jonas
+  Revision 1.45  2003-10-26 21:15:43  hajny
+    * minor fix for new Random
+
+  Revision 1.44  2003/10/26 18:46:02  jonas
     * replaced random generator with the Mersenne twister, which is about
       3.5 times faster
 
