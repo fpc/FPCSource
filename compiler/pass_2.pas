@@ -290,8 +290,10 @@ implementation
 }
 {$endif EXTDEBUG}
 
+{$ifdef i386}
               if assigned(current_procinfo.procdef) then
                 current_procinfo.procdef.fpu_used:=p.registersfpu;
+{$endif i386}
 
            end;
          current_procinfo.aktproccode.concatlist(exprasmlist);
@@ -300,7 +302,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.69  2003-10-10 17:48:13  peter
+  Revision 1.70  2003-10-17 15:08:34  peter
+    * commented out more obsolete constants
+
+  Revision 1.69  2003/10/10 17:48:13  peter
     * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
     * tregisteralloctor renamed to trgobj
     * removed rgobj from a lot of units

@@ -116,24 +116,13 @@ uses
       {$i rppccon.inc}
 
       { Integer Super registers first and last }
-      first_int_supreg = RS_R0;
-      last_int_supreg = RS_R31;
-
       first_int_imreg = $20;
-      last_int_imreg = $fe;
 
       { Float Super register first and last }
-      first_fpu_supreg    = $00;
-      last_fpu_supreg     = $1f;
-
       first_fpu_imreg     = $20;
-      last_fpu_imreg      = $fe;
 
       { MM Super register first and last }
-      first_mm_supreg    = RS_INVALID;
-      last_mm_supreg     = RS_INVALID;
-      first_mm_imreg     = RS_INVALID;
-      last_mm_imreg      = RS_INVALID;
+      first_mm_imreg     = $0;
 
 {$warning TODO Calculate bsstart}
       regnumber_count_bsstart = 64;
@@ -361,8 +350,7 @@ uses
     const
       max_operands = 5;
 
-      general_superregisters = [RS_R0..RS_R31];
-
+(*
       {# Table of registers which can be allocated by the code generator
          internally, when generating the code.
       }
@@ -426,6 +414,7 @@ uses
         (R_M1,R_M2,R_M3,R_M4,R_M5,R_M6,R_M7,R_M8,R_M9,R_M10,R_M11,R_M12,R_M13);
 }
 
+*)
 
 {*****************************************************************************
                           Default generic sizes
@@ -725,7 +714,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.71  2003-10-11 16:06:42  florian
+  Revision 1.72  2003-10-17 15:08:34  peter
+    * commented out more obsolete constants
+
+  Revision 1.71  2003/10/11 16:06:42  florian
     * fixed some MMX<->SSE
     * started to fix ppc, needs an overhaul
     + stabs info improve for spilling, not sure if it works correctly/completly

@@ -56,7 +56,6 @@ unit rgcpu;
           { these counters contain the number of elements in the }
           { unusedregsxxx/usableregsxxx sets                     }
           countunusedregsfpu : byte;
-          countusableregsfpu : byte;
 
           { Contains the registers which are really used by the proc itself.
             It doesn't take care of registers used by called procedures
@@ -130,9 +129,7 @@ implementation
       begin
         used_in_proc:=[];
         t_times := 0;
-        countusableregsfpu:=c_countusableregsfpu;
         unusedregsfpu:=usableregsfpu;
-        countunusedregsfpu:=countusableregsfpu;
       end;
 
 
@@ -253,7 +250,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.39  2003-10-17 14:38:32  peter
+  Revision 1.40  2003-10-17 15:08:34  peter
+    * commented out more obsolete constants
+
+  Revision 1.39  2003/10/17 14:38:32  peter
     * 64k registers supported
     * fixed some memory leaks
 

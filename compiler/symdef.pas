@@ -431,7 +431,9 @@ interface
           procoptions     : tprocoptions;
           maxparacount,
           minparacount    : byte;
+{$ifdef i386}
           fpu_used        : byte;    { how many stack fpu must be empty }
+{$endif i386}
           funcret_paraloc : array[tcallercallee] of tparalocation;
           has_paraloc_info : boolean; { paraloc info is available }
           constructor create(level:byte);
@@ -3101,7 +3103,9 @@ implementation
          proccalloption:=pocall_none;
          procoptions:=[];
          rettype:=voidtype;
+{$ifdef i386}
          fpu_used:=0;
+{$endif i386}
          savesize:=POINTER_SIZE;
          has_paraloc_info:=false;
       end;
@@ -3211,9 +3215,11 @@ implementation
       is processed   PM }
     procedure tabstractprocdef.test_if_fpu_result;
       begin
+{$ifdef i386}
          if assigned(rettype.def) and
             (rettype.def.deftype=floatdef) then
            fpu_used:=maxfpuregs;
+{$endif i386}
       end;
 
 
@@ -3250,7 +3256,11 @@ implementation
          minparacount:=0;
          maxparacount:=0;
          ppufile.gettype(rettype);
+{$ifdef i386}
          fpu_used:=ppufile.getbyte;
+{$else}
+         ppufile.getbyte;
+{$endif i386}
          proctypeoption:=tproctypeoption(ppufile.getbyte);
          proccalloption:=tproccalloption(ppufile.getbyte);
          ppufile.getsmallset(procoptions);
@@ -3293,9 +3303,13 @@ implementation
          ppufile.puttype(rettype);
          oldintfcrc:=ppufile.do_interface_crc;
          ppufile.do_interface_crc:=false;
+{$ifdef i386}
          if simplify_ppu then
           fpu_used:=0;
          ppufile.putbyte(fpu_used);
+{$else}
+         ppufile.putbyte(0);
+{$endif}
          ppufile.putbyte(ord(proctypeoption));
          ppufile.putbyte(ord(proccalloption));
          ppufile.putsmallset(procoptions);
@@ -4181,10 +4195,12 @@ implementation
         { plausible (PM) }
         { a more secure way would be
           to allways store in a temp }
+{$ifdef i386}
         if is_fpu(rettype.def) then
           fpu_used:={2}maxfpuregs
         else
           fpu_used:=0;
+{$endif i386}
         inherited ppuwrite(ppufile);
 
         { Write this entry }
@@ -5868,7 +5884,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.180  2003-10-17 14:52:07  peter
+  Revision 1.181  2003-10-17 15:08:34  peter
+    * commented out more obsolete constants
+
+  Revision 1.180  2003/10/17 14:52:07  peter
     * fixed ppc build
 
   Revision 1.179  2003/10/17 14:38:32  peter

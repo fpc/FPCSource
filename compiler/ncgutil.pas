@@ -154,12 +154,7 @@ implementation
                  (p.location.loc<>LOC_FPUREGISTER)
                 ) and
                 (p.left.registers32<p.right.registers32)
-               ) and
-               { the following check is appropriate, because all }
-               { 4 registers are rarely used and it is thereby   }
-               { achieved that the extra code is being dropped   }
-               { by exchanging not commutative operators     }
-               (p.right.registers32<=c_countusableregsint)
+               )
               ) then
             begin
               hp:=p.left;
@@ -667,6 +662,7 @@ implementation
 
     function maybe_pushfpu(list:taasmoutput;needed : byte;var l:tlocation) : boolean;
       begin
+{$ifdef i386}
         if (needed>=maxfpuregs) and
            (l.loc = LOC_FPUREGISTER) then
           begin
@@ -675,6 +671,7 @@ implementation
           end
         else
           maybe_pushfpu:=false;
+{$endif i386}
       end;
 
 
@@ -1960,7 +1957,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.159  2003-10-17 14:38:32  peter
+  Revision 1.160  2003-10-17 15:08:34  peter
+    * commented out more obsolete constants
+
+  Revision 1.159  2003/10/17 14:38:32  peter
     * 64k registers supported
     * fixed some memory leaks
 

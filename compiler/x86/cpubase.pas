@@ -314,6 +314,9 @@ uses
 
       max_operands = 3;
 
+      maxfpuregs = 8;
+
+(*
       { low and high of the available maximum width integer general purpose }
       { registers                                                            }
       LoGPReg = RS_EAX;
@@ -342,6 +345,7 @@ uses
 
       usableregsmm = [RS_MM0..RS_MM7];
       c_countusableregsmm  = 8;
+*)
 
 {*****************************************************************************
                             CPU Dependent Constants
@@ -554,7 +558,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.26  2003-10-17 14:38:32  peter
+  Revision 1.27  2003-10-17 15:08:34  peter
+    * commented out more obsolete constants
+
+  Revision 1.26  2003/10/17 14:38:32  peter
     * 64k registers supported
     * fixed some memory leaks
 

@@ -1016,7 +1016,7 @@ const
 
         usesgpr:=false;
         if not (po_assembler in current_procinfo.procdef.procoptions) then
-          for regcounter2:=firstsaveintreg to RS_R31 do
+          for regcounter2:=RS_R13 to RS_R31 do
             begin
               if supregset_in(rgint.used_in_proc,regcounter2) then
                 begin
@@ -1125,7 +1125,7 @@ const
                a_call_name(objectlibrary.newasmsymbol('_savegpr_'+tostr(ord(firstreggpr)-ord(R_14)+14))
              }
             reference_reset_base(href,NR_R12,-4);
-            for regcounter2:=firstsaveintreg to RS_R31 do
+            for regcounter2:=RS_R13 to RS_R31 do
               begin
                 if supregset_in(rgint.used_in_proc,regcounter2) then
                   begin
@@ -1230,7 +1230,7 @@ const
 
         usesgpr:=false;
         if not (po_assembler in current_procinfo.procdef.procoptions) then
-          for regcounter2:=firstsaveintreg to RS_R31 do
+          for regcounter2:=RS_R13 to RS_R31 do
             begin
               if supregset_in(rgint.used_in_proc,regcounter2) then
                 begin
@@ -1264,7 +1264,7 @@ const
              else
                reference_reset_base(href,NR_R12,-4);
 
-            for regcounter2:=firstsaveintreg to RS_R31 do
+            for regcounter2:=RS_R13 to RS_R31 do
               begin
                 if supregset_in(rgint.used_in_proc,regcounter2) then
                   begin
@@ -1360,7 +1360,7 @@ const
          end;
       usesgpr:=false;
       if not (po_assembler in current_procinfo.procdef.procoptions) then
-        for regcounter2:=firstsaveintreg to RS_R31 do
+        for regcounter2:=RS_R13 to RS_R31 do
           begin
             if supregset_in(rgint.used_in_proc,regcounter2) then
               begin
@@ -2117,7 +2117,7 @@ const
                  { a register here, we must first reallocate the index register, since }
                  { otherwise it may be overwritten (and it's still used afterwards)    }
                  freeindex := false;
-                 if (getsupreg(ref.index) >= first_int_supreg) and
+                 if (getsupreg(ref.index) < first_int_imreg) and
                     (supregset_in(rgint.unusedregs,getsupreg(ref.index))) then
                    begin
                      rgint.getexplicitregister(list,ref.index);
@@ -2436,7 +2436,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.131  2003-10-17 14:52:07  peter
+  Revision 1.132  2003-10-17 15:08:34  peter
+    * commented out more obsolete constants
+
+  Revision 1.131  2003/10/17 14:52:07  peter
     * fixed ppc build
 
   Revision 1.130  2003/10/17 01:22:08  florian
