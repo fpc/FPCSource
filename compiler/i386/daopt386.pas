@@ -130,6 +130,8 @@ type
 {$endif tempOpts}
     { can this instruction be removed? }
                CanBeRemoved: Boolean;
+               { are the resultflags set by this instruction used? }
+               FlagsUsed: Boolean;
              End;
 
   PTaiProp = ^TTaiProp;
@@ -164,6 +166,8 @@ function RegReadByInstruction(reg: TRegister; hp: Tai): boolean;
 function RegModifiedByInstruction(Reg: TRegister; p1: Tai): Boolean;
 function RegInInstruction(Reg: TRegister; p1: Tai): Boolean;
 function RegInOp(Reg: TRegister; const o:toper): Boolean;
+function instrWritesFlags(p: Tai): boolean;
+function instrReadsFlags(p: Tai): boolean;
 
 function writeToMemDestroysContents(regWritten: tregister; const ref: treference;
   reg: tregister; const c: tcontent): boolean;
@@ -951,6 +955,46 @@ Begin
     End;
   RegModifiedByInstruction := TmpResult
 End;
+
+
+function instrWritesFlags(p: Tai): boolean;
+var
+  l: longint;
+begin
+  instrWritesFlags := true;
+  case p.typ of
+    ait_instruction:
+      begin
+        for l := 1 to MaxCh do
+          if InsProp[Taicpu(p).opcode].Ch[l] in [Ch_WFlags,Ch_RWFlags,Ch_All] then
+            exit;
+      end;
+    ait_label:
+      exit;
+    else
+      instrWritesFlags := false;
+  end;
+end;
+
+function instrReadsFlags(p: Tai): boolean;
+var
+  l: longint;
+begin
+  instrReadsFlags := true;
+  case p.typ of
+    ait_instruction:
+      begin
+        for l := 1 to MaxCh do
+          if InsProp[Taicpu(p).opcode].Ch[l] in [Ch_RFlags,Ch_RWFlags,Ch_All] then
+            exit;
+      end;
+    ait_label:
+      exit;
+    else
+      instrReadsFlags := false;
+  end;
+end;
+
 
 {********************* GetNext and GetLastInstruction *********************}
 Function GetNextInstruction(Current: Tai; Var Next: Tai): Boolean;
@@ -1877,11 +1921,11 @@ BlockStart, BlockEnd: Tai);
  contents for the instructions starting with p. Returns the last Tai which has
  been processed}
 Var
-    CurProp: PTaiProp;
+    CurProp, LastFlagsChangeProp: PTaiProp;
     Cnt, InstrCnt : Longint;
     InstrProp: TInsProp;
     UsedRegs: TRegSet;
-    p, hp : Tai;
+    prev, p, hp : Tai;
     TmpRef: TReference;
     TmpReg: TRegister;
 {$ifdef AnalyzeLoops}
@@ -1889,6 +1933,8 @@ Var
 {$endif AnalyzeLoops}
 Begin
   p := BlockStart;
+  LastFlagsChangeProp := nil;
+  prev := nil;
   UsedRegs := [];
   UpdateUsedregs(UsedRegs, p);
   SkipHead(P);
@@ -1898,16 +1944,16 @@ Begin
   While (P <> BlockEnd) Do
     Begin
       CurProp := @TaiPropBlock^[InstrCnt];
-      If (p <> BlockStart)
+      If assigned(prev)
         Then
           Begin
 {$ifdef JumpAnal}
             If (p.Typ <> ait_label) Then
 {$endif JumpAnal}
               Begin
-                GetLastInstruction(p, hp);
-                CurProp^.regs := PTaiProp(hp.OptInfo)^.Regs;
-                CurProp^.DirFlag := PTaiProp(hp.OptInfo)^.DirFlag;
+                CurProp^.regs := PTaiProp(prev.OptInfo)^.Regs;
+                CurProp^.DirFlag := PTaiProp(prev.OptInfo)^.DirFlag;
+                CurProp^.FlagsUsed := false;
               End
           End
         Else
@@ -2332,7 +2378,18 @@ Begin
                             tmpRef.index := R_EDI;
                             DestroyRefs(p, TmpRef, R_NO)
                           End;
-                        Ch_RFlags, Ch_WFlags, Ch_RWFlags, Ch_FPU:
+                        Ch_RFlags:
+                          if assigned(LastFlagsChangeProp) then
+                            LastFlagsChangeProp^.FlagsUsed := true;
+                        Ch_WFlags:
+                          LastFlagsChangeProp := CurProp;
+                        Ch_RWFlags:
+                          begin
+                            if assigned(LastFlagsChangeProp) then
+                              LastFlagsChangeProp^.FlagsUsed := true;
+                            LastFlagsChangeProp := CurProp;
+                          end;
+                         Ch_FPU:;
                         Else
                           Begin
 {$ifdef statedebug}
@@ -2341,6 +2398,7 @@ Begin
                             insertllitem(asml,p, p.next,hp);
 {$endif statedebug}
                             DestroyAllRegs(CurProp);
+                            LastFlagsChangeProp := CurProp;
                           End;
                       End;
                       Inc(Cnt);
@@ -2360,6 +2418,7 @@ Begin
           End;
       End;
       Inc(InstrCnt);
+      prev := p;
       GetNextInstruction(p, p);
     End;
 End;
@@ -2413,6 +2472,7 @@ Begin
     Begin
       InitDFAPass2 := True;
       GetMem(TaiPropBlock, NrOfTaiObjs*SizeOf(TTaiProp));
+      fillchar(TaiPropBlock^,NrOfTaiObjs*SizeOf(TTaiProp),0);
       p := BlockStart;
       SkipHead(p);
       For Count := 1 To NrOfTaiObjs Do
@@ -2452,7 +2512,13 @@ End.
 
 {
   $Log$
-  Revision 1.19  2001-08-26 13:36:55  florian
+  Revision 1.20  2001-08-29 14:07:43  jonas
+    * the optimizer now keeps track of flags register usage. This fixes some
+      optimizer bugs with int64 calculations (because of the carry flag usage)
+    * fixed another bug which caused wrong optimizations with complex
+      array expressions
+
+  Revision 1.19  2001/08/26 13:36:55  florian
     * some cg reorganisation
     * some PPC updates
 

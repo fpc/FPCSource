@@ -51,7 +51,8 @@ begin
       canBeFirstSwitch :=
         (p.ops >= 2) and
         (reg32(p.oper[p.ops-1].reg) = reg) and
-        (p.oper[0].typ <> top_ref);
+        (p.oper[0].typ <> top_ref) and
+        (not pTaiprop(p.optinfo)^.FlagsUsed);
     A_INC,A_DEC,A_SUB,A_ADD:
       canBeFirstSwitch :=
         (p.oper[1].typ = top_reg) and
@@ -59,14 +60,16 @@ begin
         (reg32(p.oper[1].reg) = reg) and
         (p.oper[0].typ <> top_ref) and
         ((p.opcode <> A_SUB) or
-         (p.oper[0].typ = top_const));
+         (p.oper[0].typ = top_const)) and
+        (not pTaiprop(p.optinfo)^.FlagsUsed);
     A_SHL:
       canBeFirstSwitch :=
         (p.opsize = S_L) and
         (p.oper[1].typ = top_reg) and
         (p.oper[1].reg = reg) and
         (p.oper[0].typ = top_const) and
-        (p.oper[0].val in [1,2,3]);
+        (p.oper[0].val in [1,2,3]) and
+        (not pTaiprop(p.optinfo)^.FlagsUsed);
   end;
 end;
 
@@ -335,7 +338,13 @@ End.
 
 {
   $Log$
-  Revision 1.6  2001-01-06 23:35:06  jonas
+  Revision 1.7  2001-08-29 14:07:43  jonas
+    * the optimizer now keeps track of flags register usage. This fixes some
+      optimizer bugs with int64 calculations (because of the carry flag usage)
+    * fixed another bug which caused wrong optimizations with complex
+      array expressions
+
+  Revision 1.6  2001/01/06 23:35:06  jonas
     * fixed webbug 1323
 
   Revision 1.5  2000/12/25 00:07:34  peter

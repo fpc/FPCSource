@@ -180,104 +180,6 @@ begin
   end;
 end;
 
-function getPrevSequence(p: Tai; reg: tregister; currentPrev: Tai; var newPrev: Tai;
-  var passedJump: boolean; var regsNotRead, regsStillValid: tregset): tregister;
-
-const
-  current_reg: tregister = R_NO;
-
-  function stillValid(p: Tai): boolean;
-  begin
-    stillValid :=
-      (p.typ = ait_instruction) and
-      (Taicpu(p).opcode <> a_jmp) and
-      (pTaiprop(p.optinfo)^.regs[reg].wstate =
-         pTaiprop(currentPrev.optinfo)^.regs[reg].wstate) and
-     { in case destroyreg is called with doIncState = false }
-      (pTaiprop(p.optinfo)^.regs[reg].typ =
-         pTaiprop(currentPrev.optinfo)^.regs[reg].typ) and
-      (reg in (regsNotRead * regsStillValid));
-    passedJump :=
-      (p.typ = ait_instruction) and
-      (Taicpu(p).is_jmp);
-  end;
-
-  function findChangedRegister(p: Tai): tregister;
-  var
-    regCounter: tregister;
-  begin
-    for regCounter := succ(current_reg) to R_EDI do
-      with pTaiprop(p.optinfo)^.regs[regCounter] do
-      if ((startmod <>
-            pTaiprop(currentPrev.optinfo)^.regs[regCounter].startmod)  or
-          (nrOfMods <>
-            pTaiprop(currentPrev.optinfo)^.regs[regCounter].nrOfMods)) and
-         (pTaiprop(p.optinfo)^.regs[regCounter].typ in
-           [con_ref,con_noRemoveRef]) then
-        begin
-          findChangedRegister := regCounter;
-          current_reg := regCounter;
-          exit;
-        end;
-    current_reg := R_NO;
-    findChangedRegister := R_NO;
-  end;
-
-var
-  hp, prevFound: Tai;
-  tmpResult, regCounter: tregister;
-begin
-  if not(current_reg in [R_NO,R_EDI]) then
-    begin
-      tmpResult := findChangedRegister(currentPrev);
-      if tmpResult <> R_NO then
-        begin
-          getPrevSequence := tmpResult;
-          exit;
-        end;
-    end;
-
-  getPrevSequence := R_NO;
-  passedJump := passedJump or
-    ((currentPrev.typ = ait_instruction) and
-     (Taicpu(currentPrev).is_jmp));
-
-  if (passedJump and not(reg in (usableregs+[R_EDI]))) or
-     not getLastInstruction(currentPrev,hp) then
-    exit;
-
-  prevFound := currentPrev;
-  tmpResult := R_NO;
-
-  while (tmpResult = R_NO) and
-        stillValid(hp) and
-        (pTaiprop(prevFound.optinfo)^.canBeRemoved or
-         not(modifiesConflictingMemLocation(prevFound,reg,
-           pTaiprop(p.optinfo)^.regs,regsStillValid))) do
-    begin
-      { only update the regsread for the instructions we already passed }
-      if not(pTaiprop(prevFound.optinfo)^.canBeRemoved) then
-        for regCounter := R_EAX to R_EDI do
-          if regReadByInstruction(regCounter,prevFound) then
-            exclude(regsNotRead,regCounter);
-
-      { in case getPreviousInstruction fails and sets hp to nil in the }
-      { next iteration                                                 }
-      prevFound := hp;
-      if not(pTaiprop(hp.optinfo)^.canBeRemoved) then
-        tmpResult := findChangedRegister(hp);
-      if { do not load the self pointer or a regvar before a (conditional)  }
-         { jump with a new value, since if the jump is taken, the old value }
-         { is (probably) still necessary                                    }
-         (passedJump and not(reg in (usableregs+[R_EDI]))) or
-         not getLastInstruction(hp,hp) then
-        break;
-    end;
-  getPrevSequence := tmpResult;
-  if tmpResult <> R_NO then
-    newPrev := prevFound;
-end;
-
 
 function isSimpleMemLoc(const ref: treference): boolean;
 begin
@@ -297,14 +199,114 @@ end;
 Function CheckSequence(p: Tai; var prev: Tai; Reg: TRegister; Var Found: Longint;
            Var RegInfo: TRegInfo; findPrevSeqs: boolean): Boolean;
 
-const
-  checkingPrevSequences: boolean = false;
 var
-  regsNotRead, regsStillValid: tregset;
+  regsNotRead, regsStillValid : tregset;
+  checkingPrevSequences,
+  passedFlagsModifyingInstr,
+  passedJump                  : boolean;
+
+  function getPrevSequence(p: Tai; reg: tregister; currentPrev: Tai; var newPrev: Tai): tregister;
+  
+  const
+    current_reg: tregister = R_NO;
+  
+    function stillValid(p: Tai): boolean;
+    begin
+      stillValid :=
+        (p.typ = ait_instruction) and
+        (Taicpu(p).opcode <> a_jmp) and
+        (pTaiprop(p.optinfo)^.regs[reg].wstate =
+           pTaiprop(currentPrev.optinfo)^.regs[reg].wstate) and
+       { in case destroyreg is called with doIncState = false }
+        (pTaiprop(p.optinfo)^.regs[reg].typ =
+           pTaiprop(currentPrev.optinfo)^.regs[reg].typ) and
+        (reg in (regsNotRead * regsStillValid));
+      passedJump :=
+        (p.typ = ait_instruction) and
+        (Taicpu(p).is_jmp);
+      passedFlagsModifyingInstr :=
+        instrWritesFlags(currentPrev);
+    end;
+  
+    function findChangedRegister(p: Tai): tregister;
+    var
+      regCounter: tregister;
+    begin
+      for regCounter := succ(current_reg) to R_EDI do
+        with pTaiprop(p.optinfo)^.regs[regCounter] do
+        if ((startmod <>
+              pTaiprop(currentPrev.optinfo)^.regs[regCounter].startmod)  or
+            (nrOfMods <>
+              pTaiprop(currentPrev.optinfo)^.regs[regCounter].nrOfMods)) and
+           (pTaiprop(p.optinfo)^.regs[regCounter].typ in
+             [con_ref,con_noRemoveRef]) then
+          begin
+            findChangedRegister := regCounter;
+            current_reg := regCounter;
+            exit;
+          end;
+      current_reg := R_NO;
+      findChangedRegister := R_NO;
+    end;
+  
+  var
+    hp, prevFound: Tai;
+    tmpResult, regCounter: tregister;
+  begin
+    if not(current_reg in [R_NO,R_EDI]) then
+      begin
+        tmpResult := findChangedRegister(currentPrev);
+        if tmpResult <> R_NO then
+          begin
+            getPrevSequence := tmpResult;
+            exit;
+          end;
+      end;
+  
+    getPrevSequence := R_NO;
+    passedJump := passedJump or
+      ((currentPrev.typ = ait_instruction) and
+       (Taicpu(currentPrev).is_jmp));
+    passedFlagsModifyingInstr := instrWritesFlags(currentPrev);
+  
+    if (passedJump and not(reg in (usableregs+[R_EDI]))) or
+       not getLastInstruction(currentPrev,hp) then
+      exit;
+  
+    prevFound := currentPrev;
+    tmpResult := R_NO;
+  
+    while (tmpResult = R_NO) and
+          stillValid(hp) and
+          (pTaiprop(prevFound.optinfo)^.canBeRemoved or
+           not(modifiesConflictingMemLocation(prevFound,reg,
+             pTaiprop(p.optinfo)^.regs,regsStillValid))) do
+      begin
+        { only update the regsread for the instructions we already passed }
+        if not(pTaiprop(prevFound.optinfo)^.canBeRemoved) then
+          for regCounter := R_EAX to R_EDI do
+            if regReadByInstruction(regCounter,prevFound) then
+              exclude(regsNotRead,regCounter);
+  
+        { in case getPreviousInstruction fails and sets hp to nil in the }
+        { next iteration                                                 }
+        prevFound := hp;
+        if not(pTaiprop(hp.optinfo)^.canBeRemoved) then
+          tmpResult := findChangedRegister(hp);
+        if { do not load the self pointer or a regvar before a (conditional)  }
+           { jump with a new value, since if the jump is taken, the old value }
+           { is (probably) still necessary                                    }
+           (passedJump and not(reg in (usableregs+[R_EDI]))) or
+           not getLastInstruction(hp,hp) then
+          break;
+      end;
+    getPrevSequence := tmpResult;
+    if tmpResult <> R_NO then
+      newPrev := prevFound;
+  end;
+  
 
   function getNextRegToTest(var prev: Tai; currentReg: tregister): tregister;
-  const
-    passedJump: boolean = false;
   begin
     if not checkingPrevSequences then
       begin
@@ -329,7 +331,7 @@ var
     if checkingPrevSequences then
       if findPrevSeqs then
         getNextRegToTest :=
-          getPrevSequence(p,reg,prev,prev,passedJump,regsNotRead,RegsStillValid)
+          getPrevSequence(p,reg,prev,prev)
       else
         getNextRegToTest := R_NO;
   end;
@@ -341,8 +343,7 @@ Var hp2, hp3{, EndMod},highPrev, orgPrev: Tai;
     HighFound, OrgRegFound: Byte;
     RegCounter, regCounter2, tmpreg, base, index: TRegister;
     OrgRegResult: Boolean;
-    TmpResult: Boolean;
-    {TmpState: Byte;}
+    TmpResult, flagResultsNeeded: Boolean;
 Begin {CheckSequence}
   Reg := Reg32(Reg);
   TmpResult := False;
@@ -360,6 +361,8 @@ Begin {CheckSequence}
     end;
 
   checkingPrevSequences := false;
+  passedFlagsModifyingInstr := false;
+  flagResultsNeeded := false;
   regsNotRead := [R_EAX,R_EBX,R_ECX,R_EDX,R_ESP,R_EBP,R_EDI,R_ESI];
   regsStillValid := regsNotRead;
   GetLastInstruction(p, prev);
@@ -417,6 +420,10 @@ Begin {CheckSequence}
           for regCounter2 := R_EAX to R_EDI do
             regModified[regCounter2] := regModified[regCounter2] or
               regModifiedByInstruction(regCounter2,hp3);
+          if flagResultsNeeded then
+            flagResultsNeeded := not instrReadsFlags(hp3);
+          if not flagResultsNeeded then
+            flagResultsNeeded := pTaiprop(hp3.optinfo)^.FlagsUsed;
           GetNextInstruction(hp2, hp2);
           GetNextInstruction(hp3, hp3);
           Inc(Found);
@@ -429,15 +436,18 @@ Begin {CheckSequence}
           include(regInfo.regsStillUsedAfterSeq,regCounter2);
 
       if checkingPrevSequences then
-        for regCounter2 := R_EAX to R_EDI do
-          if not(regInfo.new2OldReg[regCounter2] in [R_NO,regCounter2]) and
-             (not(regCounter2 in (regsNotRead * regsStillValid)) or
-              not(regInfo.new2OldReg[regCounter2] in regsStillValid)) then
-            begin
+        begin
+          for regCounter2 := R_EAX to R_EDI do
+            if not(regInfo.new2OldReg[regCounter2] in [R_NO,regCounter2]) and
+               (not(regCounter2 in (regsNotRead * regsStillValid)) or
+               not(regInfo.new2OldReg[regCounter2] in regsStillValid)) then
+              begin
+                found := 0;
+                break;
+              end;
+           if passedFlagsModifyingInstr and flagResultsNeeded then
               found := 0;
-              break;
-            end;
-
+        end;
       If (Found <> OldNrOfMods) or
  { the following is to avoid problems with rangecheck code (see testcse2) }
          (assigned(hp3) and
@@ -1375,6 +1385,7 @@ Begin
                                    Cnt2 := 1;
                                    While Cnt2 <= Cnt Do
                                      Begin
+(*
                                        If not(regInInstruction(Taicpu(hp2).oper[1].reg, p)) and
                                           not(pTaiprop(p.optinfo)^.canBeRemoved) then
                                          begin
@@ -1409,8 +1420,9 @@ Begin
                                                PTaiProp(p.OptInfo)^.CanBeRemoved := True
 {$endif noremove}
                                          end
+*)
 {$ifndef noremove}
-                                       else
+(*                                       else *)
                                          PTaiProp(p.OptInfo)^.CanBeRemoved := True
 {$endif noremove}
                                        ; Inc(Cnt2);
@@ -1718,7 +1730,13 @@ End.
 
 {
   $Log$
-  Revision 1.16  2001-08-26 13:36:55  florian
+  Revision 1.17  2001-08-29 14:07:43  jonas
+    * the optimizer now keeps track of flags register usage. This fixes some
+      optimizer bugs with int64 calculations (because of the carry flag usage)
+    * fixed another bug which caused wrong optimizations with complex
+      array expressions
+
+  Revision 1.16  2001/08/26 13:36:55  florian
     * some cg reorganisation
     * some PPC updates
 
