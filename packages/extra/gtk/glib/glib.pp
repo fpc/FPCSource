@@ -1073,6 +1073,14 @@ function  g_spaced_primes_closest(num:guint):guint;cdecl;external glibdll name '
        G_SEEK_SET = 1;
        G_SEEK_END = 2;
 
+       G_IO_IN    = 1;
+       G_IO_OUT   = 4;
+       G_IO_PRI   = 2;
+       G_IO_ERR   = 8;
+
+       G_IO_HUP   = 16;
+       G_IO_NVAL  = 32;
+
     type
        TGIOCondition = longint;
 
@@ -1655,7 +1663,10 @@ procedure set_year(var a : TGDate; __year : guint);
 end.
 {
   $Log$
-  Revision 1.7  2004-05-02 19:14:47  jonas
+  Revision 1.8  2004-12-28 14:42:12  marco
+   * some constants added that were more recently added to glib. Submitted patch by neli
+
+  Revision 1.7  2004/05/02 19:14:47  jonas
     * fixed darwin incompatibilities
 
   Revision 1.6  2003/08/06 07:28:21  michael
