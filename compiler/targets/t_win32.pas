@@ -66,7 +66,7 @@ interface
     tDLLScannerWin32=class(tDLLScanner)
     private
       cstring : array[0..127]of char;
-      function DOSstubOK(var x:longint):boolean;
+      function DOSstubOK(var x:cardinal):boolean;
       function FindDLL(const s:string;var founddll:string):boolean;
       function DllName(Const Name : string) : string;
     public
@@ -1147,7 +1147,7 @@ end;
                             TDLLScannerWin32
 ****************************************************************************}
 
-    function tDLLScannerWin32.DOSstubOK(var x:longint):boolean;
+    function tDLLScannerWin32.DOSstubOK(var x:cardinal):boolean;
       begin
         blockread(f,TheWord,2,loaded);
         if loaded<>2 then
@@ -1381,7 +1381,10 @@ function tDLLScannerWin32.scan(const binname:string):longbool;
 end.
 {
   $Log$
-  Revision 1.4  2001-04-13 01:22:22  peter
+  Revision 1.5  2001-04-13 23:51:02  peter
+    * fix for the stricter compilemode
+
+  Revision 1.4  2001/04/13 01:22:22  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed
