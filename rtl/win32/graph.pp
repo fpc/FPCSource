@@ -1133,6 +1133,11 @@ procedure SetRGBPaletteWin32GUI(colorNum,redValue,greenvalue,
      pal[colorNum].red:=redValue;
      pal[colorNum].green:=greenValue;
      pal[colorNum].blue:=blueValue;
+     if (colorNum>=0) and (colorNum<=high(pens)) and (pens[colorNum]<>0) then
+       begin
+          DeleteObject(pens[colorNum]);
+          pens[colorNum]:=0;
+       end;
   end;
 
 procedure GetRGBPaletteWin32GUI(colorNum : integer;
@@ -2222,7 +2227,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2001-06-06 17:20:22  jonas
+  Revision 1.8  2002-01-06 15:23:42  florian
+    * SetRGBColor with cached pens fixed
+
+  Revision 1.7  2001/06/06 17:20:22  jonas
     * fixed wrong typed constant procvars in preparation of my fix which will
       disallow them in FPC mode (plus some other unmerged changes since
       LAST_MERGE)
