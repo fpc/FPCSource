@@ -681,6 +681,20 @@ implementation
            right:=nil;
            exit;
          end;
+        { call helpers for variant, they can contain non ref. counted types like
+          vararrays which must be really copied }
+        if left.resulttype.def.deftype=variantdef then
+         begin
+           hp:=ccallparanode.create(ctypeconvnode.create_internal(
+                 caddrnode.create_internal(right),voidpointertype),
+               ccallparanode.create(ctypeconvnode.create_internal(
+                 caddrnode.create_internal(left),voidpointertype),
+               nil));
+           result:=ccallnode.createintern('fpc_variant_copy',hp);
+           left:=nil;
+           right:=nil;
+           exit;
+         end;
 
         { check if local proc/func is assigned to procvar }
         if right.resulttype.def.deftype=procvardef then
@@ -1189,7 +1203,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.147  2005-03-25 22:20:19  peter
+  Revision 1.148  2005-03-28 13:36:15  florian
+    + variants are now assigned using fpc_variant_copy
+
+  Revision 1.147  2005/03/25 22:20:19  peter
     * add hint when passing an uninitialized variable to a var parameter
 
   Revision 1.146  2005/03/18 16:41:27  peter
