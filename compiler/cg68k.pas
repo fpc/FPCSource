@@ -3553,11 +3553,24 @@ implementation
                             end;
                           case pararesult^.deftype of
                               stringdef : begin
-                                            if doread then
-                                              emitcall('READ_TEXT_STRING',true)
-                                            else
-                                              begin
-                                                 emitcall('WRITE_TEXT_STRING',true);
+                                          if doread then
+                                            begin
+                                            { push maximum string length }
+                                            push_int(pstringdef(pararesult)^.len);
+                                            case pstringdef(pararesult)^.string_typ of
+                                             shortstring: emitcall ('READ_TEXT_STRING',true);
+                                             ansistring : emitcall ('READ_TEXT_ANSISTRING',true);
+                                             longstring : emitcall ('READ_TEXT_LONGSTRING',true);
+                                             widestring : emitcall ('READ_TEXT_ANSISTRING',true);
+                                             end
+                                            end
+                                          else
+                                            Case pstringdef(Pararesult)^.string_typ of
+                                             shortstring: emitcall ('WRITE_TEXT_STRING',true);
+                                             ansistring : emitcall ('WRITE_TEXT_ANSISTRING',true);
+                                             longstring : emitcall ('WRITE_TEXT_LONGSTRING',true);
+                                             widestring : emitcall ('WRITE_TEXT_ANSISTRING',true);
+                                             end;
                                       {ungetiftemp(hp^.left^.location.reference);}
                                    end;
                                          end;
@@ -5135,7 +5148,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  1998-06-12 10:32:22  pierre
+  Revision 1.9  1998-07-06 15:51:16  michael
+  Added length checking for string reading
+
+  Revision 1.8  1998/06/12 10:32:22  pierre
     * column problem hopefully solved
     + C vars declaration changed
 

@@ -1565,12 +1565,16 @@ implementation
                           case pararesult^.deftype of
                        stringdef : begin
                                      if doread then
+                                       begin
+                                       { push maximum string length }
+                                       push_int(pstringdef(pararesult)^.len);
                                        case pstringdef(pararesult)^.string_typ of
                                         shortstring: emitcall ('READ_TEXT_STRING',true);
                                         ansistring : emitcall ('READ_TEXT_ANSISTRING',true);
                                         longstring : emitcall ('READ_TEXT_LONGSTRING',true);
                                         widestring : emitcall ('READ_TEXT_ANSISTRING',true);
                                         end
+                                       end
                                      else
                                        Case pstringdef(Pararesult)^.string_typ of
                                         shortstring: emitcall ('WRITE_TEXT_STRING',true);
@@ -2264,7 +2268,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  1998-07-06 14:19:51  michael
+  Revision 1.8  1998-07-06 15:51:15  michael
+  Added length checking for string reading
+
+  Revision 1.7  1998/07/06 14:19:51  michael
   + Added calls for reading/writing ansistrings
 
   Revision 1.6  1998/07/01 15:28:48  peter
