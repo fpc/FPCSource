@@ -33,6 +33,8 @@ const
 {*****************************************************************************
                          Stack check code
 *****************************************************************************}
+
+{
 {$IFOPT S+}
 {$DEFINE STACKCHECK}
 {$ENDIF}
@@ -49,7 +51,7 @@ end;
 {$S+}
 {$ENDIF}
 {$UNDEF STACKCHECK}
-
+}
 
 {*****************************************************************************
                        Misc. System Dependent Functions
@@ -141,15 +143,15 @@ end;
   correct value if an error has occured, else leave it untouched
 }
 
-Procedure Errno2Inoutres;
+Function PosixToRunError  (PosixErrno : longint) : longint;
 {
   Convert ErrNo error to the correct Inoutres value
 }
 
 begin
-  if ErrNo=0 then { Else it will go through all the cases }
+  if PosixErrNo=0 then { Else it will go through all the cases }
    exit;
-  case ErrNo of
+  case PosixErrNo of
    Sys_ENFILE,
    Sys_EMFILE : Inoutres:=4;
    Sys_ENOENT : Inoutres:=2;
@@ -170,17 +172,22 @@ begin
    Sys_EISDIR : InOutRes:=5;
   else
     begin
-       InOutRes := Integer(Errno);
+       InOutRes := Integer(PosixErrno);
     end;
   end;
 end;
 
+Function Errno2InoutRes : longint;
+
+begin
+  Errno2InoutRes:=PosixToRunError(Errno);
+  InoutRes:=Errno2InoutRes;
+end;
 
 Procedure Do_Close(Handle:Longint);
 Begin
   sys_close(cint(Handle));
 End;
-
 
 Procedure Do_Erase(p:pchar);
 var
@@ -208,16 +215,20 @@ procedure do_truncate (handle,fpos:longint);
 begin
   { should be simulated in cases where it is not }
   { available.                                   }
-  sys_ftruncate(handle,fpos);
-  Errno2Inoutres;
+  If sys_ftruncate(handle,fpos)<0 Then
+   Errno2Inoutres
+  Else
+   InOutRes:=0;
 end;
 
 
 
 Procedure Do_Rename(p1,p2:pchar);
 Begin
-  sys_rename(p1,p2);
-  Errno2Inoutres;
+  If sys_rename(p1,p2)<0 Then
+   Errno2Inoutres
+  Else
+   InOutRes:=0;
 End;
 
 
@@ -226,9 +237,13 @@ Begin
   repeat
     Do_Write:=sys_write(Handle,pchar(addr),len);
   until ErrNo<>Sys_EINTR;
-  Errno2Inoutres;
-  if Do_Write<0 then
-   Do_Write:=0;
+  If Do_Write<0 Then
+   Begin
+    Errno2InOutRes;
+    Do_Write:=0;
+   End
+  else
+   InOutRes:=0;
 End;
 
 
@@ -237,40 +252,56 @@ Begin
   repeat
     Do_Read:=sys_read(Handle,pchar(addr),len);
   until ErrNo<>Sys_EINTR;
-  Errno2Inoutres;
-  if Do_Read<0 then
-   Do_Read:=0;
+  If Do_Read<0 Then
+   Begin
+    Errno2InOutRes;
+    Do_Read:=0;
+   End
+  else
+   InOutRes:=0;
 End;
 
 function Do_FilePos(Handle: Longint):longint;
 Begin
   do_FilePos:=sys_lseek(Handle, 0, SEEK_CUR);
-  Errno2Inoutres;
+  If Do_FilePos<0 Then
+    Errno2InOutRes
+  else
+   InOutRes:=0;
 End;
 
 Procedure Do_Seek(Handle,Pos:Longint);
 Begin
-  sys_lseek(Handle, pos, SEEK_SET);
-  Errno2Inoutres;
+  If sys_lseek(Handle, pos, SEEK_SET)<0 Then
+   Errno2Inoutres 
+  Else
+   InOutRes:=0;
 End;
 
 Function Do_SeekEnd(Handle:Longint): Longint;
 begin
   Do_SeekEnd:=sys_lseek(Handle,0,SEEK_END);
-  errno2inoutres;
+  If Do_SeekEnd<0 Then
+   Errno2Inoutres 
+  Else
+   InOutRes:=0;
 end;
 
 Function Do_FileSize(Handle:Longint): Longint;
 var
   Info : Stat;
+  Ret  : Longint;
 Begin
-  if sys_fstat(handle,info)=0 then
+  Ret:=sys_fstat(handle,info);
+  If Ret=0 Then
    Do_FileSize:=Info.st_size
   else
    Do_FileSize:=0;
-  Errno2InOutRes;
+  If Ret<0 Then
+   Errno2InOutRes
+  Else
+   InOutRes:=0;
 End;
-
 
 Procedure Do_Open(var f;p:pchar;flags:longint);
 {
@@ -342,7 +373,10 @@ Begin
      Oflags:=Oflags and not(O_RDWR);
      FileRec(f).Handle:=sys_open(p,oflags,MODE_OPEN);
    end;
-  Errno2Inoutres;
+  If Filerec(f).Handle<0 Then
+   Errno2Inoutres
+  else
+   InOutRes:=0;
 End;
 
 
@@ -359,8 +393,10 @@ Begin
    exit;
   Move(s[1], Buffer, Length(s));
   Buffer[Length(s)] := #0;
-  sys_mkdir(@buffer, MODE_MKDIR);
-  Errno2Inoutres;
+  If sys_mkdir(@buffer, MODE_MKDIR)<0 Then
+   Errno2Inoutres
+  Else
+   InOutRes:=0;
 End;
 
 
@@ -374,8 +410,10 @@ Begin
    exit;
   Move(s[1], Buffer, Length(s));
   Buffer[Length(s)] := #0;
-  sys_rmdir(@buffer);
-  Errno2Inoutres;
+  If sys_rmdir(@buffer)<0 Then
+   Errno2Inoutres
+  Else
+   InOutRes:=0;
 End;
 
 
@@ -387,8 +425,10 @@ Begin
    exit;
   Move(s[1], Buffer, Length(s));
   Buffer[Length(s)] := #0;
-  sys_chdir(@buffer);
-  Errno2Inoutres;
+  If sys_chdir(@buffer)<0 Then
+   Errno2Inoutres
+  Else
+   InOutRes:=0;
   { file not exists is path not found under tp7 }
   if InOutRes=2 then
    InOutRes:=3;
@@ -414,12 +454,22 @@ begin
   { get root directory information }
   tmp := '/'+#0;
   if sys_stat(@tmp[1],rootinfo)<0 then
-      exit;
+      Begin
+      Errno2Inoutres;
+      Exit
+     End
+    Else 
+     InOutRes:=0;
   repeat
     tmp := dummy+'.'+#0;
     { get current directory information }
     if sys_stat(@tmp[1],cwdinfo)<0 then
-      exit;
+      Begin
+        Errno2Inoutres;
+        Exit
+      End
+    Else 
+      InOutRes:=0;
     tmp:=dummy+'..'+#0;
     { open directory stream }
     { try to find the current inode number of the cwd }
@@ -436,9 +486,12 @@ begin
         end;
       tmp:=dummy+'../'+strpas(d^.d_name) + #0;
       if sys_stat(@tmp[1],thisdir)<0 then
-      begin
-        exit;
-      end;
+        begin
+          Errno2Inoutres;
+          Exit
+        End
+      Else 
+        InOutRes:=0;
       { found the entry for this directory name }
       if (cwdinfo.st_dev=thisdir.st_dev) and (cwdinfo.st_ino=thisdir.st_ino) then
         begin
@@ -451,7 +504,13 @@ begin
             end;
         end
     until (name<>'');
-    sys_closedir(dirstream);
+    If sys_closedir(dirstream)<0 THen
+      Begin
+        Errno2Inoutres;
+        Exit
+      End
+    Else 
+      InOutRes:=0;
     thedir:=name+thedir;
     dummy:=dummy+'../';
     if ((cwdinfo.st_dev=rootinfo.st_dev) and (cwdinfo.st_ino=rootinfo.st_ino)) then
@@ -590,7 +649,10 @@ End.
 *)
 {
  $Log$
- Revision 1.2  2002-08-10 13:42:36  marco
+ Revision 1.3  2002-08-20 12:50:22  marco
+  * New errno handling. Should be libc compatible.
+
+ Revision 1.2  2002/08/10 13:42:36  marco
   * Fixes Posix dir copied to devel branch
 
  Revision 1.1.2.18  2002/03/10 11:45:02  carl
