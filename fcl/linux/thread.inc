@@ -1,3 +1,9 @@
+{
+  $Id$
+
+  Linux TThread implementation
+}
+
 type
   PThreadRec=^TThreadRec;
   TThreadRec=record
@@ -7,7 +13,7 @@ type
 
 var
   ThreadRoot : PThreadRec;
-   ThreadsInited : boolean;
+  ThreadsInited : boolean;
 //  MainThreadID: longint;
 
 Const
@@ -34,7 +40,7 @@ begin
 end;
 
 
-//function SIGCHLDHandler(Sig: longint): longint; cdecl;//this is std linux C declaration as function
+//function SIGCHLDHandler(Sig: longint): longint; cdecl;//this is std linux C declaration as function
 procedure SIGCHLDHandler(Sig: longint); cdecl;
 begin
   waitpid(-1, nil, WNOHANG);
@@ -54,11 +60,11 @@ begin
 
   GetMem(Act, SizeOf(SigActionRec));
   GetMem(OldAct, SizeOf(SigActionRec));
-  
+
   Act^.sa_handler := @SIGCHLDHandler;
   Act^.sa_flags := SA_NOCLDSTOP {or SA_NOMASK or SA_RESTART};
   Act^.sa_mask := 0; //Do not block all signals ??. Don't need if SA_NOMASK in flags
-  
+
   SigAction(SIGCHLD, Act, OldAct);
 
   FreeMem(Act, SizeOf(SigActionRec));
@@ -94,7 +100,7 @@ begin
   hp^.Thread:=t;
   hp^.next:=ThreadRoot;
   ThreadRoot:=hp;
-  
+
   inc(ThreadCount, 1);
 end;
 
@@ -119,9 +125,9 @@ begin
      lasthp:=hp;
      hp:=hp^.next;
    end;
-   
+
   Dec(ThreadCount, 1);
-  if ThreadCount = 0 then DoneThreads; 
+  if ThreadCount = 0 then DoneThreads;
 end;
 
 
@@ -156,7 +162,7 @@ begin
   FCallExitProcess:=false;
   { Clone }
   FHandle:= Clone(@ThreadProc,pointer(FStackPointer),Flags,self);
-  if FSuspended then Suspend;
+  if FSuspended then Suspend;
   FThreadID := FHandle;
 end;
 
@@ -168,7 +174,7 @@ begin
      Terminate;
      WaitFor;
    end;
-  if FHandle <> -1 then 
+  if FHandle <> -1 then
     Kill(FHandle, SIGKILL);
   dec(FStackPointer,FStackSize);
   Freemem(pointer(FStackPointer),FStackSize);
@@ -263,3 +269,16 @@ begin
    WaitPid(FHandle,@status,0);
   Result:=status;
 end;
+
+{
+  $Log$
+  Revision 1.4  1999-08-28 09:32:26  peter
+    * readded header/log
+
+  Revision 1.2  1999/05/31 12:47:59  peter
+    * classes unit to unitobjects
+
+  Revision 1.1  1999/05/30 10:46:42  peter
+    * start of tthread for linux,win32
+
+}
