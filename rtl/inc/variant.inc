@@ -554,8 +554,10 @@ procedure initvariantmanager;
   begin
      VarDispProc:=@vardisperror;
      DispCallByIDProc:=@vardisperror;
+     {
      tvardata(Unassigned).VType:=varEmpty;
      tvardata(Null).VType:=varNull;
+     }
      for i:=0 to (sizeof(tvariantmanager) div sizeof(pointer))-1 do
        ppointer(@variantmanager+i*sizeof(pointer))^:=@invalidvariantop;
      pointer(variantmanager.varclear):=@varclear
@@ -564,7 +566,10 @@ procedure initvariantmanager;
 
 {
   $Log$
-  Revision 1.9  2002-10-09 19:08:22  florian
+  Revision 1.10  2002-10-09 19:56:01  florian
+    * variant assignments don't work yet, commented out
+
+  Revision 1.9  2002/10/09 19:08:22  florian
     + Variant constants Unassigned and Null added
 
   Revision 1.8  2002/10/07 15:10:45  florian
