@@ -263,7 +263,7 @@ begin
       Module := TPasModule(Package.Modules[i]);
       ModuleName := LowerCase(Module.Name);
       WriteLn('');
-      WriteLnF('\chapter{%s}', [Format(SDocUnitTitle, [Module.Name])]);
+      WriteLnF('\chapter{%s}', [EscapeTex(Format(SDocUnitTitle, [Module.Name]))]);
       WriteLabel(Module);
       ProcessSection(Module.InterfaceSection);
     end;
@@ -1298,7 +1298,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2003-03-18 01:11:51  michael
+  Revision 1.3  2003-03-18 19:12:29  michael
+  + More EscapeTex calls needed
+
+  Revision 1.2  2003/03/18 01:11:51  michael
   + Some fixes to deal with illegal tex characters
 
   Revision 1.1  2003/03/17 23:03:20  michael
