@@ -72,13 +72,13 @@ const
   cache : pMTABE = nil;
 
 var
-  djgpp_timer_hdlr : pointer;external name '___djgpp_timer_hdlr';
   djgpp_old_timer : tseginfo;external name '___djgpp_old_timer';
   start : longint;external name 'start';
   _etext : longint;external name '_etext';
   starttext : longint;
   endtext : longint;
 
+procedure djgpp_timer_hdlr;external name '___djgpp_timer_hdlr';
 
 procedure sbrk_getmem(var p : pointer;size : longint);
 
@@ -310,7 +310,7 @@ begin
   flush(stderr);
 {$endif DEBUG}
   new_timer.segment:=get_cs;
-  new_timer.offset:=djgpp_timer_hdlr;
+  new_timer.offset:=@djgpp_timer_hdlr;
   reload:=3;
 {$ifdef DEBUG}
   writeln(stderr,'new pm int8  '+hexstr(new_timer.segment,4)+':'+hexstr(longint(new_timer.offset),8));
@@ -328,7 +328,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2000-03-20 13:09:07  pierre
+  Revision 1.7  2000-03-28 10:06:19  pierre
+   * fix for 885
+
+  Revision 1.6  2000/03/20 13:09:07  pierre
    * fix for bug 876
 
   Revision 1.5  2000/02/09 16:59:29  peter
