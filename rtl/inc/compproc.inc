@@ -213,7 +213,7 @@ function fpc_PopObjectStack : TObject; compilerproc;
 function fpc_PopSecondObjectStack : TObject; compilerproc;
 Procedure fpc_ReRaise; compilerproc;
 Function fpc_Catches(Objtype : TClass) : TObject; compilerproc;
-{$ifndef i386}
+{$ifdef dummy}
 Procedure fpc_DestroyException(o : TObject); compilerproc;
 procedure fpc_help_constructor; compilerproc;
 procedure fpc_help_fail(var _self:pointer;var vmt:pointer;vmt_pos:cardinal);compilerproc;
@@ -223,7 +223,7 @@ procedure fpc_dispose_class(_self: tobject; flag : longint);compilerproc;
 function fpc_help_fail_class(_vmt:pointer;_self:pointer):pointer;compilerproc;
 procedure fpc_check_object(obj:pointer); compilerproc;
 procedure fpc_check_object_ext(vmt,expvmt:pointer);compilerproc;
-{$endif i386}
+{$endif dummy}
 Procedure fpc_Initialize (Data,TypeInfo : pointer); compilerproc;
 Procedure fpc_finalize (Data,TypeInfo: Pointer); compilerproc;
 Procedure fpc_Addref (Data,TypeInfo : Pointer); compilerproc;
@@ -286,7 +286,11 @@ function fpc_qword_to_double(q: qword): double; compilerproc;
 
 {
   $Log$
-  Revision 1.36  2003-03-17 14:30:11  peter
+  Revision 1.37  2003-04-02 14:07:30  peter
+    * class helpers compilerprocs are not needed yet, changed
+      ifndef i386 to ifdef dummy
+
+  Revision 1.36  2003/03/17 14:30:11  peter
     * changed address parameter/return values to pointer instead
       of longint
 
