@@ -142,7 +142,7 @@ begin
 {$ifdef Unix}
           'T' :  DebuggeeTTY:=Copy(Param,2,High(Param));
 {$endif Unix}
-          'M' : TryToMaximizeScreen:=true;
+         { 'M' : TryToMaximizeScreen:=true;}
 {$endif fpc}
         end;
       end
@@ -384,7 +384,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.4  2002-03-20 14:53:37  pierre
+  Revision 1.5  2002-03-20 14:56:41  pierre
+   * correct last commit
+
+  Revision 1.4  2002/03/20 14:53:37  pierre
    + rescue handlers in main loop
 
   Revision 1.3  2002/01/09 09:46:10  pierre
