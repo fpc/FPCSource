@@ -116,7 +116,7 @@ implementation
     uses
       globtype,systems,
       verbose,
-      symconst,symdef,symsym,defutil,defcmp,
+      symconst,symdef,symsym,symtable,defutil,defcmp,
       htypechk,pass_1,
       nbas,ncnv,ncon,nld,cgobj,cgbase;
 
@@ -347,7 +347,7 @@ implementation
            exit;
          { both types must be compatible }
          if compare_defs(left.resulttype.def,right.resulttype.def,left.nodetype)=te_incompatible then
-           CGMessage(type_e_mismatch);
+           IncompatibleTypes(left.resulttype.def,right.resulttype.def);
          { Check if only when its a constant set }
          if (left.nodetype=ordconstn) and (right.nodetype=ordconstn) then
           begin
@@ -694,7 +694,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.52  2004-02-03 22:32:54  peter
+  Revision 1.53  2004-03-18 16:19:03  peter
+    * fixed operator overload allowing for pointer-string
+    * replaced some type_e_mismatch with more informational messages
+
+  Revision 1.52  2004/02/03 22:32:54  peter
     * renamed xNNbittype to xNNinttype
     * renamed registers32 to registersint
     * replace some s32bit,u32bit with torddef([su]inttype).def.typ

@@ -268,7 +268,7 @@ implementation
                begin
                  if not(cs_extsyntax in aktmoduleswitches) and
                     not(nodetype in [equaln,unequaln]) then
-                   CGMessage(type_e_mismatch)
+                   CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename)
                  else
                    if (nodetype <> subn) and
                       is_voidpointer(rd) then
@@ -366,7 +366,7 @@ implementation
                   end;
                 else
                   begin
-                    CGMessage(type_e_mismatch);
+                    CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
                     t:=cnothingnode.create;
                   end;
               end;
@@ -415,7 +415,7 @@ implementation
                    t:=cordconstnode.create(ord(lvd<>rvd),booltype,true);
                  else
                    begin
-                     CGMessage(type_e_mismatch);
+                     CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
                      t:=cnothingnode.create;
                    end;
               end;
@@ -457,7 +457,7 @@ implementation
                    t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)<>0),booltype,true);
                  else
                    begin
-                     CGMessage(type_e_mismatch);
+                     CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
                      t:=cnothingnode.create;
                    end;
               end;
@@ -715,7 +715,7 @@ implementation
                        end;
                     end;
                   else
-                    CGMessage(type_e_mismatch);
+                    CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
                 end;
               end
              { Both are chars? }
@@ -946,7 +946,7 @@ implementation
                         IncompatibleTypes(ld,rd);
                      end
                     else
-                     CGMessage(type_e_mismatch);
+                     CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
                  end;
                subn:
                  begin
@@ -960,7 +960,7 @@ implementation
                         IncompatibleTypes(ld,rd);
                      end
                     else
-                     CGMessage(type_e_mismatch);
+                     CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
                     resulttype:=sinttype;
                     exit;
                  end;
@@ -976,12 +976,12 @@ implementation
                         IncompatibleTypes(ld,rd);
                      end
                     else
-                     CGMessage(type_e_mismatch);
+                     CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
                     resulttype:=sinttype;
                     exit;
                  end;
                else
-                 CGMessage(type_e_mismatch);
+                 CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
             end;
           end
 
@@ -994,82 +994,92 @@ implementation
                  ((is_pchar(rd) or is_chararray(rd) or is_char(rd)) and
                   (is_pchar(ld) or is_chararray(ld) or is_char(ld))) then
           begin
-            if is_widestring(rd) or is_widestring(ld) then
+            if (nodetype in [addn,equaln,unequaln,lten,gten,ltn,gtn]) then
               begin
-                 if not(is_widestring(rd)) then
-                   inserttypeconv(right,cwidestringtype);
-                 if not(is_widestring(ld)) then
-                   inserttypeconv(left,cwidestringtype);
-              end
-            else if is_ansistring(rd) or is_ansistring(ld) then
-              begin
-                 if not(is_ansistring(rd)) then
-                   inserttypeconv(right,cansistringtype);
-                 if not(is_ansistring(ld)) then
-                   inserttypeconv(left,cansistringtype);
-              end
-            else if is_longstring(rd) or is_longstring(ld) then
-              begin
-                 if not(is_longstring(rd)) then
-                   inserttypeconv(right,clongstringtype);
-                 if not(is_longstring(ld)) then
-                   inserttypeconv(left,clongstringtype);
+                if is_widestring(rd) or is_widestring(ld) then
+                  begin
+                     if not(is_widestring(rd)) then
+                       inserttypeconv(right,cwidestringtype);
+                     if not(is_widestring(ld)) then
+                       inserttypeconv(left,cwidestringtype);
+                  end
+                else if is_ansistring(rd) or is_ansistring(ld) then
+                  begin
+                     if not(is_ansistring(rd)) then
+                       inserttypeconv(right,cansistringtype);
+                     if not(is_ansistring(ld)) then
+                       inserttypeconv(left,cansistringtype);
+                  end
+                else if is_longstring(rd) or is_longstring(ld) then
+                  begin
+                     if not(is_longstring(rd)) then
+                       inserttypeconv(right,clongstringtype);
+                     if not(is_longstring(ld)) then
+                       inserttypeconv(left,clongstringtype);
+                  end
+                else
+                  begin
+                     if not(is_shortstring(ld)) then
+                       inserttypeconv(left,cshortstringtype);
+                     { don't convert char, that can be handled by the optimized node }
+                     if not(is_shortstring(rd) or is_char(rd)) then
+                       inserttypeconv(right,cshortstringtype);
+                  end;
               end
             else
-              begin
-                 if not(is_shortstring(ld)) then
-                   inserttypeconv(left,cshortstringtype);
-                 { don't convert char, that can be handled by the optimized node }
-                 if not(is_shortstring(rd) or is_char(rd)) then
-                   inserttypeconv(right,cshortstringtype);
-              end;
-
+              CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
           end
 
          { class or interface equation }
          else if is_class_or_interface(rd) or is_class_or_interface(ld) then
           begin
-            if is_class_or_interface(rd) and is_class_or_interface(ld) then
-             begin
-               if tobjectdef(rd).is_related(tobjectdef(ld)) then
-                inserttypeconv(right,left.resulttype)
-               else
-                inserttypeconv(left,right.resulttype);
-             end
-            else if is_class_or_interface(rd) then
-              inserttypeconv(left,right.resulttype)
+            if (nodetype in [equaln,unequaln]) then
+              begin
+                if is_class_or_interface(rd) and is_class_or_interface(ld) then
+                 begin
+                   if tobjectdef(rd).is_related(tobjectdef(ld)) then
+                    inserttypeconv(right,left.resulttype)
+                   else
+                    inserttypeconv(left,right.resulttype);
+                 end
+                else if is_class_or_interface(rd) then
+                  inserttypeconv(left,right.resulttype)
+                else
+                  inserttypeconv(right,left.resulttype);
+              end
             else
-              inserttypeconv(right,left.resulttype);
-
-            if not(nodetype in [equaln,unequaln]) then
-             CGMessage(type_e_mismatch);
+              CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
           end
 
          else if (rd.deftype=classrefdef) and (ld.deftype=classrefdef) then
           begin
-            if tobjectdef(tclassrefdef(rd).pointertype.def).is_related(
-                    tobjectdef(tclassrefdef(ld).pointertype.def)) then
-              inserttypeconv(right,left.resulttype)
+            if (nodetype in [equaln,unequaln]) then
+              begin
+                if tobjectdef(tclassrefdef(rd).pointertype.def).is_related(
+                        tobjectdef(tclassrefdef(ld).pointertype.def)) then
+                  inserttypeconv(right,left.resulttype)
+                else
+                  inserttypeconv(left,right.resulttype);
+              end
             else
-              inserttypeconv(left,right.resulttype);
-
-            if not(nodetype in [equaln,unequaln]) then
-             CGMessage(type_e_mismatch);
+              CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
           end
 
          { allows comperasion with nil pointer }
          else if is_class_or_interface(rd) or (rd.deftype=classrefdef) then
           begin
-            inserttypeconv(left,right.resulttype);
-            if not(nodetype in [equaln,unequaln]) then
-             CGMessage(type_e_mismatch);
+            if (nodetype in [equaln,unequaln]) then
+              inserttypeconv(left,right.resulttype)
+            else
+              CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
           end
 
          else if is_class_or_interface(ld) or (ld.deftype=classrefdef) then
           begin
-            inserttypeconv(right,left.resulttype);
-            if not(nodetype in [equaln,unequaln]) then
-             CGMessage(type_e_mismatch);
+            if (nodetype in [equaln,unequaln]) then
+              inserttypeconv(right,left.resulttype)
+            else
+              CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
           end
 
        { support procvar=nil,procvar<>nil }
@@ -1077,7 +1087,7 @@ implementation
                  ((rd.deftype=procvardef) and (lt=niln)) then
           begin
             if not(nodetype in [equaln,unequaln]) then
-             CGMessage(type_e_mismatch);
+              CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
           end
 
        { support dynamicarray=nil,dynamicarray<>nil }
@@ -1085,7 +1095,7 @@ implementation
                  (is_dynamic_array(rd) and (lt=niln)) then
           begin
             if not(nodetype in [equaln,unequaln]) then
-             CGMessage(type_e_mismatch);
+              CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
           end
 
 {$ifdef SUPPORT_MMX}
@@ -1102,9 +1112,9 @@ implementation
                 { mul is a little bit restricted }
                 muln:
                   if not(mmx_type(ld) in [mmxu16bit,mmxs16bit,mmxfixed16]) then
-                    CGMessage(type_e_mismatch);
+                    CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
                 else
-                  CGMessage(type_e_mismatch);
+                  CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
               end;
             end
 {$endif SUPPORT_MMX}
@@ -1123,14 +1133,14 @@ implementation
               begin
                 if not(cs_extsyntax in aktmoduleswitches) or
                    (not(is_pchar(ld)) and not(m_add_pointer in aktmodeswitches)) then
-                  CGMessage(type_e_mismatch);
+                  CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
                 if (rd.deftype=pointerdef) and
                    (tpointerdef(rd).pointertype.def.size>1) then
                   left:=caddnode.create(muln,left,
                       cordconstnode.create(tpointerdef(rd).pointertype.def.size,sinttype,true));
               end
             else
-              CGMessage(type_e_mismatch);
+              CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
           end
 
          else if (ld.deftype=pointerdef) or is_zero_based_array(ld) then
@@ -1145,35 +1155,38 @@ implementation
               begin
                 if not(cs_extsyntax in aktmoduleswitches) or
                    (not(is_pchar(ld)) and not(m_add_pointer in aktmodeswitches)) then
-                  CGMessage(type_e_mismatch);
+                  CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
                 if (ld.deftype=pointerdef) and
                    (tpointerdef(ld).pointertype.def.size>1) then
                   right:=caddnode.create(muln,right,
                     cordconstnode.create(tpointerdef(ld).pointertype.def.size,sinttype,true));
               end
             else
-              CGMessage(type_e_mismatch);
+              CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
          end
 
          else if (rd.deftype=procvardef) and
                  (ld.deftype=procvardef) and
                  equal_defs(rd,ld) then
           begin
-            if not (nodetype in [equaln,unequaln]) then
-             CGMessage(type_e_mismatch);
-            { convert both to voidpointer, because methodpointers are 8 bytes }
-            { even though only the first 4 bytes must be compared (JM)        }
-            inserttypeconv_explicit(left,voidpointertype);
-            inserttypeconv_explicit(right,voidpointertype);
+            if (nodetype in [equaln,unequaln]) then
+              begin
+                { convert both to voidpointer, because methodpointers are 8 bytes }
+                { even though only the first 4 bytes must be compared (JM)        }
+                inserttypeconv_explicit(left,voidpointertype);
+                inserttypeconv_explicit(right,voidpointertype);
+              end
+            else
+              CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
           end
 
          { enums }
          else if (ld.deftype=enumdef) and (rd.deftype=enumdef) then
           begin
-            if not(equal_defs(ld,rd)) then
-              inserttypeconv(right,left.resulttype);
-            if not(nodetype in [equaln,unequaln,ltn,lten,gtn,gten]) then
-              CGMessage(type_e_mismatch);
+            if (nodetype in [equaln,unequaln,ltn,lten,gtn,gten]) then
+              inserttypeconv(right,left.resulttype)
+            else
+              CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
           end
 
          { generic conversion, this is for error recovery }
@@ -1535,7 +1548,7 @@ implementation
               notnode := true;
             end;
           else
-            CGMessage(type_e_mismatch);
+            CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),left.resulttype.def.typename,right.resulttype.def.typename);
         end;
         { convert the arguments (explicitely) to fpc_normal_set's }
         result := ccallnode.createintern(procname,ccallparanode.create(right,
@@ -1913,7 +1926,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.112  2004-02-21 22:08:46  daniel
+  Revision 1.113  2004-03-18 16:19:03  peter
+    * fixed operator overload allowing for pointer-string
+    * replaced some type_e_mismatch with more informational messages
+
+  Revision 1.112  2004/02/21 22:08:46  daniel
     * Avoid memory allocation and string copying
 
   Revision 1.111  2004/02/20 21:55:59  peter

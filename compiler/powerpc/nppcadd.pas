@@ -412,7 +412,7 @@ interface
                         falselabel:=ofl;
                      end;
                    else
-                     CGMessage(type_e_mismatch);
+                     internalerror(200403181);
                  end;
                  secondpass(right);
                  maketojumpbool(exprasmlist,right,lr_load_regvars);
@@ -452,7 +452,7 @@ interface
               cmpop:=true;
             end;
           else
-            CGMessage(type_e_mismatch);
+            internalerror(200403182);
         end;
 
         // get the operands in the correct order, there are no special cases
@@ -1169,7 +1169,7 @@ interface
           andn:
             op:=A_PAND;
           else
-            CGMessage(type_e_mismatch);
+            internalerror(200403183);
         end;
 
         { left and right no register?  }
@@ -1494,7 +1494,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.42  2004-01-06 21:37:41  peter
+  Revision 1.43  2004-03-18 16:19:03  peter
+    * fixed operator overload allowing for pointer-string
+    * replaced some type_e_mismatch with more informational messages
+
+  Revision 1.42  2004/01/06 21:37:41  peter
     * fixed too long ie number
 
   Revision 1.41  2003/12/29 11:35:19  jonas

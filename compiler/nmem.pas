@@ -696,7 +696,7 @@ implementation
              begin
                { check type of the index value }
                if (compare_defs(right.resulttype.def,tarraydef(left.resulttype.def).rangetype.def,right.nodetype)=te_incompatible) then
-                 CGMessage(type_e_mismatch);
+                 IncompatibleTypes(right.resulttype.def,tarraydef(left.resulttype.def).rangetype.def);
                resulttype:=tarraydef(left.resulttype.def).elementtype;
              end;
            pointerdef :
@@ -975,7 +975,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.80  2004-02-20 21:55:59  peter
+  Revision 1.81  2004-03-18 16:19:03  peter
+    * fixed operator overload allowing for pointer-string
+    * replaced some type_e_mismatch with more informational messages
+
+  Revision 1.80  2004/02/20 21:55:59  peter
     * procvar cleanup
 
   Revision 1.79  2004/02/03 22:32:54  peter

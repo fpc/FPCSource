@@ -116,6 +116,8 @@ interface
 {$endif def extdebug}
        allow_array_constructor : boolean = false;
 
+    function node2opstr(nt:tnodetype):string;
+
     { check operator args and result type }
     function isbinaryoperatoroverloadable(treetyp:tnodetype;ld:tdef;lt:tnodetype;rd:tdef;rt:tnodetype) : boolean;
     function isoperatoracceptable(pf : tprocdef; optoken : ttoken) : boolean;
@@ -159,6 +161,19 @@ implementation
       TValidAssigns=set of TValidAssign;
 
 
+    function node2opstr(nt:tnodetype):string;
+      var
+        i : integer;
+      begin
+        for i:=1 to tok2nodes do
+          if tok2node[i].nod=nt then
+            begin
+              result:=tokeninfo^[tok2node[i].tok].str;
+              break;
+            end;
+       end;
+
+
     function isbinaryoperatoroverloadable(treetyp:tnodetype;ld:tdef;lt:tnodetype;rd:tdef;rt:tnodetype) : boolean;
 
         function internal_check(treetyp:tnodetype;ld:tdef;lt:tnodetype;rd:tdef;rt:tnodetype;var allowed:boolean):boolean;
@@ -173,8 +188,7 @@ implementation
               end;
             procvardef :
               begin
-                if (rd.deftype in [pointerdef,procdef,procvardef]) and
-                   (treetyp in [equaln,unequaln]) then
+                if (rd.deftype in [pointerdef,procdef,procvardef]) then
                  begin
                    allowed:=false;
                    exit;
@@ -183,16 +197,8 @@ implementation
               end;
             pointerdef :
               begin
-                if ((rd.deftype in [pointerdef,classrefdef,procvardef]) or
-                    is_class_or_interface(rd)) and
-                   (treetyp in [equaln,unequaln,gtn,gten,ltn,lten,addn,subn]) then
-                 begin
-                   allowed:=false;
-                   exit;
-                 end;
-
-                { don't allow operations on pointer/integer }
-                if is_integer(rd) then
+                if ((rd.deftype in [orddef,pointerdef,classrefdef,procvardef]) or
+                    is_class_or_interface(rd)) then
                  begin
                    allowed:=false;
                    exit;
@@ -200,10 +206,14 @@ implementation
 
                 { don't allow pchar+string }
                 if is_pchar(ld) and
-                   (treetyp in [addn,equaln,unequaln,gtn,gten,ltn,lten]) and
-                   (is_chararray(rd) or
-                    is_char(rd) or
-                    (rd.deftype=stringdef)) then
+                   (is_char(rd) or
+                    is_widechar(rd) or
+                    is_pchar(rd) or
+                    is_pwidechar(rd) or
+                    is_integer(rd) or
+                    (rd.deftype=stringdef) or
+                    is_chararray(rd) or
+                    is_widechararray(rd)) then
                  begin
                    allowed:=false;
                    exit;
@@ -221,7 +231,6 @@ implementation
                  end;
                 { not chararray+[(wide)char,(wide)string,(wide)chararray] }
                 if is_chararray(ld) and
-                   (treetyp in [addn,equaln,unequaln,gtn,gten,ltn,lten]) and
                    (is_char(rd) or
                     is_widechar(rd) or
                     is_pchar(rd) or
@@ -264,8 +273,7 @@ implementation
                     is_pchar(rd) or
                     is_pwidechar(rd) or
                     is_chararray(rd) or
-                    is_widechararray(rd)) and
-                   (treetyp in [addn,equaln,unequaln,gtn,gten,ltn,lten]) then
+                    is_widechararray(rd)) then
                  begin
                    allowed:=false;
                    exit;
@@ -1912,7 +1920,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.82  2004-02-26 16:11:09  peter
+  Revision 1.83  2004-03-18 16:19:03  peter
+    * fixed operator overload allowing for pointer-string
+    * replaced some type_e_mismatch with more informational messages
+
+  Revision 1.82  2004/02/26 16:11:09  peter
     * return cnothingn and give error when the operator is not overloaded
 
   Revision 1.81  2004/02/24 16:12:39  peter

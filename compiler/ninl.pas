@@ -880,7 +880,7 @@ implementation
            ((codepara.resulttype.def.deftype <> orddef) or
             is_64bitint(codepara.resulttype.def)) then
           begin
-            CGMessagePos(codepara.fileinfo,type_e_mismatch);
+            CGMessagePos1(codepara.fileinfo,type_e_integer_expr_expected,codepara.resulttype.def.typename);
             exit;
           end;
 
@@ -1272,21 +1272,21 @@ implementation
                  in_const_swap_long :
                    begin
                      if isreal then
-                      CGMessage(type_e_mismatch)
+                      CGMessage1(type_e_integer_expr_expected,left.resulttype.def.typename)
                      else
                       hp:=cordconstnode.create((vl and $ffff) shl 16+(vl shr 16),left.resulttype,true);
                    end;
                  in_const_swap_qword :
                    begin
                      if isreal then
-                      CGMessage(type_e_mismatch)
+                      CGMessage1(type_e_integer_expr_expected,left.resulttype.def.typename)
                      else
                       hp:=cordconstnode.create((vl and $ffff) shl 32+(vl shr 32),left.resulttype,true);
                    end;
                  in_const_ptr :
                    begin
                      if isreal then
-                      CGMessage(type_e_mismatch)
+                      CGMessage1(type_e_integer_expr_expected,left.resulttype.def.typename)
                      else
                       hp:=cpointerconstnode.create((vl2 shl 4)+vl,voidfarpointertype);
                    end;
@@ -1378,7 +1378,7 @@ implementation
                    end;
                   set_varstate(left,vs_used,true);
                   if not is_integer(left.resulttype.def) then
-                   CGMessage(type_e_mismatch);
+                    CGMessage1(type_e_integer_expr_expected,left.resulttype.def.typename);
                   case inlinenumber of
                     in_lo_word,
                     in_hi_word :
@@ -1458,7 +1458,7 @@ implementation
                                result:=hp;
                              end;
                            uvoid :
-                             CGMessage(type_e_mismatch)
+                             CGMessage1(type_e_ordinal_expr_expected,left.resulttype.def.typename);
                            else
                              begin
                                { all other orddef need no transformation }
@@ -1475,7 +1475,7 @@ implementation
                          result:=hp;
                        end;
                      else
-                       CGMessage(type_e_mismatch);
+                       CGMessage1(type_e_ordinal_expr_expected,left.resulttype.def.typename);
                    end;
                 end;
 
@@ -1976,7 +1976,7 @@ implementation
                             inserttypeconv(tcallparanode(tcallparanode(left).right).left,cshortstringtype);
                          end
                        else
-                         CGMessage(type_e_mismatch);
+                         CGMessage1(type_e_boolean_expr_expected,left.resulttype.def.typename);
                     end
                   else
                     CGMessage(type_e_mismatch);
@@ -2374,7 +2374,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.132  2004-02-20 21:55:59  peter
+  Revision 1.133  2004-03-18 16:19:03  peter
+    * fixed operator overload allowing for pointer-string
+    * replaced some type_e_mismatch with more informational messages
+
+  Revision 1.132  2004/02/20 21:55:59  peter
     * procvar cleanup
 
   Revision 1.131  2004/02/04 18:45:29  jonas

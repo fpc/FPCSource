@@ -1123,6 +1123,8 @@ type_e_operator_not_allowed=04051_E_The operator is not applicable for the opera
 % operands
 type_e_constant_expr_expected=04052_E_Constant Expression expected
 % The compiler expects an constant expression, but gets a variable expression.
+type_e_operator_not_supported_for_types=04053_E_Operation "$1" not supported types "$2" and "$3"
+% The operation is not allowed for the supplied types
 % \end{description}
 #
 # Symtable

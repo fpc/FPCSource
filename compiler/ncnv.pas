@@ -2180,11 +2180,10 @@ implementation
                { the operands must be related }
                if (not(tobjectdef(left.resulttype.def).is_related(tobjectdef(right.resulttype.def)))) and
                   (not(tobjectdef(right.resulttype.def).is_related(tobjectdef(left.resulttype.def)))) then
-                 CGMessage(type_e_mismatch);
+                 CGMessage2(type_e_classes_not_related,left.resulttype.def.typename,right.resulttype.def.typename);
              end
             else
              CGMessage1(type_e_class_type_expected,left.resulttype.def.typename);
-
             { call fpc_do_is helper }
             paras := ccallparanode.create(
                          left,
@@ -2379,7 +2378,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.141  2004-02-21 16:03:10  florian
+  Revision 1.142  2004-03-18 16:19:03  peter
+    * fixed operator overload allowing for pointer-string
+    * replaced some type_e_mismatch with more informational messages
+
+  Revision 1.141  2004/02/21 16:03:10  florian
     * message about illegal type conversion reports now the types
 
   Revision 1.140  2004/02/20 21:55:59  peter

@@ -401,7 +401,7 @@ implementation
            exit;
          if not is_boolean(left.resulttype.def) then
            begin
-             CGMessage(type_e_mismatch);
+             CGMessage1(type_e_boolean_expr_expected,left.resulttype.def.typename);
              exit;
            end;
       end;
@@ -1210,7 +1210,7 @@ implementation
               if codegenerror then
                exit;
               if not(is_class(left.resulttype.def)) then
-                CGMessage(type_e_mismatch);
+                CGMessage1(type_e_class_type_expected,left.resulttype.def.typename);
               { insert needed typeconvs for addr,frame }
               if assigned(right) then
                begin
@@ -1415,7 +1415,7 @@ implementation
          result:=nil;
          resulttype:=voidtype;
          if not(is_class(excepttype)) then
-           CGMessage(type_e_mismatch);
+           CGMessage1(type_e_class_type_expected,excepttype.typename);
          if assigned(left) then
            resulttypepass(left);
          if assigned(right) then
@@ -1475,7 +1475,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.94  2004-02-05 01:24:08  florian
+  Revision 1.95  2004-03-18 16:19:03  peter
+    * fixed operator overload allowing for pointer-string
+    * replaced some type_e_mismatch with more informational messages
+
+  Revision 1.94  2004/02/05 01:24:08  florian
     * several fixes to compile x86-64 system
 
   Revision 1.93  2004/02/03 22:32:54  peter
