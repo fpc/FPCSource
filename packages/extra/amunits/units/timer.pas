@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
 
     A file in Amiga system run time library.
-    Copyright (c) 1998 by Nils Sjoholm
+    Copyright (c) 1998-2002 by Nils Sjoholm
     member of the Amiga RTL development team.
 
     See the file COPYING.FPC, included in this distribution,
@@ -13,6 +13,15 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+
+{
+    History:
+    Removed the var for all functions.
+    06 Sep 2000.
+
+    nils.sjoholm@mailbox.swipnet.se
+
+}
 
 unit timer;
 
@@ -71,15 +80,15 @@ Const
 var
     TimerBase   : Pointer;
 
-Procedure AddTime(VAR Dest, Source : ptimeval);
-Function CmpTime(VAR Dest, Source : ptimeval) : ULONG;
-Procedure SubTime(VAR Dest, Source : ptimeval);
+Procedure AddTime( Dest, Source : ptimeval);
+Function CmpTime( Dest, Source : ptimeval) : ULONG;
+Procedure SubTime( Dest, Source : ptimeval);
 function ReadEClock(Dest : pEClockVal): longint;
-procedure GetSysTime(Dest : ptimeval);
+procedure GetSysTime( Dest : ptimeval);
 
 IMPLEMENTATION
 
-Procedure AddTime(VAR Dest, Source : ptimeval);
+Procedure AddTime( Dest, Source : ptimeval);
 begin
    asm
        MOVE.L  A6,-(A7)
@@ -91,7 +100,7 @@ begin
    end;
 end;
 
-Function CmpTime(VAR Dest, Source : ptimeval) : ULONG;
+Function CmpTime( Dest, Source : ptimeval) : ULONG;
 begin
    asm
        MOVE.L  A6,-(A7)
@@ -104,7 +113,7 @@ begin
    end;
 end;
 
-Procedure SubTime(VAR Dest, Source : ptimeval);
+Procedure SubTime( Dest, Source : ptimeval);
 begin
    asm
        MOVE.L  A6,-(A7)
@@ -128,7 +137,7 @@ begin
    end;
 end;
 
-procedure GetSysTime(Dest : ptimeval);
+procedure GetSysTime( Dest : ptimeval);
 begin
    asm
        MOVE.L  A6,-(A7)
@@ -142,7 +151,13 @@ end;
 
 end.
 
+{
+  $Log$
+  Revision 1.2  2002-11-19 18:47:47  nils
+    * update check internal log
 
+}
+  
 
 
 

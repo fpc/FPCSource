@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
 
     A file in Amiga system run time library.
-    Copyright (c) 1998 by Nils Sjoholm
+    Copyright (c) 1998-2002 by Nils Sjoholm
     member of the Amiga RTL development team.
 
     See the file COPYING.FPC, included in this distribution,
@@ -13,6 +13,29 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{
+    History:
+    Added overlay functions for Pchar->Strings, functions
+    and procedures.
+    14 Jul 2000.
+
+    Changed tWBArg.wa_Lock from a pointer to a longint.
+    15 Aug 2000.
+
+    Fixed tDiskObject.
+    Member tDiskObject.do_CurrentX was defined as a pointer,
+    should be longint.
+    17 Aug 2000.
+ 
+    Added functions and procedures with array of const.
+    For use with fpc 1.0.7. Thay are in systemvartags.
+    05 Nov 2002.
+
+    Removed amigaoverlays, use smartlink instead.
+    05 Nov 2002.
+
+    nils.sjoholm@mailbox.swipnet.se
+}
 
 unit workbench;
 
@@ -21,11 +44,12 @@ INTERFACE
 uses exec,amigados,utility, intuition;
 
 
+
 Type
 
     pWBArg = ^tWBArg;
     tWBArg = record
-        wa_Lock         : Pointer;      { a lock descriptor }
+        wa_Lock         : longint;      { a lock descriptor }
         wa_Name         : STRPTR;       { a string relative to that lock }
     end;
 
@@ -97,7 +121,7 @@ Type
         do_Type         : Byte;
         do_DefaultTool  : STRPTR;
         do_ToolTypes    : Pointer;
-        do_CurrentX     : Pointer;
+        do_CurrentX     : Longint;
         do_CurrentY     : Longint;
         do_DrawerData   : pDrawerData;
         do_ToolWindow   : STRPTR;       { only applies to tools }
@@ -211,23 +235,29 @@ CONST
 VAR
     WorkbenchBase : pLibrary;
 
-FUNCTION AddAppIconA(id : ULONG; userdata : ULONG; text : pCHAR; msgport : pMsgPort; lock : pFileLock; diskobj : pDiskObject; taglist : pTagItem) : pAppIcon;
-FUNCTION AddAppMenuItemA(id : ULONG; userdata : ULONG; text : pCHAR; msgport : pMsgPort; taglist : pTagItem) : pAppMenuItem;
+FUNCTION AddAppIconA(id : ULONG; userdata : ULONG; text_ : pCHAR; msgport : pMsgPort; lock : pFileLock; diskobj : pDiskObject; taglist : pTagItem) : pAppIcon;
+FUNCTION AddAppMenuItemA(id : ULONG; userdata : ULONG; text_ : pCHAR; msgport : pMsgPort; taglist : pTagItem) : pAppMenuItem;
 FUNCTION AddAppWindowA(id : ULONG; userdata : ULONG; window : pWindow; msgport : pMsgPort; taglist : pTagItem) : pAppWindow;
 FUNCTION RemoveAppIcon(appIcon : pAppIcon) : BOOLEAN;
 FUNCTION RemoveAppMenuItem(appMenuItem : pAppMenuItem) : BOOLEAN;
 FUNCTION RemoveAppWindow(appWindow : pAppWindow) : BOOLEAN;
 PROCEDURE WBInfo(lock : BPTR; name : pCHAR; screen : pScreen);
 
+FUNCTION AddAppIconA(id : ULONG; userdata : ULONG; text_ : string; msgport : pMsgPort; lock : pFileLock; diskobj : pDiskObject; taglist : pTagItem) : pAppIcon;
+FUNCTION AddAppMenuItemA(id : ULONG; userdata : ULONG; text_ : string; msgport : pMsgPort; taglist : pTagItem) : pAppMenuItem;
+PROCEDURE WBInfo(lock : BPTR; name : string; screen : pScreen);
+
 IMPLEMENTATION
 
-FUNCTION AddAppIconA(id : ULONG; userdata : ULONG; text : pCHAR; msgport : pMsgPort; lock : pFileLock; diskobj : pDiskObject; taglist : pTagItem) : pAppIcon;
+uses pastoc;
+
+FUNCTION AddAppIconA(id : ULONG; userdata : ULONG; text_ : pCHAR; msgport : pMsgPort; lock : pFileLock; diskobj : pDiskObject; taglist : pTagItem) : pAppIcon;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
     MOVE.L  id,D0
     MOVE.L  userdata,D1
-    MOVEA.L text,A0
+    MOVEA.L text_,A0
     MOVEA.L msgport,A1
     MOVEA.L lock,A2
     MOVEA.L diskobj,A3
@@ -239,13 +269,13 @@ BEGIN
   END;
 END;
 
-FUNCTION AddAppMenuItemA(id : ULONG; userdata : ULONG; text : pCHAR; msgport : pMsgPort; taglist : pTagItem) : pAppMenuItem;
+FUNCTION AddAppMenuItemA(id : ULONG; userdata : ULONG; text_ : pCHAR; msgport : pMsgPort; taglist : pTagItem) : pAppMenuItem;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
     MOVE.L  id,D0
     MOVE.L  userdata,D1
-    MOVEA.L text,A0
+    MOVEA.L text_,A0
     MOVEA.L msgport,A1
     MOVEA.L taglist,A2
     MOVEA.L WorkbenchBase,A6
@@ -329,7 +359,30 @@ BEGIN
   END;
 END;
 
+FUNCTION AddAppIconA(id : ULONG; userdata : ULONG; text_ : string; msgport : pMsgPort; lock : pFileLock; diskobj : pDiskObject; taglist : pTagItem) : pAppIcon;
+begin
+       AddAppIconA := AddAppIconA(id,userdata,pas2c(text_),msgport,lock,diskobj,taglist);
+end;
+
+FUNCTION AddAppMenuItemA(id : ULONG; userdata : ULONG; text_ : string; msgport : pMsgPort; taglist : pTagItem) : pAppMenuItem;
+begin
+       AddAppMenuItemA := AddAppMenuItemA(id,userdata,pas2c(text_),msgport,taglist);
+end;
+
+PROCEDURE WBInfo(lock : BPTR; name : string; screen : pScreen);
+begin
+       WBInfo(lock,pas2c(name),screen);
+end;
+
+
 END. (* UNIT WB *)
 
+{
+  $Log$
+  Revision 1.2  2002-11-19 18:47:48  nils
+    * update check internal log
 
+}
+
+  
 

@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
 
     A file in Amiga system run time library.
-    Copyright (c) 1998 by Nils Sjoholm
+    Copyright (c) 1998-2002 by Nils Sjoholm
     member of the Amiga RTL development team.
 
     See the file COPYING.FPC, included in this distribution,
@@ -13,12 +13,25 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{
+    History:
+    Added overlay functions for Pchar->Strings, functions
+    and procedures.
+    14 Jul 2000.
+    
+    Removed amigaoverlays, use smartlink instead.
+    05 Nov 2002.
 
+    nils.sjoholm@mailbox.swipnet.se
+}
 
 UNIT rexx;
 
 INTERFACE
+
+
 USES exec;
+
 
 
 { === rexx/storage.h ==================================================
@@ -162,7 +175,7 @@ Const
     RXCODEMASK      = $FF000000;
     RXARGMASK       = $0000000F;
 
-{ The RexxRsrc structure is used to manage global resources.  Each node
+{ The RexxRsrc structure is used to manage global resources.  Each node 
  * has a name string created as a RexxArg structure, and the total size
  * of the node is saved in the "rr_Size" field.  The REXX systems library
  * provides functions to allocate and release resource nodes.  If special
@@ -442,7 +455,7 @@ Const
     CTB_REXXSPC = 5;            { REXX special symbols          }
     CTB_UPPER   = 6;            { UPPERCASE alphabetic          }
     CTB_LOWER   = 7;            { lowercase alphabetic          }
-
+                                                                      
 { Attribute flags                                                      }
 
     CTF_SPACE   = 1;
@@ -468,7 +481,17 @@ FUNCTION LengthArgstring(argstring : pCHAR) : ULONG;
 PROCEDURE LockRexxBase(resource : ULONG);
 PROCEDURE UnlockRexxBase(resource : ULONG);
 
+FUNCTION CreateArgstring(argstring : string; length : ULONG) : pCHAR;
+FUNCTION CreateRexxMsg(port : pMsgPort; extension : string; host : pCHAR) : pRexxMsg;
+FUNCTION CreateRexxMsg(port : pMsgPort; extension : pCHAR; host : string) : pRexxMsg;
+FUNCTION CreateRexxMsg(port : pMsgPort; extension : string; host : string) : pRexxMsg;
+PROCEDURE DeleteArgstring(argstring : string);
+FUNCTION LengthArgstring(argstring : string) : ULONG;
+
 IMPLEMENTATION
+
+uses pastoc;
+
 
 PROCEDURE ClearRexxMsg(msgptr : pRexxMsg; count : ULONG);
 BEGIN
@@ -597,4 +620,45 @@ BEGIN
   END;
 END;
 
+
+FUNCTION CreateArgstring(argstring : string; length : ULONG) : pCHAR;
+begin
+       CreateArgstring := CreateArgstring(pas2c(argstring),length);
+end;
+
+FUNCTION CreateRexxMsg(port : pMsgPort; extension : string; host : pCHAR) : pRexxMsg;
+begin
+       CreateRexxMsg := CreateRexxMsg(port,pas2c(extension),host);
+end;
+
+FUNCTION CreateRexxMsg(port : pMsgPort; extension : pCHAR; host : string) : pRexxMsg;
+begin
+       CreateRexxMsg := CreateRexxMsg(port,extension,pas2c(host));
+end;
+
+FUNCTION CreateRexxMsg(port : pMsgPort; extension : string; host : string) : pRexxMsg;
+begin
+       CreateRexxMsg := CreateRexxMsg(port,pas2c(extension),pas2c(host));
+end;
+
+PROCEDURE DeleteArgstring(argstring : string);
+begin
+       DeleteArgstring(pas2c(argstring));
+end;
+
+FUNCTION LengthArgstring(argstring : string) : ULONG;
+begin
+       LengthArgstring := LengthArgstring(pas2c(argstring));
+end;
+
+
 END. (* UNIT REXXSYSLIB *)
+
+{
+  $Log$
+  Revision 1.3  2002-11-19 18:47:47  nils
+    * update check internal log
+
+}
+
+  

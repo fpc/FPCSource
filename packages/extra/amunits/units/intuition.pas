@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
 
     A file in Amiga system run time library.
-    Copyright (c) 1998 by Nils Sjoholm
+    Copyright (c) 1998-2002 by Nils Sjoholm
     member of the Amiga RTL development team.
 
     See the file COPYING.FPC, included in this distribution,
@@ -14,9 +14,32 @@
 
  **********************************************************************}
 
+
+{
+   History:
+   Changed tNewWindow.MaxHeigth and tNewWindow.MaxWidth
+   from Word to Integer.
+   30 May 2000.
+
+   Added overlay functions for Pchar->Strings, functions
+   and procedures.
+   14 Jul 2000.
+
+   Added functions and procedures with array of const.
+   For use with fpc 1.0.7 They are in systemvartags.
+   05 Nov 2002.
+
+   Removed amigaoverlays, use smartlink instead.
+   05 Nov 2002.
+   
+   nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
+
+}
+
 unit intuition;
 
 INTERFACE
+
 
 uses exec, graphics, utility, inputevent, timer, layers;
 
@@ -1067,7 +1090,7 @@ Type
         MinWidth,
         MinHeight       : Integer;        { minimum sizes }
         MaxWidth,
-        MaxHeight       : Word;        { maximum sizes }
+        MaxHeight       : Integer;        { maximum sizes }
 
         Flags           : ULONG;      { see below for defines }
 
@@ -1312,7 +1335,7 @@ Type
         MinWidth,
         MinHeight       : Integer;        { minimums }
         MaxWidth,
-        MaxHeight       : Word;        { maximums }
+        MaxHeight       : Integer;        { maximums }
 
     { the type variable describes the Screen in which you want this Window to
      * open.  The type value can either be CUSTOMSCREEN or one of the
@@ -3889,7 +3912,22 @@ function ITEMNUM( n : Word): Word;
 function MENUNUM( n : Word): Word;
 function SUBNUM( n : Word): Word;
 
+FUNCTION DisplayAlert(alertNumber : ULONG; string_ : string; height : ULONG) : BOOLEAN;
+FUNCTION LockPubScreen(name : string) : pScreen;
+FUNCTION MakeClass(classID : string; superClassID : pCHAR; superClassPtr : pIClass; instanceSize : ULONG; flags : ULONG) : pIClass;
+FUNCTION MakeClass(classID : pCHAR; superClassID : string; superClassPtr : pIClass; instanceSize : ULONG; flags : ULONG) : pIClass;
+FUNCTION MakeClass(classID : string; superClassID : string; superClassPtr : pIClass; instanceSize : ULONG; flags : ULONG) : pIClass;
+FUNCTION NewObjectA(classPtr : pIClass; classID : string; tagList : pTagItem) : POINTER;
+PROCEDURE SetDefaultPubScreen(name : string);
+PROCEDURE SetWindowTitles(window : pWindow; windowTitle : string; screenTitle : pCHAR);
+PROCEDURE SetWindowTitles(window : pWindow; windowTitle : pCHAR; screenTitle : string);
+PROCEDURE SetWindowTitles(window : pWindow; windowTitle : string; screenTitle : string);
+FUNCTION TimedDisplayAlert(alertNumber : ULONG; string_ : string; height : ULONG; time : ULONG) : BOOLEAN;
+PROCEDURE UnlockPubScreen(name : string; screen : pScreen);
+
 IMPLEMENTATION
+
+uses pastoc;
 
 function INST_DATA (cl: pIClass; o: p_Object): Pointer;
 begin
@@ -5604,9 +5642,78 @@ BEGIN
   END;
 END;
 
+
+FUNCTION DisplayAlert(alertNumber : ULONG; string_ : string; height : ULONG) : BOOLEAN;
+begin
+      DisplayAlert := DisplayAlert(alertNumber,pas2c(string_),height);
+end;
+
+FUNCTION LockPubScreen(name : string) : pScreen;
+begin
+      LockPubScreen := LockPubScreen(pas2c(name));
+end;
+
+FUNCTION MakeClass(classID : string; superClassID : pCHAR; superClassPtr : pIClass; instanceSize : ULONG; flags : ULONG) : pIClass;
+begin
+      MakeClass := MakeClass(pas2c(classID),superClassID,superClassPtr,instanceSize,flags);
+end;
+
+FUNCTION MakeClass(classID : pCHAR; superClassID : string; superClassPtr : pIClass; instanceSize : ULONG; flags : ULONG) : pIClass;
+begin
+      MakeClass := MakeClass(classID,pas2c(superClassID),superClassPtr,instanceSize,flags); 
+end;
+
+FUNCTION MakeClass(classID : string; superClassID : string; superClassPtr : pIClass; instanceSize : ULONG; flags : ULONG) : pIClass;
+begin
+      MakeClass := MakeClass(pas2c(classID),pas2c(superClassID),superClassPtr,instanceSize,flags);
+end;
+
+FUNCTION NewObjectA(classPtr : pIClass; classID : string; tagList : pTagItem) : POINTER;
+begin
+      NewObjectA := NewObjectA(classPtr,pas2c(classID),taglist);
+end;
+
+PROCEDURE SetDefaultPubScreen(name : string);
+begin
+      SetDefaultPubScreen(pas2c(name)); 
+end;
+
+PROCEDURE SetWindowTitles(window : pWindow; windowTitle : string; screenTitle : pCHAR);
+begin
+      SetWindowTitles(window,pas2c(windowTitle),screenTitle);
+end;
+
+PROCEDURE SetWindowTitles(window : pWindow; windowTitle : pCHAR; screenTitle : string);
+begin
+      SetWindowTitles(window,windowTitle,pas2c(screenTitle));
+end;
+
+PROCEDURE SetWindowTitles(window : pWindow; windowTitle : string; screenTitle : string);
+begin
+      SetWindowTitles(window,pas2c(windowTitle),pas2c(screenTitle));
+end;
+
+FUNCTION TimedDisplayAlert(alertNumber : ULONG; string_ : string; height : ULONG; time : ULONG) : BOOLEAN;
+begin
+      TimedDisplayAlert := TimedDisplayAlert(alertNumber,pas2c(string_),height,time);
+end;
+
+PROCEDURE UnlockPubScreen(name : string; screen : pScreen);
+begin
+      UnlockPubScreen(pas2c(name),screen);
+end;
+
+
 END. (* UNIT INTUITION *)
 
+{
+  $Log$
+  Revision 1.2  2002-11-19 18:47:42  nils
+    * update check internal log
 
+}
+
+  
 
 
 

@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
 
     A file in Amiga system run time library.
-    Copyright (c) 1998 by Nils Sjoholm
+    Copyright (c) 1998-2002 by Nils Sjoholm
     member of the Amiga RTL development team.
 
     See the file COPYING.FPC, included in this distribution,
@@ -13,6 +13,17 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+
+{
+    History:
+
+    Added functions and procedures with array of const.
+    For use with fpc 1.0.7. They are in systemvartags.
+    11 Nov 2002.
+    
+    nils.sjoholm@mailbox.swipnet.se
+}
+
 
 UNIT locale;
 
@@ -266,6 +277,7 @@ FUNCTION OpenLocale(name : pCHAR) : pLocale;
 FUNCTION ParseDate(locale : pLocale; date : pDateStamp; fmtTemplate : pCHAR; getCharFunc : pHook) : BOOLEAN;
 FUNCTION StrConvert(locale : pLocale; string1 : pCHAR; buffer : POINTER; bufferSize : ULONG; typ : ULONG) : ULONG;
 FUNCTION StrnCmp(locale : pLocale; string1 : pCHAR; string2 : pCHAR; length : LONGINT; typ : ULONG) : LONGINT;
+
 
 IMPLEMENTATION
 
@@ -626,3 +638,12 @@ BEGIN
 END;
 
 END. (* UNIT LOCALE *)
+
+{
+  $Log$
+  Revision 1.2  2002-11-19 18:47:46  nils
+    * update check internal log
+
+}
+
+  

@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
 
     A file in Amiga system run time library.
-    Copyright (c) 1998 by Nils Sjoholm
+    Copyright (c) 1998-2002 by Nils Sjoholm
     member of the Amiga RTL development team.
 
     See the file COPYING.FPC, included in this distribution,
@@ -13,6 +13,17 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+
+{
+    History:
+
+    Added functions and procedures with array of const.
+    For use with fpc 1.0.7. Thay are in systemvartags.
+    11 Nov 2002.
+
+    nils.sjoholm@mailbox.swipnet.se
+}
+
 
 UNIT lowlevel;
 
@@ -30,6 +41,9 @@ Type
 {***************************************************************************}
 
 Const
+
+ LOWLEVELNAME : PChar = 'lowlevel.library';
+
 { bits in the return value of GetKey() }
  LLKB_LSHIFT     = 16;
  LLKB_RSHIFT     = 17;
@@ -257,7 +271,10 @@ PROCEDURE StartTimerInt(intHandle : POINTER; timeInterval : ULONG; continuous : 
 PROCEDURE StopTimerInt(intHandle : POINTER);
 FUNCTION SystemControlA(tagList : pTagItem) : ULONG;
 
+
 IMPLEMENTATION
+
+uses msgbox;
 
 FUNCTION AddKBInt(intRoutine : POINTER; intData : POINTER) : POINTER;
 BEGIN
@@ -441,6 +458,46 @@ BEGIN
   END;
 END;
 
+var
+    lowlevel_exit : pointer;
+
+procedure CloseLowLevelLibrary;
+begin
+    ExitProc := LowLevel_exit;
+    if LowLevelBase <> nil then begin
+       CloseLibrary(LowLevelBase);
+       LowLevelBase := nil;
+    end;
+end;
+
+const
+    VERSION : string[2] = '37';
+
+begin
+    LowLevelBase := nil;
+    LowLevelBase := OpenLibrary(LOWLEVELNAME,37);
+    if LowLevelBase <> nil then begin
+       LowLevel_exit := ExitProc;
+       ExitProc := @CloseLowLevelLibrary;
+    end else begin
+        MessageBox('FPC Pascal Error',
+                   'Can''t open LowLevel.library version ' +
+                   VERSION +
+                   chr(10) + 
+                   'Deallocating resources and closing down',
+                   'Oops');
+       halt(20);
+    end;
+
+
 END. (* UNIT LOWLEVEL *)
 
 
+{
+  $Log$
+  Revision 1.2  2002-11-19 18:47:46  nils
+    * update check internal log
+
+}
+
+  
