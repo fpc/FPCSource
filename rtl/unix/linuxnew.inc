@@ -60,7 +60,7 @@ Function Sysinfo(var Info:TSysinfo):Boolean;
   Get system info
 }
 Begin
-  Sysinfo:=do_SysCall(SysCall_nr_Sysinfo,longint(@info))=0;
+  Sysinfo:=do_SysCall(SysCall_nr_Sysinfo,TSysParam(@info))=0;
 End;
 
 function Clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint;
@@ -147,7 +147,10 @@ end.
 
 {
    $Log$
-   Revision 1.4  2003-12-30 12:24:01  marco
+   Revision 1.5  2004-05-01 16:35:13  peter
+     * ptrint
+
+   Revision 1.4  2003/12/30 12:24:01  marco
     * FPC_USE_LIBC
 
    Revision 1.3  2003/11/17 11:28:08  marco
