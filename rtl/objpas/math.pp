@@ -179,11 +179,19 @@ function IsZero(const A: Extended; Epsilon: Extended): Boolean;
 function IsZero(const A: Extended): Boolean; 
 {$endif FPC_HAS_TYPE_EXTENDED}
 
+{$ifdef FPC_HAS_TYPE_EXTENDED}
 function SameValue(const A, B: Extended): Boolean;
+{$endif}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
 function SameValue(const A, B: Double): Boolean;
+{$endif}
 function SameValue(const A, B: Single): Boolean;
+{$ifdef FPC_HAS_TYPE_EXTENDED}
 function SameValue(const A, B: Extended; Epsilon: Extended): Boolean;
+{$endif}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
 function SameValue(const A, B: Double; Epsilon: Double): Boolean;
+{$endif}
 function SameValue(const A, B: Single; Epsilon: Single): Boolean;
 
         
@@ -1258,7 +1266,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.17  2004-02-09 09:11:46  michael
+  Revision 1.18  2004-02-09 17:21:04  marco
+   * 1.0 compilation fixes
+
+  Revision 1.17  2004/02/09 09:11:46  michael
   + Implemented SameValue
 
   Revision 1.16  2004/02/09 08:55:45  michael
