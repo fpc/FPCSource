@@ -45,7 +45,7 @@ implementation
 
     uses
        cutils,cclasses,
-       globtype,globals,systems,verbose,script,fmodule;
+       globtype,globals,systems,verbose,script,fmodule,i_palmos;
 
 {****************************************************************************
                                TLinkerPalmOS
@@ -205,55 +205,6 @@ end;
                                      Initialize
 *****************************************************************************}
 
-{$ifdef m68k}
-    const
-       target_m68k_palmos_info : ttargetinfo =
-          (
-            target       : target_m68k_PalmOS;
-            name         : 'PalmOS';
-            shortname    : 'palmos';
-            flags        : [tf_code_small,tf_static_a5_based];
-            cpu          : cpu_m68k;
-            short_name   : 'PALMOS';
-            unit_env     : 'PALMUNITS';
-            extradefines : '';
-            sharedlibext : '.so';
-            staticlibext : '.a';
-            sourceext    : '.pp';
-            pasext       : '.pas';
-            exeext       : '';
-            defext       : '';
-            scriptext    : '.sh';
-            smartext     : '.sl';
-            unitext      : '.ppu';
-            unitlibext   : '.ppl';
-            asmext       : '.s';
-            objext       : '.o';
-            resext       : '.res';
-            resobjext    : '.or';
-            staticlibprefix : 'libp';
-            sharedlibprefix : 'lib';
-            Cprefix      : '_';
-            newline      : #10;
-            dirsep       : '/';
-            files_case_relevent : true;
-            assem        : as_m68k_as;
-            assemextern  : as_m68k_as;
-            link         : ld_m68k_palmos;
-            linkextern   : ld_m68k_palmos;
-            ar           : ar_m68k_ar;
-            res          : res_none;
-            script       : script_unix;
-            endian       : endian_big;
-            stackalignment : 2;
-            maxCrecordalignment : 4;
-            heapsize     : 128*1024;
-            stacksize    : 8192;
-            DllScanSupported:false;
-            use_function_relative_addresses : false
-          );
-{$endif m68k}
-
 initialization
 {$ifdef m68k}
   RegisterTarget(target_m68k_palmos_info);
@@ -261,7 +212,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.13  2002-07-01 18:46:35  peter
+  Revision 1.14  2002-07-26 21:15:46  florian
+    * rewrote the system handling
+
+  Revision 1.13  2002/07/01 18:46:35  peter
     * internal linker
     * reorganized aasm layer
 

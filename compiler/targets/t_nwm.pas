@@ -96,7 +96,7 @@ implementation
     verbose,systems,globtype,globals,
     symconst,script,
     fmodule,aasmbase,aasmtai,aasmcpu,cpubase,symsym,
-    import,export,link;
+    import,export,link,i_nwm;
 
   type
     timportlibnetware=class(timportlib)
@@ -475,81 +475,19 @@ end;
                                      Initialize
 *****************************************************************************}
 
-    const
-       target_i386_netware_info : ttargetinfo =
-          (
-            target       : target_i386_NETWARE;
-            name         : 'Netware for i386';
-            shortname    : 'Netware';
-            flags        : [];
-            cpu          : cpu_i386;
-            unit_env     : 'NETWAREUNITS';
-            extradefines : '';
-            sourceext    : '.pp';
-            pasext       : '.pas';
-            exeext       : '.nlm';
-            defext       : '.def';
-            scriptext    : '.sh';
-            smartext     : '.sl';
-            unitext      : '.ppn';
-            unitlibext   : '.ppl';
-            asmext       : '.s';
-            objext       : '.on';
-            resext       : '.res';
-            resobjext    : '.or';
-            sharedlibext : '.nlm';
-            staticlibext : '.a';
-            staticlibprefix : '';
-            sharedlibprefix : '';
-            sharedClibext : '.nlm';
-            staticClibext : '.a';
-            staticClibprefix : '';
-            sharedClibprefix : '';
-            Cprefix      : '';
-            newline      : #13#10;
-            dirsep       : '\';
-            files_case_relevent : false;
-            assem        : as_i386_elf32;
-            assemextern  : as_i386_as;
-            link         : ld_i386_netware;
-            linkextern   : ld_i386_netware;
-            ar           : ar_gnu_ar;
-            res          : res_none;
-            script       : script_unix;
-            endian       : endian_little;
-            alignment    :
-              (
-                procalign       : 4;
-                loopalign       : 4;
-                jumpalign       : 0;
-                constalignmin   : 0;
-                constalignmax   : 1;
-                varalignmin     : 0;
-                varalignmax     : 1;
-                localalignmin   : 0;
-                localalignmax   : 1;
-                paraalign       : 4;
-                recordalignmin  : 0;
-                recordalignmax  : 2;
-                maxCrecordalign : 4
-              );
-            first_parm_offset : 8;
-            heapsize     : 256*1024;
-            stacksize    : 8192;
-            DllScanSupported:false;
-            use_function_relative_addresses : true
-          );
-
 
 initialization
   RegisterLinker(ld_i386_netware,TLinkerNetware);
-  RegisterImport(target_i386_netware,TImportLibNetware);
-  RegisterExport(target_i386_netware,TExportLibNetware);
-  RegisterTarget(target_i386_netware_info);
+  RegisterImport(system_i386_netware,TImportLibNetware);
+  RegisterExport(system_i386_netware,TExportLibNetware);
+  RegisterTarget(system_i386_netware_info);
 end.
 {
   $Log$
-  Revision 1.25  2002-07-01 18:46:35  peter
+  Revision 1.26  2002-07-26 21:15:46  florian
+    * rewrote the system handling
+
+  Revision 1.25  2002/07/01 18:46:35  peter
     * internal linker
     * reorganized aasm layer
 

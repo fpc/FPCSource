@@ -782,7 +782,7 @@ implementation
                         Message(parser_e_syntax_error);
                         consume_all_until(_SEMICOLON);
                      end
-                   else if islibrary or (target_info.target in [target_i386_WIN32,target_i386_wdosx,target_i386_Netware])
+                   else if islibrary or (target_info.system in [system_i386_WIN32,system_i386_wdosx,system_i386_Netware])
                    then  // AD
                      read_exports;
                 end
@@ -831,7 +831,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.61  2002-07-20 11:57:56  florian
+  Revision 1.62  2002-07-26 21:15:41  florian
+    * rewrote the system handling
+
+  Revision 1.61  2002/07/20 11:57:56  florian
     * types.pas renamed to defbase.pas because D6 contains a types
       unit so this would conflicts if D6 programms are compiled
     + Willamette/SSE2 instructions to assembler added

@@ -255,7 +255,7 @@ interface
             idtxt  : 'AS';
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM';
-            supported_target : target_any;
+            supported_target : system_any;
             outputbinary: false;
             allowdirect : true;
             externals : false;
@@ -275,7 +275,7 @@ interface
             idtxt  : 'AS_AOUT';
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM';
-            supported_target : target_i386_os2;
+            supported_target : system_i386_os2;
             outputbinary: false;
             allowdirect : true;
             externals : false;
@@ -295,7 +295,7 @@ interface
             idtxt  : 'ASW';
             asmbin : 'asw';
             asmcmd : '-o $OBJ $ASM';
-            supported_target : target_i386_win32;
+            supported_target : system_i386_win32;
             outputbinary: false;
             allowdirect : true;
             externals : false;
@@ -316,7 +316,7 @@ interface
             idtxt  : 'ASWDOSX';
             asmbin : 'asw';
             asmcmd : '-o $OBJ $ASM';
-            supported_target : target_i386_wdosx;
+            supported_target : system_i386_wdosx;
             outputbinary: false;
             allowdirect : true;
             externals : false;
@@ -340,7 +340,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.24  2002-07-07 09:52:33  florian
+  Revision 1.25  2002-07-26 21:15:42  florian
+    * rewrote the system handling
+
+  Revision 1.24  2002/07/07 09:52:33  florian
     * powerpc target fixed, very simple units can be compiled
     * some basic stuff for better callparanode handling, far from being finished
 

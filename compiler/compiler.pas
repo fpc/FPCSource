@@ -125,6 +125,48 @@ uses
   ,cputarg
   { cpu parameter handling }
   ,cpupara
+  { system information for source system }
+  { the information about the target os  }
+  { are pulled in by the t_* units       }
+{$ifdef amiga}
+  ,i_amiga
+{$endif amiga}
+{$ifdef atari}
+  ,i_atari
+{$endif atari}
+{$ifdef beos}
+  ,i_beos
+{$endif beos}
+{$ifdef fbds}
+  ,i_fbsd
+{$endif fbds}
+{$ifdef go32v2}
+  ,i_go32v2
+{$endif go32v2}
+{$ifdef linux}
+  ,i_linux
+{$endif linux}
+{$ifdef macos}
+  ,i_macos
+{$endif macos}
+{$ifdef nwm}
+  ,i_nwm
+{$endif nwm}
+{$ifdef os2}
+  ,i_os2
+{$endif os2}
+{$ifdef palmos}
+  ,i_palmos
+{$endif palmos}
+{$ifdef sunos}
+  ,i_sunos
+{$endif sunos}
+{$ifdef wdosx}
+  ,i_wdosx
+{$endif wdosx}
+{$ifdef win32}
+  ,i_win32
+{$endif win32}
   ;
 
 function Compile(const cmd:string):longint;
@@ -349,7 +391,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.32  2002-07-11 14:41:27  florian
+  Revision 1.33  2002-07-26 21:15:37  florian
+    * rewrote the system handling
+
+  Revision 1.32  2002/07/11 14:41:27  florian
     * start of the new generic parameter handling
 
   Revision 1.31  2002/07/04 19:00:23  florian

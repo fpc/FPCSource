@@ -38,7 +38,7 @@ interface
        FURTHERMORE : Make sure that this branch values, are
        consistant with the main branch version always.
      }
-       ttargetcpu=
+       tsystemcpu=
        (
              cpu_no,                       { 0 }
              cpu_i386,                     { 1 }
@@ -75,37 +75,37 @@ interface
        the integer value of this enum is stored in PPU
        files to recognize the target, so if you add new targets
        allways add them at end PM
-       FURTHERMORE : Make sure that this branch values, are
+       FURTHERMORE : Make sure that this branch values are
        consistant with the main branch version always. (CEC)
        }
      type
-       ttarget =
+       tsystem =
        (
-             target_none,               { 0 }
-             obsolete_target_i386_GO32V1,{ 1 }
-             target_i386_GO32V2,        { 2 }
-             target_i386_linux,         { 3 }
-             target_i386_OS2,           { 4 }
-             target_i386_Win32,         { 5 }
-             target_i386_freebsd,       { 6 }
-             target_m68k_Amiga,         { 7 }
-             target_m68k_Atari,         { 8 }
-             target_m68k_Mac,           { 9 }
-             target_m68k_linux,         { 10 }
-             target_m68k_PalmOS,        { 11 }
-             target_alpha_linux,        { 12 }
-             target_powerpc_linux,      { 13 }
-             target_powerpc_macos,      { 14 }
-             target_i386_sunos,         { 15 }
-             target_i386_beos,          { 16 }
-             target_i386_netbsd,        { 17 }
-             target_m68k_netbsd,        { 18 }
-             target_i386_Netware,       { 19 }
-             target_i386_qnx,           { 20 }
-             target_i386_wdosx,         { 21 }
-             target_sparc_sunos,        { 22 }
-             target_sparc_linux,        { 23 }
-             target_x86_64_linux        { 24 }
+             system_none,               { 0 }
+             obsolete_system_i386_GO32V1,{ 1 }
+             system_i386_GO32V2,        { 2 }
+             system_i386_linux,         { 3 }
+             system_i386_OS2,           { 4 }
+             system_i386_Win32,         { 5 }
+             system_i386_freebsd,       { 6 }
+             system_m68k_Amiga,         { 7 }
+             system_m68k_Atari,         { 8 }
+             system_m68k_Mac,           { 9 }
+             system_m68k_linux,         { 10 }
+             system_m68k_PalmOS,        { 11 }
+             system_alpha_linux,        { 12 }
+             system_powerpc_linux,      { 13 }
+             system_powerpc_macos,      { 14 }
+             system_i386_sunos,         { 15 }
+             system_i386_beos,          { 16 }
+             system_i386_netbsd,        { 17 }
+             system_m68k_netbsd,        { 18 }
+             system_i386_Netware,       { 19 }
+             system_i386_qnx,           { 20 }
+             system_i386_wdosx,         { 21 }
+             system_sparc_sunos,        { 22 }
+             system_sparc_linux,        { 23 }
+             system_x86_64_linux        { 24 }
        );
 
        tasm = (as_none
@@ -175,7 +175,7 @@ interface
           idtxt       : string[9];
           asmbin      : string[8];
           asmcmd      : string[50];
-          supported_target : ttarget;
+          supported_target : tsystem;
           outputbinary,
           allowdirect,
           externals,
@@ -199,20 +199,19 @@ interface
           rescmd  : string[50];
        end;
 
-       {# }
-       ttargetflags = (tf_none,
+       tsystemflags = (tf_none,
             tf_under_development,
             tf_need_export,tf_needs_isconsole
             ,tf_code_small,tf_static_reg_based
        );
 
-       ptargetinfo = ^ttargetinfo;
-       ttargetinfo = packed record
-          target       : ttarget;
+       psysteminfo = ^tsysteminfo;
+       tsysteminfo = packed record
+          system       : tsystem;
           name         : string[30];
           shortname    : string[9];
-          flags        : set of ttargetflags;
-          cpu          : ttargetcpu;
+          flags        : set of tsystemflags;
+          cpu          : tsystemcpu;
           unit_env     : string[12];
           extradefines : string[40];
           sourceext,
@@ -269,24 +268,24 @@ interface
 
     const
        { alias for supported_target field in tasminfo }
-       target_any = target_none;
+       system_any = system_none;
 
     var
-       targetinfos   : array[ttarget] of ptargetinfo;
+       targetinfos   : array[tsystem] of psysteminfo;
        asminfos      : array[tasm] of pasminfo;
        arinfos       : array[tar] of parinfo;
        resinfos      : array[tres] of presinfo;
        asmmodeinfos  : array[tasmmode] of pasmmodeinfo;
 
-       source_info : ttargetinfo;
-       target_cpu  : ttargetcpu;
-       target_info : ttargetinfo;
+       source_info : tsysteminfo;
+       target_cpu  : tsystemcpu;
+       target_info : tsysteminfo;
        target_asm  : tasminfo;
        target_ar   : tarinfo;
        target_res  : tresinfo;
        target_path : string[12]; { for rtl/<X>/,fcl/<X>/, etc. }
 
-    function set_target(t:ttarget):boolean;
+    function set_target(t:tsystem):boolean;
     function set_target_asm(t:tasm):boolean;
     function set_target_ar(t:tar):boolean;
     function set_target_res(t:tres):boolean;
@@ -295,9 +294,11 @@ interface
     function set_target_asm_by_string(const s : string) : boolean;
     function set_asmmode_by_string(const s:string;var t:tasmmode):boolean;
 
+    procedure set_source_info(const ti : tsysteminfo);
+
     procedure UpdateAlignment(var d:talignmentinfo;const s:talignmentinfo);
 
-    procedure RegisterTarget(const r:ttargetinfo);
+    procedure RegisterTarget(const r:tsysteminfo);
     procedure RegisterAsmMode(const r:tasmmodeinfo);
     procedure RegisterRes(const r:tresinfo);
     procedure RegisterAr(const r:tarinfo);
@@ -314,7 +315,7 @@ implementation
                               Target setting
 ****************************************************************************}
 
-function set_target(t:ttarget):boolean;
+function set_target(t:tsystem):boolean;
 begin
   set_target:=false;
   if assigned(targetinfos[t]) then
@@ -370,12 +371,12 @@ end;
 function set_target_by_string(const s : string) : boolean;
 var
   hs : string;
-  t  : ttarget;
+  t  : tsystem;
 begin
   set_target_by_string:=false;
   { this should be case insensitive !! PM }
   hs:=upper(s);
-  for t:=low(ttarget) to high(ttarget) do
+  for t:=low(tsystem) to high(tsystem) do
    if assigned(targetinfos[t]) and
       (upper(targetinfos[t]^.shortname)=hs) then
     begin
@@ -467,15 +468,15 @@ end;
                               Target registration
 ****************************************************************************}
 
-procedure RegisterTarget(const r:ttargetinfo);
+procedure RegisterTarget(const r:tsysteminfo);
 var
-  t : ttarget;
+  t : tsystem;
 begin
-  t:=r.target;
+  t:=r.system;
   if assigned(targetinfos[t]) then
    writeln('Warning: Target is already registered!')
   else
-   Getmem(targetinfos[t],sizeof(ttargetinfo));
+   Getmem(targetinfos[t],sizeof(tsysteminfo));
   targetinfos[t]^:=r;
 end;
 
@@ -522,15 +523,15 @@ end;
 procedure DeregisterInfos;
 var
   assem   : tasm;
-  target  : ttarget;
+  target  : tsystem;
   ar      : tar;
   asmmode : tasmmode;
   res     : tres;
 begin
-  for target:=low(ttarget) to high(ttarget) do
+  for target:=low(tsystem) to high(tsystem) do
    if assigned(targetinfos[target]) then
     begin
-      freemem(targetinfos[target],sizeof(ttargetinfo));
+      freemem(targetinfos[target],sizeof(tsysteminfo));
       targetinfos[target]:=nil;
     end;
   for assem:=low(tasm) to high(tasm) do
@@ -564,7 +565,7 @@ end;
                       Initialization of default target
 ****************************************************************************}
 
-procedure default_target(t:ttarget);
+procedure default_target(t:tsystem);
 begin
   set_target(t);
   if source_info.name='' then
@@ -572,100 +573,30 @@ begin
 end;
 
 
-procedure set_source(t:ttarget);
+procedure set_source_info(const ti : tsysteminfo);
 begin
 { can't use message() here (PFV) }
   if source_info.name<>'' then
     Writeln('Warning: Source OS Redefined!');
-  if assigned(targetinfos[t]) then
-   source_info:=targetinfos[t]^
-  else
-   Writeln('Warning: Source OS Not Supported!');
+  source_info:=ti;
 end;
 
 
 procedure InitSystems;
 begin
-{ first get source OS }
-  source_info.name:='';
-{ please note then we use cpu86 and cpu68 here on purpose !! }
-{$ifdef cpu86}
-    {$ifdef GO32V2}
-      set_source(target_i386_GO32V2);
-    {$else}
-      {$ifdef OS2}
-        set_source(target_i386_OS2);
-        if (OS_Mode = osDOS) or (OS_Mode = osDPMI) then
-          source_info.scriptext := '.bat';
-        { OS/2 via EMX can be run under DOS as well }
-      {$else}
-        {$ifdef WIN32}
-          {$ifdef WDOSX}
-           set_source(target_i386_wdosx);
-          {$else}
-           set_source(target_i386_WIN32);
-          {$endif}
-        {$else}
-           {$ifdef FreeBSD}
-              set_source(target_i386_FreeBSD);
-           {$else}
-              {$ifdef netbsd}
-                set_source(target_i386_NetBSD);
-              {$else}
-                {$ifdef sunos}
-                  set_source(target_i386_sunos);
-                {$else}
-                  {$ifdef beos}
-                    set_source(target_i386_beos);
-                  {$else}
-                    { Must be the last as some freebsd also
-                      defined linux }
-                    {$ifdef linux}
-                      set_source(target_i386_linux);
-                    {$else}
-                      {$error Error setting source OS}
-                    {$endif linux}
-                  {$endif beos}
-               {$endif sunos}
-            {$endif netbsd}
-          {$endif freebsd}
-        {$endif win32}
-      {$endif os2}
-    {$endif go32v2}
-{$endif cpu86}
-{$ifdef cpu86_64}
-  set_source(target_x86_64_linux);
-{$endif cpu86_64}
-{$ifdef cpu68}
-  {$ifdef AMIGA}
-    set_source(target_m68k_Amiga);
-  {$else}
-    {$ifdef ATARI}
-      set_source(target_m68k_Atari);
-    {$else}
-      {$ifdef MACOS}
-        set_source(target_m68k_MAC);
-      {$else}
-        {$ifdef linux}
-           set_source(target_m68k_linux);
-        {$endif linux}
-      {$endif macos}
-    {$endif atari}
-  {$endif amiga}
-{$endif cpu68}
 { Now default target, this is dependent on the i386 or m68k define,
   when the define is the same as the current cpu then we use the source
   os, else we pick a default }
 {$ifdef i386}
   {$ifdef cpu86}
-    default_target(source_info.target);
+    default_target(source_info.system);
   {$else cpu86}
     default_target(target_i386_linux);
   {$endif cpu86}
 {$endif i386}
 {$ifdef x86_64}
   {$ifdef cpu86_64}
-    default_target(source_info.target);
+    default_target(source_info.system);
   {$else cpu86_64}
     default_target(target_x86_64_linux);
   {$endif cpu86_64}
@@ -679,31 +610,35 @@ begin
 {$endif m68k}
 {$ifdef alpha}
   {$ifdef cpualpha}
-    default_target(source_info.target);
+    default_target(source_info.system);
   {$else cpualpha}
     default_target(target_alpha_linux);
   {$endif cpualpha}
 {$endif alpha}
 {$ifdef powerpc}
   {$ifdef cpuppc}
-    default_target(source_info.target);
+    default_target(source_info.system);
   {$else cpuppc}
-    default_target(target_powerpc_linux);
+    default_target(system_powerpc_linux);
   {$endif cpuppc}
 {$endif powerpc}
-{$IFDEF SPARC}
-  default_target(target_SPARC_linux);
-{$ENDIF SPARC}
+{$IFDEF sparc}
+  default_target(system_sparc_linux);
+{$ENDIF sparc}
 end;
 
 
 initialization
+   source_info.name:='';
 finalization
   DeregisterInfos;
 end.
 {
   $Log$
-  Revision 1.47  2002-07-04 20:43:02  florian
+  Revision 1.48  2002-07-26 21:15:42  florian
+    * rewrote the system handling
+
+  Revision 1.47  2002/07/04 20:43:02  florian
     * first x86-64 patches
 
   Revision 1.46  2002/07/01 18:46:29  peter

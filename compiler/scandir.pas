@@ -158,7 +158,7 @@ implementation
 {$ifdef m68k}
     procedure dir_appid;
       begin
-        if target_info.target<>target_m68k_palmos then
+        if system_info.target<>system_m68k_palmos then
           Message(scan_w_appid_not_support);
         { change description global var in all cases }
         { it not used but in win32 and os2 }
@@ -168,7 +168,7 @@ implementation
 
     procedure dir_appname;
       begin
-        if target_info.target<>target_m68k_palmos then
+        if system_info.target<>system_m68k_palmos then
           Message(scan_w_appname_not_support);
         { change description global var in all cases }
         { it not used but in win32 and os2 }
@@ -181,8 +181,8 @@ implementation
       var
          hs : string;
       begin
-        if (target_info.target<>target_i386_win32)
-                                 and (target_info.target<>target_i386_os2) then
+        if (target_info.system<>system_i386_win32)
+                                 and (target_info.system<>system_i386_os2) then
           Message(scan_w_app_type_not_support);
         if not current_module.in_global then
           Message(scan_w_switch_is_global)
@@ -194,7 +194,7 @@ implementation
                apptype:=app_gui
              else if hs='CONSOLE' then
                apptype:=app_cui
-             else if (hs='FS') and (target_info.target=target_i386_os2) then
+             else if (hs='FS') and (target_info.system=system_i386_os2) then
                apptype:=app_fs
              else
                Message1(scan_w_unsupported_app_type,hs);
@@ -230,7 +230,7 @@ implementation
 
     procedure dir_description;
       begin
-        if not (target_info.target in [target_i386_os2,target_i386_win32,target_i386_netware,target_i386_wdosx]) then
+        if not (target_info.system in [system_i386_os2,system_i386_win32,system_i386_netware,system_i386_wdosx]) then
           Message(scan_w_description_not_support);
         { change description global var in all cases }
         { it not used but in win32, os2 and netware }
@@ -240,7 +240,7 @@ implementation
 
     procedure dir_screenname; {ad}
       begin
-        if target_info.target <> target_i386_netware then
+        if target_info.system <> system_i386_netware then
           {Message(scan_w_decription_not_support);}
           comment (V_Warning,'Screenname only supported for target netware');
         current_scanner.skipspace;
@@ -249,7 +249,7 @@ implementation
 
       procedure dir_threadname; {ad}
       begin
-        if target_info.target <> target_i386_netware then
+        if target_info.system <> system_i386_netware then
           {Message(scan_w_decription_not_support);}
           comment (V_Warning,'Threadname only supported for target netware');
         current_scanner.skipspace;
@@ -258,7 +258,7 @@ implementation
 
       procedure dir_copyright; {ad}
       begin
-        if target_info.target <> target_i386_netware then
+        if target_info.system <> system_i386_netware then
           {Message(scan_w_decription_not_support);}
           comment (V_Warning,'Copyright only supported for target netware');
         current_scanner.skipspace;
@@ -736,7 +736,7 @@ implementation
         major, minor, revision : longint;
         error : integer;
       begin
-        if not (target_info.target in [target_i386_os2,target_i386_win32,target_i386_netware,target_i386_wdosx]) then
+        if not (target_info.system in [system_i386_os2,system_i386_win32,system_i386_netware,system_i386_wdosx]) then
           begin
             Message(scan_n_version_not_support);
             exit;
@@ -770,7 +770,7 @@ implementation
                     exit;
                   end;
                 if (c='.') and
-                   (target_info.target = target_i386_netware) then
+                   (target_info.system = system_i386_netware) then
                   begin
                      current_scanner.readchar;
                      current_scanner.readnumber;
@@ -948,7 +948,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  2002-07-20 17:16:03  florian
+  Revision 1.18  2002-07-26 21:15:42  florian
+    * rewrote the system handling
+
+  Revision 1.17  2002/07/20 17:16:03  florian
     + source code page support
 
   Revision 1.16  2002/07/16 15:37:58  florian

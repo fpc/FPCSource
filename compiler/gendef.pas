@@ -112,8 +112,8 @@ begin
   if ioresult<>0 then
    exit;
 {$ifdef i386}
-  case target_info.target of
-    target_i386_Os2 :
+  case target_info.system of
+    system_i386_Os2 :
       begin
         write(t,'NAME '+inputfile);
         if usewindowapi then
@@ -125,7 +125,7 @@ begin
         writeln(t,'STACKSIZE'#9+tostr(stacksize));
         writeln(t,'HEAPSIZE'#9+tostr(heapsize));
       end;
-  target_i386_win32, target_i386_wdosx :
+  system_i386_win32, system_i386_wdosx :
     begin
       if description<>'' then
         writeln(t,'DESCRIPTION '+''''+description+'''');
@@ -160,7 +160,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  2002-05-18 13:34:08  peter
+  Revision 1.11  2002-07-26 21:15:38  florian
+    * rewrote the system handling
+
+  Revision 1.10  2002/05/18 13:34:08  peter
     * readded missing revisions
 
   Revision 1.9  2002/05/16 19:46:36  carl

@@ -39,7 +39,7 @@ implementation
     verbose,systems,globtype,globals,
     symconst,script,
     fmodule,aasmbase,aasmtai,aasmcpu,cpubase,symsym,
-    import,export,link;
+    import,export,link,i_sunos;
 
   type
     timportlibsunos=class(timportlib)
@@ -478,81 +478,18 @@ end;
                                      Initialize
 *****************************************************************************}
 
-    const
-       target_i386_sunos_info : ttargetinfo =
-          (
-            target       : target_i386_sunos;
-            name         : 'SunOS/ELF for i386';
-            shortname    : 'SunOS';
-            flags        : [tf_under_development];
-            cpu          : cpu_i386;
-            unit_env     : 'SUNOSUNITS';
-            extradefines : 'UNIX;SOLARIS;LIBC';
-            sourceext    : '.pp';
-            pasext       : '.pas';
-            exeext       : '';
-            defext       : '.def';
-            scriptext    : '.sh';
-            smartext     : '.sl';
-            unitext      : '.ppu';
-            unitlibext   : '.ppl';
-            asmext       : '.s';
-            objext       : '.o';
-            resext       : '.res';
-            resobjext    : '.or';
-            sharedlibext : '.so';
-            staticlibext : '.a';
-            staticlibprefix : 'libp';
-            sharedlibprefix : 'lib';
-            sharedClibext : '.so';
-            staticClibext : '.a';
-            staticClibprefix : 'lib';
-            sharedClibprefix : 'lib';
-            Cprefix      : '';
-            newline      : #10;
-            dirsep       : '/';
-            files_case_relevent : true;
-            assem        : as_i386_as;
-            assemextern  : as_i386_as;
-            link         : ld_i386_sunos;
-            linkextern   : ld_i386_sunos;
-            ar           : ar_gnu_ar;
-            res          : res_none;
-            script       : script_unix;
-            endian       : endian_little;
-            alignment    :
-              (
-                procalign       : 4;
-                loopalign       : 4;
-                jumpalign       : 0;
-                constalignmin   : 0;
-                constalignmax   : 1;
-                varalignmin     : 0;
-                varalignmax     : 1;
-                localalignmin   : 0;
-                localalignmax   : 1;
-                paraalign       : 4;
-                recordalignmin  : 0;
-                recordalignmax  : 2;
-                maxCrecordalign : 4
-              );
-            first_parm_offset : 8;
-            heapsize     : 256*1024;
-            stacksize    : 262144;
-            DllScanSupported:false;
-            use_function_relative_addresses : true
-          );
-
-
 initialization
   RegisterLinker(ld_i386_sunos,TLinkerSunos);
-  RegisterImport(target_i386_sunos,TImportLibSunos);
-  RegisterExport(target_i386_sunos,TExportLibSunos);
-  RegisterTarget(target_i386_sunos_info);
+  RegisterImport(system_i386_sunos,TImportLibSunos);
+  RegisterExport(system_i386_sunos,TExportLibSunos);
+  RegisterTarget(system_i386_sunos_info);
 end.
 {
   $Log$
-  Revision 1.24  2002-07-01 18:46:35  peter
+  Revision 1.25  2002-07-26 21:15:46  florian
+    * rewrote the system handling
+
+  Revision 1.24  2002/07/01 18:46:35  peter
     * internal linker
     * reorganized aasm layer
 

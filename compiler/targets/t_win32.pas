@@ -39,8 +39,7 @@ interface
 {$ifdef GDB}
        gdb,
 {$endif}
-
-       import,export,link,rgobj;
+       import,export,link,rgobj,i_win32;
 
 
   const
@@ -1541,99 +1540,23 @@ function tDLLScannerWin32.scan(const binname:string):longbool;
                                      Initialize
 *****************************************************************************}
 
-    const
-      ar_gnu_arw_info : tarinfo =
-          (
-            id    : ar_gnu_arw;
-            arcmd : 'arw rs $LIB $FILES'
-          );
-
-    const
-      res_gnu_windres_info : tresinfo =
-          (
-            id     : res_gnu_windres;
-            resbin : 'windres';
-            rescmd : '--include $INC -O coff -o $OBJ $RES'
-          );
-
-    const
-       target_i386_win32_info : ttargetinfo =
-          (
-            target       : target_i386_WIN32;
-            name         : 'Win32 for i386';
-            shortname    : 'Win32';
-            flags        : [];
-            cpu          : cpu_i386;
-            unit_env     : 'WIN32UNITS';
-            extradefines : 'MSWINDOWS';
-            sourceext    : '.pp';
-            pasext       : '.pas';
-            exeext       : '.exe';
-            defext       : '.def';
-            scriptext    : '.bat';
-            smartext     : '.slw';
-            unitext      : '.ppw';
-            unitlibext   : '.ppl';
-            asmext       : '.sw';
-            objext       : '.ow';
-            resext       : '.rc';
-            resobjext    : '.owr';
-            sharedlibext : '.dll';
-            staticlibext : '.aw';
-            staticlibprefix : 'libp';
-            sharedlibprefix : '';
-            sharedClibext : '.dll';
-            staticClibext : '.a';
-            staticClibprefix : 'lib';
-            sharedClibprefix : '';
-            Cprefix      : '_';
-            newline      : #13#10;
-            dirsep       : '\';
-            files_case_relevent : false;
-            assem        : as_i386_pecoff;
-            assemextern  : as_i386_asw;
-            link         : ld_i386_win32;
-            linkextern   : ld_i386_win32;
-            ar           : ar_gnu_arw;
-            res          : res_gnu_windres;
-            script       : script_dos;
-            endian       : endian_little;
-            alignment    :
-              (
-                procalign       : 4;
-                loopalign       : 4;
-                jumpalign       : 0;
-                constalignmin   : 0;
-                constalignmax   : 4;
-                varalignmin     : 0;
-                varalignmax     : 4;
-                localalignmin   : 0;
-                localalignmax   : 4;
-                paraalign       : 4;
-                recordalignmin  : 0;
-                recordalignmax  : 2;
-                maxCrecordalign : 16
-              );
-            first_parm_offset : 8;
-            heapsize     : 256*1024;
-            stacksize    : 262144;
-            DllScanSupported:true;
-            use_function_relative_addresses : true
-          );
-
-
 initialization
+{$ifdef i386}
   RegisterLinker(ld_i386_win32,TLinkerWin32);
-  RegisterImport(target_i386_win32,TImportLibWin32);
-  RegisterExport(target_i386_win32,TExportLibWin32);
-  RegisterDLLScanner(target_i386_win32,TDLLScannerWin32);
+  RegisterImport(system_i386_win32,TImportLibWin32);
+  RegisterExport(system_i386_win32,TExportLibWin32);
+  RegisterDLLScanner(system_i386_win32,TDLLScannerWin32);
   RegisterAr(ar_gnu_arw_info);
   RegisterRes(res_gnu_windres_info);
-  RegisterTarget(target_i386_win32_info);
+  RegisterTarget(system_i386_win32_info);
+{$endif i386}
 end.
 {
   $Log$
-  Revision 1.35  2002-07-01 18:46:35  peter
+  Revision 1.36  2002-07-26 21:15:46  florian
+    * rewrote the system handling
+
+  Revision 1.35  2002/07/01 18:46:35  peter
     * internal linker
     * reorganized aasm layer
 

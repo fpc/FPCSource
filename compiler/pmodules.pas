@@ -60,8 +60,8 @@ implementation
            (not current_module.linkOtherSharedLibs.Empty) then
          begin
            { Init DLLScanner }
-           if assigned(CDLLScanner[target_info.target]) then
-            DLLScanner:=CDLLScanner[target_info.target].Create
+           if assigned(CDLLScanner[target_info.system]) then
+            DLLScanner:=CDLLScanner[target_info.system].Create
            else
             internalerror(200104121);
            KeepShared:=TStringList.Create;
@@ -74,7 +74,7 @@ implementation
             end;
            DLLscanner.Free;
            { Recreate import section }
-           if (target_info.target in [target_i386_win32,target_i386_wdosx]) then
+           if (target_info.system in [system_i386_win32,system_i386_wdosx]) then
             begin
               if assigned(importssection)then
                importssection.clear
@@ -99,7 +99,7 @@ implementation
          begin
            { regenerate the importssection for win32 }
            if assigned(importssection) and
-              (target_info.target in [target_i386_win32,target_i386_wdosx]) then
+              (target_info.system in [system_i386_win32,system_i386_wdosx]) then
             begin
               importsSection.clear;
               importlib.generatesmartlib;
@@ -275,38 +275,38 @@ implementation
           and must store the pointer in this value.
           On OS/2 the heap is also intialized by the RTL. We do
           not output a pointer }
-         case target_info.target of
+         case target_info.system of
 {$ifdef x86_64}
             target_x86_64_linux:
               ;
 {$endif x86_64}
 {$ifdef i386}
-            target_i386_OS2:
+            system_i386_OS2:
               ;
 {$endif i386}
 {$ifdef alpha}
-            target_alpha_linux:
+            system_alpha_linux:
               ;
 {$endif alpha}
 {$ifdef powerpc}
-            target_powerpc_linux:
+            system_powerpc_linux:
               ;
 {$endif powerpc}
 {$ifdef m68k}
-            target_m68k_Mac:
+            system_m68k_Mac:
               bssSegment.concat(Tai_datablock.Create_global('HEAP',4));
-            target_m68k_PalmOS:
+            system_m68k_PalmOS:
               ;
 {$endif m68k}
 {$IFDEF SPARC}
-            target_SPARC_Linux:
+            system_SPARC_Linux:
               ;
 {$ENDIF SPARC}
          else
            bssSegment.concat(Tai_datablock.Create_global('HEAP',heapsize));
          end;
 {$ifdef m68k}
-         if target_info.target<>target_m68k_PalmOS then
+         if target_info.system<>system_m68k_PalmOS then
            begin
               dataSegment.concat(Tai_symbol.Createdataname_global('HEAPSIZE',4));
               dataSegment.concat(Tai_const.Create_32bit(heapsize));
@@ -367,7 +367,7 @@ implementation
            refsymtable.insert(unitsym);
          end;
       { Profile unit? Needed for go32v2 only }
-        if (cs_profile in aktmoduleswitches) and (target_info.target=target_i386_go32v2) then
+        if (cs_profile in aktmoduleswitches) and (target_info.system=system_i386_go32v2) then
          begin
            hp:=loadunit('Profile','');
            tsymtable(hp.globalsymtable).next:=symtablestack;
@@ -1144,7 +1144,7 @@ implementation
          { internal assembler uses rva for stabs info
            so it should work with relocated DLLs }
          if RelocSection and
-            (target_info.target in [target_i386_win32,target_i386_wdosx]) and
+            (target_info.system in [system_i386_win32,system_i386_wdosx]) and
             (target_info.assem<>as_i386_pecoff) then
            begin
               include(aktglobalswitches,cs_link_strip);
@@ -1183,7 +1183,7 @@ implementation
               stringdispose(current_module.realmodulename);
               current_module.modulename:=stringdup(pattern);
               current_module.realmodulename:=stringdup(orgpattern);
-              if (target_info.target in [target_i386_WIN32,target_i386_wdosx]) then
+              if (target_info.system in [system_i386_WIN32,system_i386_wdosx]) then
                 exportlib.preparelib(pattern);
               consume(_ID);
               if token=_LKLAMMER then
@@ -1194,7 +1194,7 @@ implementation
                 end;
               consume(_SEMICOLON);
             end
-         else if (target_info.target in [target_i386_WIN32,target_i386_wdosx]) then
+         else if (target_info.system in [system_i386_WIN32,system_i386_wdosx]) then
            exportlib.preparelib(current_module.modulename^);
 
          { global switches are read, so further changes aren't allowed }
@@ -1265,7 +1265,7 @@ implementation
          { Add symbol to the exports section for win32 so smartlinking a
            DLL will include the edata section }
          if assigned(exportlib) and
-            (target_info.target in [target_i386_win32,target_i386_wdosx]) and
+            (target_info.system in [system_i386_win32,system_i386_wdosx]) and
             assigned(current_module._exports.first) then
            codesegment.concat(tai_const_symbol.create(exportlib.edatalabel));
 
@@ -1330,8 +1330,8 @@ implementation
           importlib.generatelib;
 
          if islibrary or
-            (target_info.target in [target_i386_WIN32,target_i386_wdosx]) or
-            (target_info.target=target_i386_NETWARE) then
+            (target_info.system in [system_i386_WIN32,system_i386_wdosx]) or
+            (target_info.system=system_i386_NETWARE) then
            exportlib.generatelib;
 
 
@@ -1388,7 +1388,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.68  2002-07-04 20:43:01  florian
+  Revision 1.69  2002-07-26 21:15:41  florian
+    * rewrote the system handling
+
+  Revision 1.68  2002/07/04 20:43:01  florian
     * first x86-64 patches
 
   Revision 1.67  2002/07/01 18:46:25  peter

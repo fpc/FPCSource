@@ -63,7 +63,7 @@ implementation
     cutils,cclasses,
     verbose,systems,globtype,globals,
     symconst,script,
-    fmodule,aasmbase,aasmtai,aasmcpu,cpubase,symsym;
+    fmodule,aasmbase,aasmtai,aasmcpu,cpubase,symsym,i_beos;
 
 {*****************************************************************************
                                TIMPORTLIBBEOS
@@ -455,84 +455,20 @@ end;
                                   Initialize
 *****************************************************************************}
 
-{$ifdef i386}
-    const
-       target_i386_beos_info : ttargetinfo =
-          (
-            target       : target_i386_BeOS;
-            name         : 'Beos for i386';
-            shortname    : 'Beos';
-            flags        : [tf_under_development];
-            cpu          : cpu_i386;
-            unit_env     : 'BEOSUNITS';
-            extradefines : '';
-            sourceext    : '.pp';
-            pasext       : '.pas';
-            exeext       : '';
-            defext       : '.def';
-            scriptext    : '.sh';
-            smartext     : '.sl';
-            unitext      : '.ppu';
-            unitlibext   : '.ppl';
-            asmext       : '.s';
-            objext       : '.o';
-            resext       : '.res';
-            resobjext    : '.or';
-            sharedlibext : '.so';
-            staticlibext : '.a';
-            staticlibprefix : 'libp';
-            sharedlibprefix : 'lib';
-            sharedClibext : '.so';
-            staticClibext : '.a';
-            staticClibprefix : 'lib';
-            sharedClibprefix : 'lib';
-            Cprefix      : '';
-            newline      : #10;
-            dirsep       : '/';
-            files_case_relevent : true;
-            assem        : as_i386_as;
-            assemextern  : as_i386_as;
-            link         : ld_i386_beos;
-            linkextern   : ld_i386_beos;
-            ar           : ar_gnu_ar;
-            res          : res_none;
-            script       : script_unix;
-            endian       : endian_little;
-            alignment    :
-              (
-                procalign       : 4;
-                loopalign       : 4;
-                jumpalign       : 0;
-                constalignmin   : 0;
-                constalignmax   : 4;
-                varalignmin     : 0;
-                varalignmax     : 4;
-                localalignmin   : 0;
-                localalignmax   : 4;
-                paraalign       : 4;
-                recordalignmin  : 0;
-                recordalignmax  : 2;
-                maxCrecordalign : 4
-              );
-            first_parm_offset : 8;
-            heapsize     : 256*1024;
-            stacksize    : 8192;
-            DllScanSupported:false;
-            use_function_relative_addresses : true
-          );
-{$endif i386}
-
 initialization
 {$ifdef i386}
   RegisterLinker(ld_i386_beos,TLinkerbeos);
-  RegisterImport(target_i386_beos,timportlibbeos);
-  RegisterExport(target_i386_beos,texportlibbeos);
-  RegisterTarget(target_i386_beos_info);
+  RegisterImport(system_i386_beos,timportlibbeos);
+  RegisterExport(system_i386_beos,texportlibbeos);
+  RegisterTarget(system_i386_beos_info);
 {$endif i386}
 end.
 {
   $Log$
-  Revision 1.19  2002-07-01 18:46:34  peter
+  Revision 1.20  2002-07-26 21:15:45  florian
+    * rewrote the system handling
+
+  Revision 1.19  2002/07/01 18:46:34  peter
     * internal linker
     * reorganized aasm layer
 

@@ -32,7 +32,7 @@ implementation
     uses
        cutils,
        fmodule,globals,systems,
-       import,export,link,t_win32;
+       import,export,link,t_win32,i_wdosx;
 
   type
     timportlibwdosx=class(timportlibwin32)
@@ -87,85 +87,22 @@ end;
                                      Initialize
 *****************************************************************************}
 
-    const
-       target_i386_wdosx_info : ttargetinfo =
-          (
-            target       : target_i386_wdosx;
-            name         : 'WDOSX DOS extender';
-            shortname    : 'WDOSX';
-            flags        : [];
-            cpu          : cpu_i386;
-            unit_env     : 'WDOSXUNITS';
-            extradefines : 'MSWINDOWS';
-            sourceext    : '.pp';
-            pasext       : '.pas';
-            exeext       : '.exe';
-            defext       : '.def';
-            scriptext    : '.bat';
-            smartext     : '.sld';
-            unitext      : '.ppd';
-            unitlibext   : '.ppl';
-            asmext       : '.sd';
-            objext       : '.od';
-            resext       : '.rc';
-            resobjext    : '.odr';
-            sharedlibext : '.dll';
-            staticlibext : '.ad';
-            staticlibprefix : 'libp';
-            sharedlibprefix : '';
-            sharedClibext : '.dll';
-            staticClibext : '.a';
-            staticClibprefix : 'lib';
-            sharedClibprefix : '';
-            Cprefix      : '_';
-            newline      : #13#10;
-            dirsep       : '\';
-            files_case_relevent : false;
-            assem        : as_i386_pecoffwdosx;
-            assemextern  : as_i386_aswdosx;
-            link         : ld_i386_wdosx;
-            linkextern   : ld_i386_wdosx;
-            ar           : ar_gnu_arw;
-            res          : res_gnu_windres;
-            script       : script_dos;
-            endian       : endian_little;
-            alignment    :
-              (
-                procalign       : 4;
-                loopalign       : 4;
-                jumpalign       : 0;
-                constalignmin   : 0;
-                constalignmax   : 4;
-                varalignmin     : 0;
-                varalignmax     : 4;
-                localalignmin   : 0;
-                localalignmax   : 4;
-                paraalign       : 4;
-                recordalignmin  : 0;
-                recordalignmax  : 2;
-                maxCrecordalign : 16
-              );
-            first_parm_offset : 8;
-            heapsize     : 256*1024;
-            stacksize    : 32*1024*1024;
-            DllScanSupported:true;
-            use_function_relative_addresses : true
-          );
-
-
 initialization
   RegisterLinker(ld_i386_wdosx,TLinkerWdosx);
-  RegisterImport(target_i386_wdosx,TImportLibWdosx);
-  RegisterExport(target_i386_wdosx,TExportLibWdosx);
-  RegisterDLLScanner(target_i386_wdosx,TDLLScannerWdosx);
+  RegisterImport(system_i386_wdosx,TImportLibWdosx);
+  RegisterExport(system_i386_wdosx,TExportLibWdosx);
+  RegisterDLLScanner(system_i386_wdosx,TDLLScannerWdosx);
     {RegisterAr(ar_gnu_arw_info);}
     {RegisterRes(res_gnu_windres_info);}
-  RegisterTarget(target_i386_wdosx_info);
+  RegisterTarget(system_i386_wdosx_info);
 end.
 
 {
   $Log$
-  Revision 1.8  2002-05-18 13:34:27  peter
+  Revision 1.9  2002-07-26 21:15:46  florian
+    * rewrote the system handling
+
+  Revision 1.8  2002/05/18 13:34:27  peter
     * readded missing revisions
 
   Revision 1.7  2002/05/16 19:46:53  carl

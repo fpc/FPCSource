@@ -1674,7 +1674,7 @@ const go32v2stub : array[0..2047] of byte=(
             idtxt  : 'COFF';
             asmbin : '';
             asmcmd : '';
-            supported_target : target_i386_go32v2;
+            supported_target : system_i386_go32v2;
             outputbinary : true;
             allowdirect : false;
             externals : true;
@@ -1695,7 +1695,7 @@ const go32v2stub : array[0..2047] of byte=(
             idtxt  : 'PECOFF';
             asmbin : '';
             asmcmd : '';
-            supported_target : target_i386_win32;
+            supported_target : system_i386_win32;
             outputbinary : true;
             allowdirect : false;
             externals : true;
@@ -1715,7 +1715,7 @@ const go32v2stub : array[0..2047] of byte=(
             idtxt  : 'PECOFFWDOSX';
             asmbin : '';
             asmcmd : '';
-            supported_target : target_i386_wdosx;
+            supported_target : system_i386_wdosx;
             outputbinary : true;
             allowdirect : false;
             externals : true;
@@ -1739,7 +1739,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.22  2002-07-01 18:46:24  peter
+  Revision 1.23  2002-07-26 21:15:38  florian
+    * rewrote the system handling
+
+  Revision 1.22  2002/07/01 18:46:24  peter
     * internal linker
     * reorganized aasm layer
 

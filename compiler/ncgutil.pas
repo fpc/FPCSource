@@ -1229,7 +1229,7 @@ implementation
            if (aktprocdef.proctypeoption=potype_proginit) then
             begin
               { initialize profiling for win32 }
-              if (target_info.target in [target_I386_WIN32,target_I386_wdosx]) and
+              if (target_info.system in [system_i386_win32,system_i386_wdosx]) and
                  (cs_profile in aktmoduleswitches) then
                 cg.a_call_name(list,'__monstartup');
 
@@ -1629,7 +1629,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  2002-07-25 17:58:24  carl
+  Revision 1.25  2002-07-26 21:15:38  florian
+    * rewrote the system handling
+
+  Revision 1.24  2002/07/25 17:58:24  carl
     + FPURESULTREG -> FPU_RESULT_REG
 
   Revision 1.23  2002/07/20 11:57:54  florian

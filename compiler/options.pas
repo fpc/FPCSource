@@ -124,7 +124,7 @@ end;
 
 procedure set_default_link_type;
 begin
-  if (target_info.target in [target_i386_win32,target_i386_wdosx]) then
+  if (target_info.system in [system_i386_win32,system_i386_wdosx]) then
     begin
       def_symbol('FPC_LINK_SMART');
       undef_symbol('FPC_LINK_STATIC');
@@ -174,7 +174,7 @@ procedure Toption.WriteInfo;
 var
   p : pchar;
   hs,hs1,s : string;
-  target : ttarget;
+  target : tsystem;
 begin
   p:=MessagePchar(option_info);
   while assigned(p) do
@@ -183,7 +183,7 @@ begin
      { list OS Targets }
      if pos('$OSTARGETS',s)>0 then
       begin
-        for target:=low(ttarget) to high(ttarget) do
+        for target:=low(tsystem) to high(tsystem) do
          if assigned(targetinfos[target]) then
           begin
             hs:=s;
@@ -1393,7 +1393,7 @@ begin
   def_symbol('CPUIA64');
 {$endif}
 {$ifdef x64_64}
-  def_symbol('CPU 86_64');
+  def_symbol('CPU86_64');
 {$endif}
 {$ifdef sparc}
   def_symbol('CPUSPARC');
@@ -1635,8 +1635,8 @@ begin
      set_target_asm(target_info.assemextern);
    end;
 
-  if (target_asm.supported_target <> target_any) and
-     (target_asm.supported_target <> target_info.target) then
+  if (target_asm.supported_target <> system_any) and
+     (target_asm.supported_target <> target_info.system) then
    begin
      Message2(option_incompatible_asm,target_asm.idtxt,target_info.name);
      set_target_asm(target_info.assemextern);
@@ -1677,7 +1677,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.77  2002-07-20 17:16:03  florian
+  Revision 1.78  2002-07-26 21:15:39  florian
+    * rewrote the system handling
+
+  Revision 1.77  2002/07/20 17:16:03  florian
     + source code page support
 
   Revision 1.76  2002/07/04 20:43:01  florian

@@ -783,7 +783,7 @@ ait_stab_function_name : ;
             idtxt  : 'TASM';
             asmbin : 'tasm';
             asmcmd : '/m2 /ml $ASM $OBJ';
-            supported_target : target_any; { what should I write here ?? }
+            supported_target : system_any; { what should I write here ?? }
             outputbinary: false;
             allowdirect : true;
             externals : true;
@@ -803,7 +803,7 @@ ait_stab_function_name : ;
             idtxt  : 'MASM';
             asmbin : 'masm';
             asmcmd : '/c /Cp $ASM /Fo$OBJ';
-            supported_target : target_any; { what should I write here ?? }
+            supported_target : system_any; { what should I write here ?? }
             outputbinary: false;
             allowdirect : true;
             externals : true;
@@ -823,7 +823,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.22  2002-07-01 18:46:29  peter
+  Revision 1.23  2002-07-26 21:15:43  florian
+    * rewrote the system handling
+
+  Revision 1.22  2002/07/01 18:46:29  peter
     * internal linker
     * reorganized aasm layer
 

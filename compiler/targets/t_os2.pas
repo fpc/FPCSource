@@ -48,7 +48,7 @@ implementation
      cutils,cclasses,
      globtype,comphook,systems,symsym,
      globals,verbose,fmodule,script,
-     import,link;
+     import,link,i_os2;
 
   type
     timportlibos2=class(timportlib)
@@ -508,90 +508,18 @@ end;
                                      Initialize
 *****************************************************************************}
 
-    const
-       res_emxbind_info : tresinfo =
-          (
-            id     : res_emxbind;
-            resbin : 'emxbind';
-            rescmd : '-b -r $RES $OBJ'
-(* Not really used - see TLinkeros2.SetDefaultInfo in t_os2.pas. *)
-          );
-
-    const
-       target_i386_os2_info : ttargetinfo =
-          (
-            target       : target_i386_OS2;
-            name         : 'OS/2 via EMX';
-            shortname    : 'OS2';
-            flags        : [tf_need_export];
-            cpu          : cpu_i386;
-            unit_env     : 'OS2UNITS';
-            extradefines : '';
-            sourceext    : '.pas';
-            pasext       : '.pp';
-            exeext       : '.exe';
-            defext       : '.def';
-            scriptext    : '.cmd';
-            smartext     : '.sl';
-            unitext      : '.ppo';
-            unitlibext   : '.ppl';
-            asmext       : '.so2';
-            objext       : '.oo2';
-            resext       : '.res';
-            resobjext    : '.oor';
-            sharedlibext : '.ao2';
-            staticlibext : '.ao2';
-            staticlibprefix : '';
-            sharedlibprefix : '';
-            sharedClibext : 'dll';
-            staticClibext : '.a';
-            staticClibprefix : '';
-            sharedClibprefix : '';
-            Cprefix      : '_';
-            newline      : #13#10;
-            dirsep       : '\';
-            files_case_relevent : false;
-            assem        : as_i386_as_aout;
-            assemextern  : as_i386_as_aout;
-            link         : ld_i386_os2;
-            linkextern   : ld_i386_os2;
-            ar           : ar_gnu_ar;
-            res          : res_emxbind;
-            script       : script_dos;
-            endian       : endian_little;
-            alignment    :
-              (
-                procalign       : 4;
-                loopalign       : 4;
-                jumpalign       : 0;
-                constalignmin   : 0;
-                constalignmax   : 4;
-                varalignmin     : 0;
-                varalignmax     : 4;
-                localalignmin   : 0;
-                localalignmax   : 4;
-                paraalign       : 4;
-                recordalignmin  : 0;
-                recordalignmax  : 2;
-                maxCrecordalign : 4
-              );
-            first_parm_offset : 8;
-            heapsize     : 256*1024;
-            stacksize    : 256*1024;
-            DllScanSupported:true;
-            use_function_relative_addresses : false
-          );
-
-
 initialization
   RegisterLinker(ld_i386_os2,TLinkerOS2);
-  RegisterImport(target_i386_os2,TImportLibOS2);
+  RegisterImport(system_i386_os2,TImportLibOS2);
   RegisterRes(res_emxbind_info);
-  RegisterTarget(target_i386_os2_info);
+  RegisterTarget(system_i386_os2_info);
 end.
 {
   $Log$
-  Revision 1.22  2002-07-01 18:46:35  peter
+  Revision 1.23  2002-07-26 21:15:46  florian
+    * rewrote the system handling
+
+  Revision 1.22  2002/07/01 18:46:35  peter
     * internal linker
     * reorganized aasm layer
 

@@ -33,66 +33,21 @@ implementation
     uses
        link,
        cutils,cclasses,
-       globtype,globals,systems,verbose,script,fmodule;
+       globtype,globals,systems,verbose,script,fmodule,i_atari;
 
 {*****************************************************************************
                                      Initialize
 *****************************************************************************}
 
-    const
-       target_m68k_atari_info : ttargetinfo =
-          (
-            target       : target_m68k_Atari;
-            name         : 'Atari ST/STE';
-            shortname    : 'atari';
-            flags        : [];
-            cpu          : cpu_m68k;
-            short_name   : 'ATARI';
-            unit_env     : '';
-            extradefines : '';
-            sharedlibext : '.dll';
-            staticlibext : '.a';
-            sourceext    : '.pp';
-            pasext       : '.pas';
-            exeext       : '.tpp';
-            defext       : '';
-            scriptext    : '';
-            smartext     : '.sl';
-            unitext      : '.ppt';
-            unitlibext   : '.ppl';
-            asmext       : '.s';
-            objext       : '.o';
-            resext       : '.res';
-            resobjext    : '.or';
-            staticlibprefix : '';
-            sharedlibprefix : '';
-            Cprefix      : '_';
-            newline      : #10;
-            dirsep       : '/';
-            files_case_relevent : true;
-            assem        : as_m68k_as;
-            assemextern  : as_m68k_as;
-            link         : ld_m68k_atari;
-            linkextern   : ld_m68k_atari;
-            ar           : ar_m68k_ar;
-            res          : res_none;
-            script       : script_unix;
-            endian       : endian_big;
-            stackalignment : 2;
-            maxCrecordalignment : 4;
-            heapsize     : 16*1024;
-            stacksize    : 8192;
-            DllScanSupported:false;
-           use_function_relative_addresses : false
-          );
-
-
 initialization
-  RegisterTarget(target_m68k_atari_info);
+  RegisterTarget(system_m68k_atari_info);
 end.
 {
   $Log$
-  Revision 1.11  2002-05-18 13:34:26  peter
+  Revision 1.12  2002-07-26 21:15:45  florian
+    * rewrote the system handling
+
+  Revision 1.11  2002/05/18 13:34:26  peter
     * readded missing revisions
 
   Revision 1.10  2002/05/16 19:46:53  carl

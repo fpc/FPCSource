@@ -68,6 +68,7 @@ implementation
 {$ifdef i386}
     ,aasmbase,aasmtai,aasmcpu,cpubase
 {$endif i386}
+    ,i_linux
     ;
 
 {*****************************************************************************
@@ -482,451 +483,51 @@ end;
                                   Initialize
 *****************************************************************************}
 
-{$ifdef i386}
-    const
-       target_i386_linux_info : ttargetinfo =
-          (
-            target       : target_i386_LINUX;
-            name         : 'Linux for i386';
-            shortname    : 'Linux';
-            flags        : [];
-            cpu          : cpu_i386;
-            unit_env     : 'LINUXUNITS';
-            extradefines : 'UNIX';
-            sourceext    : '.pp';
-            pasext       : '.pas';
-            exeext       : '';
-            defext       : '.def';
-            scriptext    : '.sh';
-            smartext     : '.sl';
-            unitext      : '.ppu';
-            unitlibext   : '.ppl';
-            asmext       : '.s';
-            objext       : '.o';
-            resext       : '.res';
-            resobjext    : '.or';
-            sharedlibext : '.so';
-            staticlibext : '.a';
-            staticlibprefix : 'libp';
-            sharedlibprefix : 'lib';
-            sharedClibext : '.so';
-            staticClibext : '.a';
-            staticClibprefix : 'lib';
-            sharedClibprefix : 'lib';
-            Cprefix      : '';
-            newline      : #10;
-            dirsep       : '/';
-            files_case_relevent : true;
-            assem        : as_i386_elf32;
-            assemextern  : as_i386_as;
-            link         : ld_i386_linux;
-            linkextern   : ld_i386_linux;
-            ar           : ar_gnu_ar;
-            res          : res_none;
-            script       : script_unix;
-            endian       : endian_little;
-            alignment    :
-              (
-                procalign       : 4;
-                loopalign       : 4;
-                jumpalign       : 0;
-                constalignmin   : 0;
-                constalignmax   : 4;
-                varalignmin     : 0;
-                varalignmax     : 4;
-                localalignmin   : 0;
-                localalignmax   : 4;
-                paraalign       : 4;
-                recordalignmin  : 0;
-                recordalignmax  : 2;
-                maxCrecordalign : 4
-              );
-            first_parm_offset : 8;
-            heapsize     : 256*1024;
-            stacksize    : 262144;
-            DllScanSupported:false;
-            use_function_relative_addresses : true
-          );
-{$endif i386}
-{$ifdef m68k}
-    const
-       target_m68k_linux_info : ttargetinfo =
-          (
-            target       : target_m68k_linux;
-            name         : 'Linux for m68k';
-            shortname    : 'linux';
-            flags        : [];
-            cpu          : cpu_m68k;
-            short_name   : 'LINUX';
-            unit_env     : 'LINUXUNITS';
-            extradefines : 'UNIX';
-            sourceext    : '.pp';
-            pasext       : '.pas';
-            exeext       : '';
-            defext       : '';
-            scriptext    : '.sh';
-            smartext     : '.sl';
-            unitext      : '.ppu';
-            unitlibext   : '.ppl';
-            asmext       : '.s';
-            objext       : '.o';
-            resext       : '.res';
-            resobjext    : '.or';
-            sharedlibext : '.so';
-            staticlibext : '.a';
-            staticlibprefix : 'libp';
-            sharedlibprefix : 'lib';
-            sharedClibext : '.so';
-            staticClibext : '.a';
-            staticClibprefix : 'lib';
-            sharedClibprefix : 'lib';
-            Cprefix      : '';
-            newline      : #10;
-            dirsep       : '/';
-            files_case_relevent : true;
-            assem        : as_m68k_as;
-            assemextern  : as_m68k_as;
-            link         : ld_m68k_linux;
-            linkextern   : ld_m68k_linux;
-            ar           : ar_m68k_ar;
-            res          : res_none;
-            script       : script_unix;
-            endian       : endian_big;
-            alignment    :
-              (
-                procalign       : 4;
-                loopalign       : 4;
-                jumpalign       : 0;
-                constalignmin   : 0;
-                constalignmax   : 4;
-                varalignmin     : 0;
-                varalignmax     : 4;
-                localalignmin   : 0;
-                localalignmax   : 4;
-                paraalign       : 4;
-                recordalignmin  : 0;
-                recordalignmax  : 2;
-                maxCrecordalign : 4
-              );
-            first_parm_offset : 8;
-            heapsize     : 128*1024;
-            stacksize    : 32*1024*1024;
-            DllScanSupported:false;
-            use_function_relative_addresses : true
-          );
-{$endif m68k}
-{$ifdef powerpc}
-    const
-       target_powerpc_linux_info : ttargetinfo =
-          (
-            target       : target_powerpc_LINUX;
-            name         : 'Linux for PowerPC';
-            shortname    : 'linuxppc';
-            flags        : [];
-            cpu          : cpu_powerpc;
-            unit_env     : '';
-            extradefines : 'UNIX';
-            sourceext    : '.pp';
-            pasext       : '.pas';
-            exeext       : '';
-            defext       : '.def';
-            scriptext    : '.sh';
-            smartext     : '.sl';
-            unitext      : '.ppu';
-            unitlibext   : '.ppl';
-            asmext       : '.s';
-            objext       : '.o';
-            resext       : '.res';
-            resobjext    : '.or';
-            sharedlibext : '.so';
-            staticlibext : '.s';
-            staticlibprefix : 'libp';
-            sharedlibprefix : 'lib';
-            sharedClibext : '.so';
-            staticClibext : '.a';
-            staticClibprefix : 'lib';
-            sharedClibprefix : 'lib';
-            Cprefix      : '';
-            newline      : #10;
-            dirsep       : '/';
-            files_case_relevent : true;
-            assem        : as_powerpc_as;
-            assemextern  : as_powerpc_as;
-            link         : ld_powerpc_linux;
-            linkextern   : ld_powerpc_linux;
-            ar           : ar_gnu_ar;
-            res          : res_none;
-            script       : script_unix;
-            endian       : endian_big;
-            alignment    :
-              (
-                procalign       : 4;
-                loopalign       : 4;
-                jumpalign       : 0;
-                constalignmin   : 0;
-                constalignmax   : 4;
-                varalignmin     : 0;
-                varalignmax     : 4;
-                localalignmin   : 0;
-                localalignmax   : 4;
-                paraalign       : 4;
-                recordalignmin  : 0;
-                recordalignmax  : 2;
-                maxCrecordalign : 4
-              );
-            first_parm_offset : 8;
-            heapsize     : 256*1024;
-            stacksize    : 32*1024*1024;
-            DllScanSupported:false;
-            use_function_relative_addresses : true
-          );
-{$endif powerpc}
-{$ifdef alpha}
-    const
-       target_alpha_linux_info : ttargetinfo =
-          (
-            target       : target_alpha_LINUX;
-            name         : 'Linux for Alpha';
-            shortname    : 'axplinux';
-            flags        : [];
-            cpu          : cpu_alpha;
-            short_name   : 'LINUX';
-            unit_env     : 'LINUXUNITS';
-            extradefines : 'UNIX';
-            sourceext    : '.pp';
-            pasext       : '.pas';
-            exeext       : '';
-            defext       : '.def';
-            scriptext    : '.sh';
-            smartext     : '.sl';
-            unitext      : '.ppu';
-            unitlibext   : '.ppl';
-            asmext       : '.s';
-            objext       : '.o';
-            resext       : '.res';
-            resobjext    : '.or';
-            sharedlibext : '.so';
-            staticlibext : '.a';
-            staticlibprefix : 'libp';
-            sharedlibprefix : 'lib';
-            sharedClibext : '.so';
-            staticClibext : '.a';
-            staticClibprefix : 'lib';
-            sharedClibprefix : 'lib';
-            Cprefix      : '';
-            newline      : #10;
-            dirsep       : '/';
-            files_case_relevent : true;
-            assem        : as_alpha_as;
-            assemextern  : as_alpha_as;
-            link         : ld_alpha_linux;
-            linkextern   : ld_alpha_linux;
-            ar           : ar_alpha_ar;
-            res          : res_none;
-            script       : script_unix;
-            endian       : endian_little;
-            alignment    :
-              (
-                procalign       : 4;
-                loopalign       : 4;
-                jumpalign       : 0;
-                constalignmin   : 0;
-                constalignmax   : 4;
-                varalignmin     : 0;
-                varalignmax     : 4;
-                localalignmin   : 0;
-                localalignmax   : 4;
-                paraalign       : 4;
-                recordalignmin  : 0;
-                recordalignmax  : 2;
-                maxCrecordalign : 4
-              );
-            first_parm_offset : 8;
-            heapsize     : 256*1024;
-            stacksize    : 32*1024*1024;
-            DllScanSupported:false;
-            use_function_relative_addresses : true
-          );
-{$endif alpha}
-{$ifdef x86_64}
-    const
-       target_x86_64_linux_info : ttargetinfo =
-          (
-            target       : target_i386_LINUX;
-            name         : 'Linux for x86-64';
-            shortname    : 'Linux64';
-            flags        : [];
-            cpu          : x86_64;
-            unit_env     : 'LINUXUNITS';
-            extradefines : 'UNIX';
-            sourceext    : '.pp';
-            pasext       : '.pas';
-            exeext       : '';
-            defext       : '.def';
-            scriptext    : '.sh';
-            smartext     : '.sl';
-            unitext      : '.ppu';
-            unitlibext   : '.ppl';
-            asmext       : '.s';
-            objext       : '.o';
-            resext       : '.res';
-            resobjext    : '.or';
-            sharedlibext : '.so';
-            staticlibext : '.a';
-            staticlibprefix : 'libp';
-            sharedlibprefix : 'lib';
-            sharedClibext : '.so';
-            staticClibext : '.a';
-            staticClibprefix : 'lib';
-            sharedClibprefix : 'lib';
-            Cprefix      : '';
-            newline      : #10;
-            dirsep       : '/';
-            files_case_relevent : true;
-            assem        : as_i386_elf32;
-            assemextern  : as_i386_as;
-            link         : ld_i386_linux;
-            linkextern   : ld_i386_linux;
-            ar           : ar_gnu_ar;
-            res          : res_none;
-            script       : script_unix;
-            endian       : endian_little;
-            alignment    :
-              (
-                procalign       : 4;
-                loopalign       : 4;
-                jumpalign       : 0;
-                constalignmin   : 0;
-                constalignmax   : 1;
-                varalignmin     : 0;
-                varalignmax     : 1;
-                localalignmin   : 0;
-                localalignmax   : 1;
-                paraalign       : 4;
-                recordalignmin  : 0;
-                recordalignmax  : 2;
-                maxCrecordalign : 4
-              );
-            size_of_pointer : 8;
-            size_of_longint : 4;
-            heapsize     : 256*1024;
-            maxheapsize  : 65536*1024;
-            stacksize    : 16*1024;
-            DllScanSupported:false;
-            use_bound_instruction : false;
-            use_function_relative_addresses : true
-          );
-{$endif x86_64}
-{$IFDEF SPARC}
-  CONST
-       target_SPARC_linux_info : ttargetinfo =
-          (
-            target       : target_SPARC_Linux;
-            name         : 'Linux for SPARC';
-            shortname    : 'Linux';
-            flags        : [];
-            cpu          : cpu_SPARC;
-            unit_env     : 'LINUXUNITS';
-            extradefines : 'UNIX';
-            sourceext    : '.pp';
-            pasext       : '.pas';
-            exeext       : '';
-            defext       : '.def';
-            scriptext    : '.sh';
-            smartext     : '.sl';
-            unitext      : '.ppu';
-            unitlibext   : '.ppl';
-            asmext       : '.s';
-            objext       : '.o';
-            resext       : '.res';
-            resobjext    : '.or';
-            sharedlibext : '.so';
-            staticlibext : '.a';
-            staticlibprefix : 'libp';
-            sharedlibprefix : 'lib';
-            sharedClibext : '.so';
-            staticClibext : '.a';
-            staticClibprefix : 'lib';
-            sharedClibprefix : 'lib';
-            Cprefix      : '';
-            newline      : #10;
-            dirsep       : '/';
-            files_case_relevent : true;
-            assem        : as_SPARC_elf32;
-            assemextern  : as_SPARC_as;
-            link         : ld_SPARC_linux;
-            linkextern   : ld_SPARC_linux;
-            ar           : ar_gnu_ar;
-            res          : res_none;
-            script       : script_unix;
-            endian       : endian_little;
-            alignment    :
-              (
-                procalign       : 4;
-                loopalign       : 4;
-                jumpalign       : 0;
-                constalignmin   : 0;
-                constalignmax   : 4;
-                varalignmin     : 0;
-                varalignmax     : 4;
-                localalignmin   : 0;
-                localalignmax   : 4;
-                paraalign       : 4;
-                recordalignmin  : 0;
-                recordalignmax  : 2;
-                maxCrecordalign : 4
-              );
-            first_parm_offset : 8;
-            heapsize     : 256*1024;
-            stacksize    : 262144;
-            DllScanSupported:false;
-            use_function_relative_addresses : true
-          );
-{$ENDIF SPARC}
-
-
 initialization
 {$ifdef i386}
   RegisterLinker(ld_i386_linux,TLinkerLinux);
-  RegisterImport(target_i386_linux,timportliblinux);
-  RegisterExport(target_i386_linux,texportliblinux);
-  RegisterTarget(target_i386_linux_info);
+  RegisterImport(system_i386_linux,timportliblinux);
+  RegisterExport(system_i386_linux,texportliblinux);
+  RegisterTarget(system_i386_linux_info);
 {$endif i386}
 {$ifdef m68k}
   RegisterLinker(ld_m68k_linux,TLinkerLinux);
-  RegisterImport(target_m68k_linux,timportliblinux);
-  RegisterExport(target_m68k_linux,texportliblinux);
-  RegisterTarget(target_m68k_linux_info);
+  RegisterImport(system_m68k_linux,timportliblinux);
+  RegisterExport(system_m68k_linux,texportliblinux);
+  RegisterTarget(system_m68k_linux_info);
 {$endif m68k}
 {$ifdef powerpc}
   RegisterLinker(ld_powerpc_linux,TLinkerLinux);
-  RegisterImport(target_powerpc_linux,timportliblinux);
-  RegisterExport(target_powerpc_linux,texportliblinux);
-  RegisterTarget(target_powerpc_linux_info);
+  RegisterImport(system_powerpc_linux,timportliblinux);
+  RegisterExport(system_powerpc_linux,texportliblinux);
+  RegisterTarget(system_powerpc_linux_info);
 {$endif powerpc}
 {$ifdef alpha}
   RegisterLinker(ld_alpha_linux,TLinkerLinux);
-  RegisterImport(target_alpha_linux,timportliblinux);
-  RegisterExport(target_alpha_linux,texportliblinux);
-  RegisterTarget(target_alpha_linux_info);
+  RegisterImport(system_alpha_linux,timportliblinux);
+  RegisterExport(system_alpha_linux,texportliblinux);
+  RegisterTarget(system_alpha_linux_info);
 {$endif alpha}
 {$ifdef x86_64}
   RegisterLinker(ld_x86_64_linux,TLinkerLinux);
-  RegisterImport(target_x86_64_linux,timportliblinux);
-  RegisterExport(target_x86_64_linux,texportliblinux);
-  RegisterTarget(target_x86_64_linux_info);
+  RegisterImport(system_x86_64_linux,timportliblinux);
+  RegisterExport(system_x86_64_linux,texportliblinux);
+  RegisterTarget(system_x86_64_linux_info);
 {$endif x86_64}
-{$IFDEF SPARC}
+{$ifdef SPARC}
   RegisterLinker(ld_SPARC_linux,TLinkerLinux);
-  RegisterImport(target_SPARC_linux,timportliblinux);
-  RegisterExport(target_SPARC_linux,texportliblinux);
-  RegisterTarget(target_SPARC_linux_info);
-{$ENDIF SPARC}
+  RegisterImport(system_SPARC_linux,timportliblinux);
+  RegisterExport(system_SPARC_linux,texportliblinux);
+  RegisterTarget(system_SPARC_linux_info);
+{$endif SPARC}
 end.
 
 {
   $Log$
-  Revision 1.28  2002-07-04 20:43:02  florian
+  Revision 1.29  2002-07-26 21:15:46  florian
+    * rewrote the system handling
+
+  Revision 1.28  2002/07/04 20:43:02  florian
     * first x86-64 patches
 
   Revision 1.27  2002/07/01 18:46:35  peter

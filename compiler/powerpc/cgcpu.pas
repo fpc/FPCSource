@@ -706,10 +706,10 @@ const
     procedure tcgppc.g_stackframe_entry(list : taasmoutput;localsize : longint);
 
       begin
-        case target_info.target of
-          target_powerpc_macos:
+        case target_info.system of
+          system_powerpc_macos:
             g_stackframe_entry_mac(list,localsize);
-          target_powerpc_linux:
+          system_powerpc_linux:
             g_stackframe_entry_sysv(list,localsize)
           else
             internalerror(2204001);
@@ -843,10 +843,10 @@ const
     procedure tcgppc.g_return_from_proc(list : taasmoutput;parasize : aword);
 
       begin
-        case target_info.target of
-          target_powerpc_macos:
+        case target_info.system of
+          system_powerpc_macos:
             g_return_from_proc_mac(list,parasize);
-          target_powerpc_linux:
+          system_powerpc_linux:
             g_return_from_proc_sysv(list,parasize)
           else
             internalerror(2204001);
@@ -1295,7 +1295,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2002-07-21 17:00:23  jonas
+  Revision 1.25  2002-07-26 21:15:45  florian
+    * rewrote the system handling
+
+  Revision 1.24  2002/07/21 17:00:23  jonas
     * make sure we use rlwi* when possible instead of andi.
 
   Revision 1.23  2002/07/11 14:41:34  florian

@@ -33,7 +33,7 @@ implementation
     uses
        link,
        cutils,cclasses,
-       globtype,globals,systems,verbose,script,fmodule;
+       globtype,globals,systems,verbose,script,fmodule,i_go32v2;
 
   type
     tlinkergo32v2=class(texternallinker)
@@ -355,79 +355,16 @@ end;
                                      Initialize
 *****************************************************************************}
 
-    const
-       target_i386_go32v2_info : ttargetinfo =
-          (
-            target       : target_i386_GO32V2;
-            name         : 'GO32 V2 DOS extender';
-            shortname    : 'Go32v2';
-            flags        : [];
-            cpu          : cpu_i386;
-            unit_env     : 'GO32V2UNITS';
-            extradefines : 'DPMI';
-            sourceext    : '.pp';
-            pasext       : '.pas';
-            exeext       : '.exe';
-            defext       : '.def';
-            scriptext    : '.bat';
-            smartext     : '.sl';
-            unitext      : '.ppu';
-            unitlibext   : '.ppl';
-            asmext       : '.s';
-            objext       : '.o';
-            resext       : '.res';
-            resobjext    : '.or';
-            sharedlibext : '.dll';
-            staticlibext : '.a';
-            staticlibprefix : '';
-            sharedlibprefix : '';
-            sharedClibext : '.dll';
-            staticClibext : '.a';
-            staticClibprefix : '';
-            sharedClibprefix : '';
-            Cprefix      : '_';
-            newline      : #13#10;
-            dirsep       : '\';
-            files_case_relevent : false;
-            assem        : as_i386_coff;
-            assemextern  : as_i386_as;
-            link         : ld_i386_coff;
-            linkextern   : ld_i386_go32v2;
-            ar           : ar_gnu_ar;
-            res          : res_none;
-            script       : script_dos;
-            endian       : endian_little;
-            alignment    :
-              (
-                procalign       : 4;
-                loopalign       : 4;
-                jumpalign       : 0;
-                constalignmin   : 0;
-                constalignmax   : 4;
-                varalignmin     : 0;
-                varalignmax     : 4;
-                localalignmin   : 0;
-                localalignmax   : 4;
-                paraalign       : 2;
-                recordalignmin  : 0;
-                recordalignmax  : 2;
-                maxCrecordalign : 4
-              );
-            first_parm_offset : 8;
-            heapsize     : 2048*1024;
-            stacksize    : 262144;
-            DllScanSupported : false;
-            use_function_relative_addresses : true
-          );
-
-
 initialization
   RegisterLinker(ld_i386_go32v2,TLinkerGo32v2);
-  RegisterTarget(target_i386_go32v2_info);
+  RegisterTarget(system_i386_go32v2_info);
 end.
 {
   $Log$
-  Revision 1.23  2002-07-01 18:46:35  peter
+  Revision 1.24  2002-07-26 21:15:46  florian
+    * rewrote the system handling
+
+  Revision 1.23  2002/07/01 18:46:35  peter
     * internal linker
     * reorganized aasm layer
 

@@ -1279,7 +1279,7 @@ unit cgx86;
 {$ifndef __NOWINPECOFF__}
         { windows guards only a few pages for stack growing, }
         { so we have to access every page first              }
-        if target_info.target=target_i386_win32 then
+        if target_info.system=system_i386_win32 then
           begin
              getlabel(again);
              getlabel(ok);
@@ -1408,11 +1408,11 @@ unit cgx86;
       var
         pl : tasmlabel;
       begin
-        case target_info.target of
-           target_i386_win32,
-           target_i386_freebsd,
-           target_i386_wdosx,
-           target_i386_linux:
+        case target_info.system of
+           system_i386_win32,
+           system_i386_freebsd,
+           system_i386_wdosx,
+           system_i386_linux:
              begin
                 getaddrlabel(pl);
                 list.concat(Tai_section.Create(sec_data));
@@ -1425,7 +1425,7 @@ unit cgx86;
                 include(rg.usedinproc,R_EDX);
              end;
 
-           target_i386_go32v2:
+           system_i386_go32v2:
              begin
                a_call_name(list,'MCOUNT');
              end;
@@ -1446,7 +1446,7 @@ unit cgx86;
 {$ifndef NOTARGETWIN32}
            { windows guards only a few pages for stack growing, }
            { so we have to access every page first              }
-           if (target_info.target=target_i386_win32) and
+           if (target_info.system=system_i386_win32) and
               (localsize>=winstackpagesize) then
              begin
                if localsize div winstackpagesize<=5 then
@@ -1664,7 +1664,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.2  2002-07-21 16:55:34  jonas
+  Revision 1.3  2002-07-26 21:15:46  florian
+    * rewrote the system handling
+
+  Revision 1.2  2002/07/21 16:55:34  jonas
     * fixed bug in op_const_reg_reg() for imul
 
   Revision 1.1  2002/07/20 19:28:47  florian

@@ -758,7 +758,7 @@ begin
   if lexlevel<>normal_function_level then
     Message(parser_e_dont_nest_export);
   { only os/2 needs this }
-  if target_info.target=target_i386_os2 then
+  if target_info.system=system_i386_os2 then
    begin
      aktprocdef.aliasnames.insert(aktprocsym.realname);
      procinfo^.exported:=true;
@@ -1957,7 +1957,10 @@ const
 end.
 {
   $Log$
-  Revision 1.60  2002-07-20 11:57:55  florian
+  Revision 1.61  2002-07-26 21:15:40  florian
+    * rewrote the system handling
+
+  Revision 1.60  2002/07/20 11:57:55  florian
     * types.pas renamed to defbase.pas because D6 contains a types
       unit so this would conflicts if D6 programms are compiled
     + Willamette/SSE2 instructions to assembler added

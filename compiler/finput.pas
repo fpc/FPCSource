@@ -632,7 +632,7 @@ uses
          if AllowOutput and (OutputFile<>'') and (compile_level=1) then
           n:=OutputFile;
          staticlibfilename:=stringdup(p+target_info.staticlibprefix+n+target_info.staticlibext);
-         if target_info.target in [target_i386_WIN32,target_i386_wdosx] then
+         if target_info.system in [system_i386_WIN32,system_i386_wdosx] then
            sharedlibfilename:=stringdup(p+n+target_info.sharedlibext)
          else
            sharedlibfilename:=stringdup(p+target_info.sharedlibprefix+n+target_info.sharedlibext);
@@ -698,7 +698,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.16  2002-07-01 18:46:22  peter
+  Revision 1.17  2002-07-26 21:15:37  florian
+    * rewrote the system handling
+
+  Revision 1.16  2002/07/01 18:46:22  peter
     * internal linker
     * reorganized aasm layer
 

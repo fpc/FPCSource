@@ -96,7 +96,7 @@ implementation
                         an underline }
                       if InternalProcName[1]='_' then
                         delete(InternalProcName,1,1)
-                      else if (target_info.target in [target_i386_win32,target_i386_wdosx]) and UseDeffileForExport then
+                      else if (target_info.system in [system_i386_win32,system_i386_wdosx]) and UseDeffileForExport then
                         begin
                           Message(parser_e_dlltool_unit_var_problem);
                           Message(parser_e_dlltool_unit_var_problem2);
@@ -118,7 +118,7 @@ implementation
                        end;
                       hp.options:=hp.options or eo_index;
                       pt.free;
-                      if target_info.target in [target_i386_win32,target_i386_wdosx] then
+                      if target_info.system in [system_i386_win32,system_i386_wdosx] then
                        DefString:=srsym.realname+'='+InternalProcName+' @ '+tostr(hp.index)
                       else
                        DefString:=srsym.realname+'='+InternalProcName; {Index ignored!}
@@ -173,7 +173,10 @@ end.
 
 {
   $Log$
-  Revision 1.21  2002-05-18 13:34:12  peter
+  Revision 1.22  2002-07-26 21:15:41  florian
+    * rewrote the system handling
+
+  Revision 1.21  2002/05/18 13:34:12  peter
     * readded missing revisions
 
   Revision 1.20  2002/05/16 19:46:43  carl

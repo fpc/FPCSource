@@ -258,7 +258,7 @@ implementation
                    if (not symdone) then
                     begin
                       if is_constintnode(pt) and
-                         ((target_info.target=target_i386_go32v2) or
+                         ((target_info.system=system_i386_go32v2) or
                           (m_objfpc in aktmodeswitches) or
                           (m_delphi in aktmodeswitches)) then
                        begin
@@ -269,7 +269,7 @@ implementation
                          abssym.absseg:=false;
                          abssym.address:=tordconstnode(pt).value;
                          if (token=_COLON) and
-                            (target_info.target=target_i386_go32v2) then
+                            (target_info.system=system_i386_go32v2) then
                           begin
                             consume(token);
                             pt.free;
@@ -583,7 +583,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  2002-07-20 11:57:55  florian
+  Revision 1.29  2002-07-26 21:15:40  florian
+    * rewrote the system handling
+
+  Revision 1.28  2002/07/20 11:57:55  florian
     * types.pas renamed to defbase.pas because D6 contains a types
       unit so this would conflicts if D6 programms are compiled
     + Willamette/SSE2 instructions to assembler added

@@ -793,7 +793,7 @@ interface
             idtxt  : 'NASMCOFF';
             asmbin : 'nasm';
             asmcmd : '-f coff -o $OBJ $ASM';
-            supported_target : target_i386_go32v2;
+            supported_target : system_i386_go32v2;
             outputbinary: false;
             allowdirect : true;
             externals : true;
@@ -813,7 +813,7 @@ interface
             idtxt  : 'NASMWIN32';
             asmbin : 'nasm';
             asmcmd : '-f win32 -o $OBJ $ASM';
-            supported_target : target_i386_win32;
+            supported_target : system_i386_win32;
             outputbinary: false;
             allowdirect : true;
             externals : true;
@@ -833,7 +833,7 @@ interface
             idtxt  : 'NASMOBJ';
             asmbin : 'nasm';
             asmcmd : '-f obj -o $OBJ $ASM';
-            supported_target : target_any; { what should I write here ?? }
+            supported_target : system_any; { what should I write here ?? }
             outputbinary: false;
             allowdirect : true;
             externals : true;
@@ -853,7 +853,7 @@ interface
             idtxt  : 'NASMWDOSX';
             asmbin : 'nasm';
             asmcmd : '-f win32 -o $OBJ $ASM';
-            supported_target : target_i386_wdosx;
+            supported_target : system_i386_wdosx;
             outputbinary: false;
             allowdirect : true;
             externals : true;
@@ -874,7 +874,7 @@ interface
             idtxt  : 'NASMELF';
             asmbin : 'nasm';
             asmcmd : '-f elf -o $OBJ $ASM';
-            supported_target : target_i386_linux;
+            supported_target : system_i386_linux;
             outputbinary: false;
             allowdirect : true;
             externals : true;
@@ -898,7 +898,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.21  2002-07-01 18:46:29  peter
+  Revision 1.22  2002-07-26 21:15:43  florian
+    * rewrote the system handling
+
+  Revision 1.21  2002/07/01 18:46:29  peter
     * internal linker
     * reorganized aasm layer
 

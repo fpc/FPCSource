@@ -79,12 +79,12 @@ type
    TDLLScannerClass=class of TDLLScanner;
 
 var
-  CImportLib  : array[ttarget] of TImportLibClass;
-  CDLLScanner : array[ttarget] of TDLLScannerClass;
+  CImportLib  : array[tsystem] of TImportLibClass;
+  CDLLScanner : array[tsystem] of TDLLScannerClass;
   ImportLib   : TImportLib;
 
-procedure RegisterImport(t:ttarget;c:TImportLibClass);
-procedure RegisterDLLScanner(t:ttarget;c:TDLLScannerClass);
+procedure RegisterImport(t:tsystem;c:TImportLibClass);
+procedure RegisterDLLScanner(t:tsystem;c:TDLLScannerClass);
 procedure InitImport;
 procedure DoneImport;
 
@@ -207,13 +207,13 @@ end;
                                  Init/Done
 *****************************************************************************}
 
-procedure RegisterImport(t:ttarget;c:TImportLibClass);
+procedure RegisterImport(t:tsystem;c:TImportLibClass);
 begin
   CImportLib[t]:=c;
 end;
 
 
-procedure RegisterDLLScanner(t:ttarget;c:TDLLScannerClass);
+procedure RegisterDLLScanner(t:tsystem;c:TDLLScannerClass);
 begin
   CDLLScanner[t]:=c;
 end;
@@ -221,8 +221,8 @@ end;
 
 procedure InitImport;
 begin
-  if assigned(CImportLib[target_info.target]) then
-   importlib:=CImportLib[target_info.target].Create
+  if assigned(CImportLib[target_info.system]) then
+   importlib:=CImportLib[target_info.system].Create
   else
    importlib:=TImportLib.Create;
 end;
@@ -237,7 +237,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.18  2002-07-01 18:46:22  peter
+  Revision 1.19  2002-07-26 21:15:38  florian
+    * rewrote the system handling
+
+  Revision 1.18  2002/07/01 18:46:22  peter
     * internal linker
     * reorganized aasm layer
 

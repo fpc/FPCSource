@@ -54,7 +54,7 @@ unit agppcgas;
             idtxt  : 'AS';
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM';
-            supported_target : target_any;
+            supported_target : system_any;
             outputbinary: false;
             allowdirect : true;
             externals : false;
@@ -340,7 +340,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2002-07-26 11:19:57  jonas
+  Revision 1.8  2002-07-26 21:15:45  florian
+    * rewrote the system handling
+
+  Revision 1.7  2002/07/26 11:19:57  jonas
     * fixed range errors
 
   Revision 1.6  2002/07/21 16:56:20  jonas

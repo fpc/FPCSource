@@ -609,7 +609,7 @@ var
                   AsmWrite('.globl'#9);
                   AsmWriteLn(tai_symbol(hp).sym.name);
                 end;
-               if target_info.target in [target_i386_linux,target_i386_beos] then
+               if target_info.system in [system_i386_linux,system_i386_beos] then
                 begin
                    AsmWrite(#9'.type'#9);
                    AsmWrite(tai_symbol(hp).sym.name);
@@ -634,7 +634,7 @@ var
 
            ait_symbol_end :
              begin
-               if target_info.target in [target_i386_linux,target_i386_beos] then
+               if target_info.system in [system_i386_linux,system_i386_beos] then
                 begin
                   s:=target_asm.labelprefix+'e'+tostr(symendcount);
                   inc(symendcount);
@@ -796,7 +796,10 @@ var
 end.
 {
   $Log$
-  Revision 1.7  2002-07-07 09:52:32  florian
+  Revision 1.8  2002-07-26 21:15:37  florian
+    * rewrote the system handling
+
+  Revision 1.7  2002/07/07 09:52:32  florian
     * powerpc target fixed, very simple units can be compiled
     * some basic stuff for better callparanode handling, far from being finished
 

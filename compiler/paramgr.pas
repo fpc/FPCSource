@@ -51,6 +51,9 @@ unit paramgr;
             function results will be passed.
           }
           function getfuncretloc(p : tabstractprocdef) : tparalocation;virtual;abstract;
+          { Returns the self pointer for the give procdef
+          function getfuncretloc(p : tabstractprocdef) : tparalocation;virtual;abstract;
+          }
        end;
 
     var
@@ -132,7 +135,10 @@ end.
 
 {
    $Log$
-   Revision 1.4  2002-07-20 11:57:55  florian
+   Revision 1.5  2002-07-26 21:15:39  florian
+     * rewrote the system handling
+
+   Revision 1.4  2002/07/20 11:57:55  florian
      * types.pas renamed to defbase.pas because D6 contains a types
        unit so this would conflicts if D6 programms are compiled
      + Willamette/SSE2 instructions to assembler added

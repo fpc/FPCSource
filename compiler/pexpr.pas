@@ -1459,7 +1459,7 @@ implementation
                               begin
                                 p2:=comp_expr(true);
                               { support SEG:OFS for go32v2 Mem[] }
-                                if (target_info.target=target_i386_go32v2) and
+                                if (target_info.system=system_i386_go32v2) and
                                    (p1.nodetype=loadn) and
                                    assigned(tloadnode(p1).symtableentry) and
                                    assigned(tloadnode(p1).symtableentry.owner.name) and
@@ -2251,7 +2251,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.73  2002-07-23 09:51:23  daniel
+  Revision 1.74  2002-07-26 21:15:41  florian
+    * rewrote the system handling
+
+  Revision 1.73  2002/07/23 09:51:23  daniel
   * Tried to make Tprocsym.defs protected. I didn't succeed but the cleanups
     are worth comitting.
 

@@ -124,11 +124,11 @@ var
   hr : presourcefile;
 begin
 (* OS/2 (EMX) must be processed elsewhere (in the linking/binding stage). *)
-  if target_info.target <> target_i386_os2 then
+  if target_info.system<>system_i386_os2 then
    While not current_module.ResourceFiles.Empty do
     begin
-      case target_info.target of
-        target_i386_win32,target_i386_wdosx:
+      case target_info.system of
+        system_i386_win32,system_i386_wdosx:
           hr:=new(presourcefile,init(current_module.ResourceFiles.getfirst));
         else
           Message(scan_e_resourcefiles_not_supported);
@@ -142,7 +142,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  2002-05-18 13:34:06  peter
+  Revision 1.15  2002-07-26 21:15:37  florian
+    * rewrote the system handling
+
+  Revision 1.14  2002/05/18 13:34:06  peter
     * readded missing revisions
 
   Revision 1.13  2002/05/16 19:46:35  carl

@@ -1332,7 +1332,7 @@ Begin
                 End;
               A_POP:
                 Begin
-                  if target_info.target=target_i386_go32v2 then
+                  if target_info.system=system_i386_go32v2 then
                    begin
                      { Transform a series of pop/pop/pop/push/push/push to }
                      { 'movl x(%esp),%reg' for go32v2 (not for the rest,   }
@@ -2044,7 +2044,10 @@ End.
 
 {
   $Log$
-  Revision 1.29  2002-07-01 18:46:34  peter
+  Revision 1.30  2002-07-26 21:15:43  florian
+    * rewrote the system handling
+
+  Revision 1.29  2002/07/01 18:46:34  peter
     * internal linker
     * reorganized aasm layer
 

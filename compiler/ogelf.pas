@@ -833,7 +833,7 @@ implementation
             idtxt  : 'ELF';
             asmbin : '';
             asmcmd : '';
-            supported_target : target_any;  //target_i386_linux;
+            supported_target : system_any;  //target_i386_linux;
             outputbinary : true;
             allowdirect : false;
             externals : true;
@@ -853,7 +853,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.16  2002-07-01 18:46:24  peter
+  Revision 1.17  2002-07-26 21:15:39  florian
+    * rewrote the system handling
+
+  Revision 1.16  2002/07/01 18:46:24  peter
     * internal linker
     * reorganized aasm layer
 

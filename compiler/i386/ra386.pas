@@ -196,7 +196,7 @@ end;
 
 Procedure FWaitWarning;
 begin
-  if (target_info.target=target_i386_GO32V2) and (cs_fp_emulation in aktmoduleswitches) then
+  if (target_info.system=system_i386_GO32V2) and (cs_fp_emulation in aktmoduleswitches) then
    Message(asmr_w_fwait_emu_prob);
 end;
 
@@ -601,8 +601,8 @@ begin
      So I think its at least a good idea to add a warning
      if someone uses this in assembler code
      FPC itself does not use it at all PM }
-   if (opcode=A_ENTER) and ((target_info.target=target_i386_linux) or
-        (target_info.target=target_i386_FreeBSD)) then
+   if (opcode=A_ENTER) and ((target_info.system=system_i386_linux) or
+        (target_info.system=system_i386_FreeBSD)) then
      begin
        message(asmr_w_enter_not_supported_by_linux);
      end;
@@ -669,7 +669,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.22  2002-07-01 18:46:34  peter
+  Revision 1.23  2002-07-26 21:15:44  florian
+    * rewrote the system handling
+
+  Revision 1.22  2002/07/01 18:46:34  peter
     * internal linker
     * reorganized aasm layer
 

@@ -1106,7 +1106,7 @@ Implementation
                end;
              ait_symbol_end :
                begin
-                 if target_info.target in [target_i386_linux,target_i386_beos] then
+                 if target_info.system in [system_i386_linux,system_i386_beos] then
                   begin
                     Tai_symbol_end(hp).sym.size:=objectalloc.sectionsize-Tai_symbol_end(hp).sym.address;
                     UsedAsmSymbolListInsert(Tai_symbol_end(hp).sym);
@@ -1596,7 +1596,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.38  2002-07-10 07:24:40  jonas
+  Revision 1.39  2002-07-26 21:15:37  florian
+    * rewrote the system handling
+
+  Revision 1.38  2002/07/10 07:24:40  jonas
     * memory leak fixes from Sergey Korshunoff
 
   Revision 1.37  2002/07/01 18:46:21  peter

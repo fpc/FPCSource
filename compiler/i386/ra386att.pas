@@ -1988,7 +1988,7 @@ Begin
         Begin
           Consume(AS_ALIGN);
           l1:=BuildConstExpression(false,false);
-          if (target_info.target in [target_i386_GO32V2]) then
+          if (target_info.system in [system_i386_GO32V2]) then
             begin
                l2:=1;
                if (l1>=0) and (l1<=16) then
@@ -2129,7 +2129,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.25  2002-07-01 18:46:34  peter
+  Revision 1.26  2002-07-26 21:15:44  florian
+    * rewrote the system handling
+
+  Revision 1.25  2002/07/01 18:46:34  peter
     * internal linker
     * reorganized aasm layer
 

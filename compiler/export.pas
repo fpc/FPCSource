@@ -66,10 +66,10 @@ type
    TExportLibClass=class of TExportLib;
 
 var
-  CExportLib : array[ttarget] of TExportLibClass;
+  CExportLib : array[tsystem] of TExportLibClass;
   ExportLib  : TExportLib;
 
-procedure RegisterExport(t:ttarget;c:TExportLibClass);
+procedure RegisterExport(t:tsystem;c:TExportLibClass);
 procedure InitExport;
 procedure DoneExport;
 
@@ -155,7 +155,7 @@ end;
                                  Init/Done
 *****************************************************************************}
 
-procedure RegisterExport(t:ttarget;c:TExportLibClass);
+procedure RegisterExport(t:tsystem;c:TExportLibClass);
 begin
   CExportLib[t]:=c;
 end;
@@ -163,8 +163,8 @@ end;
 
 procedure InitExport;
 begin
-  if assigned(CExportLib[target_info.target]) then
-   exportlib:=CExportLib[target_info.target].Create
+  if assigned(CExportLib[target_info.system]) then
+   exportlib:=CExportLib[target_info.system].Create
   else
    exportlib:=TExportLib.Create;
 end;
@@ -180,7 +180,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.20  2002-07-01 18:46:22  peter
+  Revision 1.21  2002-07-26 21:15:37  florian
+    * rewrote the system handling
+
+  Revision 1.20  2002/07/01 18:46:22  peter
     * internal linker
     * reorganized aasm layer
 

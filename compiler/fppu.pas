@@ -161,7 +161,7 @@ uses
            exit;
          end;
       { check the target processor }
-        if ttargetcpu(ppufile.header.cpu)<>target_cpu then
+        if tsystemcpu(ppufile.header.cpu)<>target_cpu then
          begin
            ppufile.free;
            ppufile:=nil;
@@ -169,7 +169,7 @@ uses
            exit;
          end;
       { check target }
-        if ttarget(ppufile.header.target)<>target_info.target then
+        if tsystem(ppufile.header.target)<>target_info.system then
          begin
            ppufile.free;
            ppufile:=nil;
@@ -788,7 +788,7 @@ uses
          ppufile.header.interface_checksum:=ppufile.interface_crc;
          ppufile.header.compiler:=wordversion;
          ppufile.header.cpu:=word(target_cpu);
-         ppufile.header.target:=word(target_info.target);
+         ppufile.header.target:=word(target_info.system);
          ppufile.header.flags:=flags;
          ppufile.writeheader;
 
@@ -1173,7 +1173,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.16  2002-05-16 19:46:36  carl
+  Revision 1.17  2002-07-26 21:15:37  florian
+    * rewrote the system handling
+
+  Revision 1.16  2002/05/16 19:46:36  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls
