@@ -294,7 +294,8 @@ unit cpupara;
                 if getfuncretparaloc.size in [OS_S64,OS_64] then
                   begin
                     getfuncretparaloc.registerhigh.enum:=R_INTREGISTER;
-                    getfuncretparaloc.registerhigh.number:=NR_R4;
+                    getfuncretparaloc.registerhigh.number:=NR_R3;
+		    getfuncretparaloc.register.number:=NR_R4;
                   end;
               end;
             floatdef:
@@ -334,7 +335,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  2003-05-30 22:35:03  marco
+  Revision 1.33  2003-05-30 22:54:19  marco
+   * getfuncretparaloc now uses r3 for highdword and r4 for lo. Doesn't work tho
+
+  Revision 1.32  2003/05/30 22:35:03  marco
    * committed fix that swaps int64 parameters hi and lo.
 
   Revision 1.31  2003/05/24 11:48:40  jonas
