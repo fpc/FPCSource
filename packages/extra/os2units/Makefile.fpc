@@ -3,7 +3,7 @@
 #
 
 [target]
-dirs=ftpapi mmtk hwvideo
+dirs=ftpapi mmtk hwvideo lvm
 
 [install]
 fpcpackage=y
