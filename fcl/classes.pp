@@ -17,6 +17,9 @@ unit Classes;
 
 interface
 
+uses
+  objpas; 
+
 
 const
 
@@ -1000,7 +1003,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  1998-04-27 09:09:49  michael
+  Revision 1.3  1998-04-27 12:55:57  florian
+    + uses objpas added
+
+  Revision 1.2  1998/04/27 09:09:49  michael
   + Added log at the end
 
 }
