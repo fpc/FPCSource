@@ -165,7 +165,7 @@ var
                         Processor specific routines
 ****************************************************************************}
 
-Procedure Move(Var source,dest;count:Longint);
+Procedure Move(const source,dest;count:Longint);
 Procedure FillChar(Var x;count:Longint;Value:Boolean);
 Procedure FillChar(Var x;count:Longint;Value:Char);
 Procedure FillChar(Var x;count:Longint;Value:Byte);
@@ -445,7 +445,10 @@ const
 
 {
   $Log$
-  Revision 1.85  2000-06-22 18:41:25  peter
+  Revision 1.86  2000-07-07 18:23:41  marco
+   * Changed move (var source;var dest) to move (const source;var dest)
+
+  Revision 1.85  2000/06/22 18:41:25  peter
     * moved islibrary,isconsole,ismulithread to systemh as they are
       os independent
 

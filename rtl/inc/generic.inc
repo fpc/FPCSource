@@ -21,7 +21,7 @@
 ****************************************************************************}
 
 {$ifndef FPC_SYSTEM_HAS_MOVE}
-procedure Move(var source;var dest;count:longint);
+procedure Move(const source;var dest;count:longint);
 type
   longintarray = array [0..maxlongint] of longint;
   bytearray    = array [0..maxlongint] of byte;
@@ -750,7 +750,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  2000-03-10 13:45:31  pierre
+  Revision 1.9  2000-07-07 18:23:41  marco
+   * Changed move (var source;var dest) to move (const source;var dest)
+
+  Revision 1.8  2000/03/10 13:45:31  pierre
    * small fixes
 
   Revision 1.7  2000/02/09 16:59:29  peter

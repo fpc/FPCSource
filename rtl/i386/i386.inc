@@ -23,7 +23,7 @@
 ****************************************************************************}
 
 {$define FPC_SYSTEM_HAS_MOVE}
-procedure Move(var source;var dest;count:longint);assembler;
+procedure Move(const source;var dest;count:longint);assembler;
 asm
         movl    dest,%edi
         movl    source,%esi
@@ -1196,7 +1196,10 @@ end;
 
 {
   $Log$
-  Revision 1.73  2000-05-09 06:21:58  pierre
+  Revision 1.74  2000-07-07 18:23:41  marco
+   * Changed move (var source;var dest) to move (const source;var dest)
+
+  Revision 1.73  2000/05/09 06:21:58  pierre
    * fix ingnored assembler error in IndexDWord
 
   Revision 1.72  2000/04/23 09:26:51  jonas
