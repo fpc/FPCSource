@@ -1,0 +1,10 @@
+This directory contains test programs for different elements/classes in
+the FCL. 
+
+If you add a test, please number it with 3 digits, and give in this file 
+a short description of what class/function it tests.
+
+File    Tests
+t001.pp TList object from unit classes.
+
+  
