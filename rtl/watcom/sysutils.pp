@@ -68,9 +68,9 @@ begin
   StrDispose(P);
 end ;
 
+
 {  Native OpenFile function.
    if return value <> 0 call failed.  }
-
 function OpenFile(const FileName: string; var Handle: longint; Mode, Action: word): longint;
 var
    Regs: registers;
@@ -78,17 +78,34 @@ begin
   result := 0;
   Handle := 0;
   StringToTB(FileName);
-  if LFNSupport then Regs.Eax:=$716c
-  else Regs.Eax:=$6c00;
-  Regs.Edx := Action;                   { Action if file exists/not exists }
-  Regs.Ds := tb_segment;
-  Regs.Esi := tb_offset;
-  Regs.Ebx := $2000 + (Mode and $ff);   { file open mode }
-  Regs.Ecx := $20;                      { Attributes }
+  if LFNSupport then
+    Regs.Eax := $716c                       { Use LFN Open/Create API }
+  else  { Check if Extended Open/Create API is safe to use }
+    if lo(dosversion) < 7 then
+      Regs.Eax := $3d00 + (Mode and $ff)    { For now, map to Open API }
+    else
+      Regs.Eax := $6c00;                    { Use Extended Open/Create API }
+  if Regs.Ah = $3d then
+    begin
+      if (Action and $00f0) <> 0 then
+        Regs.Eax := $3c00;                  { Map to Create/Replace API }
+      Regs.Ds := tb_segment;
+      Regs.Edx := tb_offset;
+    end
+  else  { LFN or Extended Open/Create API }
+    begin
+      Regs.Edx := Action;                   { Action if file exists/not exists }
+      Regs.Ds := tb_segment;
+      Regs.Esi := tb_offset;
+      Regs.Ebx := $2000 + (Mode and $ff);   { file open mode }
+    end;
+  Regs.Ecx := $20;                          { Attributes }
   RealIntr($21, Regs);
-  if Regs.Flags and CarryFlag <> 0 then result := Regs.Ax
-  else Handle := Regs.Ax;
-end ;
+  if (Regs.Flags and CarryFlag) <> 0 then
+    result := Regs.Ax
+  else
+    Handle := Regs.Ax;
+end;
 
 
 Function FileOpen (Const FileName : string; Mode : Integer) : Longint;
@@ -755,7 +772,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2003-11-26 20:00:19  florian
+  Revision 1.3  2003-12-15 15:57:49  peter
+    * patches from wiktor
+
+  Revision 1.2  2003/11/26 20:00:19  florian
     * error handling for Variants improved
 
   Revision 1.1  2003/11/17 19:55:13  hajny

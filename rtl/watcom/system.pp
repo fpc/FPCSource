@@ -527,29 +527,78 @@ begin
 end;
 
 function strcopy(dest,source : pchar) : pchar;assembler;
+var
+  saveeax,saveesi,saveedi : longint;
 asm
-        pushl %esi
-        pushl %edi
-        cld
-        movl 12(%ebp),%edi
-        movl $0xffffffff,%ecx
-        xorb %al,%al
-        repne
-        scasb
-        not %ecx
-        movl 8(%ebp),%edi
-        movl 12(%ebp),%esi
-        movl %ecx,%eax
-        shrl $2,%ecx
-        rep
-        movsl
-        movl %eax,%ecx
-        andl $3,%ecx
-        rep
-        movsb
-        movl 8(%ebp),%eax
-        popl %edi
-        popl %esi
+        movl    %edi,saveedi
+        movl    %esi,saveesi
+{$ifdef REGCALL}
+        movl    %eax,saveeax
+        movl    %edx,%edi
+{$else}
+        movl    source,%edi
+{$endif}
+        testl   %edi,%edi
+        jz      .LStrCopyDone
+        leal    3(%edi),%ecx
+        andl    $-4,%ecx
+        movl    %edi,%esi
+        subl    %edi,%ecx
+{$ifdef REGCALL}
+        movl    %eax,%edi
+{$else}
+        movl    dest,%edi
+{$endif}
+        jz      .LStrCopyAligned
+.LStrCopyAlignLoop:
+        movb    (%esi),%al
+        incl    %edi
+        incl    %esi
+        testb   %al,%al
+        movb    %al,-1(%edi)
+        jz      .LStrCopyDone
+        decl    %ecx
+        jnz     .LStrCopyAlignLoop
+        .balign  16
+.LStrCopyAligned:
+        movl    (%esi),%eax
+        movl    %eax,%edx
+        leal    0x0fefefeff(%eax),%ecx
+        notl    %edx
+        addl    $4,%esi
+        andl    %edx,%ecx
+        andl    $0x080808080,%ecx
+        jnz     .LStrCopyEndFound
+        movl    %eax,(%edi)
+        addl    $4,%edi
+        jmp     .LStrCopyAligned
+.LStrCopyEndFound:
+        testl   $0x0ff,%eax
+        jz      .LStrCopyByte
+        testl   $0x0ff00,%eax
+        jz      .LStrCopyWord
+        testl   $0x0ff0000,%eax
+        jz      .LStrCopy3Bytes
+        movl    %eax,(%edi)
+        jmp     .LStrCopyDone
+.LStrCopy3Bytes:
+        xorb     %dl,%dl
+        movw     %ax,(%edi)
+        movb     %dl,2(%edi)
+        jmp     .LStrCopyDone
+.LStrCopyWord:
+        movw    %ax,(%edi)
+        jmp     .LStrCopyDone
+.LStrCopyByte:
+        movb    %al,(%edi)
+.LStrCopyDone:
+{$ifdef REGCALL}
+        movl    saveeax,%eax
+{$else}
+        movl    dest,%eax
+{$endif}
+        movl    saveedi,%edi
+        movl    saveesi,%esi
 end;
 
 
@@ -1442,7 +1491,10 @@ END.
 
 {
   $Log$
-  Revision 1.8  2003-11-17 19:55:13  hajny
+  Revision 1.9  2003-12-15 15:57:48  peter
+    * patches from wiktor
+
+  Revision 1.8  2003/11/17 19:55:13  hajny
     * Wiktor Sywula: LFN detection uncommented in system, new units added
 
   Revision 1.7  2003/10/18 09:31:59  hajny
