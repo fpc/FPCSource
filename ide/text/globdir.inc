@@ -73,7 +73,8 @@
 { let everybody try it out  PM }
 { undo should be a bit improved - it does work only with "normal" keystorkes.
   neither the block, nor any shortcut operations (like Ctrl-T - delete word)
-  do work... Gabor }
+  do work... Gabor
+  Partially solved at least PM }
 {$define Undo}
 {$ifdef DEBUG}
   {$define DebugUndo}

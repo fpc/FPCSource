@@ -2830,6 +2830,13 @@ begin
   GetExtent(R);
   New(Temp, Init(R, nil, nil, nil,0));
   Temp^.InsertFrom(@Self);
+  Temp^.SelectAll(true);
+  { this selects one line too much because
+    we have a empty line at creation to avoid
+    negative line problems so we need to decrease SelEnd.Y }
+  Dec(Temp^.SelEnd.Y);
+
+
   InsertFrom(Temp);
   Dispose(Temp, Done);
   UnLock;
@@ -3061,7 +3068,7 @@ const OpenBrackets  : string[10] = '[({';
       CloseBrackets : string[10] = '])}';
 var S,SC,TabS: string;
     BI: byte;
-    CI,TabStart : Sw_integer;
+    CI,TabStart,LocTabSize : Sw_integer;
     SP: TPoint;
     HoldUndo : boolean;
 begin
@@ -3073,23 +3080,22 @@ begin
   StoreUndo:=false;
   if (C<>TAB) or ((Flags and efUseTabCharacters)<>0) then
     SC:=C
-  else if ((Flags and efAutoIndent)=0) then
-    SC:=CharStr(' ',TabSize)
   else
     begin
-      if CurPos.Y>1 then
+      LocTabSize:=TabSize - (CurPos.X mod TabSize);
+      if (CurPos.Y<=1) or ((Flags and efAutoIndent)=0) then
+        SC:=CharStr(' ',LocTabSize)
+      else
         begin
           S:=GetLineText(CurPos.Y-1);
           BI:=CurPos.X+1;
-          while S[BI]=' ' do
+          while (BI<=Length(S)) and (S[BI]=' ') do
             inc(BI);
-          if BI=CurPos.X+1 then
-            SC:=CharStr(' ',TabSize)
+          if (BI=CurPos.X+1) or (BI>Length(S)) then
+            SC:=CharStr(' ',LocTabSize)
           else
             SC:=CharStr(' ',BI-CurPos.X-1);
-        end
-      else
-        SC:=CharStr(' ',TabSize);
+        end;
     end;
   S:=GetLineText(CurPos.Y);
   if CharIdxToLinePos(CurPos.Y,length(S))<CurPos.X then
@@ -3109,25 +3115,28 @@ begin
   else
     begin
       if Overwrite and (CI<=length(S)) then
-        SetLineText(CurPos.Y,copy(S,1,CI-1)+SC+copy(S,CI+1,255))
+        SetLineText(CurPos.Y,copy(S,1,CI-1)+SC+copy(S,CI+length(SC),255))
       else
         SetLineText(CurPos.Y,copy(S,1,CI-1)+SC+copy(S,CI,255));
       SetCurPtr(CurPos.X+length(SC),CurPos.Y);
     end;
-  BI:=Pos(C,OpenBrackets);
 {$ifdef Undo}
  { must be before CloseBrackets !! }
   StoreUndo:=HoldUndo;
   Addaction(eaInsertText,SP,CurPos,C);
   StoreUndo:=false;
 {$endif Undo}
-  if ((Flags and efAutoBrackets)<>0) and (BI>0) then
-   begin
-     StoreUndo:=HoldUndo;
-     AddChar(CloseBrackets[BI]);
-     StoreUndo:=false;
-     SetCurPtr(CurPos.X-1,CurPos.Y);
-   end;
+  if ((Flags and efAutoBrackets)<>0) then
+    begin
+      BI:=Pos(C,OpenBrackets);
+      if (BI>0) then
+        begin
+          StoreUndo:=HoldUndo;
+          AddChar(CloseBrackets[BI]);
+          StoreUndo:=false;
+          SetCurPtr(CurPos.X-1,CurPos.Y);
+        end;
+    end;
   UpdateAttrs(CurPos.Y,attrAll);
   AdjustSelection(CurPos.X-SP.X,CurPos.Y-SP.Y);
   DrawLines(CurPos.Y);
@@ -5431,7 +5440,11 @@ end;
 END.
 {
   $Log$
-  Revision 1.68  2000-01-04 12:33:08  pierre
+  Revision 1.69  2000-01-05 00:37:34  pierre
+    * ^KC fix
+    *  better Tab handling
+
+  Revision 1.68  2000/01/04 12:33:08  pierre
     * reinserted version 1.66 lost changes
     + CtrlT Undo works now !
 
