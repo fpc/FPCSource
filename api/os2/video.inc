@@ -77,10 +77,12 @@ begin
 {Get the address of the original videobuffer and size.}
     if VioGetBuf (PScr, PWord (@OrigScreenSize)^, 0) = 0 then
         begin
-{$IFDEF PPC_VIRTUAL}
+{$IFDEF BIT_32}
+ {$IFDEF PPC_VIRTUAL}
             SelToFlat (PScr);
-{$ELSE}
+ {$ELSE}
             PScr := SelToFlat (TFarPtr (PScr));
+ {$ENDIF}
 {$ENDIF}
             GetMem (OrigScreen, OrigScreenSize);
             Move (PScr^, OrigScreen^, OrigScreenSize);
@@ -190,7 +192,9 @@ begin
 {$ELSE}
     if VioGetBuf (VideoBuf, PWord (@VideoBufSize)^, 0) = 0 then
         begin
+ {$IFDEF BIT_32}
             VideoBuf := SelToFlat (TFarPtr (VideoBuf));
+ {$ENDIF}
 {$ENDIF}
             SetHighBitBlink (true);
             GetMem (OldVideoBuf, VideoBufSize);
@@ -308,10 +312,12 @@ begin
                     if (VioGetBuf (PScr, PWord (@ScrSize)^, 0) = 0)
                                             and (ScrSize = OrigScreenSize) then
                         begin
-{$IFDEF PPC_VIRTUAL}
+{$IFDEF BIT_32}
+ {$IFDEF PPC_VIRTUAL}
                             SelToFlat (PScr);
-{$ELSE}
+ {$ELSE}
                             PScr := SelToFlat (TFarPtr (PScr));
+ {$ENDIF}
 {$ENDIF}
                             Move (OrigScreen^, PScr^, OrigScreenSize);
                             VioShowBuf (0, ScrSize, 0);
@@ -358,7 +364,9 @@ begin
 {$ELSE}
                 if VioGetBuf (VideoBuf, PWord (@VideoBufSize)^, 0) = 0 then
                     begin
+ {$IFDEF BIT_32}
                         VideoBuf := SelToFlat (TFarPtr (VideoBuf));
+ {$ENDIF}
 {$ENDIF}
                         DefaultVideoModeSelector := true;
                         SetHighBitBlink (true);
@@ -376,7 +384,9 @@ begin
                         SelToFlat (pointer (VideoBuf));
 {$ELSE}
                         VioGetBuf (VideoBuf, PWord (@VideoBufSize)^, 0);
+ {$IFDEF BIT_32}
                         VideoBuf := SelToFlat (TFarPtr (VideoBuf));
+ {$ENDIF}
 {$ENDIF}
                         SetHighBitBlink (true);
                         CheckCellHeight;
@@ -391,7 +401,9 @@ begin
                     SelToFlat (pointer (VideoBuf));
 {$ELSE}
                     VioGetBuf (VideoBuf, PWord (@VideoBufSize)^, 0);
+ {$IFDEF BIT_32}
                     VideoBuf := SelToFlat (TFarPtr (VideoBuf));
+ {$ENDIF}
 {$ENDIF}
                     SetHighBitBlink (true);
                     SetCursorType (LastCursorType);
@@ -408,17 +420,24 @@ begin
 end;
 
 
-{$ASMMODE INTEL}
+{$IFDEF PPC_FPC}
+ {$ASMMODE INTEL}
+{$ENDIF}
 
 procedure UpdateScreen (Force: boolean);
 
+{$IFDEF BIT_32}
 var SOfs: cardinal;
+{$ELSE}
+var SOfs: word;
+{$ENDIF}
 
 begin
     if LockUpdateScreen = 0 then
         begin
             if not (Force) then
                 begin
+{$IFDEF BIT_32}
                     asm
                         mov esi, VideoBuf
                         mov edi, OldVideoBuf
@@ -435,6 +454,25 @@ begin
                     end;
                     Inc (SOfs);
                     SOfs := VideoBufSize - (SOfs shl 2);
+{$ELSE}
+                    asm
+                        push ds
+                        lds si, VideoBuf
+                        les di, OldVideoBuf
+                        mov cx, word ptr VideoBufSize
+                        shr cx
+                        repe
+                        cmpsw
+                        mov SOfs, cx
+                        or cx, cx
+                        jz @no_update
+                        mov Force, 1
+@no_update:
+                        pop ds
+                    end;
+                    Inc (SOfs);
+                    SOfs := VideoBufSize - (SOfs shl 1);
+{$ENDIF}
                 end else
                     SOfs := 0;
             if Force then
@@ -449,7 +487,10 @@ end;
 {
 
   $Log$
-  Revision 1.9  2000-10-11 05:28:29  hajny
+  Revision 1.10  2000-10-11 20:10:04  hajny
+    * compatibility enhancements
+
+  Revision 1.9  2000/10/11 05:28:29  hajny
     * really a faster version now ;-)
 
   Revision 1.8  2000/10/10 20:28:18  hajny
