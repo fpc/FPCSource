@@ -132,17 +132,13 @@ Type
        content of this register. If Typ = con_const, then
        Longint(StartMod) = value of the constant)}
                StartMod: Pointer;
-      {starts at 0, gets increased everytime the register is modified}
+      {starts at 0, gets increased everytime the register is written to}
                WState: Byte;
       {starts at 0, gets increased everytime the register is read from}
                RState: Byte;
       {how many instructions starting with StarMod does the block consist of}
                NrOfMods: Byte;
-      {if one register gets a block assigned from an other register,
-          this variable holds the name of that register (so it can be
-          substituted when checking the block afterwards)}
-{               ModReg: TRegister; }
-      {the type of the content of the register: constant, ...}
+      {the type of the content of the register: unknown, memory, constant}
                Typ: Byte;
              End;
 
@@ -1202,7 +1198,7 @@ End;
 Procedure DestroyReg(p1: PPaiProp; Reg: TRegister);
 {Destroys the contents of the register Reg in the PPaiProp p1, as well as the
  contents of registers are loaded with a memory location based on Reg}
-Var TmpState: Byte;
+Var TmpWState, TmpRState: Byte;
     Counter: TRegister;
 Begin
   Reg := Reg32(Reg);
@@ -1213,9 +1209,11 @@ Begin
         With p1^.Regs[Reg] Do
           Begin
             IncState(WState);
-            TmpState := WState;
+            TmpWState := WState;
+            TmpRState := RState;
             FillChar(p1^.Regs[Reg], SizeOf(TContent), 0);
-            WState := TmpState;
+            WState := TmpWState;
+            RState := TmpRState;
           End;
         For Counter := R_EAX to R_EDI Do
           With p1^.Regs[Counter] Do
@@ -1224,9 +1222,11 @@ Begin
               Then
                 Begin
                   IncState(WState);
-                  TmpState := WState;
+                  TmpWState := WState;
+                  TmpRState := RState;
                   FillChar(p1^.Regs[Counter], SizeOf(TContent), 0);
-                  WState := TmpState;
+                  WState := TmpWState;
+                  RState := TmpRState;
                 End;
        End;
 End;
@@ -1510,12 +1510,34 @@ Begin {initializes/desrtoys all registers}
   p^.DirFlag := F_Unknown;
 End;
 
-Procedure Destroy(PaiObj: Pai; opt: Longint; Op: Pointer);
+Procedure Destroy(PaiObj: Pai; Opt: Longint; Op: Pointer);
 Begin
-  Case opt Of
+  Case Opt Of
     top_reg: DestroyReg(PPaiProp(PaiObj^.fileinfo.line), TRegister(Op));
     top_ref: DestroyRefs(PaiObj, TReference(Op^), R_NO);
     top_symbol:;
+  End;
+End;
+
+Procedure ReadReg(p: PPaiProp; Reg: TRegister);
+Begin
+  IncState(p^.Regs[Reg32(Reg)].RState)
+End;
+
+Procedure ReadRef(p: PPaiProp; Ref: PReference);
+Begin
+  If Ref^.Base <> R_NO Then
+    ReadReg(p, Ref^.Base);
+  If Ref^.Index <> R_NO Then
+    ReadReg(p, Ref^.Index);
+End;
+
+Procedure ReadOp(P: PPaiProp; opt: Longint; Op: Pointer);
+Begin
+  Case Opt Of
+    top_reg: ReadReg(P, TRegister(Op));
+    top_ref: ReadRef(P, PReference(Op));
+    top_symbol:
   End;
 End;
 
@@ -1783,16 +1805,24 @@ Begin
                         Top_Reg:
                           Begin
                             DestroyReg(CurProp, TRegister(Pai386(p)^.op2));
+                            ReadReg(CurProp, TRegister(Pai386(p)^.op1));
 {                            CurProp^.Regs[TRegister(Pai386(p)^.op2)] :=
                               CurProp^.Regs[TRegister(Pai386(p)^.op1)];
                             If (CurProp^.Regs[TRegister(Pai386(p)^.op2)].ModReg = R_NO) Then
                               CurProp^.Regs[TRegister(Pai386(p)^.op2)].ModReg :=
                                 Tregister(Pai386(p)^.op1);}
                           End;
-                        Top_Ref: DestroyRefs(p, TReference(Pai386(p)^.op2^), TRegister(Pai386(p)^.op1));
+                        Top_Ref:
+                          Begin
+                            ReadReg(CurProp, TRegister(Pai386(p)^.op1));
+                            ReadRef(CurProp, PReference(Pai386(p)^.op2));
+                            DestroyRefs(p, TReference(Pai386(p)^.op2^), TRegister(Pai386(p)^.op1));
+                          End;
                       End;
                     Top_Ref:
                       Begin {destination is always a register in this case}
+                        ReadRef(CurProp, PReference(Pai386(p)^.op1));
+                        ReadReg(CurProp, TRegister(Pai386(p)^.Op2));
                         TmpReg := Reg32(TRegister(Pai386(p)^.op2));
                         If RegInRef(TmpReg, TReference(Pai386(p)^.op1^)) And
                            (CurProp^.Regs[TmpReg].Typ = Con_Ref)
@@ -1839,13 +1869,22 @@ Begin
                                   StartMod := Pai386(p)^.op1;
                                 End
                             End;
-                          Top_Ref: DestroyRefs(P, TReference(Pai386(p)^.op2^), R_NO);
+                          Top_Ref:
+                            Begin
+                              ReadRef(CurProp, PReference(Pai386(p)^.op2));
+                              DestroyRefs(P, TReference(Pai386(p)^.op2^), R_NO);
+                            End;
                         End;
                       End;
                 End;
               End;
               A_IMUL:
                 Begin
+                  ReadOp(CurProp, Pai386(p)^.Op1t, Pai386(p)^.Op1);
+                  If (Pai386(p)^.Op2t <> Top_Ref) Then
+                    ReadOp(CurProp, Pai386(p)^.Op1t, Pai386(p)^.Op1)
+                  Else ReadOp(CurProp, Pai386(p)^.Op2t, Pointer(Longint(TwoWords(Pai386(p)^.Op2).Word1)));
+                  ReadOp(CurProp, Pai386(p)^.Op3t, Pointer(LongInt(TwoWords(Pai386(p)^.Op2).Word2)));
                   If (Pai386(p)^.Op3t = top_none)
                    Then
                      If (Pai386(p)^.Op2t = top_none)
@@ -1856,6 +1895,8 @@ Begin
                          End
                        Else
                          Begin
+                           ReadOp(CurProp, Pai386(p)^.Op1t, Pai386(p)^.Op1);
+                           ReadOp(CurProp, Pai386(p)^.Op2t, Pai386(p)^.Op2);
                            If (Pai386(p)^.Op2t = top_reg) Then
                              DestroyReg(CurProp, TRegister(Pai386(p)^.Op2));
                          End
@@ -1864,6 +1905,8 @@ Begin
                 End;
               A_XOR:
                 Begin
+                  ReadOp(CurProp, Pai386(p)^.Op1t, Pai386(p)^.Op1);
+                  ReadOp(CurProp, Pai386(p)^.Op2t, Pai386(p)^.Op2);
                   If (Pai386(p)^.op1t = top_reg) And
                      (Pai386(p)^.op2t = top_reg) And
                      (Pai386(p)^.op1 = Pai386(p)^.op2)
@@ -1882,18 +1925,39 @@ Begin
                         (InstrProp.Ch[Cnt] <> C_None) Do
                     Begin
                       Case InstrProp.Ch[Cnt] Of
-                        C_REAX..C_REDI: ;
-                        C_WEAX..C_RWEDI: DestroyReg(CurProp, TCh2Reg(InstrProp.Ch[Cnt]));
+                        C_REAX..C_REDI: ReadReg(CurProp,TCh2Reg(InstrProp.Ch[Cnt]));
+                        C_WEAX..C_RWEDI:
+                          Begin
+                            If (InstrProp.Ch[Cnt] >= C_RWEAX) Then
+                              ReadReg(CurProp, TCh2Reg(InstrProp.Ch[Cnt]));
+                            DestroyReg(CurProp, TCh2Reg(InstrProp.Ch[Cnt]));
+                          End;
                         C_CDirFlag: CurProp^.DirFlag := F_NotSet;
                         C_SDirFlag: CurProp^.DirFlag := F_Set;
-                        C_ROp1:;
-                        C_ROp2:;
-                        C_ROp3:;
-                        C_WOp1..C_RWOp1: Destroy(p, Pai386(p)^.op1t, Pai386(p)^.op1);
-                        C_WOp2..C_RWOp2: Destroy(p, Pai386(p)^.op2t, Pai386(p)^.op2);
-                        C_WOp3..C_RWOp3: Destroy(p, Pai386(p)^.op3t, Pointer(Longint(TwoWords(Pai386(p)^.op2).word2)));
+                        C_ROp1: ReadOp(CurProp, Pai386(p)^.op1t, Pai386(p)^.op1);
+                        C_ROp2: ReadOp(CurProp, Pai386(p)^.op2t, Pai386(p)^.op2);
+                        C_ROp3: ReadOp(CurProp, Pai386(p)^.op3t, Pointer(Longint(TwoWords(Pai386(p)^.op2).word2)));
+                        C_WOp1..C_RWOp1:
+                          Begin
+                            If (InstrProp.Ch[Cnt] = C_RWOp1) Then
+                              ReadOp(CurProp, Pai386(p)^.op1t, Pai386(p)^.op1);
+                            Destroy(p, Pai386(p)^.op1t, Pai386(p)^.op1);
+                          End;
+                        C_WOp2..C_RWOp2:
+                          Begin
+                            If (InstrProp.Ch[Cnt] = C_RWOp2) Then
+                              ReadOp(CurProp, Pai386(p)^.op2t, Pai386(p)^.op2);
+                            Destroy(p, Pai386(p)^.op2t, Pai386(p)^.op2);
+                          End;
+                        C_WOp3..C_RWOp3:
+                          Begin
+                            If (InstrProp.Ch[Cnt] = C_RWOp3) Then
+                              ReadOp(CurProp, Pai386(p)^.op3t, Pointer(Longint(TwoWords(Pai386(p)^.op2).word2)));;
+                            Destroy(p, Pai386(p)^.op3t, Pointer(Longint(TwoWords(Pai386(p)^.op2).word2)));
+                          End;
                         C_MemEDI:
                           Begin
+                            ReadReg(CurProp, R_EDI);
                             FillChar(TmpRef, SizeOf(TmpRef), 0);
                             TmpRef.Base := R_EDI;
                             DestroyRefs(p, TmpRef, R_NO)
@@ -2008,7 +2072,10 @@ End.
 
 {
  $Log$
- Revision 1.24  1998-11-13 10:13:44  peter
+ Revision 1.25  1998-11-18 17:58:22  jonas
+   + gathering of register reading data, nowhere used yet (necessary for instruction scheduling)
+
+ Revision 1.24  1998/11/13 10:13:44  peter
    + cpuid,emms support for asm readers
 
  Revision 1.23  1998/11/09 19:40:46  jonas
