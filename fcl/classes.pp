@@ -11,7 +11,11 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{ exceptions aren't implemented yet }
+{$define NoExceptions}
 
+{ determine the type of the resource/form file }
+{$define Win16Res}
 unit Classes;
 
 interface
@@ -173,20 +177,34 @@ type
     procedure UnlockList;
   end;
 
-{ TBits class }
-
+  {
+    TBits provides a bitvector, the bitvector can be extended by setting
+    the size property
+   }
   TBits = class
   private
+    { contains the size of the bitvector }
     FSize: Integer;
+    { pointer to the data, FBits is nil if FSize is zero }
     FBits: Pointer;
+    { called if an error occurs }
     procedure Error;
+    { sets the size to Value }
     procedure SetSize(Value: Integer);
+    { sets the bit Index to Value }
     procedure SetBit(Index: Integer; Value: Boolean);
+    { returns the bit Index }
     function GetBit(Index: Integer): Boolean;
   public
+    { releases the bitvector }
     destructor Destroy; override;
+    { returns the index of the first bit which is false }
+    { if all bits are 1, the bitvector is extended      }
     function OpenBit: Integer;
+    { direct access to the bits }
     property Bits[Index: Integer]: Boolean read GetBit write SetBit; default;
+    { size of the bitvector. If this field is written the bitvector }
+    { will be extended or shrinked                                  }
     property Size: Integer read FSize write SetSize;
   end;
 
@@ -1031,10 +1049,288 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
 implementation
 
+{****************************************************************************}
+{*                               TBITS                                      *}
+{****************************************************************************}
+
+  procedure TBits.Error;
+
+    begin
+{$ifdef NoExceptions}
+         ;
+{$else}
+         Raise(EBitsError);
+{$endif}
+    end;
+
+  procedure TBits.SetSize(Value: Integer);
+
+    var
+       hp : pointer;
+       cvalue,csize : Integer;
+
+    begin
+       { ajust value to n*8 }
+       cvalue:=Value;
+       if cvalue mod 8<>0 then
+         cvalue:=cvalue+(8-(cvalue mod 8));
+
+       { store pointer to release it later }
+       hp:=FBits;
+
+       { ajust size to n*8 }
+       csize:=FSize;
+       if csize mod 8<>0 then
+         csize:=csize+(8-(csize mod 8));
+
+       if FSize>0 then
+         begin
+            { get new memory }
+            GetMem(FBits,cvalue div 8);
+            { clear the whole array }
+            FillChar(FBits^,cvalue div 8,0);
+            { copy old data }
+            Move(hp^,FBits^,csize div 8);
+         end
+       else
+         FBits:=nil;
+
+       if assigned(hp) then
+         FreeMem(hp,csize div 8);
+
+       FSize:=Value;
+    end;
+
+  procedure TBits.SetBit(Index: Integer; Value: Boolean);
+
+    type
+       pbyte = ^byte;
+
+    begin
+       if (Index>=FSize) or (Index<0)  then
+         Error
+       else
+         begin
+            if Value then
+              pbyte(FBits)[Index div 8]:=pbyte(FBits)[Index div 8] or
+                (1 shl (Index mod 8))
+            else
+              pbyte(FBits)[Index div 8]:=pbyte(FBits)[Index div 8] and
+                not(1 shl (Index mod 8));
+         end;
+    end;
+
+  function TBits.GetBit(Index: Integer): Boolean;
+
+    type
+       pbyte = ^byte;
+
+    begin
+       if (Index>=FSize) or (Index<0) then
+         Error
+       else
+         GetBit:=(pbyte(FBits)[Index div 8] and (1 shl (Index mod 8)))<>0;
+    end;
+
+  destructor TBits.Destroy;
+
+    var
+       csize : Integer;
+
+    begin
+       { ajust size to n*8 }
+       csize:=FSize;
+       if csize mod 8<>0 then
+         csize:=csize+(8-(csize mod 8));
+       if assigned(FBits) then
+         FreeMem(FBits,csize);
+       inherited Destroy;
+    end;
+
+  function TBits.OpenBit: Integer;
+
+    type
+       pbyte = ^byte;
+
+    var
+       i : Integer;
+
+    begin
+       for i:=0 to FSize-1 do
+         if (pbyte(FBits)[i div 8] and (1 shl (i mod 8)))=0 then
+           begin
+              OpenBit:=i;
+              exit;
+           end;
+       SetSize(FSize+1);
+       OpenBit:=FSize-1;
+    end;
+
+{****************************************************************************}
+{*                             TSTREAM                                      *}
+{****************************************************************************}
+
+  function TStream.GetPosition: Longint;
+
+    begin
+       GetPosition:=Seek(0,soFromCurrent);
+    end;
+
+  procedure TStream.SetPosition(Pos: Longint);
+
+    begin
+       GetPosition:=Seek(soFromBeginning,Pos);
+    end;
+
+  function TStream.GetSize: Longint;
+
+    var
+       p : longint;
+
+    begin
+       p:=GetPosition;
+       GetSize:=Seek(soFromEnd,0);
+       Seek(soFromBeginning,p);
+    end;
+
+  procedure TStream.SetSize(NewSize: Longint);
+
+    begin
+       SetPosition(Pos);
+    end;
+
+  procedure TStream.ReadBuffer(var Buffer; Count: Longint);
+
+    begin
+       if Read(Buffer,Count)<Count then
+{$ifdef NoExceptions}
+         ;
+{$else}
+         Raise(EReadError);
+{$endif}
+    end;
+
+  procedure TStream.WriteBuffer(const Buffer; Count: Longint);
+
+    begin
+       if Write(Buffer,Count)<Count then
+{$ifdef NoExceptions}
+         ;
+{$else}
+         Raise(EWriteError);
+{$endif}
+    end;
+
+  function TStream.CopyFrom(Source: TStream; Count: Longint): Longint;
+
+    var
+       i : longint;
+       buffer : array[0..1023] of byte;
+
+    begin
+       CopyFrom:=0;
+       while Count>0 do
+         begin
+            if (Count>sizeof(buffer)) then
+              i:=sizeof(Buffer)
+            else
+              i:=Count;
+            i:=Source.Read(buffer,i);
+            i:=Write(buffer,i);
+            dec(count,i);
+            CopyFrom:=CopyFrom+i;
+            if i=0 then
+              exit;
+         end;
+    end;
+
+  function TStream.ReadComponent(Instance: TComponent): TComponent;
+
+    var
+       Reader : TReader;
+
+    begin
+       Reader.Create(Self,1024);
+       if assigned(Instance) then
+         ReadComponent:=Writer.ReadRootComponent(Instance)
+       else
+         begin
+            {!!!!!}
+         end;
+       Reader.Destroy;
+    end;
+
+  function TStream.ReadComponentRes(Instance: TComponent): TComponent;
+
+    begin
+       {!!!!!}
+    end;
+
+  procedure TStream.WriteComponent(Instance: TComponent);
+
+    var
+       Writer : TWriter;
+
+    begin
+       Writer.Create(Self,1024);
+       Writer.WriteRootComponent(Instance);
+       Writer.Destroy;
+    end;
+
+  procedure TStream.WriteComponentRes(const ResName: string; Instance: TComponent);
+
+    var
+       startpos,s : longint;
+
+    begin
+{$ifdef Win16Res}
+       { Numeric resource type }
+       WriteByte($ff);
+       { Application defined data }
+       WriteWord($0a);
+       { write the name as asciiz }
+       WriteData(ResName[1],length(ResName));
+       WriteByte(0);
+       { Movable, Pure and Discardable }
+       WriteWord($1030);
+       { size isn't known yet }
+       WriteDWord(0);
+       startpos:=GetPosition;
+       WriteComponent(Instance);
+       { calculate size }
+       s:=GetPosition-startpos;
+       { back patch size }
+       SetPosition(startpos-4);
+       WriteDWord(s);
+{$endif}
+    end;
+
+  procedure TStream.WriteDescendent(Instance, Ancestor: TComponent);
+
+    begin
+       {!!!!!}
+    end;
+
+  procedure WriteDescendentRes(const ResName: string; Instance, Ancestor: TComponent);
+
+    begin
+       {!!!!!}
+    end;
+
+  procedure ReadResHeader;
+
+    begin
+       {!!!!!}
+    end;
+
 end.
 {
   $Log$
-  Revision 1.5  1998-05-01 17:53:12  florian
+  Revision 1.6  1998-05-01 22:17:19  florian
+    + TBits implemented
+    + TStream partial implemented
+
+  Revision 1.5  1998/05/01 17:53:12  florian
     * now it compiles with FPC
 
   Revision 1.4  1998/04/28 11:47:00  florian
