@@ -152,20 +152,21 @@ asm
           {  if overlap, then point source and dest to the end  }
           add     r3,r3,r0
           add     r4,r4,r0
-          {  if overlap, then r0 := 0, else r0 := -1  }
-          not     r0,r10
+          {  if overlap, then r0 := 6, else r6 := -1  }
+          not     r6,r10
           {  if overlap, then r10 := -2, else r10 := 0  }
           slwi    r10,r10,1
           {  if overlap, then r10 := -1, else r10 := 1  }
           addi    r10,r10,1
-          {  if overlap, then source/dest += -1, otherwise they stay }
-          {  After the next instruction, r3/r4 + r10 = next position }
-          {  to load/store from/to                                   }
-          add     r3,r3,r0
-          add     r4,r4,r0
 
           {  if count < 15, copy everything byte by byte  }
           blt     cr1,LMoveBytes
+
+          {  if no overlap, then source/dest += -1, otherwise they stay }
+          {  After the next instruction, r3/r4 + r10 = next position to }
+          {  load/store from/to                                         }
+          add     r3,r3,r6
+          add     r4,r4,r6
 
           {  otherwise, guarantee 4 byte alignment for dest for starters  }
 LMove4ByteAlignLoop:
@@ -189,6 +190,10 @@ LMove4ByteAlignLoop:
 
           { multiply the update count with 4 }
           slwi    r10,r10,2
+          slwi    r6,r6,2
+          { and adapt the source and dest }
+          add     r3,r3,r6
+          add     r4,r4,r6
 
           beq     cr0,L8BytesAligned
 
@@ -212,12 +217,13 @@ L8BytesAligned:
 
           {  adjust the update count: it will now be 8 or -8 depending on overlap  }
           slwi    r10,r10,1
+          slwi    r6,r6,1
 
           {  adjust source and dest pointers: because of the above loop, dest is now   }
-          {  aligned to 8 bytes. So if we substract r10 we will still have an 8 bytes  }
+          {  aligned to 8 bytes. So if we add r6 we will still have an 8 bytes         }
           { aligned address)                                                           }
-          sub     r3,r3,r10
-          sub     r4,r4,r10
+          add     r3,r3,r6
+          add     r4,r4,r6
 
 LMove32ByteLoop:
           lfdux   f0,r3,r10
@@ -234,24 +240,22 @@ LMove32ByteLoop:
           beq     cr0,LMoveDone
 
           {  make r10 again -1 or 1, but first adjust source/dest pointers }
-          add     r3,r3,r10
-          add     r4,r4,r10
+          sub     r3,r3,r6
+          sub     r4,r4,r6
           srawi   r10,r10,3
-          sub     r3,r3,r10
-          sub     r4,r4,r10
+          srawi   r6,r6,3
 
           { cr1 contains whether count <= 11 }
           ble     cr1,LMoveBytes
-          add     r3,r3,r10
-          add     r4,r4,r10
 
 LMoveDWords:
           mtctr   r0
           andi.   r5,r5,3
           {  r10 * 4  }
           slwi    r10,r10,2
-          sub     r3,r3,r10
-          sub     r4,r4,r10
+          slwi    r6,r6,2
+          add     r3,r3,r6
+          add     r4,r4,r6
 
 LMoveDWordsLoop:
           lwzux   r0,r3,r10
@@ -260,12 +264,13 @@ LMoveDWordsLoop:
 
           beq     cr0,LMoveDone
           {  make r10 again -1 or 1  }
-          add     r3,r3,r10
-          add     r4,r4,r10
+          sub     r3,r3,r6
+          sub     r4,r4,r6
           srawi   r10,r10,2
-          sub     r3,r3,r10
-          sub     r4,r4,r10
+          srawi   r6,r6,2
 LMoveBytes:
+          add     r3,r3,r6
+          add     r4,r4,r6
           mtctr   r5
 LMoveBytesLoop:
           lbzux   r0,r3,r10
@@ -881,7 +886,10 @@ end ['R3','R10'];
 
 {
   $Log$
-  Revision 1.38  2003-04-27 16:24:44  jonas
+  Revision 1.39  2003-05-02 19:03:25  jonas
+    * fixed some bugs in move()
+
+  Revision 1.38  2003/04/27 16:24:44  jonas
     - disabled fpc_shortstr_concat because it's called differently than that
       routine is declared
 
