@@ -80,8 +80,8 @@ implementation
                      begin
                          pushusedregisters(pushed,$ff);
                          exprasmlist^.concat(new(pai386,op_const(A_PUSH,S_L,
-                         calc_resstring_hashvalue(pchar(pconstsym(p)^.value),
-                           pconstsym(p)^.len))));
+                         calc_resstring_hashvalue(pchar(pconstsym(p^.symtableentry)^.value),
+                           pconstsym(p^.symtableentry)^.len))));
                          emitcall('FPC_GETRESOURCESTRING');
 
                          hregister:=getexplicitregister32(R_EAX);
@@ -864,7 +864,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.64  1999-07-22 09:37:37  florian
+  Revision 1.65  1999-07-23 23:09:06  peter
+    * resourcestring fix
+
+  Revision 1.64  1999/07/22 09:37:37  florian
     + resourcestring implemented
     + start of longstring support
 
