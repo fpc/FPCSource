@@ -26,7 +26,11 @@ asm
   movl %edi,20(%eax)
   movl (%ebp),%edi
   movl %edi,12(%eax)
+{$ifdef REGCALL}
+  leal 8(%ebp),%edi
+{$else}
   leal 12(%ebp),%edi
+{$endif}
   movl %edi,16(%eax)
   movl 8(%eax),%edi
   xorl %eax,%eax
@@ -54,7 +58,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2003-11-11 21:08:17  peter
+  Revision 1.5  2003-12-04 21:42:07  peter
+    * register calling updates
+
+  Revision 1.4  2003/11/11 21:08:17  peter
     * REGCALL define added
 
   Revision 1.3  2002/09/07 16:01:19  peter

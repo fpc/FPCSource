@@ -25,9 +25,7 @@ var
 asm
         movl    %edi,saveedi
         movl    __RESULT,%edi
-{$ifndef REGCALL}
         movl    l,%eax
-{$endif}
         stosl
         xorl    %eax,%eax
         movl    $7,%ecx
@@ -77,16 +75,10 @@ var
 asm
         movl    %edi,saveedi
         movl    %esi,saveesi
-        movl    $8,%ecx
-{$ifdef REGCALL}
-        movl    %eax,%edi
-        movl    %edx,%esi
-        movzbl  %cl,%edx
-{$else}
         movl    source,%esi
-        movzbl  b,%edx
         movl    __RESULT,%edi
-{$endif}
+        movzbl  b,%edx
+        movl    $8,%ecx
         rep
         movsl
         leal    -32(%edi),%eax
@@ -692,7 +684,10 @@ end;
 
 {
   $Log$
-  Revision 1.15  2003-12-03 23:06:35  peter
+  Revision 1.16  2003-12-04 21:42:07  peter
+    * register calling updates
+
+  Revision 1.15  2003/12/03 23:06:35  peter
     * more fixes
 
   Revision 1.14  2003/12/03 22:46:54  peter

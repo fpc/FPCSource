@@ -17,7 +17,7 @@ begin{asm}
    //     !!!!!!! depends on ABI !!!!!!!!
 end;
 {$define FPC_SYSTEM_HAS_SPTR}
-function Sptr:Longint;{assembler;}
+function Sptr:Pointer;{assembler;}
 begin{asm}
    {$warning FIX ME!}
 end;
@@ -31,7 +31,10 @@ begin{asm}
 end;
 {
   $Log$
-  Revision 1.3  2003-03-17 14:30:11  peter
+  Revision 1.4  2003-12-04 21:42:07  peter
+    * register calling updates
+
+  Revision 1.3  2003/03/17 14:30:11  peter
     * changed address parameter/return values to pointer instead
       of longint
 

@@ -1100,7 +1100,7 @@ End;
       mov    es:[di], al
     end;
   {$else fpc}
-  assembler;
+  assembler;stdcall;
   asm
       push edi
       push ebx
@@ -1152,7 +1152,7 @@ End;
       mov    @Result,ax
     end;
   {$else fpc}
-  assembler;
+  assembler;stdcall;
   asm
     push edi
     push ebx
@@ -1190,7 +1190,7 @@ End;
  end;
 {$else asmgraph}
 { note: still needs or/and/notput support !!!!! (JM) }
-  assembler;
+  assembler;stdcall;
     asm
   {$ifndef fpc}
       mov    es, [SegA000]
@@ -1394,7 +1394,7 @@ const CrtAddress: word = 0;
  procedure SetVisualX(page: word); {$ifndef fpc}far;{$endif fpc}
   { 4 page supPort... }
 
-   Procedure SetVisibleStart(AOffset: word); Assembler;
+   Procedure SetVisibleStart(AOffset: word); Assembler;stdcall;
    (* Select where the left corner of the screen will be *)
    { By Matt Pritchard }
     asm
@@ -1545,7 +1545,7 @@ const CrtAddress: word = 0;
  end;
 {$else asmgraph}
 { note: still needs or/and/notput support !!!!! (JM) }
- Assembler;
+ Assembler;stdcall;
  asm
    mov di,[Y]                   ; (* DI = Y coordinate                 *)
  (* Multiply by 80 start *)
@@ -2746,7 +2746,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2003-10-03 21:46:25  peter
+  Revision 1.11  2003-12-04 21:42:07  peter
+    * register calling updates
+
+  Revision 1.10  2003/10/03 21:46:25  peter
     * stdcall fixes
 
   Revision 1.9  2002/09/07 16:01:18  peter

@@ -20,6 +20,7 @@ unit ports;
 { this unit uses classes so
   ObjFpc mode is required PM }
 {$Mode ObjFpc}
+{$Calling StdCall}
 
 interface
 
@@ -103,7 +104,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2002-09-07 16:01:18  peter
+  Revision 1.4  2003-12-04 21:42:07  peter
+    * register calling updates
+
+  Revision 1.3  2002/09/07 16:01:18  peter
     * old logs removed and tabs fixed
 
 }

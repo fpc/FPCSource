@@ -244,7 +244,7 @@ begin
 {$ifdef VER1_0}
   Raise E at longint(Address){$ifdef ENHANCEDRAISE},longint(Frame){$endif};
 {$else VER1_0}
-  Raise E at Address{$ifdef ENHANCEDRAISE},Frame){$endif};
+  Raise E at Address,Frame;
 {$endif VER1_0}
 end;
 
@@ -384,7 +384,7 @@ end;
 { ---------------------------------------------------------------------
     Initialization/Finalization/exit code
   ---------------------------------------------------------------------}
-  
+
 Type
   PPRecord = ^TPRecord;
   TPRecord = Record
@@ -397,7 +397,7 @@ Const
 
 procedure AddTerminateProc(TermProc: TTerminateProc);
 
-Var 
+Var
   TPR : PPRecord;
 
 begin
@@ -406,8 +406,8 @@ begin
     begin
     NextFunc:=TPList;
     Func:=TermProc;
-    end; 
-  TPList:=TPR;   
+    end;
+  TPList:=TPR;
 end;
 
 function CallTerminateProcs: Boolean;
@@ -422,7 +422,7 @@ begin
     begin
     Result:=TPR^.Func();
     TPR:=TPR^.NextFunc;
-    end; 
+    end;
 end;
 
 {
