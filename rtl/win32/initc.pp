@@ -2,6 +2,12 @@ unit initc;
 
 interface
 
+{ 0.99.12 had a bug that initialization/finalization only worked for
+  objfpc,delphi mode }
+{$ifdef VER0_99_12}
+  {$mode objfpc}
+{$endif}
+
  {$LINKLIB cygwin}
 
 { this unit is just ment to run
