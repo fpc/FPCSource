@@ -456,6 +456,9 @@ function GetDiskFreeSpaceEx(lpDirectoryName: PChar; var lpFreeBytesAvailableToCa
 function GetDiskFreeSpaceExA(lpDirectoryName: LPCSTR; var lpFreeBytesAvailableToCaller, lpTotalNumberOfBytes: TLargeInteger; lpTotalNumberOfFreeBytes: PLargeInteger): BOOL;external 'kernel32' name 'GetDiskFreeSpaceExA';
 function GetDiskFreeSpaceExW(lpDirectoryName: LPWSTR; var lpFreeBytesAvailableToCaller, lpTotalNumberOfBytes: TLargeInteger; lpTotalNumberOfFreeBytes: PLargeInteger): BOOL;external 'kernel32' name 'GetDiskFreeSpaceExW';
 function GetDiskFreeSpaceW(lpRootPathName: LPWSTR; var lpSectorsPerCluster, lpBytesPerSector, lpNumberOfFreeClusters, lpTotalNumberOfClusters: DWORD): BOOL; external 'kernel32' name 'GetDiskFreeSpaceW';
+function GetDiskFreeSpaceEx(lpDirectoryName: PChar;  lpFreeBytesAvailableToCaller, lpTotalNumberOfBytes:pLargeInteger; lpTotalNumberOfFreeBytes: PLargeInteger): BOOL;external 'kernel32' name 'GetDiskFreeSpaceExA';
+function GetDiskFreeSpaceExA(lpDirectoryName: LPCSTR;  lpFreeBytesAvailableToCaller, lpTotalNumberOfBytes: pLargeInteger; lpTotalNumberOfFreeBytes: PLargeInteger): BOOL;external 'kernel32' name 'GetDiskFreeSpaceExA';
+function GetDiskFreeSpaceExW(lpDirectoryName: LPWSTR;  lpFreeBytesAvailableToCaller, lpTotalNumberOfBytes: pLargeInteger; lpTotalNumberOfFreeBytes: PLargeInteger): BOOL;external 'kernel32' name 'GetDiskFreeSpaceExW';
 function GetDlgItemInt(hDlg: HWND; nIDDlgItem: Integer; var lpTranslated: BOOL; bSigned: BOOL): UINT; external 'user32' name 'GetDlgItemInt';
 //function GetEnhMetaFilePixelFormat(p1: HENHMETAFILE; p2: Cardinal; var p3: TPixelFormatDescriptor): UINT;external 'gdi32' name 'GetEnhMetaFilePixelFormat';
 function GetExitCodeProcess(hProcess: THandle; var lpExitCode: DWORD): BOOL; external 'kernel32' name 'GetExitCodeProcess';
@@ -1052,7 +1055,10 @@ end;
 
 {
   $Log$
-  Revision 1.20  2004-03-05 12:17:50  marco
+  Revision 1.21  2004-05-05 20:08:38  marco
+   * getdiskfreespaceex pointer overloads added
+
+  Revision 1.20  2004/03/05 12:17:50  marco
    * interlocked* changed to longints, including winapi. (which was a bug)
 
   Revision 1.19  2004/02/08 17:13:11  marco
