@@ -688,6 +688,15 @@ implementation
          case p^.left^.location.loc of
             LOC_REGISTER:
               hregister:=p^.left^.location.register;
+            LOC_FLAGS :
+              begin
+                hregister:=getregister32;
+                case opsize of
+                  S_B : hregister:=reg32toreg8(hregister);
+                  S_W : hregister:=reg32toreg16(hregister);
+                end;
+                emit_flag2reg(p^.left^.location.resflags,hregister);
+              end;
             LOC_CREGISTER:
               begin
                  hregister:=getregister32;
@@ -796,7 +805,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  1999-02-25 21:02:31  peter
+  Revision 1.24  1999-03-02 18:21:35  peter
+    + flags support for add and case
+
+  Revision 1.23  1999/02/25 21:02:31  peter
     * ag386bin updates
     + coff writer
 

@@ -913,6 +913,16 @@ implementation
                                     hregister);
                                end
                           end
+                             else
+                             { Flags ? }
+                              if (p^.left^.location.loc=LOC_FLAGS) then
+                               begin
+                                 case opsize of
+                                   S_L : hregister:=getregister32;
+                                   S_B : hregister:=reg32toreg8(getregister32);
+                                 end;
+                                 emit_flag2reg(p^.left^.location.resflags,hregister);
+                               end
                         else
                           begin
                              ungetiftemp(p^.left^.location.reference);
@@ -1813,7 +1823,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.45  1999-02-25 21:02:20  peter
+  Revision 1.46  1999-03-02 18:21:36  peter
+    + flags support for add and case
+
+  Revision 1.45  1999/02/25 21:02:20  peter
     * ag386bin updates
     + coff writer
 
