@@ -30,6 +30,7 @@ type
 
    { For FloatToText }
    TFloatFormat = (ffGeneral, ffExponent, ffFixed, ffNumber, ffCurrency);
+   TFloatValue = (fvExtended, fvCurrency, fvSingle, fvReal, fvDouble, fvComp);  
    TReplaceFlags = set of (rfReplaceAll, rfIgnoreCase);
 
    TFloatRec = Record
@@ -37,18 +38,18 @@ type
       Negative: Boolean;
       Digits: Array[0..18] Of Char;
    End;
-   
+
 const
   { For floattodatetime }
   MinDateTime: TDateTime = -657434.0;      { 01/01/0100 12:00:00.000 AM }
   MaxDateTime: TDateTime =  2958465.99999; { 12/31/9999 11:59:59.999 PM }
-                      
-                
+
+
 Const
   LeadBytes: set of Char = [];
   EmptyStr : string = '';
   NullStr : PString = @EmptyStr;
-      
+
   EmptyWideStr : WideString = '';
 //  NullWideStr : PWideString = @EmptyWideStr;
 
@@ -104,6 +105,7 @@ Function FloatToStrF(Value: Extended; format: TFloatFormat; Precision, Digits: I
 Function FloatToStr(Value: Extended): String;
 Function StrToFloat(Const S : String) : Extended;
 Function TextToFloat(Buffer: PChar; Var Value: Extended): Boolean;
+Function TextToFloat(Buffer: PChar; Var Value; ValueType: TFloatValue): Boolean;
 Function FloatToText(Buffer: PChar; Value: Extended; format: TFloatFormat; Precision, Digits: Integer): Longint;
 Function FloatToDateTime (Const Value : Extended) : TDateTime;
 Function FloattoCurr (Const Value : Extended) : Currency;
@@ -121,7 +123,7 @@ Function IsDelimiter(const Delimiters, S: string; Index: Integer): Boolean;
 {// MBCS Functions. No MBCS yet, so mostly these are calls to the regular counterparts.
 Type
   TMbcsByteType = (mbSingleByte, mbLeadByte, mbTrailByte);
-  
+
 Function AnsiCompareFileName(const S1, S2: string): Integer;
 Function SameFileName(const S1, S2: string): Boolean;
 Function AnsiLowerCaseFileName(const S: string): string;
@@ -146,7 +148,10 @@ function BCDToInt(Value: integer): integer;
 
 {
   $Log$
-  Revision 1.14  2002-11-28 22:26:30  michael
+  Revision 1.15  2002-12-23 23:12:34  florian
+    + TextToFloat: D6 compatibility added
+
+  Revision 1.14  2002/11/28 22:26:30  michael
   + Fixed float<>string conversion routines
 
   Revision 1.13  2002/11/28 20:29:26  michael

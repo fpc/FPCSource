@@ -102,16 +102,16 @@ begin
   result := 0;
   Count1 := Length(S1);
   Count2 := Length(S2);
-  if Count1>Count2 then 
+  if Count1>Count2 then
     Count:=Count2
-  else 
+  else
     Count:=Count1;
   result := CompareMemRange(Pointer(S1),Pointer(S2), Count);
-  if (result=0) and (Count1<>Count2) then 
+  if (result=0) and (Count1<>Count2) then
     begin
-    if Count1>Count2 then 
+    if Count1>Count2 then
       result:=ord(s1[Count+1])
-    else 
+    else
       result:=-ord(s2[Count+1]);
     end;
 end;
@@ -124,13 +124,13 @@ end;
 
 function CompareMemRange(P1, P2: Pointer; Length: cardinal): integer;
 
-var 
+var
   i: cardinal;
 
 begin
   i := 0;
   result := 0;
-  while (result=0) and (I<length) do 
+  while (result=0) and (I<length) do
     begin
     result:=byte(P1^)-byte(P2^);
     P1:=P1+1;
@@ -167,25 +167,25 @@ end;
 
 function CompareText(const S1, S2: string): integer;
 
-var 
+var
   i, count, count1, count2: integer; Chr1, Chr2: byte;
 begin
   result := 0;
   Count1 := Length(S1);
   Count2 := Length(S2);
-  if (Count1>Count2) then 
+  if (Count1>Count2) then
     Count := Count2
-  else 
+  else
     Count := Count1;
   i := 0;
-  while (result=0) and (i<count) do 
+  while (result=0) and (i<count) do
     begin
     inc (i);
      Chr1 := byte(s1[i]);
      Chr2 := byte(s2[i]);
-     if Chr1 in [97..122] then 
+     if Chr1 in [97..122] then
        dec(Chr1,32);
-     if Chr2 in [97..122] then 
+     if Chr2 in [97..122] then
        dec(Chr2,32);
      result := Chr1 - Chr2;
      end ;
@@ -1000,7 +1000,14 @@ Begin
   If Not TextToFloat(Pchar(S),Result) then
     Raise EConvertError.createfmt(SInValidFLoat,[S]);
 End;
-      
+
+function StrToFloatDef(const S: string; const Default: Extended): Extended;
+
+begin
+   if not TextToFloat(PChar(S),Result,fvExtended) then
+     Result:=Default;
+end;
+
 Function TextToFloat(Buffer: PChar; Var Value: Extended): Boolean;
 
 Var
@@ -1010,9 +1017,31 @@ Var
 Begin
   S:=StrPas(Buffer);
   P:=Pos(DecimalSeparator,S);
-  If (P<>0) Then 
+  If (P<>0) Then
     S[P] := '.';
   Val(S,Value,E);
+  Result:=(E=0);
+End;
+
+Function TextToFloat(Buffer: PChar; Var Value; ValueType: TFloatValue): Boolean;
+
+Var
+  E,P : Integer;
+  S : String;
+  C : Currency;
+  Ext : Extended;
+
+Begin
+  S:=StrPas(Buffer);
+  P:=Pos(DecimalSeparator,S);
+  If (P<>0) Then
+    S[P] := '.';
+  case ValueType of
+    fvCurrency:
+      Val(S,Currency(Value),E);
+    fvExtended:
+      Val(S,Extended(Value),E);
+  end;
   Result:=(E=0);
 End;
 
@@ -1279,24 +1308,24 @@ Var
     If section > 1 Then
       Begin
       Sec[2] := Sec[1];
-      If Sec[2][0] <> #0 Then 
+      If Sec[2][0] <> #0 Then
         Inc(Sec[2]);
       SecOk[2] := GetSectionEnd(Sec[2]);
       If section > 2 Then
         Begin
         Sec[3] := Sec[2];
-        If Sec[3][0] <> #0 Then 
+        If Sec[3][0] <> #0 Then
           Inc(Sec[3]);
         SecOk[3] := GetSectionEnd(Sec[3]);
         End;
       End;
-    If Not SecOk[1] Then 
+    If Not SecOk[1] Then
       FmtStart := Nil
     Else
       Begin
-      If Not SecOk[section] Then 
+      If Not SecOk[section] Then
         section := 1
-      Else If section = 2 Then 
+      Else If section = 2 Then
         Value := -Value;   { Remove sign }
       If section = 1 Then FmtStart := format Else
         Begin
@@ -1330,13 +1359,13 @@ Var
       Case Fmt[0] Of
         #34:
           Begin
-          If Not SQ Then 
+          If Not SQ Then
             DQ := Not DQ;
           Inc(Fmt);
           End;
         #39:
           Begin
-          If Not DQ Then 
+          If Not DQ Then
             SQ := Not SQ;
           Inc(Fmt);
           End;
@@ -1363,14 +1392,14 @@ Var
 
             '#':
               Begin
-              If area=3 Then 
+              If area=3 Then
                 area:=4;
               Inc(Placehold[area]);
               Inc(Fmt);
               End;
             '.':
               Begin
-              If area<3 Then 
+              If area<3 Then
                 area:=3;
               Inc(Fmt);
               End;
@@ -1382,9 +1411,9 @@ Var
             'e', 'E':
               If ExpFmt = 0 Then
                 Begin
-                If (Fmt[0]='E') Then 
-                  ExpFmt:=1 
-                Else 
+                If (Fmt[0]='E') Then
+                  ExpFmt:=1
+                Else
                   ExpFmt := 3;
                 Inc(Fmt);
                 If (Fmt<FmtStop) Then
@@ -1402,8 +1431,8 @@ Var
                     Begin
                     Inc(Fmt);
                     ExpSize := 0;
-                    While (Fmt<FmtStop) And 
-                          (ExpSize<4) And 
+                    While (Fmt<FmtStop) And
+                          (ExpSize<4) And
                           (Fmt[0] In ['0'..'9']) Do
                       Begin
                       Inc(ExpSize);
@@ -1412,7 +1441,7 @@ Var
                     End;
                   End;
                 End
-              Else 
+              Else
                 Inc(Fmt);
           Else { Case }
             Inc(Fmt);
@@ -1423,33 +1452,33 @@ Var
   End;
 
   Procedure FloatToStr;
-  
+
   Var
     I, J, Exp, Width, Decimals, DecimalPoint, len: Integer;
-    
+
   Begin
     If ExpFmt = 0 Then
       Begin
       { Fixpoint }
       Decimals:=Placehold[3]+Placehold[4];
       Width:=Placehold[1]+Placehold[2]+Decimals;
-      If (Decimals=0) Then 
+      If (Decimals=0) Then
         Str(Value:Width:0,Digits)
-      Else 
+      Else
         Str(Value:Width+1:Decimals,Digits);
       len:=Length(Digits);
       { Find the decimal point }
-      If (Decimals=0) Then 
-        DecimalPoint:=len+1 
-      Else 
+      If (Decimals=0) Then
+        DecimalPoint:=len+1
+      Else
         DecimalPoint:=len-Decimals;
       { If value is very small, and no decimal places
         are desired, remove the leading 0.            }
       If (Abs(Value) < 1) And (Placehold[2] = 0) Then
         Begin
-        If (Placehold[1]=0) Then 
+        If (Placehold[1]=0) Then
           Delete(Digits,DecimalPoint-1,1)
-        Else 
+        Else
           Digits[DecimalPoint-1]:=' ';
         End;
 
@@ -1478,7 +1507,7 @@ Var
       Begin
       { Scientific: exactly <Width> Digits With <Precision> Decimals
         And adjusted Exponent. }
-      If Placehold[1]+Placehold[2]=0 Then 
+      If Placehold[1]+Placehold[2]=0 Then
         Placehold[1]:=1;
       Decimals := Placehold[3] + Placehold[4];
       Width:=Placehold[1]+Placehold[2]+Decimals;
@@ -1511,7 +1540,7 @@ Var
         { Move decimal point at the desired position }
         Delete(Digits, 3, 1);
         DecimalPoint:=2+Placehold[1]+Placehold[2];
-        If (Decimals<>0) Then 
+        If (Decimals<>0) Then
           Insert('.',Digits,DecimalPoint);
         End;
 
@@ -1526,7 +1555,7 @@ Var
 
       { If integer number and no obligatory decimal paces, remove decimal point }
 
-      If (DecimalPoint<Length(Digits)) And 
+      If (DecimalPoint<Length(Digits)) And
          (Digits[DecimalPoint+1]=' ') Then
           Digits[DecimalPoint]:=' ';
       If (Digits[1]=' ') Then
@@ -1536,33 +1565,33 @@ Var
         End;
       { Calculate exponent string }
       Str(Abs(Exp), Exponent);
-      While Length(Exponent)<ExpSize Do 
+      While Length(Exponent)<ExpSize Do
         Insert('0',Exponent,1);
       If Exp >= 0 Then
         Begin
-        If (ExpFmt In [1,3]) Then 
+        If (ExpFmt In [1,3]) Then
           Insert('+', Exponent, 1);
         End
-      Else 
+      Else
         Insert('-',Exponent,1);
-      If (ExpFmt<3) Then 
-        Insert('E',Exponent,1) 
-      Else 
+      If (ExpFmt<3) Then
+        Insert('E',Exponent,1)
+      Else
         Insert('e',Exponent,1);
       End;
     DigitExponent:=DecimalPoint-2;
-    If (Digits[1]='-') Then 
+    If (Digits[1]='-') Then
       Dec(DigitExponent);
     UnexpectedDigits:=DecimalPoint-1-(Placehold[1]+Placehold[2]);
   End;
 
   Function PutResult: LongInt;
-  
+
   Var
     SQ, DQ: Boolean;
     Fmt, Buf: PChar;
     Dig, N: Integer;
-    
+
   Begin
     SQ := False;
     DQ := False;
@@ -1575,13 +1604,13 @@ Var
       Case Fmt[0] Of
         #34:
           Begin
-          If Not SQ Then 
+          If Not SQ Then
             DQ := Not DQ;
           Inc(Fmt);
           End;
         #39:
           Begin
-          If Not DQ Then 
+          If Not DQ Then
             SQ := Not SQ;
           Inc(Fmt);
           End;
@@ -1612,9 +1641,9 @@ Var
                 End;
               If (Digits[Dig]<>' ') Then
                 Begin
-                If (Digits[Dig]='.') Then 
+                If (Digits[Dig]='.') Then
                   Buf[0] := DecimalSeparator
-                Else 
+                Else
                   Buf[0] := Digits[Dig];
                 Inc(Buf);
                 If thousand And (DigitExponent Mod 3 = 0) And (DigitExponent > 0) Then
@@ -1637,7 +1666,7 @@ Var
                   If Fmt[0] In ['+', '-'] Then
                     Begin
                     Inc(Fmt, ExpSize);
-                    For N:=1 To Length(Exponent) Do 
+                    For N:=1 To Length(Exponent) Do
                       Buf[N-1] := Exponent[N];
                     Inc(Buf,Length(Exponent));
                     ExpFmt:=0;
@@ -1647,7 +1676,7 @@ Var
                 End
               Else
                 Begin
-                { No legal exponential format. 
+                { No legal exponential format.
                   Simply write the 'E' to the result. }
                 Buf[0] := Fmt[0];
                 Inc(Buf);
@@ -1677,11 +1706,11 @@ Var
   End;
 
 Begin
-  If (Value>0) Then 
+  If (Value>0) Then
     GetSectionRange(1)
-  Else If (Value<0) Then 
+  Else If (Value<0) Then
     GetSectionRange(2)
-  Else 
+  Else
     GetSectionRange(3);
   If FmtStart = Nil Then
     Begin
@@ -1690,7 +1719,7 @@ Begin
   Else
     Begin
     GetFormatOptions;
-    If (ExpFmt = 0) And (Abs(Value) >= 1E18) Then 
+    If (ExpFmt = 0) And (Abs(Value) >= 1E18) Then
       Result := FloatToText(Buffer, Value, ffGeneral, 15, 4)
     Else
       Begin
@@ -1715,11 +1744,11 @@ Begin
   Inc(Result. Exponent);
   Result.Digits[0] := Buffer[2];
   Move(Buffer[4], Result.Digits[1], 14);
-  If Decimals + Result.Exponent < Precision Then 
+  If Decimals + Result.Exponent < Precision Then
     N := Decimals + Result.Exponent
-  Else 
+  Else
     N := Precision;
-  If N > 15 Then 
+  If N > 15 Then
     N := 15;
   If N = 0 Then
     Begin
@@ -1729,7 +1758,7 @@ Begin
       Result.Digits[1] := #0;
       Inc(Result.Exponent);
       End
-    Else 
+    Else
       Result.Digits[0] := #0;
     End
   Else If N > 0 Then
@@ -1757,7 +1786,7 @@ Begin
         End;
       End;
     End
-  Else 
+  Else
     Result.Digits[0] := #0;
   If Result.Digits[0] = #0 Then
     Begin
@@ -1771,13 +1800,13 @@ Function FormatFloat(Const format: String; Value: Extended): String;
 Var
   Temp: ShortString;
   buf : Array[0..1024] of char;
-  
+
 Begin
   Buf[FloatToTextFmt(@Buf[0],Value,Pchar(Format))]:=#0;
   Result:=StrPas(@Buf);
 End;
-      
-      
+
+
 
 {==============================================================================}
 {   extra functions                                                            }
@@ -1820,8 +1849,8 @@ begin
   If Index<=Length(S) then
     Result:=Pos(S[Index],Delimiters)<>0; // Note we don't do MBCS yet
 end;
-        
-        
+
+
 
 Function LastDelimiter(const Delimiters, S: string): Integer;
 
@@ -1932,7 +1961,10 @@ const
 
 {
   $Log$
-  Revision 1.23  2002-11-28 22:26:30  michael
+  Revision 1.24  2002-12-23 23:12:34  florian
+    + TextToFloat: D6 compatibility added
+
+  Revision 1.23  2002/11/28 22:26:30  michael
   + Fixed float<>string conversion routines
 
   Revision 1.22  2002/11/28 20:29:26  michael
