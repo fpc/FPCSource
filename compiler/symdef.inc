@@ -32,21 +32,21 @@
        tkChar          = 2;
        tkEnumeration   = 3;
        tkFloat         = 4;
-       tkSet           = 6;
-       tkMethod        = 7;
-       tkSString       = 8;
+       tkSet           = 5;
+       tkMethod        = 6;
+       tkSString       = 7;
        tkString        = tkSString;
-       tkLString       = 9;
-       tkAString       = 10;
-       tkWString       = 11;
-       tkVariant       = 12;
-       tkArray         = 13;
-       tkRecord        = 14;
-       tkInterface     = 15;
-       tkClass         = 16;
-       tkObject        = 17;
-       tkWChar         = 18;
-       tkBool          = 19;
+       tkLString       = 8;
+       tkAString       = 9;
+       tkWString       = 10;
+       tkVariant       = 11;
+       tkArray         = 12;
+       tkRecord        = 13;
+       tkInterface     = 14;
+       tkClass         = 15;
+       tkObject        = 16;
+       tkWChar         = 17;
+       tkBool          = 18;
 
        otSByte         = 0;
        otUByte         = 1;
@@ -3224,7 +3224,10 @@
 
 {
   $Log$
-  Revision 1.72  1998-11-25 14:35:28  florian
+  Revision 1.73  1998-11-26 14:47:00  michael
+  + Fixed RTTI constants
+
+  Revision 1.72  1998/11/25 14:35:28  florian
     * writting of rtti for properties fixed
 
   Revision 1.71  1998/11/20 15:35:59  florian
