@@ -752,7 +752,10 @@ implementation
                            end;
               pointerdef : begin
                              opsize:=S_L;
-                             addvalue:=ppointerdef(p^.left^.left^.resulttype)^.definition^.savesize;
+                             if ppointerdef(p^.left^.left^.resulttype)^.definition=voiddef then
+                              addvalue:=1
+                             else
+                              addvalue:=ppointerdef(p^.left^.left^.resulttype)^.definition^.savesize;
                            end;
                 else
                  internalerror(10081);
@@ -936,7 +939,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  1998-09-21 08:45:07  pierre
+  Revision 1.8  1998-10-02 10:35:09  peter
+    * support for inc(pointer,value) which now increases with value instead
+      of 0*value :)
+
+  Revision 1.7  1998/09/21 08:45:07  pierre
     + added vmt_offset in tobjectdef.write for fututre use
       (first steps to have objects without vmt if no virtual !!)
     + added fpu_used field for tabstractprocdef  :
