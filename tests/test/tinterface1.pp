@@ -10,6 +10,10 @@ type
      procedure mydo;virtual;
   end;
 
+  TMyClass2 = class(TMyClass)
+     i : integer;
+  end;
+
 var
    l : longint;
 
@@ -22,10 +26,17 @@ procedure tmyclass.mydo;
 var
   c: TMyClass;
   i: IInterface;
+  c2 : TMyClass;
 
 begin
   c := TMyClass.Create;
   i := c;
+  l:=0;
+  i.mydo;
+  if l<>1 then
+    halt(1);
+  c2 := TMyClass2.Create;
+  i := c2;
   l:=0;
   i.mydo;
   if l<>1 then
