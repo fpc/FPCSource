@@ -1581,7 +1581,6 @@ unit pdecl;
            pt1,pt2 : ptree;
 
         begin
-           p:=nil;
            { use of current parsed object ? }
            if (token=ID) and (testcurobject=2) and (curobjectname=pattern) then
              begin
@@ -1742,6 +1741,7 @@ unit pdecl;
         end;
 
       begin
+         p:=nil;
          case token of
             _STRING,_FILE:
               p:=single_type(hs);
@@ -1787,14 +1787,16 @@ unit pdecl;
                  consume(_SET);
                  consume(_OF);
                  hp1:=read_type('');
-                 case hp1^.deftype of
-                    { don't forget that min can be negativ  PM }
-                    enumdef : if penumdef(hp1)^.min>=0 then
+                 if assigned(hp1) then
+                  begin
+                    case hp1^.deftype of
+                     { don't forget that min can be negativ  PM }
+                     enumdef : if penumdef(hp1)^.min>=0 then
                                 p:=new(psetdef,init(hp1,penumdef(hp1)^.max))
-                              else
+                               else
                                 Message(sym_e_ill_type_decl_set);
-                    orddef : begin
-                                  case porddef(hp1)^.typ of
+                      orddef : begin
+                                 case porddef(hp1)^.typ of
                                      uchar : p:=new(psetdef,init(hp1,255));
                                      u8bit,s8bit,u16bit,s16bit,s32bit :
                                        begin
@@ -1806,7 +1808,10 @@ unit pdecl;
                                   end;
                                end;
                     else Message(sym_e_ill_type_decl_set);
-                 end;
+                    end;
+                  end
+                 else
+                  p:=generrordef;
               end;
             CARET:
               begin
@@ -1879,6 +1884,8 @@ unit pdecl;
             else
               expr_type;
          end;
+         if p=nil then
+          p:=generrordef;
          read_type:=p;
       end;
 
@@ -2048,7 +2055,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.62  1998-10-02 17:06:02  peter
+  Revision 1.63  1998-10-05 13:57:13  peter
+    * crash preventions
+
+  Revision 1.62  1998/10/02 17:06:02  peter
     * better error message for unresolved forward types
 
   Revision 1.61  1998/10/02 09:23:24  peter

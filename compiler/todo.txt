@@ -50,30 +50,30 @@ compiler version and your short cut.
   - andn optimization
   - muladdn optimization
   - comparisations
-- open strings
-- $P
-- range checking for open arrays
-- array of const as subroutine parameter
-      - open array with call by value ............................ 0.99.6 (FK)
-      - subrange types of enumerations ........................... 0.99.7 (PFV)
-- method pointers (procedure of object)
-      - code generation for exceptions ........................... 0.99.7 (FK)
-- assertation
-- sysutils unit for go32v2 (excpetions!)
-- initialisation/finalization for units
-- fixed data type
-        - add abstract virtual method runtime
-          error checking (210) ................................... 0.99.1 (FK)
-- add alignment $A switch
-        - add debug info $D switch ............................... 0.99.1 (FK)
-        - add strict var strings check $V switch ................. 0.99.1 (FK)
-- $B
-- fix all bugs of the bug directory
-- include/exclude
-        - make dec/inc internal................................... 0.99.6 (PFV)
-        - make length internal.................................... 0.99.7 (PFV)
 * Delphi 4 support
   - overloaded directive
   - default parameters
   - dynamic arrays
   - 64 bit int
+* Misc
+        - array of const as subroutine parameter ................ 0.99.9 (PFV)
+        - open array with call by value ......................... 0.99.6 (FK)
+        - subrange types of enumerations ........................ 0.99.7 (PFV)
+        - code generation for exceptions ........................ 0.99.7 (FK)
+        - assertation ........................................... 0.99.9 (PFV)
+        - add abstract virtual method runtime error (210) ....... 0.99.1 (FK)
+        - add debug info $D switch .............................. 0.99.1 (FK)
+        - add strict var strings check $V switch ................ 0.99.1 (FK)
+        - make dec/inc internal.................................. 0.99.6 (PFV)
+        - make length internal................................... 0.99.7 (PFV)
+- fix all bugs of the bug directory
+- range checking for open arrays
+- method pointers (procedure of object)
+- sysutils unit for go32v2 (excpetions!)
+- initialisation/finalization for units
+- fixed data type
+- add alignment $A switch
+- $B
+- open strings, $P
+- include/exclude
+  

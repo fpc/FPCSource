@@ -1031,16 +1031,10 @@ unit pexpr;
               while true do
                begin
                  p1:=comp_expr(true);
-                 do_firstpass(p1);
-                 if codegenerror then
-                  break;
                  if token=POINTPOINT then
                   begin
                     consume(POINTPOINT);
                     p2:=comp_expr(true);
-                    do_firstpass(p2);
-                    if codegenerror then
-                     break;
                     p1:=gennode(arrayconstructrangen,p1,p2);
                   end;
                { insert at the end of the tree, to get the correct order }
@@ -1093,7 +1087,27 @@ unit pexpr;
            begin
              { prevent crashes with unknown types }
              if not assigned(pd) then
-              exit;
+              begin
+                { try to recover }
+                repeat
+                  case token of
+                   CARET : consume(CARET);
+                   POINT : begin
+                             consume(POINT);
+                             consume(ID);
+                           end;
+             LECKKLAMMER : begin
+                             repeat
+                               consume(token);
+                             until token in [RECKKLAMMER,SEMICOLON];
+                           end;
+                  else
+                    break;
+                  end;
+                until false;
+                exit;
+              end;
+           { handle token }
              case token of
           CARET : begin
                     consume(CARET);
@@ -1329,8 +1343,12 @@ unit pexpr;
                  consume(LKLAMMER);
                  p1:=factor(false);
                  if p1^.treetype<>typen then
-                  Message(type_e_type_id_expected);
-                 pd:=p1^.resulttype;
+                  begin
+                    Message(type_e_type_id_expected);
+                    pd:=generrordef;
+                  end
+                 else
+                  pd:=p1^.resulttype;
                  pd2:=pd;
                  if (pd^.deftype<>pointerdef) or
                     (ppointerdef(pd)^.definition^.deftype<>objectdef) then
@@ -1825,7 +1843,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.60  1998-10-05 12:32:46  peter
+  Revision 1.61  1998-10-05 13:57:15  peter
+    * crash preventions
+
+  Revision 1.60  1998/10/05 12:32:46  peter
     + assert() support
 
   Revision 1.59  1998/10/01 14:56:24  peter
