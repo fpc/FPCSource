@@ -151,9 +151,13 @@ var
 procedure LoadDosError;
 var
   r : registers;
+  SimpleDosError : word;
 begin
   if (dosregs.flags and carryflag) <> 0 then
    begin
+     { I got a extended error = 0
+       while CarryFlag was set from Exec function }
+     SimpleDosError:=dosregs.ax;
      r.eax:=$5900;
      r.ebx:=$0;
      realintr($21,r);
@@ -161,6 +165,7 @@ begin
        gave a Bound check error if ax is $FFFF !! PM }
      doserror:=integer(r.ax);
      case doserror of
+      0  : DosError:=integer(SimpleDosError);
       19 : DosError:=150;
       21 : DosError:=152;
      end;
@@ -303,6 +308,33 @@ var
      paste_to_dos:=true;
   end;
 
+{ change to short filename if successful DOS call PM }
+  function GetShortName(var p : String) : boolean;
+  var
+    c : array[0..255] of char;
+  begin
+    move(p[1],c[0],length(p));
+    c[length(p)]:=#0;
+    copytodos(@c,length(p)+1);
+    dosregs.ax:=$7160;
+    dosregs.cx:=1;
+    dosregs.ds:=tb_segment;
+    dosregs.si:=tb_offset;
+    dosregs.es:=tb_segment;
+    dosregs.di:=tb_offset;
+    msdos(dosregs);
+    LoadDosError;
+    if DosError=0 then
+     begin
+       copyfromdos(@c,255);
+       move(c[0],p[1],strlen(c));
+       p[0]:=char(strlen(c));
+       GetShortName:=true;
+     end
+    else
+     GetShortName:=false;
+  end;
+
 begin
 { create command line }
   move(comline[0],c[1],length(comline)+1);
@@ -313,6 +345,8 @@ begin
   for i:=1 to length(p) do
    if p[i]='/' then
     p[i]:='\';
+  if LFNSupport then
+    GetShortName(p);
 { create buffer }
   la_env:=transfer_buffer;
   while (la_env and 15)<>0 do
@@ -655,28 +689,12 @@ var
 
 procedure swapvectors;
 begin
-  DosError:=0;
+  { DosError:=0; Who added this !!!!! }
   if _exception_exit<>nil then
     if _v2prt0_exceptions_on then
       _swap_in()
     else
       _swap_out();
-
-(*  asm
-{ uses four global symbols from v2prt0.as to be able to know the current
-  exception state without using dpmiexcp unit }
-            movl _exception_exit,%eax
-            orl  %eax,%eax
-            je   .Lno_excep
-            movl _v2prt0_exceptions_on,%eax
-            orl  %eax,%eax
-            je   .Lexceptions_off
-            call *_swap_out
-            jmp  .Lno_excep
-         .Lexceptions_off:
-            call *_swap_in
-         .Lno_excep:
-  end; *)
 end;
 
 
@@ -1026,7 +1044,14 @@ End;
 end.
 {
   $Log$
-  Revision 1.13  1999-11-06 14:38:23  peter
+  Revision 1.14  1999-11-09 11:07:50  pierre
+    * SwapVectors does not reset DosError anymore
+    + DosError is set to ax regsiter value if extended doserror function
+      retruns zero.
+    + Support for LFN in EXEC function using
+      function 7160 to get short filename counterpart
+
+  Revision 1.13  1999/11/06 14:38:23  peter
     * truncated log
 
   Revision 1.12  1999/09/10 17:14:09  peter
