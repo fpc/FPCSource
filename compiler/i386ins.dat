@@ -538,7 +538,7 @@ mem32                 \300\1\xDA\206                  8086,FPU
 mem16                 \300\1\xDE\207                  8086,FPU
 mem32                 \300\1\xDA\207                  8086,FPU
 
-[FILD,fildX]
+[FILD,fildR]
 (Ch_FPU, Ch_None, Ch_None)
 mem32                 \300\1\xDB\200                  8086,FPU
 mem16                 \320\300\1\xDF\200              8086,FPU
@@ -557,12 +557,12 @@ void                  \2\xD9\xF7                      8086,FPU
 (Ch_FPU, Ch_None, Ch_None)
 void                  \3\x9B\xDB\xE3                  8086,FPU
 
-[FIST,fistX]
+[FIST,fistR]
 (Ch_Wop1, Ch_None, Ch_None)
 mem32                 \300\1\xDB\202                  8086,FPU
 mem16                 \320\300\1\xDF\202              8086,FPU
 
-[FISTP,fistpX]
+[FISTP,fistpR]
 (Ch_Wop1, Ch_None, Ch_None)
 mem32                 \300\1\xDB\203                  8086,FPU
 mem16                 \320\300\1\xDF\203              8086,FPU
