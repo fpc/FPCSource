@@ -34,11 +34,11 @@ endif
 
 # Look for a valid GDBLIBDIR environment variable
 ifdef GDBLIBDIR
-override LIBGDB:=$(firstword $(wildcard $(addsuffix /libgdb.a,$(GDBLIBDIR))))
+override LIBGDBFILE:=$(firstword $(wildcard $(addsuffix /libgdb.a,$(GDBLIBDIR))))
 endif
 
 # Use default dirs if not available
-ifeq ($(LIBGDB),)
+ifeq ($(LIBGDBFILE),)
 override GDBLIBDIR=libgdb/$(OS_TARGET)
 ifeq ($(OS_TARGET),go32v2)
 ifneq ($(DJDIR),)
@@ -46,11 +46,11 @@ GDBLIBDIR+=$(DJDIR)/lib
 endif
 endif
 # Detect if libgdb.a is available
-override LIBGDB:=$(firstword $(wildcard $(addsuffix /libgdb.a,$(GDBLIBDIR))))
+override LIBGDBFILE:=$(firstword $(wildcard $(addsuffix /libgdb.a,$(GDBLIBDIR))))
 endif
 
 # Set GDBFOUND variable
-ifeq ($(LIBGDB),)
+ifeq ($(LIBGDBFILE),)
 GDBFOUND=0
 else
 GDBFOUND=1

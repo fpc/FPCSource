@@ -207,18 +207,18 @@ else
 CURRDIR=
 endif
 ifdef GDBLIBDIR
-override LIBGDB:=$(firstword $(wildcard $(addsuffix /libgdb.a,$(GDBLIBDIR))))
+override LIBGDBFILE:=$(firstword $(wildcard $(addsuffix /libgdb.a,$(GDBLIBDIR))))
 endif
-ifeq ($(LIBGDB),)
+ifeq ($(LIBGDBFILE),)
 override GDBLIBDIR=libgdb/$(OS_TARGET)
 ifeq ($(OS_TARGET),go32v2)
 ifneq ($(DJDIR),)
 GDBLIBDIR+=$(DJDIR)/lib
 endif
 endif
-override LIBGDB:=$(firstword $(wildcard $(addsuffix /libgdb.a,$(GDBLIBDIR))))
+override LIBGDBFILE:=$(firstword $(wildcard $(addsuffix /libgdb.a,$(GDBLIBDIR))))
 endif
-ifeq ($(LIBGDB),)
+ifeq ($(LIBGDBFILE),)
 GDBFOUND=0
 else
 GDBFOUND=1
