@@ -18,13 +18,13 @@
 {No debugging for syslinux include !}
 {$IFDEF SYS_LINUX}
   {$UNDEF SYSCALL_DEBUG}
-{$ENDIF SYS_LINUX}  
+{$ENDIF SYS_LINUX}
 
 {*****************************************************************************
                      --- Main:The System Call Self ---
 *****************************************************************************}
 
-{ The system designed for Linux can't be used for FreeBSD so easily, since 
+{ The system designed for Linux can't be used for FreeBSD so easily, since
   FreeBSD pushes arguments, instead of loading them to registers.
 
 For now I do them in assembler, which makes it easier to test them (copy and
@@ -38,7 +38,27 @@ paste to and AS source). Ultimately I hope to design something like this}
                    ret
 }
 
+function Do_SysCall(sysnr:LONGINT):longint;
 
+var retval:longint;
+
+begin
+ asm
+  movl  sysnr,%eax
+  call  _actualsyscall
+  mov   %eax,Retval
+ end;
+ if RetVal<0 then
+   begin
+     ErrNo:=-RetVal;
+     DoSysCall:=-1;
+   end
+  else
+   begin
+     DoSysCall:=Retval;
+     errno:=0
+   end;
+end;
 
 function Do_SysCall(sysnr,param1:LONGINT):longint;
 
@@ -63,6 +83,32 @@ begin
      errno:=0
    end;
 end;
+
+
+function Do_SysCall(sysnr,param1:integer):longint;
+
+var retval:longint;
+
+begin
+ asm
+  movl  sysnr,%eax
+  pushw Param1
+  call  _actualsyscall
+  addl  $2,%esp
+  mov   %eax,Retval
+ end;
+ if RetVal<0 then
+   begin
+     ErrNo:=-RetVal;
+     DoSysCall:=-1;
+   end
+  else
+   begin
+     DoSysCall:=Retval;
+     errno:=0
+   end;
+end;
+
 
 function Do_SysCall(sysnr,param1,param2:LONGINT):longint;
 
@@ -330,7 +376,7 @@ begin
   if sys_stat(f,st)<0 then
    exit;
 { Is it a dir ? }
-  if not((st.mode and $f000)=$4000)then 
+  if not((st.mode and $f000)=$4000)then
    begin
      errno:=sys_enotdir;
      exit
@@ -365,9 +411,9 @@ var
     retval : longint;
 begin
  retval:=dosyscall(272,longint(@p.fd),longint(@p.buf),sizeof(dirent));
-  if retval=0 then 
-   sys_readdir:=nil 
-  else 
+  if retval=0 then
+   sys_readdir:=nil
+  else
    sys_readdir:=p^.buf
 end;
 
@@ -384,7 +430,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  2000-02-27 23:45:39  marco
+  Revision 1.7  2000-03-01 17:28:40  marco
+   * some changes due to updating linux.pp to new syscall
+
+  Revision 1.6  2000/02/27 23:45:39  marco
    * Redone the syscalls
 
   Revision 1.5  2000/02/04 16:53:26  marco
