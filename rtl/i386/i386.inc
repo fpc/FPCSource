@@ -956,6 +956,7 @@ begin
         jnz     .LStrCharArrayNotNil
         movl    $0,%ecx
 .LStrCharArrayNotNil:
+        andl    $255,%ecx
         movl    %ecx,%eax
         movl    __RESULT,%edi
         stosb
@@ -1213,7 +1214,11 @@ end;
 
 {
   $Log$
-  Revision 1.36  2002-12-15 22:32:25  peter
+  Revision 1.37  2003-01-03 17:14:54  peter
+    * fix possible overflow when array len > 255 when converting to
+      shortstring
+
+  Revision 1.36  2002/12/15 22:32:25  peter
     * fixed return value when len=0 for indexchar,indexword
 
   Revision 1.35  2002/10/20 11:50:57  carl
