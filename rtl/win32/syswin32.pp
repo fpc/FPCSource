@@ -680,7 +680,7 @@ begin
   repeat
     Inc(Arglen);
   until (cmdline[Arglen]=#0);
-  getmem(argsbuf[count],arglen);
+  getmem(argsbuf[count],arglen+1);
   move(cmdline^,argsbuf[count]^,arglen);
   { Now skip the first one }
   cmdline:=GetCommandLine;
@@ -1010,7 +1010,10 @@ end.
 
 {
   $Log$
-  Revision 1.45  1999-10-03 19:39:05  peter
+  Revision 1.46  1999-10-22 14:47:19  peter
+    * allocate an extra byte for argv[0]
+
+  Revision 1.45  1999/10/03 19:39:05  peter
     * fixed argv[0] length
 
   Revision 1.44  1999/09/10 15:40:35  peter
