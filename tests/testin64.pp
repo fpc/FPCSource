@@ -23,7 +23,12 @@ function f2 : int64;
   begin
   end;
 
+var
+   q1,q2,q3,q4 : qword;
+
 begin
+   if (q4 div q3) div (q2 div q1)<>(q2 div q1) div (q4 div q3) then
+     writeln;
    q:=q-q;
    q:=q-(q*q);
    q:=(q*q)-(q*q);

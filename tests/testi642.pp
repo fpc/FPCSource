@@ -1,3 +1,7 @@
+{$ifdef go32v2}
+uses
+   dpmiexcp;
+{$endif go32v2}
 {$i ..\rtl\inc\int64.inc}
 
 procedure dumpqword(q : qword);
@@ -369,7 +373,7 @@ procedure testmulqword;
      assignqword(2,0,q3);
      assignqword(8,0,q4);
      assignqword(0,1,q5);
-     assignqword($ffff,$1234431,q6);
+     assignqword($ffff,$12344321,q6);
      { to some trivial tests       }
      { to test the code generation }
      if q1*q2<>q2 then
@@ -380,7 +384,6 @@ procedure testmulqword;
        do_error(1802);
      if (q1*q2)*q3<>q4 then
        do_error(1803);
-
      if (q6*q5)*(q1*q2)<>q1*q2*q5*q6 then
        do_error(1804);
 
@@ -389,6 +392,8 @@ procedure testmulqword;
        do_error(1805);
 
      { now test the multiplication procedure with random bit patterns }
+     writeln('Doing some random multiplications, takes a few seconds');
+     writeln('.....................................100%');
      for i:=1 to 1000000 do
        begin
           tqwordrec(q1).high:=0;
@@ -404,6 +409,8 @@ procedure testmulqword;
                writeln(' failed');
                do_error(1806);
             end;
+          if i mod 50000=0 then
+            write('.');
        end;
      for i:=1 to 1000000 do
        begin
@@ -421,7 +428,89 @@ procedure testmulqword;
                writeln(' failed');
                do_error(1806);
             end;
+          if i mod 50000=0 then
+            write('.');
        end;
+     writeln(' OK');
+  end;
+
+procedure testdivqword;
+
+  var
+     q0,q1,q2,q3,q4,q5,q6 : qword;
+     i : longint;
+
+  begin
+     assignqword(0,0,q0);
+     assignqword(0,1,q1);
+     assignqword(0,4,q2);
+     assignqword(2,0,q3);
+     assignqword(8,0,q4);
+     assignqword(0,1,q5);
+     assignqword($ffff,$12344321,q6);
+     { to some trivial tests       }
+     { to test the code generation }
+     if q2 div q1<>q2 then
+       do_error(1900);
+     if q2 div q1 div q1<>q1 then
+       do_error(1901);
+     if q2 div (q4 div q3)<>q1 then
+       do_error(1902);
+     if (q4 div q3) div q2<>q1 then
+       do_error(1903);
+
+     { a more complex expression }
+     if (q4 div q3) div (q2 div q1)<>(q2 div q1) div (q4 div q3) then
+       do_error(1904);
+
+     { now test the division procedure with random bit patterns }
+     writeln('Doing some random divisions, takes a few seconds');
+     writeln('.................100%');
+     for i:=1 to 100000 do
+       begin
+          tqwordrec(q1).high:=random($ffffffff);
+          tqwordrec(q1).low:=random($ffffffff);
+          tqwordrec(q2).high:=random($ffffffff);
+          tqwordrec(q2).low:=random($ffffffff);
+          q3:=q1 div q2;
+          { get a restless division }
+          q1:=q2*q3;
+          q3:=q1 div q2;
+          if q3*q2<>q1 then
+            begin
+               write('Division of ');
+               dumpqword(q1);
+               write(' by ');
+               dumpqword(q2);
+               writeln(' failed');
+               do_error(1906);
+            end;
+          if i mod 10000=0 then
+            write('.');
+       end;
+     for i:=1 to 100000 do
+       begin
+          tqwordrec(q1).high:=random($ffffffff);
+          tqwordrec(q1).low:=random($ffffffff);
+          tqwordrec(q2).high:=0;
+          tqwordrec(q2).low:=random($ffffffff);
+          { get a restless division }
+          q3:=q1 div q2;
+          q1:=q2*q3;
+          q3:=q1 div q2;
+          if q3<>q1 then
+            begin
+               write('Division of ');
+               dumpqword(q1);
+               write(' by ');
+               dumpqword(q2);
+               writeln(' failed');
+               do_error(1907);
+            end;
+          if i mod 10000=0 then
+            write('.');
+       end;
+     writeln(' OK');
   end;
 
 function testf : qword;
@@ -503,6 +592,11 @@ begin
    writeln('Testing QWord function results');
    testfuncword;
    writeln('Testing QWord function results was successful');
+   writeln;
+
+   writeln('Testing QWord division');
+   testdivqword;
+   writeln('Testing QWord division was successful');
    writeln;
 
    writeln('Testing QWord multiplications');
