@@ -902,7 +902,13 @@ end;
 
 function IsWordSeparator(C: char): boolean;
 begin
-  IsWordSeparator:=C in[' ',#0,#255,':','=','''','"','.',',','/',';','$','#','(',')','<','>','^','*','+','-','?','&','[',']'];
+  IsWordSeparator:=C in
+      [' ',#0,#255,':','=','''','"',
+      '.',',','/',';','$','#',
+      '(',')','<','>','^','*',
+      '+','-','?','&','[',']',
+      '{','}','@','~','%','\',
+      '!'];
 end;
 
 {function IsSpace(C: char): boolean;
@@ -4874,6 +4880,7 @@ begin
    begin
      if CurPos.Y>0 then
       begin
+        CI:=Length(GetDisplayText(CurPos.Y-1));
         S:=GetLineText(CurPos.Y-1);
         SetLineText(CurPos.Y-1,S+GetLineText(CurPos.Y));
         SC1.X:=Length(S);SC1.Y:=CurPOS.Y-1;
@@ -4882,7 +4889,7 @@ begin
         SetStoreUndo(false);
         DeleteLine(CurPos.Y);
         LimitsChanged;
-        SetCurPtr(length(S),CurPos.Y-1);
+        SetCurPtr(CI,CurPos.Y-1);
       end;
    end
   else
@@ -4982,7 +4989,7 @@ begin
          Delete(S,CI,1);
        end;
      SetLineText(CurPos.Y,S);
-     SDX:=-1; SDY:=0;
+     SDX:=-1;SDY:=0;
    end;
   SetCurPtr(CurPos.X,CurPos.Y);
   UpdateAttrs(CurPos.Y,attrAll);
@@ -7179,7 +7186,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.36  2002-09-12 08:42:07  pierre
+  Revision 1.37  2002-12-16 15:13:58  pierre
+   + added some missing word separator chars
+
+  Revision 1.36  2002/09/12 08:42:07  pierre
    * removed lots of unnecessary copies of strings for syntax highlighting
 
   Revision 1.35  2002/09/11 13:11:54  pierre
