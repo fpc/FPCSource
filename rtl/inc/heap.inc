@@ -101,6 +101,10 @@ type
   theaprecord = record
   { this should overlap with tfreerecord }
     size  : ptrint;
+{$ifdef cpusparc}
+    { sparc needs alignment on 8 for double }
+    _dummy : ptrint;
+{$endif cpusparc}    
   end; { 4/8 bytes }
 
   tfreelists   = array[0..maxblock] of pfreerecord;
@@ -1340,7 +1344,10 @@ end;
 
 {
   $Log$
-  Revision 1.29  2004-04-26 16:20:54  peter
+  Revision 1.30  2004-05-31 12:18:16  peter
+    * sparc needs alignment on 8 bytes to allow doubles
+
+  Revision 1.29  2004/04/26 16:20:54  peter
     * 64bit fixes
 
   Revision 1.28  2004/03/15 21:48:26  peter
