@@ -177,6 +177,7 @@ type
     _PROPERTY,
     _REGISTER,
     _RESIDENT,
+    _SAFECALL,
     _ASSEMBLER,
     _INHERITED,
     _INTERFACE,
@@ -355,6 +356,7 @@ const
       (str:'PROPERTY'      ;special:false;keyword:m_class),
       (str:'REGISTER'      ;special:false;keyword:m_none),
       (str:'RESIDENT'      ;special:false;keyword:m_none),
+      (str:'SAFECALL'      ;special:false;keyword:m_none),
       (str:'ASSEMBLER'     ;special:false;keyword:m_none),
       (str:'INHERITED'     ;special:false;keyword:m_all),
       (str:'INTERFACE'     ;special:false;keyword:m_all),
@@ -381,7 +383,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  1999-04-28 06:02:19  florian
+  Revision 1.7  1999-05-24 08:55:30  florian
+    * non working safecall directiv implemented, I don't know if we
+      need it
+
+  Revision 1.6  1999/04/28 06:02:19  florian
     * changes of Bruessel:
        + message handler can now take an explicit self
        * typinfo fixed: sometimes the type names weren't written

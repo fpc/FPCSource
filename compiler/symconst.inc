@@ -72,6 +72,7 @@
        posavestdregs    = $20000000; { save std regs cdecl and stdcall need that ! }
        pocontainsself   = $40000000; { self is passed explicit to the compiler }
        { relevant options for assigning a proc or a procvar to a procvar }
+       posafecall       = $80000000; { safe call calling conventions }
        po_compatibility_options = $7FFFFFFF-
          (pomethodpointer+povirtualmethod+pooverridingmethod);
 
@@ -108,7 +109,11 @@
 
 {
   $Log$
-  Revision 1.8  1999-05-20 22:22:42  pierre
+  Revision 1.9  1999-05-24 08:55:29  florian
+    * non working safecall directiv implemented, I don't know if we
+      need it
+
+  Revision 1.8  1999/05/20 22:22:42  pierre
     + added synonym filed for ttypesym
       allows a clean disposal of tdefs and related ttypesyms
 
