@@ -163,8 +163,7 @@ begin
                 begin
                   consume(_CONST);
                   srsym:=nil;
-                  if assigned(objpasunit) then
-                   getsymonlyin(objpasunit,'TVARREC');
+                  getsymonlyin(systemunit,'TVARREC');
                   if not assigned(srsym) then
                    InternalError(1234124);
                   Parraydef(p)^.definition:=ptypesym(srsym)^.definition;
@@ -1373,11 +1372,13 @@ begin
                       if (hd^.mangledname<>aktprocsym^.definition^.mangledname) then
                        begin
                          { When overloading is not possible then we issue an error }
-                         if not(m_repeat_forward in aktmodeswitches) then
+                         { This is not true, tp7/delphi don't give an error when a renamed
+                           type is used in the other declaration (PFV)
+                           if not(m_repeat_forward in aktmodeswitches) then
                           begin
                             Message1(parser_e_header_dont_match_forward,aktprocsym^.demangledName);
                             exit;
-                          end;
+                          end; }
 
                          if not(po_external in aktprocsym^.definition^.procoptions) then
                            Message2(parser_n_interface_name_diff_implementation_name,hd^.mangledname,
@@ -2077,7 +2078,10 @@ end.
 
 {
   $Log$
-  Revision 1.25  1999-10-01 10:05:44  peter
+  Revision 1.26  1999-10-03 19:38:39  peter
+    * fixed forward decl check for tp7/delphi
+
+  Revision 1.25  1999/10/01 10:05:44  peter
     + procedure directive support in const declarations, fixes bug 232
 
   Revision 1.24  1999/10/01 08:02:47  peter
