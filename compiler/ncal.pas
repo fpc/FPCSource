@@ -1765,8 +1765,7 @@ type
                  { Generate funcretnode if not specified }
                  if assigned(funcretnode) then
                   begin
-                    hiddentree:=funcretnode;
-                    funcretnode:=nil;
+                    hiddentree:=funcretnode.getcopy;
                   end
                  else
                   begin
@@ -2646,27 +2645,21 @@ type
         storeparasymtable,
         storelocalsymtable : tsymtabletype;
         oldprocdef : tprocdef;
-        old_current_procinfo : tprocinfo;
+        oldprocinfo : tprocinfo;
         oldinlining_procedure : boolean;
       begin
         result:=nil;
         oldinlining_procedure:=inlining_procedure;
         oldprocdef:=current_procdef;
-        old_current_procinfo:=current_procinfo;
+        oldprocinfo:=current_procinfo;
         { we're inlining a procedure }
         inlining_procedure:=true;
-        current_procdef:=inlineprocdef;
 
-        { clone current_procinfo, but not the asmlists }
-        current_procinfo:=tprocinfo(cprocinfo.newinstance);
-        move(pointer(old_current_procinfo)^,pointer(current_procinfo)^,cprocinfo.InstanceSize);
-        current_procinfo.aktentrycode:=nil;
-        current_procinfo.aktexitcode:=nil;
-        current_procinfo.aktproccode:=nil;
-        current_procinfo.aktlocaldata:=nil;
-
-        { set new current_procinfo }
+        { create temp procinfo }
+        current_procinfo:=cprocinfo.create(nil);
+        current_procinfo.procdef:=inlineprocdef;
         current_procinfo.return_offset:=retoffset;
+        current_procdef:=current_procinfo.procdef;
 
         { set it to the same lexical level }
         storesymtablelevel:=current_procdef.localst.symtablelevel;
@@ -2689,7 +2682,7 @@ type
 
         { restore current_procinfo }
         current_procinfo.free;
-        current_procinfo:=old_current_procinfo;
+        current_procinfo:=oldprocinfo;
         { restore symtable }
         current_procdef.localst.symtablelevel:=storesymtablelevel;
         current_procdef.localst.symtabletype:=storelocalsymtable;
@@ -2727,7 +2720,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.159  2003-05-24 17:16:37  jonas
+  Revision 1.160  2003-05-25 08:59:16  peter
+    * inline fixes
+
+  Revision 1.159  2003/05/24 17:16:37  jonas
     * added missing firstpass for callparatemp code
 
   Revision 1.158  2003/05/23 14:27:35  peter

@@ -915,7 +915,8 @@ implementation
              right:=inlinecode;
 
              { from now on the result can be freed normally }
-             if paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption) then
+             if assigned(funcretnode) and
+                paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption) then
                tg.ChangeTempType(exprasmlist,funcretnode.location.reference,tt_normal);
            end;
 
@@ -958,7 +959,7 @@ implementation
            ps, i : longint;
            oldprocinfo : tprocinfo;
            oldinlining_procedure,
-           nostackframe,make_global : boolean;
+           nostackframe : boolean;
            inlineentrycode,inlineexitcode : TAAsmoutput;
            oldexitlabel,oldexit2label:tasmlabel;
            oldregstate: pointer;
@@ -1004,18 +1005,12 @@ implementation
           objectlibrary.getlabel(aktexit2label);
           { we're inlining a procedure }
           inlining_procedure:=true;
-          current_procdef:=inlineprocdef;
 
-          { clone procinfo, but not the asmlists }
-          current_procinfo:=tprocinfo(cprocinfo.newinstance);
-          move(pointer(oldprocinfo)^,pointer(current_procinfo)^,cprocinfo.InstanceSize);
-          current_procinfo.aktentrycode:=nil;
-          current_procinfo.aktexitcode:=nil;
-          current_procinfo.aktproccode:=nil;
-          current_procinfo.aktlocaldata:=nil;
-
-          { set new procinfo }
+          { create temp procinfo }
+          current_procinfo:=cprocinfo.create(nil);
+          current_procinfo.procdef:=inlineprocdef;
           current_procinfo.return_offset:=retoffset;
+          current_procdef:=current_procinfo.procdef;
 
           { arg space has been filled by the parent secondcall }
           st:=current_procdef.localst;
@@ -1132,7 +1127,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.72  2003-05-24 13:36:54  jonas
+  Revision 1.73  2003-05-25 08:59:16  peter
+    * inline fixes
+
+  Revision 1.72  2003/05/24 13:36:54  jonas
     * save fpu results in a normal fpu register on non-x86 processors
 
   Revision 1.71  2003/05/23 19:35:50  jonas
