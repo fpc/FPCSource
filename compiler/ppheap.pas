@@ -26,6 +26,11 @@ unit ppheap;
 
     uses heaptrc;
 
+    { call this function before any memory allocation
+      in a unit initialization code (PM) }
+      
+    procedure pp_heap_init;
+
   implementation
 
     uses
@@ -41,8 +46,24 @@ unit ppheap;
           plongint(cardinal(p)+8)^:=aktfilepos.fileindex
       end;
 
+  const
+     pp_heap_inited : boolean = false;
+     
+  procedure pp_heap_init;
+    begin
+       if not pp_heap_inited then
+         SetExtraInfo(12,ppextra_info);
+       pp_heap_inited:=true;
+    end;
+
   begin
-     SetExtraInfo(12,ppextra_info);
+     pp_heap_init;
   end.
 
+{
+  $Log$
+  Revision 1.5  1999-01-26 11:32:13  pierre
+   * ppheap init code can be called before any getmem
+
+}
 

@@ -1243,6 +1243,9 @@ unit i386;
   implementation
 
     uses
+{$ifdef heaptrc}
+      ppheap,
+{$endif heaptrc}
       strings,globals,verbose;
 
 
@@ -1969,6 +1972,9 @@ end;
 Begin
 {$ifdef ITTABLE}
   { create the itcache and reset to -1 }
+{$ifdef heaptrc}
+  pp_heap_init;
+{$endif heaptrc}
   new(itcache);
   FillChar(ItCache^,sizeof(titcache),$ff);
 {$endif}
@@ -1977,7 +1983,10 @@ Begin
 end.
 {
   $Log$
-  Revision 1.33  1999-01-25 09:29:38  florian
+  Revision 1.34  1999-01-26 11:32:14  pierre
+   * ppheap init code can be called before any getmem
+
+  Revision 1.33  1999/01/25 09:29:38  florian
     * very rare problem with in-operator fixed, mainly it was a problem of
       emit_to_reg32 (typo in case ranges)
 
