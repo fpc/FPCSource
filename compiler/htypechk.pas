@@ -1495,7 +1495,7 @@ implementation
            defaultparacnt:=pd.maxparacount-FParalength;
            if defaultparacnt>0 then
              begin
-               if defaultparacnt>result^.firstparaidx then
+               if defaultparacnt>result^.firstparaidx+1 then
                  internalerror(200401141);
                dec(result^.firstparaidx,defaultparacnt);
              end;
@@ -1933,7 +1933,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.104  2004-11-15 23:35:31  peter
+  Revision 1.105  2004-11-29 21:40:54  peter
+    * fixed wrong calculation for checking default parameters
+
+  Revision 1.104  2004/11/15 23:35:31  peter
     * tparaitem removed, use tparavarsym instead
     * parameter order is now calculated from paranr value in tparavarsym
 
