@@ -181,7 +181,7 @@ implementation
     uses
       globtype,systems,
       cutils,verbose,globals,
-      symconst,symtable,types,htypechk,pass_1,
+      symconst,symtable,paramgr,types,htypechk,pass_1,
       ncon,nmem,nld,ncnv,nbas,rgobj,
     {$ifdef state_tracking}
       nstate,
@@ -338,12 +338,12 @@ implementation
 
 {$ifdef state_tracking}
     procedure Twhilerepeatnode.track_state_pass(exec_known:boolean);
-    
+
     var condition:Tnode;
 	code:Tnode;
 	done:boolean;
 	value:boolean;
-    
+
     begin
 	done:=false;
 	repeat
@@ -372,7 +372,7 @@ implementation
 	    begin
 	        ...
 	    end;
-	 
+
 	 When the loop is done, we do know that i<10 = false.
 	}
 	condition:=left.getcopy;
@@ -660,7 +660,7 @@ implementation
            if assigned(left) then
             begin
               inserttypeconv(left,aktprocdef.rettype);
-              if ret_in_param(aktprocdef.rettype.def) or
+              if paramanager.ret_in_param(aktprocdef.rettype.def) or
                  (procinfo^.no_fast_exit) or
                  ((procinfo^.flags and pi_uses_exceptions)<>0) then
                begin
@@ -1166,9 +1166,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.35  2002-07-14 18:00:44  daniel
+  Revision 1.36  2002-07-15 18:03:15  florian
+    * readded removed changes
+
+  Revision 1.35  2002/07/14 18:00:44  daniel
   + Added the beginning of a state tracker. This will track the values of
     variables through procedures and optimize things away.
+
+  Revision 1.34  2002/07/11 14:41:28  florian
+    * start of the new generic parameter handling
 
   Revision 1.33  2002/07/01 18:46:23  peter
     * internal linker

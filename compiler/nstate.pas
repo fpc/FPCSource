@@ -22,7 +22,7 @@
 }
 
 unit nstate;
-			 
+
 {$i fpcdefs.inc}
 
 interface
@@ -121,12 +121,14 @@ begin
 	end;
 end;
 
+end.
+
 {
   $Log$
-  Revision 1.1  2002-07-14 18:00:44  daniel
+  Revision 1.2  2002-07-15 18:03:15  florian
+    * readded removed changes
+
+  Revision 1.1  2002/07/14 18:00:44  daniel
   + Added the beginning of a state tracker. This will track the values of
     variables through procedures and optimize things away.
-
 }
-
-end.

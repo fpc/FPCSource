@@ -128,7 +128,7 @@ implementation
 
     uses
       cutils,verbose,globtype,globals,systems,
-      symtable,types,
+      symtable,paramgr,types,
       htypechk,pass_1,
       ncon,ninl,ncnv,nmem,ncal,cpubase,rgobj,cginfo,cgbase
       ;
@@ -351,7 +351,7 @@ implementation
                    { we need a register for call by reference parameters }
                    if (tvarsym(symtableentry).varspez in [vs_var,vs_out]) or
                       ((tvarsym(symtableentry).varspez=vs_const) and
-                      push_addr_param(tvarsym(symtableentry).vartype.def)) or
+                      paramanager.push_addr_param(tvarsym(symtableentry).vartype.def)) or
                       { call by value open arrays are also indirect addressed }
                       is_open_array(tvarsym(symtableentry).vartype.def) then
                      registers32:=1;
@@ -631,7 +631,7 @@ implementation
       begin
          result:=nil;
          location.loc:=LOC_REFERENCE;
-         if ret_in_param(resulttype.def) or
+         if paramanager.ret_in_param(resulttype.def) or
             (lexlevel<>funcretsym.owner.symtablelevel) then
            registers32:=1;
       end;
@@ -983,7 +983,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.44  2002-07-14 18:00:44  daniel
+  Revision 1.45  2002-07-15 18:03:15  florian
+    * readded removed changes
+
+  Revision 1.43  2002/07/11 14:41:28  florian
+    * start of the new generic parameter handling
+
+  Revision 1.44  2002/07/14 18:00:44  daniel
   + Added the beginning of a state tracker. This will track the values of
     variables through procedures and optimize things away.
 

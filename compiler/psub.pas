@@ -46,7 +46,7 @@ implementation
        { aasm }
        cpubase,cpuinfo,aasmbase,aasmtai,
        { symtable }
-       symconst,symbase,symdef,symsym,symtype,symtable,types,
+       symconst,symbase,symdef,symsym,symtype,symtable,types,paramgr,
        ppu,fmodule,
        { pass 1 }
        node,
@@ -106,7 +106,7 @@ implementation
               { insert in local symtable }
               symtablestack.insert(aktprocdef.funcretsym);
               akttokenpos:=storepos;
-              if ret_in_acc(aktprocdef.rettype.def) or
+              if paramanager.ret_in_acc(aktprocdef.rettype.def) or
                  (aktprocdef.rettype.def.deftype=floatdef) then
                 procinfo^.return_offset:=-tfuncretsym(aktprocdef.funcretsym).address;
               { insert result also if support is on }
@@ -130,7 +130,7 @@ implementation
          { because we don't know yet where the address is }
          if not is_void(aktprocdef.rettype.def) then
            begin
-              if ret_in_acc(aktprocdef.rettype.def) or (aktprocdef.rettype.def.deftype=floatdef) then
+              if paramanager.ret_in_acc(aktprocdef.rettype.def) or (aktprocdef.rettype.def.deftype=floatdef) then
                 begin
                    { the space has been set in the local symtable }
                    procinfo^.return_offset:=-tfuncretsym(aktprocdef.funcretsym).address;
@@ -654,7 +654,7 @@ implementation
 {$endif i386}
 
          { pointer to the return value ? }
-         if ret_in_param(aktprocdef.rettype.def) then
+         if paramanager.ret_in_param(aktprocdef.rettype.def) then
           begin
             procinfo^.return_offset:=procinfo^.para_offset;
             inc(procinfo^.para_offset,pointer_size);
@@ -829,7 +829,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.58  2002-07-14 18:00:44  daniel
+  Revision 1.59  2002-07-15 18:03:15  florian
+    * readded removed changes
+
+  Revision 1.57  2002/07/11 14:41:28  florian
+    * start of the new generic parameter handling
+
+  Revision 1.58  2002/07/14 18:00:44  daniel
   + Added the beginning of a state tracker. This will track the values of
     variables through procedures and optimize things away.
 
