@@ -38,6 +38,7 @@ Type
    ts32real = single;
    ts64real = double;
    ts80real = extended;
+   ts128real = extended;
    ts64comp = comp;
 
    pbestreal=^bestreal;
@@ -111,7 +112,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.3  2003-11-07 15:58:32  florian
+  Revision 1.4  2003-11-17 23:23:47  florian
+    + first part of arm assembler reader
+
+  Revision 1.3  2003/11/07 15:58:32  florian
     * Florian's culmutative nr. 1; contains:
       - invalid calling conventions for a certain cpu are rejected
       - arm softfloat calling conventions

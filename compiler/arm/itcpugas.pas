@@ -20,7 +20,7 @@
 
  ****************************************************************************
 }
-unit itarmgas;
+unit itcpugas;
 
 {$i fpcdefs.inc}
 
@@ -113,7 +113,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2003-11-12 16:05:39  florian
+  Revision 1.2  2003-11-17 23:23:47  florian
+    + first part of arm assembler reader
+
+  Revision 1.1  2003/11/12 16:05:39  florian
     * assembler readers OOPed
     + typed currency constants
     + typed 128 bit float constants if the CPU supports it

@@ -47,7 +47,7 @@ unit raatt;
         AS_NONE,AS_LABEL,AS_LLABEL,AS_STRING,AS_INTNUM,
         AS_REALNUM,AS_COMMA,AS_LPAREN,
         AS_RPAREN,AS_COLON,AS_DOT,AS_PLUS,AS_MINUS,AS_STAR,
-        AS_SEPARATOR,AS_ID,AS_REGISTER,AS_OPCODE,AS_SLASH,AS_DOLLAR,
+        AS_SEPARATOR,AS_ID,AS_REGISTER,AS_OPCODE,AS_SLASH,AS_DOLLAR,AS_HASH,AS_LSBRACKET,AS_RSBRACKET,
         {------------------ Assembler directives --------------------}
         AS_DB,AS_DW,AS_DD,AS_DQ,AS_GLOBAL,
         AS_ALIGN,AS_BALIGN,AS_P2ALIGN,AS_ASCII,
@@ -68,7 +68,7 @@ unit raatt;
         '','Label','LLabel','string','integer',
         'float',',','(',
         ')',':','.','+','-','*',
-        ';','identifier','register','opcode','/','$',
+        ';','identifier','register','opcode','/','$','#','{','}',
         '.byte','.word','.long','.quad','.globl',
         '.align','.balign','.p2align','.ascii',
         '.asciz','.lcomm','.comm','.single','.double','.tfloat',
@@ -91,7 +91,7 @@ unit raatt;
          procedure handleopcode;virtual;abstract;
          function is_asmopcode(const s: string) : boolean;virtual;abstract;
          Function is_asmdirective(const s: string):boolean;
-         function is_register(const s:string):boolean;
+         function is_register(const s:string):boolean;virtual;
          function is_locallabel(const s: string):boolean;
          procedure GetToken;
          function consume(t : tasmtoken):boolean;
@@ -193,10 +193,20 @@ unit raatt;
         while c in [' ',#9] do
          c:=current_scanner.asmgetchar;
         { get token pos }
+{$ifdef arm}
+        if not (c in [#10,#13,';']) then
+          current_scanner.gettokenpos;
+{$else arm}
         if not (c in [#10,#13,'{',';']) then
           current_scanner.gettokenpos;
+{$endif arm}
+
         { Local Label, Label, Directive, Prefix or Opcode }
+{$ifdef arm}
+        if firsttoken and not(c in [#10,#13,';']) then
+{$else arm}
         if firsttoken and not(c in [#10,#13,'{',';']) then
+{$endif arm}
          begin
            firsttoken:=FALSE;
            len:=0;
@@ -560,6 +570,30 @@ unit raatt;
                  exit;
                end;
 
+             '#' :
+               begin
+                 actasmtoken:=AS_HASH;
+                 c:=current_scanner.asmgetchar;
+                 exit;
+               end;
+
+{$ifdef arm}
+             // the arm assembler uses { ... } for register sets
+             '{' :
+               begin
+                 actasmtoken:=AS_LSBRACKET;
+                 c:=current_scanner.asmgetchar;
+                 exit;
+               end;
+
+             '}' :
+               begin
+                 actasmtoken:=AS_RSBRACKET;
+                 c:=current_scanner.asmgetchar;
+                 exit;
+               end;
+{$endif arm}
+
              ',' :
                begin
                  actasmtoken:=AS_COMMA;
@@ -656,7 +690,10 @@ unit raatt;
                  exit;
                end;
 
-             '{',#13,#10,';' :
+{$ifndef arm}
+             '{',
+{$endif arm}
+             #13,#10,';' :
                begin
                  { the comment is read by asmgetchar }
                  c:=current_scanner.asmgetchar;
@@ -1421,7 +1458,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2003-11-15 19:00:10  florian
+  Revision 1.3  2003-11-17 23:23:47  florian
+    + first part of arm assembler reader
+
+  Revision 1.2  2003/11/15 19:00:10  florian
     * fixed ppc assembler reader
 
   Revision 1.1  2003/11/12 16:05:39  florian

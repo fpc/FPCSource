@@ -141,7 +141,7 @@ unit cpubase;
           or floating point single }
         PF_S,
         { floating point size }
-        PF_D,PF_E,PF_P,FP_EP,
+        PF_D,PF_E,PF_P,PF_EP,
         { load/store }
         PF_B,PF_SB,PF_BT,PF_H,PF_SH,PF_T,
         { multiple load/store address modes }
@@ -564,7 +564,10 @@ unit cpubase;
 end.
 {
   $Log$
-  Revision 1.17  2003-11-02 14:30:03  florian
+  Revision 1.18  2003-11-17 23:23:47  florian
+    + first part of arm assembler reader
+
+  Revision 1.17  2003/11/02 14:30:03  florian
     * fixed ARM for new reg. allocation scheme
 
   Revision 1.16  2003/10/31 08:40:51  mazen

@@ -209,6 +209,9 @@ uses
 {$ifdef powerpc}
   ,rappcgas
 {$endif powerpc}
+{$ifdef arm}
+  ,raarmgas
+{$endif arm}
   ;
 
 function Compile(const cmd:string):longint;
@@ -417,7 +420,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.41  2003-11-12 16:05:39  florian
+  Revision 1.42  2003-11-17 23:23:47  florian
+    + first part of arm assembler reader
+
+  Revision 1.41  2003/11/12 16:05:39  florian
     * assembler readers OOPed
     + typed currency constants
     + typed 128 bit float constants if the CPU supports it

@@ -111,7 +111,9 @@ type
     constructor create(optype : tcoperand);virtual;
     destructor  destroy;override;
     Procedure BuildOpcode;virtual;abstract;
-    procedure ConcatInstruction(p:TAAsmoutput);virtual;
+    { converts the instruction to an instruction how it's used by the assembler writer
+      and concats it to the passed list, the newly created item is returned }
+    function ConcatInstruction(p:TAAsmoutput) : tai;virtual;
     Procedure Swapoperands;
   end;
 
@@ -1097,7 +1099,7 @@ Begin
 end;
 
 
-  procedure TInstruction.ConcatInstruction(p:TAAsmoutput);
+  function TInstruction.ConcatInstruction(p:TAAsmoutput) : tai;
     var
       ai   : taicpu;
       i : longint;
@@ -1122,12 +1124,12 @@ end;
          end;
        end;
      ai.SetCondition(condition);
-
      { Concat the opcode or give an error }
       if assigned(ai) then
          p.concat(ai)
       else
        Message(asmr_e_invalid_opcode_and_operand);
+      result:=ai;
     end;
 
 
@@ -1616,7 +1618,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.77  2003-11-12 16:05:39  florian
+  Revision 1.78  2003-11-17 23:23:47  florian
+    + first part of arm assembler reader
+
+  Revision 1.77  2003/11/12 16:05:39  florian
     * assembler readers OOPed
     + typed currency constants
     + typed 128 bit float constants if the CPU supports it

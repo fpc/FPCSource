@@ -70,6 +70,8 @@ interface
             ,asmmode_i386_intel
             ,asmmode_ppc_gas
             ,asmmode_ppc_motorola
+            ,asmmode_arm_gas
+            ,asmmode_sparc_gas
        );
 
      (* IMPORTANT NOTE:
@@ -646,7 +648,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.72  2003-11-12 16:05:39  florian
+  Revision 1.73  2003-11-17 23:23:47  florian
+    + first part of arm assembler reader
+
+  Revision 1.72  2003/11/12 16:05:39  florian
     * assembler readers OOPed
     + typed currency constants
     + typed 128 bit float constants if the CPU supports it

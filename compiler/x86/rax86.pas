@@ -58,7 +58,7 @@ type
     procedure CheckNonCommutativeOpcodes;
     procedure SwapOperands;
     { opcode adding }
-    procedure ConcatInstruction(p : taasmoutput);override;
+    function ConcatInstruction(p : taasmoutput) : tai;override;
   end;
 
 const
@@ -487,7 +487,7 @@ end;
                               opcode Adding
 *****************************************************************************}
 
-procedure T386Instruction.ConcatInstruction(p : taasmoutput);
+function T386Instruction.ConcatInstruction(p : taasmoutput) : tai;
 var
   siz  : topsize;
   i,asize : longint;
@@ -727,12 +727,16 @@ begin
    end
   else
    Message(asmr_e_invalid_opcode_and_operand);
+  result:=ai;
 end;
 
 end.
 {
   $Log$
-  Revision 1.14  2003-11-12 16:05:40  florian
+  Revision 1.15  2003-11-17 23:23:47  florian
+    + first part of arm assembler reader
+
+  Revision 1.14  2003/11/12 16:05:40  florian
     * assembler readers OOPed
     + typed currency constants
     + typed 128 bit float constants if the CPU supports it

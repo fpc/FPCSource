@@ -51,7 +51,7 @@ unit agarmgas;
        systems,
        assemble,
        aasmcpu,
-       itarmgas,
+       itcpugas,
        cgbase;
 
     const
@@ -226,7 +226,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2003-11-07 15:58:32  florian
+  Revision 1.14  2003-11-17 23:23:47  florian
+    + first part of arm assembler reader
+
+  Revision 1.13  2003/11/07 15:58:32  florian
     * Florian's culmutative nr. 1; contains:
       - invalid calling conventions for a certain cpu are rejected
       - arm softfloat calling conventions
