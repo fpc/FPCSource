@@ -133,6 +133,8 @@ procedure TCompressionStream.CompressBuf(const InBuf: Pointer; InBytes: Integer;
 var
   strm: TZStream;
   P: Pointer;
+Type
+  PByte = ^Byte;
 begin
   FillChar(strm, sizeof(strm), 0);
   strm.zalloc := @zlibAllocMem;
@@ -151,7 +153,7 @@ begin
         P := OutBuf;
         Inc(OutBytes, 256);
         ReallocMem(OutBuf,OutBytes);
-        strm.next_out := PByte(Integer(OutBuf) + (Integer(strm.next_out) - Integer(P)));
+        strm.next_out := PChar(Integer(OutBuf) + (Integer(strm.next_out) - Integer(P)));
         strm.avail_out := 256;
       end;
     finally
@@ -172,6 +174,8 @@ var
   strm: TZStream;
   P: Pointer;
   BufInc: Integer;
+Type
+  PByte = ^Byte;
 begin
   FillChar(strm, sizeof(strm), 0);
   strm.zalloc := @zlibAllocMem;
@@ -194,7 +198,7 @@ begin
         P := OutBuf;
         Inc(OutBytes, BufInc);
         ReallocMem(OutBuf, OutBytes);
-        strm.next_out := Pbyte(Integer(OutBuf) + (Integer(strm.next_out) - Integer(P)));
+        strm.next_out := Pchar(Integer(OutBuf) + (Integer(strm.next_out) - Integer(P)));
         strm.avail_out := BufInc;
       end;
     finally
