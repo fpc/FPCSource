@@ -361,6 +361,9 @@ implementation
                 aktprocdef.usedregisters:=rg.usedinproc;
                 procinfo.aktproccode.insertlist(procinfo.aktentrycode);
                 procinfo.aktproccode.concatlist(procinfo.aktexitcode);
+{$ifdef i386}
+                procinfo.aktproccode.convert_registers;
+{$endif}                
 {$ifndef NoOpt}
                 if (cs_optimize in aktglobalswitches) and
                 { do not optimize pure assembler procedures }
@@ -844,7 +847,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.89  2003-01-09 15:49:56  daniel
+  Revision 1.90  2003-01-09 20:40:59  daniel
+    * Converted some code in cgx86.pas to new register numbering
+
+  Revision 1.89  2003/01/09 15:49:56  daniel
     * Added register conversion
 
   Revision 1.88  2003/01/08 18:43:56  daniel

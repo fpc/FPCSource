@@ -1715,6 +1715,7 @@ uses
     
     var p:Tai;
         i:shortint;
+        r:Preference;
     
     begin
       p:=Tai(first);
@@ -1727,7 +1728,16 @@ uses
               begin
                 for i:=0 to Taicpu_abstract(p).ops-1 do
                   if Taicpu_abstract(p).oper[i].typ=Top_reg then
-                    convert_register_to_enum(Taicpu_abstract(p).oper[i].reg);
+                    convert_register_to_enum(Taicpu_abstract(p).oper[i].reg)
+                  else if Taicpu_abstract(p).oper[i].typ=Top_ref then
+                    begin
+                      r:=Taicpu_abstract(p).oper[i].ref;
+                   {$ifdef i386}
+                      convert_register_to_enum(r^.segment);
+                   {$endif i386}
+                      convert_register_to_enum(r^.base);
+                      convert_register_to_enum(r^.index);
+                    end;
               {$ifdef i386}
                 convert_register_to_enum(Taicpu_abstract(p).segprefix);
               {$endif}
@@ -1740,7 +1750,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.17  2003-01-09 15:49:56  daniel
+  Revision 1.18  2003-01-09 20:40:59  daniel
+    * Converted some code in cgx86.pas to new register numbering
+
+  Revision 1.17  2003/01/09 15:49:56  daniel
     * Added register conversion
 
   Revision 1.16  2003/01/08 18:43:56  daniel

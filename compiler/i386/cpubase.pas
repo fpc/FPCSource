@@ -279,6 +279,9 @@ uses
         S_D,S_D,S_D,S_D,S_D,S_D,S_D,S_D,
         S_D,S_D,S_D,S_D,S_D,S_D,S_D,S_D
       );
+      
+      {Converts subregister number to opsize}
+      subreg2opsize:array[0..4] of Topsize = (S_B,S_B,S_W,S_L,S_D);
 
       {# Standard opcode string table (for each tasmop enumeration). The
          opcode strings should conform to the names as defined by the
@@ -708,7 +711,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.38  2003-01-09 15:49:56  daniel
+  Revision 1.39  2003-01-09 20:41:00  daniel
+    * Converted some code in cgx86.pas to new register numbering
+
+  Revision 1.38  2003/01/09 15:49:56  daniel
     * Added register conversion
 
   Revision 1.37  2003/01/08 22:32:36  daniel

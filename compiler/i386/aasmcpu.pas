@@ -395,8 +395,6 @@ implementation
          inherited create(op);
          init(_size);
          ops:=1;
-         if _op1.enum>lastreg then
-           internalerror(200301081);
          loadreg(0,_op1);
       end;
 
@@ -424,10 +422,6 @@ implementation
          inherited create(op);
          init(_size);
          ops:=2;
-         if _op1.enum>lastreg then
-           internalerror(200301081);
-         if _op2.enum>lastreg then
-           internalerror(200301081);
          loadreg(0,_op1);
          loadreg(1,_op2);
       end;
@@ -438,8 +432,6 @@ implementation
          inherited create(op);
          init(_size);
          ops:=2;
-         if _op1.enum>lastreg then
-           internalerror(200301081);
          loadreg(0,_op1);
          loadconst(1,_op2);
       end;
@@ -450,8 +442,6 @@ implementation
          inherited create(op);
          init(_size);
          ops:=2;
-         if _op1.enum>lastreg then
-           internalerror(200301081);
          loadreg(0,_op1);
          loadref(1,_op2);
       end;
@@ -462,8 +452,6 @@ implementation
          inherited create(op);
          init(_size);
          ops:=2;
-         if _op2.enum>lastreg then
-           internalerror(200301081);
          loadconst(0,_op1);
          loadreg(1,_op2);
       end;
@@ -494,8 +482,6 @@ implementation
          inherited create(op);
          init(_size);
          ops:=2;
-         if _op2.enum>lastreg then
-           internalerror(200301081);
          loadref(0,_op1);
          loadreg(1,_op2);
       end;
@@ -506,12 +492,6 @@ implementation
          inherited create(op);
          init(_size);
          ops:=3;
-         if _op1.enum>lastreg then
-           internalerror(200301081);
-         if _op2.enum>lastreg then
-           internalerror(200301081);
-         if _op3.enum>lastreg then
-           internalerror(200301081);
          loadreg(0,_op1);
          loadreg(1,_op2);
          loadreg(2,_op3);
@@ -523,10 +503,6 @@ implementation
          inherited create(op);
          init(_size);
          ops:=3;
-         if _op2.enum>lastreg then
-           internalerror(200301081);
-         if _op3.enum>lastreg then
-           internalerror(200301081);
          loadconst(0,_op1);
          loadreg(1,_op2);
          loadreg(2,_op3);
@@ -538,10 +514,6 @@ implementation
          inherited create(op);
          init(_size);
          ops:=3;
-         if _op1.enum>lastreg then
-           internalerror(200301081);
-         if _op2.enum>lastreg then
-           internalerror(200301081);
          loadreg(0,_op1);
          loadreg(1,_op2);
          loadref(2,_op3);
@@ -555,8 +527,6 @@ implementation
          ops:=3;
          loadconst(0,_op1);
          loadref(1,_op2);
-         if _op3.enum>lastreg then
-           internalerror(200301081);
          loadreg(2,_op3);
       end;
 
@@ -567,8 +537,6 @@ implementation
          init(_size);
          ops:=3;
          loadconst(0,_op1);
-         if _op2.enum>lastreg then
-           internalerror(200301081);
          loadreg(1,_op2);
          loadref(2,_op3);
       end;
@@ -608,8 +576,6 @@ implementation
          init(_size);
          ops:=2;
          loadsymbol(0,_op1,_op1ofs);
-         if _op2.enum>lastreg then
-           internalerror(200301081);
          loadreg(1,_op2);
       end;
 
@@ -1930,7 +1896,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  2003-01-08 18:43:57  daniel
+  Revision 1.11  2003-01-09 20:40:59  daniel
+    * Converted some code in cgx86.pas to new register numbering
+
+  Revision 1.10  2003/01/08 18:43:57  daniel
    * Tregister changed into a record
 
   Revision 1.9  2003/01/05 13:36:53  florian

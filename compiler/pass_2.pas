@@ -326,16 +326,16 @@ implementation
                 procinfo.procdef.fpu_used:=p.registersfpu;
 
            end;
-      {$ifdef i386}
-         exprasmlist.convert_registers;
-      {$endif}
          procinfo.aktproccode.concatlist(exprasmlist);
       end;
 
 end.
 {
   $Log$
-  Revision 1.42  2003-01-09 15:49:56  daniel
+  Revision 1.43  2003-01-09 20:40:59  daniel
+    * Converted some code in cgx86.pas to new register numbering
+
+  Revision 1.42  2003/01/09 15:49:56  daniel
     * Added register conversion
 
   Revision 1.41  2002/12/22 14:35:39  peter

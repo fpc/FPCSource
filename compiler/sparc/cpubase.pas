@@ -238,6 +238,7 @@ TYPE
 
   { immediate/reference record }
   poperreference = ^treference;
+  Preference=^Treference;
   treference = packed record
      segment,
      base,
@@ -547,7 +548,10 @@ END.
 
 {
   $Log$
-  Revision 1.19  2003-01-09 15:49:56  daniel
+  Revision 1.20  2003-01-09 20:41:00  daniel
+    * Converted some code in cgx86.pas to new register numbering
+
+  Revision 1.19  2003/01/09 15:49:56  daniel
     * Added register conversion
 
   Revision 1.18  2003/01/08 18:43:58  daniel

@@ -301,7 +301,7 @@ unit cgx86;
         regsize_2_cgsize: array[S_B..S_L] of tcgsize = (OS_8,OS_16,OS_32);
       begin
         if reg.enum>lastreg then
-          internalerror(200201081);
+          internalerror(200301081);
         result := regsize_2_cgsize[reg2opsize[reg.enum]];
       end;
 
@@ -388,9 +388,9 @@ unit cgx86;
         if r.segment.enum<>R_NO then
           CGMessage(cg_e_cant_use_far_pointer_there);
         if r.base.enum>lastreg then
-          internalerror(200201081);
+          internalerror(200301081);
         if r.index.enum>lastreg then
-          internalerror(200201081);
+          internalerror(200301081);
         if (r.base.enum=R_NO) and (r.index.enum=R_NO) then
           begin
             if assigned(r.symbol) then
@@ -463,12 +463,14 @@ unit cgx86;
 
       var
         op: tasmop;
-        s: topsize;
+        o,s: topsize;
 
       begin
-        if reg.enum>lastreg then
-          internalerror(200301081);
-        sizes2load(size,reg2opsize[reg.enum],op,s);
+        if reg.enum=R_INTREGISTER then
+          o:=subreg2opsize[reg.number and $ff]
+        else
+          o:=reg2opsize[reg.enum];
+        sizes2load(size,o,op,s);
         list.concat(taicpu.op_ref_reg(op,s,ref,reg));
       end;
 
@@ -480,10 +482,6 @@ unit cgx86;
         s: topsize;
 
       begin
-        if reg1.enum>lastreg then
-          internalerror(200301081);
-        if reg2.enum>lastreg then
-          internalerror(200301081);
         sizes2load(fromsize,reg2opsize[reg2.enum],op,s);
         if (rg.makeregsize(reg1,OS_INT).enum = rg.makeregsize(reg2,OS_INT).enum) then
          begin
@@ -529,10 +527,6 @@ unit cgx86;
     procedure tcgx86.a_loadfpu_reg_reg(list: taasmoutput; reg1, reg2: tregister);
 
        begin
-         if reg1.enum>lastreg then
-            internalerror(200301081);
-         if reg2.enum>lastreg then
-            internalerror(200301081);
          if (reg1.enum <> R_ST) then
            begin
              list.concat(taicpu.op_reg(A_FLD,S_NO,
@@ -1474,6 +1468,7 @@ unit cgx86;
     var r:Tregister;
 
     begin
+        r.enum:=R_INTREGISTER;
         r.enum:=R_GS;
         { .... also the segment registers }
         list.concat(Taicpu.Op_reg(A_PUSH,S_W,r));
@@ -1504,50 +1499,51 @@ unit cgx86;
     var r:Tregister;
 
       begin
+        r.enum:=R_INTREGISTER;
         if accused then
           begin
-            r.enum:=R_ESP;
+            r.number:=NR_ESP;
             list.concat(Taicpu.Op_const_reg(A_ADD,S_L,4,r))
           end
         else
          begin
-           r.enum:=R_EAX;
+           r.number:=NR_EAX;
            list.concat(Taicpu.Op_reg(A_POP,S_L,r));
          end;
-        r.enum:=R_EBX;
+        r.number:=NR_EBX;
         list.concat(Taicpu.Op_reg(A_POP,S_L,r));
-        r.enum:=R_ECX;
+        r.number:=NR_ECX;
         list.concat(Taicpu.Op_reg(A_POP,S_L,r));
         if acchiused then
           begin
-             r.enum:=R_ESP;
+             r.number:=NR_ESP;
              list.concat(Taicpu.Op_const_reg(A_ADD,S_L,4,r))
           end
         else
           begin
-             r.enum:=R_EDX;
+             r.number:=NR_EDX;
              list.concat(Taicpu.Op_reg(A_POP,S_L,r));
           end;
         if selfused then
           begin
-             r.enum:=R_ESP;
+             r.number:=NR_ESP;
              list.concat(Taicpu.Op_const_reg(A_ADD,S_L,4,r))
           end
         else
           begin
-             r.enum:=R_ESI;
+             r.number:=NR_ESI;
              list.concat(Taicpu.Op_reg(A_POP,S_L,r));
           end;
-        r.enum:=R_EDI;
+        r.number:=NR_EDI;
         list.concat(Taicpu.Op_reg(A_POP,S_L,r));
         { .... also the segment registers }
-        r.enum:=R_DS;
+        r.number:=NR_DS;
         list.concat(Taicpu.Op_reg(A_POP,S_W,r));
-        r.enum:=R_ES;
+        r.number:=NR_ES;
         list.concat(Taicpu.Op_reg(A_POP,S_W,r));
-        r.enum:=R_FS;
+        r.number:=NR_FS;
         list.concat(Taicpu.Op_reg(A_POP,S_W,r));
-        r.enum:=R_GS;
+        r.number:=NR_GS;
         list.concat(Taicpu.Op_reg(A_POP,S_W,r));
         { this restores the flags }
         list.concat(Taicpu.Op_none(A_IRET,S_NO));
@@ -1571,7 +1567,8 @@ unit cgx86;
                 list.concat(Tai_label.Create(pl));
                 list.concat(Tai_const.Create_32bit(0));
                 list.concat(Tai_section.Create(sec_code));
-                r.enum:=R_EDX;
+                r.enum:=R_INTREGISTER;
+                r.number:=NR_EDX;
                 list.concat(Taicpu.Op_sym_ofs_reg(A_MOV,S_L,pl,0,r));
                 a_call_name(list,target_info.Cprefix+'mcount');
                 include(rg.usedinproc,R_EDX);
@@ -1592,7 +1589,9 @@ unit cgx86;
         again : tasmlabel;
         r,rsp : Tregister;
       begin
-        rsp.enum:=R_ESP;
+        r.enum:=R_INTREGISTER;
+        rsp.enum:=R_INTREGISTER;
+        rsp.number:=NR_ESP;
         if localsize>0 then
          begin
 {$ifndef NOTARGETWIN32}
@@ -1609,20 +1608,20 @@ unit cgx86;
                          reference_reset_base(href,rsp,localsize-i*winstackpagesize);
                          list.concat(Taicpu.op_const_ref(A_MOV,S_L,0,href));
                       end;
-                    r.enum:=R_EAX;
+                    r.number:=NR_EAX;
                     list.concat(Taicpu.op_reg(A_PUSH,S_L,r));
                  end
                else
                  begin
                     objectlibrary.getlabel(again);
-                    r.enum:=R_EDI;
+                    r.number:=NR_EDI;
                     rg.getexplicitregisterint(list,R_EDI);
                     list.concat(Taicpu.op_const_reg(A_MOV,S_L,localsize div winstackpagesize,r));
                     a_label(list,again);
                     list.concat(Taicpu.op_const_reg(A_SUB,S_L,winstackpagesize-4,rsp));
-                    r.enum:=R_EAX;
+                    r.number:=NR_EAX;
                     list.concat(Taicpu.op_reg(A_PUSH,S_L,r));
-                    r.enum:=R_EDI;
+                    r.number:=NR_EDI;
                     list.concat(Taicpu.op_reg(A_DEC,S_L,r));
                     a_jmp_cond(list,OC_NE,again);
                     rg.ungetregisterint(list,r);
@@ -1641,8 +1640,10 @@ unit cgx86;
     var r,rsp:Tregister;
 
     begin
-        r.enum:=R_EBP;
-        rsp.enum:=R_ESP;
+        r.enum:=R_INTREGISTER;
+        r.number:=NR_EBP;
+        rsp.enum:=R_INTREGISTER;
+        rsp.number:=NR_ESP;
         list.concat(Taicpu.Op_reg(A_PUSH,S_L,r));
         list.concat(Taicpu.Op_reg_reg(A_MOV,S_L,rsp,r));
         if localsize>0 then
@@ -1712,6 +1713,7 @@ unit cgx86;
         r : Tregister;
 
       begin
+        r.enum:=R_INTREGISTER;
         if is_class(procinfo._class) then
          begin
            a_call_name(list,'FPC_DISPOSE_CLASS')
@@ -1722,17 +1724,18 @@ unit cgx86;
            if procinfo._class.needs_inittable then
             begin
               objectlibrary.getlabel(nofinal);
-              r.enum:=R_EBP;
+              r.number:=NR_EBP;
               reference_reset_base(href,r,8);
               a_cmp_const_ref_label(list,OS_ADDR,OC_EQ,0,href,nofinal);
-              r.enum:=R_ESI;
+              r.number:=NR_ESI;
               reference_reset_base(href,r,0);
               g_finalize(list,procinfo._class,href,false);
               a_label(list,nofinal);
             end;
            rg.getexplicitregisterint(list,R_EDI);
-           r.enum:=R_EDI;
+           r.number:=NR_EDI;
            a_load_const_reg(list,OS_ADDR,procinfo._class.vmt_offset,r);
+           r.enum:=R_EDI;
            rg.ungetregisterint(list,r);
            a_call_name(list,'FPC_HELP_DESTRUCTOR')
          end
@@ -1745,22 +1748,24 @@ unit cgx86;
         href : treference;
         r : Tregister;
       begin
+        r.enum:=R_INTREGISTER;
         if is_class(procinfo._class) then
           begin
             reference_reset_base(href,procinfo.framepointer,8);
-            r.enum:=R_ESI;
+            r.number:=NR_ESI;
             a_load_ref_reg(list,OS_ADDR,href,r);
             a_call_name(list,'FPC_HELP_FAIL_CLASS');
           end
         else if is_object(procinfo._class) then
           begin
             reference_reset_base(href,procinfo.framepointer,12);
-            r.enum:=R_ESI;
+            r.number:=NR_ESI;
             a_load_ref_reg(list,OS_ADDR,href,r);
             rg.getexplicitregisterint(list,R_EDI);
-            r.enum:=R_EDI;
+            r.number:=NR_EDI;
             a_load_const_reg(list,OS_ADDR,procinfo._class.vmt_offset,r);
             a_call_name(list,'FPC_HELP_FAIL');
+            r.enum:=R_EDI;
             rg.ungetregisterint(list,r);
           end
         else
@@ -1774,12 +1779,13 @@ unit cgx86;
     var r:Tregister;
 
     begin
-        r.enum:=R_EBX;
+        r.enum:=R_INTREGISTER;
+        r.number:=NR_EBX;
         if (R_EBX in usedinproc) then
           list.concat(Taicpu.Op_reg(A_PUSH,S_L,r));
-        r.enum:=R_ESI;
+        r.number:=NR_ESI;
         list.concat(Taicpu.Op_reg(A_PUSH,S_L,r));
-        r.enum:=R_EDI;
+        r.number:=NR_EDI;
         list.concat(Taicpu.Op_reg(A_PUSH,S_L,r));
     end;
 
@@ -1789,11 +1795,12 @@ unit cgx86;
     var r:Tregister;
 
     begin
-        r.enum:=R_EDI;
+        r.enum:=R_INTREGISTER;
+        r.number:=NR_EDI;
         list.concat(Taicpu.Op_reg(A_POP,S_L,r));
-        r.enum:=R_ESI;
+        r.number:=NR_ESI;
         list.concat(Taicpu.Op_reg(A_POP,S_L,r));
-        r.enum:=R_EBX;
+        r.number:=NR_EBX;
         if (R_EBX in usedinproc) then
          list.concat(Taicpu.Op_reg(A_POP,S_L,r));
     end;
@@ -1810,23 +1817,25 @@ unit cgx86;
         href : treference;
         r,rsp: Tregister;
       begin
-        rsp.enum:=R_ESP;
+        rsp.enum:=R_INTREGISTER;
+        rsp.number:=NR_ESP;
+        r.enum:=R_INTREGISTER;
         if selfused then
          begin
            reference_reset_base(href,rsp,4);
-           r.enum:=R_ESI;
+           r.number:=NR_ESI;
            list.concat(Taicpu.Op_reg_ref(A_MOV,S_L,r,href));
          end;
         if acchiused then
          begin
            reference_reset_base(href,rsp,20);
-           r.enum:=R_EDX;
+           r.number:=NR_EDX;
            list.concat(Taicpu.Op_reg_ref(A_MOV,S_L,r,href));
          end;
         if accused then
          begin
            reference_reset_base(href,rsp,28);
-           r.enum:=R_EAX;
+           r.number:=NR_EAX;
            list.concat(Taicpu.Op_reg_ref(A_MOV,S_L,r,href));
          end;
         list.concat(Taicpu.Op_none(A_POPA,S_L));
@@ -1865,7 +1874,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.27  2003-01-08 18:43:58  daniel
+  Revision 1.28  2003-01-09 20:41:00  daniel
+    * Converted some code in cgx86.pas to new register numbering
+
+  Revision 1.27  2003/01/08 18:43:58  daniel
    * Tregister changed into a record
 
   Revision 1.26  2003/01/05 13:36:53  florian
