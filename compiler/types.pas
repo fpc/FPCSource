@@ -549,6 +549,8 @@ implementation
              end;
            enumdef :
              is_signed:=penumdef(def)^.min < 0;
+           arraydef :
+             is_signed:=is_signed(parraydef(def)^.rangetype.def);
            else
              is_signed:=false;
          end;
@@ -1741,7 +1743,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.34  2001-02-26 19:44:55  peter
+  Revision 1.35  2001-03-03 12:38:33  jonas
+    + support for arraydefs in is_signed (for their rangetype, used in rangechecks)
+
+  Revision 1.34  2001/02/26 19:44:55  peter
     * merged generic m68k updates from fixes branch
 
   Revision 1.33  2001/02/26 12:47:46  jonas
