@@ -22,6 +22,7 @@ unit syswin32;
 interface
 
 { include system-independent routine headers }
+{$ASMMODE ATT}
 
 {$I systemh.inc}
 
@@ -183,12 +184,12 @@ begin
         subl    %ebx,%eax
         movl    stacklimit,%ebx
         cmpl    %eax,%ebx
-        jae     __short_on_stack
+        jae     .L__short_on_stack
         popl    %ebx
         popl    %eax
         leave
         ret     $4
-__short_on_stack:
+.L__short_on_stack:
         { can be usefull for error recovery !! }
         popl    %ebx
         popl    %eax
@@ -240,7 +241,13 @@ end;
      external 'kernel32' name 'GlobalSize';
 {$endif}
 
-{$ASMMODE DIRECT}
+{$ifdef NEWATT}
+var heap : longint;external name 'HEAP';
+var intern_heapsize : longint;external name 'HEAPSIZE';
+{$else NEWATT}
+{$asmmode direct}
+{$endif def NEWATT}
+
 function getheapstart:pointer;assembler;
 asm
         leal    HEAP,%eax
@@ -249,9 +256,12 @@ end ['EAX'];
 
 function getheapsize:longint;assembler;
 asm
+{$ifdef NEWATT}
+        movl    intern_HEAPSIZE,%eax
+{$else}
         movl    HEAPSIZE,%eax
+{$endif}
 end ['EAX'];
-{$ASMMODE ATT}
 
 
 function Sbrk(size : longint):longint;
@@ -720,6 +730,10 @@ end;
 {$endif}
 
   procedure install_exception_handlers;forward;
+{$ifdef NEWATT}
+  procedure PascalMain;external name 'PASCALMAIN';
+  procedure fpc_do_exit;external name 'FPC_DO_EXIT';
+{$endif def NEWATT}
 
 
 var
@@ -735,7 +749,6 @@ procedure Exe_entry;[public, alias : '_FPC_EXE_Entry'];
      install_exception_handlers;
      { This strange construction is needed to solve the _SS problem
        with a smartlinked syswin32 (PFV) }
-{$ASMMODE ATT}
      asm
         pushl %ebp
         xorl %ebp,%ebp
@@ -743,7 +756,9 @@ procedure Exe_entry;[public, alias : '_FPC_EXE_Entry'];
         movl %ebp,_SS
         xorl %ebp,%ebp
      end;
+{$ifndef NEWATT}
 {$ASMMODE DIRECT}
+{$endif ndef NEWATT}
      asm
         call PASCALMAIN
         popl %ebp
@@ -752,6 +767,7 @@ procedure Exe_entry;[public, alias : '_FPC_EXE_Entry'];
      ExitProcess(0);
   end;
 
+{$ASMMODE ATT}
 
 procedure Dll_entry;[public, alias : '_FPC_DLL_Entry'];
   begin
@@ -759,14 +775,15 @@ procedure Dll_entry;[public, alias : '_FPC_DLL_Entry'];
      case DLLreason of
        1,2 :
          begin
-{$ASMMODE ATT}
            asm
              xorl %edi,%edi
              movw %ss,%di
-             movl %edi,_SS
            end;
+{$ifndef NEWATT}
 {$ASMMODE DIRECT}
+{$endif ndef NEWATT}
            asm
+             movl %edi,_SS
              call PASCALMAIN
            end;
          end
@@ -778,8 +795,8 @@ procedure Dll_entry;[public, alias : '_FPC_DLL_Entry'];
          end;
      end;
   end;
-{$ASMMODE ATT}
 
+{$ASMMODE ATT}
 
 {$ifdef Set_i386_Exception_handler}
 
@@ -977,7 +994,10 @@ end.
 
 {
   $Log$
-  Revision 1.34  1999-03-10 22:15:31  florian
+  Revision 1.35  1999-03-12 00:07:48  pierre
+   + code for coff writer
+
+  Revision 1.34  1999/03/10 22:15:31  florian
     + system.cmdline variable for go32v2 and win32 added
 
   Revision 1.33  1999/01/18 10:05:57  pierre
