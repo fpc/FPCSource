@@ -1470,10 +1470,7 @@ implementation
         srprocsym  : tprocsym;
         srsymtable : tsymtable;
       begin
-        if fileinfo.line=300 then
-            result:=nil;
          result:=nil;
-
          procs:=nil;
 
          oldcallprocdef:=aktcallprocdef;
@@ -2140,10 +2137,12 @@ implementation
              goto errorexit;
            end;
 
+{$ifdef dummy}
          { Calling a message method directly ? }
          if assigned(procdefinition) and
             (po_containsself in procdefinition.procoptions) then
            message(cg_e_cannot_call_message_direct);
+{$endif}
 
          { ensure that the result type is set }
          if not restypeset then
@@ -2594,7 +2593,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.90  2002-09-01 08:01:16  daniel
+  Revision 1.91  2002-09-01 12:14:15  peter
+    * remove debug line
+    * containself methods can be called directly
+
+  Revision 1.90  2002/09/01 08:01:16  daniel
    * Removed sets from Tcallnode.det_resulttype
    + Added read/write notifications of variables. These will be usefull
      for providing information for several optimizations. For example
