@@ -65,7 +65,11 @@ Type
     Sec   : word;
   End;
 
-Var
+{$ifdef HASTHREADVAR}
+threadvar
+{$else HASTHREADVAR}
+var
+{$endif HASTHREADVAR}
   DosError : integer;
 
 {$ifdef cpui386}
@@ -121,3 +125,19 @@ Procedure SwapVectors;
 Procedure GetIntVec(intno: byte; var vector: pointer);
 Procedure SetIntVec(intno: byte; vector: pointer);
 Procedure Keep(exitcode: word);
+
+
+{
+  $Log$
+  Revision 1.4  2004-05-03 18:00:24  hajny
+    * another global var to threadvar change, plus CVS log added
+
+  Revision 1.3  2004/02/15 21:34:06  hajny
+    * overloaded ExecuteProcess added, EnvStr param changed to longint
+
+  Revision 1.2  2004/02/09 18:33:26  florian
+    * intr and msdos for non i386 targets disabled
+
+  Revision 1.1  2004/02/09 12:03:16  michael
+    + Switched to single interface in dosh.inc
+}
