@@ -997,6 +997,13 @@ implementation
                     gotderef then
                   result:=true
                  else
+                 { Temp strings are stored in memory, for compatibility with
+                   delphi only }
+                   if (m_delphi in aktmodeswitches) and
+                      (valid_addr in opts) and
+                      (hp.resulttype.def.deftype=stringdef) then
+                     result:=true
+                 else
                   CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
                  exit;
                end;
@@ -1045,6 +1052,13 @@ implementation
                  if (gotpointer and gotderef) or
                     (gotclass and (gotsubscript or gotwith)) then
                   result:=true
+                 else
+                 { Temp strings are stored in memory, for compatibility with
+                   delphi only }
+                   if (m_delphi in aktmodeswitches) and
+                      (valid_addr in opts) and
+                      (hp.resulttype.def.deftype=stringdef) then
+                     result:=true
                  else
                   CGMessagePos(hp.fileinfo,errmsg);
                  exit;
@@ -1617,7 +1631,7 @@ implementation
                           ' l2: '+tostr(hp^.cl2_count)+
                           ' l3: '+tostr(hp^.cl3_count)+
                           ' oper: '+tostr(hp^.coper_count)+
-                          ' ord: '+realtostr(hp^.exact_count));
+                          ' ord: '+realtostr(hp^.ordinal_distance));
               { Print parameters in left-right order }
               for i:=0 to hp^.data.paras.count-1 do
                begin
@@ -1638,6 +1652,7 @@ implementation
         currpara : tparavarsym;
         paraidx  : integer;
         currparanr : byte;
+        rfh,rth  : bestreal;
         def_from,
         def_to   : tdef;
         currpt,
@@ -1719,8 +1734,15 @@ implementation
                    eq:=te_equal;
                    hp^.ordinal_distance:=hp^.ordinal_distance+
                      abs(bestreal(torddef(def_from).low)-bestreal(torddef(def_to).low));
-                   hp^.ordinal_distance:=hp^.ordinal_distance+
-                     abs(bestreal(torddef(def_to).high)-bestreal(torddef(def_from).high));
+                   if (torddef(def_to).typ=u64bit) then
+                     rth:=bestreal(qword(torddef(def_to).high))
+                   else
+                     rth:=bestreal(torddef(def_to).high);
+                   if (torddef(def_from).typ=u64bit) then
+                     rfh:=bestreal(qword(torddef(def_from).high))
+                   else
+                     rfh:=bestreal(torddef(def_from).high);
+                   hp^.ordinal_distance:=hp^.ordinal_distance+abs(rth-rfh);
                    { Give wrong sign a small penalty, this is need to get a diffrence
                      from word->[longword,longint] }
                    if is_signed(def_from)<>is_signed(def_to) then
@@ -1995,7 +2017,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.111  2005-01-19 23:23:12  florian
+  Revision 1.112  2005-01-25 18:49:45  peter
+    * fix overload choosing with an qword overload
+    * allow to get the address of string temps in delphi mode
+
+  Revision 1.111  2005/01/19 23:23:12  florian
     * taking the address of a resourcestring is allowed now
 
   Revision 1.110  2005/01/19 22:19:41  peter
