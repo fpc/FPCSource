@@ -213,7 +213,11 @@ unit ag386bin;
           end;
         { external bss need speical handling (PM) }
         if assigned(ps) and (ps^.section=sec_none) then
-          objectoutput^.WriteSymStabs(sec,ofs,hp,ps,nidx,nother,line,reloc)
+          begin
+            if currpass<>1 then
+              objectoutput^.writesymbol(ps);
+            objectoutput^.WriteSymStabs(sec,ofs,hp,ps,nidx,nother,line,reloc)
+          end
         else
           objectoutput^.WriteStabs(sec,ofs,hp,nidx,nother,line,reloc);
         if assigned(hp) then
@@ -971,7 +975,10 @@ unit ag386bin;
 end.
 {
   $Log$
-  Revision 1.40  2000-03-09 14:29:47  pierre
+  Revision 1.41  2000-03-10 16:05:57  pierre
+   * generate allways symbol for stabs
+
+  Revision 1.40  2000/03/09 14:29:47  pierre
    * fix for the stab section size changes with smartlinking
 
   Revision 1.39  2000/03/09 10:07:18  pierre
