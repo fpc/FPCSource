@@ -129,53 +129,61 @@ begin
 end;
 
 
-procedure readdefref;
-var
-  w : word;
+Procedure ReadPosInfo;
 begin
-  w:=ppufile^.getword;
-  if w=$ffff then
-    begin
-       w:=ppufile^.getword;
-       if w=$ffff then
-        writeln('nil')
-       else
-        writeln('Local Definition Nr. ',w);
-    end
-  else if w=$fffe then
-    begin
-       w:=ppufile^.getword;
-       writeln('Static Definition Nr. ',w);
-    end
-  else if w>$8000 then
-    writeln('Local symtable ',w,'  Definition Nr. ',ppufile^.getword)
-  else
-    writeln('Unit ',w,'  Definition Nr. ',ppufile^.getword)
+  Writeln(ppufile^.getword,' (',ppufile^.getlongint,',',ppufile^.getword,')');
 end;
 
 
-procedure readsymref;
+procedure readderef(const s:string);
+type
+  tdereftype = (derefnil,derefaktrecordindex,derefaktstaticindex,derefunit,derefrecord,derefindex);
 var
-  w : word;
+  b : tdereftype;
 begin
-  w:=ppufile^.getword;
-  if w=$ffff then
-    begin
-       w:=ppufile^.getword;
-       if w=$ffff then
-        writeln('nil')
-       else
-        writeln('Local Symbol Nr. ',w)
-    end
-  else if w=$fffe then
-    begin
-       w:=ppufile^.getword;
-       writeln('Static Symbol Nr. ',w);
-    end
-  else if w>$8000 then
-    writeln('Local symtable ',w,'  Symbol Nr. ',ppufile^.getword)
-  else
-    writeln('Unit ',w,'  Symbol Nr. ',ppufile^.getword)
+  repeat
+    b:=tdereftype(ppufile^.getbyte);
+    case b of
+      derefnil :
+        begin
+          writeln('nil');
+          break;
+        end;
+      derefaktrecordindex :
+        begin
+          writeln('AktRecord ',s,' ',ppufile^.getword);
+          break;
+        end;
+      derefaktstaticindex :
+        begin
+          writeln('AktStatic ',s,' ',ppufile^.getword);
+          break;
+        end;
+      derefunit :
+        begin
+          writeln('Unit ',ppufile^.getword);
+          break;
+        end;
+      derefrecord :
+        begin
+          write('RecordDef ',ppufile^.getword,', ');
+        end;
+      derefindex :
+        begin
+          write(s,' ',ppufile^.getword,', ');
+        end;
+    end;
+  until false;
+end;
+
+procedure readdefref;
+begin
+  readderef('Definition');
+end;
+
+procedure readsymref;
+begin
+  readderef('Symbol');
 end;
 
 
@@ -277,6 +285,8 @@ begin
   symoptions:=ppufile^.getbyte;
   if symoptions<>0 then
    begin
+     write(space,'    File Pos: ');
+     readposinfo;
      write(space,'     Options: ');
      first:=true;
      for i:=1to symopts do
@@ -611,7 +621,10 @@ begin
              writeln(space,'           Number : ',getlongint);
              write  (space,'             Next : ');
              readdefref;
-             getlongint;
+             write  (space,'            Class : ');
+             readdefref;
+             write  (space,'         File Pos : ');
+             readposinfo;
            end;
 
          ibprocvardef :
@@ -707,13 +720,13 @@ begin
          ibclassrefdef :
            begin
              readcommondef('Class reference definition');
-             writeln(space,'    To definition : ');
+             write  (space,'    To definition : ');
              readdefref;
            end;
 
          ibsetdef :
            begin
-             writeln(space,'Set definition');
+             readcommondef('Set definition');
              write  (space,'     Element type : ');
              readdefref;
              b:=getbyte;
@@ -753,6 +766,7 @@ end;
 procedure readinterface;
 var
   b : byte;
+  sourcenumber,
   unitnumber : word;
   ucrc,uintfcrc : longint;
 begin
@@ -767,8 +781,12 @@ begin
 
          ibsourcefiles :
            begin
+             sourcenumber:=1;
              while not EndOfEntry do
-              Writeln('Source file: ',getstring);
+              begin
+                Writeln('Source file ',sourcenumber,' : ',getstring);
+                inc(sourcenumber);
+              end;
            end;
 
          ibloadunit :
@@ -1102,7 +1120,7 @@ end;
 
 procedure help;
 begin
-  writeln('usage: dumpppu [options] <filename1> <filename2>...');
+  writeln('usage: ppudump [options] <filename1> <filename2>...');
   writeln;
   writeln('[options] can be:');
   writeln('    -V<verbose>  Set verbosity to <verbose>');
@@ -1163,7 +1181,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  1999-05-12 16:11:39  peter
+  Revision 1.2  1999-05-14 17:52:04  peter
+    * new deref
+
+  Revision 1.1  1999/05/12 16:11:39  peter
     * moved
 
   Revision 1.31  1999/04/29 17:22:34  peter
