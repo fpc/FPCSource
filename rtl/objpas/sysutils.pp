@@ -50,6 +50,11 @@ type
       lo,hi : byte;
    end;
 
+   TMethod = packed record
+     Code, Data: Pointer;
+   end;
+
+
    { exceptions }
    exception = class(TObject)
     private
@@ -351,7 +356,10 @@ Finalization
 end.
 {
     $Log$
-    Revision 1.31  1999-08-28 14:53:27  florian
+    Revision 1.32  1999-09-15 20:26:30  florian
+      * patch from Sebastian Guenther applied: TMethod implementation
+
+    Revision 1.31  1999/08/28 14:53:27  florian
       * bug 471 fixed: run time error 2 is now converted into a file not
         found exception
 
