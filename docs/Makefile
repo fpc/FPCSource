@@ -51,7 +51,7 @@ endif
 ifndef LATEX2HTMLOPTS
 LATEX2HTMLOPTS = -no_reuse -up_url "../fpctoc.html"\
                  -up_title "Free Pascal manuals" -contents_in_navigation\
-                 -html_version 4.0 -split 3 -image_type gif
+                 -html_version 4.0 -split 3
 endif
 
 # Icons for latex2html
@@ -281,10 +281,29 @@ else
 	-t "User's guide for Free Pascal" user.htex
 	-sed -f foot.sed <user/footnode.html >user/footnote.html
 	-mv user/footnote.html user/footnode.html
+ifndef LEAVELOG
 	-rm -f user/labels.pl user/internals.pl user/.*.pag user/.*.dir
 	-rm -f user/images.* user/*.log user/WARNINGS
 endif
+endif
 	touch user.chk
+
+ide: ide.chk
+ide.chk: htex.chk date.inc
+ifdef INSTALLDEBUG
+	mkdir ide
+	cp ide.tex ide/index.html
+else
+	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 2 -link 2\
+	-t "IDE User's guide for Free Pascal" ide.htex
+	-sed -f foot.sed <ide/footnode.html >ide/footnote.html
+	-mv ide/footnote.html ide/footnode.html
+ifndef LEAVELOG
+	-rm -f ide/labels.pl ide/internals.pl ide/.*.pag ide/.*.dir
+	-rm -f ide/images.* ide/*.log ide/WARNINGS
+endif
+endif
+	touch ide.chk
 
 units: units.chk
 units.chk: unitex.chk htex.chk date.inc
@@ -296,7 +315,7 @@ else
 	-t "Unit reference for Free Pascal" units.htex
 	-sed -f foot.sed <units/footnode.html >units/footnote.html
 	-mv units/footnote.html units/footnode.html
-ifndef LOG
+ifndef LEAVELOG
 	-rm -f units/labels.pl units/internals.pl units/.*.pag units/.*.dir
 	-rm -f units/images.* units/*.log units/WARNINGS
 endif
@@ -313,7 +332,7 @@ else
 	-t "Free Pascal reference guide" ref.htex
 	-sed -f foot.sed <ref/footnode.html >ref/footnote.html
 	-mv ref/footnote.html ref/footnode.html
-ifndef LOG
+ifndef LEAVELOG
 	-rm -f ref/labels.pl ref/internals.pl ref/.*.pag ref/.*.dir
 	-rm -f ref/images.* ref/*.log ref/WARNINGS
 endif
@@ -330,7 +349,7 @@ else
 	-t "Free Pascal programmers guide" prog.htex
 	-sed -f foot.sed <prog/footnode.html >prog/footnote.html
 	-mv prog/footnote.html prog/footnode.html
-ifndef LOG
+ifndef LEAVELOG
 	-rm -f prog/labels.pl prog/internals.pl prog/.*.pag prog/.*.dir
 	-rm -f prog/images.* prog/*.log prog/WARNINGS
 endif
@@ -347,7 +366,7 @@ else
 	-t "Free Pascal Compiler Documentation" internal.htex
 	-sed -f foot.sed <internal/footnode.html >internal/footnote.html
 	-mv internal/footnote.html internal/footnode.html
-ifndef LOG
+ifndef LEAVELOG
 	-rm -f internal/labels.pl internal/internals.pl internal/.*.pag internal/.*.dir
 	-rm -f internal/images.* internal/*.log internal/WARNINGS
 endif
@@ -364,7 +383,7 @@ else
 	-t "Free Pascal reference guide" onechap.htex
 	-sed -f foot.sed <onechap/footnode.html >onechap/footnote.html
 	-mv onechap/footnote.html onechap/footnode.html
-ifndef LOG
+ifndef LEAVELOG
 	-rm -f onechap/labels.pl onechap/internals.pl onechap/.*.pag onechap/.*.dir
 	-rm -f onechap/images.* onechap/*.log onechap/WARNINGS
 endif
@@ -386,29 +405,14 @@ htmlinstall: html
 	install -d -m 755 $(DOCINSTALLDIR)
 	cp fpctoc.html $(DOCINSTALLDIR)
 	cp -R buttons $(DOCINSTALLDIR)
-	cp -R search $(DOCINSTALLDIR)
-	sed s/DOCDIR/"$(subst /,\/,$(DOCINSTALLDIR))"/ $(DOCINSTALLDIR)/search/fpchelp.idksm.linux > $(DOCINSTALLDIR)/search/fpchelp.idksm
-	cp -f $(DOCINSTALLDIR)/search/filelist.txt.linux $(DOCINSTALLDIR)/search/filelist.txt
-	rm -f $(DOCINSTALLDIR)/search/*.linux
+	cp -R pics $(DOCINSTALLDIR)
 	cp -R $(HTML) $(DOCINSTALLDIR)
+	rm -f `find $(DOCPREFIX) -name '*.gif' -or -name '*.eps'`
 	find $(DOCINSTALLDIR) -name 'CVS' | xargs -n1 rm -rf
-
-doshtmlinstall: html
-	install -d -m 755 $(DOCINSTALLDIR)
-	cp fpctoc.html $(DOCINSTALLDIR)
-	cp -R buttons $(DOCINSTALLDIR)
-	cp -R search $(DOCINSTALLDIR)
-	rm -f $(DOCINSTALLDIR)/search/*.linux
-	cp -R $(HTML) $(DOCINSTALLDIR)
-	find $(DOCINSTALLDIR) -name 'CVS' | xargs -n1 rm -rf
-
-www-install: psdist htmlinstall
-	scp fpcdoc.zip fpcdocps.zip fpcdocps.tar.gz fpcdoc.tar.gz tfdec1:htdocs/fpk
-	ssh tfdec1 '(cd htdocs/fpk/docs ; /usr/local/bin/tar -xzf ../fpcdoc.tar.gz)'
 
 install:
 	@echo Choose install from:
-	@echo pdfinstall,htmlinstall,htmldosinstall
+	@echo pdfinstall,htmlinstall
 	@exit
 
 #####################################################################
@@ -441,14 +445,19 @@ htmltar:
 	rm -rf $(DOCPREFIX)
 
 htmlzip:
-	$(MAKE) doshtmlinstall DOCINSTALLDIR=$(DOCPREFIX)
+	$(MAKE) htmlinstall DOCINSTALLDIR=$(DOCPREFIX)
 	zip -D9rq doc-html $(DOCPREFIX)/*
 	rm -rf $(DOCPREFIX)
 
 htmzip:
-	$(MAKE) doshtmlinstall DOCINSTALLDIR=$(DOCPREFIX)
+	$(MAKE) htmlinstall DOCINSTALLDIR=$(DOCPREFIX)
 	makehtm `find $(DOCPREFIX) -name '*.html'`
-	zip -D9rq doc-htm `find $(DOCPREFIX) -name '*.htm' -or -name '*.gif' -or -name '*.css'`
+	zip -D9rq doc-htm `find $(DOCPREFIX) -name '*.htm' -or -name '*.png' -or -name '*.css'`
+	rm -rf $(DOCPREFIX)
+
+pdfzip:
+	$(MAKE) pdfinstall DOCINSTALLDIR=$(DOCPREFIX)
+	zip -D9rq doc-pdf $(DOCPREFIX)/*
 	rm -rf $(DOCPREFIX)
 
 htmldist: htmlzip htmltar
@@ -486,7 +495,12 @@ linuxexamples: examples
 
 #
 # $Log$
-# Revision 1.1.2.3  2000-10-12 10:28:03  peter
+# Revision 1.1.2.4  2000-11-20 22:58:23  peter
+#   * html uses png as format
+#   * xspace and multicol added for html
+#   * compiler 1.0.2 for html
+#
+# Revision 1.1.2.3  2000/10/12 10:28:03  peter
 #   * include more examples
 #
 # Revision 1.1.2.2  2000/09/02 21:47:40  peter
