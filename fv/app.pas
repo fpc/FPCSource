@@ -1,4 +1,3 @@
-
 { $Id$}
 {********[ SOURCE FILE OF GRAPHICAL FREE VISION ]**********}
 {                                                          }
@@ -53,7 +52,11 @@ USES
    {$ENDIF}
 
    {$IFDEF OS_OS2}                                    { OS2 CODE }
-     Os2Def, Os2Base, OS2PmApi,                       { Standard units }
+     {$IFDEF PPC_FPC}
+     Os2Def, DosCalls, PmWin,                       { Standard units }
+     {$ELSE}
+      Os2Def, Os2Base, OS2PmApi,                       { Standard units }
+     {$ENDIF}
    {$ENDIF}
    Dos,
 {$ifdef USE_VIDEO_API}
@@ -1193,7 +1196,10 @@ END;
 END.
 {
  $Log$
- Revision 1.21  2002-09-09 08:04:05  pierre
+ Revision 1.22  2002-09-22 19:42:52  hajny
+   + FPC/2 support added
+
+ Revision 1.21  2002/09/09 08:04:05  pierre
   * remove all warnings about far
 
  Revision 1.20  2002/09/07 15:06:35  peter

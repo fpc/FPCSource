@@ -71,7 +71,11 @@ USES
    {$ENDIF}
 
    {$IFDEF OS_OS2}                                    { OS2 CODE }
-     OS2Def, OS2Base, OS2PMAPI,                       { Standard units }
+     {$IFDEF PPC_FPC}
+     Os2Def, DosCalls, PmWin,
+     {$ELSE}
+      OS2Def, OS2Base, OS2PMAPI,                       { Standard units }
+     {$ENDIF}
    {$ENDIF}
 
 {$IFDEF GRAPH_API}
@@ -5800,7 +5804,10 @@ END.
 
 {
  $Log$
- Revision 1.38  2002-09-12 12:03:13  pierre
+ Revision 1.39  2002-09-22 19:42:21  hajny
+   + FPC/2 support added
+
+ Revision 1.38  2002/09/12 12:03:13  pierre
   * handle unix mouse differently as it uses video buffer
 
  Revision 1.37  2002/09/09 08:06:33  pierre

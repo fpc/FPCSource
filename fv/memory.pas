@@ -201,7 +201,11 @@ CONST
 {$ENDIF}
 
 {$IFDEF OS_OS2}                                       { OS2 CODE }
-USES Os2Base;                                         { Standard unit }
+  {$IFDEF PPC_FPC}
+     USES DosCalls;                                        { Standard unit }
+  {$ELSE}
+     USES Os2Base;                                         { Standard unit }
+  {$ENDIF}
 {$ENDIF}
 
 {***************************************************************************}
@@ -828,7 +832,10 @@ END.
 
 {
  $Log$
- Revision 1.6  2002-09-09 08:04:06  pierre
+ Revision 1.7  2002-09-22 19:42:22  hajny
+   + FPC/2 support added
+
+ Revision 1.6  2002/09/09 08:04:06  pierre
   * remove all warnings about far
 
  Revision 1.5  2002/09/07 15:06:37  peter

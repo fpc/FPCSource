@@ -225,6 +225,10 @@ FUNCTION FileWrite (Handle: THandle; Var Buf; Count: Sw_Word; Var Actual: Sw_Wor
   USES DosTypes, DosProcs;                            { Standard units }
   {$ENDIF}
 
+  {$IFDEF PPC_FPC}                                    { FPC UNITS }
+  USES DosCalls, OS2Def;                              { Standard units }
+  {$ENDIF}
+  
 {$ENDIF}
 
 {$IFDEF OS_UNIX}                                     { LINUX COMPILER }
@@ -684,7 +688,10 @@ END;
 END.
 {
  $Log$
- Revision 1.7  2002-09-07 15:06:36  peter
+ Revision 1.8  2002-09-22 19:42:22  hajny
+   + FPC/2 support added
+
+ Revision 1.7  2002/09/07 15:06:36  peter
    * old logs removed and tabs fixed
 
  Revision 1.6  2002/06/04 11:12:41  marco

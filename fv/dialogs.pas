@@ -53,7 +53,11 @@ USES
    {$ENDIF}
 
    {$IFDEF OS_OS2}                                    { OS2 CODE }
-     OS2Def, OS2Base, OS2PMAPI,                       { Standard units }
+     {$IFDEF PPC_FPC}
+     OS2Def, DosCalls, PMWIN,                       { Standard units }
+     {$ELSE}
+      OS2Def, OS2Base, OS2PMAPI,                       { Standard units }
+     {$ENDIF}
    {$ENDIF}
 
    GFVGraph,                                          { GFV standard unit }
@@ -4204,7 +4208,10 @@ END;
 END.
 {
  $Log$
- Revision 1.19  2002-09-09 08:14:47  pierre
+ Revision 1.20  2002-09-22 19:42:23  hajny
+   + FPC/2 support added
+
+ Revision 1.19  2002/09/09 08:14:47  pierre
   * remove virtual modifer from store methods
 
  Revision 1.18  2002/09/07 15:06:36  peter

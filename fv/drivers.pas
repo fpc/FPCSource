@@ -66,6 +66,9 @@ USES
      {$IFDEF PPC_Speed}                               { SPEED PASCAL UNITS }
        BseDos, Os2Def,                                { Standard units }
      {$ENDIF}
+     {$IFDEF PPC_FPC}                                 { FPC UNITS }
+       DosCalls, Os2Def,                              { Standard units }
+     {$ENDIF}
    {$ENDIF}
 
    {$IFDEF OS_UNIX}
@@ -1674,7 +1677,10 @@ BEGIN
 END.
 {
  $Log$
- Revision 1.34  2002-09-13 22:24:30  pierre
+ Revision 1.35  2002-09-22 19:42:22  hajny
+   + FPC/2 support added
+
+ Revision 1.34  2002/09/13 22:24:30  pierre
   * fix Alt+'9' recognition in GetAltChar function
 
  Revision 1.33  2002/09/13 09:21:15  pierre
