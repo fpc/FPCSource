@@ -411,8 +411,8 @@ implementation
                       if gettempansistringreference(pto^.location.reference) then
                        decrstringref(cansistringdef,pto^.location.reference);
                       pushusedregisters(pushed,$ff);
-                      emit_push_lea_loc(pfrom^.location);
-                      emit_push_lea_loc(pto^.location);
+                      emit_push_lea_loc(pfrom^.location,true);
+                      emit_push_lea_loc(pto^.location,true);
                       emitcall('FPC_SHORTSTR_TO_ANSISTR');
                       maybe_loadesi;
                       popusedregisters(pushed);
@@ -1457,7 +1457,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.85  1999-08-19 13:08:46  pierre
+  Revision 1.86  1999-09-01 09:42:13  peter
+    * update for new push_lea_loc
+
+  Revision 1.85  1999/08/19 13:08:46  pierre
    * emit_??? used
 
   Revision 1.84  1999/08/05 14:58:03  florian
