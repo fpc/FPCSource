@@ -1206,6 +1206,8 @@ implementation
                          cg.a_reg_alloc(exprasmlist,resultloc.register);
                          location.register:=rg.getexplicitregisterfpu(exprasmlist,resultloc.register);
                          cg.a_loadfpu_reg_reg(exprasmlist,resultloc.register,location.register);
+                         if (resultloc.register <> location.register) then
+                           cg.a_reg_dealloc(exprasmlist,resultloc.register);
 {$ifdef x86}
                          inc(trgcpu(rg).fpuvaroffset);
 {$endif x86}
@@ -1481,7 +1483,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2002-09-02 11:25:20  florian
+  Revision 1.21  2002-09-07 11:50:02  jonas
+    * fixed small regalloction info bug
+
+  Revision 1.20  2002/09/02 11:25:20  florian
     * fixed generic procedure variable calling
 
   Revision 1.19  2002/09/01 21:04:48  florian
