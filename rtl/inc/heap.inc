@@ -728,16 +728,23 @@ function alloc_oschunk(blockindex, size: ptrint): pointer;
 var
   pmc       : pmemchunk_fixed;
   pmcv      : pmemchunk_var;
+  minsize,
+  maxsize,
   i, count  : ptrint;
   chunksize : ptrint;
 begin
   { increase size by size needed for os block header }
-  size := size + sizeof(toschunk);
+  minsize := size + sizeof(toschunk);
+  if blockindex<>0 then
+    maxsize := (size * $ffff) + sizeof(toschunk)
+  else
+    maxsize := high(ptrint);
   { blocks available in freelist? }
   result := freeoslist;
   while result <> nil do
     begin
-      if poschunk(result)^.size > size then
+      if (poschunk(result)^.size >= minsize) and
+         (poschunk(result)^.size <= maxsize) then
         begin
           size := poschunk(result)^.size;
           remove_from_oslist(poschunk(result));
@@ -748,11 +755,11 @@ begin
   if result = nil then
     begin
 {$ifdef DUMPGROW}
-      writeln('growheap(',size,')  allocating ',(size+$ffff) and $ffff0000);
+      writeln('growheap(',size,')  allocating ',(size+sizeof(toschunk)+$ffff) and $ffff0000);
       DumpBlocks;
 {$endif}
       { allocate by 64K size }
-      size := (size+$ffff) and not $ffff;
+      size := (size+sizeof(toschunk)+$ffff) and not $ffff;
       { allocate smaller blocks for fixed-size chunks }
       if blockindex<>0 then
         begin
@@ -800,9 +807,13 @@ begin
   inc(result, sizeof(toschunk));
   if blockindex<>0 then
     begin
-      { chop os chunk in fixedsize parts }
+      { chop os chunk in fixedsize parts,
+        maximum of $ffff elements are allowed, otherwise
+        there will be an overflow }
       chunksize := blockindex shl blockshr;
       count := (size-sizeof(toschunk)) div chunksize;
+      if count>$ffff then
+        HandleError(204);
       pmc := pmemchunk_fixed(result);
       pmc^.prev_fixed := nil;
       i := 0;
@@ -1275,7 +1286,10 @@ end;
 
 {
   $Log$
-  Revision 1.40  2004-11-26 22:22:58  peter
+  Revision 1.41  2004-12-19 13:45:56  peter
+    * fixed overflow when reusing a memory block for fixed size chunks
+
+  Revision 1.40  2004/11/26 22:22:58  peter
     * fix currheapused
 
   Revision 1.39  2004/11/22 22:26:21  peter
