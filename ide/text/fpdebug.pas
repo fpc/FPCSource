@@ -299,6 +299,7 @@ const
 
   procedure InitRegistersWindow;
   procedure DoneRegistersWindow;
+  function  ActiveBreakpoints : boolean;
 
 
 const
@@ -510,6 +511,23 @@ procedure TDebugController.ResetBreakpointsValues;
 begin
    BreakpointsCollection^.ForEach(@DoResetVal);
 end;
+
+function  ActiveBreakpoints : boolean;
+  var
+    IsActive : boolean;
+
+  procedure TestActive(PB : PBreakpoint);
+    begin
+        If PB^.state=bs_enabled then
+          IsActive:=true;
+    end;
+begin
+   IsActive:=false;
+   If assigned(BreakpointsCollection) then
+     BreakpointsCollection^.ForEach(@TestActive);
+   ActiveBreakpoints:=IsActive;
+end;
+
 
 destructor TDebugController.Done;
 begin
@@ -3000,7 +3018,10 @@ end.
 
 {
   $Log$
-  Revision 1.44  2000-01-27 22:30:38  florian
+  Revision 1.45  2000-01-28 22:38:21  pierre
+   * CrtlF9 starts debugger if there are active breakpoints
+
+  Revision 1.44  2000/01/27 22:30:38  florian
     * start of FPU window
     * current executed line color has a higher priority then a breakpoint now
 

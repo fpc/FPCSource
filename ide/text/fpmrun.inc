@@ -90,6 +90,8 @@ begin
 end;
 
 procedure TIDEApp.DoRun;
+var
+  RunDirect : boolean;
 begin
 
 {$ifndef NODEBUG}
@@ -111,6 +113,23 @@ begin
           ErrorBox('Invalid filename %s',@MsgParms);
           Exit;
         end;
+      RunDirect:=true;
+{$ifndef NODEBUG}
+      { we use debugger if and only if there are active breakpoints
+        AND the target is correct for debugging !! PM }
+      if ActiveBreakpoints and (target_os.shortname=source_os.shortname) then
+        begin
+          if not assigned(Debugger) then
+            InitDebugger;
+          if assigned(Debugger) then
+            begin
+              Debugger^.StartTrace;
+              RunDirect:=false;
+            end;
+        end;
+{$endif ndef NODEBUG}
+      if Not RunDirect then
+        exit;
       DoExecute(ExeFile,GetRunParameters,'','',exNormal);
       LastExitCode:=ExecuteResult;
       If IOStatus<>0 then
@@ -245,7 +264,10 @@ end;
 
 {
   $Log$
-  Revision 1.24  2000-01-10 13:23:28  pierre
+  Revision 1.25  2000-01-28 22:38:21  pierre
+   * CrtlF9 starts debugger if there are active breakpoints
+
+  Revision 1.24  2000/01/10 13:23:28  pierre
    * Debugger test missing in ContTo
 
   Revision 1.23  1999/12/10 13:01:01  pierre
