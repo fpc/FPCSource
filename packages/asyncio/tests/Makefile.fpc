@@ -1,0 +1,9 @@
+#
+#   Makefile.fpc for fpAsync examples
+#
+
+[target]
+programs=async1 async2
+
+[require]
+packages=fpasync

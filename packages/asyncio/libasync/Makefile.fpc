@@ -1,0 +1,18 @@
+#
+#   Makefile.fpc for libasync
+#
+
+[package]
+name=libasync
+version=1.0.5
+
+[target]
+units=libasync
+
+[install]
+fpcpackage=y
+createpackagefpc=y
+
+[compiler]
+sourcedir_linux=unix
+targetdir=.
