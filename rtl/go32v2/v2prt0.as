@@ -582,6 +582,20 @@ ___dpmi_get_version:
         popl %ebp
         ret $4
 
+_set_os_trueversion:
+        pushl %ebp
+        movl  %esp,%ebp
+        movl  $0x3306,%eax
+        xorl  %ebx,%ebx
+        int   $0x21
+        movzbl %bl,%eax
+        shll  $8,%eax
+        shrl  $8,%ebx
+        andl  $0xff,%ebx
+        addl  %ebx,%eax
+        movw  %ax,__os_trueversion
+        popl  %ebp
+        ret
 /*       .globl ___dpmi_get_segment_base_address*/
 ___dpmi_get_segment_base_address:
    pushl %ebp; movl %esp,%ebp
@@ -739,6 +753,7 @@ ___prt1_startup:
         pushl %ebx
         incl ___bss_count
         movl $0,___crt0_argv
+        call _set_os_trueversion
         call _setup_core_selector
         call _setup_screens
         call _setup_go32_info_block
@@ -751,7 +766,7 @@ ___prt1_startup:
         fninit             /* initialize fpu */
         push    %eax       /* Dummy for status store check */
         movl    %esp,%esi
-        movw	$0x5a5a,(%esi)
+        movw    $0x5a5a,(%esi)
         /* fwait  maybe this one is responsible of exceptions */
         fnstsw  (%esi)
         cmpb    $0,(%esi)
@@ -916,9 +931,14 @@ ___PROXY:
 ___PROXY_LEN:
         .long 7
 
+        .comm __os_trueversion,2
+
 /*
   $Log$
-  Revision 1.3  2001-08-21 13:12:22  florian
+  Revision 1.4  2002-02-03 09:51:41  peter
+    * merged winxp fixes
+
+  Revision 1.3  2001/08/21 13:12:22  florian
     * reverted to previous version
 
   Revision 1.1  2000/07/13 06:30:40  michael

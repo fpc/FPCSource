@@ -955,6 +955,9 @@ end;
 
 
 {$ifdef CREATE_C_FUNCTIONS}
+var
+  _os_trueversion : word;external name '__os_trueversion';
+
 procedure djgpp_exception_processor;[public,alias : '___djgpp_exception_processor'];
 var
   sig : longint;
@@ -1038,10 +1041,17 @@ begin
 
   for i:=0 to 17{EXCEPTIONCOUNT-1} do
    begin
-     if get_pm_exception_handler(i,_except) then
+{$ifdef DPMIEXCP_DEBUG}
+     errln('new exception '+hexstr(i,2)+'  '+hexstr(except_ori[i].segment,4)+':'+hexstr(longint(except_ori[i].offset),8));
+{$endif DPMIEXCP_DEBUG}
+     { Windows 2000 seems to not set carryflag on func 0x210 :( PM }
+     if (_os_trueversion <> $532) and get_pm_exception_handler(i,_except) then
       begin
         if (i <> 2) {or (_crt0_startup_flags & _CRT0_FLAG_NMI_SIGNAL))} then
          begin
+{$ifdef DPMIEXCP_DEBUG}
+           errln('Using DPMI 1.0 functions');
+{$endif DPMIEXCP_DEBUG}
            if not set_pm_exception_handler(i,except_ori[i]) then
             errln('error setting exception nø'+hexstr(i,2));
          end;
@@ -1051,6 +1061,9 @@ begin
       begin
         if get_exception_handler(i,_except) then
          begin
+{$ifdef DPMIEXCP_DEBUG}
+           errln('Using DPMI 0.9 functions');
+{$endif DPMIEXCP_DEBUG}
            if (i <> 2) {or (_crt0_startup_flags & _CRT0_FLAG_NMI_SIGNAL))} then
             begin
               if not set_exception_handler(i,except_ori[i]) then
@@ -1059,6 +1072,9 @@ begin
            except_ori[i]:=_except;
          end;
       end;
+{$ifdef DPMIEXCP_DEBUG}
+     errln('prev exception '+hexstr(i,2)+'  '+hexstr(_except.segment,4)+':'+hexstr(longint(_except.offset),8));
+{$endif DPMIEXCP_DEBUG}
    end;
   get_pm_interrupt($75,_except);
   set_pm_interrupt($75,npx_ori);
@@ -1117,6 +1133,39 @@ var
   _swap_out : pointer;external name '_swap_out';
   _exception_exit : pointer;external name '_exception_exit';
 
+const
+  STUBINFO_END = $54;
+
+procedure __maybe_fix_w2k_ntvdm_bug;[public,alias : '___maybe_fix_w2k_ntvdm_bug'];
+var
+  psp_sel : word;
+begin
+  if _os_trueversion = $532 then
+    begin
+      { avoid NTVDM bug on NT,2000 or XP }
+      { see dpmiexcp.c source of DJGPP  PM }
+      if stub_info^.size < STUBINFO_END then
+        begin
+          asm
+            movb $0x51,%ah
+            int  $0x21
+            movb $0x50,%ah
+            int  $0x21
+          end;
+        end
+      else
+        begin
+          psp_sel:=stub_info^.psp_selector;
+          asm
+            movw psp_sel,%bx
+            movb $0x50,%ah
+            int $0x21
+          end;
+        end;
+    end;
+end;
+
+
 procedure dpmiexcp_exit{(status : longint)};[public,alias : 'excep_exit'];
 { We need to restore hardware interrupt handlers even if somebody calls
   `_exit' directly, or else we crash the machine in nested programs.
@@ -1128,6 +1177,7 @@ begin
   _exception_exit:=nil;
   _swap_in:=nil;
   _swap_out:=nil;
+  __maybe_fix_w2k_ntvdm_bug;
   { restore the FPU state }
   dpmi_set_coprocessor_emulation(1);
 end;
@@ -1495,7 +1545,10 @@ end;
 {$endif IN_SYSTEM}
 {
   $Log$
-  Revision 1.8  2002-01-25 16:23:03  peter
+  Revision 1.9  2002-02-03 09:51:41  peter
+    * merged winxp fixes
+
+  Revision 1.8  2002/01/25 16:23:03  peter
     * merged filesearch() fix
 
   Revision 1.7  2001/11/24 14:42:19  carl
