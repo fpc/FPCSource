@@ -1309,6 +1309,10 @@ begin
         ftComp:
           PComp(Pointer(Instance)+PtrUInt(PropInfo^.SetProc))^:=Value;
 {$endif FPC_COMP_IS_INT64}
+{$ifdef HASCURRENCY}
+        ftCurr:
+ 	  PCurrency(Pointer(Instance)+PtrUInt(PropInfo^.SetProc))^:=Value;
+{$endif HASCURRENCY}
        end;
     ptStatic,
     ptVirtual:
@@ -1525,7 +1529,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.41  2005-03-14 21:15:52  florian
+  Revision 1.42  2005-04-03 11:50:58  marco
+   * patch for 3854 added. There are probably more places that need explicit
+  currency handling.
+
+  Revision 1.41  2005/03/14 21:15:52  florian
     * fixed compilation on i386
 
   Revision 1.40  2005/03/14 19:16:06  peter
