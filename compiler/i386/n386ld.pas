@@ -156,7 +156,7 @@ implementation
                                 if not(makereg32(tvarsym(symtableentry).reg) in [R_EAX..R_EBX]) or
                                    rg.regvar_loaded[makereg32(tvarsym(symtableentry).reg)] then
                                 begin
-                                   location_reset(location,LOC_REGISTER,
+                                   location_reset(location,LOC_CREGISTER,
                                        cg.reg_cgsize(tvarsym(symtableentry).reg));
                                    location.register:=tvarsym(symtableentry).reg;
                                    exclude(rg.unusedregsint,makereg32(tvarsym(symtableentry).reg));
@@ -164,7 +164,7 @@ implementation
                               else
                                 begin
                                   load_regvar(exprasmlist,tvarsym(symtableentry));
-                                  location_reset(location,LOC_REGISTER,
+                                  location_reset(location,LOC_CREGISTER,
                                       cg.reg_cgsize(tvarsym(symtableentry).reg));
                                   location.register:=tvarsym(symtableentry).reg;
                                   exclude(rg.unusedregsint,makereg32(tvarsym(symtableentry).reg));
@@ -577,10 +577,10 @@ implementation
               LOC_CONSTANT :
                 begin
                   if right.location.size in [OS_64,OS_S64] then
-                   tcg64f32(cg).a_load64_const_ref(exprasmlist,
-                       right.location.valuelow,right.location.valuehigh,left.location.reference)
+                   tcg64f32(cg).a_load64_const_loc(exprasmlist,
+                       right.location.valuelow,right.location.valuehigh,left.location)
                   else
-                   cg.a_load_const_ref(exprasmlist,right.location.size,right.location.value,left.location.reference);
+                   cg.a_load_const_loc(exprasmlist,right.location.size,right.location.value,left.location);
                 end;
               LOC_REFERENCE,
               LOC_CREFERENCE :
@@ -993,7 +993,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.31  2002-04-02 17:11:36  peter
+  Revision 1.32  2002-04-03 10:43:37  jonas
+    * fixed regvar-related bugs (the load node set the location to
+      LOC_REGISTER instead of LOC_CREGISTER and the assignment node didn't
+      support loading constants in LOC_CREGISTER's)
+
+  Revision 1.31  2002/04/02 17:11:36  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines
