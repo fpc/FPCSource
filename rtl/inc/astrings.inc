@@ -740,7 +740,7 @@ end;
 {$ifdef STR_USES_VALINT}
 Procedure fpc_AnsiStr_UInt(v : ValUInt;Len : SizeInt; Var S : AnsiString);[Public,Alias : 'FPC_ANSISTR_VALUINT']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {$else}
-Procedure fpc_AnsiStr_Longword(v : Longword;Len : SizeInt; Var S : AnsiString);[Public,Alias : 'FPC_ANSISTR_LONGWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_AnsiStr_Longword(v : Longword;Len : SizeInt; Var S : AnsiString);[Public,Alias : 'FPC_ANSISTR_CARDINAL']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {$endif}
 Var
   SS : ShortString;
@@ -868,7 +868,10 @@ end;
 
 {
   $Log$
-  Revision 1.52  2005-01-09 10:38:59  florian
+  Revision 1.53  2005-01-25 18:50:45  peter
+    * 1.0.x fix
+
+  Revision 1.52  2005/01/09 10:38:59  florian
     * replaced CompareChar by CompareByte, saves one redirection
 
   Revision 1.51  2004/12/02 17:56:01  peter
