@@ -1676,8 +1676,12 @@ begin
 {$ifdef iA64}
   def_symbol('CPUIA64');
 {$endif}
-{$ifdef x64_64}
-  def_symbol('CPU86_64');
+{$ifdef x86_64}
+  def_symbol('CPUX86_64');
+  def_symbol('FPC_HAS_TYPE_FLOAT128');
+  def_symbol('FPC_HAS_TYPE_EXTENDED');
+  def_symbol('FPC_HAS_TYPE_DOUBLE');
+  def_symbol('FPC_HAS_TYPE_SINGLE');
 {$endif}
 {$ifdef sparc}
   def_symbol('CPUSPARC');
@@ -1904,7 +1908,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.95  2003-04-24 11:21:45  florian
+  Revision 1.96  2003-04-30 16:35:00  florian
+    * fixed defines for x86-64
+
+  Revision 1.95  2003/04/24 11:21:45  florian
     + HAS_TYPE_* defines for floats on i386 and powerpc added
 
   Revision 1.94  2003/03/28 19:16:56  peter
