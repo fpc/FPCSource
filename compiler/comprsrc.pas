@@ -20,7 +20,7 @@
 
  ****************************************************************************
 }
-unit comprscr;
+unit comprsrc;
 interface
 
 procedure CompileResourceFiles;
@@ -102,7 +102,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  1999-01-06 12:39:46  peter
+  Revision 1.2  1999-01-06 12:56:01  peter
+    * fixed typo :(
+
+  Revision 1.1  1999/01/06 12:39:46  peter
     * renamed resource -> comprsrc (conflicted with FV)
 
   Revision 1.1  1998/12/28 23:26:25  peter
