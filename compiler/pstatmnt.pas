@@ -1067,8 +1067,11 @@ unit pstatmnt;
                                  code:=genzeronode(errorn);
                               end
                             else
-                              code:=genlabelnode(goton,
-                                plabelsym(srsym)^.lab);
+                              begin
+                                code:=genlabelnode(goton,plabelsym(srsym)^.lab);
+                                { set flag that this label is used }
+                                plabelsym(srsym)^.used:=true;
+                              end;
                          end;
                     end;
             _BEGIN : code:=statement_block(_BEGIN);
@@ -1326,7 +1329,11 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.108  1999-11-10 00:24:02  pierre
+  Revision 1.109  1999-11-15 22:00:48  peter
+    * labels used but not defined give error instead of warning, the warning
+      is now only with declared but not defined and not used.
+
+  Revision 1.108  1999/11/10 00:24:02  pierre
    * more browser details
 
   Revision 1.107  1999/11/09 13:02:46  peter

@@ -64,6 +64,7 @@
        plabelsym = ^tlabelsym;
        tlabelsym = object(tsym)
           lab     : pasmlabel;
+          used,
           defined : boolean;
           constructor init(const n : string; l : pasmlabel);
           destructor done;virtual;
@@ -328,7 +329,11 @@
 
 {
   $Log$
-  Revision 1.38  1999-11-08 14:02:17  florian
+  Revision 1.39  1999-11-15 22:00:48  peter
+    * labels used but not defined give error instead of warning, the warning
+      is now only with declared but not defined and not used.
+
+  Revision 1.38  1999/11/08 14:02:17  florian
     * problem with "index X"-properties solved
     * typed constants of class references are now allowed
 

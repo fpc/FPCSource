@@ -20,7 +20,7 @@
  ****************************************************************************
 }
 {$ifdef TP}
-  {$N+,E+,F+,D-}
+  {$N+,E+,F+}
 {$endif}
 unit symtable;
 
@@ -853,7 +853,12 @@ implementation
       begin
         if (psym(p)^.typ=labelsym) and
            not(plabelsym(p)^.defined) then
-          Message1(sym_w_label_not_defined,p^.name);
+         begin
+           if plabelsym(p)^.used then
+            Message1(sym_e_label_used_and_not_defined,p^.name)
+           else
+            Message1(sym_w_label_not_defined,p^.name);
+         end;
       end;
 
     procedure unitsymbolused(p : pnamedindexobject);
@@ -2487,7 +2492,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.61  1999-11-15 17:52:59  pierre
+  Revision 1.62  1999-11-15 22:00:48  peter
+    * labels used but not defined give error instead of warning, the warning
+      is now only with declared but not defined and not used.
+
+  Revision 1.61  1999/11/15 17:52:59  pierre
     + one field added for ttoken record for operator
       linking the id to the corresponding operator token that
       can now now all be overloaded

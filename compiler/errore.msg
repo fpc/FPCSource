@@ -996,6 +996,8 @@ sym_e_no_instance_of_abstract_object=E_Instances of classes or objects with an a
 % method that wasn't overridden.
 sym_w_label_not_defined=W_Label not defined $1
 % A label was declared, but not defined.
+sym_e_label_used_and_not_defined=E_Label used but not defined $1
+% A label was declared and used, but not defined.
 sym_e_ill_label_decl=E_Illegal label declaration
 sym_e_goto_and_label_not_supported=E_GOTO and LABEL are not supported (use switch -Sg)
 % You must compile a program which has \var{label}s and \var{goto} statements

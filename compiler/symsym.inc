@@ -209,6 +209,7 @@
          inherited init(n);
          typ:=labelsym;
          lab:=l;
+         used:=false;
          defined:=false;
       end;
 
@@ -220,6 +221,7 @@
          { this is all dummy
            it is only used for local browsing }
          lab:=nil;
+         used:=false;
          defined:=true;
       end;
 
@@ -2143,7 +2145,11 @@
 
 {
   $Log$
-  Revision 1.125  1999-11-08 14:02:17  florian
+  Revision 1.126  1999-11-15 22:00:48  peter
+    * labels used but not defined give error instead of warning, the warning
+      is now only with declared but not defined and not used.
+
+  Revision 1.125  1999/11/08 14:02:17  florian
     * problem with "index X"-properties solved
     * typed constants of class references are now allowed
 
