@@ -42,7 +42,7 @@ unit ppheap;
       end;
 
   begin
-     set_extra_info(12,ppextra_info);
+     SetExtraInfo(12,ppextra_info);
   end.
 
 

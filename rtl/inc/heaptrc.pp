@@ -16,17 +16,17 @@
 unit heaptrc;
 interface
 
-procedure dump_heap;
-procedure mark_heap;
+Procedure DumpHeap;
+Procedure MarkHeap;
 
 type
-    fill_extra_info_type = procedure(p : pointer);
+    FillExtraInfoType = procedure(p : pointer);
 
     { allows to add several longint value that can help
       to debug :
       see for instance ppheap.pas unit of the compiler source PM }
 
-procedure set_extra_info( size : longint;func : fill_extra_info_type);
+Procedure SetExtraInfo( size : longint;func : FillExtraInfoType);
 
 const
   { tracing level
@@ -34,7 +34,7 @@ const
   tracesize = 8;
   quicktrace : boolean=true;
   { calls halt() on error by default !! }
-  halt_on_error : boolean = true;
+  HaltOnError : boolean = true;
   { set this to true if you suspect that memory
     is freed several times }
   keepreleased : boolean=false;
@@ -46,7 +46,7 @@ const
   extra_info_size : longint = 0;
   exact_info_size : longint = 0;
   { function to fill this info up }
-  fill_extra_info : fill_extra_info_type = nil;
+  fill_extra_info : FillExtraInfoType = nil;
 
 type
   pheap_mem_info = ^theap_mem_info;
@@ -218,19 +218,19 @@ begin
   if pp^.sig=$AAAAAAAA then
     begin
        dump_already_free(pp);
-       if halt_on_error then halt(1);
+       if haltonerror then halt(1);
     end
   else if pp^.sig<>$DEADBEEF then
     begin
        dump_error(pp);
        { don't release anything in this case !! }
-       if halt_on_error then halt(1);
+       if haltonerror then halt(1);
        exit;
     end
   else if pp^.size<>size then
     begin
        dump_wrong_size(pp,size);
-       if halt_on_error then halt(1);
+       if haltonerror then halt(1);
        { don't release anything in this case !! }
        exit;
     end;
@@ -267,7 +267,7 @@ end;
                               Dump Heap
 *****************************************************************************}
 
-procedure dump_heap;
+procedure dumpheap;
 var
   pp : pheap_mem_info;
   i : longint;
@@ -303,7 +303,7 @@ begin
 end;
 
 
-procedure mark_heap;
+procedure markheap;
 var
   pp : pheap_mem_info;
 begin
@@ -332,16 +332,16 @@ var
 procedure TraceExit;
 begin
   ExitProc:=SaveExit;
-  Dump_heap;
+  Dumpheap;
 end;
 
-procedure set_extra_info( size : longint;func : fill_extra_info_type);
+procedure SetExtraInfo( size : longint;func : fillextrainfotype);
 
   begin
      if getmem_cnt>0 then
        begin
          writeln(stderr,'settting extra info is only possible at start !! ');
-         dump_heap;
+         dumpheap;
        end
      else
        begin
@@ -360,7 +360,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  1998-11-16 12:20:13  peter
+  Revision 1.8  1998-12-15 23:49:51  michael
+  + Removed underscores in heaptrc unit
+
+  Revision 1.7  1998/11/16 12:20:13  peter
     * write extra info also for wrong size
 
   Revision 1.6  1998/11/06 08:46:01  pierre
