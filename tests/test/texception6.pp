@@ -1,7 +1,8 @@
 { %version=1.1 }
-{ %fail }
+{ %rte=0 }
+
 uses
-  sysutils;
+  SysUtils;
 
 begin
   // this should fail with a runtime error

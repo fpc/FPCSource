@@ -1,5 +1,6 @@
 { %version=1.1 }
-{ %fail }
+{ %rte=0 }
+
 uses
   sysutils;
 
