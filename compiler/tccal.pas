@@ -327,6 +327,8 @@ implementation
          hcvt : tconverttype;
          regi : tregister;
          store_valid, old_count_ref : boolean;
+      label
+        errorexit;
 
       { check if the resulttype from tree p is equal with def, needed
         for stringconstn and formaldef }
@@ -428,7 +430,7 @@ implementation
                    firstcallparan(p^.left,nil);
                    count_ref:=old_count_ref;
                    if codegenerror then
-                     exit;
+                     goto errorexit;
                 end;
               firstpass(p^.right);
 
@@ -450,7 +452,7 @@ implementation
                    firstcallparan(p^.left,pprocvardef(p^.right^.resulttype)^.para1);
                    count_ref:=old_count_ref;
                    if codegenerror then
-                     exit;
+                     goto errorexit;
                 end;
               p^.resulttype:=pprocvardef(p^.right^.resulttype)^.retdef;
               { this was missing, leads to a bug below if
@@ -471,7 +473,7 @@ implementation
                    count_ref:=old_count_ref;
                    must_be_valid:=store_valid;
                    if codegenerror then
-                     exit;
+                     goto errorexit;
                 end;
 
               aktcallprocsym:=pprocsym(p^.symtableprocentry);
@@ -547,7 +549,7 @@ implementation
                     begin
                        CGMessage(parser_e_wrong_parameter_size);
                        aktcallprocsym^.write_parameter_lists;
-                       exit;
+                       goto errorexit;
                     end;
 
                 { now we can compare parameter after parameter }
@@ -659,7 +661,7 @@ implementation
                        begin
                           CGMessage1(parser_e_wrong_parameter_type,tostr(l));
                           aktcallprocsym^.write_parameter_lists;
-                          exit;
+                          goto errorexit;
                        end
                       else
                        begin
@@ -670,7 +672,7 @@ implementation
                          p^.is_first:=false;
                          p^.disposetyp:=dt_nothing;
                          firstpass(p);
-                         exit;
+                         goto errorexit;
                        end;
                      end;
 
@@ -858,7 +860,7 @@ implementation
                      begin
                         CGMessage(cg_e_cant_choose_overload_function);
                         aktcallprocsym^.write_parameter_lists;
-                        exit;
+                        goto errorexit;
                      end;
 {$ifdef TEST_PROCSYMS}
                    if (procs=nil) and assigned(nextprocsym) then
@@ -925,13 +927,7 @@ implementation
                    putnode(p);
                    firstpass(pt);
                    p:=pt;
-
-                   must_be_valid:=store_valid;
-                   if codegenerror then
-                     exit;
-
-                   dispose(procs);
-                   exit;
+                   goto errorexit;
                 end
               else
                 { no intern procedure => we do a call }
@@ -1075,10 +1071,7 @@ implementation
            end;
 
          if inlined then
-           begin
-              p^.right:=inlinecode;
-              p^.procdefinition^.options:=p^.procdefinition^.options or  poinline;
-           end;
+           p^.right:=inlinecode;
          { determine the registers of the procedure variable }
          { is this OK for inlined procs also ?? (PM)         }
          if assigned(p^.right) then
@@ -1098,8 +1091,12 @@ implementation
               p^.registersmmx:=max(p^.left^.registersmmx,p^.registersmmx);
 {$endif SUPPORT_MMX}
            end;
+      errorexit:
+         { Reset some settings back }
          if assigned(procs) then
            dispose(procs);
+         if inlined then
+           p^.procdefinition^.options:=p^.procdefinition^.options or poinline;
          aktcallprocsym:=oldcallprocsym;
          must_be_valid:=store_valid;
       end;
@@ -1120,7 +1117,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.29  1999-03-24 23:17:34  peter
+  Revision 1.30  1999-03-31 13:55:27  peter
+    * assembler inlining working for ag386bin
+
+  Revision 1.29  1999/03/24 23:17:34  peter
     * fixed bugs 212,222,225,227,229,231,233
 
   Revision 1.28  1999/03/23 14:43:03  peter

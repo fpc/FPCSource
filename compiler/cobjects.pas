@@ -69,6 +69,7 @@ unit cobjects;
           { does nothing }
           constructor init;
           destructor done;virtual;
+          function getcopy:plinkedlist_item;virtual;
        end;
 
        pstring_item = ^tstring_item;
@@ -100,6 +101,8 @@ unit cobjects;
 
           { concats another list at the end and make this list empty }
           procedure concatlist(p : plinkedlist);
+
+          procedure concatlistcopy(p : plinkedlist);
 
           { removes p from the list (p isn't disposed) }
           { it's not tested if p is in the list !      }
@@ -682,12 +685,25 @@ end;
 
     constructor tlinkedlist_item.init;
       begin
-         previous:=nil;
-         next:=nil;
+        previous:=nil;
+        next:=nil;
       end;
+
 
     destructor tlinkedlist_item.done;
       begin
+      end;
+
+
+    function tlinkedlist_item.getcopy:plinkedlist_item;
+      var
+        l : longint;
+        p : plinkedlist_item;
+      begin
+        l:=sizeof(self);
+        getmem(p,l);
+        move(self,p^,l);
+        getcopy:=p;
       end;
 
 
@@ -764,31 +780,36 @@ end;
 
     procedure tlinkedlist.concat(p : plinkedlist_item);
       begin
-         p^.previous:=nil;
-         p^.next:=nil;
-         if not(assigned(first)) then
-           first:=p
-           else
-             begin
-                last^.next:=p;
-                p^.previous:=last;
-             end;
-         last:=p;
+        if not(assigned(first)) then
+         begin
+           first:=p;
+           p^.previous:=nil;
+           p^.next:=nil;
+         end
+        else
+         begin
+           last^.next:=p;
+           p^.previous:=last;
+           p^.next:=nil;
+         end;
+        last:=p;
       end;
 
 
     procedure tlinkedlist.insert(p : plinkedlist_item);
       begin
-         p^.previous:=nil;
-         p^.next:=nil;
          if not(assigned(first)) then
-           last:=p
+          begin
+            last:=p;
+            p^.previous:=nil;
+            p^.next:=nil;
+          end
          else
-           begin
-              first^.previous:=p;
-              p^.next:=first;
-              first:=p;
-           end;
+          begin
+            first^.previous:=p;
+            p^.previous:=nil;
+            p^.next:=first;
+          end;
          first:=p;
       end;
 
@@ -844,6 +865,34 @@ end;
          p^.first:=nil;
       end;
 
+
+    procedure tlinkedlist.concatlistcopy(p : plinkedlist);
+      var
+        hp,hp2 : plinkedlist_item;
+      begin
+         hp:=p^.first;
+         while assigned(hp) do
+          begin
+            hp2:=hp^.getcopy;
+            if assigned(hp2) then
+             begin
+               if not(assigned(first)) then
+                begin
+                  first:=hp2;
+                  hp2^.previous:=nil;
+                  hp2^.next:=nil;
+                end
+               else
+                begin
+                  last^.next:=hp2;
+                  hp2^.previous:=last;
+                  hp2^.next:=nil;
+                end;
+               last:=hp2;
+             end;
+            hp:=hp^.next;
+          end;
+      end;
 
     function tlinkedlist.empty:boolean;
       begin
@@ -1563,7 +1612,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.21  1999-03-19 16:35:29  pierre
+  Revision 1.22  1999-03-31 13:55:10  peter
+    * assembler inlining working for ag386bin
+
+  Revision 1.21  1999/03/19 16:35:29  pierre
    * Tnamed_object done also removed left and right
 
   Revision 1.20  1999/03/18 20:30:45  peter

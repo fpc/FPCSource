@@ -120,8 +120,55 @@ implementation
 
 
     procedure secondasm(var p : ptree);
+{$ifdef AG386BIN}
+      var
+        hp,hp2 : pai;
+        localfixup,parafixup,
+        i : longint;
+        r : preference;
+{$endif}
       begin
-         exprasmlist^.concatlist(p^.p_asm);
+{$ifdef AG386BIN}
+         if (aktprocsym^.definition^.options and poinline)<>0 then
+           begin
+             localfixup:=aktprocsym^.definition^.localst^.address_fixup;
+             parafixup:=aktprocsym^.definition^.parast^.address_fixup;
+             hp:=pai(p^.p_asm^.first);
+             while assigned(hp) do
+              begin
+                hp2:=pai(hp^.getcopy);
+                case hp2^.typ of
+                  ait_instruction :
+                     begin
+                       { fixup the references }
+                       for i:=1 to pai386(hp2)^.ops do
+                        if pai386(hp2)^.oper[i-1].typ=top_ref then
+                         begin
+                           r:=pai386(hp2)^.oper[i-1].ref;
+                           case r^.options of
+                             ref_parafixup :
+                               r^.offsetfixup:=parafixup;
+                             ref_localfixup :
+                               r^.offsetfixup:=localfixup;
+                           end;
+                         end;
+                       exprasmlist^.concat(hp2);
+                     end;
+                   ait_marker :
+                     begin
+                     { it's not an assembler block anymore }
+                       if not(pai_marker(hp2)^.kind in [AsmBlockStart, AsmBlockEnd]) then
+                        exprasmlist^.concat(hp2);
+                     end;
+                   else
+                     exprasmlist^.concat(hp2);
+                end;
+                hp:=pai(hp^.next);
+              end
+           end
+         else
+{$endif}
+           exprasmlist^.concatlist(p^.p_asm);
          if not p^.object_preserved then
           begin
 {$ifdef i386}
@@ -361,7 +408,7 @@ implementation
                            dec(procinfo.retoffset,4);
 
                          dec(procinfo.call_offset,4);
-                         aktprocsym^.definition^.parast^.call_offset:=procinfo.call_offset;
+                         aktprocsym^.definition^.parast^.address_fixup:=procinfo.call_offset;
                        end;
                      end;
                    if (p^.registers32<4) then
@@ -500,7 +547,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  1999-03-24 23:17:11  peter
+  Revision 1.17  1999-03-31 13:55:11  peter
+    * assembler inlining working for ag386bin
+
+  Revision 1.16  1999/03/24 23:17:11  peter
     * fixed bugs 212,222,225,227,229,231,233
 
   Revision 1.15  1999/02/22 02:15:25  peter

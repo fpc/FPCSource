@@ -31,13 +31,14 @@ type
      _DIR_D,_DIR_DEBUGINFO,_DIR_DEFINE,_DIR_DESCRIPTION,
      _DIR_ELSE,_DIR_ENDIF,_DIR_ERROR,_DIR_EXTENDEDSYNTAX,
      _DIR_FATAL,
+     _DIR_GOTO,
      _DIR_HINT,_DIR_HINTS,
      _DIR_I,_DIR_I386_ATT,_DIR_I386_DIRECT,_DIR_I386_INTEL,_DIR_IOCHECKS,
        _DIR_IF,_DIR_IFDEF,_DIR_IFNDEF,_DIR_IFOPT,_DIR_INCLUDE,_DIR_INCLUDEPATH,
-       _DIR_INFO,
+       _DIR_INFO,_DIR_INLINE,
      _DIR_L,_DIR_LIBRARYPATH,_DIR_LINK,_DIR_LINKLIB,_DIR_LOCALSYMBOLS,
        _DIR_LONGSTRINGS,
-     _DIR_M,_DIR_MEMORY,_DIR_MESSAGE,_DIR_MINENUMSIZE,_DIR_MMX,_DIR_MODE,
+     _DIR_M,_DIR_MACRO,_DIR_MEMORY,_DIR_MESSAGE,_DIR_MINENUMSIZE,_DIR_MMX,_DIR_MODE,
      _DIR_NOTE,_DIR_NOTES,
      _DIR_OBJECTPATH,_DIR_OPENSTRINGS,_DIR_OUTPUT_FORMAT,_DIR_OVERFLOWCHECKS,
      _DIR_PACKENUM,_DIR_PACKRECORDS,
@@ -59,13 +60,14 @@ const
      'D','DEBUGINFO','DEFINE','DESCRIPTION',
      'ELSE','ENDIF','ERROR','EXTENDEDSYNTAX',
      'FATAL',
+     'GOTO',
      'HINT','HINTS',
      'I','I386_ATT','I386_DIRECT','I386_INTEL','IOCHECKS',
        'IF','IFDEF','IFNDEF','IFOPT','INCLUDE','INCLUDEPATH',
-       'INFO',
+       'INFO','INLINE',
      'L','LIBRARYPATH','LINK','LINKLIB','LOCALSYMBOLS',
        'LONGSTRINGS',
-     'M','MEMORY','MESSAGE','MINENUMSIZE','MMX','MODE',
+     'M','MACRO','MEMORY','MESSAGE','MINENUMSIZE','MMX','MODE',
      'NOTE','NOTES',
      'OBJECTPATH','OPENSTRINGS','OUTPUT_FORMAT','OVERFLOWCHECKS',
      'PACKENUM','PACKRECORDS',
@@ -477,8 +479,11 @@ const
       begin
         sw:=cs_modulenone;
         case t of
-           _DIR_SMARTLINK : sw:=cs_smartlink;
-           _DIR_STATIC    : sw:=cs_static_keyword;
+          _DIR_GOTO      : sw:=cs_support_goto;
+          _DIR_MACRO     : sw:=cs_support_macro;
+          _DIR_INLINE    : sw:=cs_support_inline;
+          _DIR_SMARTLINK : sw:=cs_smartlink;
+          _DIR_STATIC    : sw:=cs_static_keyword;
         end;
         state:=current_scanner^.readstate;
         if (sw<>cs_modulenone) and (state in ['-','+']) then
@@ -958,6 +963,7 @@ const
          {_DIR_ERROR} dir_message,
          {_DIR_EXTENDEDSYNTAX} dir_delphiswitch,
          {_DIR_FATAL} dir_message,
+         {_DIR_GOTO} dir_moduleswitch,
          {_DIR_HINT} dir_message,
          {_DIR_HINTS} dir_setverbose,
          {_DIR_I} dir_include,
@@ -972,6 +978,7 @@ const
          {_DIR_INCLUDE} dir_include,
          {_DIR_INCLUDEPATH} dir_includepath,
          {_DIR_INFO} dir_message,
+         {_DIR_INLINE} dir_moduleswitch,
          {_DIR_L} dir_linkobject,
          {_DIR_LIBRARYPATH} dir_librarypath,
          {_DIR_LINK} dir_linkobject,
@@ -979,6 +986,7 @@ const
          {_DIR_LOCALSYMBOLS} dir_delphiswitch,
          {_DIR_LONGSTRINGS} dir_delphiswitch,
          {_DIR_M} dir_memory,
+         {_DIR_MACRO} dir_moduleswitch,
          {_DIR_MEMORY} dir_memory,
          {_DIR_MESSAGE} dir_message,
          {_DIR_MINENUMSIZE} dir_packenum,
@@ -1079,7 +1087,10 @@ const
 
 {
   $Log$
-  Revision 1.49  1999-03-26 00:05:44  peter
+  Revision 1.50  1999-03-31 13:55:20  peter
+    * assembler inlining working for ag386bin
+
+  Revision 1.49  1999/03/26 00:05:44  peter
     * released valintern
     + deffile is now removed when compiling is finished
     * ^( compiles now correct

@@ -177,7 +177,6 @@
        tvarsym = object(tsym)
           address      : longint;
           localvarsym  : pvarsym;
-          localaddress : longint;  { address of the local copy of a value para, -1 means not used }
           islocalcopy  : boolean;
           definition   : pdef;
           refs         : longint;
@@ -335,7 +334,10 @@
 
 {
   $Log$
-  Revision 1.16  1999-03-24 23:17:29  peter
+  Revision 1.17  1999-03-31 13:55:23  peter
+    * assembler inlining working for ag386bin
+
+  Revision 1.16  1999/03/24 23:17:29  peter
     * fixed bugs 212,222,225,227,229,231,233
 
   Revision 1.15  1999/02/22 13:07:11  pierre

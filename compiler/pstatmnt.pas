@@ -701,12 +701,6 @@ unit pstatmnt;
         asmstat : ptree;
         Marker : Pai;
       begin
-         if (aktprocsym^.definition^.options and poinline)<>0 then
-           Begin
-              Message1(parser_w_not_supported_for_inline,'asm statement');
-              Message(parser_w_inlining_disabled);
-              aktprocsym^.definition^.options:= aktprocsym^.definition^.options and not poinline;
-           End;
          Inside_asm_statement:=true;
          case aktasmmode of
 {$ifdef i386}
@@ -720,7 +714,15 @@ unit pstatmnt;
   {$endif NoRA386Int}
   {$ifndef NoRA386Dir}
            asmmode_i386_direct:
-             asmstat:=ra386dir.assemble;
+             begin
+               if (aktprocsym^.definition^.options and poinline)<>0 then
+                 Begin
+                    Message1(parser_w_not_supported_for_inline,'direct asm');
+                    Message(parser_w_inlining_disabled);
+                    aktprocsym^.definition^.options:= aktprocsym^.definition^.options and not poinline;
+                 End;
+               asmstat:=ra386dir.assemble;
+             end;
   {$endif NoRA386Dir}
 {$endif}
 {$ifdef m68k}
@@ -1231,7 +1233,8 @@ unit pstatmnt;
          { temporary space is set, while the BEGIN of the procedure }
          if symtablestack^.symtabletype=localsymtable then
            procinfo.firsttemp := -symtablestack^.datasize
-         else procinfo.firsttemp := 0;
+         else
+           procinfo.firsttemp := 0;
 
          { assembler code does not allocate }
          { space for the return value       }
@@ -1265,14 +1268,9 @@ unit pstatmnt;
                (aktprocsym^.definition^.parast^.datasize=0) and
                not(ret_in_param(aktprocsym^.definition^.retdef)) then
                begin
-{$ifdef i386}
-                  procinfo.framepointer:=R_ESP;
-{$endif}
-{$ifdef m68k}
-                  procinfo.framepointer:=R_SP;
-{$endif}
+                  procinfo.framepointer:=stack_pointer;
                   { set the right value for parameters }
-                  dec(aktprocsym^.definition^.parast^.call_offset,target_os.size_of_pointer);
+                  dec(aktprocsym^.definition^.parast^.address_fixup,target_os.size_of_pointer);
                   dec(procinfo.call_offset,target_os.size_of_pointer);
               end;
           { force the asm statement }
@@ -1288,7 +1286,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.71  1999-03-10 11:23:29  pierre
+  Revision 1.72  1999-03-31 13:55:15  peter
+    * assembler inlining working for ag386bin
+
+  Revision 1.71  1999/03/10 11:23:29  pierre
    * typecheck for exit(value) : resulttype was not set
 
   Revision 1.70  1999/03/04 13:55:45  pierre

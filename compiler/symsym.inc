@@ -913,7 +913,6 @@
          _mangledname:=nil;
          varspez:=vs_value;
          address:=0;
-         localaddress:=-1;
          islocalcopy:=false;
          localvarsym:=nil;
          refs:=0;
@@ -974,7 +973,6 @@
            address:=readlong
          else
            address:=0;
-         localaddress:=-1;
          islocalcopy:=false;
          localvarsym:=nil;
          definition:=readdefref;
@@ -1268,7 +1266,7 @@
             stabstring := strpnew('"'+name+':'+st
                   +definition^.numberstring+'",'+
                   tostr(N_PSYM)+',0,'+tostr(fileinfo.line)+','+
-                  tostr(address+owner^.call_offset));
+                  tostr(address+owner^.address_fixup));
                   {offset to ebp => will not work if the framepointer is esp
                   so some optimizing will make things harder to debug }
          end
@@ -1870,7 +1868,10 @@
 
 {
   $Log$
-  Revision 1.75  1999-03-24 23:17:27  peter
+  Revision 1.76  1999-03-31 13:55:21  peter
+    * assembler inlining working for ag386bin
+
+  Revision 1.75  1999/03/24 23:17:27  peter
     * fixed bugs 212,222,225,227,229,231,233
 
   Revision 1.74  1999/02/23 18:29:27  pierre

@@ -1447,7 +1447,7 @@ end;
                      begin
                        l:=pvarsym(sym)^.address;
                        { set offset }
-                       inc(l,aktprocsym^.definition^.parast^.call_offset);
+                       inc(l,aktprocsym^.definition^.parast^.address_fixup);
                      end;
                     pvarsym(sym)^.is_valid:=1;
                     inc(pvarsym(sym)^.refs);
@@ -1791,7 +1791,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  1999-03-24 23:17:23  peter
+  Revision 1.8  1999-03-31 13:55:19  peter
+    * assembler inlining working for ag386bin
+
+  Revision 1.7  1999/03/24 23:17:23  peter
     * fixed bugs 212,222,225,227,229,231,233
 
   Revision 1.6  1999/03/01 13:22:25  pierre

@@ -34,7 +34,8 @@ Implementation
 
 Uses
   globtype,
-  globals,i386,DAOpt386,POpt386,CSOpt386;
+  globals,
+  DAOpt386,POpt386,CSOpt386;
 
 
 Procedure Optimize(AsmL: PAasmOutput);
@@ -83,7 +84,10 @@ End.
 
 {
  $Log$
- Revision 1.25  1998-12-29 19:58:27  jonas
+ Revision 1.26  1999-03-31 13:55:03  peter
+   * assembler inlining working for ag386bin
+
+ Revision 1.25  1998/12/29 19:58:27  jonas
    * fixed crash when there are two asm blocks right after each other
 
  Revision 1.24  1998/12/29 18:48:23  jonas

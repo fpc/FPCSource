@@ -194,7 +194,7 @@ unit Ra386dir;
                                                   begin
                                                      l:=pvarsym(sym)^.address;
                                                      { set offset }
-                                                     inc(l,aktprocsym^.definition^.parast^.call_offset);
+                                                     inc(l,aktprocsym^.definition^.parast^.address_fixup);
                                                      hs:=tostr(l)+'('+att_reg2str[procinfo.framepointer]+')';
                                                      if pos(',',s) > 0 then
                                                        pvarsym(sym)^.is_valid:=1;
@@ -295,7 +295,10 @@ unit Ra386dir;
 end.
 {
   $Log$
-  Revision 1.16  1999-03-24 23:17:22  peter
+  Revision 1.17  1999-03-31 13:55:18  peter
+    * assembler inlining working for ag386bin
+
+  Revision 1.16  1999/03/24 23:17:22  peter
     * fixed bugs 212,222,225,227,229,231,233
 
   Revision 1.15  1999/03/01 13:22:26  pierre

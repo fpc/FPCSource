@@ -215,7 +215,7 @@ unit tree;
              assignn : (assigntyp : tassigntyp;concat_string : boolean);
              loadn : (symtableentry : psym;symtable : psymtable;
                       is_absolute,is_first : boolean);
-             calln : (symtableprocentry : psym;
+             calln : (symtableprocentry : pprocsym;
                       symtableproc : psymtable;procdefinition : pprocdef;
                       methodpointer : ptree;
                       no_check,unit_specific,
@@ -230,8 +230,7 @@ unit tree;
              typeconvn : (convtyp : tconverttype;explizit : boolean);
              typen : (typenodetype : pdef);
              inlinen : (inlinenumber : byte;inlineconst:boolean);
-             procinlinen : (inlineprocdef : pprocdef;
-                            retoffset,para_offset,para_size : longint);
+             procinlinen : (inlinetree:ptree;inlineprocsym:pprocsym;retoffset,para_offset,para_size : longint);
              setconstn : (value_set : pconstset;lab_set:plabel);
              loopn : (t1,t2 : ptree;backward : boolean);
              asmn : (p_asm : paasmoutput;object_preserved : boolean);
@@ -1211,22 +1210,22 @@ unit tree;
 
       begin
          p:=getnode;
-         p^.disposetyp:=dt_left;
+         p^.disposetyp:=dt_nothing;
          p^.treetype:=procinlinen;
-         p^.inlineprocdef:=callp^.procdefinition;
+         p^.inlineprocsym:=callp^.symtableprocentry;
          p^.retoffset:=-4; { less dangerous as zero (PM) }
          p^.para_offset:=0;
-         p^.para_size:=p^.inlineprocdef^.para_size;
-         if ret_in_param(p^.inlineprocdef^.retdef) then
+         p^.para_size:=p^.inlineprocsym^.definition^.para_size;
+         if ret_in_param(p^.inlineprocsym^.definition^.retdef) then
            p^.para_size:=p^.para_size+target_os.size_of_pointer;
          { copy args }
-         p^.left:=getcopy(code);
+         p^.inlinetree:=code;
          p^.registers32:=code^.registers32;
          p^.registersfpu:=code^.registersfpu;
 {$ifdef SUPPORT_MMX}
          p^.registersmmx:=0;
 {$endif SUPPORT_MMX}
-         p^.resulttype:=p^.inlineprocdef^.retdef;
+         p^.resulttype:=p^.inlineprocsym^.definition^.retdef;
          genprocinlinenode:=p;
       end;
 
@@ -1714,7 +1713,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.70  1999-03-26 00:05:49  peter
+  Revision 1.71  1999-03-31 13:55:28  peter
+    * assembler inlining working for ag386bin
+
+  Revision 1.70  1999/03/26 00:05:49  peter
     * released valintern
     + deffile is now removed when compiling is finished
     * ^( compiles now correct

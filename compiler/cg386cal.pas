@@ -23,6 +23,8 @@
 unit cg386cal;
 interface
 
+{$define EXtdebug}
+
     uses
       symtable,tree;
 
@@ -242,21 +244,19 @@ implementation
            begin
               inlined:=true;
               inlinecode:=p^.right;
-              { set it to the same lexical level }
-              p^.procdefinition^.parast^.symtablelevel:=
-                aktprocsym^.definition^.parast^.symtablelevel;
+              { set it to the same lexical level as the local symtable, becuase
+                the para's are stored there }
+              p^.procdefinition^.parast^.symtablelevel:=aktprocsym^.definition^.localst^.symtablelevel;
               if assigned(p^.left) then
-                inlinecode^.para_offset:=
-                  gettempofsizepersistant(inlinecode^.para_size);
-              p^.procdefinition^.parast^.call_offset:=
-                inlinecode^.para_offset;
+                inlinecode^.para_offset:=gettempofsizepersistant(inlinecode^.para_size);
+              p^.procdefinition^.parast^.address_fixup:=inlinecode^.para_offset;
 {$ifdef extdebug}
              Comment(V_debug,
                'inlined parasymtable is at offset '
-               +tostr(p^.procdefinition^.parast^.call_offset));
+               +tostr(p^.procdefinition^.parast^.address_fixup));
              exprasmlist^.concat(new(pai_asm_comment,init(
                strpnew('inlined parasymtable is at offset '
-               +tostr(p^.procdefinition^.parast^.call_offset)))));
+               +tostr(p^.procdefinition^.parast^.address_fixup)))));
 {$endif extdebug}
               p^.right:=nil;
               { disable further inlining of the same proc
@@ -351,7 +351,7 @@ implementation
            begin
               { be found elsewhere }
               if inlined then
-                para_offset:=p^.procdefinition^.parast^.call_offset+
+                para_offset:=p^.procdefinition^.parast^.address_fixup+
                   p^.procdefinition^.parast^.datasize
               else
                 para_offset:=0;
@@ -792,11 +792,12 @@ implementation
               else { inlined proc }
                 { inlined code is in inlinecode }
                 begin
-                   secondpass(inlinecode);
                    { set poinline again }
                    p^.procdefinition^.options:=p^.procdefinition^.options or poinline;
+                   { process the inlinecode }
+                   secondpass(inlinecode);
                    { free the args }
-                   ungetpersistanttemp(p^.procdefinition^.parast^.call_offset,
+                   ungetpersistanttemp(p^.procdefinition^.parast^.address_fixup,
                      p^.procdefinition^.parast^.datasize);
                 end;
            end
@@ -1122,26 +1123,6 @@ implementation
                              SecondProcInlineN
 *****************************************************************************}
 
-    { implementation not complete yet }
-
-    var
-      addr_correction : longint;
-
-    procedure correct_address(p : psym);{$ifndef FPC}far;{$endif}
-      begin
-         if p^.typ=varsym then
-           begin
-             inc(pvarsym(p)^.address,addr_correction);
-{$ifdef extdebug}
-             Comment(V_debug,pvarsym(p)^.name+' is at offset -'
-               +tostr(pvarsym(p)^.address));
-             exprasmlist^.concat(new(pai_asm_comment,init(
-               strpnew(pvarsym(p)^.name+' is at offset -'
-               +tostr(pvarsym(p)^.address)))));
-{$endif extdebug}
-           end;
-      end;
-
 
     procedure secondprocinline(var p : ptree);
        var st : psymtable;
@@ -1162,24 +1143,22 @@ implementation
           oldprocsym:=aktprocsym;
           oldprocinfo:=procinfo;
           { set the return value }
-          procinfo.retdef:=p^.inlineprocdef^.retdef;
+          aktprocsym:=p^.inlineprocsym;
+          procinfo.retdef:=aktprocsym^.definition^.retdef;
           procinfo.retoffset:=p^.retoffset;
           { arg space has been filled by the parent secondcall }
-          st:=p^.inlineprocdef^.localst;
-              { set it to the same lexical level }
-          st^.symtablelevel:=
-            oldprocsym^.definition^.localst^.symtablelevel;
+          st:=aktprocsym^.definition^.localst;
+          { set it to the same lexical level }
+          st^.symtablelevel:=oldprocsym^.definition^.localst^.symtablelevel;
           if st^.datasize>0 then
-            st^.call_offset:=gettempofsizepersistant(st^.datasize);
+            begin
+              st^.address_fixup:=gettempofsizepersistant(st^.datasize);
 {$ifdef extdebug}
-             Comment(V_debug,'local symtable is at offset '
-               +tostr(st^.call_offset));
-          exprasmlist^.concat(new(pai_asm_comment,init(
-          strpnew('local symtable is at offset '
-               +tostr(st^.call_offset)))));
+              Comment(V_debug,'local symtable is at offset '+tostr(st^.address_fixup));
+              exprasmlist^.concat(new(pai_asm_comment,init(strpnew(
+                'local symtable is at offset '+tostr(st^.address_fixup)))));
 {$endif extdebug}
-          addr_correction:=-st^.call_offset-st^.datasize;
-          st^.foreach(correct_address);
+            end;
 {$ifdef extdebug}
           exprasmlist^.concat(new(pai_asm_comment,init('Start of inlined proc')));
 {$endif extdebug}
@@ -1191,18 +1170,18 @@ implementation
           make_global:=false; { to avoid warning }
           genentrycode(inlineentrycode,proc_names,make_global,0,para_size,nostackframe,true);
           exprasmlist^.concatlist(inlineentrycode);
-          secondpass(p^.left);
+          secondpass(p^.inlinetree);
           genexitcode(inlineexitcode,0,false,true);
           exprasmlist^.concatlist(inlineexitcode);
 {$ifdef extdebug}
           exprasmlist^.concat(new(pai_asm_comment,init('End of inlined proc')));
 {$endif extdebug}
-          {we can free the local data now }
+          {we can free the local data now, reset also the fixup address }
           if st^.datasize>0 then
-            ungetpersistanttemp(st^.call_offset,st^.datasize);
-          { set the real address again }
-          addr_correction:=-addr_correction;
-          st^.foreach(correct_address);
+            begin
+              ungetpersistanttemp(st^.address_fixup,st^.datasize);
+              st^.address_fixup:=0;
+            end;
           aktprocsym:=oldprocsym;
           freelabel(aktexitlabel);
           freelabel(aktexit2label);
@@ -1217,7 +1196,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.70  1999-03-24 23:16:46  peter
+  Revision 1.71  1999-03-31 13:55:04  peter
+    * assembler inlining working for ag386bin
+
+  Revision 1.70  1999/03/24 23:16:46  peter
     * fixed bugs 212,222,225,227,229,231,233
 
   Revision 1.69  1999/02/25 21:02:21  peter

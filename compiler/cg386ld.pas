@@ -118,13 +118,9 @@ implementation
                                                    inlineparasymtable,localsymtable]) then
                                 begin
                                    p^.location.reference.base:=procinfo.framepointer;
-                                   p^.location.reference.offset:=pvarsym(p^.symtableentry)^.address;
-                                   if (symtabletype in [localsymtable,inlinelocalsymtable]) or
-                                      pvarsym(p^.symtableentry)^.islocalcopy then
-                                     p^.location.reference.offset:=-p^.location.reference.offset
-                                   else
-                                     if (symtabletype in [parasymtable,inlineparasymtable]) then
-                                       inc(p^.location.reference.offset,p^.symtable^.call_offset);
+                                   p^.location.reference.offset:=pvarsym(p^.symtableentry)^.address+p^.symtable^.address_fixup;
+                                   if (symtabletype in [localsymtable,inlinelocalsymtable]) then
+                                     p^.location.reference.offset:=-p^.location.reference.offset;
                                    if (lexlevel>(p^.symtable^.symtablelevel)) then
                                      begin
                                         hregister:=getregister32;
@@ -132,7 +128,6 @@ implementation
                                         { make a reference }
                                         hp:=new_reference(procinfo.framepointer,
                                           procinfo.framepointer_offset);
-
 
                                         exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,hp,hregister)));
 
@@ -802,7 +797,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.46  1999-03-24 23:16:52  peter
+  Revision 1.47  1999-03-31 13:55:07  peter
+    * assembler inlining working for ag386bin
+
+  Revision 1.46  1999/03/24 23:16:52  peter
     * fixed bugs 212,222,225,227,229,231,233
 
   Revision 1.45  1999/02/25 21:02:28  peter

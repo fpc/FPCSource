@@ -1397,7 +1397,7 @@ unit pexpr;
                               p1:=gencallnode(nil,nil);
                               p1^.right:=p2;
                               p1^.unit_specific:=unit_specific;
-                              p1^.symtableprocentry:=sym;
+                              p1^.symtableprocentry:=pprocsym(sym);
                               if token=LKLAMMER then
                                 begin
                                    consume(LKLAMMER);
@@ -1976,7 +1976,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.89  1999-03-26 00:05:36  peter
+  Revision 1.90  1999-03-31 13:55:12  peter
+    * assembler inlining working for ag386bin
+
+  Revision 1.89  1999/03/26 00:05:36  peter
     * released valintern
     + deffile is now removed when compiling is finished
     * ^( compiles now correct
