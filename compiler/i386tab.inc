@@ -1425,7 +1425,7 @@
     opcode  : A_FADD;
     ops     : 0;
     optypes : (ot_none,ot_none,ot_none);
-    code    : #2#220#193;
+    code    : #2#222#193;
     flags   : if_8086 or if_fpu
   ),
   (

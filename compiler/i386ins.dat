@@ -347,7 +347,7 @@ void                  \2\xD9\xE1                      8086,FPU
 (Ch_FPU, Ch_None, Ch_None)
 mem32                 \300\1\xD8\200                  8086,FPU
 mem64                 \300\1\xDC\200                  8086,FPU
-void                  \2\xDC\xC1                      8086,FPU
+void                  \2\xDE\xC1                      8086,FPU
 fpureg|to             \1\xDC\10\xC0                   8086,FPU
 fpureg,fpu0           \1\xDC\10\xC0                   8086,FPU
 fpureg                \1\xD8\10\xC0                   8086,FPU
