@@ -190,6 +190,8 @@ type
     procedure resize_frames;
     function  add_frameentry:pframeentry;
     function  get_frameentry(level : longint):pframeentry;
+    function  get_current_frame : longint;
+    function  set_current_frame(level : longint) : boolean;
     procedure clear_frames;
     { Highlevel }
     user_screen_shown,
@@ -1372,7 +1374,7 @@ begin
 {$endif}
   with curr_gdb^ do
    begin
-     if (not record_frames) and (not frame_begin_seen) then
+     if (not record_frames) or (not frame_begin_seen) then
       exit;
      { This can happen, when the function has no Debugging information }
      if (args_start >= 0) and (args_end < 0) then
@@ -1698,6 +1700,7 @@ constructor tgdbinterface.init;
 begin
   gdboutputbuf.init;
   gdberrorbuf.init;
+  record_frames:=true;
 {$ifndef GDB_V416}
 (* GDB_FILE *
   gdb_file_init_astring (n)
@@ -1796,16 +1799,16 @@ begin
   while (length(s2)>0) and ((s2[1]=' ') or (s2[1]=#9)) do
     s2:=copy(s2,2,255);
   if (length(s2)>0) and
-     (s2[1]='q') and
+     (UpCase(s2[1])='Q') and
      ((length(s2)=1) or
       (s2[2]=' ') or
-      ((s2[2]='u') and
+      ((UpCase(s2[2])='U') and
       ((length(s2)=2) or
        (s2[3]=' ') or
-       ((s2[3]='i') and
+       ((UpCase(s2[3])='I') and
         ((length(s2)=3) or
          (s2[4]=' ') or
-         ((s2[4]='t') and
+         ((UpCase(s2[4])='T') and
           ((length(s2)=4) or
            (s2[5]=' ')
      ))))))) then
@@ -1887,6 +1890,28 @@ begin
   freemem(frames,sizeof(pointer)*Frame_size);
   frame_count:=0;
   frame_size:=0;
+end;
+
+function tgdbinterface.get_current_frame : longint;
+begin
+  record_frames:=false;
+  gdb_command('f');
+  get_current_frame:=frame_level;
+  record_frames:=true;
+end;
+
+function tgdbinterface.set_current_frame(level : longint) : boolean;
+var
+  s : string;
+begin
+  record_frames:=false;
+  str(level,s);
+  gdb_command('f '+s);
+  if level=frame_level then
+    set_current_frame:=true
+  else
+    set_current_frame:=false;
+  record_frames:=true;
 end;
 
 
@@ -2127,7 +2152,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-01-10 11:14:42  peter
+  Revision 1.4  2000-02-06 22:32:45  pierre
+   + Get_current_frame and Set_current_frame
+
+  Revision 1.3  2000/01/10 11:14:42  peter
     * fixed crash in getaddrsyminfo with symfync=nil
 
   Revision 1.2  1999/11/26 14:50:40  pierre
