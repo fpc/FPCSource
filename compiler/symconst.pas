@@ -224,7 +224,6 @@ type
     oo_has_vmt,            { the object/class has a vmt }
     oo_has_msgstr,
     oo_has_msgint,
-    oo_has_abstract,       { the object/class has an abstract method => no instances can be created }
     oo_can_have_published { the class has rtti, i.e. you can publish properties }
   );
   tobjectoptions=set of tobjectoption;
@@ -356,7 +355,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.58  2003-06-25 18:31:23  peter
+  Revision 1.59  2003-08-10 17:25:23  peter
+    * fixed some reported bugs
+
+  Revision 1.58  2003/06/25 18:31:23  peter
     * sym,def resolving partly rewritten to support also parent objects
       not directly available through the uses clause
 

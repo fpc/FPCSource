@@ -53,13 +53,6 @@ interface
        end;
        taddrnodeclass = class of taddrnode;
 
-       tdoubleaddrnode = class(tunarynode)
-          constructor create(l : tnode);virtual;
-          function pass_1 : tnode;override;
-          function det_resulttype:tnode;override;
-       end;
-       tdoubleaddrnodeclass = class of tdoubleaddrnode;
-
        tderefnode = class(tunarynode)
           constructor create(l : tnode);virtual;
           function pass_1 : tnode;override;
@@ -109,7 +102,6 @@ interface
     var
        cloadvmtaddrnode : tloadvmtaddrnodeclass;
        caddrnode : taddrnodeclass;
-       cdoubleaddrnode : tdoubleaddrnodeclass;
        cderefnode : tderefnodeclass;
        csubscriptnode : tsubscriptnodeclass;
        cvecnode : tvecnodeclass;
@@ -401,56 +393,6 @@ implementation
          if registers32<1 then
            registers32:=1;
          { is this right for object of methods ?? }
-         expectloc:=LOC_REGISTER;
-      end;
-
-
-{*****************************************************************************
-                           TDOUBLEADDRNODE
-*****************************************************************************}
-
-    constructor tdoubleaddrnode.create(l : tnode);
-      begin
-         inherited create(doubleaddrn,l);
-      end;
-
-
-    function tdoubleaddrnode.det_resulttype:tnode;
-      begin
-        result:=nil;
-         resulttypepass(left);
-         if codegenerror then
-          exit;
-
-         inc(parsing_para_level);
-         set_varstate(left,false);
-         dec(parsing_para_level);
-
-         if (left.resulttype.def.deftype)<>procvardef then
-           CGMessage(cg_e_illegal_expression);
-
-         resulttype:=voidpointertype;
-      end;
-
-
-    function tdoubleaddrnode.pass_1 : tnode;
-      begin
-         result:=nil;
-         make_not_regable(left);
-         firstpass(left);
-         if codegenerror then
-           exit;
-
-         if (left.expectloc<>LOC_REFERENCE) then
-           CGMessage(cg_e_illegal_expression);
-
-         registers32:=left.registers32;
-         registersfpu:=left.registersfpu;
-{$ifdef SUPPORT_MMX}
-         registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
-         if registers32<1 then
-           registers32:=1;
          expectloc:=LOC_REGISTER;
       end;
 
@@ -905,7 +847,6 @@ implementation
 begin
   cloadvmtaddrnode := tloadvmtaddrnode;
   caddrnode := taddrnode;
-  cdoubleaddrnode := tdoubleaddrnode;
   cderefnode := tderefnode;
   csubscriptnode := tsubscriptnode;
   cvecnode := tvecnode;
@@ -913,7 +854,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.59  2003-06-17 19:24:08  jonas
+  Revision 1.60  2003-08-10 17:25:23  peter
+    * fixed some reported bugs
+
+  Revision 1.59  2003/06/17 19:24:08  jonas
     * fixed conversion of fpc_*str_unique to compilerproc
 
   Revision 1.58  2003/06/17 16:34:44  jonas

@@ -1358,7 +1358,8 @@ implementation
                 procsym :
                   begin
                     { are we in a class method ? }
-                    possible_error:=(srsym.owner.symtabletype=objectsymtable) and
+                    possible_error:=(srsymtable.symtabletype<>withsymtable) and
+                                    (srsym.owner.symtabletype=objectsymtable) and
                                     not(is_interface(tdef(srsym.owner.defowner))) and
                                     assigned(current_procinfo) and
                                     (po_classmethod in current_procinfo.procdef.procoptions);
@@ -2412,7 +2413,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.123  2003-06-13 21:19:31  peter
+  Revision 1.124  2003-08-10 17:25:23  peter
+    * fixed some reported bugs
+
+  Revision 1.123  2003/06/13 21:19:31  peter
     * current_procdef removed, use current_procinfo.procdef instead
 
   Revision 1.122  2003/06/03 21:02:57  peter

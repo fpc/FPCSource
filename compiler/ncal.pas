@@ -1137,12 +1137,15 @@ type
         { also, this checking can only be done if the constructor is directly
           called, indirect constructor calls cannot be checked.
         }
-        if assigned(methodpointer) and
-           (methodpointer.resulttype.def.deftype = classrefdef) and
-           (methodpointer.nodetype in [typen,loadvmtaddrn]) then
+        if assigned(methodpointer) then
           begin
-            if (tclassrefdef(methodpointer.resulttype.def).pointertype.def.deftype = objectdef) then
-              objectdf := tobjectdef(tclassrefdef(methodpointer.resulttype.def).pointertype.def);
+            if (methodpointer.resulttype.def.deftype = objectdef) then
+              objectdf:=tobjectdef(methodpointer.resulttype.def)
+            else
+              if (methodpointer.resulttype.def.deftype = classrefdef) and
+                 (tclassrefdef(methodpointer.resulttype.def).pointertype.def.deftype = objectdef) and
+                 (methodpointer.nodetype in [typen,loadvmtaddrn]) then
+                objectdf:=tobjectdef(tclassrefdef(methodpointer.resulttype.def).pointertype.def);
           end;
         if not assigned(objectdf) then
           exit;
@@ -2163,7 +2166,7 @@ type
                while assigned(hpt) and (hpt.nodetype in [subscriptn,vecn]) do
                 hpt:=tunarynode(hpt).left;
 
-               if (procdefinition.proctypeoption in [potype_constructor,potype_destructor]) and
+               if (procdefinition.proctypeoption=potype_constructor) and
                   assigned(symtableproc) and
                   (symtableproc.symtabletype=withsymtable) and
                   (tnode(twithsymtable(symtableproc).withrefnode).nodetype=temprefn) then
@@ -2646,7 +2649,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.174  2003-07-25 09:54:57  jonas
+  Revision 1.175  2003-08-10 17:25:23  peter
+    * fixed some reported bugs
+
+  Revision 1.174  2003/07/25 09:54:57  jonas
     * fixed bogus abstract method warnings
 
   Revision 1.173  2003/06/25 18:31:23  peter

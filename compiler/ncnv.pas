@@ -1294,6 +1294,8 @@ implementation
                 that has an extra addrn }
               if (m_tp_procvar in aktmodeswitches) and
                  (resulttype.def.deftype<>procvardef) and
+                 { ignore internal typecasts to access methodpointer fields }
+                 (resulttype.def<>methodpointertype.def) and
                  (left.resulttype.def.deftype=procvardef) and
                  (not is_void(tprocvardef(left.resulttype.def).rettype.def)) then
                begin
@@ -2111,7 +2113,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.115  2003-06-05 20:05:55  peter
+  Revision 1.116  2003-08-10 17:25:23  peter
+    * fixed some reported bugs
+
+  Revision 1.115  2003/06/05 20:05:55  peter
     * removed changesettype because that will change the definition
       of the setdef forever and can result in a different between
       original interface and current implementation definition

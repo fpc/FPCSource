@@ -70,7 +70,6 @@ interface
           subscriptn,       {Field in a record/object}
           derefn,           {Dereferences a pointer}
           addrn,            {Represents the @ operator}
-          doubleaddrn,      {Represents the @@ operator}
           ordconstn,        {Represents an ordinal value}
           typeconvn,        {Represents type-conversion/typecast}
           calln,            {Represents a call node}
@@ -149,7 +148,6 @@ interface
           'subscriptn',
           'derefn',
           'addrn',
-          'doubleaddrn',
           'ordconstn',
           'typeconvn',
           'calln',
@@ -982,7 +980,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.62  2003-05-26 21:17:17  peter
+  Revision 1.63  2003-08-10 17:25:23  peter
+    * fixed some reported bugs
+
+  Revision 1.62  2003/05/26 21:17:17  peter
     * procinlinenode removed
     * aktexit2label removed, fast exit removed
     + tcallnode.inlined_pass_2 added

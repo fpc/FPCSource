@@ -1163,14 +1163,9 @@ implementation
                                   { class abstract and it's not allow to      }
                                   { generates an instance                     }
                                   if (po_abstractmethod in procdefcoll^.data.procoptions) then
-                                    begin
-                                       include(_class.objectoptions,oo_has_abstract);
-                                       List.concat(Tai_const_symbol.Createname('FPC_ABSTRACTERROR'));
-                                    end
+                                    List.concat(Tai_const_symbol.Createname('FPC_ABSTRACTERROR'))
                                   else
-                                    begin
-                                      List.concat(Tai_const_symbol.createname(procdefcoll^.data.mangledname));
-                                    end;
+                                    List.concat(Tai_const_symbol.createname(procdefcoll^.data.mangledname));
                                end;
                           end;
                         procdefcoll:=procdefcoll^.next;
@@ -1333,7 +1328,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.44  2003-06-01 21:38:06  peter
+  Revision 1.45  2003-08-10 17:25:23  peter
+    * fixed some reported bugs
+
+  Revision 1.44  2003/06/01 21:38:06  peter
     * getregisterfpu size parameter added
     * op_const_reg size parameter added
     * sparc updates

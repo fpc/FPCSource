@@ -96,7 +96,6 @@ implementation
              'subscriptn',  {subscriptn}
              'dderef',       {derefn}
              'addr',        {addrn}
-             'doubleaddr',  {doubleaddrn}
              'ordconst',    {ordconstn}
              'typeconv',    {typeconvn}
              'calln',       {calln}
@@ -316,7 +315,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.61  2003-07-06 17:58:22  peter
+  Revision 1.62  2003-08-10 17:25:23  peter
+    * fixed some reported bugs
+
+  Revision 1.61  2003/07/06 17:58:22  peter
     * framepointer fixes for sparc
     * parent framepointer code more generic
 

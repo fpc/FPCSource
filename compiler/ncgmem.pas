@@ -42,10 +42,6 @@ interface
           procedure pass_2;override;
        end;
 
-       tcgdoubleaddrnode = class(tdoubleaddrnode)
-          procedure pass_2;override;
-       end;
-
        tcgderefnode = class(tderefnode)
           procedure pass_2;override;
        end;
@@ -185,40 +181,16 @@ implementation
          location_release(exprasmlist,left.location);
          location_reset(location,LOC_REGISTER,OS_ADDR);
          location.register:=rg.getaddressregister(exprasmlist);
-         {@ on a procvar means returning an address to the procedure that
-           is stored in it.}
-         { yes but left.symtableentry can be nil
-           for example on self !! }
-         { symtableentry can be also invalid, if left is no tree node }
+         { @ on a procvar means returning an address to the procedure that
+           is stored in it }
          if (m_tp_procvar in aktmodeswitches) and
             (left.nodetype=loadn) and
+            (tloadnode(left).resulttype.def.deftype=procvardef) and
             assigned(tloadnode(left).symtableentry) and
-            (tloadnode(left).symtableentry.typ=varsym) and
-            (tvarsym(tloadnode(left).symtableentry).vartype.def.deftype=procvardef) then
-           cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,left.location.reference,
-             location.register)
+            (tloadnode(left).symtableentry.typ=varsym) then
+           cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,left.location.reference,location.register)
          else
-          begin
-           cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,
-             location.register);
-          end;
-      end;
-
-
-{*****************************************************************************
-                         TCGDOUBLEADDRNODE
-*****************************************************************************}
-
-    procedure tcgdoubleaddrnode.pass_2;
-      begin
-         secondpass(left);
-
-         location_release(exprasmlist,left.location);
-         location_reset(location,LOC_REGISTER,OS_ADDR);
-         location.register:=rg.getaddressregister(exprasmlist);
-
-         cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,
-           location.register);
+           cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,location.register);
       end;
 
 
@@ -479,7 +451,6 @@ implementation
          poslabel,
          neglabel : tasmlabel;
          hreg : tregister;
-         i:Tsuperregister;
       {$ifndef newra}
          pushed : tpushedsavedint;
       {$endif}
@@ -890,7 +861,6 @@ implementation
 begin
    cloadvmtaddrnode:=tcgloadvmtaddrnode;
    caddrnode:=tcgaddrnode;
-   cdoubleaddrnode:=tcgdoubleaddrnode;
    cderefnode:=tcgderefnode;
    csubscriptnode:=tcgsubscriptnode;
    cwithnode:=tcgwithnode;
@@ -898,7 +868,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.68  2003-08-09 18:56:54  daniel
+  Revision 1.69  2003-08-10 17:25:23  peter
+    * fixed some reported bugs
+
+  Revision 1.68  2003/08/09 18:56:54  daniel
     * cs_regalloc renamed to cs_regvars to avoid confusion with register
       allocator
     * Some preventive changes to i386 spillinh code

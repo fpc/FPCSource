@@ -2371,13 +2371,7 @@ implementation
              '@' :
                begin
                  readchar;
-                 if c='@' then
-                  begin
-                    readchar;
-                    token:=_DOUBLEADDR;
-                  end
-                 else
-                  token:=_KLAMMERAFFE;
+                 token:=_KLAMMERAFFE;
                  goto exit_label;
                end;
 
@@ -2814,7 +2808,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.59  2003-05-25 10:26:43  peter
+  Revision 1.60  2003-08-10 17:25:23  peter
+    * fixed some reported bugs
+
+  Revision 1.59  2003/05/25 10:26:43  peter
     * recursive include depth check
 
   Revision 1.58  2003/04/26 00:30:27  peter

@@ -109,7 +109,7 @@ implementation
          lcont,lbreak,lloop,
          oldclabel,oldblabel : tasmlabel;
          otlabel,oflabel : tasmlabel;
-
+         oldflowcontrol : tflowcontrol;
       begin
          location_reset(location,LOC_VOID,OS_NO);
 
@@ -117,6 +117,7 @@ implementation
          objectlibrary.getlabel(lcont);
          objectlibrary.getlabel(lbreak);
          { arrange continue and breaklabels: }
+         oldflowcontrol:=flowcontrol;
          oldclabel:=aktcontinuelabel;
          oldblabel:=aktbreaklabel;
 
@@ -168,7 +169,7 @@ implementation
          aktcontinuelabel:=oldclabel;
          aktbreaklabel:=oldblabel;
          { a break/continue in a while/repeat block can't be seen outside }
-         flowcontrol:=flowcontrol-[fc_break,fc_continue];
+         flowcontrol:=oldflowcontrol+(flowcontrol-[fc_break,fc_continue]);
       end;
 
 
@@ -354,10 +355,11 @@ implementation
          opsize : tcgsize;
          count_var_is_signed,do_loopvar_at_end : boolean;
          cmp_const:Tconstexprint;
+         oldflowcontrol : tflowcontrol;
 
       begin
          location_reset(location,LOC_VOID,OS_NO);
-
+         oldflowcontrol:=flowcontrol;
          oldclabel:=aktcontinuelabel;
          oldblabel:=aktbreaklabel;
          objectlibrary.getlabel(aktcontinuelabel);
@@ -702,8 +704,8 @@ implementation
 
          aktcontinuelabel:=oldclabel;
          aktbreaklabel:=oldblabel;
-         { a break/continue in a for block can't be seen outside }
-         flowcontrol:=flowcontrol-[fc_break,fc_continue];
+         { a break/continue in a while/repeat block can't be seen outside }
+         flowcontrol:=oldflowcontrol+(flowcontrol-[fc_break,fc_continue]);
       end;
 
 
@@ -1539,7 +1541,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.74  2003-08-09 18:56:54  daniel
+  Revision 1.75  2003-08-10 17:25:23  peter
+    * fixed some reported bugs
+
+  Revision 1.74  2003/08/09 18:56:54  daniel
     * cs_regalloc renamed to cs_regvars to avoid confusion with register
       allocator
     * Some preventive changes to i386 spillinh code

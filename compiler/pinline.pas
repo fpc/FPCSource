@@ -355,9 +355,6 @@ implementation
                exit;
              end;
             classh:=tobjectdef(tpointerdef(p1.resulttype.def).pointertype.def);
-            { check for an abstract class }
-            if (oo_has_abstract in classh.objectoptions) then
-              Message(sym_e_no_instance_of_abstract_object);
             { use the objectdef for loading the VMT }
             p2:=p1;
             p1:=ctypenode.create(tpointerdef(p1.resulttype.def).pointertype);
@@ -682,7 +679,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  2003-05-17 13:30:08  jonas
+  Revision 1.16  2003-08-10 17:25:23  peter
+    * fixed some reported bugs
+
+  Revision 1.15  2003/05/17 13:30:08  jonas
     * changed tt_persistant to tt_persistent :)
     * tempcreatenode now doesn't accept a boolean anymore for persistent
       temps, but a ttemptype, so you can also create ansistring temps etc

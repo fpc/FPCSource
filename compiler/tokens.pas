@@ -67,7 +67,6 @@ type
     _SEMICOLON,
     _KLAMMERAFFE,
     _POINTPOINT,
-    _DOUBLEADDR,
     _EOF,
     _ID,
     _NOID,
@@ -291,7 +290,6 @@ const
       (str:';'             ;special:true ;keyword:m_none;op:NOTOKEN),
       (str:'@'             ;special:true ;keyword:m_none;op:NOTOKEN),
       (str:'..'            ;special:true ;keyword:m_none;op:NOTOKEN),
-      (str:'@@'            ;special:true ;keyword:m_none;op:NOTOKEN),
       (str:'end of file'   ;special:true ;keyword:m_none;op:NOTOKEN),
       (str:'identifier'    ;special:true ;keyword:m_none;op:NOTOKEN),
       (str:'non identifier';special:true ;keyword:m_none;op:NOTOKEN),
@@ -506,7 +504,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.21  2003-03-26 12:50:54  armin
+  Revision 1.22  2003-08-10 17:25:23  peter
+    * fixed some reported bugs
+
+  Revision 1.21  2003/03/26 12:50:54  armin
   * avoid problems with the ide in init/dome
 
   Revision 1.20  2002/11/29 22:31:21  carl
