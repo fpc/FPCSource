@@ -832,11 +832,7 @@ implementation
                        CGMessage(cg_e_illegal_type_conversion);
                 end
               else
-{$ifndef OLDPPU}
                 CGMessage2(type_e_incompatible_types,p^.left^.resulttype^.typename,p^.resulttype^.typename);
-{$else}
-                CGMessage(type_e_mismatch);
-{$endif}
            end
          end;
         { ordinal contants can be directly converted }
@@ -933,7 +929,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.30  1999-05-12 00:20:00  peter
+  Revision 1.31  1999-05-13 21:59:52  peter
+    * removed oldppu code
+    * warning if objpas is loaded from uses
+    * first things for new deref writing
+
+  Revision 1.30  1999/05/12 00:20:00  peter
     * removed R_DEFAULT_SEG
     * uniform float names
 

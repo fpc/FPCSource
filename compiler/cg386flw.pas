@@ -710,11 +710,7 @@ do_jmp:
 
          { what a hack ! }
          if assigned(p^.exceptsymtable) then
-{$ifndef OLDPPU}
            pvarsym(p^.exceptsymtable^.symindex^.first)^.address:=ref.offset;
-{$else}
-           pvarsym(p^.exceptsymtable^.searchroot)^.address:=ref.offset;
-{$endif}
 
          exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
            R_EAX,newreference(ref))));
@@ -802,7 +798,12 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.35  1999-05-01 13:24:07  peter
+  Revision 1.36  1999-05-13 21:59:21  peter
+    * removed oldppu code
+    * warning if objpas is loaded from uses
+    * first things for new deref writing
+
+  Revision 1.35  1999/05/01 13:24:07  peter
     * merged nasm compiler
     * old asm moved to oldasm/
 

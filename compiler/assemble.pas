@@ -459,6 +459,7 @@ var
 {$endif}
 begin
   case aktoutputformat of
+     as_none : ;
 {$ifdef i386}
   {$ifndef NoAg386Bin}
      as_i386_dbg,
@@ -524,7 +525,11 @@ begin
   {$endif NoAg68kMpw}
 {$endif}
   else
+{$ifdef TP}
+    exit;
+{$else}
     Message(asmw_f_assembler_output_not_supported);
+{$endif}
   end;
   a^.AsmCreate;
   a^.WriteAsmList;
@@ -548,7 +553,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.46  1999-05-05 22:21:48  peter
+  Revision 1.47  1999-05-13 21:59:19  peter
+    * removed oldppu code
+    * warning if objpas is loaded from uses
+    * first things for new deref writing
+
+  Revision 1.46  1999/05/05 22:21:48  peter
     * updated messages
 
   Revision 1.45  1999/05/04 21:44:33  florian

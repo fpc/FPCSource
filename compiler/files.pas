@@ -751,16 +751,12 @@ uses
       { Load values to be access easier }
         flags:=ppufile^.header.flags;
         crc:=ppufile^.header.checksum;
-{$ifndef OLDPPU}
         interface_crc:=ppufile^.header.interface_checksum;
-{$endif}
       { Show Debug info }
         Message1(unit_u_ppu_time,filetimestring(ppufiletime));
         Message1(unit_u_ppu_flags,tostr(flags));
         Message1(unit_u_ppu_crc,tostr(ppufile^.header.checksum));
-{$ifndef OLDPPU}
         Message1(unit_u_ppu_crc,tostr(ppufile^.header.interface_checksum)+' (intfc)');
-{$endif}
       { check the object and assembler file to see if we need only to
         assemble, only if it's not in a library }
         do_compile:=false;
@@ -933,10 +929,8 @@ uses
 
 
     procedure tmodule.reset;
-{$ifndef OLDPPU}
       var
          pm : pdependent_unit;
-{$endif}
       begin
         if assigned(scanner) then
           pscannerfile(scanner)^.invalid:=true;
@@ -969,7 +963,6 @@ uses
         used_units.done;
         used_units.init;
         { all units that depend on this one must be recompiled ! }
-{$ifndef OLDPPU}
         pm:=pdependent_unit(dependent_units.first);
         while assigned(pm) do
           begin
@@ -982,7 +975,6 @@ uses
              end;
             pm:=pdependent_unit(pm^.next);
           end;
-{$endif OLDPPU}
         dependent_units.done;
         dependent_units.init;
         resourcefiles.done;
@@ -1194,7 +1186,12 @@ uses
 end.
 {
   $Log$
-  Revision 1.94  1999-05-04 21:44:42  florian
+  Revision 1.95  1999-05-13 21:59:25  peter
+    * removed oldppu code
+    * warning if objpas is loaded from uses
+    * first things for new deref writing
+
+  Revision 1.94  1999/05/04 21:44:42  florian
     * changes to compile it with Delphi 4.0
 
   Revision 1.93  1999/04/26 13:31:29  peter

@@ -67,12 +67,7 @@
 
     constructor tdef.init;
       begin
-{$ifndef OLDPPU}
          inherited init;
-{$else}
-         indexnb := 0;
-         next := nil;
-{$endif}
          deftype:=abstractdef;
          owner := nil;
          sym := nil;
@@ -124,13 +119,8 @@
          lastglobaldef := @self;
          nextglobal := nil;
       { load }
-{$ifndef OLDPPU}
          indexnr:=readword;
          sym:=ptypesym(readsymref);
-{$else}
-         indexnb := 0;
-         sym:=nil;
-{$endif}
       end;
 
 
@@ -170,13 +160,7 @@
          if assigned(owner) and
             (owner^.symtabletype in [recordsymtable,objectsymtable]) then
            begin
-{$ifndef OLDPPU}
               owner^.defindex^.deleteindex(@self);
-{$else}
-              { no other definition
-                 has been inserted !! (PM) }
-              owner^.rootdef:=next;
-{$endif}
               st:=owner;
               while (st^.symtabletype in [recordsymtable,objectsymtable]) do
                 st:=st^.next;
@@ -223,10 +207,8 @@
 
     procedure tdef.write;
       begin
-{$ifndef OLDPPU}
         writeword(indexnr);
         writesymref(sym);
-{$endif}
 {$ifdef GDB}
         if globalnb = 0 then
           begin
@@ -1402,8 +1384,12 @@
 
     constructor tclassrefdef.load;
       begin
-         inherited load;
+         { be careful, tclassdefref inherits from tpointerdef }
+         tdef.load;
          deftype:=classrefdef;
+         definition:=readdefref;
+         is_far:=false;
+         savesize:=target_os.size_of_pointer;
       end;
 
 
@@ -1412,7 +1398,6 @@
          { be careful, tclassdefref inherits from tpointerdef }
          tdef.write;
          writedefref(definition);
-         writebyte(byte(is_far));
          current_ppu^.writeentry(ibclassrefdef);
       end;
 
@@ -1776,7 +1761,7 @@
     var
        binittable : boolean;
 
-    procedure check_rec_inittable(s : {$ifndef OLDPPU}pnamedindexobject{$else}psym{$endif});
+    procedure check_rec_inittable(s : pnamedindexobject);
 
       begin
          if (psym(s)^.typ=varsym) and
@@ -1804,28 +1789,12 @@
 
     procedure trecdef.deref;
       var
-{$ifdef OLDPPU}
-         hp : pdef;
-{$endif}
          oldrecsyms : psymtable;
       begin
          oldrecsyms:=aktrecordsymtable;
          aktrecordsymtable:=symtable;
          { now dereference the definitions }
-{$ifndef OLDPPU}
          symtable^.deref;
-{$else}
-         hp:=symtable^.rootdef;
-         while assigned(hp) do
-           begin
-              hp^.deref;
-              { set owner }
-              hp^.owner:=symtable;
-              hp:=pdef(hp^.next);
-           end;
-
-         symtable^.foreach({$ifdef fpc}@{$endif}derefsym);
-{$endif}
          aktrecordsymtable:=oldrecsyms;
       end;
 
@@ -1849,7 +1818,7 @@
           StabRecSize : longint = 0;
           RecOffset : Longint = 0;
 
-    procedure addname(p : {$ifndef OLDPPU}pnamedindexobject{$else}psym{$endif});
+    procedure addname(p : pnamedindexobject);
     var
       news, newrec : pchar;
       spec : string[2];
@@ -1893,9 +1862,6 @@
     function trecdef.stabstring : pchar;
       Var oldrec : pchar;
           oldsize : longint;
-{$ifdef OLDPPU}
-          cur : psym;
-{$endif}
       begin
         oldrec := stabrecstring;
         oldsize:=stabrecsize;
@@ -1903,16 +1869,7 @@
         stabrecsize:=memsizeinc;
         strpcopy(stabRecString,'s'+tostr(savesize));
         RecOffset := 0;
-{$ifndef OLDPPU}
         symtable^.foreach({$ifdef fpc}@{$endif}addname);
-{$else}
-         cur:=symtable^.searchroot;
-         while assigned(cur) do
-           begin
-              addname(cur);
-              cur:=cur^.nextsym;
-           end;
-{$endif}
         { FPC doesn't want to convert a char to a pchar}
         { is this a bug ? }
         strpcopy(strend(StabRecString),';');
@@ -1934,7 +1891,7 @@
 
     var
        count : longint;
-    procedure count_inittable_fields(sym : {$ifndef OLDPPU}pnamedindexobject{$else}psym{$endif});{$ifndef fpc}far;{$endif}
+    procedure count_inittable_fields(sym : pnamedindexobject);{$ifndef fpc}far;{$endif}
       begin
          if (psym(sym)^.typ=varsym) and
             (pvarsym(sym)^.definition^.needs_inittable) then
@@ -1942,13 +1899,13 @@
       end;
 
 
-    procedure count_fields(sym : {$ifndef OLDPPU}pnamedindexobject{$else}psym{$endif});{$ifndef fpc}far;{$endif}
+    procedure count_fields(sym : pnamedindexobject);{$ifndef fpc}far;{$endif}
       begin
          inc(count);
       end;
 
 
-    procedure write_field_inittable(sym : {$ifndef OLDPPU}pnamedindexobject{$else}psym{$endif});{$ifndef fpc}far;{$endif}
+    procedure write_field_inittable(sym : pnamedindexobject);{$ifndef fpc}far;{$endif}
       begin
          if (psym(sym)^.typ=varsym) and
             pvarsym(sym)^.definition^.needs_inittable then
@@ -1959,14 +1916,14 @@
       end;
 
 
-    procedure write_field_rtti(sym : {$ifndef OLDPPU}pnamedindexobject{$else}psym{$endif});{$ifndef fpc}far;{$endif}
+    procedure write_field_rtti(sym : pnamedindexobject);{$ifndef fpc}far;{$endif}
       begin
          rttilist^.concat(new(pai_const_symbol,init(pvarsym(sym)^.definition^.get_rtti_label)));
          rttilist^.concat(new(pai_const,init_32bit(pvarsym(sym)^.address)));
       end;
 
 
-    procedure generate_child_inittable(sym:{$ifndef OLDPPU}pnamedindexobject{$else}psym{$endif});{$ifndef fpc}far;{$endif}
+    procedure generate_child_inittable(sym:pnamedindexobject);{$ifndef fpc}far;{$endif}
       begin
          if (psym(sym)^.typ=varsym) and
             pvarsym(sym)^.definition^.needs_inittable then
@@ -1975,7 +1932,7 @@
       end;
 
 
-    procedure generate_child_rtti(sym : {$ifndef OLDPPU}pnamedindexobject{$else}psym{$endif});{$ifndef fpc}far;{$endif}
+    procedure generate_child_rtti(sym : pnamedindexobject);{$ifndef fpc}far;{$endif}
       begin
          pvarsym(sym)^.definition^.get_rtti_label;
       end;
@@ -2147,13 +2104,8 @@
       begin
          inherited write;
          writedefref(retdef);
-{$ifndef OLDPPU}
          current_ppu^.do_interface_crc:=false;
-{$endif}
          writebyte(fpu_used);
-{$ifdef OLDPPU}
-         current_ppu^.do_interface_crc:=true;
-{$endif}
          writelong(options);
          hp:=para1;
          count:=0;
@@ -2503,9 +2455,7 @@ Const local_symtable_index : longint = $8001;
     procedure tprocdef.write;
       begin
          inherited write;
-{$ifndef OLDPPU}
          current_ppu^.do_interface_crc:=false;
-{$endif}
 {$ifdef i386}
          writebyte(usedregisters);
 {$endif i386}
@@ -2517,9 +2467,7 @@ Const local_symtable_index : longint = $8001;
          writelong(usedregisters_fpu);
 {$endif alpha}
          writestring(mangledname);
-{$ifndef OLDPPU}
          current_ppu^.do_interface_crc:=true;
-{$endif}
          writelong(extnumber);
          if (options and pooperator) = 0 then
            writedefref(nextoverloaded)
@@ -2550,11 +2498,7 @@ Const local_symtable_index : longint = $8001;
 
     function tprocdef.haspara:boolean;
       begin
-{$ifndef OLDPPU}
         haspara:=assigned(aktprocsym^.definition^.parast^.symindex^.first);
-{$else}
-        haspara:=assigned(aktprocsym^.definition^.parast^.searchroot);
-{$endif}
       end;
 
 
@@ -2981,28 +2925,12 @@ Const local_symtable_index : longint = $8001;
 
     procedure tobjectdef.deref;
       var
-{$ifdef OLDPPU}
-         hp : pdef;
-{$endif}
          oldrecsyms : psymtable;
       begin
          resolvedef(pdef(childof));
          oldrecsyms:=aktrecordsymtable;
          aktrecordsymtable:=publicsyms;
-
-{$ifndef OLDPPU}
          publicsyms^.deref;
-{$else}
-         hp:=publicsyms^.rootdef;
-         while assigned(hp) do
-           begin
-              hp^.deref;
-              { set owner }
-              hp^.owner:=publicsyms;
-              hp:=pdef(hp^.next);
-           end;
-         publicsyms^.foreach({$ifdef fpc}@{$endif}derefsym);
-{$endif}
          aktrecordsymtable:=oldrecsyms;
       end;
 
@@ -3071,7 +2999,7 @@ Const local_symtable_index : longint = $8001;
 
 
 {$ifdef GDB}
-    procedure addprocname(p :{$ifndef OLDPPU}pnamedindexobject{$else}psym{$endif});
+    procedure addprocname(p :pnamedindexobject);
     var virtualind,argnames : string;
         news, newrec : pchar;
         pd,ipd : pprocdef;
@@ -3163,9 +3091,6 @@ Const local_symtable_index : longint = $8001;
           oldrec : pchar;
           oldrecsize : longint;
           str_end : string;
-{$ifdef OLDPPU}
-          cur : psym;
-{$endif}
       begin
         oldrec := stabrecstring;
         oldrecsize:=stabrecsize;
@@ -3178,40 +3103,22 @@ Const local_symtable_index : longint = $8001;
           strpcopy(strend(stabrecstring),'!1,020,'+childof^.numberstring+';');
         {virtual table to implement yet}
         RecOffset := 0;
-{$ifndef OLDPPU}
         {$ifdef tp}
           publicsyms^.foreach(addname);
         {$else}
           publicsyms^.foreach(@addname);
         {$endif}
-{$else}
-         cur:=publicsyms^.searchroot;
-         while assigned(cur) do
-           begin
-              addname(cur);
-              cur:=psym(cur)^.nextsym;
-           end;
-{$endif}
       if (options and oo_hasvmt) <> 0 then
         if not assigned(childof) or ((childof^.options and oo_hasvmt) = 0) then
            begin
               strpcopy(strend(stabrecstring),'$vf'+numberstring+':'+typeglobalnumber('vtblarray')
                 +','+tostr(vmt_offset*8)+';');
            end;
-{$ifndef OLDPPU}
         {$ifdef tp}
           publicsyms^.foreach(addprocname);
         {$else}
           publicsyms^.foreach(@addprocname);
         {$endif tp }
-{$else}
-         cur:=publicsyms^.searchroot;
-         while assigned(cur) do
-           begin
-              addprocname(cur);
-              cur:=psym(cur)^.nextsym;
-           end;
-{$endif}
         if (options and oo_hasvmt) <> 0  then
           begin
              anc := @self;
@@ -3270,7 +3177,7 @@ Const local_symtable_index : longint = $8001;
       end;
 
 
-    procedure count_published_properties(sym:{$ifndef OLDPPU}pnamedindexobject{$else}psym{$endif});
+    procedure count_published_properties(sym:pnamedindexobject);
       {$ifndef fpc}far;{$endif}
       begin
          if (psym(sym)^.typ=propertysym) and ((psym(sym)^.properties and sp_published)<>0) then
@@ -3278,7 +3185,7 @@ Const local_symtable_index : longint = $8001;
       end;
 
 
-    procedure write_property_info(sym : {$ifndef OLDPPU}pnamedindexobject{$else}psym{$endif});{$ifndef fpc}far;{$endif}
+    procedure write_property_info(sym : pnamedindexobject);{$ifndef fpc}far;{$endif}
       var
          proctypesinfo : byte;
 
@@ -3346,7 +3253,7 @@ Const local_symtable_index : longint = $8001;
       end;
 
 
-    procedure generate_published_child_rtti(sym : {$ifndef OLDPPU}pnamedindexobject{$else}psym{$endif});
+    procedure generate_published_child_rtti(sym : pnamedindexobject);
       {$ifndef fpc}far;{$endif}
       begin
          if (psym(sym)^.typ=propertysym) and
@@ -3473,7 +3380,12 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.113  1999-05-12 00:19:58  peter
+  Revision 1.114  1999-05-13 21:59:41  peter
+    * removed oldppu code
+    * warning if objpas is loaded from uses
+    * first things for new deref writing
+
+  Revision 1.113  1999/05/12 00:19:58  peter
     * removed R_DEFAULT_SEG
     * uniform float names
 

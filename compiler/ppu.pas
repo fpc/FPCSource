@@ -37,11 +37,7 @@ type
 {$endif Test_Double_checksum}
 
 const
-{$ifdef OLDPPU}
-  CurrentPPUVersion=15;
-{$else}
   CurrentPPUVersion=16;
-{$endif}
 
 { buffer sizes }
   maxentrysize = 1024;
@@ -142,10 +138,8 @@ type
     flags    : longint;
     size     : longint; { size of the ppufile without header }
     checksum : longint; { checksum for this ppufile }
-{$ifndef OLDPPU}
     interface_checksum : longint;
     future   : array[0..2] of longint;
-{$endif}
   end;
 
   tppuentry=packed record
@@ -389,11 +383,7 @@ begin
      Id[3]:='U';
      Ver[1]:='0';
      Ver[2]:='1';
-{$ifdef OLDPPU}
-     Ver[3]:='5';
-{$else}
      Ver[3]:='6';
-{$endif}
    end;
 end;
 
@@ -806,7 +796,6 @@ begin
   if do_crc then
    begin
      crc:=UpdateCrc32(crc,b,len);
-{$ifndef OLDPPU}
      if do_interface_crc then
        begin
          interface_crc:=UpdateCrc32(interface_crc,b,len);
@@ -834,9 +823,6 @@ begin
        end;
     end;
   if not crc_only then
-{$else}
-    end;
-{$endif OLDPPU}
     writedata(b,len);
   inc(entryidx,len);
 end;
@@ -882,7 +868,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.32  1999-05-05 09:19:15  florian
+  Revision 1.33  1999-05-13 21:59:36  peter
+    * removed oldppu code
+    * warning if objpas is loaded from uses
+    * first things for new deref writing
+
+  Revision 1.32  1999/05/05 09:19:15  florian
     * more fixes to get it with delphi running
 
   Revision 1.31  1999/05/04 21:44:59  florian

@@ -26,17 +26,7 @@
 
     constructor tsym.init(const n : string);
       begin
-{$ifndef OLDPPU}
          inherited initname(n);
-{$else}
-         left:=nil;
-         right:=nil;
-         setname(n);
-         indexnb:=0;
-  {$ifdef nextfield}
-         nextsym:=nil;
-  {$endif nextfield}
-{$endif}
          typ:=abstractsym;
          properties:=current_object_option;
 {$ifdef GDB}
@@ -57,17 +47,12 @@
 
     constructor tsym.load;
       begin
-{$ifndef OLDPPU}
          inherited init;
          indexnr:=readword;
-{$else}
-         left:=nil;
-         right:=nil;
-{$endif}
          setname(readstring);
          typ:=abstractsym;
-         fillchar(fileinfo,sizeof(fileinfo),0);
          properties:=symprop(readbyte);
+         readposinfo(fileinfo);
          lastref:=nil;
          defref:=nil;
          lastwritten:=nil;
@@ -161,28 +146,16 @@
       begin
          if assigned(defref) then
            dispose(defref,done);
-{$ifndef OLDPPU}
         inherited done;
-{$else}
-  {$ifdef tp}
-         if not(use_big) then
-  {$endif tp}
-           strdispose(_name);
-         if assigned(left) then
-           dispose(left,done);
-         if assigned(right) then
-           dispose(right,done);
-{$endif}
       end;
 
 
     procedure tsym.write;
       begin
-{$ifndef OLDPPU}
          writeword(indexnr);
-{$endif}
          writestring(name);
          writebyte(byte(properties));
+         writeposinfo(fileinfo);
       end;
 
 
@@ -190,37 +163,6 @@
       begin
       end;
 
-
-{$ifdef OLDPPU}
-    function tsym.name : string;
-  {$ifdef tp}
-      var
-         s : string;
-         b : byte;
-  {$endif}
-      begin
-  {$ifdef tp}
-         if use_big then
-           begin
-              symbolstream.seek(longint(_name));
-              symbolstream.read(b,1);
-              symbolstream.read(s[1],b);
-              s[0]:=chr(b);
-              name:=s;
-           end
-         else
-  {$endif}
-        if assigned(_name) then
-         name:=strpas(_name)
-        else
-         name:='';
-      end;
-
-    procedure tsym.setname(const s : string);
-      begin
-         setstring(_name,s);
-      end;
-{$endif}
 
     function tsym.mangledname : string;
       begin
@@ -1981,11 +1923,9 @@
 
     procedure tsyssym.write;
       begin
-{$ifndef OLDPPU}
          tsym.write;
          writelong(number);
          current_ppu^.writeentry(ibsyssym);
-{$endif}
       end;
 
 {$ifdef GDB}
@@ -2018,7 +1958,12 @@
 
 {
   $Log$
-  Revision 1.88  1999-05-10 09:01:43  peter
+  Revision 1.89  1999-05-13 21:59:45  peter
+    * removed oldppu code
+    * warning if objpas is loaded from uses
+    * first things for new deref writing
+
+  Revision 1.88  1999/05/10 09:01:43  peter
     * small message fixes
 
   Revision 1.87  1999/05/08 19:52:38  peter

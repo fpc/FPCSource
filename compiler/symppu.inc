@@ -103,6 +103,57 @@
       end;
 
 
+{$ifndef OLDDEREF}
+    procedure writederef(p : psymtableentry);
+      begin
+        if p=nil then
+         current_ppu^.putbyte(ord(derefnil))
+        else
+         begin
+           { Static symtable ? }
+           if p^.owner^.symtabletype=staticsymtable then
+            begin
+              current_ppu^.putbyte(ord(derefaktstatic));
+              current_ppu^.putword(p^.indexnr);
+            end
+           { Local record/object symtable ? }
+           else if (p^.owner=aktrecordsymtable) then
+            begin
+              current_ppu^.putbyte(ord(derefaktrecord));
+              current_ppu^.putword(p^.indexnr);
+            end
+           else
+{           else if p^.owner^.unitid>$8000 then
+            current_ppu^.putword(p^.owner^.unitid) }
+            begin
+              current_ppu^.putbyte(ord(dereflocal));
+              current_ppu^.putword(p^.indexnr);
+           { Current unit symtable ? }
+              repeat
+                if not assigned(p) then
+                 internalerror(556655);
+                case p^.owner^.symtabletype of
+                  unitsymtable :
+                    begin
+                      current_ppu^.putbyte(ord(derefunit));
+                      current_ppu^.putword(p^.owner^.unitid);
+                      break;
+                    end;
+                  objectsymtable,
+                  recordsymtable :
+                    begin
+                      current_ppu^.putbyte(ord(derefrecord));
+                      current_ppu^.putword(p^.indexnr);
+                      p:=p^.owner^.defowner;
+                    end;
+                  else
+                    internalerror(556656);
+                end;
+              until false;
+            end;
+         end;
+      end;
+{$else}
     procedure writedefref(p : pdef);
       begin
         if p=nil then
@@ -117,14 +168,9 @@
             current_ppu^.putword(p^.owner^.unitid)
            else
             current_ppu^.putword(p^.owner^.unitid);
-{$ifndef OLDPPU}
            current_ppu^.putword(p^.indexnr);
-{$else}
-           current_ppu^.putword(p^.indexnb);
-{$endif}
          end;
       end;
-
 
     procedure writesymref(p : psym);
       begin
@@ -140,13 +186,11 @@
             current_ppu^.putword(p^.owner^.unitid)
            else
             current_ppu^.putword(p^.owner^.unitid);
-{$ifndef OLDPPU}
            current_ppu^.putword(p^.indexnr);
-{$else}
-           current_ppu^.putword(p^.indexnb);
-{$endif}
          end;
       end;
+{$endif}
+
 
 
     procedure writesourcefiles;
@@ -180,9 +224,7 @@
            { the checksum should not affect the crc of this unit ! (PFV) }
            current_ppu^.do_crc:=false;
            current_ppu^.putlongint(hp^.checksum);
-{$ifndef OLDPPU}
            current_ppu^.putlongint(hp^.interface_checksum);
-{$endif}
            current_ppu^.do_crc:=true;
            current_ppu^.putbyte(byte(hp^.in_interface));
            hp:=pused_unit(hp^.next);
@@ -254,9 +296,7 @@
        { create and write header }
          current_ppu^.header.size:=current_ppu^.size;
          current_ppu^.header.checksum:=current_ppu^.crc;
-{$ifndef OLDPPU}
          current_ppu^.header.interface_checksum:=current_ppu^.interface_crc;
-{$endif}
          current_ppu^.header.compiler:=wordversion;
          current_ppu^.header.cpu:=word(target_cpu);
          current_ppu^.header.target:=word(target_info.target);
@@ -359,6 +399,42 @@
       end;
 
 
+{$ifndef OLDDEREF}
+    function readderef : pderef;
+      var
+        hp,p : pderef;
+        b : tdereftype;
+      begin
+        p:=nil;
+        repeat
+          hp:=p;
+          b:=tdereftype(current_ppu^.getbyte);
+          case b of
+            derefnil :
+              break;
+            derefunit,
+            derefaktrecord,
+            derefaktstatic :
+              begin
+                new(p);
+                p^.dereftype:=b;
+                p^.index:=current_ppu^.getword;
+                p^.next:=hp;
+                break;
+              end;
+            dereflocal,
+            derefrecord :
+              begin
+                new(p);
+                p^.dereftype:=derefrecord;
+                p^.index:=current_ppu^.getword;
+                p^.next:=hp;
+              end;
+          end;
+        until false;
+        readderef:=p;
+      end;
+{$else}
     function readdefref : pdef;
       var
         hd : pdef;
@@ -377,6 +453,7 @@
         longint(hd):=longint(hd) or (longint(current_ppu^.getword) shl 16);
         readsymref:=hd;
       end;
+{$endif}
 
 
     procedure readsourcefiles;
@@ -472,11 +549,7 @@
          begin
            hs:=current_ppu^.getstring;
            checksum:=current_ppu^.getlongint;
-{$ifndef OLDPPU}
            intfchecksum:=current_ppu^.getlongint;
-{$else}
-           intfchecksum:=0;
-{$endif}
            in_interface:=(current_ppu^.getbyte<>0);
            current_module^.used_units.concat(new(pused_unit,init_to_load(hs,checksum,intfchecksum,in_interface)));
          end;
@@ -510,7 +583,12 @@
 
 {
   $Log$
-  Revision 1.39  1999-05-04 21:45:06  florian
+  Revision 1.40  1999-05-13 21:59:44  peter
+    * removed oldppu code
+    * warning if objpas is loaded from uses
+    * first things for new deref writing
+
+  Revision 1.39  1999/05/04 21:45:06  florian
     * changes to compile it with Delphi 4.0
 
   Revision 1.38  1999/04/26 13:31:51  peter

@@ -31,16 +31,9 @@
                    classrefdef);
 
        pdef = ^tdef;
-{$ifndef OLDPPU}
-       tdef = object(tnamedindexobject)
-{$else}
-       tdef = object
-          indexnb  : longint;
-          next     : pdef;
-{$endif}
+       tdef = object(tsymtableentry)
           deftype  : tdeftype;
           savesize : longint;
-          owner    : psymtable;
           sym      : ptypesym;  { which type the definition was generated this def }
 
           has_inittable : boolean;
@@ -510,7 +503,12 @@
 
 {
   $Log$
-  Revision 1.26  1999-05-12 00:19:59  peter
+  Revision 1.27  1999-05-13 21:59:42  peter
+    * removed oldppu code
+    * warning if objpas is loaded from uses
+    * first things for new deref writing
+
+  Revision 1.26  1999/05/12 00:19:59  peter
     * removed R_DEFAULT_SEG
     * uniform float names
 

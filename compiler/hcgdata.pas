@@ -93,7 +93,7 @@ implementation
          dispose(p);
       end;
 
-    procedure insertmsgstr(p : {$ifndef OLDPPU}pnamedindexobject{$else}psym{$endif});{$ifndef FPC}far;{$endif FPC}
+    procedure insertmsgstr(p : pnamedindexobject);{$ifndef FPC}far;{$endif FPC}
 
       var
          hp : pprocdef;
@@ -141,7 +141,7 @@ implementation
            end;
       end;
 
-    procedure insertmsgint(p : {$ifndef OLDPPU}pnamedindexobject{$else}psym{$endif});{$ifndef FPC}far;{$endif FPC}
+    procedure insertmsgint(p : pnamedindexobject);{$ifndef FPC}far;{$endif FPC}
 
       var
          hp : pprocdef;
@@ -288,7 +288,7 @@ implementation
        _c : pobjectdef;
        has_constructor,has_virtual_method : boolean;
 
-    procedure eachsym(sym : {$ifndef OLDPPU}pnamedindexobject{$else}psym{$endif});{$ifndef FPC}far;{$endif FPC}
+    procedure eachsym(sym : pnamedindexobject);{$ifndef FPC}far;{$endif FPC}
 
       var
          procdefcoll : pprocdefcoll;
@@ -566,7 +566,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  1999-04-26 13:31:34  peter
+  Revision 1.4  1999-05-13 21:59:27  peter
+    * removed oldppu code
+    * warning if objpas is loaded from uses
+    * first things for new deref writing
+
+  Revision 1.3  1999/04/26 13:31:34  peter
     * release storenumber,double_checksum
 
   Revision 1.2  1999/04/21 09:43:37  peter

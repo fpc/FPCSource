@@ -318,15 +318,6 @@ unit pmodules;
          end;
       { ok, now load the unit }
         current_module^.globalsymtable:=new(punitsymtable,loadasunit);
-      { if this is the system unit insert the intern symbols }
-{$ifdef OLDPPU}
-        if compile_system then
-         begin
-           make_ref:=false;
-           insertinternsyms(psymtable(current_module^.globalsymtable));
-           make_ref:=true;
-         end;
-{$endif}
       { now only read the implementation part }
         current_module^.in_implementation:=true;
       { load the used units from implementation }
@@ -341,10 +332,8 @@ unit pmodules;
             { register unit in used units }
               pu^.u:=loaded_unit;
               pu^.loaded:=true;
-{$ifndef OLDPPU}
             { need to recompile the current unit ? }
               if loaded_unit^.crc<>pu^.checksum then
-{              if (loaded_unit^.interface_crc<>pu^.interface_checksum) then }
                 begin
                   Message2(unit_u_recompile_crc_change,current_module^.modulename^,pu^.name^);
                   current_module^.do_compile:=true;
@@ -352,7 +341,6 @@ unit pmodules;
                   current_module^.map:=nil;
                   exit;
                 end;
-{$endif OLDPPU}
             { setup the map entry for deref }
 {$ifndef NEWMAP}
               current_module^.map^[nextmapentry]:=loaded_unit^.globalsymtable;
@@ -450,11 +438,9 @@ unit pmodules;
            begin
               if hp^.modulename^=s then
                 begin
-{$ifndef OLDPPU}
                    { forced to reload ? }
                    if hp^.do_reload then
                     break;
-{$endif}
                    { the unit is already registered   }
                    { and this means that the unit     }
                    { is already compiled              }
@@ -493,7 +479,7 @@ unit pmodules;
                loaded_units.remove(hp);
                scanner:=hp^.scanner;
                hp^.reset;
-{$ifndef OLDPPU}
+               { now reload all dependent units }
                hp2:=pmodule(loaded_units.first);
                while assigned(hp2) do
                 begin
@@ -504,7 +490,6 @@ unit pmodules;
                    end;
                   hp2:=pmodule(hp2^.next);
                 end;
-{$endif}
                hp^.scanner:=scanner;
                { try to reopen ppu }
                hp^.search_unit(s,false);
@@ -629,6 +614,9 @@ unit pmodules;
          repeat
            s:=pattern;
            consume(ID);
+         { Give a warning if objpas is loaded }
+           if s='OBJPAS' then
+            Message(parser_w_no_objpas_use_mode);
          { check if the unit is already used }
            pu:=pused_unit(current_module^.used_units.first);
            while assigned(pu) do
@@ -769,23 +757,17 @@ unit pmodules;
 
 
     procedure gen_main_procsym(const name:string;options:longint;st:psymtable);
-{$ifndef OLDPPU}
       var
         stt : psymtable;
-{$endif}
       begin
         {Generate a procsym for main}
         make_ref:=false;
         aktprocsym:=new(Pprocsym,init(name));
-{$ifndef OLDPPU}
         {Try to insert in in static symtable ! }
         stt:=symtablestack;
         symtablestack:=st;
-{$endif}
         aktprocsym^.definition:=new(Pprocdef,init);
-{$ifndef OLDPPU}
         symtablestack:=stt;
-{$endif}
         aktprocsym^.definition^.options:=aktprocsym^.definition^.options or options;
         aktprocsym^.definition^.setmangledname(target_os.cprefix+name);
         aktprocsym^.definition^.forwarddef:=false;
@@ -972,12 +954,10 @@ unit pmodules;
          write_gdb_info;
 {$endIf Def New_GDB}
 
-{$ifndef OLDPPU}
   {$ifdef Test_Double_checksum}
          if (Errorcount=0) then
            writeunitas(current_module^.ppufilename^,punitsymtable(symtablestack),true);
   {$endif Test_Double_checksum}
-{$endif OLDPPU}
 
          { Parse the implementation section }
          consume(_IMPLEMENTATION);
@@ -993,12 +973,6 @@ unit pmodules;
          { remove the globalsymtable from the symtable stack }
          { to reinsert it after loading the implementation units }
          symtablestack:=unitst^.next;
-
-{$ifdef OLDPPU}
-         { number the definitions, so a deref from other units works }
-         refsymtable^.number_defs;
-         refsymtable^.number_symbols;
-{$endif}
 
          { we don't want implementation units symbols in unitsymtable !! PM }
          refsymtable:=st;
@@ -1146,21 +1120,17 @@ unit pmodules;
          if cs_local_browser in aktmoduleswitches then
            current_module^.localsymtable:=refsymtable;
          { Write out the ppufile }
-{$ifndef OLDPPU}
   {$ifdef Test_Double_checksum}
         store_crc:=current_module^.interface_crc;
   {$endif Test_Double_checksum}
-{$endif}
          if (Errorcount=0) then
            writeunitas(current_module^.ppufilename^,punitsymtable(symtablestack),false);
 
-{$ifndef OLDPPU}
   {$ifdef Test_Double_checksum}
         if store_crc<>current_module^.interface_crc then
           Def_comment(V_Warning,current_module^.ppufilename^+' CRC changed '+
            tostr(store_crc)+'<>'+tostr(current_module^.interface_crc));
   {$endif def Test_Double_checksum}
-{$endif OLDPPU}
           { must be done only after local symtable ref stores !! }
           closecurrentppu;
 {$ifdef GDB}
@@ -1372,7 +1342,12 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.119  1999-05-09 11:38:08  peter
+  Revision 1.120  1999-05-13 21:59:35  peter
+    * removed oldppu code
+    * warning if objpas is loaded from uses
+    * first things for new deref writing
+
+  Revision 1.119  1999/05/09 11:38:08  peter
     * don't write .o and link if errors occure during assembling
 
   Revision 1.118  1999/05/03 18:03:28  peter

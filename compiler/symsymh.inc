@@ -34,19 +34,9 @@
 
        { this object is the base for all symbol objects }
        psym = ^tsym;
-{$ifndef OLDPPU}
-       tsym = object(tnamedindexobject)
-{$else}
-       tsym = object
-          indexnb    : longint;
-          _name      : pchar;
-          left,right : psym;
-          speedvalue : longint;
-          nextsym    : psym;
-{$endif}
+       tsym = object(tsymtableentry)
           typ        : tsymtyp;
           properties : symprop;
-          owner      : psymtable;
           fileinfo   : tfileposinfo;
 {$ifdef GDB}
           isstabwritten : boolean;
@@ -60,10 +50,6 @@
           destructor done;virtual;
           procedure write;virtual;
           procedure deref;virtual;
-{$ifdef OLDPPU}
-          function name : string;
-          procedure setname(const s : string);
-{$endif}
           function mangledname : string;virtual;
           procedure insert_in_data;virtual;
 {$ifdef GDB}
@@ -344,7 +330,12 @@
 
 {
   $Log$
-  Revision 1.22  1999-04-26 13:31:53  peter
+  Revision 1.23  1999-05-13 21:59:47  peter
+    * removed oldppu code
+    * warning if objpas is loaded from uses
+    * first things for new deref writing
+
+  Revision 1.22  1999/04/26 13:31:53  peter
     * release storenumber,double_checksum
 
   Revision 1.21  1999/04/25 22:38:40  pierre

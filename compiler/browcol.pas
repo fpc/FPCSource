@@ -927,18 +927,9 @@ procedure CreateBrowserCol;
      Exit;
     if Owner=nil then
      Owner:=New(PSortedSymbolCollection, Init(10,50));
-{$ifdef OLDPPU}
-    defcount:=Table^.number_defs;
-    symcount:=Table^.number_symbols;
-    for I:=1 to symcount do
-      begin
-        Sym:=Table^.GetsymNr(I);
-        if Sym=nil then Continue;
-{$else}
     sym:=psym(Table^.symindex^.first);
     while assigned(sym) do
       begin
-{$endif}
         ParamCount:=0;
         New(Symbol, Init(Sym^.Name,Sym^.Typ,'',nil));
         case Sym^.Typ of
@@ -1057,9 +1048,7 @@ procedure CreateBrowserCol;
           end;
         if Assigned(Symbol) then
           Owner^.Insert(Symbol);
-{$ifndef OLDPPU}
         sym:=psym(sym^.next);
-{$endif}
       end;
   end;
 
@@ -1241,7 +1230,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  1999-04-29 09:36:55  peter
+  Revision 1.16  1999-05-13 21:59:20  peter
+    * removed oldppu code
+    * warning if objpas is loaded from uses
+    * first things for new deref writing
+
+  Revision 1.15  1999/04/29 09:36:55  peter
     * fixed crash
     * check if localbrowser is set
 

@@ -687,15 +687,11 @@ implementation
                       if ((parsing_para_level=0) or (p^.left<>nil)) and
                          (nextprocsym=nil) then
                        begin
-{$ifndef OLDPPU}
                          if (not assigned(lastparatype)) and (not assigned(pt^.resulttype)) then
                           internalerror(39393)
                          else
                           CGMessage3(type_e_wrong_parameter_type,tostr(lastpara),
                              pt^.resulttype^.typename,lastparatype^.typename);
-{$else}
-                          CGMessage1(parser_e_wrong_parameter_type,tostr(lastpara));
-{$endif}
                           aktcallprocsym^.write_parameter_lists;
                           goto errorexit;
                        end
@@ -1153,7 +1149,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.40  1999-05-10 09:01:45  peter
+  Revision 1.41  1999-05-13 21:59:50  peter
+    * removed oldppu code
+    * warning if objpas is loaded from uses
+    * first things for new deref writing
+
+  Revision 1.40  1999/05/10 09:01:45  peter
     * small message fixes
 
   Revision 1.39  1999/05/02 09:35:46  florian

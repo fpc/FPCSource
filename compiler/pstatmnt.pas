@@ -373,11 +373,7 @@ unit pstatmnt;
              objectdef : begin
                            obj:=pobjectdef(p^.resulttype);
                            withsymtable:=new(pwithsymtable,init);
-{$ifndef OLDPPU}
                            withsymtable^.symsearch:=obj^.publicsyms^.symsearch;
-{$else}
-                           withsymtable^.searchroot:=obj^.publicsyms^.searchroot;
-{$endif}
                            withsymtable^.defowner:=obj;
                            symtab:=withsymtable;
 {$ifndef NODIRECTWITH}
@@ -393,11 +389,7 @@ unit pstatmnt;
                             begin
                               symtab^.next:=new(pwithsymtable,init);
                               symtab:=symtab^.next;
-{$ifndef OLDPPU}
                               symtab^.symsearch:=obj^.publicsyms^.symsearch;
-{$else}
-                              symtab^.searchroot:=obj^.publicsyms^.searchroot;
-{$endif}
 {$ifndef NODIRECTWITH}
                               if (p^.treetype=loadn) and
                                  (p^.symtable=aktprocsym^.definition^.localst) then
@@ -416,11 +408,7 @@ unit pstatmnt;
                            symtab:=precdef(p^.resulttype)^.symtable;
                            levelcount:=1;
                            withsymtable:=new(pwithsymtable,init);
-{$ifndef OLDPPU}
                            withsymtable^.symsearch:=symtab^.symsearch;
-{$else}
-                           withsymtable^.searchroot:=symtab^.searchroot;
-{$endif}
                            withsymtable^.next:=symtablestack;
 {$ifndef NODIRECTWITH}
                               if (p^.treetype=loadn) and
@@ -1285,7 +1273,12 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.83  1999-05-05 22:21:58  peter
+  Revision 1.84  1999-05-13 21:59:38  peter
+    * removed oldppu code
+    * warning if objpas is loaded from uses
+    * first things for new deref writing
+
+  Revision 1.83  1999/05/05 22:21:58  peter
     * updated messages
 
   Revision 1.82  1999/05/01 13:24:35  peter

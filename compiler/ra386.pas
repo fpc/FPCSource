@@ -238,7 +238,7 @@ begin
                      end;
                  end;
                end;
-             A_IN,A_OUT :
+             A_OUT :
                opsize:=operands[1].size;
              else
                opsize:=operands[2].size;
@@ -393,7 +393,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  1999-05-12 00:19:55  peter
+  Revision 1.5  1999-05-13 21:59:40  peter
+    * removed oldppu code
+    * warning if objpas is loaded from uses
+    * first things for new deref writing
+
+  Revision 1.4  1999/05/12 00:19:55  peter
     * removed R_DEFAULT_SEG
     * uniform float names
 

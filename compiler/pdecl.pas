@@ -80,7 +80,7 @@ unit pdecl;
     function read_type(const name : stringid) : pdef;forward;
 
     { search in symtablestack used, but not defined type }
-    procedure testforward_type(p : {$ifndef OLDPPU}pnamedindexobject{$else}psym{$endif});{$ifndef FPC}far;{$endif}
+    procedure testforward_type(p : pnamedindexobject);{$ifndef FPC}far;{$endif}
       var
         reaktvarsymtable : psymtable;
         oldaktfilepos : tfileposinfo;
@@ -1615,12 +1615,6 @@ unit pdecl;
               genvmt(aktclass);
            end;
 
-{$ifdef OLDPPU}
-         { number symbols and defs }
-         symtablestack^.number_defs;
-         symtablestack^.number_symbols;
-{$endif}
-
          { restore old state }
          symtablestack:=symtablestack^.next;
          procinfo._class:=nil;
@@ -1654,12 +1648,6 @@ unit pdecl;
 
          consume(_END);
          typecanbeforward:=storetypeforwardsallowed;
-
-{$ifdef OLDPPU}
-         { number symbols and defs }
-         symtablestack^.number_defs;
-         symtablestack^.number_symbols;
-{$endif}
 
          symtablestack:=symtable^.next;
          record_dec:=new(precdef,init(symtable));
@@ -2091,7 +2079,6 @@ unit pdecl;
                 getsym(typename,false);
                 sym:=srsym;
                 newtype:=nil;
-{$ifndef OLDPPU}
                 { found a symbol with this name? }
                 if assigned(sym) then
                  begin
@@ -2122,29 +2109,6 @@ unit pdecl;
                    newtype:=new(ptypesym,init(typename,read_type(typename)));
                    newtype:=ptypesym(symtablestack^.insert(newtype));
                  end;
-{$else}
-                { check if it is the definition of a forward defined class }
-                if assigned(srsym) and
-                   (token=_CLASS) and
-                   (srsym^.typ=typesym) and
-                   (assigned(ptypesym(srsym)^.definition)) and
-                   (ptypesym(srsym)^.definition^.deftype=objectdef) and
-                   ((pobjectdef(ptypesym(srsym)^.definition)^.options and oo_isforward)<>0) and
-                   ((pobjectdef(ptypesym(srsym)^.definition)^.options and oo_is_class)<>0) then
-                  begin
-                     { we can ignore the result   }
-                     { the definition is modified }
-                     object_dec(typename,pobjectdef(ptypesym(srsym)^.definition));
-                     newtype:=ptypesym(srsym);
-                  end
-                else
-                  begin
-                     newtype:=new(ptypesym,init(typename,read_type(typename)));
-                     { load newtype with the new pointer to the inserted type
-                       because it can be an already defined forwarded type !! }
-                     newtype:=ptypesym(symtablestack^.insert(newtype));
-                  end;
-{$endif}
              end;
            consume(SEMICOLON);
            if assigned(newtype^.definition) and (newtype^.definition^.deftype=procvardef) then
@@ -2266,7 +2230,12 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.115  1999-05-07 10:36:09  peter
+  Revision 1.116  1999-05-13 21:59:34  peter
+    * removed oldppu code
+    * warning if objpas is loaded from uses
+    * first things for new deref writing
+
+  Revision 1.115  1999/05/07 10:36:09  peter
     * fixed crash
 
   Revision 1.114  1999/05/04 21:44:54  florian

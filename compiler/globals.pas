@@ -62,7 +62,7 @@ unit globals;
          [m_delphi,m_tp,m_all,m_class,m_objpas,m_result,m_string_pchar,
           m_pointer_2_procedure,m_autoderef];
        fpcmodeswitches    : tmodeswitches=
-         [m_fpc,m_all,m_class,m_string_pchar,m_nested_comment,m_repeat_forward,
+         [m_fpc,m_all,m_string_pchar,m_nested_comment,m_repeat_forward,
           m_cvar_support];
        objfpcmodeswitches : tmodeswitches=
          [m_fpc,m_all,m_objpas,m_class,m_result,m_string_pchar,m_nested_comment,
@@ -1161,7 +1161,7 @@ unit globals;
 {$ifdef i386}
         initoptprocessor:=Class386;
         initlocalswitches:=[];
-        initmoduleswitches:=[cs_extsyntax{$ifndef OLDPPU},cs_browser{$endif}];
+        initmoduleswitches:=[cs_extsyntax,cs_browser];
         initglobalswitches:=[cs_check_unit_name];
         initmodeswitches:=fpcmodeswitches;
         initpackenum:=4;
@@ -1173,7 +1173,7 @@ unit globals;
   {$ifdef m68k}
         initoptprocessor:=MC68000;
         initlocalswitches:=[];
-        initmoduleswitches:=[cs_extsyntax{$ifndef OLDPPU},cs_browser{$endif},cs_fp_emulation];
+        initmoduleswitches:=[cs_extsyntax,cs_browser,cs_fp_emulation];
         initglobalswitches:=[cs_check_unit_name];
         initmodeswitches:=fpcmodeswitches;
         initpackenum:=4;
@@ -1203,7 +1203,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  1999-05-05 10:05:50  florian
+  Revision 1.7  1999-05-13 21:59:26  peter
+    * removed oldppu code
+    * warning if objpas is loaded from uses
+    * first things for new deref writing
+
+  Revision 1.6  1999/05/05 10:05:50  florian
     * a delphi compiled compiler recompiles ppc
 
   Revision 1.5  1999/05/04 21:44:43  florian
