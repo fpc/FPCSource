@@ -22,6 +22,8 @@
                                 Move / Fill
 ****************************************************************************}
 
+{$define FPC_SYSTEM_HAS_MOVE}
+
 procedure Move(var source;var dest;count:longint);
 begin
         asm
@@ -90,6 +92,8 @@ begin
 end;
 
 
+{$define FPC_SYSTEM_HAS_FILLCHAR}
+
 Procedure FillChar(var x;count:longint;value:byte);
 begin
         asm
@@ -124,6 +128,8 @@ begin
 end;
 
 
+{$define FPC_SYSTEM_HAS_FILLWORD}
+
 procedure fillword(var x;count : longint;value : word);
 begin
   asm
@@ -150,6 +156,8 @@ end;
 {****************************************************************************
                               Object Helpers
 ****************************************************************************}
+
+{$define FPC_SYSTEM_HAS_FPC_HELP_CONSTRUCTOR}
 
 procedure int_help_constructor;assembler; [public,alias:'FPC_HELP_CONSTRUCTOR'];
 asm
@@ -218,6 +226,8 @@ asm
 end;
 
 
+{$define FPC_SYSTEM_HAS_FPC_HELP_DESTRUCTOR}
+
 procedure int_help_destructor;assembler;[public,alias:'FPC_HELP_DESTRUCTOR'];
 asm
 { Stack (relative to %ebp):
@@ -258,6 +268,8 @@ end;
   {$asmmode DIRECT}
 {$endif}
 
+{$define FPC_SYSTEM_HAS_FPC_NEW_CLASS}
+
 procedure int_new_class;assembler;[public,alias:'FPC_NEW_CLASS'];
 asm
         { to be sure in the future, we save also edit }
@@ -287,6 +299,8 @@ asm
         popl   %edi
 end;
 
+
+{$define FPC_SYSTEM_HAS_FPC_DISPOSE_CLASS}
 
 procedure int_dispose_class;assembler;[public,alias:'FPC_DISPOSE_CLASS'];
 asm
@@ -321,6 +335,9 @@ end;
 
 
 { checks for a correct vmt pointer }
+
+{$define FPC_SYSTEM_HAS_FPC_CHECK_OBJECT}
+
 {$ifdef SYSTEMDEBUG}
 { we want the stack for debugging !! PM }
 procedure int_check_object(obj : pointer);[public,alias:'FPC_CHECK_OBJECT'];
@@ -362,6 +379,8 @@ end;
 { checks for a correct vmt pointer }
 { deeper check to see if the current object is }
 { really related to the true }
+
+{$define FPC_SYSTEM_HAS_FPC_CHECK_OBJECT_EXT}
 
 procedure int_check_object_ext;assembler;[public,alias:'FPC_CHECK_OBJECT_EXT'];
 asm
@@ -406,6 +425,8 @@ end;
                                  String
 ****************************************************************************}
 
+{$define FPC_SYSTEM_HAS_FPC_SHORTSTR_COPY}
+
 procedure int_strcopy(len:longint;sstr,dstr:pointer);[public,alias:'FPC_SHORTSTR_COPY'];
 {
   this procedure must save all modified registers except EDI and ESI !!!
@@ -447,6 +468,7 @@ begin
   end ['ESI','EDI'];
 end;
 
+{$define FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
 
 procedure int_strconcat(s1,s2:pointer);[public,alias:'FPC_SHORTSTR_CONCAT'];
 begin
@@ -486,6 +508,7 @@ begin
   end ['EBX','ECX','EAX','ESI','EDI'];
 end;
 
+{$define FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE}
 
 procedure int_strcmp(dstr,sstr:pointer);[public,alias:'FPC_SHORTSTR_COMPARE'];
 begin
@@ -535,6 +558,7 @@ begin
   end ['EDX','ECX','EBX','EAX','ESI','EDI'];
 end;
 
+{$define FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
 
 function strpas(p:pchar):string;[public,alias:'FPC_PCHAR_TO_SHORTSTR'];
 begin
@@ -585,6 +609,7 @@ begin
   end ['ECX','EAX','ESI','EDI'];
 end;
 
+{$define FPC_SYSTEM_HAS_STRLEN}
 
 function strlen(p:pchar):longint;assembler;
 asm
@@ -603,11 +628,14 @@ end ['EDI','ECX','EAX'];
                        Caller/StackFrame Helpers
 ****************************************************************************}
 
+{$define FPC_SYSTEM_HAS_GET_FRAME}
+
 function get_frame:longint;assembler;
 asm
         movl    %ebp,%eax
 end ['EAX'];
 
+{$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
 
 function get_caller_addr(framebp:longint):longint;assembler;
 asm
@@ -618,6 +646,7 @@ asm
 .Lg_a_null:
 end ['EAX'];
 
+{$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
 
 function get_caller_frame(framebp:longint):longint;assembler;
 asm
@@ -633,6 +662,8 @@ end ['EAX'];
                                  Math
 ****************************************************************************}
 
+{$define FPC_SYSTEM_HAS_ABS_LONGINT}
+
 function abs(l:longint):longint;assembler;[internconst:in_const_abs];
 asm
         movl    l,%eax
@@ -642,6 +673,7 @@ asm
 .LMABS1:
 end ['EAX'];
 
+{$define FPC_SYSTEM_HAS_ODD_LONGINT}
 
 function odd(l:longint):boolean;assembler;[internconst:in_const_odd];
 asm
@@ -650,6 +682,7 @@ asm
        setnz    %al
 end ['EAX'];
 
+{$define FPC_SYSTEM_HAS_SQR_LONGINT}
 
 function sqr(l:longint):longint;assembler;[internconst:in_const_sqr];
 asm
@@ -657,6 +690,8 @@ asm
         imull   %eax,%eax
 end ['EAX'];
 
+
+{$define FPC_SYSTEM_HAS_SPTR}
 
 Function Sptr : Longint;assembler;
 asm
@@ -667,6 +702,8 @@ end;
 {****************************************************************************
                                  Str()
 ****************************************************************************}
+
+{$define FPC_SYSTEM_HAS_INT_STR_LONGINT}
 
 procedure int_str(l : longint;var s : string);
 var
@@ -708,6 +745,7 @@ begin
   end;
 end;
 
+{$define FPC_SYSTEM_HAS_INT_STR_CARDINAL}
 
 procedure int_str(c : cardinal;var s : string);
 var
@@ -743,6 +781,8 @@ end;
                                Bounds Check
 ****************************************************************************}
 
+{$define FPC_SYSTEM_HAS_FPC_BOUNDCHECK}
+
 {$ifdef SYSTEMDEBUG}
 { we want the stack for debugging !! PM }
 procedure int_boundcheck;[public,alias: 'FPC_BOUNDCHECK'];
@@ -773,6 +813,7 @@ end;
 {****************************************************************************
                                  IoCheck
 ****************************************************************************}
+{$define FPC_SYSTEM_HAS_FPC_IOCHECK}
 
 procedure int_iocheck(addr : longint);[public,alias:'FPC_IOCHECK'];
 var
@@ -796,7 +837,10 @@ end;
 
 {
   $Log$
-  Revision 1.46  1999-05-31 12:49:19  peter
+  Revision 1.47  1999-05-31 22:03:37  pierre
+   * added $define FPC_SYSTEM_HAS_... for use with generic.inc
+
+  Revision 1.46  1999/05/31 12:49:19  peter
     * smaller sptr function
 
   Revision 1.45  1999/04/22 10:52:40  peter
