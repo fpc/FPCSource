@@ -22,12 +22,6 @@
          high : dword;
        end;
 
-    procedure int_overflow;
-
-      begin
-         runerror(201);
-      end;
-
     function count_leading_zeros(q : qword) : longint;
 
       var
@@ -65,7 +59,7 @@
       begin
          divqword:=0;
          if n=0 then
-           runerror(200); //!!!!!!!!! must push the address
+           HandleErrorFrame(200,get_frame);
          lzz:=count_leading_zeros(z);
          lzn:=count_leading_zeros(n);
          { if the denominator contains less zeros }
@@ -94,7 +88,7 @@
       begin
          modqword:=0;
          if n=0 then
-           runerror(200);   //!!!!!!!!! must push the address
+           HandleErrorFrame(200,get_frame);
          lzz:=count_leading_zeros(z);
          lzn:=count_leading_zeros(n);
          { if the denominator contains less zeros }
@@ -124,7 +118,7 @@
 
       begin
          if n=0 then
-           runerror(200); //!!!!!!!!!!!! must get the right address
+           HandleErrorFrame(200,get_frame);
          { can the fpu do the work? }
          if fpuint64 then
            //!!!!!!!!!!! divint64:=comp(z)/comp(n)
@@ -184,9 +178,7 @@
          { if one of the operands is greater than the result an }
          { overflow occurs                                      }
          if checkoverflow and ((f1>mulqword) or (f2>mulqword)) then
-           begin
-              int_overflow;
-           end;
+           HandleErrorFrame(215,get_frame);
       end;
 
     {    multiplies two int64 ....
@@ -232,7 +224,7 @@
                 ((tqwordrec(q3).high and $80000000)<>0) and
                  ((q3<>(qword(1) shl 63)) or not(sign))
                 ) then
-                runerror(202); {!!!!!!!!! must be overflow }
+                HandleErrorFrame(215,get_frame);
 
               if sign then
                 mulint64:=-q3
@@ -272,30 +264,12 @@
            int_str(qword(value),s);
       end;
 
-    { should be moved to text.inc!!!!!!!!! }
-    procedure write_qword(len : longint;{!!!!!var t : textrec;}q : qword);[public,alias:'FPC_WRITE_TEXT_QWORD'];
-
-      var
-         s : string;
-
-      begin
-         {
-         if (InOutRes<>0) then
-           exit;
-         int_str(q,s);
-         write_str(len,t,s);
-         }
-      end;
-
-    procedure read_qword(len : longint;{!!!!!var t : textrec;}q : qword);[public,alias:'FPC_READ_TEXT_QWORD'];
-
-      begin
-         {!!!!!!!!}
-      end;
-
 {
   $Log$
-  Revision 1.9  1999-06-30 22:12:40  florian
+  Revision 1.10  1999-07-01 15:39:50  florian
+    + qword/int64 type released
+
+  Revision 1.9  1999/06/30 22:12:40  florian
     * qword div/mod fixed
     + int64 mod/div/* fully implemented
     * int_str(qword) fixed

@@ -364,8 +364,6 @@ End;
 
 {*****************************************************************************
                                Write(Ln)
-  Remarks:
-     The routines for the int64/qword are in int64.inc
 *****************************************************************************}
 
 Procedure WriteBuffer(var f:TextRec;var b;len:longint);
@@ -526,6 +524,19 @@ Begin
   Write_Str(Len,t,s);
 End;
 
+{$ifdef INT64}
+    procedure write_qword(len : longint;var t : textrec;q : qword);[public,alias:'FPC_WRITE_TEXT_QWORD'];
+
+      var
+         s : string;
+
+      begin
+         if (InOutRes<>0) then
+           exit;
+         int_str(q,s);
+         write_str(len,t,s);
+      end;
+{$endif INT64}
 
 {$ifdef INTERNDOUBLE}
 
@@ -641,9 +652,6 @@ End;
 
 {*****************************************************************************
                                 Read(Ln)
-
-  Remarks:
-     The routines for the int64/qword are in int64.inc
 *****************************************************************************}
 
 Function NextChar(var f:TextRec;var s:string):Boolean;
@@ -963,6 +971,13 @@ begin
    InOutRes:=106;
 end;
 
+{$ifdef INT64}
+    procedure read_qword(len : longint;var t : textrec;q : qword);[public,alias:'FPC_READ_TEXT_QWORD'];
+
+      begin
+         {!!!!!!!!!!!!!}
+      end;
+{$endif INT64}
 
 {$else}
 
@@ -1103,6 +1118,13 @@ Begin
    InOutRes:=106;
 End;
 
+{$ifdef INT64}
+    procedure read_qword(len : longint;var t : textrec;q : qword);[public,alias:'FPC_READ_TEXT_QWORD'];
+
+      begin
+         {!!!!!!!!!!!!!}
+      end;
+{$endif INT64}
 
 function ReadRealStr(var f:TextRec):string;
 var
@@ -1154,7 +1176,6 @@ Begin
   If code<>0 Then
    InOutRes:=106;
 End;
-
 
 {$ifdef SUPPORT_SINGLE}
 Procedure Read_Single(var f : TextRec;var d : single);[Public,Alias:'FPC_READ_TEXT_SINGLE'];
@@ -1230,7 +1251,10 @@ end;
 
 {
   $Log$
-  Revision 1.47  1999-06-30 22:17:24  florian
+  Revision 1.48  1999-07-01 15:39:52  florian
+    + qword/int64 type released
+
+  Revision 1.47  1999/06/30 22:17:24  florian
     + fpuint64 to system unit interface added: if it is true, the rtl
       uses the fpu to do int64 operations, if possible
 

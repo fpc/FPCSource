@@ -231,6 +231,10 @@ end;
 { Include processor specific routines }
 {$I math.inc}
 
+{$ifdef INT64}
+{$I int64.inc}
+{$endif INT64}
+
 {****************************************************************************
                             Memory Management
 ****************************************************************************}
@@ -550,7 +554,10 @@ end;
 
 {
   $Log$
-  Revision 1.60  1999-06-11 11:47:00  peter
+  Revision 1.61  1999-07-01 15:39:51  florian
+    + qword/int64 type released
+
+  Revision 1.60  1999/06/11 11:47:00  peter
     * random doesn't rte 200 with random(0)
 
   Revision 1.59  1999/06/05 20:45:12  michael
