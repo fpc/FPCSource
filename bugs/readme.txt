@@ -354,3 +354,5 @@ bug0261.pp   problems for assignment overloading
 bug0262.pp   problems with virtual and overloaded methods
 bug0263.pp   export directive is not necessary in delphi anymore
 bug0264.pp   methodpointer bugs
+bug0265.pp   nested proc with for-counter in other lex level
+ 
