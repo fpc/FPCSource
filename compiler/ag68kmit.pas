@@ -465,7 +465,7 @@ unit ag68kmit;
                      end;
          ait_label : begin
                        if assigned(hp^.next) and (pai(hp^.next)^.typ in
-                          [ait_const_32bit,ait_const_16bit,ait_const_symbol,
+                          [ait_const_32bit,ait_const_16bit,ait_const_symbol,ait_const_8bit,
                            ait_real_64bit,ait_real_32bit,ait_string]) then
                         begin
                           if not(cs_littlesize in aktglobalswitches) then
@@ -491,7 +491,7 @@ ait_labeled_instruction : begin
                        { ------------- REQUIREMENT FOR 680x0 ------------------- }
                        { ------------------------------------------------------- }
                        if assigned(hp^.next) and (pai(hp^.next)^.typ in
-                          [ait_const_32bit,ait_const_16bit,ait_const_symbol,
+                          [ait_const_32bit,ait_const_16bit,ait_const_symbol,ait_const_8bit,
                            ait_real_64bit,ait_real_32bit,ait_string]) then
                         begin
                           if not(cs_littlesize in aktglobalswitches) then
@@ -641,7 +641,10 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
 end.
 {
   $Log$
-  Revision 1.8  1998-08-10 14:49:37  peter
+  Revision 1.9  1998-09-16 01:07:43  carl
+    * bugfix of byte alignment
+
+  Revision 1.8  1998/08/10 14:49:37  peter
     + localswitches, moduleswitches, globalswitches splitting
 
   Revision 1.7  1998/07/14 14:46:39  peter
