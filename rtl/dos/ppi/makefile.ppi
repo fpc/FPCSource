@@ -1,6 +1,0 @@
-#
-# Here we set the names of all PPI files.
-#
-PPINAMES = arc colors dpmi2raw ellipse fill font global ibm image line \
-           modes move palette pixel stdcolor text triangle vesadeb 
-PPIINCNAMES= $(addsuffix .ppi,$(PPINAMES))
