@@ -232,7 +232,7 @@ Var P : Pchar;
 begin
   // Determine needed place
   L:=0;
-  For I:=0 to count-1 do 
+  For I:=0 to count-1 do
     L:=L+Length(Strings[I])+NewLineSize;
   Setlength(Result,L);
   P:=Pointer(Result);
@@ -476,52 +476,37 @@ Procedure TStrings.LoadFromStream(Stream: TStream);
    Instance doesn't have a size.
    So we must do it the hard way.
 }
-Const BufSize = 1024;
-
-  Procedure ReallocMem (Var B : Pointer; OldSize :longint);
-
-  Var NewB : Pointer;
-
-  begin
-    GetMem(NewB,OldSIze+BufSize);
-    If OldSize>0 then // assume that if size=0, B also Nil
-      begin
-      System.Move (B^,NewB^,OldSize);
-      FreeMem (B,OldSize);
-      end;
-    B:=NewB;
-  end;
-
-
-Var Buffer            : Pointer;
-    BytesRead,BufLen  : Longint;
-
+Const
+  BufSize = 1024;
+Var
+  Buffer     : Pointer;
+  BytesRead,
+  BufLen     : Longint;
 begin
+  // reread into a buffer
   Buffer:=Nil;
   BufLen:=0;
   Repeat
-    ReAllocMem(Buffer,BufLen);
+    ReAllocMem(Buffer,BufLen+BufSize);
     BytesRead:=Stream.Read((Buffer+BufLen)^,BufSize);
-    BufLen:=BufLen+BufSize;
+    inc(BufLen,BufSize);
   Until BytesRead<>BufSize;
   // Null-terminate !!
   Pchar(Buffer)[BufLen-BufSize+BytesRead]:=#0;
   Text:=PChar(Buffer);
-  FreeMem (Buffer,BufLen);
+  FreeMem(Buffer);
 end;
 
 
-
 Procedure TStrings.Move(CurIndex, NewIndex: Integer);
-
-Var Obj : TObject;
-    Str : String;
-
+Var
+  Obj : TObject;
+  Str : String;
 begin
-   Obj:=Objects[CurIndex];
-   Str:=Strings[CurIndex];
-   Delete(Curindex);
-   InsertObject(NewIndex,Str,Obj);
+  Obj:=Objects[CurIndex];
+  Str:=Strings[CurIndex];
+  Delete(Curindex);
+  InsertObject(NewIndex,Str,Obj);
 end;
 
 
@@ -539,13 +524,13 @@ end;
 
 
 Procedure TStrings.SaveToStream(Stream: TStream);
-
-VAr S : String;
-
+Var
+  S : String;
 begin
   S:=Text;
   Stream.Write(Pointer(S)^,Length(S));
 end;
+
 
 Function GetNextLine (Var P : Pchar; Var S : String) : Boolean;
 
@@ -560,7 +545,7 @@ begin
   SetLength (S,P-PS);
   System.Move (PS^,Pointer(S)^,P-PS);
   If P^=#13 then P:=P+1;
-  If P^=#10 then 
+  If P^=#10 then
     P:=P+1; // Point to character after #10(#13)
   Result:=True;
 end;
@@ -941,7 +926,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  1999-11-25 13:28:13  michael
+  Revision 1.7  1999-12-22 01:08:18  peter
+    * use reallocmem/freemem/getmem from the heapmanager
+
+  Revision 1.6  1999/11/25 13:28:13  michael
   + Fixed bug in settext
 
   Revision 1.5  1999/07/07 12:34:01  peter

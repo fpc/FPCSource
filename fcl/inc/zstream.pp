@@ -5,7 +5,7 @@ unit zstream;
     Copyright (c) 1998 by the Free Pascal development team
 
     Implementation of compression streams.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -37,7 +37,7 @@ uses Sysutils, Classes,zlib
 
 type
   // Error reporting.
-{$ifdef usepaszlib}  
+{$ifdef usepaszlib}
   TZStream=Z_Stream;
   PZStream=Z_StreamP;
 {$endif}
@@ -78,7 +78,7 @@ type
   end;
 
   TDecompressionStream = class(TCustomZlibStream)
-  private 
+  private
     function DecompressionCheck(code: Integer): Integer;
     procedure DecompressBuf(const InBuf: Pointer; InBytes: Integer;
     OutEstimate: Integer; var OutBuf: Pointer; var OutBytes: Integer);
@@ -92,7 +92,7 @@ type
   end;
 
   TGZOpenMode = (gzOpenRead,gzOpenWrite);
-  
+
   TGZFileStream = Class(TStream)
     Private
     FOpenMode : TGZOpenmode;
@@ -104,63 +104,28 @@ type
     function Write(const Buffer; Count: Longint): Longint; override;
     function Seek(Offset: Longint; Origin: Word): Longint; override;
     end;
-    
+
 
 implementation
 
-Const 
-  ErrorStrings : array [0..6] of string = 
+Const
+  ErrorStrings : array [0..6] of string =
     ('Unknown error %d','Z_ERRNO','Z_STREAM_ERROR',
      'Z_DATA_ERROR','Z_MEM_ERROR','Z_BUF_ERROR','Z_VERSION_ERROR');
   SCouldntOpenFile = 'Couldn''t open file : %s';
   SReadOnlyStream = 'Decompression streams are read-only';
   SWriteOnlyStream = 'Compression streams are write-only';
-  SSeekError = 'Compression stream seek error';  
+  SSeekError = 'Compression stream seek error';
   SInvalidSeek = 'Invalid Compression seek operation';
-  
-Type PLongint = ^Longint;
-
-Function DGetmem (Size : Longint) : pointer;
-begin
-  Inc(Size,SizeOf(Longint));
-  GetMem(Result,Size);
-  If Result<>Nil then 
-    begin
-    Plongint(Result)^:=Size;
-    Inc(Result,SizeOf(Integer));
-    end;
-end;
-
-Procedure DFreeMem(P : Pointer);
-begin
-  // Get Stored length
-  Dec(P,SizeOf(Integer));
-  FreeMem(P,Plongint(P)^);
-end;
-
-Procedure DReallocMem (var P : Pointer; NewSize : Longint);
-  // Reallocates memory pointed to by P.
-Var T : pointer;
-    OldSize : longint;
-begin
-  // Should raise an exception if no memory.
-  T:=DGetMem(NewSize);
-  OldSize:=PLongint(P-SizeOf(Integer))^;
-  If oldSize<NewSize then
-    Move(P^,T^,OldSize)
-  else
-    Move(P^,T^,NewSize);
-  DFreeMem(P);
-end;
 
 function zlibAllocMem(opaque:pointer; items:uInt; size:uInt):pointer;cdecl;
 begin
-  Result:=DGetMem(Items*Size);
+  Result:=GetMem(Items*Size);
 end;
 
 procedure zlibFreeMem(opaque:pointer; address:pointer);cdecl;
 begin
-  DFreeMem(address);
+  FreeMem(address);
 end;
 
 
@@ -177,10 +142,10 @@ begin
   strm.zfree := @zlibFreeMem;
 {$else}
   strm.zalloc :=  @zcalloc;
-  strm.zfree :=  @zcfree;   
+  strm.zfree :=  @zcfree;
 {$endif}
   OutBytes := ((InBytes + (InBytes div 10) + 12) + 255) and not 255;
-  OutBuf:=DGetMem(OutBytes);
+  OutBuf:=GetMem(OutBytes);
   try
     strm.next_in := InBuf;
     strm.avail_in := InBytes;
@@ -196,7 +161,7 @@ begin
       begin
         P := OutBuf;
         Inc(OutBytes, 256);
-        DReallocMem(OutBuf,OutBytes);
+        ReallocMem(OutBuf,OutBytes);
 {$ifndef usepaszlib}
         strm.next_out := PChar(Integer(OutBuf) + (Integer(strm.next_out) - Integer(P)));
 {$else}
@@ -207,10 +172,10 @@ begin
     finally
       CompressionCheck(deflateEnd(strm));
     end;
-    DReallocMem(OutBuf,strm.total_out);
+    ReallocMem(OutBuf,strm.total_out);
     OutBytes := strm.total_out;
   except
-    DFreeMem(OutBuf);
+    FreeMem(OutBuf);
     raise;
   end;
 end;
@@ -236,7 +201,7 @@ begin
     OutBytes := BufInc
   else
     OutBytes := OutEstimate;
-  OutBuf:=DGetMem(OutBytes);
+  OutBuf:=GetMem(OutBytes);
   try
     strm.next_in := InBuf;
     strm.avail_in := InBytes;
@@ -244,15 +209,15 @@ begin
     strm.avail_out := OutBytes;
 {$ifndef usepaszlib}
     DecompressionCheck(inflateInit_(strm, zlibversion, sizeof(strm)));
-{$else}    
+{$else}
     DecompressionCheck(inflateInit_(@strm, zlibversion, sizeof(strm)));
-{$endif}    
+{$endif}
     try
       while DecompressionCheck(inflate(strm, Z_FINISH)) <> Z_STREAM_END do
       begin
         P := OutBuf;
         Inc(OutBytes, BufInc);
-        DReallocMem(OutBuf, OutBytes);
+        ReallocMem(OutBuf, OutBytes);
 {$ifndef usepaszlib}
         strm.next_out := PChar(Integer(OutBuf) + (Integer(strm.next_out) - Integer(P)));
 {$else}
@@ -263,10 +228,10 @@ begin
     finally
       DecompressionCheck(inflateEnd(strm));
     end;
-    DReallocMem(OutBuf, strm.total_out);
+    ReallocMem(OutBuf, strm.total_out);
     OutBytes := strm.total_out;
   except
-    DFreeMem(OutBuf);
+    FreeMem(OutBuf);
     raise;
   end;
 end;
@@ -285,7 +250,7 @@ begin
 {$else}
   FZRec.zalloc :=  @zcalloc;
   FZRec.zfree :=  @zcfree;
-{$endif}  
+{$endif}
 end;
 
 procedure TCustomZLibStream.Progress(Sender: TObject);
@@ -328,7 +293,7 @@ begin
       FZRec.next_out := FBuffer;
 {$else}
       FZRec.next_out := @FBuffer;
-{$endif}      
+{$endif}
       FZRec.avail_out := sizeof(FBuffer);
     end;
     if FZRec.avail_out < sizeof(FBuffer) then
@@ -450,7 +415,7 @@ begin
       FZRec.next_in := FBuffer;
 {$else}
       FZRec.next_in := @FBuffer;
-{$endif}      
+{$endif}
       FStrmPos := FStrm.Position;
       Progress(Self);
     end;
@@ -476,7 +441,7 @@ begin
     FZRec.next_in := FBuffer;
 {$else}
     FZRec.next_in := @FBuffer;
-{$endif}    
+{$endif}
     FZRec.avail_in := 0;
     FStrm.Position := 0;
     FStrmPos := 0;
