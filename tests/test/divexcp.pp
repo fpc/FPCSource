@@ -21,7 +21,7 @@ procedure test_exception(const s : string);
 var
    i,j : longint;
    e : extended;
-   exception_count : longint;
+   exception_count,level : longint;
 begin
    j:=0;
    i:=100;
@@ -81,15 +81,20 @@ begin
    end;
    test_exception('third division by zero for integers');
    exception_count:=0;
+   level:=0;
    for j:=1 to TestNumber do
      begin
        try
          i:=0;
+         inc(level);
          e:=j/i;
        except
          on e : exception do
            begin
              inc(exception_count);
+             if level>1 then
+               Writeln('exception overrun');
+             dec(level);
            end;
        end;
 
