@@ -346,10 +346,16 @@ begin
   { add objectfiles, start with prt0 always }
   if prtobj<>'' then
    WriteRes(FindObjectFile(prtobj));
-  if {linklibc this is only for linux }linux_link_c then
+  { try to add crti and crtbegin, they are normally not required, but
+    adding can sometimes be usefull }
+  if linux_link_c then
    begin
-     WriteRes(search('crti.o',librarysearchpath,found)+'crti.o');
-     WriteRes(search('crtbegin.o',librarysearchpath,found)+'crtbegin.o');
+     s:=search('crtbegin.o',librarysearchpath,found)+'crtbegin.o';
+     if found then
+      WriteRes(s);
+     s:=search('crti.o',librarysearchpath,found)+'crti.o';
+     if found then
+      WriteRes(s);
    end;
   while not ObjectFiles.Empty do
    begin
@@ -359,8 +365,12 @@ begin
    end;
   if linux_link_c then
    begin
-     WriteRes(search('crtend.o',librarysearchpath,found)+'crtend.o');
-     WriteRes(search('crtn.o',librarysearchpath,found)+'crtn.o');
+     s:=search('crtend.o',librarysearchpath,found)+'crtend.o';
+     if found then
+      WriteRes(s);
+     s:=search('crtn.o',librarysearchpath,found)+'crtn.o';
+     if found then
+      WriteRes(s);
    end;
 
   { Write sharedlibraries like -l<lib> }
@@ -552,7 +562,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.47  1999-02-05 16:45:47  michael
+  Revision 1.48  1999-03-23 16:22:43  peter
+    * crtbegin/crtend only added if found
+
+  Revision 1.47  1999/02/05 16:45:47  michael
   + Fixed gluing of options
 
   Revision 1.46  1999/02/05 08:54:26  pierre
