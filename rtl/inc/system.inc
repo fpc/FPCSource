@@ -326,16 +326,16 @@ begin
   halt(errorcode);
 end;
 
+
 Procedure HandleError (Errno : longint);[public,alias : 'FPC_HANDLEERROR'];
 {
   Procedure to handle internal errors, i.e. not user-invoked errors
   Internal function should ALWAYS call HandleError instead of RunError.
 }
-var
-  addr : longint;
 begin
   HandleError(Errno,get_frame);
 end;
+
 
 procedure runerror(w : word);[alias: 'FPC_RUNERROR'];
 begin
@@ -488,7 +488,10 @@ end;
 
 {
   $Log$
-  Revision 1.45  1998-12-01 14:00:10  pierre
+  Revision 1.46  1998-12-10 23:59:56  peter
+    * removed warnign
+
+  Revision 1.45  1998/12/01 14:00:10  pierre
     + added conversion from exceptions into run time error
       (only if syswin32 compiled with -ddebug for now !)
     * added HandleError(errno,frame)
