@@ -303,6 +303,7 @@ begin
   end ['ECX','EDI','EDX'];
 end;
 
+{$ifdef linux}
 Function  fpIOperm (From,Num : Cardinal; Value : cint) : cint;
 {
   Set permissions on NUM ports starting with port FROM to VALUE
@@ -312,11 +313,81 @@ Function  fpIOperm (From,Num : Cardinal; Value : cint) : cint;
 begin
   fpIOPerm:=do_Syscall(Syscall_nr_ioperm,TSysParam(From),TSysParam(Num),TSysParam(Value));
 end;
+{$else}
+
+
+{$packrecords C}
+
+TYPE uint=CARDINAL;
+
+CONST
+        I386_GET_LDT    =0;
+        I386_SET_LDT    =1;
+                                { I386_IOPL }
+        I386_GET_IOPERM =3;
+        I386_SET_IOPERM =4;
+                                { xxxxx }
+        I386_VM86       =6;
+
+
+type
+
+{ i386_ldt_args = record
+        int     start : longint;
+        union   descriptor *descs;
+        int     num;
+        end;
+}
+
+ i386_ioperm_args = record
+        start    : cuint;
+        length   : cuint;
+        enable   : cint;
+        end;
+
+
+    i386_vm86_args = record
+        sub_op   : cint;             { sub-operation to perform }
+        sub_args : pchar;               { args }
+        end;
+
+   sysarch_args     = record
+                        op    : longint;
+                        parms : pchar;
+                       end;
+
+{
+int i386_get_ldt __P((int, union descriptor *, int));
+int i386_set_ldt __P((int, union descriptor *, int));
+int i386_get_ioperm __P((unsigned int, unsigned int *, int *));
+int i386_set_ioperm __P((unsigned int, unsigned int, int));
+int i386_vm86 __P((int, void *));
+int i386_set_watch __P((int watchnum, unsigned int watchaddr, int size,
+                        int access, struct dbreg * d));
+int i386_clr_watch __P((int watchnum, struct dbreg * d));
+}
+
+Function fpIOPerm(From,Num:CARDINAL;Value:cint):cint;
+
+var sg : i386_ioperm_args;
+    sa : sysarch_args;
+
+begin
+  sg.start:=From;
+  sg.length:=Num;
+  sg.enable:=value;
+  sa.op:=i386_SET_IOPERM;
+  sa.parms:=@sg;
+  fpIOPerm:=do_syscall(syscall_nr_sysarch,TSysParam(@sa));
+end;
+{$endif}
 
 Function fpIoPL(Level : cint) : cint;
 
 begin
+ {$ifdef Linux}
   fpIOPL:=do_Syscall(Syscall_nr_iopl,TSysParam(Level));
+ {$endif}
 end;
 
 
@@ -324,7 +395,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2005-02-05 08:42:24  marco
+  Revision 1.5  2005-02-05 10:44:01  marco
+   * FreeBSD ioperm fixes backported from 1.0
+
+  Revision 1.4  2005/02/05 08:42:24  marco
    * regvars problem fixed
 
   Revision 1.3  2004/04/12 10:31:58  marco
