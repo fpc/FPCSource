@@ -594,7 +594,7 @@ Procedure POpen(var F:file;const Prog:String;rw:char);
 Function  mkFifo(pathname:string;mode:longint):boolean;
 
 Procedure AssignStream(Var StreamIn,Streamout:text;Const Prog:String);
-procedure AssignStream(var StreamIn, StreamOut, StreamErr: Text; const prog: String);
+function AssignStream(var StreamIn, StreamOut, StreamErr: Text; const prog: String): LongInt;
 
 {**************************
     General information
@@ -2485,7 +2485,7 @@ begin
     Close(PipeErr);
     Close(PipeIn);
     Close(StreamOut);
-    Result := -1;
+    AssignStream := -1;
     exit;
   end;
 
@@ -2525,7 +2525,7 @@ begin
     pl := @(TextRec(StreamErr).userdata[2]);
     pl^ := pid;
     TextRec(StreamErr).closefunc := @PCloseText;
-    Result := pid;
+    AssignStream := pid;
   end;
 end;
 
@@ -3741,7 +3741,10 @@ End.
 
 {
   $Log$
-  Revision 1.42  1999-07-29 15:55:54  michael
+  Revision 1.43  1999-07-29 16:33:24  michael
+  + Yet more Fixes to assignstream with rerouting of stderr
+
+  Revision 1.42  1999/07/29 15:55:54  michael
   + Fixes to assignstream with rerouting of stderr, by Sebastian Guenther
 
   Revision 1.41  1999/07/29 15:53:55  michael
