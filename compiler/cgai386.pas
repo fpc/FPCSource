@@ -2729,10 +2729,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          begin
             procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
             reset_reference(hr);
-            if psym(p)^.owner^.symtabletype=localsymtable then
+            if psym(p)^.owner^.symtabletype in [localsymtable,inlinelocalsymtable] then
               begin
                  hr.base:=procinfo^.framepointer;
-                 hr.offset:=-pvarsym(p)^.address;
+                 hr.offset:=-pvarsym(p)^.address+pvarsym(p)^.owner^.address_fixup;
               end
             else
               begin
@@ -2794,12 +2794,12 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
             procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
             reset_reference(hr);
             case psym(p)^.owner^.symtabletype of
-               localsymtable:
+               localsymtable,inlinelocalsymtable:
                  begin
                     hr.base:=procinfo^.framepointer;
-                    hr.offset:=-pvarsym(p)^.address;
+                    hr.offset:=-pvarsym(p)^.address+pvarsym(p)^.owner^.address_fixup;
                  end;
-               parasymtable:
+               parasymtable,inlineparasymtable:
                  begin
                     hr.base:=procinfo^.framepointer;
                     hr.offset:=pvarsym(p)^.address+procinfo^.para_offset;
@@ -2972,7 +2972,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               href1.offset:=pvarsym(p)^.address+procinfo^.para_offset;
               reset_reference(href2);
               href2.base:=procinfo^.framepointer;
-              href2.offset:=-pvarsym(p)^.localvarsym^.address;
+              href2.offset:=-pvarsym(p)^.localvarsym^.address+pvarsym(p)^.localvarsym^.owner^.address_fixup;
               copyshortstring(href2,href1,pstringdef(pvarsym(p)^.vartype.def)^.len,true);
             end
            else
@@ -2982,7 +2982,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               href1.offset:=pvarsym(p)^.address+procinfo^.para_offset;
               reset_reference(href2);
               href2.base:=procinfo^.framepointer;
-              href2.offset:=-pvarsym(p)^.localvarsym^.address;
+              href2.offset:=-pvarsym(p)^.localvarsym^.address+pvarsym(p)^.localvarsym^.owner^.address_fixup;
               concatcopy(href1,href2,pvarsym(p)^.vartype.def^.size,true,true);
             end;
         end;
@@ -3781,7 +3781,12 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.83  2000-02-18 21:25:48  florian
+  Revision 1.84  2000-03-01 00:03:12  pierre
+    * fixes for locals in inlined procedures
+      fix for bug797
+    + stabs generation for inlined paras and locals
+
+  Revision 1.83  2000/02/18 21:25:48  florian
     * fixed a bug in int64/qword handling was a quite ugly one
 
   Revision 1.82  2000/02/18 20:53:14  pierre

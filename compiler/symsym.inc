@@ -1403,7 +1403,7 @@
                   +vartype.def^.numberstring+'",'+
                   tostr(N_LCSYM)+',0,'+tostr(fileinfo.line)+','+mangledname);
          end
-       else if (owner^.symtabletype=parasymtable) then
+       else if (owner^.symtabletype in [parasymtable,inlineparasymtable]) then
          begin
             case varspez of
                vs_var   : st := 'v'+st;
@@ -1420,7 +1420,7 @@
                   {offset to ebp => will not work if the framepointer is esp
                   so some optimizing will make things harder to debug }
          end
-       else if (owner^.symtabletype=localsymtable) then
+       else if (owner^.symtabletype in [localsymtable,inlinelocalsymtable]) then
    {$ifdef i386}
          if reg<>R_NO then
            begin
@@ -1441,7 +1441,7 @@
            else
            stabstring := strpnew('"'+name+':'+st
                   +vartype.def^.numberstring+'",'+
-                  tostr(N_LSYM)+',0,'+tostr(fileinfo.line)+',-'+tostr(address))
+                  tostr(N_LSYM)+',0,'+tostr(fileinfo.line)+',-'+tostr(address-owner^.address_fixup))
        else
          stabstring := inherited stabstring;
   end;
@@ -2125,7 +2125,12 @@
 
 {
   $Log$
-  Revision 1.139  2000-02-11 13:53:49  pierre
+  Revision 1.140  2000-03-01 00:03:10  pierre
+    * fixes for locals in inlined procedures
+      fix for bug797
+    + stabs generation for inlined paras and locals
+
+  Revision 1.139  2000/02/11 13:53:49  pierre
    * avoid stack overflow in tref.done (bug 846)
 
   Revision 1.138  2000/02/09 13:23:05  peter

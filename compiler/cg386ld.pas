@@ -166,7 +166,11 @@ implementation
                                                    inlineparasymtable,localsymtable]) then
                                 begin
                                    p^.location.reference.base:=procinfo^.framepointer;
-                                   p^.location.reference.offset:=pvarsym(p^.symtableentry)^.address+p^.symtable^.address_fixup;
+                                   if (symtabletype in [inlinelocalsymtable,
+                                                        localsymtable]) then
+                                     p^.location.reference.offset:=pvarsym(p^.symtableentry)^.address-p^.symtable^.address_fixup
+                                   else
+                                     p^.location.reference.offset:=pvarsym(p^.symtableentry)^.address+p^.symtable^.address_fixup;
 
                                    if (symtabletype in [localsymtable,inlinelocalsymtable]) then
                                      begin
@@ -961,7 +965,7 @@ implementation
                      end
                     else
                      emit_push_loc(hp^.left^.location);
-                    inc(pushedparasize); 
+                    inc(pushedparasize);
                   end
                  else
                   begin
@@ -1005,7 +1009,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.100  2000-02-09 18:08:33  jonas
+  Revision 1.101  2000-03-01 00:03:11  pierre
+    * fixes for locals in inlined procedures
+      fix for bug797
+    + stabs generation for inlined paras and locals
+
+  Revision 1.100  2000/02/09 18:08:33  jonas
     * added regallocs for esi
 
   Revision 1.99  2000/02/09 13:22:47  peter
@@ -1093,4 +1102,3 @@ end.
     * resources are working again
 
 }
-

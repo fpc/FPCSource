@@ -20,6 +20,9 @@
 
  ****************************************************************************
 }
+{$ifdef FPC}
+  {$goto on}
+{$endif FPC}
 unit cg386cal;
 interface
 
@@ -41,7 +44,7 @@ implementation
       cobjects,verbose,globals,
       symconst,aasm,types,
 {$ifdef GDB}
-      gdb,
+      strings,gdb,
 {$endif GDB}
       hcodegen,temp_gen,pass_2,
       cpubase,cpuasm,
@@ -1285,6 +1288,11 @@ implementation
            proc_names : tstringcontainer;
            inlineentrycode,inlineexitcode : paasmoutput;
            oldexitlabel,oldexit2label,oldquickexitlabel:Pasmlabel;
+{$ifdef GDB}
+           startlabel,endlabel : pasmlabel;
+           pp : pchar;
+           mangled_length  : longint;
+{$endif GDB}
        begin
           oldinlining_procedure:=inlining_procedure;
           oldexitlabel:=aktexitlabel;
@@ -1293,11 +1301,11 @@ implementation
           getlabel(aktexitlabel);
           getlabel(aktexit2label);
           oldprocsym:=aktprocsym;
+          { we're inlining a procedure }
+          inlining_procedure:=true;
           { save old procinfo }
           getmem(oldprocinfo,sizeof(tprocinfo));
           move(procinfo^,oldprocinfo^,sizeof(tprocinfo));
-          { we're inlining a procedure }
-          inlining_procedure:=true;
           { set the return value }
           aktprocsym:=p^.inlineprocsym;
           procinfo^.returntype:=aktprocsym^.definition^.rettype;
@@ -1309,16 +1317,44 @@ implementation
           st^.symtablelevel:=oldprocsym^.definition^.localst^.symtablelevel;
           if st^.datasize>0 then
             begin
-              st^.address_fixup:=gettempofsizepersistant(st^.datasize);
+              st^.address_fixup:=gettempofsizepersistant(st^.datasize)+st^.datasize;
 {$ifdef extdebug}
               Comment(V_debug,'local symtable is at offset '+tostr(st^.address_fixup));
               exprasmlist^.concat(new(pai_asm_comment,init(strpnew(
                 'local symtable is at offset '+tostr(st^.address_fixup)))));
 {$endif extdebug}
             end;
+          exprasmlist^.concat(new(Pai_Marker, Init(InlineStart)));
 {$ifdef extdebug}
           exprasmlist^.concat(new(pai_asm_comment,init(strpnew('Start of inlined proc'))));
 {$endif extdebug}
+{$ifdef GDB}
+          if (cs_debuginfo in aktmoduleswitches) then
+            begin
+              getlabel(startlabel);
+              getlabel(endlabel);
+              emitlab(startlabel);
+              p^.inlineprocsym^.definition^.localst^.symtabletype:=inlinelocalsymtable;
+              p^.inlineprocsym^.definition^.parast^.symtabletype:=inlineparasymtable;
+
+              { Here we must include the para and local symtable info }
+              p^.inlineprocsym^.concatstabto(withdebuglist);
+
+              { set it back for savety }
+              p^.inlineprocsym^.definition^.localst^.symtabletype:=localsymtable;
+              p^.inlineprocsym^.definition^.parast^.symtabletype:=parasymtable;
+
+              mangled_length:=length(oldprocsym^.definition^.mangledname);
+              getmem(pp,mangled_length+50);
+              strpcopy(pp,'192,0,0,'+startlabel^.name);
+              if (target_os.use_function_relative_addresses) then
+                begin
+                  strpcopy(strend(pp),'-');
+                  strpcopy(strend(pp),oldprocsym^.definition^.mangledname);
+                end;
+              withdebuglist^.concat(new(pai_stabn,init(strnew(pp))));
+            end;
+{$endif GDB}
           { takes care of local data initialization }
           inlineentrycode:=new(paasmoutput,init);
           inlineexitcode:=new(paasmoutput,init);
@@ -1333,15 +1369,31 @@ implementation
 {$ifdef extdebug}
           exprasmlist^.concat(new(pai_asm_comment,init(strpnew('End of inlined proc'))));
 {$endif extdebug}
+          exprasmlist^.concat(new(Pai_Marker, Init(InlineEnd)));
+
           {we can free the local data now, reset also the fixup address }
           if st^.datasize>0 then
             begin
-              ungetpersistanttemp(st^.address_fixup);
+              ungetpersistanttemp(st^.address_fixup-st^.datasize);
               st^.address_fixup:=0;
             end;
           { restore procinfo }
           move(oldprocinfo^,procinfo^,sizeof(tprocinfo));
           freemem(oldprocinfo,sizeof(tprocinfo));
+{$ifdef GDB}
+          if (cs_debuginfo in aktmoduleswitches) then
+            begin
+              emitlab(endlabel);
+              strpcopy(pp,'224,0,0,'+endlabel^.name);
+             if (target_os.use_function_relative_addresses) then
+               begin
+                 strpcopy(strend(pp),'-');
+                 strpcopy(strend(pp),oldprocsym^.definition^.mangledname);
+               end;
+              withdebuglist^.concat(new(pai_stabn,init(strnew(pp))));
+              freemem(pp,mangled_length+50);
+            end;
+{$endif GDB}
           { restore }
           aktprocsym:=oldprocsym;
           aktexitlabel:=oldexitlabel;
@@ -1355,7 +1407,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.126  2000-02-09 18:08:33  jonas
+  Revision 1.127  2000-03-01 00:03:11  pierre
+    * fixes for locals in inlined procedures
+      fix for bug797
+    + stabs generation for inlined paras and locals
+
+  Revision 1.126  2000/02/09 18:08:33  jonas
     * added regallocs for esi
 
   Revision 1.125  2000/02/09 13:22:45  peter

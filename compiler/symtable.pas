@@ -1185,6 +1185,12 @@ implementation
           psym(p)^.concatstabto(asmoutput);
       end;
 
+    procedure resetstab(p : pnamedindexobject);
+      begin
+        if psym(p)^.typ <> procsym then
+          psym(p)^.isstabwritten:=false;
+      end;
+
     procedure concattypestab(p : pnamedindexobject);
       begin
         if psym(p)^.typ = typesym then
@@ -2123,6 +2129,9 @@ implementation
       procedure tsymtable.concatstabto(asmlist : paasmoutput);
       begin
         asmoutput:=asmlist;
+        if symtabletype in [inlineparasymtable,inlinelocalsymtable] then
+          foreach({$ifndef TP}@{$endif}resetstab);
+
         foreach({$ifndef TP}@{$endif}concatstab);
       end;
 {$endif}
@@ -2784,7 +2793,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.78  2000-02-20 20:49:45  florian
+  Revision 1.79  2000-03-01 00:03:10  pierre
+    * fixes for locals in inlined procedures
+      fix for bug797
+    + stabs generation for inlined paras and locals
+
+  Revision 1.78  2000/02/20 20:49:45  florian
     * newcg is compiling
     * fixed the dup id problem reported by Paul Y.
 
