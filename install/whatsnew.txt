@@ -1,0 +1,65 @@
+
+                            Free Pascal Compiler
+
+                               Version 0.99.8
+
+
+******************************************************************************
+                            Whats New in 0.99.8
+******************************************************************************
+
+Compiler:
+  + smartlinking support (-Cx)
+  + new ppu format which much more portable en extendible
+  + new scanner with better file position info
+  + constant evaluation like tp7 (trunc,round,hi,swap)
+  + rtti support
+  + exception support
+  + longbool,wordbool support
+  + enumerated packing support like delphi
+  + c variable support (-Sv)
+  + Win32 support (no export and resource support yet)
+  * optimizer switches changed to be easier to use
+  * lot of fixes for sets, also supporting dynamic creation
+  * working open array (sizeof,high)
+  * better filename handling for all platforms
+  * ability to list source lines in the assembler file
+  * some error messages changed to for better understanding
+  * better calling convention support, delphi compatible
+  * glibc2 (linux) support
+  * too many other small bugfixes and internal enhancements
+
+RTL:
+  + sysutils unit for objpas
+  + port[] array for go32v2
+  + graph unit for linux
+  + uniform objects unit for all platforms
+  + rtti support
+  + automatic Longfilename (LFN) support for go32v2
+  * go32 crt startup delay has been removed
+  * missing pchar support for some file functions (assign,rename)
+  * heapblocks support, which is much faster when allocating a lot
+    of small blocks (like objects)
+  * filerec/textrec is now uniform for all platforms (but not tp7 compatible)
+  * extended is the default floating point type
+  * lot of other fixes and small enhancements
+
+Utils:
+  + h2pas util to convert .h files to .pas file
+  + ppudump util replaces the old dumpppu
+  * mkdep is now much less strict and (* *) support
+
+
+******************************************************************************
+                            Whats New in 0.99.5
+******************************************************************************
+
+Mainly, bugs are fixed and some improvements are
+made in that release, besides that the following stuff is
+added:
+ * compiler
+   - mem[] and absolute works now as expected (go32v2 target only)
+   - basic MMX support by the compiler (see docs for more infos)
+ * runtime library
+   - better support of floating point types
+

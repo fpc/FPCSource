@@ -1,11 +1,13 @@
 #
+# $Id$
+#
 # Go32 Install file
 #
 title=Free Pascal Compiler for Go32v2
 version=0.99.8
 
 basepath=c:\pp
-binsub=\bin
+binsub=\bin\go32v2
 ppc386=ppc386
 
 package=basego32.zip,~B~asic system for Go32v2 (required)
@@ -13,8 +15,8 @@ package=asldgo32.zip,GNU ~L~inker and GNU Assembler for Go32v2 (required)
 package=gdbgo32.zip,GNU ~D~ebugger for Go32v2
 package=gnuutils.zip,GNU ~U~tilities (required to recompile run time library)
 package=demo.zip,D~e~mos
-package=docs.zip,Documentation (~H~TML)
-package=doc110ps.zip,Documentation (~P~ostscript)
+package=docs-htm.zip,Documentation (~H~TML)
+package=docs-ps.zip,Documentation (~P~ostscript)
 package=rl0998s.zip,~R~un time library sources
 package=pp0998s.zip,~C~ompiler sources
 package=doc110s.zip,Documentation sources (La~T~eX)
@@ -139,13 +141,25 @@ defaultcfg=
 
 # searchpath for units (does the same as -Up)
 #IFDEF Go32V1
-  -Fu$1/rtl/dos/go32v1
+  #IFDEF FPC_LINK_STATIC
+    -Fu$1/rtl/go32v1/static
+  #ELSE
+    -Fu$1/rtl/go32v1
+  #ENDIF
 #ENDIF
 #IFDEF Go32V2
-  -Fu$1/rtl/dos/go32v2
+  #IFDEF FPC_LINK_STATIC
+    -Fu$1/rtl/go32v2/static
+  #ELSE
+    -Fu$1/rtl/go32v2
+  #ENDIF
 #ENDIF
 #IFDEF Win32
-  -Fu$1/rtl/dos/win32
+  #IFDEF FPC_LINK_STATIC
+    -Fu$1/rtl/win32/static
+  #ELSE
+    -Fu$1/rtl/win32
+  #ENDIF
 #ENDIF
 
 # searchpath for libraries

@@ -211,6 +211,30 @@ program install;
       line : longint;
       item,
       s    : string;
+
+{$ifndef FPC}
+      procedure readln(var t:text;var s:string);
+      var
+        c : char;
+        i : longint;
+      begin
+        c:=#0;
+        i:=0;
+        while (not eof(t)) and (c<>#10) do
+         begin
+           read(t,c);
+           if c<>#10 then
+            begin
+              inc(i);
+              s[i]:=c;
+            end;
+         end;
+        if (i>0) and (s[i]=#13) then
+         dec(i);
+        s[0]:=chr(i);
+      end;
+{$endif}
+
     begin
       assign(t,fn);
       {$I-}
@@ -541,7 +565,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  1998-09-15 13:11:14  pierre
+  Revision 1.7  1998-09-16 16:46:37  peter
+    + updates
+
+  Revision 1.6  1998/09/15 13:11:14  pierre
   small fix to cleanup if no package
 
   Revision 1.5  1998/09/15 12:06:06  peter
