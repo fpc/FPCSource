@@ -2087,8 +2087,8 @@ implementation
            constint:
              if sizeof(TConstExprInt)=8 then
                begin
-                  writelong(lo(value));
-                  writelong(hi(value));
+                  writelong(longint(lo(value)));
+                  writelong(longint(hi(value)));
                end
              else
                writelong(value);
@@ -2102,8 +2102,8 @@ implementation
                consttype.write;
                if sizeof(TConstExprInt)=8 then
                  begin
-                    writelong(lo(value));
-                    writelong(hi(value));
+                    writelong(longint(lo(value)));
+                    writelong(longint(hi(value)));
                  end
                else
                  writelong(value);
@@ -2471,7 +2471,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2000-11-08 23:15:17  florian
+  Revision 1.5  2000-11-13 14:44:35  jonas
+    * fixes so no more range errors with improved range checking code
+
+  Revision 1.4  2000/11/08 23:15:17  florian
     * tprocdef.procsym must be set also when a tprocdef is loaded from a PPU
 
   Revision 1.3  2000/11/06 23:13:53  peter

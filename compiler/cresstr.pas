@@ -89,6 +89,10 @@ begin
   FreeMem(Value,Len);
 end;
 
+{$ifopt r+}
+{$define rangeon}
+{$r-}
+{$endif}
 
 procedure TResourceStringItem.CalcHash;
 Var
@@ -110,6 +114,10 @@ begin
     Hash:=Not(0);
 end;
 
+{$ifdef rangeon}
+{$r+}
+{$undef rangeon}
+{$endif}
 
 { ---------------------------------------------------------------------
                           TRESOURCESTRINGS
@@ -287,7 +295,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2000-09-24 15:06:14  peter
+  Revision 1.7  2000-11-13 14:44:35  jonas
+    * fixes so no more range errors with improved range checking code
+
+  Revision 1.6  2000/09/24 15:06:14  peter
     * use defines.inc
 
   Revision 1.5  2000/08/27 16:11:50  peter

@@ -579,12 +579,12 @@ implementation
                                   if is_64bitint(right.resulttype) then
                                     begin
                                        emit_const_ref(A_MOV,opsize,
-                                         lo(tordconstnode(right).value),
+                                         longint(lo(tordconstnode(right).value)),
                                          newreference(left.location.reference));
                                        r:=newreference(left.location.reference);
                                        inc(r^.offset,4);
                                        emit_const_ref(A_MOV,opsize,
-                                         hi(tordconstnode(right).value),r);
+                                         longint(hi(tordconstnode(right).value)),r);
                                     end
                                   else
                                     begin
@@ -1050,7 +1050,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2000-11-12 23:24:15  florian
+  Revision 1.8  2000-11-13 14:44:36  jonas
+    * fixes so no more range errors with improved range checking code
+
+  Revision 1.7  2000/11/12 23:24:15  florian
     * interfaces are basically running
 
   Revision 1.6  2000/11/11 22:59:20  florian

@@ -187,8 +187,8 @@ implementation
               if (cs_create_smart in aktmoduleswitches) then
                 consts^.concat(new(pai_cut,init));
               consts^.concat(new(pai_label,init(l)));
-              consts^.concat(new(pai_const,init_32bit(lo(value))));
-              consts^.concat(new(pai_const,init_32bit(hi(value))));
+              consts^.concat(new(pai_const,init_32bit(longint(lo(value)))));
+              consts^.concat(new(pai_const,init_32bit(longint(hi(value)))));
               reset_reference(location.reference);
               location.reference.symbol:=l;
            end
@@ -488,7 +488,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-10-31 22:02:56  peter
+  Revision 1.3  2000-11-13 14:44:36  jonas
+    * fixes so no more range errors with improved range checking code
+
+  Revision 1.2  2000/10/31 22:02:56  peter
     * symtable splitted, no real code changes
 
   Revision 1.1  2000/10/15 09:33:31  peter

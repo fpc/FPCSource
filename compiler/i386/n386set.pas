@@ -606,9 +606,9 @@ implementation
                   if opsize=S_Q then
                     begin
                        getlabel(l1);
-                       emit_const_reg(A_CMP,S_L,hi(int64(t^._low)),hregister2);
+                       emit_const_reg(A_CMP,S_L,longint(hi(int64(t^._low))),hregister2);
                        emitjmp(C_NZ,l1);
-                       emit_const_reg(A_CMP,S_L,lo(int64(t^._low)),hregister);
+                       emit_const_reg(A_CMP,S_L,longint(lo(int64(t^._low))),hregister);
                        emitjmp(C_Z,t^.statement);
                        emitlab(l1);
                     end
@@ -629,10 +629,10 @@ implementation
                        if opsize=S_Q then
                          begin
                             getlabel(l1);
-                            emit_const_reg(A_CMP,S_L,hi(int64(t^._low)),hregister2);
+                            emit_const_reg(A_CMP,S_L,longint(hi(int64(t^._low))),hregister2);
                             emitjmp(jmp_le,elselabel);
                             emitjmp(jmp_gt,l1);
-                            emit_const_reg(A_CMP,S_L,lo(int64(t^._low)),hregister);
+                            emit_const_reg(A_CMP,S_L,longint(lo(int64(t^._low))),hregister);
                             { the comparisation of the low dword must be always unsigned! }
                             emitjmp(C_B,elselabel);
                             emitlab(l1);
@@ -647,10 +647,10 @@ implementation
                   if opsize=S_Q then
                     begin
                        getlabel(l1);
-                       emit_const_reg(A_CMP,S_L,hi(int64(t^._high)),hregister2);
+                       emit_const_reg(A_CMP,S_L,longint(hi(int64(t^._high))),hregister2);
                        emitjmp(jmp_le,t^.statement);
                        emitjmp(jmp_gt,l1);
-                       emit_const_reg(A_CMP,S_L,lo(int64(t^._high)),hregister);
+                       emit_const_reg(A_CMP,S_L,longint(lo(int64(t^._high))),hregister);
                        { the comparisation of the low dword must be always unsigned! }
                        emitjmp(C_BE,t^.statement);
                        emitlab(l1);
@@ -1061,7 +1061,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-10-31 22:02:57  peter
+  Revision 1.4  2000-11-13 14:44:36  jonas
+    * fixes so no more range errors with improved range checking code
+
+  Revision 1.3  2000/10/31 22:02:57  peter
     * symtable splitted, no real code changes
 
   Revision 1.2  2000/10/26 15:53:27  jonas
