@@ -127,3 +127,15 @@ make TEST_FPC=$HOME/fpc/compiler/ppcsparc TEST_BINUTILSPREFIX=sparc-linux- TEST_
 
 Example for win32/putty:
 make TEST_FPC=c:\fpc\compiler\ppcarm TEST_BINUTILSPREFIX=arm-linux- TEST_PUTTY=root@192.168.42.210 TEST_REMOTEPATH=/tmp TEST_DELTEMP=1 "TEST_REMOTEPW=xxx" FPC=c:\fpc\compiler\ppc386
+
+Emulator execution
+------------------
+
+Emulator execution is possible as well. It can't be combined with remote execution though.
+
+EMULATOR	     name of the emulator to use
+
+Example:
+
+make TEST_FPC=~/fpc/compiler/ppcrossarm TEST_OPT=-XParm-linux- EMULATOR=qemu-arm
+make TEST_FPC=~/fpc/compiler/ppcrossarm TEST_OPT=-XParm-linux- EMULATOR=qemu-arm digest DBDIGESTOPT="-C qemu-arm" USESQL=YES

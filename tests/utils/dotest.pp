@@ -74,6 +74,7 @@ const
   rshprog : string = 'rsh';
   rcpprog : string = 'rcp';
   rquote : char = '''';
+  emulatorname : string = '';
 
 Function FileExists (Const F : String) : Boolean;
 {
@@ -631,10 +632,16 @@ var
   execres  : boolean;
 
   function ExecuteRemote(const prog,args:string):boolean;
-  begin
-    Verbose(V_Debug,'RemoteExecuting '+Prog+' '+args);
-    ExecuteRemote:=ExecuteRedir(prog,args,'',EXELogFile,'stdout');
-  end;
+    begin
+      Verbose(V_Debug,'RemoteExecuting '+Prog+' '+args);
+      ExecuteRemote:=ExecuteRedir(prog,args,'',EXELogFile,'stdout');
+    end;
+
+  function ExecuteEmulated(const prog,args:string):boolean;
+    begin
+      Verbose(V_Debug,'EmulatorExecuting '+Prog+' '+args);
+      ExecuteEmulated:=ExecuteRedir(prog,args,'',FullExeLogFile,'stdout');
+   end;
 
 begin
   RunExecutable:=false;
@@ -644,7 +651,22 @@ begin
     TestExe:=OutputFileName(PPFile,ExeExt)
   else
     TestExe:=OutputFileName(PPFile,'');
-  if RemoteAddr<>'' then
+  if EmulatorName<>'' then
+    begin
+      { Get full name out log file, because we change the directory during
+        execution }
+      FullExeLogFile:=FExpand(EXELogFile);
+      {$I-}
+       GetDir(0,OldDir);
+       ChDir(TestOutputDir);
+      {$I+}
+      ioresult;
+      execres:=ExecuteEmulated(EmulatorName,CurrDir+SplitFileName(TestExe));
+      {$I-}
+       ChDir(OldDir);
+      {$I+}
+    end
+  else if RemoteAddr<>'' then
     begin
       { We don't want to create subdirs, remove paths from the test }
       TestRemoteExe:=RemotePath+'/'+SplitFileName(TestExe);
@@ -754,6 +776,7 @@ var
     writeln('  -G            include graph tests');
     writeln('  -K            include known bug tests');
     writeln('  -I            include interactive tests');
+    writeln('  -M<emulator>  run the tests using the given emulator');
     writeln('  -R<remote>    run the tests remotely with the given rsh/ssh address');
     writeln('  -S            use ssh instead of rsh');
     writeln('  -T            remove temporary files (executable,ppu,o)');
@@ -809,6 +832,8 @@ begin
                  if para='-' then
                    DoUsual:=false;
                end;
+
+         'M' : EmulatorName:=Para;
 
          'P' : RemotePath:=Para;
 
@@ -1088,7 +1113,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.42  2004-11-29 21:25:32  peter
+  Revision 1.43  2005-01-01 18:59:52  florian
+    + emulator execution support added
+
+  Revision 1.42  2004/11/29 21:25:32  peter
   support for limit83fs
 
   Revision 1.41  2004/11/09 23:13:50  peter

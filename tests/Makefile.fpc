@@ -67,7 +67,7 @@ endif
 endif
 
 # Target dir where the ppu and binaries are created
-TEST_OUTPUTDIR=output/$(FULL_TARGET)
+TEST_OUTPUTDIR=output/$(TEST_FULL_TARGET)
 
 
 ################################
@@ -215,6 +215,10 @@ endif
 
 ifdef DOALL
 override DOTESTOPT+=-a
+endif
+
+ifdef EMULATOR
+override DOTESTOPT+=-M$(EMULATOR)
 endif
 
 
