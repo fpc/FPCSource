@@ -728,12 +728,14 @@ end;
 constructor TFPHeapView.Init(var Bounds: TRect);
 begin
   inherited Init(Bounds);
+  Options:=Options or gfGrowHiX or gfGrowHiY;
   EventMask:=EventMask or evIdle;
 end;
 
 constructor TFPHeapView.InitKb(var Bounds: TRect);
 begin
   inherited InitKb(Bounds);
+  Options:=Options or gfGrowHiX or gfGrowHiY;
   EventMask:=EventMask or evIdle;
 end;
 
@@ -2437,7 +2439,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.23  1999-03-19 16:04:33  peter
+  Revision 1.24  1999-03-21 22:51:37  florian
+    + functional screen mode switching added
+
+  Revision 1.23  1999/03/19 16:04:33  peter
     * new compiler dialog
 
   Revision 1.22  1999/03/16 00:44:45  peter

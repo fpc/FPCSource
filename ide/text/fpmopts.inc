@@ -538,7 +538,14 @@ begin
       { change video mode ? }
       if rb1^.value<>modevalue then
         begin
-
+           modevalue:=CountModes-rb1^.value-1;
+           hp:=video.modes;
+           for i:=1 to modevalue do
+             hp:=hp^.next;
+           videomode.col:=hp^.col;
+           videomode.row:=hp^.row;
+           videomode.color:=hp^.color;
+           SetScreenVideoMode(videomode);
         end;
    end;
   Dispose(D, Done);
@@ -923,7 +930,10 @@ end;
 
 {
   $Log$
-  Revision 1.21  1999-03-16 12:38:12  peter
+  Revision 1.22  1999-03-21 22:51:36  florian
+    + functional screen mode switching added
+
+  Revision 1.21  1999/03/16 12:38:12  peter
     * tools macro fixes
     + tph writer
     + first things for resource files

@@ -64,7 +64,7 @@ begin
       end
     else
       if not BeforeINI then
-        TryToOpenFile(nil,Param,0,0,true);
+        TryToOpenFile(nil,Param,0,0,false);
   end;
 end;
 
@@ -119,7 +119,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.17  1999-03-16 12:38:06  peter
+  Revision 1.18  1999-03-21 22:51:35  florian
+    + functional screen mode switching added
+
+  Revision 1.17  1999/03/16 12:38:06  peter
     * tools macro fixes
     + tph writer
     + first things for resource files
