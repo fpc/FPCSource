@@ -761,7 +761,7 @@ implementation
                         exprasmlist^.concat(new(pai386,op_sym(A_PUSH,S_L,
                           newasmsymbol(pprocdef(p^.procdefinition)^._class^.vmt_mangledname))));
                         exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,r^.base)));
-                        emitcall('FPC_CHECK_OBJECT_EXT',true);
+                        emitcall('FPC_CHECK_OBJECT_EXT');
                      end;
 {$endif TESTOBJEXT}
                    exprasmlist^.concat(new(pai386,op_ref(A_CALL,S_NO,r)));
@@ -1163,7 +1163,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.88  1999-05-28 11:00:49  peter
+  Revision 1.89  1999-05-28 15:59:46  pierre
+   * forgotten emitcall change in conditionnal
+
+  Revision 1.88  1999/05/28 11:00:49  peter
     * removed ungettempoftype
 
   Revision 1.87  1999/05/27 19:44:07  peter
