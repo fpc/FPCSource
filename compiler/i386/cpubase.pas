@@ -916,7 +916,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  2000-09-26 20:06:13  florian
+  Revision 1.1  2000-10-15 09:39:37  peter
+    * moved cpu*.pas to i386/
+    * renamed n386 to common cpunode
+
+  Revision 1.7  2000/09/26 20:06:13  florian
     * hmm, still a lot of work to get things compilable
 
   Revision 1.6  2000/09/24 15:06:14  peter

@@ -20,7 +20,7 @@
 
  ****************************************************************************
 }
-unit n386;
+unit cpunode;
 
 {$i defines.inc}
 
@@ -35,8 +35,9 @@ unit n386;
 end.
 {
   $Log$
-  Revision 1.1  2000-10-15 09:33:31  peter
-    * moved n386*.pas to i386/ cpu_target dir
+  Revision 1.1  2000-10-15 09:39:37  peter
+    * moved cpu*.pas to i386/
+    * renamed n386 to common cpunode
 
   Revision 1.1  2000/10/14 10:14:47  peter
     * moehrendorf oct 2000 rewrite

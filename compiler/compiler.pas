@@ -90,9 +90,7 @@ uses
   verbose,comphook,systems,
   cutils,cobjects,globals,options,fmodule,parser,symtable,
   link,import,export,tokens,
-{$ifdef i386}
-  n386
-{$endif i386}
+  cpunode
   ;
 
 function Compile(const cmd:string):longint;
@@ -312,7 +310,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  2000-10-14 10:14:46  peter
+  Revision 1.9  2000-10-15 09:39:36  peter
+    * moved cpu*.pas to i386/
+    * renamed n386 to common cpunode
+
+  Revision 1.8  2000/10/14 10:14:46  peter
     * moehrendorf oct 2000 rewrite
 
   Revision 1.7  2000/10/08 10:26:33  peter
