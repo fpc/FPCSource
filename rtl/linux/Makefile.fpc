@@ -9,7 +9,7 @@ units=$(SYSTEMUNIT) objpas strings \
       dos crt objects printer graph ggigraph \
       sysutils typinfo math \
       cpu mmx getopts heaptrc lineinfo \
-      errors sockets gpm ipc
+      errors sockets gpm ipc serial
 
 [require]
 rtl=0
