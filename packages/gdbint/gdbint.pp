@@ -24,6 +24,10 @@ interface
 {$define NotImplemented}
 
 
+{$ifdef GDB_V501}
+  {$define GDB_V5}
+{$endif GDB_V501}
+
 { V4.18 is default for now }
 { set when starting v5 support PM }
 {$ifndef GDB_V5}
@@ -52,7 +56,7 @@ interface
   {$LINKLIB c}
 {$endif go32v2}
 
-{$ifndef freebsd}
+{$ifndef bsd}
 {$ifdef linux}
   {$undef NotImplemented}
  {$ifndef GDB_V5}
@@ -73,7 +77,7 @@ interface
   {$LINKLIB c}
   {$LINKLIB gcc}
 {$endif linux}
-{$endif freebsd}
+{$endif bsd}
 
 {$ifdef freebsd}
   {$undef NotImplemented}
@@ -95,6 +99,28 @@ interface
   {$LINKLIB c}
   {$LINKLIB gcc}
 {$endif freebsd}
+
+{$ifdef netbsd}
+  {$undef NotImplemented}
+ {$ifndef GDB_V5}
+  {$LINKLIB ncurses}
+ {$endif not GDB_V5}
+  {$LINKLIB gdb}
+    {$ifdef GDB_V5}
+      {$LINKLIB bfd}
+      {$LINKLIB readline}
+      {$LINKLIB opcodes}
+      {$LINKLIB history}
+      {$LINKLIB iberty}
+      {$LINKLIB ncurses}
+      {$LINKLIB m}
+      {$LINKLIB iberty}
+      {$LINKLIB intl}
+      { does not seem to exist on netbsd LINKLIB dl}
+    {$endif GDB_V5}
+  {$LINKLIB c}
+  {$LINKLIB gcc}
+{$endif netbsd}
 
 {$ifdef win32}
   {$undef NotImplemented}
@@ -2442,7 +2468,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2001-07-31 15:42:11  pierre
+  Revision 1.8  2001-09-11 10:22:36  pierre
+   + NetBSD support
+
+  Revision 1.7  2001/07/31 15:42:11  pierre
    + first lines to support coming 5.1 release
 
   Revision 1.6  2001/04/20 18:43:00  marco
