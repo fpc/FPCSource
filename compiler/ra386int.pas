@@ -842,18 +842,11 @@ Begin
           tempstr:=actasmpattern;
           prevtok:=prevasmtoken;
           consume(AS_ID);
-          if actasmtoken=AS_DOT then
+          if SearchIConstant(tempstr,l) then
            begin
-             BuildRecordOffsetSize(tempstr,l,k);
              str(l, tempstr);
              expr:=expr + tempstr;
            end
-          else
-           if SearchIConstant(tempstr,l) then
-            begin
-              str(l, tempstr);
-              expr:=expr + tempstr;
-            end
           else
            begin
              hs:='';
@@ -900,14 +893,23 @@ Begin
                  Message(asmr_e_cant_have_multiple_relocatable_symbols);
                 if (expr='') or (expr[length(expr)]='+') then
                  begin
-                   delete(expr,length(expr),1);
-                   if not(actasmtoken in [AS_MINUS,AS_PLUS,AS_COMMA,AS_SEPARATOR,AS_END,AS_RBRACKET]) then
-                    Message(asmr_e_only_add_relocatable_symbol);
+                   { don't remove the + if there could be a record field }
+                   if actasmtoken<>AS_DOT then
+                    delete(expr,length(expr),1);
                  end
                 else
                  Message(asmr_e_only_add_relocatable_symbol);
               end;
            end;
+          if actasmtoken=AS_DOT then
+           begin
+             BuildRecordOffsetSize(tempstr,l,k);
+             str(l, tempstr);
+             expr:=expr + tempstr;
+           end;
+          { check if there are wrong operator used like / or mod etc. }
+          if (hs<>'') and not(actasmtoken in [AS_MINUS,AS_PLUS,AS_COMMA,AS_SEPARATOR,AS_END,AS_RBRACKET]) then
+           Message(asmr_e_only_add_relocatable_symbol);
         end;
       AS_END,
       AS_RBRACKET,
@@ -1187,9 +1189,16 @@ Begin
         begin
           if not GotPlus then
             Message(asmr_e_invalid_reference_syntax);
-          l:=BuildRefConstExpression;
-          GotPlus:=(prevasmtoken=AS_PLUS);
-          GotStar:=(prevasmtoken=AS_STAR);
+          BuildConstSymbolExpression(true,true,l,tempstr);
+          if tempstr<>'' then
+           begin
+             if GotStar then
+              Message(asmr_e_only_add_relocatable_symbol);
+             if not assigned(opr.ref.symbol) then
+              opr.ref.symbol:=newasmsymbol(tempstr)
+             else
+              Message(asmr_e_cant_have_multiple_relocatable_symbols);
+           end;
           if GotStar then
            opr.ref.scalefactor:=l
           else
@@ -1199,6 +1208,8 @@ Begin
              else
                Inc(opr.ref.offset,l);
            end;
+          GotPlus:=(prevasmtoken=AS_PLUS);
+          GotStar:=(prevasmtoken=AS_STAR);
         end;
 
       AS_RBRACKET :
@@ -1878,7 +1889,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.71  2000-05-23 20:36:28  peter
+  Revision 1.72  2000-06-14 16:52:09  peter
+    * fixed reference parsing
+
+  Revision 1.71  2000/05/23 20:36:28  peter
     + typecasting support for variables, but be carefull as word,byte can't
       be used because they are reserved assembler keywords
 
