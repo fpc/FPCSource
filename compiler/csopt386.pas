@@ -44,108 +44,30 @@ Function CheckSequence(p: Pai; Reg: TRegister; Var Found: Longint): Boolean;
  Found holds the number of instructions between StartMod and EndMod and false
  is returned}
 Var hp2, hp3, EndMod: Pai;
-    TmpResult: Boolean;
-    RegsNotYetChecked: Set Of TRegister;
     Counter: Byte;
-
-  Function NoChangedRegInRef(oldp, newp: Pai): Boolean;
-  Var TmpP: Pai;
-  {checks if the first operator of newp is a reference and in that case checks
-   whether that reference includes regs that have been changed since oldp. This
-   to avoid wrong optimizations like
-
-   movl 8(%epb), %eax                          movl 8(%epb), %eax
-   movl 12(%epb), %edx                         movl 12(%epb), %edx
-   movl (%eax,%edx,1), %edi                    movl (%eax,%edx,1), %edi
-   pushl %edi              being converted to  pushl %edi
-   movl 8(%epb), %eax                          movl 16(%ebp), %edx
-   movl 16(%epb), %edx                         pushl %edi
-   movl (%eax,%edx,1), %edi
-   pushl %edi
-
-  because first is checked whether %eax isn't changed (it isn't) and
-  consequently all instructions containg %eax are removed}
-  Begin
-    TmpResult := True;
-    If (Pai(NewP)^.typ = ait_instruction) Then
-      Case Pai386(NewP)^.op1t Of
-        Top_Reg:
-          If (Reg32(TRegister(Pai386(NewP)^.op1)) in RegsNotYetChecked) Then
-            Begin
-              RegsNotYetChecked := RegsNotYetChecked - [Reg32(TRegister(Pai386(NewP)^.op1))];
-              TmpP := NewP;
-              While GetLastInstruction(TmpP, TmpP) And
-                    PPaiProp(TmpP^.fileinfo.Line)^.CanBeRemoved Do;
-              TmpResult := Assigned(TmpP) And
-                             RegsSameContent(oldp, TmpP, Reg32(TRegister(Pai386(Newp)^.op1)))
-            End;
-        Top_Ref:
-          With TReference(Pai386(NewP)^.op1^) Do
-            Begin
-              If (Base in RegsNotYetChecked) And
-                 (Base <> R_NO) Then
-                Begin
-                  RegsNotYetChecked := RegsNotYetChecked - [Base];
-                  TmpP := NewP;
-                  While GetLastInstruction(TmpP, TmpP) And
-                        PPaiProp(TmpP^.fileinfo.Line)^.CanBeRemoved Do;
-                  TmpResult := Assigned(TmpP) And
-                               RegsSameContent(oldp, TmpP, Base)
-                End;
-              If TmpResult And
-                 (Index <> R_NO) And
-                 (Index in RegsNotYetChecked) Then
-                Begin
-                  RegsNotYetChecked := RegsNotYetChecked - [Index];
-                  TmpP := NewP;
-                  While GetLastInstruction(TmpP, TmpP) And
-                        PPaiProp(TmpP^.fileinfo.Line)^.CanBeRemoved Do;
-                  TmpResult := Assigned(TmpP) And
-                               RegsSameContent(oldp, TmpP, Index);
-                End;
-            End;
-      End;
-    NoChangedRegInRef := TmpResult;
-  End;
-
 Begin {CheckSequence}
   Reg := Reg32(Reg);
   Found := 0;
-  GetLastInstruction(p, hp3);
+  hp3 := p;
+  While GetLastInstruction(hp3, hp3) And
+        PPAiProp(hp3^.fileinfo.line)^.CanBeRemoved Do;
   hp2 := PPaiProp(hp3^.fileinfo.line)^.Regs[Reg].StartMod;
-  EndMod := PPaiProp(hp3^.fileinfo.line)^.Regs[Reg].StartMod;
+  EndMod := hp2;
   If (PPaiProp(hp3^.fileinfo.line)^.Regs[Reg].NrOfMods = 1)
     Then Counter := 1
     Else
       For Counter := 2 to PPaiProp(hp3^.fileinfo.line)^.Regs[Reg].NrOfMods Do
         GetNextInstruction(EndMod, EndMod);
   hp3 := p;
-  RegsNotYetChecked := [R_EAX..R_EDI];
   While (Found <> Counter) And
-         InstructionsEqual(hp2, hp3) And
-         NoChangedRegInRef(EndMod, hp3) Do
+         InstructionsEqual(hp2, hp3) Do
     Begin
-      If (hp2^.typ = ait_instruction) And
-         (Pai386(hp2)^._operator in [a_mov, a_movsx, a_movzx]) And
-         (Pai386(hp2)^.op2t = top_reg)
-        Then RegsNotYetChecked := RegsNotYetChecked -
-                                  [Reg32(TRegister(Pai386(hp2)^.op2))];
       GetNextInstruction(hp2, hp2);
       GetNextInstruction(hp3, hp3);
       Inc(Found)
     End;
   If (Found <> Counter)
     Then
-{hack to be able to optimize
-     mov (mem), reg
-     mov (reg), reg
-     mov (reg), reg [*]
-     test reg, reg       and the oposite (where the marked instructions are
-     jne l1              switched)
-     mov (mem), reg
-     mov (reg), reg
-     movzx (reg), reg [*]}
-
        Begin
          If ((Found+1) = Counter) And
            Assigned(hp2) And
@@ -159,9 +81,19 @@ Begin {CheckSequence}
            (Pai386(hp3)^.op1t = top_ref) And
            (Pai386(hp3)^.op2t = top_reg) And
            (Pai386(hp2)^._operator <> Pai386(hp3)^._operator) And
-           RefsEqual(TReference(Pai386(hp2)^.op1^),TReference(Pai386(hp3)^.op1^)) And
-           NoChangedRegInRef(EndMod, hp3)
+           RefsEqual(TReference(Pai386(hp2)^.op1^),TReference(Pai386(hp3)^.op1^))
           Then
+
+{hack to be able to optimize
+     mov (mem), reg
+     mov (reg), reg
+     mov (reg), reg [*]
+     test reg, reg       and the oposite (where the marked instructions are
+     jne l1              switched)
+     mov (mem), reg
+     mov (reg), reg
+     movzx (reg), reg [*]}
+
             If (Pai386(hp2)^._operator = A_MOV)
               Then
                 Begin
@@ -392,8 +324,8 @@ End.
 
 {
  $Log$
- Revision 1.6  1998-09-17 21:54:21  jonas
-   * big error (with little consequences) corrected in NoChangedRegInRef
+ Revision 1.7  1998-09-20 17:12:35  jonas
+ * small fix for uncertain optimizations & more cleaning up
 
  Revision 1.5  1998/09/16 17:59:59  jonas
    * optimizer now completely dependant on GetNext/GetLast instruction, works again with -dRegAlloc

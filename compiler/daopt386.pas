@@ -59,7 +59,6 @@ Procedure ShutDownDFA;
 Function FindLabel(L: PLabel; Var hp: Pai): Boolean;
 {Procedure FindLoHiLabels(AsmL: PAasmOutput; Var LoLab, HiLab, LabDif: Longint);}
 
-
 {******************************* Constants *******************************}
 
 Const
@@ -71,9 +70,7 @@ Const
 {$ifdef GDB}
   ,ait_stabs, ait_stabn, ait_stab_function_name
 {$endif GDB}
-{$ifdef regalloc}
   ,ait_regalloc, ait_regdealloc
-{$endif regalloc}
   ];
 
 {the maximum number of things (registers, memory, ...) a single instruction
@@ -89,6 +86,14 @@ Const
 {********************************* Types *********************************}
 
 Type
+
+  TRegArray = Array[R_EAX..R_EDI] of TRegister;
+  TRegSet = Set of TRegister;
+  TRegInfo = Record
+                RegsEncountered: TRegSet;
+                SubstRegs: TRegArray;
+              End;
+
 
 {What an instruction can change}
   TChange = (C_None,
@@ -190,7 +195,10 @@ Var
 
 Implementation
 
-Uses globals, systems, strings, verbose, hcodegen;
+Uses globals, systems, strings, verbose, hcodegen,
+   {$ifdef i386}
+     cgi386;
+   {$endif i386}
 
 Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
    {MOV} (Ch: (C_Op2, C_None, C_None)),
@@ -588,7 +596,7 @@ Procedure FindLoHiLabels(AsmL: PAasmOutput; Var LowLabel, HighLabel, LabelDif: L
 {Walks through the paasmlist to find the lowest and highest label number;
  Since 0.9.3: also removes unused labels}
 Var LabelFound: Boolean;
-    P{, hp1}: Pai;
+    P, hp1: Pai;
 Begin
   LabelFound := False;
   LowLabel := MaxLongint;
@@ -714,6 +722,35 @@ End;
 
 {********************* Compare parts of Pai objects *********************}
 
+Function RegsEquivalent(Reg1, Reg2: TRegister; Var RegInfo: TRegInfo): Boolean;
+Begin
+  With RegInfo Do
+    If Not(Reg1 in RegsEncountered) Then
+      Begin
+        RegsEncountered := RegsEncountered + [Reg1];
+        SubstRegs[Reg1] := Reg2;
+        RegsEquivalent := True
+      End
+    Else RegsEquivalent := Reg1 = SubstRegs[Reg2];
+End;
+
+Function RefsEquivalent(Const R1, R2: TReference; var RegInfo: TRegInfo): Boolean;
+Begin
+  If R1.IsIntValue
+     Then RefsEquivalent := R2.IsIntValue and (R1.Offset = R2.Offset)
+     Else If (R1.Offset = R2.Offset) And
+             RegsEquivalent(R1.Base, R2.Base, RegInfo) And
+             RegsEquivalent(R1.Index, R2.Index, RegInfo) And
+             (R1.Segment = R2.Segment) And (R1.ScaleFactor = R2.ScaleFactor)
+            Then
+              Begin
+                If Assigned(R1.Symbol)
+                  Then RefsEquivalent := Assigned(R2.Symbol) And (R1.Symbol^=R2.Symbol^)
+                  Else RefsEquivalent := Not(Assigned(R2.Symbol));
+              End
+            Else RefsEquivalent := False;
+End;
+
 Function RefsEqual(Const R1, R2: TReference): Boolean;
 Begin
   If R1.IsIntValue
@@ -736,6 +773,14 @@ Begin
   If (Reg >= R_EAX) and (Reg <= R_EBX)
     Then IsGP32Reg := True
     Else IsGP32reg := False
+End;
+
+Function SubstRegInRef(Reg: TRegister; Const Ref: TReference; var RegInfo: TRegInfo): Boolean;
+Begin
+  Reg := Reg32(Reg);
+  With RegInfo Do
+    SubstRegInRef := RegsEquivalent(Reg, SubstRegs[Ref.Base], RegInfo) And
+                     RegsEquivalent(Reg, SubstRegs[Ref.Base], RegInfo);
 End;
 
 Function RegInRef(Reg: TRegister; Const Ref: TReference): Boolean;
@@ -863,21 +908,77 @@ Begin
     Else s := 0
 End;
 
+Function RegInSequence(Reg: TRegister; Const Content: TContent): Boolean;
+{checks the whole sequence of Content (so StartMod and and the next NrOfMods
+ Pai objects) to see whether Reg is used somewhere, without it being loaded
+ with something else first}
+Var p: Pai;
+    Counter: Byte;
+    TmpResult: Boolean;
+    RegsChecked: TRegSet;
+Begin
+  RegsChecked := [];
+  p := Content.StartMod;
+  TmpResult := False;
+  Counter := 1;
+  While Not(TmpResult) And
+        (Counter <= Content.NrOfMods) Do
+    Begin
+      If (p^.typ = ait_instruction) and
+         (Pai386(p)^._operator in [A_MOV, A_MOVZX, A_MOVSX])
+        Then
+          If (Pai386(p)^.op1t = top_ref)
+            Then
+              With TReference(Pai386(p)^.op1^) Do
+                If (Base = ProcInfo.FramePointer) And
+                   (Index = R_NO)
+                  Then RegsChecked := RegsChecked + [Reg32(TRegister(Pai386(p)^.op2))]
+                  Else
+                    Begin
+                      If (Base = Reg) And
+                         Not(Base In RegsChecked)
+                        Then TmpResult := True;
+                      If Not(TmpResult) And
+                         (Index = Reg) And
+                         Not(Index In RegsChecked)
+                        Then TmpResult := True;
+                    End;
+      Inc(Counter);
+      GetNextInstruction(p,p)
+    End;
+  RegInSequence := TmpResult
+End;
+
 Procedure DestroyReg(p1: PPaiProp; Reg: TRegister);
-{Destroys the contents of the register Reg in the PPaiProp of P}
+{Destroys the contents of the register Reg in the PPaiProp p1, as well as the
+ contents of registers are loaded with a memory location based on Reg}
 Var TmpState: Longint;
+    Counter: TRegister;
 Begin
   Reg := Reg32(Reg);
   NrOfInstrSinceLastMod[Reg] := 0;
   If (Reg >= R_EAX) And (Reg <= R_EDI)
     Then
-      With p1^.Regs[Reg] Do
-        Begin
-          IncState(State);
-          TmpState := State;
-          FillChar(p1^.Regs[Reg], SizeOf(TContent), 0);
-          State := TmpState;
-        End;
+      Begin
+        With p1^.Regs[Reg] Do
+          Begin
+            IncState(State);
+            TmpState := State;
+            FillChar(p1^.Regs[Reg], SizeOf(TContent), 0);
+            State := TmpState;
+          End;
+        For Counter := R_EAX to R_EDI Do
+          With p1^.Regs[Counter] Do
+            If (Typ = Con_Ref) And
+               RegInSequence(Reg, p1^.Regs[Counter])
+              Then
+                Begin
+                  IncState(State);
+                  TmpState := State;
+                  FillChar(p1^.Regs[Counter], SizeOf(TContent), 0);
+                  State := TmpState;
+                End;
+       End;
 End;
 
 Function OpsEqual(typ: Longint; op1, op2: Pointer): Boolean;
@@ -903,13 +1004,6 @@ Function InstructionsEqual(p1, p2: Pai): Boolean;
 Begin {checks whether two Pai386 instructions are equal}
   InstructionsEqual :=
     Assigned(p1) And Assigned(p2) And
-{ $ifdef regalloc
-    ((((Pai(p1)^.typ = ait_regalloc) And
-       (Pai(p2)^.typ = ait_regalloc)) Or
-      ((Pai(p1)^.typ = ait_regdealloc) And
-       (Pai(p2)^.typ = ait_regdealloc))) And
-     (PaiRegAlloc(p1)^.reg = PaiRegAlloc(p2)^.reg)) Or
- endif regalloc}
     ((Pai(p1)^.typ = ait_instruction) And
      (Pai(p1)^.typ = ait_instruction) And
      (Pai386(p1)^._operator = Pai386(p2)^._operator) And
@@ -919,6 +1013,43 @@ Begin {checks whether two Pai386 instructions are equal}
      OpsEqual(Pai386(p1)^.op2t, Pai386(p1)^.op2, Pai386(p2)^.op2))
 End;
 
+Function RefInInstruction(Const Ref: TReference; p: Pai): Boolean;
+{checks whehter Ref is used in P}
+Var TmpResult: Boolean;
+Begin
+  TmpResult := False;
+  If (p^.typ = ait_instruction) Then
+    Begin
+      If (Pai386(p)^.op1t = Top_Ref)
+        Then TmpResult := RefsEqual(Ref, TReference(Pai386(p)^.op1^));
+      If Not(TmpResult) And
+        (Pai386(p)^.op2t = Top_Ref)
+        Then TmpResult := RefsEqual(Ref, TReference(Pai386(p)^.op2^));
+    End;
+  RefInInstruction := TmpResult;
+End;
+
+Function RefInSequence(Const Ref: TReference; Content: TContent): Boolean;
+{checks the whole sequence of Content (so StartMod and and the next NrOfMods
+ Pai objects) to see whether Ref is used somewhere}
+Var p: Pai;
+    Counter: Byte;
+    TmpResult: Boolean;
+Begin
+  p := Content.StartMod;
+  TmpResult := False;
+  Counter := 1;
+  While Not(TmpResult) And
+        (Counter <= Content.NrOfMods) Do
+    Begin
+      If (p^.typ = ait_instruction) And
+         RefInInstruction(Ref, p)
+        Then TmpResult := True;
+      Inc(Counter);
+      GetNextInstruction(p,p)
+    End;
+  RefInSequence := TmpResult
+End;
 
 Procedure DestroyRefs(p: pai; Const Ref: TReference; WhichReg: TRegister);
 {destroys all registers which possibly contain a reference to Ref, WhichReg
@@ -933,21 +1064,29 @@ Begin
     Then
 {write something to a parameter, a local or global variable, so
    * with uncertzain optimizations on:
-      - destroy the contents of registers <> WhichReg whose StartMod is of
-        the form "mov?? (Ref), %reg". WhichReg is destroyed if it's StartMod
-        is of that form and NrOfMods > 1 (so if it is a pointer based on Ref)
-    * with uncertzain optimizations off:
+      - destroy the contents of registers whose contents have somewhere a
+        "mov?? (Ref), %reg". WhichReg (this is the register whose contents
+        are being written to memory) is not destroyed if it's StartMod is
+        of that form and NrOfMods = 1 (so if it holds ref, but is not a
+        pointer based on Ref)
+    * with uncertain optimizations off:
        - also destroy registers that contain any pointer}
       For Counter := R_EAX to R_EDI Do
         With PPaiProp(p^.fileinfo.line)^.Regs[Counter] Do
           Begin
             If (typ = Con_Ref) And
+               (Not(cs_UncertainOpts in aktglobalswitches) And
+                (NrOfMods <> 1)
+               ) Or
+               (RefInSequence(Ref,PPaiProp(p^.fileinfo.line)^.Regs[Counter]) And
+                ((Counter <> WhichReg) Or
+                 ((NrOfMods = 1) And
  {StarMod is always of the type ait_instruction}
-               (Pai386(StartMod)^.op1t = top_ref) And
-               ((RefsEqual(TReference(Pai386(StartMod)^.op1^), Ref) And
-                ((Counter <> WhichReg) Or (NrOfMods <> 1))) Or
-                (Not(cs_UncertainOpts in aktglobalswitches) And
-                 (NrOfMods <> 1)))
+                  (Pai386(StartMod)^.op1t = top_ref) And
+                  RefsEqual(TReference(Pai386(StartMod)^.op1^), Ref)
+                 )
+                )
+               )
               Then DestroyReg(PPaiProp(p^.fileinfo.line), Counter)
           End
     Else
@@ -999,7 +1138,11 @@ Begin
   BuildLabelTable(AsmL, LTable, LoLab, LabDif);
 End;
 
-Function DoDFAPass2(First: Pai): Pai;
+Function DoDFAPass2(
+{$Ifdef StateDebug}
+AsmL: PAasmOutput;
+{$endif statedebug}
+First: Pai): Pai;
 {Analyzes the Data Flow of an assembler list. Starts creating the reg
  contents for the instructions starting with p. Returns the last pai which has
  been processed}
@@ -1037,7 +1180,7 @@ Begin
               Begin
                 GetLastInstruction(p, hp);
                 CurProp^.Regs := PPaiProp(hp^.fileinfo.line)^.Regs;
-                CurProp^.DirFlag := PPaiProp(hp^.fileinfo.line)^.DirFlag
+                CurProp^.DirFlag := PPaiProp(hp^.fileinfo.line)^.DirFlag;
               End
 {$ifdef JumpAnal}
           End
@@ -1237,9 +1380,7 @@ Begin
 {$ifdef GDB}
         ait_stabs, ait_stabn, ait_stab_function_name:;
 {$endif GDB}
-{$ifdef regalloc}
         ait_regalloc, ait_regdealloc:;
-{$endif regalloc}
         ait_instruction:
           Begin
             InstrProp := AsmInstr[Pai386(p)^._operator];
@@ -1263,17 +1404,17 @@ Begin
                     Top_Ref:
                       Begin {destination is always a register in this case}
                         TmpReg := Reg32(TRegister(Pai386(p)^.op2));
-                        If (RegInRef(TmpReg, TReference(Pai386(p)^.op1^)))
+{$ifdef StateDebug}
+                  hp := new(pai_asm_comment,init(strpnew(att_reg2str[TmpReg]+': '+tostr(CurProp^.Regs[TmpReg].State))));
+                  InsertLLItem(AsmL, p, p^.next, hp);
+{$endif SteDebug}
+                        If RegInRef(TmpReg, TReference(Pai386(p)^.op1^)) And
+                           (CurProp^.Regs[TmpReg].Typ = Con_Ref)
                           Then
                             Begin
                               With CurProp^.Regs[TmpReg] Do
                                 Begin
                                   IncState(State);
-                                  If (typ <> Con_Ref) Then
-                                    Begin
-                                      typ := Con_Ref;
-                                      StartMod := p;
-                                    End;
  {also store how many instructions are part of the sequence in the first
   instructions PPaiProp, so it can be easily accessed from within
   CheckSequence}
@@ -1455,7 +1596,11 @@ End;
 Function DFAPass2(AsmL: PAasmOutPut): Pai;
 Begin
   If InitDFAPass2(AsmL)
-    Then DFAPass2 := DoDFAPass2(Pai(AsmL^.First))
+    Then DFAPass2 := DoDFAPass2(
+{$ifdef statedebug}
+ asml,
+{$endif statedbug}
+    Pai(AsmL^.First))
     Else DFAPass2 := Nil;
 End;
 
@@ -1469,9 +1614,8 @@ End.
 
 {
  $Log$
- Revision 1.13  1998-09-17 09:42:36  peter
-   + pass_2 for cg386
-   * Message() -> CGMessage() for pass_1/pass_2
+ Revision 1.14  1998-09-20 17:12:36  jonas
+ * small fix for uncertain optimizations & more cleaning up
 
  Revision 1.12  1998/09/16 18:00:01  jonas
    * optimizer now completely dependant on GetNext/GetLast instruction, works again with -dRegAlloc
