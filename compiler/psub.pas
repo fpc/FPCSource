@@ -53,7 +53,7 @@ implementation
        nbas,
        { pass 2 }
 {$ifndef NOPASS2}
-       pass_2,
+       pass_1,pass_2,
 {$endif}
        { parser }
        scanner,
@@ -337,10 +337,15 @@ implementation
          oldaktmaxfpuregisters:=aktmaxfpuregisters;
          aktmaxfpuregisters:=localmaxfpuregisters;
 {$ifndef NOPASS2}
-         { only generate the code if no type errors are found }
-         if assigned(code) and
-            (status.errorcount=0) then
-           generatecode(code);
+         if assigned(code) then
+          begin
+            { only generate the code if no type errors are found, else
+              finish at least the type checking pass }
+            if (status.errorcount=0) then
+              generatecode(code)
+            else
+              do_resulttypepass(code);
+          end;
          { set switches to status at end of procedure }
          aktlocalswitches:=exitswitches;
 
@@ -809,7 +814,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  2001-04-13 17:59:03  peter
+  Revision 1.29  2001-04-13 23:49:24  peter
+    * when errors are found don't generate code, but still run the
+      resulttype pass
+
+  Revision 1.28  2001/04/13 17:59:03  peter
     * don't generate code when there is already an error
 
   Revision 1.27  2001/04/13 01:22:13  peter
