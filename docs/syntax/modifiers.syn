@@ -18,7 +18,8 @@
 \lit*{pascal}\\
 \lit*{cdecl}\\
 \lit*{stdcall}\\
-\lit*{popstack}
+\lit*{popstack}\\
+\lit*{saveregisters}
 \)
 \end{mysyntdiag}
 \end{diagram}
