@@ -69,6 +69,8 @@ Type
 {$ifdef m68k}
   StrLenInt = Longint;
 
+  {$define SUPPORT_ANSISTRING}
+
   ValSInt = Longint;
   ValUInt = Cardinal;
   ValReal = Real;
@@ -517,7 +519,10 @@ const
 
 {
   $Log$
-  Revision 1.28  2001-07-15 11:57:16  peter
+  Revision 1.29  2001-07-29 13:49:15  peter
+    * m68k updates merged
+
+  Revision 1.28  2001/07/15 11:57:16  peter
     * merged m68k updates
 
   Revision 1.27  2001/07/10 18:04:37  peter

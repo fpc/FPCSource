@@ -330,7 +330,7 @@ end;
   FPC_HELP_CONSTRUCTOR : generic allways means aa little less efficient (PM) }
 { I don't think we really need to save any registers here      }
 { since this is called at the start of the constructor (CEC)   }
-procedure int_help_constructor(var _self : pointer; vmt : pointer; vmt_pos : cardinal); [public,alias:'FPC_HELP_CONSTRUCTOR'];
+function int_help_constructor(var _self : pointer; var vmt : pointer; vmt_pos : cardinal) : pointer; [public,alias:'FPC_HELP_CONSTRUCTOR'];
    type
      ppointer = ^pointer;
      pvmt = ^tvmt;
@@ -340,11 +340,23 @@ procedure int_help_constructor(var _self : pointer; vmt : pointer; vmt_pos : car
         end;
    var
       objectsize : longint;
+      vmtcopy : pointer;
 begin
-   objectsize:=pvmt(vmt)^.size;
-   getmem(_self,objectsize);
-   fillchar(_self,objectsize,#0);
-   ppointer(_self+vmt_pos)^:=vmt;
+   if vmt=nil then
+     begin
+       int_help_constructor:=_self;
+       exit;
+     end;
+   vmtcopy:=vmt;
+   objectsize:=pvmt(vmtcopy)^.size;
+   if _self=nil then
+     begin
+       getmem(_self,objectsize);
+       longint(vmt):=-1; { needed for fail }
+     end;
+   fillchar(_self^,objectsize,#0);
+   ppointer(_self+vmt_pos)^:=vmtcopy;
+   int_help_constructor:=_self;
 end;
 
 {$endif ndef FPC_SYSTEM_HAS_FPC_HELP_CONSTRUCTOR}
@@ -376,6 +388,38 @@ end;
 
 {$endif ndef FPC_SYSTEM_HAS_FPC_HELP_DESTRUCTOR}
 
+{$ifndef FPC_SYSTEM_HAS_FPC_HELP_FAIL}
+{$error No pascal version of Int_help_fail}
+procedure int_help_fail(var _self : pointer; var vmt : pointer; vmt_pos : cardinal); [public,alias:'FPC_HELP_FAIL'];
+   type
+     ppointer = ^pointer;
+     pvmt = ^tvmt;
+     tvmt = packed record
+        size,msize : longint;
+        parent : pointer;
+        end;
+   var
+      objectsize : longint;
+begin
+   if vmt=nil then
+     exit;
+   if longint(vmt)=-1 then
+     begin
+       if (_self=nil) or (ppointer(_self+vmt_pos)^=nil) then
+         HandleError(210)
+       else
+         begin
+           ppointer(_self+vmt_pos)^:=nil;
+           freemem(_self);
+           _self:=nil;
+           vmt:=nil;
+         end;
+     end
+   else
+     ppointer(_self+vmt_pos)^:=nil;
+end;
+
+{$endif ndef FPC_SYSTEM_HAS_FPC_HELP_FAIL}
 
 {$ifndef FPC_SYSTEM_HAS_FPC_NEW_CLASS}
 {$error No pascal version of Int_new_class}
@@ -498,6 +542,8 @@ end;
 procedure int_strcopy(len:longint;sstr,dstr:pointer);[public,alias:'FPC_SHORTSTR_COPY'];
 var
   slen : byte;
+type
+  pstring = ^string;
 begin
   if dstr=nil then
     exit;
@@ -523,6 +569,8 @@ end;
 procedure int_strconcat(s1,s2:pointer);[public,alias:'FPC_SHORTSTR_CONCAT'];
 var
   s1l, s2l : byte;
+type
+  pstring = ^string;
 begin
   if (s1=nil) or (s2=nil) then
     exit;
@@ -538,20 +586,22 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE}
 
-function int_strcmp(dstr,sstr:pointer) : longint;[public,alias:'FPC_SHORTSTR_COMPARE'];
+function int_strcmp(rightstr,leftstr:pointer) : longint;[public,alias:'FPC_SHORTSTR_COMPARE'];
 var
    s1,s2,max,i : byte;
    d : longint;
+type
+  pstring = ^string;
 begin
-  s1:=length(pstring(dstr)^);
-  s2:=length(pstring(sstr)^);
+  s1:=length(pstring(rightstr)^);
+  s2:=length(pstring(leftstr)^);
   if s1<s2 then
     max:=s1
   else
     max:=s2;
   for i:=1 to max do
     begin
-     d:=byte(pstring(dstr)^[i])-byte(pstring(sstr)^[i]);
+     d:=byte(pstring(leftstr)^[i])-byte(pstring(rightstr)^[i]);
      if d>0 then
        exit(1)
      else if d<0 then
@@ -624,8 +674,10 @@ begin
         len := byte(src[0]);
         inc(src);
       end;
+{$ifdef SUPPORT_ANSISTRING}
     { ansistring}
     1: len := length(ansistring(pointer(src)));
+{$endif SUPPORT_ANSISTRING}
     { longstring }
     2:;
     { widestring }
@@ -825,10 +877,16 @@ end;
 {$endif ndef FPC_SYSTEM_HAS_FPC_BOUNDCHECK}
 {$endif NOBOUNDCHECK}
 
+{****************************************************************************
+                                 IoCheck
+****************************************************************************}
 
 {
   $Log$
-  Revision 1.14  2001-07-08 21:00:18  peter
+  Revision 1.15  2001-07-29 13:49:15  peter
+    * m68k updates merged
+
+  Revision 1.14  2001/07/08 21:00:18  peter
     * various widestring updates, it works now mostly without charset
       mapping supported
 

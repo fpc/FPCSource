@@ -61,7 +61,7 @@ type
 
 var
   roundCorr, corrVal: valReal;
-  intPart, spos, endpos, fracCount: longint;
+  spos, endpos, fracCount: longint;
   correct, currprec: longint;
   temp : string;
   power : string[10];
@@ -88,9 +88,12 @@ var
   procedure getIntPart(d: valreal);
   var
     intPartStack: TIntPartStack;
-    stackPtr, endStackPtr, digits: longint;
+    intPart, stackPtr, endStackPtr, digits: longint;
     overflow: boolean;
   begin
+{$ifdef DEBUG_NASM}
+    writeln(stderr,'getintpart(d) entry');
+{$endif DEBUG_NASM}
     { position in the stack (gets increased before first write) }
     stackPtr := 0;
     { number of digits processed }
@@ -121,6 +124,9 @@ var
  { the power of 10 with which the resulting string has to be "multiplied" }
  { if the decimal point is placed after the first significant digit       }
     correct := digits-1;
+{$ifdef DEBUG_NASM}
+    writeln(stderr,'endStackPtr = ',endStackPtr);
+{$endif DEBUG_NASM}
     repeat
       if (currprec > 0) then
         begin
@@ -128,6 +134,9 @@ var
           dec(currPrec);
           inc(spos);
           temp[spos] := chr(intPart+ord('0'));
+{$ifdef DEBUG_NASM}
+    writeln(stderr,'stackptr =',stackptr,' intpart = ',intpart);
+{$endif DEBUG_NASM}
           if temp[spos] > '9' then
             begin
               temp[spos] := chr(ord(temp[spos])-10);
@@ -135,6 +144,9 @@ var
             end;
         end;
       corrVal := int(intPartStack[stackPtr]) * 10.0;
+{$ifdef DEBUG_NASM}
+    writeln(stderr,'trunc(corrval) = ',trunc(corrval));
+{$endif DEBUG_NASM}
       dec(stackPtr);
       if stackPtr = 0 then
         stackPtr := maxDigits+1;
@@ -145,6 +157,9 @@ var
     if overflow  and
        (trunc(intPartStack[stackPtr]-corrVal) > 5.0 - roundCorr) then
       roundStr(temp,spos);
+{$ifdef DEBUG_NASM}
+    writeln(stderr,'temp at getintpart exit is = ',temp);
+{$endif DEBUG_NASM}
   end;
 
 var  maxlen : longint;   { Maximal length of string for float }
@@ -255,8 +270,12 @@ begin
   {$error sign/NaN/Inf not yet supported for big endian CPU's in str_real}
 {$else SUPPORT_EXTENDED}
 {$ifdef SUPPORT_DOUBLE}
+  sign := ((TSplitDouble(d).cards[0] shr 20) and $800) <> 0;
+  expMaximal := ((TSplitDouble(d).cards[0] shr 20) and $7ff) = 2047;
+  mantZero := (TSplitDouble(d).cards[0] and $fffff = 0) and
+              (TSplitDouble(d).cards[1] = 0);
   { double, format (MSB): 1 Sign bit, 11 bit exponent, 52 bit mantissa }
-  {$error sign/NaN/Inf not yet supported for big endian CPU's in str_real}
+  {error sign/NaN/Inf not yet supported for big endian CPU's in str_real}
 {$else SUPPORT_DOUBLE}
 {$ifdef SUPPORT_SINGLE}
   { single, format (MSB): 1 Sign bit, 8 bit exponent, 23 bit mantissa }
@@ -419,7 +438,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2001-06-13 18:32:05  peter
+  Revision 1.5  2001-07-29 13:49:15  peter
+    * m68k updates merged
+
+  Revision 1.4  2001/06/13 18:32:05  peter
     * big endian updates (merged)
 
   Revision 1.3  2001/04/23 18:25:45  peter

@@ -34,6 +34,7 @@ type
 
 
 const
+  STACK_MARGIN = 16384;    { Stack size margin for stack checking }
 { Random / Randomize constants }
   OldRandSeed : Cardinal = 0;
   InitialSeed : Boolean = TRUE;
@@ -658,7 +659,10 @@ end;
 
 {
   $Log$
-  Revision 1.17  2001-07-09 21:15:41  peter
+  Revision 1.18  2001-07-29 13:49:15  peter
+    * m68k updates merged
+
+  Revision 1.17  2001/07/09 21:15:41  peter
     * Length made internal
     * Add array support for Length
 
