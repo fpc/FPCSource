@@ -155,10 +155,6 @@ var
   FileName : string;
   b : boolean;
   LineNr : longint;
-  Info : record
-          F : pstring;
-          L : longint;
-         end;
 begin
   if not assigned(DeskTop^.First) or
      (TypeOf(DeskTop^.First^)<>TypeOf(TSourceWindow)) then
@@ -172,18 +168,17 @@ begin
     begin
       FileName:=W^.Editor^.FileName;
       LineNr:=W^.Editor^.CurPos.Y+1;
-      Info.F:=@FileName;
-      Info.L:=LineNr;
-      {InformationBox(#3'Trying to set a breakpoint at'#13#3+
-         '%s : %d',@Info);}
       b:=BreakpointCollection^.ToggleFileLine(FileName,LineNr);
-      W^.Editor^.SetLineBreakState(LineNr-1,b);
+      W^.Editor^.SetLineBreakState(LineNr,b);
     end;
 end;
 
 {
   $Log$
-  Revision 1.10  1999-02-08 17:43:45  pierre
+  Revision 1.11  1999-02-10 09:51:59  pierre
+   small cleanup
+
+  Revision 1.10  1999/02/08 17:43:45  pierre
     * RestDebugger or multiple running of debugged program now works
     + added DoContToCursor(F4)
     * Breakpoints are now inserted correctly (was mainlyy a problem
