@@ -258,6 +258,8 @@ type
       InfoST: PColorStaticText;
       LogLB : PMessageListBox;
       constructor Init;
+      constructor Load(var S: TStream);
+      procedure   Store(var S: TStream);
       procedure   AddMessage(AClass: longint; Msg, Module: string; Line, Column: longint);
       procedure   ClearMessages;
       procedure   SizeLimits(var Min, Max: TPoint); virtual;
@@ -481,6 +483,12 @@ const
      VmtLink: Ofs(TypeOf(TFPASCIIChart)^);
      Load:    @TFPASCIIChart.Load;
      Store:   @TFPASCIIChart.Store
+  );
+  RProgramInfoWindow: TStreamRec = (
+     ObjType: 1510;
+     VmtLink: Ofs(TypeOf(TProgramInfoWindow)^);
+     Load:    @TProgramInfoWindow.Load;
+     Store:   @TProgramInfoWindow.Store
   );
 const
   NoNameCount    : integer = 0;
@@ -1313,9 +1321,9 @@ begin
   if not IDEApp.IsClosing then
     Message(Application,evBroadcast,cmSourceWndClosing,@Self);
   inherited Done;
+  PopStatus;
   if not IDEApp.IsClosing then
     Message(Application,evBroadcast,cmUpdate,@Self);
-  PopStatus;
 end;
 
 function TGDBSourceEditor.Valid(Command: Word): Boolean;
@@ -1915,6 +1923,20 @@ begin
   LogLB^.Transparent:=true;
   Insert(LogLB);
   Update;
+end;
+
+constructor TProgramInfoWindow.Load(var S : TStream);
+begin
+  inherited Load(S);
+  GetSubViewPtr(S,InfoST);
+  GetSubViewPtr(S,LogLB);
+end;
+
+procedure TProgramInfoWindow.Store(var S : TStream);
+begin
+  inherited Store(S);
+  PutSubViewPtr(S,InfoST);
+  PutSubViewPtr(S,LogLB);
 end;
 
 procedure TProgramInfoWindow.AddMessage(AClass: longint; Msg, Module: string; Line, Column: longint);
@@ -3049,13 +3071,17 @@ begin
   RegisterType(RGDBSourceEditor);
   RegisterType(RGDBWindow);
   RegisterType(RFPASCIIChart);
+  RegisterType(RProgramInfoWindow);
 end;
 
 
 END.
 {
   $Log$
-  Revision 1.53  2000-01-07 14:02:52  pierre
+  Revision 1.54  2000-01-10 14:59:50  pierre
+   * TProgramInfo was not registered
+
+  Revision 1.53  2000/01/07 14:02:52  pierre
     + date string added
 
   Revision 1.52  2000/01/03 11:38:34  michael
