@@ -210,7 +210,7 @@ interface
       private
          { next fields are filled in pass1, so pass2 is faster }
          inssize   : shortint;
-         insoffset,
+         insoffset : longint;
          LastInsOffset : longint; { need to be public to be reset }
          insentry  : PInsEntry;
          function  InsEnd:longint;
@@ -963,13 +963,18 @@ implementation
                 end;
               top_symbol :
                 begin
-                  if LastInsOffset=-1 then
-                   l:=0
-                  else
-                   l:=InsOffset-LastInsOffset;
-                  inc(l,symofs);
+                  l:=symofs;
                   if assigned(sym) then
                    inc(l,sym.address);
+                  { when it is a forward jump we need to compensate the
+                    offset of the instruction since the previous time,
+                    because the symbol address is then still using the
+                    'old-style' addressing.
+                    For backwards jumps this is not required because the
+                    address of the symbol is already adjusted to the
+                    new offset }
+                  if (l>InsOffset) and (LastInsOffset<>-1) then
+                    inc(l,InsOffset-LastInsOffset);
                   { instruction size will then always become 2 (PFV) }
                   relsize:=(InsOffset+2)-l;
                   if (not assigned(sym) or
@@ -1198,29 +1203,11 @@ implementation
         Pass1:=0;
         { Save the old offset and set the new offset }
         InsOffset:=Offset;
-        { Things which may only be done once, not when a second pass is done to
-          optimize }
-        if Insentry=nil then
-         begin
-           { Check if error last time then InsSize=-1 }
-           if InsSize=-1 then
-            exit;
-           { set the file postion }
-           aktfilepos:=fileinfo;
-         end
-        else
-         begin
-{$ifdef PASS2FLAG}
-           { we are here in a second pass, check if the instruction can be optimized }
-           if (InsEntry^.flags and IF_PASS2)=0 then
-            begin
-              Pass1:=InsSize;
-              exit;
-            end;
-           { update the .ot fields, some top_const can be updated }
-           create_ot;
-{$endif PASS2FLAG}
-         end;
+        { Error? }
+        if (Insentry=nil) and (InsSize=-1) then
+          exit;
+        { set the file postion }
+        aktfilepos:=fileinfo;
         { Get InsEntry }
         if FindInsEntry then
          begin
@@ -1971,7 +1958,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.46  2004-01-26 16:12:28  daniel
+  Revision 1.47  2004-02-03 21:21:23  peter
+    * real fix for the short jmp out of range problem. Only forward jumps
+      needs an offset correction. For backward jumps both the address of
+      the symbol and the instruction are already updated so no correction
+      is required.
+
+  Revision 1.46  2004/01/26 16:12:28  daniel
     * reginfo now also only allocated during register allocation
     * third round of gdb cleanups: kick out most of concatstabto
 
