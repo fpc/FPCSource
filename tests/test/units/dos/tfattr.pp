@@ -300,6 +300,9 @@ var
 
 
 Begin
+{$IFDEF MACOS}
+  pathTranslation:= true;
+{$ENDIF}
   WriteLn('File should never be executed in root path!');
   OldExit := ExitProc;
   ExitProc := @MyExit;
@@ -318,7 +321,10 @@ Begin
 end.
 {
   $Log$
-  Revision 1.4  2005-02-14 17:13:37  peter
+  Revision 1.5  2005-04-03 22:08:22  olle
+    * adapted to MacOS
+
+  Revision 1.4  2005/02/14 17:13:37  peter
     * truncate log
 
 }
