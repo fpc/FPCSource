@@ -34,5 +34,7 @@ begin
   For I:=Low(C) to High(C) do
     C[i]:=I;
   Writeln ('Average :',Average(c));  
+  Write ('Type of return value is always same as type of argument:');
+  Writeln(high(high(word)));
 end.
  
