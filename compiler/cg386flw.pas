@@ -561,6 +561,7 @@ do_jmp:
              end
            else
              begin
+                emitcall('FPC_POPADDRSTACK');
                 emitcall('FPC_RERAISE');
              end;
        end;
@@ -606,13 +607,12 @@ do_jmp:
            exit;
 
          emitlab(exceptlabel);
+         emitcall('FPC_POPADDRSTACK');
          exprasmlist^.concat(new(pai386,
            op_reg(A_POP,S_L,R_EAX)));
          exprasmlist^.concat(new(pai386,
            op_reg_reg(A_TEST,S_L,R_EAX,R_EAX)));
-         emitjmp(C_NE,doexceptlabel);
-         emitcall('FPC_POPADDRSTACK');
-         emitjmp(C_None,endexceptlabel);
+         emitjmp(C_E,endexceptlabel);
          emitlab(doexceptlabel);
 
          if assigned(p^.right) then
@@ -690,7 +690,7 @@ do_jmp:
 
       var
          finallylabel,noreraiselabel : pasmlabel;
-         oldaktexitlabel : pasmlabel;
+         oldaktexitlabel,exitfinallylabel : pasmlabel;
          oldaktexit2label : pasmlabel;
 
       begin
@@ -700,8 +700,9 @@ do_jmp:
          getlabel(noreraiselabel);
          oldaktexitlabel:=aktexitlabel;
          oldaktexit2label:=aktexit2label;
-         aktexitlabel:=finallylabel;
-         aktexit2label:=finallylabel;
+         getlabel(exitfinallylabel);
+         aktexitlabel:=exitfinallylabel;
+         aktexit2label:=exitfinallylabel;
 
          push_int(1); { Type of stack-frame must be pushed}
          emitcall('FPC_PUSHEXCEPTADDR');
@@ -720,7 +721,7 @@ do_jmp:
            exit;
 
          emitlab(finallylabel);
-
+         emitcall('FPC_POPADDRSTACK');
          { finally code }
          secondpass(p^.right);
          if codegenerror then
@@ -730,9 +731,20 @@ do_jmp:
          exprasmlist^.concat(new(pai386,
            op_reg_reg(A_TEST,S_L,R_EAX,R_EAX)));
          emitjmp(C_E,noreraiselabel);
+         exprasmlist^.concat(new(pai386,
+           op_reg(A_DEC,S_L,R_EAX)));
+         emitjmp(C_NE,oldaktexitlabel);
          emitcall('FPC_RERAISE');
+         { reraise never returns ! }
+         emitlab(exitfinallylabel);
+
+         { do some magic for exit in the try block }
+         exprasmlist^.concat(new(pai386,
+           op_reg(A_POP,S_L,R_EAX)));
+         exprasmlist^.concat(new(pai386,
+           op_const(A_PUSH,S_L,2)));
+         emitjmp(C_NONE,finallylabel);
          emitlab(noreraiselabel);
-         emitcall('FPC_POPADDRSTACK');
          aktexitlabel:=oldaktexitlabel;
          aktexit2label:=oldaktexit2label;
       end;
@@ -760,7 +772,11 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.42  1999-07-26 09:41:59  florian
+  Revision 1.43  1999-07-26 12:13:45  florian
+    * exit in try..finally blocks needed a second fix
+    * a raise in a try..finally lead into a endless loop, fixed
+
+  Revision 1.42  1999/07/26 09:41:59  florian
     * bugs 494-496 fixed
 
   Revision 1.41  1999/07/05 20:13:09  peter

@@ -2955,6 +2955,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
         begin
            getlabel(noreraiselabel);
            exprasmlist^.concat(new(pai386,
+             op_sym(A_CALL,S_NO,newasmsymbol('FPC_POPADDRSTACK'))));
+           exprasmlist^.concat(new(pai386,
              op_reg(A_POP,S_L,R_EAX)));
            exprasmlist^.concat(new(pai386,
              op_reg_reg(A_TEST,S_L,R_EAX,R_EAX)));
@@ -2974,8 +2976,6 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
            exprasmlist^.concat(new(pai386,
              op_sym(A_CALL,S_NO,newasmsymbol('FPC_RERAISE'))));
            exprasmlist^.concat(new(pai_label,init(noreraiselabel)));
-           exprasmlist^.concat(new(pai386,
-             op_sym(A_CALL,S_NO,newasmsymbol('FPC_POPADDRSTACK'))));
         end;
 
       { call __EXIT for main program }
@@ -3116,7 +3116,11 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.17  1999-07-22 09:37:38  florian
+  Revision 1.18  1999-07-26 12:13:46  florian
+    * exit in try..finally blocks needed a second fix
+    * a raise in a try..finally lead into a endless loop, fixed
+
+  Revision 1.17  1999/07/22 09:37:38  florian
     + resourcestring implemented
     + start of longstring support
 
