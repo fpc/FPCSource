@@ -774,7 +774,7 @@ begin
       Assign(Debuggeefile,DebuggeeTTY);
       system.Reset(Debuggeefile);
       ResetOK:=IOResult=0;
-      If ResetOK and IsATTY(textrec(Debuggeefile).handle) then
+      If ResetOK and {$ifdef ver1_0}IsATTY(textrec(Debuggeefile).handle){$else}(IsATTY(textrec(Debuggeefile).handle)<>-1){$endif} then
         begin
           Command('tty '+DebuggeeTTY);
           TTYUsed:=true;
@@ -3603,8 +3603,8 @@ end.
 
 {
   $Log$
-  Revision 1.50  2004-07-09 20:23:31  daniel
-    * Fix compilation
+  Revision 1.51  2004-07-09 23:17:25  peter
+    * revert isatty patch
 
   Revision 1.49  2004/02/20 21:46:06  peter
     * fix compile with 1.0.x

@@ -774,7 +774,7 @@ begin
   TTYFd:=-1;
   IsXterm:=getenv('TERM')='xterm';
   ThisTTY:=TTYName(stdinputhandle);
-  if Not IsXterm and IsATTY(stdinputhandle) then
+  if Not IsXterm and {$ifdef ver1_0}IsATTY(stdinputhandle){$else}(IsATTY(stdinputhandle)<>-1){$endif} then
     begin
       Console:=TTyNetwork;  {Default: Network or other vtxxx tty}
       if (Copy(ThisTTY, 1, 8) = '/dev/tty') and (ThisTTY[9]<>'p') Then
@@ -1449,8 +1449,8 @@ end;
 end.
 {
   $Log$
-  Revision 1.33  2004-07-09 20:23:31  daniel
-    * Fix compilation
+  Revision 1.34  2004-07-09 23:17:26  peter
+    * revert isatty patch
 
   Revision 1.32  2004/02/20 21:46:06  peter
     * fix compile with 1.0.x
