@@ -956,7 +956,7 @@ parser_h_type_redef=03189_H_Type "$1" redefinition
 #
 # Type Checking
 #
-# 04043 is the last used one
+# 04049 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -1152,6 +1152,8 @@ type_h_in_range_check=04047_H_The left operand of the IN operator should be byte
 % enumerations, the size of an element of an enumeration can be controlled with
 % the \var{\{\$PACKENUM\}} or \var{\{\$Zn\}} switches.
 type_w_smaller_possible_range_check=04048_W_Type size mismatch, possible loss of data / range check error
+% There is an assignment to a smaller type than the source type. This means that
+% this may cause a range-check error, or may lead to possible loss of data.
 type_h_smaller_possible_range_check=04049_H_Type size mismatch, possible loss of data / range check error
 % There is an assignment to a smaller type than the source type. This means that
 % this may cause a range-check error, or may lead to possible loss of data.
@@ -1160,7 +1162,7 @@ type_h_smaller_possible_range_check=04049_H_Type size mismatch, possible loss of
 #
 # Symtable
 #
-# 05045 is the last used one
+# 05055 is the last used one
 #
 % \section{Symbol handling}
 % This section lists all the messages that concern the handling of symbols.
@@ -1610,25 +1612,47 @@ asmr_e_dup_local_sym=07060_E_Duplicate local symbol $1
 asmr_e_unknown_local_sym=07061_E_Undefined local symbol $1
 asmr_e_unknown_label_identifier=07062_E_Unknown label identifier $1
 asmr_e_invalid_register=07063_E_Invalid register name
-% There is 
-%
+% There is an unknown register name used as operand. 
 asmr_e_invalid_fpu_register=07064_E_Invalid floating point register name
+% There is an unknown register name used as operand. 
 asmr_e_nor_not_supported=07065_E_NOR not supported
 asmr_w_modulo_not_supported=07066_W_Modulo not supported
 asmr_e_invalid_float_const=07067_E_Invalid floating point constant $1
+% The floating point constant declared in an assembler block is 
+% invalid.
 asmr_e_invalid_float_expr=07068_E_Invalid floating point expression
+% The floating point expression declared in an assembler block is 
+% invalid.
 asmr_e_wrong_sym_type=07069_E_Wrong symbol type
 asmr_e_cannot_index_relative_var=07070_E_Cannot index a local var or parameter with a register
+% Trying to index using a base register a symbol which is already relative
+% to a register. This is not possible, and will probably lead to crashes.
 asmr_e_invalid_seg_override=07071_E_Invalid segment override expression
 asmr_w_id_supposed_external=07072_W_Identifier $1 supposed external
+% There is a reference to an undefined symbol. This will not result
+% in an error, since the symbol might be external, but may cause
+% problems at link time if the symbol is not defined anywhere.
 asmr_e_string_not_allowed_as_const=07073_E_Strings not allowed as constants
+% Character strings are not allowed as constants.
 asmr_e_no_var_type_specified=07074_No type of variable specified
+% The syntax expects a type idenfitifer after the dot, but 
+% none was found.
 asmr_w_assembler_code_not_returned_to_text=07075_E_assembler code not returned to text section
+% There was a directive in the assembler block to change sections,
+% but there is a missing return to the text section at the end
+% of the assembler block. This might cause errors during link time.
 asmr_e_not_directive_or_local_symbol=07076_E_Not a directive or local symbol $1
+% This symbol is unknown.
 asmr_w_using_defined_as_local=07077_E_Using a defined name as a local label
 asmr_e_dollar_without_identifier=07078_E_Dollar token is used without an identifier
+% A constant expression has an identifier which does not start with
+% the $ symbol.
 asmr_w_32bit_const_for_address=07079_W_32bit constant created for address
+% A constant was used as an address. This is probably an error, 
+% since using absolute addresses will probably not work.
 asmr_n_align_is_target_specific=07080_N_.align is target specific, use .balign or .p2align
+% Using the .align directive is platform specific, and its meaning will vary
+% from one platform to another.
 asmr_e_cannot_access_field_directly_for_parameters=07081_E_Can't access fields directly for parameters
 % You should load the parameter first into a register and then access the
 % fields using that register.
@@ -1638,31 +1662,47 @@ asmr_e_cannot_access_object_field_directly=07082_E_Can't access fields of object
 % in the esi register on i386.
 asmr_e_unable_to_determine_reference_size=07083_E_No size specified and unable to determine the size of the operands
 % You should specify explicitly a size for the reference, because
-% compiler is unable to determine what size (byte,word,dword,etc.) it
+% the compiler is unable to determine what size (byte,word,dword,etc.) it
 % should use for the reference.
 asmr_e_cannot_use_RESULT_here=07084_E_Cannot use RESULT in this function
+% Some functions which return complex types cannot use the \var{result}
+% keyword.
 asmr_h_RESULT_is_reg=07085_H_RESULT is register $1
 asmr_w_adding_explicit_args_fXX=07086_W_"$1" without operand translated into "$1 %st,%st(1)"
 asmr_w_adding_explicit_first_arg_fXX=07087_W_"$1 %st(n)" translated into "$1 %st,%st(n)"
 asmr_w_adding_explicit_second_arg_fXX=07088_W_"$1 %st(n)" translated into "$1 %st(n),%st"
 asmr_e_invalid_char_smaller=07089_E_Char < not allowed here
+% The shift operator requires the << characters. Only one
+% of those characters was found.
 asmr_e_invalid_char_greater=07090_E_Char > not allowed here
+% The shift operator requires the >> characters. Only one
+% of those characters was found.
 asmr_w_xdef_not_supported=07091_W_XDEF not supported
 asmr_e_invalid_global_def=07092_E_Invalid XDEF syntax
 asmr_w_align_not_supported=07093_W_ALIGN not supported
 asmr_e_no_inc_and_dec_together=07094_E_Inc and Dec cannot be together
+% Trying to use an increment and a decrement within the same
+% opcode on the 680x0. This is impossible.
 asmr_e_invalid_reg_list_in_movem=07095_E_Invalid reglist for movem
+% Trying to use the \var{movem} opcode with invalid registers
+% to save or restore.
 asmr_e_invalid_reg_list_for_opcode=07096_E_Reglist invalid for opcode
-asmr_e_68020_mode_required=07097_E_68020 mode required
+asmr_e_higher_cpu_mode_required=07097_E_Higher cpu mode required ($1)
+% Trying to use an instruction which is not supported in the current
+% cpu mode. Use a higher cpu generation to be able to use this
+% opcode in your assembler block
 #
 # Assembler/binary writers
 #
 # 08018 is the last used one
 #
 asmw_f_too_many_asm_files=08000_F_Too many assembler files
+% With smartlinking enabled, there are too many assembler
+% files generated. Disable smartlinking.
 asmw_f_assembler_output_not_supported=08001_F_Selected assembler output not supported
 asmw_f_comp_not_supported=08002_F_Comp not supported
 asmw_f_direct_not_supported=08003_F_Direct not support for binary writers
+% Direct assembler mode is not supported for binary writers.
 asmw_e_alloc_data_only_in_bss=08004_E_Allocating of data is only allowed in bss section
 asmw_f_no_binary_writer_selected=08005_F_No binary writer selected
 asmw_e_opcode_not_in_table=08006_E_Asm: Opcode $1 not in table
@@ -1693,23 +1733,31 @@ asmw_e_first_defined_label=08018_E_Asm: First defined here
 exec_w_source_os_redefined=09000_W_Source operating system redefined
 exec_i_assembling_pipe=09001_I_Assembling (pipe) $1
 exec_d_cant_create_asmfile=09002_E_Can't create assember file: $1
-% The mentioned file can't be create. Check if you've
-% permission to create this file
+% The mentioned file can't be created. Check if you have got
+% access permissions to create this file
 exec_e_cant_create_objectfile=09003_E_Can't create object file: $1
-% The mentioned file can't be create. Check if you've
-% permission to create this file
+% The mentioned file can't be created. Check if you've
+% got access permissions to create this file
 exec_e_cant_create_archivefile=09004_E_Can't create archive file: $1
-% The mentioned file can't be create. Check if you've
-% permission to create this file
+% The mentioned file can't be created. Check if you've
+% access permissions to create this file
 exec_e_assembler_not_found=09005_E_Assembler $1 not found, switching to external assembling
 exec_t_using_assembler=09006_T_Using assembler: $1
 exec_e_error_while_assembling=09007_E_Error while assembling exitcode $1
+% There was an error while assembling the file using an external assembler.
+% Consult the documentation of the assembler tool to find out more information
+% on this error.
 exec_e_cant_call_assembler=09008_E_Can't call the assembler, error $1 switching to external assembling
 exec_i_assembling=09009_I_Assembling $1
-exec_i_assembling_smart=09010_I_Assembling smartlink $1
+exec_i_assembling_smart=09010_I_Assembling with smartlinking $1
 exec_w_objfile_not_found=09011_W_Object $1 not found, Linking may fail !
+% One of the object file is missing, and linking will probably fail. 
+% Check your paths.
 exec_w_libfile_not_found=09012_W_Library $1 not found, Linking may fail !
+% One of the library file is missing, and linking will probably fail. 
+% Check your paths.
 exec_e_error_while_linking=09013_E_Error while linking
+% Generic error while linking.
 exec_e_cant_call_linker=09014_E_Can't call the linker, switching to external linking
 exec_i_linking=09015_I_Linking $1
 exec_e_util_not_found=09016_E_Util $1 not found, switching to external linking
@@ -1719,7 +1767,7 @@ exec_e_dll_not_supported=09019_E_Creation of Dynamic/Shared Libraries not suppor
 exec_i_closing_script=09020_I_Closing script $1
 exec_e_res_not_found=09021_E_resource compiler not found, switching to external mode
 exec_i_compilingresource=09022_I_Compiling resource $1
-exec_t_unit_not_static_linkable_switch_to_smart=09023_T_unit $1 can't be static linked, switching to smart linking
+exec_t_unit_not_static_linkable_switch_to_smart=09023_T_unit $1 can't be statically linked, switching to smart linking
 exec_t_unit_not_smart_linkable_switch_to_static=09024_T_unit $1 can't be smart linked, switching to static linking
 exec_t_unit_not_shared_linkable_switch_to_static=09025_T_unit $1 can't be shared linked, switching to static linking
 exec_e_unit_not_smart_or_static_linkable=09026_E_unit $1 can't be smart or static linked
@@ -1770,7 +1818,7 @@ unit_u_ppu_invalid_header=10007_U_PPU Invalid Header (no PPU at the begin)
 unit_u_ppu_invalid_version=10008_U_PPU Invalid Version $1
 % This unit file was compiled with a different version of the compiler, and
 % cannot be read.
-unit_u_ppu_invalid_processor=10009_U_PPU is compiled for an other processor
+unit_u_ppu_invalid_processor=10009_U_PPU is compiled for another processor
 % This unit file was compiled for a different processor type, and
 % cannot be read
 unit_u_ppu_invalid_target=10010_U_PPU is compiled for an other target
@@ -1787,17 +1835,18 @@ unit_f_ppu_read_error=10014_F_Error reading PPU-File
 % This means that the unit file was corrupted, and contains invalid
 % information. Recompilation will be necessary.
 unit_f_ppu_read_unexpected_end=10015_F_unexpected end of PPU-File
-% Unexpected end of file.
+% Unexpected end of file. This may mean that the PPU file is
+% corrupted. 
 unit_f_ppu_invalid_entry=10016_F_Invalid PPU-File entry: $1
 % The unit the compiler is trying to read is corrupted, or generated with a
 % newer version of the compiler.
 unit_f_ppu_dbx_count_problem=10017_F_PPU Dbx count problem
 % There is an inconsistency in the debugging information of the unit.
 unit_e_illegal_unit_name=10018_E_Illegal unit name: $1
-% The name of the unit doesn't match the file name.
+% The name of the unit does not match the file name.
 unit_f_too_much_units=10019_F_Too much units
 % \fpc has a limit of 1024 units in a program. You can change this behavior
-% by changing the \var{maxunits} constant in the \file{files.pas} file of the
+% by changing the \var{maxunits} constant in the \file{fmodule.pas} file of the
 % compiler, and recompiling the compiler.
 unit_f_circular_unit_reference=10020_F_Circular unit reference between $1 and $2
 % Two units are using each other in the interface part. This is only allowed
@@ -1808,7 +1857,7 @@ unit_f_cant_compile_unit=10021_F_Can't compile unit $1, no sources available
 % available.
 unit_f_cant_find_ppu=10022_F_Can't find unit $1
 % You tried to use a unit of which the PPU file isn't found by the
-% compiler. Check your config files for the unit pathes
+% compiler. Check your configuration file for the unit paths
 unit_w_unit_name_error=10023_W_Unit $1 was not found but $2 exists
 unit_f_unit_name_error=10024_F_Unit $1 searched but $2 found
 % Dos truncation of 8 letters for unit PPU files
@@ -2002,6 +2051,23 @@ Report bugs,suggestions etc to:
 
 #
 # Help pages (option -? and -h)
+#
+# The first character on the line indicates who will display this 
+# line, the current possibilities are :
+#    * = every target
+#    3 = 80x86 targets
+#    6 = 680x0 targets
+#    e = in extended debug mode only
+#    P = PowerPC targets
+#    S = Sparc targets
+#    V = Virtual machine targets
+# The second character also indicates who will display this line,
+# (if the above character was TRUE) the current possibilities are :
+#    * = everyone
+#    g = with GDB info supported by the compiler
+#    O = OS/2
+#    L = UNIX systems
+#  The third character represents the indentation level.
 #
 option_help_pages=11025_[
 **0*_put + after a boolean switch option to enable it, - to disable it
