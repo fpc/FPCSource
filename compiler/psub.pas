@@ -35,6 +35,7 @@ interface
       tcgprocinfo=class(tprocinfo)
         { code for the subroutine as tree }
         code : tnode;
+        { list to store the procinfo's of the nested procedures }
         nestedprocs : tlinkedlist;
         constructor create(aparent:tprocinfo);override;
         destructor  destroy;override;
@@ -541,8 +542,8 @@ implementation
 
      destructor tcgprocinfo.destroy;
        begin
-         inherited destroy;
          nestedprocs.free;
+         inherited destroy;
        end;
 
 
@@ -1066,7 +1067,10 @@ implementation
              if isnestedproc then
                tcgprocinfo(current_procinfo.parent).nestedprocs.insert(current_procinfo)
              else
-               do_generate_code(tcgprocinfo(current_procinfo));
+               begin
+                 if status.errorcount=0 then
+                   do_generate_code(tcgprocinfo(current_procinfo));
+               end;
 
              { reset _FAIL as _SELF normal }
              if (pd.proctypeoption=potype_constructor) then
@@ -1212,7 +1216,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.116  2003-05-23 18:49:55  jonas
+  Revision 1.117  2003-05-25 08:59:47  peter
+    * do not generate code when there was an error
+
+  Revision 1.116  2003/05/23 18:49:55  jonas
     * generate code for parent procedure before that of nested procedures as
       well (I only need pass_1 to be done for the ppc, but pass_1 and pass_2
       are grouped and it doesn't hurt that pass_2 is done as well)
