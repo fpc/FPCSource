@@ -246,12 +246,19 @@ Function Sys_Stat(Filename:pchar;var Buffer: stat):longint;
 {
    We need this for getcwd
 }
-var
-  regs : SysCallregs;
+
+var retval: LONGINT;
+
 begin
-  regs.reg2:=longint(filename);
-  regs.reg3:=longint(@buffer);
-  Sys_Stat:=SysCall(SysCall_nr_stat,regs);
+  asm
+    pushl buffer
+    pushl FileName
+    mov   $188,%eax
+    int   $0x80
+    addl  $8,%eax
+    mov   %eax,retval
+  end;   
+Sys_Stat:=checkreturnvalue(retval,retval);
 end;
 
 
@@ -380,7 +387,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-02-02 15:41:56  marco
+  Revision 1.2  2000-02-02 16:35:10  marco
+   * Ported more functions. Half done now.
+
+  Revision 1.1  2000/02/02 15:41:56  marco
    * Initial BSD version. Still needs a lot of work.
 
 
