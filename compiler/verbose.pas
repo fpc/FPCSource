@@ -39,24 +39,24 @@ uses
 
 Const
 { <$10000 will show file and line }
-  V_Fatal       = $0;
-  V_Error       = $1;
-  V_Normal      = $2; { doesn't show a text like Error: }
-  V_Warning     = $4;
-  V_Note        = $8;
-  V_Hint        = $10;
-  V_Macro       = $100;
-  V_Procedure   = $200;
-  V_Conditional = $400;
-  V_Info        = $10000;
-  V_Status      = $20000;
-  V_Used        = $40000;
-  V_Tried       = $80000;
-  V_Debug       = $100000;
-
-  V_ShowFile    = $ffff;
-  V_All         = $ffffffff;
-  V_Default     = V_Fatal + V_Error + V_Normal;
+  V_Fatal        = $0;
+  V_Error        = $1;
+  V_Normal       = $2; { doesn't show a text like Error: }
+  V_Warning      = $4;
+  V_Note         = $8;
+  V_Hint         = $10;
+  V_Macro        = $100;
+  V_Procedure    = $200;
+  V_Conditional  = $400;
+  V_Info         = $10000;
+  V_Status       = $20000;
+  V_Used         = $40000;
+  V_Tried        = $80000;
+  V_Debug        = $100000;
+  V_Declarations = $200000;
+  V_ShowFile     = $ffff;
+  V_All          = $ffffffff;
+  V_Default      = V_Fatal + V_Error + V_Normal;
 
 var
   msg : pmessage;
@@ -206,6 +206,10 @@ begin
                    status.verbosity:=status.verbosity and (not V_Debug)
                  else
                    status.verbosity:=status.verbosity or V_Debug;
+           'B' : if inverse then
+                   status.verbosity:=status.verbosity and (not V_Declarations)
+                 else
+                   status.verbosity:=status.verbosity or V_Declarations;
            end;
        end;
      end;
@@ -340,6 +344,7 @@ begin
           'P' : v:=v or V_Procedure;
           'C' : v:=v or V_Conditional;
           'D' : v:=v or V_Debug;
+          'B' : v:=v or V_Declarations;
           'S' : dostop:=true;
           '_' : ;
          end;
@@ -398,7 +403,12 @@ end.
 
 {
   $Log$
-  Revision 1.19  1998-09-01 12:49:52  peter
+  Revision 1.20  1998-09-05 22:11:06  florian
+    + switch -vb
+    * while/repeat loops accept now also word/longbool conditions
+    * makebooltojump did an invalid ungetregister32, fixed
+
+  Revision 1.19  1998/09/01 12:49:52  peter
     * better setverbosity to support W+/W- etc.
 
   Revision 1.18  1998/08/29 13:52:40  peter

@@ -3088,8 +3088,7 @@ unit pass_1;
                    pdc:=pdc^.next;
                 end;
               if assigned(pt) or assigned(pdc) then
-               Message(parser_e_illegal_parameter_list);
-
+                Message(parser_e_illegal_parameter_list);
               { insert type conversions }
               if assigned(p^.left) then
                 begin
@@ -3187,8 +3186,9 @@ unit pass_1;
                    if not assigned(procs) and
                       ((parsing_para_level=0) or assigned(p^.left)) then
                     begin
-                      Message(parser_e_wrong_parameter_size);
-                      exit;
+                       Message(parser_e_wrong_parameter_size);
+                       actprocsym^.write_parameter_lists;
+                       exit;
                     end;
 
                    { now we can compare parameter after parameter }
@@ -3281,12 +3281,13 @@ unit pass_1;
 
                    if not assigned(procs) then
                     begin
-                      { there is an error, must be wrong type, becuase
+                      { there is an error, must be wrong type, because
                         wrong size is already checked (PFV) }
                       if (parsing_para_level=0) or (p^.left<>nil) then
                        begin
-                         Message(parser_e_wrong_parameter_type);
-                         exit;
+                          Message(parser_e_wrong_parameter_type);
+                          actprocsym^.write_parameter_lists;
+                          exit;
                        end
                       else
                        begin
@@ -3410,7 +3411,10 @@ unit pass_1;
 
 {$ifndef CHAINPROCSYMS}
                    if assigned(procs^.next) then
-                     Message(cg_e_cant_choose_overload_function);
+                     begin
+                        Message(cg_e_cant_choose_overload_function);
+                        actprocsym^.write_parameter_lists;
+                     end;
 {$else CHAINPROCSYMS}
                    if assigned(procs^.next) then
                      { if the last retained is the only one }
@@ -3435,8 +3439,11 @@ unit pass_1;
                              procs:=hp2;
                           end
                         else
-                          Message(cg_e_cant_choose_overload_function);
-                          error(too_much_matches);
+                           begin
+                              Message(cg_e_cant_choose_overload_function);
+                              actprocsym^.write_parameter_lists;
+                              error(too_much_matches);
+                           end;
                      end;
 {$endif CHAINPROCSYMS}
      {$ifdef UseBrowser}
@@ -3664,7 +3671,7 @@ unit pass_1;
            Message(sym_w_function_result_not_set);
          if count_ref then
            pprocinfo(p^.funcretprocinfo)^.funcret_is_valid:=true;
-          end;
+      end;
 
 
     { intern inline suborutines }
@@ -4656,7 +4663,7 @@ unit pass_1;
          if codegenerror then
            exit;
          if not((p^.left^.resulttype^.deftype=orddef) and
-            (porddef(p^.left^.resulttype)^.typ=bool8bit)) then
+            (porddef(p^.left^.resulttype)^.typ in [bool8bit,bool16bit,bool32bit])) then
             begin
                Message(type_e_mismatch);
                exit;
@@ -5410,7 +5417,12 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.71  1998-09-04 11:55:18  florian
+  Revision 1.72  1998-09-05 22:11:01  florian
+    + switch -vb
+    * while/repeat loops accept now also word/longbool conditions
+    * makebooltojump did an invalid ungetregister32, fixed
+
+  Revision 1.71  1998/09/04 11:55:18  florian
     * problem with -Or fixed
 
   Revision 1.70  1998/09/04 08:42:00  peter

@@ -341,6 +341,20 @@
         demangledname:=name+definition^.demangled_paras;
       end;
 
+    procedure tprocsym.write_parameter_lists;
+
+      var
+         p : pprocdef;
+
+      begin
+         p:=definition;
+         while assigned(p) do
+           begin
+              { force the error to be printed }
+              Verbose.Message1(sym_b_param_list,name+p^.demangled_paras);
+              p:=p^.nextoverloaded;
+           end;
+      end;
 
     procedure tprocsym.check_forward;
 
@@ -1606,7 +1620,12 @@
 
 {
   $Log$
-  Revision 1.38  1998-09-01 12:53:26  peter
+  Revision 1.39  1998-09-05 22:11:02  florian
+    + switch -vb
+    * while/repeat loops accept now also word/longbool conditions
+    * makebooltojump did an invalid ungetregister32, fixed
+
+  Revision 1.38  1998/09/01 12:53:26  peter
     + aktpackenum
 
   Revision 1.37  1998/09/01 07:54:25  pierre

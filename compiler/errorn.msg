@@ -266,6 +266,7 @@ sym_w_function_result_not_set=W_Resultaat van functie ogeschijnlijk niet present
 sym_e_illegal_field=E_Onbekend record lid
 sym_n_uninitialized_local_variable=N_Locale variabele $1 schijnt niet geinitialiseert te zijn
 sym_e_id_no_member=E_Geen lid met de naam $1
+sym_o_param_list=O_Declaratie gevonden: $1
 
 #
 # Codegenerator
