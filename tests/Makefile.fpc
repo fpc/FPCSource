@@ -1,6 +1,8 @@
 #
 # Makefile.fpc for Free Pascal Tests directory
 #
+# $Id$
+#
 
 [install]
 fpcpackage=y
@@ -296,3 +298,10 @@ ifdef LASTDATESUFFIX
         -diff -u faillist.$(LASTDATESUFFIX) faillist.$(DATESUFFIX) > difflist.$(DATESUFFIX)
 endif
         @echo $(DATESUFFIX) > lastdate.txt
+
+#
+# $Log$
+# Revision 1.55  2004-04-25 07:18:49  florian
+#   * mmap for x86-64 fixed
+#
+#

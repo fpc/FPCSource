@@ -369,13 +369,13 @@ end;
 
 
 type
-  tmmapargs=packed record
-    address : longint;
-    size    : longint;
-    prot    : longint;
-    flags   : longint;
-    fd      : longint;
-    offset  : longint;
+  tmmapargs = packed record
+    address : TSysParam;
+    size    : TSysParam;
+    prot    : TSysParam;
+    flags   : TSysParam;
+    fd      : TSysParam;
+    offset  : TSysParam;
   end;
 
 
@@ -390,10 +390,6 @@ type
 {$ifdef cpuarm}
 {$define OLDMMAP}
 {$endif cpuarm}
-
-{$ifdef cpux86_64}
-{$define OLDMMAP}
-{$endif cpux86_64}
 
 Function Fpmmap(adr:pointer;len:size_t;prot:cint;flags:cint;fd:cint;off:off_t):pointer;  [public, alias : 'FPC_SYSC_MMAP'];
 // OFF_T procedure, and returns a pointer, NOT cint.
@@ -513,7 +509,10 @@ end;
 
 {
  $Log$
- Revision 1.21  2004-04-20 20:27:01  florian
+ Revision 1.22  2004-04-25 07:18:49  florian
+   * mmap for x86-64 fixed
+
+ Revision 1.21  2004/04/20 20:27:01  florian
    * x86_64 syscall numbers fixed
 
  Revision 1.20  2004/04/12 16:33:42  peter
