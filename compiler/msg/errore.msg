@@ -1688,6 +1688,14 @@ asmr_w_unable_to_determine_reference_size_using_dword=07098_W_No size specified 
 % the compiler is unable to determine what size (byte,word,dword,etc.) it
 % should use for the reference. This warning is only used in Delphi mode where
 % it falls back to use DWORD as default.
+asmr_e_illegal_shifterop_syntax=07099_E_Syntax error while trying to parse a shifter operand
+% ARM only; ARM assembler supports a so called shifter operand. The used syntax isn't
+% a valid shifter operand. Example for an operation with shifter operand:
+% \begin{verbatim}
+% asm
+%   orr     r2,r2,r2,lsl #8
+% end;
+% \end{verbatim}
 #
 # Assembler/binary writers
 #
