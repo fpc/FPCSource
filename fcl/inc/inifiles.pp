@@ -4,7 +4,7 @@
     Copyright (c) 1998 by Michael A. Hess
 
     adapted from code by Stephan Schneider
-    
+
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
@@ -30,6 +30,7 @@ type
      FFileBuffer : TStringList;
      function GetName(const line : string) : string;
      function GetValue(const line, name : string) : string;
+     function IsComment(const line : string) : boolean;
      function IsSection(const line : string) : boolean;
      function GetSectionIndex(const section : string) : integer;
    protected
@@ -45,6 +46,7 @@ type
      procedure ReadSection(const section : string; strings : TStrings);
      procedure ReadSections(strings : TStrings);
      procedure ReadSectionValues(const section : string; strings : TStrings);
+     procedure ReadSectionRaw(const section : string; strings : TStrings);
      function ReadString(const section, ident, defaultValue : string) : string;
      procedure WriteBool(const section, ident : string; value : boolean);
      procedure WriteInteger(const section, ident : string; value : longint);
@@ -57,8 +59,10 @@ implementation
 uses SysUtils;
 
 const
-   brackets : array[0..1] of Char = ('[', ']');
+   brackets  : array[0..1] of Char = ('[', ']');
    separator : Char = '=';
+   comment   : Char = ';';
+
 
 { TIniFile }
 
@@ -78,26 +82,32 @@ end;
 
 function TIniFile.GetName(const line : string) : string;
 var
-   index : integer;
+   index,index2 : integer;
 begin
    Result := '';
    index := Pos(separator, line);
    if index <> 0 then
-      result := Trim(Copy(line, 1, index - 1));
+    begin
+      index2:=Pos(comment, line);
+      if (index2=0) or (index2>index) then
+       result := Trim(Copy(line, 1, index - 1));
+    end;
 end;
 
 function TIniFile.GetValue(const line, name : string) : string;
 var
-   index1 : integer;
-   index2 : integer;
+   index1,index2,index3 : integer;
 begin
    result := '';
    if (line <> '') and (name <> '') then
    begin
       index1 := Pos(name, line);
       index2 := Pos(separator, line);
+      index3 := Pos(comment, line);
+      if index3=0 then
+       index3:=MaxInt;
       if (index1 <> 0) and (index2 <> 0) and (index2 > index1) then
-         result := Trim(Copy(line, index2 + 1, Maxint));
+         result := Trim(Copy(line, index2 + 1, index3));
    end;
 end;
 
@@ -111,6 +121,18 @@ begin
       str := Trim(line);
       if (str[1] = brackets[0]) and (str[Length(str)] = brackets[1]) then
          result := True;
+   end;
+end;
+
+function TIniFile.IsComment(const line : string) : boolean;
+var
+   str : string;
+begin
+   result := False;
+   if line <> '' then
+   begin
+      str := Trim(line);
+      result := (str[1]=comment);
    end;
 end;
 
@@ -276,6 +298,44 @@ begin
    end;
 end;
 
+procedure TIniFile.ReadSectionRaw(const section : string; strings : TStrings);
+var
+   eols,index : integer;
+begin
+   strings.BeginUpdate;
+   try
+      eols:=0;
+      strings.Clear;
+      if FFileBuffer.Count > 0 then
+      begin
+         index := GetSectionIndex(section);
+         if index <> -1 then
+         begin
+            Inc(index);
+            while (index < FFileBuffer.Count) and not IsSection(FFileBuffer[index]) do
+             begin
+               { Skip empty lines at the end of the section }
+               if FFileBuffer[index]='' then
+                inc(eols)
+               else
+                begin
+                  while eols>0 do
+                   begin
+                     Strings.Add('');
+                     dec(eols);
+                   end;
+                  if not IsComment(FFileBuffer[index]) then
+                   strings.Add(FFileBuffer[index]);
+                end;
+               Inc(index);
+             end;
+         end;
+      end;
+   finally
+      strings.EndUpdate;
+   end;
+end;
+
 { Writes a String-Value for Ident in one Section.
   Note: If Section and/or Ident don't exist, they will be placed in the Ini-File }
 
@@ -368,7 +428,11 @@ end.
 
 {
   $Log$
-  Revision 1.2  1999-04-29 16:21:54  michael
+  Revision 1.3  1999-11-02 23:58:37  peter
+    * comment support
+    * readsectionraw method
+
+  Revision 1.2  1999/04/29 16:21:54  michael
   + Default mode Hugestrings
 
   Revision 1.1  1999/04/08 15:44:10  michael
