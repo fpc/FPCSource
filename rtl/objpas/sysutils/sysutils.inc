@@ -72,7 +72,7 @@
 
 {$ifdef HASINTF}
   { Interfaces support }
-  {$i intf.inc}
+  {$i sysuintf.inc}
 {$endif HASINTF}
 
     constructor Exception.Create(const msg : string);
