@@ -148,7 +148,7 @@ type
   public
     destructor Destroy; override;
     function Add(Item: Pointer): Integer;
-    procedure Clear;
+    procedure Clear; dynamic;
     procedure Delete(Index: Integer);
     class procedure Error(const Msg: string; Data: Integer); virtual;
     procedure Exchange(Index1, Index2: Integer);
@@ -1234,7 +1234,10 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:59  michael
+  Revision 1.3  2000-08-15 04:10:38  peter
+    * delphi compatibility fix
+
+  Revision 1.2  2000/07/13 11:32:59  michael
   + removed logs
- 
+
 }
