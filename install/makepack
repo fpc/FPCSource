@@ -10,8 +10,6 @@ set -e
 # if it is not equal to yes, the documentation is assumed present in a file docs.tar.gz
 MAKEDOCS=no
 
-# Al
-
 unset FPCDIR
 
 # Goto the toplevel if necessary
@@ -109,6 +107,14 @@ if [ "$CROSS" = "" ]; then
   fi
 fi
 
+# Files to be in the release
+RELFILES="install.sh"
+
+# install.sh
+echo "Copying install.sh"
+sed s+%version%+$VERSION+ install/install.sh > install.sh
+chmod 755 install.sh
+
 # binary.*.tar
 BINARYTAR=${CROSSPREFIX}binary.$FULLTARGET.tar
 echo "Creating $BINARYTAR"
@@ -122,22 +128,23 @@ if [ $? != 0 ]; then
   echo "Failed to create $BINARYTAR"
   exit 1
 fi
+RELFILES="$RELFILES $BINARYTAR"
 
-# sources.tar
-echo "Creating sources.tar"
-tar cf sources.tar *.source.tar.gz
-if [ $? != 0 ]; then
-  echo "Failed to create sources.tar"
-  exit 1
+if [ "$CROSS" = "" ]; then
+  # sources.tar
+  echo "Creating sources.tar"
+  tar cf sources.tar *.source.tar.gz
+  if [ $? != 0 ]; then
+    echo "Failed to create sources.tar"
+    exit 1
+  fi
+  RELFILES="$RELFILES sources.tar"
+
+  # demo, docs
+  RELFILES="$RELFILES demo.tar.gz docs.tar.gz"
 fi
 
-# install.sh
-echo "Copying install.sh"
-sed s+%version%+$VERSION+ install/install.sh > install.sh
-chmod 755 install.sh
-
 # Files to be added to the .tar
-RELFILES="$BINARYTAR sources.tar demo.tar.gz docs.tar.gz install.sh"
 TARNAME=${CROSSPREFIX}fpc-$VERSION.$FULLSOURCE.tar
 echo "Creating $TARNAME"
 tar cf $TARNAME $RELFILES
