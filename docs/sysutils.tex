@@ -19,11 +19,12 @@
 %   Boston, MA 02111-1307, USA. 
 %
 \chapter{The SYSUTILS unit.}
+\FPCexampledir{sysutex}
 
-This chapter describes the \file{sysutils} unit. The \var{sysutils} unit 
-was largely written by Gertjan Schouten, and completed by michael Van Canneyt. 
-It aims to be compatible to the Delphi sysutils unit, but in contrast with 
-the latter, it is designed to work on multiple platforms. It is implemented
+This chapter describes the \file{sysutils} unit. The \file{sysutils} unit 
+was largely written by Gertjan Schouten, and completed by Michael Van Canneyt. 
+It aims to be compatible to the Delphi \file{sysutils} unit, but in contrast 
+with  the latter, it is designed to work on multiple platforms. It is implemented
 on all supported platforms.
 
 This chapter starts out with a definition of all types and constants 
@@ -228,6 +229,7 @@ Functions for handling strings.
 \funcref{CompareText}{Compare two strings case insensitive}
 \procrefl{DisposeStr}{DisposeStrSys}{Remove string from heap}
 \funcref{IsValidIdent}{Is string a valid pascal identifier}
+\funcref{LastDelimiter}{Last occurance of character in a string}
 \funcref{LeftStr}{Get first N characters of a string}
 \funcref{LoadStr}{Load string from resources}
 \funcref{LowerCase}{Convert string to all-lowercase}
@@ -417,8 +419,8 @@ None.
 \seef{Time},\seef{Now}, \seetype{TDateTime}.
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex1.pp}}
-\html{\input{sysutex/ex1.tex}}
+\FPCexample{ex1}
+
 
 \begin{function}{DateTimeToFileDate}
 \Declaration
@@ -434,8 +436,8 @@ None.
 \seep{DateTimeToSystemTime}, \seef{DateTimeToTimeStamp}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex2.pp}}
-\html{\input{sysutex/ex2.tex}}
+\FPCexample{ex2}
+
  
 \begin{function}{DateTimeToStr}
 \Declaration
@@ -451,8 +453,8 @@ None.
 \seef{FormatDateTime}, \seetype{TDateTime}.
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex3.pp}}
-\html{\input{sysutex/ex3.tex}}
+\FPCexample{ex3}
+
  
 \begin{procedure}{DateTimeToString}
 \Declaration
@@ -470,8 +472,8 @@ raised.
 \seef{FormatDateTime}, \sees{formatchars}.
 \end{procedure}
 
-\latex{\lstinputlisting{sysutex/ex4.pp}}
-\html{\input{sysutex/ex4.tex}}
+\FPCexample{ex4}
+
  
 \begin{procedure}{DateTimeToSystemTime}
 \Declaration
@@ -486,8 +488,8 @@ None.
 \seef{DateTimeToTimeStamp}
 \end{procedure}
 
-\latex{\lstinputlisting{sysutex/ex5.pp}}
-\html{\input{sysutex/ex5.tex}}
+\FPCexample{ex5}
+
 
 \begin{function}{DateTimeToTimeStamp}
 \Declaration
@@ -502,8 +504,8 @@ None.
 \seep{DateTimeToSystemTime}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex6.pp}}
-\html{\input{sysutex/ex6.tex}}
+\FPCexample{ex6}
+
 
 \begin{function}{DateToStr}
 \Declaration
@@ -520,8 +522,8 @@ None.
 \end{function}
 
 
-\latex{\lstinputlisting{sysutex/ex7.pp}}
-\html{\input{sysutex/ex7.tex}}
+\FPCexample{ex7}
+
  
 \begin{function}{DayOfWeek}
 \Declaration
@@ -539,8 +541,8 @@ None.
 \end{function}
 
 
-\latex{\lstinputlisting{sysutex/ex8.pp}}
-\html{\input{sysutex/ex8.tex}}
+\FPCexample{ex8}
+
 
 \begin{procedure}{DecodeDate}
 \Declaration
@@ -554,8 +556,8 @@ None.
 \seef{EncodeDate}, \seep{DecodeTime}.
 \end{procedure}
 
-\latex{\lstinputlisting{sysutex/ex9.pp}}
-\html{\input{sysutex/ex9.tex}}
+\FPCexample{ex9}
+
 
  
 \begin{procedure}{DecodeTime}
@@ -571,8 +573,8 @@ None.
 \seef{EncodeTime}, \seep{DecodeDate}.
 \end{procedure}
 
-\latex{\lstinputlisting{sysutex/ex10.pp}}
-\html{\input{sysutex/ex10.tex}}
+\FPCexample{ex10}
+
  
 \begin{function}{EncodeDate}
 \Declaration
@@ -594,8 +596,8 @@ In case one of the parameters is out of it's valid range, 0 is returned.
 \seef{EncodeTime}, \seep{DecodeDate}.
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex11.pp}}
-\html{\input{sysutex/ex11.tex}}
+\FPCexample{ex11}
+
 
 \begin{function}{EncodeTime}
 \Declaration
@@ -617,8 +619,8 @@ In case one of the parameters is outside of it's valid range, 0 is returned.
 \seef{EncodeDate}, \seep{DecodeTime}.
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex12.pp}}
-\html{\input{sysutex/ex12.tex}}
+\FPCexample{ex12}
+
 
  
 \begin{function}{FileDateToDateTime}
@@ -635,8 +637,8 @@ None.
 \seef{DateTimeToFileDate}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex13.pp}}
-\html{\input{sysutex/ex13.tex}}
+\FPCexample{ex13}
+
  
 \begin{function}{FormatDateTime}
 \Declaration
@@ -653,8 +655,8 @@ On error (such as an invalid character in the formatting string), and
 \seef{StrToDateTime}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex14.pp}}
-\html{\input{sysutex/ex14.tex}}
+\FPCexample{ex14}
+
 
  
 \begin{function}{IncMonth}
@@ -672,8 +674,8 @@ None.
 \end{function}
 
 
-\latex{\lstinputlisting{sysutex/ex15.pp}}
-\html{\input{sysutex/ex15.tex}}
+\FPCexample{ex15}
+
  
 \begin{function}{IsLeapYear}
 \Declaration
@@ -687,8 +689,8 @@ None.
 \seef{IncMonth}, \seef{Date}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex16.pp}}
-\html{\input{sysutex/ex16.tex}}
+\FPCexample{ex16}
+
  
 \begin{function}{MSecsToTimeStamp}
 \Declaration
@@ -705,8 +707,8 @@ None.
 \seef{TimeStampToMSecs}, \seef{DateTimeToTimeStamp}, 
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex17.pp}}
-\html{\input{sysutex/ex17.tex}}
+\FPCexample{ex17}
+
  
 \begin{function}{Now}
 \Declaration
@@ -720,8 +722,8 @@ None.
 \seef{Date}, \seef{Time}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex18.pp}}
-\html{\input{sysutex/ex18.tex}}
+\FPCexample{ex18}
+
  
 \begin{function}{StrToDate}
 \Declaration
@@ -743,8 +745,8 @@ an \var{EConvertError} exception is raised.
 \seef{StrToTime}, \seef{DateToStr}n \seef{TimeToStr}.
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex19.pp}}
-\html{\input{sysutex/ex19.tex}}
+\FPCexample{ex19}
+
 
 \begin{function}{StrToDateTime}
 \Declaration
@@ -766,8 +768,8 @@ an \var{EConvertError} exception is raised.
 \seef{StrToDate}, \seef{StrToTime}, \seef{DateTimeToStr}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex20.pp}}
-\html{\input{sysutex/ex20.tex}}
+\FPCexample{ex20}
+
  
 \begin{function}{StrToTime}
 \Declaration
@@ -784,8 +786,8 @@ an \var{EConvertError} exception is raised.
 \seef{StrToDate}, \seef{StrToDateTime}, \seef{TimeToStr}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex21.pp}}
-\html{\input{sysutex/ex21.tex}}
+\FPCexample{ex21}
+
 
 \begin{function}{SystemTimeToDateTime}
 \Declaration
@@ -799,8 +801,8 @@ None.
 \seep{DateTimeToSystemTime}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex22.pp}}
-\html{\input{sysutex/ex22.tex}}
+\FPCexample{ex22}
+
 
 \begin{function}{Time}
 \Declaration
@@ -815,8 +817,8 @@ None.
 \end{function}
 
 
-\latex{\lstinputlisting{sysutex/ex23.pp}}
-\html{\input{sysutex/ex23.tex}}
+\FPCexample{ex23}
+
  
 \begin{function}{TimeStampToDateTime}
 \Declaration
@@ -830,8 +832,8 @@ None.
 \seef{DateTimeToTimeStamp}, \seef{TimeStampToMSecs}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex24.pp}}
-\html{\input{sysutex/ex24.tex}}
+\FPCexample{ex24}
+
 
 \begin{function}{TimeStampToMSecs}
 \Declaration
@@ -863,8 +865,8 @@ None.
 \SeeAlso
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex25.pp}}
-\html{\input{sysutex/ex25.tex}}
+\FPCexample{ex25}
+
  
 
 \section{Disk functions}
@@ -911,8 +913,8 @@ In case of an error, the function returns \var{False}.
 \seef{RemoveDir}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex26.pp}}
-\html{\input{sysutex/ex26.tex}}
+\FPCexample{ex26}
+
  
 \begin{functionl}{DiskFree}{DiskFreeSys}
 \Declaration
@@ -939,8 +941,8 @@ On error, \var{-1} is returned.
 \seefl{DiskSize}{DiskSizeSys}, \seef{AddDisk}
 \end{functionl}
 
-\latex{\lstinputlisting{sysutex/ex27.pp}}
-\html{\input{sysutex/ex27.tex}}
+\FPCexample{ex27}
+
  
 \begin{functionl}{DiskSize}{DiskSizeSys}
 \Declaration
@@ -980,8 +982,8 @@ None.
 \seef{SetCurrentDir}, \seef{DiskFree}, \seef{DiskSize}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex28.pp}}
-\html{\input{sysutex/ex28.tex}}
+\FPCexample{ex28}
+
  
 \begin{function}{RemoveDir}
 \Declaration
@@ -1011,8 +1013,8 @@ In case of error, \var{False} is returned.
 \seef{GetCurrentDir}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex29.pp}}
-\html{\input{sysutex/ex29.tex}}
+\FPCexample{ex29}
+
 
 \section{File handling functions}
 
@@ -1048,8 +1050,8 @@ On error, \var{False} is returned.
 \seef{FileCreate}, \seef{FileExists}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex31.pp}}
-\html{\input{sysutex/ex31.tex}}
+\FPCexample{ex31}
+
  
 \begin{procedure}{DoDirSeparators}
 \Declaration
@@ -1063,8 +1065,8 @@ None.
 \seef{ExtractFileName}, \seef{ExtractFilePath}
 \end{procedure}
 
-\latex{\lstinputlisting{sysutex/ex32.pp}}
-\html{\input{sysutex/ex32.tex}}
+\FPCexample{ex32}
+
 
 \begin{function}{ExpandFileName}
 \Declaration
@@ -1080,8 +1082,8 @@ None.
 \seef{ExtractFileDrive}, \seef{ExtractFileExt}, \seef{ExtractRelativePath}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex33.pp}}
-\html{\input{sysutex/ex33.tex}}
+\FPCexample{ex33}
+
 
  
 \begin{function}{ExpandUNCFileName}
@@ -1111,8 +1113,8 @@ None.
 \seef{ExtractFileDrive}, \seef{ExtractFileExt}, \seef{ExtractRelativePath}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex34.pp}}
-\html{\input{sysutex/ex34.tex}}
+\FPCexample{ex34}
+
 
 \begin{function}{ExtractFileDrive}
 \Declaration
@@ -1198,8 +1200,8 @@ None.
 \seef{ExtractFileDrive}, \seef{ExtractFileExt},
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex35.pp}}
-\html{\input{sysutex/ex35.tex}}
+\FPCexample{ex35}
+
 
 \begin{function}{FileAge}
 \Declaration
@@ -1214,8 +1216,8 @@ In case of errors, \var{-1} is returned.
 \seef{FileDateToDateTime}, \seef{FileExists}, \seef{FileGetAttr}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex36.pp}}
-\html{\input{sysutex/ex36.tex}}
+\FPCexample{ex36}
+
 
  
 \begin{procedure}{FileClose}
@@ -1251,8 +1253,8 @@ returns \var{-1}.
 \seef{FileTruncate}, \seef{FileSeek}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex37.pp}}
-\html{\input{sysutex/ex37.tex}}
+\FPCexample{ex37}
+
 
 \begin{function}{FileExists}
 \Declaration
@@ -1267,8 +1269,8 @@ None.
 \end{function}
 
 
-\latex{\lstinputlisting{sysutex/ex38.pp}}
-\html{\input{sysutex/ex38.tex}}
+\FPCexample{ex38}
+
 
  
 \begin{function}{FileGetAttr}
@@ -1294,8 +1296,8 @@ In case of error, -1 is returned.
 \seef{FileSetAttr}, \seef{FileAge}, \seef{FileGetDate}.
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex40.pp}}
-\html{\input{sysutex/ex40.tex}}
+\FPCexample{ex40}
+
 
 \begin{function}{FileGetDate}
 \Declaration
@@ -1311,8 +1313,8 @@ On error, -1 is returned.
 \seef{FileAge}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex39.pp}}
-\html{\input{sysutex/ex39.tex}}
+\FPCexample{ex39}
+
  
 \begin{function}{FileOpen}
 \Declaration
@@ -1371,8 +1373,8 @@ On error, an empty string is returned.
 \seef{ExpandFileName}, \seef{FindFirst}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex41.pp}}
-\html{\input{sysutex/ex41.tex}}
+\FPCexample{ex41}
+
 
 \begin{function}{FileSeek}
 \Declaration
@@ -1398,8 +1400,8 @@ On error, -1 is returned.
 \seef{FileRead}, \seef{FileTruncate}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex42.pp}}
-\html{\input{sysutex/ex42.tex}}
+\FPCexample{ex42}
+
 
 For an example, see \seef{FileCreate}
  
@@ -1508,8 +1510,8 @@ On error the function returns -1 on linux, a nonzero error code on Windows.
 \seep{FindClose}{FindCloseSys}, \seef{FindNext}.
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex43.pp}}
-\html{\input{sysutex/ex43.tex}}
+\FPCexample{ex43}
+
 
 \begin{function}{FindNext}
 \Declaration
@@ -1544,8 +1546,8 @@ None.
 \seef{ExtractRelativePath}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex45.pp}}
-\html{\input{sysutex/ex45.tex}}
+\FPCexample{ex45}
+
  
 \begin{function}{RenameFile}
 \Declaration
@@ -1561,8 +1563,8 @@ On Error, \var{False} is returned.
 \seef{DeleteFile}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex44.pp}}
-\html{\input{sysutex/ex44.tex}}
+\FPCexample{ex44}
+
 
 \begin{function}{SetDirSeparators}
 \Declaration
@@ -1576,8 +1578,8 @@ None.
 \seef{ExpandFileName}, \seef{ExtractFilePath}, \seef{ExtractFileDir}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex47.pp}}
-\html{\input{sysutex/ex47.tex}}
+\FPCexample{ex47}
+
 
 \section{PChar functions}
 
@@ -1651,8 +1653,8 @@ If no more memory is available, a runtime error occurs.
 \seefl{StrAlloc}{StrAllocSys}.\seepl{StrDispose}{StrDisposeSys}.
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex46.pp}}
-\html{\input{sysutex/ex46.tex}}
+\FPCexample{ex46}
+
 
  
 \begin{procedurel}{StrDispose}{StrDisposeSys}
@@ -1734,8 +1736,8 @@ None.
 \seef{AnsiCompareStr}, \seef{AnsiCompareText}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex48.pp}}
-\html{\input{sysutex/ex48.tex}}
+\FPCexample{ex48}
+
  
 \begin{function}{AnsiCompareStr}
 \Declaration
@@ -1757,8 +1759,8 @@ None.
 \seef{AdjustLineBreaks}, \seef{AnsiCompareText}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex49.pp}}
-\html{\input{sysutex/ex49.tex}}
+\FPCexample{ex49}
+
  
 \begin{function}{AnsiCompareText}
 \Declaration
@@ -1781,8 +1783,8 @@ None.
 \seef{AdjustLineBreaks}, \seef{AnsiCompareText}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex50.pp}}
-\html{\input{sysutex/ex50.tex}}
+\FPCexample{ex50}
+
 
 \begin{function}{AnsiExtractQuotedStr}
 \Declaration
@@ -1798,8 +1800,8 @@ None.
 \seef{AnsiQuotedStr}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex51.pp}}
-\html{\input{sysutex/ex51.tex}}
+\FPCexample{ex51}
+
  
 \begin{function}{AnsiLastChar}
 \Declaration
@@ -1814,8 +1816,8 @@ None.
 \seef{AnsiStrLastChar}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex52.pp}}
-\html{\input{sysutex/ex52.tex}}
+\FPCexample{ex52}
+
  
 \begin{function}{AnsiLowerCase}
 \Declaration
@@ -1834,8 +1836,8 @@ None.
 \seef{AnsiUpperCase}, \seef{AnsiStrLower}, \seef{AnsiStrUpper}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex53.pp}}
-\html{\input{sysutex/ex53.tex}}
+\FPCexample{ex53}
+
  
 \begin{function}{AnsiQuotedStr}
 \Declaration
@@ -1873,8 +1875,8 @@ None.
 \seef{AnsiCompareText}, \seef{AnsiCompareStr}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex54.pp}}
-\html{\input{sysutex/ex54.tex}}
+\FPCexample{ex54}
+
  
 \begin{function}{AnsiStrIComp}
 \Declaration
@@ -1895,8 +1897,8 @@ None.
 \seef{AnsiCompareText}, \seef{AnsiCompareStr}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex55.pp}}
-\html{\input{sysutex/ex55.tex}}
+\FPCexample{ex55}
+
 
 \begin{function}{AnsiStrLastChar}
 \Declaration
@@ -1911,8 +1913,8 @@ None.
 \seef{AnsiLastChar}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex58.pp}}
-\html{\input{sysutex/ex58.tex}}
+\FPCexample{ex58}
+
 
 \begin{function}{AnsiStrLComp}
 \Declaration
@@ -1934,8 +1936,8 @@ None.
 \seef{AnsiCompareText}, \seef{AnsiCompareStr}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex56.pp}}
-\html{\input{sysutex/ex56.tex}}
+\FPCexample{ex56}
+
 
 \begin{function}{AnsiStrLIComp}
 \Declaration
@@ -1957,8 +1959,8 @@ None.
 \seef{AnsiCompareText}, \seef{AnsiCompareStr}
 \end{function}
  
-\latex{\lstinputlisting{sysutex/ex57.pp}}
-\html{\input{sysutex/ex57.tex}}
+\FPCexample{ex57}
+
 
 
 
@@ -1980,8 +1982,8 @@ None.
 \seef{AnsiStrUpper}, \seef{AnsiLowerCase}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex59.pp}}
-\html{\input{sysutex/ex59.tex}}
+\FPCexample{ex59}
+
  
 \begin{function}{AnsiStrUpper}
 \Declaration
@@ -2001,8 +2003,8 @@ None.
 \seef{AnsiUpperCase}, \seef{AnsiStrLower}, \seef{AnsiLowerCase}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex60.pp}}
-\html{\input{sysutex/ex60.tex}}
+\FPCexample{ex60}
+
  
 \begin{function}{AnsiUpperCase}
 \Declaration
@@ -2021,8 +2023,8 @@ None.
 \seef{AnsiStrUpper}, \seef{AnsiStrLower}, \seef{AnsiLowerCase}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex61.pp}}
-\html{\input{sysutex/ex61.tex}}
+\FPCexample{ex61}
+
  
 \begin{procedure}{AppendStr}
 \Declaration
@@ -2038,8 +2040,8 @@ None.
 \seep{AssignStr},\seef{NewStr}, \seep{DisposeStr}
 \end{procedure}
 
-\latex{\lstinputlisting{sysutex/ex62.pp}}
-\html{\input{sysutex/ex62.tex}}
+\FPCexample{ex62}
+
  
 \begin{procedure}{AssignStr}
 \Declaration
@@ -2057,8 +2059,8 @@ None.
 \seef{NewStr}, \seep{AppendStr}, \seep{DisposeStr}
 \end{procedure}
 
-\latex{\lstinputlisting{sysutex/ex63.pp}}
-\html{\input{sysutex/ex63.tex}}
+\FPCexample{ex63}
+
  
 \begin{function}{BCDToInt}
 \Declaration
@@ -2071,8 +2073,8 @@ None.
 \seef{StrToInt}, \seef{IntToStr}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex64.pp}}
-\html{\input{sysutex/ex64.tex}}
+\FPCexample{ex64}
+
 
  
 \begin{function}{CompareMem}
@@ -2115,8 +2117,8 @@ None.
 \seef{AnsiCompareText}, \seef{AnsiCompareStr}, \seef{CompareText}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex65.pp}}
-\html{\input{sysutex/ex65.tex}}
+\FPCexample{ex65}
+
 
 \begin{function}{CompareText}
 \Declaration
@@ -2139,8 +2141,8 @@ None.
 \seef{AnsiCompareText}, \seef{AnsiCompareStr}, \seef{CompareStr}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex66.pp}}
-\html{\input{sysutex/ex66.tex}}
+\FPCexample{ex66}
+
 
 
  
@@ -2183,8 +2185,8 @@ None.
 %, \seef{FormatFloat}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex67.pp}}
-\html{\input{sysutex/ex67.tex}}
+\FPCexample{ex67}
+
 
 \begin{function}{FloatToStrF}
 \Declaration
@@ -2233,8 +2235,8 @@ None.
 \seef{FloatToStr}, \seef{FloatToText}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex68.pp}}
-\html{\input{sysutex/ex68.tex}}
+\FPCexample{ex68}
+
 
 \begin{function}{FloatToText}
 \Declaration
@@ -2254,8 +2256,8 @@ None.
 \seef{FloatToStr}, \seef{FloatToStrF}
 \end{function}
  
-\latex{\lstinputlisting{sysutex/ex69.pp}}
-\html{\input{sysutex/ex69.tex}}
+\FPCexample{ex69}
+
 
 \begin{procedure}{FmtStr}
 \Declaration
@@ -2270,8 +2272,8 @@ In case of error, a \var{EConvertError} exception is raised.
 \seef{Format}, \seef{FormatBuf}.
 \end{procedure}
 
-\latex{\lstinputlisting{sysutex/ex70.pp}}
-\html{\input{sysutex/ex70.tex}}
+\FPCexample{ex70}
+
 
 \begin{function}{Format}
 \Declaration
@@ -2387,8 +2389,8 @@ errors are:
 \seef{FormatBuf}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex71.pp}}
-\html{\input{sysutex/ex71.tex}}
+\FPCexample{ex71}
+
  
 \begin{function}{FormatBuf}
 \Declaration
@@ -2399,8 +2401,8 @@ Function FormatBuf(Var Buffer; BufLen : Cardinal; Const Fmt; fmtLen : Cardinal; 
 \SeeAlso
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex72.pp}}
-\html{\input{sysutex/ex72.tex}}
+\FPCexample{ex72}
+
 
 \begin{function}{IntToHex}
 \Declaration
@@ -2417,8 +2419,8 @@ None.
 \seef{IntToStr}, \var{StrToInt}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex73.pp}}
-\html{\input{sysutex/ex73.tex}}
+\FPCexample{ex73}
+
 
 \begin{function}{IntToStr}
 \Declaration
@@ -2434,8 +2436,8 @@ None.
 \seef{IntToHex}, \seef{StrToInt}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex74.pp}}
-\html{\input{sysutex/ex74.tex}}
+\FPCexample{ex74}
+
  
 \begin{function}{IsValidIdent}
 \Declaration
@@ -2450,9 +2452,22 @@ None.
 \SeeAlso
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex75.pp}}
-\html{\input{sysutex/ex75.tex}}
+\FPCexample{ex75}
+
  
+\begin{function}{LastDelimiter}
+\Declaration
+Function LastDelimiter(const Delimiters, S: string): Integer;
+\Description
+\var{LastDelimiter} returns the {\em last} occurrence of any character in
+the set \var{Delimiters} in the string \var{S}. 
+\Errors
+\SeeAlso
+\end{function}
+
+\FPCexample{ex88}
+
+
 \begin{function}{LeftStr}
 \Declaration
 Function LeftStr(const S: string; Count: integer): string;
@@ -2465,8 +2480,8 @@ None.
 \seef{RightStr}, \seef{TrimLeft}, \seef{TrimRight}, \seef{Trim}
 \end{function}
 
- \latex{\lstinputlisting{sysutex/ex76.pp}}
-\html{\input{sysutex/ex76.tex}}
+ \FPCexample{ex76}
+
 
 \begin{function}{LoadStr}
 \Declaration
@@ -2491,8 +2506,8 @@ None.
 \seef{AnsiLowerCase}, \seef{UpperCase}, \seef{AnsiUpperCase}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex77.pp}}
-\html{\input{sysutex/ex77.tex}}
+\FPCexample{ex77}
+
  
 \begin{functionl}{NewStr}{NewStrSys}
 \Declaration
@@ -2525,8 +2540,8 @@ None.
 \seef{AnsiQuotedStr}, \seef{AnsiExtractQuotedStr}.
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex78.pp}}
-\html{\input{sysutex/ex78.tex}}
+\FPCexample{ex78}
+
  
  
 \begin{function}{RightStr}
@@ -2544,8 +2559,8 @@ None.
 \seef{LeftStr},\seef{Trim}, \seef{TrimLeft}, \seef{TrimRight}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex79.pp}}
-\html{\input{sysutex/ex79.tex}}
+\FPCexample{ex79}
+
  
 \begin{function}{StrFmt}
 \Declaration
@@ -2561,8 +2576,8 @@ for a list of errors, see \seef{Format}.
 \seef{StrLFmt}, \seep{FmtStr}, \seef{Format}, \seef{FormatBuf}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex80.pp}}
-\html{\input{sysutex/ex80.tex}}
+\FPCexample{ex80}
+
  
 \begin{function}{StrLFmt}
 \Declaration
@@ -2578,8 +2593,8 @@ for a list of errors, see \seef{Format}.
 \seef{StrFmt}, \seep{FmtStr}, \seef{Format}, \seef{FormatBuf}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex81.pp}}
-\html{\input{sysutex/ex81.tex}}
+\FPCexample{ex81}
+
  
 \begin{function}{StrToInt}
 \Declaration
@@ -2598,8 +2613,8 @@ In case of error, an \var{EConvertError} is raised.
 \seef{IntToStr}, \seef{StrToIntDef}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex82.pp}}
-\html{\input{sysutex/ex82.tex}}
+\FPCexample{ex82}
+
  
 \begin{function}{StrToIntDef}
 \Declaration
@@ -2617,8 +2632,8 @@ None.
 \seef{IntToStr}, \seef{StrToInt}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex83.pp}}
-\html{\input{sysutex/ex83.tex}}
+\FPCexample{ex83}
+
  
 \begin{function}{Trim}
 \Declaration
@@ -2634,8 +2649,8 @@ None.
 \seef{TrimLeft}, \seef{TrimRight}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex84.pp}}
-\html{\input{sysutex/ex84.tex}}
+\FPCexample{ex84}
+
  
 \begin{function}{TrimLeft}
 \Declaration
@@ -2651,8 +2666,8 @@ None.
 \seef{Trim}, \seef{TrimRight}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex85.pp}}
-\html{\input{sysutex/ex85.tex}}
+\FPCexample{ex85}
+
  
 \begin{function}{TrimRight}
 \Declaration
@@ -2668,8 +2683,8 @@ None.
 \seef{Trim}, \seef{TrimLeft}
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex86.pp}}
-\html{\input{sysutex/ex86.tex}}
+\FPCexample{ex86}
+
 
  
 \begin{function}{UpperCase}
@@ -2688,6 +2703,6 @@ None.
 \SeeAlso
 \end{function}
 
-\latex{\lstinputlisting{sysutex/ex87.pp}}
-\html{\input{sysutex/ex87.tex}}
+\FPCexample{ex87}
+
  
