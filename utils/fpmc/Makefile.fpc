@@ -1,5 +1,5 @@
 #
-#   Makefile.fpc for debugserver
+#   Makefile.fpc for Free Pascal Message Compiler
 #
 
 [target]
@@ -12,7 +12,7 @@ rsts=frmabout frmmain frmoptions msgcomp
 units=frmmain msgcomp frmabout frmoptions
 
 [require]
-packages=fcl
+packages=fcl fpgtk
 
 [compiler]
 
