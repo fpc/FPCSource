@@ -1,14 +1,182 @@
 #!/bin/sh
-# Generate a configuration file for ppc386, write to ppc386.cfg
-# Needs 2 argument : 
-# 1) The directory where the libraries are. (without linuxunits appended)
-# 2) The directory where libgcc.a is.
 #
-# Michael Van Canneyt, 1996
+#   $Id$
+#   This file is part of the Free Pascal run time library.
+#   Copyright (c) 1996-98 by Michael van Canneyt and Peter Vreman
 #
-cat <<EOF >ppc386.cfg
--TLINUX
--Fr$1/errorE.msg
--Fg$2
--Up$1/linuxunits
-EOF
+#   Generate a configuration creationfile which will create /etc/ppc386.cfg
+#
+#   Needs 4 Arguments:
+#    $1 = filename to create
+#    $2 = Path to the RTL Units
+#    $3 = Path to the .msg files
+#    $4 = Path to the GCC lib
+#
+cat <<EOFCREATE >$1
+#!/bin/sh
+#
+#  Generate Free Pascal configuration file
+#
+if [ -f /etc/ppc386.cfg ] ; then
+  mv -f /etc/ppc386.cfg /etc/ppc386.orig
+  echo Saved old config to /etc/ppc386.orig
+fi
+echo Writing sample configuration file to /etc/ppc386.cfg
+cat <<EOFCFG > /etc/ppc386.cfg
+#
+# Example ppc386.cfg for Free Pascal Compiler Version 0.99.0
+#
+# Note: Older versions (before 10 March 1998) doesn't like spaces at the
+# start of lines!
+#
+
+# ----------------------
+# Defines (preprocessor)
+# ----------------------
+
+#
+# nested #IFNDEF, #IFDEF, #ENDIF, #ELSE, #DEFINE, #UNDEF are allowed
+#
+# -d is the same as #DEFINE
+# -u is the same as #UNDEF
+#
+
+# When not m68k is defined at the commandline, define i386
+#IFNDEF m68k
+  #DEFINE i386
+#ENDIF
+
+#
+# Some examples (for switches see below, and the -? helppages)
+#
+# Try compiling with the -dRELEASE or -dDEBUG on the commandline
+#
+
+# For a release compile with optimizes and strip debuginfo
+#IFDEF RELEASE
+  -OGa5
+  -Xs
+  #WRITE Compiling Release Version
+#ENDIF
+
+# For a debug version compile with debuginfo and all codegeneration checks on
+#IFDEF DEBUG
+  -g
+  -Crtoi
+  #WRITE Compiling Debug Version
+#ENDIF
+
+# ----------------
+# Parsing switches
+# ----------------
+
+# All assembler blocks are intel styled by default
+#-Rintel
+
+# All assembler blocks are AT&T styled by default
+#-Ratt
+
+# Semantic checking
+# -S2   switch some Delphi 2 extension on
+# -Sc   supports operators like C (*=,+=,/= and -=)
+# -Sg   allows LABEL and GOTO
+# -Si   support C++ stlyed INLINE
+# -Sm   support macros like C (global)
+# -So   tries to be TP/BP 7.0 compatible
+# -Ss   constructor name must be init (destructor must be done)
+# -St   allows static keyword in objects
+
+# Allow goto, inline, C-operators
+-Sgic
+
+# ---------------
+# Code generation
+# ---------------
+
+# Uncomment the next line if you always want static/dynamic linking by default
+# (can be overruled with -CD, -CS at the commandline)
+#-CS
+#-CD
+
+# Set the default heapsize to 8Mb
+#-Ch8000000
+
+# Set default codegeneration checks (iocheck, overflow, range, stack)
+#-Ci
+#-Co
+#-Cr
+#-Ct
+
+# Optimize always for Size and Pentium
+#-OGa5
+
+
+# -----------------------
+# Set Filenames and Paths
+# -----------------------
+
+# Slashes are also allowed under dos
+
+# path to the messagefile, not necessary anymore but can be used to override
+# the default language
+#-Fr$3/errore.msg
+#-Fr$3/errorn.msg
+
+# path to the gcclib
+-Fg$4
+
+# searchpath for includefiles
+#-Fi/pp/inc;/pp/rtl/inc
+
+# searchpath for units (does the same as -Up)
+-Fu$2
+#-Fu/pp/units;/pp/rtl/dos/go32v2
+#-Fu/usr/lib/ppc/units;/usr/lib/ppc/linuxunits
+
+# searchpath for libraries
+#-Fl/pp/lib
+#-Fl/lib;/usr/lib
+
+
+# -------------
+# Linking
+# -------------
+
+# generate always debugging information for GDB (slows down the compiling
+# process)
+#-g
+
+# always pass an option to the linker
+#-k-s
+
+# Always strip debuginfo from the executable
+#-Xs
+
+
+# -------------
+# Miscellaneous
+# -------------
+
+# Write always a nice FPC logo ;)
+-l
+
+# Verbosity
+# e : Show errors (default)       d : Show debug info
+# w : Show warnings               u : Show used files
+# n : Show notes                  t : Show tried files
+# h : Show hints                  m : Show defined macros
+# i : Show general info           p : Show compiled procedures
+# l : Show linenumbers            c : Show conditionals
+# a : Show everything             0 : Show nothing (except errors)
+
+# Display Info, Warnings, Notes and Hints
+-viwnh
+# If you don't want so much verbosity use
+#-vw
+
+#
+# That's all folks
+#
+EOFCFG
+EOFCREATE
+chmod 755 $1 
