@@ -25,6 +25,18 @@ begin
   Desktop^.ForEach(@SendClose);
 end;
 
+procedure TIDEApp.ResizeApplication(x, y : longint);
+var
+  OldR, R : TRect;
+begin
+  GetBounds(OldR);
+  R.A.X:=0;
+  R.B.X:=X;
+  R.A.Y:=0;
+  R.B.Y:=Y;
+  ChangeBounds(R);
+  ReDraw;
+end;
 
 type
     PWindowListBox = ^TWindowListBox;
@@ -242,7 +254,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2001-08-04 11:30:23  peter
+  Revision 1.2  2002-05-30 15:03:24  pierre
+   + ResizeApplication pethod for fvision
+
+  Revision 1.1  2001/08/04 11:30:23  peter
     * ide works now with both compiler versions
 
   Revision 1.1.2.8  2001/03/12 17:34:56  pierre

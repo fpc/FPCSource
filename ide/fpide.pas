@@ -106,6 +106,7 @@ type
       procedure CodeTemplates;
       procedure BrowserOptions(Browser: PBrowserWindow);
       procedure DesktopOptions;
+      procedure ResizeApplication(x, y : longint);
       procedure Mouse;
       procedure StartUp;
       procedure Colors;
@@ -710,6 +711,10 @@ begin
              cmHelpFiles     : HelpFiles;
              cmAbout         : About;
              cmShowReadme    : ShowReadme;
+{$ifdef FVISION}
+             cmResizeApp     : ResizeApplication(Event.Id, Event.InfoWord);
+             cmQuitApp       : Message(@Self, evCommand, cmQuitApp, nil);
+{$endif FVISION}
            else DontClear:=true;
            end;
            if DontClear=false then ClearEvent(Event);
@@ -1183,6 +1188,7 @@ begin
   InsideDone:=true;
   IsRunning:=false;
   inherited Done;
+  Desktop:=nil;
   RemoveBrowsersCollection;
   DoneHelpSystem;
 end;
@@ -1190,7 +1196,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.12  2002-05-29 22:38:13  pierre
+  Revision 1.13  2002-05-30 15:03:23  pierre
+   + ResizeApplication pethod for fvision
+
+  Revision 1.12  2002/05/29 22:38:13  pierre
    Asciitab now in fvision
 
   Revision 1.11  2002/04/25 13:34:17  pierre

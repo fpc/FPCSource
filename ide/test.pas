@@ -7,6 +7,7 @@ uses
   dpmiexcp,
 {$endif}
     test1, Test2;
+    
 
 const A =  1234;
       C =  #1#2#3#4;
@@ -45,9 +46,12 @@ type
 
       TClass = class
         constructor Create;
+        name : string;
       end;
 
       TClass2 = class(TClass)
+        constructor Create;
+        X : longint;
       end;
 
       EnumTyp = (enum1,enum2,enum3);
@@ -114,6 +118,13 @@ end;
 
 constructor TClass.Create;
 begin
+  Name:='TClass instance';
+end;
+
+constructor TClass2.Create;
+begin
+  Name:='TClass2 instance';
+  X:=7;
 end;
 
 function Func1(x,z : word; var y : boolean; const r: TRecord): shortint;
@@ -143,8 +154,10 @@ begin
 end;
 
 var i : longint;
+    Length : longint;
 
 BEGIN
+  ClassVar1:=TClass2.create;
   X:=nil;
   for i:=1 to 2000 do
     CharArray[i]:=chr(32+(i mod (255-32)));
