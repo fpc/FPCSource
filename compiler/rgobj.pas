@@ -55,7 +55,7 @@ is done by:
 - "spilling" A register is changed into a memory location and the generated
    code is modified to use the memory location instead of the register.
 
-Register allocation is a graph colouring problem. Each register is a colour, and 
+Register allocation is a graph colouring problem. Each register is a colour, and
 if two registers interfere there is a connection between them in the graph.
 
 In addition to the imaginary registers in the code generator, the psysical
@@ -74,7 +74,7 @@ unit rgobj;
   interface
 
     uses
-      cpubase,
+      cutils, cpubase,
       cpuinfo,
       aasmbase,aasmtai,aasmcpu,
       cclasses,globtype,cginfo,cgbase,node
@@ -1036,7 +1036,7 @@ unit rgobj;
 
 
     procedure trgobj.makeregvarint(reg:Tnewregister);
-    
+
     var supreg:Tsuperregister;
 
     begin
@@ -1342,7 +1342,10 @@ end.
 
 {
   $Log$
-  Revision 1.29  2003-03-08 20:36:41  daniel
+  Revision 1.30  2003-03-09 21:18:59  olle
+    + added cutils to the uses clause
+
+  Revision 1.29  2003/03/08 20:36:41  daniel
     + Added newra version of Ti386shlshrnode
     + Added interference graph construction code
 
