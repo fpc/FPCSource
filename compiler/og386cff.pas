@@ -546,8 +546,8 @@ unit og386cff;
            else
              begin
                writesymbol(p);
-               if (p^.section<>sec_none) and (relative=relative_false) then
-                 sects[currsec]^.addsectionreloc(sects[currsec]^.len,p^.section,relative_false)
+               if (p^.section<>sec_none) and (relative<>relative_true) then
+                 sects[currsec]^.addsectionreloc(sects[currsec]^.len,p^.section,relative)
                else
                  sects[currsec]^.addsymreloc(sects[currsec]^.len,p,relative);
                if not win32 then {seems wrong to me (PM) }
@@ -985,7 +985,10 @@ unit og386cff;
 end.
 {
   $Log$
-  Revision 1.20  2000-03-09 14:29:47  pierre
+  Revision 1.21  2000-03-10 09:15:54  pierre
+   * rva relocation bug fixed
+
+  Revision 1.20  2000/03/09 14:29:47  pierre
    * fix for the stab section size changes with smartlinking
 
   Revision 1.19  2000/02/09 13:22:54  peter
