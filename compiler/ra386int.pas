@@ -1195,6 +1195,12 @@ var
                Begin
                  operands[3].opinfo := ao_imm8;
                  operands[3].size := S_B;
+               end
+             else if (operands[3].operandtype = OPR_REGISTER) and
+                (operands[3].reg = R_CL) then
+               Begin
+                 operands[3].opinfo := ao_shiftcount;
+                 operands[3].size := S_B;
                end;
            end
          else
@@ -1688,15 +1694,15 @@ var
                       Begin
                        case instr.operands[3].operandtype of
                         OPR_REFERENCE:
-{$ifdef USE_OP3}
+{$IfNDef NO_OP3}
                          p^.concat(new(pai386,
                           op_const_reg_ref(instruc, S_W,
                           instr.operands[1].val, instr.operands[2].reg,
                           newreference(instr.operands[3].ref))));
-{$else USE_OP3}
+{$else NO_OP3}
                          Message(assem_e_unsupported_opcode_and_operand)
                          { MISSING !!!! } ;
-{$endif USE_OP3}
+{$endif NO_OP3}
                         OPR_REGISTER:
                          p^.concat(new(pai386,
                           op_const_reg_reg(instruc, S_W,
@@ -1711,9 +1717,9 @@ var
                     end;
                   end
                  else if instr.operands[1].operandtype = OPR_REGISTER then
-{$ifndef USE_OP3}
+{$IfDef NO_OP3}
                    Message(assem_e_unsupported_opcode_and_operand)
-{$else USE_OP3}
+{$else NO_OP3}
                   begin
                    case instr.operands[3].operandtype of
                     OPR_REFERENCE:
@@ -1730,7 +1736,7 @@ var
                      Message(assem_e_invalid_opcode_and_operand);
                     end;
                   end
-{$endif USE_OP3}
+{$endif NO_OP3}
                  else
                   Message(assem_e_invalid_opcode_and_operand);
                 S_L:
@@ -1742,15 +1748,15 @@ var
                       Begin
                        case instr.operands[3].operandtype of
                         OPR_REFERENCE:
-{$ifdef USE_OP3}
+{$IfNDef NO_OP3}
                          p^.concat(new(pai386,
                           op_const_reg_ref(instruc, S_L,
                           instr.operands[1].val, instr.operands[2].reg,
                           newreference(instr.operands[3].ref))));
-{$else USE_OP3}
+{$else NO_OP3}
                          Message(assem_e_unsupported_opcode_and_operand)
                          { MISSING !!!! } ;
-{$endif USE_OP3}
+{$endif NO_OP3}
                         OPR_REGISTER:
                          p^.concat(new(pai386,
                            op_const_reg_reg(instruc, S_L,
@@ -1765,9 +1771,9 @@ var
                   end;
                  end
                  else if instr.operands[1].operandtype = OPR_REGISTER then
-{$ifndef USE_OP3}
+{$IfDef NO_OP3}
                    Message(assem_e_unsupported_opcode_and_operand)
-{$else USE_OP3}
+{$else NO_OP3}
                   begin
                    case instr.operands[3].operandtype of
                     OPR_REFERENCE:
@@ -1784,7 +1790,7 @@ var
                      Message(assem_e_invalid_opcode_and_operand);
                     end;
                   end
-{$endif USE_OP3}
+{$endif NO_OP3}
                 else
                     Message(assem_e_invalid_opcode_and_operand);
                 { else of case instr.operands[2].size of }
@@ -1805,15 +1811,15 @@ var
                               Begin
                                  case instr.operands[2].operandtype of
                                   OPR_REFERENCE:
-{$ifdef USE_OP3}
+{$IfNDef NO_OP3}
                                    p^.concat(new(pai386,
                                      op_const_ref_reg(instruc, S_W,
                                        instr.operands[1].val, newreference(instr.operands[2].ref),
                                        instr.operands[3].reg)));
-{$else USE_OP3}
+{$else NO_OP3}
                                    Message(assem_e_unsupported_opcode_and_operand)
                                    { MISSING !!!! } ;
-{$endif USE_OP3}
+{$endif NO_OP3}
                                   OPR_REGISTER:  p^.concat(new(pai386,
                                      op_const_reg_reg(instruc, S_W,
                                      instr.operands[1].val, instr.operands[2].reg,
@@ -1836,15 +1842,15 @@ var
                               Begin
                                  case instr.operands[2].operandtype of
                                   OPR_REFERENCE:
-{$ifdef USE_OP3}
+{$IfNDef NO_OP3}
                                    p^.concat(new(pai386,
                                      op_const_ref_reg(instruc, S_L,
                                        instr.operands[1].val, newreference(instr.operands[2].ref),
                                        instr.operands[3].reg)));
-{$else USE_OP3}
+{$else NO_OP3}
                                    Message(assem_e_unsupported_opcode_and_operand)
                                    { MISSING !!!! } ;
-{$endif USE_OP3}
+{$endif NO_OP3}
                                   OPR_REGISTER:  p^.concat(new(pai386,
                                      op_const_reg_reg(instruc, S_L,
                                      instr.operands[1].val, instr.operands[2].reg,
@@ -3584,7 +3590,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  1999-04-16 10:01:00  pierre
+  Revision 1.27  1999-04-17 22:16:58  pierre
+    * ifdef USE_OP3 released (changed into ifndef NO_OP3)
+    * SHRD and SHLD first operand (ATT syntax) can only be CL reg or immediate const
+
+  Revision 1.26  1999/04/16 10:01:00  pierre
     + ifdef USE_OP3 code :
       added all missing op_... constructors for tai386 needed
       for SHRD,SHLD and IMUL code in assembler readers

@@ -190,11 +190,11 @@ Type
   TLabelTable = Array[0..2500000] Of TLabelTableItem;
 {$Endif tp}
   PLabelTable = ^TLabelTable;
-{$IfNDef USE_OP3}
+{$IfDef NO_OP3}
   TwoWords = Record
                Word1, Word2: Word;
              End;
-{$EndIf USE_OP3}
+{$EndIf NO_OP3}
 
 {******************************* Variables *******************************}
 
@@ -1114,23 +1114,23 @@ Begin
       If Not(TmpResult) Then
         Case Pai386(p1)^.op2t Of
           Top_Reg:
-{$IfDef USE_OP3}
+{$IfNDef NO_OP3}
              TmpResult := Reg = TRegister(Pai386(p1)^.op2);
-{$Else USE_OP3}
+{$Else NO_OP3}
               if Pai386(p1)^.op3t<>Top_reg
                 then TmpResult := Reg = TRegister(Pai386(p1)^.op2)
                 else TmpResult := longint(Reg) = twowords(Pai386(p1)^.op2).word1;
-{$EndIf USE_OP3}
+{$EndIf NO_OP3}
           Top_Ref: TmpResult := RegInRef(Reg, TReference(Pai386(p1)^.op2^))
         End;
       If Not(TmpResult) Then
         Case Pai386(p1)^.op3t Of
-{$IfDef USE_OP3}
+{$IfNDef NO_OP3}
           Top_Reg: TmpResult := Reg = TRegister(Pai386(p1)^.op3);
           Top_Ref: TmpResult := RegInRef(Reg, TReference(Pai386(p1)^.op3^));
-{$Else USE_OP3}
+{$Else NO_OP3}
           Top_Reg: TmpResult := longint(Reg) = twowords(Pai386(p1)^.op2).word2;
-{$EndIf USE_OP3}
+{$EndIf NO_OP3}
        End
     End;
   RegInInstruction := TmpResult
@@ -1399,7 +1399,7 @@ Begin
        End;
 End;
 
-{Procedure AddRegsToSet(p: Pai; Var RegSet: TRegSet);
+(*Procedure AddRegsToSet(p: Pai; Var RegSet: TRegSet);
 Begin
   If (p^.typ = ait_instruction) Then
     Begin
@@ -1419,11 +1419,11 @@ Begin
       Case Pai386(p)^.op2t Of
         top_reg:
           If Not(TRegister(Pai386(p)^.op2) in [R_NO,R_ESP,ProcInfo.FramePointer]) Then
-{$IfDef USE_OP3}
+{$IfNDef NO_OP3}
             RegSet := RegSet + [TRegister(Pai386(p)^.op2)];
-{$EndIf USE_OP3}
+{$Else NO_OP3}
             RegSet := RegSet + [TRegister(TwoWords(Pai386(p)^.op2).Word1];
-{$EndIf USE_OP3}
+{$EndIf NO_OP3}
         top_ref:
           With TReference(Pai386(p)^.op2^) Do
             Begin
@@ -1434,7 +1434,7 @@ Begin
             End;
       End;
     End;
-End;}
+End;*)
 
 Function OpsEquivalent(typ: Longint; OldOp, NewOp: Pointer; Var RegInfo: TRegInfo; OpAct: TopAction): Boolean;
 Begin {checks whether the two ops are equivalent}
@@ -1546,12 +1546,12 @@ Begin {checks whether two Pai386 instructions are equal}
           End
       Else
  {an instruction <> mov, movzx, movsx}
-{$IfDef USE_OP3}
+{$IfNDef NO_OP3}
         InstructionsEquivalent :=
           OpsEquivalent(Pai386(p1)^.op1t, Pai386(p1)^.op1, Pai386(p2)^.op1, RegInfo, OpAct_Unknown) And
           OpsEquivalent(Pai386(p1)^.op2t, Pai386(p1)^.op2, Pai386(p2)^.op2, RegInfo, OpAct_Unknown) And
           OpsEquivalent(Pai386(p1)^.op3t, Pai386(p1)^.op3, Pai386(p2)^.op3, RegInfo, OpAct_Unknown)
-{$Else USE_OP3}
+{$Else NO_OP3}
         If (Pai386(p1)^.op3t = top_none) Then
           InstructionsEquivalent :=
             OpsEquivalent(Pai386(p1)^.op1t, Pai386(p1)^.op1, Pai386(p2)^.op1, RegInfo, OpAct_Unknown) And
@@ -1563,7 +1563,7 @@ Begin {checks whether two Pai386 instructions are equal}
                           Pointer(Longint(TwoWords(Pai386(p2)^.op2).Word1)), RegInfo, OpAct_Unknown) And
             OpsEquivalent(Pai386(p1)^.op3t, Pointer(Longint(TwoWords(Pai386(p1)^.op2).Word2)),
                           Pointer(Longint(TwoWords(Pai386(p2)^.op2).Word2)), RegInfo, OpAct_Unknown)
-{$EndIf USE_OP3}
+{$EndIf NO_OP3}
  {the instructions haven't even got the same structure, so they're certainly
   not equivalent}
     Else InstructionsEquivalent := False;
@@ -2068,13 +2068,13 @@ Begin
               A_IMUL:
                 Begin
                   ReadOp(CurProp, Pai386(p)^.Op1t, Pai386(p)^.Op1);
-{$IfDef USE_OP3}
+{$IfNDef NO_OP3}
                   ReadOp(CurProp, Pai386(p)^.Op2t, Pai386(p)^.Op2);
-{$Else USE_OP3}
+{$Else NO_OP3}
                   If (Pai386(p)^.Op2t = Top_Ref) Then
                     ReadOp(CurProp, Pai386(p)^.Op2t, Pai386(p)^.Op2)
                   Else ReadOp(CurProp, Pai386(p)^.Op2t, Pointer(Longint(TwoWords(Pai386(p)^.Op2).Word1)));
-{$EndIf USE_OP3}
+{$EndIf NO_OP3}
                   If (Pai386(p)^.Op3t = top_none)
                    Then
                      If (Pai386(p)^.Op2t = top_none)
@@ -2084,11 +2084,11 @@ Begin
                            DestroyReg(CurProp, R_EDX)
                          End
                        Else Destroy(p, Pai386(p)^.Op2t, Pai386(p)^.Op2)
-{$IfDef USE_OP3}
+{$IfNDef NO_OP3}
                    Else Destroy(p, Pai386(p)^.Op3t, Pai386(p)^.Op3);
-{$Else USE_OP3}
+{$Else NO_OP3}
                    Else DestroyReg(CurProp, TRegister(longint(twowords(Pai386(p)^.Op2).word2)));
-{$EndIf USE_OP3}
+{$EndIf NO_OP3}
                 End;
               A_XOR:
                 Begin
@@ -2122,22 +2122,22 @@ Begin
                         C_CDirFlag: CurProp^.DirFlag := F_NotSet;
                         C_SDirFlag: CurProp^.DirFlag := F_Set;
                         C_ROp1: ReadOp(CurProp, Pai386(p)^.op1t, Pai386(p)^.op1);
-{$IfDef USE_OP3}
+{$IfNDef NO_OP3}
                         C_ROp2: ReadOp(CurProp, Pai386(p)^.op2t, Pai386(p)^.op2);
                         C_ROp3: ReadOp(CurProp, Pai386(p)^.op3t, Pai386(p)^.op3);
-{$Else USE_OP3}
+{$Else NO_OP3}
                         C_ROp2: If (Pai386(p)^.Op3t = top_none) Then
                                   ReadOp(CurProp, Pai386(p)^.op2t, Pai386(p)^.op2)
                                 Else ReadOp(CurProp, Pai386(p)^.op2t, Pointer(Longint(TwoWords(Pai386(p)^.op2).word1)));
                         C_ROp3: ReadOp(CurProp, Pai386(p)^.op3t, Pointer(Longint(TwoWords(Pai386(p)^.op2).word2)));
-{$EndIf USE_OP3}
+{$EndIf NO_OP3}
                         C_WOp1..C_RWOp1:
                           Begin
                             If (InstrProp.Ch[Cnt] = C_RWOp1) Then
                               ReadOp(CurProp, Pai386(p)^.op1t, Pai386(p)^.op1);
                             Destroy(p, Pai386(p)^.op1t, Pai386(p)^.op1);
                           End;
-{$IfDef USE_OP3}
+{$IfNDef NO_OP3}
                         C_WOp2..C_RWOp2:
                           Begin
                             If (InstrProp.Ch[Cnt] = C_RWOp2) Then
@@ -2150,7 +2150,7 @@ Begin
                               ReadOp(CurProp, Pai386(p)^.op3t, Pai386(p)^.op3);
                             Destroy(p, Pai386(p)^.op3t, Pai386(p)^.op3);
                           End;
-{$Else USE_OP3}
+{$Else NO_OP3}
                         C_WOp2..C_RWOp2:
                           Begin
                             If (InstrProp.Ch[Cnt] = C_RWOp2) Then
@@ -2167,7 +2167,7 @@ Begin
                               ReadOp(CurProp, Pai386(p)^.op3t, Pointer(Longint(TwoWords(Pai386(p)^.op2).word2)));
                             Destroy(p, Pai386(p)^.op3t, Pointer(Longint(TwoWords(Pai386(p)^.op2).word2)));
                           End;
-{$EndIf USE_OP3}
+{$EndIf NO_OP3}
                         C_WMemEDI:
                           Begin
                             ReadReg(CurProp, R_EDI);
@@ -2286,7 +2286,11 @@ End.
 
 {
  $Log$
- Revision 1.42  1999-04-16 15:16:31  jonas
+ Revision 1.43  1999-04-17 22:16:59  pierre
+   * ifdef USE_OP3 released (changed into ifndef NO_OP3)
+   * SHRD and SHLD first operand (ATT syntax) can only be CL reg or immediate const
+
+ Revision 1.42  1999/04/16 15:16:31  jonas
    * changes to work with -dUSE_OP3
 
  Revision 1.41  1999/04/16 13:42:33  jonas

@@ -663,17 +663,17 @@ ait_labeled_instruction : AsmWriteLn(#9#9+int_op2str[pai386_labeled(hp)^.opcode]
                              if pai386(hp)^.op3t<>top_none then
                               begin
                                 if pai386(hp)^.op2t<>top_none then
-{$ifndef USE_OP3}
+{$ifdef NO_OP3}
                                  s:=getopstr(pai386(hp)^.op2t,pointer(longint(twowords(pai386(hp)^.op2).word1)),0,
                                              pai386(hp)^.opsize,pai386(hp)^.opcode,true)+','+s;
                                 s:=getopstr(pai386(hp)^.op3t,pointer(longint(twowords(pai386(hp)^.op2).word2)),0,
                                             pai386(hp)^.opsize,pai386(hp)^.opcode,false)+','+s;
-{$else USE_OP3}
+{$else NO_OP3}
                                  s:=getopstr(pai386(hp)^.op2t,pai386(hp)^.op2,0,
                                              pai386(hp)^.opsize,pai386(hp)^.opcode,true)+','+s;
                                 s:=getopstr(pai386(hp)^.op3t,pai386(hp)^.op3,0,
                                             pai386(hp)^.opsize,pai386(hp)^.opcode,false)+','+s;
-{$endif USE_OP3}
+{$endif NO_OP3}
                               end
                              else
                               if pai386(hp)^.op2t<>top_none then
@@ -795,7 +795,11 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.32  1999-04-16 11:49:39  peter
+  Revision 1.33  1999-04-17 22:17:05  pierre
+    * ifdef USE_OP3 released (changed into ifndef NO_OP3)
+    * SHRD and SHLD first operand (ATT syntax) can only be CL reg or immediate const
+
+  Revision 1.32  1999/04/16 11:49:39  peter
     + tempalloc
     + -at to show temp alloc info in .s file
 

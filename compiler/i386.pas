@@ -404,9 +404,9 @@ unit i386;
           opxt:word;
           op1,op2 : pointer;
           op1ofs : longint;
-{$ifdef USE_OP3}
+{$ifndef NO_OP3}
           op3 : pointer;
-{$endif USE_OP3}
+{$endif NO_OP3}
           constructor op_none(op : tasmop;_size : topsize);
 
           constructor op_reg(op : tasmop;_size : topsize;_op1 : tregister);
@@ -434,11 +434,11 @@ unit i386;
 
           constructor op_const_reg_reg(op : tasmop;_size : topsize;_op1 : longint;_op2 : tregister;_op3 : tregister);
 
-{$ifdef USE_OP3}
+{$ifndef NO_OP3}
           constructor op_const_reg_ref(op : tasmop;_size : topsize;_op1 : longint;_op2 : tregister;_op3 : preference);
           constructor op_const_ref_reg(op : tasmop;_size : topsize;_op1 : longint;_op2 : preference;_op3 : tregister);
           constructor op_reg_reg_ref(op : tasmop;_size : topsize;_op1 : tregister;_op2 : tregister;_op3 : preference);
-{$endif USE_OP3}
+{$endif NO_OP3}
 
           { this is for CALL etc.                            }
           { symbol is replaced by the address of symbol      }
@@ -707,14 +707,14 @@ unit i386;
          (i : A_SHL;ops : 2;oc : $d2;eb : 4;m : af_w or Modrm;o1 : ao_shiftcount;o2 : ao_reg or ao_mem;o3 : 0),
          (i : A_SHL;ops : 1;oc : $d0;eb : 4;m : af_w or Modrm;o1 : ao_reg or ao_mem;o2 : 0;o3 : 0),
          (i : A_SHLD;ops : 3;oc : $0fa4;eb : ao_none;m : Modrm;o1 : ao_imm8;o2 : ao_wordreg;o3 : ao_wordreg or ao_mem),
-         (i : A_SHLD;ops : 3;oc : $0fa5;eb : ao_none;m : Modrm;o1 : ao_reg8 or ao_shiftcount;o2 : ao_wordreg;
+         (i : A_SHLD;ops : 3;oc : $0fa5;eb : ao_none;m : Modrm;o1 : {ao_reg8 or }ao_shiftcount;o2 : ao_wordreg;
             o3 : ao_wordreg or ao_mem),
          (i : A_SHR;ops : 2;oc : $d0;eb : 5;m : af_w or Modrm;o1 : ao_imm1;o2 : ao_reg or ao_mem;o3 : 0),
          (i : A_SHR;ops : 2;oc : $c0;eb : 5;m : af_w or Modrm;o1 : ao_imm8;o2 : ao_reg or ao_mem;o3 : 0),
          (i : A_SHR;ops : 2;oc : $d2;eb : 5;m : af_w or Modrm;o1 : ao_shiftcount;o2 : ao_reg or ao_mem;o3 : 0),
          (i : A_SHR;ops : 1;oc : $d0;eb : 5;m : af_w or Modrm;o1 : ao_reg or ao_mem;o2 : 0;o3 : 0),
          (i : A_SHRD;ops : 3;oc : $0fac;eb : ao_none;m : Modrm;o1 : ao_imm8;o2 : ao_wordreg;o3 : ao_wordreg or ao_mem),
-         (i : A_SHRD;ops : 3;oc : $0fad;eb : ao_none;m : Modrm;o1 : ao_reg8 or ao_shiftcount;o2 : ao_wordreg;
+         (i : A_SHRD;ops : 3;oc : $0fad;eb : ao_none;m : Modrm;o1 : {ao_reg8 or }ao_shiftcount;o2 : ao_wordreg;
             o3 : ao_wordreg or ao_mem),
          (i : A_SAR;ops : 2;oc : $d0;eb : 7;m : af_w or Modrm;o1 : ao_imm1;o2 : ao_reg or ao_mem;o3 : 0),
          (i : A_SAR;ops : 2;oc : $c0;eb : 7;m : af_w or Modrm;o1 : ao_imm8;o2 : ao_reg or ao_mem;o3 : 0),
@@ -1546,12 +1546,12 @@ unit i386;
 
       end;
 
-{$ifndef USE_OP3}
+{$ifdef NO_OP3}
     type
        twowords=record
           word1,word2:word;
        end;
-{$endif ndef USE_OP3}
+{$endif  NO_OP3}
 
     constructor tai386.op_reg_reg_reg(op : tasmop;_size : topsize;_op1,_op2,_op3 : tregister);
 
@@ -1562,13 +1562,13 @@ unit i386;
          opxt:=Top_reg shl 8+Top_reg shl 4+Top_reg;
          opsize:=_size;
          op1:=pointer(_op1);
-{$ifndef USE_OP3}
+{$ifdef NO_OP3}
          twowords(op2).word1:=word(_op2);
          twowords(op2).word2:=word(_op3);
-{$else USE_OP3}
+{$else NO_OP3}
          op2:=pointer(_op2);
          op3:=pointer(_op3);
-{$endif USE_OP3}
+{$endif NO_OP3}
       end;
 
     constructor tai386.op_reg_ref(op : tasmop;_size : topsize;_op1 : tregister;_op2 : preference);
@@ -1662,16 +1662,16 @@ unit i386;
          opxt:=Top_const+Top_reg shl 4+Top_reg shl 8;
          opsize:=_size;
          op1:=pointer(_op1);
-{$ifndef USE_OP3}
+{$ifdef NO_OP3}
          twowords(op2).word1:=word(_op2);
          twowords(op2).word2:=word(_op3);
-{$else USE_OP3}
+{$else NO_OP3}
          op2:=pointer(_op2);
          op3:=pointer(_op3);
-{$endif USE_OP3}
+{$endif NO_OP3}
       end;
 
-{$ifdef USE_OP3}
+{$IfNDef NO_OP3}
     constructor tai386.op_const_reg_ref(op : tasmop;_size : topsize;_op1 : longint;_op2 : tregister;_op3 : preference);
 
       begin
@@ -1710,7 +1710,7 @@ unit i386;
          op2:=pointer(_op2);
          op3:=pointer(_op3);
       end;
-{$endif USE_OP3}
+{$endif NO_OP3}
 
 
     constructor tai386.op_const_reg(op : tasmop;_size : topsize;_op1 : longint;_op2 : tregister);
@@ -2066,7 +2066,11 @@ Begin
 end.
 {
   $Log$
-  Revision 1.41  1999-04-16 11:49:43  peter
+  Revision 1.42  1999-04-17 22:17:02  pierre
+    * ifdef USE_OP3 released (changed into ifndef NO_OP3)
+    * SHRD and SHLD first operand (ATT syntax) can only be CL reg or immediate const
+
+  Revision 1.41  1999/04/16 11:49:43  peter
     + tempalloc
     + -at to show temp alloc info in .s file
 

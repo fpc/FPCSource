@@ -373,13 +373,13 @@ Begin
                       Else
                        {change "imul $1, reg1, reg2" to "mov reg1, reg2"}
                         Begin
-{$IfDef USE_OP3}
+{$IfNDef NO_OP3}
                           hp1 := New(Pai386, Op_Reg_Reg(A_MOV, S_L, TRegister(Pai386(p)^.op2),
                                                         TRegister(Pai386(p)^.op3)));
-{$Else USE_OP3}
+{$Else NO_OP3}
                           hp1 := New(Pai386, Op_Reg_Reg(A_MOV, S_L, TRegister(TwoWords(Pai386(p)^.op2).Word1),
                                                         TRegister(TwoWords(Pai386(p)^.op2).Word2)));
-{$EndIf USE_OP3}
+{$EndIf NO_OP3}
                           hp1^.fileinfo := p^.fileinfo;
                           InsertLLItem(AsmL, p^.previous, p^.next, hp1);
                           Dispose(p, Done);
@@ -406,22 +406,22 @@ Begin
                                 lea (reg1,reg1,2), reg2
                               imul 3, reg1 to
                                 lea (reg1,reg1,2), reg1}
-{$IfDef USE_OP3}
+{$IfNDef NO_OP3}
                                TmpRef^.base := TRegister(Pai386(p)^.op2);
                                TmpRef^.Index := TRegister(Pai386(p)^.op2);
-{$Else USE_OP3}
+{$Else NO_OP3}
                                TmpRef^.base := TRegister(twowords(Pai386(p)^.op2).Word1);
                                TmpRef^.Index := TRegister(twowords(Pai386(p)^.op2).Word1);
-{$EndIf USE_OP3}
+{$EndIf NO_OP3}
                                TmpRef^.ScaleFactor := 2;
                                If (Pai386(p)^.op3t = Top_None)
                                  Then hp1 := New(Pai386, op_ref_reg(A_LEA, S_L, TmpRef, TRegister(Pai386(p)^.op2)))
                                  Else hp1 := New(Pai386, op_ref_reg(A_LEA, S_L, TmpRef,
-{$IfDef USE_OP3}
+{$IfNDef NO_OP3}
                                   TRegister(Pai386(p)^.op3)));
-{$Else USE_OP3}
+{$Else NO_OP3}
                                   TRegister(twowords(Pai386(p)^.op2).word2)));
-{$EndIf USE_OP3}
+{$EndIf NO_OP3}
                                hp1^.fileinfo := p^.fileinfo;
                                InsertLLItem(AsmL,p^.previous, p^.next, hp1);
                                Dispose(p, Done);
@@ -432,22 +432,22 @@ Begin
                                lea (reg1,reg1,4), reg2
                              imul 5, reg1 to
                                lea (reg1,reg1,4), reg1}
-{$IfDef USE_OP3}
+{$IfNDef NO_OP3}
                               TmpRef^.base := TRegister(Pai386(p)^.op2);
                               TmpRef^.Index := TRegister(Pai386(p)^.op2);
-{$Else USE_OP3}
+{$Else NO_OP3}
                               TmpRef^.base := TRegister(twowords(Pai386(p)^.op2).Word1);
                               TmpRef^.Index := TRegister(twowords(Pai386(p)^.op2).Word1);
-{$EndIf USE_OP3}
+{$EndIf NO_OP3}
                               TmpRef^.ScaleFactor := 4;
                               If (Pai386(p)^.op3t = Top_None)
                                 Then hp1 := New(Pai386, op_ref_reg(A_LEA, S_L, TmpRef, TRegister(Pai386(p)^.op2)))
                                 Else hp1 := New(Pai386, op_ref_reg(A_LEA, S_L, TmpRef,
-{$IfDef USE_OP3}
+{$IfNDef NO_OP3}
                                  TRegister(Pai386(p)^.op3)));
-{$Else USE_OP3}
+{$Else NO_OP3}
                                  TRegister(twowords(Pai386(p)^.op2).word2)));
-{$EndIf USE_OP3}
+{$EndIf NO_OP3}
                               hp1^.fileinfo:= p^.fileinfo;
                               InsertLLItem(AsmL,p^.previous, p^.next, hp1);
                               Dispose(p, Done);
@@ -463,26 +463,26 @@ Begin
                               If (aktoptprocessor <= Class386)
                                 Then
                                   Begin
-{$IfDef USE_OP3}
+{$IfNDef NO_OP3}
                                     TmpRef^.Index := TRegister(Pai386(p)^.op2);
-{$Else USE_OP3}
+{$Else NO_OP3}
                                     TmpRef^.Index := TRegister(twowords(Pai386(p)^.op2).Word1);
-{$EndIf USE_OP3}
+{$EndIf NO_OP3}
                                     If (Pai386(p)^.op3t = Top_Reg)
                                       Then
                                         Begin
-{$IfDef USE_OP3}
+{$IfNDef NO_OP3}
                                           TmpRef^.base := TRegister(Pai386(p)^.op3);
-{$Else USE_OP3}
+{$Else NO_OP3}
                                           TmpRef^.base := TRegister(twowords(Pai386(p)^.op2).word2);
-{$EndIf USE_OP3}
+{$EndIf NO_OP3}
                                           TmpRef^.ScaleFactor := 4;
                                           hp1 :=  New(Pai386, op_ref_reg(A_LEA, S_L, TmpRef,
-{$IfDef USE_OP3}
+{$IfNDef NO_OP3}
                                             TRegister(Pai386(p)^.op3)));
-{$Else USE_OP3}
+{$Else NO_OP3}
                                             TRegister(twowords(Pai386(p)^.op2).word2)));
-{$EndIf USE_OP3}
+{$EndIf NO_OP3}
                                         End
                                       Else
                                         Begin
@@ -494,22 +494,22 @@ Begin
                                     InsertLLItem(AsmL,p, p^.next, hp1);
                                     New(TmpRef);
                                     Reset_reference(TmpRef^);
-{$IfDef USE_OP3}
+{$IfNDef NO_OP3}
                                     TmpRef^.Index := TRegister(Pai386(p)^.op2);
-{$Else USE_OP3}
+{$Else NO_OP3}
                                     TmpRef^.Index := TRegister(twowords(Pai386(p)^.op2).Word1);
-{$EndIf USE_OP3}
+{$EndIf NO_OP3}
                                     TmpRef^.ScaleFactor := 2;
                                     If (Pai386(p)^.op3t = Top_Reg)
                                       Then
                                         Begin
                                           TmpRef^.base := R_NO;
                                           hp1 :=  New(Pai386, op_ref_reg(A_LEA, S_L, TmpRef,
-{$IfDef USE_OP3}
+{$IfNDef NO_OP3}
                                             TRegister(Pai386(p)^.op3)));
-{$Else USE_OP3}
+{$Else NO_OP3}
                                             TRegister(twowords(Pai386(p)^.op2).word2)));
-{$EndIf USE_OP3}
+{$EndIf NO_OP3}
                                         End
                                       Else
                                         Begin
@@ -528,22 +528,22 @@ Begin
                                 lea (reg1,reg1,8), reg2
                               imul 9, reg1 to
                                 lea (reg1,reg1,8), reg1}
-{$IfDef USE_OP3}
+{$IfNDef NO_OP3}
                                TmpRef^.base := TRegister(Pai386(p)^.op2);
                                TmpRef^.Index := TRegister(Pai386(p)^.op2);
-{$Else USE_OP3}
+{$Else NO_OP3}
                                TmpRef^.base := TRegister(twowords(Pai386(p)^.op2).Word1);
                                TmpRef^.Index := TRegister(twowords(Pai386(p)^.op2).Word1);
-{$EndIf USE_OP3}
+{$EndIf NO_OP3}
                                TmpRef^.ScaleFactor := 8;
                                If (Pai386(p)^.op3t = Top_None)
                                    Then hp1 := New(Pai386, op_ref_reg(A_LEA, S_L, TmpRef, TRegister(Pai386(p)^.op2)))
                                    Else hp1 := New(Pai386, op_ref_reg(A_LEA, S_L, TmpRef,
-{$IfDef USE_OP3}
+{$IfNDef NO_OP3}
                                      TRegister(Pai386(p)^.op3)));
-{$Else USE_OP3}
+{$Else NO_OP3}
                                      TRegister(twowords(Pai386(p)^.op2).word2)));
-{$EndIf USE_OP3}
+{$EndIf NO_OP3}
                                  hp1^.fileinfo := p^.fileinfo;
                                  InsertLLItem(AsmL,p^.previous, p^.next, hp1);
                                  Dispose(p, Done);
@@ -561,33 +561,33 @@ Begin
                                    If (Pai386(p)^.op3t = Top_Reg)
                                      Then
                                        hp1 :=  New(Pai386, op_reg_reg(A_ADD, S_L,
-{$IfDef USE_OP3}
+{$IfNDef NO_OP3}
                                           Tregister(Pai386(p)^.op3),
                                           Tregister(Pai386(p)^.op3)))
-{$Else USE_OP3}
+{$Else NO_OP3}
                                           Tregister(twowords(Pai386(p)^.op2).word2),
                                           Tregister(twowords(Pai386(p)^.op2).word2)))
-{$EndIf USE_OP3}
+{$EndIf NO_OP3}
                                      Else hp1 := New(Pai386, op_reg_reg(A_ADD, S_L,
                                               TRegister(Pai386(p)^.op2), TRegister(Pai386(p)^.op2)));
                                    hp1^.fileinfo := p^.fileinfo;
                                    InsertLLItem(AsmL,p, p^.next, hp1);
-{$IfDef USE_OP3}
+{$IfNDef NO_OP3}
                                    TmpRef^.base := TRegister(Pai386(p)^.op2);
                                    TmpRef^.Index := TRegister(Pai386(p)^.op2);
-{$Else USE_OP3}
+{$Else NO_OP3}
                                    TmpRef^.base := TRegister(twowords(Pai386(p)^.op2).Word1);
                                    TmpRef^.Index := TRegister(twowords(Pai386(p)^.op2).Word1);
-{$EndIf USE_OP3}
+{$EndIf NO_OP3}
                                    TmpRef^.ScaleFactor := 4;
                                    If (Pai386(p)^.op3t = Top_Reg)
                                      Then
                                        hp1 :=  New(Pai386, op_ref_reg(A_LEA, S_L, TmpRef,
-{$IfDef USE_OP3}
+{$IfNDef NO_OP3}
                                           TRegister(Pai386(p)^.op3)))
-{$Else USE_OP3}
+{$Else NO_OP3}
                                           TRegister(twowords(Pai386(p)^.op2).word2)))
-{$EndIf USE_OP3}
+{$EndIf NO_OP3}
                                      Else
                                        hp1 :=  New(Pai386, op_ref_reg(A_LEA, S_L, TmpRef,
                                           TRegister(Pai386(p)^.op2)));
@@ -608,26 +608,26 @@ Begin
                                If (aktoptprocessor <= Class386)
                                  Then
                                    Begin
-{$IfDef USE_OP3}
+{$IfNDef NO_OP3}
                                      TmpRef^.Index := TRegister(Pai386(p)^.op2);
-{$Else USE_OP3}
+{$Else NO_OP3}
                                      TmpRef^.Index := TRegister(twowords(Pai386(p)^.op2).Word1);
-{$EndIf USE_OP3}
+{$EndIf NO_OP3}
                                      If (Pai386(p)^.op3t = Top_Reg)
                                        Then
                                          Begin
-{$IfDef USE_OP3}
+{$IfNDef NO_OP3}
                                            TmpRef^.base := TRegister(Pai386(p)^.op3);
-{$Else USE_OP3}
+{$Else NO_OP3}
                                            TmpRef^.base := TRegister(twowords(Pai386(p)^.op2).word2);
-{$EndIf USE_OP3}
+{$EndIf NO_OP3}
                                            TmpRef^.ScaleFactor := 8;
                                            hp1 :=  New(Pai386, op_ref_reg(A_LEA, S_L, TmpRef,
-{$IfDef USE_OP3}
+{$IfNDef NO_OP3}
                                              TRegister(Pai386(p)^.op3)));
-{$Else USE_OP3}
+{$Else NO_OP3}
                                              TRegister(twowords(Pai386(p)^.op2).word2)));
-{$EndIf USE_OP3}
+{$EndIf NO_OP3}
                                          End
                                        Else
                                          Begin
@@ -640,22 +640,22 @@ Begin
                                      InsertLLItem(AsmL,p, p^.next, hp1);
                                      New(TmpRef);
                                      Reset_reference(TmpRef^);
-{$IfDef USE_OP3}
+{$IfNDef NO_OP3}
                                      TmpRef^.Index := TRegister(Pai386(p)^.op2);
-{$Else USE_OP3}
+{$Else NO_OP3}
                                      TmpRef^.Index := TRegister(twowords(Pai386(p)^.op2).Word1);
-{$EndIf USE_OP3}
+{$EndIf NO_OP3}
                                      If (Pai386(p)^.op3t = Top_Reg)
                                        Then
                                          Begin
                                            TmpRef^.base := R_NO;
                                            TmpRef^.ScaleFactor := 4;
                                            hp1 :=  New(Pai386, op_ref_reg(A_LEA, S_L, TmpRef,
-{$IfDef USE_OP3}
+{$IfNDef NO_OP3}
                                              TRegister(Pai386(p)^.op3)));
-{$Else USE_OP3}
+{$Else NO_OP3}
                                              TRegister(twowords(Pai386(p)^.op2).word2)));
-{$EndIf USE_OP3}
+{$EndIf NO_OP3}
                                          End
                                        Else
                                          Begin
@@ -1677,7 +1677,11 @@ End.
 
 {
  $Log$
- Revision 1.43  1999-04-16 15:16:29  jonas
+ Revision 1.44  1999-04-17 22:17:01  pierre
+   * ifdef USE_OP3 released (changed into ifndef NO_OP3)
+   * SHRD and SHLD first operand (ATT syntax) can only be CL reg or immediate const
+
+ Revision 1.43  1999/04/16 15:16:29  jonas
    * changes to work with -dUSE_OP3
 
  Revision 1.42  1999/04/10 16:15:04  peter
