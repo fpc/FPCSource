@@ -57,29 +57,27 @@ implementation
       var
         len : longint;
         st  : psymtable;
+        loadconst : boolean;
       begin
         if assigned(p^.hightree) then
          exit;
         len:=-1;
+        loadconst:=true;
         case p^.left^.resulttype^.deftype of
           arraydef :
             begin
               if is_open_array(p^.left^.resulttype) or
-                is_array_of_const(p^.left^.resulttype) then
+                 is_array_of_const(p^.left^.resulttype) then
                begin
                  st:=p^.left^.symtable;
                  getsymonlyin(st,'high'+pvarsym(p^.left^.symtableentry)^.name);
                  p^.hightree:=genloadnode(pvarsym(srsym),st);
+                 loadconst:=false;
                end
               else
                 begin
-                   { this is an empty constructor
-                   if (parraydef(p^.left^.resulttype)^.highrange=-1)
-                     and (parraydef(p^.left^.resulttype)^.lowrange=0) then
-                     len:=0
-                   else
-                   }
-                     len:=parraydef(p^.left^.resulttype)^.highrange-
+                  { this is an empty constructor }
+                  len:=parraydef(p^.left^.resulttype)^.highrange-
                        parraydef(p^.left^.resulttype)^.lowrange;
                 end;
             end;
@@ -92,6 +90,7 @@ implementation
                     st:=p^.left^.symtable;
                     getsymonlyin(st,'high'+pvarsym(p^.left^.symtableentry)^.name);
                     p^.hightree:=genloadnode(pvarsym(srsym),st);
+                    loadconst:=false;
                   end
                  else
                   len:=pstringdef(p^.left^.resulttype)^.len;
@@ -111,14 +110,15 @@ implementation
                                                genordinalconstnode(1,s32bitdef));
                      firstpass(p^.hightree);
                      p^.hightree:=gentypeconvnode(p^.hightree,s32bitdef);
+                     loadconst:=false;
                    end;
                end;
            end;
         else
           len:=0;
         end;
-        { if len>=0 then }
-        p^.hightree:=genordinalconstnode(len,s32bitdef);
+        if loadconst then
+          p^.hightree:=genordinalconstnode(len,s32bitdef);
         firstpass(p^.hightree);
       end;
 
@@ -1162,7 +1162,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.48  1999-05-27 19:45:13  peter
+  Revision 1.49  1999-05-31 20:34:51  peter
+    * fixed hightree generation when loading highSYM
+
+  Revision 1.48  1999/05/27 19:45:13  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly
