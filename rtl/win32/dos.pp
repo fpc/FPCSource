@@ -92,6 +92,7 @@ Type
   Searchrec = Packed Record
     FindHandle  : THandle;
     W32FindData : TWin32FindData;
+    ExcludeAttr : longint;
     time : longint;
     size : longint;
     attr : longint;
@@ -168,13 +169,13 @@ uses strings;
 
    function GetLastError : DWORD;
      external 'kernel32' name 'GetLastError';
-   function FileTimeToDosDateTime(const ft :TFileTime;var data,time : word) : boolean;
+   function FileTimeToDosDateTime(const ft :TFileTime;var data,time : word) : longbool;
      external 'kernel32' name 'FileTimeToDosDateTime';
-   function DosDateTimeToFileTime(date,time : word;var ft :TFileTime) : boolean;
+   function DosDateTimeToFileTime(date,time : word;var ft :TFileTime) : longbool;
      external 'kernel32' name 'DosDateTimeToFileTime';
-   function FileTimeToLocalFileTime(const ft : TFileTime;var lft : TFileTime) : boolean;
+   function FileTimeToLocalFileTime(const ft : TFileTime;var lft : TFileTime) : longbool;
      external 'kernel32' name 'FileTimeToLocalFileTime';
-   function LocalFileTimeToFileTime(const lft : TFileTime;var ft : TFileTime) : boolean;
+   function LocalFileTimeToFileTime(const lft : TFileTime;var ft : TFileTime) : longbool;
      external 'kernel32' name 'LocalFileTimeToFileTime';
 
 type
@@ -200,7 +201,7 @@ begin
 end;
 
 
-Function DosToWinTime (DTime:longint;Var Wtime : TFileTime):boolean;
+Function DosToWinTime (DTime:longint;Var Wtime : TFileTime):longbool;
 var
   lft : TFileTime;
 begin
@@ -209,7 +210,7 @@ begin
 end;
 
 
-Function WinToDosTime (Const Wtime : TFileTime;var DTime:longint):boolean;
+Function WinToDosTime (Const Wtime : TFileTime;var DTime:longint):longbool;
 var
   lft : TFileTime;
 begin
@@ -494,9 +495,8 @@ procedure FindMatch(var f:searchrec);
 Var
   TheAttr : Longint;
 begin
-  TheAttr:=DosToWinAttr(F.Attr);
 { Find file with correct attribute }
-  While (F.W32FindData.dwFileAttributes and TheAttr)=0 do
+  While (F.W32FindData.dwFileAttributes and F.ExcludeAttr)<>0 do
    begin
      if not FindNextFile (F.FindHandle,F.W32FindData) then
       begin
@@ -514,18 +514,22 @@ end;
 
 procedure findfirst(const path : pathstr;attr : word;var f : searchRec);
 begin
+writeln('a');
 { no error }
   doserror:=0;
   F.Name:=Path;
   F.Attr:=attr;
+  F.ExcludeAttr:=(not Attr) and ($1e); {hidden,sys,dir,volume}
   StringToPchar(f.name);
-{ FindFirstFile is a Win32 Call. }
+{ FindFirstFile is a Win32 Call }
   F.FindHandle:=FindFirstFile (pchar(@f.Name),F.W32FindData);
+writeln('l1');
   If longint(F.FindHandle)=Invalid_Handle_value then
    begin
      DosError:=Last2DosError(GetLastError);
      exit;
    end;
+writeln('l1');
 { Find file with correct attribute }
   FindMatch(f);
 end;
@@ -664,7 +668,7 @@ begin
    until i=0;
 
    { Turbo Pascal gets rid of a \.. at the end of the path }
-   { Now remove also any reference to '\..'  at end of line 
+   { Now remove also any reference to '\..'  at end of line
      + of course previous dir.. }
    i:=pos('\..',pa);
    if i<>0 then
@@ -681,7 +685,7 @@ begin
    { Remove End . and \}
    if (length(pa)>0) and (pa[length(pa)]='.') then
     dec(byte(pa[0]));
-   { if only the drive + a '\' is left then the '\' should be left to prevtn the program 
+   { if only the drive + a '\' is left then the '\' should be left to prevtn the program
      accessing the current directory on the drive rather than the root!}
    { if the last char of path = '\' then leave it in as this is what TP does! }
    if ((length(pa)>3) and (pa[length(pa)]='\')) and (path[length(path)] <> '\') then
@@ -875,7 +879,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.8  1998-08-16 09:12:11  michael
+  Revision 1.9  1998-10-16 08:55:26  peter
+    * findfirst is now more delphi alike
+
+  Revision 1.8  1998/08/16 09:12:11  michael
   Corrected fexpand behaviour.
 
   Revision 1.7  1998/06/10 10:39:13  peter
