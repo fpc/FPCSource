@@ -536,12 +536,6 @@ begin
    begin
       hd:=0.1;
       inc(code);
-      { After dot, a number is required. }
-      if not(s[code] in ['0'..'9']) or (length(s)<code) then
-        begin
-           valfloat:=0.0;
-           exit;
-        end;
       while (s[code] in ['0'..'9']) and (length(s)>=code) do
         begin
            { Read fractional part. }
@@ -1201,7 +1195,10 @@ end;
 
 {
   $Log$
-  Revision 1.24  1999-04-01 22:00:49  peter
+  Revision 1.25  1999-04-01 22:11:50  peter
+    * fixed '1.' parsing of val
+
+  Revision 1.24  1999/04/01 22:00:49  peter
     * universal names for str/val (ansistr instead of stransi)
     * '1.' support for val() this is compatible with tp7
 
