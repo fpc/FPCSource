@@ -26,9 +26,29 @@ procedure Sleep(milliseconds: Cardinal);
 function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString):integer;
 function ExecuteProcess(Const Path: AnsiString; Const ComLine: Array of AnsiString):integer;
 
+Function GetAppConfigDir(Global : Boolean) : String;
+Function GetAppConfigFile(Global : Boolean) : String;
+Function GetAppConfigFile(Global : Boolean; SubDir : Boolean) : String;
+Function ApplicationName : String;
+
+Const
+  ConfigExtension : String = '.cfg';
+  SysConfigDir    : String = '';   
+  
+Type 
+  TGetAppNameEvent = Function : String;
+
+Var
+  OnGetApplicationName : TGetAppNameEvent;
+
+
+
 {
   $Log$
-  Revision 1.6  2004-02-13 13:02:21  marco
+  Revision 1.7  2004-08-05 07:28:01  michael
+  + Added getappconfigdir calls
+
+  Revision 1.6  2004/02/13 13:02:21  marco
    * addition of second executeprocess prototype
 
   Revision 1.5  2004/02/08 11:02:40  michael

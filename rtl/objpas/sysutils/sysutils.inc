@@ -70,6 +70,9 @@
   { CPU Specific code }
   {$i sysutilp.inc}
 
+  { OS utility code }
+  {$i osutil.inc}
+   
     procedure FreeAndNil(var obj);
       var
         temp: tobject;
