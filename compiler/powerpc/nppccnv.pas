@@ -297,7 +297,7 @@ implementation
               begin
                 hreg1:=rg.getregisterint(exprasmlist);
                 resflags:=left.location.resflags;
-                cg.g_flags2reg(exprasmlist,resflags,hreg1);
+                cg.g_flags2reg(exprasmlist,location.size,resflags,hreg1);
               end;
             else
               internalerror(10062);
@@ -384,7 +384,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2002-07-24 14:38:00  florian
+  Revision 1.17  2002-07-27 19:55:15  jonas
+    + generic implementation of tcg.g_flags2ref()
+    * tcg.flags2xxx() now also needs a size parameter
+
+  Revision 1.16  2002/07/24 14:38:00  florian
     * small typo fixed, compiles with 1.0.x again
 
   Revision 1.15  2002/07/21 16:57:22  jonas

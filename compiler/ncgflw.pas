@@ -104,10 +104,10 @@ implementation
          if nf_testatbegin in flags then
            cg.a_jmp_always(exprasmlist,lcont);
 
-	 if not(cs_littlesize in aktglobalswitches) then
+         if not(cs_littlesize in aktglobalswitches) then
             { align loop target }
             exprasmList.concat(Tai_align.Create(aktalignment.loopalign));
-	
+
          cg.a_label(exprasmlist,lloop);
 
          aktcontinuelabel:=lcont;
@@ -133,7 +133,7 @@ implementation
           end;
          rg.cleartempgen;
          secondpass(left);
-	
+
          maketojumpbool(exprasmlist,left,lr_load_regvars);
          cg.a_label(exprasmlist,lbreak);
          truelabel:=otlabel;
@@ -363,7 +363,7 @@ implementation
            hop:=OP_SUB;
          cg.a_op_const_loc(exprasmlist,hop,1,t2.location);
 
-	 if not(cs_littlesize in aktglobalswitches) then
+         if not(cs_littlesize in aktglobalswitches) then
             { align loop target }
             exprasmList.concat(Tai_align.Create(aktalignment.loopalign));
          cg.a_label(exprasmlist,l3);
@@ -472,7 +472,7 @@ implementation
                   begin
                     cg.a_reg_alloc(exprasmlist,accumulator);
                     allocated_acc := true;
-                    cg.g_flags2reg(exprasmlist,left.location.resflags,accumulator);
+                    cg.g_flags2reg(exprasmlist,OS_INT,left.location.resflags,accumulator);
                     goto do_jmp;
                   end;
                 LOC_JUMP :
@@ -627,7 +627,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  2002-07-25 17:56:29  carl
+  Revision 1.30  2002-07-27 19:53:51  jonas
+    + generic implementation of tcg.g_flags2ref()
+    * tcg.flags2xxx() now also needs a size parameter
+
+  Revision 1.29  2002/07/25 17:56:29  carl
     + FPURESULTREG -> FPU_RESULT_REG
 
   Revision 1.28  2002/07/21 06:58:49  daniel

@@ -233,7 +233,7 @@ implementation
               { load value in low register }
               case l.loc of
                 LOC_FLAGS :
-                  cg.g_flags2reg(list,l.resflags,hregister);
+                  cg.g_flags2reg(list,OS_INT,l.resflags,hregister);
                 LOC_JUMP :
                   begin
                     cg.a_label(list,truelabel);
@@ -321,7 +321,7 @@ implementation
            { load value in new register }
            case l.loc of
              LOC_FLAGS :
-               cg.g_flags2reg(list,l.resflags,hregister);
+               cg.g_flags2reg(list,dst_size,l.resflags,hregister);
              LOC_JUMP :
                begin
                  cg.a_label(list,truelabel);
@@ -375,7 +375,7 @@ implementation
               { load value in low register }
               case l.loc of
                 LOC_FLAGS :
-                  cg.g_flags2reg(list,l.resflags,hregister);
+                  cg.g_flags2reg(list,OS_INT,l.resflags,hregister);
                 LOC_JUMP :
                   begin
                     cg.a_label(list,truelabel);
@@ -413,7 +413,7 @@ implementation
            { load value in new register }
            case l.loc of
              LOC_FLAGS :
-               cg.g_flags2reg(list,l.resflags,hregister);
+               cg.g_flags2reg(list,dst_size,l.resflags,hregister);
              LOC_JUMP :
                begin
                  cg.a_label(list,truelabel);
@@ -587,15 +587,11 @@ implementation
 
     function maybe_pushfpu(list:taasmoutput;needed : byte;var l:tlocation) : boolean;
       begin
-        if needed>=maxfpuregs then
+        if (needed>=maxfpuregs) and
+           (l.loc = LOC_FPUREGISTER) then
           begin
-            if l.loc = LOC_FPUREGISTER then
-              begin
-                location_force_mem(list,l);
-                maybe_pushfpu:=true;
-              end
-            else
-              maybe_pushfpu:=false;
+            location_force_mem(list,l);
+            maybe_pushfpu:=true;
           end
         else
           maybe_pushfpu:=false;
@@ -1629,7 +1625,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  2002-07-26 21:15:38  florian
+  Revision 1.26  2002-07-27 19:53:51  jonas
+    + generic implementation of tcg.g_flags2ref()
+    * tcg.flags2xxx() now also needs a size parameter
+
+  Revision 1.25  2002/07/26 21:15:38  florian
     * rewrote the system handling
 
   Revision 1.24  2002/07/25 17:58:24  carl

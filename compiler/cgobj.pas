@@ -237,8 +237,8 @@ unit cgobj;
           procedure a_jmp_always(list : taasmoutput;l: tasmlabel); virtual; abstract;
           procedure a_jmp_flags(list : taasmoutput;const f : TResFlags;l: tasmlabel); virtual; abstract;
 
-          procedure g_flags2reg(list: taasmoutput; const f: tresflags; reg: TRegister); virtual; abstract;
-          procedure g_flags2ref(list: taasmoutput; const f: tresflags; const ref:TReference); virtual; abstract;
+          procedure g_flags2reg(list: taasmoutput; size: TCgSize; const f: tresflags; reg: TRegister); virtual; abstract;
+          procedure g_flags2ref(list: taasmoutput; size: TCgSize; const f: tresflags; const ref:TReference); virtual;
 
           { some processors like the PPC doesn't allow to change the stack in }
           { a procedure, so we need to maintain an extra stack for the        }
@@ -1084,8 +1084,7 @@ unit cgobj;
                (hfrom = high(longint))) or
               ((torddef(fromdef).typ = u32bit) and
                (lfrom = low(cardinal)) and
-               (hfrom = high(cardinal))))) or
-            is_64bitint(fromdef)) then
+               (hfrom = high(cardinal)))))) then
           exit;
         if todef<>fromdef then
          begin
@@ -1098,7 +1097,7 @@ unit cgobj;
         { store the result                                               }
 
         { use the trick that                                                 }
-        { a <= x <= b <=> 0 <= x-a <= b-a <=> cardinal(x-a) <= cardinal(b-a) }
+        { a <= x <= b <=> 0 <= x-a <= b-a <=> unsigned(x-a) <= unsigned(b-a) }
 
         { To be able to do that, we have to make sure however that either    }
         { fromdef and todef are both signed or unsigned, or that we leave    }
@@ -1143,15 +1142,15 @@ unit cgobj;
         hreg := get_scratch_reg_int(list);
         if (p.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
           a_op_const_reg_reg(list,OP_SUB,def_cgsize(p.resulttype.def),
-           aword(longint(lto and $ffffffff)),p.location.register,hreg)
+           aword(lto),p.location.register,hreg)
         else
           begin
             a_load_ref_reg(list,def_cgsize(p.resulttype.def),
               p.location.reference,hreg);
-            a_op_const_reg(list,OP_SUB,aword(longint(lto and $ffffffff)),hreg);
+            a_op_const_reg(list,OP_SUB,aword(lto),hreg);
           end;
         getlabel(neglabel);
-        a_cmp_const_reg_label(list,OS_INT,OC_BE,aword(longint((hto-lto) and $ffffffff)),hreg,neglabel);
+        a_cmp_const_reg_label(list,OS_INT,OC_BE,aword(hto-lto),hreg,neglabel);
         { !!! should happen right after the compare (JM) }
         free_scratch_reg(list,hreg);
         a_call_name(list,'FPC_RANGEERROR');
@@ -1164,6 +1163,18 @@ unit cgobj;
       begin
          a_param_const(list,OS_32,stackframesize,paramanager.getintparaloc(1));
          a_call_name(list,'FPC_STACKCHECK');
+      end;
+
+
+    procedure tcg.g_flags2ref(list: taasmoutput; size: TCgSize; const f: tresflags; const ref:TReference);
+
+      var
+        tmpreg : tregister;
+      begin
+        tmpreg := get_scratch_reg_int(list);
+        g_flags2reg(list,size,f,tmpreg);
+        a_load_reg_ref(list,size,tmpreg,ref);
+        free_scratch_reg(list,tmpreg);
       end;
 
 
@@ -1368,7 +1379,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.37  2002-07-20 11:57:53  florian
+  Revision 1.38  2002-07-27 19:53:51  jonas
+    + generic implementation of tcg.g_flags2ref()
+    * tcg.flags2xxx() now also needs a size parameter
+
+  Revision 1.37  2002/07/20 11:57:53  florian
     * types.pas renamed to defbase.pas because D6 contains a types
       unit so this would conflicts if D6 programms are compiled
     + Willamette/SSE2 instructions to assembler added

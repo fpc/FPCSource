@@ -633,13 +633,14 @@ implementation
                 end;
               LOC_FLAGS :
                 begin
+                  // this can be a wordbool or longbool too, no?
                   if left.location.loc=LOC_CREGISTER then
-                    cg.g_flags2reg(exprasmlist,right.location.resflags,left.location.register)
+                    cg.g_flags2reg(exprasmlist,def_cgsize(left.resulttype.def),right.location.resflags,left.location.register)
                   else
                     begin
-                      if not(left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+                      if not(left.location.loc = LOC_REFERENCE) then
                        internalerror(200203273);
-                      cg.g_flags2ref(exprasmlist,right.location.resflags,left.location.reference);
+                      cg.g_flags2ref(exprasmlist,def_cgsize(left.resulttype.def),right.location.resflags,left.location.reference);
                     end;
                 end;
             end;
@@ -922,7 +923,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2002-07-20 11:57:54  florian
+  Revision 1.16  2002-07-27 19:53:51  jonas
+    + generic implementation of tcg.g_flags2ref()
+    * tcg.flags2xxx() now also needs a size parameter
+
+  Revision 1.15  2002/07/20 11:57:54  florian
     * types.pas renamed to defbase.pas because D6 contains a types
       unit so this would conflicts if D6 programms are compiled
     + Willamette/SSE2 instructions to assembler added

@@ -94,8 +94,8 @@ unit cgx86;
         procedure a_jmp_always(list : taasmoutput;l: tasmlabel); override;
         procedure a_jmp_flags(list : taasmoutput;const f : TResFlags;l: tasmlabel); override;
 
-        procedure g_flags2reg(list: taasmoutput; const f: tresflags; reg: TRegister); override;
-        procedure g_flags2ref(list: taasmoutput; const f: tresflags; const ref: TReference); override;
+        procedure g_flags2reg(list: taasmoutput; size: TCgSize; const f: tresflags; reg: TRegister); override;
+        procedure g_flags2ref(list: taasmoutput; size: TCgSize; const f: tresflags; const ref: TReference); override;
 
         procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aword; delsource,loadref : boolean);override;
 
@@ -1034,26 +1034,28 @@ unit cgx86;
        end;
 
 
-     procedure tcgx86.g_flags2reg(list: taasmoutput; const f: tresflags; reg: TRegister);
+     procedure tcgx86.g_flags2reg(list: taasmoutput; size: TCgSize; const f: tresflags; reg: TRegister);
 
        var
          ai : taicpu;
          hreg : tregister;
        begin
+          if not(size in [OS_8,OS_S8]) then
+            a_load_const_reg(list,size,0,reg);
           hreg := rg.makeregsize(reg,OS_8);
           ai:=Taicpu.Op_reg(A_Setcc,S_B,hreg);
           ai.SetCondition(flags_to_cond(f));
           list.concat(ai);
-          if hreg<>reg then
-           a_load_reg_reg(list,OS_8,hreg,reg);
        end;
 
 
-     procedure tcgx86.g_flags2ref(list: taasmoutput; const f: tresflags; const ref: TReference);
+     procedure tcgx86.g_flags2ref(list: taasmoutput; size: TCgSize; const f: tresflags; const ref: TReference);
 
        var
          ai : taicpu;
        begin
+          if not(size in [OS_8,OS_S8]) then
+            a_load_const_ref(list,size,0,ref);
           ai:=Taicpu.Op_ref(A_Setcc,S_B,ref);
           ai.SetCondition(flags_to_cond(f));
           list.concat(ai);
@@ -1664,7 +1666,11 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.3  2002-07-26 21:15:46  florian
+  Revision 1.4  2002-07-27 19:53:51  jonas
+    + generic implementation of tcg.g_flags2ref()
+    * tcg.flags2xxx() now also needs a size parameter
+
+  Revision 1.3  2002/07/26 21:15:46  florian
     * rewrote the system handling
 
   Revision 1.2  2002/07/21 16:55:34  jonas

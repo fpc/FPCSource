@@ -270,7 +270,7 @@ implementation
          { load flags to register }
          location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def));
          location.register:=def_getreg(resulttype.def);
-         cg.g_flags2reg(exprasmlist,resflags,location.register);
+         cg.g_flags2reg(exprasmlist,location.size,resflags,location.register);
          truelabel:=oldtruelabel;
          falselabel:=oldfalselabel;
        end;
@@ -365,7 +365,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.44  2002-07-20 11:58:01  florian
+  Revision 1.45  2002-07-27 19:53:51  jonas
+    + generic implementation of tcg.g_flags2ref()
+    * tcg.flags2xxx() now also needs a size parameter
+
+  Revision 1.44  2002/07/20 11:58:01  florian
     * types.pas renamed to defbase.pas because D6 contains a types
       unit so this would conflicts if D6 programms are compiled
     + Willamette/SSE2 instructions to assembler added
