@@ -1,5 +1,6 @@
+{$mode objfpc}
 uses
-   dotest;
+   dotest,sysutils;
 
 var
    i : longint;
@@ -66,7 +67,7 @@ procedure test5;
      j : longint;
 
   begin
-     for l:=1 to 10 do
+     for j:=1 to 10 do
        begin
           try
              i:=0;
@@ -85,13 +86,14 @@ procedure test6;
 
   begin
      i:=0;
-     for l:=1 to 10 do
-       try
-          continue;
-        finally
-          inc(i);
-        end;
-        dec(i);
+     for j:=1 to 10 do
+       begin
+          try
+             continue;
+          finally
+             inc(i);
+          end;
+          dec(i);
      end;
   end;
 
@@ -198,9 +200,10 @@ function do_raise : ansistring;
 
   var
      a1,a2 : ansistring;
+     j : longint;
 
   begin
-     for i:=1 to 3 do
+     for j:=1 to 3 do
        begin
           a1:=copy('Hello world',1,5);
           do_raise:=copy(a2,1,1);
@@ -247,7 +250,7 @@ procedure test102;
            do_raise;
         except
            inc(i);
-           reraise;
+           raise;
         end;
      except
         inc(i);
@@ -255,22 +258,26 @@ procedure test102;
   end;
 
 var
-   startmemvail : longint;
+   startmemavail : longint;
 
 begin
    startmemavail:=memavail;
    i:=-1;
    try
      test1;
-   except
+   finally
      inc(i);
    end;
    if i<>2 then
      do_error(1001);
 
    i:=-1;
-   test2;
-   if i<>1 then
+   try
+     test2;
+   except
+     inc(i);
+   end;
+   if i<>2 then
      do_error(1002);
 
    i:=-1;
@@ -321,18 +328,19 @@ begin
    test100;
    if i<>1 then
      do_error(1100);
-
+   
    i:=-1;
    test101;
    if i<>2 then
      do_error(1101);
-
+   
    i:=-1;
    test102;
    if i<>2 then
      do_error(1102);
-
-   if memavail<>startmemvail then
+   
+   if memavail<>startmemavail then
      do_error(99999);
+   writeln('Test successfully passed');
    halt(0);
 end.
