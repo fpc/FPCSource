@@ -715,7 +715,7 @@ end;
 
 constructor TSQLite.Create(Aowner: tComponent);
 begin
-inherited create(owner);
+inherited create(Aowner);
 fLstName := TStringList.Create;
 fLstVal := TStringList.Create;
 fDoSql:=false;
