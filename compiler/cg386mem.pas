@@ -575,7 +575,11 @@ implementation
                              t:=p^.right^.left;
                              putnode(p^.right^.right);
                              putnode(p^.right);
-                             p^.right:=t
+                             p^.right:=t;
+                             { First pass processed this with the assumption }
+                             { that there was an add node which requires an  }
+                             { extra register. Fake it or die with IE10 (JM) }
+                             inc(p^.right^.registers32);
                           end
                         else if p^.right^.left^.treetype=ordconstn then
                           begin
@@ -583,7 +587,8 @@ implementation
                              t:=p^.right^.right;
                              putnode(p^.right^.left);
                              putnode(p^.right);
-                             p^.right:=t
+                             p^.right:=t;
+                             inc(p^.right^.registers32);
                           end;
                      end
                    else if (p^.right^.treetype=subn) then
@@ -596,7 +601,8 @@ implementation
                              t:=p^.right^.left;
                              putnode(p^.right^.right);
                              putnode(p^.right);
-                             p^.right:=t
+                             p^.right:=t;
+                             inc(p^.right^.registers32);
                           end
 { You also have to negate p^.right^.right in this case! I can't add an
   unaryminusn without causing a crash, so I've disabled it (JM)
@@ -607,7 +613,7 @@ implementation
                              putnode(p^.right);
                              putnode(p^.right^.left);
                              p^.right:=t;
-                          end;}
+                         end;}
                      end;
                    inc(p^.location.reference.offset,
                        get_mul_size*extraoffset);
@@ -951,7 +957,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2000-07-21 15:14:02  jonas
+  Revision 1.4  2000-07-27 12:41:54  jonas
+    * fixed internalerror(10) when using -Or and complex arrays (merged
+      from fixes branch)
+
+  Revision 1.3  2000/07/21 15:14:02  jonas
     + added is_addr field for labels, if they are only used for getting the address
        (e.g. for io checks) and corresponding getaddrlabel() procedure
 
