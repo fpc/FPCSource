@@ -245,7 +245,7 @@ uses SysUtils, XHTML, XMLWrite, HTMWrite, sh_pas;
 Function FixHTMLpath(S : String) : STring;
 
 begin
-  Result:=StringReplace(S,'\','/',[rfReplaceAll]
+  Result:=StringReplace(S,'\','/',[rfReplaceAll]);
 end;
 
 procedure TFileAllocator.AllocFilename(AElement: TPasElement;
@@ -2822,7 +2822,10 @@ end.
 
 {
   $Log$
-  Revision 1.11  2004-12-20 16:28:56  michael
+  Revision 1.12  2004-12-20 19:01:11  peter
+    * typo
+
+  Revision 1.11  2004/12/20 16:28:56  michael
   + Fixed HTML path
 
   Revision 1.10  2004/10/22 19:58:35  michael
