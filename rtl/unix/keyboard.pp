@@ -28,9 +28,10 @@ Function RawReadKey:char;
 Function RawReadString : String;
 Function KeyPressed : Boolean;
 {$ifndef NotUseTree}
-Procedure AddSequence(Const St : String; Char,Scan :byte);
+Procedure AddSequence(Const St : String; AChar,AScan :byte);
 Function FindSequence(Const St : String;var AChar, Ascan : byte) : boolean;
 {$endif NotUseTree}
+procedure RestoreStartMode;
 
 
 implementation
@@ -46,7 +47,7 @@ uses
 {$i keyboard.inc}
 
 var
-  OldIO : TermIos;
+  OldIO,StartTio : TermIos;
 {$ifdef logging}
   f : text;
 {$endif logging}
@@ -1085,7 +1086,7 @@ Begin
           if assigned(NPT^.SpecialHandler) then
             begin
               NPT^.SpecialHandler;
-              ch:=#0;
+              PushExt(0);
             end
           else if NPT^.CharValue<>0 then
             PushKey(chr(NPT^.CharValue))
@@ -1356,12 +1357,15 @@ begin
   {$Ifndef BSD}
   if IOCtl(StdInputHandle,TIOCLINUX,@arg) then
    begin
-     if (arg and (2 or 8))<>0 then
-      inc(shift,8);
+     if (arg and 8)<>0 then
+      shift:=kbAlt;
      if (arg and 4)<>0 then
-      inc(shift,4);
+      inc(shift,kbCtrl);
+     { 2 corresponds to AltGr so set both kbAlt and kbCtrl PM }
+     if (arg and 2)<>0 then
+      shift:=shift or (kbAlt or kbCtrl);
      if (arg and 1)<>0 then
-      inc(shift,3);
+      inc(shift,kbShift);
    end;
  {$endif}
   ShiftState:=shift;
@@ -1484,8 +1488,8 @@ begin {main}
     if Mychar=#0 then
       begin
         MyScan:=ord(ReadKey(IsAlt));
-        { Handle Ctrl-<x> }
-        if (SState and kbCtrl)<>0 then
+        { Handle Ctrl-<x>, but not AltGr-<x> }
+        if ((SState and kbCtrl)<>0) and ((SState and kbAlt) = 0)  then
          begin
            case MyScan of
              kbHome..kbDel : { cArrow }
@@ -1496,8 +1500,8 @@ begin {main}
                MyScan:=MyScan+kbCtrlF11-kbF11;
            end;
          end
-        { Handle Alt-<x> }
-        else if (SState and kbAlt)<>0 then
+        { Handle Alt-<x>, but not AltGr }
+        else if ((SState and kbAlt)<>0) and ((SState and kbCtrl) = 0) then
          begin
            case MyScan of
              kbHome..kbDel : { AltArrow }
@@ -1519,7 +1523,10 @@ begin {main}
                MyScan:=MyScan+kbShiftF11-kbF11;
              end;
          end;
-        GetKeyEvent:=$3000000 or ord(MyChar) or (MyScan shl 8) or (SState shl 16);
+        if (MyChar<>#0) or (MyScan<>0) or (SState<>0) then
+          GetKeyEvent:=$3000000 or ord(MyChar) or (MyScan shl 8) or (SState shl 16)
+        else
+          GetKeyEvent:=0;
         exit;
       end
     else if MyChar=#27 then
@@ -1571,7 +1578,7 @@ begin {main}
     if not again then
       begin
         MyScan:=EvalScan(ord(MyChar));
-        if (SState and kbAlt)<>0 then
+        if ((SState and kbAlt)<>0) and ((SState and kbCtrl) = 0) then
           begin
             if MyScan in [$02..$0D] then
               inc(MyScan,$76);
@@ -1592,7 +1599,10 @@ begin {main}
           SState:=SState or kbAlt;
       end;
     until not Again;
-  GetKeyEvent:=$3000000 or ord(MyChar) or (MyScan shl 8) or (SState shl 16);
+  if (MyChar<>#0) or (MyScan<>0) or (SState<>0) then
+    GetKeyEvent:=$3000000 or ord(MyChar) or (MyScan shl 8) or (SState shl 16)
+  else
+    GetKeyEvent:=0;
 end;
 
 
@@ -1677,10 +1687,36 @@ begin
 end;
 
 
+procedure RestoreStartMode;
+begin
+  TCSetAttr(1,TCSANOW,StartTio);
+end;
+
+begin
+  TCGetAttr(1,StartTio);
 end.
 {
   $Log$
-  Revision 1.2  2001-01-21 20:21:40  marco
+  Revision 1.3  2001-04-10 23:35:02  peter
+    * fixed argument name
+    * merged fixes
+
+  Revision 1.2.2.5  2001/03/27 12:38:10  pierre
+   + RestoreStartMode function
+
+  Revision 1.2.2.4  2001/03/27 11:41:03  pierre
+   * fix the special handler case to avoid waiting for one more char
+
+  Revision 1.2.2.3  2001/03/24 22:38:46  pierre
+   * fix bug with AltGr keys
+
+  Revision 1.2.2.2  2001/01/30 22:23:44  peter
+    * unix back to linux
+
+  Revision 1.2.2.1  2001/01/30 21:52:02  peter
+    * moved api utils to rtl
+
+  Revision 1.2  2001/01/21 20:21:40  marco
    * Rename fest II. Rtl OK
 
   Revision 1.1  2001/01/13 11:03:58  peter
