@@ -6,7 +6,7 @@
 main=rtl
 
 [target]
-loaders=prt0 prt1
+loaders=prt0
 units=$(SYSTEMUNIT) objpas strings \
       ports os2def doscalls moncalls kbdcalls moucalls viocalls \
       pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi \
@@ -78,19 +78,8 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 # Loaders
 #
 
-#%$(OEXT) : %.as
-#        $(AS) -o $*$(OEXT) $*.as
-#
-# Temporary solution of linking error
-%.o : %.as
-        $(AS) -o $*.o $*.as
-        $(AS) -o $*.oo2 $*.as
-
-%.oo2 : %.as
-        $(AS) -o $*.o $*.as
-        $(AS) -o $*.oo2 $*.as
-
-
+%$(OEXT) : %.as
+        $(AS) -o $*$(OEXT) $*.as
 
 #
 # Base Units (System, strings, os-dependent-base-unit)
@@ -170,7 +159,7 @@ sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
 
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-                   sysutils$(PPUEXT) typinfo$(PPUEXT)
+                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconst$(PPUEXT) types$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
 
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)

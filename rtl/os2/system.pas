@@ -20,13 +20,6 @@ unit {$ifdef VER1_0}sysos2{$else}System{$endif};
 
 interface
 
-{Link the startup code.}
-{$ifdef VER1_0}
- {$l prt1.oo2}
-{$else}
- {$l prt1.o}
-{$endif}
-
 {$ifdef SYSTEMDEBUG}
   {$define SYSTEMEXCEPTIONDEBUG}
   {.$define IODEBUG}
@@ -120,10 +113,10 @@ const   UnusedHandle=-1;
 
 var
 { C-compatible arguments and environment }
-  argc  : longint; //external name '_argc';
-  argv  : ppchar; //external name '_argv';
-  envp  : ppchar; //external name '_environ';
-  EnvC: cardinal; //external name '_envc';
+  argc  : longint;
+  argv  : ppchar;
+  envp  : ppchar;
+  EnvC: cardinal;
 
 (* Pointer to the block of environment variables - used e.g. in unit Dos. *)
   Environment: PChar;
@@ -140,11 +133,6 @@ var
 implementation
 
 {$I system.inc}
-
-//var
-//    heap_base: pointer; external name '__heap_base';
-//    heap_brk: pointer; external name '__heap_brk';
-//    heap_end: pointer; external name '__heap_end';
 
 (* Maximum heap size - only used if heap is allocated as continuous block. *)
 {$IFDEF CONTHEAP}
@@ -1450,7 +1438,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.64  2004-01-25 21:41:48  hajny
+  Revision 1.65  2004-02-02 03:24:09  yuri
+  - prt1.as removed
+  - removed tmporary code/comments
+  - prt1 compilation error workaround removed
+
+  Revision 1.64  2004/01/25 21:41:48  hajny
     * reformatting of too long comment lines - not accepted by FP IDE
 
   Revision 1.63  2004/01/21 14:15:42  florian
