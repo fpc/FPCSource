@@ -424,15 +424,7 @@ implementation
                 Message(sym_e_no_instance_of_abstract_object);
                { search the constructor also in the symbol tables of
                  the parents }
-               sym:=nil;
-               while assigned(classh) do
-                begin
-                  sym:=tsym(classh.symtable.search(pattern));
-                  if assigned(sym) and
-                     tstoredsym(sym).is_visible_for_proc(aktprocdef) then
-                   break;
-                  classh:=classh.childof;
-                end;
+               sym:=searchsym_in_class(classh,pattern);
                consume(_ID);
                do_member_read(false,sym,p2,again);
                { we need to know which procedure is called }
@@ -1317,13 +1309,7 @@ implementation
                                begin
                                  p1:=ctypenode.create(htype);
                                  { search also in inherited methods }
-                                 repeat
-                                   srsym:=tvarsym(tobjectdef(htype.def).symtable.search(pattern));
-                                   if assigned(srsym) and
-                                      tstoredsym(srsym).is_visible_for_proc(aktprocdef) then
-                                    break;
-                                   htype.def:=tobjectdef(htype.def).childof;
-                                 until not assigned(htype.def);
+                                 srsym:=searchsym_in_class(tobjectdef(htype.def),pattern);
                                  consume(_ID);
                                  do_member_read(false,srsym,p1,again);
                                end
@@ -1757,44 +1743,28 @@ implementation
                         classrefdef:
                           begin
                              classh:=tobjectdef(tclassrefdef(p1.resulttype.def).pointertype.def);
-                             hsym:=nil;
-                             while assigned(classh) do
+                             hsym:=searchsym_in_class(classh,pattern);
+                             if hsym=nil then
                               begin
-                                hsym:=tsym(classh.symtable.search(pattern));
-                                if assigned(hsym) and
-                                   tstoredsym(hsym).is_visible_for_proc(aktprocdef) then
-                                 break;
-                                classh:=classh.childof;
+                                Message1(sym_e_id_no_member,pattern);
+                                p1.destroy;
+                                p1:=cerrornode.create;
+                                { try to clean up }
+                                consume(_ID);
+                              end
+                             else
+                              begin
+                                consume(_ID);
+                                do_member_read(getaddr,hsym,p1,again);
                               end;
-                              if hsym=nil then
-                                begin
-                                   Message1(sym_e_id_no_member,pattern);
-                                   p1.destroy;
-                                   p1:=cerrornode.create;
-                                   { try to clean up }
-                                   consume(_ID);
-                                end
-                              else
-                                begin
-                                   consume(_ID);
-                                   do_member_read(getaddr,hsym,p1,again);
-                                end;
                            end;
 
                          objectdef:
                            begin
-                              classh:=tobjectdef(p1.resulttype.def);
-                              hsym:=nil;
                               store_static:=allow_only_static;
                               allow_only_static:=false;
-                              while assigned(classh) do
-                                begin
-                                   hsym:=tsym(classh.symtable.search(pattern));
-                                   if assigned(hsym) and
-                                      tstoredsym(hsym).is_visible_for_proc(aktprocdef) then
-                                     break;
-                                   classh:=classh.childof;
-                                end;
+                              classh:=tobjectdef(p1.resulttype.def);
+                              hsym:=searchsym_in_class(classh,pattern);
                               allow_only_static:=store_static;
                               if hsym=nil then
                                 begin
@@ -1974,23 +1944,17 @@ implementation
                      auto_inherited:=false;
                    end;
                   classh:=procinfo^._class.childof;
-                  while assigned(classh) do
+                  sym:=searchsym_in_class(classh,hs);
+                  if assigned(sym) then
                    begin
-                     sym:=tsym(tobjectdef(classh).symtable.search(hs));
-                     if assigned(sym) and
-                        tstoredsym(sym).is_visible_for_proc(aktprocdef) then
+                     if sym.typ=procsym then
                       begin
-                        if sym.typ=procsym then
-                         begin
-                           htype.setdef(classh);
-                           p1:=ctypenode.create(htype);
-                         end;
-                        do_member_read(false,sym,p1,again);
-                        break;
+                        htype.setdef(classh);
+                        p1:=ctypenode.create(htype);
                       end;
-                     classh:=classh.childof;
-                   end;
-                  if classh=nil then
+                     do_member_read(false,sym,p1,again);
+                   end
+                  else
                    begin
                      Message1(sym_e_id_no_member,hs);
                      again:=false;
@@ -2488,7 +2452,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.56  2002-01-29 21:25:22  peter
+  Revision 1.57  2002-02-03 09:30:04  peter
+    * more fixes for protected handling
+
+  Revision 1.56  2002/01/29 21:25:22  peter
     * more checks for private and protected
 
   Revision 1.55  2002/01/24 18:25:49  peter

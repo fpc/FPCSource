@@ -547,7 +547,7 @@ implementation
         { private symbols are allowed when we are in the same
           module as they are defined }
         if (sp_private in symoptions) and
-           (owner.defowner.owner.symtabletype=globalsymtable) and
+           (owner.defowner.owner.symtabletype in [globalsymtable,staticsymtable]) and
            (owner.defowner.owner.unitid<>0) then
           exit;
 
@@ -556,7 +556,7 @@ implementation
         if (sp_protected in symoptions) and
            (
             (
-             (owner.defowner.owner.symtabletype=globalsymtable) and
+             (owner.defowner.owner.symtabletype in [globalsymtable,staticsymtable]) and
              (owner.defowner.owner.unitid<>0)
             ) and
             not(
@@ -578,7 +578,7 @@ implementation
         { private symbols are allowed when we are in the same
           module as they are defined }
         if (sp_private in symoptions) and
-           (owner.defowner.owner.symtabletype=globalsymtable) and
+           (owner.defowner.owner.symtabletype in [globalsymtable,staticsymtable]) and
            (owner.defowner.owner.unitid<>0) then
           exit;
 
@@ -587,7 +587,7 @@ implementation
         if (sp_protected in symoptions) and
            (
             (
-             (owner.defowner.owner.symtabletype=globalsymtable) and
+             (owner.defowner.owner.symtabletype in [globalsymtable,staticsymtable]) and
              (owner.defowner.owner.unitid<>0)
             ) and
             not(
@@ -2513,7 +2513,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.30  2001-12-31 16:59:43  peter
+  Revision 1.31  2002-02-03 09:30:04  peter
+    * more fixes for protected handling
+
+  Revision 1.30  2001/12/31 16:59:43  peter
     * protected/private symbols parsing fixed
 
   Revision 1.29  2001/12/03 21:48:42  peter

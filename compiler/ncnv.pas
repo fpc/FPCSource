@@ -733,7 +733,7 @@ implementation
 
 
     function ttypeconvnode.resulttype_dynarray_to_openarray : tnode;
-    
+
       begin
         { a dynamic array is a pointer to an array, so to convert it to }
         { an open array, we have to dereference it (JM)                 }
@@ -1533,6 +1533,27 @@ implementation
             else
              CGMessage(type_e_mismatch);
           end
+         else if is_interface(right.resulttype.def) then
+          begin
+            { left is a class }
+            if is_class(left.resulttype.def) then
+             begin
+               { the operands must be related }
+               if not(assigned(tobjectdef(left.resulttype.def).implementedinterfaces) and
+                      (tobjectdef(left.resulttype.def).implementedinterfaces.searchintf(right.resulttype.def)<>-1)) then
+                 CGMessage(type_e_mismatch);
+             end
+            { left is an interface }
+            else if is_interface(left.resulttype.def) then
+             begin
+               { the operands must be related }
+               if (not(tobjectdef(left.resulttype.def).is_related(tobjectdef(right.resulttype.def)))) and
+                  (not(tobjectdef(right.resulttype.def).is_related(tobjectdef(left.resulttype.def)))) then
+                 CGMessage(type_e_mismatch);
+             end
+            else
+             CGMessage(type_e_mismatch);
+          end
          else
           CGMessage(type_e_mismatch);
 
@@ -1546,11 +1567,16 @@ implementation
         paras: tcallparanode;
 
       begin
-         paras := ccallparanode.create(left,ccallparanode.create(right,nil));
-         left := nil;
-         right := nil;
-         result := ccallnode.createintern('fpc_do_is',paras);
-         firstpass(result);
+         if (right.resulttype.def.deftype=classrefdef) then
+          begin
+            paras := ccallparanode.create(left,ccallparanode.create(right,nil));
+            left := nil;
+            right := nil;
+            result := ccallnode.createintern('fpc_do_is',paras);
+            firstpass(result);
+          end
+         else
+          result:=nil;
       end;
 
     { dummy pass_2, it will never be called, but we need one since }
@@ -1600,6 +1626,28 @@ implementation
              CGMessage(type_e_mismatch);
             resulttype:=tclassrefdef(right.resulttype.def).pointertype;
           end
+         else if is_interface(right.resulttype.def) then
+          begin
+            { left is a class }
+            if is_class(left.resulttype.def) then
+             begin
+               { the operands must be related }
+               if not(assigned(tobjectdef(left.resulttype.def).implementedinterfaces) and
+                      (tobjectdef(left.resulttype.def).implementedinterfaces.searchintf(right.resulttype.def)<>-1)) then
+                 CGMessage(type_e_mismatch);
+             end
+            { left is an interface }
+            else if is_interface(left.resulttype.def) then
+             begin
+               { the operands must be related }
+               if (not(tobjectdef(left.resulttype.def).is_related(tobjectdef(right.resulttype.def)))) and
+                  (not(tobjectdef(right.resulttype.def).is_related(tobjectdef(left.resulttype.def)))) then
+                 CGMessage(type_e_mismatch);
+             end
+            else
+             CGMessage(type_e_mismatch);
+            resulttype:=right.resulttype;
+          end
          else
           CGMessage(type_e_mismatch);
       end;
@@ -1611,12 +1659,17 @@ implementation
         paras: tcallparanode;
 
       begin
-         paras := ccallparanode.create(left,ccallparanode.create(right,nil));
-         left := nil;
-         right := nil;
-         result := ccallnode.createinternres('fpc_do_as',paras,
-           resulttype);
-         firstpass(result);
+         if (right.resulttype.def.deftype=classrefdef) then
+          begin
+            paras := ccallparanode.create(left,ccallparanode.create(right,nil));
+            left := nil;
+            right := nil;
+            result := ccallnode.createinternres('fpc_do_as',paras,
+              resulttype);
+            firstpass(result);
+          end
+         else
+          result:=nil;
       end;
 
 
@@ -1635,7 +1688,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.47  2001-12-10 14:34:04  jonas
+  Revision 1.48  2002-02-03 09:30:03  peter
+    * more fixes for protected handling
+
+  Revision 1.47  2001/12/10 14:34:04  jonas
     * fixed type conversions from dynamic arrays to open arrays
 
   Revision 1.46  2001/12/06 17:57:34  florian

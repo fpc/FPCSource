@@ -212,6 +212,7 @@ interface
 {*** Search ***}
     function  searchsym(const s : stringid;var srsym:tsym;var srsymtable:tsymtable):boolean;
     function  searchsymonlyin(p : tsymtable;const s : stringid):tsym;
+    function  searchsym_in_class(classh:tobjectdef;const s : stringid):tsym;
     function  searchsystype(const s: stringid; var srsym: ttypesym): boolean;
     function  searchsysvar(const s: stringid; var srsym: tvarsym; var symowner: tsymtable): boolean;
     function  search_class_member(pd : tobjectdef;const s : string):tsym;
@@ -1754,6 +1755,45 @@ implementation
        end;
 
 
+    function  searchsym_in_class(classh:tobjectdef;const s : stringid):tsym;
+      var
+        speedvalue : cardinal;
+        topclassh  : tobjectdef;
+        sym        : tsym;
+      begin
+         speedvalue:=getspeedvalue(s);
+         { when the class passed is defined in this unit we
+           need to use the scope of that class. This is a trick
+           that can be used to access protected members in other
+           units. At least kylix supports it this way (PFV) }
+         if (classh.owner.symtabletype in [globalsymtable,staticsymtable]) and
+            (classh.owner.unitid=0) then
+           topclassh:=classh
+         else
+           topclassh:=nil;
+         sym:=nil;
+         while assigned(classh) do
+          begin
+            sym:=tsym(classh.symtable.speedsearch(s,speedvalue));
+            if assigned(sym) then
+             begin
+               if assigned(topclassh) then
+                begin
+                  if tstoredsym(sym).is_visible_for_object(topclassh) then
+                   break;
+                end
+               else
+                begin
+                  if tstoredsym(sym).is_visible_for_proc(aktprocdef) then
+                   break;
+                end;
+             end;
+            classh:=classh.childof;
+          end;
+         searchsym_in_class:=sym;
+      end;
+
+
     function searchsystype(const s: stringid; var srsym: ttypesym): boolean;
       var
         symowner: tsymtable;
@@ -2028,7 +2068,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.54  2002-01-29 21:30:25  peter
+  Revision 1.55  2002-02-03 09:30:07  peter
+    * more fixes for protected handling
+
+  Revision 1.54  2002/01/29 21:30:25  peter
     * allow also dup id in delphi mode in interfaces
 
   Revision 1.53  2002/01/29 19:46:00  peter
