@@ -1175,7 +1175,7 @@
           OwnerBackTrace : array[0..4] of PVOID;
        end;
      LPCRITICAL_SECTION_DEBUG = ^CRITICAL_SECTION_DEBUG;
-     PCRITICAL_SECTION_DEBUG = CRITICAL_SECTION_DEBUG;
+     PCRITICAL_SECTION_DEBUG = ^CRITICAL_SECTION_DEBUG;
      _CRITICAL_SECTION_DEBUG = CRITICAL_SECTION_DEBUG;
      TCRITICALSECTIONDEBUG = CRITICAL_SECTION_DEBUG;
      PCRITICALSECTIONDEBUG = ^CRITICAL_SECTION_DEBUG;
@@ -7028,7 +7028,10 @@ type
 
 {
   $Log$
-  Revision 1.23  2004-03-10 15:08:10  marco
+  Revision 1.24  2004-05-04 10:34:29  marco
+   * pcritical section missed a ^
+
+  Revision 1.23  2004/03/10 15:08:10  marco
   wininc/struct.inc
 
   Revision 1.22  2004/02/06 23:10:20  marco
