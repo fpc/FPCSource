@@ -1064,7 +1064,7 @@ implementation
         if b then
          begin
            { turn ansistrings on by default ? }
-           if (m_default_ansistring in aktmodeswitches) then
+           if (m_delphi in aktmodeswitches) then
             begin
               include(aktlocalswitches,cs_ansistrings);
               if changeinit then
@@ -1076,6 +1076,13 @@ implementation
               if changeinit then
                exclude(initlocalswitches,cs_ansistrings);
             end;
+           { enum packing }
+           if (m_tp7 in aktmodeswitches) then
+            aktpackenum:=1
+           else
+            aktpackenum:=4;
+           if changeinit then
+            initpackenum:=aktpackenum;
          end;
 
         SetCompileMode:=b;
@@ -1303,7 +1310,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2001-02-05 20:47:00  peter
+  Revision 1.27  2001-02-09 23:05:45  peter
+    * default packenum=1 for tp7 mode
+
+  Revision 1.26  2001/02/05 20:47:00  peter
     * support linux unit for ver1_0 compilers
 
   Revision 1.25  2001/01/21 20:32:45  marco
