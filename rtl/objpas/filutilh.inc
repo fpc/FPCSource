@@ -70,6 +70,7 @@ Procedure FileClose (Handle : Longint);
 Function FileTruncate (Handle,Size: Longint) : boolean;
 Function FileAge (Const FileName : String): Longint;
 Function FileExists (Const FileName : String) : Boolean;
+Function DirectoryExists (Const DirName : String) : Boolean;
 Function FindFirst (Const Path : String; Attr : Longint; Var Rslt : TSearchRec) : Longint;
 Function FindNext (Var Rslt : TSearchRec) : Longint;
 Procedure FindClose (Var F : TSearchrec);
@@ -84,7 +85,10 @@ Function FileSearch (Const Name, DirList : String) : String;
 
 {
   $Log$
-  Revision 1.7  2003-01-03 20:41:04  peter
+  Revision 1.8  2003-03-28 19:06:59  peter
+    * directoryexists added
+
+  Revision 1.7  2003/01/03 20:41:04  peter
     * FileCreate(string,mode) overload added
 
   Revision 1.6  2002/09/07 16:01:22  peter

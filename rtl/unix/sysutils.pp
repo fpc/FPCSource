@@ -142,6 +142,16 @@ begin
 end;
 
 
+Function DirectoryExists (Const DirName : String) : Boolean;
+
+Var Info : Stat;
+
+begin
+  DirectoryExists:=fstat(dirname,Info) and
+                   ((info.mode and STAT_IFMT)=STAT_IFDIR);
+end;
+
+
 Function LinuxToWinAttr (FN : Pchar; Const Info : Stat) : Longint;
 
 begin
@@ -481,7 +491,10 @@ end.
 {
 
   $Log$
-  Revision 1.14  2003-01-03 20:41:04  peter
+  Revision 1.15  2003-03-28 19:06:59  peter
+    * directoryexists added
+
+  Revision 1.14  2003/01/03 20:41:04  peter
     * FileCreate(string,mode) overload added
 
   Revision 1.13  2002/09/07 16:01:28  peter

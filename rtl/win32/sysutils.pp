@@ -186,6 +186,19 @@ begin
 end;
 
 
+Function DirectoryExists (Const DirName : String) : Boolean;
+var
+  Handle: THandle;
+  FindData: TWin32FindData;
+begin
+  Handle := FindFirstFile(Pchar(FileName), @FindData);
+  Result:=(Handle <> INVALID_HANDLE_VALUE) and
+          ((FindData.dwFileAttributes and FILE_ATTRIBUTE_DIRECTORY) = FILE_ATTRIBUTE_DIRECTORY);
+  If Result then
+    Windows.FindClose(Handle);
+end;
+
+
 Function FindMatch(var f: TSearchRec) : Longint;
 begin
   { Find file with correct attribute }
@@ -670,7 +683,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.19  2003-01-03 20:41:04  peter
+  Revision 1.20  2003-03-28 19:06:59  peter
+    * directoryexists added
+
+  Revision 1.19  2003/01/03 20:41:04  peter
     * FileCreate(string,mode) overload added
 
   Revision 1.18  2003/01/01 20:56:57  florian

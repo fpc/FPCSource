@@ -252,12 +252,33 @@ end;
 
 
 Function FileExists (Const FileName : String) : Boolean;
-var Handle: longint;
+Var
+  Sr : Searchrec;
 begin
-  //!!   This can be done quicker, need to find out how
-  Result := (OpenFile(FileName, Handle, ofRead, faOpen) = 0);
-  if Handle <> 0 then
-    FileClose(Handle);
+  DOS.FindFirst(Path,$3f,sr);
+  if DosError = 0 then
+   begin
+     { No volumeid,directory }
+     Result:=(sr.attr and $18)=0;
+     Dos.FindClose(sr);
+   end
+  else
+   Result:=false;
+end;
+
+
+Function DirectoryExists (Const DirName : String) : Boolean;
+Var
+  Sr : Searchrec;
+begin
+  DOS.FindFirst(Path,$3f,sr);
+  if DosError = 0 then
+   begin
+     Result:=(sr.attr and $10)=$10;
+     Dos.FindClose(sr);
+   end
+  else
+   Result:=false;
 end;
 
 
@@ -730,7 +751,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.11  2003-01-03 20:41:04  peter
+  Revision 1.12  2003-03-28 19:06:59  peter
+    * directoryexists added
+
+  Revision 1.11  2003/01/03 20:41:04  peter
     * FileCreate(string,mode) overload added
 
   Revision 1.10  2002/09/07 16:01:19  peter
