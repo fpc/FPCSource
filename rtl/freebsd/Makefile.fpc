@@ -13,10 +13,10 @@ loaders=prt0 cprt0 gprt0
 units=$(SYSTEMUNIT) objpas strings syscall sysctl baseunix unixutil \
       unix rtlconst initc   \
       dos dl termio objects printer \
-      sysutils typinfo systhrds classes math varutils \
+      sysutils typinfo systhrds types classes math varutils \
       cpu mmx charset ucomplex crt getopts heaptrc lineinfo \
       errors sockets gpm ipc terminfo \
-      video mouse keyboard console serial variants types sysctl dateutils \
+      video mouse keyboard console serial variants  sysctl dateutils \
       sysconst cthreads
 
 rsts=math varutils typinfo classes variants dateutils sysconst
