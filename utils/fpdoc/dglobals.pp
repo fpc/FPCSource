@@ -964,10 +964,7 @@ var
   PackageDocNode, TopicNode,ModuleDocNode: TDocNode;
   
 begin
-  Writeln('Reading',AFileName);
   ReadXMLFile(Doc, AFilename);
-  if (Doc=nil) then
-    Writeln('Failed to read ',AFileName);
   DescrDocs.Add(Doc);
   DescrDocNames.Add(AFilename);
 
@@ -1149,7 +1146,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2004-08-28 18:03:23  michael
+  Revision 1.5  2004-08-28 18:47:48  michael
+  + Removed temporary warning about reading of doc file
+
+  Revision 1.4  2004/08/28 18:03:23  michael
   + Added warning if docnode not found (option --warn-no-node
 
   Revision 1.3  2004/06/06 10:53:02  michael
