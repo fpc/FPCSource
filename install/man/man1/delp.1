@@ -4,12 +4,12 @@ delp \- The Free Pascal file deletion tool.
 
 .SH SYNOPSIS
 
-.B delp
+.B delp [options] directory
 
 .SH DESCRIPTION
 
 .B delp
-deletes files in the current directory that are left over from a Free Pascal 
+deletes files in the specified directory that are left over from a Free Pascal 
 compilation process. It knows what files can be produced by the compile
 steps and deletes any such files it finds. At the end it gives a summary of
 the number of files that were deleted, together with the amount of bytes
@@ -17,7 +17,7 @@ freed by this process.
 
 .SH USAGE
 
-.B delp
+.B delp 
 takes the following options at this time:
 .TP
 .B \-e
