@@ -108,7 +108,7 @@ unit cgx86;
         class function reg_cgsize(const reg: tregister): tcgsize; override;
 
         { entry/exit code helpers }
-        procedure g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;elesize:integer);override;
+        procedure g_copyvaluepara_openarray(list : taasmoutput;const ref, lenref:treference;elesize:integer);override;
         procedure g_interrupt_stackframe_entry(list : taasmoutput);override;
         procedure g_interrupt_stackframe_exit(list : taasmoutput;accused,acchiused:boolean);override;
         procedure g_profilecode(list : taasmoutput);override;
@@ -1491,7 +1491,7 @@ unit cgx86;
                               Entry/Exit Code Helpers
 ****************************************************************************}
 
-    procedure tcgx86.g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;elesize:integer);
+    procedure tcgx86.g_copyvaluepara_openarray(list : taasmoutput;const ref, lenref:treference;elesize:integer);
       var
         lenref : treference;
         power,len  : longint;
@@ -1935,7 +1935,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.51  2003-06-03 21:11:09  peter
+  Revision 1.52  2003-06-07 10:06:55  jonas
+    * fixed cycling problem
+
+  Revision 1.51  2003/06/03 21:11:09  peter
     * cg.a_load_* get a from and to size specifier
     * makeregsize only accepts newregister
     * i386 uses generic tcgnotnode,tcgunaryminus
