@@ -229,12 +229,12 @@ begin
     begin
       UserScreen^.GetLine(Y,Text,Attr);
       SearchBackTrace;
-      InsertInMessages(' Fatal:',v_Fatal,true);
-      InsertInMessages(' Error:',v_Error,true);
-      InsertInMessages(' Warning:',v_Warning,false);
-      InsertInMessages(' Note:',v_Note,false);
-      InsertInMessages(' Info:',v_Info,false);
-      InsertInMessages(' Hint:',v_Hint,false);
+      InsertInMessages(' Fatal:',v_Fatal or v_lineinfo,true);
+      InsertInMessages(' Error:',v_Error or v_lineinfo,true);
+      InsertInMessages(' Warning:',v_Warning or v_lineinfo,false);
+      InsertInMessages(' Note:',v_Note or v_lineinfo,false);
+      InsertInMessages(' Info:',v_Info or v_lineinfo,false);
+      InsertInMessages(' Hint:',v_Hint or v_lineinfo,false);
     end;
   if DisplayCompilerWindow then
     begin
@@ -509,9 +509,9 @@ end;
 procedure TCompilerStatusDialog.Update;
 var
   StatusS,KeyS: string;
-{$ifdef HASGETHEAPSTATUS}  
+{$ifdef HASGETHEAPSTATUS}
   hstatus : THeapStatus;
-{$endif HASGETHEAPSTATUS}  
+{$endif HASGETHEAPSTATUS}
 const
   MaxFileNameSize = 46;
 begin
@@ -570,14 +570,14 @@ begin
   AddFormatParamStr(KillTilde(TargetSwitches^.ItemName(TargetSwitches^.GetCurrSel)));
   AddFormatParamInt(Status.CurrentLine);
   AddFormatParamInt(Status.CompiledLines);
-{$ifdef HASGETHEAPSTATUS}  
+{$ifdef HASGETHEAPSTATUS}
   GetHeapStatus(hstatus);
   AddFormatParamInt(hstatus.CurrHeapUsed div 1024);
   AddFormatParamInt(hstatus.CurrHeapSize div 1024);
 {$else}
   AddFormatParamInt((Heapsize-MemAvail) div 1024);
   AddFormatParamInt(Heapsize div 1024);
-{$endif}  
+{$endif}
   AddFormatParamInt(Status.ErrorCount);
   ST^.SetText(
    FormatStrF(
@@ -1265,7 +1265,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.33  2004-11-22 19:34:58  peter
+  Revision 1.34  2005-01-08 12:05:13  florian
+    * user screen parsing fixed
+
+  Revision 1.33  2004/11/22 19:34:58  peter
     * GetHeapStatus added, removed MaxAvail,MemAvail,HeapSize
 
   Revision 1.32  2004/11/20 14:21:19  florian
