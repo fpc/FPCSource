@@ -1211,6 +1211,13 @@ uses
                 tt.setdef(aktobjectdef);
                 exit;
              end;
+           { classes can be used also in classes }
+           if (curobjectname=pattern) and aktobjectdef^.is_class then
+             begin
+                tt.setdef(aktobjectdef);
+                consume(_ID);
+                exit;
+             end;
            { we can't accept a equal in type }
            pt1:=comp_expr(not(ignore_equal));
            do_firstpass(pt1);
@@ -1517,7 +1524,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.14  2000-01-11 17:16:06  jonas
+  Revision 1.15  2000-01-27 16:31:40  florian
+    * bug 738 fixed
+
+  Revision 1.14  2000/01/11 17:16:06  jonas
     * removed a lot of memory leaks when an error is encountered (caused by
       procinfo and pstringcontainers). There are still plenty left though :)
 
