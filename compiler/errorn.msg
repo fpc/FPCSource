@@ -38,22 +38,22 @@ I_$1 Lijnen gecompileerd, $2 sec
 ; Scanner (also scanner part of the assembler)
 ;
 F_Onverwacht einde van bestand
-F_String langer dan lijn
-F_illegaal karakter
-F_Syntax fout: $2 verwacht in kolom $1
-U_Start lezen ingevoegd bestand $1
-W_Commentaar niveau $1 gevonden
+F_String langer dan regel
+F_ongeldig teken
+F_Taalfout: $2 verwacht in kolom $1
+U_Ingevoegd bestand $1 word geopend
+W_Commentaar diepte $1 gevonden
 N_$F directive (FAR) genegeerd
-N_Stapel check is globaal onder linux
-W_Illegale compiler schakelaar
+N_Stapeloverloop test is globaal onder linux
+W_Foutieve compiler schakelaar
 W_Deze compiler schakelaar heeft ook een globaal effect
-E_Illegale karakter constante
+E_Foutieve constante voor een karakter
 F_kan bestand niet openen
 F_Kan ingevoerd bestand niet openen $1
 E_Te veel $ENDIFs of $ELSEs
-W_Record velden kunnen maar op 1,2 of 4 bytes gealigneerd worden.
+W_Record velden kunnen maar op 1,2 of 4 bytes uitgelijnd worden.
 E_$ENDIF verwacht voor $1 op $2 $3
-E_Syntax fout bij het compileren van een conditionele compilatie uitdrukking
+E_Taalfout bij het compileren van een conditionele compilatie uitdrukking
 E_Evalueren van een conditionele compilatie uitdrukking
 W_Macro inhoud is afgsneden op 255 karakters voor evaluatie
 E_ENDIF zonder IF(N)DEF
@@ -82,11 +82,11 @@ I_Druk <return> om voort te gaan
 E_Parser - Syntax fout
 W_Procedure type FAR genegeerd
 W_Procedure type NEAR genegeerd
-E_geen DLL File gespecifieerd
+E_geen DLL File opgegeven
 E_Constructor naam moet INIT zijn
 E_Destructor name moet DONE zijn
-E_Illegale open parameter
-E_Procedure type INLINE is niet ondersteund
+E_Foutieve open parameter
+E_Procedure type INLINE wordt niet ondersteund
 W_Private methodes zijn niet VIRTUAL
 E_Constructor mag niet private or protected zijn
 E_Destructor mag niet private or protected zijn
@@ -94,26 +94,26 @@ N_Class heeft slechts 1 destructor
 E_Lokale class definities zijn niet toegestaan
 E_Anonieme class definities zijn niet toegestaan
 E_Ordinale waarde verwacht
-E_Illegale parameter lijst
+E_Foutieve parameter lijst
 E_overladen identifieerder is geen functie identifieerder
 E_overladen functies hebben identieke parameterlijst
-E_functie hoofding klopt niet met voorwaartse declaratie $1
+E_functie declaratie klopt niet met voorwaartse declaratie $1
 N_Slechts waarden kunnen overgeslagen worden in opsommingstypes
-N_Interface and implementatie namen zijn verschillend
+N_Interface en implementatie namen zijn verschillend
 E_functie meer dan 31 keer genest
 E_Bereikfout bij evalueren constantes
-E_Wijzer type verwacht
+E_Pointer type verwacht
 E_class type verwacht
 E_Dubbel case geval
 E_Getypeerde constantes van classes zijn niet toegestaan
-E_functie variabelen van overladen functie zijn niet toegestaan
+E_functie variabelen van meervoudige functies zijn niet toegestaan
 E_string lengte moet tussen 1 en 255 liggen
 W_Gebruik de uitgebreide syntax van DISPOSE en NEW om nieuwe instanties van classes te genereren
-E_class identifieerder verwacht
-E_methode identifieerder verwacht
-E_function hoofding komt niet overeen met een methode van deze class
+E_class verwacht
+E_methode verwacht
+E_function declaratie komt niet overeen met een methode van deze class
 P_procedure/functie $1 ($2) op lijn $3
-E_Illegale drijvende komma constante
+E_Illegale vlottende komma constante
 E_FAIL mag slechts in constructors gebruikt worden
 E_Destructors hebben geen parameters
 E_string types stemmen niet overeen, wegens $V+ modus
@@ -122,7 +122,7 @@ E_Alleen class methodes togankelijk in classen
 E_Constante en CASE type komen niet overeen
 E_Het symbool kan niet uitgevoerd worden van een bibliotheek
 E_Een virtuele methode moet met OVERRIDE overroepen worden: $1
-E_Er is geen ouder methode die overroepen kan worden: $1
+E_Er is geen geerfde methode die overroepen kan worden: $1
 E_No member is provided to access property
 E_Illegal symbol for property access
 E_Cannot write a protected field of an object
@@ -146,7 +146,7 @@ E_Expression type must by class or record type
 E_Functions with void return value can't return any value
 E_constructors and destructors must be methods
 W_Automatic type conversion from floating type to COMP which is an integer type
-E_Operator is not overloaded
+E_Operator is niet hergedefineerd
 E_Variable or type indentifier expected
 E_Re-raise isn't possible there
 E_The extended syntax of new or dispose isn't allowed for a class
@@ -191,64 +191,64 @@ E_Only static variables can be used in static methods or outside methods
 E_Invalid call to tvarsym.mangledname()
 F_record or class type expected
 E_To generate an instance of a class or an object with an abtract method isn't allowed
-E_Label not defined $1
-E_Illegal label declaration
-E_GOTO und LABEL are not supported (use command line switch -Sg)
-E_Label not found
-E_identifier isn't a label
-E_label already defined
-E_illegal type declaration of set elements
-E_Forward class definition not resolved $1
+E_Label niet gedefineerd $1
+E_Label foutief gedefineerd
+E_GOTO en LABEL zijn momenteel uitgeschakeld (gebruik -Sg)
+E_Label niet gevonden
+E_identifier is geen label
+E_label is al gedefineerd
+E_Type declaratie van set elementen is foutief
+E_Voorwaarde definitie van klasse niet opgelost $1
 H_Identifier not used $1, declared in line $2
-E_Set elements are not compatible
-E_Set type expected
-W_Function result does not seem to be set
-E_Unknown field identifier
-N_Local variable does not seem to be initialized: $1
+E_Elementen van set zijn incompatible
+E_Set type verwacht
+W_Resultaat van functie ogeschijnlijk niet present
+E_Onbekend record lid
+N_Locale variabele schijnt niet gebruikt te worden: $1
 E_identifier idents no member
 ;
 ; Codegenerator
 ;
-E_BREAK not allowed
-E_CONTINUE not allowed
-E_Expression too complicated - FPU stack overflow
-E_Illegal expression
-E_Invalid integer
-E_Illegal qualifier
-E_High range limit < low range limit
-E_Illegal counter variable
-E_Can't determine which overloaded function to call
-E_Parameter list size exceeds 65535 bytes
-E_Illegal type conversion
-E_File types must be var parameters
-E_The use of a far pointer isn't allowed there
+E_BREAK niet toegestaan
+E_CONTINUE niet toegestaan
+E_Expressie te ingewikkeld - overloop van wiskundige processor
+E_Foutieve expressie
+E_Foutieve integer
+E_Foutieve qualifier
+E_Bovengrens < ondergrens
+E_Foutive lusteller
+E_Weet niet welke meervoudige procedure ik moet aanroepen
+E_Parameters gebruiken meer dan 64 kilobyte
+E_Foute type conversie
+E_Files moeten var parameters zijn
+E_U kunt daar geen far pointer gebruiken
 E_illegal call by reference parameters
-E_EXPORT declared functions can't be called
+E_procedures die EXPORT gedeclareerd staan kunnen niet aangeroepen worden
 W_Possible illegal call of constructor or destructor (doesn't match to this context)
-N_Inefficient code
-W_unreachable code
+N_Inefficiente code
+W_Deze code wordt nooit uitgevoerd
 E_procedure call with stackframe ESP/SP
 E_Abstract methods can't be called directly
 F_Internal Error in getfloatreg(), allocation failure
-F_Unknown float type
+F_Onbekend vlottend komma type
 F_SecondVecn() base defined twice
 F_Extended cg68k not supported
 F_32-bit unsigned not supported in MC68000 mode
 F_Internal Error in secondinline()
-D_Register $1 weight $2 $3
+D_Register $1 gewicht $2 $3
 E_Stack limit excedeed in local routine
-D_Stack frame is omited
+D_Stack frame wordt niet gemaakt
 ;
 ; Assembler parsers
 ;
-F_Divide by zero in asm evaluator
-F_Evaluator stack overflow
-F_Evaluator stack underflow
+F_Delen door nul in asm evaluator
+F_Evaluator stack overloop
+F_Evaluator stack leegloop
 F_Invalid numeric format in asm evaluator
 F_Invalid Operator in asm evaluator
 F_Unknown error in asm evaluator
-W_Invalid numeric value
-E_escape sequence ignored: $1
+W_Ongeldige numerieke waarde
+E_escape sequence ignored $1
 E_Asm syntax error - Prefix not found
 E_Asm syntax error - Trying to add more than one prefix
 E_Asm syntax error - Opcode not found
