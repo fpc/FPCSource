@@ -1294,7 +1294,7 @@ var OldState: word;
 begin
   OldState:=State;
   inherited SetState(AState,Enable);
-  if ((AState xor OldState) and sfActive)<>0 then
+  if ((State xor OldState) and sfActive)<>0 then
     UpdateCommands;
 end;
 
@@ -3217,7 +3217,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.60  2000-02-07 23:40:38  pierre
+  Revision 1.61  2000-03-01 22:32:48  pierre
+   * hopfully the bug on wrong Menu config fixed
+
+  Revision 1.60  2000/02/07 23:40:38  pierre
    * avoid closing the StackWindow too early
 
   Revision 1.59  2000/02/07 10:36:43  michael
