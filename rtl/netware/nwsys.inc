@@ -74,6 +74,7 @@ function _SuspendThread(threadID:longint):longint; cdecl;external ThreadsNlm nam
 function _GetThreadID:longint; cdecl;external ThreadsNlm name 'GetThreadID';
 procedure _ThreadSwitchWithDelay; cdecl;external ThreadsNlm name 'ThreadSwitchWithDelay';
 function _GetThreadName(threadID:longint; var tName):longint; cdecl;external ThreadsNlm name 'GetThreadName';
+function GetNLMHandle:dword;  cdecl;external ThreadsNlm name 'GetNLMHandle';
 (*
 PROCEDURE ConsolePrintf (FormatStr : PCHAR; Param : LONGINT); CDecl; EXTERNAL CLib Name 'ConsolePrintf';
 PROCEDURE ConsolePrintf (FormatStr : PCHAR; Param : pchar); CDecl; EXTERNAL CLib Name 'ConsolePrintf';
@@ -370,7 +371,10 @@ function spawnvp(mode:longint; path:Pchar; argv:PPchar):longint;cdecl;external C
 
 {
   $Log$
-  Revision 1.12  2004-11-25 12:32:08  armin
+  Revision 1.13  2004-12-07 11:04:42  armin
+  * fixed GetProcessId
+
+  Revision 1.12  2004/11/25 12:32:08  armin
   * adapted to new compiler check for externals
 
   Revision 1.11  2004/09/26 19:25:49  armin

@@ -931,8 +931,7 @@ end;
 
 function GetProcessID: SizeUInt;
 begin
- GetProcessID := SizeUInt (CurrentProcess);
-{$WARNING GetProcessID implementation should be checked!}
+ GetProcessID := SizeUInt (GetNlmHandle);
 end;
 
 
@@ -985,7 +984,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.32  2004-12-05 14:36:37  hajny
+  Revision 1.33  2004-12-07 11:04:42  armin
+  * fixed GetProcessId
+
+  Revision 1.32  2004/12/05 14:36:37  hajny
     + GetProcessID added
 
   Revision 1.31  2004/11/25 12:32:08  armin
