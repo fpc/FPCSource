@@ -4743,6 +4743,8 @@ Const local_symtable_index : longint = $8001;
       begin
          case objecttype of
             odt_interfacecom: needs_inittable:=true;
+            odt_interfacecorba:
+              needs_inittable:=is_related(interface_iunknown);
             odt_object:
               begin
                  { there are recursive calls to needs_inittable possible, }
@@ -5547,7 +5549,10 @@ Const local_symtable_index : longint = $8001;
 end.
 {
   $Log$
-  Revision 1.15  2000-11-29 00:30:40  florian
+  Revision 1.16  2000-11-30 23:12:57  florian
+  * if raw interfaces inherit from IUnknown they are ref. counted too
+
+  Revision 1.15  2000/11/29 00:30:40  florian
     * unused units removed from uses clause
     * some changes for widestrings
 
