@@ -61,7 +61,7 @@ implementation
       cgbase,pass_1,pass_2,
       cpuinfo,cpubase,paramgr,procinfo,
       nbas,ncon,ncal,ncnv,nld,
-      tgobj,ncgutil,cgobj
+      tgobj,ncgutil,cgobj,rgobj
 {$ifndef cpu64bit}
       ,cg64f32
 {$endif cpu64bit}
@@ -330,8 +330,7 @@ implementation
            objectlibrary.getlabel(lengthlab);
            cg.a_cmp_const_reg_label(exprasmlist,OS_ADDR,OC_EQ,0,left.location.register,lengthlab);
            reference_reset_base(href,left.location.register,-8);
-           reference_release(exprasmlist,href);
-           hregister:=cg.getintregister(exprasmlist,OS_32);
+           hregister:=cg.makeregsize(left.location.register,OS_32);
            cg.a_load_ref_reg(exprasmlist,OS_32,OS_32,href,hregister);
            cg.a_label(exprasmlist,lengthlab);
            location_reset(location,LOC_REGISTER,OS_32);
@@ -677,7 +676,10 @@ end.
 
 {
   $Log$
-  Revision 1.53  2004-02-05 01:24:08  florian
+  Revision 1.54  2004-02-05 16:58:43  florian
+    * fixed (hopefully) the ansistring length bug
+
+  Revision 1.53  2004/02/05 01:24:08  florian
     * several fixes to compile x86-64 system
 
   Revision 1.52  2004/02/02 20:41:59  florian
