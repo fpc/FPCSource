@@ -485,7 +485,7 @@ implementation
           (
             id     : os_alpha_linux;
             name         : 'Linux for Alpha';
-            shortname    : 'linux';
+            shortname    : 'axplinux';
             sharedlibext : '.so';
             staticlibext : '.a';
             sourceext    : '.pp';
@@ -1621,7 +1621,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.85  1999-08-03 13:50:19  michael
+  Revision 1.86  1999-08-03 15:52:00  michael
+  * changed shortname for linux alpha
+
+  Revision 1.85  1999/08/03 13:50:19  michael
   + Changes for alpha
 
   Revision 1.84  1999/08/02 23:56:51  michael
