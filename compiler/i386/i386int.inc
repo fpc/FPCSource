@@ -1,4 +1,4 @@
-{ don't edit, this file is generated from i386ins.dat }
+{ don't edit, this file is generated from x86ins.dat }
 (
 'none',
 'aaa',
@@ -83,6 +83,7 @@
 'finit',
 'fist',
 'fistp',
+'fisttp',
 'fisub',
 'fisubr',
 'fld',
@@ -191,6 +192,7 @@
 'lsl',
 'lss',
 'ltr',
+'monitor',
 'mov',
 'movd',
 'movq',
@@ -200,6 +202,7 @@
 'movsx',
 'movzx',
 'mul',
+'mwait',
 'neg',
 'nop',
 'not',
@@ -375,6 +378,7 @@
 'xlat',
 'xlatb',
 'xor',
+'xstore',
 'cmov',
 'j',
 'set',
@@ -546,5 +550,15 @@
 'ucomisd',
 'unpckhpd',
 'unpcklpd',
-'xorpd'
+'xorpd',
+'addsubpd',
+'addsubps',
+'haddpd',
+'haddps',
+'hsubpd',
+'hsubps',
+'lddqu',
+'movddup',
+'movshdup',
+'movsldup'
 );

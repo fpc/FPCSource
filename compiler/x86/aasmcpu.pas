@@ -103,6 +103,7 @@ interface
       OT_REG_RCX   = $00221008;
 {$endif x86_64}
       OT_REG_DX    = $00241002;
+      OT_REG_EDX   = $00241004;
 
       OT_REG_SREG  = $00081002;  { any segment register  }
       OT_REG_CS    = $01081002;  { CS  }
@@ -263,6 +264,8 @@ implementation
        IF_SSE    = $00010000;
        { SSE2 instructions  }
        IF_SSE2   = $00020000;
+       { SSE3 instructions  }
+       IF_SSE3   = $00040000;
        { the mask for processor types  }
        {IF_PMASK  = longint($FF000000);}
        { the mask for disassembly "prefer"  }
@@ -277,6 +280,8 @@ implementation
        IF_KATMAI = $07000000;  { Katmai instructions  }
        { Willamette instructions }
        IF_WILLAMETTE = $08000000;
+       { Prescott instructions }
+       IF_PRESCOTT = $09000000;
        IF_CYRIX  = $10000000;  { Cyrix-specific instruction  }
        IF_AMD    = $20000000;  { AMD-specific instruction  }
        { added flags }
@@ -2228,7 +2233,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  2003-09-07 22:09:35  peter
+  Revision 1.19  2003-09-09 12:54:45  florian
+    * x86 instruction table updated to nasm 0.98.37:
+        - sse3 aka prescott support
+        - small fixes
+
+  Revision 1.18  2003/09/07 22:09:35  peter
     * preparations for different default calling conventions
     * various RA fixes
 

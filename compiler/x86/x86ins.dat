@@ -570,6 +570,12 @@ mem32                 \300\1\xDB\203                  8086,FPU
 mem16                 \320\300\1\xDF\203              8086,FPU
 mem64                 \300\1\xDF\207                  8086,FPU
 
+[FISTTP]
+(Ch_Wop1, Ch_None, Ch_None)
+mem32                 \300\1\xDD\201                  PRESCOTT,FPU
+mem16                 \300\1\xDB\201                  PRESCOTT,FPU
+mem64                 \300\1\xDF\201                  PRESCOTT,FPU
+
 [FISUB,fisubR]
 (Ch_FPU, Ch_ROp1, Ch_None)
 mem16                 \300\1\xDE\204                  8086,FPU
@@ -1157,6 +1163,11 @@ mem                   \300\1\x0F\17\203               286,PROT,PRIV
 mem16                 \300\1\x0F\17\203               286,PROT,PRIV
 reg16                 \300\1\x0F\17\203               286,PROT,PRIV
 
+[MONITOR]
+(Ch_None, Ch_None, Ch_None)
+void		      \3\x0F\x01\xC8		      PRESCOTT
+reg_eax,reg_ecx,reg_edx      \3\x0F\x01\xC8           PRESCOTT,ND
+
 [MOV,movX]
 (Ch_Wop2, Ch_Rop1, Ch_None)
 mem,reg_cs            \320\300\1\x8C\201              8086,SM
@@ -1268,6 +1279,12 @@ reg32,rm16            \321\301\2\x0F\xB7\110          386
 rm8                   \300\1\xF6\204                  8086
 rm16                  \320\300\1\xF7\204              8086
 rm32                  \321\300\1\xF7\204              386
+
+[MWAIT]
+(Ch_None, Ch_None, Ch_None)
+void                  \3\x0F\x01\xC9                  PRESCOTT
+reg_eax,reg_ecx       \3\x0F\x01\xC9		      PRESCOTT,ND
+
 
 [NEG,negX]
 (Ch_Mop1, Ch_None, Ch_None)
@@ -2150,7 +2167,8 @@ mem                   \300\2\x0F\x01\201              286
 (Ch_Wop1, Ch_None, Ch_None)
 mem                   \300\1\x0F\17\200               286
 mem16                 \300\1\x0F\17\200               286
-reg16                 \300\1\x0F\17\200               286
+reg16                 \320\1\x0F\17\200               286
+reg32                 \321\1\x0F\17\200               386
 
 [SMI]
 (Ch_All, Ch_None, Ch_None)
@@ -2168,7 +2186,8 @@ void                  \2\x0F\x7E                      486,CYRIX,ND
 (Ch_Wop1, Ch_None, Ch_None)
 mem                   \300\2\x0F\x01\204              286
 mem16                 \300\2\x0F\x01\204              286
-reg16                 \300\2\x0F\x01\204              286
+reg16                 \320\2\x0F\x01\204              286
+reg32                 \321\2\x0F\x01\204              386
 
 [STC]
 (Ch_WFlags, Ch_None, Ch_None)
@@ -2248,7 +2267,7 @@ void                  \2\x0F\x34                      P6
 
 [SYSEXIT]
 (Ch_All, Ch_None, Ch_None)
-void                  \2\x0F\x36                      P6,PRIV
+void                  \2\x0F\x35                      P6,PRIV
 
 [SYSRET]
 (Ch_All, Ch_None, Ch_None)
@@ -2394,6 +2413,10 @@ rm32,imm              \321\300\1\x81\206\41           386,SM
 mem,imm8              \300\1\x80\206\21               8086,SM
 mem,imm16             \320\300\1\x81\206\31           8086,SM
 mem,imm32             \321\300\1\x81\206\41           386,SM
+
+[XSTORE]
+void                  \3\x0F\xA7\xC0                  P6,CYRIX
+
 
 [CMOVcc,cmovCCX]
 (Ch_ROp1, Ch_WOp2, Ch_RFLAGS)
@@ -2614,7 +2637,6 @@ xmmreg,xmmreg         \2\x0F\x29\101                  KATMAI,SSE
 (Ch_All, Ch_None, Ch_None)
 xmmreg,mem            \301\2\x0F\x16\110              KATMAI,SSE
 mem,xmmreg            \300\2\x0F\x17\101              KATMAI,SSE
-xmmreg,xmmreg         \2\x0F\x16\101                  KATMAI,SSE,ND
 
 [MOVLHPS]
 (Ch_All, Ch_None, Ch_None)
@@ -2624,7 +2646,6 @@ xmmreg,xmmreg         \2\x0F\x16\110                  KATMAI,SSE
 (Ch_All, Ch_None, Ch_None)
 xmmreg,mem            \301\2\x0F\x12\110              KATMAI,SSE
 mem,xmmreg            \300\2\x0F\x13\101              KATMAI,SSE
-xmmreg,xmmreg         \2\x0F\x12\101                  KATMAI,SSE,ND
 
 [MOVHLPS]
 (Ch_All, Ch_None, Ch_None)
@@ -3306,7 +3327,7 @@ xmmreg,mem              \301\3\x66\x0F\x2E\110          WILLAMETTE,SSE2
 [UNPCKHPD]
 (Ch_All, Ch_None, Ch_None)
 xmmreg,xmmreg           \3\x66\x0F\x15\110              WILLAMETTE,SSE2
-mem,xmmreg              \300\3\x66\x0F\x15\101          WILLAMETTE,SSE2,SM
+mem,xmmreg              \300\3\x66\x0F\x15\110          WILLAMETTE,SSE2,SM
 
 [UNPCKLPD]
 (Ch_All, Ch_None, Ch_None)
@@ -3319,8 +3340,65 @@ xmmreg,xmmreg           \3\x66\x0F\x57\110              WILLAMETTE,SSE2
 xmmreg,mem              \301\3\x66\x0F\x57\110          WILLAMETTE,SSE2,SM
 
 ;
+; Prescott New Instructions (SSE3)
+;
+[ADDSUBPD]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,mem              \301\3\x66\x0F\xD0\110          PRESCOTT,SSE3,SM
+xmmreg,xmmreg           \3\x66\x0F\xD0\110              PRESCOTT,SSE3
+
+[ADDSUBPS]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,mem		\301\3\xF2\x0F\xD0\110		PRESCOTT,SSE3,SM
+xmmreg,xmmreg           \3\xF2\x0F\xD0\110              PRESCOTT,SSE3
+
+[HADDPD]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,mem              \301\3\x66\x0F\x7C\110          PRESCOTT,SSE3,SM
+xmmreg,xmmreg           \3\x66\x0F\x7C\110              PRESCOTT,SSE3
+
+[HADDPS]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,mem		\301\3\xF2\x0F\x7C\110		PRESCOTT,SSE3,SM
+xmmreg,xmmreg           \3\xF2\x0F\x7C\110              PRESCOTT,SSE3
+
+[HSUBPD]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,mem              \301\3\x66\x0F\x7D\110          PRESCOTT,SSE3,SM
+xmmreg,xmmreg           \3\x66\x0F\x7D\110              PRESCOTT,SSE3
+
+[HSUBPS]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,mem		\301\3\xF2\x0F\x7D\110		PRESCOTT,SSE3,SM
+xmmreg,xmmreg           \3\xF2\x0F\x7D\110              PRESCOTT,SSE3
+
+[LDDQU]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,mem		\3\xF2\x0F\xF0\110		PRESCOTT,SSE3
+
+[MOVDDUP]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,mem		\301\3\xF2\x0F\x12\110		PRESCOTT,SSE3
+xmmreg,xmmreg           \3\xF2\x0F\x12\110              PRESCOTT,SSE3
+
+[MOVSHDUP]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,mem		\301\3\xF3\x0F\x16\110		PRESCOTT,SSE3
+xmmreg,xmmreg		\3\xF3\x0F\x16\110		PRESCOTT,SSE3
+
+[MOVSLDUP]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,mem		\301\3\xF3\x0F\x12\110		PRESCOTT,SSE3
+xmmreg,xmmreg           \3\xF3\x0F\x12\110              PRESCOTT,SSE3
+
+;
 ; $Log$
-; Revision 1.2  2003-09-03 15:55:02  peter
+; Revision 1.3  2003-09-09 12:54:45  florian
+;   * x86 instruction table updated to nasm 0.98.37:
+;       - sse3 aka prescott support
+;       - small fixes
+;
+; Revision 1.2  2003/09/03 15:55:02  peter
 ;   * NEWRA branch merged
 ;
 ; Revision 1.1.2.1  2003/08/27 19:55:54  peter

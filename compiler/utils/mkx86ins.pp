@@ -220,7 +220,7 @@ begin
    insns:=0;
    maxinfolen:=0;
    { open dat file }
-   assign(infile,'i386ins.dat');
+   assign(infile,'..\x86\x86ins.dat');
    reset(infile);
    { create inc files }
    openinc(insfile,'i386tab.inc');
@@ -429,7 +429,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2003-09-03 15:55:02  peter
+  Revision 1.3  2003-09-09 12:54:45  florian
+    * x86 instruction table updated to nasm 0.98.37:
+        - sse3 aka prescott support
+        - small fixes
+
+  Revision 1.2  2003/09/03 15:55:02  peter
     * NEWRA branch merged
 
   Revision 1.1.2.1  2003/08/27 19:13:10  peter
