@@ -784,7 +784,7 @@ implementation
                          st_ansistring:
                            begin
                               rg.saveusedintregisters(exprasmlist,pushed,all_intregisters);
-                              cg.a_param_reg(exprasmlist,OS_INT,right.location.register,paramanager.getintparaloc(1));
+                              cg.a_param_reg(exprasmlist,OS_INT,right.location.register,paramanager.getintparaloc(2));
                               href:=location.reference;
                               dec(href.offset,7);
                               cg.a_param_ref(exprasmlist,OS_INT,href,paramanager.getintparaloc(1));
@@ -824,7 +824,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.53  2003-05-11 21:37:03  peter
+  Revision 1.54  2003-05-15 16:10:37  florian
+    * fixed getintparaloc call for ansi- and widestring range checking
+
+  Revision 1.53  2003/05/11 21:37:03  peter
     * moved implicit exception frame from ncgutil to psub
     * constructor/destructor helpers moved from cobj/ncgutil to psub
 
