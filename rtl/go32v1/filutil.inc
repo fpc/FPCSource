@@ -43,7 +43,7 @@ begin
 end;
 
 
-Function FileSeek (Handle,Offset,Origin : Longint) : Longint;
+Function FileSeek (Handle,FOffset,Origin : Longint) : Longint;
 
 begin
   //!! Needs implementing
@@ -167,7 +167,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2000-02-17 22:16:05  sg
+  Revision 1.5  2000-06-04 14:22:26  hajny
+    * FileSeek parameter name changed
+
+  Revision 1.4  2000/02/17 22:16:05  sg
   * Changed the second argument of FileWrite from "var buffer" to
     "const buffer", like in Delphi.
 
