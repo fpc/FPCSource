@@ -277,8 +277,7 @@ Type
   {---------------------------------------------------------------------}
 
   Procedure SetOperandSize(var instr:TInstruction;operandnum,size:longint);
-  Function GetVarOffsetSize(const base,field:string;Var Offset: longint;var Size:longint):boolean;
-  Function GetTypeOffsetSize(const base,field: string;Var Offset: longint;var Size:longint):boolean;
+Function GetRecordOffsetSize(s:string;Var Offset: longint;var Size:longint):boolean;
   Function SearchIConstant(const s:string; var l:longint): boolean;
   Function SearchLabel(const s: string; var hl: plabel): boolean;
   Function CreateVarInstr(var Instr: TInstruction; const hs:string;
@@ -1087,485 +1086,189 @@ end;
   end;
 
 
-  Function GetVarOffsetSize(const base,field:string;Var Offset: longint;var Size:longint):boolean;
-  { search and returns the offset and size of records/objects of the base }
-  { with field name setup in field.                              }
-  { returns FALSE if not found.                                  }
-  { used when base is a variable or a typed constant name.       }
-   var
-    sym:psym;
-    p: psym;
-  Begin
-     GetVarOffsetSize := FALSE;
-     Offset := 0;
-     { local list }
-     if assigned(aktprocsym) then
-     begin
-      if assigned(aktprocsym^.definition^.localst) then
-        sym:=aktprocsym^.definition^.localst^.search(base)
-      else
-        sym:=nil;
-      if assigned(sym) then
+Function GetRecordOffsetSize(s:string;Var Offset: longint;var Size:longint):boolean;
+{ search and returns the offset and size of records/objects of the base }
+{ with field name setup in field.                              }
+{ returns FALSE if not found.                                  }
+{ used when base is a variable or a typed constant name.       }
+var
+  st   : psymtable;
+  sym  : psym;
+  i    : longint;
+  base : string;
+Begin
+  GetRecordOffsetSize := FALSE;
+  Offset:=0;
+  Size:=0;
+  i:=pos('.',s);
+  if i=0 then
+   i:=255;
+  base:=Copy(s,1,i-1);
+  delete(s,1,i);
+  getsym(base,false);
+  sym:=srsym;
+  st:=nil;
+  { we can start with a var,type,typedconst }
+  case sym^.typ of
+    varsym :
       begin
-        { field of local record variable. }
-        if (sym^.typ=varsym) and (pvarsym(sym)^.definition^.deftype=recorddef) then
-          begin
-             p:=pvarsym(precdef(pvarsym(sym)^.definition)^.symtable^.search(field));
-             if assigned(pvarsym(p)) then
-             Begin
-                Offset := pvarsym(p)^.address;
-                Size:=PVarsym(p)^.getsize;
-                GetVarOffsetSize := TRUE;
-                Exit;
-             end;
-          end
-        else
-        if (sym^.typ=varsym) and (pvarsym(sym)^.definition^.deftype=objectdef) then
-          begin
-             if assigned(pobjectdef(pvarsym(sym)^.definition)^.publicsyms) then
-               begin
-                  p:=pvarsym(pobjectdef(pvarsym(sym)^.definition)^.publicsyms^.search(field));
-                  if assigned(pvarsym(p)) then
-                    Begin
-                      Offset := pvarsym(p)^.address;
-                      Size:=PVarsym(p)^.getsize;
-                      GetVarOffsetSize := TRUE;
-                      Exit;
-                    end;
-               end;
-          end;
-      end
-      else
-       begin
-        { field of local record parameter to routine. }
-         if assigned(aktprocsym^.definition^.parast) then
-           sym:=aktprocsym^.definition^.parast^.search(base)
-         else
-           sym:=nil;
-         if assigned(sym) then
+        case pvarsym(sym)^.definition^.deftype of
+          recorddef :
+            st:=precdef(pvarsym(sym)^.definition)^.symtable;
+          objectdef :
+            st:=pobjectdef(pvarsym(sym)^.definition)^.publicsyms;
+        end;
+      end;
+    typesym :
+      begin
+        case ptypesym(sym)^.definition^.deftype of
+          recorddef :
+            st:=precdef(ptypesym(sym)^.definition)^.symtable;
+          objectdef :
+            st:=pobjectdef(ptypesym(sym)^.definition)^.publicsyms;
+        end;
+      end;
+    typedconstsym :
+      begin
+        case pvarsym(sym)^.definition^.deftype of
+          recorddef :
+            st:=precdef(ptypedconstsym(sym)^.definition)^.symtable;
+          objectdef :
+            st:=pobjectdef(ptypedconstsym(sym)^.definition)^.publicsyms;
+        end;
+      end;
+  end;
+  { now walk all recordsymtables }
+  while assigned(st) and (s<>'') do
+   begin
+     { load next field in base }
+     i:=pos('.',s);
+     if i=0 then
+      i:=255;
+     base:=Copy(s,1,i-1);
+     delete(s,1,i);
+     sym:=st^.search(base);
+     st:=nil;
+     case sym^.typ of
+       varsym :
          begin
-           if (sym^.typ=varsym) and (pvarsym(sym)^.definition^.deftype=recorddef)
-           then
-           begin
-             p:=pvarsym(precdef(pvarsym(sym)^.definition)^.symtable^.search(field));
-             if assigned(p) then
-             Begin
-                Offset := pvarsym(p)^.address;
-                Size:=PVarsym(p)^.getsize;
-                GetVarOffsetSize := TRUE;
-                Exit;
-             end;
-           end { endif }
-         else
-         if (sym^.typ=varsym) and (pvarsym(sym)^.definition^.deftype=objectdef) then
-          begin
-             if assigned(pobjectdef(pvarsym(sym)^.definition)^.publicsyms) then
-               begin
-                  p:=pvarsym(pobjectdef(pvarsym(sym)^.definition)^.publicsyms^.search(field));
-                  if assigned(pvarsym(p)) then
-                    Begin
-                      Offset := pvarsym(p)^.address;
-                      Size:=PVarsym(p)^.getsize;
-                      GetVarOffsetSize := TRUE;
-                      Exit;
-                    end;
-               end;
-          end;
+           inc(Offset,pvarsym(sym)^.address);
+           Size:=PVarsym(sym)^.getsize;
+           case pvarsym(sym)^.definition^.deftype of
+             recorddef :
+               st:=precdef(pvarsym(sym)^.definition)^.symtable;
+             objectdef :
+               st:=pobjectdef(pvarsym(sym)^.definition)^.publicsyms;
+           end;
          end;
-        end;
-      end; { endif assigned(aktprocsym) }
-
-     { not found.. .now look for global variables. }
-     getsym(base,false);
-     sym:=srsym;
-     if assigned(sym) then
-     Begin
-        { field of global record variable. }
-        if (sym^.typ=varsym) and (pvarsym(sym)^.definition^.deftype=recorddef) then
-          begin
-             p:=pvarsym(precdef(pvarsym(sym)^.definition)^.symtable^.search(field));
-             if assigned(p) then
-             Begin
-                Offset := pvarsym(p)^.address;
-                Size:=PVarsym(p)^.getsize;
-                GetVarOffsetSize := TRUE;
-                Exit;
-             end;
-          end
-        else
-        { field of global record type constant. }
-        if (sym^.typ=typedconstsym) and (ptypedconstsym(sym)^.definition^.deftype=recorddef)
-          then
-          begin
-             p:=pvarsym(precdef(pvarsym(sym)^.definition)^.symtable^.search(field));
-             if assigned(p) then
-             Begin
-                Offset := pvarsym(p)^.address;
-                Size:=PVarsym(p)^.getsize;
-                GetVarOffsetSize := TRUE;
-                Exit;
-             end;
-          end
-        else
-        if (sym^.typ=varsym) and (pvarsym(sym)^.definition^.deftype=objectdef) then
-          begin
-             if assigned(pobjectdef(pvarsym(sym)^.definition)^.publicsyms) then
-               begin
-                  p:=pvarsym(pobjectdef(pvarsym(sym)^.definition)^.publicsyms^.search(field));
-                  if assigned(pvarsym(p)) then
-                    Begin
-                      Offset := pvarsym(p)^.address;
-                      Size:=PVarsym(p)^.getsize;
-                      GetVarOffsetSize := TRUE;
-                      Exit;
-                    end;
-               end;
-          end;
-     end; { end looking for global variables .. }
-  end;
+     end;
+   end;
+   GetRecordOffsetSize:=(s='');
+end;
 
 
-
-  Function GetTypeOffsetSize(const base,field: string;Var Offset: longint;var Size:longint):boolean;
-  { search and returns the offset of records/objects of the base }
-  { with field name setup in field.                              }
-  { returns 0 if not found.                                      }
-  { used when base is a variable or a typed constant name.       }
-   var
-    sym:psym;
-    p: psym;
-  Begin
-     Offset := 0;
-     GetTypeOffsetSize := FALSE;
-     { local list }
-     if assigned(aktprocsym) then
-     begin
-      if assigned(aktprocsym^.definition^.localst) then
-        sym:=aktprocsym^.definition^.localst^.search(base)
-      else
-        sym:=nil;
-      if assigned(sym) then
+Function CreateVarInstr(var Instr: TInstruction; const hs:string;operandnum:byte): Boolean;
+{ search and sets up the correct fields in the Instr record }
+{ for the NON-constant identifier passed to the routine.    }
+{ if not found returns FALSE.                               }
+var
+  sym : psym;
+Begin
+  CreateVarInstr := FALSE;
+{ are we in a routine ? }
+  getsym(hs,false);
+  sym:=srsym;
+  if sym=nil then
+   exit;
+  case sym^.typ of
+    varsym :
       begin
-        { field of local record type. }
-        if (sym^.typ=typesym) and (ptypesym(sym)^.definition^.deftype=recorddef) then
-          begin
-             p:=precdef(ptypesym(sym)^.definition)^.symtable^.search(field);
-             if assigned(p) then
-             Begin
-                Offset := pvarsym(p)^.address;
-                Size:=PVarsym(p)^.getsize;
-                GetTypeOffsetSize := TRUE;
-                Exit;
-             end;
-          end;
-      end
-      else
-       begin
-        { field of local record type to routine. }
-         if assigned(aktprocsym^.definition^.parast) then
-            sym:=aktprocsym^.definition^.parast^.search(base)
-         else
-           sym:=nil;
-         if assigned(sym) then
+        { we always assume in asm statements that     }
+        { that the variable is valid.                 }
+        pvarsym(sym)^.is_valid:=1;
+        inc(pvarsym(sym)^.refs);
+        case pvarsym(sym)^.owner^.symtabletype of
+          unitsymtable,
+          globalsymtable,
+          staticsymtable :
+            instr.operands[operandnum].ref.symbol:=newasmsymbol(pvarsym(sym)^.mangledname);
+          parasymtable :
+            begin
+              instr.operands[operandnum].ref.base := procinfo.framepointer;
+              instr.operands[operandnum].ref.offset := pvarsym(sym)^.address+aktprocsym^.definition^.parast^.address_fixup;
+            end;
+          localsymtable :
+            begin
+              if (pvarsym(sym)^.var_options and vo_is_external)<>0 then
+                instr.operands[operandnum].ref.symbol:=newasmsymbol(pvarsym(sym)^.mangledname)
+              else
+                begin
+                  instr.operands[operandnum].ref.base := procinfo.framepointer;
+                  instr.operands[operandnum].ref.offset := -(pvarsym(sym)^.address);
+                end;
+            end;
+        end;
+        case pvarsym(sym)^.definition^.deftype of
+          orddef,
+          enumdef,
+          floatdef :
+            SetOperandSize(instr,operandnum,pvarsym(sym)^.getsize);
+          arraydef :
+            SetOperandSize(instr,operandnum,parraydef(pvarsym(sym)^.definition)^.elesize)
+        end;
+        CreateVarInstr := TRUE;
+        Exit;
+      end;
+    typedconstsym :
+      begin
+        instr.operands[operandnum].ref.symbol:=newasmsymbol(ptypedconstsym(sym)^.mangledname);
+        case ptypedconstsym(sym)^.definition^.deftype of
+          orddef,
+          enumdef,
+          floatdef :
+            SetOperandSize(instr,operandnum,ptypedconstsym(sym)^.getsize);
+          arraydef :
+            SetOperandSize(instr,operandnum,parraydef(ptypedconstsym(sym)^.definition)^.elesize)
+        end;
+        CreateVarInstr := TRUE;
+        Exit;
+      end;
+    constsym :
+      begin
+        if pconstsym(sym)^.consttype in [constint,constchar,constbool] then
          begin
-           if (sym^.typ=typesym) and (ptypesym(sym)^.definition^.deftype=recorddef)
-           then
-           begin
-             p:=precdef(ptypesym(sym)^.definition)^.symtable^.search(field);
-             if assigned(p) then
-             Begin
-                Offset := pvarsym(p)^.address;
-                GetTypeOffsetSize := TRUE;
-                Exit;
-             end;
-           end; { endif }
-         end; {endif }
-       end; { endif }
-     end;
-
-     { not found.. .now look for global types. }
-     getsym(base,false);
-     sym:=srsym;
-     if assigned(sym) then
-     Begin
-        { field of global record types. }
-        if (sym^.typ=typesym) and (ptypesym(sym)^.definition^.deftype=recorddef) then
-          begin
-             p:=precdef(ptypesym(sym)^.definition)^.symtable^.search(field);
-             if assigned(p) then
-             Begin
-                Offset := pvarsym(p)^.address;
-                Size:=PVarsym(p)^.getsize;
-                GetTypeOffsetSize := TRUE;
-                Exit;
-             end
-          end
-        else
-        { public field names of objects }
-        if (sym^.typ=typesym) and (ptypesym(sym)^.definition^.deftype=objectdef)then
-          begin
-             if assigned(pobjectdef(ptypesym(sym)^.definition)^.publicsyms) then
-             Begin
-               p:=pobjectdef(ptypesym(sym)^.definition)^.publicsyms^.search(field);
-               if assigned(p) then
-               Begin
-                  Offset := pvarsym(p)^.address;
-                  Size:=PVarsym(p)^.getsize;
-                  GetTypeOffsetSize := TRUE;
-                  Exit;
-               end
-             end;
-          end;
-     end; { end looking for global variables .. }
+           instr.operands[operandnum].operandtype:=OPR_CONSTANT;
+           instr.operands[operandnum].val:=pconstsym(sym)^.value;
+           CreateVarInstr := TRUE;
+           Exit;
+         end;
+      end;
+    typesym :
+      begin
+        if ptypesym(sym)^.definition^.deftype in [recorddef,objectdef] then
+         begin
+           instr.operands[operandnum].operandtype:=OPR_CONSTANT;
+           instr.operands[operandnum].val:=0;
+           CreateVarInstr := TRUE;
+           Exit;
+         end;
+      end;
+    procsym :
+      begin
+        if assigned(pprocsym(sym)^.definition^.nextoverloaded) then
+          Message(assem_w_calling_overload_func);
+        instr.operands[operandnum].operandtype:=OPR_SYMBOL;
+        instr.operands[operandnum].symbol:=newasmsymbol(pprocsym(sym)^.definition^.mangledname);
+        CreateVarInstr := TRUE;
+        Exit;
+      end;
+    else
+      begin
+        Message(assem_e_unsupported_symbol_type);
+        exit;
+      end;
   end;
-
-
-  Function CreateVarInstr(var Instr: TInstruction; const hs:string;operandnum:byte): Boolean;
-  { search and sets up the correct fields in the Instr record }
-  { for the NON-constant identifier passed to the routine.    }
-  { if not found returns FALSE.                               }
-  var
-    sym : psym;
-    l   : longint;
-  Begin
-    CreateVarInstr := FALSE;
-  { are we in a routine ? }
-    if assigned(aktprocsym) then
-     begin
-     { search the local list for the name of this variable. }
-       if assigned(aktprocsym^.definition^.localst) then
-        sym:=aktprocsym^.definition^.localst^.search(hs)
-       else
-        sym:=nil;
-       if assigned(sym) then
-        begin
-          case sym^.typ of
-         varsym : begin
-                    { we always assume in asm statements that     }
-                    { that the variable is valid.                 }
-                    pvarsym(sym)^.is_valid:=1;
-                    inc(pvarsym(sym)^.refs);
-                    if (pvarsym(sym)^.owner^.symtabletype=staticsymtable) or
-                       ((pvarsym(sym)^.var_options and vo_is_external)<>0) then
-                     begin
-                       instr.operands[operandnum].ref.symbol:=newasmsymbol(pvarsym(sym)^.mangledname);
-                     end
-                    else
-                     begin
-                       instr.operands[operandnum].ref.base := procinfo.framepointer;
-                       instr.operands[operandnum].ref.offset := -(pvarsym(sym)^.address);
-                     end;
-                    { the current size is NOT overriden if it already }
-                    { exists, such as in the case of a byte ptr, in   }
-                    { front of the identifier.                        }
-                   if (instr.operands[operandnum].size = S_NO) or (instr.operands[operandnum].overriden = FALSE) then
-                    Begin
-                      case pvarsym(sym)^.getsize of
-                       1: instr.operands[operandnum].size := S_B;
-                       2: instr.operands[operandnum].size := S_W{ could be S_IS};
-                       4: instr.operands[operandnum].size := S_L{ could be S_IL or S_FS};
-                       8: instr.operands[operandnum].size := S_IQ{ could be S_D or S_FL};
-                       extended_size: instr.operands[operandnum].size := S_FX;
-                      else
-                        { this is in the case where the instruction is LEA }
-                        { or something like that, in that case size is not }
-                        { important.                                       }
-                        instr.operands[operandnum].size := S_NO;
-                      end; { end case }
-                    end;
-                    { ok, finished for this var }
-                    CreateVarInstr := TRUE;
-                    Exit;
-                  end;
-  typedconstsym : begin
-                    { we always assume in asm statements that     }
-                    { that the variable is valid.                 }
-                    instr.operands[operandnum].ref.symbol:=newasmsymbol(pvarsym(sym)^.mangledname);
-                   { the current size is NOT overriden if it already }
-                   { exists, such as in the case of a byte ptr, in   }
-                   { front of the identifier.                        }
-                   if (instr.operands[operandnum].size = S_NO) or (instr.operands[operandnum].overriden = FALSE) then
-                    Begin
-                      case ptypedconstsym(sym)^.getsize of
-                       1: instr.operands[operandnum].size := S_B;
-                       2: instr.operands[operandnum].size := S_W{ could be S_IS};
-                       4: instr.operands[operandnum].size := S_L{ could be S_IL or S_FS};
-                       8: instr.operands[operandnum].size := S_IQ{ could be S_D or S_FL};
-                       extended_size: instr.operands[operandnum].size := S_FX;
-                      else
-                        instr.operands[operandnum].size := S_NO;
-                      end; { end case }
-                    end;
-                    { ok, finished for this var }
-                    CreateVarInstr := TRUE;
-                    Exit;
-                  end;
-       constsym : begin
-                    if pconstsym(sym)^.consttype in [constint,constchar,constbool] then
-                     begin
-                       instr.operands[operandnum].operandtype:=OPR_CONSTANT;
-                       instr.operands[operandnum].val:=pconstsym(sym)^.value;
-                       CreateVarInstr := TRUE;
-                       Exit;
-                     end;
-                  end;
-        typesym : begin
-                    if ptypesym(sym)^.definition^.deftype in [recorddef,objectdef] then
-                     begin
-                       instr.operands[operandnum].operandtype:=OPR_CONSTANT;
-                       instr.operands[operandnum].val:=0;
-                       CreateVarInstr := TRUE;
-                       Exit;
-                     end;
-                  end;
-        procsym : begin
-                    instr.operands[operandnum].operandtype:=OPR_SYMBOL;
-                    instr.operands[operandnum].symbol:=newasmsymbol(pprocsym(sym)^.definition^.mangledname);
-                    CreateVarInstr := TRUE;
-                    Exit;
-                  end
-          else
-           begin
-             Message(assem_e_unsupported_symbol_type);
-             exit;
-           end;
-          end;
-        end;
-
-     { now check for parameters passed to routine }
-       if assigned(aktprocsym^.definition^.parast) then
-        sym:=aktprocsym^.definition^.parast^.search(hs)
-       else
-        sym:=nil;
-       if assigned(sym) then
-        begin
-          case sym^.typ of
-         varsym : begin
-                    if pvarsym(sym)^.islocalcopy then
-                     l:=-pvarsym(sym)^.address
-                    else
-                     begin
-                       l:=pvarsym(sym)^.address;
-                       { set offset }
-                       inc(l,aktprocsym^.definition^.parast^.address_fixup);
-                     end;
-                    pvarsym(sym)^.is_valid:=1;
-                    inc(pvarsym(sym)^.refs);
-                    instr.operands[operandnum].ref.base := procinfo.framepointer;
-                    instr.operands[operandnum].ref.offset := l;
-                    { the current size is NOT overriden if it already }
-                    { exists, such as in the case of a byte ptr, in   }
-                    { front of the identifier.                        }
-                    if (instr.operands[operandnum].size = S_NO) or (instr.operands[operandnum].overriden = FALSE) then
-                    Begin
-                      case pvarsym(sym)^.getsize of
-                        1: instr.operands[operandnum].size := S_B;
-                        2: instr.operands[operandnum].size := S_W;
-                        4: instr.operands[operandnum].size := S_L;
-                        8: instr.operands[operandnum].size := S_IQ;
-                        extended_size: instr.operands[operandnum].size := S_FX;
-                      else
-                      { this is in the case where the instruction is LEA }
-                      { or something like that, in that case size is not }
-                      { important.                                       }
-                        instr.operands[operandnum].size := S_NO;
-                      end; { end case }
-                    end; { endif }
-                    CreateVarInstr := TRUE;
-                    Exit;
-                  end;
-          else
-           begin
-             Message(assem_e_unsupported_symbol_type);
-             exit;
-           end;
-          end; { case }
-        end; { endif }
-     end;
-  { not found.. .now look for global variables. }
-    getsym(hs,false);
-    sym:=srsym;
-    if assigned(sym) then
-     Begin
-       case sym^.typ of
-          varsym,
-   typedconstsym : Begin
-                     if sym^.typ=varsym then
-                       inc(pvarsym(sym)^.refs);
-                     instr.operands[operandnum].ref.symbol:=newasmsymbol(sym^.mangledname);
-                   { the current size is NOT overriden if it already }
-                   { exists, such as in the case of a byte ptr, in   }
-                   { front of the identifier.                        }
-                   if (instr.operands[operandnum].size = S_NO) or (instr.operands[operandnum].overriden = FALSE) then
-                      Begin
-                        case pvarsym(sym)^.getsize of
-                         1: instr.operands[operandnum].size := S_B;
-                         2: instr.operands[operandnum].size := S_W;
-                         4: instr.operands[operandnum].size := S_L;
-                         8: instr.operands[operandnum].size := S_IQ;
-                        else
-                      { this is in the case where the instruction is LEA }
-                      { or something like that, in that case size is not }
-                      { important.                                       }
-                         instr.operands[operandnum].size := S_NO;
-                        end;
-                      end
-                     else
-                      if (instr.operands[operandnum].size = S_NO) and (sym^.typ = typedconstsym) then
-                       Begin
-                       { only these are valid sizes, otherwise prefixes are }
-                       { required.                                          }
-                         case ptypedconstsym(sym)^.definition^.size of
-                          1: instr.operands[operandnum].size := S_B;
-                          2: instr.operands[operandnum].size := S_W;
-                          4: instr.operands[operandnum].size := S_L;
-                          8: instr.operands[operandnum].size := S_IQ;
-                         else
-                         { this is in the case where the instruction is LEA }
-                         { or something like that, in that case size is not }
-                         { important.                                       }
-                           instr.operands[operandnum].size := S_NO;
-                         end;
-                    end; { endif }
-                    CreateVarInstr := TRUE;
-                    Exit;
-                  end;
-       constsym : begin
-                    if pconstsym(sym)^.consttype in [constint,constchar,constbool] then
-                     begin
-                       instr.operands[operandnum].operandtype:=OPR_CONSTANT;
-                       instr.operands[operandnum].val:=pconstsym(sym)^.value;
-                       CreateVarInstr := TRUE;
-                       Exit;
-                     end;
-                  end;
-        typesym : begin
-                    if ptypesym(sym)^.definition^.deftype in [recorddef,objectdef] then
-                     begin
-                       instr.operands[operandnum].operandtype:=OPR_CONSTANT;
-                       instr.operands[operandnum].val:=0;
-                       CreateVarInstr := TRUE;
-                       Exit;
-                     end;
-                  end;
-        procsym : begin
-                    if assigned(pprocsym(sym)^.definition^.nextoverloaded) then
-                     Message(assem_w_calling_overload_func);
-                    instr.operands[operandnum].operandtype:=OPR_SYMBOL;
-                    instr.operands[operandnum].size:=S_L;
-                    instr.operands[operandnum].symbol:=newasmsymbol(pprocsym(sym)^.definition^.mangledname);
-                    CreateVarInstr := TRUE;
-                    Exit;
-                  end;
-       else
-        begin
-          Message(assem_e_unsupported_symbol_type);
-          exit;
-        end;
-       end; {case}
-     end; { end looking for global variables .. }
-  end;
-
+end;
 
 
   Function SearchLabel(const s: string; var hl: plabel): boolean;
@@ -1791,7 +1494,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  1999-03-31 13:55:19  peter
+  Revision 1.9  1999-04-26 23:26:14  peter
+    * redesigned record offset parsing to support nested records
+    * normal compiler uses the redesigned createvarinstr()
+
+  Revision 1.8  1999/03/31 13:55:19  peter
     * assembler inlining working for ag386bin
 
   Revision 1.7  1999/03/24 23:17:23  peter

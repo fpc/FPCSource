@@ -1893,8 +1893,15 @@ var
           actasmtoken := gettoken;
       end;
 
-
-
+procedure RecoverConsume(allowcomma:boolean);
+begin
+  While not (actasmtoken in [AS_SEPARATOR,AS_END]) do
+   begin
+     if allowcomma and (actasmtoken=AS_COMMA) then
+      break;
+     Consume(actasmtoken);
+   end;
+end;
 
 
    function findregister(const s : string): tregister;
@@ -2077,50 +2084,33 @@ var
    End;
 
 
-
-Procedure GetRecordOffsetSize(const expr: string;var offset:longint;var size:longint);
-{*********************************************************************}
-{ PROCEDURE GetRecordOffsetSize                                       }
-{  Description: This routine builds up a record offset after a AS_DOT }
-{  token is encountered.                                              }
-{  On entry actasmtoken should be equal to AS_DOT                     }
-{*********************************************************************}
-{ EXIT CONDITION:  On exit the routine should point to either the     }
-{ ERROR RECOVER: read until AS_COMMA or AS_SEPARATOR token.           }
-{ Warning: This is called recursively.                                }
-{*********************************************************************}
+Procedure BuildRecordOffsetSize(const expr: string;var offset:longint;var size:longint);
+{ Description: This routine builds up a record offset after a AS_DOT }
+{ token is encountered.                                              }
+{ On entry actasmtoken should be equal to AS_DOT                     }
 var
-  toffset,tsize : longint;
+  s : string;
 Begin
   offset:=0;
   size:=0;
-  Consume(AS_DOT);
-  if actasmtoken = AS_ID then
-   Begin
-     if not GetTypeOffsetSize(expr,actasmpattern,toffset,tsize) and
-        not GetVarOffsetSize(expr,actasmpattern,toffset,tsize) then
+  s:=expr;
+  while (actasmtoken=AS_DOT) do
+   begin
+     Consume(AS_DOT);
+     if actasmtoken=AS_ID then
+      begin
+        s:=s+'.'+actasmpattern;
+        Consume(AS_ID);
+      end
+     else
       begin
         Message(assem_e_syntax_error);
-        toffset:=0;
-        tsize:=0;
+        RecoverConsume(true);
+        break;
       end;
-     inc(offset,toffset);
-     size:=tsize;
-     Consume(AS_ID);
-     if actasmtoken=AS_DOT then
-      begin
-        GetRecordOffsetSize(expr,toffset,tsize);
-        inc(offset,toffset);
-        size:=tsize;
-      end;
-   end
-  else
-   Begin
-     Message(assem_e_syntax_error);
-     repeat
-       consume(actasmtoken)
-     until (actasmtoken = AS_SEPARATOR) or (actasmtoken = AS_COMMA);
    end;
+  if not GetRecordOffsetSize(s,offset,size) then
+   Message(assem_e_syntax_error);
 end;
 
 
@@ -2243,7 +2233,7 @@ Begin
           consume(AS_ID);
           if actasmtoken=AS_DOT then
            begin
-             GetRecordOffsetSize(tempstr,l,k);
+             BuildRecordOffsetSize(tempstr,l,k);
              str(l, tempstr);
              expr := expr + tempstr;
            end
@@ -2321,7 +2311,7 @@ end;
                   { var_name.typefield.typefield }
                   if (varname <> '') then
                   Begin
-                    if GetVarOffsetSize(varname,actasmpattern,toffset,tsize) then
+                    if GetRecordOffsetSize(varname+'.'+actasmpattern,toffset,tsize) then
                     Begin
                       Inc(instr.operands[operandnum].ref.offset,tOffset);
                       SetOperandSize(instr,operandnum,tsize);
@@ -2355,7 +2345,7 @@ end;
                  {    [ref].typefield.typefield ...                         }
                  {  basetpyename is already set up... now look for fields.  }
                   Begin
-                     if GetTypeOffsetSize(basetypename,actasmpattern,tOffset,Tsize) then
+                     if GetRecordOffsetSize(basetypename+'.'+actasmpattern,tOffset,Tsize) then
                      Begin
                        Inc(instr.operands[operandnum].ref.offset,tOffset);
                        SetOperandSize(instr,operandnum,Tsize);
@@ -2486,7 +2476,7 @@ end;
                   consume(AS_ID);
                   if actasmtoken=AS_DOT then
                    begin
-                     GetRecordOffsetSize(tempstr,l,k);
+                     BuildRecordOffsetSize(tempstr,l,k);
                      str(l, tempstr);
                      expr := expr + tempstr;
                    end
@@ -2831,7 +2821,7 @@ end;
   var
     l:longint;
     again : boolean;
-    
+
   Begin
      Consume(AS_LBRACKET);
      initAsmRef(instr);
@@ -3629,7 +3619,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  1999-04-19 09:44:26  pierre
+  Revision 1.30  1999-04-26 23:26:13  peter
+    * redesigned record offset parsing to support nested records
+    * normal compiler uses the redesigned createvarinstr()
+
+  Revision 1.29  1999/04/19 09:44:26  pierre
    * accept several previously refused syntax, still uncomplete
 
   Revision 1.28  1999/04/18 00:32:23  pierre

@@ -2453,6 +2453,15 @@ var
       end;
 
 
+procedure RecoverConsume(allowcomma:boolean);
+begin
+  While not (actasmtoken in [AS_SEPARATOR,AS_END]) do
+   begin
+     if allowcomma and (actasmtoken=AS_COMMA) then
+      break;
+     Consume(actasmtoken);
+   end;
+end;
 
 
 
@@ -2639,49 +2648,33 @@ var
 
 
 
-Procedure GetRecordOffsetSize(const expr: string;var offset:longint;var size:longint);
-{*********************************************************************}
-{ PROCEDURE GetRecordOffsetSize                                       }
+Procedure BuildRecordOffsetSize(const expr: string;var offset:longint;var size:longint);
 { Description: This routine builds up a record offset after a AS_DOT }
 { token is encountered.                                              }
 { On entry actasmtoken should be equal to AS_DOT                     }
-{*********************************************************************}
-{ EXIT CONDITION:  On exit the routine should point to either the     }
-{ ERROR RECOVER: read until AS_COMMA or AS_SEPARATOR token.           }
-{ Warning: This is called recursively.                                }
-{*********************************************************************}
 var
-  toffset,tsize : longint;
+  s : string;
 Begin
   offset:=0;
   size:=0;
-  Consume(AS_DOT);
-  if actasmtoken = AS_ID then
-   Begin
-     if not GetTypeOffsetSize(expr,actasmpattern,toffset,tsize) and
-        not GetVarOffsetSize(expr,actasmpattern,toffset,tsize) then
+  s:=expr;
+  while (actasmtoken=AS_DOT) do
+   begin
+     Consume(AS_DOT);
+     if actasmtoken=AS_ID then
+      begin
+        s:=s+'.'+actasmpattern;
+        Consume(AS_ID);
+      end
+     else
       begin
         Message(assem_e_syntax_error);
-        toffset:=0;
-        tsize:=0;
+        RecoverConsume(true);
+        break;
       end;
-     inc(offset,toffset);
-     size:=tsize;
-     Consume(AS_ID);
-     if actasmtoken=AS_DOT then
-      begin
-        GetRecordOffsetSize(expr,toffset,tsize);
-        inc(offset,toffset);
-        size:=tsize;
-      end;
-   end
-  else
-   Begin
-     Message(assem_e_syntax_error);
-     repeat
-       consume(actasmtoken)
-     until (actasmtoken = AS_SEPARATOR) or (actasmtoken = AS_COMMA);
    end;
+  if not GetRecordOffsetSize(s,offset,size) then
+   Message(assem_e_syntax_error);
 end;
 
 
@@ -2815,7 +2808,7 @@ Begin
           consume(AS_ID);
           if actasmtoken=AS_DOT then
            begin
-             GetRecordOffsetSize(tempstr,l,k);
+             BuildRecordOffsetSize(tempstr,l,k);
              str(l, tempstr);
              expr := expr + tempstr;
            end
@@ -3350,7 +3343,7 @@ Begin
                   Consume(AS_ID);
                   if actasmtoken=AS_DOT then
                    begin
-                     GetRecordOffsetSize(expr,toffset,tsize);
+                     BuildRecordOffsetSize(expr,toffset,tsize);
                      inc(instr.operands[operandnum].ref.offset,toffset);
                      SetOperandSize(instr,operandnum,tsize);
                    end;
@@ -3967,7 +3960,11 @@ end.
 
 {
   $Log$
-  Revision 1.38  1999-04-21 21:42:22  pierre
+  Revision 1.39  1999-04-26 23:26:12  peter
+    * redesigned record offset parsing to support nested records
+    * normal compiler uses the redesigned createvarinstr()
+
+  Revision 1.38  1999/04/21 21:42:22  pierre
    * wrong log for v1.37 corrected
 
   Revision 1.37  1999/04/21 16:31:41  pierre
