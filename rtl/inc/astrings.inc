@@ -266,14 +266,20 @@ end;
 
 
 Procedure CharArray_To_AnsiStr(var a : ansistring;p : pchar;l:longint);[Public,Alias : 'FPC_CHARARRAY_TO_ANSISTR'];
+
+Var NewLen : Longint;
+
 begin
   if p[0]=#0 Then
     Pointer(a):=nil
   else
     begin
-      Pointer(a):=NewAnsistring(L);
-      SetLength(A,L);
-      Move (P[0],Pointer(A)^,L)
+    NewLen:=strlen(p); 
+    If NewLen>L then 
+      newlen:=L;
+    Pointer(a):=NewAnsistring(NewLen);
+    SetLength(A,NewLen);
+    Move (P[0],Pointer(A)^,NewLen)
     end;
 end;
 
@@ -750,7 +756,10 @@ end;
 
 {
   $Log$
-  Revision 1.15  1999-04-01 22:00:48  peter
+  Revision 1.16  1999-04-06 10:06:51  michael
+  * Fixed chararray to ansistring conversion
+
+  Revision 1.15  1999/04/01 22:00:48  peter
     * universal names for str/val (ansistr instead of stransi)
     * '1.' support for val() this is compatible with tp7
 
