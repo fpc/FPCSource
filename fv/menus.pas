@@ -1112,6 +1112,8 @@ BEGIN
            Begin
              CreateBorder(NormalLine);
              Index:=2;
+             If UseFixedFont then
+               MoveChar(B, ' ', Color, Size.X-4);    { Clear buffer }
            End
          Else
            Begin
@@ -1122,14 +1124,14 @@ BEGIN
          MoveCStr(B[Index], S, Color);                { Transfer string }
          If (P^.Command <> 0) AND(P^.Param <> Nil)
          Then Begin
-           if TextModeGFV then
+           if TextModeGFV or UseFixedFont then
             MoveCStr(B[Size.X - 3 - Length(P^.Param^)], P^.Param^, Color)  { Add param chars }
            else
             S := S + ' - ' + P^.Param^;                { Add to string }
          End;
          If (OldItem = Nil) OR (OldItem = P) OR
          (Current = P) Then Begin                     { We need to fix draw }
-           If TextModeGFV then
+           If TextModeGFV or UseFixedFont then
              WriteBuf(0, Y, Size.X, 1, B)             { Write the whole line }
            Else
              WriteBuf(2, Y, CStrLen(S), 1, B);          { Write the line }
@@ -1740,7 +1742,10 @@ END;
 END.
 {
  $Log$
- Revision 1.11  2002-05-21 10:53:25  pierre
+ Revision 1.12  2002-05-29 19:36:52  pierre
+  * fix UseFixedFont related code
+
+ Revision 1.11  2002/05/21 10:53:25  pierre
   * fix graphical separation lines
 
  Revision 1.10  2001/08/05 21:49:56  pierre

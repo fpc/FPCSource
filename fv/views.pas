@@ -1584,7 +1584,7 @@ BEGIN
 {$endif}
     Begin   { Check enough memory }
      GetMem(Ca, SizeOf(TComplexArea));                { Allocate memory }
-     GetViewSettings(ViewPort, TextModeGFV);          { Fetch view port }
+     GetViewSettings(ViewPort, TextModeGFV or UseFixedFont);          { Fetch view port }
      Ca^.X1 := ViewPort.X1;                           { Hold current X1 }
      Ca^.Y1 := ViewPort.Y1;                           { Hold current Y1 }
      Ca^.X2 := ViewPort.X2;                           { Hold current X2 }
@@ -1607,7 +1607,7 @@ BEGIN
          Then Y2 := P^.RawOrigin.Y + P^.RawSize.Y;    { Y maximum contain }
        P := P^.Owner;                                 { Move to owners owner }
      End;
-     If TextModeGFV then Begin
+     If TextModeGFV or UseFixedFont then Begin
        X1 := X1 div SysFontWidth;
        X2 := (X2 +SysFontWidth - 1) div SysFontWidth;
        Y1 := Y1 div SysFontHeight;
@@ -1625,7 +1625,7 @@ BEGIN
        If (Y2 > ViewPort.Y2) Then Y2 := ViewPort.Y2;  { Adjust y2 to locked }
      End;
 
-     SetViewPort(X1, Y1, X2, Y2, ClipOn, TextModeGFV);{ Set new clip limits }
+     SetViewPort(X1, Y1, X2, Y2, ClipOn, TextModeGFV or UseFixedFont);{ Set new clip limits }
    End;
 END;
 
@@ -1642,7 +1642,7 @@ BEGIN
        Bc := GetColor(1) AND $F0 SHR 4 Else           { Select back colour }
        Bc := GetColor(4) AND $F0 SHR 4;               { Disabled back colour }
      GetViewSettings(ViewPort, TextModeGFV);          { Get view settings }
-     If (TextModeGFV <> True) Then Begin            { GRAPHICS MODE GFV }
+     If not TextModeGFV and not UseFixedFont Then Begin            { GRAPHICS MODE GFV }
        If (ViewPort.X1 <= RawOrigin.X) Then X1 := 0     { Right to left edge }
          Else X1 := ViewPort.X1-RawOrigin.X;            { Offset from left }
        If (ViewPort.Y1 <= RawOrigin.Y) Then Y1 := 0     { Right to top edge }
@@ -1692,7 +1692,7 @@ BEGIN
    If (P <> Nil) Then Begin                           { Valid complex area }
      HoldLimit := P^.NextArea;                        { Move to prior area }
      SetViewPort(P^.X1, P^.Y1, P^.X2, P^.Y2, ClipOn,
-       TextModeGFV);                                  { Restore clip limits }
+       TextModeGFV or UseFixedFont);                                  { Restore clip limits }
      FreeMem(P, SizeOf(TComplexArea));                { Release memory }
    End;
 END;
@@ -4674,7 +4674,7 @@ BEGIN
        X := RawOrigin.X + Abs(X);
        Y := RawOrigin.Y + Abs(Y);
      End;
-     If TextModeGFV then Begin
+     If TextModeGFV or UseFixedFont then Begin
        X := X DIV SysFontWidth;
        Y := Y DIV SysFontHeight;
      End;
@@ -4723,7 +4723,7 @@ BEGIN
        X := RawOrigin.X + Abs(X);
        Y := RawOrigin.Y + Abs(Y);
      End;
-     If TextModeGFV then Begin
+     If TextModeGFV or UseFixedFont then Begin
        X := X DIV SysFontWidth;
        Y := Y DIV SysFontHeight;
      End;
@@ -4977,7 +4977,7 @@ BEGIN
      End;
 {$endif DEBUG}
   { Direct wrong method }
-  GetViewSettings(ViewPort, TextModeGFV);          { Get set viewport }
+  GetViewSettings(ViewPort, TextModeGFV or UseFixedFont);          { Get set viewport }
   { Pedestrian character method }
   { Must be in area }
   If (X+L<ViewPort.X1) OR (Y<ViewPort.Y1) OR
@@ -5570,7 +5570,10 @@ END.
 
 {
  $Log$
- Revision 1.25  2002-05-28 19:15:16  pierre
+ Revision 1.26  2002-05-29 19:36:52  pierre
+  * fix UseFixedFont related code
+
+ Revision 1.25  2002/05/28 19:15:16  pierre
   * adapt to new GraphUpdateScreen function
 
  Revision 1.24  2002/05/25 23:30:47  pierre
