@@ -407,7 +407,15 @@ implementation
 
         {
           in most cases we can process first the right node which contains
-          the most complex code. But not when the result is in the flags, then
+          the most complex code. Exceptions for this are:
+	    - result is in flags, loading left will then destroy the flags
+	    - result need reference count, when left points to a value used in
+	      right then decreasing the refcnt on left can possibly release 
+	      the memory before right increased the refcnt, result is that an
+	      empty value is assigned
+	    - calln, call destroys most registers and is therefor 'complex'
+	    
+	   But not when the result is in the flags, then
           loading the left node afterwards can destroy the flags.
 
           when the right node returns as LOC_JUMP then we will generate
@@ -421,11 +429,10 @@ implementation
             leftnode
             assign 0
         }
-
-        { Try to determine which side to calculate first,  }
         if (right.expectloc<>LOC_FLAGS) and
            ((right.expectloc=LOC_JUMP) or
             (right.nodetype=calln) or
+            (right.resulttype.def.needs_inittable) or
             (right.registersint>=left.registersint)) then
          begin
            secondpass(right);
@@ -952,7 +959,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.119  2004-06-29 20:57:03  peter
+  Revision 1.120  2004-07-03 10:26:35  peter
+    * always pass right before left when type needs refcnt
+
+  Revision 1.119  2004/06/29 20:57:03  peter
     * redundant freetemp removed
 
   Revision 1.118  2004/06/20 08:55:29  florian
