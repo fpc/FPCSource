@@ -130,7 +130,7 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
 # System Dependent Units
 #
 
-baseunix$(PPUEXT) : $(UNIXINC)/errno.inc $(BSDINC)/bunxtype.inc ptypes.inc $(BSDINC)/ctypes.inc \
+baseunix$(PPUEXT) : $(BSDINC)/errno.inc $(BSDINC)/bunxtype.inc ptypes.inc $(BSDINC)/ctypes.inc \
 	signal.inc $(UNIXINC)/bunxh.inc $(BSDINC)/bunxmain.inc $(BSDINC)/ostypes.inc \
 	$(BSDINC)/bunxfunc.inc $(BSDPROCINC)/syscallh.inc sysnr.inc \
 	$(BSDINC)/ostypes.inc $(BSDINC)/ossysch.inc $(BSDINC)/bunxmacr.inc $(UNIXINC)/gensigset.inc \
