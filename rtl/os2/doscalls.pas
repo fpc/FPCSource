@@ -79,7 +79,7 @@ function DosCreateThread (var TID: longint; Address: TThreadEntry;
 (* Overloaded version for compatibility. *)
 function DosCreateThread (var TID: longint; Address: pointer;
                    AParam: Pointer; Flags, StackSize: longint): longint; cdecl;
-                       
+
 
 {Suspend a running thread.}
 function DosSuspendThread(TID:longint):longint; cdecl;
@@ -316,7 +316,7 @@ const   DBG_C_Null              = 0;       { Null                         }
         DBG_X_FIRST_CHANCE        = 1;
         DBG_X_LAST_CHANCE         = 2;
         DBG_X_STACK_INVALID       = 3;
-     
+
         DBG_W_Local               = $0000001;
         DBG_W_Global              = $0000002;
         DBG_W_Execute             = $00010000;
@@ -328,7 +328,7 @@ for writing debuggers.}
 function DosDebug (DebugBuf: PDbgBuf):longint; cdecl;
 
 function DosDebug (var APDbgBuf: TDbgBuf): longint; cdecl;
-                  
+
 { codeTerminate values (also passed to ExitList routines) }
 const   TC_exit         = 0;
         TC_harderror    = 1;
@@ -377,7 +377,7 @@ const   deSync          = 0;    {Wait until program terminates.}
         EXEC_BACKGROUND    =deBackground;
         EXEC_LOAD          =deSuspended;
         EXEC_ASYNCRESULTDB =deAsyncResultDb;
-        
+
 type    TResultCodes=record
             TerminateReason,        {0 = Normal termionation.
                                      1 = Critical error.
@@ -654,7 +654,7 @@ type    TgEA = record
 const       doOpened        =  1;
             doCreated       =  2;
             doOverwritten   =  3;
-            
+
             FILE_EXISTED    =  doOpened;
             FILE_CREATED    =  doCreated;
             FILE_TRUNCATED  =  doOverwritten;
@@ -669,11 +669,11 @@ const       doFail          =  0;
                 contents : Creation flags is 10 hex not 10 dec.
             *)
             doCreate        = 16;
-            
+
             FILE_OPEN       = doOpen;
             FILE_TRUNCATE   = doOverwrite;
             FILE_CREATE     = doCreate;
-            
+
 {    this nibble applies if file already exists                      xxxx }
       OPEN_ACTION_FAIL_IF_EXISTS     =doFail;       { ---- ---- ---- 0000 }
       OPEN_ACTION_OPEN_IF_EXISTS     =doOpen;       { ---- ---- ---- 0001 }
@@ -713,16 +713,16 @@ const       doRead          =     0;
       OPEN_FLAGS_NO_LOCALITY         =$0000;        { ---- -000 ---- ---- }
       OPEN_FLAGS_SEQUENTIAL          =doSequential; { ---- -001 ---- ---- }
       OPEN_FLAGS_RANDOM              =doRandom;     { ---- -010 ---- ---- }
-      OPEN_FLAGS_RANDOMSEQUENTIAL    =doSequential 
+      OPEN_FLAGS_RANDOMSEQUENTIAL    =doSequential
                                    or doRandom;     { ---- -011 ---- ---- }
       OPEN_FLAGS_NO_CACHE            =doNoCache;    { ---1 ---- ---- ---- }
       OPEN_FLAGS_FAIL_ON_ERROR       =doFailOnErr;  { --1- ---- ---- ---- }
       OPEN_FLAGS_WRITE_THROUGH       =doWriteThru;  { -1-- ---- ---- ---- }
       OPEN_FLAGS_DASD                =doDASD;       { 1--- ---- ---- ---- }
-      
+
       OPEN_FLAGS_NONSPOOLED          =$00040000;
       OPEN_FLAGS_PROTECTED_HANDLE    =$40000000;
-            
+
 
 { Open a file.
 
@@ -2826,7 +2826,7 @@ const
 { Logging constants }
   ErrLog_Service = 1;
   ErrLog_Version = 1;
- 
+
 { LogRecord status bits }
   lf_Bit_ProcName = 1;    {used to indicate whether the current error log}
                           {entry packet contains space in which the error}
@@ -2850,7 +2850,7 @@ const
   lf_Bit_GetStatus = 64;
   lf_Bit_Register = 128;
   lf_Bit_Remote_Fail = 256;
- 
+
 type
 { Log entry record header for OS/2 2.x and above used    }
 { by 32-bit device drivers and callers of LogAddEntries. }
@@ -2885,7 +2885,7 @@ type
   end;
   LogRecord = TLogRecord;
   PLogRecord = ^TLogRecord;
- 
+
 { Format of buffer sent to LogAddEntries }
   TLogEntryRec = record
     Version: word;                      {this version is 1}
@@ -2894,7 +2894,7 @@ type
   end;
   LogEntryRec = TLogEntryRec;
   PLogEntryRec = ^TLogEntryRec;
- 
+
 { Logging facility functions }
 { Open a connection to the system error logging facility (through the system
   logging service device driver). }
@@ -2914,9 +2914,9 @@ function LogClose (Handle: cardinal): longint; cdecl;
 { Parameters:
   Handle - handle returned by previous LogOpen
   Service - specifies the class of logging facility:
-    0 ........... reserved 
+    0 ........... reserved
     1 ........... error logging
-    2 - $FFFF ... reserved 
+    2 - $FFFF ... reserved
   LogEntries - buffer containing a variable length error log entry. The first
     word of the buffer contains the number of packets in the error log entry.
     Multiple error log packets (LogRec structure) can be included within
@@ -4346,14 +4346,14 @@ procedure MagicHeaderEnd; assembler; forward;
 {$ASMMODE INTEL}
 
 {start of _MSGSEG32 segment}
-procedure MagicHeaderStart; assembler;               
+procedure MagicHeaderStart; assembler;
 asm
   db $0FF
   db $4D,$53,$47,$53,$45,$47,$33,$32, 0       //'MSGSEG32'
   dd $8001
   dd MAGICHEADEREND
 end;
-    
+
 function DosGetMessage(Table:PInsertTable;TableSize:longint;Buf:PChar;
                        BufSize,MsgNumber:longint;FileName:PChar;
                        var MsgSize:longint):longint;
@@ -4607,13 +4607,17 @@ external 'DOSCALLS' index 425;
 {$ASMMODE INTEL}
 function SelToFlat (AFarPtr: TFarPtr): pointer; assembler;
  asm
+{$ifndef REGCALL}
   mov eax, AFarPtr
+{$endif}
   call DosSelToFlat
  end;
 
 function FlatToSel (APtr: pointer): cardinal; assembler;
  asm
+{$ifndef REGCALL}
   mov eax, APtr
+{$endif}
   call DosFlatToSel
  end;
 
@@ -4709,7 +4713,10 @@ external 'DOSCALLS' index 582;
 end.
 {
   $Log$
-  Revision 1.23  2003-11-02 00:25:09  hajny
+  Revision 1.24  2003-12-04 21:22:38  peter
+    * regcall updates (untested)
+
+  Revision 1.23  2003/11/02 00:25:09  hajny
     * TFileFindBuf3 corrected
 
   Revision 1.22  2003/11/01 20:41:47  hajny
