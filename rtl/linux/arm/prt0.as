@@ -60,13 +60,18 @@ _start:
 	ldr ip,=U_SYSTEM_ENVP
 
 	str sp,[a3]
-        str a2,[ip]
+    str a2,[ip]
 
 	/* Let the libc call main and exit with its return code.  */
 	bl PASCALMAIN
 
-	/* should never get here....*/
-	/* bl abort */
+	.globl  _haltproc
+    .type   _haltproc,#function
+_haltproc:
+	ldr		r0,=U_SYSTEM_EXITCODE
+	ldrb	r0,[r0]
+	swi		0x900001
+	b		_haltproc
 	
 	/* Define a symbol for the first piece of initialized data.  */
 	.data
@@ -96,7 +101,11 @@ __data_start:
 
 /*
   $Log$
-  Revision 1.2  2004-01-20 18:32:46  florian
+  Revision 1.3  2004-03-11 22:39:53  florian
+    * arm startup code fixed
+    * made some generic math code more readable
+
+  Revision 1.2  2004/01/20 18:32:46  florian
     * fixed sigill problem when running in gdb
 
   Revision 1.1  2003/08/27 13:07:07  florian

@@ -134,7 +134,6 @@ End;
       aExp, shiftCount: smallint;
       aSig0, aSig1, absZ, aSigExtra: longint;
       z: longint;
-      label invalid;
    Begin
      aSig1 := extractFloat64Frac1( a );
      aSig0 := extractFloat64Frac0( a );
@@ -143,22 +142,18 @@ End;
      shiftCount := aExp - $413;
      if ( 0 <= shiftCount ) then
      Begin
-         if ( $41E < aExp ) then
-         Begin
-             if ( ( aExp = $7FF ) AND  (( aSig0 OR  aSig1 )<>0) ) then
-                aSign := 0;
-             goto invalid;
-         End;
-         shortShift64Left(
-             aSig0 OR  $00100000, aSig1, shiftCount, absZ, aSigExtra );
+        if (aExp=$7FF)  and ((aSig0 or aSig1)<>0) then
+          HandleError(207);
+        shortShift64Left(
+          aSig0 OR  $00100000, aSig1, shiftCount, absZ, aSigExtra );
      End
      else
      Begin
          if ( aExp < $3FF ) then
-         Begin
+           begin
              float64_to_int32_round_to_zero := 0;
              exit;
-         End;
+           end;
          aSig0 := aSig0 or $00100000;
          aSigExtra := ( aSig0 shl ( shiftCount and 31 ) ) OR  aSig1;
          absZ := aSig0 shr ( - shiftCount );
@@ -168,11 +163,7 @@ End;
      else
        z:=absZ;
      if ((aSign<>0) xor (z<0)) AND  (z<>0) then
-     Begin
-  invalid:
-        HandleError(207);
-        exit;
-    End;
+       HandleError(207);
     float64_to_int32_round_to_zero := z;
    End;
 
@@ -1189,7 +1180,11 @@ function fpc_int64_to_double(i : int64): double; compilerproc;
 
 {
   $Log$
-  Revision 1.21  2004-02-04 14:15:57  florian
+  Revision 1.22  2004-03-11 22:39:53  florian
+    * arm startup code fixed
+    * made some generic math code more readable
+
+  Revision 1.21  2004/02/04 14:15:57  florian
     * fixed generic system.int(...)
 
   Revision 1.20  2004/01/24 18:15:58  florian
