@@ -616,7 +616,11 @@ begin
         movb    $0x2d,1(%edi)   // put '-' in String
         incl    %ecx
 .LM2:
+{$ifdef NOATTCDQ}
         cltd
+{$else}
+        cdq
+{$endif}
         idivl   %esi,%eax
         addb    $0x30,%dl       // convert Rest to ASCII.
         movb    %dl,-12(%ebp,%ebx)
@@ -718,7 +722,10 @@ end;
 
 {
   $Log$
-  Revision 1.32  1998-11-26 23:15:08  jonas
+  Revision 1.33  1998-11-28 14:09:49  peter
+    * NOATTCDQ define
+
+  Revision 1.32  1998/11/26 23:15:08  jonas
     * changed cdq to cltd in AT&T assembler block
 
   Revision 1.31  1998/11/26 21:33:58  peter

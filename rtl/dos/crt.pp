@@ -99,10 +99,6 @@ implementation
 uses
   go32;
 
-{$ifdef VER0_99_5}
-  {$I386_DIRECT} {due to a bug in the assembler reader using a  }
-                 { call to a symbol will crash under FPC 0.99.5 }
-{$endif}
 
 {$ASMMODE ATT}
 
@@ -499,77 +495,19 @@ end;
                                    Delay
 *************************************************************************}
 
-{$ifdef VER0_99_5}
-
-{ Workaround for ATT reader with CALL }
-procedure Delayloop;
-begin
-  asm
+procedure Delayloop;assembler;
+asm
 .LDelayLoop1:
         subl    $1,%eax
         jc      .LDelayLoop2
         cmpl    %fs:(%edi),%ebx
         je      .LDelayLoop1
 .LDelayLoop2:
-  end;
 end;
 
 
-procedure initdelay;
-begin
-  asm
-        movl    $0x46c,%edi
-        movl    $-28,%edx
-        movl    %fs:(%edi),%ebx
-.LInitDel1:
-        cmpl    %fs:(%edi),%ebx
-        je      .LInitDel1
-        movl    %fs:(%edi),%ebx
-        movl    %edx,%eax
-        call    _CRT$$_DELAYLOOP
-
-        notl    %eax
-        xorl    %edx,%edx
-        movl    $55,%ecx
-        divl    %ecx
-        movl    %eax,_DELAYCNT
-  end;
-end;
-
-
-procedure Delay(MS: Word);
-begin
-  asm
-        movzwl  MS,%ecx
-        jecxz   .LDelay2
-        movl    $0x400,%edi
-        movl    _DELAYCNT,%edx
-        movl    %fs:(%edi),%ebx
-.LDelay1:
-        movl    %edx,%eax
-        call    _CRT$$_DELAYLOOP
-        loop    .LDelay1
-.LDelay2:
-  end;
-end;
-
-{$else}
-procedure Delayloop;
-begin
-  asm
-.LDelayLoop1:
-        subl    $1,%eax
-        jc      .LDelayLoop2
-        cmpl    %fs:(%edi),%ebx
-        je      .LDelayLoop1
-.LDelayLoop2:
-  end;
-end;
-
-
-procedure initdelay;
-begin
-  asm
+procedure initdelay;assembler;
+asm
         movl    $0x46c,%edi
         movl    $-28,%edx
         movl    %fs:(%edi),%ebx
@@ -585,13 +523,11 @@ begin
         movl    $55,%ecx
         divl    %ecx
         movl    %eax,DelayCnt
-  end;
 end;
 
 
-procedure Delay(MS: Word);
-begin
-  asm
+procedure Delay(MS: Word);assembler;
+asm
         movzwl  MS,%ecx
         jecxz   .LDelay2
         movl    $0x400,%edi
@@ -602,10 +538,7 @@ begin
         call    DelayLoop
         loop    .LDelay1
 .LDelay2:
-  end;
 end;
-
-{$endif VER0_99_5}
 
 
 procedure sound(hz : word);
@@ -618,7 +551,11 @@ begin
   asm
         movzwl  hz,%ecx
         movl    $1193046,%eax
+{$ifdef NOATTCDQ}	
         cltd
+{$else}
+	cdq
+{$endif}		
         divl    %ecx
         movl    %eax,%ecx
         movb    $0xb6,%al
@@ -983,7 +920,10 @@ end.
 
 {
   $Log$
-  Revision 1.14  1998-11-26 23:14:52  jonas
+  Revision 1.15  1998-11-28 14:09:48  peter
+    * NOATTCDQ define
+
+  Revision 1.14  1998/11/26 23:14:52  jonas
     * changed cdq to cltd in AT&T assembler block
 
   Revision 1.13  1998/08/26 10:01:54  peter
