@@ -22,6 +22,12 @@ interface
 
 implementation
 
+  { we need to include dpmiexcp unit
+    to avoid getting troubles with _exit found both
+    in libc and in v2prt0.as PM }
+  uses
+    dpmiexcp;
+
   type
      simple_proc = procedure;
   var
@@ -89,7 +95,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2000-01-07 16:41:32  daniel
+  Revision 1.5  2000-01-09 00:35:17  pierre
+   * initc now loads dpmiexcp unit to avoid linker problems
+
+  Revision 1.4  2000/01/07 16:41:32  daniel
     * copyright 2000
 
   Revision 1.3  2000/01/07 16:32:23  daniel
