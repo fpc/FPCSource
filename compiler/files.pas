@@ -177,6 +177,7 @@ unit files;
           do_assemble,              { only assemble the object, don't recompile }
           do_compile,               { need to compile the sources }
           sources_avail,            { if all sources are reachable }
+          sources_checked,          { if there is already done a check for the sources }
           is_unit,
           in_compile,               { is it being compiled ?? }
           in_second_compile,        { is this unit being compiled for the 2nd time? }
@@ -1005,76 +1006,73 @@ end;
            UnitExists:=FileExists(Singlepathstring+FileName+ext);
          end;
 
-         Function SearchPath(const s:string):boolean;
+         Function PPUSearchPath(const s:string):boolean;
+         var
+           found   : boolean;
+         begin
+           Found:=false;
+           singlepathstring:=FixPath(s,false);
+         { Check for PPU file }
+           Found:=UnitExists(target_info.unitext);
+           if Found then
+            Begin
+              SetFileName(SinglePathString+FileName,false);
+              Found:=OpenPPU;
+            End;
+           PPUSearchPath:=Found;
+         end;
+
+         Function SourceSearchPath(const s:string):boolean;
          var
            found   : boolean;
            ext     : string[8];
          begin
            Found:=false;
            singlepathstring:=FixPath(s,false);
-           if not onlysource then
-            begin
-{$ifdef CHECKPPL}
-            { Check for PPL file }
-              if not Found then
-               begin
-                 Found:=UnitExists(target_info.unitlibext);
-                 if Found then
-                  Begin
-                    SetFileName(SinglePathString+FileName,false);
-                    Found:=OpenPPU;
-                  End;
-                end;
-{$endif CHECKPPL}
-            { Check for PPU file }
-              if not Found then
-               begin
-                 Found:=UnitExists(target_info.unitext);
-                 if Found then
-                  Begin
-                    SetFileName(SinglePathString+FileName,false);
-                    Found:=OpenPPU;
-                  End;
-               end;
-            end;
          { Check for Sources }
-           if not Found then
+           ppufile:=nil;
+           do_compile:=true;
+           recompile_reason:=rr_noppu;
+         {Check for .pp file}
+           Found:=UnitExists(target_os.sourceext);
+           if Found then
+            Ext:=target_os.sourceext
+           else
             begin
-              ppufile:=nil;
-              do_compile:=true;
-              recompile_reason:=rr_noppu;
-            {Check for .pp file}
-              Found:=UnitExists(target_os.sourceext);
+            {Check for .pas}
+              Found:=UnitExists(target_os.pasext);
               if Found then
-               Ext:=target_os.sourceext
-              else
-               begin
-               {Check for .pas}
-                 Found:=UnitExists(target_os.pasext);
-                 if Found then
-                  Ext:=target_os.pasext;
-               end;
-              stringdispose(mainsource);
-              if Found then
-               begin
-                 sources_avail:=true;
-               {Load Filenames when found}
-                 mainsource:=StringDup(SinglePathString+FileName+Ext);
-                 SetFileName(SinglePathString+FileName,false);
-               end
-              else
-               sources_avail:=false;
+               Ext:=target_os.pasext;
             end;
-           SearchPath:=Found;
+           stringdispose(mainsource);
+           if Found then
+            begin
+              sources_avail:=true;
+            {Load Filenames when found}
+              mainsource:=StringDup(SinglePathString+FileName+Ext);
+              SetFileName(SinglePathString+FileName,false);
+            end
+           else
+            sources_avail:=false;
+           SourceSearchPath:=Found;
+         end;
+
+         Function SearchPath(const s:string):boolean;
+         var
+           found : boolean;
+         begin
+           { First check for a ppu, then for the source }
+           found:=false;
+           if not onlysource then
+            found:=PPUSearchPath(s);
+           if not found then
+            found:=SourceSearchPath(s);
+           SearchPath:=found;
          end;
 
          Function SearchPathList(list:TSearchPathList):boolean;
          var
-         {$IFDEF NEWST}
-           hp : PStringItem;
-         {$ELSE NEWST}
            hp : PStringQueueItem;
-         {$ENDIF NEWST}
            found : boolean;
          begin
            found:=false;
@@ -1094,10 +1092,20 @@ end;
        begin
          filename:=FixFileName(n);
          { try to find unit
-            1. cwd
-            2. local unit path
-            3. global unit path }
-         fnd:=SearchPath('.');
+            1. look for ppu in cwd
+            2. look for ppu in outputpath if set, this is tp7 compatible (PFV)
+            3. look for source in cwd
+            4. local unit pathlist
+            5. global unit pathlist }
+         fnd:=false;
+         if not onlysource then
+          begin
+            fnd:=PPUSearchPath('.');
+            if (not fnd) and (current_module^.outputpath^<>'') then
+             fnd:=PPUSearchPath(current_module^.outputpath^);
+           end;
+         if (not fnd) then
+          fnd:=SourceSearchPath('.');
          if (not fnd) then
           fnd:=SearchPathList(current_module^.LocalUnitSearchPath);
          if (not fnd) then
@@ -1262,6 +1270,7 @@ end;
         do_assemble:=false;
         do_compile:=false;
         sources_avail:=true;
+        sources_checked:=false;
         compiled:=false;
         recompile_reason:=rr_unknown;
         in_second_load:=false;
@@ -1276,7 +1285,13 @@ end;
         _exports:=new(plinkedlist,init);
       { search the PPU file if it is an unit }
         if is_unit then
-         search_unit(modulename^,false);
+         begin
+           search_unit(modulename^,false);
+           { it the sources_available is changed then we know that
+             the sources aren't available }
+           if not sources_avail then
+            sources_checked:=true;
+         end;
       end;
 
 
@@ -1393,7 +1408,17 @@ end;
 end.
 {
   $Log$
-  Revision 1.117  2000-02-28 17:23:56  daniel
+  Revision 1.118  2000-06-15 18:10:11  peter
+    * first look for ppu in cwd and outputpath and after that for source
+      in cwd
+    * fixpath() for not linux makes path now lowercase so comparing paths
+      with different cases (sometimes a drive letter could be
+      uppercased) gives the expected results
+    * sources_checked flag if there was already a full search for sources
+      which aren't found, so another scan isn't done when checking for the
+      sources only when recompile is needed
+
+  Revision 1.117  2000/02/28 17:23:56  daniel
   * Current work of symtable integration committed. The symtable can be
     activated by defining 'newst', but doesn't compile yet. Changes in type
     checking and oop are completed. What is left is to write a new

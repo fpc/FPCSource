@@ -995,7 +995,11 @@ implementation
         if (not allowdot) and (s='.'+DirSep) then
          s:='';
         { return }
+{$ifdef linux}
         FixPath:=s;
+{$else}
+        FixPath:=Lower(s);
+{$endif}
       end;
 
 
@@ -1568,7 +1572,17 @@ begin
 end.
 {
   $Log$
-  Revision 1.64  2000-06-11 07:00:21  peter
+  Revision 1.65  2000-06-15 18:10:11  peter
+    * first look for ppu in cwd and outputpath and after that for source
+      in cwd
+    * fixpath() for not linux makes path now lowercase so comparing paths
+      with different cases (sometimes a drive letter could be
+      uppercased) gives the expected results
+    * sources_checked flag if there was already a full search for sources
+      which aren't found, so another scan isn't done when checking for the
+      sources only when recompile is needed
+
+  Revision 1.64  2000/06/11 07:00:21  peter
     * fixed pchar->string conversion for delphi mode
 
   Revision 1.63  2000/05/12 08:58:51  pierre

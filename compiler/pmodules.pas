@@ -447,7 +447,8 @@ unit pmodules;
                 current_ppu:=nil;
               end;
            { recompile the unit or give a fatal error if sources not available }
-             if not(current_module^.sources_avail) then
+             if not(current_module^.sources_avail) and
+                not(current_module^.sources_checked) then
                if (not current_module^.search_unit(current_module^.modulename^,true))
                   and (length(current_module^.modulename^)>8) then
                  current_module^.search_unit(copy(current_module^.modulename^,1,8),true);
@@ -1706,7 +1707,17 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.196  2000-06-01 19:09:57  peter
+  Revision 1.197  2000-06-15 18:10:11  peter
+    * first look for ppu in cwd and outputpath and after that for source
+      in cwd
+    * fixpath() for not linux makes path now lowercase so comparing paths
+      with different cases (sometimes a drive letter could be
+      uppercased) gives the expected results
+    * sources_checked flag if there was already a full search for sources
+      which aren't found, so another scan isn't done when checking for the
+      sources only when recompile is needed
+
+  Revision 1.196  2000/06/01 19:09:57  peter
     * made resourcestrings OOP so it's easier to handle it per module
 
   Revision 1.195  2000/05/11 09:40:11  pierre
