@@ -1,13 +1,14 @@
 Program checkcvs;
-{   $Id$
+{
+    $Id$
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team.
 
     A simple filter program which displays what happened on CVS today.
 
-    Without parameters it shows what happened today, if you specify a
-    nummeric parameter smaller than 365, CheckCvs searches for entries
-    n days back.
+    Without parameters it shows the newest CVS log entry.
+    If you specify a nummeric parameter smaller than 365,
+    CheckCvs searches for ALL entries n days back.
     Great to quickly check what changed after an update etc.
 
     Todo : add getopts and some switches to increase configurability.
@@ -22,6 +23,8 @@ Program checkcvs;
  **********************************************************************}
 
 Uses Dos;
+
+Const bufferlimit=10000;
 
 Type 
    Array12type = ARRAY [1..12] Of longint;
@@ -66,6 +69,12 @@ Begin
     End;
 End;
 
+Var NewestBuffer : PChar;       {Buffer containing the "newest" data}
+    BufferIndex  : Longint;     {Bytes in buffer}
+    NewestDate   : Longint;     {Newest date (the one in NewestBuffer)}
+    CheckMode    : boolean;     {Do we search newest, or all msgs since
+                                  <parameter> days ago}
+
 Procedure CheckAfile(Name:String;Firstday:longint);
 {Outputs filename and relevant CVSLOG entries for all files that have log
 entries newer than FirstDay.}
@@ -79,8 +88,30 @@ Var  F               : Text;
      PosDate         : longint;
      FirstLogEntry   : boolean;
 
-Function ReadTwo(Position:longint): longint;
-INLINE;
+Procedure AppendLine (S : String);
+
+Begin
+ If CheckMode Then
+  Begin
+   If (Length(S)<>0) AND ((Length(S)+BufferIndex+2)<BufferLimit) Then
+    Begin
+     Move(S[1],NewestBuffer[BufferIndex],Length(S));
+     Inc(BufferIndex,Length(S));
+     {$Ifndef Linux}
+      NewestBuffer[BufferIndex]:=#13;
+      Inc(BufferIndex);
+     {$EndIf}
+     NewestBuffer[BufferIndex]:=#10;
+     Inc(BufferIndex);
+    End;
+  End
+ Else
+  Begin
+   Writeln(S);
+  End;
+End;
+
+Function ReadTwo(Position:longint): longint; INLINE;
 
 Begin
   ReadTwo := (ord(S[Position])-48)*10+(ord(S[Position+1])-48);
@@ -100,7 +131,10 @@ Begin
     dec(Lines);
   Until ((Lines=0) Or Found) Or EOF(F);
   If Not Found Then
+   BEGIN
+    Close(F);
     EXIT;
+   END;
   Found := FALSE;
   Repeat                         {Valid files have $Id: somewhere
                                        in the first lines}
@@ -132,21 +166,33 @@ Begin
             Month := ReadTwo(6);
             Day := ReadTwo(9);
             PosDate := DayNr(Day,Month,Year);
+            If CheckMode Then
+             Begin
+              If PosDate>=NewestDate Then
+               Begin
+                NewestDate:=PosDate;
+                BufferIndex:=0;
+                ValidLogEntry := TRUE;
+                AppendLine('File: '+Name);
+                AppendLine(S2);
+               End;
+             End
+            Else
             If (PosDate>=FirstDay) Then
               Begin
                 ValidLogEntry := TRUE;
                 If FirstLogEntry Then
                   Begin
                     FirstLogEntry := FALSE;
-                    Writeln('File: ',Name);
+                    AppendLine('File: '+Name);
                   End;
-                Writeln(S2);
+                AppendLine(S2);
               End;
           End;
       End
     Else
       If ValidLogEntry And (S[1]<>'}') Then
-        Writeln(S);
+       AppendLine(S);
   Until EOF(F) Or (S[1]='}');
   Close(F);
 End;
@@ -169,23 +215,38 @@ End;
 
 
 Begin
+  GetMem(NewestBuffer,bufferlimit);
+  BufferIndex:=0;
+  NewestDate:=0;
   GetDate(year, month, mday, wday);      {GetDate}
   TheDay := DayNr(MDay,Month,Year);        {Convert to something linear}
 
   If ParamCount<>0 Then                  {If parameter is nummeric, subtract}
     Begin
+     CheckMode:=FALSE;
       Val(ParamStr(1),Days,Year);
       If (Year=0) And (Days<365) Then      {  n days from current date}
         dec(TheDay,Days);
-    End;
+    End
+   Else
+    CheckMode:=True;
   SearchExtension('*.pp');               {Scan files in simple FindFirst loop}
   SearchExtension('*.pas');
   SearchExtension('*.inc');
+  If CheckMode AND (BufferIndex<>0) THEN
+   Begin
+    For Days:=0 TO BufferIndex-1 Do
+     Write(NewestBuffer[Days]);
+   End;
+  FreeMem(NewestBuffer,bufferlimit);
 End.
 
 {
   $Log$
-  Revision 1.2  2000-01-16 13:24:48  marco
+  Revision 1.3  2000-02-20 13:05:41  marco
+   * No parameters show last modification in dir + small bugfix
+
+  Revision 1.2  2000/01/16 13:24:48  marco
    * some ugly comments fixed.
 
   Revision 1.1  2000/01/14 22:05:47  marco
