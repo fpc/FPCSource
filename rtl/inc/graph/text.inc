@@ -29,12 +29,12 @@
       { Prefix header of Font file }
       PFHeader = ^TFHeader;
       TFHeader = packed record
-         header_size: word;    {* Version 2.0 Header Format	   *}
+         header_size: word;    {* Version 2.0 Header Format        *}
          font_name: array[1..4] of char;
-         font_size: word;      {* Size in byte of file 	      *}
-         font_major: byte;     {* Driver Version Information	*}
+         font_size: word;      {* Size in byte of file        *}
+         font_major: byte;     {* Driver Version Information    *}
          font_minor: byte;
-         min_major: byte;      {* BGI Revision Information	   *}
+         min_major: byte;      {* BGI Revision Information         *}
          min_minor: byte;
       end;
 
@@ -49,7 +49,7 @@
         cdefs :     integer;  { offset to character definitions       }
         scan_flag:  byte;     { TRUE if char is scanable              }
         org_to_cap: byte;     { Height from origin to top of capitol  }
-        org_to_base:byte;     { Height from origin to baseline	      }
+        org_to_base:byte;     { Height from origin to baseline        }
         org_to_dec: byte;     { Height from origin to bot of decender }
         _reserved: array[1..4] of char;
         Unused: byte;
@@ -85,7 +85,7 @@
 
     var
        fonts : array[1..maxfonts] of tfontrec;
-       Strokes: TStrokes; {* Stroke Data Base		*}
+       Strokes: TStrokes; {* Stroke Data Base           *}
        Stroke_count: Array[0..MaxChars] of integer; {* Stroke Count Table *}
 
 {***************************************************************************}
@@ -143,7 +143,9 @@
        if (b2 and $40)<>0 then b2:=b2 or $80;
        x:=integer(b1);
        y:=integer(b2);
+{$ifdef debug}
 {$R+}
+{$endif debug}
      end;
 
 
@@ -163,25 +165,25 @@
        lindex :=0;
 
 
-       while TRUE do	{* For each byte in buffer	*}
+       while TRUE do    {* For each byte in buffer      *}
          Begin
-           Inc(num_ops);  {* Count the operation		*}
+           Inc(num_ops);  {* Count the operation                *}
            opcode := decode( buf[counter], buf[counter+1] ,jx, jy );
            Inc(counter,2);
-           if( opcode = ord(_END_OF_CHAR) ) then break;	{* Exit loop at end of char	*}
+           if( opcode = ord(_END_OF_CHAR) ) then break; {* Exit loop at end of char     *}
          end;
 
        counter:=index;
 
-       for i:=0 to num_ops-1 do    { 	/* For each opcode in buffer	*/ }
+       for i:=0 to num_ops-1 do    {    /* For each opcode in buffer    */ }
          Begin
-           opc := decode(buf[counter], buf[counter+1], po[lindex].x, po[lindex].y);  {* Decode the data field	*}
+           opc := decode(buf[counter], buf[counter+1], po[lindex].x, po[lindex].y);  {* Decode the data field   *}
            inc(counter,2);
-           po[lindex].opcode := opc;      {* Save the opcode		*}
+           po[lindex].opcode := opc;      {* Save the opcode            *}
            Inc(lindex);
          end;
        Stroke:=po;
-       unpack := num_ops;       {* return OPS count		*}
+       unpack := num_ops;       {* return OPS count             *}
      end;
 
 
@@ -584,7 +586,7 @@
 
       var
          f : file;
-         Prefix: array[0..Prefix_Size-1] of char; {* File Prefix Holder		*}
+         Prefix: array[0..Prefix_Size-1] of char; {* File Prefix Holder         *}
          Length, Current: longint;
          FontData: Pchar;
          Base: longint;
@@ -626,7 +628,7 @@
                    Currenttextinfo.font:=DefaultFont;
                    exit;
                 end;
-              {* Read in the file prefix	*}
+              {* Read in the file prefix        *}
               BlockRead(F, Prefix, Prefix_Size);
               hp:=Prefix;
               i:=0;
@@ -638,23 +640,23 @@
 
               BlockRead(F,Fonts[font].Offsets[Fonts[font].Header.First_Char],Fonts[font].Header.Nr_chars*sizeof(integer));
 
-              {*	Load the character width table into memory.			*}
+              {*        Load the character width table into memory.                     *}
 
               base := filePos( f );
               BlockRead(F,Fonts[font].Widths[Fonts[font].Header.First_Char],Fonts[font].Header.Nr_chars*sizeof(byte));
 
-              {*	Determine the length of the stroke database.			*}
+              {*        Determine the length of the stroke database.                    *}
 
-              current := FilePos( f );		{* Current file location	*}
-              Seek( f, FileSize(F));		{* Go to the end of the file	*}
-              length := FilePos( f );		{* Get the file length		*}
-              Seek( f, current);	{* Restore old file location	*}
+              current := FilePos( f );          {* Current file location        *}
+              Seek( f, FileSize(F));            {* Go to the end of the file    *}
+              length := FilePos( f );           {* Get the file length          *}
+              Seek( f, current);        {* Restore old file location    *}
 
-              {*	Load the stroke database.					*}
+              {*        Load the stroke database.                                       *}
               { also allocate space for Null character   }
-              Getmem(FontData, Length+1);          {* Create space for font data	*}
+              Getmem(FontData, Length+1);          {* Create space for font data        *}
 
-              BlockRead(F, FontData^, length-current);        {* Load the stroke data	*}
+              BlockRead(F, FontData^, length-current);        {* Load the stroke data   *}
               FontData[length-current+1] := #0;
 
              if fonts[font].header.Signature<> SIGNATURE then
@@ -683,4 +685,19 @@
          CurrentYRatio := MultY / DivY;
       end;
 
+{
+$Log$
+Revision 1.4  1999-07-12 13:27:16  jonas
+  + added Log and Id tags
+  * added first FPC support, only VGA works to some extend for now
+  * use -dasmgraph to use assembler routines, otherwise Pascal
+    equivalents are used
+  * use -dsupportVESA to support VESA (crashes under FPC for now)
+  * only dispose vesainfo at closegrph if a vesa card was detected
+  * changed int32 to longint (int32 is not declared under FPC)
+  * changed the declaration of almost every procedure in graph.inc to
+    "far;" becquse otherwise you can't assign them to procvars under TP
+    real mode (but unexplainable "data segnment too large" errors prevent
+    it from working under real mode anyway)
 
+}

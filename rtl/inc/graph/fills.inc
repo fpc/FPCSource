@@ -1,4 +1,6 @@
 {
+    $Id$
+
     This file is part of the Free Pascal run time library.
     Copyright (c) 1993,99 by Thomas Schatzl and Carl Eric Codere
 
@@ -16,44 +18,44 @@
 
 type
 {$IFDEF FPC}
-	graph_int = int32;  	{ platform specific integer used for indexes;
-							  should be 16 bits on TP/BP and 32 bits on every-
-							  thing else for speed reasons }
-	graph_float = double;	{ the platform's preferred floating point size }
+        graph_int = longint;      { platform specific integer used for indexes;
+                                                          should be 16 bits on TP/BP and 32 bits on every-
+                                                          thing else for speed reasons }
+        graph_float = double;   { the platform's preferred floating point size }
 {$ELSE}
-	graph_int = integer;	{ platform specific integer used for indexes;
-							  should be 16 bits on TP/BP and 32 bits on every-
-							  thing else for speed reasons }
-	graph_float = real;  	{ the platform's preferred floating point size }
+        graph_int = integer;    { platform specific integer used for indexes;
+                                                          should be 16 bits on TP/BP and 32 bits on every-
+                                                          thing else for speed reasons }
+        graph_float = real;     { the platform's preferred floating point size }
 {$ENDIF}
 
-	pedge = ^edge;
-	edge = packed record	{ an edge structure }
-		x,					{ current x-coordinate on the edge }
-		dx : graph_float;	{ deltax of the edge }
-		i : graph_int;		{ index to which points this edge belongs to
-							  always [i] and [i+1] }
-	end;
+        pedge = ^edge;
+        edge = packed record    { an edge structure }
+                x,                                      { current x-coordinate on the edge }
+                dx : graph_float;       { deltax of the edge }
+                i : graph_int;          { index to which points this edge belongs to
+                                                          always [i] and [i+1] }
+        end;
 
-	{ used for typecasting because TP/BP is more strict here than FPC }
-	pedgearray = ^edgearray;
+        { used for typecasting because TP/BP is more strict here than FPC }
+        pedgearray = ^edgearray;
     { 0..0 }
-	edgearray = array[0..0] of edge;
+        edgearray = array[0..0] of edge;
 
-	pint = ^graph_int;
+        pint = ^graph_int;
 
-	pintarray = ^intarray;
+        pintarray = ^intarray;
     { 0..0 }
-	intarray = array[0..0] of graph_int;
+        intarray = array[0..0] of graph_int;
 
-	ppointtype = ^pointtype;
-	ppointarray = ^pointarray;
-	pointarray = array[0..0] of pointtype;
+        ppointtype = ^pointtype;
+        ppointarray = ^pointarray;
+        pointarray = array[0..0] of pointtype;
 
 { definition of the called compare routine for the sort process. Returns -1 if
  the two parameters should be swapped }
 type
-	compareproc = function (a, b : pointer) : graph_int;
+        compareproc = function (a, b : pointer) : graph_int;
 
 { simple bubblesort, since it is expected that the edges themselves are not
   too mixed, it is fastest (?). Rather than sorting the active edge table
@@ -62,210 +64,212 @@ type
    procedure bsort(p : pointer; number : integer; sizeelem :
       integer; c : compareproc);
    var    i : graph_int;
-	   swap : boolean;
+           swap : boolean;
        temp : pointer;
 
-	   curp, nextp : pointer;
+           curp, nextp : pointer;
    begin
      getmem(temp, sizeelem);
-	 repeat
-	    curp := p;
-		nextp := pointer(longint(p) + sizeelem);
-		swap := false;
-		for i := 0 to (number-2) do begin
-			if (c(curp, nextp)=1) then begin
-				{ swap elements, you can't do it slower ;( }
-				move(curp^, temp^, sizeelem);
-				move(nextp^, curp^, sizeelem);
-				move(temp^, nextp^, sizeelem);
-				swap := true;
-			end;
-			inc(longint(curp), sizeelem);
-			inc(longint(nextp), sizeelem);
-		end;
-	 until swap = false;
-	 freemem(temp, sizeelem);
+         repeat
+            curp := p;
+                nextp := pointer(longint(p) + sizeelem);
+                swap := false;
+                for i := 0 to (number-2) do begin
+                        if (c(curp, nextp)=1) then begin
+                                { swap elements, you can't do it slower ;( }
+                                move(curp^, temp^, sizeelem);
+                                move(nextp^, curp^, sizeelem);
+                                move(temp^, nextp^, sizeelem);
+                                swap := true;
+                        end;
+                        inc(longint(curp), sizeelem);
+                        inc(longint(nextp), sizeelem);
+                end;
+         until swap = false;
+         freemem(temp, sizeelem);
    end;
 
   { guess what this does }
   function ceil(x : graph_float) : graph_int;
     var t : graph_int;
   begin
-	t:=Trunc(x);
-	If frac(x)>0 then inc(t);
-	ceil := t;
+        t:=Trunc(x);
+        If frac(x)>0 then inc(t);
+        ceil := t;
   end;
 
   { guess what this does too }
   function floor(x : graph_float) : graph_int;
    var t : graph_int;
   begin
-	t:=Trunc(x);
-	If frac(x)<0 then dec(t);
-	floor := t;
+        t:=Trunc(x);
+        If frac(x)<0 then dec(t);
+        floor := t;
   end;
 
   { simple descriptive name }
   function max(a, b : graph_int) : graph_int;
   begin
-   	 if (a > b) then max := a
-	  else max := b;
+         if (a > b) then max := a
+          else max := b;
   end;
 
   { here too }
   function min(a, b : graph_int) : graph_int;
   begin
-	if (a < b) then min := a
-	else min := b;
+        if (a < b) then min := a
+        else min := b;
   end;
 
   { needed for the compare functions; should NOT be used for anything else }
 var
-	ptable : ppointarray; { pointer to points list }
+        ptable : ppointarray; { pointer to points list }
 
 function compare_ind(u, v : pointer) : graph_int; far;
 begin
-	if (ptable^[pint(u)^].y <= ptable^[pint(v)^].y) then compare_ind := -1
-	else compare_ind := 1;
+        if (ptable^[pint(u)^].y <= ptable^[pint(v)^].y) then compare_ind := -1
+        else compare_ind := 1;
 end;
 
 function compare_active(u, v : pointer) : graph_int; far;
 begin
-	if (pedge(u)^.x <= pedge(v)^.x) then compare_active := -1
-	else compare_active := 1;
+        if (pedge(u)^.x <= pedge(v)^.x) then compare_active := -1
+        else compare_active := 1;
 end;
 
 procedure fillpoly(numpoints : word; var PolyPoints);
 { variables needed within the helper procedures too }
 var
-	activetable : pedgearray; { active edge table, e.g. edges crossing current scanline }
-	activepoints : graph_int; { number of points in active edge table }
+        activetable : pedgearray; { active edge table, e.g. edges crossing current scanline }
+        activepoints : graph_int; { number of points in active edge table }
 
 { remove edge i from active edge table }
 procedure cdelete(index : graph_int);
 var
-	j : graph_int;
+        j : graph_int;
 begin
-	j := 0;
-	while (j < activepoints) and (pedgearray(activetable)^[j].i <> index) do inc(j);
-	if (j >= activepoints) then exit;
-	dec(activepoints);
-	move(pedgearray(activetable)^[j+1], pedgearray(activetable)^[j],
-		(activepoints-j) * sizeof(edge));
+        j := 0;
+        while (j < activepoints) and (pedgearray(activetable)^[j].i <> index) do inc(j);
+        if (j >= activepoints) then exit;
+        dec(activepoints);
+        move(pedgearray(activetable)^[j+1], pedgearray(activetable)^[j],
+                (activepoints-j) * sizeof(edge));
 end;
 
 { insert edge index into active edge table (at the last position) }
 procedure cinsert(index, y : graph_int);
 var
-	j : graph_int;
-	deltax : graph_float;
-	p, q : ppointtype;
+        j : graph_int;
+        deltax : graph_float;
+        p, q : ppointtype;
 begin
-	if (index < (numpoints-1)) then j := index + 1 else j := 0;
+        if (index < (numpoints-1)) then j := index + 1 else j := 0;
 
-	if (ptable^[index].y < ptable^[j].y) then begin
-		p := @ptable^[index];
-		q := @ptable^[j];
-	end else begin
-		p := @ptable^[j];
-		q := @ptable^[index];
-	end;
-	deltax := (q^.x-p^.x)/(q^.y-p^.y);
-	with activetable^[activepoints] do begin
-		dx := deltax;
-		x := dx * (y { + 0.5} - p^.y) + p^.x;
-		i := index;
-	end;
-	inc(activepoints);
+        if (ptable^[index].y < ptable^[j].y) then begin
+                p := @ptable^[index];
+                q := @ptable^[j];
+        end else begin
+                p := @ptable^[j];
+                q := @ptable^[index];
+        end;
+        deltax := (q^.x-p^.x)/(q^.y-p^.y);
+        with activetable^[activepoints] do begin
+                dx := deltax;
+                x := dx * (y { + 0.5} - p^.y) + p^.x;
+                i := index;
+        end;
+        inc(activepoints);
 end;
 
 { variables for the main procedure }
 var
-	k, i, j : graph_int;
-	starty, endy, y, xl, xr : graph_int;
+        k, i, j : graph_int;
+        starty, endy, y, xl, xr : graph_int;
     oldcolor : word;
 var
-	indextable : pintarray; { list of vertex indices, sorted by y }
+        indextable : pintarray; { list of vertex indices, sorted by y }
 
 begin
     oldcolor := CurrentColor;
     CurrentColor := FillSettings.Color;
-	ptable := @PolyPoints;
-	if (numpoints<=0) then exit;
+        ptable := @PolyPoints;
+        if (numpoints<=0) then exit;
 
-	getmem(indextable, sizeof(graph_int) * numpoints);
-	getmem(activetable, sizeof(edge) * numpoints);
+        getmem(indextable, sizeof(graph_int) * numpoints);
+        getmem(activetable, sizeof(edge) * numpoints);
     if (not assigned(activetable)) or (not assigned(indextable)) then
       begin
         _GraphResult := grNoScanMem;
         exit;
       end;
 {$R-}
-	{ create y-sorted array of indices indextable[k] into vertex list }
-	for k := 0 to (numpoints-1) do
-		indextable^[k] := k;
-	{ sort the indextable by points[indextable[k]].y }
-	bsort(indextable, numpoints, sizeof(graph_int), compare_ind);
-	{ start with empty active edge table }
-	activepoints := 0;
-	{ indextable[k] is the next vertex to process }
-	k := 0;
-	{ ymin of polygon }
-	starty := ceil(pointarray(polypoints)[indextable^[0]].y-0.5);
-	{ ymax of polygon }
-	endy := floor(pointarray(polypoints)[indextable^[numpoints-1]].y-0.5);
+        { create y-sorted array of indices indextable[k] into vertex list }
+        for k := 0 to (numpoints-1) do
+                indextable^[k] := k;
+        { sort the indextable by points[indextable[k]].y }
+        bsort(indextable, numpoints, sizeof(graph_int), compare_ind);
+        { start with empty active edge table }
+        activepoints := 0;
+        { indextable[k] is the next vertex to process }
+        k := 0;
+        { ymin of polygon }
+        starty := ceil(pointarray(polypoints)[indextable^[0]].y-0.5);
+        { ymax of polygon }
+        endy := floor(pointarray(polypoints)[indextable^[numpoints-1]].y-0.5);
 
-	{ step through scanlines }
-	for y := starty to endy do begin
-		{ check vertices between previous scanline and current one, if any }
-		while (k < numpoints) and
+        { step through scanlines }
+        for y := starty to endy do begin
+                { check vertices between previous scanline and current one, if any }
+                while (k < numpoints) and
            (pointarray(polypoints)[indextable^[k]].y<=(y+0.5)) do begin
-			i := indextable^[k];
-			{ insert or delete edges before and after points[i] ((i-1) to i and
-			  i to (i+1)) from active edge table if they cross scanline y }
-			{ point previous to i }
-			if (i > 0) then j := i-1 else j := numpoints-1;
-			{ old edge, remove from list }
-			if (pointarray(polypoints)[j].y <= (y-0.5)) then cdelete(j)
-			{ new edge, add to active edges }
-			else if (pointarray(polypoints)[j].y > (y + 0.5)) then cinsert(j, y);
+                        i := indextable^[k];
+                        { insert or delete edges before and after points[i] ((i-1) to i and
+                          i to (i+1)) from active edge table if they cross scanline y }
+                        { point previous to i }
+                        if (i > 0) then j := i-1 else j := numpoints-1;
+                        { old edge, remove from list }
+                        if (pointarray(polypoints)[j].y <= (y-0.5)) then cdelete(j)
+                        { new edge, add to active edges }
+                        else if (pointarray(polypoints)[j].y > (y + 0.5)) then cinsert(j, y);
 
-			{ point next after i }
-			if (i < (numpoints-1)) then j := i+1 else j := 0;
-			{ old edge, remove from active edge table }
-			if (pointarray(polypoints)[j].y <= (y - 0.5)) then cdelete(i)
-			{ new edge, add to active edges }
-			else if (pointarray(polypoints)[j].y > (y + 0.5)) then cinsert(i, y);
-			inc(k);
-		end;
-		{ sort active edges list by active[j].x }
-		bsort(activetable, activepoints, sizeof(edge), compare_active);
-		j := 0;
-		{ draw horizontal segments for scanline y }
-		while (j < activepoints) do begin
-			{xl := ceil(activetable^[j].x-0.5);}
-			xl := trunc(activetable^[j].x-0.5);
-			if frac(activetable^[j].x-0.5)>0 then inc(xl);
+                        { point next after i }
+                        if (i < (numpoints-1)) then j := i+1 else j := 0;
+                        { old edge, remove from active edge table }
+                        if (pointarray(polypoints)[j].y <= (y - 0.5)) then cdelete(i)
+                        { new edge, add to active edges }
+                        else if (pointarray(polypoints)[j].y > (y + 0.5)) then cinsert(i, y);
+                        inc(k);
+                end;
+                { sort active edges list by active[j].x }
+                bsort(activetable, activepoints, sizeof(edge), compare_active);
+                j := 0;
+                { draw horizontal segments for scanline y }
+                while (j < activepoints) do begin
+                        {xl := ceil(activetable^[j].x-0.5);}
+                        xl := trunc(activetable^[j].x-0.5);
+                        if frac(activetable^[j].x-0.5)>0 then inc(xl);
 
-			xr := trunc(activetable^[j+1].x-0.5);
-			if frac(activetable^[j+1].x-0.5)<0 then dec(xr);
+                        xr := trunc(activetable^[j+1].x-0.5);
+                        if frac(activetable^[j+1].x-0.5)<0 then dec(xr);
 
-			if (xl <= xr) then
+                        if (xl <= xr) then
                 PatternLine(xl,xr,y);
-{				line(xl, y, xr+1, y);}
-			{ increment both edges' coordinates }
-			with activetable^[j] do begin
-				x := x + dx;
-			end;
-			with activetable^[j+1] do begin
-				x := x + dx;
-			end;
-			inc(j, 2);
-		end;
-	end;
+{                               line(xl, y, xr+1, y);}
+                        { increment both edges' coordinates }
+                        with activetable^[j] do begin
+                                x := x + dx;
+                        end;
+                        with activetable^[j+1] do begin
+                                x := x + dx;
+                        end;
+                        inc(j, 2);
+                end;
+        end;
+{$ifdef debug}
 {$R+}
-	freemem(activetable, sizeof(edge) * numpoints);
-	freemem(indextable, sizeof(graph_int) * numpoints);
+{$endif debug}
+        freemem(activetable, sizeof(edge) * numpoints);
+        freemem(indextable, sizeof(graph_int) * numpoints);
     { restore the old color }
     CurrentColor := OldColor;
     { now let's draw the outline of this polygon }
@@ -488,7 +492,19 @@ var
     CurrentColor := BackUpColor;
   End;
 
+{
+$Log$
+Revision 1.3  1999-07-12 13:27:11  jonas
+  + added Log and Id tags
+  * added first FPC support, only VGA works to some extend for now
+  * use -dasmgraph to use assembler routines, otherwise Pascal
+    equivalents are used
+  * use -dsupportVESA to support VESA (crashes under FPC for now)
+  * only dispose vesainfo at closegrph if a vesa card was detected
+  * changed int32 to longint (int32 is not declared under FPC)
+  * changed the declaration of almost every procedure in graph.inc to
+    "far;" becquse otherwise you can't assign them to procvars under TP
+    real mode (but unexplainable "data segnment too large" errors prevent
+    it from working under real mode anyway)
 
-
-
-
+}

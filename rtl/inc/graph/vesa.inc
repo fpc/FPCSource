@@ -1,4 +1,5 @@
 {
+    $Id$
     This file is part of the Free Pascal run time library.
     Copyright (c) 1993,99 by Carl Eric Codere
 
@@ -111,8 +112,9 @@ var
   CurrentWriteBank: integer; { active write bank         }
 
   BankShift : word;       { address to shift by when switching banks. }
-  funct      : procedure;
 
+  hasVesa: Boolean;       { true if we have a VESA compatible graphics card}
+                          { initialized in QueryAdapterInfo in graph.inc }
 
 function hexstr(val : longint;cnt : byte) : string;
 const
@@ -145,11 +147,16 @@ end;
     RealSeg : word;
    begin
     { Allocate real mode buffer }
+{$ifndef fpc}
     Ptrlong:=GlobalDosAlloc(sizeof(TVESAInfo));
     { Get selector value }
-    VESAPtr := pointer(longint(Ptrlong and $0000ffff) shl 16);
+    VESAPtr := pointer(Ptrlong shl 16);
+{$else fpc}
+    Ptrlong:=Global_Dos_Alloc(sizeof(TVESAInfo));
+    Getmem(VESAPtr,SizeOf(TVESAInfo));
+{$endif fpc}
     { Get segment value }
-    RealSeg := word((Ptrlong and $ffff0000) shr 16);
+    RealSeg := word(Ptrlong shr 16);
     if not assigned(VESAPtr) then
       RunError(203);
     FillChar(regs, sizeof(TDPMIRegisters), #0);
@@ -159,14 +166,27 @@ end;
     regs.es := RealSeg;
     regs.edi := $00;
     RealIntr($10, regs);
+{$ifdef fpc}
+   { no far pointer support in FPC yet, so move the vesa info into a memory }
+   { block in the DS slector space (JM)                                     }
+    dosmemget(RealSeg,0,VesaPtr^,SizeOf(TVESAInfo));
+{$endif fpc}
     if VESAPtr^.Signature <> 'VESA' then
      begin
          getVesaInfo := FALSE;
-         GlobalDosFree(word(longint(VESAPtr) shr 16));
+{$ifndef fpc}
+         GlobalDosFree(word(PtrLong and $ffff));
+{$else fpc}
+         Global_Dos_Free(word(PtrLong and $ffff));
+         { also free the extra allocated buffer }
+         Freemem(VESAPtr,SizeOf(TVESAInfo));
+{$endif fpc}
          exit;
      end
     else
       getVesaInfo := TRUE;
+
+{$ifndef fpc}
     { The mode pointer buffer points to a real mode memory }
     { Therefore steps to get the modes:                    }
     {  1. Allocate Selector and SetLimit to max number of  }
@@ -176,19 +196,39 @@ end;
 
     {  2. Set Selector linear address to the real mode pointer }
     {     returned.                                            }
-    offs := longint((longint(VESAPtr^.ModeList) and $ffff0000) shr 16) shl 4;
-    offs:=  offs OR word(VESAPtr^.ModeList);
+    offs := longint(longint(VESAPtr^.ModeList) shr 16) shl 4;
+   {shouldn't the OR in the next line be a + ?? (JM)}
+    offs :=  offs OR (Longint(VESAPtr^.ModeList) and $ffff);
     SetSelectorBase(ModeSel, offs);
 
-
-    { copy VESA mode information to a protected mode buffer and }
-    { then free the real mode buffer...                         }
-    Move(VESAPtr^, VESAInfo, sizeof(TVESAInfo));
-    GlobalDosFree(word(longint(VESAPtr) shr 16));
+     { copy VESA mode information to a protected mode buffer and }
+     { then free the real mode buffer...                         }
+     Move(VESAPtr^, VESAInfo, sizeof(TVESAInfo));
+     GlobalDosFree(word(PtrLong and $ffff));
 
     { ModeList points to the mode list     }
     { We must copy it somewhere...         }
     ModeList := Ptr(ModeSel, 0);
+
+{$else fpc}
+    { No far pointer support, so the Ptr(ModeSel, 0) doesn't work.     }
+    { Immediately copy everything to a buffer in the DS selector space }
+     New(ModeList);
+    { The following may copy data from outside the VESA buffer, but it   }
+    { shouldn't get past the 1MB limit, since that would mean the buffer }
+    { has been allocated in the BIOS or high memory region, which seems  }
+    { impossible to me (JM)}
+     DosMemGet(word(longint(VESAPtr^.ModeList) shr 16),
+        word(longint(VESAPtr^.ModeList) and $ffff), ModeList^,256*sizeof(word));
+
+     { copy VESA mode information to a protected mode buffer and }
+     { then free the real mode buffer...                         }
+     Move(VESAPtr^, VESAInfo, sizeof(TVESAInfo));
+     Global_Dos_Free(word(PtrLong and $ffff));
+     Freemem(VESAPtr,SizeOf(TVESAInfo));
+
+{$endif fpc}
+
     i:=0;
     new(VESAInfo.ModeList);
     while ModeList^[i]<> $ffff do
@@ -198,23 +238,34 @@ end;
      end;
     VESAInfo.ModeList^[i]:=$ffff;
     { Free the temporary selector used to get mode information }
+{$ifndef fpc}
     FreeSelector(ModeSel);
+{$else fpc}
+    Dispose(ModeList);
+{$endif fpc}
    end;
 
   function getModeInfo(var ModeInfo: TVESAModeInfo;mode:word):boolean;
    var
     Ptr: longint;
+{$ifndef fpc}
     VESAPtr : ^TModeInfo;
+{$endif fpc}
     regs : TDPMIRegisters;
     RealSeg: word;
    begin
     { Alllocate real mode buffer }
+{$ifndef fpc}
     Ptr:=GlobalDosAlloc(sizeof(TModeInfo));
-    { get the selector and segment values }
-    VESAPtr := pointer(longint(Ptr and $0000ffff) shl 16);
-    RealSeg := word((Ptr and $ffff0000) shr 16);
+    { get the selector value }
+    VESAPtr := pointer(longint(Ptr shl 16));
     if not assigned(VESAPtr) then
       RunError(203);
+{$else fpc}
+    Ptr:=Global_Dos_Alloc(sizeof(TModeInfo));
+{$endif fpc}
+    { get the segment value }
+    RealSeg := word(Ptr shr 16);
     { setup interrupt registers }
     FillChar(regs, sizeof(TDPMIRegisters), #0);
     { call VESA mode information...}
@@ -228,9 +279,17 @@ end;
     else
       getModeInfo := TRUE;
     { copy to protected mode buffer ... }
+{$ifndef fpc}
     Move(VESAPtr^, ModeInfo, sizeof(TModeInfo));
+{$else fpc}
+    DosMemGet(RealSeg,0,ModeInfo,sizeof(TModeInfo));
+{$endif fpc}
     { free real mode memory  }
-    GlobalDosFree(word(longint(VESAPtr) shr 16));
+{$ifndef fpc}
+    GlobalDosFree(Word(Ptr and $ffff));
+{$else fpc}
+    Global_Dos_Free(Word(Ptr and $ffff));
+{$endif fpc}
    end;
 
 {$ELSE}
@@ -312,7 +371,13 @@ end;
      mov  bh,00h
      mov  bl,[Win]
      mov  dx,[BankNr]
+{$ifdef fpc}
+     push ebp
+{$endif fpc}
      int  10h
+{$ifdef fpc}
+     pop ebp
+{$endif fpc}
    end;
 
   {********************************************************}
@@ -352,10 +417,10 @@ end;
    end;
 
  {************************************************************************}
- {*                     8-bit pixels VESA mode routines                  *)
+ {*                     8-bit pixels VESA mode routines                  *}
  {************************************************************************}
 
-  procedure PutPixVESA256(x, y : integer; color : word);
+  procedure PutPixVESA256(x, y : integer; color : word); far;
   var
      bank : word;
      offs : longint;
@@ -375,7 +440,7 @@ end;
      mem[WinWriteSeg : word(offs)] := byte(color);
   end;
 
-  procedure DirectPutPixVESA256(x, y : integer);
+  procedure DirectPutPixVESA256(x, y : integer); far;
   var
      bank : word;
      offs : longint;
@@ -385,7 +450,7 @@ end;
      mem[WinWriteSeg : word(offs)] := byte(CurrentColor);
   end;
 
-  function GetPixVESA256(x, y : integer): word;
+  function GetPixVESA256(x, y : integer): word; far;
   var
      bank : word;
      offs : longint;
@@ -398,10 +463,10 @@ end;
   end;
 
  {************************************************************************}
- {*                    15/16bit pixels VESA mode routines                *)
+ {*                    15/16bit pixels VESA mode routines                *}
  {************************************************************************}
 
-  procedure PutPixVESA32k(x, y : integer; color : word);
+  procedure PutPixVESA32k(x, y : integer; color : word); far;
   var
      bank : word;
      offs : longint;
@@ -421,7 +486,7 @@ end;
      memW[WinWriteSeg : word(offs)] := color;
   end;
 
-  procedure PutPixVESA64k(x, y : integer; color : word);
+  procedure PutPixVESA64k(x, y : integer; color : word); far;
   var
      bank : word;
      offs : longint;
@@ -441,7 +506,7 @@ end;
     memW[WinWriteSeg : word(offs)] := color;
   end;
 
-  function GetPixVESA32k(x, y : integer): word;
+  function GetPixVESA32k(x, y : integer): word; far;
   var
      bank : word;
      offs : longint;
@@ -453,7 +518,7 @@ end;
      GetPixVESA32k:=memW[WinWriteSeg : word(offs)];
   end;
 
-  function GetPixVESA64k(x, y : integer): word;
+  function GetPixVESA64k(x, y : integer): word; far;
   var
      bank : word;
      offs : longint;
@@ -465,7 +530,7 @@ end;
      GetPixVESA64k:=memW[WinWriteSeg : word(offs)];
   end;
 
-  procedure DirectPutPixVESA32k(x, y : integer);
+  procedure DirectPutPixVESA32k(x, y : integer); far;
   var
      bank : word;
      offs : longint;
@@ -475,7 +540,7 @@ end;
      memW[WinWriteSeg : word(offs)] := CurrentColor;
   end;
 
-  procedure DirectPutPixVESA64k(x, y : integer);
+  procedure DirectPutPixVESA64k(x, y : integer); far;
   var
      bank : word;
      offs : longint;
@@ -486,10 +551,10 @@ end;
   end;
 
  {************************************************************************}
- {*                     4-bit pixels VESA mode routines                  *)
+ {*                     4-bit pixels VESA mode routines                  *}
  {************************************************************************}
 
-  procedure PutPixVESA16(x, y : integer; color : word);
+  procedure PutPixVESA16(x, y : integer; color : word); far;
     var
      bank : word;
      offs : longint;
@@ -522,7 +587,7 @@ end;
      { }
   end;
 
-  procedure DirectPutPixVESA16(x, y : integer);
+  procedure DirectPutPixVESA16(x, y : integer); far;
     var
      bank : word;
      offs : longint;
@@ -547,7 +612,7 @@ end;
 
 
  {************************************************************************}
- {*                     VESA Palette entries                             *)
+ {*                     VESA Palette entries                             *}
  {************************************************************************}
 
 
@@ -560,7 +625,9 @@ end;
      Error : boolean;     { VBE call error                             }
      regs: TDPMIRegisters;
      Ptr: longint;
+{$ifndef fpc}
      PalPtr : ^PalRec;
+{$endif fpc}
      RealSeg: word;
     begin
       if DirectColor then
@@ -584,17 +651,25 @@ end;
               FunctionNr := $00;
 
             { Alllocate real mode buffer }
+{$ifndef fpc}
             Ptr:=GlobalDosAlloc(sizeof(palrec));
-            { get the selector and segment values }
-            PalPtr := pointer(longint(Ptr and $0000ffff) shl 16);
-            RealSeg := word((Ptr and $ffff0000) shr 16);
+            { get the selector values }
+            PalPtr := pointer(Ptr shl 16);
             if not assigned(PalPtr) then
                RunError(203);
+{$else fpc}
+            Ptr:=Global_Dos_Alloc(sizeof(palrec));
+{$endif fpc}
+            {get the segment value}
+            RealSeg := word(Ptr shr 16);
             { setup interrupt registers }
             FillChar(regs, sizeof(TDPMIRegisters), #0);
             { copy palette values to real mode buffer }
+{$ifndef fpc}
             move(pal, palptr^, sizeof(palrec));
-
+{$else fpc}
+            DosMemPut(RealSeg,0,pal,sizeof(palrec));
+{$endif fpc}
             regs.eax := $4F09;
             regs.ebx := FunctionNr;
             regs.ecx := $01;
@@ -604,7 +679,11 @@ end;
             RealIntr($10, regs);
 
             { free real mode memory  }
-            GlobalDosFree(word(longint(PalPtr) shr 16));
+{$ifndef fpc}
+            GlobalDosFree(word(Ptr and $ffff));
+{$else fpc}
+            Global_Dos_Free(word(Ptr and $ffff));
+{$endif fpc}
 
             if word(regs.eax) <> $004F then
               begin
@@ -639,15 +718,19 @@ end;
         if VESAInfo.Version >= $0200 then
           Begin
             { Alllocate real mode buffer }
+{$ifndef fpc}
             Ptr:=GlobalDosAlloc(sizeof(palrec));
-            { get the selector and segment values }
+            { get the selector value }
             PalPtr := pointer(longint(Ptr and $0000ffff) shl 16);
-            RealSeg := word((Ptr and $ffff0000) shr 16);
             if not assigned(PalPtr) then
                RunError(203);
+{$else fpc}
+            Ptr:=Global_Dos_Alloc(sizeof(palrec));
+{$endif fpc}
+            { get the segment value }
+            RealSeg := word(Ptr shr 16);
             { setup interrupt registers }
             FillChar(regs, sizeof(TDPMIRegisters), #0);
-
 
             regs.eax := $4F09;
             regs.ebx := $01;       { get palette data      }
@@ -658,9 +741,17 @@ end;
             RealIntr($10, regs);
 
            { copy to protected mode buffer ... }
+{$ifndef fpc}
            Move(PalPtr^, Pal, sizeof(palrec));
+{$else fpc}
+           DosMemGet(RealSeg,0,Pal,sizeof(palrec));
+{$endif fpc}
            { free real mode memory  }
-           GlobalDosFree(word(longint(PalPtr) shr 16));
+{$ifndef fpc}
+           GlobalDosFree(word(Ptr and $ffff));
+{$else fpc}
+           Global_Dos_Free(word(Ptr and $ffff));
+{$endif fpc}
 
             if word(regs.eax) <> $004F then
               begin
@@ -680,7 +771,7 @@ end;
 {$ELSE}
 
    Procedure SetVESARGBPalette(ColorNum, RedValue, GreenValue,
-      BlueValue : Integer);
+      BlueValue : Integer); far;
     var
      FunctionNr : byte;   { use blankbit or normal RAMDAC programming? }
      pal: ^palrec;
@@ -738,7 +829,7 @@ end;
 
 
   Procedure GetVESARGBPalette(ColorNum: integer; Var
-      RedValue, GreenValue, BlueValue : integer);
+      RedValue, GreenValue, BlueValue : integer); far;
    var
     Error: boolean;
     pal: ^palrec;
@@ -963,7 +1054,13 @@ end;
    asm
     mov ax,4F02h
     mov bx,mode
+{$ifdef fpc}
+    push ebp
+{$endif fpc}
     int 10h
+{$ifdef fpc}
+    pop ebp
+{$endif fpc}
     sub ax,004Fh
     cmp ax,1
     sbb al,al
@@ -976,7 +1073,13 @@ end;
  function getVESAMode:word;assembler;
    asm  {return -1 if error}
     mov ax,4F03h
+{$ifdef fpc}
+    push ebp
+{$endif fpc}
     int 10h
+{$ifdef fpc}
+    pop ebp
+{$endif fpc}
     cmp ax,004Fh
     je @@OK
     mov ax,-1
@@ -990,92 +1093,92 @@ end;
 
 
  {************************************************************************}
- {*                     VESA Modes inits                                 *)
+ {*                     VESA Modes inits                                 *}
  {************************************************************************}
 
- procedure Init1280x1024x64k;
+ procedure Init1280x1024x64k; far;
   begin
     SetVesaMode(m1280x1024x64k);
   end;
 
- procedure Init1280x1024x32k;
+ procedure Init1280x1024x32k; far;
   begin
     SetVESAMode(m1280x1024x32k);
   end;
 
- procedure Init1280x1024x256;
+ procedure Init1280x1024x256; far;
   begin
     SetVESAMode(m1280x1024x256);
   end;
 
 
- procedure Init1280x1024x16;
+ procedure Init1280x1024x16; far;
   begin
     SetVESAMode(m1280x1024x16);
   end;
 
- procedure Init1024x768x64k;
+ procedure Init1024x768x64k; far;
   begin
     SetVESAMode(m1024x768x64k);
   end;
 
- procedure Init640x480x32k;
+ procedure Init640x480x32k; far;
   begin
     SetVESAMode(m640x480x32k);
   end;
 
- procedure Init1024x768x256;
+ procedure Init1024x768x256; far;
   begin
     SetVESAMode(m1024x768x256);
   end;
 
- procedure Init1024x768x16;
+ procedure Init1024x768x16; far;
   begin
     SetVESAMode(m1024x768x16);
   end;
 
- procedure Init800x600x64k;
+ procedure Init800x600x64k; far;
   begin
     SetVESAMode(m800x600x64k);
   end;
 
- procedure Init800x600x32k;
+ procedure Init800x600x32k; far;
   begin
     SetVESAMode(m800x600x32k);
   end;
 
- procedure Init800x600x256;
+ procedure Init800x600x256; far;
   begin
     SetVESAMode(m800x600x256);
   end;
 
- procedure Init800x600x16;
+ procedure Init800x600x16; far;
   begin
     SetVesaMode(m800x600x16);
   end;
 
- procedure Init640x480x64k;
+ procedure Init640x480x64k; far;
   begin
     SetVESAMode(m640x480x64k);
   end;
 
 
- procedure Init640x480x256;
+ procedure Init640x480x256; far;
   begin
     SetVESAMode(m640x480x256);
   end;
 
- procedure Init640x400x256;
+ procedure Init640x400x256; far;
   begin
     SetVESAMode(m640x400x256);
   end;
 
- procedure Init320x200x64k;
+ procedure Init320x200x64k; far;
   begin
     SetVESAMode(m320x200x64k);
   end;
 
- procedure Init320x200x32k;
+ procedure Init320x200x32k; far;
   begin
     SetVESAMode(m320x200x32k);
   end;
@@ -1093,7 +1196,13 @@ end;
     { Get the video mode }
     asm
       mov  ah,0fh
+{$ifdef fpc}
+      push ebp
+{$endif fpc}
       int  10h
+{$ifdef fpc}
+      pop ebp
+{$endif fpc}
       mov  [VideoMode], al
     end;
     { Prepare to save video state...}
@@ -1101,7 +1210,13 @@ end;
       mov  ax, 4F04h       { get buffer size to save state }
       mov  dx, 00h
       mov  cx, 00001111b   { Save DAC / Data areas / Hardware states }
+{$ifdef fpc}
+      push ebp
+{$endif fpc}
       int  10h
+{$ifdef fpc}
+      pop ebp
+{$endif fpc}
       mov  [StateSize], bx
       cmp  al,04fh
       jnz  @notok
@@ -1110,13 +1225,23 @@ end;
     end;
     if SaveSupported then
       begin
+{$ifndef fpc}
         PtrLong:=GlobalDosAlloc(64*StateSize);  { values returned in 64-byte blocks }
+{$else fpc}
+        PtrLong:=Global_Dos_Alloc(64*StateSize);  { values returned in 64-byte blocks }
+{$endif fpc}
         if PtrLong = 0 then
            RunError(203);
         SavePtr := pointer(longint(PtrLong and $0000ffff) shl 16);
-        RealStateSeg := word((PtrLong and $ffff0000) shr 16);
+{$ifndef fpc}
+        { In FPC mode, we can't do anything with this (no far pointers)  }
+        { However, we still need to keep it to be able to free the       }
+        { memory afterwards. Since this data is not accessed in PM code, }
+        { there's no need to save it in a seperate buffer (JM)           }
         if not assigned(SavePtr) then
            RunError(203);
+{$endif fpc}
+        RealStateSeg := word(PtrLong shr 16);
 
         FillChar(regs, sizeof(regs), #0);
         { call the real mode interrupt ... }
@@ -1146,10 +1271,22 @@ end;
      asm
       mov  ah,00
       mov  al,[VideoMode]
+{$ifdef fpc}
+      push ebp
+{$endif fpc}
       int  10h
+{$ifdef fpc}
+      pop ebp
+{$endif fpc}
      end;
      { then restore all state information }
+{$ifndef fpc}
      if assigned(SavePtr) and (SaveSupported=TRUE) then
+{$else fpc}
+     { No far pointer support, so it's possible that that assigned(SavePtr) }
+     { would return false under FPC. Just check if it's different from nil. }
+     if (SavePtr <> nil) and (SaveSupported=TRUE) then
+{$endif fpc}
        begin
         FillChar(regs, sizeof(regs), #0);
         { restore state, according to Ralph Brown Interrupt list }
@@ -1160,9 +1297,12 @@ end;
          regs.es := RealStateSeg;
          regs.ebx := 0;
          RealIntr($10,regs);
+{$ifndef fpc}
          if GlobalDosFree(longint(SavePtr) shr 16)<>0 then
+{$else fpc}
+         if Not(Global_Dos_Free(longint(SavePtr) shr 16)) then
+{$endif fpc}
           RunError(216);
-
          SavePtr := nil;
        end;
   end;
@@ -1173,7 +1313,7 @@ end;
       {*                     Real mode routines                     *}
       {**************************************************************}
 
- Procedure SaveStateVESA;
+ Procedure SaveStateVESA; far;
   begin
     SavePtr := nil;
     SaveSupported := FALSE;
@@ -1220,7 +1360,7 @@ end;
       end;
   end;
 
- procedure RestoreStateVESA;
+ procedure RestoreStateVESA; far;
   begin
      { go back to the old video mode...}
      asm
@@ -1248,18 +1388,18 @@ end;
 {$ENDIF DPMI}
 
  {************************************************************************}
- {*                     VESA Page flipping routines                      *)
+ {*                     VESA Page flipping routines                      *}
  {************************************************************************}
  { Note: These routines, according  to the VBE3 specification, will NOT   }
  { work with the 24 bpp modes, because of the alignment.                  }
  {************************************************************************}
- procedure SetVisualVESA(page: word);
+ procedure SetVisualVESA(page: word); far;
   { two page support... }
   begin
     if page > HardwarePages then exit;
   end;
 
- procedure SetActiveVESA(page: word);
+ procedure SetActiveVESA(page: word); far;
   { two page support... }
   begin
   end;

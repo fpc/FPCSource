@@ -1,4 +1,5 @@
 {
+    $Id$
     This file is part of the Free Pascal run time library.
     Copyright (c) 1993,99 by the Free Pascal development team
 
@@ -140,4 +141,19 @@ const
   LineClipped:=FALSE;
 end;
 
+{
+$Log$
+Revision 1.3  1999-07-12 13:27:09  jonas
+  + added Log and Id tags
+  * added first FPC support, only VGA works to some extend for now
+  * use -dasmgraph to use assembler routines, otherwise Pascal
+    equivalents are used
+  * use -dsupportVESA to support VESA (crashes under FPC for now)
+  * only dispose vesainfo at closegrph if a vesa card was detected
+  * changed int32 to longint (int32 is not declared under FPC)
+  * changed the declaration of almost every procedure in graph.inc to
+    "far;" becquse otherwise you can't assign them to procvars under TP
+    real mode (but unexplainable "data segnment too large" errors prevent
+    it from working under real mode anyway)
 
+}
