@@ -130,7 +130,7 @@ program install;
        defcfgfile,
        setpathfile : string[12];
        include  : boolean;
-       filechk  : string[40];
+       { filechk  : string[40]; Obsolete }
        packages : longint;
        package  : array[1..maxpackages] of tpackage;
      end;
@@ -1492,8 +1492,8 @@ program install;
                     end;
                    cfg.pack[cfg.packs].binsub:=s;
                  end
-               else
-                if item='FILECHECK' then
+               {else: Obsolete PM }
+                { if item='FILECHECK' then
                  begin
                    if cfg.packs=0 then
                     begin
@@ -1501,7 +1501,7 @@ program install;
                       halt(1);
                     end;
                    cfg.pack[cfg.packs].filechk:=s;
-                 end
+                 end }
                else
                 if item='TARGETNAME' then
                  begin
@@ -1549,30 +1549,37 @@ program install;
 
   procedure tapp.checkavailpack;
     var
-      j : longint;
+      i, j : longint;
       dir : searchrec;
+      one_found : boolean;
+      filename : string;
     begin
     { check the packages }
       j:=0;
       while (j<cfg.packs) do
-       begin
-         inc(j);
-         if cfg.pack[j].filechk<>'' then
-          begin
-            findfirst(cfg.pack[j].filechk,$20,dir);
-            if doserror<>0 then
-             begin
-               { remove the package }
-               move(cfg.pack[j+1],cfg.pack[j],sizeof(tpack)*(cfg.packs-j));
-               dec(cfg.packs);
-               dec(j);
-             end;
-{$IFNDEF TP}
-            findclose(dir);
-{$ENDIF}
-          end;
-       end;
-     end;
+        begin
+          inc(j);
+          one_found:=false;
+          {if cfg.pack[j].filechk<>'' then}
+          for i:=1 to cfg.pack[j].packages do
+            begin
+              if file_exists(cfg.pack[j].package[i].zip,startpath) or
+                 file_exists(cfg.pack[j].package[i].zipshort,startpath) then
+                begin
+                  one_found:=true;
+                  break;
+                end;
+            end;
+
+          if not one_found then
+            begin
+              { remove the package }
+              move(cfg.pack[j+1],cfg.pack[j],sizeof(tpack)*(cfg.packs-j));
+              dec(cfg.packs);
+              dec(j);
+            end;
+        end;
+    end;
 
 
   procedure tapp.initmenubar;
@@ -1776,7 +1783,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2002-04-03 12:46:02  pierre
+  Revision 1.8  2002-04-10 21:18:42  pierre
+   * explicitly check if one of the files from the list of each package exists
+
+  Revision 1.7  2002/04/03 12:46:02  pierre
    + create setpath.bat file if Path is mixed
 
   Revision 1.6  2002/03/19 09:14:56  pierre
