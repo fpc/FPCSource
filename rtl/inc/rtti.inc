@@ -53,18 +53,17 @@ Const
 }
 
 Type
-
-TRecElem = Record
-  Info : Pointer;
-  Offset : Longint;
+  TRecElem = Record
+    Info : Pointer;
+    Offset : Longint;
   end;
 
-TRecElemArray = Array[1..Maxint] of TRecElem;
+  TRecElemArray = Array[1..Maxint] of TRecElem;
 
-PRecRec = ^TRecRec;
-TRecRec = record
-  Size,Count : Longint;
-  Elements : TRecElemArray;
+  PRecRec = ^TRecRec;
+  TRecRec = record
+    Size,Count : Longint;
+    Elements : TRecElemArray;
   end;
 
 
@@ -88,14 +87,10 @@ Procedure fpc_Initialize (Data,TypeInfo : pointer);saveregisters;[Public,Alias :
 
 { this definition is sometimes (depending on switches)
   already defined or not so define it locally to avoid problems PM }
-Type
-    Pbyte = ^Byte;
-
 Var Temp       : PByte;
     I          : longint;
     Size,Count : longint;
     TInfo : Pointer;
-
 begin
   Temp:=PByte(TypeInfo);
   case temp^ of
@@ -112,14 +107,12 @@ begin
          For I:=0 to Count-1 do
            int_Initialize (Data+(I*size),TInfo);
       end;
-    tkRecord,tkClass,tkObject:
+    tkObject,
+    tkRecord:
       begin
          inc(Temp);
          I:=Temp^;
          inc(temp,I+1);             // skip name string;
-         { if it isn't necessary, why should we load it ? FK
-           Size:=PRecRec(Temp)^.Size;    // get record size; not needed.
-         }
          Count:=PRecRec(Temp)^.Count;  // get element Count
          For I:=1 to count Do
            With PRecRec(Temp)^.elements[I] do
@@ -134,17 +127,12 @@ end;
 
 
 Procedure fpc_finalize (Data,TypeInfo: Pointer);saveregisters;[Public,Alias : 'FPC_FINALIZE'];  {$ifdef hascompilerproc} compilerproc; {$endif}
-
 { this definition is sometimes (depending on switches)
   already defined or not so define it locally to avoid problems PM }
-Type
-    Pbyte = ^Byte;
-    PPointer = ^Pointer;
 Var Temp       : PByte;
     I          : longint;
     Size,Count : longint;
     TInfo : Pointer;
-
 begin
   Temp:=PByte(TypeInfo);
   case temp^ of
@@ -156,27 +144,25 @@ begin
 {$endif HASWIDESTRING}
     tkArray :
       begin
-         inc(Temp);
-         I:=temp^;
-         inc(temp,I+1);                   // skip name string;
-         Size:=PArrayRec(Temp)^.Size;     // get element size
-         Count:=PArrayRec(Temp)^.Count;   // get element Count
-         TInfo:=PArrayRec(Temp)^.Info;    // Get element info
-         For I:=0 to Count-1 do
-           int_Finalize (Data+(I*size),TInfo);
+        inc(Temp);
+        I:=temp^;
+        inc(temp,I+1);                   // skip name string;
+        Size:=PArrayRec(Temp)^.Size;     // get element size
+        Count:=PArrayRec(Temp)^.Count;   // get element Count
+        TInfo:=PArrayRec(Temp)^.Info;    // Get element info
+        For I:=0 to Count-1 do
+          int_Finalize (Data+(I*size),TInfo);
       end;
-    tkRecord,tkObject,tkClass:
+    tkObject,
+    tkRecord:
       begin
-         inc(Temp);
-         I:=Temp^;
-         inc(temp,I+1);                // skip name string;
-         { if it isn't necessary, why should we load it? FK
-           Size:=PRecRec(Temp)^.Size;    // get record size; not needed.
-         }
-         Count:=PRecRec(Temp)^.Count;  // get element Count
-         For I:=1 to count do
-           With PRecRec(Temp)^.elements[I] do
-             int_Finalize (Data+Offset,Info);
+        inc(Temp);
+        I:=Temp^;
+        inc(temp,I+1);                // skip name string;
+        Count:=PRecRec(Temp)^.Count;  // get element Count
+        For I:=1 to count do
+          With PRecRec(Temp)^.elements[I] do
+            int_Finalize (Data+Offset,Info);
       end;
 {$ifdef HASINTF}
     tkInterface:
@@ -196,9 +182,6 @@ Procedure fpc_Addref (Data,TypeInfo : Pointer);saveregisters; [Public,alias : 'F
 
 { this definition is sometimes (depending on switches)
   already defined or not so define it locally to avoid problems PM }
-Type
-    Pbyte = ^Byte;
-    PPointer = ^Pointer;
 Var Temp       : PByte;
     I          : longint;
     Size,Count : longint;
@@ -223,12 +206,12 @@ begin
         For I:=0 to Count-1 do
           int_AddRef (Data+(I*size),TInfo);
       end;
+    tkobject,
     tkrecord :
       begin
         Inc(Temp);
         I:=Temp^;
         temp:=temp+(I+1);             // skip name string;
-        Size:=PRecRec(Temp)^.Size;    // get record size; not needed.
         Count:=PRecRec(Temp)^.Count;  // get element Count
         For I:=1 to count do
           With PRecRec(Temp)^.elements[I] do
@@ -251,14 +234,10 @@ procedure fpc_systemDecRef (Data, TypeInfo : Pointer);saveregisters;[external na
 Procedure fpc_DecRef (Data, TypeInfo : Pointer);saveregisters;[Public,alias : 'FPC_DECREF'];  {$ifdef hascompilerproc} compilerproc; {$endif}
 { this definition is sometimes (depending on switches)
   already defined or not so define it locally to avoid problems PM }
-Type
-    Pbyte = ^Byte;
-    PPointer = ^Pointer;
 Var Temp       : PByte;
     I          : longint;
     Size,Count : longint;
     TInfo : Pointer;
-
 begin
   Temp:=PByte(TypeInfo);
   case temp^ of
@@ -280,16 +259,16 @@ begin
          For I:=0 to Count-1 do
            fpc_systemDecRef (Data+(I*size),TInfo);
       end;
+    tkobject,
     tkrecord:
       begin
-      Temp:=Temp+1;
-      I:=Temp^;
-      temp:=temp+(I+1);             // skip name string;
-      Size:=PRecRec(Temp)^.Size;    // get record size; not needed.
-      Count:=PRecRec(Temp)^.Count;  // get element Count
-      For I:=1 to count do
-        With PRecRec(Temp)^.elements[I] do
-          fpc_systemDecRef (Data+Offset,Info);
+         inc(Temp);
+         I:=temp^;
+         inc(temp,I+1);               // skip name string;
+         Count:=PRecRec(Temp)^.Count;  // get element Count
+         For I:=1 to count do
+           With PRecRec(Temp)^.elements[I] do
+             fpc_systemDecRef (Data+Offset,Info);
       end;
     tkDynArray:
       fpc_dynarray_decr_ref(PPointer(Data)^,TypeInfo);
@@ -313,7 +292,12 @@ procedure fpc_finalize_array(data,typeinfo : pointer;count,size : longint); [Pub
 
 {
   $Log$
-  Revision 1.9  2004-02-26 12:42:34  michael
+  Revision 1.10  2004-02-26 16:19:01  peter
+    * tkclass removed from finalize()
+    * cleanupinstance now parses the tkclass rtti entry itself and
+      calls finalize() for the rtti members
+
+  Revision 1.9  2004/02/26 12:42:34  michael
   + Patch from peter to fix finalize (bug 2975)
 
   Revision 1.8  2004/01/22 22:09:05  peter

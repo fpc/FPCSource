@@ -510,16 +510,43 @@
 
       procedure TObject.CleanupInstance;
 
-        var
-           vmt : tclass;
+        Type
+          TRecElem = Record
+            Info : Pointer;
+            Offset : Longint;
+          end;
 
+          TRecElemArray = Array[1..Maxint] of TRecElem;
+
+          PRecRec = ^TRecRec;
+          TRecRec = record
+            Size,Count : Longint;
+            Elements : TRecElemArray;
+          end;
+	  
+        var
+           vmt  : tclass;
+	   temp : pbyte;
+	   count,
+	   i    : longint;
         begin
            vmt:=ClassType;
            while vmt<>nil do
              begin
-                if Assigned(Pointer((Pointer(vmt)+vmtInitTable)^)) then
-                  int_finalize(Pointer(Self),Pointer((Pointer(vmt)+vmtInitTable)^));
-                vmt:=pclass(pointer(vmt)+vmtParent)^;
+	       { This need to be included here, because Finalize()
+	         has should support for tkClass }
+	       Temp:=Pointer((Pointer(vmt)+vmtInitTable)^);
+               if Assigned(Temp) then
+ 	         begin
+                   inc(Temp);
+                   I:=Temp^;
+                   inc(temp,I+1);                // skip name string;
+                   Count:=PRecRec(Temp)^.Count;  // get element Count
+                   For I:=1 to count do
+                     With PRecRec(Temp)^.elements[I] do
+                       int_Finalize (pointer(self)+Offset,Info);
+		 end;       
+               vmt:=pclass(pointer(vmt)+vmtParent)^;
              end;
         end;
 
@@ -695,7 +722,12 @@
 
 {
   $Log$
-  Revision 1.33  2003-07-19 11:19:07  michael
+  Revision 1.34  2004-02-26 16:19:01  peter
+    * tkclass removed from finalize()
+    * cleanupinstance now parses the tkclass rtti entry itself and
+      calls finalize() for the rtti members
+
+  Revision 1.33  2003/07/19 11:19:07  michael
   + fix from Ivan Shikhalev for QueryInterface to return ancestor methods
 
   Revision 1.32  2003/05/01 08:05:23  florian
