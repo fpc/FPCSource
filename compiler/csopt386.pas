@@ -509,11 +509,14 @@ begin
 {$endif replaceregdebug}
 end;
 
-function NoHardCodedRegs(p: paicpu): boolean;
+function NoHardCodedRegs(p: paicpu; orgReg, newReg: tRegister): boolean;
 var chCount: byte;
 begin
   case p^.opcode of
     A_IMUL: noHardCodedRegs := p^.ops <> 1;
+    A_SHL,A_SHR,A_SHLD,A_SHRD: noHardCodedRegs :=
+      (p^.oper[0].typ <> top_reg) or
+      ((orgReg <> R_ECX) and (newReg <> R_ECX));
     else
       begin
         NoHardCodedRegs := true;
@@ -716,7 +719,7 @@ begin
          Not (PPaiProp(endP^.optInfo)^.canBeRemoved) then
         begin
           sequenceEnd :=
-            noHardCodedRegs(paicpu(endP)) and
+            noHardCodedRegs(paicpu(endP),orgReg,newReg) and
             RegLoadedWithNewValue(newReg,true,paicpu(endP)) or
             (GetNextInstruction(endp,hp) and
              FindRegDealloc(newReg,hp));
@@ -739,7 +742,7 @@ begin
             (orgRegCanBeModified or not(newRegModified)) and
             (endP^.typ = ait_instruction) and
             not(paicpu(endP)^.is_jmp) and
-            NoHardCodedRegs(paicpu(endP)) and
+            NoHardCodedRegs(paicpu(endP),orgReg,newReg) and
             RegSizesOk(orgReg,newReg,paicpu(endP)) and
             not RegModifiedByInstruction(orgReg,endP);
         end;
@@ -747,7 +750,7 @@ begin
   sequenceEnd := sequenceEnd and
      (not(assigned(endp)) or
       not(endp^.typ = ait_instruction) or
-      (noHardCodedRegs(paicpu(endP)) and
+      (noHardCodedRegs(paicpu(endP),orgReg,newReg) and
        RegSizesOk(orgReg,newReg,paicpu(endP)) and
        not(newRegModified and
            (orgReg in PPaiProp(endP^.optInfo)^.usedRegs) and
@@ -1142,31 +1145,33 @@ Begin
 End;
 
 Procedure RemoveInstructs(AsmL: PAasmOutput; First, Last: Pai);
-{Removes the marked instructions and disposes the PPaiProps of the other
- instructions, restoring their line number}
+{ Removes the marked instructions and disposes the PPaiProps of the other }
+{ instructions                                                            }
 Var p, hp1: Pai;
-{$IfDef TP}
-    TmpLine: Longint;
-{$EndIf TP}
-    InstrCnt: Longint;
-Begin
+begin
   p := First;
-  SkipHead(P);
-  InstrCnt := 1;
   While (p <> Last) Do
     Begin
+      If (p^.typ = ait_marker) and
+         (pai_marker(p)^.kind in [noPropInfoStart,noPropInfoEnd]) then
+        begin
+          hp1 := pai(p^.next);
+          asmL^.remove(p);
+          dispose(p,done);
+          p := hp1
+        end
+      else
 {$ifndef noinstremove}
-      If PPaiProp(p^.OptInfo)^.CanBeRemoved
-        Then
-          Begin
+        if assigned(p^.optInfo) and
+              PPaiProp(p^.optInfo)^.canBeRemoved then
+          begin
 {$IfDef TP}
             Dispose(PPaiProp(p^.OptInfo));
 {$EndIf}
-            GetNextInstruction(p, hp1);
+            hp1 := pai(p^.next);
             AsmL^.Remove(p);
             Dispose(p, Done);
             p := hp1;
-            Inc(InstrCnt);
           End
         Else
 {$endif noinstremove}
@@ -1175,8 +1180,7 @@ Begin
             Dispose(PPaiProp(p^.OptInfo));
 {$EndIf TP}
             p^.OptInfo := nil;
-            GetNextInstruction(p, p);
-            Inc(InstrCnt);
+            p := pai(p^.next);;
           End;
     End;
 {$IfNDef TP}
@@ -1194,7 +1198,14 @@ End.
 
 {
  $Log$
- Revision 1.49  2000-02-12 10:54:18  jonas
+ Revision 1.50  2000-02-12 14:10:14  jonas
+   + change "mov reg1,reg2;imul x,reg2" to "imul x,reg1,reg2" in popt386
+     (-dnewoptimizations)
+   * shl(d) and shr(d) are considered to have a hardcoded register if
+     they use cl as shift count (since you can't replace them with
+     another register) in csopt386 (also for -dnewoptimizations)
+
+ Revision 1.49  2000/02/12 10:54:18  jonas
    * fixed edi allocation in allocRegBetween
    * fixed bug I introduced yesterday, added comment to prevent it from
      happening again in the future

@@ -44,7 +44,7 @@ Uses
 {$ifdef finaldestdebug}
   cobjects,
 {$endif finaldestdebug}
-  cpubase,cpuasm,DAOpt386;
+  cpubase,cpuasm,DAOpt386,cobjects;
 
 Function RegUsedAfterInstruction(Reg: TRegister; p: Pai; Var UsedRegs: TRegSet): Boolean;
 Begin
@@ -1738,6 +1738,29 @@ Begin
               A_FSTP,A_FISTP:
                 if doFpuLoadStoreOpt(asmL,p) then
                   continue;
+{$ifdef foldArithOps}
+              A_IMUL:
+                begin
+                  if (paicpu(p)^.oper[1].typ = top_reg) and
+                     ((paicpu(p)^.oper[2].typ = top_none) or
+                      ((paicpu(p)^.oper[2].typ = top_reg) and
+                       (paicpu(p)^.oper[2].reg = paicpu(p)^.oper[1].reg))) and
+                     getLastInstruction(p,hp1) and
+                     (hp1^.typ = ait_instruction) and
+                     (paicpu(hp1)^.opcode = A_MOV) and
+                     (paicpu(hp1)^.oper[0].typ = top_reg) and
+                     (paicpu(hp1)^.oper[1].typ = top_reg) and
+                     (paicpu(hp1)^.oper[1].reg = paicpu(p)^.oper[1].reg) then
+              { change "mov reg1,reg2; imul y,reg2" to "imul y,reg1,reg2" }
+                    begin
+                      paicpu(p)^.ops := 3;
+                      paicpu(p)^.loadreg(1,paicpu(hp1)^.oper[0].reg);
+                      paicpu(p)^.loadreg(2,paicpu(hp1)^.oper[1].reg);
+                      asmL^.remove(hp1);
+                      dispose(hp1,done);
+                    end;
+                end;
+{$endif foldArithOps}
               A_MOV:
                 Begin
                   If (Paicpu(p)^.oper[0].typ = top_reg) And
@@ -1865,7 +1888,14 @@ End.
 
 {
  $Log$
- Revision 1.84  2000-02-09 13:22:58  peter
+ Revision 1.85  2000-02-12 14:10:15  jonas
+   + change "mov reg1,reg2;imul x,reg2" to "imul x,reg1,reg2" in popt386
+     (-dnewoptimizations)
+   * shl(d) and shr(d) are considered to have a hardcoded register if
+     they use cl as shift count (since you can't replace them with
+     another register) in csopt386 (also for -dnewoptimizations)
+
+ Revision 1.84  2000/02/09 13:22:58  peter
    * log truncated
 
  Revision 1.83  2000/02/04 13:53:04  jonas
