@@ -90,6 +90,7 @@ unit aasm;
          is_set  : boolean;
          constructor init;
          constructor initdata;
+         function name:string;virtual;
        end;
 
 
@@ -747,6 +748,13 @@ uses
       end;
 
 
+    function tasmlabel.name:string;
+      begin
+        name:=inherited name;
+        inc(refs);
+      end;
+
+
 {*****************************************************************************
                               AsmSymbolList helpers
 *****************************************************************************}
@@ -892,7 +900,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.47  1999-05-27 19:43:55  peter
+  Revision 1.48  1999-05-28 09:11:39  peter
+    * also count ref when asmlabel^.name is used
+
+  Revision 1.47  1999/05/27 19:43:55  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly
