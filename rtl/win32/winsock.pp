@@ -15,7 +15,7 @@
 
  **********************************************************************}
 
-{$PACKRECORDS 4}
+{$PACKRECORDS 1}
 unit winsock;
 
   interface
@@ -96,9 +96,9 @@ unit winsock;
           { alias list  }
           h_aliases: ^pchar;
           { host address type  }
-          h_addrtype: integer;
+          h_addrtype: SmallInt;
           { length of address  }
-          h_length: integer;
+          h_length: SmallInt;
           { list of addresses  }
           case byte of
              0: (h_addr_list: ^pchar);
@@ -117,7 +117,8 @@ unit winsock;
           { alias list  }
           n_aliases : ^pchar;
           { net address type  }
-          n_addrtype : integer;
+          n_addrtype : SmallInt;
+          n_pad1 : SmallInt;    { ensure right packaging }
           { network #  }
           n_net : u_long;
        end;
@@ -130,7 +131,8 @@ unit winsock;
           { alias list  }
           s_aliases : ^pchar;
           { port #  }
-          s_port : integer;
+          s_port : SmallInt;
+          n_pad1 : SmallInt;    { ensure right packaging }
           { protocol to use  }
           s_proto : ^char;
        end;
@@ -143,7 +145,8 @@ unit winsock;
           { alias list  }
           p_aliases : ^pchar;
           { protocol #  }
-          p_proto : integer;
+          p_proto : SmallInt;
+          p_pad1 : SmallInt;    { ensure packaging }
        end;
        TProtoEnt = protoent;
        PProtoEnt = ^TProtoEnt;
@@ -214,13 +217,15 @@ unit winsock;
        PInAddr = ^TInAddr;
 
        sockaddr_in = record
-          sin_family : u_short;
+          sin_family : SmallInt;                        (* 2 byte *)
           case integer of
-             0 : (sin_port : u_short;
-                  sin_addr : TInAddr;
-                  sin_zero : array[0..7] of char;
+             0 : ( (* equals to sockaddr_in, size is 16 byte *)
+                  sin_port : u_short;                   (* 2 byte *)
+                  sin_addr : TInAddr;                   (* 4 byte *)
+                  sin_zero : array[0..8-1] of char;     (* 8 byte *)
                  );
-             1 : (sin_data : array[0..13] of char;
+             1 : ( (* equals to sockaddr, size is 16 byte *)
+                  sin_data : array[0..14-1] of char;    (* 14 byte *)
                  );
          end;
        TSockAddrIn = sockaddr_in;
@@ -251,14 +256,15 @@ unit winsock;
 
     type
        WSADATA = record
-          wVersion : WORD;
-          wHighVersion : WORD;
-          szDescription : array[0..WSADESCRIPTION_LEN-1] of char;
-          szSystemStatus : array[0..WSASYS_STATUS_LEN-1] of char;
-          iMaxSockets : word;
-          iMaxUdpDg : word;
-          lpVendorInfo : pchar;
-       end;
+          wVersion : WORD;              { 2 byte, ofs 0 }
+          wHighVersion : WORD;          { 2 byte, ofs 2 }
+          szDescription : array[0..(WSADESCRIPTION_LEN+1)-1] of char; { 257 byte, ofs 4 }
+          szSystemStatus : array[0..(WSASYS_STATUS_LEN+1)-1] of char; { 129 byte, ofs 261 }
+          iMaxSockets : word;           { 2 byte, ofs 390 }
+          iMaxUdpDg : word;             { 2 byte, ofs 392 }
+          pad1 : SmallInt;              { 2 byte, ofs 394 } { ensure right packaging }
+          lpVendorInfo : pchar;         { 4 byte, ofs 396 }
+       end;                             { total size 400 }
        TWSAData = WSADATA;
        PWSAData = TWSAData;
 
@@ -725,8 +731,8 @@ unit winsock;
 
     procedure GetAcceptExSockaddrs(lpOutputBuffer:Pointer;
                                    dwReceiveDataLength,dwLocalAddressLength,dwRemoteAddressLength:dword;
-                                   var LocalSockaddr:TSockAddr; var LocalSockaddrLength:Integer;
-                                   var RemoteSockaddr:TSockAddr; var RemoteSockaddrLength:Integer);stdcall;
+                                   var LocalSockaddr:TSockAddr; var LocalSockaddrLength:LongInt;
+                                   var RemoteSockaddr:TSockAddr; var RemoteSockaddrLength:LongInt);stdcall;
 
     function WSAMakeSyncReply(Buflen,Error:Word):dword;
     function WSAMakeSelectReply(Event,Error:Word):dword;
@@ -836,8 +842,8 @@ unit winsock;
 
     procedure GetAcceptExSockaddrs(lpOutputBuffer:Pointer;
                                    dwReceiveDataLength,dwLocalAddressLength,dwRemoteAddressLength:dword;
-                                   var LocalSockaddr:TSockAddr; var LocalSockaddrLength:Integer;
-                                   var RemoteSockaddr:TSockAddr; var RemoteSockaddrLength:Integer);stdcall;
+                                   var LocalSockaddr:TSockAddr; var LocalSockaddrLength:LongInt;
+                                   var RemoteSockaddr:TSockAddr; var RemoteSockaddrLength:LongInt);stdcall;
                                    external winsockdll name 'GetAcceptExSockaddrs';
 
     {
@@ -927,7 +933,13 @@ unit winsock;
 end.
 {
   $Log$
-  Revision 1.7  2000-02-23 15:00:55  jonas
+  Revision 1.8  2000-02-23 16:48:10  alex
+  fixed structure sizes for any slang on 32 bit platform,
+  fiexed buggy conversions from c-short to pascal-integer,
+  needs some more work to be Win64 compliant,
+  szDescription/szSystemStatus is a zero terminated string with extra zero.
+
+  Revision 1.7  2000/02/23 15:00:55  jonas
     * fixed WSADATA record structure bug
 
   Revision 1.6  2000/02/20 20:34:02  florian
