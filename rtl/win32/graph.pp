@@ -253,6 +253,114 @@ procedure DirectPutPixel16Win32GUI(x,y : integer);
       end;
   end;
 
+var
+   bitmapfontcache : array[0..255] of HBITMAP;
+
+procedure DrawBitmapCharHorizWin32GUI(x,y : longint;charsize : word;const s : string);
+
+  var
+     cnt1,cnt2,cnt3,cnt4,j,k,c,xpos,i : longint;
+     fontbitmap    : TBitmapChar;
+     bitmap,oldbitmap : HBITMAP;
+     chardc : HDC;
+     color : longint;
+     brushwin,oldbrushwin,brushbitmap,oldbrushbitmap : HBRUSH;
+     bitmaprgn,winrgn : HRGN;
+
+  begin
+     EnterCriticalSection(graphdrawing);
+     c:=length(s);
+     chardc:=CreateCompatibleDC(windc);
+     if currentcolor<>white then
+       begin
+          color:=RGB(pal[currentcolor].red,pal[currentcolor].green,
+            pal[currentcolor].blue);
+          brushwin:=CreateSolidBrush(color);
+          oldbrushwin:=SelectObject(windc,brushwin);
+          brushbitmap:=CreateSolidBrush(color);
+          oldbrushbitmap:=SelectObject(windc,brushbitmap);
+       end;
+     inc(x,startxviewport);
+     inc(y,startyviewport);
+     { let windows do the clipping }
+     bitmaprgn:=CreateRectRgn(startxviewport,startyviewport,
+       startxviewport+viewwidth+1,startyviewport+viewheight+1);
+     winrgn:=CreateRectRgn(startxviewport,startyviewport,
+       startxviewport+viewwidth+1,startyviewport+viewheight+1);
+     SelectClipRgn(bitmapdc,bitmaprgn);
+     SelectClipRgn(windc,winrgn);
+     for i:=0 to c-1 do
+       begin
+          xpos:=x+(i*8)*Charsize;
+          if bitmapfontcache[byte(s[i+1])]=0 then
+            begin
+               bitmap:=CreateCompatibleBitmap(windc,8,8);
+               oldbitmap:=SelectObject(chardc,bitmap);
+               Fontbitmap:=TBitmapChar(DefaultFontData[s[i+1]]);
+
+               for j:=0 to 7 do
+                  for k:=0 to 7 do
+                    if Fontbitmap[j,k]<>0 then
+                      SetPixel(chardc,k,j,$ffffff)
+                    else
+                      SetPixel(chardc,k,j,0);
+               bitmapfontcache[byte(s[i+1])]:=bitmap;
+               SelectObject(chardc,oldbitmap);
+            end;
+          oldbitmap:=SelectObject(chardc,bitmapfontcache[byte(s[i+1])]);
+          if CharSize=1 then
+            begin
+               if currentcolor=white then
+                 begin
+                    BitBlt(windc,xpos,y,8,8,chardc,0,0,SRCPAINT);
+                    BitBlt(bitmapdc,xpos,y,8,8,chardc,0,0,SRCPAINT);
+                 end
+               else
+                 begin
+                    { could we do this with one pattern operation ?? }
+                    { we would need something like DSnaSPao }
+                    // ROP $00220326=DSna
+                    BitBlt(windc,xpos,y,8,8,chardc,0,0,$00220326);
+                    BitBlt(bitmapdc,xpos,y,8,8,chardc,0,0,$00220326);
+                    // ROP $00EA02E9 = DPSao
+                    BitBlt(windc,xpos,y,8,8,chardc,0,0,$00EA02E9);
+                    BitBlt(bitmapdc,xpos,y,8,8,chardc,0,0,$00EA02E9);
+                 end;
+            end
+          else
+            begin
+               if currentcolor=white then
+                 begin
+                    StretchBlt(windc,xpos,y,8*charsize,8*charsize,chardc,0,0,8,8,SRCPAINT);
+                    StretchBlt(bitmapdc,xpos,y,8*charsize,8*charsize,chardc,0,0,8,8,SRCPAINT);
+                 end
+               else
+                 begin
+                    { could we do this with one pattern operation ?? }
+                    { we would need something like DSnaSPao }
+                    // ROP $00220326=DSna
+                    StretchBlt(windc,xpos,y,8*charsize,8*charsize,chardc,0,0,8,8,$00220326);
+                    StretchBlt(bitmapdc,xpos,y,8*charsize,8*charsize,chardc,0,0,8,8,$00220326);
+                    // ROP $00EA02E9 = DPSao
+                    StretchBlt(windc,xpos,y,8*charsize,8*charsize,chardc,0,0,8,8,$00EA02E9);
+                    StretchBlt(bitmapdc,xpos,y,8*charsize,8*charsize,chardc,0,0,8,8,$00EA02E9);
+                 end;
+            end;
+       end;
+    if currentcolor<>white then
+      begin
+         SelectObject(windc,oldbrushwin);
+         DeleteObject(brushwin);
+         SelectObject(bitmapdc,oldbrushbitmap);
+         DeleteObject(brushbitmap);
+      end;
+    { release clip regions }
+    SelectClipRgn(bitmapdc,0);
+    SelectClipRgn(windc,0);
+    DeleteDC(chardc);
+    LeaveCriticalSection(graphdrawing);
+  end;
+
 procedure HLine16Win32GUI(x,x2,y: integer);
 
    var
@@ -391,6 +499,7 @@ function WindowProc(Window: HWnd; AMessage, WParam,
      r : rect;
      oldbrush : hbrush;
      oldpen : hpen;
+     i : longint;
 
 begin
   WindowProc := 0;
@@ -458,18 +567,20 @@ begin
          ReleaseDC(window,dc);
          oldbitmap:=SelectObject(bitmapdc,savedscreen);
          windc:=GetDC(window);
-         { clear everything }
+         // clear everything
          oldpen:=SelectObject(bitmapdc,GetStockObject(BLACK_PEN));
          oldbrush:=SelectObject(bitmapdc,GetStockObject(BLACK_BRUSH));
          Windows.Rectangle(bitmapdc,0,0,maxx,maxy);
          SelectObject(bitmapdc,oldpen);
          SelectObject(bitmapdc,oldbrush);
-         { ... the window too }
+         // ... the window too
          oldpen:=SelectObject(windc,GetStockObject(BLACK_PEN));
          oldbrush:=SelectObject(windc,GetStockObject(BLACK_BRUSH));
          Windows.Rectangle(windc,0,0,maxx,maxy);
          SelectObject(windc,oldpen);
          SelectObject(windc,oldbrush);
+         // clear font cache
+         fillchar(bitmapfontcache,sizeof(bitmapfontcache),0);
          LeaveCriticalSection(graphdrawing);
       end;
     wm_Destroy:
@@ -480,6 +591,11 @@ begin
          SelectObject(bitmapdc,oldbitmap);
          DeleteObject(savedscreen);
          DeleteDC(bitmapdc);
+         // release font cache
+         for i:=0 to 255 do
+           if bitmapfontcache[i]<>0 then
+             DeleteObject(bitmapfontcache[i]);
+
          LeaveCriticalSection(graphdrawing);
 {$ifdef DEBUG_WM_PAINT}
          close(graphdebug);
@@ -703,6 +819,7 @@ function queryadapterinfo : pmodeinfo;
           mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
           mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
           mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
+          mode.DrawBitmapCharHoriz:={$ifdef fpc}@{$endif}DrawBitmapCharHorizWin32GUI;
           mode.XAspect := 10000;
           mode.YAspect := 10000;
           AddMode(mode);
@@ -729,6 +846,7 @@ function queryadapterinfo : pmodeinfo;
           mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
           mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
           mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
+          mode.DrawBitmapCharHoriz:={$ifdef fpc}@{$endif}DrawBitmapCharHorizWin32GUI;
           mode.XAspect := 10000;
           mode.YAspect := 10000;
           AddMode(mode);
@@ -754,6 +872,7 @@ function queryadapterinfo : pmodeinfo;
           mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
           mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
           mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
+          mode.DrawBitmapCharHoriz:={$ifdef fpc}@{$endif}DrawBitmapCharHorizWin32GUI;
           mode.XAspect := 10000;
           mode.YAspect := 10000;
           AddMode(mode);
@@ -779,6 +898,7 @@ function queryadapterinfo : pmodeinfo;
           mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
           mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
           mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
+          mode.DrawBitmapCharHoriz:={$ifdef fpc}@{$endif}DrawBitmapCharHorizWin32GUI;
           mode.XAspect := 10000;
           mode.YAspect := 10000;
           AddMode(mode);
@@ -804,6 +924,7 @@ function queryadapterinfo : pmodeinfo;
           mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
           mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
           mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
+          mode.DrawBitmapCharHoriz:={$ifdef fpc}@{$endif}DrawBitmapCharHorizWin32GUI;
           mode.XAspect := 10000;
           mode.YAspect := 10000;
           AddMode(mode);
@@ -830,6 +951,7 @@ function queryadapterinfo : pmodeinfo;
           mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
           mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
           mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
+          mode.DrawBitmapCharHoriz:={$ifdef fpc}@{$endif}DrawBitmapCharHorizWin32GUI;
           mode.XAspect := 10000;
           mode.YAspect := 10000;
           AddMode(mode);
@@ -852,6 +974,7 @@ function queryadapterinfo : pmodeinfo;
           mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
           mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
           mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
+          mode.DrawBitmapCharHoriz:={$ifdef fpc}@{$endif}DrawBitmapCharHorizWin32GUI;
           mode.XAspect := 10000;
           mode.YAspect := 10000;
           AddMode(mode);
@@ -878,6 +1001,7 @@ function queryadapterinfo : pmodeinfo;
           mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
           mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
           mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
+          mode.DrawBitmapCharHoriz:={$ifdef fpc}@{$endif}DrawBitmapCharHorizWin32GUI;
           mode.XAspect := 10000;
           mode.YAspect := 10000;
           AddMode(mode);
@@ -900,6 +1024,7 @@ function queryadapterinfo : pmodeinfo;
           mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
           mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
           mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
+          mode.DrawBitmapCharHoriz:={$ifdef fpc}@{$endif}DrawBitmapCharHorizWin32GUI;
           mode.XAspect := 10000;
           mode.YAspect := 10000;
           AddMode(mode);
@@ -926,6 +1051,7 @@ function queryadapterinfo : pmodeinfo;
           mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
           mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
           mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
+          mode.DrawBitmapCharHoriz:={$ifdef fpc}@{$endif}DrawBitmapCharHorizWin32GUI;
           mode.XAspect := 10000;
           mode.YAspect := 10000;
           AddMode(mode);
@@ -948,6 +1074,7 @@ function queryadapterinfo : pmodeinfo;
           mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
           mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
           mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
+          mode.DrawBitmapCharHoriz:={$ifdef fpc}@{$endif}DrawBitmapCharHorizWin32GUI;
           mode.XAspect := 10000;
           mode.YAspect := 10000;
           AddMode(mode);
@@ -972,6 +1099,7 @@ function queryadapterinfo : pmodeinfo;
       mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
       mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
       mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
+      mode.DrawBitmapCharHoriz:={$ifdef fpc}@{$endif}DrawBitmapCharHorizWin32GUI;
       mode.XAspect := 10000;
       mode.YAspect := 10000;
       AddMode(mode);
@@ -994,6 +1122,7 @@ function queryadapterinfo : pmodeinfo;
       mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
       mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
       mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
+      mode.DrawBitmapCharHoriz:={$ifdef fpc}@{$endif}DrawBitmapCharHorizWin32GUI;
       mode.XAspect := 10000;
       mode.YAspect := 10000;
       AddMode(mode);
@@ -1017,6 +1146,7 @@ function queryadapterinfo : pmodeinfo;
       mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
       mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
       mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
+      mode.DrawBitmapCharHoriz:={$ifdef fpc}@{$endif}DrawBitmapCharHorizWin32GUI;
       mode.XAspect := 10000;
       mode.YAspect := 10000;
       AddMode(mode);
@@ -1039,6 +1169,7 @@ function queryadapterinfo : pmodeinfo;
       mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
       mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
       mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
+      mode.DrawBitmapCharHoriz:={$ifdef fpc}@{$endif}DrawBitmapCharHorizWin32GUI;
       mode.XAspect := 10000;
       mode.YAspect := 10000;
       AddMode(mode);
@@ -1049,7 +1180,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-03-24 12:57:41  florian
+  Revision 1.4  2000-03-24 18:18:15  florian
+    * accelerated output of bitmap fonts
+
+  Revision 1.3  2000/03/24 12:57:41  florian
     * the window is now cleared by wm_create
     * default mode is again 640x480x16
 
