@@ -4,7 +4,7 @@
 
 [package]
 name=compiler
-version=1.9.4
+version=1.9.5
 
 [target]
 programs=pp
@@ -235,7 +235,11 @@ TEMPNAME2=ppc2$(EXEEXT)
 TEMPNAME3=ppc3$(EXEEXT)
 MAKEDEP=ppdep$(EXEEXT)
 MSG2INC=./msg2inc$(EXEEXT)
-
+ifdef CROSSINSTALL
+INSTALLEXEFILE=$(PPCROSSNAME)
+else
+INSTALLEXEFILE=$(EXENAME)
+endif
 
 #####################################################################
 # CPU targets
@@ -495,16 +499,12 @@ quickinstall: $(addsuffix _install,$(TARGET_DIRS))
 # Install ppcXXX executable, for a cross installation we install
 # the ppcrossXXX as ppcXXX. The target native build ppcXXX is not used
 # for this installation type
-ifneq ($(PPEXEFILE),)
+ifneq ($(INSTALLEXEFILE),)
 ifdef UPXPROG
-        -$(UPXPROG) $(EXENAME)
+        -$(UPXPROG) $(INSTALLEXEFILE)
 endif
         $(MKDIR) $(PPCCPULOCATION)
-ifdef CROSSINSTALL
-        $(INSTALLEXE) $(PPCROSSNAME) $(PPCCPULOCATION)/$(EXENAME)
-else
-        $(INSTALLEXE) $(EXENAME) $(PPCCPULOCATION)
-endif
+        $(INSTALLEXE) $(INSTALLEXEFILE) $(PPCCPULOCATION)/$(EXENAME)
 endif
 
 install: quickinstall

@@ -91,11 +91,10 @@ endif
 endif
 
 # Prefix for units
-PKGUNITSPRELONGTARGETS=linux freebsd netbsd openbsd
-ifneq ($(findstring $(OS_TARGET),$(PKGUNITSPRELONGTARGETS)),)
-PKGUNITSPRE=units
-else
+ifneq ($(findstring $(OS_SOURCE),$(LIMIT83fs)),)
 PKGUNITSPRE=u
+else
+PKGUNITSPRE=units-
 endif
 
 # Cross compile needs a prefix to not conflict with original packages
@@ -321,16 +320,16 @@ ifdef IDE
 endif
 
 zipinstall: $(BUILDSTAMP)
-        $(MAKE) fpc_zipinstall ZIPTARGET=installbase ZIPNAME=$(PKGPRE)base$(ZIPSUFFIX) $(INSTALLOPTS)
-        $(MAKE) packages_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPPREFIX=$(PKGPRE)$(PKGUNITSPRE)
-        $(MAKE) fcl_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPPREFIX=$(PKGPRE)$(PKGUNITSPRE)
-        $(MAKE) utils_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPNAME=$(PKGPRE)util$(ZIPSUFFIX)
+        $(MAKE) fpc_zipinstall ZIPTARGET=installbase ZIPNAME=base $(INSTALLOPTS)
+        $(MAKE) packages_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPPREFIX=$(PKGUNITSPRE)
+        $(MAKE) fcl_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPPREFIX=$(PKGUNITSPRE)
+        $(MAKE) utils_zip$(INSTALLTARGET) $(INSTALLOPTS)
 ifdef IDE
-        $(MAKE) ide_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPNAME=$(PKGPRE)ide$(ZIPSUFFIX)
+        $(MAKE) ide_zip$(INSTALLTARGET) $(INSTALLOPTS)
 endif
 
 singlezipinstall: $(BUILDSTAMP)
-        $(MAKE) fpc_zipinstall ZIPTARGET=install ZIPNAME=fpc-$(FULL_TARGET) $(INSTALLOPTS)
+        $(MAKE) fpc_zipinstall ZIPTARGET=install ZIPNAME=fpc $(INSTALLOPTS)
 
 
 ##########################################################################
@@ -349,14 +348,14 @@ crosszipinstall:
         $(MAKE) zipinstall CROSSINSTALL=1
 
 crosssinglezipinstall:
-        $(MAKE) fpc_zipinstall ZIPTARGET=crossinstall ZIPNAME=fpc-cross-$(FULL_TARGET) $(INSTALLOPTS)
+        $(MAKE) fpc_zipinstall ZIPTARGET=crossinstall ZIPNAME=fpc $(INSTALLOPTS)
 
 
 ##########################################################################
 # Docs
 ##########################################################################
 
-.PHONY: docspdf docs docsrcinstall docsrc
+.PHONY: docspdf makepackdocs docsrcinstall docsrc
 
 # We don't want the package name fpc in the path
 DOCSOURCEDIR=$(INSTALL_SOURCEDIR)/../docs
@@ -364,8 +363,9 @@ DOCSOURCEDIR=$(INSTALL_SOURCEDIR)/../docs
 docspdf:
         $(MAKE) -C docs pdfinstall DOCINSTALLDIR=$(PACKDIR)
 
-docs:
-        $(MAKE) fpc_zipinstall ZIPTARGET=docspdf ZIPNAME=docs
+# Used by makepack to generate unix installation .tar
+makepackdocs:
+        $(MAKE) fpc_zipinstall ZIPTARGET=docspdf FULLZIPNAME=docs
 
 docsrcinstall:
         $(MAKE) -C docs clean
@@ -373,7 +373,7 @@ docsrcinstall:
         $(COPYTREE) docs/* $(DOCSOURCEDIR)
 
 docsrc:
-        $(MAKE) fpc_zipinstall ZIPTARGET=docsrcinstall ZIPNAME=docsrc
+        $(MAKE) fpc_zipinstall ZIPTARGET=docsrcinstall FULLZIPNAME=docsrc
 
 
 ##########################################################################
@@ -395,7 +395,7 @@ demosrcinstall:
         $(COPYTREE) demo/* $(DEMOSOURCEDIR)
 
 demozip:
-        $(MAKE) fpc_zipinstall ZIPTARGET=demosrcinstall ZIPNAME=demo
+        $(MAKE) fpc_zipinstall ZIPTARGET=demosrcinstall FULLZIPNAME=demo
 
 
 ##########################################################################
@@ -421,7 +421,7 @@ sourcebase:
         $(COPY) packages/extra/Makefile* $(INSTALL_BASESOURCEDIR)/packages/extra
 
 sourcezip:
-        $(MAKE) fpc_zipinstall ZIPTARGET=sourcebase ZIPNAME=basesrc
+        $(MAKE) fpc_zipinstall ZIPTARGET=sourcebase ZIPNAME=base ZIPSUFFIX=$(ZIPSOURCESUFFIX)
         $(MAKE) compiler_zipsourceinstall
         $(MAKE) rtl_zipsourceinstall
         $(MAKE) packages_zipsourceinstall ZIPPREFIX=$(PKGUNITSPRE)
