@@ -242,7 +242,7 @@
           function getrangecheckstring : string;
           function needs_inittable : boolean;virtual;
           procedure write_rtti_data;virtual;
-          procedure write_child_rtti_table;virtual;
+          procedure write_child_rtti_data;virtual;
        end;
 
        precdef = ^trecdef;
@@ -484,7 +484,10 @@
 
 {
   $Log$
-  Revision 1.10  1998-11-20 15:36:00  florian
+  Revision 1.11  1998-11-29 21:45:49  florian
+    * problem with arrays with init tables fixed
+
+  Revision 1.10  1998/11/20 15:36:00  florian
     * problems with rtti fixed, hope it works
 
   Revision 1.9  1998/11/10 10:09:14  peter

@@ -1579,7 +1579,7 @@
       end;
 
 
-    procedure tarraydef.write_child_rtti_table;
+    procedure tarraydef.write_child_rtti_data;
       begin
          definition^.get_rtti_label;
       end;
@@ -3223,7 +3223,10 @@
 
 {
   $Log$
-  Revision 1.75  1998-11-29 12:45:59  peter
+  Revision 1.76  1998-11-29 21:45:48  florian
+    * problem with arrays with init tables fixed
+
+  Revision 1.75  1998/11/29 12:45:59  peter
     * hack for arraydef.size overflow
 
   Revision 1.74  1998/11/27 14:50:47  peter
