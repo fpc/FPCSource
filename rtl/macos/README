@@ -11,7 +11,10 @@ Please note that compiling must be done on a platform
 supported by FPC, either in Darwin (MacOS X) or e g on
 Windows or Linux.
 
-MPW must be installed on the target Macintosh.
+MPW (or ToolServer, but the rest of the description consider doing it
+from MPW) must be installed on the target Macintosh.
+It can be downloaded from Apple Computer, see
+ftp://ftp.apple.com/developer/Tool_Chest/Core_Mac_OS_Tools/MPW_etc./
 
 Compiling on host:
 ------------------
@@ -26,7 +29,7 @@ CPU_TARGET=powerpc must also be added)
 
 Note that one must build the RTL by issuing make in rtl/macos, with
 the above options, to be able to buld other programs. (Currently only
-system.pp is available)
+system.pp and som OS independant units are available)
 
 
 Assembling and linking on target:
@@ -37,7 +40,7 @@ files, that is assembler files (*.s) and link script *_ppas, to the host.
 On the target, use MPW to assemble and link the output from FreePascal by
 executing the link script (which is an MPW script), with its directory
 as current directory. Unfortunatelly the link script does not have the
-proper file type, so this has to be fixed first e. g with
+proper mac file type, so this has to be fixed first e. g with
 the MPW command SetFile.
 
 Example: To build Hello World, execute:
@@ -47,7 +50,7 @@ SetFile -c 'MPS ' -t 'TEXT' system_ppas
 system_ppas	#executes the script
 Directory HD:Projekt:FreePascal:fpc:demo:text
 SetFile -c 'MPS ' -t 'TEXT' hello_ppas
-magic_hello	#executes the script
+hello_ppas	#executes the script
 
 
 Note on the compiler implementation
@@ -66,12 +69,17 @@ Debugging
 ----------
 -g is considered under construction.
 
-When -g is working, one should be able to see source code
-in the Power Mac Debugger 2.1 (can be downloaded from Apple), 
+When -g has been fixed, some debugging should be possible in
+Power Mac Debugger 2.1, can be downloaded from Apple,
+ftp://ftp.apple.com/developer/Tool_Chest/Core_Mac_OS_Tools
+/MPW_etc./Debuggers/Power_Mac_Debugger.sit.hqx
+
+
+It should be possible to see source code
 but it will not be possible to examine variables.
 One can of course examine registers, especially
 at entry and exit point where the parameter lists is stored
 in registers, according to the calling conventions.
 
-A suggestion is to do the main debugging in the darwin version of the
+A suggestion is to do the main debugging in GDB in the Darwin version of the
 program.
