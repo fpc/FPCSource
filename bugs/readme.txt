@@ -348,16 +348,18 @@ Fixed bugs:
   bug0286.pp   #$08d not allowed as Char constant                   OK 0.99.13 (PFV)
   bug0287.pp   (true > false) not supported                         OK 0.99.13 (PFV)
   bug0288.pp   crash with virtual method in except part             OK 0.99.13 (PFV)
+  bug0289.pp   no hint/note for unused types : implemented with -vnh OK 0.99.13 (PM)
   bug0291.pp   @procvar in tp mode bugs                             OK 0.99.13 (PFV)
   bug0292.pp   objects not finalized when disposed                  OK 0.99.13 (FK)
   bug0295.pp   forward type definition is resolved wrong            OK 0.99.13 (PFV)
   bug0296.pp   exit(string) does not work (web form bug 613)        OK 0.99.13 (PM)
   bug0297.pp   calling of interrupt procedure allowed but wrong code generated OK 0.99.13 (PM)
   bug0298.pp   l1+l2:=l1+l2 gives no error                          OK 0.99.13 (PFV)
+  bug0299.pp   passing Array[0..1] of char by value to proc leads to problems OK 0.99.13 (PM)
   bug0300.pp   crash if method on non existing object is parsed (form bug 651) OK 0.99.13 (PFV)
   bug0301.pp   crash if destructor without object name is parsed    OK 0.99.13 (PFV)
   bug0302.pp   inherited property generates wrong assembler         OK 0.99.13 (PFV)
-  
+
 
 Unproducable bugs:
 ------------------
@@ -379,13 +381,11 @@ bug0243.pp   Arguments of functions are computed from right to left this
 bug0281.pp   dup id checking with property is wrong
 bug0290.pp   problem with storing hex numbers in integers
 bug0294.pp   parameter with the same name as function is allowed in tp7/delphi
-
+             Yes, but in BP this leads to being unable to set the return value !
 
 Wishlist bugs:
 --------------
 bug0275.pp   too many warnings
-bug0289.pp   no hint/note for unused types
-
 
 Unfixed bugs:
 -------------
