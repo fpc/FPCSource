@@ -21,16 +21,47 @@ uses sysutils,classes,db,whtml;
 
 Type
   THTMLAlign = (haDefault,haLeft,haRight,haCenter); // Compatible with Delphi.
+  THTMLVAlign = (haVDefault,haTop,haMiddle,haBottom,haBaseLine); // Compatible with Delphi.
+    
+    
+  TGetCellContentsEvent = Procedure (Sender : TObject; Var CellData : String) of object;
+  TCellAttributesEvent = Procedure (Sender : TObject; 
+                                    Var BGColor : String;
+                                    Var Align : THTMLAlign; 
+                                    Var VAlign : THTMLValign;
+                                    Var CustomAttr : String) of Object;
+  TRowAttributesEvent = Procedure (Sender : TObject; 
+                                   Var BGColor : String;
+                                   Var Align : THTMLAlign; 
+                                   Var VAlign : THTMLValign;
+                                   Var CustomAttr : String) of Object;
+
+  TRowAttributes = Class(TPersistent)
+  Private
+    FAlign : THTMLAlign;
+    FVAlign : THTMLVAlign;
+    FBGColor : String;
+    FCustom : String;
+  Public
+    Procedure Assign(Source : TPersistent); Override;
+    Property Align : THTMLAlign Read FAlign Write FAlign;
+    Property BGColor : String Read FBGColor Write FBGColor;
+    Property Custom : String Read FCustom Write FCustom;
+    Property VAlign : THTMLVAlign Read FVAlign Write FVAlign;
+  end;
   
+                                    
   TTableColumn = Class(TCollectionItem)
   private
     FActionUrl: String;
     FAlign: THTMLAlign;
+    FVAlign : THTMLVAlign;
     FBGColor: String;
     FCaptionURL: String;
     FFieldName : String;
     FCaption : String;
     FGetColumn: String;
+    FGetCellContent : TGetCellContentsEvent;
     FImgUrl: String;
   Protected
     FField : TField; // Filled.
@@ -42,6 +73,8 @@ Type
     Property CaptionURL : String Read FCaptionURL Write FCaptionURL;
     Property BGColor : String Read FBGColor Write FBGColor;
     Property Align : THTMLAlign read FAlign Write Falign;
+    Property VAlign : THTMLVAlign Read FValign Write FVAlign;
+    Property OnGetCellContents : TGetCellContentsEvent Read FGetCellContent Write FGetCellContent;
   end;
   
   TTableColumns = Class(TCollection)
@@ -69,8 +102,15 @@ Type
 
   TTableProducer = Class(THTMLProducer)
   Private
+    FGetRowAttrs: TRowAttributesEvent;
+    FRowAttributes: TRowAttributes;
     FTableColumns : TTableColumns;
     FBorder : Boolean;
+    FBGColor : String;
+    FCurrentRow : Integer;
+    FCurrentCol : Integer;
+    FGetCellAttrs : TCellAttributesEvent;
+    procedure SetRowAttributes(const AValue: TRowAttributes);
     Procedure SetTableColumns(Value : TTableColumns);
   Protected
     Procedure BindColumns;
@@ -84,15 +124,22 @@ Type
   Public
     Constructor Create(AOwner : TComponent); override;
     Destructor Destroy; virtual;
+    Function CreateAttr(Const ABGColor : String; A : THTMLAlign; VA : THTMLVAlign; CustomAttr : String) : String;
     Procedure Clear;  
     Procedure CreateColumns(FieldList : TStrings);
     Procedure CreateColumns(FieldList : String);
     Procedure CreateTable(Stream : TStream);
     Procedure CreateTable;
     Procedure CreateContent; override;
+    Property CurrentRow : Integer Read FCurrentRow;
+    Property CurrentCol : Integer Read FCurrentCol;
   Published
+    Property BGColor : String Read FBGColor Write FBGColor;
     Property Border : Boolean Read FBorder Write FBorder;
+    Property RowAttributes : TRowAttributes Read FRowAttributes Write SetRowAttributes;
     Property TableColumns : TTableColumns Read FTableColumns Write SetTableColumns;
+    Property OnGetCellAttributes : TCellAttributesEvent Read FGetCellAttrs write FGetCellAttrs;
+    Property OnGetRowAttributes : TRowAttributesEvent Read FGetRowAttrs write FGetRowAttrs;
   end;
   
   TComboBoxProducer = Class(THTMLProducer)
@@ -147,7 +194,10 @@ begin
   With FTableColumns do
     For I:=0 to Count-1 do
       With TTableColumn(Items[I]) do
-        FField:=FDataset.FieldByName(FieldName);
+        If (FieldName<>'') then
+          FField:=FDataset.FieldByName(FieldName)
+        else
+          FField:=Nil;
 end;
 
 procedure TTableProducer.CreateTableColumns;
@@ -164,7 +214,10 @@ begin
   WriteString(Stream,'<TR>');
   With FTableColumns do
     For I:=0 to Count-1 do
+      begin
+      FCurrentCol:=I;
       CreateHeaderCell(TTableColumn(Items[I]),Stream);
+      end;
   WriteString(Stream,'</TR>'#10);
 end;
 
@@ -202,9 +255,27 @@ procedure TTableProducer.CreateTableRow(Stream : TStream);
 
 Var
   I : Integer;
-
+  BG : String;
+  A : THTMLAlign;
+  VA : THTMLVAlign;
+  RTAG,CustA : String;
+  
 begin
-  WriteString(Stream,'<TR>');
+  With FRowAttributes do
+    begin
+    BG:=FBGColor;
+    A:=FAlign;
+    VA:=VAlign;
+    CustA:=FCustom;
+    end;
+  If Assigned(FGetRowAttrs) then
+    FGetRowAttrs(Self,BG,A,VA,CustA);
+  RTAG:=CreateAttr(BG,A,VA,CustA);
+  If (RTAG='') then
+    RTag:='<TR>'
+  else
+    RTag:='<TR '+RTag+'>';
+  WriteString(Stream,RTag);
   With FTableColumns do
     For I:=0 to Count-1 do
       EmitFieldCell(TTableColumn(Items[I]),Stream);
@@ -220,6 +291,8 @@ begin
   S:='<TABLE';
   If Border then
     S:=S+' BORDER=1';
+  If (BGColor<>'') then
+    S:=S+'BGCOlor="'+BGColor+'"';
   S:=S+'>';
   WriteString(Stream,S);
 end;
@@ -229,13 +302,52 @@ begin
   WriteString(Stream,'</TABLE>'#10);
 end;
 
+Function TTableProducer.CreateAttr(Const ABGColor : String; A : THTMLAlign; VA : THTMLVAlign; CustomAttr : String) : String;
+
+Const
+  HAligns : Array[THTMLAlign] of string = ('','"left"','"right"','"center"');
+  VAligns : Array[THTMLVAlign] of string = ('','"top"','"middle"','"bottom"','"baseLine"');
+
+begin
+  Result:='';
+  If (ABGColor<>'') then
+    Result:='BGColor="'+ABGColor+'"';
+  If (A<>haDefault) then
+    Result:=Result+' Align='+HAligns[A];
+  if (VA<>haVDefault) then
+    Result:=Result+' Align='+VAligns[VA];
+  If (CustomAttr<>'') then
+    Result:=Result+' '+CustomAttr;
+end;
+
 procedure TTableProducer.EmitFieldCell(C: TTableColumn; Stream: TStream);
 
 Var
   URL : String;
-
+  BG : String;
+  A : THTMLAlign;
+  VA : THTMLVAlign;
+  CellA,CustA : String;
+  
 begin
-  WriteString(Stream,'<TD>');
+  BG:=C.BGColor;
+  A:=C.Align;
+  VA:=C.Valign;
+  CustA:='';
+  If Assigned(FGetCellAttrs) then
+    FGetCellAttrs(Self,BG,A,VA,CustA);
+  CellA:=CreateAttr(BGColor,A,VA,CustA);  
+  If (CellA='') then
+    CellA:='<TD>'
+  else
+    CellA:='<TD '+CellA+'>';
+  WriteString(Stream,CellA);
+  // Reuse for contents.
+  CellA:='';
+  If (C.FField<>Nil) then
+    CellA:=C.FField.AsString;
+  If Assigned(C.FGetCellContent) then
+    C.FGetCellContent(C,CellA);    
   With C.FField Do
     begin
     URL:=C.ActionURL;
@@ -244,7 +356,7 @@ begin
       URL:=Format(C.ActionURL,[AsString]);
       WriteString(Stream,'<A HREF="%s">',[URL]);
       end;
-    WriteString(Stream,AsString);
+    WriteString(Stream,CellA);
     If (URL<>'') then
       WriteString(Stream,'</A>');
     end;
@@ -254,7 +366,10 @@ end;
 constructor TTableProducer.Create(AOwner : TComponent);
 begin
   Inherited Create(AOwner);
+  FRowAttributes:=TRowAttributes.Create;
   CreateTableColumns;
+  FCurrentRow:=-1;
+  FCurrentCol:=-1;
 end;
 
 destructor TTableProducer.Destroy;
@@ -318,14 +433,18 @@ begin
   BindColumns;
   StartTable(Stream);
   Try
+  FCurrentRow:=0;
   CreateTableHeader(Stream);
   While Not Dataset.EOF do
     begin
+    Inc(FCurrentRow);
     CreateTableRow(Stream);
     Dataset.Next;
     end;
   Finally
     EndTable(Stream);
+    FCurrentRow:=-1;
+    FCurrentCol:=-1;
   end;
 end;
 
@@ -344,6 +463,13 @@ Procedure TTableProducer.SetTableColumns(Value : TTableColumns);
 
 begin
   FTableColumns.Assign(Value);
+end;
+
+procedure TTableProducer.SetRowAttributes(const AValue: TRowAttributes);
+begin
+  if (FRowAttributes=AValue) then
+    exit;
+  FRowAttributes.Assign(AValue);
 end;
 
 
@@ -501,10 +627,35 @@ begin
   Producer.CreateTable(Self.Stream);
 end;
 
+{ TRowAttributes }
+
+Procedure TRowAttributes.Assign(Source : TPersistent);
+
+Var 
+  R : TRowAttributes;
+
+begin
+  If Source is TRowAttributes then
+    begin
+    R:=TRowAttributes(Source);
+    FAlign:=R.FAlign;
+    FBGColor:=R.FBGColor;
+    FCustom:=R.FCustom;
+    FVAlign:=R.FVAlign;
+    end
+  else
+    Inherited Assign(Source)  
+end;
+
+
+
 end.
 {
   $Log$
-  Revision 1.4  2003-10-03 22:43:17  michael
+  Revision 1.5  2003-10-27 22:38:12  michael
+  + Added setting of row/cell attributes
+
+  Revision 1.4  2003/10/03 22:43:17  michael
   + Published tablecolumns property in tableproducer
 
   Revision 1.3  2003/10/03 08:42:22  michael
