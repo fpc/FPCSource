@@ -1,5 +1,0 @@
-uses
-  dos,
-  ;
-begin
-end.
