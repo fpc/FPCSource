@@ -464,7 +464,7 @@ Type
     X,Y : Real
     end;
 Const
-  Origin : Point = (X:0.0 , Y:0.0);
+  Origin : Point = (X:0.0; Y:0.0);
 \end{verbatim}
 The order of the fields in a constant record needs to be the same as in the type declaration,
 otherwise you'll get a compile-time error.
@@ -2910,7 +2910,8 @@ Program testw;
 Type AR = record
       X,Y : Longint;
      end;
-
+     PAR = Record;
+    
 Var S,T : Ar;
 begin
   S.X := 1;S.Y := 1;
@@ -2925,6 +2926,29 @@ The output of this program is
 \end{verbatim}
 Showing thus that the \var{X,Y} in the \var{WriteLn} statement match the
 \var{T} record variable.
+
+\begin{remark}
+If you use a \var{With} statement with a pointer, or a class, it is not
+permitted to change the pointer or the class in the \var{With} block.
+With the definitions of the previous example, the following illiustrates
+what it is about:
+\begin{verbatim}
+
+Var p : PAR;
+
+begin
+  With P^ do
+   begin
+   // Do some operations
+   P:=OtherP;
+   X:=0.0;  // Wrong X will be used !!
+   end;
+\end{verbatim}
+The reason the pointer cannot be changed is that the address is stored 
+by the compiler in a temporary register. Changing the pointer won't change
+the temporary address. The same is true for classes.
+\end{remark}
+
 \subsection{Exception Statements}
 As of version 0.99.7, \fpc supports exceptions. Exceptions provide a
 convenient way to program error and error-recovery mechanisms, and are
@@ -3102,7 +3126,118 @@ begin
   Average := Temp / (High(Row)+1);
 end;
 \end{verbatim}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% The array of const construct
+\subsection{Array of const}
+In Object Pascal or Delphi mode, \fpc supports the \var{Array of Const}
+construction to pass parameters to a subroutine.
 
+This is a special case of the \var{Open array} construction, where you 
+are allowed to pass any expression in an array to a function or procedure.
+
+In the procedure, passed the arguments can be examined using a special 
+record:
+\begin{verbatim}
+Type
+   PVarRec = ^TVarRec;
+   TVarRec = record   
+     case VType : Longint of
+       vtInteger    : (VInteger: Longint);
+       vtBoolean    : (VBoolean: Boolean);
+       vtChar       : (VChar: Char);
+       vtExtended   : (VExtended: PExtended);
+       vtString     : (VString: PShortString);
+       vtPointer    : (VPointer: Pointer);
+       vtPChar      : (VPChar: PChar);
+       vtObject     : (VObject: TObject);
+       vtClass      : (VClass: TClass);  
+       vtAnsiString : (VAnsiString: Pointer);   
+       vtWideString : (VWideString: Pointer);  
+       vtInt64      : (VInt64: PInt64);
+   end;
+\end{verbatim}
+Inside the procedure body, the array of const is equivalent to 
+an open array of TVarRec:
+\begin{verbatim}
+Procedure Testit (Args: Array of const);
+
+Var I : longint;
+
+begin
+  If High(Args)<0 then
+    begin
+    Writeln ('No aguments');
+    exit;
+    end;
+  Writeln ('Got ',High(Args)+1,' arguments :');
+  For i:=0 to High(Args) do
+    begin
+    write ('Argument ',i,' has type ');
+    case Args[i].vtype of
+      vtinteger    : 
+        Writeln ('Integer, Value :',args[i].vinteger);
+      vtboolean    : 
+        Writeln ('Boolean, Value :',args[i].vboolean);
+      vtchar       : 
+        Writeln ('Char, value : ',args[i].vchar);
+      vtextended   : 
+        Writeln ('Extended, value : ',args[i].VExtended^);
+      vtString     : 
+        Writeln ('ShortString, value :',args[i].VString^);
+      vtPointer    : 
+        Writeln ('Pointer, value : ',Longint(Args[i].VPointer));
+      vtPChar      : 
+        Writeln ('PCHar, value : ',Args[i].VPChar);
+      vtObject     : 
+        Writeln ('Object, name : ',Args[i].VObject.Classname);
+      vtClass      : 
+        Writeln ('Class reference, name :',Args[i].VClass.Classname);
+      vtAnsiString : 
+        Writeln ('AnsiString, value :',AnsiString(Args[I].VAnsiStr
+    else
+        Writeln ('(Unknown) : ',args[i].vtype);
+    end;
+    end;
+end;
+\end{verbatim}
+In your code, it is possible to pass an arbitrary array of elements
+to this procedure:
+\begin{verbatim}
+  S:='Ansistring 1';
+  T:='AnsiString 2';
+  Testit ([]);
+  Testit ([1,2]);
+  Testit (['A','B']);
+  Testit ([TRUE,FALSE,TRUE]);
+  Testit (['String','Another string']);
+  Testit ([S,T])  ;
+  Testit ([P1,P2]);
+  Testit ([@testit,Nil]);
+  Testit ([ObjA,ObjB]);  
+  Testit ([1.234,1.234]);
+  TestIt ([AClass]);
+\end{verbatim}
+
+If the procedure is declared with the \var{cdecl} modifier, then the 
+compiler will pass the array as a C compiler would pass it. This, in effect,
+emulates the C construct of a varable number of arguments, as the following
+example will show:
+\begin{verbatim}
+program testaocc;
+{$mode objfpc}
+
+Const 
+  P : Pchar = 'example';
+  Fmt : PChar =
+        'This %s uses printf to print numbers (%d) and strings.'#10;
+
+// Declaration of standard C function printf: 
+procedure printf (fm : pchar; args : array of const);cdecl; external 'c';
+
+begin
+ printf(Fmt,[P,123]);
+end.
+\end{verbatim}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Function overloading
 \section{Function overloading}
@@ -5606,6 +5741,7 @@ the optional parameter \var{L}. Default a value of 128 is used.
 if \var{Rewrite} finds a file with the same name as \var{F}, this file is
 truncated to length \var{0}. If it doesn't find such a file, a new file is
 created.
+
 \Errors
 If the file cannot be opened for writing, then a run-time error is
 generated. This behavior can be changed by the \var{\{\$i\} } compiler switch.
@@ -5922,6 +6058,26 @@ None.
 \end{procedure}
 
 \FPCexample{ex68}
+
+\begin{function}{StringOfChar}
+\Declaration
+Function StringOfChar(c : char;l : longint) : AnsiString;
+\Description
+\var{StringOfChar} creates a new Ansistring of length \var{l} and fills
+it with the character \var{c}.
+
+It is equivalent to  the following calls:
+\begin{verbatim}
+SetLength(StringOfChar,l);
+FillChar(Pointer(StringOfChar)^,Length(StringOfChar),c);
+\end{verbatim}
+\Errors
+None.
+\SeeAlso
+\seep{SetLength}
+\end{function}
+
+\FPCexample{ex97}
 
 \begin{function}{Succ}
 \Declaration

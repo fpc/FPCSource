@@ -585,6 +585,49 @@ i.e. it does nothing.
 \SeeAlso
 \seep{SetIntVec}
 \end{procedure}
+
+\begin{function}{GetLongName}
+\Declaration
+function GetLongName(var p : String) : boolean;
+\Description
+This function is only implemented in the GO32V2 version of \fpc.
+
+\var{GetLongName} changes the filename \var{p} to a long filename
+if the \dos call to do this is successful. The resulting string
+is the long  file name corresponding to the short filename \var{p}.
+
+The function returns \var{True} if the \dos call was successful, 
+\var{False} otherwise.
+
+This function should only be necessary when using the DOS extender
+under Windows 95 and higher.
+\errors
+If the \dos call was not succesfull, \var{False} is returned.
+\seealso
+\seef{GetShortName}
+\end{function}
+
+\begin{function}{GetShortName}
+\Declaration
+function GetShortName(var p : String) : boolean;
+\Description
+This function is only implemented in the GO32V2 version of \fpc.
+
+\var{GetShortName} changes the filename \var{p} to a short filename
+if the \dos call to do this is successful. The resulting string
+is the short file name corresponding to the long filename \var{p}.
+
+The function returns \var{True} if the \dos call was successful, 
+\var{False} otherwise.
+
+This function should only be necessary when using the DOS extender
+under Windows 95 and higher.
+\errors
+If the \dos call was not successful, \var{False} is returned.
+\seealso
+\seef{GetLongName}
+\end{function}
+
 \begin{procedurel}{GetTime}{Dos:GetTime}
 \Declaration
 Procedure GetTime (var hour, minute, second, sec100: word);
@@ -600,8 +643,10 @@ None.
 \seepl{GetDate}{Dos:GetDate},
 \seep{SetTime}
 \end{procedurel}
+
 \latex{\lstinputlisting{dosex/ex3.pp}}
 \html{\input{dosex/ex3.tex}}
+
 \begin{procedure}{GetVerify}
 \Declaration
 Procedure GetVerify (var verify: boolean);

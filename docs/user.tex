@@ -1410,6 +1410,7 @@ Pascal language.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Things that will not work
 \section{Things that will not work}
+
 Here we give a list of things which are defined/allowed in Turbo Pascal, but
 which are not supported by \fpc. Where possible, we indicate the reason.
 \begin{enumerate}
@@ -1447,9 +1448,12 @@ list of all reserved words.)
 \item Compiler switches and directives are mostly the same, but some extra
 exist.
 \item Units are not binary compatible.
+\item Sets are always 4 bytes in Free Pascal; this means that some typecasts
+which were possible in Turbo Pascal are no longer possible in Free Pascal.
+\item A file is opened for output only (using \var{fmOutput}) when it is 
+opened with \var{Rewrite}. In order to be able to read from it, it should 
+be reset with \seep{Reset}.
 \end{enumerate}
-
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Things which are extra

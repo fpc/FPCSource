@@ -878,8 +878,9 @@ The \var{\{\$RANGECHECKS OFF\}} switch tells the compiler not to generate range 
 code. This may result in faulty program behaviour, but no run-time errors
 will be generated.
 
-\begin{remark} Range checking for sets and enumerations are not yet fully
-implemented.
+\begin{remark} 
+\item The standard functions \var{val} and \var{Read} will also check ranges
+when the call is compiled in \var{\{\$R+\}} mode.
 \end{remark}
 
 \subsection{\var{\$SATURATION} : Saturation operations}
