@@ -3,7 +3,7 @@
     This file is part of the Free Component Library
 
     XML writing routines
-    Copyright (c) 1999-2000 by Sebastian Guenther, sg@freepascal.org
+    Copyright (c) 1999-2002 by Sebastian Guenther, sg@freepascal.org
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -28,9 +28,9 @@ procedure WriteXMLFile(doc: TXMLDocument; const AFileName: String);
 procedure WriteXMLFile(doc: TXMLDocument; var AFile: Text);
 procedure WriteXMLFile(doc: TXMLDocument; var AStream: TStream);
 
-procedure WriteXML(Element: TDOMNode; const AFileName: String);
-procedure WriteXML(Element: TDOMNode; var AFile: Text);
-procedure WriteXML(Element: TDOMNode; var AStream: TStream);
+procedure WriteXML(Node: TDOMNode; const AFileName: String);
+procedure WriteXML(Node: TDOMNode; var AFile: Text);
+procedure WriteXML(Node: TDOMNode; var AStream: TStream);
 
 
 // ===================================================================
@@ -206,7 +206,6 @@ begin
     attr := node.Attributes.Item[i];
     wrt(' ' + attr.NodeName + '=');
     s := attr.NodeValue;
-    // !!!: Replace special characters in "s" such as '&', '<', '>'
     wrt('"');
     ConvWrite(s, AttrSpecialChars, @AttrSpecialCharCallback);
     wrt('"');
@@ -315,6 +314,7 @@ end;
 procedure InitWriter;
 begin
   InsideTextNode := False;
+  SetLength(Indent, 0);
 end;
 
 procedure RootWriter(doc: TXMLDocument);
@@ -324,20 +324,28 @@ begin
   InitWriter;
   wrt('<?xml version="');
   if Length(doc.XMLVersion) > 0 then
-    wrt(doc.XMLVersion)
+    ConvWrite(doc.XMLVersion, AttrSpecialChars, @AttrSpecialCharCallback)
   else
     wrt('1.0');
   wrt('"');
   if Length(doc.Encoding) > 0 then
-    wrt(' encoding="' + doc.Encoding + '"');
+  begin
+    wrt(' encoding="');
+    ConvWrite(doc.Encoding, AttrSpecialChars, @AttrSpecialCharCallback);
+    wrt('"');
+  end;
   wrtln('?>');
 
   if Length(doc.StylesheetType) > 0 then
-    // !!!: Can't handle with HRefs which contain special chars (" and so on)
-    wrtln(Format('<?xml-stylesheet type="%s" href="%s"?>',
-      [doc.StylesheetType, doc.StylesheetHRef]));
+  begin
+    wrt('<?xml-stylesheet type="');
+    ConvWrite(doc.StylesheetType, AttrSpecialChars, @AttrSpecialCharCallback);
+    wrt('" href="');
+    ConvWrite(doc.StylesheetHRef, AttrSpecialChars, @AttrSpecialCharCallback);
+    wrtln('"?>');
+  end;
 
-  indent := '';
+  SetLength(Indent, 0);
 
   child := doc.FirstChild;
   while Assigned(Child) do
@@ -378,32 +386,32 @@ begin
 end;
 
 
-procedure WriteXML(Element: TDOMNode; const AFileName: String);
+procedure WriteXML(Node: TDOMNode; const AFileName: String);
 begin
   Stream := TFileStream.Create(AFileName, fmCreate);
   wrt := @Stream_Write;
   wrtln := @Stream_WriteLn;
   InitWriter;
-  WriteNode(Element);
+  WriteNode(Node);
   Stream.Free;
 end;
 
-procedure WriteXML(Element: TDOMNode; var AFile: Text);
+procedure WriteXML(Node: TDOMNode; var AFile: Text);
 begin
   f := @AFile;
   wrt := @Text_Write;
   wrtln := @Text_WriteLn;
   InitWriter;
-  WriteNode(Element);
+  WriteNode(Node);
 end;
 
-procedure WriteXML(Element: TDOMNode; var AStream: TStream);
+procedure WriteXML(Node: TDOMNode; var AStream: TStream);
 begin
   stream := AStream;
   wrt := @Stream_Write;
   wrtln := @Stream_WriteLn;
   InitWriter;
-  WriteNode(Element);
+  WriteNode(Node);
 end;
 
 
@@ -412,7 +420,11 @@ end.
 
 {
   $Log$
-  Revision 1.8  2002-09-20 11:04:21  michael
+  Revision 1.9  2002-09-20 11:36:51  sg
+  * Argument escaping improvements
+  * Indent fixed for consecutive WriteXML calls
+
+  Revision 1.8  2002/09/20 11:04:21  michael
   + Changed writexml type to TDomNode instead of TDomeElement
 
   Revision 1.7  2002/09/07 15:15:29  peter
