@@ -414,7 +414,7 @@ implementation
 
     function reg_cgsize(const reg: tregister): tcgsize;
       const subreg2cgsize:array[Tsubregister] of Tcgsize =
-            (OS_NO,OS_8,OS_8,OS_16,OS_32,OS_64,OS_NO,OS_NO);
+            (OS_NO,OS_8,OS_8,OS_16,OS_32,OS_64,OS_NO,OS_NO,OS_NO);
       begin
         case getregtype(reg) of
           R_INTREGISTER :
@@ -441,7 +441,7 @@ implementation
     function reg2opsize(r:Tregister):topsize;
       const
         subreg2opsize : array[tsubregister] of topsize =
-          (S_NO,S_B,S_B,S_W,S_L,S_Q,S_NO,S_NO);
+          (S_NO,S_B,S_B,S_W,S_L,S_Q,S_NO,S_NO,S_NO);
       begin
         reg2opsize:=S_L;
         case getregtype(r) of
@@ -543,7 +543,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.45  2004-07-09 23:30:13  jonas
+  Revision 1.46  2004-08-24 21:23:11  florian
+    * fixed i386 compilation
+
+  Revision 1.45  2004/07/09 23:30:13  jonas
     *  changed first_sse_imreg to first_mm_imreg
 
   Revision 1.44  2004/06/20 08:55:32  florian
