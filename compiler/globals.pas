@@ -1244,7 +1244,7 @@ implementation
       { later, this should be replaced by the math unit }
       const
         Default8087CW : word = $1332;
-
+{$ASMMODE ATT}
       procedure Set8087CW(cw:word);assembler;
         asm
           movw cw,%ax
@@ -1706,7 +1706,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.107  2003-10-03 22:00:33  peter
+  Revision 1.108  2003-10-08 14:10:16  mazen
+  + ASMMODE ATT added to bypass fpc.cfg defaults
+
+  Revision 1.107  2003/10/03 22:00:33  peter
     * parameter alignment fixes
 
   Revision 1.106  2003/10/03 14:16:48  marco
