@@ -2662,7 +2662,7 @@ Begin
       getdir(0,temp)
      else
       inc(i);
-     temp:=temp+'/'+copy(path,i,length(path)-i+1);
+     temp:=temp+'/'+copy(path,i,length(path)-i+1)+'/';
    end;    
 {First remove all references to '/./'}
   while pos('/./',temp)<>0 do
@@ -2683,8 +2683,6 @@ Begin
        delete(temp,1,3);      
   until i=0;
 {Remove ending . and / which may exist}
-  if (length(temp)>0) and (temp[length(temp)]='.') then
-   dec(byte(temp[0]));
   if (length(temp)>0) and (temp[length(temp)]='/') then
    dec(byte(temp[0]));
   fexpand:=temp;
@@ -3123,7 +3121,10 @@ End.
 
 {
   $Log$
-  Revision 1.2  1998-04-04 17:07:17  michael
+  Revision 1.3  1998-04-07 12:27:41  peter
+    * fixed fexpand('..')
+
+  Revision 1.2  1998/04/04 17:07:17  michael
   + Fixed AssignStream, it completely refused to work
 
   Revision 1.1.1.1  1998/03/25 11:18:43  root
