@@ -21,7 +21,8 @@
   Automatically converted by H2Pas 0.99.15 from pthrwrk2.h
 }
 
-{$linklib c} // needs libc_r
+{$linklib pthread}	// The compiler changes this to c_r if needed.
+{$linklib c} 		// (parameter -Xf)
 
 {$PACKRECORDS C}
 
@@ -422,7 +423,10 @@ function pthread_attr_getfloatstate(_para1:Ppthread_attr_t; _para2:Pcint):cint;c
 
 {  
    $Log$
-   Revision 1.3  2003-11-16 21:30:24  marco
+   Revision 1.4  2004-02-15 19:59:20  marco
+    * linklib pthread from now on
+
+   Revision 1.3  2003/11/16 21:30:24  marco
     * now linklib's
 
    Revision 1.2  2003/11/04 09:02:18  marco
