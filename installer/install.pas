@@ -1229,7 +1229,13 @@ program install;
                   if copy(package[i].zip,1,3)='ide' then
                     haside:=true;
                   if copy(package[i].zip,1,7)='doc-htm' then
-                    hashtmlhelp:=true;
+                    begin
+                      hashtmlhelp:=true;
+                      { correct the fpctoc file name if .html files are used }
+                      if package[i].zip='doc-html.zip' then
+                        if copy(cfg.helpidx,length(cfg.helpidx)-3,4)='.htm' then
+                          cfg.helpidx:=cfg.helpidx+'l';
+                    end;
                end;
            end;
           desktop^.delete(UnzDlg);
@@ -1708,7 +1714,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2002-03-13 22:27:36  pierre
+  Revision 1.6  2002-03-19 09:14:56  pierre
+   * fix fpctoc.html problem
+
+  Revision 1.5  2002/03/13 22:27:36  pierre
    * fix problem if invalid drive is given
 
   Revision 1.4  2002/02/28 21:30:34  peter
