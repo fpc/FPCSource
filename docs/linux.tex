@@ -24,11 +24,13 @@
 \FPCexampledir{linuxex}
 This chapter describes the LINUX unit for Free Pascal. The unit was written
 by Micha\"el van Canneyt. It works only on the Linux operating system.
-This chapter is divided in 2 sections:
+This chapter is divided in 3 sections:
 \begin{itemize}
 \item The first section lists all constants, types and variables, as listed
 in the interface section of the LINUX unit.
-\item The second section describes all procedures and functions in the LINUX
+\item The second section gives and overview of all available functions,
+grouped by category.
+\item The third section describes all procedures and functions in the LINUX
 unit.
 \end{itemize}
 
@@ -451,6 +453,190 @@ and the following constants to specify the type of mapping.
   MAP_FIXED     = $10; { Interpret addr exactly }
   MAP_ANONYMOUS = $20; { don't use a file }
 \end{verbatim}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Functions and procedures by category
+\section{Function list by category}
+What follows is a listing of the available functions, grouped by category.
+For each function there is a reference to the page where you can find the
+function.
+\subsection{File Input/Output routines}
+Functions for handling file input/output.
+\begin{funclist}
+\funcref{Dup}{Duplicate a file handle}
+\funcref{Dup2}{Copy one file handle to another}
+\procref{Fcntl}{General file control}
+\funcref{fdClose}{Close file descriptor}
+\funcref{fdFlush}{Flush file descriptor}
+\funcref{fdOpen}{Open new file descriptor}
+\funcref{fdRead}{Read from file descriptor}
+\funcref{fdSeek}{Position in file}
+\funcref{fdTruncate}{Truncate file}
+\funcref{fdWrite}{Write to file descriptor}
+\funcref{GetFS}{Get file descriptor of pascal file}
+\funcref{Select}{Wait for input from file descriptor}
+\funcref{SelectText}{Wait for input from pascal file}
+\end{funclist}
+
+\subsection{General File handling routines}
+Functions for handling files on disk.
+\begin{funclist}
+\funcref{Access}{Check access rights on file}
+\funcref{BaseName}{Return name part of file}
+\funcref{Chown}{Change owner of file}
+\funcref{Chmod}{Change access rights on file}
+\funcref{DirName}{Return directory part of file}
+\procrefl{FSplit}{LFsplit}{Split filename in parts}
+\funcref{FExpand}{Return full-grown filename}
+\funcref{FLock}{Set lock on a file}
+\funcref{FNMatch}{Match filename to searchpattern}
+\funcref{FSearch}{Search for a file in a path}
+\funcref{FSStat}{Return filesystem information}
+\funcref{FStat}{Return file information}
+\funcref{FRename}{Rename file}
+\funcref{LStat}{Return information on a link}
+\funcref{Link}{Create a link}
+\funcref{ReadLink}{Read contents of a symbolic link}
+\funcref{SymLink}{Create a symbolic link}
+\funcref{Umask}{Set the file creation mask}
+\funcref{UnLink}{Remove a file}
+\funcref{Utime}{Change file timestamps}
+\end{funclist}
+
+\subsection{Pipes, FIFOs and streams }
+Functions for creating and managing pipes.
+\begin{funclist}
+\funcref{AssignPipe}{Create a pipe}
+\funcref{AssignStream}{Create pipes to program's input and output}
+\funcref{MkFifo}{Make a fifo}
+\funcref{PClose}{Close a pipe}
+\procref{POpen}{Open a pipe for to program's input or output}
+\end{funclist}
+
+\subsection{Directory handling routines}
+Functions for reading and searching directories.
+\begin{funclist}
+\funcref{CloseDir}{Close directory handle}
+\funcref{Glob}{Return files matching a search expression}
+\procref{GlobFree}{Free result of Glob}
+\funcref{OpenDir}{Open directory for reading}
+\funcref{ReadDir}{Read directory entry}
+\procref{SeekDir}{Seek directory}
+\funcref{TellDir}{Seek directory}
+\end{funclist}
+
+\subsection{Process handling}
+Functions for managing processes and programs.
+\begin{funclist}
+\funcref{Clone}{Create a thread}
+\procref{Execl}{Execute process with command-line list}
+\procref{Execle}{Execute process with command-line list and environment}
+\procref{Execlp}{Search in path and execute process with command list}
+\procref{Execv}{Execute process}
+\procref{Execve}{Execute process with environment}
+\procref{Execvp}{Search in path and execute process}
+\funcref{Fork}{Spawn child process}
+\funcref{GetEGid}{Get effective group id}
+\funcref{GetEnv}{Get environment variable}
+\funcref{GetEUid}{Get effective user id}
+\funcref{GetGid}{Get group id}
+\funcref{GetPid}{Get process id}
+\funcref{GetPPid}{Get parent process id}
+\funcref{GetPriority}{Get process priority}
+\funcref{GetUid}{Get user id}
+\procref{Nice}{Change priority of process}
+\funcref{SetPriority}{Change priority of process}
+\funcref{Shell}{Execute shell command}
+\funcref{WaitPid}{Wait for child process to terminate}
+\end{funclist}
+
+\subsection{Signals}
+Functions for managing and responding to signals.
+\begin{funclist}
+\funcref{Alarm}{Send alarm signal to self}
+\funcref{Kill}{Send arbitrary signal to process}
+\procref{pause}{Wait for signal to arrive}
+\procref{SigAction}{Set signal action}
+\funcref{Signal}{Set signal action}
+\funcref{SigPending}{See if signals are waiting}
+\procref{SigProcMask}{Set signal processing mask}
+\procref{SigRaise}{Send signal to self}
+\procref{SigSuspend}{Sets signal mask and waits for signal}
+\end{funclist}
+
+\subsection{System information}
+Functions for retrieving system information such as date and time.
+\begin{funclist}
+\procref{GetDate}{Return system date}
+\procref{GetDateTime}{Return system date and time}
+\funcref{GetDomainName}{Return system domain name}
+\funcref{GetEpochTime}{Return epoch time}
+\funcref{GetHostName}{Return system host name}
+\procref{GetLocalTimezone}{Return system timezone}
+\procref{GetTime}{Return system time}
+\funcref{GetTimeOfDay}{Return system time}
+\funcref{GetTimezoneFile}{Return name of timezone file}
+\procref{ReadTimezoneFile}{Read timezone file contents}
+\funcref{SysInfo}{Return general system information}
+\procref{Uname}{Return system information}
+\end{funclist}
+
+\subsection{Terminal functions}
+Functions for controlling the terminal to which the process is connected.
+
+\begin{funclist}
+\procref{CFMakeRaw}{Set terminal to raw mode}
+\procref{CFSetISpeed}{Set terminal reading speed}
+\procref{CFSetOSpeed}{Set terminal writing speed}
+\procref{IOCtl}{General IO control call}
+\funcref{IsATTY}{See if filedescriptor is a terminal}
+\funcref{TCDrain}{Wait till all output was written}
+\funcref{TCFlow}{Suspend transmission or receipt of data}
+\funcref{TCFlush}{Discard data written to terminal}
+\funcref{TCGetAttr}{Get terminal attributes}
+\funcref{TCGetPGrp}{Return PID of foreground process}
+\funcref{TCSendBreak}{Send data for specific time}
+\funcref{TCSetAttr}{Set terminal attributes}
+\funcref{TCSetPGrp}{Set foreground process}
+\funcref{TTYName}{Name of tty file}
+\end{funclist}
+
+\subsection{Port input/output}
+Functions for reading and writing to the hardware ports.
+\begin{funclist}
+\funcref{IOperm}{Set permissions for port access}
+\procref{ReadPort}{Read data from port}
+\procref{ReadPortB}{Read 1 byte from port}
+\procref{ReadPortL}{Read 4 bytes from port}
+\procref{ReadPortW}{Read 2 bytes from port}
+\procref{WritePort}{Write data to port}
+\procref{WritePortB}{Write 1 byte to port}
+\procref{WritePortL}{Write 4 bytes to port}
+\procref{WritePortW}{Write 2 bytes to port}
+\end{funclist}
+
+\subsection{Utility routines}
+Auxiliary functions that are useful in connection with the other functions.
+\begin{funclist}
+\funcref{CreateShellArgV}{Create an array of pchars from string}
+\procref{EpochToLocal}{Convert epoch time to local time}
+\procrefl{FD\_Clr}{FDClr}{Clear item of select filedescriptors}
+\funcrefl{FD\_IsSet}{FDIsSet}{Check item of select filedescriptors}
+\procrefl{FD\_Set}{FDSet}{Set item of select filedescriptors}
+\procrefl{FD\_ZERO}{FDZero}{Clear all items in select filedecriptors}
+\funcref{LocalToEpoch}{Convert local time to epoch time}
+\funcref{MMap}{Map a file into memory}
+\funcref{MUnMap}{Unmap previously mapped memory file}
+\funcref{Octal}{Convert octal to digital}
+\funcrefl{S\_ISBLK}{ISBLK}{Check file mode for block device}
+\funcrefl{S\_ISCHR}{ISCHR}{Check file mode for character device}
+\funcrefl{S\_ISDIR}{ISDIR}{Check file mode for directory}
+\funcrefl{S\_ISFIFO}{ISFIFO}{Check file mode for FIFO}
+\funcrefl{S\_ISLNK}{ISLNK}{Check file mode for symboloc link}
+\funcrefl{S\_ISREG}{ISREG}{Check file mode for regular file}
+\funcrefl{S\_ISSOCK}{ISSOCK}{Check file mode for socket}
+\funcref{StringToPPchar}{Create an array of pchars from string}
+\end{funclist}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Functions and procedures

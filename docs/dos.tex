@@ -31,10 +31,12 @@ Under non-\dos systems, some of the functionality is lost, as it is either impos
 or meaningless to implement it. Other than that, the functionality for all 
 operating systems is the same.
 
-This chapter is divided in two sections:
+This chapter is divided in three sections:
 \begin{itemize}
 \item The first section lists the pre-defined constants, types and variables. 
-\item The second section describes the functions which appear in the
+\item The second section gives an overview of all functions available,
+grouped by category.
+\item The third section describes the functions which appear in the
 interface part of the DOS unit.
 \end{itemize}
 
@@ -183,6 +185,74 @@ Other values are possible, but are not documented.
 %\end{verbatim}
 %This variable is defined in the \linux version of the \dos unit. It is used
 %in the \seef{DiskFree} and \seef{DiskSize} calls.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Functions and procedures by category
+\section{Function list by category}
+What follows is a listing of the available functions, grouped by category.
+For each function there is a reference to the page where you can find the
+function.
+
+\subsection{File handling}
+Routines to handle files on disk.
+\begin{funclist}
+\funcrefl{FExpand}{Dos:FExpand}{Expand filename to full path}
+\procref{FindClose}{Close finfirst/findnext session}
+\procref{FindFirst}{Start find of file}
+\procref{FindNext}{Find next file}
+\funcrefl{FSearch}{Dos:FSearch}{Search for file in a path}
+\procref{FSplit}{Split filename in parts}
+\procref{GetFAttr}{Return file attributes}
+\procref{GetFTime}{Return file time}
+\funcref{GetLongName}{Convert short filename to long filename}
+\funcref{GetShortName}{Convert long filename to short filename}
+\procref{SetFAttr}{Set file attributes}
+\procref{SetFTime}{Set file time}
+\end{funclist}
+
+\subsection{Directory and disk handling}
+Routines to handle disk information.
+\begin{funclist}
+\procref{AddDisk}{Add disk to list of disks}
+\funcref{DiskFree}{Return size of free disk space}
+\funcref{DiskSize}{Return total disk size}
+\end{funclist}
+
+\subsection{Process handling}
+Functions to handle process information and starting new processes.
+\begin{funclist}
+\funcref{DosExitCode}{Exit code of last executed program}
+\funcref{EnvCount}{Return number of environment variables}
+\funcref{EnvStr}{Return environment string pair}
+\procref{Exec}{Execute program}
+\funcrefl{GetEnv}{Dos:GetEnv}{Return specified environment string}
+\end{funclist}
+
+\subsection{System information}
+Functions for retrieving and setting general system information such as date
+and time.
+\begin{funclist}
+\funcref{DosVersion}{Get OS version}
+\procref{GetCBreak}{Get setting of control-break handling flag}
+\procrefl{GetDate}{Dos:GetDate}{Get system date}
+\procref{GetIntVec}{Get interrupt vector status}
+\procrefl{GetTime}{Dos:GetTime}{Get system time}
+\procref{GetVerify}{Get verify flag}
+\procref{Intr}{Execute an interrupt}
+\procref{Keep}{Keep process in memory and exit}
+\procref{MSDos}{Execute MS-dos function call}
+\procref{PackTime}{Pack time for file time}
+\procref{SetCBreak}{Set control-break handling flag}
+\procref{SetDate}{Set system date}
+\procref{SetIntVec}{Set interrupt vectors}
+\procref{SetTime}{Set system time}
+\procref{SetVerify}{Set verify flag}
+\procref{SwapVectors}{Swap interrupt vectors}
+\procref{UnPackTime}{Unpack file time}
+\end{funclist}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Functions and procedures
 \section{Functions and Procedures}
 \begin{procedure}{AddDisk}
 \Declaration
