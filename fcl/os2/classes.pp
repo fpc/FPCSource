@@ -31,7 +31,9 @@ uses
 
 implementation
 
-uses typinfo;
+uses
+  doscalls,
+  typinfo;
 
 { OS - independent class implementations are in /inc directory. }
 {$i classes.inc}
@@ -39,7 +41,10 @@ uses typinfo;
 end.
 {
   $Log$
-  Revision 1.8  2000-01-07 01:24:34  peter
+  Revision 1.9  2000-04-01 10:45:52  hajny
+    OS/2 implementation started
+
+  Revision 1.8  2000/01/07 01:24:34  peter
     * updated copyright to 2000
 
   Revision 1.7  2000/01/06 01:20:34  peter

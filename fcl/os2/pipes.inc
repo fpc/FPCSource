@@ -3,7 +3,7 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Michael Van Canneyt
 
-    DOS/go32v2 specific part of pipe stream.
+    OS/2 specific part of pipe stream.
     
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -14,10 +14,8 @@
 
  **********************************************************************}
 
-// No pipes under dos, sorry...
-
 Function CreatePipeHandles (Var Inhandle,OutHandle : Longint) : Boolean;
 
 begin
-  Result := False;
+  CreatePipeHandles := DosCreatePipe (InHandle, OutHandle, PipeBufSize) = 0;
 end;
