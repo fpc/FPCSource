@@ -551,6 +551,8 @@ unit rgobj;
 {$ifdef newra}
        fillchar(igraph,sizeof(igraph),0);
        fillchar(degree,sizeof(degree),0);
+       {Precoloured nodes should have an infinite degree, which we can approach
+        by 255.}
        fillchar(movelist,sizeof(movelist),0);
        worklist_moves:=Tlinkedlist.create;
        abtlist:='';
@@ -971,6 +973,10 @@ unit rgobj;
       fillchar(movelist,sizeof(movelist),0);
       fillchar(igraph,sizeof(igraph),0);
       fillchar(degree,sizeof(degree),0);
+      {Precoloured nodes should have an infinite degree, which we can approach
+       by 255.}
+      for i:=first_supreg to last_supreg do
+        degree[i]:=255;
       worklist_moves.clear;
       abtlist:='';
    {$endif}
@@ -2361,6 +2367,10 @@ unit rgobj;
       spill_registers:=false;
       unusedregsint:=[0..255];
       fillchar(degree,sizeof(degree),0);
+      {Precoloured nodes should have an infinite degree, which we can approach
+       by 255.}
+      for i:=first_supreg to last_supreg do
+        degree[i]:=255;
 {      exclude(unusedregsint,RS_STACK_POINTER_REG);}
       if current_procinfo.framepointer.number=NR_FRAME_POINTER_REG then
         {Make sure the register allocator won't allocate registers into ebp.}
@@ -2550,7 +2560,11 @@ end.
 
 {
   $Log$
-  Revision 1.64  2003-08-17 08:48:02  daniel
+  Revision 1.65  2003-08-17 14:32:48  daniel
+    * Precoloured nodes now have an infinite degree approached with 255,
+      like they should.
+
+  Revision 1.64  2003/08/17 08:48:02  daniel
    * Another register allocator bug fixed.
    * cpu_registers set to 6 for i386
 
