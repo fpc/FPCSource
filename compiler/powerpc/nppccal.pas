@@ -75,39 +75,20 @@ implementation
         case target_info.system of
           system_powerpc_morphos:
             begin
-              cg.a_reg_alloc(exprasmlist,NR_STACK_POINTER_REG);
-              cg.a_reg_alloc(exprasmlist,NR_R0);
-              cg.a_reg_alloc(exprasmlist,NR_R3);
-
-              { save link register }
-              exprasmlist.concat(taicpu.op_reg(A_MFLR,NR_R0));
-              reference_reset_base(tmpref,NR_STACK_POINTER_REG,LA_LR_SYSV);
-              exprasmlist.concat(taicpu.op_reg_ref(A_STW,NR_R0,tmpref));
-              
-              { adjust stack ptr }
-              reference_reset_base(tmpref,NR_STACK_POINTER_REG,-8); { ??? }
-              exprasmlist.concat(taicpu.op_reg_ref(A_STWU,NR_STACK_POINTER_REG,tmpref));
-                            
+              cg.getexplicitregister(exprasmlist,NR_R0);
+              cg.getexplicitregister(exprasmlist,NR_R3);
+                                       
               { store call offset into R3 }
-              exprasmlist.concat(taicpu.op_reg_const(A_LI,NR_R3,tprocdef(procdefinition).extnumber));
+              exprasmlist.concat(taicpu.op_reg_const(A_LI,NR_R3,-tprocdef(procdefinition).extnumber));
               
               { prepare LR, and call function }
               reference_reset_base(tmpref,NR_R2,100); { 100 ($64) is EmulDirectCallOS offset } 
               exprasmlist.concat(taicpu.op_reg_ref(A_LWZ,NR_R0,tmpref));
               exprasmlist.concat(taicpu.op_reg(A_MTLR,NR_R0));
-              exprasmlist.concat(taicpu.op_none(A_BLRL));
-              
-              { adjust back stack ptr }
-              exprasmlist.concat(taicpu.op_reg_reg_const(A_ADDI,NR_R1,NR_R1,8)); { ??? }
-              
-              { restore link register }
-              reference_reset_base(tmpref,NR_STACK_POINTER_REG,LA_LR_SYSV);
-              exprasmlist.concat(taicpu.op_reg_ref(A_LWZ,NR_R0,tmpref));
-              exprasmlist.concat(taicpu.op_reg(A_MTLR,NR_R0));
-              
-              cg.a_reg_dealloc(exprasmlist,NR_STACK_POINTER_REG);
-              cg.a_reg_dealloc(exprasmlist,NR_R0);
-              cg.a_reg_dealloc(exprasmlist,NR_R3);
+              exprasmlist.concat(taicpu.op_none(A_BLRL));            
+
+              cg.ungetregister(exprasmlist,NR_R0);
+              cg.ungetregister(exprasmlist,NR_R3);
             end;
           else
             internalerror(2004042901);
@@ -119,7 +100,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2004-04-29 14:36:42  karoly
+  Revision 1.26  2004-04-29 22:18:37  karoly
+    * removed some unneeded parts of do_syscall
+
+  Revision 1.25  2004/04/29 14:36:42  karoly
     * little cleanup of the previous commit
 
   Revision 1.24  2004/04/29 14:01:23  karoly
