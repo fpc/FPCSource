@@ -159,7 +159,7 @@ procedure TList.Exchange(Index1, Index2: Integer);
 var Temp : Pointer;
 
 begin
-  If ((Index1>FCount) or (Index2>FCount)) or
+  If ((Index1>=FCount) or (Index2>=FCount)) or
      ((Index1<0) or (Index2<0)) then
     RunError(255);
   Temp:=FList^[Index1];
@@ -386,7 +386,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  1998-05-05 15:54:31  michael
+  Revision 1.4  1998-05-06 07:27:22  michael
+  + Fixec index check in exchange method.
+
+  Revision 1.3  1998/05/05 15:54:31  michael
   TList completely implemented
 
   Revision 1.2  1998/05/04 15:54:07  michael
