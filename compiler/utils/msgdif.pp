@@ -41,22 +41,19 @@ begin
     next:=Nil;
     prev:=Nil;
     end;
-  If RM=NIl then
-    RM:=P
-  else
+  R:=RM;
+  While (R<>Nil) and (R^.enum<P^.Enum) do
     begin
-    R:=RM;
-    While (R<>Nil) and (R^.enum<P^.Enum) do
-      begin
-      P^.Prev:=R;
-      R:=R^.next;
-      end;
-    P^.Next:=R;
-    If R<>Nil then
-      R^.Prev:=P;
-    If P^.Prev<>Nil then
-        P^.Prev^.Next:=P;
+    P^.Prev:=R;
+    R:=R^.next;
     end;
+  P^.Next:=R;
+  If R<>Nil then
+    R^.Prev:=P;
+  If P^.Prev<>Nil then
+    P^.Prev^.Next:=P
+  else
+    RM:=P;
   NewMsg:=P;
 end;
 
@@ -125,6 +122,8 @@ Var P : PMsg;
 
 begin
   While (Porg<>Nil) and (PDiff<>Nil) do
+    begin
+//    Writeln (POrg^.enum,'<=>',PDiff^.Enum);
     If Porg^.Enum<PDiff^.Enum then
       begin
       NotFound (True,Porg);
@@ -140,6 +139,7 @@ begin
       NotFound (False,PDiff);
       PDiff:=PDiff^.Next
       end;
+    end;
    While POrg<>Nil do
      begin
      NotFound(True,Porg);
@@ -147,7 +147,7 @@ begin
      end;
    While PDiff<>Nil do
      begin
-     NotFound(True,PDiff);
+     NotFound(False,PDiff);
      PDiff:=PDiff^.Next;
      end;
 end;
@@ -160,7 +160,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  1999-05-12 16:17:09  peter
+  Revision 1.2  1999-05-17 15:13:43  michael
+  + Fixed a bug that caused messages inserted at root not to appear...
+
+  Revision 1.1  1999/05/12 16:17:09  peter
     * init
 
 }
