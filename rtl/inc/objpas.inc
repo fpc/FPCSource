@@ -151,13 +151,8 @@
 
       class function TObject.InstanceSize : LongInt;
 
-        type
-           plongint = ^longint;
-
         begin
-           { type of self is class of tobject => it points to the vmt }
-           { the size is saved at offset 0                            }
-           InstanceSize:=plongint(self)^;
+           InstanceSize:=plongint(pointer(self)+vmtInstanceSize)^;
         end;
 
       procedure InitInterfacePointers(objclass: tclass;instance : pointer);
@@ -169,7 +164,7 @@
         begin
           while assigned(objclass) do
             begin
-               intftable:=objclass.getinterfacetable;
+               intftable:=pinterfacetable((pointer(objclass)+vmtIntfTable)^);
                if assigned(intftable) then
                  for i:=0 to intftable^.EntryCount-1 do
                    ppointer(@(PChar(instance)[intftable^.Entries[i].IOffset]))^:=
@@ -185,7 +180,8 @@
       class function TObject.InitInstance(instance : pointer) : tobject;
 
         begin
-           fillchar(instance^,self.instancesize,0);
+           { the size is saved at offset 0 }
+           fillchar(instance^,plongint(pointer(self)+vmtInstanceSize)^,0);
            { insert VMT pointer into the new created memory area }
            { (in class methods self contains the VMT!)           }
            ppointer(instance)^:=pointer(self);
@@ -209,7 +205,7 @@
            p : pointer;
 
         begin
-           getmem(p,instancesize);
+           getmem(p,plongint(pointer(self)+vmtInstanceSize)^);
            if p <> nil then
               InitInstance(p);
            NewInstance:=TObject(p);
@@ -587,7 +583,7 @@
           Res: pinterfaceentry;
         begin
           getinterfaceentry:=nil;
-          intftable:=getinterfacetable;
+          intftable:=pinterfacetable((pointer(Self)+vmtIntfTable)^);
           if assigned(intftable) then begin
             i:=intftable^.EntryCount;
             Res:=@intftable^.Entries[0];
@@ -695,7 +691,10 @@
 
 {
   $Log$
-  Revision 1.29  2002-10-15 19:29:49  peter
+  Revision 1.30  2002-10-19 15:53:20  peter
+    * 'inlined' some more calls
+
+  Revision 1.29  2002/10/15 19:29:49  peter
     * manual inline classparent calls in the loops
 
   Revision 1.28  2002/10/11 14:05:21  florian
