@@ -22,7 +22,7 @@ END;
 
   if (pointer(func)=nil) or (sp=nil) then
    begin
-     LinuxError:=EsysEInval;
+     Lfpseterrno(EsysEInval);
      exit(-1);
    end;
   asm
@@ -73,21 +73,18 @@ var  tz : timezone;
 
 begin
  do_syscall(syscall_nr_gettimeofday,longint(@tv),longint(@tz));
- LinuxError:=FpGetErrno;
 end;
 }
 Function  fdFlush (fd : Longint) : Boolean;
 
 begin
   fdflush:=do_syscall(syscall_nr_fsync,fd)=0;
-  LinuxError:=FpGetErrno;
 end;
 
 Function  Flock (fd,mode : longint) : boolean;
 
 begin
  Flock:=do_syscall(syscall_nr_flock,fd,mode)=0;
- LinuxError:=FpGetErrno;
 end;
 
 
@@ -102,7 +99,6 @@ Function StatFS(Path:Pathstr;Var Info:Tstatfs):Boolean;
 begin
   path:=path+#0;
   StatFS:=Do_Syscall(syscall_nr_statfs,longint(@path[1]),longint(@info))=0;
-  LinuxError:=FpGetErrno;
 end;
 
 Function StatFS(Fd:Longint;Var Info:tstatfs):Boolean;
@@ -114,7 +110,6 @@ Function StatFS(Fd:Longint;Var Info:tstatfs):Boolean;
 
 begin
  StatFS:=do_syscall(syscall_nr_fstatfs,fd,longint(@info))=0;
- LinuxError:=FpGetErrno;
 end;
 
 // needs oldfpccall;
@@ -147,7 +142,7 @@ begin
 end;
 
 // can't have oldfpccall here, linux doesn't need it.
-Function AssignPipe(var pipe_in,pipe_out:longint):boolean; [public, alias : 'FPC_SYSC_ASSIGNPIPE'];
+Function AssignPipe(var pipe_in,pipe_out:longint):cint; [public, alias : 'FPC_SYSC_ASSIGNPIPE'];
 {
   Sets up a pair of file variables, which act as a pipe. The first one can
   be read from, the second one can be written to.
@@ -158,9 +153,9 @@ var
   errn : cint;
 begin
  ret:=intAssignPipe(pipe_in,pipe_out,errn);
- fpseterrno(errn);
- LinuxError:=Errn;
- AssignPipe:=(LinuxError=0);
+ if ret=-1 Then
+  fpseterrno(errn);
+ AssignPipe:=ret;
 end;
 
 Function PClose(Var F:text) :longint;
@@ -176,10 +171,10 @@ begin
   pclose:=res shr 8;
 end;
 
-Function PClose(Var F:file) : longint;
+Function PClose(Var F:file) : cint;
 var
-  pl : ^longint;
-  res : longint;
+  pl : ^cint;
+  res : cint;
 
 begin
   do_syscall(syscall_nr_close,filerec(F).Handle);
@@ -193,7 +188,6 @@ function MUnMap (P : Pointer; Size : Longint) : Boolean;
 
 begin
   MUnMap:=do_syscall(syscall_nr_munmap,longint(P),Size)=0;
-  LinuxError:=FpGetErrno;
 end;
 
 function  intClone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint; {$ifndef ver1_0} oldfpccall; {$endif}
@@ -250,7 +244,10 @@ end;
 
 {
   $Log$
-  Revision 1.12  2003-11-09 12:00:16  marco
+  Revision 1.13  2003-11-14 16:21:59  marco
+   * linuxerror elimination
+
+  Revision 1.12  2003/11/09 12:00:16  marco
    * pipe fix
 
   Revision 1.11  2003/09/20 12:38:29  marco
