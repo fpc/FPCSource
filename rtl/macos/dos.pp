@@ -66,17 +66,34 @@ Uses
   unixutil {for FNMatch};
 
 {$UNDEF USE_FEXPAND_INC}
+//{$DEFINE USE_FEXPAND_INC}
 
 {$IFNDEF USE_FEXPAND_INC}
- {$DEFINE HAS_FEXPAND}
-{$ENDIF USE_FEXPAND_INC}
+
+{$DEFINE HAS_FEXPAND}
+{Own implemetation of fexpand.inc}
+{$I dos.inc}
+
+{$ELSE}
 
 {$DEFINE FPC_FEXPAND_VOLUMES}
 {$DEFINE FPC_FEXPAND_NO_DEFAULT_PATHS}
 {$DEFINE FPC_FEXPAND_DRIVESEP_IS_ROOT}
+{$DEFINE FPC_FEXPAND_NO_DOTS_UPDIR}
+{$DEFINE FPC_FEXPAND_NO_CURDIR}
+
+{ NOTE: If HAS_FEXPAND is not defined, fexpand.inc is included in dos.inc. }
+{ TODO A lot of issues before this works}
 
 {$I dos.inc}
 
+{$UNDEF FPC_FEXPAND_VOLUMES}
+{$UNDEF FPC_FEXPAND_NO_DEFAULT_PATHS}
+{$UNDEF FPC_FEXPAND_DRIVESEP_IS_ROOT}
+{$UNDEF FPC_FEXPAND_NO_DOTS_UPDIR}
+{$UNDEF FPC_FEXPAND_NO_CURDIR}
+
+{$ENDIF}
 
 function MacTimeToDosPackedTime(macfiletime: UInt32): Longint;
 var
@@ -98,7 +115,6 @@ begin
   Packtime(ddt, dospackedtime);
   MacTimeToDosPackedTime:= dospackedtime;
 end;
-
 
 {******************************************************************************
                         --- Info / Date / Time ---
@@ -760,29 +776,7 @@ End;
       end;
   end;
 
-
-{$UNDEF USE_FEXPAND_INC}
-
-{$IFDEF USE_FEXPAND_INC}
-
-//{$DEFINE FPC_FEXPAND_NO_DOTS_UPDIR}
-//{$DEFINE FPC_FEXPAND_NO_CURDIR}
-
-{$DEFINE FPC_FEXPAND_VOLUMES}
-{$DEFINE FPC_FEXPAND_NO_DEFAULT_PATHS}
-{$DEFINE FPC_FEXPAND_DRIVESEP_IS_ROOT}
-
-{ TODO A lot of issues before this works}
-
-{$I fexpand.inc}
-
-{$UNDEF FPC_FEXPAND_VOLUMES}
-{$UNDEF FPC_FEXPAND_NO_DEFAULT_PATHS}
-{$UNDEF FPC_FEXPAND_DRIVESEP_IS_ROOT}
-
-
-
-{$ELSE}
+{$IFNDEF USE_FEXPAND_INC}
 
 { TODO nonexisting dirs in path's doesnt work (nonexisting files do work)
        example: Writeln('FExpand on :nisse:kalle : ', FExpand(':nisse:kalle')); }
@@ -805,7 +799,7 @@ End;
       paramBlock: CInfoPBRec;
 
   begin
-    DosError := PathArgToFSSpec(filerec(f).name, spec);
+    DosError := PathArgToFSSpec(StrPas(filerec(f).name), spec);
     if (DosError = 0) or (DosError = 2) then
       begin
         DosError := DoFindOne(spec, paramBlock);
@@ -824,7 +818,7 @@ End;
       macfiletime: UInt32;
 
   begin
-    DosError := PathArgToFSSpec(filerec(f).name, spec);
+    DosError := PathArgToFSSpec(StrPas(filerec(f).name), spec);
     if (DosError = 0) or (DosError = 2) then
       begin
         DosError := DoFindOne(spec, paramBlock);
@@ -854,7 +848,7 @@ End;
       paramBlock: CInfoPBRec;
 
   begin
-    DosError := PathArgToFSSpec(filerec(f).name, spec);
+    DosError := PathArgToFSSpec(StrPas(filerec(f).name), spec);
     if (DosError = 0) or (DosError = 2) then
       begin
         DosError := DoFindOne(spec, paramBlock);
@@ -875,7 +869,7 @@ End;
         Doserror := 5;
       end;
 
-    DosError := PathArgToFSSpec(filerec(f).name, spec);
+    DosError := PathArgToFSSpec(StrPas(filerec(f).name), spec);
     if (DosError = 0) or (DosError = 2) then
       begin
         DosError := DoFindOne(spec, paramBlock);
