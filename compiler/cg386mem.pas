@@ -57,9 +57,9 @@ implementation
     procedure secondloadvmt(var p : ptree);
       begin
          p^.location.register:=getregister32;
-         exprasmlist^.concat(new(pai386,op_sym_ofs_reg(A_MOV,
+         emit_sym_ofs_reg(A_MOV,
             S_L,newasmsymbol(pobjectdef(pclassrefdef(p^.resulttype)^.definition)^.vmt_mangledname),0,
-            p^.location.register)));
+            p^.location.register);
       end;
 
 
@@ -133,16 +133,16 @@ implementation
             LOC_CREGISTER:
               begin
                  p^.location.reference.index:=getregister32;
-                 exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,S_L,
+                 emit_reg_reg(A_MOV,S_L,
                    p^.left^.location.register,
-                   p^.location.reference.index)));
+                   p^.location.reference.index);
               end;
             LOC_MEM,LOC_REFERENCE :
               begin
                  del_reference(p^.left^.location.reference);
                  p^.location.reference.index:=getregister32;
-                 exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(p^.left^.location.reference),
-                   p^.location.reference.index)));
+                 emit_ref_reg(A_MOV,S_L,newreference(p^.left^.location.reference),
+                   p^.location.reference.index);
               end;
          end;
       end;
@@ -169,8 +169,8 @@ implementation
 
          { push pointer adress }
          case p^.left^.location.loc of
-            LOC_CREGISTER : exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,
-              p^.left^.location.register)));
+            LOC_CREGISTER : emit_reg(A_PUSH,S_L,
+              p^.left^.location.register);
             LOC_REFERENCE:
               emitpushreferenceaddr(p^.left^.location.reference);
          end;
@@ -187,8 +187,8 @@ implementation
                      emitpushreferenceaddr(r^);
                      { push pointer adress }
                      case p^.left^.location.loc of
-                        LOC_CREGISTER : exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,
-                          p^.left^.location.register)));
+                        LOC_CREGISTER : emit_reg(A_PUSH,S_L,
+                          p^.left^.location.register);
                         LOC_REFERENCE:
                           emitpushreferenceaddr(p^.left^.location.reference);
                      end;
@@ -208,8 +208,8 @@ implementation
                      emitpushreferenceaddr(r^);
                      { push pointer adress }
                      case p^.left^.location.loc of
-                        LOC_CREGISTER : exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,
-                          p^.left^.location.register)));
+                        LOC_CREGISTER : emit_reg(A_PUSH,S_L,
+                          p^.left^.location.register);
                         LOC_REFERENCE:
                           emitpushreferenceaddr(p^.left^.location.reference);
                      end;
@@ -244,13 +244,13 @@ implementation
            assigned(p^.left^.symtableentry) and
            (p^.left^.symtableentry^.typ=varsym) and
            (pvarsym(p^.left^.symtableentry)^.definition^.deftype=procvardef) then
-           exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
+           emit_ref_reg(A_MOV,S_L,
              newreference(p^.left^.location.reference),
-             p^.location.register)))
+             p^.location.register)
          else
-           exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,
+           emit_ref_reg(A_LEA,S_L,
              newreference(p^.left^.location.reference),
-             p^.location.register)));
+             p^.location.register);
            { for use of other segments }
            if p^.left^.location.reference.segment<>R_NO then
              p^.location.segment:=p^.left^.location.reference.segment;
@@ -267,9 +267,9 @@ implementation
          p^.location.loc:=LOC_REGISTER;
          del_reference(p^.left^.location.reference);
          p^.location.register:=getregister32;
-         exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,
+         emit_ref_reg(A_LEA,S_L,
          newreference(p^.left^.location.reference),
-           p^.location.register)));
+           p^.location.register);
       end;
 
 
@@ -300,9 +300,9 @@ implementation
 
                  { ...and reserve one for the pointer }
                  hr:=getregister32;
-                 exprasmlist^.concat(new(pai386,op_ref_reg(
+                 emit_ref_reg(
                    A_MOV,S_L,newreference(p^.left^.location.reference),
-                   hr)));
+                   hr);
                  p^.location.reference.base:=hr;
               end;
          end;
@@ -312,8 +312,8 @@ implementation
             (cs_gdb_heaptrc in aktglobalswitches) and
             (cs_checkpointer in aktglobalswitches) then
               begin
-                 exprasmlist^.concat(new(pai386,op_reg(
-                   A_PUSH,S_L,p^.location.reference.base)));
+                 emit_reg(
+                   A_PUSH,S_L,p^.location.reference.base);
                  emitcall('FPC_CHECKPOINTER');
               end;
       end;
@@ -352,9 +352,9 @@ implementation
 
                      { ... and reserve one for the pointer }
                      hr:=getregister32;
-                     exprasmlist^.concat(new(pai386,op_ref_reg(
+                     emit_ref_reg(
                        A_MOV,S_L,newreference(p^.left^.location.reference),
-                       hr)));
+                       hr);
                      p^.location.reference.base:=hr;
                   end;
              end;
@@ -394,9 +394,9 @@ implementation
             else
               begin
                  if ispowerof2(l1,l2) then
-                   exprasmlist^.concat(new(pai386,op_const_reg(A_SHL,S_L,l2,ind)))
+                   emit_const_reg(A_SHL,S_L,l2,ind)
                  else
-                   exprasmlist^.concat(new(pai386,op_const_reg(A_IMUL,S_L,l1,ind)));
+                   emit_const_reg(A_IMUL,S_L,l1,ind);
               end;
             end;
           end;
@@ -450,9 +450,9 @@ implementation
                 begin
                    del_reference(p^.left^.location.reference);
                    p^.location.reference.base:=getregister32;
-                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
+                   emit_ref_reg(A_MOV,S_L,
                      newreference(p^.left^.location.reference),
-                     p^.location.reference.base)));
+                     p^.location.reference.base);
                 end;
 
               { check for a zero length string,
@@ -460,7 +460,7 @@ implementation
               if (cs_check_range in aktlocalswitches) then
                 begin
                    pushusedregisters(pushed,$ff);
-                   exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,p^.location.reference.base)));
+                   emit_reg(A_PUSH,S_L,p^.location.reference.base);
                    emitcall('FPC_ANSISTR_CHECKZERO');
                    maybe_loadesi;
                    popusedregisters(pushed);
@@ -473,8 +473,8 @@ implementation
                 begin
                    { in widestrings S[1] is pwchar(S)[0] !! }
                    dec(p^.location.reference.offset,2);
-                   exprasmlist^.concat(new(pai386,op_const_reg(A_SHL,S_L,
-                     1,p^.location.reference.base)));
+                   emit_const_reg(A_SHL,S_L,
+                     1,p^.location.reference.base);
                 end;
 
               { we've also to keep left up-to-date, because it is used   }
@@ -528,7 +528,7 @@ implementation
                              push_int(p^.right^.value);
                              hp:=newreference(p^.location.reference);
                              dec(hp^.offset,7);
-                             exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_L,hp)));
+                             emit_ref(A_PUSH,S_L,hp);
                              emitcall('FPC_ANSISTR_RANGECHECK');
                              popusedregisters(pushed);
                              maybe_loadesi;
@@ -707,10 +707,10 @@ implementation
                          st_ansistring:
                            begin
                               pushusedregisters(pushed,$ff);
-                              exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,ind)));
+                              emit_reg(A_PUSH,S_L,ind);
                               hp:=newreference(p^.location.reference);
                               dec(hp^.offset,7);
-                              exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_L,hp)));
+                              emit_ref(A_PUSH,S_L,hp);
                               emitcall('FPC_ANSISTR_RANGECHECK');
                               popusedregisters(pushed);
                               maybe_loadesi;
@@ -737,9 +737,9 @@ implementation
                  if p^.location.reference.base=R_NO then
                   begin
                     case p^.location.reference.scalefactor of
-                     2 : exprasmlist^.concat(new(pai386,op_const_reg(A_SHL,S_L,1,p^.location.reference.index)));
-                     4 : exprasmlist^.concat(new(pai386,op_const_reg(A_SHL,S_L,2,p^.location.reference.index)));
-                     8 : exprasmlist^.concat(new(pai386,op_const_reg(A_SHL,S_L,3,p^.location.reference.index)));
+                     2 : emit_const_reg(A_SHL,S_L,1,p^.location.reference.index);
+                     4 : emit_const_reg(A_SHL,S_L,2,p^.location.reference.index);
+                     8 : emit_const_reg(A_SHL,S_L,3,p^.location.reference.index);
                     end;
                     calc_emit_mul;
                     p^.location.reference.base:=p^.location.reference.index;
@@ -747,9 +747,9 @@ implementation
                   end
                  else
                   begin
-                    exprasmlist^.concat(new(pai386,op_ref_reg(
+                    emit_ref_reg(
                       A_LEA,S_L,newreference(p^.location.reference),
-                      p^.location.reference.index)));
+                      p^.location.reference.index);
                     ungetregister32(p^.location.reference.base);
                     { the symbol offset is loaded,             }
                     { so release the symbol name and set symbol  }
@@ -812,14 +812,14 @@ implementation
                 if (p^.left^.resulttype^.deftype=objectdef) and
                    pobjectdef(p^.left^.resulttype)^.is_class then
                  begin
-                    exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
-                      newreference(p^.left^.location.reference),R_EDI)));
+                    emit_ref_reg(A_MOV,S_L,
+                      newreference(p^.left^.location.reference),R_EDI);
                     usetemp:=true;
                  end
                else
                  begin
-                   exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,
-                     newreference(p^.left^.location.reference),R_EDI)));
+                   emit_ref_reg(A_LEA,S_L,
+                     newreference(p^.left^.location.reference),R_EDI);
                    usetemp:=true;
                  end;
 
@@ -829,8 +829,8 @@ implementation
                   gettempofsizereference(4,p^.withreference^);
                   normaltemptopersistant(p^.withreference^.offset);
                   { move to temp reference }
-                  exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
-                    R_EDI,newreference(p^.withreference^))));
+                  emit_reg_ref(A_MOV,S_L,
+                    R_EDI,newreference(p^.withreference^));
                   del_reference(p^.left^.location.reference);
                 end;
 
@@ -850,7 +850,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.51  1999-08-16 23:20:28  peter
+  Revision 1.52  1999-08-19 13:08:52  pierre
+   * emit_??? used
+
+  Revision 1.51  1999/08/16 23:20:28  peter
     * range check for array of const
 
   Revision 1.50  1999/08/14 00:36:05  peter

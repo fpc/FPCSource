@@ -199,13 +199,13 @@ implementation
                pleftreg:=p^.left^.location.register;
                if pleftreg in [R_AX..R_DX] then
                 begin
-                  exprasmlist^.concat(new(pai386,op_const_reg(A_AND,S_W,255,pleftreg)));
+                  emit_const_reg(A_AND,S_W,255,pleftreg);
                   opsize:=S_W;
                 end
                else
                 if pleftreg in [R_EAX..R_EDI] then
                  begin
-                   exprasmlist^.concat(new(pai386,op_const_reg(A_AND,S_L,255,pleftreg)));
+                   emit_const_reg(A_AND,S_L,255,pleftreg);
                    opsize:=S_L;
                  end
                else
@@ -234,28 +234,28 @@ implementation
                  begin
                    case p^.left^.location.loc of
                   LOC_REGISTER,
-                 LOC_CREGISTER : exprasmlist^.concat(new(pai386,op_const_reg(A_CMP,opsize,
-                                   setparts[i].start,pleftreg)));
+                 LOC_CREGISTER : emit_const_reg(A_CMP,opsize,
+                                   setparts[i].start,pleftreg);
                    else
-                     exprasmlist^.concat(new(pai386,op_const_ref(A_CMP,S_B,
-                       setparts[i].start,newreference(p^.left^.location.reference))));
+                     emit_const_ref(A_CMP,S_B,
+                       setparts[i].start,newreference(p^.left^.location.reference));
                    end;
                    { Result should be in carry flag when ranges are used }
                    if ranges then
-                     exprasmlist^.concat(new(pai386,op_none(A_STC,S_NO)));
+                     emit_none(A_STC,S_NO);
                    { If found, jump to end }
                    emitjmp(C_E,l);
                    case p^.left^.location.loc of
                   LOC_REGISTER,
-                 LOC_CREGISTER : exprasmlist^.concat(new(pai386,op_const_reg(A_CMP,opsize,
-                                   setparts[i].stop,pleftreg)));
+                 LOC_CREGISTER : emit_const_reg(A_CMP,opsize,
+                                   setparts[i].stop,pleftreg);
                    else
-                     exprasmlist^.concat(new(pai386,op_const_ref(A_CMP,S_B,
-                       setparts[i].stop,newreference(p^.left^.location.reference))));
+                     emit_const_ref(A_CMP,S_B,
+                       setparts[i].stop,newreference(p^.left^.location.reference));
                    end;
                    { Result should be in carry flag when ranges are used }
                    if ranges then
-                     exprasmlist^.concat(new(pai386,op_none(A_STC,S_NO)));
+                     emit_none(A_STC,S_NO);
                    { If found, jump to end }
                    emitjmp(C_E,l);
                  end
@@ -267,11 +267,12 @@ implementation
                         set elements lower than 0 dont exist }
                       case p^.left^.location.loc of
                      LOC_REGISTER,
-                    LOC_CREGISTER : exprasmlist^.concat(new(pai386,op_const_reg(A_CMP,opsize,
-                                      setparts[i].start,pleftreg)));
+                    LOC_CREGISTER :
+                    emit_const_reg(A_CMP,opsize,
+                                      setparts[i].start,pleftreg);
                       else
-                        exprasmlist^.concat(new(pai386,op_const_ref(A_CMP,S_B,
-                          setparts[i].start,newreference(p^.left^.location.reference))));
+                        emit_const_ref(A_CMP,S_B,
+                          setparts[i].start,newreference(p^.left^.location.reference));
                       end;
                       { If lower, jump to next check }
                       emitjmp(C_B,l2);
@@ -283,18 +284,18 @@ implementation
                     begin
                       case p^.left^.location.loc of
                      LOC_REGISTER,
-                    LOC_CREGISTER : exprasmlist^.concat(new(pai386,op_const_reg(A_CMP,opsize,
-                                      setparts[i].stop+1,pleftreg)));
+                    LOC_CREGISTER : emit_const_reg(A_CMP,opsize,
+                                      setparts[i].stop+1,pleftreg);
                       else
-                        exprasmlist^.concat(new(pai386,op_const_ref(A_CMP,S_B,
-                          setparts[i].stop+1,newreference(p^.left^.location.reference))));
+                        emit_const_ref(A_CMP,S_B,
+                          setparts[i].stop+1,newreference(p^.left^.location.reference));
                       end;
                       { If higher, element is in set }
                       emitjmp(C_B,l);
                     end
                    else
                     begin
-                      exprasmlist^.concat(new(pai386,op_none(A_STC,S_NO)));
+                      emit_none(A_STC,S_NO);
                       emitjmp(C_None,l);
                     end;
                  end;
@@ -306,20 +307,20 @@ implementation
                 { Emit code to check if left is an element }
                 case p^.left^.location.loc of
                LOC_REGISTER,
-              LOC_CREGISTER : exprasmlist^.concat(new(pai386,op_const_reg(A_CMP,opsize,
-                                setparts[i].stop,pleftreg)));
+              LOC_CREGISTER : emit_const_reg(A_CMP,opsize,
+                                setparts[i].stop,pleftreg);
                 else
-                  exprasmlist^.concat(new(pai386,op_const_ref(A_CMP,S_B,
-                    setparts[i].stop,newreference(p^.left^.location.reference))));
+                  emit_const_ref(A_CMP,S_B,
+                    setparts[i].stop,newreference(p^.left^.location.reference));
                 end;
                 { Result should be in carry flag when ranges are used }
                 if ranges then
-                 exprasmlist^.concat(new(pai386,op_none(A_STC,S_NO)));
+                 emit_none(A_STC,S_NO);
                 { If found, jump to end }
                 emitjmp(C_E,l);
               end;
              if ranges then
-              exprasmlist^.concat(new(pai386,op_none(A_CLC,S_NO)));
+              emit_none(A_CLC,S_NO);
              { To compensate for not doing a second pass }
              p^.right^.location.reference.symbol:=nil;
              { Now place the end label }
@@ -344,14 +345,14 @@ implementation
                      LOC_REGISTER,
                      LOC_CREGISTER:
                       begin
-                         exprasmlist^.concat(new(pai386,op_const_reg(A_TEST,S_L,
-                           1 shl (p^.left^.value and 31),p^.right^.location.register)));
+                         emit_const_reg(A_TEST,S_L,
+                           1 shl (p^.left^.value and 31),p^.right^.location.register);
                          ungetregister32(p^.right^.location.register);
                        end
                   else
                    begin
-                     exprasmlist^.concat(new(pai386,op_const_ref(A_TEST,S_L,1 shl (p^.left^.value and 31),
-                       newreference(p^.right^.location.reference))));
+                     emit_const_ref(A_TEST,S_L,1 shl (p^.left^.value and 31),
+                       newreference(p^.right^.location.reference));
                      del_reference(p^.right^.location.reference);
                    end;
                   end;
@@ -370,8 +371,8 @@ implementation
                       { the set element isn't never samller than a byte  }
                       { and because it's a small set we need only 5 bits }
                       { but 8 bits are easier to load               }
-                      exprasmlist^.concat(new(pai386,op_ref_reg(A_MOVZX,S_BL,
-                        newreference(p^.left^.location.reference),R_EDI)));
+                      emit_ref_reg(A_MOVZX,S_BL,
+                        newreference(p^.left^.location.reference),R_EDI);
                       hr:=R_EDI;
                       del_reference(p^.left^.location.reference);
                     end;
@@ -379,8 +380,8 @@ implementation
 
                   case p^.right^.location.loc of
                  LOC_REGISTER,
-                LOC_CREGISTER : exprasmlist^.concat(new(pai386,op_reg_reg(A_BT,S_L,hr,
-                                  p^.right^.location.register)));
+                LOC_CREGISTER : emit_reg_reg(A_BT,S_L,hr,
+                                  p^.right^.location.register);
                   else
                     begin
                       del_reference(p^.right^.location.reference);
@@ -389,14 +390,14 @@ implementation
                        { We have to load the value into a register because
                          btl does not accept values only refs or regs (PFV) }
                          hr2:=getregister32;
-                         exprasmlist^.concat(new(pai386,op_const_reg(A_MOV,S_L,
-                           p^.right^.location.reference.offset,hr2)));
-                         exprasmlist^.concat(new(pai386,op_reg_reg(A_BT,S_L,hr,hr2)));
+                         emit_const_reg(A_MOV,S_L,
+                           p^.right^.location.reference.offset,hr2);
+                         emit_reg_reg(A_BT,S_L,hr,hr2);
                          ungetregister32(hr2);
                        end
                       else
-                        exprasmlist^.concat(new(pai386,op_reg_ref(A_BT,S_L,hr,
-                          newreference(p^.right^.location.reference))));
+                        emit_reg_ref(A_BT,S_L,hr,
+                          newreference(p^.right^.location.reference));
                     end;
                   end;
                   ungetregister32(hr);
@@ -418,8 +419,8 @@ implementation
                       hr:=getregister32;
                       p^.left^.location.loc:=LOC_REGISTER;
                       p^.left^.location.register:=hr;
-                      exprasmlist^.concat(new(pai386,op_const_reg(A_MOV,S_L,
-                            p^.left^.value,hr)));
+                      emit_const_reg(A_MOV,S_L,
+                            p^.left^.value,hr);
                     end;
                   case p^.left^.location.loc of
                      LOC_REGISTER,
@@ -434,31 +435,31 @@ implementation
                                else
                                  AM:=A_MOVZX;
                                if p^.left^.location.register in [R_AX,R_DI] then
-                                 exprasmlist^.concat(new(pai386,op_reg_reg(AM,S_WL,
-                                   p^.left^.location.register,hr)))
+                                 emit_reg_reg(AM,S_WL,
+                                   p^.left^.location.register,hr)
                                else if p^.left^.location.register in [R_AL,R_DH] then
-                               exprasmlist^.concat(new(pai386,op_reg_reg(AM,S_BL,
-                                 p^.left^.location.register,hr)));
+                               emit_reg_reg(AM,S_BL,
+                                 p^.left^.location.register,hr);
                             end
                           else
 {$endif CORRECT_SET_IN_FPC}
                             begin
-                               exprasmlist^.concat(new(pai386,op_const_reg(A_AND,S_L,
-                                 255,hr)));
+                               emit_const_reg(A_AND,S_L,
+                                 255,hr);
                             end;
-                          exprasmlist^.concat(new(pai386,op_const_reg(A_CMP,S_L,
-                            31,hr)));
+                          emit_const_reg(A_CMP,S_L,
+                            31,hr);
                           emitjmp(C_NA,l);
                         { reset carry flag }
-                          exprasmlist^.concat(new(pai386,op_none(A_CLC,S_NO)));
+                          emit_none(A_CLC,S_NO);
                           emitjmp(C_NONE,l2);
                           emitlab(l);
                         { We have to load the value into a register because
                           btl does not accept values only refs or regs (PFV) }
                           hr2:=getregister32;
-                          exprasmlist^.concat(new(pai386,op_const_reg(A_MOV,S_L,
-                            p^.right^.location.reference.offset,hr2)));
-                          exprasmlist^.concat(new(pai386,op_reg_reg(A_BT,S_L,hr,hr2)));
+                          emit_const_reg(A_MOV,S_L,
+                            p^.right^.location.reference.offset,hr2);
+                          emit_reg_reg(A_BT,S_L,hr,hr2);
                           ungetregister32(hr2);
                        end;
                   else
@@ -468,29 +469,29 @@ implementation
                             begin
                             {***WARNING only correct if
                               reference is 32 bits (PM) *****}
-                               exprasmlist^.concat(new(pai386,op_const_ref(A_CMP,S_L,
-                                 31,newreference(p^.left^.location.reference))));
+                               emit_const_ref(A_CMP,S_L,
+                                 31,newreference(p^.left^.location.reference));
                             end
                           else
 {$endif CORRECT_SET_IN_FPC}
                             begin
-                               exprasmlist^.concat(new(pai386,op_const_ref(A_CMP,S_B,
-                                 31,newreference(p^.left^.location.reference))));
+                               emit_const_ref(A_CMP,S_B,
+                                 31,newreference(p^.left^.location.reference));
                             end;
                        emitjmp(C_NA,l);
                      { reset carry flag }
-                       exprasmlist^.concat(new(pai386,op_none(A_CLC,S_NO)));
+                       emit_none(A_CLC,S_NO);
                        emitjmp(C_NONE,l2);
                        emitlab(l);
                        hr:=getregister32;
-                       exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
-                         newreference(p^.left^.location.reference),hr)));
+                       emit_ref_reg(A_MOV,S_L,
+                         newreference(p^.left^.location.reference),hr);
                      { We have to load the value into a register because
                        btl does not accept values only refs or regs (PFV) }
                        hr2:=getregister32;
-                       exprasmlist^.concat(new(pai386,op_const_reg(A_MOV,S_L,
-                         p^.right^.location.reference.offset,hr2)));
-                       exprasmlist^.concat(new(pai386,op_reg_reg(A_BT,S_L,hr,hr2)));
+                       emit_const_reg(A_MOV,S_L,
+                         p^.right^.location.reference.offset,hr2);
+                       emit_reg_reg(A_BT,S_L,hr,hr2);
                        ungetregister32(hr2);
                       del_reference(p^.left^.location.reference);
                     end;
@@ -503,8 +504,8 @@ implementation
                 begin
                   p^.location.resflags:=F_NE;
                   inc(p^.right^.location.reference.offset,p^.left^.value shr 3);
-                  exprasmlist^.concat(new(pai386,op_const_ref(A_TEST,S_B,1 shl (p^.left^.value and 7),
-                    newreference(p^.right^.location.reference))));
+                  emit_const_ref(A_TEST,S_B,1 shl (p^.left^.value and 7),
+                    newreference(p^.right^.location.reference));
                   del_reference(p^.right^.location.reference);
                 end
                else
@@ -565,7 +566,7 @@ implementation
          { no range label: }
          if p^._low=p^._high then
            begin
-              exprasmlist^.concat(new(pai386,op_const_reg(A_CMP,opsize,p^._low,hregister)));
+              emit_const_reg(A_CMP,opsize,p^._low,hregister);
               if greaterlabel=lesslabel then
                 emitjmp(C_NE,lesslabel)
               else
@@ -577,9 +578,9 @@ implementation
            end
          else
            begin
-              exprasmlist^.concat(new(pai386,op_const_reg(A_CMP,opsize,p^._low,hregister)));
+              emit_const_reg(A_CMP,opsize,p^._low,hregister);
               emitjmp(jmp_le,lesslabel);
-                exprasmlist^.concat(new(pai386,op_const_reg(A_CMP,opsize,p^._high,hregister)));
+              emit_const_reg(A_CMP,opsize,p^._high,hregister);
               emitjmp(jmp_gt,greaterlabel);
               emitjmp(C_None,p^.statement);
            end;
@@ -604,17 +605,17 @@ implementation
              { need we to test the first value }
              if first and (t^._low>get_min_value(p^.left^.resulttype)) then
                begin
-                  exprasmlist^.concat(new(pai386,op_const_reg(A_CMP,opsize,t^._low,hregister)));
+                  emit_const_reg(A_CMP,opsize,t^._low,hregister);
                   emitjmp(jmp_le,elselabel);
                end;
              if t^._low=t^._high then
                begin
                   if t^._low-last=1 then
-                    exprasmlist^.concat(new(pai386,op_reg(A_DEC,opsize,hregister)))
+                    emit_reg(A_DEC,opsize,hregister)
                   else if t^._low-last=0 then
-                    exprasmlist^.concat(new(pai386,op_reg_reg(A_OR,opsize,hregister,hregister)))
+                    emit_reg_reg(A_OR,opsize,hregister,hregister)
                   else
-                    exprasmlist^.concat(new(pai386,op_const_reg(A_SUB,opsize,t^._low-last,hregister)));
+                    emit_const_reg(A_SUB,opsize,t^._low-last,hregister);
                   last:=t^._low;
                   emitjmp(C_Z,t^.statement);
                end
@@ -629,11 +630,11 @@ implementation
                        if t^._low>get_min_value(p^.left^.resulttype) then
                          begin
                             if t^._low=1 then
-                              exprasmlist^.concat(new(pai386,op_reg(A_DEC,opsize,
-                                hregister)))
+                              emit_reg(A_DEC,opsize,
+                                hregister)
                             else
-                              exprasmlist^.concat(new(pai386,op_const_reg(A_SUB,opsize,
-                                t^._low,hregister)));
+                              emit_const_reg(A_SUB,opsize,
+                                t^._low,hregister);
                          end;
                     end
                   else
@@ -642,12 +643,12 @@ implementation
                   { immediately. else check the range in between:       }
                   if (t^._low-last>1) then
                     begin
-                       exprasmlist^.concat(new(pai386,op_const_reg(A_SUB,opsize,t^._low-last,hregister)));
+                       emit_const_reg(A_SUB,opsize,t^._low-last,hregister);
                        emitjmp(jmp_le,elselabel);
                     end
                   else
-                    exprasmlist^.concat(new(pai386,op_reg(A_DEC,opsize,hregister)));
-                  exprasmlist^.concat(new(pai386,op_const_reg(A_SUB,opsize,t^._high-t^._low,hregister)));
+                    emit_reg(A_DEC,opsize,hregister);
+                  emit_const_reg(A_SUB,opsize,t^._high-t^._low,hregister);
                   emitjmp(jmp_lee,t^.statement);
 
                   last:=t^._high;
@@ -692,10 +693,10 @@ implementation
           begin
            if not(jumptable_no_range) then
              begin
-                exprasmlist^.concat(new(pai386,op_const_reg(A_CMP,opsize,min_,hregister)));
+                emit_const_reg(A_CMP,opsize,min_,hregister);
                 { case expr less than min_ => goto elselabel }
                 emitjmp(jmp_le,elselabel);
-                exprasmlist^.concat(new(pai386,op_const_reg(A_CMP,opsize,max_,hregister)));
+                emit_const_reg(A_CMP,opsize,max_,hregister);
                 emitjmp(jmp_gt,elselabel);
              end;
            getlabel(table);
@@ -703,21 +704,21 @@ implementation
            if opsize=S_W then
              begin
                 if with_sign then
-                  exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVSX,S_WL,hregister,
-                    reg16toreg32(hregister))))
+                  emit_reg_reg(A_MOVSX,S_WL,hregister,
+                    reg16toreg32(hregister))
                 else
-                  exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVZX,S_WL,hregister,
-                    reg16toreg32(hregister))));
+                  emit_reg_reg(A_MOVZX,S_WL,hregister,
+                    reg16toreg32(hregister));
                 hregister:=reg16toreg32(hregister);
              end
            else if opsize=S_B then
              begin
                 if with_sign then
-                  exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVSX,S_BL,hregister,
-                    reg8toreg32(hregister))))
+                  emit_reg_reg(A_MOVSX,S_BL,hregister,
+                    reg8toreg32(hregister))
                 else
-                  exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVZX,S_BL,hregister,
-                    reg8toreg32(hregister))));
+                  emit_reg_reg(A_MOVZX,S_BL,hregister,
+                    reg8toreg32(hregister));
                 hregister:=reg8toreg32(hregister);
              end;
            new(hr);
@@ -726,7 +727,7 @@ implementation
            hr^.offset:=(-min_)*4;
            hr^.index:=hregister;
            hr^.scalefactor:=4;
-           exprasmlist^.concat(new(pai386,op_ref(A_JMP,S_NO,hr)));
+           emit_ref(A_JMP,S_NO,hr);
            { !!!!! generate tables
              if not(cs_littlesize in aktlocalswitches) then
              jumpsegment^.concat(new(pai386,op_const(A_ALIGN,S_NO,4)));
@@ -736,7 +737,7 @@ implementation
            genitem(hp);
              { !!!!!!!
            if not(cs_littlesize in aktlocalswitches) then
-             exprasmlist^.concat(new(pai386,op_const(A_ALIGN,S_NO,4)));
+             emit_const(A_ALIGN,S_NO,4);
            }
         end;
 
@@ -792,8 +793,8 @@ implementation
                     S_B : hregister:=reg32toreg8(hregister);
                     S_W : hregister:=reg32toreg16(hregister);
                  end;
-                 exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,opsize,
-                   p^.left^.location.register,hregister)));
+                 emit_reg_reg(A_MOV,opsize,
+                   p^.left^.location.register,hregister);
               end;
             LOC_MEM,LOC_REFERENCE : begin
                                        del_reference(p^.left^.location.reference);
@@ -802,8 +803,8 @@ implementation
                                           S_B : hregister:=reg32toreg8(hregister);
                                           S_W : hregister:=reg32toreg16(hregister);
                                        end;
-                                       exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,opsize,newreference(
-                                         p^.left^.location.reference),hregister)));
+                                       emit_ref_reg(A_MOV,opsize,newreference(
+                                         p^.left^.location.reference),hregister);
                                     end;
             else internalerror(2002);
          end;
@@ -918,7 +919,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.37  1999-08-04 00:22:54  florian
+  Revision 1.38  1999-08-19 13:08:53  pierre
+   * emit_??? used
+
+  Revision 1.37  1999/08/04 00:22:54  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.36  1999/08/03 22:02:48  peter

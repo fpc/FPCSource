@@ -79,8 +79,8 @@ implementation
               begin
                  if (p^.right^.treetype=stringconstn) and
                    (str_length(p^.right)=0) then
-                   exprasmlist^.concat(new(pai386,op_const_ref(
-                      A_MOV,S_B,0,newreference(p^.left^.location.reference))))
+                   emit_const_ref(
+                      A_MOV,S_B,0,newreference(p^.left^.location.reference))
                  else
                    begin
                      emitpushreferenceaddr(p^.left^.location.reference);
@@ -93,27 +93,24 @@ implementation
             orddef:
               begin
                  if p^.right^.treetype=ordconstn then
-                   exprasmlist^.concat(new(pai386,op_const_ref(
-                      A_MOV,S_W,p^.right^.value*256+1,newreference(p^.left^.location.reference))))
+                   emit_const_ref(
+                      A_MOV,S_W,p^.right^.value*256+1,newreference(p^.left^.location.reference))
                  else
                    begin
                       { not so elegant (goes better with extra register }
                       if (p^.right^.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
                         begin
-                           exprasmlist^.concat(new(pai386,op_reg_reg(
-                              A_MOV,S_L,makereg32(p^.right^.location.register),R_EDI)));
+                           emit_reg_reg(A_MOV,S_L,makereg32(p^.right^.location.register),R_EDI);
                            ungetregister(p^.right^.location.register);
                         end
                       else
                         begin
-                           exprasmlist^.concat(new(pai386,op_ref_reg(
-                              A_MOV,S_L,newreference(p^.right^.location.reference),R_EDI)));
+                           emit_ref_reg(A_MOV,S_L,newreference(p^.right^.location.reference),R_EDI);
                            del_reference(p^.right^.location.reference);
                         end;
-                      exprasmlist^.concat(new(pai386,op_const_reg(A_SHL,S_L,8,R_EDI)));
-                      exprasmlist^.concat(new(pai386,op_const_reg(A_OR,S_L,1,R_EDI)));
-                      exprasmlist^.concat(new(pai386,op_reg_ref(
-                         A_MOV,S_W,R_DI,newreference(p^.left^.location.reference))));
+                      emit_const_reg(A_SHL,S_L,8,R_EDI);
+                      emit_const_reg(A_OR,S_L,1,R_EDI);
+                      emit_reg_ref(A_MOV,S_W,R_DI,newreference(p^.left^.location.reference));
                    end;
               end;
          else
@@ -134,8 +131,7 @@ implementation
               begin
                  if (p^.right^.treetype=stringconstn) and
                    (str_length(p^.right)=0) then
-                   exprasmlist^.concat(new(pai386,op_const_ref(
-                      A_MOV,S_L,0,newreference(p^.left^.location.reference))))
+                   emit_const_ref(A_MOV,S_L,0,newreference(p^.left^.location.reference))
                  else
                    begin
                      emitpushreferenceaddr(p^.left^.location.reference);
@@ -147,37 +143,30 @@ implementation
               end;
             orddef:
               begin
-                 exprasmlist^.concat(new(pai386,op_const_ref(
-                    A_MOV,S_L,1,newreference(p^.left^.location.reference))));
+                 emit_const_ref(A_MOV,S_L,1,newreference(p^.left^.location.reference));
 
                  r:=newreference(p^.left^.location.reference);
                  inc(r^.offset,4);
 
                  if p^.right^.treetype=ordconstn then
-                   exprasmlist^.concat(new(pai386,op_const_ref(
-                      A_MOV,S_B,p^.right^.value,r)))
+                   emit_const_ref(A_MOV,S_B,p^.right^.value,r)
                  else
                    begin
                       case p^.right^.location.loc of
                          LOC_REGISTER,LOC_CREGISTER:
                            begin
-                              exprasmlist^.concat(new(pai386,op_reg_ref(
-                                 A_MOV,S_B,p^.right^.location.register,r)));
+                              emit_reg_ref(A_MOV,S_B,p^.right^.location.register,r);
                               ungetregister(p^.right^.location.register);
                            end;
                          LOC_MEM,LOC_REFERENCE:
                            begin
                               if not(R_EAX in unused) then
-                                exprasmlist^.concat(new(pai386,op_reg(
-                                  A_PUSH,S_L,R_EAX)));
-                              exprasmlist^.concat(new(pai386,op_ref_reg(
-                                A_MOV,S_B,newreference(p^.right^.location.reference),R_AL)));
-                              exprasmlist^.concat(new(pai386,op_reg_ref(
-                                A_MOV,S_B,R_AL,r)));
+                                emit_reg(A_PUSH,S_L,R_EAX);
+                              emit_ref_reg(A_MOV,S_B,newreference(p^.right^.location.reference),R_AL);
+                              emit_reg_ref(A_MOV,S_B,R_AL,r);
 
                               if not(R_EAX in unused) then
-                                exprasmlist^.concat(new(pai386,op_reg(
-                                   A_POP,S_L,R_EAX)));
+                                emit_reg(A_POP,S_L,R_EAX);
                               del_reference(p^.right^.location.reference);
                            end
                          else
@@ -217,10 +206,10 @@ implementation
 {$IfNDef regallocfix}
                 ungetregister32(source^.location.register);
                 pushusedregisters(pushed,$ff);
-                exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,source^.location.register)));
+                emit_reg(A_PUSH,S_L,source^.location.register);
 {$Else regallocfix}
                  pushusedregisters(pushed, $ff xor ($80 shr byte(source^.location.register)));
-                 exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,source^.location.register)));
+                 emit_reg(A_PUSH,S_L,source^.location.register);
                  ungetregister32(source^.location.register);
 {$EndIf regallocfix}
              end;
@@ -331,23 +320,22 @@ implementation
             if pfrom^.location.loc in [LOC_CREGISTER,LOC_REGISTER] then
               emit_reg_reg(op,opsize,pfrom^.location.register,pto^.location.register)
             else
-              exprasmlist^.concat(new(pai386,op_ref_reg(op,opsize,
-                newreference(pfrom^.location.reference),pto^.location.register)));
+              emit_ref_reg(op,opsize,
+                newreference(pfrom^.location.reference),pto^.location.register);
 
             { do we need a sign extension for int64? }
             if is_64bitint(pto^.resulttype) then
               begin
-                 exprasmlist^.concat(new(pai386,op_reg_reg(A_XOR,S_L,
-                   hregister2,hregister2)));
+                 emit_reg_reg(A_XOR,S_L,
+                   hregister2,hregister2);
                  if (porddef(pto^.resulttype)^.typ=s64bit) and
                    is_signed(pfrom^.resulttype) then
                    begin
                       getlabel(l);
-                      exprasmlist^.concat(new(pai386,op_const_reg(A_TEST,S_L,
-                        $80000000,makereg32(hregister))));
+                      emit_const_reg(A_TEST,S_L,$80000000,makereg32(hregister));
                       emitjmp(C_Z,l);
-                      exprasmlist^.concat(new(pai386,op_reg(A_NOT,S_L,
-                        hregister2)));
+                      emit_reg(A_NOT,S_L,
+                        hregister2);
                       emitlab(l);
                    end;
               end;
@@ -479,13 +467,13 @@ implementation
            st_shortstring :
              begin
                inc(pfrom^.location.reference.offset);
-               exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,newreference(pfrom^.location.reference),
-                 pto^.location.register)));
+               emit_ref_reg(A_LEA,S_L,newreference(pfrom^.location.reference),
+                 pto^.location.register);
              end;
            st_ansistring :
              begin
-               exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(pfrom^.location.reference),
-                 pto^.location.register)));
+               emit_ref_reg(A_MOV,S_L,newreference(pfrom^.location.reference),
+                 pto^.location.register);
              end;
            st_longstring:
              begin
@@ -533,8 +521,8 @@ implementation
          clear_location(pto^.location);
          pto^.location.loc:=LOC_REGISTER;
          pto^.location.register:=getregister32;
-         exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,newreference(pfrom^.location.reference),
-           pto^.location.register)));
+         emit_ref_reg(A_LEA,S_L,newreference(pfrom^.location.reference),
+           pto^.location.register);
       end;
 
 
@@ -555,8 +543,8 @@ implementation
             begin
               del_reference(pfrom^.location.reference);
               pto^.location.reference.base:=getregister32;
-              exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(pfrom^.location.reference),
-                pto^.location.reference.base)));
+              emit_ref_reg(A_MOV,S_L,newreference(pfrom^.location.reference),
+                pto^.location.reference.base);
             end;
         end;
       end;
@@ -586,8 +574,8 @@ implementation
                { first get the memory for the string }
                gettempofsizereference(256,pto^.location.reference);
                { write the length }
-               exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_B,l,
-                 newreference(pto^.location.reference))));
+               emit_const_ref(A_MOV,S_B,l,
+                 newreference(pto^.location.reference));
                { copy to first char of string }
                inc(pto^.location.reference.offset);
                { generates the copy code      }
@@ -677,15 +665,15 @@ implementation
             (pfrom^.location.loc=LOC_CREGISTER) then
            begin
               case porddef(pfrom^.resulttype)^.typ of
-                 s8bit : exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVSX,S_BL,pfrom^.location.register,R_EDI)));
-                 u8bit : exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVZX,S_BL,pfrom^.location.register,R_EDI)));
-                 s16bit : exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVSX,S_WL,pfrom^.location.register,R_EDI)));
-                 u16bit : exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVZX,S_WL,pfrom^.location.register,R_EDI)));
+                 s8bit : emit_reg_reg(A_MOVSX,S_BL,pfrom^.location.register,R_EDI);
+                 u8bit : emit_reg_reg(A_MOVZX,S_BL,pfrom^.location.register,R_EDI);
+                 s16bit : emit_reg_reg(A_MOVSX,S_WL,pfrom^.location.register,R_EDI);
+                 u16bit : emit_reg_reg(A_MOVZX,S_WL,pfrom^.location.register,R_EDI);
                  u32bit,s32bit:
                    hregister:=pfrom^.location.register;
                  u64bit,s64bit:
                    begin
-                      exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,pfrom^.location.registerhigh)));
+                      emit_reg(A_PUSH,S_L,pfrom^.location.registerhigh);
                       hregister:=pfrom^.location.registerlow;
                    end;
               end;
@@ -696,40 +684,40 @@ implementation
               r:=newreference(pfrom^.location.reference);
               case porddef(pfrom^.resulttype)^.typ of
                  s8bit:
-                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOVSX,S_BL,r,R_EDI)));
+                   emit_ref_reg(A_MOVSX,S_BL,r,R_EDI);
                  u8bit:
-                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOVZX,S_BL,r,R_EDI)));
+                   emit_ref_reg(A_MOVZX,S_BL,r,R_EDI);
                  s16bit:
-                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOVSX,S_WL,r,R_EDI)));
+                   emit_ref_reg(A_MOVSX,S_WL,r,R_EDI);
                  u16bit:
-                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOVZX,S_WL,r,R_EDI)));
+                   emit_ref_reg(A_MOVZX,S_WL,r,R_EDI);
                  u32bit,s32bit:
-                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,r,R_EDI)));
+                   emit_ref_reg(A_MOV,S_L,r,R_EDI);
                  u64bit,s64bit:
                    begin
                       inc(r^.offset,4);
-                      exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,r,R_EDI)));
-                      exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EDI)));
+                      emit_ref_reg(A_MOV,S_L,r,R_EDI);
+                      emit_reg(A_PUSH,S_L,R_EDI);
                       r:=newreference(pfrom^.location.reference);
-                      exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,r,R_EDI)));
+                      emit_ref_reg(A_MOV,S_L,r,R_EDI);
                    end;
               end;
               del_reference(pfrom^.location.reference);
               ungetiftemp(pfrom^.location.reference);
            end;
          { for 64 bit integers, the high dword is already pushed }
-         exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,hregister)));
+         emit_reg(A_PUSH,S_L,hregister);
          r:=new_reference(R_ESP,0);
          case porddef(pfrom^.resulttype)^.typ of
            u32bit:
              begin
-                exprasmlist^.concat(new(pai386,op_ref(A_FILD,S_IQ,r)));
-                exprasmlist^.concat(new(pai386,op_const_reg(A_ADD,S_L,8,R_ESP)));
+                emit_ref(A_FILD,S_IQ,r);
+                emit_const_reg(A_ADD,S_L,8,R_ESP);
              end;
            s64bit:
              begin
-                exprasmlist^.concat(new(pai386,op_ref(A_FILD,S_IQ,r)));
-                exprasmlist^.concat(new(pai386,op_const_reg(A_ADD,S_L,8,R_ESP)));
+                emit_ref(A_FILD,S_IQ,r);
+                emit_const_reg(A_ADD,S_L,8,R_ESP);
              end;
            u64bit:
              begin
@@ -738,12 +726,12 @@ implementation
                 { if it is 1 then we add $80000000 000000000 }
                 { as double                                  }
                 inc(r^.offset,4);
-                exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,r,R_EDI)));
+                emit_ref_reg(A_MOV,S_L,r,R_EDI);
                 r:=new_reference(R_ESP,4);
-                exprasmlist^.concat(new(pai386,op_const_ref(A_AND,S_L,$7fffffff,r)));
-                exprasmlist^.concat(new(pai386,op_const_reg(A_AND,S_L,$80000000,R_EDI)));
+                emit_const_ref(A_AND,S_L,$7fffffff,r);
+                emit_const_reg(A_AND,S_L,$80000000,R_EDI);
                 r:=new_reference(R_ESP,0);
-                exprasmlist^.concat(new(pai386,op_ref(A_FILD,S_IQ,r)));
+                emit_ref(A_FILD,S_IQ,r);
                 getdatalabel(l1);
                 getlabel(l2);
                 emitjmp(C_Z,l2);
@@ -753,14 +741,14 @@ implementation
                 consts^.concat(new(pai_const,init_32bit(1138753536)));
                 r:=new_reference(R_NO,0);
                 r^.symbol:=l1;
-                exprasmlist^.concat(new(pai386,op_ref(A_FADD,S_FL,r)));
+                emit_ref(A_FADD,S_FL,r);
                 emitlab(l2);
-                exprasmlist^.concat(new(pai386,op_const_reg(A_ADD,S_L,8,R_ESP)));
+                emit_const_reg(A_ADD,S_L,8,R_ESP);
              end
            else
              begin
-                exprasmlist^.concat(new(pai386,op_ref(A_FILD,S_IL,r)));
-                exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EDI)));
+                emit_ref(A_FILD,S_IL,r);
+                emit_reg(A_POP,S_L,R_EDI);
              end;
          end;
          inc(fpuvaroffset);
@@ -776,30 +764,30 @@ implementation
       begin
          { real must be on fpu stack }
          if (pfrom^.location.loc<>LOC_FPU) then
-           exprasmlist^.concat(new(pai386,op_ref(A_FLD,S_FL,newreference(pfrom^.location.reference))));
+           emit_ref(A_FLD,S_FL,newreference(pfrom^.location.reference));
          push_int($1f3f);
          push_int(65536);
          reset_reference(ref);
          ref.base:=R_ESP;
 
-         exprasmlist^.concat(new(pai386,op_ref(A_FIMUL,S_IL,newreference(ref))));
+         emit_ref(A_FIMUL,S_IL,newreference(ref));
 
          ref.offset:=4;
-         exprasmlist^.concat(new(pai386,op_ref(A_FSTCW,S_NO,newreference(ref))));
+         emit_ref(A_FSTCW,S_NO,newreference(ref));
 
          ref.offset:=6;
-         exprasmlist^.concat(new(pai386,op_ref(A_FLDCW,S_NO,newreference(ref))));
+         emit_ref(A_FLDCW,S_NO,newreference(ref));
 
          ref.offset:=0;
-         exprasmlist^.concat(new(pai386,op_ref(A_FISTP,S_IL,newreference(ref))));
+         emit_ref(A_FISTP,S_IL,newreference(ref));
 
          ref.offset:=4;
-         exprasmlist^.concat(new(pai386,op_ref(A_FLDCW,S_NO,newreference(ref))));
+         emit_ref(A_FLDCW,S_NO,newreference(ref));
 
          rreg:=getregister32;
-         exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,rreg)));
+         emit_reg(A_POP,S_L,rreg);
          { better than an add on all processors }
-         exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EDI)));
+         emit_reg(A_POP,S_L,R_EDI);
 
          clear_location(pto^.location);
          pto^.location.loc:=LOC_REGISTER;
@@ -845,64 +833,64 @@ implementation
               ungetregister(startreg);
               popeax:=(startreg<>R_EAX) and not (R_EAX in unused);
               if popeax then
-                exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EAX)));
+                emit_reg(A_PUSH,S_L,R_EAX);
               { mov eax,eax is removed by emit_reg_reg }
               emit_reg_reg(A_MOV,S_L,startreg,R_EAX);
            end
          else
            begin
-              exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(
-                pfrom^.location.reference),R_EAX)));
+              emit_ref_reg(A_MOV,S_L,newreference(
+                pfrom^.location.reference),R_EAX);
               del_reference(pfrom^.location.reference);
               startreg:=R_NO;
            end;
 
          popebx:=(startreg<>R_EBX) and not (R_EBX in unused);
          if popebx then
-           exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EBX)));
+           emit_reg(A_PUSH,S_L,R_EBX);
 
          popecx:=(startreg<>R_ECX) and not (R_ECX in unused);
          if popecx then
-           exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_ECX)));
+           emit_reg(A_PUSH,S_L,R_ECX);
 
          popedx:=(startreg<>R_EDX) and not (R_EDX in unused);
          if popedx then
-           exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EDX)));
+           emit_reg(A_PUSH,S_L,R_EDX);
 
-         exprasmlist^.concat(new(pai386,op_none(A_CDQ,S_NO)));
+         emit_none(A_CDQ,S_NO);
          emit_reg_reg(A_XOR,S_L,R_EDX,R_EAX);
          emit_reg_reg(A_MOV,S_L,R_EAX,R_EBX);
          emit_reg_reg(A_SUB,S_L,R_EDX,R_EAX);
          getlabel(hl);
          emitjmp(C_Z,hl);
-         exprasmlist^.concat(new(pai386,op_const_reg(A_RCL,S_L,1,R_EBX)));
+         emit_const_reg(A_RCL,S_L,1,R_EBX);
          emit_reg_reg(A_BSR,S_L,R_EAX,R_EDX);
-         exprasmlist^.concat(new(pai386,op_const_reg(A_MOV,S_B,32,R_CL)));
+         emit_const_reg(A_MOV,S_B,32,R_CL);
          emit_reg_reg(A_SUB,S_B,R_DL,R_CL);
          emit_reg_reg(A_SHL,S_L,R_CL,R_EAX);
-         exprasmlist^.concat(new(pai386,op_const_reg(A_ADD,S_W,1007,R_DX)));
-         exprasmlist^.concat(new(pai386,op_const_reg(A_SHL,S_W,5,R_DX)));
-         exprasmlist^.concat(new(pai386,op_const_reg_reg(A_SHLD,S_W,11,R_DX,R_BX)));
-         exprasmlist^.concat(new(pai386,op_const_reg_reg(A_SHLD,S_L,20,R_EAX,R_EBX)));
+         emit_const_reg(A_ADD,S_W,1007,R_DX);
+         emit_const_reg(A_SHL,S_W,5,R_DX);
+         emit_const_reg_reg(A_SHLD,S_W,11,R_DX,R_BX);
+         emit_const_reg_reg(A_SHLD,S_L,20,R_EAX,R_EBX);
 
-         exprasmlist^.concat(new(pai386,op_const_reg(A_SHL,S_L,20,R_EAX)));
+         emit_const_reg(A_SHL,S_L,20,R_EAX);
          emitlab(hl);
          { better than an add on all processors }
-         exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EBX)));
-         exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EAX)));
+         emit_reg(A_PUSH,S_L,R_EBX);
+         emit_reg(A_PUSH,S_L,R_EAX);
 
          reset_reference(r);
          r.base:=R_ESP;
-         exprasmlist^.concat(new(pai386,op_ref(A_FLD,S_FL,newreference(r))));
-         exprasmlist^.concat(new(pai386,op_const_reg(A_ADD,S_L,8,R_ESP)));
+         emit_ref(A_FLD,S_FL,newreference(r));
+         emit_const_reg(A_ADD,S_L,8,R_ESP);
          if popedx then
-           exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EDX)));
+           emit_reg(A_POP,S_L,R_EDX);
          if popecx then
-           exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_ECX)));
+           emit_reg(A_POP,S_L,R_ECX);
          if popebx then
-           exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EBX)));
+           emit_reg(A_POP,S_L,R_EBX);
          if popeax then
-           exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EAX)));
+           emit_reg(A_POP,S_L,R_EAX);
 
          clear_location(pto^.location);
          pto^.location.loc:=LOC_FPU;
@@ -922,20 +910,20 @@ implementation
               del_reference(pfrom^.location.reference);
               hregister:=getregister32;
               case porddef(pfrom^.resulttype)^.typ of
-                s8bit : exprasmlist^.concat(new(pai386,op_ref_reg(A_MOVSX,S_BL,newreference(pfrom^.location.reference),
-                  hregister)));
-                u8bit : exprasmlist^.concat(new(pai386,op_ref_reg(A_MOVZX,S_BL,newreference(pfrom^.location.reference),
-                  hregister)));
-                s16bit : exprasmlist^.concat(new(pai386,op_ref_reg(A_MOVSX,S_WL,newreference(pfrom^.location.reference),
-                  hregister)));
-                u16bit : exprasmlist^.concat(new(pai386,op_ref_reg(A_MOVZX,S_WL,newreference(pfrom^.location.reference),
-                  hregister)));
-                u32bit,s32bit : exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(pfrom^.location.reference),
-                  hregister)));
+                s8bit : emit_ref_reg(A_MOVSX,S_BL,newreference(pfrom^.location.reference),
+                  hregister);
+                u8bit : emit_ref_reg(A_MOVZX,S_BL,newreference(pfrom^.location.reference),
+                  hregister);
+                s16bit : emit_ref_reg(A_MOVSX,S_WL,newreference(pfrom^.location.reference),
+                  hregister);
+                u16bit : emit_ref_reg(A_MOVZX,S_WL,newreference(pfrom^.location.reference),
+                  hregister);
+                u32bit,s32bit : emit_ref_reg(A_MOV,S_L,newreference(pfrom^.location.reference),
+                  hregister);
                 {!!!! u32bit }
               end;
            end;
-         exprasmlist^.concat(new(pai386,op_const_reg(A_SHL,S_L,16,hregister)));
+         emit_const_reg(A_SHL,S_L,16,hregister);
 
          clear_location(pto^.location);
          pto^.location.loc:=LOC_REGISTER;
@@ -956,8 +944,8 @@ implementation
              pto^.location.loc:=LOC_REGISTER;
              pto^.location.register:=getregister32;
              del_reference(pfrom^.location.reference);
-             exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,
-               newreference(pfrom^.location.reference),pto^.location.register)));
+             emit_ref_reg(A_LEA,S_L,
+               newreference(pfrom^.location.reference),pto^.location.register);
           end;
       end;
 
@@ -1053,14 +1041,14 @@ implementation
 
          case pfrom^.location.loc of
             LOC_MEM,
-      LOC_REFERENCE : exprasmlist^.concat(new(pai386,op_ref_reg(op,opsize,
-                        newreference(pfrom^.location.reference),pto^.location.register)));
+      LOC_REFERENCE : emit_ref_reg(op,opsize,
+                        newreference(pfrom^.location.reference),pto^.location.register);
        LOC_REGISTER,
       LOC_CREGISTER : begin
                       { remove things like movb %al,%al }
                         if pfrom^.location.register<>pto^.location.register then
-                          exprasmlist^.concat(new(pai386,op_reg_reg(op,opsize,
-                            pfrom^.location.register,pto^.location.register)));
+                          emit_reg_reg(op,opsize,
+                            pfrom^.location.register,pto^.location.register);
                       end;
           LOC_FLAGS : begin
                         emit_flag2reg(pfrom^.location.resflags,pto^.location.register);
@@ -1068,11 +1056,11 @@ implementation
            LOC_JUMP : begin
                         getlabel(hlabel);
                         emitlab(truelabel);
-                        exprasmlist^.concat(new(pai386,op_const_reg(A_MOV,newsize,1,pto^.location.register)));
+                        emit_const_reg(A_MOV,newsize,1,pto^.location.register);
                         emitjmp(C_None,hlabel);
                         emitlab(falselabel);
-                        exprasmlist^.concat(new(pai386,op_reg_reg(A_XOR,newsize,pto^.location.register,
-                          pto^.location.register)));
+                        emit_reg_reg(A_XOR,newsize,pto^.location.register,
+                          pto^.location.register);
                         emitlab(hlabel);
                       end;
          else
@@ -1108,9 +1096,9 @@ implementation
             LOC_MEM,LOC_REFERENCE :
               begin
                 hregister:=def_getreg(pfrom^.resulttype);
-                exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,opsize,
-                  newreference(pfrom^.location.reference),hregister)));
-                exprasmlist^.concat(new(pai386,op_reg_reg(A_OR,opsize,hregister,hregister)));
+                emit_ref_reg(A_MOV,opsize,
+                  newreference(pfrom^.location.reference),hregister);
+                emit_reg_reg(A_OR,opsize,hregister,hregister);
                 flags:=F_NE;
               end;
             LOC_FLAGS :
@@ -1121,7 +1109,7 @@ implementation
             LOC_REGISTER,LOC_CREGISTER :
               begin
                 hregister:=pfrom^.location.register;
-                exprasmlist^.concat(new(pai386,op_reg_reg(A_OR,opsize,hregister,hregister)));
+                emit_reg_reg(A_OR,opsize,hregister,hregister);
                 flags:=F_NE;
               end;
             else
@@ -1168,28 +1156,28 @@ implementation
          getlabel(l2);
          case pfrom^.location.loc of
             LOC_CREGISTER,LOC_REGISTER:
-              exprasmlist^.concat(new(pai386,op_const_reg(A_CMP,S_L,0,
-                pfrom^.location.register)));
+              emit_const_reg(A_CMP,S_L,0,
+                pfrom^.location.register);
             LOC_MEM,LOC_REFERENCE:
               begin
-                 exprasmlist^.concat(new(pai386,op_const_ref(A_CMP,S_L,0,
-                   newreference(pfrom^.location.reference))));
+                 emit_const_ref(A_CMP,S_L,0,
+                   newreference(pfrom^.location.reference));
                   del_reference(pfrom^.location.reference);
                   pto^.location.register:=getregister32;
                end;
          end;
          emitjmp(C_Z,l1);
          if pfrom^.location.loc in [LOC_MEM,LOC_REFERENCE] then
-           exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(
+           emit_ref_reg(A_MOV,S_L,newreference(
              pfrom^.location.reference),
-             pto^.location.register)));
+             pto^.location.register);
          emitjmp(C_None,l2);
          emitlab(l1);
          new(hr);
          reset_reference(hr^);
          hr^.symbol:=newasmsymbol('FPC_EMPTYCHAR');
-         exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,hr,
-           pto^.location.register)));
+         emit_ref_reg(A_LEA,S_L,hr,
+           pto^.location.register);
          emitlab(l2);
       end;
 
@@ -1207,7 +1195,7 @@ implementation
                 case pfrom^.location.loc of
                    LOC_REGISTER,LOC_CREGISTER:
                      begin
-                        exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,pfrom^.location.register)));
+                        emit_reg(A_PUSH,S_L,pfrom^.location.register);
                         ungetregister32(pfrom^.location.register);
                      end;
                    LOC_REFERENCE,LOC_MEM:
@@ -1246,10 +1234,10 @@ implementation
 {$IfNDef regallocfix}
                       ungetregister32(pfrom^.location.register);
                       pushusedregisters(pushed,$ff);
-                      exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,pfrom^.location.register)));
+                      emit_reg(A_PUSH,S_L,pfrom^.location.register);
 {$Else regallocfix}
                       pushusedregisters(pushed, $ff xor ($80 shr byte(pfrom^.location.register)));
-                      exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,pfrom^.location.register)));
+                      emit_reg(A_PUSH,S_L,pfrom^.location.register);
                       ungetregister32(pfrom^.location.register);
 {$EndIf regallocfix}
                    end;
@@ -1343,15 +1331,15 @@ implementation
                                r^.base:=R_EDI;
                             end;
                           { NIL must be accepted !! }
-                          exprasmlist^.concat(new(pai386,op_reg_reg(A_OR,S_L,r^.base,r^.base)));
+                          emit_reg_reg(A_OR,S_L,r^.base,r^.base);
                           getlabel(nillabel);
                           emitjmp(C_E,nillabel);
                           { this is one point where we need vmt_offset (PM) }
                           r^.offset:= pobjectdef(ppointerdef(p^.resulttype)^.definition)^.vmt_offset;
-                          exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,r,R_EDI)));
-                          exprasmlist^.concat(new(pai386,op_sym(A_PUSH,S_L,
-                            newasmsymbol(pobjectdef(ppointerdef(p^.resulttype)^.definition)^.vmt_mangledname))));
-                          exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EDI)));
+                          emit_ref_reg(A_MOV,S_L,r,R_EDI);
+                          emit_sym(A_PUSH,S_L,
+                            newasmsymbol(pobjectdef(ppointerdef(p^.resulttype)^.definition)^.vmt_mangledname));
+                          emit_reg(A_PUSH,S_L,R_EDI);
                           emitcall('FPC_CHECK_OBJECT_EXT');
                           emitlab(nillabel);
                        end;
@@ -1379,14 +1367,14 @@ implementation
          case p^.left^.location.loc of
             LOC_REGISTER,LOC_CREGISTER:
               begin
-                 exprasmlist^.concat(new(pai386,op_reg(A_PUSH,
-                   S_L,p^.left^.location.register)));
+                 emit_reg(A_PUSH,
+                   S_L,p^.left^.location.register);
                  ungetregister32(p^.left^.location.register);
               end;
             LOC_MEM,LOC_REFERENCE:
               begin
-                 exprasmlist^.concat(new(pai386,op_ref(A_PUSH,
-                   S_L,newreference(p^.left^.location.reference))));
+                 emit_ref(A_PUSH,
+                   S_L,newreference(p^.left^.location.reference));
                  del_reference(p^.left^.location.reference);
               end;
             else internalerror(100);
@@ -1397,20 +1385,20 @@ implementation
          case p^.right^.location.loc of
             LOC_REGISTER,LOC_CREGISTER:
               begin
-                 exprasmlist^.concat(new(pai386,op_reg(A_PUSH,
-                   S_L,p^.right^.location.register)));
+                 emit_reg(A_PUSH,
+                   S_L,p^.right^.location.register);
                  ungetregister32(p^.right^.location.register);
               end;
             LOC_MEM,LOC_REFERENCE:
               begin
-                 exprasmlist^.concat(new(pai386,op_ref(A_PUSH,
-                   S_L,newreference(p^.right^.location.reference))));
+                 emit_ref(A_PUSH,
+                   S_L,newreference(p^.right^.location.reference));
                  del_reference(p^.right^.location.reference);
               end;
             else internalerror(100);
          end;
          emitcall('FPC_DO_IS');
-         exprasmlist^.concat(new(pai386,op_reg_reg(A_OR,S_B,R_AL,R_AL)));
+         emit_reg_reg(A_OR,S_B,R_AL,R_AL);
          popusedregisters(pushed);
          maybe_loadesi;
       end;
@@ -1431,11 +1419,11 @@ implementation
          { push instance to check: }
          case p^.left^.location.loc of
             LOC_REGISTER,LOC_CREGISTER:
-              exprasmlist^.concat(new(pai386,op_reg(A_PUSH,
-                S_L,p^.left^.location.register)));
+              emit_reg(A_PUSH,
+                S_L,p^.left^.location.register);
             LOC_MEM,LOC_REFERENCE:
-              exprasmlist^.concat(new(pai386,op_ref(A_PUSH,
-                S_L,newreference(p^.left^.location.reference))));
+              emit_ref(A_PUSH,
+                S_L,newreference(p^.left^.location.reference));
             else internalerror(100);
          end;
 
@@ -1447,14 +1435,14 @@ implementation
          case p^.right^.location.loc of
             LOC_REGISTER,LOC_CREGISTER:
               begin
-                 exprasmlist^.concat(new(pai386,op_reg(A_PUSH,
-                   S_L,p^.right^.location.register)));
+                 emit_reg(A_PUSH,
+                   S_L,p^.right^.location.register);
                  ungetregister32(p^.right^.location.register);
               end;
             LOC_MEM,LOC_REFERENCE:
               begin
-                 exprasmlist^.concat(new(pai386,op_ref(A_PUSH,
-                   S_L,newreference(p^.right^.location.reference))));
+                 emit_ref(A_PUSH,
+                   S_L,newreference(p^.right^.location.reference));
                  del_reference(p^.right^.location.reference);
               end;
             else internalerror(100);
@@ -1469,7 +1457,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.84  1999-08-05 14:58:03  florian
+  Revision 1.85  1999-08-19 13:08:46  pierre
+   * emit_??? used
+
+  Revision 1.84  1999/08/05 14:58:03  florian
     * some fixes for the floating point registers
     * more things for the new code generator
 

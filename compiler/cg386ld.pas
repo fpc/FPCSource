@@ -79,16 +79,16 @@ implementation
                    if pconstsym(p^.symtableentry)^.consttype=constresourcestring then
                      begin
                          pushusedregisters(pushed,$ff);
-                         exprasmlist^.concat(new(pai386,op_const(A_PUSH,S_L,
-                         pconstsym(p^.symtableentry)^.reshash)));
+                         emit_const(A_PUSH,S_L,
+                           pconstsym(p^.symtableentry)^.reshash);
                          emitcall('FPC_GETRESOURCESTRING');
 
                          hregister:=getexplicitregister32(R_EAX);
                          emit_reg_reg(A_MOV,S_L,R_EAX,hregister);
                          if gettempansistringreference(hr) then
                            decrstringref(p^.resulttype,hr);
-                         exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,hregister,
-                           newreference(hr))));
+                         emit_reg_ref(A_MOV,S_L,hregister,
+                           newreference(hr));
                         ungetregister32(hregister);
                         popusedregisters(pushed);
 
@@ -111,7 +111,7 @@ implementation
                       begin
                          hregister:=getregister32;
                          p^.location.reference.symbol:=newasmsymbol(p^.symtableentry^.mangledname);
-                         exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(p^.location.reference),hregister)));
+                         emit_ref_reg(A_MOV,S_L,newreference(p^.location.reference),hregister);
                          p^.location.reference.symbol:=nil;
                          p^.location.reference.base:=hregister;
                       end
@@ -125,9 +125,9 @@ implementation
                       begin
                          popeax:=not(R_EAX in unused);
                          if popeax then
-                           exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EAX)));
+                           emit_reg(A_PUSH,S_L,R_EAX);
                          p^.location.reference.symbol:=newasmsymbol(p^.symtableentry^.mangledname);
-                         exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_L,newreference(p^.location.reference))));
+                         emit_ref(A_PUSH,S_L,newreference(p^.location.reference));
                          { the called procedure isn't allowed to change }
                          { any register except EAX                    }
                          emitcall('FPC_RELOCATE_THREADVAR');
@@ -136,7 +136,7 @@ implementation
                          p^.location.reference.base:=getregister32;
                          emit_reg_reg(A_MOV,S_L,R_EAX,p^.location.reference.base);
                          if popeax then
-                           exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EAX)));
+                           emit_reg(A_POP,S_L,R_EAX);
 
                       end
                     { normal variable }
@@ -183,7 +183,7 @@ implementation
                                         hp:=new_reference(procinfo.framepointer,
                                           procinfo.framepointer_offset);
 
-                                        exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,hp,hregister)));
+                                        emit_ref_reg(A_MOV,S_L,hp,hregister);
 
                                         simple_loadn:=false;
                                         i:=lexlevel-1;
@@ -191,7 +191,7 @@ implementation
                                           begin
                                              { make a reference }
                                              hp:=new_reference(hregister,8);
-                                             exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,hp,hregister)));
+                                             emit_ref_reg(A_MOV,S_L,hp,hregister);
                                              dec(i);
                                           end;
                                         p^.location.reference.base:=hregister;
@@ -230,7 +230,7 @@ implementation
 {                                       hp:=new_reference(procinfo.framepointer,
                                           p^.symtable^.datasize);
 
-                                        exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,hp,hregister)));}
+                                        emit_ref_reg(A_MOV,S_L,hp,hregister);}
 
                                         if ptree(pwithsymtable(p^.symtable)^.withnode)^.islocal then
                                          begin
@@ -240,9 +240,9 @@ implementation
                                          begin
                                            hregister:=getregister32;
                                            p^.location.reference.base:=hregister;
-                                           exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
+                                           emit_ref_reg(A_MOV,S_L,
                                              newreference(ptree(pwithsymtable(p^.symtable)^.withnode)^.withreference^),
-                                             hregister)));
+                                             hregister);
                                          end;
                                         inc(p^.location.reference.offset,pvarsym(p^.symtableentry)^.address);
                                      end;
@@ -261,15 +261,15 @@ implementation
                                 hregister:=getregister32;
                               if p^.location.loc=LOC_CREGISTER then
                                 begin
-                                   exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,S_L,
-                                     p^.location.register,hregister)));
+                                   emit_reg_reg(A_MOV,S_L,
+                                     p^.location.register,hregister);
                                    p^.location.loc:=LOC_REFERENCE;
                                 end
                               else
                                 begin
-                                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
+                                   emit_ref_reg(A_MOV,S_L,
                                      newreference(p^.location.reference),
-                                     hregister)));
+                                     hregister);
                                 end;
                               reset_reference(p^.location.reference);
                               p^.location.reference.base:=hregister;
@@ -300,8 +300,8 @@ implementation
                             LOC_REFERENCE:
                               begin
                                  hregister:=R_EDI;
-                                 exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
-                                   newreference(p^.left^.location.reference),R_EDI)));
+                                 emit_ref_reg(A_MOV,S_L,
+                                   newreference(p^.left^.location.reference),R_EDI);
                                  del_reference(p^.left^.location.reference);
                                  ungetiftemp(p^.left^.location.reference);
                               end;
@@ -312,8 +312,8 @@ implementation
                          new(hp);
                          hp^:=p^.location.reference;
                          inc(hp^.offset,4);
-                         exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
-                           hregister,hp)));
+                         emit_reg_ref(A_MOV,S_L,
+                           hregister,hp);
 
                          { virtual method ? }
                          if (po_virtualmethod in pprocsym(p^.symtableentry)^.definition^.procoptions) then
@@ -322,8 +322,8 @@ implementation
                               reset_reference(hp^);
                               hp^.base:=hregister;
                               { load vmt pointer }
-                              exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
-                                hp,R_EDI)));
+                              emit_ref_reg(A_MOV,S_L,
+                                hp,R_EDI);
 {$IfDef regallocfix}
                               del_reference(hp^);
 {$EndIf regallocfix}
@@ -333,17 +333,17 @@ implementation
                               hp^.base:=R_EDI;
                               hp^.offset:=pprocsym(p^.symtableentry)^.definition^._class^.vmtmethodoffset(
                                 pprocsym(p^.symtableentry)^.definition^.extnumber);
-                              exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
-                                hp,R_EDI)));
+                              emit_ref_reg(A_MOV,S_L,
+                                hp,R_EDI);
                               { ... and store it }
-                              exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
-                                R_EDI,newreference(p^.location.reference))));
+                              emit_reg_ref(A_MOV,S_L,
+                                R_EDI,newreference(p^.location.reference));
                            end
                          else
                            begin
                               s:=newasmsymbol(pprocsym(p^.symtableentry)^.definition^.mangledname);
-                              exprasmlist^.concat(new(pai386,op_sym_ofs_ref(A_MOV,S_L,s,0,
-                                newreference(p^.location.reference))));
+                              emit_sym_ofs_ref(A_MOV,S_L,s,0,
+                                newreference(p^.location.reference));
                            end;
                       end
                     else
@@ -397,9 +397,9 @@ implementation
                                 begin
                                    del_reference(p^.left^.location.reference);
                                    hregister:=getregister32;
-                                   exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,newreference(
+                                   emit_ref_reg(A_LEA,S_L,newreference(
                                      p^.left^.location.reference),
-                                     hregister)));
+                                     hregister);
                                    reset_reference(p^.left^.location.reference);
                                    p^.left^.location.reference.base:=hregister;
                                    p^.left^.location.reference.index:=R_NO;
@@ -466,8 +466,8 @@ implementation
                       if (p^.right^.treetype=stringconstn) and
                          (p^.right^.length=0) then
                         begin
-                          exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_B,
-                            0,newreference(p^.left^.location.reference))));
+                          emit_const_ref(A_MOV,S_B,
+                            0,newreference(p^.left^.location.reference));
 {$IfDef regallocfix}
                           del_reference(p^.left^.location.reference);
 {$EndIf regallocfix}
@@ -510,15 +510,15 @@ implementation
                               end;
                               if loc=LOC_CREGISTER then
                                 begin
-                                  exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,opsize,
+                                  emit_ref_reg(A_MOV,opsize,
                                     newreference(p^.right^.location.reference),
-                                    p^.left^.location.register)));
+                                    p^.left^.location.register);
                                   if is_64bitint(p^.right^.resulttype) then
                                     begin
                                        r:=newreference(p^.right^.location.reference);
                                        inc(r^.offset,4);
-                                       exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,opsize,r,
-                                         p^.left^.location.registerhigh)));
+                                       emit_ref_reg(A_MOV,opsize,r,
+                                         p^.left^.location.registerhigh);
                                     end;
 {$IfDef regallocfix}
                                   del_reference(p^.right^.location.reference);
@@ -526,32 +526,32 @@ implementation
                                 end
                               else
                                 begin
-                                  exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,opsize,
+                                  emit_const_ref(A_MOV,opsize,
                                     p^.right^.location.reference.offset,
-                                    newreference(p^.left^.location.reference))));
+                                    newreference(p^.left^.location.reference));
                                   if is_64bitint(p^.right^.resulttype) then
                                     begin
                                        r:=newreference(p^.left^.location.reference);
                                        inc(r^.offset,4);
-                                       exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,opsize,
-                                         0,r)));
+                                       emit_const_ref(A_MOV,opsize,
+                                         0,r);
                                     end;
 {$IfDef regallocfix}
                                   del_reference(p^.left^.location.reference);
 {$EndIf regallocfix}
-                                {exprasmlist^.concat(new(pai386,op_const_loc(A_MOV,opsize,
+                                {emit_const_loc(A_MOV,opsize,
                                     p^.right^.location.reference.offset,
-                                    p^.left^.location)));}
+                                    p^.left^.location);}
                                 end;
 
                            end
                          else if loc=LOC_CFPUREGISTER then
                            begin
                               floatloadops(pfloatdef(p^.right^.resulttype)^.typ,op,opsize);
-                              exprasmlist^.concat(new(pai386,op_ref(op,opsize,
-                                newreference(p^.right^.location.reference))));
-                              exprasmlist^.concat(new(pai386,op_reg(A_FSTP,S_NO,
-                                correct_fpuregister(p^.left^.location.register,fpuvaroffset+1))));
+                              emit_ref(op,opsize,
+                                newreference(p^.right^.location.reference));
+                              emit_reg(A_FSTP,S_NO,
+                                correct_fpuregister(p^.left^.location.register,fpuvaroffset+1));
                            end
                          else
                            begin
@@ -570,16 +570,14 @@ implementation
                                    emitpushreferenceaddr(r^);
 
                                    emitpushreferenceaddr(p^.right^.location.reference);
-                                   exprasmlist^.concat(new(pai386,
-                                     op_sym(A_CALL,S_NO,newasmsymbol('FPC_ADDREF'))));
+                                   emitcall('FPC_ADDREF');
                                    { decrement destination reference counter }
                                    new(r);
                                    reset_reference(r^);
                                    r^.symbol:=p^.left^.resulttype^.get_inittable_label;
                                    emitpushreferenceaddr(r^);
                                    emitpushreferenceaddr(p^.left^.location.reference);
-                                   exprasmlist^.concat(new(pai386,
-                                     op_sym(A_CALL,S_NO,newasmsymbol('FPC_DECREF'))));
+                                   emitcall('FPC_DECREF');
                                 end;
 
 {$ifdef regallocfix}
@@ -598,11 +596,11 @@ implementation
             LOC_MMXREGISTER:
               begin
                  if loc=LOC_CMMXREGISTER then
-                   exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVQ,S_NO,
-                   p^.right^.location.register,p^.left^.location.register)))
+                   emit_reg_reg(A_MOVQ,S_NO,
+                   p^.right^.location.register,p^.left^.location.register)
                  else
-                   exprasmlist^.concat(new(pai386,op_reg_ref(A_MOVQ,S_NO,
-                     p^.right^.location.register,newreference(p^.left^.location.reference))));
+                   emit_reg_ref(A_MOVQ,S_NO,
+                     p^.right^.location.register,newreference(p^.left^.location.reference));
               end;
 {$endif SUPPORT_MMX}
             LOC_REGISTER,
@@ -616,18 +614,18 @@ implementation
                               { simplified with op_reg_loc       }
                               if loc=LOC_CREGISTER then
                                 begin
-                                  exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,opsize,
+                                  emit_reg_reg(A_MOV,opsize,
                                     p^.right^.location.register,
-                                    p^.left^.location.register)));
+                                    p^.left^.location.register);
 {$IfDef regallocfix}
                                  ungetregister(p^.right^.location.register);
 {$EndIf regallocfix}
                                 end
                               else
                                 Begin
-                                  exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,opsize,
+                                  emit_reg_ref(A_MOV,opsize,
                                     p^.right^.location.register,
-                                    newreference(p^.left^.location.reference))));
+                                    newreference(p^.left^.location.reference));
 {$IfDef regallocfix}
                                   ungetregister(p^.right^.location.register);
                                   del_reference(p^.left^.location.reference);
@@ -637,20 +635,20 @@ implementation
                                 begin
                                    { simplified with op_reg_loc  }
                                    if loc=LOC_CREGISTER then
-                                     exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,opsize,
+                                     emit_reg_reg(A_MOV,opsize,
                                        p^.right^.location.registerhigh,
-                                       p^.left^.location.registerhigh)))
+                                       p^.left^.location.registerhigh)
                                    else
                                      begin
                                         r:=newreference(p^.left^.location.reference);
                                         inc(r^.offset,4);
-                                        exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,opsize,
-                                          p^.right^.location.registerhigh,r)));
+                                        emit_reg_ref(A_MOV,opsize,
+                                          p^.right^.location.registerhigh,r);
                                      end;
                                 end;
-                              {exprasmlist^.concat(new(pai386,op_reg_loc(A_MOV,opsize,
+                              {emit_reg_loc(A_MOV,opsize,
                                   p^.right^.location.register,
-                                  p^.left^.location)));      }
+                                  p^.left^.location);      }
 
                            end;
             LOC_FPU : begin
@@ -668,8 +666,8 @@ implementation
                               case loc of
                                  LOC_CFPUREGISTER:
                                    begin
-                                      exprasmlist^.concat(new(pai386,op_reg(A_FSTP,S_NO,
-                                        correct_fpuregister(p^.left^.location.register,fpuvaroffset))));
+                                      emit_reg(A_FSTP,S_NO,
+                                        correct_fpuregister(p^.left^.location.register,fpuvaroffset));
                                       dec(fpuvaroffset);
                                    end;
                                  LOC_REFERENCE:
@@ -690,14 +688,14 @@ implementation
                                 fputyp:=pfloatdef(p^.right^.left^.resulttype)^.typ
                               else
                                 fputyp:=s32real;
-                              exprasmlist^.concat(new(pai386,op_reg(A_FLD,S_NO,
-                                correct_fpuregister(p^.right^.location.register,fpuvaroffset))));
+                              emit_reg(A_FLD,S_NO,
+                                correct_fpuregister(p^.right^.location.register,fpuvaroffset));
                               inc(fpuvaroffset);
                               case loc of
                                  LOC_CFPUREGISTER:
                                    begin
-                                      exprasmlist^.concat(new(pai386,op_reg(A_FSTP,S_NO,
-                                        correct_fpuregister(p^.right^.location.register,fpuvaroffset))));
+                                      emit_reg(A_FSTP,S_NO,
+                                        correct_fpuregister(p^.right^.location.register,fpuvaroffset));
                                       dec(fpuvaroffset);
                                    end;
                                  LOC_REFERENCE:
@@ -710,23 +708,23 @@ implementation
                               getlabel(hlabel);
                               emitlab(truelabel);
                               if loc=LOC_CREGISTER then
-                                exprasmlist^.concat(new(pai386,op_const_reg(A_MOV,S_B,
-                                  1,p^.left^.location.register)))
+                                emit_const_reg(A_MOV,S_B,
+                                  1,p^.left^.location.register)
                               else
-                                exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_B,
-                                  1,newreference(p^.left^.location.reference))));
-                              {exprasmlist^.concat(new(pai386,op_const_loc(A_MOV,S_B,
-                                  1,p^.left^.location)));}
+                                emit_const_ref(A_MOV,S_B,
+                                  1,newreference(p^.left^.location.reference));
+                              {emit_const_loc(A_MOV,S_B,
+                                  1,p^.left^.location);}
                               emitjmp(C_None,hlabel);
                               emitlab(falselabel);
                               if loc=LOC_CREGISTER then
-                                exprasmlist^.concat(new(pai386,op_reg_reg(A_XOR,S_B,
+                                emit_reg_reg(A_XOR,S_B,
                                   p^.left^.location.register,
-                                  p^.left^.location.register)))
+                                  p^.left^.location.register)
                               else
                                 begin
-                                  exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_B,
-                                    0,newreference(p^.left^.location.reference))));
+                                  emit_const_ref(A_MOV,S_B,
+                                    0,newreference(p^.left^.location.reference));
 {$IfDef regallocfix}
                                   del_reference(p^.left^.location.reference);
 {$EndIf regallocfix}
@@ -773,14 +771,14 @@ implementation
               hr_valid:=true;
               hp:=new_reference(procinfo.framepointer,
                 procinfo.framepointer_offset);
-              exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,hp,hr)));
+              emit_ref_reg(A_MOV,S_L,hp,hr);
               pp:=procinfo.parent;
               { walk up the stack frame }
               while pp<>pprocinfo(p^.funcretprocinfo) do
                 begin
                    hp:=new_reference(hr,
                      pp^.framepointer_offset);
-                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,hp,hr)));
+                   emit_ref_reg(A_MOV,S_L,hp,hr);
                    pp:=pp^.parent;
                 end;
               p^.location.reference.base:=hr;
@@ -792,7 +790,7 @@ implementation
            begin
               if not hr_valid then
                 hr:=getregister32;
-              exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(p^.location.reference),hr)));
+              emit_ref_reg(A_MOV,S_L,newreference(p^.location.reference),hr);
               p^.location.reference.base:=hr;
               p^.location.reference.offset:=0;
            end;
@@ -927,8 +925,8 @@ implementation
                  else
                   begin
                     { update href to the vtype field and write it }
-                    exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_L,
-                      vtype,newreference(href))));
+                    emit_const_ref(A_MOV,S_L,
+                      vtype,newreference(href));
                     inc(href.offset,4);
                     { write changing field update href to the next element }
                     if vaddr then
@@ -966,7 +964,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.74  1999-08-17 13:26:06  peter
+  Revision 1.75  1999-08-19 13:08:49  pierre
+   * emit_??? used
+
+  Revision 1.74  1999/08/17 13:26:06  peter
     * arrayconstructor -> arrayofconst fixed when arraycosntructor was not
       variant.
 

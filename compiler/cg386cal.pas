@@ -105,11 +105,11 @@ implementation
                   if inlined then
                     begin
                        r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
-                       exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
-                         p^.left^.location.register,r)));
+                       emit_reg_ref(A_MOV,S_L,
+                         p^.left^.location.register,r);
                     end
                   else
-                    exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,p^.left^.location.register)));
+                    emit_reg(A_PUSH,S_L,p^.left^.location.register);
                   ungetregister32(p^.left^.location.register);
                 end
               else
@@ -120,10 +120,10 @@ implementation
                      begin
                        if inlined then
                          begin
-                           exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,
-                             newreference(p^.left^.location.reference),R_EDI)));
+                           emit_ref_reg(A_LEA,S_L,
+                             newreference(p^.left^.location.reference),R_EDI);
                            r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
-                           exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,R_EDI,r)));
+                           emit_reg_ref(A_MOV,S_L,R_EDI,r);
                          end
                       else
                         emitpushreferenceaddr(p^.left^.location.reference);
@@ -140,10 +140,10 @@ implementation
               inc(pushedparasize,4);
               if inlined then
                 begin
-                   exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,
-                     newreference(p^.left^.location.reference),R_EDI)));
+                   emit_ref_reg(A_LEA,S_L,
+                     newreference(p^.left^.location.reference),R_EDI);
                    r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
-                   exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,R_EDI,r)));
+                   emit_reg_ref(A_MOV,S_L,R_EDI,r);
                 end
               else
                 emitpushreferenceaddr(p^.left^.location.reference);
@@ -160,11 +160,11 @@ implementation
                    inc(pushedparasize,4);
                    if inlined then
                      begin
-                        exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,
-                          newreference(p^.left^.location.reference),R_EDI)));
+                        emit_ref_reg(A_LEA,S_L,
+                          newreference(p^.left^.location.reference),R_EDI);
                         r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
-                        exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
-                          R_EDI,r)));
+                        emit_reg_ref(A_MOV,S_L,
+                          R_EDI,r);
                      end
                    else
                      emitpushreferenceaddr(p^.left^.location.reference);
@@ -224,6 +224,7 @@ implementation
          { we must pop this size also after !! }
 {        must_pop : boolean; }
          pop_size : longint;
+         pop_allowed : boolean;
 
       label
          dont_call;
@@ -303,7 +304,17 @@ implementation
          oldpushedparasize:=pushedparasize;
          pushedparasize:=0;
          pop_size:=0;
-         if (not inlined) then
+         { no inc esp for inlined procedure
+           and for objects constructors PM }
+         if inlined or
+            ((p^.right=nil) and
+            (p^.procdefinition^.proctypeoption=potype_constructor) and
+            { quick'n'dirty check if it is a class or an object }
+            (p^.resulttype^.deftype=orddef)) then
+           pop_allowed:=false
+         else
+           pop_allowed:=true;
+         if pop_allowed then
           begin
           { Old pushedsize aligned on 4 ? }
             i:=oldpushedparasize and 3;
@@ -314,10 +325,12 @@ implementation
             if i>0 then
              inc(pop_size,4-i);
           { insert the opcode and update pushedparasize }
+          { never push 4 or more !! }
+            pop_size:=pop_size mod 4;
             if pop_size>0 then
              begin
                inc(pushedparasize,pop_size);
-               exprasmlist^.concat(new(pai386,op_const_reg(A_SUB,S_L,pop_size,R_ESP)));
+               emit_const_reg(A_SUB,S_L,pop_size,R_ESP);
 {$ifdef GDB}
                if (cs_debuginfo in aktmoduleswitches) and
                   (exprasmlist^.first=exprasmlist^.last) then
@@ -382,11 +395,11 @@ implementation
               inc(pushedparasize,4);
               if inlined then
                 begin
-                   exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,
-                     newreference(funcretref),R_EDI)));
+                   emit_ref_reg(A_LEA,S_L,
+                     newreference(funcretref),R_EDI);
                    r:=new_reference(procinfo.framepointer,inlinecode^.retoffset);
-                   exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
-                     R_EDI,r)));
+                   emit_reg_ref(A_MOV,S_L,
+                     R_EDI,r);
                 end
               else
                 emitpushreferenceaddr(funcretref);
@@ -426,9 +439,9 @@ implementation
                    r^:=ptree(pwithsymtable(p^.symtable)^.withnode)^.withreference^;
                    if (not pwithsymtable(p^.symtable)^.direct_with) or
                       pobjectdef(p^.methodpointer^.resulttype)^.is_class then
-                     exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,r,R_ESI)))
+                     emit_ref_reg(A_MOV,S_L,r,R_ESI)
                    else
-                     exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,r,R_ESI)));
+                     emit_ref_reg(A_LEA,S_L,r,R_ESI);
                 end;
 
               { push self }
@@ -468,14 +481,14 @@ implementation
                                          loadesi:=true;
                                          { if no VMT just use $0 bug0214 PM }
                                          if not(oo_has_vmt in pobjectdef(p^.methodpointer^.resulttype)^.objectoptions) then
-                                           exprasmlist^.concat(new(pai386,op_const_reg(A_MOV,S_L,0,R_ESI)))
+                                           emit_const_reg(A_MOV,S_L,0,R_ESI)
                                          else
                                            begin
-                                             exprasmlist^.concat(new(pai386,op_sym_ofs_reg(A_MOV,S_L,
+                                             emit_sym_ofs_reg(A_MOV,S_L,
                                                newasmsymbol(pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname),
-                                               0,R_ESI)));
+                                               0,R_ESI);
                                            end;
-                                         { exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_ESI)));
+                                         { emit_reg(A_PUSH,S_L,R_ESI);
                                            this is done below !! }
                                       end
                                     else
@@ -488,7 +501,7 @@ implementation
                                        (aktprocsym^.definition^.proctypeoption=potype_destructor) then
                                       begin
                                         push_int(0);
-                                        exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_ESI)));
+                                        emit_reg(A_PUSH,S_L,R_ESI);
                                       end;
 
                                     if not(is_con_or_destructor and
@@ -496,7 +509,7 @@ implementation
                                            assigned(aktprocsym) and
                                            (aktprocsym^.definition^.proctypeoption in [potype_constructor,potype_destructor])
                                           ) then
-                                      exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_ESI)));
+                                      emit_reg(A_PUSH,S_L,R_ESI);
                                     { if an inherited con- or destructor should be  }
                                     { called in a con- or destructor then a warning }
                                     { will be made                                }
@@ -514,17 +527,17 @@ implementation
                                         not(pobjectdef(p^.methodpointer^.resulttype)^.is_class and
                                         assigned(aktprocsym) and
                                         (aktprocsym^.definition^.proctypeoption=potype_destructor)) then
-                                      push_int(0);
+                                       push_int(0);
                                  end;
                                hnewn:
                                  begin
                                     { extended syntax of new }
                                     { ESI must be zero }
-                                    exprasmlist^.concat(new(pai386,op_reg_reg(A_XOR,S_L,R_ESI,R_ESI)));
-                                    exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_ESI)));
+                                    emit_reg_reg(A_XOR,S_L,R_ESI,R_ESI);
+                                    emit_reg(A_PUSH,S_L,R_ESI);
                                     { insert the vmt }
-                                    exprasmlist^.concat(new(pai386,op_sym(A_PUSH,S_L,
-                                      newasmsymbol(pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname))));
+                                    emit_sym(A_PUSH,S_L,
+                                      newasmsymbol(pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname));
                                     extended_new:=true;
                                  end;
                                hdisposen:
@@ -533,12 +546,12 @@ implementation
 
                                     { destructor with extended syntax called from dispose }
                                     { hdisposen always deliver LOC_REFERENCE          }
-                                    exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,
-                                      newreference(p^.methodpointer^.location.reference),R_ESI)));
+                                    emit_ref_reg(A_LEA,S_L,
+                                      newreference(p^.methodpointer^.location.reference),R_ESI);
                                     del_reference(p^.methodpointer^.location.reference);
-                                    exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_ESI)));
-                                    exprasmlist^.concat(new(pai386,op_sym(A_PUSH,S_L,
-                                      newasmsymbol(pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname))));
+                                    emit_reg(A_PUSH,S_L,R_ESI);
+                                    emit_sym(A_PUSH,S_L,
+                                      newasmsymbol(pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname));
                                  end;
                                else
                                  begin
@@ -558,11 +571,11 @@ implementation
                                                  if (p^.methodpointer^.resulttype^.deftype=classrefdef) or
                                                     ((p^.methodpointer^.resulttype^.deftype=objectdef) and
                                                    pobjectdef(p^.methodpointer^.resulttype)^.is_class) then
-                                                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
-                                                     newreference(p^.methodpointer^.location.reference),R_ESI)))
+                                                   emit_ref_reg(A_MOV,S_L,
+                                                     newreference(p^.methodpointer^.location.reference),R_ESI)
                                                  else
-                                                   exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,
-                                                     newreference(p^.methodpointer^.location.reference),R_ESI)));
+                                                   emit_ref_reg(A_LEA,S_L,
+                                                     newreference(p^.methodpointer^.location.reference),R_ESI);
                                                  del_reference(p^.methodpointer^.location.reference);
                                               end;
                                          end;
@@ -579,22 +592,22 @@ implementation
                                              reset_reference(r^);
                                              r^.base:=R_ESI;
                                              r^.offset:= pprocdef(p^.procdefinition)^._class^.vmt_offset;
-                                             exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,r,R_ESI)));
+                                             emit_ref_reg(A_MOV,S_L,r,R_ESI);
                                           end;
 
                                         { direct call to destructor: don't remove data! }
                                         if (p^.procdefinition^.proctypeoption=potype_destructor) and
                                            (p^.methodpointer^.resulttype^.deftype=objectdef) and
                                            (pobjectdef(p^.methodpointer^.resulttype)^.is_class) then
-                                          exprasmlist^.concat(new(pai386,op_const(A_PUSH,S_L,1)));
+                                          emit_const(A_PUSH,S_L,1);
 
                                         { direct call to class constructor, don't allocate memory }
                                         if (p^.procdefinition^.proctypeoption=potype_constructor) and
                                            (p^.methodpointer^.resulttype^.deftype=objectdef) and
                                            (pobjectdef(p^.methodpointer^.resulttype)^.is_class) then
-                                          exprasmlist^.concat(new(pai386,op_const(A_PUSH,S_L,0)))
+                                          emit_const(A_PUSH,S_L,0)
                                         else
-                                          exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_ESI)));
+                                          emit_reg(A_PUSH,S_L,R_ESI);
                                       end;
 
                                     if is_con_or_destructor then
@@ -606,8 +619,8 @@ implementation
                                               if (p^.procdefinition^.proctypeoption=potype_constructor) then
                                                 begin
                                                    { it's no bad idea, to insert the VMT }
-                                                   exprasmlist^.concat(new(pai386,op_sym(A_PUSH,S_L,newasmsymbol(
-                                                     pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname))));
+                                                   emit_sym(A_PUSH,S_L,newasmsymbol(
+                                                     pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname));
                                                 end
                                               { destructors haven't to dispose the instance, if this is }
                                               { a direct call                                      }
@@ -632,14 +645,14 @@ implementation
                              reset_reference(r^);
                              r^.base:=R_ESI;
                              r^.offset:= pprocdef(p^.procdefinition)^._class^.vmt_offset;
-                             exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,r,R_ESI)));
+                             emit_ref_reg(A_MOV,S_L,r,R_ESI);
                           end
                         else
                           begin
                              { member call, ESI isn't modified }
                              loadesi:=false;
                           end;
-                        exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_ESI)));
+                        emit_reg(A_PUSH,S_L,R_ESI);
                         { but a con- or destructor here would probably almost }
                         { always be placed wrong }
                         if is_con_or_destructor then
@@ -661,7 +674,7 @@ implementation
                    {
                      begin
                         loadesi:=false;
-                        exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_ESI)));
+                        emit_reg(A_PUSH,S_L,R_ESI);
                      end;
                    }
                    if lexlevel=(pprocdef(p^.procdefinition)^.parast^.symtablelevel) then
@@ -670,13 +683,13 @@ implementation
                         reset_reference(r^);
                         r^.offset:=procinfo.framepointer_offset;
                         r^.base:=procinfo.framepointer;
-                        exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_L,r)))
+                        emit_ref(A_PUSH,S_L,r)
                      end
                      { this is only true if the difference is one !!
                        but it cannot be more !! }
                    else if (lexlevel=pprocdef(p^.procdefinition)^.parast^.symtablelevel-1) then
                      begin
-                        exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,procinfo.framepointer)))
+                        emit_reg(A_PUSH,S_L,procinfo.framepointer)
                      end
                    else if (lexlevel>pprocdef(p^.procdefinition)^.parast^.symtablelevel) then
                      begin
@@ -685,7 +698,7 @@ implementation
                         reset_reference(r^);
                         r^.offset:=procinfo.framepointer_offset;
                         r^.base:=procinfo.framepointer;
-                        exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,r,hregister)));
+                        emit_ref_reg(A_MOV,S_L,r,hregister);
                         for i:=(pprocdef(p^.procdefinition)^.parast^.symtablelevel) to lexlevel-1 do
                           begin
                              new(r);
@@ -694,9 +707,9 @@ implementation
                              how can we do this !!! }
                              r^.offset:=procinfo.framepointer_offset;
                              r^.base:=hregister;
-                             exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,r,hregister)));
+                             emit_ref_reg(A_MOV,S_L,r,hregister);
                           end;
-                        exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,hregister)));
+                        emit_reg(A_PUSH,S_L,hregister);
                         ungetregister32(hregister);
                      end
                    else
@@ -732,7 +745,7 @@ implementation
                             r^.base:=R_ESI;
                             { this is one point where we need vmt_offset (PM) }
                             r^.offset:= pprocdef(p^.procdefinition)^._class^.vmt_offset;
-                            exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,r,R_EDI)));
+                            emit_ref_reg(A_MOV,S_L,r,R_EDI);
                             new(r);
                             reset_reference(r^);
                             r^.base:=R_EDI;
@@ -746,7 +759,7 @@ implementation
                        new(r);
                        reset_reference(r^);
                        r^.base:=R_ESI;
-                       exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,r,R_EDI)));
+                       emit_ref_reg(A_MOV,S_L,r,R_EDI);
                        new(r);
                        reset_reference(r^);
                        r^.base:=R_EDI;
@@ -758,19 +771,19 @@ implementation
 {$ifndef TESTOBJEXT}
                    if (cs_check_range in aktlocalswitches) then
                      begin
-                        exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,r^.base)));
+                        emit_reg(A_PUSH,S_L,r^.base);
                         emitcall('FPC_CHECK_OBJECT');
                      end;
 {$else TESTOBJEXT}
                    if (cs_check_range in aktlocalswitches) then
                      begin
-                        exprasmlist^.concat(new(pai386,op_sym(A_PUSH,S_L,
-                          newasmsymbol(pprocdef(p^.procdefinition)^._class^.vmt_mangledname))));
-                        exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,r^.base)));
+                        emit_sym(A_PUSH,S_L,
+                          newasmsymbol(pprocdef(p^.procdefinition)^._class^.vmt_mangledname));
+                        emit_reg(A_PUSH,S_L,r^.base);
                         emitcall('FPC_CHECK_OBJECT_EXT');
                      end;
 {$endif TESTOBJEXT}
-                   exprasmlist^.concat(new(pai386,op_ref(A_CALL,S_NO,r)));
+                   emit_ref(A_CALL,S_NO,r);
                 end
               else if not inlined then
                 emitcall(pprocdef(p^.procdefinition)^.mangledname)
@@ -806,8 +819,8 @@ implementation
                       (p^.right^.location.reference.index=R_ESI) then
                      begin
                         del_reference(p^.right^.location.reference);
-                        exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
-                          newreference(p^.right^.location.reference),R_EDI)));
+                        emit_ref_reg(A_MOV,S_L,
+                          newreference(p^.right^.location.reference),R_EDI);
                         hregister:=R_EDI;
                      end;
 
@@ -816,17 +829,17 @@ implementation
                      begin
                        { load ESI }
                        inc(p^.right^.location.reference.offset,4);
-                       exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
-                         newreference(p^.right^.location.reference),R_ESI)));
+                       emit_ref_reg(A_MOV,S_L,
+                         newreference(p^.right^.location.reference),R_ESI);
                        dec(p^.right^.location.reference.offset,4);
                        { push self pointer }
-                       exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_ESI)));
+                       emit_reg(A_PUSH,S_L,R_ESI);
                      end;
 
                    if hregister=R_NO then
-                     exprasmlist^.concat(new(pai386,op_ref(A_CALL,S_NO,newreference(p^.right^.location.reference))))
+                     emit_ref(A_CALL,S_NO,newreference(p^.right^.location.reference))
                    else
-                     exprasmlist^.concat(new(pai386,op_reg(A_CALL,S_NO,hregister)));
+                     emit_reg(A_CALL,S_NO,hregister);
 
                    del_reference(p^.right^.location.reference);
                 end
@@ -835,11 +848,11 @@ implementation
                    case p^.right^.location.loc of
                       LOC_REGISTER,LOC_CREGISTER:
                          begin
-                             exprasmlist^.concat(new(pai386,op_reg(A_CALL,S_NO,p^.right^.location.register)));
+                             emit_reg(A_CALL,S_NO,p^.right^.location.register);
                              ungetregister32(p^.right^.location.register);
                          end
                       else
-                         exprasmlist^.concat(new(pai386,op_ref(A_CALL,S_NO,newreference(p^.right^.location.reference))));
+                         emit_ref(A_CALL,S_NO,newreference(p^.right^.location.reference));
                          del_reference(p^.right^.location.reference);
                    end;
                 end;
@@ -855,7 +868,7 @@ implementation
                 pop_size:=0;
                 { better than an add on all processors }
                 if pushedparasize=4 then
-                  exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EDI)))
+                  emit_reg(A_POP,S_L,R_EDI)
                 { the pentium has two pipes and pop reg is pairable }
                 { but the registers must be different!        }
                 else if (pushedparasize=8) and
@@ -863,16 +876,28 @@ implementation
                   (aktoptprocessor=ClassP5) and
                   (procinfo._class=nil) then
                     begin
-                       exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EDI)));
-                       exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_ESI)));
+                       emit_reg(A_POP,S_L,R_EDI);
+                       emit_reg(A_POP,S_L,R_ESI);
                     end
                 else if pushedparasize<>0 then
-                  exprasmlist^.concat(new(pai386,op_const_reg(A_ADD,S_L,pushedparasize,R_ESP)));
+                  emit_const_reg(A_ADD,S_L,pushedparasize,R_ESP);
              end;
       dont_call:
          pushedparasize:=oldpushedparasize;
          unused:=unusedregisters;
 
+         { a constructor could be a function with boolean result }
+         { if calling constructor called fail we
+           must jump directly to quickexitlabel  PM
+           but only if it is a call of an inherited constructor }
+         if (p^.right=nil) and
+            (p^.procdefinition^.proctypeoption=potype_constructor) and
+            assigned(p^.methodpointer) and
+            (p^.methodpointer^.treetype=typen) and
+            (aktprocsym^.definition^.proctypeoption=potype_constructor) then
+           begin
+             emitjmp(C_Z,faillabel);
+           end;
          { handle function results }
          { structured results are easy to handle.... }
          { needed also when result_no_used !! }
@@ -893,8 +918,10 @@ implementation
                  { quick'n'dirty check if it is a class or an object }
                  (p^.resulttype^.deftype=orddef) then
                 begin
+                   { this fails if popsize > 0 PM }
                    p^.location.loc:=LOC_FLAGS;
                    p^.location.resflags:=F_NE;
+                   
                    if extended_new then
                      begin
 {$ifdef test_dest_loc}
@@ -1007,8 +1034,8 @@ implementation
                    emit_reg_reg(A_MOV,S_L,R_EAX,hregister);
                    if gettempansistringreference(hr) then
                      decrstringref(p^.resulttype,hr);
-                   exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,hregister,
-                     newreference(hr))));
+                   emit_reg_ref(A_MOV,S_L,hregister,
+                     newreference(hr));
                    ungetregister32(hregister);
                    p^.location.loc:=LOC_MEM;
                    p^.location.reference:=hr;
@@ -1033,11 +1060,11 @@ implementation
          { perhaps i/o check ? }
          if iolabel<>nil then
            begin
-              exprasmlist^.concat(new(pai386,op_sym(A_PUSH,S_L,iolabel)));
+              emit_sym(A_PUSH,S_L,iolabel);
               emitcall('FPC_IOCHECK');
            end;
          if pop_size>0 then
-           exprasmlist^.concat(new(pai386,op_const_reg(A_ADD,S_L,pop_size,R_ESP)));
+           emit_const_reg(A_ADD,S_L,pop_size,R_ESP);
 
          { restore registers }
          popusedregisters(pushed);
@@ -1094,7 +1121,7 @@ implementation
               else if p^.location.loc=LOC_FPU then
                 begin
                   { release FPU stack }
-                  exprasmlist^.concat(new(pai386,op_reg(A_FSTP,S_NO,R_ST0)));
+                  emit_reg(A_FSTP,S_NO,R_ST0);
                   dec(fpuvaroffset);
                 end;
            end;
@@ -1178,7 +1205,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.99  1999-08-09 22:19:47  peter
+  Revision 1.100  1999-08-19 13:08:45  pierre
+   * emit_??? used
+
+  Revision 1.99  1999/08/09 22:19:47  peter
     * classes vmt changed to only positive addresses
     * sharedlib creation is working
 
