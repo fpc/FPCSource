@@ -322,7 +322,7 @@ implementation
 
 
     procedure ti386typeconvnode.second_call_helper(c : tconverttype);
-{$ifdef fpc}    
+{$ifdef fpc}
       const
          secondconvert : array[tconverttype] of pointer = (
            {$ifdef fpc}@{$endif}second_nothing, {equal}
@@ -353,7 +353,8 @@ implementation
            {$ifdef fpc}@{$endif}second_class_to_intf,
            {$ifdef fpc}@{$endif}second_char_to_char,
            {$ifdef fpc}@{$endif}second_nothing,  { normal_2_smallset }
-           {$ifdef fpc}@{$endif}second_nothing   { dynarray_2_openarray }
+           {$ifdef fpc}@{$endif}second_nothing,  { dynarray_2_openarray }
+           {$ifdef fpc}@{$endif}second_nothing   { pwchar_2_string }
          );
       type
          tprocedureofobject = procedure of object;
@@ -373,7 +374,7 @@ implementation
       end;
 {$else}
      begin
-        case c of 
+        case c of
           tc_equal,
           tc_not_possible,
           tc_string_2_string : second_nothing;
@@ -412,7 +413,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.50  2002-10-05 12:43:29  carl
+  Revision 1.51  2002-10-10 16:14:54  florian
+    * fixed to reflect last tconvtype change
+
+  Revision 1.50  2002/10/05 12:43:29  carl
     * fixes for Delphi 6 compilation
      (warning : Some features do not work under Delphi)
 
