@@ -22,44 +22,84 @@ uses
   dos,
   sysutils,classes,inifiles;
 
-{ Include default fpcmake.ini }
-{$i fpcmake.inc}
-
 const
   Version='v0.99.13';
   Title='fpcmake '+Version;
 
+{ Include default fpcmake.ini }
+{$i fpcmake.inc}
+
+type
+  tsections=(sec_none,
+    sec_units,sec_exes,sec_loaders,sec_examples,
+    sec_compile,sec_depend,sec_install,sec_zipinstall,
+    sec_clean,sec_libs,sec_command,sec_exts,sec_dirs,sec_tools,sec_info
+  );
+
+const
   EnvVar='FPCMAKEINI'; { should be FPCMAKE in the future }
   TimeFormat='yyyy/mm/dd hh:nn';
+
+  sectionstr : array[tsections] of string=('none',
+    'units','exes','loaders','examples',
+    'compile','depend','install','zipinstall',
+    'clean','libs','command','exts','dirs','tools','info'
+  );
+
+  sectiondef : array[tsections] of boolean=(false,
+    true,true,false,false,
+    true,false,true,true,
+    true,true,true,true,true,true,true
+  );
 
   targets=4;
   targetstr : array[1..targets] of string=(
     'linux','go32v2','win32','os2'
   );
 
+  rules=14;
+  rulestr : array[1..rules] of string=(
+    'all','debug',
+    'examples','test',
+    'smart','shared',
+    'showinstall','install','zipinstall','zipinstalladd',
+    'clean','cleanall',
+    'depend','info'
+  );
+
+  rule2sec : array[1..rules] of tsections=(
+    sec_compile,sec_compile,
+    sec_examples,sec_examples,
+    sec_libs,sec_libs,
+    sec_install,sec_install,sec_zipinstall,sec_zipinstall,
+    sec_clean,sec_clean,
+    sec_depend,sec_info
+  );
+
 { Sections in Makefile.fpc }
-  sec_sections='sections';
-  sec_install='install';
-  sec_clean='clean';
-  sec_dirs='dirs';
-  sec_packages='packages';
-  sec_libs='libs';
-  sec_targets='targets';
-  sec_info='info';
-  sec_defaults='defaults';
-  sec_tools='tools';
+  ini_sections='sections';
+  ini_install='install';
+  ini_clean='clean';
+  ini_dirs='dirs';
+  ini_packages='packages';
+  ini_libs='libs';
+  ini_targets='targets';
+  ini_info='info';
+  ini_defaults='defaults';
+  ini_tools='tools';
 
 type
   TTargetsString=array[0..targets] of string;
   TFpcMake=record
+    TargetDirs,
     TargetLoaders,
     TargetUnits,
     TargetPrograms,
+    TargetExamples,
     InstallUnits,
     InstallFiles,
     CleanUnits,
     CleanFiles     : TTargetsString;
-    DefaultUnits   : boolean;
     DefaultRule,
     DefaultTarget,
     DefaultCPU,
@@ -71,6 +111,7 @@ type
     DirObj,
     DirTarget,
     DirUnitTarget,
+    DirSources,
     DirInc         : string;
     PackageFCL     : boolean;
     Packages       : string;
@@ -83,18 +124,7 @@ type
     InfoTools,
     InfoInstall,
     InfoObjects    : boolean;
-    SectionNone,
-    SectionCompile,
-    SectionDepend,
-    SectionInstall,
-    SectionZipInstall,
-    SectionClean,
-    SectionLibs,
-    SectionCommand,
-    SectionExts,
-    SectionDirs,
-    SectionTools,
-    SectionInfo    : boolean;
+    Section        : array[tsections] of boolean;
     ToolsPPDep,
     ToolsPPUMove,
     ToolsPPUFiles,
@@ -138,6 +168,20 @@ begin
 end;
 
 
+function TargetStringEmpty(const t:TTargetsString):boolean;
+var
+  i : integer;
+begin
+  for i:=0 to targets do
+   if t[i]<>'' then
+    begin
+      TargetStringEmpty:=false;
+      exit;
+    end;
+  TargetStringEmpty:=true;
+end;
+
+
 {*****************************************************************************
                                   TMyMemoryStream
 *****************************************************************************}
@@ -167,6 +211,8 @@ var
      t[i]:=ini.ReadString(sec,name+'_'+targetstr[i],'');
   end;
 
+var
+  sec : tsections;
 begin
   ReadMakefilefpc:=false;
   if FileExists('Makefile.fpc') then
@@ -183,82 +229,74 @@ begin
   with userini,ini do
    begin
    { targets }
-     ReadTargetsString(TargetLoaders,sec_targets,'loaders','');
-     ReadTargetsString(TargetUnits,sec_targets,'units','');
-     ReadTargetsString(TargetPrograms,sec_targets,'programs','');
+     ReadTargetsString(TargetDirs,ini_targets,'dirs','');
+     ReadTargetsString(TargetLoaders,ini_targets,'loaders','');
+     ReadTargetsString(TargetUnits,ini_targets,'units','');
+     ReadTargetsString(TargetPrograms,ini_targets,'programs','');
+     ReadTargetsString(TargetExamples,ini_targets,'examples','');
    { clean }
-     ReadTargetsString(CleanUnits,sec_clean,'units','');
-     ReadTargetsString(CleanFiles,sec_clean,'files','');
+     ReadTargetsString(CleanUnits,ini_clean,'units','');
+     ReadTargetsString(CleanFiles,ini_clean,'files','');
    { install }
-     ReadTargetsString(InstallUnits,sec_install,'units','');
-     ReadTargetsString(InstallFiles,sec_install,'files','');
+     ReadTargetsString(InstallUnits,ini_install,'units','');
+     ReadTargetsString(InstallFiles,ini_install,'files','');
    { defaults }
-     DefaultUnits:=ReadBool(sec_defaults,'defaultunits',false);
-     DefaultRule:=ReadString(sec_defaults,'defaultrule','all');
-     DefaultTarget:=ReadString(sec_defaults,'defaulttarget','');
-     DefaultCPU:=ReadString(sec_defaults,'defaultcpu','');
-     DefaultOptions:=ReadString(sec_defaults,'defaultoptions','');
+     DefaultRule:=ReadString(ini_defaults,'defaultrule','all');
+     DefaultTarget:=ReadString(ini_defaults,'defaulttarget','');
+     DefaultCPU:=ReadString(ini_defaults,'defaultcpu','');
+     DefaultOptions:=ReadString(ini_defaults,'defaultoptions','');
    { packages }
-     Packages:=Readstring(sec_packages,'packages','');
-     PackageFCL:=ReadBool(sec_packages,'fcl',false);
+     Packages:=Readstring(ini_packages,'packages','');
+     PackageFCL:=ReadBool(ini_packages,'fcl',false);
    { dirs }
-     DirFpc:=ReadString(sec_dirs,'fpcdir','');
-     DirPackage:=ReadString(sec_dirs,'packagedir','$(FPCDIR)/packages');
-     DirUnit:=ReadString(sec_dirs,'unitdir','');
-     DirLib:=ReadString(sec_dirs,'libdir','');
-     DirObj:=ReadString(sec_dirs,'objdir','');
-     DirTarget:=ReadString(sec_dirs,'targetdir','');
-     DirUnitTarget:=ReadString(sec_dirs,'unittargetdir','');
-     DirInc:=ReadString(sec_dirs,'incdir','');
+     DirFpc:=ReadString(ini_dirs,'fpcdir','');
+     DirPackage:=ReadString(ini_dirs,'packagedir','$(FPCDIR)/packages');
+     DirUnit:=ReadString(ini_dirs,'unitdir','');
+     DirLib:=ReadString(ini_dirs,'libdir','');
+     DirObj:=ReadString(ini_dirs,'objdir','');
+     DirTarget:=ReadString(ini_dirs,'targetdir','');
+     DirSources:=ReadString(ini_dirs,'sourcesdir','');
+     DirUnitTarget:=ReadString(ini_dirs,'unittargetdir','');
+     DirInc:=ReadString(ini_dirs,'incdir','');
    { libs }
-     LibName:=ReadString(sec_libs,'libname','');
-     LibUnits:=ReadString(sec_libs,'libunits','');
-     LibGcc:=ReadBool(sec_libs,'libgcc',false);
-     LibOther:=ReadBool(sec_libs,'libother',false);
+     LibName:=ReadString(ini_libs,'libname','');
+     LibUnits:=ReadString(ini_libs,'libunits','');
+     LibGcc:=ReadBool(ini_libs,'libgcc',false);
+     LibOther:=ReadBool(ini_libs,'libother',false);
    { tools }
-     ToolsPPDep:=ReadBool(sec_tools,'toolppdep',true);
-     ToolsPPUMove:=ReadBool(sec_tools,'toolppumove',true);
-     ToolsPPUFiles:=ReadBool(sec_tools,'toolppufiles',true);
-     ToolsSed:=ReadBool(sec_tools,'toolsed',false);
-     ToolsData2Inc:=ReadBool(sec_tools,'tooldata2inc',false);
-     ToolsDiff:=ReadBool(sec_tools,'tooldiff',false);
-     ToolsCmp:=ReadBool(sec_tools,'toolcmp',false);
-     ToolsUpx:=ReadBool(sec_tools,'toolupx',true);
-     ToolsDate:=ReadBool(sec_tools,'tooldate',true);
-     ToolsZip:=ReadBool(sec_tools,'toolzip',true);
-   { sections }
-     SectionInstall:=ReadBool(sec_sections,'install',true);
-     SectionZipInstall:=ReadBool(sec_sections,'zipinstall',true);
-     SectionClean:=ReadBool(sec_sections,'clean',true);
-     SectionInfo:=ReadBool(sec_sections,'info',true);
-     SectionTools:=ReadBool(sec_sections,'tools',true);
-     SectionLibs:=ReadBool(sec_sections,'libs',true);
-     SectionExts:=ReadBool(sec_sections,'exts',true);
-     SectionDirs:=ReadBool(sec_sections,'dirs',true);
-     SectionCompile:=ReadBool(sec_sections,'compile',true);
-     SectionDepend:=ReadBool(sec_sections,'depend',true);
-     SectionCommand:=ReadBool(sec_sections,'command',true);
-     SectionNone:=ReadBool(sec_sections,'none',false);
-     if SectionNone then
-      begin
-        SectionInstall:=false;
-        SectionZipInstall:=false;
-        SectionClean:=false;
-        SectionInfo:=false;
-        SectionTools:=false;
-        SectionLibs:=false;
-        SectionExts:=false;
-        SectionDirs:=false;
-        SectionCompile:=false;
-        SectionDepend:=false;
-        SectionCommand:=false;
-      end;
+     ToolsPPDep:=ReadBool(ini_tools,'toolppdep',true);
+     ToolsPPUMove:=ReadBool(ini_tools,'toolppumove',true);
+     ToolsPPUFiles:=ReadBool(ini_tools,'toolppufiles',true);
+     ToolsSed:=ReadBool(ini_tools,'toolsed',false);
+     ToolsData2Inc:=ReadBool(ini_tools,'tooldata2inc',false);
+     ToolsDiff:=ReadBool(ini_tools,'tooldiff',false);
+     ToolsCmp:=ReadBool(ini_tools,'toolcmp',false);
+     ToolsUpx:=ReadBool(ini_tools,'toolupx',true);
+     ToolsDate:=ReadBool(ini_tools,'tooldate',true);
+     ToolsZip:=ReadBool(ini_tools,'toolzip',true);
+   { sections, but allow overriding the 'none' option to include a few sects only }
+     for sec:=low(tsections) to high(tsections) do
+      Section[sec]:=sectiondef[sec];
+     Section[sec_None]:=ReadBool(ini_sections,sectionstr[sec_none],sectiondef[sec_none]);
+     if Section[sec_None] then
+      FillChar(Section,sizeof(Section),0);
+     for sec:=low(tsections) to high(tsections) do
+      Section[sec]:=ReadBool(ini_sections,sectionstr[sec],section[sec]);
+     { turn on needed sections }
+     if not TargetStringEmpty(TargetLoaders) then
+      userini.section[sec_loaders]:=true;
+     if not TargetStringEmpty(TargetUnits) then
+      userini.section[sec_units]:=true;
+     if not TargetStringEmpty(TargetPrograms) then
+      userini.section[sec_exes]:=true;
+     if not TargetStringEmpty(TargetExamples) then
+      userini.section[sec_examples]:=true;
    { info }
-     InfoCfg:=ReadBool(sec_info,'infoconfig',true);
-     InfoDirs:=ReadBool(sec_info,'infodirs',false);
-     InfoTools:=ReadBool(sec_info,'infotools',false);
-     InfoInstall:=ReadBool(sec_info,'infoinstall',true);
-     InfoObjects:=ReadBool(sec_info,'infoobjects',true);
+     InfoCfg:=ReadBool(ini_info,'infoconfig',true);
+     InfoDirs:=ReadBool(ini_info,'infodirs',false);
+     InfoTools:=ReadBool(ini_info,'infotools',false);
+     InfoInstall:=ReadBool(ini_info,'infoinstall',true);
+     InfoObjects:=ReadBool(ini_info,'infoobjects',true);
    { rules }
      PreSettings:=TStringList.Create;
      ReadSectionRaw('presettings',PreSettings);
@@ -367,6 +405,13 @@ var
      end;
   end;
 
+  procedure AddHead(const s:string);
+  begin
+    mf.Add('');
+    mf.Add('# '+s);
+    mf.Add('');
+  end;
+
   procedure AddSection(b:boolean;s:string);
   begin
     if b then
@@ -378,48 +423,72 @@ var
      end;
   end;
 
-  procedure AddRule(s:string);
+  procedure AddRule(rule:integer);
   var
     i : integer;
+    hs : string;
   begin
     i:=0;
     while (i<userini.rules.Count) do
      begin
-       if (userini.rules[i]<>'') and
-          (userini.rules[i][1]=s[1]) and
-          (Copy(userini.rules[i],1,length(s))=s) then
+       if (length(userini.rules[i])>length(rulestr[rule])) and
+          (userini.rules[i][1]=rulestr[rule][1]) and
+	  ((userini.rules[i][length(rulestr[rule])+1]=':') or
+	   ((length(userini.rules[i])>length(rulestr[rule])+1) and
+	    (userini.rules[i][length(rulestr[rule])+2]=':'))) and
+          (Copy(userini.rules[i],1,length(rulestr[rule]))=rulestr[rule]) then
          exit;
        inc(i);
      end;
-    mf.Add(s+': fpc_'+s);
-    mf.Add('');
+    hs:='';
+    if userini.section[rule2sec[rule]] then
+     hs:=hs+' fpc_'+rulestr[rule];
+    if not TargetStringEmpty(userini.targetdirs) then
+     hs:=hs+' $(addsuffix _'+rulestr[rule]+',$(DIROBJECTS))';
+    if hs<>'' then
+     begin
+       mf.Add(rulestr[rule]+':'+hs);
+       mf.Add('');
+     end;
   end;
 
-  procedure AddTargets(const pre:string;var t:TTargetsString);
+  procedure AddTargets(const pre:string;var t:TTargetsString;wildcard:boolean);
   var
     i : integer;
   begin
-    if t[0]<>'' then
-     mf.Add(pre+'='+t[0]);
-    for i:=1to targets do
+    for i:=0 to targets do
      if (t[i]<>'') then
       begin
-        mf.Add('ifeq ($(OS_TARGET),'+targetstr[i]+')');
+        if i<>0 then
+         mf.Add('ifeq ($(OS_TARGET),'+targetstr[i]+')');
         if t[i]<>'' then
-         mf.Add(pre+'+='+t[i]);
-        mf.Add('endif');
+         begin
+           if wildcard then
+            mf.Add(pre+'+=$(wildcard '+t[i]+')')
+           else
+            mf.Add(pre+'+='+t[i]);
+         end;
+        if i<>0 then
+         mf.Add('endif');
       end;
   end;
 
-  procedure AddHead(const s:string);
+  procedure AddTargetDir(const s:string);
+  var
+    j : integer;
   begin
-    mf.Add('');
-    mf.Add('# '+s);
-    mf.Add('');
+    AddHead('Dir '+s);
+    for j:=1to rules do
+     begin
+       mf.Add(s+'_'+rulestr[j]+':');
+       mf.Add(#9+'$(MAKE) -C '+s+' '+rulestr[j]);
+       mf.Add('');
+     end;
   end;
 
 var
   hs : string;
+  i,j : integer;
 begin
 { Open the Makefile }
   Verbose('Creating Makefile');
@@ -465,29 +534,31 @@ begin
 
    { Targets }
      AddHead('Targets');
-     AddTargets('LOADEROBJECTS',userini.targetloaders);
-     AddTargets('UNITOBJECTS',userini.targetunits);
-     AddTargets('EXEOBJECTS',userini.targetprograms);
+     AddTargets('DIROBJECTS',userini.targetdirs,true);
+     AddTargets('LOADEROBJECTS',userini.targetloaders,false);
+     AddTargets('UNITOBJECTS',userini.targetunits,false);
+     AddTargets('EXEOBJECTS',userini.targetprograms,false);
+     AddTargets('EXAMPLEOBJECTS',userini.targetexamples,false);
 
    { Clean }
      AddHead('Clean');
-     AddTargets('EXTRACLEANUNITS',userini.cleanunits);
-     AddTargets('EXTRACLEANFILES',userini.cleanfiles);
+     AddTargets('EXTRACLEANUNITS',userini.cleanunits,false);
+     AddTargets('EXTRACLEANFILES',userini.cleanfiles,false);
 
    { Install }
      AddHead('Install');
-     AddTargets('EXTRAINSTALLUNITS',userini.installunits);
-     AddTargets('EXTRAINSTALLFILES',userini.installfiles);
+     AddTargets('EXTRAINSTALLUNITS',userini.installunits,false);
+     AddTargets('EXTRAINSTALLFILES',userini.installfiles,false);
 
    { Defaults }
      AddHead('Defaults');
-     if userini.defaultunits then
-      Add('DEFAULTUNITS=1');
      if userini.defaultoptions<>'' then
       Add('override NEEDOPT='+userini.defaultoptions);
 
    { Dirs }
      AddHead('Directories');
+     if userini.dirsources<>'' then
+      Add('vpath %$(PASEXT) '+userini.dirsources);
      if userini.dirfpc<>'' then
       begin
         { this dir can be set in the environment, it's more a default }
@@ -544,7 +615,7 @@ begin
       Add('override NEEDOTHERLIB=1');
 
    { Info }
-     if userini.SectionInfo then
+     if userini.Section[sec_Info] then
       begin
         AddHead('Info');
         hs:='';
@@ -571,7 +642,7 @@ begin
      Add('');
 
    { write dirs }
-     if userini.sectiondirs then
+     if userini.section[sec_dirs] then
       begin
         AddSection(true,'dir_default');
         AddSection(userini.libgcc,'dir_gcclib');
@@ -580,12 +651,11 @@ begin
       end;
 
    { commandline }
-     if userini.sectioncommand then
+     if userini.section[sec_command] then
       begin
         Add('');
         AddSection(true,'command_begin');
-        AddSection(true,'command_rtl');
-        AddSection(true,'command_needopt');
+        AddSection((userini.defaultoptions<>''),'command_needopt');
         AddSection((userini.dirfpc<>''),'command_fpcdir');
         AddSection((userini.dirunit<>'') or (userini.packages<>'') or (userini.packagefcl),'command_needunit');
         AddSection((userini.dirlib<>''),'command_needlib');
@@ -596,12 +666,11 @@ begin
         AddSection((userini.dirinc<>''),'command_inc');
         AddSection((userini.dirtarget<>''),'command_target');
         AddSection((userini.dirunittarget<>''),'command_unittarget');
-        AddSection(true,'command_smartlink');
         AddSection(true,'command_end');
       end;
 
    { write tools }
-     if userini.sectiontools then
+     if userini.section[sec_tools] then
       begin
         AddSection(true,'shelltools');
         AddSection(true,'tool_default');
@@ -618,37 +687,27 @@ begin
       end;
 
    { extensions }
-     if userini.sectionexts then
+     if userini.section[sec_exts] then
       AddSection(true,'extensions');
 
    { add default rules }
      AddSection(true,'defaultrules');
-     AddRule('all');
-     AddRule('smart');
-     AddRule('shared');
-     AddRule('showinstall');
-     AddRule('install');
-     AddRule('zipinstall');
-     AddRule('zipinstalladd');
-     AddRule('clean');
-     AddRule('clean_all');
-     AddRule('depend');
-     AddRule('info');
+     for i:=1 to rules do
+      AddRule(i);
 
+   { compile rules for making units/loaders/exes/examples }
+     AddSection(not TargetStringEmpty(userini.targetunits),'unitrules');
+     AddSection(not TargetStringEmpty(userini.targetprograms),'exerules');
+     AddSection(not TargetStringEmpty(userini.targetloaders),'loaderrules');
+     AddSection(not TargetStringEmpty(userini.targetexamples),'examplerules');
    { default fpc_ rules }
-     if userini.SectionCompile then
-      AddSection(true,'compilerules');
-     if userini.SectionLibs then
-      AddSection(true,'libraryrules');
-     if userini.SectionInstall then
-      AddSection(true,'installrules');
-     if userini.SectionZipInstall then
-      AddSection(true,'zipinstallrules');
-     if userini.SectionClean then
-      AddSection(true,'cleanrules');
-     if userini.SectionDepend then
-      AddSection(true,'dependrules');
-     if userini.SectionInfo then
+     AddSection(userini.Section[sec_Compile],'compilerules');
+     AddSection(userini.Section[sec_Libs],'libraryrules');
+     AddSection(userini.Section[sec_Install],'installrules');
+     AddSection(userini.Section[sec_ZipInstall],'zipinstallrules');
+     AddSection(userini.Section[sec_Clean],'cleanrules');
+     AddSection(userini.Section[sec_Depend],'dependrules');
+     if userini.Section[sec_Info] then
       begin
         AddSection(true,'inforules');
         AddSection(userini.infocfg,'info_cfg');
@@ -656,6 +715,27 @@ begin
         AddSection(userini.infotools,'info_tools');
         AddSection(userini.infoobjects,'info_objects');
         AddSection(userini.infoinstall,'info_install');
+      end;
+
+   { Target dirs }
+     if not TargetStringEmpty(userini.targetdirs) then
+      begin
+        for j:=0 to targets do
+         if (userini.targetdirs[j]<>'') then
+          begin
+            if j<>0 then
+             mf.Add('ifeq ($(OS_TARGET),'+targetstr[j]+')');
+            hs:=userini.targetdirs[j];
+            repeat
+              i:=pos(' ',hs);
+              if i=0 then
+               i:=length(hs)+1;
+              AddTargetDir(Copy(hs,1,i-1));
+              system.delete(hs,1,i);
+            until hs='';
+            if j<>0 then
+             mf.Add('endif');
+          end;
       end;
 
    { insert users rules }
@@ -694,7 +774,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  1999-11-23 09:43:35  peter
+  Revision 1.8  1999-11-24 23:53:00  peter
+    * packages
+    * lot of other changes
+
+  Revision 1.7  1999/11/23 09:43:35  peter
     + internal .ini file
     + packages support
     * ppufiles,data2inc support
