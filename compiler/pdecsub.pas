@@ -341,7 +341,8 @@ implementation
          exit;
         with tvarsym(p) do
          begin
-           if paramanager.push_addr_param(varspez,vartype.def,tprocdef(arg).proccalloption) then
+           if not vartype.def.needs_inittable and
+              paramanager.push_addr_param(varspez,vartype.def,tprocdef(arg).proccalloption) then
              varregable:=vr_intreg;
          end;
       end;
@@ -2266,7 +2267,11 @@ const
 end.
 {
   $Log$
-  Revision 1.194  2004-10-15 09:14:17  mazen
+  Revision 1.195  2004-10-24 11:44:28  peter
+    * small regvar fixes
+    * loadref parameter removed from concatcopy,incrrefcount,etc
+
+  Revision 1.194  2004/10/15 09:14:17  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 

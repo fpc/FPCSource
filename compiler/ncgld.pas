@@ -419,7 +419,10 @@ implementation
              useless for string constants}
            if (right.resulttype.def.needs_inittable) and
               (right.nodetype<>stringconstn) then
-            cg.g_incrrefcount(exprasmlist,right.resulttype.def,right.location.reference,false);
+            begin
+              location_get_data_ref(exprasmlist,right.location,href,false);
+              cg.g_incrrefcount(exprasmlist,right.resulttype.def,href);
+            end;
            if codegenerror then
              exit;
 
@@ -433,7 +436,10 @@ implementation
               secondpass(left);
               { decrement destination reference counter }
               if (left.resulttype.def.needs_inittable) then
-               cg.g_decrrefcount(exprasmlist,left.resulttype.def,left.location.reference,false);
+                begin
+                  location_get_data_ref(exprasmlist,left.location,href,false);
+                  cg.g_decrrefcount(exprasmlist,left.resulttype.def,href);
+                end;
               if codegenerror then
                 exit;
             end;
@@ -443,14 +449,17 @@ implementation
            { calculate left sides }
            { don't do it yet if it's a crgister (JM) }
            if not(nf_concat_string in flags) then
-            begin
-              secondpass(left);
-              { decrement destination reference counter }
-              if (left.resulttype.def.needs_inittable) then
-               cg.g_decrrefcount(exprasmlist,left.resulttype.def,left.location.reference,false);
-              if codegenerror then
-               exit;
-            end;
+             begin
+               secondpass(left);
+               { decrement destination reference counter }
+               if (left.resulttype.def.needs_inittable) then
+                 begin
+                   location_get_data_ref(exprasmlist,left.location,href,false);
+                   cg.g_decrrefcount(exprasmlist,left.resulttype.def,href);
+                 end;
+               if codegenerror then
+                 exit;
+             end;
 
            { left can't be never a 64 bit LOC_REGISTER, so the 3. arg }
            { can be false                                             }
@@ -459,7 +468,10 @@ implementation
              useless for string constants}
            if (right.resulttype.def.needs_inittable) and
               (right.nodetype<>stringconstn) then
-            cg.g_incrrefcount(exprasmlist,right.resulttype.def,right.location.reference,false);
+             begin
+               location_get_data_ref(exprasmlist,right.location,href,false);
+               cg.g_incrrefcount(exprasmlist,right.resulttype.def,href);
+             end;
 
            if codegenerror then
              exit;
@@ -576,11 +588,9 @@ implementation
                         len:=left.resulttype.def.size;
                         if (right.location.reference.offset mod sizeof(aint)<>0) and
                            (len>sizeof(aint)) then
-                          cg.g_concatcopy_unaligned(exprasmlist,right.location.reference,
-                              left.location.reference,len,false)
+                          cg.g_concatcopy_unaligned(exprasmlist,right.location.reference,left.location.reference,len)
                         else
-                          cg.g_concatcopy(exprasmlist,right.location.reference,
-                              left.location.reference,len,false);
+                          cg.g_concatcopy(exprasmlist,right.location.reference,left.location.reference,len);
                       end;
                     else
                       internalerror(200203284);
@@ -892,9 +902,9 @@ implementation
                      begin
                        if is_shortstring(hp.left.resulttype.def) then
                          cg.g_copyshortstring(exprasmlist,hp.left.location.reference,href,
-                                              Tstringdef(hp.left.resulttype.def).len,false)
+                             Tstringdef(hp.left.resulttype.def).len)
                        else
-                         cg.g_concatcopy(exprasmlist,hp.left.location.reference,href,elesize,false);
+                         cg.g_concatcopy(exprasmlist,hp.left.location.reference,href,elesize);
                      end;
                    else
                      begin
@@ -923,7 +933,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.127  2004-10-10 20:21:18  peter
+  Revision 1.128  2004-10-24 11:44:28  peter
+    * small regvar fixes
+    * loadref parameter removed from concatcopy,incrrefcount,etc
+
+  Revision 1.127  2004/10/10 20:21:18  peter
     * passing a var parameter to var parameter is now also allowed
       for register locations (=regvars)
 

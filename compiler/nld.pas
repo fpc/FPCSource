@@ -280,9 +280,15 @@ implementation
                        { reference in nested procedures, variable needs to be in memory }
                        make_not_regable(self);
                      end;
-                   { static variables referenced in procedures, variable needs to be in memory }
+                   { static variables referenced in procedures or from finalization,
+                     variable needs to be in memory.
+                     It is too hard and the benefit is too small to detect whether a
+                     variable is only used in the finalization to add support for it (PFV) }
                    if (symtable.symtabletype=staticsymtable) and
-                      (symtable.symtablelevel<>current_procinfo.procdef.localst.symtablelevel) then
+                      (
+                       (symtable.symtablelevel<>current_procinfo.procdef.localst.symtablelevel) or
+                       (current_procinfo.procdef.proctypeoption=potype_unitfinalize)
+                      ) then
                      make_not_regable(self);
                  end;
                { fix self type which is declared as voidpointer in the
@@ -1166,7 +1172,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.134  2004-10-12 14:35:14  peter
+  Revision 1.135  2004-10-24 11:44:28  peter
+    * small regvar fixes
+    * loadref parameter removed from concatcopy,incrrefcount,etc
+
+  Revision 1.134  2004/10/12 14:35:14  peter
     * fixed crash when current_procinfo was not yet available
 
   Revision 1.133  2004/10/11 15:48:15  peter

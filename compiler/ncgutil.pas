@@ -49,6 +49,10 @@ interface
     procedure location_force_mem(list:TAAsmoutput;var l:tlocation);
     procedure location_force_mmregscalar(list:TAAsmoutput;var l: tlocation;maybeconst:boolean);
 
+    { Retrieve the location of the data pointed to in location l, when the location is
+      a register it is expected to contain the address of the data }
+    procedure location_get_data_ref(list:TAAsmoutput;const l:tlocation;var ref:treference;loadref:boolean);
+
     function  maybe_pushfpu(list:taasmoutput;needed : byte;var l:tlocation) : boolean;
 
     procedure gen_proc_symbol(list:Taasmoutput);
@@ -92,7 +96,7 @@ interface
 
     procedure get_exception_temps(list:taasmoutput;var t:texceptiontemps);
     procedure unget_exception_temps(list:taasmoutput;const t:texceptiontemps);
-    procedure new_exception(list:TAAsmoutput;const t:texceptiontemps;a:aint;exceptlabel:tasmlabel);
+    procedure new_exception(list:TAAsmoutput;const t:texceptiontemps;exceptlabel:tasmlabel);
     procedure free_exception(list:TAAsmoutput;const t:texceptiontemps;a:aint;endexceptlabel:tasmlabel;onlyfree:boolean);
 
     procedure insertconstdata(sym : ttypedconstsym);
@@ -282,7 +286,7 @@ implementation
       end;
 
 
-    procedure new_exception(list:TAAsmoutput;const t:texceptiontemps;a:aint;exceptlabel:tasmlabel);
+    procedure new_exception(list:TAAsmoutput;const t:texceptiontemps;exceptlabel:tasmlabel);
       var
         paraloc1,paraloc2,paraloc3 : tcgpara;
       begin
@@ -659,6 +663,33 @@ implementation
       end;
 
 
+    procedure location_get_data_ref(list:TAAsmoutput;const l:tlocation;var ref:treference;loadref:boolean);
+      begin
+        case l.loc of
+          LOC_REGISTER,
+          LOC_CREGISTER :
+            begin
+              if not loadref then
+                internalerror(200410231);
+              reference_reset_base(ref,l.register,0);
+            end;
+          LOC_REFERENCE,
+          LOC_CREFERENCE :
+            begin
+              if loadref then
+                begin
+                  reference_reset_base(ref,cg.getaddressregister(list),0);
+                  cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,l.reference,ref.base);
+                end
+              else
+                ref:=l.reference;
+            end;
+          else
+            internalerror(200309181);
+        end;
+      end;
+
+
 {*****************************************************************************
                                   Maybe_Save
 *****************************************************************************}
@@ -686,11 +717,11 @@ implementation
 
     procedure copyvalueparas(p : tnamedindexitem;arg:pointer);
       var
-        href1 : treference;
-        list:TAAsmoutput;
+        href : treference;
+        hreg : tregister;
+        list : TAAsmoutput;
         hsym : tvarsym;
         l    : longint;
-        loadref : boolean;
         localcopyloc : tlocation;
       begin
         list:=taasmoutput(arg);
@@ -698,18 +729,7 @@ implementation
            (tvarsym(p).varspez=vs_value) and
            (paramanager.push_addr_param(tvarsym(p).varspez,tvarsym(p).vartype.def,current_procinfo.procdef.proccalloption)) then
          begin
-           loadref:=true;
-           case tvarsym(p).localloc.loc of
-             LOC_CREGISTER :
-               begin
-                 reference_reset_base(href1,tvarsym(p).localloc.register,0);
-                 loadref:=false;
-               end;
-             LOC_REFERENCE :
-               href1:=tvarsym(p).localloc.reference;
-             else
-               internalerror(200309181);
-           end;
+           location_get_data_ref(list,tvarsym(p).localloc,href,true);
            if is_open_array(tvarsym(p).vartype.def) or
               is_array_of_const(tvarsym(p).vartype.def) then
             begin
@@ -720,7 +740,9 @@ implementation
                   hsym:=tvarsym(tsym(p).owner.search('high'+p.name));
                   if not assigned(hsym) then
                     internalerror(200306061);
-                  cg.g_copyvaluepara_openarray(list,href1,hsym.localloc,tarraydef(tvarsym(p).vartype.def).elesize,loadref);
+                  hreg:=cg.getaddressregister(list);
+                  cg.g_copyvaluepara_openarray(list,href,hsym.localloc,tarraydef(tvarsym(p).vartype.def).elesize,hreg);
+                  cg.a_load_reg_loc(list,OS_ADDR,hreg,tvarsym(p).localloc);
                 end;
             end
            else
@@ -737,10 +759,10 @@ implementation
                     so we're allowed to include pi_do_call here; after pass1 is run, this isn't allowed anymore
                   }
                   include(current_procinfo.flags,pi_do_call);
-                  cg.g_copyshortstring(list,href1,localcopyloc.reference,tstringdef(tvarsym(p).vartype.def).len,loadref)
+                  cg.g_copyshortstring(list,href,localcopyloc.reference,tstringdef(tvarsym(p).vartype.def).len)
                 end
               else
-                cg.g_concatcopy(list,href1,localcopyloc.reference,tvarsym(p).vartype.def.size,loadref);
+                cg.g_concatcopy(list,href,localcopyloc.reference,tvarsym(p).vartype.def.size);
               { update localloc of varsym }
               tg.Ungetlocal(list,tvarsym(p).localloc.reference);
               tvarsym(p).localloc:=localcopyloc;
@@ -751,9 +773,6 @@ implementation
 
     { initializes the regvars from staticsymtable with 0 }
     procedure initialize_regvars(p : tnamedindexitem;arg:pointer);
-      var
-        oldexprasmlist : TAAsmoutput;
-        hp : tnode;
       begin
         if (tsym(p).typ=varsym) then
          begin
@@ -893,7 +912,7 @@ implementation
       var
         href : treference;
         tmpreg : tregister;
-        list:TAAsmoutput;
+        list : TAAsmoutput;
       begin
         list:=taasmoutput(arg);
         if (tsym(p).typ=varsym) and
@@ -903,16 +922,15 @@ implementation
            case tvarsym(p).varspez of
              vs_value :
                begin
-                 if tvarsym(p).localloc.loc<>LOC_REFERENCE then
-                   internalerror(200309187);
-                 cg.g_incrrefcount(list,tvarsym(p).vartype.def,tvarsym(p).localloc.reference,is_open_array(tvarsym(p).vartype.def));
+                 location_get_data_ref(list,tvarsym(p).localloc,href,is_open_array(tvarsym(p).vartype.def));
+                 cg.g_incrrefcount(list,tvarsym(p).vartype.def,href);
                end;
              vs_out :
                begin
                  tmpreg:=cg.getaddressregister(list);
                  cg.a_load_loc_reg(list,OS_ADDR,tvarsym(p).localloc,tmpreg);
                  reference_reset_base(href,tmpreg,0);
-                 cg.g_initialize(list,tvarsym(p).vartype.def,href,false);
+                 cg.g_initialize(list,tvarsym(p).vartype.def,href);
                end;
            end;
          end;
@@ -922,19 +940,20 @@ implementation
     { generates the code for decrementing the reference count of parameters }
     procedure final_paras(p : tnamedindexitem;arg:pointer);
       var
-        list:TAAsmoutput;
+        list : TAAsmoutput;
+        href : treference;
       begin
         list:=taasmoutput(arg);
         if (tsym(p).typ=varsym) and
            not is_class_or_interface(tvarsym(p).vartype.def) and
            tvarsym(p).vartype.def.needs_inittable then
          begin
+           location_get_data_ref(list,tvarsym(p).localloc,href,is_open_array(tvarsym(p).vartype.def));
            if (tvarsym(p).varspez=vs_value) then
             begin
               include(current_procinfo.flags,pi_needs_implicit_finally);
-              if tvarsym(p).localloc.loc<>LOC_REFERENCE then
-                internalerror(200309188);
-              cg.g_decrrefcount(list,tvarsym(p).vartype.def,tvarsym(p).localloc.reference,is_open_array(tvarsym(p).vartype.def));
+              location_get_data_ref(list,tvarsym(p).localloc,href,is_open_array(tvarsym(p).vartype.def));
+              cg.g_decrrefcount(list,tvarsym(p).vartype.def,href);
             end;
          end
         else if (tsym(p).typ=varsym) and
@@ -963,7 +982,7 @@ implementation
               hp^.def.needs_inittable then
             begin
               reference_reset_base(href,current_procinfo.framepointer,hp^.pos);
-              cg.g_initialize(list,hp^.def,href,false);
+              cg.g_initialize(list,hp^.def,href);
             end;
            hp:=hp^.next;
          end;
@@ -983,7 +1002,7 @@ implementation
             begin
               include(current_procinfo.flags,pi_needs_implicit_finally);
               reference_reset_base(href,current_procinfo.framepointer,hp^.pos);
-              cg.g_finalize(list,hp^.def,href,false);
+              cg.g_finalize(list,hp^.def,href);
             end;
            hp:=hp^.next;
          end;
@@ -1214,7 +1233,7 @@ implementation
                   { use concatcopy, because it can also be a float which fails when
                     load_ref_ref is used. Don't copy data when the references are equal }
                   if not((href.base=ref.base) and (href.offset=ref.offset)) then
-                    cg.g_concatcopy(list,href,ref,tcgsize2size[paraloc.size],false);
+                    cg.g_concatcopy(list,href,ref,tcgsize2size[paraloc.size]);
                 end;
               else
                 internalerror(2002081302);
@@ -1376,11 +1395,15 @@ implementation
                 if assigned(current_module.globalsymtable) then
                   tsymtable(current_module.globalsymtable).foreach_static({$ifndef TP}@{$endif}initialize_data,list);
                 tsymtable(current_module.localsymtable).foreach_static({$ifndef TP}@{$endif}initialize_data,list);
+                tsymtable(current_module.localsymtable).foreach_static({$ifndef TP}@{$endif}initialize_regvars,list);
              end;
            { units have seperate code for initilization and finalization }
            potype_unitfinalize: ;
            { program init/final is generated in separate procedure }
-           potype_proginit: ;
+           potype_proginit:
+             begin
+               tsymtable(current_module.localsymtable).foreach_static({$ifndef TP}@{$endif}initialize_regvars,list);
+             end;
            else
              current_procinfo.procdef.localst.foreach_static({$ifndef TP}@{$endif}initialize_data,list);
         end;
@@ -1390,10 +1413,6 @@ implementation
 
         { initialize ansi/widesstring para's }
         current_procinfo.procdef.parast.foreach_static({$ifndef TP}@{$endif}init_paras,list);
-
-        { initialize regvars in staticsymtable with 0, like .bss }
-        if current_procinfo.procdef.localst.symtabletype=staticsymtable then
-          current_procinfo.procdef.localst.foreach_static({$ifndef TP}@{$endif}initialize_regvars,list);
 
 {$ifdef OLDREGVARS}
         load_regvars(list,nil);
@@ -2218,7 +2237,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.229  2004-10-15 09:14:17  mazen
+  Revision 1.230  2004-10-24 11:44:28  peter
+    * small regvar fixes
+    * loadref parameter removed from concatcopy,incrrefcount,etc
+
+  Revision 1.229  2004/10/15 09:14:17  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 

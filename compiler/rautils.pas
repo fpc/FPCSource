@@ -858,6 +858,8 @@ Begin
         { that the variable is valid.                 }
         tvarsym(sym).varstate:=vs_used;
         inc(tvarsym(sym).refs);
+        { variable can't be placed in a register }
+        tvarsym(sym).varregable:=vr_none;
         case tvarsym(sym).owner.symtabletype of
           objectsymtable :
             begin
@@ -903,8 +905,6 @@ Begin
                      (current_procinfo.procdef.localst.symtablelevel>normal_function_level) and
                      symtable_has_varsyms(current_procinfo.procdef.localst) then
                     message1(asmr_e_local_para_unreachable,s);
-                  { variable can't be placed in a register anymore }
-                  tvarsym(sym).varregable:=vr_none;
                   opr.localsym:=tvarsym(sym);
                   opr.localsymofs:=0;
                   opr.localindexreg:=indexreg;
@@ -1664,7 +1664,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.91  2004-10-15 09:14:17  mazen
+  Revision 1.92  2004-10-24 11:44:28  peter
+    * small regvar fixes
+    * loadref parameter removed from concatcopy,incrrefcount,etc
+
+  Revision 1.91  2004/10/15 09:14:17  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 

@@ -102,7 +102,7 @@ unit cgx86;
         procedure g_flags2reg(list: taasmoutput; size: TCgSize; const f: tresflags; reg: TRegister); override;
         procedure g_flags2ref(list: taasmoutput; size: TCgSize; const f: tresflags; const ref: TReference); override;
 
-        procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aint; loadref : boolean);override;
+        procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aint);override;
 
         { entry/exit code helpers }
         procedure g_releasevaluepara_openarray(list : taasmoutput;const ref:treference);override;
@@ -1268,7 +1268,7 @@ unit cgx86;
 
 { ************* concatcopy ************ }
 
-    procedure Tcgx86.g_concatcopy(list:Taasmoutput;const source,dest:Treference;len:aint;loadref:boolean);
+    procedure Tcgx86.g_concatcopy(list:Taasmoutput;const source,dest:Treference;len:aint);
 
     const
 {$ifdef cpu64bit}
@@ -1303,8 +1303,6 @@ unit cgx86;
         cm:=copy_string;
       if (cs_littlesize in aktglobalswitches) and
          not((len<=16) and (cm=copy_mmx)) then
-        cm:=copy_string;
-      if loadref then
         cm:=copy_string;
       case cm of
         copy_move:
@@ -1384,10 +1382,7 @@ unit cgx86;
             getcpuregister(list,REGDI);
             a_loadaddr_ref_reg(list,dest,REGDI);
             getcpuregister(list,REGSI);
-            if loadref then
-              a_load_ref_reg(list,OS_ADDR,OS_ADDR,source,REGSI)
-            else
-              a_loadaddr_ref_reg(list,source,REGSI);
+            a_loadaddr_ref_reg(list,source,REGSI);
 
             getcpuregister(list,REGCX);
 
@@ -1679,7 +1674,11 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.129  2004-10-06 19:27:35  jonas
+  Revision 1.130  2004-10-24 11:44:28  peter
+    * small regvar fixes
+    * loadref parameter removed from concatcopy,incrrefcount,etc
+
+  Revision 1.129  2004/10/06 19:27:35  jonas
     * regvar fixes from Peter
 
   Revision 1.128  2004/10/05 20:41:02  peter

@@ -928,7 +928,7 @@ implementation
          objectlibrary.getlabel(lastonlabel);
 
          get_exception_temps(exprasmlist,excepttemps);
-         new_exception(exprasmlist,excepttemps,1,exceptlabel);
+         new_exception(exprasmlist,excepttemps,exceptlabel);
 
          { try block }
          { set control flow labels for the try block }
@@ -988,7 +988,7 @@ implementation
               objectlibrary.getlabel(doobjectdestroyandreraise);
 
               get_exception_temps(exprasmlist,destroytemps);
-              new_exception(exprasmlist,destroytemps,1,doobjectdestroyandreraise);
+              new_exception(exprasmlist,destroytemps,doobjectdestroyandreraise);
 
               { here we don't have to reset flowcontrol           }
               { the default and on flowcontrols are handled equal }
@@ -1176,7 +1176,7 @@ implementation
 
          { call setjmp, and jump to finally label on non-zero result }
          get_exception_temps(exprasmlist,excepttemps);
-         new_exception(exprasmlist,excepttemps,1,doobjectdestroyandreraise);
+         new_exception(exprasmlist,excepttemps,doobjectdestroyandreraise);
 
          oldaktbreaklabel:=nil;
          oldaktcontinuelabel:=nil;
@@ -1326,7 +1326,7 @@ implementation
 
          { call setjmp, and jump to finally label on non-zero result }
          get_exception_temps(exprasmlist,excepttemps);
-         new_exception(exprasmlist,excepttemps,1,finallylabel);
+         new_exception(exprasmlist,excepttemps,finallylabel);
 
          { try code }
          if assigned(left) then
@@ -1443,7 +1443,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.100  2004-09-26 17:45:30  peter
+  Revision 1.101  2004-10-24 11:44:28  peter
+    * small regvar fixes
+    * loadref parameter removed from concatcopy,incrrefcount,etc
+
+  Revision 1.100  2004/09/26 17:45:30  peter
     * simple regvar support, not yet finished
 
   Revision 1.99  2004/09/25 14:23:54  peter

@@ -46,7 +46,7 @@ unit cgcpu;
         procedure g_save_all_registers(list : taasmoutput);override;
         procedure g_restore_all_registers(list : taasmoutput;const funcretparaloc:tcgpara);override;
         procedure g_proc_exit(list : taasmoutput;parasize:longint;nostackframe:boolean);override;
-        procedure g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;const lenloc:tlocation;elesize:aint;loadref:boolean);override;
+        procedure g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;const lenloc:tlocation;elesize:aint;destreg:tregister);override;
 
         procedure g_exception_reason_save(list : taasmoutput; const href : treference);override;
         procedure g_exception_reason_save_const(list : taasmoutput; const href : treference; a: aint);override;
@@ -296,7 +296,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcg386.g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;const lenloc:tlocation;elesize:aint;loadref:boolean);
+    procedure tcg386.g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;const lenloc:tlocation;elesize:aint;destreg:tregister);
       var
         power,len  : longint;
         opsize : topsize;
@@ -363,14 +363,7 @@ unit cgcpu;
         a_load_loc_reg(list,OS_INT,lenloc,NR_ECX);
 
         { load source }
-        if loadref then
-          a_load_ref_reg(list,OS_INT,OS_INT,ref,NR_ESI)
-        else
-          begin
-            if (ref.index<>NR_NO) or (ref.offset<>0) then
-              internalerror(200410123);
-            a_load_reg_reg(list,OS_INT,OS_INT,ref.base,NR_ESI)
-          end;
+        a_loadaddr_ref_reg(list,ref,NR_ESI);
 
         { scheduled .... }
         list.concat(Taicpu.op_reg(A_INC,S_L,NR_ECX));
@@ -407,15 +400,9 @@ unit cgcpu;
         ungetcpuregister(list,NR_ECX);
         ungetcpuregister(list,NR_ESI);
 
-        { patch the new address }
-        if loadref then
-          a_load_reg_ref(list,OS_INT,OS_INT,NR_ESP,ref)
-        else
-          begin
-            { Don't use a_load_reg_reg, that will add a move instruction
-              that can confuse the reg allocator }
-            list.concat(Taicpu.Op_reg_reg(A_MOV,S_L,NR_ESP,ref.base));
-          end;
+        { patch the new address, but don't use a_load_reg_reg, that will add a move instruction
+          that can confuse the reg allocator }
+        list.concat(Taicpu.Op_reg_reg(A_MOV,S_L,NR_ESP,destreg));
       end;
 
 
@@ -571,7 +558,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.57  2004-10-15 09:16:21  mazen
+  Revision 1.58  2004-10-24 11:44:28  peter
+    * small regvar fixes
+    * loadref parameter removed from concatcopy,incrrefcount,etc
+
+  Revision 1.57  2004/10/15 09:16:21  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 

@@ -326,47 +326,38 @@ unit cgobj;
           procedure g_maybe_testself(list : taasmoutput;reg:tregister);
           procedure g_maybe_testvmt(list : taasmoutput;reg:tregister;objdef:tobjectdef);
           {# This should emit the opcode to copy len bytes from the source
-             to destination, if loadref is true, it assumes that it first must load
-             the source address from the memory location where
-             source points to.
+             to destination.
 
              It must be overriden for each new target processor.
 
              @param(source Source reference of copy)
              @param(dest Destination reference of copy)
-             @param(loadref Is the source reference a pointer to the actual source (TRUE), is it the actual source address (FALSE))
 
           }
-          procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aint;loadref : boolean);virtual; abstract;
+          procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aint);virtual; abstract;
           {# This should emit the opcode to copy len bytes from the an unaligned source
-             to destination, if loadref is true, it assumes that it first must load
-             the source address from the memory location where
-             source points to.
+             to destination.
 
              It must be overriden for each new target processor.
 
              @param(source Source reference of copy)
              @param(dest Destination reference of copy)
-             @param(loadref Is the source reference a pointer to the actual source (TRUE), is it the actual source address (FALSE))
 
           }
-          procedure g_concatcopy_unaligned(list : taasmoutput;const source,dest : treference;len : aint;loadref : boolean);virtual;
+          procedure g_concatcopy_unaligned(list : taasmoutput;const source,dest : treference;len : aint);virtual;
           {# This should emit the opcode to a shortrstring from the source
-             to destination, if loadref is true, it assumes that it first must load
-             the source address from the memory location where
-             source points to.
+             to destination.
 
              @param(source Source reference of copy)
              @param(dest Destination reference of copy)
-             @param(loadref Is the source reference a pointer to the actual source (TRUE), is it the actual source address (FALSE))
 
           }
-          procedure g_copyshortstring(list : taasmoutput;const source,dest : treference;len:byte;loadref : boolean);
+          procedure g_copyshortstring(list : taasmoutput;const source,dest : treference;len:byte);
 
-          procedure g_incrrefcount(list : taasmoutput;t: tdef; const ref: treference;loadref : boolean);
-          procedure g_decrrefcount(list : taasmoutput;t: tdef; const ref: treference;loadref : boolean);
-          procedure g_initialize(list : taasmoutput;t : tdef;const ref : treference;loadref : boolean);
-          procedure g_finalize(list : taasmoutput;t : tdef;const ref : treference;loadref : boolean);
+          procedure g_incrrefcount(list : taasmoutput;t: tdef; const ref: treference);
+          procedure g_decrrefcount(list : taasmoutput;t: tdef; const ref: treference);
+          procedure g_initialize(list : taasmoutput;t : tdef;const ref : treference);
+          procedure g_finalize(list : taasmoutput;t : tdef;const ref : treference);
 
           {# Generates range checking code. It is to note
              that this routine does not need to be overriden,
@@ -381,7 +372,7 @@ unit cgobj;
           procedure g_overflowcheck(list: taasmoutput; const Loc:tlocation; def:tdef); virtual;abstract;
           procedure g_overflowCheck_loc(List:TAasmOutput;const Loc:TLocation;def:TDef;ovloc : tlocation);virtual;
 
-          procedure g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;const lenloc:tlocation;elesize:aint;loadref:boolean);virtual;
+          procedure g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;const lenloc:tlocation;elesize:aint;destreg:tregister);virtual;
           procedure g_releasevaluepara_openarray(list : taasmoutput;const ref:treference);virtual;
 
           {# Emits instructions when compilation is done in profile
@@ -783,7 +774,7 @@ implementation
                  ref.offset:=paraloc.location^.reference.offset;
                  { use concatcopy, because it can also be a float which fails when
                    load_ref_ref is used }
-                 g_concatcopy(list,r,ref,tcgsize2size[size],false);
+                 g_concatcopy(list,r,ref,tcgsize2size[size]);
               end
             else
               internalerror(2002071004);
@@ -826,7 +817,7 @@ implementation
          if not(paraloc.location^.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
            internalerror(2003010901);
          reference_reset_base(ref,paraloc.location^.reference.index,paraloc.location^.reference.offset);
-         g_concatcopy(list,r,ref,size,false);
+         g_concatcopy(list,r,ref,size);
       end;
 
 
@@ -1024,7 +1015,7 @@ implementation
             begin
               reference_reset_base(href,paraloc.location^.reference.index,paraloc.location^.reference.offset);
               { concatcopy should choose the best way to copy the data }
-              g_concatcopy(list,ref,href,tcgsize2size[size],false);
+              g_concatcopy(list,ref,href,tcgsize2size[size]);
             end
           else
             internalerror(200402201);
@@ -1380,13 +1371,13 @@ implementation
       end;
 
 
-    procedure tcg.g_concatcopy_unaligned(list : taasmoutput;const source,dest : treference;len : aint;loadref : boolean);
+    procedure tcg.g_concatcopy_unaligned(list : taasmoutput;const source,dest : treference;len : aint);
       begin
-        g_concatcopy(list,source,dest,len,loadref);
+        g_concatcopy(list,source,dest,len);
       end;
 
 
-    procedure tcg.g_copyshortstring(list : taasmoutput;const source,dest : treference;len:byte;loadref : boolean);
+    procedure tcg.g_copyshortstring(list : taasmoutput;const source,dest : treference;len:byte);
       var
         paraloc1,paraloc2,paraloc3 : TCGPara;
       begin
@@ -1399,10 +1390,7 @@ implementation
         paramanager.allocparaloc(list,paraloc3);
         a_paramaddr_ref(list,dest,paraloc3);
         paramanager.allocparaloc(list,paraloc2);
-        if loadref then
-          a_param_ref(list,OS_ADDR,source,paraloc2)
-        else
-          a_paramaddr_ref(list,source,paraloc2);
+        a_paramaddr_ref(list,source,paraloc2);
         paramanager.allocparaloc(list,paraloc1);
         a_param_const(list,OS_INT,len,paraloc1);
         paramanager.freeparaloc(list,paraloc3);
@@ -1419,7 +1407,7 @@ implementation
       end;
 
 
-    procedure tcg.g_incrrefcount(list : taasmoutput;t: tdef; const ref: treference;loadref : boolean);
+    procedure tcg.g_incrrefcount(list : taasmoutput;t: tdef; const ref: treference);
       var
         href : treference;
         incrfunc : string;
@@ -1457,8 +1445,8 @@ implementation
          { call the special incr function or the generic addref }
          if incrfunc<>'' then
           begin
-            { these functions get the pointer by value }
             paramanager.allocparaloc(list,paraloc1);
+            { these functions get the pointer by value }
             a_param_ref(list,OS_ADDR,ref,paraloc1);
             paramanager.freeparaloc(list,paraloc1);
             alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
@@ -1471,10 +1459,7 @@ implementation
             paramanager.allocparaloc(list,paraloc2);
             a_paramaddr_ref(list,href,paraloc2);
             paramanager.allocparaloc(list,paraloc1);
-            if loadref then
-              a_param_ref(list,OS_ADDR,ref,paraloc1)
-            else
-              a_paramaddr_ref(list,ref,paraloc1);
+            a_paramaddr_ref(list,ref,paraloc1);
             paramanager.freeparaloc(list,paraloc1);
             paramanager.freeparaloc(list,paraloc2);
             alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
@@ -1486,9 +1471,8 @@ implementation
       end;
 
 
-    procedure tcg.g_decrrefcount(list : taasmoutput;t: tdef; const ref: treference; loadref:boolean);
+    procedure tcg.g_decrrefcount(list : taasmoutput;t: tdef; const ref: treference);
       var
-        hreg : tregister;
         href : treference;
         decrfunc : string;
         needrtti : boolean;
@@ -1535,10 +1519,7 @@ implementation
                a_paramaddr_ref(list,href,paraloc2);
              end;
             paramanager.allocparaloc(list,paraloc1);
-            if loadref then
-              a_param_ref(list,OS_ADDR,ref,paraloc1)
-            else
-              a_paramaddr_ref(list,ref,paraloc1);
+            a_paramaddr_ref(list,ref,paraloc1);
             paramanager.freeparaloc(list,paraloc1);
             if needrtti then
               paramanager.freeparaloc(list,paraloc2);
@@ -1552,10 +1533,7 @@ implementation
             paramanager.allocparaloc(list,paraloc2);
             a_paramaddr_ref(list,href,paraloc2);
             paramanager.allocparaloc(list,paraloc1);
-            if loadref then
-              a_param_ref(list,OS_ADDR,ref,paraloc1)
-            else
-              a_paramaddr_ref(list,ref,paraloc1);
+            a_paramaddr_ref(list,ref,paraloc1);
             paramanager.freeparaloc(list,paraloc1);
             paramanager.freeparaloc(list,paraloc2);
             alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
@@ -1564,23 +1542,13 @@ implementation
          end;
         { Temp locations need always to be reset to 0 }
         if tg.istemp(ref) then
-          begin
-            if loadref then
-              begin
-                hreg:=getaddressregister(list);
-                a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,hreg);
-                reference_reset_base(href,hreg,0);
-                a_load_const_ref(list,OS_ADDR,0,href);
-              end
-            else
-              a_load_const_ref(list,OS_ADDR,0,ref);
-          end;
+          a_load_const_ref(list,OS_ADDR,0,ref);
         paraloc2.done;
         paraloc1.done;
       end;
 
 
-    procedure tcg.g_initialize(list : taasmoutput;t : tdef;const ref : treference;loadref : boolean);
+    procedure tcg.g_initialize(list : taasmoutput;t : tdef;const ref : treference);
       var
          href : treference;
          paraloc1,paraloc2 : TCGPara;
@@ -1600,10 +1568,7 @@ implementation
               paramanager.allocparaloc(list,paraloc2);
               a_paramaddr_ref(list,href,paraloc2);
               paramanager.allocparaloc(list,paraloc1);
-              if loadref then
-                a_param_ref(list,OS_ADDR,ref,paraloc1)
-              else
-                a_paramaddr_ref(list,ref,paraloc1);
+              a_paramaddr_ref(list,ref,paraloc1);
               paramanager.freeparaloc(list,paraloc1);
               paramanager.freeparaloc(list,paraloc2);
               alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
@@ -1617,9 +1582,8 @@ implementation
       end;
 
 
-    procedure tcg.g_finalize(list : taasmoutput;t : tdef;const ref : treference;loadref : boolean);
+    procedure tcg.g_finalize(list : taasmoutput;t : tdef;const ref : treference);
       var
-         hreg : tregister;
          href : treference;
          paraloc1,paraloc2 : TCGPara;
       begin
@@ -1631,20 +1595,10 @@ implementation
             is_widestring(t) or
             is_interfacecom(t) then
            begin
-             g_decrrefcount(list,t,ref,loadref);
+             g_decrrefcount(list,t,ref);
              { Temp locations are already reset to 0 }
              if not tg.istemp(ref) then
-               begin
-                 if loadref then
-                   begin
-                     hreg:=getaddressregister(list);
-                     a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,hreg);
-                     reference_reset_base(href,hreg,0);
-                     a_load_const_ref(list,OS_ADDR,0,href);
-                   end
-                 else
-                   a_load_const_ref(list,OS_ADDR,0,ref);
-               end;
+                a_load_const_ref(list,OS_ADDR,0,ref);
            end
          else
            begin
@@ -1652,10 +1606,7 @@ implementation
               paramanager.allocparaloc(list,paraloc2);
               a_paramaddr_ref(list,href,paraloc2);
               paramanager.allocparaloc(list,paraloc1);
-              if loadref then
-                a_param_ref(list,OS_ADDR,ref,paraloc1)
-              else
-                a_paramaddr_ref(list,ref,paraloc1);
+              a_paramaddr_ref(list,ref,paraloc1);
               paramanager.freeparaloc(list,paraloc1);
               paramanager.freeparaloc(list,paraloc2);
               alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
@@ -1885,9 +1836,9 @@ implementation
                             Entry/Exit Code Functions
 *****************************************************************************}
 
-    procedure tcg.g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;const lenloc:tlocation;elesize:aint;loadref:boolean);
+    procedure tcg.g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;const lenloc:tlocation;elesize:aint;destreg:tregister);
       var
-        sizereg,sourcereg,destreg : tregister;
+        sizereg,sourcereg : tregister;
         paraloc1,paraloc2,paraloc3 : TCGPara;
       begin
         { because ppc abi doesn't support dynamic stack allocation properly
@@ -1895,22 +1846,14 @@ implementation
         }
         { allocate two registers for len and source }
         sizereg:=getintregister(list,OS_INT);
-        sourcereg:=getintregister(list,OS_ADDR);
-        destreg:=getintregister(list,OS_ADDR);
+        sourcereg:=getaddressregister(list);
 
         { calculate necessary memory }
         a_load_loc_reg(list,OS_INT,lenloc,sizereg);
         a_op_const_reg(list,OP_ADD,OS_INT,1,sizereg);
         a_op_const_reg(list,OP_IMUL,OS_INT,elesize,sizereg);
         { load source }
-        if loadref then
-          a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,sourcereg)
-        else
-          begin
-            if (ref.index<>NR_NO) or (ref.offset<>0) then
-              internalerror(200410126);
-            a_load_reg_reg(list,OS_ADDR,OS_ADDR,ref.base,sourcereg);
-          end;
+        a_loadaddr_ref_reg(list,ref,sourcereg);
 
         { do getmem call }
         paraloc1.init;
@@ -1924,12 +1867,8 @@ implementation
         dealloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
         dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
         paraloc1.done;
+        { return the new address }
         a_load_reg_reg(list,OS_ADDR,OS_ADDR,NR_FUNCTION_RESULT_REG,destreg);
-        { patch the new address }
-        if loadref then
-          a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_FUNCTION_RESULT_REG,ref)
-        else
-          a_load_reg_reg(list,OS_ADDR,OS_ADDR,NR_FUNCTION_RESULT_REG,ref.base);
 
         { do move call }
         paraloc1.init;
@@ -2092,7 +2031,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.179  2004-10-15 09:14:16  mazen
+  Revision 1.180  2004-10-24 11:44:28  peter
+    * small regvar fixes
+    * loadref parameter removed from concatcopy,incrrefcount,etc
+
+  Revision 1.179  2004/10/15 09:14:16  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 

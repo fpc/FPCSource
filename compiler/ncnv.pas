@@ -1507,14 +1507,10 @@ implementation
             end;
         end;
 
-        if (nf_explicit in flags) or
-           (nf_absolute in flags) then
-         begin
-           { check if the result could be in a register }
-           if not(tstoreddef(resulttype.def).is_intregable) and
-              not(tstoreddef(resulttype.def).is_fpuregable) then
-            make_not_regable(left);
-         end;
+        { check if the result could be in a register }
+        if not(tstoreddef(resulttype.def).is_intregable) and
+           not(tstoreddef(resulttype.def).is_fpuregable) then
+          make_not_regable(left);
 
         { now call the resulttype helper to do constant folding }
         result:=resulttype_call_helper(convtype);
@@ -1996,6 +1992,11 @@ implementation
                 ((convtype in [tc_int_2_bool,tc_bool_2_int]) and
                  (nf_explicit in flags) and
                  (resulttype.def.size=left.resulttype.def.size));
+
+        { When using only a part of the value it can't be in a register since
+          that will load the value in a new register first }
+        if (resulttype.def.size<left.resulttype.def.size) then
+          make_not_regable(left);
       end;
 
 
@@ -2462,7 +2463,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.156  2004-10-15 09:14:17  mazen
+  Revision 1.157  2004-10-24 11:44:28  peter
+    * small regvar fixes
+    * loadref parameter removed from concatcopy,incrrefcount,etc
+
+  Revision 1.156  2004/10/15 09:14:17  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 

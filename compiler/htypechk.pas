@@ -912,10 +912,13 @@ implementation
                          (tobjectdef(fromdef).is_related(tobjectdef(todef))))) and
                     (fromdef.size<>todef.size) then
                   begin
-                    { in TP it is allowed to typecast to smaller types }
-                    if not(m_tp7 in aktmodeswitches) or
-                       (todef.size>fromdef.size) then
-                     CGMessagePos2(hp.fileinfo,type_e_typecast_wrong_size_for_assignment,tostr(fromdef.size),tostr(todef.size));
+                    { in TP it is allowed to typecast to smaller types. But the variable can't
+                      be in a register }
+                    if (m_tp7 in aktmodeswitches) or
+                       (todef.size<fromdef.size) then
+                      make_not_regable(hp)
+                    else
+                      CGMessagePos2(hp.fileinfo,type_e_typecast_wrong_size_for_assignment,tostr(fromdef.size),tostr(todef.size));
                   end;
                  { don't allow assignments to typeconvs that need special code }
                  if not(gotsubscript or gotvec or gotderef) and
@@ -1925,7 +1928,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.100  2004-10-12 14:34:49  peter
+  Revision 1.101  2004-10-24 11:44:28  peter
+    * small regvar fixes
+    * loadref parameter removed from concatcopy,incrrefcount,etc
+
+  Revision 1.100  2004/10/12 14:34:49  peter
     * fixed visibility for procsyms
     * fixed override check when there was no entry yet
 

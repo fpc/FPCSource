@@ -197,7 +197,7 @@ implementation
                  else
                    begin
                      reference_reset_base(href,tempcgpara.location^.reference.index,tempcgpara.location^.reference.offset);
-                     cg.g_concatcopy(exprasmlist,left.location.reference,href,size,false);
+                     cg.g_concatcopy(exprasmlist,left.location.reference,href,size);
                    end;
                end;
              else
@@ -311,7 +311,7 @@ implementation
                 end
               else
                 reference_reset_base(href,tempcgpara.location^.reference.index,tempcgpara.location^.reference.offset);
-              cg.g_concatcopy(exprasmlist,left.location.reference,href,size,false);
+              cg.g_concatcopy(exprasmlist,left.location.reference,href,size);
 {$else i386}
               cg.a_param_copy_ref(exprasmlist,left.resulttype.def.size,left.location.reference,tempcgpara);
 {$endif i386}
@@ -536,17 +536,9 @@ implementation
                   tempnode.pass_2;
                   location := tempnode.location;
                   tempnode.free;
-                  cg.g_decrrefcount(exprasmlist,resulttype.def,location.reference,false);
+                  cg.g_decrrefcount(exprasmlist,resulttype.def,location.reference);
                   cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,hregister,location.reference);
                end;
-
-              { When the result is not used we need to finalize the result and
-                can release the temp }
-              if not(cnf_return_value_used in callnodeflags) then
-                begin
-                  cg.g_finalize(exprasmlist,resulttype.def,location.reference,false);
-                  tg.ungetiftemp(exprasmlist,location.reference)
-                end;
             end
         else
           { normal (ordinal,float,pointer) result value }
@@ -637,6 +629,18 @@ implementation
                 location_reset(location,LOC_VOID,OS_NO);
               end;
            end;
+
+        { When the result is not used we need to finalize the result and
+          can release the temp }
+        if not(cnf_return_value_used in callnodeflags) then
+          begin
+            if location.loc=LOC_REFERENCE then
+              begin
+                if resulttype.def.needs_inittable then
+                  cg.g_finalize(exprasmlist,resulttype.def,location.reference);
+                tg.ungetiftemp(exprasmlist,location.reference)
+              end;
+          end;
       end;
 
 
@@ -806,7 +810,7 @@ implementation
             not assigned(funcretnode) then
            begin
              tg.gettemptyped(exprasmlist,resulttype.def,tt_normal,refcountedtemp);
-             cg.g_decrrefcount(exprasmlist,resulttype.def,refcountedtemp,false);
+             cg.g_decrrefcount(exprasmlist,resulttype.def,refcountedtemp);
            end;
 
         regs_to_save_int:=paramanager.get_volatile_registers_int(procdefinition.proccalloption);
@@ -1066,7 +1070,7 @@ implementation
             not paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption) then
            begin
              tg.gettemptyped(exprasmlist,resulttype.def,tt_normal,refcountedtemp);
-             cg.g_decrrefcount(exprasmlist,resulttype.def,refcountedtemp,false);
+             cg.g_decrrefcount(exprasmlist,resulttype.def,refcountedtemp);
            end;
 
          { Push parameters, still use the old current_procinfo. This
@@ -1177,7 +1181,7 @@ implementation
                 begin
                    { data which must be finalized ? }
                    if (resulttype.def.needs_inittable) then
-                      cg.g_finalize(exprasmlist,resulttype.def,location.reference,false);
+                      cg.g_finalize(exprasmlist,resulttype.def,location.reference);
                    { release unused temp }
                    tg.ungetiftemp(exprasmlist,location.reference)
                 end
@@ -1239,7 +1243,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.178  2004-10-15 09:14:16  mazen
+  Revision 1.179  2004-10-24 11:44:28  peter
+    * small regvar fixes
+    * loadref parameter removed from concatcopy,incrrefcount,etc
+
+  Revision 1.178  2004/10/15 09:14:16  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 

@@ -98,7 +98,7 @@ begin
      not(nf_use_strconcat in flags) then
     begin
        tg.Gettemp(exprasmlist,256,tt_normal,href);
-       cg.g_copyshortstring(exprasmlist,left.location.reference,href,255,false);
+       cg.g_copyshortstring(exprasmlist,left.location.reference,href,255);
        location_freetemp(exprasmlist,left.location);
        { return temp reference }
        location_reset(left.location,LOC_REFERENCE,def_cgsize(resulttype.def));
@@ -196,7 +196,11 @@ end.
 
 {
   $Log$
-  Revision 1.15  2004-09-25 14:23:54  peter
+  Revision 1.16  2004-10-24 11:44:28  peter
+    * small regvar fixes
+    * loadref parameter removed from concatcopy,incrrefcount,etc
+
+  Revision 1.15  2004/09/25 14:23:54  peter
     * ungetregister is now only used for cpuregisters, renamed to
       ungetcpuregister
     * renamed (get|unget)explicitregister(s) to ..cpuregister
