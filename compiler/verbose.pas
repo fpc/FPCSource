@@ -32,9 +32,6 @@ uses
 
 {$ifndef EXTERN_MSG}
   {$i msgtxt.inc}
-{$else }
-  Const
-    MsgCRCValue : longint = 0;
 {$endif}
 
 {$i msgidx.inc}
@@ -583,7 +580,10 @@ end.
 
 {
   $Log$
-  Revision 1.53  2000-05-15 14:05:40  pierre
+  Revision 1.54  2000-05-23 20:32:48  peter
+    * removed dup msgcrcvalue
+
+  Revision 1.53  2000/05/15 14:05:40  pierre
    Declare MsgCrcValue with cond EXTERN_MSG
 
   Revision 1.52  2000/05/10 19:20:23  pierre
