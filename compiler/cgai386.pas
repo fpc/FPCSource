@@ -2124,6 +2124,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
             begin
               parraydef(todef)^.genrangecheck;
               rstr:=parraydef(todef)^.getrangecheckstring;
+              doublebound:=(lto>hto);
             end;
         end;
       { get op and opsize }
@@ -3781,7 +3782,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.84  2000-03-01 00:03:12  pierre
+  Revision 1.85  2000-03-01 12:35:44  pierre
+   * fix for bug 855
+
+  Revision 1.84  2000/03/01 00:03:12  pierre
     * fixes for locals in inlined procedures
       fix for bug797
     + stabs generation for inlined paras and locals

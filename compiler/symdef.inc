@@ -1861,8 +1861,19 @@
                 datasegment^.concat(new(pai_symbol,initname_global(getrangecheckstring,8)))
               else
                 datasegment^.concat(new(pai_symbol,initname(getrangecheckstring,8)));
-              datasegment^.concat(new(pai_const,init_32bit(lowrange)));
-              datasegment^.concat(new(pai_const,init_32bit(highrange)));
+              if lowrange<=highrange then
+                begin
+                  datasegment^.concat(new(pai_const,init_32bit(lowrange)));
+                  datasegment^.concat(new(pai_const,init_32bit(highrange)));
+                end
+              { for big arrays we need two bounds }
+              else
+                begin
+                  datasegment^.concat(new(pai_const,init_32bit(lowrange)));
+                  datasegment^.concat(new(pai_const,init_32bit($7fffffff)));
+                  datasegment^.concat(new(pai_const,init_32bit($80000000)));
+                  datasegment^.concat(new(pai_const,init_32bit(highrange)));
+                end;
            end;
       end;
 
@@ -3932,7 +3943,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.196  2000-02-14 20:58:43  marco
+  Revision 1.197  2000-03-01 12:35:45  pierre
+   * fix for bug 855
+
+  Revision 1.196  2000/02/14 20:58:43  marco
    * Basic structures for new sethandling implemented.
 
   Revision 1.195  2000/02/11 13:53:49  pierre
