@@ -5551,9 +5551,10 @@ BEGIN
    If not TextModeGFV then
      Inherited DrawBorder
    Else Begin                                     { TEXT GFV MODE }
-     Focused:=(State AND (sfSelected + sfModal)<>0);
+     {Focused:=(State AND (sfSelected + sfModal)<>0);
      if Assigned(Owner) then
-       Focused := Focused AND (@Self = Owner^.First);
+       Focused := Focused AND (@Self = Owner^.Current); }
+     Focused:=(State AND sfActive)<>0;
      If not Focused or (GOptions AND goThickFramed = 0) then
        begin
          LeftUpCorner:='Ú';
@@ -5770,7 +5771,10 @@ END.
 
 {
  $Log$
- Revision 1.32  2002-06-10 12:39:43  pierre
+ Revision 1.33  2002-06-10 13:47:38  pierre
+  * correct the check for drawing a double line border
+
+ Revision 1.32  2002/06/10 12:39:43  pierre
   * always call ScrooDraw if TscrollBar.value filed is changed
 
  Revision 1.31  2002/06/06 06:42:21  pierre
