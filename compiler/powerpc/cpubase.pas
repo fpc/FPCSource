@@ -417,20 +417,20 @@ uses
 
       maxintregs = 18;
       intregs    = [R_0..R_31];
-      usableregsint = [R_13..R_30];
-      c_countusableregsint = 21;
+      usableregsint = [R_13..R_27];
+      c_countusableregsint = 18;
 
       maxfpuregs = 31-14+1;
       fpuregs    = [R_F0..R_F31];
       usableregsfpu = [R_F14..R_F31];
-      c_countusableregsfpu = 32;
+      c_countusableregsfpu = 31-14+1;
 
       mmregs     = [R_M0..R_M31];
       usableregsmm  = [R_M14..R_M31];
-      c_countusableregsmm  = 32;
+      c_countusableregsmm  = 31-14+1;
 
       firstsaveintreg = R_13;
-      lastsaveintreg  = R_30;
+      lastsaveintreg  = R_27;
       firstsavefpureg = R_F14;
       lastsavefpureg  = R_F31;
       { no altivec support yet. Need to override tcgobj.a_loadmm_* first in tcgppc }
@@ -627,7 +627,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  2002-07-09 19:45:01  jonas
+  Revision 1.17  2002-07-11 07:35:36  jonas
+    * some available registers fixes
+
+  Revision 1.16  2002/07/09 19:45:01  jonas
     * unarynminus and shlshr node fixed for 32bit and smaller ordinals
     * small fixes in the assembler writer
     * changed scratch registers, because they were used by the linker (r11
