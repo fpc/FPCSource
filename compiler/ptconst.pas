@@ -414,6 +414,9 @@ implementation
               p:=comp_expr(true);
               if p.nodetype=setconstn then
                 begin
+                   { be sure to convert to the correct result, else
+                     it can generate smallset data instead of normalset (PFV) }
+                   inserttypeconv(p,t);
                    { we only allow const sets }
                    if assigned(tsetconstnode(p).left) then
                      Message(cg_e_illegal_expression)
@@ -947,7 +950,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.34  2001-09-19 11:06:03  michael
+  Revision 1.35  2001-10-20 17:24:26  peter
+    * make all sets equal when reading an array of sets. Before it could
+      mix normal and small sets in the same array!
+
+  Revision 1.34  2001/09/19 11:06:03  michael
   * realname updated for some hints
   * realname used for consts,labels
 
