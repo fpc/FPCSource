@@ -7,10 +7,6 @@
     {$H-}
     {$goto on}
 
-    {$ifdef PACKENUMFIXED}
-      {$PACKENUM 1}
-    {$endif}
-
     {$define FPCPROCVAR}
     {$ifdef I386}
       {$define USEEXCEPT}
