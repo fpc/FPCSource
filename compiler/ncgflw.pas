@@ -892,11 +892,10 @@ implementation
      end;
 
 
-    procedure try_free_exception(list : taasmoutput;var jmpbuf, envbuf, href : treference;
+    procedure try_free_exception(list : taasmoutput;var jmpbuf, envbuf : treference;const href : treference;
      a : aword ; endexceptlabel : tasmlabel; onlyfree : boolean);
      begin
          free_exception(list, jmpbuf, envbuf, href, a, endexceptlabel, onlyfree);
-         tg.ungettemp(list,href);
          tg.Ungettemp(list,jmpbuf);
          tg.ungettemp(list,envbuf);
      end;
@@ -1139,6 +1138,7 @@ implementation
               cg.g_exception_reason_load(exprasmlist,href);
               cg.a_jmp_always(exprasmlist,oldaktcontinuelabel);
            end;
+         tg.ungettemp(exprasmlist,href);
          cg.a_label(exprasmlist,endexceptlabel);
 
        errorexit:
@@ -1452,6 +1452,7 @@ implementation
                end;
            end;
          cg.a_label(exprasmlist,endfinallylabel);
+         tg.ungettemp(exprasmlist,href);
 
          current_procinfo.aktexitlabel:=oldaktexitlabel;
          if assigned(aktbreaklabel) then
@@ -1479,7 +1480,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.87  2003-12-06 01:15:22  florian
+  Revision 1.88  2004-01-01 17:23:16  florian
+    * fixed wrong temp. usage in generic exception handling
+
+  Revision 1.87  2003/12/06 01:15:22  florian
     * reverted Peter's alloctemp patch; hopefully properly
 
   Revision 1.86  2003/12/03 23:13:20  peter
