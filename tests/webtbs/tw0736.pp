@@ -23,7 +23,8 @@ procedure tobj.testx;
 begin
   asm
     mov ax,3
-    mov word ptr[x],ax
+    mov edx,SELF
+    mov word ptr[edx+x],ax
   end;
 end;
 
