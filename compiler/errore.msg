@@ -1147,6 +1147,8 @@ cg_e_unable_inline_procvar=E_Procvar calls can't be inline.
 % A procedure with a procedural variable call cannot be inlined.
 cg_e_no_code_for_inline_stored=E_No code for inline procedure stored
 % The compiler couldn't store code for the inline procedure.
+cg_e_no_call_to_interrupt=E_Direct call of interrupt procedure $1 is not possible
+% You can not call an interrupt procedure directly from FPC code
 cg_e_can_access_element_zero=E_Element zero of an ansi/wide- or longstring can't be accessed, use (set)length instead
 % You should use \var{setlength} to set the length of an ansi/wide/longstring
 % and \var{length} to get the length of such kinf of string

@@ -1045,6 +1045,8 @@ implementation
               else
                 procinfo^.flags:=procinfo^.flags or pi_do_call;
 
+              if (po_interrupt in p^.procdefinition^.procoptions) then
+                CGmessage1(cg_e_no_call_to_interrupt,p^.symtableprocentry^.name);
               { work trough all parameters to insert the type conversions }
               { !!! done now after internproc !! (PM) }
               if assigned(p^.left) then
@@ -1222,7 +1224,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.66  1999-09-27 23:45:00  peter
+  Revision 1.67  1999-10-12 15:50:54  pierre
+   * error if calling interrupt procedure
+
+  Revision 1.66  1999/09/27 23:45:00  peter
     * procinfo is now a pointer
     * support for result setting in sub procedure
 
@@ -1479,4 +1484,3 @@ end.
     * splitted pass_1
 
 }
-
