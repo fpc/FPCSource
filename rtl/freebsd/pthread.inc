@@ -29,8 +29,8 @@ CONST PTHREAD_EXPLICIT_SCHED       = 0;
     ppthread_t      = ^pthread_t;
     pthread_key_t   = cint;
     ppthread_key_t  = ^pthread_key_t;
-    pthread_mutex_t = pointer;
-    ppthread_mutex_t= ^pthread_mutex_t;
+    pthread_mutex_t = TRTLCriticalSection;
+    ppthread_mutex_t= PRTLCriticalSection;
     pthread_attr_t  = pointer; // opague
     ppthread_attr_t = ^pthread_attr_t; // opague
     __destr_func_t  = procedure (p :pointer);cdecl;
@@ -58,7 +58,10 @@ function  pthread_join(_para1:pthread_t; _para2:Ppointer):cint;cdecl;external;
 
 {
   $Log$
-  Revision 1.1  2003-11-18 22:33:42  marco
+  Revision 1.2  2003-11-27 20:24:10  michael
+  + Redefined ppthread_mutex_t
+
+  Revision 1.1  2003/11/18 22:33:42  marco
    * moved from systhrds.pp
 
 
