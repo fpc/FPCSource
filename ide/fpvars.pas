@@ -40,7 +40,7 @@ const ClipboardWindow  : PClipboardWindow = nil;
       LastCompileTime  : cardinal = 0;
       OpenExts         : string{$ifdef GABOR}[40]{$endif} = '*.pas;*.pp;*.inc';
       HighlightExts    : string{$ifdef GABOR}[40]{$endif} = '*.pas;*.pp;*.inc';
-      TabsPattern      : string{$ifdef GABOR}[40]{$endif} = 'make*;make*.*';
+      TabsPattern      : string{$ifdef GABOR}[40]{$endif} = 'make*;make*.*;fpcmake.loc';
       SourceDirs       : string{$ifdef GABOR}[40]{$endif} = '';
       StandardUnits    : string{$ifdef GABOR}[40]{$endif} = '';
       UseStandardUnitsInCodeComplete : boolean = false;
@@ -102,6 +102,16 @@ const ClipboardWindow  : PClipboardWindow = nil;
       ShowReadme       : boolean = true;
       AskRecompileIfModifiedFlag : boolean = true;
 
+{$ifdef SUPPORT_REMOTE}
+     RemoteMachine : string = '';
+     RemotePort : string = '2345';
+     RemoteConfig : string = '';
+     RemoteIdent : string = '';
+     RemoteDir : string = '';
+     RemoteSendCommand : string = 'scp $CONFIG $IDENT $LOCALFILE $REMOTEMACHINE:$REMOTEDIR';
+{$endif SUPPORT_REMOTE}
+
+     DebuggeeTTY : string = '';
 
       ActionCommands   : array[acFirstAction..acLastAction] of word =
         (cmHelpTopicSearch,cmGotoCursor,cmToggleBreakpoint,
@@ -116,7 +126,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.6  2002-09-10 12:19:14  pierre
+  Revision 1.7  2002-11-28 12:53:10  pierre
+   + global vars used for remote debugging
+
+  Revision 1.6  2002/09/10 12:19:14  pierre
    * use faster method for loading files by default
 
   Revision 1.5  2002/09/07 15:40:46  peter
