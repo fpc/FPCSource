@@ -214,7 +214,6 @@ interface
 
 {*** Search ***}
     function  searchsym(const s : stringid;var srsym:tsym;var srsymtable:tsymtable):boolean;
-    function  search_a_symtable(const symbol:string;symtabletype:tsymtabletype):tsym;
     function  searchsymonlyin(p : tsymtable;const s : stringid):tsym;
     function  search_class_member(pd : tobjectdef;const s : string):tsym;
 
@@ -1868,7 +1867,8 @@ implementation
          hsym : tsym;
       begin
          { also check the global symtable }
-         if assigned(next) then
+         if assigned(next) and
+            (next.unitid=0) then
           begin
             hsym:=tsym(next.search(sym.name));
             if assigned(hsym) then
@@ -2343,26 +2343,6 @@ implementation
       end;
 
 
-    function search_a_symtable(const symbol:string;symtabletype:tsymtabletype):tsym;
-    {Search for a symbol in a specified symbol table. Returns nil if
-     the symtable is not found, and also if the symbol cannot be found
-     in the desired symtable }
-    var hsymtab:tsymtable;
-        res:tsym;
-    begin
-        res:=nil;
-        hsymtab:=symtablestack;
-        while (hsymtab<>nil) and (hsymtab.symtabletype<>symtabletype) do
-            hsymtab:=hsymtab.next;
-        if hsymtab<>nil then
-            {We found the desired symtable. Now check if the symbol we
-             search for is defined in it }
-            res:=tsym(hsymtab.search(symbol));
-        search_a_symtable:=res;
-    end;
-
-
-
 {*****************************************************************************
                             Definition Helpers
 *****************************************************************************}
@@ -2587,7 +2567,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.32  2001-04-13 18:08:37  peter
+  Revision 1.33  2001-04-13 20:05:15  peter
+    * better check for globalsymtable
+
+  Revision 1.32  2001/04/13 18:08:37  peter
     * scanner object to class
 
   Revision 1.31  2001/04/13 01:22:16  peter

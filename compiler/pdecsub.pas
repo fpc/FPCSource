@@ -447,10 +447,12 @@ begin
           We need to find out if the procedure is global. If it is
           global, it is in the global symtable.}
          if not assigned(aktprocsym) and
-            (symtablestack.symtabletype=staticsymtable) then
+            (symtablestack.symtabletype=staticsymtable) and
+            assigned(symtablestack.next) and
+            (symtablestack.next.unitid=0) then
           begin
             {Search the procedure in the global symtable.}
-            aktprocsym:=tprocsym(search_a_symtable(sp,globalsymtable));
+            aktprocsym:=tprocsym(symtablestack.next.search(sp));
             if assigned(aktprocsym) then
              begin
                {Check if it is a procedure.}
@@ -1845,7 +1847,10 @@ const
 end.
 {
   $Log$
-  Revision 1.19  2001-04-13 18:03:16  peter
+  Revision 1.20  2001-04-13 20:05:16  peter
+    * better check for globalsymtable
+
+  Revision 1.19  2001/04/13 18:03:16  peter
     * give error with local external procedure
 
   Revision 1.18  2001/04/13 01:22:11  peter
