@@ -1,6 +1,6 @@
-Program Example9;
+Program Example79;
 
-{ Program to demonstrate the Execvp function. }
+{ Program to demonstrate the FpExecVP function. }
 
 Uses Unix, strings;
 
@@ -17,6 +17,5 @@ begin
   PP[2]:=Nil;
   { Execute 'ls -l', with current environment. }
   { 'ls' is looked for in PATH environment variable.}
-  { Envp is defined in the system unit. }
-  fpExecvpe ('ls',pp,envp);
+  fpExecvp ('ls',pp);
 end.
