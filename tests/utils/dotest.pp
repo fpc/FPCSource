@@ -1020,13 +1020,29 @@ begin
    begin
      if Config.SkipCPU<>'' then
       begin
-        Verbose(V_Debug,'Skip compiler cpu: '+Config.NeedCPU);
+        Verbose(V_Debug,'Skip compiler cpu: '+Config.SkipCPU);
         if IsInList(CompilerCPU,Config.SkipCPU) then
          begin
            { avoid a second attempt by writing to elg file }
            AddLog(EXELogFile,skipping_other_cpu+PPFileInfo);
            AddLog(ResLogFile,skipping_other_cpu+PPFileInfo);
            Verbose(V_Abort,'Compiler cpu "'+CompilerCPU+'" is in list "'+Config.SkipCPU+'"');
+           Res:=false;
+         end;
+      end;
+   end;
+
+  if Res then
+   begin
+     if Config.SkipEmu<>'' then
+      begin
+        Verbose(V_Debug,'Skip emulator: '+emulatorname);
+        if IsInList(emulatorname,Config.SkipEmu) then
+         begin
+           { avoid a second attempt by writing to elg file }
+           AddLog(EXELogFile,skipping_other_cpu+PPFileInfo);
+           AddLog(ResLogFile,skipping_other_cpu+PPFileInfo);
+           Verbose(V_Abort,'Emulator "'+emulatorname+'" is in list "'+Config.SkipEmu+'"');
            Res:=false;
          end;
       end;
@@ -1113,7 +1129,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.43  2005-01-01 18:59:52  florian
+  Revision 1.44  2005-01-06 16:32:04  florian
+    + skipemu added
+
+  Revision 1.43  2005/01/01 18:59:52  florian
     + emulator execution support added
 
   Revision 1.42  2004/11/29 21:25:32  peter

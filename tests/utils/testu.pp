@@ -16,6 +16,7 @@ type
     NeedOptions,
     NeedCPU,
     SkipCPU,
+    SkipEmu,
     NeedTarget,
     SkipTarget,
     MinVersion,
@@ -178,6 +179,9 @@ begin
               else
                if GetEntry('SKIPCPU') then
                 r.SkipCPU:=res
+              else
+               if GetEntry('SKIPEMU') then
+                r.SkipEmu:=res
               else
                if GetEntry('VERSION') then
                 r.MinVersion:=res
