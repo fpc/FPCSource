@@ -2380,17 +2380,17 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                 begin
                    getlabel(again);
                    getlabel(ok);
+                   emitlab(again);
                    exprasmlist^.concat(new(pai386,
                      op_const_reg(A_CMP,S_L,winstackpagesize,R_EDI)));
-                   emitjmp(C_NC,ok);
-                   emitlab(again);
+                   emitjmp(C_C,ok);
                    exprasmlist^.concat(new(pai386,
                      op_const_reg(A_SUB,S_L,winstackpagesize-4,R_ESP)));
                    exprasmlist^.concat(new(pai386,
                      op_reg(A_PUSH,S_L,R_EAX)));
                    exprasmlist^.concat(new(pai386,
                      op_const_reg(A_SUB,S_L,winstackpagesize,R_EDI)));
-                   emitjmp(C_NC,again);
+                   emitjmp(C_None,again);
 
                    emitlab(ok);
                    exprasmlist^.concat(new(pai386,
@@ -2414,10 +2414,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                 begin
                    exprasmlist^.concat(new(pai386,
                      op_reg_reg(A_SUB,S_L,R_EDI,R_ESP)));
+                   { load destination }
+                   exprasmlist^.concat(new(pai386,
+                     op_reg_reg(A_MOV,S_L,R_ESP,R_EDI)));
                 end;
-              { load destination }
-              exprasmlist^.concat(new(pai386,
-                op_reg_reg(A_MOV,S_L,R_ESP,R_EDI)));
 
               { don't destroy the registers! }
               exprasmlist^.concat(new(pai386,
@@ -3110,7 +3110,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.15  1999-07-18 10:19:44  florian
+  Revision 1.16  1999-07-18 10:41:59  florian
+    * fix of my previous commit nevertheless it doesn't work completly
+
+  Revision 1.15  1999/07/18 10:19:44  florian
     * made it compilable with Dlephi 4 again
     + fixed problem with large stack allocations on win32
 
