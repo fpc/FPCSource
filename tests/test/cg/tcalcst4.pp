@@ -232,39 +232,6 @@ var
      global_s64bit:= v;
    end;
 
-  procedure proc_const_smallarray_const_1(const arr : array of const);cdecl;
-  var
-   i: integer;
-  begin
-    for i:=0 to high(arr) do
-     begin
-       case arr[i].vtype of
-        vtInteger : global_u8bit := arr[i].vinteger and $ff;
-        vtBoolean : global_boolean := arr[i].vboolean;
-        vtChar : global_char := arr[i].vchar;
-        vtExtended : global_s64real := arr[i].VExtended^;
-        vtString :  global_bigstring := arr[i].VString^;
-        vtPointer : ;
-        vtPChar : global_ptr := arr[i].VPchar;
-        vtObject : ;
-{        vtClass : global_class := (arr[i].VClass) as tclass1;}
-        vtAnsiString : ;
-        vtInt64 :  global_s64bit := arr[i].vInt64^;
-        else
-          RunError(255);
-       end;
-     end; {endfor}
-  end;
-
-
-  procedure proc_const_smallarray_const_2(const arr : array of const);cdecl;
-  var
-   i: integer;
-  begin
-     if high(arr)<0 then
-       global_u8bit := RESULT_U8BIT;
-  end;
-
 {$endif}
 
 
@@ -351,40 +318,6 @@ var
      value_u8bit := b2;
    end;
 
-  procedure proc_const_smallarray_const_1_mixed(b1 : byte; const arr : array of const; b2: byte);cdecl;
-  var
-   i: integer;
-  begin
-    for i:=0 to high(arr) do
-     begin
-       case arr[i].vtype of
-        vtInteger : global_u8bit := arr[i].vinteger and $ff;
-        vtBoolean : global_boolean := arr[i].vboolean;
-        vtChar : global_char := arr[i].vchar;
-        vtExtended : global_s64real := arr[i].VExtended^;
-        vtString :  global_bigstring := arr[i].VString^;
-        vtPointer : ;
-        vtPChar : global_ptr := arr[i].VPchar;
-        vtObject : ;
-{        vtClass : global_class := (arr[i].VClass) as tclass1;}
-        vtAnsiString : ;
-        vtInt64 :  global_s64bit := arr[i].vInt64^;
-        else
-          RunError(255);
-       end;
-     end; {endfor}
-     value_u8bit := b2;
-  end;
-
-
-  procedure proc_const_smallarray_const_2_mixed(b1: byte; const arr : array of const; b2: byte);cdecl;
-  var
-   i: integer;
-  begin
-     if high(arr)<0 then
-       global_u8bit := RESULT_U8BIT;
-     value_u8bit := b2;
-  end;
 {$endif}
 
 
@@ -600,47 +533,6 @@ begin
   if global_u8bit <> RESULT_U8BIT then
     failed := true;
 
-{$ifndef tp}
-  clear_globals;
-  clear_values;
-
-  value_u8bit := RESULT_U8BIT;
-  value_ptr := RESULT_PCHAR;
-  value_s64bit := RESULT_S64BIT;
-  value_smallstring := RESULT_SMALLSTRING;
-  value_class := tclass1.create;
-  value_boolean := RESULT_BOOLEAN;
-  value_char := RESULT_CHAR;
-  value_s64real:=RESULT_S64REAL;
-  proc_const_smallarray_const_1([value_u8bit,value_ptr,value_s64bit,value_char,value_smallstring,value_s64real,
-    value_boolean,value_class]);
-
-  if global_u8bit <> RESULT_U8BIT then
-    failed := true;
-
-  if global_char <> RESULT_CHAR then
-    failed := true;
-  if global_boolean <> RESULT_BOOLEAN then
-    failed:=true;
-  if trunc(global_s64real) <> trunc(RESULT_S64REAL) then
-     failed := true;
-  if global_bigstring <> RESULT_SMALLSTRING then
-     failed := true;
-  if global_ptr <> value_ptr then
-     failed := true;
-{  if value_class <> global_class then
-     failed := true;!!!!!!!!!!!!!!!!!!!!}
-  if global_s64bit <> RESULT_S64BIT then
-     failed := true;
-  if assigned(value_class) then
-    value_class.destroy;
-
-  global_u8bit := 0;
-  proc_const_smallarray_const_2([]);
-  if global_u8bit <> RESULT_U8BIT then
-    failed := true;
-{$endif}
-
   if failed then
     fail
   else
@@ -794,50 +686,6 @@ begin
   if value_u8bit <> RESULT_U8BIT then
     failed := true;
 
-{$ifndef tp}
-  clear_globals;
-  clear_values;
-
-  value_u8bit := RESULT_U8BIT;
-  value_ptr := RESULT_PCHAR;
-  value_s64bit := RESULT_S64BIT;
-  value_smallstring := RESULT_SMALLSTRING;
-  value_class := tclass1.create;
-  value_boolean := RESULT_BOOLEAN;
-  value_char := RESULT_CHAR;
-  value_s64real:=RESULT_S64REAL;
-  proc_const_smallarray_const_1_mixed(RESULT_U8BIT, [value_u8bit,value_ptr,value_s64bit,value_char,value_smallstring,
-    value_s64real,value_boolean,value_class],RESULT_U8BIT);
-
-  if global_u8bit <> RESULT_U8BIT then
-    failed := true;
-
-  if global_char <> RESULT_CHAR then
-    failed := true;
-  if global_boolean <> RESULT_BOOLEAN then
-    failed:=true;
-  if trunc(global_s64real) <> trunc(RESULT_S64REAL) then
-     failed := true;
-  if global_bigstring <> RESULT_SMALLSTRING then
-     failed := true;
-  if global_ptr <> value_ptr then
-     failed := true;
-{  if value_class <> global_class then
-     failed := true;!!!!!!!!!!!!!!!!!!!!}
-  if global_s64bit <> RESULT_S64BIT then
-     failed := true;
-  if assigned(value_class) then
-    value_class.destroy;
-  if value_u8bit <> RESULT_U8BIT then
-    failed := true;
-
-  global_u8bit := 0;
-  proc_const_smallarray_const_2_mixed(RESULT_U8BIT,[],RESULT_U8BIT);
-  if global_u8bit <> RESULT_U8BIT then
-    failed := true;
-  if value_u8bit <> RESULT_U8BIT then
-    failed := true;
-{$endif}
 
   if failed then
     fail
@@ -847,7 +695,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2002-09-22 14:16:12  carl
+  Revision 1.6  2002-11-09 21:47:36  carl
+    + updated tests for correct parsing (array of const now allowed with high!)
+
+  Revision 1.5  2002/09/22 14:16:12  carl
     * fix small typo
 
   Revision 1.4  2002/09/22 09:08:40  carl
