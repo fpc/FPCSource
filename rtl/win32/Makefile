@@ -55,7 +55,7 @@ LOADEROBJECTS=wprt0 wdllprt0
 
 # Unit Objects
 UNITOBJECTS=$(SYSTEMUNIT) strings windows \
-	    dos objects \
+	    dos crt objects \
 	    objpas sysutils typinfo math \
             cpu mmx getopts heaptrc ole2
 
@@ -213,6 +213,8 @@ ole2$(PPUEXT) : ole2.pp windows$(PPUEXT) $(SYSTEMPPU)
 
 dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc $(SYSTEMPPU)
 
+crt$(PPUEXT) : crt.pp $(INC)/textrec.inc $(SYSTEMPPU) objpas$(PPUEXT)
+
 objects$(PPUEXT) : $(INC)/objects.pp objinc.inc $(SYSTEMPPU)
 
 #
@@ -360,7 +362,10 @@ endif
 
 #
 # $Log$
-# Revision 1.24  1999-03-22 22:12:50  florian
+# Revision 1.25  1999-04-20 11:34:11  peter
+#   + crt unit that compiles
+#
+# Revision 1.24  1999/03/22 22:12:50  florian
 #   + addition and changes to compile the direct draw unit
 #     of Erik Ungerer (with -dv2com and indirect disabled)
 #
