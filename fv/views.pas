@@ -75,7 +75,7 @@ USES
    {$ENDIF}
 
    GFVGraph,                                          { GFV standard unit }
-   FVCommon, Objects, Drivers;                          { GFV standard units }
+   Objects, FVCommon, Drivers;                          { GFV standard units }
 
 {***************************************************************************}
 {                              PUBLIC CONSTANTS                             }
@@ -396,6 +396,7 @@ TYPE
       PROCEDURE Hide;
       PROCEDURE Show;
       PROCEDURE Draw; Virtual;
+      PROCEDURE ResetCursor; Virtual;
       PROCEDURE Select;
       PROCEDURE Awaken; Virtual;
       PROCEDURE DrawView;
@@ -420,7 +421,7 @@ TYPE
       PROCEDURE PutInFrontOf (Target: PView);
       PROCEDURE DisplaceBy (Dx, Dy: Sw_Integer); Virtual;
       PROCEDURE SetCommands (Commands: TCommandSet);
-      PROCEDURE ReDrawArea (X1, Y1, X2, Y2: Sw_Integer);
+      PROCEDURE ReDrawArea (X1, Y1, X2, Y2: Sw_Integer); Virtual;
       PROCEDURE EnableCommands (Commands: TCommandSet);
       PROCEDURE DisableCommands (Commands: TCommandSet);
       PROCEDURE SetState (AState: Word; Enable: Boolean); Virtual;
@@ -460,6 +461,7 @@ TYPE
       PROCEDURE MakeLocal (Source: TPoint; Var Dest: TPoint);
       PROCEDURE MakeGlobal (Source: TPoint; Var Dest: TPoint);
       PROCEDURE WriteStr (X, Y: Sw_Integer; Str: String; Color: Byte);
+      PROCEDURE WriteCStr (X, Y: Sw_Integer; Str: String; Color1, Color2 : Byte);
       PROCEDURE WriteChar (X, Y: Sw_Integer; C: Char; Color: Byte;
         Count: Sw_Integer);
       PROCEDURE DragView (Event: TEvent; Mode: Byte; Var Limits: TRect;
@@ -499,6 +501,7 @@ TYPE
       PROCEDURE UnLock;
       PROCEDURE Awaken; Virtual;
       PROCEDURE ReDraw;
+      PROCEDURE ReDrawArea (X1, Y1, X2, Y2: Sw_Integer); Virtual;
       PROCEDURE SelectDefaultView;
       PROCEDURE Insert (P: PView);
       PROCEDURE Delete (P: PView);
@@ -627,7 +630,6 @@ TYPE
       PROCEDURE Store (Var S: TStream);
       PROCEDURE HandleEvent (Var Event: TEvent); Virtual;
       PROCEDURE ChangeBounds (Var Bounds: TRect); Virtual;
-      PRIVATE
       PROCEDURE FocusItemNum (Item: Sw_Integer); Virtual;
    END;
    PListViewer = ^TListViewer;
@@ -876,6 +878,37 @@ CONST
 {***************************************************************************}
 {                          PRIVATE INTERNAL ROUTINES                        }
 {***************************************************************************}
+
+    function posidx(const substr,s : string;idx:sw_integer):sw_integer;
+      var
+        i,j : sw_integer;
+        e   : boolean;
+      begin
+        i:=idx;
+        j:=0;
+        e:=(length(SubStr)>0);
+        while e and (i<=Length(s)-Length(SubStr)) do
+         begin
+           inc(i);
+           if (SubStr[1]=s[i]) and (Substr=Copy(s,i,Length(SubStr))) then
+            begin
+              j:=i;
+              e:=false;
+            end;
+         end;
+        PosIdx:=j;
+      end;
+
+
+procedure DrawScreenBuf;
+begin
+  if (LockUpdateScreen=0) then
+   begin
+     HideMouse;
+     UpdateScreen(false);
+     ShowMouse;
+   end;
+end;
 
 {***************************************************************************}
 {                              OBJECT METHODS                               }
@@ -1206,6 +1239,75 @@ PROCEDURE TView.Draw;
 BEGIN                                                 { Abstract method }
 END;
 
+
+procedure TView.ResetCursor;
+const
+  sfV_CV_F:word = sfVisible + sfCursorVis + sfFocused;
+var
+  p,p2 : PView;
+  G : PGroup;
+  cur : TPoint;
+
+  function Check0:boolean;
+  var
+    res : byte;
+  begin
+    res:=0;
+    while res=0 do
+     begin
+       p:=p^.next;
+       if p=p2 then
+        begin
+          p:=P^.owner;
+          res:=1
+        end
+       else
+        if ((p^.state and sfVisible)<>0) and
+           (cur.x>=p^.origin.x) and
+           (cur.x<p^.size.x+p^.origin.x) and
+           (cur.y>=p^.origin.y) and
+           (cur.y<p^.size.y+p^.origin.y) then
+          res:=2;
+     end;
+    Check0:=res=2;
+  end;
+
+begin
+  if (not TextModeGFV) then
+   exit;
+  if ((state and sfV_CV_F) = sfV_CV_F) then
+   begin
+     p:=@Self;
+     cur:=cursor;
+     while true do
+      begin
+        if (cur.x<0) or (cur.x>=p^.size.x) or
+           (cur.y<0) or (cur.y>=p^.size.y) then
+          break;
+        inc(cur.X,p^.origin.X);
+        inc(cur.Y,p^.origin.Y);
+        p2:=p;
+        G:=p^.owner;
+        if G=Nil then { top view }
+         begin
+           Video.SetCursorPos(cur.x,cur.y);
+           if (state and sfCursorIns)<>0 then
+            Video.SetCursorType(crBlock)
+           else
+            Video.SetCursorType(crUnderline);
+           exit;
+         end;
+        if (G^.state and sfVisible)=0 then
+         break;
+        p:=G^.Last;
+        if Check0 then
+         break;
+      end; { while }
+   end; { if }
+  Video.SetCursorType(crHidden);
+end;
+
+
 {--TView--------------------------------------------------------------------}
 {  Select -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 05May98 LdB            }
 {---------------------------------------------------------------------------}
@@ -1237,7 +1339,8 @@ BEGIN
      SetViewLimits;                                   { Set view limits }
      GetViewSettings(ViewPort, TextModeGFV);          { Get set viewport }
      If OverlapsArea(ViewPort.X1, ViewPort.Y1,
-     ViewPort.X2, ViewPort.Y2) Then Begin             { Must be in area }
+                     ViewPort.X2, ViewPort.Y2) Then
+      Begin             { Must be in area }
          Parent:=Owner;
          While Assigned(Parent) do Begin
            If (Parent^.LockFlag>0) then
@@ -1248,6 +1351,7 @@ BEGIN
              End;
            Parent:=Parent^.Owner;
          End;
+         inc(LockUpdateScreen); { don't update the screen yet }
          HideMouseCursor;                             { Hide mouse cursor }
          If (DrawMask = 0) OR (DrawMask = vdNoChild)  { No special masks set }
             { OR Assigned(LimitsLocked) }
@@ -1256,8 +1360,8 @@ BEGIN
            Draw;                                      { Draw interior }
            If (GOptions AND goDrawFocus <> 0) Then
              DrawFocus;                               { Draw focus }
-           If (State AND sfCursorVis <> 0)
-             Then DrawCursor;                         { Draw any cursor }
+           If (State AND sfCursorVis <> 0) Then
+             DrawCursor;                              { Draw any cursor }
            If (Options AND ofFramed <> 0) OR
            (GOptions AND goThickFramed <> 0)          { View has border }
              Then DrawBorder;                         { Draw border }
@@ -1283,11 +1387,14 @@ BEGIN
                DrawMask := DrawMask and Not vdFocus;
                DrawFocus;                          { Check focus mask }
              End;
-           If (DrawMask AND vdCursor <> 0) Then       { Check cursor mask }
-             Begin
-               DrawMask := DrawMask and Not vdCursor;
-               DrawCursor;                              { Draw any cursor }
-             End;
+           if not TextModeGFV then
+            begin
+              If (DrawMask AND vdCursor <> 0) Then       { Check cursor mask }
+               Begin
+                 DrawMask := DrawMask and Not vdCursor;
+                 DrawCursor;                              { Draw any cursor }
+               End;
+            end;
            If (DrawMask AND vdBorder <> 0) Then       { Check border mask }
              Begin
                DrawMask := DrawMask and Not vdBorder;
@@ -1305,6 +1412,16 @@ BEGIN
 {$endif ndef NoShadow}
          End;
          ShowMouseCursor;                             { Show mouse cursor }
+     dec(LockUpdateScreen);
+     if TextModeGFV then
+      begin
+        DrawScreenBuf;
+        If (DrawMask AND vdCursor <> 0) Then       { Check cursor mask }
+          Begin
+            DrawMask := DrawMask and Not vdCursor;
+            DrawCursor;                              { Draw any cursor }
+          End;
+      end;
      End;
      ReleaseViewLimits;                               { Release the limits }
    End;
@@ -1333,6 +1450,8 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TView.DrawCursor;
 BEGIN                                                 { Abstract method }
+  if State and sfFocused <> 0 then
+   ResetCursor;
 END;
 
 {--TView--------------------------------------------------------------------}
@@ -1440,7 +1559,10 @@ END;
 PROCEDURE TView.SetViewLimits;
 VAR X1, Y1, X2, Y2: Sw_Integer; P: PGroup; ViewPort: ViewPortType; Ca: PComplexArea;
 BEGIN
-   If (MaxAvail >= SizeOf(TComplexArea)) Then Begin   { Check enough memory }
+{$ifndef PPC_FPC}
+   If (MaxAvail >= SizeOf(TComplexArea)) Then
+{$endif}
+    Begin   { Check enough memory }
      GetMem(Ca, SizeOf(TComplexArea));                { Allocate memory }
      GetViewSettings(ViewPort, TextModeGFV);          { Fetch view port }
      Ca^.X1 := ViewPort.X1;                           { Hold current X1 }
@@ -1535,8 +1657,7 @@ BEGIN
          For Y := Y1 To Y2 Do Begin
            WriteAbs(X1,Y, X2-X1, Buf);
          End;
-         { FIXME: we shouldn't update always here }
-         UpdateScreen(false);
+         DrawScreenBuf;
        End;
    End;
 END;
@@ -1614,8 +1735,13 @@ BEGIN
    Cursor.X := X;                                     { New x position }
    Cursor.Y := Y;                                     { New y position }
    If (State AND sfCursorVis <> 0) Then Begin         { Cursor visible }
-     SetDrawMask(vdCursor);                           { Set draw mask }
-     DrawView;                                        { Draw the cursor }
+     if TextModeGFV then
+      ResetCursor
+     else
+      begin
+        SetDrawMask(vdCursor);                           { Set draw mask }
+        DrawView;                                        { Draw the cursor }
+      end;
    End;
 END;
 
@@ -1642,8 +1768,8 @@ BEGIN
        State := State AND NOT sfVisible;              { Temp stop drawing }
        If (LastView = Target) Then
          If (Owner <> Nil) Then Owner^.ReDrawArea(
-           RawOrigin.X, RawOrigin.Y, RawOrigin.X +
-           RawSize.X, RawOrigin.Y + RawSize.Y);       { Redraw old area }
+           RawOrigin.X, RawOrigin.Y, RawOrigin.X + RawSize.X,
+           RawOrigin.Y + RawSize.Y);       { Redraw old area }
        Owner^.Lock;
        Owner^.RemoveView(@Self);                      { Remove from list }
        Owner^.InsertView(@Self, Target);              { Insert into list }
@@ -1752,8 +1878,9 @@ BEGIN
        Then SetState(sfExposed, Enable);              { Expose this view }
      If Enable Then DrawView Else                     { Draw the view }
        If (Owner <> Nil) Then Owner^.ReDrawArea(      { Owner valid }
-         RawOrigin.X, RawOrigin.Y, RawOrigin.X +
-         RawSize.X, RawOrigin.Y + RawSize.Y);         { Owner redraws area }
+         RawOrigin.X, RawOrigin.Y,
+         RawOrigin.X + RawSize.X + ShadowSize.X*SysFontWidth,
+         RawOrigin.Y + RawSize.Y + ShadowSize.Y*SysFontHeight);         { Owner redraws area }
      If (Options AND ofSelectable <> 0) Then          { View is selectable }
        If (Owner <> Nil) Then Owner^.ResetCurrent;    { Reset selected }
    End;
@@ -1773,8 +1900,13 @@ BEGIN
    End;
    If (AState AND (sfCursorVis + sfCursorIns) <> 0)   { Change cursor state }
    Then Begin
-     SetDrawMask(vdCursor);                           { Set cursor draw mask }
-     ShouldDraw:=true;
+     if TextModeGFV then
+      ResetCursor
+     else
+      begin
+        SetDrawMask(vdCursor);                           { Set cursor draw mask }
+        ShouldDraw:=true;
+      end;
    End;
    If ShouldDraw then
        DrawView;                                      { Redraw the border }
@@ -2371,6 +2503,24 @@ BEGIN
 END;
 
 {--TGroup-------------------------------------------------------------------}
+{  ReDraw -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 17Sep97 LdB              }
+{---------------------------------------------------------------------------}
+PROCEDURE TGroup.ReDrawArea (X1, Y1, X2, Y2: Sw_Integer);
+VAR P: PView;
+BEGIN
+   { redraw this }
+   inherited RedrawArea(X1,Y1,X2,Y2);
+   { redraw group members }
+   If (DrawMask AND vdNoChild = 0) Then Begin         { No draw child clear }
+     P := Last;                                       { Start on Last }
+     While (P <> Nil) Do Begin
+       P^.ReDrawArea(X1, Y1, X2, Y2);                 { Redraw each subview }
+       P := P^.PrevView;                              { Move to prior view }
+     End;
+   End;
+END;
+
+{--TGroup-------------------------------------------------------------------}
 {  Awaken -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 15Sep97 LdB            }
 {---------------------------------------------------------------------------}
 PROCEDURE TGroup.Awaken;
@@ -2924,18 +3074,21 @@ END;
 {  Init -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 22May98 LdB              }
 {---------------------------------------------------------------------------}
 CONSTRUCTOR TScrollBar.Init (Var Bounds: TRect);
-CONST VChars: TScrollChars = (#30, #31, #177, #254, #178);
-      HChars: TScrollChars = (#17, #16, #177, #254, #178);
+const
+  VChars: array[boolean] of TScrollChars =
+     (('^','V', #177, #254, #178),(#30, #31, #177, #254, #178));
+  HChars: array[boolean] of TScrollChars =
+     (('<','>', #177, #254, #178),(#17, #16, #177, #254, #178));
 BEGIN
    Inherited Init(Bounds);                            { Call ancestor }
    PgStep := 1;                                       { Page step size = 1 }
    ArStep := 1;                                       { Arrow step sizes = 1 }
    If (Size.X = 1) Then Begin                         { Vertical scrollbar }
      GrowMode := gfGrowLoX + gfGrowHiX + gfGrowHiY;   { Grow vertically }
-     Chars := VChars;                                 { Vertical chars }
+     Chars := VChars[LowAscii];                       { Vertical chars }
    End Else Begin                                     { Horizontal scrollbar }
      GrowMode := gfGrowLoY + gfGrowHiX + gfGrowHiY;   { Grow horizontal }
-     Chars := HChars;                                 { Horizontal chars }
+     Chars := HChars[LowAscii];                       { Horizontal chars }
    End;
 END;
 
@@ -4247,7 +4400,7 @@ BEGIN
      End;
      For Y := Y1 To Y2 Do
        WriteAbs(X1,Y, X2-X1, Buf);
-     UpdateScreen(false);
+     DrawScreenBuf;
    End;
 END;
 
@@ -4414,7 +4567,7 @@ BEGIN
          End;
          Y := Y + SysFontHeight;                        { Next line down }
        end;
-     Video.UpdateScreen(false);
+       DrawScreenBuf;
      End;
    end;
 END;
@@ -4462,7 +4615,8 @@ BEGIN
          Y := Y + SysFontHeight;                       { Next line down }
        End;
      end;
-     Video.UpdateScreen(false);
+     If TextModeGFV then
+       DrawScreenBuf;
    End;
 END;
 
@@ -4491,6 +4645,86 @@ BEGIN
    End Else Begin                                     { OLD MODE TVIEW }
      Dest.X := Source.X + Origin.X;                   { Global x value }
      Dest.Y := Source.Y + Origin.Y;                   { Global y value }
+   End;
+END;
+
+PROCEDURE TView.WriteCStr (X, Y: Sw_Integer; Str: String; Color1, Color2 : Byte);
+VAR I, J, Fc, Bc, B: Byte; X1, Y1, X2, Y2: Sw_Integer;
+    Xw, Yw, TiBuf, Tix, Tiy, Ti: Sw_Integer; ViewPort: ViewPortType;
+    Buf : TDrawBuffer;
+    FoundSwap : boolean;
+BEGIN
+   If (State AND sfVisible <> 0) AND                  { View is visible }
+   (State AND sfExposed <> 0) AND                     { View is exposed }
+   (State AND sfIconised = 0) AND                     { View not iconized }
+   (Length(Str) > 0) Then Begin                       { String is valid }
+
+     j:=1;
+     repeat
+       FoundSwap:=false;
+       i:=PosIdx('~',Str,j);
+       if i>0 then
+        FoundSwap:=true
+       else
+        i:=Length(Str)+1;
+
+        Fc := GetColor(Color1);                          { Get view color }
+        Bc := Fc AND $F0 SHR 4;                          { Calc back colour }
+        Fc := Fc AND $0F;                                { Calc text colour }
+
+        If RevCol Then Begin
+          B := Bc;
+          Bc := Fc;
+          Fc := B;
+        End;
+
+        If (X >= 0) AND (Y >= 0) AND ((GOptions and goGraphView)=0) Then Begin
+          Xw := RawOrigin.X+X*FontWidth;                    { X position }
+          Yw := RawOrigin.Y+Y*FontHeight;                   { Y position }
+        End Else Begin
+          Xw := RawOrigin.X + Abs(X);
+          Yw := RawOrigin.Y + Abs(Y);
+        End;
+        GetViewSettings(ViewPort, TextModeGFV);
+
+       If (TextModeGFV <> TRUE) Then Begin              { GRAPHICAL MODE GFV }
+         SetFillStyle(SolidFill, Bc);                   { Set fill style }
+         Bar(Xw-ViewPort.X1, Yw-ViewPort.Y1,
+           Xw-ViewPort.X1+Length(Str)*FontWidth,
+           Yw-ViewPort.Y1+FontHeight-1);
+         SetColor(Fc);
+         OutTextXY(Xw-ViewPort.X1, Yw-ViewPort.Y1+2, Copy(Str,j,i-j));{ Write text char }
+       End Else Begin                                   { TEXT MODE GFV }
+         Tix := Xw DIV SysFontWidth;
+         Tiy := Yw DIV SysFontHeight;
+         TiBuf := 0;
+         For Ti := j To i-1 Do Begin
+           Buf[TiBuf]:=((Fc or (Bc shl 4)) shl 8) or Ord(Str[Ti]);
+           inc(TiBuf);
+         end;
+         WriteAbs(Tix,TiY,i-j,Buf);
+       End;
+
+      { increase position on screen }
+      inc(X,(i-j));
+
+      { Swap colors }
+      if FoundSwap then
+       begin
+         { Swap color1 and color2 }
+         B := Color1;
+         Color1 := Color2;
+         Color2 := B;
+         { increase position in string }
+         j:=i+1;
+         { we're at the last char }
+         if (j>length(Str)) then
+          break;
+       end;
+
+     until not FoundSwap;
+     If TextModeGFV then
+       DrawScreenBuf;
    End;
 END;
 
@@ -4537,7 +4771,8 @@ BEGIN
        end;
        WriteAbs(Tix,TiY,Length(Str),Buf);
      End;
-     UpdateScreen(false);
+     If TextModeGFV then
+       DrawScreenBuf;
    End;
 END;
 
@@ -4585,7 +4820,7 @@ BEGIN
          X := X + I*FontWidth;                          { Move x position }
      End;
      If TextModeGFV then
-       UpdateScreen(false);
+       DrawScreenBuf;
    End;
 END;
 
@@ -4887,10 +5122,9 @@ END;
 
 
 
-{ﬁﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂﬂ›}
-{ﬁ                        TScroller OBJECT METHODS                         ›}
-{ﬁ‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹›}
-
+{***************************************************************************}
+{                         TScroller OBJECT METHODS                          }
+{***************************************************************************}
 
 PROCEDURE TScroller.ScrollDraw;
 VAR D: TPoint;
@@ -4979,7 +5213,12 @@ BEGIN
 {$endif UseLock}
 END;
 
+
 PROCEDURE TWindow.DrawBorder;
+const
+  LargeC:array[boolean] of char=('^',#24);
+  RestoreC:array[boolean] of char=('|',#18);
+  ClickC:array[boolean] of char=('*',#15);
 VAR Fc, Bc: Byte; X, Y: Sw_Integer; S: String;
     ViewPort: ViewPortType;
     I : Sw_Integer;
@@ -4988,9 +5227,10 @@ VAR Fc, Bc: Byte; X, Y: Sw_Integer; S: String;
     HorizontalBar,
     VerticalBar,
     LeftLowCorner,
-    RightLowCorner : Char;
+    RightLowCorner,C : Char;
     Color : Byte;
     Focused : Boolean;
+    Min, Max: TPoint;
 BEGIN
    Fc := GetColor(2) AND $0F;                        { Foreground colour }
    Bc := (GetColor(2) AND $70) SHR 4;                { Background colour }
@@ -5071,16 +5311,21 @@ BEGIN
        OutTextXY(RawOrigin.X+Y+FontWidth-ViewPort.X1,
          RawOrigin.Y+Y+1-ViewPort.Y1+2, '[*]');       { Write close icon }
      End Else Begin                                   { LEON??? }
-       WriteStr(2,0,'[*]',2);
+       WriteCStr(2,0,'[~'+ClickC[LowAscii]+'~]', 2, 3);
      End;
    End;
    If (Flags AND wfZoom<>0) Then Begin
+     if assigned(Owner) and
+        (Size.X=Owner^.Size.X) and (Size.Y=Owner^.Size.Y) then
+      C:=RestoreC[LowAscii]
+     else
+      C:=LargeC[LowAscii];
      If (TextModeGFV <> True) Then Begin              { GRAPHICS MODE GFV }
        SetColor(GetColor(2) AND $0F);
        OutTextXY(RawOrigin.X+RawSize.X-4*FontWidth-Y-ViewPort.X1,
-         RawOrigin.Y+Y+1-ViewPort.Y1+2, '['+#24+']'); { Write zoom icon }
+         RawOrigin.Y+Y+1-ViewPort.Y1+2, '['+C+']'); { Write zoom icon }
      End Else Begin                                   { LEON??? }
-       WriteStr(Size.X-5,0,'['+#24+']',2);
+       WriteCStr(Size.X-5,0,'[~'+C+'~]', 2, 3);
      End;
    End;
    If not TextModeGFV then
@@ -5183,7 +5428,11 @@ END.
 
 {
  $Log$
- Revision 1.15  2001-08-04 19:14:33  peter
+ Revision 1.16  2001-08-05 02:03:14  peter
+   * view redrawing and small cursor updates
+   * merged some more FV extensions
+
+ Revision 1.15  2001/08/04 19:14:33  peter
    * Added Makefiles
    * added FV specific units and objects from old FV
 

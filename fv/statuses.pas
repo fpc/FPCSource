@@ -64,7 +64,7 @@ interface
 
 uses
 
-  ObjTypes, Objects, Drivers, Views, Dialogs,
+  FVCommon, FVConsts, Objects, Drivers, Views, Dialogs,
   Resource;
 
 const
@@ -675,7 +675,7 @@ procedure RegisterStatuses;
 implementation
 
 uses
-  FVConsts, MsgBox, App;
+  MsgBox, App;
 
 {****************************************************************************}
 {                    Local procedures and functions                          }

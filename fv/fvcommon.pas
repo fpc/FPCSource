@@ -130,7 +130,7 @@ TYPE
    Sw_Integer = Integer;                              { Standard integer }
 {$ENDIF}
 {$IFDEF BIT_32}                                       { 32 BIT DEFINITIONS }
-   Sw_Word    = LongInt;                              { Long integer now }
+   Sw_Word    = Cardinal;                             { Long integer now }
    Sw_Integer = LongInt;                              { Long integer now }
 {$ENDIF}
 
@@ -416,7 +416,11 @@ END;
 END.
 {
  $Log$
- Revision 1.1  2001-08-04 19:14:33  peter
+ Revision 1.2  2001-08-05 02:03:13  peter
+   * view redrawing and small cursor updates
+   * merged some more FV extensions
+
+ Revision 1.1  2001/08/04 19:14:33  peter
    * Added Makefiles
    * added FV specific units and objects from old FV
 

@@ -2056,6 +2056,12 @@ BEGIN
      AStrings := AStrings^.Next;                      { Move to next item }
      Dispose(P);                                      { Dispose prior item }
    End;
+   Sel := 0;
+   if TextModeGFV then
+    begin
+      SetCursor(2,0);
+      ShowCursor;
+    end;
    EnableMask := $FFFFFFFF;                           { Enable bit masks }
 END;
 
@@ -2223,6 +2229,8 @@ BEGIN
      End;
      WriteBuf(K, K+I, Size.X-K-K, 1, B);              { Write buffer }
    End;
+  if TextModeGFV then
+    SetCursor(Column(Sel)+2,Row(Sel));
 END;
 
 {--TCluster-----------------------------------------------------------------}
@@ -2481,7 +2489,7 @@ PROCEDURE TRadioButtons.DrawFocus;
 CONST Button = ' ( ) ';
 BEGIN
    Inherited DrawFocus;
-   DrawMultiBox(Button, #32#7);                       { Redraw the text }
+   DrawMultiBox(Button, ' *');                       { Redraw the text }
 END;
 
 {--TRadioButtons------------------------------------------------------------}
@@ -4171,7 +4179,11 @@ END;
 END.
 {
  $Log$
- Revision 1.11  2001-08-04 19:14:32  peter
+ Revision 1.12  2001-08-05 02:03:13  peter
+   * view redrawing and small cursor updates
+   * merged some more FV extensions
+
+ Revision 1.11  2001/08/04 19:14:32  peter
    * Added Makefiles
    * added FV specific units and objects from old FV
 

@@ -55,10 +55,12 @@ USES
    {$IFDEF OS_OS2}                                    { OS2 CODE }
      Os2Def, Os2Base, OS2PmApi,                       { Standard units }
    {$ENDIF}
-
+   Dos,
+   Video,
    GFVGraph,                                          { GFV standard unit }
    FVCommon, Memory,                                    { GFV standard units }
-   Objects, Drivers, Views, Menus, HistList, Dialogs; { GFV standard units }
+   Objects, Drivers, Views, Menus, HistList, Dialogs,
+   MsgBox;
 
 {***************************************************************************}
 {                              PUBLIC CONSTANTS                             }
@@ -227,11 +229,13 @@ TYPE
       PROCEDURE Run; Virtual;
       PROCEDURE Idle; Virtual;
       PROCEDURE InitScreen; Virtual;
+      procedure DoneScreen; virtual;
       PROCEDURE InitDeskTop; Virtual;
       PROCEDURE OutOfMemory; Virtual;
       PROCEDURE InitMenuBar; Virtual;
       PROCEDURE InitStatusLine; Virtual;
       PROCEDURE SetScreenMode (Mode: Word);
+      PROCEDURE SetScreenVideoMode(const Mode: TVideoMode);
       PROCEDURE PutEvent (Var Event: TEvent); Virtual;
       PROCEDURE GetEvent (Var Event: TEvent); Virtual;
       PROCEDURE HandleEvent (Var Event: TEvent); Virtual;
@@ -250,6 +254,7 @@ TYPE
       PROCEDURE DosShell;
       PROCEDURE GetTileRect (Var R: TRect); Virtual;
       PROCEDURE HandleEvent (Var Event: TEvent); Virtual;
+      procedure WriteShellMsg; virtual;
    END;
    PApplication = ^TApplication;                      { Application ptr }
 
@@ -346,7 +351,7 @@ CONST
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
 
   uses
-    Video,Mouse;
+    Mouse,Resource;
 
 {***************************************************************************}
 {                        PRIVATE DEFINED CONSTANTS                          }
@@ -654,6 +659,7 @@ BEGIN
      -(GetMaxY(TextModeGFV)+1));                      { Full screen area }
    Inherited Init(R);                                 { Call ancestor }
    Application := @Self;                              { Set application ptr }
+   Drivers.InitVideo;
    InitScreen;                                        { Initialize screen }
    State := sfVisible + sfSelected + sfFocused +
       sfModal + sfExposed;                            { Deafult states }
@@ -662,12 +668,12 @@ BEGIN
    Size.Y := ScreenHeight;                            { Set y size value }
    RawSize.X := ScreenWidth * SysFontWidth - 1;       { Set rawsize x }
    RawSize.Y := ScreenHeight * SysFontHeight - 1;     { Set rawsize y }
-   InitStatusLine;                                    { Init status line }
-   If (StatusLine <> Nil) Then Insert(StatusLine);    { Insert status line }
-   InitMenuBar;                                       { Create a bar menu }
-   If (MenuBar <> Nil) Then Insert(MenuBar);          { Insert menu bar }
    InitDesktop;                                       { Create desktop }
+   InitStatusLine;                                    { Create status line }
+   InitMenuBar;                                       { Create a bar menu }
    If (Desktop <> Nil) Then Insert(Desktop);          { Insert desktop }
+   If (StatusLine <> Nil) Then Insert(StatusLine);    { Insert status line }
+   If (MenuBar <> Nil) Then Insert(MenuBar);          { Insert menu bar }
 END;
 
 {--TProgram-----------------------------------------------------------------}
@@ -802,6 +808,14 @@ BEGIN
   Buffer := Views.PVideoBuf(VideoBuf);
 END;
 
+
+procedure TProgram.DoneScreen;
+begin
+  DoneVideo;
+  Buffer:=nil;
+end;
+
+
 {--TProgram-----------------------------------------------------------------}
 {  InitDeskTop -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 12Sep97 LdB       }
 {---------------------------------------------------------------------------}
@@ -850,8 +864,38 @@ END;
 {  SetScreenMode -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 25Oct99 LdB     }
 {---------------------------------------------------------------------------}
 PROCEDURE TProgram.SetScreenMode (Mode: Word);
-BEGIN                                                 { Compatability only }
-END;
+var
+  R: TRect;
+begin
+  if TextModeGFV then
+   begin
+     HideMouse;
+     DoneMemory;
+     InitMemory;
+     InitScreen;
+     Buffer := Views.PVideoBuf(VideoBuf);
+     R.Assign(0, 0, ScreenWidth, ScreenHeight);
+     ChangeBounds(R);
+     ShowMouse;
+   end;
+end;
+
+procedure TProgram.SetScreenVideoMode(const Mode: TVideoMode);
+var
+  R: TRect;
+begin
+  DoneMouse;
+  DoneMemory;
+  ScreenMode:=Mode;
+  Video.SetVideoMode(Mode);
+  InitMouse;
+  InitMemory;
+  InitScreen;
+  Buffer := Views.PVideoBuf(VideoBuf);
+  R.Assign(0, 0, ScreenWidth, ScreenHeight);
+  ChangeBounds(R);
+  ShowMouse;
+end;
 
 {--TProgram-----------------------------------------------------------------}
 {  PutEvent -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 12Sep97 LdB          }
@@ -928,7 +972,15 @@ BEGIN
    Drivers.InitEvents;                                        { Start event drive }
    Drivers.InitSysError;                                      { Start system error }
    InitHistory;                                       { Start history up }
+   InitResource;
+   InitMsgBox;
    Inherited Init;                                    { Call ancestor }
+   if (TextModeGFV) then
+    begin
+      { init mouse and cursor }
+      Video.SetCursorType(crHidden);
+      Mouse.SetMouseXY(1,1);
+    end;
 END;
 
 {--TApplication-------------------------------------------------------------}
@@ -969,6 +1021,19 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TApplication.DosShell;
 BEGIN                                                 { Compatability only }
+  DoneSysError;
+  DoneEvents;
+  DoneScreen;
+  DoneDosMem;
+  WriteShellMsg;
+  SwapVectors;
+  Exec(GetEnv('COMSPEC'), '');
+  SwapVectors;
+  InitDosMem;
+  InitScreen;
+  InitEvents;
+  InitSysError;
+  Redraw;
 END;
 
 {--TApplication-------------------------------------------------------------}
@@ -996,6 +1061,12 @@ BEGIN
      ClearEvent(Event);                               { Clear the event }
    End;
 END;
+
+procedure TApplication.WriteShellMsg;
+begin
+  PrintStr(Strings^.Get(sTypeExitOnReturn));
+end;
+
 
 {***************************************************************************}
 {                            INTERFACE ROUTINES                             }
@@ -1088,7 +1159,11 @@ END;
 END.
 {
  $Log$
- Revision 1.12  2001-08-04 19:14:32  peter
+ Revision 1.13  2001-08-05 02:03:13  peter
+   * view redrawing and small cursor updates
+   * merged some more FV extensions
+
+ Revision 1.12  2001/08/04 19:14:32  peter
    * Added Makefiles
    * added FV specific units and objects from old FV
 

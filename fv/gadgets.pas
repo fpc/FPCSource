@@ -105,10 +105,18 @@ USES FVConsts, Time, Objects, Drivers, Views, App;      { Standard GFV units }
 {                  THeapView OBJECT - ANCESTOR VIEW OBJECT                  }
 {---------------------------------------------------------------------------}
 TYPE
+   THeapViewMode=(HVNormal,HVComma,HVKb,HVMb);
+
    THeapView = OBJECT (TView)
+         Mode   : THeapViewMode;
          OldMem: LongInt;                             { Last memory count }
+      constructor Init(var Bounds: TRect);
+      constructor InitComma(var Bounds: TRect);
+      constructor InitKb(var Bounds: TRect);
+      constructor InitMb(var Bounds: TRect);
       PROCEDURE Update;
       PROCEDURE DrawBackGround; Virtual;
+      Function  Comma ( N : LongInt ) : String;
    END;
    PHeapView = ^THeapView;                            { Heapview pointer }
 
@@ -117,6 +125,7 @@ TYPE
 {---------------------------------------------------------------------------}
 TYPE
    TClockView = OBJECT (TView)
+         am : Char;
          Refresh : Byte;                              { Refresh rate }
          LastTime: Longint;                           { Last time displayed }
          TimeStr : String[10];                        { Time string }
@@ -139,6 +148,34 @@ TYPE
 {                          THeapView OBJECT METHODS                         }
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 
+constructor THeapView.Init(var Bounds: TRect);
+begin
+  inherited Init(Bounds);
+  mode:=HVNormal;
+  OldMem := 0;
+end;
+
+constructor THeapView.InitComma(var Bounds: TRect);
+begin
+  inherited Init(Bounds);
+  mode:=HVComma;
+  OldMem := 0;
+end;
+
+constructor THeapView.InitKb(var Bounds: TRect);
+begin
+  inherited Init(Bounds);
+  mode:=HVKb;
+  OldMem := 0;
+end;
+
+constructor THeapView.InitMb(var Bounds: TRect);
+begin
+  inherited Init(Bounds);
+  mode:=HVMb;
+  OldMem := 0;
+end;
+
 {--THeapView----------------------------------------------------------------}
 {  Update -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 12Nov99 LdB            }
 {---------------------------------------------------------------------------}
@@ -156,14 +193,54 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE THeapView.DrawBackGround;
 VAR HOfs: Integer; S: String;
-BEGIN
-   Str(OldMem, S);                                    { Convert to string }
-   HOfs := ColourOfs;                                 { Hold any offset }
-   ColourOfs := 2;                                    { Set colour offset }
-   Inherited DrawBackGround;                          { Clear the backgound }
-   ColourOfs := HOfs;                                 { Reset any offset }
-   WriteStr(-(RawSize.X-TextWidth(S)+1), 0, S, 2);    { Write the string }
+begin
+  case mode of
+    HVNormal :
+      Str(OldMem:Size.X, S);
+    HVComma :
+      S:=Comma(OldMem);
+    HVKb :
+      begin
+        Str(OldMem shr 10:Size.X-1, S);
+        S:=S+'K';
+      end;
+    HVMb :
+      begin
+        Str(OldMem shr 20:Size.X-1, S);
+        S:=S+'M';
+      end;
+  end;
+  HOfs := ColourOfs;                                 { Hold any offset }
+  ColourOfs := 2;                                    { Set colour offset }
+  Inherited DrawBackGround;                          { Clear the backgound }
+  ColourOfs := HOfs;                                 { Reset any offset }
+  WriteStr(-(RawSize.X-TextWidth(S)+1), 0, S, 2);    { Write the string }
 END;
+
+Function THeapView.Comma ( n : LongInt) : String;
+Var
+  num, loc : Byte;
+  s : String;
+  t : String;
+Begin
+  Str (n,s);
+  Str (n:Size.X,t);
+
+  num := length(s) div 3;
+  if (length(s) mod 3) = 0 then dec (num);
+
+  delete (t,1,num);
+  loc := length(t)-2;
+
+  while num > 0 do
+  Begin
+    Insert (',',t,loc);
+    dec (num);
+    dec (loc,3);
+  End;
+
+  Comma := t;
+End;
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                        TClockView OBJECT METHODS                          }
@@ -226,7 +303,11 @@ END;
 END.
 {
  $Log$
- Revision 1.3  2001-08-04 19:14:33  peter
+ Revision 1.4  2001-08-05 02:03:13  peter
+   * view redrawing and small cursor updates
+   * merged some more FV extensions
+
+ Revision 1.3  2001/08/04 19:14:33  peter
    * Added Makefiles
    * added FV specific units and objects from old FV
 

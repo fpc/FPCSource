@@ -61,7 +61,7 @@ unit StdDlg;
 interface
 
 uses
-  ObjTypes, Objects, Drivers, Views, Dialogs, Validate, Dos;
+  FVConsts, Objects, Drivers, Views, Dialogs, Validate, Dos;
 
 const
 {$ifdef PPC_FPC}
@@ -565,7 +565,7 @@ implementation
 {****************************************************************************}
 
 uses
-  FVConsts, App, Memory, HistList, MsgBox, Resource;
+  App, Memory, HistList, MsgBox, Resource;
 
 type
 

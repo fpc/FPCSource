@@ -63,7 +63,7 @@ const
   idBrowseButton = 24;
   idEditListBox = 25;
   idModalInputLine = 26;
-  idListDlg = 27;
+  idListDlg = 28;
 
   { App Unit }
   idBackground = 30;
@@ -624,7 +624,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2001-08-04 19:14:33  peter
+  Revision 1.2  2001-08-05 02:03:13  peter
+    * view redrawing and small cursor updates
+    * merged some more FV extensions
+
+  Revision 1.1  2001/08/04 19:14:33  peter
     * Added Makefiles
     * added FV specific units and objects from old FV
 

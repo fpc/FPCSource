@@ -240,7 +240,7 @@ TYPE
           Where: TPoint);                             { Mouse position }
         evKeyDown: (                                  { ** KEY EVENT ** }
           Case Sw_Integer Of
-            0: (KeyCode: Sw_Word);                       { Full key code }
+            0: (KeyCode:  Word);                       { Full key code }
             1: (CharCode: Char;                       { Char code }
                 ScanCode: Byte;                       { Scan code }
                 KeyShift: byte));                     { Shift states }
@@ -351,7 +351,7 @@ Returns the ascii character for the Ctrl+Key scancode that was given.
 FUNCTION GetCtrlChar (KeyCode: Word): Char;
 
 {-CtrlToArrow--------------------------------------------------------
-Converts a Sw_WordStar-compatible control key code to the corresponding
+Converts a WordStar-compatible control key code to the corresponding
 cursor key code.
 25May96 LdB
 ---------------------------------------------------------------------}
@@ -1474,7 +1474,11 @@ BEGIN
 END.
 {
  $Log$
- Revision 1.11  2001-08-04 19:14:33  peter
+ Revision 1.12  2001-08-05 02:03:13  peter
+   * view redrawing and small cursor updates
+   * merged some more FV extensions
+
+ Revision 1.11  2001/08/04 19:14:33  peter
    * Added Makefiles
    * added FV specific units and objects from old FV
 

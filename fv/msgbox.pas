@@ -111,6 +111,12 @@ CONST
 {                            INTERFACE ROUTINES                             }
 {***************************************************************************}
 
+procedure InitMsgBox;
+procedure DoneMsgBox;
+  { Init initializes the message box display system's text strings.  Init is
+    called by TApplication.Init after a successful call to Resource.Init or
+    Resource.Load. }
+
 {-MessageBox---------------------------------------------------------
 MessageBox displays the given string in a standard sized dialog box.
 Before the dialog is displayed the Msg and Params are passed to FormatStr.
@@ -146,11 +152,18 @@ FUNCTION InputBoxRect (Var Bounds: TRect; Const Title, ALabel: String;
                                 IMPLEMENTATION
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
 
-USES Drivers, Views, App, Dialogs;                    { Standard GFV units }
+USES Drivers, Views, App, Dialogs, Resource;           { Standard GFV units }
 
 {***************************************************************************}
 {                            INTERFACE ROUTINES                             }
 {***************************************************************************}
+
+const
+  Commands: array[0..3] of word =
+    (cmYes, cmNo, cmOK, cmCancel);
+var
+  ButtonName: array[0..3] of string[40];
+  Titles: array[0..3] of string[40];
 
 {---------------------------------------------------------------------------}
 {  MessageBox -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 30Sep99 LdB        }
@@ -173,9 +186,6 @@ END;
 {---------------------------------------------------------------------------}
 FUNCTION MessageBoxRect(Var R: TRect; Const Msg: String; Params: Pointer;
   AOptions: Word): Word;
-CONST ButtonName: Array[0..3] Of String[6] = ('~Y~es', '~N~o', 'O~K~', 'Cancel');
-      Commands: Array[0..3] Of Word = (cmYes, cmNo, cmOK, cmCancel);
-      Titles: Array[0..3] Of String[11] = ('Warning','Error','Information','Confirm');
 VAR I, X, ButtonCount: Integer; S: String; Dialog: PDialog; Control: PView;
     ButtonList: Array[0..4] Of PView;
 BEGIN
@@ -260,11 +270,32 @@ BEGIN
    InputBoxRect := C;                                 { Return execute result }
 END;
 
+
+procedure InitMsgBox;
+begin
+  ButtonName[0] := Labels^.Get(slYes);
+  ButtonName[1] := Labels^.Get(slNo);
+  ButtonName[2] := Labels^.Get(slOk);
+  ButtonName[3] := Labels^.Get(slCancel);
+  Titles[0] := Labels^.Get(sWarning);
+  Titles[1] := Labels^.Get(sError);
+  Titles[2] := Labels^.Get(sInformation);
+  Titles[3] := Labels^.Get(sConfirm);
+end;
+
+procedure DoneMsgBox;
+begin
+end;
+
 END.
 
 {
  $Log$
- Revision 1.2  2000-08-24 12:00:22  marco
+ Revision 1.3  2001-08-05 02:03:14  peter
+   * view redrawing and small cursor updates
+   * merged some more FV extensions
+
+ Revision 1.2  2000/08/24 12:00:22  marco
   * CVS log and ID tags
 
 

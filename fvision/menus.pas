@@ -1048,7 +1048,7 @@ END;
 {  Draw -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 11May98 LdB              }
 {---------------------------------------------------------------------------}
 PROCEDURE TMenuBox.Draw;
-VAR CNormal, CSelect, CDisabled, Color: Word; Index, Tx, Ty, Y: Integer;
+VAR CNormal, CSelect, CSelectDisabled, CDisabled, Color: Word; Index, Tx, Ty, Y: Integer;
     S: String; P: PMenuItem; B: TDrawBuffer;
 Type
    FrameLineType = (UpperLine,NormalLine,SeparationLine,LowerLine);
@@ -1070,8 +1070,10 @@ BEGIN
    CNormal := GetColor($0301);                        { Normal colour }
    CSelect := GetColor($0604);                        { Selected colour }
    CDisabled := GetColor($0202);                      { Disabled colour }
+   CSelectDisabled := GetColor($0505);                { Selected, but disabled }
    If TextModeGFV then
      Begin
+       Color := CNormal;                              { Normal colour }
        CreateBorder(UpperLine);
        WriteBuf(0, 0, Size.X, 1, B);                  { Write the line }
      End;
@@ -1081,8 +1083,15 @@ BEGIN
      While (P <> Nil) Do Begin                        { Valid menu item }
        Color := CNormal;                              { Normal colour }
        If (P^.Name <> Nil) Then Begin                 { Item has text }
-         If P^.Disabled Then Color := CDisabled       { Is item disabled }
-         Else If (P = Current) Then Color := CSelect; { Select colour }
+         If P^.Disabled Then
+           begin
+             if (P = Current) then
+               Color := CSelectDisabled
+             else
+               Color := CDisabled; { Is item disabled }
+           end
+         else
+           If (P = Current) Then Color := CSelect;    { Select colour }
          If TextModeGFV then
            Begin
              CreateBorder(NormalLine);
@@ -1097,9 +1106,10 @@ BEGIN
          MoveCStr(B[Index], S, Color);                { Transfer string }
          If (P^.Command <> 0) AND(P^.Param <> Nil)
          Then Begin
-           MoveCStr(B[CStrLen(S)+Index], ' - ' + P^.Param^,
-             Color);                                  { Add param chars }
-           S := S + ' - ' + P^.Param^;                { Add to string }
+           if TextModeGFV then
+            MoveCStr(B[Size.X - 3 - Length(P^.Param^)], P^.Param^, Color)  { Add param chars }
+           else
+            S := S + ' - ' + P^.Param^;                { Add to string }
          End;
          If (OldItem = Nil) OR (OldItem = P) OR
          (Current = P) Then Begin                     { We need to fix draw }
@@ -1711,7 +1721,11 @@ END;
 END.
 {
  $Log$
- Revision 1.8  2001-05-30 13:26:17  pierre
+ Revision 1.9  2001-08-05 02:03:14  peter
+   * view redrawing and small cursor updates
+   * merged some more FV extensions
+
+ Revision 1.8  2001/05/30 13:26:17  pierre
   * fix border problems for views and menus
 
  Revision 1.7  2001/05/07 22:22:03  pierre
