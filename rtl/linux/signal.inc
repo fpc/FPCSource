@@ -90,6 +90,13 @@ type
            status: cardinal;
   end;
 
+ SigSet  =  array[0..wordsinsigset-1] of Longint;
+  sigset_t= SigSet;  
+  PSigSet = ^SigSet;
+  psigset_t=psigset;
+  TSigSet = SigSet;
+
+
 {$ifdef cpui386}
   PSigContextRec = ^SigContextRec;
   SigContextRec = record
@@ -128,10 +135,105 @@ type
 
 
 {$ifdef cpupowerpc}
-  PSigContextRec = ^SigContextRec;
-  SigContextRec = record
-    { dummy for now PM }
+
+  { from include/ppc/ptrace.h }
+  pptregs = ^tptregs;
+  tptregs = record
+    gpr: array[0..31] of cardinal;
+    nip: cardinal;
+    msr: cardinal;
+    orig_gpr3: cardinal; { Used for restarting system calls }
+    ctr: cardinal;
+    link: cardinal;
+    xer: cardinal;
+    ccr: cardinal;
+    mq: cardinal;        { 601 only (not used at present)  }
+                         { Used on APUS to hold IPL value. }
+    trap: cardinal;      { Reason for being here }
+    dar: cardinal;       { Fault registers }
+    dsisr: cardinal;
+    result: cardinal;    { Result of a system call }
   end;
+
+  { from include/asm/ppc/siginfo.h }
+     psiginfo = ^tsiginfo;
+     tsiginfo = record
+          si_signo : longint;
+          si_errno : longint;
+          si_code : longint;
+          _sifields : record
+              case longint of
+                 0 : ( _pad : array[0..(SI_PAD_SIZE)-1] of longint );
+                 1 : ( _kill : record
+                      _pid : pid_t;
+                      _uid : uid_t;
+                   end );
+                 2 : ( _timer : record
+                      _timer1 : dword;
+                      _timer2 : dword;
+                   end );
+                 3 : ( _rt : record
+                      _pid : pid_t;
+                      _uid : uid_t;
+                      _sigval : pointer;
+                   end );
+                 4 : ( _sigchld : record
+                      _pid : pid_t;
+                      _uid : uid_t;
+                      _status : longint;
+                      _utime : clock_t;
+                      _stime : clock_t;
+                   end );
+                 5 : ( _sigfault : record
+                      _addr : pointer;
+                   end );
+                 6 : ( _sigpoll : record
+                      _band : longint;
+                      _fd : longint;
+                   end );
+              end;
+       end;
+
+
+  { from include/asm-ppc/signal.h }
+  stack_t = record
+    ss_sp: pointer;
+    ss_flags: longint;
+    ss_size: size_t;
+  end;
+
+  { from include/asm-ppc/sigcontext.h }
+  tsigcontext_struct = record
+    _unused: array[0..3] of dword;
+    signal: longint;
+    handler: dword;
+    oldmask: dword;
+    pt_regs: pptregs;
+  end;
+
+  { from include/asm-ppc/ucontext.h }
+  pucontext = ^tucontext;
+  tucontext = record
+    uc_flags : dword;
+    uc_link : pucontext;
+    uc_stack : stack_t;
+    uc_mcontext : tsigcontext_struct;
+    uc_sigmask : sigset_t;
+  end;
+
+
+  { from arch/ppc/kernel/signal.c, the type of the actual parameter passed }
+  { to the sigaction handler                                               }
+  t_rt_sigframe = record
+    _unused: array[0..1] of cardinal;
+    pinfo: psiginfo;
+    puc: pointer;
+    siginfo: tsiginfo;
+    uc: tucontext;
+  end;
+
+  PSigContextRec = ^SigContextRec;
+  SigContextRec = t_rt_sigframe;
 {$endif cpupowerpc}
 
 
@@ -203,13 +305,6 @@ type
 
 
 
-  SigSet  =  array[0..wordsinsigset-1] of Longint;
-  sigset_t= SigSet;
-  PSigSet = ^SigSet;
-  psigset_t=psigset;
-  TSigSet = SigSet;
-
-
   SigActionRec = packed record  // this is temporary for the migration
    {$ifdef posixworkaround}
     sa_handler : signalhandler;
@@ -229,7 +324,10 @@ type
 
 {
   $Log$
-  Revision 1.12  2003-09-14 20:15:01  marco
+  Revision 1.13  2003-11-02 14:53:06  jonas
+    + sighand and associated record definitions for ppc. Untested.
+
+  Revision 1.12  2003/09/14 20:15:01  marco
    * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
 
   Revision 1.11  2003/09/03 14:09:37  florian
@@ -259,3 +357,4 @@ type
     * several fixes to MT
 
 }
+
