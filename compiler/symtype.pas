@@ -1257,7 +1257,7 @@ implementation
 
     function  tcompilerppufile.getasmsymbol:tasmsymbol;
       begin
-        getasmsymbol:=tasmsymbol(pointer(getlongint));
+        getasmsymbol:=tasmsymbol(pointer(ptrint(getlongint)));
       end;
 
 
@@ -1457,7 +1457,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.48  2004-11-15 23:35:31  peter
+  Revision 1.49  2004-12-15 21:09:06  peter
+    * 64bit typecast
+
+  Revision 1.48  2004/11/15 23:35:31  peter
     * tparaitem removed, use tparavarsym instead
     * parameter order is now calculated from paranr value in tparavarsym
 
