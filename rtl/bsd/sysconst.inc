@@ -43,23 +43,23 @@ Const
   Wait_UnTraced = 2;
   Wait_Any      = -1;
   Wait_MyPGRP   = 0;
-  { Constants to check stat.mode }
-  STAT_IFMT   = $f000; {00170000}
-  STAT_IFSOCK = $c000; {0140000}
-  STAT_IFLNK  = $a000; {0120000}
-  STAT_IFREG  = $8000; {0100000}
-  STAT_IFBLK  = $6000; {0060000}
-  STAT_IFDIR  = $4000; {0040000}
-  STAT_IFCHR  = $2000; {0020000}
-  STAT_IFIFO  = $1000; {0010000}
-  STAT_ISUID  = $0800; {0004000}
-  STAT_ISGID  = $0400; {0002000}
-  STAT_ISVTX  = $0200; {0001000}
-  { Constants to check permissions }
-  STAT_IRWXO = $7;
-  STAT_IROTH = $4;
-  STAT_IWOTH = $2;
-  STAT_IXOTH = $1;
+  { Constants to check stat.mode -  checked all STAT constants with BSD}
+  STAT_IFMT   = $f000; {00170000 }
+  STAT_IFSOCK = $c000; {0140000 }
+  STAT_IFLNK  = $a000; {0120000 }
+  STAT_IFREG  = $8000; {0100000 }
+  STAT_IFBLK  = $6000; {0060000 }
+  STAT_IFDIR  = $4000; {0040000 }
+  STAT_IFCHR  = $2000; {0020000 }
+  STAT_IFIFO  = $1000; {0010000 }
+  STAT_ISUID  = $0800; {0004000 }
+  STAT_ISGID  = $0400; {0002000 }
+  STAT_ISVTX  = $0200; {0001000} 
+  { Constants to check permissions all }
+  STAT_IRWXO = $7;         
+  STAT_IROTH = $4;         
+  STAT_IWOTH = $2;         
+  STAT_IXOTH = $1;         
 
   STAT_IRWXG = STAT_IRWXO shl 3;
   STAT_IRGRP = STAT_IROTH shl 3;
@@ -86,7 +86,10 @@ Const
 
 {
   $Log$
-  Revision 1.1  2000-02-02 15:41:28  marco
+  Revision 1.2  2000-02-02 16:35:29  marco
+   * Checked stat constants
+
+  Revision 1.1  2000/02/02 15:41:28  marco
    * initial BSD version.
 
   Revision 1.4  2000/01/07 16:41:41  daniel
