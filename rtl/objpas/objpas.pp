@@ -182,18 +182,28 @@ Function ParamStr(Param : Integer) : Ansistring;
 Var Len : longint;
 
 begin
-    if (Param>=0) and (Param<argc) then
-      begin
-      Len:=0;
-      While Argv[Param][Len]<>#0 do
-        Inc(len);
-      SetLength(Result,Len);
-      If Len>0 then
-        Move(Argv[Param][0],Result[1],Len);
-      end
-    else
-      paramstr:='';
-  end;
+{
+  Paramstr(0) should return the name of the binary.
+  Since this functionality is included in the system unit, 
+  we fetch it from there. 
+  Normally, pathnames are less than 255 chars anyway, 
+  so this will work correct in 99% of all cases.
+  In time, the system unit should get a GetExeName call.
+}
+  if (Param=0) then
+    Result:=System.Paramstr(0) 
+  else if (Param>0) and (Param<argc) then
+    begin
+    Len:=0;
+    While Argv[Param][Len]<>#0 do
+      Inc(len);
+    SetLength(Result,Len);
+    If Len>0 then
+      Move(Argv[Param][0],Result[1],Len);
+    end
+  else
+    paramstr:='';
+end;
 
 
 
@@ -380,8 +390,14 @@ end.
 
 {
   $Log$
-  Revision 1.11  2002-09-07 16:01:22  peter
+  Revision 1.12  2003-05-29 08:43:52  michael
+  + Paramstr(0) must return binary name
+
+  Revision 1.11  2002/09/07 16:01:22  peter
     * old logs removed and tabs fixed
+
+  Revision 1.1.2.3  2003/05/29 08:42:23  michael
+  + Paramstr(0) must return binary name
 
   Revision 1.10  2002/01/25 17:41:25  peter
     * delphi compatible array types
