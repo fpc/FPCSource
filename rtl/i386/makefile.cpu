@@ -1,0 +1,7 @@
+#
+# Here we set processor dependent include file names.
+#
+
+CPUNAMES=i386 heap math set 
+CPUINCNAMES=$(addsuffix .inc,$(CPUNAMES))
+
