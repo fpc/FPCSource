@@ -75,7 +75,7 @@
 
 
     {$define FPC_SYSTEM_HAS_TRUNC}
-    {$warning FIX ME}
+    {$warning FIX ME, trunc is working only for longint}
     function trunc(d : extended) : int64;assembler;[internconst:in_const_trunc];
       { input: d in fr1      }
       { output: result in r3 }
@@ -89,9 +89,9 @@
       asm
         fctiwz   f1,f1
         stfd     f1,temp
-        lwz      r3,temp
-        lwz      r4,4+temp
-      end ['R3','F1'];
+        xor	 r4,r4,r4
+        lwz      r3,4+temp
+      end ['R3','R4','F1'];
 
 
     {$define FPC_SYSTEM_HAS_ROUND}
@@ -296,7 +296,10 @@ end ['R0','R3','F0','F1','F2','F3'];
 
 {
   $Log$
-  Revision 1.17  2003-04-23 21:28:21  peter
+  Revision 1.18  2003-04-26 17:20:16  florian
+    * fixed trunc, now it's working at least for longint range
+
+  Revision 1.17  2003/04/23 21:28:21  peter
     * fpc_round added, needed for int64 currency
 
   Revision 1.16  2003/01/16 11:29:11  olle
