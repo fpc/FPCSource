@@ -25,13 +25,13 @@ interface
 
     const
        { word version for ppu file }
-       wordversion = (0 shl 14)+99;
+       wordversion = (1 shl 14)+0;
 
        { version string }
 
        version_nr = '1';
        release_nr = '00';
-       patch_nr   = '';
+       patch_nr   = '0';
 {$ifdef newcg}
        minorpatch = ' NCG';
 {$else newcg}
@@ -79,7 +79,7 @@ implementation
 
 function version_string:string;
 begin
-  if patch_nr='' then
+  if patch_nr='0' then
    version_string := version_nr+'.'+release_nr
   else
    version_string := version_nr+'.'+release_nr+'.'+patch_nr;
@@ -88,7 +88,7 @@ end;
 
 function full_version_string:string;
 begin
-  if patch_nr='' then
+  if patch_nr='0' then
    full_version_string := version_nr+'.'+release_nr+minorpatch
   else
    full_version_string := version_nr+'.'+release_nr+'.'+patch_nr+minorpatch;
@@ -99,7 +99,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2000-07-09 09:34:50  peter
+  Revision 1.20  2000-07-10 09:17:27  pierre
+   * fix wordversion
+
+  Revision 1.19  2000/07/09 09:34:50  peter
     * version_string is now a function so it returns 1.00 instead of 1.00.0
 
   Revision 1.18  2000/07/06 20:08:46  peter
@@ -132,4 +135,3 @@ end.
     * some changes to compile the new code generator
 
 }
-
