@@ -1,0 +1,28 @@
+#
+#   Makefile.fpc for OpenGL for FPC
+#
+
+[package]
+name=opengl
+version=1.0.7
+
+[require]
+packages_linux=x11
+packages_freebsd=x11
+packages_netbsd=x11
+packages_openbsd=x11
+
+[target]
+units=gl glu glut
+units_linux=dllfuncs glx
+units_freebsd=dllfuncs glx
+units_netbsd=dllfuncs glx
+units_openbsd=dllfuncs glx
+
+exampledirs=examples
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
