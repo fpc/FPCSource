@@ -2232,16 +2232,16 @@ ifeq ($(RPMBUILD),)
 RPMBUILD=$(strip $(wildcard $(addsuffix /rpm,$(SEARCHPATH))))
 endif
 REDHATDIR=/usr/src/redhat
-ifeq ($(wildcard REDHATDIR),)
+ifeq ($(wildcard $(REDHATDIR)),)
 REDHATDIR=/usr/src/rpm
 endif
 RPMSOURCESDIR:=$(REDHATDIR)/SOURCES
 RPMSPECDIR:=$(REDHATDIR)/SPECS
 RPMSRCDIR:=$(RPMSOURCESDIR)/fpc
 rpmcopy: distclean
-	install -d $(REDHATDIR)
-	install -d $(RPMSPECDIR)
-	install -d $(RPMSOURCESDIR)
+	false || [ -d $(REDHATDIR) ] || install -d $(REDHATDIR)
+	false || [ -d $(RRPMSPECDIR) ] || install -d $(RPMSPECDIR)
+	false || [ -d $(RPMSOURCESDIR) ] || install -d $(RPMSOURCESDIR)
 	rm -rf $(RPMSRCDIR)
 	cp $(CVSINSTALL)/fpc.spec $(RPMSPECDIR)/fpc-$(RPMFPCVERSION).spec
 ifndef NODOCS
@@ -2265,6 +2265,7 @@ ifndef NODOCS
 endif
 	find $(RPMSRCDIR) -name 'CVS*' | xargs -n1 rm -rf
 	cd $(RPMSRCDIR) ; tar cvz * > $(RPMSOURCESDIR)/fpc-$(RPMFPCVERSION)-src.tar.gz
+	rm -rf $(RPMSRCDIR)
 rpm: checkfpcdir rpmcopy
 	cd $(RPMSPECDIR) ; $(RPMBUILD) --nodeps -ba fpc-$(RPMFPCVERSION).spec
 endif   # spec found
