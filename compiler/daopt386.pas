@@ -610,14 +610,14 @@ Begin
               If (Pai_Label(p)^.l^.nb > HighLabel) Then
                 HighLabel := Pai_Label(p)^.l^.nb;
             End
-          Else
+{          Else
             Begin
               hp1 := pai(p^.next);
               AsmL^.Remove(p);
               Dispose(p, Done);
               p := hp1;
               continue;
-            End;
+            End};
       p := pai(p^.next);
     End;
   If LabelFound
@@ -641,7 +641,8 @@ Begin
             p := pai(AsmL^.first);
             While Assigned(p) Do
               Begin
-                If (Pai(p)^.typ = ait_label) Then
+                If (Pai(p)^.typ = ait_label) And
+                   (Pai_Label(p)^.l^.is_used) Then
                   LabelTable^[Pai_Label(p)^.l^.nb-LowLabel].PaiObj := p;
                 p := pai(p^.next);
               End;
@@ -669,8 +670,9 @@ Var TempP: Pai;
 Begin
   TempP := hp;
   While Assigned(TempP) and
-       (pai(TempP)^.typ In SkipInstr + [ait_label]) Do
-    If (pai_label(TempP)^.l <> L)
+       (TempP^.typ In SkipInstr + [ait_label]) Do
+    If (TempP^.typ <> ait_Label) Or
+       (pai_label(TempP)^.l <> L)
       Then TempP := Pai(TempP^.next)
       Else
         Begin
@@ -678,7 +680,7 @@ Begin
           FindLabel := True;
           exit
         End;
-  FindLabel := False
+  FindLabel := False;
 End;
 
 {************************ Some general functions ************************}
@@ -794,7 +796,9 @@ Begin
   GetNextInstruction := False;
   Current := Pai(Current^.Next);
   While Assigned(Current) And
-        (Pai(Current)^.typ In SkipInstr) Do
+        ((Pai(Current)^.typ In SkipInstr) or
+         ((Pai(Current)^.typ = ait_label) And
+          Not(Pai_Label(Current)^.l^.is_used))) Do
     Current := Pai(Current^.Next);
   If Assigned(Current)
     Then
@@ -811,7 +815,9 @@ Begin
   GetLastInstruction := False;
   Current := Pai(Current^.previous);
   While Assigned(Current) And
-        (Pai(Current)^.typ In SkipInstr) Do
+        ((Pai(Current)^.typ In SkipInstr) or
+         ((Pai(Current)^.typ = ait_label) And
+          Not(Pai_Label(Current)^.l^.is_used))) Do
     Current := Pai(Current^.previous);
   If Assigned(Current)
     Then
@@ -1053,10 +1059,12 @@ Begin
       Case p^.typ Of
         ait_label:
 {$Ifndef JumpAnal}
-          DestroyAllRegs(CurProp);
+          If (Pai_label(p)^.l^.is_used) Then
+            DestroyAllRegs(CurProp);
 {$Else JumpAnal}
           Begin
-            With LTable^[Pai_Label(p)^.l^.nb-LoLab] Do
+           If (Pai_Label(p)^.is_used) Then
+             With LTable^[Pai_Label(p)^.l^.nb-LoLab] Do
 {$IfDef AnalyzeLoops}
               If (RefsFound = Pai_Label(p)^.l^.RefCount)
 {$Else AnalyzeLoops}
@@ -1394,7 +1402,8 @@ Begin
           end;
         ait_label:
           Begin
-            LTable^[Pai_Label(P)^.l^.nb-LoLab].InstrNr := NrOfPaiObjs
+            If (Pai_Label(p)^.l^.is_used) Then
+              LTable^[Pai_Label(P)^.l^.nb-LoLab].InstrNr := NrOfPaiObjs
           End;
 {        ait_instruction:
           Begin
@@ -1456,7 +1465,10 @@ End.
 
 {
  $Log$
- Revision 1.10  1998-09-09 15:33:58  peter
+ Revision 1.11  1998-09-15 14:05:27  jonas
+   * fixed optimizer incompatibilities with freelabel code in psub
+
+ Revision 1.10  1998/09/09 15:33:58  peter
    * removed warnings
 
  Revision 1.9  1998/09/03 16:24:51  florian

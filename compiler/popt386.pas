@@ -111,11 +111,11 @@ Begin
             If (pai_labeled(p)^._operator = A_JMP) Then
               Begin
                 hp1 := pai(p^.next);
-                While Assigned(hp1) and (hp1^.typ <> ait_label) Do
+                While GetNextInstruction(p, hp1) and
+                      (hp1^.typ <> ait_label) Do
                   Begin
                     AsmL^.Remove(hp1);
                     Dispose(hp1, done);
-                    hp1 := pai(p^.next);
                   End;
                End;
             If GetNextInstruction(p, hp1) then
@@ -156,8 +156,8 @@ Begin
                       If (pai_label(hp2)^.l^.refcount = 0) Then
                         Begin
                           pai_label(hp2)^.l^.is_used := False;
-                          AsmL^.remove(hp2);
-                          Dispose(hp2, done);
+{                          AsmL^.remove(hp2);
+                          Dispose(hp2, done);}
                         End;
                       pai_labeled(p)^.lab:=pai_labeled(hp1)^.lab;
                       Inc(pai_labeled(p)^.lab^.refcount);
@@ -172,11 +172,11 @@ Begin
                           hp2:=pai(hp1^.next);
                           asml^.remove(p);
                           dispose(p,done);
-                          If Not(pai_label(hp1)^.l^.is_used) Then
+{                          If Not(pai_label(hp1)^.l^.is_used) Then
                             Begin
                               AsmL^.remove(hp1);
                               Dispose(hp1, done);
-                            End;
+                            End;}
                           p:=hp2;
                           continue;
                         end;
@@ -1265,7 +1265,7 @@ Begin
                  End;
             End;
           End;
-        ait_label:
+{        ait_label:
           Begin
             If Not(Pai_Label(p)^.l^.is_used)
               Then
@@ -1276,7 +1276,7 @@ Begin
                   p := hp1;
                   Continue
                 End;
-          End;
+          End;}
 {$ifdef regalloc}
         ait_regalloc: UsedRegs := UsedRegs + [PaiAlloc(p)^.Reg];
         ait_regdealloc: UsedRegs := UsedRegs - [PaiAlloc(p)^.Reg];
@@ -1360,7 +1360,10 @@ End.
 
 {
  $Log$
- Revision 1.11  1998-08-28 10:57:02  peter
+ Revision 1.12  1998-09-15 14:05:22  jonas
+   * fixed optimizer incompatibilities with freelabel code in psub
+
+ Revision 1.11  1998/08/28 10:57:02  peter
    * removed warnings
 
  Revision 1.10  1998/08/27 15:17:50  florian
