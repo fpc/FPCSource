@@ -91,7 +91,7 @@ unit tgeni386;
        regvar_ptreearray = array[R_EAX..R_MM6] of ptree;
 {$else SUPPORT_MMX}
        regvar_longintarray = array[R_EAX..R_EDI] of longint;
-       regvar_boolarray = array[R_EAX..R_EDI] of boolean;
+       regvar_booleanarray = array[R_EAX..R_EDI] of boolean;
        regvar_ptreearray = array[R_EAX..R_EDI] of ptree;
 {$endif SUPPORT_MMX}
 
@@ -653,7 +653,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-08-04 05:09:49  jonas
+  Revision 1.4  2000-08-05 13:32:39  peter
+    * fixed build prob without support_mmx
+
+  Revision 1.3  2000/08/04 05:09:49  jonas
     * forgot to commit :( (part of regvar changes)
 
   Revision 1.2  2000/07/13 11:32:52  michael
