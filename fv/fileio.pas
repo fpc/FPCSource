@@ -75,7 +75,9 @@ UNIT FileIO;
 
 {$X+} { Extended syntax is ok }
 {$R-} { Disable range checking }
+{$IFNDEF OS_LINUX}
 {$S-} { Disable Stack Checking }
+{$ENDIF}
 {$I-} { Disable IO Checking }
 {$Q-} { Disable Overflow Checking }
 {$V-} { Turn off strict VAR strings }
@@ -225,6 +227,10 @@ FUNCTION FileWrite (Handle: THandle; Var Buf; Count: Sw_Word; Var Actual: Sw_Wor
 
 {$ENDIF}
 
+{$IFDEF OS_LINUX}                                     { LINUX COMPILER }
+  USES unix;
+{$ENDIF}
+
 {***************************************************************************}
 {                            INTERFACE ROUTINES                             }
 {***************************************************************************}
@@ -279,8 +285,7 @@ END;
 {$IFDEF OS_LINUX}                                     { LINUX CODE }
 BEGIN
    fdClose(Handle);                                   { Close the file }
-   If (LinuxError <= 0) Then FileClosed := True       { Close succesful }
-     Else FileClosed := False;                        { Close failed }
+   FileClose := LinuxError <= 0
 END;
 {$ENDIF}
 
@@ -375,6 +380,15 @@ BEGIN
    {$ENDIF}
 END;
 {$ENDIF}
+{$IFDEF OS_LINUX}
+BEGIN
+   if mode = fa_Create    then mode := Open_Creat or Open_RdWr else
+   if mode = fa_OpenRead  then mode := Open_RdOnly             else
+   if mode = fa_OpenWrite then mode := Open_WrOnly             else
+   if mode = fa_Open      then mode := Open_RdWr;
+   FileOpen := fdOpen(FileName, mode);
+END;
+{$ENDIF}
 
 {---------------------------------------------------------------------------}
 {  SetFileSize -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 26Feb97 LdB       }
@@ -446,6 +460,18 @@ BEGIN
    {$ENDIF}
 END;
 {$ENDIF}
+{$IFDEF OS_LINUX}
+VAR
+   Actual : LongInt;
+BEGIN
+   Actual := fdSeek(Handle, FileSize, 0);             { Position file }
+   If (Actual = FileSize) Then Begin                  { No position error }
+     if (fdTruncate(Handle, FileSize))                { Truncate the file }
+        Then SetFileSize := 0                         { No truncate error }
+        else SetFileSize := 103;                      { File truncate error }
+   End Else SetFileSize := 103;                       { File truncate error }
+END;
+{$ENDIF}
 
 {---------------------------------------------------------------------------}
 {  SetFilePos -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 25Feb97 LdB        }
@@ -514,6 +540,13 @@ BEGIN
    {$ENDIF}
 END;
 {$ENDIF}
+{$IFDEF OS_LINUX}
+BEGIN
+   Actual := fdSeek(Handle, Pos, MoveType);
+   If (Actual <> -1) Then SetFilePos := 0 Else        { No position error }
+      SetFilePos := 107;                               { File position error }
+END;
+{$ENDIF}
 
 {---------------------------------------------------------------------------}
 {  FileRead -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 22Oct98 LdB          }
@@ -551,7 +584,6 @@ FUNCTION FileRead (Handle: THandle; Var Buf; Count: Sw_Word; Var Actual: Sw_Word
    {$ENDIF}
 {$ENDIF}
 {$IFDEF OS_WINDOWS}                                   { WIN/NT CODE }
-
 BEGIN
    {$IFDEF BIT_16}                                    { 16 BIT WINDOWS CODE }
    Actual := _lread(Handle, Pointer(@Buf), Count);    { Read from file }
@@ -570,6 +602,13 @@ BEGIN
    If (DosRead(Handle, Buf, Count, Actual) = 0) AND   { Read from file }
    (Actual = Count) Then FileRead := 0 Else           { No read error }
      FileRead := 104;                                 { File read error }
+END;
+{$ENDIF}
+{$IFDEF OS_LINUX}
+BEGIN
+   Actual := fdRead(Handle, Buf, Count);
+   if (Actual = Count) Then FileRead := 0             { No read error }
+     Else FileRead := 104;                            { File read error }
 END;
 {$ENDIF}
 
@@ -629,11 +668,21 @@ BEGIN
      FileWrite := 105;                                { File write error }
 END;
 {$ENDIF}
+{$IFDEF OS_LINUX}
+BEGIN
+   Actual := fdWrite(Handle, Buf, Count);
+   If (Actual = Count) Then FileWrite := 0 Else       { No write error }
+     FileWrite := 105;                                { File write error }
+END;
+{$ENDIF}
 
 END.
 {
  $Log$
- Revision 1.3  2001-04-10 21:29:55  pierre
+ Revision 1.4  2001-05-03 15:55:44  pierre
+  + linux support for fileio contributed by Holger Schurig
+
+ Revision 1.3  2001/04/10 21:29:55  pierre
   * import of Leon de Boer's files
 
  Revision 1.2  2000/08/24 12:00:21  marco
