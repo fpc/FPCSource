@@ -208,7 +208,7 @@ type
       end;
 
 
-    function gen_high_tree(p:tnode;openstring:boolean):tnode;
+    function gen_high_tree(p:tnode;paradef:tdef):tnode;
       var
         temp: tnode;
         len : integer;
@@ -221,21 +221,30 @@ type
         case p.resulttype.def.deftype of
           arraydef :
             begin
-              { handle via a normal inline in_high_x node }
-              loadconst := false;
-              hightree := geninlinenode(in_high_x,false,p.getcopy);
-              { only substract low(array) if it's <> 0 }
-              temp := geninlinenode(in_low_x,false,p.getcopy);
-              resulttypepass(temp);
-              if (temp.nodetype <> ordconstn) or
-                 (tordconstnode(temp).value <> 0) then
-                hightree := caddnode.create(subn,hightree,temp)
+              if (paradef.deftype<>arraydef) then
+                internalerror(200405241);
+              { handle special case of passing an single array to an array of array }
+              if compare_defs(tarraydef(paradef).elementtype.def,p.resulttype.def,nothingn)>=te_equal then
+                len:=0
               else
-                temp.free;
+                begin
+                  { handle via a normal inline in_high_x node }
+                  loadconst := false;
+                  hightree := geninlinenode(in_high_x,false,p.getcopy);
+                  resulttypepass(hightree);
+                  { only substract low(array) if it's <> 0 }
+                  temp := geninlinenode(in_low_x,false,p.getcopy);
+                  resulttypepass(temp);
+                  if (temp.nodetype <> ordconstn) or
+                     (tordconstnode(temp).value <> 0) then
+                    hightree := caddnode.create(subn,hightree,temp)
+                  else
+                    temp.free;
+                end;
             end;
           stringdef :
             begin
-              if openstring then
+              if is_open_string(paradef) then
                begin
                  { handle via a normal inline in_high_x node }
                  loadconst := false;
@@ -1224,8 +1233,8 @@ type
                 begin
                   if not assigned(pt) then
                     internalerror(200304082);
-                  { we need the information of the next parameter }
-                  hiddentree:=gen_high_tree(pt.left,is_open_string(tparaitem(currpara.previous).paratype.def));
+                  { we need the information of the previous parameter }
+                  hiddentree:=gen_high_tree(pt.left,tparaitem(currpara.previous).paratype.def);
                 end
               else
                if vo_is_self in tvarsym(currpara.parasym).varoptions then
@@ -2110,7 +2119,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.235  2004-05-23 18:28:41  peter
+  Revision 1.236  2004-05-24 17:31:51  peter
+    * fix passing of array to open array of array (bug 3113)
+
+  Revision 1.235  2004/05/23 18:28:41  peter
     * methodpointer is loaded into a temp when it was a calln
 
   Revision 1.234  2004/05/23 15:06:20  peter
