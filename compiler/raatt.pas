@@ -176,6 +176,7 @@ unit raatt;
 
     procedure tattreader.handlepercent;
       begin
+        c:=current_scanner.asmgetchar;
         actasmtoken:=AS_MOD;
       end;
 
@@ -1470,7 +1471,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2003-12-03 17:39:04  florian
+  Revision 1.6  2003-12-07 14:03:37  jonas
+    * go to the next character after consuming a "%"
+
+  Revision 1.5  2003/12/03 17:39:04  florian
     * fixed several arm calling conventions issues
     * fixed reference reading in the assembler reader
     * fixed a_loadaddr_ref_reg
