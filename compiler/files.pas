@@ -208,48 +208,50 @@ unit files;
                                    {  start of machine language      }
 
     const
-       ibloadunit = 1;
-       iborddef = 2;
-       ibpointerdef = 3;
-       ibtypesym = 4;
-       ibarraydef = 5;
-       ibprocdef = 6;
-       ibprocsym = 7;
-       iblinkofile = 8;
-       ibstringdef = 9;
-       ibvarsym = 10;
-       ibconstsym = 11;
-       ibinitunit = 12;
-       ibaufzaehlsym = 13;
+       ibloadunit      = 1;
+       iborddef        = 2;
+       ibpointerdef    = 3;
+       ibtypesym       = 4;
+       ibarraydef      = 5;
+       ibprocdef       = 6;
+       ibprocsym       = 7;
+       iblinkofile     = 8;
+       ibstringdef     = 9;
+       ibvarsym        = 10;
+       ibconstsym      = 11;
+       ibinitunit      = 12;
+       ibaufzaehlsym   = 13;
        ibtypedconstsym = 14;
-       ibrecorddef = 15;
-       ibfiledef = 16;
-       ibformaldef = 17;
-       ibobjectdef = 18;
-       ibenumdef = 19;
-       ibsetdef = 20;
-       ibprocvardef = 21;
-       ibsourcefile = 22;
-       ibdbxcount = 23;
-       ibfloatdef = 24;
-       ibref = 25;
-       ibextsymref = 26;
-       ibextdefref = 27;
-       ibabsolutesym = 28;
-       ibclassrefdef = 29;
-       ibpropertysym = 30;
-       iblibraries = 31;
+       ibrecorddef     = 15;
+       ibfiledef       = 16;
+       ibformaldef     = 17;
+       ibobjectdef     = 18;
+       ibenumdef       = 19;
+       ibsetdef        = 20;
+       ibprocvardef    = 21;
+       ibsourcefile    = 22;
+       ibdbxcount      = 23;
+       ibfloatdef      = 24;
+       ibref           = 25;
+       ibextsymref     = 26;
+       ibextdefref     = 27;
+       ibabsolutesym   = 28;
+       ibclassrefdef   = 29;
+       ibpropertysym   = 30;
+       iblibraries     = 31;
        iblongstringdef = 32;
        ibansistringdef = 33;
-       ibend = 255;
+       ibunitname      = 34;
+       ibend           = 255;
 
        { unit flags }
-       uf_init = 1;
-       uf_uses_dbx = 2;
-       uf_uses_browser = 4;
-       uf_in_library = 8;
-       uf_shared_library = 16;
-       uf_big_endian = 32;
+       uf_init           = $1;
+       uf_uses_dbx       = $2;
+       uf_uses_browser   = $4;
+       uf_in_library     = $8;
+       uf_shared_library = $10;
+       uf_big_endian     = $20;
+       uf_smartlink      = $40;
 
   implementation
 
@@ -696,8 +698,12 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:12  root
-  Initial revision
+  Revision 1.2  1998-04-21 10:16:47  peter
+    * patches from strasbourg
+    * objects is not used anymore in the fpc compiled version
+
+  Revision 1.1.1.1  1998/03/25 11:18:12  root
+  * Restored version
 
   Revision 1.37  1998/03/13 22:45:58  florian
     * small bug fixes applied

@@ -25,7 +25,7 @@ unit types;
   interface
 
     uses
-       objects,cobjects,globals,symtable,tree,aasm;
+       cobjects,globals,symtable,tree,aasm;
 
     type
        tmmxtype = (mmxno,mmxu8bit,mmxs8bit,mmxu16bit,mmxs16bit,
@@ -925,7 +925,11 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.8  1998-04-12 22:39:44  florian
+  Revision 1.9  1998-04-21 10:16:49  peter
+    * patches from strasbourg
+    * objects is not used anymore in the fpc compiled version
+
+  Revision 1.8  1998/04/12 22:39:44  florian
     * problem with read access to properties solved
     * correct handling of hidding methods via virtual (COM)
     * correct result type of constructor calls (COM), the resulttype

@@ -33,7 +33,7 @@ unit parser;
   implementation
 
     uses
-       dos,objects,cobjects,globals,scanner,systems,symtable,tree,aasm,
+       dos,cobjects,globals,scanner,systems,symtable,tree,aasm,
        types,strings,pass_1,hcodegen,files,verbose,script,import
 {$ifdef i386}
        ,i386
@@ -530,7 +530,11 @@ done:
 end.
 {
   $Log$
-  Revision 1.5  1998-04-10 14:41:43  peter
+  Revision 1.6  1998-04-21 10:16:48  peter
+    * patches from strasbourg
+    * objects is not used anymore in the fpc compiled version
+
+  Revision 1.5  1998/04/10 14:41:43  peter
     * removed some Hints
     * small speed optimization for AsmLn
 

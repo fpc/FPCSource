@@ -35,7 +35,7 @@ unit pass_1;
   implementation
 
      uses
-        objects,cobjects,verbose,systems,globals,aasm,symtable,
+        cobjects,verbose,systems,globals,aasm,symtable,
         types,strings,hcodegen,files
 {$ifdef i386}
         ,i386
@@ -4597,7 +4597,11 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.10  1998-04-14 23:27:03  florian
+  Revision 1.11  1998-04-21 10:16:48  peter
+    * patches from strasbourg
+    * objects is not used anymore in the fpc compiled version
+
+  Revision 1.10  1998/04/14 23:27:03  florian
     + exclude/include with constant second parameter added
 
   Revision 1.9  1998/04/13 21:15:42  florian

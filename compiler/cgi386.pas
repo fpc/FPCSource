@@ -22,7 +22,7 @@
 }
 
 {$ifdef tp}
-{$E+,F+,N+,D+,L+,Y+}
+{$E+,F+,N+,D-,L+,Y+}
 {$endif}
 unit cgi386;
 
@@ -31,7 +31,7 @@ unit cgi386;
 interface
 {***************************************************************************}
 
-uses    objects,verbose,cobjects,systems,globals,tree,
+uses    verbose,cobjects,systems,globals,tree,
         symtable,types,strings,pass_1,hcodegen,
         aasm,i386,tgeni386,files,cgai386
 {$ifdef GDB}
@@ -651,7 +651,7 @@ implementation
 {$ifndef MAKELIB}
                    consts^.insert(new(pai_label,init(lastlabel)));
 {$else MAKELIB}
-                   consts^.insert(new(pai_symbol,init_global('$'+current_module^.unitname^
+                   consts^.insert(new(pai_symbol,init_global('_$'+current_module^.unitname^
                      +'$real_const'+tostr(p^.labnumber))));
                    consts^.insert(new(pai_cut,init));
 {$endif MAKELIB}
@@ -661,7 +661,7 @@ implementation
 {$ifndef MAKELIB}
          p^.location.reference.symbol:=stringdup(lab2str(lastlabel));
 {$else MAKELIB}
-         p^.location.reference.symbol:=stringdup('$'+current_module^.unitname^
+         p^.location.reference.symbol:=stringdup('_$'+current_module^.unitname^
                      +'$real_const'+tostr(p^.labnumber));
 {$endif MAKELIB}
       end;
@@ -752,7 +752,7 @@ implementation
 {$ifndef MAKELIB}
                    consts^.insert(new(pai_label,init(lastlabel)));
 {$else MAKELIB}
-                   consts^.insert(new(pai_symbol,init_global('$'+current_module^.unitname^
+                   consts^.insert(new(pai_symbol,init_global('_$'+current_module^.unitname^
                      +'$string_const'+tostr(p^.labstrnumber))));
                    consts^.insert(new(pai_cut,init));
 {$endif MAKELIB}
@@ -762,7 +762,7 @@ implementation
 {$ifndef MAKELIB}
          p^.location.reference.symbol:=stringdup(lab2str(lastlabel));
 {$else MAKELIB}
-         p^.location.reference.symbol:=stringdup('$'+current_module^.unitname^
+         p^.location.reference.symbol:=stringdup('_$'+current_module^.unitname^
                      +'$string_const'+tostr(p^.labstrnumber));
 {$endif MAKELIB}
          p^.location.loc := LOC_MEM;
@@ -5844,7 +5844,11 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.13  1998-04-14 23:27:02  florian
+  Revision 1.14  1998-04-21 10:16:47  peter
+    * patches from strasbourg
+    * objects is not used anymore in the fpc compiled version
+
+  Revision 1.13  1998/04/14 23:27:02  florian
     + exclude/include with constant second parameter added
 
   Revision 1.12  1998/04/13 21:15:41  florian

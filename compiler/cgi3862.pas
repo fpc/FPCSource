@@ -28,7 +28,7 @@ unit cgi3862;
   interface
 
     uses
-       objects,verbose,cobjects,systems,globals,tree,
+       verbose,cobjects,systems,globals,tree,
        symtable,types,strings,pass_1,hcodegen,
        aasm,i386,tgeni386,files,cgai386;
 
@@ -48,8 +48,12 @@ unit cgi3862;
 end.
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:12  root
-  Initial revision
+  Revision 1.2  1998-04-21 10:16:47  peter
+    * patches from strasbourg
+    * objects is not used anymore in the fpc compiled version
+
+  Revision 1.1.1.1  1998/03/25 11:18:12  root
+  * Restored version
 
   Revision 1.9  1998/03/10 01:17:18  peter
     * all files have the same header

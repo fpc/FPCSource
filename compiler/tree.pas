@@ -29,7 +29,7 @@ unit tree;
   interface
 
     uses
-       objects,globals,symtable,cobjects,verbose,aasm,files
+       globals,symtable,cobjects,verbose,aasm,files
 {$ifdef i386}
        ,i386
 {$endif}
@@ -1160,7 +1160,11 @@ $endif SUPPORT_MMX
 end.
 {
   $Log$
-  Revision 1.2  1998-04-07 22:45:05  florian
+  Revision 1.3  1998-04-21 10:16:49  peter
+    * patches from strasbourg
+    * objects is not used anymore in the fpc compiled version
+
+  Revision 1.2  1998/04/07 22:45:05  florian
     * bug0092, bug0115 and bug0121 fixed
     + packed object/class/array
 

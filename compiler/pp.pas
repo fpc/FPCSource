@@ -131,8 +131,10 @@ uses
      ObjMemory,
      PMD, MemCheck,
 {$EndIf}
-
-  dos,objects,cobjects,
+{$ifdef TP}
+  objects,
+{$endif}  
+  dos,cobjects,
   globals,parser,systems,tree,symtable,options,link,import,files,
   verb_def,verbose;
 
@@ -371,7 +373,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  1998-04-07 13:19:47  pierre
+  Revision 1.3  1998-04-21 10:16:48  peter
+    * patches from strasbourg
+    * objects is not used anymore in the fpc compiled version
+
+  Revision 1.2  1998/04/07 13:19:47  pierre
     * bugfixes for reset_gdb_info
       in MEM parsing for go32v2
       better external symbol creation
