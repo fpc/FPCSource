@@ -2931,6 +2931,11 @@ begin
  SaveVideoState := nil;
  RestoreVideoState := nil;
  SavePtr := Nil;
+{$ifdef oldfont}
+{$ifdef go32v2}
+ LoadFont8x8; 
+{$endif go32v2}
+{$endif oldfont}
  { This must be called at startup... because GetGraphMode may }
  { be called even when not in graph mode.                     }
 {$ifdef logging}
@@ -2961,7 +2966,10 @@ SetGraphBufSize
 
 {
   $Log$
-  Revision 1.36  1999-11-08 15:01:38  peter
+  Revision 1.37  1999-11-11 14:07:14  florian
+    * better looking font
+
+  Revision 1.36  1999/11/08 15:01:38  peter
     * fpcmake support
 
   Revision 1.35  1999/11/08 11:15:22  peter
