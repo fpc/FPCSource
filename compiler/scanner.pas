@@ -191,7 +191,7 @@ implementation
       cutils,
       systems,
       switches,
-      symbase,symtable,symtype,symsym,symconst,
+      symbase,symtable,symtype,symsym,symconst,symdef,defutil,
       fmodule;
 
     var
@@ -628,8 +628,43 @@ implementation
                 else
                   begin
                     hs:=preproc_substitutedtoken;
-                    preproc_consume(_ID);
+                    { Default is to return the original symbol }
                     read_factor:=hs;
+                    if searchsym(current_scanner.preproc_pattern,srsym,srsymtable) then
+                      begin
+                        case srsym.typ of
+                          constsym :
+                            begin
+                              with tconstsym(srsym) do
+                                begin
+                                  case consttyp of
+                                    constord :
+                                      begin
+                                        case consttype.def.deftype of
+                                          orddef:
+                                            begin
+                                              if is_integer(consttype.def) or is_boolean(consttype.def) then
+                                                read_factor:=tostr(value.valueord)
+                                              else
+                                                if is_char(consttype.def) then
+                                                  read_factor:=chr(value.valueord);
+                                            end;
+                                          enumdef:
+                                            read_factor:=tostr(value.valueord)
+                                        end;
+                                      end;
+                                    conststring :
+                                      read_factor := upper(pchar(value.valueordptr))
+                                  end;
+                                end;
+                            end;
+                          enumsym :
+                            read_factor:=tostr(tenumsym(srsym).value);
+                        end;
+                      end;
+
+                    preproc_consume(_ID);
+                    current_scanner.skipspace;
                   end
              end
            else if current_scanner.preproc_token =_LKLAMMER then
@@ -637,6 +672,18 @@ implementation
                 preproc_consume(_LKLAMMER);
                 read_factor:=read_expr;
                 preproc_consume(_RKLAMMER);
+             end
+           else if current_scanner.preproc_token = _LECKKLAMMER then
+             begin
+               preproc_consume(_LECKKLAMMER);
+               read_factor := ',';
+               while current_scanner.preproc_token = _ID do
+               begin
+                 read_factor := read_factor+read_factor()+',';
+                 if current_scanner.preproc_token = _COMMA then
+                   preproc_consume(_COMMA);
+               end;
+               preproc_consume(_RECKKLAMMER);
              end
            else
              Message(scan_e_error_in_preproc_expr);
@@ -701,18 +748,24 @@ implementation
         begin
            hs1:=read_simple_expr;
            t:=current_scanner.preproc_token;
-           if not(t in [_EQUAL,_UNEQUAL,_LT,_GT,_LTE,_GTE]) then
+           if (t = _ID) and (current_scanner.preproc_pattern = 'IN') then
+             t := _IN;
+           if not (t in [_IN,_EQUAL,_UNEQUAL,_LT,_GT,_LTE,_GTE]) then
              begin
                 read_expr:=hs1;
                 exit;
              end;
-           preproc_consume(t);
+           if (t = _IN) then
+             preproc_consume(_ID)
+           else
+             preproc_consume(t);
            hs2:=read_simple_expr;
            if is_number(hs1) and is_number(hs2) then
              begin
                 val(hs1,l1,w);
                 val(hs2,l2,w);
                 case t of
+                      _IN : Message(scan_e_preproc_syntax_error);
                    _EQUAL : b:=l1=l2;
                  _UNEQUAL : b:=l1<>l2;
                       _LT : b:=l1<l2;
@@ -724,6 +777,10 @@ implementation
            else
              begin
                 case t of
+                      _IN : if hs2[1] = ',' then
+                              b:=pos(','+hs1+',', hs2) > 0
+                            else
+                              Message(scan_e_preproc_syntax_error);
                    _EQUAL : b:=hs1=hs2;
                  _UNEQUAL : b:=hs1<>hs2;
                       _LT : b:=hs1<hs2;
@@ -3029,6 +3086,11 @@ exit_label:
                current_scanner.preproc_pattern:=readval_asstring;
                readpreproc:=_ID;
              end;
+           ',' :
+             begin
+               readchar;
+               readpreproc:=_COMMA;
+             end;
            '}' :
              begin
                readpreproc:=_END;
@@ -3042,6 +3104,16 @@ exit_label:
              begin
                readchar;
                readpreproc:=_RKLAMMER;
+             end;
+           '[' :
+             begin
+               readchar;
+               readpreproc:=_LECKKLAMMER;
+             end;
+           ']' :
+             begin
+               readchar;
+               readpreproc:=_RECKKLAMMER;
              end;
            '+' :
              begin
@@ -3259,7 +3331,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.100  2005-02-14 17:13:07  peter
+  Revision 1.101  2005-02-27 17:15:01  peter
+  Support constants and IN operator in preprocessor patch by Christian Iversen
+
+  Revision 1.100  2005/02/14 17:13:07  peter
     * truncate log
 
   Revision 1.99  2005/01/20 17:05:53  peter
