@@ -5458,7 +5458,7 @@ unit defines;
     { was #define dname def_expr }
     function HKEY_DYN_DATA : HKEY;
       begin
-         HKEY_DYN_DATA:=HKEY($00000006);
+         HKEY_DYN_DATA:=HKEY($80000006);
       end;
 
     { was #define dname def_expr }
@@ -5718,7 +5718,10 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.10  1999-06-01 19:23:11  peter
+  Revision 1.11  1999-07-09 21:12:23  michael
+  Fix in HKEY_DYN_DATA
+
+  Revision 1.10  1999/06/01 19:23:11  peter
     * renamed delete -> service_delete
 
   Revision 1.9  1999/04/20 11:36:11  peter
