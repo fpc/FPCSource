@@ -66,7 +66,7 @@ implementation
     verbose,systems,globtype,globals,
     symconst,script,
     fmodule,dos
-    ,aasmbase,aasmtai,aasmcpu,cpubase
+    ,aasmbase,aasmtai,aasmcpu,cpubase,cgobj
     ,i_linux
     ;
 
@@ -175,31 +175,11 @@ begin
           is declared with cdecl }
         if tprocsym(hp2.sym).first_procdef.mangledname<>hp2.name^ then
          begin
-{$ifdef i386}
            { place jump in codesegment }
-           codesegment.concat(Tai_align.Create_op(4,$90));
+           codesegment.concat(tai_align.create(target_info.alignment.procalign));
            codeSegment.concat(Tai_symbol.Createname_global(hp2.name^,AT_FUNCTION,0));
-           codeSegment.concat(Taicpu.Op_sym(A_JMP,S_NO,objectlibrary.newasmsymbol(tprocsym(hp2.sym).first_procdef.mangledname,AB_EXTERNAL,AT_FUNCTION)));
+           cg.a_jmp_name(codesegment,tprocsym(hp2.sym).first_procdef.mangledname);
            codeSegment.concat(Tai_symbol_end.Createname(hp2.name^));
-{$else i386}
-{$ifdef m68k}
-           { place jump in codesegment }
-           codesegment.concat(tai_align.create(4));
-           codesegment.concat(tai_symbol.createname_global(hp2.name^,AT_FUNCTION,0));
-           codesegment.concat(taicpu.op_sym(A_JMP,S_NO,objectlibrary.newasmsymbol(tprocsym(hp2.sym).first_procdef.mangledname,AB_EXTERNAL,AT_FUNCTION)));
-           codesegment.concat(tai_symbol_end.createname(hp2.name^));
-{$else m68k}
-{$ifdef powerpc}
-           { place jump in codesegment }
-           codesegment.concat(tai_align.create(4));
-           codesegment.concat(tai_symbol.createname_global(hp2.name^,AT_FUNCTION,0));
-           codesegment.concat(taicpu.op_sym(A_B,objectlibrary.newasmsymbol(tprocsym(hp2.sym).first_procdef.mangledname,AB_EXTERNAL,AT_FUNCTION)));
-           codesegment.concat(tai_symbol_end.createname(hp2.name^));
-{$else powerpc}
-{$error Exportliblinux.generatelib not yet implemented for target processor}
-{$endif powerpc}
-{$endif m68k}
-{$endif i386}
          end;
       end
      else
@@ -578,7 +558,11 @@ end.
 
 {
   $Log$
-  Revision 1.16  2004-03-04 16:32:59  peter
+  Revision 1.17  2004-03-06 20:35:20  florian
+    * fixed arm compilation
+    * cleaned up code generation for exported linux procedures
+
+  Revision 1.16  2004/03/04 16:32:59  peter
     * misplaced $Ifdef
 
   Revision 1.15  2004/03/02 00:36:33  olle

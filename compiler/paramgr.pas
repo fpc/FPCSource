@@ -133,7 +133,7 @@ implementation
 
     uses
        cpuinfo,systems,
-       cgobj,tgobj,
+       cgutils,cgobj,tgobj,
        defutil,verbose;
 
     { true if uses a parameter as return value }
@@ -532,7 +532,11 @@ end.
 
 {
    $Log$
-   Revision 1.71  2004-02-17 19:14:09  florian
+   Revision 1.72  2004-03-06 20:35:19  florian
+     * fixed arm compilation
+     * cleaned up code generation for exported linux procedures
+
+   Revision 1.71  2004/02/17 19:14:09  florian
      * temp. fix for lochigh para
 
    Revision 1.70  2004/02/09 22:48:45  florian

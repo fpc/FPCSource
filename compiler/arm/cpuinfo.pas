@@ -23,7 +23,9 @@ Interface
 Type
    { Architecture word - Native unsigned type }
    AWord  = Longword;
+   AInt = longint;
    PAWord = ^AWord;
+   PAInt = ^AInt;
 
    { this must be an ordinal type with the same size as a pointer }
    { to allow some dirty type casts for example when using        }
@@ -112,7 +114,11 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.5  2003-12-01 18:43:32  peter
+  Revision 1.6  2004-03-06 20:35:19  florian
+    * fixed arm compilation
+    * cleaned up code generation for exported linux procedures
+
+  Revision 1.5  2003/12/01 18:43:32  peter
     * s128real type is not compatible with s80real
 
   Revision 1.4  2003/11/17 23:23:47  florian

@@ -48,7 +48,8 @@ unit rgcpu;
   implementation
 
     uses
-      cgobj, verbose, cutils,
+      verbose, cutils,
+      cgutils,cgobj,
       procinfo,
       aasmcpu;
 
@@ -220,7 +221,11 @@ end.
 
 {
   $Log$
-  Revision 1.8  2004-02-08 23:06:59  florian
+  Revision 1.9  2004-03-06 20:35:20  florian
+    * fixed arm compilation
+    * cleaned up code generation for exported linux procedures
+
+  Revision 1.8  2004/02/08 23:06:59  florian
     * fixed compilation problem
 
   Revision 1.7  2004/01/28 15:36:47  florian

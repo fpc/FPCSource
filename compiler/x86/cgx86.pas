@@ -103,6 +103,7 @@ unit cgx86;
         procedure a_cmp_reg_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel); override;
         procedure a_cmp_ref_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;const ref: treference; reg : tregister; l : tasmlabel); override;
 
+        procedure a_jmp_name(list : taasmoutput;const s : string);override;
         procedure a_jmp_always(list : taasmoutput;l: tasmlabel); override;
         procedure a_jmp_flags(list : taasmoutput;const f : TResFlags;l: tasmlabel); override;
 
@@ -425,6 +426,12 @@ unit cgx86;
 {****************************************************************************
                               Assembler code
 ****************************************************************************}
+
+    procedure tcgx86.a_jmp_name(list : taasmoutput;const s : string);
+      begin
+        list.concat(taicpu.op_sym(A_JMP,S_NO,objectlibrary.newasmsymbol(s,AB_EXTERNAL,AT_FUNCTION)));
+      end;
+
 
     { currently does nothing }
     procedure tcgx86.a_jmp_always(list : taasmoutput;l: tasmlabel);
@@ -1781,7 +1788,11 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.116  2004-03-02 00:36:33  olle
+  Revision 1.117  2004-03-06 20:35:20  florian
+    * fixed arm compilation
+    * cleaned up code generation for exported linux procedures
+
+  Revision 1.116  2004/03/02 00:36:33  olle
     * big transformation of Tai_[const_]Symbol.Create[data]name*
 
   Revision 1.115  2004/02/27 10:21:06  florian

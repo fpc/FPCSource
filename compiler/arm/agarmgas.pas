@@ -81,8 +81,6 @@ unit agarmgas;
       begin
          with ref do
           begin
-            inc(offset,offsetfixup);
-
 {$ifdef extdebug}
             // if base=NR_NO then
             //   internalerror(200308292);
@@ -171,17 +169,18 @@ unit agarmgas;
               getopstr:=getopstr+'}';
             end;
           top_ref:
-            getopstr:=getreferencestring(o.ref^);
-          top_symbol:
-            begin
-              hs:=o.sym.name;
-              if o.symofs>0 then
-               hs:=hs+'+'+tostr(o.symofs)
-              else
-               if o.symofs<0 then
-                hs:=hs+tostr(o.symofs);
-              getopstr:=hs;
-            end;
+            if o.ref^.refaddr=addr_full then
+              begin
+                hs:=o.ref^.symbol.name;
+                if o.ref^.offset>0 then
+                 hs:=hs+'+'+tostr(o.ref^.offset)
+                else
+                 if o.ref^.offset<0 then
+                  hs:=hs+tostr(o.ref^.offset);
+                getopstr:=hs;
+              end
+            else
+              getopstr:=getreferencestring(o.ref^);
           else
             internalerror(2002070604);
         end;
@@ -236,7 +235,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2003-11-30 19:35:29  florian
+  Revision 1.18  2004-03-06 20:35:19  florian
+    * fixed arm compilation
+    * cleaned up code generation for exported linux procedures
+
+  Revision 1.17  2003/11/30 19:35:29  florian
     * fixed several arm related problems
 
   Revision 1.16  2003/11/29 17:36:56  peter

@@ -213,11 +213,14 @@ unit cpubase;
       preference = ^treference;
       treference = record
          symbol      : tasmsymbol;
+         { symbol the symbol of this reference is relative to, nil if none }
+         relsymbol      : tasmsymbol;
          offset      : longint;
-         offsetfixup : longint;
          base,
          index       : tregister;
          symboldata  : tlinkedlistitem;
+         { reference type addr or symbol itself }
+         refaddr : trefaddr;
          signindex   : shortint;
          shiftimm    : byte;
          options     : trefoptions;
@@ -258,6 +261,7 @@ unit cpubase;
       tparalocation = record
          size : TCGSize;
          loc  : TCGLoc;
+         lochigh : TCGLoc;
          alignment : byte;
          case TCGLoc of
             LOC_REFERENCE : (reference : tparareference);
@@ -566,7 +570,11 @@ unit cpubase;
 end.
 {
   $Log$
-  Revision 1.26  2004-02-12 13:24:44  florian
+  Revision 1.27  2004-03-06 20:35:19  florian
+    * fixed arm compilation
+    * cleaned up code generation for exported linux procedures
+
+  Revision 1.26  2004/02/12 13:24:44  florian
     * small compilation fix
 
   Revision 1.25  2004/01/29 17:09:14  florian

@@ -34,8 +34,6 @@ unit cpupi;
 
     type
        tarmprocinfo = class(tcgprocinfo)
-          { max. of space need for parameters, currently used by the PowerPC port only }
-          maxpushedparasize : aword;
           constructor create(aparent:tprocinfo);override;
           // procedure handle_body_start;override;
           // procedure after_pass1;override;
@@ -137,7 +135,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2003-12-03 17:39:05  florian
+  Revision 1.6  2004-03-06 20:35:20  florian
+    * fixed arm compilation
+    * cleaned up code generation for exported linux procedures
+
+  Revision 1.5  2003/12/03 17:39:05  florian
     * fixed several arm calling conventions issues
     * fixed reference reading in the assembler reader
     * fixed a_loadaddr_ref_reg

@@ -278,6 +278,7 @@ unit cgobj;
           procedure a_cmp_ref_loc_label(list: taasmoutput; size: tcgsize;cmp_op: topcmp; const ref: treference; const loc: tlocation;
             l : tasmlabel);
 
+          procedure a_jmp_name(list : taasmoutput;const s : string); virtual; abstract;
           procedure a_jmp_always(list : taasmoutput;l: tasmlabel); virtual; abstract;
           procedure a_jmp_flags(list : taasmoutput;const f : TResFlags;l: tasmlabel); virtual; abstract;
 
@@ -2109,7 +2110,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.160  2004-03-02 00:36:33  olle
+  Revision 1.161  2004-03-06 20:35:19  florian
+    * fixed arm compilation
+    * cleaned up code generation for exported linux procedures
+
+  Revision 1.160  2004/03/02 00:36:33  olle
     * big transformation of Tai_[const_]Symbol.Create[data]name*
 
   Revision 1.159  2004/02/27 10:21:05  florian
