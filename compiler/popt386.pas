@@ -600,6 +600,7 @@ Begin
                               Then
                    {we have "mov %reg1, %reg2; test/or %reg2, %reg2"}
                                 Begin
+                                (*
                                   If GetNextInstruction(hp1, hp2) And
                                      (Pai(hp2)^.typ = ait_labeled_instruction) And
                                      (TRegister(Pai386(p)^.op2) <> R_ESI)
@@ -615,6 +616,7 @@ Begin
                                         continue
                                       End
                                     Else
+                                  *)
                    {change "mov %reg1, %reg2; test/or %reg2, %reg2" to
                     "mov %reg1, %reg2; test/or %reg1, %reg1"}
                                       Begin
@@ -1365,7 +1367,10 @@ End.
 
 {
  $Log$
- Revision 1.9  1998-08-25 16:58:59  pierre
+ Revision 1.10  1998-08-27 15:17:50  florian
+   * reinstated Jonas' bugfix
+
+ Revision 1.9  1998/08/25 16:58:59  pierre
    * removed a line that add no sense and
      introduce garbage in the asmlist
      (uninitialized data !)
