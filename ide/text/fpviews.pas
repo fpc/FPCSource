@@ -82,6 +82,24 @@ type
       destructor  Done; virtual;
     end;
 
+    PGDBInputLine = ^TGDBInputLine;
+    TGDBInputLine = object(TInputLine)
+      procedure HandleEvent(var Event: TEvent); virtual;
+      end;
+
+    PGDBWindow = ^TGDBWindow;
+    TGDBWindow = object(TFPWindow)
+      Editor    : PSourceEditor;
+      Input     : PGDBInputLine;
+      constructor Init(var Bounds: TRect);
+      procedure   WriteText(Buf : pchar);
+      procedure   WriteString(Const S : string);
+      procedure   WriteOutputText(Buf : pchar);
+      procedure   WriteErrorText(Buf : pchar);
+      function    GetPalette: PPalette;virtual;
+      destructor  Done; virtual;
+    end;
+
     PClipboardWindow = ^TClipboardWindow;
     TClipboardWindow = object(TSourceWindow)
       constructor Init;
@@ -332,7 +350,7 @@ var  MsgParms : array[1..10] of
 implementation
 
 uses
-  Keyboard,Memory,MsgBox,Validate,
+  Strings,Keyboard,Memory,MsgBox,Validate,
   Tokens,FPSwitch,FPSymbol,FPDebug,
   FPVars,FPUtils,FPHelp,FPCompile;
 
@@ -914,6 +932,124 @@ begin
   inherited Done;
   Message(Application,evBroadcast,cmUpdate,@Self);
 end;
+
+
+procedure TGDBInputLine.HandleEvent(var Event: TEvent);
+var S : String;
+begin
+   if (Event.What=evKeyDown) and
+      (Event.KeyCode=kbEnter) then
+     begin
+        S:=Data^;
+        if assigned(GDBWindow) and (S<>'') then
+          GDBWindow^.Editor^.AddLine(S);
+        if assigned(Debugger) and (S<>'') then
+          Debugger^.Command(S);
+        S:='';
+        SetData(S);
+     end
+   else
+     TInputLine.HandleEvent(Event);
+end;
+
+      
+constructor TGDBWindow.Init(var Bounds: TRect);
+var HSB,VSB: PScrollBar;
+    R: TRect;
+begin
+  inherited Init(Bounds,'GDB',SearchFreeWindowNo);
+  Options:=Options or ofTileAble;
+  GetExtent(R); R.A.Y:=R.B.Y-1; R.Grow(-1,0); R.A.X:=14;
+  New(HSB, Init(R)); HSB^.GrowMode:=gfGrowLoY+gfGrowHiX+gfGrowHiY; Insert(HSB);
+  GetExtent(R); R.A.X:=R.B.X-1; R.Grow(0,-1);
+  New(VSB, Init(R)); VSB^.GrowMode:=gfGrowLoX+gfGrowHiX+gfGrowHiY; Insert(VSB);
+  GetExtent(R); R.A.X:=3; R.B.X:=14; R.A.Y:=R.B.Y-1;
+  GetExtent(R); R.Grow(-1,-1);
+  Dec(R.B.Y);
+  New(Editor, Init(R, HSB, VSB, nil, GDBOutputFile));
+  Editor^.GrowMode:=gfGrowHiX+gfGrowHiY;
+  if ExistsFile(GDBOutputFile) then
+    begin
+      if Editor^.LoadFile=false then
+        ErrorBox(#3'Error reading file.',nil);
+    end
+  else
+  { Empty files are buggy !! }
+    Editor^.AddLine('');
+  Insert(Editor);
+  GetExtent(R); R.Grow(-1,-1);
+  R.A.Y:=R.B.Y-1;
+  New(Input, Init(R, 255));
+  Input^.GrowMode:=gfGrowHiX;
+  Insert(Input);
+end;
+
+destructor TGDBWindow.Done;
+begin
+  if @Self=GDBWindow then
+    GDBWindow:=nil;
+  inherited Done;
+end;
+
+function TGDBWindow.GetPalette: PPalette;
+const P: string[length(CSourceWindow)] = CSourceWindow;
+begin
+  GetPalette:=@P;
+end;
+
+procedure TGDBWindow.WriteOutputText(Buf : pchar);
+begin
+  {selected normal color ?}
+  WriteText(Buf);
+end;
+
+procedure TGDBWindow.WriteErrorText(Buf : pchar);
+begin
+  {selected normal color ?}
+  WriteText(Buf);
+end;
+
+procedure TGDBWindow.WriteString(Const S : string);
+begin
+  Editor^.AddLine(S);
+end;
+
+procedure TGDBWindow.WriteText(Buf : pchar);
+  var p,pe : pchar;
+      s : string;
+  const
+{$ifdef Linux}
+   NewLine=#10
+{$else}
+   NewLine=#13#10;
+{$endif def Linux}
+begin
+  p:=buf;
+  DeskTop^.Lock;
+  While assigned(p) do
+    begin
+       pe:=strscan(p,#10);
+       if pe<>nil then
+         pe^:=#0;
+       s:=strpas(p){+NewLine};
+       {Editor^.TextEnd;}
+       Editor^.AddLine(S);
+       { restore for dispose }
+       if pe<>nil then
+         pe^:=#10;
+       if pe=nil then
+         p:=nil
+       else
+         begin
+           p:=pe;
+           inc(p);
+         end;
+    end;
+  DeskTop^.Unlock;
+  Editor^.Draw;
+end;
+
+
 
 constructor TClipboardWindow.Init;
 var R: TRect;
@@ -3088,7 +3224,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.10  1999-02-10 09:42:52  pierre
+  Revision 1.11  1999-02-11 13:08:39  pierre
+   + TGDBWindow : direct gdb input/output
+
+  Revision 1.10  1999/02/10 09:42:52  pierre
     + DoneReservedWords to avoid memory leaks
     * TMessageItem Module field was not disposed
 
