@@ -6,7 +6,7 @@
 
     This is unit implements a subset of the msmouse unit functionality
     for the gui win32 graph unit implementation
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -111,32 +111,38 @@ unit winmouse;
     function InitMouse : boolean;
 
       begin
-         InitMouse:=true; 
+         InitMouse:=MouseFound;
       end;
 
     procedure ShowMouse;
 
       begin
-         Windows.ShowCursor(true); 
+         Windows.ShowCursor(true);
       end;
 
     procedure HideMouse;
 
       begin
-         Windows.ShowCursor(false); 
+         Windows.ShowCursor(false);
       end;
 
     function msghandler(Window: hwnd; AMessage, WParam,
       LParam: Longint): Longint;
 
       begin
+         { we catch the double click messages here too, }
+         { even if they never appear because the graph  }
+         { windows doesn't have the cs_dblclks flags    }
          case amessage of
+            wm_lbuttondblclk,
             wm_lbuttondown:
-              mousebuttonstate:=mousebuttonstate or LButton;               
+              mousebuttonstate:=mousebuttonstate or LButton;
+            wm_rbuttondblclk,
             wm_rbuttondown:
-              mousebuttonstate:=mousebuttonstate or RButton;               
+              mousebuttonstate:=mousebuttonstate or RButton;
+            wm_mbuttondblclk,
             wm_mbuttondown:
-              mousebuttonstate:=mousebuttonstate or MButton;               
+              mousebuttonstate:=mousebuttonstate or MButton;
             wm_lbuttonup:
               mousebuttonstate:=mousebuttonstate and not(LButton);
             wm_rbuttonup:
@@ -194,7 +200,12 @@ unit winmouse;
   end.
 {
   $Log$
-  Revision 1.2  2000-01-07 16:41:53  daniel
+  Revision 1.3  2000-03-05 13:08:52  florian
+    + some new functions
+    * double click messages are handled like single clicks because this
+      is the behavior as old DOS applications expect
+
+  Revision 1.2  2000/01/07 16:41:53  daniel
     * copyright 2000
 
   Revision 1.1  1999/11/29 22:03:39  florian
