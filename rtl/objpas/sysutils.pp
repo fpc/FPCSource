@@ -86,6 +86,7 @@ interface
        EInvalidPointer  = Class(Exception);
        EOutOfMemory     = Class(Exception);
        EAccessViolation = Class(Exception);
+       EInvalidCast = Class(Exception);
        
        
        { String conversion errors }
@@ -180,7 +181,7 @@ begin
    Writeln ('Exception object ',Obj.ClassName,' is not of class Exception.');
   Halt(217);
 {$else}
-{$endif}  
+{$endif}
 end;
 
 
@@ -220,9 +221,10 @@ begin
   // We don't set abstracterrorhandler, but we do it here. 
   // Unless the use sets another handler we'll get here anyway...
   200 : E:=EDivByZero.Create(SDivByZero);
-  201 : E:=ERangeError.Create(SRangeError);
+  201 : E:=ERangeError.Create(SRangeError);  
   211 : E:=EAbstractError.Create(SAbstractError);
-  216 : E:=EAccessViolation.Create (SAccessViolation);
+  216 : E:=EAccessViolation.Create(SAccessViolation);
+  219 : E:=EInvalidCast.Create(SInvalidCast);
   else
 {$ifdef autoobjpas}
    E:=Exception.CreateFmt (SUnKnownRunTimeError,[Errno]);
@@ -254,7 +256,10 @@ begin
 end.
 {
     $Log$
-    Revision 1.13  1998-10-02 13:00:11  michael
+    Revision 1.14  1998-10-03 15:08:05  florian
+      * EInvalidCast added (from runerror 219)
+
+    Revision 1.13  1998/10/02 13:00:11  michael
     + More RTL error handling
 
     Revision 1.12  1998/10/02 12:17:18  michael

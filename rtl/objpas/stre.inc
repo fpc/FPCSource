@@ -44,11 +44,15 @@ Const
    SInvalidPointer = 'Invalid pointer operation';
    SOutOfMemory = 'Out of memory';
    SRangeError = 'Range check error';
+   SInvalidCast = 'Invalid type cast';
    STooManyOpenFiles = 'Too many open files';
    SUnKnownRunTimeError = 'Unknown Run-Time error : %3.3d';
 {
   $Log$
-  Revision 1.3  1998-10-02 13:57:37  michael
+  Revision 1.4  1998-10-03 15:08:04  florian
+    * EInvalidCast added (from runerror 219)
+
+  Revision 1.3  1998/10/02 13:57:37  michael
   Format error now causes exception
 
   Revision 1.2  1998/10/02 13:00:09  michael

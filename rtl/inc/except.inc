@@ -113,7 +113,7 @@ Function Raiseexcept (Obj : TObject; AnAddr : Pointer) : TObject;[Public, Alias 
 
 begin
 {$ifdef excdebug}
-  writeln ('In RAiseException');
+  writeln ('In RaiseException');
 {$endif}
   PushExceptObj(Obj,AnAddr);
   If ExceptAddrStack=Nil then
