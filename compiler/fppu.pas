@@ -1035,32 +1035,38 @@ uses
                       hp.do_reload:=false;
                       break;
                     end;
-                   { the unit is already registered   }
-                   { and this means that the unit     }
-                   { is already compiled              }
-                   { else there is a cyclic unit use  }
-                   if assigned(hp.globalsymtable) then
-                     st:=tglobalsymtable(hp.globalsymtable)
-                   else
+                   { only check for units. The main program is also
+                     as a unit in the loaded_units list. We simply need
+                     to ignore this entry (PFV) }
+                   if hp.is_unit then
                     begin
-                    { both units in interface ? }
-                      if (not current_module.in_implementation) and
-                         (not hp.in_implementation) then
+                      { the unit is already registered   }
+                      { and this means that the unit     }
+                      { is already compiled              }
+                      { else there is a cyclic unit use  }
+                      if assigned(hp.globalsymtable) then
+                        st:=tglobalsymtable(hp.globalsymtable)
+                      else
                        begin
-                       { check for a cycle }
-                         hp2:=current_module.loaded_from;
-                         while assigned(hp2) and (hp2<>hp) do
+                         { both units in interface ? }
+                         if (not current_module.in_implementation) and
+                            (not hp.in_implementation) then
                           begin
-                            if hp2.in_implementation then
-                             hp2:=nil
-                            else
-                             hp2:=hp2.loaded_from;
+                            { check for a cycle }
+                            hp2:=current_module.loaded_from;
+                            while assigned(hp2) and (hp2<>hp) do
+                             begin
+                               if hp2.in_implementation then
+                                 hp2:=nil
+                               else
+                                 hp2:=hp2.loaded_from;
+                             end;
+                            if assigned(hp2) then
+                              Message2(unit_f_circular_unit_reference,current_module.modulename^,hp.modulename^);
                           end;
-                         if assigned(hp2) then
-                          Message2(unit_f_circular_unit_reference,current_module.modulename^,hp.modulename^);
                        end;
+                      break;
                     end;
-                   break;
                 end
               else if copy(hp.modulename^,1,8)=ups then
                 dummy:=hp;
@@ -1143,7 +1149,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.5  2001-05-19 13:22:47  peter
+  Revision 1.6  2001-05-19 21:08:59  peter
+    * skip program when checking loaded_units for a unit
+
+  Revision 1.5  2001/05/19 13:22:47  peter
     * fixed crash with invalid ppu version detected
 
   Revision 1.4  2001/05/09 14:11:10  jonas
