@@ -57,6 +57,23 @@ interface
        cpubase
        ;
 
+    { checks if a string identifies a register }
+    { it should be optimized                   }
+    function is_register(const s : string) : boolean;
+      var
+         r : toldregister;
+      begin
+         is_register:=false;
+         if length(s)>5 then
+           exit;
+         for r:=low(gas_reg2str) to high(gas_reg2str) do
+           if gas_reg2str[r]=s then
+              begin
+                 is_register:=true;
+                 exit;
+              end;
+      end;
+
     function assemble : tnode;
 
       var
@@ -152,7 +169,7 @@ interface
                                    (pos('AL',upper(hs))>0)) then
                                   tfuncretsym(aktprocdef.funcretsym).funcretstate:=vs_assigned;
                                 }
-                                if ((s[length(s)]<>'0') or (hs[1]<>'x')) then
+                                if ((s[length(s)]<>'0') or (hs[1]<>'x')) and not(is_register(hs)) then
                                   begin
                                      if assigned(aktprocdef.localst) and
                                         (lexlevel >= normal_function_level) then
@@ -330,7 +347,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.9  2003-04-23 22:18:01  peter
+  Revision 1.10  2003-04-24 12:05:53  florian
+    * symbols which are register identifiers aren't resolved anymore
+
+  Revision 1.9  2003/04/23 22:18:01  peter
     * fixes to get rtl compiled
 
   Revision 1.8  2003/03/22 18:00:27  jonas
