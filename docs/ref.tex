@@ -2197,7 +2197,6 @@ Operator & Precedence & Category \\ \hline
 \end{FPCltable}
 When determining the precedence, the compiler uses the following rules:
 \begin{enumerate}
-\item Operators with equal precedence are executed from left to right.
 \item In operations with unequal precedences the operands belong to the
 operater with the highest precedence. For example, in \var{5*3+7}, the
 multiplication is higher in precedence than the addition, so it is
@@ -2206,6 +2205,25 @@ executed first. The result would be 22.
 first. Thus, \var {5*(3+7)} would result in 50.
 \end{enumerate}
 
+\begin{remark}
+The order in which expressions of the same precedence are evaluated is not
+guaranteed to be left-to-right. In general, no assumptions on which expression
+is evaluated first should be made in such a case.
+The compiler will decide which expression to evaluate first based on
+optimization rules. Thus, in the following expression:
+\begin{verbatim}
+  a := g(3) + f(2);
+\end{verbatim}
+\var{f(2)} may be executed before \var{g(3)}. This behaviour is distinctly
+different from \delphi or \tp.
+
+If one expression {\em must} be executed before the other, it is necessary
+to split up the statement using temporary results:
+\begin{verbatim}
+  e1 := g(3);
+  a  := e1 + f(2);
+\end{verbatim}
+\end{remark}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Expression syntax

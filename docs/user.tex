@@ -1502,6 +1502,12 @@ which were possible in Turbo Pascal are no longer possible in Free Pascal.
 \item A file is opened for output only (using \var{fmOutput}) when it is
 opened with \var{Rewrite}. In order to be able to read from it, it should
 be reset with \var{Reset}.
+\item The order in which expressions are evaluated is not necessarily the
+same. In the following expression:
+\begin{verbatim}
+a := g(2) + f(3);
+\end{verbatim}
+it is not guaranteed that \var{g(2)} will be evaluated before \var{f(3)}.
 \end{enumerate}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
