@@ -2,7 +2,7 @@ Program Example;
 
 { Program to demonstrate the *** function. }
 
-Uses linux;
+Uses BaseUnix,Unix;
 
 begin
 end.
