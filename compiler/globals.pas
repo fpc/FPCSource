@@ -34,7 +34,7 @@ interface
       windows,
 {$endif}
 {$ifdef hasunix}
-  {$ifdef ver1_0}
+  {$ifdef havelinuxrtl10}
       linux,
   {$else}
       Baseunix,unix,
@@ -982,13 +982,9 @@ implementation
        L : longint;
      begin
      {$ifdef hasunix}
-       {$IFDEF VER1_0}
+       {$IFDEF havelinuxrtl10}
         FStat (F,Info);
-        {$ifdef BSD}
-        L:=Info.st_Mtime;
-        {$else}
         L:=Info.Mtime;
-        {$endif}
        {$ELSE}
         FPFStat (F,Info);
         L:=Info.st_Mtime;
@@ -1176,7 +1172,7 @@ implementation
       {$endif}
       begin
       {$ifdef hasunix}
-        GetEnvPchar:={$ifdef ver1_0}Linux.getenv{$else}BaseUnix.fpGetEnv{$endif}(envname);
+        GetEnvPchar:={$ifdef havelinuxrtl10}Linux.getenv{$else}BaseUnix.fpGetEnv{$endif}(envname);
         {$define GETENVOK}
       {$endif}
       {$ifdef win32}
@@ -1228,7 +1224,7 @@ implementation
         expansion under linux }
       {$ifdef hasunix}
       begin
-        {$ifdef ver1_0}Linux{$else}Unix{$endif}.Shell(command);
+        {$ifdef havelinuxrtl10}Linux{$else}Unix{$endif}.Shell(command);
       end;
       {$else}
       {$ifdef amiga}
@@ -1749,7 +1745,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.113  2003-11-07 15:58:32  florian
+  Revision 1.114  2003-11-10 17:22:28  marco
+   * havelinuxrtl10 fixes
+
+  Revision 1.113  2003/11/07 15:58:32  florian
     * Florian's culmutative nr. 1; contains:
       - invalid calling conventions for a certain cpu are rejected
       - arm softfloat calling conventions

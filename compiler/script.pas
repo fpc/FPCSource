@@ -94,7 +94,7 @@ implementation
 
 uses
 {$ifdef hasUnix}
-  {$ifdef ver1_0}
+  {$ifdef havelinuxrtl10}
     Linux,
   {$else}
     BaseUnix,
@@ -189,7 +189,7 @@ begin
   i:=ioresult;
 {$ifdef hasUnix}
   if executable then
-   {$ifdef VER1_0}ChMod{$else}fpchmod{$endif}(fn,493);
+   {$ifdef havelinuxrtl10}ChMod{$else}fpchmod{$endif}(fn,493);
 {$endif}
 end;
 
@@ -434,7 +434,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.24  2003-09-30 19:54:23  peter
+  Revision 1.25  2003-11-10 17:22:28  marco
+   * havelinuxrtl10 fixes
+
+  Revision 1.24  2003/09/30 19:54:23  peter
     * better link on target support
 
   Revision 1.23  2003/09/16 13:42:39  marco

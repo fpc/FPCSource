@@ -42,7 +42,7 @@ uses
 {$ifdef unix}
  {$ifndef beos}
   {$define has_signal}
-  {$ifdef ver1_0}
+  {$ifdef havelinuxrtl10}
     Linux,
   {$else}
     BaseUnix,Unix,
@@ -100,23 +100,25 @@ begin
 end;
 {$endif def has_signal}
 
-
 begin
 {$ifndef nocatch}
   {$ifdef has_signal}
     NewSignal:=SignalHandler({$ifdef fpcprocvar}@{$endif}CatchSignal);
     {$ifndef sunos}
-      OldSigSegm:={$ifdef VER1_0}Signal{$else}{$ifdef Unix}fpSignal{$else}Signal{$endif}{$endif} (SIGSEGV,NewSignal);
+      OldSigSegm:={$ifdef havelinuxrtl10}Signal{$else}{$ifdef Unix}fpSignal{$else}Signal{$endif}{$endif} (SIGSEGV,NewSignal);
     {$endif} // lxrun on solaris hooks this for handling linux-calls!
-    OldSigInt:={$ifdef VER1_0}Signal{$else}{$ifdef Unix}fpSignal{$else}Signal{$endif}{$endif}  (SIGINT,NewSignal);
-    OldSigFPE:={$ifdef VER1_0}Signal{$else}{$ifdef Unix}fpSignal{$else}Signal{$endif}{$endif}  (SIGFPE,NewSignal);
+     OldSigInt:={$ifdef havelinuxrtl10}Signal{$else}{$ifdef Unix}fpSignal{$else}Signal{$endif}{$endif}  (SIGINT,NewSignal);
+     OldSigFPE:={$ifdef havelinuxrtl10}Signal{$else}{$ifdef Unix}fpSignal{$else}Signal{$endif}{$endif}  (SIGFPE,NewSignal);
   {$endif}
 {$endif nocatch}
 end.
 
 {
   $Log$
-  Revision 1.16  2003-09-18 08:50:48  marco
+  Revision 1.17  2003-11-10 17:22:28  marco
+   * havelinuxrtl10 fixes
+
+  Revision 1.16  2003/09/18 08:50:48  marco
    * fix for snapshot building.
 
   Revision 1.15  2003/09/14 20:26:18  marco

@@ -181,7 +181,7 @@ Implementation
 
     uses
 {$ifdef hasunix}
-  {$ifdef ver1_0}
+  {$ifdef havelinuxrtl10}
       linux,
   {$else}
       unix,
@@ -1661,7 +1661,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.58  2003-10-21 15:15:36  peter
+  Revision 1.59  2003-11-10 17:22:28  marco
+   * havelinuxrtl10 fixes
+
+  Revision 1.58  2003/10/21 15:15:36  peter
     * taicpu_abstract.oper[] changed to pointers
 
   Revision 1.57  2003/10/03 14:16:48  marco
