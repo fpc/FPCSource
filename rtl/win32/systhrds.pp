@@ -376,10 +376,12 @@ begin
     DoneCriticalSection    :=@SysDoneCriticalSection;
     EnterCriticalSection   :=@SysEnterCriticalSection;
     LeaveCriticalSection   :=@SysLeaveCriticalSection;
+{$ifdef HASTHREADVAR}
     InitThreadVar          :=@SysInitThreadVar;
     RelocateThreadVar      :=@SysRelocateThreadVar;
     AllocateThreadVars     :=@SysAllocateThreadVars;
     ReleaseThreadVars      :=@SysReleaseThreadVars;
+{$endif HASTHREADVAR}
     end;
   SetThreadManager(WinThreadManager,Dummy);
   InitHeapMutexes;
@@ -391,7 +393,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2003-11-26 20:10:59  michael
+  Revision 1.8  2003-11-27 10:28:41  michael
+  + Patch from peter to fix make cycle
+
+  Revision 1.7  2003/11/26 20:10:59  michael
   + New threadmanager implementation
 
   Revision 1.6  2003/10/01 21:00:09  peter

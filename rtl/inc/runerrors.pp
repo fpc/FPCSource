@@ -318,7 +318,14 @@ Function GetRunError(Errno : Byte) : String;
 begin
   Result:=RunErrorArray[Errno];
   If length(Result)=0 then
+{$ifdef VER1_0}  
+    begin
+      Str(Errno,Result);
+      Result:=RunUnknown+Result;
+    end;
+{$else}      
     Result:=RunUnknown+Str(Errno);
+{$endif}    
 end;
 
 end.
