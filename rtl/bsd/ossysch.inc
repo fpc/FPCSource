@@ -20,10 +20,15 @@
 //Function Fpmunmap(start:pointer;len:size_t):cint;  external name 'FPC_SYSC_MUNMAP';
 //function fpgettimeofday(tp: ptimeval;tzp:ptimezone):cint; external name 'FPC_SYSC_GETTIMEOFDAY';
 
+Function Fpmmap(start:pointer;len:size_t;prot:cint;flags:cint;fd:cint;offst:off_t):pointer; external name 'FPC_SYSC_MMAP';
+Function Fpmunmap(start:pointer;len:size_t):cint;  external name 'FPC_SYSC_MUNMAP';
+
+
 {$ifndef FPC_USE_LIBC}
 Function FpIOCtl(Handle:cint;Ndx: culong;Data: Pointer):cint;  external name  'FPC_SYSC_IOCTL';
 Function FpGetPid:LongInt;   external name  'FPC_SYSC_GETPID';
-//Function FpReadLink(name,linkname:pchar;maxlen:longint):longint;  external name  'FPC_SYSC_READLINK';
+Function FpReadLink(name,linkname:pchar;maxlen:size_t):cint;  external name  'FPC_SYSC_READLINK';
+
 { Needed in both POSIX (for implementation of sleep()) as POSIX realtime extensions or  Unix/freebsd}
 Function FpNanoSleep (req : ptimespec;rem : ptimespec) : cint; external name 'FPC_SYSC_NANOSLEEP';
 
@@ -33,7 +38,10 @@ Function Fpgetcwd (path:pchar; siz:size_t):pchar; external name 'FPC_SYSC_GETCWD
 
 {
   $Log$
-  Revision 1.7  2003-12-30 12:26:21  marco
+  Revision 1.8  2004-11-14 12:21:08  marco
+   * moved some calls from unix to baseunix. Darwin untested.
+
+  Revision 1.7  2003/12/30 12:26:21  marco
    * FPC_USE_LIBC
 
   Revision 1.6  2003/09/27 13:45:58  peter

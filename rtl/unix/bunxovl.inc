@@ -339,10 +339,32 @@ begin
   fpSelect:=fpSelect(T,p);
 end;
 
+Function fpReadLink(Name:ansistring):ansistring;
+{
+  Read a link (where it points to)
+}
+var
+  LinkName : ansistring;
+  i : cint;
+begin
+  SetLength(linkname,PATH_MAX);
+  i:=fpReadLink(pchar(name),pchar(linkname),PATH_MAX);
+  if i>0 then
+   begin
+     SetLength(linkname,i);
+     fpReadLink:=LinkName;
+   end
+  else
+    fpReadLink:='';
+end;
+
 
 {
  $Log$
- Revision 1.12  2004-11-02 14:49:48  florian
+ Revision 1.13  2004-11-14 12:21:08  marco
+  * moved some calls from unix to baseunix. Darwin untested.
+
+ Revision 1.12  2004/11/02 14:49:48  florian
    * fixed baseunix.signal for CPU using rt_sigaction
    * fixed it for x86_64 too
 

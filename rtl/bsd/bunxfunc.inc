@@ -454,11 +454,114 @@ Function fpSelect(N:cint;readfds,writefds,exceptfds:pfdSet;TimeOut:PTimeVal):cin
 begin
  fpSelect:=do_syscall(syscall_nr_select,n,longint(readfds),longint(writefds),longint(exceptfds),longint(timeout));
 end;
+
+Function fpLstat(path:pchar;Info:pstat):cint;
+{
+  Get all information on a link (the link itself), and return it in info.
+}
+
+begin
+ fpLStat:=do_syscall(syscall_nr_lstat,TSysParam(path),TSysParam(info));
+end;
+
+Function fpLstat(Filename: ansistring;Info:pstat):cint;
+{
+  Get all information on a link (the link itself), and return it in info.
+}
+
+begin
+ fpLStat:=do_syscall(syscall_nr_lstat,TSysParam(pchar(filename)),TSysParam(info));
+end;
+
+function fpNice(N:cint):cint;
+{
+  Set process priority. A positive N means a lower priority.
+  A negative N decreases priority.
+
+Doesn't exist in BSD. Linux emu uses setpriority in a construct as below:
+}
+
+var prio : cint;
+
+begin
+  fpseterrno(0);
+  prio:=fpgetpriority(PRIO_PROCESS,0);
+  if (prio=-1) and (fpgeterrno<>0) then
+      exit(-1);
+  fpNice:=fpSetPriority(Prio_Process,0,prio+N);
+end;
+
+Function fpGetPriority(Which,Who:cint):cint;
+{
+  Get Priority of process, process group, or user.
+   Which : selects what kind of priority is used.
+           can be one of the following predefined Constants :
+              Prio_User.
+              Prio_PGrp.
+              Prio_Process.
+   Who : depending on which, this is , respectively :
+              Uid
+              Pid
+              Process Group id
+   Errors are reported in linuxerror _only_. (priority can be negative)
+}
+begin
+  if (which<prio_process) or (which>prio_user) then
+   begin
+     { We can save an interrupt here }
+     fpgetpriority:=0;
+     fpseterrno(ESysEinval);
+   end
+  else
+   begin
+     fpGetPriority:=do_syscall(syscall_nr_GetPriority,which,who);
+   end;
+end;
+
+Function fpSetPriority(Which,Who,What:cint):cint;
+{
+ Set Priority of process, process group, or user.
+   Which : selects what kind of priority is used.
+           can be one of the following predefined Constants :
+              Prio_User.
+              Prio_PGrp.
+              Prio_Process.
+   Who : depending on value of which, this is, respectively :
+              Uid
+              Pid
+              Process Group id
+   what : A number between -20 and 20. -20 is most favorable, 20 least.
+          0 is the default.
+}
+begin
+  if ((which<prio_process) or (which>prio_user)) or ((what<-20) or (what>20)) then
+   fpseterrno(ESyseinval)  { We can save an interrupt here }
+  else
+   begin
+     fpSetPriority:=do_syscall(Syscall_nr_Setpriority,which,who,what);
+   end;
+end;
+
+Function fpSymlink(oldname,newname:pchar):cint;
+{
+  We need this for erase
+}
+
+begin
+ fpsymlink:=do_syscall(syscall_nr_symlink,TSysParam(oldname),TSysParam(newname));
+end;
+
+
 {$endif}
+
+
 
 {
  $Log$
- Revision 1.8  2004-01-22 13:46:14  marco
+ Revision 1.9  2004-11-14 12:21:08  marco
+  * moved some calls from unix to baseunix. Darwin untested.
+
+ Revision 1.8  2004/01/22 13:46:14  marco
  bsd
 
  Revision 1.7  2003/12/30 12:26:21  marco

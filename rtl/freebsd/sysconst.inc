@@ -17,10 +17,6 @@
 
 
 const
-  { For getting/setting priority }
-  Prio_Process = 0;
-  Prio_PGrp    = 1;
-  Prio_User    = 2;
 
   { Things for LSEEK call}
   Seek_set = 0;
@@ -121,7 +117,10 @@ type
 
 {
   $Log$
-  Revision 1.9  2003-11-19 10:12:02  marco
+  Revision 1.10  2004-11-14 12:21:08  marco
+   * moved some calls from unix to baseunix. Darwin untested.
+
+  Revision 1.9  2003/11/19 10:12:02  marco
    * more cleanups
 
   Revision 1.8  2003/11/17 16:56:20  marco

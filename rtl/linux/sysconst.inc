@@ -15,10 +15,6 @@
 
 Const
 
- { For getting/setting priority }
-  Prio_Process = 0;
-  Prio_PGrp    = 1;
-  Prio_User    = 2;
 
 
   { Things for LSEEK call }
@@ -104,7 +100,10 @@ Const
   {$endif}
 {
   $Log$
-  Revision 1.10  2004-02-21 16:27:29  marco
+  Revision 1.11  2004-11-14 12:21:08  marco
+   * moved some calls from unix to baseunix. Darwin untested.
+
+  Revision 1.10  2004/02/21 16:27:29  marco
    * hmprf, Linux has different ioctls kernel<->libc
 
   Revision 1.9  2004/02/21 15:14:56  marco

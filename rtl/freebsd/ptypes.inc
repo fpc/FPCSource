@@ -196,11 +196,17 @@ const
 //   wordsinsigset   = 4;		// words in sigset_t
 
 
-
+  { For getting/setting priority }
+   Prio_Process = 0;
+   Prio_PGrp    = 1;
+   Prio_User    = 2;
 
 {
   $Log$
-  Revision 1.15  2004-10-31 14:34:14  marco
+  Revision 1.16  2004-11-14 12:21:08  marco
+   * moved some calls from unix to baseunix. Darwin untested.
+
+  Revision 1.15  2004/10/31 14:34:14  marco
    * statfs moved and updated
 
   Revision 1.14  2004/09/09 20:29:06  jonas

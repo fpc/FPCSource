@@ -20,6 +20,7 @@ Interface
 Uses UnixType;
 
 {$i aliasptp.inc}
+{$i ostypes.inc}
 
 {$define oldreaddir}		// Keep using readdir system call instead
 				// of userland getdents stuff.
@@ -79,7 +80,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  2004-03-04 22:15:16  marco
+  Revision 1.10  2004-11-14 12:21:08  marco
+   * moved some calls from unix to baseunix. Darwin untested.
+
+  Revision 1.9  2004/03/04 22:15:16  marco
    * UnixType changes. Please report problems to me.
 
   Revision 1.8  2004/01/04 21:04:08  jonas

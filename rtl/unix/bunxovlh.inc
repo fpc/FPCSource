@@ -89,11 +89,13 @@ Function  wstopsig     (Status : cInt): cInt;
 Function  wifsignaled  (Status : cInt): cInt;
 Function  wtermsig     (Status : cInt): cInt;
 
-
-
+Function fpReadLink(Name:ansistring):ansistring;
 {
  $Log$
- Revision 1.4  2003-12-30 12:24:01  marco
+ Revision 1.5  2004-11-14 12:21:08  marco
+  * moved some calls from unix to baseunix. Darwin untested.
+
+ Revision 1.4  2003/12/30 12:24:01  marco
   * FPC_USE_LIBC
 
  Revision 1.3  2003/09/14 20:15:01  marco

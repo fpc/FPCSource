@@ -50,9 +50,10 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
     Function  FpChmod      (path : pChar; Mode : TMode): cInt; cdecl; external clib name 'chmod';
     Function  FPUtime(path:pchar;times:putimbuf):cint; cdecl; external clib name 'utime';
 
-    {$ifdef BSD}
+    {ifdef BSD}
     function FPSigProcMask(how:cint;nset : psigset;oset : psigset):cint;cdecl; external clib name 'sigprocmask';
-    {$endif}
+    function FPSigProcMask(how:cint;const nset : sigset;var oset : sigset):cint;cdecl; external clib name 'sigprocmask';
+    {endif}
     function  FpStat	  (path: pchar; var buf : stat): cint; cdecl; external clib name 'stat';
 //    {$ifdef FPC_IS_SYSTEM}
     function  FpTime	   (tloc:ptime_t): time_t; cdecl; external clib name 'time';
@@ -87,9 +88,21 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
     Function  FpFcntl      (fildes : cInt; cmd : cInt; var arg : flock): cInt; cdecl external clib name 'fcntl';
     Function  FPnanosleep  (const rqtp: ptimespec; rmtp: ptimespec): cint; cdecl; external clib name 'nanosleep';
 
+    Function fpLstat       (path:pchar;Info:pstat):cint;     cdecl; external clib name 'lstat';
+//    function fpMUnMap 	   (P : Pointer; Size : size_t) : cint; cdecl; external clib name 'munmap';
+    function fpNice	   (N:cint):cint; cdecl; external clib name 'nice';
+    Function fpGetPriority (Which,Who:cint):cint;      cdecl; external clib name 'getpriority';
+    Function fpSetPriority (Which,Who,What:cint):cint; cdecl; external clib name 'setpriority';
+    Function fpSymlink	   (oldname,newname:pchar):cint;   cdecl; external clib name 'symlink';
+    Function fpReadLink	   (name,linkname:pchar;maxlen:size_t):cint;  cdecl; external clib name 'readlink';
+    function fpgettimeofday(tp: ptimeval;tzp:ptimezone):cint;   cdecl; external clib name 'gettimeofday';
+
 {
    $Log$
-   Revision 1.8  2004-02-06 20:47:00  jonas
+   Revision 1.9  2004-11-14 12:21:08  marco
+    * moved some calls from unix to baseunix. Darwin untested.
+
+   Revision 1.8  2004/02/06 20:47:00  jonas
      + fpnanosleep for oscdeclh.inc
      - removed obsolete darwin remarks from bsd/ossysc.inc
 

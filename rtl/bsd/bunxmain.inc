@@ -19,7 +19,7 @@
  ****************************************************************************
 }
 
-{$I ostypes.inc}
+{I ostypes.inc}
 {$I bunxmacr.inc}
 
 {$ifdef FPC_USE_LIBC}
@@ -37,7 +37,10 @@
 
 {
  $Log$
- Revision 1.4  2004-05-31 18:03:51  jonas
+ Revision 1.5  2004-11-14 12:21:08  marco
+  * moved some calls from unix to baseunix. Darwin untested.
+
+ Revision 1.4  2004/05/31 18:03:51  jonas
    * moved fpgeterrno/fpseterrno declarations to before their actual usage
 
  Revision 1.3  2003/12/30 12:26:21  marco

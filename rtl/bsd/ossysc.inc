@@ -586,6 +586,12 @@ begin
  Fpgetcwd:=pt;
 end;
 
+Function fpReadLink(name,linkname:pchar;maxlen:size_t):cint; [public, alias : 'FPC_SYSC_READLINK'];
+
+begin
+  fpreadlink:=do_syscall(syscall_nr_readlink, TSysParam(name),TSysParam(linkname),maxlen);
+end;
+
 {$endif}
 
 CONST
@@ -621,9 +627,13 @@ begin
 end;
 
 
+
 {
  $Log$
- Revision 1.19  2004-07-18 11:32:24  marco
+ Revision 1.20  2004-11-14 12:21:08  marco
+  * moved some calls from unix to baseunix. Darwin untested.
+
+ Revision 1.19  2004/07/18 11:32:24  marco
   * small 1.0.x fix to earlier patch
 
  Revision 1.18  2004/07/17 16:02:58  marco

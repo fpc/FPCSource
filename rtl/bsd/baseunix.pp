@@ -35,6 +35,7 @@ Uses UnixType;
 
 {$i errno.inc}		{ Error numbers }
 {$i bunxtype.inc}	{ Types }
+{$i ostypes.inc}
 {$ifdef FPC_USE_LIBC}
 const clib = 'c';
 {$i oscdeclh.inc}
@@ -83,7 +84,10 @@ end.
 
 {
   $Log$
-  Revision 1.10  2004-05-31 18:03:51  jonas
+  Revision 1.11  2004-11-14 12:21:08  marco
+   * moved some calls from unix to baseunix. Darwin untested.
+
+  Revision 1.10  2004/05/31 18:03:51  jonas
     * moved fpgeterrno/fpseterrno declarations to before their actual usage
 
   Revision 1.9  2004/03/04 22:15:16  marco

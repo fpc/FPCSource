@@ -231,9 +231,17 @@ CONST
    SIG_MAXSIG      = 128;       // highest signal version
 {$endif}
 
+ { For getting/setting priority }
+  Prio_Process = 0;
+  Prio_PGrp    = 1;
+  Prio_User    = 2;
+
 {
    $Log$
-   Revision 1.11  2004-09-09 20:29:06  jonas
+   Revision 1.12  2004-11-14 12:21:08  marco
+    * moved some calls from unix to baseunix. Darwin untested.
+
+   Revision 1.11  2004/09/09 20:29:06  jonas
      * fixed definition of pthread_mutex_t for non-linux targets (and for
        linux as well, actually).
      * base libpthread definitions are now in ptypes.inc, included in unixtype

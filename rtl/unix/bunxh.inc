@@ -19,7 +19,7 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
      TFilDes = Array [0..1] of cInt;
      pFilDes = ^TFilDes;
 
-// if you are looking for macro definitions, they are moved to bunxovlh.inc
+// if you are looking for macro definitions or non C template overloaded versions, they are moved to bunxovlh.inc
 
     Function  FpSigProcMask(how : cInt; nset : pSigSet; oset : pSigSet): cInt;
     Function  FpSigProcMask(how : cInt; Const nset : TSigSet; var oset : TSigSet): cInt;
@@ -87,13 +87,24 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
     Function  FPSelect     (N:cint;readfds,writefds,exceptfds:pfdSet;TimeOut:PTimeVal):cint;
     Function  FpIOCtl      (Handle:cint;Ndx: culong;Data: Pointer):cint;
     Function  FpNanoSleep  (req : ptimespec;rem : ptimespec):cint;
+    Function  fpLstat(path:pchar;Info:pstat):cint;
+    Function  fpLstat(Filename: ansistring;Info:pstat):cint;
+    Function  fpSymlink(oldname,newname:pchar):cint;
+    Function  fpReadLink(name,linkname:pchar;maxlen:size_t):cint;
+    function  fpNice(N:cint):cint;
+    Function  fpGetPriority(Which,Who:cint):cint;
+    Function  fpSetPriority(Which,Who,What:cint):cint;
+    Function  Fpmmap(start:pointer;len:size_t;prot:cint;flags:cint;fd:cint;offst:off_t):pointer; 
+    Function  Fpmunmap(start:pointer;len:size_t):cint; 
 
     Function  FpGetEnv     (name : pChar): pChar;
-//    Function  FpGetEnv     (name : String): pChar; overloaded to bunxovlh.inc
 
 {
   $Log$
-  Revision 1.11  2003-12-30 12:24:01  marco
+  Revision 1.12  2004-11-14 12:21:08  marco
+   * moved some calls from unix to baseunix. Darwin untested.
+
+  Revision 1.11  2003/12/30 12:24:01  marco
    * FPC_USE_LIBC
 
   Revision 1.10  2003/09/27 13:49:41  peter

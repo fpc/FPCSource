@@ -17,12 +17,14 @@
 Function PClose(Var F:file) : cint;
 Function PClose      (Var F:text) : cint;
 Function StatFS(Path:ansistring;Var Info:Tstatfs):cint;
-Function fpReadLink(Name:ansistring):ansistring;
-
+//Function fpReadLink(Name:ansistring):ansistring;
 
 {
    $Log$
-   Revision 1.3  2004-11-03 15:00:43  marco
+   Revision 1.4  2004-11-14 12:21:08  marco
+    * moved some calls from unix to baseunix. Darwin untested.
+
+   Revision 1.3  2004/11/03 15:00:43  marco
     * Pathstr eliminated
 
    Revision 1.2  2004/01/01 16:10:23  marco

@@ -16,23 +16,18 @@
 
 type filedesarray=array[0..1] of cint;
 
-function fpMUnMap (P : Pointer; Size : size_t) : cint; cdecl; external clib name 'munmap';
 Function fStatFS(Fd:Longint;Var Info:tstatfs):cint; cdecl; external clib name 'fstatfs';
 Function fpFlock (fd,mode : longint) : cint; cdecl; external clib name 'flock';
 Function fsync (fd : cint) : cint; cdecl; external clib name 'fsync';
 Function StatFS  (Path:pchar;Var Info:tstatfs):cint; cdecl; external clib name 'statfs';
 function pipe (var fildes: filedesarray):cint;  cdecl; external clib name 'pipe';
-function fpNice(N:cint):cint; cdecl; external clib name 'nice';
-Function fpGetPriority(Which,Who:cint):cint;      cdecl; external clib name 'getpriority';
-Function fpSetPriority(Which,Who,What:cint):cint; cdecl; external clib name 'setpriority';
-Function fpLstat(path:pchar;Info:pstat):cint;     cdecl; external clib name 'lstat';
-Function fpSymlink(oldname,newname:pchar):cint;   cdecl; external clib name 'symlink';
-Function fpReadLink(name,linkname:pchar;maxlen:cint):cint;  cdecl; external clib name 'readlink';
-function fpgettimeofday(tp: ptimeval;tzp:ptimezone):cint;   cdecl; external clib name 'gettimeofday';
 
 {
    $Log$
-   Revision 1.4  2004-04-23 19:16:25  marco
+   Revision 1.5  2004-11-14 12:21:08  marco
+    * moved some calls from unix to baseunix. Darwin untested.
+
+   Revision 1.4  2004/04/23 19:16:25  marco
     * flock -> fpflock because of conflicting structure name
 
    Revision 1.3  2004/01/04 21:05:01  jonas
