@@ -2374,14 +2374,8 @@ type
                      begin
                        if (procdefinition.proctypeoption=potype_constructor) then
                         begin
-                          if assigned(methodpointer) and
-                             (methodpointer.resulttype.def.deftype=classrefdef) then
-                           begin
-                             expectloc:=LOC_REGISTER;
-                             registers32:=1;
-                           end
-                          else
-                           expectloc:=LOC_FLAGS;
+                          expectloc:=LOC_REGISTER;
+                          registers32:=1;
                         end
                        else
                         begin
@@ -2730,7 +2724,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.152  2003-05-13 15:18:49  peter
+  Revision 1.153  2003-05-13 20:53:41  peter
+    * constructors return in register
+
+  Revision 1.152  2003/05/13 15:18:49  peter
     * fixed various crashes
 
   Revision 1.151  2003/05/11 21:37:03  peter
