@@ -157,12 +157,15 @@
       var
         hp      : pused_unit;
       begin
-      numberunits;
+        numberunits;
         hp:=pused_unit(current_module^.used_units.first);
         while assigned(hp) do
          begin
            current_ppu^.putstring(hp^.name^);
+           { the checksum should not affect the crc of this unit ! (PFV) }
+           current_ppu^.do_crc:=false;
            current_ppu^.putlongint(hp^.checksum);
+           current_ppu^.do_crc:=true;
            current_ppu^.putbyte(byte(hp^.in_interface));
            hp:=pused_unit(hp^.next);
          end;
@@ -694,7 +697,11 @@
 
 {
   $Log$
-  Revision 1.10  1998-08-13 10:57:30  peter
+  Revision 1.11  1998-08-16 20:32:49  peter
+    * crcs of used units are not important for the current crc, reduces the
+      amount of recompiles
+
+  Revision 1.10  1998/08/13 10:57:30  peter
     * constant sets are now written correctly to the ppufile
 
   Revision 1.9  1998/08/11 15:31:41  peter
