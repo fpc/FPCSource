@@ -198,24 +198,24 @@ interface
         if (right.location.loc = LOC_CONSTANT) then
           begin
 {$ifdef extdebug}
-            if (qword(right.location.value) > high(cardinal)) then
+            if (qword(right.location.valuehigh) <> 0) then
               internalerror(2002080301);
 {$endif extdebug}
             if (nodetype in [equaln,unequaln]) then
               if (unsigned and
                   (right.location.value > high(word))) or
                  (not unsigned and
-                  (right.location.value < low(smallint)) or
-                   (right.location.value > high(smallint))) then
+                  (longint(right.location.value) < low(smallint)) or
+                   (longint(right.location.value) > high(smallint))) then
                 // we can then maybe use a constant in the 'othersigned' case
                 // (the sign doesn't matter for // equal/unequal)
                 unsigned := not unsigned;
 
             if (unsigned and
-                (qword(right.location.value) <= high(word))) or
+                (right.location.value) <= high(word)) or
                (not(unsigned) and
-                (right.location.value >= low(smallint)) and
-                (right.location.value <= high(smallint))) then
+                (longint(right.location.value) >= low(smallint)) and
+                (longint(right.location.value) <= high(smallint))) then
                useconst := true
             else
               begin
@@ -243,7 +243,7 @@ interface
         if (right.location.loc = LOC_CONSTANT) then
           if useconst then
             exprasmlist.concat(taicpu.op_reg_const(op,
-              left.location.register,right.location.value))
+              left.location.register,longint(right.location.value)))
           else
             begin
               exprasmlist.concat(taicpu.op_reg_reg(op,
@@ -348,7 +348,7 @@ interface
                       left.location.register,right.location.register))
                   else
                     exprasmlist.concat(taicpu.op_reg_const(A_CMPLWI,
-                      left.location.register,right.location.value));
+                      left.location.register,longint(right.location.value)));
                   location.resflags := getresflags;
                 end;
               else
@@ -693,11 +693,11 @@ interface
           location_copy(oldleft,left.location);
           location_copy(oldright,right.location);
           if left.location.loc = LOC_CONSTANT then
-            left.location.value := left.location.value shr 32
+            left.location.valueqword := left.location.valueqword shr 32
           else
             left.location.registerlow := left.location.registerhigh;
           if right.location.loc = LOC_CONSTANT then
-            right.location.value := right.location.value shr 32
+            right.location.valueqword := right.location.valueqword shr 32
           else
             right.location.registerlow := right.location.registerhigh;
 
@@ -848,8 +848,8 @@ interface
               swapleftright;
             if left.location.loc = LOC_CONSTANT then
               if not(cs_check_overflow in aktlocalswitches) and
-                 (left.location.value >= low(smallint)) and
-                 (left.location.value <= high(smallint)) then
+                 (longint(left.location.value) >= low(smallint)) and
+                 (longint(left.location.value) <= high(smallint)) then
                 begin
                   // optimize
                   exprasmlist.concat(taicpu.op_reg_reg_const(A_SUBFIC,
@@ -887,7 +887,7 @@ interface
                   if left.location.loc = LOC_CONSTANT then
                     swapleftright;
                   if (right.location.loc = LOC_CONSTANT) then
-                    cg64.a_op64_const_reg_reg(exprasmlist,op,qword(right.location.value),
+                    cg64.a_op64_const_reg_reg(exprasmlist,op,right.location.valueqword,
                       left.location.register64,location.register64)
                   else
                     cg64.a_op64_reg_reg_reg(exprasmlist,op,right.location.register64,
@@ -1281,11 +1281,11 @@ interface
            begin
              case nodetype of
                addn:
-                 op := A_ADDO;
+                 op := A_ADDO_;
                subn:
-                 op := A_SUBO;
+                 op := A_SUBO_;
                muln:
-                  op := A_MULLWO;
+                  op := A_MULLWO_;
                else
                  internalerror(2002072601);
              end;
@@ -1302,7 +1302,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2002-08-06 20:55:24  florian
+  Revision 1.7  2002-08-10 17:15:31  jonas
+    * various fixes and optimizations
+
+  Revision 1.6  2002/08/06 20:55:24  florian
     * first part of ppc calling conventions fix
 
   Revision 1.5  2002/08/05 08:58:54  jonas

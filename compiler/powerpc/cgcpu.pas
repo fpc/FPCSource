@@ -96,7 +96,8 @@ unit cgcpu;
         procedure g_restore_standard_registers(list : taasmoutput);override;
         procedure g_save_all_registers(list : taasmoutput);override;
         procedure g_restore_all_registers(list : taasmoutput;selfused,accused,acchiused:boolean);override;
-        private
+
+      private
 
         procedure a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: tasmlabel);
 
@@ -106,7 +107,15 @@ unit cgcpu;
 
         { Make sure ref is a valid reference for the PowerPC and sets the }
         { base to the value of the index if (base = R_NO).                }
-        procedure fixref(list: taasmoutput; var ref: treference);
+        { Returns true if the reference contained a base, index and an    }
+        { offset or symbol, in which case the base will have been changed }
+        { to a tempreg (which has to be freed by the caller) containing   }
+        { the sum of part of the original reference                       }
+        function fixref(list: taasmoutput; var ref: treference): boolean;
+
+        { returns whether a reference can be used immediately in a powerpc }
+        { instruction                                                      }
+        function issimpleref(const ref: treference): boolean;
 
         { contains the common code of a_load_reg_ref and a_load_ref_reg }
         procedure a_load_store(list:taasmoutput;op: tasmop;reg:tregister;
@@ -153,7 +162,7 @@ const
 
       begin
         case locpara.loc of
-          LOC_REGISTER:
+          LOC_REGISTER,LOC_CREGISTER:
             a_load_const_reg(list,size,a,locpara.register);
           LOC_REFERENCE:
             begin
@@ -178,7 +187,7 @@ const
 
       begin
         case locpara.loc of
-          LOC_REGISTER:
+          LOC_REGISTER,LOC_CREGISTER:
             a_load_ref_reg(list,size,r,locpara.register);
           LOC_REFERENCE:
             begin
@@ -190,7 +199,7 @@ const
                a_load_reg_ref(list,size,tmpreg,ref);
                free_scratch_reg(list,tmpreg);
             end;
-          LOC_FPUREGISTER:
+          LOC_FPUREGISTER,LOC_CFPUREGISTER:
             case size of
                OS_32:
                  a_loadfpu_ref_reg(list,OS_F32,r,locpara.register);
@@ -215,7 +224,7 @@ const
 
       begin
          case locpara.loc of
-            LOC_REGISTER:
+            LOC_REGISTER,LOC_CREGISTER:
               a_loadaddr_ref_reg(list,r,locpara.register);
             LOC_REFERENCE:
               begin
@@ -266,7 +275,8 @@ const
           else if ((a and $ffff) <> 0) then
             begin
               list.concat(taicpu.op_reg_const(A_LI,reg,smallint(a and $ffff)));
-              if ((a shr 16) <> 0) then
+              if ((a shr 16) <> 0) or
+                 (smallint(a and $ffff) < 0) then
                 list.concat(taicpu.op_reg_const(A_ADDIS,reg,
                   smallint((a shr 16)+ord(smallint(a and $ffff) < 0))))
             end
@@ -286,10 +296,10 @@ const
        var
          op: TAsmOp;
          ref2: TReference;
-
+         freereg: boolean;
        begin
          ref2 := ref;
-         FixRef(list,ref2);
+         freereg := fixref(list,ref2);
          if size in [OS_S8..OS_S16] then
            { storing is the same for signed and unsigned values }
            size := tcgsize(ord(size)-(ord(OS_S8)-ord(OS_8)));
@@ -298,6 +308,8 @@ const
            internalerror(200109236);
          op := storeinstr[tcgsize2unsigned[size],ref2.index<>R_NO,false];
          a_load_store(list,op,reg,ref2);
+         if freereg then
+           cg.free_scratch_reg(list,ref2.base);
        End;
 
 
@@ -319,12 +331,15 @@ const
          op: tasmop;
          tmpreg: tregister;
          ref2, tmpref: treference;
+         freereg: boolean;
 
        begin
           ref2 := ref;
-          fixref(list,ref2);
+          freereg := fixref(list,ref2);
           op := loadinstr[size,ref2.index<>R_NO,false];
           a_load_store(list,op,reg,ref2);
+          if freereg then
+            free_scratch_reg(list,ref2.base);
           { sign extend shortint if necessary, since there is no }
           { load instruction that does that automatically (JM)   }
           if size = OS_S8 then
@@ -366,7 +381,7 @@ const
      procedure tcgppc.a_loadfpu_reg_reg(list: taasmoutput; reg1, reg2: tregister);
 
        begin
-         list.concat(taicpu.op_reg_reg(A_FMR,reg1,reg2));
+         list.concat(taicpu.op_reg_reg(A_FMR,reg2,reg1));
        end;
 
      procedure tcgppc.a_loadfpu_ref_reg(list: taasmoutput; size: tcgsize; const ref: treference; reg: tregister);
@@ -379,6 +394,8 @@ const
        var
          op: tasmop;
          ref2: treference;
+         freereg: boolean;
+
        begin
           { several functions call this procedure with OS_32 or OS_64 }
           { so this makes life easier (FK)                            }
@@ -391,9 +408,11 @@ const
                internalerror(200201121);
           end;
          ref2 := ref;
-         fixref(list,ref2);
+         freereg := fixref(list,ref2);
          op := fpuloadinstr[size,ref2.index <> R_NO,false];
          a_load_store(list,op,reg,ref2);
+         if freereg then
+           cg.free_scratch_reg(list,ref2.base);
        end;
 
      procedure tcgppc.a_loadfpu_reg_ref(list: taasmoutput; size: tcgsize; reg: tregister; const ref: treference);
@@ -406,13 +425,17 @@ const
        var
          op: tasmop;
          ref2: treference;
+         freereg: boolean;
+
        begin
          if not(size in [OS_F32,OS_F64]) then
            internalerror(200201122);
          ref2 := ref;
-         fixref(list,ref2);
+         freereg := fixref(list,ref2);
          op := fpustoreinstr[size,ref2.index <> R_NO,false];
          a_load_store(list,op,reg,ref2);
+         if freereg then
+           cg.free_scratch_reg(list,ref2.base);
        end;
 
 
@@ -465,7 +488,7 @@ const
         ophi := TOpCG2AsmOpConstHi[op];
         oplo := TOpCG2AsmOpConstLo[op];
         gotrlwi := get_rlwi_const(a,l1,l2);
-        if (op in [OP_ADD,OP_AND,OP_OR,OP_XOR]) then
+        if (op in [OP_AND,OP_OR,OP_XOR]) then
           begin
             if (a = 0) then
               begin
@@ -473,8 +496,7 @@ const
                   list.concat(taicpu.op_reg_const(A_LI,dst,0));
                 exit;
               end
-            else if (a = high(aword)) and
-                    (op in [OP_AND,OP_OR,OP_XOR]) then
+            else if (a = high(aword)) then
               begin
                 case op of
                   OP_OR:
@@ -484,15 +506,11 @@ const
                 end;
                 exit;
               end
-            else if (longint(a) >= 0) and
-               (longint(a) <= high(word)) and
+            else if (a <= high(word)) and
                ((op <> OP_AND) or
                 not gotrlwi) then
               begin
-                if (op = OP_ADD) then
-                  list.concat(taicpu.op_reg_reg_const(oplo,dst,src,smallint(a)))
-                else
-                  list.concat(taicpu.op_reg_reg_const(oplo,dst,src,word(a)));
+                list.concat(taicpu.op_reg_reg_const(oplo,dst,src,word(a)));
                 exit;
               end;
             { all basic constant instructions also have a shifted form that }
@@ -505,15 +523,58 @@ const
                 list.concat(taicpu.op_reg_reg_const(ophi,dst,src,word(a shr 16)));
                 exit;
               end;
-          end;
+          end
+        else if (op = OP_ADD) then
+          if a = 0 then
+            exit
+          else if (longint(a) >= low(smallint)) and
+              (longint(a) <= high(smallint)) then
+             begin
+               list.concat(taicpu.op_reg_reg_const(A_ADDI,dst,src,smallint(a)));
+               exit;
+             end;
+
         { otherwise, the instructions we can generate depend on the }
         { operation                                                 }
         useReg := false;
         case op of
           OP_DIV,OP_IDIV:
-            useReg := true;
+             if (a = 0) then
+               internalerror(200208103)
+             else if (a = 1) then
+               begin
+                 a_load_reg_reg(list,OS_INT,src,dst);
+                 exit
+               end
+            else if ispowerof2(a,l1) then
+              begin
+                case op of
+                  OP_DIV:
+                    list.concat(taicpu.op_reg_reg_const(A_SRWI,dst,src,l1));
+                  OP_IDIV:
+                    begin
+                       list.concat(taicpu.op_reg_reg_const(A_SRAWI,dst,src,l1));
+                       list.concat(taicpu.op_reg_reg(A_ADDZE,dst,dst));
+                    end;
+                end;
+                exit;
+              end
+            else
+              usereg := true;
            OP_IMUL, OP_MUL:
-             if (longint(a) >= low(smallint)) and
+             if (a = 0) then
+               begin
+                 list.concat(taicpu.op_reg_const(A_LI,dst,0));
+                 exit
+               end
+             else if (a = 1) then
+               begin
+                 a_load_reg_reg(list,OS_INT,src,dst);
+                 exit
+               end
+             else if ispowerof2(a,l1) then
+               list.concat(taicpu.op_reg_reg_const(A_SLWI,dst,src,l1))
+             else if (longint(a) >= low(smallint)) and
                 (longint(a) <= high(smallint)) then
                list.concat(taicpu.op_reg_reg_const(A_MULLI,dst,src,smallint(a)))
              else
@@ -1090,10 +1151,11 @@ const
 
        var
          ref2, tmpref: treference;
+         freereg: boolean;
 
        begin
          ref2 := ref;
-         FixRef(list,ref2);
+         freereg := fixref(list,ref2);
          if assigned(ref2.symbol) then
            { add the symbol's value to the base of the reference, and if the }
            { reference doesn't have a base, create one                       }
@@ -1103,8 +1165,15 @@ const
              tmpref.symbol := ref2.symbol;
              tmpref.symaddr := refs_ha;
              if ref2.base <> R_NO then
-               list.concat(taicpu.op_reg_reg_ref(A_ADDIS,r,
-                 ref2.base,tmpref))
+               begin
+                 list.concat(taicpu.op_reg_reg_ref(A_ADDIS,r,
+                   ref2.base,tmpref));
+                 if freereg then
+                   begin
+                     cg.free_scratch_reg(list,ref2.base);
+                     freereg := false;
+                   end;
+               end
              else
                list.concat(taicpu.op_reg_ref(A_LIS,r,tmpref));
              tmpref.base := R_NO;
@@ -1124,6 +1193,8 @@ const
          else if (ref2.base <> R_NO) and
                  (r <> ref2.base) then
            list.concat(taicpu.op_reg_reg(A_MR,r,ref2.base));
+         if freereg then
+           cg.free_scratch_reg(list,ref2.base);
        end;
 
 { ************* concatcopy ************ }
@@ -1135,7 +1206,7 @@ const
         src, dst: TReference;
         lab: tasmlabel;
         count, count2: aword;
-        orgsrc, orgdst : boolean;
+        orgsrc, orgdst: boolean;
 
       begin
 {$ifdef extdebug}
@@ -1166,11 +1237,6 @@ const
               exit;
             end;
 
-        { make sure source and dest are valid }
-        src := source;
-        fixref(list,src);
-        dst := dest;
-        fixref(list,dst);
         reference_reset(src);
         reference_reset(dst);
         { load the address of source into src.base }
@@ -1180,8 +1246,9 @@ const
             a_load_ref_reg(list,OS_32,source,src.base);
             orgsrc := false;
           end
-        else if assigned(source.symbol) or
-                ((source.offset + longint(len)) > high(smallint)) then
+        else if not issimpleref(source) or
+                ((source.index <> R_NO) and
+                 ((source.offset + longint(len)) > high(smallint))) then
           begin
             src.base := get_scratch_reg_address(list);
             a_loadaddr_ref_reg(list,source,src.base);
@@ -1195,8 +1262,9 @@ const
         if not orgsrc and delsource then
           reference_release(exprasmlist,source);
         { load the address of dest into dst.base }
-        if assigned(dest.symbol) or
-           ((dest.offset + longint(len)) > high(smallint)) then
+        if not issimpleref(dest) or
+           ((dest.index <> R_NO) and
+            ((dest.offset + longint(len)) > high(smallint))) then
           begin
             dst.base := get_scratch_reg_address(list);
             a_loadaddr_ref_reg(list,dest,dst.base);
@@ -1340,35 +1408,54 @@ const
       end;
 
 
-    procedure tcgppc.fixref(list: taasmoutput; var ref: treference);
+    function tcgppc.issimpleref(const ref: treference): boolean;
 
+      begin
+        if (ref.base = R_NO) and
+           (ref.index <> R_NO) then
+          internalerror(200208101);
+        result :=
+          not(assigned(ref.symbol)) and
+          (((ref.index = R_NO) and
+            (ref.offset >= low(smallint)) and
+            (ref.offset <= high(smallint))) or
+           ((ref.index <> R_NO) and
+            (ref.offset = 0)));
+      end;
+
+    function tcgppc.fixref(list: taasmoutput; var ref: treference): boolean;
+
+       var
+         tmpreg: tregister;
        begin
-         If (ref.base <> R_NO) then
+         result := false;
+         if (ref.base <> R_NO) then
            begin
              if (ref.index <> R_NO) and
                 ((ref.offset <> 0) or assigned(ref.symbol)) then
                begin
+                 result := true;
+                 tmpreg := cg.get_scratch_reg_int(list);
                  if not assigned(ref.symbol) and
                     (cardinal(ref.offset-low(smallint)) <=
                       high(smallint)-low(smallint)) then
                    begin
                      list.concat(taicpu.op_reg_reg_const(
-                       A_ADDI,ref.base,ref.base,ref.offset));
+                       A_ADDI,tmpreg,ref.base,ref.offset));
                      ref.offset := 0;
                    end
                  else
                    begin
                      list.concat(taicpu.op_reg_reg_reg(
-                       A_ADD,ref.base,ref.base,ref.index));
+                       A_ADD,tmpreg,ref.base,ref.index));
                      ref.index := R_NO;
                    end;
+                 ref.base := tmpreg;
                end
            end
          else
-           begin
-             ref.base := ref.index;
-             ref.index := R_NO
-           end
+           if ref.index <> R_NO then
+             internalerror(200208102);
        end;
 
 
@@ -1586,7 +1673,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.36  2002-08-06 20:55:23  florian
+  Revision 1.37  2002-08-10 17:15:31  jonas
+    * various fixes and optimizations
+
+  Revision 1.36  2002/08/06 20:55:23  florian
     * first part of ppc calling conventions fix
 
   Revision 1.35  2002/08/06 07:12:05  jonas

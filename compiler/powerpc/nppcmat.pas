@@ -371,7 +371,6 @@ implementation
                   end;
                 LOC_REFERENCE,LOC_CREFERENCE:
                   begin
-                     reference_release(exprasmlist,left.location.reference);
                      if (left.resulttype.def.deftype=floatdef) then
                        begin
                           src1 := rg.getregisterfpu(exprasmlist);
@@ -387,16 +386,23 @@ implementation
                           cg.a_load_ref_reg(exprasmlist,OS_32,
                             left.location.reference,src1);
                        end;
+                     reference_release(exprasmlist,left.location.reference);
                   end;
               end;
               { choose appropriate operand }
               if left.resulttype.def.deftype <> floatdef then
-                if not(cs_check_overflow in aktlocalswitches) then
-                  op := A_NEG
-                else
-                  op := A_NEGO_
+                begin
+                  if not(cs_check_overflow in aktlocalswitches) then
+                    op := A_NEG
+                  else
+                    op := A_NEGO_;
+                  location.loc := LOC_REGISTER;
+                end
               else
-                op := A_FNEG;
+                begin
+                  op := A_FNEG;
+                  location.loc := LOC_FPUREGISTER;
+                end;
               { emit operation }
               exprasmlist.concat(taicpu.op_reg_reg(op,location.register,src1));
            end;
@@ -489,7 +495,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2002-07-26 10:48:34  jonas
+  Revision 1.16  2002-08-10 17:15:31  jonas
+    * various fixes and optimizations
+
+  Revision 1.15  2002/07/26 10:48:34  jonas
     * fixed bug in shl/shr code
 
   Revision 1.14  2002/07/20 11:58:05  florian

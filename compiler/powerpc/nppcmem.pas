@@ -397,18 +397,20 @@ implementation
                    end;
                end;
 
-              if location.reference.index=R_NO then
+              if location.reference.base=R_NO then
                begin
-                 location.reference.index:=right.location.register;
+                 location.reference.base:=right.location.register;
                  cg.a_op_const_reg(exprasmlist,OP_IMUL,get_mul_size,
                    right.location.register);
                end
               else
                begin
-                 if location.reference.base=R_NO then
-                   { this wouldn't make sense for the ppc since there are }
-                   { no scalefactors (JM)                                 }
-                   internalerror(2002072901)
+                 if location.reference.index=R_NO then
+                   begin
+                     location.reference.index:=right.location.register;
+                     cg.a_op_const_reg(exprasmlist,OP_IMUL,get_mul_size,
+                       right.location.register);
+                   end
                  else
                   begin
                     cg.a_loadaddr_ref_reg(exprasmlist,location.reference,
@@ -436,7 +438,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2002-07-29 09:21:30  jonas
+  Revision 1.2  2002-08-10 17:15:31  jonas
+    * various fixes and optimizations
+
+  Revision 1.1  2002/07/29 09:21:30  jonas
     + tppcvecnode, almost straight copy of the i386 code, can most likely
       be made generic if all treference type allow a base, index and offset
 

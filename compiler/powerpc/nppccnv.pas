@@ -121,7 +121,8 @@ implementation
         size := resulttype.def.size;
         leftsize := left.resulttype.def.size;
         if (size < leftsize) or
-           ((left.location.loc <> LOC_REGISTER) and
+           (((newsize in [OS_64,OS_S64]) or
+             (left.location.loc <> LOC_REGISTER)) and
             (size > leftsize)) then
           begin
             { reuse the left location by default }
@@ -254,8 +255,8 @@ implementation
            cg.free_scratch_reg(exprasmlist,valuereg);
 
          tmpfpureg := rg.getregisterfpu(exprasmlist);
-         exprasmlist.concat(taicpu.op_reg_ref(A_LFD,tmpfpureg,
-           tempconst.location.reference));
+         a_loadfpu_ref_reg(exprasmlist,OS_F64,tempconst.location.reference,
+           tmpfpureg);
          tempconst.free;
 
          location.register := rg.getregisterfpu(exprasmlist);
@@ -417,7 +418,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2002-07-29 21:23:44  florian
+  Revision 1.20  2002-08-10 17:15:31  jonas
+    * various fixes and optimizations
+
+  Revision 1.19  2002/07/29 21:23:44  florian
     * more fixes for the ppc
     + wrappers for the tcnvnode.first_* stuff introduced
 
