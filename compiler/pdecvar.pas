@@ -123,7 +123,7 @@ implementation
          usedalign,
          minalignment,maxalignment,startvarrecalign : byte;
          pt : tnode;
-         vs    : tvarsym;
+         vs,vs2    : tvarsym;
          srsym : tsym;
          srsymtable : tsymtable;
          unionsymtable : tsymtable;
@@ -465,6 +465,14 @@ implementation
                    begin
                      Message(parser_e_cant_publish_that);
                      exclude(current_object_option,sp_published);
+                     { recover by changing access type to public }
+                     vs2:=tvarsym(sc.first);
+                     while assigned (vs2) do
+                       begin
+                         exclude(vs2.symoptions,sp_published);
+                         include(vs2.symoptions,sp_public);
+                         vs2:=tvarsym(vs2.listnext);
+                       end;
                    end
                   else
                    if (sp_published in current_object_option) and
@@ -601,7 +609,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.49  2003-09-05 17:41:12  florian
+  Revision 1.50  2003-09-07 14:14:51  florian
+    * proper error recovering from invalid published fields
+
+  Revision 1.49  2003/09/05 17:41:12  florian
     * merged Wiktor's Watcom patches in 1.1
 
   Revision 1.48  2003/07/02 22:18:04  peter
