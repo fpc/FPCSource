@@ -469,7 +469,7 @@ unit types;
                 if assigned(def1^.sym) and ((def1^.sym^.properties and sp_forwarddef)<>0) then
                   b:=(def1^.sym=def2^.sym)
                 else
-                  b:=is_equal(ppointerdef(def1)^.definition,ppointerdef(def2)^.definition);
+                  b:=ppointerdef(def1)^.definition=ppointerdef(def2)^.definition;
              end
          else
          { ordinals are equal only when the ordinal type is equal }
@@ -899,7 +899,10 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.24  1998-09-04 08:36:49  peter
+  Revision 1.25  1998-09-04 09:06:36  florian
+   * bug0132 fixed
+
+  Revision 1.24  1998/09/04 08:36:49  peter
     * fixed boolean:=integer which is not explicit
 
   Revision 1.23  1998/09/01 17:39:55  peter
