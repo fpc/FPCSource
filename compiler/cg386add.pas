@@ -459,15 +459,16 @@ implementation
       label do_normal;
 
       var
-         hregister : tregister;
+         hregister,hregister2 : tregister;
          noswap,popeax,popedx,
          pushed,mboverflow,cmpop : boolean;
-         op : tasmop;
+         op,op2 : tasmop;
          flags : tresflags;
          otl,ofl : plabel;
          power : longint;
          opsize : topsize;
          hl4: plabel;
+         hr : preference;
 
          { true, if unsigned types are compared }
          unsigned : boolean;
@@ -1088,6 +1089,7 @@ implementation
                       addn : begin
                                 begin
                                   op:=A_ADD;
+                                  op2:=A_ADC;
                                   mboverflow:=true;
                                 end;
                              end;
@@ -1102,17 +1104,35 @@ implementation
                              end;
                       subn : begin
                                 op:=A_SUB;
+                                op2:=A_SBB;
                                 mboverflow:=true;
                              end;
-                  ltn,lten,
-                  gtn,gten,
-           equaln,unequaln : begin
+                      ltn,lten,
+                      gtn,gten,
+                      equaln,unequaln:
+                             begin
                                op:=A_CMP;
-                               cmpop:=true;
+                               op2:=A_CMP;
+                               { cmpop is set later, if necessary }
                              end;
-                      xorn : op:=A_XOR;
-                       orn : op:=A_OR;
-                      andn : op:=A_AND;
+
+                      xorn:
+                        begin
+                           op:=A_XOR;
+                           op2:=A_XOR;
+                        end;
+
+                      orn:
+                        begin
+                           op:=A_OR;
+                           op2:=A_OR;
+                        end;
+
+                      andn:
+                        begin
+                           op:=A_AND;
+                           op2:=A_AND;
+                        end;
                    else
                      CGMessage(type_e_mismatch);
                    end;
@@ -1129,24 +1149,28 @@ implementation
                              { it is OK if this is the destination }
                              if is_in_dest then
                                begin
-                                  hregister:=p^.location.register;
-                                  emit_reg_reg(A_MOV,opsize,p^.left^.location.register,
+                                  hregister:=p^.location.registerlow;
+                                  hregister2:=p^.location.registerhigh;
+                                  emit_reg_reg(A_MOV,opsize,p^.left^.location.registerlow,
                                     hregister);
+                                  emit_reg_reg(A_MOV,opsize,p^.left^.location.registerlow,
+                                    hregister2);
                                end
                              else
                              if cmpop then
                                begin
                                   { do not disturb the register }
-                                  hregister:=p^.location.register;
+                                  hregister:=p^.location.registerlow;
+                                  hregister2:=p^.location.registerhigh;
                                end
                              else
                                begin
-                                  case opsize of
-                                     S_L : hregister:=getregister32;
-                                     S_B : hregister:=reg32toreg8(getregister32);
-                                  end;
-                                  emit_reg_reg(A_MOV,opsize,p^.left^.location.register,
+                                  hregister:=getregister32;
+                                  hregister2:=getregister32;
+                                  emit_reg_reg(A_MOV,opsize,p^.left^.location.registerlow,
                                     hregister);
+                                  emit_reg_reg(A_MOV,opsize,p^.left^.location.registerhigh,
+                                    hregister2);
                                end
                           end
                         else
@@ -1155,25 +1179,31 @@ implementation
                              del_reference(p^.left^.location.reference);
                              if is_in_dest then
                                begin
-                                  hregister:=p^.location.register;
+                                  hregister:=p^.location.registerlow;
+                                  hregister2:=p^.location.registerhigh;
                                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,opsize,
-                                  newreference(p^.left^.location.reference),hregister)));
+                                    newreference(p^.left^.location.reference),hregister)));
+                                  hr:=newreference(p^.left^.location.reference);
+                                  inc(hr^.offset,4);
+                                  exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,opsize,
+                                    hr,hregister2)));
                                end
                              else
                                begin
-                                  { first give free, then demand new register }
-                                  case opsize of
-                                     S_L : hregister:=getregister32;
-                                     S_W : hregister:=reg32toreg16(getregister32);
-                                     S_B : hregister:=reg32toreg8(getregister32);
-                                  end;
+                                  hregister:=getregister32;
+                                  hregister2:=getregister32;
                                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,opsize,
                                     newreference(p^.left^.location.reference),hregister)));
+                                  hr:=newreference(p^.left^.location.reference);
+                                  inc(hr^.offset,4);
+                                  exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,opsize,
+                                    newreference(p^.left^.location.reference),hregister2)));
                                end;
                           end;
                         clear_location(p^.location);
                         p^.location.loc:=LOC_REGISTER;
-                        p^.location.register:=hregister;
+                        p^.location.registerlow:=hregister;
+                        p^.location.registerhigh:=hregister2;
                      end
                    else
                      { if on the right the register then swap }
@@ -1194,18 +1224,12 @@ implementation
                           begin
                              if p^.right^.location.loc=LOC_CREGISTER then
                                begin
-                                  if extra_not then
-                                    exprasmlist^.concat(new(pai386,op_reg(A_NOT,opsize,p^.location.register)));
-
                                   emit_reg_reg(A_MOV,opsize,p^.right^.location.register,R_EDI);
                                   emit_reg_reg(op,opsize,p^.location.register,R_EDI);
                                   emit_reg_reg(A_MOV,opsize,R_EDI,p^.location.register);
                                end
                              else
                                begin
-                                  if extra_not then
-                                    exprasmlist^.concat(new(pai386,op_reg(A_NOT,opsize,p^.location.register)));
-
                                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,opsize,
                                     newreference(p^.right^.location.reference),R_EDI)));
                                   exprasmlist^.concat(new(pai386,op_reg_reg(op,opsize,p^.location.register,R_EDI)));
@@ -1216,25 +1240,12 @@ implementation
                           end
                         else
                           begin
+                             {
                              if (p^.right^.treetype=ordconstn) and
                                 (op=A_CMP) and
                                 (p^.right^.value=0) then
                                begin
                                   exprasmlist^.concat(new(pai386,op_reg_reg(A_TEST,opsize,p^.location.register,
-                                    p^.location.register)));
-                               end
-                             else if (p^.right^.treetype=ordconstn) and
-                                (op=A_ADD) and
-                                (p^.right^.value=1) then
-                               begin
-                                  exprasmlist^.concat(new(pai386,op_reg(A_INC,opsize,
-                                    p^.location.register)));
-                               end
-                             else if (p^.right^.treetype=ordconstn) and
-                                (op=A_SUB) and
-                                (p^.right^.value=1) then
-                               begin
-                                  exprasmlist^.concat(new(pai386,op_reg(A_DEC,opsize,
                                     p^.location.register)));
                                end
                              else if (p^.right^.treetype=ordconstn) and
@@ -1245,37 +1256,21 @@ implementation
                                     p^.location.register)));
                                end
                              else
+                             }
                                begin
                                   if (p^.right^.location.loc=LOC_CREGISTER) then
                                     begin
-                                       if extra_not then
-                                         begin
-                                            emit_reg_reg(A_MOV,S_L,p^.right^.location.register,R_EDI);
-                                            exprasmlist^.concat(new(pai386,op_reg(A_NOT,S_L,R_EDI)));
-                                            emit_reg_reg(A_AND,S_L,R_EDI,
-                                              p^.location.register);
-                                         end
-                                       else
-                                         begin
-                                            emit_reg_reg(op,opsize,p^.right^.location.register,
-                                              p^.location.register);
-                                         end;
+                                       emit_reg_reg(op,opsize,p^.right^.location.register,
+                                          p^.location.register);
                                     end
                                   else
                                     begin
-                                       if extra_not then
-                                         begin
-                                            exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(
-                                              p^.right^.location.reference),R_EDI)));
-                                            exprasmlist^.concat(new(pai386,op_reg(A_NOT,S_L,R_EDI)));
-                                            emit_reg_reg(A_AND,S_L,R_EDI,
-                                              p^.location.register);
-                                         end
-                                       else
-                                         begin
-                                            exprasmlist^.concat(new(pai386,op_ref_reg(op,opsize,newreference(
-                                              p^.right^.location.reference),p^.location.register)));
-                                         end;
+                                       exprasmlist^.concat(new(pai386,op_ref_reg(op,opsize,newreference(
+                                         p^.right^.location.reference),p^.location.registerlow)));
+                                       hr:=newreference(p^.right^.location.reference);
+                                       inc(hr^.offset,4);
+                                       exprasmlist^.concat(new(pai386,op_ref_reg(op2,opsize,
+                                         hr,p^.location.registerhigh)));
                                        ungetiftemp(p^.right^.location.reference);
                                        del_reference(p^.right^.location.reference);
                                     end;
@@ -1287,9 +1282,6 @@ implementation
                         { when swapped another result register }
                         if (p^.treetype=subn) and p^.swaped then
                           begin
-                             if extra_not then
-                               exprasmlist^.concat(new(pai386,op_reg(A_NOT,S_L,p^.location.register)));
-
                              exprasmlist^.concat(new(pai386,op_reg_reg(op,opsize,
                                p^.location.register,p^.right^.location.register)));
                                swap_location(p^.location,p^.right^.location);
@@ -1299,16 +1291,15 @@ implementation
                           end
                         else
                           begin
-                             if extra_not then
-                               exprasmlist^.concat(new(pai386,op_reg(A_NOT,S_L,p^.right^.location.register)));
                              exprasmlist^.concat(new(pai386,op_reg_reg(op,opsize,
                                p^.right^.location.register,
                                p^.location.register)));
+                             exprasmlist^.concat(new(pai386,op_reg_reg(op2,opsize,
+                               p^.right^.location.registerhigh,
+                               p^.location.registerhigh)));
                           end;
-                        case opsize of
-                           S_L : ungetregister32(p^.right^.location.register);
-                           S_B : ungetregister32(reg8toreg32(p^.right^.location.register));
-                        end;
+                        ungetregister32(p^.right^.location.registerlow);
+                        ungetregister32(p^.right^.location.registerhigh);
                      end;
 
                    if cmpop then
@@ -1647,7 +1638,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.32  1998-12-10 09:47:13  florian
+  Revision 1.33  1998-12-10 11:16:00  florian
+    + some basic operations with qwords and int64 added: +, xor, and, or;
+      the register allocation works fine
+
+  Revision 1.32  1998/12/10 09:47:13  florian
     + basic operations with int64/qord (compiler with -dint64)
     + rtti of enumerations extended: names are now written
 
