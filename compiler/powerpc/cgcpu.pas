@@ -1216,15 +1216,23 @@ const
                   begin
                     if (hp.paraloc[calleeside].loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
                       begin
-                        if tvarsym(hp.parasym).localloc.loc<>LOC_REFERENCE then
-                          internalerror(200310011);
-                        reference_reset_base(href,tvarsym(hp.parasym).localloc.reference.index,tvarsym(hp.parasym).localloc.reference.offset);
-                        reference_reset_base(href2,NR_R12,hp.paraloc[callerside].reference.offset);
-                        { we can't use functions here which allocate registers (FK)
-                          cg.a_load_ref_ref(list,hp.paraloc[calleeside].size,hp.paraloc[calleeside].size,href2,href);
-                        }
-                        cg.a_load_ref_reg(list,hp.paraloc[calleeside].size,hp.paraloc[calleeside].size,href2,NR_R0);
-                        cg.a_load_reg_ref(list,hp.paraloc[calleeside].size,hp.paraloc[calleeside].size,NR_R0,href);
+                        case tvarsym(hp.parasym).localloc.loc of
+                          LOC_REFERENCE:
+                            begin
+                              reference_reset_base(href,tvarsym(hp.parasym).localloc.reference.index,tvarsym(hp.parasym).localloc.reference.offset);
+                              reference_reset_base(href2,NR_R12,hp.paraloc[callerside].reference.offset);
+                              { we can't use functions here which allocate registers (FK)
+                               cg.a_load_ref_ref(list,hp.paraloc[calleeside].size,hp.paraloc[calleeside].size,href2,href);
+                              }
+                              cg.a_load_ref_reg(list,hp.paraloc[calleeside].size,hp.paraloc[calleeside].size,href2,NR_R0);
+                              cg.a_load_reg_ref(list,hp.paraloc[calleeside].size,hp.paraloc[calleeside].size,NR_R0,href);
+                            end;
+                          LOC_CREGISTER:
+                            begin
+                              reference_reset_base(href2,NR_R12,hp.paraloc[callerside].reference.offset);
+                              cg.a_load_ref_reg(list,hp.paraloc[calleeside].size,hp.paraloc[calleeside].size,href2,tvarsym(hp.parasym).localloc.register);
+                            end;
+                        end;
                       end
 {$ifdef dummy}
                     else if (hp.calleeparaloc.loc in [LOC_REGISTER,LOC_CREGISTER]) then
@@ -1273,13 +1281,6 @@ const
           new_reference(STACK_POINTER_REG,LA_CR)));
         a_reg_dealloc(list,R_0); }
         { now comes the AltiVec context save, not yet implemented !!! }
-
-        { if we're in a nested procedure, we've to save R11 }
-        if current_procinfo.procdef.parast.symtablelevel>2 then
-          begin
-             reference_reset_base(href,NR_STACK_POINTER_REG,PARENT_FRAMEPOINTER_OFFSET);
-             list.concat(taicpu.op_reg_ref(A_STW,NR_R11,href));
-          end;
 
       end;
 
@@ -2411,7 +2412,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.170  2004-05-31 18:08:41  jonas
+  Revision 1.171  2004-06-02 17:18:10  jonas
+    * parameters passed on the stack now also work as register variables
+
+  Revision 1.170  2004/05/31 18:08:41  jonas
     * changed calling of external procedures to be the same as under gcc
       (don't worry about all the generated stubs, they're optimized away
        by the linker)
