@@ -589,16 +589,16 @@ begin
   LinuxError:=fpgetErrno;
 end;
 
-function MMap(const m:tmmapargs):longint;
+function MMap(const m:tmmapargs):pointer;
 begin
-  mmap:=fpmmap(m.address,m.size,m.prot, m.flags,m.fd, m.offset);
+  mmap:=fpmmap(pointer(m.address),m.size,m.prot, m.flags,m.fd, m.offset);
   LinuxError:=fpgetErrno;
 end;
 
 function MUnMap (P : Pointer; Size : Longint) : Boolean;
 
 begin
-  MUnMap:=fpmunmap(longint(p),size)=0;
+  MUnMap:=fpmunmap(p,size)=0;
   LinuxError:=fpgetErrno;
 end;
 
@@ -636,7 +636,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2003-09-15 20:30:49  marco
+  Revision 1.2  2003-09-15 21:07:41  marco
+   * second round of linux fixes. oldlinux now works
+
+  Revision 1.1  2003/09/15 20:30:49  marco
    * syscalls
 
   Revision 1.10  2003/09/14 20:15:01  marco

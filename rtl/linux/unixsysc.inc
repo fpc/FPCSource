@@ -571,7 +571,8 @@ begin
   Dup2:=(LinuxError=0);
 end;
 
-Function AssignPipe(var pipe_in,pipe_out:longint):boolean;
+Function AssignPipe(var pipe_in,pipe_out:longint):boolean; [public, alias : 'FPC_SYSC_ASSIGNPIPE'];
+
 {
   Sets up a pair of file variables, which act as a pipe. The first one can
   be read from, the second one can be written to.
@@ -860,7 +861,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  2003-09-14 20:15:01  marco
+  Revision 1.11  2003-09-15 21:07:32  marco
+   * second round of linux fixes. oldlinux now works
+
+  Revision 1.10  2003/09/14 20:15:01  marco
    * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
 
   Revision 1.9  2003/07/08 21:23:24  peter

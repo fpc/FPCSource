@@ -224,13 +224,8 @@ Procedure ExitProcess(val:longint);
 Function  WaitPid(Pid:longint;Status:pointer;Options:Longint):Longint;  {=>PID (Status Valid), 0 (No Status), -1: Error, special case errno=EINTR }
 Function  WaitProcess(Pid:longint):Longint; { like WaitPid(PID,@result,0) Handling of Signal interrupts (errno=EINTR), returning the Exitcode of Process (>=0) or -Status if terminated}
 Procedure Nice(N:integer);
-{$ifdef bsd}
 Function  GetPriority(Which,Who:longint):longint;
 procedure SetPriority(Which,Who,What:longint);
-{$else}
-Function  GetPriority(Which,Who:Integer):integer;
-Procedure SetPriority(Which:Integer;Who:Integer;What:Integer);
-{$endif}
 
 Function  GetPid:LongInt;
 Function  GetPPid:LongInt;
@@ -277,11 +272,7 @@ Function  FReName (OldName,NewName : String) : Boolean;
 Function  Chown(path:pathstr;NewUid,NewGid:longint):boolean;
 Function  Chmod(path:pathstr;Newmode:longint):boolean;
 Function  Utime(path:pathstr;utim:utimebuf):boolean;
-{$ifdef BSD}
 Function  Access(Path:Pathstr ;mode:longint):boolean;
-{$else}
-Function  Access(Path:Pathstr ;mode:integer):boolean;
-{$endif}
 Function  Umask(Mask:Integer):integer;
 Function  Flock (fd,mode : longint) : boolean;
 Function  Flock (var T : text;mode : longint) : boolean;
@@ -417,7 +408,7 @@ type
     offset  : longint;
   end;
 
-function MMap(const m:tmmapargs):longint;
+function MMap(const m:tmmapargs):pointer;
 function MUnMap (P : Pointer; Size : Longint) : Boolean;
 
 {**************************
@@ -425,9 +416,7 @@ function MUnMap (P : Pointer; Size : Longint) : Boolean;
 ***************************}
 
 //Function  IOperm (From,Num : Cardinal; Value : Longint) : boolean;
-{$ifndef BSD}
-Function  IoPL(Level : longint) : Boolean;
-{$endif}
+//Function  IoPL(Level : longint) : Boolean;
 {$ifdef i386}
 Procedure WritePort (Port : Longint; Value : Byte);
 Procedure WritePort (Port : Longint; Value : Word);
@@ -504,8 +493,9 @@ Uses Strings;
 
 {$i liunsysc.inc}   {Syscalls only used in unit Unix/Linux}
 
+{$ifndef Linux}
 Function FpNanoSleep(const req : timespec;rem : ptimespec) : longint; external name 'FPC_SYSC_NANOSLEEP';
-
+{$endif}
 
 {******************************************************************************
                           Process related calls
@@ -3130,7 +3120,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.2  2003-09-15 20:08:49  marco
+  Revision 1.3  2003-09-15 21:07:41  marco
+   * second round of linux fixes. oldlinux now works
+
+  Revision 1.2  2003/09/15 20:08:49  marco
    * small fixes. FreeBSD now cycles
 
   Revision 1.1  2003/09/15 14:12:17  marco
