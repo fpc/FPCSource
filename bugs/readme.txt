@@ -201,3 +201,5 @@ bug0148.pp   crash when setting function result of a declared but not yet
 bug0149.pp   (a, b) compile bug0149b twice and you'll get a crash
 bug0150.pp   Shows that the assert() macro is missing under Delphi.
 bug0151.pp   crash when using undeclared variable in with-statement
+bug0152.pp   End value of loop variable must be calculated before loop
+             variable is initialized.
