@@ -239,7 +239,7 @@ Type
    end;
 
 Var
-  ResourceStringTable : TResourceStringTable; External Name 'RESOURCESTRINGLIST';
+  ResourceStringTable : TResourceStringTable; External Name 'FPC_RESOURCESTRINGTABLES';
 
 function CalcStringHashValue(Const N : ShortString) : longint;
 
@@ -328,7 +328,7 @@ end;
 
 Initialization
 {$IFDEF HasResourceStrings}
-  ResetResourceTables;
+//  ResetResourceTables;
 {$endif}
   InitMemoryManager;
 finalization
@@ -337,7 +337,10 @@ end.
 
 {
   $Log$
-  Revision 1.34  1999-08-20 10:50:55  michael
+  Revision 1.35  1999-08-24 12:02:29  michael
+  + Changed external var for resourcestrings
+
+  Revision 1.34  1999/08/20 10:50:55  michael
   + Fixed memory leak
 
   Revision 1.33  1999/08/19 19:52:26  michael
