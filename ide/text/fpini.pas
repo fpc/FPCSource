@@ -19,13 +19,6 @@ interface
 uses
   FPUtils;
 
-const
-    ININame = 'fp.ini';
-
-    ConfigDir  : string{$ifdef GABOR}[50]{$endif} = '.'+DirSep;
-    INIFileName: string{$ifdef GABOR}[50]{$endif} = ININame;
-
-
 procedure InitINIFile;
 function  ReadINIFile: boolean;
 function  WriteINIFile: boolean;
@@ -100,10 +93,10 @@ const
 procedure InitINIFile;
 var S: string;
 begin
-  S:=LocateFile(ININame);
+  S:=LocateFile(INIFileName);
   if S<>'' then
-    INIPath:=S;
-  INIPath:=FExpand(INIPath);
+    IniFileName:=S;
+  IniFileName:=FExpand(IniFileName);
 end;
 
 function PaletteToStr(S: string): string;
@@ -251,10 +244,10 @@ var INIFile: PINIFile;
     W: word;
     R : TRect;
 begin
-  OK:=ExistsFile(INIPath);
+  OK:=ExistsFile(IniFileName);
   if OK then
  begin
-  New(INIFile, Init(INIPath));
+  New(INIFile, Init(IniFileName));
   { Files }
   OpenExts:=INIFile^.GetEntry(secFiles,ieOpenExts,OpenExts);
   RecentFileCount:=High(RecentFiles);
@@ -411,7 +404,7 @@ begin
   S:=S+P^;
 end;
 begin
-  New(INIFile, Init(INIPath));
+  New(INIFile, Init(IniFileName));
   { Files }
   { avoid keeping old files }
   INIFile^.DeleteSection(secFiles);
@@ -533,7 +526,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.26  2000-02-04 00:08:35  pierre
+  Revision 1.27  2000-03-13 20:38:02  pierre
+    IniPath removed and IniFileName moved to fpvars unit
+
+  Revision 1.26  2000/02/04 00:08:35  pierre
    + IniCenterDebuggerRow
 
   Revision 1.25  1999/11/05 13:47:19  pierre
