@@ -425,11 +425,10 @@ implementation
                       procdef:=tprocsym(symtableentry).first_procdef;
                     end;
 
-                   { Delphi returns Pointer as type }
-                   if not(m_tp_procvar in aktmodeswitches) then
-                    resulttype.setdef(procdef)
-                   else
-                    resulttype:=voidpointertype;
+                   { the result is a procdef, addrn and proc_to_procvar
+                     typeconvn need this as resulttype so they know
+                     that the address needs to be returned }
+                   resulttype.setdef(procdef);
 
                    { process methodpointer }
                    if assigned(left) then
@@ -1214,7 +1213,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.94  2003-05-23 14:27:35  peter
+  Revision 1.95  2003-05-23 17:05:13  peter
+    * loadn procsym need to return procdef
+
+  Revision 1.94  2003/05/23 14:27:35  peter
     * remove some unit dependencies
     * current_procinfo changes to store more info
 
