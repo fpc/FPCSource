@@ -1,6 +1,6 @@
-Program ex21;
+Program ex24;
 
-{ Program to demonstrate the TCollection.At method }
+{ Program to demonstrate the TCollection.IndexOf method }
 
 Uses Objects,MyObject; { For TMyObject definition and registration }
 

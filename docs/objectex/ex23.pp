@@ -1,4 +1,4 @@
-Program ex21;
+Program ex23;
 
 { Program to demonstrate the TCollection.At method }
 

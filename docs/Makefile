@@ -183,6 +183,7 @@ unitex.chk:
 	$(MAKE) -C go32ex tex
 	$(MAKE) -C heapex tex
 	$(MAKE) -C objectex tex
+	$(MAKE) -C ipcex tex
 	touch unitex.chk
 
 refex.chk:
@@ -318,8 +319,9 @@ examples:
 	$(MAKE) -C optex
 	$(MAKE) -C printex
 	$(MAKE) -C refex
-	$(MAKE) -C sockex
 	$(MAKE) -C stringex
+	$(MAKE) -C ipcex
+	$(MAKE) -C objectex[A
 
 dosexamples: examples
 	$(MAKE) -C go32ex
@@ -328,10 +330,14 @@ dosexamples: examples
 linuxexamples: examples
 	$(MAKE) -C linuxex
 	$(MAKE) -C sockex
+	$(MAKE) -C ipcex
 
 #
 # $Log$
-# Revision 1.16  1998-12-15 23:50:53  michael
+# Revision 1.17  1999-01-17 15:12:50  michael
+# Added examples 27-40
+#
+# Revision 1.16  1998/12/15 23:50:53  michael
 # * Some updates
 #
 # Revision 1.15  1998/11/17 23:42:02  michael

@@ -157,6 +157,9 @@ If not enough memory is available, an 'out of memory' error will occur.
 \seep{DisposeStr}
 \end{function}
 
+\latex{\inputlisting{objectex/ex40.pp}}
+\html{\input{objectex/ex40.tex}}
+
 \begin{procedure}{DisposeStr}
 \Declaration
 Procedure DisposeStr (P: PString);
@@ -168,6 +171,7 @@ None.
 \seef{NewStr}
 \end{procedure}
 
+For an example, see \seef{NewStr}.
 
 \begin{procedure}{Abstract}
 \Declaration
@@ -1409,6 +1413,8 @@ error.
 \seepl{Insert}{TCollection.Insert}
 \end{function}
 
+\latex{\inputlisting{objectex/ex23.pp}}
+\html{\input{objectex/ex23.tex}}
 
 \begin{function}{TCollection.IndexOf}
 \Declaration
@@ -1482,6 +1488,8 @@ None.
 \seepl{SetLimit}{TCollection.SetLimit}
 \end{procedure}
 
+\latex{\inputlisting{objectex/ex26.pp}}
+\html{\input{objectex/ex26.tex}}
 
 \begin{procedure}{TCollection.FreeAll}
 \Declaration
@@ -1494,6 +1502,10 @@ does set \var{Count} to zero.
 \SeeAlso
 \seepl{DeleteAll}{TCollection.DeleteAll}, \seepl{FreeItem}{TCollection.FreeItem}
 \end{procedure}
+
+
+\latex{\inputlisting{objectex/ex28.pp}}
+\html{\input{objectex/ex28.tex}}
 
 
 \begin{procedure}{TCollection.DeleteAll}
@@ -1510,6 +1522,9 @@ None.
 \seepl{FreeAll}{TCollection.FreeAll}, \seepl{Delete}{TCollection.Delete}
 \end{procedure}
 
+\latex{\inputlisting{objectex/ex29.pp}}
+\html{\input{objectex/ex29.tex}}
+
 
 \begin{procedure}{TCollection.Free}
 \Declaration
@@ -1524,6 +1539,9 @@ If the \var{Item} is not in the collection, \var{Error} will be called with
 \seepl{FreeItem}{TCollection.FreeItem},
 \end{procedure}
 
+
+\latex{\inputlisting{objectex/ex30.pp}}
+\html{\input{objectex/ex30.tex}}
 
 \begin{procedure}{TCollection.Insert}
 \Declaration
@@ -1554,6 +1572,9 @@ If the \var{Item} is not in the collection, \var{Error} will be called with
 \end{procedure}
 
 
+\latex{\inputlisting{objectex/ex31.pp}}
+\html{\input{objectex/ex31.tex}}
+
 \begin{procedure}{TCollection.AtFree}
 \Declaration
 Procedure TCollection.AtFree (Index: Sw\_Integer);
@@ -1567,12 +1588,18 @@ with \var{CoIndexError}.
 \seepl{Free}{TCollection.Free}, \seepl{AtDelete}{TCollection.AtDelete}
 \end{procedure}
 
+\latex{\inputlisting{objectex/ex32.pp}}
+\html{\input{objectex/ex32.tex}}
+
 
 \begin{procedure}{TCollection.FreeItem}
 \Declaration
 Procedure TCollection.FreeItem (Item: Pointer); Virtual;
 \Description
 \var{FreeItem} calls the destructor of \var{Item} if it is not nil.
+
+This function is used internally by the TCollection object, and should not be
+called directly.
 \Errors
 None.
 \SeeAlso
@@ -1594,6 +1621,9 @@ with \var{CoIndexError}.
 \end{procedure}
 
 
+\latex{\inputlisting{objectex/ex33.pp}}
+\html{\input{objectex/ex33.tex}}
+
 \begin{procedure}{TCollection.ForEach}
 \Declaration
 Procedure TCollection.ForEach (Action: Pointer);
@@ -1610,6 +1640,10 @@ None.
 \end{procedure}
 
 
+\latex{\inputlisting{objectex/ex21.pp}}
+\html{\input{objectex/ex21.tex}}
+
+
 \begin{procedure}{TCollection.SetLimit}
 \Declaration
 Procedure TCollection.SetLimit (ALimit: Sw\_Integer); Virtual;
@@ -1623,6 +1657,7 @@ None.
 \seepl{Init}{TCollection.Init}
 \end{procedure}
 
+For an example, see \seepl{Pack}{TCollection.Pack}.
 
 \begin{procedure}{TCollection.Error}
 \Declaration
@@ -1631,10 +1666,13 @@ Procedure TCollection.Error (Code, Info: Integer); Virtual;
 \var{Error} is called by the various \var{TCollection} methods
 in case of an error condition. The default behaviour is to make
 a call to \var{RunError} with an error of \var{212-Code}.
+
+This method can be overridden by descendent objects to implement
+a different error-handling.
 \Errors
 \SeeAlso
+\seep{Abstract}
 \end{procedure}
-
 
 \begin{procedure}{TCollection.AtPut}
 \Declaration
@@ -1648,6 +1686,7 @@ with \var{CoIndexError}.
 \SeeAlso
 \end{procedure}
 
+For an example, see \seepl{Pack}{TCollection.Pack}.
 
 \begin{procedure}{TCollection.AtInsert}
 \Declaration
@@ -1665,6 +1704,9 @@ with \var{CoIndexError}. If the collection fails to expand, then
 \end{procedure}
 
 
+\latex{\inputlisting{objectex/ex34.pp}}
+\html{\input{objectex/ex34.tex}}
+
 \begin{procedure}{TCollection.Store}
 \Declaration
 Procedure TCollection.Store (Var S: TStream);
@@ -1681,18 +1723,20 @@ Errors returned are those by \seep{TStream.Put}.
 \seepl{Load}{TCollection.Load}, \seepl{PutItem}{TCollection.PutItem}
 \end{procedure}
 
+For an example, see seepl{Load}{TCollection.Load}.
 
 \begin{procedure}{TCollection.PutItem}
 \Declaration
 Procedure TCollection.PutItem (Var S: TStream; Item: Pointer); Virtual;
 \Description
-\var{PutItem} writes \var{Item} to stream \var{S}. 
+\var{PutItem} writes \var{Item} to stream \var{S}. This method is used
+internaly by the \var{TCollection} object, and should not be called
+directly.
 \Errors
 Errors are those returned by \seep{TStream.Put}.
 \SeeAlso
 \seepl{Store}{TCollection.Store}, \seefl{GetItem}{TCollection.GetItem}.
 \end{procedure}
-
 
 \section{TSortedCollection}
 \label{se:TSortedCollection}
@@ -1731,6 +1775,12 @@ TYPE
    PSortedCollection = ^TSortedCollection;
 \end{verbatim}
 
+In the subsequent examples, the following descendent of
+\var{TSortedCollection} is used:
+
+\latex{\inputlisting{objectex/mysortc.pp}}
+\html{\input{objectex/mysortc.tex}}
+
 \begin{procedure}{TSortedCollection.Init}
 \Declaration
 Constructor TSortedCollection.Init (ALimit, ADelta: Sw\_Integer);
@@ -1747,6 +1797,8 @@ None.
 \seepl{Load}{TSortedCollection.Load}, \seepl{Done}{TCollection.Done}
 \end{procedure}
 
+For an example, see 
+
 \begin{procedure}{TSortedCollection.Load}
 \Declaration
 Constructor Load (Var S: TStream);
@@ -1762,6 +1814,8 @@ None.
 \SeeAlso 
 \seepl{Init}{TSortedCollection.Init}, \seepl{Done}{TCollection.Done}
 \end{procedure}
+
+For an example, see \seep{TCollection.Load}.
 
 \begin{function}{TSortedCollection.KeyOf}
 \Declaration
@@ -1799,6 +1853,8 @@ None.
 \seefl{Compare}{TSortedCollection.Compare}.
 \end{function}
 
+For an example, see \seef{TCollection.IndexOf}
+
 \begin{function}{TSortedCollection.Compare}
 \Declaration
 Function TSortedCollection.Compare (Key1, Key2: Pointer): Sw\_Integer; Virtual;
@@ -1826,6 +1882,10 @@ An 'abstract run-time error' will be generated if you call
 \seefl{Search}{TSortedCollection.Search}
 \end{function}
 
+\latex{\inputlisting{objectex/mysortc.pp}}
+\html{\input{objectex/mysortc.tex}}
+
+
 \begin{function}{TSortedCollection.Search}
 \Declaration
 Function TSortedCollection.Search (Key: Pointer; Var Index: Sw\_Integer): Boolean;Virtual;
@@ -1846,6 +1906,9 @@ None.
 \seefl{IndexOf}{TCollection.IndexOf}.
 \end{function}
 
+\latex{\inputlisting{objectex/ex36.pp}}
+\html{\input{objectex/ex36.tex}}
+
 \begin{procedure}{TSortedCollection.Insert}
 \Declaration
 Procedure TSortedCollection.Insert (Item: Pointer); Virtual;
@@ -1863,6 +1926,9 @@ None.
 \seepl{AtInsert}{TCollection.AtInsert}
 \end{procedure}
 
+\latex{\inputlisting{objectex/ex35.pp}}
+\html{\input{objectex/ex35.tex}}
+
 \begin{procedure}{TSortedCollection.Store}
 \Declaration
 Procedure TSortedCollection.Store (Var S: TStream);
@@ -1878,6 +1944,8 @@ Errors can be those of \seep{TStream.Put}.
 \SeeAlso
 \seepl{Load}{TSortedCollection.Load}
 \end{procedure}
+
+For an example, see \seep{TCollection.Load}.
 
 \section{TStringCollection}
 \label{se:TStringCollection}
@@ -1899,7 +1967,6 @@ TYPE
    END;
    PStringCollection = ^TStringCollection;
 \end{verbatim}
-
 
 \begin{function}{TStringCollection.GetItem}
 \Declaration
@@ -1934,6 +2001,9 @@ None.
 \SeeAlso
 \seef{TSortedCollection.Compare}
 \end{function}
+
+\latex{\inputlisting{objectex/ex37.pp}}
+\html{\input{objectex/ex37.tex}}
 
 \begin{procedure}{TStringCollection.FreeItem}
 \Declaration
@@ -2020,6 +2090,11 @@ None.
 \seef{TSortedCollection.Compare}
 \end{function}
 
+
+\latex{\inputlisting{objectex/ex38.pp}}
+\html{\input{objectex/ex38.tex}}
+
+
 \begin{procedure}{TStrCollection.FreeItem}
 \Declaration
 Procedure TStrCollection.FreeItem (Item: Pointer); Virtual;
@@ -2078,6 +2153,9 @@ strings.
 \Errors
 \SeeAlso
 \end{procedure}
+
+\latex{\inputlisting{objectex/ex39.pp}}
+\html{\input{objectex/ex39.tex}}
 
 \section{TResourceCollection}
 \label{se:TResourceCollection}
@@ -2329,7 +2407,6 @@ Errors returned may be those by \seep{TStream.Put} and \var{TStream.Seek}
 \SeeAlso
 \seefl{Get}{TResourceFile.Get}
 \end{procedure}
-
 
 \section{TStringList}
 \label{se:TStringList}
