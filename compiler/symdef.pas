@@ -2425,7 +2425,7 @@ implementation
                 if assigned(pointertype.def.typesym) then
                   begin
                     if assigned(typesym) then
-                      st := ttypesym(typesym).name;
+                      st := ttypesym(typesym).name
                     else
                       st := ' ';
                     asmlist.concat(Tai_stabs.create(stabstr_evaluate(
@@ -6185,7 +6185,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.208  2004-01-26 19:43:49  daniel
+  Revision 1.209  2004-01-26 19:54:42  daniel
+    * Typo
+
+  Revision 1.208  2004/01/26 19:43:49  daniel
     * Try to recude stack usage of Tpointerdef.concatstabsto
 
   Revision 1.207  2004/01/26 16:12:28  daniel
