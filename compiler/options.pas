@@ -1144,10 +1144,12 @@ begin
                     'd' : Dontlinkstdlibpath:=TRUE;
                     'P' : Begin
                              utilsprefix:=Copy(more,2,length(More)-1);
+                             DefaultReplacements(utilsprefix);
                              More:='';
                           End;
                     'r' : Begin
                              rlinkpath:=Copy(more,2,length(More)-1);
+                             DefaultReplacements(rlinkpath);
                              More:='';
                           end;
                     'S' :
@@ -2098,7 +2100,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.166  2005-02-19 18:10:57  florian
+  Revision 1.167  2005-02-19 18:32:16  florian
+    * defaultreplacement expansion for -XP and -Xr
+
+  Revision 1.166  2005/02/19 18:10:57  florian
     * cross compiliation defines
 
   Revision 1.165  2005/02/14 17:13:06  peter
