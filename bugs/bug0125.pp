@@ -1,4 +1,4 @@
-
+{ Compile with -Rintel switch }
 var
  l : longint;
 begin
