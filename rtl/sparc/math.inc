@@ -44,19 +44,22 @@
 {$else}
 
     {$define FPC_SYSTEM_HAS_ABS}
-    function abs(d : extended) : extended;[internproc:in_abs_extended];
+    function abs(d : extended) : extended;[internproc:fpc_in_abs_real];
 
     {$define FPC_SYSTEM_HAS_SQR}
-    function sqr(d : extended) : extended;[internproc:in_sqr_extended];
+    function sqr(d : extended) : extended;[internproc:fpc_in_sqr_real];
 
     {$define FPC_SYSTEM_HAS_SQRT}
-    function sqrt(d : extended) : extended;[internproc:in_sqrt_extended];
+    function sqrt(d : extended) : extended;[internproc:fpc_in_sqrt_real];
 
 {$endif}
 
 {
   $Log$
-  Revision 1.11  2004-11-21 15:35:23  peter
+  Revision 1.12  2004-11-21 19:11:33  peter
+    * fix bootstrapping
+
+  Revision 1.11  2004/11/21 15:35:23  peter
     * float routines all use internproc and compilerproc helpers
 
   Revision 1.10  2004/10/03 12:41:30  florian
