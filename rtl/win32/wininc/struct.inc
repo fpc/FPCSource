@@ -52,9 +52,10 @@
     { WARNING
       the variable argument list
       is not implemented for FPC
-      va_list is just a dummy record }
-     va_list = record
-               end;
+      va_list is just a dummy record
+      MvdV: Nevertheless it should be a pointer type, not a record}
+
+     va_list = pchar;
 
      ABC = record
           abcA : longint;
@@ -6947,7 +6948,10 @@ type
 
 {
   $Log$
-  Revision 1.6  2001-04-04 17:58:36  florian
+  Revision 1.7  2001-06-13 08:57:01  marco
+   * Fixed va_list to be a pchar.
+
+  Revision 1.6  2001/04/04 17:58:36  florian
     * TGUID definition is now imported from the system unit
 
   Revision 1.5  2000/12/18 17:28:58  jonas
