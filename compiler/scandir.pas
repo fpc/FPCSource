@@ -626,7 +626,7 @@ implementation
         begin
           current_scanner.skipspace;
           current_scanner.readstring;
-          if not current_module.mode_switch_allowed and 
+          if not current_module.mode_switch_allowed and
               not ((m_mac in aktmodeswitches) and (pattern='MACPAS')) then
             Message1(scan_e_mode_switch_not_allowed,pattern)
           else if SetCompileMode(pattern,false) then
@@ -887,7 +887,7 @@ implementation
         if not (target_info.system in [system_powerpc_morphos]) then
           comment (V_Warning,'Syscall directive is useless on this target.');
         current_scanner.skipspace;
-        
+
         sctype:=current_scanner.readid;
         if (sctype='LEGACY') or (sctype='SYSV') or (sctype='SYSVBASE') or
           (sctype='BASESYSV') or (sctype='R12BASE') then
@@ -1049,6 +1049,18 @@ implementation
       begin
       end;
 
+    procedure dir_nodefine;
+      begin
+      end;
+
+    procedure dir_hppemit;
+      begin
+      end;
+
+    procedure dir_weakpackageunit;
+      begin
+      end;
+
     procedure dir_codepage;
       var
          s : string;
@@ -1098,6 +1110,7 @@ implementation
         AddDirective('GOTO',directive_all, @dir_goto);
         AddDirective('HINT',directive_all, @dir_hint);
         AddDirective('HINTS',directive_all, @dir_hints);
+        AddDirective('HPPEMIT',directive_all, @dir_hppemit);
         AddDirective('IOCHECKS',directive_all, @dir_iochecks);
         AddDirective('IMPLICITEXCEPTIONS',directive_all, @dir_implicitexceptions);
         AddDirective('INCLUDEPATH',directive_all, @dir_includepath);
@@ -1119,6 +1132,7 @@ implementation
         AddDirective('MINENUMSIZE',directive_all, @dir_packenum);
         AddDirective('MMX',directive_all, @dir_mmx);
         AddDirective('MODE',directive_all, @dir_mode);
+        AddDirective('NODEFINE',directive_all, @dir_nodefine);
         AddDirective('NOTE',directive_all, @dir_note);
         AddDirective('NOTES',directive_all, @dir_notes);
         AddDirective('OBJECTCHECKS',directive_all, @dir_objectchecks);
@@ -1157,6 +1171,7 @@ implementation
         AddDirective('WAIT',directive_all, @dir_wait);
         AddDirective('WARNING',directive_all, @dir_warning);
         AddDirective('WARNINGS',directive_all, @dir_warnings);
+        AddDirective('WEAKPACKAGEUNIT',directive_all, @dir_weakpackageunit);
         AddDirective('WRITEABLECONST',directive_all, @dir_writeableconst);
         AddDirective('Z1',directive_all, @dir_z1);
         AddDirective('Z2',directive_all, @dir_z2);
@@ -1168,7 +1183,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.51  2005-01-09 20:24:43  olle
+  Revision 1.52  2005-01-18 15:44:43  peter
+    * ignore more delphi directives
+
+  Revision 1.51  2005/01/09 20:24:43  olle
     * rework of macro subsystem
     + exportable macros for mode macpas
 
