@@ -30,7 +30,7 @@ interface
        node,nadd,cpubase;
 
     type
-       ti386addnode = class(taddnode)
+       ti386addnode = class(tx86addnode)
           procedure pass_2;override;
          protected
           function  first_addstring : tnode; override;
@@ -1494,7 +1494,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.83  2003-10-10 17:48:14  peter
+  Revision 1.84  2003-10-13 01:58:03  florian
+    * some ideas for mm support implemented
+
+  Revision 1.83  2003/10/10 17:48:14  peter
     * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
     * tregisteralloctor renamed to trgobj
     * removed rgobj from a lot of units

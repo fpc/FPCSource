@@ -34,9 +34,24 @@ unit cgcpu;
 
     type
       tcgppc = class(tcg)
+        rgint,
+        rgflags,
+        rgmm,
+        rgfpu : trgcpu;
         procedure init_register_allocators;override;
         procedure done_register_allocators;override;
 
+        function  getintregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
+        function  getaddressregister(list:Taasmoutput):Tregister;override;
+        function  getfpuregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
+        function  getmmregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
+        procedure getexplicitregister(list:Taasmoutput;r:Tregister);override;
+        function  getabtintregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
+        procedure ungetregister(list:Taasmoutput;r:Tregister);override;
+        procedure ungetreference(list:Taasmoutput;const r:Treference);override;
+        procedure allocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tsuperregisterset);override;
+        procedure deallocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tsuperregisterset);override;
+        procedure add_move_instruction(instr:Taicpu);override;
 
         { passing parameters, per default the parameter is pushed }
         { nr gives the number of the parameter (enumerated from   }
@@ -2372,7 +2387,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.128  2003-10-11 16:06:42  florian
+  Revision 1.129  2003-10-13 01:58:04  florian
+    * some ideas for mm support implemented
+
+  Revision 1.128  2003/10/11 16:06:42  florian
     * fixed some MMX<->SSE
     * started to fix ppc, needs an overhaul
     + stabs info improve for spilling, not sure if it works correctly/completly
