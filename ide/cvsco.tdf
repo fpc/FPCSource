@@ -22,11 +22,11 @@ Type=Memo
 Origin=(2,6)
 Size=(52,6)
 FileName=cvsco.log
-Value=CVS: Enter log comment for commit
+Value=
 
 [label2]
 Type=Label
 Origin=(2,5)
 Size=(52,1)
-Text="~M~essage"
+Text="Enter log ~M~essage for commit"
 Link="msglog"
