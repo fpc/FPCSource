@@ -370,7 +370,7 @@ uses
          This value can be deduced from CALLED_USED_REGISTERS array in the
          GCC source.
       }
-      std_saved_registers = [];
+      saved_standard_registers : array[0..0] of tsuperregister = (RS_NO);
 
       {# Required parameter alignment when calling a routine declared as
          stdcall and cdecl. The alignment value should be the one defined
@@ -509,7 +509,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.72  2004-09-21 17:25:13  peter
+  Revision 1.73  2004-10-25 17:04:51  peter
+    * add saved_standard_registers
+
+  Revision 1.72  2004/09/21 17:25:13  peter
     * paraloc branch merged
 
   Revision 1.71.4.1  2004/08/31 20:43:06  peter
