@@ -121,7 +121,7 @@ begin
 end;
 
 
-Procedure Decr_Ansi_Ref (Var S : AnsiString);[alias : 'DECR_ANSI_REF'];
+Procedure Decr_Ansi_Ref (Var S : AnsiString);[Alias : 'DECR_ANSI_REF'];
 {
  Decreases the ReferenceCount of a non constant ansistring; 
  If the reference count is zero, deallocate the string;
@@ -136,7 +136,7 @@ Begin
     DisposeAnsiString (S);        { Remove...}
 end;
 
-Procedure Incr_Ansi_Ref (Var S : AnsiString);
+Procedure Incr_Ansi_Ref (Var S : AnsiString);[Alias : 'INCR_ANSI_REF'];
 
 Begin
   If Pointer(S)=Nil then exit;
@@ -672,7 +672,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  1998-06-08 19:35:02  michael
+  Revision 1.5  1998-06-12 07:39:13  michael
+  + Added aliases for Incr/Decr ref.
+
+  Revision 1.4  1998/06/08 19:35:02  michael
   Some changes to integrate in system unit
 
   Revision 1.3  1998/06/08 12:38:22  michael
