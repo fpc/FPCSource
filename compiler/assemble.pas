@@ -216,10 +216,12 @@ Implementation
         DoPipe:=(cs_asm_pipe in aktglobalswitches) and
                 not(cs_asm_leave in aktglobalswitches)
 {$ifdef i386}
-                and (aktoutputformat=as_i386_as)
+                and ((aktoutputformat=as_i386_as) or
+                     (aktoutputformat=as_i386_asbsd));
 {$endif i386}
 {$ifdef m68k}
-                and (aktoutputformat=as_m68k_as);
+                and ((aktoutputformat=as_m68k_as) or
+                     (aktoutputformat=as_m68k_asbsd));
 {$endif m68k}
       end;
 
@@ -1534,7 +1536,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.25  2001-08-30 19:43:50  peter
+  Revision 1.26  2001-08-30 20:57:09  peter
+    * asbsd merged
+
+  Revision 1.25  2001/08/30 19:43:50  peter
     * detect duplicate labels
 
   Revision 1.24  2001/08/26 13:36:35  florian

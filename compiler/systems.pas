@@ -64,7 +64,7 @@ interface
        );
 
        tasm = (as_none
-            ,as_i386_as,as_i386_as_aout,as_i386_asw,
+            ,as_i386_as,as_i386_asbsd,as_i386_as_aout,as_i386_asw,
               as_i386_nasmcoff,as_i386_nasmwin32,
               as_i386_nasmelf,as_i386_nasmobj,
               as_i386_tasm,as_i386_masm,
@@ -641,7 +641,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.24  2001-08-19 11:22:24  peter
+  Revision 1.25  2001-08-30 20:57:10  peter
+    * asbsd merged
+
+  Revision 1.24  2001/08/19 11:22:24  peter
     * palmos support from v10 merged
 
   Revision 1.23  2001/08/12 17:57:07  peter

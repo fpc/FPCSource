@@ -916,6 +916,26 @@ interface
               '.stab','.stabstr')
           );
 
+       as_i386_asbsd_info : tasminfo =
+          (
+            id           : as_i386_asbsd;
+            idtxt  : 'ASBSD';
+            asmbin : 'as';
+            asmcmd : '-o $OBJ $ASM';
+            supported_target : target_any;
+            outputbinary: false;
+            allowdirect : true;
+            externals : false;
+            needar : true;
+            labelprefix_only_inside_procedure : false;
+            labelprefix : 'L';
+            comment : '# ';
+            secnames : ('',
+              '.text','.data','.bss',
+              '','','','','','',
+              '.stab','.stabstr')
+          );
+
        as_i386_as_aout_info : tasminfo =
           (
             id           : as_i386_as_aout;
@@ -965,7 +985,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.9  2001-05-06 17:13:23  jonas
+  Revision 1.10  2001-08-30 20:57:10  peter
+    * asbsd merged
+
+  Revision 1.9  2001/05/06 17:13:23  jonas
     * completed incomplete typed constant records
 
   Revision 1.8  2001/04/21 15:33:03  peter

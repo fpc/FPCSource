@@ -1470,6 +1470,14 @@ begin
       def_symbol('ENDIAN_BIG');
   end;
 
+{$ifdef m68k}
+  { Disable fpu emulation for linux and netbsd on m68k machines }
+  { FIXME: this overrides possible explicit command line emulation setting,
+    but this isn't supported yet anyhow PM }
+  if (target_info.target in [target_m68k_netbsd,target_m68k_linux]) then
+   exclude(initmoduleswitches,cs_fp_emulation);
+{$endif m68k}
+
 { write logo if set }
   if option.DoWriteLogo then
    option.WriteLogo;
@@ -1595,7 +1603,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.57  2001-08-30 20:13:53  peter
+  Revision 1.58  2001-08-30 20:57:09  peter
+    * asbsd merged
+
+  Revision 1.57  2001/08/30 20:13:53  peter
     * rtti/init table updates
     * rttisym for reusable global rtti/init info
     * support published for interfaces
