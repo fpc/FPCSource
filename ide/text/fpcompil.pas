@@ -350,7 +350,7 @@ begin
       end;
     cpLinking   :
       begin
-        StatusS:='Linking...';
+        StatusS:='Linking '+ExeFile;
         KeyS:=CtrlBS;
       end;
     cpDone      :
@@ -588,7 +588,7 @@ begin
     FileName:='-B '+FileName;
   { tokens are created and distroed by compiler.compile !! PM }
   DoneTokens;
-  Compiler.Compile(FileName);
+  FpIntF.Compile(FileName);
   { tokens are created and distroed by compiler.compile !! PM }
   InitTokens;
   if LinkAfter and IsExe and
@@ -604,10 +604,10 @@ begin
        ChangeRedirError(FPErrFileName,false);
 {$endif}
 {$ifdef linux}
-       Shell('./'+PpasFile+source_os.scriptext);
+       Shell(GetExePath+PpasFile+source_os.scriptext);
        Error:=LinuxError;
 {$else}
-       DosExecute(GetEnv('COMSPEC'),'/C '+PpasFile+source_os.scriptext);
+       DosExecute(GetEnv('COMSPEC'),'/C '+GetExePath+PpasFile+source_os.scriptext);
        Error:=DosError;
 {$endif}
 {$ifndef redircompiler}
@@ -748,7 +748,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.44  1999-11-21 01:44:34  pierre
+  Revision 1.45  1999-11-22 15:58:40  pierre
+   * fix for web bug 633
+
+  Revision 1.44  1999/11/21 01:44:34  pierre
    + Use def_gdb_stop for easy GDB debugging
 
   Revision 1.43  1999/11/18 13:49:56  pierre
