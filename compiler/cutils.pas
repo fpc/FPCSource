@@ -26,6 +26,9 @@ unit cutils;
 
 interface
 
+uses
+  cpuinfo;
+
 {$ifdef delphi}
     type
        dword = cardinal;
@@ -57,7 +60,7 @@ interface
     function tostr_with_plus(i : longint) : string;
     procedure valint(S : string;var V : longint;var code : integer);
     function is_number(const s : string) : boolean;
-    function ispowerof2(value : longint;var power : longint) : boolean;
+    function ispowerof2(value : TConstExprInt;var power : longint) : boolean;
     function maybequoted(const s:string):string;
     function CompareText(S1, S2: string): longint;
 
@@ -479,17 +482,22 @@ uses
       end;
 
 
-    function ispowerof2(value : longint;var power : longint) : boolean;
+    function ispowerof2(value : TConstExprInt;var power : longint) : boolean;
     {
       return if value is a power of 2. And if correct return the power
     }
       var
-         hl : longint;
+         hl : TConstExprInt;
          i : longint;
       begin
+         if value and (value - 1) <> 0 then
+           begin
+             ispowerof2 := false;
+             exit
+           end;
          hl:=1;
          ispowerof2:=true;
-         for i:=0 to 31 do
+         for i:=0 to 63 do
            begin
               if hl=value then
                 begin
@@ -748,7 +756,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.10  2001-08-04 11:06:30  peter
+  Revision 1.11  2001-09-05 15:20:26  jonas
+    * ispowerf2 now works with 64bit ints and should be faster
+
+  Revision 1.10  2001/08/04 11:06:30  peter
     * browcol has no depends on ide/fv
 
   Revision 1.9  2001/07/30 20:59:27  peter
