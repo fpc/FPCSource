@@ -367,7 +367,7 @@ begin
   { try to erase the current directory }
   write('Trying to erase current directory...');
   RmDir('.');
-  test(IOResult, 5);
+  test(IOResult, 16);
   WriteLn(' Passed!');
   { try to erase the previous directory }
   write('Trying to erase parent directory...');
@@ -394,7 +394,10 @@ end.
 
 {
  $Log$
- Revision 1.3  2002-03-05 21:53:18  carl
+ Revision 1.4  2002-03-09 23:17:35  carl
+ * removing current directory should return 16
+
+ Revision 1.3  2002/03/05 21:53:18  carl
  + tests on removing current directory and parent directory
 
  Revision 1.2  2001/08/18 00:45:24  carl
