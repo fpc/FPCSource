@@ -531,6 +531,16 @@ begin
   int_str(q,s);
   write_str(len,t,s);
 end;
+
+procedure write_int64(len : longint;var t : textrec;i : int64);[public,alias:'FPC_WRITE_TEXT_INT64'];
+var
+  s : string;
+begin
+  if (InOutRes<>0) then
+   exit;
+  int_str(i,s);
+  write_str(len,t,s);
+end;
 {$endif INT64}
 
 
@@ -931,7 +941,10 @@ end;
 
 {
   $Log$
-  Revision 1.50  1999-07-08 15:18:14  michael
+  Revision 1.51  1999-07-26 09:43:24  florian
+    + write helper routine for in64 implemented
+
+  Revision 1.50  1999/07/08 15:18:14  michael
   * Now ansistring of arbitrary length can be read
 
   Revision 1.49  1999/07/05 20:04:29  peter
