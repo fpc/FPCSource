@@ -578,10 +578,12 @@ begin
                         LinkEnd:=CurPos; Dec(LinkEnd.X);
                         if Topic^.Links<>nil then
                           begin
-                            Inc(LastLink);
                             if LinkNo<Topic^.LinkCount then
-                            Links^.Insert(NewLink(Topic^.Links^[LinkNo].FileID,
-                              Topic^.Links^[LinkNo].Context,LinkStart,LinkEnd));
+                              begin
+                                Inc(LastLink);
+                                Links^.Insert(NewLink(Topic^.Links^[LinkNo].FileID,
+                                  Topic^.Links^[LinkNo].Context,LinkStart,LinkEnd));
+                              end;
                             Inc(LinkNo);
                           end;
                         InLink:=false;
@@ -1400,7 +1402,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.5  2001-09-30 22:18:57  pierre
+  Revision 1.6  2002-03-20 11:15:51  pierre
+   * possible fix for the IDE prerelease crash
+
+  Revision 1.5  2001/09/30 22:18:57  pierre
    * try to fix problem when unzooming help
 
   Revision 1.4  2001/09/26 22:46:04  pierre
