@@ -1310,6 +1310,12 @@
            end
          else
    {$endif i386}
+           { I don't know if this will work (PM) }
+           if (var_options and vo_is_C_var)<>0 then
+            stabstring := strpnew('"'+name+':S'
+                  +definition^.numberstring+'",'+
+                  tostr(N_LCSYM)+',0,'+tostr(fileinfo.line)+','+mangledname)
+           else
            stabstring := strpnew('"'+name+':'
                   +definition^.numberstring+'",'+
                   tostr(N_LSYM)+',0,'+tostr(fileinfo.line)+',-'+tostr(address))
@@ -2008,7 +2014,10 @@
 
 {
   $Log$
-  Revision 1.93  1999-05-27 19:45:06  peter
+  Revision 1.94  1999-06-03 16:25:05  pierre
+   * local Cvar stabs corrected
+
+  Revision 1.93  1999/05/27 19:45:06  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly
