@@ -241,7 +241,7 @@ unit rgobj;
              @param(r register to free)
 
           }
-          procedure ungetregisterfpu(list: taasmoutput; r : tregister); virtual;
+          procedure ungetregisterfpu(list: taasmoutput; r : tregister;size:TCGsize); virtual;
 
           function getregistermm(list: taasmoutput) : tregister; virtual;
           procedure ungetregistermm(list: taasmoutput; r : tregister); virtual;
@@ -816,7 +816,7 @@ unit rgobj;
       end;
 
 
-    procedure trgobj.ungetregisterfpu(list : taasmoutput; r : tregister);
+    procedure trgobj.ungetregisterfpu(list : taasmoutput; r : tregister;size:TCGsize);
 
       begin
          ungetregistergen(list,r,usableregsfpu,unusedregsfpu,
@@ -870,7 +870,7 @@ unit rgobj;
          if r.enum in intregs then
            ungetregisterint(list,r)
          else if r.enum in fpuregs then
-           ungetregisterfpu(list,r)
+           ungetregisterfpu(list,r,OS_NO)
          else if r.enum in mmregs then
            ungetregistermm(list,r)
          else if r.enum in addrregs then
@@ -2429,6 +2429,8 @@ unit rgobj;
               if l.size in [OS_64,OS_S64] then
                rg.ungetregisterint(list,l.registerhigh);
             end;
+          LOC_FPUREGISTER,LOC_CFPUREGISTER :
+            rg.ungetregisterfpu(list,l.register,l.size);
           LOC_CREFERENCE,LOC_REFERENCE :
             rg.ungetreference(list, l.reference);
         end;
@@ -2466,7 +2468,10 @@ end.
 
 {
   $Log$
-  Revision 1.52  2003-06-12 16:43:07  peter
+  Revision 1.53  2003-06-12 21:11:10  peter
+    * ungetregisterfpu gets size parameter
+
+  Revision 1.52  2003/06/12 16:43:07  peter
     * newra compiles for sparc
 
   Revision 1.51  2003/06/09 14:54:26  jonas

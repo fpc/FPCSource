@@ -298,7 +298,7 @@ unit paramgr;
           LOC_REGISTER, LOC_CREGISTER:
             rg.ungetregisterint(list,loc.register);
           LOC_FPUREGISTER, LOC_CFPUREGISTER:
-            rg.ungetregisterfpu(list,loc.register);
+            rg.ungetregisterfpu(list,loc.register,loc.size);
           LOC_REFERENCE,LOC_CREFERENCE:
             { do nothing by default, most of the time it's the framepointer }
           else
@@ -459,7 +459,10 @@ end.
 
 {
    $Log$
-   Revision 1.43  2003-06-09 14:54:26  jonas
+   Revision 1.44  2003-06-12 21:11:10  peter
+     * ungetregisterfpu gets size parameter
+
+   Revision 1.43  2003/06/09 14:54:26  jonas
      * (de)allocation of registers for parameters is now performed properly
        (and checked on the ppc)
      - removed obsolete allocation of all parameter registers at the start

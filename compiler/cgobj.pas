@@ -1011,7 +1011,7 @@ unit cgobj;
          hr:=rg.getregisterfpu(list,size);
          a_loadfpu_ref_reg(list,size,ref,hr);
          a_paramfpu_reg(list,size,hr,locpara);
-         rg.ungetregisterfpu(list,hr);
+         rg.ungetregisterfpu(list,hr,size);
       end;
 
 
@@ -1718,7 +1718,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.110  2003-06-12 16:43:07  peter
+  Revision 1.111  2003-06-12 21:11:10  peter
+    * ungetregisterfpu gets size parameter
+
+  Revision 1.110  2003/06/12 16:43:07  peter
     * newra compiles for sparc
 
   Revision 1.109  2003/06/07 18:57:04  jonas
