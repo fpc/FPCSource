@@ -27,15 +27,48 @@ begin
    i:=100;
    try
    exception_called:=false;
+   j := i div j;
+   except
+     on e : exception do
+       begin
+         Writeln('First integer exception called ',e.message);
+         exception_called:=true;
+       end;
+   end;
+   test_exception('First division by zero for integers');
+   try
+   exception_called:=false;
+   j := i div j;
+   except
+     on e : exception do
+       begin
+         Writeln('Second integer exception called ',e.message);
+         exception_called:=true;
+       end;
+   end;
+   test_exception('Second division by zero for integers');
+   try
+   exception_called:=false;
    e:=i/j;
    except
      on e : exception do
        begin
-         Writeln('exception called ',e.message);
+         Writeln('First real exception called ',e.message);
          exception_called:=true;
        end;
    end;
-   test_exception('division by zero for reals');
+   test_exception('First division by zero for reals');
+   try
+   exception_called:=false;
+   e:=i/j;
+   except
+     on e : exception do
+       begin
+         Writeln('Second real exception called ',e.message);
+         exception_called:=true;
+       end;
+   end;
+   test_exception('Second division by zero for reals');
    try
    exception_called:=false;
    j := i div j;
@@ -46,7 +79,7 @@ begin
          exception_called:=true;
        end;
    end;
-   test_exception('division by zero for integers');
+   test_exception('third division by zero for integers');
    exception_count:=0;
    for j:=1 to TestNumber do
      begin
@@ -66,6 +99,10 @@ begin
        program_has_errors:=true;
        Writeln('Could not generate ',TestNumber,' consecutive exceptions');
        Writeln('Only ',exception_count,' exceptions were generated');
+     end
+   else
+     begin
+       Writeln(TestNumber,' consecutive exceptions generated successfully');
      end;
    try
    exception_called:=false;
