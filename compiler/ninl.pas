@@ -1762,7 +1762,10 @@ implementation
                              is_array_of_const(left.resulttype.def) then
                             begin
                               srsym:=searchsymonlyin(tloadnode(left).symtable,'high'+tvarsym(tloadnode(left).symtableentry).name);
-                              result:=cloadnode.create(srsym,tloadnode(left).symtable);
+                              if assigned(srsym) then
+                                result:=cloadnode.create(srsym,tloadnode(left).symtable)
+                              else
+                                CGMessage(cg_e_illegal_expression);
                             end
                            else
                             if is_dynamic_array(left.resulttype.def) then
@@ -1783,7 +1786,8 @@ implementation
                                left.resulttype.def).highrange,tarraydef(left.resulttype.def).rangetype,true);
                             end;
                          end;
-                         resulttypepass(result);
+                         if assigned(result) then
+                           resulttypepass(result);
                       end;
                     stringdef:
                       begin
@@ -2395,7 +2399,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.100  2002-11-27 15:33:47  peter
+  Revision 1.101  2002-11-27 20:04:39  peter
+    * cdecl array of const fixes
+
+  Revision 1.100  2002/11/27 15:33:47  peter
     * the never ending story of tp procvar hacks
 
   Revision 1.99  2002/11/27 02:37:13  peter

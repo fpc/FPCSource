@@ -197,7 +197,9 @@ implementation
                         (left.nodetype=selfn)) then
                   internalerror(200106041);
                end;
+{$ifdef unused}
               if not push_from_left_to_right then
+{$endif unused}
                 maybe_push_high;
               if (defcoll.paratyp=vs_out) and
                  assigned(defcoll.paratype.def) and
@@ -216,8 +218,10 @@ implementation
               else
                 cg.a_paramaddr_ref(exprasmlist,left.location.reference,defcoll.paraloc);
               location_release(exprasmlist,left.location);
+{$ifdef unused}
               if push_from_left_to_right then
                 maybe_push_high;
+{$endif unused}
            end
          else
            begin
@@ -256,7 +260,9 @@ implementation
                        internalerror(200204011);
                     end;
 
+{$ifdef unused}
                    if not push_from_left_to_right then
+{$endif unused}
                      maybe_push_high;
                    inc(pushedparasize,4);
                    if calloption=pocall_inline then
@@ -270,8 +276,10 @@ implementation
                    else
                      cg.a_paramaddr_ref(exprasmlist,left.location.reference,defcoll.paraloc);
                    location_release(exprasmlist,left.location);
+{$ifdef unused}
                    if push_from_left_to_right then
                      maybe_push_high;
+{$endif unused}
                 end
               else
                 begin
@@ -1541,7 +1549,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  2002-11-25 17:43:17  peter
+  Revision 1.30  2002-11-27 20:04:39  peter
+    * cdecl array of const fixes
+
+  Revision 1.29  2002/11/25 17:43:17  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once

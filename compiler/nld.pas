@@ -1035,6 +1035,7 @@ implementation
                  hp:=thp;
                end;
               chp.flags := chp.flags+orgflags;
+              include(chp.flags,nf_cargs);
               include(chp.flags,nf_cargswap);
               chp.location.loc:=LOC_CREFERENCE;
               calcregisters(chp,0,0,0);
@@ -1213,7 +1214,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.67  2002-11-27 15:33:47  peter
+  Revision 1.68  2002-11-27 20:04:39  peter
+    * cdecl array of const fixes
+
+  Revision 1.67  2002/11/27 15:33:47  peter
     * the never ending story of tp procvar hacks
 
   Revision 1.66  2002/11/25 17:43:20  peter

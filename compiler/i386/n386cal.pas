@@ -126,7 +126,7 @@ implementation
                push_value_para(left,calloption,para_offset,para_alignment,paralocdummy);
            end
          { filter array constructor with c styled args }
-         else if is_array_constructor(left.resulttype.def) and (nf_cargs in left.flags) then
+         else if is_array_of_const(left.resulttype.def) and (nf_cargs in left.flags) then
            begin
              { nothing, everything is already pushed }
            end
@@ -184,7 +184,9 @@ implementation
                         (left.nodetype=selfn)) then
                   internalerror(200106041);
                end;
+{$ifdef unused}
               if not push_from_left_to_right then
+{$endif unused}
                 maybe_push_high;
               if (defcoll.paratyp=vs_out) and
                  assigned(defcoll.paratype.def) and
@@ -203,8 +205,10 @@ implementation
               else
                 cg.a_paramaddr_ref(exprasmlist,left.location.reference,paralocdummy);
               location_release(exprasmlist,left.location);
+{$ifdef unused}
               if push_from_left_to_right then
                 maybe_push_high;
+{$endif unused}
            end
          else
            begin
@@ -238,7 +242,9 @@ implementation
                        internalerror(200204011);
                     end;
 
+{$ifdef unused}
                    if not push_from_left_to_right then
+{$endif unused}
                      maybe_push_high;
                    inc(pushedparasize,4);
                    if calloption=pocall_inline then
@@ -252,8 +258,10 @@ implementation
                    else
                      cg.a_paramaddr_ref(exprasmlist,left.location.reference,paralocdummy);
                    location_release(exprasmlist,left.location);
+{$ifdef unused}
                    if push_from_left_to_right then
                      maybe_push_high;
+{$endif unused}
                 end
               else
                 begin
@@ -1242,7 +1250,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.76  2002-11-25 17:43:26  peter
+  Revision 1.77  2002-11-27 20:05:06  peter
+    * cdecl array of const fixes
+
+  Revision 1.76  2002/11/25 17:43:26  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once

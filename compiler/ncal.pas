@@ -451,8 +451,7 @@ type
             if is_array_of_const(defcoll.paratype.def) then
              begin
                if assigned(aktcallprocdef) and
-                  (aktcallprocdef.proccalloption in [pocall_cppdecl,pocall_cdecl]) and
-                  (po_external in aktcallprocdef.procoptions) then
+                  (aktcallprocdef.proccalloption in [pocall_cppdecl,pocall_cdecl]) then
                  include(left.flags,nf_cargs);
                { force variant array }
                include(left.flags,nf_forcevaria);
@@ -471,10 +470,7 @@ type
            test_local_to_procvar(tprocvardef(left.resulttype.def),defcoll.paratype.def);
 
          { generate the high() value tree }
-         if not(assigned(aktcallprocdef) and
-                (aktcallprocdef.proccalloption in [pocall_cppdecl,pocall_cdecl]) and
-                (po_external in aktcallprocdef.procoptions)) and
-            paramanager.push_high_param(defcoll.paratype.def,aktcallprocdef.proccalloption) then
+         if paramanager.push_high_param(defcoll.paratype.def,aktcallprocdef.proccalloption) then
            gen_high_tree(is_open_string(defcoll.paratype.def));
 
          { test conversions }
@@ -2842,7 +2838,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.112  2002-11-27 15:33:46  peter
+  Revision 1.113  2002-11-27 20:04:38  peter
+    * cdecl array of const fixes
+
+  Revision 1.112  2002/11/27 15:33:46  peter
     * the never ending story of tp procvar hacks
 
   Revision 1.111  2002/11/27 02:31:17  peter

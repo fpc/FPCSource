@@ -274,8 +274,6 @@ implementation
                       { in case call by reference, then calculate. Open array
                         is always an reference! }
                       if (tvarsym(symtableentry).varspez in [vs_var,vs_out]) or
-                         is_open_array(tvarsym(symtableentry).vartype.def) or
-                         is_array_of_const(tvarsym(symtableentry).vartype.def) or
                          paramanager.push_addr_param(tvarsym(symtableentry).vartype.def,tprocdef(symtable.defowner).proccalloption) then
                         begin
                            if hregister=R_NO then
@@ -789,9 +787,9 @@ implementation
          elesize:=8
         else
          elesize:=tarraydef(resulttype.def).elesize;
+        location_reset(location,LOC_REFERENCE,OS_NO);
         if not(nf_cargs in flags) then
          begin
-           location_reset(location,LOC_REFERENCE,OS_NO);
            { Allocate always a temp, also if no elements are required, to
              be sure that location is valid (PFV) }
             if tarraydef(resulttype.def).highrange=-1 then
@@ -989,7 +987,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.40  2002-11-25 17:43:18  peter
+  Revision 1.41  2002-11-27 20:04:39  peter
+    * cdecl array of const fixes
+
+  Revision 1.40  2002/11/25 17:43:18  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once
