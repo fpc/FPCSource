@@ -869,8 +869,8 @@ implementation
                   begin
                     {if left.right=nil then
                      begin}
-                       if (tcallnode(left).symtableprocentry^.owner^.symtabletype=objectsymtable){ and
-                          (pobjectdef(left.symtableprocentry^.owner^.defowner)^.is_class) }then
+                       if (tcallnode(left).symtableprocentry^.owner^.symtabletype=objectsymtable) and
+			 assigned(tcallnode(left).methodpointer) then
                         hp:=genloadmethodcallnode(pprocsym(tcallnode(left).symtableprocentry),
                           tcallnode(left).symtableproc,
                               tcallnode(left).methodpointer.getcopy)
@@ -1219,7 +1219,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2001-02-08 13:09:03  jonas
+  Revision 1.18  2001-02-20 13:14:18  marco
+   * Fix from Peter for passing a procedure of method to a other method in a method
+
+  Revision 1.17  2001/02/08 13:09:03  jonas
     * fixed web bug 1396: tpointerord is now a cardinal instead of a longint,
       but added a hack in ncnv so that pointer(-1) still works
 
