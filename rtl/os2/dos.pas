@@ -186,6 +186,10 @@ var     LastSR: SearchRec;
 type    TBA = array [1..SizeOf (SearchRec)] of byte;
         PBA = ^TBA;
 
+const   FindResvdMask = $00003737; {Allowed bits in attribute
+                                    specification for DosFindFirst call.}
+
+
 {Import syscall to call it nicely from assembler procedures.}
 
 procedure syscall;external name '___SYSCALL';
@@ -426,9 +430,11 @@ var args:Pbytearray;
     e:extstr;
     p : ppchar;
     j : integer;
+const
+    ArgsSize = 2048; (* Amount of memory reserved for arguments in bytes. *)
 
 begin
-    getmem(args,2048);
+    getmem(args,ArgsSize);
     GetMem(env, envc*sizeof(pchar)+16384);
     {Now setup the arguments. The first argument should be the program
      name without directory and extension.}
@@ -532,7 +538,7 @@ begin
         movl %eax,__RESULT
     end;
 
-    freemem(args,512);
+    freemem(args,ArgsSize);
     FreeMem(env, envc*sizeof(pchar)+16384);
     {Phew! That's it. This was the most sophisticated procedure to call
      a system function I ever wrote!}
@@ -850,8 +856,9 @@ begin
         New (F.FStat);
         F.Handle := $FFFFFFFF;
         Count := 1;
-        DosError := Integer(DosFindFirst (Path, F.Handle, Attr, F.FStat,
-                                         SizeOf (F.FStat^), Count, ilStandard));
+        DosError := Integer(DosFindFirst (Path, F.Handle,
+                       Attr and FindResvdMask, F.FStat, SizeOf (F.FStat^),
+                                                           Count, ilStandard));
         if (DosError = 0) and (Count = 0) then DosError := 18;
     end else
     begin
@@ -1210,7 +1217,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2002-07-07 18:00:48  hajny
+  Revision 1.18  2002-07-11 16:00:05  hajny
+    * FindFirst fix (invalid attribute bits masked out)
+
+  Revision 1.17  2002/07/07 18:00:48  hajny
     * DosGetInfoBlock modification to allow overloaded version (in DosCalls)
 
   Revision 1.16  2002/03/03 11:19:20  hajny

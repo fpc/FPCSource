@@ -223,6 +223,9 @@ const
  faOpenReplace = $00040000; {Truncate if file exists}
  faCreate      = $00050000; {Create if file does not exist, truncate otherwise}
 
+ FindResvdMask = $00003737; {Allowed bits in attribute
+                             specification for DosFindFirst call.}
+
 {$ASMMODE INTEL}
 function FileOpen (const FileName: string; Mode: integer): longint;
 {$IFOPT H+}
@@ -416,8 +419,8 @@ begin
             New (FStat);
             Rslt.FindHandle := $FFFFFFFF;
             Count := 1;
-            Err := DosFindFirst (PChar (Path), Rslt.FindHandle, Attr, FStat,
-                                           SizeOf (FStat^), Count, ilStandard);
+            Err := DosFindFirst (Path, Rslt.FindHandle, Attr and FindResvdMask,
+                                    FStat, SizeOf (FStat^), Count, ilStandard);
             if (Err = 0) and (Count = 0) then Err := 18;
             FindFirst := -Err;
             if Err = 0 then
@@ -433,10 +436,11 @@ begin
         end
     else
         begin
+            Err := DOS.DosError;
             GetMem (SR, SizeOf (SearchRec));
             Rslt.FindHandle := longint(SR);
             DOS.FindFirst (Path, Attr, SR^);
-            FindFirst := -DosError;
+            FindFirst := -DOS.DosError;
             if DosError = 0 then
                 begin
                     Rslt.Time := SR^.Time;
@@ -445,6 +449,7 @@ begin
                     Rslt.ExcludeAttr := 0;
                     Rslt.Name := SR^.Name;
                 end;
+            DOS.DosError := Err;
         end;
 end;
 
@@ -461,7 +466,8 @@ begin
         begin
             New (FStat);
             Count := 1;
-            Err := DosFindNext (Rslt.FindHandle, FStat, SizeOf (FStat), Count);
+            Err := DosFindNext (Rslt.FindHandle, FStat, SizeOf (FStat^),
+                                                                        Count);
             if (Err = 0) and (Count = 0) then Err := 18;
             FindNext := -Err;
             if Err = 0 then
@@ -944,7 +950,10 @@ end.
 
 {
   $Log$
-  Revision 1.15  2002-01-25 16:23:03  peter
+  Revision 1.16  2002-07-11 16:00:05  hajny
+    * FindFirst fix (invalid attribute bits masked out)
+
+  Revision 1.15  2002/01/25 16:23:03  peter
     * merged filesearch() fix
 
   Revision 1.14  2001/12/16 19:08:20  hajny
