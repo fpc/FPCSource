@@ -65,7 +65,7 @@ interface
 
     procedure identifier_not_found(const s:string);
 
-    function tokenstring(i : ttoken):string;
+{    function tokenstring(i : ttoken):string;}
 
     { consumes token i, if the current token is unequal i }
     { a syntax error is written                           }
@@ -116,11 +116,12 @@ implementation
        end;
 
 
+{ Unused:
     function tokenstring(i : ttoken):string;
       begin
         tokenstring:=tokeninfo^[i].str;
       end;
-
+}
 
     { consumes token i, write error if token is different }
     procedure consume(i : ttoken);
@@ -270,7 +271,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.26  2004-01-22 17:24:49  peter
+  Revision 1.27  2004-02-21 20:10:27  daniel
+    - Comment out unused tokenstring function
+
+  Revision 1.26  2004/01/22 17:24:49  peter
     * except is also an end of block token
     * after a label don't try to parse a statement when the next token
       is an end token
