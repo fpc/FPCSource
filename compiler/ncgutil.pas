@@ -1570,6 +1570,7 @@ implementation
         usesacchi,
         usesfpu : boolean;
         rsp,r  : Tregister;
+        retsize : longint;
       begin
         if aktexitlabel.is_used then
           cg.a_label(list,aktexitlabel);
@@ -1686,7 +1687,21 @@ implementation
            if (po_interrupt in current_procdef.procoptions) then
             cg.g_interrupt_stackframe_exit(list,usesacc,usesacchi)
            else
-            cg.g_return_from_proc(list,current_procdef.parast.datasize);
+            begin
+              if (po_clearstack in current_procdef.procoptions) then
+                begin
+                  retsize:=0;
+                  if paramanager.ret_in_param(current_procdef.rettype.def,current_procdef.proccalloption) then
+                    inc(retsize,POINTER_SIZE);
+                end
+              else
+                begin
+                  retsize:=current_procdef.parast.datasize;
+                  if current_procdef.parast.address_fixup>target_info.first_parm_offset then
+                    inc(retsize,current_procdef.parast.address_fixup-target_info.first_parm_offset);
+                end;
+              cg.g_return_from_proc(list,retsize);
+            end;
          end;
 
         if not inlined then
@@ -1886,7 +1901,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.107  2003-05-26 21:17:17  peter
+  Revision 1.108  2003-05-27 14:28:14  jonas
+    * patch from Peter for nested procedures
+
+  Revision 1.107  2003/05/26 21:17:17  peter
     * procinlinenode removed
     * aktexit2label removed, fast exit removed
     + tcallnode.inlined_pass_2 added
