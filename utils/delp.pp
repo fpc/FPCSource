@@ -147,7 +147,7 @@ begin
     if i=0 then
      i:=length(s)+1;
     New(maskitem);
-//    fillchar(maskitem^,sizeof(tmaskitem),0);
+    fillchar(maskitem^,sizeof(tmaskitem),0);
     maskitem^.mask:=Copy(s,1,i-1);
     maskitem^.next:=masklist;
     masklist:=maskitem;
@@ -210,7 +210,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  1999-12-01 22:45:04  peter
+  Revision 1.2  1999-12-02 11:31:11  peter
+    * removed temp comment
+
+  Revision 1.1  1999/12/01 22:45:04  peter
     + delp tool which deletes all generated pascal files
 
 }
