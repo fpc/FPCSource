@@ -321,11 +321,48 @@ implementation
 
     function taicpu.spilling_get_operation_type(opnr: longint): topertype;
       begin
-        if (opnr=0) and not(opcode in [A_STR,A_STRB,A_STRBT,A_STRD,
-              A_STRH,A_STRT,A_STF]) then
-          result := operand_write
-        else
-          result:=operand_read;
+        case opcode of
+          A_ADC,A_ADD,A_AND,
+          A_EOR,A_CLZ,
+          A_LDR,A_LDRB,A_LDRD,A_LDRBT,A_LDRH,A_LDRSB,
+          A_LDRSH,A_LDRT,
+          A_MOV,A_MVN,A_MLA,A_MUL,
+          A_ORR,A_RSB,A_RSC,A_SBC,A_SUB,
+          A_SWP,A_SWPB,
+          A_LDF,A_FLT,A_FIX,
+          A_ADF,A_DVF,A_FDV,A_FML,
+          A_RFS,A_RFC,A_RDF,
+          A_RMF,A_RPW,A_RSF,A_SUF,A_ABS,A_ACS,A_ASN,A_ATN,A_COS,
+          A_EXP,A_LOG,A_LGN,A_MVF,A_MNF,A_FRD,A_MUF,A_POL,A_RND,A_SIN,A_SQT,A_TAN:
+            if opnr=0 then
+              result:=operand_write
+            else
+              result:=operand_read;
+          A_BIC,A_BKPT,A_B,A_BL,A_BLX,A_BX,
+          A_CMN,A_CMP,A_TEQ,A_TST,
+          A_CMF,A_CMFE,A_WFS,A_CNF:
+            result:=operand_read;
+          A_SMLAL,A_UMLAL:
+            if opnr in [0,1] then
+              result:=operand_readwrite
+            else
+              result:=operand_read;
+           A_SMULL,A_UMULL:
+            if opnr in [0,1] then
+              result:=operand_write
+            else
+              result:=operand_read;
+          A_STR,A_STRB,A_STRBT,A_STRD,
+          A_STRH,A_STRT,A_STF:
+            { important is what happens with the involved registers }
+            if opnr=0 then
+              result := operand_read
+            else
+              { check for pre/post indexed }
+              result := operand_read
+          else
+            internalerror(200403151);
+        end;
       end;
 
 
@@ -424,7 +461,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.29  2004-03-14 16:15:39  florian
+  Revision 1.30  2004-03-15 22:20:13  florian
+    * handling of spilling improved
+
+  Revision 1.29  2004/03/14 16:15:39  florian
     * spilling problem fixed
     * handling of floating point memory references fixed
 
