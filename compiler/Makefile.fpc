@@ -201,7 +201,7 @@ override FPCOPT:=$(LOCALOPT)
 
 ifeq ($(OS_TARGET),win32)
 ifdef CMP
-override DIFF:=$(CMP) -i138
+override DIFF:=$(CMP) -i218
 endif
 # force try to smartlink for windows unit
 override COMPILER+=-XX
@@ -290,6 +290,7 @@ echotime:
 
 ppuclean:
         -$(DEL) *$(OEXT) *$(PPUEXT) *$(RSTEXT) *$(ASMEXT) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
+        -$(DEL) $(addsuffix /*$(PPUEXT),$(UNIT_DIR))
 
 execlean :
         -$(DEL) ppc386$(EXEEXT) ppcaxp$(EXEEXT) ppc68k$(EXEEXT) ppcppc$(EXEEXT) ppcsparc$(EXEEXT) $(EXENAME)
