@@ -25,13 +25,13 @@ interface
 
     const
        { word version for ppu file }
-       wordversion = (0 shl 12)+99;
+       wordversion = (0 shl 14)+99;
 
        { version string }
 
        version_nr = '0';
        release_nr = '99';
-       patch_nr   = '13';
+       patch_nr   = '14';
 {$ifdef newcg}
        minorpatch = ' NCG';
 {$else newcg}
@@ -76,7 +76,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2000-01-07 01:14:49  peter
+  Revision 1.14  2000-01-14 13:05:54  peter
+    * version 0.99.14
+
+  Revision 1.13  2000/01/07 01:14:49  peter
     * updated copyright to 2000
 
   Revision 1.12  1999/08/04 13:03:18  jonas
