@@ -1,5 +1,5 @@
 {$ifdef fpc}
-{$mode tp}
+{$mode delphi}
 {$endif fpc}
 
 function times2(x : longint) : longint;
@@ -13,21 +13,16 @@ var
  y:pointer absolute x;
  z,w,v:pointer;
 begin
- z:=@@x;
- w:=addr(@x);
- v:=@(addr(x));
+ x:=times2;
+ z:=@x;
+ w:=addr(x);
+ v:=@times2;
  writeln(longint(y),' ',longint(z),' ',longint(w),' ',longint(v));
- if (z<>w) or (z<>v) then
+ if (z<>w) or (z<>v) or (y<>z) then
   begin
     writeln('Addr Error');
     halt(1);
   end;
- if (y<>nil) then
-  begin
-    writeln('Absolute Error');
-    halt(1);
-  end;
- x:=times2;
  if (y<>@times2) then
   begin
     writeln('Absolute Error');
