@@ -138,7 +138,14 @@ endif
 BASEPACKDIR=$(BASEDIR)/basepack
 
 # Newly created fpcmake
-FPCMAKENEW=$(BASEDIR)/utils/fpcm/fpcmake$(EXEEXT)
+TEMPMAKENEW=$(BASEDIR)/utils/fpcm/fpcmake$(EXEEXT)
+ifneq ($(CPU_SOURCE),$(PPC_TARGET))
+TEMPMAKENEW=fpcmake
+endif
+ifneq ($(OS_SOURCE),$(OS_TARGET))
+TEMPMAKENEW=fpcmake
+endif
+FPCMAKENEW=$(TEMPMAKENEW)
 
 # Build/install options
 CLEANOPTS=FPC=$(PPNEW)
