@@ -31,6 +31,10 @@ Program TestAOC;
        end;
 }
 
+procedure testit2 (args: array of byte);
+begin
+end;
+
 Procedure Testit (Args: Array of const);
 
 Var I : longint;
@@ -86,6 +90,7 @@ begin
   S:='Ansistring 1';
   T:='AnsiString 2';
   writeln ('Size of VarRec : ',Sizeof(TVarRec));
+  Testit ([]);
   Testit ([1,2]);
   Testit (['A','B']);
   Testit ([TRUE,FALSE,TRUE]);
@@ -96,4 +101,7 @@ begin
   Testit ([ObjA,ObjB]);
   Testit ([1.234,1.234]);
   TestIt ([AClass]);
+
+  TestIt2 ([]);
+  TestIt2 ([1,2]);
 end.

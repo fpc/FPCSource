@@ -32,6 +32,7 @@ Type
        FExtended : Extended;
        FMyEnum   : TMyEnum;
        FAnsiString   : AnsiSTring;
+       FObj      : TObject;
        FStored   : Boolean;
        Function GetBoolean : Boolean;
        Function GetByte : Byte;
@@ -83,6 +84,7 @@ Type
        Constructor Create;
        Destructor Destroy;override;
        Published
+       Property ObjField: TObject read FObj write FObj;
        Property BooleanField : Boolean Read FBoolean Write FBoolean;
        Property ByteField : Byte Read FByte Write FByte;
        Property CharField : Char Read FChar Write FChar;
