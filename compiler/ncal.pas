@@ -1174,8 +1174,9 @@ type
         if assigned(parents) then
           parents.free;
         { Finally give out a warning for each abstract method still in the list }
-        Message1(type_w_instance_with_abstract,objectdf.objname^);
         stritem := tstringlistitem(AbstractMethodsList.first);
+        if assigned(stritem) then
+          Message1(type_w_instance_with_abstract,objectdf.objname^);
         while assigned(stritem) do
          begin
            if assigned(stritem.fpstr) then
@@ -2645,7 +2646,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.173  2003-06-25 18:31:23  peter
+  Revision 1.174  2003-07-25 09:54:57  jonas
+    * fixed bogus abstract method warnings
+
+  Revision 1.173  2003/06/25 18:31:23  peter
     * sym,def resolving partly rewritten to support also parent objects
       not directly available through the uses clause
 
