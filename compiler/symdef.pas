@@ -253,7 +253,7 @@ interface
          intf         : tobjectdef;
          intfderef    : tderef;
          ioffset      : longint;
-         implintf     : longint;
+         implindex    : longint;
          namemappings : tdictionary;
          procdefs     : TIndexArray;
          constructor create(aintf: tobjectdef);
@@ -338,6 +338,8 @@ interface
           function  interfacesderef(intfindex: longint): tderef;
           function  ioffsets(intfindex: longint): longint;
           procedure setioffsets(intfindex,iofs:longint);
+          function  implindex(intfindex:longint):longint;
+          procedure setimplindex(intfindex,implidx:longint);
           function  searchintf(def: tdef): longint;
           procedure addintf(def: tdef);
 
@@ -350,7 +352,6 @@ interface
           procedure addmappings(intfindex: longint; const name, newname: string);
           function  getmappings(intfindex: longint; const name: string; var nextexist: pointer): string;
 
-          procedure clearimplprocs;
           procedure addimplproc(intfindex: longint; procdef: tprocdef);
           function  implproccount(intfindex: longint): longint;
           function  implprocs(intfindex: longint; procindex: longint): tprocdef;
@@ -6056,6 +6057,18 @@ implementation
         timplintfentry(finterfaces.search(intfindex)).ioffset:=iofs;
       end;
 
+    function timplementedinterfaces.implindex(intfindex:longint):longint;
+      begin
+        checkindex(intfindex);
+        result:=timplintfentry(finterfaces.search(intfindex)).implindex;
+      end;
+
+    procedure timplementedinterfaces.setimplindex(intfindex,implidx:longint);
+      begin
+        checkindex(intfindex);
+        timplintfentry(finterfaces.search(intfindex)).implindex:=implidx;
+      end;
+
     function  timplementedinterfaces.searchintf(def: tdef): longint;
       var
         i: longint;
@@ -6147,19 +6160,6 @@ implementation
           end
         else
           getmappings:='';
-      end;
-
-    procedure timplementedinterfaces.clearimplprocs;
-      var
-        i: longint;
-      begin
-        for i:=1 to count do
-          with timplintfentry(finterfaces.search(i)) do
-            begin
-              if assigned(procdefs) then
-                procdefs.free;
-              procdefs:=nil;
-            end;
       end;
 
     procedure timplementedinterfaces.addimplproc(intfindex: longint; procdef: tprocdef);
@@ -6367,7 +6367,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.290  2005-01-19 22:19:41  peter
+  Revision 1.291  2005-01-24 22:08:32  peter
+    * interface wrapper generation moved to cgobj
+    * generate interface wrappers after the module is parsed
+
+  Revision 1.290  2005/01/19 22:19:41  peter
     * unit mapping rewrite
     * new derefmap added
 

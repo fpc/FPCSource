@@ -39,7 +39,7 @@ implementation
        symconst,symbase,symtype,symdef,symsym,symtable,
        aasmtai,aasmcpu,aasmbase,
        cgbase,cgobj,
-       nbas,
+       nbas,ncgutil,
        link,assemble,import,export,gendef,ppu,comprsrc,
        cresstr,procinfo,
        dwarf,
@@ -1227,6 +1227,10 @@ implementation
          write_gdb_info;
 {$endif GDB}
 
+         { generate wrappers for interfaces }
+         gen_intf_wrappers(codesegment,current_module.globalsymtable);
+         gen_intf_wrappers(codesegment,current_module.localsymtable);
+
          { generate a list of threadvars }
          InsertThreadvars;
 
@@ -1527,6 +1531,9 @@ implementation
          write_gdb_info;
 {$endif GDB}
 
+         { generate wrappers for interfaces }
+         gen_intf_wrappers(codesegment,current_module.localsymtable);
+
          { generate a list of threadvars }
          InsertThreadvars;
 
@@ -1595,7 +1602,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.180  2005-01-19 22:19:41  peter
+  Revision 1.181  2005-01-24 22:08:32  peter
+    * interface wrapper generation moved to cgobj
+    * generate interface wrappers after the module is parsed
+
+  Revision 1.180  2005/01/19 22:19:41  peter
     * unit mapping rewrite
     * new derefmap added
 

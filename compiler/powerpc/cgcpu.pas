@@ -27,7 +27,7 @@ unit cgcpu;
   interface
 
     uses
-       globtype,symtype,
+       globtype,symtype,symdef,
        cgbase,cgobj,
        aasmbase,aasmcpu,aasmtai,
        cpubase,cpuinfo,cgutils,cg64f32,rgcpu,
@@ -97,6 +97,7 @@ unit cgcpu;
 
         procedure a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: tasmlabel);
 
+        procedure g_intf_wrapper(list: TAAsmoutput; procdef: tprocdef; const labelname: string; ioffset: longint);override;
       private
 
         (* NOT IN USE: *)
@@ -155,7 +156,7 @@ const
 
     uses
        globals,verbose,systems,cutils,
-       symconst,symdef,symsym,
+       symconst,symsym,fmodule,
        rgobj,tgobj,cpupi,procinfo,paramgr;
 
 
@@ -253,13 +254,13 @@ const
                       { the following is only for AIX abi systems, but the }
                       { conditions should never be true for SYSV (if they  }
                       { are, there is a bug in cpupara)                    }
-                      
+
                       { update: this doesn't work yet (we have to shift     }
                       { right again in ncgutil when storing the parameters, }
                       { and additionally Apple's documentation seems to be  }
                       { wrong, in that these values are always kept in the  }
                       { lower bytes of the registers                        }
-                      
+
 {
                       if (paraloc.composite) and
                          (sizeleft <= 2) and
@@ -2012,6 +2013,78 @@ const
       end;
 
 
+    procedure tcgppc.g_intf_wrapper(list: TAAsmoutput; procdef: tprocdef; const labelname: string; ioffset: longint);
+
+        procedure loadvmttor11;
+        var
+          href : treference;
+        begin
+          reference_reset_base(href,NR_R3,0);
+          cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_R11);
+        end;
+
+        procedure op_onr11methodaddr;
+        var
+          href : treference;
+        begin
+          if (procdef.extnumber=$ffff) then
+            Internalerror(200006139);
+          { call/jmp  vmtoffs(%eax) ; method offs }
+          reference_reset_base(href,NR_R11,procdef._class.vmtmethodoffset(procdef.extnumber));
+          if not((longint(href.offset) >= low(smallint)) and
+                 (longint(href.offset) <= high(smallint))) then
+            begin
+              list.concat(taicpu.op_reg_reg_const(A_ADDIS,NR_R11,NR_R11,
+                smallint((href.offset shr 16)+ord(smallint(href.offset and $ffff) < 0))));
+              href.offset := smallint(href.offset and $ffff);
+            end;
+          list.concat(taicpu.op_reg_ref(A_LWZ,NR_R11,href));
+          list.concat(taicpu.op_reg(A_MTCTR,NR_R11));
+          list.concat(taicpu.op_none(A_BCTR));
+        end;
+
+      var
+        lab : tasmsymbol;
+        make_global : boolean;
+        href : treference;
+      begin
+        if procdef.proctypeoption<>potype_none then
+          Internalerror(200006137);
+        if not assigned(procdef._class) or
+           (procdef.procoptions*[po_classmethod, po_staticmethod,
+             po_methodpointer, po_interrupt, po_iocheck]<>[]) then
+          Internalerror(200006138);
+        if procdef.owner.symtabletype<>objectsymtable then
+          Internalerror(200109191);
+
+        make_global:=false;
+        if (not current_module.is_unit) or
+           (cs_create_smart in aktmoduleswitches) or
+           (procdef.owner.defowner.owner.symtabletype=globalsymtable) then
+          make_global:=true;
+
+        if make_global then
+          List.concat(Tai_symbol.Createname_global(labelname,AT_FUNCTION,0))
+        else
+          List.concat(Tai_symbol.Createname(labelname,AT_FUNCTION,0));
+
+        { set param1 interface to self  }
+        g_adjust_self_value(list,procdef,ioffset);
+
+        { case 4 }
+        if po_virtualmethod in procdef.procoptions then
+          begin
+            loadvmttor11;
+            op_onr11methodaddr;
+          end
+        { case 0 }
+        else
+          list.concat(taicpu.op_sym(A_B,objectlibrary.newasmsymbol(procdef.mangledname,AB_EXTERNAL,AT_FUNCTION)));
+
+        List.concat(Tai_symbol_end.Createname(labelname));
+      end;
+
+
 {***************** This is private property, keep out! :) *****************}
 
     function tcgppc.issimpleref(const ref: treference): boolean;
@@ -2347,7 +2420,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.192  2005-01-13 22:02:40  jonas
+  Revision 1.193  2005-01-24 22:08:32  peter
+    * interface wrapper generation moved to cgobj
+    * generate interface wrappers after the module is parsed
+
+  Revision 1.192  2005/01/13 22:02:40  jonas
     * r2 can be used by the register allocator under Darwin
     * merged the initialisations of the fpu register allocator for AIX and
       SYSV

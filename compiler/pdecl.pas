@@ -531,7 +531,7 @@ implementation
                   begin
                     if not(oo_is_forward in objectoptions) then
                       begin
-                        ch:=cclassheader.create(tobjectdef(tt.def));
+                        ch:=tclassheader.create(tobjectdef(tt.def));
                         { generate and check virtual methods, must be done
                           before RTTI is written }
                         ch.genvmt;
@@ -668,7 +668,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.93  2005-01-20 16:38:45  peter
+  Revision 1.94  2005-01-24 22:08:32  peter
+    * interface wrapper generation moved to cgobj
+    * generate interface wrappers after the module is parsed
+
+  Revision 1.93  2005/01/20 16:38:45  peter
     * load jmp_buf_size from system unit
 
   Revision 1.92  2004/11/16 20:32:40  peter

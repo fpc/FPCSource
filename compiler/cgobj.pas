@@ -414,6 +414,8 @@ unit cgobj;
              @param(usedinproc Registers which are used in the code of this routine)
           }
           procedure g_restore_standard_registers(list:Taasmoutput);virtual;
+          procedure g_intf_wrapper(list: TAAsmoutput; procdef: tprocdef; const labelname: string; ioffset: longint);virtual;abstract;
+          procedure g_adjust_self_value(list:taasmoutput;procdef: tprocdef;ioffset: aint);virtual;
        end;
 
 {$ifndef cpu64bit}
@@ -488,7 +490,7 @@ implementation
 
     uses
        globals,options,systems,
-       verbose,defutil,paramgr,
+       verbose,defutil,paramgr,symsym,
        tgobj,cutils,procinfo;
 
     const
@@ -1982,6 +1984,38 @@ implementation
       end;
 
 
+    procedure tcg.g_adjust_self_value(list:taasmoutput;procdef: tprocdef;ioffset: aint);
+      var
+        hsym : tsym;
+        href : treference;
+        paraloc : tcgparalocation;
+      begin
+        { calculate the parameter info for the procdef }
+        if not procdef.has_paraloc_info then
+          begin
+            procdef.requiredargarea:=paramanager.create_paraloc_info(procdef,callerside);
+            procdef.has_paraloc_info:=true;
+          end;
+        hsym:=tsym(procdef.parast.search('self'));
+        if not(assigned(hsym) and
+               (hsym.typ=paravarsym)) then
+          internalerror(200305251);
+        paraloc:=tparavarsym(hsym).paraloc[callerside].location^;
+        case paraloc.loc of
+          LOC_REGISTER:
+            cg.a_op_const_reg(list,OP_SUB,paraloc.size,ioffset,paraloc.register);
+          LOC_REFERENCE:
+            begin
+               { offset in the wrapper needs to be adjusted for the stored
+                 return address }
+               reference_reset_base(href,paraloc.reference.index,paraloc.reference.offset+sizeof(aint));
+               cg.a_op_const_ref(list,OP_SUB,paraloc.size,ioffset,href);
+            end
+          else
+            internalerror(200309189);
+        end;
+      end;
+
 {*****************************************************************************
                                     TCG64
 *****************************************************************************}
@@ -2031,7 +2065,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.190  2005-01-20 17:47:01  peter
+  Revision 1.191  2005-01-24 22:08:32  peter
+    * interface wrapper generation moved to cgobj
+    * generate interface wrappers after the module is parsed
+
+  Revision 1.190  2005/01/20 17:47:01  peter
     * remove copy_value_on_stack and a_param_copy_ref
 
   Revision 1.189  2005/01/20 16:38:45  peter

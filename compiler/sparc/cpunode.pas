@@ -32,14 +32,18 @@ implementation
 
   uses
     ncgbas,ncgflw,ncgcnv,ncgld,ncgmem,ncgcon,ncgset,
-    ncpuadd,ncpucall,ncpumat,ncpuinln,ncpucnv,ncpuobj,ncpuset,
+    ncpuadd,ncpucall,ncpumat,ncpuinln,ncpucnv,ncpuset,
     { this not really a node }
     rgcpu;
 
 end.
 {
     $Log$
-    Revision 1.11  2004-10-30 22:01:11  florian
+    Revision 1.12  2005-01-24 22:08:33  peter
+      * interface wrapper generation moved to cgobj
+      * generate interface wrappers after the module is parsed
+
+    Revision 1.11  2004/10/30 22:01:11  florian
       * jmp table code generation for case statement on sparc
 
     Revision 1.10  2004/06/20 08:55:32  florian

@@ -97,20 +97,13 @@ interface
       private
         { interface tables }
         function  gintfgetvtbllabelname(intfindex: integer): string;
-        procedure gintfcreatevtbl(intfindex: integer; rawdata,rawcode: TAAsmoutput);
+        procedure gintfcreatevtbl(intfindex: integer; rawdata: TAAsmoutput);
         procedure gintfgenentry(intfindex, contintfindex: integer; rawdata: TAAsmoutput);
-        procedure gintfoptimizevtbls(implvtbl : plongintarray);
+        procedure gintfoptimizevtbls;
         procedure gintfwritedata;
         function  gintfgetcprocdef(proc: tprocdef;const name: string): tprocdef;
         procedure gintfdoonintf(intf: tobjectdef; intfindex: longint);
         procedure gintfwalkdowninterface(intf: tobjectdef; intfindex: longint);
-      protected
-        { adjusts the self value with ioffset when casting a interface
-          to a class
-        }
-        procedure adjustselfvalue(procdef: tprocdef;ioffset: aint);virtual;
-        { generates the wrapper for a call to a method via an interface }
-        procedure cgintfwrapper(asmlist: TAAsmoutput; procdef: tprocdef; const labelname: string; ioffset: longint);virtual;abstract;
       public
         constructor create(c:tobjectdef);
         destructor destroy;override;
@@ -130,11 +123,6 @@ interface
         procedure writevmt;
         procedure writeinterfaceids;
       end;
-
-      tclassheaderclass=class of tclassheader;
-
-    var
-      cclassheader : tclassheaderclass;
 
 
 implementation
@@ -867,7 +855,7 @@ implementation
       end;
 
 
-    procedure tclassheader.gintfcreatevtbl(intfindex: integer; rawdata,rawcode: TAAsmoutput);
+    procedure tclassheader.gintfcreatevtbl(intfindex: integer; rawdata: TAAsmoutput);
       var
         implintf: timplementedinterfaces;
         curintf: tobjectdef;
@@ -888,8 +876,6 @@ implementation
             tmps:=make_mangledname('WRPR',_class.owner,_class.objname^+'_$_'+curintf.objname^+'_$_'+
               tostr(i)+'_$_'+
               implintf.implprocs(intfindex,i).mangledname);
-            { create wrapper code }
-            cgintfwrapper(rawcode,implintf.implprocs(intfindex,i),tmps,implintf.ioffsets(intfindex));
             { create reference }
             rawdata.concat(Tai_const.Createname(tmps,AT_FUNCTION,0));
           end;
@@ -941,21 +927,24 @@ implementation
       end;
 
 
-    procedure tclassheader.gintfoptimizevtbls(implvtbl : plongintarray);
+    procedure tclassheader.gintfoptimizevtbls;
       type
         tcompintfentry = record
           weight: longint;
           compintf: longint;
         end;
         { Max 1000 interface in the class header interfaces it's enough imho }
-        tcompintfs = packed array[1..1000] of tcompintfentry;
+        tcompintfs = array[1..1000] of tcompintfentry;
         pcompintfs = ^tcompintfs;
-        tequals    = packed array[1..1000] of longint;
+        tequals    = array[1..1000] of longint;
         pequals    = ^tequals;
+        timpls    = array[1..1000] of longint;
+        pimpls    = ^timpls;
       var
         max: longint;
         equals: pequals;
         compats: pcompintfs;
+        impls: pimpls;
         w,i,j,k: longint;
         cij: boolean;
         cji: boolean;
@@ -965,8 +954,10 @@ implementation
           Internalerror(200006135);
         getmem(compats,sizeof(tcompintfentry)*max);
         getmem(equals,sizeof(longint)*max);
+        getmem(impls,sizeof(longint)*max);
         fillchar(compats^,sizeof(tcompintfentry)*max,0);
         fillchar(equals^,sizeof(longint)*max,0);
+        fillchar(impls^,sizeof(longint)*max,0);
         { ismergepossible is a containing relation
           meaning of ismergepossible(a,b,w) =
           if implementorfunction map of a is contained implementorfunction map of b
@@ -1007,7 +998,7 @@ implementation
           end;
         { Reset, no replacements by default }
         for i:=1 to max do
-          implvtbl[i]:=i;
+          impls^[i]:=i;
         { Replace vtbls when equal or compat, repeat
           until there are no replacements possible anymore. This is
           needed for the cases like:
@@ -1018,38 +1009,36 @@ implementation
           k:=0;
           for i:=1 to max do
             begin
-              if compats^[implvtbl[i]].compintf<>0 then
-                implvtbl[i]:=compats^[implvtbl[i]].compintf
-              else if equals^[implvtbl[i]]<>0 then
-                implvtbl[i]:=equals^[implvtbl[i]]
+              if compats^[impls^[i]].compintf<>0 then
+                impls^[i]:=compats^[impls^[i]].compintf
+              else if equals^[impls^[i]]<>0 then
+                impls^[i]:=equals^[impls^[i]]
               else
                 inc(k);
             end;
         until k=max;
-        freemem(compats,sizeof(tcompintfentry)*max);
-        freemem(equals,sizeof(longint)*max);
+        { Update the implindex }
+        for i:=1 to max do
+          _class.implementedinterfaces.setimplindex(i,impls^[i]);
+        freemem(compats);
+        freemem(equals);
+        freemem(impls);
       end;
 
 
     procedure tclassheader.gintfwritedata;
       var
-        rawdata,rawcode: taasmoutput;
-        impintfindexes: plongintarray;
-        max: longint;
-        i: longint;
+        rawdata: taasmoutput;
+        max,i,j : smallint;
       begin
         max:=_class.implementedinterfaces.count;
-        getmem(impintfindexes,(max+1)*sizeof(longint));
-
-        gintfoptimizevtbls(impintfindexes);
 
         rawdata:=TAAsmOutput.Create;
-        rawcode:=TAAsmOutput.Create;
         dataSegment.concat(Tai_const.Create_16bit(max));
         { Two pass, one for allocation and vtbl creation }
         for i:=1 to max do
           begin
-            if impintfindexes[i]=i then { if implement itself }
+            if _class.implementedinterfaces.implindex(i)=i then { if implement itself }
               begin
                 { allocate a pointer in the object memory }
                 with tobjectsymtable(_class.symtable) do
@@ -1059,21 +1048,19 @@ implementation
                     inc(datasize,sizeof(aint));
                   end;
                 { write vtbl }
-                gintfcreatevtbl(i,rawdata,rawcode);
+                gintfcreatevtbl(i,rawdata);
               end;
           end;
         { second pass: for fill interfacetable and remained ioffsets }
         for i:=1 to max do
           begin
-            if impintfindexes[i]<>i then
-              _class.implementedinterfaces.setioffsets(i,_class.implementedinterfaces.ioffsets(impintfindexes[i]));
-            gintfgenentry(i,impintfindexes[i],rawdata);
+            j:=_class.implementedinterfaces.implindex(i);
+            if j<>i then
+              _class.implementedinterfaces.setioffsets(i,_class.implementedinterfaces.ioffsets(j));
+            gintfgenentry(i,j,rawdata);
           end;
         dataSegment.concatlist(rawdata);
         rawdata.free;
-        codeSegment.concatlist(rawcode);
-        rawcode.free;
-        freemem(impintfindexes,(max+1)*sizeof(longint));
       end;
 
 
@@ -1179,8 +1166,10 @@ implementation
         objectlibrary.getdatalabel(intftable);
         dataSegment.concat(tai_align.create(const_align(sizeof(aint))));
         dataSegment.concat(Tai_label.Create(intftable));
+        { Optimize interface tables to reuse wrappers }
+        gintfoptimizevtbls;
+        { Write interface tables }
         gintfwritedata;
-        _class.implementedinterfaces.clearimplprocs; { release temporary information }
         genintftable:=intftable;
       end;
 
@@ -1376,45 +1365,14 @@ implementation
       end;
 
 
-  procedure tclassheader.adjustselfvalue(procdef: tprocdef;ioffset: aint);
-    var
-      hsym : tsym;
-      href : treference;
-      paraloc : tcgparalocation;
-    begin
-      { calculate the parameter info for the procdef }
-      if not procdef.has_paraloc_info then
-        begin
-          procdef.requiredargarea:=paramanager.create_paraloc_info(procdef,callerside);
-          procdef.has_paraloc_info:=true;
-        end;
-      hsym:=tsym(procdef.parast.search('self'));
-      if not(assigned(hsym) and
-             (hsym.typ=paravarsym)) then
-        internalerror(200305251);
-      paraloc:=tparavarsym(hsym).paraloc[callerside].location^;
-      case paraloc.loc of
-        LOC_REGISTER:
-          cg.a_op_const_reg(exprasmlist,OP_SUB,paraloc.size,ioffset,paraloc.register);
-        LOC_REFERENCE:
-          begin
-             { offset in the wrapper needs to be adjusted for the stored
-               return address }
-             reference_reset_base(href,paraloc.reference.index,paraloc.reference.offset+sizeof(aint));
-             cg.a_op_const_ref(exprasmlist,OP_SUB,paraloc.size,ioffset,href);
-          end
-        else
-          internalerror(200309189);
-      end;
-    end;
-
-
-initialization
-  cclassheader:=tclassheader;
 end.
 {
   $Log$
-  Revision 1.86  2005-01-10 20:41:55  peter
+  Revision 1.87  2005-01-24 22:08:32  peter
+    * interface wrapper generation moved to cgobj
+    * generate interface wrappers after the module is parsed
+
+  Revision 1.86  2005/01/10 20:41:55  peter
     * write realname for published methods
 
   Revision 1.85  2005/01/09 15:05:29  peter

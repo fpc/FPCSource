@@ -31,7 +31,7 @@ unit cgcpu;
        cgbase,cgobj,cg64f32,cgx86,
        aasmbase,aasmtai,aasmcpu,
        cpubase,parabase,cgutils,
-       symconst
+       symconst,symdef
        ;
 
     type
@@ -49,6 +49,7 @@ unit cgcpu;
         procedure g_exception_reason_save(list : taasmoutput; const href : treference);override;
         procedure g_exception_reason_save_const(list : taasmoutput; const href : treference; a: aint);override;
         procedure g_exception_reason_load(list : taasmoutput; const href : treference);override;
+        procedure g_intf_wrapper(list: TAAsmoutput; procdef: tprocdef; const labelname: string; ioffset: longint);override;
      end;
 
       tcg64f386 = class(tcg64f32)
@@ -64,7 +65,7 @@ unit cgcpu;
 
     uses
        globals,verbose,systems,cutils,
-       paramgr,procinfo,
+       paramgr,procinfo,fmodule,
        rgcpu,rgx86;
 
     function use_push(const cgpara:tcgpara):boolean;
@@ -430,6 +431,184 @@ unit cgcpu;
       end;
 
 
+
+    procedure tcg386.g_intf_wrapper(list: TAAsmoutput; procdef: tprocdef; const labelname: string; ioffset: longint);
+      {
+      possible calling conventions:
+                    default stdcall cdecl pascal register
+      default(0):      OK     OK    OK(1)  OK       OK
+      virtual(2):      OK     OK    OK(3)  OK       OK
+
+      (0):
+          set self parameter to correct value
+          jmp mangledname
+
+      (1): The code is the following
+           set self parameter to correct value
+           call mangledname
+           set self parameter to interface value
+
+      (2): The wrapper code use %eax to reach the virtual method address
+           set self to correct value
+           move self,%eax
+           mov  0(%eax),%eax ; load vmt
+           jmp  vmtoffs(%eax) ; method offs
+
+      (3): The wrapper code use %eax to reach the virtual method address
+           set self to correct value
+           move self,%eax
+           mov  0(%eax),%eax ; load vmt
+           jmp  vmtoffs(%eax) ; method offs
+           set self parameter to interface value
+
+
+      (4): Virtual use values pushed on stack to reach the method address
+           so the following code be generated:
+           set self to correct value
+           push %ebx ; allocate space for function address
+           push %eax
+           mov  self,%eax
+           mov  0(%eax),%eax ; load vmt
+           mov  vmtoffs(%eax),eax ; method offs
+           mov  %eax,4(%esp)
+           pop  %eax
+           ret  0; jmp the address
+
+      }
+
+        procedure getselftoeax(offs: longint);
+        var
+          href : treference;
+          selfoffsetfromsp : longint;
+        begin
+          { mov offset(%esp),%eax }
+          if (procdef.proccalloption<>pocall_register) then
+            begin
+              { framepointer is pushed for nested procs }
+              if procdef.parast.symtablelevel>normal_function_level then
+                selfoffsetfromsp:=2*sizeof(aint)
+              else
+                selfoffsetfromsp:=sizeof(aint);
+              reference_reset_base(href,NR_ESP,selfoffsetfromsp+offs);
+              cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_EAX);
+            end;
+        end;
+
+        procedure loadvmttoeax;
+        var
+          href : treference;
+        begin
+          { mov  0(%eax),%eax ; load vmt}
+          reference_reset_base(href,NR_EAX,0);
+          cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_EAX);
+        end;
+
+        procedure op_oneaxmethodaddr(op: TAsmOp);
+        var
+          href : treference;
+        begin
+          if (procdef.extnumber=$ffff) then
+            Internalerror(200006139);
+          { call/jmp  vmtoffs(%eax) ; method offs }
+          reference_reset_base(href,NR_EAX,procdef._class.vmtmethodoffset(procdef.extnumber));
+          list.concat(taicpu.op_ref(op,S_L,href));
+        end;
+
+        procedure loadmethodoffstoeax;
+        var
+          href : treference;
+        begin
+          if (procdef.extnumber=$ffff) then
+            Internalerror(200006139);
+          { mov vmtoffs(%eax),%eax ; method offs }
+          reference_reset_base(href,NR_EAX,procdef._class.vmtmethodoffset(procdef.extnumber));
+          cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_EAX);
+        end;
+
+      var
+        lab : tasmsymbol;
+        make_global : boolean;
+        href : treference;
+      begin
+        if procdef.proctypeoption<>potype_none then
+          Internalerror(200006137);
+        if not assigned(procdef._class) or
+           (procdef.procoptions*[po_classmethod, po_staticmethod,
+             po_methodpointer, po_interrupt, po_iocheck]<>[]) then
+          Internalerror(200006138);
+        if procdef.owner.symtabletype<>objectsymtable then
+          Internalerror(200109191);
+
+        make_global:=false;
+        if (not current_module.is_unit) or
+           (cs_create_smart in aktmoduleswitches) or
+           (af_smartlink_sections in target_asm.flags) or
+           (procdef.owner.defowner.owner.symtabletype=globalsymtable) then
+          make_global:=true;
+
+        if make_global then
+         List.concat(Tai_symbol.Createname_global(labelname,AT_FUNCTION,0))
+        else
+         List.concat(Tai_symbol.Createname(labelname,AT_FUNCTION,0));
+
+        { set param1 interface to self  }
+        g_adjust_self_value(list,procdef,ioffset);
+
+        { case 1 or 2 }
+        if (procdef.proccalloption in clearstack_pocalls) then
+          begin
+            if po_virtualmethod in procdef.procoptions then
+              begin
+                { case 2 }
+                getselftoeax(0);
+                loadvmttoeax;
+                op_oneaxmethodaddr(A_CALL);
+              end
+            else
+              begin
+                { case 1 }
+                cg.a_call_name(list,procdef.mangledname);
+              end;
+            { restore param1 value self to interface }
+            g_adjust_self_value(list,procdef,-ioffset);
+          end
+        else if po_virtualmethod in procdef.procoptions then
+          begin
+            if (procdef.proccalloption=pocall_register) then
+              begin
+                { case 4 }
+                list.concat(taicpu.op_reg(A_PUSH,S_L,NR_EBX)); { allocate space for address}
+                list.concat(taicpu.op_reg(A_PUSH,S_L,NR_EAX));
+                getselftoeax(8);
+                loadvmttoeax;
+                loadmethodoffstoeax;
+                { mov %eax,4(%esp) }
+                reference_reset_base(href,NR_ESP,4);
+                list.concat(taicpu.op_reg_ref(A_MOV,S_L,NR_EAX,href));
+                { pop  %eax }
+                list.concat(taicpu.op_reg(A_POP,S_L,NR_EAX));
+                { ret  ; jump to the address }
+                list.concat(taicpu.op_none(A_RET,S_L));
+              end
+            else
+              begin
+                { case 3 }
+                getselftoeax(0);
+                loadvmttoeax;
+                op_oneaxmethodaddr(A_JMP);
+              end;
+          end
+        { case 0 }
+        else
+          begin
+            lab:=objectlibrary.newasmsymbol(procdef.mangledname,AB_EXTERNAL,AT_FUNCTION);
+            list.concat(taicpu.op_sym(A_JMP,S_NO,lab));
+          end;
+
+        List.concat(Tai_symbol_end.Createname(labelname));
+      end;
+
+
 { ************* 64bit operations ************ }
 
     procedure tcg64f386.get_64bit_ops(op:TOpCG;var op1,op2:TAsmOp);
@@ -564,7 +743,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.63  2005-01-18 22:19:20  peter
+  Revision 1.64  2005-01-24 22:08:32  peter
+    * interface wrapper generation moved to cgobj
+    * generate interface wrappers after the module is parsed
+
+  Revision 1.63  2005/01/18 22:19:20  peter
     * multiple location support for i386 a_param_ref
     * remove a_param_copy_ref for i386
 

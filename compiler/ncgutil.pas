@@ -71,6 +71,7 @@ interface
     procedure gen_load_return_value(list:TAAsmoutput);
 
     procedure gen_external_stub(list:taasmoutput;pd:tprocdef;const externalname:string);
+    procedure gen_intf_wrappers(list:taasmoutput;st:tsymtable);
 
    {#
       Allocate the buffers for exception management and setjmp environment.
@@ -2362,10 +2363,55 @@ implementation
          end;
       end;
 
+
+
+    procedure gen_intf_wrapper(list:taasmoutput;_class:tobjectdef);
+      var
+        rawdata: taasmoutput;
+        i,j,
+        proccount : longint;
+        tmps : string;
+      begin
+        for i:=1 to _class.implementedinterfaces.count do
+          begin
+            { only if implemented by this class }
+            if _class.implementedinterfaces.implindex(i)=i then
+              begin
+                proccount:=_class.implementedinterfaces.implproccount(i);
+                for j:=1 to proccount do
+                  begin
+                    tmps:=make_mangledname('WRPR',_class.owner,_class.objname^+'_$_'+
+                      _class.implementedinterfaces.interfaces(i).objname^+'_$_'+
+                      tostr(j)+'_$_'+_class.implementedinterfaces.implprocs(i,j).mangledname);
+                    { create wrapper code }
+                    cg.g_intf_wrapper(list,_class.implementedinterfaces.implprocs(i,j),tmps,_class.implementedinterfaces.ioffsets(i));
+                  end;
+              end;
+          end;
+      end;
+
+
+    procedure gen_intf_wrappers(list:taasmoutput;st:tsymtable);
+      var
+        def : tstoreddef;
+      begin
+        def:=tstoreddef(st.defindex.first);
+        while assigned(def) do
+          begin
+            if is_class(def) then
+              gen_intf_wrapper(list,tobjectdef(def));
+            def:=tstoreddef(def.indexnext);
+          end;
+      end;
+
 end.
 {
   $Log$
-  Revision 1.257  2005-01-20 17:47:01  peter
+  Revision 1.258  2005-01-24 22:08:32  peter
+    * interface wrapper generation moved to cgobj
+    * generate interface wrappers after the module is parsed
+
+  Revision 1.257  2005/01/20 17:47:01  peter
     * remove copy_value_on_stack and a_param_copy_ref
 
   Revision 1.256  2005/01/20 16:38:45  peter

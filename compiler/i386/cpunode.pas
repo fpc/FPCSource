@@ -53,8 +53,6 @@ unit cpunode;
        n386mem,
        n386set,
        n386inl,
-       { this not really a node }
-       n386obj,
        n386mat,
        n386cnv
        ;
@@ -62,7 +60,11 @@ unit cpunode;
 end.
 {
   $Log$
-  Revision 1.21  2004-06-20 08:55:31  florian
+  Revision 1.22  2005-01-24 22:08:32  peter
+    * interface wrapper generation moved to cgobj
+    * generate interface wrappers after the module is parsed
+
+  Revision 1.21  2004/06/20 08:55:31  florian
     * logs truncated
 
   Revision 1.20  2004/02/22 12:04:04  florian

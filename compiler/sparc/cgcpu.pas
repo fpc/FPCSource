@@ -31,7 +31,7 @@ interface
        cgbase,cgutils,cgobj,cg64f32,
        aasmbase,aasmtai,aasmcpu,
        cpubase,cpuinfo,
-       node,symconst,SymType,
+       node,symconst,SymType,symdef,
        rgcpu;
 
     type
@@ -89,6 +89,7 @@ interface
         procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aint);override;
         procedure g_concatcopy_unaligned(list : taasmoutput;const source,dest : treference;len : aint);override;
         procedure g_concatcopy_move(list : taasmoutput;const source,dest : treference;len : aint);
+        procedure g_intf_wrapper(list: TAAsmoutput; procdef: tprocdef; const labelname: string; ioffset: longint);override;
       end;
 
       TCg64Sparc=class(tcg64f32)
@@ -120,7 +121,7 @@ implementation
 
   uses
     globals,verbose,systems,cutils,
-    symdef,paramgr,
+    paramgr,fmodule,
     tgobj,
     procinfo,cpupi;
 
@@ -1256,6 +1257,53 @@ implementation
       end;
 
 
+    procedure tcgsparc.g_intf_wrapper(list: TAAsmoutput; procdef: tprocdef; const labelname: string; ioffset: longint);
+      var
+        make_global : boolean;
+        href : treference;
+      begin
+        if procdef.proctypeoption<>potype_none then
+          Internalerror(200006137);
+        if not assigned(procdef._class) or
+           (procdef.procoptions*[po_classmethod, po_staticmethod,
+             po_methodpointer, po_interrupt, po_iocheck]<>[]) then
+          Internalerror(200006138);
+        if procdef.owner.symtabletype<>objectsymtable then
+          Internalerror(200109191);
+
+        make_global:=false;
+        if (not current_module.is_unit) or
+           (procdef.owner.defowner.owner.symtabletype=globalsymtable) then
+          make_global:=true;
+
+        if make_global then
+          List.concat(Tai_symbol.Createname_global(labelname,AT_FUNCTION,0))
+        else
+          List.concat(Tai_symbol.Createname(labelname,AT_FUNCTION,0));
+
+        { set param1 interface to self  }
+        g_adjust_self_value(list,procdef,ioffset);
+
+        if po_virtualmethod in procdef.procoptions then
+          begin
+            if (procdef.extnumber=$ffff) then
+              Internalerror(200006139);
+            { mov  0(%rdi),%rax ; load vmt}
+            reference_reset_base(href,NR_O0,0);
+            cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_L0);
+            { jmp *vmtoffs(%eax) ; method offs }
+            reference_reset_base(href,NR_L0,procdef._class.vmtmethodoffset(procdef.extnumber));
+            list.concat(taicpu.op_ref_reg(A_LD,href,NR_L1));
+            list.concat(taicpu.op_reg(A_JMP,NR_L1));
+          end
+        else
+          list.concat(taicpu.op_sym(A_BA,objectlibrary.newasmsymbol(procdef.mangledname,AB_EXTERNAL,AT_FUNCTION)));
+        { Delay slot }
+        list.Concat(TAiCpu.Op_none(A_NOP));
+
+        List.concat(Tai_symbol_end.Createname(labelname));
+      end;
+
 {****************************************************************************
                                TCG64Sparc
 ****************************************************************************}
@@ -1410,7 +1458,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.102  2005-01-23 17:14:21  florian
+  Revision 1.103  2005-01-24 22:08:32  peter
+    * interface wrapper generation moved to cgobj
+    * generate interface wrappers after the module is parsed
+
+  Revision 1.102  2005/01/23 17:14:21  florian
     + optimized code generation on sparc
     + some stuff for pic code on sparc added
 

@@ -43,8 +43,6 @@ unit cpunode;
        nppcset,
        nppcinl,
 //       nppcopt,
-       { this not really a node }
-       nppcobj,
        nppcmat,
        nppccnv,
        nppcld
@@ -53,7 +51,11 @@ unit cpunode;
 end.
 {
   $Log$
-  Revision 1.19  2004-06-20 08:55:32  florian
+  Revision 1.20  2005-01-24 22:08:32  peter
+    * interface wrapper generation moved to cgobj
+    * generate interface wrappers after the module is parsed
+
+  Revision 1.19  2004/06/20 08:55:32  florian
     * logs truncated
 
   Revision 1.18  2004/03/02 17:32:12  florian
