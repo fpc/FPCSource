@@ -466,7 +466,7 @@ const
     false,false,false,false,false,false,false,false,false,false,
     false,false,false,false,false,false,false,false,false,false,
     false,false,false,false,false,false,false,false,false,false,
-    false,false,false,false,false,false,true,true,true,true,
+    false,false,false,false,false,false,false,true,true,true,
     true,true,true,true,true,true,true,true,true,true,
     true,true,true,true,true,true,true,true,true,true,
     { 400 }
@@ -1064,7 +1064,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  1999-08-12 14:36:02  peter
+  Revision 1.6  1999-08-13 15:36:30  peter
+    * fixed suffix writing for a_setcc
+
+  Revision 1.5  1999/08/12 14:36:02  peter
     + KNI instructions
 
   Revision 1.4  1999/08/07 14:20:58  florian
