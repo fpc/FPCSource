@@ -101,7 +101,7 @@ Procedure PeepHoleOptPass1(Asml: PAasmOutput; BlockStart, BlockEnd: Pai);
 {First pass of peepholeoptimizations}
 
 Var
-  l{$ifdef go32v2},l1{$endif go32v2} : longint;
+  l,l1 : longint;
   p,hp1,hp2 : pai;
   hp3,hp4: pai;
 
@@ -1225,81 +1225,84 @@ Begin
                 End;
               A_POP:
                 Begin
-{$ifdef go32v2}
-                   { Transform a series of pop/pop/pop/push/push/push to }
-                   { 'movl x(%esp),%reg' for go32v2 (not for the rest,   }
-                   { because I'm not sure whether they can cope with     }
-                   { 'movl x(%esp),%reg' with x > 0, I believe we had    }
-                   { such a problem when using esp as frame pointer (JM) }
-                   if (Paicpu(p)^.oper[0].typ = top_reg) then
-                     begin
-                       hp1 := p;
-                       hp2 := p;
-                       l := 0;
-                       while getNextInstruction(hp1,hp1) and
-                             (hp1^.typ = ait_instruction) and
-                             (paicpu(hp1)^.opcode = A_POP) and
-                             (paicpu(hp1)^.oper[0].typ = top_reg) do
-                         begin
-                           hp2 := hp1;
-                           inc(l,4);
-                         end;
-                       getLastInstruction(p,hp3);
-                       l1 := 0;
-                       while (hp2 <> hp3) and
-                             assigned(hp1) and
-                             (hp1^.typ = ait_instruction) and
-                             (paicpu(hp1)^.opcode = A_PUSH) and
-                             (paicpu(hp1)^.oper[0].typ = top_reg) and
-                             (paicpu(hp1)^.oper[0].reg = paicpu(hp2)^.oper[0].reg) do
-                         begin
-                           { change it to a two op operation }
-                           paicpu(hp2)^.oper[1].typ:=top_none;
-                           paicpu(hp2)^.ops:=2;
-                           paicpu(hp2)^.opcode := A_MOV;
-                           paicpu(hp2)^.Loadoper(1,paicpu(hp1)^.oper[0]);
-                           reset_reference(tmpref);
-                           tmpRef.base := stack_pointer;
-                           tmpRef.offset := l;
-                           paicpu(hp2)^.loadRef(0,newReference(tmpRef));
-                           hp4 := hp1;
-                           getNextInstruction(hp1,hp1);
-                           asmL^.remove(hp4);
-                           dispose(hp4,done);
-                           getLastInstruction(hp2,hp2);
-                           dec(l,4);
-                           inc(l1);
-                         end;
-                       if l <> -4 then
-                         begin
-                           inc(l,4);
-                           for l1 := l1 downto 1 do
-                             begin
-                               getNextInstruction(hp2,hp2);
-                               dec(paicpu(hp2)^.oper[0].ref^.offset,l);
-                             end
-                         end
-                     end
-{$else go32v2}
-                   if (Paicpu(p)^.oper[0].typ = top_reg) And
-                      GetNextInstruction(p, hp1) And
-                      (pai(hp1)^.typ=ait_instruction) and
-                      (Paicpu(hp1)^.opcode=A_PUSH) and
-                      (Paicpu(hp1)^.oper[0].typ = top_reg) And
-                      (Paicpu(hp1)^.oper[0].reg=Paicpu(p)^.oper[0].reg) then
-                     Begin
-                       { change it to a two op operation }
-                       Paicpu(p)^.oper[1].typ:=top_none;
-                       Paicpu(p)^.ops:=2;
-                       Paicpu(p)^.opcode := A_MOV;
-                       Paicpu(p)^.Loadoper(1,Paicpu(p)^.oper[0]);
-                       Reset_reference(tmpref);
-                       TmpRef.base := R_ESP;
-                       Paicpu(p)^.LoadRef(0,newReference(TmpRef));
-                       AsmL^.Remove(hp1);
-                       Dispose(hp1, Done)
-                     End;
-{$endif go32v2}
+                  if target_info.target=target_i386_go32v2 then
+                   begin
+                     { Transform a series of pop/pop/pop/push/push/push to }
+                     { 'movl x(%esp),%reg' for go32v2 (not for the rest,   }
+                     { because I'm not sure whether they can cope with     }
+                     { 'movl x(%esp),%reg' with x > 0, I believe we had    }
+                     { such a problem when using esp as frame pointer (JM) }
+                     if (Paicpu(p)^.oper[0].typ = top_reg) then
+                       begin
+                         hp1 := p;
+                         hp2 := p;
+                         l := 0;
+                         while getNextInstruction(hp1,hp1) and
+                               (hp1^.typ = ait_instruction) and
+                               (paicpu(hp1)^.opcode = A_POP) and
+                               (paicpu(hp1)^.oper[0].typ = top_reg) do
+                           begin
+                             hp2 := hp1;
+                             inc(l,4);
+                           end;
+                         getLastInstruction(p,hp3);
+                         l1 := 0;
+                         while (hp2 <> hp3) and
+                               assigned(hp1) and
+                               (hp1^.typ = ait_instruction) and
+                               (paicpu(hp1)^.opcode = A_PUSH) and
+                               (paicpu(hp1)^.oper[0].typ = top_reg) and
+                               (paicpu(hp1)^.oper[0].reg = paicpu(hp2)^.oper[0].reg) do
+                           begin
+                             { change it to a two op operation }
+                             paicpu(hp2)^.oper[1].typ:=top_none;
+                             paicpu(hp2)^.ops:=2;
+                             paicpu(hp2)^.opcode := A_MOV;
+                             paicpu(hp2)^.Loadoper(1,paicpu(hp1)^.oper[0]);
+                             reset_reference(tmpref);
+                             tmpRef.base := stack_pointer;
+                             tmpRef.offset := l;
+                             paicpu(hp2)^.loadRef(0,newReference(tmpRef));
+                             hp4 := hp1;
+                             getNextInstruction(hp1,hp1);
+                             asmL^.remove(hp4);
+                             dispose(hp4,done);
+                             getLastInstruction(hp2,hp2);
+                             dec(l,4);
+                             inc(l1);
+                           end;
+                         if l <> -4 then
+                           begin
+                             inc(l,4);
+                             for l1 := l1 downto 1 do
+                               begin
+                                 getNextInstruction(hp2,hp2);
+                                 dec(paicpu(hp2)^.oper[0].ref^.offset,l);
+                               end
+                           end
+                       end
+                    end
+                   else
+                    begin
+                      if (Paicpu(p)^.oper[0].typ = top_reg) And
+                         GetNextInstruction(p, hp1) And
+                         (pai(hp1)^.typ=ait_instruction) and
+                         (Paicpu(hp1)^.opcode=A_PUSH) and
+                         (Paicpu(hp1)^.oper[0].typ = top_reg) And
+                         (Paicpu(hp1)^.oper[0].reg=Paicpu(p)^.oper[0].reg) then
+                        Begin
+                          { change it to a two op operation }
+                          Paicpu(p)^.oper[1].typ:=top_none;
+                          Paicpu(p)^.ops:=2;
+                          Paicpu(p)^.opcode := A_MOV;
+                          Paicpu(p)^.Loadoper(1,Paicpu(p)^.oper[0]);
+                          Reset_reference(tmpref);
+                          TmpRef.base := R_ESP;
+                          Paicpu(p)^.LoadRef(0,newReference(TmpRef));
+                          AsmL^.Remove(hp1);
+                          Dispose(hp1, Done)
+                        End;
+                    end;
                 end;
               A_PUSH:
                 Begin
@@ -1945,7 +1948,10 @@ End.
 
 {
   $Log$
-  Revision 1.8  2000-08-05 10:35:51  jonas
+  Revision 1.9  2000-08-05 13:33:08  peter
+    * $ifdef go32v2 -> target_info.target=go32v2
+
+  Revision 1.8  2000/08/05 10:35:51  jonas
     * readded l1 variable (between ifdef go32v2 to avoid hints/notes)
 
   Revision 1.7  2000/08/04 22:00:52  peter
