@@ -51,7 +51,7 @@ interface
     function  is_procsym_load(p:Ptree):boolean;
     function  is_procsym_call(p:Ptree):boolean;
     function  assignment_overloaded(from_def,to_def : pdef) : pprocdef;
-    function  test_local_to_procvar(from_def:pprocvardef;to_def:pdef):boolean;
+    procedure test_local_to_procvar(from_def:pprocvardef;to_def:pdef);
 
 
 implementation
@@ -670,7 +670,7 @@ implementation
        end;
 
     { local routines can't be assigned to procvars }
-    function test_local_to_procvar(from_def:pprocvardef;to_def:pdef):boolean;
+    procedure test_local_to_procvar(from_def:pprocvardef;to_def:pdef);
       begin
          if (from_def^.symtablelevel>1) and (to_def^.deftype=procvardef) then
            CGMessage(type_e_cannot_local_proc_to_procvar);
@@ -679,7 +679,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.34  1999-08-05 16:52:55  peter
+  Revision 1.35  1999-08-05 21:50:35  peter
+    * removed warning
+
+  Revision 1.34  1999/08/05 16:52:55  peter
     * V_Fatal=1, all other V_ are also increased
     * Check for local procedure when assigning procvar
     * fixed comment parsing because directives
