@@ -292,7 +292,7 @@ implementation
            op : tasmop;
         begin
            p^.location.loc:=LOC_MMXREGISTER;
-           if cs_mmx_saturation in aktswitches then
+           if cs_mmx_saturation in aktlocalswitches then
              case mmx_type(p^.resulttype) of
                 mmxs8bit:
                   op:=A_PSUBSB;
@@ -361,7 +361,7 @@ implementation
                                    exprasmlist^.concat(new(pai386,op_none(A_FCHS,S_NO)));
                                 end
 {$ifdef SUPPORT_MMX}
-                              else if (cs_mmx in aktswitches) and is_mmx_able_array(p^.left^.resulttype) then
+                              else if (cs_mmx in aktlocalswitches) and is_mmx_able_array(p^.left^.resulttype) then
                                 begin
                                    p^.location.register:=getregistermmx;
                                    emit_reg_reg(A_PXOR,S_NO,R_MM7,R_MM7);
@@ -467,7 +467,7 @@ implementation
                  end;
               end
 {$ifdef SUPPORT_MMX}
-            else if (cs_mmx in aktswitches) and is_mmx_able_array(p^.left^.resulttype) then
+            else if (cs_mmx in aktlocalswitches) and is_mmx_able_array(p^.left^.resulttype) then
               begin
                  secondpass(p^.left);
                  p^.location.loc:=LOC_MMXREGISTER;
@@ -549,7 +549,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  1998-06-05 17:44:12  peter
+  Revision 1.4  1998-08-18 09:24:38  pierre
+    * small warning position bug fixed
+    * support_mmx switches splitting was missing
+    * rhide error and warning output corrected
+
+  Revision 1.3  1998/06/05 17:44:12  peter
     * splitted cgi386
 
   Revision 1.2  1998/06/02 17:02:59  pierre

@@ -321,7 +321,7 @@ unit types;
 
       begin
 {$ifdef SUPPORT_MMX}
-         if (cs_mmx_saturation in aktswitches) then
+         if (cs_mmx_saturation in aktlocalswitches) then
            begin
               is_mmx_able_array:=(p^.deftype=arraydef) and
                 (
@@ -862,14 +862,24 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.18  1998-08-14 18:18:49  peter
+  Revision 1.19  1998-08-18 09:24:48  pierre
+    * small warning position bug fixed
+    * support_mmx switches splitting was missing
+    * rhide error and warning output corrected
+
+  Revision 1.18  1998/08/14 18:18:49  peter
     + dynamic set contruction
     * smallsets are now working (always longint size)
 
   Revision 1.17  1998/08/05 16:00:17  florian
     * some fixes for ansi strings
     * $log$ to $Log$
-    * $log$ to Revision 1.18  1998-08-14 18:18:49  peter
+    * $log$ to Revision 1.19  1998-08-18 09:24:48  pierre
+    * $log$ to   * small warning position bug fixed
+    * $log$ to   * support_mmx switches splitting was missing
+    * $log$ to   * rhide error and warning output corrected
+    * $log$ to
+    * $log$ to Revision 1.18  1998/08/14 18:18:49  peter
     * $log$ to   + dynamic set contruction
     * $log$ to   * smallsets are now working (always longint size)
     * $log$ to changed

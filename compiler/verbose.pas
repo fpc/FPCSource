@@ -225,11 +225,11 @@ begin
   status.currentcolumn:=aktfilepos.column;
   if assigned(current_module) and
      ((current_module^.unit_index<>lastmoduleidx) or
-      (current_module^.current_index<>lastfileidx)) then
+      (aktfilepos.fileindex<>lastfileidx)) then
    begin
      status.currentsource:=current_module^.sourcefiles.get_file_name(current_module^.current_index);
      lastmoduleidx:=current_module^.unit_index;
-     lastfileidx:=current_module^.current_index;
+     lastfileidx:=aktfilepos.fileindex;
    end;
 end;
 
@@ -331,11 +331,11 @@ begin
   status.currentcolumn:=aktfilepos.column;
   if assigned(current_module) and
      ((current_module^.unit_index<>lastmoduleidx) or
-      (current_module^.current_index<>lastfileidx)) then
+      (aktfilepos.fileindex<>lastfileidx)) then
    begin
-     status.currentsource:=current_module^.sourcefiles.get_file_name(current_module^.current_index);
+     status.currentsource:=current_module^.sourcefiles.get_file_name(aktfilepos.fileindex);
      lastmoduleidx:=current_module^.unit_index;
-     lastfileidx:=current_module^.current_index;
+     lastfileidx:=aktfilepos.fileindex;
    end;
 { show comment }
   if do_comment(v,s) or dostop or (status.errorcount>=status.maxerrorcount) then
@@ -385,7 +385,12 @@ end.
 
 {
   $Log$
-  Revision 1.14  1998-08-11 14:09:15  peter
+  Revision 1.15  1998-08-18 09:24:49  pierre
+    * small warning position bug fixed
+    * support_mmx switches splitting was missing
+    * rhide error and warning output corrected
+
+  Revision 1.14  1998/08/11 14:09:15  peter
     * fixed some messages and smaller msgtxt.inc
 
   Revision 1.13  1998/08/10 14:50:37  peter

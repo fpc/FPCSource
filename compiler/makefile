@@ -68,6 +68,7 @@ EXEEXT=.exe
 endif
 
 REPLACE=mv -f
+REMOVE=rm
 CP=cp -f
 
 COMPILERDIR=$(BASEDIR)
@@ -213,9 +214,9 @@ MSGFILES:=$(wildcard *.msg)
 
 .PHONY : all clean info \
 	 cycle remake remake3 \
-	 install \
+	 install next \
 	 diff diff3 patch rtl toflor replacediff3 restorediff3 \
-	 test rtlzip \
+	 test rtlzip rtlclean \
 
 .pas.ppu:
 	$(COMPILER) $<
@@ -306,14 +307,17 @@ remake3: $(TEMPNAME3)
 	diff $(TEMPNAME3) $(EXENAME)
 
 $(TEMPNAME1) : $(EXENAME)
+	-$(REMOVE) $(TEMPNAME1)
 	$(REPLACE) $(EXENAME) $(TEMPNAME1)
 
 $(TEMPNAME2) : $(TEMPNAME1)
 	$(MAKE) 'PP=./$(TEMPNAME1)' 'OLDPP=' next
+	-$(REMOVE) $(TEMPNAME2)
 	$(REPLACE) $(EXENAME) $(TEMPNAME2)
 
 $(TEMPNAME3) : $(TEMPNAME2)
 	$(MAKE) 'PP=./$(TEMPNAME2)' 'OLDPP=./$(TEMPNAME1)' next
+	-$(REMOVE) $(TEMPNAME3)
 	$(REPLACE) $(EXENAME) $(TEMPNAME3)
 
 cycle:
@@ -440,7 +444,12 @@ rtlclean :
 # Test of log at the end
 # does CVS add # at start of each line ??
 # $Log$
-# Revision 1.24  1998-08-14 09:29:53  michael
+# Revision 1.25  1998-08-18 09:24:41  pierre
+#   * small warning position bug fixed
+#   * support_mmx switches splitting was missing
+#   * rhide error and warning output corrected
+#
+# Revision 1.24  1998/08/14 09:29:53  michael
 # Updated compiler number
 #
 # Revision 1.23  1998/08/06 10:42:56  pierre

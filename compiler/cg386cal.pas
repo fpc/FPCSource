@@ -2089,7 +2089,7 @@ implementation
             in_inc_byte..in_dec_dword:
               begin
                  secondpass(p^.left);
-                 if cs_check_overflow in aktswitches then
+                 if cs_check_overflow in aktlocalswitches then
                    begin
                    { SINCE THE CARRY FLAG IS NEVER SET BY DEC/INC, we must use  }
                    { ADD and SUB to check for overflow for unsigned operations. }
@@ -2314,7 +2314,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  1998-08-13 11:00:09  peter
+  Revision 1.16  1998-08-18 09:24:36  pierre
+    * small warning position bug fixed
+    * support_mmx switches splitting was missing
+    * rhide error and warning output corrected
+
+  Revision 1.15  1998/08/13 11:00:09  peter
     * fixed procedure<>procedure construct
 
   Revision 1.14  1998/08/11 14:05:33  peter

@@ -1240,9 +1240,9 @@ unit tree;
                comment(v_warning,'fileinfo.fileindex field different');
                error_found:=true;
             end;
-          if oldp^.pragmas<>p^.pragmas then
+          if oldp^.localswitches<>p^.localswitches then
             begin
-               comment(v_warning,'pragmas field different');
+               comment(v_warning,'localswitches field different');
                error_found:=true;
             end;
 {$ifdef extdebug}
@@ -1557,7 +1557,12 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.29  1998-08-14 18:18:48  peter
+  Revision 1.30  1998-08-18 09:24:47  pierre
+    * small warning position bug fixed
+    * support_mmx switches splitting was missing
+    * rhide error and warning output corrected
+
+  Revision 1.29  1998/08/14 18:18:48  peter
     + dynamic set contruction
     * smallsets are now working (always longint size)
 

@@ -1075,7 +1075,7 @@ unit pexpr;
                   ((p^.flags and pi_operator)<>0))}) and
                   (p^.retdef<>pdef(voiddef)) and
                   (token<>LKLAMMER) and
-                  (not ((cs_tp_compatible in aktswitches) and
+                  (not ((cs_tp_compatible in aktmoduleswitches) and
                   (afterassignment or in_args))) then
                  begin
                     p1:=genzeronode(funcretn);
@@ -1829,7 +1829,12 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.36  1998-08-15 16:50:29  peter
+  Revision 1.37  1998-08-18 09:24:43  pierre
+    * small warning position bug fixed
+    * support_mmx switches splitting was missing
+    * rhide error and warning output corrected
+
+  Revision 1.36  1998/08/15 16:50:29  peter
     * fixed proc()=expr which was not allowed anymore by my previous fix
 
   Revision 1.35  1998/08/14 18:18:46  peter

@@ -197,7 +197,7 @@ begin
         even if it does not yet use it PM }
         if status.use_gccoutput then
           hs:=gccfilename(status.currentsource)+':'+tostr(status.currentline)
-              +':'+tostr(status.currentcolumn)+': '+hs
+              +': '+hs+tostr(status.currentcolumn)+': '
         else
           hs:=status.currentsource+'('+tostr(status.currentline)
               +','+tostr(status.currentcolumn)+') '+hs;
@@ -234,7 +234,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  1998-08-11 14:02:45  peter
+  Revision 1.3  1998-08-18 09:24:40  pierre
+    * small warning position bug fixed
+    * support_mmx switches splitting was missing
+    * rhide error and warning output corrected
+
+  Revision 1.2  1998/08/11 14:02:45  peter
     * don't write line if no sourcefile is set
 
   Revision 1.1  1998/08/10 10:18:24  peter

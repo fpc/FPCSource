@@ -641,14 +641,14 @@ implementation
            hr^.scalefactor:=4;
            exprasmlist^.concat(new(pai386,op_ref(A_JMP,S_NO,hr)));
            { !!!!! generate tables
-             if not(cs_littlesize in aktswitches^ ) then
+             if not(cs_littlesize in aktlocalswitches) then
              jumpsegment^.concat(new(pai386,op_const(A_ALIGN,S_NO,4)));
            }
            jumpsegment^.concat(new(pai_label,init(table)));
              last:=min_;
            genitem(hp);
              { !!!!!!!
-           if not(cs_littlesize in aktswitches^ ) then
+           if not(cs_littlesize in aktlocalswitches) then
              exprasmlist^.concat(new(pai386,op_const(A_ALIGN,S_NO,4)));
            }
         end;
@@ -782,7 +782,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  1998-08-14 18:18:40  peter
+  Revision 1.6  1998-08-18 09:24:39  pierre
+    * small warning position bug fixed
+    * support_mmx switches splitting was missing
+    * rhide error and warning output corrected
+
+  Revision 1.5  1998/08/14 18:18:40  peter
     + dynamic set contruction
     * smallsets are now working (always longint size)
 

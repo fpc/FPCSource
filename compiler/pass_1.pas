@@ -1323,7 +1323,7 @@ unit pass_1;
               end;
            end
 {$ifdef SUPPORT_MMX}
-         else if (cs_mmx in aktmoduleswitches) and is_mmx_able_array(ld)
+         else if (cs_mmx in aktlocalswitches) and is_mmx_able_array(ld)
            and is_mmx_able_array(rd) and is_equal(ld,rd) then
            begin
               firstpass(p^.right);
@@ -1591,7 +1591,7 @@ unit pass_1;
                 p^.location.loc:=LOC_FPU;
            end
 {$ifdef SUPPORT_MMX}
-         else if (cs_mmx in aktmoduleswitches) and
+         else if (cs_mmx in aktlocalswitches) and
            is_mmx_able_array(p^.left^.resulttype) then
              begin
                if (p^.left^.location.loc<>LOC_MMXREGISTER) and
@@ -1599,7 +1599,7 @@ unit pass_1;
                  p^.registersmmx:=1;
                { if saturation is on, p^.left^.resulttype isn't
                  "mmx able" (FK)
-               if (cs_mmx_saturation in aktmoduleswitches^) and
+               if (cs_mmx_saturation in aktlocalswitches^) and
                  (porddef(parraydef(p^.resulttype)^.definition)^.typ in
                  [s32bit,u32bit]) then
                  Message(sym_e_type_mismatch);
@@ -1780,7 +1780,7 @@ unit pass_1;
            end
          else
 {$ifdef SUPPORT_MMX}
-           if (cs_mmx in aktmoduleswitches) and
+           if (cs_mmx in aktlocalswitches) and
              is_mmx_able_array(p^.left^.resulttype) then
              begin
                if (p^.left^.location.loc<>LOC_MMXREGISTER) and
@@ -3484,7 +3484,7 @@ unit pass_1;
               else
                 begin
 {$ifdef SUPPORT_MMX}
-                   if (cs_mmx in aktmoduleswitches) and
+                   if (cs_mmx in aktlocalswitches) and
                      is_mmx_able_array(p^.resulttype) then
                      begin
                         p^.location.loc:=LOC_MMXREGISTER;
@@ -5206,7 +5206,12 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.55  1998-08-14 18:18:44  peter
+  Revision 1.56  1998-08-18 09:24:42  pierre
+    * small warning position bug fixed
+    * support_mmx switches splitting was missing
+    * rhide error and warning output corrected
+
+  Revision 1.55  1998/08/14 18:18:44  peter
     + dynamic set contruction
     * smallsets are now working (always longint size)
 

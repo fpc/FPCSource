@@ -1,3 +1,4 @@
+
 {
     $Id$
     Copyright (C) 1995,97 by Florian Klaempfl
@@ -875,7 +876,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  1998-08-17 09:17:54  peter
+  Revision 1.25  1998-08-18 09:24:45  pierre
+    * small warning position bug fixed
+    * support_mmx switches splitting was missing
+    * rhide error and warning output corrected
+
+  Revision 1.24  1998/08/17 09:17:54  peter
     * static/shared linking updates
 
   Revision 1.23  1998/06/25 08:48:20  florian

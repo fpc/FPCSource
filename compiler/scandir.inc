@@ -459,17 +459,31 @@ const
         sw : tmoduleswitch;
       begin
         case t of
-{$ifdef SUPPORT_MMX}
-          _DIR_MMX : sw:=cs_mmx;
-   _DIR_SATURATION : sw:=cs_mmx_saturation;
-{$endif}
-   _DIR_SMARTLINK : sw:=cs_smartlink;
+           _DIR_SMARTLINK : sw:=cs_smartlink;
         end;
         current_scanner^.skipspace;
         if c='-' then
          aktmoduleswitches:=aktmoduleswitches-[sw]
         else
          aktmoduleswitches:=aktmoduleswitches+[sw];
+      end;
+
+
+    procedure dir_localswitch(t:tdirectivetoken);
+      var
+        sw : tlocalswitch;
+      begin
+        case t of
+{$ifdef SUPPORT_MMX}
+          _DIR_MMX : sw:=cs_mmx;
+          _DIR_SATURATION : sw:=cs_mmx_saturation;
+{$endif}
+        end;
+        current_scanner^.skipspace;
+        if c='-' then
+         aktlocalswitches:=aktlocalswitches-[sw]
+        else
+         aktlocalswitches:=aktlocalswitches+[sw];
       end;
 
 
@@ -640,11 +654,11 @@ const
          {_DIR_L} dir_linkobject,
          {_DIR_LINKLIB} dir_linklib,
          {_DIR_MESSAGE} dir_message,
-         {_DIR_MMX} dir_moduleswitch,
+         {_DIR_MMX} dir_localswitch,
          {_DIR_NOTE} dir_message,
          {_DIR_OUTPUT_FORMAT} dir_outputformat,
          {_DIR_PACKRECORDS} dir_packrecords,
-         {_DIR_SATURATION} dir_moduleswitch,
+         {_DIR_SATURATION} dir_localswitch,
          {_DIR_SMARTLINK} dir_moduleswitch,
          {_DIR_STOP} dir_message,
          {_DIR_UNDEF} dir_undef,
@@ -706,7 +720,12 @@ const
 
 {
   $Log$
-  Revision 1.18  1998-08-10 14:50:25  peter
+  Revision 1.19  1998-08-18 09:24:44  pierre
+    * small warning position bug fixed
+    * support_mmx switches splitting was missing
+    * rhide error and warning output corrected
+
+  Revision 1.18  1998/08/10 14:50:25  peter
     + localswitches, moduleswitches, globalswitches splitting
 
   Revision 1.17  1998/08/10 09:56:04  peter

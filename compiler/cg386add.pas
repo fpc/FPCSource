@@ -1042,7 +1042,7 @@ implementation
                    mmxbase:=mmx_type(p^.left^.resulttype);
                    case p^.treetype of
                       addn : begin
-                                if (cs_mmx_saturation in aktswitches) then
+                                if (cs_mmx_saturation in aktlocalswitches) then
                                   begin
                                      case mmxbase of
                                         mmxs8bit:
@@ -1076,7 +1076,7 @@ implementation
                                 end;
                              end;
                       subn : begin
-                                if (cs_mmx_saturation in aktswitches) then
+                                if (cs_mmx_saturation in aktlocalswitches) then
                                   begin
                                      case mmxbase of
                                         mmxs8bit:
@@ -1237,7 +1237,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  1998-08-14 18:18:37  peter
+  Revision 1.6  1998-08-18 09:24:35  pierre
+    * small warning position bug fixed
+    * support_mmx switches splitting was missing
+    * rhide error and warning output corrected
+
+  Revision 1.5  1998/08/14 18:18:37  peter
     + dynamic set contruction
     * smallsets are now working (always longint size)
 
