@@ -212,6 +212,9 @@ endif
 ifeq ($(OS_TARGET),netbsd)
 override COMPILER_SOURCEDIR+=unix
 endif
+ifeq ($(OS_TARGET),openbsd)
+override COMPILER_SOURCEDIR+=unix
+endif
 override COMPILER_TARGETDIR+=.
 ifdef REQUIRE_UNITSDIR
 override UNITSDIR+=$(REQUIRE_UNITSDIR)
