@@ -222,13 +222,13 @@ interface
       begin
         if (right.location.loc in [LOC_REGISTER,LOC_FPUREGISTER]) and
            not(
-               (location.loc=LOC_REGISTER) and
+               (location.loc = right.location.loc) and
                (location.register=right.location.register)
               ) then
           location_release(exprasmlist,right.location);
         if (left.location.loc in [LOC_REGISTER,LOC_FPUREGISTER]) and
            not(
-               (location.loc=LOC_REGISTER) and
+               (location.loc = left.location.loc) and
                (location.register=left.location.register)
               ) then
           location_release(exprasmlist,left.location);
@@ -735,7 +735,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2003-09-14 21:34:16  peter
+  Revision 1.19  2003-09-14 21:57:08  jonas
+    * fixed release_reg_left_right for fpu registers
+
+  Revision 1.18  2003/09/14 21:34:16  peter
     * fix setelementn support
     * fix loading of flags
 
