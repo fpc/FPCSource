@@ -81,7 +81,10 @@ begin
   current_module.linkothersharedlibs.add(SplitName(module),link_allways);
   { do nothing with the procedure, only set the mangledname }
   if name<>'' then
-    aktprocdef.setmangledname(name)
+   begin
+     aktprocdef.setmangledname(name);
+     aktprocdef.has_mangledname:=true;
+   end
   else
     message(parser_e_empty_import_name);
 end;
@@ -740,7 +743,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.14  2001-11-02 22:58:12  peter
+  Revision 1.15  2002-01-09 07:38:37  michael
+  + Patch from Peter for library imports
+
+  Revision 1.14  2001/11/02 22:58:12  peter
     * procsym definition rewrite
 
   Revision 1.13  2001/09/18 11:32:00  michael
