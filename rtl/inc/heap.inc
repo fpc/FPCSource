@@ -23,6 +23,7 @@
    CHECKHEAP    if you want to test the heap integrity
 
 }
+{$GOTO ON}
 
 { Memory manager }
 const
@@ -1099,7 +1100,10 @@ end;
 
 {
   $Log$
-  Revision 1.14  1999-09-08 16:14:41  peter
+  Revision 1.15  1999-09-17 10:38:00  michael
+  + Added goto on switch
+
+  Revision 1.14  1999/09/08 16:14:41  peter
     * pointer fixes
 
   Revision 1.13  1999/08/20 13:26:20  michael
