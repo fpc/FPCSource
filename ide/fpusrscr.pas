@@ -304,7 +304,10 @@ var
   W: word;
 begin
   Text:=''; Attr:='';
-  if (Line<GetHeight) and not assigned(GraphBuffer) and
+  if (Line<GetHeight) and
+{$ifdef USE_GRAPH_SWITCH}
+     not assigned(GraphBuffer) and
+{$endif USE_GRAPH_SWITCH}
      assigned(VBuffer) then
     begin
       W:=GetLineStartOfs(Line);
@@ -325,7 +328,7 @@ begin
         Text:='Graph driver: '+GraphDriverName
       else if (Line=2) then
         Text:='Graph mode: '+GraphModeName+' ('+
-              IntToStr(GraphXres)+'x'+IntToStr(GraphYres)+')';
+              IntToStr(GraphXres+1)+'x'+IntToStr(GraphYres+1)+')';
       Attr:=CharStr(chr($0F),Length(Text));
     end;
 {$else not USE_GRAPH_SWITCH}
@@ -357,12 +360,14 @@ begin
   if LastTextConsoleVideoInfo.Mode<>0 then
     begin
       ConsoleVideoInfo:=LastTextConsoleVideoInfo;
+{$ifdef USE_GRAPH_SWITCH}
       if assigned(GraphBuffer) then
         begin
           FreeMem(GraphBuffer,GraphImageSize);
           GraphBuffer:=nil;
           GraphImageSize:=0;
         end;
+{$endif USE_GRAPH_SWITCH}
     end;
 end;
 
@@ -1304,7 +1309,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.22  2002-09-21 22:22:10  pierre
+  Revision 1.23  2002-09-25 22:02:13  pierre
+   * fix compilation error
+
+  Revision 1.22  2002/09/21 22:22:10  pierre
    * new Restore method added, used for dos graphic applications
 
   Revision 1.21  2002/09/13 22:27:07  pierre
