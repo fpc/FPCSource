@@ -457,7 +457,6 @@ begin
   if a<>TextAttr then
    begin
      if not Redir then
-
       ttySendStr(Attr2Ansi(a,TextAttr));
      TextAttr:=a;
      OldTextAttr:=a;
@@ -686,7 +685,16 @@ Procedure ClrScr;
 Var
   CY        : Integer;
   oldflush  : boolean;
+  I : Integer;
+  
 Begin
+  { See if color has changed } 
+  if OldTextAttr<>TextAttr then
+   begin
+     i:=TextAttr;
+     TextAttr:=OldTextAttr;
+     ttyColor(i);
+   end;
   oldflush:=ttySetFlush(Flushing);
   if FullWin then
    begin
@@ -712,7 +720,16 @@ Procedure ClrEol;
 {
   Clear from current position to end of line.
 }
+Var I : integer;
+
 Begin
+  { See if color has changed } 
+  if OldTextAttr<>TextAttr then
+   begin
+     i:=TextAttr;
+     TextAttr:=OldTextAttr;
+     ttyColor(i);
+   end;
   if FullWin then
    begin
      if not Redir then
@@ -1444,7 +1461,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.2  1998-04-05 13:56:54  peter
+  Revision 1.3  1998-04-16 07:49:11  michael
+  * fixed bug. Clrscr and Clreol didn't take change in textattr in account.
+
+  Revision 1.2  1998/04/05 13:56:54  peter
     - fixed mouse to compile with $i386_att
     + linux crt supports redirecting (not Esc-codes anymore)
 
