@@ -671,13 +671,6 @@ procedure do_open(var f;p:pchar;flags:longint);
   when (flags and $1000)  the file will be truncate/rewritten
   when (flags and $10000) there is no check for close (needed for textfiles)
 }
-// Helper constants
-const
-  fmShareCompat    = $0000;
-  fmShareExclusive = $0010;
-  fmShareDenyWrite = $0020;
-  fmShareDenyRead  = $0030;
-  fmShareDenyNone  = $0040;
 var
   Action, Attrib, OpenFlags, FM: Cardinal;
 begin
@@ -1153,7 +1146,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.56  2003-11-03 09:42:28  marco
+  Revision 1.57  2003-11-06 17:20:44  yuri
+  * Unused constants removed
+
+  Revision 1.56  2003/11/03 09:42:28  marco
    * Peter's Cardinal<->Longint fixes patch
 
   Revision 1.55  2003/11/02 00:51:17  hajny
