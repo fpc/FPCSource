@@ -560,7 +560,7 @@ begin
   SetLength (S,P-PS);
   System.Move (PS^,Pointer(S)^,P-PS);
   If P^=#13 then P:=P+1;
-  If P^<>#0 then 
+  If P^=#10 then 
     P:=P+1; // Point to character after #10(#13)
   Result:=True;
 end;
@@ -941,7 +941,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  1999-07-07 12:34:01  peter
+  Revision 1.6  1999-11-25 13:28:13  michael
+  + Fixed bug in settext
+
+  Revision 1.5  1999/07/07 12:34:01  peter
     * removed debug writeln
 
   Revision 1.4  1999/05/26 13:22:23  michael
