@@ -43,7 +43,7 @@ implementation
 {$ifdef VER1_0}
 uses Linux;
 {$else}
-uses baseunix,Unix;
+uses baseunix, Unix;
 {$endif}
 
 const
@@ -112,8 +112,8 @@ begin
         if (FD_IsSet(CurIOCallback^.IOHandle,CurReadFDSet)) and
            (FD_IsSet(CurIOCallback^.IOHandle, PFDSet(Handle^.Data.FDData)[0])) and
         {$else}
-        if (fpFD_ISSET(CurIOCallback^.IOHandle,CurReadFDSet)>=0) and
-           (fpFD_ISSET(CurIOCallback^.IOHandle, PFDSet(Handle^.Data.FDData)[0])>=0) and
+        if (fpFD_ISSET(CurIOCallback^.IOHandle,CurReadFDSet) > 0) and
+           (fpFD_ISSET(CurIOCallback^.IOHandle, PFDSet(Handle^.Data.FDData)[0]) > 0) and
         {$endif}
           Assigned(CurIOCallback^.ReadCallback) then
         begin
@@ -128,8 +128,8 @@ begin
            (FD_IsSet(CurIOCallback^.IOHandle, CurWriteFDSet)) and
            (FD_IsSet(CurIOCallback^.IOHandle, PFDSet(Handle^.Data.FDData)[1])) and
 	{$else}  
-           (fpFD_ISSET(CurIOCallback^.IOHandle, CurWriteFDSet)>=0) and
-           (fpFD_ISSET(CurIOCallback^.IOHandle, PFDSet(Handle^.Data.FDData)[1])>=0) and
+           (fpFD_ISSET(CurIOCallback^.IOHandle, CurWriteFDSet) > 0) and
+           (fpFD_ISSET(CurIOCallback^.IOHandle, PFDSet(Handle^.Data.FDData)[1]) > 0) and
 	{$endif}  
           Assigned(CurIOCallback^.WriteCallback) then
         begin
@@ -221,7 +221,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  2003-11-21 01:06:18  sg
+  Revision 1.9  2003-11-30 12:26:54  sg
+  * Small typo fixes for making libasync working in mainbranch
+
+  Revision 1.8  2003/11/21 01:06:18  sg
   * Now resistent against clearing already removed notify handles
 
   Revision 1.7  2003/09/28 09:38:17  peter
