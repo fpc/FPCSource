@@ -188,7 +188,7 @@ alltbs : $(patsubst %.pp,%.res,$(wildcard tbs/tbs*.pp))
 
 allwebtbs : $(patsubst %.pp,%.res,$(wildcard webtbs/tbug*.pp))
 
-tbs0to99 : $(patsubst %.pp,%.res,$(wildcard tbs00*.pp))
+tbs0to99    : $(patsubst %.pp,%.res,$(wildcard tbs/tbs00*.pp))
 tbs100to199 : $(patsubst %.pp,%.res,$(wildcard tbs/tbs01*.pp))
 tbs200to299 : $(patsubst %.pp,%.res,$(wildcard tbs/tbs02*.pp))
 tbs300to399 : $(patsubst %.pp,%.res,$(wildcard tbs/tbs03*.pp))

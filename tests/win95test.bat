@@ -9,7 +9,8 @@ echo or use "win95test" to run the test first with ppc386 and again with ppwin32
 goto end
 :go32v2test
 set LONGLOG=1
-ppc386 -l >longlog
+ppc386 -l -iSO >longlog
+make clean
 make alltbf
 make tbs0to99
 make tbs100to199
@@ -20,9 +21,11 @@ make tbsexec100to199
 make tbsexec200to299
 make tbsexec300to399
 make allts alltf allto 
+make alltest
 make allwebtbf allwebtbs
 make allwebtbsexec
 make alltsexec
+make alltestexec
 cp log go32v2.log
 cp longlong go32v2.longlog
 if "%1"=="go32v2" goto end
@@ -30,7 +33,7 @@ if "%1"=="go32v2" goto end
 set LONGLOG=1
 set FPC=ppwin32
 make clean
-%FPC% -l > longlog
+%FPC% -l -iSO > longlog
 make alltbf
 make tbs0to99
 make tbs100to199
@@ -41,8 +44,10 @@ make tbsexec100to199
 make tbsexec200to299
 make tbsexec300to399
 make allts alltf allto 
+make alltest
 make allwebtbf allwebtbs
 make allwebtbsexec
+make alltestexec
 make alltsexec
 cp log win32.log
 cp longlong win32.longlog
