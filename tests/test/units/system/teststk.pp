@@ -1,3 +1,4 @@
+{ %RESULT=202 }
 {$ifdef linux}
   {$define nocheck}
 {$endif}
@@ -23,7 +24,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2002-01-19 12:37:12  peter
+  Revision 1.3  2002-03-05 21:54:09  carl
+  + indicate error code
+
+  Revision 1.2  2002/01/19 12:37:12  peter
     * no checking for linux
 
   Revision 1.1  2001/12/10 02:41:41  carl
