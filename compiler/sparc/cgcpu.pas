@@ -76,6 +76,7 @@ interface
         procedure a_cmp_const_reg_label(list:TAasmOutput;size:tcgsize;cmp_op:topcmp;a:aint;reg:tregister;l:tasmlabel);override;
         procedure a_cmp_reg_reg_label(list:TAasmOutput;size:tcgsize;cmp_op:topcmp;reg1,reg2:tregister;l:tasmlabel);override;
         procedure a_jmp_always(List:TAasmOutput;l:TAsmLabel);override;
+        procedure a_jmp_name(list : taasmoutput;const s : string);override;
         procedure a_jmp_cond(list:TAasmOutput;cond:TOpCmp;l:tasmlabel);{ override;}
         procedure a_jmp_flags(list:TAasmOutput;const f:TResFlags;l:tasmlabel);override;
         procedure g_flags2reg(list:TAasmOutput;Size:TCgSize;const f:tresflags;reg:TRegister);override;
@@ -823,6 +824,14 @@ implementation
       end;
 
 
+    procedure tcgsparc.a_jmp_name(list : taasmoutput;const s : string);
+      begin
+        List.Concat(TAiCpu.op_sym(A_BA,objectlibrary.newasmsymbol(s,AB_EXTERNAL,AT_FUNCTION)));
+        { Delay slot }
+        list.Concat(TAiCpu.Op_none(A_NOP));
+      end;
+
+
     procedure TCgSparc.a_jmp_cond(list:TAasmOutput;cond:TOpCmp;l:TAsmLabel);
       var
         ai:TAiCpu;
@@ -1207,7 +1216,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.89  2004-09-25 14:23:55  peter
+  Revision 1.90  2004-09-26 17:36:12  florian
+    + a_jmp_name for sparc added
+
+  Revision 1.89  2004/09/25 14:23:55  peter
     * ungetregister is now only used for cpuregisters, renamed to
       ungetcpuregister
     * renamed (get|unget)explicitregister(s) to ..cpuregister
