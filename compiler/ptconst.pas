@@ -405,43 +405,43 @@ unit ptconst;
               getsym(pattern,true);
               consume(ID);
               if srsym^.typ=unitsym then
-                      begin
-                         consume(POINT);
-                         getsymonlyin(punitsym(srsym)^.unitsymtable,pattern);
-                         consume(ID);
-                      end;
-                    if srsym^.typ<>procsym then
-                      Message(cg_e_illegal_expression)
-                    else
-                      begin
-                         pd:=pprocsym(srsym)^.definition;
-                         if assigned(pd^.nextoverloaded) then
-                           Message(parser_e_no_overloaded_procvars);
-                         if not((pprocvardef(def)^.options=pd^.options)) or
-                           not(is_equal(pprocvardef(def)^.retdef,pd^.retdef)) then
-                           Message(sym_e_type_mismatch)
-                           else
-                              begin
-                                 hp1:=pprocvardef(def)^.para1;
-                                 hp2:=pd^.para1;
-                                 while assigned(hp1) and assigned(hp2) do
-                                   begin
-                                      if not(is_equal(hp1^.data,hp2^.data)) or
-                                         not(hp1^.paratyp=hp2^.paratyp) then
-                                        begin
-                                           Message(sym_e_type_mismatch);
-                                           break;
-                                        end;
-                                      hp1:=hp1^.next;
-                                      hp2:=hp2^.next;
-                                   end;
-                                 if not((hp1=nil) and (hp2=nil)) then
-                                   Message(sym_e_type_mismatch);
-                              end;
-                         datasegment^.concat(new(pai_const,init_symbol(strpnew(pd^.mangledname))));
-                         if pd^.owner^.symtabletype=unitsymtable then
-                           concat_external(pd^.mangledname,EXT_NEAR);
-                      end;
+                begin
+                   consume(POINT);
+                   getsymonlyin(punitsym(srsym)^.unitsymtable,pattern);
+                   consume(ID);
+                end;
+              if srsym^.typ<>procsym then
+                Message(cg_e_illegal_expression)
+              else
+                begin
+                   pd:=pprocsym(srsym)^.definition;
+                   if assigned(pd^.nextoverloaded) then
+                     Message(parser_e_no_overloaded_procvars);
+                   if not((pprocvardef(def)^.options=pd^.options)) or
+                     not(is_equal(pprocvardef(def)^.retdef,pd^.retdef)) then
+                     Message(sym_e_type_mismatch)
+                     else
+                        begin
+                           hp1:=pprocvardef(def)^.para1;
+                           hp2:=pd^.para1;
+                           while assigned(hp1) and assigned(hp2) do
+                             begin
+                                if not(is_equal(hp1^.data,hp2^.data)) or
+                                   not(hp1^.paratyp=hp2^.paratyp) then
+                                  begin
+                                     Message(sym_e_type_mismatch);
+                                     break;
+                                  end;
+                                hp1:=hp1^.next;
+                                hp2:=hp2^.next;
+                             end;
+                           if not((hp1=nil) and (hp2=nil)) then
+                             Message(sym_e_type_mismatch);
+                        end;
+                   datasegment^.concat(new(pai_const,init_symbol(strpnew(pd^.mangledname))));
+                   if pd^.owner^.symtabletype=unitsymtable then
+                     concat_external(pd^.mangledname,EXT_NEAR);
+                end;
            end;
          { reads a typed constant record }
          recorddef:
@@ -492,7 +492,10 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.9  1998-07-20 22:17:16  florian
+  Revision 1.10  1998-07-21 11:16:25  florian
+    * bug0147 fixed
+
+  Revision 1.9  1998/07/20 22:17:16  florian
     * hex constants in numeric char (#$54#$43 ...) are now allowed
     * there was a bug in record_var_dec which prevents the used
       of nested variant records (for example drivers.tevent of tv)
