@@ -1,4 +1,4 @@
-programs bug0150;
+program bug0150;
 {
  bug to show that there is no assert() macro and directive
 }

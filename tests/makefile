@@ -13,7 +13,8 @@ ifdef DJGPP
 EXEEXT=.exe
 
 getreturncode : 
-	redir -e $(FILE).log -o $(FILE).log getret $(COMMAND)
+	pcs > $(FILE).log
+	redir -ea $(FILE).log -oa $(FILE).log getret $(COMMAND)
 	cp retcode $(FILE).$(RESEXT)
 
 else
@@ -220,7 +221,10 @@ info :
 	@echo run \'make tesiexec\' to test executables 
 	@echo that require interactive mode
 # $Log$
-# Revision 1.10  1999-01-15 17:41:58  pierre
+# Revision 1.11  1999-01-19 17:34:01  pierre
+#  several modifications
+#
+# Revision 1.10  1999/01/15 17:41:58  pierre
 #  + new bugs converted
 #
 # Revision 1.9  1998/11/10 11:13:07  pierre
