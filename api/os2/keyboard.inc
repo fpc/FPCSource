@@ -83,35 +83,39 @@ begin
 end;
 
 function PollKeyEvent: TKeyEvent;
+var
+ K: TKbdKeyInfo;
 begin
- if PendingKeyEvent <> 0 then PollKeyEvent := PendingKeyEvent else
+ if PendingKeyEvent = 0 then
  begin
-{  regs.ah:=$11;
-  realintr($16,regs);
-  if (regs.realflags and zeroflag<>0) then
-   exit(0);
-  if (regs.al=$e0) and (regs.ah<>0) then
-   regs.al:=0;
-  PollKeyEvent:=regs.ax or ((mem[$40:$17] and $f) shl 16);
-}
+  KbdGetFocus (IO_NoWait, Handle);
+  if (KbdCharIn (K, IO_NoWait, Handle) <> NoError) or
+       (K.fbStatus and $40 = 0) then FillChar (K, SizeOf (K), 0) else
+            with K do PendingKeyEvent := cardinal (fsState or $F) shl 16 or
+                               cardinal (byte (chScan)) shl 8 or byte (chChar);
  end;
+ PollKeyEvent := PendingKeyEvent;
+ if PendingKeyEvent and $FFFF = 0 then PendingKeyEvent := 0;
 end;
 
 function PollShiftStateEvent: TKeyEvent;
 begin
 end;
 
-function TranslateKeyEvent(KeyEvent: TKeyEvent): TKeyEvent;
+function TranslateKeyEvent (KeyEvent: TKeyEvent): TKeyEvent;
 begin
 end;
 
-function TranslateKeyEventUniCode(KeyEvent: TKeyEvent): TKeyEvent;
+function TranslateKeyEventUniCode (KeyEvent: TKeyEvent): TKeyEvent;
 begin
 end;
 
 {
   $Log$
-  Revision 1.2  2000-01-09 20:42:05  hajny
+  Revision 1.3  2000-03-19 11:29:07  hajny
+    * PollKeyEvent implemented
+
+  Revision 1.2  2000/01/09 20:42:05  hajny
     + the first part of implementation
 
   Revision 1.1  2000/01/06 01:20:31  peter
