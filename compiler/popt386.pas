@@ -345,7 +345,7 @@ Begin
                    {fst can't store an extended value!}
                            If (Pai386(p)^.Size <> S_FX) Then
                              Begin
-                               If (Pai386(p)^._operator = A_FLD) Then
+                               If (Pai386(p)^._operator = A_FSTP) Then
                                  Pai386(p)^._operator := A_FST
                                Else Pai386(p)^._operator := A_FIST;
                                AsmL^.Remove(hp1);
@@ -1577,7 +1577,10 @@ End.
 
 {
  $Log$
- Revision 1.31  1998-12-15 22:30:39  jonas
+ Revision 1.32  1998-12-16 12:09:29  jonas
+   * fixed fistp/fild optimization
+
+ Revision 1.31  1998/12/15 22:30:39  jonas
    + change "sub/add const1, reg" or "dec reg" followed by "sub const2, reg" to one
      "sub const3, reg"
    * some small cleaning up
