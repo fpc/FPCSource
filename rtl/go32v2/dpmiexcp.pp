@@ -749,8 +749,13 @@ end;
 procedure show_call_frame(djgpp_exception_state : pexception_state);
 begin
   errln('Call frame traceback EIPs:');
+{$ifdef VER1_0}
   errln(BackTraceStrFunc(djgpp_exception_state^.__eip));
   dump_stack(stderr,djgpp_exception_state^.__ebp);
+{$else}
+  errln(BackTraceStrFunc(Pointer(djgpp_exception_state^.__eip)));
+  dump_stack(stderr,Pointer(djgpp_exception_state^.__ebp));
+{$endif}
 end;
 
 
@@ -1515,7 +1520,11 @@ begin
       eip:=djgpp_exception_state_ptr^.__eip;
       ebp:=djgpp_exception_state_ptr^.__ebp;
       djgpp_exception_state_ptr:=djgpp_exception_state_ptr^.__exception_ptr;
+{$ifdef VER1_0}
       HandleErrorAddrFrame(ErrorOfSig,eip,ebp);
+{$else}
+      HandleErrorAddrFrame(ErrorOfSig,pointer(eip),pointer(ebp));
+{$endif}
     End
   else
     { probably higher level is required }
@@ -1537,7 +1546,10 @@ end;
 {$endif IN_SYSTEM}
 {
   $Log$
-  Revision 1.11  2002-10-14 19:39:16  peter
+  Revision 1.12  2003-03-18 08:48:41  michael
+  + Patch from peter to correct frame trace
+
+  Revision 1.11  2002/10/14 19:39:16  peter
     * threads unit added for thread support
 
   Revision 1.10  2002/09/07 16:01:18  peter
