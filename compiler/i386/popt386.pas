@@ -697,47 +697,39 @@ Begin
                 Begin
                   If (Taicpu(p).oper[0].typ = top_const) And
                      (Taicpu(p).oper[1].typ in [top_reg,top_ref]) And
-                     (Taicpu(p).oper[0].val = 0) Then
-                    If GetNextInstruction(p, hp1) And
-                       (hp1.typ = ait_instruction) And
-                       (Taicpu(hp1).is_jmp) and
-                       (Taicpu(hp1).opcode=A_Jcc) and
-                       (Taicpu(hp1).condition in [C_LE,C_BE]) and
-                       GetNextInstruction(hp1,hp2) and
-                       (hp2.typ = ait_instruction) and
-                       (Taicpu(hp2).opcode = A_DEC) And
-                       OpsEqual(Taicpu(hp2).oper[0],Taicpu(p).oper[1]) And
-                       GetNextInstruction(hp2, hp3) And
-                       (hp3.typ = ait_instruction) and
-                       (Taicpu(hp3).is_jmp) and
-                       (Taicpu(hp3).opcode = A_JMP) And
-                       GetNextInstruction(hp3, hp4) And
-                       FindLabel(tasmlabel(Taicpu(hp1).oper[0].sym),hp4)
-                      Then
-                        Begin
-                          Taicpu(hp2).Opcode := A_SUB;
-                          Taicpu(hp2).Loadoper(1,Taicpu(hp2).oper[0]);
-                          Taicpu(hp2).LoadConst(0,1);
-                          Taicpu(hp2).ops:=2;
-                          Taicpu(hp3).Opcode := A_Jcc;
-                          Case Taicpu(hp1).condition of
-                            C_LE: Taicpu(hp3).condition := C_GE;
-                            C_BE: Taicpu(hp3).condition := C_AE;
-                          End;
-                          asml.Remove(p);
-                          asml.Remove(hp1);
-                          p.free;
-                          hp1.free;
-                          p := hp2;
-                          continue;
-                        End
-                      Else
-                 {change "cmp $0, %reg" to "test %reg, %reg"}
-                  If (Taicpu(p).oper[1].typ = top_reg) Then
-                      Begin
-                        Taicpu(p).opcode := A_TEST;
-                        Taicpu(p).loadreg(0,Taicpu(p).oper[1].reg);
+                     (Taicpu(p).oper[0].val = 0) and
+                     GetNextInstruction(p, hp1) And
+                     (hp1.typ = ait_instruction) And
+                     (Taicpu(hp1).is_jmp) and
+                     (Taicpu(hp1).opcode=A_Jcc) and
+                     (Taicpu(hp1).condition in [C_LE,C_BE]) and
+                     GetNextInstruction(hp1,hp2) and
+                     (hp2.typ = ait_instruction) and
+                     (Taicpu(hp2).opcode = A_DEC) And
+                     OpsEqual(Taicpu(hp2).oper[0],Taicpu(p).oper[1]) And
+                     GetNextInstruction(hp2, hp3) And
+                     (hp3.typ = ait_instruction) and
+                     (Taicpu(hp3).is_jmp) and
+                     (Taicpu(hp3).opcode = A_JMP) And
+                     GetNextInstruction(hp3, hp4) And
+                     FindLabel(tasmlabel(Taicpu(hp1).oper[0].sym),hp4) Then
+                    Begin
+                      Taicpu(hp2).Opcode := A_SUB;
+                      Taicpu(hp2).Loadoper(1,Taicpu(hp2).oper[0]);
+                      Taicpu(hp2).LoadConst(0,1);
+                      Taicpu(hp2).ops:=2;
+                      Taicpu(hp3).Opcode := A_Jcc;
+                      Case Taicpu(hp1).condition of
+                        C_LE: Taicpu(hp3).condition := C_GE;
+                        C_BE: Taicpu(hp3).condition := C_AE;
                       End;
+                      asml.Remove(p);
+                      asml.Remove(hp1);
+                      p.free;
+                      hp1.free;
+                      p := hp2;
+                      continue;
+                    End
                 End;
               A_FLD:
                 Begin
@@ -1049,7 +1041,7 @@ Begin
                                     Begin
                                       TmpUsedRegs := UsedRegs;
                                       UpdateUsedRegs(TmpUsedRegs, Tai(hp1.next));
-                                      If (Taicpu(p).oper[0].typ = top_reg) And
+                                      If (Taicpu(p).oper[1].typ = top_ref) And
                                         { mov reg1, mem1
                                           mov mem2, reg1 }
                                          GetNextInstruction(hp1, hp2) And
@@ -1869,54 +1861,6 @@ Begin
                      End;
                    End
                 End;
-              A_TEST, A_OR:
-                {removes the line marked with (x) from the sequence
-                 And/or/xor/add/sub/... $x, %y
-                 test/or %y, %y   (x)
-                 j(n)z _Label
-                    as the first instruction already adjusts the ZF}
-                 Begin
-                   If OpsEqual(Taicpu(p).oper[0],Taicpu(p).oper[1]) Then
-                    If GetLastInstruction(p, hp1) And
-                      (Tai(hp1).typ = ait_instruction) Then
-                     Case Taicpu(hp1).opcode Of
-                       A_ADD, A_SUB, A_OR, A_XOR, A_AND{, A_SHL, A_SHR}:
-                         Begin
-                           If OpsEqual(Taicpu(hp1).oper[1],Taicpu(p).oper[0]) Then
-                             Begin
-                               hp1 := Tai(p.next);
-                               asml.remove(p);
-                               p.free;
-                               p := Tai(hp1);
-                               continue
-                             End;
-                         End;
-                       A_DEC, A_INC, A_NEG:
-                         Begin
-                           If OpsEqual(Taicpu(hp1).oper[0],Taicpu(p).oper[0]) Then
-                             Begin
-                               Case Taicpu(hp1).opcode Of
-                                 A_DEC, A_INC:
- {replace inc/dec with add/sub 1, because inc/dec doesn't set the carry flag}
-                                   Begin
-                                     Case Taicpu(hp1).opcode Of
-                                       A_DEC: Taicpu(hp1).opcode := A_SUB;
-                                       A_INC: Taicpu(hp1).opcode := A_ADD;
-                                     End;
-                                     Taicpu(hp1).Loadoper(1,Taicpu(hp1).oper[0]);
-                                     Taicpu(hp1).LoadConst(0,1);
-                                     Taicpu(hp1).ops:=2;
-                                   End
-                                 End;
-                               hp1 := Tai(p.next);
-                               asml.remove(p);
-                               p.free;
-                               p := Tai(hp1);
-                               continue
-                             End;
-                         End
-                     End
-                 End;
             End;
           End;
       End;
@@ -1949,6 +1893,18 @@ Begin
                     asml.Remove(hp1);
                     hp1.free;
                   End;
+              A_CMP:
+                Begin
+                  if (Taicpu(p).oper[0].typ = top_const) and
+                     (Taicpu(p).oper[0].val = 0) and
+                     (Taicpu(p).oper[1].typ = top_reg) then
+                   {change "cmp $0, %reg" to "test %reg, %reg"}
+                    begin
+                      Taicpu(p).opcode := A_TEST;
+                      Taicpu(p).loadreg(0,Taicpu(p).oper[1].reg);
+                      continue;
+                    end;
+                End;
               A_MOV:
                 if (Taicpu(p).oper[0].typ = Top_Const) And
                    (Taicpu(p).oper[0].val = 0) And
@@ -2007,7 +1963,55 @@ Begin
                               Taicpu(p).LoadReg(1,Reg32ToReg8(Taicpu(p).oper[1].reg));
                               InsertLLItem(AsmL,p.previous, p, hp1);
                             End;
-                End;
+                 End;
+              A_TEST, A_OR:
+                {removes the line marked with (x) from the sequence
+                 And/or/xor/add/sub/... $x, %y
+                 test/or %y, %y   (x)
+                 j(n)z _Label
+                    as the first instruction already adjusts the ZF}
+                 Begin
+                   If OpsEqual(Taicpu(p).oper[0],Taicpu(p).oper[1]) Then
+                    If GetLastInstruction(p, hp1) And
+                      (Tai(hp1).typ = ait_instruction) Then
+                     Case Taicpu(hp1).opcode Of
+                       A_ADD, A_SUB, A_OR, A_XOR, A_AND{, A_SHL, A_SHR}:
+                         Begin
+                           If OpsEqual(Taicpu(hp1).oper[1],Taicpu(p).oper[0]) Then
+                             Begin
+                               hp1 := Tai(p.next);
+                               asml.remove(p);
+                               p.free;
+                               p := Tai(hp1);
+                               continue
+                             End;
+                         End;
+                       A_DEC, A_INC, A_NEG:
+                         Begin
+                           If OpsEqual(Taicpu(hp1).oper[0],Taicpu(p).oper[0]) Then
+                             Begin
+                               Case Taicpu(hp1).opcode Of
+                                 A_DEC, A_INC:
+ {replace inc/dec with add/sub 1, because inc/dec doesn't set the carry flag}
+                                   Begin
+                                     Case Taicpu(hp1).opcode Of
+                                       A_DEC: Taicpu(hp1).opcode := A_SUB;
+                                       A_INC: Taicpu(hp1).opcode := A_ADD;
+                                     End;
+                                     Taicpu(hp1).Loadoper(1,Taicpu(hp1).oper[0]);
+                                     Taicpu(hp1).LoadConst(0,1);
+                                     Taicpu(hp1).ops:=2;
+                                   End
+                                 End;
+                               hp1 := Tai(p.next);
+                               asml.remove(p);
+                               p.free;
+                               p := Tai(hp1);
+                               continue
+                             End;
+                         End
+                     End
+                 End;
             End;
           End;
       End;
@@ -2021,7 +2025,12 @@ End.
 
 {
   $Log$
-  Revision 1.15  2001-08-26 13:37:01  florian
+  Revision 1.16  2001-10-12 13:53:24  jonas
+    * fixed small crashing bug ("merged")
+    * some more optimizations are now only done once at the end of the optimizing
+      cycle instead of every iteration
+
+  Revision 1.15  2001/08/26 13:37:01  florian
     * some cg reorganisation
     * some PPC updates
 
