@@ -772,7 +772,8 @@ implementation
                  objectdef :
                    begin
                      { class types and class reference type
-                       can be assigned to void pointers      }
+                       can be assigned to void pointers, but it is less
+                       preferred than assigning to a related objectdef }
                      if (
                          is_class_or_interface(def_from) or
                          (def_from.deftype=classrefdef)
@@ -781,7 +782,7 @@ implementation
                         (torddef(tpointerdef(def_to).pointertype.def).typ=uvoid) then
                        begin
                          doconv:=tc_equal;
-                         eq:=te_convert_l1;
+                         eq:=te_convert_l2;
                        end;
                    end;
                end;
@@ -1262,7 +1263,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.42  2004-01-14 21:44:16  peter
+  Revision 1.43  2004-01-31 14:50:54  peter
+    * prefere tobject-tobject over tobject-pointer
+
+  Revision 1.42  2004/01/14 21:44:16  peter
     * give penalty in float-float conversion when precision is lost
 
   Revision 1.41  2004/01/06 02:17:44  florian
