@@ -124,19 +124,7 @@ end ['EAX','ECX','ESI','EDI'];
 
 
 function strlen(p : pchar) : longint;assembler;
-asm
-        cld
-        xorl    %eax,%eax
-        movl    p,%edi
-        orl     %edi,%edi
-        jz      .LNil
-        movl    $0xffffffff,%ecx
-        repne
-        scasb
-        movl    $0xfffffffe,%eax
-        subl    %ecx,%eax
-.LNil:
-end ['EDI','ECX','EAX'];
+{$i strlen.inc}
 
 
 function strend(p : pchar) : pchar;assembler;
@@ -463,7 +451,13 @@ end ['EAX','ESI','EDI'];
 
 {
   $Log$
-  Revision 1.5  2001-02-17 11:34:00  jonas
+  Revision 1.6  2001-03-05 17:10:04  jonas
+    * moved implementations of strlen and strpas to separate include files
+      (they were duplicated in i386.inc and strings.inc/stringss.inc)
+    * strpas supports 'nil' pchars again (returns an empty string)
+      (both merged)
+
+  Revision 1.5  2001/02/17 11:34:00  jonas
     * fixed bug in strscan (returned nil instead of strend for #0) and made it 40% faster
 
   Revision 1.4  2001/02/10 16:08:46  jonas

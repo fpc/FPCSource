@@ -846,79 +846,11 @@ end;
 
 {$define FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
 function strpas(p:pchar):shortstring;[public,alias:'FPC_PCHAR_TO_SHORTSTR'];
-begin
-asm
-        movl    p,%esi
-        movl    __RESULT,%edi
-        leal    3(%esi),%edx
-        movl    $1,%ecx
-        andl    $-4,%edx
-        // skip length byte
-        incl    %edi
-        subl    %esi,%edx
-        jz      .LStrPasAligned
-        // align source to multiple of 4 (not dest, because we can't read past
-        // the end of the source, since that may be past the end of the heap
-        // -> sigsegv!!)
-.LStrPasAlignLoop:
-        movb    (%esi),%al
-        incl    %esi
-        testb   %al,%al
-        jz      .LStrPasDone
-        incl    %edi
-        incb    %cl
-        decb    %dl
-        movb    %al,-1(%edi)
-        jne     .LStrPasAlignLoop
-        .balign  16
-.LStrPasAligned:
-        movl    (%esi),%ebx
-        addl    $4,%edi
-        leal    0x0fefefeff(%ebx),%eax
-        movl    %ebx,%edx
-        addl    $4,%esi
-        notl    %edx
-        andl    %edx,%eax
-        addl    $4,%ecx
-        andl    $0x080808080,%eax
-        movl    %ebx,-4(%edi)
-        jnz     .LStrPasEndFound
-        cmpl    $252,%ecx
-        ja      .LStrPasPreEndLoop
-        jmp     .LStrPasAligned
-.LStrPasEndFound:
-        subl    $4,%ecx
-        // this won't overwrite data since the result = 255 char string
-        // and we never process more than the first 255 chars of p
-        shrl    $8,%eax
-        jc      .LStrPasDone
-        incl    %ecx
-        shrl    $8,%eax
-        jc      .LStrPasDone
-        incl    %ecx
-        shrl    $8,%eax
-        jc      .LStrPasDone
-        incl    %ecx
-        jmp     .LStrPasDone
-.LStrPasPreEndLoop:
-        testb   %cl,%cl
-        jz      .LStrPasDone
-        movl    (%esi),%eax
-.LStrPasEndLoop:
-        testb   %al,%al
-        jz      .LStrPasDone
-        movb    %al,(%edi)
-        shrl    $8,%eax
-        incl    %edi
-        incb    %cl
-        jnz     .LStrPasEndLoop
-.LStrPasDone:
-        movl    __RESULT,%edi
-        addb    $255,%cl
-        movb    %cl,(%edi)
-end ['EAX','EBX','ECX','EDX','ESI','EDI'];
-end;
+{$include strpas.inc}
 
+{$define FPC_SYSTEM_HAS_STRLEN}
+function strlen(p:pchar):longint;assembler;
+{$include strlen.inc}
 
 {$define FPC_SYSTEM_HAS_FPC_CHARARRAY_TO_SHORTSTR}
 function strchararray(p:pchar; l : longint):shortstring;[public,alias:'FPC_CHARARRAY_TO_SHORTSTR'];
@@ -954,24 +886,6 @@ begin
   end ['ECX','EAX','ESI','EDI'];
 end;
 
-
-{$define FPC_SYSTEM_HAS_STRLEN}
-function strlen(p:pchar):longint;assembler;
-asm
-        movl    p,%edi
-        movl    $0xffffffff,%ecx
-        xorl    %eax,%eax
-        cld
-        repne
-        scasb
-        movl    $0xfffffffe,%eax
-        subl    %ecx,%eax
-end ['EDI','ECX','EAX'];
-
-
-{****************************************************************************
-                       Caller/StackFrame Helpers
-****************************************************************************}
 
 {$define FPC_SYSTEM_HAS_GET_FRAME}
 function get_frame:longint;assembler;
@@ -1197,7 +1111,13 @@ procedure inclocked(var l : longint);assembler;
 
 {
   $Log$
-  Revision 1.7  2001-03-04 17:31:34  jonas
+  Revision 1.8  2001-03-05 17:10:04  jonas
+    * moved implementations of strlen and strpas to separate include files
+      (they were duplicated in i386.inc and strings.inc/stringss.inc)
+    * strpas supports 'nil' pchars again (returns an empty string)
+      (both merged)
+
+  Revision 1.7  2001/03/04 17:31:34  jonas
     * fixed all implementations of strpas
 
   Revision 1.5  2000/11/12 23:23:34  florian
