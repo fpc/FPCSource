@@ -78,7 +78,7 @@ LStrCopyEndFound:
         cntlzw  r10,r10
         addi    r9,r9,3
 LStrCopyWrapUpLoop:
-        subi    r10,r10,8
+        subic.  r10,r10,8
         rlwinm  r0,r0,8,0,31
         stbu    r0,1(r9)
         bge     LStrCopyWrapUpLoop
@@ -464,7 +464,10 @@ end ['R0','R9','R10','CR0','CR1'];
 
 {
   $Log$
-  Revision 1.14  2002-09-11 07:49:40  jonas
+  Revision 1.15  2003-05-17 00:01:13  jonas
+    * fixed strcopy
+
+  Revision 1.14  2002/09/11 07:49:40  jonas
     * fixed assembler errors
 
   Revision 1.13  2002/09/07 16:01:26  peter
