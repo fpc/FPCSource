@@ -14,7 +14,7 @@ package=baseemx.zip,~B~asic system for EMX (required)
 package=asldemx.zip,GNU ~L~inker and assembler for EMX (required)
 package=gdbemx.zip,GNU ~D~ebugger for EMX and PMGDB front-end
 package=utilemx.zip,GNU ~U~tilities (for makefiles)
-package=demos.zip,D~e~mos
+package=demo.zip,D~e~mos
 package=docs-htm.zip,Documentation (~H~TML)
 package=rl09912s.zip,~R~un time library sources
 package=pp09912s.zip,~C~ompiler sources
@@ -142,10 +142,7 @@ defaultcfg=
 -Fu$1/rtl/i386
 
 # searchpath for includefiles
--Fi$1/inc;$1/rtl/inc;$1/i386;$1/rtl/i386
-
-# searchpath for objectfiles
--Fo$1/inc;$1/rtl/inc;$1/i386;$1/rtl/i386
+-Fi$1/inc;$1/rtl/inc;$1/rtl/i386
 
 # searchpath for units (does the same as -Up) and other system dependent things
 #IFDEF Go32V1
@@ -153,8 +150,10 @@ defaultcfg=
   -FD$1/bin/go32v1
   #IFDEF FPC_LINK_STATIC
     -Fu$1/rtl/go32v1/static
+    -Fu$1/units/go32v1/static
   #ELSE
     -Fu$1/rtl/go32v1
+    -Fu$1/units/go32v1
   #ENDIF
 #ENDIF
 #IFDEF Go32V2
@@ -162,8 +161,10 @@ defaultcfg=
   -FD$1/bin/go32v2
   #IFDEF FPC_LINK_STATIC
     -Fu$1/rtl/go32v2/static
+    -Fu$1/units/go32v2/static
   #ELSE
     -Fu$1/rtl/go32v2
+    -Fu$1/units/go32v2
   #ENDIF
 #ENDIF
 #IFDEF Win32
@@ -171,8 +172,10 @@ defaultcfg=
   -FD$1/bin/win32
   #IFDEF FPC_LINK_STATIC
     -Fu$1/rtl/win32/static
+    -Fu$1/units/win32/static
   #ELSE
     -Fu$1/rtl/win32
+    -Fu$1/units/win32
   #ENDIF
 #ENDIF
 #IFDEF OS2
@@ -180,8 +183,10 @@ defaultcfg=
   -FD$1/bin/os2
   #IFDEF FPC_LINK_STATIC
     -Fu$1/rtl/os2/static
+    -Fu$1/units/os2/static
   #ELSE
     -Fu$1/rtl/os2
+    -Fu$1/units/os2
   #ENDIF
 #ENDIF
 #IFDEF Linux
