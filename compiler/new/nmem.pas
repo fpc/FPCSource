@@ -540,7 +540,7 @@ unit nmem;
                                    cg^.a_param_ref_addr(list,left^.location.reference,1);
                                    cg^.a_call_name(list,'FPC_DECREF',0)
                                 end;
-                              cg^.g_concatcopy(right^.location.reference,
+                              cg^.g_concatcopy(list,right^.location.reference,
                                 left^.location.reference,left^.resulttype^.size,false);
                               tg.ungetiftemp(right^.location.reference);
                            end;
@@ -709,7 +709,11 @@ unit nmem;
 end.
 {
   $Log$
-  Revision 1.9  1999-08-06 18:05:54  florian
+  Revision 1.10  1999-08-18 17:05:56  florian
+    + implemented initilizing of data for the new code generator
+      so it should compile now simple programs
+
+  Revision 1.9  1999/08/06 18:05:54  florian
     * implemented some stuff for assignments
 
   Revision 1.8  1999/08/06 15:53:51  florian

@@ -755,6 +755,14 @@ begin
     target_i386_Go32v2 :
       linker:=new(plinkergo32v2,Init);
 {$endif i386}
+{$ifdef alpha}
+    target_alpha_linux:
+      linker:=new(plinker,Init);
+{$endif i386}
+{$ifdef powerpc}
+    target_powerpc_linux:
+      linker:=new(plinker,Init);
+{$endif powerpc}
     else
       linker:=new(plinker,Init);
   end;
@@ -771,7 +779,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.67  1999-08-16 15:35:23  pierre
+  Revision 1.68  1999-08-18 17:05:53  florian
+    + implemented initilizing of data for the new code generator
+      so it should compile now simple programs
+
+  Revision 1.67  1999/08/16 15:35:23  pierre
     * fix for DLL relocation problems
     * external bss vars had wrong stabs for pecoff
     + -WB11000000 to specify default image base, allows to

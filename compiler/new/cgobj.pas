@@ -38,7 +38,7 @@ unit cgobj;
           scratch_register_array_pointer : aword;
           unusedscratchregisters : tregisterset;
 
-          alignment : talignment
+          alignment : talignment;
           {************************************************}
           {                 basic routines                 }
           constructor init;
@@ -59,17 +59,22 @@ unit cgobj;
           {************************************************}
           { code generation for subroutine entry/exit code }
 
+          { initilizes data of type t                           }
+          { if is_already_ref is true then the routines assumes }
+          { that r points to the data to initialize             }
+          procedure g_initialize(list : paasmoutput;t : pdef;const ref : treference;is_already_ref : boolean);
+
+          { finalizes data of type t                            }
+          { if is_already_ref is true then the routines assumes }
+          { that r points to the data to finalizes              }
+          procedure g_finalize(list : paasmoutput;t : pdef;const ref : treference;is_already_ref : boolean);
+
           { helper routines }
           procedure g_initialize_data(list : paasmoutput;p : psym);
           procedure g_incr_data(list : paasmoutput;p : psym);
           procedure g_finalize_data(list : paasmoutput;p : pnamedindexobject);
           procedure g_copyvalueparas(list : paasmoutput;p : pnamedindexobject);
           procedure g_finalizetempansistrings(list : paasmoutput);
-
-          { finalizes data of type t                            }
-          { if is_already_ref is true then the routines assumes }
-          { that r points to the data to finalizes              }
-          procedure g_finalize(list : paasmoutput;t : pdef;const ref : treference;is_already_ref : boolean);
 
           procedure g_entrycode(list : paasmoutput;
             const proc_names : tstringcontainer;make_global : boolean;
@@ -381,6 +386,31 @@ unit cgobj;
                   Code generation for subroutine entry- and exit code
  *****************************************************************************}
 
+    { initilizes data of type t                           }
+    { if is_already_ref is true then the routines assumes }
+    { that r points to the data to initialize             }
+    procedure tcg.g_initialize(list : paasmoutput;t : pdef;const ref : treference;is_already_ref : boolean);
+
+      var
+         hr : treference;
+
+      begin
+         if is_ansistring(t) or
+           is_widestring(t) then
+           a_load_const_ref(list,OS_8,0,ref)
+         else
+           begin
+              reset_reference(hr);
+              hr.symbol:=t^.get_inittable_label;
+              a_param_ref_addr(list,hr,2);
+              if is_already_ref then
+                a_param_ref(list,OS_ADDR,ref,1)
+              else
+                a_param_ref_addr(list,ref,1);
+              a_call_name(list,'FPC_INITIALIZE',0);
+           end;
+      end;
+
     procedure tcg.g_finalize(list : paasmoutput;t : pdef;const ref : treference;is_already_ref : boolean);
 
       var
@@ -405,12 +435,32 @@ unit cgobj;
            end;
       end;
 
-
     { generates the code for initialisation of local data }
     procedure tcg.g_initialize_data(list : paasmoutput;p : psym);
 
+      var
+         hr : treference;
+
       begin
-         runerror(255);
+         if (psym(p)^.typ=varsym) and
+            assigned(pvarsym(p)^.definition) and
+            not((pvarsym(p)^.definition^.deftype=objectdef) and
+              pobjectdef(pvarsym(p)^.definition)^.is_class) and
+            pvarsym(p)^.definition^.needs_inittable then
+           begin
+              procinfo.flags:=procinfo.flags or pi_needs_implicit_finally;
+              reset_reference(hr);
+              if psym(p)^.owner^.symtabletype=localsymtable then
+                begin
+                   hr.base:=procinfo.framepointer;
+                   hr.offset:=-pvarsym(p)^.address;
+                end
+              else
+                begin
+                   hr.symbol:=newasmsymbol(pvarsym(p)^.mangledname);
+                end;
+              g_initialize(list,pvarsym(p)^.definition,hr,false);
+           end;
       end;
 
 
@@ -444,8 +494,40 @@ unit cgobj;
     { generates the code for finalisation of local data }
     procedure tcg.g_finalize_data(list : paasmoutput;p : pnamedindexobject);
 
+      var
+         hr : treference;
+
       begin
-         runerror(255);
+         if (psym(p)^.typ=varsym) and
+            assigned(pvarsym(p)^.definition) and
+            not((pvarsym(p)^.definition^.deftype=objectdef) and
+            pobjectdef(pvarsym(p)^.definition)^.is_class) and
+            pvarsym(p)^.definition^.needs_inittable then
+           begin
+              { not all kind of parameters need to be finalized  }
+              if (psym(p)^.owner^.symtabletype=parasymtable) and
+                ((pvarsym(p)^.varspez=vs_var)  or
+                 (pvarsym(p)^.varspez=vs_const) { and
+                 (dont_copy_const_param(pvarsym(p)^.definition)) } ) then
+                exit;
+              procinfo.flags:=procinfo.flags or pi_needs_implicit_finally;
+              reset_reference(hr);
+              case psym(p)^.owner^.symtabletype of
+                 localsymtable:
+                   begin
+                      hr.base:=procinfo.framepointer;
+                      hr.offset:=-pvarsym(p)^.address;
+                   end;
+                 parasymtable:
+                   begin
+                      hr.base:=procinfo.framepointer;
+                      hr.offset:=pvarsym(p)^.address+procinfo.call_offset;
+                   end;
+                 else
+                   hr.symbol:=newasmsymbol(pvarsym(p)^.mangledname);
+              end;
+              g_finalize(list,pvarsym(p)^.definition,hr,false);
+           end;
       end;
 
 
@@ -998,7 +1080,11 @@ unit cgobj;
 end.
 {
   $Log$
-  Revision 1.21  1999-08-07 14:21:08  florian
+  Revision 1.22  1999-08-18 17:05:55  florian
+    + implemented initilizing of data for the new code generator
+      so it should compile now simple programs
+
+  Revision 1.21  1999/08/07 14:21:08  florian
     * some small problems fixed
 
   Revision 1.20  1999/08/06 18:05:52  florian

@@ -31,7 +31,6 @@ unit cgcpu;
        pcgppc = ^tcgppc;
 
        tcgppc = object(tcg)
-          procedure a_push_reg(list : paasmoutput;r : tregister);virtual;
           procedure a_call_name(list : paasmoutput;const s : string;
             offset : longint);virtual;
 
@@ -80,12 +79,6 @@ const
 
     uses
        globtype,globals,verbose;
-
-     procedure tcgppc.a_push_reg(list : paasmoutput;r : tregister);
-       begin
- { no in-procedure register pushing on the PowerPC                          }
-         internalerror(68995);
-       end;
 
     procedure tcgppc.a_call_name(list : paasmoutput;const s : string;
       offset : longint);
@@ -373,7 +366,11 @@ const
 end.
 {
   $Log$
-  Revision 1.1  1999-08-06 16:41:11  jonas
+  Revision 1.2  1999-08-18 17:05:57  florian
+    + implemented initilizing of data for the new code generator
+      so it should compile now simple programs
+
+  Revision 1.1  1999/08/06 16:41:11  jonas
     * PowerPC compiles again, several routines implemented in cgcpu.pas
     * added constant to cpubase of alpha and powerpc for maximum
       number of operands
