@@ -1,0 +1,23 @@
+#
+#   Makefile.fpc for debugserver - GTK interface
+#
+
+[target]
+units=frmabout frmmain bitmapdata
+programs=debugserver
+rsts=frmabout frmmain
+
+[clean]
+
+[compiler]
+unitdir=..
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
+
+[rules]
+debugserver$(EXEEXT): frmabout$(PPUEXT) frmmain$(PPUEXT) bitmapdata$(PPUEXT) debugserver.pp
+	$(COMPILER) debugserver.pp

@@ -1,0 +1,26 @@
+#!/bin/tcsh
+echo "{ Auto bitmap data }" >bitmaps.pp
+echo "Const" > bitmapaddr.pp
+echo "  BitmapFileData : Array[1..$#] of PAnsiString = (" > bitmapaddr.pp
+echo "Const" > filenames.pp
+echo "  BitmapFileNames : Array[1..$#] of AnsiString = (" > filenames.pp
+foreach f ($*)
+  setenv fn `basename $f .xpm`
+  setenv fl `cat $f | wc -l`
+  echo lentgth is $fl
+  echo "  '${fn}'," >>filenames.pp
+  echo "  BitmapData$fn : Array[0..${fl}-5] of AnsiString = ( // $f " >> bitmaps.pp
+  cat $f | sed 1,3d | sed \$d | tr \" \' | sed "s/^/    /" \
+  | sed -e 's+/\*+{+g' -e 's+\*/+}+g' >>bitmaps.pp
+  echo "  ); " >> bitmaps.pp
+  echo " " >> bitmaps.pp
+  echo "    @BitmapData${fn}," >> bitmapaddr.pp 
+end;
+echo "  );" >> filenames.pp
+echo "" >> filenames.pp
+echo "  );" >> bitmapaddr.pp
+echo "" >> bitmapaddr.pp
+
+cat filenames.pp bitmaps.pp bitmapaddr.pp >out.pp
+
+
