@@ -266,7 +266,7 @@ Var
  Stream : TSocketStream;
 
 begin
-  FAccepting := True; 
+  FAccepting := True;
   Listen;
   Repeat
     Repeat
@@ -375,7 +375,7 @@ begin
   L:=SizeOf(FAddr);
   Result:=Sockets.Accept(Socket,Faddr,L);
   If Result<0 then
-    If SocketError=Sys_EWOULDBLOCK then
+    If SocketError={$ifdef ver1_0}Sys_EWOULDBLOCK{$else}ESysEWOULDBLOCK{$endif} then
       Raise ESocketError.Create(seAcceptWouldBlock,[socket])
     else
       Raise ESocketError.Create(seAcceptFailed,[socket]);
@@ -424,7 +424,7 @@ begin
   L:=Length(FFileName);
   Result:=Sockets.Accept(Socket,FUnixAddr,L);
   If Result<0 then
-    If SocketError=Sys_EWOULDBLOCK then
+    If SocketError={$ifdef ver1_0}Sys_EWOULDBLOCK{$else}ESysEWOULDBLOCK{$endif} then
       Raise ESocketError.Create(seAcceptWouldBlock,[socket])
     else
       Raise ESocketError.Create(seAcceptFailed,[socket]);
@@ -516,7 +516,10 @@ end.
 
 {
   $Log$
-  Revision 1.13  2002-12-12 17:53:49  peter
+  Revision 1.14  2002-12-18 18:39:14  peter
+    * renamed error constants for 1.1
+
+  Revision 1.13  2002/12/12 17:53:49  peter
     * add FAccepting:=true to StartAccepting
 
   Revision 1.12  2002/09/07 15:15:25  peter
