@@ -583,8 +583,6 @@ implementation
            secondcallparan(hp,@dummycoll,false
              ,false,false,0
              );
-           disposetree(hp);
-
            if codegenerror then
              exit;
 
@@ -604,6 +602,8 @@ implementation
                 else
                   emitcall(procedureprefix+'LONGINT',true);
              end;
+           disposetree(hp);
+
            popusedregisters(pushed);
         end;
 
@@ -1241,7 +1241,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.48  1999-05-12 00:19:42  peter
+  Revision 1.49  1999-05-12 15:46:26  pierre
+   * handle_str disposetree was badly placed
+
+  Revision 1.48  1999/05/12 00:19:42  peter
     * removed R_DEFAULT_SEG
     * uniform float names
 
