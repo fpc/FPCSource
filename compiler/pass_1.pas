@@ -1785,7 +1785,11 @@ unit pass_1;
       begin
          store_valid:=must_be_valid;
          must_be_valid:=false;
+
          firstpass(p^.left);
+         if codegenerror then
+           exit;
+
          { assignements to open arrays aren't allowed }
          if is_open_array(p^.left^.resulttype) then
            Message(sym_e_type_mismatch);
@@ -5173,7 +5177,10 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.49  1998-07-30 16:07:08  florian
+  Revision 1.50  1998-08-08 21:51:39  peter
+    * small crash prevent is firstassignment
+
+  Revision 1.49  1998/07/30 16:07:08  florian
     * try ... expect <statement> end; works now
 
   Revision 1.48  1998/07/30 13:30:35  florian
