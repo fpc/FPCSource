@@ -23,7 +23,7 @@
 
 Type
   timeval  = packed record
-    sec,usec:clong;
+    tv_sec,tv_usec:clong;
   end;
   ptimeval = ^timeval;
   TTimeVal = timeval;
@@ -42,7 +42,10 @@ Type
 
 {
  $Log$
- Revision 1.2  2002-09-07 16:01:17  peter
+ Revision 1.3  2002-10-27 11:58:30  marco
+  * Modifications from Saturday.
+
+ Revision 1.2  2002/09/07 16:01:17  peter
    * old logs removed and tabs fixed
 
  Revision 1.1  2002/08/19 12:29:11  marco

@@ -86,7 +86,20 @@ TYPE
         dd_rewind : clong;        // magic cookie for rewinding
         dd_flags  : cint;         // flags for readdir
    end;
+ 
+   putimbuf = ^utimbuf;
+   utimbuf  = record
+	        actime  : time_t;
+	        modtime : time_t;
+	        end;
 
+   flock    = record
+		l_start : off_t;	{ starting offset }
+		l_len	: off_t;	{ len = 0 means until end of file }
+		l_pid 	: pid_t;	{ lock owner }
+		l_type	: cshort;	{ lock type: read/write, etc. }
+		l_whence: cshort;	{ type of l_start }
+                end;
 
 {***********************************************************************}
 {                  POSIX CONSTANT ROUTINE DEFINITIONS                   }
@@ -142,7 +155,10 @@ CONST
 
 {
   $Log$
-  Revision 1.4  2002-09-07 16:01:17  peter
+  Revision 1.5  2002-10-27 11:58:30  marco
+   * Modifications from Saturday.
+
+  Revision 1.4  2002/09/07 16:01:17  peter
     * old logs removed and tabs fixed
 
   Revision 1.3  2002/08/21 07:03:16  marco

@@ -1,30 +1,24 @@
 {
     $Id$
-    Copyright (c) 2001 by Carl Eric Codere
+    Copyright (c) 2002 by Marco van de Voort
 
     The base *BSD syscalls required to implement the system unit. These
     are aliased for use in other units (to avoid poluting the system units
     interface)
 
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  ****************************************************************************
 }
 
 {$ifdef uselibc}
   {$Linklib c}
+  // Out of date atm.
 
 {   var
      Errno : cint; external name 'errno';}
@@ -90,8 +84,8 @@ begin
   else
    Begin
 //    If Assigned(tloc) Then
-     TLoc:=tv.sec;
-    sys_time:=tv.sec;
+     TLoc:=tv.tv_sec;
+    sys_time:=tv.tv_sec;
    End;
 End;
 
@@ -438,22 +432,16 @@ begin
 end;
 }
 
-function sys_Dup(oldd:cint):cint; [public, alias : 'FPC_SYSC_DUP'];
-{
-  Copies the filedescriptor oldfile to newfile
-}
+Function sys_Dup(fildes:cint):cint; [public, alias : 'FPC_SYSC_DUP'];
 
 begin
-  sys_dup:=Do_syscall(syscall_nr_dup,oldd);
+  sys_dup:=Do_syscall(syscall_nr_dup,longint(fildes));
 end;
 
-function sys_Dup2(oldd:cint;newd:cint):cint; [public, alias : 'FPC_SYSC_DUP2'];
-{
-  Copies the filedescriptor oldfile to newfile
-}
+Function sys_Dup2(fildes,fildes2:cint):cint; [public, alias : 'FPC_SYSC_DUP2'];
 
 begin
- sys_dup2:=do_syscall(syscall_nr_dup2,oldd,newd);
+ sys_dup2:=do_syscall(syscall_nr_dup2,longint(fildes),longint(fildes2));
 end;
 
 CONST
@@ -585,7 +573,10 @@ end;
 
 {
  $Log$
- Revision 1.6  2002-10-26 18:27:51  marco
+ Revision 1.7  2002-10-27 11:58:29  marco
+  * Modifications from Saturday.
+
+ Revision 1.6  2002/10/26 18:27:51  marco
   * First series POSIX calls commits. Including getcwd.
 
  Revision 1.5  2002/10/18 12:19:58  marco

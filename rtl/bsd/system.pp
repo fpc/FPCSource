@@ -4,6 +4,8 @@
     Copyright (c) 2000 by Marco van de Voort
     member of the Free Pascal development team.
 
+    System unit for the *BSD's.
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -97,7 +99,10 @@ End.
 
 {
   $Log$
-  Revision 1.5  2002-10-26 18:27:51  marco
+  Revision 1.6  2002-10-27 11:58:30  marco
+   * Modifications from Saturday.
+
+  Revision 1.5  2002/10/26 18:27:51  marco
    * First series POSIX calls commits. Including getcwd.
 
   Revision 1.4  2002/10/18 12:19:58  marco

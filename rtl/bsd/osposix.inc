@@ -2,26 +2,19 @@
     $Id$
     Copyright (c) 2002 by Marco van de Voort.
 
-    Declarations to import basic syscalls declarations into other base
-    units.
+    Implementation of the POSIX unit for *BSD. In practice only includes
+    other files, or specifies libc bindings.
 
     The conditional uselibc can be used to switch from libc to syscall
     usage for basic primitives, but it is best to use unit POSIX if
     possible. Note that the system unit must also be compiled using uselibc.
 
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  ****************************************************************************
 }
@@ -61,18 +54,13 @@ Uses Sysctl;
     function sys_execve(const path : pchar; const argv : ppchar; const envp: ppchar): cint; cdecl; external name 'execve';
     function sys_waitpid(pid : pid_t; var stat_loc : cint; options: cint): pid_t; cdecl; external name 'waitpid';
     function sys_access(const pathname : pchar; amode : cint): cint; cdecl; external name 'access';
-//  function sys_uname(var name: utsname): cint; cdecl; external name 'uname';
-    function sys_Dup(oldd:cint):cint; cdecl; external name 'dup';
-    function sys_Dup2(oldd:cint;newd:cint):cint; cdecl; external name 'dup2';
+    function sys_uname(var name: utsname): cint; cdecl; external name 'uname';
+    function sys_Dup(fildes:cint):cint; cdecl; external name 'dup';
+    function sys_Dup2(fildes:cint;fildes2:cint):cint; cdecl; external name 'dup2';
 
 {$else}
 
-{*****************************************************************************
-                     --- Main:The System Call Self ---
-*****************************************************************************}
-
-{ The system designed for Linux can't be used for FreeBSD so easily, since
-  FreeBSD pushes arguments, instead of loading them to registers.}
+// uses syscalls.
 
 function sys_time(var tloc:time_t): time_t; external name 'FPC_SYSC_TIME';
 function sys_open(const path: pchar; flags : cint; mode: mode_t):cint;  external name 'FPC_SYSC_OPEN';
@@ -97,8 +85,8 @@ function sys_fork : pid_t; external name 'FPC_SYSC_FORK';
 function sys_execve(const path : pchar; const argv : ppchar; const envp: ppchar): cint; external name 'FPC_SYSC_EXECVE';
 function sys_waitpid(pid : pid_t; var stat_loc : cint; options: cint): pid_t; external name 'FPC_SYSC_WAITPID';
 function sys_access(const pathname : pchar; amode : cint): cint;external name 'FPC_SYSC_ACCESS';
-function sys_Dup(oldd:cint):cint;  external name 'FPC_SYSC_DUP';
-function sys_Dup2(oldd:cint;newd:cint):cint; external name 'FPC_SYSC_DUP2';
+function sys_Dup(fildes:cint):cint;  external name 'FPC_SYSC_DUP';
+function sys_Dup2(fildes:cint;fildes2:cint):cint; external name 'FPC_SYSC_DUP2';
 function geterrno:cint; external name  'FPC_SYS_GETERRNO';
 procedure seterrno (i:cint); external name  'FPC_SYS_SETERRNO';
 
@@ -106,11 +94,12 @@ procedure seterrno (i:cint); external name  'FPC_SYS_SETERRNO';
 
 {$I bsdfuncs.inc}
 
-
-
 {
  $Log$
- Revision 1.6  2002-10-26 18:27:51  marco
+ Revision 1.7  2002-10-27 11:58:30  marco
+  * Modifications from Saturday.
+
+ Revision 1.6  2002/10/26 18:27:51  marco
   * First series POSIX calls commits. Including getcwd.
 
  Revision 1.5  2002/09/07 16:01:17  peter

@@ -1,9 +1,11 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2001 by Free Pascal development team
+    Copyright (c) 2002 by Marco van de Voort
 
-    Calls needed for the POSIX unit.    
+    Calls needed for the POSIX unit, but not for system.
+    Some calls that can be used for both Linux and *BSD will be
+    moved to a /unix/ includedfile later.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -156,16 +158,16 @@ Var it,oitv : Itimerval;
 Begin
 //      register struct itimerval *itp = &it;
 
- it.it_interval.sec:=0;
- it.it_interval.usec:=0;
- it.it_value.sec:=seconds;
- it.it_value.usec:=0;
+ it.it_interval.tv_sec:=0;
+ it.it_interval.tv_usec:=0;
+ it.it_value.tv_sec:=seconds;
+ it.it_value.tv_usec:=0;
  If SetITimer(ITIMER_REAL,it,oitv)<0 Then
    Exit(-1);
 
- if oitv.it_value.usec<>0 Then
-   Inc(oitv.it_value.sec);
- sys_Alarm:=oitv.it_value.sec;
+ if oitv.it_value.tv_usec<>0 Then
+   Inc(oitv.it_value.tv_sec);
+ sys_Alarm:=oitv.it_value.tv_sec;
 End;
 
 function sigblock(mask:cuint):cint;
@@ -374,10 +376,98 @@ begin
  sys_setsid:=do_syscall(syscall_nr_setsid);
 end;
 
+Function sys_umask(cmask:mode_t):mode_t;
+{
+  Sets file creation mask to (Mask and 0777 (octal) ), and returns the
+  previous value.
+}
+begin
+ sys_umask:=Do_syscall(syscall_nr_umask,cmask);
+end;
+
+Function sys_link(existing:pchar;_new:pchar):cint;
+{
+  Proceduces a hard link from new to old.
+  In effect, new will be the same file as old.
+}
+begin
+  sys_Link:=Do_Syscall(syscall_nr_link,longint(existing),longint(_new));
+end;
+
+Function sys_mkfifo(path:pchar;mode:mode_t):cint;
+
+begin
+  sys_mkfifo:=do_syscall(syscall_nr_mkfifo,longint(path),longint(mode));
+end;
+
+Function sys_chmod(path:pchar;mode:mode_t):cint;
+
+begin
+  sys_chmod:=do_syscall(syscall_nr_chmod,longint(path),longint(mode));
+end;
+
+Function sys_chown(path:pchar;owner:uid_t;group:gid_t):cint;
+
+begin
+  sys_ChOwn:=do_syscall(syscall_nr_chown,longint(path),longint(owner),longint(group));
+end;
+
+Function sys_Utime(path:pchar;times:putimbuf):cint;
+
+var tv  : array[0..1] of timeval;
+    tvp : ^timeval;
+
+begin
+ if times=nil Then
+   tvp:=nil
+ else
+   begin
+    tv[0].tv_sec :=times^.actime;
+    tv[1].tv_sec :=times^.modtime;
+    tv[0].tv_usec:=0;
+    tv[1].tv_usec:=0; 
+    tvp:=@tv;
+   end;
+ sys_utime:=do_syscall(syscall_nr_utimes,longint(path),longint(tvp));
+end;
+
+Function sys_pipe(var fildes : tfildes):cint;
+
+begin
+ sys_pipe:=do_syscall(syscall_nr_pipe,longint(@fildes));
+end;
+
+function sys_fcntl(fildes:cint;Cmd:cint;Arg:cint):cint;
+
+begin
+ sys_fcntl:=do_syscall(syscall_nr_fcntl,fildes,cmd,arg);
+end;
+
+function sys_fcntl(fildes:cint;Cmd:cint;var Arg:flock):cint;
+
+begin
+ sys_fcntl:=do_syscall(syscall_nr_fcntl,fildes,cmd,longint(@arg));
+end;
+
+function sys_fcntl(fildes:cint;Cmd:cint):cint;
+
+begin
+ sys_fcntl:=do_syscall(syscall_nr_fcntl,fildes,cmd);
+end;
+
+function sys_execve(path:pchar;argv:ppchar;envp:ppchar):cint
+
+Begin
+ sys_execve:=do_syscall(syscall_nr_Execve,longint(path),longint(argv),longint(envp));
+End;
+
 
 {
  $Log$
- Revision 1.6  2002-10-26 18:27:51  marco
+ Revision 1.7  2002-10-27 11:58:29  marco
+  * Modifications from Saturday.
+
+ Revision 1.6  2002/10/26 18:27:51  marco
   * First series POSIX calls commits. Including getcwd.
 
  Revision 1.5  2002/10/25 15:46:48  marco
@@ -398,6 +488,3 @@ end;
  Revision 1.1  2002/08/08 11:39:30  marco
   * Initial versions, to allow support for uname in posix.pp
 }
-
-
-
