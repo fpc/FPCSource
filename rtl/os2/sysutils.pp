@@ -345,7 +345,7 @@ end;
 
 procedure FileClose (Handle: longint);
 begin
-    if (Handle > 4) or ((os_mode = osOS2) and (Handle > 2)) then
+    if Handle > 2 then
         asm
             push ebx
             mov eax, 3E00h
@@ -433,44 +433,24 @@ var SR: PSearchRec;
     Err: longint;
 
 begin
-    if os_mode = osOS2 then
-        begin
-            New (FStat);
-            Rslt.FindHandle := $FFFFFFFF;
-            Count := 1;
-            Err := DosFindFirst (PChar (Path), Rslt.FindHandle,
-                 Attr and FindResvdMask, FStat, SizeOf (FStat^), Count,
-                                                                   ilStandard);
-            if (Err = 0) and (Count = 0) then Err := 18;
-            FindFirst := -Err;
-            if Err = 0 then
-                begin
-                    Rslt.Name := FStat^.Name;
-                    Rslt.Size := FStat^.FileSize;
-                    Rslt.Attr := FStat^.AttrFile;
-                    Rslt.ExcludeAttr := 0;
-                    TRec (Rslt.Time).T := FStat^.TimeLastWrite;
-                    TRec (Rslt.Time).D := FStat^.DateLastWrite;
-                end;
-            Dispose (FStat);
-        end
-    else
-        begin
-            Err := DOS.DosError;
-            GetMem (SR, SizeOf (SearchRec));
-            Rslt.FindHandle := longint(SR);
-            DOS.FindFirst (Path, Attr, SR^);
-            FindFirst := -DOS.DosError;
-            if DosError = 0 then
-                begin
-                    Rslt.Time := SR^.Time;
-                    Rslt.Size := SR^.Size;
-                    Rslt.Attr := SR^.Attr;
-                    Rslt.ExcludeAttr := 0;
-                    Rslt.Name := SR^.Name;
-                end;
-            DOS.DosError := Err;
-        end;
+  New (FStat);
+  Rslt.FindHandle := $FFFFFFFF;
+  Count := 1;
+  Err := DosFindFirst (PChar (Path), Rslt.FindHandle,
+               Attr and FindResvdMask, FStat, SizeOf (FStat^), Count,
+                                                          ilStandard);
+  if (Err = 0) and (Count = 0) then Err := 18;
+  FindFirst := -Err;
+  if Err = 0 then
+  begin
+    Rslt.Name := FStat^.Name;
+    Rslt.Size := FStat^.FileSize;
+    Rslt.Attr := FStat^.AttrFile;
+    Rslt.ExcludeAttr := 0;
+    TRec (Rslt.Time).T := FStat^.TimeLastWrite;
+    TRec (Rslt.Time).D := FStat^.DateLastWrite;
+  end;
+  Dispose (FStat);
 end;
 
 
@@ -482,8 +462,6 @@ var SR: PSearchRec;
     Err: longint;
 
 begin
-    if os_mode = osOS2 then
-        begin
             New (FStat);
             Count := 1;
             Err := DosFindNext (Rslt.FindHandle, FStat, SizeOf (FStat^),
@@ -500,24 +478,6 @@ begin
                     TRec (Rslt.Time).D := FStat^.DateLastWrite;
                 end;
             Dispose (FStat);
-        end
-    else
-        begin
-            SR := PSearchRec (Rslt.FindHandle);
-            if SR <> nil then
-                begin
-                    DOS.FindNext (SR^);
-                    FindNext := -DosError;
-                    if DosError = 0 then
-                        begin
-                            Rslt.Time := SR^.Time;
-                            Rslt.Size := SR^.Size;
-                            Rslt.Attr := SR^.Attr;
-                            Rslt.ExcludeAttr := 0;
-                            Rslt.Name := SR^.Name;
-                        end;
-                end;
-        end;
 end;
 
 
@@ -526,16 +486,7 @@ procedure FindClose (var F: TSearchrec);
 var SR: PSearchRec;
 
 begin
-    if os_mode = osOS2 then
-        begin
-            DosFindClose (F.FindHandle);
-        end
-    else
-        begin
-            SR := PSearchRec (F.FindHandle);
-            DOS.FindClose (SR^);
-            FreeMem (SR, SizeOf (SearchRec));
-        end;
+    DosFindClose (F.FindHandle);
     F.FindHandle := 0;
 end;
 
@@ -557,8 +508,6 @@ function FileSetDate (Handle, Age: longint): longint;
 var FStat: PFileStatus0;
     RC: longint;
 begin
-    if os_mode = osOS2 then
-        begin
             New (FStat);
             RC := DosQueryFileInfo (Handle, ilStandard, FStat,
                                                               SizeOf (FStat^));
@@ -578,21 +527,6 @@ begin
                         FileSetDate := 0;
                 end;
             Dispose (FStat);
-        end
-    else
-        asm
-            push ebx
-            mov ax, 5701h
-            mov ebx, Handle
-            mov cx, word ptr [Age]
-            mov dx, word ptr [Age + 2]
-            call syscall
-            jnc @FSetDateEnd
-            mov eax, -1
-@FSetDateEnd:
-            mov Result, eax
-            pop ebx
-        end ['eax', 'ecx', 'edx'];
 end;
 
 
@@ -732,39 +666,13 @@ var FI: TFSinfo;
     RC: longint;
 
 begin
-    if (os_mode = osDOS) or (os_mode = osDPMI) then
-    {Function 36 is not supported in OS/2.}
-        asm
-            pushl %ebx
-            movb Drive,%dl
-            movb $0x36,%ah
-            call syscall
-            cmpw $-1,%ax
-            je .LDISKFREE1
-            mulw %cx
-            mulw %bx
-            shll $16,%edx
-            movw %ax,%dx
-            movl $0,%eax
-            xchgl %edx,%eax
-            jmp .LDISKFREE2
-         .LDISKFREE1:
-            cltd
-         .LDISKFREE2:
-            popl %ebx
-            leave
-            ret
-        end
-    else
         {In OS/2, we use the filesystem information.}
-        begin
             RC := DosQueryFSInfo (Drive, 1, FI, SizeOf (FI));
             if RC = 0 then
                 DiskFree := int64 (FI.Free_Clusters) *
                    int64 (FI.Sectors_Per_Cluster) * int64 (FI.Bytes_Per_Sector)
             else
                 DiskFree := -1;
-        end;
 end;
 
 function DiskSize (Drive: byte): int64;
@@ -773,40 +681,13 @@ var FI: TFSinfo;
     RC: longint;
 
 begin
-    if (os_mode = osDOS) or (os_mode = osDPMI) then
-        {Function 36 is not supported in OS/2.}
-        asm
-            pushl %ebx
-            movb Drive,%dl
-            movb $0x36,%ah
-            call syscall
-            movw %dx,%bx
-            cmpw $-1,%ax
-            je .LDISKSIZE1
-            mulw %cx
-            mulw %bx
-            shll $16,%edx
-            movw %ax,%dx
-            movl $0,%eax
-            xchgl %edx,%eax
-            jmp .LDISKSIZE2
-         .LDISKSIZE1:
-            cltd
-         .LDISKSIZE2:
-            popl %ebx
-            leave
-            ret
-        end
-    else
         {In OS/2, we use the filesystem information.}
-        begin
             RC := DosQueryFSinfo (Drive, 1, FI, SizeOf (FI));
             if RC = 0 then
                 DiskSize := int64 (FI.Total_Clusters) *
                    int64 (FI.Sectors_Per_Cluster) * int64 (FI.Bytes_Per_Sector)
             else
                 DiskSize := -1;
-        end;
 end;
 
 
@@ -930,15 +811,8 @@ begin
     for I := 0 to 255 do
         UpperCaseTable [I] := Chr (I);
     Move (UpperCaseTable, LowerCaseTable, SizeOf (UpperCaseTable));
-    if os_mode = osOS2 then
-        begin
             FillChar (Country, SizeOf (Country), 0);
             DosMapCase (SizeOf (UpperCaseTable), Country, @UpperCaseTable);
-        end
-    else
-        begin
-(* !!! TODO: DOS/DPMI mode support!!! *)
-        end;
     for I := 0 to 255 do
         if UpperCaseTable [I] <> Chr (I) then
             LowerCaseTable [Ord (UpperCaseTable [I])] := Chr (I);
@@ -1012,7 +886,10 @@ end.
 
 {
   $Log$
-  Revision 1.31  2003-10-07 21:26:34  hajny
+  Revision 1.32  2003-10-08 05:22:47  yuri
+  * Some emx code removed
+
+  Revision 1.31  2003/10/07 21:26:34  hajny
     * stdcall fixes and asm routines cleanup
 
   Revision 1.30  2003/10/03 21:46:41  peter

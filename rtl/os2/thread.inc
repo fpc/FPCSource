@@ -90,7 +90,7 @@ begin
  Inc (ThreadVarBlockSize, Size);
 end;
 
-type ltvInitEntry = 
+type ltvInitEntry =
   record
     varaddr : pdword;
     size    : longint;
@@ -111,10 +111,10 @@ type TltvInitTablesTable =
     count : dword;
     tables: array [1..32767] of pltvInitEntry;
   end;
-  
+
 var
   ThreadvarTablesTable : TltvInitTablesTable; external name 'FPC_LOCALTHREADVARTABLES';
-  
+
 procedure init_all_unit_threadvars; [public,alias: 'FPC_INITIALIZELOCALTHREADVARS'];
 var i : integer;
 begin
@@ -139,25 +139,14 @@ begin
  { exceptions which use threadvars but      }
  { these aren't allocated yet ...           }
  { allocate room on the heap for the thread vars }
- if os_mode = osOS2 then
- begin
   if DosAllocMem (DataIndex^, ThreadVarBlockSize, pag_Read or pag_Write
                                       or pag_Commit) <> 0 then HandleError (8);
- end else
- begin
-  (* Allocate the DOS memory here. *)
-
- end;
 end;
 
 procedure ReleaseThreadVars;
 begin
  { release thread vars }
- if os_mode = osOS2 then DosFreeMem (DataIndex^) else
- begin
-  (* Deallocate the DOS memory here. *)
-
- end;
+ DosFreeMem (DataIndex^)
 end;
 
 procedure InitThread;
@@ -182,16 +171,6 @@ begin
  ReleaseThreadVars;
  DosGetInfoBlocks (@PTIB, @PPIB);
  ThreadID := PTIB^.TIB2^.TID;
-{$IFDEF EMX}
-{$ASMMODE INTEL}
- if os_mode = osOS2 then
- asm
-  mov eax, 7F2Dh
-  mov edx, ThreadID
-  call syscall
- end ['eax', 'ecx', 'edx'];
-{$ASMMODE DEFAULT}
-{$ENDIF EMX}
 end;
 
 function ThreadMain (Param: pointer): dword; cdecl;
@@ -280,8 +259,6 @@ end;
 
 procedure InitCriticalSection (var CS: TRTLCriticalSection);
 begin
- if os_mode = osOS2 then
- begin
   if DosCreateMutExSem (nil, CS.LockSemaphore2, 0, true) <> 0 then
                                                                HandleError (8);
   DosEnterCritSec;
@@ -289,12 +266,11 @@ begin
   CS.OwningThread := $FFFF;
   DosExitCritSec;
   DosReleaseMutexSem (CS.LockSemaphore2);
- end;
 end;
 
 procedure DoneCriticalSection (var CS: TRTLCriticalSection);
 begin
- if os_mode = osOS2 then DosCloseMutExSem (CS.LockSemaphore2);
+ DosCloseMutExSem (CS.LockSemaphore2);
 end;
 
 procedure EnterCriticalSection (var CS: TRTLCriticalSection);
@@ -303,8 +279,6 @@ var
  PTIB: PThreadInfoBlock;
  PPIB: PProcessInfoBlock;
 begin
- if os_mode = osOS2 then
- begin
   DosGetInfoBlocks (@PTIB, @PPIB);
   DosEnterCritSec;
   with CS do if (LockCount = 0) and
@@ -329,7 +303,6 @@ begin
    OwningThread2 := PTIB^.TIB2^.TID;
    DosExitCritSec;
   end;
- end;
 end;
 
 procedure LeaveCriticalSection (var CS: TRTLCriticalSection);
@@ -338,8 +311,6 @@ var
  PPIB: PProcessInfoBlock;
  Err: boolean;
 begin
- if os_mode = osOS2 then
- begin
   Err := false;
   DosGetInfoBlocks (@PTIB, @PPIB);
   DosEnterCritSec;
@@ -358,14 +329,16 @@ begin
    DosExitCritSec;
   end;
   if Err then HandleError (5);
- end;
 end;
 
 {$ENDIF MT}
 
 {
   $Log$
-  Revision 1.11  2003-10-07 21:26:35  hajny
+  Revision 1.12  2003-10-08 05:22:47  yuri
+  * Some emx code removed
+
+  Revision 1.11  2003/10/07 21:26:35  hajny
     * stdcall fixes and asm routines cleanup
 
   Revision 1.10  2003/02/20 17:09:49  hajny
