@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998 by Peter Vreman
+    Copyright (c) 1998-2000 by Peter Vreman
 
     This unit handles the compilerhooks for output to external programs
 
@@ -295,7 +295,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.19  1999-11-18 15:34:45  pierre
+  Revision 1.20  2000-01-07 01:14:23  peter
+    * updated copyright to 2000
+
+  Revision 1.19  1999/11/18 15:34:45  pierre
     * Notes/Hints for local syms changed to
       Set_varstate function
 

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Reads inline assembler and writes the lines direct to the output
 
@@ -297,7 +297,10 @@ unit Ra386dir;
 end.
 {
   $Log$
-  Revision 1.28  1999-11-30 10:40:53  peter
+  Revision 1.29  2000-01-07 01:14:36  peter
+    * updated copyright to 2000
+
+  Revision 1.28  1999/11/30 10:40:53  peter
     + ttype, tsymlist
 
   Revision 1.27  1999/11/17 17:05:03  pierre

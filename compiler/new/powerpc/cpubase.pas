@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1999 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Contains the base types for the PowerPC
 
@@ -565,7 +565,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  1999-12-24 22:48:10  jonas
+  Revision 1.12  2000-01-07 01:14:58  peter
+    * updated copyright to 2000
+
+  Revision 1.11  1999/12/24 22:48:10  jonas
     * compiles again
 
   Revision 1.10  1999/11/09 22:57:09  peter

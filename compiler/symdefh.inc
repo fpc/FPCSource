@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl, Pierre Muller
+    Copyright (c) 1998-2000 by Florian Klaempfl, Pierre Muller
 
     Interface for the definition types of the symtable
 
@@ -528,7 +528,10 @@
 
 {
   $Log$
-  Revision 1.49  2000-01-03 19:26:04  peter
+  Revision 1.50  2000-01-07 01:14:40  peter
+    * updated copyright to 2000
+
+  Revision 1.49  2000/01/03 19:26:04  peter
     * fixed resolving of ttypesym which are reference from object/record
       fields.
 

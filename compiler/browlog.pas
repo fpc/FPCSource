@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by the FPC development team
+    Copyright (c) 1998-2000 by Florian Klaempfl and Pierre Muller
 
     Support routines for creating the browser log
 
@@ -448,7 +448,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  1999-11-30 10:40:42  peter
+  Revision 1.5  2000-01-07 01:14:20  peter
+    * updated copyright to 2000
+
+  Revision 1.4  1999/11/30 10:40:42  peter
     + ttype, tsymlist
 
   Revision 1.3  1999/11/17 17:04:58  pierre

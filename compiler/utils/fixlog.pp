@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1999 by Peter Vreman
+    Copyright (c) 1998-2000 by Peter Vreman
 
     Remove all revision logs from source files after 20 revisions
 
@@ -113,7 +113,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  1999-10-06 06:29:03  peter
+  Revision 1.2  2000-01-07 01:15:00  peter
+    * updated copyright to 2000
+
+  Revision 1.1  1999/10/06 06:29:03  peter
     * new tool
 
 }

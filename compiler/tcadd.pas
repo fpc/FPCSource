@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Type checking and register allocation for add node
 
@@ -1254,7 +1254,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.62  2000-01-04 20:10:20  florian
+  Revision 1.63  2000-01-07 01:14:43  peter
+    * updated copyright to 2000
+
+  Revision 1.62  2000/01/04 20:10:20  florian
     * mmx support fixed
 
   Revision 1.61  1999/12/11 18:53:31  jonas

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     This unit handles the exports parsing
 
@@ -141,7 +141,10 @@ end.
 
 {
   $Log$
-  Revision 1.17  1999-12-20 23:23:30  pierre
+  Revision 1.18  2000-01-07 01:14:28  peter
+    * updated copyright to 2000
+
+  Revision 1.17  1999/12/20 23:23:30  pierre
    + $description $version
 
   Revision 1.16  1999/12/08 10:40:01  pierre

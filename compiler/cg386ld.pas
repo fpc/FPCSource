@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Generate i386 assembler for load/assignment nodes
 
@@ -996,7 +996,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.93  1999-12-30 15:04:31  peter
+  Revision 1.94  2000-01-07 01:14:21  peter
+    * updated copyright to 2000
+
+  Revision 1.93  1999/12/30 15:04:31  peter
     * fixed funcret within inlined procedure
 
   Revision 1.92  1999/12/22 01:01:47  peter
@@ -1033,7 +1036,7 @@ end.
     * some other potential bugs with array constructors fixed
     * for classes compiled in $M+ and it's childs, the default access method
       is now published
-    * fixed copyright message (it is now 1993-99)
+    * fixed copyright message (it is now 1998-2000)
 
   Revision 1.84  1999/09/11 09:08:31  florian
     * fixed bug 596

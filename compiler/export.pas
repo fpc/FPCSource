@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     This unit implements an uniform export object
 
@@ -18,7 +18,8 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
- ****************************************************************************}
+ ****************************************************************************
+}
 unit export;
 
 interface
@@ -193,7 +194,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  1999-11-06 14:34:20  peter
+  Revision 1.9  2000-01-07 01:14:27  peter
+    * updated copyright to 2000
+
+  Revision 1.8  1999/11/06 14:34:20  peter
     * truncated log to 20 revs
 
   Revision 1.7  1999/10/21 14:29:34  peter

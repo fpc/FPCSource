@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1999 by Florian Klaempfl and Peter Vreman
+    Copyright (c) 1998-2000 by Florian Klaempfl and Peter Vreman
 
     Contains the assembler object for the i386
 
@@ -1565,7 +1565,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  2000-01-07 00:07:24  peter
+  Revision 1.9  2000-01-07 01:14:23  peter
+    * updated copyright to 2000
+
+  Revision 1.8  2000/01/07 00:07:24  peter
     * display fpu,mmx,xmm names instead of reg??
 
   Revision 1.7  1999/12/24 15:22:52  peter

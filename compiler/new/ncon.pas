@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (C) 1993-99 by Florian Klaempfl
+    Copyright (C) 1998-2000 by Florian Klaempfl
 
     This unit implements load nodes etc.
 
@@ -39,7 +39,10 @@ unit ncon;
 end.
 {
   $Log$
-  Revision 1.2  1999-08-06 18:05:53  florian
+  Revision 1.3  2000-01-07 01:14:53  peter
+    * updated copyright to 2000
+
+  Revision 1.2  1999/08/06 18:05:53  florian
     * implemented some stuff for assignments
 
   Revision 1.1  1999/08/06 16:15:38  florian

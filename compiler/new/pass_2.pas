@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     This unit handles the codegeneration pass
 
@@ -464,7 +464,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  1999-12-06 18:17:10  peter
+  Revision 1.10  2000-01-07 01:14:54  peter
+    * updated copyright to 2000
+
+  Revision 1.9  1999/12/06 18:17:10  peter
     * newcg compiler compiles again
 
   Revision 1.8  1999/10/12 21:20:47  florian

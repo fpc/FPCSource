@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (C) 1993-98 by Florian Klaempfl
+    Copyright (C) 1998-2000 by Florian Klaempfl
 
     This unit implements some support functions and global variables
 
@@ -1472,7 +1472,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.45  2000-01-07 00:08:09  peter
+  Revision 1.46  2000-01-07 01:14:27  peter
+    * updated copyright to 2000
+
+  Revision 1.45  2000/01/07 00:08:09  peter
     * tp7 fix
 
   Revision 1.44  2000/01/06 15:48:59  peter

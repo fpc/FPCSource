@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Type checking and register allocation for memory related nodes
 
@@ -640,7 +640,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.36  1999-11-30 10:40:58  peter
+  Revision 1.37  2000-01-07 01:14:46  peter
+    * updated copyright to 2000
+
+  Revision 1.36  1999/11/30 10:40:58  peter
     + ttype, tsymlist
 
   Revision 1.35  1999/11/29 22:36:48  florian

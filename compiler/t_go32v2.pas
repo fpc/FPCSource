@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1999 by Peter Vreman
+    Copyright (c) 1998-2000 by Peter Vreman
 
     This unit implements support import,export,link routines
     for the (i386) Go32v2 target
@@ -288,7 +288,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  1999-12-06 18:21:04  peter
+  Revision 1.7  2000-01-07 01:14:42  peter
+    * updated copyright to 2000
+
+  Revision 1.6  1999/12/06 18:21:04  peter
     * support !ENVVAR for long commandlines
     * win32/go32v2 write short pathnames to link.res so c:\Program Files\ is
       finally supported as installdir.

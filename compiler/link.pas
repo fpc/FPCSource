@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998,99 by the FPC development team
+    Copyright (c) 1998-2000 by Peter Vreman
 
     This unit handles the linker and binder calls for programs and
     libraries
@@ -530,7 +530,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.78  1999-11-22 22:22:30  pierre
+  Revision 1.79  2000-01-07 01:14:27  peter
+    * updated copyright to 2000
+
+  Revision 1.78  1999/11/22 22:22:30  pierre
    * Give better info in script
 
   Revision 1.77  1999/11/12 11:03:50  peter

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Generate i386 assembler for in memory related nodes
 
@@ -885,7 +885,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.65  2000-01-04 15:15:50  florian
+  Revision 1.66  2000-01-07 01:14:21  peter
+    * updated copyright to 2000
+
+  Revision 1.65  2000/01/04 15:15:50  florian
     + added compiler switch $maxfpuregisters
     + fixed a small problem in secondvecn
 

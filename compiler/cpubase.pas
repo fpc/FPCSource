@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1999 by Florian Klaempfl and Peter Vreman
+    Copyright (c) 1998-2000 by Florian Klaempfl and Peter Vreman
 
     Contains the base types for the i386
 
@@ -899,7 +899,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.19  1999-12-02 19:28:29  peter
+  Revision 1.20  2000-01-07 01:14:23  peter
+    * updated copyright to 2000
+
+  Revision 1.19  1999/12/02 19:28:29  peter
     * more A_LOOP<Cond> to is_calljmp
 
   Revision 1.18  1999/12/02 11:26:41  peter

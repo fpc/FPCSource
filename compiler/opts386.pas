@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl, Pierre Muller
+    Copyright (c) 1998-2000 by Florian Klaempfl, Pierre Muller
 
     interprets the commandline options which are i386 specific
 
@@ -97,7 +97,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.16  1999-08-04 13:02:47  jonas
+  Revision 1.17  2000-01-07 01:14:28  peter
+    * updated copyright to 2000
+
+  Revision 1.16  1999/08/04 13:02:47  jonas
     * all tokens now start with an underscore
     * PowerPC compiles!!
 

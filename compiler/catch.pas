@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1997-98 by Michael Van Canneyt
+    Copyright (c) 1998-2000 by Michael Van Canneyt
 
     Unit to catch segmentation faults and Ctrl-C and exit gracefully
     under linux and go32v2
@@ -100,7 +100,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  1999-08-25 16:41:04  peter
+  Revision 1.10  2000-01-07 01:14:20  peter
+    * updated copyright to 2000
+
+  Revision 1.9  1999/08/25 16:41:04  peter
     * resources are working again
 
   Revision 1.8  1999/08/10 12:27:15  pierre

@@ -1,7 +1,7 @@
 {
     $Id$
     This program is part of the Free Pascal run time library.
-    Copyright (c) 1998 by Peter Vreman
+    Copyright (c) 1998-2000 by Peter Vreman
 
     Convert a .msg file to an .inc file with a const array of char
     And for the lazy docwriters it can also generate some TeX output
@@ -752,7 +752,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  1999-07-13 12:25:07  michael
+  Revision 1.3  2000-01-07 01:15:00  peter
+    * updated copyright to 2000
+
+  Revision 1.2  1999/07/13 12:25:07  michael
   Changed fpcman to fpc
 
   Revision 1.1  1999/05/12 16:08:27  peter

@@ -6,7 +6,7 @@ rem * Purpose:      The makefile contains a lot of Unix commands. While it is *
 rem *               possible to install for example a bash shell under OS/2   *
 rem *               a batch file is much easier.                              *
 rem *                                                                         *
-rem * Copyright (c) 1998 by Daniel Mantione, developer of Free Pascal         *
+rem * Copyright (c) 1998-2000 by Daniel Mantione, developer of Free Pascal         *
 rem ***************************************************************************
 
 goto %1

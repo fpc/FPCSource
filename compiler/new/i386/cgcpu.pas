@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     This unit implements the code generator for the i386
 
@@ -140,7 +140,10 @@ unit cgcpu;
 end.
 {
   $Log$
-  Revision 1.8  1999-11-09 22:57:09  peter
+  Revision 1.9  2000-01-07 01:14:57  peter
+    * updated copyright to 2000
+
+  Revision 1.8  1999/11/09 22:57:09  peter
     * compiles again both i386,alpha both with optimizer
 
   Revision 1.7  1999/09/15 20:35:47  florian

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1999 by Peter Vreman
+    Copyright (c) 1998-2000 by Peter Vreman
 
     Contains the base stuff for writing for object files to disk
 
@@ -148,7 +148,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  1999-05-09 11:38:07  peter
+  Revision 1.3  2000-01-07 01:14:28  peter
+    * updated copyright to 2000
+
+  Revision 1.2  1999/05/09 11:38:07  peter
     * don't write .o and link if errors occure during assembling
 
   Revision 1.1  1999/05/01 13:24:26  peter

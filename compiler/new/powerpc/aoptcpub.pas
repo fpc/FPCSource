@@ -1,6 +1,6 @@
  {
     $Id$
-    Copyright (c) 1999 by Jonas Maebe, member of the Free Pascal
+    Copyright (c) 1998-2000 by Jonas Maebe, member of the Free Pascal
     Development Team
 
     This unit contains several types and constants necessary for the
@@ -117,7 +117,10 @@ End.
 
 {
  $Log$
- Revision 1.1  1999-11-09 22:57:09  peter
+ Revision 1.2  2000-01-07 01:14:57  peter
+   * updated copyright to 2000
+
+ Revision 1.1  1999/11/09 22:57:09  peter
    * compiles again both i386,alpha both with optimizer
 
 }

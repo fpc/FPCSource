@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Contains some helper routines for the parser
 
@@ -160,7 +160,10 @@ end.
 
 {
   $Log$
-  Revision 1.27  1999-11-06 14:34:21  peter
+  Revision 1.28  2000-01-07 01:14:28  peter
+    * updated copyright to 2000
+
+  Revision 1.27  1999/11/06 14:34:21  peter
     * truncated log to 20 revs
 
   Revision 1.26  1999/10/01 08:02:46  peter

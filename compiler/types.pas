@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (C) 1993-98 by Florian Klaempfl
+    Copyright (C) 1998-2000 by Florian Klaempfl
 
     This unit provides some help routines for type handling
 
@@ -1000,7 +1000,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.94  2000-01-04 16:35:58  jonas
+  Revision 1.95  2000-01-07 01:14:49  peter
+    * updated copyright to 2000
+
+  Revision 1.94  2000/01/04 16:35:58  jonas
     * when range checking is off, constants that are out of bound are no longer
       truncated to their max/min legal value but left alone (jsut an "and" is done to
       make sure they fit in the allocated space if necessary)

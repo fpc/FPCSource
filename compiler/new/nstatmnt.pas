@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (C) 1993-99 by Florian Klaempfl
+    Copyright (C) 1998-2000 by Florian Klaempfl
 
     This unit implements block, statement nodes etc.
 
@@ -146,7 +146,10 @@ unit nstatmnt;
 end.
 {
   $Log$
-  Revision 1.4  1999-08-05 14:58:14  florian
+  Revision 1.5  2000-01-07 01:14:54  peter
+    * updated copyright to 2000
+
+  Revision 1.4  1999/08/05 14:58:14  florian
     * some fixes for the floating point registers
     * more things for the new code generator
 

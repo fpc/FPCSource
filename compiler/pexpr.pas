@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Does parsing of expression for Free Pascal
 
@@ -2100,7 +2100,10 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.164  1999-12-20 21:24:29  pierre
+  Revision 1.165  2000-01-07 01:14:28  peter
+    * updated copyright to 2000
+
+  Revision 1.164  1999/12/20 21:24:29  pierre
    * web bug769 fix
 
   Revision 1.163  1999/12/01 12:42:32  peter

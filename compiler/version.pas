@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (C) 1993-98 by Florian Klaempfl
+    Copyright (C) 1998-2000 by Florian Klaempfl
 
     Version/target constants
 
@@ -76,7 +76,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  1999-08-04 13:03:18  jonas
+  Revision 1.13  2000-01-07 01:14:49  peter
+    * updated copyright to 2000
+
+  Revision 1.12  1999/08/04 13:03:18  jonas
     * all tokens now start with an underscore
     * PowerPC compiles!!
 

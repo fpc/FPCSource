@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998 by the FPC development team
+    Copyright (c) 1998-2000 by Peter Vreman
 
     This unit handles the verbose management
 
@@ -507,7 +507,10 @@ end.
 
 {
   $Log$
-  Revision 1.43  1999-11-06 14:34:32  peter
+  Revision 1.44  2000-01-07 01:14:49  peter
+    * updated copyright to 2000
+
+  Revision 1.43  1999/11/06 14:34:32  peter
     * truncated log to 20 revs
 
   Revision 1.42  1999/08/05 16:53:28  peter

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1996-98 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Generation of a .def file for needed for Os2/Win32
 
@@ -165,7 +165,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  1999-12-20 23:23:28  pierre
+  Revision 1.5  2000-01-07 01:14:27  peter
+    * updated copyright to 2000
+
+  Revision 1.4  1999/12/20 23:23:28  pierre
    + $description $version
 
   Revision 1.3  1999/03/26 00:05:29  peter

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Commandline compiler for Free Pascal
 
@@ -273,7 +273,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.52  1999-11-06 14:34:23  peter
+  Revision 1.53  2000-01-07 01:14:30  peter
+    * updated copyright to 2000
+
+  Revision 1.52  1999/11/06 14:34:23  peter
     * truncated log to 20 revs
 
   Revision 1.51  1999/11/05 13:15:00  florian

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998 by Florian Klaempfl, Daniel Mantione
+    Copyright (c) 1998-2000 by Florian Klaempfl, Daniel Mantione
 
     Does the parsing of the procedures/functions
 
@@ -1933,7 +1933,10 @@ end.
 
 {
   $Log$
-  Revision 1.39  1999-12-22 01:01:52  peter
+  Revision 1.40  2000-01-07 01:14:31  peter
+    * updated copyright to 2000
+
+  Revision 1.39  1999/12/22 01:01:52  peter
     - removed freelabel()
     * added undefined label detection in internal assembler, this prevents
       a lot of ld crashes and wrong .o files

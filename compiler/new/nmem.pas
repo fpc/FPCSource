@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (C) 1993-99 by Florian Klaempfl
+    Copyright (C) 1998-2000 by Florian Klaempfl
 
     This unit implements load nodes etc.
 
@@ -711,7 +711,10 @@ unit nmem;
 end.
 {
   $Log$
-  Revision 1.15  1999-12-06 18:17:10  peter
+  Revision 1.16  2000-01-07 01:14:53  peter
+    * updated copyright to 2000
+
+  Revision 1.15  1999/12/06 18:17:10  peter
     * newcg compiler compiles again
 
   Revision 1.14  1999/10/12 21:20:46  florian

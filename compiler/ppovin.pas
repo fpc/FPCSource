@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1997-98 by Daniel Mantione
+    Copyright (c) 1998-2000 by Daniel Mantione
 
     Handles the overlay initialisation for a TP7 compiled version
 
@@ -87,7 +87,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  1999-09-16 11:34:58  pierre
+  Revision 1.5  2000-01-07 01:14:30  peter
+    * updated copyright to 2000
+
+  Revision 1.4  1999/09/16 11:34:58  pierre
    * typo correction
 
   Revision 1.3  1999/03/17 22:23:19  florian

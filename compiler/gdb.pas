@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1996-98 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     This units contains special support for the GDB
 
@@ -249,7 +249,10 @@ end.
 
 {
   $Log$
-  Revision 1.13  1999-11-09 23:51:25  pierre
+  Revision 1.14  2000-01-07 01:14:27  peter
+    * updated copyright to 2000
+
+  Revision 1.13  1999/11/09 23:51:25  pierre
    * some DBX work
 
   Revision 1.12  1999/08/04 00:23:01  florian

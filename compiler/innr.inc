@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library and compiler.
-    Copyright (c) 1993,98 by the Free Pascal development team
+    Copyright (c) 1998-2000 by the Free Pascal development team
 
     Internal Function/Constant Evaluator numbers
 
@@ -77,7 +77,7 @@ const
    in_pi               = 121;
    in_abs_extended     = 122;
    in_sqr_extended     = 123;
-   in_sqrt_extended    = 124; 
+   in_sqrt_extended    = 124;
    in_arctan_extended  = 125;
    in_ln_extended      = 126;
    in_sin_extended     = 127;
@@ -99,7 +99,10 @@ const
 
 {
   $Log$
-  Revision 1.14  1999-09-15 20:35:40  florian
+  Revision 1.15  2000-01-07 01:14:27  peter
+    * updated copyright to 2000
+
+  Revision 1.14  1999/09/15 20:35:40  florian
     * small fix to operator overloading when in MMX mode
     + the compiler uses now fldz and fld1 if possible
     + some fixes to floating point registers

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1996-98 by the FPC development team
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     This unit implements an asmoutput class for i386 AT&T syntax
 
@@ -871,7 +871,10 @@ unit ag386att;
 end.
 {
   $Log$
-  Revision 1.22  1999-12-18 20:00:33  florian
+  Revision 1.23  2000-01-07 01:14:18  peter
+    * updated copyright to 2000
+
+  Revision 1.22  1999/12/18 20:00:33  florian
     * Bug reported by Marco fixed: Intel assembler reader: fld qword ptr x
       was read as fldq x but it must be fldl x
 

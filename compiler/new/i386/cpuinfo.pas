@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal compiler
-    Copyright (c) 1999 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Basic Processor information for i386
 

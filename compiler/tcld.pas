@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Type checking and register allocation for load/assignment nodes
 
@@ -481,7 +481,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.56  2000-01-06 01:08:59  pierre
+  Revision 1.57  2000-01-07 01:14:46  peter
+    * updated copyright to 2000
+
+  Revision 1.56  2000/01/06 01:08:59  pierre
    * fix for web bug 776
 
   Revision 1.55  1999/12/31 14:26:27  peter

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1997 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     This unit implements an asm for the PowerPC
 
@@ -244,7 +244,10 @@ unit agas;
 end.
 {
   $Log$
-  Revision 1.3  1999-09-03 13:15:47  jonas
+  Revision 1.4  2000-01-07 01:14:57  peter
+    * updated copyright to 2000
+
+  Revision 1.3  1999/09/03 13:15:47  jonas
     + implemented most necessary methods
 
   Revision 1.2  1999/08/25 12:00:22  jonas

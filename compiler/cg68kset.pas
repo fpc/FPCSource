@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Generate m68k assembler for in set/case nodes
 
@@ -813,7 +813,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  1999-09-16 23:05:51  florian
+  Revision 1.10  2000-01-07 01:14:22  peter
+    * updated copyright to 2000
+
+  Revision 1.9  1999/09/16 23:05:51  florian
     * m68k compiler is again compilable (only gas writer, no assembler reader)
 
   Revision 1.8  1998/12/11 00:03:08  peter

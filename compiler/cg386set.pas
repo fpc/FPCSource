@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Generate i386 assembler for in set/case nodes
 
@@ -898,7 +898,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.44  1999-12-01 22:45:54  peter
+  Revision 1.45  2000-01-07 01:14:21  peter
+    * updated copyright to 2000
+
+  Revision 1.44  1999/12/01 22:45:54  peter
     * fixed wrong assembler with in-node
 
   Revision 1.43  1999/11/06 14:34:18  peter

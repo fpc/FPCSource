@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998 by the FPC development team
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     This unit implements an asmoutput class for MOTOROLA syntax with
     Motorola 68000 (recognized by the Amiga Assembler and Charlie Gibbs's
@@ -542,7 +542,10 @@ ait_labeled_instruction :
 end.
 {
   $Log$
-  Revision 1.18  1999-09-16 23:05:51  florian
+  Revision 1.19  2000-01-07 01:14:18  peter
+    * updated copyright to 2000
+
+  Revision 1.18  1999/09/16 23:05:51  florian
     * m68k compiler is again compilable (only gas writer, no assembler reader)
 
   Revision 1.17  1999/03/04 13:55:41  pierre

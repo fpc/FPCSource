@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1999 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Does parsing types for Free Pascal
 
@@ -1510,7 +1510,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.12  1999-11-30 10:40:52  peter
+  Revision 1.13  2000-01-07 01:14:34  peter
+    * updated copyright to 2000
+
+  Revision 1.12  1999/11/30 10:40:52  peter
     + ttype, tsymlist
 
   Revision 1.11  1999/11/26 00:19:12  peter

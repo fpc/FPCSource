@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1997-98 by Carl Eric Codere
+    Copyright (c) 1998-2000 by Carl Eric Codere
 
     This unit does the parsing process for the motorola inline assembler
 
@@ -2178,7 +2178,10 @@ Begin
 end.
 {
   $Log$
-  Revision 1.11  1999-11-10 00:06:08  pierre
+  Revision 1.12  2000-01-07 01:14:37  peter
+    * updated copyright to 2000
+
+  Revision 1.11  1999/11/10 00:06:08  pierre
    * adapted to procinfo as pointer
 
   Revision 1.10  1999/11/09 23:06:46  peter

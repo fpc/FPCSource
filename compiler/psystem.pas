@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Load the system unit, create required defs for systemunit
 
@@ -241,7 +241,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.31  1999-12-18 14:55:21  florian
+  Revision 1.32  2000-01-07 01:14:33  peter
+    * updated copyright to 2000
+
+  Revision 1.31  1999/12/18 14:55:21  florian
     * very basic widestring support
 
   Revision 1.30  1999/11/30 10:40:51  peter

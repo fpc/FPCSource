@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-99 by Florian Klaempfl, Pierre Muller
+    Copyright (c) 1998-2000 by Florian Klaempfl, Pierre Muller
 
     Symbol table implementation for the definitions
 
@@ -3854,7 +3854,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.185  2000-01-03 19:26:03  peter
+  Revision 1.186  2000-01-07 01:14:39  peter
+    * updated copyright to 2000
+
+  Revision 1.185  2000/01/03 19:26:03  peter
     * fixed resolving of ttypesym which are reference from object/record
       fields.
 
@@ -3948,7 +3951,7 @@ Const local_symtable_index : longint = $8001;
     * some other potential bugs with array constructors fixed
     * for classes compiled in $M+ and it's childs, the default access method
       is now published
-    * fixed copyright message (it is now 1993-99)
+    * fixed copyright message (it is now 1998-2000)
 
   Revision 1.161  1999/09/10 18:48:09  florian
     * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl, Pierre Muller
+    Copyright (c) 1998-2000 by Florian Klaempfl, Pierre Muller
 
     interprets the commandline options which are m68k specific
 
@@ -71,7 +71,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  1998-12-11 00:03:23  peter
+  Revision 1.8  2000-01-07 01:14:28  peter
+    * updated copyright to 2000
+
+  Revision 1.7  1998/12/11 00:03:23  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.6  1998/10/13 13:10:21  peter

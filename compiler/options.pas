@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by the FPC development team
+    Copyright (c) 1998-2000 by Florian Klaempfl and Peter Vreman
 
     Reads command line options and config files
 
@@ -1360,7 +1360,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.46  2000-01-06 15:48:59  peter
+  Revision 1.47  2000-01-07 01:14:27  peter
+    * updated copyright to 2000
+
+  Revision 1.46  2000/01/06 15:48:59  peter
     * wildcard support for directory adding, this allows the use of units/*
       in ppc386.cfg
 

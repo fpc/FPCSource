@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1999 by the Free Pascal development team
+    Copyright (c) 1998-2000 by Michael van Canneyt
 
     Handles resourcestrings
 
@@ -17,6 +17,7 @@
     You should have received a copy of the GNU General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
  ****************************************************************************
 }
 unit cresstr;
@@ -308,7 +309,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.15  1999-11-06 14:34:20  peter
+  Revision 1.16  2000-01-07 01:14:23  peter
+    * updated copyright to 2000
+
+  Revision 1.15  1999/11/06 14:34:20  peter
     * truncated log to 20 revs
 
   Revision 1.14  1999/08/27 15:55:36  michael

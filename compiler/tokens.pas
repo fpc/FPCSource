@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl, Pierre Muller
+    Copyright (c) 1998-2000 by Florian Klaempfl, Pierre Muller
 
     Tokens used by the compiler
 
@@ -511,7 +511,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.18  1999-11-15 17:53:00  pierre
+  Revision 1.19  2000-01-07 01:14:48  peter
+    * updated copyright to 2000
+
+  Revision 1.18  1999/11/15 17:53:00  pierre
     + one field added for ttoken record for operator
       linking the id to the corresponding operator token that
       can now now all be overloaded

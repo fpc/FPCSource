@@ -1,7 +1,7 @@
 #
 #   $Id$
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1998 by the Free Pascal Development team
+#   Copyright (c) 1998-2000 by the Free Pascal Development team
 #
 #   Dutch Language File for Free Pascal
 #
@@ -53,7 +53,7 @@
 #   Illegaal betekent onwettig in het Nederlands.
 # - Zo wordt "execute" niet met "executeren" vertaalt maar met "uitvoeren".
 #   Programma, hebt u nog een laatste wens voordat de trekker wordt
-#	overgehaald?
+#       overgehaald?
 # - In het Nederlands schrijft men woorden vaker aan elkaar dan in het
 #   Engels: "compiler switch" (2 woorden ) wordt "compileroptie" (1 woord).
 #   Let ook op voorvoegingen: "Interface and implementation names" wordt:
@@ -1431,7 +1431,7 @@ option_switch_bin_to_src_assembler=N_Switching assembler to default source writi
 # Logo (option -l)
 #
 option_logo_start=Free Pascal Compiler versie $FPCVER [$FPCDATE] voor $FPCTARGET
-option_logo_end=Copyright (c) 1993-99 door Florian Klaempfl en anderen
+option_logo_end=Copyright (c) 1998-2000 door Florian Klaempfl en anderen
 #
 # Info (option -i)
 #

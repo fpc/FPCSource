@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1996-98 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     This unit implements an extended file management and the first loading
     and searching of the modules (ppufiles)
@@ -1348,7 +1348,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.111  1999-12-08 01:01:11  peter
+  Revision 1.112  2000-01-07 01:14:27  peter
+    * updated copyright to 2000
+
+  Revision 1.111  1999/12/08 01:01:11  peter
     * fixed circular unit reference checking. loaded_from was reset after
       reseting a unit, so no loaded_from info was available anymore.
 

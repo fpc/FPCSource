@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Type checking and register allocation for constants
 
@@ -136,7 +136,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  1999-09-26 21:30:22  peter
+  Revision 1.11  2000-01-07 01:14:45  peter
+    * updated copyright to 2000
+
+  Revision 1.10  1999/09/26 21:30:22  peter
     + constant pointer support which can happend with typecasting like
       const p=pointer(1)
     * better procvar parsing in typed consts

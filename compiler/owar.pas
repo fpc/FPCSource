@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1999 by Peter Vreman
+    Copyright (c) 1998-2000 by Peter Vreman
 
     Contains the stuff for writing .a files directly
 
@@ -279,7 +279,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  1999-07-18 10:19:59  florian
+  Revision 1.5  2000-01-07 01:14:28  peter
+    * updated copyright to 2000
+
+  Revision 1.4  1999/07/18 10:19:59  florian
     * made it compilable with Dlephi 4 again
     + fixed problem with large stack allocations on win32
 

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (C) 1993-99 by Florian Klaempfl
+    Copyright (C) 1998-2000 by Florian Klaempfl
 
     This unit handles the temporary variables stuff for Alpha
 
@@ -42,7 +42,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  1999-08-03 00:28:24  florian
+  Revision 1.4  2000-01-07 01:14:56  peter
+    * updated copyright to 2000
+
+  Revision 1.3  1999/08/03 00:28:24  florian
     - removed the stuff of the last commit :)
 
   Revision 1.2  1999/08/03 00:25:28  florian

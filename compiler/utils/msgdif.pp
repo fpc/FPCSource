@@ -1,7 +1,7 @@
 {
     $Id$
     This program is part of the Free Pascal run time library.
-    Copyright (c) 1998 by Peter Vreman
+    Copyright (c) 1998-2000 by Peter Vreman
 
     Show the differences between two .msg files
 
@@ -295,7 +295,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  1999-06-22 16:32:43  pierre
+  Revision 1.8  2000-01-07 01:15:01  peter
+    * updated copyright to 2000
+
+  Revision 1.7  1999/06/22 16:32:43  pierre
    * wrong change 1.6 removed
 
   Revision 1.5  1999/06/11 13:06:45  peter

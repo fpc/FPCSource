@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1999 by Jonas Maebe, member of the Free Pascal
+    Copyright (c) 1998-2000 by Jonas Maebe, member of the Free Pascal
     Development Team
 
     This unit contains the data flow analyzer object of the assembler
@@ -177,7 +177,10 @@ End.
 
 {
   $Log$
-  Revision 1.5  1999-11-09 22:57:08  peter
+  Revision 1.6  2000-01-07 01:14:52  peter
+    * updated copyright to 2000
+
+  Revision 1.5  1999/11/09 22:57:08  peter
     * compiles again both i386,alpha both with optimizer
 
   Revision 1.4  1999/08/18 14:32:21  jonas

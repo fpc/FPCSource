@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Generate m68k assembler for add node
 
@@ -1281,7 +1281,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  1999-09-16 23:05:51  florian
+  Revision 1.18  2000-01-07 01:14:21  peter
+    * updated copyright to 2000
+
+  Revision 1.17  1999/09/16 23:05:51  florian
     * m68k compiler is again compilable (only gas writer, no assembler reader)
 
   Revision 1.16  1999/09/16 11:34:52  pierre

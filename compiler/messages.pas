@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998 by Peter Vreman
+    Copyright (c) 1998-2000 by Peter Vreman
 
     This unit implements the message object
 
@@ -264,7 +264,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  1999-07-18 10:19:55  florian
+  Revision 1.9  2000-01-07 01:14:27  peter
+    * updated copyright to 2000
+
+  Revision 1.8  1999/07/18 10:19:55  florian
     * made it compilable with Dlephi 4 again
     + fixed problem with large stack allocations on win32
 

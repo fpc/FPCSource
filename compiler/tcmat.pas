@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Type checking and register allocation for math nodes
 
@@ -447,7 +447,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.26  1999-12-11 18:53:31  jonas
+  Revision 1.27  2000-01-07 01:14:46  peter
+    * updated copyright to 2000
+
+  Revision 1.26  1999/12/11 18:53:31  jonas
     * fixed type conversions of results of operations with cardinals
       (between -dcardinalmulfix)
 

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     This module provides some basic objects
 
@@ -2318,7 +2318,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.49  1999-12-22 01:01:48  peter
+  Revision 1.50  2000-01-07 01:14:23  peter
+    * updated copyright to 2000
+
+  Revision 1.49  1999/12/22 01:01:48  peter
     - removed freelabel()
     * added undefined label detection in internal assembler, this prevents
       a lot of ld crashes and wrong .o files

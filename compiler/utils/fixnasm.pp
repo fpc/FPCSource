@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1999 by Peter Vreman
+    Copyright (c) 1998-2000 by Peter Vreman
 
     Convert insns.dat from Nasm to an i386ins.dat for usage with
     the Free pascal compiler
@@ -100,7 +100,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  1999-10-28 09:47:45  peter
+  Revision 1.3  2000-01-07 01:15:00  peter
+    * updated copyright to 2000
+
+  Revision 1.2  1999/10/28 09:47:45  peter
     * update to use i386ins.dat
 
 }

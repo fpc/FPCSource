@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     SetJmp and LongJmp implementation for recovery handling of the
     compiler
@@ -42,7 +42,7 @@ type
    end;
 
    pjmp_buf = ^jmp_buf;
-   
+
 {$ifdef TP}
   function setjmp(var rec : jmp_buf) : integer;
   procedure longjmp(const rec : jmp_buf;return_value : integer);
@@ -54,7 +54,7 @@ type
   const
      recoverpospointer : pjmp_buf = nil;
      longjump_used : boolean = false;
-     
+
 implementation
 
 
@@ -204,7 +204,7 @@ implementation
 
       begin
       end;
-      
+
 {$else Delphi}
 
     function setjmp(var rec : jmp_buf) : longint;
@@ -351,7 +351,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  1999-08-18 11:35:59  pierre
+  Revision 1.9  2000-01-07 01:14:48  peter
+    * updated copyright to 2000
+
+  Revision 1.8  1999/08/18 11:35:59  pierre
    * esp loading corrected
 
   Revision 1.7  1999/07/18 14:47:36  florian

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1997-99 by Carl Eric Codere and Peter Vreman
+    Copyright (c) 1998-2000 by Carl Eric Codere and Peter Vreman
 
     Does the parsing for the AT&T styled inline assembler.
 
@@ -1976,7 +1976,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.65  1999-12-12 12:57:59  peter
+  Revision 1.66  2000-01-07 01:14:34  peter
+    * updated copyright to 2000
+
+  Revision 1.65  1999/12/12 12:57:59  peter
     * allow para+offset
 
   Revision 1.64  1999/11/30 10:40:52  peter

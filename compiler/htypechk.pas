@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1996-98 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     This unit exports some help routines for the type checking
 
@@ -848,7 +848,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.54  1999-12-31 14:26:27  peter
+  Revision 1.55  2000-01-07 01:14:27  peter
+    * updated copyright to 2000
+
+  Revision 1.54  1999/12/31 14:26:27  peter
     * fixed crash with empty array constructors
 
   Revision 1.53  1999/12/18 14:55:21  florian

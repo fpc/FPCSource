@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Type checking and register allocation for nodes that influence
     the flow
@@ -551,7 +551,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.31  1999-12-14 09:58:42  florian
+  Revision 1.32  2000-01-07 01:14:45  peter
+    * updated copyright to 2000
+
+  Revision 1.31  1999/12/14 09:58:42  florian
     + compiler checks now if a goto leaves an exception block
 
   Revision 1.30  1999/12/13 11:21:24  peter

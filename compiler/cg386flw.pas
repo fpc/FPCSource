@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-99 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Generate i386 assembler for nodes that influence the flow
 
@@ -610,8 +610,8 @@ do_jmp:
          getlabel(exitexceptlabel);
          aktexitlabel:=exitexceptlabel;
          aktexit2label:=exitexceptlabel;
-	 if assigned(aktbreaklabel) then
-	  begin
+         if assigned(aktbreaklabel) then
+          begin
             oldaktcontinuelabel:=aktcontinuelabel;
             oldaktbreaklabel:=aktbreaklabel;
             getlabel(breakexceptlabel);
@@ -700,11 +700,11 @@ do_jmp:
          endexceptlabel:=oldendexceptlabel;
          aktexitlabel:=oldaktexitlabel;
          aktexit2label:=oldaktexit2label;
-	 if assigned(aktbreaklabel) then
-	  begin
+         if assigned(aktbreaklabel) then
+          begin
             aktcontinuelabel:=oldaktcontinuelabel;
             aktbreaklabel:=oldaktbreaklabel;
-	  end;  
+          end;
       end;
 
     procedure secondon(var p : ptree);
@@ -788,15 +788,15 @@ do_jmp:
          getlabel(exitfinallylabel);
          aktexitlabel:=exitfinallylabel;
          aktexit2label:=exitfinallylabel;
-	 if assigned(aktbreaklabel) then
- 	  begin
+         if assigned(aktbreaklabel) then
+          begin
             oldaktcontinuelabel:=aktcontinuelabel;
             oldaktbreaklabel:=aktbreaklabel;
             getlabel(breakfinallylabel);
             getlabel(continuefinallylabel);
             aktcontinuelabel:=continuefinallylabel;
             aktbreaklabel:=breakfinallylabel;
-	  end;  
+          end;
 
          push_int(1); { Type of stack-frame must be pushed}
          emitcall('FPC_PUSHEXCEPTADDR');
@@ -864,11 +864,11 @@ do_jmp:
 
          aktexitlabel:=oldaktexitlabel;
          aktexit2label:=oldaktexit2label;
-	 if assigned(aktbreaklabel) then
-	  begin
+         if assigned(aktbreaklabel) then
+          begin
             aktcontinuelabel:=oldaktcontinuelabel;
             aktbreaklabel:=oldaktbreaklabel;
-	  end;  
+          end;
       end;
 
 
@@ -885,7 +885,10 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.65  1999-12-22 23:30:06  peter
+  Revision 1.66  2000-01-07 01:14:20  peter
+    * updated copyright to 2000
+
+  Revision 1.65  1999/12/22 23:30:06  peter
     * nested try blocks work again
 
   Revision 1.64  1999/12/22 01:01:46  peter

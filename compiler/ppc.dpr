@@ -4,7 +4,7 @@
 {$APPTYPE CONSOLE}
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Commandline compiler for Free Pascal
 
@@ -54,7 +54,7 @@
   GDB;M68k;TP
 
   To compile the compiler with Delphi do the following:
-  
+
 }
 
 {$ifdef FPC}
@@ -233,7 +233,7 @@ begin
   {$ifndef TP}
   {$ifndef Delphi}
     heapblocks:=true;
-  {$endif Delphi}    
+  {$endif Delphi}
   {$endif}
 {$endif}
 {$ifdef UseOverlay}
@@ -245,7 +245,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  1999-07-18 10:20:00  florian
+  Revision 1.4  2000-01-07 01:14:30  peter
+    * updated copyright to 2000
+
+  Revision 1.3  1999/07/18 10:20:00  florian
     * made it compilable with Dlephi 4 again
     + fixed problem with large stack allocations on win32
 

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (C) 1997 by Florian Klaempfl
+    Copyright (C) 1998-2000 by Florian Klaempfl
 
     this unit implements an asmlistitem class for the DEC Alpha
 
@@ -299,7 +299,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.15  1999-11-09 22:57:09  peter
+  Revision 1.16  2000-01-07 01:14:56  peter
+    * updated copyright to 2000
+
+  Revision 1.15  1999/11/09 22:57:09  peter
     * compiles again both i386,alpha both with optimizer
 
   Revision 1.14  1999/08/23 23:27:55  pierre

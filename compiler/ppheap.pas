@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by FPC development team
+    Copyright (c) 1998-2000 by Pierre Muller
 
     Simple unit to add source line and column to each
     memory allocation made with heaptrc unit
@@ -72,7 +72,10 @@ unit ppheap;
 
 {
   $Log$
-  Revision 1.8  1999-11-17 17:05:02  pierre
+  Revision 1.9  2000-01-07 01:14:30  peter
+    * updated copyright to 2000
+
+  Revision 1.8  1999/11/17 17:05:02  pierre
    * Notes/hints changes
 
   Revision 1.7  1999/06/08 15:26:49  pierre

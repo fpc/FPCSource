@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (C) 1993-98 by Florian Klaempfl
+    Copyright (C) 1998-2000 by Florian Klaempfl
 
     Dummy
 
@@ -47,7 +47,10 @@ unit tgeni386;
 end.
 {
   $Log$
-  Revision 1.2  1999-08-02 21:29:09  florian
+  Revision 1.3  2000-01-07 01:14:54  peter
+    * updated copyright to 2000
+
+  Revision 1.2  1999/08/02 21:29:09  florian
     * the main branch psub.pas is now used for
       newcg compiler
 

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998 by Jonas Maebe
+    Copyright (c) 1998-2000 by Jonas Maebe
 
     This unit calls the optimization procedures to optimize the assembler
     code for i386+
@@ -101,7 +101,10 @@ End.
 
 {
  $Log$
- Revision 1.30  1999-11-27 23:50:22  jonas
+ Revision 1.31  2000-01-07 01:14:19  peter
+   * updated copyright to 2000
+
+ Revision 1.30  1999/11/27 23:50:22  jonas
    + if you define "newOptimizations", all extra optimizations that
      require conditional defines will be activated (ie., it's equivalent
      to "-dreplacereg -darithopt -dforopt -dfoldarithops")

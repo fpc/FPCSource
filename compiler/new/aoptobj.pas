@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1999 by Jonas Maebe, member of the Free Pascal
+    Copyright (c) 1998-2000 by Jonas Maebe, member of the Free Pascal
     Development Team
 
     This unit contains the processor independent assembler optimizer
@@ -791,7 +791,10 @@ End.
 
 {
  $Log$
- Revision 1.7  1999-11-09 22:57:08  peter
+ Revision 1.8  2000-01-07 01:14:52  peter
+   * updated copyright to 2000
+
+ Revision 1.7  1999/11/09 22:57:08  peter
    * compiles again both i386,alpha both with optimizer
 
  Revision 1.6  1999/09/29 13:50:34  jonas

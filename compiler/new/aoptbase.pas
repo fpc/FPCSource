@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1999 by Jonas Maebe, member of the Free Pascal
+    Copyright (c) 1998-2000 by Jonas Maebe, member of the Free Pascal
     Development Team
 
     This unit contains the base of all optimizer related objects
@@ -263,7 +263,10 @@ End.
 
 {
   $Log$
-  Revision 1.4  1999-11-09 22:57:08  peter
+  Revision 1.5  2000-01-07 01:14:51  peter
+    * updated copyright to 2000
+
+  Revision 1.4  1999/11/09 22:57:08  peter
     * compiles again both i386,alpha both with optimizer
 
   Revision 1.3  1999/09/08 15:01:31  jonas

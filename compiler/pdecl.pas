@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-99 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Does declaration (but not type) parsing for Free Pascal
 
@@ -1180,7 +1180,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.175  1999-12-10 10:04:21  peter
+  Revision 1.176  2000-01-07 01:14:28  peter
+    * updated copyright to 2000
+
+  Revision 1.175  1999/12/10 10:04:21  peter
     * also check elementtype of arraydef for forwarddef
 
   Revision 1.174  1999/12/01 12:42:32  peter
@@ -1272,7 +1275,7 @@ end.
     * some other potential bugs with array constructors fixed
     * for classes compiled in $M+ and it's childs, the default access method
       is now published
-    * fixed copyright message (it is now 1993-99)
+    * fixed copyright message (it is now 1998-2000)
 
   Revision 1.150  1999/09/10 20:57:33  florian
     * some more fixes for stored properties

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1997-98 by Carl Eric Codere
+    Copyright (c) 1998-2000 by Carl Eric Codere and Peter Vreman
 
     Handles the common i386 assembler reader routines
 
@@ -339,7 +339,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  1999-12-12 12:59:34  peter
+  Revision 1.11  2000-01-07 01:14:34  peter
+    * updated copyright to 2000
+
+  Revision 1.10  1999/12/12 12:59:34  peter
     * only check suffixsize for byte,word,long
 
   Revision 1.9  1999/08/25 12:00:05  jonas

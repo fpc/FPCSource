@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (C) 1993-98 by Florian Klaempfl
+    Copyright (C) 1998-2000 by Florian Klaempfl
 
     This unit handles the temporary variables stuff for i386
 
@@ -532,7 +532,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.40  1999-12-19 23:53:14  pierre
+  Revision 1.41  2000-01-07 01:14:47  peter
+    * updated copyright to 2000
+
+  Revision 1.40  1999/12/19 23:53:14  pierre
    * problem with persistant temp fixed
 
   Revision 1.39  1999/12/01 12:42:33  peter

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Handles the parsing and loading of the modules (ppufiles)
 
@@ -1561,7 +1561,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.177  1999-12-20 22:29:26  pierre
+  Revision 1.178  2000-01-07 01:14:29  peter
+    * updated copyright to 2000
+
+  Revision 1.177  1999/12/20 22:29:26  pierre
     * relocation with debug info in rva (only with internal compiler)
 
   Revision 1.176  1999/12/10 10:02:53  peter

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1999 by Jonas Maebe, member of the Free Pascal
+    Copyright (c) 1998-2000 by Jonas Maebe, member of the Free Pascal
     Development Team
 
     This unit contains the common subexpression elimination object of the
@@ -850,7 +850,10 @@ End.
 
 {
   $Log$
-  Revision 1.3  1999-08-25 12:00:10  jonas
+  Revision 1.4  2000-01-07 01:14:51  peter
+    * updated copyright to 2000
+
+  Revision 1.3  1999/08/25 12:00:10  jonas
     * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
 
   Revision 1.2  1999/08/23 14:41:13  jonas

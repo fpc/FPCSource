@@ -3,7 +3,7 @@
 
     This unit handles symbols
 
-    Copyright (C) 1999 by Daniel Mantione,
+    Copyright (C) 1998-2000 by Daniel Mantione,
      member of the Free Pascal development team
 
     This program is free software; you can redistribute it and/or modify

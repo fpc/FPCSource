@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998 Carl Eric Codere
+    Copyright (c) 1998-2000 by Carl Eric Codere and Peter Vreman
 
     This unit implements some support routines for assembler parsing
     independent of the processor
@@ -1443,7 +1443,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.33  1999-12-22 00:57:30  peter
+  Revision 1.34  2000-01-07 01:14:37  peter
+    * updated copyright to 2000
+
+  Revision 1.33  1999/12/22 00:57:30  peter
     * label are set to used so an error is given if used but not defined
 
   Revision 1.32  1999/12/17 10:43:34  florian

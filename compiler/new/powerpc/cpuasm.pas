@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1999 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Contains the assembler object for the PowerPC
 
@@ -322,7 +322,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  1999-08-25 12:00:24  jonas
+  Revision 1.5  2000-01-07 01:14:58  peter
+    * updated copyright to 2000
+
+  Revision 1.4  1999/08/25 12:00:24  jonas
     * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
 
   Revision 1.3  1999/08/06 16:41:11  jonas

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1999 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Peter Vreman
 
     Contains the base stuff for 386 binary object file writers
 
@@ -275,7 +275,10 @@ unit og386;
 end.
 {
   $Log$
-  Revision 1.15  1999-11-08 10:37:12  peter
+  Revision 1.16  2000-01-07 01:14:27  peter
+    * updated copyright to 2000
+
+  Revision 1.15  1999/11/08 10:37:12  peter
     * filename fixes for win32 imports for units with multiple needed dll's
 
   Revision 1.14  1999/11/06 14:34:21  peter

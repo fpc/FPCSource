@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     This unit does node transformations
 
@@ -82,7 +82,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  1999-10-12 21:20:47  florian
+  Revision 1.3  2000-01-07 01:14:55  peter
+    * updated copyright to 2000
+
+  Revision 1.2  1999/10/12 21:20:47  florian
     * new codegenerator compiles again
 
   Revision 1.1  1999/01/23 23:35:02  florian

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (C) 1993-98 by Florian Klaempfl
+    Copyright (C) 1998-2000 by Florian Klaempfl
 
     Dummy
 
@@ -29,7 +29,10 @@ unit temp_gen;
 end.
 {
   $Log$
-  Revision 1.1  1999-08-02 17:15:43  florian
+  Revision 1.2  2000-01-07 01:14:54  peter
+    * updated copyright to 2000
+
+  Revision 1.1  1999/08/02 17:15:43  florian
     + dummy implementation
 
 }

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-99 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     This unit handles the codegeneration pass
 
@@ -749,7 +749,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.48  2000-01-04 15:15:52  florian
+  Revision 1.49  2000-01-07 01:14:28  peter
+    * updated copyright to 2000
+
+  Revision 1.48  2000/01/04 15:15:52  florian
     + added compiler switch $maxfpuregisters
     + fixed a small problem in secondvecn
 

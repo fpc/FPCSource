@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1999 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -27,7 +27,10 @@ unit cpuasm;
 end.
 {
   $Log$
-  Revision 1.1  1999-09-16 23:05:57  florian
+  Revision 1.2  2000-01-07 01:14:50  peter
+    * updated copyright to 2000
+
+  Revision 1.1  1999/09/16 23:05:57  florian
     * m68k compiler is again compilable (only gas writer, no assembler reader)
 
 }

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998 by Peter Vreman
+    Copyright (c) 1998-2000 by Peter Vreman
 
     This unit handles the writing of script files
 
@@ -234,7 +234,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  1999-10-21 14:29:37  peter
+  Revision 1.4  2000-01-07 01:14:39  peter
+    * updated copyright to 2000
+
+  Revision 1.3  1999/10/21 14:29:37  peter
     * redesigned linker object
     + library support for linux (only procedures can be exported)
 

@@ -1,7 +1,7 @@
 #
 # $Id: errorr.msg, v1.9 1999/10/29 00:33:16 michail A.baikov
 # Этот файл - часть Free Pascal Compilator
-# Авторское право (c) 1998,1999 by Free Pascal Development Team (Russian)
+# Авторское право (c) 1998,1998-2000 by Free Pascal Development Team (Russian)
 #
 # Рyсский файл языка для Free Pascal (поставляется с v.0.99.12)
 #
@@ -828,7 +828,7 @@ option_switch_bin_to_src_assembler=N_Пеpеключаем ассемблеp в ассемблеp заданный 
 # Лого (опция -l)
 #
 option_logo_start=Free Pascal Compiler version $FPCVER [$FPCDATE] for $FPCTARGET [Russian]
-option_logo_end=Copyright (c) 1993-99 by Florian Klaempfl
+option_logo_end=Copyright (c) 1998-2000 by Florian Klaempfl
 
 #
 # Инфоpмация (опция -i)
@@ -995,7 +995,10 @@ ol_end=**1h_показать этy справкy, без ожидания <enter>
 
 #
 # $Log$
-# Revision 1.9  1999-11-12 22:52:13  michael
+# Revision 1.10  2000-01-07 01:14:26  peter
+#   * updated copyright to 2000
+#
+# Revision 1.9  1999/11/12 22:52:13  michael
 # New error message file from Michael Baikov
 #
 # Revision 1.9  1999/10/29 00:33:16  michail a.baikov

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998 by Peter Vreman
+    Copyright (c) 1998-2000 by Peter Vreman
 
     This unit implements the parsing of the switches like $I-
 
@@ -171,7 +171,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.24  1999-11-06 14:34:26  peter
+  Revision 1.25  2000-01-07 01:14:39  peter
+    * updated copyright to 2000
+
+  Revision 1.24  1999/11/06 14:34:26  peter
     * truncated log to 20 revs
 
   Revision 1.23  1999/09/16 11:34:58  pierre

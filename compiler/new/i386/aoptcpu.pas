@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1999 by Jonas Maebe, member of the Free Pascal
+    Copyright (c) 1998-2000 by Jonas Maebe, member of the Free Pascal
     Development Team
 
     This unit implements the i386 optimizer object
@@ -39,7 +39,10 @@ Implementation
 End.
 {
  $Log$
- Revision 1.5  1999-08-18 14:32:24  jonas
+ Revision 1.6  2000-01-07 01:14:56  peter
+   * updated copyright to 2000
+
+ Revision 1.5  1999/08/18 14:32:24  jonas
    + compilable!
    + dataflow analyzer finished
    + start of CSE units

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998 by the FPC development team
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     This unit implements an asmoutput class for MIT syntax with
     Motorola 68000 (for MIT syntax TEST WITH GAS v1.34)
@@ -668,7 +668,10 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
 end.
 {
   $Log$
-  Revision 1.22  1999-09-16 23:05:51  florian
+  Revision 1.23  2000-01-07 01:14:18  peter
+    * updated copyright to 2000
+
+  Revision 1.22  1999/09/16 23:05:51  florian
     * m68k compiler is again compilable (only gas writer, no assembler reader)
 
   Revision 1.21  1999/03/10 13:25:45  pierre

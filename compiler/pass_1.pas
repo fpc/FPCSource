@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1996-98 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     This unit implements the first pass of the code generator
 
@@ -372,7 +372,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.111  1999-12-14 09:58:42  florian
+  Revision 1.112  2000-01-07 01:14:28  peter
+    * updated copyright to 2000
+
+  Revision 1.111  1999/12/14 09:58:42  florian
     + compiler checks now if a goto leaves an exception block
 
   Revision 1.110  1999/11/30 10:40:44  peter

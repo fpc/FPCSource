@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998 by Peter Vreman
+    Copyright (c) 1998-2000 by Peter Vreman
 
     This unit implements an uniform import object
 
@@ -234,7 +234,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.15  1999-11-06 14:34:21  peter
+  Revision 1.16  2000-01-07 01:14:27  peter
+    * updated copyright to 2000
+
+  Revision 1.15  1999/11/06 14:34:21  peter
     * truncated log to 20 revs
 
   Revision 1.14  1999/11/02 15:06:57  peter

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1999 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Peter Vreman
 
     Contains the 386 binary writer for debugging purposes
 
@@ -180,7 +180,10 @@ unit og386dbg;
 end.
 {
   $Log$
-  Revision 1.6  1999-11-02 15:06:57  peter
+  Revision 1.7  2000-01-07 01:14:27  peter
+    * updated copyright to 2000
+
+  Revision 1.6  1999/11/02 15:06:57  peter
     * import library fixes for win32
     * alignment works again
 

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Generate m68k assembler for math nodes
 
@@ -449,7 +449,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  1999-11-18 15:34:44  pierre
+  Revision 1.7  2000-01-07 01:14:22  peter
+    * updated copyright to 2000
+
+  Revision 1.6  1999/11/18 15:34:44  pierre
     * Notes/Hints for local syms changed to
       Set_varstate function
 

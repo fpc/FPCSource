@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Helper routines for the i386 code generator
 
@@ -3447,7 +3447,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.65  1999-12-22 01:01:47  peter
+  Revision 1.66  2000-01-07 01:14:22  peter
+    * updated copyright to 2000
+
+  Revision 1.65  1999/12/22 01:01:47  peter
     - removed freelabel()
     * added undefined label detection in internal assembler, this prevents
       a lot of ld crashes and wrong .o files
@@ -3547,7 +3550,7 @@ end.
     * some other potential bugs with array constructors fixed
     * for classes compiled in $M+ and it's childs, the default access method
       is now published
-    * fixed copyright message (it is now 1993-99)
+    * fixed copyright message (it is now 1998-2000)
 
   Revision 1.40  1999/09/11 11:23:58  florian
     * bug 603 fixed

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     This units exports some routines to manage the parse tree
 
@@ -2147,7 +2147,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.19  1999-12-22 22:27:41  peter
+  Revision 1.20  2000-01-07 01:14:55  peter
+    * updated copyright to 2000
+
+  Revision 1.19  1999/12/22 22:27:41  peter
     * compiles again
 
   Revision 1.18  1999/12/06 18:17:10  peter

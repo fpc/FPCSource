@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Generate m68k assembler for load/assignment nodes
 
@@ -471,7 +471,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  1999-12-22 01:01:47  peter
+  Revision 1.12  2000-01-07 01:14:22  peter
+    * updated copyright to 2000
+
+  Revision 1.11  1999/12/22 01:01:47  peter
     - removed freelabel()
     * added undefined label detection in internal assembler, this prevents
       a lot of ld crashes and wrong .o files

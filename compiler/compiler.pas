@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     This unit is the interface of the compiler which can be used by
      external programs to link in the compiler
@@ -329,7 +329,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.41  1999-12-02 17:34:34  peter
+  Revision 1.42  2000-01-07 01:14:23  peter
+    * updated copyright to 2000
+
+  Revision 1.41  1999/12/02 17:34:34  peter
     * preprocessor support. But it fails on the caret in type blocks
 
   Revision 1.40  1999/11/18 13:43:48  pierre

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998 by Peter Vreman
+    Copyright (c) 1998-2000 by Peter Vreman
 
     This unit implements directive parsing for the scanner
 
@@ -1250,7 +1250,10 @@ const
 
 {
   $Log$
-  Revision 1.71  2000-01-04 15:15:53  florian
+  Revision 1.72  2000-01-07 01:14:37  peter
+    * updated copyright to 2000
+
+  Revision 1.71  2000/01/04 15:15:53  florian
     + added compiler switch $maxfpuregisters
     + fixed a small problem in secondvecn
 

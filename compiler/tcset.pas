@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Type checking and register allocation for set/case nodes
 
@@ -306,7 +306,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  1999-11-30 10:40:59  peter
+  Revision 1.17  2000-01-07 01:14:47  peter
+    * updated copyright to 2000
+
+  Revision 1.16  1999/11/30 10:40:59  peter
     + ttype, tsymlist
 
   Revision 1.15  1999/11/18 15:34:51  pierre

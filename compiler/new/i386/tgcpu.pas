@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (C) 1993-99 by Florian Klaempfl
+    Copyright (C) 1998-2000 by Florian Klaempfl
 
     This unit handles the temporary variables stuff for i386
 
@@ -68,7 +68,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  1999-09-15 20:35:47  florian
+  Revision 1.6  2000-01-07 01:14:57  peter
+    * updated copyright to 2000
+
+  Revision 1.5  1999/09/15 20:35:47  florian
     * small fix to operator overloading when in MMX mode
     + the compiler uses now fldz and fld1 if possible
     + some fixes to floating point registers

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Type checking and register allocation for inline nodes
 
@@ -1280,7 +1280,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.63  1999-12-30 15:02:10  peter
+  Revision 1.64  2000-01-07 01:14:45  peter
+    * updated copyright to 2000
+
+  Revision 1.63  1999/12/30 15:02:10  peter
     * fixed crash with undefined variable
 
   Revision 1.62  1999/12/02 12:38:45  florian

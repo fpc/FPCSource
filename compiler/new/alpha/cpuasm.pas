@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1999 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Contains the assembler object for the Alpha
 
@@ -285,7 +285,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  1999-08-25 12:00:18  jonas
+  Revision 1.6  2000-01-07 01:14:56  peter
+    * updated copyright to 2000
+
+  Revision 1.5  1999/08/25 12:00:18  jonas
     * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
 
   Revision 1.4  1999/08/06 16:04:07  michael

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1999 by Michael Van Canneyt
+    Copyright (c) 1998-2000 by Michael Van Canneyt
 
     Contains a generic assembler instruction object;
 
@@ -246,7 +246,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  1999-09-10 18:48:11  florian
+  Revision 1.6  2000-01-07 01:14:54  peter
+    * updated copyright to 2000
+
+  Revision 1.5  1999/09/10 18:48:11  florian
     * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
     * most things for stored properties fixed
 

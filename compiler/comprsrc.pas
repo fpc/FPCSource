@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Handles the resource files handling
 
@@ -109,7 +109,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  1999-12-01 12:42:32  peter
+  Revision 1.9  2000-01-07 01:14:23  peter
+    * updated copyright to 2000
+
+  Revision 1.8  1999/12/01 12:42:32  peter
     * fixed bug 698
     * removed some notes about unused vars
 

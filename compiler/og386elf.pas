@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1999 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Peter Vreman
 
     Contains the binary elf writer
 
@@ -838,7 +838,10 @@ unit og386elf;
 end.
 {
   $Log$
-  Revision 1.2  1999-08-04 00:23:07  florian
+  Revision 1.3  2000-01-07 01:14:27  peter
+    * updated copyright to 2000
+
+  Revision 1.2  1999/08/04 00:23:07  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.1  1999/05/01 13:24:24  peter

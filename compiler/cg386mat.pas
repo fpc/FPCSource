@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Generate i386 assembler for math nodes
 
@@ -940,7 +940,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.37  2000-01-07 00:12:10  peter
+  Revision 1.38  2000-01-07 01:14:21  peter
+    * updated copyright to 2000
+
+  Revision 1.37  2000/01/07 00:12:10  peter
     * fixed movd isntruction to be A_MOVD instead of A_MOV S_D
 
   Revision 1.36  1999/11/18 15:34:44  pierre

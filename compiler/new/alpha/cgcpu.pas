@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     This unit implements the code generator for the DEC Alpha
 
@@ -200,7 +200,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  1999-09-15 20:35:47  florian
+  Revision 1.9  2000-01-07 01:14:56  peter
+    * updated copyright to 2000
+
+  Revision 1.8  1999/09/15 20:35:47  florian
     * small fix to operator overloading when in MMX mode
     + the compiler uses now fldz and fld1 if possible
     + some fixes to floating point registers

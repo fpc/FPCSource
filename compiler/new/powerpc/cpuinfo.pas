@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1999 by the Free Pascal development team
+    Copyright (c) 1998-2000 by the Free Pascal development team
 
     Basic Processor information
 

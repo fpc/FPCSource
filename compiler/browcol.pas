@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by the FPC development team
+    Copyright (c) 1998-2000 by Florian Klaempfl and Pierre Muller
 
     Support routines for getting browser info in collections
 
@@ -1706,7 +1706,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  1999-12-01 11:11:19  pierre
+  Revision 1.31  2000-01-07 01:14:19  peter
+    * updated copyright to 2000
+
+  Revision 1.30  1999/12/01 11:11:19  pierre
    * don't redefine sw_integer for FPC : corrected version
 
   Revision 1.29  1999/12/01 11:05:47  pierre

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1997 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     This unit implements an asm for the DEC Alpha
 
@@ -113,7 +113,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  1999-08-25 12:00:16  jonas
+  Revision 1.5  2000-01-07 01:14:55  peter
+    * updated copyright to 2000
+
+  Revision 1.4  1999/08/25 12:00:16  jonas
     * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
 
   Revision 1.3  1999/08/05 15:50:31  michael

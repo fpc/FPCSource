@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl, Pierre Muller
+    Copyright (c) 1998-2000 by Florian Klaempfl, Pierre Muller
 
     Global types
 
@@ -180,7 +180,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  1999-11-12 11:03:50  peter
+  Revision 1.25  2000-01-07 01:14:27  peter
+    * updated copyright to 2000
+
+  Revision 1.24  1999/11/12 11:03:50  peter
     * searchpaths changed to stringqueue object
 
   Revision 1.23  1999/11/09 13:00:38  peter

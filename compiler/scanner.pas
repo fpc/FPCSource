@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993,97 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     This unit implements the scanner part and handling of the switches
 
@@ -1777,7 +1777,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.102  1999-12-02 17:34:34  peter
+  Revision 1.103  2000-01-07 01:14:38  peter
+    * updated copyright to 2000
+
+  Revision 1.102  1999/12/02 17:34:34  peter
     * preprocessor support. But it fails on the caret in type blocks
 
   Revision 1.101  1999/11/15 17:52:59  pierre

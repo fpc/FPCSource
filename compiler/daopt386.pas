@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1997-98 by Jonas Maebe
+    Copyright (c) 1998-2000 by Jonas Maebe
 
     This unit contains the data flow analyzer and several helper procedures
     and functions.
@@ -1918,7 +1918,10 @@ End.
 
 {
  $Log$
- Revision 1.75  1999-12-05 16:48:43  jonas
+ Revision 1.76  2000-01-07 01:14:23  peter
+   * updated copyright to 2000
+
+ Revision 1.75  1999/12/05 16:48:43  jonas
    * CSE of constant loading in regs works properly again
    + if a constant is stored into memory using "mov const, ref" and
      there is a reg that contains this const, it is changed into

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Generate i386 assembler for in call nodes
 
@@ -1230,7 +1230,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.113  1999-12-22 01:01:46  peter
+  Revision 1.114  2000-01-07 01:14:20  peter
+    * updated copyright to 2000
+
+  Revision 1.113  1999/12/22 01:01:46  peter
     - removed freelabel()
     * added undefined label detection in internal assembler, this prevents
       a lot of ld crashes and wrong .o files

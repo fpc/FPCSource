@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1997-98 by Jonas Maebe
+    Copyright (c) 1998-2000 by Jonas Maebe
 
     This unit contains the common subexpression elimination procedure.
 
@@ -744,7 +744,7 @@ begin
       If RegLoadedWithNewValue(newReg,endP) then
          GetLastInstruction(endP,hp)
       else hp := endP;
-      if (p <> endp) or 
+      if (p <> endp) or
          not RegLoadedWithNewValue(newReg,endP) then
         RestoreRegContentsTo(newReg, c ,p, hp);
 { In both case a and b, it is possible that the new register was modified   }
@@ -1114,7 +1114,10 @@ End.
 
 {
  $Log$
- Revision 1.37  2000-01-03 17:11:17  jonas
+ Revision 1.38  2000-01-07 01:14:23  peter
+   * updated copyright to 2000
+
+ Revision 1.37  2000/01/03 17:11:17  jonas
    * fixed bug with -dreplacereg
 
  Revision 1.36  1999/12/05 16:48:43  jonas

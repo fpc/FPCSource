@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Routines to read/write ppu files
 
@@ -1005,7 +1005,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.53  1999-12-02 11:29:07  peter
+  Revision 1.54  2000-01-07 01:14:30  peter
+    * updated copyright to 2000
+
+  Revision 1.53  1999/12/02 11:29:07  peter
     * INFTPPU define to write the ppu of the interface to .ppu.intf
 
   Revision 1.52  1999/11/30 10:40:45  peter

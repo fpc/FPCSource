@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Type checking and register allocation for type converting nodes
 
@@ -975,7 +975,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.56  1999-12-19 12:08:27  florian
+  Revision 1.57  2000-01-07 01:14:44  peter
+    * updated copyright to 2000
+
+  Revision 1.56  1999/12/19 12:08:27  florian
     * bug reported by Alex S. fixed: it wasn't possible to type cast nil in const
       declarations: const l = longint(nil);
 

@@ -1,7 +1,7 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Daniel Mantione
-    Portions Copyright (c) 1992-96 Eberhard Mattes
+    Copyright (c) 1998-2000 by Daniel Mantione
+    Portions Copyright (c) 1998-2000 Eberhard Mattes
 
     Unit to write out import libraries and def files for OS/2
 
@@ -485,7 +485,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  1999-11-30 10:40:56  peter
+  Revision 1.7  2000-01-07 01:14:43  peter
+    * updated copyright to 2000
+
+  Revision 1.6  1999/11/30 10:40:56  peter
     + ttype, tsymlist
 
   Revision 1.5  1999/11/29 20:15:29  hajny

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     This units implements some code generator helper routines
 
@@ -512,7 +512,10 @@ unit cgbase;
 end.
 {
   $Log$
-  Revision 1.14  1999-12-24 22:47:42  jonas
+  Revision 1.15  2000-01-07 01:14:52  peter
+    * updated copyright to 2000
+
+  Revision 1.14  1999/12/24 22:47:42  jonas
     * added OC_NONE to the compare forms (to allow unconditional jumps)
 
   Revision 1.13  1999/12/01 12:42:33  peter

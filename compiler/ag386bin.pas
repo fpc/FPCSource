@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1996-98 by the FPC development team
+    Copyright (c) 1998-2000 by Peter Vreman
 
     This unit implements an binary assembler output class
 
@@ -932,7 +932,10 @@ unit ag386bin;
 end.
 {
   $Log$
-  Revision 1.32  1999-12-24 15:22:52  peter
+  Revision 1.33  2000-01-07 01:14:18  peter
+    * updated copyright to 2000
+
+  Revision 1.32  1999/12/24 15:22:52  peter
     * reset insentry/lastinsoffset so writing smartlink works correct for
       short jmps
 

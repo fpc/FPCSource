@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1999 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Peter Vreman and Pierre Muller
 
     Contains the 386 binary coff writer
 
@@ -982,7 +982,10 @@ unit og386cff;
 end.
 {
   $Log$
-  Revision 1.16  1999-12-20 22:29:26  pierre
+  Revision 1.17  2000-01-07 01:14:27  peter
+    * updated copyright to 2000
+
+  Revision 1.16  1999/12/20 22:29:26  pierre
     * relocation with debug info in rva (only with internal compiler)
 
   Revision 1.15  1999/11/30 10:40:43  peter

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1997-99 by Carl Eric Codere and Peter Vreman
+    Copyright (c) 1998-2000 by Carl Eric Codere and Peter Vreman
 
     Does the parsing process for the intel styled inline assembler.
 
@@ -1774,7 +1774,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.56  1999-12-18 20:00:33  florian
+  Revision 1.57  2000-01-07 01:14:36  peter
+    * updated copyright to 2000
+
+  Revision 1.56  1999/12/18 20:00:33  florian
     * Bug reported by Marco fixed: Intel assembler reader: fld qword ptr x
       was read as fldq x but it must be fldl x
 

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1999 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Converts the old tree nodes into the new OOP nodest
     This unit is necessary to interface the new code generator
@@ -73,7 +73,10 @@ unit convtree;
 end.
 {
   $Log$
-  Revision 1.5  1999-09-14 11:16:09  florian
+  Revision 1.6  2000-01-07 01:14:53  peter
+    * updated copyright to 2000
+
+  Revision 1.5  1999/09/14 11:16:09  florian
     * only small updates to work with the current compiler
 
   Revision 1.4  1999/01/24 22:32:35  florian

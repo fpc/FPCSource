@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1995-98 by Florian Klaempfl, Carl Eric Codere
+    Copyright (c) 1998-2000 by Florian Klaempfl, Carl Eric Codere
 
     This unit implements an types and classes specific for the
     MC68000/MC68020
@@ -1576,7 +1576,10 @@ unit cpubase;
 end.
 {
   $Log$
-  Revision 1.1  1999-09-16 23:05:57  florian
+  Revision 1.2  2000-01-07 01:14:50  peter
+    * updated copyright to 2000
+
+  Revision 1.1  1999/09/16 23:05:57  florian
     * m68k compiler is again compilable (only gas writer, no assembler reader)
 
   Revision 1.12  1999/08/19 13:02:08  pierre

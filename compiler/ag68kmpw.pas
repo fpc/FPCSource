@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998 by the FPC development team
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     This unit implements an asmoutput class for Macintosh MPW syntax
 
@@ -581,7 +581,10 @@ ait_labeled_instruction :
 end.
 {
   $Log$
-  Revision 1.10  1999-11-06 14:34:16  peter
+  Revision 1.11  2000-01-07 01:14:18  peter
+    * updated copyright to 2000
+
+  Revision 1.10  1999/11/06 14:34:16  peter
     * truncated log to 20 revs
 
   Revision 1.9  1999/09/16 23:05:51  florian

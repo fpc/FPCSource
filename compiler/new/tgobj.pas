@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-99 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     This unit implements the base object for temp. generator
 
@@ -692,7 +692,10 @@ unit tgobj;
 end.
 {
   $Log$
-  Revision 1.8  1999-10-14 14:57:54  florian
+  Revision 1.9  2000-01-07 01:14:55  peter
+    * updated copyright to 2000
+
+  Revision 1.8  1999/10/14 14:57:54  florian
     - removed the hcodegen use in the new cg, use cgbase instead
 
   Revision 1.7  1999/10/12 21:20:47  florian

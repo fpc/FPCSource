@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl, Pierre Muller
+    Copyright (c) 1998-2000 by Florian Klaempfl, Pierre Muller
 
     This unit handles the symbol tables
 
@@ -2766,7 +2766,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.72  2000-01-03 19:26:04  peter
+  Revision 1.73  2000-01-07 01:14:41  peter
+    * updated copyright to 2000
+
+  Revision 1.72  2000/01/03 19:26:04  peter
     * fixed resolving of ttypesym which are reference from object/record
       fields.
 
@@ -2867,7 +2870,7 @@ end.
     * some other potential bugs with array constructors fixed
     * for classes compiled in $M+ and it's childs, the default access method
       is now published
-    * fixed copyright message (it is now 1993-99)
+    * fixed copyright message (it is now 1998-2000)
 
   Revision 1.46  1999/09/10 18:48:10  florian
     * some bug fixes (e.g. must_be_valid and procinfo^.funcret_is_valid)

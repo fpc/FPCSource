@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Type checking and register allocation for call nodes
 
@@ -1220,7 +1220,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.76  1999-12-19 15:13:56  peter
+  Revision 1.77  2000-01-07 01:14:44  peter
+    * updated copyright to 2000
+
+  Revision 1.76  1999/12/19 15:13:56  peter
     * constant array type conversion fixed
 
   Revision 1.75  1999/12/09 23:18:04  pierre

@@ -3,7 +3,7 @@
 #
 #   $Id$
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1999 by the Free Pascal Development team
+#   Copyright (c) 1998-2000 by the Free Pascal Development team
 #
 #   German (alternative) Language File for Free Pascal
 #
@@ -1546,7 +1546,7 @@ option_switch_bin_to_src_assembler=N_Schalte Assembler auf den Standard Assemble
 # Logo (option -l)
 #
 option_logo_start=Free Pascal Compiler Version $FPCVER [$FPCDATE] fÅr $FPCTARGET
-option_logo_end=Copyright (c) 1993-99 by Florian Klaempfl
+option_logo_end=Copyright (c) 1998-2000 by Florian Klaempfl
 #
 # Info (option -i)
 #

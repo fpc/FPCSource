@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Generate assembler for nodes that influence the flow
 
@@ -781,7 +781,10 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.1  1999-11-03 14:13:59  jonas
+  Revision 1.2  2000-01-07 01:14:52  peter
+    * updated copyright to 2000
+
+  Revision 1.1  1999/11/03 14:13:59  jonas
     + initial implementation
 
 

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl, Carl Eric Codere
+    Copyright (c) 1998-2000 by Florian Klaempfl, Carl Eric Codere
 
     This unit generates 68000 (or better) assembler from the parse tree
 
@@ -1391,7 +1391,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.38  1999-11-17 17:04:58  pierre
+  Revision 1.39  2000-01-07 01:14:22  peter
+    * updated copyright to 2000
+
+  Revision 1.38  1999/11/17 17:04:58  pierre
    * Notes/hints changes
 
   Revision 1.37  1999/11/09 23:06:44  peter

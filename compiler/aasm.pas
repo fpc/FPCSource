@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1996-98 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     This unit implements an abstract asmoutput class for all processor types
 
@@ -1028,7 +1028,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.69  1999-12-22 01:01:46  peter
+  Revision 1.70  2000-01-07 01:14:18  peter
+    * updated copyright to 2000
+
+  Revision 1.69  1999/12/22 01:01:46  peter
     - removed freelabel()
     * added undefined label detection in internal assembler, this prevents
       a lot of ld crashes and wrong .o files

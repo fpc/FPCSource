@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1999 by Peter Vreman
+    Copyright (c) 1998-2000 by Peter Vreman
 
     This unit implements support import,export,link routines
     for the (i386) Win32 target
@@ -1083,7 +1083,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  2000-01-07 00:10:26  peter
+  Revision 1.15  2000-01-07 01:14:43  peter
+    * updated copyright to 2000
+
+  Revision 1.14  2000/01/07 00:10:26  peter
     * --base-file instead of -b as dlltool 2.9.1 doesn't understand it
     * clear timestamp in pe header
 

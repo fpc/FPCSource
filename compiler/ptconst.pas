@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Reads typed constants
 
@@ -769,7 +769,10 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.60  1999-12-18 14:55:21  florian
+  Revision 1.61  2000-01-07 01:14:33  peter
+    * updated copyright to 2000
+
+  Revision 1.60  1999/12/18 14:55:21  florian
     * very basic widestring support
 
   Revision 1.59  1999/11/30 10:40:51  peter

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1997 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     This unit implements an abstract assembler write for GNU AT&T
     assebler syntax
@@ -606,7 +606,10 @@ unit agatt;
 end.
 {
  $Log$
- Revision 1.2  1999-09-03 13:08:36  jonas
+ Revision 1.3  2000-01-07 01:14:50  peter
+   * updated copyright to 2000
+
+ Revision 1.2  1999/09/03 13:08:36  jonas
    * defined some necessary virtual helper methods
 
  Revision 1.1  1999/08/03 13:48:50  michael

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl, Pierre Muller
+    Copyright (c) 1998-2000 by Florian Klaempfl, Pierre Muller
 
     Implementation of the reading of PPU Files for the symtable
 
@@ -734,7 +734,10 @@
 
 {
   $Log$
-  Revision 1.57  1999-11-30 10:40:55  peter
+  Revision 1.58  2000-01-07 01:14:40  peter
+    * updated copyright to 2000
+
+  Revision 1.57  1999/11/30 10:40:55  peter
     + ttype, tsymlist
 
   Revision 1.56  1999/11/21 01:42:37  pierre

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Generate m68k assembler for constants
 
@@ -372,7 +372,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  1999-09-20 16:38:52  peter
+  Revision 1.8  2000-01-07 01:14:22  peter
+    * updated copyright to 2000
+
+  Revision 1.7  1999/09/20 16:38:52  peter
     * cs_create_smart instead of cs_smartlink
     * -CX is create smartlink
     * -CD is create dynamic, but does nothing atm.

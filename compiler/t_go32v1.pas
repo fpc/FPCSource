@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1999 by Peter Vreman
+    Copyright (c) 1998-2000 by Peter Vreman
 
     This unit implements support import,export,link routines
     for the (i386) go32v1 target
@@ -186,7 +186,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  1999-11-16 23:39:04  peter
+  Revision 1.6  2000-01-07 01:14:42  peter
+    * updated copyright to 2000
+
+  Revision 1.5  1999/11/16 23:39:04  peter
     * use outputexedir for link.res location
 
   Revision 1.4  1999/11/12 11:03:50  peter

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl, Carl Eric Codere
+    Copyright (c) 1998-2000 by Florian Klaempfl, Carl Eric Codere
 
     This unit handles the temporary variables stuff for m68k
 
@@ -328,7 +328,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  1999-09-16 23:05:57  florian
+  Revision 1.6  2000-01-07 01:14:47  peter
+    * updated copyright to 2000
+
+  Revision 1.5  1999/09/16 23:05:57  florian
     * m68k compiler is again compilable (only gas writer, no assembler reader)
 
   Revision 1.4  1998/09/01 09:03:48  peter

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl and Jonas Maebe
+    Copyright (c) 1998-2000 by Florian Klaempfl and Jonas Maebe
 
     This unit contains the peephole optimizer.
 
@@ -1743,7 +1743,10 @@ End.
 
 {
  $Log$
- Revision 1.75  1999-12-30 17:56:44  peter
+ Revision 1.76  2000-01-07 01:14:30  peter
+   * updated copyright to 2000
+
+ Revision 1.75  1999/12/30 17:56:44  peter
    * fixed and;jmp being translated into test;jmp
 
  Revision 1.74  1999/12/05 16:48:43  jonas

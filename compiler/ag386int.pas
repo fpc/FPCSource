@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1996,97 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     This unit implements an asmoutput class for Intel syntax with Intel i386+
 
@@ -631,7 +631,10 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.57  1999-12-19 17:36:25  florian
+  Revision 1.58  2000-01-07 01:14:18  peter
+    * updated copyright to 2000
+
+  Revision 1.57  1999/12/19 17:36:25  florian
     * generation of LOCALS @@ removed
 
   Revision 1.56  1999/11/06 14:34:16  peter

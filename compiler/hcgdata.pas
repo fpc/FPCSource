@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1996-98 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Routines for the code generation of data structures
     like VMT,Messages
@@ -616,7 +616,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  1999-12-02 19:22:16  peter
+  Revision 1.23  2000-01-07 01:14:27  peter
+    * updated copyright to 2000
+
+  Revision 1.22  1999/12/02 19:22:16  peter
     * write also parameters for override info
 
   Revision 1.21  1999/12/01 12:42:32  peter

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Commandline compiler for Free Pascal
 
@@ -276,7 +276,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  1999-10-12 21:20:47  florian
+  Revision 1.8  2000-01-07 01:14:54  peter
+    * updated copyright to 2000
+
+  Revision 1.7  1999/10/12 21:20:47  florian
     * new codegenerator compiles again
 
   Revision 1.6  1999/08/04 12:59:22  jonas

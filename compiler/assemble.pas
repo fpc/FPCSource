@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998 by the FPC development team
+    Copyright (c) 1998-2000 by Peter Vreman
 
     This unit handles the assemblerfile write and assembler calls of FPC
 
@@ -564,7 +564,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.58  1999-11-12 11:03:49  peter
+  Revision 1.59  2000-01-07 01:14:19  peter
+    * updated copyright to 2000
+
+  Revision 1.58  1999/11/12 11:03:49  peter
     * searchpaths changed to stringqueue object
 
   Revision 1.57  1999/11/08 10:37:12  peter

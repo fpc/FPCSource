@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Generate m68k inline nodes
 
@@ -900,7 +900,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  1999-12-20 21:42:35  pierre
+  Revision 1.21  2000-01-07 01:14:22  peter
+    * updated copyright to 2000
+
+  Revision 1.20  1999/12/20 21:42:35  pierre
     + dllversion global variable
     * FPC_USE_CPREFIX code removed, not necessary anymore
       as we use .edata direct writing by default now.

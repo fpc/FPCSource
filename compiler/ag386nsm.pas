@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1996,97 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     This unit implements an asmoutput class for the Nasm assembler with
     Intel syntax for the i386+
@@ -654,7 +654,10 @@ unit ag386nsm;
 end.
 {
   $Log$
-  Revision 1.54  1999-11-06 14:34:16  peter
+  Revision 1.55  2000-01-07 01:14:18  peter
+    * updated copyright to 2000
+
+  Revision 1.54  1999/11/06 14:34:16  peter
     * truncated log to 20 revs
 
   Revision 1.53  1999/11/02 15:06:56  peter

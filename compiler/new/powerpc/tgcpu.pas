@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (C) 1993-99 by Florian Klaempfl
+    Copyright (C) 1998-2000 by Florian Klaempfl
 
     This unit handles the temporary variables stuff for PowerPC
 
@@ -42,7 +42,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  1999-08-04 12:59:26  jonas
+  Revision 1.3  2000-01-07 01:14:58  peter
+    * updated copyright to 2000
+
+  Revision 1.2  1999/08/04 12:59:26  jonas
     * all tokes now start with an underscore
     * PowerPC compiles!!
 

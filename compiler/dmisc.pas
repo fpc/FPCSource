@@ -1,18 +1,25 @@
 {
     $Id$
-    This file is part of the Free Pascal run time library.
-    Copyright (c) 1993,97 by the Free Pascal development team.
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
-    Dos unit for BP7 compatible RTL
+    Dos unit for BP7 compatible RTL for Delphi
 
-    See the file COPYING.FPC, included in this distribution,
-    for details about the copyright.
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
- **********************************************************************}
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+ ****************************************************************************
+}
 unit dmisc;
 
 interface
@@ -636,7 +643,7 @@ begin
    until i=0;
 
    { Turbo Pascal gets rid of a \.. at the end of the path }
-   { Now remove also any reference to '\..'  at end of line 
+   { Now remove also any reference to '\..'  at end of line
      + of course previous dir.. }
    i:=pos('\..',pa);
    if i<>0 then
@@ -653,7 +660,7 @@ begin
    { Remove End . and \}
    if (length(pa)>0) and (pa[length(pa)]='.') then
     dec(byte(pa[0]));
-   { if only the drive + a '\' is left then the '\' should be left to prevtn the program 
+   { if only the drive + a '\' is left then the '\' should be left to prevtn the program
      accessing the current directory on the drive rather than the root!}
    { if the last char of path = '\' then leave it in as this is what TP does! }
    if ((length(pa)>3) and (pa[length(pa)]='\')) and (path[length(path)] <> '\') then
@@ -847,7 +854,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.5  1999-07-18 10:19:50  florian
+  Revision 1.6  2000-01-07 01:14:23  peter
+    * updated copyright to 2000
+
+  Revision 1.5  1999/07/18 10:19:50  florian
     * made it compilable with Dlephi 4 again
     + fixed problem with large stack allocations on win32
 
