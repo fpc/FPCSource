@@ -66,8 +66,8 @@ type
           vc : word;
           dx : word;
           dy : word;
-          x : word;
-          y : word;
+          x,y : word;
+          wdx,wdy : word;
           EventType : TGpmEType;
           clicks : longint;
           margin : TGpmMargin;
@@ -206,7 +206,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-09-18 13:14:50  marco
+  Revision 1.3  2000-11-22 22:44:08  peter
+    * fixed gpmevent
+
+  Revision 1.2  2000/09/18 13:14:50  marco
    * Global Linux +bsd to (rtl/freebsd rtl/unix rtl/linux structure)
 
   Revision 1.2  2000/07/13 11:33:48  michael
