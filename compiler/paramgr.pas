@@ -217,7 +217,7 @@ unit paramgr;
                   result.register64.reglo:=accumulator;
                 end
                else
-                  result.register:=accumulator;
+               result.register:=accumulator;
              end;
            floatdef :
              begin
@@ -331,7 +331,10 @@ end.
 
 {
    $Log$
-   Revision 1.18  2002-09-09 09:10:51  florian
+   Revision 1.19  2002-09-30 07:00:47  florian
+     * fixes to common code to get the alpha compiler compiled applied
+
+   Revision 1.18  2002/09/09 09:10:51  florian
      + added generic tparamanager.getframepointerloc
 
    Revision 1.17  2002/09/07 19:40:39  florian
@@ -405,4 +408,5 @@ end.
    Revision 1.1  2002/07/11 14:41:28  florian
      * start of the new generic parameter handling
 }
+
 

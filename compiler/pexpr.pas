@@ -667,12 +667,12 @@ implementation
               { generate a methodcallnode or proccallnode }
               { we shouldn't convert things like @tcollection.load }
               if assigned(getprocvardef) then
-               aprocdef:=Tprocsym(sym).search_procdef_byprocvardef(getprocvardef)
+                aprocdef:=Tprocsym(sym).search_procdef_byprocvardef(getprocvardef)
               else
-               aprocdef:=nil;
+                aprocdef:=nil;
               p2:=cloadnode.create_procvar(sym,aprocdef,st);
               if assigned(p1) then
-               tloadnode(p2).set_mp(p1);
+                tloadnode(p2).set_mp(p1);
               p1:=p2;
 
               { no postfix operators }
@@ -2254,7 +2254,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.81  2002-09-16 19:06:14  peter
+  Revision 1.82  2002-09-30 07:00:48  florian
+    * fixes to common code to get the alpha compiler compiled applied
+
+  Revision 1.81  2002/09/16 19:06:14  peter
     * allow ^ after nil
 
   Revision 1.80  2002/09/07 15:25:07  peter

@@ -68,7 +68,7 @@ implementation
 {$ifdef i386}
       cga,
 {$endif i386}
-      ncgutil,cgobj,tgobj,regvars,rgobj,rgcpu,cg64f32,cgcpu;
+      ncgutil,cgobj,tgobj,regvars,rgobj,rgcpu,cgcpu;
 
 {*****************************************************************************
                              TCGCALLPARANODE
@@ -433,8 +433,10 @@ implementation
                  (not paramanager.ret_in_param(resulttype.def)) then
                begin
                  include(regs_to_push,accumulator);
+{$ifndef cpu64bit}
                  if resulttype.def.size>sizeof(aword) then
                    include(regs_to_push,accumulatorhigh);
+{$endif cpu64bit}
                end;
               rg.saveusedregisters(exprasmlist,pushed,regs_to_push);
 
@@ -1186,6 +1188,7 @@ implementation
                     LOC_REGISTER:
                       begin
                          location_reset(location,LOC_REGISTER,cgsize);
+{$ifndef cpu64bit}
                          if cgsize in [OS_64,OS_S64] then
                            begin
                               cg64.a_reg_alloc(exprasmlist,resultloc.register64);
@@ -1197,6 +1200,7 @@ implementation
                               cg64.a_load64_reg_reg(exprasmlist,resultloc.register64,location.register64);
                            end
                          else
+{$endif cpu64bit}
                            begin
                               cg.a_reg_alloc(exprasmlist,resultloc.register);
                               location.register:=rg.getexplicitregisterint(exprasmlist,resultloc.register);
@@ -1488,7 +1492,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  2002-09-17 18:54:02  jonas
+  Revision 1.24  2002-09-30 07:00:45  florian
+    * fixes to common code to get the alpha compiler compiled applied
+
+  Revision 1.23  2002/09/17 18:54:02  jonas
     * a_load_reg_reg() now has two size parameters: source and dest. This
       allows some optimizations on architectures that don't encode the
       register size in the register name.

@@ -31,6 +31,9 @@ interface
       cpubase,cpupara,
       aasmbase,aasmtai,aasmcpu,
       cginfo,symbase,symdef,symtype,
+{$ifndef cpu64bit}
+      cg64f32,
+{$endif cpu64bit}
       rgobj;
 
     type
@@ -101,7 +104,7 @@ implementation
     gdb,
 {$endif GDB}
     ncon,
-    tgobj,cgobj,cgcpu,cg64f32;
+    tgobj,cgobj,cgcpu;
 
 
 {*****************************************************************************
@@ -194,12 +197,14 @@ implementation
                          location_release(list,p.location);
                          cg.a_jmp_always(list,falselabel);
                        end;
+{$ifdef cpuflags}
                      LOC_FLAGS :
                        begin
                          cg.a_jmp_flags(list,p.location.resflags,
                            truelabel);
                          cg.a_jmp_always(list,falselabel);
                        end;
+{$endif cpuflags}
                    end;
                 end;
            end
@@ -269,8 +274,9 @@ implementation
                                      TLocation
 *****************************************************************************}
 
+{$ifndef cpu64bit}
     { 32-bit version }
-    procedure location_force_reg32(list: TAAsmoutput;var l:tlocation;dst_size:TCGSize;maybeconst:boolean);
+    procedure location_force(list: TAAsmoutput;var l:tlocation;dst_size:TCGSize;maybeconst:boolean);
       var
         hregister,
         hregisterhi : tregister;
@@ -418,8 +424,10 @@ implementation
          end;
      end;
 
+{$else cpu64bit}
+
     { 64-bit version }
-    procedure location_force_reg64(list: TAAsmoutput;var l:tlocation;dst_size:TCGSize;maybeconst:boolean);
+    procedure location_force(list: TAAsmoutput;var l:tlocation;dst_size:TCGSize;maybeconst:boolean);
       var
         hregister : tregister;
         hl : tasmlabel;
@@ -434,8 +442,11 @@ implementation
                hregister:=rg.getregisterint(list);
               { load value in low register }
               case l.loc of
+{$ifdef cpuflags}
                 LOC_FLAGS :
                   cg.g_flags2reg(list,OS_INT,l.resflags,hregister);
+{$endif cpuflags}
+
                 LOC_JUMP :
                   begin
                     cg.a_label(list,truelabel);
@@ -472,8 +483,10 @@ implementation
            hregister:=rg.makeregsize(hregister,dst_size);
            { load value in new register }
            case l.loc of
+{$ifdef cpuflags}
              LOC_FLAGS :
                cg.g_flags2reg(list,dst_size,l.resflags,hregister);
+{$endif cpuflags}
              LOC_JUMP :
                begin
                  cg.a_label(list,truelabel);
@@ -509,6 +522,7 @@ implementation
            l.register:=hregister;
          end;
      end;
+{$endif cpu64bit}
 
     procedure location_force_reg(list: TAAsmoutput;var l:tlocation;dst_size:TCGSize;maybeconst:boolean);
       begin
@@ -518,10 +532,7 @@ implementation
            location_freetemp(list,l);
            location_release(list,l);
          end;
-        if sizeof(aword) < 8 then
-          location_force_reg32(list, l, dst_size, maybeconst)
-        else
-          location_force_reg64(list, l, dst_size, maybeconst);
+        location_force(list, l, dst_size, maybeconst)
       end;
 
 
@@ -575,12 +586,14 @@ implementation
            case l.loc of
              LOC_REGISTER :
                begin
+{$ifndef cpu64bit}
                  if l.size in [OS_64,OS_S64] then
                   begin
                     tg.GetTemp(exprasmlist,8,tt_normal,s.ref);
                     cg64.a_load64_reg_ref(exprasmlist,joinreg64(l.registerlow,l.registerhigh),s.ref);
                   end
                  else
+{$endif cpu64bit}
                   begin
                     tg.GetTemp(exprasmlist,TCGSize2Size[l.size],tt_normal,s.ref);
                     cg.a_load_reg_ref(exprasmlist,l.size,l.register,s.ref);
@@ -632,6 +645,7 @@ implementation
         case l.loc of
           LOC_REGISTER :
             begin
+{$ifndef cpu64bit}
               if l.size in [OS_64,OS_S64] then
                begin
                  l.registerlow:=rg.getregisterint(exprasmlist);
@@ -639,6 +653,7 @@ implementation
                  cg64.a_load64_ref_reg(exprasmlist,s.ref,joinreg64(l.registerlow,l.registerhigh));
                end
               else
+{$endif cpu64bit}
                begin
                  l.register:=rg.getregisterint(exprasmlist);
                  cg.a_load_ref_reg(exprasmlist,OS_INT,s.ref,l.register);
@@ -1109,6 +1124,7 @@ implementation
                begin
                  uses_acc:=true;
                  cg.a_reg_alloc(list,accumulator);
+{$ifndef cpu64bit}
                  if cgsize in [OS_64,OS_S64] then
                   begin
                     uses_acchi:=true;
@@ -1116,6 +1132,7 @@ implementation
                     cg64.a_load64_ref_reg(list,href,joinreg64(accumulator,accumulatorhigh));
                   end
                  else
+{$endif cpu64bit}
                   begin
                     hreg:=rg.makeregsize(accumulator,cgsize);
                     cg.a_load_ref_reg(list,cgsize,href,hreg);
@@ -1154,9 +1171,11 @@ implementation
              orddef,
              enumdef :
                begin
+{$ifndef cpu64bit}
                  if cgsize in [OS_64,OS_S64] then
                    cg64.a_load64_reg_ref(list,joinreg64(accumulator,accumulatorhigh),href)
                  else
+{$endif cpu64bit}
                   begin
                     hreg:=rg.makeregsize(accumulator,cgsize);
                     cg.a_load_reg_ref(list,cgsize,hreg,href);
@@ -1459,7 +1478,7 @@ implementation
 
               { never call stack checking before the standard system unit
                 has not been initialized
-              }  
+              }
               if (cs_check_stack in aktlocalswitches) and (aktprocdef.proctypeoption<>potype_proginit) then
                 cg.g_stackcheck(stackalloclist,stackframe);
             end;
@@ -1834,7 +1853,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.51  2002-09-22 14:02:35  carl
+  Revision 1.52  2002-09-30 07:00:46  florian
+    * fixes to common code to get the alpha compiler compiled applied
+
+  Revision 1.51  2002/09/22 14:02:35  carl
     * stack checking cannot be called before system unit is initialized
     * MC68020 define
 

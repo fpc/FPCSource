@@ -234,7 +234,7 @@ unit cgbase;
     {# From a constant numeric value, return the abstract code generator
        size.
     }
-    function int_cgsize(const l: aword): tcgsize;
+    function int_cgsize(const l: byte): tcgsize;
 
     {# return the inverse condition of opcmp }
     function inverse_opcmp(opcmp: topcmp): topcmp;
@@ -594,7 +594,7 @@ implementation
         end;
       end;
 
-    function int_cgsize(const l: aword): tcgsize;
+    function int_cgsize(const l: byte): tcgsize;
       begin
         case l of
           1 :
@@ -654,7 +654,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  2002-09-07 19:35:45  florian
+  Revision 1.30  2002-09-30 07:00:44  florian
+    * fixes to common code to get the alpha compiler compiled applied
+
+  Revision 1.29  2002/09/07 19:35:45  florian
     + tcg.direction is used now
 
   Revision 1.28  2002/09/07 15:25:01  peter

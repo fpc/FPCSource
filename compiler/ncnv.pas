@@ -943,7 +943,7 @@ implementation
         { remove obsolete type conversions }
         if is_equal(left.resulttype.def,resulttype.def) then
           begin
-          { becuase is_equal only checks the basetype for sets we need to
+          { because is_equal only checks the basetype for sets we need to
             check here if we are loading a smallset into a normalset }
             if (resulttype.def.deftype=setdef) and
                (left.resulttype.def.deftype=setdef) and
@@ -999,7 +999,7 @@ implementation
                begin
                  if is_procsym_call(left) then
                   begin
-        currprocdef:=Tprocsym(Tcallnode(left).symtableprocentry).search_procdef_byprocvardef(Tprocvardef(resulttype.def));
+                    currprocdef:=Tprocsym(Tcallnode(left).symtableprocentry).search_procdef_byprocvardef(Tprocvardef(resulttype.def));
                     hp:=cloadnode.create_procvar(tprocsym(tcallnode(left).symtableprocentry),
                         currprocdef,tcallnode(left).symtableproc);
                     if (tcallnode(left).symtableprocentry.owner.symtabletype=objectsymtable) and
@@ -2043,7 +2043,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.81  2002-09-16 14:11:13  peter
+  Revision 1.82  2002-09-30 07:00:47  florian
+    * fixes to common code to get the alpha compiler compiled applied
+
+  Revision 1.81  2002/09/16 14:11:13  peter
     * add argument to equal_paras() to support default values or not
 
   Revision 1.80  2002/09/07 20:40:23  carl

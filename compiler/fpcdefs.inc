@@ -27,6 +27,10 @@
   {$define USEEXCEPT}
 {$endif}
 
+
+{ assume a processor with flags }
+{$define cpuflags}
+
 {$ifdef i386}
   {$define x86}
 {$else}
@@ -34,14 +38,18 @@
 {$endif i386}
 {$ifdef x86_64}
   {$define x86}
-  {$define 64bit}
+  {$define cpu64bit}
 {$endif x86_64}
 {$ifdef alpha}
-  {$define 64bit}
+  {$define cpu64bit}
+  {$undef cpuflags}
 {$endif alpha}
 {
   $Log$
-  Revision 1.10  2002-09-29 23:19:05  florian
+  Revision 1.11  2002-09-30 07:00:45  florian
+    * fixes to common code to get the alpha compiler compiled applied
+
+  Revision 1.10  2002/09/29 23:19:05  florian
     + added define 64bit
 
   Revision 1.9  2002/09/07 15:25:02  peter

@@ -58,7 +58,7 @@ implementation
       aasmbase,aasmtai,aasmcpu,regvars,
       cginfo,cgbase,pass_2,
       cpubase,cpuinfo,cpupara,
-      tgobj,ncgutil,cgobj,cg64f32,rgobj,rgcpu;
+      tgobj,ncgutil,cgobj,rgobj,rgcpu;
 
 {*****************************************************************************
                              SecondLoad
@@ -653,6 +653,7 @@ implementation
                   cg.a_load_const_loc(exprasmlist,0,left.location);
                   cg.a_label(exprasmlist,hlabel);
                 end;
+{$ifdef cpuflags}
               LOC_FLAGS :
                 begin
                   // this can be a wordbool or longbool too, no?
@@ -665,6 +666,7 @@ implementation
                       cg.g_flags2ref(exprasmlist,def_cgsize(left.resulttype.def),right.location.resflags,left.location.reference);
                     end;
                 end;
+{$endif cpuflags}
             end;
 
          end;
@@ -957,7 +959,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.31  2002-09-26 15:02:05  florian
+  Revision 1.32  2002-09-30 07:00:46  florian
+    * fixes to common code to get the alpha compiler compiled applied
+
+  Revision 1.31  2002/09/26 15:02:05  florian
     + support of passing variants to "array of const"
 
   Revision 1.30  2002/09/17 18:54:02  jonas

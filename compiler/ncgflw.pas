@@ -95,7 +95,11 @@ implementation
       nld,ncon,
       ncgutil,
       tgobj,rgobj,paramgr,
-      regvars,cgobj,cgcpu,cg64f32;
+      regvars,cgobj,cgcpu
+{$ifndef cpu64bit}
+      ,cg64f32
+{$endif cpu64bit}
+      ;
 
     const
       EXCEPT_BUF_SIZE = 12;
@@ -492,6 +496,7 @@ implementation
                   case left.location.loc of
                     LOC_FPUREGISTER :
                       goto do_jmp;
+{$ifdef cpuflags}
                     LOC_FLAGS :
                       begin
                         cg.a_reg_alloc(exprasmlist,accumulator);
@@ -499,6 +504,7 @@ implementation
                         cg.g_flags2reg(exprasmlist,OS_INT,left.location.resflags,accumulator);
                         goto do_jmp;
                       end;
+{$endif cpuflags}
                     LOC_JUMP :
                       begin
                         cg.a_reg_alloc(exprasmlist,accumulator);
@@ -533,20 +539,21 @@ implementation
                         cgsize:=def_cgsize(aktprocdef.rettype.def);
                         cg.a_reg_alloc(exprasmlist,accumulator);
                         allocated_acc := true;
-                        case cgsize of
-                          OS_64,OS_S64 :
-                            begin
-                              cg.a_reg_alloc(exprasmlist,accumulatorhigh);
-                              allocated_acchigh := true;
-                              cg64.a_load64_loc_reg(exprasmlist,left.location,
-                                  joinreg64(accumulator,accumulatorhigh));
-                            end
-                          else
-                            begin
+{$ifndef cpu64bit}
+
+                        if cgsize in [OS_64,OS_S64] then
+                          begin
+                             cg.a_reg_alloc(exprasmlist,accumulatorhigh);
+                             allocated_acchigh := true;
+                             cg64.a_load64_loc_reg(exprasmlist,left.location,
+                                 joinreg64(accumulator,accumulatorhigh));
+                           end
+                         else
+{$endif cpu64bit}
+                           begin
                               hreg:=rg.makeregsize(accumulator,cgsize);
                               cg.a_load_loc_reg(exprasmlist,left.location,hreg);
-                            end;
-                        end;
+                           end;
                      end;
                   end;
 
@@ -556,8 +563,10 @@ implementation
                   cg.a_jmp_always(exprasmlist,aktexit2label);
                   if allocated_acc then
                     cg.a_reg_dealloc(exprasmlist,accumulator);
+{$ifndef cpu64bit}
                   if allocated_acchigh then
                     cg.a_reg_dealloc(exprasmlist,accumulatorhigh);
+{$endif cpu64bit}
 {$ifndef i386}
                   if (aktprocdef.rettype.def.deftype = floatdef) then
                     cg.a_reg_dealloc(exprasmlist,FPU_RESULT_REG);
@@ -1238,7 +1247,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.42  2002-09-07 15:25:02  peter
+  Revision 1.43  2002-09-30 07:00:45  florian
+    * fixes to common code to get the alpha compiler compiled applied
+
+  Revision 1.42  2002/09/07 15:25:02  peter
     * old logs removed and tabs fixed
 
   Revision 1.41  2002/09/01 18:47:00  peter

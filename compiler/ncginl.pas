@@ -59,7 +59,11 @@ implementation
       cginfo,cgbase,pass_1,pass_2,
       cpubase,paramgr,
       nbas,ncon,ncal,ncnv,nld,
-      tgobj,ncgutil,cgobj,cg64f32,rgobj,rgcpu;
+      tgobj,ncgutil,cgobj,rgobj,rgcpu
+{$ifndef cpu64bit}
+      ,cg64f32
+{$endif cpu64bit}
+      ;
 
 
 {*****************************************************************************
@@ -378,10 +382,12 @@ implementation
             end
            else
              begin
+{$ifndef cpu64bit}
                if cgsize in [OS_64,OS_S64] then
                  cg64.a_op64_reg_loc(exprasmlist,addsubop[inlinenumber],
                    joinreg64(hregister,hregisterhi),tcallparanode(left).left.location)
                else
+{$endif cpu64bit}
                  cg.a_op_reg_loc(exprasmlist,addsubop[inlinenumber],
                    hregister,tcallparanode(left).left.location);
                  location_release(exprasmlist,tcallparanode(tcallparanode(left).right).left.location);
@@ -604,7 +610,10 @@ end.
 
 {
   $Log$
-  Revision 1.14  2002-09-17 18:54:02  jonas
+  Revision 1.15  2002-09-30 07:00:46  florian
+    * fixes to common code to get the alpha compiler compiled applied
+
+  Revision 1.14  2002/09/17 18:54:02  jonas
     * a_load_reg_reg() now has two size parameters: source and dest. This
       allows some optimizations on architectures that don't encode the
       register size in the register name.

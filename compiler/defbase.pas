@@ -1630,7 +1630,7 @@ implementation
                       end;
                     recorddef :
                       begin
-                        { tvarrec -> array of constconst }
+                        { tvarrec -> array of const }
                          if is_array_of_const(def_to) and
                             is_equal(def_from,tarraydef(def_to).elementtype.def) then
                           begin
@@ -1960,7 +1960,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  2002-09-22 14:02:34  carl
+  Revision 1.14  2002-09-30 07:00:44  florian
+    * fixes to common code to get the alpha compiler compiled applied
+
+  Revision 1.13  2002/09/22 14:02:34  carl
     * stack checking cannot be called before system unit is initialized
     * MC68020 define
 
