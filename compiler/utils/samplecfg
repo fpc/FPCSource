@@ -40,8 +40,13 @@ fi
 # Find path to libgcc.a
 GCCSPEC=`(gcc -v 2>&1)| head -n 1| awk '{ print $4 } '`
 GCCDIR=`dirname $GCCSPEC`
-echo Found libgcc.a in $GCCDIR
-
+echo $GCCDIR
+if [ -f $GCCDIR ]; then
+   echo BSD'ers don't need gccdir.
+else
+  echo Found libgcc.a in $GCCDIR
+  GCCDIR=-Fl$GCCDIR
+fi
 # Write the file
 echo Writing sample configuration file to $thefile
 cat <<EOFCFG > $thefile
@@ -159,7 +164,7 @@ cat <<EOFCFG > $thefile
 #-Fu~/fpc/packages/*;~/fpc/rtl/linux
 
 # searchpath for libraries
--Fl$GCCDIR
+$GCCDIR
 #-Fl/pp/lib
 #-Fl/lib;/usr/lib
 
