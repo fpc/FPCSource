@@ -703,6 +703,14 @@ implementation
            end;
          arraydef:
            begin
+              { dynamic array nil }
+               if is_dynamic_array(t.def) then
+                begin
+                  { Only allow nil initialization }
+                  consume(_NIL);
+                  curconstSegment.concat(Tai_const.Create_sym(nil));
+                end
+              else
               if try_to_consume(_LKLAMMER) then
                 begin
                   for l:=tarraydef(t.def).lowrange to tarraydef(t.def).highrange-1 do
@@ -753,14 +761,6 @@ implementation
                           curconstSegment.concat(Tai_const.Create_8bit(0));
                      end;
                    p.free;
-                end
-              else
-              { dynamic array nil }
-               if is_dynamic_array(t.def) then
-                begin
-                  { Only allow nil initialization }
-                  consume(_NIL);
-                  curconstSegment.concat(Tai_const.Create_sym(nil));
                 end
               else
                 begin
@@ -1081,7 +1081,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.97  2004-12-05 12:28:11  peter
+  Revision 1.98  2005-01-08 14:05:31  florian
+    * typed dyn. array constants can be only nil pointer
+
+  Revision 1.97  2004/12/05 12:28:11  peter
     * procvar handling for tp procvar mode fixed
     * proc to procvar moved from addrnode to typeconvnode
     * inlininginfo is now allocated only for inline routines that
