@@ -715,7 +715,7 @@ implementation
                    else
                      max_linear_list:=2;
                    { a jump table crashes the pipeline! }
-                   if aktoptprocessor=i486 then
+                   if aktoptprocessor=int486 then
                      inc(max_linear_list,3);
                        if aktoptprocessor=pentium then
                      inc(max_linear_list,6);
@@ -765,7 +765,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  1998-06-05 17:44:13  peter
+  Revision 1.2  1998-06-16 08:56:18  peter
+    + targetcpu
+    * cleaner pmodules for newppu
+
+  Revision 1.1  1998/06/05 17:44:13  peter
     * splitted cgi386
 
 }

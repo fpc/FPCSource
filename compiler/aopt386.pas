@@ -548,7 +548,7 @@ End;
                                imul 6, reg1 to
                                  lea (reg1,reg1,2), reg1
                                  add reg1, reg1}
-                                If (aktoptprocessor <= i486)
+                                If (aktoptprocessor <= int486)
                                   Then
                                     Begin
                                       TmpRef^.Index := TRegister(Pai386(p)^.op2);
@@ -618,7 +618,7 @@ End;
                                imul 10, reg1 to
                                  lea (reg1,reg1,4), reg1
                                  add reg1, reg1}
-                                 If (aktoptprocessor <= i486) Then
+                                 If (aktoptprocessor <= int486) Then
                                    Begin
                                      If (Pai386(p)^.op3t = Top_Reg)
                                        Then
@@ -653,7 +653,7 @@ End;
                                imul 12, reg1 to
                                  lea (reg1,reg1,2), reg1
                                  lea (,reg1,4), reg1}
-                                 If (aktoptprocessor <= i486)
+                                 If (aktoptprocessor <= int486)
                                    Then
                                      Begin
                                        TmpRef^.Index := TRegister(Pai386(p)^.op2);
@@ -1631,7 +1631,11 @@ end;
 End.
 {
   $Log$
-  Revision 1.14  1998-05-30 14:31:02  peter
+  Revision 1.15  1998-06-16 08:56:17  peter
+    + targetcpu
+    * cleaner pmodules for newppu
+
+  Revision 1.14  1998/05/30 14:31:02  peter
     + $ASMMODE
 
   Revision 1.13  1998/05/24 18:42:37  jonas

@@ -147,6 +147,7 @@ unit scanner;
         orgpattern,
         pattern        : string;
         macrobuffer    : pmacrobuffer;
+        currlinepos,
         lastlinepos,
         lasttokenpos,
         inputbuffer,
@@ -336,7 +337,7 @@ unit scanner;
             end;
            inputbuffer[readsize]:=#0;
            inputpointer:=inputbuffer;
-           lastlinepos:=inputpointer;
+           currlinepos:=inputpointer;
          { Set EOF when main source and at endoffile }
            if eof(current_module^.current_inputfile^.f) then
             begin
@@ -354,8 +355,9 @@ unit scanner;
            status.currentsource:=current_module^.current_inputfile^.name^+current_module^.current_inputfile^.ext^;
            inputbuffer:=current_module^.current_inputfile^.buf;
            inputpointer:=inputbuffer+current_module^.current_inputfile^.bufpos;
-           lastlinepos:=inputpointer;
+           currlinepos:=inputpointer;
          end;
+        lastlinepos:=currlinepos;
       { load next char }
         c:=inputpointer^;
         inc(longint(inputpointer));
@@ -387,7 +389,7 @@ unit scanner;
         inc(current_module^.current_inputfile^.true_line);
         status.currentline:=current_module^.current_inputfile^.true_line;
         inc(status.compiledlines);
-        lastlinepos:=inputpointer;
+        currlinepos:=inputpointer;
       end;
 
 
@@ -709,6 +711,7 @@ unit scanner;
         until false;
 
       { Save current token position }
+        lastlinepos:=currlinepos;
         lasttokenpos:=inputpointer;
         tokenpos.line:=current_module^.current_inputfile^.true_line;
         tokenpos.column:=get_file_col;
@@ -1173,6 +1176,7 @@ unit scanner;
         comment_level:=0;
         lasttokenpos:=inputpointer;
         lastlinepos:=inputpointer;
+        currlinepos:=inputpointer;
         s_point:=false;
         block_type:=bt_general;
      end;
@@ -1263,7 +1267,11 @@ unit scanner;
 end.
 {
   $Log$
-  Revision 1.25  1998-06-13 00:10:15  peter
+  Revision 1.26  1998-06-16 08:56:30  peter
+    + targetcpu
+    * cleaner pmodules for newppu
+
+  Revision 1.25  1998/06/13 00:10:15  peter
     * working browser and newppu
     * some small fixes against crashes which occured in bp7 (but not in
       fpc?!)

@@ -406,10 +406,10 @@
            writelong(len);
 {$ifdef NEWPPU}
          case string_typ of
-           shortstring : ppufile^.writeentry(ibstringdef);
-            longstring : ppufile^.writeentry(iblongstringdef);
-            ansistring : ppufile^.writeentry(ibansistringdef);
-            widestring : ppufile^.writeentry(ibwidestringdef);
+           shortstring : current_ppu^.writeentry(ibstringdef);
+            longstring : current_ppu^.writeentry(iblongstringdef);
+            ansistring : current_ppu^.writeentry(ibansistringdef);
+            widestring : current_ppu^.writeentry(ibwidestringdef);
          end;
 {$endif}
       end;
@@ -535,7 +535,7 @@
          tdef.write;
          writelong(max);
 {$ifdef NEWPPU}
-         ppufile^.writeentry(ibenumdef);
+         current_ppu^.writeentry(ibenumdef);
 {$endif}
       end;
 
@@ -699,7 +699,7 @@
          writelong(low);
          writelong(high);
 {$ifdef NEWPPU}
-         ppufile^.writeentry(iborddef);
+         current_ppu^.writeentry(iborddef);
 {$endif}
       end;
 
@@ -772,7 +772,7 @@
          tdef.write;
          writebyte(byte(typ));
 {$ifdef NEWPPU}
-         ppufile^.writeentry(ibfloatdef);
+         current_ppu^.writeentry(ibfloatdef);
 {$endif}
       end;
 
@@ -892,7 +892,7 @@
          if filetype=ft_typed then
            writedefref(typed_as);
 {$ifdef NEWPPU}
-         ppufile^.writeentry(ibfiledef);
+         current_ppu^.writeentry(ibfiledef);
 {$endif}
       end;
 
@@ -1013,7 +1013,7 @@
          tdef.write;
          writedefref(definition);
 {$ifdef NEWPPU}
-         ppufile^.writeentry(ibpointerdef);
+         current_ppu^.writeentry(ibpointerdef);
 {$endif}
       end;
 
@@ -1099,7 +1099,7 @@
          tdef.write;
          writedefref(definition);
 {$ifdef NEWPPU}
-         ppufile^.writeentry(ibclassrefdef);
+         current_ppu^.writeentry(ibclassrefdef);
 {$endif}
       end;
 
@@ -1177,7 +1177,7 @@
          if settype=varset then
            writelong(savesize);
 {$ifdef NEWPPU}
-         ppufile^.writeentry(ibsetdef);
+         current_ppu^.writeentry(ibsetdef);
 {$endif}
       end;
 
@@ -1240,7 +1240,7 @@
 {$endif}
          tdef.write;
 {$ifdef NEWPPU}
-         ppufile^.writeentry(ibformaldef);
+         current_ppu^.writeentry(ibformaldef);
 {$endif}
       end;
 
@@ -1327,7 +1327,7 @@
          writelong(lowrange);
          writelong(highrange);
 {$ifdef NEWPPU}
-         ppufile^.writeentry(ibarraydef);
+         current_ppu^.writeentry(ibarraydef);
 {$endif}
       end;
 
@@ -1483,7 +1483,7 @@
          tdef.write;
          writelong(savesize);
 {$ifdef NEWPPU}
-         ppufile^.writeentry(ibrecorddef);
+         current_ppu^.writeentry(ibrecorddef);
 {$endif}
          self.symtable^.writeasstruct;
          read_member:=oldread_member;
@@ -1862,8 +1862,6 @@
          lastwritten:=nil;
          defref:=nil;
          refcount:=0;
-         if (current_module^.flags and uf_has_browser)<>0 then
-           load_references;
 {$endif UseBrowser}
       end;
 
@@ -1875,7 +1873,7 @@
       var
         pos : tfileposinfo;
       begin
-        while (not ppufile^.endofentry) do
+        while (not current_ppu^.endofentry) do
          begin
            readposinfo(pos);
            inc(refcount);
@@ -1904,7 +1902,7 @@
              writeposinfo(ref^.posinfo);
              ref:=ref^.nextref;
           end;
-        ppufile^.writeentry(ibdefref);
+        current_ppu^.writeentry(ibdefref);
         lastwritten:=lastref;
       end;
 
@@ -2051,7 +2049,7 @@
                }
            end;
 {$ifdef NEWPPU}
-         ppufile^.writeentry(ibprocdef);
+         current_ppu^.writeentry(ibprocdef);
 {$endif}
       end;
 
@@ -2219,7 +2217,7 @@
 {$endif StoreFPULevel}
          inherited write;
 {$ifdef NEWPPU}
-         ppufile^.writeentry(ibprocvardef);
+         current_ppu^.writeentry(ibprocvardef);
 {$endif}
       end;
 
@@ -2471,7 +2469,7 @@
          writedefref(childof);
          writelong(options);
 {$ifdef NEWPPU}
-         ppufile^.writeentry(ibobjectdef);
+         current_ppu^.writeentry(ibobjectdef);
 {$endif}
          if (options and (oo_hasprivate or oo_hasprotected))<>0 then
            object_options:=true;
@@ -2646,7 +2644,11 @@
 
 {
   $Log$
-  Revision 1.13  1998-06-15 15:38:09  pierre
+  Revision 1.14  1998-06-16 08:56:31  peter
+    + targetcpu
+    * cleaner pmodules for newppu
+
+  Revision 1.13  1998/06/15 15:38:09  pierre
     * small bug in systems.pas corrected
     + operators in different units better hanlded
 

@@ -75,8 +75,6 @@ unit parser;
 
     procedure compile(const filename:string;compile_system:boolean);
       var
-         hp : pmodule;
-
          { some variables to save the compiler state }
          oldtoken : ttoken;
          oldtokenpos : tfileposinfo;
@@ -85,6 +83,7 @@ unit parser;
          oldpreprocstack : ppreprocstack;
          oldorgpattern,oldprocprefix : string;
          old_block_type : tblock_type;
+         oldcurrlinepos,
          oldlastlinepos,
          oldinputbuffer,
          oldinputpointer : pchar;
@@ -200,6 +199,7 @@ unit parser;
 
          oldinputbuffer:=inputbuffer;
          oldinputpointer:=inputpointer;
+         oldcurrlinepos:=currlinepos;
          oldlastlinepos:=lastlinepos;
          olds_point:=s_point;
          oldc:=c;
@@ -273,35 +273,7 @@ unit parser;
 {$endif UseBrowser}
           end;
 
-         { if the current file isn't a system unit  }
-         { the the system unit will be loaded       }
-         if not(cs_compilesystem in aktswitches) then
-           begin
-              { should be done in unit system (changing the field system_unit)
-                                                                      FK
-              }
-              hp:=loadunit(upper(target_info.system_unit),true,true);
-              systemunit:=hp^.symtable;
-              make_ref:=false;
-              readconstdefs;
-              { we could try to overload caret by default }
-              symtablestack:=systemunit;
-              { if POWER is defined in the RTL then use it for starstar overloading }
-              getsym('POWER',false);
-              if assigned(srsym) and (srsym^.typ=procsym) and
-                 (overloaded_operators[STARSTAR]=nil) then
-                begin
-                   overloaded_operators[STARSTAR]:=
-                     new(pprocsym,init(overloaded_names[STARSTAR]));
-                   overloaded_operators[STARSTAR]^.definition:=pprocsym(srsym)^.definition;
-                end;
-              make_ref:=true;
-           end
-         else
-           begin
-              createconstdefs;
-              systemunit:=nil;
-           end;
+         loadsystemunit;
 
          registerdef:=true;
          make_ref:=true;
@@ -418,6 +390,7 @@ done:
          inputbuffer:=oldinputbuffer;
          inputpointer:=oldinputpointer;
          lastlinepos:=oldlastlinepos;
+         currlinepos:=oldcurrlinepos;
          s_point:=olds_point;
          c:=oldc;
          comment_level:=oldcomment_level;
@@ -470,7 +443,11 @@ done:
 end.
 {
   $Log$
-  Revision 1.25  1998-06-15 15:38:07  pierre
+  Revision 1.26  1998-06-16 08:56:23  peter
+    + targetcpu
+    * cleaner pmodules for newppu
+
+  Revision 1.25  1998/06/15 15:38:07  pierre
     * small bug in systems.pas corrected
     + operators in different units better hanlded
 

@@ -122,6 +122,7 @@ unit files;
           { used in firstpass for faster settings }
           current_index : word;
 
+          path,                     { path where the module is find/created }
           modulename,               { name of the module in uppercase }
           objfilename,              { fullname of the objectfile }
           asmfilename,              { fullname of the assemblerfile }
@@ -132,9 +133,9 @@ unit files;
           constructor init(const s:string;_is_unit:boolean);
           destructor special_done;virtual; { this is to be called only when compiling again }
 
-          procedure setfilename(const path,name:string);
+          procedure setfilename(const _path,name:string);
 {$ifdef NEWPPU}
-          function  openppu(const unit_path:string):boolean;
+          function  openppu:boolean;
 {$else}
           function  load_ppu(const unit_path,n,ext:string):boolean;
 {$endif}
@@ -143,12 +144,22 @@ unit files;
 
        pused_unit = ^tused_unit;
        tused_unit = object(tlinkedlist_item)
-          u               : pmodule;
+          unitid          : word;
+{$ifdef NEWPPU}
+          name            : pstring;
+          checksum        : longint;
+          loaded          : boolean;
+{$endif NEWPPU}
           in_uses,
           in_interface,
           is_stab_written : boolean;
-          unitid          : word;
+          u               : pmodule;
+{$ifdef NEWPPU}
+          constructor init(_u : pmodule;intface:boolean);
+          constructor init_to_load(const n:string;c:longint;intface:boolean);
+{$else NEWPPU}
           constructor init(_u : pmodule;f : byte);
+{$endif NEWPPU}
           destructor done;virtual;
        end;
 
@@ -225,6 +236,9 @@ unit files;
     var
        main_module    : pmodule;
        current_module : pmodule;
+{$ifdef NEWPPU}
+       current_ppu    : pppufile;
+{$endif}
        global_unit_count : word;
        loaded_units   : tlinkedlist;
 
@@ -349,7 +363,7 @@ unit files;
                                   TMODULE
  ****************************************************************************}
 
-    procedure tmodule.setfilename(const path,name:string);
+    procedure tmodule.setfilename(const _path,name:string);
       var
         s : string;
       begin
@@ -357,7 +371,9 @@ unit files;
          stringdispose(asmfilename);
          stringdispose(ppufilename);
          stringdispose(libfilename);
-         s:=FixFileName(FixPath(path)+name);
+         stringdispose(path);
+         path:=stringdup(FixPath(_path));
+         s:=FixFileName(FixPath(_path)+name);
          objfilename:=stringdup(s+target_info.objext);
          asmfilename:=stringdup(s+target_info.asmext);
          ppufilename:=stringdup(s+target_info.unitext);
@@ -366,29 +382,18 @@ unit files;
 
 {$ifdef NEWPPU}
 
-    function tmodule.openppu(const unit_path:string):boolean;
+    function tmodule.openppu:boolean;
       var
-         temp,hs : string;
-         b       : byte;
-         incfile_found : boolean;
          objfiletime,
          ppufiletime,
-         asmfiletime,
-         source_time : longint;
-{$ifdef UseBrowser}
-         hp : pextfile;
-         _d : dirstr;
-         _n : namestr;
-         _e : extstr;
-{$endif UseBrowser}
-
+         asmfiletime : longint;
     begin
       openppu:=false;
     { Get ppufile time (also check if the file exists) }
       ppufiletime:=getnamedfiletime(ppufilename^);
       if ppufiletime=-1 then
        exit;
-
+    { Open the ppufile }
       Message1(unit_u_ppu_loading,ppufilename^);
       ppufile:=new(pppufile,init(ppufilename^));
       if not ppufile^.open then
@@ -411,6 +416,21 @@ unit files;
          Message1(unit_d_ppu_invalid_version,tostr(ppufile^.GetPPUVersion));
          exit;
        end;
+    { check the target processor }
+      if ttargetcpu(ppufile^.header.cpu)<>target_cpu then
+       begin
+         dispose(ppufile,done);
+         Comment(V_Debug,'unit is compiled for an other processor');
+         exit;
+       end;
+    { check target }
+      if ttarget(ppufile^.header.target)<>target_info.target then
+       begin
+         dispose(ppufile,done);
+         Comment(V_Debug,'unit is compiled for an other target');
+         exit;
+       end;
+{!!!!!!!!!!!!!!!!!!! }
     { Load values to be access easier }
       flags:=ppufile^.header.flags;
       crc:=ppufile^.header.checksum;
@@ -418,83 +438,9 @@ unit files;
       Message1(unit_d_ppu_time,filetimestring(ppufiletime));
       Message1(unit_d_ppu_flags,tostr(flags));
       Message1(unit_d_ppu_crc,tostr(ppufile^.header.checksum));
-    { Unitname }
-      b:=ppufile^.readentry;
-      if b=ibmodulename then
-       begin
-         stringdispose(modulename);
-         modulename:=stringdup(ppufile^.getstring);
-         b:=ppufile^.readentry;
-       end;
-
-    { search source files there is at least one source file }
+    { check the object and assembler file to see if we need only to
+      assemble, only if it's not in a library }
       do_compile:=false;
-      sources_avail:=true;
-      if b=ibsourcefiles then
-       begin
-         while not ppufile^.endofentry do
-          begin
-            hs:=ppufile^.getstring;
-            temp:='';
-            if (flags and uf_in_library)<>0 then
-             begin
-               sources_avail:=false;
-               temp:=' library';
-             end
-            else if pos('Macro ',hs)=1 then
-             begin
-               { we don't want to find this file }
-               { but there is a problem with file indexing !! }
-               temp:='';
-             end
-            else
-             begin
-               { check the date of the source files }
-               Source_Time:=GetNamedFileTime(unit_path+hs);
-               if Source_Time=-1 then
-                 begin
-                    { search for include files in the includepathlist }
-                    if b<>ibend then
-                      begin
-                         temp:=search(hs,includesearchpath,incfile_found);
-                         if incfile_found then
-                           begin
-                              hs:=temp+hs;
-                              Source_Time:=GetNamedFileTime(hs);
-                           end;
-                      end;
-                 end
-               else
-                 hs:=unit_path+hs;
-               if Source_Time=-1 then
-                begin
-                  sources_avail:=false;
-                  temp:=' not found';
-                end
-               else
-                begin
-                  temp:=' time '+filetimestring(source_time);
-                  if (source_time>ppufiletime) then
-                   begin
-                     do_compile:=true;
-                     temp:=temp+' *'
-                   end;
-                end;
-             end;
-            Message1(unit_t_ppu_source,hs+temp);
-   {$ifdef UseBrowser}
-            fsplit(hs,_d,_n,_e);
-            new(hp,init(_d,_n,_e));
-            { the indexing should match what is done in writeasunit }
-            sourcefiles.register_file(hp);
-   {$endif UseBrowser}
-          end;
-       end;
-    { main source is always the last }
-      stringdispose(mainsource);
-      mainsource:=stringdup(hs);
-
-    { check the object and assembler file if not a library }
       if (flags and uf_in_library)=0 then
        begin
          if (flags and uf_smartlink)<>0 then
@@ -532,7 +478,7 @@ unit files;
       var
          ext       : string[8];
          singlepathstring,
-         Path,
+         unitPath,
          filename  : string;
          found     : boolean;
          start,i   : longint;
@@ -546,15 +492,15 @@ unit files;
        begin
          start:=1;
          filename:=FixFileName(n);
-         path:=UnitSearchPath;
+         unitpath:=UnitSearchPath;
          Found:=false;
          repeat
          { Create current path to check }
-           i:=pos(';',path);
+           i:=pos(';',unitpath);
            if i=0 then
-            i:=length(path)+1;
-           singlepathstring:=FixPath(copy(path,start,i-start));
-           delete(path,start,i-start+1);
+            i:=length(unitpath)+1;
+           singlepathstring:=FixPath(copy(unitpath,start,i-start));
+           delete(unitpath,start,i-start+1);
          { Check for PPL file }
            if not (cs_link_static in aktswitches) then
             begin
@@ -562,7 +508,7 @@ unit files;
               if Found then
                Begin
                  SetFileName(SinglePathString,FileName);
-                 Found:=OpenPPU(singlepathstring);
+                 Found:=OpenPPU;
                End;
              end;
          { Check for PPU file }
@@ -572,7 +518,7 @@ unit files;
               if Found then
                Begin
                  SetFileName(SinglePathString,FileName);
-                 Found:=OpenPPU(singlepathstring);
+                 Found:=OpenPPU;
                End;
             end;
          { Check for Sources }
@@ -602,7 +548,7 @@ unit files;
               else
                sources_avail:=false;
             end;
-         until Found or (path='');
+         until Found or (unitpath='');
          search_unit:=Found;
       end;
 
@@ -779,7 +725,7 @@ unit files;
       var
          ext       : string[8];
          singlepathstring,
-         Path,
+         UnitPath,
          filename  : string;
          found     : boolean;
          start,i   : longint;
@@ -793,15 +739,15 @@ unit files;
        begin
          start:=1;
          filename:=FixFileName(n);
-         path:=UnitSearchPath;
+         unitpath:=UnitSearchPath;
          Found:=false;
          repeat
          {Create current path to check}
-           i:=pos(';',path);
+           i:=pos(';',unitpath);
            if i=0 then
-            i:=length(path)+1;
-           singlepathstring:=FixPath(copy(path,start,i-start));
-           delete(path,start,i-start+1);
+            i:=length(unitpath)+1;
+           singlepathstring:=FixPath(copy(unitpath,start,i-start));
+           delete(unitpath,start,i-start+1);
          { Check for PPL file }
            if not (cs_link_static in aktswitches) then
             begin
@@ -849,7 +795,7 @@ unit files;
               else
                sources_avail:=false;
             end;
-         until Found or (path='');
+         until Found or (unitpath='');
          search_unit:=Found;
       end;
 
@@ -874,6 +820,7 @@ unit files;
          asmfilename:=nil;
          libfilename:=nil;
          ppufilename:=nil;
+         path:=nil;
          setfilename(p,n);
          used_units.init;
          sourcefiles.init;
@@ -932,26 +879,65 @@ unit files;
                               TUSED_UNIT
  ****************************************************************************}
 
+{$ifdef NEWPPU}
 
-    constructor tused_unit.init(_u : pmodule;f : byte);
-
+    constructor tused_unit.init(_u : pmodule;intface:boolean);
       begin
-         u:=_u;
-         in_interface:=false;
-         in_uses:=false;
-         is_stab_written:=false;
-         unitid:=f;
+        u:=_u;
+        in_interface:=intface;
+        in_uses:=false;
+        is_stab_written:=false;
+        loaded:=true;
+        name:=stringdup(_u^.modulename^);
+        checksum:=_u^.crc;
+        unitid:=0;
+      end;
+
+    constructor tused_unit.init_to_load(const n:string;c:longint;intface:boolean);
+      begin
+        u:=nil;
+        in_interface:=intface;
+        in_uses:=false;
+        is_stab_written:=false;
+        loaded:=false;
+        name:=stringdup(n);
+        checksum:=c;
+        unitid:=0;
       end;
 
     destructor tused_unit.done;
       begin
-         inherited done;
+        stringdispose(name);
+        inherited done;
       end;
+
+{$else NEWPPU}
+
+    constructor tused_unit.init(_u : pmodule;f : byte);
+      begin
+        u:=_u;
+        in_interface:=false;
+        in_uses:=false;
+        is_stab_written:=false;
+        unitid:=f;
+      end;
+
+    destructor tused_unit.done;
+      begin
+        inherited done;
+      end;
+
+{$endif NEWPPU}
+
 
 end.
 {
   $Log$
-  Revision 1.23  1998-06-15 14:44:36  daniel
+  Revision 1.24  1998-06-16 08:56:20  peter
+    + targetcpu
+    * cleaner pmodules for newppu
+
+  Revision 1.23  1998/06/15 14:44:36  daniel
 
 
   * BP updates.

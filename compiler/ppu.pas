@@ -82,12 +82,10 @@ const
   ibsetdef        = 50;
   ibprocvardef    = 51;
   ibfloatdef      = 52;
-  ibextsymref     = 53;
-  ibextdefref     = 54;
-  ibclassrefdef   = 55;
-  iblongstringdef = 56;
-  ibansistringdef = 57;
-  ibwidestringdef = 58;
+  ibclassrefdef   = 53;
+  iblongstringdef = 54;
+  ibansistringdef = 55;
+  ibwidestringdef = 56;
 
 { unit flags }
   uf_init           = $1;
@@ -106,6 +104,7 @@ type
     id       : array[1..3] of char; { = 'PPU' }
     ver      : array[1..3] of char;
     compiler : word;
+    cpu      : word;
     target   : word;
     flags    : longint;
     size     : longint; { size of the ppufile without header }
@@ -750,7 +749,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  1998-06-13 00:10:12  peter
+  Revision 1.6  1998-06-16 08:56:26  peter
+    + targetcpu
+    * cleaner pmodules for newppu
+
+  Revision 1.5  1998/06/13 00:10:12  peter
     * working browser and newppu
     * some small fixes against crashes which occured in bp7 (but not in
       fpc?!)

@@ -60,8 +60,8 @@ begin
             'x' : initswitches:=initswitches+[cs_optimize,cs_maxoptimieren];
             'z' : initswitches:=initswitches+[cs_optimize,cs_uncertainopts];
             '2' : initoptprocessor:=pentium2;
-            '3' : initoptprocessor:=systems.i386;
-            '4' : initoptprocessor:=i486;
+            '3' : initoptprocessor:=int386;
+            '4' : initoptprocessor:=int486;
             '5' : initoptprocessor:=pentium;
             '6' : initoptprocessor:=pentiumpro;
             '7' : initoptprocessor:=cx6x86;
@@ -89,7 +89,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  1998-05-30 14:31:05  peter
+  Revision 1.8  1998-06-16 08:56:22  peter
+    + targetcpu
+    * cleaner pmodules for newppu
+
+  Revision 1.7  1998/05/30 14:31:05  peter
     + $ASMMODE
 
   Revision 1.6  1998/05/28 17:26:48  peter

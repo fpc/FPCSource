@@ -82,7 +82,7 @@
       var
         pos : tfileposinfo;
       begin
-        while (not ppufile^.endofentry) do
+        while (not current_ppu^.endofentry) do
          begin
            readposinfo(pos);
            inc(refcount);
@@ -113,7 +113,7 @@
            ref:=ref^.nextref;
          end;
         lastwritten:=lastref;
-        ppufile^.writeentry(ibsymref);
+        current_ppu^.writeentry(ibsymref);
       { when it's a procsym then write also the refs to the definition
         due the overloading }
         if typ=procsym then
@@ -515,7 +515,7 @@
          tsym.write;
          writedefref(pdef(definition));
 {$ifdef NEWPPU}
-         ppufile^.writeentry(ibprocsym);
+         current_ppu^.writeentry(ibprocsym);
 {$endif}
       end;
 
@@ -673,7 +673,7 @@
          writedefref(readaccessdef);
          writedefref(writeaccessdef);
 {$ifdef NEWPPU}
-         ppufile^.writeentry(ibpropertysym);
+         current_ppu^.writeentry(ibpropertysym);
 {$endif}
       end;
 
@@ -756,7 +756,7 @@
           toaddr : writelong(address);
          end;
 {$ifdef NEWPPU}
-        ppufile^.writeentry(ibabsolutesym);
+        current_ppu^.writeentry(ibabsolutesym);
 {$endif}
       end;
 
@@ -900,9 +900,9 @@
            end;
 {$ifdef NEWPPU}
          if (var_options and vo_is_C_var)<>0 then
-           ppufile^.writeentry(ibvarsym_C)
+           current_ppu^.writeentry(ibvarsym_C)
          else
-         ppufile^.writeentry(ibvarsym);
+         current_ppu^.writeentry(ibvarsym);
 {$endif}
       end;
 
@@ -1239,7 +1239,7 @@
          writedefref(definition);
          writestring(prefix^);
 {$ifdef NEWPPU}
-         ppufile^.writeentry(ibtypedconstsym);
+         current_ppu^.writeentry(ibtypedconstsym);
 {$endif}
       end;
 
@@ -1387,7 +1387,7 @@
             else internalerror(13);
          end;
 {$ifdef NEWPPU}
-        ppufile^.writeentry(ibconstsym);
+        current_ppu^.writeentry(ibconstsym);
 {$endif}
       end;
 
@@ -1497,7 +1497,7 @@
          writedefref(definition);
          writelong(value);
 {$ifdef NEWPPU}
-         ppufile^.writeentry(ibenumsym);
+         current_ppu^.writeentry(ibenumsym);
 {$endif}
       end;
 
@@ -1573,7 +1573,7 @@
          tsym.write;
          writedefref(definition);
 {$ifdef NEWPPU}
-         ppufile^.writeentry(ibtypesym);
+         current_ppu^.writeentry(ibtypesym);
 {$endif}
       end;
 
@@ -1680,7 +1680,11 @@
 
 {
   $Log$
-  Revision 1.13  1998-06-15 15:38:10  pierre
+  Revision 1.14  1998-06-16 08:56:34  peter
+    + targetcpu
+    * cleaner pmodules for newppu
+
+  Revision 1.13  1998/06/15 15:38:10  pierre
     * small bug in systems.pas corrected
     + operators in different units better hanlded
 

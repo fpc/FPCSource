@@ -1347,8 +1347,8 @@ var
 
     { this makes cpu.pp uncompilable, but i think this code should be }
     { inserted in the system unit anyways.                            }
-    if (instruc >= lastop_in_table) and
-       ((cs_compilesystem in aktswitches) or (aktoptprocessor > systems.i386)) then
+    if (instruc >= lastop_in_table) then
+{       ((cs_compilesystem in aktswitches) or (aktoptprocessor > systems.i386)) then }
       begin
          Message(assem_w_opcode_not_in_table);
          fits:=true;
@@ -3376,7 +3376,11 @@ Begin
 end.
 {
   $Log$
-  Revision 1.10  1998-06-12 10:32:33  pierre
+  Revision 1.11  1998-06-16 08:56:28  peter
+    + targetcpu
+    * cleaner pmodules for newppu
+
+  Revision 1.10  1998/06/12 10:32:33  pierre
     * column problem hopefully solved
     + C vars declaration changed
 

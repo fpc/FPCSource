@@ -1539,7 +1539,7 @@ const
     { the att version only if the processor > i386 or we are compiling  }
     { the system unit then this will be allowed...                      }
     if (instruc >= lastop_in_table) and
-       ((cs_compilesystem in aktswitches) or (aktoptprocessor >systems.i386)) then
+       ((cs_compilesystem in aktswitches) or (aktoptprocessor>int386)) then
       begin
          Message1(assem_w_opcode_not_in_table,att_op2str[instruc]);
          fits:=true;
@@ -3691,7 +3691,11 @@ end.
 
 {
   $Log$
-  Revision 1.12  1998-06-12 10:32:35  pierre
+  Revision 1.13  1998-06-16 08:56:29  peter
+    + targetcpu
+    * cleaner pmodules for newppu
+
+  Revision 1.12  1998/06/12 10:32:35  pierre
     * column problem hopefully solved
     + C vars declaration changed
 

@@ -28,9 +28,11 @@ unit systems;
     type
        tendian = (endian_little,en_big_endian);
 
+       ttargetcpu = (i386,m68k,alpha);
+
        tprocessors = (
        {$ifdef i386}
-              i386,i486,pentium,pentiumpro,cx6x86,pentium2,amdk6
+              int386,int486,pentium,pentiumpro,cx6x86,pentium2,amdk6
        {$endif}
        {$ifdef m68k}
               MC68000,MC68020
@@ -44,7 +46,7 @@ unit systems;
        {$endif}
        {$ifdef m68k}
 			  M68K_MOT
-	   {$endif}
+       {$endif}
 	   );
 
 
@@ -163,6 +165,14 @@ unit systems;
           id    : tasmmode;
           idtxt : string[8];
        end;
+
+    const
+{$ifdef i386}
+       target_cpu = i386;
+{$endif i386}
+{$ifdef m68k}
+       target_cpu = m68k;
+{$endif m68k}
 
     var
        target_info : ttargetinfo;
@@ -844,7 +854,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  1998-06-15 15:38:14  pierre
+  Revision 1.21  1998-06-16 08:56:36  peter
+    + targetcpu
+    * cleaner pmodules for newppu
+
+  Revision 1.20  1998/06/15 15:38:14  pierre
     * small bug in systems.pas corrected
     + operators in different units better hanlded
 

@@ -5018,7 +5018,11 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.32  1998-06-14 18:23:57  peter
+  Revision 1.33  1998-06-16 08:56:24  peter
+    + targetcpu
+    * cleaner pmodules for newppu
+
+  Revision 1.32  1998/06/14 18:23:57  peter
     * fixed xor bug (from mailinglist)
 
   Revision 1.31  1998/06/13 00:10:09  peter
@@ -5048,9 +5052,8 @@ end.
       to a procedure
 
   Revision 1.26  1998/06/04 09:55:39  pierre
-    * demangled name of procsym reworked to become independant of the mangling scheme
-
-  Come test_funcret improvements (not yet working)S: ----------------------------------------------------------------------
+    * demangled name of procsym reworked to become independant
+      of the mangling scheme
 
   Revision 1.25  1998/06/03 22:48:57  peter
     + wordbool,longbool
