@@ -169,8 +169,19 @@ unit win_targ;
               hp1:=new(pimportlist,init(hs));
               current_module^.imports^.concat(hp1);
            end;
-         hp2:=new(pimported_item,init(func,name,index));
-         hp1^.imported_items^.concat(hp2);
+         { search for reuse of old import item }
+         hp2:=pimported_item(hp1^.imported_items^.first);
+         while assigned(hp2) do
+          begin
+            if hp2^.func^=func then
+             break;
+            hp2:=pimported_item(hp2^.next);
+          end;
+         if not assigned(hp2) then
+          begin
+            hp2:=new(pimported_item,init(func,name,index));
+            hp1^.imported_items^.concat(hp2);
+          end;
       end;
 
 
@@ -717,9 +728,15 @@ unit win_targ;
 end.
 {
   $Log$
-  Revision 1.28  1999-07-18 10:20:03  florian
+  Revision 1.29  1999-07-22 16:12:28  peter
+    * merged
+
+  Revision 1.28  1999/07/18 10:20:03  florian
     * made it compilable with Dlephi 4 again
     + fixed problem with large stack allocations on win32
+
+  Revision 1.27.2.1  1999/07/22 16:09:30  peter
+    * reuse old import entries
 
   Revision 1.27  1999/05/27 19:45:30  peter
     * removed oldasm
