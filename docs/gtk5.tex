@@ -1,0 +1,368 @@
+\documentclass[10pt]{article}
+\usepackage{a4}
+\usepackage{epsfig}
+\usepackage{listings}
+\usepackage{tabularx}
+\lstset{language=Delphi}%
+\lstset{basicstyle=\sffamily\small}%
+\lstset{commentstyle=\itshape}%
+\lstset{keywordstyle=\bfseries}%
+%\lstset{blankstring=true}%
+\newcommand{\file}[1]{\textsf{#1}}
+\newcommand{\var}[1]{\texttt{#1}}
+\usepackage[pdftex]{hyperref}
+\newif\ifpdf
+\ifx\pdfoutput\undefined
+  \pdffalse
+\else
+  \pdfoutput=1
+  \pdftrue
+\fi
+\begin{document}
+\title{Programming GTK in Free Pascal: Using GDK}
+\author{Florian Kl\"ampfl\\and\\Micha\"el Van Canneyt}
+\date{July 2001}
+\maketitle
+\section{Introduction}
+In this article, some of the graphics primitives from the gdk toolkit will
+be demonstrated in a small game - breakout.
+
+The GTK toolkit widgets are built upon the GDK: Graphics Drawing Kit. 
+The GDK does not know anything about buttons, menus checkboxes and so on.
+Instead, it knows how to create windows, draw on them, handle mouse clicks
+and keypresses. This functionality is used by the GTK widget set to create
+usable widgets.
+
+Sometimes, the widgets offered by GTK are not enough, and one has to fall
+back on the graphics functionality of the GDK to be able to do what is 
+needed for a program.
+
+Fortunately, it is not necessary to create a GTK window and handle all
+GDK events to be able to use the GDK functions. The GTK widget set has a
+special widget, which can be used to draw upon. This widget is the 
+\var{TGtkDrawingArea} widget. The use of the \var{TGtkDrawingArea} is what
+will be explained below.
+
+The GDK graphics functions will be explained using a simple arcade game,
+to demonstrate that the speed of the GDK is sufficient for the creation of
+simple games. The breakout game is chosen because it is conceptually simple, 
+requires moving graphics and can be extended in many ways.
+
+\section{The drawing area widget}
+The drawing area widget (\var{TGTKDrawingArea}) is a simple widget which
+just provides a drawing window. It responds to all widget events, and adds
+additionally the 'configure\_event', which is called when the widget is
+realized (i.e. when the window handle is created.)
+
+The widget has only 1 method: \var{gtk\_drawing\_area\_size}, which sets
+the size of the drawing area. It is defined as follows:
+\begin{verbatim}
+procedure gtk_drawing_area_size(Area:PGtkDrawingArea; width:gint;height:gint) 
+\end{verbatim}
+The arguments to this function are self-explaining.
+
+To use the drawing area widget, one should respond to the 'expose\_event'.
+This event is triggered whenever a part of the window that was invisible,
+becomes visible. The event handler gets an \var{PGDKEventExpose} parameter,
+which describes which area was exposed. This can be used for optimization
+purposes.
+
+To draw in the drawing area widget, the \var{Window} field of the
+\var{TGTKWidget} parent can be used. This is of type \var{TGDKWindow}.
+All drawing functions require a parameter of type \var{TGdkDrawable}
+which can be one of the \var{TGdkWindow} or \var{TGdkPixMap} types.
+
+\section{Graphics contexts}
+Most drawing functions do not only require a drawable to draw on, they also
+require a {\em Graphics Context}. A graphics context is a series of
+parameters that determine how lines are drawn, what colors and font are
+used etc.
+
+The Graphics Context is an opaque record, and its members cannot be
+accessed. The relevant parameters are set in a \var{TGdkGCValues} record,
+which is defined as follows:
+\begin{verbatim}
+foreground : TGdkColor;
+background : TGdkColor;
+font : PGdkFont;
+thefunction : TGdkfunction;
+fill : TGdkFill;
+tile : PGdkPixmap;
+stipple : PGdkPixmap;
+clip_mask : PGdkPixmap;
+subwindow_mode : TGdkSubwindowMode;
+ts_x_origin : gint;
+ts_y_origin : gint;
+clip_x_origin : gint;
+clip_y_origin : gint;
+graphics_exposures : gint;
+line_width : gint;
+line_style : TGdkLineStyle;
+cap_style : TGdkCapStyle;
+join_style : TGdkJoinStyle;
+\end{verbatim}
+The \var{ForeGround} and \var{Background} parameters determine the foreground
+and background colors. \var{Font} is the default font. The \var{Fill} field
+describes how areas are filled. It can be one of the following:
+\begin{description}
+\item[GDK\_SOLID] fill with the foreground color.
+\item[GDK\_TILED] Use the pixmap specified in \var{Tile} to fill the area.
+\item[GDK\_STIPPLED] Use the pixmap specified in \var{Stipple} to draw
+pixels that are in the bitmap in the foreground color. Other bits are not
+drawn.
+\item[GDK\_OPAQUE\_STIPPLED] Same as \var{GDK\_STIPPLED} except that bits 
+not in the pixmap will be drawn in the background color.
+\end{description}
+The \var{clip\_bitmap} is used to define a clip area. The
+\var{ts\_x\_origin} and \var{ts\_y\_origin} define the stipple or tile
+origin.  The \var{clip\_x\_origin} and \var{clip\_y\_origin} fields define 
+the origin of the clipping region.
+\var{LineWidth} is the linewidth used when drawing lines. \var{Line\_Style}
+determines how dashed lines are drawn. It can have one of the following
+values:
+\begin{description}
+\item[GDK\_LINE\_SOLID] Lines are drawn solid.
+\item[GDK\_LINE\_ON\_OFF\_DASH] Even segments are drawn, odd segments are
+not.
+\item[GDK\_LINE\_DOUBLE\_DASH] Even segments are drawn, Odd segments are
+drawn in the background color if the fill style is \var{GDK\_SOLID}.
+\end{description}
+\var{cap\_style} determines how line ends are drawn. The following values are
+defined:
+\begin{description}
+\item[GDK\_CAP\_BUTT] The lines are drawn with square ends.  
+\item[GDK\_CAP\_NOT\_LAST] Idem as \var{GDK\_CAP\_BUTT}, only for zero-width
+lines, the last dot is not drawn.
+\item[GDK\_CAP\_ROUND] The end of the line is a semicircle. The circle has
+diameter equal to the linewidth, and the center is the endpoint of the line.
+\item[GDK\_CAP\_PROJECTING] Idem as [GDK\_CAP\_BUTT], only the line extends
+half the linewidth outside the endpoint.
+\end{description}
+
+The effect of these elements will be shown in the next section.
+
+To set a color, a \var{TGDkColor} record must be allocated. Colors are
+specified using a RGB value. Unfortunately, not all graphics cards can
+show all colors. In order to find out which screen color corresponds 
+to the RGB-specified color, the GDK uses a colormap, and allocates a
+color that matches the closest to the specified color values. 
+When allocating a new color, the colormap should be specified.
+
+A colormap can be obtained from a \var{TGTKWidget} object using the
+\var{gtk\_widget\_get\_colormap} function; A color can then be allocated
+using the \var{gdk\_colormap\_alloc\_color} function:
+\begin{verbatim}
+function gdk_colormap_alloc_color(colormap:PGdkColormap; 
+                                  color:PGdkColor;
+                                  writeable:gboolean; 
+                                  best_match:gboolean):gboolean;
+\end{verbatim}
+The \var{writeable} parameter specifies whether changes in the
+\var{color} using \var{gdk\_color\_change} are allowed.
+\var{best\_match} specifies whether a best match should be attempted 
+on existing colors or an exact value is required.
+The function returns \var{True} if the allocation succeeded, 
+\var{False} otherwise.
+
+\section{Drawing primitives}
+Using the properties introduced in the previous section, drawing can be
+attempted using the drawing primitives offered by GDK. GDK offers drawing
+functions for points, lines, segments, rectangles, polygons, circles, text
+and bitmaps.
+
+All functions accept as the first two parameters a \var{PGDKdrawable}, which
+can be a \var{TGDKWindow} or \var{TGDkPixmap}, and a \var{PGdkGC}, a pointer
+to a graphics context. These parameters are omitted from the following
+declarations:
+\begin{verbatim}
+procedure gdk_draw_point(x,y:gint);
+procedure gdk_draw_line(x1,y1,x2,y2:gint);
+procedure gdk_draw_rectangle(filled,x,y,width,height:gint);
+\end{verbatim}
+The meaning of the parameters for these functions is obvious.
+For the rectangle, care must be taken. If \var{Filled} is false (-1) then
+the drawn rectangle is actually \var{Width+1}, \var{Height+1}. If it is
+filled, then the width are height are as specified.
+
+The following functions can be used to draw a series of lines:
+\begin{verbatim}
+procedure gdk_draw_polygon(filled:gint;points:PGdkPoint; npoints:gint);
+procedure gdk_draw_segments(segs:PGdkSegment; nsegs:gint);
+procedure gdk_draw_lines(points:PGdkPoint; npoints:gint);
+\end{verbatim}
+The \var{gdk\_draw\_polygon} polygon takes a series of dots and connects 
+them using lines, optionally filling them. A \var{TGDKPoint} record contains
+ 2 fields \var{X,Y} which specify the location of a point. If needed, the
+first and last points are also connected using a line.
+The \var{gdk\_draw\_lines} does the same, only it cannot be filled, and it 
+will not connect the first and last points.
+The \var{gdk\_draw\_segments} requires a series of \var{TGDKSegment}
+records. These consist of 4 fields: \var{x1,y1,x2,y2}, each describing
+the start and end point of a line segment. The segments will not be
+connected.
+
+The \var{gdk\_draw\_arc} can be used to draw a circle or a segment of
+the circle, or an ellipse.
+\begin{verbatim}
+procedure gdk_draw_arc(filled,x,y,width,height,angle1,angle2 : gint);
+\end{verbatim}
+The \var{x,y, width} and \var{height} parameters describe a bounding
+rectangle for the circle. The angles describe the start and extending 
+angle of the segment to be drawn: The circle segment starts at angle
+\var{angle1} and ends at \var{angle1+angle2}. These angles are specified 
+in 1/64ths of a degree and are measured counterclockwise, starting at 
+the 3 o'clock direction. A circle segment drawn from 90 to 270 degrees 
+should therefore have as angles 90*64=5760 and 270*64=17280.
+
+If filled is \var{True} (-1), then the segment will be connected to
+the circle centre, and filled, in effect drawing a pie-slice.
+
+Finally, for the \var{gdk\_draw\_string} function, the graphics context comes
+before the graphics context:
+\begin{verbatim}
+procedure gdk_draw_string(drawable:PGdkDrawable; font:PGdkFont; gc:PGdkGC;
+                          x:gint; y:gint; thestring:Pgchar);
+\end{verbatim}
+The meaning of the parameters for this functions should be obvious.
+
+All this is demonstrated in the following program:
+\begin{lstlisting}{}
+program graphics;
+
+{$mode objfpc}
+{$h+}
+
+uses glib,gdk,gtk,sysutils;
+
+var 
+  window, 
+  area : PGtkWidget;
+
+Function CloseApp(widget : PGtkWidget ;
+                  event : PGdkEvent;
+                  data : gpointer) : boolean; cdecl;
+Begin
+  gtk_main_quit();
+  close_application := false;
+End;
+
+Function AllocateColor(R,G,B : Integer; 
+                       Widget : PGtkWidget) : PGdkColor;
+
+begin
+  Result:=New(PgdkColor);
+  With Result^ do
+    begin
+    Pixel:=0;
+    Red:=R;
+    Blue:=B;
+    Green:=G;  
+    end;
+  gdk_colormap_alloc_color(gtk_widget_get_colormap(Widget),
+                           Result,true,False);
+end;
+
+function Exposed(Widget: PGtkWidget;
+                 event : PGdkEventExpose; 
+                 Data : gpointer) : Integer; cdecl;
+
+Const 
+  Triangle : Array[1..4] of TgdkPoint = 
+            ((X:10;Y:195),
+             (X:110;Y:195),
+             (X:55;Y:145),
+             (X:10;Y:195));
+  LineStyles : Array[1..5] of TgdkLineStyle = 
+          (GDK_LINE_SOLID, GDK_LINE_ON_OFF_DASH, 
+           GDK_LINE_DOUBLE_DASH, GDK_LINE_ON_OFF_DASH, 
+           GDK_LINE_SOLID);
+  capstyles : Array[1..5] of TgdkCapStyle = 
+          (GDK_CAP_ROUND,GDK_CAP_NOT_LAST, GDK_CAP_BUTT,  
+           GDK_CAP_PROJECTING, GDK_CAP_NOT_LAST);
+          
+Var
+  SegTriangle : Array[1..3] of TgdkSegment;
+  Win : pgdkWindow;
+  gc : PgdkGC;
+  i,seg : Integer; 
+  font : PgdkFont;
+  Angle1,Angle2 : Longint;
+    
+begin
+  gc:=gdk_gc_new(widget^.Window);
+  Win:=widget^.window;
+  With Event^.area do
+    gdk_window_clear_area (win,x,y,width,height);
+  gdk_gc_set_foreground(gc,allocatecolor(0,0,0,Widget));
+  gdk_draw_rectangle(win,gc,0,5,5,590,390);
+  gdk_gc_set_foreground(gc,allocatecolor(0,0,$ffff,Widget));
+  for I:=10 to 50 do
+    gdk_draw_point(win,gc,I*10,100);
+  gdk_gc_set_foreground(gc,allocatecolor($ffff,0,0,Widget));
+  for I:=10 to 50 do
+    begin
+    gdk_gc_set_line_attributes(gc,6,LineStyles[i div 10],CapStyles[i div 10],GDK_JOIN_MITER);
+    gdk_draw_line(win,gc,I*10,20,I*10,90)
+    end;
+  gdk_gc_set_line_attributes(gc,1,GDK_LINE_SOLID,GDK_CAP_BUTT,GDK_JOIN_MITER);
+  gdk_gc_set_foreground(gc,allocatecolor($ffff,0,$ffff,Widget));
+  seg:=(360 div 20) * 64;
+  For I:=1 to 20 do
+    gdk_draw_arc(win,gc,0,220-I*4,200-i*4,8*i,8*i,i*seg,seg*19);
+  For I:=1 to 20 do
+    gdk_draw_arc(win,gc,-1,380-I*4,200-i*4,8*i,8*i,(i-1)*seg,seg);
+  gdk_gc_set_foreground(gc,allocatecolor(0,$ffff,$ffff,Widget));
+  gdk_draw_polygon(win,gc,0,@triangle[1],4);  
+  For I:=1 to 4 do
+    Triangle[i].Y:=400-Triangle[i].y;
+  gdk_draw_polygon(win,gc,-1,@triangle[1],4);  
+  gdk_gc_set_foreground(gc,allocatecolor(0,$ffff,0,Widget));
+  For I:=1 to 4 do
+    Triangle[i].X:=600-Triangle[i].x;
+  gdk_draw_lines(win,gc,@triangle[1],4);
+  For I:=1 to 3 do
+    begin
+    SegTriangle[i].X1:=Triangle[i].X;
+    SegTriangle[i].Y1:=400-Triangle[i].Y;
+    SegTriangle[i].X2:=Triangle[i+1].X;
+    SegTriangle[i].Y2:=400-Triangle[i+1].Y;
+    end;
+  gdk_draw_segments(win,gc,@segtriangle[1],3);
+  font:=gdk_font_load('-*-helvetica-bold-r-normal--*-120-*-*-*-*-iso8859-1');
+  gdk_gc_set_foreground(gc,allocatecolor($ffff,$ffff,0,Widget));
+  For I:=1 to 4 do
+    gdk_draw_string(win,font,gc,I*100,300,Pchar(format('String %d',[i])));
+  result:=0;
+end;
+
+Begin
+  // Initialize GTK and create the main window
+  gtk_init( @argc, @argv );
+  window := gtk_window_new( GTK_WINDOW_TOPLEVEL );
+  gtk_window_set_policy(PgtkWindow(Window),0,0,1);
+  gtk_signal_connect (GTK_OBJECT (window), 'delete_event',
+          GTK_SIGNAL_FUNC( @CloseApp ), NIL);
+  gtk_container_set_border_width (GTK_CONTAINER (window), 10);
+  area := gtk_drawing_area_new();
+  gtk_container_add( GTK_CONTAINER(window), Area);
+  gtk_signal_connect (GTK_OBJECT (area),'expose_event',
+                      GTK_SIGNAL_FUNC(@Exposed),Nil);
+  gtk_drawing_area_size (PGTKDRAWINGAREA(area),600,400);
+  gtk_widget_show_all( window ); 
+  gtk_main();
+end.
+\end{lstlisting}
+The main program startsby creating a main window,
+and adding a \var{TGTKDrawingArea} to it. It then connects 2 event handlers,
+one to stop the application if the window is closed (\var{CloseApp}),  
+the other to draw the \var{TGTKDrawingArea} when it is exposed 
+(\var{Exposed}). This latter contains the actual drawing routines, and is
+pretty self-explaining.
+
+Note that the allocated colors are not freed again, so this program does
+contain a memory leak.
+
+\section{Animation}
+
+
+\end{document}
