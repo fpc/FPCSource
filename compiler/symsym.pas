@@ -31,7 +31,7 @@ interface
        { target }
        globtype,globals,
        { symtable }
-       symconst,symbase,symtype,symdef,
+       symconst,symbase,symtype,symdef,defcmp,
        { ppu }
        ppu,symppu,
        cclasses,symnot,
@@ -132,7 +132,7 @@ interface
           procedure deref;override;
           procedure addprocdef(p:tprocdef);
           procedure addprocdef_deref(const d:tderef);
-          procedure add_para_match_to(Aprocsym:Tprocsym);
+          procedure add_para_match_to(Aprocsym:Tprocsym;cpoptions:tcompare_paras_options);
           procedure concat_procdefs_to(s:Tprocsym);
           procedure foreach_procdef_static(proc2call:Tprocdefcallback;arg:pointer);
           function first_procdef:Tprocdef;
@@ -141,8 +141,7 @@ interface
           function search_procdef_bytype(pt:Tproctypeoption):Tprocdef;
           function search_procdef_bypara(params:Tlinkedlist;
                                          retdef:tdef;
-                                         allowconvert,
-                                         allowdefault:boolean):Tprocdef;
+                                         cpoptions:tcompare_paras_options):Tprocdef;
           function search_procdef_byprocvardef(d:Tprocvardef):Tprocdef;
           function search_procdef_unary_operator(firstpara:Tdef):Tprocdef;
           function search_procdef_assignment_operator(fromdef,todef:tdef):Tprocdef;
@@ -375,7 +374,7 @@ implementation
        { target }
        systems,
        { symtable }
-       defutil,defcmp,symtable,
+       defutil,symtable,
 {$ifdef GDB}
        gdb,
 {$endif GDB}
@@ -866,7 +865,7 @@ implementation
 
     procedure tprocsym.deref;
       var
-         prev,hp,p : pprocdeflist;
+         p : pprocdeflist;
       begin
          { We have removed the overloaded entries, because they
            are not valid anymore and we can't deref them because
@@ -875,13 +874,11 @@ implementation
          unchain_overload;
          { Deref our own procdefs }
          p:=pdlistfirst;
-         prev:=nil;
          while assigned(p) do
            begin
              if not p^.own then
                internalerror(200310291);
              p^.def:=tprocdef(p^.defderef.resolve);
-             prev:=p;
              p:=p^.next;
            end;
       end;
@@ -953,14 +950,14 @@ implementation
       end;
 
 
-    procedure Tprocsym.add_para_match_to(Aprocsym:Tprocsym);
+    procedure Tprocsym.add_para_match_to(Aprocsym:Tprocsym;cpoptions:tcompare_paras_options);
       var
         pd:pprocdeflist;
       begin
         pd:=pdlistfirst;
         while assigned(pd) do
           begin
-            if Aprocsym.search_procdef_bypara(pd^.def.para,nil,false,true)=nil then
+            if Aprocsym.search_procdef_bypara(pd^.def.para,nil,cpoptions)=nil then
               Aprocsym.addprocdef(pd^.def);
             pd:=pd^.next;
           end;
@@ -1050,8 +1047,7 @@ implementation
 
     function Tprocsym.search_procdef_bypara(params:Tlinkedlist;
                                             retdef:tdef;
-                                            allowconvert,
-                                            allowdefault:boolean):Tprocdef;
+                                            cpoptions:tcompare_paras_options):Tprocdef;
       var
         pd : pprocdeflist;
         eq : tequaltype;
@@ -1065,11 +1061,11 @@ implementation
            else
              eq:=te_equal;
            if (eq>=te_equal) or
-              (allowconvert and (eq>te_incompatible)) then
+              ((cpo_allowconvert in cpoptions) and (eq>te_incompatible)) then
             begin
-              eq:=compare_paras(pd^.def.para,params,cp_value_equal_const,allowdefault,false);
+              eq:=compare_paras(pd^.def.para,params,cp_value_equal_const,cpoptions);
               if (eq>=te_equal) or
-                 (allowconvert and (eq>te_incompatible)) then
+                 ((cpo_allowconvert in cpoptions) and (eq>te_incompatible)) then
                 begin
                   search_procdef_bypara:=pd^.def;
                   break;
@@ -2687,7 +2683,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.133  2003-10-29 21:56:28  peter
+  Revision 1.134  2003-10-30 16:23:13  peter
+    * don't search for overloads in parents for constructors
+
+  Revision 1.133  2003/10/29 21:56:28  peter
     * procsym.deref derefs only own procdefs
     * reset paracount in procdef.deref so a second deref doesn't increase
       the paracounts to invalid values

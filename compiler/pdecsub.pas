@@ -1892,7 +1892,7 @@ const
               ) or
               { check arguments }
               (
-               (compare_paras(pd.para,hd.para,cp_none,false,false)>=te_equal) and
+               (compare_paras(pd.para,hd.para,cp_none,[])>=te_equal) and
                { for operators equal_paras is not enough !! }
                ((pd.proctypeoption<>potype_operator) or (optoken<>_ASSIGNMENT) or
                 equal_defs(hd.rettype.def,pd.rettype.def))
@@ -1911,7 +1911,7 @@ const
                       (
                        (m_repeat_forward in aktmodeswitches) and
                        (not((pd.maxparacount=0) or
-                            (compare_paras(pd.para,hd.para,cp_all,false,false)>=te_equal)))
+                            (compare_paras(pd.para,hd.para,cp_all,[])>=te_equal)))
                       ) or
                       (
                        ((m_repeat_forward in aktmodeswitches) or
@@ -2132,7 +2132,10 @@ const
 end.
 {
   $Log$
-  Revision 1.149  2003-10-28 15:36:01  peter
+  Revision 1.150  2003-10-30 16:23:13  peter
+    * don't search for overloads in parents for constructors
+
+  Revision 1.149  2003/10/28 15:36:01  peter
     * absolute to object field supported, fixes tb0458
 
   Revision 1.148  2003/10/07 21:14:33  peter

@@ -35,7 +35,9 @@ interface
 
      type
        { if acp is cp_all the var const or nothing are considered equal }
-       compare_type = ( cp_none, cp_value_equal_const, cp_all,cp_procvar);
+       tcompare_paras_type = ( cp_none, cp_value_equal_const, cp_all,cp_procvar);
+       tcompare_paras_option = (cpo_allowdefaults,cpo_ignorehidden,cpo_allowconvert);
+       tcompare_paras_options = set of tcompare_paras_option;
 
        tconverttype = (
           tc_equal,
@@ -103,7 +105,7 @@ interface
       search for a routine with default parameters, before
       searching for the same definition with no parameters)
     }
-    function compare_paras(paralist1,paralist2 : TLinkedList; acp : compare_type;allowdefaults,ignorehidden:boolean):tequaltype;
+    function compare_paras(paralist1,paralist2 : TLinkedList; acp : tcompare_paras_type; cpoptions: tcompare_paras_options):tequaltype;
 
     { True if a function can be assigned to a procvar }
     { changed first argument type to pabstractprocdef so that it can also be }
@@ -1065,7 +1067,7 @@ implementation
       end;
 
 
-    function compare_paras(paralist1,paralist2 : TLinkedList; acp : compare_type;allowdefaults,ignorehidden:boolean):tequaltype;
+    function compare_paras(paralist1,paralist2 : TLinkedList; acp : tcompare_paras_type; cpoptions: tcompare_paras_options):tequaltype;
       var
         currpara1,
         currpara2 : TParaItem;
@@ -1079,7 +1081,7 @@ implementation
          lowesteq:=high(tequaltype);
          currpara1:=TParaItem(paralist1.first);
          currpara2:=TParaItem(paralist2.first);
-         if ignorehidden then
+         if cpo_ignorehidden in cpoptions then
            begin
              while assigned(currpara1) and currpara1.is_hidden do
                currpara1:=tparaitem(currpara1.next);
@@ -1165,7 +1167,7 @@ implementation
                end;
               currpara1:=TParaItem(currpara1.next);
               currpara2:=TParaItem(currpara2.next);
-              if ignorehidden then
+              if cpo_ignorehidden in cpoptions then
                 begin
                   while assigned(currpara1) and currpara1.is_hidden do
                     currpara1:=tparaitem(currpara1.next);
@@ -1177,7 +1179,7 @@ implementation
            when one list is empty and the other has a parameter with default
            value assigned then the parameters are also equal }
          if ((currpara1=nil) and (currpara2=nil)) or
-            (allowdefaults and
+            ((cpo_allowdefaults in cpoptions) and
              ((assigned(currpara1) and assigned(currpara1.defaultvalue)) or
               (assigned(currpara2) and assigned(currpara2.defaultvalue)))) then
            compare_paras:=lowesteq;
@@ -1211,7 +1213,7 @@ implementation
             { return equal type based on the parameters, but a proc->procvar
               is never exact, so map an exact match of the parameters to
               te_equal }
-            eq:=compare_paras(def1.para,def2.para,cp_procvar,false,false);
+            eq:=compare_paras(def1.para,def2.para,cp_procvar,[]);
             if eq=te_exact then
              eq:=te_equal;
             proc_to_procvar_equal:=eq;
@@ -1221,7 +1223,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.34  2003-10-26 14:11:35  florian
+  Revision 1.35  2003-10-30 16:23:13  peter
+    * don't search for overloads in parents for constructors
+
+  Revision 1.34  2003/10/26 14:11:35  florian
     * fixed web bug 2129: explicit float casts in Delphi mode must be handled by the default code
 
   Revision 1.33  2003/10/14 12:23:06  florian

@@ -387,7 +387,7 @@ implementation
                        { Insert hidden parameters }
                        calc_parast(readprocdef);
                        { search procdefs matching readprocdef }
-                       p.readaccess.procdef:=Tprocsym(sym).search_procdef_bypara(readprocdef.para,p.proptype.def,true,false);
+                       p.readaccess.procdef:=Tprocsym(sym).search_procdef_bypara(readprocdef.para,p.proptype.def,[cpo_allowdefaults]);
                        if not assigned(p.readaccess.procdef) then
                          Message(parser_e_ill_property_access_sym);
                      end;
@@ -431,7 +431,7 @@ implementation
                        { Insert hidden parameters }
                        calc_parast(writeprocdef);
                        { search procdefs matching writeprocdef }
-                       p.writeaccess.procdef:=Tprocsym(sym).search_procdef_bypara(writeprocdef.para,writeprocdef.rettype.def,true,false);
+                       p.writeaccess.procdef:=Tprocsym(sym).search_procdef_bypara(writeprocdef.para,writeprocdef.rettype.def,[cpo_allowdefaults]);
                        if not assigned(p.writeaccess.procdef) then
                          Message(parser_e_ill_property_access_sym);
                      end;
@@ -1157,7 +1157,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.71  2003-10-22 15:22:33  peter
+  Revision 1.72  2003-10-30 16:23:13  peter
+    * don't search for overloads in parents for constructors
+
+  Revision 1.71  2003/10/22 15:22:33  peter
     * fixed unitsym-globalsymtable relation so the uses of a unit
       is counted correctly
 

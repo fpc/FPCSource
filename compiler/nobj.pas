@@ -634,7 +634,7 @@ implementation
                                       begin
                                         if tstoredsym(procdefcoll^.data.procsym).is_visible_for_object(pd._class) and
                                            (not(pdoverload or hasoverloads) or
-                                            (compare_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const,false,false)>=te_equal)) then
+                                            (compare_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const,[])>=te_equal)) then
                                          begin
                                            if is_visible then
                                              procdefcoll^.hidden:=true;
@@ -652,7 +652,7 @@ implementation
                                          begin
                                            { we start a new virtual tree, hide the old }
                                            if (not(pdoverload or hasoverloads) or
-                                               (compare_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const,false,false)>=te_equal)) and
+                                               (compare_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const,[])>=te_equal)) and
                                               (tstoredsym(procdefcoll^.data.procsym).is_visible_for_object(pd._class)) then
                                             begin
                                               if is_visible then
@@ -668,7 +668,7 @@ implementation
                                            { do nothing, the error will follow when adding the entry }
                                          end
                                         { same parameters }
-                                        else if (compare_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const,false,false)>=te_equal) then
+                                        else if (compare_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const,[])>=te_equal) then
                                          begin
                                            { overload is inherited }
                                            if (po_overload in procdefcoll^.data.procoptions) then
@@ -734,7 +734,7 @@ implementation
                                           if the new defintion has not the overload directive }
                                         if is_visible and
                                            ((not(pdoverload or hasoverloads)) or
-                                            (compare_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const,false,false)>=te_equal)) then
+                                            (compare_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const,[])>=te_equal)) then
                                           procdefcoll^.hidden:=true;
                                       end;
                                    end
@@ -744,7 +744,7 @@ implementation
                                        has not the overload directive }
                                      if is_visible and
                                         ((not pdoverload) or
-                                         (compare_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const,false,false)>=te_equal)) then
+                                         (compare_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const,[])>=te_equal)) then
                                        procdefcoll^.hidden:=true;
                                    end;
                                 end; { not hidden }
@@ -1057,7 +1057,7 @@ implementation
             for i:=1 to tprocsym(sym).procdef_count do
               begin
                 implprocdef:=tprocsym(sym).procdef[i];
-                if (compare_paras(proc.para,implprocdef.para,cp_none,false,false)>=te_equal) and
+                if (compare_paras(proc.para,implprocdef.para,cp_none,[])>=te_equal) and
                    (proc.proccalloption=implprocdef.proccalloption) then
                   begin
                     gintfgetcprocdef:=implprocdef;
@@ -1368,7 +1368,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.54  2003-10-29 19:48:50  peter
+  Revision 1.55  2003-10-30 16:23:13  peter
+    * don't search for overloads in parents for constructors
+
+  Revision 1.54  2003/10/29 19:48:50  peter
     * renamed mangeldname_prefix to make_mangledname and made it more
       generic
     * make_mangledname is now also used for internal threadvar/resstring

@@ -262,7 +262,7 @@ implementation
       { target }
       systems,
       { symtable }
-      symutil,
+      symutil,defcmp,
       { module }
       fmodule,
 {$ifdef GDB}
@@ -2131,7 +2131,7 @@ implementation
                internalerror(200111022);
               if srsym.is_visible_for_object(tobjectdef(aprocsym.owner.defowner)) then
                begin
-                 srsym.add_para_match_to(Aprocsym);
+                 srsym.add_para_match_to(Aprocsym,[cpo_ignorehidden,cpo_allowdefaults]);
                  { we can stop if the overloads were already added
                   for the found symbol }
                  if srsym.overloadchecked then
@@ -2297,7 +2297,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.120  2003-10-23 14:44:07  peter
+  Revision 1.121  2003-10-30 16:23:13  peter
+    * don't search for overloads in parents for constructors
+
+  Revision 1.120  2003/10/23 14:44:07  peter
     * splitted buildderef and buildderefimpl to fix interface crc
       calculation
 

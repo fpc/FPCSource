@@ -1229,13 +1229,7 @@ type
           for class entries as the tree keeps always the same }
         if (not symtableprocentry.overloadchecked) and
            (symtableprocentry.owner.symtabletype=objectsymtable) and
-           (
-            (
-             (symtableprocentry.first_procdef.proctypeoption=potype_constructor) and
-             is_class(tdef(symtableprocentry.owner.defowner))
-            ) or
-            (po_overload in symtableprocentry.first_procdef.procoptions)
-           ) then
+           (po_overload in symtableprocentry.first_procdef.procoptions) then
          search_class_overloads(symtableprocentry);
 
          { when the class passed is defined in this unit we
@@ -1320,7 +1314,7 @@ type
                            while assigned(hp) do
                             begin
                               { Only compare visible parameters for the user }
-                              if compare_paras(hp^.data.para,pd.para,cp_value_equal_const,false,true)>=te_equal then
+                              if compare_paras(hp^.data.para,pd.para,cp_value_equal_const,[cpo_ignorehidden])>=te_equal then
                                begin
                                  found:=true;
                                  break;
@@ -2591,7 +2585,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.201  2003-10-29 22:01:20  florian
+  Revision 1.202  2003-10-30 16:23:13  peter
+    * don't search for overloads in parents for constructors
+
+  Revision 1.201  2003/10/29 22:01:20  florian
     * fixed passing of dyn. arrays to open array parameters
 
   Revision 1.200  2003/10/23 14:44:07  peter
