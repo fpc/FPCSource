@@ -1099,7 +1099,7 @@ uses
 {$ifdef SHORT_ON_FILE_HANDLES}
             if old_current_module.is_unit and
                assigned(tppumodule(old_current_module).ppufile) then
-              tppumodule(old_current_module.ppufile).tempclose;
+              tppumodule(old_current_module).ppufile.tempclose;
 {$endif SHORT_ON_FILE_HANDLES}
           { now we can register the unit }
             current_module.loaded_from:=old_current_module;
@@ -1130,7 +1130,7 @@ uses
 {$ifdef SHORT_ON_FILE_HANDLES}
          if old_current_module.is_unit and
             assigned(tppumodule(old_current_module).ppufile) then
-           tppumodule(old_current_module.ppufile).tempopen;
+           tppumodule(old_current_module).ppufile.tempopen;
 {$endif SHORT_ON_FILE_HANDLES}
          { we are back }
          current_module:=old_current_module;
@@ -1143,7 +1143,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.1  2001-05-06 14:49:17  peter
+  Revision 1.2  2001-05-07 11:53:21  jonas
+    * fix from Peter for short_on_file_handles code
+
+  Revision 1.1  2001/05/06 14:49:17  peter
     * ppu object to class rewrite
     * move ppu read and write stuff to fppu
 
