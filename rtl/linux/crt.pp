@@ -1298,11 +1298,24 @@ Function CrtWrite(Var F: TextRec): Integer;
 }
 Var
   Temp : String;
+  idx,i : Longint;
+  oldflush : boolean;
 Begin
-  Move(F.BufPTR^[0],Temp[1],F.BufPos);
-  setlength(temp,F.BufPos);
-  DoWrite(Temp);
-  F.BufPos:=0;
+  oldflush:=ttySetFlush(Flushing);
+  idx:=0;
+  while (F.BufPos>0) do
+   begin
+     i:=F.BufPos;
+     if i>255 then
+      i:=255;
+     Move(F.BufPTR^[idx],Temp[1],F.BufPos);
+     Temp[0]:=Chr(i);
+     DoWrite(Temp);
+     dec(F.BufPos,i);
+     inc(idx,i);
+   end;
+
+  ttySetFlush(oldFLush);
   CrtWrite:=0;
 End;
 
@@ -1584,7 +1597,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.17  1999-09-07 07:38:09  michael
+  Revision 1.18  1999-09-07 07:47:46  peter
+    * write > 255 chars
+
+  Revision 1.17  1999/09/07 07:38:09  michael
   + Applied readkey patch from Deekoo L
 
   Revision 1.16  1999/06/09 16:46:10  peter
