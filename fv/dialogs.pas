@@ -1287,14 +1287,15 @@ END;
 {---------------------------------------------------------------------------}
 CONSTRUCTOR TInputLine.Load (Var S: TStream);
 VAR B: Byte;
+    W: Word;
 BEGIN
    Inherited Load(S);                                 { Call ancestor }
-   S.Read(MaxLen, 2);                                 { Read max length }
-   S.Read(CurPos, 2);                                 { Read cursor position }
-   S.Read(FirstPos, 2);                               { Read first position }
-   S.Read(SelStart, 2);                               { Read selected start }
-   S.Read(SelEnd, 2);                                 { Read selected end }
-   S.Read(B, 1);                                      { Read string length }
+   S.Read(W, sizeof(w)); MaxLen:=W;                   { Read max length }
+   S.Read(W, sizeof(w)); CurPos:=w;                   { Read cursor position }
+   S.Read(W, sizeof(w)); FirstPos:=w;                 { Read first position }
+   S.Read(W, sizeof(w)); SelStart:=w;                 { Read selected start }
+   S.Read(W, sizeof(w)); SelEnd:=w;                   { Read selected end }
+   S.Read(B, SizeOf(B));                              { Read string length }
    If (MaxAvail > MaxLen+1) Then Begin                { Check enough memory }
      GetMem(Data, MaxLen + 1);                        { Allocate memory }
      S.Read(Data^[1], Length(Data^));                 { Read string data }
@@ -1513,13 +1514,14 @@ END;
 {  Store -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 04Oct99 LdB             }
 {---------------------------------------------------------------------------}
 PROCEDURE TInputLine.Store (Var S: TStream);
+VAR w: Word;
 BEGIN
    TView.Store(S);                                    { Implict TView.Store }
-   S.Write(MaxLen, 2);                                { Read max length }
-   S.Write(CurPos, 2);                                { Read cursor position }
-   S.Write(FirstPos, 2);                              { Read first position }
-   S.Write(SelStart, 2);                              { Read selected start }
-   S.Write(SelEnd, 2);                                { Read selected end }
+   w:=MaxLen;S.Write(w, SizeOf(w));                   { Read max length }
+   w:=CurPos;S.Write(w, SizeOf(w));                   { Read cursor position }
+   w:=FirstPos;S.Write(w, SizeOf(w));                 { Read first position }
+   w:=SelStart;S.Write(w, SizeOf(w));                 { Read selected start }
+   w:=SelEnd;S.Write(w, SizeOf(w));                   { Read selected end }
    S.WriteStr(Data);                                  { Write the data }
    S.Put(Validator);                                  { Write any validator }
 END;
@@ -1808,9 +1810,9 @@ CONSTRUCTOR TButton.Load (Var S: TStream);
 BEGIN
    Inherited Load(S);                                 { Call ancestor }
    Title := S.ReadStr;                                { Read title }
-   S.Read(Command, 2);                                { Read command }
-   S.Read(Flags, 1);                                  { Read flags }
-   S.Read(AmDefault, 1);                              { Read if default }
+   S.Read(Command, SizeOf(Command));                  { Read command }
+   S.Read(Flags, SizeOf(Flags));                      { Read flags }
+   S.Read(AmDefault, SizeOf(AmDefault));              { Read if default }
    If NOT CommandEnabled(Command) Then                { Check command state }
      State := State OR sfDisabled Else                { Command disabled }
      State := State AND NOT sfDisabled;               { Command enabled }
@@ -1978,9 +1980,9 @@ PROCEDURE TButton.Store (Var S: TStream);
 BEGIN
    TView.Store(S);                                    { Implict TView.Store }
    S.WriteStr(Title);                                 { Store title string }
-   S.Write(Command, 2);                               { Store command }
-   S.Write(Flags, 1);                                 { Store flags }
-   S.Write(AmDefault, 1);                             { Store default flag }
+   S.Write(Command, SizeOf(Command));                 { Store command }
+   S.Write(Flags, SizeOf(Flags));                     { Store flags }
+   S.Write(AmDefault, SizeOf(AmDefault));             { Store default flag }
 END;
 
 {--TButton------------------------------------------------------------------}
@@ -2097,17 +2099,25 @@ END;
 {  Load -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 06Oct99 LdB              }
 {---------------------------------------------------------------------------}
 CONSTRUCTOR TCluster.Load (Var S: TStream);
+VAR w: word;
 BEGIN
    Inherited Load(S);                                 { Call ancestor }
-   S.Read(Value, 4);                                  { Read value }
-   S.Read(Sel, 2);                                    { Read select item }
-   If ((Options AND ofVersion) >= ofVersion20)        { Version 2 TV view }
-   Then S.Read(EnableMask, 4) Else Begin              { Read enable masks }
+   If ((Options AND ofVersion) >= ofVersion20) Then   { Version 2 TV view }
+     Begin
+       S.Read(Value, SizeOf(Value));                  { Read value }
+       S.Read(Sel, Sizeof(Sel));                      { Read select item }
+       S.Read(EnableMask, SizeOf(EnableMask))         { Read enable masks }
+     End
+   Else
+     Begin
+     w:=Value;
+     S.Read(w, SizeOf(w)); Value:=w;               { Read value }
+     S.Read(Sel, SizeOf(Sel));                        { Read select item }
      EnableMask := $FFFFFFFF;                         { Enable all masks }
      Options := Options OR ofVersion20;               { Set version 2 mask }
    End;
    If (Options AND ofGFVModeView <> 0) Then           { GFV mode view check }
-     S.Read(Id, 2);                                   { Read view id }
+     S.Read(Id, Sizeof(Id));                          { Read view id }
    Strings.Load(S);                                   { Load string data }
    SetButtonState(0, True);                           { Set button state }
 END;
@@ -2312,15 +2322,18 @@ END;
 {  Store -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 03Jun98 LdB             }
 {---------------------------------------------------------------------------}
 PROCEDURE TCluster.Store (Var S: TStream);
+var
+  w : word;
 BEGIN
    TView.Store(S);                                    { TView.Store called }
    If ((Options AND ofVersion) >= ofVersion20)        { Version 2 TV view }
    Then Begin
-     S.Write(Value, SizeOf(LongInt));                 { Write value }
+     S.Write(Value, SizeOf(Value));                   { Write value }
      S.Write(Sel, SizeOf(Sel));                       { Write select item }
      S.Write(EnableMask, SizeOf(EnableMask));         { Write enable masks }
    End Else Begin
-     S.Write(Value, SizeOf(Word));                    { Write value }
+     w:=Value;
+     S.Write(w, SizeOf(Word));                        { Write value }
      S.Write(Sel, SizeOf(Sel));                       { Write select item }
    End;
    If (Options AND ofGFVModeView <> 0) Then           { GFV mode view check }
@@ -2985,9 +2998,10 @@ END;
 {  Load -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 28Apr98 LdB              }
 {---------------------------------------------------------------------------}
 CONSTRUCTOR TParamText.Load (Var S: TStream);
+VAR w: Word;
 BEGIN
    Inherited Load(S);                                 { Call ancestor }
-   S.Read(ParamCount, 2);                             { Read parameter count }
+   S.Read(w, SizeOf(w)); ParamCount:=w;               { Read parameter count }
 END;
 
 {--TParamText---------------------------------------------------------------}
@@ -3019,9 +3033,10 @@ END;
 {  Store -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 28Apr98 LdB             }
 {---------------------------------------------------------------------------}
 PROCEDURE TParamText.Store (Var S: TStream);
+VAR w: Word;
 BEGIN
    TStaticText.Store(S);                              { Statictext store }
-   S.Write(ParamCount, 2);                            { Store param count }
+   w:=ParamCount;S.Write(w, SizeOf(w));           { Store param count }
 END;
 
 {--TParamText---------------------------------------------------------------}
@@ -3272,7 +3287,7 @@ CONSTRUCTOR THistory.Load (Var S: TStream);
 BEGIN
    Inherited Load(S);                                 { Call ancestor }
    GetPeerViewPtr(S, Link);                           { Load link view }
-   S.Read(HistoryId, 2);                              { Read history id }
+   S.Read(HistoryId, SizeOf(HistoryId));              { Read history id }
 END;
 
 {--THistory-----------------------------------------------------------------}
@@ -3318,7 +3333,7 @@ PROCEDURE THistory.Store (Var S: TStream);
 BEGIN
    TView.Store(S);                                    { TView.Store called }
    PutPeerViewPtr(S, Link);                           { Store link view }
-   S.Write(HistoryId, 2);                             { Store history id }
+   S.Write(HistoryId, SizeOf(HistoryId));             { Store history id }
 END;
 
 {--THistory-----------------------------------------------------------------}
@@ -4021,7 +4036,8 @@ constructor TListDlg.Load (var S : TStream);
 begin
   if not TDialog.Load(S) then
     Fail;
-  S.Read(NewCommand,SizeOf(NewCommand) + SizeOf(EditCommand));
+  S.Read(NewCommand,SizeOf(NewCommand));
+  S.Read(EditCommand,SizeOf(EditCommand));
   GetSubViewPtr(S,ListBox);
 end;
 
@@ -4075,7 +4091,8 @@ end;
 procedure TListDlg.Store (var S : TStream);
 begin
   TDialog.Store(S);
-  S.Write(NewCommand,SizeOf(NewCommand) + SizeOf(EditCommand));
+  S.Write(NewCommand,SizeOf(NewCommand));
+  S.Write(EditCommand,SizeOf(EditCommand));
   PutSubViewPtr(S,ListBox);
 end;
 
@@ -4208,7 +4225,10 @@ END;
 END.
 {
  $Log$
- Revision 1.20  2002-09-22 19:42:23  hajny
+ Revision 1.21  2002-10-17 11:24:16  pierre
+  * Clean up the Load/Store routines so they are endian independent
+
+ Revision 1.20  2002/09/22 19:42:23  hajny
    + FPC/2 support added
 
  Revision 1.19  2002/09/09 08:14:47  pierre

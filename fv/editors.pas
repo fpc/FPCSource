@@ -1306,8 +1306,8 @@ begin
   GetPeerViewPtr (S, HScrollBar);
   GetPeerViewPtr (S, VScrollBar);
   GetPeerViewPtr (S, Indicator);
-  S.Read (BufSize, SizeOf (Sw_Word));
-  S.Read (CanUndo, SizeOf (Boolean));
+  S.Read (BufSize, SizeOf (BufSize));
+  S.Read (CanUndo, SizeOf (CanUndo));
   S.Read (AutoIndent,   SizeOf (AutoIndent));
   S.Read (Line_Number,  SizeOf (Line_Number));
   S.Read (Place_Marker, SizeOf (Place_Marker));
@@ -3117,8 +3117,8 @@ begin
   PutPeerViewPtr (S, HScrollBar);
   PutPeerViewPtr (S, VScrollBar);
   PutPeerViewPtr (S, Indicator);
-  S.Write (BufSize, SizeOf (Sw_Word));
-  S.Write (Canundo, SizeOf (Boolean));
+  S.Write (BufSize, SizeOf (BufSize));
+  S.Write (Canundo, SizeOf (Canundo));
   S.Write (AutoIndent,   SizeOf (AutoIndent));
   S.Write (Line_Number,  SizeOf (Line_Number));
   S.Write (Place_Marker, SizeOf (Place_Marker));
@@ -3315,7 +3315,7 @@ VAR
   Length : Sw_Word;
 begin
   Inherited Load (S);
-  S.Read (Length, SizeOf (Sw_Word));
+  S.Read (Length, SizeOf (Length));
   if IsValid then
     begin
       S.Read (Buffer^[BufSize - Length], Length);
@@ -3370,7 +3370,7 @@ end; { TMemo.SetData }
 procedure TMemo.Store (var S : Objects.TStream);
 begin
   Inherited Store (S);
-  S.Write (BufLen, SizeOf (Sw_Word));
+  S.Write (BufLen, SizeOf (BufLen));
   S.Write (Buffer^, CurPtr);
   S.Write (Buffer^[CurPtr + GapLen], BufLen - CurPtr);
 end; { TMemo.Store }
@@ -3402,13 +3402,13 @@ VAR
 begin
   Inherited Load (S);
   BufSize := 0;
-  S.Read (FileName[0], SizeOf (Char));
+  S.Read (FileName[0], SizeOf (Byte));
   S.Read (Filename[1], Length (FileName));
   if IsValid then
     IsValid := LoadFile;
-  S.Read (SStart, SizeOf (Sw_Word));
-  S.Read (SEnd, SizeOf (Sw_Word));
-  S.Read (Curs, SizeOf (Sw_Word));
+  S.Read (SStart, SizeOf (SStart));
+  S.Read (SEnd, SizeOf (SEnd));
+  S.Read (Curs, SizeOf (Curs));
   if IsValid and (SEnd <= BufLen) then
     begin
       SetSelect (SStart, SEnd, Curs = SStart);
@@ -3580,7 +3580,9 @@ procedure TFileEditor.Store (var S : Objects.TStream);
 begin
   Inherited Store (S);
   S.Write (FileName, Length (FileName) + 1);
-  S.Write (SelStart, SizeOf (Sw_Word) * 3);
+  S.Write (SelStart, SizeOf (SelStart));
+  S.Write (SelEnd, SizeOf (SelEnd));
+  S.Write (CurPtr, SizeOf (CurPtr));
 end; { TFileEditor.Store }
 
 

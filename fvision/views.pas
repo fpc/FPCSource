@@ -981,28 +981,29 @@ END;
 {  supported but it should work as per original TV code.                    }
 {---------------------------------------------------------------------------}
 CONSTRUCTOR TView.Load (Var S: TStream);
+VAR i: Integer;
 BEGIN
    Inherited Init;                                    { Call ancestor }
-   S.Read(Origin.X, 2);                               { Read origin x value }
-   S.Read(Origin.Y, 2);                               { Read origin y value }
-   S.Read(Size.X, 2);                                 { Read view x size }
-   S.Read(Size.Y, 2);                                 { Read view y size }
-   S.Read(Cursor.X, 2);                               { Read cursor x size }
-   S.Read(Cursor.Y, 2);                               { Read cursor y size }
-   S.Read(GrowMode, 1);                               { Read growmode flags }
-   S.Read(DragMode, 1);                               { Read dragmode flags }
-   S.Read(HelpCtx, 2);                                { Read help context }
-   S.Read(State, 2);                                  { Read state masks }
-   S.Read(Options, 2);                                { Read options masks }
-   S.Read(Eventmask, 2);                              { Read event masks }
+   S.Read(i, SizeOf(i)); Origin.X:=i;                 { Read origin x value }
+   S.Read(i, SizeOf(i)); Origin.Y:=i;                 { Read origin y value }
+   S.Read(i, SizeOf(i)); Size.X:=i;                   { Read view x size }
+   S.Read(i, SizeOf(i)); Size.Y:=i;                   { Read view y size }
+   S.Read(i, SizeOf(i)); Cursor.X:=i;                 { Read cursor x size }
+   S.Read(i, SizeOf(i)); Cursor.Y:=i;                 { Read cursor y size }
+   S.Read(GrowMode, SizeOf(GrowMode));                { Read growmode flags }
+   S.Read(DragMode, SizeOf(DragMode));                { Read dragmode flags }
+   S.Read(HelpCtx, SizeOf(HelpCtx));                  { Read help context }
+   S.Read(State, SizeOf(State));                      { Read state masks }
+   S.Read(Options, SizeOf(Options));                  { Read options masks }
+   S.Read(Eventmask, SizeOf(Eventmask));              { Read event masks }
    If (Options AND ofGFVModeView <> 0) Then Begin     { STREAM HAS GFV TVIEW }
-     S.Read(GOptions, 2);                             { Read new option masks }
-     S.Read(TabMask, 1);                              { Read new tab masks }
-     S.Read(RawOrigin.X, 2);                          { Read raw x origin point }
-     S.Read(RawOrigin.Y, 2);                          { Read raw y origin point }
-     S.Read(RawSize.X, 2);                            { Read raw x size }
-     S.Read(RawSize.Y, 2);                            { Read raw y size }
-     S.Read(ColourOfs, 2);                            { Read palette offset }
+     S.Read(GOptions, SizeOf(GOptions));              { Read new option masks }
+     S.Read(TabMask, SizeOf(TabMask));                { Read new tab masks }
+     S.Read(i, SizeOf(i)); RawOrigin.X:=i;            { Read raw x origin point }
+     S.Read(i, SizeOf(i)); RawOrigin.Y:=i;            { Read raw y origin point }
+     S.Read(i, SizeOf(i)); RawSize.X:=i;              { Read raw x size }
+     S.Read(i, SizeOf(i)); RawSize.Y:=i;              { Read raw y size }
+     S.Read(i, SizeOf(i)); ColourOfs:=i;              { Read palette offset }
    End Else Begin                                     { STREAM HAS OLD TView }
      RawOrigin.X := Origin.X * FontWidth;             { Set x origin pt }
      RawOrigin.Y := Origin.Y * FontHeight;            { Set y origin pt }
@@ -2035,30 +2036,31 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TView.Store (Var S: TStream);
 VAR SaveState: Word;
+    i: integer;
 BEGIN
    SaveState := State;                                { Hold current state }
    State := State AND NOT (sfActive OR sfSelected OR
      sfFocused OR sfExposed);                         { Clear flags }
-   S.Write(Origin.X, 2);                              { Write view x origin }
-   S.Write(Origin.Y, 2);                              { Write view y origin }
-   S.Write(Size.X, 2);                                { Write view x size }
-   S.Write(Size.Y, 2);                                { Write view y size }
-   S.Write(Cursor.X, 2);                              { Write cursor x size }
-   S.Write(Cursor.Y, 2);                              { Write cursor y size }
-   S.Write(GrowMode, 1);                              { Write growmode flags }
-   S.Write(DragMode, 1);                              { Write dragmode flags }
-   S.Write(HelpCtx, 2);                               { Write help context }
-   S.Write(State, 2);                                 { Write state masks }
-   S.Write(Options, 2);                               { Write options masks }
-   S.Write(Eventmask, 2);                             { Write event masks }
+   i:=Origin.X;S.Write(i, SizeOf(i));                 { Write view x origin }
+   i:=Origin.Y;S.Write(i, SizeOf(i));                 { Write view y origin }
+   i:=Size.X;S.Write(i, SizeOf(i));                   { Write view x size }
+   i:=Size.Y;S.Write(i, SizeOf(i));                   { Write view y size }
+   i:=Cursor.X;S.Write(i, SizeOf(i));                 { Write cursor x size }
+   i:=Cursor.Y;S.Write(i, SizeOf(i));                 { Write cursor y size }
+   S.Write(GrowMode, SizeOf(GrowMode));               { Write growmode flags }
+   S.Write(DragMode, SizeOf(DragMode));               { Write dragmode flags }
+   S.Write(HelpCtx, SizeOf(HelpCtx));                 { Write help context }
+   S.Write(State, SizeOf(State));                     { Write state masks }
+   S.Write(Options, SizeOf(Options));                 { Write options masks }
+   S.Write(Eventmask, SizeOf(Eventmask));             { Write event masks }
    If (Options AND ofGFVModeView <> 0) Then Begin     { GFV GRAPHICAL TVIEW }
-     S.Write(GOptions, 2);                            { Write new option masks }
-     S.Write(TabMask, 1);                             { Write new tab masks }
-     S.Write(RawOrigin.X, 2);                         { Write raw origin x point }
-     S.Write(RawOrigin.Y, 2);                         { Write raw origin y point }
-     S.Write(RawSize.X, 2);                           { Write raw x size }
-     S.Write(RawSize.Y, 2);                           { Write raw y size }
-     S.Write(ColourOfs, 2);                           { Write Palette offset }
+     S.Write(GOptions, SizeOf(GOptions));             { Write new option masks }
+     S.Write(TabMask, SizeOf(TabMask));               { Write new tab masks }
+     i:=RawOrigin.X;S.Write(i, SizeOf(i));            { Write raw origin x point }
+     i:=RawOrigin.Y;S.Write(i, SizeOf(i));            { Write raw origin y point }
+     i:=RawSize.X;S.Write(i, SizeOf(i));              { Write raw x size }
+     i:=RawSize.Y;S.Write(i, SizeOf(i));              { Write raw y size }
+     i:=ColourOfs;S.Write(i, SizeOf(i));    { Write Palette offset }
    End;
    State := SaveState;                                { Reset state masks }
 END;
@@ -2292,10 +2294,10 @@ END;
 {  GetPeerViewPtr -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 12Sep97 LdB    }
 {---------------------------------------------------------------------------}
 PROCEDURE TView.GetPeerViewPtr (Var S: TStream; Var P);
-VAR Index: Sw_Integer;
+VAR Index: Integer;
 BEGIN
    Index := 0;                                        { Zero index value }
-   S.Read(Index, 2);                                  { Read view index }
+   S.Read(Index, SizeOf(Index));                      { Read view index }
    If (Index = 0) OR (OwnerGroup = Nil) Then          { Check for peer views }
      Pointer(P) := Nil Else Begin                     { Return nil }
        Pointer(P) := FixupList^[Index];               { New view ptr }
@@ -2307,11 +2309,11 @@ END;
 {  PutPeerViewPtr -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 12Sep97 LdB    }
 {---------------------------------------------------------------------------}
 PROCEDURE TView.PutPeerViewPtr (Var S: TStream; P: PView);
-VAR Index: Sw_Integer;
+VAR Index: Integer;
 BEGIN
    If (P = Nil) OR (OwnerGroup = Nil) Then Index := 0 { Return zero index }
      Else Index := OwnerGroup^.IndexOf(P);            { Return view index }
-   S.Write(Index, 2);                                 { Write the index }
+   S.Write(Index, SizeOf(Index));                     { Write the index }
 END;
 
 {--TView--------------------------------------------------------------------}
@@ -2381,7 +2383,9 @@ END;
 {  Load -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 15Sep97 LdB              }
 {---------------------------------------------------------------------------}
 CONSTRUCTOR TGroup.Load (Var S: TStream);
-VAR I, Count: Sw_Word; P, Q: ^Pointer; V: PView; OwnerSave: PGroup;
+VAR I: Sw_Word;
+    Count: Word;
+    P, Q: ^Pointer; V: PView; OwnerSave: PGroup;
     FixupSave: PFixupList;
 BEGIN
    Inherited Load(S);                                 { Call ancestor }
@@ -2390,7 +2394,7 @@ BEGIN
    OwnerGroup := @Self;                               { We are current group }
    FixupSave := FixupList;                            { Save current list }
    Count := 0;                                        { Zero count value }
-   S.Read(Count, 2);                                  { Read entry count }
+   S.Read(Count, SizeOf(Count));                      { Read entry count }
    If (MaxAvail >= Count*SizeOf(Pointer)) Then Begin  { Memory available }
      GetMem(FixupList, Count*SizeOf(Pointer));        { List size needed }
      FillChar(FixUpList^, Count*SizeOf(Pointer), #0); { Zero all entries }
@@ -2970,7 +2974,7 @@ END;
 {  Store -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 30Mar98 LdB             }
 {---------------------------------------------------------------------------}
 PROCEDURE TGroup.Store (Var S: TStream);
-VAR Count: Sw_Integer; OwnerSave: PGroup;
+VAR Count: Word; OwnerSave: PGroup;
 
    PROCEDURE DoPut (P: PView); {$IFNDEF PPC_FPC}FAR;{$ENDIF}
    BEGIN
@@ -2982,7 +2986,7 @@ BEGIN
    OwnerSave := OwnerGroup;                           { Save ownergroup }
    OwnerGroup := @Self;                               { Set as owner group }
    Count := IndexOf(Last);                            { Subview count }
-   S.Write(Count, 2);                                 { Write the count }
+   S.Write(Count, SizeOf(Count));                     { Write the count }
    ForEach(@DoPut);                                   { Put each in stream }
    PutSubViewPtr(S, Current);                         { Current on stream }
    OwnerGroup := OwnerSave;                           { Restore ownergroup }
@@ -3072,10 +3076,10 @@ END;
 {  GetSubViewPtr -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 20May98 LdB     }
 {---------------------------------------------------------------------------}
 PROCEDURE TGroup.GetSubViewPtr (Var S: TStream; Var P);
-VAR Index, I: Sw_Word; Q: PView;
+VAR Index, I: Word; Q: PView;
 BEGIN
    Index := 0;                                        { Zero index value }
-   S.Read(Index, 2);                                  { Read view index }
+   S.Read(Index, SizeOf(Index));                      { Read view index }
    If (Index > 0) Then Begin                          { Valid index }
      Q := Last;                                       { Start on last }
      For I := 1 To Index Do Q := Q^.Next;             { Loop for count }
@@ -3091,7 +3095,7 @@ VAR Index: Sw_Word;
 BEGIN
    If (P = Nil) Then Index := 0 Else                  { Nil view, Index = 0 }
      Index := IndexOf(P);                             { Calc view index }
-   S.Write(Index, 2);                                 { Write the index }
+   S.Write(Index, SizeOf(Index));                     { Write the index }
 END;
 
 
@@ -3287,16 +3291,19 @@ END;
 {   scrollbar id set to zero.                                               }
 {---------------------------------------------------------------------------}
 CONSTRUCTOR TScrollBar.Load (Var S: TStream);
+VAR i: Integer;
 BEGIN
    Inherited Load(S);                                 { Call ancestor }
-   S.Read(Value, 2);                                  { Read current value }
-   S.Read(Min , 2);                                   { Read min value }
-   S.Read(Max, 2);                                    { Read max value }
-   S.Read(PgStep, 2);                                 { Read page step size }
-   S.Read(ArStep, 2);                                 { Read arrow step size }
+   S.Read(i, SizeOf(i)); Value:=i;                    { Read current value }
+   S.Read(i, SizeOf(i)); Min:=i;                      { Read min value }
+   S.Read(i, SizeOf(i));  Max:=i;                     { Read max value }
+   S.Read(i, SizeOf(i)); PgStep:=i;                   { Read page step size }
+   S.Read(i, SizeOf(i)); ArStep:=i;                   { Read arrow step size }
    S.Read(Chars, SizeOf(Chars));                      { Read scroll chars }
    If (Options AND ofGFVModeView <> 0) Then           { GFV mode view check }
-     S.Read(Id, 2);                                   { Read id }
+     begin
+       S.Read(i, SizeOf(i)); Id:=i;                   { Read id }
+     end;
 END;
 
 {--TScrollBar---------------------------------------------------------------}
@@ -3452,16 +3459,19 @@ END;
 {  routine and resetting the ofGrafVersion flag after the call.             }
 {---------------------------------------------------------------------------}
 PROCEDURE TScrollBar.Store (Var S: TStream);
+VAR i: Integer;
 BEGIN
    TView.Store(S);                                    { TView.Store called }
-   S.Write(Value, 2);                                 { Write current value }
-   S.Write(Min, 2);                                   { Write min value }
-   S.Write(Max, 2);                                   { Write max value }
-   S.Write(PgStep, 2);                                { Write page step size }
-   S.Write(ArStep, 2);                                { Write arrow step size }
+   i:=Value;S.Write(i, SizeOf(i));                    { Write current value }
+   i:=Min;S.Write(i, SizeOf(i));                      { Write min value }
+   i:=Max;S.Write(i, SizeOf(i));                      { Write max value }
+   i:=PgStep;S.Write(i, SizeOf(i));                   { Write page step size }
+   i:=ArStep;S.Write(i, SizeOf(i));                   { Write arrow step size }
    S.Write(Chars, SizeOf(Chars));                     { Write scroll chars }
    If (Options AND ofGFVModeView <> 0) Then           { GFV mode view check }
-     S.Write(Id, 2);                                  { Write scrollbar id }
+     begin
+       i:=Id;S.Write(i, SizeOf(i));                   { Write scrollbar id }
+     end;
 END;
 
 {--TScrollBar---------------------------------------------------------------}
@@ -3731,14 +3741,15 @@ END;
 {   as the new graphical scroller views.                                    }
 {---------------------------------------------------------------------------}
 CONSTRUCTOR TScroller.Load (Var S: TStream);
+VAR i: Integer;
 BEGIN
    Inherited Load(S);                                 { Call ancestor }
    GetPeerViewPtr(S, HScrollBar);                     { Load horz scrollbar }
    GetPeerViewPtr(S, VScrollBar);                     { Load vert scrollbar }
-   S.Read(Delta.X, 2);                                { Read delta x value }
-   S.Read(Delta.Y, 2);                                { Read delta y value }
-   S.Read(Limit.X, 2);                                { Read limit x value }
-   S.Read(Limit.Y, 2);                                { Read limit y value }
+   S.Read(i, SizeOf(i)); Delta.X:=i;                  { Read delta x value }
+   S.Read(i, SizeOf(i)); Delta.Y:=i;                  { Read delta y value }
+   S.Read(i, SizeOf(i)); Limit.X:=i;                  { Read limit x value }
+   S.Read(i, SizeOf(i)); Limit.Y:=i;                  { Read limit y value }
 END;
 
 {--TScroller----------------------------------------------------------------}
@@ -3789,14 +3800,15 @@ END;
 {  The scroller is saved to the stream compatable with the old TV object.   }
 {---------------------------------------------------------------------------}
 PROCEDURE TScroller.Store (Var S: TStream);
+VAR i: Integer;
 BEGIN
    TView.Store(S);                                    { Call TView explicitly }
    PutPeerViewPtr(S, HScrollBar);                     { Store horz bar }
    PutPeerViewPtr(S, VScrollBar);                     { Store vert bar }
-   S.Write(Delta.X, 2);                               { Write delta x value }
-   S.Write(Delta.Y, 2);                               { Write delta y value }
-   S.Write(Limit.X, 2);                               { Write limit x value }
-   S.Write(Limit.Y, 2);                               { Write limit y value }
+   i:=Delta.X;S.Write(i, SizeOf(i));                  { Write delta x value }
+   i:=Delta.Y;S.Write(i, SizeOf(i));                  { Write delta y value }
+   i:=Limit.X;S.Write(i, SizeOf(i));                  { Write limit x value }
+   i:=Limit.Y;S.Write(i, SizeOf(i));                  { Write limit y value }
 END;
 
 {--TScroller----------------------------------------------------------------}
@@ -3862,14 +3874,15 @@ END;
 {  Load -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 28May98 LdB              }
 {---------------------------------------------------------------------------}
 CONSTRUCTOR TListViewer.Load (Var S: TStream);
+VAR w: Word;
 BEGIN
    Inherited Load(S);                                 { Call ancestor }
    GetPeerViewPtr(S, HScrollBar);                     { Get horz scrollbar }
    GetPeerViewPtr(S, VScrollBar);                     { Get vert scrollbar }
-   S.Read(NumCols, 2);                                { Read column number }
-   S.Read(TopItem, 2);                                { Read top most item }
-   S.Read(Focused, 2);                                { Read focused item }
-   S.Read(Range, 2);                                  { Read listview range }
+   S.Read(w, SizeOf(w)); NumCols:=w;                  { Read column number }
+   S.Read(w, SizeOf(w)); TopItem:=w;                  { Read top most item }
+   S.Read(w, SizeOf(w)); Focused:=w;                  { Read focused item }
+   S.Read(w, SizeOf(w)); Range:=w;                    { Read listview range }
 END;
 
 {--TListViewer--------------------------------------------------------------}
@@ -4131,14 +4144,15 @@ END;
 {  Store -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 26Jul99 LdB             }
 {---------------------------------------------------------------------------}
 PROCEDURE TListViewer.Store (Var S: TStream);
+VAR w: Word;
 BEGIN
    TView.Store(S);                                    { Call TView explicitly }
    PutPeerViewPtr(S, HScrollBar);                     { Put horz scrollbar }
    PutPeerViewPtr(S, VScrollBar);                     { Put vert scrollbar }
-   S.Write(NumCols, 2);                               { Write column number }
-   S.Write(TopItem, 2);                               { Write top most item }
-   S.Write(Focused, 2);                               { Write focused item }
-   S.Write(Range, 2);                                 { Write listview range }
+   w:=NumCols;S.Write(w, SizeOf(w));                  { Write column number }
+   w:=TopItem;S.Write(w, SizeOf(w));                  { Write top most item }
+   w:=Focused;S.Write(w, SizeOf(w));                  { Write focused item }
+   w:=Range;S.Write(w, SizeOf(w));                    { Write listview range }
 END;
 
 {--TListViewer--------------------------------------------------------------}
@@ -4315,15 +4329,16 @@ END;
 {   although a frame view is read for compatability it is disposed of.      }
 {---------------------------------------------------------------------------}
 CONSTRUCTOR TWindow.Load (Var S: TStream);
+VAR I: Integer;
 BEGIN
    Inherited Load(S);                                 { Call ancestor }
-   S.Read(Flags, 1);                                  { Read window flags }
-   S.Read(Number, 2);                                 { Read window number }
-   S.Read(Palette, 2);                                { Read window palette }
-   S.Read(ZoomRect.A.X, 2);                           { Read zoom area x1 }
-   S.Read(ZoomRect.A.Y, 2);                           { Read zoom area y1 }
-   S.Read(ZoomRect.B.X, 2);                           { Read zoom area x2 }
-   S.Read(ZoomRect.B.Y, 2);                           { Read zoom area y2 }
+   S.Read(Flags, SizeOf(Flags));                      { Read window flags }
+   S.Read(i, SizeOf(i)); Number:=i;                                { Read window number }
+   S.Read(i, SizeOf(i)); Palette:=i;                               { Read window palette }
+   S.Read(i, SizeOf(i)); ZoomRect.A.X:=i;                          { Read zoom area x1 }
+   S.Read(i, SizeOf(i)); ZoomRect.A.Y:=i;                          { Read zoom area y1 }
+   S.Read(i, SizeOf(i)); ZoomRect.B.X:=i;                          { Read zoom area x2 }
+   S.Read(i, SizeOf(i)); ZoomRect.B.Y:=i;                          { Read zoom area y2 }
    GetSubViewPtr(S, Frame);                           { Now read frame object }
    If (Frame <> Nil) Then Begin
      Dispose(Frame, Done);                            { Kill we don't use it }
@@ -4446,15 +4461,16 @@ END;
 {  routine and resetting the ofGrafVersion flag after the call.             }
 {---------------------------------------------------------------------------}
 PROCEDURE TWindow.Store (Var S: TStream);
+VAR i: Integer;
 BEGIN
    TGroup.Store(S);                                   { Call group store }
-   S.Write(Flags, 1);                                 { Write window flags }
-   S.Write(Number, 2);                                { Write window number }
-   S.Write(Palette, 2);                               { Write window palette }
-   S.Write(ZoomRect.A.X, 2);                          { Write zoom area x1 }
-   S.Write(ZoomRect.A.Y, 2);                          { Write zoom area y1 }
-   S.Write(ZoomRect.B.X, 2);                          { Write zoom area x2 }
-   S.Write(ZoomRect.B.Y, 2);                          { Write zoom area y2 }
+   S.Write(Flags, SizeOf(Flags));                     { Write window flags }
+   i:=Number;S.Write(i, SizeOf(i));                   { Write window number }
+   i:=Palette;S.Write(i, SizeOf(i));                  { Write window palette }
+   i:=ZoomRect.A.X;S.Write(i, SizeOf(i));             { Write zoom area x1 }
+   i:=ZoomRect.A.Y;S.Write(i, SizeOf(i));             { Write zoom area y1 }
+   i:=ZoomRect.B.X;S.Write(i, SizeOf(i));             { Write zoom area x2 }
+   i:=ZoomRect.B.Y;S.Write(i, SizeOf(i));             { Write zoom area y2 }
    PutSubViewPtr(S, Frame);                           { Write any frame }
    S.WriteStr(Title);                                 { Write title string }
 END;
@@ -5804,7 +5820,10 @@ END.
 
 {
  $Log$
- Revision 1.39  2002-09-22 19:42:21  hajny
+ Revision 1.40  2002-10-17 11:24:17  pierre
+  * Clean up the Load/Store routines so they are endian independent
+
+ Revision 1.39  2002/09/22 19:42:21  hajny
    + FPC/2 support added
 
  Revision 1.38  2002/09/12 12:03:13  pierre

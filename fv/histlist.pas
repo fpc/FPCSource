@@ -395,7 +395,7 @@ end;
 PROCEDURE LoadHistory (Var S: TStream);
 VAR Size: sw_Word;
 BEGIN
-   S.Read(Size, sizeof(sw_Word));                     { Read history size }
+   S.Read(Size, sizeof(Size));                        { Read history size }
    If (HistoryBlock <> Nil) Then Begin                { History initialized }
      If (Size <= HistorySize) Then Begin
        S.Read(HistoryBlock^, Size);                   { Read the history }
@@ -412,7 +412,7 @@ VAR Size: sw_Word;
 BEGIN
    If (HistoryBlock = Nil) Then Size := 0 Else        { No history data }
      Size := HistoryUsed;                             { Size of history data }
-   S.Write(Size, sizeof(sw_Word));                    { Write history size }
+   S.Write(Size, sizeof(Size));                       { Write history size }
    If (Size > 0) Then S.Write(HistoryBlock^, Size);   { Write history data }
 END;
 
@@ -420,7 +420,10 @@ END.
 
 {
  $Log$
- Revision 1.9  2002-09-07 15:06:37  peter
+ Revision 1.10  2002-10-17 11:24:16  pierre
+  * Clean up the Load/Store routines so they are endian independent
+
+ Revision 1.9  2002/09/07 15:06:37  peter
    * old logs removed and tabs fixed
 
  Revision 1.8  2002/06/10 11:51:08  pierre

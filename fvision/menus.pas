@@ -451,7 +451,7 @@ CONSTRUCTOR TMenuView.Load (Var S: TStream);
      New(Menu);                                       { Create new menu }
      Last := @Menu^.Items;                            { Start on first item }
      Item := Nil;                                     { Clear pointer }
-     S.Read(Tok, 1);                                  { Read token }
+     S.Read(Tok, SizeOf(Tok));                        { Read token }
      While (Tok <> 0) Do Begin
        New(Item);                                     { Create new item }
        Last^ := Item;                                 { First part of chain }
@@ -459,10 +459,10 @@ CONSTRUCTOR TMenuView.Load (Var S: TStream);
          Last := @Item^.Next;                         { Complete chain }
          With Item^ Do Begin
            Name := S.ReadStr;                         { Read menu name }
-           S.Read(Command, 2);                        { Menu item command }
-           S.Read(Disabled, 1);                       { Menu item state }
-           S.Read(KeyCode, 2);                        { Menu item keycode }
-           S.Read(HelpCtx, 2);                        { Menu item help ctx }
+           S.Read(Command, SizeOf(Command));          { Menu item command }
+           S.Read(Disabled, SizeOf(Disabled));        { Menu item state }
+           S.Read(KeyCode, SizeOf(KeyCode));          { Menu item keycode }
+           S.Read(HelpCtx, SizeOf(HelpCtx));          { Menu item help ctx }
            If (Name <> Nil) Then
              If Command = 0 Then
 {$ifdef PPC_FPC}
@@ -473,7 +473,7 @@ CONSTRUCTOR TMenuView.Load (Var S: TStream);
                  Else Param := S.ReadStr;             { Read param string }
          End;
        End;
-       S.Read(Tok, 1);                                { Read token }
+       S.Read(Tok, SizeOf(Tok));                      { Read token }
      End;
      Last^ := Nil;                                    { List complete }
      Menu^.Default := Menu^.Items;                    { Set menu default }
@@ -796,12 +796,12 @@ PROCEDURE TMenuView.Store (Var S: TStream);
      Item := Menu^.Items;                             { Start first item }
      While (Item <> Nil) Do Begin
        With Item^ Do Begin
-         S.Write(Tok, 1);                             { Write tok value }
+         S.Write(Tok, SizeOf(Tok));                      { Write tok value }
          S.WriteStr(Name);                            { Write item name }
-         S.Write(Command, 2);                         { Menu item command }
-         S.Write(Disabled, 1);                        { Menu item state }
-         S.Write(KeyCode, 2);                         { Menu item keycode }
-         S.Write(HelpCtx, 2);                         { Menu item help ctx }
+         S.Write(Command, SizeOf(Command));           { Menu item command }
+         S.Write(Disabled, SizeOf(Disabled));         { Menu item state }
+         S.Write(KeyCode, SizeOf(KeyCode));           { Menu item keycode }
+         S.Write(HelpCtx, SizeOf(HelpCtx));           { Menu item help ctx }
          If (Name <> Nil) Then
            If Command = 0 Then DoStoreMenu(SubMenu)
            Else S.WriteStr(Param);                    { Write parameter }
@@ -809,7 +809,7 @@ PROCEDURE TMenuView.Store (Var S: TStream);
        Item := Item^.Next;                            { Next item }
      End;
      Tok := 0;                                        { Clear tok count }
-     S.Write(Tok, 1);                                 { Write tok value }
+     S.Write(Tok, SizeOf(Tok));                       { Write tok value }
    END;
 
 BEGIN
@@ -1296,15 +1296,15 @@ CONSTRUCTOR TStatusLine.Load (Var S: TStream);
    BEGIN
      Cur := Nil;                                      { Preset nil }
      Last := @First;                                  { Start on first item }
-     S.Read(Count, 2);                                { Read count }
+     S.Read(Count, SizeOf(Count));                    { Read count }
      While (Count > 0) Do Begin
        New(Cur);                                      { New status item }
        Last^ := Cur;                                  { First chain part }
        If (Cur <> Nil) Then Begin                     { Check pointer valid }
          Last := @Cur^.Next;                          { Chain complete }
          Cur^.Text := S.ReadStr;                      { Read item text }
-         S.Read(Cur^.KeyCode, 2);                     { Keycode of item }
-         S.Read(Cur^.Command, 2);                     { Command of item }
+         S.Read(Cur^.KeyCode, SizeOf(Cur^.KeyCode));  { Keycode of item }
+         S.Read(Cur^.Command, SizeOf(Cur^.Command));  { Command of item }
        End;
        Dec(Count);                                    { One item loaded }
      End;
@@ -1316,14 +1316,14 @@ CONSTRUCTOR TStatusLine.Load (Var S: TStream);
    VAR Count: Integer; Cur, First: PStatusDef; Last: ^PStatusDef;
    BEGIN
      Last := @First;                                  { Start on first }
-     S.Read(Count, 2);                                { Read item count }
+     S.Read(Count, SizeOf(Count));                    { Read item count }
      While (Count > 0) Do Begin
        New(Cur);                                      { New status def }
        Last^ := Cur;                                  { First part of chain }
        If (Cur <> Nil) Then Begin                     { Check pointer valid }
          Last := @Cur^.Next;                          { Chain complete }
-         S.Read(Cur^.Min, 2);                         { Read min data }
-         S.Read(Cur^.Max, 2);                         { Read max data }
+         S.Read(Cur^.Min, SizeOf(Cur^.Min));          { Read min data }
+         S.Read(Cur^.Max, SizeOf(Cur^.Max));          { Read max data }
          Cur^.Items := DoLoadStatusItems;             { Set pointer }
        End;
        Dec(Count);                                    { One item loaded }
@@ -1425,11 +1425,11 @@ PROCEDURE TStatusLine.Store (Var S: TStream);
        Inc(Count);                                    { Count items }
        T := T^.Next;                                  { Next item }
      End;
-     S.Write(Count, 2);                               { Write item count }
+     S.Write(Count, SizeOf(Count));                   { Write item count }
      While (Cur <> Nil) Do Begin
        S.WriteStr(Cur^.Text);                         { Store item text }
-       S.Write(Cur^.KeyCode, 2);                      { Keycode of item }
-       S.Write(Cur^.Command, 2);                      { Command of item }
+       S.Write(Cur^.KeyCode, SizeOf(Cur^.KeyCode));   { Keycode of item }
+       S.Write(Cur^.Command, SizeOf(Cur^.Command));   { Command of item }
        Cur := Cur^.Next;                              { Move to next item }
      End;
    END;
@@ -1759,7 +1759,10 @@ END;
 END.
 {
  $Log$
- Revision 1.15  2002-09-07 15:06:37  peter
+ Revision 1.16  2002-10-17 11:24:17  pierre
+  * Clean up the Load/Store routines so they are endian independent
+
+ Revision 1.15  2002/09/07 15:06:37  peter
    * old logs removed and tabs fixed
 
  Revision 1.14  2002/06/10 18:41:26  pierre

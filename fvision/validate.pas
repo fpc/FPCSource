@@ -377,7 +377,7 @@ END;
 CONSTRUCTOR TValidator.Load (Var S:TStream);
 BEGIN
    Inherited Init;                                    { Call ancestor }
-   S.Read(Options, 2);                                { Read option masks }
+   S.Read(Options, SizeOf(Options));                  { Read option masks }
 END;
 
 {--TValidator---------------------------------------------------------------}
@@ -427,7 +427,7 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TValidator.Store (Var S: TStream);
 BEGIN
-   S.Write(Options, 2);                               { Write options }
+   S.Write(Options, SizeOf(Options));                 { Write options }
 END;
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
@@ -821,7 +821,7 @@ END;
 CONSTRUCTOR TFilterValidator.Load (Var S: TStream);
 BEGIN
    Inherited Load(S);                                 { Call ancestor }
-   S.Read(ValidChars, SizeOf(TCharSet));              { Read valid char set }
+   S.Read(ValidChars, SizeOf(ValidChars));            { Read valid char set }
 END;
 
 {--TFilterValidator---------------------------------------------------------}
@@ -863,7 +863,7 @@ END;
 PROCEDURE TFilterValidator.Store (Var S: TStream);
 BEGIN
    TValidator.Store(S);                               { TValidator.Store call }
-   S.Write(ValidChars, SizeOf(TCharSet));             { Write valid char set }
+   S.Write(ValidChars, SizeOf(ValidChars));           { Write valid char set }
 END;
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
@@ -888,8 +888,8 @@ END;
 CONSTRUCTOR TRangeValidator.Load (Var S: TStream);
 BEGIN
    Inherited Load(S);                                 { Call ancestor }
-   S.Read(Min, 4);                                    { Read min value }
-   S.Read(Max, 4);                                    { Read max value }
+   S.Read(Min, SizeOf(Min));                          { Read min value }
+   S.Read(Max, SizeOf(Max));                          { Read max value }
 END;
 
 {--TRangeValidator----------------------------------------------------------}
@@ -943,8 +943,8 @@ END;
 PROCEDURE TRangeValidator.Store (Var S: TStream);
 BEGIN
    TFilterValidator.Store(S);                         { TFilterValidator.Store }
-   S.Write(Min, 4);                                   { Write min value }
-   S.Write(Max, 4);                                   { Write max value }
+   S.Write(Min, SizeOf(Min));                         { Write min value }
+   S.Write(Max, SizeOf(Max));                         { Write max value }
 END;
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
@@ -1059,7 +1059,10 @@ END.
 
 {
  $Log$
- Revision 1.7  2002-09-09 08:14:48  pierre
+ Revision 1.8  2002-10-17 11:24:17  pierre
+  * Clean up the Load/Store routines so they are endian independent
+
+ Revision 1.7  2002/09/09 08:14:48  pierre
   * remove virtual modifer from store methods
 
  Revision 1.6  2002/09/07 15:06:38  peter

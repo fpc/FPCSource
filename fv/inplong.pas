@@ -129,14 +129,18 @@ end;
 constructor TInputLong.Load(var S : TStream);
 begin
 TInputLine.Load(S);
-S.Read(ILOptions, Sizeof(ILOptions)+Sizeof(LLim)+Sizeof(ULim));
+S.Read(ILOptions, Sizeof(ILOptions));
+S.Read(LLim, Sizeof(LLim));
+S.Read(ULim, Sizeof(ULim));
 end;
 
 {-------------------TInputLong.Store}
 procedure TInputLong.Store(var S : TStream);
 begin
 TInputLine.Store(S);
-S.Write(ILOptions, Sizeof(ILOptions)+Sizeof(LLim)+Sizeof(ULim));
+S.Write(ILOptions, Sizeof(ILOptions));
+S.Write(LLim, Sizeof(LLim));
+S.Write(ULim, Sizeof(ULim));
 end;
 
 {-------------------TInputLong.DataSize}

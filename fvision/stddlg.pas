@@ -1378,7 +1378,7 @@ constructor TFileDialog.Load(var S: TStream);
 begin
   if not TDialog.Load(S) then
     Fail;
-  S.Read(WildCard, SizeOf(TWildStr));
+  S.Read(WildCard, SizeOf(WildCard));
   if (S.Status <> stOk) then
   begin
     TDialog.Done;
@@ -1501,7 +1501,7 @@ end;
 procedure TFileDialog.Store(var S: TStream);
 begin
   TDialog.Store(S);
-  S.Write(WildCard, SizeOf(TWildStr));
+  S.Write(WildCard, SizeOf(WildCard));
   PutSubViewPtr(S, FileName);
   PutSubViewPtr(S, FileList);
   PutSubViewPtr(S, FileHistory);
