@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, IBase60, sqldb, db, math, dbconst;
-  
+
 type
   TAccessMode = (amReadWrite, amReadOnly);
   TIsolationLevel = (ilConcurrent, ilConsistent, ilReadCommittedRecV,
@@ -298,7 +298,7 @@ procedure TIBConnection.TranslateFldType(SQLType, SQLLen, SQLScale : integer; va
 begin
   LensSet := False;
 
-  if SQLScale in [-4..-1] then
+  if (SQLScale >= -4) and (SQLScale <= -1) then //in [-4..-1] then
     begin
     LensSet := True;
     TrLen := SQLScale;
@@ -523,7 +523,7 @@ begin
       result := false
     else
       begin
-      
+
       with SQLDA^.SQLVar[x] do
         if ((SQLType and not 1) = SQL_VARYING) then
           begin
