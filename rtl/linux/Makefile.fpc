@@ -15,7 +15,7 @@ units=$(SYSTEMUNIT) baseunix strings systhrds  objpas syscall unixutil \
       charset ucomplex getopts \
       errors sockets gpm ipc serial terminfo dl dynlibs \
       video mouse keyboard variants types dateutils sysconst \
-      cthreads
+      cthreads classes
 
 rsts=math varutils typinfo variants classes sysconst 
 
@@ -54,7 +54,7 @@ PROCINC=$(RTL)/$(CPU_TARGET)
 UNIXINC=$(RTL)/unix
 
 ifeq ($(CPU_TARGET),i386)
-CPU_UNITS=x86 ports cpu mmx graph classes
+CPU_UNITS=x86 ports cpu mmx graph
 else
 CPU_UNITS=
 endif
