@@ -390,6 +390,7 @@ Var
   prtobj       : string[80];
   s,s2         : string;
   found,linux_link_c,
+  linkdynamic,
   linklibc     : boolean;
 
   procedure WriteRes(const s:string);
@@ -412,6 +413,7 @@ begin
   WriteResponseFile:=False;
   linux_link_c:=false;
 { set special options for some targets }
+  linkdynamic:=not(SharedLibFiles.empty);
   linklibc:=SharedLibFiles.Find('c');
   prtobj:='prt0';
   cprtobj:='cprt0';
@@ -524,8 +526,6 @@ begin
 
   { Write sharedlibraries like -l<lib>, also add the needed dynamic linker
     here to be sure that it gets linked this is needed for glibc2 systems (PFV) }
-  if (DynamicLinker<>'') and (not SharedLibFiles.Empty) then
-   WriteResFileName(DynamicLinker);
   While not SharedLibFiles.Empty do
    begin
      S:=SharedLibFiles.Get;
@@ -537,7 +537,10 @@ begin
         WriteRes(target_link.libprefix+s);
       end
      else
-      linklibc:=true;
+      begin
+        linklibc:=true;
+        linkdynamic:=false; { C add's it automaticly }
+      end;
    end;
   { be sure that libc is the last lib }
   { arghhhh  this is wrong for DJGPP !!!
@@ -547,6 +550,8 @@ begin
   { add libgcc after ! }
   if linklibc and (target_info.target=target_i386_go32v2) then
    WriteRes(target_link.libprefix+'gcc');
+  if linkdynamic and (DynamicLinker<>'') then
+   WriteResFileName(DynamicLinker);
   WriteRes(target_link.inputend);
 
   { Write staticlibraries }
@@ -728,7 +733,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.63  1999-07-29 01:31:39  peter
+  Revision 1.64  1999-07-30 23:19:45  peter
+    * fixed placing of dynamiclinker in link.res (should be the last after
+      all other libraries)
+
+  Revision 1.63  1999/07/29 01:31:39  peter
     * fixed shared library linking for glibc2 systems
 
   Revision 1.62  1999/07/27 11:05:51  peter
