@@ -296,7 +296,7 @@ Finalization
 end.
 {
     $Log$
-    Revision 1.37  1999-12-26 19:25:22  hajny
+    Revision 1.38  1999-12-26 19:30:53  hajny
       * OS/2 target added to the uses clause
 
     Revision 1.36  1999/11/15 21:49:47  peter
