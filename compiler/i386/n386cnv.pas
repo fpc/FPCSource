@@ -65,8 +65,8 @@ implementation
       symconst,symdef,aasmbase,aasmtai,aasmcpu,
       cgbase,
       ncon,ncal,ncnv,
-      cpubase,
-      cgobj,cga,cgx86;
+      cpubase,tgobj,
+      cgobj,cga,cgx86,ncgutil;
 
 
     function ti386typeconvnode.first_int_to_real : tnode;
@@ -85,92 +85,45 @@ implementation
          href : treference;
          hregister : tregister;
          l1,l2 : tasmlabel;
-         freereg : boolean;
-
       begin
          location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
-         hregister:=NR_NO;
-         freereg:=false;
 
-         { for u32bit a solution is to push $0 and to load a comp }
-         { does this first, it destroys maybe EDI }
-         if torddef(left.resulttype.def).typ=u32bit then
-          exprasmlist.concat(taicpu.op_const(A_PUSH,S_L,0));
+         { We need to load from a reference }
+         location_force_mem(exprasmlist,left.location);
 
-         case left.location.loc of
-           LOC_REGISTER,
-           LOC_CREGISTER :
-             begin
-               case left.location.size of
-                 OS_64,OS_S64 :
-                   begin
-                     exprasmlist.concat(taicpu.op_reg(A_PUSH,S_L,left.location.registerhigh));
-                     hregister:=left.location.registerlow;
-                   end;
-                 OS_32,OS_S32 :
-                   hregister:=left.location.register;
-                 else
-                   begin
-                     hregister:=cg.getintregister(exprasmlist,OS_32);
-                     freereg:=true;
-                     cg.a_load_reg_reg(exprasmlist,left.location.size,OS_32,left.location.register,hregister);
-                   end;
-               end;
-             end;
-           LOC_REFERENCE,
-           LOC_CREFERENCE :
-             begin
-               hregister:=cg.getintregister(exprasmlist,OS_INT);
-               freereg:=true;
-               if left.location.size in [OS_64,OS_S64] then
-                begin
-                  href:=left.location.reference;
-                  inc(href.offset,4);
-                  cg.a_load_ref_reg(exprasmlist,OS_32,OS_32,href,hregister);
-                  exprasmlist.concat(taicpu.op_reg(A_PUSH,S_L,hregister));
-                  cg.a_load_ref_reg(exprasmlist,OS_32,OS_32,left.location.reference,hregister);
-                end
-               else
-                cg.a_load_ref_reg(exprasmlist,left.location.size,OS_INT,left.location.reference,hregister);
-             end;
-           else
-             internalerror(2002032218);
-         end;
+         { For u32bit we need to load it as comp and need to
+           make it 64bits }
+         if (torddef(left.resulttype.def).typ=u32bit) then
+           begin
+             tg.GetTemp(exprasmlist,8,tt_normal,href);
+             cg.g_concatcopy(exprasmlist,left.location.reference,href,4,true,false);
+             inc(href.offset,4);
+             cg.a_load_const_ref(exprasmlist,OS_32,0,href);
+             dec(href.offset,4);
+             left.location.reference:=href;
+           end;
+
+         { Load from reference to fpu reg }
          location_release(exprasmlist,left.location);
-         location_freetemp(exprasmlist,left.location);
-
-         { for 64 bit integers, the high dword is already pushed }
-         exprasmlist.concat(taicpu.op_reg(A_PUSH,S_L,hregister));
-         if freereg then
-           cg.ungetregister(exprasmlist,hregister);
-         reference_reset_base(href,NR_ESP,0);
          case torddef(left.resulttype.def).typ of
-           u32bit:
-             begin
-                emit_ref(A_FILD,S_IQ,href);
-                emit_const_reg(A_ADD,S_L,8,NR_ESP);
-             end;
+           u32bit,
            scurrency,
            s64bit:
-             begin
-                emit_ref(A_FILD,S_IQ,href);
-                emit_const_reg(A_ADD,S_L,8,NR_ESP);
-             end;
+             exprasmlist.concat(taicpu.op_ref(A_FILD,S_IQ,left.location.reference));
            u64bit:
              begin
                 { unsigned 64 bit ints are harder to handle: }
                 { we load bits 0..62 and then check bit 63:  }
                 { if it is 1 then we add $80000000 000000000 }
                 { as double                                  }
-                inc(href.offset,4);
+                inc(left.location.reference.offset,4);
                 hregister:=cg.getintregister(exprasmlist,OS_32);
-                cg.a_load_ref_reg(exprasmlist,OS_INT,OS_INT,href,hregister);
-                reference_reset_base(href,NR_ESP,4);
-                emit_const_ref(A_AND,S_L,$7fffffff,href);
+                cg.a_load_ref_reg(exprasmlist,OS_INT,OS_INT,left.location.reference,hregister);
+                emit_const_ref(A_AND,S_L,$7fffffff,left.location.reference);
                 emit_const_reg(A_TEST,S_L,longint($80000000),hregister);
                 cg.ungetregister(exprasmlist,hregister);
-                reference_reset_base(href,NR_ESP,0);
-                emit_ref(A_FILD,S_IQ,href);
+                dec(left.location.reference.offset,4);
+                exprasmlist.concat(taicpu.op_ref(A_FILD,S_IQ,left.location.reference));
                 objectlibrary.getdatalabel(l1);
                 objectlibrary.getlabel(l2);
                 cg.a_jmp_flags(exprasmlist,F_E,l2);
@@ -181,16 +134,11 @@ implementation
                 reference_reset_symbol(href,l1,0);
                 emit_ref(A_FADD,S_FL,href);
                 cg.a_label(exprasmlist,l2);
-                emit_const_reg(A_ADD,S_L,8,NR_ESP);
              end
            else
-             begin
-                emit_ref(A_FILD,S_IL,href);
-                hregister:=cg.getintregister(exprasmlist,OS_32);
-                emit_reg(A_POP,S_L,hregister);
-                cg.ungetregister(exprasmlist,hregister);
-             end;
+             exprasmlist.concat(taicpu.op_ref(A_FILD,S_IL,left.location.reference));
          end;
+         location_freetemp(exprasmlist,left.location);
          tcgx86(cg).inc_fpu_stack;
          location.register:=NR_ST;
       end;
@@ -236,7 +184,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.68  2003-11-04 22:30:15  florian
+  Revision 1.69  2003-12-03 23:13:20  peter
+    * delayed paraloc allocation, a_param_*() gets extra parameter
+      if it needs to allocate temp or real paralocation
+    * optimized/simplified int-real loading
+
+  Revision 1.68  2003/11/04 22:30:15  florian
     + type cast variant<->enum
     * cnv. node second pass uses now as well helper wrappers
 

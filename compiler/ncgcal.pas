@@ -35,7 +35,6 @@ interface
        tcgcallparanode = class(tcallparanode)
        private
           tempparaloc : tparalocation;
-          procedure allocate_tempparaloc;
           procedure push_addr_para;
           procedure push_value_para;
        public
@@ -99,22 +98,12 @@ implementation
                              TCGCALLPARANODE
 *****************************************************************************}
 
-    procedure tcgcallparanode.allocate_tempparaloc;
-      begin
-         { Allocate (temporary) paralocation }
-         tempparaloc:=paraitem.paraloc[callerside];
-         if (tempparaloc.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER]) then
-           paramanager.alloctempregs(exprasmlist,tempparaloc)
-      end;
-
-
     procedure tcgcallparanode.push_addr_para;
       begin
         if not(left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
           internalerror(200304235);
         location_release(exprasmlist,left.location);
-        allocate_tempparaloc;
-        cg.a_paramaddr_ref(exprasmlist,left.location.reference,tempparaloc);
+        cg.a_paramaddr_ref(exprasmlist,left.location.reference,tempparaloc,true);
         inc(tcgcallnode(aktcallnode).pushedparasize,POINTER_SIZE);
       end;
 
@@ -137,7 +126,6 @@ implementation
         if left.resulttype.def.deftype=floatdef then
          begin
            location_release(exprasmlist,left.location);
-           allocate_tempparaloc;
 {$ifdef i386}
            if tempparaloc.loc<>LOC_REFERENCE then
              internalerror(200309291);
@@ -180,7 +168,7 @@ implementation
                            dec(href.offset,2);
                            dec(size,2);
                          end;
-                        cg.a_param_ref(exprasmlist,cgsize,href,tempparaloc);
+                        cg.a_param_ref(exprasmlist,cgsize,href,tempparaloc,true);
                       end;
                    end
                  else
@@ -215,7 +203,6 @@ implementation
                   aktcallnode.procdefinition.proccalloption) then
             begin
               location_release(exprasmlist,left.location);
-              allocate_tempparaloc;
 {$ifdef i386}
               if tempparaloc.loc<>LOC_REFERENCE then
                 internalerror(200309292);
@@ -249,16 +236,14 @@ implementation
                     if cgsize in [OS_64,OS_S64] then
                      begin
                        inc(tcgcallnode(aktcallnode).pushedparasize,8);
-                       allocate_tempparaloc;
-                       cg64.a_param64_loc(exprasmlist,left.location,tempparaloc);
+                       cg64.a_param64_loc(exprasmlist,left.location,tempparaloc,true);
                        location_release(exprasmlist,left.location);
                      end
                     else
                      begin
                        location_release(exprasmlist,left.location);
-                       allocate_tempparaloc;
                        inc(tcgcallnode(aktcallnode).pushedparasize,align(tcgsize2size[tempparaloc.size],tempparaloc.alignment));
-                       cg.a_param_loc(exprasmlist,left.location,tempparaloc);
+                       cg.a_param_loc(exprasmlist,left.location,tempparaloc,true);
                      end;
                   end;
 {$ifdef SUPPORT_MMX}
@@ -266,7 +251,6 @@ implementation
                 LOC_CMMXREGISTER:
                   begin
                      location_release(exprasmlist,left.location);
-                     allocate_tempparaloc;
                      inc(tcgcallnode(aktcallnode).pushedparasize,8);
                      cg.a_parammm_reg(exprasmlist,left.location.register);
                   end;
@@ -290,6 +274,12 @@ implementation
             not(assigned(paraitem.parasym) or
                 (nf_varargs_para in flags)) then
            internalerror(200304242);
+
+         { Initialize temporary paralocation, only reset register
+           value for register parameters }
+         tempparaloc:=paraitem.paraloc[callerside];
+         if (tempparaloc.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER]) then
+           tempparaloc.register:=NR_NO;
 
          { Skip nothingn nodes which are used after disabling
            a parameter }
@@ -337,8 +327,7 @@ implementation
                     begin
                       inc(tcgcallnode(aktcallnode).pushedparasize,POINTER_SIZE);
                       location_release(exprasmlist,left.location);
-                      allocate_tempparaloc;
-                      cg.a_param_loc(exprasmlist,left.location,tempparaloc);
+                      cg.a_param_loc(exprasmlist,left.location,tempparaloc,true);
                     end
                   else
                     push_addr_para;
@@ -762,8 +751,10 @@ implementation
                    cg.ungetregister(exprasmlist,pvreg);
 
                    cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,regs_to_alloc);
-                   cg.allocexplicitregisters(exprasmlist,R_FPUREGISTER,regs_to_push_fpu);
-                   cg.allocexplicitregisters(exprasmlist,R_SSEREGISTER,paramanager.get_volatile_registers_mm(procdefinition.proccalloption));
+                   if cg.uses_registers(R_FPUREGISTER) then
+                     cg.allocexplicitregisters(exprasmlist,R_FPUREGISTER,regs_to_push_fpu);
+                   if cg.uses_registers(R_MMREGISTER) then
+                     cg.allocexplicitregisters(exprasmlist,R_MMREGISTER,paramanager.get_volatile_registers_mm(procdefinition.proccalloption));
 
                    { call method }
                    cg.a_call_reg(exprasmlist,pvreg);
@@ -779,8 +770,10 @@ implementation
                   freeparas;
 
                   cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,regs_to_alloc);
-                  cg.allocexplicitregisters(exprasmlist,R_FPUREGISTER,regs_to_push_fpu);
-                  cg.allocexplicitregisters(exprasmlist,R_SSEREGISTER,paramanager.get_volatile_registers_mm(procdefinition.proccalloption));
+                  if cg.uses_registers(R_FPUREGISTER) then
+                    cg.allocexplicitregisters(exprasmlist,R_FPUREGISTER,regs_to_push_fpu);
+                  if cg.uses_registers(R_MMREGISTER) then
+                    cg.allocexplicitregisters(exprasmlist,R_MMREGISTER,paramanager.get_volatile_registers_mm(procdefinition.proccalloption));
 
                   { Calling interrupt from the same code requires some
                     extra code }
@@ -815,8 +808,10 @@ implementation
               cg.ungetregister(exprasmlist,pvreg);
 
               cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,regs_to_alloc);
-              cg.allocexplicitregisters(exprasmlist,R_FPUREGISTER,regs_to_push_fpu);
-              cg.allocexplicitregisters(exprasmlist,R_MMREGISTER,paramanager.get_volatile_registers_mm(procdefinition.proccalloption));
+              if cg.uses_registers(R_FPUREGISTER) then
+                cg.allocexplicitregisters(exprasmlist,R_FPUREGISTER,regs_to_push_fpu);
+              if cg.uses_registers(R_MMREGISTER) then
+                cg.allocexplicitregisters(exprasmlist,R_MMREGISTER,paramanager.get_volatile_registers_mm(procdefinition.proccalloption));
 
               { Calling interrupt from the same code requires some
                 extra code }
@@ -872,8 +867,10 @@ implementation
                  end;
              end;
            end;
-         cg.deallocexplicitregisters(exprasmlist,R_MMREGISTER,paramanager.get_volatile_registers_mm(procdefinition.proccalloption));
-         cg.deallocexplicitregisters(exprasmlist,R_FPUREGISTER,regs_to_push_fpu);
+         if cg.uses_registers(R_MMREGISTER) then
+           cg.deallocexplicitregisters(exprasmlist,R_MMREGISTER,paramanager.get_volatile_registers_mm(procdefinition.proccalloption));
+         if cg.uses_registers(R_FPUREGISTER) then
+           cg.deallocexplicitregisters(exprasmlist,R_FPUREGISTER,regs_to_push_fpu);
          cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,regs_to_free);
 
          { handle function results }
@@ -1119,7 +1116,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.142  2003-12-02 21:23:34  peter
+  Revision 1.143  2003-12-03 23:13:20  peter
+    * delayed paraloc allocation, a_param_*() gets extra parameter
+      if it needs to allocate temp or real paralocation
+    * optimized/simplified int-real loading
+
+  Revision 1.142  2003/12/02 21:23:34  peter
     * exitlabel for inline procs
 
   Revision 1.141  2003/11/23 17:39:33  peter

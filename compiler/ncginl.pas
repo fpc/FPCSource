@@ -188,24 +188,20 @@ implementation
        maketojumpbool(exprasmlist,tcallparanode(left).left,lr_load_regvars);
        cg.a_label(exprasmlist,falselabel);
        { erroraddr }
-       paramanager.allocparaloc(exprasmlist,paraloc4);
-       cg.a_param_reg(exprasmlist,OS_ADDR,NR_FRAME_POINTER_REG,paraloc4);
+       cg.a_param_reg(exprasmlist,OS_ADDR,NR_FRAME_POINTER_REG,paraloc4,false);
        { lineno }
-       paramanager.allocparaloc(exprasmlist,paraloc3);
-       cg.a_param_const(exprasmlist,OS_INT,aktfilepos.line,paraloc3);
+       cg.a_param_const(exprasmlist,OS_INT,aktfilepos.line,paraloc3,false);
        { filename string }
        hp2:=cstringconstnode.createstr(current_module.sourcefiles.get_file_name(aktfilepos.fileindex),st_shortstring);
        firstpass(tnode(hp2));
        secondpass(tnode(hp2));
        if codegenerror then
           exit;
-       paramanager.allocparaloc(exprasmlist,paraloc2);
-       cg.a_paramaddr_ref(exprasmlist,hp2.location.reference,paraloc2);
+       cg.a_paramaddr_ref(exprasmlist,hp2.location.reference,paraloc2,false);
        hp2.free;
        { push msg }
        secondpass(tcallparanode(tcallparanode(left).right).left);
-       paramanager.allocparaloc(exprasmlist,paraloc1);
-       cg.a_paramaddr_ref(exprasmlist,tcallparanode(tcallparanode(left).right).left.location.reference,paraloc1);
+       cg.a_paramaddr_ref(exprasmlist,tcallparanode(tcallparanode(left).right).left.location.reference,paraloc1,false);
        { call }
        paramanager.freeparaloc(exprasmlist,paraloc1);
        paramanager.freeparaloc(exprasmlist,paraloc2);
@@ -656,7 +652,12 @@ end.
 
 {
   $Log$
-  Revision 1.47  2003-10-10 17:48:13  peter
+  Revision 1.48  2003-12-03 23:13:20  peter
+    * delayed paraloc allocation, a_param_*() gets extra parameter
+      if it needs to allocate temp or real paralocation
+    * optimized/simplified int-real loading
+
+  Revision 1.47  2003/10/10 17:48:13  peter
     * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
     * tregisteralloctor renamed to trgobj
     * removed rgobj from a lot of units

@@ -78,6 +78,9 @@ unit procinfo;
           { Size of the parameters on the stack }
           para_stack_size : longint;
 
+          { Offset of temp after para/local are allocated }
+          tempstart : longint;
+
           {# some collected informations about the procedure
              see pi_xxxx constants above
           }
@@ -208,7 +211,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  2003-11-10 22:02:52  peter
+  Revision 1.9  2003-12-03 23:13:20  peter
+    * delayed paraloc allocation, a_param_*() gets extra parameter
+      if it needs to allocate temp or real paralocation
+    * optimized/simplified int-real loading
+
+  Revision 1.8  2003/11/10 22:02:52  peter
     * cross unit inlining fixed
 
   Revision 1.7  2003/10/17 14:38:32  peter

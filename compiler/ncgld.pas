@@ -154,8 +154,7 @@ implementation
                        cg.a_cmp_const_reg_label(exprasmlist,OS_ADDR,OC_EQ,0,hregister,norelocatelab);
                        { don't save the allocated register else the result will be destroyed later }
                        reference_reset_symbol(href,objectlibrary.newasmsymboldata(tvarsym(symtableentry).mangledname),0);
-                       paramanager.allocparaloc(exprasmlist,paraloc1);
-                       cg.a_param_ref(exprasmlist,OS_ADDR,href,paraloc1);
+                       cg.a_param_ref(exprasmlist,OS_ADDR,href,paraloc1,false);
                        paramanager.freeparaloc(exprasmlist,paraloc1);
                        cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
                        cg.a_call_reg(exprasmlist,hregister);
@@ -892,7 +891,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.100  2003-12-01 18:44:15  peter
+  Revision 1.101  2003-12-03 23:13:20  peter
+    * delayed paraloc allocation, a_param_*() gets extra parameter
+      if it needs to allocate temp or real paralocation
+    * optimized/simplified int-real loading
+
+  Revision 1.100  2003/12/01 18:44:15  peter
     * fixed some crashes
     * fixed varargs and register calling probs
 

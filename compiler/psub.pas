@@ -529,9 +529,9 @@ implementation
           depending on the implicit finally we need to add
           an try...finally...end wrapper }
         newblock:=internalstatements(newstatement);
-        if (pi_needs_implicit_finally in current_procinfo.flags) and
+        if (pi_needs_implicit_finally in flags) and
            { but it's useless in init/final code of units }
-           not(current_procinfo.procdef.proctypeoption in [potype_unitfinalize,potype_unitinit]) then
+           not(procdef.proctypeoption in [potype_unitfinalize,potype_unitinit]) then
           begin
             { Generate special exception block only needed when
               implicit finaly is used }
@@ -642,17 +642,17 @@ implementation
             { Create register allocator }
             cg.init_register_allocators;
 
-            current_procinfo.set_first_temp_offset;
-            current_procinfo.generate_parameter_info;
+            set_first_temp_offset;
+            generate_parameter_info;
 
             { Allocate space in temp/registers for parast and localst }
             aktfilepos:=entrypos;
-            gen_alloc_parast(aktproccode,tparasymtable(current_procinfo.procdef.parast));
-            if current_procinfo.procdef.localst.symtabletype=localsymtable then
-              gen_alloc_localst(aktproccode,tlocalsymtable(current_procinfo.procdef.localst));
-            if (cs_asm_source in aktglobalswitches) then
-              aktproccode.concat(Tai_comment.Create(strpnew('Temps start at '+std_regname(current_procinfo.framepointer)+
-                  tostr_with_plus(tg.lasttemp))));
+            gen_alloc_parast(aktproccode,tparasymtable(procdef.parast));
+            if procdef.localst.symtabletype=localsymtable then
+              gen_alloc_localst(aktproccode,tlocalsymtable(procdef.localst));
+
+            { Store temp offset for information about 'real' temps }
+            tempstart:=tg.lasttemp;
 
             { Generate code to load register parameters in temps and insert local
               copies for values parameters. This must be done before the code for the
@@ -672,7 +672,7 @@ implementation
 
             { generate code for the node tree }
             do_secondpass(code);
-            current_procinfo.aktproccode.concatlist(exprasmlist);
+            aktproccode.concatlist(exprasmlist);
 {$ifdef i386}
             procdef.fpu_used:=code.registersfpu;
 {$endif i386}
@@ -702,7 +702,7 @@ implementation
             else
               aktproccode.concatlist(templist);
             { insert exit label at the correct position }
-            cg.a_label(templist,current_procinfo.aktexitlabel);
+            cg.a_label(templist,aktexitlabel);
             if assigned(exitlabel_asmnode.currenttai) then
               aktproccode.insertlistafter(exitlabel_asmnode.currenttai,templist)
             else
@@ -743,9 +743,9 @@ implementation
             { Free space in temp/registers for parast and localst, must be
               done after gen_entry_code }
             aktfilepos:=exitpos;
-            if current_procinfo.procdef.localst.symtabletype=localsymtable then
-              gen_free_localst(aktproccode,tlocalsymtable(current_procinfo.procdef.localst));
-            gen_free_parast(aktproccode,tparasymtable(current_procinfo.procdef.parast));
+            if procdef.localst.symtabletype=localsymtable then
+              gen_free_localst(aktproccode,tlocalsymtable(procdef.localst));
+            gen_free_parast(aktproccode,tparasymtable(procdef.parast));
 
             { The procedure body is finished, we can now
               allocate the registers }
@@ -773,9 +773,9 @@ implementation
             if not(cs_no_regalloc in aktglobalswitches) then
               begin
                 if (cs_optimize in aktglobalswitches) and
-                { do not optimize pure assembler procedures }
-                    not(pi_is_assembler in current_procinfo.flags)  then
-                    optimize(aktproccode);
+                   { do not optimize pure assembler procedures }
+                   not(pi_is_assembler in flags)  then
+                  optimize(aktproccode);
               end;
 {$endif NoOpt}
 
@@ -1004,7 +1004,7 @@ implementation
     {$endif state_tracking}
 
          { reset to normal non static function }
-         if (current_procinfo.procdef.parast.symtablelevel=normal_function_level) then
+         if (procdef.parast.symtablelevel=normal_function_level) then
            allow_only_static:=false;
          current_procinfo:=oldprocinfo;
 
@@ -1318,7 +1318,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.174  2003-11-27 09:08:01  florian
+  Revision 1.175  2003-12-03 23:13:20  peter
+    * delayed paraloc allocation, a_param_*() gets extra parameter
+      if it needs to allocate temp or real paralocation
+    * optimized/simplified int-real loading
+
+  Revision 1.174  2003/11/27 09:08:01  florian
     * resourcestring is allowed in the interface
 
   Revision 1.173  2003/11/23 17:05:16  peter

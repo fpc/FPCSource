@@ -129,16 +129,6 @@ unit cpupara;
               end;
             end;
         end;
-        if calloption=pocall_register then
-          begin
-            case def.deftype of
-              floatdef :
-                begin
-                  result:=true;
-                  exit;
-                end;
-            end;
-          end;
         result:=inherited push_addr_param(varspez,def,calloption);
       end;
 
@@ -419,7 +409,6 @@ unit cpupara;
             if (parareg<=high(parasupregs)) and
                not(
                    is_64bit or
-                   (hp.paratype.def.deftype=floatdef) or
                    ((hp.paratype.def.deftype in [floatdef,recorddef,arraydef]) and
                     (not pushaddr))
                   ) then
@@ -462,7 +451,7 @@ unit cpupara;
                 hp.paraloc[side].reference.offset:=parasize-hp.paraloc[side].reference.offset-l;
                 if side=calleeside then
                   inc(hp.paraloc[side].reference.offset,target_info.first_parm_offset);
-              end;    
+              end;
             hp:=tparaitem(hp.next);
           end;
         { We need to return the size allocated }
@@ -498,7 +487,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.46  2003-12-01 18:44:15  peter
+  Revision 1.47  2003-12-03 23:13:20  peter
+    * delayed paraloc allocation, a_param_*() gets extra parameter
+      if it needs to allocate temp or real paralocation
+    * optimized/simplified int-real loading
+
+  Revision 1.46  2003/12/01 18:44:15  peter
     * fixed some crashes
     * fixed varargs and register calling probs
 

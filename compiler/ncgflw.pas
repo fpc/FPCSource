@@ -825,18 +825,16 @@ implementation
               { Push parameters }
               if assigned(right) then
                 begin
-                  paramanager.allocparaloc(exprasmlist,paraloc3);
                   if assigned(frametree) then
                     begin
                       location_release(exprasmlist,frametree.location);
-                      cg.a_param_loc(exprasmlist,frametree.location,paraloc3)
+                      cg.a_param_loc(exprasmlist,frametree.location,paraloc3,false)
                     end
                   else
-                    cg.a_param_const(exprasmlist,OS_INT,0,paraloc3);
+                    cg.a_param_const(exprasmlist,OS_INT,0,paraloc3,false);
                   { push address }
                   location_release(exprasmlist,right.location);
-                  paramanager.allocparaloc(exprasmlist,paraloc2);
-                  cg.a_param_loc(exprasmlist,right.location,paraloc2);
+                  cg.a_param_loc(exprasmlist,right.location,paraloc2,false);
                 end
               else
                 begin
@@ -845,18 +843,15 @@ implementation
                    cg.a_label(exprasmlist,a);
                    reference_reset_symbol(href2,a,0);
                    { push current frame }
-                   paramanager.allocparaloc(exprasmlist,paraloc3);
-                   cg.a_param_reg(exprasmlist,OS_ADDR,NR_FRAME_POINTER_REG,paraloc3);
+                   cg.a_param_reg(exprasmlist,OS_ADDR,NR_FRAME_POINTER_REG,paraloc3,false);
                    { push current address }
-                   paramanager.allocparaloc(exprasmlist,paraloc2);
                    if target_info.system <> system_powerpc_macos then
-                     cg.a_paramaddr_ref(exprasmlist,href2,paraloc2)
+                     cg.a_paramaddr_ref(exprasmlist,href2,paraloc2,false)
                    else
-                     cg.a_param_const(exprasmlist,OS_INT,0,paraloc2);
+                     cg.a_param_const(exprasmlist,OS_INT,0,paraloc2,false);
                 end;
               location_release(exprasmlist,left.location);
-              paramanager.allocparaloc(exprasmlist,paraloc1);
-              cg.a_param_loc(exprasmlist,left.location,paraloc1);
+              cg.a_param_loc(exprasmlist,left.location,paraloc1,false);
               paramanager.freeparaloc(exprasmlist,paraloc1);
               paramanager.freeparaloc(exprasmlist,paraloc2);
               paramanager.freeparaloc(exprasmlist,paraloc3);
@@ -912,8 +907,7 @@ implementation
          cg.a_call_name(exprasmlist,'FPC_POPOBJECTSTACK');
          cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
          paraloc1:=paramanager.getintparaloc(pocall_default,1);
-         paramanager.allocparaloc(exprasmlist,paraloc1);
-         cg.a_param_reg(exprasmlist,OS_ADDR,NR_FUNCTION_RESULT_REG,paraloc1);
+         cg.a_param_reg(exprasmlist,OS_ADDR,NR_FUNCTION_RESULT_REG,paraloc1,false);
          paramanager.freeparaloc(exprasmlist,paraloc1);
          cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
          cg.a_call_name(exprasmlist,'FPC_DESTROYEXCEPTION');
@@ -1021,8 +1015,7 @@ implementation
                 'default handler' flag (=-1)
               }
               paraloc1:=paramanager.getintparaloc(pocall_default,1);
-              paramanager.allocparaloc(exprasmlist,paraloc1);
-              cg.a_param_const(exprasmlist,OS_ADDR,aword(-1),paraloc1);
+              cg.a_param_const(exprasmlist,OS_ADDR,aword(-1),paraloc1,false);
               paramanager.freeparaloc(exprasmlist,paraloc1);
               cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
               cg.a_call_name(exprasmlist,'FPC_CATCHES');
@@ -1049,8 +1042,7 @@ implementation
               cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
 
               paraloc1:=paramanager.getintparaloc(pocall_default,1);
-              paramanager.allocparaloc(exprasmlist,paraloc1);
-              cg.a_param_reg(exprasmlist, OS_ADDR, NR_FUNCTION_RESULT_REG, paraloc1);
+              cg.a_param_reg(exprasmlist, OS_ADDR, NR_FUNCTION_RESULT_REG, paraloc1,false);
               paramanager.freeparaloc(exprasmlist,paraloc1);
               cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
               cg.a_call_name(exprasmlist,'FPC_DESTROYEXCEPTION');
@@ -1186,8 +1178,7 @@ implementation
          { send the vmt parameter }
          reference_reset_symbol(href2,objectlibrary.newasmsymboldata(excepttype.vmt_mangledname),0);
          paraloc1:=paramanager.getintparaloc(pocall_default,1);
-         paramanager.allocparaloc(exprasmlist,paraloc1);
-         cg.a_paramaddr_ref(exprasmlist,href2,paraloc1);
+         cg.a_paramaddr_ref(exprasmlist,href2,paraloc1,false);
          paramanager.freeparaloc(exprasmlist,paraloc1);
          cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
          cg.a_call_name(exprasmlist,'FPC_CATCHES');
@@ -1245,8 +1236,7 @@ implementation
          cg.a_call_name(exprasmlist,'FPC_POPSECONDOBJECTSTACK');
          cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
          paraloc1:=paramanager.getintparaloc(pocall_default,1);
-         paramanager.allocparaloc(exprasmlist,paraloc1);
-         cg.a_param_reg(exprasmlist, OS_ADDR, NR_FUNCTION_RESULT_REG, paraloc1);
+         cg.a_param_reg(exprasmlist, OS_ADDR, NR_FUNCTION_RESULT_REG, paraloc1,false);
          paramanager.freeparaloc(exprasmlist,paraloc1);
          cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
          cg.a_call_name(exprasmlist,'FPC_DESTROYEXCEPTION');
@@ -1479,7 +1469,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.85  2003-10-17 14:38:32  peter
+  Revision 1.86  2003-12-03 23:13:20  peter
+    * delayed paraloc allocation, a_param_*() gets extra parameter
+      if it needs to allocate temp or real paralocation
+    * optimized/simplified int-real loading
+
+  Revision 1.85  2003/10/17 14:38:32  peter
     * 64k registers supported
     * fixed some memory leaks
 

@@ -278,13 +278,10 @@ implementation
         paraloc1:=paramanager.getintparaloc(pocall_default,1);
         paraloc2:=paramanager.getintparaloc(pocall_default,2);
         paraloc3:=paramanager.getintparaloc(pocall_default,3);
-        paramanager.allocparaloc(list,paraloc3);
-        cg.a_paramaddr_ref(list,envbuf,paraloc3);
-        paramanager.allocparaloc(list,paraloc2);
-        cg.a_paramaddr_ref(list,jmpbuf,paraloc2);
+        cg.a_paramaddr_ref(list,envbuf,paraloc3,false);
+        cg.a_paramaddr_ref(list,jmpbuf,paraloc2,false);
         { push type of exceptionframe }
-        paramanager.allocparaloc(list,paraloc1);
-        cg.a_param_const(list,OS_S32,1,paraloc1);
+        cg.a_param_const(list,OS_S32,1,paraloc1,false);
         paramanager.freeparaloc(list,paraloc3);
         paramanager.freeparaloc(list,paraloc2);
         paramanager.freeparaloc(list,paraloc1);
@@ -293,8 +290,7 @@ implementation
         cg.deallocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
 
         paraloc1:=paramanager.getintparaloc(pocall_default,1);
-        paramanager.allocparaloc(list,paraloc1);
-        cg.a_param_reg(list,OS_ADDR,NR_FUNCTION_RESULT_REG,paraloc1);
+        cg.a_param_reg(list,OS_ADDR,NR_FUNCTION_RESULT_REG,paraloc1,false);
         paramanager.freeparaloc(list,paraloc1);
         cg.allocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
         cg.a_call_name(list,'FPC_SETJMP');
@@ -1286,11 +1282,9 @@ implementation
               reference_reset_symbol(href,objectlibrary.newasmsymboldata('etext'),0);
               paraloc1:=paramanager.getintparaloc(pocall_default,1);
               paraloc2:=paramanager.getintparaloc(pocall_default,2);
-              paramanager.allocparaloc(list,paraloc2);
-              cg.a_paramaddr_ref(list,href,paraloc2);
+              cg.a_paramaddr_ref(list,href,paraloc2,false);
               reference_reset_symbol(href,objectlibrary.newasmsymboldata('__image_base__'),0);
-              paramanager.allocparaloc(list,paraloc1);
-              cg.a_paramaddr_ref(list,href,paraloc1);
+              cg.a_paramaddr_ref(list,href,paraloc1,false);
               paramanager.freeparaloc(list,paraloc2);
               paramanager.freeparaloc(list,paraloc1);
               cg.allocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_cdecl));
@@ -1452,10 +1446,29 @@ implementation
 
     procedure gen_stackalloc_code(list:Taasmoutput);
       var
+        hitemp,
+        lotemp,
         stackframe : longint;
       begin
         { Calculate size of stackframe }
         stackframe:=current_procinfo.calc_stackframe_size;
+
+        { All temps are know, write offsets used for information }
+        if (cs_asm_source in aktglobalswitches) then
+          begin
+            if tg.direction>0 then
+              begin
+                lotemp:=current_procinfo.tempstart;
+                hitemp:=tg.lasttemp;
+              end
+            else
+              begin
+                lotemp:=tg.lasttemp;
+                hitemp:=current_procinfo.tempstart;
+              end;
+            list.concat(Tai_comment.Create(strpnew('Temps allocated between '+std_regname(current_procinfo.framepointer)+
+              tostr_with_plus(lotemp)+' and '+std_regname(current_procinfo.framepointer)+tostr_with_plus(hitemp))));
+          end;
 
 {$ifndef powerpc}
         { at least for the ppc this applies always, so this code isn't usable (FK) }
@@ -1982,7 +1995,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.171  2003-11-30 19:35:29  florian
+  Revision 1.172  2003-12-03 23:13:20  peter
+    * delayed paraloc allocation, a_param_*() gets extra parameter
+      if it needs to allocate temp or real paralocation
+    * optimized/simplified int-real loading
+
+  Revision 1.171  2003/11/30 19:35:29  florian
     * fixed several arm related problems
 
   Revision 1.170  2003/11/29 20:13:25  florian
