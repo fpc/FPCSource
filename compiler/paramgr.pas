@@ -137,7 +137,8 @@ implementation
     { true if uses a parameter as return value }
     function tparamanager.ret_in_param(def : tdef;calloption : tproccalloption) : boolean;
       begin
-         ret_in_param:=(def.deftype in [arraydef,recorddef]) or
+         ret_in_param:=((def.deftype=arraydef) and not(is_dynamic_array(def))) or
+           (def.deftype=recorddef) or
            ((def.deftype=stringdef) and (tstringdef(def).string_typ in [st_shortstring,st_longstring])) or
            ((def.deftype=procvardef) and (po_methodpointer in tprocvardef(def).procoptions)) or
            ((def.deftype=objectdef) and is_object(def)) or
@@ -386,7 +387,10 @@ end.
 
 {
    $Log$
-   Revision 1.86  2005-02-03 20:04:49  peter
+   Revision 1.87  2005-02-08 16:40:16  florian
+     * dyn. arrays are returned in registers
+
+   Revision 1.86  2005/02/03 20:04:49  peter
      * push_addr_param must be defined per target
 
    Revision 1.85  2005/01/20 17:47:01  peter
