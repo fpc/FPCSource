@@ -95,6 +95,15 @@ unit systems;
        arcnt=i386arcnt+m68karcnt+1;
 
      type
+       tres = (res_none
+            ,res_i386_windres
+       );
+     const
+       {$ifdef i386} i386rescnt=1; {$else} i386rescnt=0; {$endif}
+       {$ifdef m68k} m68krescnt=0; {$else} m68krescnt=0; {$endif}
+       rescnt=i386rescnt+m68krescnt+1;
+
+     type
        tos = ( os_none,
             os_i386_GO32V1,os_i386_GO32V2,os_i386_Linux,os_i386_OS2,
             os_i386_Win32,
@@ -161,6 +170,12 @@ unit systems;
           arcmd   : string[50];
        end;
 
+       tresinfo = packed record
+          id      : tres;
+          resbin  : string[8];
+          rescmd  : string[50];
+       end;
+
        ttargetinfo = packed record
           target      : ttarget;
           cpu         : ttargetcpu;
@@ -172,11 +187,14 @@ unit systems;
           unitlibext,
           asmext,
           objext,
+          resext,
+          resobjext,
           exeext      : string[4];
           os          : tos;
           link        : tlink;
           assem       : tasm;
           ar          : tar;
+          res         : tres;
           heapsize,
           maxheapsize,
           stacksize   : longint;
@@ -194,6 +212,7 @@ unit systems;
        target_asm  : tasminfo;
        target_link : tlinkinfo;
        target_ar   : tarinfo;
+       target_res  : tresinfo;
        source_os   : tosinfo;
 
     function set_string_target(s : string) : boolean;
@@ -549,9 +568,11 @@ implementation
 {$endif m68k}
           );
 
+
 {****************************************************************************
                             Linker Info
 ****************************************************************************}
+
        link_infos : array[1..linkcnt] of tlinkinfo = (
           (
             id      : link_none
@@ -561,11 +582,9 @@ implementation
             id      : link_i386_ld;
             linkbin : 'ld';
             linkcmd : '$OPT -o $EXE $RES';
-{* Changes made by Ozerski 23.10.1998}
-            binders:0;
+            binders : 0;
             bindbin : ('','');
             bindcmd : ('','');
-{* End changes}
             stripopt   : '-s';
             libpathprefix : 'SEARCH_DIR(';
             libpathsuffix : ')';
@@ -579,11 +598,9 @@ implementation
             id      : link_i386_ldgo32v1;
             linkbin : 'ld';
             linkcmd : '-oformat coff-go32 $OPT -o $EXE @$RES';
-{* Changes made by Ozerski 23.10.1998}
-            binders:1;
+            binders : 1;
             bindbin : ('aout2exe','');
             bindcmd : ('$EXE','');
-{* End changes}
             stripopt   : '-s';
             libpathprefix : '-L';
             libpathsuffix : '';
@@ -597,11 +614,9 @@ implementation
             id      : link_i386_ldgo32v2;
             linkbin : 'ld';
             linkcmd : '-oformat coff-go32-exe $OPT -o $EXE @$RES';
-{* Changes made by Ozerski 23.10.1998}
             binders:0;
             bindbin : ('','');
             bindcmd : ('','');
-{* End changes}
             stripopt   : '-s';
             libpathprefix : '-L';
             libpathsuffix : '';
@@ -615,12 +630,10 @@ implementation
             id      : link_i386_ldw;
             linkbin : 'ldw';
             linkcmd : '$OPT -o $EXE $RES';
-{* Changes made by Ozerski 23.10.1998}
-            binders:0;
+            binders : 0;
             bindbin : ('dlltool','ldw');
             bindcmd : ('--as asw.exe --dllname $EXE --output-exp exp.$$$',
                        '-s $OPT -o $EXE $RES exp.$$$');
-{* End changes}
             stripopt   : '-s';
             libpathprefix : 'SEARCH_DIR(';
             libpathsuffix : ')';
@@ -634,11 +647,9 @@ implementation
             id      : link_i386_ldos2;
             linkbin : 'ld';  { Os/2 }
             linkcmd : '-o $EXE @$RES';
-{* Changes made by Ozerski 23.10.1998}
-            binders:1;
+            binders : 1;
             bindbin : ('emxbind','');
             bindcmd : ('-b -k$STACKKB -h$HEAPMB -o $EXE.exe $EXE -aim -s$DOSHEAPKB','');
-{* End changes}
             stripopt   : '-s';
             libpathprefix : '-L';
             libpathsuffix : '';
@@ -654,11 +665,9 @@ implementation
             id      : link_m68k_ld;
             linkbin : 'ld';
             linkcmd : '$OPT -o $EXE $RES';
-{* Changes made by Ozerski 23.10.1998}
             binders:0;
             bindbin : ('','');
             bindcmd : ('','');
-{* End changes}
             stripopt   : '-s';
             libpathprefix : 'SEARCH_DIR(';
             libpathsuffix : ')';
@@ -674,7 +683,7 @@ implementation
 {****************************************************************************
                                  Ar Info
 ****************************************************************************}
-           ar_infos : array[1..arcnt] of tarinfo = (
+       ar_infos : array[1..arcnt] of tarinfo = (
           (
             id    : ar_none
           )
@@ -699,6 +708,24 @@ implementation
 {$endif m68k}
           );
 
+
+{****************************************************************************
+                                 Res Info
+****************************************************************************}
+       res_infos : array[1..rescnt] of tresinfo = (
+          (
+            id     : res_none
+          )
+{$ifdef i386}
+          ,(
+            id     : res_i386_windres;
+            resbin : 'windres';
+            rescmd : '--include $INC -O coff -o $OBJ $RES'
+          )
+{$endif i386}
+          );
+
+
 {****************************************************************************
                             Targets Info
 ****************************************************************************}
@@ -720,11 +747,14 @@ implementation
             unitlibext  : '.ppl';
             asmext      : '.s1';
             objext      : '.o1';
+            resext      : '.res';
+            resobjext   : '.o1r';
             exeext      : ''; { The linker produces a.out }
             os          : os_i386_GO32V1;
             link        : link_i386_ldgo32v1;
             assem       : as_i386_o;
             ar          : ar_i386_ar;
+            res         : res_none;
             heapsize    : 2048*1024;
             maxheapsize : 32768*1024;
             stacksize   : 16384
@@ -740,11 +770,14 @@ implementation
             unitlibext  : '.ppl';
             asmext      : '.s';
             objext      : '.o';
+            resext      : '.res';
+            resobjext   : '.or';
             exeext      : '.exe';
             os          : os_i386_GO32V2;
             link        : link_i386_ldgo32v2;
             assem       : as_i386_o;
             ar          : ar_i386_ar;
+            res         : res_none;
             heapsize    : 2048*1024;
             maxheapsize : 32768*1024;
             stacksize   : 16384
@@ -760,11 +793,14 @@ implementation
             unitlibext  : '.ppl';
             asmext      : '.s';
             objext      : '.o';
+            resext      : '.res';
+            resobjext   : '.or';
             exeext      : '';
             os          : os_i386_Linux;
             link        : link_i386_ld;
             assem       : as_i386_o;
             ar          : ar_i386_ar;
+            res         : res_none;
             heapsize    : 2048*1024;
             maxheapsize : 32768*1024;
             stacksize   : 8192
@@ -780,11 +816,14 @@ implementation
             unitlibext  : '.ppl';
             asmext      : '.so2';
             objext      : '.oo2';
+            resext      : '.res';
+            resobjext   : '.oor';
             exeext      : ''; { The linker produces a.out }
             os          : os_i386_OS2;
             link        : link_i386_ldos2;
             assem       : as_i386_o_aout;
             ar          : ar_i386_ar;
+            res         : res_none;
             heapsize    : 256*1024;
             maxheapsize : 32768*1024;
             stacksize   : 32768
@@ -800,11 +839,14 @@ implementation
             unitlibext  : '.ppl';
             asmext      : '.sw';
             objext      : '.ow';
+            resext      : '.rc';
+            resobjext   : '.owr';
             exeext      : '.exe';
             os          : os_i386_Win32;
             link        : link_i386_ldw;
             assem       : as_i386_asw;
             ar          : ar_i386_arw;
+            res         : res_i386_windres;
             heapsize    : 2048*1024;
             maxheapsize : 32768*1024;
             stacksize   : 32768
@@ -822,11 +864,14 @@ implementation
             unitlibext  : '.ppl';
             asmext      : '.asm';
             objext      : '.o';
+            resext      : '.res';
+            resobjext   : '.or';
             exeext      : '';
             os          : os_m68k_Amiga;
             link        : link_m68k_ld;
             assem       : as_m68k_o;
             ar          : ar_m68k_ar;
+            res         : res_none;
             heapsize    : 128*1024;
             maxheapsize : 32768*1024;
             stacksize   : 8192
@@ -842,11 +887,14 @@ implementation
             unitlibext  : '.ppl';
             asmext      : '.s';
             objext      : '.o';
+            resext      : '.res';
+            resobjext   : '.or';
             exeext      : '.ttp';
             os          : os_m68k_Atari;
             link        : link_m68k_ld;
             assem       : as_m68k_o;
             ar          : ar_m68k_ar;
+            res         : res_none;
             heapsize    : 16*1024;
             maxheapsize : 32768*1024;
             stacksize   : 8192
@@ -862,11 +910,14 @@ implementation
             unitlibext  : '.ppl';
             asmext      : '.a';
             objext      : '.o';
+            resext      : '.res';
+            resobjext   : '.or';
             exeext      : '';
             os          : os_m68k_Mac;
             link        : link_m68k_ld;
             assem       : as_m68k_mpw;
             ar          : ar_m68k_ar;
+            res         : res_none;
             heapsize    : 128*1024;
             maxheapsize : 32768*1024;
             stacksize   : 8192
@@ -882,11 +933,14 @@ implementation
             unitlibext  : '.ppl';
             asmext      : '.s';
             objext      : '.o';
+            resext      : '.res';
+            resobjext   : '.or';
             exeext      : '';
             os          : os_m68k_Linux;
             link        : link_m68k_ld;
             assem       : as_m68k_o;
             ar          : ar_m68k_ar;
+            res         : res_none;
             heapsize    : 128*1024;
             maxheapsize : 32768*1024;
             stacksize   : 8192
@@ -902,11 +956,14 @@ implementation
             unitlibext  : '.ppl';
             asmext      : '.s';
             objext      : '.o';
+            resext      : '.res';
+            resobjext   : '.or';
             exeext      : '';
             os          : os_m68k_PalmOS;
             link        : link_m68k_ld;
             assem       : as_m68k_o;
             ar          : ar_m68k_ar;
+            res         : res_none;
             heapsize    : 128*1024;
             maxheapsize : 32768*1024;
             stacksize   : 8192
@@ -1030,6 +1087,21 @@ begin
 end;
 
 
+function set_target_res(t:tres):boolean;
+var
+  i : longint;
+begin
+  set_target_res:=false;
+  for i:=1 to rescnt do
+   if res_infos[i].id=t then
+    begin
+      target_res:=res_infos[i];
+      set_target_res:=true;
+      exit;
+    end;
+end;
+
+
 function set_target_info(t:ttarget):boolean;
 var
   i : longint;
@@ -1043,6 +1115,7 @@ begin
       set_target_asm(target_info.assem);
       set_target_link(target_info.link);
       set_target_ar(target_info.ar);
+      set_target_res(target_info.res);
       target_cpu:=target_info.cpu;
       set_target_info:=true;
       exit;
@@ -1069,6 +1142,7 @@ begin
       set_target_asm(target_info.assem);
       set_target_link(target_info.link);
       set_target_ar(target_info.ar);
+      set_target_res(target_info.res);
       target_cpu:=target_info.cpu;
       set_string_target:=true;
       exit;
@@ -1225,7 +1299,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.53  1998-12-15 10:23:30  peter
+  Revision 1.54  1998-12-28 23:26:26  peter
+    + resource file handling ($R directive) for Win32
+
+  Revision 1.53  1998/12/15 10:23:30  peter
     + -iSO, -iSP, -iTO, -iTP
 
   Revision 1.52  1998/12/03 10:17:32  peter

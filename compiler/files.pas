@@ -146,6 +146,7 @@ unit files;
           _exports      : plinkedlist;
 
           sourcefiles   : pfilemanager;
+          resourcefiles,
           linksharedlibs,
           linkstaticlibs,
           linkofiles    : tstringcontainer;
@@ -867,6 +868,8 @@ unit files;
         _exports^.init;
         used_units.done;
         used_units.init;
+        resourcefiles.done;
+        resourcefiles.init_no_double;
         linkofiles.done;
         linkofiles.init_no_double;
         linkstaticlibs.done;
@@ -929,6 +932,7 @@ unit files;
          setfilename(p+n,true);
          used_units.init;
          new(sourcefiles,init);
+         resourcefiles.init_no_double;
          linkofiles.init_no_double;
          linkstaticlibs.init_no_double;
          linksharedlibs.init_no_double;
@@ -983,6 +987,7 @@ unit files;
          dispose(sourcefiles,done);
         sourcefiles:=nil;
         used_units.done;
+        resourcefiles.done;
         linkofiles.done;
         linkstaticlibs.done;
         linksharedlibs.done;
@@ -1046,7 +1051,10 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.80  1998-12-16 00:27:19  peter
+  Revision 1.81  1998-12-28 23:26:14  peter
+    + resource file handling ($R directive) for Win32
+
+  Revision 1.80  1998/12/16 00:27:19  peter
     * removed some obsolete version checks
 
   Revision 1.79  1998/12/11 00:03:14  peter

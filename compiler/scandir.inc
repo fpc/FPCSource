@@ -39,7 +39,7 @@ type
      _DIR_NOTE,_DIR_NOTES,
      _DIR_OPENSTRINGS,_DIR_OUTPUT_FORMAT,_DIR_OVERFLOWCHECKS,
      _DIR_PACKENUM,_DIR_PACKRECORDS,
-     _DIR_RANGECHECKS,_DIR_REFERENCEINFO,
+     _DIR_R,_DIR_RANGECHECKS,_DIR_REFERENCEINFO,
      _DIR_SATURATION,_DIR_SMARTLINK,_DIR_STACKFRAMES,_DIR_STOP,
      _DIR_TYPEDADDRESS,_DIR_TYPEINFO,
      _DIR_UNDEF,
@@ -65,7 +65,7 @@ const
      'NOTE','NOTES',
      'OPENSTRINGS','OUTPUT_FORMAT','OVERFLOWCHECKS',
      'PACKENUM','PACKRECORDS',
-     'RANGECHECKS','REFERENCEINFO',
+     'R','RANGECHECKS','REFERENCEINFO',
      'SATURATION','SMARTLINK','STACKFRAMES','STOP',
      'TYPEDADDRESS','TYPEINFO',
      'UNDEF',
@@ -593,10 +593,25 @@ const
 
 
     procedure dir_linkobject(t:tdirectivetoken);
+      var
+        s : string;
       begin
         current_scanner^.skipspace;
-        current_scanner^.readstring;
-        current_module^.linkofiles.insert(FixFileName(orgpattern));
+        s:=AddExtension(FixFileName(current_scanner^.readcomment),target_info.resext);
+        current_module^.linkofiles.insert(s);
+      end;
+
+
+    procedure dir_resource(t:tdirectivetoken);
+      var
+        s : string;
+      begin
+        current_scanner^.skipspace;
+        s:=AddExtension(FixFileName(current_scanner^.readcomment),target_info.resext);
+        if target_info.res<>res_none then
+          current_module^.resourcefiles.insert(FixFileName(s))
+        else
+          Message(scan_e_resourcefiles_not_supported);
       end;
 
 
@@ -901,6 +916,7 @@ const
          {_DIR_OVERFLOWCHECKS} dir_delphiswitch,
          {_DIR_PACKENUM} dir_packenum,
          {_DIR_PACKRECORDS} dir_packrecords,
+         {_DIR_R} dir_resource,
          {_DIR_RANGECHECKS} dir_delphiswitch,
          {_DIR_REFERENCEINFO} dir_delphiswitch,
          {_DIR_SATURATION} dir_localswitch,
@@ -985,7 +1001,10 @@ const
 
 {
   $Log$
-  Revision 1.44  1998-12-15 10:23:29  peter
+  Revision 1.45  1998-12-28 23:26:25  peter
+    + resource file handling ($R directive) for Win32
+
+  Revision 1.44  1998/12/15 10:23:29  peter
     + -iSO, -iSP, -iTO, -iTP
 
   Revision 1.43  1998/11/16 15:41:43  peter

@@ -39,7 +39,7 @@ unit pmodules;
        globtype,version,systems,tokens,
        cobjects,comphook,globals,verbose,files,
        symtable,aasm,hcodegen,
-       link,assemble,import,export,gendef,ppu
+       link,assemble,import,export,gendef,ppu,resource
 {$ifdef i386}
        ,i386
 {$endif}
@@ -53,6 +53,9 @@ unit pmodules;
       begin
         { create the .s file and assemble it }
         GenerateAsm;
+
+        { resource files }
+        CompileResourceFiles;
 
         { When creating a library call the linker. And insert the output
           of the linker files }
@@ -167,7 +170,6 @@ unit pmodules;
               { Generate an external entry to be sure that _mainCRTStarup will be
                 linked, can't use concat_external because those aren't written for
                 asw (PFV) }
-{* Changed by Ozerski, 23.10.98}
              if deffile.fname='DEF.$$$'then
               target_link.bindcmd[1]:=target_link.bindcmd[1]+' -d DEF.$$$';
              if DLLsource then
@@ -191,7 +193,6 @@ unit pmodules;
                target_link.linkcmd:='--dll '+target_link.linkcmd;
                target_link.bindcmd[2]:='--dll '+target_link.bindcmd[2];
               end;
-{* End changes}
             end;
 {$endif i386}
 {$ifdef m68k}
@@ -634,6 +635,8 @@ unit pmodules;
          hp : pused_unit;
        begin
 {$IfDef GDB}
+         if not (cs_debuginfo in aktmoduleswitches) then
+          exit;
          { now insert the units in the symtablestack }
          hp:=pused_unit(current_module^.used_units.first);
          while assigned(hp) do
@@ -1229,7 +1232,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.91  1998-12-15 17:14:17  peter
+  Revision 1.92  1998-12-28 23:26:23  peter
+    + resource file handling ($R directive) for Win32
+
+  Revision 1.91  1998/12/15 17:14:17  peter
     * fix for tp7
 
   Revision 1.90  1998/12/15 10:23:26  peter
