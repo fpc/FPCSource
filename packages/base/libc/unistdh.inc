@@ -83,15 +83,15 @@ function dup2(__fd:longint; __fd2:longint):longint;cdecl;external clib name 'dup
      __environ : ^Pchar;cvar;external;
      environ : ^Pchar;cvar;external;
 
-function execve(__path:Pchar; __argv:array of Pchar; __envp:array of Pchar):longint;cdecl;external clib name 'execve';
-function fexecve(__fd:longint; __argv:array of Pchar; __envp:array of Pchar):longint;cdecl;external clib name 'fexecve';
+function execve(__path:Pchar; __argv:PPchar; __envp:PPchar):longint;cdecl;external clib name 'execve';
+function fexecve(__fd:longint; __argv:PPchar; __envp:PPchar):longint;cdecl;external clib name 'fexecve';
 
-function execv(__path:Pchar; __argv:array of Pchar):longint;cdecl;external clib name 'execv';
+function execv(__path:Pchar; __argv:PPchar):longint;cdecl;external clib name 'execv';
 function execle(__path:Pchar; __arg:Pchar; args:array of const):longint;cdecl;external clib name 'execle';
 function execle(__path:Pchar; __arg:Pchar):longint;cdecl;external clib name 'execle';
 function execl(__path:Pchar; __arg:Pchar; args:array of const):longint;cdecl;external clib name 'execl';
 function execl(__path:Pchar; __arg:Pchar):longint;cdecl;external clib name 'execl';
-function execvp(__file:Pchar; __argv:array of Pchar):longint;cdecl;external clib name 'execvp';
+function execvp(__file:Pchar; __argv:PPchar):longint;cdecl;external clib name 'execvp';
 function execlp(__file:Pchar; __arg:Pchar; args:array of const):longint;cdecl;external clib name 'execlp';
 function execlp(__file:Pchar; __arg:Pchar):longint;cdecl;external clib name 'execlp';
 
