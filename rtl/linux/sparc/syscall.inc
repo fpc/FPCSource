@@ -17,8 +17,7 @@
 {$IFDEF SYS_LINUX}
   {$UNDEF SYSCALL_DEBUG}
 {$ENDIF SYS_LINUX}
-{Use direct assembler, dumps directly assembler code in sources}
-{$ASMMODE DIRECT}
+
 {*****************************************************************************
                      --- Main:The System Call Self ---
 *****************************************************************************}
@@ -33,19 +32,19 @@ asm
         ta      0x10
         bcc     .LSyscOK0
         nop
-        sethi   %hi(FPC_THREADVAR_RELOCATE),%o0
-        or      %o0,%lo(FPC_THREADVAR_RELOCATE),%o0
+        sethi   %hi(fpc_threadvar_relocate_proc),%o0
+        or      %o0,%lo(fpc_threadvar_relocate_proc),%o0
         ld      [%o0],%o7
         subcc   %o7,%g0,%g0
         bne     .LThread0
         nop
-        sethi   %hi(U_SYSTEM_ERRNO+4),%o0
+        sethi   %hi(Errno+4),%o0
         ba      .LNoThread0
-        or      %o0,%lo(U_SYSTEM_ERRNO+4),%o0
+        or      %o0,%lo(Errno+4),%o0
 .LThread0:
-        sethi   %hi(U_SYSTEM_ERRNO),%o0
+        sethi   %hi(Errno),%o0
         ld      [%o7],%o1
-        or      %o0,%lo(U_SYSTEM_ERRNO),%o0
+        or      %o0,%lo(Errno),%o0
         call    %o1
 .LNoThread0:
         st      %i0,[%o0]
@@ -66,19 +65,19 @@ asm
         ta      0x10
         bcc     .LSyscOK1
         nop
-        sethi   %hi(FPC_THREADVAR_RELOCATE),%o0
-        or      %o0,%lo(FPC_THREADVAR_RELOCATE),%o0
+        sethi   %hi(fpc_threadvar_relocate_proc),%o0
+        or      %o0,%lo(fpc_threadvar_relocate_proc),%o0
         ld      [%o0],%o7
         subcc   %o7,%g0,%g0
         bne     .LThread1
         nop
-        sethi   %hi(U_SYSTEM_ERRNO+4),%o0
+        sethi   %hi(Errno+4),%o0
         ba      .LNoThread1
-        or      %o0,%lo(U_SYSTEM_ERRNO+4),%o0
+        or      %o0,%lo(Errno+4),%o0
 .LThread1:
-        sethi   %hi(U_SYSTEM_ERRNO),%o0
+        sethi   %hi(Errno),%o0
         ld      [%o7],%o1
-        or      %o0,%lo(U_SYSTEM_ERRNO),%o0
+        or      %o0,%lo(Errno),%o0
         call    %o1
 .LNoThread1:
         st      %i0,[%o0]
@@ -100,19 +99,19 @@ asm
         ta      0x10
         bcc     .LSyscOK2
         nop
-        sethi   %hi(FPC_THREADVAR_RELOCATE),%o0
-        or      %o0,%lo(FPC_THREADVAR_RELOCATE),%o0
+        sethi   %hi(fpc_threadvar_relocate_proc),%o0
+        or      %o0,%lo(fpc_threadvar_relocate_proc),%o0
         ld      [%o0],%o7
         subcc   %o7,%g0,%g0
         bne     .LThread2
         nop
-        sethi   %hi(U_SYSTEM_ERRNO+4),%o0
+        sethi   %hi(Errno+4),%o0
         ba      .LNoThread2
-        or      %o0,%lo(U_SYSTEM_ERRNO+4),%o0
+        or      %o0,%lo(Errno+4),%o0
 .LThread2:
-        sethi   %hi(U_SYSTEM_ERRNO),%o0
+        sethi   %hi(Errno),%o0
         ld      [%o7],%o1
-        or      %o0,%lo(U_SYSTEM_ERRNO),%o0
+        or      %o0,%lo(Errno),%o0
         call    %o1
 .LNoThread2:
         st      %i0,[%o0]
@@ -135,19 +134,19 @@ asm
         ta      0x10
         bcc     .LSyscOK3
         nop
-        sethi   %hi(FPC_THREADVAR_RELOCATE),%o0
-        or      %o0,%lo(FPC_THREADVAR_RELOCATE),%o0
+        sethi   %hi(fpc_threadvar_relocate_proc),%o0
+        or      %o0,%lo(fpc_threadvar_relocate_proc),%o0
         ld      [%o0],%o7
         subcc   %o7,%g0,%g0
         bne     .LThread3
         nop
-        sethi   %hi(U_SYSTEM_ERRNO+4),%o0
+        sethi   %hi(Errno+4),%o0
         ba      .LNoThread3
-        or      %o0,%lo(U_SYSTEM_ERRNO+4),%o0
+        or      %o0,%lo(Errno+4),%o0
 .LThread3:
-        sethi   %hi(U_SYSTEM_ERRNO),%o0
+        sethi   %hi(Errno),%o0
         ld      [%o7],%o1
-        or      %o0,%lo(U_SYSTEM_ERRNO),%o0
+        or      %o0,%lo(Errno),%o0
         call    %o1
 .LNoThread3:
         st      %i0,[%o0]
@@ -171,19 +170,19 @@ asm
         ta      0x10
         bcc     .LSyscOK4
         nop
-        sethi   %hi(FPC_THREADVAR_RELOCATE),%o0
-        or      %o0,%lo(FPC_THREADVAR_RELOCATE),%o0
+        sethi   %hi(fpc_threadvar_relocate_proc),%o0
+        or      %o0,%lo(fpc_threadvar_relocate_proc),%o0
         ld      [%o0],%o7
         subcc   %o7,%g0,%g0
         bne     .LThread4
         nop
-        sethi   %hi(U_SYSTEM_ERRNO+4),%o0
+        sethi   %hi(Errno+4),%o0
         ba      .LNoThread4
-        or      %o0,%lo(U_SYSTEM_ERRNO+4),%o0
+        or      %o0,%lo(Errno+4),%o0
 .LThread4:
-        sethi   %hi(U_SYSTEM_ERRNO),%o0
+        sethi   %hi(Errno),%o0
         ld      [%o7],%o1
-        or      %o0,%lo(U_SYSTEM_ERRNO),%o0
+        or      %o0,%lo(Errno),%o0
         call    %o1
 .LNoThread4:
         st      %i0,[%o0]
@@ -208,19 +207,19 @@ asm
         ta      0x10
         bcc     .LSyscOK5
         nop
-        sethi   %hi(FPC_THREADVAR_RELOCATE),%o0
-        or      %o0,%lo(FPC_THREADVAR_RELOCATE),%o0
+        sethi   %hi(fpc_threadvar_relocate_proc),%o0
+        or      %o0,%lo(fpc_threadvar_relocate_proc),%o0
         ld      [%o0],%o7
         subcc   %o7,%g0,%g0
         bne     .LThread5
         nop
-        sethi   %hi(U_SYSTEM_ERRNO+4),%o0
+        sethi   %hi(Errno+4),%o0
         ba      .LNoThread5
-        or      %o0,%lo(U_SYSTEM_ERRNO+4),%o0
+        or      %o0,%lo(Errno+4),%o0
 .LThread5:
-        sethi   %hi(U_SYSTEM_ERRNO),%o0
+        sethi   %hi(Errno),%o0
         ld      [%o7],%o1
-        or      %o0,%lo(U_SYSTEM_ERRNO),%o0
+        or      %o0,%lo(Errno),%o0
         call    %o1
 .LNoThread5:
         st      %i0,[%o0]
@@ -246,19 +245,19 @@ asm
         ta      0x10
         bcc     .LSyscOK6
         nop
-        sethi   %hi(FPC_THREADVAR_RELOCATE),%o0
-        or      %o0,%lo(FPC_THREADVAR_RELOCATE),%o0
+        sethi   %hi(fpc_threadvar_relocate_proc),%o0
+        or      %o0,%lo(fpc_threadvar_relocate_proc),%o0
         ld      [%o0],%o7
         subcc   %o7,%g0,%g0
         bne     .LThread6
         nop
-        sethi   %hi(U_SYSTEM_ERRNO+4),%o0
+        sethi   %hi(Errno+4),%o0
         ba      .LNoThread6
-        or      %o0,%lo(U_SYSTEM_ERRNO+4),%o0
+        or      %o0,%lo(Errno+4),%o0
 .LThread6:
-        sethi   %hi(U_SYSTEM_ERRNO),%o0
+        sethi   %hi(Errno),%o0
         ld      [%o7],%o1
-        or      %o0,%lo(U_SYSTEM_ERRNO),%o0
+        or      %o0,%lo(Errno),%o0
         call    %o1
 .LNoThread6:
         st      %i0,[%o0]
@@ -350,7 +349,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  2003-08-11 13:19:08  mazen
+  Revision 1.10  2004-01-05 17:22:03  peter
+    * removed asmmode direct
+
+  Revision 1.9  2003/08/11 13:19:08  mazen
   + added assembler mode directive to use direct assembler reader
 
   Revision 1.8  2003/07/06 22:08:05  peter
