@@ -856,8 +856,9 @@ const
       msg_programsignal             = #3'Program recieved signal %s'#13+
                                       #3'%s';
 
-      msg_runningprogram = 'Running...';
+      msg_runningprogram  = 'Running...';
       msg_runningremotely = 'Executable running remotely on ';
+      msg_connectingto    = 'Connecting to ';
       msg_getting_info_on = 'Getting infos from ';
       msg_runninginanotherwindow = 'Executable running in another window..';
       msg_couldnotsetbreakpointat = #3'Could not set Breakpoint'#13+
@@ -1052,7 +1053,10 @@ const
 
 {
   $Log$
-  Revision 1.17  2002-11-30 01:55:33  pierre
+  Revision 1.18  2003-01-14 16:24:02  pierre
+   + msg_connectingto added
+
+  Revision 1.17  2002/11/30 01:55:33  pierre
    * fix a wrongly highlighted string
 
   Revision 1.16  2002/11/28 12:55:47  pierre
