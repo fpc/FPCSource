@@ -19,8 +19,8 @@ asm
    addl rec.a(%ecx), %eax
    movl %eax, rec.a(%edi)
 
-   movw rec.b(%ecx), %ax
-   addw rec.b(%edx), %ax
+   movw rec.b(%ebx), %ax
+   addw rec.b(%ecx), %ax
    movw %ax, rec.b(%edi)
    movw $1,%ax
 end;

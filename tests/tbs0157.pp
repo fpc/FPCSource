@@ -1,5 +1,10 @@
+{ this should be rejected because we only accept integer args }
+
 program write_it;
-var x:real;
+var x,y:real;
 begin
-write(x:5.2);
+x:=5.6;
+y:=45.789;
+write(y:2:3,x:3:4);
+{write(y:3.2,x:5.2);}
 end.
