@@ -24,11 +24,11 @@ unit syncobjs;
       TSecurityAttributes = Windows.TSecurityAttributes;
       TEventHandle = THandle;
 
-    {$I syncobjsh.inc}
+    {$I syncobh.inc}
 
   implementation
 
-    {$I syncobjs.inc}
+    {$I syncob.inc}
 
     procedure TCriticalSection.Acquire;
 
@@ -93,7 +93,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  1998-10-01 21:56:37  florian
+  Revision 1.4  1999-06-07 15:55:32  michael
+  + Renamed include files to fit 8.3
+
+  Revision 1.3  1998/10/01 21:56:37  florian
     + THandleObject completed
 
   Revision 1.2  1998/09/30 13:41:06  florian
