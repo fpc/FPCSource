@@ -942,54 +942,50 @@ begin
 {$ASMMODE INTEL}
  asm
   cld
-  mov ecx, EnvC
-  mov edi, EnvP
-  mov edi, [edi]
+  mov edi, Environment
   lea esi, _EnvVar
   xor eax, eax
   lodsb
 @NewVar:
-  push ecx
-  push eax
-  push esi
-  mov ecx, -1
-  mov edx, edi
-  mov al, '='
+  cmp byte ptr [edi], 0
+  jz @Stop
+  push eax        { eax contains length of searched variable name }
+  push esi        { esi points to the beginning of the variable name }
+  mov ecx, -1     { our character ('=' - see below) _must_ be found }
+  mov edx, edi    { pointer to beginning of variable name saved in edx }
+  mov al, '='     { searching until '=' (end of variable name) }
   repne
-  scasb
-  neg ecx
-  dec ecx
-  dec ecx
-  pop esi
-  pop eax
-  push eax
+  scasb           { scan until '=' not found }
+  neg ecx         { what was the name length? }
+  dec ecx         { corrected }
+  dec ecx         { exclude the '=' character }
+  pop esi         { restore pointer to beginning of variable name }
+  pop eax         { restore length of searched variable name }
+  push eax        { and save both of them again for later use }
   push esi
-  cmp ecx, eax
-  jnz @NotEqual
-  xchg edx, edi
+  cmp ecx, eax    { compare length of searched variable name with name }
+  jnz @NotEqual   { ... of currently found variable, jump if different }
+  xchg edx, edi   { pointer to current variable name restored in edi }
   repe
-  cmpsb
-  xchg edx, edi
-  jz @Equal
+  cmpsb           { compare till the end of variable name }
+  xchg edx, edi   { pointer to beginning of variable contents in edi }
+  jz @Equal       { finish if they're equal }
 @NotEqual:
-  xor eax, eax
-  mov ecx, -1
+  xor eax, eax    { look for 00h }
+  mov ecx, -1     { it _must_ be found }
   repne
-  scasb
-  pop esi
-  pop eax
-  pop ecx
-  dec ecx
-  jecxz @Stop
-  jmp @NewVar
+  scasb           { scan until found }
+  pop esi         { restore pointer to beginning of variable name }
+  pop eax         { restore length of searched variable name }
+  jmp @NewVar     { ... or continue with new variable otherwise }
 @Stop:
-  mov P, ecx
+  xor eax, eax
+  mov P, eax      { Not found - return nil }
   jmp @End
 @Equal:
-  pop esi
+  pop esi         { restore the stack position }
   pop eax
-  pop ecx  
-  mov P, edi
+  mov P, edi      { place pointer to variable contents in P }
 @End:
  end;
  GetEnv := StrPas (P);
@@ -1217,7 +1213,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2002-11-17 16:22:53  hajny
+  Revision 1.2  2002-12-15 22:50:29  hajny
+    * GetEnv fix merged from os2 target
+
+  Revision 1.1  2002/11/17 16:22:53  hajny
     + RTL for emx target
 
   Revision 1.19  2002/09/07 16:01:24  peter
