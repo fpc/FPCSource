@@ -1088,7 +1088,11 @@ begin
 		{$endif}
                 If Index>Prec then
                   Prec:=Index;
+		{$ifdef ver1_0}
+                ToAdd:=HexStr(int64(vl),Prec);
+		{$else}
                 ToAdd:=HexStr(qword(vl),Prec);
+		{$endif}
                 end;
               end;
         '%': ToAdd:='%';
@@ -2230,7 +2234,10 @@ const
 
 {
   $Log$
-  Revision 1.19  2004-11-21 19:33:20  marco
+  Revision 1.20  2004-11-22 05:53:44  marco
+   * fixed little 1.0.xism
+
+  Revision 1.19  2004/11/21 19:33:20  marco
    * %x 64-bit support
 
   Revision 1.18  2004/11/21 16:44:01  marco
