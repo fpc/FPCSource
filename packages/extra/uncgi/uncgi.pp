@@ -25,19 +25,24 @@ uses
 
 const
   maxquery      = 100;
-  hextable      : array[0..15] of char=('0','1','2','3','4','5','6','7',
-                                        '8','9','A','B','C','D','E','F');
-  uncgi_version = 'UNCGI 2.0.11';
+  uncgi_version = 'UNCGI 2.1.1';
   uncgi_year    = '1999';
   maintainer_name = 'Your Name Here';
   maintainer_email= 'your@email.address.here';
 
-Type cgi_error_proc = procedure (Const Proc,Err : String);
-
+Type
+  cgi_error_proc = procedure (Const Proc,Err : String);
+  PCgiVar=^TCgiVar;
+  TCgiVar=Record
+    Name:PChar;
+    NbrValues:LongInt;
+    Value:PPChar
+  end;
 var
+  EnvC:LongInt;
+  EnvP:PCgiVar;
   get_nodata    : boolean;
   query_read    : word;
-  query_array   : array[1..2,1..maxquery] of pchar;
   uncgi_error   : cgi_error_proc;
 
 {***********************************************************************}
@@ -101,10 +106,10 @@ function get_value(id: pchar): pchar;
   v:=get_value('some_id');
   while v<>'' do begin
     Do_something_with(v);
-    v:=get_next_value('some_id');
+    v:=get_next_value;
   end;
 }
-function get_next_value(id: pchar): pchar;
+function get_next_value:PChar;
 
 { PROCEDURE
 
@@ -256,13 +261,15 @@ begin
 end;
 
 function hexconv(h1,h2: char): char;
-var
-  cnt   : byte;
-  thex  : byte;
+  function h2c(c:char):byte;inline;
+    begin
+      case c of
+        '0'..'9':h2c := ord(c) - ord('0');
+        'A'..'F':h2c := 10 + (ord(UpCase(c)) - ord('A'));
+      end;
+    end;
 begin
-  for cnt :=0 to 15 do if upcase(h1)=hextable[cnt] then thex := cnt * 16;
-  for cnt :=0 to 15 do if upcase(h2)=hextable[cnt] then thex := thex + cnt;
-  hexconv := chr(thex);
+  HexConv:=Chr(h2c(h1)*16+h2c(h2));
 end;
 
 procedure def_uncgi_error(const pname,perr: string);
@@ -284,27 +291,30 @@ begin
   halt;
 end;
 
-var gv_cnt:word;
-
-function get_next_value(id: pchar): pchar;
 var
-  cnt   : word;
+  gv_cnt,gv_cnt_n:LongInt;
+function get_next_value:PChar;
 begin
-  if gv_cnt<=query_read then inc(gv_cnt);
-  get_next_value:=Nil;
-  if done_init then
-    for cnt :=gv_cnt to query_read do
-      if strcomp(strupper(id),strupper(query_array[1,cnt]))=0 then begin
-        get_next_value := query_array[2,cnt];
-        gv_cnt:=cnt;
-        exit;
-      end;
+  if gv_cnt>=EnvC
+  then
+    Exit(Nil);
+  with EnvP[gv_cnt] do
+    begin
+      if gv_cnt_n>=NbrValues
+      then
+        Exit(Nil);
+      get_next_value:=Value[gv_cnt_n];
+    end;
+    Inc(gv_cnt_n);
 end;
 
 function get_value(id: pchar): pchar;
  begin
   gv_cnt:=0;
-  get_value:=get_next_value(id)
+  gv_cnt_n:=0;
+  while(gv_cnt<EnvC)and(StrComp(id,EnvP[gv_cnt].Name)<>0)do
+    Inc(gv_cnt);
+  get_value:=get_next_value;
  end;
 
 Function UnEscape(QueryString: PChar): PChar;
@@ -355,36 +365,88 @@ begin
    UnEscape:=qunescaped;
 end;
 
-Function Chop(QunEscaped : PChar) : Longint;
-var
-  qptr          : word;
-  cnt           : word;
-  qslen : longint;
-
-begin
-  qptr := 1;
-  qslen:=strlen(QUnescaped);
-  query_array[1,qptr] := qunescaped;
-  for cnt := 0 to qslen-1 do
-    case qunescaped[cnt] of
-      '=': begin
-             qunescaped[cnt] := #0;
-             { save address }
-             query_array[2,qptr] := @qunescaped[cnt+1];
-           end;
-      '&': begin
-             qunescaped[cnt] := #0;
-             { Unescape previous one. }
-             query_array[2,qptr]:=unescape(query_array[2,qptr]);
-             inc(qptr);
-             query_array[1,qptr] := @qunescaped[cnt+1];
-           end;
-    end; { Case }
-  { Unescape last one. }
-  if query_array[2,qptr] <> nil then
-    query_array[2,qptr]:=unescape(query_array[2,qptr]);
-  Chop :=qptr;
-end;
+Function Chop(QueryString:PChar):Longint;
+  var
+    VarName,VarValue,name_pos,value_pos:PChar;
+    sz,EnvCC:LongInt;
+    p:Pointer;
+  begin
+    GetMem(EnvP,MaxQuery*SizeOf(TCgiVar));
+    name_pos:=QueryString;
+    value_pos:=QueryString;
+    repeat
+      value_pos:=StrScan(name_pos,'=');
+      if value_pos=Nil
+      then
+        value_pos:=StrEnd(name_pos)
+      else
+        Inc(value_pos);
+      sz:=value_pos-name_pos-1;
+      VarName:=StrAlloc(sz+1);
+      StrLCopy(VarName,name_pos,sz);
+      name_pos:=StrScan(name_pos,'&');
+      if name_pos=Nil
+      then
+        sz:=StrLen(value_pos)
+      else
+        begin
+          Inc(name_pos);
+          sz:=name_pos-value_pos-1;
+        end;
+      VarValue:=StrAlloc(sz+1);
+      StrLCopy(VarValue,value_pos,sz);
+      EnvCC:=0;
+      repeat
+        with EnvP[EnvCC] do
+          begin
+            if EnvCC=EnvC
+            then
+              begin
+                if EnvC>=MaxQuery
+                then
+                  uncgi_error('cgi_read_get_query()','Your are trying to use more than max varaibles allowed! Please change value of "MaxQuery" and recompile your program')
+                else
+                  begin
+                    Name:=UnEscape(VarName);
+                    GetMem(Value,MaxQuery*SizeOf(PChar));
+                    Inc(EnvC);
+                  end;
+              end;
+            if StrComp(VarName,Name)=0
+            then
+              begin
+                if NbrValues>=MaxQuery
+                then
+                  uncgi_error('cgi_read_get_query()','Your are trying to use more than max values allowed for a given variable! Please change value of "MaxQuery" and recompile your program')
+                else
+                  begin
+                    Value[NbrValues]:=UnEscape(VarValue);
+                    Inc(NbrValues);
+                  end;
+                StrDispose(VarName);
+                StrDispose(VarValue);
+                break;
+              end;
+          end;
+        Inc(EnvCC);
+      until false;
+    until name_pos=Nil;
+    for EnvCC:=0 to EnvC-1 do
+      with EnvP[EnvCC] do
+        begin
+          p:=Value;
+          sz:=NbrValues*SizeOf(PChar);
+          GetMem(Value,sz);
+          Move(p^,Value^,sz);
+          FreeMem(p,MaxQuery*SizeOf(PChar));
+        end;
+    p:=EnvP;
+    sz:=EnvC*SizeOf(TCgiVar);
+    GetMem(EnvP,sz);
+    Move(p^,EnvP^,sz);
+    FreeMem(p,MaxQuery*SizeOf(TCgiVar));
+    Chop:=EnvC;
+  end;
 
 procedure cgi_read_get_query;
 var
@@ -392,17 +454,19 @@ var
   qslen         : longint;
 begin
   querystring :=strnew(getenv('QUERY_STRING'));
-  if querystring<>NIL then
+  if querystring<>NIL
+  then
     begin
-    qslen :=strlen(querystring);
-    if qslen=0 then
-      begin
-      get_nodata :=true;
-      exit;
-      end
-    else
-      get_nodata :=false;
-    query_read:=Chop(QueryString);
+      qslen :=strlen(querystring);
+      if qslen=0
+      then
+        begin
+          get_nodata :=true;
+          exit;
+        end
+      else
+        get_nodata :=false;
+      query_read:=Chop(QueryString);
     end;
   done_init :=true;
 end;
@@ -457,10 +521,20 @@ begin
 end;
 
 procedure cgi_deinit;
+var
+  i,j:LongInt;
 begin
   done_init :=false;
   query_read :=0;
-  fillchar(query_array,sizeof(query_array),0);
+  for i:=0 to EnvC-1 do
+    with EnvP[i] do
+      begin
+        for j:=0 to NbrValues-1 do
+          StrDispose(Value[j]);
+        FreeMem(Value,NbrValues*SizeOf(PChar));
+      end;
+  FreeMem(EnvP,EnvC*SizeOf(TCgiVar));
+  EnvC:=0;
 end;
 
 
@@ -479,15 +553,20 @@ begin
   InitWin32CGI;
   {$endif}
   uncgi_error:=@def_uncgi_error;
-  done_init :=false;
-  fillchar(query_array,sizeof(query_array),0);
+  cgi_deinit;
 end.
 
   
 {
   HISTORY
   $Log$
-  Revision 1.9  2002-10-24 17:25:36  sg
+  Revision 1.10  2003-05-27 20:50:18  mazen
+  * New implemtation of HexConv
+  * New implementation of Chop to fix an incompatibilty
+    bug with SysUtils.
+  * Replacing quary_array (static) by EnvP(dynamic)
+
+  Revision 1.9  2002/10/24 17:25:36  sg
   * Fixed parsing of empty URL arguments (with missing "=")
 
   Revision 1.8  2002/10/18 05:43:53  michael
