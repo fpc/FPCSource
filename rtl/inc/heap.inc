@@ -904,19 +904,7 @@ end;
 
 function SysMemSize(p:pointer):longint;
 begin
-  if IsMultiThread then
-   begin
-     try
-       MemoryMutexManager.MutexLock;
-       SysMemSize:=(pheaprecord(pointer(p)-sizeof(theaprecord))^.size and sizemask)-sizeof(theaprecord);
-     finally
-       MemoryMutexManager.MutexUnlock;
-     end;
-   end
-  else
-   begin
-     SysMemSize:=(pheaprecord(pointer(p)-sizeof(theaprecord))^.size and sizemask)-sizeof(theaprecord);
-   end;
+  SysMemSize:=(pheaprecord(pointer(p)-sizeof(theaprecord))^.size and sizemask)-sizeof(theaprecord);
 end;
 
 
@@ -1276,7 +1264,11 @@ end;
 
 {
   $Log$
-  Revision 1.16  2002-10-14 19:39:17  peter
+  Revision 1.17  2002-10-30 19:54:19  peter
+    * remove wrong lock from SysMemSize, MemSize() does the locking
+      already.
+
+  Revision 1.16  2002/10/14 19:39:17  peter
     * threads unit added for thread support
 
   Revision 1.15  2002/09/07 15:07:45  peter
