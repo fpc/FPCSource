@@ -32,7 +32,7 @@ begin
 {$ifdef NEWATT}
         movl    __RESULT,%edi
 {$else}
-        movl    8(%ebp),%edi
+        movl    p,%edi
 {$endif}
         notb    %al
         decl    %eax
@@ -77,7 +77,10 @@ end ['EDI','ESI','EBX','EAX','ECX'];
 
 {
   $Log$
-  Revision 1.6  2000-01-07 16:41:33  daniel
+  Revision 1.7  2000-01-11 21:12:15  marco
+   * direct params to internal asm.
+
+  Revision 1.6  2000/01/07 16:41:33  daniel
     * copyright 2000
 
   Revision 1.5  1999/04/08 11:30:58  peter
