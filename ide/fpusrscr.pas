@@ -720,7 +720,7 @@ end;
 procedure UpdateFileHandles;
 begin
   {StdInputHandle:=longint(GetStdHandle(STD_INPUT_HANDLE));}
-  StdOutputHandle:=longint(GetStdHandle(STD_OUTPUT_HANDLE));
+  StdOutputHandle:=longint(GetStdHandle(cardinal(STD_OUTPUT_HANDLE)));
   {StdErrorHandle:=longint(GetStdHandle(STD_ERROR_HANDLE));}
   TextRec(Output).Handle:=StdOutputHandle;
   TextRec(StdOut).Handle:=StdOutputHandle;
@@ -749,8 +749,8 @@ begin
     GENERIC_READ or GENERIC_WRITE,
     FILE_SHARE_READ or FILE_SHARE_WRITE,SecurityAttr,
     CONSOLE_TEXTMODE_BUFFER,nil);
-  StartScreenBufferHandle:=GetStdHandle(STD_OUTPUT_HANDLE);
-  GetConsoleMode(GetStdHandle(Std_Input_Handle), @ConsoleMode);
+  StartScreenBufferHandle:=GetStdHandle(cardinal(STD_OUTPUT_HANDLE));
+  GetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)), @ConsoleMode);
   IdeMode:=ConsoleMode;
 {$ifdef debug}
 {define win32bigwin}
@@ -793,7 +793,7 @@ begin
   {if StartScreenBufferHandle=IDEScreenBufferHandle then}
     BufferCopy(DosScreenBufferHandle,IDEScreenBufferHandle);
   SetConsoleActiveScreenBuffer(StartScreenBufferHandle);
-  SetStdHandle(Std_Output_Handle,StartScreenBufferHandle);
+  SetStdHandle(cardinal(Std_Output_Handle),StartScreenBufferHandle);
   UpdateFileHandles;
   CloseHandle(NewScreenBufferHandle);
   CloseHandle(DummyScreenBufferHandle);
@@ -987,9 +987,9 @@ begin
 {$endif fvision}
     begin
       IdeScreenMode:=ScreenMode;
-      GetConsoleMode(GetStdHandle(Std_Input_Handle), @IdeMode);
+      GetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)), @IdeMode);
       { set the dummy buffer as active already now PM }
-      SetStdHandle(Std_Output_Handle,DummyScreenBufferHandle);
+      SetStdHandle(cardinal(Std_Output_Handle),DummyScreenBufferHandle);
       UpdateFileHandles;
     end;
 end;
@@ -1002,9 +1002,9 @@ begin
   if TextModeGFV then
 {$endif fvision}
     begin
-      GetConsoleMode(GetStdHandle(Std_Input_Handle), @ConsoleMode);
+      GetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)), @ConsoleMode);
       { set the dummy buffer as active already now PM }
-      SetStdHandle(Std_Output_Handle,DummyScreenBufferHandle);
+      SetStdHandle(cardinal(Std_Output_Handle),DummyScreenBufferHandle);
       UpdateFileHandles;
     end;
 end;
@@ -1016,8 +1016,8 @@ begin
 {$endif fvision}
     begin
       SetConsoleActiveScreenBuffer(DosScreenBufferHandle);
-      SetStdHandle(Std_Output_Handle,DosScreenBufferHandle);
-      SetConsoleMode(GetStdHandle(Std_Input_Handle), ConsoleMode);
+      SetStdHandle(cardinal(Std_Output_Handle),DosScreenBufferHandle);
+      SetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)), ConsoleMode);
       UpdateFileHandles;
     end;
   IDEActive:=false;
@@ -1034,7 +1034,7 @@ begin
   if TextModeGFV then
 {$endif fvision}
     begin
-      SetStdHandle(Std_Output_Handle,IDEScreenBufferHandle);
+      SetStdHandle(cardinal(Std_Output_Handle),IDEScreenBufferHandle);
       UpdateFileHandles;
       GetConsoleScreenBufferInfo(IDEScreenBufferHandle,
         @ConsoleScreenBufferInfo);
@@ -1045,7 +1045,7 @@ begin
       InitEvents;
 {$endif fvision}
       IdeMode:=(IdeMode or ENABLE_MOUSE_INPUT or ENABLE_WINDOW_INPUT) and not ENABLE_PROCESSED_INPUT;
-      SetConsoleMode(GetStdHandle(Std_Input_Handle), IdeMode);
+      SetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)), IdeMode);
       WindowPos.left:=0;
       WindowPos.right:=ConsoleScreenBufferInfo.srWindow.right
                        -ConsoleScreenBufferInfo.srWindow.left;
@@ -1112,7 +1112,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.17  2002-09-07 15:40:46  peter
+  Revision 1.18  2002-09-07 21:04:42  carl
+    * fix range check errors for version 1.1 compilation
+
+  Revision 1.17  2002/09/07 15:40:46  peter
     * old logs removed and tabs fixed
 
   Revision 1.16  2002/09/04 08:35:31  pierre

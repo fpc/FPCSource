@@ -1275,9 +1275,9 @@ begin
    if NoSwitch then
      begin
        { Ctrl-C as normal char }
-       GetConsoleMode(GetStdHandle(Std_Input_Handle), @IdeMode);
+       GetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)), @IdeMode);
        IdeMode:=(IdeMode or ENABLE_MOUSE_INPUT or ENABLE_WINDOW_INPUT) and not ENABLE_PROCESSED_INPUT;
-       SetConsoleMode(GetStdHandle(Std_Input_Handle), IdeMode);
+       SetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)), IdeMode);
      end;
    ChangeDebuggeeWindowTitleTo(Stopped_State);
 {$endif win32}
@@ -1309,9 +1309,9 @@ begin
    if NoSwitch then
      begin
        { Ctrl-C as interrupt }
-       GetConsoleMode(GetStdHandle(Std_Input_Handle), @IdeMode);
+       GetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)), @IdeMode);
        IdeMode:=(IdeMode or ENABLE_MOUSE_INPUT or ENABLE_PROCESSED_INPUT or ENABLE_WINDOW_INPUT);
-       SetConsoleMode(GetStdHandle(Std_Input_Handle), IdeMode);
+       SetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)), IdeMode);
      end;
    ChangeDebuggeeWindowTitleTo(Running_State);
 {$endif win32}
@@ -4167,7 +4167,10 @@ end.
 
 {
   $Log$
-  Revision 1.26  2002-09-07 15:40:42  peter
+  Revision 1.27  2002-09-07 21:04:41  carl
+    * fix range check errors for version 1.1 compilation
+
+  Revision 1.26  2002/09/07 15:40:42  peter
     * old logs removed and tabs fixed
 
   Revision 1.25  2002/09/03 13:59:47  pierre

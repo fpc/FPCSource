@@ -192,8 +192,8 @@ begin
   if CatchSignalsEnabled then
     exit;
 {$ifdef win32}
-  if GetConsoleMode(GetStdHandle(Std_Input_Handle), @Mode) then
-    SetConsoleMode(GetStdHandle(Std_Input_Handle), (Mode or ENABLE_MOUSE_INPUT) and not ENABLE_PROCESSED_INPUT);
+  if GetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)), @Mode) then
+    SetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)), (Mode or ENABLE_MOUSE_INPUT) and not ENABLE_PROCESSED_INPUT);
 {$endif win32}
 {$ifdef go32v2}
   djgpp_set_ctrl_c(false);
@@ -229,7 +229,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2002-09-07 15:40:42  peter
+  Revision 1.6  2002-09-07 21:04:41  carl
+    * fix range check errors for version 1.1 compilation
+
+  Revision 1.5  2002/09/07 15:40:42  peter
     * old logs removed and tabs fixed
 
   Revision 1.4  2002/03/20 14:48:27  pierre
