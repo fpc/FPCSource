@@ -1399,6 +1399,8 @@ Pascal language.
 Here we give a list of things which are defined/allowed in Turbo Pascal, but
 which are not supported by \fpc. Where possible, we indicate the reason.
 \begin{enumerate}
+\item Duplicate case labels are not allowed. This is a bug in Turbo Pascal
+and will not be changed.
 \item Parameter lists of previously defined functions and procedures must
 match exactly. The reason for this is the function overloading mechanism of
 \fpc. (however, the \var{-So} switch solves this. \seeo{So})
@@ -1421,7 +1423,8 @@ determined. The rest of the expression will be ignored.
 \item By default the compiler uses  \var{AT\&T} assembler syntax.
 This is mainly because \fpc uses \gnu \var{as}. However other assembler
 forms are available, \progref.
-\item Turbo Vision is not available.
+\item Turbo Vision is not completely available. There is FreeVision, but the
+degree of compatibility with Turbo Vision is unclear at this time.
 \item The 'overlay' unit is not available. It also isn't necessary, since
 \fpc is a 32 bit compiler, so program size shouldn't be a point.
 \item There are more reserved words. (see appendix \ref{ch:reserved} for a
