@@ -348,10 +348,9 @@ unit cgx86;
                 OS_16,OS_S16:
                   begin
                     if target_info.alignment.paraalign = 2 then
-                      r:=rg.makeregsize(r,OS_16)
+                      list.concat(taicpu.op_reg(A_PUSH,S_W,rg.makeregsize(r,OS_16)))
                     else
-                      r:=rg.makeregsize(r,OS_32);
-                    list.concat(taicpu.op_reg(A_PUSH,S_L,r));
+                      list.concat(taicpu.op_reg(A_PUSH,S_L,rg.makeregsize(r,OS_32)));
                   end;
                 OS_32,OS_S32:
                   begin
@@ -1598,7 +1597,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.68  2003-09-29 20:58:56  peter
+  Revision 1.69  2003-09-30 19:53:47  peter
+    * fix pushw reg
+
+  Revision 1.68  2003/09/29 20:58:56  peter
     * optimized releasing of registers
 
   Revision 1.67  2003/09/28 13:37:19  peter
