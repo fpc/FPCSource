@@ -55,7 +55,7 @@ interface
       symconst,symdef,paramgr,
       aasmbase,aasmtai,aasmcpu,defutil,htypechk,
       cgbase,cpuinfo,pass_1,pass_2,regvars,
-      cpupara,
+      cpupara,cgcpu,
       ncon,nset,
       ncgutil,tgobj,rgobj,rgcpu,cgobj,cg64f32;
 
@@ -1022,24 +1022,47 @@ interface
           end
         else
           begin
-            case nodetype of
-              addn:
-                begin
-                  op1 := A_ADDC;
-                  op2 := A_ADDEO_;
+            if is_signed(resulttype.def) then
+              begin
+                case nodetype of
+                  addn:
+                    begin
+                      op1 := A_ADDC;
+                      op2 := A_ADDEO;
+                    end;
+                  subn:
+                    begin
+                      op1 := A_SUBC;
+                      op2 := A_SUBFEO;
+                    end;
+                  else
+                    internalerror(2002072806);
+                end
+              end
+            else
+              begin
+                case nodetype of
+                  addn:
+                    begin
+                      op1 := A_ADDC;
+                      op2 := A_ADDE;
+                    end;
+                  subn:
+                    begin
+                      op1 := A_SUBC;
+                      op2 := A_SUBFE;
+                    end;
                 end;
-              subn:
-                begin
-                  op1 := A_SUBC;
-                  op2 := A_SUBFEO_;
-                end;
-              else
-                internalerror(2002072806);
-            end;
+              end;
             exprasmlist.concat(taicpu.op_reg_reg_reg(op1,location.registerlow,
               left.location.registerlow,right.location.registerlow));
             exprasmlist.concat(taicpu.op_reg_reg_reg(op2,location.registerhigh,
               right.location.registerhigh,left.location.registerhigh));
+            if not(is_signed(resulttype.def)) then
+              if nodetype = addn then
+                exprasmlist.concat(taicpu.op_reg_reg(A_CMPLW,location.registerhigh,left.location.registerhigh))
+              else
+                exprasmlist.concat(taicpu.op_reg_reg(A_CMPLW,left.location.registerhigh,location.registerhigh));
             cg.g_overflowcheck(exprasmlist,location,resulttype.def);
           end;
 
@@ -1249,10 +1272,11 @@ interface
     { is also being used for xor, and "mul", "sub, or and comparative }
     { operators                                                }
       var
-         cmpop      : boolean;
          cgop       : topcg;
          op         : tasmop;
          tmpreg     : tregister;
+         hl         : tasmlabel;
+         cmpop      : boolean;
 
          { true, if unsigned types are compared }
          unsigned : boolean;
@@ -1407,19 +1431,54 @@ interface
          else
            // overflow checking is on and we have an addn, subn or muln
            begin
-             case nodetype of
-               addn:
-                 op := A_ADDO_;
-               subn:
-                 op := A_SUBO_;
-               muln:
-                  op := A_MULLWO_;
-               else
-                 internalerror(2002072601);
-             end;
-             exprasmlist.concat(taicpu.op_reg_reg_reg(op,location.register,
-               left.location.register,right.location.register));
-             cg.g_overflowcheck(exprasmlist,location,resulttype.def);
+             if is_signed(resulttype.def) then
+               begin
+                 case nodetype of
+                   addn:
+                     op := A_ADDO;
+                   subn:
+                     op := A_SUBO;
+                   muln:
+                     op := A_MULLWO;
+                   else
+                     internalerror(2002072601);
+                 end;
+                 exprasmlist.concat(taicpu.op_reg_reg_reg(op,location.register,
+                   left.location.register,right.location.register));
+              end
+            else
+              begin
+                case nodetype of
+                  addn:
+                    begin
+                      exprasmlist.concat(taicpu.op_reg_reg_reg(A_ADD,location.register,
+                        left.location.register,right.location.register));
+                      exprasmlist.concat(taicpu.op_reg_reg(A_CMPLW,location.register,left.location.register));
+                      cg.g_overflowcheck(exprasmlist,location,resulttype.def);
+                    end;
+                  subn:
+                    begin
+                      exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUB,location.register,
+                        left.location.register,right.location.register));
+                      exprasmlist.concat(taicpu.op_reg_reg(A_CMPLW,left.location.register,location.register));
+                      cg.g_overflowcheck(exprasmlist,location,resulttype.def);
+                    end;
+                  muln:
+                    begin
+                      { calculate the upper 32 bits of the product, = 0 if no overflow }
+                      exprasmlist.concat(taicpu.op_reg_reg_reg(A_MULHWU_,location.register,
+                        left.location.register,right.location.register));
+                      { calculate the real result }
+                      exprasmlist.concat(taicpu.op_reg_reg_reg(A_MULLW,location.register,
+                        left.location.register,right.location.register));
+                      { g_overflowcheck generates a OC_AE instead of OC_EQ :/ }
+                      objectlibrary.getlabel(hl);
+                      tcgppc(cg).a_jmp_cond(exprasmlist,OC_EQ,hl);
+                      cg.a_call_name(exprasmlist,'FPC_OVERFLOW');
+                      cg.a_label(exprasmlist,hl);
+                    end;
+                end;
+              end;
            end;
 
          release_reg_left_right;
@@ -1430,7 +1489,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.38  2003-10-17 14:52:07  peter
+  Revision 1.39  2003-12-08 21:18:44  jonas
+    * fixed usigned overflow checking
+
+  Revision 1.38  2003/10/17 14:52:07  peter
     * fixed ppc build
 
   Revision 1.37  2003/10/17 01:22:08  florian
