@@ -459,9 +459,15 @@ implementation
                     if (target_info.endian = ENDIAN_BIG) and
                        (l.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
                       inc(l.reference.offset,TCGSize2Size[l.size]-TCGSize2Size[dst_size]);
-                    l.size:=dst_size;
+{$ifdef i386}
+                   l.size:=dst_size;
+{$endif i386}
                   end;
                  cg.a_load_loc_reg(list,dst_size,l,hregister);
+{$ifndef i386}
+                 if (TCGSize2Size[dst_size]<TCGSize2Size[l.size]) then
+                   l.size:=dst_size;
+{$endif not i386}
                  { Release old register when the superregister is changed }
                  if (l.loc=LOC_REGISTER) and
                     (l.register.number shr 8<>hregister.number shr 8) then
@@ -571,10 +577,16 @@ implementation
                     if (target_info.endian = ENDIAN_BIG) and
                        (l.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
                       inc(l.reference.offset,TCGSize2Size[l.size]-TCGSize2Size[dst_size]);
-                    l.size:=dst_size;
+{$ifdef i386}
+                   l.size:=dst_size;
+{$endif i386}
                   end;
 
                  cg.a_load_loc_reg(list,dst_size,l,hregister);
+{$ifndef i386}
+                 if (TCGSize2Size[dst_size]<TCGSize2Size[l.size]) then
+                   l.size:=dst_size;
+{$endif not i386}
                end;
            end;
            location_reset(l,LOC_REGISTER,dst_size);
@@ -1909,7 +1921,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.112  2003-05-30 23:57:08  peter
+  Revision 1.113  2003-05-31 00:48:15  jonas
+    * fixed my previous commit
+
+  Revision 1.112  2003/05/30 23:57:08  peter
     * more sparc cleanup
     * accumulator removed, splitted in function_return_reg (called) and
       function_result_reg (caller)
