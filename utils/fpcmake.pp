@@ -22,6 +22,9 @@ uses
   dos,
   sysutils,classes,inifiles;
 
+{ Include default fpcmake.ini }
+{$i fpcmake.inc}
+
 const
   Version='v0.99.13';
   Title='fpcmake '+Version;
@@ -39,6 +42,7 @@ const
   sec_install='install';
   sec_clean='clean';
   sec_dirs='dirs';
+  sec_packages='packages';
   sec_libs='libs';
   sec_targets='targets';
   sec_info='info';
@@ -61,12 +65,15 @@ type
     DefaultCPU,
     DefaultOptions : string;
     DirFpc,
+    DirPackage,
     DirUnit,
     DirLib,
     DirObj,
     DirTarget,
     DirUnitTarget,
     DirInc         : string;
+    PackageFCL     : boolean;
+    Packages       : string;
     LibName,
     LibUnits       : string;
     LibGCC,
@@ -75,8 +82,7 @@ type
     InfoDirs,
     InfoTools,
     InfoInstall,
-    InfoObjects,
-    InfoFiles      : boolean;
+    InfoObjects    : boolean;
     SectionNone,
     SectionCompile,
     SectionDepend,
@@ -89,6 +95,10 @@ type
     SectionDirs,
     SectionTools,
     SectionInfo    : boolean;
+    ToolsPPDep,
+    ToolsPPUMove,
+    ToolsPPUFiles,
+    ToolsData2Inc,
     ToolsSed,
     ToolsDiff,
     ToolsCmp,
@@ -100,9 +110,16 @@ type
     Rules          : TStringList;
   end;
 
+  TMyMemoryStream=class(TMemoryStream)
+  public
+    constructor Create(p:pointer;mysize:integer);
+  end;
+
 var
   userini : TFpcMake;
   fpcini  : TIniFile;
+  IniStream : TMyMemoryStream;
+
 
 {*****************************************************************************
                                      Helpers
@@ -118,6 +135,17 @@ procedure Error(s:string);
 begin
   Writeln(s);
   Halt(1);
+end;
+
+
+{*****************************************************************************
+                                  TMyMemoryStream
+*****************************************************************************}
+
+constructor TMyMemoryStream.Create(p:pointer;mysize:integer);
+begin
+  inherited Create;
+  SetPointer(p,mysize);
 end;
 
 
@@ -170,8 +198,12 @@ begin
      DefaultTarget:=ReadString(sec_defaults,'defaulttarget','');
      DefaultCPU:=ReadString(sec_defaults,'defaultcpu','');
      DefaultOptions:=ReadString(sec_defaults,'defaultoptions','');
+   { packages }
+     Packages:=Readstring(sec_packages,'packages','');
+     PackageFCL:=ReadBool(sec_packages,'fcl',false);
    { dirs }
      DirFpc:=ReadString(sec_dirs,'fpcdir','');
+     DirPackage:=ReadString(sec_dirs,'packagedir','$(FPCDIR)/packages');
      DirUnit:=ReadString(sec_dirs,'unitdir','');
      DirLib:=ReadString(sec_dirs,'libdir','');
      DirObj:=ReadString(sec_dirs,'objdir','');
@@ -184,7 +216,11 @@ begin
      LibGcc:=ReadBool(sec_libs,'libgcc',false);
      LibOther:=ReadBool(sec_libs,'libother',false);
    { tools }
+     ToolsPPDep:=ReadBool(sec_tools,'toolppdep',true);
+     ToolsPPUMove:=ReadBool(sec_tools,'toolppumove',true);
+     ToolsPPUFiles:=ReadBool(sec_tools,'toolppufiles',true);
      ToolsSed:=ReadBool(sec_tools,'toolsed',false);
+     ToolsData2Inc:=ReadBool(sec_tools,'tooldata2inc',false);
      ToolsDiff:=ReadBool(sec_tools,'tooldiff',false);
      ToolsCmp:=ReadBool(sec_tools,'toolcmp',false);
      ToolsUpx:=ReadBool(sec_tools,'toolupx',true);
@@ -223,7 +259,6 @@ begin
      InfoTools:=ReadBool(sec_info,'infotools',false);
      InfoInstall:=ReadBool(sec_info,'infoinstall',true);
      InfoObjects:=ReadBool(sec_info,'infoobjects',true);
-     InfoFiles:=ReadBool(sec_info,'infofiles',false);
    { rules }
      PreSettings:=TStringList.Create;
      ReadSectionRaw('presettings',PreSettings);
@@ -263,10 +298,18 @@ begin
     fn:=ChangeFileExt(paramstr(0),'.ini')
 {$endif}
   else
-   exit;
-
-  Verbose('Opening '+fn);
-  result:=TIniFile.Create(fn);
+   fn:='';
+  if fn='' then
+   begin
+     Verbose('Opening internal ini');
+     IniStream:=TMyMemoryStream.Create(@fpcmakeini,sizeof(fpcmakeini));
+     result:=TIniFile.Create(IniStream);
+   end
+  else
+   begin
+     Verbose('Opening '+fn);
+     result:=TIniFile.Create(fn);
+   end;
 end;
 
 
@@ -452,6 +495,13 @@ begin
         Add('FPCDIR='+userini.dirfpc);
         Add('endif');
       end;
+     if userini.dirpackage<>'' then
+      begin
+        { this dir can be set in the environment, it's more a default }
+        Add('ifndef PACKAGEDIR');
+        Add('PACKAGEDIR='+userini.dirpackage);
+        Add('endif');
+      end;
      if userini.dirunit<>'' then
       Add('override NEEDUNITDIR='+userini.dirunit);
      if userini.dirlib<>'' then
@@ -472,6 +522,15 @@ begin
         Add('UNITTARGETDIR='+userini.dirunittarget);
         Add('endif');
       end;
+
+   { Packages }
+     AddHead('Packages');
+     if userini.Packages<>'' then
+      Add('PACKAGES='+userini.Packages);
+     if userini.PackageFCL then
+      Add('override NEEDUNITDIR+=$(FPCDIR)/fcl/$(OS_TARGET)');
+     if userini.Packages<>'' then
+      Add('override NEEDUNITDIR+=$(addprefix $(PACKAGEDIR)/,$(PACKAGES))');
 
    { Libs }
      AddHead('Libraries');
@@ -499,8 +558,6 @@ begin
          hs:=hs+'fpc_infoobjects ';
         if userini.infoinstall then
          hs:=hs+'fpc_infoinstall ';
-        if userini.infofiles then
-         hs:=hs+'fpc_infofiles ';
         Add('FPCINFO='+hs);
       end;
 
@@ -517,10 +574,8 @@ begin
      if userini.sectiondirs then
       begin
         AddSection(true,'dir_default');
-        AddSection(true,'dir_rtl');
-        AddSection(true,'dir_units');
-        AddSection(true,'dir_gcclib');
-        AddSection(true,'dir_otherlib');
+        AddSection(userini.libgcc,'dir_gcclib');
+        AddSection(userini.libother,'dir_otherlib');
         AddSection(true,'dir_install');
       end;
 
@@ -532,7 +587,7 @@ begin
         AddSection(true,'command_rtl');
         AddSection(true,'command_needopt');
         AddSection((userini.dirfpc<>''),'command_fpcdir');
-        AddSection((userini.dirunit<>''),'command_needunit');
+        AddSection((userini.dirunit<>'') or (userini.packages<>'') or (userini.packagefcl),'command_needunit');
         AddSection((userini.dirlib<>''),'command_needlib');
         AddSection((userini.dirobj<>''),'command_needobj');
         AddSection((userini.dirinc<>''),'command_needinc');
@@ -550,6 +605,10 @@ begin
       begin
         AddSection(true,'shelltools');
         AddSection(true,'tool_default');
+        AddSection(userini.toolsppdep,'tool_ppdep');
+        AddSection(userini.toolsppumove,'tool_ppumove');
+        AddSection(userini.toolsppufiles,'tool_ppufiles');
+        AddSection(userini.toolsdata2inc,'tool_data2inc');
         AddSection(userini.toolsupx,'tool_upx');
         AddSection(userini.toolssed,'tool_sed');
         AddSection(userini.toolsdate,'tool_date');
@@ -565,13 +624,10 @@ begin
    { add default rules }
      AddSection(true,'defaultrules');
      AddRule('all');
-     AddRule('staticlib');
-     AddRule('sharedlib');
+     AddRule('smart');
+     AddRule('shared');
      AddRule('showinstall');
      AddRule('install');
-     AddRule('staticinstall');
-     AddRule('sharedinstall');
-     AddRule('libinstall');
      AddRule('zipinstall');
      AddRule('zipinstalladd');
      AddRule('clean');
@@ -600,7 +656,6 @@ begin
         AddSection(userini.infotools,'info_tools');
         AddSection(userini.infoobjects,'info_objects');
         AddSection(userini.infoinstall,'info_install');
-        AddSection(userini.infofiles,'info_files');
       end;
 
    { insert users rules }
@@ -639,7 +694,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  1999-11-10 22:10:49  peter
+  Revision 1.7  1999-11-23 09:43:35  peter
+    + internal .ini file
+    + packages support
+    * ppufiles,data2inc support
+
+  Revision 1.6  1999/11/10 22:10:49  peter
     * fpcmake updated
 
   Revision 1.5  1999/11/09 14:38:32  peter
