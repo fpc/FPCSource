@@ -13,6 +13,8 @@ MAKEDOCS=no
 # Set this to "no" if you want don't want to check for libgdb.a
 CHECKLIBGDB=yes
 
+# avoid abort of script if FPCDIR isn't set
+FPCDIR=dummy
 unset FPCDIR
 
 # Goto the toplevel if necessary
@@ -73,7 +75,7 @@ fi
 
 
 # Check for libgdb.a
-if [ ! "$CROSS" = "cross" ]; then
+if [ "$CROSS" = "" ]; then
   if [ "$CHECKLIBGDB" = "yes" ]; then
     if [ "$GDBLIBDIR" = "" ]; then
       GDBLIBDIR=libgdb/$TARGETOS/$TARGETCPU
@@ -106,6 +108,14 @@ if [ "$CROSS" = "" ]; then
   fi
 fi
 
+# check existence of binutils if cross packing
+if [ ! "$CROSS" = "" ]; then
+  if [ ! -f binutils-${CROSSPREFIX}$FULLSOURCE.tar.gz ]; then
+    echo "No cross binutils available: binutils-${CROSSPREFIX}$FULLSOURCE.tar.gz missing."
+    exit 1
+  fi
+fi
+
 # Build everything using the makefiles
 ${MAKE} distclean CPU_TARGET=$TARGETCPU OS_TARGET=$TARGETOS
 ${MAKE} ${CROSS}zipinstall CPU_TARGET=$TARGETCPU OS_TARGET=$TARGETOS
@@ -123,7 +133,7 @@ sed s+%version%+$VERSION+ install/install.sh > install.sh
 chmod 755 install.sh
 
 # binary.*.tar
-BINARYTAR=${CROSSPREFIX}binary.$FULLTARGET.tar
+BINARYTAR=${CROSSPREFIX}binary.$FULLSOURCE.tar
 echo "Creating $BINARYTAR"
 BINPACKAGES="base $IDE units utils"
 BINFILES=
@@ -138,8 +148,13 @@ fi
 RELFILES="$RELFILES $BINARYTAR"
 
 if [ "$CROSS" = "" ]; then
+  # no cross packing
   # demo, docs
   RELFILES="$RELFILES demo.tar.gz docs.tar.gz"
+else
+  # cross packing
+  # add cross binutils 
+  RELFILES="$RELFILES binutils-${CROSSPREFIX}$FULLSOURCE.tar.gz"
 fi
 
 # Files to be added to the .tar
