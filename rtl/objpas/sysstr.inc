@@ -519,8 +519,15 @@ end ;
 
 function IntToStr(Value: integer): string;
 begin
-System.Str(Value, result);
+ System.Str(Value, result);
 end ;
+
+
+function IntToStr(Value: int64): string;
+begin
+ System.Str(Value, result);
+end ;
+
 
 {   IntToHex returns a string representing the hexadecimal value of Value   }
 
@@ -530,11 +537,24 @@ const
 function IntToHex(Value: integer; Digits: integer): string;
 var i: integer;
 begin
-SetLength(result, digits);
-for i := 0 to digits - 1 do begin
+ SetLength(result, digits);
+ for i := 0 to digits - 1 do 
+  begin
    result[digits - i] := HexDigits[value and 15];
    value := value shr 4;
-   end ;
+  end ;
+end ;
+
+
+function IntToHex(Value: int64; Digits: integer): string;
+var i: integer;
+begin
+ SetLength(result, digits);
+ for i := 0 to digits - 1 do 
+  begin
+   result[digits - i] := HexDigits[value and 15];
+   value := value shr 4;
+  end ;
 end ;
 
 {   StrToInt converts the string S to an integer value,
@@ -549,6 +569,17 @@ begin
   if Error <> 0 then raise EConvertError.createfmt(SInValidInteger,[S]);
 end ;
 
+
+function StrToInt64(const S: string): int64;
+
+var Error: word;
+
+begin
+  Val(S, result, Error);
+  if Error <> 0 then raise EConvertError.createfmt(SInValidInteger,[S]);
+end ;
+
+
 {   StrToIntDef converts the string S to an integer value,
     Default is returned in case S does not represent a valid integer value  }
 
@@ -558,6 +589,17 @@ begin
 Val(S, result, Error);
 if Error <> 0 then result := Default;
 end ;
+
+{   StrToIntDef converts the string S to an integer value,
+    Default is returned in case S does not represent a valid integer value  }
+
+function StrToInt64Def(const S: string; Default: int64): int64;
+var Error: word;
+begin
+Val(S, result, Error);
+if Error <> 0 then result := Default;
+end ;
+
 
 {   LoadStr returns the string resource Ident.   }
 
@@ -1175,7 +1217,10 @@ const
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:51  michael
+  Revision 1.3  2000-08-09 07:48:05  marco
+   * Uncommented some int64 functions, now that int64 support is ok
+
+  Revision 1.2  2000/07/13 11:33:51  michael
   + removed logs
  
 }
