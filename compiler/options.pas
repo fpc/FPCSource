@@ -991,6 +991,7 @@ begin
 { Temporary defines, until things settle down }
   def_symbol('INT64');
   def_symbol('HASRESOURCESTRINGS');
+  def_symbol('HASSAVEREGISTERS');
 
 { some stuff for TP compatibility }
 {$ifdef i386}
@@ -1160,7 +1161,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  1999-08-04 13:02:46  jonas
+  Revision 1.10  1999-08-05 23:45:10  peter
+    * saveregister is now working and used for assert and iocheck (which has
+      been moved to system.inc because it's now system independent)
+
+  Revision 1.9  1999/08/04 13:02:46  jonas
     * all tokens now start with an underscore
     * PowerPC compiles!!
 

@@ -795,6 +795,8 @@ end;
 {$endif def SYSTEMDEBUG}
 
 
+{$ifndef HASSAVEREGISTERS}
+
 {****************************************************************************
                                  IoCheck
 ****************************************************************************}
@@ -818,11 +820,15 @@ begin
   end;
 end;
 
-
+{$endif not HASSAVEREGISTERS}
 
 {
   $Log$
-  Revision 1.49  1999-07-06 10:53:52  peter
+  Revision 1.50  1999-08-05 23:45:12  peter
+    * saveregister is now working and used for assert and iocheck (which has
+      been moved to system.inc because it's now system independent)
+
+  Revision 1.49  1999/07/06 10:53:52  peter
     * removed temp defines
 
   Revision 1.48  1999/07/03 09:03:47  florian

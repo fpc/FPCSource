@@ -311,6 +311,21 @@ begin
 end;
 
 
+{$ifdef HASSAVEREGISTERS}
+procedure int_iocheck(addr : longint);[saveregisters,public,alias:'FPC_IOCHECK'];
+var
+  l : longint;
+begin
+  if InOutRes<>0 then
+   begin
+     l:=InOutRes;
+     InOutRes:=0;
+     HandleErrorFrame(l,get_frame);
+   end;
+end;
+{$endif}
+
+
 Function IOResult:Word;
 Begin
   IOResult:=InOutRes;
@@ -531,20 +546,14 @@ begin
 end;
 
 
-Procedure int_assert(Const Msg,FName:string;LineNo,ErrorAddr:Longint); [Public,Alias : 'FPC_ASSERT'];
+Procedure int_assert(Const Msg,FName:string;LineNo,ErrorAddr:Longint); [{$ifdef HASSAVEREGISTERS}SaveRegisters,{$endif}Public,Alias : 'FPC_ASSERT'];
 type
   TAssertErrorProc=procedure(const msg,fname:string;lineno,erroraddr:longint);
 begin
-  asm
-    pushal
-  end;
   if AssertErrorProc<>nil then
    TAssertErrorProc(AssertErrorProc)(Msg,FName,LineNo,ErrorAddr)
   else
    HandleError(227);
-  asm
-    popal
-  end;
 end;
 
 
@@ -573,7 +582,11 @@ end;
 
 {
   $Log$
-  Revision 1.65  1999-07-28 12:58:22  peter
+  Revision 1.66  1999-08-05 23:45:14  peter
+    * saveregister is now working and used for assert and iocheck (which has
+      been moved to system.inc because it's now system independent)
+
+  Revision 1.65  1999/07/28 12:58:22  peter
     * fixed assert() to push/pop registers
 
   Revision 1.64  1999/07/05 20:04:27  peter

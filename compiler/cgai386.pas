@@ -2693,6 +2693,12 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          exprasmlist^.insert(new(pai386,op_reg(A_PUSH,S_L,R_EDI)));
        end;
 
+      { for the save all registers we can simply use a pusha,popa which
+        push edi,esi,ebp,esp(ignored),ebx,edx,ecx,eax }
+      if (po_saveregisters in aktprocsym^.definition^.procoptions) then
+        begin
+          exprasmlist^.insert(new(pai386,op_none(A_PUSHA,S_L)));
+        end;
 
       { omit stack frame ? }
       if not inlined then
@@ -3067,6 +3073,13 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
           }
         end;
 
+      { for the save all registers we can simply use a pusha,popa which
+        push edi,esi,ebp,esp(ignored),ebx,edx,ecx,eax }
+      if (po_saveregisters in aktprocsym^.definition^.procoptions) then
+        begin
+          exprasmlist^.concat(new(pai386,op_none(A_POPA,S_L)));
+        end;
+
       if not(nostackframe) and not inlined then
           exprasmlist^.concat(new(pai386,op_none(A_LEAVE,S_NO)));
       { parameters are limited to 65535 bytes because }
@@ -3163,7 +3176,11 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.26  1999-08-05 14:58:04  florian
+  Revision 1.27  1999-08-05 23:45:09  peter
+    * saveregister is now working and used for assert and iocheck (which has
+      been moved to system.inc because it's now system independent)
+
+  Revision 1.26  1999/08/05 14:58:04  florian
     * some fixes for the floating point registers
     * more things for the new code generator
 
