@@ -586,7 +586,6 @@ REDHATDIR=/usr/src/redhat
 RPMSOURCESDIR:=$(REDHATDIR)/SOURCES
 RPMSPECDIR:=$(REDHATDIR)/SPECS
 RPMSRCDIR:=$(RPMSOURCESDIR)/fpc
-DOCSRCDIR:=$(RPMSOURCESDIR)/fpcdoc
 rpmcopy: distclean
         install -d $(REDHATDIR)
         install -d $(RPMSPECDIR)
@@ -605,23 +604,12 @@ rpmcopy: distclean
         $(COPYTREE) Makefile* $(RPMSRCDIR)
         $(COPYTREE) $(CVSINSTALL)/man $(RPMSRCDIR)
         $(COPYTREE) $(CVSINSTALL)/doc $(RPMSRCDIR)
+        $(COPYTREE) docs $(RPMSRCDIR)
         find $(RPMSRCDIR) -name 'CVS*' | xargs -n1 rm -rf
         cd $(RPMSRCDIR) ; tar cvz * > $(RPMSOURCESDIR)/fpc-$(RPMFPCVERSION)-src.tar.gz
-# fpc-docs.rpm
-ifndef NODOCS
-        rm -rf $(DOCSRCDIR)
-        cp $(CVSINSTALL)/fpc-docs.spec $(RPMSPECDIR)/fpc-docs-$(RPMFPCVERSION).spec
-        install -d $(DOCSRCDIR)
-        $(COPYTREE) docs $(DOCSRCDIR)
-        find $(DOCSRCDIR) -name 'CVS*' | xargs -n1 rm -rf
-        cd $(DOCSRCDIR) ; tar cvz * > $(RPMSOURCESDIR)/fpc-docs-$(RPMFPCVERSION)-src.tar.gz
-endif
 
 rpm: checkfpcdir rpmcopy
         cd $(RPMSPECDIR) ; rpm --nodeps -ba fpc-$(RPMFPCVERSION).spec
-ifndef NODOCS
-        cd $(RPMSPECDIR) ; rpm --nodeps -ba fpc-docs-$(RPMFPCVERSION).spec
-endif
 
 endif   # spec found
 
