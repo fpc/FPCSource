@@ -557,7 +557,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.53  1999-09-02 18:47:44  daniel
+  Revision 1.54  1999-09-16 11:34:44  pierre
+   * typo correction
+
+  Revision 1.53  1999/09/02 18:47:44  daniel
     * Could not compile with TP, some arrays moved to heap
     * NOAG386BIN default for TP
     * AG386* files were not compatible with TP, fixed.
@@ -667,7 +670,7 @@ end.
   Revision 1.25  1998/10/13 08:19:24  pierre
     + source_os is now set correctly for cross-processor compilers
       (tos contains all target_infos and
-       we use CPU86 and CPU68 conditionnals to
+       we use CPU86 and CPU68 conditionals to
        get the source operating system
        this only works if you do not undefine
        the source target  !!)

@@ -1396,7 +1396,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.32  1999-08-25 11:59:54  jonas
+  Revision 1.33  1999-09-16 11:34:54  pierre
+   * typo correction
+
+  Revision 1.32  1999/08/25 11:59:54  jonas
     * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
 
   Revision 1.31  1998/12/11 00:03:09  peter
@@ -1462,7 +1465,7 @@ end.
   Revision 1.20  1998/10/13 08:19:29  pierre
     + source_os is now set correctly for cross-processor compilers
       (tos contains all target_infos and
-       we use CPU86 and CPU68 conditionnals to
+       we use CPU86 and CPU68 conditionals to
        get the source operating system
        this only works if you do not undefine
        the source target  !!)

@@ -1217,7 +1217,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.21  1999-09-15 20:35:40  florian
+  Revision 1.22  1999-09-16 11:34:56  pierre
+   * typo correction
+
+  Revision 1.21  1999/09/15 20:35:40  florian
     * small fix to operator overloading when in MMX mode
     + the compiler uses now fldz and fld1 if possible
     + some fixes to floating point registers
@@ -1394,7 +1397,7 @@ end.
     * local vars and procedures are not yet stored into PPU
 
   Revision 1.87  1999/02/03 10:18:12  pierre
-   * conditionnal code for extended check of virtual methods
+   * conditional code for extended check of virtual methods
 
   Revision 1.86  1999/01/12 14:25:28  peter
     + BrowserLog for browser.log generation
@@ -1516,7 +1519,7 @@ end.
   Revision 1.54  1998/10/13 08:19:40  pierre
     + source_os is now set correctly for cross-processor compilers
       (tos contains all target_infos and
-       we use CPU86 and CPU68 conditionnals to
+       we use CPU86 and CPU68 conditionals to
        get the source operating system
        this only works if you do not undefine
        the source target  !!)

@@ -987,12 +987,15 @@ end;
 end.
 {
   $Log$
-  Revision 1.43  1999-09-10 18:48:09  florian
+  Revision 1.44  1999-09-16 11:34:58  pierre
+   * typo correction
+
+  Revision 1.43  1999/09/10 18:48:09  florian
     * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
     * most things for stored properties fixed
 
   Revision 1.42  1999/08/31 15:47:56  pierre
-   + startup conditionnals stored in PPU file for debug info
+   + startup conditionals stored in PPU file for debug info
 
   Revision 1.41  1999/08/30 16:21:40  pierre
    * tempclosing of ppufiles under dos was wrong

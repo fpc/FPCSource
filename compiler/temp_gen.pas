@@ -520,7 +520,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.34  1999-08-04 00:23:46  florian
+  Revision 1.35  1999-09-16 11:34:59  pierre
+   * typo correction
+
+  Revision 1.34  1999/08/04 00:23:46  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.33  1999/08/02 00:34:06  michael
@@ -614,7 +617,7 @@ end.
     * updates for ag386bin
 
   Revision 1.8  1999/02/11 09:35:19  pierre
-   * ExtDebug conditionnal infinite loop on temp problem removed
+   * ExtDebug conditional infinite loop on temp problem removed
 
   Revision 1.7  1999/02/02 23:52:33  florian
     * problem with calls to method pointers in methods fixed
@@ -634,7 +637,7 @@ end.
 
   Revision 1.3  1998/07/16 08:01:42  pierre
     * small bug correction due to newinput
-      (only with tempdebug conditionnal)
+      (only with tempdebug conditional)
 
   Revision 1.2  1998/07/10 10:51:05  peter
     * m68k updates

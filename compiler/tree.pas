@@ -1765,7 +1765,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.95  1999-09-10 18:48:11  florian
+  Revision 1.96  1999-09-16 11:34:59  pierre
+   * typo correction
+
+  Revision 1.95  1999/09/10 18:48:11  florian
     * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
     * most things for stored properties fixed
 
@@ -2010,7 +2013,7 @@ end.
     * crash bugfix in firstaddr
 
   Revision 1.37  1998/09/08 10:38:04  pierre
-    * some variable fields inside conditionnal were not updated
+    * some variable fields inside conditional were not updated
 
   Revision 1.36  1998/09/07 18:46:17  peter
     * update smartlinking, uses getdatalabel

@@ -1217,7 +1217,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.103  1999-09-07 07:54:23  peter
+  Revision 1.104  1999-09-16 11:34:46  pierre
+   * typo correction
+
+  Revision 1.103  1999/09/07 07:54:23  peter
     * small array push to open array fixed, open array always needs addr
       pushing
 
@@ -1281,7 +1284,7 @@ end.
     * start of register calling conventions
 
   Revision 1.89  1999/05/28 15:59:46  pierre
-   * forgotten emitcall change in conditionnal
+   * forgotten emitcall change in conditional
 
   Revision 1.88  1999/05/28 11:00:49  peter
     * removed ungettempoftype
@@ -1387,7 +1390,7 @@ end.
     * made it compilable with TP
 
   Revision 1.63  1999/02/03 10:18:14  pierre
-   * conditionnal code for extended check of virtual methods
+   * conditional code for extended check of virtual methods
 
   Revision 1.62  1999/02/02 23:52:32  florian
     * problem with calls to method pointers in methods fixed

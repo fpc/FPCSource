@@ -171,7 +171,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.22  1999-08-01 23:35:06  michael
+  Revision 1.23  1999-09-16 11:34:58  pierre
+   * typo correction
+
+  Revision 1.22  1999/08/01 23:35:06  michael
   * Alpha changes
 
   Revision 1.21  1999/04/25 22:34:59  pierre
@@ -207,7 +210,7 @@ end.
   Revision 1.14  1998/10/13 08:19:41  pierre
     + source_os is now set correctly for cross-processor compilers
       (tos contains all target_infos and
-       we use CPU86 and CPU68 conditionnals to
+       we use CPU86 and CPU68 conditionals to
        get the source operating system
        this only works if you do not undefine
        the source target  !!)

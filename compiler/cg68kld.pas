@@ -510,7 +510,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  1998-10-19 08:54:55  pierre
+  Revision 1.8  1999-09-16 11:34:54  pierre
+   * typo correction
+
+  Revision 1.7  1998/10/19 08:54:55  pierre
     * wrong stabs info corrected once again !!
     + variable vmt offset with vmt field only if required
       implemented now !!!
@@ -527,7 +530,7 @@ end.
   Revision 1.4  1998/10/13 08:19:28  pierre
     + source_os is now set correctly for cross-processor compilers
       (tos contains all target_infos and
-       we use CPU86 and CPU68 conditionnals to
+       we use CPU86 and CPU68 conditionals to
        get the source operating system
        this only works if you do not undefine
        the source target  !!)

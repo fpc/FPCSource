@@ -785,7 +785,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.70  1999-09-15 22:09:16  florian
+  Revision 1.71  1999-09-16 11:34:56  pierre
+   * typo correction
+
+  Revision 1.70  1999/09/15 22:09:16  florian
     + rtti is now automatically generated for published classes, i.e.
       they are handled like an implicit property
 
@@ -938,7 +941,7 @@ end.
   Revision 1.29  1998/10/13 08:19:34  pierre
     + source_os is now set correctly for cross-processor compilers
       (tos contains all target_infos and
-       we use CPU86 and CPU68 conditionnals to
+       we use CPU86 and CPU68 conditionals to
        get the source operating system
        this only works if you do not undefine
        the source target  !!)
