@@ -457,10 +457,13 @@ implementation
                  current_module^.search_unit(copy(current_module^.modulename^,1,8),true);
              if not(current_module^.sources_avail) then
                begin
-                  if current_module^.recompile_reason=rr_noppu then
-                    Message1(unit_f_cant_find_ppu,current_module^.modulename^)
+                  hp:=current_module;
+                  current_module:=old_current_module;
+                  if hp^.recompile_reason=rr_noppu then
+                    Message1(unit_f_cant_find_ppu,hp^.modulename^)
                   else
-                    Message1(unit_f_cant_compile_unit,current_module^.modulename^);
+                    Message1(unit_f_cant_compile_unit,hp^.modulename^);
+                  current_module:=hp;
                end
              else
               begin
@@ -1710,7 +1713,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  2000-09-24 21:33:47  peter
+  Revision 1.12  2000-09-30 16:07:40  peter
+    * filepos when unit not found (merged)
+
+  Revision 1.11  2000/09/24 21:33:47  peter
     * message updates merges
 
   Revision 1.10  2000/09/24 15:06:22  peter
