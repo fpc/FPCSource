@@ -1122,6 +1122,7 @@ begin
                              utilsprefix:=Copy(more,2,length(More)-1);
                              More:='';
                           End;
+                    'd' : Dontlinkstdlibpath:=TRUE;
                     'S' :
                       begin
                         def_symbol('FPC_LINK_STATIC');
@@ -1980,7 +1981,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.108  2003-10-08 19:17:43  peter
+  Revision 1.109  2003-10-11 19:32:04  marco
+   * -Xd
+
+  Revision 1.108  2003/10/08 19:17:43  peter
     * -P to -ap
     * -V to -vv
 

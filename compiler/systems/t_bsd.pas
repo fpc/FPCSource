@@ -195,7 +195,8 @@ end;
 Constructor TLinkerBSD.Create;
 begin
   Inherited Create;
-  LibrarySearchPath.AddPath('/lib;/usr/lib;/usr/X11R6/lib',true);
+  IF NOT Dontlinkstdlibpath Then
+   LibrarySearchPath.AddPath('/lib;/usr/lib;/usr/X11R6/lib',true);
 end;
 
 
@@ -529,7 +530,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.3  2003-10-03 14:16:48  marco
+  Revision 1.4  2003-10-11 19:32:04  marco
+   * -Xd
+
+  Revision 1.3  2003/10/03 14:16:48  marco
    * -XP<prefix> support
 
   Revision 1.2  2003/05/25 23:15:04  marco

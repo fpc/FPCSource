@@ -205,7 +205,8 @@ end;
 Constructor TLinkerLinux.Create;
 begin
   Inherited Create;
-  LibrarySearchPath.AddPath('/lib;/usr/lib;/usr/X11R6/lib',true);
+  if NOT Dontlinkstdlibpath Then
+   LibrarySearchPath.AddPath('/lib;/usr/lib;/usr/X11R6/lib',true);
 end;
 
 
@@ -555,7 +556,10 @@ end.
 
 {
   $Log$
-  Revision 1.10  2003-10-03 14:16:48  marco
+  Revision 1.11  2003-10-11 19:32:04  marco
+   * -Xd
+
+  Revision 1.10  2003/10/03 14:16:48  marco
    * -XP<prefix> support
 
   Revision 1.9  2003/07/21 11:52:57  florian

@@ -209,7 +209,8 @@ end;
 Constructor TLinkersunos.Create;
 begin
   Inherited Create;
-  LibrarySearchPath.AddPath('/lib;/usr/lib;/usr/X11R6/lib;/opt/sfw/lib',true);
+  if NOT Dontlinkstdlibpath Then
+   LibrarySearchPath.AddPath('/lib;/usr/lib;/usr/X11R6/lib;/opt/sfw/lib',true);
 {$ifdef  LinkTest}
      if (cs_link_staticflag in aktglobalswitches) then  WriteLN('ForceLinkStaticFlag');
      if (cs_link_static in aktglobalswitches) then  WriteLN('LinkStatic-Flag');
@@ -488,7 +489,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.5  2003-10-03 14:16:48  marco
+  Revision 1.6  2003-10-11 19:32:04  marco
+   * -Xd
+
+  Revision 1.5  2003/10/03 14:16:48  marco
    * -XP<prefix> support
 
   Revision 1.4  2003/04/27 07:29:52  peter

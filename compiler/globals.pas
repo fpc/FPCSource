@@ -135,10 +135,14 @@ interface
        parapreprocess    : boolean;
        printnodefile     : text;
 
+       {  typical cross compiling params}
+
        { directory where the utils can be found (options -FD) }
        utilsdirectory : dirstr;
        { targetname specific prefix used by these utils (options -XP<path>) }
        utilsprefix    : dirstr;
+       { Don't add std paths to linkpath}
+       Dontlinkstdlibpath: Boolean;
 
        { some flags for global compiler switches }
        do_build,
@@ -234,6 +238,7 @@ interface
        RelocSection : boolean = true;
        RelocSectionSetExplicitly : boolean = false;
        LinkTypeSetExplicitly : boolean = false;
+       	
        DLLsource : boolean = false;
        DLLImageBase : pstring = nil;
        UseDeffileForExport : boolean = true;
@@ -1611,6 +1616,7 @@ implementation
       { Utils directory }
         utilsdirectory:='';
         utilsprefix:='';
+               
 
       { Search Paths }
         librarysearchpath:=TSearchPathList.Create;
@@ -1706,7 +1712,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.108  2003-10-08 14:10:16  mazen
+  Revision 1.109  2003-10-11 19:32:04  marco
+   * -Xd
+
+  Revision 1.108  2003/10/08 14:10:16  mazen
   + ASMMODE ATT added to bypass fpc.cfg defaults
 
   Revision 1.107  2003/10/03 22:00:33  peter
