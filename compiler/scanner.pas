@@ -647,8 +647,13 @@ implementation
            break;
           end;
         until false;
+{$ifopt H+}
+        setlength(orgpattern,i);
+        setlength(pattern,i);
+{$else}
         orgpattern[0]:=chr(i);
         pattern[0]:=chr(i);
+{$endif}
       end;
 
 
@@ -695,7 +700,11 @@ implementation
       { was the next char a linebreak ? }
         if c in [#10,#13] then
          linebreak;
+{$ifopt H+}
+        setlength(pattern,i);
+{$else}
         pattern[0]:=chr(i);
+{$endif}
       end;
 
 
@@ -747,7 +756,11 @@ implementation
           if c in [#10,#13] then
            linebreak;
         until false;
+{$ifopt H+}
+        setlength(readcomment,i);
+{$else}
         readcomment[0]:=chr(i);
+{$endif}
       end;
 
 
@@ -1522,7 +1535,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.66  1998-11-05 23:48:29  peter
+  Revision 1.67  1998-11-16 12:18:06  peter
+    * H+ fixes
+
+  Revision 1.66  1998/11/05 23:48:29  peter
     * recordtype.field support in constant expressions
     * fixed imul for oa_imm8 which was not allowed
     * fixed reading of local typed constants

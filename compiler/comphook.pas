@@ -111,7 +111,11 @@ begin
       gccfilename[i]:=s[i];
      end;
    end;
+{$ifopt H+}
+  setlength(gccfilename,length(s));
+{$else}
   gccfilename[0]:=s[0];
+{$endif}
 end;
 
 
@@ -209,7 +213,7 @@ begin
          begin
            if status.use_gccoutput then
              hs:=gccfilename(status.currentsource)+':'+tostr(status.currentline)+': '+hs
-                 +tostr(status.currentcolumn)+': ' 
+                 +tostr(status.currentcolumn)+': '
            else
              hs:=status.currentsource+'('+tostr(status.currentline)
                  +','+tostr(status.currentcolumn)+') '+hs;
@@ -254,7 +258,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  1998-10-27 13:45:25  pierre
+  Revision 1.11  1998-11-16 12:17:59  peter
+    * H+ fixes
+
+  Revision 1.10  1998/10/27 13:45:25  pierre
     * classes get a vmt allways
     * better error info (tried to remove
       several error strings introduced by the tpexcept handling)

@@ -140,7 +140,11 @@ const
                                end
                              else
                                len:=mac^.buflen;
+{$ifopt H+}
+                             setlength(hs,len);
+{$else}
                              hs[0]:=char(len);
+{$endif}
                              move(mac^.buftext^,hs[1],len);
                           end
                         else
@@ -508,12 +512,19 @@ const
         name  : namestr;
         ext   : extstr;
         hp    : pinputfile;
+        i     : longint;
         found : boolean;
       begin
         current_scanner^.skipspace;
         hs:=current_scanner^.readcomment;
-        while (hs<>'') and (hs[length(hs)]=' ') do
-         dec(byte(hs[0]));
+        i:=length(hs);
+        while (i>0) and (hs[i]=' ') do
+         dec(i);
+{$ifopt H+}
+        setlength(hs,i);
+{$else}
+        hs[0]:=chr(i);
+{$endif}
         if hs='' then
          exit;
         if (hs[1]='%') then
@@ -974,7 +985,10 @@ const
 
 {
   $Log$
-  Revision 1.41  1998-10-22 17:54:08  florian
+  Revision 1.42  1998-11-16 12:18:04  peter
+    * H+ fixes
+
+  Revision 1.41  1998/10/22 17:54:08  florian
     + switch $APPTYPE for win32 added
 
   Revision 1.40  1998/10/21 20:16:04  peter

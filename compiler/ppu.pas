@@ -575,7 +575,11 @@ function tppufile.getstring:string;
 var
   s : string;
 begin
+{$ifopt H+}
+  setlength(s,getbyte);
+{$else}
   s[0]:=chr(getbyte);
+{$endif}
   if entryidx+length(s)>entry.size then
    begin
      error:=true;
@@ -776,7 +780,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.17  1998-10-14 10:45:08  pierre
+  Revision 1.18  1998-11-16 12:18:03  peter
+    * H+ fixes
+
+  Revision 1.17  1998/10/14 10:45:08  pierre
     * ppu problems for m68k fixed (at least in cross compiling)
     * one last memory leak for sysamiga fixed
     * the amiga RTL compiles now completely !!
