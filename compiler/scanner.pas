@@ -308,6 +308,7 @@ implementation
         found : boolean;
         state : char;
       begin
+        found:= false;
         current_scanner.skipspace;
         hs:=current_scanner.readid;
         if (length(hs)>1) then
@@ -3266,7 +3267,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.87  2004-08-22 23:16:06  olle
+  Revision 1.88  2004-09-12 20:46:58  olle
+    * Minor bugfix in $IFOPT
+
+  Revision 1.87  2004/08/22 23:16:06  olle
     + added flag to TMacro denoting mac style compiler variable
     * fixed $DEFINEC
     * improved robustness of macro facility
