@@ -128,11 +128,11 @@ interface
        );
 
        tar = (ar_none
-            ,ar_gnu_ar,ar_gnu_arw
+            ,ar_gnu_ar,ar_gnu_arw,ar_mpw_ar
        );
 
        tres = (res_none
-            ,res_gnu_windres,res_emxbind
+            ,res_gnu_windres,res_emxbind,res_mpw_res
        );
 
        tscripttype = (script_none
@@ -671,7 +671,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.53  2002-08-18 09:13:02  florian
+  Revision 1.54  2002-08-20 21:40:44  florian
+    + target macos for ppc added
+    + frame work for mpw assembler output
+
+  Revision 1.53  2002/08/18 09:13:02  florian
     * small fixes to the alpha stuff
 
   Revision 1.52  2002/08/13 21:40:57  florian

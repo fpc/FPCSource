@@ -1,8 +1,8 @@
 {
     $Id$
-    Copyright (c) 1998-2002 by Florian Klaempfl
+    Copyright (c) 2002 by Florian Klaempfl
 
-    This unit implements an asmoutput class for Intel syntax with Intel i386+
+    This unit implements an asmoutput class for PowerPC with MPW syntax
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,25 +21,38 @@
  ****************************************************************************
 }
 {
-  This unit implements an asmoutput class for Intel syntax with Intel i386+
+  This unit implements an asmoutput class for PowerPC with MPW syntax
 }
-unit ag386int;
+unit agppcmpwt;
 
 {$i fpcdefs.inc}
 
 interface
 
-    uses aasmbase,aasmtai,aasmcpu,assemble;
+    uses
+       aasmbase,aasmtai,aasmcpu,assemble,
+       cpubase;
 
+    const
+      mpw_reg2str : treg2strtable = ('',
+        'r0','r1','r2','r3','r4','r5','r6','r7','r8','r9','r10','r11','r12','r13','r14','r15','r16',
+        'r17','r18','r19','r20','r21','r22','r23','r24','r25','r26','r27','r28','r29','r30','r31',
+        'f0','f1','f2','f3','f4','f5','f6','f7', 'f8','f9','f10','f11','f12',
+        'f13','f14','f15','f16','f17', 'f18','f19','f20','f21','f22', 'f23','f24',
+        'f25','f26','f27','f28','f29','f30','f31',
+        'v0','v1','v2','v3','v4','v5','v6','v7','v8','v9','v10','v11','v12',
+        'v13','v14','v15','v16','v17','v18','v19','v20','v21','v22', 'v23','v24',
+        'v25','v26','v27','v28','v29','v30','v31',
+        'cR','cr0','cr1','cr2','cr3','cr4','cr5','cr6','cr7',
+        'xer','lr','ctr','fpscr'
+      );
     type
-      T386IntelAssembler = class(TExternalAssembler)
+      TPPCMPWAssembler = class(TExternalAssembler)
         procedure WriteTree(p:TAAsmoutput);override;
         procedure WriteAsmList;override;
         Function  DoAssemble:boolean;override;
         procedure WriteExternals;
       end;
-
-
 
 
   implementation
@@ -49,7 +62,7 @@ interface
       sysutils,
 {$endif}
       cutils,globtype,globals,systems,cclasses,
-      verbose,cpubase,finput,fmodule,script,cpuinfo
+      verbose,finput,fmodule,script,cpuinfo
       ;
 
     const
@@ -125,124 +138,55 @@ interface
       s     : string;
       first : boolean;
     begin
-      with ref do
-        begin
-          first:=true;
-          inc(offset,offsetfixup);
-          offsetfixup:=0;
-          if ref.segment<>R_NO then
-           s:=std_reg2str[segment]+':['
-          else
-           s:='[';
-         if assigned(symbol) then
-          begin
-            if (aktoutputformat = as_i386_tasm) then
-              s:=s+'dword ptr ';
-            s:=s+symbol.name;
-            first:=false;
-          end;
-         if (base<>R_NO) then
-          begin
-            if not(first) then
-             s:=s+'+'
-            else
-             first:=false;
-             s:=s+std_reg2str[base];
-          end;
-         if (index<>R_NO) then
-           begin
-             if not(first) then
-               s:=s+'+'
-             else
-               first:=false;
-             s:=s+std_reg2str[index];
-             if scalefactor<>0 then
-               s:=s+'*'+tostr(scalefactor);
-           end;
-         if offset<0 then
-           s:=s+tostr(offset)
-         else if (offset>0) then
-           s:=s+'+'+tostr(offset);
-         if s[length(s)]='[' then
-           s:=s+'0';
-         s:=s+']';
-        end;
        getreferencestring:=s;
      end;
 
 
-    function getopstr(const o:toper;s : topsize; opcode: tasmop;dest : boolean) : string;
+    function getopstr(const o:toper) : string;
     var
       hs : string;
     begin
       case o.typ of
-        top_reg :
-          getopstr:=std_reg2str[o.reg];
-        top_const :
+        top_reg:
+          getopstr:=mpw_reg2str[o.reg];
+        { no top_ref jumping for powerpc }
+        top_const:
           getopstr:=tostr(longint(o.val));
-        top_symbol :
+        top_ref:
+          getopstr:=getreferencestring(o.ref^);
+        top_symbol:
           begin
-            if assigned(o.sym) then
-              hs:='offset '+o.sym.name
-            else
-              hs:='offset ';
+            hs:=o.sym.name;
             if o.symofs>0 then
              hs:=hs+'+'+tostr(o.symofs)
             else
              if o.symofs<0 then
-              hs:=hs+tostr(o.symofs)
-            else
-             if not(assigned(o.sym)) then
-               hs:=hs+'0';
-            getopstr:=hs;
-          end;
-        top_ref :
-          begin
-            hs:=getreferencestring(o.ref^);
-            if ((opcode <> A_LGS) and (opcode <> A_LSS) and
-                (opcode <> A_LFS) and (opcode <> A_LDS) and
-                (opcode <> A_LES)) then
-             Begin
-               case s of
-                S_B : hs:='byte ptr '+hs;
-                S_W : hs:='word ptr '+hs;
-                S_L : hs:='dword ptr '+hs;
-               S_IS : hs:='word ptr '+hs;
-               S_IL : hs:='dword ptr '+hs;
-               S_IQ : hs:='qword ptr '+hs;
-               S_FS : hs:='dword ptr '+hs;
-               S_FL : hs:='qword ptr '+hs;
-               S_FX : hs:='tbyte ptr '+hs;
-               S_BW : if dest then
-                       hs:='word ptr '+hs
-                      else
-                       hs:='byte ptr '+hs;
-               S_BL : if dest then
-                       hs:='dword ptr '+hs
-                      else
-                       hs:='byte ptr '+hs;
-               S_WL : if dest then
-                       hs:='dword ptr '+hs
-                      else
-                       hs:='word ptr '+hs;
-               end;
-             end;
+              hs:=hs+tostr(o.symofs);
             getopstr:=hs;
           end;
         else
-          internalerror(10001);
+{$ifndef testing}
+          internalerror(2002070604);
+{$else testing}
+          begin
+            writeln('internalerror 10001');
+            halt(1);
+          end;
+{$endif testing}
       end;
     end;
 
-    function getopstr_jmp(const o:toper;s : topsize) : string;
+
+    function getopstr_jmp(const o:toper) : string;
     var
       hs : string;
     begin
       case o.typ of
         top_reg :
-          getopstr_jmp:=std_reg2str[o.reg];
+          getopstr_jmp:=mpw_reg2str[o.reg];
+        { no top_ref jumping for powerpc }
         top_const :
-          getopstr_jmp:=tostr(longint(o.val));
+          getopstr_jmp:=tostr(o.val);
         top_symbol :
           begin
             hs:=o.sym.name;
@@ -253,22 +197,15 @@ interface
               hs:=hs+tostr(o.symofs);
             getopstr_jmp:=hs;
           end;
-        top_ref :
-          { what about lcall or ljmp ??? }
-          begin
-            if (aktoutputformat = as_i386_tasm) then
-              hs:=''
-            else
-              begin
-                if s=S_FAR then
-                  hs:='far ptr '
-                else
-                  hs:='dword ptr ';
-              end;
-            getopstr_jmp:=hs+getreferencestring(o.ref^);
-          end;
         else
-          internalerror(10001);
+{$ifndef testing}
+          internalerror(2002070603);
+{$else testing}
+          begin
+            writeln('internalerror 10001');
+            halt(1);
+          end;
+{$endif testing}
       end;
     end;
 
@@ -325,7 +262,7 @@ interface
        PadTabs:=s+#9;
     end;
 
-    procedure T386IntelAssembler.WriteTree(p:TAAsmoutput);
+    procedure TPPCMPWAssembler.WriteTree(p:TAAsmoutput);
     const
       nolinetai =[ait_label,
                   ait_regalloc,ait_tempalloc,
@@ -405,36 +342,38 @@ interface
            end;
          DoNotSplitLine:=false;
          case hp.typ of
-       ait_comment : Begin
-                       AsmWrite(target_asm.comment);
-                       AsmWritePChar(tai_comment(hp).str);
-                       AsmLn;
-                     End;
-       ait_regalloc,
-       ait_tempalloc : ;
-       ait_section : begin
-                       if LasTSec<>sec_none then
-                        AsmWriteLn('_'+target_asm.secnames[LasTSec]+#9#9'ENDS');
-                       if tai_section(hp).sec<>sec_none then
-                        begin
-                          AsmLn;
-                          AsmWriteLn('_'+target_asm.secnames[tai_section(hp).sec]+#9#9+
-                                     'SEGMENT'#9'PARA PUBLIC USE32 '''+
-                                     target_asm.secnames[tai_section(hp).sec]+'''');
-                        end;
-                       LasTSec:=tai_section(hp).sec;
-                     end;
-         ait_align : begin
-                     { CAUSES PROBLEMS WITH THE SEGMENT DEFINITION   }
-                     { SEGMENT DEFINITION SHOULD MATCH TYPE OF ALIGN }
-                     { HERE UNDER TASM!                              }
-                       AsmWriteLn(#9'ALIGN '+tostr(tai_align(hp).aligntype));
-                     end;
-     ait_datablock : begin
-                       if tai_datablock(hp).is_global then
-                         AsmWriteLn(#9'PUBLIC'#9+tai_datablock(hp).sym.name);
-                       AsmWriteLn(PadTabs(tai_datablock(hp).sym.name,#0)+'DB'#9+tostr(tai_datablock(hp).size)+' DUP(?)');
-                     end;
+            ait_comment:
+              begin
+                 AsmWrite(target_asm.comment);
+                 AsmWritePChar(tai_comment(hp).str);
+                 AsmLn;
+              end;
+            ait_regalloc,
+            ait_tempalloc:
+              ;
+            ait_section:
+              begin
+                 if LasTSec<>sec_none then
+                  AsmWriteLn('_'+target_asm.secnames[LasTSec]+#9#9'ENDS');
+                 if tai_section(hp).sec<>sec_none then
+                  begin
+                    AsmLn;
+                    AsmWriteLn('_'+target_asm.secnames[tai_section(hp).sec]+#9#9+
+                               'SEGMENT'#9'PARA PUBLIC USE32 '''+
+                               target_asm.secnames[tai_section(hp).sec]+'''');
+                  end;
+                 LasTSec:=tai_section(hp).sec;
+               end;
+             ait_align:
+               begin
+                  AsmWriteLn(#9'ALIGN '+tostr(tai_align(hp).aligntype));
+               end;
+             ait_datablock:
+               begin
+                  if tai_datablock(hp).is_global then
+                    AsmWriteLn(#9'PUBLIC'#9+tai_datablock(hp).sym.name);
+                     AsmWriteLn(PadTabs(tai_datablock(hp).sym.name,#0)+'DB'#9+tostr(tai_datablock(hp).size)+' DUP(?)');
+               end;
    ait_const_32bit,
     ait_const_8bit,
    ait_const_16bit : begin
@@ -572,6 +511,7 @@ interface
     ait_symbol_end : begin
                      end;
    ait_instruction : begin
+{!!!!
                      { Must be done with args in ATT order }
                        taicpu(hp).SetOperandOrder(op_att);
                        taicpu(hp).CheckNonCommutativeOpcodes;
@@ -637,6 +577,7 @@ interface
                            end;
                         end;
                        AsmWriteLn(#9#9+prefix+std_op2str[taicpu(hp).opcode]+cond2str[taicpu(hp).condition]+suffix+s);
+}
                      end;
 {$ifdef GDB}
              ait_stabn,
@@ -698,24 +639,18 @@ ait_stab_function_name : ;
 
     procedure writeexternal(p:tnamedindexitem;arg:pointer);
       begin
-        if tasmsymbol(p).defbind=AB_EXTERNAL then
-          begin
-            if (aktoutputformat = as_i386_masm) then
-              currentasmlist.AsmWriteln(#9'EXTRN'#9+p.name
-                +': NEAR')
-            else
-              currentasmlist.AsmWriteln(#9'EXTRN'#9+p.name);
-          end;
+         if tasmsymbol(p).defbind=AB_EXTERNAL then
+           currentasmlist.AsmWriteln(#9'EXTRN'#9+p.name);
       end;
 
-    procedure T386IntelAssembler.WriteExternals;
+    procedure TPPCMPWAssembler.WriteExternals;
       begin
         currentasmlist:=self;
         objectlibrary.symbolsearch.foreach_static({$ifdef fpcprocvar}@{$endif}writeexternal,nil);
       end;
 
 
-    function t386intelassembler.DoAssemble : boolean;
+    function TPPCMPWAssembler.DoAssemble : boolean;
     var f : file;
     begin
       DoAssemble:=Inherited DoAssemble;
@@ -737,11 +672,11 @@ ait_stab_function_name : ;
     end;
 
 
-    procedure T386IntelAssembler.WriteAsmList;
+    procedure TPPCMPWAssembler.WriteAsmList;
     begin
 {$ifdef EXTDEBUG}
       if assigned(current_module.mainsource) then
-       comment(v_info,'Start writing intel-styled assembler output for '+current_module.mainsource^);
+       comment(v_info,'Start writingMPW-styled assembler output for '+current_module.mainsource^);
 {$endif}
       LasTSec:=sec_none;
       AsmWriteLn(#9'.386p');
@@ -771,7 +706,7 @@ ait_stab_function_name : ;
 
 {$ifdef EXTDEBUG}
       if assigned(current_module.mainsource) then
-       comment(v_info,'Done writing intel-styled assembler output for '+current_module.mainsource^);
+       comment(v_info,'Done writing MPW-styled assembler output for '+current_module.mainsource^);
 {$endif EXTDEBUG}
    end;
 
@@ -780,12 +715,12 @@ ait_stab_function_name : ;
 *****************************************************************************}
 
     const
-       as_i386_tasm_info : tasminfo =
+       as_powerpc_mpw_info : tasminfo =
           (
-            id           : as_i386_tasm;
-            idtxt  : 'TASM';
-            asmbin : 'tasm';
-            asmcmd : '/m2 /ml $ASM $OBJ';
+            id           : as_powerpc_mpw;
+            idtxt  : 'MPW';
+            asmbin : 'ppcasm';
+            asmcmd : '';
             supported_target : system_any; { what should I write here ?? }
             outputbinary: false;
             allowdirect : true;
@@ -799,114 +734,12 @@ ait_stab_function_name : ;
               '','','')
           );
 
-       as_i386_masm_info : tasminfo =
-          (
-            id           : as_i386_masm;
-            idtxt  : 'MASM';
-            asmbin : 'masm';
-            asmcmd : '/c /Cp $ASM /Fo$OBJ';
-            supported_target : system_any; { what should I write here ?? }
-            outputbinary: false;
-            allowdirect : true;
-            needar : true;
-            labelprefix_only_inside_procedure : false;
-            labelprefix : '@@';
-            comment : '; ';
-            secnames : ('',
-              'CODE','DATA','BSS',
-              '','','','','','',
-              '','','')
-          );
-
 initialization
-  RegisterAssembler(as_i386_tasm_info,T386IntelAssembler);
-  RegisterAssembler(as_i386_masm_info,T386IntelAssembler);
+  RegisterAssembler(as_powerpc_mpw_info,TPPCMPWAssembler);
 end.
 {
   $Log$
-  Revision 1.28  2002-08-20 21:40:44  florian
+  Revision 1.1  2002-08-20 21:40:44  florian
     + target macos for ppc added
     + frame work for mpw assembler output
-
-  Revision 1.27  2002/08/18 20:06:28  peter
-    * inlining is now also allowed in interface
-    * renamed write/load to ppuwrite/ppuload
-    * tnode storing in ppu
-    * nld,ncon,nbas are already updated for storing in ppu
-
-  Revision 1.26  2002/08/12 15:08:41  carl
-    + stab register indexes for powerpc (moved from gdb to cpubase)
-    + tprocessor enumeration moved to cpuinfo
-    + linker in target_info is now a class
-    * many many updates for m68k (will soon start to compile)
-    - removed some ifdef or correct them for correct cpu
-
-  Revision 1.25  2002/08/11 14:32:29  peter
-    * renamed current_library to objectlibrary
-
-  Revision 1.24  2002/08/11 13:24:16  peter
-    * saving of asmsymbols in ppu supported
-    * asmsymbollist global is removed and moved into a new class
-      tasmlibrarydata that will hold the info of a .a file which
-      corresponds with a single module. Added librarydata to tmodule
-      to keep the library info stored for the module. In the future the
-      objectfiles will also be stored to the tasmlibrarydata class
-    * all getlabel/newasmsymbol and friends are moved to the new class
-
-  Revision 1.23  2002/07/26 21:15:43  florian
-    * rewrote the system handling
-
-  Revision 1.22  2002/07/01 18:46:29  peter
-    * internal linker
-    * reorganized aasm layer
-
-  Revision 1.21  2002/05/18 13:34:21  peter
-    * readded missing revisions
-
-  Revision 1.20  2002/05/16 19:46:50  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.18  2002/05/12 16:53:16  peter
-    * moved entry and exitcode to ncgutil and cgobj
-    * foreach gets extra argument for passing local data to the
-      iterator function
-    * -CR checks also class typecasts at runtime by changing them
-      into as
-    * fixed compiler to cycle with the -CR option
-    * fixed stabs with elf writer, finally the global variables can
-      be watched
-    * removed a lot of routines from cga unit and replaced them by
-      calls to cgobj
-    * u32bit-s32bit updates for and,or,xor nodes. When one element is
-      u32bit then the other is typecasted also to u32bit without giving
-      a rangecheck warning/error.
-    * fixed pascal calling method with reversing also the high tree in
-      the parast, detected by tcalcst3 test
-
-  Revision 1.17  2002/04/15 19:12:09  carl
-  + target_info.size_of_pointer -> pointer_size
-  + some cleanup of unused types/variables
-  * move several constants from cpubase to their specific units
-    (where they are used)
-  + att_Reg2str -> gas_reg2str
-  + int_reg2str -> std_reg2str
-
-  Revision 1.16  2002/04/04 19:06:07  peter
-    * removed unused units
-    * use tlocation.size in cg.a_*loc*() routines
-
-  Revision 1.15  2002/04/02 17:11:33  peter
-    * tlocation,treference update
-    * LOC_CONSTANT added for better constant handling
-    * secondadd splitted in multiple routines
-    * location_force_reg added for loading a location to a register
-      of a specified size
-    * secondassignment parses now first the right and then the left node
-      (this is compatible with Kylix). This saves a lot of push/pop especially
-      with string operations
-    * adapted some routines to use the new cg methods
-
 }

@@ -56,7 +56,6 @@ unit agppcgas;
       );
 
 
-
   implementation
 
     uses
@@ -366,7 +365,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2002-08-18 22:16:14  florian
+  Revision 1.15  2002-08-20 21:40:44  florian
+    + target macos for ppc added
+    + frame work for mpw assembler output
+
+  Revision 1.14  2002/08/18 22:16:14  florian
     + the ppc gas assembler writer adds now registers aliases
       to the assembler file
 

@@ -31,16 +31,13 @@ unit i_macos;
           (
             system       : system_powerpc_MACOS;
             name         : 'MacOs (PowerPC)';
-            shortname    : 'MacOs/PPC';
+            shortname    : 'MacOSPPC';
             flags        : [];
             cpu          : cpu_powerpc;
-            short_name   : 'MACOS';
             unit_env     : '';
             extradefines : '';
-            sharedlibext : 'Lib';
-            staticlibext : 'Lib';
             sourceext    : '.pp';
-            pasext       : '.pas';
+            pasext       : '.p';
             exeext       : '';
             defext       : '';
             scriptext    : '';
@@ -51,24 +48,46 @@ unit i_macos;
             objext       : '.o';
             resext       : '.res';
             resobjext    : '.or';
+            sharedlibext : 'Lib';
+            staticlibext : 'Lib';
             staticlibprefix : '';
             sharedlibprefix : '';
+            sharedClibext : 'Lib';
+            staticClibext : 'Lib';
+            staticClibprefix : '';
+            sharedClibprefix : '';
             Cprefix      : '';
-            newline      : #13;
+            newline      : #10;
+            dirsep       : ':';
+            files_case_relevent : true;
             assem        : as_powerpc_mpw;
             assemextern  : as_powerpc_mpw;
-            link         : ld_powerpc_macos;
-            linkextern   : ld_powerpc_macos;
-            ar           : ar_powerpc_ar;
-            res          : res_powerpc_mpw;
+            link         : nil;
+            linkextern   : nil;
+            ar           : ar_mpw_ar;
+            res          : res_mpw_res;
             script       : script_unix;
             endian       : endian_big;
-            stackalignment : 8;
-            maxCrecordalignment : 32;
-            size_of_longint : 4;
+            alignment    :
+              (
+                procalign       : 4;
+                loopalign       : 4;
+                jumpalign       : 0;
+                constalignmin   : 0;
+                constalignmax   : 4;
+                varalignmin     : 0;
+                varalignmax     : 4;
+                localalignmin   : 8;
+                localalignmax   : 8;
+                paraalign       : 8;
+                recordalignmin  : 0;
+                recordalignmax  : 2;
+                maxCrecordalign : 16
+              );
+            first_parm_offset : 8;
             heapsize     : 256*1024;
-            stacksize    : 8192;
-            DllScanSupported:false;
+            stacksize    : 262144;
+            DllScanSupported:true;
             use_function_relative_addresses : true
           );
 
@@ -83,7 +102,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.2  2002-08-12 15:08:39  carl
+  Revision 1.3  2002-08-20 21:40:44  florian
+    + target macos for ppc added
+    + frame work for mpw assembler output
+
+  Revision 1.2  2002/08/12 15:08:39  carl
     + stab register indexes for powerpc (moved from gdb to cpubase)
     + tprocessor enumeration moved to cpuinfo
     + linker in target_info is now a class

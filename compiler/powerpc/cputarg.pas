@@ -39,6 +39,9 @@ implementation
     {$ifndef NOTARGETLINUX}
       ,t_linux
     {$endif}
+    {$ifndef NOTARGETMACOS}
+      ,t_macos
+    {$endif}
 
 {**************************************
              Assemblers
@@ -47,12 +50,19 @@ implementation
     {$ifndef NOAGPPCGAS}
       ,agppcgas
     {$endif}
+    {$ifndef NOAGPPPCMPW}
+      ,agppcmpw
+    {$endif}
       ;
 
 end.
 {
   $Log$
-  Revision 1.4  2002-07-07 09:44:32  florian
+  Revision 1.5  2002-08-20 21:40:44  florian
+    + target macos for ppc added
+    + frame work for mpw assembler output
+
+  Revision 1.4  2002/07/07 09:44:32  florian
     * powerpc target fixed, very simple units can be compiled
 
   Revision 1.3  2002/05/18 13:34:26  peter

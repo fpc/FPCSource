@@ -41,15 +41,19 @@ implementation
 
 initialization
 {$ifdef m68k}
-  RegisterTarget(target_m68k_macos_info);
+  RegisterTarget(system_m68k_macos_info);
 {$endif m68k}
 {$ifdef powerpc}
-  RegisterTarget(target_powerpc_macos_info);
+  RegisterTarget(system_powerpc_macos_info);
 {$endif powerpc}
 end.
 {
   $Log$
-  Revision 1.12  2002-07-26 21:15:46  florian
+  Revision 1.13  2002-08-20 21:40:44  florian
+    + target macos for ppc added
+    + frame work for mpw assembler output
+
+  Revision 1.12  2002/07/26 21:15:46  florian
     * rewrote the system handling
 
   Revision 1.11  2002/05/18 13:34:27  peter
