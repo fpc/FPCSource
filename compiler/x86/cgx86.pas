@@ -1573,8 +1573,7 @@ unit cgx86;
            system_i386_freebsd,
            system_i386_netbsd,
 //         system_i386_openbsd,
-           system_i386_wdosx,
-           system_i386_linux:
+           system_i386_wdosx :
              begin
                 Case target_info.system Of
                  system_i386_freebsd : mcountprefix:='.';
@@ -1589,10 +1588,14 @@ unit cgx86;
                 list.concat(Tai_label.Create(pl));
                 list.concat(Tai_const.Create_32bit(0));
                 list.concat(Tai_section.Create(sec_code));
+                list.concat(Taicpu.Op_reg(A_PUSH,S_L,NR_EDX));
                 list.concat(Taicpu.Op_sym_ofs_reg(A_MOV,S_L,pl,0,NR_EDX));
                 a_call_name(list,target_info.Cprefix+mcountprefix+'mcount');
-                include(rg[R_INTREGISTER].used_in_proc,RS_EDX);
+                list.concat(Taicpu.Op_reg(A_POP,S_L,NR_EDX));
              end;
+
+           system_i386_linux:
+             a_call_name(list,target_info.Cprefix+'mcount');
 
            system_i386_go32v2,system_i386_watcom:
              begin
@@ -1788,7 +1791,11 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.117  2004-03-06 20:35:20  florian
+  Revision 1.118  2004-03-10 22:52:03  peter
+    * mcount for linux fixed
+    * push/pop edx for mcount
+
+  Revision 1.117  2004/03/06 20:35:20  florian
     * fixed arm compilation
     * cleaned up code generation for exported linux procedures
 
