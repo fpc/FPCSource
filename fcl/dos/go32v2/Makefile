@@ -44,7 +44,7 @@ CPUDIR=../$(CPU)
 include $(INCDIR)/Makefile.inc
 
 # Set inc
-$(addprefix $(INCDIR),$(INCFILENAMES))
+INCFILENAMES=$(addprefix $(INCDIR)/,$(INCNAMES))
 
 # If nothing special needs doing, then just fill in the names here.
 # The rest should be automatic.
