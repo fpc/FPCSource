@@ -588,32 +588,32 @@ begin
     end;
 end;
 
-Function fpc_Val_UInt64_AnsiStr (Const S : AnsiString; Var Code : ValSInt): qword; [public, alias:'FPC_VAL_QWORD_ANSISTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Function fpc_Val_qword_AnsiStr (Const S : AnsiString; Var Code : ValSInt): qword; [public, alias:'FPC_VAL_QWORD_ANSISTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
 Var
   SS : ShortString;
 begin
-  fpc_Val_UInt64_AnsiStr:=0;
+  fpc_Val_qword_AnsiStr:=0;
   if length(S)>255 then
     code:=256
   else
     begin
        SS := S;
-       Val(SS,fpc_Val_UInt64_AnsiStr,Code);
+       Val(SS,fpc_Val_qword_AnsiStr,Code);
     end;
 end;
 
 
-Function fpc_Val_SInt64_AnsiStr (Const S : AnsiString; Var Code : ValSInt): Int64; [public, alias:'FPC_VAL_INT64_ANSISTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Function fpc_Val_int64_AnsiStr (Const S : AnsiString; Var Code : ValSInt): Int64; [public, alias:'FPC_VAL_INT64_ANSISTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
 Var
   SS : ShortString;
 begin
-  fpc_Val_SInt64_AnsiStr:=0;
+  fpc_Val_int64_AnsiStr:=0;
   if length(S)>255 then
     code:=256
   else
     begin
        SS := s;
-       Val(SS,fpc_Val_SInt64_AnsiStr,Code);
+       Val(SS,fpc_Val_int64_AnsiStr,Code);
     end;
 end;
 
@@ -626,7 +626,7 @@ begin
 end;
 
 
-Procedure fpc_AnsiStr_UInt(C : Cardinal;Len : Longint; Var S : AnsiString);[Public,Alias : 'FPC_ANSISTR_CARDINAL']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_AnsiStr_Cardinal(C : Cardinal;Len : Longint; Var S : AnsiString);[Public,Alias : 'FPC_ANSISTR_CARDINAL']; {$ifdef hascompilerproc} compilerproc; {$endif}
 Var
   SS : ShortString;
 begin
@@ -636,7 +636,7 @@ end;
 
 
 
-Procedure fpc_AnsiStr_SInt(L : Longint; Len : Longint; Var S : AnsiString);[Public,Alias : 'FPC_ANSISTR_LONGINT']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_AnsiStr_Longint(L : Longint; Len : Longint; Var S : AnsiString);[Public,Alias : 'FPC_ANSISTR_LONGINT']; {$ifdef hascompilerproc} compilerproc; {$endif}
 Var
   SS : ShortString;
 begin
@@ -732,7 +732,13 @@ end;
 
 {
   $Log$
-  Revision 1.17  2001-08-01 15:00:10  jonas
+  Revision 1.18  2001-08-13 12:40:16  jonas
+    * renamed some str(x,y) and val(x,y) helpers so the naming scheme is the
+      same for all string types
+    + added the str(x,y) and val(x,y,z) helpers for int64/qword to
+      compproc.inc
+
+  Revision 1.17  2001/08/01 15:00:10  jonas
     + "compproc" helpers
     * renamed several helpers so that their name is the same as their
       "public alias", which should facilitate the conversion of processor

@@ -347,7 +347,7 @@
            qword_str(qword(value),s);
       end;
 
-  procedure int_str_qword(v : qword;len : longint;var s : shortstring);[public,alias:'FPC_SHORTSTR_QWORD'];
+  procedure fpc_shortstr_qword(v : qword;len : longint;var s : shortstring);[public,alias:'FPC_SHORTSTR_QWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
 
     begin
        qword_str(v,s);
@@ -355,7 +355,7 @@
           s:=space(len-length(s))+s;
     end;
 
-  procedure int_str_int64(v : int64;len : longint;var s : shortstring);[public,alias:'FPC_SHORTSTR_INT64'];
+  procedure fpc_shortstr_int64(v : int64;len : longint;var s : shortstring);[public,alias:'FPC_SHORTSTR_INT64'];  {$ifdef hascompilerproc} compilerproc; {$endif}
 
     begin
        int64_str(v,s);
@@ -363,27 +363,50 @@
          s:=space(len-length(s))+s;
     end;
 
-  procedure int_str_qword(v : qword;len : longint;var s : ansistring);[public,alias:'FPC_ANSISTR_QWORD'];
+  procedure fpc_ansistr_qword(v : qword;len : longint;var s : ansistring);[public,alias:'FPC_ANSISTR_QWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
 
     var
        ss : shortstring;
 
     begin
-       int_str_qword(v,len,ss);
+       str(v:len,ss);
        s:=ss;
     end;
 
-  procedure int_str_int64(v : int64;len : longint;var s : ansistring);[public,alias:'FPC_ANSISTR_INT64'];
+  procedure fpc_ansistr_int64(v : int64;len : longint;var s : ansistring);[public,alias:'FPC_ANSISTR_INT64']; {$ifdef hascompilerproc} compilerproc; {$endif}
 
     var
        ss : shortstring;
 
     begin
-       int_str_int64(v,len,ss);
+       str(v:len,ss);
        s:=ss;
     end;
 
-  Function ValInt64(Const S: ShortString; var Code: ValSInt): Int64; [public, alias:'FPC_VAL_INT64_SHORTSTR'];
+{$ifdef HASWIDESTRING}
+  procedure fpc_widestr_qword(v : qword;len : longint;var s : widestring);[public,alias:'FPC_WIDESTR_QWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
+
+    var
+       ss : shortstring;
+
+    begin
+       str(v:len,ss);
+       s:=ss;
+    end;
+
+  procedure fpc_widestr_int64(v : int64;len : longint;var s : widestring);[public,alias:'FPC_WIDESTR_INT64']; {$ifdef hascompilerproc} compilerproc; {$endif}
+
+    var
+       ss : shortstring;
+
+    begin
+       str(v:len,ss);
+       s:=ss;
+    end;
+{$endif HASWIDESTRING}
+
+
+  Function fpc_val_int64_shortstr(Const S: ShortString; var Code: ValSInt): Int64; [public, alias:'FPC_VAL_INT64_SHORTSTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
    type
      QWordRec = packed record
        l1,l2: longint;
@@ -395,7 +418,7 @@
        negative : boolean;
 
   begin
-    ValInt64 := 0;
+    fpc_val_int64_shortstr := 0;
     Temp:=0;
     Code:=InitVal(s,negative,base);
     if Code>length(s) then
@@ -430,20 +453,20 @@
          (qword(maxqword-temp) < u)) or
         (prev > maxqword div qword(base)) Then
        Begin
-         ValInt64 := 0;
+         fpc_val_int64_shortstr := 0;
          Exit
        End;
        Temp:=Temp+u;
        inc(code);
      end;
     code:=0;
-    ValInt64:=int64(Temp);
+    fpc_val_int64_shortstr:=int64(Temp);
     If Negative Then
-      ValInt64:=-ValInt64;
+      fpc_val_int64_shortstr:=-fpc_val_int64_shortstr;
   end;
 
 
-  Function ValQWord(Const S: ShortString; var Code: ValSInt): QWord; [public, alias:'FPC_VAL_QWORD_SHORTSTR'];
+  Function fpc_val_qword_shortstr(Const S: ShortString; var Code: ValSInt): QWord; [public, alias:'FPC_VAL_QWORD_SHORTSTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
     type qwordrec = packed record
       l1,l2: longint;
     end;
@@ -452,7 +475,7 @@
        base : byte;
        negative : boolean;
   begin
-    ValQWord:=0;
+    fpc_val_qword_shortstr:=0;
     Code:=InitVal(s,negative,base);
     If Negative or (Code>length(s)) Then
       Exit;
@@ -470,14 +493,14 @@
        else
         u:=16;
        end;
-       prev := ValQWord;
+       prev := fpc_val_qword_shortstr;
        If (u>=base) or
          ((QWord(maxqword-u) div QWord(base))<prev) then
          Begin
-           ValQWord := 0;
+           fpc_val_qword_shortstr := 0;
            Exit
          End;
-       ValQWord:=ValQWord*QWord(base) + u;
+       fpc_val_qword_shortstr:=fpc_val_qword_shortstr*QWord(base) + u;
        inc(code);
      end;
     code := 0;
@@ -485,7 +508,13 @@
 
 {
   $Log$
-  Revision 1.10  2001-04-23 18:25:45  peter
+  Revision 1.11  2001-08-13 12:40:16  jonas
+    * renamed some str(x,y) and val(x,y) helpers so the naming scheme is the
+      same for all string types
+    + added the str(x,y) and val(x,y,z) helpers for int64/qword to
+      compproc.inc
+
+  Revision 1.10  2001/04/23 18:25:45  peter
     * m68k updates
 
   Revision 1.9  2001/04/13 22:30:04  peter

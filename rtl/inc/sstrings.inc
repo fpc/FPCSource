@@ -16,8 +16,6 @@
                     subroutines for string handling
 ****************************************************************************}
 
-{$I real2str.inc}
-
 {$ifndef INTERNSETLENGTH}
 procedure SetLength(var s:shortstring;len:StrLenInt);
 {$else INTERNSETLENGTH}
@@ -311,12 +309,6 @@ end;
                               Str() Helpers
 *****************************************************************************}
 
-procedure fpc_ShortStr_Float(d : ValReal;len,fr,rt : longint;var s : shortstring);[public,alias:'FPC_SHORTSTR_FLOAT']; {$ifdef hascompilerproc}compilerproc;{$endif hascompilerproc}
-begin
-  str_real(len,fr,d,treal_type(rt),s);
-end;
-
-
 procedure fpc_shortstr_longint(v : longint;len : longint;var s : shortstring);[public,alias:'FPC_SHORTSTR_LONGINT']; {$ifdef hascompilerproc} compilerproc; {$endif}
 begin
   int_str(v,s);
@@ -331,6 +323,18 @@ begin
   if length(s)<len then
     s:=space(len-length(s))+s;
 end;
+
+{ fpc_shortstr_longint must appear before this file is included, because }
+{ it's used inside real2str.inc and otherwise the searching via the      }
+{ compilerproc name will fail (JM)                                       }
+
+{$I real2str.inc}
+
+procedure fpc_ShortStr_Float(d : ValReal;len,fr,rt : longint;var s : shortstring);[public,alias:'FPC_SHORTSTR_FLOAT']; {$ifdef hascompilerproc}compilerproc;{$endif hascompilerproc}
+begin
+  str_real(len,fr,d,treal_type(rt),s);
+end;
+
 
 
 {*****************************************************************************
@@ -575,7 +579,13 @@ end;
 
 {
   $Log$
-  Revision 1.15  2001-08-01 15:00:10  jonas
+  Revision 1.16  2001-08-13 12:40:16  jonas
+    * renamed some str(x,y) and val(x,y) helpers so the naming scheme is the
+      same for all string types
+    + added the str(x,y) and val(x,y,z) helpers for int64/qword to
+      compproc.inc
+
+  Revision 1.15  2001/08/01 15:00:10  jonas
     + "compproc" helpers
     * renamed several helpers so that their name is the same as their
       "public alias", which should facilitate the conversion of processor

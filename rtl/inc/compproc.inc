@@ -63,6 +63,7 @@ Procedure fpc_CharArray_To_AnsiStr(var a : ansistring;p : pchar;l:longint); comp
 Function fpc_AnsiStr_Compare(S1,S2 : Pointer): Longint; compilerproc;
 Procedure fpc_AnsiStr_CheckZero(p : pointer); compilerproc;
 Procedure fpc_AnsiStr_CheckRange(len,index : longint); compilerproc;
+Procedure fpc_AnsiStr_SetLength (Var S : AnsiString; l : Longint); compilerproc;
 {$ifdef EXTRAANSISHORT}
 Function fpc_AnsiStr_ShortStr_Compare (Var S1 : Pointer; Var S2 : ShortString): Longint; compilerproc;
 {$endif EXTRAANSISHORT}
@@ -88,20 +89,30 @@ Procedure fpc_widestr_Unique(Var S : WideString); compilerproc;
 Function fpc_Val_Real_AnsiStr(Const S : AnsiString; Var Code : ValSInt): ValReal; compilerproc;
 Function fpc_Val_UInt_AnsiStr (Const S : AnsiString; Var Code : ValSInt): ValUInt; compilerproc;
 Function fpc_Val_SInt_AnsiStr (DestSize: longint; Const S : AnsiString; Var Code : ValSInt): ValSInt; compilerproc;
-Function fpc_Val_UInt64_AnsiStr (Const S : AnsiString; Var Code : ValSInt): qword;compilerproc; 
-Function fpc_Val_SInt64_AnsiStr (Const S : AnsiString; Var Code : ValSInt): Int64; compilerproc;
+Function fpc_Val_qword_AnsiStr (Const S : AnsiString; Var Code : ValSInt): qword;compilerproc; 
+Function fpc_Val_int64_AnsiStr (Const S : AnsiString; Var Code : ValSInt): Int64; compilerproc;
 procedure fpc_AnsiStr_Float(d : ValReal;len,fr,rt : longint;var s : ansistring); compilerproc;
-Procedure fpc_AnsiStr_UInt(C : Cardinal;Len : Longint; Var S : AnsiString); compilerproc;
-Procedure fpc_AnsiStr_SInt(L : Longint; Len : Longint; Var S : AnsiString); compilerproc;
+Procedure fpc_AnsiStr_Cardinal(C : Cardinal;Len : Longint; Var S : AnsiString); compilerproc;
+Procedure fpc_AnsiStr_Longint(L : Longint; Len : Longint; Var S : AnsiString); compilerproc;
 
 Function fpc_Val_Real_WideStr(Const S : WideString; Var Code : ValSInt): ValReal; compilerproc;
 Function fpc_Val_UInt_WideStr (Const S : WideString; Var Code : ValSInt): ValUInt; compilerproc;
 Function fpc_Val_SInt_WideStr (DestSize: longint; Const S : WideString; Var Code : ValSInt): ValSInt; compilerproc;
-Function fpc_Val_UInt64_WideStr (Const S : WideString; Var Code : ValSInt): qword; compilerproc;
-Function fpc_Val_SInt64_WideStr (Const S : WideString; Var Code : ValSInt): Int64; compilerproc;
+Function fpc_Val_qword_WideStr (Const S : WideString; Var Code : ValSInt): qword; compilerproc;
+Function fpc_Val_int64_WideStr (Const S : WideString; Var Code : ValSInt): Int64; compilerproc;
 procedure fpc_WideStr_Float(d : ValReal;len,fr,rt : longint;var s : WideString); compilerproc;
 Procedure fpc_WideStr_Cardinal(C : Cardinal;Len : Longint; Var S : WideString); compilerproc;
 Procedure fpc_WideStr_Longint(L : Longint; Len : Longint; Var S : WideString); compilerproc;
+
+{ from int64.inc }
+procedure fpc_shortstr_qword(v : qword;len : longint;var s : shortstring); compilerproc;
+procedure fpc_shortstr_int64(v : int64;len : longint;var s : shortstring); compilerproc;
+procedure fpc_ansistr_qword(v : qword;len : longint;var s : ansistring); compilerproc;
+procedure fpc_ansistr_int64(v : int64;len : longint;var s : ansistring); compilerproc;
+Function fpc_val_int64_shortstr(Const S: ShortString; var Code: ValSInt): Int64; compilerproc;
+Function fpc_val_qword_shortstr(Const S: ShortString; var Code: ValSInt): QWord; compilerproc;
+procedure fpc_widestr_qword(v : qword;len : longint;var s : widestring); compilerproc;
+procedure fpc_widestr_int64(v : int64;len : longint;var s : widestring); compilerproc;
 
 function fpc_do_is(aclass : tclass;aobject : tobject) : boolean; compilerproc;
 procedure fpc_do_as(aclass : tclass;aobject : tobject); compilerproc;
@@ -186,7 +197,13 @@ Procedure fpc_typed_read(TypeSize : Longint;var f : TypedFile;var Buf); compiler
 
 {
   $Log$
-  Revision 1.2  2001-08-06 14:13:55  jonas
+  Revision 1.3  2001-08-13 12:40:16  jonas
+    * renamed some str(x,y) and val(x,y) helpers so the naming scheme is the
+      same for all string types
+    + added the str(x,y) and val(x,y,z) helpers for int64/qword to
+      compproc.inc
+
+  Revision 1.2  2001/08/06 14:13:55  jonas
     * changed buf parameter of fpc_type_write from var to const
     + added names of helpers in typefile.inc to compproc.inc
 

@@ -710,32 +710,32 @@ begin
     end;
 end; 
 
-Function fpc_Val_UInt64_WideStr (Const S : WideString; Var Code : ValSInt): qword; [public, alias:'FPC_VAL_QWORD_WIDESTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Function fpc_Val_qword_WideStr (Const S : WideString; Var Code : ValSInt): qword; [public, alias:'FPC_VAL_QWORD_WIDESTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
 Var
   SS : ShortString;
 begin
-  fpc_Val_UInt64_WideStr:=0;
+  fpc_Val_qword_WideStr:=0;
   if length(S)>255 then
     code:=256
   else
     begin
        SS := S;
-       Val(SS,fpc_Val_UInt64_WideStr,Code);
+       Val(SS,fpc_Val_qword_WideStr,Code);
     end;
 end; 
   
   
-Function fpc_Val_SInt64_WideStr (Const S : WideString; Var Code : ValSInt): Int64; [public, alias:'FPC_VAL_INT64_WIDESTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Function fpc_Val_int64_WideStr (Const S : WideString; Var Code : ValSInt): Int64; [public, alias:'FPC_VAL_INT64_WIDESTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
 Var
   SS : ShortString;
 begin
-  fpc_Val_SInt64_WideStr:=0;
+  fpc_Val_int64_WideStr:=0;
   if length(S)>255 then
     code:=256
   else
     begin
        SS := S;
-       Val(SS,fpc_Val_SInt64_WideStr,Code);
+       Val(SS,fpc_Val_int64_WideStr,Code);
     end;
 end;
 
@@ -771,7 +771,13 @@ end;
 
 {
   $Log$
-  Revision 1.11  2001-08-01 15:00:11  jonas
+  Revision 1.12  2001-08-13 12:40:16  jonas
+    * renamed some str(x,y) and val(x,y) helpers so the naming scheme is the
+      same for all string types
+    + added the str(x,y) and val(x,y,z) helpers for int64/qword to
+      compproc.inc
+
+  Revision 1.11  2001/08/01 15:00:11  jonas
     + "compproc" helpers
     * renamed several helpers so that their name is the same as their
       "public alias", which should facilitate the conversion of processor
