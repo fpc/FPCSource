@@ -604,8 +604,13 @@ unit pexpr;
                 end
               else
                 begin
-                   p1:=genzeronode(errorn);
-                   Message(parser_e_no_procedure_to_access_property);
+                   if ppropertysym(sym)^.proptype^.deftype=objectdef then
+                    pd:=ppropertysym(sym)^.proptype
+                   else
+                    begin
+                      p1:=genzeronode(errorn);
+                      Message(parser_e_no_procedure_to_access_property);
+                    end;
                 end;
            end
          else
@@ -1981,7 +1986,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.95  1999-04-19 06:10:08  florian
+  Revision 1.96  1999-04-19 09:13:47  peter
+    * class property without write support
+
+  Revision 1.95  1999/04/19 06:10:08  florian
     * property problem fixed: a propertysym is only a write
       access if it is followed by a assignment token
 
