@@ -761,17 +761,20 @@ begin
   LastInsOffset:=-1;
 end;
 procedure TAiCpu.SetCondition(const c:TAsmCond);
+  const
+    AsmCond2OpCode:array[TAsmCond]of TAsmOp=
+      (A_BN,A_BNE,A_BE,A_BG,A_BLE,A_BGE,A_BI,A_BGU,A_BLEU,A_BCC,
+A_BCS,A_BPOS,A_NEG,A_BVC,A_BVS,A_BA,A_NONE,A_NONE,A_NONE,A_NONE,A_NONE,A_NONE,A_NONE,A_NONE,A_NONE,A_NONE,A_NONE,A_NONE,A_NONE,A_NONE,A_NONE);
   begin
     inherited SetCondition(c);
     if Opcode=A_BA
     then
       begin
         is_jmp:=true;
-        case c of
-          C_NE:Opcode:=A_BNE;
-        else
-          InternalError(2003021800);
-        end;
+        Opcode:=AsmCond2OpCode[c];
+      {$IFDEF EXTDEBUG}
+        WriteLn('In TAiCpu.SetCondition TAsmCond=',Byte(Opcode),'==>',std_op2str[AsmCond2OpCode[c]]);
+      {$ENDIF EXTDEBUG}
       end;
   end;
 function taicpu.NeedAddrPrefix(opidx:byte):boolean;
@@ -1093,7 +1096,10 @@ procedure InitAsm;
 end.
 {
     $Log$
-    Revision 1.17  2003-02-18 22:00:20  mazen
+    Revision 1.18  2003-03-10 21:59:54  mazen
+    * fixing index overflow in handling new registers arrays.
+
+    Revision 1.17  2003/02/18 22:00:20  mazen
     * asm condition generation modified by TAiCpu.SetCondition
 
     Revision 1.16  2003/01/08 18:43:58  daniel

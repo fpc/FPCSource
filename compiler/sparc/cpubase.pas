@@ -207,8 +207,8 @@ TYPE
   Tsupregset=set of Tsuperregister;
 CONST
   R_NO=R_NONE;
-  firstreg = R_G0;
-  lastreg  = R_I7;
+  firstreg = Succ(R_NONE);
+  lastreg  = Pred(R_INTREGISTER);
 
 {General registers.}
 
@@ -466,8 +466,8 @@ const
   lastsaveintreg = RS_I7;
   firstsavefpureg = R_F0;
   lastsavefpureg = R_F31;
-  firstsavemmreg = R_I0;
-  lastsavemmreg = R_I7;
+  firstsavemmreg = R_NONE;
+  lastsavemmreg = R_NONE;
   lowsavereg = R_G0;
   highsavereg = R_I7;
 
@@ -676,7 +676,10 @@ END.
 
 {
   $Log$
-  Revision 1.24  2003-02-26 22:06:27  mazen
+  Revision 1.25  2003-03-10 21:59:54  mazen
+  * fixing index overflow in handling new registers arrays.
+
+  Revision 1.24  2003/02/26 22:06:27  mazen
   * FirstReg <-- R_G0 instead of Low(TOldRegister)=R_NONE
   * LastReg <-- R_L7 instead of High(R_ASR31)=High(TOldRegister)
   * FirstReg..LastReg rplaced by TOldRegister in several arrays declarions

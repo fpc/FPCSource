@@ -238,7 +238,7 @@ procedure TSparctypeconvnode.second_int_to_real;
       if(left.location.loc = LOC_REGISTER) or
         ((left.location.loc = LOC_CREGISTER) and not signed)
       then
-        rg.ungetregister(exprasmlist,leftreg)
+        rg.UnGetRegisterInt(exprasmlist,leftreg)
       else
         cg.free_scratch_reg(exprasmlist,valuereg);
       tmpfpureg := rg.getregisterfpu(exprasmlist);
@@ -300,7 +300,7 @@ procedure TSparctypeconvnode.second_int_to_bool;
             hreg1 := rg.getregisterint(exprasmlist,opsize);
             exprasmlist.concat(taicpu.op_reg_const_reg(A_SUB,hreg1,1,hreg2));
             exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUB,hreg1,hreg1,hreg2));
-            rg.ungetregister(exprasmlist,hreg2);
+            rg.UnGetRegisterInt(exprasmlist,hreg2);
         end;
       LOC_FLAGS :
         begin
@@ -388,7 +388,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2003-02-19 22:00:17  daniel
+  Revision 1.13  2003-03-10 21:59:54  mazen
+  * fixing index overflow in handling new registers arrays.
+
+  Revision 1.12  2003/02/19 22:00:17  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 

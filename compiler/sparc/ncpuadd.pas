@@ -57,18 +57,18 @@ procedure TSparcAddNode.clear_left_right(cmpop:Boolean);
     if(right.location.loc in [LOC_REGISTER,LOC_FPUREGISTER])and(cmpop or(location.register.enum <> right.location.register.enum))
     then
       begin
-        rg.ungetregister(exprasmlist,right.location.register);
+        rg.UnGetRegisterInt(exprasmlist,right.location.register);
         if is_64bitint(right.resulttype.def)
         then
-          rg.ungetregister(exprasmlist,right.location.registerhigh);
+          rg.UnGetRegisterInt(exprasmlist,right.location.registerhigh);
         end;
     if(left.location.loc in [LOC_REGISTER,LOC_FPUREGISTER])and(cmpop or(location.register.enum <> left.location.register.enum))
     then
       begin
-        rg.ungetregister(exprasmlist,left.location.register);
+        rg.UnGetRegisterInt(exprasmlist,left.location.register);
         if is_64bitint(left.resulttype.def)
         then
-          rg.ungetregister(exprasmlist,left.location.registerhigh);
+          rg.UnGetRegisterInt(exprasmlist,left.location.registerhigh);
       end;
   end;
 procedure TSparcAddNode.second_addboolean;
@@ -930,7 +930,7 @@ procedure TSparcAddNode.second_addfloat;
               r,left.location.register,right.location.register))
           end;
 
-        clear_left_right(cmpop);
+//        clear_left_right(cmpop);
   end;
 procedure TSparcAddNode.set_result_location(cmpOp,unsigned:Boolean);
   begin
@@ -1111,7 +1111,10 @@ begin
 end.
 {
     $Log$
-    Revision 1.10  2003-02-19 22:00:17  daniel
+    Revision 1.11  2003-03-10 21:59:54  mazen
+    * fixing index overflow in handling new registers arrays.
+
+    Revision 1.10  2003/02/19 22:00:17  daniel
       * Code generator converted to new register notation
       - Horribily outdated todo.txt removed
 

@@ -56,10 +56,10 @@ var r:Tregister;
     else result := inherited GetExplicitRegisterInt(list,reg);
   end;
 
-procedure trgcpu.UngetregisterInt(list: taasmoutput; reg: tregister);
-
+procedure trgcpu.UngetRegisterInt(list:taasmoutput;reg:tregister);
   begin
-    if reg.enum<>R_INTREGISTER then
+    if reg.enum<>R_INTREGISTER
+    then
       internalerror(200302191);
     if (reg.number=RS_O7) or (reg.number=NR_I7)
     then
@@ -67,13 +67,15 @@ procedure trgcpu.UngetregisterInt(list: taasmoutput; reg: tregister);
     else
       inherited ungetregisterint(list,reg);
   end;
-
 begin
   rg := trgcpu.create;
 end.
 {
   $Log$
-  Revision 1.6  2003-02-19 22:00:17  daniel
+  Revision 1.7  2003-03-10 21:59:54  mazen
+  * fixing index overflow in handling new registers arrays.
+
+  Revision 1.6  2003/02/19 22:00:17  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 

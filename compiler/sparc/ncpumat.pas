@@ -140,14 +140,14 @@ implementation
              begin
                exprasmlist.concat(taicpu.op_reg_reg_reg(A_SMUL,resultreg,
                  divider,resultreg));
-               rg.ungetregister(exprasmlist,divider);
+               rg.UnGetRegisterInt(exprasmlist,divider);
                exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUB,location.register,
                  numerator,resultreg));
                cg.free_scratch_reg(exprasmlist,resultreg);
                resultreg := location.register;
              end
            else
-             rg.ungetregister(exprasmlist,divider);
+             rg.UnGetRegisterInt(exprasmlist,divider);
            end;
        { free used registers }
         if numerator.enum <> resultreg.enum then
@@ -263,12 +263,12 @@ procedure tSparcshlshrnode.pass_2;
             exprasmlist.concat(taicpu.op_reg_reg_reg(asmop1,R_0,hregisterlow,R_0));
             exprasmlist.concat(taicpu.op_reg_reg_reg(A_OR,location.registerhigh,location.registerhigh,R_0));
             exprasmlist.concat(taicpu.op_reg_reg_reg(asmop1,location.registerlow,hregisterlow,hregister1));}
-            rg.ungetregister(exprasmlist,r);
+            rg.UnGetRegisterInt(exprasmlist,r);
             if right.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]
             then
               cg.free_scratch_reg(exprasmlist,hregister1)
             else
-              rg.ungetregister(exprasmlist,hregister1);
+              rg.UnGetRegisterInt(exprasmlist,hregister1);
           end
       end
     else
@@ -301,7 +301,7 @@ procedure tSparcshlshrnode.pass_2;
             location_force_reg(exprasmlist,right.location,def_cgsize(right.resulttype.def),true);
             hregister2 := right.location.register;
             cg.a_op_reg_reg_reg(exprasmlist,op,OS_32,hregister2,hregister1,resultreg);
-            rg.ungetregister(exprasmlist,hregister2);
+            rg.UnGetRegisterInt(exprasmlist,hregister2);
           end;
       end;
   end;
@@ -478,7 +478,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2003-02-19 22:00:17  daniel
+  Revision 1.6  2003-03-10 21:59:54  mazen
+  * fixing index overflow in handling new registers arrays.
+
+  Revision 1.5  2003/02/19 22:00:17  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 

@@ -408,12 +408,27 @@ procedure TCgSparc.a_loadfpu_reg_reg(list:TAasmOutput;reg1, reg2:tregister);
        end;
 
 
-    procedure TCgSparc.a_loadfpu_reg_ref(list:TAasmOutput;size:tcgsize;reg:tregister;CONST ref:TReference);
-
+    procedure TCgSparc.a_loadfpu_reg_ref(list:TAasmOutput;size:tcgsize;reg:tregister;const ref:TReference);
+       const
+         FpuStoreInstr: Array[OS_F32..OS_F64,boolean, boolean] of TAsmOp =
+                            { indexed? updating?}
+                    (((A_STF,A_STF),(A_STF,A_STF)),
+                     ((A_STDF,A_STDF),(A_STDF,A_STDF)));
+       var
+         op: tasmop;
+         ref2: treference;
+         freereg: boolean;
        begin
-{         if reg <> R_ST then
-           a_loadfpu_reg_reg(list,reg,R_ST);}
-         floatstore(list,size,ref);
+         if not(size in [OS_F32,OS_F64])
+         then
+           internalerror(200201122);
+{         ref2:=ref;
+         freereg:=fixref(list,ref2);
+         op:=fpustoreinstr[size,ref2.index.enum <> R_NO,false];
+         a_load_store(list,op,reg,ref2);
+         if freereg
+         then
+           cg.free_scratch_reg(list,ref2.base);}
        end;
 
 
@@ -1214,7 +1229,7 @@ procedure TCgSparc.g_concatcopy(list:taasmoutput;const source,dest:treference;le
           objectlibrary.getlabel(lab);
           a_label(list, lab);
           list.concat(taicpu.op_reg_const_reg(A_SUB,countreg,1,countreg));
-          list.concat(taicpu.op_reg_ref(A_LDF,r,src));
+          list.concat(taicpu.op_ref_reg(A_LDF,src,r));
           list.concat(taicpu.op_reg_ref(A_STD,r,dst));
           //a_jmp(list,A_BC,C_NE,0,lab);
           free_scratch_reg(list,countreg);
@@ -1410,7 +1425,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.40  2003-02-25 21:41:44  mazen
+  Revision 1.41  2003-03-10 21:59:54  mazen
+  * fixing index overflow in handling new registers arrays.
+
+  Revision 1.40  2003/02/25 21:41:44  mazen
   * code re-aligned 2 spaces
 
   Revision 1.39  2003/02/19 22:00:16  daniel
