@@ -1625,6 +1625,9 @@ implementation
             a_call_name(list,'FPC_DECREF');
             deallocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
          end;
+        { Temp locations need always to be reset to 0 }
+        if tg.istemp(ref) then
+          a_load_const_ref(list,OS_ADDR,0,ref);
       end;
 
 
@@ -2109,7 +2112,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.150  2004-01-21 21:01:34  peter
+  Revision 1.151  2004-01-21 22:13:20  peter
+    * decrrefcount resets temps to nil
+
+  Revision 1.150  2004/01/21 21:01:34  peter
     * fixed stackchecking for register calling
 
   Revision 1.149  2004/01/20 12:59:36  florian
