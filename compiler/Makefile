@@ -87,6 +87,10 @@ MSGFILE=error$(LANGUAGE).msg
 
 DIFFEXIST:=$(shell $(DIFF) --help)
 
+ifeq ($(OS_TARGET),win32) 
+override DIFF=cmp -i138
+endif
+
 # Used to avoid unnecessary steps in remake3
 ifdef DIFFEXIST
 ifdef OLDPP
@@ -337,7 +341,10 @@ $(M68KEXENAME): $(PASFILES) $(INCFILES)
 
 #
 # $Log$
-# Revision 1.15  1998-11-13 15:40:12  pierre
+# Revision 1.16  1998-11-16 15:30:19  pierre
+#  + shorter cycle for win32 with cygnus b20
+#
+# Revision 1.15  1998/11/13 15:40:12  pierre
 #   + added -Se in Makefile cvstest target
 #   + lexlevel cleanup
 #     normal_function_level main_program_level and unit_init_level defined
