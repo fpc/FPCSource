@@ -485,14 +485,22 @@ begin
              writeln(space,'     Options: ',getlongint);
              writeln(space,'       Index: ',getlongint);
              writeln(space,'     Default: ',getlongint);
+             write(space,'   Read symbol: ');
+             readsymref;
+             write(space,'  Write symbol: ');
+             readsymref;
+             write(space,' Stored symbol: ');
+             readsymref;
+             {
              writeln(space,'   Read Name: ',getstring);
              writeln(space,'  Write Name: ',getstring);
              writeln(space,' Stored Name: ',getstring);
-             write(space,'  Read Definition: ');
+             }
+             write(space,'   Read Definition: ');
              readdefref;
-             write(space,' Write Definition: ');
+             write(space,'  Write Definition: ');
              readdefref;
-             write(space,'Stored Definition: ');
+             write(space,' Stored Definition: ');
              readdefref;
            end;
 
@@ -1181,7 +1189,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  1999-06-08 22:16:06  peter
+  Revision 1.3.2.1  1999-07-05 21:43:08  peter
+    * merged property fixes
+
+  Revision 1.3  1999/06/08 22:16:06  peter
     * version 0.99.12
 
   Revision 1.2  1999/05/14 17:52:04  peter
