@@ -78,10 +78,10 @@ end;
 
 {$ifndef HAS_ADDR_STACK_ON_STACK}
 Function fpc_PushExceptAddr (Ft: Longint): PJmp_buf ;
-  [Public, Alias : 'FPC_PUSHEXCEPTADDR'];saveregisters;
+  [Public, Alias : 'FPC_PUSHEXCEPTADDR'];{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}
 {$else HAS_ADDR_STACK_ON_STACK}
 Function fpc_PushExceptAddr (Ft: Longint;_buf,_newaddr : pointer): PJmp_buf ;
-  [Public, Alias : 'FPC_PUSHEXCEPTADDR'];saveregisters; {$ifdef hascompilerproc} compilerproc; {$endif}
+  [Public, Alias : 'FPC_PUSHEXCEPTADDR'];{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}{$ifdef hascompilerproc} compilerproc; {$endif}
 {$endif HAS_ADDR_STACK_ON_STACK}
 
 var
@@ -122,7 +122,7 @@ end;
 
 
 Procedure fpc_PushExceptObj (Obj : TObject; AnAddr,AFrame : Pointer);
-  [Public, Alias : 'FPC_PUSHEXCEPTOBJECT'];saveregisters; {$ifdef hascompilerproc} compilerproc; {$endif}
+  [Public, Alias : 'FPC_PUSHEXCEPTOBJECT'];{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}{$ifdef hascompilerproc} compilerproc; {$endif}
 var
   Newobj : PExceptObject;
 begin
@@ -310,7 +310,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.15  2004-04-27 18:47:51  florian
+  Revision 1.16  2004-10-24 20:01:41  peter
+    * saveregisters calling convention is obsolete
+
+  Revision 1.15  2004/04/27 18:47:51  florian
     * exception addr record size for 64 bit systems fixed
 
   Revision 1.14  2004/02/05 01:16:12  florian

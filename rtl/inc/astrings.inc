@@ -87,7 +87,7 @@ begin
 end;
 
 
-Procedure fpc_AnsiStr_Decr_Ref (Var S : Pointer);saveregisters;[Public,Alias:'FPC_ANSISTR_DECR_REF'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_AnsiStr_Decr_Ref (Var S : Pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[Public,Alias:'FPC_ANSISTR_DECR_REF'];  {$ifdef hascompilerproc} compilerproc; {$endif}
 {
   Decreases the ReferenceCount of a non constant ansistring;
   If the reference count is zero, deallocate the string;
@@ -114,13 +114,13 @@ end;
 
 {$ifdef hascompilerproc}
 { also define alias for internal use in the system unit }
-Procedure fpc_AnsiStr_Decr_Ref (Var S : Pointer);saveregisters; [external name 'FPC_ANSISTR_DECR_REF'];
+Procedure fpc_AnsiStr_Decr_Ref (Var S : Pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif} [external name 'FPC_ANSISTR_DECR_REF'];
 {$endif hascompilerproc}
 
 {$ifdef hascompilerproc}
-Procedure fpc_AnsiStr_Incr_Ref (S : Pointer);saveregisters;[Public,Alias:'FPC_ANSISTR_INCR_REF'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_AnsiStr_Incr_Ref (S : Pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[Public,Alias:'FPC_ANSISTR_INCR_REF'];  {$ifdef hascompilerproc} compilerproc; {$endif}
 {$else}
-Procedure fpc_AnsiStr_Incr_Ref (Var S : Pointer);saveregisters;[Public,Alias:'FPC_ANSISTR_INCR_REF'];
+Procedure fpc_AnsiStr_Incr_Ref (Var S : Pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[Public,Alias:'FPC_ANSISTR_INCR_REF'];
 {$endif}
 Begin
   If S=Nil then
@@ -132,7 +132,7 @@ end;
 
 {$ifdef hascompilerproc}
 { also define alias which can be used inside the system unit }
-Procedure fpc_AnsiStr_Incr_Ref (S : Pointer);saveregisters; [external name 'FPC_ANSISTR_INCR_REF'];
+Procedure fpc_AnsiStr_Incr_Ref (S : Pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[external name 'FPC_ANSISTR_INCR_REF'];
 {$endif hascompilerproc}
 
 Procedure fpc_AnsiStr_Assign (Var S1 : Pointer;S2 : Pointer);[Public,Alias:'FPC_ANSISTR_ASSIGN'];  {$ifdef hascompilerproc} compilerproc; {$endif}
@@ -864,7 +864,10 @@ end;
 
 {
   $Log$
-  Revision 1.47  2004-07-12 17:58:19  peter
+  Revision 1.48  2004-10-24 20:01:41  peter
+    * saveregisters calling convention is obsolete
+
+  Revision 1.47  2004/07/12 17:58:19  peter
     * remove maxlen field from ansistring/widestrings
 
   Revision 1.46  2004/07/02 21:21:09  peter

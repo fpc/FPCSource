@@ -260,7 +260,7 @@ end;
 
 {$define FPC_SYSTEM_HAS_FPC_SET_IN_BYTE}
 
-function fpc_set_in_byte(const p: fpc_normal_set; b: byte): boolean; assembler; [public,alias:'FPC_SET_IN_BYTE']; {$ifdef hascompilerproc} compilerproc; {$else} saveregisters; {$endif}
+function fpc_set_in_byte(const p: fpc_normal_set; b: byte): boolean; assembler; [public,alias:'FPC_SET_IN_BYTE']; {$ifdef hascompilerproc} compilerproc; {$else} {$ifndef NOSAVEREGISTERS}saveregisters;{$endif} {$endif}
 {
   tests if the element b is in the set p the carryflag is set if it present
 }
@@ -686,7 +686,10 @@ end;
 
 {
   $Log$
-  Revision 1.17  2003-12-24 22:38:24  peter
+  Revision 1.18  2004-10-24 20:01:41  peter
+    * saveregisters calling convention is obsolete
+
+  Revision 1.17  2003/12/24 22:38:24  peter
     * fix set_set_range
 
   Revision 1.16  2003/12/04 21:42:07  peter

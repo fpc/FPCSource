@@ -145,7 +145,7 @@ procedure do_unset_byte(p : pointer;b : byte);[public,alias:'FPC_SET_UNSET_BYTE'
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SET_IN_BYTE}
 
- function fpc_set_in_byte(const p: fpc_normal_set; b: byte): boolean; [public,alias:'FPC_SET_IN_BYTE']; {$ifdef hascompilerproc} compilerproc; {$else} saveregisters; {$endif}
+ function fpc_set_in_byte(const p: fpc_normal_set; b: byte): boolean; [public,alias:'FPC_SET_IN_BYTE']; {$ifdef hascompilerproc} compilerproc; {$else} {$ifndef NOSAVEREGISTERS}saveregisters;{$endif} {$endif}
  {
    tests if the element b is in the set p the carryflag is set if it present
  }
@@ -235,7 +235,7 @@ procedure do_unset_byte(p : pointer;b : byte);[public,alias:'FPC_SET_UNSET_BYTE'
 {$endif}
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SET_COMP_SETS}
- function fpc_set_comp_sets(const set1,set2 : fpc_normal_set):boolean;[public,alias:'FPC_SET_COMP_SETS'];{$ifdef hascompilerproc} compilerproc; {$else} saveregisters; {$endif}
+ function fpc_set_comp_sets(const set1,set2 : fpc_normal_set):boolean;[public,alias:'FPC_SET_COMP_SETS'];{$ifdef hascompilerproc} compilerproc; {$else} {$ifndef NOSAVEREGISTERS}saveregisters;{$endif} {$endif}
  {
   compares set1 and set2 zeroflag is set if they are equal
  }
@@ -270,7 +270,10 @@ procedure do_unset_byte(p : pointer;b : byte);[public,alias:'FPC_SET_UNSET_BYTE'
 
 {
   $Log$
-  Revision 1.7  2002-09-07 15:07:45  peter
+  Revision 1.8  2004-10-24 20:01:41  peter
+    * saveregisters calling convention is obsolete
+
+  Revision 1.7  2002/09/07 15:07:45  peter
     * old logs removed and tabs fixed
 
 }

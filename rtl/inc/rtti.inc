@@ -83,7 +83,7 @@ TArrayRec = record
 end;
 
 
-Procedure fpc_Initialize (Data,TypeInfo : pointer);saveregisters;[Public,Alias : 'FPC_INITIALIZE'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_Initialize (Data,TypeInfo : pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[Public,Alias : 'FPC_INITIALIZE'];  {$ifdef hascompilerproc} compilerproc; {$endif}
 
 { this definition is sometimes (depending on switches)
   already defined or not so define it locally to avoid problems PM }
@@ -147,7 +147,7 @@ begin
 end;
 
 
-Procedure fpc_finalize (Data,TypeInfo: Pointer);saveregisters;[Public,Alias : 'FPC_FINALIZE'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_finalize (Data,TypeInfo: Pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[Public,Alias : 'FPC_FINALIZE'];  {$ifdef hascompilerproc} compilerproc; {$endif}
 { this definition is sometimes (depending on switches)
   already defined or not so define it locally to avoid problems PM }
 Var Temp    : PByte;
@@ -165,14 +165,14 @@ begin
     tkAstring :
       begin
         fpc_AnsiStr_Decr_Ref(PPointer(Data)^);
-	PPointer(Data)^:=nil;
-      end;	
+        PPointer(Data)^:=nil;
+      end;
 {$ifdef HASWIDESTRING}
     tkWstring :
       begin
         fpc_WideStr_Decr_Ref(PPointer(Data)^);
-	PPointer(Data)^:=nil;
-      end;	
+        PPointer(Data)^:=nil;
+      end;
 {$endif HASWIDESTRING}
     tkArray :
       begin
@@ -216,7 +216,7 @@ begin
     tkInterface:
       begin
         Intf_Decr_Ref(PPointer(Data)^);
-	PPointer(Data)^:=nil;
+        PPointer(Data)^:=nil;
       end;
 {$endif HASINTF}
     tkDynArray:
@@ -229,7 +229,7 @@ begin
 end;
 
 
-Procedure fpc_Addref (Data,TypeInfo : Pointer);saveregisters; [Public,alias : 'FPC_ADDREF'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_Addref (Data,TypeInfo : Pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif} [Public,alias : 'FPC_ADDREF'];  {$ifdef hascompilerproc} compilerproc; {$endif}
 
 { this definition is sometimes (depending on switches)
   already defined or not so define it locally to avoid problems PM }
@@ -301,9 +301,9 @@ end;
 
 { alias for internal use }
 { we use another name else the compiler gets puzzled because of the wrong forward def }
-procedure fpc_systemDecRef (Data, TypeInfo : Pointer);saveregisters;[external name 'FPC_DECREF'];
+procedure fpc_systemDecRef (Data, TypeInfo : Pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[external name 'FPC_DECREF'];
 
-Procedure fpc_DecRef (Data, TypeInfo : Pointer);saveregisters;[Public,alias : 'FPC_DECREF'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_DecRef (Data, TypeInfo : Pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[Public,alias : 'FPC_DECREF'];  {$ifdef hascompilerproc} compilerproc; {$endif}
 { this definition is sometimes (depending on switches)
   already defined or not so define it locally to avoid problems PM }
 Var Temp    : PByte;
@@ -385,7 +385,10 @@ procedure fpc_finalize_array(data,typeinfo : pointer;count,size : longint); [Pub
 
 {
   $Log$
-  Revision 1.15  2004-10-04 21:26:16  florian
+  Revision 1.16  2004-10-24 20:01:42  peter
+    * saveregisters calling convention is obsolete
+
+  Revision 1.15  2004/10/04 21:26:16  florian
     * rtti alignment fixed
 
   Revision 1.14  2004/08/18 21:03:35  florian

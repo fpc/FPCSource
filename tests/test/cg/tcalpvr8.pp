@@ -1,3 +1,5 @@
+{ %maxversion=1.9.4 }
+
 {****************************************************************}
 {  CODE GENERATOR TEST PROGRAM                                   }
 {****************************************************************}
@@ -527,7 +529,10 @@ end.
 
 {
    $Log$
-   Revision 1.5  2003-05-15 20:34:29  peter
+   Revision 1.6  2004-10-24 20:01:42  peter
+     * saveregisters calling convention is obsolete
+
+   Revision 1.5  2003/05/15 20:34:29  peter
      * removed po_containsself tests
 
    Revision 1.4  2003/01/16 22:14:49  peter

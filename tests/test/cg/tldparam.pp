@@ -234,6 +234,7 @@
       end;
 
 
+{$ifdef VER1_0}
    function testretbyteregs: byte; saveregisters;
      begin
        Write('(byte) : Value should be 125...');
@@ -263,6 +264,7 @@
         Write('(double) : Value should be -77.14...');
         testretdoubleregs := -77.14;
       end;
+{$endif VER1_0}
 
    function testretbytecdecl: byte; cdecl;
      begin
@@ -380,12 +382,14 @@ begin
   WriteLn(testretint64inline);
   WriteLn(testretrealinline);
   WriteLn(testretdoubleinline);
+{$ifdef VER1_0}  
   WriteLn('---------------------- SAVEREGS ----------------------');
   WriteLn(testretbyteregs);
   WriteLn(testretwordregs);
   WriteLn(testretint64regs);
   WriteLn(testretrealregs);
   WriteLn(testretdoubleregs);
+{$endif VER1_0}  
   WriteLn('------------------------ CDECL -----------------------');
   WriteLn(testretbytecdecl);
   WriteLn(testretwordcdecl);
@@ -397,7 +401,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2002-09-07 15:40:56  peter
+  Revision 1.4  2004-10-24 20:01:42  peter
+    * saveregisters calling convention is obsolete
+
+  Revision 1.3  2002/09/07 15:40:56  peter
     * old logs removed and tabs fixed
 
 }

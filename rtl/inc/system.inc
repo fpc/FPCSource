@@ -547,7 +547,7 @@ begin
 end;
 
 
-procedure fpc_iocheck;[saveregisters,public,alias:'FPC_IOCHECK']; {$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_iocheck;{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[public,alias:'FPC_IOCHECK']; {$ifdef hascompilerproc} compilerproc; {$endif}
 var
   l : longint;
 begin
@@ -577,7 +577,7 @@ End;
 {$DEFINE STACKCHECK}
 {$ENDIF}
 {$S-}
-procedure fpc_stackcheck(stack_size:Cardinal);[saveregisters,public,alias:'FPC_STACKCHECK'];
+procedure fpc_stackcheck(stack_size:Cardinal);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[public,alias:'FPC_STACKCHECK'];
 var
   c : Pointer;
 begin
@@ -689,7 +689,7 @@ begin
 end;
 
 
-Procedure lib_exit;saveregisters;[Public,Alias:'FPC_LIB_EXIT'];
+Procedure lib_exit;{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[Public,Alias:'FPC_LIB_EXIT'];
 begin
   InternalExit;
 end;
@@ -849,7 +849,7 @@ end;
 procedure fpc_AbstractErrorIntern;  compilerproc; external name 'FPC_ABSTRACTERROR';
 {$endif hascompilerproc}
 
-Procedure fpc_assert(Const Msg,FName:Shortstring;LineNo:Longint;ErrorAddr:Pointer); [SaveRegisters,Public,Alias : 'FPC_ASSERT']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_assert(Const Msg,FName:Shortstring;LineNo:Longint;ErrorAddr:Pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif} [Public,Alias : 'FPC_ASSERT']; {$ifdef hascompilerproc} compilerproc; {$endif}
 begin
   if pointer(AssertErrorProc)<>nil then
     AssertErrorProc(Msg,FName,LineNo,ErrorAddr)
@@ -891,7 +891,10 @@ end;
 
 {
   $Log$
-  Revision 1.65  2004-10-09 21:00:46  jonas
+  Revision 1.66  2004-10-24 20:01:42  peter
+    * saveregisters calling convention is obsolete
+
+  Revision 1.65  2004/10/09 21:00:46  jonas
     + cgenmath with libc math functions. Faster than the routines in genmath
       and also have full double support (exp() only has support for values in
       the single range in genmath, for example). Used in FPC_USE_LIBC is

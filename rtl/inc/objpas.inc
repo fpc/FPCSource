@@ -36,11 +36,11 @@
 
 {$ifndef HASINTF}
     { dummies for make cycle with 1.0.x }
-    procedure fpc_intf_decr_ref(var i: pointer);saveregisters;[public,alias: 'FPC_INTF_DECR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
+    procedure fpc_intf_decr_ref(var i: pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[public,alias: 'FPC_INTF_DECR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
       begin
       end;
 
-    procedure fpc_intf_incr_ref(i: pointer);saveregisters;[public,alias: 'FPC_INTF_INCR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
+    procedure fpc_intf_incr_ref(i: pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[public,alias: 'FPC_INTF_INCR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
       begin
       end;
 
@@ -59,7 +59,7 @@
 {$else HASINTF}
 
     { interface helpers }
-    procedure fpc_intf_decr_ref(var i: pointer);saveregisters;[public,alias: 'FPC_INTF_DECR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
+    procedure fpc_intf_decr_ref(var i: pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[public,alias: 'FPC_INTF_DECR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
       begin
         if assigned(i) then
           IUnknown(i)._Release;
@@ -68,11 +68,11 @@
 
     {$ifdef hascompilerproc}
     { local declaration for intf_decr_ref for local access }
-    procedure intf_decr_ref(var i: pointer);saveregisters; [external name 'FPC_INTF_DECR_REF'];
+    procedure intf_decr_ref(var i: pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif} [external name 'FPC_INTF_DECR_REF'];
     {$endif hascompilerproc}
 
 
-    procedure fpc_intf_incr_ref(i: pointer);saveregisters;[public,alias: 'FPC_INTF_INCR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
+    procedure fpc_intf_incr_ref(i: pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[public,alias: 'FPC_INTF_INCR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
       begin
          if assigned(i) then
            IUnknown(i)._AddRef;
@@ -80,7 +80,7 @@
 
     {$ifdef hascompilerproc}
     { local declaration of intf_incr_ref for local access }
-    procedure intf_incr_ref(i: pointer);saveregisters; [external name 'FPC_INTF_INCR_REF'];
+    procedure intf_incr_ref(i: pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif} [external name 'FPC_INTF_INCR_REF'];
     {$endif hascompilerproc}
 
     procedure fpc_intf_assign(var D: pointer; const S: pointer);[public,alias: 'FPC_INTF_ASSIGN']; {$ifdef hascompilerproc} compilerproc; {$endif}
@@ -544,9 +544,9 @@
 
         var
            vmt  : tclass;
-	   temp : pbyte;
-	   count,
-	   i    : longint;
+           temp : pbyte;
+           count,
+           i    : longint;
 {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
            recelem  : TRecElem;
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
@@ -554,11 +554,11 @@
            vmt:=ClassType;
            while vmt<>nil do
              begin
-	       { This need to be included here, because Finalize()
-	         has should support for tkClass }
-	       Temp:=Pointer((Pointer(vmt)+vmtInitTable)^);
+               { This need to be included here, because Finalize()
+                 has should support for tkClass }
+               Temp:=Pointer((Pointer(vmt)+vmtInitTable)^);
                if Assigned(Temp) then
- 	         begin
+                 begin
                    inc(Temp);
                    I:=Temp^;
                    inc(temp,I+1);                // skip name string;
@@ -581,7 +581,7 @@
                      With PRecRec(Temp)^.elements[I] do
                        int_Finalize (pointer(self)+Offset,Info);
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
-		 end;
+                 end;
                vmt:=pclass(pointer(vmt)+vmtParent)^;
              end;
         end;
@@ -758,7 +758,10 @@
 
 {
   $Log$
-  Revision 1.41  2004-10-10 19:18:31  florian
+  Revision 1.42  2004-10-24 20:01:41  peter
+    * saveregisters calling convention is obsolete
+
+  Revision 1.41  2004/10/10 19:18:31  florian
     * fixed aligntoptr
 
   Revision 1.40  2004/10/05 20:21:23  florian

@@ -175,7 +175,7 @@ begin
 end;
 
 
-Procedure fpc_WideStr_Decr_Ref (Var S : Pointer);saveregisters;[Public,Alias:'FPC_WIDESTR_DECR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_WideStr_Decr_Ref (Var S : Pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[Public,Alias:'FPC_WIDESTR_DECR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {
   Decreases the ReferenceCount of a non constant widestring;
   If the reference count is zero, deallocate the string;
@@ -202,13 +202,13 @@ end;
 
 {$ifdef hascompilerproc}
 { alias for internal use }
-Procedure fpc_WideStr_Decr_Ref (Var S : Pointer);saveregisters;[external name 'FPC_WIDESTR_DECR_REF'];
+Procedure fpc_WideStr_Decr_Ref (Var S : Pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[external name 'FPC_WIDESTR_DECR_REF'];
 {$endif compilerproc}
 
 {$ifdef hascompilerproc}
-Procedure fpc_WideStr_Incr_Ref (S : Pointer);saveregisters;[Public,Alias:'FPC_WIDESTR_INCR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_WideStr_Incr_Ref (S : Pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[Public,Alias:'FPC_WIDESTR_INCR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {$else}
-Procedure fpc_WideStr_Incr_Ref (Var S : Pointer);saveregisters;[Public,Alias:'FPC_WIDESTR_INCR_REF'];
+Procedure fpc_WideStr_Incr_Ref (Var S : Pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[Public,Alias:'FPC_WIDESTR_INCR_REF'];
 {$endif compilerproc}
 Begin
   If S=Nil then
@@ -220,7 +220,7 @@ end;
 
 {$ifdef hascompilerproc}
 { alias for internal use }
-Procedure fpc_WideStr_Incr_Ref (S : Pointer);saveregisters;[external name 'FPC_WIDESTR_INCR_REF'];
+Procedure fpc_WideStr_Incr_Ref (S : Pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[external name 'FPC_WIDESTR_INCR_REF'];
 {$endif compilerproc}
 
 function fpc_WideStr_To_ShortStr (high_of_res: SizeInt;const S2 : WideString): shortstring;[Public, alias: 'FPC_WIDESTR_TO_SHORTSTR'];  {$ifdef hascompilerproc} compilerproc; {$endif}
@@ -1237,7 +1237,10 @@ function Utf8ToAnsi(const s : UTF8String) : ansistring;{$ifdef SYSTEMINLINE}inli
 
 {
   $Log$
-  Revision 1.44  2004-09-29 14:55:49  mazen
+  Revision 1.45  2004-10-24 20:01:42  peter
+    * saveregisters calling convention is obsolete
+
+  Revision 1.44  2004/09/29 14:55:49  mazen
   * widestring conversion routines takes a widechar so no
   information is lost
 

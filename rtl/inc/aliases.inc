@@ -26,14 +26,17 @@
 
 { export for internal usage }
 Procedure int_Finalize (Data,TypeInfo: Pointer); [external name 'FPC_FINALIZE'];
-Procedure int_Addref (Data,TypeInfo : Pointer);saveregisters; [external name 'FPC_ADDREF'];
-Procedure int_DecRef (Data, TypeInfo : Pointer);saveregisters;[external name 'FPC_DECREF'];
+Procedure int_Addref (Data,TypeInfo : Pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif} [external name 'FPC_ADDREF'];
+Procedure int_DecRef (Data, TypeInfo : Pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif} [external name 'FPC_DECREF'];
 Procedure int_Initialize (Data,TypeInfo: Pointer); [external name 'FPC_INITIALIZE'];
 procedure int_FinalizeArray(data,typeinfo : pointer;count,size : longint); [external name 'FPC_FINALIZEARRAY'];
 
 {
   $Log$
-  Revision 1.2  2002-09-07 15:07:44  peter
+  Revision 1.3  2004-10-24 20:01:41  peter
+    * saveregisters calling convention is obsolete
+
+  Revision 1.2  2002/09/07 15:07:44  peter
     * old logs removed and tabs fixed
 
 }

@@ -1,3 +1,5 @@
+{ %maxversion=1.9.4 }
+
 {****************************************************************}
 {  CODE GENERATOR TEST PROGRAM                                   }
 {  By Carl Eric Codere                                           }
@@ -824,7 +826,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2004-03-27 19:38:50  florian
+  Revision 1.7  2004-10-24 20:01:42  peter
+    * saveregisters calling convention is obsolete
+
+  Revision 1.6  2004/03/27 19:38:50  florian
     * alignment fixed
 
   Revision 1.5  2003/04/22 10:24:29  florian

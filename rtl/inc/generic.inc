@@ -484,7 +484,7 @@ end;
 
 
 {$ifndef FPC_SYSTEM_HAS_FPC_CHECK_OBJECT}
-procedure fpc_check_object(_vmt : pointer);saveregisters;[public,alias:'FPC_CHECK_OBJECT'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_check_object(_vmt : pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[public,alias:'FPC_CHECK_OBJECT'];  {$ifdef hascompilerproc} compilerproc; {$endif}
 type
   pvmt = ^tvmt;
   tvmt = packed record
@@ -505,7 +505,7 @@ end;
 { checks for a correct vmt pointer }
 { deeper check to see if the current object is }
 { really related to the true }
-procedure fpc_check_object_ext(vmt, expvmt : pointer);saveregisters;[public,alias:'FPC_CHECK_OBJECT_EXT']; {$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_check_object_ext(vmt, expvmt : pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[public,alias:'FPC_CHECK_OBJECT_EXT']; {$ifdef hascompilerproc} compilerproc; {$endif}
 type
   pvmt = ^tvmt;
   tvmt = packed record
@@ -1245,7 +1245,10 @@ end;
 
 {
   $Log$
-  Revision 1.82  2004-10-14 17:39:33  florian
+  Revision 1.83  2004-10-24 20:01:41  peter
+    * saveregisters calling convention is obsolete
+
+  Revision 1.82  2004/10/14 17:39:33  florian
     + added system.align
     + threadvars are now aligned
 

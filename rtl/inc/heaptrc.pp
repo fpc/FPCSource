@@ -723,7 +723,7 @@ var
 {$endif go32v2}
 
 
-procedure CheckPointer(p : pointer);[saveregisters,public, alias : 'FPC_CHECKPOINTER'];
+procedure CheckPointer(p : pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[public, alias : 'FPC_CHECKPOINTER'];
 var
   i  : ptrint;
   pp : pheap_mem_info;
@@ -1138,7 +1138,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.33  2004-09-21 14:49:29  peter
+  Revision 1.34  2004-10-24 20:01:41  peter
+    * saveregisters calling convention is obsolete
+
+  Revision 1.33  2004/09/21 14:49:29  peter
     * fix reallocmem
 
   Revision 1.32  2004/09/16 07:21:08  michael

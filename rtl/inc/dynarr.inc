@@ -93,7 +93,7 @@ procedure fpc_dynarray_clear(var p : pointer;ti : pointer); [Public,Alias:'FPC_D
   var
      realp : pdynarray;
   begin
-    if (P=Nil) then 
+    if (P=Nil) then
       exit;
     realp:=pdynarray(p-sizeof(tdynarray));
     if declocked(realp^.refcount) then
@@ -107,7 +107,7 @@ Procedure fpc_dynarray_clear (var p : pointer;ti : pointer);[external name 'FPC_
 {$endif hascompilerproc}
 
 
-procedure fpc_dynarray_decr_ref(var p : pointer;ti : pointer);saveregisters;[Public,Alias:'FPC_DYNARRAY_DECR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_dynarray_decr_ref(var p : pointer;ti : pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[Public,Alias:'FPC_DYNARRAY_DECR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
   var
      realp : pdynarray;
   begin
@@ -127,10 +127,10 @@ procedure fpc_dynarray_decr_ref(var p : pointer;ti : pointer);saveregisters;[Pub
 
 {$ifdef hascompilerproc}
 { provide local access to dynarr_decr_ref for dynarr_setlength }
-procedure fpc_dynarray_decr_ref(var p : pointer;ti : pointer);saveregisters; [external name 'FPC_DYNARRAY_DECR_REF'];
+procedure fpc_dynarray_decr_ref(var p : pointer;ti : pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif} [external name 'FPC_DYNARRAY_DECR_REF'];
 {$endif}
 
-procedure fpc_dynarray_incr_ref(p : pointer);saveregisters;[Public,Alias:'FPC_DYNARRAY_INCR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_dynarray_incr_ref(p : pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[Public,Alias:'FPC_DYNARRAY_INCR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
   var
      realp : pdynarray;
   begin
@@ -146,7 +146,7 @@ procedure fpc_dynarray_incr_ref(p : pointer);saveregisters;[Public,Alias:'FPC_DY
 
 {$ifdef hascompilerproc}
 { provide local access to dynarr_decr_ref for dynarr_setlength }
-procedure fpc_dynarray_incr_ref(p : pointer);saveregisters; [external name 'FPC_DYNARRAY_INCR_REF'];
+procedure fpc_dynarray_incr_ref(p : pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[external name 'FPC_DYNARRAY_INCR_REF'];
 {$endif}
 
 { provide local access to dynarr_setlength }
@@ -311,7 +311,7 @@ procedure fpc_dynarray_copy(var pdest : pointer;psrc : pointer;ti : pointer;
      realpsrc:=pdynarray(psrc-sizeof(tdynarray));
      { skip kind and name }
      inc(pointer(ti),ord(pdynarraytypeinfo(ti)^.namelen));
-     
+
 {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
      move(pdynarraytypeinfo(ti)^.elesize,elesize,sizeof(elesize));
      move(pdynarraytypeinfo(ti)^.eletype,eletype,sizeof(eletype));
@@ -348,7 +348,10 @@ procedure fpc_dynarray_copy(var pdest : pointer;psrc : pointer;ti : pointer;
 
 {
   $Log$
-  Revision 1.29  2004-09-15 07:28:09  michael
+  Revision 1.30  2004-10-24 20:01:41  peter
+    * saveregisters calling convention is obsolete
+
+  Revision 1.29  2004/09/15 07:28:09  michael
   + Fix crash when resizing dynamic array
 
   Revision 1.28  2004/05/31 20:25:04  peter
