@@ -98,7 +98,9 @@ begin
      str(sys_getpid,hs);
      hs:='/proc/'+hs+'/exe'#0;
      i:=Sys_readlink(@hs[1],@link[1],high(link));
-     if i>0 then
+     { it must also be an absolute filename, linux 2.0 points to a memory
+       location so this will skip that }
+     if (i>0) and (link[1]='/') then
       begin
         link[0]:=chr(i);
         paramstr:=link;
@@ -787,7 +789,10 @@ End.
 
 {
   $Log$
-  Revision 1.3  2000-07-14 10:33:10  michael
+  Revision 1.4  2000-08-05 18:33:51  peter
+    * paramstr(0) fix for linux 2.0 kernels (merged)
+
+  Revision 1.3  2000/07/14 10:33:10  michael
   + Conditionals fixed
 
   Revision 1.2  2000/07/13 11:33:49  michael
