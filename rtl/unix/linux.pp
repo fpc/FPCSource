@@ -2115,6 +2115,7 @@ var
           if ((st.mode and $E000)=$4000) and  { if it is a directory }
              (strpas(@(d^.name))<>'.') and    { but not ., .. and fd subdirs }
              (strpas(@(d^.name))<>'..') and
+	     (strpas(@(d^.name))<>'') and
              (strpas(@(d^.name))<>'fd') then
            begin                      {we found a directory, search inside it}
              if mysearch(name) then
@@ -2946,7 +2947,10 @@ End.
 
 {
   $Log$
-  Revision 1.17  2001-10-14 13:33:20  peter
+  Revision 1.18  2001-11-30 07:16:41  marco
+   * TTYname fix from Maarten Beekers. Apparantly accidentally not commited the first time.
+
+  Revision 1.17  2001/10/14 13:33:20  peter
     * start of thread support for linux
 
   Revision 1.16  2001/09/17 21:36:31  peter
