@@ -1,0 +1,12 @@
+\begin{psyntax}{Constant parameters}{constparameters}
+\synt{constant\ parameter}
+\lit*{const} \synt{identifier\ list} 
+\[
+\lit* :
+\[
+\lit*{array}
+\lit*{of}
+\]
+\synt{parameter\ type}
+\]
+\end{psyntax}

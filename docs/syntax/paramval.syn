@@ -1,0 +1,6 @@
+\begin{psyntax}{Value parameters}{valueparameters}
+\synt{value\ parameter}
+\synt{identifier\ list} \lit*: 
+\[ \lit*{array} \lit*{of} \]
+\synt{parameter\ type}
+\end{psyntax}

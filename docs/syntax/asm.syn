@@ -1,0 +1,6 @@
+\begin{psyntax}{Assembler functions}{assemblerfunction}
+\synt{asm\ block}
+\lit*{assembler} \lit*;
+\synt{declaration\ part}
+\synt{asm\ statement}
+\end{psyntax}

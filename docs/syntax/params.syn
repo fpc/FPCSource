@@ -1,0 +1,14 @@
+\begin{diagram}{Parameters}{paramaters}
+\begin{mysyntdiag}
+\synt{formal\ parameter\ list}
+\lit*( \<[b] \synt{parameter\ declaration} \\ \lit* ; \> \lit*)
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{parameter\ declaration}
+\(
+\synt{value\ parameter}\\
+\synt{variable\ parameter}\\
+\synt{constant\ parameter}
+\)
+\end{mysyntdiag}
+\end{diagram}

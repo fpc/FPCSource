@@ -1,0 +1,11 @@
+\begin{psyntax}{External directive}{externaldirective}
+\synt{external\ directive}
+\lit*{external}
+\[
+  \synt{string\ constant}
+  \[
+    \lit*{name} \synt{string\ constant}\\
+    \lit*{index} \synt{integer\ constant}
+  \]
+\]
+\end{psyntax}

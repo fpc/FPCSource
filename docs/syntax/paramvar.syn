@@ -1,0 +1,12 @@
+\begin{psyntax}{Variable parameters}{varparameters}
+\synt{variable\ parameter}
+\lit*{var} \synt{identifier\ list} 
+\[
+\lit* :
+\[
+\lit*{array}
+\lit*{of}
+\]
+\synt{parameter\ type}
+\]
+\end{psyntax}
