@@ -31,6 +31,9 @@
     Added the define use_amiga_smartlink.
     12 Jan 2003.
     
+    Changed integr > smallint.
+    11 Feb 2003.
+    
     nils.sjoholm@mailbox.xwipnet.se
 }
 
@@ -76,7 +79,7 @@ PROCEDURE CustomScreen(scr : Pointer);
 PROCEDURE PubScreen(scr : Pointer);
 PROCEDURE PubScreenName(wname : STRING);
 PROCEDURE PubScreenName(wname : PChar);
-PROCEDURE QuickHelpOn(onn : Integer);
+PROCEDURE QuickHelpOn(onn : smallint);
 { Menus }
 PROCEDURE BeginMenu(t : STRING);
 PROCEDURE BeginMenu(t : PChar);
@@ -514,7 +517,7 @@ BEGIN
     Inc(tindex);
 END;
 
-PROCEDURE QuickHelpOn(onn : Integer);
+PROCEDURE QuickHelpOn(onn : smallint);
 BEGIN
     tritontags[tindex].ti_Tag := TRWI_QuickHelp;
     tritontags[tindex].ti_Data := longint(onn);

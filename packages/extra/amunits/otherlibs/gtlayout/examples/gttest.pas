@@ -85,7 +85,7 @@ begin
             msgQuali := msg^.Qualifier;
             msggadget := msg^.IAddress;
             GT_ReplyIMsg(msg);
-            LT_HandleInput(handle,msgQuali,msgclass,msgcode,@msggadget);
+            LT_HandleInput(handle,msgQuali,@msgclass,@msgcode,@msggadget);
             case msgclass of
                  IDCMP_CLOSEWINDOW : begin
                                      writeln(LT_GetAttributesA(handle,33,nil));
