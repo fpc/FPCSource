@@ -1224,6 +1224,13 @@ implementation
 
                          if cmpop then
                           begin
+                             { the register is now longer required }
+                             if p^.left^.location.loc = LOC_FPU then
+                              begin
+                                ungetregister(p^.left^.location.fpureg);
+                              end;
+
+
                              if p^.swaped then
                                  case p^.treetype of
                                      equaln: flags := F_E;
@@ -1272,7 +1279,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  1998-10-14 11:28:15  florian
+  Revision 1.12  1998-10-17 02:53:48  carl
+    * bugfix of FPU deallocation in $E- mode
+
+  Revision 1.11  1998/10/14 11:28:15  florian
     * emitpushreferenceaddress gets now the asmlist as parameter
     * m68k version compiles with -duseansistrings
 
