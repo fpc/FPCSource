@@ -1,4 +1,4 @@
-{$mode objfpc}
+{$ifdef fpc}{$mode objfpc}{$endif}
 
 uses SysUtils;
 
