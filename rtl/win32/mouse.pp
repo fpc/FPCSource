@@ -48,15 +48,14 @@ procedure MouseEventHandler(var ir:INPUT_RECORD);
           if (ir.Event.MouseEvent.dwButtonState and RIGHTMOST_BUTTON_PRESSED<>0) then
             e.buttons:=e.buttons or MouseRightButton;
 
-
           if (Lasthandlermouseevent.x<>e.x) or (LasthandlerMouseEvent.y<>e.y) then
             e.Action:=MouseActionMove;
           if (LastHandlerMouseEvent.Buttons<>e.Buttons) then
            begin
-            if (LasthandlerMouseEvent.Buttons=0) then
-              e.Action:=MouseActionDown
+            if (LasthandlerMouseEvent.Buttons and e.buttons<>LasthandlerMouseEvent.Buttons) then
+              e.Action:=MouseActionUp
             else
-              e.Action:=MouseActionUp;
+              e.Action:=MouseActionDown;
            end;
 
 
@@ -158,10 +157,10 @@ begin
    MouseEvent.Action:=MouseActionMove;
   if (LastMouseEvent.Buttons<>MouseEvent.Buttons) then
    begin
-     if (LastMouseEvent.Buttons=0) then
-      MouseEvent.Action:=MouseActionDown
+     if (LastMouseEvent.Buttons and MouseEvent.buttons<>LastMouseEvent.Buttons) then
+       MouseEvent.Action:=MouseActionUp
      else
-      MouseEvent.Action:=MouseActionUp;
+       MouseEvent.Action:=MouseActionDown;
    end;
   if MouseEvent.action=0 then MousEevent.action:=MouseActionMove; // can sometimes happen due to compression of events.
   LastMouseEvent:=MouseEvent;
@@ -243,7 +242,10 @@ Begin
 end.
 {
   $Log$
-  Revision 1.8  2004-11-21 15:24:35  marco
+  Revision 1.9  2005-01-12 10:25:48  armin
+  * Patch for bug 3548 from Peter
+
+  Revision 1.8  2004/11/21 15:24:35  marco
    * fix for bug 2246, zero events surpressed by moving compression into handler
 
   Revision 1.7  2004/11/04 10:21:07  peter

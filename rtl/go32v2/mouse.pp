@@ -765,10 +765,10 @@ begin
    MouseEvent.Action:=MouseActionMove;
   if (LastMouseEvent.Buttons<>MouseEvent.Buttons) then
    begin
-     if (LastMouseEvent.Buttons=0) then
-      MouseEvent.Action:=MouseActionDown
+     if (LastMouseEvent.Buttons and MouseEvent.buttons<>LastMouseEvent.Buttons) then
+       MouseEvent.Action:=MouseActionUp
      else
-      MouseEvent.Action:=MouseActionUp;
+       MouseEvent.Action:=MouseActionDown;
    end;
   LastMouseEvent:=MouseEvent;
 end;
@@ -796,7 +796,10 @@ Begin
 end.
 {
   $Log$
-  Revision 1.10  2005-01-03 18:15:34  peter
+  Revision 1.11  2005-01-12 10:25:48  armin
+  * Patch for bug 3548 from Peter
+
+  Revision 1.10  2005/01/03 18:15:34  peter
   save ebx in assembler procs
 
   Revision 1.9  2004/12/23 17:27:37  peter
