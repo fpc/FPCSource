@@ -15,7 +15,7 @@
 
  **********************************************************************}
 
-procedure do_load_small(p : pointer;l:longint);assembler;[public,alias:'FPC_SET_LOAD_SMALL'];
+function fpc_set_load_small(l: fpc_small_set): fpc_normal_set;assembler;[public,alias:'FPC_SET_LOAD_SMALL']; compilerproc;
 {
   load a normal set p from a smallset l
 
@@ -23,375 +23,324 @@ procedure do_load_small(p : pointer;l:longint);assembler;[public,alias:'FPC_SET_
 }
 asm
         stw     r4,(r3)
-        li      r4,0
-        stw     r4,4(r3)
-        stw     r4,8(r3)
-        stw     r4,12(r3)
-        stw     r4,16(r3)
-        stw     r4,20(r3)
-        stw     r4,24(r3)
-        stw     r4,28(r3)
-end ['R4'];
+        li      r0,0
+        stw     r0,4(r3)
+        stw     r0,8(r3)
+        stw     r0,12(r3)
+        stw     r0,16(r3)
+        stw     r0,20(r3)
+        stw     r0,24(r3)
+        stw     r0,28(r3)
+end ['r0'];
 
 
-procedure do_create_element(p : pointer;b : byte);assembler;[public,alias:'FPC_SET_CREATE_ELEMENT'];
+function fpc_set_create_element(b : byte): fpc_normal_set;assembler;[public,alias:'FPC_SET_CREATE_ELEMENT']; compilerproc;
 {
   create a new set in p from an element b
 
-  on entry: p in r3, b in r4
+  on entry: pointer to result in r3, b in r4
 }
-var
-  saveR5, saveR6: longint;
 asm
-        stw     r5,saveR5
-        li      r5,0
-        stw     r6,saveR6
-        stw     r5,(r3)
-        stw     r5,4(r3)
-        li      r6,1
-        stw     r5,8(r3)
-        stw     r5,12(r3)
-        stw     r5,16(r3)
-        stw     r5,20(r3)
+        li      r0,0
+        stw     r0,(r3)
+        stw     r0,4(r3)
+        stw     r0,8(r3)
+        stw     r0,12(r3)
+        stw     r0,16(r3)
+        stw     r0,20(r3)
+        stw     r0,24(r3)
+        stw     r0,28(r3)
 
-        // r6 := 1 shl r4[27-31] -> bit index in dword (shift instructions
+        // r0 := 1 shl r4[27-31] -> bit index in dword (shift instructions
         // with count in register only consider lower 5 bits of this register)
-        slw     r6,r6,r4
-
-        stw     r5,24(r3)
-        stw     r5,28(r3)
+        li      r0,1
+        slw     r0,r0,r4
 
         // get the index of the correct *dword* in the set
         // (((b div 8) div 4)*4= (b div 8) and not(3))
         // r5 := (r4 rotl(32-3)) and (0x0fffffff8)
-        rlwinm  r5,r4,29,0,31-2
+        rlwinm  r4,r4,29,0,31-2
 
         // store the result
-        stwx    r6,r3,r5
-        lwz     r5,saveR5
-        lwz     r6,saveR6
-end ['R4'];
+        stwx    r0,r3,r4
+end ['r0','r4','r10'];
 
-procedure do_set_byte(p : pointer;b : byte);assembler;[public,alias:'FPC_SET_SET_BYTE'];
+function fpc_set_set_byte(const source: fpc_normal_set; b : byte): fpc_normal_set;assembler; compilerproc;
 {
   add the element b to the set pointed by p
 
-  on entry: p in r3, b in r4
+  on entry: result in r3, source in r4, b in r5
 }
-var
-  saveR5, saveR6: longint;
 asm
-       stw      r5,saveR5
-       stw      r6,saveR6
+       // copy source to result
+       li       r0,8
+       mtctr    r0
+       subi     r4,r4,4
+       subi     r3,r3,4
+Lset_set_byte_copy:
+       lwzu     r0,4(r4)
+       stwu     r0,4(r3)
+       bdnz     Lset_set_byte_copy
+       subi     r3,r3,32
        // get the index of the correct *dword* in the set
-       rlwinm   r5,r4,29,0,31-2   // r5 := (r4 rotl(32-3)) and (0x0fffffff8)
+       // r0 := (r5 rotl(32-3)) and (0x0fffffff8)
+       rlwinm   r0,r5,29,0,31-2
        // load dword in which the bit has to be set (and update r3 to this address)
-       lwzxu    r6,r3,r5
-       li       r5,1
+       lwzxu    r4,r3,r0
+       li       r0,1
        // generate bit which has to be inserted
-       slw      r4,r5,r4
+       slw      r5,r0,r5
        // insert it
-       lwz      r5,saveR5
-       or       r4,r7,r4
-       lwz      r6,saveR6
+       or       r5,r4,r5
        // store result
-       stw      r4,(r3)
-end ['R3','R4'];
+       stw      r5,(r3)
+end ['r0','r3','r4','r5','ctr'];
 
 
-procedure do_unset_byte(p : pointer;b : byte);assembler;[public,alias:'FPC_SET_UNSET_BYTE'];
+function fpc_set_unset_byte(const source: fpc_normal_set; b : byte): fpc_normal_set;assembler; compilerproc;
 {
   suppresses the element b to the set pointed by p
   used for exclude(set,element)
 
   on entry: p in r3, b in r4
 }
-var
-  saveR5, saveR6: longint;
 asm
-       stw      r5,saveR5
-       stw      r6,saveR6
+       // copy source to result
+       li       r0,8
+       mtctr    r0
+       subi     r4,r4,4
+       subi     r3,r3,4
+Lset_unset_byte_copy:
+       lwzu     r0,4(r4)
+       stwu     r0,4(r3)
+       bdnz     Lset_unset_byte_copy
+       subi     r3,r3,32
        // get the index of the correct *dword* in the set
-       rlwinm   r5,r4,29,0,31-2   // r5 := (r4 rotl(32-3)) and (0x0fffffff8)
-       // load dword in which the bit is (and update r3 to this address)
-       lwzxu    r6,r3,r5
-       li       r5,1
-       // generate bit which has to be cleared
-       slw      r4,r5,r4
-       lwz      r5,saveR5
+       // r0 := (r4 rotl(32-3)) and (0x0fffffff8)
+       rlwinm   r0,r5,29,0,31-2
+       // load dword in which the bit has to be set (and update r3 to this address)
+       lwzxu    r4,r3,r0
+       li       r0,1
+       // generate bit which has to be removed
+       slw      r5,r0,r5
        // remove it
-       andc     r4,r6,r4
-       lwz      r6,saveR6
+       andc     r5,r4,r5
        // store result
        stw      r4,(r3)
-end ['R3','R4'];
+end ['r0','r3','r4','r5','ctr'];
 
 
-procedure do_set_range(p : pointer;l,h : byte);assembler;[public,alias:'FPC_SET_SET_RANGE'];
+function fpc_set_set_range(const orgset: fpc_normal_set; l,h : byte): fpc_normal_set;assembler; compilerproc;
 {
-  on entry: p in r3, l in r4, h in r5
+  on entry: result in r3, l in r4, h in r5
+
+  on entry: result in r3, ptr to orgset in r4, l in r5, h in r6
 }
-var
-  saveR6, saveR7, saveR8: longint;
 asm
-  cmplw  cr0,r4,r5
-  bg     cr0,.LSET_RANGE_EXIT
-  stw    r6,saveR6
-  stw    r7,saveR7
-  stw    r8,saveR8
-  rlwinm r6,r4,32-3,0,31-2    // divide by 8 to get starting and ending byte-
+  // copy source to result
+  li       r0,8
+  mtctr    r0
+  subi     r4,r4,4
+  subi     r3,r3,4
+Lset_set_range_copy:
+  lwzu     r0,4(r4)
+  stwu     r0,4(r3)
+  bdnz     Lset_set_range_copy
+  subi     r3,r3,32
+
+  cmplw  cr0,r5,r6
+  bg     cr0,LSET_RANGE_EXIT
+  rlwinm r4,r5,32-3,0,31-2    // divide by 8 to get starting and ending byte-
   { load the set the data cache }
-  dcbt   r3,r6
-  rlwinm r7,r5,32-3,0,31-2    // address and clear two lowest bits to get
+  dcbst  r3,r4
+  rlwinm r9,r5,32-3,0,31-2    // address and clear two lowest bits to get
                               //  start/end longint address
-  sub.   r7,r6,r7             // are bit lo and hi in the same longint?
-  rlwinm r5,r5,0,31-4,31      // hi := hi mod 32 (= "hi and 31", but the andi
+  sub.   r9,r4,r9             // are bit lo and hi in the same longint?
+  rlwinm r6,r6,0,31-4,31      // hi := hi mod 32 (= "hi and 31", but the andi
                               //  instr. only exists in flags modifying form)
-  eqv    r8,r8,r8             // r8 = $0x0ffffffff = bitmask to be inserted
-  subfic r5,r5,31             // hi := 31 - (hi mod 32) = shift count for later
-  srw    r8,r8,r4             // shift bitmask to clear bits below lo
+  li     r10,$ffff            // r10 = $0x0ffffffff = bitmask to be inserted
+  subfic r6,r6,31             // hi := 31 - (hi mod 32) = shift count for later
+  srw    r10,r10,r4           // shift bitmask to clear bits below lo
                               // note: shift right = opposite little endian!!
-  lwzxu  r4,r3,r6             // go to starting pos in set and load value
+  lwzxu  r5,r3,r4             // go to starting pos in set and load value
                               //  (lo is not necessary anymore)
-  beq    .Lset_range_hi       // if bit lo and hi in same longint, keep
+  beq    Lset_range_hi        // if bit lo and hi in same longint, keep
                               //  current mask and adjust for hi bit
-  subic. r7,r7,4              // bit hi in next longint?
-  or     r4,r4,r8             // merge and
-  stw    r4,(r3)              // store current mask
-  eqv    r8,r8,r8             // new mask
-  lwzu   r4,4(r3)             // load next longint of set
-  beq    .Lset_range_hi       // bit hi in this longint -> go to adjust for hi
-.Lset_range_loop:
-  subic. r7,r7,4
-  stwu   r8,4(r3)             // fill longints in between with full mask
-  bne    .Lset_range_loop
-  lwzu    r4,4(r3)            // load next value from set
-.Lset_range_hi:               // in all cases, r3 here contains the address of
+  subic. r9,r9,4              // bit hi in next longint?
+  or     r5,r5,r10            // merge and
+  stw    r5,(r3)              // store current mask
+  li     r10,$ffff            // new mask
+  lwzu   r5,4(r3)             // load next longint of set
+  beq    Lset_range_hi        // bit hi in this longint -> go to adjust for hi
+Lset_range_loop:
+  subic. r9,r9,4
+  stwu   r10,4(r3)            // fill longints in between with full mask
+  bne    Lset_range_loop
+  lwzu   r5,4(r3)             // load next value from set
+Lset_range_hi:                // in all cases, r3 here contains the address of
                               //  the longint which contains the hi bit and r4
                               //  contains this longint
-  slw    r7,r8,r5             // r7 := bitmask shl (31 - (hi mod 32)) =
+  slw    r9,r10,r6            // r7 := bitmask shl (31 - (hi mod 32)) =
                               //  bitmask with bits higher than hi cleared
                               //  (r8 = $0xffffffff unless the first beq was
                               //   taken)
-  and    r8,r7,r8             // combine lo and hi bitmasks for this longint
-  or     r4,r4,r8             // and combine with existing set
-  stw    r4,(r3)              // store to set
-  lwz    r6,saver6
-  lwz    r7,saver7
-  lwz    r8,saver8
-.Lset_range_exit:
-end ['R3','R4','R5'];
+  and    r10,r9,r10           // combine lo and hi bitmasks for this longint
+  or     r5,r5,r10            // and combine with existing set
+  stw    r5,(r3)              // store to set
+Lset_range_exit:
+end ['r0','r3','r4','r5','r6','r9','r10','cr0','ctr'];
 
 
-procedure do_in_byte(p : pointer;b : byte);assembler;[public,alias:'FPC_SET_IN_BYTE'];
+function fpc_set_in_byte(const p: fpc_normal_set; b : byte): boolean;assembler;[public,alias:'FPC_SET_IN_BYTE'];
 {
   tests if the element b is in the set p, the **zero** flag is cleared if it's present
 
   on entry: p in r3, b in r4
 }
-var
-  saveR5: longint;
 asm
-       stw      r5,saveR5
        // get the index of the correct *dword* in the set
-       // r5 := (r4 rotl(32-3)) and (0x0fffffff8)
-       rlwinm   r5,r4,29,0,31-2
+       // r0 := (r4 rotl(32-3)) and (0x0fffffff8)
+       rlwinm   r0,r4,29,0,31-2
        // load dword in which the bit has to be tested
-       lwzx     r3,r3,r5
-       li       r5,1
+       lwzx     r3,r3,r0
+       li       r0,1
        // generate bit which has to be tested
-       slw      r4,r5,r4
-       lwz      r5,saveR5
+       slw      r4,r0,r4
        // test it
        and.     r3,r3,r4
-end ['R4'];
+end ['r0','r3','r4','cr0'];
 
 
 
-procedure do_add_sets(set1,set2,dest : pointer);assembler;[public,alias:'FPC_SET_ADD_SETS'];
+function fpc_set_add_sets(const set1,set2: fpc_normal_set): fpc_normal_set;assembler;[public,alias:'FPC_SET_ADD_SETS']; compilerproc;
 {
   adds set1 and set2 into set dest
-
-  on entry: set1 in r3, set2 in r4, dest in r5
+  on entry: result in r3, set1 in r4, set2 in r5
 }
-var
-  saveR6, saveR7, saveR8: longint;
 asm
-       {  load the begin of the first set in the data cache }
-       dcbt    r0,r3
-       stw      r6,saveR6
-       stw      r7,saveR7
+       {  load the begin of the result set in the data cache }
+       dcbst    0,r3
+       li       r0,8
+       mtctr    r0
        subi     r5,r5,4
-       li       r6,8
-       stw      r8,saveR8
-       subi     r3,4
-       subi     r4,4
-   .LMADDSETS1:
-      subic.    r6,r6,1
-      lwzu      r7,4(r3)
-      lwzu      r8,4(r4)
-      or        r7,r7,r8
-      stwu      r7,4(r5)
-      bne       cr0,.LMADDSETS1
-      lwz       r6,saveR6
-      lwz       r7,saveR7
-      lwz       r8,saveR8
-end ['R3','R4','R5'];
+       subi     r4,r4,4
+       subi     r3,r3,4
+   LMADDSETS1:
+      lwzu      r0,4(r4)
+      lwzu      r10,4(r5)
+      or        r0,r0,r10
+      stwu      r0,4(r3)
+      bdnz      LMADDSETS1
+end ['r0','r3','r4','r5','r10','ctr'];
 
 
 
-procedure do_mul_sets(set1,set2,dest:pointer);assembler;[public,alias:'FPC_SET_MUL_SETS'];
+function fpc_set_mul_sets(const set1,set2: fpc_normal_set): fpc_normal_set;assembler;[public,alias:'FPC_SET_MUL_SETS']; compilerproc;
 {
   multiplies (takes common elements of) set1 and set2 result put in dest
-  on entry: set1 in r3, set2 in r4, dest in r5
+  on entry: result in r3, set1 in r4, set2 in r5
 }
-var
-  saveR6, saveR7, saveR8: longint;
 asm
-       {  load the begin of the first set in the data cache }
-       dcbt    r0,r3
-       stw      r6,saveR6
-       stw      r7,saveR7
+       {  load the begin of the result set in the data cache }
+       dcbst    0,r3
+       li       r0,8
+       mtctr    r0
        subi     r5,r5,4
-       li       r6,8
-       stw      r8,saveR8
-       subi     r3,4
-       subi     r4,4
-   .LMADDSETS1:
-       subic.   r6,r6,1
-       lwzu     r7,4(r3)
-       lwzu     r8,4(r4)
-       and      r7,r7,r8
-       stwu     r7,4(r5)
-       bne      cr0,.LMADDSETS1
-       lwz      r6,saveR6
-       lwz      r7,saveR7
-       lwz      r8,saveR8
-end ['R3','R4','R5'];
+       subi     r4,r4,4
+       subi     r3,r3,4
+   LMMULSETS1:
+      lwzu      r0,4(r4)
+      lwzu      r10,4(r5)
+      and       r0,r0,r10
+      stwu      r0,4(r3)
+      bdnz      LMMULSETS1
+end ['r0','r3','r4','r5','r10','ctr'];
 
 
-procedure do_sub_sets(set1,set2,dest:pointer);assembler;[public,alias:'FPC_SET_SUB_SETS'];
+function fpc_set_sub_sets(const set1,set2: fpc_normal_set): fpc_normal_set;assembler;[public,alias:'FPC_SET_SUB_SETS']; compilerproc;
 {
   computes the diff from set1 to set2 result in dest
-
-  on entry: set1 in r3, set2 in r4, dest in r5
+  on entry: result in r3, set1 in r4, set2 in r5
 }
-var
-  saveR6, saveR7, saveR8: longint;
 asm
-       {  load the begin of the first set in the data cache }
-       dcbt    r0,r3
-       stw      r6,saveR6
-       stw      r7,saveR7
+       {  load the begin of the result set in the data cache }
+       dcbst    0,r3
+       li       r0,8
+       mtctr    r0
        subi     r5,r5,4
-       li       r6,8
-       stw      r8,saveR8
-       subi     r3,4
-       subi     r4,4
-   .LMSUBSETS1:
-       subi.    r6,r6,1
-       lwzu     r8,4(r4)
-       lwzu     r7,4(r3)
-       andc     r8,r8,r7
-       stwu     r8,4(r5)
-       bne      cr0,.LMSUBSETS1
-       lwz      r6,saveR6
-       lwz      r7,saveR7
-       lwz      r8,saveR8
-end ['R3','R4','R5'];
+       subi     r4,r4,4
+       subi     r3,r3,4
+   LMSUBSETS1:
+      lwzu      r0,4(r4)
+      lwzu      r10,4(r5)
+      andc      r0,r0,r10
+      stwu      r0,4(r3)
+      bdnz      LMSUBSETS1
+end ['r0','r3','r4','r5','r10','ctr'];
 
 
-procedure do_symdif_sets(set1,set2,dest:pointer);assembler;[public,alias:'FPC_SET_SYMDIF_SETS'];
+function fpc_set_symdif_sets(const set1,set2: fpc_normal_set): fpc_normal_set;assembler;[public,alias:'FPC_SET_SYMDIF_SETS']; compilerproc;
 {
    computes the symetric diff from set1 to set2 result in dest
-
-  on entry: set1 in r3, set2 in r4, dest in r5
+  on entry: result in r3, set1 in r4, set2 in r5
 }
-var
-  saveR6, saveR7, saveR8: longint;
 asm
-       {  load the begin of the first set in the data cache }
-       dcbt    r0,r3
-       stw      r6,saveR6
-       stw      r7,saveR7
+       {  load the begin of the result set in the data cache }
+       dcbst    0,r3
+       li       r0,8
+       mtctr    r0
        subi     r5,r5,4
-       li       r6,8
-       stw      r8,saveR8
-       subi     r3,4
-       subi     r4,4
-   .LMSYMDIFSETS1:
-       subi.    r6,r6,1
-       lwzu     r7,4(r3)
-       lwzu     r8,4(r4)
-       xor      r7,r7,r8
-       stwu     r7,4(r5)
-       bne      cr0,.LMSYMDIFSETS1
-       lwz      r6,saveR6
-       lwz      r7,saveR7
-       lwz      r8,saveR8
-end ['R3','R4','R5'];
+       subi     r4,r4,4
+       subi     r3,r3,4
+   LMSYMDIFSETS1:
+      lwzu      r0,4(r4)
+      lwzu      r10,4(r5)
+      xor       r0,r0,r10
+      stwu      r0,4(r3)
+      bdnz      LMSYMDIFSETS1
+end ['r0','r3','r4','r5','r10','ctr'];
 
 
-procedure do_comp_sets(set1,set2 : pointer);assembler;[public,alias:'FPC_SET_COMP_SETS'];
+function fpc_set_comp_sets(const set1,set2: fpc_normal_set): boolean;assembler;[public,alias:'FPC_SET_COMP_SETS']; compilerproc;
 {
   compares set1 and set2 zeroflag is set if they are equal
-
   on entry: set1 in r3, set2 in r4
 }
-var
-  saveR5, saveR6, saveR7: longint;
 asm
-       {  load the begin of the first set in the data cache }
-       dcbt    r0,r3
-       stw      r5,saveR5
-       mfctr    r5
-       stw      r6,saveR6
-       li       r6,8
-       stw      r7,saveR7
-       mtctr    r6
-       subi     r3,4
-       subi     r4,4
-    .LMCOMPSETS1:
-       lwzu     r6,4(r3)
-       lwzu     r7,4(r4)
-       cmplw    cr0,r6,r7
-       bdnzt    cr0*4+eq,.LMCOMPSETS1
-       mtctr    r5
-       lwz      r5,saveR5
-       lwz      r6,saveR6
-       lwz      r7,saveR7
-end ['R3','R4'];
+       li       r0,8
+       mtctr    r0
+       subi     r3,r3,4
+       subi     r4,r4,4
+    LMCOMPSETS1:
+       lwzu     r0,4(r3)
+       lwzu     r10,4(r4)
+       sub.     r0,r0,r10
+       bdnzt    cr0*4+eq,LMCOMPSETS1
+       cntlzw   r3,r0
+       srwi.    r3,r3,31 
+end ['r0','r3','r4','r10','cr0','ctr'];
 
-{$IfNDef NoSetInclusion}
-procedure do_contains_sets(set1,set2 : pointer);assembler;[public,alias:'FPC_SET_CONTAINS_SETS'];
+function fpc_set_contains_sets(const set1,set2: fpc_normal_set): boolean;assembler;[public,alias:'FPC_SET_CONTAINS_SETS']; compilerproc;
 {
   on exit, zero flag is set if set1 <= set2 (set2 contains set1)
   on entry: set1 in r3, set2 in r4
 }
-var
-  saveR5, saveR6, saveR7: longint;
 asm
-       {  load the begin of the first set in the data cache }
-       dcbt    r0,r3
-       stw      r5,saveR5
-       mfctr    r5
-       stw      r6,saveR6
-       li       r6,8
-       stw      r7,saveR7
-       mtctr    r6
-       subi     r3,4
-       subi     r4,4
-    .LMCOMPSETS1:
-       lwzu     r7,4(r4)
-       lwzu     r6,4(r3)
-       andc.    r7,r6,r7
-       bdnzt    cr0*4+eq,.LMCOMPSETS1
-       mtctr    r5
-       lwz      r5,saveR5
-       lwz      r6,saveR6
-       lwz      r7,saveR7
-end ['R3','R4'];
-{$EndIf SetInclusion}
+       li       r0,8
+       mtctr    r0
+       subi     r3,r3,4
+       subi     r4,r4,4
+    LMCONTAINSSETS1:
+       lwzu     r0,4(r3)
+       lwzu     r10,4(r4)
+       { set1 and not(set2) = 0? }
+       andc.    r0,r0,r10
+       bdnzt    cr0*4+eq,LMCONTAINSSETS1
+       cntlzw   r3,r0
+       srwi.    r3,r3,31 
+end ['r0','r3','r4','r10','cr0','ctr'];
+
+
 
 {$ifdef LARGESETS}
 
@@ -442,13 +391,13 @@ asm
       movl set2,%ebx
       movl dest,%edi
       movl size,%ecx
-  .LMADDSETSIZES1:
+  LMADDSETSIZES1:
       lodsl
       orl (%ebx),%eax
       stosl
       addl $4,%ebx
       decl %ecx
-      jnz .LMADDSETSIZES1
+      jnz LMADDSETSIZES1
 end;
 
 
@@ -462,13 +411,13 @@ asm
          movl set2,%ebx
          movl dest,%edi
          movl size,%ecx
-     .LMMULSETSIZES1:
+     LMMULSETSIZES1:
          lodsl
          andl (%ebx),%eax
          stosl
          addl $4,%ebx
          decl %ecx
-         jnz .LMMULSETSIZES1
+         jnz LMMULSETSIZES1
 end;
 
 
@@ -478,7 +427,7 @@ asm
          movl set2,%ebx
          movl dest,%edi
          movl size,%ecx
-     .LMSUBSETSIZES1:
+     LMSUBSETSIZES1:
          lodsl
          movl (%ebx),%edx
          notl %edx
@@ -486,7 +435,7 @@ asm
          stosl
          addl $4,%ebx
          decl %ecx
-         jnz .LMSUBSETSIZES1
+         jnz LMSUBSETSIZES1
 end;
 
 
@@ -499,14 +448,14 @@ asm
       movl set2,%ebx
       movl dest,%edi
       movl size,%ecx
-  .LMSYMDIFSETSIZE1:
+  LMSYMDIFSETSIZE1:
       lodsl
       movl (%ebx),%edx
       xorl %edx,%eax
       stosl
       addl $4,%ebx
       decl %ecx
-      jnz .LMSYMDIFSETSIZE1
+      jnz LMSYMDIFSETSIZE1
 end;
 
 
@@ -515,17 +464,17 @@ asm
       movl set1,%esi
       movl set2,%edi
       movl size,%ecx
-  .LMCOMPSETSIZES1:
+  LMCOMPSETSIZES1:
       lodsl
       movl (%edi),%edx
       cmpl %edx,%eax
-      jne  .LMCOMPSETSIZEEND
+      jne  LMCOMPSETSIZEEND
       addl $4,%edi
       decl %ecx
-      jnz .LMCOMPSETSIZES1
+      jnz LMCOMPSETSIZES1
       { we are here only if the two sets are equal
         we have zero flag set, and that what is expected }
-  .LMCOMPSETSIZEEND:
+  LMCOMPSETSIZEEND:
 end;
 
 {$IfNDef NoSetInclusion}
@@ -537,19 +486,19 @@ asm
         movl set1,%esi
         movl set2,%edi
         movl size,%ecx
-    .LMCONTAINSSETS2:
+    LMCONTAINSSETS2:
         movl (%esi),%eax
         movl (%edi),%edx
         andl %eax,%edx
         cmpl %edx,%eax  {set1 and set2 = set1?}
-        jne  .LMCONTAINSSETEND2
+        jne  LMCONTAINSSETEND2
         addl $4,%esi
         addl $4,%edi
         decl %ecx
-        jnz .LMCONTAINSSETS2
+        jnz LMCONTAINSSETS2
         { we are here only if set2 contains set1
           we have zero flag set, and that what is expected }
-    .LMCONTAINSSETEND2:
+    LMCONTAINSSETEND2:
 end;
 {$EndIf NoSetInclusion}
 
@@ -558,7 +507,18 @@ end;
 
 {
   $Log$
-  Revision 1.8  2001-07-07 12:46:12  jonas
+  Revision 1.9  2001-09-27 15:30:29  jonas
+    * conversion to compilerproc and to structure used by i386 rtl
+    * some bugfixes
+    * powerpc.inc is almost complete (only fillchar/word/dword, get_frame etc
+      and the class helpers are still needed
+    - removed unnecessary register saving in set.inc (thanks to compilerproc)
+    * use registers reserved for parameters as much as possible instead of
+      those reserved for local vars (since those have to be saved by the
+      called anyway, while the ones for local vars have to be saved by the
+      callee)
+
+  Revision 1.8  2001/07/07 12:46:12  jonas
     * some small bugfixes and cache optimizations
 
   Revision 1.7  2001/03/03 13:54:26  jonas

@@ -17,63 +17,42 @@
  **********************************************************************}
 
 function strpas(p : pchar) : string; assembler;
-asm
-        {  load the begin of the string in the data cache }
-        dcbt    r0,r3
-        { load result address in r9 }
-        li      r29,__RESULT@l
-        addis   r29,__RESULT@ha
-        { maxlength }
-        li      r30,255
-        mtctr   r30
-        lwz     r29,0(r29)
-        { save address for at the end }
-        mr      r3,r29
-        { no "subi r29,r29,1" because the first byte = length byte }
-        subi    r4,r4,1
-LStrPasLoop:
-        lbzu    r30,1(r4)
-        cmpli   r30,0
-        stbu    r30,1(r29)
-        bdnzf   cr0*4+eq, LStrPasLoop
-
-        { get remaining count for length }
-        mfctr   r30
-        { if we stopped because of a terminating #0, decrease the length by 1 }
-        mfcr    r4
-        subfic  r30,r30,255
-        { put "equal" condition bit of cr0 in bit position 31 (= rightmost) }
-        { and clear other bits                                              }
-        rlwinm  r4,r4,cr0*4+eq+1,31,31
-        sub     r30,r30,r4
-
-        { store length }
-        stb     r30,0(r3)
-end ['r3','r4','r29','r30','cr0','ctr'];
+{$i strpas.inc}
 
 function strpcopy(d : pchar;const s : string) : pchar;assembler;
 asm
         { get length  }
-        lbz     r30,0(r4)
+        lbz     r10,0(r4)
         { put in counter }
-        cmpli   r30,0
-        mtctr   r30
-        subi    r29,r3,1
+        cmpli   r10,0
+        mtctr   r10
+        subi    r0,r3,1
         beq     LStrPCopyEmpty
 LStrPCopyLoop:
         { copy everything }
-        lbzu    r30,1(r4)
-        stbu    r30,1(r29)
+        lbzu    r10,1(r4)
+        stbu    r10,1(r0)
         bdnz    LStrPCopyLoop
         { add terminating #0 }
-        li      r30,0
+        li      r10,0
 LStrPCopyEmpty:
-        stb     r30,1(r29)
-end ['r4','r29','r30','cr0','ctr'];
+        stb     r10,1(r0)
+end ['r0','r4','r10','cr0','ctr'];
 
 {
   $Log$
-  Revision 1.3  2001-07-07 12:46:12  jonas
+  Revision 1.4  2001-09-27 15:30:29  jonas
+    * conversion to compilerproc and to structure used by i386 rtl
+    * some bugfixes
+    * powerpc.inc is almost complete (only fillchar/word/dword, get_frame etc
+      and the class helpers are still needed
+    - removed unnecessary register saving in set.inc (thanks to compilerproc)
+    * use registers reserved for parameters as much as possible instead of
+      those reserved for local vars (since those have to be saved by the
+      called anyway, while the ones for local vars have to be saved by the
+      callee)
+
+  Revision 1.3  2001/07/07 12:46:12  jonas
     * some small bugfixes and cache optimizations
 
   Revision 1.2  2001/02/11 12:15:03  jonas
