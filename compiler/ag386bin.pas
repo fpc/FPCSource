@@ -432,7 +432,11 @@ unit ag386bin;
              ait_string :
                objectalloc^.sectionalloc(pai_string(hp)^.len);
              ait_instruction :
-               objectalloc^.sectionalloc(paicpu(hp)^.Pass1(objectalloc^.sectionsize));
+               begin
+                 { reset instructions which could change in pass 2 }
+                 paicpu(hp)^.resetpass2;
+                 objectalloc^.sectionalloc(paicpu(hp)^.Pass1(objectalloc^.sectionsize));
+               end;
              ait_cut :
                if SmartAsm then
                 begin
@@ -928,7 +932,11 @@ unit ag386bin;
 end.
 {
   $Log$
-  Revision 1.31  1999-12-22 01:01:46  peter
+  Revision 1.32  1999-12-24 15:22:52  peter
+    * reset insentry/lastinsoffset so writing smartlink works correct for
+      short jmps
+
+  Revision 1.31  1999/12/22 01:01:46  peter
     - removed freelabel()
     * added undefined label detection in internal assembler, this prevents
       a lot of ld crashes and wrong .o files

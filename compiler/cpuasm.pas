@@ -120,14 +120,16 @@ type
      procedure init(op : tasmop;_size : topsize); { this need to be called by all constructor }
 {$ifndef NOAG386BIN}
   public
+     { the next will reset all instructions that can change in pass 2 }
+     procedure ResetPass2;
      function  Pass1(offset:longint):longint;virtual;
      procedure Pass2;virtual;
   private
      { next fields are filled in pass1, so pass2 is faster }
      insentry  : PInsEntry;
-     LastInsOffset,
      insoffset,
      inssize   : longint;
+     LastInsOffset : longint; { need to be public to be reset }
      function  InsEnd:longint;
      procedure create_ot;
      function  Matches(p:PInsEntry):longint;
@@ -683,7 +685,7 @@ begin
             if assigned(sym) then
              inc(l,sym^.address);
             { instruction size will then always become 2 (PFV) }
-            relsize:=InsOffset+2-l;
+            relsize:=(InsOffset+2)-l;
             if (not assigned(sym) or
                 ((sym^.typ<>AS_EXTERNAL) and (sym^.address<>0))) and
                (relsize>=-128) and (relsize<=127) then
@@ -796,6 +798,19 @@ begin
          (((p^.optypes[i] and OT_SIZE_MASK) or siz)<(oper[i].ot and OT_SIZE_MASK)) then
       Matches:=2;
    end;
+end;
+
+
+procedure taicpu.ResetPass2;
+begin
+  { we are here in a second pass, check if the instruction can be optimized }
+  if assigned(InsEntry) and
+     ((InsEntry^.flags and IF_PASS2)<>0) then
+   begin
+     InsEntry:=nil;
+     InsSize:=-1;
+   end;
+  LastInsOffset:=-1;
 end;
 
 
@@ -1527,7 +1542,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  1999-11-30 10:40:43  peter
+  Revision 1.7  1999-12-24 15:22:52  peter
+    * reset insentry/lastinsoffset so writing smartlink works correct for
+      short jmps
+
+  Revision 1.6  1999/11/30 10:40:43  peter
     + ttype, tsymlist
 
   Revision 1.5  1999/11/06 14:34:20  peter
