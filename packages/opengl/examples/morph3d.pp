@@ -34,7 +34,6 @@
 }
 program morph3d;
 {$Mode objfpc}
-{$INLINE ON}
 
 {$MACRO ON}
 
@@ -212,14 +211,10 @@ const
   MaterialWhite   : array[0..3] of glfloat = ( 0.7, 0.7, 0.7, 1.0 );
   MaterialGray    : array[0..3] of glfloat = ( 0.2, 0.2, 0.2, 1.0 );
 
-procedure VectMul(X1,Y1,Z1,X2,Y2,Z2:GLFloat);inline;
-begin
-  glNormal3f((Y1)*(Z2)-(Z1)*(Y2),(Z1)*(X2)-(X1)*(Z2),(X1)*(Y2)-(Y1)*(X2));
-end;
 
 procedure TRIANGLE(Edge,Amp:GLFloat; Divisions: longint; Z:GLFloat);
 var
-  Xf,Yf,Xa,Yb,Xf2,Yf2 : GLfloat;
+  Xf,Yf,Xa,Yb,Xf2,Yf2 : Extended;
   Factor,Factor1,Factor2 : GLfloat;
   VertX,VertY,VertZ,NeiAX,NeiAY,NeiAZ,NeiBX,NeiBY,NeiBZ : GLfloat;
   Ax,Ay,Bx : GLfloat;
@@ -252,7 +247,7 @@ begin
       VertX:=Factor*Xf;        VertY:=Factor*Yf;        VertZ:=Factor*Zf;
       NeiAX:=Factor1*Xa-VertX; NeiAY:=Factor1*Yf-VertY; NeiAZ:=Factor1*Zf-VertZ;
       NeiBX:=Factor2*Xf-VertX; NeiBY:=Factor2*Yb-VertY; NeiBZ:=Factor2*Zf-VertZ;
-      VectMul(NeiAX, NeiAY, NeiAZ, NeiBX, NeiBY, NeiBZ);
+      glNormal3f(NeiAY*NeiBZ-NeiAZ*NeiBY,NeiAZ*NeiBX-NeiAX*NeiBZ,NeiAX*NeiBY-NeiAY*NeiBX);
       glVertex3f(VertX, VertY, VertZ);
 
       Xf:=(Ri-Ti-1)*Ax + Ti*Bx;
@@ -266,7 +261,7 @@ begin
       VertX:=Factor*Xf;        VertY:=Factor*Yf;        VertZ:=Factor*Zf;
       NeiAX:=Factor1*Xa-VertX; NeiAY:=Factor1*Yf-VertY; NeiAZ:=Factor1*Zf-VertZ;
       NeiBX:=Factor2*Xf-VertX; NeiBY:=Factor2*Yb-VertY; NeiBZ:=Factor2*Zf-VertZ;
-      VectMul(NeiAX, NeiAY, NeiAZ, NeiBX, NeiBY, NeiBZ);
+      glNormal3f(NeiAY*NeiBZ-NeiAZ*NeiBY,NeiAZ*NeiBX-NeiAX*NeiBZ,NeiAX*NeiBY-NeiAY*NeiBX);
       glVertex3f(VertX, VertY, VertZ);
      end;
     Xf:=Ri*Bx;
@@ -280,7 +275,7 @@ begin
     VertX:=Factor*Xf;        VertY:=Factor*Yf;        VertZ:=Factor*Zf;
     NeiAX:=Factor1*Xa-VertX; NeiAY:=Factor1*Yf-VertY; NeiAZ:=Factor1*Zf-VertZ;
     NeiBX:=Factor2*Xf-VertX; NeiBY:=Factor2*Yb-VertY; NeiBZ:=Factor2*Zf-VertZ;
-    VectMul(NeiAX, NeiAY, NeiAZ, NeiBX, NeiBY, NeiBZ);
+    glNormal3f(NeiAY*NeiBZ-NeiAZ*NeiBY,NeiAZ*NeiBX-NeiAX*NeiBZ,NeiAX*NeiBY-NeiAY*NeiBX);
     glVertex3f(VertX, VertY, VertZ);
     glEnd();
   end;
@@ -318,7 +313,7 @@ begin
       VertX:=Factor*Xf;        VertY:=Factor*Y;         VertZ:=Factor*Zf;
       NeiAX:=Factor1*Xa-VertX; NeiAY:=Factor1*Y-VertY;  NeiAZ:=Factor1*Zf-VertZ;
       NeiBX:=Factor2*Xf-VertX; NeiBY:=Factor2*Yb-VertY; NeiBZ:=Factor2*Zf-VertZ;
-      VectMul(NeiAX, NeiAY, NeiAZ, NeiBX, NeiBY, NeiBZ);
+      glNormal3f(NeiAY*NeiBZ-NeiAZ*NeiBY,NeiAZ*NeiBX-NeiAX*NeiBZ,NeiAX*NeiBY-NeiAY*NeiBX);
       glVertex3f(VertX, VertY, VertZ);
 
       Xa:=Xf+0.001; Yb:=Yf+0.001;
@@ -328,7 +323,7 @@ begin
       VertX:=Factor*Xf;        VertY:=Factor*Yf;        VertZ:=Factor*Zf;
       NeiAX:=Factor1*Xa-VertX; NeiAY:=Factor1*Yf-VertY; NeiAZ:=Factor1*Zf-VertZ;
       NeiBX:=Factor2*Xf-VertX; NeiBY:=Factor2*Yb-VertY; NeiBZ:=Factor2*Zf-VertZ;
-      VectMul(NeiAX, NeiAY, NeiAZ, NeiBX, NeiBY, NeiBZ);
+      glNormal3f(NeiAY*NeiBZ-NeiAZ*NeiBY,NeiAZ*NeiBX-NeiAX*NeiBZ,NeiAX*NeiBY-NeiAY*NeiBX);
       glVertex3f(VertX, VertY, VertZ);
      end;
     glEnd();
@@ -372,7 +367,7 @@ begin
         VertX:=Factor*Xf;        VertY:=Factor*Yf;        VertZ:=Factor*Zf;
         NeiAX:=Factor1*Xa-VertX; NeiAY:=Factor1*Yf-VertY; NeiAZ:=Factor1*Zf-VertZ;
         NeiBX:=Factor2*Xf-VertX; NeiBY:=Factor2*Yb-VertY; NeiBZ:=Factor2*Zf-VertZ;
-        VectMul(NeiAX, NeiAY, NeiAZ, NeiBX, NeiBY, NeiBZ);
+        glNormal3f(NeiAY*NeiBZ-NeiAZ*NeiBY,NeiAZ*NeiBX-NeiAX*NeiBZ,NeiAX*NeiBY-NeiAY*NeiBX);
         glVertex3f(VertX, VertY, VertZ);
 
         Xf:=(Ri-Ti-1)*x[Fi] + Ti*x[Fi+1];
@@ -386,7 +381,7 @@ begin
         VertX:=Factor*Xf;        VertY:=Factor*Yf;        VertZ:=Factor*Zf;
         NeiAX:=Factor1*Xa-VertX; NeiAY:=Factor1*Yf-VertY; NeiAZ:=Factor1*Zf-VertZ;
         NeiBX:=Factor2*Xf-VertX; NeiBY:=Factor2*Yb-VertY; NeiBZ:=Factor2*Zf-VertZ;
-        VectMul(NeiAX, NeiAY, NeiAZ, NeiBX, NeiBY, NeiBZ);
+        glNormal3f(NeiAY*NeiBZ-NeiAZ*NeiBY,NeiAZ*NeiBX-NeiAX*NeiBZ,NeiAX*NeiBY-NeiAY*NeiBX);
         glVertex3f(VertX, VertY, VertZ);
        end;
       Xf:=Ri*x[Fi+1];
@@ -400,7 +395,7 @@ begin
       VertX:=Factor*Xf;        VertY:=Factor*Yf;        VertZ:=Factor*Zf;
       NeiAX:=Factor1*Xa-VertX; NeiAY:=Factor1*Yf-VertY; NeiAZ:=Factor1*Zf-VertZ;
       NeiBX:=Factor2*Xf-VertX; NeiBY:=Factor2*Yb-VertY; NeiBZ:=Factor2*Zf-VertZ;
-      VectMul(NeiAX, NeiAY, NeiAZ, NeiBX, NeiBY, NeiBZ);
+      glNormal3f(NeiAY*NeiBZ-NeiAZ*NeiBY,NeiAZ*NeiBX-NeiAX*NeiBZ,NeiAX*NeiBY-NeiAY*NeiBX);
       glVertex3f(VertX, VertY, VertZ);
       glEnd();
      end;
@@ -940,8 +935,8 @@ begin
 end.
 {
   $Log$
-  Revision 1.1.2.1  2000-09-03 22:10:47  peter
-    * fixed for win32
+  Revision 1.1.2.2  2000-09-04 19:40:07  peter
+    * don't use inline
 
   Revision 1.1  2000/09/03 21:25:45  peter
     * new updated version
