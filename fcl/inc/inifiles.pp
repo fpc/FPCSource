@@ -1,15 +1,51 @@
 {
     $Id$
     This file is part of the Free Component Library (FCL)
-    Copyright (c) 1999-2000 by Michael A. Hess
+    Copyright (c) 1999-2000 Erik WachtMeester.
 
-    adapted from code by Stephan Schneider
+    File which provides TIniFile and friends.
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+
+{* Original disclaimer:
+ * FCL inifiles.pp rewrite by Erik Wachtmeester (erikw@hotelconcepts.com)
+ *
+ * Proposed replacement for inifiles.pp v 1.8
+ *
+ * This version is Borland Delphi 5 compatible, implementing the classes
+ * TCustomIniFile, TIniFile and TMemIniFile, with all the public
+ * properties and methods that Delphi 5 implements.
+ *
+ * (inifiles.pp v 1.8 only implements TIniFile with some properties and
+ *  methods missing, and some functionality added)
+ *
+ * In order to stay compatible with v 1.8, I added:
+ * - TIniFile can be created and loaded from, and saved to a stream.
+ * - ReadSectionRaw method (although it doesn't add empty lines to the
+ *   TStrings recipient like v 1.8, since empty lines aren't stored in
+ *   the SectionList object structure)
+ * - ReadInteger supports '0x' type hex formats
+ * - Comment support (this isn't standard in ini files)
+ * - EscapeLineFeeds property
+ *
+ * Since the SectionList object structure is very different from the
+ * way Delphi 5 accesses ini files (Delphi mostly uses Windows calls
+ * like GetPrivateProfileString, etc.) it's completely platform
+ * independant, and probably faster.
+ * The only drawback is memory consumption: all sections, keys and
+ * values are kept in memory. But same goes for inifiles.pp v 1.8
+ * (the FFileBuffer member) and for Delphi's TMemIniFile.
+ * Anyway, Windows restricts ini files to 64K max, so this shouldn't be
+ * too much of a problem.
+ *
+ *}
 
 unit IniFiles;
 
@@ -18,477 +54,713 @@ unit IniFiles;
 
 interface
 
-uses Classes;
+uses classes, sysutils;
 
 type
+  TIniFileKey = class
+    FIdent: string;
+    FValue: string;
+  public
+    constructor Create(AIdent, AValue: string);
+    property Ident: string read FIdent write FIdent;
+    property Value: string read FValue write FValue;
+  end;
 
-{ TIniFile class }
+  TIniFileKeyList = class(TList)
+  private
+    function GetItem(Index: integer): TIniFileKey;
+    function KeyByName(AName: string): TIniFileKey;
+  public
+    procedure Clear;
+    property Items[Index: integer]: TIniFileKey read GetItem; default;
+  end;
 
-   TIniFile = class(TObject)
-   private
-     FEscapeLineFeeds : Boolean;
-     FFileName   : string;
-     FStream     : TStream;
-     FFileBuffer : TStringList;
-     function GetName(const line : string) : string;
-     function GetValue(const line, name : string) : string;
-     function IsComment(const line : string) : boolean;
-     function IsSection(const line : string) : boolean;
-     function GetSectionIndex(const section : string) : integer;
-   protected
-     procedure SetFileName(const fn:string);
-     procedure SetStream(s:TStream);
-     procedure LoadFromFile;
-     procedure SaveToFile;
-     procedure LoadFromStream;
-     procedure SaveToStream;
-   public
-     constructor Create(const theFileName : string);
-     constructor Create(s:TStream);
-     destructor Destroy; override;
-     procedure DeleteKey(const section, ident : string);
-     procedure EraseSection(const section : string);
-     function ReadBool(const section, ident : string; defaultValue : boolean) : boolean;
-     function ReadInteger(const section, ident : string; defaultValue : longint) : longint;
-     procedure ReadSection(const section : string; strings : TStrings);
-     procedure ReadSections(strings : TStrings);
-     procedure ReadSectionValues(const section : string; strings : TStrings);
-     procedure ReadSectionRaw(const section : string; strings : TStrings);
-     function ReadString(const section, ident, defaultValue : string) : string;
-     procedure WriteBool(const section, ident : string; value : boolean);
-     procedure WriteInteger(const section, ident : string; value : longint);
-     procedure WriteString(const section, ident, value : string);
-     property FileName : String read FFileName;
-     property EscapeLineFeeds : Boolean Read FEscapeLineFeeds Write FEscapeLineFeeds default false;
-   end;
+  TIniFileSection = class
+    FName: string;
+    FKeyList: TIniFileKeyList;
+  public
+    constructor Create(AName: string);
+    destructor Destroy; override;
+    property Name: string read FName;
+    property KeyList: TIniFileKeyList read FKeyList;
+  end;
+
+  TIniFileSectionList = class(TList)
+  private
+    function GetItem(Index: integer): TIniFileSection;
+    function SectionByName(AName: string): TIniFileSection;
+  public
+    procedure Clear;
+    property Items[Index: integer]: TIniFileSection read GetItem; default;
+  end;
+
+  TCustomIniFile = class
+    FFileName: string;
+    FSectionList: TIniFileSectionList;
+    FEscapeLineFeeds: boolean;
+  public
+    constructor Create(const AFileName: string);
+    destructor Destroy; override;
+    function SectionExists(const Section: string): Boolean; virtual;
+    function ReadString(const Section, Ident, Default: string): string; virtual; abstract;
+    procedure WriteString(const Section, Ident, Value: String); virtual; abstract;
+    function ReadInteger(const Section, Ident: string; Default: Longint): Longint; virtual;
+    procedure WriteInteger(const Section, Ident: string; Value: Longint); virtual;
+    function ReadBool(const Section, Ident: string; Default: Boolean): Boolean; virtual;
+    procedure WriteBool(const Section, Ident: string; Value: Boolean); virtual;
+    function ReadDate(const Section, Ident: string; Default: TDateTime): TDateTime; virtual;
+    function ReadDateTime(const Section, Ident: string; Default: TDateTime): TDateTime; virtual;
+    function ReadFloat(const Section, Ident: string; Default: Double): Double; virtual;
+    function ReadTime(const Section, Ident: string; Default: TDateTime): TDateTime; virtual;
+    procedure WriteDate(const Section, Ident: string; Value: TDateTime); virtual;
+    procedure WriteDateTime(const Section, Ident: string; Value: TDateTime); virtual;
+    procedure WriteFloat(const Section, Ident: string; Value: Double); virtual;
+    procedure WriteTime(const Section, Ident: string; Value: TDateTime); virtual;
+    procedure ReadSection(const Section: string; Strings: TStrings); virtual; abstract;
+    procedure ReadSections(Strings: TStrings); virtual; abstract;
+    procedure ReadSectionValues(const Section: string; Strings: TStrings); virtual; abstract;
+    procedure EraseSection(const Section: string); virtual; abstract;
+    procedure DeleteKey(const Section, Ident: String); virtual; abstract;
+    procedure UpdateFile; virtual; abstract;
+    function ValueExists(const Section, Ident: string): Boolean; virtual;
+    property FileName: string read FFileName;
+    property EscapeLineFeeds: boolean read FEscapeLineFeeds write FEscapeLineFeeds;
+  end;
+
+  TIniFile = class(TCustomIniFile)
+    FStream: TStream;
+  private
+    procedure FillSectionList(AStrings: TStrings);
+  public
+    constructor Create(const AFileName: string);
+    constructor Create(AStream: TStream);
+    function ReadString(const Section, Ident, Default: string): string; override;
+    procedure WriteString(const Section, Ident, Value: String); override;
+    procedure ReadSection(const Section: string; Strings: TStrings); override;
+    procedure ReadSectionRaw(const Section: string; Strings: TStrings);
+    procedure ReadSections(Strings: TStrings); override;
+    procedure ReadSectionValues(const Section: string; Strings: TStrings); override;
+    procedure EraseSection(const Section: string); override;
+    procedure DeleteKey(const Section, Ident: String); override;
+    procedure UpdateFile; override;
+    property Stream: TStream read FStream;
+  end;
+
+  TMemIniFile = class(TIniFile)
+  public
+    procedure Clear;
+    procedure GetStrings(List: TStrings);
+    procedure Rename(const AFileName: string; Reload: Boolean);
+    procedure SetStrings(List: TStrings);
+  end;
 
 implementation
 
-uses SysUtils;
-
 const
-   brackets  : array[0..1] of Char = ('[', ']');
-   separator : Char = '=';
-   comment   : Char = ';';
+   Brackets  : array[0..1] of Char = ('[', ']');
+   Separator : Char = '=';
+   Comment   : Char = ';';
+   LF_Escape : Char = '\';
 
+function CharToBool(AChar: char): boolean;
+begin
+  Result := (Achar = '1');
+end;
+
+function BoolToChar(ABool: boolean): char;
+begin
+  if ABool then
+    Result := '1'
+  else
+    Result := '0';
+end;
+
+function IsComment(AString: string): boolean;
+begin
+  Result := False;
+  if AString > '' then
+    Result := (Copy(AString, 1, 1) = Comment);
+end;
+
+{ TIniFileKey }
+
+constructor TIniFileKey.Create(AIdent, AValue: string);
+begin
+  FIdent := AIdent;
+  FValue := AValue;
+end;
+
+{ TIniFileKeyList }
+
+function TIniFileKeyList.GetItem(Index: integer): TIniFileKey;
+begin
+  Result := nil;
+  if (Index >= 0) and (Index < Count) then
+    Result := TIniFileKey(inherited Items[Index]);
+end;
+
+function TIniFileKeyList.KeyByName(AName: string): TIniFileKey;
+var
+  i: integer;
+begin
+  Result := nil;
+  if (AName > '') and not IsComment(AName) then
+    for i := 0 to Count-1 do
+      if CompareText(Items[i].Ident, AName) = 0 then begin
+        Result := Items[i];
+        Break;
+      end;
+end;
+
+procedure TIniFileKeyList.Clear;
+var
+  i: integer;
+begin
+  for i := Count-1 downto 0 do
+    Items[i].Free;
+  inherited Clear;
+end;
+
+{ TIniFileSection }
+
+constructor TIniFileSection.Create(AName: string);
+begin
+  FName := AName;
+  FKeyList := TIniFileKeyList.Create;
+end;
+
+destructor TIniFileSection.Destroy;
+begin
+  FKeyList.Free;
+end;
+
+{ TIniFileSectionList }
+
+function TIniFileSectionList.GetItem(Index: integer): TIniFileSection;
+begin
+  Result := nil;
+  if (Index >= 0) and (Index < Count) then
+    Result := TIniFileSection(inherited Items[Index]);
+end;
+
+function TIniFileSectionList.SectionByName(AName: string): TIniFileSection;
+var
+  i: integer;
+begin
+  Result := nil;
+  if (AName > '') and not IsComment(AName) then
+    for i := 0 to Count-1 do
+      if CompareText(Items[i].Name, AName) = 0 then begin
+        Result := Items[i];
+        Break;
+      end;
+end;
+
+procedure TIniFileSectionList.Clear;
+var
+  i: integer;
+begin
+  for i := Count-1 downto 0 do
+    Items[i].Free;
+  inherited Clear;
+end;
+
+{ TCustomIniFile }
+
+constructor TCustomIniFile.Create(const AFileName: string);
+begin
+  FFileName := AFileName;
+  FSectionList := TIniFileSectionList.Create;
+  FEscapeLineFeeds := False;
+end;
+
+destructor TCustomIniFile.Destroy;
+begin
+  FSectionList.Free;
+  inherited Destroy;
+end;
+
+function TCustomIniFile.SectionExists(const Section: string): Boolean;
+begin
+  Result := (FSectionList.SectionByName(Section) <> nil);
+end;
+
+function TCustomIniFile.ReadInteger(const Section, Ident: string; Default: Longint): Longint;
+var
+  s: string;
+begin
+  Result := Default;
+  s := ReadString(Section, Ident, '');
+  if s > '' then try
+    // convert hex string
+    if Pos('0X', UpperCase(s)) = 1 then
+      s := '$' + Copy(s, 3, Length(s) - 2);
+    Result := StrToInt(s);
+  except
+    on EConvertError do
+    else raise;
+  end;
+end;
+
+procedure TCustomIniFile.WriteInteger(const Section, Ident: string; Value: Longint);
+begin
+  WriteString(Section, Ident, IntToStr(Value));
+end;
+
+function TCustomIniFile.ReadBool(const Section, Ident: string; Default: Boolean): Boolean;
+var
+  s: string;
+begin
+  Result := Default;
+  s := ReadString(Section, Ident, '');
+  if s > '' then
+    Result := CharToBool(s[1]);
+end;
+
+procedure TCustomIniFile.WriteBool(const Section, Ident: string; Value: Boolean);
+begin
+  WriteString(Section, Ident, BoolToChar(Value));
+end;
+
+function TCustomIniFile.ReadDate(const Section, Ident: string; Default: TDateTime): TDateTime;
+var
+  s: string;
+begin
+  Result := Default;
+  s := ReadString(Section, Ident, '');
+  if s > '' then try
+    Result := StrToDate(s);
+  except
+    on EConvertError do
+    else raise;
+  end;
+end;
+
+function TCustomIniFile.ReadDateTime(const Section, Ident: string; Default: TDateTime): TDateTime;
+var
+  s: string;
+begin
+  Result := Default;
+  s := ReadString(Section, Ident, '');
+  if s > '' then try
+    Result := StrToDateTime(s);
+  except
+    on EConvertError do
+    else raise;
+  end;
+end;
+
+function TCustomIniFile.ReadFloat(const Section, Ident: string; Default: Double): Double;
+var
+  s: string;
+begin
+  Result := Default;
+  s := ReadString(Section, Ident, '');
+  if s > '' then try
+    Result := StrToFloat(s);
+  except
+    on EConvertError do
+    else raise;
+  end;
+end;
+
+function TCustomIniFile.ReadTime(const Section, Ident: string; Default: TDateTime): TDateTime;
+var
+  s: string;
+begin
+  Result := Default;
+  s := ReadString(Section, Ident, '');
+  if s > '' then try
+    Result := StrToTime(s);
+  except
+    on EConvertError do
+    else raise;
+  end;
+end;
+
+procedure TCustomIniFile.WriteDate(const Section, Ident: string; Value: TDateTime);
+begin
+  WriteString(Section, Ident, DateToStr(Value));
+end;
+
+procedure TCustomIniFile.WriteDateTime(const Section, Ident: string; Value: TDateTime);
+begin
+  WriteString(Section, Ident, DateTimeToStr(Value));
+end;
+
+procedure TCustomIniFile.WriteFloat(const Section, Ident: string; Value: Double);
+begin
+  WriteString(Section, Ident, FloatToStr(Value));
+end;
+
+procedure TCustomIniFile.WriteTime(const Section, Ident: string; Value: TDateTime);
+begin
+  WriteString(Section, Ident, TimeToStr(Value));
+end;
+
+function TCustomIniFile.ValueExists(const Section, Ident: string): Boolean;
+var
+  oSection: TIniFileSection;
+begin
+  Result := False;
+  oSection := FSectionList.SectionByName(Section);
+  if oSection <> nil then
+    Result := (oSection.KeyList.KeyByName(Ident) <> nil);
+end;
 
 { TIniFile }
 
-constructor TIniFile.Create(const theFileName : string);
-begin
-   FFileName := theFileName;
-   FStream:=nil;
-   FEscapeLineFeeds:=False;
-   FFileBuffer := TStringList.Create;
-
-   if FileExists(fileName) then
-      LoadFromFile;
-end;
-
-constructor TIniFile.Create(s:TStream);
-begin
-   FFileName := '';
-   FStream:=s;
-   FEscapeLineFeeds:=False;
-   FFileBuffer := TStringList.Create;
-   LoadFromStream;
-end;
-
-destructor TIniFile.Destroy;
-begin
-   FFileBuffer.Free;
-end;
-
-function TIniFile.GetName(const line : string) : string;
+constructor TIniFile.Create(const AFileName: string);
 var
-   index,index2 : integer;
+  slLines: TStringList;
 begin
-   Result := '';
-   index := Pos(separator, line);
-   if index <> 0 then
-    begin
-      index2:=Pos(comment, line);
-      if (index2=0) or (index2>index) then
-       result := Trim(Copy(line, 1, index - 1));
-    end;
-end;
-
-function TIniFile.GetValue(const line, name : string) : string;
-var
-   index1,index2,index3 : integer;
-begin
-   result := '';
-   if (line <> '') and (name <> '') then
-   begin
-      index1 := Pos(name, line);
-      index2 := Pos(separator, line);
-      index3 := Pos(comment, line);
-      if index3=0 then
-       index3:=MaxInt;
-      if (index1 <> 0) and (index2 <> 0) and (index2 > index1) then
-         result := Trim(Copy(line, index2 + 1, index3));
-   end;
-end;
-
-function TIniFile.IsSection(const line : string) : boolean;
-var
-   str : string;
-begin
-   result := False;
-   if line <> '' then
-   begin
-      str := Trim(line);
-      if (str[1] = brackets[0]) and (str[Length(str)] = brackets[1]) then
-         result := True;
-   end;
-end;
-
-function TIniFile.IsComment(const line : string) : boolean;
-var
-   str : string;
-begin
-   result := False;
-   if line <> '' then
-   begin
-      str := Trim(line);
-      result := (str[1]=comment);
-   end;
-end;
-
-function TIniFile.GetSectionIndex(const section : string) : integer;
-begin
-   result := FFileBuffer.IndexOf(brackets[0] + section + brackets[1]);
-end;
-
-{ Load/Save }
-
-procedure TIniFile.SetFileName(const fn:string);
-begin
-  FFileName:=fn;
-end;
-
-procedure TIniFile.SetStream(s:TStream);
-begin
-  FStream:=s;
-end;
-
-procedure TIniFile.LoadFromFile;
-begin
-  if FFileName<>'' then
-   FFileBuffer.LoadFromFile(FFileName);
-end;
-
-procedure TIniFile.SaveToFile;
-begin
-  if FFileName<>'' then
-   FFileBuffer.SaveToFile(FFileName);
-end;
-
-procedure TIniFile.LoadFromStream;
-begin
-  if assigned(FStream) then
-   FFileBuffer.LoadFromStream(FStream);
-end;
-
-procedure TIniFile.SaveToStream;
-begin
-  if assigned(FStream) then
-   FFileBuffer.SaveToStream(FStream);
-end;
-
-{ Read all Names of one Section }
-
-procedure TIniFile.ReadSection(const section : string; strings : TStrings);
-var
-   index : integer;
-   name : string;
-begin
-   strings.BeginUpdate;
-   try
-      strings.Clear;
-      if FFileBuffer.Count > 0 then
-      begin
-         index := GetSectionIndex(section);
-         if index <> -1 then
-         begin
-            Inc(index);
-            while (index < FFileBuffer.Count) and not IsSection(FFileBuffer[index]) do
-            begin
-               name := GetName(FFileBuffer[index]);
-               if name <> '' then
-                  strings.Add(name);
-               Inc(index);
-            end;
-         end;
-      end;
-   finally
-      strings.EndUpdate;
-   end;
-end;
-
-{ Read all Sections of the Ini-File }
-
-procedure TIniFile.ReadSections(strings : TStrings);
-var
-   index : integer;
-   section : string;
-begin
-   strings.BeginUpdate;
-   try
-      strings.Clear;
-      if FFileBuffer.Count > 0 then
-      begin
-         index := 0;
-         while (index < FFileBuffer.Count) do
-         begin
-            if IsSection(FFileBuffer[index]) then
-            begin
-               section := Trim(FFileBuffer[index]);
-               Delete(section, 1, 1);
-               Delete(section, Length(section), 1);
-               strings.Add(Trim(section));
-            end;
-            Inc(index);
-         end;
-      end;
-   finally
-      strings.EndUpdate;
-   end;
-end;
-
-{ Reads a String-Value of "ident" in one "section".
-  The result is "defaultValue" if
-  o section doesn't exists
-  o ident doesn't exists
-  o ident doesn't have any assigned value }
-
-function TIniFile.ReadString(const section, ident, defaultValue : string) : string;
-var
-   index : integer;
-   value : string;
-begin
-   result := defaultValue;
-   if FFileBuffer.Count > 0 then
-   begin
-      index := GetSectionIndex(section);
-      if index <> -1 then
-      begin
-         Inc(index);
-         while (index < FFileBuffer.Count) and not IsSection(FFileBuffer[index]) do
-         begin
-            if CompareText(GetName(FFileBuffer[index]),ident)=0 then
-            begin
-              value := GetValue(FFileBuffer[index], ident);
-              if value <> '' then
-               begin
-                 result := value;
-                 if EscapeLineFeeds and (result[length(result)]='\') then
-                  begin
-                    inc(index);
-                    while (index < FFileBuffer.Count) and (result[length(result)]='\') do
-                     begin
-                       result:=Copy(result,1,length(result)-1)+Trim(FFileBuffer[index]);
-                       inc(index);
-                     end;
-                  end;
-               end;
-              break;
-            end;
-            Inc(index);
-         end;
-      end;
-   end;
-end;
-
-{ Reads an Integer-Value of Ident in one Section }
-
-function TIniFile.ReadInteger(const section, ident : string; defaultValue : longint) : longint;
-var
-   intStr : string;
-begin
-   intStr := ReadString(section, ident, '');
-   { convert a Hex-Value }
-   if (Length(intStr) > 2) and (intStr[1] = '0') and ((intStr[2] = 'X') or (intStr[2] = 'x')) then
-      intStr := '$' + Copy(intStr, 3, Maxint);
-   result := StrToIntDef(intStr, defaultValue);
-end;
-
-{ Reads a Bool-Value of Ident in one Section }
-
-function TIniFile.ReadBool(const section, ident : string; defaultValue : boolean) : boolean;
-begin
-   result := ReadInteger(section, ident, Ord(defaultValue)) <> 0;
-end;
-
-{ Reads all Names + Values of one Section }
-
-procedure TIniFile.ReadSectionValues(const section : string; strings : TStrings);
-var
-   name : string;
-   value : string;
-   index : integer;
-begin
-   strings.BeginUpdate;
-   try
-      strings.Clear;
-      if FFileBuffer.Count > 0 then
-      begin
-         index := GetSectionIndex(section);
-         if index <> -1 then
-         begin
-            Inc(index);
-            while (index < FFileBuffer.Count) and not IsSection(FFileBuffer[index]) do
-            begin
-               name := GetName(FFileBuffer[index]);
-               if name <> '' then
-               begin
-                  value := GetValue(FFileBuffer[index], name);
-                  strings.Add(name + separator + value);
-               end;
-               Inc(index);
-            end;
-         end;
-      end;
-   finally
-      strings.EndUpdate;
-   end;
-end;
-
-procedure TIniFile.ReadSectionRaw(const section : string; strings : TStrings);
-var
-   eols,index : integer;
-begin
-   strings.BeginUpdate;
-   try
-      eols:=0;
-      strings.Clear;
-      if FFileBuffer.Count > 0 then
-      begin
-         index := GetSectionIndex(section);
-         if index <> -1 then
-         begin
-            Inc(index);
-            while (index < FFileBuffer.Count) and not IsSection(FFileBuffer[index]) do
-             begin
-               { Skip empty lines at the end of the section }
-               if FFileBuffer[index]='' then
-                inc(eols)
-               else
-                begin
-                  while eols>0 do
-                   begin
-                     Strings.Add('');
-                     dec(eols);
-                   end;
-                  if not IsComment(FFileBuffer[index]) then
-                   strings.Add(FFileBuffer[index]);
-                end;
-               Inc(index);
-             end;
-         end;
-      end;
-   finally
-      strings.EndUpdate;
-   end;
-end;
-
-{ Writes a String-Value for Ident in one Section.
-  Note: If Section and/or Ident don't exist, they will be placed in the Ini-File }
-
-procedure TIniFile.WriteString(const section, ident, value : string);
-var
-   index : integer;
-begin
-   index := GetSectionIndex(section);
-   { Section exists }
-   if index <> -1 then
-   begin
-      Inc(index);
-      while (index < FFileBuffer.Count) and not IsSection(FFileBuffer[index]) and
-            (GetName(FFileBuffer[index]) <> ident) do
-         Inc(index);
-      if (index >= FFileBuffer.Count) or IsSection(FFileBuffer[index]) then
-      begin         { End of File or ident doesn't exists in the section }
-         if ident <> '' then
-            FFileBuffer.Insert(index, ident + separator + value);
-      end
-      else if ident <> '' then   { Ident does exists in the section }
-         FFileBuffer[index] := ident + separator + value;
-   end
-   else   { section doesn't exists, so add new [section] with ident=value }
-   begin
-      FFileBuffer.Add('');
-      FFileBuffer.Add(brackets[0] + section + brackets[1]);
-      if ident <> '' then
-         FFileBuffer.Add(ident + separator + value);
-   end;
-   SaveToFile;
-end;
-
-{ Writes an Integer-Value for Ident in one Section }
-
-procedure TIniFile.WriteInteger(const section, ident : string; value : longint);
-begin
-   WriteString(section, ident, IntToStr(value));
-end;
-
-{ Writes a Bool-Value for Ident in one Section }
-
-procedure TIniFile.WriteBool(const section, ident : string; value : boolean);
-const
-   values: array[boolean] of string = ('0', '1');
-begin
-   WriteString(section, ident, values[Value]);
-end;
-
-{ Deletes the value of ident in one section.
-  Note: Only if section and ident exist, the value of ident will be set to NULL }
-
-procedure TIniFile.DeleteKey(const section, ident : string);
-var
-   index : integer;
-begin
-   index := GetSectionIndex(section);
-   if index <> -1 then
-   begin
-      Inc(index);
-      while (index < FFileBuffer.Count) and not IsSection(FFileBuffer[index]) and
-            (GetName(FFileBuffer[index]) <> ident) do
-         Inc(index);
-      if not (index >= FFileBuffer.Count) and not IsSection(FFileBuffer[index]) then
-      begin         { Ident does exists }
-         FFileBuffer.Delete(index);
-         SaveToFile;
-      end;
-   end;
-end;
-
-{ Erases the whole Section from an Ini-File }
-
-procedure TIniFile.EraseSection(const section : string);
-var
-   index : integer;
-begin
-   index := GetSectionIndex(section);
-   if index <> -1 then
-   begin
-      FFileBuffer.Delete(index);           { Delete Section-Header }
-      while (index < FFileBuffer.Count) and not IsSection(FFileBuffer[index]) do
-         FFileBuffer.Delete(index);        { Delete Section-Items }
-      if index > 0 then FFileBuffer.Insert(index, '');
-    SaveToFile;
+  inherited Create(AFileName);
+  FStream := nil;
+  slLines := TStringList.Create;
+  try
+    if FileExists(FFileName) then begin
+      // read the ini file values
+      slLines.LoadFromFile(FFileName);
+      FillSectionList(slLines);
+    end else
+      // create a new ini file
+      slLines.SaveToFile(FFileName);
+  finally
+    slLines.Free;
   end;
+end;
+
+constructor TIniFile.Create(AStream: TStream);
+var
+  slLines: TStringList;
+begin
+  inherited Create('');
+  FStream := AStream;
+  slLines := TStringList.Create;
+  try
+    // read the ini file values
+    slLines.LoadFromStream(FStream);
+    FillSectionList(slLines);
+  finally
+    slLines.Free;
+  end;
+end;
+
+procedure TIniFile.FillSectionList(AStrings: TStrings);
+var
+  i: integer;
+  sLine, sIdent, sValue: string;
+  oSection: TIniFileSection;
+
+  procedure RemoveBackslashes;
+  var
+    i: integer;
+    s: string;
+    bAppendNextLine, bAppended: boolean;
+  begin
+    AStrings.BeginUpdate;
+    try
+      i := 0;
+      bAppendNextLine := False;
+      while i < AStrings.Count do begin
+        s := AStrings[i];
+        bAppended := False;
+        if bAppendNextLine then begin
+          // add line to previous line
+          AStrings[i-1] := AStrings[i-1] + Trim(s);
+          AStrings.Delete(i);
+          s := AStrings[i-1];
+          bAppended := True;
+        end;
+        bAppendNextLine := (Copy(s, Length(s), 1) = LF_Escape);
+        if bAppendNextLine then
+          // remove backslash
+          AStrings[i] := Copy(s, 1, Length(s) - 1);
+        if not bAppended then
+          Inc(i);
+      end;
+    finally
+      AStrings.EndUpdate;
+    end;
+  end;
+
+begin
+  oSection := nil;
+  FSectionList.Clear;
+  if FEscapeLineFeeds then
+    RemoveBackslashes;
+  for i := 0 to AStrings.Count-1 do begin
+    sLine := Trim(AStrings[i]);
+    if sLine > '' then
+      if IsComment(sLine) and (oSection = nil) then begin
+        // comment at the beginning of the ini file
+        oSection := TIniFileSection.Create(sLine);
+        FSectionList.Add(oSection);
+      end;
+      if (Copy(sLine, 1, 1) = Brackets[0]) and (Copy(sLine, length(sLine), 1) = Brackets[1]) then begin
+        // regular section
+        oSection := TIniFileSection.Create(Copy(sLine, 2, Length(sLine) - 2));
+        FSectionList.Add(oSection);
+      end else if oSection <> nil then begin
+        if IsComment(sLine) then begin
+          // comment within a section
+          sIdent := sLine;
+          sValue := '';
+        end else begin
+          // regular key
+          sIdent := Trim(Copy(sLine, 1, Pos(Separator, sLine) - 1));
+          sValue := Trim(Copy(sLine, Pos(Separator, sLine) + 1, Length(sLine) - Length(sIdent) - 1));
+        end;
+        oSection.KeyList.Add(TIniFileKey.Create(sIdent, sValue));
+      end;
+  end;
+end;
+
+function TIniFile.ReadString(const Section, Ident, Default: string): string;
+var
+  oSection: TIniFileSection;
+  oKey: TIniFileKey;
+begin
+  Result := Default;
+  oSection := FSectionList.SectionByName(Section);
+  if oSection <> nil then begin
+    oKey := oSection.KeyList.KeyByName(Ident);
+    if oKey <> nil then
+      Result := oKey.Value;
+  end;
+end;
+
+procedure TIniFile.WriteString(const Section, Ident, Value: String);
+var
+  oSection: TIniFileSection;
+  oKey: TIniFileKey;
+begin
+  if (Section > '') and (Ident > '') then begin
+    // update or add key
+    oSection := FSectionList.SectionByName(Section);
+    if (Value > '') then begin
+      if oSection = nil then begin
+        oSection := TIniFileSection.Create(Section);
+        FSectionList.Add(oSection);
+      end;
+      with oSection.KeyList do begin
+        oKey := KeyByName(Ident);
+        if oKey <> nil then
+          oKey.Value := Value
+        else
+          oSection.KeyList.Add(TIniFileKey.Create(Ident, Value));
+      end;
+    end else if oSection <> nil then begin
+      // remove key
+      oKey := oSection.KeyList.KeyByName(Ident);
+      if oKey <> nil then begin
+        oSection.KeyList.Remove(oKey);
+      end;
+    end;
+    UpdateFile;
+  end;
+end;
+
+procedure TIniFile.ReadSection(const Section: string; Strings: TStrings);
+var
+  oSection: TIniFileSection;
+  i: integer;
+begin
+  Strings.BeginUpdate;
+  try
+    Strings.Clear;
+    oSection := FSectionList.SectionByName(Section);
+    if oSection <> nil then with oSection.KeyList do
+      for i := 0 to Count-1 do
+        if not IsComment(Items[i].Ident) then
+          Strings.Add(Items[i].Ident);
+  finally
+    Strings.EndUpdate;
+  end;
+end;
+
+procedure TIniFile.ReadSectionRaw(const Section: string; Strings: TStrings);
+var
+  oSection: TIniFileSection;
+  i: integer;
+begin
+  Strings.BeginUpdate;
+  try
+    Strings.Clear;
+    oSection := FSectionList.SectionByName(Section);
+    if oSection <> nil then with oSection.KeyList do
+      for i := 0 to Count-1 do
+        if not IsComment(Items[i].Ident) then
+          Strings.Add(Items[i].Ident + Separator + Items[i].Value);
+  finally
+    Strings.EndUpdate;
+  end;
+end;
+
+procedure TIniFile.ReadSections(Strings: TStrings);
+var
+  i: integer;
+begin
+  Strings.BeginUpdate;
+  try
+    Strings.Clear;
+    for i := 0 to FSectionList.Count-1 do
+      if not IsComment(FSectionList[i].Name) then
+        Strings.Add(FSectionList[i].Name);
+  finally
+    Strings.EndUpdate;
+  end;
+end;
+
+procedure TIniFile.ReadSectionValues(const Section: string; Strings: TStrings);
+var
+  oSection: TIniFileSection;
+  s: string;
+  i: integer;
+begin
+  Strings.BeginUpdate;
+  try
+    Strings.Clear;
+    oSection := FSectionList.SectionByName(Section);
+    if oSection <> nil then with oSection.KeyList do
+      for i := 0 to Count-1 do begin
+        s := Items[i].Value;
+        if s > '' then
+          Strings.Add(s);
+      end;
+  finally
+    Strings.EndUpdate;
+  end;
+end;
+
+procedure TIniFile.EraseSection(const Section: string);
+var
+  oSection: TIniFileSection;
+begin
+  oSection := FSectionList.SectionByName(Section);
+  if oSection <> nil then begin
+    oSection.Free;
+    UpdateFile;
+  end;
+end;
+
+procedure TIniFile.DeleteKey(const Section, Ident: String);
+var
+  oSection: TIniFileSection;
+  oKey: TIniFileKey;
+begin
+  oSection := FSectionList.SectionByName(Section);
+  if oSection <> nil then begin
+    oKey := oSection.KeyList.KeyByName(Ident);
+    if oKey <> nil then begin
+      oKey.Free;
+      UpdateFile;
+    end;
+  end;
+end;
+
+procedure TIniFile.UpdateFile;
+var
+  slLines: TStringList;
+  i, j: integer;
+begin
+  slLines := TStringList.Create;
+  try
+    for i := 0 to FSectionList.Count-1 do
+      with FSectionList[i] do begin
+        if IsComment(Name) then
+          // comment
+          slLines.Add(Name)
+        else
+          // regular section
+          slLines.Add(Brackets[0] + Name + Brackets[1]);
+        for j := 0 to KeyList.Count-1 do
+          if IsComment(KeyList[j].Ident) then
+            // comment
+            slLines.Add(KeyList[j].Ident)
+          else
+            // regular key
+            slLines.Add(KeyList[j].Ident + Separator + KeyList[j].Value);
+        if (i < FSectionList.Count-1) and not IsComment(Name) then
+          slLines.Add('');
+      end;
+    if FFileName > '' then
+      slLines.SaveToFile(FFileName)
+    else if FStream <> nil then
+      slLines.SaveToStream(FStream);
+    FillSectionList(slLines);
+  finally
+    slLines.Free;
+  end;
+end;
+
+{ TMemIniFile }
+
+procedure TMemIniFile.Clear;
+begin
+  FSectionList.Clear;
+end;
+
+procedure TMemIniFile.GetStrings(List: TStrings);
+var
+  i, j: integer;
+  oSection: TIniFileSection;
+begin
+  List.BeginUpdate;
+  try
+    for i := 0 to FSectionList.Count-1 do begin
+      oSection := FSectionList[i];
+      with oSection do begin
+        if IsComment(Name) then
+          List.Add(Name)
+        else
+          List.Add(Brackets[0] + Name + Brackets[1]);
+        for j := 0 to KeyList.Count-1 do begin
+          if IsComment(KeyList[j].Ident) then
+            List.Add(KeyList[j].Ident)
+          else
+            List.Add(KeyList[j].Ident + Separator + KeyList[j].Value);
+        end;
+      end;
+      if i < FSectionList.Count-1 then
+        List.Add('');
+    end;
+  finally
+    List.EndUpdate;
+  end;
+end;
+
+procedure TMemIniFile.Rename(const AFileName: string; Reload: Boolean);
+var
+  slLines: TStringList;
+begin
+  FFileName := AFileName;
+  FStream := nil;
+  if Reload then begin
+    slLines := TStringList.Create;
+    try
+      slLines.LoadFromFile(FFileName);
+      FillSectionList(slLines);
+    finally
+      slLines.Free;
+    end;
+  end;
+end;
+
+procedure TMemIniFile.SetStrings(List: TStrings);
+begin
+  FillSectionList(List);
 end;
 
 end.
 
 {
   $Log$
-  Revision 1.10  2000-04-08 17:59:47  michael
-  + Searching of values is now case-insensitive
+  Revision 1.11  2000-05-10 16:43:43  michael
+  + New implementation by Erik WachtMeester
 
-  Revision 1.9  2000/03/11 15:56:17  michael
-  + Added EscapeLinefeeds boolean property.
+  Revision ?.?  2000/04/29 13:51:00  erik
+    * fully rewritten for D5 compatibility and SectionList object structure
 
   Revision 1.8  2000/01/07 01:24:33  peter
     * updated copyright to 2000
