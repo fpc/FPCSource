@@ -152,23 +152,8 @@ unit hcodegen;
     { searches the lowest label }
     function case_get_min(root : pcaserecord) : longint;
 
-    { concates/inserts the ASCII string to the data segment }
-    procedure generate_ascii(a : paasmoutput;const hs : string);
-    { concates/inserts the ASCII string from pchar to the data  segment }
-    { WARNING : if hs has no #0 and strlen(hs)=length           }
-    { the terminal zero is not written                          }
-    procedure generate_pascii(a : paasmoutput;hs : pchar;length : longint);
-
-    { convert/concats a label for constants in the consts section }
-{    function constlabel2str(l : plabel;ctype:tconsttype):string;
-    function constlabelnb2str(pnb : longint;ctype:tconsttype):string;
-    procedure concat_constlabel(p:plabel;ctype:tconsttype); }
-
-    { to be able to force to have a global label for const }
-    const
-       make_const_global : boolean = false;
-
     var
+       make_const_global : boolean;
        temptoremove : plinkedlist;
 
 implementation
@@ -345,23 +330,6 @@ implementation
 
 
 {*****************************************************************************
-                              String Helpers
-*****************************************************************************}
-
-    procedure generate_ascii(a : paasmoutput;const hs : string);
-      begin
-         a^.concat(new(pai_string,init(hs)))
-      end;
-
-
-    procedure generate_pascii(a : paasmoutput;hs : pchar;length : longint);
-      begin
-         if assigned(hs) then
-           a^.concat(new(pai_string,init_length_pchar(hs,length)));
-      end;
-
-
-{*****************************************************************************
                               TTempToDestroy
 *****************************************************************************}
 
@@ -376,7 +344,10 @@ end.
 
 {
   $Log$
-  Revision 1.21  1998-11-04 10:11:38  peter
+  Revision 1.22  1998-11-16 12:12:21  peter
+    - generate_pascii which is obsolete
+
+  Revision 1.21  1998/11/04 10:11:38  peter
     * ansistring fixes
 
   Revision 1.20  1998/10/29 15:42:48  florian

@@ -190,7 +190,7 @@ unit ptconst;
                       begin
                         getmem(ca,p^.length+2);
                         move(p^.value_str^,ca^,p^.length+1);
-                        generate_pascii(consts,ca,p^.length+1);
+                        consts^.concat(new(pai_string,init_length_pchar(ca,p^.length+1)));
                       end
                     else
                       if is_constcharnode(p) then
@@ -321,8 +321,9 @@ unit ptconst;
                            datasegment^.concat(new(pai_const,init_8bit(strlength)));
                            { this can also handle longer strings }
                            getmem(ca,strlength+1);
-                           move(p^.value_str^,ca^,strlength+1);
-                           generate_pascii(datasegment,ca,strlength);
+                           move(p^.value_str^,ca^,strlength);
+                           ca[strlength]:=#0;
+                           datasegment^.concat(new(pai_string,init_length_pchar(ca,strlength)));
                         end
                       else if is_constcharnode(p) then
                         begin
@@ -339,7 +340,7 @@ unit ptconst;
                            fillchar(ca[0],def^.size-strlength-1,' ');
                            ca[def^.size-strlength-1]:=#0;
                            { this can also handle longer strings }
-                           generate_pascii(datasegment,ca,def^.size-strlength-1);
+                           datasegment^.concat(new(pai_string,init_length_pchar(ca,def^.size-strlength-1)));
                         end;
                    end;
 {$ifdef UseLongString}
@@ -388,17 +389,13 @@ unit ptconst;
                            { redondent with maxlength but who knows ... (PM) }
                            { third write use count (set to -1 for safety ) }
                            consts^.concat(new(pai_const,init_32bit(-1)));
-                           { not longer necessary, because it insert_indata
-                           if assigned(sym) then
-                             sym^.really_insert_in_data;
-                           }
                            consts^.concat(new(pai_label,init(ll)));
                            if p^.treetype=stringconstn then
                              begin
                                getmem(ca,strlength+1);
                                move(p^.value_str^,ca^,strlength);
                                ca[strlength]:=#0;
-                               generate_pascii(consts,ca,strlength);
+                               consts^.concat(new(pai_string,init_length_pchar(ca,strlength)));
                              end
                            else if is_constcharnode(p) then
                              begin
@@ -626,7 +623,10 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.26  1998-11-10 17:53:06  peter
+  Revision 1.27  1998-11-16 12:12:23  peter
+    - generate_pascii which is obsolete
+
+  Revision 1.26  1998/11/10 17:53:06  peter
     * fixed const string
 
   Revision 1.25  1998/11/10 16:10:47  peter
