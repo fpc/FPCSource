@@ -67,7 +67,7 @@ implementation
       begin
         inherited pass_2;
         { for use of other segments }
-        if left.location.reference.segment<>R_NO then
+        if left.location.reference.segment.enum<>R_NO then
           location.segment:=left.location.reference.segment;
       end;
 
@@ -82,7 +82,7 @@ implementation
       begin
          inherited pass_2;
          if tpointerdef(left.resulttype.def).is_far then
-          location.reference.segment:=R_FS;
+          location.reference.segment.enum:=R_FS;
       end;
 
 
@@ -95,11 +95,11 @@ implementation
          l2 : integer;
        begin
          { Optimized for x86 to use the index register and scalefactor }
-         if location.reference.index=R_NO then
+         if location.reference.index.enum=R_NO then
           begin
             { no preparations needed }
           end
-         else if location.reference.base=R_NO then
+         else if location.reference.base.enum=R_NO then
           begin
             case location.reference.scalefactor of
              2 : cg.a_op_const_reg(exprasmlist,OP_SHL,1,location.reference.index);
@@ -135,7 +135,7 @@ implementation
         inherited pass_2;
 
         if nf_memseg in flags then
-          location.reference.segment:=R_FS;
+          location.reference.segment.enum:=R_FS;
       end;
 
 
@@ -146,7 +146,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.47  2002-12-03 22:14:12  carl
+  Revision 1.48  2003-01-08 18:43:57  daniel
+   * Tregister changed into a record
+
+  Revision 1.47  2002/12/03 22:14:12  carl
      + use FPC_CHECKPOINTER once again
 
   Revision 1.46  2002/11/25 17:43:27  peter

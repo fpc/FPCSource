@@ -222,18 +222,26 @@ implementation
           LOC_REGISTER:
             begin
               { can't be a regvar, since it would be LOC_CREGISTER then }
-              exclude(regs,t.register);
-              if t.registerhigh <> R_NO then
-                exclude(regs,t.registerhigh);
+              if t.register.enum>lastreg then
+                internalerror(200201081);
+              if t.registerhigh.enum>lastreg then
+                internalerror(200201081);
+              exclude(regs,t.register.enum);
+              if t.registerhigh.enum <> R_NO then
+                exclude(regs,t.registerhigh.enum);
             end;
           LOC_CREFERENCE,LOC_REFERENCE:
             begin
+              if t.reference.base.enum>lastreg then
+                internalerror(200201081);
+              if t.reference.index.enum>lastreg then
+                internalerror(200201081);
               if not(cs_regalloc in aktglobalswitches) or
-                 (t.reference.base in rg.usableregsint) then
-                exclude(regs,t.reference.base);
+                 (t.reference.base.enum in rg.usableregsint) then
+                exclude(regs,t.reference.base.enum);
               if not(cs_regalloc in aktglobalswitches) or
-                 (t.reference.index in rg.usableregsint) then
-              exclude(regs,t.reference.index);
+                 (t.reference.index.enum in rg.usableregsint) then
+              exclude(regs,t.reference.index.enum);
             end;
         end;
       end;
@@ -244,6 +252,9 @@ implementation
 
     procedure new_exception(list : taasmoutput;const jmpbuf,envbuf, href : treference;
       a : aword; exceptlabel : tasmlabel);
+
+    var r:Tregister;
+
      begin
        cg.a_paramaddr_ref(list,envbuf,paramanager.getintparaloc(3));
        cg.a_paramaddr_ref(list,jmpbuf,paramanager.getintparaloc(2));
@@ -251,23 +262,28 @@ implementation
        cg.a_param_const(list,OS_S32,1,paramanager.getintparaloc(1));
        cg.a_call_name(list,'FPC_PUSHEXCEPTADDR');
 
-       cg.a_param_reg(list,OS_ADDR,accumulator,paramanager.getintparaloc(1));
+       r.enum:=accumulator;
+       cg.a_param_reg(list,OS_ADDR,r,paramanager.getintparaloc(1));
        cg.a_call_name(list,'FPC_SETJMP');
 
        cg.g_exception_reason_save(list, href);
-       cg.a_cmp_const_reg_label(list,OS_S32,OC_NE,0,accumulator,exceptlabel);
+       cg.a_cmp_const_reg_label(list,OS_S32,OC_NE,0,r,exceptlabel);
      end;
 
 
     procedure free_exception(list : taasmoutput;const jmpbuf, envbuf, href : treference;
      a : aword ; endexceptlabel : tasmlabel; onlyfree : boolean);
+
+    var r:Tregister;
+
      begin
          cg.a_call_name(list,'FPC_POPADDRSTACK');
 
          if not onlyfree then
           begin
             cg.g_exception_reason_load(list, href);
-            cg.a_cmp_const_reg_label(list,OS_S32,OC_EQ,a,accumulator,endexceptlabel);
+            r.enum:=accumulator;
+            cg.a_cmp_const_reg_label(list,OS_S32,OC_EQ,a,r,endexceptlabel);
           end;
      end;
 
@@ -371,7 +387,7 @@ implementation
               if l.size in [OS_64,OS_S64] then
                begin
                  rg.ungetregisterint(list,l.registerhigh);
-                 l.registerhigh:=R_NO;
+                 l.registerhigh.enum:=R_NO;
                end;
               hregister:=l.register;
             end
@@ -609,11 +625,13 @@ implementation
              LOC_REFERENCE,
              LOC_CREFERENCE :
                begin
-                 if ((l.reference.base<>R_NO) or
-                     (l.reference.index<>R_NO)) then
+                 if l.reference.base.enum>lastreg then
+                   internalerror(200101081);
+                 if ((l.reference.base.enum<>R_NO) or
+                     (l.reference.index.enum<>R_NO)) then
                   begin
                     { load address into a single base register }
-                    if l.reference.index<>R_NO then
+                    if l.reference.index.enum<>R_NO then
                      begin
                        cg.a_loadaddr_ref_reg(list,l.reference,l.reference.index);
                        rg.ungetregister(list,l.reference.base);
@@ -703,6 +721,7 @@ implementation
         sizetopush,
         size : longint;
         cgsize : tcgsize;
+        r:Tregister;
       begin
         { we've nothing to push when the size of the parameter is 0 }
         if p.resulttype.def.size=0 then
@@ -730,10 +749,11 @@ implementation
 {$endif GDB}
 
                   { this is the easiest case for inlined !! }
+                  r.enum:=stack_pointer_reg;
                   if calloption=pocall_inline then
                    reference_reset_base(href,procinfo.framepointer,para_offset-pushedparasize)
                   else
-                   reference_reset_base(href,stack_pointer_reg,0);
+                   reference_reset_base(href,r,0);
 
                   cg.a_loadfpu_reg_ref(exprasmlist,
                     def_cgsize(p.resulttype.def),p.location.register,href);
@@ -785,7 +805,8 @@ implementation
               size:=align(p.resulttype.def.size,alignment);
               inc(pushedparasize,size);
               cg.g_stackpointer_alloc(exprasmlist,size);
-              reference_reset_base(href,STACK_POINTER_REG,0);
+              r.enum:=stack_pointer_reg;
+              reference_reset_base(href,r,0);
               cg.g_concatcopy(exprasmlist,p.location.reference,href,size,false,false);
             end
            else
@@ -1111,7 +1132,7 @@ implementation
     procedure handle_return_value(list:TAAsmoutput; inlined : boolean;var uses_acc,uses_acchi,uses_fpu : boolean);
       var
         href : treference;
-        hreg : tregister;
+        hreg,r,r2 : tregister;
         cgsize : TCGSize;
       begin
         if not is_void(aktprocdef.rettype.def) then
@@ -1130,13 +1151,17 @@ implementation
 {Here, we return the function result. In most architectures, the value is
 passed into the accumulator, but in a windowed architecure like sparc a
 function returns in a register and the caller receives it in an other one}
-                  cg.a_reg_alloc(list,return_result_reg);
+                  r.enum:=return_result_reg;
+                  cg.a_reg_alloc(list,r);
 {$ifndef cpu64bit}
                  if cgsize in [OS_64,OS_S64] then
                   begin
                     uses_acchi:=true;
-                    cg.a_reg_alloc(list,accumulatorhigh);
-                    cg64.a_load64_ref_reg(list,href,joinreg64(accumulator,accumulatorhigh));
+                    r.enum:=accumulatorhigh;
+                    cg.a_reg_alloc(list,r);
+                    r.enum:=accumulator;
+                    r2.enum:=accumulatorhigh;
+                    cg64.a_load64_ref_reg(list,href,joinreg64(r,r2));
                   end
                  else
 {$endif cpu64bit}
@@ -1145,32 +1170,39 @@ function returns in a register and the caller receives it in an other one}
 {Here, we return the function result. In most architectures, the value is
 passed into the accumulator, but in a windowed architecure like sparc a
 function returns in a register and the caller receives it in an other one}
-                    hreg:=rg.makeregsize(return_result_reg,cgsize);
+                    r.enum:=return_result_reg;
+                    hreg:=rg.makeregsize(r,cgsize);
                     cg.a_load_ref_reg(list,cgsize,href,hreg);
                   end;
                end;
              floatdef :
                begin
                  uses_fpu := true;
-                 cg.a_loadfpu_ref_reg(list,cgsize,href,FPU_RESULT_REG);
+                 r.enum:=fpu_result_reg;
+                 cg.a_loadfpu_ref_reg(list,cgsize,href,r);
                end;
              else
                begin
                  if paramanager.ret_in_acc(aktprocdef.rettype.def,aktprocdef.proccalloption) then
                   begin
                     uses_acc:=true;
-                    cg.a_reg_alloc(list,accumulator);
+                    r.enum:=accumulator;
+                    cg.a_reg_alloc(list,r);
 {$ifndef cpu64bit}
                     { Win32 can return records in EAX:EDX }
                     if cgsize in [OS_64,OS_S64] then
                      begin
                        uses_acchi:=true;
-                       cg.a_reg_alloc(list,accumulatorhigh);
-                       cg64.a_load64_ref_reg(list,href,joinreg64(accumulator,accumulatorhigh));
+                       r.enum:=accumulatorhigh;
+                       cg.a_reg_alloc(list,r);
+                       r.enum:=accumulator;
+                       r2.enum:=accumulatorhigh;
+                       cg64.a_load64_ref_reg(list,href,joinreg64(r,r2));
                      end
                     else
 {$endif cpu64bit}
-                     cg.a_load_ref_reg(list,cgsize,href,accumulator);
+                     r.enum:=accumulator;
+                     cg.a_load_ref_reg(list,cgsize,href,r);
                    end
                end;
            end;
@@ -1183,6 +1215,7 @@ function returns in a register and the caller receives it in an other one}
         href : treference;
         hreg : tregister;
         cgsize : TCGSize;
+        r,r2 : Tregister;
       begin
         if not is_void(aktprocdef.rettype.def) then
          begin
@@ -1193,23 +1226,27 @@ function returns in a register and the caller receives it in an other one}
              enumdef :
                begin
 {$ifndef cpu64bit}
+                 r.enum:=accumulator;
+                 r2.enum:=accumulatorhigh;
                  if cgsize in [OS_64,OS_S64] then
-                   cg64.a_load64_reg_ref(list,joinreg64(accumulator,accumulatorhigh),href)
+                   cg64.a_load64_reg_ref(list,joinreg64(r,r2),href)
                  else
 {$endif cpu64bit}
                   begin
-                    hreg:=rg.makeregsize(accumulator,cgsize);
+                    hreg:=rg.makeregsize(r,cgsize);
                     cg.a_load_reg_ref(list,cgsize,hreg,href);
                   end;
                end;
              floatdef :
                begin
-                 cg.a_loadfpu_reg_ref(list,cgsize,FPU_RESULT_REG,href);
+                 r.enum:=fpu_result_reg;
+                 cg.a_loadfpu_reg_ref(list,cgsize,r,href);
                end;
              else
                begin
+                 r.enum:=accumulator;
                  if paramanager.ret_in_acc(aktprocdef.rettype.def,aktprocdef.proccalloption) then
-                  cg.a_load_reg_ref(list,cgsize,accumulator,href);
+                  cg.a_load_reg_ref(list,cgsize,r,href);
                end;
            end;
          end;
@@ -1227,6 +1264,7 @@ function returns in a register and the caller receives it in an other one}
         stackalloclist : taasmoutput;
         hp : tparaitem;
         paraloc : tparalocation;
+        r:Tregister;
 
       begin
         if not inlined then
@@ -1281,9 +1319,10 @@ function returns in a register and the caller receives it in an other one}
           we must load it into ESI }
         If (po_containsself in aktprocdef.procoptions) then
           begin
-             list.concat(tai_regalloc.Alloc(self_pointer_reg));
+             r.enum:=self_pointer_reg;
+             list.concat(tai_regalloc.Alloc(r));
              reference_reset_base(href,procinfo.framepointer,procinfo.selfpointer_offset);
-             cg.a_load_ref_reg(list,OS_ADDR,href,self_pointer_reg);
+             cg.a_load_ref_reg(list,OS_ADDR,href,r);
           end;
 
 
@@ -1354,7 +1393,9 @@ function returns in a register and the caller receives it in an other one}
              hp:=tparaitem(procinfo.procdef.para.first);
              while assigned(hp) do
                begin
-                  if (tvarsym(hp.parasym).reg<>R_NO) then
+                  if Tvarsym(hp.parasym).reg.enum>lastreg then
+                    internalerror(200301081);
+                  if (tvarsym(hp.parasym).reg.enum<>R_NO) then
                     case hp.paraloc.loc of
                        LOC_CREGISTER,
                        LOC_REGISTER:
@@ -1368,7 +1409,7 @@ function returns in a register and the caller receives it in an other one}
                     end
                   else if (hp.paraloc.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER,
                     LOC_CREGISTER,LOC_CFPUREGISTER,LOC_CMMREGISTER]) and
-                    (tvarsym(hp.parasym).reg=R_NO) then
+                    (tvarsym(hp.parasym).reg.enum=R_NO) then
                     begin
                        reference_reset_base(href,procinfo.framepointer,tvarsym(hp.parasym).address+
                          tvarsym(hp.parasym).owner.address_fixup);
@@ -1487,7 +1528,9 @@ function returns in a register and the caller receives it in an other one}
 {$ifndef powerpc}
            { at least for the ppc this applies always, so this code isn't usable (FK) }
            { omit stack frame ? }
-           if (procinfo.framepointer=STACK_POINTER_REG) then
+           if procinfo.framepointer.enum>lastreg then
+              internalerror(2003010801);
+           if (procinfo.framepointer.enum=STACK_POINTER_REG) then
             begin
               CGMessage(cg_d_stackframe_omited);
               nostackframe:=true;
@@ -1541,6 +1584,7 @@ function returns in a register and the caller receives it in an other one}
         usesacchi,
         usesself,usesfpu : boolean;
         pd : tprocdef;
+        r,r2:Tregister;
       begin
         if aktexit2label.is_used and
            ((procinfo.flags and (pi_needs_implicit_finally or pi_uses_exceptions)) <> 0) then
@@ -1612,14 +1656,15 @@ function returns in a register and the caller receives it in an other one}
                             objectlibrary.getlabel(nodestroycall);
                             reference_reset_base(href,procinfo.framepointer,procinfo.selfpointer_offset);
                             cg.a_cmp_const_ref_label(list,OS_ADDR,OC_EQ,0,href,nodestroycall);
+                            r.enum:=self_pointer_reg;
                             if is_class(procinfo._class) then
                              begin
                                cg.a_param_const(list,OS_INT,1,paramanager.getintparaloc(2));
-                               cg.a_param_reg(list,OS_ADDR,self_pointer_reg,paramanager.getintparaloc(1));
+                               cg.a_param_reg(list,OS_ADDR,r,paramanager.getintparaloc(1));
                              end
                             else if is_object(procinfo._class) then
                              begin
-                               cg.a_param_reg(list,OS_ADDR,self_pointer_reg,paramanager.getintparaloc(2));
+                               cg.a_param_reg(list,OS_ADDR,r,paramanager.getintparaloc(2));
                                reference_reset_symbol(href,objectlibrary.newasmsymbol(procinfo._class.vmt_mangledname),0);
                                cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(1));
                              end
@@ -1627,7 +1672,7 @@ function returns in a register and the caller receives it in an other one}
                              Internalerror(200006164);
                             if (po_virtualmethod in pd.procoptions) then
                              begin
-                               reference_reset_base(href,self_pointer_reg,0);
+                               reference_reset_base(href,r,0);
                                tmpreg:=cg.get_scratch_reg_address(list);
                                cg.a_load_ref_reg(list,OS_ADDR,href,tmpreg);
                                reference_reset_base(href,tmpreg,procinfo._class.vmtmethodoffset(pd.extnumber));
@@ -1694,12 +1739,15 @@ function returns in a register and the caller receives it in an other one}
                 { AfterConstruction                          }
                 if is_object(procinfo._class) then
                   begin
-                    cg.a_reg_alloc(list,accumulator);
-                    cg.a_load_reg_reg(list,OS_ADDR,OS_ADDR,self_pointer_reg,accumulator);
+                    r.enum:=self_pointer_reg;
+                    r2.enum:=accumulator;
+                    cg.a_reg_alloc(list,r2);
+                    cg.a_load_reg_reg(list,OS_ADDR,OS_ADDR,r,r2);
                     usesacc:=true;
                   end;
 {$ifdef i386}
-                list.concat(taicpu.op_reg_reg(A_TEST,S_L,R_ESI,R_ESI));
+                r.enum:=R_ESI;
+                list.concat(taicpu.op_reg_reg(A_TEST,S_L,r,r));
 {$else}
 {$warning constructor returns in flags for i386}
 {$endif i386}
@@ -1741,7 +1789,10 @@ function returns in a register and the caller receives it in an other one}
             cg.g_restore_frame_pointer(list)
            else
             if (tg.gettempsize<>0) then
-             cg.a_op_const_reg(list,OP_ADD,tg.gettempsize,STACK_POINTER_REG);
+              begin
+                 r.enum:=stack_pointer_reg;
+                 cg.a_op_const_reg(list,OP_ADD,tg.gettempsize,r);
+              end;
          end;
 
         { at last, the return is generated }
@@ -1903,7 +1954,10 @@ function returns in a register and the caller receives it in an other one}
 end.
 {
   $Log$
-  Revision 1.72  2002-12-29 23:51:43  florian
+  Revision 1.73  2003-01-08 18:43:56  daniel
+   * Tregister changed into a record
+
+  Revision 1.72  2002/12/29 23:51:43  florian
     * web bug 2214 fixed: ie 10 in const array constructors
 
   Revision 1.71  2002/12/24 15:56:50  peter

@@ -108,6 +108,7 @@ implementation
          adjustment : longint;
          pushedregs : tmaybesave;
          l,l2       : tasmlabel;
+         r          : Tregister;
 {$ifdef CORRECT_SET_IN_FPC}
          AM         : tasmop;
 {$endif CORRECT_SET_IN_FPC}
@@ -275,16 +276,17 @@ implementation
                       { so in case of a LOC_CREGISTER first move the value }
                       { to edi (not done before because now we can do the  }
                       { move and substract in one instruction with LEA)    }
-                      if (pleftreg <> R_EDI) and
+                      if (pleftreg.enum <> R_EDI) and
                          (left.location.loc = LOC_CREGISTER) then
                         begin
+                          r.enum:=R_EDI;
                           rg.ungetregister(exprasmlist,pleftreg);
                           rg.getexplicitregisterint(exprasmlist,R_EDI);
                           reference_reset_base(href,pleftreg,-setparts[i].start);
-                          emit_ref_reg(A_LEA,S_L,href,R_EDI);
+                          emit_ref_reg(A_LEA,S_L,href,r);
                           { only now change pleftreg since previous value is }
                           { still used in previous instruction               }
-                          pleftreg := R_EDI;
+                          pleftreg := r;
                           opsize := S_L;
                         end
                       else
@@ -347,7 +349,8 @@ implementation
                else
                  begin
                    reference_release(exprasmlist,left.location.reference);
-                   rg.ungetregister(exprasmlist,R_EDI);
+                   r.enum:=R_EDI;
+                   rg.ungetregister(exprasmlist,r);
                  end;
              end;
           end
@@ -394,9 +397,10 @@ implementation
                       { the set element isn't never samller than a byte  }
                       { and because it's a small set we need only 5 bits }
                       { but 8 bits are easier to load               }
+                      r.enum:=R_EDI;
                       rg.getexplicitregisterint(exprasmlist,R_EDI);
-                      emit_ref_reg(A_MOVZX,S_BL,left.location.reference,R_EDI);
-                      hr:=R_EDI;
+                      emit_ref_reg(A_MOVZX,S_BL,left.location.reference,r);
+                      hr:=r;
                       location_release(exprasmlist,left.location);
                     end;
                   end;
@@ -706,7 +710,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.45  2002-11-25 17:43:27  peter
+  Revision 1.46  2003-01-08 18:43:57  daniel
+   * Tregister changed into a record
+
+  Revision 1.45  2002/11/25 17:43:27  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once

@@ -59,7 +59,7 @@ function TSparcParaManager.GetIntParaLoc(nr:longint):TParaLocation;
       else{The other parameters are passed into the frame}
         begin
           loc:=LOC_REFERENCE;
-          reference.index:=frame_pointer_reg;
+          reference.index.enum:=frame_pointer_reg;
           reference.offset:=-68-nr*4;
         end;
   end;
@@ -127,8 +127,8 @@ procedure TSparcParaManager.create_param_loc_info(p:TAbstractProcDef);
     loc:tloc;
     is_64bit:boolean;
   begin
-    nextintreg:=R_O0;
-    nextfloatreg:=R_F0;
+    nextintreg.enum:=R_O0;
+    nextfloatreg.enum:=R_F0;
     stack_offset:=92;
     hp:=TParaItem(p.para.First);
     while assigned(hp) do
@@ -142,24 +142,24 @@ procedure TSparcParaManager.create_param_loc_info(p:TAbstractProcDef);
               then
                 hp.paraloc.size:=OS_ADDR;
               is_64bit:=hp.paraloc.size in [OS_64,OS_S64];
-              if NextIntReg<=TRegister(ord(R_i5)-ord(is_64bit))
+              if NextIntReg.enum<=ToldRegister(ord(R_i5)-ord(is_64bit))
               then
                 begin
                   hp.paraloc.loc:=LOC_REGISTER;
                   hp.paraloc.registerlow:=NextIntReg;
-                  inc(NextIntReg);
+                  inc(NextIntReg.enum);
                   if is_64bit
                   then
                     begin
                       hp.paraloc.registerhigh:=nextintreg;
-                      inc(nextintreg);
+                      inc(nextintreg.enum);
                     end;
                 end
               else
                 begin
-                  nextintreg:=R_i6;
+                  nextintreg.enum:=R_i6;
                   hp.paraloc.loc:=LOC_REFERENCE;
-                  hp.paraloc.reference.index:=stack_pointer_reg;
+                  hp.paraloc.reference.index.enum:=stack_pointer_reg;
                   hp.paraloc.reference.offset:=stack_offset;
                   if not is_64bit
                   then
@@ -173,13 +173,13 @@ procedure TSparcParaManager.create_param_loc_info(p:TAbstractProcDef);
               if hp.paratyp in [vs_var,vs_out]
               then
                 begin
-                  if NextIntReg<=R_O5
+                  if NextIntReg.enum<=R_O5
                   then
                     begin
                       hp.paraloc.size:=OS_ADDR;
                       hp.paraloc.loc:=LOC_REGISTER;
                       hp.paraloc.register:=nextintreg;
-                      inc(nextintreg);
+                      inc(nextintreg.enum);
                     end
                   else
                     begin
@@ -188,12 +188,12 @@ procedure TSparcParaManager.create_param_loc_info(p:TAbstractProcDef);
                       internalerror(2002071006);
                     end;
                 end
-              else if nextfloatreg<=R_F10 then
+              else if nextfloatreg.enum<=R_F10 then
                 begin
                   hp.paraloc.size:=def_cgsize(hp.paratype.def);
                   hp.paraloc.loc:=LOC_FPUREGISTER;
                   hp.paraloc.register:=nextfloatreg;
-                  inc(nextfloatreg);
+                  inc(nextfloatreg.enum);
                 end
               else
                 begin
@@ -207,16 +207,16 @@ procedure TSparcParaManager.create_param_loc_info(p:TAbstractProcDef);
                       hp.paraloc.size:=OS_ADDR;
                       if push_addr_param(hp.paratype.def,p.proccalloption) or (hp.paratyp in [vs_var,vs_out]) then
                         begin
-                           if nextintreg<=R_O5 then
+                           if nextintreg.enum<=R_O5 then
                              begin
                                 hp.paraloc.loc:=LOC_REGISTER;
                                 hp.paraloc.register:=nextintreg;
-                                inc(nextintreg);
+                                inc(nextintreg.enum);
                              end
                            else
                               begin
                                  hp.paraloc.loc:=LOC_REFERENCE;
-                                 hp.paraloc.reference.index:=stack_pointer_reg;
+                                 hp.paraloc.reference.index.enum:=stack_pointer_reg;
                                  hp.paraloc.reference.offset:=stack_offset;
                                  inc(stack_offset,4);
                              end;
@@ -224,7 +224,7 @@ procedure TSparcParaManager.create_param_loc_info(p:TAbstractProcDef);
                       else
                         begin
                            hp.paraloc.loc:=LOC_REFERENCE;
-                           hp.paraloc.reference.index:=stack_pointer_reg;
+                           hp.paraloc.reference.index.enum:=stack_pointer_reg;
                            hp.paraloc.reference.offset:=stack_offset;
                            inc(stack_offset,hp.paratype.def.size);
                         end;
@@ -242,16 +242,16 @@ function tSparcParaManager.GetFuncRetParaLoc(p:TAbstractProcDef):TParaLocation;
         orddef,enumdef:
           begin
             loc:=LOC_REGISTER;
-            register:=return_result_reg;
+            register.enum:=return_result_reg;
             size:=def_cgsize(p.rettype.def);
             if size in [OS_S64,OS_64]
             then
-              RegisterHigh:=R_I1;
+              RegisterHigh.enum:=R_I1;
           end;
         floatdef:
           begin
             loc:=LOC_FPUREGISTER;
-            register:=R_F1;
+            register.enum:=R_F1;
             size:=def_cgsize(p.rettype.def);
           end;
         setdef,
@@ -268,7 +268,7 @@ function tSparcParaManager.GetFuncRetParaLoc(p:TAbstractProcDef):TParaLocation;
         errordef:
           begin
             loc:=LOC_REFERENCE;
-            reference.index:=frame_pointer_reg;
+            reference.index.enum:=frame_pointer_reg;
             reference.offset:=64;
             size:=OS_ADDR;
           end;
@@ -281,7 +281,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2003-01-05 21:32:35  mazen
+  Revision 1.14  2003-01-08 18:43:58  daniel
+   * Tregister changed into a record
+
+  Revision 1.13  2003/01/05 21:32:35  mazen
   * fixing several bugs compiling the RTL
 
   Revision 1.12  2002/11/25 19:21:49  mazen

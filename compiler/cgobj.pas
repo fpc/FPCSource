@@ -549,10 +549,10 @@ unit cgobj;
                 (scratch_register_array_pointer+max_scratch_regs-1) do
            if scratch_regs[(i mod max_scratch_regs)+1] in unusedscratchregisters then
              begin
-                r:=scratch_regs[(i mod max_scratch_regs)+1];
+                r.enum:=scratch_regs[(i mod max_scratch_regs)+1];
                 break;
              end;
-         exclude(unusedscratchregisters,r);
+         exclude(unusedscratchregisters,r.enum);
          inc(scratch_register_array_pointer);
          if scratch_register_array_pointer>max_scratch_regs then
            scratch_register_array_pointer:=1;
@@ -570,7 +570,7 @@ unit cgobj;
     procedure tcg.free_scratch_reg(list : taasmoutput;r : tregister);
 
       begin
-         include(unusedscratchregisters,rg.makeregsize(r,OS_INT));
+         include(unusedscratchregisters,rg.makeregsize(r,OS_INT).enum);
          a_reg_dealloc(list,r);
       end;
 
@@ -582,6 +582,7 @@ unit cgobj;
 
       var
          ref : treference;
+         t : Tregister;
 
       begin
          case locpara.loc of
@@ -590,7 +591,10 @@ unit cgobj;
             LOC_REFERENCE,LOC_CREFERENCE:
               begin
                  if locpara.sp_fixup<>0 then
-                   a_op_const_reg(list,OP_ADD,locpara.sp_fixup,stack_pointer_reg);
+                   begin
+                      t.enum:=stack_pointer_reg;
+                      a_op_const_reg(list,OP_ADD,locpara.sp_fixup,t);
+                   end;
                  reference_reset(ref);
                  ref.base:=locpara.reference.index;
                  ref.offset:=locpara.reference.offset;
@@ -677,17 +681,21 @@ unit cgobj;
         { the following is done with defines to avoid a speed penalty,  }
         { since all this is only necessary for the 80x86 (because EDI   }
         { doesn't have an 8bit component which is directly addressable) }
-        pushed_reg := R_NO;
+        pushed_reg.enum := R_NO;
         if size in [OS_8,OS_S8] then
           if (rg.countunusedregsint = 0) then
             begin
-              if (dref.base <> R_EBX) and
-                 (dref.index <> R_EBX) then
-                pushed_reg := R_EBX
-              else if (dref.base <> R_EAX) and
-                      (dref.index <> R_EAX) then
-                pushed_reg := R_EAX
-              else pushed_reg := R_ECX;
+              if dref.base.enum>lastreg then
+                internalerror(200301081);
+              if dref.index.enum>lastreg then
+                internalerror(200301081);
+              if (dref.base.enum <> R_EBX) and
+                 (dref.index.enum <> R_EBX) then
+                pushed_reg.enum := R_EBX
+              else if (dref.base.enum <> R_EAX) and
+                      (dref.index.enum <> R_EAX) then
+                pushed_reg.enum := R_EAX
+              else pushed_reg.enum := R_ECX;
               tmpreg := rg.makeregsize(pushed_reg,OS_8);
               list.concat(taicpu.op_reg(A_PUSH,S_L,pushed_reg));
             end
@@ -702,7 +710,7 @@ unit cgobj;
 {$ifdef i386}
         if size in [OS_8,OS_S8] then
           begin
-            if (pushed_reg <> R_NO) then
+            if (pushed_reg.enum <> R_NO) then
               list.concat(taicpu.op_reg(A_POP,S_L,pushed_reg))
             else
               rg.ungetregister(list,tmpreg)
@@ -1374,28 +1382,30 @@ unit cgobj;
          hp : treference;
          p : tprocinfo;
          i : longint;
+         spr : Tregister;
       begin
+         spr.enum:=SELF_POINTER_REG;
          if assigned(procinfo._class) then
            begin
-              list.concat(tai_regalloc.Alloc(SELF_POINTER_REG));
+              list.concat(tai_regalloc.Alloc(spr));
               if lexlevel>normal_function_level then
                 begin
                    reference_reset_base(hp,procinfo.framepointer,procinfo.framepointer_offset);
-                   a_load_ref_reg(list,OS_ADDR,hp,SELF_POINTER_REG);
+                   a_load_ref_reg(list,OS_ADDR,hp,spr);
                    p:=procinfo.parent;
                    for i:=3 to lexlevel-1 do
                      begin
-                        reference_reset_base(hp,SELF_POINTER_REG,p.framepointer_offset);
-                        a_load_ref_reg(list,OS_ADDR,hp,SELF_POINTER_REG);
+                        reference_reset_base(hp,spr,p.framepointer_offset);
+                        a_load_ref_reg(list,OS_ADDR,hp,spr);
                         p:=p.parent;
                      end;
-                   reference_reset_base(hp,SELF_POINTER_REG,p.selfpointer_offset);
-                   a_load_ref_reg(list,OS_ADDR,hp,SELF_POINTER_REG);
+                   reference_reset_base(hp,spr,p.selfpointer_offset);
+                   a_load_ref_reg(list,OS_ADDR,hp,spr);
                 end
               else
                 begin
                    reference_reset_base(hp,procinfo.framepointer,procinfo.selfpointer_offset);
-                   a_load_ref_reg(list,OS_ADDR,hp,SELF_POINTER_REG);
+                   a_load_ref_reg(list,OS_ADDR,hp,spr);
                 end;
            end;
       end;
@@ -1405,12 +1415,14 @@ unit cgobj;
       var
         OKLabel : tasmlabel;
         dummyloc : tparalocation;
+        spr : Tregister;
       begin
         if (cs_check_object in aktlocalswitches) or
            (cs_check_range in aktlocalswitches) then
          begin
+           spr.enum:=SELF_POINTER_REG;
            objectlibrary.getlabel(oklabel);
-           a_cmp_const_reg_label(list,OS_ADDR,OC_NE,0,SELF_POINTER_REG,oklabel);
+           a_cmp_const_reg_label(list,OS_ADDR,OC_NE,0,spr,oklabel);
            a_param_const(list,OS_INT,210,dummyloc);
            a_call_name(list,'FPC_HANDLEERROR');
            a_label(list,oklabel);
@@ -1426,7 +1438,10 @@ unit cgobj;
      var
       href : treference;
       hregister : tregister;
+      spr,acc : Tregister;
      begin
+        acc.enum:=accumulator;
+        spr.enum:=SELF_POINTER_REG;
         if is_class(procinfo._class) then
           begin
             if (cs_implicit_exceptions in aktmoduleswitches) then
@@ -1435,16 +1450,16 @@ unit cgobj;
             {!! this is a terrible hack, normally the helper should get three params : }
             {    one with self register, one with flag and one with VMT pointer        }
             {reference_reset_base(href, procinfo.framepointer,procinfo.selfpointer_offset+POINTER_SIZE);}
-            a_param_reg(list, OS_ADDR, SELF_POINTER_REG, paramanager.getintparaloc(2));
+            a_param_reg(list, OS_ADDR, spr, paramanager.getintparaloc(2));
 
             { parameter 1 : vmt pointer (stored at the selfpointer address on stack)  }
             reference_reset_base(href, procinfo.framepointer,procinfo.selfpointer_offset);
             a_param_ref(list, OS_ADDR,href,paramanager.getintparaloc(1));
             a_call_name(list,'FPC_NEW_CLASS');
-            a_load_reg_reg(list,OS_ADDR,OS_ADDR,accumulator,SELF_POINTER_REG);
+            a_load_reg_reg(list,OS_ADDR,OS_ADDR,acc,spr);
             { save the self pointer result }
-            a_load_reg_ref(list,OS_ADDR,SELF_POINTER_REG,href);
-            a_cmp_const_reg_label(list,OS_ADDR,OC_EQ,0,accumulator,faillabel);
+            a_load_reg_ref(list,OS_ADDR,spr,href);
+            a_cmp_const_reg_label(list,OS_ADDR,OC_EQ,0,acc,faillabel);
           end
         else if is_object(procinfo._class) then
           begin
@@ -1464,8 +1479,8 @@ unit cgobj;
             a_param_reg(list, OS_ADDR,hregister,paramanager.getintparaloc(1));
             free_scratch_reg(list, hregister);
             a_call_name(list,'FPC_HELP_CONSTRUCTOR');
-            a_load_reg_reg(list,OS_ADDR,OS_ADDR,accumulator,SELF_POINTER_REG);
-            a_cmp_const_reg_label(list,OS_ADDR,OC_EQ,0,accumulator,faillabel);
+            a_load_reg_reg(list,OS_ADDR,OS_ADDR,acc,spr);
+            a_cmp_const_reg_label(list,OS_ADDR,OC_EQ,0,acc,faillabel);
           end
         else
           internalerror(200006161);
@@ -1477,7 +1492,9 @@ unit cgobj;
         nofinal : tasmlabel;
         href : treference;
       hregister : tregister;
+        spr : Tregister;
       begin
+        spr.enum:=SELF_POINTER_REG;
         if is_class(procinfo._class) then
          begin
            { 2nd parameter  : flag }
@@ -1496,7 +1513,7 @@ unit cgobj;
               objectlibrary.getlabel(nofinal);
               reference_reset_base(href,procinfo.framepointer,target_info.first_parm_offset);
               a_cmp_const_ref_label(list,OS_ADDR,OC_EQ,0,href,nofinal);
-              reference_reset_base(href,SELF_POINTER_REG,0);
+              reference_reset_base(href,spr,0);
               g_finalize(list,procinfo._class,href,false);
               a_label(list,nofinal);
             end;
@@ -1524,7 +1541,9 @@ unit cgobj;
       var
         href : treference;
         hregister : tregister;
+        spr : Tregister;
       begin
+        spr.enum:=SELF_POINTER_REG;
         if is_class(procinfo._class) then
           begin
             {
@@ -1538,9 +1557,9 @@ unit cgobj;
             a_param_ref(list, OS_ADDR,href,paramanager.getintparaloc(1));
             a_call_name(list,'FPC_DISPOSE_CLASS');
             { SET SELF TO NIL }
-            a_load_const_reg(list,OS_ADDR,0,SELF_POINTER_REG);
+            a_load_const_reg(list,OS_ADDR,0,spr);
             { set the self pointer in the stack to nil }
-            a_load_reg_ref(list,OS_ADDR,SELF_POINTER_REG,href);
+            a_load_reg_ref(list,OS_ADDR,spr,href);
           end
         else if is_object(procinfo._class) then
           begin
@@ -1561,7 +1580,7 @@ unit cgobj;
             free_scratch_reg(list, hregister);
             a_call_name(list,'FPC_HELP_FAIL');
             { SET SELF TO NIL }
-            a_load_const_reg(list,OS_ADDR,0,SELF_POINTER_REG);
+            a_load_const_reg(list,OS_ADDR,0,spr);
           end
         else
           internalerror(200006163);
@@ -1584,8 +1603,12 @@ unit cgobj;
 
 
     procedure tcg.g_exception_reason_save(list : taasmoutput; const href : treference);
+
+    var r:Tregister;
+
      begin
-       a_load_reg_ref(list, OS_S32, accumulator, href);
+       r.enum:=accumulator;
+       a_load_reg_ref(list, OS_S32, r, href);
      end;
 
 
@@ -1596,8 +1619,12 @@ unit cgobj;
 
 
     procedure tcg.g_exception_reason_load(list : taasmoutput; const href : treference);
+
+    var r:Tregister;
+
      begin
-       a_load_ref_reg(list, OS_S32, href, accumulator);
+       r.enum:=accumulator;
+       a_load_ref_reg(list, OS_S32, href, r);
      end;
 
 
@@ -1625,7 +1652,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.69  2002-12-24 15:56:50  peter
+  Revision 1.70  2003-01-08 18:43:56  daniel
+   * Tregister changed into a record
+
+  Revision 1.69  2002/12/24 15:56:50  peter
     * stackpointer_alloc added for adjusting ESP. Win32 needs
       this for the pageprotection
 

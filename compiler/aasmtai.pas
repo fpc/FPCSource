@@ -1417,7 +1417,7 @@ uses
     constructor tai_regalloc.ppuload(t:taitype;ppufile:tcompilerppufile);
       begin
         inherited ppuload(t,ppufile);
-        reg:=tregister(ppufile.getbyte);
+        ppufile.getdata(reg,sizeof(Tregister));
         allocation:=boolean(ppufile.getbyte);
       end;
 
@@ -1425,7 +1425,7 @@ uses
     procedure tai_regalloc.ppuwrite(ppufile:tcompilerppufile);
       begin
         inherited ppuwrite(ppufile);
-        ppufile.putbyte(byte(reg));
+        ppufile.putdata(reg,sizeof(Tregister));
         ppufile.putbyte(byte(allocation));
       end;
 
@@ -1507,9 +1507,11 @@ uses
             new(ref);
            ref^:=r;
 {$ifdef i386}
+           if ref^.segment.enum>lastreg then
+              internalerror(200301081);
            { We allow this exception for i386, since overloading this would be
              too much of a a speed penalty}
-           if not(ref^.segment in [R_DS,R_NO]) then
+           if not(ref^.segment.enum in [R_DS,R_NO]) then
             segprefix:=ref^.segment;
 {$endif}
            typ:=top_ref;
@@ -1589,7 +1591,7 @@ uses
           ppuloadoper(ppufile,oper[i-1]);
         opcode:=tasmop(ppufile.getword);
 {$ifdef i386}
-        segprefix:=tregister(ppufile.getbyte);
+        ppufile.getdata(segprefix,sizeof(Tregister));
 {$endif i386}
         is_jmp:=boolean(ppufile.getbyte);
       end;
@@ -1606,7 +1608,7 @@ uses
           ppuwriteoper(ppufile,oper[i-1]);
         ppufile.putword(word(opcode));
 {$ifdef i386}
-        ppufile.putbyte(byte(segprefix));
+        ppufile.putdata(segprefix,sizeof(Tregister));
 {$endif i386}
         ppufile.putbyte(byte(is_jmp));
       end;
@@ -1711,7 +1713,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.15  2003-01-05 13:36:53  florian
+  Revision 1.16  2003-01-08 18:43:56  daniel
+   * Tregister changed into a record
+
+  Revision 1.15  2003/01/05 13:36:53  florian
     * x86-64 compiles
     + very basic support for float128 type (x86-64 only)
 

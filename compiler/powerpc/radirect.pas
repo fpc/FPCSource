@@ -171,11 +171,11 @@ interface
                                                  hs:=tvarsym(sym).mangledname
                                                else
                                                  begin
-                                                    if (tvarsym(sym).reg<>R_NO) then
-                                                      hs:=gas_reg2str[procinfo.framepointer]
+                                                    if (tvarsym(sym).reg.enum<>R_NO) then
+                                                      hs:=gas_reg2str[procinfo.framepointer.enum]
                                                     else
                                                       hs:=tostr(tvarsym(sym).address)+
-                                                        '('+gas_reg2str[procinfo.framepointer]+')';
+                                                        '('+gas_reg2str[procinfo.framepointer.enum]+')';
                                                  end;
                                             end
                                           else
@@ -196,7 +196,7 @@ interface
                                                     l:=tvarsym(sym).address;
                                                     { set offset }
                                                     inc(l,aktprocdef.parast.address_fixup);
-                                                    hs:=tostr(l)+'('+gas_reg2str[procinfo.framepointer]+')';
+                                                    hs:=tostr(l)+'('+gas_reg2str[procinfo.framepointer.enum]+')';
                                                     if pos(',',s) > 0 then
                                                       tvarsym(sym).varstate:=vs_used;
                                                  end;
@@ -314,7 +314,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.6  2002-11-25 17:43:28  peter
+  Revision 1.7  2003-01-08 18:43:58  daniel
+   * Tregister changed into a record
+
+  Revision 1.6  2002/11/25 17:43:28  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once

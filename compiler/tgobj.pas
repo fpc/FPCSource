@@ -439,16 +439,22 @@ unit tgobj;
          { ref.index = R_NO was missing
            led to problems with local arrays
            with lower bound > 0 (PM) }
+         if ref.base.enum>lastreg then
+           internalerror(200301081);
+         if ref.index.enum>lastreg then
+           internalerror(200301081);
+         if procinfo.framepointer.enum>lastreg then
+           internalerror(200301081);
          if direction = 1 then
            begin
-             istemp:=((ref.base=procinfo.framepointer) and
-                     (ref.index=R_NO) and
+             istemp:=((ref.base.enum=procinfo.framepointer.enum) and
+                     (ref.index.enum=R_NO) and
                       (ref.offset>firsttemp));
            end
         else
            begin
-             istemp:=((ref.base=procinfo.framepointer) and
-                     (ref.index=R_NO) and
+             istemp:=((ref.base.enum=procinfo.framepointer.enum) and
+                     (ref.index.enum=R_NO) and
                       (ref.offset<firsttemp));
            end;
       end;
@@ -537,7 +543,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.22  2002-12-01 18:58:26  carl
+  Revision 1.23  2003-01-08 18:43:57  daniel
+   * Tregister changed into a record
+
+  Revision 1.22  2002/12/01 18:58:26  carl
     * fix bugs with istemp() was wrong, and every reference was a temp
 
   Revision 1.21  2002/11/24 18:18:04  carl

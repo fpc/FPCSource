@@ -732,7 +732,7 @@ implementation
          begin
            _class:=nil;
            para_offset:=target_info.first_parm_offset;
-           framepointer:=FRAME_POINTER_REG;
+           framepointer.enum:=FRAME_POINTER_REG;
            flags:=0;
            procdef:=aktprocdef;
          end;
@@ -1437,7 +1437,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.91  2003-01-05 13:36:53  florian
+  Revision 1.92  2003-01-08 18:43:56  daniel
+   * Tregister changed into a record
+
+  Revision 1.91  2003/01/05 13:36:53  florian
     * x86-64 compiles
     + very basic support for float128 type (x86-64 only)
 

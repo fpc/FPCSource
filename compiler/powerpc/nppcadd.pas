@@ -164,7 +164,7 @@ interface
       begin
         if (right.location.loc in [LOC_REGISTER,LOC_FPUREGISTER]) and
            (cmpop or
-            (location.register <> right.location.register)) then
+            (location.register.enum <> right.location.register.enum)) then
           begin
             rg.ungetregister(exprasmlist,right.location.register);
             if is_64bitint(right.resulttype.def) then
@@ -172,7 +172,7 @@ interface
           end;
         if (left.location.loc in [LOC_REGISTER,LOC_FPUREGISTER]) and
            (cmpop or
-            (location.register <> left.location.register)) then
+            (location.register.enum <> left.location.register.enum)) then
           begin
             rg.ungetregister(exprasmlist,left.location.register);
             if is_64bitint(left.resulttype.def) then
@@ -232,8 +232,8 @@ interface
                  (not unsigned and
                   (longint(right.location.value) < low(smallint)) or
                    (longint(right.location.value) > high(smallint))) then
-                // we can then maybe use a constant in the 'othersigned' case
-                // (the sign doesn't matter for // equal/unequal)
+                { we can then maybe use a constant in the 'othersigned' case
+                 (the sign doesn't matter for // equal/unequal)}
                 unsigned := not unsigned;
 
             if (unsigned and
@@ -449,6 +449,7 @@ interface
         reg   : tregister;
         op    : TAsmOp;
         cmpop : boolean;
+        r     : Tregister;
 
       procedure location_force_fpureg(var l: tlocation);
         begin
@@ -521,8 +522,9 @@ interface
           end
         else
           begin
+            r.enum:=location.resflags.cr;
             exprasmlist.concat(taicpu.op_reg_reg_reg(op,
-              location.resflags.cr,left.location.register,right.location.register))
+              r,left.location.register,right.location.register))
           end;
 
         clear_left_right(cmpop);
@@ -560,7 +562,7 @@ interface
         load_left_right(cmpop,false);
 
         if not(cmpop) and
-           (location.register = R_NO) then
+           (location.register.enum = R_NO) then
           location.register := rg.getregisterint(exprasmlist);
 
         case nodetype of
@@ -707,6 +709,7 @@ interface
         hl4        : tasmlabel;
         cmpop,
         unsigned   : boolean;
+        r          : Tregister;
 
 
       procedure emit_cmp64_hi;
@@ -936,13 +939,14 @@ interface
                          tempreg64);
                     end;
 
-                  cg.a_reg_alloc(exprasmlist,R_0);
-                  exprasmlist.concat(taicpu.op_reg_reg_reg(A_OR_,R_0,
+                  r.enum:=R_0;
+                  cg.a_reg_alloc(exprasmlist,r);
+                  exprasmlist.concat(taicpu.op_reg_reg_reg(A_OR_,r,
                     tempreg64.reglo,tempreg64.reghi));
-                  cg.a_reg_dealloc(exprasmlist,R_0);
-                  if (tempreg64.reglo <> left.location.registerlow) then
+                  cg.a_reg_dealloc(exprasmlist,r);
+                  if (tempreg64.reglo.enum <> left.location.registerlow.enum) then
                     cg.free_scratch_reg(exprasmlist,tempreg64.reglo);
-                  if (tempreg64.reghi <> left.location.registerhigh) then
+                  if (tempreg64.reghi.enum <> left.location.registerhigh.enum) then
                     cg.free_scratch_reg(exprasmlist,tempreg64.reghi);
 
                   location_reset(location,LOC_FLAGS,OS_NO);
@@ -950,7 +954,7 @@ interface
                 end;
               xorn,orn,andn,addn:
                 begin
-                  if (location.registerlow = R_NO) then
+                  if (location.registerlow.enum = R_NO) then
                     begin
                       location.registerlow := rg.getregisterint(exprasmlist);
                       location.registerhigh := rg.getregisterint(exprasmlist);
@@ -972,7 +976,7 @@ interface
 
                   if left.location.loc <> LOC_CONSTANT then
                     begin
-                      if (location.registerlow = R_NO) then
+                      if (location.registerlow.enum = R_NO) then
                         begin
                          location.registerlow := rg.getregisterint(exprasmlist);
                          location.registerhigh := rg.getregisterint(exprasmlist);
@@ -990,7 +994,7 @@ interface
                     end
                   else if ((left.location.valueqword shr 32) = 0) then
                     begin
-                      if (location.registerlow = R_NO) then
+                      if (location.registerlow.enum = R_NO) then
                         begin
                          location.registerlow := rg.getregisterint(exprasmlist);
                          location.registerhigh := rg.getregisterint(exprasmlist);
@@ -1018,7 +1022,7 @@ interface
                   else if (aword(left.location.valueqword) = 0) then
                     begin
                       // (const32 shl 32) - reg64
-                      if (location.registerlow = R_NO) then
+                      if (location.registerlow.enum = R_NO) then
                         begin
                          location.registerlow := rg.getregisterint(exprasmlist);
                          location.registerhigh := rg.getregisterint(exprasmlist);
@@ -1038,7 +1042,7 @@ interface
                         def_cgsize(left.resulttype.def),true);
                       if (left.location.loc = LOC_REGISTER) then
                         location.register64 := left.location.register64
-                      else if (location.registerlow = R_NO) then
+                      else if (location.registerlow.enum = R_NO) then
                         begin
                          location.registerlow := rg.getregisterint(exprasmlist);
                          location.registerhigh := rg.getregisterint(exprasmlist);
@@ -1364,7 +1368,7 @@ interface
          load_left_right(cmpop, (cs_check_overflow in aktlocalswitches) and
             (nodetype in [addn,subn,muln]));
 
-         if (location.register = R_NO) and
+         if (location.register.enum = R_NO) and
             not(cmpop) then
            location.register := rg.getregisterint(exprasmlist);
 
@@ -1464,7 +1468,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2002-11-25 17:43:27  peter
+  Revision 1.21  2003-01-08 18:43:58  daniel
+   * Tregister changed into a record
+
+  Revision 1.20  2002/11/25 17:43:27  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once

@@ -102,12 +102,12 @@ const
 constructor tai_align.create(b:byte);
   begin
     inherited create(b);
-    reg:= R_NONE;
+    reg.enum:= R_NONE;
   end;
 constructor tai_align.create_op(b:byte; _op:byte);
   begin
     inherited create_op(b,_op);
-    reg:= R_NONE;
+    reg.enum:= R_NONE;
   end;
 {*****************************************************************************
                              Taicpu Constructors
@@ -456,7 +456,7 @@ begin
         if (ref^.base=R_NONE) and (ref^.index=R_NONE) then
           ot:=ot or OT_MEM_OFFS;}
       { fix scalefactor }
-        if (ref^.index=R_NONE) then
+        if (ref^.index.enum=R_NONE) then
          ref^.scalefactor:=0
         else
          if (ref^.scalefactor=0) then
@@ -857,7 +857,7 @@ begin
   o:=input.ref^.offset+input.ref^.offsetfixup;
   sym:=input.ref^.symbol;
 { it's direct address }
-  if (b=R_NONE) and (i=R_NONE) then
+  if (b.enum=R_NONE) and (i.enum=R_NONE) then
    begin
  { it's a pure offset }
  output.sib_present:=false;
@@ -1081,7 +1081,10 @@ procedure InitAsm;
 end.
 {
     $Log$
-    Revision 1.15  2003-01-05 21:32:35  mazen
+    Revision 1.16  2003-01-08 18:43:58  daniel
+     * Tregister changed into a record
+
+    Revision 1.15  2003/01/05 21:32:35  mazen
     * fixing several bugs compiling the RTL
 
     Revision 1.14  2002/12/14 15:02:03  carl

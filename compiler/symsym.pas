@@ -1607,7 +1607,7 @@ implementation
            include(varoptions,vo_fpuregable)
          else
            exclude(varoptions,vo_fpuregable);
-         reg:=R_NO;
+         reg.enum:=R_NO;
       end;
 
 
@@ -1630,7 +1630,7 @@ implementation
       begin
          inherited loadsym(ppufile);
          typ:=varsym;
-         reg:=R_NO;
+         reg.enum:=R_NO;
          refs := 0;
          varstate:=vs_used;
          varspez:=tvarspez(ppufile.getbyte);
@@ -1813,13 +1813,15 @@ implementation
                   so some optimizing will make things harder to debug }
          end
        else if (owner.symtabletype in [localsymtable,inlinelocalsymtable]) then
-         if reg<>R_NO then
+         if reg.enum<>R_NO then
            begin
+              if reg.enum>lastreg then
+                internalerror(200201081);
               { "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi", "eip", "ps", "cs", "ss", "ds", "es", "fs", "gs", }
               { this is the register order for GDB}
               stabstring:=strpnew('"'+name+':r'+st+'",'+
                         tostr(N_RSYM)+',0,'+
-                        tostr(fileinfo.line)+','+tostr(stab_regindex[reg]));
+                        tostr(fileinfo.line)+','+tostr(stab_regindex[reg.enum]));
            end
          else
            { I don't know if this will work (PM) }
@@ -1841,14 +1843,16 @@ implementation
            exit;
          inherited concatstabto(asmlist);
       if (owner.symtabletype=parasymtable) and
-         (reg<>R_NO) then
+         (reg.enum<>R_NO) then
            begin
+              if reg.enum>lastreg then
+                internalerror(2003010801);
            { "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi", "eip", "ps", "cs", "ss", "ds", "es", "fs", "gs", }
            { this is the register order for GDB}
               stab_str:=strpnew('"'+name+':r'
                      +tstoreddef(vartype.def).numberstring+'",'+
                      tostr(N_RSYM)+',0,'+
-                     tostr(fileinfo.line)+','+tostr(stab_regindex[reg]));
+                     tostr(fileinfo.line)+','+tostr(stab_regindex[reg.enum]));
               asmList.concat(Tai_stabs.Create(stab_str));
            end;
       end;
@@ -2559,7 +2563,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.90  2003-01-03 12:15:56  daniel
+  Revision 1.91  2003-01-08 18:43:57  daniel
+   * Tregister changed into a record
+
+  Revision 1.90  2003/01/03 12:15:56  daniel
     * Removed ifdefs around notifications
       ifdefs around for loop optimizations remain
 

@@ -169,6 +169,7 @@ implementation
          adjustment : longint;
          pushedregs : tmaybesave;
          l,l2,l3       : tasmlabel;
+         r:Tregister;
 
 {$ifdef oldset}
          function analizeset(Aset:Pconstset;is_small:boolean):boolean;
@@ -321,7 +322,7 @@ implementation
             { how much have we already substracted from the x in the }
             { "x in [y..z]" expression                               }
             adjustment := 0;
-            hr := R_NO;
+            hr.enum := R_NO;
 
             for i:=1 to numparts do
              if setparts[i].range then
@@ -337,7 +338,7 @@ implementation
                       { to edi (not done before because now we can do the  }
                       { move and substract in one instruction with LEA)    }
                       if (left.location.loc = LOC_CREGISTER) and
-                         (hr <> pleftreg) then
+                         (hr.enum <> pleftreg.enum) then
                         begin
                           hr:=cg.get_scratch_reg_int(exprasmlist);
                           cg.a_op_const_reg_reg(exprasmlist,OP_SUB,opsize,setparts[i].start,pleftreg,hr);
@@ -573,7 +574,8 @@ implementation
                   cg.a_param_ref(exprasmlist,OS_ADDR,right.location.reference,paramanager.getintparaloc(1));
                   cg.a_call_name(exprasmlist,'FPC_SET_IN_BYTE');
                   { result of value is always one full register }
-                  cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,ACCUMULATOR,location.register);
+                  r.enum:=accumulator;
+                  cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,r,location.register);
                   { release the allocated register  }
                   if not (left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
                     rg.ungetregisterint(exprasmlist,pleftreg);
@@ -1062,7 +1064,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2002-11-27 02:37:13  peter
+  Revision 1.25  2003-01-08 18:43:56  daniel
+   * Tregister changed into a record
+
+  Revision 1.24  2002/11/27 02:37:13  peter
     * case statement inlining added
     * fixed inlining of write()
     * switched statementnode left and right parts so the statements are

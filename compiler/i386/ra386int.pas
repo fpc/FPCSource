@@ -122,7 +122,7 @@ Procedure SetupTables;
 { creates uppercased symbol tables for speed access }
 var
   i : tasmop;
-  j : tregister;
+  j : Toldregister;
   str2opentry: tstr2opentry;
 Begin
   { opcodes }
@@ -226,9 +226,9 @@ Function is_register(const s: string):boolean;
 Var
   i : tregister;
 Begin
-  actasmregister:=R_NO;
-  for i:=firstreg to lastreg do
-   if s=iasmregs^[i] then
+  actasmregister.enum:=R_NO;
+  for i.enum:=firstreg to lastreg do
+   if s=iasmregs^[i.enum] then
     begin
       actasmtoken:=AS_REGISTER;
       actasmregister:=i;
@@ -1071,7 +1071,7 @@ Begin
              if negative then
                Message(asmr_e_only_add_relocatable_symbol);
              oldbase:=opr.ref.base;
-             opr.ref.base:=R_NO;
+             opr.ref.base.enum:=R_NO;
              tempstr:=actasmpattern;
              Consume(AS_ID);
              { typecasting? }
@@ -1097,9 +1097,11 @@ Begin
               end;
              if GotOffset then
               begin
-                if hasvar and (opr.ref.base=procinfo.framepointer) then
+                if procinfo.framepointer.enum>lastreg then
+                  internalerror(200301081);
+                if hasvar and (opr.ref.base.enum=procinfo.framepointer.enum) then
                  begin
-                   opr.ref.base:=R_NO;
+                   opr.ref.base.enum:=R_NO;
                    hasvar:=hadvar;
                  end
                 else
@@ -1109,15 +1111,19 @@ Begin
                    { should we allow ?? }
                  end;
               end;
+             if opr.ref.base.enum>lastreg then
+               internalerror(200301081);
+             if opr.ref.index.enum>lastreg then
+               internalerror(200301081);
              { is the base register loaded by the var ? }
-             if (opr.ref.base<>R_NO) then
+             if (opr.ref.base.enum<>R_NO) then
               begin
                 { check if we can move the old base to the index register }
-                if (opr.ref.index<>R_NO) then
+                if (opr.ref.index.enum<>R_NO) then
                  Message(asmr_e_wrong_base_index)
                 else if assigned(procinfo._class) and
-                  (oldbase=SELF_POINTER_REG) and
-                  (opr.ref.base=SELF_POINTER_REG) then
+                  (oldbase.enum=SELF_POINTER_REG) and
+                  (opr.ref.base.enum=SELF_POINTER_REG) then
                   begin
                     Message(asmr_w_possible_object_field_bug);
                     { warn but accept... who knows what people
@@ -1210,9 +1216,9 @@ Begin
              3. base register is already used }
           if (GotStar) or
              (actasmtoken=AS_STAR) or
-             (opr.ref.base<>R_NO) then
+             (opr.ref.base.enum<>R_NO) then
            begin
-             if (opr.ref.index<>R_NO) then
+             if (opr.ref.index.enum<>R_NO) then
               Message(asmr_e_multiple_index);
              opr.ref.index:=hreg;
              if scale<>0 then
@@ -1560,7 +1566,9 @@ Begin
             Message(asmr_e_invalid_operand_type);
            opr.typ:=OPR_REGISTER;
            opr.reg:=tempreg;
-           size:=reg2opsize[opr.reg];
+           if opr.reg.enum>lastreg then
+             internalerror(200301081);
+           size:=reg2opsize[opr.reg.enum];
          end;
       end;
 
@@ -1956,7 +1964,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.38  2002-12-14 15:02:03  carl
+  Revision 1.39  2003-01-08 18:43:57  daniel
+   * Tregister changed into a record
+
+  Revision 1.38  2002/12/14 15:02:03  carl
     * maxoperands -> max_operands (for portability in rautils.pas)
     * fix some range-check errors with loadconst
     + add ncgadd unit to m68k

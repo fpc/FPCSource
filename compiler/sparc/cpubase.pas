@@ -191,18 +191,26 @@ CONST
 TYPE
   { enumeration for registers, don't change the order }
   { it's used by the register size conversions        }
-  TRegister=({$INCLUDE registers.inc});
+  ToldRegister=({$INCLUDE registers.inc});
+  Tregister=record
+    enum:Toldregister;
+    number:word;
+  end;
   TRegister64=PACKED RECORD
   {A type to store register locations for 64 Bit values.}
      RegLo,RegHi:TRegister;
   END;
   treg64=tregister64;{alias for compact code}
-  TRegisterSet=SET OF TRegister;
-  reg2strtable=ARRAY[tregister] OF STRING[6];
+  TRegisterSet=SET OF ToldRegister;
 CONST
   R_NO=R_NONE;
-  firstreg = low(tregister);
-  lastreg  = high(tregister);
+  firstreg = low(Toldregister);
+  lastreg  = high(R_ASR31);
+  
+type
+  reg2strtable=ARRAY[firstreg..lastreg] OF STRING[6];
+
+const
   std_reg2str:reg2strtable=({$INCLUDE strregs.inc});
 {*****************************************************************************
                                    Flags
@@ -401,7 +409,7 @@ const
 
       }
 
-  stab_regindex:ARRAY[tregister]OF ShortInt=({$INCLUDE stabregi.inc});
+  stab_regindex:ARRAY[firstreg..lastreg]OF ShortInt=({$INCLUDE stabregi.inc});
 {*************************** generic register names **************************}
 	stack_pointer_reg		=	R_O6;
   frame_pointer_reg		=	R_I6;
@@ -443,7 +451,7 @@ PARM_BOUNDARY / BITS_PER_UNIT in the GCC source.}
 {# Registers which are defined as scratch and no need to save across routine
 calls or in assembler blocks.}
   ScratchRegsCount=3;
-  scratch_regs:ARRAY[1..ScratchRegsCount]OF TRegister=(R_O4,R_O5,R_I7);
+  scratch_regs:ARRAY[1..ScratchRegsCount]OF ToldRegister=(R_O4,R_O5,R_I7);
   {$WARNING FIXME : Scratch registers list has to be verified}
 { low and high of the available maximum width integer general purpose }
 { registers                                                           }
@@ -489,7 +497,7 @@ VAR
 *****************************************************************************}
 const
   maxvarregs=30;
-  VarRegs:ARRAY[1..maxvarregs]OF TRegister=(
+  VarRegs:ARRAY[1..maxvarregs]OF ToldRegister=(
              R_G0,R_G1,R_G2,R_G3,R_G4,R_G5,R_G6,R_G7,
              R_O0,R_O1,R_O2,R_O3,R_O4,R_O5,{R_R14=R_SP}R_O7,
              R_L0,R_L1,R_L2,R_L3,R_L4,R_L5,R_L6,R_L7,
@@ -523,7 +531,10 @@ function flags_to_cond(const f:TResFlags):TAsmCond;
 END.
 {
   $Log$
-  Revision 1.17  2003-01-05 20:39:53  mazen
+  Revision 1.18  2003-01-08 18:43:58  daniel
+   * Tregister changed into a record
+
+  Revision 1.17  2003/01/05 20:39:53  mazen
   * warnings about FreeTemp already free fixed with appropriate registers handling
 
   Revision 1.16  2002/10/28 20:59:17  mazen

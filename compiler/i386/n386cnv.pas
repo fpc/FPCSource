@@ -91,10 +91,11 @@ implementation
          hregister : tregister;
          l1,l2 : tasmlabel;
          freereg : boolean;
+         r:Tregister;
 
       begin
          location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
-         hregister:=R_NO;
+         hregister.enum:=R_NO;
          freereg:=false;
 
          { for u32bit a solution is to push $0 and to load a comp }
@@ -148,17 +149,20 @@ implementation
          exprasmlist.concat(taicpu.op_reg(A_PUSH,S_L,hregister));
          if freereg then
            cg.free_scratch_reg(exprasmlist,hregister);
-         reference_reset_base(href,R_ESP,0);
+         r.enum:=R_ESP;
+         reference_reset_base(href,r,0);
          case torddef(left.resulttype.def).typ of
            u32bit:
              begin
+                r.enum:=R_ESP;
                 emit_ref(A_FILD,S_IQ,href);
-                emit_const_reg(A_ADD,S_L,8,R_ESP);
+                emit_const_reg(A_ADD,S_L,8,r);
              end;
            s64bit:
              begin
+                r.enum:=R_ESP;
                 emit_ref(A_FILD,S_IQ,href);
-                emit_const_reg(A_ADD,S_L,8,R_ESP);
+                emit_const_reg(A_ADD,S_L,8,r);
              end;
            u64bit:
              begin
@@ -166,14 +170,18 @@ implementation
                 { we load bits 0..62 and then check bit 63:  }
                 { if it is 1 then we add $80000000 000000000 }
                 { as double                                  }
+                r.enum:=R_EDI;
                 inc(href.offset,4);
                 rg.getexplicitregisterint(exprasmlist,R_EDI);
-                emit_ref_reg(A_MOV,S_L,href,R_EDI);
-                reference_reset_base(href,R_ESP,4);
+                emit_ref_reg(A_MOV,S_L,href,r);
+                r.enum:=R_ESP;
+                reference_reset_base(href,r,4);
                 emit_const_ref(A_AND,S_L,$7fffffff,href);
-                emit_const_reg(A_TEST,S_L,longint($80000000),R_EDI);
-                rg.ungetregisterint(exprasmlist,R_EDI);
-                reference_reset_base(href,R_ESP,0);
+                r.enum:=R_EDI;
+                emit_const_reg(A_TEST,S_L,longint($80000000),r);
+                rg.ungetregisterint(exprasmlist,r);
+                r.enum:=R_ESP;
+                reference_reset_base(href,r,0);
                 emit_ref(A_FILD,S_IQ,href);
                 objectlibrary.getdatalabel(l1);
                 objectlibrary.getlabel(l2);
@@ -185,18 +193,19 @@ implementation
                 reference_reset_symbol(href,l1,0);
                 emit_ref(A_FADD,S_FL,href);
                 cg.a_label(exprasmlist,l2);
-                emit_const_reg(A_ADD,S_L,8,R_ESP);
+                emit_const_reg(A_ADD,S_L,8,r);
              end
            else
              begin
                 emit_ref(A_FILD,S_IL,href);
                 rg.getexplicitregisterint(exprasmlist,R_EDI);
-                emit_reg(A_POP,S_L,R_EDI);
-                rg.ungetregisterint(exprasmlist,R_EDI);
+                r.enum:=R_EDI;
+                emit_reg(A_POP,S_L,r);
+                rg.ungetregisterint(exprasmlist,r);
              end;
          end;
          inc(trgcpu(rg).fpuvaroffset);
-         location.register:=R_ST;
+         location.register.enum:=R_ST;
       end;
 
 
@@ -419,7 +428,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.53  2002-12-05 14:27:42  florian
+  Revision 1.54  2003-01-08 18:43:57  daniel
+   * Tregister changed into a record
+
+  Revision 1.53  2002/12/05 14:27:42  florian
     * some variant <-> dyn. array stuff
 
   Revision 1.52  2002/11/25 17:43:26  peter

@@ -33,25 +33,29 @@ code generator to allocate and free registers which might be valid across
 nodes. It also contains utility routines related to registers. Some of the
 methods in this class overrides generic implementations in rgobj.pas.}
   trgcpu=class(trgobj)
-    function GetExplicitRegisterInt(list:taasmoutput;Reg:tregister):tregister;override;
+    function GetExplicitRegisterInt(list:taasmoutput;Reg:Toldregister):tregister;override;
     procedure UngetregisterInt(list:taasmoutput;Reg:tregister);override;
   end;
 implementation
 uses
   cgobj;
-function trgcpu.GetExplicitRegisterInt(list:taasmoutput;reg:tregister):tregister;
+function trgcpu.GetExplicitRegisterInt(list:taasmoutput;reg:Toldregister):tregister;
+
+var r:Tregister;
+
   begin
     if reg in [R_O7,R_I7]
     then
       begin
-        cg.a_reg_alloc(list,Reg);
-        result := Reg;
+        r.enum:=reg;
+        cg.a_reg_alloc(list,r);
+        result := r;
       end
     else result := inherited GetExplicitRegisterInt(list,reg);
   end;
 procedure trgcpu.UngetregisterInt(list: taasmoutput; reg: tregister);
   begin
-    if reg in [R_O7,R_I7]
+    if reg.enum in [R_O7,R_I7]
     then
       cg.a_reg_dealloc(list,reg)
     else
@@ -62,7 +66,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.4  2002-10-13 21:46:07  mazen
+  Revision 1.5  2003-01-08 18:43:58  daniel
+   * Tregister changed into a record
+
+  Revision 1.4  2002/10/13 21:46:07  mazen
   * assembler output format fixed
 
   Revision 1.3  2002/10/12 19:03:23  mazen

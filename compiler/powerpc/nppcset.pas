@@ -65,6 +65,8 @@ implementation
 
       procedure genitem(t : pcaserecord);
 
+      var r:Tregister;
+
           procedure gensub(value:longint);
           var
             tmpreg: tregister;
@@ -95,8 +97,9 @@ implementation
              end;
            if t^._low=t^._high then
              begin
+                r.enum:=R_CR0;
                 if t^._low-last=0 then
-                  exprasmlist.concat(taicpu.op_reg_reg_const(A_CMPWI,R_CR0,
+                  exprasmlist.concat(taicpu.op_reg_reg_const(A_CMPWI,r,
                     hregister,0))
                 else
                   gensub(longint(t^._low-last));
@@ -156,7 +159,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2002-11-25 17:43:28  peter
+  Revision 1.6  2003-01-08 18:43:58  daniel
+   * Tregister changed into a record
+
+  Revision 1.5  2002/11/25 17:43:28  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once

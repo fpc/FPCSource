@@ -199,7 +199,7 @@ interface
       begin
         if (right.location.loc in [LOC_REGISTER,LOC_FPUREGISTER]) and
            (cmpop or
-            (location.register <> right.location.register)) then
+            (location.register.enum <> right.location.register.enum)) then
           begin
             rg.ungetregister(exprasmlist,right.location.register);
             if is_64bitint(right.resulttype.def) then
@@ -207,7 +207,7 @@ interface
           end;
         if (left.location.loc in [LOC_REGISTER,LOC_FPUREGISTER]) and
            (cmpop or
-            (location.register <> left.location.register)) then
+            (location.register.enum <> left.location.register.enum)) then
           begin
             rg.ungetregister(exprasmlist,left.location.register);
             if is_64bitint(left.resulttype.def) then
@@ -316,7 +316,7 @@ interface
         
         location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def));
 
-        if  (location.register = R_NO) then
+        if  (location.register.enum = R_NO) then
           location.register := rg.getregisterint(exprasmlist);
 
         case nodetype of
@@ -765,7 +765,7 @@ interface
         case nodetype of
               xorn,orn,andn,addn:
                 begin
-                  if (location.registerlow = R_NO) then
+                  if (location.registerlow.enum = R_NO) then
                     begin
                       location.registerlow := rg.getregisterint(exprasmlist);
                       location.registerhigh := rg.getregisterint(exprasmlist);
@@ -787,7 +787,7 @@ interface
 
                   if left.location.loc <> LOC_CONSTANT then
                     begin
-                      if (location.registerlow = R_NO) then
+                      if (location.registerlow.enum = R_NO) then
                         begin
                          location.registerlow := rg.getregisterint(exprasmlist);
                          location.registerhigh := rg.getregisterint(exprasmlist);
@@ -810,7 +810,7 @@ interface
                         def_cgsize(left.resulttype.def),true);
                       if (left.location.loc = LOC_REGISTER) then
                         location.register64 := left.location.register64
-                      else if (location.registerlow = R_NO) then
+                      else if (location.registerlow.enum = R_NO) then
                         begin
                          location.registerlow := rg.getregisterint(exprasmlist);
                          location.registerhigh := rg.getregisterint(exprasmlist);
@@ -876,7 +876,7 @@ interface
        load_left_right(false, (cs_check_overflow in aktlocalswitches) and
           (nodetype in [addn,subn,muln]));
 
-       if (location.register = R_NO) then
+       if (location.register.enum = R_NO) then
          location.register := rg.getregisterint(exprasmlist);
 
        { assume no overflow checking is require }
@@ -1052,7 +1052,10 @@ interface
 end.
 {
   $Log$
-  Revision 1.3  2002-12-14 15:02:03  carl
+  Revision 1.4  2003-01-08 18:43:56  daniel
+   * Tregister changed into a record
+
+  Revision 1.3  2002/12/14 15:02:03  carl
     * maxoperands -> max_operands (for portability in rautils.pas)
     * fix some range-check errors with loadconst
     + add ncgadd unit to m68k

@@ -78,6 +78,131 @@ uses
                                   Registers
 *****************************************************************************}
 
+      {The new register coding:
+
+       For now we'll use this, when the old register coding is away, we
+       can change this into a cardinal or something so the amount of
+       possible registers increases.
+
+       High byte: Register number
+       Low byte:  Subregister
+
+       Example:
+
+       $0100      AL
+       $0101      AH
+       $0102      AX
+       $0103      EAX
+       $0104      RAX
+       $0201      BL
+       $0203      EBX
+
+       Register numbers:
+
+       $00        Special register
+       $01        EAX
+       $02        EBX
+       $03        ECX
+       $04        EDX
+       $05        ESI
+       $06        EDI
+       $07        EBP
+       $08        ESP
+       $09        R08
+       $0a        R09
+       $0b        R10
+       $0c        R11
+       $0d        R12
+       $0e        R13
+       $0f        R14
+       $10        R15}
+
+     {Special registers:}
+     const        NR_NO    = $0000;      {Invalid register}
+                  NR_CS    = $0001;      {CS}
+                  NR_DS    = $0002;      {DS}
+                  NR_ES    = $0003;      {ES}
+                  NR_SS    = $0004;      {SS}
+                  NR_FS    = $0005;      {FS}
+                  NR_GS    = $0006;      {GS}
+                  NR_RIP   = $000F;      {RIP}
+                  NR_DR0   = $0010;      {DR0}
+                  NR_DR1   = $0011;      {DR1}
+                  NR_DR2   = $0012;      {DR2}
+                  NR_DR3   = $0013;      {DR3}
+                  NR_DR6   = $0016;      {DR6}
+                  NR_DR7   = $0017;      {DR7}
+                  NR_CR0   = $0020;      {CR0}
+                  NR_CR1   = $0021;      {CR1}
+                  NR_CR2   = $0022;      {CR2}
+                  NR_CR3   = $0023;      {CR3}
+                  NR_TR3   = $0030;      {R_TR3}
+                  NR_TR4   = $0031;      {R_TR4}
+                  NR_TR5   = $0032;      {R_TR5}
+                  NR_TR6   = $0033;      {R_TR6}
+                  NR_TR7   = $0034;      {R_TR7}
+      {Normal registers.}
+      const       NR_AL    = $0100;      {AL}
+                  NR_AH    = $0101;      {AH}
+                  NR_AX    = $0102;      {AX}
+                  NR_EAX   = $0103;      {EAX}
+                  NR_RAX   = $0104;      {RAX}
+                  NR_BL    = $0200;      {BL}
+                  NR_BH    = $0201;      {BH}
+                  NR_BX    = $0202;      {BX}
+                  NR_EBX   = $0203;      {EBX}
+                  NR_RBX   = $0204;      {RBX}
+                  NR_CL    = $0300;      {CL}
+                  NR_CH    = $0301;      {CH}
+                  NR_CX    = $0302;      {CX}
+                  NR_ECX   = $0303;      {ECX}
+                  NR_RCX   = $0304;      {RCX}
+                  NR_DL    = $0400;      {DL}
+                  NR_DH    = $0401;      {DH}
+                  NR_DX    = $0402;      {DX}
+                  NR_EDX   = $0403;      {EDX}
+                  NR_RDX   = $0404;      {RDX}
+                  NR_SIL   = $0500;      {SIL}
+                  NR_SI    = $0502;      {SI}
+                  NR_ESI   = $0503;      {ESI}
+                  NR_RSI   = $0504;      {RSI}
+                  NR_DIL   = $0600;      {DIL}
+                  NR_DI    = $0602;      {DI}
+                  NR_EDI   = $0603;      {EDI}
+                  NR_RDI   = $0604;      {RDI}
+                  NR_BPL   = $0700;      {BPL}
+                  NR_BP    = $0702;      {BP}
+                  NR_EBP   = $0703;      {EBP}
+                  NR_RBP   = $0704;      {RBP}
+                  NR_SPL   = $0800;      {SPL}
+                  NR_SP    = $0802;      {SP}
+                  NR_ESP   = $0803;      {ESP}
+                  NR_RSP   = $0804;      {RSP}
+                  NR_R8L   = $0900;      {R8L}
+                  NR_R8W   = $0902;      {R8W}
+                  NR_R8D   = $0903;      {R8D}
+                  NR_R9L   = $0a00;      {R9D}
+                  NR_R9W   = $0a02;      {R9W}
+                  NR_R9D   = $0a03;      {R9D}
+                  NR_R10L  = $0b00;      {R10L}
+                  NR_R10W  = $0b02;      {R10W}
+                  NR_R10D  = $0b03;      {R10D}
+                  NR_R11L  = $0c00;      {R11L}
+                  NR_R11W  = $0c02;      {R11W}
+                  NR_R11D  = $0c03;      {R11D}
+                  NR_R12L  = $0d00;      {R12L}
+                  NR_R12W  = $0d02;      {R12W}
+                  NR_R12D  = $0d03;      {R12D}
+                  NR_R13L  = $0e00;      {R13L}
+                  NR_R13W  = $0e02;      {R13W}
+                  NR_R13D  = $0e03;      {R13D}
+                  NR_R14L  = $0f00;      {R14L}
+                  NR_R14W  = $0f02;      {R14W}
+                  NR_R14D  = $0f03;      {R14D}
+                  NR_R15L  = $1000;      {R15L}
+                  NR_R15W  = $1002;      {R15W}
+                  NR_R15D  = $1003;      {R15D}
+
     type
       {# Enumeration for all possible registers for cpu. It
         is to note that all registers of the same type
@@ -86,7 +211,8 @@ uses
       }
       { don't change the order }
       { it's used by the register size conversions        }
-      tregister = (R_NO,
+      {$packenum 1}
+      Toldregister = (R_NO,
         R_EAX,R_ECX,R_EDX,R_EBX,R_ESP,R_EBP,R_ESI,R_EDI,
         R_AX,R_CX,R_DX,R_BX,R_SP,R_BP,R_SI,R_DI,
         R_AL,R_CL,R_DL,R_BL,R_AH,R_CH,R_BH,R_DH,
@@ -96,8 +222,24 @@ uses
         R_CR0,R_CR2,R_CR3,R_CR4,
         R_TR3,R_TR4,R_TR5,R_TR6,R_TR7,
         R_MM0,R_MM1,R_MM2,R_MM3,R_MM4,R_MM5,R_MM6,R_MM7,
-        R_XMM0,R_XMM1,R_XMM2,R_XMM3,R_XMM4,R_XMM5,R_XMM6,R_XMM7
+        R_XMM0,R_XMM1,R_XMM2,R_XMM3,R_XMM4,R_XMM5,R_XMM6,R_XMM7,
+        R_INTREGISTER,R_FLOATREGISTER,R_MMXREGISTER,R_KNIREGISTER
       );
+      
+
+      {Constants for subregisters.}
+      const   RS_L8   = 0;    {Like AL}
+              RS_H8   = 1;    {Like AH}
+              RS_16   = 2;    {Like AX}
+              RS_32   = 3;    {Like EAX}
+              RS_64   = 4;    {Like RAX}
+
+      type  Tregister = packed record
+              enum:Toldregister;
+              number:word;        {This is a word for now, change to cardinal when
+                                   the old register coding is away.}
+            end;
+      {$packenum normal}
 
       { A type to store register locations for 64 Bit values. }
       tregister64 = packed record
@@ -108,16 +250,14 @@ uses
       treg64 = tregister64;
 
       {# Set type definition for registers }
-      tregisterset = set of tregister;
+      tregisterset = set of Toldregister;
 
-      {# Type definition for the array of string of register names }
-      reg2strtable = array[tregister] of string[6];
 
     const
       {# First register in the tregister enumeration }
-      firstreg = low(tregister);
+      firstreg = low(Toldregister);
       {# Last register in the tregister enumeration }
-      lastreg  = high(tregister);
+      lastreg  = R_XMM7;
 
       firstsreg = R_CS;
       lastsreg  = R_GS;
@@ -146,6 +286,11 @@ uses
       }
       std_op2str:op2strtable={$i i386int.inc}
 
+    type
+      {# Type definition for the array of string of register names }
+         reg2strtable = array[firstreg..lastreg] of string[6];
+
+    const
       {# Standard register table (for each tregister enumeration). The
          register strings should conform to the the names as defined
          by the processor manufacturer
@@ -377,7 +522,7 @@ uses
       lastsavemmreg   = R_MM7;
 
       maxvarregs = 4;
-      varregs : array[1..maxvarregs] of tregister =
+      varregs : array[1..maxvarregs] of Toldregister =
          (R_EBX,R_EDX,R_ECX,R_EAX);
 
       maxfpuvarregs = 8;
@@ -386,7 +531,7 @@ uses
          routine calls or in assembler blocks.
       }
       max_scratch_regs = 1;
-      scratch_regs : array[1..max_scratch_regs] of tregister = (R_EDI);
+      scratch_regs : array[1..max_scratch_regs] of Toldregister = (R_EDI);
 
 
 {*****************************************************************************
@@ -400,7 +545,7 @@ uses
           (FIXED_REGISTERS) from GCC 3.x source code
 
       }
-          stab_regindex : array[tregister] of shortint =
+          stab_regindex : array[firstreg..lastreg] of shortint =
           (-1,
           0,1,2,3,4,5,6,7,
           0,1,2,3,4,5,6,7,
@@ -533,7 +678,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35  2003-01-05 13:36:53  florian
+  Revision 1.36  2003-01-08 18:43:57  daniel
+   * Tregister changed into a record
+
+  Revision 1.35  2003/01/05 13:36:53  florian
     * x86-64 compiles
     + very basic support for float128 type (x86-64 only)
 

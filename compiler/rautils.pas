@@ -825,7 +825,7 @@ Begin
                 that %esi is valid there }
               else
                 begin
-                  opr.ref.base:=SELF_POINTER_REG;
+                  opr.ref.base.enum:=SELF_POINTER_REG;
                   opr.ref.offset:=tvarsym(sym).address;
                 end;
               hasvar:=true;
@@ -1591,7 +1591,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.51  2002-12-14 15:02:03  carl
+  Revision 1.52  2003-01-08 18:43:56  daniel
+   * Tregister changed into a record
+
+  Revision 1.51  2002/12/14 15:02:03  carl
     * maxoperands -> max_operands (for portability in rautils.pas)
     * fix some range-check errors with loadconst
     + add ncgadd unit to m68k

@@ -110,7 +110,7 @@ begin
     end;
   secondpass(right);
   { special case for string := string + char (JM) }
-  hreg := R_NO;
+  hreg.enum := R_NO;
 
   { we have to load the char before checking the length, because we }
   { may need registers from the reference                           }
@@ -156,8 +156,8 @@ begin
   { we need a new reference to store the character }
   { at the end of the string. Check if the base or }
   { index register is still free                   }
-  if (href2.base <> R_NO) and
-     (href2.index <> R_NO) then
+  if (href2.base.enum <> R_NO) and
+     (href2.index.enum <> R_NO) then
     begin
       { they're not free, so add the base reg to       }
       { the string length (since the index can         }
@@ -167,7 +167,7 @@ begin
     end
   else
     { at least one is still free, so put EDI there }
-    if href2.base = R_NO then
+    if href2.base.enum = R_NO then
       href2.base := lengthreg
     else
       begin
@@ -248,7 +248,10 @@ end.
 
 {
   $Log$
-  Revision 1.26  2002-11-25 17:43:27  peter
+  Revision 1.27  2003-01-08 18:43:57  daniel
+   * Tregister changed into a record
+
+  Revision 1.26  2002/11/25 17:43:27  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once

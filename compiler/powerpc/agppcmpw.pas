@@ -182,16 +182,16 @@ function getreferencestring(var ref : treference) : string;
                s:=s+tostr(offset);
             end;
 
-          if (index=R_NO) and (base<>R_NO) then
+          if (index.enum=R_NO) and (base.enum<>R_NO) then
             begin
               if offset=0 then
                 if not assigned(symbol) then
                   s:=s+'0';
-              s:=s+'('+mpw_reg2str[base]+')'
+              s:=s+'('+mpw_reg2str[base.enum]+')'
             end
-          else if (index<>R_NO) and (base<>R_NO) and (offset=0) then
-            s:=s+mpw_reg2str[base]+','+mpw_reg2str[index]
-          else if ((index<>R_NO) or (base<>R_NO)) then
+          else if (index.enum<>R_NO) and (base.enum<>R_NO) and (offset=0) then
+            s:=s+mpw_reg2str[base.enum]+','+mpw_reg2str[index.enum]
+          else if ((index.enum<>R_NO) or (base.enum<>R_NO)) then
             internalerror(19992);
         end;
       getreferencestring:=s;
@@ -203,7 +203,7 @@ function getreferencestring(var ref : treference) : string;
     begin
       case o.typ of
         top_reg :
-          getopstr_jmp:=mpw_reg2str[o.reg];
+          getopstr_jmp:=mpw_reg2str[o.reg.enum];
         { no top_ref jumping for powerpc }
         top_const :
           getopstr_jmp:=tostr(o.val);
@@ -238,7 +238,7 @@ function getreferencestring(var ref : treference) : string;
     begin
       case o.typ of
         top_reg:
-          getopstr:=mpw_reg2str[o.reg];
+          getopstr:=mpw_reg2str[o.reg.enum];
         { no top_ref jumping for powerpc }
         top_const:
           getopstr:=tostr(longint(o.val));
@@ -353,7 +353,7 @@ function getreferencestring(var ref : treference) : string;
         begin
           case op of
              A_MFSPR:
-               case taicpu(hp).oper[1].reg of
+               case taicpu(hp).oper[1].reg.enum of
                   R_CR:
                     begin
                        op:=A_MFCR;
@@ -368,7 +368,7 @@ function getreferencestring(var ref : treference) : string;
                     internalerror(2002100701);
                end;
              A_MTSPR:
-               case taicpu(hp).oper[1].reg of
+               case taicpu(hp).oper[1].reg.enum of
                   R_CR:
                     begin
                        op:=A_MTCR;
@@ -1122,7 +1122,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.16  2002-11-28 10:56:07  olle
+  Revision 1.17  2003-01-08 18:43:57  daniel
+   * Tregister changed into a record
+
+  Revision 1.16  2002/11/28 10:56:07  olle
     * changed proc ref from .xxx[PR] (refering to its section)
       to .xxx (refering to its label) to allow for multiple ref to a proc.
 

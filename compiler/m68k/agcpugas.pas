@@ -124,8 +124,8 @@ interface
            begin
              inc(offset,offsetfixup);
              offsetfixup:=0;
-             basestr:=gas_reg2str[base];
-             indexstr:=gas_reg2str[index];
+             basestr:=gas_reg2str[base.enum];
+             indexstr:=gas_reg2str[index.enum];
              if assigned(symbol) then
                s:=s+symbol.name;
 
@@ -135,35 +135,35 @@ interface
                   if (symbol=nil) then s:=tostr(offset)
                        else s:=s+'+'+tostr(offset);
                     end
-                  else if (index=R_NO) and (base=R_NO) and not assigned(symbol) then
+                  else if (index.enum=R_NO) and (base.enum=R_NO) and not assigned(symbol) then
                     s:=s+'0';
 
-               if (index<>R_NO) and (base=R_NO) and (direction=dir_none) then
+               if (index.enum<>R_NO) and (base.enum=R_NO) and (direction=dir_none) then
                 begin
                   if (scalefactor = 1) or (scalefactor = 0) then
                     s:=s+'(,'+indexstr+'.l)'
                   else
                     s:=s+'(,'+indexstr+'.l*'+tostr(scalefactor)+')'
                 end
-                else if (index=R_NO) and (base<>R_NO) and (direction=dir_inc) then
+                else if (index.enum=R_NO) and (base.enum<>R_NO) and (direction=dir_inc) then
                 begin
                   if (scalefactor = 1) or (scalefactor = 0) then
                       s:=s+'('+basestr+')+'
                   else
                    InternalError(10002);
                 end
-                else if (index=R_NO) and (base<>R_NO) and (direction=dir_dec) then
+                else if (index.enum=R_NO) and (base.enum<>R_NO) and (direction=dir_dec) then
                 begin
                   if (scalefactor = 1) or (scalefactor = 0) then
                       s:=s+'-('+basestr+')'
                   else
                    InternalError(10003);
                 end
-                  else if (index=R_NO) and (base<>R_NO) and (direction=dir_none) then
+                  else if (index.enum=R_NO) and (base.enum<>R_NO) and (direction=dir_none) then
                 begin
                   s:=s+'('+basestr+')'
                 end
-                  else if (index<>R_NO) and (base<>R_NO) and (direction=dir_none) then
+                  else if (index.enum<>R_NO) and (base.enum<>R_NO) and (direction=dir_none) then
                 begin
                   if (scalefactor = 1) or (scalefactor = 0) then
                     s:=s+'('+basestr+','+indexstr+'.l)'
@@ -181,14 +181,14 @@ interface
       i : tregister;
     begin
       case o.typ of
-            top_reg : getopstr:=gas_reg2str[o.reg];
+            top_reg : getopstr:=gas_reg2str[o.reg.enum];
             top_ref : getopstr:=getreferencestring(o.ref^);
         top_reglist : begin
                       hs:='';
-                      for i:=R_NO to R_FPSR do
+                      for i.enum:=R_NO to R_FPSR do
                       begin
-                        if i in o.registerlist then
-                         hs:=hs+gas_reg2str[i]+'/';
+                        if i.enum in o.registerlist then
+                         hs:=hs+gas_reg2str[i.enum]+'/';
                       end;
                       delete(hs,length(hs),1);
                       getopstr := hs;
@@ -221,7 +221,7 @@ interface
       hs : string;
     begin
       case o.typ of
-            top_reg : getopstr_jmp:=gas_reg2str[o.reg];
+            top_reg : getopstr_jmp:=gas_reg2str[o.reg.enum];
             top_ref : getopstr_jmp:=getreferencestring(o.ref^);
             top_const : getopstr_jmp:=tostr(o.val);
             top_symbol : begin
@@ -417,7 +417,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.4  2002-11-30 23:33:02  carl
+  Revision 1.5  2003-01-08 18:43:57  daniel
+   * Tregister changed into a record
+
+  Revision 1.4  2002/11/30 23:33:02  carl
     * merges from Pierre's fixes in m68k fixes branch
 
   Revision 1.3  2002/09/07 15:25:11  peter

@@ -113,16 +113,19 @@ USES
     { we implement the following routines because otherwise we can't }
     { instantiate the class since it's abstract                      }
 procedure TCgSparc.a_param_reg(list:TAasmOutput;size:tcgsize;r:tregister;const LocPara:TParaLocation);
+
+var r2:Tregister;
+
   begin
+    r2.enum:=R_G0;
     if(Size<>OS_32)and(Size<>OS_S32)
     then
       InternalError(2002032212);
     with list,LocPara do
       case Loc of
         LOC_REGISTER:
-          if r<>Register
-          then
-            Concat(taicpu.op_Reg_Reg_Reg(A_OR,r,R_G0,Register));
+          if r.enum<>Register.enum then
+            Concat(taicpu.op_Reg_Reg_Reg(A_OR,r,r2,Register));
         else
           InternalError(2002101002);
       end;
@@ -190,17 +193,17 @@ procedure TCgSparc.a_paramaddr_ref(list:TAasmOutput;CONST r:TReference;CONST Loc
   VAR
     tmpreg:TRegister;
   BEGIN
-    IF r.segment<>R_NO
+    IF r.segment.enum<>R_NO
     THEN
       CGMessage(cg_e_cant_use_far_pointer_there);
-    IF(r.base=R_NO)AND(r.index=R_NO)
+    IF(r.base.enum=R_NO)AND(r.index.enum=R_NO)
     THEN
       list.concat(Taicpu.Op_sym_ofs(A_LD,S_SW,r.symbol,r.offset))
-    ELSE IF(r.base=R_NO)AND(r.index<>R_NO)AND
+    ELSE IF(r.base.enum=R_NO)AND(r.index.enum<>R_NO)AND
            (r.offset=0)AND(r.scalefactor=0)AND(r.symbol=nil)
     THEN
       list.concat(Taicpu.Op_reg(A_LD,r.index))
-    ELSE IF(r.base<>R_NO)AND(r.index=R_NO)AND
+    ELSE IF(r.base.enum<>R_NO)AND(r.index.enum=R_NO)AND
            (r.offset=0)AND(r.symbol=nil)
     THEN
       list.concat(Taicpu.Op_reg(A_LD,r.base))
@@ -240,24 +243,33 @@ procedure TCgSparc.a_jmp_always(List:TAasmOutput;l:TAsmLabel);
   end;
 {********************** load instructions ********************}
 procedure TCgSparc.a_load_const_reg(list:TAasmOutput;size:TCGSize;a:aword;reg:TRegister);
+
+var r:Tregister;
+
   BEGIN
+    r.enum:=R_G0;
     WITH List DO
       IF a<>0
       THEN{R_G0 is usually set to zero, so we use it}
-        Concat(taicpu.op_reg_const_reg(A_OR,R_G0,a,reg))
+        Concat(taicpu.op_reg_const_reg(A_OR,r,a,reg))
       ELSE{The is no A_MOV in sparc, that's why we use A_OR with help of R_G0}
-        Concat(taicpu.op_reg_reg_reg(A_OR,R_G0,R_G0,reg));
+        Concat(taicpu.op_reg_reg_reg(A_OR,r,r,reg));
   END;
 procedure TCgSparc.a_load_const_ref(list:TAasmOutput;size:tcgsize;a:aword;CONST ref:TReference);
+
+var r:Tregister;
+
   BEGIN
+    r.enum:=R_G0;
     WITH List DO
       IF a=0
       THEN
-        Concat(taicpu.op_reg_ref(A_ST,R_G0,Ref))
+        Concat(taicpu.op_reg_ref(A_ST,r,Ref))
       ELSE
         BEGIN
-          a_load_const_reg(list,size,a,R_G1);
-          a_load_reg_ref(list,size,R_G1,Ref);
+          r.enum:=R_G1;
+          a_load_const_reg(list,size,a,r);
+          a_load_reg_ref(list,size,r,Ref);
         END;
   END;
 procedure TCgSparc.a_load_reg_ref(list:TAasmOutput;size:TCGSize;reg:tregister;const Ref:TReference);
@@ -342,8 +354,10 @@ procedure TCgSparc.a_load_reg_reg(list:TAasmOutput;fromsize,tosize:tcgsize;reg1,
   var
     op:tasmop;
     s:topsize;
+    r:Tregister;
   begin
-    if(reg1<>reg2)or
+    r.enum:=R_G0;
+    if(reg1.enum<>reg2.enum)or
       (tcgsize2size[tosize]<tcgsize2size[fromsize])or
       ((tcgsize2size[tosize] = tcgsize2size[fromsize])and
         (tosize <> fromsize)and
@@ -360,7 +374,7 @@ procedure TCgSparc.a_load_reg_reg(list:TAasmOutput;fromsize,tosize:tcgsize;reg1,
           OS_S16:
             InternalError(2002100803);{concat(taicpu.op_reg_reg(A_EXTSH,reg2,reg1));}
           OS_32,OS_S32:
-            concat(taicpu.op_reg_reg_reg(A_OR,R_G0,reg1,reg2));
+            concat(taicpu.op_reg_reg_reg(A_OR,r,reg1,reg2));
           else internalerror(2002090901);
         end;
   end;
@@ -884,20 +898,24 @@ procedure TCgSparc.a_jmp_cond(list:TAasmOutput;cond:TOpCmp;l:tasmlabel);
 procedure TCgSparc.g_flags2reg(list:TAasmOutput;Size:TCgSize;CONST f:tresflags;reg:TRegister);
   VAR
     ai:taicpu;
-    hreg:tregister;
+    r,hreg:tregister;
+    
   BEGIN
+    r.enum:=R_PSR;
     hreg := rg.makeregsize(reg,OS_8);
-    ai:=Taicpu.Op_reg_reg(A_RDPSR,R_PSR,hreg);
+    ai:=Taicpu.Op_reg_reg(A_RDPSR,r,hreg);
     ai.SetCondition(flags_to_cond(f));
     list.concat(ai);
-    IF hreg<>reg
+    IF hreg.enum<>reg.enum
     THEN
       a_load_reg_reg(list,OS_32,OS_32,hreg,reg);
   END;
 procedure TCgSparc.g_overflowCheck(List:TAasmOutput;const p:TNode);
   var
     hl:TAsmLabel;
+    r:Tregister;
   begin
+    r.enum:=R_NONE;
     if not(cs_check_overflow in aktlocalswitches)
     then
       exit;
@@ -908,7 +926,7 @@ procedure TCgSparc.g_overflowCheck(List:TAasmOutput;const p:TNode);
                                          bool8bit,bool16bit,bool32bit])))
     then
       begin
-        list.concat(taicpu.op_reg(A_NONE,R_NONE));
+        list.concat(taicpu.op_reg(A_NONE,r));
         a_jmp_always(list,hl)
       end
     else
@@ -921,6 +939,7 @@ procedure TCgSparc.g_overflowCheck(List:TAasmOutput;const p:TNode);
 procedure TCgSparc.g_stackframe_entry(list:TAasmOutput;LocalSize:LongInt);
   var
     href:TReference;
+    r:Tregister;
     i:integer;
     again:tasmlabel;
   begin
@@ -932,8 +951,9 @@ aligned}
 stack frame. In the "SAVE %i6,size,%i6" the first %i6 is related to the state
 before execution of the SAVE instrucion so it is the caller %i6, when the %i6
 after execution of that instruction is the called function stack pointer}
+    r.enum:=stack_pointer_reg;
     with list do
-      concat(Taicpu.Op_reg_const_reg(A_SAVE,Stack_Pointer_Reg,-LocalSize,Stack_Pointer_Reg));
+      concat(Taicpu.Op_reg_const_reg(A_SAVE,r,-LocalSize,r));
   end;
 procedure TCgSparc.g_restore_all_registers(list:TaasmOutput;selfused,accused,acchiused:boolean);
   begin
@@ -945,6 +965,9 @@ procedure TCgSparc.g_restore_frame_pointer(list:TAasmOutput);
 delay slot of the return instrucion done in g_return_from_proc}
   end;
 procedure TCgSparc.g_return_from_proc(list:TAasmOutput;parasize:aword);
+
+var r,r2:Tregister;
+
   begin
 {According to the SPARC ABI, the stack is cleared using the RESTORE instruction
 which is genereted in the g_restore_frame_pointer. Notice that SPARC has no
@@ -959,10 +982,12 @@ If no inversion we can use just
     with list do
       begin
 {Return address is computed by adding 8 to the CALL address saved onto %i6}
-        concat(Taicpu.Op_caddr_reg(A_JMPL,R_I7,8,R_G0));
+        r.enum:=R_G0;
+        r2.enum:=R_I7;
+        concat(Taicpu.Op_caddr_reg(A_JMPL,r,8,r));
 {We use trivial restore in the delay slot of the JMPL instruction, as we
 already set result onto %i0}
-        concat(Taicpu.Op_reg_const_reg(A_RESTORE,R_G0,0,R_G0));
+        concat(Taicpu.Op_reg_const_reg(A_RESTORE,r,0,r));
       end
   end;
 procedure TCgSparc.g_save_all_registers(list : taasmoutput);
@@ -1049,7 +1074,7 @@ procedure TCgSparc.a_loadaddr_ref_reg(list:TAasmOutput;CONST ref:TReference;r:tr
               end;
           OP_ADD, OP_SUB:
             begin
-              // can't use a_op_const_ref because this may use dec/inc
+              {can't use a_op_const_ref because this may use dec/inc}
               get_64bit_ops(op,op1,op2);
               list.concat(taicpu.op_const_reg(op1,Lo(Value),regdst.reglo));
               list.concat(taicpu.op_const_reg(op2,Hi(Value),regdst.reghi));
@@ -1077,7 +1102,7 @@ procedure TCg64fSPARC.a_op64_const_ref(list:TAasmOutput;op:TOpCG;value:qWord;con
       OP_ADD, OP_SUB:
             begin
               get_64bit_ops(op,op1,op2);
-              // can't use a_op_const_ref because this may use dec/inc
+              { can't use a_op_const_ref because this may use dec/inc}
 {              list.concat(taicpu.op_const_ref(op1,Lo(Value),ref));
               tempref:=ref;
               inc(tempref.offset,4);
@@ -1098,6 +1123,7 @@ procedure TCgSparc.g_concatcopy(list:taasmoutput;const source,dest:treference;le
     lab: tasmlabel;
     count, count2: aword;
     orgsrc, orgdst: boolean;
+    r:Tregister;
   begin
 {$ifdef extdebug}
     if len > high(longint)
@@ -1117,12 +1143,13 @@ procedure TCgSparc.g_concatcopy(list:taasmoutput;const source,dest:treference;le
                 end
               else
                 begin
-                  a_reg_alloc(list,R_F0);
-                  a_loadfpu_ref_reg(list,OS_F64,source,R_F0);
+                  r.enum:=R_F0;
+                  a_reg_alloc(list,r);
+                  a_loadfpu_ref_reg(list,OS_F64,source,r);
                   if delsource then
                     reference_release(list,source);
-                  a_loadfpu_reg_ref(list,OS_F64,R_F0,dest);
-                  a_reg_dealloc(list,R_F0);
+                  a_loadfpu_reg_ref(list,OS_F64,r,dest);
+                  a_reg_dealloc(list,r);
                 end;
               exit;
             end;
@@ -1137,7 +1164,7 @@ procedure TCgSparc.g_concatcopy(list:taasmoutput;const source,dest:treference;le
             orgsrc := false;
           end
         else if not issimpleref(source) or
-                ((source.index <> R_NO) and
+                ((source.index.enum <> R_NO) and
                  ((source.offset + longint(len)) > high(smallint))) then
           begin
             src.base := get_scratch_reg_address(list);
@@ -1153,7 +1180,7 @@ procedure TCgSparc.g_concatcopy(list:taasmoutput;const source,dest:treference;le
           reference_release(list,source);
         { load the address of dest into dst.base }
         if not issimpleref(dest) or
-           ((dest.index <> R_NO) and
+           ((dest.index.enum <> R_NO) and
             ((dest.offset + longint(len)) > high(smallint))) then
           begin
             dst.base := get_scratch_reg_address(list);
@@ -1182,15 +1209,16 @@ procedure TCgSparc.g_concatcopy(list:taasmoutput;const source,dest:treference;le
             a_load_const_reg(list,OS_32,count,countreg);
             { explicitely allocate R_O0 since it can be used safely here }
             { (for holding date that's being copied)                    }
-            a_reg_alloc(list,R_F0);
+            r.enum:=R_F0;
+            a_reg_alloc(list,r);
             objectlibrary.getlabel(lab);
             a_label(list, lab);
             list.concat(taicpu.op_reg_const_reg(A_SUB,countreg,1,countreg));
-            list.concat(taicpu.op_reg_ref(A_LDF,R_F0,src));
-            list.concat(taicpu.op_reg_ref(A_STD,R_F0,dst));
+            list.concat(taicpu.op_reg_ref(A_LDF,r,src));
+            list.concat(taicpu.op_reg_ref(A_STD,r,dst));
             //a_jmp(list,A_BC,C_NE,0,lab);
             free_scratch_reg(list,countreg);
-            a_reg_dealloc(list,R_F0);
+            a_reg_dealloc(list,r);
             len := len mod 8;
           end;
 
@@ -1198,43 +1226,47 @@ procedure TCgSparc.g_concatcopy(list:taasmoutput;const source,dest:treference;le
         if count > 0 then
           { unrolled loop }
           begin
-            a_reg_alloc(list,R_F0);
+            r.enum:=R_F0;
+            a_reg_alloc(list,r);
             for count2 := 1 to count do
               begin
-                a_loadfpu_ref_reg(list,OS_F64,src,R_F0);
-                a_loadfpu_reg_ref(list,OS_F64,R_F0,dst);
+                a_loadfpu_ref_reg(list,OS_F64,src,r);
+                a_loadfpu_reg_ref(list,OS_F64,r,dst);
                 inc(src.offset,8);
                 inc(dst.offset,8);
               end;
-            a_reg_dealloc(list,R_F0);
+            a_reg_dealloc(list,r);
             len := len mod 8;
           end;
 
         if (len and 4) <> 0 then
           begin
-            a_reg_alloc(list,R_O0);
-            a_load_ref_reg(list,OS_32,src,R_O0);
-            a_load_reg_ref(list,OS_32,R_O0,dst);
+            r.enum:=R_O0;
+            a_reg_alloc(list,r);
+            a_load_ref_reg(list,OS_32,src,r);
+            a_load_reg_ref(list,OS_32,r,dst);
             inc(src.offset,4);
             inc(dst.offset,4);
-            a_reg_dealloc(list,R_O0);
+            a_reg_dealloc(list,r);
           end;
        { copy the leftovers }
        if (len and 2) <> 0 then
          begin
-           a_reg_alloc(list,R_O0);
-           a_load_ref_reg(list,OS_16,src,R_O0);
-           a_load_reg_ref(list,OS_16,R_O0,dst);
+           r.enum:=R_O0;
+           a_reg_alloc(list,r);
+           a_load_ref_reg(list,OS_16,src,r);
+           a_load_reg_ref(list,OS_16,r,dst);
            inc(src.offset,2);
            inc(dst.offset,2);
-           a_reg_dealloc(list,R_O0);
+           a_reg_dealloc(list,r);
          end;
        if (len and 1) <> 0 then
          begin
-           a_reg_alloc(list,R_O0);
-           a_load_ref_reg(list,OS_8,src,R_O0);
-           a_load_reg_ref(list,OS_8,R_O0,dst);
-           a_reg_dealloc(list,R_O0);
+           r.enum:=R_O0;
+           a_reg_alloc(list,r);
+           a_load_ref_reg(list,OS_8,src,r);
+           a_load_reg_ref(list,OS_8,r,dst);
+           a_reg_dealloc(list,r);
          end;
        if orgsrc then
          begin
@@ -1255,14 +1287,14 @@ function TCgSparc.reg_cgsize(CONST reg:tregister):tcgsize;
 {***************** This is private property, keep out! :) *****************}
 function TCgSparc.IsSimpleRef(const ref:treference):boolean;
   begin
-    if(ref.base=R_NONE)and(ref.index <> R_NO)
+    if(ref.base.enum=R_NONE)and(ref.index.enum <> R_NO)
     then
       InternalError(2002100804);
     result :=not(assigned(ref.symbol))and
-              (((ref.index = R_NO) and
+              (((ref.index.enum = R_NO) and
                (ref.offset >= low(smallint)) and
                 (ref.offset <= high(smallint))) or
-              ((ref.index <> R_NO) and
+              ((ref.index.enum <> R_NO) and
               (ref.offset = 0)));
   end;
 procedure TCgSparc.sizes2load(s1:tcgsize;s2:topsize;var op:tasmop;var s3:topsize);
@@ -1377,7 +1409,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.33  2003-01-07 22:03:40  mazen
+  Revision 1.34  2003-01-08 18:43:58  daniel
+   * Tregister changed into a record
+
+  Revision 1.33  2003/01/07 22:03:40  mazen
   * adding unequaln node support to sparc compiler
 
   Revision 1.32  2003/01/06 22:51:47  mazen

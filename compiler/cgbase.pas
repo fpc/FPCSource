@@ -377,7 +377,7 @@ implementation
         firsttemp_offset:=0;
         para_offset:=0;
         flags:=0;
-        framepointer:=R_NO;
+        framepointer.enum:=R_NO;
         globalsymbol:=false;
         exported:=false;
         no_fast_exit:=false;
@@ -646,7 +646,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.35  2003-01-01 21:04:48  peter
+  Revision 1.36  2003-01-08 18:43:56  daniel
+   * Tregister changed into a record
+
+  Revision 1.35  2003/01/01 21:04:48  peter
     * removed unused method
 
   Revision 1.34  2002/11/25 17:43:16  peter

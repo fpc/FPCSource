@@ -90,8 +90,14 @@ interface
          { These are probably not correctly handled under GAS }
          { should be replaced by coding the segment override  }
          { directly! - DJGPP FAQ                              }
-           if segment<>R_NO then
-            AsmWrite(gas_reg2str[segment]+':');
+           if segment.enum>lastreg then
+             internalerror(200301081);
+           if base.enum>lastreg then
+             internalerror(200301081);
+           if index.enum>lastreg then
+             internalerror(200301081);
+           if segment.enum<>R_NO then
+            AsmWrite(gas_reg2str[segment.enum]+':');
            if assigned(symbol) then
              AsmWrite(symbol.name);
            if offset<0 then
@@ -104,23 +110,23 @@ interface
                else
                 AsmWrite(tostr(offset));
              end
-           else if (index=R_NO) and (base=R_NO) and not assigned(symbol) then
+           else if (index.enum=R_NO) and (base.enum=R_NO) and not assigned(symbol) then
              AsmWrite('0');
-           if (index<>R_NO) and (base=R_NO) then
+           if (index.enum<>R_NO) and (base.enum=R_NO) then
             begin
-              AsmWrite('(,'+gas_reg2str[index]);
+              AsmWrite('(,'+gas_reg2str[index.enum]);
               if scalefactor<>0 then
                AsmWrite(','+tostr(scalefactor)+')')
               else
                AsmWrite(')');
             end
            else
-            if (index=R_NO) and (base<>R_NO) then
-             AsmWrite('('+gas_reg2str[base]+')')
+            if (index.enum=R_NO) and (base.enum<>R_NO) then
+             AsmWrite('('+gas_reg2str[base.enum]+')')
             else
-             if (index<>R_NO) and (base<>R_NO) then
+             if (index.enum<>R_NO) and (base.enum<>R_NO) then
               begin
-                AsmWrite('('+gas_reg2str[base]+','+gas_reg2str[index]);
+                AsmWrite('('+gas_reg2str[base.enum]+','+gas_reg2str[index.enum]);
                 if scalefactor<>0 then
                  AsmWrite(','+tostr(scalefactor));
                 AsmWrite(')');
@@ -133,7 +139,11 @@ interface
       begin
         case o.typ of
           top_reg :
-            AsmWrite(gas_reg2str[o.reg]);
+            begin
+              if o.reg.enum>lastreg then
+                internalerror(200301081);
+              AsmWrite(gas_reg2str[o.reg.enum]);
+            end;
           top_ref :
             WriteReference(o.ref^);
           top_const :
@@ -162,7 +172,11 @@ interface
       begin
         case o.typ of
           top_reg :
-            AsmWrite('*'+gas_reg2str[o.reg]);
+            begin
+              if o.reg.enum>lastreg then
+                internalerror(200301081);
+              AsmWrite('*'+gas_reg2str[o.reg.enum]);
+            end;
           top_ref :
             begin
               AsmWrite('*');
@@ -200,13 +214,17 @@ interface
         AsmWrite(#9+gas_op2str[op]+cond2str[taicpu(hp).condition]);
         { suffix needed ?  fnstsw,fldcw don't support suffixes
           with binutils 2.9.5 under linux }
+        if (Taicpu(hp).oper[0].typ=top_reg) and
+            (Taicpu(hp).oper[0].reg.enum>lastreg) then
+          internalerror(200301081);
+          
         if (not calljmp) and
             (gas_needsuffix[op]<>AttSufNONE) and
             (op<>A_FNSTSW) and (op<>A_FSTSW) and
             (op<>A_FNSTCW) and (op<>A_FSTCW) and
             (op<>A_FLDCW) and not(
             (taicpu(hp).oper[0].typ=top_reg) and
-            (taicpu(hp).oper[0].reg in [R_ST..R_ST7])
+            (taicpu(hp).oper[0].reg.enum in [R_ST..R_ST7])
            ) then
           AsmWrite(gas_opsize2str[taicpu(hp).opsize]);
         { process operands }
@@ -303,7 +321,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.28  2003-01-05 13:36:53  florian
+  Revision 1.29  2003-01-08 18:43:57  daniel
+   * Tregister changed into a record
+
+  Revision 1.28  2003/01/05 13:36:53  florian
     * x86-64 compiles
     + very basic support for float128 type (x86-64 only)
 

@@ -139,6 +139,7 @@ implementation
       regvarinfo: pregvarinfo;
       i: longint;
       parasym : boolean;
+      r : Tregister;
     begin
       { max. optimizations     }
       { only if no asm is used }
@@ -172,7 +173,8 @@ implementation
                       { expressions                          }
                       { search the register which is the most }
                       { unused                                }
-                      rg.makeregvar(varregs[i]);
+                      r.enum:=varregs[i];
+                      rg.makeregvar(r);
 
                       { possibly no 32 bit register are needed }
                       { call by reference/const ? }
@@ -180,23 +182,27 @@ implementation
                          ((regvarinfo^.regvars[i].varspez=vs_const) and
                            paramanager.push_addr_param(regvarinfo^.regvars[i].vartype.def,aktprocdef.proccalloption)) then
                         begin
-                           regvarinfo^.regvars[i].reg:=varregs[i];
+                           r.enum:=varregs[i];
+                           regvarinfo^.regvars[i].reg:=r;
                         end
                       else
                        if (regvarinfo^.regvars[i].vartype.def.deftype in [orddef,enumdef]) and
                           (regvarinfo^.regvars[i].vartype.def.size=1) then
                         begin
-                          regvarinfo^.regvars[i].reg:=rg.makeregsize(varregs[i],OS_8);
+                          r.enum:=varregs[i];
+                          regvarinfo^.regvars[i].reg:=rg.makeregsize(r,OS_8);
                         end
                       else
                        if (regvarinfo^.regvars[i].vartype.def.deftype in [orddef,enumdef]) and
                           (regvarinfo^.regvars[i].vartype.def.size=2) then
                          begin
-                           regvarinfo^.regvars[i].reg:=rg.makeregsize(varregs[i],OS_16);
+                           r.enum:=varregs[i];
+                           regvarinfo^.regvars[i].reg:=rg.makeregsize(r,OS_16);
                          end
                       else
                         begin
-                          regvarinfo^.regvars[i].reg:=varregs[i];
+                          r.enum:=varregs[i];
+                          regvarinfo^.regvars[i].reg:=r;
                         end;
                       { procedure uses this register }
                       include(rg.usedinproc,varregs[i]);
@@ -251,7 +257,8 @@ implementation
                      begin
 {$ifdef i386}
                        { reserve place on the FPU stack }
-                       regvarinfo^.fpuregvars[i].reg:=trgcpu(rg).correct_fpuregister(R_ST0,i);
+                       r.enum:=R_ST0;
+                       regvarinfo^.fpuregvars[i].reg:=trgcpu(rg).correct_fpuregister(r,i);
 {$else i386}
                        rg.makeregvar(regvarinfo^.fpuregvars[i].reg);
 {$endif i386}
@@ -269,14 +276,16 @@ implementation
       regvarinfo: pregvarinfo;
       vsym: tvarsym;
     begin
+      if reg.enum>lastreg then
+        internalerror(200301081);
       regvarinfo := pregvarinfo(aktprocdef.regvarinfo);
       if not assigned(regvarinfo) then
         exit;
       for i := 1 to maxvarregs do
         if assigned(regvarinfo^.regvars[i]) and
-           (rg.makeregsize(regvarinfo^.regvars[i].reg,OS_INT) = reg) then
+           (rg.makeregsize(regvarinfo^.regvars[i].reg,OS_INT).enum = reg.enum) then
           begin
-            if rg.regvar_loaded[rg.makeregsize(reg,OS_INT)] then
+            if rg.regvar_loaded[rg.makeregsize(reg,OS_INT).enum] then
               begin
                 vsym := tvarsym(regvarinfo^.regvars[i]);
                 { we only have to store the regvar back to memory if it's }
@@ -292,7 +301,7 @@ implementation
                     cg.a_load_reg_ref(asml,def_cgsize(vsym.vartype.def),vsym.reg,hr);
                   end;
                 asml.concat(tai_regalloc.dealloc(rg.makeregsize(reg,OS_INT)));
-                rg.regvar_loaded[rg.makeregsize(reg,OS_INT)] := false;
+                rg.regvar_loaded[rg.makeregsize(reg,OS_INT).enum] := false;
               end;
             break;
           end;
@@ -305,7 +314,9 @@ implementation
       reg : tregister;
     begin
       reg:=rg.makeregsize(vsym.reg,OS_INT);
-      if not rg.regvar_loaded[reg] then
+      if reg.enum>lastreg then
+        internalerror(200301081);
+      if not rg.regvar_loaded[reg.enum] then
         begin
           asml.concat(tai_regalloc.alloc(reg));
           reference_reset(hr);
@@ -321,7 +332,7 @@ implementation
           else
             opsize := def_cgsize(vsym.vartype.def);
           cg.a_load_ref_reg(asml,opsize,hr,reg);
-          rg.regvar_loaded[reg] := true;
+          rg.regvar_loaded[reg.enum] := true;
         end;
     end;
 
@@ -335,9 +346,11 @@ implementation
       if not assigned(regvarinfo) then
         exit;
       reg_spare := rg.makeregsize(reg,OS_INT);
+      if reg_spare.enum>lastreg then
+        internalerror(2003010801);
       for i := 1 to maxvarregs do
         if assigned(regvarinfo^.regvars[i]) and
-           (rg.makeregsize(regvarinfo^.regvars[i].reg,OS_INT) = reg_spare) then
+           (rg.makeregsize(regvarinfo^.regvars[i].reg,OS_INT).enum = reg_spare.enum) then
           load_regvar(asml,tvarsym(regvarinfo^.regvars[i]))
     end;
 
@@ -360,6 +373,7 @@ implementation
     var
       i: longint;
       regvarinfo: pregvarinfo;
+      r:Tregister;
     begin
       if (cs_regalloc in aktglobalswitches) and
          ((procinfo.flags and (pi_uses_asm or pi_uses_exceptions))=0) then
@@ -375,9 +389,9 @@ implementation
                 if cs_asm_source in aktglobalswitches then
                  asml.insert(tai_comment.Create(strpnew(regvarinfo^.regvars[i].name+
                   ' with weight '+tostr(regvarinfo^.regvars[i].refs)+' assigned to register '+
-                  std_reg2str[regvarinfo^.regvars[i].reg])));
+                  std_reg2str[regvarinfo^.regvars[i].reg.enum])));
                 if (status.verbosity and v_debug)=v_debug then
-                 Message3(cg_d_register_weight,std_reg2str[regvarinfo^.regvars[i].reg],
+                 Message3(cg_d_register_weight,std_reg2str[regvarinfo^.regvars[i].reg.enum],
                   tostr(regvarinfo^.regvars[i].refs),regvarinfo^.regvars[i].name);
                end;
             end;
@@ -386,8 +400,9 @@ implementation
               if assigned(regvarinfo^.fpuregvars[i]) then
                 begin
 {$ifdef i386}
+                  r.enum:=R_ST0;
                   { reserve place on the FPU stack }
-                  regvarinfo^.fpuregvars[i].reg:=trgcpu(rg).correct_fpuregister(R_ST0,i-1);
+                  regvarinfo^.fpuregvars[i].reg:=trgcpu(rg).correct_fpuregister(r,i-1);
                   asml.concat(Taicpu.op_none(A_FLDZ,S_NO));
 {$endif i386}
                 end;
@@ -405,9 +420,9 @@ implementation
                     if cs_asm_source in aktglobalswitches then
                       asml.insert(tai_comment.Create(strpnew(regvarinfo^.fpuregvars[i].name+
                         ' with weight '+tostr(regvarinfo^.fpuregvars[i].refs)+' assigned to register '+
-                        std_reg2str[regvarinfo^.fpuregvars[i].reg])));
+                        std_reg2str[regvarinfo^.fpuregvars[i].reg.enum])));
                     if (status.verbosity and v_debug)=v_debug then
-                      Message3(cg_d_register_weight,std_reg2str[regvarinfo^.fpuregvars[i].reg],
+                      Message3(cg_d_register_weight,std_reg2str[regvarinfo^.fpuregvars[i].reg.enum],
                         tostr(regvarinfo^.fpuregvars[i].refs),regvarinfo^.fpuregvars[i].name);
                  end;
             end;
@@ -422,12 +437,12 @@ implementation
     var
       counter: tregister;
     begin
-      for counter := low(rg.regvar_loaded) to high(rg.regvar_loaded) do
+      for counter.enum := low(rg.regvar_loaded) to high(rg.regvar_loaded) do
         begin
-           rg.regvar_loaded[counter] := regvarsloaded1[counter] and
-             regvarsloaded2[counter];
-           if regvarsloaded1[counter] xor regvarsloaded2[counter] then
-             if regvarsloaded1[counter] then
+           rg.regvar_loaded[counter.enum] := regvarsloaded1[counter.enum] and
+             regvarsloaded2[counter.enum];
+           if regvarsloaded1[counter.enum] xor regvarsloaded2[counter.enum] then
+             if regvarsloaded1[counter.enum] then
                load_regvar_reg(list2,counter)
              else
                load_regvar_reg(list1,counter);
@@ -438,7 +453,7 @@ implementation
     procedure cleanup_regvars(asml: TAAsmoutput);
     var
       i: longint;
-      reg : tregister;
+      r,reg : tregister;
     begin
       { can happen when inlining assembler procedures (JM) }
       if not assigned(aktprocdef.regvarinfo) then
@@ -448,17 +463,20 @@ implementation
         with pregvarinfo(aktprocdef.regvarinfo)^ do
           begin
 {$ifdef i386}
+            r.enum:=R_ST0;
             for i:=1 to maxfpuvarregs do
               if assigned(fpuregvars[i]) then
                 { ... and clean it up }
-                asml.concat(Taicpu.op_reg(A_FSTP,S_NO,R_ST0));
+                asml.concat(Taicpu.op_reg(A_FSTP,S_NO,r));
 {$endif i386}
             for i := 1 to maxvarregs do
              begin
                if assigned(regvars[i]) then
                 begin
                   reg:=rg.makeregsize(regvars[i].reg,OS_INT);
-                  if (rg.regvar_loaded[reg]) then
+                  if reg.enum>lastreg then
+                    internalerror(200201081);
+                  if (rg.regvar_loaded[reg.enum]) then
                    asml.concat(tai_regalloc.dealloc(reg));
                 end;
              end;
@@ -469,7 +487,10 @@ end.
 
 {
   $Log$
-  Revision 1.43  2002-11-25 17:43:24  peter
+  Revision 1.44  2003-01-08 18:43:57  daniel
+   * Tregister changed into a record
+
+  Revision 1.43  2002/11/25 17:43:24  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once

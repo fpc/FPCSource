@@ -150,7 +150,7 @@ implementation
              rg.ungetregister(exprasmlist,divider);
            end;
        { free used registers }
-        if numerator <> resultreg then
+        if numerator.enum <> resultreg.enum then
           rg.ungetregisterint(exprasmlist,numerator);
         { set result location }
         location.loc:=LOC_REGISTER;
@@ -177,6 +177,7 @@ implementation
          asmop1, asmop2: tasmop;
          shiftval: aword;
          saved : tmaybesave;
+         r : Tregister;
 
       begin
          secondpass(left);
@@ -265,23 +266,24 @@ implementation
                    end;
 
                  rg.getexplicitregisterint(exprasmlist,R_0);
+                 r.enum:=R_0;
                  exprasmlist.concat(taicpu.op_reg_reg_const(A_SUBFIC,
-                   R_0,hregister1,32));
+                   r,hregister1,32));
                  exprasmlist.concat(taicpu.op_reg_reg_reg(asmop1,
                    location.registerhigh,hregisterhigh,hregister1));
                  exprasmlist.concat(taicpu.op_reg_reg_reg(asmop2,
-                   R_0,hregisterlow,R_0));
+                   r,hregisterlow,r));
                  exprasmlist.concat(taicpu.op_reg_reg_reg(A_OR,
-                   location.registerhigh,location.registerhigh,R_0));
+                   location.registerhigh,location.registerhigh,r));
                  exprasmlist.concat(taicpu.op_reg_reg_const(A_SUBI,
-                   R_0,hregister1,32));
+                   r,hregister1,32));
                  exprasmlist.concat(taicpu.op_reg_reg_reg(asmop1,
-                   R_0,hregisterlow,R_0));
+                   r,hregisterlow,r));
                  exprasmlist.concat(taicpu.op_reg_reg_reg(A_OR,
-                   location.registerhigh,location.registerhigh,R_0));
+                   location.registerhigh,location.registerhigh,r));
                  exprasmlist.concat(taicpu.op_reg_reg_reg(asmop1,
                    location.registerlow,hregisterlow,hregister1));
-                 rg.ungetregister(exprasmlist,R_0);
+                 rg.ungetregister(exprasmlist,r);
 
                  if right.location.loc in [LOC_CREFERENCE,LOC_REFERENCE] then
                    cg.free_scratch_reg(exprasmlist,hregister1)
@@ -503,7 +505,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2002-11-25 17:43:28  peter
+  Revision 1.21  2003-01-08 18:43:58  daniel
+   * Tregister changed into a record
+
+  Revision 1.20  2002/11/25 17:43:28  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once

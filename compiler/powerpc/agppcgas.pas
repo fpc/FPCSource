@@ -174,7 +174,7 @@ unit agppcgas;
            if (symaddr <> refs_full) then
              s := s+')'+symaddr2str[symaddr];
 
-           if (index=R_NO) and (base<>R_NO) then
+           if (index.enum=R_NO) and (base.enum<>R_NO) then
              begin
                 if offset=0 then
                   begin
@@ -183,11 +183,11 @@ unit agppcgas;
                      else
                        s:=s+'0';
                   end;
-                s:=s+'('+gas_reg2str[base]+')'
+                s:=s+'('+gas_reg2str[base.enum]+')'
              end
-           else if (index<>R_NO) and (base<>R_NO) and (offset=0) then
-             s:=s+gas_reg2str[base]+','+gas_reg2str[index]
-           else if ((index<>R_NO) or (base<>R_NO)) then
+           else if (index.enum<>R_NO) and (base.enum<>R_NO) and (offset=0) then
+             s:=s+gas_reg2str[base.enum]+','+gas_reg2str[index.enum]
+           else if ((index.enum<>R_NO) or (base.enum<>R_NO)) then
             internalerror(19992);
         end;
       getreferencestring:=s;
@@ -200,7 +200,7 @@ unit agppcgas;
     begin
       case o.typ of
         top_reg :
-          getopstr_jmp:=gas_reg2str[o.reg];
+          getopstr_jmp:=gas_reg2str[o.reg.enum];
         { no top_ref jumping for powerpc }
         top_const :
           getopstr_jmp:=tostr(o.val);
@@ -234,7 +234,7 @@ unit agppcgas;
     begin
       case o.typ of
         top_reg:
-          getopstr:=gas_reg2str[o.reg];
+          getopstr:=gas_reg2str[o.reg.enum];
         { no top_ref jumping for powerpc }
         top_const:
           getopstr:=tostr(longint(o.val));
@@ -366,7 +366,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2002-11-07 15:50:23  jonas
+  Revision 1.20  2003-01-08 18:43:57  daniel
+   * Tregister changed into a record
+
+  Revision 1.19  2002/11/07 15:50:23  jonas
     * fixed bctr(l) problems
 
   Revision 1.18  2002/09/08 13:03:26  jonas

@@ -663,7 +663,7 @@ implementation
          s : topsize;}
          otlabel,oflabel : tasmlabel;
          cgsize : tcgsize;
-         hreg : tregister;
+         r,hreg : tregister;
          allocated_acc,
          allocated_acchigh: boolean;
       label
@@ -702,17 +702,19 @@ implementation
 {$ifdef cpuflags}
                     LOC_FLAGS :
                       begin
-                        cg.a_reg_alloc(exprasmlist,accumulator);
+                        r.enum:=accumulator;
+                        cg.a_reg_alloc(exprasmlist,r);
                         allocated_acc := true;
-                        cg.g_flags2reg(exprasmlist,OS_INT,left.location.resflags,accumulator);
+                        cg.g_flags2reg(exprasmlist,OS_INT,left.location.resflags,r);
                         goto do_jmp;
                       end;
 {$endif cpuflags}
                     LOC_JUMP :
                       begin
-                        cg.a_reg_alloc(exprasmlist,accumulator);
+                        r.enum:=accumulator;
+                        cg.a_reg_alloc(exprasmlist,r);
                         { get an 8-bit register }
-                        hreg:=rg.makeregsize(accumulator,OS_8);
+                        hreg:=rg.makeregsize(r,OS_8);
                         allocated_acc := true;
                         cg.a_label(exprasmlist,truelabel);
                         cg.a_load_const_reg(exprasmlist,OS_8,1,hreg);
@@ -726,35 +728,39 @@ implementation
                     pointerdef,
                     procvardef :
                       begin
-                        cg.a_reg_alloc(exprasmlist,accumulator);
+                        r.enum:=accumulator;
+                        cg.a_reg_alloc(exprasmlist,r);
                         allocated_acc := true;
-                        cg.a_load_loc_reg(exprasmlist,left.location,accumulator);
+                        cg.a_load_loc_reg(exprasmlist,left.location,r);
                       end;
                     floatdef :
                       begin
+                        r.enum:=fpu_result_reg;
 {$ifndef i386}
-                        cg.a_reg_alloc(exprasmlist,FPU_RESULT_REG);
+                        cg.a_reg_alloc(exprasmlist,r);
 {$endif not i386}
-                        cg.a_loadfpu_loc_reg(exprasmlist,left.location,FPU_RESULT_REG);
+                        cg.a_loadfpu_loc_reg(exprasmlist,left.location,r);
                       end;
                     else
                       begin
                         cgsize:=def_cgsize(aktprocdef.rettype.def);
-                        cg.a_reg_alloc(exprasmlist,accumulator);
+                        r.enum:=accumulator;
+                        cg.a_reg_alloc(exprasmlist,r);
                         allocated_acc := true;
 {$ifndef cpu64bit}
 
                         if cgsize in [OS_64,OS_S64] then
                           begin
-                             cg.a_reg_alloc(exprasmlist,accumulatorhigh);
+                             hreg.enum:=accumulatorhigh;
+                             cg.a_reg_alloc(exprasmlist,hreg);
                              allocated_acchigh := true;
                              cg64.a_load64_loc_reg(exprasmlist,left.location,
-                                 joinreg64(accumulator,accumulatorhigh));
+                                 joinreg64(r,hreg));
                            end
                          else
 {$endif cpu64bit}
                            begin
-                              hreg:=rg.makeregsize(accumulator,cgsize);
+                              hreg:=rg.makeregsize(r,cgsize);
                               cg.a_load_loc_reg(exprasmlist,left.location,hreg);
                            end;
                      end;
@@ -764,15 +770,18 @@ implementation
                   truelabel:=otlabel;
                   falselabel:=oflabel;
                   cg.a_jmp_always(exprasmlist,aktexit2label);
+                  r.enum:=accumulator;
+                  hreg.enum:=accumulatorhigh;
                   if allocated_acc then
-                    cg.a_reg_dealloc(exprasmlist,accumulator);
+                    cg.a_reg_dealloc(exprasmlist,r);
 {$ifndef cpu64bit}
                   if allocated_acchigh then
-                    cg.a_reg_dealloc(exprasmlist,accumulatorhigh);
+                    cg.a_reg_dealloc(exprasmlist,hreg);
 {$endif cpu64bit}
 {$ifndef i386}
+                  r.enum:=fpu_result_reg;
                   if (aktprocdef.rettype.def.deftype = floatdef) then
-                    cg.a_reg_dealloc(exprasmlist,FPU_RESULT_REG);
+                    cg.a_reg_dealloc(exprasmlist,r);
 {$endif not i386}
                end;
            end
@@ -860,6 +869,7 @@ implementation
          a : tasmlabel;
          href : treference;
          href2: treference;
+         r:Tregister;
       begin
          if assigned(left) then
            begin
@@ -889,7 +899,8 @@ implementation
                    cg.a_label(exprasmlist,a);
                    reference_reset_symbol(href2,a,0);
                    { push current frame }
-                   cg.a_param_reg(exprasmlist,OS_ADDR,FRAME_POINTER_REG,paramanager.getintparaloc(2));
+                   r.enum:=frame_pointer_reg;
+                   cg.a_param_reg(exprasmlist,OS_ADDR,r,paramanager.getintparaloc(2));
                    { push current address }
                    cg.a_paramaddr_ref(exprasmlist,href2,paramanager.getintparaloc(1));
                 end;
@@ -941,9 +952,12 @@ implementation
     { in the except block                                    }
     procedure cleanupobjectstack;
 
+    var r:Tregister;
+
       begin
          cg.a_call_name(exprasmlist,'FPC_POPOBJECTSTACK');
-         cg.a_param_reg(exprasmlist,OS_ADDR,accumulator,paramanager.getintparaloc(1));
+         r.enum:=accumulator;
+         cg.a_param_reg(exprasmlist,OS_ADDR,r,paramanager.getintparaloc(1));
          cg.a_call_name(exprasmlist,'FPC_DESTROYEXCEPTION');
          cg.g_maybe_loadself(exprasmlist);
       end;
@@ -970,6 +984,7 @@ implementation
          exceptflowcontrol : tflowcontrol;
          tempbuf,tempaddr : treference;
          href : treference;
+         r:Tregister;
 
       label
          errorexit;
@@ -1074,7 +1089,8 @@ implementation
 
               cg.a_call_name(exprasmlist,'FPC_POPSECONDOBJECTSTACK');
 
-              cg.a_param_reg(exprasmlist, OS_ADDR, accumulator, paramanager.getintparaloc(1));
+              r.enum:=accumulator;
+              cg.a_param_reg(exprasmlist, OS_ADDR, r, paramanager.getintparaloc(1));
               cg.a_call_name(exprasmlist,'FPC_DESTROYEXCEPTION');
               { we don't need to restore esi here because reraise never }
               { returns                                                 }
@@ -1186,8 +1202,10 @@ implementation
          tempbuf,tempaddr : treference;
          href : treference;
          href2: treference;
+         r:Tregister;
 
       begin
+         r.enum:=accumulator;
          oldflowcontrol:=flowcontrol;
          flowcontrol:=[];
          objectlibrary.getlabel(nextonlabel);
@@ -1198,14 +1216,14 @@ implementation
          cg.a_call_name(exprasmlist,'FPC_CATCHES');
 
          { is it this catch? No. go to next onlabel }
-         cg.a_cmp_const_reg_label(exprasmlist,OS_ADDR,OC_EQ,0,accumulator,nextonlabel);
+         cg.a_cmp_const_reg_label(exprasmlist,OS_ADDR,OC_EQ,0,r,nextonlabel);
          ref.symbol:=nil;
          tg.GetTemp(exprasmlist,pointer_size,tt_normal,ref);
 
          { what a hack ! }
          if assigned(exceptsymtable) then
            tvarsym(exceptsymtable.symindex.first).address:=ref.offset;
-         cg.a_load_reg_ref(exprasmlist, OS_ADDR, accumulator, ref);
+         cg.a_load_reg_ref(exprasmlist, OS_ADDR, r, ref);
 
 
          { in the case that another exception is risen }
@@ -1242,7 +1260,7 @@ implementation
          try_free_exception(exprasmlist,tempbuf,tempaddr,href,0,doobjectdestroy,false);
 
          cg.a_call_name(exprasmlist,'FPC_POPSECONDOBJECTSTACK');
-         cg.a_param_reg(exprasmlist, OS_ADDR, accumulator, paramanager.getintparaloc(1));
+         cg.a_param_reg(exprasmlist, OS_ADDR, r, paramanager.getintparaloc(1));
          cg.a_call_name(exprasmlist,'FPC_DESTROYEXCEPTION');
          { we don't need to restore esi here because reraise never }
          { returns                                                 }
@@ -1317,6 +1335,7 @@ implementation
          decconst : longint;
          tempbuf,tempaddr : treference;
          href : treference;
+         r:Tregister;
 
       begin
          { check if child nodes do a break/continue/exit }
@@ -1369,29 +1388,30 @@ implementation
 
          { the value should now be in the exception handler }
          cg.g_exception_reason_load(exprasmlist,href);
-         cg.a_cmp_const_reg_label(exprasmlist,OS_S32,OC_EQ,0,accumulator,endfinallylabel);
-         cg.a_op_const_reg(exprasmlist,OP_SUB,1,accumulator);
-         cg.a_cmp_const_reg_label(exprasmlist,OS_S32,OC_EQ,0,accumulator,reraiselabel);
+         r.enum:=accumulator;
+         cg.a_cmp_const_reg_label(exprasmlist,OS_S32,OC_EQ,0,r,endfinallylabel);
+         cg.a_op_const_reg(exprasmlist,OP_SUB,1,r);
+         cg.a_cmp_const_reg_label(exprasmlist,OS_S32,OC_EQ,0,r,reraiselabel);
          if fc_exit in tryflowcontrol then
            begin
-              cg.a_op_const_reg(exprasmlist,OP_SUB,1,accumulator);
-              cg.a_cmp_const_reg_label(exprasmlist,OS_S32,OC_EQ,0,accumulator,oldaktexitlabel);
+              cg.a_op_const_reg(exprasmlist,OP_SUB,1,r);
+              cg.a_cmp_const_reg_label(exprasmlist,OS_S32,OC_EQ,0,r,oldaktexitlabel);
               decconst:=1;
            end
          else
            decconst:=2;
          if fc_break in tryflowcontrol then
            begin
-              cg.a_op_const_reg(exprasmlist,OP_SUB,decconst,accumulator);
-              cg.a_cmp_const_reg_label(exprasmlist,OS_S32,OC_EQ,0,accumulator,oldaktbreaklabel);
+              cg.a_op_const_reg(exprasmlist,OP_SUB,decconst,r);
+              cg.a_cmp_const_reg_label(exprasmlist,OS_S32,OC_EQ,0,r,oldaktbreaklabel);
               decconst:=1;
            end
          else
            inc(decconst);
          if fc_continue in tryflowcontrol then
            begin
-              cg.a_op_const_reg(exprasmlist,OP_SUB,decconst,accumulator);
-              cg.a_cmp_const_reg_label(exprasmlist,OS_S32,OC_EQ,0,accumulator,oldaktcontinuelabel);
+              cg.a_op_const_reg(exprasmlist,OP_SUB,decconst,r);
+              cg.a_cmp_const_reg_label(exprasmlist,OS_S32,OC_EQ,0,r,oldaktcontinuelabel);
            end;
          cg.a_label(exprasmlist,reraiselabel);
          cg.a_call_name(exprasmlist,'FPC_RERAISE');
@@ -1450,7 +1470,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.48  2003-01-03 09:51:58  daniel
+  Revision 1.49  2003-01-08 18:43:56  daniel
+   * Tregister changed into a record
+
+  Revision 1.48  2003/01/03 09:51:58  daniel
     * Compiler now cycles with var_notification
 
   Revision 1.47  2003/01/02 15:29:25  daniel

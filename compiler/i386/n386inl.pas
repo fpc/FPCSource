@@ -165,7 +165,7 @@ implementation
          location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
          emit_none(A_FLDPI,S_NO);
          inc(trgcpu(rg).fpuvaroffset);
-         location.register:=FPU_RESULT_REG;
+         location.register.enum:=FPU_RESULT_REG;
 
        end;
 
@@ -173,7 +173,7 @@ implementation
        procedure ti386inlinenode.load_fpu_location;
          begin
            location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
-           location.register:=FPU_RESULT_REG;
+           location.register.enum:=FPU_RESULT_REG;
            secondpass(left);
            case left.location.loc of
              LOC_FPUREGISTER:
@@ -209,9 +209,13 @@ implementation
        end;
 
      procedure ti386inlinenode.second_sqr_real;
+     
+     var r:Tregister;
+     
        begin
          load_fpu_location;
-         emit_reg_reg(A_FMUL,S_NO,R_ST0,R_ST0);
+         r.enum:=R_ST0;
+         emit_reg_reg(A_FMUL,S_NO,r,r);
        end;
 
      procedure ti386inlinenode.second_sqrt_real;
@@ -328,7 +332,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.54  2002-11-25 17:43:26  peter
+  Revision 1.55  2003-01-08 18:43:57  daniel
+   * Tregister changed into a record
+
+  Revision 1.54  2002/11/25 17:43:26  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once

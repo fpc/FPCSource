@@ -164,7 +164,11 @@ unit cg64f32;
           end;
         got_scratch:=false;
         tmpref := ref;
-        if (tmpref.base=reg.reglo) then
+        if tmpref.base.enum>lastreg then
+          internalerror(200301081);
+        if reg.reglo.enum>lastreg then
+          internalerror(200301081);
+        if (tmpref.base.enum=reg.reglo.enum) then
          begin
            tmpreg := cg.get_scratch_reg_int(list);
            got_scratch:=true;
@@ -175,7 +179,7 @@ unit cg64f32;
          { this works only for the i386, thus the i386 needs to override  }
          { this method and this method must be replaced by a more generic }
          { implementation FK                                              }
-         if (tmpref.index=reg.reglo) then
+         if (tmpref.index.enum=reg.reglo.enum) then
           begin
             tmpreg:=cg.get_scratch_reg_int(list);
             got_scratch:=true;
@@ -748,7 +752,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  2003-01-05 13:36:53  florian
+  Revision 1.34  2003-01-08 18:43:56  daniel
+   * Tregister changed into a record
+
+  Revision 1.33  2003/01/05 13:36:53  florian
     * x86-64 compiles
     + very basic support for float128 type (x86-64 only)
 

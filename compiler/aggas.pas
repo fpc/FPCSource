@@ -392,8 +392,12 @@ var
            ait_regalloc :
              begin
                if (cs_asm_regalloc in aktglobalswitches) then
-                 AsmWriteLn(target_asm.comment+'Register '+std_reg2str[tai_regalloc(hp).reg]+
-                   allocstr[tai_regalloc(hp).allocation]);
+                 begin
+                   if Tai_Regalloc(hp).reg.enum>lastreg then
+                     internalerror(200201081);
+                   AsmWriteLn(target_asm.comment+'Register '+std_reg2str[tai_regalloc(hp).reg.enum]+
+                     allocstr[tai_regalloc(hp).allocation]);
+                 end;
              end;
 
            ait_tempalloc :
@@ -814,7 +818,10 @@ var
 end.
 {
   $Log$
-  Revision 1.18  2002-12-07 14:03:25  carl
+  Revision 1.19  2003-01-08 18:43:56  daniel
+   * Tregister changed into a record
+
+  Revision 1.18  2002/12/07 14:03:25  carl
     - remove some duplicates and unused vars
 
   Revision 1.17  2002/12/06 17:50:39  peter

@@ -35,7 +35,7 @@ unit rgcpu;
 
      type
        trgcpu = class(trgobj)
-         function getexplicitregisterint(list: taasmoutput; reg: tregister): tregister; override;
+         function getexplicitregisterint(list: taasmoutput; reg: Toldregister): tregister; override;
          procedure ungetregisterint(list: taasmoutput; reg: tregister); override;
        end;
 
@@ -44,13 +44,16 @@ unit rgcpu;
     uses
       cgobj;
 
-    function trgcpu.getexplicitregisterint(list: taasmoutput; reg: tregister): tregister;
+    function trgcpu.getexplicitregisterint(list: taasmoutput; reg: Toldregister): tregister;
+
+    var r:Tregister;
 
       begin
         if reg = R_0 then
           begin
-            cg.a_reg_alloc(list,reg);
-            result := reg;
+            r.enum:=R_0;
+            cg.a_reg_alloc(list,r);
+            result := r;
           end
         else result := inherited getexplicitregisterint(list,reg);
       end;
@@ -59,7 +62,7 @@ unit rgcpu;
     procedure trgcpu.ungetregisterint(list: taasmoutput; reg: tregister);
 
       begin
-        if reg = R_0 then
+        if reg.enum = R_0 then
           cg.a_reg_dealloc(list,reg)
         else
           inherited ungetregisterint(list,reg);
@@ -71,7 +74,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2002-07-07 09:44:32  florian
+  Revision 1.4  2003-01-08 18:43:58  daniel
+   * Tregister changed into a record
+
+  Revision 1.3  2002/07/07 09:44:32  florian
     * powerpc target fixed, very simple units can be compiled
 
   Revision 1.2  2002/05/16 19:46:53  carl

@@ -762,13 +762,13 @@ implementation
                   include(asmstat.flags,nf_object_preserved);
                   hs:=upper(pattern);
                   found:=false;
-                  for r:=low(tregister) to high(tregister) do
-                   if hs=upper(std_reg2str[r]) then
+                  for r.enum:=firstreg to lastreg do
+                   if hs=upper(std_reg2str[r.enum]) then
                     begin
-                      if r = SELF_POINTER_REG then
+                      if r.enum = SELF_POINTER_REG then
                         exclude(asmstat.flags,nf_object_preserved);
-                      include(rg.usedinproc,r);
-                      include(rg.usedbyproc,r);
+                      include(rg.usedinproc,r.enum);
+                      include(rg.usedbyproc,r.enum);
                       found:=true;
                       break;
                     end;
@@ -1017,7 +1017,7 @@ implementation
         aktprocdef.localst.datasize:=0;
         procinfo.firsttemp_offset:=0;
         { replace framepointer with stackpointer }
-        procinfo.framepointer:=STACK_POINTER_REG;
+        procinfo.framepointer.enum:=STACK_POINTER_REG;
         { set the right value for parameters }
         dec(aktprocdef.parast.address_fixup,pointer_size);
         dec(procinfo.para_offset,pointer_size);
@@ -1041,7 +1041,7 @@ implementation
                        ref_parafixup :
                          begin
                            ref^.offsetfixup:=parafixup;
-                           ref^.base:=STACK_POINTER_REG;
+                           ref^.base.enum:=STACK_POINTER_REG;
                          end;
                      end;
                    end;
@@ -1125,7 +1125,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.84  2003-01-01 21:05:24  peter
+  Revision 1.85  2003-01-08 18:43:56  daniel
+   * Tregister changed into a record
+
+  Revision 1.84  2003/01/01 21:05:24  peter
     * fixed assembler methods stackpointer optimization that was
       broken after the previous change
 

@@ -248,7 +248,7 @@ unit paramgr;
          result.loc:=LOC_REFERENCE;
          result.size:=OS_ADDR;
          result.sp_fixup:=pointer_size;
-         result.reference.index:=stack_pointer_reg;
+         result.reference.index.enum:=stack_pointer_reg;
          result.reference.offset:=0;
       end;
 
@@ -258,7 +258,7 @@ unit paramgr;
          result.loc:=LOC_REFERENCE;
          result.size:=OS_ADDR;
          result.sp_fixup:=pointer_size;
-         result.reference.index:=stack_pointer_reg;
+         result.reference.index.enum:=stack_pointer_reg;
          result.reference.offset:=0;
       end;
 
@@ -277,29 +277,29 @@ unit paramgr;
 {$ifndef cpu64bit}
                if result.size in [OS_64,OS_S64] then
                 begin
-                  result.register64.reghi:=accumulatorhigh;
-                  result.register64.reglo:=accumulator;
+                  result.register64.reghi.enum:=accumulatorhigh;
+                  result.register64.reglo.enum:=accumulator;
                 end
                else
 {$endif cpu64bit}
-               result.register:=accumulator;
+               result.register.enum:=accumulator;
              end;
            floatdef :
              begin
                result.loc := LOC_FPUREGISTER;
 {$ifdef cpufpemu}
                if cs_fp_emulation in aktmoduleswitches then
-                  result.register := accumulator
+                  result.register.enum := accumulator
                else
 {$endif cpufpemu}
-                  result.register := FPU_RESULT_REG;
+                  result.register.enum := FPU_RESULT_REG;
              end;
           else
              begin
                 if ret_in_reg(def,calloption) then
                   begin
                     result.loc := LOC_REGISTER;
-                    result.register := accumulator;
+                    result.register.enum := accumulator;
                   end
                 else
                    begin
@@ -344,12 +344,12 @@ unit paramgr;
           LOC_CMMREGISTER,
           LOC_REGISTER,LOC_CREGISTER :
               begin
-                regset := regset + [paramloc.register];
+                regset := regset + [paramloc.register.enum];
                 if ((paramloc.size in [OS_S64,OS_64]) and
                    (sizeof(aword) < 8))
                 then
                   begin
-                     regset := regset + [paramloc.registerhigh];
+                     regset := regset + [paramloc.registerhigh.enum];
                   end;
               end;
           else
@@ -400,7 +400,10 @@ end.
 
 {
    $Log$
-   Revision 1.29  2002-12-23 20:58:03  peter
+   Revision 1.30  2003-01-08 18:43:56  daniel
+    * Tregister changed into a record
+
+   Revision 1.29  2002/12/23 20:58:03  peter
      * remove unused global var
 
    Revision 1.28  2002/12/17 22:19:33  peter

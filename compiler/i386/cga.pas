@@ -152,7 +152,7 @@ implementation
 
     procedure emit_reg_reg(i : tasmop;s : topsize;reg1,reg2 : tregister);
       begin
-         if (reg1<>reg2) or (i<>A_MOV) then
+         if (reg1.enum<>reg2.enum) or (i<>A_MOV) then
            exprasmList.concat(Taicpu.Op_reg_reg(i,s,reg1,reg2));
       end;
 
@@ -174,7 +174,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.33  2002-07-01 18:46:29  peter
+  Revision 1.34  2003-01-08 18:43:57  daniel
+   * Tregister changed into a record
+
+  Revision 1.33  2002/07/01 18:46:29  peter
     * internal linker
     * reorganized aasm layer
 

@@ -67,7 +67,7 @@ implementation
     procedure tcgloadnode.pass_2;
       var
         intreg,
-        hregister : tregister;
+        r,hregister : tregister;
         symtabletype : tsymtabletype;
         i : longint;
         href : treference;
@@ -87,7 +87,7 @@ implementation
                    begin
 {$ifdef i386}
                      if tabsolutesym(symtableentry).absseg then
-                      location.reference.segment:=R_FS;
+                      location.reference.segment.enum:=R_FS;
 {$endif i386}
                      location.reference.offset:=tabsolutesym(symtableentry).address;
                    end
@@ -108,7 +108,7 @@ implementation
             varsym :
                begin
                   symtabletype:=symtable.symtabletype;
-                  hregister:=R_NO;
+                  hregister.enum:=R_NO;
                   { C variable }
                   if (vo_is_C_var in tvarsym(symtableentry).varoptions) then
                     begin
@@ -146,13 +146,14 @@ implementation
                        cg.a_jmp_always(exprasmlist,norelocatelab);
                        cg.a_label(exprasmlist,dorelocatelab);
                        { don't save the allocated register else the result will be destroyed later }
-                       rg.saveusedregisters(exprasmlist,pushed,[accumulator]-[hregister]);
+                       rg.saveusedregisters(exprasmlist,pushed,[accumulator]-[hregister.enum]);
                        reference_reset_symbol(href,objectlibrary.newasmsymbol(tvarsym(symtableentry).mangledname),0);
                        cg.a_param_ref(exprasmlist,OS_ADDR,href,paramanager.getintparaloc(1));
                        { the called procedure isn't allowed to change }
                        { any register except EAX                    }
                        cg.a_call_reg(exprasmlist,hregister);
-                       cg.a_load_reg_reg(exprasmlist,OS_INT,OS_ADDR,accumulator,hregister);
+                       r.enum:=accumulator;
+                       cg.a_load_reg_reg(exprasmlist,OS_INT,OS_ADDR,r,hregister);
                        rg.restoreusedregisters(exprasmlist,pushed);
                        cg.a_label(exprasmlist,norelocatelab);
                        location.reference.base:=hregister;
@@ -161,9 +162,9 @@ implementation
                   else
                     begin
                        { in case it is a register variable: }
-                       if tvarsym(symtableentry).reg<>R_NO then
+                       if tvarsym(symtableentry).reg.enum<>R_NO then
                          begin
-                            if tvarsym(symtableentry).reg in fpuregs then
+                            if tvarsym(symtableentry).reg.enum in fpuregs then
                               begin
                                  location_reset(location,LOC_CFPUREGISTER,def_cgsize(resulttype.def));
                                  location.register:=tvarsym(symtableentry).reg;
@@ -171,12 +172,12 @@ implementation
                             else
                              begin
                                intreg:=rg.makeregsize(tvarsym(symtableentry).reg,OS_INT);
-                               if (intreg in general_registers) and
-                                  (not rg.regvar_loaded[intreg]) then
+                               if (intreg.enum in general_registers) and
+                                  (not rg.regvar_loaded[intreg.enum]) then
                                  load_regvar(exprasmlist,tvarsym(symtableentry));
                                location_reset(location,LOC_CREGISTER,cg.reg_cgsize(tvarsym(symtableentry).reg));
                                location.register:=tvarsym(symtableentry).reg;
-                               exclude(rg.unusedregsint,intreg);
+                               exclude(rg.unusedregsint,intreg.enum);
                              end;
                          end
                        else
@@ -246,7 +247,7 @@ implementation
                                    else
                                      begin
                                         rg.getexplicitregisterint(exprasmlist,SELF_POINTER_REG);
-                                        location.reference.base:=SELF_POINTER_REG;
+                                        location.reference.base.enum:=SELF_POINTER_REG;
                                         location.reference.offset:=tvarsym(symtableentry).address;
                                      end;
                                 end;
@@ -275,7 +276,7 @@ implementation
                       if (tvarsym(symtableentry).varspez in [vs_var,vs_out]) or
                          paramanager.push_addr_param(tvarsym(symtableentry).vartype.def,tprocdef(symtable.defowner).proccalloption) then
                         begin
-                           if hregister=R_NO then
+                           if hregister.enum=R_NO then
                              hregister:=rg.getaddressregister(exprasmlist);
                            { we need to load only an address }
                            location.size:=OS_ADDR;
@@ -959,7 +960,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.43  2003-01-05 22:44:14  peter
+  Revision 1.44  2003-01-08 18:43:56  daniel
+   * Tregister changed into a record
+
+  Revision 1.43  2003/01/05 22:44:14  peter
     * remove a lot of code to support typen in loadn-procsym
 
   Revision 1.42  2002/12/20 18:13:46  peter

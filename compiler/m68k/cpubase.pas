@@ -102,7 +102,7 @@ uses
 *****************************************************************************}
 
     type
-       tregister = (
+       Toldregister = (
          R_NO,R_D0,R_D1,R_D2,R_D3,R_D4,R_D5,R_D6,R_D7,
          R_A0,R_A1,R_A2,R_A3,R_A4,R_A5,R_A6,R_SP,
          { PUSH/PULL- quick and dirty hack }
@@ -112,7 +112,12 @@ uses
          R_FP7,R_FPCR,R_SR,R_SSP,R_DFC,R_SFC,R_VBR,R_FPSR);
 
       {# Set type definition for registers }
-      tregisterset = set of tregister;
+      tregisterset = set of Toldregister;
+      
+      Tregister=record
+        enum:Toldregister;
+        number:word;
+      end;
 
       { A type to store register locations for 64 Bit values. }
       tregister64 = packed record
@@ -122,15 +127,18 @@ uses
       { alias for compact code }
       treg64 = tregister64;
 
-      {# Type definition for the array of string of register nnames }
-      reg2strtable = array[tregister] of string[7];
 
     Const
       {# First register in the tregister enumeration }
-      firstreg = low(tregister);
+      firstreg = low(Toldregister);
       {# Last register in the tregister enumeration }
-      lastreg  = high(tregister);
+      lastreg  = R_FPSR;
 
+    type
+      {# Type definition for the array of string of register nnames }
+      reg2strtable = array[firstreg..lastreg] of string[7];
+
+    const
      std_reg2str : reg2strtable =
       ('', 'd0','d1','d2','d3','d4','d5','d6','d7',
        'a0','a1','a2','a3','a4','a5','a6','sp',
@@ -212,7 +220,7 @@ uses
       { Types of operand }
       toptype=(top_none,top_reg,top_ref,top_const,top_symbol,top_reglist);
 
-      tregisterlist = set of tregister;
+      tregisterlist = set of Toldregister;
 
       toper=record
         ot  : longint;
@@ -396,7 +404,7 @@ uses
       }
       maxvarregs = 6;
       { Array of integer registers which can be used as variable registers }
-      varregs : Array [1..maxvarregs] of Tregister =
+      varregs : Array [1..maxvarregs] of Toldregister =
                 (R_D2,R_D3,R_D4,R_D5,R_D6,R_D7);
 
       {
@@ -404,7 +412,7 @@ uses
       }
       maxfpuvarregs = 6;
       { Array of float registers which can be used as variable registers }
-      fpuvarregs : Array [1..maxfpuvarregs] of Tregister =
+      fpuvarregs : Array [1..maxfpuvarregs] of Toldregister =
                 (R_FP2,R_FP3,R_FP4,R_FP5,R_FP6,R_FP7);
 
       {
@@ -435,7 +443,7 @@ uses
          routine calls or in assembler blocks.
       }
       max_scratch_regs = 2;
-      scratch_regs: Array[1..max_scratch_regs] of TRegister = (R_D0,R_D1);
+      scratch_regs: Array[1..max_scratch_regs] of Toldregister = (R_D0,R_D1);
 
 {*****************************************************************************
                           Default generic sizes
@@ -464,7 +472,7 @@ uses
          This is not compatible with the m68k-sun
          implementation.
       }
-          stab_regindex : array[tregister] of shortint =
+          stab_regindex : array[firstreg..lastreg] of shortint =
         (-1,                 { R_NO }
           0,1,2,3,4,5,6,7,   { R_D0..R_D7 }
           8,9,10,11,12,13,14,15,  { R_A0..R_A7 }
@@ -592,7 +600,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  2002-11-30 23:33:03  carl
+  Revision 1.15  2003-01-08 18:43:57  daniel
+   * Tregister changed into a record
+
+  Revision 1.14  2002/11/30 23:33:03  carl
     * merges from Pierre's fixes in m68k fixes branch
 
   Revision 1.13  2002/11/17 18:26:16  mazen

@@ -177,6 +177,7 @@ implementation
      var
          hp2 : tstringconstnode;
          otlabel,oflabel{,l1}   : tasmlabel;
+         r: Tregister;
      begin
        { the node should be removed in the firstpass }
        if not (cs_do_assertion in aktlocalswitches) then
@@ -189,7 +190,8 @@ implementation
        maketojumpbool(exprasmlist,tcallparanode(left).left,lr_load_regvars);
        cg.a_label(exprasmlist,falselabel);
        { erroraddr }
-       cg.a_param_reg(exprasmlist,OS_ADDR,FRAME_POINTER_REG,paramanager.getintparaloc(4));
+       r.enum:=frame_pointer_reg;
+       cg.a_param_reg(exprasmlist,OS_ADDR,r,paramanager.getintparaloc(4));
        { lineno }
        cg.a_param_const(exprasmlist,OS_INT,aktfilepos.line,paramanager.getintparaloc(3));
        { filename string }
@@ -610,7 +612,10 @@ end.
 
 {
   $Log$
-  Revision 1.17  2002-11-25 17:43:18  peter
+  Revision 1.18  2003-01-08 18:43:56  daniel
+   * Tregister changed into a record
+
+  Revision 1.17  2002/11/25 17:43:18  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once

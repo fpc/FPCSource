@@ -26,7 +26,7 @@ Unit POpt386;
 
 Interface
 
-Uses Aasmbase,aasmtai,aasmcpu;
+Uses Aasmbase,aasmtai,aasmcpu,verbose;
 
 Procedure PrePeepHoleOpts(AsmL: TAAsmOutput; BlockStart, BlockEnd: Tai);
 Procedure PeepHoleOptPass1(AsmL: TAAsmOutput; BlockStart, BlockEnd: Tai);
@@ -43,12 +43,14 @@ Uses
 {$endif finaldestdebug}
   cpuinfo,cpubase,DAOpt386,cginfo,rgobj;
 
-Function RegUsedAfterInstruction(Reg: TRegister; p: Tai; Var UsedRegs: TRegSet): Boolean;
+Function RegUsedAfterInstruction(Reg: Tregister; p: Tai; Var UsedRegs: TRegSet): Boolean;
 Begin
+  if reg.enum>lastreg then
+    internalerror(200301081);
   reg := reg32(reg);
   UpdateUsedRegs(UsedRegs, Tai(p.Next));
   RegUsedAfterInstruction :=
-    (Reg in UsedRegs) and
+    (Reg.enum in UsedRegs) and
     (not(getNextInstruction(p,p)) or
      not(regLoadedWithNewValue(reg,false,p)));
 End;
@@ -73,9 +75,9 @@ begin
          (hp2.typ = ait_instruction) and
          ((Taicpu(hp2).opcode = A_LEAVE) or
           (Taicpu(hp2).opcode = A_RET)) and
-         (Taicpu(p).oper[0].ref^.Base = procinfo.FramePointer) and
+         (Taicpu(p).oper[0].ref^.Base.enum = procinfo.FramePointer.enum) and
          (Taicpu(p).oper[0].ref^.Offset >= procinfo.Return_Offset) and
-         (Taicpu(p).oper[0].ref^.Index = R_NO) then
+         (Taicpu(p).oper[0].ref^.Index.enum = R_NO) then
         begin
           asml.remove(p);
           asml.remove(hp1);
@@ -213,7 +215,7 @@ Begin
                                     If (Taicpu(p).oper[2].typ = Top_Reg)
                                       Then
                                         Begin
-                                          TmpRef.base := R_NO;
+                                          TmpRef.base.enum := R_NO;
                                           hp1 :=  Taicpu.op_ref_reg(A_LEA, S_L, TmpRef,
                                             Taicpu(p).oper[2].reg);
                                         End
@@ -291,7 +293,7 @@ Begin
                                        End
                                      Else
                                        Begin
-                                         TmpRef.base := R_NO;
+                                         TmpRef.base.enum := R_NO;
                                          TmpRef.ScaleFactor := 4;
                                          hp1 :=  Taicpu.op_ref_reg(A_LEA, S_L, TmpRef, Taicpu(p).oper[1].reg);
                                        End;
@@ -300,7 +302,7 @@ Begin
                                      TmpRef.Index := Taicpu(p).oper[1].reg;
                                      If (Taicpu(p).oper[2].typ = Top_Reg) Then
                                        Begin
-                                         TmpRef.base := R_NO;
+                                         TmpRef.base.enum := R_NO;
                                          TmpRef.ScaleFactor := 4;
                                          hp1 :=  Taicpu.op_ref_reg(A_LEA, S_L, TmpRef, Taicpu(p).oper[2].reg);
                                        End
@@ -386,7 +388,7 @@ Begin
               A_XOR:
                 If (Taicpu(p).oper[0].typ = top_reg) And
                    (Taicpu(p).oper[1].typ = top_reg) And
-                   (Taicpu(p).oper[0].reg = Taicpu(p).oper[1].reg) then
+                   (Taicpu(p).oper[0].reg.enum = Taicpu(p).oper[1].reg.enum) then
                  { temporarily change this to 'mov reg,0' to make it easier }
                  { for the CSE. Will be changed back in pass 2              }
                   begin
@@ -415,6 +417,7 @@ Var
   UsedRegs, TmpUsedRegs: TRegSet;
 
   TmpBool1, TmpBool2: Boolean;
+  r:Tregister;
 
   Function SkipLabels(hp: Tai; var hp2: Tai): boolean;
   {skips all labels and returns the next "real" instruction}
@@ -543,7 +546,7 @@ Var
       Case Taicpu(hp1).opcode Of
         A_DEC:
           If (Taicpu(hp1).oper[0].typ = top_reg) And
-             (Taicpu(hp1).oper[0].reg = Taicpu(p).oper[1].reg) Then
+             (Taicpu(hp1).oper[0].reg.enum = Taicpu(p).oper[1].reg.enum) Then
             Begin
               Taicpu(p).LoadConst(0,Taicpu(p).oper[0].val+1);
               asml.Remove(hp1);
@@ -552,7 +555,7 @@ Var
          A_SUB:
            If (Taicpu(hp1).oper[0].typ = top_const) And
               (Taicpu(hp1).oper[1].typ = top_reg) And
-              (Taicpu(hp1).oper[1].reg = Taicpu(p).oper[1].reg) Then
+              (Taicpu(hp1).oper[1].reg.enum = Taicpu(p).oper[1].reg.enum) Then
              Begin
                Taicpu(p).LoadConst(0,Taicpu(p).oper[0].val+Taicpu(hp1).oper[0].val);
                asml.Remove(hp1);
@@ -561,7 +564,7 @@ Var
          A_ADD:
            If (Taicpu(hp1).oper[0].typ = top_const) And
               (Taicpu(hp1).oper[1].typ = top_reg) And
-              (Taicpu(hp1).oper[1].reg = Taicpu(p).oper[1].reg) Then
+              (Taicpu(hp1).oper[1].reg.enum = Taicpu(p).oper[1].reg.enum) Then
              Begin
                Taicpu(p).LoadConst(0,AWord(int64(Taicpu(p).oper[0].val)-int64(Taicpu(hp1).oper[0].val)));
                asml.Remove(hp1);
@@ -655,13 +658,13 @@ Begin
               If (Taicpu(p).oper[l].typ = top_ref) Then
                 With Taicpu(p).oper[l].ref^ Do
                   Begin
-                    If (base = R_NO) And
-                       (index <> R_NO) And
+                    If (base.enum = R_NO) And
+                       (index.enum <> R_NO) And
                        (scalefactor in [0,1])
                       Then
                         Begin
                           base := index;
-                          index := R_NO
+                          index.enum := R_NO
                         End
                    End;
             Case Taicpu(p).opcode Of
@@ -674,7 +677,7 @@ Begin
                      (Taicpu(hp1).opcode = A_AND) And
                      (Taicpu(hp1).oper[0].typ = top_const) And
                      (Taicpu(hp1).oper[1].typ = top_reg) And
-                     (Taicpu(p).oper[1].reg = Taicpu(hp1).oper[1].reg)
+                     (Taicpu(p).oper[1].reg.enum = Taicpu(hp1).oper[1].reg.enum)
                     Then
 {change "and const1, reg; and const2, reg" to "and (const1 and const2), reg"}
                       Begin
@@ -690,7 +693,7 @@ Begin
                          (hp1.typ = ait_instruction) And
                          (Taicpu(hp1).is_jmp) and
                          (Taicpu(hp1).opcode<>A_JMP) and
-                         Not(Taicpu(p).oper[1].reg in UsedRegs) Then
+                         Not(Taicpu(p).oper[1].reg.enum in UsedRegs) Then
                         Taicpu(p).opcode := A_TEST;
                 End;
               A_CMP:
@@ -738,8 +741,8 @@ Begin
                      (hp1.typ = Ait_Instruction) And
                      (Taicpu(hp1).oper[0].typ = top_reg) And
                      (Taicpu(hp1).oper[1].typ = top_reg) And
-                     (Taicpu(hp1).oper[0].reg = R_ST) And
-                     (Taicpu(hp1).oper[1].reg = R_ST1) Then
+                     (Taicpu(hp1).oper[0].reg.enum = R_ST) And
+                     (Taicpu(hp1).oper[1].reg.enum = R_ST1) Then
                      { change                        to
                          fld      reg               fxxx reg,st
                          fxxxp    st, st1 (hp1)
@@ -759,7 +762,7 @@ Begin
                                  A_FDIVRP: Taicpu(hp1).opcode := A_FDIV;
                                End;
                                Taicpu(hp1).oper[0].reg := Taicpu(p).oper[0].reg;
-                               Taicpu(hp1).oper[1].reg := R_ST;
+                               Taicpu(hp1).oper[1].reg.enum := R_ST;
                                asml.Remove(p);
                                p.free;
                                p := hp1;
@@ -774,8 +777,8 @@ Begin
                      (Taicpu(hp2).oper[0].typ = top_reg) And
                      (Taicpu(hp2).oper[1].typ = top_reg) And
                      (Taicpu(p).opsize in [S_FS, S_FL]) And
-                     (Taicpu(hp2).oper[0].reg = R_ST) And
-                     (Taicpu(hp2).oper[1].reg = R_ST1) Then
+                     (Taicpu(hp2).oper[0].reg.enum = R_ST) And
+                     (Taicpu(hp2).oper[1].reg.enum = R_ST1) Then
                     If GetLastInstruction(p, hp1) And
                        (hp1.typ = Ait_Instruction) And
                        ((Taicpu(hp1).opcode = A_FLD) Or
@@ -799,7 +802,7 @@ Begin
                             Taicpu(hp2).opcode := A_FADD
                           Else
                             Taicpu(hp2).opcode := A_FMUL;
-                          Taicpu(hp2).oper[1].reg := R_ST;
+                          Taicpu(hp2).oper[1].reg.enum := R_ST;
                         End
                       Else
                       { change              to
@@ -807,7 +810,8 @@ Begin
                           fld     mem1 (p)     fld      st}
                         Begin
                           Taicpu(p).changeopsize(S_FL);
-                          Taicpu(p).loadreg(0,R_ST);
+                          r.enum:=R_ST;
+                          Taicpu(p).loadreg(0,r);
                         End
                     Else
                       Begin
@@ -840,12 +844,12 @@ Begin
                 Begin
                 {removes seg register prefixes from LEA operations, as they
                  don't do anything}
-                 Taicpu(p).oper[0].ref^.Segment := R_NO;
+                 Taicpu(p).oper[0].ref^.Segment.enum := R_NO;
                 {changes "lea (%reg1), %reg2" into "mov %reg1, %reg2"}
-                  If (Taicpu(p).oper[0].ref^.Base In [R_EAX..R_EDI]) And
-                     (Taicpu(p).oper[0].ref^.Index = R_NO) And
+                  If (Taicpu(p).oper[0].ref^.Base.enum In [R_EAX..R_EDI]) And
+                     (Taicpu(p).oper[0].ref^.Index.enum = R_NO) And
                      (Not(Assigned(Taicpu(p).oper[0].ref^.Symbol))) Then
-                    If (Taicpu(p).oper[0].ref^.Base <> Taicpu(p).oper[1].reg)
+                    If (Taicpu(p).oper[0].ref^.Base.enum <> Taicpu(p).oper[1].reg.enum)
                        and (Taicpu(p).oper[0].ref^.Offset = 0)
                        Then
                         Begin
@@ -867,7 +871,7 @@ Begin
                        End
                       else
                         with Taicpu(p).oper[0].ref^ do
-                          if (Base = Taicpu(p).oper[1].reg) then
+                          if (Base.enum = Taicpu(p).oper[1].reg.enum) then
                             begin
                               l := offset+offsetfixup;
                               if (l=1) then
@@ -894,12 +898,12 @@ Begin
                 Begin
                   TmpUsedRegs := UsedRegs;
                   If (Taicpu(p).oper[1].typ = top_reg) And
-                     (Taicpu(p).oper[1].reg In [R_EAX, R_EBX, R_EDX, R_EDI]) And
+                     (Taicpu(p).oper[1].reg.enum In [R_EAX, R_EBX, R_EDX, R_EDI]) And
                      GetNextInstruction(p, hp1) And
                      (Tai(hp1).typ = ait_instruction) And
                      (Taicpu(hp1).opcode = A_MOV) And
                      (Taicpu(hp1).oper[0].typ = top_reg) And
-                     (Taicpu(hp1).oper[0].reg = Taicpu(p).oper[1].reg)
+                     (Taicpu(hp1).oper[0].reg.enum = Taicpu(p).oper[1].reg.enum)
                     Then
                 {we have "mov x, %treg; mov %treg, y}
                       If not(RegUsedAfterInstruction(Taicpu(p).oper[1].reg, hp1, TmpUsedRegs)) then
@@ -935,14 +939,14 @@ Begin
                          GetNextInstruction(p,hp1) And
                          (Tai(hp1).typ = ait_instruction) And
                          (Taicpu(hp1).oper[0].typ = top_reg) And
-                         (Taicpu(hp1).oper[0].reg = Taicpu(p).oper[1].reg)
+                         (Taicpu(hp1).oper[0].reg.enum = Taicpu(p).oper[1].reg.enum)
                         Then
                   {we have "mov %reg1, %reg2; XXX %reg2, ???"}
                           Begin
                             If ((Taicpu(hp1).opcode = A_OR) Or
                                 (Taicpu(hp1).opcode = A_TEST)) And
                                (Taicpu(hp1).oper[1].typ = top_reg) And
-                               (Taicpu(hp1).oper[0].reg = Taicpu(hp1).oper[1].reg)
+                               (Taicpu(hp1).oper[0].reg.enum = Taicpu(hp1).oper[1].reg.enum)
                               Then
                    {we have "mov %reg1, %reg2; test/or %reg2, %reg2"}
                                 Begin
@@ -990,9 +994,9 @@ Begin
                               If ((Taicpu(hp1).opcode = A_LEAVE) Or
                                   (Taicpu(hp1).opcode = A_RET)) And
                                  (Taicpu(p).oper[1].typ = top_ref) And
-                                 (Taicpu(p).oper[1].ref^.base = procinfo.FramePointer) And
+                                 (Taicpu(p).oper[1].ref^.base.enum = procinfo.FramePointer.enum) And
                                  (Taicpu(p).oper[1].ref^.offset >= procinfo.Return_Offset) And
-                                 (Taicpu(p).oper[1].ref^.index = R_NO) And
+                                 (Taicpu(p).oper[1].ref^.index.enum = R_NO) And
                                  (Taicpu(p).oper[0].typ = top_reg)
                                 Then
                                   Begin
@@ -1054,7 +1058,7 @@ Begin
                                          (Taicpu(hp2).oper[0].typ = TOp_Ref) And
                                          (Taicpu(hp2).oper[1].typ = TOp_Reg) And
                                          RefsEqual(Taicpu(hp2).oper[0].ref^, Taicpu(p).oper[1].ref^) And
-                                         (Taicpu(hp2).oper[1].reg = Taicpu(p).oper[0].reg) And
+                                         (Taicpu(hp2).oper[1].reg .enum= Taicpu(p).oper[0].reg.enum) And
                                          Not(RegUsedAfterInstruction(Taicpu(p).oper[0].reg, hp2, TmpUsedRegs)) Then
                            { change                   to
                               mov reg1, mem1           mov reg1, mem1
@@ -1072,11 +1076,12 @@ Begin
                               Else
                                 Begin
                                   tmpUsedRegs := UsedRegs;
+                                  r.enum:=R_EDI;
                                   If GetNextInstruction(hp1, hp2) And
                                      (Taicpu(p).oper[0].typ = top_ref) And
                                      (Taicpu(p).oper[1].typ = top_reg) And
                                      (Taicpu(hp1).oper[0].typ = top_reg) And
-                                     (Taicpu(hp1).oper[0].reg = Taicpu(p).oper[1].reg) And
+                                     (Taicpu(hp1).oper[0].reg.enum = Taicpu(p).oper[1].reg.enum) And
                                      (Taicpu(hp1).oper[1].typ = top_ref) And
                                      (Tai(hp2).typ = ait_instruction) And
                                      (Taicpu(hp2).opcode = A_MOV) And
@@ -1085,8 +1090,8 @@ Begin
                                      (Taicpu(hp2).oper[0].typ = top_ref) And
                                      RefsEqual(Taicpu(hp2).oper[0].ref^, Taicpu(hp1).oper[1].ref^)  Then
                                     If not regInRef(Taicpu(hp2).oper[1].reg,Taicpu(hp2).oper[0].ref^) and
-                                       (Taicpu(p).oper[1].reg in [R_DI,R_EDI]) and
-                                       not(RegUsedAfterInstruction(R_EDI,hp1,tmpUsedRegs)) Then
+                                       (Taicpu(p).oper[1].reg.enum in [R_DI,R_EDI]) and
+                                       not(RegUsedAfterInstruction(r,hp1,tmpUsedRegs)) Then
                              {   mov mem1, %edi
                                  mov %edi, mem2
                                  mov mem2, reg2
@@ -1101,7 +1106,7 @@ Begin
                                         hp2.free;
                                       End
                                     Else
-                                      If (Taicpu(p).oper[1].reg <> Taicpu(hp2).oper[1].reg) And
+                                      If (Taicpu(p).oper[1].reg.enum <> Taicpu(hp2).oper[1].reg.enum) And
                                          not(RegInRef(Taicpu(p).oper[1].reg,Taicpu(p).oper[0].ref^)) And
                                          not(RegInRef(Taicpu(hp2).oper[1].reg,Taicpu(hp2).oper[0].ref^))
                                         Then
@@ -1126,13 +1131,13 @@ Begin
                                           Taicpu(hp2).LoadRef(1,Taicpu(hp2).oper[0].ref^);
                                           Taicpu(hp2).LoadReg(0,Taicpu(p).oper[1].reg);
                                           allocRegBetween(asmL,Taicpu(p).oper[1].reg,p,hp2);
-                                          if (Taicpu(p).oper[0].ref^.base in (rg.usableregsint+[R_EDI])) then
+                                          if (Taicpu(p).oper[0].ref^.base.enum in (rg.usableregsint+[R_EDI])) then
                                             allocRegBetween(asmL,Taicpu(p).oper[0].ref^.base,p,hp2);
-                                          if (Taicpu(p).oper[0].ref^.index in (rg.usableregsint+[R_EDI])) then
+                                          if (Taicpu(p).oper[0].ref^.index.enum in (rg.usableregsint+[R_EDI])) then
                                             allocRegBetween(asmL,Taicpu(p).oper[0].ref^.index,p,hp2);
                                         End
                                       Else
-                                        If (Taicpu(hp1).Oper[0].reg <> Taicpu(hp2).Oper[1].reg) Then
+                                        If (Taicpu(hp1).Oper[0].reg.enum <> Taicpu(hp2).Oper[1].reg.enum) Then
                                           begin
                                             Taicpu(hp2).LoadReg(0,Taicpu(hp1).Oper[0].reg);
                                             allocRegBetween(asmL,Taicpu(p).oper[1].reg,p,hp2);
@@ -1193,7 +1198,7 @@ Begin
                      (Taicpu(hp1).opcode = A_AND) And
                      (Taicpu(hp1).oper[0].typ = top_const) And
                      (Taicpu(hp1).oper[1].typ = top_reg) And
-                     (Taicpu(hp1).oper[1].reg = Taicpu(p).oper[1].reg)
+                     (Taicpu(hp1).oper[1].reg.enum = Taicpu(p).oper[1].reg.enum)
                     Then
                       Case Taicpu(p).opsize Of
                         S_BL, S_BW:
@@ -1216,7 +1221,7 @@ Begin
                       Case Taicpu(p).opsize of
                         S_BW:
                           Begin
-                            If (rg.makeregsize(Taicpu(p).oper[0].reg,OS_16)=Taicpu(p).oper[1].reg) And
+                            If (rg.makeregsize(Taicpu(p).oper[0].reg,OS_16).enum=Taicpu(p).oper[1].reg.enum) And
                                Not(CS_LittleSize In aktglobalswitches)
                               Then
                                 {Change "movzbw %al, %ax" to "andw $0x0ffh, %ax"}
@@ -1231,7 +1236,7 @@ Begin
                                    (Taicpu(hp1).opcode = A_AND) And
                                    (Taicpu(hp1).oper[0].typ = top_const) And
                                    (Taicpu(hp1).oper[1].typ = top_reg) And
-                                   (Taicpu(hp1).oper[1].reg = Taicpu(p).oper[1].reg)
+                                   (Taicpu(hp1).oper[1].reg.enum = Taicpu(p).oper[1].reg.enum)
                                   Then
                                     {Change "movzbw %reg1, %reg2; andw $const, %reg2"
                                      to "movw %reg1, reg2; andw $(const1 and $ff), %reg2"}
@@ -1244,7 +1249,7 @@ Begin
                           End;
                         S_BL:
                           Begin
-                            If (rg.makeregsize(Taicpu(p).oper[0].reg,OS_32)=Taicpu(p).oper[1].reg) And
+                            If (rg.makeregsize(Taicpu(p).oper[0].reg,OS_32).enum=Taicpu(p).oper[1].reg.enum) And
                                Not(CS_LittleSize in aktglobalswitches)
                               Then
                                 {Change "movzbl %al, %eax" to "andl $0x0ffh, %eax"}
@@ -1259,7 +1264,7 @@ Begin
                                    (Taicpu(hp1).opcode = A_AND) And
                                    (Taicpu(hp1).oper[0].typ = top_const) And
                                    (Taicpu(hp1).oper[1].typ = top_reg) And
-                                   (Taicpu(hp1).oper[1].reg = Taicpu(p).oper[1].reg)
+                                   (Taicpu(hp1).oper[1].reg.enum = Taicpu(p).oper[1].reg.enum)
                                   Then
                                    {Change "movzbl %reg1, %reg2; andl $const, %reg2"
                                     to "movl %reg1, reg2; andl $(const1 and $ff), %reg2"}
@@ -1272,7 +1277,7 @@ Begin
                           End;
                         S_WL:
                           Begin
-                            If (rg.makeregsize(Taicpu(p).oper[0].reg,OS_32)=Taicpu(p).oper[1].reg) And
+                            If (rg.makeregsize(Taicpu(p).oper[0].reg,OS_32).enum=Taicpu(p).oper[1].reg.enum) And
                                Not(CS_LittleSize In aktglobalswitches)
                               Then
                                {Change "movzwl %ax, %eax" to "andl $0x0ffffh, %eax"}
@@ -1287,7 +1292,7 @@ Begin
                                    (Taicpu(hp1).opcode = A_AND) And
                                    (Taicpu(hp1).oper[0].typ = top_const) And
                                    (Taicpu(hp1).oper[1].typ = top_reg) And
-                                   (Taicpu(hp1).oper[1].reg = Taicpu(p).oper[1].reg)
+                                   (Taicpu(hp1).oper[1].reg.enum = Taicpu(p).oper[1].reg.enum)
                                   Then
                                     {Change "movzwl %reg1, %reg2; andl $const, %reg2"
                                      to "movl %reg1, reg2; andl $(const1 and $ffff), %reg2"}
@@ -1307,7 +1312,7 @@ Begin
                                (Taicpu(hp1).opcode = A_AND) And
                                (Taicpu(hp1).oper[0].typ = Top_Const) And
                                (Taicpu(hp1).oper[1].typ = Top_Reg) And
-                               (Taicpu(hp1).oper[1].reg = Taicpu(p).oper[1].reg) Then
+                               (Taicpu(hp1).oper[1].reg.enum = Taicpu(p).oper[1].reg.enum) Then
                               Begin
                                 Taicpu(p).opcode := A_MOV;
                                 Case Taicpu(p).opsize Of
@@ -1359,7 +1364,7 @@ Begin
                                (hp1.typ = ait_instruction) and
                                (Taicpu(hp1).opcode = A_PUSH) and
                                (Taicpu(hp1).oper[0].typ = top_reg) and
-                               (Taicpu(hp1).oper[0].reg = Taicpu(hp2).oper[0].reg) do
+                               (Taicpu(hp1).oper[0].reg.enum = Taicpu(hp2).oper[0].reg.enum) do
                            begin
                              { change it to a two op operation }
                              Taicpu(hp2).oper[1].typ:=top_none;
@@ -1367,7 +1372,7 @@ Begin
                              Taicpu(hp2).opcode := A_MOV;
                              Taicpu(hp2).Loadoper(1,Taicpu(hp1).oper[0]);
                              reference_reset(tmpref);
-                             tmpRef.base := STACK_POINTER_REG;
+                             tmpRef.base .enum:= STACK_POINTER_REG;
                              tmpRef.offset := l;
                              Taicpu(hp2).loadRef(0,tmpRef);
                              hp4 := hp1;
@@ -1396,7 +1401,7 @@ Begin
                          (Tai(hp1).typ=ait_instruction) and
                          (Taicpu(hp1).opcode=A_PUSH) and
                          (Taicpu(hp1).oper[0].typ = top_reg) And
-                         (Taicpu(hp1).oper[0].reg=Taicpu(p).oper[0].reg) then
+                         (Taicpu(hp1).oper[0].reg.enum=Taicpu(p).oper[0].reg.enum) then
                         Begin
                           { change it to a two op operation }
                           Taicpu(p).oper[1].typ:=top_none;
@@ -1404,7 +1409,7 @@ Begin
                           Taicpu(p).opcode := A_MOV;
                           Taicpu(p).Loadoper(1,Taicpu(p).oper[0]);
                           reference_reset(tmpref);
-                          TmpRef.base := R_ESP;
+                          TmpRef.base.enum := R_ESP;
                           Taicpu(p).LoadRef(0,TmpRef);
                           asml.Remove(hp1);
                           hp1.free;
@@ -1448,11 +1453,11 @@ Begin
                               ((((Taicpu(hp1).opcode = A_ADD) Or
                                  (Taicpu(hp1).opcode = A_SUB)) And
                                 (Taicpu(hp1).oper[1].typ = Top_Reg) And
-                                (Taicpu(hp1).oper[1].reg = Taicpu(p).oper[1].reg)) or
+                                (Taicpu(hp1).oper[1].reg.enum = Taicpu(p).oper[1].reg.enum)) or
                                (((Taicpu(hp1).opcode = A_INC) or
                                  (Taicpu(hp1).opcode = A_DEC)) and
                                 (Taicpu(hp1).oper[0].typ = Top_Reg) and
-                                (Taicpu(hp1).oper[0].reg = Taicpu(p).oper[1].reg))) Do
+                                (Taicpu(hp1).oper[0].reg.enum = Taicpu(p).oper[1].reg.enum))) Do
                           Begin
                             TmpBool1 := False;
                             If (Taicpu(hp1).oper[0].typ = Top_Const)
@@ -1472,7 +1477,7 @@ Begin
                             Else
                               If (Taicpu(hp1).oper[0].typ = Top_Reg) And
                                  (((Taicpu(hp1).opcode = A_ADD) And
-                                   (TmpRef.base = R_NO)) or
+                                   (TmpRef.base.enum = R_NO)) or
                                   (Taicpu(hp1).opcode = A_INC) or
                                   (Taicpu(hp1).opcode = A_DEC)) Then
                                 Begin
@@ -1552,8 +1557,8 @@ Begin
                      (hp2.typ = ait_instruction) And
                      ((Taicpu(hp2).opcode = A_LEAVE) or
                       (Taicpu(hp2).opcode = A_RET)) And
-                     (Taicpu(p).oper[0].ref^.Base = procinfo.FramePointer) And
-                     (Taicpu(p).oper[0].ref^.Index = R_NO) And
+                     (Taicpu(p).oper[0].ref^.Base.enum = procinfo.FramePointer.enum) And
+                     (Taicpu(p).oper[0].ref^.Index.enum = R_NO) And
                      (Taicpu(p).oper[0].ref^.Offset >= procinfo.Return_Offset) And
                      (hp1.typ = ait_instruction) And
                      (Taicpu(hp1).opcode = A_MOV) And
@@ -1574,22 +1579,23 @@ Begin
                   If (Taicpu(p).oper[0].typ = top_const) And
                      (Taicpu(p).oper[1].typ = top_reg) Then
                     If (Taicpu(p).oper[0].val = 2) And
-                       (Taicpu(p).oper[1].reg = R_ESP) and
+                       (Taicpu(p).oper[1].reg.enum = R_ESP) and
                        { Don't do the sub/push optimization if the sub }
                        { comes from setting up the stack frame (JM)    }
                        (not getLastInstruction(p,hp1) or
                         (hp1.typ <> ait_instruction) or
                         (Taicpu(hp1).opcode <> A_MOV) or
                         (Taicpu(hp1).oper[0].typ <> top_reg) or
-                        (Taicpu(hp1).oper[0].reg <> R_ESP) or
+                        (Taicpu(hp1).oper[0].reg.enum <> R_ESP) or
                         (Taicpu(hp1).oper[1].typ <> top_reg) or
-                        (Taicpu(hp1).oper[1].reg <> R_EBP)) then
+                        (Taicpu(hp1).oper[1].reg.enum <> R_EBP)) then
                       Begin
                         hp1 := Tai(p.next);
+                        r.enum:=R_ESP;
                         While Assigned(hp1) And
                               (Tai(hp1).typ In [ait_instruction]+SkipInstr) And
-                               not regReadByInstruction(R_ESP,hp1) and
-                               not regModifiedByInstruction(R_ESP,hp1) do
+                               not regReadByInstruction(r,hp1) and
+                               not regModifiedByInstruction(r,hp1) do
                           hp1 := Tai(hp1.next);
                         If Assigned(hp1) And
                            (Tai(hp1).typ = ait_instruction) And
@@ -1613,7 +1619,7 @@ Begin
                A_XOR:
                  If (Taicpu(p).oper[0].typ = top_reg) And
                     (Taicpu(p).oper[1].typ = top_reg) And
-                    (Taicpu(p).oper[0].reg = Taicpu(p).oper[1].reg) then
+                    (Taicpu(p).oper[0].reg.enum = Taicpu(p).oper[1].reg.enum) then
                   { temporarily change this to 'mov reg,0' to make it easier }
                   { for the CSE. Will be changed back in pass 2              }
                    begin
@@ -1641,7 +1647,7 @@ Begin
     end;
 end;
 
-function isFoldableArithOp(hp1: Taicpu; reg: tregister): boolean;
+function isFoldableArithOp(hp1: Taicpu; reg: Toldregister): boolean;
 begin
   IsFoldableArithOp := False;
   case hp1.opcode of
@@ -1649,13 +1655,13 @@ begin
       isFoldableArithOp :=
         ((Taicpu(hp1).oper[0].typ = top_const) or
          ((Taicpu(hp1).oper[0].typ = top_reg) and
-          (Taicpu(hp1).oper[0].reg <> reg))) and
+          (Taicpu(hp1).oper[0].reg.enum <> reg))) and
         (Taicpu(hp1).oper[1].typ = top_reg) and
-        (Taicpu(hp1).oper[1].reg = reg);
+        (Taicpu(hp1).oper[1].reg.enum = reg);
     A_INC,A_DEC:
       isFoldableArithOp :=
         (Taicpu(hp1).oper[0].typ = top_reg) and
-        (Taicpu(hp1).oper[0].reg = reg);
+        (Taicpu(hp1).oper[0].reg.enum = reg);
   end;
 end;
 
@@ -1801,13 +1807,13 @@ Begin
                      (Taicpu(p).oper[1].typ = top_reg) and
                      ((Taicpu(p).oper[2].typ = top_none) or
                       ((Taicpu(p).oper[2].typ = top_reg) and
-                       (Taicpu(p).oper[2].reg = Taicpu(p).oper[1].reg))) and
+                       (Taicpu(p).oper[2].reg.enum = Taicpu(p).oper[1].reg.enum))) and
                      getLastInstruction(p,hp1) and
                      (hp1.typ = ait_instruction) and
                      (Taicpu(hp1).opcode = A_MOV) and
                      (Taicpu(hp1).oper[0].typ = top_reg) and
                      (Taicpu(hp1).oper[1].typ = top_reg) and
-                     (Taicpu(hp1).oper[1].reg = Taicpu(p).oper[1].reg) then
+                     (Taicpu(hp1).oper[1].reg.enum = Taicpu(p).oper[1].reg.enum) then
               { change "mov reg1,reg2; imul y,reg2" to "imul y,reg1,reg2" }
                     begin
                       Taicpu(p).ops := 3;
@@ -1828,16 +1834,16 @@ Begin
                       (Taicpu(hp1).opcode = A_MOVSX)) And
                      (Taicpu(hp1).oper[0].typ = top_ref) And
                      (Taicpu(hp1).oper[1].typ = top_reg) And
-                     ((Taicpu(hp1).oper[0].ref^.Base = Taicpu(p).oper[1].reg) Or
-                      (Taicpu(hp1).oper[0].ref^.Index = Taicpu(p).oper[1].reg)) And
-                     (Reg32(Taicpu(hp1).oper[1].reg) = Taicpu(p).oper[1].reg) Then
+                     ((Taicpu(hp1).oper[0].ref^.Base.enum = Taicpu(p).oper[1].reg.enum) Or
+                      (Taicpu(hp1).oper[0].ref^.Index.enum = Taicpu(p).oper[1].reg.enum)) And
+                     (Reg32(Taicpu(hp1).oper[1].reg).enum = Taicpu(p).oper[1].reg.enum) Then
               {mov reg1, reg2
                mov/zx/sx (reg2, ..), reg2      to   mov/zx/sx (reg1, ..), reg2}
                     Begin
-                      If (Taicpu(hp1).oper[0].ref^.Base = Taicpu(p).oper[1].reg) Then
-                        Taicpu(hp1).oper[0].ref^.Base := Taicpu(p).oper[0].reg;
-                      If (Taicpu(hp1).oper[0].ref^.Index = Taicpu(p).oper[1].reg) Then
-                        Taicpu(hp1).oper[0].ref^.Index := Taicpu(p).oper[0].reg;
+                      If (Taicpu(hp1).oper[0].ref^.Base.enum = Taicpu(p).oper[1].reg.enum) Then
+                        Taicpu(hp1).oper[0].ref^.Base.enum := Taicpu(p).oper[0].reg.enum;
+                      If (Taicpu(hp1).oper[0].ref^.Index.enum = Taicpu(p).oper[1].reg.enum) Then
+                        Taicpu(hp1).oper[0].ref^.Index.enum := Taicpu(p).oper[0].reg.enum;
                       asml.Remove(p);
                       p.free;
                       p := hp1;
@@ -1846,12 +1852,12 @@ Begin
                   Else If (Taicpu(p).oper[0].typ = top_ref) And
                     GetNextInstruction(p,hp1) And
                     (hp1.typ = ait_instruction) And
-                    IsFoldableArithOp(Taicpu(hp1),Taicpu(p).oper[1].reg) And
+                    IsFoldableArithOp(Taicpu(hp1),Taicpu(p).oper[1].reg.enum) And
                     GetNextInstruction(hp1,hp2) And
                     (hp2.typ = ait_instruction) And
                     (Taicpu(hp2).opcode = A_MOV) And
                     (Taicpu(hp2).oper[0].typ = top_reg) And
-                    (Taicpu(hp2).oper[0].reg = Taicpu(p).oper[1].reg) And
+                    (Taicpu(hp2).oper[0].reg.enum = Taicpu(p).oper[1].reg.enum) And
                     (Taicpu(hp2).oper[1].typ = top_ref) Then
                    Begin
                      TmpUsedRegs := UsedRegs;
@@ -1965,8 +1971,8 @@ Begin
                         End
                       Else
                         If (Taicpu(p).oper[0].typ = top_ref) And
-                           (Taicpu(p).oper[0].ref^.base <> Taicpu(p).oper[1].reg) And
-                           (Taicpu(p).oper[0].ref^.index <> Taicpu(p).oper[1].reg) And
+                           (Taicpu(p).oper[0].ref^.base.enum <> Taicpu(p).oper[1].reg.enum) And
+                           (Taicpu(p).oper[0].ref^.index.enum <> Taicpu(p).oper[1].reg.enum) And
                            Not(CS_LittleSize in aktglobalswitches) And
                            IsGP32Reg(Taicpu(p).oper[1].reg) And
                            (aktoptprocessor = ClassP5) And
@@ -2044,7 +2050,10 @@ End.
 
 {
   $Log$
-  Revision 1.35  2002-11-15 16:30:54  peter
+  Revision 1.36  2003-01-08 18:43:57  daniel
+   * Tregister changed into a record
+
+  Revision 1.35  2002/11/15 16:30:54  peter
     * made tasmsymbol.refs private (merged)
 
   Revision 1.34  2002/08/18 20:06:30  peter

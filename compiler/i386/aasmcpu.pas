@@ -315,14 +315,14 @@ implementation
     constructor tai_align.create(b: byte);
       begin
         inherited create(b);
-        reg := R_ECX;
+        reg.enum := R_ECX;
       end;
 
 
     constructor tai_align.create_op(b: byte; _op: byte);
       begin
         inherited create_op(b,_op);
-        reg := R_NO;
+        reg.enum := R_NO;
       end;
 
 
@@ -372,7 +372,7 @@ implementation
       begin
          { default order is att }
          FOperandOrder:=op_att;
-         segprefix:=R_NO;
+         segprefix.enum:=R_NO;
          opsize:=_size;
 {$ifndef NOAG386BIN}
          insentry:=nil;
@@ -395,6 +395,8 @@ implementation
          inherited create(op);
          init(_size);
          ops:=1;
+         if _op1.enum>lastreg then
+           internalerror(200301081);
          loadreg(0,_op1);
       end;
 
@@ -422,6 +424,10 @@ implementation
          inherited create(op);
          init(_size);
          ops:=2;
+         if _op1.enum>lastreg then
+           internalerror(200301081);
+         if _op2.enum>lastreg then
+           internalerror(200301081);
          loadreg(0,_op1);
          loadreg(1,_op2);
       end;
@@ -432,6 +438,8 @@ implementation
          inherited create(op);
          init(_size);
          ops:=2;
+         if _op1.enum>lastreg then
+           internalerror(200301081);
          loadreg(0,_op1);
          loadconst(1,_op2);
       end;
@@ -442,6 +450,8 @@ implementation
          inherited create(op);
          init(_size);
          ops:=2;
+         if _op1.enum>lastreg then
+           internalerror(200301081);
          loadreg(0,_op1);
          loadref(1,_op2);
       end;
@@ -452,6 +462,8 @@ implementation
          inherited create(op);
          init(_size);
          ops:=2;
+         if _op2.enum>lastreg then
+           internalerror(200301081);
          loadconst(0,_op1);
          loadreg(1,_op2);
       end;
@@ -482,6 +494,8 @@ implementation
          inherited create(op);
          init(_size);
          ops:=2;
+         if _op2.enum>lastreg then
+           internalerror(200301081);
          loadref(0,_op1);
          loadreg(1,_op2);
       end;
@@ -492,6 +506,12 @@ implementation
          inherited create(op);
          init(_size);
          ops:=3;
+         if _op1.enum>lastreg then
+           internalerror(200301081);
+         if _op2.enum>lastreg then
+           internalerror(200301081);
+         if _op3.enum>lastreg then
+           internalerror(200301081);
          loadreg(0,_op1);
          loadreg(1,_op2);
          loadreg(2,_op3);
@@ -503,6 +523,10 @@ implementation
          inherited create(op);
          init(_size);
          ops:=3;
+         if _op2.enum>lastreg then
+           internalerror(200301081);
+         if _op3.enum>lastreg then
+           internalerror(200301081);
          loadconst(0,_op1);
          loadreg(1,_op2);
          loadreg(2,_op3);
@@ -514,6 +538,10 @@ implementation
          inherited create(op);
          init(_size);
          ops:=3;
+         if _op1.enum>lastreg then
+           internalerror(200301081);
+         if _op2.enum>lastreg then
+           internalerror(200301081);
          loadreg(0,_op1);
          loadreg(1,_op2);
          loadref(2,_op3);
@@ -527,6 +555,8 @@ implementation
          ops:=3;
          loadconst(0,_op1);
          loadref(1,_op2);
+         if _op3.enum>lastreg then
+           internalerror(200301081);
          loadreg(2,_op3);
       end;
 
@@ -537,6 +567,8 @@ implementation
          init(_size);
          ops:=3;
          loadconst(0,_op1);
+         if _op2.enum>lastreg then
+           internalerror(200301081);
          loadreg(1,_op2);
          loadref(2,_op3);
       end;
@@ -576,6 +608,8 @@ implementation
          init(_size);
          ops:=2;
          loadsymbol(0,_op1,_op1ofs);
+         if _op2.enum>lastreg then
+           internalerror(200301081);
          loadreg(1,_op2);
       end;
 
@@ -693,13 +727,13 @@ implementation
         o.ot:=ppufile.getlongint;
         case o.typ of
           top_reg :
-            o.reg:=tregister(ppufile.getbyte);
+              ppufile.getdata(o.reg,sizeof(Tregister));
           top_ref :
             begin
               new(o.ref);
-              o.ref^.segment:=tregister(ppufile.getbyte);
-              o.ref^.base:=tregister(ppufile.getbyte);
-              o.ref^.index:=tregister(ppufile.getbyte);
+              ppufile.getdata(o.ref^.segment,sizeof(Tregister));
+              ppufile.getdata(o.ref^.base,sizeof(Tregister));
+              ppufile.getdata(o.ref^.index,sizeof(Tregister));
               o.ref^.scalefactor:=ppufile.getbyte;
               o.ref^.offset:=ppufile.getlongint;
               o.ref^.symbol:=ppufile.getasmsymbol;
@@ -723,12 +757,12 @@ implementation
         ppufile.putlongint(o.ot);
         case o.typ of
           top_reg :
-            ppufile.putbyte(byte(o.reg));
+            ppufile.putdata(o.reg,sizeof(Tregister));
           top_ref :
             begin
-              ppufile.putbyte(byte(o.ref^.segment));
-              ppufile.putbyte(byte(o.ref^.base));
-              ppufile.putbyte(byte(o.ref^.index));
+              ppufile.putdata(o.ref^.segment,sizeof(Tregister));
+              ppufile.putdata(o.ref^.base,sizeof(Tregister));
+              ppufile.putdata(o.ref^.index,sizeof(Tregister));
               ppufile.putbyte(o.ref^.scalefactor);
               ppufile.putlongint(o.ref^.offset);
               ppufile.putasmsymbol(o.ref^.symbol);
@@ -765,12 +799,17 @@ implementation
         { we need ATT order }
         SetOperandOrder(op_att);
 
+        if (oper[0].typ=top_reg) and (oper[0].reg.enum>lastreg) then
+          internalerror(200301081);
+        if (oper[1].typ=top_reg) and (oper[1].reg.enum>lastreg) then
+          internalerror(200301081);
+
         if ((ops=2) and
            (oper[0].typ=top_reg) and
            (oper[1].typ=top_reg) and
            { if the first is ST and the second is also a register
              it is necessarily ST1 .. ST7 }
-           (oper[0].reg in [R_ST..R_ST0])) or
+           (oper[0].reg.enum in [R_ST..R_ST0])) or
            { ((ops=1) and
             (oper[0].typ=top_reg) and
             (oper[0].reg in [R_ST1..R_ST7]))  or}
@@ -793,7 +832,7 @@ implementation
               opcode:=A_FDIVRP;
          if  ((ops=1) and
             (oper[0].typ=top_reg) and
-            (oper[0].reg in [R_ST1..R_ST7])) then
+            (oper[0].reg.enum in [R_ST1..R_ST7])) then
             if opcode=A_FSUBRP then
               opcode:=A_FSUBP
             else if opcode=A_FSUBP then
@@ -835,18 +874,26 @@ implementation
           begin
             case typ of
               top_reg :
-                ot:=reg2type[reg];
+                begin
+                  if reg.enum>lastreg then
+                    internalerror(200301081);
+                  ot:=reg2type[reg.enum];
+                end;
               top_ref :
                 begin
+                  if ref^.base.enum>lastreg then
+                    internalerror(200301081);
+                  if ref^.index.enum>lastreg then
+                    internalerror(200301081);
                 { create ot field }
                   if (ot and OT_SIZE_MASK)=0 then
                     ot:=OT_MEMORY or opsize_2_type[i,opsize]
                   else
                     ot:=OT_MEMORY or (ot and OT_SIZE_MASK);
-                  if (ref^.base=R_NO) and (ref^.index=R_NO) then
+                  if (ref^.base.enum=R_NO) and (ref^.index.enum=R_NO) then
                     ot:=ot or OT_MEM_OFFS;
                 { fix scalefactor }
-                  if (ref^.index=R_NO) then
+                  if (ref^.index.enum=R_NO) then
                    ref^.scalefactor:=0
                   else
                    if (ref^.scalefactor=0) then
@@ -1074,7 +1121,9 @@ implementation
            if m=100 then
             begin
               InsSize:=calcsize(insentry);
-              if (segprefix<>R_NO) then
+              if segprefix.enum>lastreg then
+                internalerror(200301081);
+              if (segprefix.enum<>R_NO) then
                inc(InsSize);
               { For opsize if size if forced }
               if (insentry^.flags and (IF_SB or IF_SW or IF_SD))<>0 then
@@ -1161,9 +1210,11 @@ implementation
          exit;
         aktfilepos:=fileinfo;
         { Segment override }
-        if (segprefix<>R_NO) then
+        if segprefix.enum>lastreg then
+          internalerror(200201081);
+        if (segprefix.enum<>R_NO) then
          begin
-           case segprefix of
+           case segprefix.enum of
              R_CS : c:=$2e;
              R_DS : c:=$3e;
              R_ES : c:=$26;
@@ -1182,12 +1233,14 @@ implementation
 
     function taicpu.NeedAddrPrefix(opidx:byte):boolean;
       var
-        i,b : tregister;
+        i,b : Toldregister;
       begin
         if (OT_MEMORY and (not oper[opidx].ot))=0 then
          begin
-           i:=oper[opidx].ref^.index;
-           b:=oper[opidx].ref^.base;
+           i:=oper[opidx].ref^.index.enum;
+           b:=oper[opidx].ref^.base.enum;
+           if (i>lastreg) or (b>lastreg) then
+              internalerror(200201081);
            if not(i in [R_NO,R_EAX,R_EBX,R_ECX,R_EDX,R_EBP,R_ESP,R_ESI,R_EDI]) or
               not(b in [R_NO,R_EAX,R_EBX,R_ECX,R_EDX,R_EBP,R_ESP,R_ESI,R_EDI]) then
             begin
@@ -1201,7 +1254,7 @@ implementation
 
     function regval(r:tregister):byte;
       begin
-        case r of
+        case r.enum of
           R_EAX,R_AX,R_AL,R_ES,R_CR0,R_DR0,R_ST,R_ST0,R_MM0,R_XMM0 :
             regval:=0;
           R_ECX,R_CX,R_CL,R_CS,R_DR1,R_ST1,R_MM1,R_XMM1 :
@@ -1229,7 +1282,7 @@ implementation
 
     function process_ea(const input:toper;var output:ea;rfield:longint):boolean;
       const
-        regs : array[0..63] of tregister=(
+        regs : array[0..63] of Toldregister=(
           R_MM0, R_EAX, R_AX, R_AL, R_XMM0, R_NO, R_NO, R_NO,
           R_MM1, R_ECX, R_CX, R_CL, R_XMM1, R_NO, R_NO, R_NO,
           R_MM2, R_EDX, R_DX, R_DL, R_XMM2, R_NO, R_NO, R_NO,
@@ -1241,7 +1294,7 @@ implementation
         );
       var
         j     : longint;
-        i,b   : tregister;
+        i,b   : Toldregister;
         sym   : tasmsymbol;
         md,s  : byte;
         base,index,scalefactor,
@@ -1254,7 +1307,7 @@ implementation
            j:=0;
            while (j<=high(regs)) do
             begin
-              if input.reg=regs[j] then
+              if input.reg.enum=regs[j] then
                break;
               inc(j);
             end;
@@ -1269,8 +1322,10 @@ implementation
            exit;
          end;
       { memory reference }
-        i:=input.ref^.index;
-        b:=input.ref^.base;
+        i:=input.ref^.index.enum;
+        b:=input.ref^.base.enum;
+        if (i>lastreg) or (b>lastreg) then
+          internalerror(200301081);
         s:=input.ref^.scalefactor;
         o:=input.ref^.offset+input.ref^.offsetfixup;
         sym:=input.ref^.symbol;
@@ -1582,7 +1637,7 @@ implementation
               end;
             4,6 :
               begin
-                case oper[0].reg of
+                case oper[0].reg.enum of
                   R_CS :
                     begin
                       if c=4 then
@@ -1619,7 +1674,7 @@ implementation
               end;
             5,7 :
               begin
-                case oper[0].reg of
+                case oper[0].reg.enum of
                   R_FS :
                     begin
                       if c=5 then
@@ -1875,7 +1930,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  2003-01-05 13:36:53  florian
+  Revision 1.10  2003-01-08 18:43:57  daniel
+   * Tregister changed into a record
+
+  Revision 1.9  2003/01/05 13:36:53  florian
     * x86-64 compiles
     + very basic support for float128 type (x86-64 only)
 

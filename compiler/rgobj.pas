@@ -155,12 +155,12 @@ unit rgobj;
 
              @param(r specific register to allocate)
           }
-          function getexplicitregisterint(list: taasmoutput; r : tregister) : tregister;virtual;
+          function getexplicitregisterint(list: taasmoutput; r : Toldregister) : tregister;virtual;
           {# Tries to allocate the passed fpu register, if possible
 
              @param(r specific register to allocate)
           }
-          function getexplicitregisterfpu(list : taasmoutput; r : tregister) : tregister;
+          function getexplicitregisterfpu(list : taasmoutput; r : Toldregister) : tregister;
 
           {# Deallocate any kind of register }
           procedure ungetregister(list: taasmoutput; r : tregister); virtual;
@@ -221,7 +221,7 @@ unit rgobj;
        protected
           { the following two contain the common (generic) code for all }
           { get- and ungetregisterxxx functions/procedures              }
-          function getregistergen(list: taasmoutput; const lowreg, highreg: tregister;
+          function getregistergen(list: taasmoutput; const lowreg, highreg: Toldregister;
               var unusedregs: tregisterset; var countunusedregs: byte): tregister;
           procedure ungetregistergen(list: taasmoutput; const r: tregister;
               const usableregs: tregisterset; var unusedregs: tregisterset; var countunusedregs: byte);
@@ -325,10 +325,11 @@ unit rgobj;
      end;
 
 
-    function trgobj.getregistergen(list: taasmoutput; const lowreg, highreg: tregister;
+    function trgobj.getregistergen(list: taasmoutput; const lowreg, highreg: Toldregister;
         var unusedregs: tregisterset; var countunusedregs: byte): tregister;
       var
-        i: tregister;
+        i: Toldregister;
+        r: Tregister;
       begin
          for i:=lowreg to highreg do
            begin
@@ -338,8 +339,9 @@ unit rgobj;
                    include(usedinproc,i);
                    include(usedbyproc,i);
                    dec(countunusedregs);
-                   list.concat(tai_regalloc.alloc(i));
-                   result := i;
+                   r.enum:=i;
+                   list.concat(tai_regalloc.alloc(r));
+                   result := r;
                    exit;
                 end;
            end;
@@ -350,14 +352,16 @@ unit rgobj;
     procedure trgobj.ungetregistergen(list: taasmoutput; const r: tregister;
         const usableregs: tregisterset; var unusedregs: tregisterset; var countunusedregs: byte);
       begin
+         if r.enum>lastreg then
+            internalerror(2003010801);
          { takes much time }
-         if not(r in usableregs) then
+         if not(r.enum in usableregs) then
            exit;
 {$ifdef TEMPREGDEBUG}
-         if (r in unusedregs) then
+         if (r.enum in unusedregs) then
 {$ifdef EXTTEMPREGDEBUG}
            begin
-             Comment(V_Debug,'register freed twice '+std_reg2str[r]);
+             Comment(V_Debug,'register freed twice '+std_reg2str[r.enum]);
              testregisters32;
              exit;
            end
@@ -367,7 +371,7 @@ unit rgobj;
          else
 {$endif TEMPREGDEBUG}
           inc(countunusedregs);
-        include(unusedregs,r);
+        include(unusedregs,r.enum);
         list.concat(tai_regalloc.dealloc(r));
       end;
 
@@ -407,7 +411,9 @@ unit rgobj;
 
 
     { tries to allocate the passed register, if possible }
-    function trgobj.getexplicitregisterint(list : taasmoutput; r : tregister) : tregister;
+    function trgobj.getexplicitregisterint(list : taasmoutput; r : Toldregister) : tregister;
+
+    var r2:Tregister;
 
       begin
          if r in unusedregsint then
@@ -421,8 +427,9 @@ unit rgobj;
               exclude(unusedregsint,r);
               include(usedinproc,r);
               include(usedbyproc,r);
-              list.concat(tai_regalloc.alloc(r));
-              getexplicitregisterint:=r;
+              r2.enum:=r;
+              list.concat(tai_regalloc.alloc(r2));
+              getexplicitregisterint:=r2;
 {$ifdef TEMPREGDEBUG}
               testregisters32;
 {$endif TEMPREGDEBUG}
@@ -433,7 +440,9 @@ unit rgobj;
 
 
     { tries to allocate the passed register, if possible }
-    function trgobj.getexplicitregisterfpu(list : taasmoutput; r : tregister) : tregister;
+    function trgobj.getexplicitregisterfpu(list : taasmoutput; r : Toldregister) : tregister;
+
+    var r2:Tregister;
 
       begin
          if r in unusedregsfpu then
@@ -447,8 +456,9 @@ unit rgobj;
               exclude(unusedregsint,r);
               include(usedinproc,r);
               include(usedbyproc,r);
-              list.concat(tai_regalloc.alloc(r));
-              getexplicitregisterfpu:=r;
+              r2.enum:=r;
+              list.concat(tai_regalloc.alloc(r2));
+              getexplicitregisterfpu:=r2;
 {$ifdef TEMPREGDEBUG}
               testregisters32;
 {$endif TEMPREGDEBUG}
@@ -458,6 +468,7 @@ unit rgobj;
       end;
 
     function trgobj.getregisterfpu(list: taasmoutput) : tregister;
+
       begin
         if countunusedregsfpu=0 then
           internalerror(10);
@@ -511,13 +522,15 @@ unit rgobj;
     procedure trgobj.ungetregister(list: taasmoutput; r : tregister);
 
       begin
-         if r=R_NO then
+         if r.enum=R_NO then
            exit;
-         if r in intregs then
+         if r.enum>lastreg then
+          internalerror(200301081);
+         if r.enum in intregs then
            ungetregisterint(list,r)
-         else if r in fpuregs then
+         else if r.enum in fpuregs then
            ungetregisterfpu(list,r)
-         else if r in mmregs then
+         else if r.enum in mmregs then
            ungetregistermm(list,r)
          else internalerror(2002070602);
       end;
@@ -545,23 +558,23 @@ unit rgobj;
 
     procedure trgobj.saveregvars(list: taasmoutput; const s: tregisterset);
       var
-        r: tregister;
+        r: Tregister;
       begin
         if not(cs_regalloc in aktglobalswitches) then
           exit;
-        for r := firstsaveintreg to lastsaveintreg do
-          if is_reg_var[r] and
-             (r in s) then
+        for r.enum := firstsaveintreg to lastsaveintreg do
+          if is_reg_var[r.enum] and
+             (r.enum in s) then
             store_regvar(list,r);
         if firstsavefpureg <> R_NO then
-          for r := firstsavefpureg to lastsavefpureg do
-            if is_reg_var[r] and
-               (r in s) then
+          for r.enum := firstsavefpureg to lastsavefpureg do
+            if is_reg_var[r.enum] and
+               (r.enum in s) then
               store_regvar(list,r);
         if firstsavemmreg <> R_NO then
-          for r := firstsavemmreg to lastsavemmreg do
-            if is_reg_var[r] and
-               (r in s) then
+          for r.enum := firstsavemmreg to lastsavemmreg do
+            if is_reg_var[r.enum] and
+               (r.enum in s) then
               store_regvar(list,r);
       end;
 
@@ -575,22 +588,22 @@ unit rgobj;
 
       begin
         usedinproc:=usedinproc + s;
-        for r:=firstsaveintreg to lastsaveintreg do
+        for r.enum:=firstsaveintreg to lastsaveintreg do
           begin
-            saved[r].ofs:=reg_not_saved;
+            saved[r.enum].ofs:=reg_not_saved;
             { if the register is used by the calling subroutine and if }
             { it's not a regvar (those are handled separately)         }
-            if not is_reg_var[r] and
-               (r in s) and
+            if not is_reg_var[r.enum] and
+               (r.enum in s) and
                { and is present in use }
-               not(r in unusedregsint) then
+               not(r.enum in unusedregsint) then
               begin
                 { then save it }
                 tg.GetTemp(list,sizeof(aword),tt_persistant,hr);
-                saved[r].ofs:=hr.offset;
+                saved[r.enum].ofs:=hr.offset;
                 cg.a_load_reg_ref(list,OS_INT,r,hr);
                 cg.a_reg_dealloc(list,r);
-                include(unusedregsint,r);
+                include(unusedregsint,r.enum);
                 inc(countunusedregsint);
               end;
           end;
@@ -598,44 +611,44 @@ unit rgobj;
         { don't try to save the fpu registers if not desired (e.g. for }
         { the 80x86)                                                   }
         if firstsavefpureg <> R_NO then
-          for r:=firstsavefpureg to lastsavefpureg do
+          for r.enum:=firstsavefpureg to lastsavefpureg do
             begin
-              saved[r].ofs:=reg_not_saved;
+              saved[r.enum].ofs:=reg_not_saved;
               { if the register is used by the calling subroutine and if }
               { it's not a regvar (those are handled separately)         }
-              if not is_reg_var[r] and
-                 (r in s) and
+              if not is_reg_var[r.enum] and
+                 (r.enum in s) and
                  { and is present in use }
-                 not(r in unusedregsfpu) then
+                 not(r.enum in unusedregsfpu) then
                 begin
                   { then save it }
                   tg.GetTemp(list,extended_size,tt_persistant,hr);
-                  saved[r].ofs:=hr.offset;
+                  saved[r.enum].ofs:=hr.offset;
                   cg.a_loadfpu_reg_ref(list,OS_FLOAT,r,hr);
                   cg.a_reg_dealloc(list,r);
-                  include(unusedregsfpu,r);
+                  include(unusedregsfpu,r.enum);
                   inc(countunusedregsfpu);
                 end;
             end;
 
         { don't save the vector registers if there's no support for them }
         if firstsavemmreg <> R_NO then
-          for r:=firstsavemmreg to lastsavemmreg do
+          for r.enum:=firstsavemmreg to lastsavemmreg do
             begin
-              saved[r].ofs:=reg_not_saved;
+              saved[r.enum].ofs:=reg_not_saved;
               { if the register is in use and if it's not a regvar (those }
               { are handled separately), save it                          }
-              if not is_reg_var[r] and
-                 (r in s) and
+              if not is_reg_var[r.enum] and
+                 (r.enum in s) and
                  { and is present in use }
-                 not(r in unusedregsmm) then
+                 not(r.enum in unusedregsmm) then
                 begin
                   { then save it }
                   tg.GetTemp(list,mmreg_size,tt_persistant,hr);
-                  saved[r].ofs:=hr.offset;
+                  saved[r.enum].ofs:=hr.offset;
                   cg.a_loadmm_reg_ref(list,r,hr);
                   cg.a_reg_dealloc(list,r);
-                  include(unusedregsmm,r);
+                  include(unusedregsmm,r.enum);
                   inc(countunusedregsmm);
                end;
             end;
@@ -649,19 +662,20 @@ unit rgobj;
         const saved : tpushedsaved);
 
       var
-         r : tregister;
+         r,r2 : tregister;
          hr : treference;
 
       begin
         if firstsavemmreg <> R_NO then
-          for r:=lastsavemmreg downto firstsavemmreg do
+          for r.enum:=lastsavemmreg downto firstsavemmreg do
             begin
-              if saved[r].ofs <> reg_not_saved then
+              if saved[r.enum].ofs <> reg_not_saved then
                 begin
-                  reference_reset_base(hr,FRAME_POINTER_REG,saved[r].ofs);
+                  r2.enum:=FRAME_POINTER_REG;
+                  reference_reset_base(hr,r2,saved[r.enum].ofs);
                   cg.a_reg_alloc(list,r);
                   cg.a_loadmm_ref_reg(list,hr,r);
-                  if not (r in unusedregsmm) then
+                  if not (r.enum in unusedregsmm) then
                     { internalerror(10)
                       in n386cal we always save/restore the reg *state*
                       using save/restoreunusedstate -> the current state
@@ -669,21 +683,22 @@ unit rgobj;
                   else
                     begin
                       dec(countunusedregsmm);
-                      exclude(unusedregsmm,r);
+                      exclude(unusedregsmm,r.enum);
                     end;
                   tg.UnGetTemp(list,hr);
                 end;
             end;
 
         if firstsavefpureg <> R_NO then
-          for r:=lastsavefpureg downto firstsavefpureg do
+          for r.enum:=lastsavefpureg downto firstsavefpureg do
             begin
-              if saved[r].ofs <> reg_not_saved then
+              if saved[r.enum].ofs <> reg_not_saved then
                 begin
-                  reference_reset_base(hr,FRAME_POINTER_REG,saved[r].ofs);
+                  r2.enum:=FRAME_POINTER_REG;
+                  reference_reset_base(hr,r2,saved[r.enum].ofs);
                   cg.a_reg_alloc(list,r);
                   cg.a_loadfpu_ref_reg(list,OS_FLOAT,hr,r);
-                  if not (r in unusedregsfpu) then
+                  if not (r.enum in unusedregsfpu) then
                     { internalerror(10)
                       in n386cal we always save/restore the reg *state*
                       using save/restoreunusedstate -> the current state
@@ -691,20 +706,21 @@ unit rgobj;
                   else
                     begin
                       dec(countunusedregsfpu);
-                      exclude(unusedregsfpu,r);
+                      exclude(unusedregsfpu,r.enum);
                     end;
                   tg.UnGetTemp(list,hr);
                 end;
             end;
 
-        for r:=lastsaveintreg downto firstsaveintreg do
+        for r.enum:=lastsaveintreg downto firstsaveintreg do
           begin
-            if saved[r].ofs <> reg_not_saved then
+            if saved[r.enum].ofs <> reg_not_saved then
               begin
-                reference_reset_base(hr,FRAME_POINTER_REG,saved[r].ofs);
+                r2.enum:=FRAME_POINTER_REG;
+                reference_reset_base(hr,r2,saved[r.enum].ofs);
                 cg.a_reg_alloc(list,r);
                 cg.a_load_ref_reg(list,OS_INT,hr,r);
-                if not (r in unusedregsint) then
+                if not (r.enum in unusedregsint) then
                   { internalerror(10)
                     in n386cal we always save/restore the reg *state*
                     using save/restoreunusedstate -> the current state
@@ -712,7 +728,7 @@ unit rgobj;
                 else
                   begin
                     dec(countunusedregsint);
-                    exclude(unusedregsint,r);
+                    exclude(unusedregsint,r.enum);
                   end;
                 tg.UnGetTemp(list,hr);
               end;
@@ -726,7 +742,7 @@ unit rgobj;
     procedure trgobj.incrementregisterpushed(const s: tregisterset);
 
       var
-         regi : tregister;
+         regi : Toldregister;
 
       begin
          for regi:=firstsaveintreg to lastsaveintreg do
@@ -774,28 +790,30 @@ unit rgobj;
 
     procedure trgobj.makeregvar(reg: tregister);
       begin
-        if reg in intregs then
+        if reg.enum>lastreg then
+          internalerror(200301081);
+        if reg.enum in intregs then
           begin
             dec(countusableregsint);
             dec(countunusedregsint);
-            exclude(usableregsint,reg);
-            exclude(unusedregsint,reg);
+            exclude(usableregsint,reg.enum);
+            exclude(unusedregsint,reg.enum);
           end
-        else if reg in fpuregs then
+        else if reg.enum in fpuregs then
           begin
              dec(countusableregsfpu);
              dec(countunusedregsfpu);
-             exclude(usableregsfpu,reg);
-             exclude(unusedregsfpu,reg);
+             exclude(usableregsfpu,reg.enum);
+             exclude(unusedregsfpu,reg.enum);
           end
-        else if reg in mmregs then
+        else if reg.enum in mmregs then
           begin
              dec(countusableregsmm);
              dec(countunusedregsmm);
-             exclude(usableregsmm,reg);
-             exclude(unusedregsmm,reg);
+             exclude(usableregsmm,reg.enum);
+             exclude(unusedregsmm,reg.enum);
           end;
-        is_reg_var[reg]:=true;
+        is_reg_var[reg.enum]:=true;
       end;
 
 
@@ -998,7 +1016,10 @@ end.
 
 {
   $Log$
-  Revision 1.20  2002-10-05 12:43:28  carl
+  Revision 1.21  2003-01-08 18:43:57  daniel
+   * Tregister changed into a record
+
+  Revision 1.20  2002/10/05 12:43:28  carl
     * fixes for Delphi 6 compilation
      (warning : Some features do not work under Delphi)
 

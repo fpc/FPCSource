@@ -41,7 +41,7 @@ type
 {$endif Test_Double_checksum}
 
 const
-  CurrentPPUVersion=29;
+  CurrentPPUVersion=30;
 
 { buffer sizes }
   maxentrysize = 1024;
@@ -985,7 +985,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.28  2002-11-15 01:58:53  peter
+  Revision 1.29  2003-01-08 18:43:56  daniel
+   * Tregister changed into a record
+
+  Revision 1.28  2002/11/15 01:58:53  peter
     * merged changes from 1.0.7 up to 04-11
       - -V option for generating bug report tracing
       - more tracing for option parsing

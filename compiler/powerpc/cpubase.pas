@@ -100,7 +100,7 @@ uses
 *****************************************************************************}
 
     type
-      tregister = (R_NO,
+      Toldregister = (R_NO,
         R_0,R_1,R_2,R_3,R_4,R_5,R_6,R_7,R_8,R_9,R_10,R_11,R_12,R_13,R_14,R_15,R_16,
         R_17,R_18,R_19,R_20,R_21,R_22,R_23,R_24,R_25,R_26,R_27,R_28,R_29,R_30,R_31,
         R_F0,R_F1,R_F2,R_F3,R_F4,R_F5,R_F6,R_F7,R_F8,R_F9,R_F10,R_F11,R_F12,
@@ -112,9 +112,14 @@ uses
         R_CR,R_CR0,R_CR1,R_CR2,R_CR3,R_CR4,R_CR5,R_CR6,R_CR7,
         R_XER,R_LR,R_CTR,R_FPSCR
       );
+      
+      Tregister=record
+        enum:Toldregister;
+        number:word;
+      end;
 
       {# Set type definition for registers }
-      tregisterset = set of tregister;
+      tregisterset = set of Toldregister;
 
       { A type to store register locations for 64 Bit values. }
       tregister64 = packed record
@@ -124,14 +129,17 @@ uses
       { alias for compact code }
       treg64 = tregister64;
 
-      {# Type definition for the array of string of register nnames }
-      treg2strtable = array[tregister] of string[5];
 
     Const
       {# First register in the tregister enumeration }
-      firstreg = low(tregister);
+      firstreg = low(Toldregister);
       {# Last register in the tregister enumeration }
-      lastreg  = high(tregister);
+      lastreg  = R_FPSCR;
+    type
+      {# Type definition for the array of string of register nnames }
+      treg2strtable = array[firstreg..lastreg] of string[5];
+
+    const
 
       R_SPR1 = R_XER;
       R_SPR8 = R_LR;
@@ -484,32 +492,32 @@ uses
       lastsavemmreg   = R_NO;
 
       maxvarregs = 17;
-      varregs : Array [1..maxvarregs] of Tregister =
+      varregs : Array [1..maxvarregs] of Toldregister =
                 (R_14,R_15,R_16,R_17,R_18,R_19,R_20,R_21,R_22,R_23,R_24,R_25,
                  R_26,R_27,R_28,R_29,R_30);
 
       maxfpuvarregs = 31-14+1;
-      fpuvarregs : Array [1..maxfpuvarregs] of Tregister =
+      fpuvarregs : Array [1..maxfpuvarregs] of Toldregister =
                 (R_F14,R_F15,R_F16,R_F17,R_F18,R_F19,R_F20,R_F21,R_F22,R_F23,
                  R_F24,R_F25,R_F26,R_F27,R_F28,R_F29,R_F30,R_F31);
 
       max_param_regs_int = 8;
-      param_regs_int: Array[1..max_param_regs_int] of tregister =
+      param_regs_int: Array[1..max_param_regs_int] of Toldregister =
         (R_3,R_4,R_5,R_6,R_7,R_8,R_9,R_10);
 
       max_param_regs_fpu = 13;
-      param_regs_fpu: Array[1..max_param_regs_fpu] of tregister =
+      param_regs_fpu: Array[1..max_param_regs_fpu] of Toldregister =
         (R_F1,R_F2,R_F3,R_F4,R_F5,R_F6,R_F7,R_F8,R_F9,R_F10,R_F11,R_F12,R_F13);
 
       max_param_regs_mm = 13;
-      param_regs_mm: Array[1..max_param_regs_mm] of tregister =
+      param_regs_mm: Array[1..max_param_regs_mm] of Toldregister =
         (R_M1,R_M2,R_M3,R_M4,R_M5,R_M6,R_M7,R_M8,R_M9,R_M10,R_M11,R_M12,R_M13);
 
       {# Registers which are defined as scratch and no need to save across
          routine calls or in assembler blocks.
       }
       max_scratch_regs = 3;
-      scratch_regs: Array[1..max_scratch_regs] of TRegister = (R_28,R_29,R_30);
+      scratch_regs: Array[1..max_scratch_regs] of Toldregister = (R_28,R_29,R_30);
 
 {*****************************************************************************
                           Default generic sizes
@@ -538,7 +546,7 @@ uses
 
       }
 
-          stab_regindex : array[tregister] of shortint =
+          stab_regindex : array[firstreg..lastreg] of shortint =
           (
            { R_NO }
            -1,
@@ -733,14 +741,17 @@ implementation
         case cond of
           C_NONE:;
           C_T..C_DZF: r.crbit := cr
-          else r.cr := tregister(ord(R_CR0)+cr);
+          else r.cr := Toldregister(ord(R_CR0)+cr);
         end;
       end;
 
 end.
 {
   $Log$
-  Revision 1.38  2002-11-25 17:43:27  peter
+  Revision 1.39  2003-01-08 18:43:58  daniel
+   * Tregister changed into a record
+
+  Revision 1.38  2002/11/25 17:43:27  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once

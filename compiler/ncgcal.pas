@@ -312,11 +312,14 @@ implementation
 
     procedure tcgcallnode.extra_interrupt_code;
 
+    var r:Tregister;
+
       begin
 {$ifdef i386}
          { if the i386 ever uses tcgcal, we've to move this into an overriden method }
          emit_none(A_PUSHF,S_L);
-         emit_reg(A_PUSH,S_L,R_CS);
+         r.enum:=R_CS;
+         emit_reg(A_PUSH,S_L,r);
 {$endif i386}
       end;
 
@@ -325,7 +328,7 @@ implementation
     procedure tcgcallnode.handle_return_value(inlined,extended_new:boolean);
       var
         cgsize : tcgsize;
-        hregister : tregister;
+        r,hregister : tregister;
       begin
         { structured results are easy to handle.... }
         { needed also when result_no_used !! }
@@ -342,9 +345,10 @@ implementation
           begin
             location_reset(location,LOC_CREFERENCE,OS_ADDR);
             location.reference:=refcountedtemp;
-            cg.a_reg_alloc(exprasmlist,accumulator);
-            cg.a_load_reg_ref(exprasmlist,OS_ADDR,accumulator,location.reference);
-            cg.a_reg_dealloc(exprasmlist,accumulator);
+            r.enum:=accumulator;
+            cg.a_reg_alloc(exprasmlist,r);
+            cg.a_load_reg_ref(exprasmlist,OS_ADDR,r,location.reference);
+            cg.a_reg_dealloc(exprasmlist,r);
           end
         else
         { we have only to handle the result if it is used }
@@ -377,21 +381,23 @@ implementation
                   if cgsize<>OS_NO then
                    begin
                      location_reset(location,LOC_REGISTER,cgsize);
-                     cg.a_reg_alloc(exprasmlist,accumulator);
+                     r.enum:=accumulator;
+                     hregister.enum:=accumulatorhigh;
+                     cg.a_reg_alloc(exprasmlist,r);
 {$ifndef cpu64bit}
                      if cgsize in [OS_64,OS_S64] then
                       begin
-                        cg.a_reg_alloc(exprasmlist,accumulatorhigh);
-                        location.registerhigh:=rg.getexplicitregisterint(exprasmlist,accumulatorhigh);
-                        location.registerlow:=rg.getexplicitregisterint(exprasmlist,accumulator);
-                        cg64.a_load64_reg_reg(exprasmlist,joinreg64(accumulator,accumulatorhigh),
+                        cg.a_reg_alloc(exprasmlist,hregister);
+                        location.registerhigh:=rg.getexplicitregisterint(exprasmlist,hregister.enum);
+                        location.registerlow:=rg.getexplicitregisterint(exprasmlist,r.enum);
+                        cg64.a_load64_reg_reg(exprasmlist,joinreg64(r,hregister),
                             location.register64);
                       end
                      else
 {$endif cpu64bit}
                       begin
-                        location.register:=rg.getexplicitregisterint(exprasmlist,accumulator);
-                        hregister:=rg.makeregsize(accumulator,cgsize);
+                        location.register:=rg.getexplicitregisterint(exprasmlist,r.enum);
+                        hregister:=rg.makeregsize(r,cgsize);
                         location.register:=rg.makeregsize(location.register,cgsize);
                         cg.a_load_reg_reg(exprasmlist,cgsize,cgsize,hregister,location.register);
                       end;
@@ -400,7 +406,7 @@ implementation
               floatdef :
                 begin
                   location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
-                  location.register:=fpu_result_reg;
+                  location.register.enum:=fpu_result_reg;
 {$ifdef x86}
                   inc(trgcpu(rg).fpuvaroffset);
 {$endif x86}
@@ -427,7 +433,8 @@ implementation
                 begin
                   location_reset(location,LOC_REGISTER,OS_INT);
                   location.register:=rg.getexplicitregisterint(exprasmlist,accumulator);
-                  cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,accumulator,location.register);
+                  r.enum:=accumulator;
+                  cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,r,location.register);
                 end;
             end;
          end;
@@ -482,6 +489,7 @@ implementation
          resultloc : tparalocation;
          returnref,
          pararef : treference;
+         r,r2:Tregister;
       label
          dont_call;
 
@@ -1033,8 +1041,9 @@ implementation
                    (inlined or
                    (right=nil)) then
                   begin
-                     cg.a_param_reg(exprasmlist,OS_ADDR,self_pointer_reg,paramanager.getintparaloc(1));
-                     reference_reset_base(href,self_pointer_reg,0);
+                     r.enum:=self_pointer_reg;
+                     cg.a_param_reg(exprasmlist,OS_ADDR,r,paramanager.getintparaloc(1));
+                     reference_reset_base(href,r,0);
                      tmpreg:=cg.get_scratch_reg_address(exprasmlist);
                      cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,tmpreg);
                      reference_reset_base(href,tmpreg,72);
@@ -1260,7 +1269,8 @@ implementation
             (methodpointer.nodetype=typen) and
             (aktprocdef.proctypeoption=potype_constructor) then
            begin
-              cg.a_cmp_const_reg_label(exprasmlist,OS_ADDR,OC_EQ,0,accumulator,faillabel);
+              r.enum:=accumulator;
+              cg.a_cmp_const_reg_label(exprasmlist,OS_ADDR,OC_EQ,0,r,faillabel);
            end;
 
          { call to AfterConstruction? }
@@ -1272,17 +1282,19 @@ implementation
            (methodpointer.nodetype<>typen) then
            begin
               objectlibrary.getlabel(constructorfailed);
-              cg.a_cmp_const_reg_label(exprasmlist,OS_ADDR,OC_EQ,0,self_pointer_reg,constructorfailed);
-              cg.a_param_reg(exprasmlist,OS_ADDR,accumulator,paramanager.getintparaloc(1));
-              reference_reset_base(href,self_pointer_reg,0);
+              r.enum:=self_pointer_reg;
+              r2.enum:=accumulator;
+              cg.a_cmp_const_reg_label(exprasmlist,OS_ADDR,OC_EQ,0,r,constructorfailed);
+              cg.a_param_reg(exprasmlist,OS_ADDR,r2,paramanager.getintparaloc(1));
+              reference_reset_base(href,r,0);
               tmpreg:=cg.get_scratch_reg_address(exprasmlist);
               cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,tmpreg);
               reference_reset_base(href,tmpreg,17*pointer_size);
               cg.a_call_ref(exprasmlist,href);
               cg.free_scratch_reg(exprasmlist,tmpreg);
-              exprasmList.concat(tai_regalloc.Alloc(accumulator));
+              exprasmList.concat(tai_regalloc.Alloc(r2));
               cg.a_label(exprasmlist,constructorfailed);
-              cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,self_pointer_reg,accumulator);
+              cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,r,r2);
            end;
 
          { handle function results }
@@ -1298,8 +1310,9 @@ implementation
            end;
 
 {$ifdef i386}
+         r.enum:=R_ESP;
          if pop_size>0 then
-           emit_const_reg(A_ADD,S_L,pop_size,R_ESP);
+           emit_const_reg(A_ADD,S_L,pop_size,r);
 {$endif i386}
 
          { restore registers }
@@ -1359,7 +1372,8 @@ implementation
                 begin
 {$ifdef i386}
                   { release FPU stack }
-                  emit_reg(A_FSTP,S_NO,R_ST);
+                  r.enum:=R_ST;
+                  emit_reg(A_FSTP,S_NO,r);
                   {
                     dec(trgcpu(rg).fpuvaroffset);
                     do NOT decrement as the increment before
@@ -1555,7 +1569,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  2002-12-15 22:50:00  florian
+  Revision 1.33  2003-01-08 18:43:56  daniel
+   * Tregister changed into a record
+
+  Revision 1.32  2002/12/15 22:50:00  florian
     + some stuff for the new hidden parameter handling added
 
   Revision 1.31  2002/12/15 21:30:12  florian

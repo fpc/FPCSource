@@ -148,8 +148,8 @@ var
      for i:=firstop to lastop do
       iasmops^[i] := upper(gas_op2str[i]);
      { opcodes }
-     for j:=firstasmreg to lastasmreg do
-      iasmregs[j] := upper(std_reg2str[j]);
+     for j.enum:=firstasmreg to lastasmreg do
+      iasmregs[j.enum] := upper(std_reg2str[j.enum]);
    end;
 
 
@@ -216,9 +216,9 @@ var
    Var
     i: tregister;
    Begin
-     for i:=firstasmreg to lastasmreg do
+     for i.enum:=firstasmreg to lastasmreg do
      begin
-      if s=iasmregs[i] then
+      if s=iasmregs[i.enum] then
       begin
         token := AS_REGISTER;
         exit;
@@ -580,16 +580,16 @@ var
    var
     i: tregister;
    begin
-     findregister := R_NO;
-     for i:=firstasmreg to lastasmreg do
-       if s = iasmregs[i] then
+     findregister.enum := R_NO;
+     for i.enum:=firstasmreg to lastasmreg do
+       if s = iasmregs[i.enum] then
        Begin
          findregister := i;
          exit;
        end;
     if s = 'A7' then
     Begin
-      findregister := R_SP;
+      findregister.enum := R_SP;
       exit;
     end;
    end;
@@ -1076,7 +1076,7 @@ type
         Message(asmr_e_wrong_scale_factor);
         opr.ref.scalefactor := 0;
      end;
-     if opr.ref.index = R_NO then
+     if opr.ref.index.enum = R_NO then
      Begin
         Message(asmr_e_wrong_base_index);
         opr.ref.scalefactor := 0;
@@ -1366,7 +1366,7 @@ type
     i: tregister;
     hl: tasmlabel;
     reg_one, reg_two: tregister;
-    reglist: set of tregister;
+    reglist: Tregisterset;
   Begin
    reglist := [];
    tempstr := '';
@@ -1527,7 +1527,7 @@ type
                    { // Individual register listing // }
                    if (actasmtoken = AS_SLASH) then
                    Begin
-                     reglist := [findregister(tempstr)];
+                     reglist := [findregister(tempstr).enum];
                      Consume(AS_SLASH);
                      if actasmtoken = AS_REGISTER then
                      Begin
@@ -1535,7 +1535,7 @@ type
                        Begin
                          case actasmtoken of
                           AS_REGISTER: Begin
-                                        reglist := reglist + [findregister(actasmpattern)];
+                                        reglist := reglist + [findregister(actasmpattern).enum];
                                         Consume(AS_REGISTER);
                                        end;
                           AS_SLASH: Consume(AS_SLASH);
@@ -1574,15 +1574,15 @@ type
                      Begin
                       { determine the register range ... }
                       reg_two:=findregister(actasmpattern);
-                      if reg_one > reg_two then
+                      if reg_one.enum > reg_two.enum then
                       begin
-                       for i:=reg_two to reg_one do
-                         reglist := reglist + [i];
+                       for i.enum:=reg_two.enum to reg_one.enum do
+                         reglist := reglist + [i.enum];
                       end
                       else
                       Begin
-                       for i:=reg_one to reg_two do
-                         reglist := reglist + [i];
+                       for i.enum:=reg_one.enum to reg_two.enum do
+                         reglist := reglist + [i.enum];
                       end;
                       Consume(AS_REGISTER);
                       if not (actasmtoken in [AS_SEPARATOR,AS_COMMA]) then
@@ -2197,7 +2197,10 @@ Begin
 end.
 {
   $Log$
-  Revision 1.10  2002-12-14 15:02:03  carl
+  Revision 1.11  2003-01-08 18:43:57  daniel
+   * Tregister changed into a record
+
+  Revision 1.10  2002/12/14 15:02:03  carl
     * maxoperands -> max_operands (for portability in rautils.pas)
     * fix some range-check errors with loadconst
     + add ncgadd unit to m68k

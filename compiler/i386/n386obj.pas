@@ -110,38 +110,47 @@ procedure ti386classheader.cgintfwrapper(asmlist: TAAsmoutput; procdef: tprocdef
   procedure getselftoeax(offs: longint);
   var
     href : treference;
+    r:Tregister;
   begin
     { mov offset(%esp),%eax }
-    reference_reset_base(href,R_ESP,getselfoffsetfromsp(procdef));
-    cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,R_EAX);
+    r.enum:=R_ESP;
+    reference_reset_base(href,r,getselfoffsetfromsp(procdef));
+    r.enum:=R_EAX;
+    cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,r);
   end;
 
   procedure loadvmttoeax;
   var
     href : treference;
+    r:Tregister;
   begin
     checkvirtual;
     { mov  0(%eax),%eax ; load vmt}
-    reference_reset_base(href,R_EAX,0);
-    emit_ref_reg(A_MOV,S_L,href,R_EAX);
+    r.enum:=R_EAX;
+    reference_reset_base(href,r,0);
+    emit_ref_reg(A_MOV,S_L,href,r);
   end;
 
   procedure op_oneaxmethodaddr(op: TAsmOp);
   var
     href : treference;
+    r:Tregister;
   begin
     { call/jmp  vmtoffs(%eax) ; method offs }
-    reference_reset_base(href,R_EAX,procdef._class.vmtmethodoffset(procdef.extnumber));
+    r.enum:=R_EAX;
+    reference_reset_base(href,r,procdef._class.vmtmethodoffset(procdef.extnumber));
     emit_ref(op,S_L,href);
   end;
 
   procedure loadmethodoffstoeax;
   var
     href : treference;
+    r:Tregister;
   begin
     { mov  vmtoffs(%eax),%eax ; method offs }
-    reference_reset_base(href,R_EAX,procdef._class.vmtmethodoffset(procdef.extnumber));
-    emit_ref_reg(A_MOV,S_L,href,R_EAX);
+    r.enum:=R_EAX;
+    reference_reset_base(href,r,procdef._class.vmtmethodoffset(procdef.extnumber));
+    emit_ref_reg(A_MOV,S_L,href,r);
   end;
 
 var
@@ -149,6 +158,7 @@ var
   lab : tasmsymbol;
   make_global : boolean;
   href : treference;
+  r:Tregister;
 begin
   if procdef.proctypeoption<>potype_none then
     Internalerror(200006137);
@@ -193,16 +203,20 @@ begin
   { case 3 }
   else if [po_virtualmethod,po_saveregisters]*procdef.procoptions=[po_virtualmethod,po_saveregisters] then
     begin
-      emit_reg(A_PUSH,S_L,R_EBX); { allocate space for address}
-      emit_reg(A_PUSH,S_L,R_EAX);
+      r.enum:=R_EBX;
+      emit_reg(A_PUSH,S_L,r); { allocate space for address}
+      r.enum:=R_EAX;
+      emit_reg(A_PUSH,S_L,r);
       getselftoeax(8);
       loadvmttoeax;
       loadmethodoffstoeax;
       { mov %eax,4(%esp) }
-      reference_reset_base(href,R_ESP,4);
-      emit_reg_ref(A_MOV,S_L,R_EAX,href);
+      r.enum:=R_ESP;
+      reference_reset_base(href,r,4);
+      r.enum:=R_EAX;
+      emit_reg_ref(A_MOV,S_L,r,href);
       { pop  %eax }
-      emit_reg(A_POP,S_L,R_EAX);
+      emit_reg(A_POP,S_L,r);
       { ret  ; jump to the address }
       emit_none(A_RET,S_L);
     end
@@ -228,7 +242,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.15  2002-08-11 14:32:30  peter
+  Revision 1.16  2003-01-08 18:43:57  daniel
+   * Tregister changed into a record
+
+  Revision 1.15  2002/08/11 14:32:30  peter
     * renamed current_library to objectlibrary
 
   Revision 1.14  2002/08/11 13:24:17  peter

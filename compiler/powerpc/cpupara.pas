@@ -60,7 +60,7 @@ unit cpupara;
          else
            begin
               result.loc:=LOC_REFERENCE;
-              result.reference.index:=stack_pointer_reg;
+              result.reference.index.enum:=stack_pointer_reg;
               result.reference.offset:=(nr-8)*4;
            end;
       end;
@@ -132,31 +132,31 @@ unit cpupara;
       procedure assignintreg;
 
         begin
-           if nextintreg<=R_10 then
+           if nextintreg.enum<=R_10 then
              begin
                 hp.paraloc.loc:=LOC_REGISTER;
                 hp.paraloc.register:=nextintreg;
-                inc(nextintreg);
+                inc(nextintreg.enum);
              end
            else
               begin
                  hp.paraloc.loc:=LOC_REFERENCE;
-                 hp.paraloc.reference.index:=stack_pointer_reg;
+                 hp.paraloc.reference.index.enum:=stack_pointer_reg;
                  hp.paraloc.reference.offset:=stack_offset;
                  inc(stack_offset,4);
              end;
         end;
 
       begin
-         nextintreg:=R_3;
-         nextfloatreg:=R_F1;
-         nextmmreg:=R_M1;
+         nextintreg.enum:=R_3;
+         nextfloatreg.enum:=R_F1;
+         nextmmreg.enum:=R_M1;
          stack_offset:=0;
          { pointer for structured results ? }
          if not is_void(p.rettype.def) then
            begin
               if not(ret_in_reg(p.rettype.def,p.proccalloption)) then
-                inc(nextintreg);
+                inc(nextintreg.enum);
            end;
 
          { frame pointer for nested procedures? }
@@ -176,22 +176,22 @@ unit cpupara;
                       if hp.paraloc.size = OS_NO then
                         hp.paraloc.size := OS_ADDR;
                       is_64bit := hp.paraloc.size in [OS_64,OS_S64];
-                      if nextintreg<=tregister(ord(R_10)-ord(is_64bit))  then
+                      if nextintreg.enum<=Toldregister(ord(R_10)-ord(is_64bit))  then
                         begin
                            hp.paraloc.loc:=LOC_REGISTER;
                            hp.paraloc.registerlow:=nextintreg;
-                           inc(nextintreg);
+                           inc(nextintreg.enum);
                            if is_64bit then
                              begin
                                hp.paraloc.registerhigh:=nextintreg;
-                               inc(nextintreg);
+                               inc(nextintreg.enum);
                              end;
                         end
                       else
                          begin
-                            nextintreg := R_11;
+                            nextintreg.enum := R_11;
                             hp.paraloc.loc:=LOC_REFERENCE;
-                            hp.paraloc.reference.index:=stack_pointer_reg;
+                            hp.paraloc.reference.index.enum:=stack_pointer_reg;
                             hp.paraloc.reference.offset:=stack_offset;
                             if not is_64bit then
                               inc(stack_offset,4)
@@ -203,12 +203,12 @@ unit cpupara;
                    begin
                       if hp.paratyp in [vs_var,vs_out] then
                         begin
-                            if nextintreg<=R_10 then
+                            if nextintreg.enum<=R_10 then
                              begin
                                 hp.paraloc.size:=OS_ADDR;
                                 hp.paraloc.loc:=LOC_REGISTER;
                                 hp.paraloc.register:=nextintreg;
-                                inc(nextintreg);
+                                inc(nextintreg.enum);
                              end
                            else
                               begin
@@ -217,12 +217,12 @@ unit cpupara;
                                  internalerror(2002071006);
                              end;
                         end
-                      else if nextfloatreg<=R_F10 then
+                      else if nextfloatreg.enum<=R_F10 then
                         begin
                            hp.paraloc.size:=def_cgsize(hp.paratype.def);
                            hp.paraloc.loc:=LOC_FPUREGISTER;
                            hp.paraloc.register:=nextfloatreg;
-                           inc(nextfloatreg);
+                           inc(nextfloatreg.enum);
                         end
                       else
                          begin
@@ -239,7 +239,7 @@ unit cpupara;
                       else
                         begin
                            hp.paraloc.loc:=LOC_REFERENCE;
-                           hp.paraloc.reference.index:=stack_pointer_reg;
+                           hp.paraloc.reference.index.enum:=stack_pointer_reg;
                            hp.paraloc.reference.offset:=stack_offset;
                            inc(stack_offset,hp.paratype.def.size);
                         end;
@@ -258,15 +258,15 @@ unit cpupara;
             enumdef:
               begin
                 getfuncretparaloc.loc:=LOC_REGISTER;
-                getfuncretparaloc.register:=R_3;
+                getfuncretparaloc.register.enum:=R_3;
                 getfuncretparaloc.size:=def_cgsize(p.rettype.def);
                 if getfuncretparaloc.size in [OS_S64,OS_64] then
-                  getfuncretparaloc.registerhigh:=R_4;
+                  getfuncretparaloc.registerhigh.enum:=R_4;
               end;
             floatdef:
               begin
                 getfuncretparaloc.loc:=LOC_FPUREGISTER;
-                getfuncretparaloc.register:=R_F1;
+                getfuncretparaloc.register.enum:=R_F1;
                 getfuncretparaloc.size:=def_cgsize(p.rettype.def);
               end;
             { smallsets are OS_INT in R3, others are OS_ADDR in R3 -> the same }
@@ -285,7 +285,7 @@ unit cpupara;
             errordef:
               begin
                 getfuncretparaloc.loc:=LOC_REGISTER;
-                getfuncretparaloc.register:=R_3;
+                getfuncretparaloc.register.enum:=R_3;
                 getfuncretparaloc.size:=OS_ADDR;
               end;
             else
@@ -299,7 +299,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2002-12-15 19:22:01  florian
+  Revision 1.19  2003-01-08 18:43:58  daniel
+   * Tregister changed into a record
+
+  Revision 1.18  2002/12/15 19:22:01  florian
     * fixed some crashes and a rte 201
 
   Revision 1.17  2002/11/25 17:43:27  peter

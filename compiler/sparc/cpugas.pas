@@ -60,16 +60,16 @@ function GetReferenceString(var ref:TReference):string;
       else
         begin
           inc(offset,offsetfixup);
-          if base<>R_NONE
+          if base.enum<>R_NONE
           then
-            GetReferenceString:=gas_reg2str[base]+'+';
-          if index<>R_NONE
+            GetReferenceString:=gas_reg2str[base.enum]+'+';
+          if index.enum<>R_NONE
           then
             begin
               if ScaleFactor<>0
               then
                 GetReferenceString:=GetReferenceString+ToStr(ScaleFactor)+'*';
-              GetReferenceString:=GetReferenceString+gas_reg2str[index]+'+';
+              GetReferenceString:=GetReferenceString+gas_reg2str[index.enum]+'+';
             end;
           if Offset=0
           then
@@ -92,7 +92,7 @@ function getopstr(const Oper:TOper):string;
     with Oper do
       case typ of
         top_reg:
-          getopstr:=gas_reg2str[reg];
+          getopstr:=gas_reg2str[reg.enum];
         top_ref:
           getopstr:='['+getreferencestring(ref^)+']';
         top_const:
@@ -114,9 +114,9 @@ function getopstr(const Oper:TOper):string;
             getopstr:=hs;
           end;
         top_raddr:
-          getopstr:=std_reg2str[reg1]+'+'+std_reg2str[reg2];
+          getopstr:=std_reg2str[reg1.enum]+'+'+std_reg2str[reg2.enum];
         top_caddr:
-          getopstr:=std_reg2str[regb]+'+'+ToStr(const13);
+          getopstr:=std_reg2str[regb.enum]+'+'+ToStr(const13);
         else
           internalerror(10001);
       end;
@@ -209,7 +209,10 @@ initialization
 end.
 {
     $Log$
-    Revision 1.10  2002-11-16 15:29:16  florian
+    Revision 1.11  2003-01-08 18:43:58  daniel
+     * Tregister changed into a record
+
+    Revision 1.10  2002/11/16 15:29:16  florian
       * fixed Cish syntax
 
     Revision 1.9  2002/11/10 19:07:46  mazen

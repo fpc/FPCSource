@@ -316,6 +316,9 @@ begin
    exit;
   if (OpOrder=op_intel) then
     SwapOperands;
+  if (operands[1].opr.typ=OPR_REGISTER) and
+      (operands[1].opr.reg.enum>lastreg) then
+    internalerror(200301081);
   case ops of
     0 : ;
     1 :
@@ -323,8 +326,7 @@ begin
       if ((opcode=A_PUSH) or
           (opcode=A_POP)) and
          (operands[1].opr.typ=OPR_REGISTER) and
-         ((operands[1].opr.reg>=firstsreg) and
-          (operands[1].opr.reg<=lastsreg)) then
+         (operands[1].opr.reg.enum in [firstsreg..lastsreg]) then
         opsize:=S_L
       else
         opsize:=operands[1].size;
@@ -380,12 +382,14 @@ begin
   end;
   { Handle the BW,BL,WL separatly }
   sizeerr:=false;
+  if (operands[1].opr.typ=OPR_REGISTER) and
+      (operands[1].opr.reg.enum>lastreg) then
+    internalerror(200301081);
   { special push/pop selector case }
   if ((opcode=A_PUSH) or
       (opcode=A_POP)) and
      (operands[1].opr.typ=OPR_REGISTER) and
-     ((operands[1].opr.reg>=firstsreg) and
-      (operands[1].opr.reg<=lastsreg)) then
+     (operands[1].opr.reg.enum in [firstsreg..lastsreg]) then
      exit;
   if opsize in [S_BW,S_BL,S_WL] then
    begin
@@ -432,12 +436,18 @@ procedure T386Instruction.CheckNonCommutativeOpcodes;
 begin
   if (OpOrder=op_intel) then
     SwapOperands;
+  if (operands[1].opr.typ=OPR_REGISTER) and
+      (operands[1].opr.reg.enum>lastreg) then
+    internalerror(200301081);
+  if (operands[2].opr.typ=OPR_REGISTER) and
+      (operands[2].opr.reg.enum>lastreg) then
+    internalerror(200301081);
   if ((ops=2) and
      (operands[1].opr.typ=OPR_REGISTER) and
      (operands[2].opr.typ=OPR_REGISTER) and
      { if the first is ST and the second is also a register
        it is necessarily ST1 .. ST7 }
-     (operands[1].opr.reg in [R_ST..R_ST0])) or
+     (operands[1].opr.reg.enum in [R_ST..R_ST0])) or
       (ops=0)  then
       if opcode=A_FSUBR then
         opcode:=A_FSUB
@@ -457,7 +467,7 @@ begin
         opcode:=A_FDIVRP;
   if  ((ops=1) and
       (operands[1].opr.typ=OPR_REGISTER) and
-      (operands[1].opr.reg in [R_ST1..R_ST7])) then
+      (operands[1].opr.reg.enum in [R_ST1..R_ST7])) then
       if opcode=A_FSUBRP then
         opcode:=A_FSUBP
       else if opcode=A_FSUBP then
@@ -561,12 +571,12 @@ begin
        ops:=2;
        operands[1].opr.typ:=OPR_REGISTER;
        operands[2].opr.typ:=OPR_REGISTER;
-       operands[1].opr.reg:=R_ST;
-       operands[2].opr.reg:=R_ST1;
+       operands[1].opr.reg.enum:=R_ST;
+       operands[2].opr.reg.enum:=R_ST1;
      end;
   if (ops=1) and
       ((operands[1].opr.typ=OPR_REGISTER) and
-      (operands[1].opr.reg in [R_ST1..R_ST7])) and
+      (operands[1].opr.reg.enum in [R_ST1..R_ST7])) and
       ((opcode=A_FSUBP) or
       (opcode=A_FSUBRP) or
       (opcode=A_FDIVP) or
@@ -586,12 +596,12 @@ begin
        ops:=2;
        operands[2].opr.typ:=OPR_REGISTER;
        operands[2].opr.reg:=operands[1].opr.reg;
-       operands[1].opr.reg:=R_ST;
+       operands[1].opr.reg.enum:=R_ST;
      end;
 
   if (ops=1) and
       ((operands[1].opr.typ=OPR_REGISTER) and
-      (operands[1].opr.reg in [R_ST1..R_ST7])) and
+      (operands[1].opr.reg.enum in [R_ST1..R_ST7])) and
       ((opcode=A_FSUB) or
       (opcode=A_FSUBR) or
       (opcode=A_FDIV) or
@@ -610,10 +620,10 @@ begin
 {$endif ATTOP}
        ops:=2;
        operands[2].opr.typ:=OPR_REGISTER;
-       operands[2].opr.reg:=R_ST;
+       operands[2].opr.reg.enum:=R_ST;
      end;
 
-   { I tried to convince Linus Torwald to add
+   { I tried to convince Linus Torvalds to add
      code to support ENTER instruction
      (when raising a stack page fault)
      but he replied that ENTER is a bad instruction and
@@ -623,9 +633,7 @@ begin
      FPC itself does not use it at all PM }
    if (opcode=A_ENTER) and ((target_info.system=system_i386_linux) or
         (target_info.system=system_i386_FreeBSD)) then
-     begin
        message(asmr_w_enter_not_supported_by_linux);
-     end;
 
   ai:=taicpu.op_none(opcode,siz);
   ai.SetOperandOrder(OpOrder);
@@ -690,7 +698,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.26  2002-11-15 01:58:58  peter
+  Revision 1.27  2003-01-08 18:43:57  daniel
+   * Tregister changed into a record
+
+  Revision 1.26  2002/11/15 01:58:58  peter
     * merged changes from 1.0.7 up to 04-11
       - -V option for generating bug report tracing
       - more tracing for option parsing

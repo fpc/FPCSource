@@ -46,18 +46,18 @@ begin
     A_MOV,A_MOVZX,A_MOVSX,A_LEA:
       canBeFirstSwitch :=
         (p.oper[1].typ = top_reg) and
-        (reg32(p.oper[1].reg) = reg);
+        (reg32(p.oper[1].reg).enum = reg.enum);
     A_IMUL:
       canBeFirstSwitch :=
         (p.ops >= 2) and
-        (reg32(p.oper[p.ops-1].reg) = reg) and
+        (reg32(p.oper[p.ops-1].reg).enum = reg.enum) and
         (p.oper[0].typ <> top_ref) and
         (not pTaiprop(p.optinfo)^.FlagsUsed);
     A_INC,A_DEC,A_SUB,A_ADD:
       canBeFirstSwitch :=
         (p.oper[1].typ = top_reg) and
         (p.opsize = S_L) and
-        (reg32(p.oper[1].reg) = reg) and
+        (reg32(p.oper[1].reg).enum = reg.enum) and
         (p.oper[0].typ <> top_ref) and
         ((p.opcode <> A_SUB) or
          (p.oper[0].typ = top_const)) and
@@ -66,7 +66,7 @@ begin
       canBeFirstSwitch :=
         (p.opsize = S_L) and
         (p.oper[1].typ = top_reg) and
-        (p.oper[1].reg = reg) and
+        (p.oper[1].reg.enum = reg.enum) and
         (p.oper[0].typ = top_const) and
         (p.oper[0].val in [1,2,3]) and
         (not pTaiprop(p.optinfo)^.FlagsUsed);
@@ -75,22 +75,28 @@ end;
 
 procedure switchReg(var reg: tregister; reg1, reg2: tregister);
 begin
-  if reg = reg1 then
+  if reg1.enum>lastreg then
+    internalerror(2003010801);
+  if reg2.enum>lastreg then
+    internalerror(2003010801);
+  if reg.enum>lastreg then
+    internalerror(2003010801);
+  if reg.enum = reg1.enum then
     reg := reg2
-  else if reg = reg2 then
+  else if reg.enum = reg2.enum then
     reg := reg1
-  else if (reg in regset8bit) then
+  else if (reg.enum in regset8bit) then
     begin
-      if (reg = rg.makeregsize(reg1,OS_8)) then
+      if (reg.enum = rg.makeregsize(reg1,OS_8).enum) then
         reg := rg.makeregsize(reg2,OS_8)
-      else if reg = rg.makeregsize(reg2,OS_8) then
+      else if reg.enum = rg.makeregsize(reg2,OS_8).enum then
         reg := rg.makeregsize(reg1,OS_8);
     end
-  else if (reg in regset16bit) then
+  else if (reg.enum in regset16bit) then
     begin
-      if reg = rg.makeregsize(reg1,OS_16) then
+      if reg.enum = rg.makeregsize(reg1,OS_16).enum then
         reg := rg.makeregsize(reg2,OS_16)
-      else if reg = rg.makeregsize(reg2,OS_16) then
+      else if reg.enum = rg.makeregsize(reg2,OS_16).enum then
         reg := rg.makeregsize(reg1,OS_16);
     end;
 end;
@@ -211,8 +217,8 @@ begin
           { "mov %oldReg,%newReg; <operations on %newReg>; mov %newReg, }
           { %oldReg" to "<operations on %oldReg>"                       }
           switchLast := storeBack(endP,reg1,reg2);
-          reg1StillUsed := reg1 in pTaiprop(endp.optinfo)^.usedregs;
-          reg2StillUsed := reg2 in pTaiprop(endp.optinfo)^.usedregs;
+          reg1StillUsed := reg1.enum in pTaiprop(endp.optinfo)^.usedregs;
+          reg2StillUsed := reg2.enum in pTaiprop(endp.optinfo)^.usedregs;
           isInstruction := endp.typ = ait_instruction;
           sequenceEnd :=
             switchLast or
@@ -293,9 +299,9 @@ begin
                 else
                   doReplaceReg(Taicpu(hp),reg2,reg1);
             end;
-          if regininstruction(reg1,hp) then
+          if regininstruction(reg1.enum,hp) then
              lastreg1 := hp;
-          if regininstruction(reg2,hp) then
+          if regininstruction(reg2.enum,hp) then
              lastreg2 := hp;
           getNextInstruction(hp,hp);
         end;
@@ -325,8 +331,8 @@ begin
                      (Taicpu(p).oper[0].typ = top_reg) and
                      (Taicpu(p).oper[1].typ = top_reg) and
                      (Taicpu(p).opsize = S_L) and
-                     (Taicpu(p).oper[0].reg in (rg.usableregsint+[R_EDI])) and
-                     (Taicpu(p).oper[1].reg in (rg.usableregsint+[R_EDI])) then
+                     (Taicpu(p).oper[0].reg.enum in (rg.usableregsint+[R_EDI])) and
+                     (Taicpu(p).oper[1].reg.enum in (rg.usableregsint+[R_EDI])) then
                     if switchRegs(asml,Taicpu(p).oper[0].reg,
                          Taicpu(p).oper[1].reg,p) then
                       begin
@@ -350,7 +356,10 @@ End.
 
 {
   $Log$
-  Revision 1.18  2002-07-01 18:46:34  peter
+  Revision 1.19  2003-01-08 18:43:57  daniel
+   * Tregister changed into a record
+
+  Revision 1.18  2002/07/01 18:46:34  peter
     * internal linker
     * reorganized aasm layer
 

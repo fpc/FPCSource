@@ -65,7 +65,7 @@ unit cpupara;
     function tm68kparamanager.getselflocation(p : tabstractprocdef) : tparalocation;
       begin
          getselflocation.loc:=LOC_REFERENCE;
-         getselflocation.reference.index:=R_SP;
+         getselflocation.reference.index.enum:=R_SP;
          getselflocation.reference.offset:=4;
       end;
 
@@ -75,7 +75,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2002-12-14 15:02:03  carl
+  Revision 1.3  2003-01-08 18:43:57  daniel
+   * Tregister changed into a record
+
+  Revision 1.2  2002/12/14 15:02:03  carl
     * maxoperands -> max_operands (for portability in rautils.pas)
     * fix some range-check errors with loadconst
     + add ncgadd unit to m68k

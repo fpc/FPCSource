@@ -542,7 +542,7 @@ implementation
           { clear flags }
             flags:=0;
           { standard frame pointer }
-            framepointer:=frame_pointer_reg;
+            framepointer.enum:=frame_pointer_reg;
           { is this a nested function of a method ? }
             if assigned(oldprocinfo) then
               _class:=oldprocinfo._class;
@@ -844,7 +844,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.87  2003-01-03 20:35:08  peter
+  Revision 1.88  2003-01-08 18:43:56  daniel
+   * Tregister changed into a record
+
+  Revision 1.87  2003/01/03 20:35:08  peter
     * check also interfacedef when checking for matching forwarddef
 
   Revision 1.86  2003/01/02 11:14:02  michael

@@ -106,7 +106,7 @@ Procedure SetupTables;
 { creates uppercased symbol tables for speed access }
 var
   i : tasmop;
-  j : tregister;
+  j : Toldregister;
   str2opentry: tstr2opentry;
 Begin
   { opcodes }
@@ -235,14 +235,14 @@ end;
 
 Function is_register(const s: string):boolean;
 Var
-  i : tregister;
+  i : Toldregister;
 Begin
-  actasmregister:=R_NO;
+  actasmregister.enum:=R_NO;
   for i:=firstreg to lastreg do
    if s=iasmregs^[i] then
     begin
       actasmtoken:=AS_REGISTER;
-      actasmregister:=i;
+      actasmregister.enum:=i;
       is_register:=true;
       exit;
     end;
@@ -1168,7 +1168,9 @@ Begin
       Begin
         { Check if there is already a base (mostly ebp,esp) than this is
           not allowed,becuase it will give crashing code }
-        if opr.ref.base<>R_NO then
+        if opr.ref.base.enum>lastreg then
+          internalerror(200301081);
+        if opr.ref.base.enum<>R_NO then
          Message(asmr_e_cannot_index_relative_var);
         opr.ref.base:=actasmregister;
         Consume(AS_REGISTER);
@@ -1429,7 +1431,9 @@ Begin
          begin
            opr.typ:=OPR_REGISTER;
            opr.reg:=actasmregister;
-           size:=reg_2_opsize[actasmregister];
+           if opr.reg.enum>lastreg then
+             internalerror(200301081);
+           size:=reg_2_opsize[actasmregister.enum];
            Consume(AS_REGISTER);
          end
         else
@@ -1582,7 +1586,7 @@ Begin
              Message(asmr_e_invalid_operand_type);
            opr.typ:=OPR_REGISTER;
            opr.reg:=tempreg;
-           size:=reg_2_opsize[tempreg];
+           size:=reg_2_opsize[tempreg.enum];
          end
         else
          Message(asmr_e_syn_operand);
@@ -2122,7 +2126,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.35  2002-12-14 15:02:03  carl
+  Revision 1.36  2003-01-08 18:43:57  daniel
+   * Tregister changed into a record
+
+  Revision 1.35  2002/12/14 15:02:03  carl
     * maxoperands -> max_operands (for portability in rautils.pas)
     * fix some range-check errors with loadconst
     + add ncgadd unit to m68k

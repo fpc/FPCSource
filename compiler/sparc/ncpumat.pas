@@ -150,7 +150,7 @@ implementation
              rg.ungetregister(exprasmlist,divider);
            end;
        { free used registers }
-        if numerator <> resultreg then
+        if numerator.enum <> resultreg.enum then
           rg.ungetregisterint(exprasmlist,numerator);
         { set result location }
         location.loc:=LOC_REGISTER;
@@ -174,6 +174,7 @@ procedure tSparcshlshrnode.pass_2;
     asmop1, asmop2: tasmop;
     shiftval: aword;
     saved : tmaybesave;
+    r:Tregister;
   begin
     secondpass(left);
     maybe_save(exprasmlist,right.registers32,left.location,saved);
@@ -252,6 +253,7 @@ procedure tSparcshlshrnode.pass_2;
                 location.registerhigh := location.registerlow;
                 location.registerlow := resultreg;
               end;
+            r.enum:=R_G0;
             rg.getexplicitregisterint(exprasmlist,R_G0);
 {            exprasmlist.concat(taicpu.op_reg_reg_const(A_SUBFIC,R_0,hregister1,32));
             exprasmlist.concat(taicpu.op_reg_reg_reg(asmop1,location.registerhigh,hregisterhigh,hregister1));
@@ -261,7 +263,7 @@ procedure tSparcshlshrnode.pass_2;
             exprasmlist.concat(taicpu.op_reg_reg_reg(asmop1,R_0,hregisterlow,R_0));
             exprasmlist.concat(taicpu.op_reg_reg_reg(A_OR,location.registerhigh,location.registerhigh,R_0));
             exprasmlist.concat(taicpu.op_reg_reg_reg(asmop1,location.registerlow,hregisterlow,hregister1));}
-            rg.ungetregister(exprasmlist,R_G0);
+            rg.ungetregister(exprasmlist,r);
             if right.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]
             then
               cg.free_scratch_reg(exprasmlist,hregister1)
@@ -475,7 +477,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2002-12-30 21:17:22  mazen
+  Revision 1.3  2003-01-08 18:43:58  daniel
+   * Tregister changed into a record
+
+  Revision 1.2  2002/12/30 21:17:22  mazen
   - unit cga no more used in sparc compiler.
 
   Revision 1.1  2002/12/21 23:22:59  mazen

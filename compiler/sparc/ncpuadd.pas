@@ -475,7 +475,7 @@ procedures }
       location_reset(location,LOC_FLAGS,OS_NO);
     //load_left_right(cmpop, (cs_check_overflow in aktlocalswitches) and
     //(nodetype in [addn,subn,muln]));
-    if(location.register = R_NO)and not(cmpop)
+    if(location.register.enum = R_NO)and not(cmpop)
     then
       location.register := rg.getregisterint(exprasmlist);
     if not(cs_check_overflow in aktlocalswitches)or cmpop or (nodetype in [orn,andn,xorn])
@@ -573,7 +573,10 @@ begin
 end.
 {
     $Log$
-    Revision 1.5  2003-01-07 22:03:40  mazen
+    Revision 1.6  2003-01-08 18:43:58  daniel
+     * Tregister changed into a record
+
+    Revision 1.5  2003/01/07 22:03:40  mazen
     * adding unequaln node support to sparc compiler
 
     Revision 1.4  2002/12/30 21:17:22  mazen

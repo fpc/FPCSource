@@ -65,14 +65,14 @@ implementation
            begin
               emit_none(A_FLD1,S_NO);
               location.loc:=LOC_FPUREGISTER;
-              location.register:=R_ST;
+              location.register.enum:=R_ST;
               inc(trgcpu(rg).fpuvaroffset);
            end
          else if (value_real=0.0) then
            begin
               emit_none(A_FLDZ,S_NO);
               location.loc:=LOC_FPUREGISTER;
-              location.register:=R_ST;
+              location.register.enum:=R_ST;
               inc(trgcpu(rg).fpuvaroffset);
            end
          else
@@ -85,7 +85,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2002-05-18 13:34:25  peter
+  Revision 1.17  2003-01-08 18:43:57  daniel
+   * Tregister changed into a record
+
+  Revision 1.16  2002/05/18 13:34:25  peter
     * readded missing revisions
 
   Revision 1.15  2002/05/16 19:46:51  carl

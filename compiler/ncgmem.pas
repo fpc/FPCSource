@@ -352,12 +352,12 @@ implementation
             is_class(resulttype.def) then
           begin
             location_reset(location,LOC_CREGISTER,OS_ADDR);
-            location.register:=SELF_POINTER_REG;
+            location.register.enum:=SELF_POINTER_REG;
           end
          else
            begin
              location_reset(location,LOC_CREFERENCE,OS_ADDR);
-             location.reference.base:=SELF_POINTER_REG;
+             location.reference.base.enum:=SELF_POINTER_REG;
            end;
       end;
 
@@ -386,7 +386,7 @@ implementation
                secondpass(left);
 {$ifdef i386}
                if (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and
-                  (left.location.reference.segment<>R_NO) then
+                  (left.location.reference.segment.enum<>R_NO) then
                  message(parser_e_no_with_for_variable_in_other_segments);
 {$endif i386}
 
@@ -521,12 +521,12 @@ implementation
 
      procedure tcgvecnode.update_reference_reg_mul(reg:tregister;l:aword);
        begin
-         if location.reference.base=R_NO then
+         if location.reference.base.enum=R_NO then
           begin
             cg.a_op_const_reg(exprasmlist,OP_IMUL,l,reg);
             location.reference.base:=reg;
           end
-         else if location.reference.index=R_NO then
+         else if location.reference.index.enum=R_NO then
           begin
             cg.a_op_const_reg(exprasmlist,OP_IMUL,l,reg);
             location.reference.index:=reg;
@@ -924,7 +924,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.39  2002-12-20 18:13:19  peter
+  Revision 1.40  2003-01-08 18:43:56  daniel
+   * Tregister changed into a record
+
+  Revision 1.39  2002/12/20 18:13:19  peter
     * no rangecheck for openarrays with cdecl
 
   Revision 1.38  2002/12/17 22:19:33  peter

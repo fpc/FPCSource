@@ -221,32 +221,38 @@ interface
       begin
         with ref do
          begin
+           if segment.enum>lastreg then
+              internalerror(200301081);
+           if base.enum>lastreg then
+              internalerror(200301081);
+           if index.enum>lastreg then
+              internalerror(200301081);
            AsmWrite('[');
            first:=true;
            inc(offset,offsetfixup);
            offsetfixup:=0;
-           if ref.segment<>R_NO then
-            AsmWrite(std_reg2str[segment]+':');
+           if segment.enum<>R_NO then
+            AsmWrite(std_reg2str[segment.enum]+':');
            if assigned(symbol) then
             begin
               AsmWrite(symbol.name);
               first:=false;
             end;
-           if (base<>R_NO) then
+           if (base.enum<>R_NO) then
             begin
               if not(first) then
                AsmWrite('+')
               else
                first:=false;
-              AsmWrite(int_nasmreg2str[base]);
+              AsmWrite(int_nasmreg2str[base.enum]);
             end;
-           if (index<>R_NO) then
+           if (index.enum<>R_NO) then
              begin
                if not(first) then
                  AsmWrite('+')
                else
                  first:=false;
-               AsmWrite(int_nasmreg2str[index]);
+               AsmWrite(int_nasmreg2str[index.enum]);
                if scalefactor<>0 then
                  AsmWrite('*'+tostr(scalefactor));
              end;
@@ -271,7 +277,11 @@ interface
       begin
         case o.typ of
           top_reg :
-            AsmWrite(int_nasmreg2str[o.reg]);
+            begin
+              if o.reg.enum>lastreg then
+                internalerror(200301081);
+              AsmWrite(int_nasmreg2str[o.reg.enum]);
+            end;
           top_const :
             begin
               if (ops=1) and (opcode<>A_RET) then
@@ -313,7 +323,11 @@ interface
       begin
         case o.typ of
           top_reg :
-            AsmWrite(int_nasmreg2str[o.reg]);
+            begin
+              if o.reg.enum>lastreg then
+                internalerror(200301081);
+              AsmWrite(int_nasmreg2str[o.reg.enum]);
+            end;
           top_ref :
             WriteReference(o.ref^);
           top_const :
@@ -433,7 +447,7 @@ interface
            ait_regalloc :
              begin
                if (cs_asm_regalloc in aktglobalswitches) then
-                 AsmWriteLn(target_asm.comment+'Register '+std_reg2str[tai_regalloc(hp).reg]+
+                 AsmWriteLn(target_asm.comment+'Register '+std_reg2str[tai_regalloc(hp).reg.enum]+
                    allocstr[tai_regalloc(hp).allocation]);
              end;
 
@@ -643,9 +657,9 @@ interface
                  begin
                    taicpu(hp).ops:=2;
                    taicpu(hp).oper[0].typ:=top_reg;
-                   taicpu(hp).oper[0].reg:=R_ST1;
+                   taicpu(hp).oper[0].reg.enum:=R_ST1;
                    taicpu(hp).oper[1].typ:=top_reg;
-                   taicpu(hp).oper[1].reg:=R_ST;
+                   taicpu(hp).oper[1].reg.enum:=R_ST;
                  end;
                if taicpu(hp).opcode=A_FWAIT then
                 AsmWriteln(#9#9'DB'#9'09bh')
@@ -658,8 +672,7 @@ interface
                      ((taicpu(hp).opcode=A_PUSH) or
                       (taicpu(hp).opcode=A_POP)) and
                       (taicpu(hp).oper[0].typ=top_reg) and
-                      ((taicpu(hp).oper[0].reg>=firstsreg) and
-                       (taicpu(hp).oper[0].reg<=lastsreg)) then
+                      ((taicpu(hp).oper[0].reg.enum in [firstsreg..lastsreg])) then
                     AsmWriteln(#9#9'DB'#9'066h');
                   AsmWrite(#9#9+std_op2str[taicpu(hp).opcode]+cond2str[taicpu(hp).condition]);
                   if taicpu(hp).ops<>0 then
@@ -895,7 +908,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.29  2002-12-24 18:10:34  peter
+  Revision 1.30  2003-01-08 18:43:57  daniel
+   * Tregister changed into a record
+
+  Revision 1.29  2002/12/24 18:10:34  peter
     * Long symbol names support
 
   Revision 1.28  2002/11/17 16:31:59  carl

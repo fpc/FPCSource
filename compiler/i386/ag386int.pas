@@ -158,11 +158,17 @@ interface
       begin
         with ref do
          begin
+           if segment.enum>lastreg then
+             internalerror(200301081);
+           if base.enum>lastreg then
+             internalerror(200301081);
+           if index.enum>lastreg then
+             internalerror(200301081);
            first:=true;
            inc(offset,offsetfixup);
            offsetfixup:=0;
-           if ref.segment<>R_NO then
-            AsmWrite(std_reg2str[segment]+':[')
+           if segment.enum<>R_NO then
+            AsmWrite(std_reg2str[segment.enum]+':[')
            else
             AsmWrite('[');
            if assigned(symbol) then
@@ -172,21 +178,21 @@ interface
               AsmWrite(symbol.name);
               first:=false;
             end;
-           if (base<>R_NO) then
+           if (base.enum<>R_NO) then
             begin
               if not(first) then
                AsmWrite('+')
               else
                first:=false;
-               AsmWrite(std_reg2str[base]);
+               AsmWrite(std_reg2str[base.enum]);
             end;
-           if (index<>R_NO) then
+           if (index.enum<>R_NO) then
             begin
               if not(first) then
                AsmWrite('+')
               else
                first:=false;
-              AsmWrite(std_reg2str[index]);
+              AsmWrite(std_reg2str[index.enum]);
               if scalefactor<>0 then
                AsmWrite('*'+tostr(scalefactor));
             end;
@@ -211,7 +217,11 @@ interface
       begin
         case o.typ of
           top_reg :
-            AsmWrite(std_reg2str[o.reg]);
+            begin
+              if o.reg.enum>lastreg then
+                internalerror(200301081);
+              AsmWrite(std_reg2str[o.reg.enum]);
+            end;
           top_const :
             AsmWrite(tostr(longint(o.val)));
           top_symbol :
@@ -270,7 +280,11 @@ interface
     begin
       case o.typ of
         top_reg :
-          AsmWrite(std_reg2str[o.reg]);
+          begin
+            if o.reg.enum>lastreg then
+              internalerror(200301081);
+            AsmWrite(std_reg2str[o.reg.enum]);
+          end;
         top_const :
           AsmWrite(tostr(longint(o.val)));
         top_symbol :
@@ -414,7 +428,7 @@ interface
            ait_regalloc :
              begin
                if (cs_asm_regalloc in aktglobalswitches) then
-                 AsmWriteLn(target_asm.comment+'Register '+std_reg2str[tai_regalloc(hp).reg]+
+                 AsmWriteLn(target_asm.comment+'Register '+std_reg2str[tai_regalloc(hp).reg.enum]+
                    allocstr[tai_regalloc(hp).allocation]);
              end;
 
@@ -605,8 +619,7 @@ interface
                           ((taicpu(hp).opcode=A_PUSH) or
                            (taicpu(hp).opcode=A_POP)) and
                            (taicpu(hp).oper[0].typ=top_reg) and
-                           ((taicpu(hp).oper[0].reg>=firstsreg) and
-                            (taicpu(hp).oper[0].reg<=lastsreg)) then
+                           ((taicpu(hp).oper[0].reg.enum in [firstsreg..lastsreg])) then
                          AsmWriteln(#9#9'DB'#9'066h');
                        { added prefix instructions, must be on same line as opcode }
                        if (taicpu(hp).ops = 0) and
@@ -844,7 +857,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.31  2002-12-24 18:10:34  peter
+  Revision 1.32  2003-01-08 18:43:57  daniel
+   * Tregister changed into a record
+
+  Revision 1.31  2002/12/24 18:10:34  peter
     * Long symbol names support
 
   Revision 1.30  2002/11/17 16:31:58  carl

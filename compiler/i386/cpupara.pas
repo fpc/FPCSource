@@ -121,7 +121,7 @@ unit cpupara;
     function ti386paramanager.getselflocation(p : tabstractprocdef) : tparalocation;
       begin
          getselflocation.loc:=LOC_REFERENCE;
-         getselflocation.reference.index:=R_ESP;
+         getselflocation.reference.index.enum:=R_ESP;
          getselflocation.reference.offset:=4;
       end;
 
@@ -130,7 +130,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2002-12-24 15:56:50  peter
+  Revision 1.8  2003-01-08 18:43:57  daniel
+   * Tregister changed into a record
+
+  Revision 1.7  2002/12/24 15:56:50  peter
     * stackpointer_alloc added for adjusting ESP. Win32 needs
       this for the pageprotection
 
