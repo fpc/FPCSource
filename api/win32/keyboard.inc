@@ -218,6 +218,7 @@ begin
      exit;
    SetKeyboardEventHandler(nil);     {hangs???}
    DeleteCriticalSection (lockVar);
+   FlushConsoleInputBuffer(TextRec(Input).Handle);
    closeHandle (newKeyEvent);
    KeyboardActive:=false;
 end;
@@ -787,7 +788,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-01-06 01:20:31  peter
+  Revision 1.2  2000-05-19 13:02:25  pierre
+   * Empty the keyboard buffer in DoneKeyboard
+
+  Revision 1.1  2000/01/06 01:20:31  peter
     * moved out of packages/ back to topdir
 
   Revision 1.2  1999/12/13 14:09:37  pierre
