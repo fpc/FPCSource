@@ -1968,7 +1968,10 @@
     function tarraydef.alignment : longint;
       begin
          { alignment is the size of the elements }
-         alignment:=elesize;
+         if elementtype.def^.deftype=recorddef then
+          alignment:=elementtype.def^.alignment
+         else
+          alignment:=elesize;
       end;
 
 
@@ -4257,7 +4260,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.14  2000-08-27 20:19:39  peter
+  Revision 1.15  2000-09-09 18:36:40  peter
+    * fixed C alignment of array of record (merged)
+
+  Revision 1.14  2000/08/27 20:19:39  peter
     * store strings with case in ppu, when an internal symbol is created
       a '$' is prefixed so it's not automatic uppercased
 
