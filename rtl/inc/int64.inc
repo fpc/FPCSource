@@ -232,23 +232,11 @@
       var
          sign : boolean;
          q1,q2 : qword;
-{$ifdef SUPPORT_COMP}
-         c : comp;
-{$endif}
 
       begin
          if n=0 then
            HandleErrorFrame(200,get_frame);
          { can the fpu do the work? }
-{$ifdef support_comp}
-         if fpuint64 then
-           begin
-              // the c:=comp(...) is necessary to shut up the compiler
-              c:=comp(comp(z)/comp(n));
-              fpc_div_int64:=qword(c);
-           end
-         else
-{$endif}
            begin
               sign:=false;
               if z<0 then
@@ -373,33 +361,13 @@
            end;
       end;
 
-    {    multiplies two int64 ....
-       fpuint64 = false:
-         ... using the the qword multiplication
-       fpuint64 = true:
-         ... using the comp multiplication
-       the longbool for checkoverflow avoids a misaligned stack
-     }
     function fpc_mul_int64(f1,f2 : int64;checkoverflow : longbool) : int64;[public,alias: 'FPC_MUL_INT64']; {$ifdef hascompilerproc} compilerproc; {$endif}
 
       var
          sign : boolean;
          q1,q2,q3 : qword;
-{$ifdef support_comp}
-         c : comp;
-{$endif}
 
       begin
-{$ifdef support_comp}
-         { can the fpu do the work ? }
-         if fpuint64 and not(checkoverflow) then
-           begin
-              // the c:=comp(...) is necessary to shut up the compiler
-              c:=comp(comp(f1)*comp(f2));
-              fpc_mul_int64:=int64(c);
-           end
-         else
-{$endif}
            begin
               sign:=false;
               if f1<0 then
@@ -627,7 +595,10 @@
 
 {
   $Log$
-  Revision 1.16  2002-09-07 15:07:45  peter
+  Revision 1.17  2002-09-07 21:21:42  carl
+    - remove FPUInt64 variable
+
+  Revision 1.16  2002/09/07 15:07:45  peter
     * old logs removed and tabs fixed
 
   Revision 1.15  2002/09/01 14:44:01  peter
