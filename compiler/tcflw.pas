@@ -286,7 +286,7 @@ implementation
           hp:=hp^.left;
          { we need a simple loadn, but the load must be in a global symtable or
            in the same lexlevel }
-         if (hp^.treetype<>loadn) or
+         if not(hp^.treetype in [loadn,funcretn]) or
             ((hp^.symtable^.symtablelevel>1) and (hp^.symtable^.symtablelevel<>lexlevel)) then
           CGMessagePos(hp^.fileinfo,cg_e_illegal_count_var)
          else
@@ -551,7 +551,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.32  2000-01-07 01:14:45  peter
+  Revision 1.33  2000-02-01 09:43:22  peter
+    * allow funcret also as counter variable
+
+  Revision 1.32  2000/01/07 01:14:45  peter
     * updated copyright to 2000
 
   Revision 1.31  1999/12/14 09:58:42  florian
