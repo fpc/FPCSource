@@ -7,7 +7,7 @@ name=x11
 version=1.0.8
 
 [target]
-units=x xlib xutil xresource xcms xshm xrender
+units=x xlib xutil xresource xcms xshm xrender keysym
 
 [require]
 libc=y
