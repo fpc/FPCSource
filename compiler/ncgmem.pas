@@ -74,7 +74,7 @@ interface
        private
          procedure rangecheck_array;
        protected
-         function get_mul_size : aword;
+         function get_mul_size : longint;
          {# This routine is used to calculate the address of the reference.
             On entry reg contains the index in the array,
            and l contains the size of each element in the array.
@@ -505,7 +505,7 @@ implementation
                             TCGVECNODE
 *****************************************************************************}
 
-     function tcgvecnode.get_mul_size : aword;
+     function tcgvecnode.get_mul_size : longint;
        begin
          if nf_memindex in flags then
           get_mul_size:=1
@@ -556,42 +556,47 @@ implementation
        var
          freereg : boolean;
          hightree : tnode;
-         srsym : tsym;
          poslabel,
          neglabel : tasmlabel;
          hreg : tregister;
-         href : treference;
          pushed : tpushedsaved;
        begin
          if is_open_array(left.resulttype.def) or
             is_array_of_const(left.resulttype.def) then
           begin
-            { Get high value }
-            hightree:=load_high_value(tvarsym(tloadnode(left).symtableentry));
-            firstpass(hightree);
-            secondpass(hightree);
-            { generate compares }
-            freereg:=false;
-            if (right.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-              hreg:=right.location.register
-            else
-              begin
-                hreg := cg.get_scratch_reg_int(exprasmlist);
-                freereg:=true;
-                cg.a_load_loc_reg(exprasmlist,right.location,hreg);
-              end;
-            objectlibrary.getlabel(neglabel);
-            objectlibrary.getlabel(poslabel);
-            cg.a_cmp_const_reg_label(exprasmlist,OS_INT,OC_LT,0,hreg,poslabel);
-            cg.a_cmp_loc_reg_label(exprasmlist,OS_INT,OC_BE,hightree.location,hreg,neglabel);
-            if freereg then
-              cg.free_scratch_reg(exprasmlist,hreg);
-            cg.a_label(exprasmlist,poslabel);
-            cg.a_call_name(exprasmlist,'FPC_RANGEERROR');
-            cg.a_label(exprasmlist,neglabel);
-            { release hightree }
-            location_release(exprasmlist,hightree.location);
-            hightree.free;
+            { cdecl functions don't have high() so we can not check the range }
+            if not(aktprocdef.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
+             begin
+               { Get high value }
+               hightree:=load_high_value(tvarsym(tloadnode(left).symtableentry));
+               { it must be available }
+               if not assigned(hightree) then
+                 internalerror(200212201);
+               firstpass(hightree);
+               secondpass(hightree);
+               { generate compares }
+               freereg:=false;
+               if (right.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+                 hreg:=right.location.register
+               else
+                 begin
+                   hreg := cg.get_scratch_reg_int(exprasmlist);
+                   freereg:=true;
+                   cg.a_load_loc_reg(exprasmlist,right.location,hreg);
+                 end;
+               objectlibrary.getlabel(neglabel);
+               objectlibrary.getlabel(poslabel);
+               cg.a_cmp_const_reg_label(exprasmlist,OS_INT,OC_LT,0,hreg,poslabel);
+               cg.a_cmp_loc_reg_label(exprasmlist,OS_INT,OC_BE,hightree.location,hreg,neglabel);
+               if freereg then
+                 cg.free_scratch_reg(exprasmlist,hreg);
+               cg.a_label(exprasmlist,poslabel);
+               cg.a_call_name(exprasmlist,'FPC_RANGEERROR');
+               cg.a_label(exprasmlist,neglabel);
+               { release hightree }
+               location_release(exprasmlist,hightree.location);
+               hightree.free;
+             end;
           end
          else
           if is_dynamic_array(left.resulttype.def) then
@@ -919,7 +924,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.38  2002-12-17 22:19:33  peter
+  Revision 1.39  2002-12-20 18:13:19  peter
+    * no rangecheck for openarrays with cdecl
+
+  Revision 1.38  2002/12/17 22:19:33  peter
     * fixed pushing of records>8 bytes with stdcall
     * simplified hightree loading
 
