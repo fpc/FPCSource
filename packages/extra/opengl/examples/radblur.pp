@@ -361,6 +361,7 @@ end;
 
 
 begin
+  glutInit(@argc, argv);
   glutInitDisplayMode(GLUT_RGB or GLUT_DOUBLE or GLUT_DEPTH);
   glutCreateWindow(WND_TITLE);
   glutDisplayFunc(@DisplayWindow);

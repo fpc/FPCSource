@@ -868,6 +868,7 @@ begin
   writeln(' [ESC]   - Quit');
   _object:=3;
 
+  glutInit(@argc, argv);
   glutInitWindowPosition(0,0);
   glutInitWindowSize(640,480);
 
@@ -915,7 +916,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2002-12-18 13:33:20  pierre
+  Revision 1.3  2004-11-24 20:49:03  jonas
+    + added glutInit() calls where they were missing
+    * made sure that the glutDisplayFunc() is registered in time (new check
+      as of glut 3.0)
+    -> all demos now work under Mac OS X!
+
+  Revision 1.2  2002/12/18 13:33:20  pierre
    * objfpc mode added to be able to compile the demos correctly from IDE
 
   Revision 1.1  2002/10/13 14:01:45  sg

@@ -99,6 +99,8 @@ begin
 end;
 
 begin
+  glutInit(@argc, argv);
+
   glutInitDisplayMode(GLUT_RGB or GLUT_DOUBLE or GLUT_DEPTH);
   glutCreateWindow('Free Pascal GLUT demo');
   glutDisplayFunc(@DisplayWindow);
