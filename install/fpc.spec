@@ -13,11 +13,14 @@ BuildRequires: fpc
 
 %define fpcdir %{_libdir}/fpc/%{version}
 %define docdir %{_docdir}/fpc-%{version}
+%define exampledir %{docdir}/examples
 
 %define builddocdir %{buildroot}%{docdir}
 %define buildmandir %{buildroot}%{_mandir}
 %define buildbindir %{buildroot}%{_bindir}
 %define buildlibdir %{buildroot}%{_libdir}
+%define buildexampledir %{buildroot}%{exampledir}
+
 
 %description
 The Free Pascal Compiler is a Turbo Pascal 7.0 and Delphi compatible 32bit
@@ -28,17 +31,23 @@ exceptions,ansistrings,RTTI). This package contains commandline compiler and
 utils. Provided units are the runtime library (RTL), free component library
 (FCL), gtk,ncurses,zlib, mysql,postgres,ibase bindings.
 
+###############################################################################
+# fpc.rpm
+#
+
 %prep
 %setup -c
 
 %build
 NEWPP=`pwd`/compiler/ppc386
+NEWFPDOC=`pwd`/utils/fpdoc/fpdoc
 	make compiler_cycle
 	make rtl_clean rtl_smart FPC=${NEWPP}
 	make packages_base_smart FPC=${NEWPP}
 	make fcl_smart FPC=${NEWPP}
 	make packages_extra_smart FPC=${NEWPP}
 	make utils_all FPC=${NEWPP}
+	make -C docs pdf FPDOC=${NEWFPDOC}
 
 %install
 if [ %{buildroot} != "/" ]; then
@@ -54,9 +63,11 @@ INSTALLOPTS="FPC=${NEWPP} INSTALL_PREFIX=%{buildroot}/usr INSTALL_LIBDIR=%{build
 	make fcl_distinstall ${INSTALLOPTS}
 	make utils_distinstall ${INSTALLOPTS}
 
-	make demo_install ${INSTALLOPTS} INSTALL_SOURCEDIR=%{builddocdir}
+	make demo_install ${INSTALLOPTS} INSTALL_SOURCEDIR=%{buildexampledir}
 	make doc_install ${INSTALLOPTS}
 	make man_install ${INSTALLOPTS} INSTALL_PREFIX=%{buildmandir}
+	
+	make -C docs pdfinstall DOCINSTALLDIR=%{builddocdir}
 
 	# create link
 	ln -sf %{fpcdir}/ppc386 %{buildroot}%{_bindir}/ppc386
@@ -68,6 +79,7 @@ INSTALLOPTS="FPC=${NEWPP} INSTALL_PREFIX=%{buildroot}/usr INSTALL_LIBDIR=%{build
 	make packages_clean
 	make fcl_clean
 	make utils_clean
+	make -C docs clean
 
 if [ %{buildroot} != "/" ]; then
 	rm -rf %{buildroot}
@@ -77,12 +89,33 @@ fi
 # Create config
 %{fpcdir}/samplecfg %{fpcdir}
 
-# update ld.so cache
-#ldconfig
-
 %files
 %defattr(-, root, root)
 %{_bindir}/*
 %{fpcdir}
-%doc %{docdir}/*
+%doc %{docdir}/NEWS
+%doc %{docdir}/README
+%doc %{docdir}/faq*
+%doc %{exampledir}/*
 %{_mandir}/*/*
+
+###############################################################################
+# fpc-docs.rpm
+#
+
+%package docs
+Group: Development/Languages
+Summary: Free Pascal Compiler - Documentation
+%description docs
+The Free Pascal Compiler is a Turbo Pascal 7.0 and Delphi compatible 32bit
+Pascal Compiler. It comes with fully TP 7.0 compatible run-time library.
+Some extensions are added to the language, like function overloading. Shared
+libraries can be linked. Basic Delphi support is already implemented (classes,
+exceptions,ansistrings,RTTI). This package contains commandline compiler and
+utils. Provided units are the runtime library (RTL), free component library
+(FCL), gtk,ncurses,zlib, mysql,postgres,ibase bindings.
+This package contains the documentation in PDF format
+
+%files docs
+%defattr(-, root, root)
+%doc %{docdir}/*.pdf
