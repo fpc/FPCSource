@@ -29,16 +29,18 @@ interface
     uses
       cpubase,
       globtype,
+      parabase,
       symdef,node,ncal;
 
     type
        tcgcallparanode = class(tcallparanode)
        private
-          tempparaloc : tparalocation;
-          procedure allocate_tempparaloc;
+          tempcgpara : tcgpara;
           procedure push_addr_para;
           procedure push_value_para;
        public
+          constructor create(expr,next : tnode);override;
+          destructor destroy;override;
           procedure secondcallparan;override;
        end;
 
@@ -50,7 +52,7 @@ interface
           procedure pushparas;
           procedure freeparas;
        protected
-          framepointer_paraloc : tparalocation;
+          framepointer_paraloc : tcgpara;
           refcountedtemp : treference;
           procedure handle_return_value;
           {# This routine is used to push the current frame pointer
@@ -100,22 +102,17 @@ implementation
                              TCGCALLPARANODE
 *****************************************************************************}
 
-    procedure tcgcallparanode.allocate_tempparaloc;
+    constructor tcgcallparanode.create(expr,next : tnode);
       begin
-         { Allocate (temporary) paralocation }
-         tempparaloc:=paraitem.paraloc[callerside];
-         case tempparaloc.loc of
-           LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER:
-             paramanager.alloctempregs(exprasmlist,tempparaloc);
-{$ifdef cputargethasfixedstack}
-           LOC_REFERENCE:
-             begin
-               { currently, we copy the value always to a secure location }
-               if not(assigned(aktcallnode.inlinecode)) then
-                 paramanager.alloctempparaloc(exprasmlist,aktcallnode.procdefinition.proccalloption,paraitem,tempparaloc);
-             end;
-{$endif cputargethasfixedstack}
-         end;
+        inherited create(expr,next);
+        tempcgpara.init;
+      end;
+
+
+    destructor tcgcallparanode.destroy;
+      begin
+        tempcgpara.done;
+        inherited destroy;
       end;
 
 
@@ -124,7 +121,7 @@ implementation
         if not(left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
           internalerror(200304235);
         location_release(exprasmlist,left.location);
-        cg.a_paramaddr_ref(exprasmlist,left.location.reference,tempparaloc);
+        cg.a_paramaddr_ref(exprasmlist,left.location.reference,tempcgpara);
       end;
 
 
@@ -149,46 +146,46 @@ implementation
          begin
            location_release(exprasmlist,left.location);
 {$ifdef i386}
-           if tempparaloc.loc<>LOC_REFERENCE then
+           if tempcgpara.location^.loc<>LOC_REFERENCE then
              internalerror(200309291);
            case left.location.loc of
              LOC_FPUREGISTER,
              LOC_CFPUREGISTER:
                begin
-                 size:=align(TCGSize2Size[left.location.size],tempparaloc.alignment);
-                 if tempparaloc.reference.index=NR_STACK_POINTER_REG then
+                 size:=align(TCGSize2Size[left.location.size],tempcgpara.alignment);
+                 if tempcgpara.location^.reference.index=NR_STACK_POINTER_REG then
                    begin
                      cg.g_stackpointer_alloc(exprasmlist,size);
                      reference_reset_base(href,NR_STACK_POINTER_REG,0);
                    end
                  else
-                   reference_reset_base(href,tempparaloc.reference.index,tempparaloc.reference.offset);
+                   reference_reset_base(href,tempcgpara.location^.reference.index,tempcgpara.location^.reference.offset);
                  cg.a_loadfpu_reg_ref(exprasmlist,left.location.size,left.location.register,href);
                end;
              LOC_MMREGISTER,
              LOC_CMMREGISTER:
                begin
-                 size:=align(tfloatdef(left.resulttype.def).size,tempparaloc.alignment);
-                 if tempparaloc.reference.index=NR_STACK_POINTER_REG then
+                 size:=align(tfloatdef(left.resulttype.def).size,tempcgpara.alignment);
+                 if tempcgpara.location^.reference.index=NR_STACK_POINTER_REG then
                    begin
                      cg.g_stackpointer_alloc(exprasmlist,size);
                      reference_reset_base(href,NR_STACK_POINTER_REG,0);
                    end
                  else
-                   reference_reset_base(href,tempparaloc.reference.index,tempparaloc.reference.offset);
+                   reference_reset_base(href,tempcgpara.location^.reference.index,tempcgpara.location^.reference.offset);
                  cg.a_loadmm_reg_ref(exprasmlist,left.location.size,left.location.size,left.location.register,href,mms_movescalar);
                end;
              LOC_REFERENCE,
              LOC_CREFERENCE :
                begin
-                 size:=align(left.resulttype.def.size,tempparaloc.alignment);
-                 if tempparaloc.reference.index=NR_STACK_POINTER_REG then
+                 size:=align(left.resulttype.def.size,tempcgpara.alignment);
+                 if tempcgpara.location^.reference.index=NR_STACK_POINTER_REG then
                    begin
                      href:=left.location.reference;
                      inc(href.offset,size);
                      while (size>0) do
                       begin
-                        if (size>=4) or (tempparaloc.alignment>=4) then
+                        if (size>=4) or (tempcgpara.alignment>=4) then
                          begin
                            cgsize:=OS_32;
                            dec(href.offset,4);
@@ -200,12 +197,12 @@ implementation
                            dec(href.offset,2);
                            dec(size,2);
                          end;
-                        cg.a_param_ref(exprasmlist,cgsize,href,tempparaloc);
+                        cg.a_param_ref(exprasmlist,cgsize,href,tempcgpara);
                       end;
                    end
                  else
                    begin
-                     reference_reset_base(href,tempparaloc.reference.index,tempparaloc.reference.offset);
+                     reference_reset_base(href,tempcgpara.location^.reference.index,tempcgpara.location^.reference.offset);
                      cg.g_concatcopy(exprasmlist,left.location.reference,href,size,false,false);
                    end;
                end;
@@ -216,29 +213,29 @@ implementation
            case left.location.loc of
              LOC_MMREGISTER,
              LOC_CMMREGISTER:
-               case tempparaloc.loc of
+               case tempcgpara.location^.loc of
                  LOC_REFERENCE,
                  LOC_CREFERENCE,
                  LOC_MMREGISTER,
                  LOC_CMMREGISTER:
-                   cg.a_parammm_reg(exprasmlist,left.location.size,left.location.register,tempparaloc,mms_movescalar);
+                   cg.a_parammm_reg(exprasmlist,left.location.size,left.location.register,tempcgpara,mms_movescalar);
                  LOC_FPUREGISTER,
                  LOC_CFPUREGISTER:
                    begin
                      location_force_fpureg(exprasmlist,left.location,false);
-                     cg.a_paramfpu_reg(exprasmlist,left.location.size,left.location.register,tempparaloc);
+                     cg.a_paramfpu_reg(exprasmlist,left.location.size,left.location.register,tempcgpara);
                    end;
                  else
                    internalerror(2002042433);
                end;
              LOC_FPUREGISTER,
              LOC_CFPUREGISTER:
-               case tempparaloc.loc of
+               case tempcgpara.location^.loc of
                  LOC_MMREGISTER,
                  LOC_CMMREGISTER:
                    begin
                      location_force_mmregscalar(exprasmlist,left.location,false);
-                     cg.a_parammm_reg(exprasmlist,left.location.size,left.location.register,tempparaloc,mms_movescalar);
+                     cg.a_parammm_reg(exprasmlist,left.location.size,left.location.register,tempcgpara,mms_movescalar);
                    end;
 {$ifdef x86_64}
                  { x86_64 pushes s64comp in normal register }
@@ -248,7 +245,7 @@ implementation
                      location_force_mem(exprasmlist,left.location);
                      { force integer size }
                      left.location.size:=int_cgsize(tcgsize2size[left.location.size]);
-                     cg.a_param_ref(exprasmlist,left.location.size,left.location.reference,tempparaloc);
+                     cg.a_param_ref(exprasmlist,left.location.size,left.location.reference,tempcgpara);
                    end;
 {$endif x86_64}
 {$ifdef sparc}
@@ -260,16 +257,26 @@ implementation
                  LOC_CREFERENCE,
                  LOC_FPUREGISTER,
                  LOC_CFPUREGISTER:
-                   cg.a_paramfpu_reg(exprasmlist,left.location.size,left.location.register,tempparaloc);
+                   cg.a_paramfpu_reg(exprasmlist,left.location.size,left.location.register,tempcgpara);
                  else
                    internalerror(2002042433);
                end;
              LOC_REFERENCE,
              LOC_CREFERENCE:
-               case tempparaloc.loc of
+               case tempcgpara.location^.loc of
                  LOC_MMREGISTER,
                  LOC_CMMREGISTER:
-                   cg.a_parammm_ref(exprasmlist,left.location.size,left.location.reference,tempparaloc,mms_movescalar);
+                   cg.a_parammm_ref(exprasmlist,left.location.size,left.location.reference,tempcgpara,mms_movescalar);
+{$ifdef x86_64}
+                 { x86_64 pushes s64comp in normal register }
+                 LOC_REGISTER,
+                 LOC_CREGISTER :
+                   begin
+                     { force integer size }
+                     left.location.size:=int_cgsize(tcgsize2size[left.location.size]);
+                     cg.a_param_ref(exprasmlist,left.location.size,left.location.reference,tempcgpara);
+                   end;
+{$endif x86_64}
 {$ifdef sparc}
                  { sparc pushes floats in normal registers }
                  LOC_REGISTER,
@@ -279,7 +286,7 @@ implementation
                  LOC_CREFERENCE,
                  LOC_FPUREGISTER,
                  LOC_CFPUREGISTER:
-                   cg.a_paramfpu_ref(exprasmlist,left.location.size,left.location.reference,tempparaloc);
+                   cg.a_paramfpu_ref(exprasmlist,left.location.size,left.location.reference,tempcgpara);
                  else
                    internalerror(2002042431);
                end;
@@ -298,22 +305,22 @@ implementation
             begin
               location_release(exprasmlist,left.location);
 {$ifdef i386}
-              if tempparaloc.loc<>LOC_REFERENCE then
+              if tempcgpara.location^.loc<>LOC_REFERENCE then
                 internalerror(200309292);
               if not (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
                 internalerror(200204241);
               { push on stack }
-              size:=align(left.resulttype.def.size,tempparaloc.alignment);
-              if tempparaloc.reference.index=NR_STACK_POINTER_REG then
+              size:=align(left.resulttype.def.size,tempcgpara.alignment);
+              if tempcgpara.location^.reference.index=NR_STACK_POINTER_REG then
                 begin
                   cg.g_stackpointer_alloc(exprasmlist,size);
                   reference_reset_base(href,NR_STACK_POINTER_REG,0);
                 end
               else
-                reference_reset_base(href,tempparaloc.reference.index,tempparaloc.reference.offset);
+                reference_reset_base(href,tempcgpara.location^.reference.index,tempcgpara.location^.reference.offset);
               cg.g_concatcopy(exprasmlist,left.location.reference,href,size,false,false);
 {$else i386}
-              cg.a_param_copy_ref(exprasmlist,left.resulttype.def.size,left.location.reference,tempparaloc);
+              cg.a_param_copy_ref(exprasmlist,left.resulttype.def.size,left.location.reference,tempcgpara);
 {$endif i386}
             end
            else
@@ -328,14 +335,14 @@ implementation
 {$ifndef cpu64bit}
                     if left.location.size in [OS_64,OS_S64] then
                      begin
-                       cg64.a_param64_loc(exprasmlist,left.location,tempparaloc);
+                       cg64.a_param64_loc(exprasmlist,left.location,tempcgpara);
                        location_release(exprasmlist,left.location);
                      end
                     else
 {$endif cpu64bit}
                      begin
                        location_release(exprasmlist,left.location);
-                       cg.a_param_loc(exprasmlist,left.location,tempparaloc);
+                       cg.a_param_loc(exprasmlist,left.location,tempcgpara);
                      end;
                   end;
 {$ifdef SUPPORT_MMX}
@@ -376,7 +383,10 @@ implementation
              objectlibrary.getlabel(falselabel);
              secondpass(left);
 
-             allocate_tempparaloc;
+             if not(assigned(aktcallnode.inlinecode)) then
+               paramanager.createtempparaloc(exprasmlist,aktcallnode.procdefinition.proccalloption,paraitem,tempcgpara)
+             else
+               paramanager.duplicateparaloc(exprasmlist,aktcallnode.procdefinition.proccalloption,paraitem,tempcgpara);
 
              { handle varargs first, because paraitem.parasym is not valid }
              if (cpf_varargs_para in callparaflags) then
@@ -416,7 +426,7 @@ implementation
                      (not(nf_procvarload in hp.flags)) then
                     begin
                       location_release(exprasmlist,left.location);
-                      cg.a_param_loc(exprasmlist,left.location,tempparaloc);
+                      cg.a_param_loc(exprasmlist,left.location,tempcgpara);
                     end
                   else
                     push_addr_para;
@@ -488,13 +498,14 @@ implementation
 
     procedure tcgcallnode.handle_return_value;
       var
-        cgsize : tcgsize;
+        cgsize    : tcgsize;
+        retloc    : tlocation;
         hregister : tregister;
-        tempnode: tnode;
-        resultloc : tparalocation;
+        tempnode  : tnode;
+        resultparaloc : pcgparalocation;
       begin
-        resultloc:=procdefinition.funcret_paraloc[callerside];
-        cgsize:=resultloc.size;
+        resultparaloc:=procdefinition.funcret_paraloc[callerside].location;
+        cgsize:=procdefinition.funcret_paraloc[callerside].size;
 
         { structured results are easy to handle....
           needed also when result_no_used !! }
@@ -520,9 +531,9 @@ implementation
                 end
               else
                 begin
-                  cg.ungetregister(exprasmlist,resultloc.register);
+                  cg.ungetregister(exprasmlist,resultparaloc^.register);
                   hregister := cg.getaddressregister(exprasmlist);
-                  cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,resultloc.register,hregister);
+                  cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,resultparaloc^.register,hregister);
                   { in case of a regular funcretnode with ret_in_param, the }
                   { original funcretnode isn't touched -> make sure it's    }
                   { the same here (not sure if it's necessary)              }
@@ -549,12 +560,12 @@ implementation
             { we have only to handle the result if it is used }
             if (cnf_return_value_used in callnodeflags) then
               begin
-                location.loc:=resultloc.loc;
-                case resultloc.loc of
+                location.loc:=resultparaloc^.loc;
+                case resultparaloc^.loc of
                    LOC_FPUREGISTER:
                      begin
                        location_reset(location,LOC_FPUREGISTER,cgsize);
-                       location.register:=procdefinition.funcret_paraloc[callerside].register;
+                       location.register:=resultparaloc^.register;
 {$ifdef x86}
                        tcgx86(cg).inc_fpu_stack;
 {$else x86}
@@ -573,31 +584,29 @@ implementation
 {$ifndef cpu64bit}
                           if cgsize in [OS_64,OS_S64] then
                            begin
-                             { Move the function result to free registers, preferably the
-                               FUNCTION_RESULT_REG/FUNCTION_RESULTHIGH_REG, so no move is necessary.}
-                             { the FUNCTION_RESULT_LOW_REG/FUNCTION_RESULT_HIGH_REG
-                               are already allocated }
-                             cg.ungetregister(exprasmlist,NR_FUNCTION_RESULT64_LOW_REG);
+                             procdefinition.funcret_paraloc[callerside].get_location(retloc);
+                             if retloc.loc<>LOC_REGISTER then
+                               internalerror(200409141);
+                             { the function result registers are already allocated }
+                             cg.ungetregister(exprasmlist,retloc.registerlow);
                              location.registerlow:=cg.getintregister(exprasmlist,OS_32);
-                             cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,NR_FUNCTION_RESULT64_LOW_REG,location.registerlow);
-                             cg.ungetregister(exprasmlist,NR_FUNCTION_RESULT64_HIGH_REG);
+                             cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,retloc.registerlow,location.registerlow);
+                             cg.ungetregister(exprasmlist,retloc.registerhigh);
                              location.registerhigh:=cg.getintregister(exprasmlist,OS_32);
-                             cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,NR_FUNCTION_RESULT64_HIGH_REG,location.registerhigh);
+                             cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,retloc.registerhigh,location.registerhigh);
                            end
                           else
 {$endif cpu64bit}
                            begin
-                             { Move the function result to a free register, preferably the
-                               FUNCTION_RESULT_REG, so no move is necessary.}
-                             { the FUNCTION_RESULT_REG is already allocated }
-                             cg.ungetregister(exprasmlist,resultloc.register);
+                             { the function result register are already allocated }
+                             cg.ungetregister(exprasmlist,resultparaloc^.register);
                              { change register size after the unget because the
                                getregister was done for the full register
 
                                def_cgsize(resulttype.def) is used here because
                                it could be a constructor call }
                              location.register:=cg.getintregister(exprasmlist,def_cgsize(resulttype.def));
-                             cg.a_load_reg_reg(exprasmlist,cgsize,def_cgsize(resulttype.def),resultloc.register,location.register);
+                             cg.a_load_reg_reg(exprasmlist,cgsize,def_cgsize(resulttype.def),resultparaloc^.register,location.register);
                            end;
                         end
                        else
@@ -610,9 +619,9 @@ implementation
                    LOC_MMREGISTER:
                      begin
                        location_reset(location,LOC_MMREGISTER,cgsize);
-                       cg.ungetregister(exprasmlist,resultloc.register);
+                       cg.ungetregister(exprasmlist,resultparaloc^.register);
                        location.register:=cg.getmmregister(exprasmlist,cgsize);
-                       cg.a_loadmm_reg_reg(exprasmlist,cgsize,cgsize,resultloc.register,location.register,mms_movescalar);
+                       cg.a_loadmm_reg_reg(exprasmlist,cgsize,cgsize,resultparaloc^.register,location.register,mms_movescalar);
                      end;
 
                    else
@@ -623,11 +632,11 @@ implementation
               begin
 {$ifdef x86}
                 { release FPU stack }
-                if resultloc.loc=LOC_FPUREGISTER then
+                if resultparaloc^.loc=LOC_FPUREGISTER then
                   emit_reg(A_FSTP,S_NO,NR_FPU_RESULT_REG);
 {$endif x86}
                 if cgsize<>OS_NO then
-                  paramanager.freeparaloc(exprasmlist,resultloc);
+                  paramanager.freeparaloc(exprasmlist,procdefinition.funcret_paraloc[callerside]);
                 location_reset(location,LOC_VOID,OS_NO);
               end;
            end;
@@ -671,7 +680,10 @@ implementation
      procedure tcgcallnode.pushparas;
        var
          ppn : tcgcallparanode;
+         callerparaloc,
+         tmpparaloc : pcgparalocation;
 {$ifdef cputargethasfixedstack}
+         htempref,
          href : treference;
 {$endif cputargethasfixedstack}
        begin
@@ -682,96 +694,82 @@ implementation
              if (ppn.left.nodetype<>nothingn) then
                begin
                  { better check for the real location of the parameter here, when stack passed parameters
-                   are saved temporary in registers, checking for the tempparaloc.loc is wrong
+                   are saved temporary in registers, checking for the tmpparaloc.loc is wrong
                  }
-                 case ppn.paraitem.paraloc[callerside].loc of
-                   LOC_REGISTER:
-                     begin
-                       if not assigned(inlinecode) then
+                 if not assigned(inlinecode) then
+                   paramanager.freeparaloc(exprasmlist,ppn.tempcgpara);
+                 tmpparaloc:=ppn.tempcgpara.location;
+                 callerparaloc:=ppn.paraitem.paraloc[callerside].location;
+                 while assigned(callerparaloc) do
+                   begin
+                     { Every paraloc must have a matching tmpparaloc }
+                     if not assigned(tmpparaloc) then
+                       internalerror(200408224);
+                     if callerparaloc^.size<>tmpparaloc^.size then
+                       internalerror(200408225);
+                     case callerparaloc^.loc of
+                       LOC_REGISTER:
                          begin
-                           paramanager.freeparaloc(exprasmlist,ppn.tempparaloc);
-                           paramanager.allocparaloc(exprasmlist,ppn.paraitem.paraloc[callerside]);
+                           if tmpparaloc^.loc<>LOC_REGISTER then
+                             internalerror(200408221);
+                           if getsupreg(callerparaloc^.register)<first_int_imreg then
+                             cg.getexplicitregister(exprasmlist,callerparaloc^.register);
+                           cg.a_load_reg_reg(exprasmlist,tmpparaloc^.size,tmpparaloc^.size,
+                               tmpparaloc^.register,callerparaloc^.register);
                          end;
-  {$ifdef sparc}
-                       case ppn.tempparaloc.size of
-                         OS_F32 :
-                           ppn.tempparaloc.size:=OS_32;
-                         OS_F64 :
-                           ppn.tempparaloc.size:=OS_64;
-                       end;
-  {$endif sparc}
-  {$ifndef cpu64bit}
-                       if ppn.tempparaloc.size in [OS_64,OS_S64] then
+                       LOC_FPUREGISTER:
                          begin
-                           cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,ppn.tempparaloc.registerlow,
-                              ppn.paraitem.paraloc[callerside].registerlow);
-                           cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,ppn.tempparaloc.registerhigh,
-                              ppn.paraitem.paraloc[callerside].registerhigh);
-                         end
-                       else
-  {$endif cpu64bit}
-                         cg.a_load_reg_reg(exprasmlist,ppn.tempparaloc.size,ppn.tempparaloc.size,
-                             ppn.tempparaloc.register,ppn.paraitem.paraloc[callerside].register);
-                     end;
-                   LOC_FPUREGISTER:
-                     begin
-                       if not assigned(inlinecode) then
-                         begin
-                           paramanager.freeparaloc(exprasmlist,ppn.tempparaloc);
-                           paramanager.allocparaloc(exprasmlist,ppn.paraitem.paraloc[callerside]);
-                           cg.a_loadfpu_reg_reg(exprasmlist,ppn.tempparaloc.size,
-                             ppn.tempparaloc.register,ppn.paraitem.paraloc[callerside].register);
+                           if tmpparaloc^.loc<>LOC_FPUREGISTER then
+                             internalerror(200408222);
+                           if getsupreg(callerparaloc^.register)<first_fpu_imreg then
+                             cg.getexplicitregister(exprasmlist,callerparaloc^.register);
+                           cg.a_loadfpu_reg_reg(exprasmlist,ppn.tempcgpara.size,tmpparaloc^.register,callerparaloc^.register);
                          end;
-                     end;
-                   LOC_MMREGISTER:
-                     begin
-                       if not assigned(inlinecode) then
+                       LOC_MMREGISTER:
                          begin
-                           paramanager.freeparaloc(exprasmlist,ppn.tempparaloc);
-                           paramanager.allocparaloc(exprasmlist,ppn.paraitem.paraloc[callerside]);
+                           if tmpparaloc^.loc<>LOC_MMREGISTER then
+                             internalerror(200408223);
+                           if getsupreg(callerparaloc^.register)<first_mm_imreg then
+                             cg.getexplicitregister(exprasmlist,callerparaloc^.register);
+                           cg.a_loadmm_reg_reg(exprasmlist,tmpparaloc^.size,tmpparaloc^.size,
+                             tmpparaloc^.register,callerparaloc^.register,mms_movescalar);
                          end;
-                       cg.a_loadmm_reg_reg(exprasmlist,ppn.tempparaloc.size,
-                         ppn.tempparaloc.size,ppn.tempparaloc.register,ppn.paraitem.paraloc[callerside].register,mms_movescalar);
-                     end;
-                   LOC_REFERENCE:
-                     begin
-                       if not assigned(inlinecode) then
+                       LOC_REFERENCE:
                          begin
+                           if not assigned(inlinecode) then
+                             begin
 {$ifdef cputargethasfixedstack}
-                           { copy parameters in case they were moved to a temp. location because we've a fixed stack }
-                           paramanager.freeparaloc(exprasmlist,ppn.tempparaloc);
-                           paramanager.allocparaloc(exprasmlist,ppn.paraitem.paraloc[callerside]);
-                           case ppn.tempparaloc.loc of
-                             LOC_REFERENCE:
-                               begin
-                                 reference_reset_base(href,ppn.tempparaloc.reference.index,ppn.tempparaloc.reference.offset);
-                                 if ppn.paraitem.paraloc[callerside].size=OS_NO then
-                                   cg.a_param_copy_ref(exprasmlist,ppn.paraitem.paratype.def.size,href,ppn.paraitem.paraloc[callerside])
+                               reference_reset_base(href,callerparaloc^.reference.index,callerparaloc^.reference.offset);
+                               { copy parameters in case they were moved to a temp. location because we've a fixed stack }
+                               case tmpparaloc^.loc of
+                                 LOC_REFERENCE:
+                                   begin
+                                     reference_reset_base(htempref,tmpparaloc^.reference.index,tmpparaloc^.reference.offset);
+                                     { use concatcopy, because it can also be a float which fails when
+                                       load_ref_ref is used }
+                                     cg.g_concatcopy(exprasmlist,htempref,href,tcgsize2size[tmpparaloc^.size],false,false);
+                                   end;
+                                 LOC_REGISTER:
+                                   cg.a_load_reg_ref(exprasmlist,tmpparaloc^.size,tmpparaloc^.size,tmpparaloc^.register,href);
+                                 LOC_FPUREGISTER:
+                                   cg.a_loadfpu_reg_ref(exprasmlist,tmpparaloc^.size,tmpparaloc^.register,href);
+                                 LOC_MMREGISTER:
+                                   cg.a_loadmm_reg_ref(exprasmlist,tmpparaloc^.size,tmpparaloc^.size,tmpparaloc^.register,href,mms_movescalar);
                                  else
-                                   cg.a_param_ref(exprasmlist,ppn.paraitem.paraloc[callerside].size,href,ppn.paraitem.paraloc[callerside]);
+                                   internalerror(200402081);
                                end;
-                             LOC_REGISTER:
-      {$ifndef cpu64bit}
-                               if ppn.tempparaloc.size in [OS_64,OS_S64] then
-                                 cg64.a_param64_reg(exprasmlist,ppn.tempparaloc.register64,ppn.paraitem.paraloc[callerside])
-                               else
-      {$endif cpu64bit}
-                                 cg.a_param_reg(exprasmlist,ppn.paraitem.paraloc[callerside].size,ppn.tempparaloc.register,ppn.paraitem.paraloc[callerside]);
-                             LOC_FPUREGISTER:
-                               cg.a_paramfpu_reg(exprasmlist,ppn.paraitem.paraloc[callerside].size,ppn.tempparaloc.register,ppn.paraitem.paraloc[callerside]);
-                             else
-                               internalerror(200402081);
-                           end;
-  {$endif cputargethasfixedstack}
+{$endif cputargethasfixedstack}
+                             end;
                          end;
                      end;
-                   else
-                     internalerror(200402091);
-                 end;
+                     callerparaloc:=callerparaloc^.next;
+                     tmpparaloc:=tmpparaloc^.next;
+                   end;
                end;
              ppn:=tcgcallparanode(ppn.right);
            end;
        end;
+
 
      procedure tcgcallnode.freeparas;
        var
@@ -782,7 +780,7 @@ implementation
          while assigned(ppn) do
            begin
              if not assigned(inlinecode) or
-                (ppn.paraitem.paraloc[callerside].loc <> LOC_REFERENCE) then
+                (ppn.paraitem.paraloc[callerside].location^.loc <> LOC_REFERENCE) then
                paramanager.freeparaloc(exprasmlist,ppn.paraitem.paraloc[callerside]);
              ppn:=tcgcallparanode(ppn.right);
            end;
@@ -792,15 +790,15 @@ implementation
 
     procedure tcgcallnode.normal_pass_2;
       var
-         regs_to_push_fpu,
-         regs_to_alloc,
-         regs_to_free : Tcpuregisterset;
+         regs_to_save_int,
+         regs_to_save_fpu,
+         regs_to_save_mm   : Tcpuregisterset;
          href : treference;
          pop_size : longint;
          pvreg,
          vmtreg : tregister;
          oldaktcallnode : tcallnode;
-
+         funcretloc : pcgparalocation;
       begin
          if not assigned(procdefinition) or
             not procdefinition.has_paraloc_info then
@@ -814,34 +812,29 @@ implementation
              cg.g_decrrefcount(exprasmlist,resulttype.def,refcountedtemp,false);
            end;
 
-        regs_to_alloc:=paramanager.get_volatile_registers_int(procdefinition.proccalloption);
-        regs_to_push_fpu:=paramanager.get_volatile_registers_fpu(procdefinition.proccalloption);
+        regs_to_save_int:=paramanager.get_volatile_registers_int(procdefinition.proccalloption);
+        regs_to_save_fpu:=paramanager.get_volatile_registers_fpu(procdefinition.proccalloption);
+        regs_to_save_mm:=paramanager.get_volatile_registers_mm(procdefinition.proccalloption);
 
         { Include Function result registers }
         if (not is_void(resulttype.def)) then
           begin
-            case procdefinition.funcret_paraloc[callerside].loc of
-              LOC_REGISTER,LOC_CREGISTER:
-                begin
-{$ifndef cpu64bit}
-                  if procdefinition.funcret_paraloc[callerside].size in [OS_S64,OS_64] then
-                    begin
-                      include(regs_to_alloc,getsupreg(procdefinition.funcret_paraloc[callerside].registerlow));
-                      include(regs_to_alloc,getsupreg(procdefinition.funcret_paraloc[callerside].registerhigh));
-                    end
-                 else
-{$endif cpu64bit}
-                   include(regs_to_alloc,getsupreg(procdefinition.funcret_paraloc[callerside].register));
+            funcretloc:=procdefinition.funcret_paraloc[callerside].location;
+            while assigned(funcretloc) do
+              begin
+                case funcretloc^.loc of
+                  LOC_REGISTER,
+                  LOC_CREGISTER:
+                    include(regs_to_save_int,getsupreg(funcretloc^.register));
+                  LOC_FPUREGISTER,
+                  LOC_CFPUREGISTER:
+                    include(regs_to_save_fpu,getsupreg(funcretloc^.register));
+                  LOC_MMREGISTER,
+                  LOC_CMMREGISTER:
+                    include(regs_to_save_mm,getsupreg(funcretloc^.register));
                 end;
-              LOC_FPUREGISTER,LOC_CFPUREGISTER:
-                begin
-                  include(regs_to_push_fpu,getsupreg(procdefinition.funcret_paraloc[callerside].register));
-                end;
-              LOC_MMREGISTER,LOC_CMMREGISTER:
-                begin
-                  include(regs_to_alloc,getsupreg(procdefinition.funcret_paraloc[callerside].register));
-                end;
-            end;
+                funcretloc:=funcretloc^.next;
+              end;
           end;
 
          { Process parameters, register parameters will be loaded
@@ -900,11 +893,11 @@ implementation
                    { Release register containing procvar }
                    cg.ungetregister(exprasmlist,pvreg);
 
-                   cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,regs_to_alloc);
+                   cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,regs_to_save_int);
                    if cg.uses_registers(R_FPUREGISTER) then
-                     cg.allocexplicitregisters(exprasmlist,R_FPUREGISTER,regs_to_push_fpu);
+                     cg.allocexplicitregisters(exprasmlist,R_FPUREGISTER,regs_to_save_fpu);
                    if cg.uses_registers(R_MMREGISTER) then
-                     cg.allocexplicitregisters(exprasmlist,R_MMREGISTER,paramanager.get_volatile_registers_mm(procdefinition.proccalloption));
+                     cg.allocexplicitregisters(exprasmlist,R_MMREGISTER,regs_to_save_mm);
 
                    { call method }
                    extra_call_code;
@@ -920,11 +913,11 @@ implementation
                   { free the resources allocated for the parameters }
                   freeparas;
 
-                  cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,regs_to_alloc);
+                  cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,regs_to_save_int);
                   if cg.uses_registers(R_FPUREGISTER) then
-                    cg.allocexplicitregisters(exprasmlist,R_FPUREGISTER,regs_to_push_fpu);
+                    cg.allocexplicitregisters(exprasmlist,R_FPUREGISTER,regs_to_save_fpu);
                   if cg.uses_registers(R_MMREGISTER) then
-                    cg.allocexplicitregisters(exprasmlist,R_MMREGISTER,paramanager.get_volatile_registers_mm(procdefinition.proccalloption));
+                    cg.allocexplicitregisters(exprasmlist,R_MMREGISTER,regs_to_save_mm);
 
                   if procdefinition.proccalloption=pocall_syscall then
                     do_syscall
@@ -964,11 +957,11 @@ implementation
               { Release register containing procvar }
               cg.ungetregister(exprasmlist,pvreg);
 
-              cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,regs_to_alloc);
+              cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,regs_to_save_int);
               if cg.uses_registers(R_FPUREGISTER) then
-                cg.allocexplicitregisters(exprasmlist,R_FPUREGISTER,regs_to_push_fpu);
+                cg.allocexplicitregisters(exprasmlist,R_FPUREGISTER,regs_to_save_fpu);
               if cg.uses_registers(R_MMREGISTER) then
-                cg.allocexplicitregisters(exprasmlist,R_MMREGISTER,paramanager.get_volatile_registers_mm(procdefinition.proccalloption));
+                cg.allocexplicitregisters(exprasmlist,R_MMREGISTER,regs_to_save_mm);
 
               { Calling interrupt from the same code requires some
                 extra code }
@@ -994,33 +987,30 @@ implementation
 
          { Release registers, but not the registers that contain the
            function result }
-         regs_to_free:=regs_to_alloc;
          if (not is_void(resulttype.def)) then
            begin
-             case procdefinition.funcret_paraloc[callerside].loc of
-               LOC_REGISTER,LOC_CREGISTER:
-                 begin
-{$ifndef cpu64bit}
-                   if procdefinition.funcret_paraloc[callerside].size in [OS_S64,OS_64] then
-                     begin
-                       exclude(regs_to_free,getsupreg(procdefinition.funcret_paraloc[callerside].registerlow));
-                       exclude(regs_to_free,getsupreg(procdefinition.funcret_paraloc[callerside].registerhigh));
-                     end
-                   else
-{$endif cpu64bit}
-                     exclude(regs_to_free,getsupreg(procdefinition.funcret_paraloc[callerside].register));
-                 end;
-               LOC_FPUREGISTER,LOC_CFPUREGISTER:
-                 begin
-                   exclude(regs_to_push_fpu,getsupreg(procdefinition.funcret_paraloc[callerside].register));
-                 end;
-             end;
+            funcretloc:=procdefinition.funcret_paraloc[callerside].location;
+            while assigned(funcretloc) do
+              begin
+                case funcretloc^.loc of
+                  LOC_REGISTER,
+                  LOC_CREGISTER:
+                    exclude(regs_to_save_int,getsupreg(funcretloc^.register));
+                  LOC_FPUREGISTER,
+                  LOC_CFPUREGISTER:
+                    exclude(regs_to_save_fpu,getsupreg(funcretloc^.register));
+                  LOC_MMREGISTER,
+                  LOC_CMMREGISTER:
+                    exclude(regs_to_save_mm,getsupreg(funcretloc^.register));
+                end;
+                funcretloc:=funcretloc^.next;
+              end;
            end;
          if cg.uses_registers(R_MMREGISTER) then
-           cg.deallocexplicitregisters(exprasmlist,R_MMREGISTER,paramanager.get_volatile_registers_mm(procdefinition.proccalloption));
+           cg.deallocexplicitregisters(exprasmlist,R_MMREGISTER,regs_to_save_mm);
          if cg.uses_registers(R_FPUREGISTER) then
-           cg.deallocexplicitregisters(exprasmlist,R_FPUREGISTER,regs_to_push_fpu);
-         cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,regs_to_free);
+           cg.deallocexplicitregisters(exprasmlist,R_FPUREGISTER,regs_to_save_fpu);
+         cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,regs_to_save_int);
 
          { handle function results }
          if (not is_void(resulttype.def)) then
@@ -1079,7 +1069,8 @@ implementation
          paramanager.create_inline_paraloc_info(procdefinition);
 
          { Allocate parameters and locals }
-         gen_alloc_inline_parast(exprasmlist,tparasymtable(procdefinition.parast));
+         gen_alloc_inline_parast(exprasmlist,tprocdef(procdefinition));
+         gen_alloc_inline_funcret(exprasmlist,tprocdef(procdefinition));
          if tprocdef(procdefinition).localst.symtabletype=localsymtable then
            gen_alloc_localst(exprasmlist,tlocalsymtable(tprocdef(procdefinition).localst));
 
@@ -1148,7 +1139,7 @@ implementation
          gen_load_para_value(inlineentrycode);
          { now that we've loaded the para's, free them }
          freeparas;
-         gen_initialize_code(inlineentrycode,true);
+         gen_initialize_code(inlineentrycode);
          if po_assembler in current_procinfo.procdef.procoptions then
            inlineentrycode.insert(Tai_marker.Create(asmblockstart));
          exprasmList.concatlist(inlineentrycode);
@@ -1157,7 +1148,7 @@ implementation
          secondpass(inlinecode);
 
          cg.a_label(exprasmlist,current_procinfo.aktexitlabel);
-         gen_finalize_code(inlineexitcode,true);
+         gen_finalize_code(inlineexitcode);
          gen_load_return_value(inlineexitcode);
          if po_assembler in current_procinfo.procdef.procoptions then
            inlineexitcode.concat(Tai_marker.Create(asmblockend));
@@ -1263,7 +1254,22 @@ begin
 end.
 {
   $Log$
-  Revision 1.173  2004-07-12 10:47:42  michael
+  Revision 1.174  2004-09-21 17:25:12  peter
+    * paraloc branch merged
+
+  Revision 1.173.4.3  2004/09/20 20:46:34  peter
+    * register allocation optimized for 64bit loading of parameters
+      and return values
+
+  Revision 1.173.4.2  2004/09/17 17:19:26  peter
+    * fixed 64 bit unaryminus for sparc
+    * fixed 64 bit inlining
+    * signness of not operation
+
+  Revision 1.173.4.1  2004/08/31 20:43:06  peter
+    * paraloc patch
+
+  Revision 1.173  2004/07/12 10:47:42  michael
   + Fix for bug 3207 from Peter
 
   Revision 1.172  2004/07/11 19:01:13  peter

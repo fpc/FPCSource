@@ -39,7 +39,7 @@ interface
        { aasm }
        aasmbase,aasmtai,
        cpubase,cpuinfo,
-       cgbase
+       cgbase,parabase
 {$ifdef Delphi}
        ,dmisc
 {$endif}
@@ -113,11 +113,13 @@ interface
           defaultvalue : tsym; { tconstsym }
           defaultvaluederef : tderef;
           paratyp       : tvarspez; { required for procvar }
-          paraloc       : array[tcallercallee] of tparalocation;
+          paraloc       : array[tcallercallee] of TCGPara;
           is_hidden     : boolean; { is this a hidden (implicit) parameter }
 {$ifdef EXTDEBUG}
           eqval         : tequaltype;
 {$endif EXTDEBUG}
+          constructor create;
+          destructor destroy;override;
        end;
 
        tfiletyp = (ft_text,ft_typed,ft_untyped);
@@ -456,7 +458,7 @@ interface
 {$ifdef i386}
           fpu_used        : byte;    { how many stack fpu must be empty }
 {$endif i386}
-          funcret_paraloc : array[tcallercallee] of tparalocation;
+          funcret_paraloc : array[tcallercallee] of TCGPara;
           has_paraloc_info : boolean; { paraloc info is available }
           constructor create(level:byte);
           constructor ppuload(ppufile:tcompilerppufile);
@@ -918,6 +920,26 @@ implementation
         if (target_info.system = system_powerpc_darwin) and
            (result[1] = 'L') then
           result := '_' + result;
+      end;
+
+
+{****************************************************************************
+                           TParaItem
+****************************************************************************}
+
+    constructor tparaitem.create;
+      begin
+        inherited create;
+        paraloc[calleeside].init;
+        paraloc[callerside].init;
+      end;
+
+
+    destructor tparaitem.destroy;
+      begin
+        paraloc[calleeside].done;
+        paraloc[callerside].done;
+        inherited destroy;
       end;
 
 
@@ -3277,6 +3299,8 @@ implementation
          savesize:=sizeof(aint);
          requiredargarea:=0;
          has_paraloc_info:=false;
+         funcret_paraloc[callerside].init;
+         funcret_paraloc[calleeside].init;
       end;
 
 
@@ -3302,6 +3326,8 @@ implementation
             memprocparast.stop;
 {$endif MEMDEBUG}
           end;
+         funcret_paraloc[callerside].done;
+         funcret_paraloc[calleeside].done;
          inherited destroy;
       end;
 
@@ -6158,9 +6184,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.254  2004-09-14 16:33:17  peter
+  Revision 1.255  2004-09-21 17:25:12  peter
+    * paraloc branch merged
+
+  Revision 1.254  2004/09/14 16:33:17  peter
     * restart sorting of enums when deref is called, this is needed when
       a unit is reloaded
+
+  Revision 1.253.4.1  2004/08/31 20:43:06  peter
+    * paraloc patch
 
   Revision 1.253  2004/08/27 21:59:26  peter
   browser disabled

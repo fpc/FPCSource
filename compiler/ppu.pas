@@ -525,6 +525,8 @@ begin
   if entryidx<entry.size then
    skipdata(entry.size-entryidx);
   readdata(entry,sizeof(tppuentry));
+  if change_endian then
+   entry.size:=swaplong(entry.size);
   entrystart:=bufstart+bufidx;
   entryidx:=0;
   if not(entry.id in [mainentryid,subentryid]) then
@@ -1054,7 +1056,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.56  2004-08-27 21:59:26  peter
+  Revision 1.57  2004-09-21 17:25:12  peter
+    * paraloc branch merged
+
+  Revision 1.56.4.1  2004/09/12 14:01:23  peter
+    * entry.size need endian update
+
+  Revision 1.56  2004/08/27 21:59:26  peter
   browser disabled
   uf_local_symtable ppu flag when a localsymtable is stored
 

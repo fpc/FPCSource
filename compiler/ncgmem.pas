@@ -21,8 +21,6 @@
 
  ****************************************************************************
 }
-{ This unit generate assembler for memory related nodes.
-}
 unit ncgmem;
 
 {$i fpcdefs.inc}
@@ -80,22 +78,18 @@ interface
 implementation
 
     uses
-{$ifdef delphi}
-      sysutils,
-{$else}
-      strings,
-{$endif}
 {$ifdef GDB}
+      strings,
       gdb,
 {$endif GDB}
       systems,
       cutils,verbose,globals,
       symconst,symdef,symsym,defutil,paramgr,
       aasmbase,aasmtai,
-      procinfo,pass_2,
+      procinfo,pass_2,parabase,
       pass_1,nld,ncon,nadd,nutils,
       cgutils,cgobj,
-      tgobj,ncgutil,symbase
+      tgobj,ncgutil
       ;
 
 
@@ -194,15 +188,7 @@ implementation
             hsym:=tvarsym(currpi.procdef.parast.search('parentfp'));
             if not assigned(hsym) then
               internalerror(200309281);
-            case hsym.localloc.loc of
-              LOC_REFERENCE :
-                begin
-                  reference_reset_base(href,hsym.localloc.reference.index,hsym.localloc.reference.offset);
-                  cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,location.register);
-                end;
-              LOC_REGISTER :
-                cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,hsym.localloc.register,location.register);
-            end;
+            cg.a_load_loc_reg(exprasmlist,OS_ADDR,hsym.localloc,location.register);
             { walk parents }
             while (currpi.procdef.owner.symtablelevel>parentpd.parast.symtablelevel) do
               begin
@@ -259,7 +245,7 @@ implementation
 
     procedure tcgderefnode.pass_2;
       var
-        paraloc1 : tparalocation;
+        paraloc1 : tcgpara;
       begin
          secondpass(left);
          location_reset(location,LOC_REFERENCE,def_cgsize(resulttype.def));
@@ -292,10 +278,12 @@ implementation
             not(cs_compilesystem in aktmoduleswitches) and
             (not tpointerdef(left.resulttype.def).is_far) then
           begin
-            paraloc1:=paramanager.getintparaloc(pocall_default,1);
+            paraloc1.init;
+            paramanager.getintparaloc(pocall_default,1,paraloc1);
             paramanager.allocparaloc(exprasmlist,paraloc1);
             cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,paraloc1);
             paramanager.freeparaloc(exprasmlist,paraloc1);
+            paraloc1.done;
             cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
             cg.a_call_name(exprasmlist,'FPC_CHECKPOINTER');
             cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
@@ -309,11 +297,12 @@ implementation
 
     procedure tcgsubscriptnode.pass_2;
       var
-        paraloc1 : tparalocation;
+        paraloc1 : tcgpara;
       begin
          secondpass(left);
          if codegenerror then
            exit;
+         paraloc1.init;
          { classes and interfaces must be dereferenced implicit }
          if is_class_or_interface(left.resulttype.def) then
            begin
@@ -347,7 +336,7 @@ implementation
                 (cs_checkpointer in aktglobalswitches) and
                 not(cs_compilesystem in aktmoduleswitches) then
               begin
-                paraloc1:=paramanager.getintparaloc(pocall_default,1);
+                paramanager.getintparaloc(pocall_default,1,paraloc1);
                 paramanager.allocparaloc(exprasmlist,paraloc1);
                 cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,paraloc1);
                 paramanager.freeparaloc(exprasmlist,paraloc1);
@@ -365,7 +354,7 @@ implementation
                 (cs_checkpointer in aktglobalswitches) and
                 not(cs_compilesystem in aktmoduleswitches) then
               begin
-                paraloc1:=paramanager.getintparaloc(pocall_default,1);
+                paramanager.getintparaloc(pocall_default,1,paraloc1);
                 paramanager.allocparaloc(exprasmlist,paraloc1);
                 cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,paraloc1);
                 paramanager.freeparaloc(exprasmlist,paraloc1);
@@ -380,6 +369,7 @@ implementation
          inc(location.reference.offset,vs.fieldoffset);
          { also update the size of the location }
          location.size:=def_cgsize(resulttype.def);
+         paraloc1.done;
       end;
 
 
@@ -520,8 +510,10 @@ implementation
          poslabel,
          neglabel : tasmlabel;
          hreg : tregister;
-         paraloc1,paraloc2 : tparalocation;
+         paraloc1,paraloc2 : tcgpara;
        begin
+         paraloc1.init;
+         paraloc2.init;
          if is_open_array(left.resulttype.def) or
             is_array_of_const(left.resulttype.def) then
           begin
@@ -562,8 +554,8 @@ implementation
          else
           if is_dynamic_array(left.resulttype.def) then
             begin
-               paraloc1:=paramanager.getintparaloc(pocall_default,1);
-               paraloc2:=paramanager.getintparaloc(pocall_default,2);
+               paramanager.getintparaloc(pocall_default,1,paraloc1);
+               paramanager.getintparaloc(pocall_default,2,paraloc2);
                paramanager.allocparaloc(exprasmlist,paraloc2);
                cg.a_param_loc(exprasmlist,right.location,paraloc2);
                paramanager.allocparaloc(exprasmlist,paraloc1);
@@ -576,6 +568,8 @@ implementation
             end
          else
            cg.g_rangecheck(exprasmlist,right.location,right.resulttype.def,left.resulttype.def);
+         paraloc1.done;
+         paraloc2.done;
        end;
 
 
@@ -590,8 +584,10 @@ implementation
          newsize : tcgsize;
          mulsize: longint;
          isjump  : boolean;
-         paraloc1,paraloc2 : tparalocation;
+         paraloc1,paraloc2 : tcgpara;
       begin
+         paraloc1.init;
+         paraloc2.init;
          mulsize := get_mul_size;
 
          newsize:=def_cgsize(resulttype.def);
@@ -628,7 +624,7 @@ implementation
                 we can use the ansistring routine here }
               if (cs_check_range in aktlocalswitches) then
                 begin
-                   paraloc1:=paramanager.getintparaloc(pocall_default,1);
+                   paramanager.getintparaloc(pocall_default,1,paraloc1);
                    paramanager.allocparaloc(exprasmlist,paraloc1);
                    cg.a_param_reg(exprasmlist,OS_ADDR,location.reference.base,paraloc1);
                    paramanager.freeparaloc(exprasmlist,paraloc1);
@@ -712,8 +708,8 @@ implementation
                          st_ansistring:
                        {$endif}
                            begin
-                              paraloc1:=paramanager.getintparaloc(pocall_default,1);
-                              paraloc2:=paramanager.getintparaloc(pocall_default,2);
+                              paramanager.getintparaloc(pocall_default,1,paraloc1);
+                              paramanager.getintparaloc(pocall_default,2,paraloc2);
                               paramanager.allocparaloc(exprasmlist,paraloc2);
                               cg.a_param_const(exprasmlist,OS_INT,tordconstnode(right).value,paraloc2);
                               href:=location.reference;
@@ -850,8 +846,8 @@ implementation
                          st_ansistring:
                        {$endif}
                            begin
-                              paraloc1:=paramanager.getintparaloc(pocall_default,1);
-                              paraloc2:=paramanager.getintparaloc(pocall_default,2);
+                              paramanager.getintparaloc(pocall_default,1,paraloc1);
+                              paramanager.getintparaloc(pocall_default,2,paraloc2);
                               paramanager.allocparaloc(exprasmlist,paraloc2);
                               cg.a_param_reg(exprasmlist,OS_INT,right.location.register,paraloc2);
                               href:=location.reference;
@@ -883,6 +879,8 @@ implementation
            end;
 
         location.size:=newsize;
+        paraloc1.done;
+        paraloc2.done;
       end;
 
 
@@ -897,7 +895,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.95  2004-08-02 09:15:03  michael
+  Revision 1.96  2004-09-21 17:25:12  peter
+    * paraloc branch merged
+
+  Revision 1.95.4.1  2004/08/31 20:43:06  peter
+    * paraloc patch
+
+  Revision 1.95  2004/08/02 09:15:03  michael
   + Fixed range check for non-constant indexes in strings
 
   Revision 1.94  2004/07/12 17:58:19  peter

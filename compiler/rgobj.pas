@@ -608,12 +608,22 @@ unit rgobj;
     procedure trgobj.add_edges_used(u:Tsuperregister);
 
     var i:word;
+        v:tsuperregister;
 
     begin
       with live_registers do
         if length>0 then
           for i:=0 to length-1 do
-            add_edge(u,buf^[i]);
+            begin
+              v:=buf^[i];
+              add_edge(u,v);
+              { add also conflicts with all coalesced registers }
+              while ri_coalesced in reginfo[v].flags do
+                begin
+                  v:=reginfo[v].alias;
+                  add_edge(u,v);
+                end;
+            end;
     end;
 
 {$ifdef EXTDEBUG}
@@ -1255,7 +1265,7 @@ unit rgobj;
         i,j,k : word;
         n,a,c : Tsuperregister;
         colourednodes : Tsuperregisterset;
-		adj_colours:set of 0..255;
+                adj_colours:set of 0..255;
         found : boolean;
 
     begin
@@ -1705,8 +1715,13 @@ unit rgobj;
               supregset_include(regs_to_spill_set,t);
               {Clear all interferences of the spilled register.}
               clear_interferences(t);
-              {Get a temp for the spilled register}
-              tg.gettemp(templist,tcgsize2size[reg_cgsize(newreg(regtype,t,R_SUBWHOLE))],tt_noreuse,spill_temps^[t]);
+              {Get a temp for the spilled register, the size must at least equal a complete register,
+               take also care of the fact that subreg can be larger than a single register like doubles
+               that occupy 2 registers }
+              tg.gettemp(templist,
+                         max(tcgsize2size[reg_cgsize(newreg(regtype,t,R_SUBWHOLE))],
+                             tcgsize2size[reg_cgsize(newreg(regtype,t,reginfo[t].subreg))]),
+                         tt_noreuse,spill_temps^[t]);
             end;
         list.insertlistafter(headertai,templist);
         templist.free;
@@ -1986,7 +2001,16 @@ unit rgobj;
 end.
 {
   $Log$
-  Revision 1.134  2004-08-24 21:02:32  florian
+  Revision 1.135  2004-09-21 17:25:12  peter
+    * paraloc branch merged
+
+  Revision 1.134.4.2  2004/09/21 17:03:26  peter
+    * Include aliases of coalesce registers when adding conflicts
+
+  Revision 1.134.4.1  2004/09/12 13:36:40  peter
+    * fixed alignment issues
+
+  Revision 1.134  2004/08/24 21:02:32  florian
     * fixed longbool(<int64>) on sparc
 
   Revision 1.133  2004/07/09 21:38:30  daniel

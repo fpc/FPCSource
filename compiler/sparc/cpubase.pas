@@ -20,8 +20,6 @@
 
  ****************************************************************************
 }
-{ This Unit contains the base types for the PowerPC
-}
 unit cpubase;
 
 {$i fpcdefs.inc}
@@ -164,8 +162,6 @@ uses
 *****************************************************************************}
 
     type
-      TRefOptions=(ref_none,ref_parafixup,ref_localfixup,ref_selffixup);
-
       { reference record }
       preference = ^treference;
       treference = record
@@ -174,91 +170,33 @@ uses
          { index register, R_NO if none }
          index       : tregister;
          { offset, 0 if none }
-         offset      : longint;
+         offset      : aint;
          { symbol this reference refers to, nil if none }
          symbol      : tasmsymbol;
          { symbol the symbol of this reference is relative to, nil if none }
-         relsymbol      : tasmsymbol;
+         relsymbol   : tasmsymbol;
          { reference type addr or symbol itself }
-         refaddr : trefaddr;
-         { used in conjunction with the previous field }
-         options     : trefoptions;
-         { alignment this reference is guaranteed to have }
-         alignment   : byte;
+         refaddr     : trefaddr;
       end;
 
       { reference record }
       pparareference = ^tparareference;
       tparareference = packed record
          index       : tregister;
-         offset      : longint;
+         offset      : aint;
       end;
 
 {*****************************************************************************
                                 Operand Sizes
 *****************************************************************************}
 
-{$ifdef dummy}
-{*****************************************************************************
-                             Argument Classification
-*****************************************************************************}
-type
-  TArgClass = (
-     { the following classes should be defined by all processor implemnations }
-     AC_NOCLASS,
-     AC_MEMORY,
-     AC_INTEGER,
-     AC_FPU,
-     { the following argument classes are i386 specific }
-     AC_FPUUP,
-     AC_SSE,
-     AC_SSEUP);
-{$endif dummy}
 
 {*****************************************************************************
                                Generic Location
 *****************************************************************************}
 
     type
-      { tparamlocation describes where a parameter for a procedure is stored.
-        References are given from the caller's point of view. The usual
-        TLocation isn't used, because contains a lot of unnessary fields.
-      }
-      tparalocation = record
-         Size : TCGSize;
-         { The location type where the parameter is passed, usually
-           LOC_REFERENCE,LOC_REGISTER or LOC_FPUREGISTER
-         }
-         Loc  : TCGLoc;
-         LocHigh : TCGLoc;
-         {Word alignment on stack 4 --> 32 bit}
-         Alignment:Byte;
-         case TCGLoc of
-            LOC_REFERENCE : (reference : tparareference; low_in_reg: boolean; lowreg : tregister);
-            LOC_FPUREGISTER, LOC_CFPUREGISTER, LOC_MMREGISTER, LOC_CMMREGISTER,
-              LOC_REGISTER,LOC_CREGISTER : (
-              case longint of
-                1 : (register,registerhigh : tregister);
-                { overlay a registerlow }
-                2 : (registerlow : tregister);
-                { overlay a 64 Bit register type }
-                3 : (reg64 : tregister64);
-                4 : (register64 : tregister64);
-            );
-      end;
-
-      treglocation = packed record
-        case longint of
-          1 : (register,registerhigh : tregister);
-          { overlay a registerlow }
-          2 : (registerlow : tregister);
-          { overlay a 64 Bit register type }
-          3 : (reg64 : tregister64);
-          4 : (register64 : tregister64);
-       end;
-
-
-      tlocation = record
+      TLocation = record
          size : TCGSize;
          loc : tcgloc;
          case tcgloc of
@@ -272,8 +210,9 @@ type
 {$endif FPC_BIG_ENDIAN}
                 2 : (value64 : int64);
               );
-            LOC_FPUREGISTER, LOC_CFPUREGISTER, LOC_MMREGISTER, LOC_CMMREGISTER,
-              LOC_REGISTER,LOC_CREGISTER : (
+            LOC_FPUREGISTER,LOC_CFPUREGISTER,
+            LOC_MMREGISTER,LOC_CMMREGISTER,
+            LOC_REGISTER,LOC_CREGISTER : (
                 case longint of
                   1 : (registerlow,registerhigh : tregister);
                   2 : (register : tregister);
@@ -570,7 +509,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.71  2004-08-24 21:02:33  florian
+  Revision 1.72  2004-09-21 17:25:13  peter
+    * paraloc branch merged
+
+  Revision 1.71.4.1  2004/08/31 20:43:06  peter
+    * paraloc patch
+
+  Revision 1.71  2004/08/24 21:02:33  florian
     * fixed longbool(<int64>) on sparc
 
   Revision 1.70  2004/08/15 13:30:18  florian

@@ -85,7 +85,7 @@ implementation
           R_SUBFD:
             setsubreg(r,R_SUBFS);
           R_SUBL,R_SUBW,R_SUBD,R_SUBQ:
-            setsubreg(r,R_SUBNONE);
+            setsubreg(r,R_SUBD);
         end;
         p:=findreg_by_number(r);
         if p<>0 then
@@ -97,7 +97,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2004-08-24 21:02:33  florian
+  Revision 1.5  2004-09-21 17:25:13  peter
+    * paraloc branch merged
+
+  Revision 1.4.4.1  2004/09/20 20:42:37  peter
+    * use R_SUBD for all int registers instead of R_SUBNONE
+
+  Revision 1.4  2004/08/24 21:02:33  florian
     * fixed longbool(<int64>) on sparc
 
   Revision 1.3  2004/06/20 08:55:32  florian

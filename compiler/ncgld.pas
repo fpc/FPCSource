@@ -56,7 +56,7 @@ implementation
       aasmbase,aasmtai,aasmcpu,
       cgbase,pass_2,
       procinfo,
-      cpubase,
+      cpubase,parabase,
       tgobj,ncgutil,
       cgutils,cgobj,
       ncgbas;
@@ -80,7 +80,7 @@ implementation
         newsize : tcgsize;
         endrelocatelab,
         norelocatelab : tasmlabel;
-        paraloc1 : tparalocation;
+        paraloc1 : tcgpara;
       begin
          { we don't know the size of all arrays }
          newsize:=def_cgsize(resulttype.def);
@@ -164,7 +164,8 @@ implementation
                        objectlibrary.getlabel(norelocatelab);
                        objectlibrary.getlabel(endrelocatelab);
                        { make sure hregister can't allocate the register necessary for the parameter }
-                       paraloc1:=paramanager.getintparaloc(pocall_default,1);
+                       paraloc1.init;
+                       paramanager.getintparaloc(pocall_default,1,paraloc1);
                        hregister:=cg.getaddressregister(exprasmlist);
                        reference_reset_symbol(href,objectlibrary.newasmsymbol('FPC_THREADVAR_RELOCATE',AB_EXTERNAL,AT_DATA),0);
                        cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,hregister);
@@ -175,6 +176,7 @@ implementation
                        paramanager.allocparaloc(exprasmlist,paraloc1);
                        cg.a_param_ref(exprasmlist,OS_ADDR,href,paraloc1);
                        paramanager.freeparaloc(exprasmlist,paraloc1);
+                       paraloc1.done;
                        cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
                        cg.a_call_reg(exprasmlist,hregister);
                        cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
@@ -235,8 +237,7 @@ implementation
                                 begin
                                   if tvarsym(symtableentry).localloc.loc<>LOC_REFERENCE then
                                     internalerror(2003091816);
-                                  location.reference.base:=tvarsym(symtableentry).localloc.reference.index;
-                                  location.reference.offset:=tvarsym(symtableentry).localloc.reference.offset;
+                                  location.reference:=tvarsym(symtableentry).localloc.reference;
                                 end;
                               globalsymtable,
                               staticsymtable :
@@ -254,8 +255,7 @@ implementation
                                 begin
                                   if tvarsym(symtableentry).localloc.loc<>LOC_REFERENCE then
                                     internalerror(2003091817);
-                                  location.reference.base:=tvarsym(symtableentry).localloc.reference.index;
-                                  location.reference.offset:=tvarsym(symtableentry).localloc.reference.offset;
+                                  location.reference:=tvarsym(symtableentry).localloc.reference;
                                 end;
                               else
                                 internalerror(200305102);
@@ -394,6 +394,7 @@ implementation
          href : treference;
          old_allow_multi_pass2,
          releaseright : boolean;
+         len : aint;
          cgsize : tcgsize;
          r:Tregister;
 
@@ -408,14 +409,14 @@ implementation
         {
           in most cases we can process first the right node which contains
           the most complex code. Exceptions for this are:
-	    - result is in flags, loading left will then destroy the flags
-	    - result need reference count, when left points to a value used in
-	      right then decreasing the refcnt on left can possibly release
-	      the memory before right increased the refcnt, result is that an
-	      empty value is assigned
-	    - calln, call destroys most registers and is therefor 'complex'
-	
-	   But not when the result is in the flags, then
+            - result is in flags, loading left will then destroy the flags
+            - result need reference count, when left points to a value used in
+              right then decreasing the refcnt on left can possibly release
+              the memory before right increased the refcnt, result is that an
+              empty value is assigned
+            - calln, call destroys most registers and is therefor 'complex'
+
+           But not when the result is in the flags, then
           loading the left node afterwards can destroy the flags.
 
           when the right node returns as LOC_JUMP then we will generate
@@ -598,10 +599,16 @@ implementation
                     LOC_REFERENCE,
                     LOC_CREFERENCE :
                       begin
-                        cg.g_concatcopy(exprasmlist,right.location.reference,
-                                    left.location.reference,left.resulttype.def.size,true,false);
-                        { right.location is already released by concatcopy }
-                        releaseright:=false;
+{$warning HACK: unaligned test, maybe remove all unaligned locations (array of char) from the compiler}
+                        { Use unaligned copy when the offset is not aligned }
+                        len:=left.resulttype.def.size;
+                        if (right.location.reference.offset mod sizeof(aint)<>0) and
+                           (len>sizeof(aint)) then
+                          cg.g_concatcopy_unaligned(exprasmlist,right.location.reference,
+                              left.location.reference,len,false,false)
+                        else
+                          cg.g_concatcopy(exprasmlist,right.location.reference,
+                              left.location.reference,len,false,false);
                       end;
                     else
                       internalerror(200203284);
@@ -751,7 +758,7 @@ implementation
         dovariant : boolean;
         elesize : longint;
         tmpreg  : tregister;
-        paraloc : tparalocation;
+        paraloc : tcgparalocation;
       begin
         dovariant:=(nf_forcevaria in flags) or tarraydef(resulttype.def).isvariant;
         if dovariant then
@@ -961,8 +968,20 @@ begin
 end.
 {
   $Log$
-  Revision 1.123  2004-09-13 20:33:41  peter
+  Revision 1.124  2004-09-21 17:25:12  peter
+    * paraloc branch merged
+
+  Revision 1.123  2004/09/13 20:33:41  peter
     * pwidechar support in array of const
+
+  Revision 1.122.4.3  2004/09/12 18:31:50  peter
+    * use normal concatcopy when data < sizeof(aint)
+
+  Revision 1.122.4.2  2004/09/12 13:36:40  peter
+    * fixed alignment issues
+
+  Revision 1.122.4.1  2004/08/31 20:43:06  peter
+    * paraloc patch
 
   Revision 1.122  2004/08/15 13:30:18  florian
     * fixed alignment of variant records

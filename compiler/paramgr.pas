@@ -31,22 +31,11 @@ unit paramgr;
     uses
        cclasses,globtype,
        cpubase,cgbase,
+       parabase,
        aasmtai,
        symconst,symtype,symdef;
 
     type
-       tvarargsinfo = (
-         va_uses_float_reg
-       );
-
-       tvarargspara = class(tlinkedlist)
-          varargsinfo : set of tvarargsinfo;
-{$ifdef x86_64}
-          { x86_64 requires %al to contain the no. SSE regs passed }
-          mmregsused  : longint;
-{$endif x86_64}
-       end;
-
        {# This class defines some methods to take care of routine
           parameters. It should be overriden for each new processor
        }
@@ -87,21 +76,22 @@ unit paramgr;
           function get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;virtual;
           function get_volatile_registers_flags(calloption : tproccalloption):tcpuregisterset;virtual;
           function get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;virtual;
-          function getintparaloc(calloption : tproccalloption; nr : longint) : tparalocation;virtual;abstract;
+
+          procedure getintparaloc(calloption : tproccalloption; nr : longint;var cgpara:TCGPara);virtual;abstract;
 
           {# allocate a parameter location created with create_paraloc_info
 
             @param(list Current assembler list)
             @param(loc Parameter location)
           }
-          procedure allocparaloc(list: taasmoutput; const loc: tparalocation); virtual;
+          procedure allocparaloc(list: taasmoutput; const cgpara: TCGPara); virtual;
 
-          {# free a parameter location allocated with allocparaloc
+          {# free a parameter location allocated with alloccgpara
 
             @param(list Current assembler list)
             @param(loc Parameter location)
           }
-          procedure freeparaloc(list: taasmoutput; const loc: tparalocation); virtual;
+          procedure freeparaloc(list: taasmoutput; const cgpara: TCGPara); virtual;
 
           { This is used to populate the location information on all parameters
             for the routine as seen in either the caller or the callee. It returns
@@ -121,11 +111,8 @@ unit paramgr;
           }
           function  create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargspara):longint;virtual;abstract;
 
-          { Return the location of the low and high part of a 64bit parameter }
-          procedure splitparaloc64(const locpara:tparalocation;var loclopara,lochipara:tparalocation);virtual;
-
-          procedure alloctempregs(list: taasmoutput;var locpara:tparalocation);virtual;
-          procedure alloctempparaloc(list: taasmoutput;calloption : tproccalloption;paraitem : tparaitem;var locpara:tparalocation);virtual;
+          procedure createtempparaloc(list: taasmoutput;calloption : tproccalloption;paraitem : tparaitem;var cgpara:TCGPara);virtual;
+          procedure duplicateparaloc(list: taasmoutput;calloption : tproccalloption;paraitem : tparaitem;var cgpara:TCGPara);
 
           function parseparaloc(paraitem : tparaitem;const s : string) : boolean;virtual;abstract;
        end;
@@ -138,8 +125,8 @@ unit paramgr;
 implementation
 
     uses
-       cpuinfo,systems,
-       cgutils,cgobj,tgobj,
+       systems,
+       cgobj,tgobj,
        defutil,verbose;
 
     { true if uses a parameter as return value }
@@ -301,201 +288,135 @@ implementation
       end;
 
 
-    procedure tparamanager.allocparaloc(list: taasmoutput; const loc: tparalocation);
-      begin
-        case loc.loc of
-          LOC_REGISTER,
-          LOC_CREGISTER:
-            begin
-              if getsupreg(loc.register)<first_int_imreg then
-                cg.getexplicitregister(list,loc.register);
-            end;
-          LOC_FPUREGISTER,
-          LOC_CFPUREGISTER:
-            begin
-              if getsupreg(loc.register)<first_fpu_imreg then
-                cg.getexplicitregister(list,loc.register);
-            end;
-          LOC_MMREGISTER,
-          LOC_CMMREGISTER :
-            begin
-              if getsupreg(loc.register)<first_mm_imreg then
-                cg.getexplicitregister(list,loc.register);
-            end;
-          LOC_REFERENCE,
-          LOC_CREFERENCE :
-            { do nothing by default, most of the time it's the framepointer }
-          else
-            internalerror(200306091);
-        end;
-        case loc.lochigh of
-          LOC_INVALID :
-            ;
-          LOC_REGISTER,
-          LOC_CREGISTER,
-          LOC_FPUREGISTER,
-          LOC_CFPUREGISTER,
-          LOC_MMREGISTER,
-          LOC_CMMREGISTER :
-            begin
-              { NR_NO means we don't need to allocate the parameter.
-                This is used for inlining parameters which allocates
-                the parameters in gen_alloc_parast (PFV) }
-              if loc.registerhigh<>NR_NO then
-                cg.getexplicitregister(list,loc.registerhigh);
-            end;
-          else
-            internalerror(200306092);
-        end;
-      end;
-
-
-    procedure tparamanager.freeparaloc(list: taasmoutput; const loc: tparalocation);
+    procedure tparamanager.allocparaloc(list: taasmoutput; const cgpara: TCGPara);
       var
-        href : treference;
+        paraloc : pcgparalocation;
       begin
-        case loc.loc of
-          LOC_REGISTER, LOC_CREGISTER:
-            begin
-{$ifndef cpu64bit}
-              if (loc.size in [OS_64,OS_S64,OS_F64]) then
+        paraloc:=cgpara.location;
+        while assigned(paraloc) do
+          begin
+            case paraloc^.loc of
+              LOC_REGISTER,
+              LOC_CREGISTER:
                 begin
-                  cg.ungetregister(list,loc.registerhigh);
-                  cg.ungetregister(list,loc.registerlow);
-                end
-              else
-{$endif cpu64bit}
-                cg.ungetregister(list,loc.register);
+                  if getsupreg(paraloc^.register)<first_int_imreg then
+                    cg.getexplicitregister(list,paraloc^.register);
+                end;
+              LOC_FPUREGISTER,
+              LOC_CFPUREGISTER:
+                begin
+                  if getsupreg(paraloc^.register)<first_fpu_imreg then
+                    cg.getexplicitregister(list,paraloc^.register);
+                end;
+              LOC_MMREGISTER,
+              LOC_CMMREGISTER :
+                begin
+                  if getsupreg(paraloc^.register)<first_mm_imreg then
+                    cg.getexplicitregister(list,paraloc^.register);
+                end;
             end;
-          LOC_MMREGISTER, LOC_CMMREGISTER,
-          LOC_FPUREGISTER, LOC_CFPUREGISTER:
-            cg.ungetregister(list,loc.register);
-          LOC_REFERENCE,LOC_CREFERENCE:
-            begin
-{$ifdef cputargethasfixedstack}
-              reference_reset_base(href,loc.reference.index,loc.reference.offset);
-              tg.ungettemp(list,href);
-{$endif cputargethasfixedstack}
-            end;
-          else
-            internalerror(200306093);
-        end;
-        case loc.lochigh of
-          LOC_INVALID :
-            ;
-          LOC_REGISTER,
-          LOC_CREGISTER,
-          LOC_FPUREGISTER,
-          LOC_CFPUREGISTER,
-          LOC_MMREGISTER,
-          LOC_CMMREGISTER :
-            cg.ungetregister(list,loc.register);
-          else
-            internalerror(200306094);
-        end;
+            paraloc:=paraloc^.next;
+          end;
       end;
 
 
-    procedure tparamanager.splitparaloc64(const locpara:tparalocation;var loclopara,lochipara:tparalocation);
-      begin
-        lochipara:=locpara;
-        loclopara:=locpara;
-        case locpara.size of
-          OS_S128 :
-            begin
-              lochipara.size:=OS_S64;
-              loclopara.size:=OS_64;
-            end;
-          OS_128 :
-            begin
-              lochipara.size:=OS_64;
-              loclopara.size:=OS_64;
-            end;
-          OS_S64 :
-            begin
-              lochipara.size:=OS_S32;
-              loclopara.size:=OS_32;
-            end;
-          OS_64 :
-            begin
-              lochipara.size:=OS_32;
-              loclopara.size:=OS_32;
-            end;
-          else
-            internalerror(200307023);
-        end;
-        loclopara.lochigh:=LOC_INVALID;
-        lochipara.lochigh:=LOC_INVALID;
-        case locpara.loc of
-           LOC_REGISTER,
-           LOC_CREGISTER,
-           LOC_FPUREGISTER,
-           LOC_CFPUREGISTER,
-           LOC_MMREGISTER,
-           LOC_CMMREGISTER :
-             begin
-               if locpara.lochigh=LOC_INVALID then
-                 internalerror(200402061);
-               loclopara.register:=locpara.registerlow;
-               lochipara.register:=locpara.registerhigh;
-             end;
-           LOC_REFERENCE:
-             begin
-               if target_info.endian=endian_big then
-                 inc(loclopara.reference.offset,tcgsize2size[loclopara.size])
-               else
-                 inc(lochipara.reference.offset,tcgsize2size[loclopara.size]);
-             end;
-           else
-             internalerror(200307024);
-        end;
-      end;
-
-
-    procedure tparamanager.alloctempregs(list: taasmoutput;var locpara:tparalocation);
+    procedure tparamanager.freeparaloc(list: taasmoutput; const cgpara: TCGPara);
       var
-        cgsize : tcgsize;
+        paraloc : Pcgparalocation;
+{$ifdef cputargethasfixedstack}
+        href : treference;
+{$endif cputargethasfixedstack}
       begin
-        if locpara.lochigh<>LOC_INVALID then
-          cgsize:=OS_INT
-        else
-          cgsize:=locpara.size;
-        case locpara.loc of
-          LOC_REGISTER:
-            locpara.register:=cg.getintregister(list,cgsize);
-          LOC_FPUREGISTER:
-            locpara.register:=cg.getfpuregister(list,cgsize);
-          LOC_MMREGISTER:
-            locpara.register:=cg.getmmregister(list,cgsize);
-          else
-            internalerror(200308123);
-        end;
-        case locpara.lochigh of
-          LOC_INVALID:
-            ;
-          LOC_REGISTER:
-            locpara.registerhigh:=cg.getintregister(list,cgsize);
-          LOC_FPUREGISTER:
-            locpara.registerhigh:=cg.getfpuregister(list,cgsize);
-          LOC_MMREGISTER:
-            locpara.registerhigh:=cg.getmmregister(list,cgsize);
-          else
-            internalerror(200308124);
-        end;
+        paraloc:=cgpara.location;
+        while assigned(paraloc) do
+          begin
+            case paraloc^.loc of
+              LOC_REGISTER,
+              LOC_CREGISTER,
+              LOC_FPUREGISTER,
+              LOC_CFPUREGISTER,
+              LOC_MMREGISTER,
+              LOC_CMMREGISTER :
+                cg.ungetregister(list,paraloc^.register);
+              LOC_REFERENCE,
+              LOC_CREFERENCE :
+                begin
+{$ifdef cputargethasfixedstack}
+                  { don't use reference_reset_base, because that will depend on cgobj }
+                  fillchar(href,sizeof(href),0);
+                  href.base:=paraloc^.reference.index;
+                  href.offset:=paraloc^.reference.offset;
+                  tg.ungettemp(list,href);
+{$endif cputargethasfixedstack}
+                end;
+            end;
+            paraloc:=paraloc^.next;
+          end;
       end;
 
 
-    procedure tparamanager.alloctempparaloc(list: taasmoutput;calloption : tproccalloption;paraitem : tparaitem;var locpara:tparalocation);
+    procedure tparamanager.createtempparaloc(list: taasmoutput;calloption : tproccalloption;paraitem : tparaitem;var cgpara:TCGPara);
       var
         href : treference;
-        l    : aint;
+        len  : aint;
+        paraloc,
+        newparaloc : pcgparalocation;
       begin
-        l:=push_size(paraitem.paratyp,paraitem.paratype.def,calloption);
-        tg.gettemp(list,l,tt_persistent,href);
-        locpara.loc:=LOC_REFERENCE;
-        locpara.lochigh:=LOC_INVALID;
-        locpara.reference.index:=href.base;
-        locpara.reference.offset:=href.offset;
+        cgpara.reset;
+        cgpara.size:=paraitem.paraloc[callerside].size;
+        cgpara.alignment:=paraitem.paraloc[callerside].alignment;
+        paraloc:=paraitem.paraloc[callerside].location;
+        while assigned(paraloc) do
+          begin
+            if paraloc^.size=OS_NO then
+              len:=push_size(paraitem.paratyp,paraitem.paratype.def,calloption)
+            else
+              len:=tcgsize2size[paraloc^.size];
+            newparaloc:=cgpara.add_location;
+            newparaloc^.size:=paraloc^.size;
+{$warning maybe release this optimization for all targets?}
+{$ifdef sparc}
+            { Does it fit a register? }
+            if len<=sizeof(aint) then
+              newparaloc^.loc:=LOC_REGISTER
+            else
+{$endif sparc}
+              newparaloc^.loc:=paraloc^.loc;
+            case newparaloc^.loc of
+              LOC_REGISTER :
+                newparaloc^.register:=cg.getintregister(list,paraloc^.size);
+              LOC_FPUREGISTER :
+                newparaloc^.register:=cg.getfpuregister(list,paraloc^.size);
+              LOC_MMREGISTER :
+                newparaloc^.register:=cg.getmmregister(list,paraloc^.size);
+              LOC_REFERENCE :
+                begin
+                  tg.gettemp(list,len,tt_persistent,href);
+                  newparaloc^.reference.index:=href.base;
+                  newparaloc^.reference.offset:=href.offset;
+                end;
+            end;
+            paraloc:=paraloc^.next;
+          end;
+      end;
+
+
+    procedure tparamanager.duplicateparaloc(list: taasmoutput;calloption : tproccalloption;paraitem : tparaitem;var cgpara:TCGPara);
+      var
+        paraloc,
+        newparaloc : pcgparalocation;
+      begin
+        cgpara.reset;
+        cgpara.size:=paraitem.paraloc[callerside].size;
+        cgpara.alignment:=paraitem.paraloc[callerside].alignment;
+        paraloc:=paraitem.paraloc[callerside].location;
+        while assigned(paraloc) do
+          begin
+            newparaloc:=cgpara.add_location;
+            move(paraloc^,newparaloc^,sizeof(newparaloc^));
+            newparaloc^.next:=nil;
+            paraloc:=paraloc^.next;
+          end;
       end;
 
 
@@ -515,7 +436,13 @@ end.
 
 {
    $Log$
-   Revision 1.77  2004-07-09 23:41:04  jonas
+   Revision 1.78  2004-09-21 17:25:12  peter
+     * paraloc branch merged
+
+   Revision 1.77.4.1  2004/08/31 20:43:06  peter
+     * paraloc patch
+
+   Revision 1.77  2004/07/09 23:41:04  jonas
      * support register parameters for inlined procedures + some inline
        cleanups
 

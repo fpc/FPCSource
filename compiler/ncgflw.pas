@@ -84,16 +84,13 @@ implementation
     uses
       verbose,globals,systems,globtype,
       symconst,symdef,symsym,aasmbase,aasmtai,aasmcpu,defutil,
-      procinfo,cgbase,pass_2,
+      procinfo,cgbase,pass_2,parabase,
       cpubase,cpuinfo,
       nld,ncon,
       ncgutil,
       tgobj,paramgr,
       regvars,
       cgutils,cgobj
-{$ifndef cpu64bit}
-      ,cg64f32
-{$endif cpu64bit}
       ;
 
 {*****************************************************************************
@@ -778,11 +775,14 @@ implementation
       var
          a : tasmlabel;
          href2: treference;
-         paraloc1,paraloc2,paraloc3 : tparalocation;
+         paraloc1,paraloc2,paraloc3 : tcgpara;
       begin
-         paraloc1:=paramanager.getintparaloc(pocall_default,1);
-         paraloc2:=paramanager.getintparaloc(pocall_default,2);
-         paraloc3:=paramanager.getintparaloc(pocall_default,3);
+         paraloc1.init;
+         paraloc2.init;
+         paraloc3.init;
+         paramanager.getintparaloc(pocall_default,1,paraloc1);
+         paramanager.getintparaloc(pocall_default,2,paraloc2);
+         paramanager.getintparaloc(pocall_default,3,paraloc3);
          location_reset(location,LOC_VOID,OS_NO);
 
          if assigned(left) then
@@ -847,6 +847,9 @@ implementation
               cg.a_call_name(exprasmlist,'FPC_RERAISE');
               cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
            end;
+         paraloc1.done;
+         paraloc2.done;
+         paraloc3.done;
        end;
 
 
@@ -862,18 +865,20 @@ implementation
     { in the except block                                    }
     procedure cleanupobjectstack;
       var
-        paraloc1 : tparalocation;
+        paraloc1 : tcgpara;
       begin
          cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
          cg.a_call_name(exprasmlist,'FPC_POPOBJECTSTACK');
          cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-         paraloc1:=paramanager.getintparaloc(pocall_default,1);
+         paraloc1.init;
+         paramanager.getintparaloc(pocall_default,1,paraloc1);
          paramanager.allocparaloc(exprasmlist,paraloc1);
          cg.a_param_reg(exprasmlist,OS_ADDR,NR_FUNCTION_RESULT_REG,paraloc1);
          paramanager.freeparaloc(exprasmlist,paraloc1);
          cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
          cg.a_call_name(exprasmlist,'FPC_DESTROYEXCEPTION');
          cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+         paraloc1.done;
       end;
 
 
@@ -897,7 +902,7 @@ implementation
          exceptflowcontrol : tflowcontrol;
          destroytemps,
          excepttemps : texceptiontemps;
-         paraloc1 : tparalocation;
+         paraloc1 : tcgpara;
       label
          errorexit;
       begin
@@ -906,6 +911,8 @@ implementation
          oldflowcontrol:=flowcontrol;
          flowcontrol:=[];
          { this can be called recursivly }
+         oldaktbreaklabel:=nil;
+         oldaktcontinuelabel:=nil;
          oldendexceptlabel:=endexceptlabel;
 
          { save the old labels for control flow statements }
@@ -977,13 +984,15 @@ implementation
               { FPC_CATCHES must be called with
                 'default handler' flag (=-1)
               }
-              paraloc1:=paramanager.getintparaloc(pocall_default,1);
+              paraloc1.init;
+              paramanager.getintparaloc(pocall_default,1,paraloc1);
               paramanager.allocparaloc(exprasmlist,paraloc1);
               cg.a_param_const(exprasmlist,OS_ADDR,-1,paraloc1);
               paramanager.freeparaloc(exprasmlist,paraloc1);
               cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
               cg.a_call_name(exprasmlist,'FPC_CATCHES');
               cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+              paraloc1.done;
 
               { the destruction of the exception object must be also }
               { guarded by an exception frame                        }
@@ -1006,13 +1015,15 @@ implementation
               cg.a_call_name(exprasmlist,'FPC_POPSECONDOBJECTSTACK');
               cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
 
-              paraloc1:=paramanager.getintparaloc(pocall_default,1);
+              paraloc1.init;
+              paramanager.getintparaloc(pocall_default,1,paraloc1);
               paramanager.allocparaloc(exprasmlist,paraloc1);
               cg.a_param_reg(exprasmlist, OS_ADDR, NR_FUNCTION_RESULT_REG, paraloc1);
               paramanager.freeparaloc(exprasmlist,paraloc1);
               cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
               cg.a_call_name(exprasmlist,'FPC_DESTROYEXCEPTION');
               cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+              paraloc1.done;
               { we don't need to restore esi here because reraise never }
               { returns                                                 }
               cg.a_call_name(exprasmlist,'FPC_RERAISE');
@@ -1134,8 +1145,9 @@ implementation
          excepttemps : texceptiontemps;
          exceptref,
          href2: treference;
-         paraloc1 : tparalocation;
+         paraloc1 : tcgpara;
       begin
+         paraloc1.init;
          location_reset(location,LOC_VOID,OS_NO);
 
          oldflowcontrol:=flowcontrol;
@@ -1144,7 +1156,7 @@ implementation
 
          { send the vmt parameter }
          reference_reset_symbol(href2,objectlibrary.newasmsymbol(excepttype.vmt_mangledname,AB_EXTERNAL,AT_DATA),0);
-         paraloc1:=paramanager.getintparaloc(pocall_default,1);
+         paramanager.getintparaloc(pocall_default,1,paraloc1);
          paramanager.allocparaloc(exprasmlist,paraloc1);
          cg.a_paramaddr_ref(exprasmlist,href2,paraloc1);
          paramanager.freeparaloc(exprasmlist,paraloc1);
@@ -1161,9 +1173,7 @@ implementation
              tvarsym(exceptsymtable.symindex.first).localloc.loc:=LOC_REFERENCE;
              tg.GetLocal(exprasmlist,sizeof(aint),voidpointertype.def,
                 tvarsym(exceptsymtable.symindex.first).localloc.reference);
-             reference_reset_base(href2,tvarsym(exceptsymtable.symindex.first).localloc.reference.index,
-                tvarsym(exceptsymtable.symindex.first).localloc.reference.offset);
-             cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,NR_FUNCTION_RESULT_REG,href2);
+             cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,NR_FUNCTION_RESULT_REG,tvarsym(exceptsymtable.symindex.first).localloc.reference);
            end
          else
            begin
@@ -1179,6 +1189,8 @@ implementation
          get_exception_temps(exprasmlist,excepttemps);
          new_exception(exprasmlist,excepttemps,1,doobjectdestroyandreraise);
 
+         oldaktbreaklabel:=nil;
+         oldaktcontinuelabel:=nil;
          if assigned(right) then
            begin
               oldaktexitlabel:=current_procinfo.aktexitlabel;
@@ -1204,7 +1216,7 @@ implementation
          cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
          cg.a_call_name(exprasmlist,'FPC_POPSECONDOBJECTSTACK');
          cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-         paraloc1:=paramanager.getintparaloc(pocall_default,1);
+         paramanager.getintparaloc(pocall_default,1,paraloc1);
          paramanager.allocparaloc(exprasmlist,paraloc1);
          cg.a_param_reg(exprasmlist, OS_ADDR, NR_FUNCTION_RESULT_REG, paraloc1);
          paramanager.freeparaloc(exprasmlist,paraloc1);
@@ -1262,6 +1274,8 @@ implementation
          unget_exception_temps(exprasmlist,excepttemps);
          cg.a_label(exprasmlist,nextonlabel);
          flowcontrol:=oldflowcontrol+flowcontrol;
+         paraloc1.done;
+
          { next on node }
          if assigned(left) then
            secondpass(left);
@@ -1440,7 +1454,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.97  2004-06-20 08:55:29  florian
+  Revision 1.98  2004-09-21 17:25:12  peter
+    * paraloc branch merged
+
+  Revision 1.97.4.2  2004/09/12 18:30:48  peter
+    * uninitialized vars fixed
+
+  Revision 1.97.4.1  2004/08/31 20:43:06  peter
+    * paraloc patch
+
+  Revision 1.97  2004/06/20 08:55:29  florian
     * logs truncated
 
   Revision 1.96  2004/06/16 20:07:08  florian

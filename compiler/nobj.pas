@@ -156,7 +156,7 @@ implementation
        gdb,
 {$endif GDB}
        aasmcpu,
-       cpubase,cgbase,
+       cpubase,cgbase,parabase,
        cgutils,cgobj
        ;
 
@@ -1346,7 +1346,7 @@ implementation
     var
       hsym : tsym;
       href : treference;
-      locpara : tparalocation;
+      paraloc : tcgparalocation;
     begin
       { calculate the parameter info for the procdef }
       if not procdef.has_paraloc_info then
@@ -1359,16 +1359,16 @@ implementation
              (hsym.typ=varsym) and
              assigned(tvarsym(hsym).paraitem)) then
         internalerror(200305251);
-      locpara:=tvarsym(hsym).paraitem.paraloc[callerside];
-      case locpara.loc of
+      paraloc:=tvarsym(hsym).paraitem.paraloc[callerside].location^;
+      case paraloc.loc of
         LOC_REGISTER:
-          cg.a_op_const_reg(exprasmlist,OP_SUB,locpara.size,ioffset,locpara.register);
+          cg.a_op_const_reg(exprasmlist,OP_SUB,paraloc.size,ioffset,paraloc.register);
         LOC_REFERENCE:
           begin
              { offset in the wrapper needs to be adjusted for the stored
                return address }
-             reference_reset_base(href,locpara.reference.index,locpara.reference.offset+sizeof(aint));
-             cg.a_op_const_ref(exprasmlist,OP_SUB,locpara.size,ioffset,href);
+             reference_reset_base(href,paraloc.reference.index,paraloc.reference.offset+sizeof(aint));
+             cg.a_op_const_ref(exprasmlist,OP_SUB,paraloc.size,ioffset,href);
           end
         else
           internalerror(200309189);
@@ -1381,8 +1381,14 @@ initialization
 end.
 {
   $Log$
-  Revision 1.75  2004-09-13 20:31:07  peter
+  Revision 1.76  2004-09-21 17:25:12  peter
+    * paraloc branch merged
+
+  Revision 1.75  2004/09/13 20:31:07  peter
     * fixed and cleanup of overriding non-visible methods
+
+  Revision 1.74.4.1  2004/08/31 20:43:06  peter
+    * paraloc patch
 
   Revision 1.74  2004/07/09 22:17:32  peter
     * revert has_localst patch

@@ -310,7 +310,7 @@ interface
     function  GetEnvPChar(const envname:string):pchar;
     procedure FreeEnvPChar(p:pchar);
 
-    function SetFPUExceptionMask(const Mask : TFPUExceptionMask) : TFPUExceptionMask;
+    procedure SetFPUExceptionMask(const Mask: TFPUExceptionMask);
     function is_number_float(d : double) : boolean;
 
     Function SetCompileMode(const s:string; changeInit: boolean):boolean;
@@ -461,12 +461,16 @@ implementation
                                File Handling
 ****************************************************************************}
 
-   function GetCurrentDir:string;
      var
-       CurrentDir : string;
+       CachedCurrentDir : string;
+   function GetCurrentDir:string;
      begin
-       GetDir(0,CurrentDir);
-       GetCurrentDir:=FixPath(CurrentDir,false);
+       if CachedCurrentDir='' then
+         begin
+           GetDir(0,CachedCurrentDir);
+           CachedCurrentDir:=FixPath(CachedCurrentDir,false);
+         end;
+       result:=CachedCurrentDir;
      end;
 
 
@@ -1398,7 +1402,8 @@ implementation
       {$endif}
 
 
-{$ifdef CPUI386}
+{$if defined(CPUI386) or defined(CPUX86_64)}
+  {$define HASSETFPUEXCEPTIONMASK}
       { later, this should be replaced by the math unit }
       const
         Default8087CW : word = $1332;
@@ -1420,17 +1425,18 @@ implementation
         end;
 
 
-      function SetFPUExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
+      procedure SetFPUExceptionMask(const Mask: TFPUExceptionMask);
         var
           CtlWord: Word;
         begin
           CtlWord:=Get8087CW;
           Set8087CW( (CtlWord and $FFC0) or Byte(Longint(Mask)) );
-          Result:=TFPUExceptionMask(Longint(CtlWord and $3F));
         end;
-{$else CPUI386}
+{$endif CPUI386 OR CPUX86_64}
+
 {$ifdef CPUPOWERPC}
-      function SetFPUExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
+  {$define HASSETFPUEXCEPTIONMASK}
+      procedure SetFPUExceptionMask(const Mask: TFPUExceptionMask);
         var
           newmask: record
             case byte of
@@ -1480,12 +1486,59 @@ implementation
             mtfsf 255,f0
           end;
         end;
-{$else CPUPOWERPC}
+{$endif CPUPOWERPC}
+
+{$ifdef CPUSPARC}
+  {$define HASSETFPUEXCEPTIONMASK}
+      procedure SetFPUExceptionMask(const Mask: TFPUExceptionMask);
+        var
+          fsr : cardinal;
+        begin
+          { load current control register contents }
+          asm
+            st %fsr,fsr
+          end;
+          { invalid operation: bit 27 }
+          if (exInvalidOp in mask) then
+            fsr:=fsr and not(1 shl 27)
+          else
+            fsr:=fsr or (1 shl 27);
+
+          { zero divide: bit 24 }
+          if (exZeroDivide in mask) then
+            fsr:=fsr and not(1 shl 24)
+          else
+            fsr:=fsr or (1 shl 24);
+
+          { overflow: bit 26 }
+          if (exOverflow in mask) then
+            fsr:=fsr and not(1 shl 26)
+          else
+            fsr:=fsr or (1 shl 26);
+
+          { underflow: bit 25 }
+          if (exUnderflow in mask) then
+            fsr:=fsr and not(1 shl 25)
+          else
+            fsr:=fsr or (1 shl 25);
+
+          { Precision (inexact result): bit 23 }
+          if (exPrecision in mask) then
+            fsr:=fsr and not(1 shl 23)
+          else
+            fsr:=fsr or (1 shl 23);
+          { update control register contents }
+          asm
+            ld fsr,%fsr
+          end;
+        end;
+{$endif CPUSPARC}
+
+{$ifndef HASSETFPUEXCEPTIONMASK}
       function SetFPUExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
         begin
         end;
-{$endif CPUPOWERPC}
-{$endif CPUI386}
+{$endif HASSETFPUEXCEPTIONMASK}
 
       function is_number_float(d : double) : boolean;
         var
@@ -1960,13 +2013,22 @@ implementation
 end.
 {
   $Log$
-  Revision 1.138  2004-09-08 11:23:31  michael
+  Revision 1.139  2004-09-21 17:25:12  peter
+    * paraloc branch merged
+
+  Revision 1.138  2004/09/08 11:23:31  michael
   + Check if outputdir exists,  Fix exitcode when displaying help pages
 
   Revision 1.137  2004/08/31 22:02:30  olle
     + support for quoting of paths in TSearchPathList.AddPath so that
       compiler directives which take paths, will support quotes.
     * uppdated TranslateMacPath
+
+  Revision 1.136.4.2  2004/09/12 18:31:26  peter
+    * fpu exception support for sparc and x86_64
+
+  Revision 1.136.4.1  2004/09/12 15:30:16  peter
+    * cache currentdir
 
   Revision 1.136  2004/08/28 20:25:25  peter
     * optimized search for noncasesensitive names. It now searches

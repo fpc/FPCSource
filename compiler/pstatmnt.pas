@@ -1,6 +1,5 @@
 {
     $Id$
-    $Id$
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Does the parsing of the statements
@@ -1184,11 +1183,17 @@ implementation
 end.
 {
   $Log$
-  Revision 1.138  2004-09-21 16:00:50  peter
+  Revision 1.139  2004-09-21 17:25:12  peter
+    * paraloc branch merged
+
+  Revision 1.138  2004/09/21 16:00:50  peter
     * no difference for withnode when debuginfo is generated
 
   Revision 1.137  2004/09/13 20:28:27  peter
     * for loop variable assignment is not allowed anymore
+
+  Revision 1.136.4.1  2004/09/21 16:01:54  peter
+    * withnode debug disabled
 
   Revision 1.136  2004/06/20 08:55:30  florian
     * logs truncated

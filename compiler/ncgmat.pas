@@ -129,6 +129,7 @@ implementation
       globtype,systems,
       cutils,verbose,globals,
       symconst,aasmbase,aasmtai,aasmcpu,defutil,
+      parabase,
       pass_2,
       ncon,
       tgobj,ncgutil,cgobj,paramgr
@@ -266,7 +267,7 @@ implementation
          hdenom : tregister;
          power : longint;
          hl : tasmlabel;
-         paraloc1 : tparalocation;
+         paraloc1 : tcgpara;
       begin
          secondpass(left);
          if codegenerror then
@@ -332,11 +333,13 @@ implementation
                   }
                   objectlibrary.getlabel(hl);
                   cg.a_cmp_const_reg_label(exprasmlist,OS_INT,OC_NE,0,hdenom,hl);
-                  paraloc1:=paramanager.getintparaloc(pocall_default,1);
+                  paraloc1.init;
+                  paramanager.getintparaloc(pocall_default,1,paraloc1);
                   paramanager.allocparaloc(exprasmlist,paraloc1);
                   cg.a_param_const(exprasmlist,OS_S32,200,paraloc1);
                   paramanager.freeparaloc(exprasmlist,paraloc1);
                   cg.a_call_name(exprasmlist,'FPC_HANDLERROR');
+                  paraloc1.done;
                   cg.a_label(exprasmlist,hl);
                   if nodetype = modn then
                     emit_mod_reg_reg(is_signed(left.resulttype.def),hdenom,hreg1)
@@ -480,7 +483,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2004-06-20 08:55:29  florian
+  Revision 1.28  2004-09-21 17:25:12  peter
+    * paraloc branch merged
+
+  Revision 1.27.4.1  2004/08/31 20:43:06  peter
+    * paraloc patch
+
+  Revision 1.27  2004/06/20 08:55:29  florian
     * logs truncated
 
   Revision 1.26  2004/06/16 20:07:08  florian

@@ -37,7 +37,7 @@ interface
        cclasses,symnot,
        { aasm }
        aasmbase,
-       cpuinfo,cpubase,cgbase
+       cpuinfo,cpubase,cgbase,parabase
        ;
 
     type
@@ -150,8 +150,8 @@ interface
           varoptions    : tvaroptions;
           varspez       : tvarspez;  { sets the type of access }
           varstate      : tvarstate;
-          localloc      : tparalocation; { register/reference for local var }
-          fieldoffset   : longint; { offset in record/object }
+          localloc      : TLocation; { register/reference for local var }
+          fieldoffset   : longint;   { offset in record/object }
           paraitem      : tparaitem;
           notifications : Tlinkedlist;
           constructor create(const n : string;vsp:tvarspez;const tt : ttype);
@@ -2215,7 +2215,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.175  2004-08-15 12:06:03  jonas
+  Revision 1.176  2004-09-21 17:25:12  peter
+    * paraloc branch merged
+
+  Revision 1.175.4.1  2004/08/31 20:43:06  peter
+    * paraloc patch
+
+  Revision 1.175  2004/08/15 12:06:03  jonas
     * add cprefix to procedures which are autoamtically marked as external in
       macpas mode
 

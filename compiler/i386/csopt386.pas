@@ -1988,7 +1988,7 @@ begin
                               if (memreg <> NR_NO) and
                                  (not getNextInstruction(p,hp1) or
                                   (RegLoadedWithNewValue(getsupreg(memreg),false,hp1) or
-                                   FindRegDealloc(regcounter,hp1))) then
+                                   FindRegDealloc(getsupreg(memreg),hp1))) then
                                 begin
                                   hp1 := Tai_Marker.Create(NoPropInfoEnd);
                                   insertllitem(asml,p,p.next,hp1);
@@ -2109,7 +2109,13 @@ end.
 
 {
   $Log$
-  Revision 1.64  2004-07-23 13:30:19  jonas
+  Revision 1.65  2004-09-21 17:25:12  peter
+    * paraloc branch merged
+
+  Revision 1.64.4.1  2004/09/20 19:28:23  peter
+    * fixed valgrind warning
+
+  Revision 1.64  2004/07/23 13:30:19  jonas
     * fixed some more potential regvar bugs
 
   Revision 1.63  2004/06/20 08:55:31  florian

@@ -211,7 +211,7 @@ var
 begin
   with Info do
    begin
-     ExeCmd[1]:='ld $OPT $DYNLINK $STATIC $STRIP --gc-sections -L. -o $EXE $RES';
+     ExeCmd[1]:='ld $OPT $DYNLINK $STATIC $STRIP -L. -o $EXE $RES';
      DllCmd[1]:='ld $OPT $INIT $FINI $SONAME -shared -L. -o $EXE $RES';
      DllCmd[2]:='strip --strip-unneeded $EXE';
 {$ifdef m68k}
@@ -572,7 +572,13 @@ end.
 
 {
   $Log$
-  Revision 1.20  2004-07-08 14:42:54  daniel
+  Revision 1.21  2004-09-21 17:25:13  peter
+    * paraloc branch merged
+
+  Revision 1.20.4.1  2004/09/20 15:24:42  peter
+    * remove gc-sections option until it really works
+
+  Revision 1.20  2004/07/08 14:42:54  daniel
     * Uclibc detection
 
   Revision 1.19  2004/06/20 08:55:32  florian

@@ -1,8 +1,8 @@
-{******************************************************************************
+{
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl
+    Copyright (c) 1998-2002 by Florian Klaempfl
 
-    Basic Processor information
+    Basic Processor information for the SPARC
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,13 +18,17 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
- ****************************************************************************}
+ ****************************************************************************
+}
 unit cpuinfo;
-{$INCLUDE fpcdefs.inc}
+
+{$i fpcdefs.inc}
 
 interface
+
 uses
   globtype;
+
 type
   bestreal = double;
   ts32real = single;
@@ -51,7 +55,7 @@ const
 { size of the buffer used for setjump/longjmp
   the size of this buffer is deduced from the
   jmp_buf structure in setjumph.inc file }
-  JMP_BUF_SIZE = 12;
+  JMP_BUF_SIZE = 12+16;
 
   { calling conventions supported by the code generator }
   supported_calling_conventions : tproccalloptions = [
@@ -73,12 +77,19 @@ const
      'SOFT',
      'HARD'
    );
+
 implementation
 
 end.
 {
   $Log$
-  Revision 1.18  2004-06-20 08:55:32  florian
+  Revision 1.19  2004-09-21 17:25:13  peter
+    * paraloc branch merged
+
+  Revision 1.18.4.1  2004/09/12 12:04:41  peter
+    * sigset_t is now also in jmp_buf
+
+  Revision 1.18  2004/06/20 08:55:32  florian
     * logs truncated
 
   Revision 1.17  2004/06/16 20:07:10  florian

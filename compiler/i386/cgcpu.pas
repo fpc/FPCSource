@@ -20,8 +20,6 @@
 
  ****************************************************************************
 }
-{ This unit implements the code generator for the i386.
-}
 unit cgcpu;
 
 {$i fpcdefs.inc}
@@ -32,7 +30,7 @@ unit cgcpu;
        globtype,
        cgbase,cgobj,cg64f32,cgx86,
        aasmbase,aasmtai,aasmcpu,
-       cpubase,cpuinfo,
+       cpubase,cpuinfo,parabase,
        node,symconst
 {$ifdef delphi}
        ,dmisc
@@ -43,13 +41,13 @@ unit cgcpu;
       tcg386 = class(tcgx86)
         procedure init_register_allocators;override;
         { passing parameter using push instead of mov }
-        procedure a_param_reg(list : taasmoutput;size : tcgsize;r : tregister;const locpara : tparalocation);override;
-        procedure a_param_const(list : taasmoutput;size : tcgsize;a : aint;const locpara : tparalocation);override;
-        procedure a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;const locpara : tparalocation);override;
-        procedure a_paramaddr_ref(list : taasmoutput;const r : treference;const locpara : tparalocation);override;
+        procedure a_param_reg(list : taasmoutput;size : tcgsize;r : tregister;const cgpara : tcgpara);override;
+        procedure a_param_const(list : taasmoutput;size : tcgsize;a : aint;const cgpara : tcgpara);override;
+        procedure a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;const cgpara : tcgpara);override;
+        procedure a_paramaddr_ref(list : taasmoutput;const r : treference;const cgpara : tcgpara);override;
 
         procedure g_save_all_registers(list : taasmoutput);override;
-        procedure g_restore_all_registers(list : taasmoutput;const funcretparaloc:tparalocation);override;
+        procedure g_restore_all_registers(list : taasmoutput;const funcretparaloc:tcgpara);override;
         procedure g_proc_exit(list : taasmoutput;parasize:longint;nostackframe:boolean);override;
         procedure g_copyvaluepara_openarray(list : taasmoutput;const ref, lenref:treference;elesize:aint);override;
 
@@ -71,7 +69,7 @@ unit cgcpu;
 
     uses
        globals,verbose,systems,cutils,
-       symdef,symsym,defutil,paramgr,procinfo,
+       paramgr,procinfo,
        rgcpu,rgx86,tgobj,
        cgutils;
 
@@ -88,47 +86,50 @@ unit cgcpu;
       end;
 
 
-    procedure tcg386.a_param_reg(list : taasmoutput;size : tcgsize;r : tregister;const locpara : tparalocation);
+    procedure tcg386.a_param_reg(list : taasmoutput;size : tcgsize;r : tregister;const cgpara : tcgpara);
       var
         pushsize : tcgsize;
       begin
         check_register_size(size,r);
-        with locpara do
-          if (loc=LOC_REFERENCE) and
-             (reference.index=NR_STACK_POINTER_REG) then
+        with cgpara do
+          if assigned(location) and
+             (location^.loc=LOC_REFERENCE) and
+             (location^.reference.index=NR_STACK_POINTER_REG) then
             begin
               pushsize:=int_cgsize(alignment);
               list.concat(taicpu.op_reg(A_PUSH,tcgsize2opsize[pushsize],makeregsize(list,r,pushsize)));
             end
           else
-            inherited a_param_reg(list,size,r,locpara);
+            inherited a_param_reg(list,size,r,cgpara);
       end;
 
 
-    procedure tcg386.a_param_const(list : taasmoutput;size : tcgsize;a : aint;const locpara : tparalocation);
+    procedure tcg386.a_param_const(list : taasmoutput;size : tcgsize;a : aint;const cgpara : tcgpara);
       var
         pushsize : tcgsize;
       begin
-        with locpara do
-          if (loc=LOC_REFERENCE) and
-             (reference.index=NR_STACK_POINTER_REG) then
+        with cgpara do
+          if assigned(location) and
+             (location^.loc=LOC_REFERENCE) and
+             (location^.reference.index=NR_STACK_POINTER_REG) then
             begin
               pushsize:=int_cgsize(alignment);
               list.concat(taicpu.op_const(A_PUSH,tcgsize2opsize[pushsize],a));
             end
           else
-            inherited a_param_const(list,size,a,locpara);
+            inherited a_param_const(list,size,a,cgpara);
       end;
 
 
-    procedure tcg386.a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;const locpara : tparalocation);
+    procedure tcg386.a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;const cgpara : tcgpara);
       var
         pushsize : tcgsize;
         tmpreg : tregister;
       begin
-        with locpara do
-          if (loc=LOC_REFERENCE) and
-             (reference.index=NR_STACK_POINTER_REG) then
+        with cgpara do
+          if assigned(location) and
+             (location^.loc=LOC_REFERENCE) and
+             (location^.reference.index=NR_STACK_POINTER_REG) then
             begin
               pushsize:=int_cgsize(alignment);
               if tcgsize2size[size]<alignment then
@@ -142,11 +143,11 @@ unit cgcpu;
                 list.concat(taicpu.op_ref(A_PUSH,TCgsize2opsize[pushsize],r));
             end
           else
-            inherited a_param_ref(list,size,r,locpara);
+            inherited a_param_ref(list,size,r,cgpara);
       end;
 
 
-    procedure tcg386.a_paramaddr_ref(list : taasmoutput;const r : treference;const locpara : tparalocation);
+    procedure tcg386.a_paramaddr_ref(list : taasmoutput;const r : treference;const cgpara : tcgpara);
       var
         tmpreg : tregister;
         opsize : topsize;
@@ -155,9 +156,10 @@ unit cgcpu;
           begin
             if (segment<>NR_NO) then
               cgmessage(cg_e_cant_use_far_pointer_there);
-            with locpara do
-              if (locpara.loc=LOC_REFERENCE) and
-                 (locpara.reference.index=NR_STACK_POINTER_REG) then
+            with cgpara do
+              if assigned(location) and
+                 (location^.loc=LOC_REFERENCE) and
+                 (location^.reference.index=NR_STACK_POINTER_REG) then
                 begin
                   opsize:=tcgsize2opsize[OS_ADDR];
                   if (base=NR_NO) and (index=NR_NO) then
@@ -182,7 +184,7 @@ unit cgcpu;
                     end;
                 end
               else
-                inherited a_paramaddr_ref(list,r,locpara);
+                inherited a_paramaddr_ref(list,r,cgpara);
         end;
       end;
 
@@ -195,13 +197,14 @@ unit cgcpu;
       end;
 
 
-    procedure tcg386.g_restore_all_registers(list : taasmoutput;const funcretparaloc:tparalocation);
+    procedure tcg386.g_restore_all_registers(list : taasmoutput;const funcretparaloc:tcgpara);
       var
         href : treference;
       begin
         a_load_ref_reg(list,OS_ADDR,OS_ADDR,current_procinfo.save_regs_ref,NR_STACK_POINTER_REG);
         tg.UnGetTemp(list,current_procinfo.save_regs_ref);
-        if funcretparaloc.loc=LOC_REGISTER then
+        if assigned(funcretparaloc.location) and
+           (funcretparaloc.location^.loc=LOC_REGISTER) then
           begin
             if funcretparaloc.size in [OS_64,OS_S64] then
               begin
@@ -252,13 +255,16 @@ unit cgcpu;
         { return from proc }
         if (po_interrupt in current_procinfo.procdef.procoptions) then
           begin
-            if current_procinfo.procdef.funcret_paraloc[calleeside].loc=LOC_REGISTER then
+            if assigned(current_procinfo.procdef.funcret_paraloc[calleeside].location) and
+               (current_procinfo.procdef.funcret_paraloc[calleeside].location^.loc=LOC_REGISTER) then
               list.concat(Taicpu.Op_const_reg(A_ADD,S_L,4,NR_ESP))
             else
               list.concat(Taicpu.Op_reg(A_POP,S_L,NR_EAX));
             list.concat(Taicpu.Op_reg(A_POP,S_L,NR_EBX));
             list.concat(Taicpu.Op_reg(A_POP,S_L,NR_ECX));
-            if current_procinfo.procdef.funcret_paraloc[calleeside].lochigh=LOC_REGISTER then
+            if assigned(current_procinfo.procdef.funcret_paraloc[calleeside].location) and
+               assigned(current_procinfo.procdef.funcret_paraloc[calleeside].location^.next) and
+               (current_procinfo.procdef.funcret_paraloc[calleeside].location^.next^.loc=LOC_REGISTER) then
               list.concat(Taicpu.Op_const_reg(A_ADD,S_L,4,NR_ESP))
             else
               list.concat(Taicpu.Op_reg(A_POP,S_L,NR_EDX));
@@ -552,7 +558,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.51  2004-07-09 23:30:13  jonas
+  Revision 1.52  2004-09-21 17:25:12  peter
+    * paraloc branch merged
+
+  Revision 1.51.4.1  2004/08/31 20:43:06  peter
+    * paraloc patch
+
+  Revision 1.51  2004/07/09 23:30:13  jonas
     *  changed first_sse_imreg to first_mm_imreg
 
   Revision 1.50  2004/06/20 08:55:31  florian

@@ -57,7 +57,7 @@ implementation
       globtype,systems,
       cutils,verbose,globals,fmodule,
       symconst,symdef,defutil,symsym,
-      aasmbase,aasmtai,aasmcpu,
+      aasmbase,aasmtai,aasmcpu,parabase,
       cgbase,pass_1,pass_2,
       cpuinfo,cpubase,paramgr,procinfo,
       nbas,ncon,ncal,ncnv,nld,
@@ -183,15 +183,19 @@ implementation
        hp2 : tstringconstnode;
        otlabel,oflabel : tasmlabel;
        paraloc1,paraloc2,
-       paraloc3,paraloc4 : tparalocation;
+       paraloc3,paraloc4 : tcgpara;
      begin
        { the node should be removed in the firstpass }
        if not (cs_do_assertion in aktlocalswitches) then
           internalerror(7123458);
-       paraloc1:=paramanager.getintparaloc(pocall_default,1);
-       paraloc2:=paramanager.getintparaloc(pocall_default,2);
-       paraloc3:=paramanager.getintparaloc(pocall_default,3);
-       paraloc4:=paramanager.getintparaloc(pocall_default,4);
+       paraloc1.init;
+       paraloc2.init;
+       paraloc3.init;
+       paraloc4.init;
+       paramanager.getintparaloc(pocall_default,1,paraloc1);
+       paramanager.getintparaloc(pocall_default,2,paraloc2);
+       paramanager.getintparaloc(pocall_default,3,paraloc3);
+       paramanager.getintparaloc(pocall_default,4,paraloc4);
        otlabel:=truelabel;
        oflabel:=falselabel;
        objectlibrary.getlabel(truelabel);
@@ -229,6 +233,10 @@ implementation
        cg.a_label(exprasmlist,truelabel);
        truelabel:=otlabel;
        falselabel:=oflabel;
+       paraloc1.done;
+       paraloc2.done;
+       paraloc3.done;
+       paraloc4.done;
      end;
 
 
@@ -686,7 +694,13 @@ end.
 
 {
   $Log$
-  Revision 1.62  2004-08-16 21:00:15  peter
+  Revision 1.63  2004-09-21 17:25:12  peter
+    * paraloc branch merged
+
+  Revision 1.62.4.1  2004/08/31 20:43:06  peter
+    * paraloc patch
+
+  Revision 1.62  2004/08/16 21:00:15  peter
     * range checks fixed
 
   Revision 1.61  2004/07/12 17:58:19  peter

@@ -103,8 +103,8 @@ unit tgobj;
           procedure ungetiftemp(list: taasmoutput; const ref : treference);
 
           { Allocate space for a local }
-          procedure getlocal(list: taasmoutput; size : longint;def:tdef;var ref : tparareference);
-          procedure UnGetLocal(list: taasmoutput; const ref : tparareference);
+          procedure getlocal(list: taasmoutput; size : longint;def:tdef;var ref : treference);
+          procedure UnGetLocal(list: taasmoutput; const ref : treference);
        end;
 
      var
@@ -588,7 +588,7 @@ unit tgobj;
       end;
 
 
-    procedure ttgobj.getlocal(list: taasmoutput; size : longint;def:tdef;var ref : tparareference);
+    procedure ttgobj.getlocal(list: taasmoutput; size : longint;def:tdef;var ref : treference);
       var
         varalign : longint;
       begin
@@ -597,12 +597,12 @@ unit tgobj;
         { can't use reference_reset_base, because that will let tgobj depend
           on cgobj (PFV) }
         fillchar(ref,sizeof(ref),0);
-        ref.index:=current_procinfo.framepointer;
+        ref.base:=current_procinfo.framepointer;
         ref.offset:=alloctemp(list,size,varalign,tt_persistent,nil);
       end;
 
 
-    procedure ttgobj.UnGetLocal(list: taasmoutput; const ref : tparareference);
+    procedure ttgobj.UnGetLocal(list: taasmoutput; const ref : treference);
       begin
         FreeTemp(list,ref.offset,[tt_persistent]);
       end;
@@ -611,7 +611,10 @@ unit tgobj;
 end.
 {
   $Log$
-  Revision 1.47  2004-09-20 15:40:21  peter
+  Revision 1.48  2004-09-21 17:25:12  peter
+    * paraloc branch merged
+
+  Revision 1.47  2004/09/20 15:40:21  peter
     * make it compile with main branch
 
   Revision 1.46  2004/09/20 07:32:02  jonas

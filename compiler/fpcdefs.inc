@@ -79,6 +79,7 @@
 {$ifdef sparc}
   {$define noopt}
   {$define oldset}
+  {$define cputargethasfixedstack}
 {$endif sparc}
 
 {$ifdef cpusparc}
@@ -106,7 +107,13 @@
 
 {
   $Log$
-  Revision 1.39  2004-08-15 13:30:18  florian
+  Revision 1.40  2004-09-21 17:25:12  peter
+    * paraloc branch merged
+
+  Revision 1.39.4.1  2004/08/31 20:43:06  peter
+    * paraloc patch
+
+  Revision 1.39  2004/08/15 13:30:18  florian
     * fixed alignment of variant records
     * more alignment problems fixed
 

@@ -720,14 +720,14 @@ implementation
             aktlocalswitches:=entryswitches;
             gen_entry_code(templist);
             aktproccode.insertlistafter(entry_asmnode.currenttai,templist);
-            gen_initialize_code(templist,false);
+            gen_initialize_code(templist);
             aktproccode.insertlistafter(init_asmnode.currenttai,templist);
 
             { now generate finalize and exit code with the correct position
               and switches }
             aktfilepos:=exitpos;
             aktlocalswitches:=exitswitches;
-            gen_finalize_code(templist,false);
+            gen_finalize_code(templist);
             { the finalcode must be concated if there was no position available,
               using insertlistafter will result in an insert at the start
               when currentai=nil }
@@ -1393,12 +1393,20 @@ implementation
 end.
 {
   $Log$
-  Revision 1.205  2004-09-13 20:34:28  peter
+  Revision 1.206  2004-09-21 17:25:12  peter
+    * paraloc branch merged
+
+  Revision 1.205  2004/09/13 20:34:28  peter
     * keep localst in memory, it is also needed for finalizing
       typedconst
 
   Revision 1.204  2004/09/04 21:18:47  armin
   * target netwlibc added (libc is preferred for newer netware versions)
+
+  Revision 1.203.4.1  2004/09/17 17:19:26  peter
+    * fixed 64 bit unaryminus for sparc
+    * fixed 64 bit inlining
+    * signness of not operation
 
   Revision 1.203  2004/08/14 14:50:42  florian
     * fixed several sparc alignment issues

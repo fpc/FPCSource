@@ -33,8 +33,8 @@ unit cg64f32;
 
     uses
        aasmbase,aasmtai,aasmcpu,
-       cpuinfo, cpubase,cpupara,
-       cgbase, cgobj,
+       cpuinfo,cpubase,cpupara,
+       cgbase,cgobj,parabase,
        node,symtype
 {$ifdef delphi}
        ,dmisc
@@ -46,8 +46,6 @@ unit cg64f32;
          to handle 64-bit integers.
       }
       tcg64f32 = class(tcg64)
-        procedure a_reg_alloc(list : taasmoutput;r : tregister64);override;
-        procedure a_reg_dealloc(list : taasmoutput;r : tregister64);override;
         procedure a_load64_const_ref(list : taasmoutput;value : int64;const ref : treference);override;
         procedure a_load64_reg_ref(list : taasmoutput;reg : tregister64;const ref : treference);override;
         procedure a_load64_ref_reg(list : taasmoutput;const ref : treference;reg : tregister64);override;
@@ -72,10 +70,10 @@ unit cg64f32;
         procedure a_op64_loc_reg(list : taasmoutput;op:TOpCG;const l : tlocation;reg : tregister64);override;
         procedure a_op64_const_ref(list : taasmoutput;op:TOpCG;value : int64;const ref : treference);override;
 
-        procedure a_param64_reg(list : taasmoutput;reg : tregister64;const locpara : tparalocation);override;
-        procedure a_param64_const(list : taasmoutput;value : int64;const locpara : tparalocation);override;
-        procedure a_param64_ref(list : taasmoutput;const r : treference;const locpara : tparalocation);override;
-        procedure a_param64_loc(list : taasmoutput;const l : tlocation;const locpara : tparalocation);override;
+        procedure a_param64_reg(list : taasmoutput;reg : tregister64;const paraloc : tcgpara);override;
+        procedure a_param64_const(list : taasmoutput;value : int64;const paraloc : tcgpara);override;
+        procedure a_param64_ref(list : taasmoutput;const r : treference;const paraloc : tcgpara);override;
+        procedure a_param64_loc(list : taasmoutput;const l : tlocation;const paraloc : tcgpara);override;
 
         {# This routine tries to optimize the a_op64_const_reg operation, by
            removing superfluous opcodes. Returns TRUE if normal processing
@@ -93,9 +91,9 @@ unit cg64f32;
   implementation
 
     uses
-       globtype,globals,systems,
+       globtype,systems,
        verbose,
-       symbase,symconst,symdef,defutil,tgobj,paramgr;
+       symbase,symconst,symdef,defutil,paramgr;
 
 {****************************************************************************
                                      Helpers
@@ -114,23 +112,67 @@ unit cg64f32;
       end;
 
 
+    procedure splitparaloc64(const cgpara:tcgpara;var cgparalo,cgparahi:tcgpara);
+      var
+        paraloclo,
+        paralochi : pcgparalocation;
+      begin
+        if not(cgpara.size in [OS_64,OS_S64]) then
+          internalerror(200408231);
+        if not assigned(cgpara.location) then
+          internalerror(200408201);
+        { init lo/hi para }
+        cgparahi.reset;
+        if cgpara.size=OS_S64 then
+          cgparahi.size:=OS_S32
+        else
+          cgparahi.size:=OS_32;
+        cgparahi.alignment:=cgpara.alignment;
+        paralochi:=cgparahi.add_location;
+        cgparalo.reset;
+        cgparalo.size:=OS_32;
+        cgparalo.alignment:=cgpara.alignment;
+        paraloclo:=cgparalo.add_location;
+        { 2 parameter fields? }
+        if assigned(cgpara.location^.next) then
+          begin
+            if target_info.endian = endian_big then
+              begin
+                { low is in second location }
+                move(cgpara.location^.next^,paraloclo^,sizeof(paraloclo^));
+                move(cgpara.location^,paralochi^,sizeof(paralochi^));
+              end
+            else
+              begin
+                { low is in first location }
+                move(cgpara.location^,paraloclo^,sizeof(paraloclo^));
+                move(cgpara.location^.next^,paralochi^,sizeof(paralochi^));
+              end;
+          end
+        else
+          begin
+            { single parameter, this can only be in memory }
+            if cgpara.location^.loc<>LOC_REFERENCE then
+              internalerror(200408282);
+            move(cgpara.location^,paraloclo^,sizeof(paraloclo^));
+            move(cgpara.location^,paralochi^,sizeof(paralochi^));
+            { for big endian low is at +4, for little endian high }
+            if target_info.endian = endian_big then
+              inc(cgparalo.location^.reference.offset,tcgsize2size[cgparahi.size])
+            else
+              inc(cgparahi.location^.reference.offset,tcgsize2size[cgparalo.size]);
+          end;
+        { fix size }
+        paraloclo^.size:=cgparalo.size;
+        paraloclo^.next:=nil;
+        paralochi^.size:=cgparahi.size;
+        paralochi^.next:=nil;
+      end;
+
+
 {****************************************************************************
                                    TCG64F32
 ****************************************************************************}
-
-    procedure tcg64f32.a_reg_alloc(list : taasmoutput;r : tregister64);
-      begin
-         list.concat(tai_regalloc.alloc(r.reglo));
-         list.concat(tai_regalloc.alloc(r.reghi));
-      end;
-
-
-    procedure tcg64f32.a_reg_dealloc(list : taasmoutput;r : tregister64);
-      begin
-         list.concat(tai_regalloc.dealloc(r.reglo));
-         list.concat(tai_regalloc.dealloc(r.reghi));
-      end;
-
 
     procedure tcg64f32.a_load64_reg_ref(list : taasmoutput;reg : tregister64;const ref : treference);
       var
@@ -450,32 +492,42 @@ unit cg64f32;
       end;
 
 
-    procedure tcg64f32.a_param64_reg(list : taasmoutput;reg : tregister64;const locpara : tparalocation);
+    procedure tcg64f32.a_param64_reg(list : taasmoutput;reg : tregister64;const paraloc : tcgpara);
       var
-        tmplochi,tmploclo: tparalocation;
+        tmplochi,tmploclo: tcgpara;
       begin
-        paramanager.splitparaloc64(locpara,tmploclo,tmplochi);
+        tmploclo.init;
+        tmplochi.init;
+        splitparaloc64(paraloc,tmploclo,tmplochi);
         cg.a_param_reg(list,OS_32,reg.reghi,tmplochi);
         cg.a_param_reg(list,OS_32,reg.reglo,tmploclo);
+        tmploclo.done;
+        tmplochi.done;
       end;
 
 
-    procedure tcg64f32.a_param64_const(list : taasmoutput;value : int64;const locpara : tparalocation);
+    procedure tcg64f32.a_param64_const(list : taasmoutput;value : int64;const paraloc : tcgpara);
       var
-        tmplochi,tmploclo: tparalocation;
+        tmplochi,tmploclo: tcgpara;
       begin
-        paramanager.splitparaloc64(locpara,tmploclo,tmplochi);
+        tmploclo.init;
+        tmplochi.init;
+        splitparaloc64(paraloc,tmploclo,tmplochi);
         cg.a_param_const(list,OS_32,aint(hi(value)),tmplochi);
         cg.a_param_const(list,OS_32,aint(lo(value)),tmploclo);
+        tmploclo.done;
+        tmplochi.done;
       end;
 
 
-    procedure tcg64f32.a_param64_ref(list : taasmoutput;const r : treference;const locpara : tparalocation);
+    procedure tcg64f32.a_param64_ref(list : taasmoutput;const r : treference;const paraloc : tcgpara);
       var
         tmprefhi,tmpreflo : treference;
-        tmploclo,tmplochi : tparalocation;
+        tmploclo,tmplochi : tcgpara;
       begin
-        paramanager.splitparaloc64(locpara,tmploclo,tmplochi);
+        tmploclo.init;
+        tmplochi.init;
+        splitparaloc64(paraloc,tmploclo,tmplochi);
         tmprefhi:=r;
         tmpreflo:=r;
         if target_info.endian=endian_big then
@@ -484,20 +536,22 @@ unit cg64f32;
           inc(tmprefhi.offset,4);
         cg.a_param_ref(list,OS_32,tmprefhi,tmplochi);
         cg.a_param_ref(list,OS_32,tmpreflo,tmploclo);
+        tmploclo.done;
+        tmplochi.done;
       end;
 
 
-    procedure tcg64f32.a_param64_loc(list : taasmoutput;const l:tlocation;const locpara : tparalocation);
+    procedure tcg64f32.a_param64_loc(list : taasmoutput;const l:tlocation;const paraloc : tcgpara);
       begin
         case l.loc of
           LOC_REGISTER,
           LOC_CREGISTER :
-            a_param64_reg(list,l.register64,locpara);
+            a_param64_reg(list,l.register64,paraloc);
           LOC_CONSTANT :
-            a_param64_const(list,l.value64,locpara);
+            a_param64_const(list,l.value64,paraloc);
           LOC_CREFERENCE,
           LOC_REFERENCE :
-            a_param64_ref(list,l.reference,locpara);
+            a_param64_ref(list,l.reference,paraloc);
           else
             internalerror(200203287);
         end;
@@ -753,7 +807,17 @@ unit cg64f32;
 end.
 {
   $Log$
-  Revision 1.61  2004-06-20 08:55:28  florian
+  Revision 1.62  2004-09-21 17:25:12  peter
+    * paraloc branch merged
+
+  Revision 1.61.4.2  2004/09/20 20:46:34  peter
+    * register allocation optimized for 64bit loading of parameters
+      and return values
+
+  Revision 1.61.4.1  2004/08/31 20:43:06  peter
+    * paraloc patch
+
+  Revision 1.61  2004/06/20 08:55:28  florian
     * logs truncated
 
   Revision 1.60  2004/06/18 15:16:46  peter

@@ -20,9 +20,6 @@
 
  ****************************************************************************
 }
-{
-Common code generation for add nodes on the i386 and x86
-}
 unit nx86add;
 
 {$i fpcdefs.inc}
@@ -66,13 +63,12 @@ unit nx86add;
 
     uses
       globtype,globals,
-      verbose,
-      cutils,
+      verbose,cutils,
       cpuinfo,
       aasmbase,aasmtai,aasmcpu,
       symconst,symdef,
       cgobj,cgx86,cga,
-      paramgr,
+      paramgr,parabase,
       htypechk,
       pass_2,ncgutil,
       ncon,nset,
@@ -739,7 +735,7 @@ unit nx86add;
     procedure tx86addnode.second_addstring;
       var
         paraloc1,
-        paraloc2   : tparalocation;
+        paraloc2   : tcgpara;
         hregister1,
         hregister2 : tregister;
       begin
@@ -752,12 +748,14 @@ unit nx86add;
                 case nodetype of
                    ltn,lten,gtn,gten,equaln,unequaln :
                      begin
-                       paraloc1:=paramanager.getintparaloc(pocall_default,1);
-                       paraloc2:=paramanager.getintparaloc(pocall_default,2);
+                       paraloc1.init;
+                       paraloc2.init;
+                       paramanager.getintparaloc(pocall_default,1,paraloc1);
+                       paramanager.getintparaloc(pocall_default,2,paraloc2);
                        { process parameters }
                        secondpass(left);
                        location_release(exprasmlist,left.location);
-                       if paraloc2.loc=LOC_REGISTER then
+                       if paraloc2.location^.loc=LOC_REGISTER then
                          begin
                            hregister2:=cg.getaddressregister(exprasmlist);
                            cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,hregister2);
@@ -769,7 +767,7 @@ unit nx86add;
                          end;
                        secondpass(right);
                        location_release(exprasmlist,right.location);
-                       if paraloc1.loc=LOC_REGISTER then
+                       if paraloc1.location^.loc=LOC_REGISTER then
                          begin
                            hregister1:=cg.getaddressregister(exprasmlist);
                            cg.a_loadaddr_ref_reg(exprasmlist,right.location.reference,hregister1);
@@ -780,13 +778,13 @@ unit nx86add;
                            cg.a_paramaddr_ref(exprasmlist,right.location.reference,paraloc1);
                          end;
                        { push parameters }
-                       if paraloc1.loc=LOC_REGISTER then
+                       if paraloc1.location^.loc=LOC_REGISTER then
                          begin
                            cg.ungetregister(exprasmlist,hregister2);
                            paramanager.allocparaloc(exprasmlist,paraloc2);
                            cg.a_param_reg(exprasmlist,OS_ADDR,hregister2,paraloc2);
                          end;
-                       if paraloc2.loc=LOC_REGISTER then
+                       if paraloc2.location^.loc=LOC_REGISTER then
                          begin
                            cg.ungetregister(exprasmlist,hregister1);
                            paramanager.allocparaloc(exprasmlist,paraloc1);
@@ -799,6 +797,8 @@ unit nx86add;
                        cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
                        location_freetemp(exprasmlist,left.location);
                        location_freetemp(exprasmlist,right.location);
+                       paraloc1.done;
+                       paraloc2.done;
                      end;
                 end;
                 location_reset(location,LOC_FLAGS,OS_NO);
@@ -935,7 +935,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2004-06-20 08:55:32  florian
+  Revision 1.12  2004-09-21 17:25:13  peter
+    * paraloc branch merged
+
+  Revision 1.11.4.1  2004/08/31 20:43:06  peter
+    * paraloc patch
+
+  Revision 1.11  2004/06/20 08:55:32  florian
     * logs truncated
 
   Revision 1.10  2004/06/16 20:07:11  florian

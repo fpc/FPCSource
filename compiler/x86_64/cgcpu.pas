@@ -20,8 +20,6 @@
 
  ****************************************************************************
 }
-{ This unit implements the code generator for the x86-64.
-}
 unit cgcpu;
 
 {$i fpcdefs.inc}
@@ -31,14 +29,14 @@ unit cgcpu;
     uses
        cgbase,cgobj,cg64f64,cgx86,
        aasmbase,aasmtai,aasmcpu,
-       cpubase,cpuinfo,cpupara,
+       cpubase,cpuinfo,cpupara,parabase,
        node,symconst,rgx86,procinfo;
 
     type
       tcgx86_64 = class(tcgx86)
         procedure init_register_allocators;override;
         procedure g_save_all_registers(list : taasmoutput);override;
-        procedure g_restore_all_registers(list : taasmoutput;const funcretparaloc:tparalocation);override;
+        procedure g_restore_all_registers(list : taasmoutput;const funcretparaloc:tcgpara);override;
         procedure g_proc_exit(list : taasmoutput;parasize:longint;nostackframe:boolean);override;
       end;
 
@@ -72,7 +70,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcgx86_64.g_restore_all_registers(list : taasmoutput;const funcretparaloc:tparalocation);
+    procedure tcgx86_64.g_restore_all_registers(list : taasmoutput;const funcretparaloc:tcgpara);
       begin
         {$warning todo tcgx86_64.g_restore_all_registers}
       end;
@@ -111,7 +109,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2004-07-09 23:30:13  jonas
+  Revision 1.16  2004-09-21 17:25:13  peter
+    * paraloc branch merged
+
+  Revision 1.15.4.1  2004/08/31 20:43:06  peter
+    * paraloc patch
+
+  Revision 1.15  2004/07/09 23:30:13  jonas
     *  changed first_sse_imreg to first_mm_imreg
 
   Revision 1.14  2004/06/20 08:55:32  florian

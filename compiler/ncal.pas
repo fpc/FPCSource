@@ -29,7 +29,7 @@ interface
     uses
        cutils,cclasses,
        globtype,cpuinfo,
-       paramgr,
+       paramgr,parabase,
        node,nbas,nutils,
        {$ifdef state_tracking}
        nstate,
@@ -1787,8 +1787,10 @@ type
               Used order:
                 1. LOC_REFERENCE with smallest offset (x86 only)
                 2. LOC_REFERENCE with most registers
-                3. LOC_REGISTER with most registers }
-            currloc:=hpcurr.paraitem.paraloc[callerside].loc;
+                3. LOC_REGISTER with most registers
+              For the moment we only look at the first parameter field. Combining it
+              with multiple parameter fields will make things a lot complexer (PFV) }
+            currloc:=hpcurr.paraitem.paraloc[callerside].location^.loc;
             hpprev:=nil;
             hp:=hpfirst;
             while assigned(hp) do
@@ -1796,7 +1798,7 @@ type
                 case currloc of
                   LOC_REFERENCE :
                     begin
-                      case hp.paraitem.paraloc[callerside].loc of
+                      case hp.paraitem.paraloc[callerside].location^.loc of
                         LOC_REFERENCE :
                           begin
                             { Offset is calculated like:
@@ -1810,7 +1812,7 @@ type
                             }
                             if (hpcurr.registersint>hp.registersint)
 {$ifdef x86}
-                               or (hpcurr.paraitem.paraloc[callerside].reference.offset>hp.paraitem.paraloc[callerside].reference.offset)
+                               or (hpcurr.paraitem.paraloc[callerside].location^.reference.offset>hp.paraitem.paraloc[callerside].location^.reference.offset)
 {$endif x86}
                                then
                               break;
@@ -1823,7 +1825,7 @@ type
                   LOC_FPUREGISTER,
                   LOC_REGISTER :
                     begin
-                      if (hp.paraitem.paraloc[callerside].loc=currloc) and
+                      if (hp.paraitem.paraloc[callerside].location^.loc=currloc) and
                          (hpcurr.registersint>hp.registersint) then
                         break;
                     end;
@@ -2384,8 +2386,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.247  2004-09-13 20:29:00  peter
+  Revision 1.248  2004-09-21 17:25:12  peter
+    * paraloc branch merged
+
+  Revision 1.247  2004/09/13 20:29:00  peter
     * use realname for abstract procs found
+
+  Revision 1.246.4.1  2004/08/31 20:43:06  peter
+    * paraloc patch
 
   Revision 1.246  2004/08/28 20:00:50  peter
     * use objrealname in Message1

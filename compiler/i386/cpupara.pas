@@ -20,8 +20,6 @@
 
  ****************************************************************************
 }
-{ Generates the argument location information for i386.
-}
 unit cpupara;
 
 {$i fpcdefs.inc}
@@ -30,10 +28,9 @@ unit cpupara;
 
     uses
        cclasses,globtype,
-       aasmtai,
-       cpubase,
-       cgbase,
-       symconst,symtype,symdef,paramgr;
+       aasmtai,cpubase,cgbase,
+       symconst,symtype,symdef,
+       parabase,paramgr;
 
     type
        ti386paramanager = class(tparamanager)
@@ -48,9 +45,10 @@ unit cpupara;
             and if the calling conventions for the helper routines of the
             rtl are used.
           }
-          function getintparaloc(calloption : tproccalloption; nr : longint) : tparalocation;override;
+          procedure getintparaloc(calloption : tproccalloption; nr : longint;var cgpara:TCGPara);override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
           function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargspara):longint;override;
+          procedure createtempparaloc(list: taasmoutput;calloption : tproccalloption;paraitem : tparaitem;var cgpara:TCGPara);override;
        private
           procedure create_funcret_paraloc_info(p : tabstractprocdef; side: tcallercallee);
           procedure create_stdcall_paraloc_info(p : tabstractprocdef; side: tcallercallee;firstpara:tparaitem;
@@ -64,8 +62,7 @@ unit cpupara;
     uses
        cutils,
        systems,verbose,
-       defutil,
-       cpuinfo;
+       defutil;
 
       const
         parasupregs : array[0..2] of tsuperregister = (RS_EAX,RS_EDX,RS_ECX);
@@ -190,76 +187,105 @@ unit cpupara;
       end;
 
 
-    function ti386paramanager.getintparaloc(calloption : tproccalloption; nr : longint) : tparalocation;
+    procedure ti386paramanager.getintparaloc(calloption : tproccalloption; nr : longint;var cgpara:TCGPara);
+      var
+        paraloc : pcgparalocation;
       begin
-         fillchar(result,sizeof(tparalocation),0);
-         result.size:=OS_INT;
-         result.lochigh:=LOC_INVALID;
-         result.alignment:=get_para_align(calloption);
-         if calloption=pocall_register then
-           begin
-             if (nr<=high(parasupregs)+1) then
-               begin
-                 if nr=0 then
-                   internalerror(200309271);
-                 result.loc:=LOC_REGISTER;
-                 result.register:=newreg(R_INTREGISTER,parasupregs[nr-1],R_SUBWHOLE);
-               end
-             else
-               begin
-                 result.loc:=LOC_REFERENCE;
-                 result.reference.index:=NR_STACK_POINTER_REG;
-                 result.reference.offset:=sizeof(aint)*nr;
-               end;
-           end
-         else
-           begin
-             result.loc:=LOC_REFERENCE;
-             result.reference.index:=NR_STACK_POINTER_REG;
-             result.reference.offset:=sizeof(aint)*nr;
-           end;
+        cgpara.reset;
+        cgpara.size:=OS_INT;
+        cgpara.alignment:=get_para_align(calloption);
+        paraloc:=cgpara.add_location;
+        with paraloc^ do
+         begin
+           size:=OS_INT;
+           if calloption=pocall_register then
+             begin
+               if (nr<=high(parasupregs)+1) then
+                 begin
+                   if nr=0 then
+                     internalerror(200309271);
+                   loc:=LOC_REGISTER;
+                   register:=newreg(R_INTREGISTER,parasupregs[nr-1],R_SUBWHOLE);
+                 end
+               else
+                 begin
+                   loc:=LOC_REFERENCE;
+                   reference.index:=NR_STACK_POINTER_REG;
+                   reference.offset:=sizeof(aint)*nr;
+                 end;
+             end
+           else
+             begin
+               loc:=LOC_REFERENCE;
+               reference.index:=NR_STACK_POINTER_REG;
+               reference.offset:=sizeof(aint)*nr;
+             end;
+          end;
       end;
 
 
     procedure ti386paramanager.create_funcret_paraloc_info(p : tabstractprocdef; side: tcallercallee);
       var
-        paraloc : tparalocation;
+        hiparaloc,
+        paraloc : pcgparalocation;
+        retcgsize  : tcgsize;
       begin
-        { Function return }
-        fillchar(paraloc,sizeof(tparalocation),0);
+        { Constructors return self instead of a boolean }
         if (p.proctypeoption=potype_constructor) then
-          paraloc.size:=OS_ADDR
+          retcgsize:=OS_ADDR
         else
-          paraloc.size:=def_cgsize(p.rettype.def);
-        paraloc.lochigh:=LOC_INVALID;
-        if paraloc.size<>OS_NO then
+          retcgsize:=def_cgsize(p.rettype.def);
+        p.funcret_paraloc[side].reset;
+        p.funcret_paraloc[side].Alignment:=std_param_align;
+        p.funcret_paraloc[side].size:=retcgsize;
+        { void has no location }
+        if is_void(p.rettype.def) then
+          exit;
+        paraloc:=p.funcret_paraloc[side].add_location;
+        { Return in FPU register? }
+        if p.rettype.def.deftype=floatdef then
           begin
-            { Return in FPU register? }
-            if p.rettype.def.deftype=floatdef then
-              begin
-                paraloc.loc:=LOC_FPUREGISTER;
-                paraloc.register:=NR_FPU_RESULT_REG;
-              end
+            paraloc^.loc:=LOC_FPUREGISTER;
+            paraloc^.register:=NR_FPU_RESULT_REG;
+            paraloc^.size:=retcgsize;
+          end
+        else
+         { Return in register? }
+         if not ret_in_param(p.rettype.def,p.proccalloption) then
+          begin
+            if retcgsize in [OS_64,OS_S64] then
+             begin
+               { low 32bits }
+               paraloc^.loc:=LOC_REGISTER;
+               paraloc^.size:=OS_32;
+               if side=callerside then
+                 paraloc^.register:=NR_FUNCTION_RESULT64_LOW_REG
+               else
+                 paraloc^.register:=NR_FUNCTION_RETURN64_LOW_REG;
+               { high 32bits }
+               hiparaloc:=p.funcret_paraloc[side].add_location;
+               hiparaloc^.loc:=LOC_REGISTER;
+               hiparaloc^.size:=OS_32;
+               if side=callerside then
+                 hiparaloc^.register:=NR_FUNCTION_RESULT64_HIGH_REG
+               else
+                 hiparaloc^.register:=NR_FUNCTION_RETURN64_HIGH_REG;
+             end
             else
-             { Return in register? }
-             if not ret_in_param(p.rettype.def,p.proccalloption) then
-              begin
-                paraloc.loc:=LOC_REGISTER;
-                if paraloc.size in [OS_64,OS_S64] then
-                  begin
-                    paraloc.lochigh:=LOC_REGISTER;
-                    paraloc.register64.reglo:=NR_FUNCTION_RETURN64_LOW_REG;
-                    paraloc.register64.reghi:=NR_FUNCTION_RETURN64_HIGH_REG;
-                  end
-                else
-                  paraloc.register:=newreg(R_INTREGISTER,RS_FUNCTION_RETURN_REG,cgsize2subreg(paraloc.size));
-              end
-            else
-              begin
-                paraloc.loc:=LOC_REFERENCE;
-              end;
+             begin
+               paraloc^.loc:=LOC_REGISTER;
+               paraloc^.size:=retcgsize;
+               if side=callerside then
+                 paraloc^.register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,cgsize2subreg(retcgsize))
+               else
+                 paraloc^.register:=newreg(R_INTREGISTER,RS_FUNCTION_RETURN_REG,cgsize2subreg(retcgsize));
+             end;
+          end
+        else
+          begin
+            paraloc^.loc:=LOC_REFERENCE;
+            paraloc^.size:=retcgsize;
           end;
-        p.funcret_paraloc[side]:=paraloc;
       end;
 
 
@@ -267,10 +293,11 @@ unit cpupara;
                                                            var parasize:longint);
       var
         hp : tparaitem;
-        paraloc : tparalocation;
+        paraloc : pcgparalocation;
         l,
         varalign,
         paraalign : longint;
+        paracgsize : tcgsize;
       begin
         paraalign:=get_para_align(p.proccalloption);
         { we push Flags and CS as long
@@ -284,28 +311,34 @@ unit cpupara;
            mov [esp+4],para2
            mov [esp],para1
            call function
-          That means the for pushes the para with the
+          That means for pushes the para with the
           highest offset (see para3) needs to be pushed first
         }
         hp:=firstpara;
         while assigned(hp) do
           begin
-            if hp.paratyp in [vs_var,vs_out] then
-              paraloc.size:=OS_ADDR
+            if push_addr_param(hp.paratyp,hp.paratype.def,p.proccalloption) then
+              paracgsize:=OS_ADDR
             else
-              paraloc.size:=def_cgsize(hp.paratype.def);
-            paraloc.loc:=LOC_REFERENCE;
-            paraloc.lochigh:=LOC_INVALID;
-            paraloc.alignment:=paraalign;
+              begin
+                paracgsize:=def_cgSize(hp.paratype.def);
+                if paracgsize=OS_NO then
+                  paracgsize:=OS_ADDR;
+              end;
+            hp.paraloc[side].reset;
+            hp.paraloc[side].size:=paracgsize;
+            hp.paraloc[side].Alignment:=paraalign;
+            paraloc:=hp.paraloc[side].add_location;
+            paraloc^.loc:=LOC_REFERENCE;
+            paraloc^.size:=paracgsize;
             if side=callerside then
-              paraloc.reference.index:=NR_STACK_POINTER_REG
+              paraloc^.reference.index:=NR_STACK_POINTER_REG
             else
-              paraloc.reference.index:=NR_FRAME_POINTER_REG;
+              paraloc^.reference.index:=NR_FRAME_POINTER_REG;
             l:=push_size(hp.paratyp,hp.paratype.def,p.proccalloption);
             varalign:=used_align(size_2_align(l),paraalign,paraalign);
-            paraloc.reference.offset:=parasize;
+            paraloc^.reference.offset:=parasize;
             parasize:=align(parasize+l,varalign);
-            hp.paraloc[side]:=paraloc;
             hp:=tparaitem(hp.next);
           end;
         { Adapt offsets for left-to-right calling }
@@ -317,9 +350,12 @@ unit cpupara;
                 l:=push_size(hp.paratyp,hp.paratype.def,p.proccalloption);
                 varalign:=used_align(size_2_align(l),paraalign,paraalign);
                 l:=align(l,varalign);
-                hp.paraloc[side].reference.offset:=parasize-hp.paraloc[side].reference.offset-l;
-                if side=calleeside then
-                  inc(hp.paraloc[side].reference.offset,target_info.first_parm_offset);
+                with hp.paraloc[side].location^ do
+                  begin
+                    reference.offset:=parasize-reference.offset-l;
+                    if side=calleeside then
+                      inc(reference.offset,target_info.first_parm_offset);
+                  end;
                 hp:=tparaitem(hp.next);
               end;
           end
@@ -332,7 +368,7 @@ unit cpupara;
                 hp:=tparaitem(p.para.first);
                 while assigned(hp) do
                   begin
-                    inc(hp.paraloc[side].reference.offset,target_info.first_parm_offset);
+                    inc(hp.paraloc[side].location^.reference.offset,target_info.first_parm_offset);
                     hp:=tparaitem(hp.next);
                   end;
                end;
@@ -344,10 +380,10 @@ unit cpupara;
                                                             var parareg,parasize:longint);
       var
         hp : tparaitem;
-        paraloc : tparalocation;
-        subreg : tsubregister;
+        paraloc : pcgparalocation;
         pushaddr,
         is_64bit : boolean;
+        paracgsize : tcgsize;
         l,
         varalign,
         paraalign : longint;
@@ -359,11 +395,13 @@ unit cpupara;
           begin
             pushaddr:=push_addr_param(hp.paratyp,hp.paratype.def,p.proccalloption);
             if pushaddr then
-              paraloc.size:=OS_ADDR
+              paracgsize:=OS_ADDR
             else
-              paraloc.size:=def_cgsize(hp.paratype.def);
-            paraloc.alignment:=paraalign;
-            is_64bit:=(paraloc.size in [OS_64,OS_S64,OS_F64]);
+              paracgsize:=def_cgsize(hp.paratype.def);
+            is_64bit:=(paracgsize in [OS_64,OS_S64,OS_F64]);
+            hp.paraloc[side].reset;
+            hp.paraloc[side].size:=paracgsize;
+            hp.paraloc[side].Alignment:=paraalign;
             {
               EAX
               EDX
@@ -374,6 +412,8 @@ unit cpupara;
               64bit values,floats,arrays and records are always
               on the stack.
             }
+            paraloc:=hp.paraloc[side].add_location;
+            paraloc^.size:=paracgsize;
             if (parareg<=high(parasupregs)) and
                not(
                    is_64bit or
@@ -381,31 +421,23 @@ unit cpupara;
                     (not pushaddr))
                   ) then
               begin
-                paraloc.loc:=LOC_REGISTER;
-                paraloc.lochigh:=LOC_INVALID;
-                if (paraloc.size=OS_NO) or is_64bit then
-                  subreg:=R_SUBWHOLE
-                else
-                  subreg:=cgsize2subreg(paraloc.size);
-                paraloc.alignment:=paraalign;
-                paraloc.register:=newreg(R_INTREGISTER,parasupregs[parareg],subreg);
+                paraloc^.loc:=LOC_REGISTER;
+                paraloc^.register:=newreg(R_INTREGISTER,parasupregs[parareg],cgsize2subreg(paracgsize));
                 inc(parareg);
               end
             else
               begin
-                paraloc.loc:=LOC_REFERENCE;
-                paraloc.lochigh:=LOC_INVALID;
+                paraloc^.loc:=LOC_REFERENCE;
                 if side=callerside then
-                  paraloc.reference.index:=NR_STACK_POINTER_REG
+                  paraloc^.reference.index:=NR_STACK_POINTER_REG
                 else
-                  paraloc.reference.index:=NR_FRAME_POINTER_REG;
+                  paraloc^.reference.index:=NR_FRAME_POINTER_REG;
                 l:=push_size(hp.paratyp,hp.paratype.def,p.proccalloption);
                 varalign:=size_2_align(l);
-                paraloc.reference.offset:=parasize;
+                paraloc^.reference.offset:=parasize;
                 varalign:=used_align(varalign,paraalign,paraalign);
                 parasize:=align(parasize+l,varalign);
               end;
-            hp.paraloc[side]:=paraloc;
             hp:=tparaitem(hp.next);
           end;
         { Register parameters are assigned from left-to-right, adapt offset
@@ -413,15 +445,18 @@ unit cpupara;
         hp:=tparaitem(p.para.first);
         while assigned(hp) do
           begin
-            if (hp.paraloc[side].loc=LOC_REFERENCE) then
+            with hp.paraloc[side].location^ do
               begin
-                l:=push_size(hp.paratyp,hp.paratype.def,p.proccalloption);
-                varalign:=used_align(size_2_align(l),paraalign,paraalign);
-                l:=align(l,varalign);
-                hp.paraloc[side].reference.offset:=parasize-hp.paraloc[side].reference.offset-l;
-                if side=calleeside then
-                  inc(hp.paraloc[side].reference.offset,target_info.first_parm_offset);
-              end;
+                if (loc=LOC_REFERENCE) then
+                  begin
+                    l:=push_size(hp.paratyp,hp.paratype.def,p.proccalloption);
+                    varalign:=used_align(size_2_align(l),paraalign,paraalign);
+                    l:=align(l,varalign);
+                    reference.offset:=parasize-reference.offset-l;
+                    if side=calleeside then
+                      inc(reference.offset,target_info.first_parm_offset);
+                  end;
+               end;
             hp:=tparaitem(hp.next);
           end;
       end;
@@ -468,13 +503,33 @@ unit cpupara;
       end;
 
 
+    procedure ti386paramanager.createtempparaloc(list: taasmoutput;calloption : tproccalloption;paraitem : tparaitem;var cgpara:TCGPara);
+      var
+        paraloc : pcgparalocation;
+      begin
+        paraloc:=paraitem.paraloc[callerside].location;
+        { No need for temps when value is pushed }
+        if assigned(paraloc) and
+           (paraloc^.loc=LOC_REFERENCE) and
+           (paraloc^.reference.index=NR_STACK_POINTER_REG) then
+          duplicateparaloc(list,calloption,paraitem,cgpara)
+        else
+          inherited createtempparaloc(list,calloption,paraitem,cgpara);
+      end;
+
 
 begin
    paramanager:=ti386paramanager.create;
 end.
 {
   $Log$
-  Revision 1.54  2004-07-09 23:30:13  jonas
+  Revision 1.55  2004-09-21 17:25:12  peter
+    * paraloc branch merged
+
+  Revision 1.54.4.1  2004/08/31 20:43:06  peter
+    * paraloc patch
+
+  Revision 1.54  2004/07/09 23:30:13  jonas
     *  changed first_sse_imreg to first_mm_imreg
 
   Revision 1.53  2004/07/09 23:09:02  peter

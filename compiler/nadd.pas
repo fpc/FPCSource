@@ -1758,11 +1758,7 @@ implementation
                   if nodetype in [addn,subn,muln,andn,orn,xorn] then
                     expectloc:=LOC_REGISTER
                   else
-{$ifdef sparc}
-                    expectloc:=LOC_FLAGS;
-{$else sparc}
                     expectloc:=LOC_JUMP;
-{$endif sparc}
                   calcregisters(self,2,0,0)
                end
 {$endif cpu64bit}
@@ -2034,9 +2030,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.128  2004-09-13 20:32:53  peter
+  Revision 1.129  2004-09-21 17:25:12  peter
+    * paraloc branch merged
+
+  Revision 1.128  2004/09/13 20:32:53  peter
     * only make both operands the same for xor,and,or when both are
       integer types
+
+  Revision 1.127.4.1  2004/09/19 18:08:30  peter
+    * int64 compare fixed
 
   Revision 1.127  2004/08/17 19:04:36  jonas
     * fixed "if @procvar_of_object <> nil" in Delphi/TP mode for for non-x86

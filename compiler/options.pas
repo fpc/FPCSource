@@ -727,11 +727,16 @@ begin
                   exclude(initglobalswitches,cs_gdb_lineinfo);
                   exclude(initglobalswitches,cs_checkpointer);
                 end
-{$ifdef GDB}
                else
                 begin
+{$ifdef GDB}
                   include(initmoduleswitches,cs_debuginfo);
+{$else GDB}
+                  Message(option_no_debug_support);
+                  Message(option_no_debug_support_recompile_fpc);
+{$endif GDB}
                 end;
+{$ifdef GDB}
                if not RelocSectionSetExplicitly then
                  RelocSection:=false;
                j:=1;
@@ -792,9 +797,6 @@ begin
                    end;
                    inc(j);
                  end;
-{$else GDB}
-                 Message(option_no_debug_support);
-                 Message(option_no_debug_support_recompile_fpc);
 {$endif GDB}
              end;
 
@@ -2087,7 +2089,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.142  2004-09-16 16:31:53  peter
+  Revision 1.143  2004-09-21 17:25:12  peter
+    * paraloc branch merged
+
+  Revision 1.142  2004/09/16 16:31:53  peter
     * Use FExpand on paths passed to compiler
 
   Revision 1.141  2004/09/10 21:00:23  jonas
@@ -2096,6 +2101,9 @@ end.
 
   Revision 1.140  2004/09/08 11:23:31  michael
   + Check if outputdir exists,  Fix exitcode when displaying help pages
+
+  Revision 1.139.4.1  2004/09/19 20:53:33  peter
+    * fixed compile without gdb
 
   Revision 1.139  2004/08/27 21:59:26  peter
   browser disabled

@@ -27,7 +27,7 @@ unit cgcpu;
 interface
 
     uses
-       globtype,
+       globtype,parabase,
        cgbase,cgobj,cg64f32,
        aasmbase,aasmtai,aasmcpu,
        cpubase,cpuinfo,
@@ -43,16 +43,17 @@ interface
         procedure done_register_allocators;override;
         function  getfpuregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
         { sparc special, needed by cg64 }
+        procedure make_simple_ref(list:taasmoutput;var ref: treference);
         procedure handle_load_store(list:taasmoutput;isstore:boolean;op: tasmop;reg:tregister;ref: treference);
         procedure handle_reg_const_reg(list:taasmoutput;op:Tasmop;src:tregister;a:aint;dst:tregister);
         { parameter }
-        procedure a_param_const(list:TAasmOutput;size:tcgsize;a:aint;const LocPara:TParaLocation);override;
-        procedure a_param_ref(list:TAasmOutput;sz:tcgsize;const r:TReference;const LocPara:TParaLocation);override;
-        procedure a_paramaddr_ref(list:TAasmOutput;const r:TReference;const LocPara:TParaLocation);override;
-        procedure a_paramfpu_reg(list : taasmoutput;size : tcgsize;const r : tregister;const locpara : tparalocation);override;
-        procedure a_paramfpu_ref(list : taasmoutput;size : tcgsize;const ref : treference;const locpara : tparalocation);override;
-        procedure a_loadany_param_ref(list : taasmoutput;const locpara : tparalocation;const ref:treference;shuffle : pmmshuffle);override;
-        procedure a_loadany_param_reg(list : taasmoutput;const locpara : tparalocation;const reg:tregister;shuffle : pmmshuffle);override;
+        procedure a_param_const(list:TAasmOutput;size:tcgsize;a:aint;const paraloc:TCGPara);override;
+        procedure a_param_ref(list:TAasmOutput;sz:tcgsize;const r:TReference;const paraloc:TCGPara);override;
+        procedure a_paramaddr_ref(list:TAasmOutput;const r:TReference;const paraloc:TCGPara);override;
+        procedure a_paramfpu_reg(list : taasmoutput;size : tcgsize;const r : tregister;const paraloc : TCGPara);override;
+        procedure a_paramfpu_ref(list : taasmoutput;size : tcgsize;const ref : treference;const paraloc : TCGPara);override;
+//        procedure a_loadany_param_ref(list : taasmoutput;const paraloc : TCGPara;const ref:treference;shuffle : pmmshuffle);override;
+        procedure a_loadany_param_reg(list : taasmoutput;const paraloc : TCGPara;const reg:tregister;shuffle : pmmshuffle);override;
         procedure a_call_name(list:TAasmOutput;const s:string);override;
         procedure a_call_reg(list:TAasmOutput;Reg:TRegister);override;
         { General purpose instructions }
@@ -81,7 +82,7 @@ interface
         procedure g_overflowCheck(List:TAasmOutput;const Loc:TLocation;def:TDef);override;
         procedure g_proc_entry(list : taasmoutput;localsize : longint;nostackframe:boolean);override;
         procedure g_proc_exit(list : taasmoutput;parasize:longint;nostackframe:boolean);override;
-        procedure g_restore_all_registers(list:TAasmOutput;const funcretparaloc:tparalocation);override;
+        procedure g_restore_all_registers(list:TAasmOutput;const funcretparaloc:TCGPara);override;
         procedure g_restore_standard_registers(list:taasmoutput);override;
         procedure g_save_all_registers(list : taasmoutput);override;
         procedure g_save_standard_registers(list : taasmoutput);override;
@@ -92,6 +93,9 @@ interface
       private
         procedure get_64bit_ops(op:TOpCG;var op1,op2:TAsmOp);
       public
+        procedure a_load64_reg_ref(list : taasmoutput;reg : tregister64;const ref : treference);override;
+        procedure a_load64_ref_reg(list : taasmoutput;const ref : treference;reg : tregister64);override;
+        procedure a_param64_ref(list : taasmoutput;const r : treference;const paraloc : tcgpara);override;
         procedure a_op64_reg_reg(list:TAasmOutput;op:TOpCG;regsrc,regdst:TRegister64);override;
         procedure a_op64_const_reg(list:TAasmOutput;op:TOpCG;value:int64;regdst:TRegister64);override;
         procedure a_op64_const_reg_reg(list: taasmoutput;op:TOpCG;value : int64;regsrc,regdst : tregister64);override;
@@ -132,7 +136,7 @@ implementation
       end;
 
 
-    procedure tcgsparc.handle_load_store(list:taasmoutput;isstore:boolean;op: tasmop;reg:tregister;ref: treference);
+    procedure tcgsparc.make_simple_ref(list:taasmoutput;var ref: treference);
       var
         tmpreg : tregister;
         tmpref : treference;
@@ -191,12 +195,16 @@ implementation
                 ref.index:=NR_NO;
               end;
           end;
+      end;
+
+
+    procedure tcgsparc.handle_load_store(list:taasmoutput;isstore:boolean;op: tasmop;reg:tregister;ref: treference);
+      begin
+        make_simple_ref(list,ref);
         if isstore then
           list.concat(taicpu.op_reg_ref(op,reg,ref))
         else
           list.concat(taicpu.op_ref_reg(op,ref,reg));
-        if (tmpreg<>NR_NO) then
-          UnGetRegister(list,tmpreg);
       end;
 
 
@@ -254,20 +262,23 @@ implementation
       end;
 
 
-    procedure TCgSparc.a_param_const(list:TAasmOutput;size:tcgsize;a:aint;const LocPara:TParaLocation);
+    procedure TCgSparc.a_param_const(list:TAasmOutput;size:tcgsize;a:aint;const paraloc:TCGPara);
       var
         Ref:TReference;
       begin
-        case locpara.loc of
+        paraloc.check_simple_location;
+        case paraloc.location^.loc of
           LOC_REGISTER,LOC_CREGISTER:
-            a_load_const_reg(list,size,a,locpara.register);
+            a_load_const_reg(list,size,a,paraloc.location^.register);
           LOC_REFERENCE:
             begin
               { Code conventions need the parameters being allocated in %o6+92 }
-              with LocPara.Reference do
-                if(Index=NR_SP)and(Offset<Target_info.first_parm_offset) then
-                InternalError(2002081104);
-              reference_reset_base(ref,locpara.reference.index,locpara.reference.offset);
+              with paraloc.location^.Reference do
+                begin
+                  if (Index=NR_SP) and (Offset<Target_info.first_parm_offset) then
+                    InternalError(2002081104);
+                  reference_reset_base(ref,index,offset);
+                end;
               a_load_const_ref(list,size,a,ref);
             end;
           else
@@ -276,137 +287,170 @@ implementation
       end;
 
 
-    procedure TCgSparc.a_param_ref(list:TAasmOutput;sz:TCgSize;const r:TReference;const LocPara:TParaLocation);
+    procedure TCgSparc.a_param_ref(list:TAasmOutput;sz:TCgSize;const r:TReference;const paraloc:TCGPara);
       var
         ref: treference;
         tmpreg:TRegister;
       begin
-        with LocPara do
-          case loc of
-            LOC_REGISTER,LOC_CREGISTER :
-              a_load_ref_reg(list,sz,sz,r,Register);
-            LOC_REFERENCE:
-              begin
-                { Code conventions need the parameters being allocated in %o6+92 }
-                with LocPara.Reference do
-                  if(Index=NR_SP)and(Offset<Target_info.first_parm_offset) then
-                  InternalError(2002081104);
-                reference_reset_base(ref,locpara.reference.index,locpara.reference.offset);
-                tmpreg:=GetIntRegister(list,OS_INT);
-                a_load_ref_reg(list,sz,sz,r,tmpreg);
-                a_load_reg_ref(list,sz,sz,tmpreg,ref);
-                UnGetRegister(list,tmpreg);
-              end;
-            else
-              internalerror(2002081103);
+        paraloc.check_simple_location;
+        with paraloc.location^ do
+          begin
+            case loc of
+              LOC_REGISTER,LOC_CREGISTER :
+                a_load_ref_reg(list,sz,sz,r,Register);
+              LOC_REFERENCE:
+                begin
+                  { Code conventions need the parameters being allocated in %o6+92 }
+                  with Reference do
+                    begin
+                      if (Index=NR_SP) and (Offset<Target_info.first_parm_offset) then
+                        InternalError(2002081104);
+                      reference_reset_base(ref,index,offset);
+                    end;
+                  tmpreg:=GetIntRegister(list,OS_INT);
+                  a_load_ref_reg(list,sz,sz,r,tmpreg);
+                  a_load_reg_ref(list,sz,sz,tmpreg,ref);
+                  UnGetRegister(list,tmpreg);
+                end;
+              else
+                internalerror(2002081103);
+            end;
           end;
       end;
 
 
-    procedure TCgSparc.a_paramaddr_ref(list:TAasmOutput;const r:TReference;const LocPara:TParaLocation);
+    procedure TCgSparc.a_paramaddr_ref(list:TAasmOutput;const r:TReference;const paraloc:TCGPara);
       var
         Ref:TReference;
         TmpReg:TRegister;
       begin
-        case locpara.loc of
-          LOC_REGISTER,LOC_CREGISTER:
-            a_loadaddr_ref_reg(list,r,locpara.register);
-          LOC_REFERENCE:
-            begin
-              reference_reset(ref);
-              ref.base := locpara.reference.index;
-              ref.offset := locpara.reference.offset;
-              tmpreg:=GetAddressRegister(list);
-              a_loadaddr_ref_reg(list,r,tmpreg);
-              a_load_reg_ref(list,OS_ADDR,OS_ADDR,tmpreg,ref);
-              UnGetRegister(list,tmpreg);
+        paraloc.check_simple_location;
+        with paraloc.location^ do
+          begin
+            case loc of
+              LOC_REGISTER,LOC_CREGISTER:
+                a_loadaddr_ref_reg(list,r,register);
+              LOC_REFERENCE:
+                begin
+                  reference_reset(ref);
+                  ref.base := reference.index;
+                  ref.offset := reference.offset;
+                  tmpreg:=GetAddressRegister(list);
+                  a_loadaddr_ref_reg(list,r,tmpreg);
+                  a_load_reg_ref(list,OS_ADDR,OS_ADDR,tmpreg,ref);
+                  UnGetRegister(list,tmpreg);
+                end;
+              else
+                internalerror(2002080701);
             end;
-          else
-            internalerror(2002080701);
-        end;
+          end;
       end;
 
 
-    procedure tcgsparc.a_paramfpu_reg(list : taasmoutput;size : tcgsize;const r : tregister;const locpara : tparalocation);
+    procedure tcgsparc.a_paramfpu_ref(list : taasmoutput;size : tcgsize;const ref : treference;const paraloc : TCGPara);
+      var
+         href,href2 : treference;
+         hloc : pcgparalocation;
+      begin
+        href:=ref;
+        hloc:=paraloc.location;
+        while assigned(hloc) do
+          begin
+            case hloc^.loc of
+              LOC_REGISTER :
+                a_load_ref_reg(list,hloc^.size,hloc^.size,href,hloc^.register);
+              LOC_REFERENCE :
+                begin
+                  reference_reset_base(href2,hloc^.reference.index,hloc^.reference.offset);
+                  a_load_ref_ref(list,hloc^.size,hloc^.size,href,href2);
+                end;
+              else
+                internalerror(200408241);
+           end;
+           inc(href.offset,tcgsize2size[hloc^.size]);
+           hloc:=hloc^.next;
+         end;
+      end;
+
+
+    procedure tcgsparc.a_paramfpu_reg(list : taasmoutput;size : tcgsize;const r : tregister;const paraloc : TCGPara);
       var
         href : treference;
       begin
         tg.GetTemp(list,TCGSize2Size[size],tt_normal,href);
         a_loadfpu_reg_ref(list,size,r,href);
-        a_paramfpu_ref(list,size,href,locpara);
+        a_paramfpu_ref(list,size,href,paraloc);
         tg.Ungettemp(list,href);
       end;
 
 
-    procedure tcgsparc.a_paramfpu_ref(list : taasmoutput;size : tcgsize;const ref : treference;const locpara : tparalocation);
+      (*
+    procedure tcgsparc.a_paramfpu_ref(list : taasmoutput;size : tcgsize;const ref : treference;const paraloc : TCGPara);
       var
-        templocpara : tparalocation;
+        tempparaloc : TCGPara;
       begin
         { floats are pushed in the int registers }
-        templocpara:=locpara;
-        case locpara.size of
+        tempparaloc:=paraloc;
+        case paraloc.size of
           OS_F32,OS_32 :
             begin
-              templocpara.size:=OS_32;
-              a_param_ref(list,OS_32,ref,templocpara);
+              tempparaloc.size:=OS_32;
+              a_param_ref(list,OS_32,ref,tempparaloc);
             end;
           OS_F64,OS_64 :
             begin
-              templocpara.size:=OS_64;
-              cg64.a_param64_ref(list,ref,templocpara);
+              tempparaloc.size:=OS_64;
+              cg64.a_param64_ref(list,ref,tempparaloc);
             end;
           else
             internalerror(200307021);
         end;
       end;
 
-
-    procedure tcgsparc.a_loadany_param_ref(list : taasmoutput;const locpara : tparalocation;const ref:treference;shuffle : pmmshuffle);
+    procedure tcgsparc.a_loadany_param_ref(list : taasmoutput;const paraloc : TCGPara;const ref:treference;shuffle : pmmshuffle);
       var
         href,
         tempref : treference;
-        templocpara : tparalocation;
+        tempparaloc : TCGPara;
       begin
         { Load floats like ints }
-        templocpara:=locpara;
-        case locpara.size of
+        tempparaloc:=paraloc;
+        case paraloc.size of
           OS_F32 :
-            templocpara.size:=OS_32;
+            tempparaloc.size:=OS_32;
           OS_F64 :
-            templocpara.size:=OS_64;
+            tempparaloc.size:=OS_64;
         end;
         { Word 0 is in register, word 1 is in reference }
-        if (templocpara.loc=LOC_REFERENCE) and (templocpara.low_in_reg) then
+        if (tempparaloc.loc=LOC_REFERENCE) and (tempparaloc.low_in_reg) then
           begin
             tempref:=ref;
-            cg.a_load_reg_ref(list,OS_INT,OS_INT,templocpara.register,tempref);
+            cg.a_load_reg_ref(list,OS_INT,OS_INT,tempparaloc.register,tempref);
             inc(tempref.offset,4);
-            reference_reset_base(href,templocpara.reference.index,templocpara.reference.offset);
+            reference_reset_base(href,tempparaloc.reference.index,tempparaloc.reference.offset);
             cg.a_load_ref_ref(list,OS_INT,OS_INT,href,tempref);
           end
         else
-          inherited a_loadany_param_ref(list,templocpara,ref,shuffle);
+          inherited a_loadany_param_ref(list,tempparaloc,ref,shuffle);
       end;
+*)
 
 
-    procedure tcgsparc.a_loadany_param_reg(list : taasmoutput;const locpara : tparalocation;const reg:tregister;shuffle : pmmshuffle);
+    procedure tcgsparc.a_loadany_param_reg(list : taasmoutput;const paraloc : TCGPara;const reg:tregister;shuffle : pmmshuffle);
       var
         href : treference;
       begin
-        { Word 0 is in register, word 1 is in reference, not
-          possible to load it in 1 register }
-        if (locpara.loc=LOC_REFERENCE) and (locpara.low_in_reg) then
-          internalerror(200307011);
+        paraloc.check_simple_location;
         { Float load use a temp reference }
-        if locpara.size in [OS_F32,OS_F64] then
+        if getregtype(reg)=R_FPUREGISTER then
           begin
-            tg.GetTemp(list,TCGSize2Size[locpara.size],tt_normal,href);
-            a_loadany_param_ref(list,locpara,href,shuffle);
-            a_loadfpu_ref_reg(list,locpara.size,href,reg);
+            tg.GetTemp(list,TCGSize2Size[paraloc.size],tt_normal,href);
+            a_loadany_param_ref(list,paraloc,href,shuffle);
+            a_loadfpu_ref_reg(list,paraloc.size,href,reg);
             tg.Ungettemp(list,href);
           end
         else
-          inherited a_loadany_param_reg(list,locpara,reg,shuffle);
+          inherited a_loadany_param_reg(list,paraloc,reg,shuffle);
       end;
 
 
@@ -458,9 +502,11 @@ implementation
 
     procedure TCgSparc.a_load_reg_ref(list:TAasmOutput;FromSize,ToSize:TCGSize;reg:tregister;const Ref:TReference);
       var
-        op:tasmop;
+        op : tasmop;
       begin
-        case ToSize of
+        if (TCGSize2Size[fromsize] >= TCGSize2Size[tosize]) then
+          fromsize := tosize;
+        case fromsize of
           { signed integer registers }
           OS_8,
           OS_S8:
@@ -480,10 +526,11 @@ implementation
 
     procedure TCgSparc.a_load_ref_reg(list:TAasmOutput;FromSize,ToSize:TCgSize;const ref:TReference;reg:tregister);
       var
-        op:tasmop;
+        op : tasmop;
       begin
-        case Fromsize of
-          { signed integer registers }
+        if (TCGSize2Size[fromsize] >= TCGSize2Size[tosize]) then
+          fromsize := tosize;
+        case fromsize of
           OS_S8:
             Op:=A_LDSB;{Load Signed Byte}
           OS_8:
@@ -506,6 +553,8 @@ implementation
 
 
     procedure TCgSparc.a_load_reg_reg(list:TAasmOutput;fromsize,tosize:tcgsize;reg1,reg2:tregister);
+      var
+        instr : taicpu;
       begin
         if (tcgsize2size[tosize]<tcgsize2size[fromsize]) or
            (
@@ -514,16 +563,32 @@ implementation
             not(fromsize in [OS_32,OS_S32])
            ) then
           begin
-{$warning TODO Sign extension}
             case tosize of
-              OS_8,OS_S8:
+              OS_8 :
                 a_op_const_reg_reg(list,OP_AND,tosize,$ff,reg1,reg2);
-              OS_16,OS_S16:
+              OS_16 :
                 a_op_const_reg_reg(list,OP_AND,tosize,$ffff,reg1,reg2);
-              OS_32,OS_S32:
+              OS_32,
+              OS_S32 :
                 begin
                   if reg1<>reg2 then
-                    list.Concat(taicpu.op_reg_reg(A_MOV,reg1,reg2));
+                    begin
+                      instr:=taicpu.op_reg_reg(A_MOV,reg1,reg2);
+                      list.Concat(instr);
+                      { Notify the register allocator that we have written a move instruction so
+                        it can try to eliminate it. }
+                      add_move_instruction(instr);
+                    end;
+                end;
+              OS_S8 :
+                begin
+                  list.concat(taicpu.op_reg_const_reg(A_SLL,reg1,24,reg2));
+                  list.concat(taicpu.op_reg_const_reg(A_SRA,reg2,24,reg2));
+                end;
+              OS_S16 :
+                begin
+                  list.concat(taicpu.op_reg_const_reg(A_SLL,reg1,16,reg2));
+                  list.concat(taicpu.op_reg_const_reg(A_SRA,reg2,16,reg2));
                 end;
               else
                 internalerror(2002090901);
@@ -533,7 +598,13 @@ implementation
           begin
             { same size, only a register mov required }
             if reg1<>reg2 then
-              list.Concat(taicpu.op_reg_reg(A_MOV,reg1,reg2));
+              begin
+                instr:=taicpu.op_reg_reg(A_MOV,reg1,reg2);
+                list.Concat(instr);
+                { Notify the register allocator that we have written a move instruction so
+                  it can try to eliminate it. }
+                add_move_instruction(instr);
+              end;
           end;
       end;
 
@@ -550,10 +621,7 @@ implementation
            (ref.offset<simm13lo) or
            (ref.offset>simm13hi) then
           begin
-            if (ref.base<>r) and (ref.index<>r) then
-              hreg:=r
-            else
-              hreg:=GetAddressRegister(list);
+            hreg:=GetAddressRegister(list);
             reference_reset(tmpref);
             tmpref.symbol := ref.symbol;
             tmpref.offset := ref.offset;
@@ -575,7 +643,7 @@ implementation
             else
               begin
                 if hreg<>r then
-                  list.Concat(taicpu.op_reg_reg(A_MOV,hreg,r));
+                  a_load_reg_reg(list,OS_ADDR,OS_ADDR,hreg,r);
               end;
             if hreg<>r then
               UnGetRegister(list,hreg);
@@ -588,14 +656,9 @@ implementation
                 begin
                   if ref.index<>NR_NO then
                     begin
-                      if (ref.base<>r) and (ref.index<>r) then
-                        hreg:=r
-                      else
-                        hreg:=GetAddressRegister(list);
+                      hreg:=GetAddressRegister(list);
                       list.concat(taicpu.op_reg_const_reg(A_ADD,ref.base,ref.offset,hreg));
                       list.concat(taicpu.op_reg_reg_reg(A_ADD,hreg,ref.index,r));
-                      if hreg<>r then
-                        UnGetRegister(list,hreg);
                     end
                   else
                     list.concat(taicpu.op_reg_const_reg(A_ADD,ref.base,ref.offset,r));
@@ -621,9 +684,17 @@ implementation
       const
          FpuMovInstr : Array[OS_F32..OS_F64] of TAsmOp =
            (A_FMOVS,A_FMOVD);
+      var
+        instr : taicpu;
       begin
         if reg1<>reg2 then
-          list.concat(taicpu.op_reg_reg(fpumovinstr[size],reg1,reg2));
+          begin
+            instr:=taicpu.op_reg_reg(fpumovinstr[size],reg1,reg2);
+            list.Concat(instr);
+            { Notify the register allocator that we have written a move instruction so
+              it can try to eliminate it. }
+            add_move_instruction(instr);
+          end;
       end;
 
 
@@ -677,11 +748,24 @@ implementation
 
 
     procedure TCgSparc.a_op_reg_reg(list:TAasmOutput;Op:TOpCG;size:TCGSize;src, dst:TRegister);
+      var
+        a : aint;
       begin
         Case Op of
-          OP_NEG,
-          OP_NOT:
+          OP_NEG :
             list.concat(taicpu.op_reg_reg(TOpCG2AsmOp[op],src,dst));
+          OP_NOT :
+            begin
+              case size of
+                OS_8 :
+                  a:=aint($ffffff00);
+                OS_16 :
+                  a:=aint($ffff0000);
+                else
+                  a:=0;
+              end;
+              handle_reg_const_reg(list,A_XNOR,src,a,dst);
+            end;
           else
             list.concat(taicpu.op_reg_reg_reg(TOpCG2AsmOp[op],dst,src,dst));
         end;
@@ -838,7 +922,7 @@ implementation
       end;
 
 
-    procedure TCgSparc.g_restore_all_registers(list:TaasmOutput;const funcretparaloc:tparalocation);
+    procedure TCgSparc.g_restore_all_registers(list:TaasmOutput;const funcretparaloc:TCGPara);
       begin
         { The sparc port uses the sparc standard calling convetions so this function has no used }
       end;
@@ -999,6 +1083,46 @@ implementation
                                TCG64Sparc
 ****************************************************************************}
 
+
+    procedure tcg64sparc.a_load64_reg_ref(list : taasmoutput;reg : tregister64;const ref : treference);
+      var
+        tmpref: treference;
+      begin
+        { Override this function to prevent loading the reference twice }
+        tmpref:=ref;
+        tcgsparc(cg).make_simple_ref(list,tmpref);
+        cg.a_load_reg_ref(list,OS_32,OS_32,reg.reghi,tmpref);
+        inc(tmpref.offset,4);
+        cg.a_load_reg_ref(list,OS_32,OS_32,reg.reglo,tmpref);
+      end;
+
+
+    procedure tcg64sparc.a_load64_ref_reg(list : taasmoutput;const ref : treference;reg : tregister64);
+      var
+        tmpref: treference;
+      begin
+        { Override this function to prevent loading the reference twice }
+        tmpref:=ref;
+        tcgsparc(cg).make_simple_ref(list,tmpref);
+        cg.a_load_ref_reg(list,OS_32,OS_32,tmpref,reg.reghi);
+        inc(tmpref.offset,4);
+        cg.a_load_ref_reg(list,OS_32,OS_32,tmpref,reg.reglo);
+      end;
+
+
+    procedure tcg64sparc.a_param64_ref(list : taasmoutput;const r : treference;const paraloc : tcgpara);
+      var
+        hreg64 : tregister64;
+      begin
+        { Override this function to prevent loading the reference twice.
+          Use here some extra registers, but those are optimized away by the RA }
+        hreg64.reglo:=cg.GetIntRegister(list,OS_32);
+        hreg64.reghi:=cg.GetIntRegister(list,OS_32);
+        a_load64_ref_reg(list,r,hreg64);
+        a_param64_reg(list,hreg64,paraloc);
+      end;
+
+
     procedure TCg64Sparc.get_64bit_ops(op:TOpCG;var op1,op2:TAsmOp);
       begin
         case op of
@@ -1040,9 +1164,9 @@ implementation
         case op of
           OP_NEG :
             begin
-              list.concat(taicpu.op_reg_reg_reg(A_XNOR,NR_G0,regsrc.reghi,regdst.reghi));
+              { Use the simple code: y=0-z }
               list.concat(taicpu.op_reg_reg_reg(A_SUBcc,NR_G0,regsrc.reglo,regdst.reglo));
-              list.concat(taicpu.op_reg_const_reg(A_ADDX,regdst.reglo,-1,regdst.reglo));
+              list.concat(taicpu.op_reg_reg_reg(A_SUBX,NR_G0,regsrc.reghi,regdst.reghi));
               exit;
             end;
           OP_NOT :
@@ -1109,7 +1233,28 @@ begin
 end.
 {
   $Log$
-  Revision 1.86  2004-08-25 20:40:04  florian
+  Revision 1.87  2004-09-21 17:25:13  peter
+    * paraloc branch merged
+
+  Revision 1.86.4.5  2004/09/20 20:43:15  peter
+    * implement reg_ref/ref_reg for 64bit to prevent loading the
+      address symbol twice
+
+  Revision 1.86.4.4  2004/09/17 17:19:26  peter
+    * fixed 64 bit unaryminus for sparc
+    * fixed 64 bit inlining
+    * signness of not operation
+
+  Revision 1.86.4.3  2004/09/12 21:31:03  peter
+    * sign extension added
+
+  Revision 1.86.4.2  2004/09/12 13:36:40  peter
+    * fixed alignment issues
+
+  Revision 1.86.4.1  2004/08/31 20:43:06  peter
+    * paraloc patch
+
+  Revision 1.86  2004/08/25 20:40:04  florian
     * fixed absolute on sparc
 
   Revision 1.85  2004/08/24 21:02:32  florian

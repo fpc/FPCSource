@@ -174,7 +174,7 @@ interface
                       begin
                         op.typ:=top_ref;
                         new(op.ref);
-                        reference_reset_base(op.ref^,sym.localloc.reference.index,sym.localloc.reference.offset+sofs);
+                        reference_reset_base(op.ref^,sym.localloc.reference.base,sym.localloc.reference.offset+sofs);
                         op.ref^.index:=indexreg;
 {$ifdef x86}
                         op.ref^.scalefactor:=scale;
@@ -496,7 +496,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.65  2004-07-16 19:45:15  jonas
+  Revision 1.66  2004-09-21 17:25:12  peter
+    * paraloc branch merged
+
+  Revision 1.65.4.1  2004/08/31 20:43:06  peter
+    * paraloc patch
+
+  Revision 1.65  2004/07/16 19:45:15  jonas
     + temps can now also hold fpu values in registers (take care with use,
       bacause of the x86 fpu stack)
     * fpu parameters to node-inlined procedures can now also be put in

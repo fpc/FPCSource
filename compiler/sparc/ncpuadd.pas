@@ -49,7 +49,7 @@ interface
       systems,
       cutils,verbose,
       paramgr,
-      aasmbase,aasmtai,aasmcpu,defutil,
+      aasmtai,aasmcpu,defutil,
       cgbase,cgcpu,
       cpupara,
       ncon,nset,nadd,
@@ -281,8 +281,70 @@ interface
 
     procedure tsparcaddnode.second_cmp64bit;
       var
-        unsigned : boolean;
-        l : tasmlabel;
+        unsigned   : boolean;
+
+      procedure firstjmp64bitcmp;
+        var
+           oldnodetype : tnodetype;
+        begin
+           { the jump the sequence is a little bit hairy }
+           case nodetype of
+              ltn,gtn:
+                begin
+                   cg.a_jmp_flags(exprasmlist,getresflags(unsigned),truelabel);
+                   { cheat a little bit for the negative test }
+                   toggleflag(nf_swaped);
+                   cg.a_jmp_flags(exprasmlist,getresflags(unsigned),falselabel);
+                   toggleflag(nf_swaped);
+                end;
+              lten,gten:
+                begin
+                   oldnodetype:=nodetype;
+                   if nodetype=lten then
+                     nodetype:=ltn
+                   else
+                     nodetype:=gtn;
+                   cg.a_jmp_flags(exprasmlist,getresflags(unsigned),truelabel);
+                   { cheat for the negative test }
+                   if nodetype=ltn then
+                     nodetype:=gtn
+                   else
+                     nodetype:=ltn;
+                   cg.a_jmp_flags(exprasmlist,getresflags(unsigned),falselabel);
+                   nodetype:=oldnodetype;
+                end;
+              equaln:
+                cg.a_jmp_flags(exprasmlist,F_NE,falselabel);
+              unequaln:
+                cg.a_jmp_flags(exprasmlist,F_NE,truelabel);
+           end;
+        end;
+
+      procedure secondjmp64bitcmp;
+
+        begin
+           { the jump the sequence is a little bit hairy }
+           case nodetype of
+              ltn,gtn,lten,gten:
+                begin
+                   { the comparisaion of the low dword have to be }
+                   {  always unsigned!                            }
+                   cg.a_jmp_flags(exprasmlist,getresflags(true),truelabel);
+                   cg.a_jmp_always(exprasmlist,falselabel);
+                end;
+              equaln:
+                begin
+                   cg.a_jmp_flags(exprasmlist,F_NE,falselabel);
+                   cg.a_jmp_always(exprasmlist,truelabel);
+                end;
+              unequaln:
+                begin
+                   cg.a_jmp_flags(exprasmlist,F_NE,truelabel);
+                   cg.a_jmp_always(exprasmlist,falselabel);
+                end;
+           end;
+        end;
+
       begin
         pass_left_right;
         force_reg_left_right(false,false);
@@ -290,49 +352,12 @@ interface
         unsigned:=not(is_signed(left.resulttype.def)) or
                   not(is_signed(right.resulttype.def));
 
-        location_reset(location,LOC_FLAGS,OS_NO);
-        location.resflags:=getresflags(unsigned);
+        location_reset(location,LOC_JUMP,OS_NO);
 
-        { operation requiring proper N, Z and C flags ? }
-        if unsigned or (nodetype in [equaln,unequaln]) then
-          begin
-            objectlibrary.getlabel(l);
-            exprasmlist.concat(taicpu.op_reg_reg(A_CMP,left.location.register64.reghi,right.location.register64.reghi));
-            tcgsparc(cg).a_jmp_cond(exprasmlist,OC_NE,l);
-            exprasmlist.concat(taicpu.op_reg_reg(A_CMP,left.location.register64.reglo,right.location.register64.reglo));
-            cg.a_label(exprasmlist,l);
-          end
-        { operation requiring proper N, V and C flags ? }
-        else if nodetype in [gten,ltn] then
-          begin
-            exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUBCC,left.location.register64.reglo,right.location.register64.reglo,NR_G0));
-            exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUBXCC,left.location.register64.reghi,right.location.register64.reghi,NR_G0));
-          end
-        else
-        { operation requiring proper N, Z and V flags ? }
-          begin
-            { this isn't possible so swap operands and use the "reverse" operation }
-            exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUBCC,right.location.register64.reglo,left.location.register64.reglo,NR_G0));
-            exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUBXCC,right.location.register64.reghi,left.location.register64.reghi,NR_G0));
-            if nf_swaped in flags then
-              begin
-                if location.resflags=F_L then
-                  location.resflags:=F_G
-                else if location.resflags=F_GE then
-                  location.resflags:=F_LE
-                else
-                  internalerror(200401221);
-              end
-            else
-              begin
-                if location.resflags=F_G then
-                  location.resflags:=F_L
-                else if location.resflags=F_LE then
-                  location.resflags:=F_GE
-                else
-                  internalerror(200401221);
-              end;
-          end;
+        exprasmlist.concat(taicpu.op_reg_reg(A_CMP,left.location.register64.reghi,right.location.register64.reghi));
+        firstjmp64bitcmp;
+        exprasmlist.concat(taicpu.op_reg_reg(A_CMP,left.location.register64.reglo,right.location.register64.reglo));
+        secondjmp64bitcmp;
 
         release_reg_left_right;
       end;
@@ -364,7 +389,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2004-06-20 08:55:32  florian
+  Revision 1.26  2004-09-21 17:25:13  peter
+    * paraloc branch merged
+
+  Revision 1.25.4.1  2004/09/19 18:08:30  peter
+    * int64 compare fixed
+
+  Revision 1.25  2004/06/20 08:55:32  florian
     * logs truncated
 
   Revision 1.24  2004/06/16 20:07:10  florian

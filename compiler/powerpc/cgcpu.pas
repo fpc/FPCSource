@@ -30,7 +30,8 @@ unit cgcpu;
        globtype,symtype,
        cgbase,cgobj,
        aasmbase,aasmcpu,aasmtai,
-       cpubase,cpuinfo,node,cg64f32,rgcpu;
+       cpubase,cpuinfo,node,cg64f32,rgcpu,
+       parabase;
 
     type
       tcgppc = class(tcg)
@@ -44,9 +45,9 @@ unit cgcpu;
         { left to right), this allows to move the parameter to    }
         { register, if the cpu supports register calling          }
         { conventions                                             }
-        procedure a_param_const(list : taasmoutput;size : tcgsize;a : aint;const locpara : tparalocation);override;
-        procedure a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;const locpara : tparalocation);override;
-        procedure a_paramaddr_ref(list : taasmoutput;const r : treference;const locpara : tparalocation);override;
+        procedure a_param_const(list : taasmoutput;size : tcgsize;a : aint;const paraloc : tcgpara);override;
+        procedure a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;const paraloc : tcgpara);override;
+        procedure a_paramaddr_ref(list : taasmoutput;const r : treference;const paraloc : tcgpara);override;
 
 
         procedure a_call_name(list : taasmoutput;const s : string);override;
@@ -97,7 +98,7 @@ unit cgcpu;
         procedure g_save_standard_registers(list:Taasmoutput);override;
         procedure g_restore_standard_registers(list:Taasmoutput);override;
         procedure g_save_all_registers(list : taasmoutput);override;
-        procedure g_restore_all_registers(list : taasmoutput;const funcretparaloc:tparalocation);override;
+        procedure g_restore_all_registers(list : taasmoutput;const funcretparaloc:tcgpara);override;
 
         procedure a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: tasmlabel);
 
@@ -234,18 +235,19 @@ const
       end;
 
 
-    procedure tcgppc.a_param_const(list : taasmoutput;size : tcgsize;a : aint;const locpara : tparalocation);
+    procedure tcgppc.a_param_const(list : taasmoutput;size : tcgsize;a : aint;const paraloc : tcgpara);
       var
         ref: treference;
       begin
-        case locpara.loc of
+        paraloc.check_simple_location;
+        case paraloc.location^.loc of
           LOC_REGISTER,LOC_CREGISTER:
-            a_load_const_reg(list,size,a,locpara.register);
+            a_load_const_reg(list,size,a,paraloc.location^.register);
           LOC_REFERENCE:
             begin
                reference_reset(ref);
-               ref.base:=locpara.reference.index;
-               ref.offset:=locpara.reference.offset;
+               ref.base:=paraloc.location^.reference.index;
+               ref.offset:=paraloc.location^.reference.offset;
                a_load_const_ref(list,size,a,ref);
             end;
           else
@@ -254,21 +256,22 @@ const
       end;
 
 
-    procedure tcgppc.a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;const locpara : tparalocation);
+    procedure tcgppc.a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;const paraloc : tcgpara);
 
       var
         ref: treference;
         tmpreg: tregister;
 
       begin
-        case locpara.loc of
+        paraloc.check_simple_location;
+        case paraloc.location^.loc of
           LOC_REGISTER,LOC_CREGISTER:
-            a_load_ref_reg(list,size,size,r,locpara.register);
+            a_load_ref_reg(list,size,size,r,paraloc.location^.register);
           LOC_REFERENCE:
             begin
                reference_reset(ref);
-               ref.base:=locpara.reference.index;
-               ref.offset:=locpara.reference.offset;
+               ref.base:=paraloc.location^.reference.index;
+               ref.offset:=paraloc.location^.reference.offset;
                tmpreg := rg[R_INTREGISTER].getregister(list,R_SUBWHOLE);
                a_load_ref_reg(list,size,size,r,tmpreg);
                a_load_reg_ref(list,size,size,tmpreg,ref);
@@ -277,7 +280,7 @@ const
           LOC_FPUREGISTER,LOC_CFPUREGISTER:
             case size of
                OS_F32, OS_F64:
-                 a_loadfpu_ref_reg(list,size,r,locpara.register);
+                 a_loadfpu_ref_reg(list,size,r,paraloc.location^.register);
                else
                  internalerror(2002072801);
             end;
@@ -287,28 +290,29 @@ const
       end;
 
 
-    procedure tcgppc.a_paramaddr_ref(list : taasmoutput;const r : treference;const locpara : tparalocation);
+    procedure tcgppc.a_paramaddr_ref(list : taasmoutput;const r : treference;const paraloc : tcgpara);
       var
         ref: treference;
         tmpreg: tregister;
 
       begin
-         case locpara.loc of
-            LOC_REGISTER,LOC_CREGISTER:
-              a_loadaddr_ref_reg(list,r,locpara.register);
-            LOC_REFERENCE:
-              begin
-                reference_reset(ref);
-                ref.base := locpara.reference.index;
-                ref.offset := locpara.reference.offset;
-                tmpreg := rg[R_INTREGISTER].getregister(list,R_SUBWHOLE);
-                a_loadaddr_ref_reg(list,r,tmpreg);
-                a_load_reg_ref(list,OS_ADDR,OS_ADDR,tmpreg,ref);
-                rg[R_INTREGISTER].ungetregister(list,tmpreg);
-              end;
-            else
-              internalerror(2002080701);
-         end;
+        paraloc.check_simple_location;
+        case paraloc.location^.loc of
+           LOC_REGISTER,LOC_CREGISTER:
+             a_loadaddr_ref_reg(list,r,paraloc.location^.register);
+           LOC_REFERENCE:
+             begin
+               reference_reset(ref);
+               ref.base := paraloc.location^.reference.index;
+               ref.offset := paraloc.location^.reference.offset;
+               tmpreg := rg[R_INTREGISTER].getregister(list,R_SUBWHOLE);
+               a_loadaddr_ref_reg(list,r,tmpreg);
+               a_load_reg_ref(list,OS_ADDR,OS_ADDR,tmpreg,ref);
+               rg[R_INTREGISTER].ungetregister(list,tmpreg);
+             end;
+           else
+             internalerror(2002080701);
+        end;
       end;
 
 
@@ -887,7 +891,7 @@ const
          {$warning FIX ME}
        end;
 
-     procedure tcgppc.g_restore_all_registers(list : taasmoutput;const funcretparaloc:tparalocation);
+     procedure tcgppc.g_restore_all_registers(list : taasmoutput;const funcretparaloc:tcgpara);
        begin
          {$warning FIX ME}
        end;
@@ -1208,13 +1212,15 @@ const
                 hp:=tparaitem(current_procinfo.procdef.para.first);
                 while assigned(hp) do
                   begin
-                    if (hp.paraloc[calleeside].loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+                    if (hp.paraloc[calleeside].location^.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
                       begin
+                        if assigned(hp.paraloc[callerside].location^.next) then
+                          internalerror(2004091210);
                         case tvarsym(hp.parasym).localloc.loc of
                           LOC_REFERENCE:
                             begin
-                              reference_reset_base(href,tvarsym(hp.parasym).localloc.reference.index,tvarsym(hp.parasym).localloc.reference.offset);
-                              reference_reset_base(href2,NR_R12,hp.paraloc[callerside].reference.offset);
+                              reference_reset_base(href,tvarsym(hp.parasym).localloc.reference.base,tvarsym(hp.parasym).localloc.reference.offset);
+                              reference_reset_base(href2,NR_R12,hp.paraloc[callerside].location^.reference.offset);
                               { we can't use functions here which allocate registers (FK)
                                cg.a_load_ref_ref(list,hp.paraloc[calleeside].size,hp.paraloc[calleeside].size,href2,href);
                               }
@@ -1243,12 +1249,12 @@ const
                             end;
                           LOC_CREGISTER:
                             begin
-                              reference_reset_base(href2,NR_R12,hp.paraloc[callerside].reference.offset);
+                              reference_reset_base(href2,NR_R12,hp.paraloc[callerside].location^.reference.offset);
                               cg.a_load_ref_reg(list,hp.paraloc[calleeside].size,hp.paraloc[calleeside].size,href2,tvarsym(hp.parasym).localloc.register);
                             end;
                           LOC_CFPUREGISTER:
                             begin
-                              reference_reset_base(href2,NR_R12,hp.paraloc[callerside].reference.offset);
+                              reference_reset_base(href2,NR_R12,hp.paraloc[callerside].location^.reference.offset);
                               cg.a_loadfpu_ref_reg(list,hp.paraloc[calleeside].size,href2,tvarsym(hp.parasym).localloc.register);
                             end;
                           else
@@ -2429,7 +2435,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.176  2004-07-17 14:48:20  jonas
+  Revision 1.177  2004-09-21 17:25:12  peter
+    * paraloc branch merged
+
+  Revision 1.176.4.2  2004/09/18 20:21:08  jonas
+    * fixed ppc, but still needs fix in tgobj
+
+  Revision 1.176.4.1  2004/09/10 11:10:08  florian
+    * first part of ppc fixes
+
+  Revision 1.176  2004/07/17 14:48:20  jonas
     * fixed op_const_reg_reg for (OP_ADD,0,reg1,reg2)
 
   Revision 1.175  2004/07/09 21:45:24  jonas
@@ -2463,5 +2478,4 @@ end.
 
   Revision 1.168  2004/03/06 21:37:45  florian
     * fixed ppc compilation
-
 }
