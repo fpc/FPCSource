@@ -20,7 +20,7 @@
  ****************************************************************************
 }
 { This unit implements support information structures for FreeBSD/NetBSD.
-  OpenBSD and Darwin must be added still.}
+  OpenBSD must still be added.}
 
 unit i_bsd;
 
@@ -314,12 +314,12 @@ unit i_bsd;
             staticClibext : '.a';
             staticClibprefix : 'lib';
             sharedClibprefix : 'lib';
-            Cprefix      : '';
+            Cprefix      : '_';
             newline      : #10;
             dirsep       : '/';
             files_case_relevent : true;
-            assem        : as_gas;
-            assemextern  : as_gas;
+            assem        : as_darwin;
+            assemextern  : as_darwin;
             link         : nil;
             linkextern   : nil;
             ar           : ar_gnu_ar;
@@ -345,7 +345,7 @@ unit i_bsd;
             heapsize    : 256*1024;
             stacksize   : 262144;
             DllScanSupported:false;
-            use_function_relative_addresses : true;
+            use_function_relative_addresses : false;
             abi : abi_powerpc_aix;
           );
 
@@ -376,7 +376,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.4  2003-10-03 22:09:49  peter
+  Revision 1.5  2004-01-04 21:19:57  jonas
+    * use "as_darwin" assembler for Darwin
+    * Cprefix = '_' on Darwin
+    * use_function_relative_addresses must be false on Darwin
+
+  Revision 1.4  2003/10/03 22:09:49  peter
     * removed paraalign
 
   Revision 1.3  2003/05/28 23:18:31  florian
