@@ -453,6 +453,8 @@ type tmsgconst=(
   unit_f_circular_unit_reference,
   unit_f_cant_compile_unit,
   unit_f_cant_find_ppu,
+  unit_w_unit_name_error,
+  unit_f_unit_name_error,
   unit_w_switch_us_missed,
   unit_f_errors_in_unit,
   unit_u_load_unit,
