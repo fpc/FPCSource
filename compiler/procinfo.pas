@@ -138,9 +138,6 @@ unit procinfo;
        { information about the current sub routine being parsed (@var(pprocinfo))}
        current_procinfo : tprocinfo;
 
-       { save the size of pushed parameter, needed for aligning }
-       pushedparasize : longint;
-
 
 implementation
 
@@ -220,7 +217,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2003-10-03 22:00:33  peter
+  Revision 1.3  2003-10-05 21:21:52  peter
+    * c style array of const generates callparanodes
+    * varargs paraloc fixes
+
+  Revision 1.2  2003/10/03 22:00:33  peter
     * parameter alignment fixes
 
   Revision 1.1  2003/10/01 20:34:49  peter

@@ -87,6 +87,7 @@ interface
           function det_resulttype:tnode;override;
           function docompare(p: tnode): boolean; override;
           procedure force_type(tt:ttype);
+          procedure insert_typeconvs;
        end;
        tarrayconstructornodeclass = class of tarrayconstructornode;
 
@@ -1001,7 +1002,7 @@ implementation
       end;
 
 
-    function tarrayconstructornode.pass_1 : tnode;
+    procedure tarrayconstructornode.insert_typeconvs;
       var
         thp,
         chp,
@@ -1011,36 +1012,26 @@ implementation
         orgflags  : tnodeflags;
       begin
         dovariant:=(nf_forcevaria in flags) or tarraydef(resulttype.def).isvariant;
-        result:=nil;
         { only pass left tree, right tree contains next construct if any }
         if assigned(left) then
          begin
            hp:=self;
            while assigned(hp) do
             begin
-              firstpass(hp.left);
+              resulttypepass(hp.left);
               { Insert typeconvs for array of const }
               if dovariant then
                begin
                  case hp.left.resulttype.def.deftype of
                    enumdef :
-                     begin
-                       hp.left:=ctypeconvnode.create_explicit(hp.left,s32bittype);
-                       firstpass(hp.left);
-                     end;
+                     hp.left:=ctypeconvnode.create_explicit(hp.left,s32bittype);
                    arraydef :
-                     begin
-                       hp.left:=ctypeconvnode.create(hp.left,charpointertype);
-                       firstpass(hp.left);
-                     end;
+                     hp.left:=ctypeconvnode.create(hp.left,charpointertype);
                    orddef :
                      begin
                        if is_integer(hp.left.resulttype.def) and
                           not(is_64bitint(hp.left.resulttype.def)) then
-                        begin
-                          hp.left:=ctypeconvnode.create(hp.left,s32bittype);
-                          firstpass(hp.left);
-                        end;
+                         hp.left:=ctypeconvnode.create(hp.left,s32bittype);
                      end;
                    floatdef :
                      begin
@@ -1049,21 +1040,14 @@ implementation
                          hp.left:=ctypeconvnode.create(hp.left,s64floattype)
                        else
                          hp.left:=ctypeconvnode.create(hp.left,pbestrealtype^);
-                       firstpass(hp.left);
                      end;
                    stringdef :
                      begin
                        if nf_cargs in flags then
-                        begin
-                          hp.left:=ctypeconvnode.create(hp.left,charpointertype);
-                          firstpass(hp.left);
-                        end;
+                         hp.left:=ctypeconvnode.create(hp.left,charpointertype);
                      end;
                    procvardef :
-                     begin
-                       hp.left:=ctypeconvnode.create(hp.left,voidpointertype);
-                       firstpass(hp.left);
-                     end;
+                     hp.left:=ctypeconvnode.create(hp.left,voidpointertype);
                    variantdef,
                    pointerdef,
                    classrefdef,
@@ -1072,44 +1056,33 @@ implementation
                      CGMessagePos1(hp.left.fileinfo,type_e_wrong_type_in_array_constructor,hp.left.resulttype.def.typename);
                  end;
                end;
+              resulttypepass(hp.left);
               hp:=tarrayconstructornode(hp.right);
             end;
-         { swap the tree for cargs }
-           if (nf_cargs in flags) and (not(nf_cargswap in flags)) then
-            begin
-              chp:=nil;
-              { save resulttype }
-              htype:=resulttype;
-              { we need a copy here, because self is destroyed }
-              { by firstpass later                             }
-              hp:=tarrayconstructornode(getcopy);
-              { we also need a copy of the nf_ forcevaria flag to restore }
-              { later) (JM)                                               }
-              orgflags := flags * [nf_forcevaria];
-              while assigned(hp) do
-               begin
-                 thp:=tarrayconstructornode(hp.right);
-                 hp.right:=chp;
-                 chp:=hp;
-                 hp:=thp;
-               end;
-              chp.flags := chp.flags+orgflags;
-              include(chp.flags,nf_cargs);
-              include(chp.flags,nf_cargswap);
-              chp.expectloc:=LOC_CREFERENCE;
-              calcregisters(chp,0,0,0);
-              chp.resulttype:=htype;
-              result:=chp;
-              exit;
-            end;
          end;
-        { C style has pushed everything on the stack, so
-          there is no return value }
-        if (nf_cargs in flags) then
-         expectloc:=LOC_VOID
-        else
-         expectloc:=LOC_CREFERENCE;
-        { Calculate registers }
+      end;
+
+
+    function tarrayconstructornode.pass_1 : tnode;
+      var
+        hp : tarrayconstructornode;
+      begin
+        result:=nil;
+        { Insert required type convs, this must be
+          done in pass 1, because the call must be
+          resulttypepassed already }
+        if assigned(left) then
+          begin
+            insert_typeconvs;
+            { call firstpass for all nodes }
+            hp:=self;
+            while assigned(hp) do
+              begin
+                firstpass(hp.left);
+                hp:=tarrayconstructornode(hp.right);
+              end;
+          end;
+        expectloc:=LOC_CREFERENCE;
         calcregisters(self,0,0,0);
       end;
 
@@ -1274,7 +1247,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.108  2003-10-01 20:34:48  peter
+  Revision 1.109  2003-10-05 21:21:52  peter
+    * c style array of const generates callparanodes
+    * varargs paraloc fixes
+
+  Revision 1.108  2003/10/01 20:34:48  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

@@ -423,7 +423,6 @@ interface
        tabstractprocdef = class(tstoreddef)
           { saves a definition to the return type }
           rettype         : ttype;
-          paraalign       : byte;
           parast          : tsymtable;
           para            : tlinkedlist;
           proctypeoption  : tproctypeoption;
@@ -440,7 +439,6 @@ interface
           procedure  ppuwrite(ppufile:tcompilerppufile);override;
           procedure deref;override;
           procedure releasemem;
-          procedure set_calloption(calloption:tproccalloption);
           function  concatpara(afterpara:tparaitem;const tt:ttype;sym : tsym;defval:tsym;vhidden:boolean):tparaitem;
           function  insertpara(const tt:ttype;sym : tsym;defval:tsym;vhidden:boolean):tparaitem;
           procedure removepara(currpara:tparaitem);
@@ -3094,7 +3092,6 @@ implementation
          parast.defowner:=self;
          parast.next:=owner;
          para:=TLinkedList.Create;
-         paraalign:=std_param_align;
          minparacount:=0;
          maxparacount:=0;
          proctypeoption:=potype_none;
@@ -3131,14 +3128,6 @@ implementation
         para:=nil;
         parast.free;
         parast:=nil;
-      end;
-
-
-    procedure tabstractprocdef.set_calloption(calloption:tproccalloption);
-      begin
-        proccalloption:=calloption;
-        { Update parameter alignment }
-        paraalign:=paramanager.get_para_align(proccalloption);
       end;
 
 
@@ -3251,7 +3240,6 @@ implementation
          maxparacount:=0;
          ppufile.gettype(rettype);
          fpu_used:=ppufile.getbyte;
-         paraalign:=ppufile.getbyte;
          proctypeoption:=tproctypeoption(ppufile.getbyte);
          proccalloption:=tproccalloption(ppufile.getbyte);
          ppufile.getsmallset(procoptions);
@@ -3297,7 +3285,6 @@ implementation
          if simplify_ppu then
           fpu_used:=0;
          ppufile.putbyte(fpu_used);
-         ppufile.putbyte(paraalign);
          ppufile.putbyte(ord(proctypeoption));
          ppufile.putbyte(ord(proccalloption));
          ppufile.putsmallset(procoptions);
@@ -5916,7 +5903,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.171  2003-10-05 12:56:35  peter
+  Revision 1.172  2003-10-05 21:21:52  peter
+    * c style array of const generates callparanodes
+    * varargs paraloc fixes
+
+  Revision 1.171  2003/10/05 12:56:35  peter
     * don't write procdefs that are released to ppu
 
   Revision 1.170  2003/10/03 22:00:33  peter

@@ -55,8 +55,8 @@ interface
 
        tcallnode = class(tbinarynode)
        private
-          paravisible : boolean;
-          paralength : smallint;
+          paravisible  : boolean;
+          paralength   : smallint;
           function  candidates_find:pcandidate;
           procedure candidates_free(procs:pcandidate);
           procedure candidates_list(procs:pcandidate;all:boolean);
@@ -75,6 +75,7 @@ interface
             ret_in_param return value }
           _funcretnode    : tnode;
           procedure setfuncretnode(const returnnode: tnode);
+          procedure convert_carg_array_of_const;
        public
           { the symbol containing the definition of the procedure }
           { to call                                               }
@@ -89,6 +90,8 @@ interface
           methodpointer  : tnode;
           { inline function body }
           inlinecode : tnode;
+          { varargs tparaitems }
+          varargsparas : tlinkedlist;
           { node that specifies where the result should be put for calls }
           { that return their result in a parameter                      }
           property funcretnode: tnode read _funcretnode write setfuncretnode;
@@ -137,13 +140,11 @@ interface
 
        tcallparaflags = (
           { flags used by tcallparanode }
-          cpf_exact_match_found,
-          cpf_convlevel1found,
-          cpf_convlevel2found,
           cpf_is_colon_para
        );
 
        tcallparanode = class(tbinarynode)
+       public
           callparaflags : set of tcallparaflags;
           paraitem : tparaitem;
           used_by_callnode : boolean;
@@ -589,18 +590,14 @@ type
 
     procedure tcallparanode.get_paratype;
       var
-        old_get_para_resulttype : boolean;
         old_array_constructor : boolean;
       begin
          inc(parsing_para_level);
          if assigned(right) then
           tcallparanode(right).get_paratype;
          old_array_constructor:=allow_array_constructor;
-         old_get_para_resulttype:=get_para_resulttype;
-         get_para_resulttype:=true;
          allow_array_constructor:=true;
          resulttypepass(left);
-         get_para_resulttype:=old_get_para_resulttype;
          allow_array_constructor:=old_array_constructor;
          if codegenerror then
           resulttype:=generrortype
@@ -630,164 +627,164 @@ type
          if not assigned(left.resulttype.def) then
            resulttypepass(left);
 
-         { Handle varargs and hidden paras directly, no typeconvs or }
-         { typechecking needed                                       }
-         if (nf_varargs_para in flags) then
+         if (left.nodetype<>nothingn) then
            begin
-             { convert pascal to C types }
-             case left.resulttype.def.deftype of
-               stringdef :
-                 inserttypeconv(left,charpointertype);
-               floatdef :
-                 inserttypeconv(left,s64floattype);
-             end;
-             set_varstate(left,true);
-             resulttype:=left.resulttype;
-           end
-         else
-          if (paraitem.is_hidden) then
-           begin
-             set_varstate(left,true);
-             resulttype:=left.resulttype;
-           end
-         else
-           begin
-
-             { Do we need arrayconstructor -> set conversion, then insert
-               it here before the arrayconstructor node breaks the tree
-               with its conversions of enum->ord }
-             if (left.nodetype=arrayconstructorn) and
-                (paraitem.paratype.def.deftype=setdef) then
-               inserttypeconv(left,paraitem.paratype);
-
-             { set some settings needed for arrayconstructor }
-             if is_array_constructor(left.resulttype.def) then
-              begin
-                if is_array_of_const(paraitem.paratype.def) then
-                 begin
-                   if assigned(aktcallnode) and
-                      (aktcallnode.procdefinition.proccalloption in [pocall_cppdecl,pocall_cdecl]) then
-                     include(left.flags,nf_cargs);
-                   { force variant array }
-                   include(left.flags,nf_forcevaria);
-                 end
-                else
-                 begin
-                   include(left.flags,nf_novariaallowed);
-                   { now that the resultting type is know we can insert the required
-                     typeconvs for the array constructor }
-                   tarrayconstructornode(left).force_type(tarraydef(paraitem.paratype.def).elementtype);
+             { Handle varargs and hidden paras directly, no typeconvs or }
+             { typechecking needed                                       }
+             if (nf_varargs_para in flags) then
+               begin
+                 { convert pascal to C types }
+                 case left.resulttype.def.deftype of
+                   stringdef :
+                     inserttypeconv(left,charpointertype);
+                   floatdef :
+                     inserttypeconv(left,s64floattype);
                  end;
-              end;
-
-             { check if local proc/func is assigned to procvar }
-             if left.resulttype.def.deftype=procvardef then
-               test_local_to_procvar(tprocvardef(left.resulttype.def),paraitem.paratype.def);
-
-             { test conversions }
-             if not(is_shortstring(left.resulttype.def) and
-                    is_shortstring(paraitem.paratype.def)) and
-                (paraitem.paratype.def.deftype<>formaldef) then
+                 set_varstate(left,true);
+                 resulttype:=left.resulttype;
+               end
+             else
+              if (paraitem.is_hidden) then
                begin
-                  { Process open parameters }
-                  if paramanager.push_high_param(paraitem.paratyp,paraitem.paratype.def,aktcallnode.procdefinition.proccalloption) then
-                   begin
-                     { insert type conv but hold the ranges of the array }
-                     oldtype:=left.resulttype;
-                     inserttypeconv(left,paraitem.paratype);
-                     left.resulttype:=oldtype;
-                   end
-                  else
-                   begin
-                     { for ordinals, floats and enums, verify if we might cause
-                       some range-check errors. }
-                     if (paraitem.paratype.def.deftype in [enumdef,orddef,floatdef]) and
-                        (left.resulttype.def.deftype in [enumdef,orddef,floatdef]) and
-                        (left.nodetype in [vecn,loadn,calln]) then
-                       begin
-                          if (left.resulttype.def.size>paraitem.paratype.def.size) then
-                            begin
-                              if (cs_check_range in aktlocalswitches) then
-                                 Message(type_w_smaller_possible_range_check)
-                              else
-                                 Message(type_h_smaller_possible_range_check);
-                            end;
-                       end;
-                     inserttypeconv(left,paraitem.paratype);
-                   end;
-                  if codegenerror then
-                    begin
-                       dec(parsing_para_level);
-                       exit;
-                    end;
-               end;
-
-             { check var strings }
-             if (cs_strict_var_strings in aktlocalswitches) and
-                is_shortstring(left.resulttype.def) and
-                is_shortstring(paraitem.paratype.def) and
-                (paraitem.paratyp in [vs_out,vs_var]) and
-                not(is_open_string(paraitem.paratype.def)) and
-                not(equal_defs(left.resulttype.def,paraitem.paratype.def)) then
-               begin
-                 aktfilepos:=left.fileinfo;
-                 CGMessage(type_e_strict_var_string_violation);
-               end;
-
-             { Handle formal parameters separate }
-             if (paraitem.paratype.def.deftype=formaldef) then
-               begin
-                 { load procvar if a procedure is passed }
-                 if (m_tp_procvar in aktmodeswitches) and
-                    (left.nodetype=calln) and
-                    (is_void(left.resulttype.def)) then
-                   load_procvar_from_calln(left);
-
-                 case paraitem.paratyp of
-                   vs_var,
-                   vs_out :
-                     begin
-                       if not valid_for_formal_var(left) then
-                        CGMessagePos(left.fileinfo,parser_e_illegal_parameter_list);
-                     end;
-                   vs_const :
-                     begin
-                       if not valid_for_formal_const(left) then
-                        CGMessagePos(left.fileinfo,parser_e_illegal_parameter_list);
-                     end;
-                 end;
+                 set_varstate(left,true);
+                 resulttype:=left.resulttype;
                end
              else
                begin
-                 { check if the argument is allowed }
-                 if (paraitem.paratyp in [vs_out,vs_var]) then
-                   valid_for_var(left);
+
+                 { Do we need arrayconstructor -> set conversion, then insert
+                   it here before the arrayconstructor node breaks the tree
+                   with its conversions of enum->ord }
+                 if (left.nodetype=arrayconstructorn) and
+                    (paraitem.paratype.def.deftype=setdef) then
+                   inserttypeconv(left,paraitem.paratype);
+
+                 { set some settings needed for arrayconstructor }
+                 if is_array_constructor(left.resulttype.def) then
+                  begin
+                    if is_array_of_const(paraitem.paratype.def) then
+                     begin
+                       { force variant array }
+                       include(left.flags,nf_forcevaria);
+                     end
+                    else
+                     begin
+                       include(left.flags,nf_novariaallowed);
+                       { now that the resultting type is know we can insert the required
+                         typeconvs for the array constructor }
+                       tarrayconstructornode(left).force_type(tarraydef(paraitem.paratype.def).elementtype);
+                     end;
+                  end;
+
+                 { check if local proc/func is assigned to procvar }
+                 if left.resulttype.def.deftype=procvardef then
+                   test_local_to_procvar(tprocvardef(left.resulttype.def),paraitem.paratype.def);
+
+                 { test conversions }
+                 if not(is_shortstring(left.resulttype.def) and
+                        is_shortstring(paraitem.paratype.def)) and
+                    (paraitem.paratype.def.deftype<>formaldef) then
+                   begin
+                      { Process open parameters }
+                      if paramanager.push_high_param(paraitem.paratyp,paraitem.paratype.def,aktcallnode.procdefinition.proccalloption) then
+                       begin
+                         { insert type conv but hold the ranges of the array }
+                         oldtype:=left.resulttype;
+                         inserttypeconv(left,paraitem.paratype);
+                         left.resulttype:=oldtype;
+                       end
+                      else
+                       begin
+                         { for ordinals, floats and enums, verify if we might cause
+                           some range-check errors. }
+                         if (paraitem.paratype.def.deftype in [enumdef,orddef,floatdef]) and
+                            (left.resulttype.def.deftype in [enumdef,orddef,floatdef]) and
+                            (left.nodetype in [vecn,loadn,calln]) then
+                           begin
+                              if (left.resulttype.def.size>paraitem.paratype.def.size) then
+                                begin
+                                  if (cs_check_range in aktlocalswitches) then
+                                     Message(type_w_smaller_possible_range_check)
+                                  else
+                                     Message(type_h_smaller_possible_range_check);
+                                end;
+                           end;
+                         inserttypeconv(left,paraitem.paratype);
+                       end;
+                      if codegenerror then
+                        begin
+                           dec(parsing_para_level);
+                           exit;
+                        end;
+                   end;
+
+                 { check var strings }
+                 if (cs_strict_var_strings in aktlocalswitches) and
+                    is_shortstring(left.resulttype.def) and
+                    is_shortstring(paraitem.paratype.def) and
+                    (paraitem.paratyp in [vs_out,vs_var]) and
+                    not(is_open_string(paraitem.paratype.def)) and
+                    not(equal_defs(left.resulttype.def,paraitem.paratype.def)) then
+                   begin
+                     aktfilepos:=left.fileinfo;
+                     CGMessage(type_e_strict_var_string_violation);
+                   end;
+
+                 { Handle formal parameters separate }
+                 if (paraitem.paratype.def.deftype=formaldef) then
+                   begin
+                     { load procvar if a procedure is passed }
+                     if (m_tp_procvar in aktmodeswitches) and
+                        (left.nodetype=calln) and
+                        (is_void(left.resulttype.def)) then
+                       load_procvar_from_calln(left);
+
+                     case paraitem.paratyp of
+                       vs_var,
+                       vs_out :
+                         begin
+                           if not valid_for_formal_var(left) then
+                            CGMessagePos(left.fileinfo,parser_e_illegal_parameter_list);
+                         end;
+                       vs_const :
+                         begin
+                           if not valid_for_formal_const(left) then
+                            CGMessagePos(left.fileinfo,parser_e_illegal_parameter_list);
+                         end;
+                     end;
+                   end
+                 else
+                   begin
+                     { check if the argument is allowed }
+                     if (paraitem.paratyp in [vs_out,vs_var]) then
+                       valid_for_var(left);
+                   end;
+
+                 if paraitem.paratyp in [vs_var,vs_const] then
+                   begin
+                      { Causes problems with const ansistrings if also }
+                      { done for vs_const (JM)                         }
+                      if paraitem.paratyp = vs_var then
+                        set_unique(left);
+                      make_not_regable(left);
+                   end;
+
+                 { ansistrings out paramaters doesn't need to be  }
+                 { unique, they are finalized                     }
+                 if paraitem.paratyp=vs_out then
+                   make_not_regable(left);
+
+                 if do_count then
+                  begin
+                    { not completly proper, but avoids some warnings }
+                    {if (paraitem.paratyp in [vs_var,vs_out]) then
+                     set_funcret_is_valid(left); }
+                    set_varstate(left,not(paraitem.paratyp in [vs_var,vs_out]));
+                  end;
+                 { must only be done after typeconv PM }
+                 resulttype:=paraitem.paratype;
                end;
-
-             if paraitem.paratyp in [vs_var,vs_const] then
-               begin
-                  { Causes problems with const ansistrings if also }
-                  { done for vs_const (JM)                         }
-                  if paraitem.paratyp = vs_var then
-                    set_unique(left);
-                  make_not_regable(left);
-               end;
-
-             { ansistrings out paramaters doesn't need to be  }
-             { unique, they are finalized                     }
-             if paraitem.paratyp=vs_out then
-               make_not_regable(left);
-
-             if do_count then
-              begin
-                { not completly proper, but avoids some warnings }
-                {if (paraitem.paratyp in [vs_var,vs_out]) then
-                 set_funcret_is_valid(left); }
-                set_varstate(left,not(paraitem.paratyp in [vs_var,vs_out]));
-              end;
-             { must only be done after typeconv PM }
-             resulttype:=paraitem.paratype;
-           end;
+            end;
 
          { process next node }
          if assigned(right) then
@@ -802,9 +799,6 @@ type
 
 
     procedure tcallparanode.det_registers;
-      var
-        old_get_para_resulttype : boolean;
-        old_array_constructor : boolean;
       begin
          if assigned(right) then
            begin
@@ -817,13 +811,7 @@ type
 {$endif}
            end;
 
-         old_array_constructor:=allow_array_constructor;
-         old_get_para_resulttype:=get_para_resulttype;
-         get_para_resulttype:=true;
-         allow_array_constructor:=true;
          firstpass(left);
-         get_para_resulttype:=old_get_para_resulttype;
-         allow_array_constructor:=old_array_constructor;
 
          if left.registers32>registers32 then
            registers32:=left.registers32;
@@ -839,13 +827,7 @@ type
     procedure tcallparanode.firstcallparan(do_count : boolean);
       begin
         if not assigned(left.resulttype.def) then
-         begin
-           get_paratype;
-           {
-           if assigned(defcoll) then
-            insert_typeconv(defcoll,do_count);
-           }
-         end;
+          get_paratype;
         det_registers;
       end;
 
@@ -881,6 +863,7 @@ type
          _funcretnode:=nil;
          inlinecode:=nil;
          paralength:=-1;
+         varargsparas:=nil;
       end;
 
 
@@ -896,6 +879,7 @@ type
          _funcretnode:=nil;
          inlinecode:=nil;
          paralength:=-1;
+         varargsparas:=nil;
       end;
 
 
@@ -911,6 +895,7 @@ type
          _funcretnode:=nil;
          inlinecode:=nil;
          paralength:=-1;
+         varargsparas:=nil;
       end;
 
 
@@ -1003,6 +988,8 @@ type
          methodpointer.free;
          _funcretnode.free;
          inlinecode.free;
+         if assigned(varargsparas) then
+           varargsparas.free;
          inherited destroy;
       end;
 
@@ -1053,6 +1040,7 @@ type
     function tcallnode.getcopy : tnode;
       var
         n : tcallnode;
+        hp : tparaitem;
       begin
         n:=tcallnode(inherited getcopy);
         n.symtableprocentry:=symtableprocentry;
@@ -1072,6 +1060,18 @@ type
          n.inlinecode:=inlinecode.getcopy
         else
          n.inlinecode:=nil;
+        if assigned(varargsparas) then
+         begin
+           n.varargsparas:=tlinkedlist.create;
+           hp:=tparaitem(varargsparas.first);
+           while assigned(hp) do
+            begin
+              n.varargsparas.concat(hp.getcopy);
+              hp:=tparaitem(hp.next);
+            end;
+         end
+        else
+         n.varargsparas:=nil;
         result:=n;
       end;
 
@@ -1079,6 +1079,38 @@ type
     procedure tcallnode.insertintolist(l : tnodelist);
 
       begin
+      end;
+
+
+    procedure tcallnode.convert_carg_array_of_const;
+      var
+        hp : tarrayconstructornode;
+        oldleft : tcallparanode;
+      begin
+        oldleft:=tcallparanode(left);
+        { Get arrayconstructor node and insert typeconvs }
+        hp:=tarrayconstructornode(oldleft.left);
+        hp.insert_typeconvs;
+        { Add c args parameters }
+        { It could be an empty set }
+        if assigned(hp) and
+           assigned(hp.left) then
+          begin
+            while assigned(hp) do
+              begin
+                left:=ccallparanode.create(hp.left,left);
+                { set callparanode resulttype and flags }
+                left.resulttype:=hp.left.resulttype;
+                include(left.flags,nf_varargs_para);
+                hp.left:=nil;
+                hp:=tarrayconstructornode(hp.right);
+              end;
+          end;
+        { Remove value of old array of const parameter, but keep it
+          in the list because it is required for bind_paraitem.
+          Generate a nothign to keep callparanoed.left valid }
+        oldleft.left.free;
+        oldleft.left:=cnothingnode.create;
       end;
 
 
@@ -1805,6 +1837,7 @@ type
         i        : integer;
         pt       : tcallparanode;
         oldppt   : ^tcallparanode;
+        varargspara,
         currpara : tparaitem;
         used_by_callnode : boolean;
         hiddentree : tnode;
@@ -1815,19 +1848,21 @@ type
         oldppt:=@left;
 
         { flag all callparanodes that belong to the varargs }
-        if (po_varargs in procdefinition.procoptions) then
-         begin
-           i:=paralength;
-           while (i>procdefinition.maxparacount) do
-            begin
-              include(tcallparanode(pt).flags,nf_varargs_para);
-              oldppt:=@pt.right;
-              pt:=tcallparanode(pt.right);
-              dec(i);
-            end;
-         end;
+        i:=paralength;
+        while (i>procdefinition.maxparacount) do
+          begin
+            include(pt.flags,nf_varargs_para);
+            oldppt:=@pt.right;
+            pt:=tcallparanode(pt.right);
+            dec(i);
+          end;
 
-        { insert hidden parameters }
+        { skip varargs that are inserted by array of const }
+        while assigned(pt) and
+              (nf_varargs_para in pt.flags) do
+          pt:=tcallparanode(pt.right);
+
+        { process normal parameters and insert hidden parameters }
         currpara:=tparaitem(procdefinition.Para.last);
         while assigned(currpara) do
          begin
@@ -1891,13 +1926,30 @@ type
               pt.used_by_callnode:=used_by_callnode;
               oldppt^:=pt;
             end;
-           { Bind paraitem to this node and varsym }
+           if not assigned(pt) then
+             internalerror(200310052);
            pt.paraitem:=currpara;
-           { Next node and paraitem }
            oldppt:=@pt.right;
            pt:=tcallparanode(pt.right);
-           currpara:=tparaitem(currpara.previous);
+           currpara:=tparaitem(currpara.previous)
          end;
+
+        { Create paraitems for varargs }
+        pt:=tcallparanode(left);
+        while assigned(pt) do
+          begin
+            if nf_varargs_para in pt.flags then
+              begin
+                if not assigned(varargsparas) then
+                  varargsparas:=tlinkedlist.create;
+                varargspara:=tparaitem.create;
+                varargspara.paratyp:=vs_value;
+                varargspara.paratype:=pt.resulttype;
+                varargsparas.concat(varargspara);
+                pt.paraitem:=varargspara;
+              end;
+            pt:=tcallparanode(pt.right);
+          end;
       end;
 
 
@@ -2240,6 +2292,12 @@ type
               internalerror(200305061);
           end;
 
+         { Change loading of array of const to varargs }
+         if assigned(left) and
+            is_array_of_const(tparaitem(procdefinition.para.last).paratype.def) and
+            (procdefinition.proccalloption in [pocall_cppdecl,pocall_cdecl]) then
+           convert_carg_array_of_const;
+
          { bind paraitems to the callparanodes and insert hidden parameters }
          aktcallnode:=self;
          bind_paraitem;
@@ -2550,7 +2608,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.190  2003-10-05 12:54:17  peter
+  Revision 1.191  2003-10-05 21:21:52  peter
+    * c style array of const generates callparanodes
+    * varargs paraloc fixes
+
+  Revision 1.190  2003/10/05 12:54:17  peter
     * don't check for abstract methods when the constructor is called
       by inherited
     * fix private member error instead of wrong number of parameters

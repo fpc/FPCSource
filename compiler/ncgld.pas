@@ -696,153 +696,23 @@ implementation
         elesize : longint;
         tmpreg  : tregister;
         paraloc : tparalocation;
-
-        procedure push_value(p:tnode);
-        var
-{$ifdef i386}
-          href : treference;
-          tempreference : treference;
-          sizetopush : longint;
-          size : longint;
-{$endif i386}
-          cgsize : tcgsize;
-        begin
-          { we've nothing to push when the size of the parameter is 0 }
-          if p.resulttype.def.size=0 then
-           exit;
-
-          if p.location.loc in [LOC_FLAGS,LOC_JUMP] then
-            internalerror(200309293);
-
-          { Handle Floating point types differently }
-          if p.resulttype.def.deftype=floatdef then
-            begin
-              location_release(exprasmlist,p.location);
-{$ifdef i386}
-              case p.location.loc of
-                LOC_FPUREGISTER,
-                LOC_CFPUREGISTER:
-                  begin
-                     size:=align(tfloatdef(p.resulttype.def).size,std_param_align);
-                     inc(pushedparasize,size);
-                     cg.g_stackpointer_alloc(exprasmlist,size);
-                     reference_reset_base(href,NR_STACK_POINTER_REG,0);
-                     cg.a_loadfpu_reg_ref(exprasmlist,def_cgsize(p.resulttype.def),p.location.register,href);
-                  end;
-                LOC_REFERENCE,
-                LOC_CREFERENCE :
-                  begin
-                    sizetopush:=align(p.resulttype.def.size,std_param_align);
-                    tempreference:=p.location.reference;
-                    inc(tempreference.offset,sizetopush);
-                    while (sizetopush>0) do
-                     begin
-                       if sizetopush>=4 then
-                        begin
-                          cgsize:=OS_32;
-                          inc(pushedparasize,4);
-                          dec(tempreference.offset,4);
-                          dec(sizetopush,4);
-                        end
-                       else
-                        begin
-                          cgsize:=OS_16;
-                          inc(pushedparasize,2);
-                          dec(tempreference.offset,2);
-                          dec(sizetopush,2);
-                        end;
-                       cg.a_param_ref(exprasmlist,cgsize,tempreference,paraloc);
-                     end;
-                  end;
-                else
-                  internalerror(200204243);
-              end;
-{$else i386}
-              case p.location.loc of
-                LOC_FPUREGISTER,
-                LOC_CFPUREGISTER:
-                  cg.a_paramfpu_reg(exprasmlist,def_cgsize(p.resulttype.def),p.location.register,paraloc);
-                LOC_REFERENCE,
-                LOC_CREFERENCE :
-                  cg.a_paramfpu_ref(exprasmlist,def_cgsize(p.resulttype.def),p.location.reference,paraloc)
-                else
-                  internalerror(200204243);
-              end;
-{$endif i386}
-            end
-          else
-            begin
-              { copy the value on the stack or use normal parameter push? }
-              if paramanager.copy_value_on_stack(vs_value,p.resulttype.def,pocall_cdecl) then
-               begin
-                 location_release(exprasmlist,p.location);
-                 if not (p.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
-                   internalerror(200204241);
-{$ifdef i386}
-                 { push on stack }
-                 size:=align(p.resulttype.def.size,std_param_align);
-                 inc(pushedparasize,size);
-                 cg.g_stackpointer_alloc(exprasmlist,size);
-                 reference_reset_base(href,NR_STACK_POINTER_REG,0);
-                 cg.g_concatcopy(exprasmlist,p.location.reference,href,size,false,false);
-{$else i386}
-                 cg.a_param_copy_ref(exprasmlist,p.resulttype.def.size,p.location.reference,paraloc);
-{$endif i386}
-               end
-              else
-               begin
-                 case p.location.loc of
-                   LOC_CONSTANT,
-                   LOC_REGISTER,
-                   LOC_CREGISTER,
-                   LOC_REFERENCE,
-                   LOC_CREFERENCE :
-                     begin
-                       cgsize:=def_cgsize(p.resulttype.def);
-                       if cgsize in [OS_64,OS_S64] then
-                        begin
-                          inc(pushedparasize,8);
-                          cg64.a_param64_loc(exprasmlist,p.location,paraloc);
-                          location_release(exprasmlist,p.location);
-                        end
-                       else
-                        begin
-                          location_release(exprasmlist,p.location);
-                          inc(pushedparasize,std_param_align);
-                          cg.a_param_loc(exprasmlist,p.location,paraloc);
-                        end;
-                     end;
-                   else
-                     internalerror(200204241);
-                 end;
-               end;
-            end;
-        end;
-
       begin
+        if nf_cargs in flags then
+          internalerror(200310054);
         dovariant:=(nf_forcevaria in flags) or tarraydef(resulttype.def).isvariant;
         if dovariant then
          elesize:=8
         else
          elesize:=tarraydef(resulttype.def).elesize;
-        if nf_cargs in flags then
-          begin
-            location_reset(location,LOC_VOID,OS_NO);
-            { Retrieve parameter location for push }
-            paraloc:=paramanager.getintparaloc(pocall_cdecl,1);
-          end
-        else
-          begin
-            location_reset(location,LOC_CREFERENCE,OS_NO);
-            fillchar(paraloc,sizeof(paraloc),0);
-            { Allocate always a temp, also if no elements are required, to
-              be sure that location is valid (PFV) }
-             if tarraydef(resulttype.def).highrange=-1 then
-               tg.GetTemp(exprasmlist,elesize,tt_normal,location.reference)
-             else
-               tg.GetTemp(exprasmlist,(tarraydef(resulttype.def).highrange+1)*elesize,tt_normal,location.reference);
-             href:=location.reference;
-          end;
+        location_reset(location,LOC_CREFERENCE,OS_NO);
+        fillchar(paraloc,sizeof(paraloc),0);
+        { Allocate always a temp, also if no elements are required, to
+          be sure that location is valid (PFV) }
+         if tarraydef(resulttype.def).highrange=-1 then
+           tg.GetTemp(exprasmlist,elesize,tt_normal,location.reference)
+         else
+           tg.GetTemp(exprasmlist,(tarraydef(resulttype.def).highrange+1)*elesize,tt_normal,location.reference);
+         href:=location.reference;
         { Process nodes in array constructor }
         hp:=self;
         while assigned(hp) do
@@ -874,11 +744,8 @@ implementation
                                u64bit:
                                  vtype:=vtQWord;
                             end;
-                           if not(nf_cargs in flags) then
-                            begin
-                              freetemp:=false;
-                              vaddr:=true;
-                            end;
+                            freetemp:=false;
+                            vaddr:=true;
                          end
                        else if (lt.deftype=enumdef) or
                          is_integer(lt) then
@@ -900,11 +767,8 @@ implementation
                    floatdef :
                      begin
                        vtype:=vtExtended;
-                       if not(nf_cargs in flags) then
-                        begin
-                          freetemp:=false;
-                          vaddr:=true;
-                        end;
+                       freetemp:=false;
+                       vaddr:=true;
                      end;
                    procvardef,
                    pointerdef :
@@ -948,53 +812,29 @@ implementation
                  end;
                  if vtype=$ff then
                    internalerror(14357);
-                 { write C style pushes or an pascal array }
-                 if nf_cargs in flags then
+                 { write changing field update href to the next element }
+                 inc(href.offset,4);
+                 if vaddr then
                   begin
-                    if vaddr then
-                     begin
-                       location_force_mem(exprasmlist,hp.left.location);
-                       location_release(exprasmlist,hp.left.location);
-                       cg.a_paramaddr_ref(exprasmlist,hp.left.location.reference,paraloc);
-                       if freetemp then
-                         location_freetemp(exprasmlist,hp.left.location);
-                       inc(pushedparasize,pointer_size);
-                     end
-                    else
-                      if vtype in [vtInt64,vtQword,vtExtended] then
-                        push_value(hp.left)
-                    else
-                      begin
-                        cg.a_param_loc(exprasmlist,hp.left.location,paraloc);
-                        inc(pushedparasize,pointer_size);
-                      end;
+                    location_force_mem(exprasmlist,hp.left.location);
+                    location_release(exprasmlist,hp.left.location);
+                    tmpreg:=rg.getaddressregister(exprasmlist);
+                    cg.a_loadaddr_ref_reg(exprasmlist,hp.left.location.reference,tmpreg);
+                    rg.ungetregisterint(exprasmlist,tmpreg);
+                    cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,tmpreg,href);
+                    if freetemp then
+                      location_freetemp(exprasmlist,hp.left.location);
                   end
                  else
                   begin
-                    { write changing field update href to the next element }
-                    inc(href.offset,4);
-                    if vaddr then
-                     begin
-                       location_force_mem(exprasmlist,hp.left.location);
-                       location_release(exprasmlist,hp.left.location);
-                       tmpreg:=rg.getaddressregister(exprasmlist);
-                       cg.a_loadaddr_ref_reg(exprasmlist,hp.left.location.reference,tmpreg);
-                       rg.ungetregisterint(exprasmlist,tmpreg);
-                       cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,tmpreg,href);
-                       if freetemp then
-                         location_freetemp(exprasmlist,hp.left.location);
-                     end
-                    else
-                     begin
-                       location_release(exprasmlist,hp.left.location);
-                       cg.a_load_loc_ref(exprasmlist,OS_ADDR,hp.left.location,href);
-                     end;
-                    { update href to the vtype field and write it }
-                    dec(href.offset,4);
-                    cg.a_load_const_ref(exprasmlist, OS_INT,vtype,href);
-                    { goto next array element }
-                    inc(href.offset,8);
+                    location_release(exprasmlist,hp.left.location);
+                    cg.a_load_loc_ref(exprasmlist,OS_ADDR,hp.left.location,href);
                   end;
+                 { update href to the vtype field and write it }
+                 dec(href.offset,4);
+                 cg.a_load_const_ref(exprasmlist, OS_INT,vtype,href);
+                 { goto next array element }
+                 inc(href.offset,8);
                end
               else
               { normal array constructor of the same type }
@@ -1045,7 +885,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.89  2003-10-01 20:34:48  peter
+  Revision 1.90  2003-10-05 21:21:52  peter
+    * c style array of const generates callparanodes
+    * varargs paraloc fixes
+
+  Revision 1.89  2003/10/01 20:34:48  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

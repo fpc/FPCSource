@@ -72,14 +72,9 @@ implementation
 
 
     procedure tcginlinenode.pass_2;
-       var
-         oldpushedparasize : longint;
       begin
          location_reset(location,LOC_VOID,OS_NO);
 
-         { save & reset pushedparasize }
-         oldpushedparasize:=pushedparasize;
-         pushedparasize:=0;
          case inlinenumber of
             in_assert_x_y:
               begin
@@ -165,8 +160,6 @@ implementation
 {$endif SUPPORT_MMX}
             else internalerror(9);
          end;
-         { reset pushedparasize }
-         pushedparasize:=oldpushedparasize;
       end;
 
 
@@ -663,7 +656,11 @@ end.
 
 {
   $Log$
-  Revision 1.43  2003-10-01 20:34:48  peter
+  Revision 1.44  2003-10-05 21:21:52  peter
+    * c style array of const generates callparanodes
+    * varargs paraloc fixes
+
+  Revision 1.43  2003/10/01 20:34:48  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

@@ -72,7 +72,6 @@ interface
 {$ifdef extdebug}
        count_ref : boolean = true;
 {$endif def extdebug}
-       get_para_resulttype : boolean = false;
        allow_array_constructor : boolean = false;
 
     { is overloading of this operator allowed for this
@@ -996,7 +995,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.67  2003-10-01 20:34:48  peter
+  Revision 1.68  2003-10-05 21:21:52  peter
+    * c style array of const generates callparanodes
+    * varargs paraloc fixes
+
+  Revision 1.67  2003/10/01 20:34:48  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

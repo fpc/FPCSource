@@ -29,7 +29,7 @@ unit paramgr;
   interface
 
     uses
-       globtype,
+       cclasses,globtype,
        cpubase,cgbase,
        aasmtai,
        symconst,symtype,symdef;
@@ -100,6 +100,12 @@ unit paramgr;
             the size allocated on the stack
           }
           function  create_inline_paraloc_info(p : tabstractprocdef):longint;virtual;
+
+          { This is used to populate the location information on all parameters
+            for the routine that are passed as varargs. It returns
+            the size allocated on the stack (including the normal parameters)
+          }
+          function  create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tlinkedlist):longint;virtual;abstract;
 
           { Return the location of the low and high part of a 64bit parameter }
           procedure splitparaloc64(const locpara:tparalocation;var loclopara,lochipara:tparalocation);virtual;
@@ -418,7 +424,11 @@ end.
 
 {
    $Log$
-   Revision 1.59  2003-10-03 22:00:33  peter
+   Revision 1.60  2003-10-05 21:21:52  peter
+     * c style array of const generates callparanodes
+     * varargs paraloc fixes
+
+   Revision 1.59  2003/10/03 22:00:33  peter
      * parameter alignment fixes
 
    Revision 1.58  2003/10/01 20:34:49  peter

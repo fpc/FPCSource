@@ -29,9 +29,9 @@ unit cpupara;
   interface
 
     uses
+       cclasses,globtype,
        aasmtai,
        cpubase,
-       globtype,
        cgbase,
        symconst,symtype,symdef,paramgr;
 
@@ -49,6 +49,7 @@ unit cpupara;
           function get_volatile_registers_fpu(calloption : tproccalloption):tsuperregisterset;override;
           function getintparaloc(calloption : tproccalloption; nr : longint) : tparalocation;override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
+          function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tlinkedlist):longint;override;
        private
           procedure create_funcret_paraloc_info(p : tabstractprocdef; side: tcallercallee);
           function create_stdcall_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;
@@ -258,15 +259,53 @@ unit cpupara;
       end;
 
 
+    function ti386paramanager.create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tlinkedlist):longint;
+      var
+        hp : tparaitem;
+        paraloc : tparalocation;
+        l,
+        varalign,
+        paraalign,
+        parasize : longint;
+      begin
+        parasize:=0;
+        paraalign:=get_para_align(p.proccalloption);
+        { Retrieve last know info from normal parameters }
+        hp:=tparaitem(p.para.last);
+        if assigned(hp) then
+          parasize:=hp.paraloc[callerside].reference.offset;
+        { Assign varargs }
+        hp:=tparaitem(varargspara.first);
+        while assigned(hp) do
+          begin
+            paraloc.size:=def_cgsize(hp.paratype.def);
+            paraloc.loc:=LOC_REFERENCE;
+            paraloc.alignment:=paraalign;
+            paraloc.reference.index:=NR_STACK_POINTER_REG;
+            l:=push_size(hp.paratyp,hp.paratype.def,p.proccalloption);
+            varalign:=size_2_align(l);
+            paraloc.reference.offset:=parasize+target_info.first_parm_offset;
+            varalign:=used_align(varalign,paraalign,paraalign);
+            parasize:=align(parasize+l,varalign);
+            hp.paraloc[callerside]:=paraloc;
+            hp:=tparaitem(hp.next);
+          end;
+        { We need to return the size allocated }
+        result:=parasize;
+      end;
+
+
     function ti386paramanager.create_stdcall_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;
       var
         hp : tparaitem;
         paraloc : tparalocation;
         l,
         varalign,
+        paraalign,
         parasize : longint;
       begin
         parasize:=0;
+        paraalign:=get_para_align(p.proccalloption);
         { we push Flags and CS as long
           to cope with the IRETD
           and we save 6 register + 4 selectors }
@@ -281,12 +320,12 @@ unit cpupara;
             else
               paraloc.size:=def_cgsize(hp.paratype.def);
             paraloc.loc:=LOC_REFERENCE;
-            paraloc.alignment:=p.paraalign;
+            paraloc.alignment:=paraalign;
             paraloc.reference.index:=NR_FRAME_POINTER_REG;
             l:=push_size(hp.paratyp,hp.paratype.def,p.proccalloption);
             varalign:=size_2_align(l);
             paraloc.reference.offset:=parasize+target_info.first_parm_offset;
-            varalign:=used_align(varalign,p.paraalign,p.paraalign);
+            varalign:=used_align(varalign,paraalign,paraalign);
             parasize:=align(parasize+l,varalign);
             if (side=callerside) then
               begin
@@ -309,10 +348,12 @@ unit cpupara;
         is_64bit : boolean;
         l,parareg,
         varalign,
+        paraalign,
         parasize : longint;
       begin
         parareg:=0;
         parasize:=0;
+        paraalign:=get_para_align(p.proccalloption);
         hp:=tparaitem(p.para.first);
         while assigned(hp) do
           begin
@@ -320,7 +361,7 @@ unit cpupara;
               paraloc.size:=OS_ADDR
             else
               paraloc.size:=def_cgsize(hp.paratype.def);
-            paraloc.alignment:=p.paraalign;
+            paraloc.alignment:=paraalign;
             is_64bit:=(paraloc.size in [OS_64,OS_S64,OS_F64]);
             {
               EAX
@@ -343,7 +384,7 @@ unit cpupara;
                   subreg:=R_SUBWHOLE
                 else
                   subreg:=cgsize2subreg(paraloc.size);
-                paraloc.alignment:=p.paraalign;
+                paraloc.alignment:=paraalign;
                 paraloc.register:=newreg(R_INTREGISTER,parasupregs[parareg],subreg);
                 inc(parareg);
               end
@@ -354,7 +395,7 @@ unit cpupara;
                 l:=push_size(hp.paratyp,hp.paratype.def,p.proccalloption);
                 varalign:=size_2_align(l);
                 paraloc.reference.offset:=parasize+target_info.first_parm_offset;
-                varalign:=used_align(varalign,p.paraalign,p.paraalign);
+                varalign:=used_align(varalign,paraalign,paraalign);
                 parasize:=align(parasize+l,varalign);
               end;
             if (side=callerside) and
@@ -399,7 +440,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.36  2003-10-03 22:00:33  peter
+  Revision 1.37  2003-10-05 21:21:52  peter
+    * c style array of const generates callparanodes
+    * varargs paraloc fixes
+
+  Revision 1.36  2003/10/03 22:00:33  peter
     * parameter alignment fixes
 
   Revision 1.35  2003/10/01 20:34:49  peter

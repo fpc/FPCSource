@@ -48,6 +48,9 @@ interface
           procedure normal_pass_2;
           procedure inlined_pass_2;
        protected
+          { save the size of pushed parameter, needed po_clearstack
+            and alignment }
+          pushedparasize : longint;
           framepointer_paraloc : tparalocation;
           refcountedtemp : treference;
           procedure handle_return_value;
@@ -120,7 +123,7 @@ implementation
         location_release(exprasmlist,left.location);
         allocate_tempparaloc;
         cg.a_paramaddr_ref(exprasmlist,left.location.reference,tempparaloc);
-        inc(pushedparasize,POINTER_SIZE);
+        inc(tcgcallnode(aktcallnode).pushedparasize,POINTER_SIZE);
       end;
 
 
@@ -174,8 +177,8 @@ implementation
                    begin
                       if tempparaloc.loc<>LOC_REFERENCE then
                         internalerror(200309291);
-                      size:=align(tfloatdef(left.resulttype.def).size,aktcallnode.procdefinition.paraalign);
-                      inc(pushedparasize,size);
+                      size:=align(tfloatdef(left.resulttype.def).size,tempparaloc.alignment);
+                      inc(tcgcallnode(aktcallnode).pushedparasize,size);
                       cg.g_stackpointer_alloc(exprasmlist,size);
                       reference_reset_base(href,NR_STACK_POINTER_REG,0);
                       cg.a_loadfpu_reg_ref(exprasmlist,def_cgsize(left.resulttype.def),left.location.register,href);
@@ -183,22 +186,22 @@ implementation
                  LOC_REFERENCE,
                  LOC_CREFERENCE :
                    begin
-                     sizetopush:=align(left.resulttype.def.size,aktcallnode.procdefinition.paraalign);
+                     sizetopush:=align(left.resulttype.def.size,tempparaloc.alignment);
                      tempreference:=left.location.reference;
                      inc(tempreference.offset,sizetopush);
                      while (sizetopush>0) do
                       begin
-                        if (sizetopush>=4) or (aktcallnode.procdefinition.paraalign>=4) then
+                        if (sizetopush>=4) or (tempparaloc.alignment>=4) then
                          begin
                            cgsize:=OS_32;
-                           inc(pushedparasize,4);
+                           inc(tcgcallnode(aktcallnode).pushedparasize,4);
                            dec(tempreference.offset,4);
                            dec(sizetopush,4);
                          end
                         else
                          begin
                            cgsize:=OS_16;
-                           inc(pushedparasize,2);
+                           inc(tcgcallnode(aktcallnode).pushedparasize,2);
                            dec(tempreference.offset,2);
                            dec(sizetopush,2);
                          end;
@@ -224,8 +227,10 @@ implementation
          end
         else
          begin
-           { copy the value on the stack or use normal parameter push? }
-           if paramanager.copy_value_on_stack(paraitem.paratyp,left.resulttype.def,
+           { copy the value on the stack or use normal parameter push?
+             Check for varargs first because that has no paraitem }
+           if not(nf_varargs_para in flags) and
+              paramanager.copy_value_on_stack(paraitem.paratyp,left.resulttype.def,
                   aktcallnode.procdefinition.proccalloption) then
             begin
               location_release(exprasmlist,left.location);
@@ -236,8 +241,8 @@ implementation
               if not (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
                 internalerror(200204241);
               { push on stack }
-              size:=align(left.resulttype.def.size,aktcallnode.procdefinition.paraalign);
-              inc(pushedparasize,size);
+              size:=align(left.resulttype.def.size,tempparaloc.alignment);
+              inc(tcgcallnode(aktcallnode).pushedparasize,size);
               cg.g_stackpointer_alloc(exprasmlist,size);
               reference_reset_base(href,NR_STACK_POINTER_REG,0);
               cg.g_concatcopy(exprasmlist,left.location.reference,href,size,false,false);
@@ -257,7 +262,7 @@ implementation
                     cgsize:=def_cgsize(left.resulttype.def);
                     if cgsize in [OS_64,OS_S64] then
                      begin
-                       inc(pushedparasize,8);
+                       inc(tcgcallnode(aktcallnode).pushedparasize,8);
 (*
                        if calloption=pocall_inline then
                         begin
@@ -280,7 +285,7 @@ implementation
                      begin
                        location_release(exprasmlist,left.location);
                        allocate_tempparaloc;
-                       inc(pushedparasize,aktcallnode.procdefinition.paraalign);
+                       inc(tcgcallnode(aktcallnode).pushedparasize,align(tcgsize2size[tempparaloc.size],tempparaloc.alignment));
 (*
                        if calloption=pocall_inline then
                         begin
@@ -304,7 +309,7 @@ implementation
                   begin
                      location_release(exprasmlist,left.location);
                      allocate_tempparaloc;
-                     inc(pushedparasize,8);
+                     inc(tcgcallnode(aktcallnode).pushedparasize,8);
 (*
                      if calloption=pocall_inline then
                        begin
@@ -330,8 +335,10 @@ implementation
          otlabel,
          oflabel : tasmlabel;
       begin
-         if not(assigned(paraitem.paratype.def) or
-                assigned(paraitem.parasym)) then
+         if not(assigned(paraitem)) or
+            not(assigned(paraitem.paratype.def)) or
+            not(assigned(paraitem.parasym) or
+                (nf_varargs_para in flags)) then
            internalerror(200304242);
 
          { push from left to right if specified }
@@ -339,97 +346,102 @@ implementation
             (aktcallnode.procdefinition.proccalloption in pushleftright_pocalls) then
            tcallparanode(right).secondcallparan;
 
-         otlabel:=truelabel;
-         oflabel:=falselabel;
-         objectlibrary.getlabel(truelabel);
-         objectlibrary.getlabel(falselabel);
-         secondpass(left);
+         { Skip nothingn nodes which are used after disabling
+           a parameter }
+         if (left.nodetype<>nothingn) then
+           begin
+             otlabel:=truelabel;
+             oflabel:=falselabel;
+             objectlibrary.getlabel(truelabel);
+             objectlibrary.getlabel(falselabel);
+             secondpass(left);
 
-         { handle varargs first, because defcoll is not valid }
-         if (nf_varargs_para in flags) then
-           begin
-             if paramanager.push_addr_param(vs_value,left.resulttype.def,
-                    aktcallnode.procdefinition.proccalloption) then
-               push_addr_para
-             else
-               push_value_para;
-           end
-         { hidden parameters }
-         else if paraitem.is_hidden then
-           begin
-             { don't push a node that already generated a pointer type
-               by address for implicit hidden parameters }
-             if (vo_is_funcret in tvarsym(paraitem.parasym).varoptions) or
-                (not(left.resulttype.def.deftype in [pointerdef,classrefdef]) and
-                 paramanager.push_addr_param(paraitem.paratyp,paraitem.paratype.def,
-                     aktcallnode.procdefinition.proccalloption)) then
-               push_addr_para
-             else
-               push_value_para;
-           end
-         { filter array of const c styled args }
-         else if is_array_of_const(left.resulttype.def) and (nf_cargs in left.flags) then
-           begin
-             { nothing, everything is already pushed }
-           end
-         { in codegen.handleread.. paraitem.data is set to nil }
-         else if assigned(paraitem.paratype.def) and
-                 (paraitem.paratype.def.deftype=formaldef) then
-           begin
-              { allow passing of a constant to a const formaldef }
-              if (tvarsym(paraitem.parasym).varspez=vs_const) and
-                 (left.location.loc=LOC_CONSTANT) then
-                location_force_mem(exprasmlist,left.location);
-
-              { allow @var }
-              if (left.nodetype=addrn) and
-                 (not(nf_procvarload in left.flags)) then
-                begin
-                  inc(pushedparasize,POINTER_SIZE);
-                  location_release(exprasmlist,left.location);
-                  allocate_tempparaloc;
-                  cg.a_param_loc(exprasmlist,left.location,tempparaloc);
-                end
-              else
-                push_addr_para;
-           end
-         { Normal parameter }
-         else
-           begin
-             { don't push a node that already generated a pointer type
-               by address for implicit hidden parameters }
-             if (not(
-                     paraitem.is_hidden and
-                     (left.resulttype.def.deftype in [pointerdef,classrefdef])
-                    ) and
-                 paramanager.push_addr_param(paraitem.paratyp,paraitem.paratype.def,
-                     aktcallnode.procdefinition.proccalloption)) then
+             { handle varargs first, because paraitem.parasym is not valid }
+             if (nf_varargs_para in flags) then
                begin
-                  { Check for passing a constant to var,out parameter }
-                  if (paraitem.paratyp in [vs_var,vs_out]) and
-                     (left.location.loc<>LOC_REFERENCE) then
-                   begin
-                     { passing self to a var parameter is allowed in
-                       TP and delphi }
-                     if not((left.location.loc=LOC_CREFERENCE) and
-                            is_self_node(left)) then
-                      internalerror(200106041);
-                   end;
-                  { Force to be in memory }
-                  if not(left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
-                    location_force_mem(exprasmlist,left.location);
-                  push_addr_para;
+                 if paramanager.push_addr_param(vs_value,left.resulttype.def,
+                        aktcallnode.procdefinition.proccalloption) then
+                   push_addr_para
+                 else
+                   push_value_para;
                end
-             else
-               push_value_para;
-           end;
-         truelabel:=otlabel;
-         falselabel:=oflabel;
+             { hidden parameters }
+             else if paraitem.is_hidden then
+               begin
+                 { don't push a node that already generated a pointer type
+                   by address for implicit hidden parameters }
+                 if (vo_is_funcret in tvarsym(paraitem.parasym).varoptions) or
+                    (not(left.resulttype.def.deftype in [pointerdef,classrefdef]) and
+                     paramanager.push_addr_param(paraitem.paratyp,paraitem.paratype.def,
+                         aktcallnode.procdefinition.proccalloption)) then
+                   push_addr_para
+                 else
+                   push_value_para;
+               end
+             { filter array of const c styled args }
+             else if is_array_of_const(left.resulttype.def) and (nf_cargs in left.flags) then
+               begin
+                 { nothing, everything is already pushed }
+               end
+             { formal def }
+             else if (paraitem.paratype.def.deftype=formaldef) then
+               begin
+                  { allow passing of a constant to a const formaldef }
+                  if (tvarsym(paraitem.parasym).varspez=vs_const) and
+                     (left.location.loc=LOC_CONSTANT) then
+                    location_force_mem(exprasmlist,left.location);
 
-         { update return location in callnode when this is the function
-           result }
-         if (vo_is_funcret in tvarsym(paraitem.parasym).varoptions) then
-           location_copy(aktcallnode.location,left.location);
+                  { allow @var }
+                  if (left.nodetype=addrn) and
+                     (not(nf_procvarload in left.flags)) then
+                    begin
+                      inc(tcgcallnode(aktcallnode).pushedparasize,POINTER_SIZE);
+                      location_release(exprasmlist,left.location);
+                      allocate_tempparaloc;
+                      cg.a_param_loc(exprasmlist,left.location,tempparaloc);
+                    end
+                  else
+                    push_addr_para;
+               end
+             { Normal parameter }
+             else
+               begin
+                 { don't push a node that already generated a pointer type
+                   by address for implicit hidden parameters }
+                 if (not(
+                         paraitem.is_hidden and
+                         (left.resulttype.def.deftype in [pointerdef,classrefdef])
+                        ) and
+                     paramanager.push_addr_param(paraitem.paratyp,paraitem.paratype.def,
+                         aktcallnode.procdefinition.proccalloption)) then
+                   begin
+                      { Check for passing a constant to var,out parameter }
+                      if (paraitem.paratyp in [vs_var,vs_out]) and
+                         (left.location.loc<>LOC_REFERENCE) then
+                       begin
+                         { passing self to a var parameter is allowed in
+                           TP and delphi }
+                         if not((left.location.loc=LOC_CREFERENCE) and
+                                is_self_node(left)) then
+                          internalerror(200106041);
+                       end;
+                      { Force to be in memory }
+                      if not(left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
+                        location_force_mem(exprasmlist,left.location);
+                      push_addr_para;
+                   end
+                 else
+                   push_value_para;
+               end;
+             truelabel:=otlabel;
+             falselabel:=oflabel;
+
+             { update return location in callnode when this is the function
+               result }
+             if assigned(paraitem.parasym) and
+                (vo_is_funcret in tvarsym(paraitem.parasym).varoptions) then
+               location_copy(aktcallnode.location,left.location);
+           end;
 
          { push from right to left }
          if assigned(right) and
@@ -597,7 +609,8 @@ implementation
              if assigned(ppn.left) then
                begin
                  { don't release the funcret temp }
-                 if not(vo_is_funcret in tvarsym(ppn.paraitem.parasym).varoptions) then
+                 if not(assigned(ppn.paraitem.parasym)) or
+                    not(vo_is_funcret in tvarsym(ppn.paraitem.parasym).varoptions) then
                    location_freetemp(exprasmlist,ppn.left.location);
                  { process also all nodes of an array of const }
                  if ppn.left.nodetype=arrayconstructorn then
@@ -696,6 +709,10 @@ implementation
              paramanager.create_paraloc_info(procdefinition,callerside);
              procdefinition.has_paraloc_info:=true;
            end;
+
+         { calculate the parameter info for varargs }
+         if assigned(varargsparas) then
+           paramanager.create_varargs_paraloc_info(procdefinition,varargsparas);
 
          iolabel:=nil;
          rg.saveunusedstate(unusedstate);
@@ -1307,7 +1324,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.124  2003-10-03 22:00:33  peter
+  Revision 1.125  2003-10-05 21:21:52  peter
+    * c style array of const generates callparanodes
+    * varargs paraloc fixes
+
+  Revision 1.124  2003/10/03 22:00:33  peter
     * parameter alignment fixes
 
   Revision 1.123  2003/10/01 20:34:48  peter

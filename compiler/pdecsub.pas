@@ -967,7 +967,7 @@ begin
           begin
             Message1(parser_w_not_supported_for_inline,'array of const');
             Message(parser_w_inlining_disabled);
-            pd.set_calloption(pocall_default);
+            pd.proccalloption:=pocall_default;
           end;
       end;
      hp:=tparaitem(hp.next);
@@ -1583,7 +1583,7 @@ const
                 proccalloptionStr[pd.proccalloption],
                 proccalloptionStr[proc_direcdata[p].pocall]);
             end;
-           pd.set_calloption(proc_direcdata[p].pocall);
+           pd.proccalloption:=proc_direcdata[p].pocall;
            include(pd.procoptions,po_hascallingconvention);
          end;
 
@@ -1647,7 +1647,7 @@ const
       begin
         { set the default calling convention if none provided }
         if not(po_hascallingconvention in pd.procoptions) then
-          pd.set_calloption(aktdefproccall)
+          pd.proccalloption:=aktdefproccall
         else
           begin
             if pd.proccalloption=pocall_none then
@@ -1700,7 +1700,7 @@ const
               if not(cs_support_inline in aktmoduleswitches) then
                begin
                  Message(parser_e_proc_inline_not_supported);
-                 pd.set_calloption(pocall_default);
+                 pd.proccalloption:=pocall_default;
                end;
             end;
         end;
@@ -2027,7 +2027,6 @@ const
                      with the new data from the implementation }
                    hd.forwarddef:=pd.forwarddef;
                    hd.hasforward:=true;
-                   hd.paraalign:=pd.paraalign;
                    hd.procoptions:=hd.procoptions+pd.procoptions;
                    if hd.extnumber=65535 then
                      hd.extnumber:=pd.extnumber;
@@ -2127,7 +2126,11 @@ const
 end.
 {
   $Log$
-  Revision 1.145  2003-10-05 11:10:52  peter
+  Revision 1.146  2003-10-05 21:21:52  peter
+    * c style array of const generates callparanodes
+    * varargs paraloc fixes
+
+  Revision 1.145  2003/10/05 11:10:52  peter
     * temporary fix for compilerprocs on watcom
 
   Revision 1.144  2003/10/03 22:00:33  peter
