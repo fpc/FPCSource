@@ -59,12 +59,11 @@ type
       constructor Load(var S: TStream);
       procedure   Store(var S: TStream);
     private
-      CompileShowed : boolean;
+      {CompileShowed : boolean;}
       Mode   : TCompileMode;
       MsgLB  : PCompilerMessageListBox;
-      CurrST,
-      InfoST : PColorStaticText;
-      LineST : PStaticText;
+      {CurrST,
+      InfoST : PColorStaticText;}
     end;
 
     PCompilerStatusDialog = ^TCompilerStatusDialog;
@@ -675,29 +674,6 @@ begin
   EditorModified:=false;
 end;
 
-function GetFileTime(const FileName: string): longint;
-var T: longint;
-    f: file;
-    FM: integer;
-begin
-  if FileName='' then
-    T:=-1
-  else
-    begin
-      FM:=FileMode; FileMode:=0;
-      EatIO; DosError:=0;
-      Assign(f,FileName);
-      {$I-}
-      Reset(f);
-      GetFTime(f,T);
-      Close(f);
-      {$I+}
-      if (EatIO<>0) or (DosError<>0) then T:=-1;
-      FileMode:=FM;
-    end;
-  GetFileTime:=T;
-end;
-
 function NeedRecompile: boolean;
 var Need: boolean;
     I: sw_integer;
@@ -748,7 +724,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.45  1999-11-22 15:58:40  pierre
+  Revision 1.46  1999-12-01 17:08:19  pierre
+   * GetFileTime moved to wutils unit
+
+  Revision 1.45  1999/11/22 15:58:40  pierre
    * fix for web bug 633
 
   Revision 1.44  1999/11/21 01:44:34  pierre
