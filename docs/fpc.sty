@@ -22,6 +22,10 @@
 \NeedsTeXFormat{LaTeX2e}
 \RequirePackage{xspace}
 \RequirePackage{ifthen}
+\RequirePackage{listings}
+\RequirePackage{makeidx}
+\RequirePackage{a4}
+\RequirePackage{fancyhdr}
 \ExecuteOptions{titlepage}
 % Some style elements
 \parindent 0pt%
@@ -72,7 +76,6 @@
 \newcommand{\FPClabel}[1]{%
 \raggedleft\makebox[0pt][r]{\textsf{#1:}}
 }
-
 %
 % FPC environments
 %
@@ -85,6 +88,10 @@
   \setlength{\labelsep}{0pt}%
 }
 {\end{list}}
+% 
+% remarks
+%
+\newenvironment{remark}{\par\makebox[0pt][r]{\bfseries{}Remark:\hspace{.25em}}}{\par}
 % For Tables.
 \newenvironment{FPCtable}[2]{\begin{table}\caption{#2}\begin{center}\begin{tabular}{#1}}{\end{tabular}\end{center}\end{table}}
 % The same, but with label in third argument (tab:#3)
@@ -94,7 +101,9 @@
 %
 \newcommand{\seefl}[2]{\textsf{#1} (\pageref{fu:#2})}
 \newcommand{\seepl}[2]{\textsf{#1} (\pageref{pro:#2})}
-\newcommand{\seetyl}[2]{\textsf{#1} (\pageref{ty:#2})}
+\newcommand{\seetypel}[2]{\textsf{#1} (\pageref{ty:#2})}
+\newcommand{\seeconstl}[2]{\textsf{#1} (\pageref{co:#2})}
+\newcommand{\seevarl}[2]{\textsf{#1} (\pageref{var:#2})}
 \newcommand{\seec}[1]{chapter \ref{ch:#1}, page \pageref{ch:#1}\xspace}
 \newcommand{\sees}[1]{section \ref{se:#1}, page \pageref{se:#1}\xspace}
 \newcommand{\seeo}[1]{See \ref{option:#1}\xspace}
@@ -108,6 +117,10 @@
 \newenvironment{procedure}[1]{\begin{procedurel}{#1}{#1}}{\end{procedurel}}
 \newenvironment{typel}[2]{\subsection{#1}\index{#1}\label{ty:#2}\begin{FPCList}}{\end{FPCList}}
 \newenvironment{type}[1]{\begin{typel}{#1}{#1}}{\end{typel}}
+\newenvironment{constantl}[2]{\subsection{#1}\index{#1}\label{co:#2}\begin{FPCList}}{\end{FPCList}}
+\newenvironment{constant}[1]{\begin{constantl}{#1}{#1}}{\end{constantl}}
+\newenvironment{variablel}[2]{\subsection{#1}\index{#1}\label{var:#2}\begin{FPCList}}{\end{FPCList}}
+\newenvironment{variable}[1]{\begin{variablel}{#1}{#1}}{\end{variablel}}
 \newcommand{\Declaration}{\item[Declaration]\ttfamily}
 \newcommand{\Description}{\item[Description]\rmfamily}
 \newcommand{\Errors}{\item[Errors]\rmfamily}
@@ -117,7 +130,9 @@
 %
 \newcommand{\seef}[1]{\seefl{#1}{#1}}
 \newcommand{\seep}[1]{\seepl{#1}{#1}}
-\newcommand{\seety}[1]{\seetyl{#1}{#1}}
+\newcommand{\seetype}[1]{\seetyl{#1}{#1}}
+\newcommand{\seevar}[1]{\seevarl{#1}{#1}}
+\newcommand{\seeconst}[1]{\seeconstl{#1}{#1}}
 %
 % man page references don't need labels.
 %
@@ -146,7 +161,6 @@
 %
 % Commands to reference these things.
 %
-\newcommand{\remark}[1]{\par$\rightarrow$\textbf{#1}\par}
 \newcommand{\olabel}[1]{\label{option:#1}}
 %
 % some OSes
@@ -182,8 +196,38 @@
 %
 % For examples
 %
-\newcommand{\FPCexample}[1]{\latex{\lstinputlisting{\exampledir/#1.pp}}\html{\input{\exampledir/#1.tex}}}
+\newcommand{\FPCexample}[1]{%
+\latex{\lstinputlisting{\exampledir/#1.pp}}\html{\input{\exampledir/#1.tex}}}
 \newcommand{\exampledir}{.}
 \newcommand{\FPCexampledir}[1]{\renewcommand{\exampledir}{#1}}
+%
+% Set some listings options.
+%
+\usepackage{listings}%
+\lstset{language=Delphi}%
+\lstset{pre=\sffamily\small}%
+\lstset{keywordstyle=\bfseries}%
+\lstset{blankstring=true}%
+%
+% PDF stuff
+%
+\ifpdf
+\usepackage[pdftex,bookmarks=true]{hyperref}
+\pdfcompresslevel=9
+\pdfpagewidth=210mm
+\pdfpageheight=297mm
+\fi
+%
+% Page settings
+\setlength{\oddsidemargin}{20pt}
+\addtolength{\textwidth}{39pt}
+%
+% FancyHeader settings.
+%
+\pagestyle{fancy}
+\fancyhead[LO,RE]{}
+\addtolength{\headwidth}{\marginparsep}
+\addtolength{\headwidth}{\marginparwidth}
+\addtolength{\headwidth}{-59pt}
 %
 % end of fpc.sty
