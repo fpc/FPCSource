@@ -105,13 +105,13 @@ begin
         Exit;
       if (EXEFile='') then
        begin
-         ErrorBox('Oooops, nothing to run.',nil);
+         ErrorBox(msg_nothingtorun,nil);
          Exit;
        end;
       if not ExistsFile(ExeFile) then
         begin
           MsgParms[1].Ptr:=@EXEFile;
-          ErrorBox('Invalid filename %s',@MsgParms);
+          ErrorBox(msg_invalidfilename,@MsgParms);
           Exit;
         end;
       RunDirect:=true;
@@ -137,13 +137,13 @@ begin
         begin
           MsgParms[1].Ptr:=@EXEFile;
           MsgParms[2].long:=IOStatus;
-          InformationBox(#3'Program %s'#13#3'not run'#13#3'DosError = %d',@MsgParms);
+          InformationBox(msg_programnotrundoserroris,@MsgParms);
         end
       else If LastExitCode<>0 then
         begin
           MsgParms[1].Ptr:=@EXEFile;
           MsgParms[2].long:=LastExitCode;
-          InformationBox(#3'Program %s'#13#3'exited with '#13#3'exitcode = %d',@MsgParms);
+          InformationBox(msg_programfileexitedwithexitcode,@MsgParms);
         end;
     end
 {$ifndef NODEBUG}
@@ -159,17 +159,17 @@ var R,R2: TRect;
     D: PCenterDialog;
     IL: PInputLine;
 begin
-  R.Assign(0,0,54,4);
-  New(D, Init(R, 'Program parameters'));
+  R.Assign(0,0,round(ScreenWidth*54/80),4);
+  New(D, Init(R, dialog_programparameters));
   with D^ do
   begin
     GetExtent(R); R.Grow(-2,-1); Inc(R.A.Y); R.B.Y:=R.A.Y+1;
-    R2.Copy(R); R2.A.X:=14;
+    R2.Copy(R); R2.A.X:=16;
     New(IL, Init(R2, 255));
     IL^.Data^:=GetRunParameters;
     Insert(IL);
-    R2.Copy(R); R2.B.X:=14;
-    Insert(New(PLabel, Init(R2, '~P~arameter', IL)));
+    R2.Copy(R); R2.B.X:=16;
+    Insert(New(PLabel, Init(R2, label_parameters_parameter, IL)));
   end;
   InsertButtons(D);
   IL^.Select;
@@ -203,7 +203,7 @@ begin
   if (DeskTop^.Current=nil) or
      (TypeOf(DeskTop^.Current^)<>TypeOf(TSourceWindow)) then
     Begin
-       ErrorBox('Impossible to reach current cursor',nil);
+       ErrorBox(msg_impossibletoreachcursor,nil);
        Exit;
     End;
 
@@ -250,7 +250,7 @@ begin
   if (DeskTop^.Current=nil) or
      (TypeOf(DeskTop^.Current^)<>TypeOf(TSourceWindow)) then
     Begin
-       ErrorBox('Impossible to set breakpoints here',nil);
+       ErrorBox(msg_impossibletosetbreakpoint,nil);
        Exit;
     End;
 
@@ -270,7 +270,10 @@ end;
 
 {
   $Log$
-  Revision 1.31  2000-04-18 11:42:37  pierre
+  Revision 1.32  2000-05-02 08:42:28  pierre
+   * new set of Gabor changes: see fixes.txt
+
+  Revision 1.31  2000/04/18 11:42:37  pierre
    lot of Gabor changes : see fixes.txt
 
   Revision 1.30  2000/03/21 23:27:35  pierre

@@ -81,12 +81,12 @@ constructor TWindowListDialog.Init;
 var R,R2: TRect;
     SB: PScrollBar;
 begin
-  R.Assign(0,0,50,15);
-  inherited Init(R, 'Window List');
+  R.Assign(0,0,round(ScreenWidth*5/8),15);
+  inherited Init(R, dialog_windowlist);
 
   New(C, Init(20,10));
 
-  GetExtent(R); R.Grow(-2,-2); Inc(R.A.Y); R.B.X:=37;
+  GetExtent(R); R.Grow(-2,-2); Inc(R.A.Y); R.B.X:=R.B.X-13;
   R2.Copy(R); R2.Move(1,0); R2.A.X:=R2.B.X-1;
   New(SB, Init(R2)); Insert(SB);
   New(LB, Init(R, SB));
@@ -96,14 +96,14 @@ begin
   if C^.Count>=2 then LB^.FocusItem(1); { focus the 2nd one }
   Insert(LB);
   R2.Copy(R); Dec(R2.A.Y); R2.B.Y:=R2.A.Y+1;
-  Insert(New(PLabel, Init(R2, '~W~indows', LB)));
+  Insert(New(PLabel, Init(R2, label_wndlist_windows, LB)));
 
-  GetExtent(R); R.Grow(-2,-2); Inc(R.A.Y); R.A.X:=38; R.B.Y:=R.A.Y+2;
-  Insert(New(PButton, Init(R, 'O~K~', cmOK, bfDefault)));
+  GetExtent(R); R.Grow(-2,-2); Inc(R.A.Y); R.A.X:=R.B.X-13+1; R.B.Y:=R.A.Y+2;
+  Insert(New(PButton, Init(R, button_OK, cmOK, bfDefault)));
   R.Move(0,3);
-  Insert(New(PButton, Init(R, '~D~elete', cmDeleteItem, bfNormal)));
+  Insert(New(PButton, Init(R, button_Delete, cmDeleteItem, bfNormal)));
   R.Move(0,3);
-  Insert(New(PButton, Init(R, 'Cancel', cmCancel, bfNormal)));
+  Insert(New(PButton, Init(R, button_Cancel, cmCancel, bfNormal)));
 
   LB^.Select;
 end;
@@ -168,7 +168,10 @@ end;
 
 {
   $Log$
-  Revision 1.16  2000-04-18 11:42:37  pierre
+  Revision 1.17  2000-05-02 08:42:28  pierre
+   * new set of Gabor changes: see fixes.txt
+
+  Revision 1.16  2000/04/18 11:42:37  pierre
    lot of Gabor changes : see fixes.txt
 
   Revision 1.15  2000/03/07 21:51:52  pierre

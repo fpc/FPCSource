@@ -264,6 +264,7 @@ begin
   { heap viewer }
   GetExtent(R); Dec(R.B.X); R.A.X:=R.B.X-9; R.A.Y:=R.B.Y-1;
   New(HeapView, InitKb(R));
+  if (StartupOptions and soHeapMonitor)=0 then HeapView^.Hide;
   Insert(HeapView);
   Drivers.ShowMouse;
 end;
@@ -991,7 +992,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.58  2000-04-25 08:42:33  pierre
+  Revision 1.59  2000-05-02 08:42:27  pierre
+   * new set of Gabor changes: see fixes.txt
+
+  Revision 1.58  2000/04/25 08:42:33  pierre
    * New Gabor changes : see fixes.txt
 
   Revision 1.57  2000/04/18 11:42:37  pierre

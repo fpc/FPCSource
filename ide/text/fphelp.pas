@@ -67,7 +67,7 @@ implementation
 
 uses Objects,Views,App,MsgBox,Commands,
      WUtils,WHTMLHlp,
-     FPConst,FPVars,FPUtils;
+     FPString,FPConst,FPVars,FPUtils;
 
 const
     MaxStatusLevel = {$ifdef FPC}10{$else}1{$endif};
@@ -102,132 +102,132 @@ begin
     hcBrowserWindow : S:='';
     hcMessagesWindow: S:='';
     hcASCIITableWindow: S:='';
-    hcGDBWindow     : S:='Raw GDB communication window';
-    hcBreakpointListWindow : S:='All current breakpoints';
+    hcGDBWindow     : S:=hint_rawgdbwindow;
+    hcBreakpointListWindow : S:=hint_allbreakpoints;
 
-    hcSystemMenu    : S:='System menu';
-    hcUpdate        : S:='Refresh and redraw display';
-    hcAbout         : S:='Show version and copyright information';
+    hcSystemMenu    : S:=hint_systemmenu;
+    hcUpdate        : S:=hint_update;
+    hcAbout         : S:=hint_about;
 
-    hcFileMenu      : S:='File managment commands (Open, New, Save, etc.)';
-    hcNew           : S:='Create a new file in a new edit window';
-    hcNewFromTemplate:S:='Create a new file using a code template';
-    hcOpen          : S:='Locate and open a file in an edit window';
-    hcSave          : S:='Save the file in the active edit window';
-    hcSaveAs        : S:='Save the current file under a different name, directory or drive';
-    hcSaveAll       : S:='Save all modified files';
-    hcChangeDir     : S:='Choose a new default directory';
-    hcDOSShell      : S:='Temporarily exit to DOS';
-    hcQuit          : S:='Exit the IDE';
+    hcFileMenu      : S:=hint_filemenu;
+    hcNew           : S:=hint_filenew;
+    hcNewFromTemplate:S:=hint_filenewfromtemplate;
+    hcOpen          : S:=hint_fileopen;
+    hcSave          : S:=hint_filesave;
+    hcSaveAs        : S:=hint_filesaveas;
+    hcSaveAll       : S:=hint_filesaveall;
+    hcChangeDir     : S:=hint_changedir;
+    hcDOSShell      : S:=hint_dosshell;
+    hcQuit          : S:=hint_exit;
     hcRecentFileBase..hcRecentFileBase+10
-                    : S:='Open indicated file in a new editor window';
+                    : S:=hint_openrecentfile;
 
-    hcEditMenu      : S:='Clipboard editing commands';
-    hcUndo          : S:='Undo the previous editor operation';
-    hcRedo          : S:='Redo the previously undone editor operation';
-    hcCut           : S:='Remove the selected text and put it in the clipboard';
-    hcCopy          : S:='Copy the selected text in the clipboard';
-    hcPaste         : S:='Insert selected text from the clipboard at the cursor position';
-    hcCopyWin       : S:='Copy the selected text in windows clipboard';
-    hcPasteWin      : S:='Insert selected text from windows clipboard at the cursor position';
-    hcClear         : S:='Delete the selected text';
-    hcShowClipboard : S:='Open then clipboard window';
+    hcEditMenu      : S:=hint_editmenu;
+    hcUndo          : S:=hint_editundo;
+    hcRedo          : S:=hint_editredo;
+    hcCut           : S:=hint_editcut;
+    hcCopy          : S:=hint_editcopy;
+    hcPaste         : S:=hint_editpaste;
+    hcCopyWin       : S:=hint_editcopywin;
+    hcPasteWin      : S:=hint_editpastewin;
+    hcClear         : S:=hint_editclear;
+    hcShowClipboard : S:=hint_showclipboard;
 
-    hcSearchMenu    : S:='Text and symbols search commands';
-    hcFind          : S:='Search for text';
-    hcReplace       : S:='Search for text and replace it with new text';
-    hcSearchAgain   : S:='Repeat the last Search or Replace command';
-    hcGotoLine      : S:='Move the cursor to a specified line number';
-    hcObjects       : S:='Open a browser displaying all objects in the program';
-    hcModules       : S:='Open a browser displaying all modules of the program';
-    hcGlobals       : S:='Open a browser displaying all global symbols in the program';
-    hcSymbol        : S:='Open a browser a current word (not yet scope sensitive)';
-    hcRunMenu       : S:='Execution and parameters';
-    hcRun           : S:='Run the current program';
-    hcParameters    : S:='Set command-line parameters passed to program at execution';
-    hcResetDebugger : S:='Reset Program';
-    hcContToCursor  : S:='Go on until Cursor position';
-    hcUntilReturn   : S:='Go on until end of current function';
-    hcUserScreen    : S:='Switch to the full-screen user output';
+    hcSearchMenu    : S:=hint_searchmenu;
+    hcFind          : S:=hint_searchfind;
+    hcReplace       : S:=hint_searchreplace;
+    hcSearchAgain   : S:=hint_searchagain;
+    hcGotoLine      : S:=hint_gotoline;
+    hcObjects       : S:=hint_objects;
+    hcModules       : S:=hint_modules;
+    hcGlobals       : S:=hint_globals;
+    hcSymbol        : S:=hint_symbol;
+    hcRunMenu       : S:=hint_runmenu;
+    hcRun           : S:=hint_run;
+    hcParameters    : S:=hint_runparameters;
+    hcResetDebugger : S:=hint_resetprogram;
+    hcContToCursor  : S:=hint_rununtilcursor;
+    hcUntilReturn   : S:=hint_rununtilreturn;
+    hcUserScreen    : S:=hint_userscreen;
 
-    hcCompileMenu   : S:='Compile, build & make';
-    hcCompile       : S:='Compile the current source file';
-    hcMake          : S:='Rebuild source file and all other files that have been modified';
-    hcBuild         : S:='Rebuild program and all available source files';
-    hcTarget        : S:='Select target platform to compile for';
-    hcPrimaryFile   : S:='Define then file that is the focus of Make and Build';
-    hcClearPrimary  : S:='Clear the file previously set to Primary';
-    hcInformation   : S:='Show compiler messages and program information';
-    hcCompilerMessages:S:='Show compiler messages window';
+    hcCompileMenu   : S:=hint_compilemenu;
+    hcCompile       : S:=hint_compile;
+    hcMake          : S:=hint_make;
+    hcBuild         : S:=hint_build;
+    hcTarget        : S:=hint_target;
+    hcPrimaryFile   : S:=hint_primaryfile;
+    hcClearPrimary  : S:=hint_clearprimaryfile;
+    hcInformation   : S:=hint_information;
+    hcCompilerMessages:S:=hint_showmessages;
 
-    hcDebugMenu     : S:='Debug Program';
-    hcToggleBreakpoint : S:='Toggles Breakpoint';
-    hcNewBreakpoint    : S:='Create a new breakpoint';
-    hcEditBreakpoint   : S:='Edit focused breakpoint';
-    hcDeleteBreakpoint : S:='Delete focused breakpoint';
-    hcOpenGDBWindow : S:='Open direct window to GDB';
-    hcAddWatch      : S:='Add a new expression to watch';
-    hcWatches       : S:='Open the Watches Window';
-    hcStack         : S:='Show call stack';
-    hcBreakpointList : S:='Edit breakpoints';
-    hcToolsMenu     : S:='User installed tools';
-    hcCalculator    : S:='Show calculator';
-    hcGrep          : S:='Run grep';
-    hcMsgGotoSource : S:='Edit source';
-    hcRegisters     : S:='Open the Registers Window';
+    hcDebugMenu     : S:=hint_debugmenu;
+    hcToggleBreakpoint : S:=hint_togglebreakpoint;
+    hcNewBreakpoint    : S:=hint_createnewbreakpoint;
+    hcEditBreakpoint   : S:=hint_editbreakpoint;
+    hcDeleteBreakpoint : S:=hint_deletebreakpoint;
+    hcOpenGDBWindow : S:=hint_opengdbwindow;
+    hcAddWatch      : S:=hint_addwatch;
+    hcWatches       : S:=hint_watches;
+    hcStack         : S:=hint_callstack;
+    hcBreakpointList : S:=hint_editbreakpoints;
+    hcToolsMenu     : S:=hint_toolsmenu;
+    hcCalculator    : S:=hint_calculator;
+    hcGrep          : S:=hint_grep;
+    hcMsgGotoSource : S:=hint_gotosource;
+    hcRegisters     : S:=hint_registers;
 
-    hcToolsMessages : S:='Open the message window';
+    hcToolsMessages : S:=hint_messageswindow;
     hcToolsBase..
     hcToolsBase+MaxToolCount
-                    : S:='User installed tool';
-    hcASCIITable    : S:='Show ASCII table';
+                    : S:=hint_usertool;
+    hcASCIITable    : S:=hint_asciitable;
 
-    hcOptionsMenu   : S:='Setting for compiler, editor, mouse, etc.';
-    hcSwitchesMode  : S:='Select settings for normal, debug or release version';
-    hcCompiler      : S:='Set default compiler directives and conditional defines';
-    hcMemorySizes   : S:='Set default stack and heap sizes for generated programs';
-    hcLinker        : S:='Set linker options';
-    hcDebugger      : S:='Set debug information options';
-    hcDirectories   : S:='Set paths for units, include, object and generated files';
-    hcBrowser       : S:='Specify global browser settings';
-    hcTools         : S:='Create or change tools';
+    hcOptionsMenu   : S:=hint_optionsmenu;
+    hcSwitchesMode  : S:=hint_switchesmode;
+    hcCompiler      : S:=hint_compiler;
+    hcMemorySizes   : S:=hint_memorysizes;
+    hcLinker        : S:=hint_linkeroptions;
+    hcDebugger      : S:=hint_debugoptions;
+    hcDirectories   : S:=hint_directories;
+    hcBrowser       : S:=hint_browser;
+    hcTools         : S:=hint_tools;
 
-    hcEnvironmentMenu:S:='Specify environment settins';
-    hcPreferences   : S:='Specify desktop settings';
-    hcEditor        : S:='Specify default editor settings';
-    hcCodeCompleteOptions:S:='Specify CodeComplete keywords';
-    hcCodeTemplateOptions:S:='Specify CodeCompletes';
-    hcMouse         : S:='Specify mouse settings';
-    hcDesktopOptions: S:='Specify desktop settings';
-    hcStartup       : S:='Permanently change default startup options';
-    hcColors        : S:='Customize IDE colors for windows, menus, editors, etc.';
-    hcOpenINI       : S:='Load a previously saved options file';
-    hcSaveINI       : S:='Save all the changes made in the options menu';
-    hcSaveAsINI     : S:='Save all the changes made under a different name';
+    hcEnvironmentMenu:S:=hint_environmentmenu;
+    hcPreferences   : S:=hint_preferences;
+    hcEditor        : S:=hint_editoroptions;
+    hcCodeCompleteOptions:S:=hint_codecomplete;
+    hcCodeTemplateOptions:S:=hint_codetemplates;
+    hcMouse         : S:=hint_mouseoptions;
+    hcDesktopOptions: S:=hint_desktopoptions;
+    hcStartup       : S:=hint_startup;
+    hcColors        : S:=hint_colors;
+    hcOpenINI       : S:=hint_openini;
+    hcSaveINI       : S:=hint_saveini;
+    hcSaveAsINI     : S:=hint_saveasini;
 
-    hcWindowMenu    : S:='Windows managment commands';
-    hcTile          : S:='Arrange windows on desktop by tiling';
-    hcCascade       : S:='Arrange windows on desktop by cascading';
-    hcCloseAll      : S:='Close all windows on the desktop';
-    hcResize        : S:='Change the size/postion of the active window';
-    hcZoom          : S:='Enlarge or restore the size of the active window';
-    hcNext          : S:='Make the next window active';
-    hcPrev          : S:='Make the previous window active';
-    hcClose         : S:='Close the active window';
-    hcWindowList    : S:='Show a list of all open windows';
-    hcUserScreenWindow:S:='Show contents of user screen in a window';
+    hcWindowMenu    : S:=hint_windowmenu;
+    hcTile          : S:=hint_tile;
+    hcCascade       : S:=hint_cascade;
+    hcCloseAll      : S:=hint_closeall;
+    hcResize        : S:=hint_resize;
+    hcZoom          : S:=hint_zoom;
+    hcNext          : S:=hint_next;
+    hcPrev          : S:=hint_prev;
+    hcClose         : S:=hint_closewindow;
+    hcWindowList    : S:=hint_windowlist;
+    hcUserScreenWindow:S:=hint_userscreenwindow;
 
-    hcHelpMenu      : S:='Get online help';
-    hcHelpContents  : S:='Show table of contents for Online Help';
-    hcHelpIndex     : S:='Show index for Online Help';
-    hcHelpTopicSearch:S:='Display help on the word at cursor';
-    hcHelpPrevTopic : S:='Redisplay the last-viewed Online Help screen';
-    hcHelpUsingHelp : S:='How to use Online Help';
-    hcHelpFiles     : S:='Install or remove installed help files';
+    hcHelpMenu      : S:=hint_helpmenu;
+    hcHelpContents  : S:=hint_helpcontents;
+    hcHelpIndex     : S:=hint_helpindex;
+    hcHelpTopicSearch:S:=hint_helptopicsearch;
+    hcHelpPrevTopic : S:=hint_helpprevtopic;
+    hcHelpUsingHelp : S:=hint_helphowtouse;
+    hcHelpFiles     : S:=hint_helpfiles;
 
-    hcOpenAtCursor  : S:='Attempt to open the file indicated by the word at cursor';
-    hcBrowseAtCursor: S:='Attempt to browse the symbol at cursor';
-    hcEditorOptions : S:='Specify editor settings';
+    hcOpenAtCursor  : S:=hint_openatcursor;
+    hcBrowseAtCursor: S:=hint_browseatcursor;
+    hcEditorOptions : S:=hint_editoroptionscur;
   else S:='???';
   end;
   Hint:=S;
@@ -235,7 +235,7 @@ end;
 
 procedure TFPHTMLFileLinkScanner.ProcessDoc(Doc: PHTMLLinkScanFile);
 begin
-  PushStatus('Indexing file '+Doc^.GetDocumentURL);
+  PushStatus(FormatStrStr(msg_indexingfile,Doc^.GetDocumentURL));
   inherited ProcessDoc(Doc);
   PopStatus;
 end;
@@ -266,23 +266,23 @@ procedure InitHelpSystem;
 
   procedure AddOAFile(HelpFile: string);
   begin
-    {$IFDEF DEBUG}SetStatus(strLoadingHelp+' ('+SmartPath(HelpFile)+')');{$ENDIF}
+    {$IFDEF DEBUG}SetStatus(msg_LoadingHelpFile+' ('+SmartPath(HelpFile)+')');{$ENDIF}
     HelpFacility^.AddOAHelpFile(HelpFile);
-    {$IFDEF DEBUG}SetStatus(strLoadingHelp);{$ENDIF}
+    {$IFDEF DEBUG}SetStatus(msg_LoadingHelpFile);{$ENDIF}
   end;
 
   procedure AddHTMLFile(TOCEntry,HelpFile: string);
   begin
-    {$IFDEF DEBUG}SetStatus(strLoadingHelp+' ('+SmartPath(HelpFile)+')');{$ENDIF}
+    {$IFDEF DEBUG}SetStatus(msg_LoadingHelpFile+' ('+SmartPath(HelpFile)+')');{$ENDIF}
     HelpFacility^.AddHTMLHelpFile(HelpFile, TOCEntry);
-    {$IFDEF DEBUG}SetStatus(strLoadingHelp);{$ENDIF}
+    {$IFDEF DEBUG}SetStatus(msg_LoadingHelpFile);{$ENDIF}
   end;
 
   procedure AddHTMLIndexFile(HelpFile: string);
   begin
-    {$IFDEF DEBUG}SetStatus(strLoadingHelp+' ('+SmartPath(HelpFile)+')');{$ENDIF}
+    {$IFDEF DEBUG}SetStatus(msg_LoadingHelpFile+' ('+SmartPath(HelpFile)+')');{$ENDIF}
     HelpFacility^.AddHTMLIndexHelpFile(HelpFile);
-    {$IFDEF DEBUG}SetStatus(strLoadingHelp);{$ENDIF}
+    {$IFDEF DEBUG}SetStatus(msg_LoadingHelpFile);{$ENDIF}
   end;
 
 var I,P: sw_integer;
@@ -290,8 +290,7 @@ var I,P: sw_integer;
     TopicTitle: string;
 begin
   New(HelpFacility, Init);
-  PushStatus(strLoadingHelp);
-{  AddHTMLFile('User''s guide','C:\FP\USER\USER.HTM');}
+  PushStatus(msg_LoadingHelpFiles);
   for I:=0 to HelpFiles^.Count-1 do
     begin
       S:=HelpFiles^.At(I)^; TopicTitle:='';
@@ -299,9 +298,9 @@ begin
       if P>0 then
         begin TopicTitle:=copy(S,P+1,255); S:=copy(S,1,P-1); end;
       if TopicTitle='' then TopicTitle:=S;
-      if copy(UpcaseStr(ExtOf(S)),1,4)='.HTM' then { this recognizes both .htm and .html }
+      if copy(UpcaseStr(ExtOf(S)),1,length(HTMLExt))=HTMLExt then { this recognizes both .htm and .html }
           AddHTMLFile(TopicTitle,S) else
-      if UpcaseStr(ExtOf(S))='.HTX' then
+      if UpcaseStr(ExtOf(S))=UpcaseStr(HTMLIndexExt) then
           AddHTMLIndexFile(S) else
         AddOAFile(S);
     end;
@@ -332,7 +331,7 @@ begin
   if HelpWindow=nil then
   begin
      Desktop^.GetExtent(R); R.Grow(-15,-3); Dec(R.A.Y);
-     New(HelpWindow, Init(R, 'Help', 0, 0, SearchFreeWindowNo));
+     New(HelpWindow, Init(R, dialog_help, 0, 0, SearchFreeWindowNo));
      if HelpWindow<>nil then
      begin
        HelpWindow^.Hide;
@@ -344,7 +343,7 @@ end;
 procedure Help(FileID, Context: THelpCtx; Modal: boolean);
 begin
   if Modal then
-     begin MessageBox('Sorry, modal help not yet implemented.',nil,mfInformation+mfInsertInApp+mfOKButton); Exit; end;
+     begin MessageBox(msg_modalhelpnotimplemented,nil,mfInformation+mfInsertInApp+mfOKButton); Exit; end;
   HelpCreateWindow;
   with HelpWindow^ do
   begin
@@ -369,7 +368,7 @@ var FileID: word;
 var Found: boolean;
 begin
   CheckHelpSystem;
-  PushStatus(strLocatingTopic);
+  PushStatus(msg_LocatingTopic);
   Found:=HelpFacility^.TopicSearch(S,FileID,Ctx);
   PopStatus;
   if Found then
@@ -383,7 +382,7 @@ begin
   HelpCreateWindow;
   with HelpWindow^ do
   begin
-    PushStatus(strBuildingHelpIndex);
+    PushStatus(msg_BuildingHelpIndex);
     HelpWindow^.ShowIndex;
     if Keyword<>'' then
        HelpWindow^.HelpView^.Lookup(Keyword);
@@ -457,7 +456,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.29  2000-04-25 08:42:33  pierre
+  Revision 1.30  2000-05-02 08:42:27  pierre
+   * new set of Gabor changes: see fixes.txt
+
+  Revision 1.29  2000/04/25 08:42:33  pierre
    * New Gabor changes : see fixes.txt
 
   Revision 1.28  2000/03/21 23:31:14  pierre

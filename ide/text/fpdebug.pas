@@ -348,7 +348,7 @@ uses
   Windebug,
 {$endif win32}
   Systems,
-  FPVars,FPUtils,FPConst,FPSwitch,
+  FPString,FPVars,FPUtils,FPConst,FPSwitch,
   FPIntf,FPCompile,FPIde,FPHelp,
   Validate,WEditor,WUtils;
 
@@ -863,14 +863,12 @@ begin
    ResetDebuggerRows;
    LastExitCode:=Code;
    If HiddenStepsCount=0 then
-     InformationBox(#3'Program exited with '#13#3'exitcode = %d',@code)
+     InformationBox(msg_programexitedwithexitcode,@code)
    else
      begin
         P[1]:=code;
         P[2]:=HiddenStepsCount;
-        WarningBox(#3'Program exited with '#13+
-                   #3'exitcode = %d'#13+
-                   #3'hidden steps = %d',@P);
+        WarningBox(msg_programexitedwithcodeandsteps,@P);
      end;
 end;
 
@@ -898,11 +896,11 @@ begin
   Inc(RunCount);
   if NoSwitch then
     begin
-      PushStatus('Executable running in another window..');
+      PushStatus(msg_runninginanotherwindow);
     end
   else
     begin
-      PushStatus('Running...');
+      PushStatus(msg_runningprogram);
       IDEApp.ShowUserScreen;
     end;
 {$ifdef win32}
@@ -1062,11 +1060,19 @@ begin
         begin
           GDBIndex:=0;
           if (typ=bt_file_line) and assigned(FileName) then
-            ErrorBox(#3'Could not set Breakpoint'#13+
-              #3+NameAndExtOf(FileName^)+':'+IntToStr(Line),nil)
+            begin
+              ClearFormatParams;
+              AddFormatParamStr(NameAndExtOf(FileName^));
+              AddFormatParamInt(Line);
+              ErrorBox(msg_couldnotsetbreakpointat,@FormatParams);
+            end
           else
-            ErrorBox(#3'Could not set Breakpoint'#13+
-              #3+BreakpointTypeStr[typ]+' '+GetStr(Name),nil);
+            begin
+              ClearFormatParams;
+              AddFormatParamStr(BreakpointTypeStr[typ]);
+              AddFormatParamStr(GetStr(Name));
+              ErrorBox(msg_couldnotsetbreakpointtype,@FormatParams);
+            end;
           state:=bs_disabled;
         end;
     end
@@ -1328,11 +1334,11 @@ var M: PMenu;
 begin
   if (Owner<>nil) and (Owner^.GetState(sfModal)) then M:=nil else
   M:=NewMenu(
-    NewItem('~G~oto source','',kbNoKey,cmMsgGotoSource,hcMsgGotoSource,
-    NewItem('~E~dit breakpoint','',kbNoKey,cmEditBreakpoint,hcEditBreakpoint,
-    NewItem('~N~ew breakpoint','',kbNoKey,cmNewBreakpoint,hcNewBreakpoint,
-    NewItem('~D~elete breakpoint','',kbNoKey,cmDeleteBreakpoint,hcDeleteBreakpoint,
-    NewItem('~T~oggle state','',kbNoKey,cmToggleBreakpoint,hcToggleBreakpoint,
+    NewItem(menu_bplocal_gotosource,'',kbNoKey,cmMsgGotoSource,hcMsgGotoSource,
+    NewItem(menu_bplocal_editbreakpoint,'',kbNoKey,cmEditBreakpoint,hcEditBreakpoint,
+    NewItem(menu_bplocal_newbreakpoint,'',kbNoKey,cmNewBreakpoint,hcNewBreakpoint,
+    NewItem(menu_bplocal_deletebreakpoint,'',kbNoKey,cmDeleteBreakpoint,hcDeleteBreakpoint,
+    NewItem(menu_bplocal_togglestate,'',kbNoKey,cmToggleBreakpoint,hcToggleBreakpoint,
     nil))))));
   GetLocalMenu:=M;
 end;
@@ -1647,12 +1653,12 @@ var R,R2: TRect;
 const White = 15;
 begin
   Desktop^.GetExtent(R); R.A.Y:=R.B.Y-18;
-  inherited Init(R, 'Breakpoint list', wnNoNumber);
+  inherited Init(R, dialog_breakpointlist, wnNoNumber);
 
   HelpCtx:=hcBreakpointListWindow;
 
   GetExtent(R); R.Grow(-1,-1); R.B.Y:=R.A.Y+1;
-  S:=' Type      | State   | Position          | Ignore | Conditions ';
+  S:=label_breakpointpropheader;
   New(ST, Init(R,S));
   ST^.GrowMode:=gfGrowHiX;
   Insert(ST);
@@ -1675,22 +1681,22 @@ begin
   X:=(R.B.X-R.A.X) div 4;
   X1:=R.A.X+(X div 2);
   R.A.X:=X1-3;R.B.X:=X1+7;
-  New(Btn, Init(R, '~C~lose', cmClose, bfDefault));
+  New(Btn, Init(R, button_Close, cmClose, bfDefault));
   Btn^.GrowMode:=gfGrowLoY+gfGrowHiY;
   Insert(Btn);
   X1:=X1+X;
   R.A.X:=X1-3;R.B.X:=X1+7;
-  New(Btn, Init(R, '~N~ew', cmNewBreakpoint, bfNormal));
+  New(Btn, Init(R, button_New, cmNewBreakpoint, bfNormal));
   Btn^.GrowMode:=gfGrowLoY+gfGrowHiY;
   Insert(Btn);
   X1:=X1+X;
   R.A.X:=X1-3;R.B.X:=X1+7;
-  New(Btn, Init(R, '~E~dit', cmEditBreakpoint, bfNormal));
+  New(Btn, Init(R, button_Edit, cmEditBreakpoint, bfNormal));
   Btn^.GrowMode:=gfGrowLoY+gfGrowHiY;
   Insert(Btn);
   X1:=X1+X;
   R.A.X:=X1-3;R.B.X:=X1+7;
-  New(Btn, Init(R, '~D~elete', cmDeleteBreakpoint, bfNormal));
+  New(Btn, Init(R, button_Delete, cmDeleteBreakpoint, bfNormal));
   Btn^.GrowMode:=gfGrowLoY+gfGrowHiY;
   Insert(Btn);
   BreakLB^.Select;
@@ -1808,24 +1814,24 @@ begin
   KeyCount:=longint(high(BreakpointType));
 
   R.Assign(0,0,60,Max(3+KeyCount,18));
-  inherited Init(R,'Modify/New Breakpoint');
+  inherited Init(R,dialog_modifynewbreakpoint);
   Breakpoint:=ABreakpoint;
 
   GetExtent(R); R.Grow(-3,-2); R3.Copy(R);
   Inc(R.A.Y); R.B.Y:=R.A.Y+1; R.B.X:=R.A.X+36;
   New(NameIL, Init(R, 128)); Insert(NameIL);
-  R2.Copy(R); R2.Move(-1,-1); Insert(New(PLabel, Init(R2, '~N~ame', NameIL)));
+  R2.Copy(R); R2.Move(-1,-1); Insert(New(PLabel, Init(R2, label_breakpoint_name, NameIL)));
   R.Move(0,3);
   New(LineIL, Init(R, 128)); Insert(LineIL);
   LineIL^.SetValidator(New(PRangeValidator, Init(0,MaxInt)));
-  R2.Copy(R); R2.Move(-1,-1); Insert(New(PLabel, Init(R2, '~L~ine', LineIL)));
+  R2.Copy(R); R2.Move(-1,-1); Insert(New(PLabel, Init(R2, label_breakpoint_line, LineIL)));
   R.Move(0,3);
   New(ConditionsIL, Init(R, 128)); Insert(ConditionsIL);
-  R2.Copy(R); R2.Move(-1,-1); Insert(New(PLabel, Init(R2, 'Conditions', ConditionsIL)));
+  R2.Copy(R); R2.Move(-1,-1); Insert(New(PLabel, Init(R2, label_breakpoint_conditions, ConditionsIL)));
   R.Move(0,3);
   New(IgnoreIL, Init(R, 128)); Insert(IgnoreIL);
   IgnoreIL^.SetValidator(New(PRangeValidator, Init(0,MaxInt)));
-  R2.Copy(R); R2.Move(-1,-1); Insert(New(PLabel, Init(R2, '~I~gnore count', IgnoreIL)));
+  R2.Copy(R); R2.Move(-1,-1); Insert(New(PLabel, Init(R2, label_breakpoint_ignorecount, IgnoreIL)));
 
   R.Copy(R3); Inc(R.A.X,38); R.B.Y:=R.A.Y+KeyCount;
   Items:=nil;
@@ -2276,9 +2282,9 @@ var M: PMenu;
 begin
   if (Owner<>nil) and (Owner^.GetState(sfModal)) then M:=nil else
   M:=NewMenu(
-    NewItem('~E~dit watch','',kbNoKey,cmEdit,hcNoContext,
-    NewItem('~N~ew watch','',kbNoKey,cmNew,hcNoContext,
-    NewItem('~D~elete watch','',kbNoKey,cmDelete,hcNoContext,
+    NewItem(menu_watchlocal_edit,'',kbNoKey,cmEdit,hcNoContext,
+    NewItem(menu_watchlocal_new,'',kbNoKey,cmNew,hcNoContext,
+    NewItem(menu_watchlocal_delete,'',kbNoKey,cmDelete,hcNoContext,
     nil))));
   GetLocalMenu:=M;
 end;
@@ -2374,7 +2380,7 @@ end;
     begin
       Desktop^.GetExtent(R);
       R.A.Y:=R.B.Y-5;
-      inherited Init(R, 'Watches', wnNoNumber);
+      inherited Init(R, dialog_watches, wnNoNumber);
       Palette:=wpCyanWindow;
       GetExtent(R);
       HelpCtx:=hcWatches;
@@ -2445,12 +2451,12 @@ begin
   Inc(R.A.Y); R.B.Y:=R.A.Y+1; R.B.X:=R.A.X+36;
   New(NameIL, Init(R, 255)); Insert(NameIL);
   R2.Copy(R); R2.Move(-1,-1);
-  Insert(New(PLabel, Init(R2, '~E~xpression to watch', NameIL)));
+  Insert(New(PLabel, Init(R2, label_watch_expressiontowatch, NameIL)));
   GetExtent(R);
   R.Grow(-1,-1);
   R.A.Y:=R.A.Y+3;
   R.B.X:=R.A.X+36;
-  TextST:=New(PAdvancedStaticText, Init(R, 'Watch values'));
+  TextST:=New(PAdvancedStaticText, Init(R, label_watch_values));
   Insert(TextST);
 
   InsertButtons(@Self);
@@ -2475,13 +2481,15 @@ begin
   else
     S2:='';
 
+  ClearFormatParams;
+  AddFormatParamStr(S1);
+  AddFormatParamStr(S2);
   if assigned(Watch^.Last_value) and
      assigned(Watch^.Current_value) and
      (strcomp(Watch^.Last_value,Watch^.Current_value)=0) then
-    S1:='Current value: '+#13+S1
+    S1:=FormatStrF(msg_watch_currentvalue,FormatParams)
   else
-    S1:='Current value: '+#13+S1+#13+
-        'Previous value: '+#13+S2;
+    S1:=FormatStrF(msg_watch_currentandpreviousvalue,FormatParams);
 
   TextST^.SetText(S1);
 
@@ -2687,7 +2695,7 @@ end;
        Desktop^.GetExtent(R);
        R.A.X:=R.B.X-28;
        R.B.Y:=R.A.Y+11;
-       inherited Init(R,'Register View', wnNoNumber);
+       inherited Init(R,dialog_registers, wnNoNumber);
        Flags:=wfClose or wfMove;
        Palette:=wpCyanWindow;
        HelpCtx:=hcRegisters;
@@ -2927,7 +2935,7 @@ end;
        Desktop^.GetExtent(R);
        R.A.X:=R.B.X-28;
        R.B.Y:=R.A.Y+11;
-       inherited Init(R,'FPU View', wnNoNumber);
+       inherited Init(R,dialog_fpu, wnNoNumber);
        Flags:=wfClose or wfMove;
        Palette:=wpCyanWindow;
        HelpCtx:=hcRegisters;
@@ -3068,7 +3076,7 @@ end;
     begin
       Desktop^.GetExtent(R);
       R.A.Y:=R.B.Y-5;
-      inherited Init(R, 'Call Stack', wnNoNumber);
+      inherited Init(R, dialog_callstack, wnNoNumber);
       Palette:=wpCyanWindow;
       GetExtent(R);
       HelpCtx:=hcStack;
@@ -3162,10 +3170,10 @@ begin
   NeedRecompileExe:=false;
   if TargetSwitches^.GetCurrSelParam<>source_os.shortname then
     begin
-     cm:=ConfirmBox(#3'Sorry, can not debug'#13#3'programs compiled for '
-       +TargetSwitches^.GetCurrSelParam+'.'#13#3
-       +'Change target to '
-       +source_os.shortname+'?',nil,true);
+     ClearFormatParams;
+     AddFormatParamStr(TargetSwitches^.GetCurrSelParam);
+     AddFormatParamStr(source_os.shortname);
+     cm:=ConfirmBox(msg_cantdebugchangetargetto,@FormatParams,true);
      if cm=cmCancel then
        Exit;
      if cm=cmYes then
@@ -3183,9 +3191,8 @@ begin
      (PrevMainFile<>MainFile) or NeedRecompile(false);
   if Not NeedRecompileExe and Not MainHasDebugInfo then
     begin
-     cm:=ConfirmBox(#3'Warning, the program'#13#3'was compiled without'#13#3
-       +'debugging info.'#13#3
-       +'Recompile it?',nil,true);
+     ClearFormatParams;
+     cm:=ConfirmBox(msg_compiledwithoutdebuginforecompile,nil,true);
      if cm=cmCancel then
        Exit;
      if cm=cmYes then
@@ -3202,11 +3209,11 @@ begin
     Exit;
   if (EXEFile='') then
    begin
-     ErrorBox('Oooops, nothing to debug.',nil);
+     ErrorBox(msg_nothingtodebug,nil);
      Exit;
    end;
 {$ifdef DEBUG}
-  PushStatus('Starting debugger');
+  PushStatus(msg_startingdebugger);
 {$endif DEBUG}
 { init debugcontroller }
   if assigned(Debugger) then
@@ -3340,7 +3347,10 @@ end.
 
 {
   $Log$
-  Revision 1.60  2000-04-18 21:45:35  pierre
+  Revision 1.61  2000-05-02 08:42:27  pierre
+   * new set of Gabor changes: see fixes.txt
+
+  Revision 1.60  2000/04/18 21:45:35  pierre
    * Red line for breakpoint was off by one line
 
   Revision 1.59  2000/04/18 11:42:36  pierre

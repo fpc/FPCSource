@@ -22,9 +22,9 @@ end;
 procedure TIDEApp.Objects;
 begin
   if ObjectTree=nil then
-     begin ErrorBox('No debug info available.',nil); Exit; end;
+     begin ErrorBox(msg_nodebuginfoavailable,nil); Exit; end;
 
-  OpenSymbolBrowser(0,0,'Objects','Global scope',nil,nil,nil,nil,ObjectTree,nil);
+  OpenSymbolBrowser(0,0,label_sym_objects,label_sym_globalscope,nil,nil,nil,nil,ObjectTree,nil);
 end;
 
 procedure TIDEApp.Globals;
@@ -57,7 +57,7 @@ var R: TRect;
 begin
   level:=0;
   if BrowCol.Modules=nil then
-     begin ErrorBox('No debug info available.',nil); Exit; end;
+     begin ErrorBox(msg_nodebuginfoavailable,nil); Exit; end;
   Overflow:=false;
   if assigned(GlobalsCollection) then
     begin
@@ -68,10 +68,10 @@ begin
   GlobalsCollection:=S;
   BrowCol.Modules^.ForEach(@InsertInS);
   if Overflow then
-    WarningBox('Too many symbols. Can''t display all of them.',nil);
+    WarningBox(msg_toomanysymbolscantdisplayall,nil);
   Desktop^.GetExtent(R); R.A.X:=R.B.X-35;
   Desktop^.Insert(New(PBrowserWindow, Init(R,
-    'Browse: Globals',SearchFreeWindowNo,nil,'Global scope','',S,nil,nil,nil)));
+    FormatStrStr(dialog_browse,label_sym_globals),SearchFreeWindowNo,nil,label_sym_globalscope,'',S,nil,nil,nil)));
 end;
 
 procedure TIDEApp.Modules;
@@ -83,7 +83,7 @@ begin
 end;
 begin
   if BrowCol.Modules=nil then
-     begin ErrorBox('No debug info available.',nil); Exit; end;
+     begin ErrorBox(msg_nodebuginfoavailable,nil); Exit; end;
   if assigned(ModulesCollection) then
     begin
       ModulesCollection^.deleteAll;
@@ -92,7 +92,7 @@ begin
   New(S, Init(500,500));
   ModulesCollection:=S;
   BrowCol.Modules^.ForEach(@InsertInS);
-  OpenSymbolBrowser(0,0,'Units','Global scope',nil,nil,S,nil,nil,nil);
+  OpenSymbolBrowser(0,0,dialog_units,label_sym_globalscope,nil,nil,S,nil,nil,nil);
 end;
 
 function SymbolDialog(S : string) : PDialog;
@@ -101,7 +101,7 @@ var D: PDialog;
     IL: PInputLine;
 begin
   R.Assign(0,0,40,8);
-  New(D, Init(R, 'Browse Symbol'));
+  New(D, Init(R, dialog_browsesymbol));
   with D^ do
   begin
     Options:=Options or ofCentered;
@@ -111,11 +111,11 @@ begin
     New(IL, Init(R2,255));
     Insert(IL);
     IL^.SetData(S);
-    Insert(New(PLabel, Init(R1, 'Enter S~y~mbol to browse', IL)));
+    Insert(New(PLabel, Init(R1, label_entersymboltobrowse, IL)));
     GetExtent(R); R.Grow(-8,-1); R.A.Y:=R.B.Y-2; R.B.X:=R.A.X+10;
-    Insert(New(PButton, Init(R, '~O~K', cmOK, bfDefault)));
+    Insert(New(PButton, Init(R, button_OK, cmOK, bfDefault)));
     R.Move(15,0);
-    Insert(New(PButton, Init(R, '~C~ancel', cmCancel, bfNormal)));
+    Insert(New(PButton, Init(R, button_Cancel, cmCancel, bfNormal)));
   end;
   IL^.Select;
   SymbolDialog:=D;
@@ -137,7 +137,10 @@ end;
 
 {
   $Log$
-  Revision 1.12  2000-03-07 21:57:01  pierre
+  Revision 1.13  2000-05-02 08:42:28  pierre
+   * new set of Gabor changes: see fixes.txt
+
+  Revision 1.12  2000/03/07 21:57:01  pierre
    * adapted to change of OpenSymbolBrowser
 
   Revision 1.11  1999/07/28 23:11:21  peter

@@ -25,7 +25,7 @@ var R,R2: TRect;
 begin
   SwitchesCount:=ord(high(TSwitchMode))-ord(low(TSwitchMode))+1;
   R.Assign(0,0,36,4+SwitchesCount);
-  New(D, Init(R, 'SwitchesMode'));
+  New(D, Init(R, dialog_switchesmode));
   with D^ do
   begin
     GetExtent(R);
@@ -48,7 +48,7 @@ begin
     Insert(RB);
     R2.Copy(R);
     R2.B.Y:=R2.A.Y+1;
-    Insert(New(PLabel, Init(R2, 'Switches Mode', RB)));
+    Insert(New(PLabel, Init(R2, static_switchesmode_switchesmode, RB)));
   end;
   InsertButtons(D);
   RB^.Select;
@@ -74,7 +74,7 @@ var R,R2,TabR,TabIR: TRect;
     Label51,Label52,Label53: PLabel;
 begin
   R.Assign(0,0,72,18);
-  New(D, Init(R, 'Compiler Switches'));
+  New(D, Init(R, dialog_compilerswitches));
   with D^ do
   begin
     GetExtent(R);
@@ -100,7 +100,7 @@ begin
         CB1^.Press(I);
     Dec(R2.A.Y);
     R2.B.Y:=R2.A.Y+1;
-    New(Label11, Init(R2, 'Syntax Switches', CB1));
+    New(Label11, Init(R2, label_compiler_syntaxswitches, CB1));
 
     { --- Sheet 2 --- }
     Count:=CodegenSwitches^.ItemCount;
@@ -116,7 +116,7 @@ begin
         CB3^.Press(I);
     Dec(R2.A.Y);
     R2.B.Y:=R2.A.Y+1;
-    New(Label21, Init(R2, 'Run-time checks', CB3));
+    New(Label21, Init(R2, label_compiler_runtimechecks, CB3));
 
     Count:=OptimizingGoalSwitches^.ItemCount;
     R2.Copy(TabIR);
@@ -132,7 +132,7 @@ begin
         RB3^.Press(I);
     Dec(R2.A.Y);
     R2.B.Y:=R2.A.Y+1;
-    New(Label22, Init(R2, 'Optimizations', RB3));
+    New(Label22, Init(R2, label_compiler_optimizations, RB3));
 
     Count:=OptimizationSwitches^.ItemCount;
     R2.Copy(TabIR);
@@ -163,7 +163,7 @@ begin
     RB1^.SetData(L);
     Dec(R2.A.Y);
     R2.B.Y:=R2.A.Y+1;
-    New(Label23, Init(R2, 'Target processor', RB1));
+    New(Label23, Init(R2, label_compiler_targetprocessor, RB1));
 
     { --- Sheet 3 --- }
     Count:=VerboseSwitches^.ItemCount;
@@ -180,7 +180,7 @@ begin
         CB4^.Press(I);
     Dec(R2.A.Y);
     R2.B.Y:=R2.A.Y+1;
-    New(Label31, Init(R2, 'Verbose Switches', CB4));
+    New(Label31, Init(R2, label_compiler_verboseswitches, CB4));
 
     { --- Sheet 4 --- }
     Count:=BrowserSwitches^.ItemCount;
@@ -196,7 +196,7 @@ begin
     RB4^.SetData(L);
     Dec(R2.A.Y);
     R2.B.Y:=R2.A.Y+1;
-    New(Label41, Init(R2, 'Browser', RB4));
+    New(Label41, Init(R2, label_compiler_browser, RB4));
 
     { --- Sheet 5 --- }
     Count:=AsmReaderSwitches^.ItemCount;
@@ -212,7 +212,7 @@ begin
     RB5^.SetData(L);
     Dec(R2.A.Y);
     R2.B.Y:=R2.A.Y+1;
-    New(Label51, Init(R2, 'Assembler reader', RB5));
+    New(Label51, Init(R2, label_compiler_assemblerreader, RB5));
 
     R2.Copy(TabIR);
     R2.B.X:=R2.B.X-(R2.B.X-R2.A.X) div 2;
@@ -229,7 +229,7 @@ begin
         CB5^.Press(I);
     Dec(R2.A.Y);
     R2.B.Y:=R2.A.Y+1;
-    New(Label52, Init(R2, 'Assembler info', CB5));
+    New(Label52, Init(R2, label_compiler_assemblerinfo, CB5));
 
     Count:=AsmOutputSwitches^.ItemCount;
     R2.Copy(TabIR);
@@ -244,15 +244,15 @@ begin
     RB6^.SetData(L);
     Dec(R2.A.Y);
     R2.B.Y:=R2.A.Y+1;
-    New(Label53, Init(R2, 'Assembler output', RB6));
+    New(Label53, Init(R2, label_compiler_assembleroutput, RB6));
 
     { create tabs }
     New(Tab, Init(TabR,
-      NewTabDef('S~y~ntax',CB1,
+      NewTabDef(page_compiler_syntax,CB1,
         NewTabItem(Label11,
         NewTabItem(CB1,
         nil)),
-      NewTabDef('Code ~g~eneration',CB3,
+      NewTabDef(page_compiler_codegeneration,CB3,
         NewTabItem(Label21,
         NewTabItem(CB3,
         NewTabItem(Label22,
@@ -261,15 +261,15 @@ begin
         NewTabItem(RB3,
         NewTabItem(RB1,
         nil))))))),
-      NewTabDef('~V~erbose',CB4,
+      NewTabDef(page_compiler_verbose,CB4,
         NewTabItem(Label31,
         NewTabItem(CB4,
         nil)),
-      NewTabDef('~B~rowser',RB4,
+      NewTabDef(page_compiler_browser,RB4,
         NewTabItem(Label41,
         NewTabItem(RB4,
         nil)),
-      NewTabDef('~A~ssembler',CB1,
+      NewTabDef(page_compiler_assembler,CB1,
         NewTabItem(Label51,
         NewTabItem(RB5,
         NewTabItem(Label52,
@@ -319,7 +319,7 @@ var R,R2,R3: TRect;
     I: integer;
 begin
   R.Assign(0,0,40,2+MemorySwitches^.ItemCount*2);
-  New(D, Init(R, 'Memory sizes'));
+  New(D, Init(R, dialog_memorysizes));
   with D^ do
   begin
     GetExtent(R); R.Grow(-3,-1);
@@ -364,8 +364,8 @@ var R,R2: TRect;
     Items: PSItem;
     L: longint;
 begin
-  R.Assign(0,0,56,8);
-  New(D, Init(R, 'Linker'));
+  R.Assign(0,0,66,8);
+  New(D, Init(R, dialog_linker));
   with D^ do
   begin
     GetExtent(R); R.Grow(-3,-1);
@@ -398,7 +398,7 @@ begin
     RB2^.SetData(L);
     Insert(RB2);
     R2.Copy(R); R2.B.Y:=R2.A.Y+1; R2.A.X:=R2.B.X-(R2.B.X-R2.A.X) div 2+1;
-    Insert(New(PLabel, Init(R2, 'Preferred library type', RB2)));
+    Insert(New(PLabel, Init(R2, label_linker_preferredlibtype, RB2)));
   end;
   InsertButtons(D);
   if Desktop^.ExecView(D)=cmOK then
@@ -437,7 +437,7 @@ const
 begin
   R.Assign(0,0,60,2+DebugInfoSwitches^.ItemCount+2
       +ProfileInfoSwitches^.ItemCount+2+2+1+OtherFieldLines);
-  New(D, Init(R, 'Browsing/Debugging/Profiling'));
+  New(D, Init(R, dialog_debugger));
   with D^ do
   begin
     GetExtent(R); R.Grow(-3,-1);
@@ -450,7 +450,7 @@ begin
     RB^.SetData(L);
     Insert(RB);
     R2.Copy(R); Inc(R2.A.Y); R2.B.Y:=R2.A.Y+1;
-    Insert(New(PLabel, Init(R2, 'Debugging information', RB)));
+    Insert(New(PLabel, Init(R2, label_debugger_debuginfo, RB)));
 
     R2.Copy(R); Inc(R2.A.Y,2+DebugInfoSwitches^.ItemCount+2); R2.B.Y:=R2.A.Y+ProfileInfoSwitches^.ItemCount;
     Items:=nil;
@@ -462,7 +462,7 @@ begin
     CB^.SetData(L);
     Insert(CB);
     R2.Move(0,-1); R2.B.Y:=R2.A.Y+1;
-    Insert(New(PLabel, Init(R2, 'Profiling Switches', CB)));
+    Insert(New(PLabel, Init(R2, label_debugger_profileswitches, CB)));
 
     {custom }
     Inc(R2.A.Y,1+DebugInfoSwitches^.ItemCount+2); R2.B.Y:=R2.A.Y+1;
@@ -470,10 +470,10 @@ begin
     IL2^.Data^:=CustomArg[SwitchesMode];
     Insert(IL2);
     R2.Move(0,-1);
-    Insert(New(PLabel, Init(R2,'~A~dditional compiler args', IL2)));
+    Insert(New(PLabel, Init(R2,label_debugger_compilerargs, IL2)));
 {$ifdef win32}
     R2.Move(0,4);
-    New(CB2,Init(R2,NewSItem('Use ~A~nother console ', nil)));
+    New(CB2,Init(R2,NewSItem(label_debugger_useanotherconsole, nil)));
     Insert(CB2);
     if DebuggeeTTY<>'' then
       L:=1
@@ -481,7 +481,7 @@ begin
       L:=0;
     CB2^.SetData(L);
     R2.Move(0,-1);
-    Insert(New(PLabel, Init(R2,'Debuggee ~R~edirection', CB2)));
+    Insert(New(PLabel, Init(R2,label_debugger_redirection, CB2)));
 {$endif win32}
 {$ifdef linux}
     R2.Move(0,4);
@@ -489,7 +489,7 @@ begin
     IL^.Data^:=DebuggeeTTY;
     Insert(IL);
     R2.Move(0,-1);
-    Insert(New(PLabel, Init(R2,'Use ~A~nother tty for Debuggee', IL)));
+    Insert(New(PLabel, Init(R2,label_debugger_useanothertty, IL)));
 {$endif win32}
   end;
   InsertButtons(D);
@@ -529,8 +529,8 @@ const
   LW = 25;
 begin
   Count:=DirectorySwitches^.ItemCount;
-  R.Assign(0,0,64,2+Count*2);
-  New(D, Init(R, 'Directories'));
+  R.Assign(0,0,round(ScreenWidth*64/80),2+Count*2);
+  New(D, Init(R, dialog_directories));
   with D^ do
   begin
     GetExtent(R);
@@ -704,7 +704,7 @@ begin
       VP:=VP^.Next;
     end;
   R.Assign(0,0,64,15);
-  New(D, Init(R, 'Preferences'));
+  New(D, Init(R, dialog_preferences));
   with D^ do
   begin
     GetExtent(R); R.Grow(-2,-2);
@@ -717,28 +717,28 @@ begin
       CurIdx:=C^.IndexOf(CurM);
     if CurIdx<>-1 then
       VMLB^.FocusItem(CurIdx);
-    Insert(New(PGroupView, Init(R, 'Video mode', VMLB)));
+    Insert(New(PGroupView, Init(R, label_preferences_videomode, VMLB)));
     Insert(VMLB);
 
     R.Move(0,R.B.Y-R.A.Y{+1}); R.B.Y:=R.A.Y+4;
     R2.Copy(R); R2.Grow(-1,-1);
     New(RB1, Init(R2,
-      NewSItem('C~u~rrent directory',
-      NewSItem('Conf~i~g file directory',
+      NewSItem(label_preferences_currentdirectory,
+      NewSItem(label_preferences_configdirectory,
       nil))));
     RB1^.Press(DesktopLocation);
-    Insert(New(PGroupView, Init(R, 'Desktop file', RB1)));
+    Insert(New(PGroupView, Init(R, label_preferences_desktopfile, RB1)));
     Insert(RB1);
 
     R.Move(0,R.B.Y-R.A.Y{+1}); R.B.Y:=R.A.Y+5;
     R2.Copy(R); R2.Grow(-1,-1);
     New(CB1, Init(R2,
-      NewSItem('Editor ~f~iles',
-      NewSItem('~E~nvironment',
-      NewSItem('~D~esktop',
+      NewSItem(label_preferences_editorfiles,
+      NewSItem(label_preferences_environment,
+      NewSItem(label_preferences_desktop,
       nil)))));
     CB1^.Value:=AutoSaveOptions;
-    Insert(New(PGroupView, Init(R, 'Auto save', CB1)));
+    Insert(New(PGroupView, Init(R, label_preferences_autosave, CB1)));
     Insert(CB1);
 
     GetExtent(R); R.Grow(-2,-2);
@@ -748,12 +748,12 @@ begin
     R.Move(0,R.B.Y-R.A.Y{+1}); R.B.Y:=R.A.Y+5;
     R2.Copy(R); R2.Grow(-1,-1);
     New(CB2, Init(R2,
-      NewSItem('~A~uto track source',
-      NewSItem('C~l~ose on go to source',
-      NewSItem('C~h~ange dir on open',
+      NewSItem(label_preferences_autotracksource,
+      NewSItem(label_preferences_closeongotosource,
+      NewSItem(label_preferences_changedironopen,
       nil)))));
     CB2^.Value:=MiscOptions;
-    Insert(New(PGroupView, Init(R, 'Options', CB2)));
+    Insert(New(PGroupView, Init(R, label_preferences_options, CB2)));
     Insert(CB2);
 
   end;
@@ -789,12 +789,12 @@ begin
   if Editor=nil then
     begin
       TabSize:=DefaultTabSize; EFlags:=DefaultCodeEditorFlags;
-      Title:='Default Editor Options';
+      Title:=dialog_defaulteditoroptions;
     end
   else
     begin
       TabSize:=Editor^.GetTabSize; EFlags:=Editor^.GetFlags;
-      Title:='Editor Options';
+      Title:=dialog_editoroptions;
     end;
 
   EFValue:=0;
@@ -813,32 +813,32 @@ begin
   if (EFlags and efKeepTrailingSpaces)<>0 then EFValue:=EFValue or (1 shl 12);
   if (EFlags and efCodeComplete      )<>0 then EFValue:=EFValue or (1 shl 13);
 
-  R.Assign(0,0,56,19);
+  R.Assign(0,0,66,19);
   New(D, Init(R, Title));
   with D^ do
   begin
     GetExtent(R); R.Grow(-2,-2); R.B.Y:=R.A.Y+8;
     R2.Copy(R); Inc(R2.A.Y);
     New(CB, Init(R2,
-      NewSItem('Create backup ~f~iles',
-      NewSItem('~I~nsert mode',
-      NewSItem('~A~uto indent mode',
-      NewSItem('~U~se tab characters',
-      NewSItem('~B~ackspace unindents',
-      NewSItem('~P~ersistent blocks',
-      NewSItem('~S~yntax highlight',
-      NewSItem('B~l~ock insert cursor',
-      NewSItem('~V~ertical blocks',
-      NewSItem('Highlight ~c~olumn',
-      NewSItem('Highlight ~r~ow',
-      NewSItem('Aut~o~-closing brackets',
-      NewSItem('~K~eep trailing spaces',
-      NewSItem('Co~d~eComplete enabled',
+      NewSItem(label_editor_backupfiles,
+      NewSItem(label_editor_insertmode,
+      NewSItem(label_editor_autoindentmode,
+      NewSItem(label_editor_usetabcharacters,
+      NewSItem(label_editor_backspaceunindents,
+      NewSItem(label_editor_persistentblocks,
+      NewSItem(label_editor_syntaxhighlight,
+      NewSItem(label_editor_blockinsertcursor,
+      NewSItem(label_editor_verticalblocks,
+      NewSItem(label_editor_highlightcolumn,
+      NewSItem(label_editor_highlightrow,
+      NewSItem(label_editor_autoclosingbrackets,
+      NewSItem(label_editor_keeptrailingspaces,
+      NewSItem(label_editor_codecomplete,
       nil))))))))))))))));
     CB^.Value:=EFValue;
     Insert(CB);
     R2.Move(0,-1); R2.B.Y:=R2.A.Y+1;
-    Insert(New(PLabel, Init(R2, '~E~ditor options', CB)));
+    Insert(New(PLabel, Init(R2, label_editor_editoroptions, CB)));
 
     R.Move(0,(R.B.Y-R.A.Y)+1); R.B.Y:=R.A.Y+1;
     R2.Copy(R); Inc(R2.A.Y); R2.B.Y:=R2.A.Y;
@@ -847,7 +847,7 @@ begin
     IL^.Data^:=IntToStr(TabSize);
     Insert(IL);
     R3.Copy(R); R3.B.X:=R3.A.X+10;
-    Insert(New(PLabel, Init(R3, '~T~ab size', IL)));
+    Insert(New(PLabel, Init(R3, label_editor_tabsize, IL)));
 
     R.Move(0,(R.B.Y-R.A.Y)+1); R.B.Y:=R.A.Y+2;
     R2.Copy(R); Inc(R2.A.Y);
@@ -855,7 +855,7 @@ begin
     ExtIL^.SetData(HighlightExts);
     Insert(ExtIL);
     R2.Move(0,-1);
-    Insert(New(PLabel, Init(R2, '~H~ighlight extensions', ExtIL)));
+    Insert(New(PLabel, Init(R2, label_editor_highlightextensions, ExtIL)));
 
     R.Move(0,(R.B.Y-R.A.Y)+1); R.B.Y:=R.A.Y+2;
     R2.Copy(R); Inc(R2.A.Y);
@@ -863,7 +863,7 @@ begin
     TabExtIL^.SetData(TabsPattern);
     Insert(TabExtIL);
     R2.Move(0,-1);
-    Insert(New(PLabel, Init(R2, 'File ~p~atterns needing tabs', TabExtIL)));
+    Insert(New(PLabel, Init(R2, label_editor_filepatternsneedingtabs, TabExtIL)));
   end;
   InsertButtons(D);
   CB^.Select;
@@ -914,68 +914,64 @@ end;
 procedure TIDEApp.BrowserOptions(Browser: PBrowserWindow);
 var D: PCenterDialog;
     R,R2,R3 : TRect;
-    PreS: string[15];
+    TitleS: string;
     CB1,CB2: PCheckBoxes;
     RB1,RB2: PRadioButtons;
 begin
   if Browser=nil then
-    begin
-      PreS:='';
-    end
+    TitleS:=dialog_browseroptions
   else
-    begin
-      PreS:='Local ';
-    end;
+    TitleS:=dialog_localbrowseroptions;
   R.Assign(0,0,56,15);
-  New(D, Init(R, PreS+'Browser Options'));
+  New(D, Init(R, TitleS));
   with D^ do
   begin
     GetExtent(R); R.Grow(-2,-2);
     R.B.Y:=R.A.Y+1+3; R2.Copy(R); Inc(R2.A.Y);
     New(CB1, Init(R2,
-      NewSItem(RExpand('~L~abels',21+2),
-      NewSItem('~C~onstants',
-      NewSItem('~T~ypes',
-      NewSItem('~V~ariables',
-      NewSItem('~P~rocedures',
-      NewSItem('~I~nherited',
+      NewSItem(RExpand(label_browser_labels,21+2),
+      NewSItem(label_browser_constants,
+      NewSItem(label_browser_types,
+      NewSItem(label_browser_variables,
+      NewSItem(label_browser_procedures,
+      NewSItem(label_browser_inherited,
       nil)))))))
     );
     Insert(CB1);
     R2.Move(0,-1); R2.B.Y:=R2.A.Y+1;
-    Insert(New(PLabel, Init(R2, 'Symbols', CB1)));
+    Insert(New(PLabel, Init(R2, label_browser_symbols, CB1)));
 
     R.Move(0,R.B.Y-R.A.Y+1);
     R.B.Y:=R.A.Y+1+2; R2.Copy(R);
     R3.Copy(R2); R3.B.X:=R3.A.X+(R3.B.X-R3.A.X) div 2-1; Inc(R3.A.Y);
     New(RB1, Init(R3,
-      NewSItem('~N~ew browser',
-      NewSItem('~R~eplace current',
+      NewSItem(label_browser_newbrowser,
+      NewSItem(label_browser_currentbrowser,
       nil)))
     );
     Insert(RB1);
     R3.Move(0,-1); R3.B.Y:=R3.A.Y+1;
-    Insert(New(PLabel, Init(R3, 'Sub-browsing', RB1)));
+    Insert(New(PLabel, Init(R3, label_browser_subbrowsing, RB1)));
     R3.Copy(R2); R3.A.X:=R3.B.X-(R3.B.X-R3.A.X) div 2+1; Inc(R3.A.Y);
     New(RB2, Init(R3,
-      NewSItem('~S~cope',
-      NewSItem('R~e~ference',
+      NewSItem(label_browser_scope,
+      NewSItem(label_browser_reference,
       nil)))
     );
     Insert(RB2);
     R3.Move(0,-1); R3.B.Y:=R3.A.Y+1;
-    Insert(New(PLabel, Init(R3, 'Preferred pane', RB2)));
+    Insert(New(PLabel, Init(R3, label_browser_preferredpane, RB2)));
 
     R.Move(0,R.B.Y-R.A.Y+1);
     R.B.Y:=R.A.Y+1+1; R2.Copy(R); Inc(R2.A.Y);
     New(CB2, Init(R2,
-      NewSItem(RExpand('~Q~ualified symbols',21+2),
-      NewSItem('S~o~rt always',
+      NewSItem(RExpand(label_browser_qualifiedsymbols,21+2),
+      NewSItem(label_browser_sortsymbols,
       nil)))
     );
     Insert(CB2);
     R2.Move(0,-1); R2.B.Y:=R2.A.Y+1;
-    Insert(New(PLabel, Init(R2, 'Display', CB2)));
+    Insert(New(PLabel, Init(R2, label_browser_display, CB2)));
   end;
   InsertButtons(D);
   CB1^.Select;
@@ -996,24 +992,24 @@ var R: TRect;
     CB: PCheckBoxes;
 begin
   R.Assign(0,0,40,12);
-  New(D, Init(R, 'Desktop Preferences'));
+  New(D, Init(R, dialog_desktoppreferences));
   with D^ do
   begin
     GetExtent(R); R.Grow(-2,-2); Inc(R.A.Y); R.B.Y:=R.A.Y+8;
     New(CB, Init(R,
-      NewSItem('~H~istory lists',
-      NewSItem('~C~lipboard content',
-      NewSItem('~W~atch expressions',
-      NewSItem('~B~reakpoints',
-      NewSItem('~O~pen windows',
-      NewSItem('~S~ymbol information',
-      NewSItem('Co~d~eComplete wordlist',
-      NewSItem('Code~T~emplates',
+      NewSItem(label_desktop_historylists,
+      NewSItem(label_desktop_clipboard,
+      NewSItem(label_desktop_watches,
+      NewSItem(label_desktop_breakpoints,
+      NewSItem(label_desktop_openwindow,
+      NewSItem(label_desktop_symbolinfo,
+      NewSItem(label_desktop_codecompletewords,
+      NewSItem(label_desktop_codetemplates,
       nil))))))))));
     CB^.Value:=DesktopFileFlags;
     Insert(CB);
     R.Move(0,-1); R.B.Y:=R.A.Y+1;
-    Insert(New(PLabel, Init(R, '~P~reserved across sessions', CB)));
+    Insert(New(PLabel, Init(R, label_desktop_preservedacrosssessions, CB)));
   end;
   InsertButtons(D);
   CB^.Select;
@@ -1032,7 +1028,7 @@ var R,R2: TRect;
     RB1,RB2: PRadioButtons;
 begin
   R.Assign(0,0,62,15);
-  New(D, Init(R, 'Mouse Options'));
+  New(D, Init(R, dialog_mouseoptions));
   with D^ do
   begin
     GetExtent(R); R.Grow(-3,-2); R.B.Y:=R.A.Y+3;
@@ -1041,45 +1037,45 @@ begin
     SB^.SetParams(DoubleDelay,1,20,1,1);
     Insert(SB);
     R2.Move(0,-1);
-    Insert(New(PStaticText, Init(R2, 'Fast       Medium      Slow')));
+    Insert(New(PStaticText, Init(R2, label_mouse_speedbar)));
     R2.Move(-1,-1);
-    Insert(New(PLabel, Init(R2, '~M~ouse double click', SB)));
+    Insert(New(PLabel, Init(R2, label_mouse_doubleclickspeed, SB)));
 
     R2.Copy(R); Inc(R2.A.Y,2); R2.A.X:=R2.B.X-(R2.B.X-R2.A.X) div 2 +1;
-    New(CB, Init(R2, NewSItem('~R~everse mouse buttons', nil) ));
+    New(CB, Init(R2, NewSItem(label_mouse_reversebuttons, nil) ));
     if MouseReverse then CB^.Press(0);
     Insert(CB);
 
     R.Move(0,(R.B.Y-R.A.Y)+1); R.B.Y:=R.A.Y+8;
     R2.Copy(R); Inc(R2.A.Y); R2.B.X:=R2.A.X+(R2.B.X-R2.A.X) div 2 -1;
     New(RB1, Init(R2,
-      NewSItem('~N~othing',
-      NewSItem('~T~opic search',
-      NewSItem('~G~o to cursor',
-      NewSItem('~B~reakpoint',
-      NewSItem('~E~valuate',
-      NewSItem('~A~dd watch',
-      NewSItem('Browse ~s~ymbol',
+      NewSItem(label_mouse_act_nothing,
+      NewSItem(label_mouse_act_topicsearch,
+      NewSItem(label_mouse_act_gotocursor,
+      NewSItem(label_mouse_act_breakpoint,
+      NewSItem(label_mouse_act_evaluate,
+      NewSItem(label_mouse_act_addwatch,
+      NewSItem(label_mouse_act_browsesymbol,
       nil)))))))));
     RB1^.Press(CtrlMouseAction);
     Insert(RB1);
     R2.Move(0,-1); R2.B.Y:=R2.A.Y+1;
-    Insert(New(PLabel, Init(R2, 'Ctrl+Right mouse button', RB1)));
+    Insert(New(PLabel, Init(R2, label_mouse_crtlrightmousebuttonaction, RB1)));
 
     R2.Copy(R); Inc(R2.A.Y); R2.A.X:=R2.B.X-(R2.B.X-R2.A.X) div 2 +1;
     New(RB2, Init(R2,
-      NewSItem('N~o~thing',
-      NewSItem('To~p~ic search',
-      NewSItem('Go to ~c~ursor',
-      NewSItem('Brea~k~point',
-      NewSItem('E~v~aluate',
-      NewSItem('Add ~w~atch',
-      NewSItem('Browse s~y~mbol',
+      NewSItem(label_mouse_act_nothing,
+      NewSItem(label_mouse_act_topicsearch,
+      NewSItem(label_mouse_act_gotocursor,
+      NewSItem(label_mouse_act_breakpoint,
+      NewSItem(label_mouse_act_evaluate,
+      NewSItem(label_mouse_act_addwatch,
+      NewSItem(label_mouse_act_browsesymbol,
       nil)))))))));
     RB2^.Press(AltMouseAction);
     Insert(RB2);
     R2.Move(0,-1); R2.B.Y:=R2.A.Y+1;
-    Insert(New(PLabel, Init(R2, 'Alt+Right mouse button', RB2)));
+    Insert(New(PLabel, Init(R2,  label_mouse_altrightmousebuttonaction, RB2)));
   end;
   InsertButtons(D);
   RB1^.Select;
@@ -1097,61 +1093,61 @@ procedure TIDEApp.Colors;
 var D: PColorDialog;
 begin
   New(D, Init(AppPalette,
-    ColorGroup('Browser',
-      ColorItem('Frame passive'   , 215,
-      ColorItem('Frame active'    , 216,
-      ColorItem('Frame icon'      , 217,
-      ColorItem('Scroll bar page' , 218,
-      ColorItem('Scroll bar icons', 219,
-      ColorItem('Normal text'     , 220,
-      ColorItem('Selected text'   , 221,
-      ColorItem('Active item'     , 222,
-      ColorItem('Inactive item'   , 223,
-      ColorItem('Focused item'    , 224,
-      ColorItem('Selected item'   , 225,
-      ColorItem('Divider'         , 226,
+    ColorGroup(label_colors_grp_browser,
+      ColorItem(label_colors_framepassive   , 215,
+      ColorItem(label_colors_frameactive    , 216,
+      ColorItem(label_colors_frameicon      , 217,
+      ColorItem(label_colors_scrollbarpage  , 218,
+      ColorItem(label_colors_scrollbaricons , 219,
+      ColorItem(label_colors_normaltext     , 220,
+      ColorItem(label_colors_selectedtext   , 221,
+      ColorItem(label_colors_activeitem     , 222,
+      ColorItem(label_colors_inactiveitem   , 223,
+      ColorItem(label_colors_focuseditem    , 224,
+      ColorItem(label_colors_selecteditem   , 225,
+      ColorItem(label_colors_divider        , 226,
       nil)))))))))))),
-    ColorGroup('Clock',
-      ColorItem('clock view'      , 227,
+    ColorGroup(label_colors_grp_clock,
+      ColorItem(label_colors_clockview      , 227,
       nil),
-    ColorGroup('Desktop', DesktopColorItems(nil),
-    ColorGroup('Dialogs', DialogColorItems(dpGrayDialog,nil),
-    ColorGroup('Editor',
-      ColorItem('Frame passive'   , 167,
-      ColorItem('Frame active'    , 168,
-      ColorItem('Frame icon'      , 169,
-      ColorItem('Scroll bar page' , 170,
-      ColorItem('Scroll bar icons', 171,
-      ColorItem('Normal text'     , 199,
-      ColorItem('Selected text'   , 208,
-      ColorItem('Highlight column', 209,
-      ColorItem('Highlight row'   , 210,
-      ColorItem('Error messages'  , 214,
+    ColorGroup(label_colors_grp_desktop, DesktopColorItems(nil),
+    ColorGroup(label_colors_grp_dialogs, DialogColorItems(dpGrayDialog,nil),
+    ColorGroup(label_colors_grp_editor,
+      ColorItem(label_colors_framepassive   , 167,
+      ColorItem(label_colors_frameactive    , 168,
+      ColorItem(label_colors_frameicon      , 169,
+      ColorItem(label_colors_scrollbarpage  , 170,
+      ColorItem(label_colors_scrollbaricons , 171,
+      ColorItem(label_colors_normaltext     , 199,
+      ColorItem(label_colors_selectedtext   , 208,
+      ColorItem(label_colors_highlighcolumn , 209,
+      ColorItem(label_colors_highlightrow   , 210,
+      ColorItem(label_colors_errormessages  , 214,
       nil)))))))))),
-    ColorGroup('Help',
-      ColorItem('Frame passive'   , 128,
-      ColorItem('Frame active'    , 129,
-      ColorItem('Frame icon'      , 130,
-      ColorItem('Scroll bar page' , 131,
-      ColorItem('Scroll bar icons', 132,
-      ColorItem('Help text'       , 160,
-      ColorItem('Help links'      , 161,
-      ColorItem('Selected link'   , 162,
-      ColorItem('Selected text'   , 163,
+    ColorGroup(label_colors_grp_help,
+      ColorItem(label_colors_framepassive   , 128,
+      ColorItem(label_colors_frameactive    , 129,
+      ColorItem(label_colors_frameicon      , 130,
+      ColorItem(label_colors_scrollbarpage  , 131,
+      ColorItem(label_colors_scrollbaricons , 132,
+      ColorItem(label_colors_helptext       , 160,
+      ColorItem(label_colors_helplinks      , 161,
+      ColorItem(label_colors_selectedlink   , 162,
+      ColorItem(label_colors_selectedtext   , 163,
       nil))))))))),
-    ColorGroup('Menus',   MenuColorItems(nil),
-    ColorGroup('Syntax',
-      ColorItem('Whitespace'      , 200,
-      ColorItem('Comments'        , 201,
-      ColorItem('Reserved words'  , 202,
-      ColorItem('Identifiers'     , 203,
-      ColorItem('Strings'         , 204,
-      ColorItem('Numbers'         , 205,
-      ColorItem('Hex numbers'     , 212,
-      ColorItem('Assembler'       , 206,
-      ColorItem('Symbols'         , 207,
-      ColorItem('Directives'      , 211,
-      ColorItem('Tabs'            , 213,
+    ColorGroup(label_colors_grp_menus,   MenuColorItems(nil),
+    ColorGroup(label_colors_grp_syntax,
+      ColorItem(label_colors_whitespace      , 200,
+      ColorItem(label_colors_comments        , 201,
+      ColorItem(label_colors_reservedwords   , 202,
+      ColorItem(label_colors_identifiers     , 203,
+      ColorItem(label_colors_strings         , 204,
+      ColorItem(label_colors_numbers         , 205,
+      ColorItem(label_colors_hexnumbers      , 212,
+      ColorItem(label_colors_assembler       , 206,
+      ColorItem(label_colors_symbols         , 207,
+      ColorItem(label_colors_directives      , 211,
+      ColorItem(label_colors_tabs            , 213,
       nil))))))))))),
     nil))))))))));
   if ExecuteDialog(D, @AppPalette)=cmOK then
@@ -1167,11 +1163,11 @@ procedure TIDEApp.OpenINI;
 var D: PFileDialog;
     FileName: string;
 begin
-  New(D, Init(INIFileName,'Open Options',INIFileName,fdOpenButton,0));
+  New(D, Init(INIFileName,dialog_openoptions,INIFileName,fdOpenButton,0));
   if Desktop^.ExecView(D)<>cmCancel then
     begin
       D^.GetFileName(FileName);
-      if ExistsFile(FileName)=false then ErrorBox('Can''t open config file.',nil) else
+      if ExistsFile(FileName)=false then ErrorBox(msg_cantopenconfigfile,nil) else
         begin
           IniFileName:=FileName;
           ReadINIFile;
@@ -1184,7 +1180,7 @@ end;
 procedure TIDEApp.SaveINI;
 begin
   if WriteINIFile=false then
-    ErrorBox('Error saving config file.',nil);
+    ErrorBox(msg_errorsavingconfigfile,nil);
 end;
 
 procedure TIDEApp.SaveAsINI;
@@ -1192,18 +1188,18 @@ var D: PFileDialog;
     FileName: string;
     CanWrite: boolean;
 begin
-  New(D, Init(INIFileName,'Save Options',INIFileName,fdOpenButton,0));
+  New(D, Init(INIFileName,dialog_saveoptions,INIFileName,fdOpenButton,0));
   if Desktop^.ExecView(D)<>cmCancel then
     begin
       D^.GetFileName(FileName);
       CanWrite:=(ExistsFile(FileName)=false);
       if CanWrite=false then
-        CanWrite:=ConfirmBox('File '+SmartPath(FileName)+' already exists. Overwrite?',nil,false)=cmYes;
+        CanWrite:=ConfirmBox(FormatStrStr(msg_filealreadyexistsoverwrite,SmartPath(FileName)),nil,false)=cmYes;
       if CanWrite then
         begin
           IniFileName:=FileName;
           if WriteINIFile=false then
-            ErrorBox('Error saving config file.',nil);
+            ErrorBox(msg_errorsavingconfigfile,nil);
           Message(Application,evBroadcast,cmUpdate,nil);
         end;
     end;
@@ -1212,7 +1208,10 @@ end;
 
 {
   $Log$
-  Revision 1.32  2000-04-25 08:42:33  pierre
+  Revision 1.33  2000-05-02 08:42:28  pierre
+   * new set of Gabor changes: see fixes.txt
+
+  Revision 1.32  2000/04/25 08:42:33  pierre
    * New Gabor changes : see fixes.txt
 
   Revision 1.31  2000/03/21 23:28:13  pierre

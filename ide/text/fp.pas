@@ -63,6 +63,21 @@ begin
       begin
         Param:=copy(Param,2,255);
         if Param<>'' then
+        if UpcaseStr(copy(Param,1,2))='HM' then
+          { HeapMonitor }
+          begin
+            if (copy(Param,3,1)='+') or (copy(Param,3,1)='') then
+              StartupOptions:=StartupOptions or soHeapMonitor
+            else
+            if (copy(Param,3,1)='-') then
+              StartupOptions:=StartupOptions and not soHeapMonitor;
+          end else
+{$ifdef go32v2}
+        if UpcaseStr(Param)='NOLFN' then
+          begin
+            LFNSupport:=false;
+           end else
+{$endif go32v2}
         case Upcase(Param[1]) of
           'C' : { custom config file (BP compatiblity) }
            if BeforeINI then
@@ -71,11 +86,6 @@ begin
                 Delete(Param,1,1); { eat separator }
               IniFileName:=Param;
             end;
-{$ifdef go32v2}
-          'N' :
-             if UpCase(Param)='NOLFN' then
-               LFNSupport:=false;
-{$endif go32v2}
           'R' : { enter the directory last exited from (BP comp.) }
             begin
               Param:=copy(Param,2,255);
@@ -238,7 +248,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.44  2000-04-25 08:42:32  pierre
+  Revision 1.45  2000-05-02 08:42:26  pierre
+   * new set of Gabor changes: see fixes.txt
+
+  Revision 1.44  2000/04/25 08:42:32  pierre
    * New Gabor changes : see fixes.txt
 
   Revision 1.43  2000/04/18 11:42:36  pierre

@@ -51,7 +51,7 @@ uses Dos,
 {$ifndef NODEBUG}
      fpdebug,
 {$endif ndef NODEBUG}
-     FPConst,FPVars,FPUtils,FPViews,FPCompile,FPTools,FPHelp,
+     FPConst,FPVars,FPString,FPUtils,FPViews,FPCompile,FPTools,FPHelp,
      FPCodCmp,FPCodTmp;
 
 type
@@ -81,7 +81,7 @@ function ReadHistory(F: PResourceFile): boolean;
 var S: PMemoryStream;
     OK: boolean;
 begin
-  PushStatus('Reading history...');
+  PushStatus(msg_readinghistory);
   New(S, Init(32*1024,4096));
   OK:=F^.ReadResourceEntryToStream(resHistory,langDefault,S^);
   S^.Seek(0);
@@ -89,7 +89,7 @@ begin
     LoadHistory(S^);
   Dispose(S, Done);
   if OK=false then
-    ErrorBox('Error loading history',nil);
+    ErrorBox(msg_errorloadinghistory,nil);
   PopStatus;
   ReadHistory:=OK;
 end;
@@ -98,7 +98,7 @@ function WriteHistory(F: PResourceFile): boolean;
 var S: PMemoryStream;
     OK: boolean;
 begin
-  PushStatus('Storing history...');
+  PushStatus(msg_storinghistory);
 
   New(S, Init(10*1024,4096));
   StoreHistory(S^);
@@ -107,7 +107,7 @@ begin
   OK:=F^.AddResourceEntryFromStream(resHistory,langDefault,0,S^,S^.GetSize);
   Dispose(S, Done);
   if OK=false then
-    ErrorBox('Error storing history',nil);
+    ErrorBox(msg_errorstoringhistory,nil);
   PopStatus;
   WriteHistory:=OK;
 end;
@@ -143,7 +143,7 @@ var S: PMemoryStream;
 {$endif}
 begin
 {$ifndef NODEBUG}
-  PushStatus('Reading watches...');
+  PushStatus(msg_readingwatches);
   New(S, Init(32*1024,4096));
   OK:=F^.ReadResourceEntryToStream(resWatches,langDefault,S^);
   S^.Seek(0);
@@ -158,7 +158,7 @@ begin
         WatchesCollection:=OWC;
     end;
   if OK=false then
-    ErrorBox('Error loading watches',nil);
+    ErrorBox(msg_errorloadingwatches,nil);
   ReadWatches:=OK;
   Dispose(S, Done);
   PopStatus;
@@ -179,7 +179,7 @@ begin
 {$ifndef NODEBUG}
   else
     begin
-      PushStatus('Storing watches...');
+      PushStatus(msg_storingwatches);
       New(S, Init(30*1024,4096));
       S^.Put(WatchesCollection);
       S^.Seek(0);
@@ -187,7 +187,7 @@ begin
       OK:=F^.AddResourceEntryFromStream(resWatches,langDefault,0,S^,S^.GetSize);
       Dispose(S, Done);
       if OK=false then
-        ErrorBox('Error storing watches',nil);
+        ErrorBox(msg_errorstoringwatches,nil);
       PopStatus;
       WriteWatches:=OK;
     end;
@@ -202,7 +202,7 @@ var S: PMemoryStream;
 {$endif}
 begin
 {$ifndef NODEBUG}
-  PushStatus('Reading breakpoints...');
+  PushStatus(msg_readingbreakpoints);
   New(S, Init(32*1024,4096));
   OK:=F^.ReadResourceEntryToStream(resBreakpoints,langDefault,S^);
   S^.Seek(0);
@@ -221,7 +221,7 @@ begin
         BreakpointsCollection:=OBC;
     end;
   if OK=false then
-    ErrorBox('Error loading breakpoints',nil);
+    ErrorBox(msg_errorloadingbreakpoints,nil);
   ReadBreakpoints:=OK;
   Dispose(S, Done);
   PopStatus;
@@ -242,7 +242,7 @@ begin
 {$ifndef NODEBUG}
   else
     begin
-      PushStatus('Storing breakpoints...');
+      PushStatus(msg_storingbreakpoints);
       New(S, Init(30*1024,4096));
       BreakpointsCollection^.Store(S^);
       S^.Seek(0);
@@ -250,7 +250,7 @@ begin
       OK:=F^.AddResourceEntryFromStream(resBreakpoints,langDefault,0,S^,S^.GetSize);
       Dispose(S, Done);
       if OK=false then
-        ErrorBox('Error storing breakpoints',nil);
+        ErrorBox(msg_errorstoringbreakpoints,nil);
       WriteBreakPoints:=OK;
       PopStatus;
     end;
@@ -286,7 +286,11 @@ begin
         GetData(St[1],ord(St[0]));
         W:=ITryToOpenFile(@WI.Bounds,St,0,0,false,false,true);
         if Assigned(W)=false then
-          ErrorBox('Can''t open '+St,nil)
+          begin
+            ClearFormatParams;
+            AddFormatParamStr(St);
+            ErrorBox(msg_cantopenfile,@FormatParams);
+          end
         else
         begin
           GetData(TP,sizeof(TP)); GetData(TP2,sizeof(TP2));
@@ -313,7 +317,7 @@ begin
       W^.Hide;
 end;
 begin
-  PushStatus('Reading desktop contents...');
+  PushStatus(msg_readingdesktopcontents);
   New(S, Init(32*1024,4096));
   OK:=F^.ReadResourceEntryToStream(resDesktop,langDefault,S^);
   S^.Seek(0);
@@ -322,7 +326,7 @@ begin
     S^.Read(W,SizeOf(W));
     OK:=(W=DesktopVersion);
     if OK=false then
-      ErrorBox('Invalid desktop version. Desktop layout lost.',nil);
+      ErrorBox(msg_invaliddesktopversionlayoutlost,nil);
   end;
   if OK then
     begin
@@ -368,7 +372,7 @@ begin
           Message(Application,evBroadcast,cmUpdate,nil);
         end;*)
       if OK=false then
-        ErrorBox('Error loading desktop',nil);
+        ErrorBox(msg_errorloadingdesktop,nil);
     end;
   Dispose(S, Done);
   PopStatus;
@@ -440,7 +444,7 @@ var W: word;
     OK: boolean;
     PV: PView;
 begin
-  PushStatus('Storing desktop contents...');
+  PushStatus(msg_storingdesktopcontents);
 
   New(S, Init(30*1024,4096));
   OK:=Assigned(S);
@@ -485,7 +489,7 @@ begin
     Dispose(S, Done);
   end;
   if OK=false then
-    ErrorBox('Error storing desktop',nil);
+    ErrorBox(msg_errorstoringdesktop,nil);
   PopStatus;
   WriteOpenWindows:=OK;
 end;
@@ -498,7 +502,7 @@ begin
   OK:=F^.AddResourceEntry(resDesktopFlags,langDefault,0,DesktopFileFlags,
     SizeOf(DesktopFileFlags));
   if OK=false then
-    ErrorBox('Error writing flags',nil);
+    ErrorBox(msg_errorwritingflags,nil);
   WriteFlags:=OK;
 end;
 
@@ -506,7 +510,7 @@ function ReadCodeComplete(F: PResourceFile): boolean;
 var S: PMemoryStream;
     OK: boolean;
 begin
-  PushStatus('Reading CodeComplete wordlist...');
+  PushStatus(msg_readingcodecompletewordlist);
   New(S, Init(1024,1024));
   OK:=F^.ReadResourceEntryToStream(resCodeComplete,langDefault,S^);
   S^.Seek(0);
@@ -514,7 +518,7 @@ begin
     OK:=LoadCodeComplete(S^);
   Dispose(S, Done);
   if OK=false then
-    ErrorBox('Error loading CodeComplete wordlist',nil);
+    ErrorBox(msg_errorloadingcodecompletewordlist,nil);
   PopStatus;
   ReadCodeComplete:=OK;
 end;
@@ -523,7 +527,7 @@ function WriteCodeComplete(F: PResourceFile): boolean;
 var OK: boolean;
     S: PMemoryStream;
 begin
-  PushStatus('Writing CodeComplete wordlist...');
+  PushStatus(msg_storingcodecompletewordlist);
   New(S, Init(1024,1024));
   OK:=StoreCodeComplete(S^);
   if OK then
@@ -534,7 +538,7 @@ begin
   end;
   Dispose(S, Done);
   if OK=false then
-    ErrorBox('Error writing CodeComplete wordlist',nil);
+    ErrorBox(msg_errorstoringcodecompletewordlist,nil);
   PopStatus;
   WriteCodeComplete:=OK;
 end;
@@ -543,7 +547,7 @@ function ReadCodeTemplates(F: PResourceFile): boolean;
 var S: PMemoryStream;
     OK: boolean;
 begin
-  PushStatus('Reading CodeTemplates...');
+  PushStatus(msg_readingcodetemplates);
   New(S, Init(1024,4096));
   OK:=F^.ReadResourceEntryToStream(resCodeTemplates,langDefault,S^);
   S^.Seek(0);
@@ -551,7 +555,7 @@ begin
     OK:=LoadCodeTemplates(S^);
   Dispose(S, Done);
   if OK=false then
-    ErrorBox('Error loading CodeTemplates wordlist',nil);
+    ErrorBox(msg_errorloadingcodetemplates,nil);
   PopStatus;
   ReadCodeTemplates:=OK;
 end;
@@ -560,7 +564,7 @@ function WriteCodeTemplates(F: PResourceFile): boolean;
 var OK: boolean;
     S: PMemoryStream;
 begin
-  PushStatus('Writing CodeTemplates...');
+  PushStatus(msg_storingcodetemplates);
   New(S, Init(1024,4096));
   OK:=StoreCodeTemplates(S^);
   if OK then
@@ -571,7 +575,7 @@ begin
   end;
   Dispose(S, Done);
   if OK=false then
-    ErrorBox('Error writing CodeTemplates',nil);
+    ErrorBox(msg_errorstoringcodetemplates,nil);
   PopStatus;
   WriteCodeTemplates:=OK;
 end;
@@ -584,7 +588,7 @@ begin
   OK:=F^.ReadResourceEntry(resDesktopFlags,langDefault,DesktopFileFlags,
     size);
   if OK=false then
-    ErrorBox('Error loading flags',nil);
+    ErrorBox(msg_errorreadingflags,nil);
   ReadFlags:=OK;
 end;
 
@@ -596,7 +600,7 @@ begin
   OK:=F^.AddResourceEntry(resVideo,langDefault,0,ScreenMode,
     SizeOf(TVideoMode));
   if OK=false then
-    ErrorBox('Error storing video mode',nil);
+    ErrorBox(msg_errorstoringvideomode,nil);
   WriteVideoMode:=OK;
 end;
 
@@ -612,7 +616,7 @@ begin
     NewScreenMode:=ScreenMode;
   OK:=test and (size = SizeOf(TVideoMode));
   if OK=false then
-    ErrorBox('Error loading video mode',nil);
+    ErrorBox(msg_errorreadingvideomode,nil);
   ReadVideoMode:=OK;
 end;
 
@@ -625,7 +629,7 @@ begin
   R:=F^.FindResource(resSymbols);
   if not Assigned(R) then
     exit;
-  PushStatus('Reading symbol information...');
+  PushStatus(msg_readingsymbolinformation);
   New(S, Init(32*1024,4096));
   OK:=F^.ReadResourceEntryToStream(resSymbols,langDefault,S^);
   S^.Seek(0);
@@ -633,7 +637,7 @@ begin
     OK:=LoadBrowserCol(S);
   Dispose(S, Done);
   if OK=false then
-    ErrorBox('Error loading symbol information',nil);
+    ErrorBox(msg_errorloadingsymbolinformation,nil);
   PopStatus;
   ReadSymbols:=OK;
 end;
@@ -646,7 +650,7 @@ begin
 
   if OK then
   begin
-    PushStatus('Storing symbol information...');
+    PushStatus(msg_storingsymbolinformation);
 
     New(S, Init(200*1024,4096));
     OK:=Assigned(S);
@@ -660,7 +664,7 @@ begin
       end;
     Dispose(S, Done);
     if OK=false then
-      ErrorBox('Error storing symbol information',nil);
+      ErrorBox(msg_errorstoringsymbolinformation,nil);
     PopStatus;
   end;
   WriteSymbols:=OK;
@@ -671,7 +675,7 @@ var OK,VOK: boolean;
     F: PResourceFile;
     VM : TVideoMode;
 begin
-  PushStatus('Reading desktop file...');
+  PushStatus(msg_readingdesktopfile);
   New(F, LoadFile(DesktopPath));
 
   OK:=false;
@@ -714,7 +718,7 @@ var OK: boolean;
     TempPath: string;
 begin
   TempPath:=DirOf(DesktopPath)+DesktopTempName;
-  PushStatus('Writing desktop file...');
+  PushStatus(msg_writingdesktopfile);
   New(F, CreateFile(TempPath));
 
   if Assigned(Clipboard) then
@@ -751,7 +755,7 @@ begin
         OK:=EraseFile(DesktopPath);
       OK:=OK and RenameFile(TempPath,DesktopPath);
       if OK=false then
-        ErrorBox('Failed to replace desktop file.',nil);
+        ErrorBox(msg_failedtoreplacedesktopfile,nil);
     end;
   PopStatus;
   SaveDesktop:=OK;
@@ -793,7 +797,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.27  2000-04-25 08:42:33  pierre
+  Revision 1.28  2000-05-02 08:42:27  pierre
+   * new set of Gabor changes: see fixes.txt
+
+  Revision 1.27  2000/04/25 08:42:33  pierre
    * New Gabor changes : see fixes.txt
 
   Revision 1.26  2000/04/18 11:42:36  pierre

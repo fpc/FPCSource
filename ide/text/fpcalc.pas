@@ -96,7 +96,7 @@ procedure RegisterFPCalc;
 
 implementation
 
-uses FPUtils,FPConst;
+uses FPString,FPUtils,FPConst;
 
 const
   cmCalcButton  = 100;
@@ -359,7 +359,7 @@ var
   R: TRect;
 begin
   R.Assign(5, 3, 43, 18);
-  inherited Init(R, 'Calculator');
+  inherited Init(R, dialog_Calculator);
   Options := Options or ofFirstClick or ofTopSelect;
   HelpCtx:=hcCalcWindow;
 
@@ -463,7 +463,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  2000-04-18 11:42:36  pierre
+  Revision 1.10  2000-05-02 08:42:26  pierre
+   * new set of Gabor changes: see fixes.txt
+
+  Revision 1.9  2000/04/18 11:42:36  pierre
    lot of Gabor changes : see fixes.txt
 
   Revision 1.8  2000/03/21 23:34:10  pierre

@@ -122,7 +122,7 @@ var R,R2,R3: TRect;
     SB: PScrollBar;
 begin
   R.Assign(0,0,46,16);
-  inherited Init(R,'CodeComplete');
+  inherited Init(R,dialog_codecomplete);
 
   GetExtent(R); R.Grow(-3,-2); Inc(R.A.Y); R3.Copy(R); Dec(R.B.X,12);
   R2.Copy(R); R2.Move(1,0); R2.A.X:=R2.B.X-1;
@@ -130,18 +130,18 @@ begin
   New(CodeCompleteLB, Init(R,1,SB));
   Insert(CodeCompleteLB);
   R2.Copy(R); R2.Move(0,-1); R2.B.Y:=R2.A.Y+1; Dec(R2.A.X);
-  Insert(New(PLabel, Init(R2, '~K~eywords', CodeCompleteLB)));
+  Insert(New(PLabel, Init(R2, label_codecomplete_keywords, CodeCompleteLB)));
 
   R.Copy(R3); R.A.X:=R.B.X-10; R.B.Y:=R.A.Y+2;
-  Insert(New(PButton, Init(R, 'O~K~', cmOK, bfNormal)));
+  Insert(New(PButton, Init(R, button_OK, cmOK, bfNormal)));
   R.Move(0,2);
-  Insert(New(PButton, Init(R, '~E~dit', cmEditItem, bfDefault)));
+  Insert(New(PButton, Init(R, button_Edit, cmEditItem, bfDefault)));
   R.Move(0,2);
-  Insert(New(PButton, Init(R, '~N~ew', cmAddItem, bfNormal)));
+  Insert(New(PButton, Init(R, button_New, cmAddItem, bfNormal)));
   R.Move(0,2);
-  Insert(New(PButton, Init(R, '~D~elete', cmDeleteItem, bfNormal)));
+  Insert(New(PButton, Init(R, button_Delete, cmDeleteItem, bfNormal)));
   R.Move(0,2);
-  Insert(New(PButton, Init(R, 'Cancel', cmCancel, bfNormal)));
+  Insert(New(PButton, Init(R, button_Cancel, cmCancel, bfNormal)));
   SelectNext(false);
 end;
 
@@ -226,7 +226,10 @@ begin
       begin
         CanExit:=PCodeCompleteWordList(CodeCompleteLB^.List)^.Search(@S,I)=false;
         if CanExit=false then
-          ErrorBox('"'+S+'" is already in the list',nil);
+        begin
+          ClearFormatParams; AddFormatParamStr(S);
+          ErrorBox(msg_codecomplete_alreadyinlist,@FormatParams);
+        end;
       end;
   until CanExit;
 
@@ -261,7 +264,10 @@ begin
         CanExit:=PCodeCompleteWordList(CodeCompleteLB^.List)^.Search(@S,T)=false;
         CanExit:=CanExit or (T=I);
         if CanExit=false then
-          ErrorBox('"'+S+'" is already in the list',nil);
+        begin
+          ClearFormatParams; AddFormatParamStr(S);
+          ErrorBox(msg_codecomplete_alreadyinlist,@FormatParams);
+        end;
       end;
   until CanExit;
 

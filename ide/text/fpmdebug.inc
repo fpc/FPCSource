@@ -34,7 +34,7 @@ procedure TIDEApp.DoUserScreen;
 begin
   if UserScreen=nil then
    begin
-     ErrorBox('Sorry, user screen not available.',nil);
+     ErrorBox(msg_userscreennotavailable,nil);
      Exit;
    end;
 
@@ -139,7 +139,10 @@ end;
 
 {
   $Log$
-  Revision 1.11  2000-02-04 00:13:59  pierre
+  Revision 1.12  2000-05-02 08:42:28  pierre
+   * new set of Gabor changes: see fixes.txt
+
+  Revision 1.11  2000/02/04 00:13:59  pierre
    * AddWatch calls DoShowWatches
 
   Revision 1.10  2000/01/08 18:26:20  florian

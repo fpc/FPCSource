@@ -367,7 +367,7 @@ end;
 procedure TToolParamValidator.Error;
 begin
   MsgParms[1].Long:=ErrorPos;
-  ErrorBox(^C'Error parsing parameters line at line position %d.',@MsgParms);
+  ErrorBox(msg_errorparsingparametersatpos,@MsgParms);
 end;
 
 function TToolParamValidator.IsValid(const S: string): Boolean;
@@ -386,20 +386,20 @@ begin
   KeyCount:=GetHotKeyCount;
 
   R.Assign(0,0,60,Max(3+KeyCount,12));
-  inherited Init(R,'Modify/New Tool');
+  inherited Init(R,dialog_modifynewtool);
   Tool:=ATool;
 
   GetExtent(R); R.Grow(-3,-2); R3.Copy(R);
   Inc(R.A.Y); R.B.Y:=R.A.Y+1; R.B.X:=R.A.X+36;
   New(TitleIL, Init(R, 128)); Insert(TitleIL);
-  R2.Copy(R); R2.Move(-1,-1); Insert(New(PLabel, Init(R2, '~T~itle', TitleIL)));
+  R2.Copy(R); R2.Move(-1,-1); Insert(New(PLabel, Init(R2, label_toolprop_title, TitleIL)));
   R.Move(0,3);
   New(ProgramIL, Init(R, 128)); Insert(ProgramIL);
-  R2.Copy(R); R2.Move(-1,-1); Insert(New(PLabel, Init(R2, 'Program ~p~ath', ProgramIL)));
+  R2.Copy(R); R2.Move(-1,-1); Insert(New(PLabel, Init(R2, label_toolprop_programpath, ProgramIL)));
   R.Move(0,3);
   New(ParamIL, Init(R, 128)); Insert(ParamIL);
   ParamIL^.SetValidator(New(PToolParamValidator, Init));
-  R2.Copy(R); R2.Move(-1,-1); Insert(New(PLabel, Init(R2, 'Command ~l~ine', ParamIL)));
+  R2.Copy(R); R2.Move(-1,-1); Insert(New(PLabel, Init(R2, label_toolprop_commandline, ParamIL)));
 
   R.Copy(R3); Inc(R.A.X,38); R.B.Y:=R.A.Y+KeyCount;
   Items:=nil;
@@ -438,7 +438,7 @@ var R,R2,R3: TRect;
     SB: PScrollBar;
 begin
   R.Assign(0,0,46,16);
-  inherited Init(R,'Tools');
+  inherited Init(R,dialog_tools);
 
   GetExtent(R); R.Grow(-3,-2); Inc(R.A.Y); R3.Copy(R); Dec(R.B.X,12);
   R2.Copy(R); R2.Move(1,0); R2.A.X:=R2.B.X-1;
@@ -446,18 +446,18 @@ begin
   New(ToolsLB, Init(R,1,SB));
   Insert(ToolsLB);
   R2.Copy(R); R2.Move(0,-1); R2.B.Y:=R2.A.Y+1; Dec(R2.A.X);
-  Insert(New(PLabel, Init(R2, '~P~rogram titles', ToolsLB)));
+  Insert(New(PLabel, Init(R2, label_tools_programtitles, ToolsLB)));
 
   R.Copy(R3); R.A.X:=R.B.X-10; R.B.Y:=R.A.Y+2;
-  Insert(New(PButton, Init(R, 'O~K~', cmOK, bfNormal)));
+  Insert(New(PButton, Init(R, button_OK, cmOK, bfNormal)));
   R.Move(0,2);
-  Insert(New(PButton, Init(R, '~E~dit', cmEditItem, bfDefault)));
+  Insert(New(PButton, Init(R, button_Edit, cmEditItem, bfDefault)));
   R.Move(0,2);
-  Insert(New(PButton, Init(R, '~N~ew', cmAddItem, bfNormal)));
+  Insert(New(PButton, Init(R, button_New, cmAddItem, bfNormal)));
   R.Move(0,2);
-  Insert(New(PButton, Init(R, '~D~elete', cmDeleteItem, bfNormal)));
+  Insert(New(PButton, Init(R, button_Delete, cmDeleteItem, bfNormal)));
   R.Move(0,2);
-  Insert(New(PButton, Init(R, 'Cancel', cmCancel, bfNormal)));
+  Insert(New(PButton, Init(R, button_Cancel, cmCancel, bfNormal)));
   SelectNext(false);
 end;
 
@@ -532,7 +532,7 @@ var P: PTool;
     W: word;
 begin
   if ToolsLB^.Range>=MaxToolCount then
-    begin InformationBox(^C'Can''t install more tools...',nil); Exit; end;
+    begin InformationBox(msg_cantinstallmoretools,nil); Exit; end;
   IC:=ToolsLB^.Range=0;
   if IC=false then
     begin
@@ -691,14 +691,14 @@ var
         (Sec^.SearchEntry(tieOrigin)<>nil) and
         (Sec^.SearchEntry(tieSize)<>nil);
     if OK=false then
-      begin ErrorBox('Required property missing in ['+Sec^.GetName+']',nil); Exit; end;
+      begin ErrorBox(FormatStrStr(msg_requiredparametermissingin,Sec^.GetName),nil); Exit; end;
 
     Typ:=UpcaseStr(Trim(F^.GetEntry(Sec^.GetName,tieType,'')));
     if Typ=vtsCheckBox    then ViewTypes[ViewCount]:=vtCheckBox    else
     if Typ=vtsRadioButton then ViewTypes[ViewCount]:=vtRadioButton else
     if Typ=vtsInputLine   then ViewTypes[ViewCount]:=vtInputLine   else
     if Typ=vtsLabel       then ViewTypes[ViewCount]:=vtLabel       else
-     begin OK:=false; ErrorBox('Unknown type in ['+Sec^.GetName+']',nil); Exit; end;
+     begin OK:=false; ErrorBox(FormatStrStr(msg_unknowntypein,Sec^.GetName),nil); Exit; end;
 
     ViewNames[ViewCount]:=Sec^.GetName;
     GetCoordEntry(F,Sec^.GetName,tieOrigin,P1);
@@ -712,14 +712,14 @@ var
           OK:=OK and (Sec^.SearchEntry(tieLink)<>nil) and
                      (Sec^.SearchEntry(tieText)<>nil);
           if OK=false then
-            begin ErrorBox('Required property missing in ['+Sec^.GetName+']',nil); Exit; end;
+            begin ErrorBox(FormatStrStr(msg_requiredpropertymissingin,Sec^.GetName),nil); Exit; end;
         end;
       vtInputLine  : ;
       vtCheckBox   :
         begin
           OK:=OK and (Sec^.SearchEntry(tieName)<>nil);
           if OK=false then
-            begin ErrorBox(tieName+' property missing in ['+Sec^.GetName+']',nil); Exit; end;
+            begin ErrorBox(FormatStrStr2(msg_propertymissingin,tieName,Sec^.GetName),nil); Exit; end;
         end;
       vtRadioButton:
         begin
@@ -729,7 +729,7 @@ var
           ViewItemCount[ViewCount]:=Count;
           OK:=Count>0;
           if OK=false then
-            begin ErrorBox('Invalid number of items in ['+Sec^.GetName+']',nil); Exit; end;
+            begin ErrorBox(FormatStrStr(msg_invaliditemsin,Sec^.GetName),nil); Exit; end;
         end;
     end;
 
@@ -751,7 +751,7 @@ begin
     OK:=OK and (CmdLine<>'');
   end;
   if OK=false then
-    begin ErrorBox('Required property missing in ['+_IS^.GetName+']',nil); Exit; end;
+    begin ErrorBox(FormatStrStr(msg_requiredpropertymissingin,_IS^.GetName),nil); Exit; end;
 
   if OK then
     begin
@@ -1168,7 +1168,7 @@ begin
                   if CheckOnly=false then
                     begin
                       S:=copy(Params,I+1,255);
-                      if InputBox('Program Arguments', '~E~nter program argument',
+                      if InputBox(dialog_programarguments, label_enterprogramargument,
                         S,255-I+1)=cmOK then
                         begin
                           ReplacePart(LastWordStart,255,S);
@@ -1419,7 +1419,7 @@ var R: TRect;
     HSB,VSB: PScrollBar;
 begin
   Desktop^.GetExtent(R); R.A.Y:=R.B.Y-7;
-  inherited Init(R,'Messages',SearchFreeWindowNo);
+  inherited Init(R,dialog_messages,SearchFreeWindowNo);
   HelpCtx:=hcMessagesWindow;
 
   HSB:=StandardScrollBar(sbHorizontal+sbHandleKeyboard); Insert(HSB);
@@ -1507,7 +1507,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.18  2000-04-25 08:42:33  pierre
+  Revision 1.19  2000-05-02 08:42:29  pierre
+   * new set of Gabor changes: see fixes.txt
+
+  Revision 1.18  2000/04/25 08:42:33  pierre
    * New Gabor changes : see fixes.txt
 
   Revision 1.17  2000/04/18 11:42:37  pierre

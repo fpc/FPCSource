@@ -24,7 +24,7 @@ var R,R2: TRect;
 begin
   TargetCount:=TargetSwitches^.ItemCount;
   R.Assign(0,0,36,4+TargetCount);
-  New(D, Init(R, 'Target'));
+  New(D, Init(R, dialog_target));
   with D^ do
   begin
     GetExtent(R); R.Grow(-3,-1); Inc(R.A.Y);
@@ -38,7 +38,7 @@ begin
     Insert(RB);
     R2.Copy(R);
     R2.B.Y:=R2.A.Y+1;
-    Insert(New(PLabel, Init(R2, 'Target platform', RB)));
+    Insert(New(PLabel, Init(R2, label_target_platform, RB)));
   end;
   InsertButtons(D);
   RB^.Select;
@@ -83,7 +83,7 @@ var
   D : PFileDialog;
   FileName : string;
 begin
-  New(D, Init('*.pri;*.pas','Primary file','*.pri;*.pas',fdOpenButton,0));
+  New(D, Init('*.pri;*.pas',label_primaryfile_primaryfile,'*.pri;*.pas',fdOpenButton,0));
   if Desktop^.ExecView(D)<>cmCancel then
   begin
     D^.GetFileName(FileName);
@@ -128,7 +128,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  2000-03-07 21:45:33  pierre
+  Revision 1.9  2000-05-02 08:42:28  pierre
+   * new set of Gabor changes: see fixes.txt
+
+  Revision 1.8  2000/03/07 21:45:33  pierre
    + TIDEApp.UpdateMode
 
   Revision 1.7  2000/01/10 14:59:08  pierre

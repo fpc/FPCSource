@@ -95,7 +95,7 @@ uses
   App,Commands,tokens,
   CompHook, Compiler, systems, browcol, switches,
   WEditor,
-  FPRedir,FPDesk,FPUsrScr,FPHelp,
+  FPString,FPRedir,FPDesk,FPUsrScr,FPHelp,
   FPIde,FPConst,FPVars,FPUtils,FPIntf,FPSwitch;
 
 {$ifndef NOOBJREG}
@@ -211,22 +211,22 @@ var
   S: string;
 begin
   if TClass=
-    V_Fatal       then ClassS:='Fatal'       else if TClass =
-    V_Error       then ClassS:='Error'       else if TClass =
-    V_Normal      then ClassS:=''            else if TClass =
-    V_Warning     then ClassS:='Warning'     else if TClass =
-    V_Note        then ClassS:='Note'        else if TClass =
-    V_Hint        then ClassS:='Hint'
+    V_Fatal       then ClassS:=msg_class_Fatal   else if TClass =
+    V_Error       then ClassS:=msg_class_Error   else if TClass =
+    V_Normal      then ClassS:=msg_class_Normal  else if TClass =
+    V_Warning     then ClassS:=msg_class_Warning else if TClass =
+    V_Note        then ClassS:=msg_class_Note    else if TClass =
+    V_Hint        then ClassS:=msg_class_Hint
 {$ifdef VERBOSETXT}
     else if TClass =
-    V_Macro       then ClassS:='Macro'       else if TClass =
-    V_Procedure   then ClassS:='Procedure'   else if TClass =
-    V_Conditional then ClassS:='Conditional' else if TClass =
-    V_Info        then ClassS:='Info'        else if TClass =
-    V_Status      then ClassS:='Status'      else if TClass =
-    V_Used        then ClassS:='Used'        else if TClass =
-    V_Tried       then ClassS:='Tried'       else if TClass =
-    V_Debug       then ClassS:='Debug'
+    V_Macro       then ClassS:=msg_class_macro   else if TClass =
+    V_Procedure   then ClassS:=msg_class_procedure else if TClass =
+    V_Conditional then ClassS:=msg_class_conditional else if TClass =
+    V_Info        then ClassS:=msg_class_info    else if TClass =
+    V_Status      then ClassS:=msg_class_status  else if TClass =
+    V_Used        then ClassS:=msg_class_used    else if TClass =
+    V_Tried       then ClassS:=msg_class_tried   else if TClass =
+    V_Debug       then ClassS:=msg_class_debug
   else
    ClassS:='???';
 {$else}
@@ -297,7 +297,7 @@ var R: TRect;
 begin
   Desktop^.GetExtent(R);
   R.A.Y:=R.B.Y-7;
-  inherited Init(R,'Compiler Messages',{SearchFreeWindowNo}wnNoNumber);
+  inherited Init(R,dialog_compilermessages,{SearchFreeWindowNo}wnNoNumber);
   HelpCtx:=hcMessagesWindow;
 
   AutoNumber:=true;
@@ -420,7 +420,8 @@ constructor TCompilerStatusDialog.Init;
 var R: TRect;
 begin
   R.Assign(0,0,50,11);
-  inherited Init(R, 'Compiling  ('+KillTilde(SwitchesModeName[SwitchesMode])+' mode)');
+  ClearFormatParams; AddFormatParamStr(KillTilde(SwitchesModeName[SwitchesMode]));
+  inherited Init(R, FormatStrF(dialog_compilingwithmode, FormatParams));
   GetExtent(R); R.B.Y:=11;
   R.Grow(-3,-2);
   New(ST, Init(R, ''));
@@ -433,12 +434,6 @@ end;
 
 
 procedure TCompilerStatusDialog.Update;
-const
-  CtrlBS      = 'Press ESC to cancel';
-  SuccessS    = 'Compile successful: ~Press Enter~';
-  FailS       = 'Compile failed';
-  AbortS      = 'Compile aborted';
-  PleaseWaitS = 'Please wait...';
 var
   StatusS,KeyS: string;
 begin
@@ -448,38 +443,48 @@ begin
   case CompilationPhase of
     cpCompiling :
       begin
-        StatusS:='Compiling '+SmartPath(Status.CurrentSource);
-        KeyS:=CtrlBS;
+        ClearFormatParams; AddFormatParamStr(SmartPath(Status.CurrentSource));
+        StatusS:=FormatStrF(msg_compilingfile,FormatParams);
+        KeyS:=msg_hint_pressesctocancel;
       end;
     cpLinking   :
       begin
-        StatusS:='Linking '+ExeFile;
-        KeyS:={CtrlBS}PleaseWaitS;
+        ClearFormatParams; AddFormatParamStr(ExeFile);
+        StatusS:=FormatStrF(msg_linkingfile,FormatParams);
+        KeyS:=msg_hint_pleasewait;
       end;
     cpDone      :
       begin
-        StatusS:='Done.';
-        KeyS:=SuccessS;
+        StatusS:=msg_compiledone;
+        KeyS:=msg_hint_compilesuccessfulpressenter;
       end;
     cpFailed    :
       begin
-        StatusS:='Failed to compile...';
-        KeyS:=FailS;
+        StatusS:=msg_failedtocompile;
+        KeyS:=msg_hint_compilefailed;
       end;
     cpAborted    :
       begin
-        StatusS:='Compilation aborted...';
-        KeyS:=AbortS;
+        StatusS:=msg_compilationaborted;
+        KeyS:=msg_hint_compileaborted;
       end;
   end;
+  ClearFormatParams;
+  AddFormatParamStr(SmartPath(MainFile));
+  AddFormatParamStr(StatusS);
+  AddFormatParamStr(KillTilde(TargetSwitches^.ItemName(TargetSwitches^.GetCurrSel)));
+  AddFormatParamInt(Status.CurrentLine);
+  AddFormatParamInt(MemAvail div 1024);
+  AddFormatParamInt(Status.CompiledLines);
+  AddFormatParamInt(Status.ErrorCount);
   ST^.SetText(
-    'Main file: '+SmartPath(MainFile)+#13+
-    StatusS+#13#13+
-    'Target: '+LExpand(KillTilde(TargetSwitches^.ItemName(TargetSwitches^.GetCurrSel)),12)+'    '+
-    'Line number: '+IntToStrL(Status.CurrentLine,7)+#13+
-    'Free memory: '+IntToStrL(MemAvail div 1024,6)+'K'+ '    '+
-    'Total lines: '+IntToStrL(Status.CompiledLines,7)+#13+
-    'Total errors: '+IntToStrL(Status.ErrorCount,5)
+   FormatStrF(
+    'Main file: %s'#13+
+    '%s'+#13#13+
+    'Target: %12s    '+     'Line number: %7d'+#13+
+    'Free memory: %6dK    '+'Total lines: %7d'+#13+
+    'Total errors: %5d',
+   FormatParams)
   );
   KeyST^.SetText(^C+KeyS);
 {$ifdef TEMPHEAP}
@@ -645,12 +650,12 @@ begin
   FileName:=GetMainFile;
   if FileName='' then
     begin
-      ErrorBox('Oooops, nothing to compile.',nil);
+      ErrorBox(msg_nothingtocompile,nil);
       Exit;
     end else
   if FileName='*' then
     begin
-      ErrorBox('Can''t compile unsaved file.',nil);
+      ErrorBox(msg_cantcompileunsavedfile,nil);
       Exit;
     end;
 { Show Compiler Messages Window }
@@ -738,7 +743,8 @@ begin
        if not ExistsFile(EXEFile) then
          begin
            Inc(status.errorCount);
-           CompilerMessageWindow^.AddMessage(V_error,'could not create '+ExeFile,'',0,0);
+           ClearFormatParams; AddFormatParamStr(ExeFile);
+           CompilerMessageWindow^.AddMessage(V_error,FormatStrF(msg_couldnotcreatefile,FormatParams),'',0,0);
            Assign(ErrFile,FPErrFileName);
            Reset(ErrFile);
            LinkErrorCount:=0;
@@ -749,8 +755,11 @@ begin
                inc(LinkErrorCount);
              end;
            if not eof(ErrFile) then
+           begin
+             ClearFormatParams; AddFormatParamStr(FPErrFileName);
              CompilerMessageWindow^.AddMessage(V_error,
-               'There are more errors in file '+FPErrFileName,'',0,0);
+               FormatStrF(msg_therearemoreerrorsinfile,FormatParams),'',0,0);
+           end;
 
            Close(ErrFile);
          end;
@@ -838,9 +847,12 @@ begin
       if Need then
         begin
           if verbose then
+          begin
+            ClearFormatParams; AddFormatParamStr(GetMainFile);
             CompilerMessageWindow^.AddMessage(V_info,
-              'First compilation of '+GetMainFile,
+              FormatStrF(msg_firstcompilationof,FormatParams),
               '',0,0);
+          end;
         end
       else
         for I:=0 to SourceFiles^.Count-1 do
@@ -861,9 +873,12 @@ begin
                 begin
                   Need:=true;
                   if verbose then
+                  begin
+                    ClearFormatParams; AddFormatParamStr(SF^.GetSourceFileName);
                     CompilerMessageWindow^.AddMessage(V_info,
-                      'Recompiling because of '+SF^.GetSourceFileName,
+                      FormatStrF(msg_recompilingbecauseof,FormatParams),
                       SF^.GetSourceFileName,1,1);
+                  end;
                   Break;
                 end;
           end;
@@ -885,7 +900,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.56  2000-04-25 08:42:32  pierre
+  Revision 1.57  2000-05-02 08:42:27  pierre
+   * new set of Gabor changes: see fixes.txt
+
+  Revision 1.56  2000/04/25 08:42:32  pierre
    * New Gabor changes : see fixes.txt
 
   Revision 1.55  2000/04/18 11:42:36  pierre

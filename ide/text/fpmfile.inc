@@ -30,10 +30,10 @@ var D: PCenterDialog;
     TE: PSourceWindow;
 begin
   if GetTemplateCount=0 then
-     begin InformationBox('No templates available.',nil); Exit; end;
+     begin InformationBox(msg_notemplatesavailable,nil); Exit; end;
   New(C, Init(10,10));
   R.Assign(0,0,40,14);
-  New(D, Init(R, 'New from template'));
+  New(D, Init(R, dialog_newfromtemplate));
   with D^ do
   begin
     GetExtent(R); R.Grow(-2,-2); Inc(R.A.Y); Dec(R.B.X,12);
@@ -47,26 +47,26 @@ begin
     LB^.NewList(C);
     Insert(LB);
     Dec(R.A.Y); R.B.Y:=R.A.Y+1;
-    Insert(New(PLabel, Init(R, 'Available ~t~emplates', LB)));
+    Insert(New(PLabel, Init(R, label_availabletemplates, LB)));
 
     GetExtent(R2); R2.Grow(-2,-3); R2.A.X:=R.B.X+2; R2.B.Y:=R2.A.Y+2;
-    Insert(New(PButton, Init(R2, 'O~K~', cmOK, bfDefault)));
+    Insert(New(PButton, Init(R2, button_OK, cmOK, bfDefault)));
     R2.Move(0,2);
-    Insert(New(PButton, Init(R2, 'Cancel', cmCancel, bfNormal)));
+    Insert(New(PButton, Init(R2, button_Cancel, cmCancel, bfNormal)));
   end;
   LB^.Select;
   if Desktop^.ExecView(D)=cmOK then
   begin
-    Desktop^.Lock;
+{    Desktop^.Lock;}
     TE:=OpenEditorWindow(nil,'',0,0);
     if TE<>nil then
     begin
       StartTemplate(LB^.Focused,TE^.Editor);
       TE^.Editor^.SetModified(false); { if nothing changes, we don't need to save it }
-      TE^.Hide; { we need this trick to get the editor updated }
-      TE^.Show;
+(*      TE^.Hide; { we need this trick to get the editor updated }
+      TE^.Show;*)
     end;
-    Desktop^.UnLock;
+{    Desktop^.UnLock;}
   end;
   Dispose(D, Done);
   Dispose(C, Done);
@@ -99,7 +99,7 @@ begin
        end;
      if FileDir<>'' then
        ChDir(TrimEndSlash(FileDir));
-     New(D, Init(OpenExts,'Open a file','File to ope~n~',fdOpenButton,0));
+     New(D, Init(OpenExts,dialog_openafile,label_filetoopen,fdOpenButton,0));
      OpenIt:=Desktop^.ExecView(D)<>cmCancel;
      { if I go to root under go32v2 and there is no
        floppy I get a InOutRes = 152
@@ -131,12 +131,14 @@ function TIDEApp.OpenSearch(FileName: string) : boolean;
 var D: PFileDialog;
     OpenIt: boolean;
     P : PString;
-    Dir : String;
+    Dir,S : String;
 begin
   OpenIt:=False;
   if not OpenIt then
    begin
-     New(D, Init(FileName+'*','Open a file','Looking for '+FileName,fdOpenButton,0));
+     ClearFormatParams; AddFormatParamStr(FileName);
+     FormatStr(S,label_lookingfor,FormatParams);
+     New(D, Init(FileName+'*',dialog_openafile,S,fdOpenButton,0));
      OpenIt:=Desktop^.ExecView(D)<>cmCancel;
      if OpenIt then
        Begin
@@ -150,8 +152,7 @@ begin
      Dir:=DirOf(FileName);
      P:=@Dir;
      If Pos(Dir+';',GetSourceDirectories)=0 then
-       if ConfirmBox(#3'Directory %s is not in list'#13#3+
-            'Should we add it ?',@P,false)=cmYes then
+       if ConfirmBox(msg_confirmsourcediradd,@P,false)=cmYes then
           SourceDirs:=SourceDirs+';'+Dir;
 
      OpenEditorWindow(nil,FileName,0,0);
@@ -198,7 +199,10 @@ end;
 
 {
   $Log$
-  Revision 1.19  2000-04-25 08:42:33  pierre
+  Revision 1.20  2000-05-02 08:42:28  pierre
+   * new set of Gabor changes: see fixes.txt
+
+  Revision 1.19  2000/04/25 08:42:33  pierre
    * New Gabor changes : see fixes.txt
 
   Revision 1.18  2000/03/21 23:29:52  pierre

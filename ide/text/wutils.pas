@@ -21,7 +21,7 @@ interface
 
 
 uses
-  Objects;
+  Dos,Objects;
 
 type
   PByteArray = ^TByteArray;
@@ -86,10 +86,13 @@ function UpcaseStr(const S: string): string;
 function LowCase(C: char): char;
 function LowcaseStr(S: string): string;
 function RExpand(const S: string; MinLen: byte): string;
+function LExpand(const S: string; MinLen: byte): string;
 function LTrim(const S: string): string;
 function RTrim(const S: string): string;
 function Trim(const S: string): string;
 function IntToStr(L: longint): string;
+function IntToStrL(L: longint; MinLen: sw_integer): string;
+function IntToStrZ(L: longint; MinLen: sw_integer): string;
 function StrToInt(const S: string): longint;
 function IntToHex(L: longint): string;
 function GetStr(P: PString): string;
@@ -107,6 +110,7 @@ function GetFileTime(const FileName: string): longint;
 function GetShortName(const n:string):string;
 function GetLongName(const n:string):string;
 function TrimEndSlash(const Path: string): string;
+function OptimizePath(Path: string; MaxLen: integer): string;
 function CompareText(S1, S2: string): integer;
 
 function FormatPath(Path: string): string;
@@ -114,6 +118,11 @@ function CompletePath(const Base, InComplete: string): string;
 function CompleteURL(const Base, URLRef: string): string;
 
 function EatIO: integer;
+
+function Now: longint;
+
+function FormatDateTimeL(L: longint; const Format: string): string;
+function FormatDateTime(const D: DateTime; const Format: string): string;
 
 procedure GiveUpTimeSlice;
 
@@ -128,7 +137,7 @@ uses
 {$ifdef win32}
   windows,
 {$endif win32}
-  Strings, Dos;
+  Strings;
 
 {$ifndef NOOBJREG}
 const
@@ -249,6 +258,14 @@ begin
     RExpand:=S;
 end;
 
+function LExpand(const S: string; MinLen: byte): string;
+begin
+  if length(S)<MinLen then
+    LExpand:=CharStr(' ',MinLen-length(S))+S
+  else
+    LExpand:=S;
+end;
+
 function LTrim(const S: string): string;
 var
   i : longint;
@@ -281,6 +298,19 @@ begin
   IntToStr:=S;
 end;
 
+function IntToStrL(L: longint; MinLen: sw_integer): string;
+begin
+  IntToStrL:=LExpand(IntToStr(L),MinLen);
+end;
+
+function IntToStrZ(L: longint; MinLen: sw_integer): string;
+var S: string;
+begin
+  S:=IntToStr(L);
+  if length(S)<MinLen then
+    S:=CharStr('0',MinLen-length(S))+S;
+  IntToStrZ:=S;
+end;
 
 function StrToInt(const S: string): longint;
 var L: longint;
@@ -690,7 +720,7 @@ begin
   P:=Pos(':',D); if P=0 then Drv:='' else begin Drv:=copy(D,1,P); Delete(D,1,P); end;
   FSplit(FormatPath(Base),BD,BN,BE);
   P:=Pos(':',BD); if P=0 then BDrv:='' else begin BDrv:=copy(BD,1,P); Delete(BD,1,P); end;
-  if copy(D,1,1)<>'\' then
+  if copy(D,1,1)<>DirSep then
     Complete:=BD+D+N+E;
   if Drv='' then
     Complete:=BDrv+Complete;
@@ -716,6 +746,117 @@ begin
   CompleteURL:=S;
 end;
 
+function OptimizePath(Path: string; MaxLen: integer): string;
+var i                : integer;
+    BackSlashs       : array[1..20] of integer;
+    BSCount          : integer;
+    Jobbra           : boolean;
+    Jobb, Bal        : byte;
+    Hiba             : boolean;
+begin
+ if length(Path)>MaxLen then
+ begin
+  BSCount:=0; Jobbra:=true;
+  for i:=1 to length(Path) do if Path[i]=DirSep then
+      begin
+        Inc(BSCount);
+        BackSlashs[BSCount]:=i;
+      end;
+  i:=BSCount div 2;
+  Hiba:=false;
+  Bal:=i; Jobb:=i+1;
+  case i of 0  : ;
+            1  : Path:=copy(Path, 1, BackSlashs[1])+'..'+
+                       copy(Path, BackSlashs[2], length(Path));
+            else begin
+                   while (BackSlashs[Bal]+(length(Path)-BackSlashs[Jobb]) >=
+                          MaxLen) and not Hiba do
+                         begin
+                           if Jobbra then begin
+                                           if Jobb<BSCount then inc(Jobb)
+                                                           else Hiba:=true;
+                                           Jobbra:=false;
+                                          end
+                                     else begin
+                                           if Bal>1 then dec(Bal)
+                                                    else Hiba:=true;
+                                           Jobbra:=true;
+                                          end;
+                         end;
+                   Path:=copy(Path, 1, BackSlashs[Bal])+'..'+
+                         copy(Path, BackSlashs[Jobb], length(Path));
+                 end;
+  end;
+ end;
+  if length(Path)>MaxLen then
+  begin
+    i:=Pos('\..\',Path);
+    if i>0 then Path:=copy(Path,1,i-1)+'..'+copy(Path,i+length('\..\'),length(Path));
+  end;
+ OptimizePath:=Path;
+end;
+
+function Now: longint;
+var D: DateTime;
+    W: word;
+    L: longint;
+begin
+  FillChar(D,sizeof(D),0);
+  GetDate(D.Year,D.Month,D.Day,W);
+  GetTime(D.Hour,D.Min,D.Sec,W);
+  PackTime(D,L);
+  Now:=L;
+end;
+
+function FormatDateTimeL(L: longint; const Format: string): string;
+var D: DateTime;
+begin
+  UnpackTime(L,D);
+  FormatDateTimeL:=FormatDateTime(D,Format);
+end;
+
+function FormatDateTime(const D: DateTime; const Format: string): string;
+var I: sw_integer;
+    CurCharStart: sw_integer;
+    CurChar: char;
+    CurCharCount: integer;
+    DateS: string;
+    C: char;
+procedure FlushChars;
+var S: string;
+    I: sw_integer;
+begin
+  S:='';
+  for I:=1 to CurCharCount do
+    S:=S+CurChar;
+  case CurChar of
+    'y' : S:=IntToStrL(D.Year,length(S));
+    'm' : S:=IntToStrZ(D.Month,length(S));
+    'd' : S:=IntToStrZ(D.Day,length(S));
+    'h' : S:=IntToStrZ(D.Hour,length(S));
+    'n' : S:=IntToStrZ(D.Min,length(S));
+    's' : S:=IntToStrZ(D.Sec,length(S));
+  end;
+  DateS:=DateS+S;
+end;
+begin
+  DateS:='';
+  CurCharStart:=-1; CurCharCount:=0; CurChar:=#0;
+  for I:=1 to length(Format) do
+  begin
+    C:=Format[I];
+    if (C<>CurChar) or (CurCharStart=-1) then
+      begin
+        if CurCharStart<>-1 then FlushChars;
+        CurCharCount:=1; CurCharStart:=I;
+      end
+    else
+      Inc(CurCharCount);
+    CurChar:=C;
+  end;
+  FlushChars;
+  FormatDateTime:=DateS;
+end;
 
 procedure GiveUpTimeSlice;
 {$ifdef GO32V2}{$define DOS}{$endif}
@@ -748,7 +889,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.20  2000-04-25 08:42:36  pierre
+  Revision 1.21  2000-05-02 08:42:29  pierre
+   * new set of Gabor changes: see fixes.txt
+
+  Revision 1.20  2000/04/25 08:42:36  pierre
    * New Gabor changes : see fixes.txt
 
   Revision 1.19  2000/04/18 11:42:39  pierre

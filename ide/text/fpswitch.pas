@@ -173,7 +173,7 @@ implementation
 uses
   Dos,
   GlobType,Tokens,Compiler,
-  FPUtils,FPVars;
+  FPString,FPVars,FPUtils;
 
 var
   CfgFile : text;
@@ -646,7 +646,7 @@ begin
   {$I+}
   if ioresult<>0 then
    exit;
-  writeln(CfgFile,'# Automaticly created file, don''t edit.');
+  writeln(CfgFile,'# '+msg_automaticallycreateddontedit);
   OldSwitchesMode:=SwitchesMode;
   for SwitchesMode:=low(TSwitchMode) to high(TSwitchMode) do
    begin
@@ -788,58 +788,58 @@ begin
   New(SyntaxSwitches,Init('S'));
   with SyntaxSwitches^ do
    begin
-     AddBooleanItem('~D~elphi 2 extensions on','2',idNone);
-     AddBooleanItem('~C~-like operators','c',idNone);
-     AddBooleanItem('S~t~op after first error','e',idNone);
-     AddBooleanItem('Allo~w~ LABEL and GOTO','g',idNone);
-     AddBooleanItem('C++ styled ~i~nline','i',idNone);
-     AddBooleanItem('Global C ~m~acros','m',idNone);
-     AddBooleanItem('TP/BP ~7~.0 compatibility','o',idNone);
-     AddBooleanItem('Del~p~hi compatibility','d',idNone);
-     AddBooleanItem('A~l~low STATIC in objects','s',idNone);
-     AddBooleanItem('Strict ~v~ar-strings','',idStrictVarStrings);
-     AddBooleanItem('E~x~tended syntax','',idExtendedSyntax);
-     AddBooleanItem('Allow MMX op~e~rations','',idMMXOps);
+     AddBooleanItem(opt_delphi2extensions,'2',idNone);
+     AddBooleanItem(opt_clikeoperators,'c',idNone);
+     AddBooleanItem(opt_stopafterfirsterror,'e',idNone);
+     AddBooleanItem(opt_allowlabelandgoto,'g',idNone);
+     AddBooleanItem(opt_cplusplusstyledinline,'i',idNone);
+     AddBooleanItem(opt_globalcmacros,'m',idNone);
+     AddBooleanItem(opt_tp7compatibility,'o',idNone);
+     AddBooleanItem(opt_delphicompatibility,'d',idNone);
+     AddBooleanItem(opt_allowstaticinobjects,'s',idNone);
+     AddBooleanItem(opt_strictvarstrings,'',idStrictVarStrings);
+     AddBooleanItem(opt_extendedsyntax,'',idExtendedSyntax);
+     AddBooleanItem(opt_allowmmxoperations,'',idMMXOps);
    end;
   New(VerboseSwitches,Init('v'));
   with VerboseSwitches^ do
    begin
-     AddBooleanItem('~W~arnings','w',idNone);
-     AddBooleanItem('N~o~tes','n',idNone);
-     AddBooleanItem('~H~ints','h',idNone);
-     AddBooleanItem('General ~I~nfo','i',idNone);
-     AddBooleanItem('~U~sed,tried info','ut',idNone);
-     AddBooleanItem('~A~ll','a',idNone);
-     AddBooleanItem('Show all ~P~rocedures if error','b',idNone);
+     AddBooleanItem(opt_warnings,'w',idNone);
+     AddBooleanItem(opt_notes,'n',idNone);
+     AddBooleanItem(opt_hints,'h',idNone);
+     AddBooleanItem(opt_generalinfo,'i',idNone);
+     AddBooleanItem(opt_usedtriedinfo,'ut',idNone);
+     AddBooleanItem(opt_all,'a',idNone);
+     AddBooleanItem(opt_showallprocsonerror,'b',idNone);
    end;
   New(CodegenSwitches,Init('C'));
   with CodegenSwitches^ do
    begin
-     AddBooleanItem('~R~ange checking','r',idRangeChecks);
-     AddBooleanItem('~S~tack checking','t',idStackChecks);
-     AddBooleanItem('~I~/O checking','i',idIOChecks);
-     AddBooleanItem('Integer ~o~verflow checking','o',idOverflowChecks);
+     AddBooleanItem(opt_rangechecking,'r',idRangeChecks);
+     AddBooleanItem(opt_stackchecking,'t',idStackChecks);
+     AddBooleanItem(opt_iochecking,'i',idIOChecks);
+     AddBooleanItem(opt_overflowchecking,'o',idOverflowChecks);
    end;
   New(OptimizingGoalSwitches,InitSelect('O'));
   with OptimizingGoalSwitches^ do
     begin
-       AddSelectItem('Generate ~f~aster code','G',idNone);
-       AddSelectItem('Generate s~m~aller code','g',idNone);
+       AddSelectItem(opt_generatefastercode,'G',idNone);
+       AddSelectItem(opt_generatesmallercode,'g',idNone);
     end;
   New(OptimizationSwitches,Init('O'));
   with OptimizationSwitches^ do
    begin
-     AddBooleanItem('Use regis~t~er-variables','r',idNone);
-     AddBooleanItem('~U~ncertain optimizations','u',idNone);
-     AddBooleanItem('Level ~1~ optimizations','1',idNone);
-     AddBooleanItem('Level ~2~ optimizations','2',idNone);
+     AddBooleanItem(opt_useregistervariables,'r',idNone);
+     AddBooleanItem(opt_uncertainoptimizations,'u',idNone);
+     AddBooleanItem(opt_level1optimizations,'1',idNone);
+     AddBooleanItem(opt_level2optimizations,'2',idNone);
    end;
   New(ProcessorSwitches,InitSelect('O'));
   with ProcessorSwitches^ do
    begin
-     AddSelectItem('i~3~86/i486','p1',idNone);
-     AddSelectItem('Pentium/PentiumMM~X~ (tm)','p2',idNone);
-     AddSelectItem('P~P~ro/PII/c6x86/K6 (tm)','p3',idNone);
+     AddSelectItem(opt_i386486,'p1',idNone);
+     AddSelectItem(opt_pentiumandmmx,'p2',idNone);
+     AddSelectItem(opt_pentiumpro,'p3',idNone);
    end;
   New(TargetSwitches,InitSelect('T'));
   with TargetSwitches^ do
@@ -853,77 +853,77 @@ begin
   New(AsmReaderSwitches,InitSelect('R'));
   with AsmReaderSwitches^ do
    begin
-     AddSelectItem('~D~irect assembler','direct',idAsmDirect);
-     AddSelectItem('~A~T&T style assembler','att',idAsmATT);
-     AddSelectItem('~I~ntel style assembler','intel',idAsmIntel);
+     AddSelectItem(opt_directassembler,'direct',idAsmDirect);
+     AddSelectItem(opt_attassembler,'att',idAsmATT);
+     AddSelectItem(opt_intelassembler,'intel',idAsmIntel);
    end;
   New(AsmInfoSwitches,Init('a'));
   with AsmInfoSwitches^ do
    begin
-     AddBooleanItem('~L~ist source','l',idNone);
-     AddBooleanItem('list ~r~egister allocation','r',idNone);
-     AddBooleanItem('list ~t~emp allocation','t',idNone);
+     AddBooleanItem(opt_listsource,'l',idNone);
+     AddBooleanItem(opt_listregisterallocation,'r',idNone);
+     AddBooleanItem(opt_listtempallocation,'t',idNone);
    end;
   New(AsmOutputSwitches,InitSelect('A'));
   with AsmOutputSwitches^ do
    begin
-     AddSelectItem('Use ~G~NU as','as',idNone);
-     AddSelectItem('Use ~N~ASM coff','nasmcoff',idNone);
-     AddSelectItem('Use NASM ~e~lf','nasmelf',idNone);
-     AddSelectItem('Use NASM ~o~bj','nasmobj',idNone);
-     AddSelectItem('Use ~M~ASM','masm',idNone);
-     AddSelectItem('Use ~T~ASM','tasm',idNone);
-     AddSelectItem('Use ~c~off','coff',idNone);
-     AddSelectItem('Use ~p~ecoff','pecoff',idNone);
+     AddSelectItem(opt_usegnuas,'as',idNone);
+     AddSelectItem(opt_usenasmcoff,'nasmcoff',idNone);
+     AddSelectItem(opt_usenasmelf,'nasmelf',idNone);
+     AddSelectItem(opt_usenasmobj,'nasmobj',idNone);
+     AddSelectItem(opt_usemasm,'masm',idNone);
+     AddSelectItem(opt_usetasm,'tasm',idNone);
+     AddSelectItem(opt_usecoff,'coff',idNone);
+     AddSelectItem(opt_usepecoff,'pecoff',idNone);
    end;
   New(BrowserSwitches,InitSelect('b'));
   with BrowserSwitches^ do
    begin
-     AddSelectItem('N~o~ browser','-',idSymInfNone);
-     AddSelectItem('Only Glob~a~l browser','+',idSymInfGlobalOnly);
-     AddSelectItem('~L~ocal and global browser','l',idSymInfGlobalLocal);
+     AddSelectItem(opt_nobrowser,'-',idSymInfNone);
+     AddSelectItem(opt_globalonlybrowser,'+',idSymInfGlobalOnly);
+     AddSelectItem(opt_localglobalbrowser,'l',idSymInfGlobalLocal);
    end;
   New(ConditionalSwitches,Init('d'));
   with ConditionalSwitches^ do
    begin
-     AddStringItem('Conditio~n~al defines','',idNone,true);
+     AddStringItem(opt_conditionaldefines,'',idNone,true);
    end;
   New(MemorySwitches,Init('C'));
   with MemorySwitches^ do
    begin
-     AddLongintItem('~S~tack size','s',idStackSize);
-     AddLongintItem('~H~eap size','h',idHeapSize);
+     AddLongintItem(opt_stacksize,'s',idStackSize);
+     AddLongintItem(opt_heapsize,'h',idHeapSize);
    end;
   New(DirectorySwitches,Init('F'));
   with DirectorySwitches^ do
    begin
-     AddStringItem('~U~nit directories','u',idNone,true);
-     AddStringItem('~I~nclude directories','i',idNone,true);
-     AddStringItem('~L~ibrary directories','l',idNone,true);
-     AddStringItem('~O~bject directories','o',idNone,true);
-     AddStringItem('~E~XE & PPU directories','E',idNone,true);
+     AddStringItem(opt_unitdirectories,'u',idNone,true);
+     AddStringItem(opt_includedirectories,'i',idNone,true);
+     AddStringItem(opt_librarydirectories,'l',idNone,true);
+     AddStringItem(opt_objectdirectories,'o',idNone,true);
+     AddStringItem(opt_exeppudirectories,'E',idNone,true);
    end;
 
   New(LibLinkerSwitches,InitSelect('X'));
   with LibLinkerSwitches^ do
    begin
-     AddSelectItem('~D~ynamic libraries','D',idNone);
-     AddSelectItem('~S~tatic libraries','S',idNone);
+     AddSelectItem(opt_dynamiclibraries,'D',idNone);
+     AddSelectItem(opt_staticlibraries,'S',idNone);
    end;
   New(DebugInfoSwitches,InitSelect('g'));
   with DebugInfoSwitches^ do
    begin
-     AddSelectItem('~S~trip all debug symbols from executable','-',idNone);
-     AddSelectItem('Generate ~d~ebug symbol information','',idNone);
-     AddSelectItem('Generate also backtrace ~l~ine information','l',idNone);
+     AddSelectItem(opt_stripalldebugsymbols,'-',idNone);
+     AddSelectItem(opt_gendebugsymbolinfo,'',idNone);
+     AddSelectItem(opt_gensymbolandbacktraceinfo,'l',idNone);
      { AddSelectItem('Generate ~d~bx symbol information','d');
        does not work anyhow (PM) }
    end;
   New(ProfileInfoSwitches,InitSelect('p'));
   with ProfileInfoSwitches^ do
    begin
-     AddSelectItem('~N~o profile information','-',idNone);
-     AddSelectItem('Generate profile code for g~p~rof','g',idNone);
+     AddSelectItem(opt_noprofileinfo,'-',idNone);
+     AddSelectItem(opt_gprofinfo,'g',idNone);
    end;
   {New(MemorySizeSwitches,Init('C'));
   with MemorySizeSwitches^ do
@@ -1113,7 +1113,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.21  2000-04-25 08:42:33  pierre
+  Revision 1.22  2000-05-02 08:42:28  pierre
+   * new set of Gabor changes: see fixes.txt
+
+  Revision 1.21  2000/04/25 08:42:33  pierre
    * New Gabor changes : see fixes.txt
 
   Revision 1.20  2000/03/08 16:51:50  pierre

@@ -102,11 +102,11 @@ begin
       if not ExecuteRedir(ExternalCompilerExe,cmd,'','ppc___.out','ppc___.err') then
         begin
           CompilerMessageWindow^.AddMessage(
-            V_error,'Error in external compilation','',0,0);
+            V_error,msg_errorinexternalcompilation,'',0,0);
           CompilerMessageWindow^.AddMessage(
-            V_error,'IOStatus = '+IntTostr(IOStatus),'',0,0);
+            V_error,FormatStrInt(msg_iostatusis,IOStatus),'',0,0);
           CompilerMessageWindow^.AddMessage(
-            V_error,'ExecuteResult = '+IntTostr(ExecuteResult),'',0,0);
+            V_error,FormatStrInt(msg_executeresultis,ExecuteResult),'',0,0);
           if IOStatus<>0 then
             exit;
         end;
@@ -131,6 +131,8 @@ begin
                 val(copy(Line,1,p2-1),ColumnNb,error);
               Line:=Copy(Line,p2+1,255);
               V:=0;
+              { using constants here isn't a good idea, because this won't
+                work with localized versions of the compiler - Gabor }
               If Pos(' Error:',line)=1 then
                 begin
                   V:=V_error;
@@ -206,7 +208,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  2000-03-01 22:37:25  pierre
+  Revision 1.10  2000-05-02 08:42:27  pierre
+   * new set of Gabor changes: see fixes.txt
+
+  Revision 1.9  2000/03/01 22:37:25  pierre
    + USE_EXTERNAL_COMPILER
 
   Revision 1.8  2000/01/03 11:38:34  michael

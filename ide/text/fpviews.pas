@@ -159,6 +159,7 @@ type
       Editor    : PSourceEditor;
       Indicator : PIndicator;
       constructor Init(var Bounds: TRect; AFileName: string);
+      function    GetTitle(MaxSize: sw_Integer): TTitleStr; virtual;
       procedure   SetTitle(ATitle: string); virtual;
       procedure   UpdateTitle; virtual;
       procedure   HandleEvent(var Event: TEvent); virtual;
@@ -434,7 +435,7 @@ uses
   gdbint,
 {$endif NODEBUG}
   {$ifdef VESA}Vesa,{$endif}
-  FPSwitch,FPSymbol,FPDebug,FPVars,FPUtils,FPCompile,FPHelp,
+  FPString,FPSwitch,FPSymbol,FPDebug,FPVars,FPUtils,FPCompile,FPHelp,
   FPTools,FPIDE,FPCodTmp,FPCodCmp;
 
 const
@@ -994,16 +995,16 @@ function TSourceEditor.GetLocalMenu: PMenu;
 var M: PMenu;
 begin
   M:=NewMenu(
-    NewItem('Cu~t~','Shift+Del',kbShiftDel,cmCut,hcCut,
-    NewItem('~C~opy','Ctrl+Ins',kbCtrlIns,cmCopy,hcCopy,
-    NewItem('~P~aste','Shift+Ins',kbShiftIns,cmPaste,hcPaste,
-    NewItem('C~l~ear','Ctrl+Del',kbCtrlDel,cmClear,hcClear,
+    NewItem(menu_edit_cut,menu_key_edit_cut,kbShiftDel,cmCut,hcCut,
+    NewItem(menu_edit_copy,menu_key_edit_copy,kbCtrlIns,cmCopy,hcCopy,
+    NewItem(menu_edit_paste,menu_key_edit_paste,kbShiftIns,cmPaste,hcPaste,
+    NewItem(menu_edit_clear,menu_key_edit_clear,kbCtrlDel,cmClear,hcClear,
     NewLine(
-    NewItem('Open ~f~ile at cursor','',kbNoKey,cmOpenAtCursor,hcOpenAtCursor,
-    NewItem('~B~rowse symbol at cursor','',kbNoKey,cmBrowseAtCursor,hcBrowseAtCursor,
-    NewItem('Topic ~s~earch','Ctrl+F1',kbCtrlF1,cmHelpTopicSearch,hcHelpTopicSearch,
+    NewItem(menu_srclocal_openfileatcursor,'',kbNoKey,cmOpenAtCursor,hcOpenAtCursor,
+    NewItem(menu_srclocal_browseatcursor,'',kbNoKey,cmBrowseAtCursor,hcBrowseAtCursor,
+    NewItem(menu_srclocal_topicsearch,menu_key_help_topicsearch,kbCtrlF1,cmHelpTopicSearch,hcHelpTopicSearch,
     NewLine(
-    NewItem('~O~ptions...','',kbNoKey,cmEditorOptions,hcEditorOptions,
+    NewItem(menu_srclocal_options,'',kbNoKey,cmEditorOptions,hcEditorOptions,
     nil)))))))))));
   GetLocalMenu:=M;
 end;
@@ -1218,12 +1219,12 @@ function TFPHelpViewer.GetLocalMenu: PMenu;
 var M: PMenu;
 begin
   M:=NewMenu(
-    NewItem('C~o~ntents','',kbNoKey,cmHelpContents,hcHelpContents,
-    NewItem('~I~ndex','Shift+F1',kbShiftF1,cmHelpIndex,hcHelpIndex,
-    NewItem('~T~opic search','Ctrl+F1',kbCtrlF1,cmHelpTopicSearch,hcHelpTopicSearch,
-    NewItem('~P~revious topic','Alt+F1',kbAltF1,cmHelpPrevTopic,hcHelpPrevTopic,
+    NewItem(menu_hlplocal_contents,'',kbNoKey,cmHelpContents,hcHelpContents,
+    NewItem(menu_hlplocal_index,menu_key_hlplocal_index,kbShiftF1,cmHelpIndex,hcHelpIndex,
+    NewItem(menu_hlplocal_topicsearch,menu_key_hlplocal_topicsearch,kbCtrlF1,cmHelpTopicSearch,hcHelpTopicSearch,
+    NewItem(menu_hlplocal_prevtopic,menu_key_hlplocal_prevtopic,kbAltF1,cmHelpPrevTopic,hcHelpPrevTopic,
     NewLine(
-    NewItem('~C~opy','Ctrl+Ins',kbCtrlIns,cmCopy,hcCopy,
+    NewItem(menu_hlplocal_copy,menu_key_hlplocal_copy,kbCtrlIns,cmCopy,hcCopy,
     nil)))))));
   GetLocalMenu:=M;
 end;
@@ -1329,7 +1330,7 @@ begin
   if LoadFile then
     begin
       if Editor^.LoadFile=false then
-        ErrorBox(#3'Error reading file.',nil)
+        ErrorBox(FormatStrStr(msg_errorreadingfile,''),nil)
       else if Editor^.GetModified then
         begin
           PA[1]:=@AFileName;
@@ -1359,6 +1360,11 @@ begin
   end;
 end;
 
+function TSourceWindow.GetTitle(MaxSize: sw_Integer): TTitleStr;
+begin
+  GetTitle:=OptimizePath(inherited GetTitle(255),MaxSize);
+end;
+
 procedure TSourceWindow.SetTitle(ATitle: string);
 begin
   if Title<>nil then DisposeStr(Title);
@@ -1386,6 +1392,9 @@ begin
         case Event.Command of
           cmSave :
             if Editor^.IsClipboard=false then
+             if Editor^.FileName='' then
+              Editor^.SaveAs
+             else
               Editor^.Save;
           cmSaveAs :
             if Editor^.IsClipboard=false then
@@ -1458,7 +1467,7 @@ end;
 constructor TSourceWindow.Load(var S: TStream);
 begin
   Title:=S.ReadStr;
-  PushStatus('Loading '+GetStr(Title));
+  PushStatus(FormatStrStr(msg_loadingfile,GetStr(Title)));
   inherited Load(S);
   GetSubViewPtr(S,Indicator);
   GetSubViewPtr(S,Editor);
@@ -1470,7 +1479,7 @@ end;
 procedure TSourceWindow.Store(var S: TStream);
 begin
   S.WriteStr(Title);
-  PushStatus('Storing '+GetStr(Title));
+  PushStatus(FormatStrStr(msg_storingfile,GetStr(Title)));
   inherited Store(S);
 
   PutSubViewPtr(S,Indicator);
@@ -1480,7 +1489,7 @@ end;
 
 destructor TSourceWindow.Done;
 begin
-  PushStatus('Closing '+GetStr(Title));
+  PushStatus(FormatStrStr(msg_closingfile,GetStr(Title)));
   if not IDEApp.IsClosing then
     Message(Application,evBroadcast,cmSourceWndClosing,@Self);
   inherited Done;
@@ -1544,7 +1553,7 @@ constructor TGDBWindow.Init(var Bounds: TRect);
 var HSB,VSB: PScrollBar;
     R: TRect;
 begin
-  inherited Init(Bounds,'GDB window',0);
+  inherited Init(Bounds,dialog_gdbwindow,0);
   Options:=Options or ofTileAble;
   AutoNumber:=true;
   HelpCtx:=hcGDBWindow;
@@ -1562,7 +1571,7 @@ begin
   if ExistsFile(GDBOutputFile) then
     begin
       if Editor^.LoadFile=false then
-        ErrorBox(#3'Error reading file'#13#3+GDBOutputFile,nil);
+        ErrorBox(FormatStrStr(msg_errorreadingfile,GDBOutputFile),nil);
     end
   else
   { Empty files are buggy !! }
@@ -1662,7 +1671,7 @@ var R: TRect;
 begin
   Desktop^.GetExtent(R);
   inherited Init(R, '');
-  SetTitle('Clipboard');
+  SetTitle(dialog_clipboard);
   HelpCtx:=hcClipboardWindow;
   Number:=wnNoNumber;
   AutoNumber:=true;
@@ -1723,10 +1732,10 @@ var M: PMenu;
 begin
   if (Owner<>nil) and (Owner^.GetState(sfModal)) then M:=nil else
   M:=NewMenu(
-    NewItem('~C~lear','',kbNoKey,cmMsgClear,hcMsgClear,
+    NewItem(menu_msglocal_clear,'',kbNoKey,cmMsgClear,hcMsgClear,
     NewLine(
-    NewItem('~G~oto source','',kbNoKey,cmMsgGotoSource,hcMsgGotoSource,
-    NewItem('~T~rack source','',kbNoKey,cmMsgTrackSource,hcMsgTrackSource,
+    NewItem(menu_msglocal_gotosource,'',kbNoKey,cmMsgGotoSource,hcMsgGotoSource,
+    NewItem(menu_msglocal_tracksource,'',kbNoKey,cmMsgTrackSource,hcMsgTrackSource,
     nil)))));
   GetLocalMenu:=M;
 end;
@@ -2076,7 +2085,7 @@ var R,R2: TRect;
 const White = 15;
 begin
   Desktop^.GetExtent(R); R.A.Y:=R.B.Y-13;
-  inherited Init(R, 'Program Information', wnNoNumber);
+  inherited Init(R, dialog_programinformation, wnNoNumber);
 
   HelpCtx:=hcInfoWindow;
 
@@ -2150,12 +2159,21 @@ end;
 
 procedure TProgramInfoWindow.Update;
 begin
+  ClearFormatParams;
+  AddFormatParamStr(label_proginfo_currentmodule);
+  AddFormatParamStr(MainFile);
+  AddFormatParamStr(label_proginfo_lastexitcode);
+  AddFormatParamInt(LastExitCode);
+  AddFormatParamStr(label_proginfo_availablememory);
+  AddFormatParamInt(MemAvail div 1024);
   InfoST^.SetText(
+   FormatStrF(
     {#13+ }
-    '   Current module : '+MainFile+#13+
-    '   Last exit code : '+IntToStr(LastExitCode)+#13+
-    ' Available memory : '+IntToStrL(MemAvail div 1024,5)+'K'+#13+
-    ''
+    '%24s : %s'#13+
+    '%24s : %d'#13+
+    '%24s : %5d'+'K'+#13+
+    '',
+   FormatParams)
   );
 end;
 
@@ -2604,7 +2622,7 @@ var R: TRect;
     VSB,HSB: PScrollBar;
 begin
   Desktop^.GetExtent(R);
-  inherited Init(R, 'User screen', ANumber);
+  inherited Init(R, dialog_userscreen, ANumber);
   Options:=Options or ofTileAble;
   GetExtent(R); R.Grow(-1,-1); R.Move(1,0); R.A.X:=R.B.X-1;
   New(VSB, Init(R)); VSB^.Options:=VSB^.Options or ofPostProcess;
@@ -2681,7 +2699,7 @@ var R: TRect;
 begin
   if Assigned(Bounds) then R.Copy(Bounds^) else
     GetNextEditorBounds(R);
-  PushStatus('Opening source file... ('+SmartPath(FileName)+')');
+  PushStatus(FormatStrStr(msg_openingsourcefile,SmartPath(FileName)));
   New(W, Init(R, FileName));
   if ShowIt=false then
     W^.Hide;
@@ -2860,13 +2878,20 @@ begin
   R.Assign(0,0,0,0);
   New(E, Init(R,nil,nil,nil,nil,FileName));
   OK:=E<>nil;
-  if OK then OK:=E^.LoadFile;
+  if OK then
+  begin
+    PushStatus(FormatStrStr(msg_readingfileineditor,FileName));
+    OK:=E^.LoadFile;
+    PopStatus;
+   end;
   if OK then
     begin
+      Editor^.Lock;
       E^.SelectAll(true);
       Editor^.InsertFrom(E);
       Editor^.SetCurPtr(0,0);
       Editor^.SelectAll(false);
+      Editor^.UnLock;
       Dispose(E, Done);
     end;
   StartEditor:=OK;
@@ -2981,7 +3006,7 @@ begin
   OSStr:='OS/2';
 {$endif}
   R.Assign(0,0,38,14{$ifdef NODEBUG}-1{$endif});
-  inherited Init(R, 'About');
+  inherited Init(R, dialog_about);
 
   GetExtent(R); R.Grow(-3,-2);
   R2.Copy(R); R2.B.Y:=R2.A.Y+1;
@@ -2991,12 +3016,12 @@ begin
     {$ifdef FPC}+' '+{$i %date%}{$endif}
     )));
   R2.Move(0,1);
-  Insert(New(PStaticText, Init(R2, ^C'(Compiler Version '+Version_String+')')));
+  Insert(New(PStaticText, Init(R2, FormatStrStr2(^C'(%s %s)',label_about_compilerversion,Version_String))));
 {$ifndef NODEBUG}
   if pos('Fake',GDBVersion)=0 then
     begin
       R2.Move(0,1);
-      Insert(New(PStaticText, Init(R2, ^C'(Debugger '+GDBVersion+')')));
+      Insert(New(PStaticText, Init(R2, FormatStrStr2(^C'(%s %s)',label_about_debugger,GDBVersion))));
       R2.Move(0,1);
     end
   else
@@ -3347,7 +3372,7 @@ end;
 
 procedure NoDebugger;
 begin
-  InformationBox('No debugger support available.',nil);
+  InformationBox(msg_nodebuggersupportavailable,nil);
 end;
 
 procedure RegisterFPViews;
@@ -3369,7 +3394,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.68  2000-04-25 08:42:34  pierre
+  Revision 1.69  2000-05-02 08:42:29  pierre
+   * new set of Gabor changes: see fixes.txt
+
+  Revision 1.68  2000/04/25 08:42:34  pierre
    * New Gabor changes : see fixes.txt
 
   Revision 1.67  2000/04/18 11:42:37  pierre

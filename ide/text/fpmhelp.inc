@@ -72,12 +72,12 @@ var R,R2: TRect;
     SB: PScrollBar;
     I: integer;
 begin
-  R.Assign(0,0,50,15);
-  inherited Init(R, 'Install Help Files');
+  R.Assign(0,0,round(ScreenWidth*5/8),ScreenHeight-10);
+  inherited Init(R, dialog_helpfiles);
 
   New(C, Init(20,10));
 
-  GetExtent(R); R.Grow(-2,-2); Inc(R.A.Y); R.B.X:=37;
+  GetExtent(R); R.Grow(-2,-2); Inc(R.A.Y); R.B.X:=R.B.X-13;
   R2.Copy(R); R2.Move(1,0); R2.A.X:=R2.B.X-1;
   New(SB, Init(R2)); Insert(SB);
   New(LB, Init(R, 1, SB));
@@ -90,16 +90,16 @@ begin
   LB^.NewList(C);
   Insert(LB);
   R2.Copy(R); Dec(R2.A.Y); R2.B.Y:=R2.A.Y+1;
-  Insert(New(PLabel, Init(R2, '~H~elp files', LB)));
+  Insert(New(PLabel, Init(R2, label_helpfiles_helpfiles, LB)));
 
-  GetExtent(R); R.Grow(-2,-2); Inc(R.A.Y); R.A.X:=38; R.B.Y:=R.A.Y+2;
-  Insert(New(PButton, Init(R, 'O~K~', cmOK, bfDefault)));
+  GetExtent(R); R.Grow(-2,-2); Inc(R.A.Y); R.A.X:=R.B.X-13+1; R.B.Y:=R.A.Y+2;
+  Insert(New(PButton, Init(R, button_OK, cmOK, bfDefault)));
   R.Move(0,2);
-  Insert(New(PButton, Init(R, '~N~ew', cmAddItem, bfNormal)));
+  Insert(New(PButton, Init(R, button_New, cmAddItem, bfNormal)));
   R.Move(0,2);
-  Insert(New(PButton, Init(R, '~D~elete', cmDeleteItem, bfNormal)));
+  Insert(New(PButton, Init(R, button_Delete, cmDeleteItem, bfNormal)));
   R.Move(0,2);
-  Insert(New(PButton, Init(R, 'Cancel', cmCancel, bfNormal)));
+  Insert(New(PButton, Init(R, button_Cancel, cmCancel, bfNormal)));
 
   LB^.Select;
 end;
@@ -133,47 +133,50 @@ begin
         cmAddItem :
           begin
             S:='';
-            New(D, Init(HelpFileExts,'Install a help file','~H~elp file name',fdOpenButton,0));
+            New(D, Init(HelpFileExts,
+              dialog_installhelpfile,
+              label_installhelpfile_filename,
+              fdOpenButton,0));
             Re:=Desktop^.ExecView(D);
             if Re<>cmCancel then
             begin
               D^.GetFileName(FileName);
-              if UpcaseStr(ExtOf(FileName))='.HTX' then
+              if UpcaseStr(ExtOf(FileName))=UpcaseStr(HTMLIndexExt) then
                 begin
                   S:='HTML Index';
                 end
               else
-              if UpcaseStr(copy(ExtOf(FileName),1,4))='.HTM' then
+              if UpcaseStr(copy(ExtOf(FileName),1,length(HTMLExt)))=UpcaseStr(HTMLExt) then
               begin
-                Re:=ConfirmBox('Create keyword index from help file?',nil,true);
+                Re:=ConfirmBox(msg_createkeywordindexforhelpfile,nil,true);
                 if Re<>cmCancel then
                 if Re=cmNo then
-                  Re:=InputBox('Topic title','Title',S,40)
+                  Re:=InputBox(dialog_topictitle,label_topictitle_title,S,40)
                 else
                   begin
-                    ShowMessage('Please wait while creating index...');
+                    ShowMessage(msg_pleasewaitwhilecreatingindex);
                     S:='HTML Index';
-                    PushStatus('Building index file '+FileName);
+                    PushStatus(FormatStrStr(msg_buildingindexfile,FileName));
                     New(LS, Init);
                     LS^.ProcessDocument(FileName,[soSubDocsOnly]);
                     if LS^.GetDocumentCount=0 then
                       begin
-                        ErrorBox(FileName+' doesn''t contain any links, thus it isn''t suitable for indexing.',nil);
+                        ErrorBox(FormatStrStr(msg_filedoesnotcontainanylinks,FileName),nil);
                         Re:=cmCancel;
                       end
                     else
                       begin
                         FileName:=DirAndNameOf(FileName)+HTMLIndexExt;
                         if ExistsFile(FileName) then
-                          if ConfirmBox('Index file '+FileName+' already exists. Overwrite?',nil,true)<>cmYes then
+                          if ConfirmBox(FormatStrStr(msg_filealreadyexistsoverwrite,FileName),nil,true)<>cmYes then
                             Re:=cmCancel;
                         if Re<>cmCancel then
                         begin
-                          PushStatus('Storing HTML index in '+FileName);
+                          PushStatus(FormatStrStr(msg_storinghtmlindexinfile,FileName));
                           New(BS, Init(FileName, stCreate, 4096));
                           if Assigned(BS)=false then
                             begin
-                              ErrorBox('Can''t create '+FileName,nil);
+                              ErrorBox(FormatStrStr(msg_cantcreatefile,FileName),nil);
                               Re:=cmCancel;
                             end
                           else
@@ -183,7 +186,7 @@ begin
                               LS^.StoreDocuments(BS^);
                               if BS^.Status<>stOK then
                                 begin
-                                  ErrorBox('Error storing index data',nil);
+                                  ErrorBox(msg_errorstoringindexdata,nil);
                                   Re:=cmCancel;
                                 end;
                               Dispose(BS, Done);
@@ -249,7 +252,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  2000-04-25 08:42:33  pierre
+  Revision 1.10  2000-05-02 08:42:28  pierre
+   * new set of Gabor changes: see fixes.txt
+
+  Revision 1.9  2000/04/25 08:42:33  pierre
    * New Gabor changes : see fixes.txt
 
   Revision 1.8  2000/02/07 08:29:13  michael

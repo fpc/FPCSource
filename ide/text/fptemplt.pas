@@ -19,6 +19,12 @@ interface
 
 uses FPViews;
 
+const
+      tsDate         = '$DATE';
+      tsDateCustom   = '$DATE(';
+      tsTime         = '$TIME';
+      tsPrompt       = '$PROMPT(';
+
 function  GetTemplateCount: integer;
 function  GetTemplateName(Index: integer): string;
 function  StartTemplate(Index: integer; Editor: PSourceEditor): boolean;
@@ -30,12 +36,14 @@ implementation
 
 uses
   Dos,Objects,
+  Commands,MsgBox,
+  WUtils,
 {$ifdef EDITORS}
   Editors,
 {$else}
   WEditor,
 {$endif}
-  FPVars,FPUtils;
+  FPConst,FPVars,FPString,FPUtils;
 
 type
     PTemplate = ^TTemplate;
@@ -109,6 +117,113 @@ begin
   GetTemplateName:=Templates^.At(Index)^.Name^;
 end;
 
+function SearchStr(const InS, SubS: string; var P: sw_integer): boolean;
+begin
+  P:=Pos(SubS,InS);
+  SearchStr:=(P<>0);
+end;
+
+procedure ReplaceStr(var S: string; StartP,Len: sw_integer; const NewS: string);
+begin
+  Delete(S,StartP,Len);
+  Insert(NewS,S,StartP);
+end;
+
+function ReadStringPos(const InS: string; StartP: sw_integer; var Expr: string; var EndPos: sw_integer): sw_integer;
+const Enclosers : string[2] = '''"';
+var OK: boolean;
+    Encloser: char;
+    P: sw_integer;
+begin
+  OK:=false; Expr:=''; P:=StartP; EndPos:=-1;
+  if length(InS)>=P then
+  begin
+    P:=Pos(InS[P],Enclosers);
+    OK:=(P<>0);
+    if OK then
+    begin
+      OK:=false;
+      Encloser:=Enclosers[P];
+      P:=StartP;
+      Inc(P);
+      while (P<=length(InS)) do
+      begin
+        if InS[P]<>Encloser then
+          Expr:=Expr+InS[P]
+        else
+          if (P+1<=length(InS)) and (InS[P+1]=Encloser) then
+            Expr:=Expr+InS[P]
+          else
+            begin
+              OK:=true;
+              Break;
+            end;
+        Inc(P);
+      end;
+      EndPos:=P;
+    end;
+  end;
+  if OK then
+    ReadStringPos:=length(Expr)
+  else
+    ReadStringPos:=-1;
+end;
+
+function ReadString(const InS: string; StartP: sw_integer; var Expr: string): sw_integer;
+var P: sw_integer;
+begin
+  ReadString:=ReadStringPos(InS,StartP,Expr,P);
+end;
+
+function ProcessTemplateLine(var S: string): boolean;
+var OK: boolean;
+    P,EndP: sw_integer;
+    Name,Expr: string;
+begin
+  OK:=true;
+  repeat
+    P:=0; Expr:='';
+    if OK and SearchStr(S,tsPrompt,P) then
+      if ReadStringPos(S,P+length(tsPrompt),Name,EndP)>=0 then
+        if copy(S,EndP+1,1)=')' then
+         begin
+           OK:=InputBox(dialog_fillintemplateparameter,Name,Expr,255)=cmOK;
+           if OK then
+             ReplaceStr(S,P,EndP-P+1+1,Expr);
+         end;
+    if OK and SearchStr(S,tsDateCustom,P) then
+      if ReadStringPos(S,P+length(tsDateCustom),Expr,EndP)>=0 then
+        if copy(S,EndP+1,1)=')' then
+           ReplaceStr(S,P,EndP-P+1+1,FormatDateTimeL(Now,Expr));
+    if OK and SearchStr(S,tsDate,P) then
+      ReplaceStr(S,P,length(tsDate),FormatDateTimeL(Now,'yyyy/mm/dd'));
+    if OK and SearchStr(S,tsTime,P) then
+      ReplaceStr(S,P,length(tsTime),FormatDateTimeL(Now,'hh:nn:ss'));
+  until P=0;
+  ProcessTemplateLine:=OK;
+end;
+
+function ProcessTemplate(Editor: PSourceEditor): boolean;
+var OK: boolean;
+    I: sw_integer;
+    S,OrigS: string;
+begin
+  OK:=true;
+  with Editor^ do
+  for I:=0 to GetLineCount-1 do
+  begin
+    S:=GetDisplayText(I); OrigS:=S;
+    OK:=ProcessTemplateLine(S);
+    if OK=false then Break;
+    if S<>OrigS then
+    begin
+      SetDisplayText(I,S);
+      UpdateAttrs(I,attrAll);
+     end;
+  end;
+  ProcessTemplate:=OK;
+end;
+
 function StartTemplate(Index: integer; Editor: PSourceEditor): boolean;
 var
     T: PTemplate;
@@ -116,6 +231,10 @@ var
 begin
   T:=Templates^.At(Index);
   OK:=StartEditor(Editor,T^.Path^);
+  if OK then
+  begin
+    ProcessTemplate(Editor);
+  end;
   StartTemplate:=OK;
 end;
 
@@ -133,7 +252,7 @@ procedure InitTemplates;
       i : sw_integer; 
   begin
     if copy(Dir,length(Dir),1)<>DirSep then Dir:=Dir+DirSep;
-    FindFirst(Dir+'*.pt',AnyFile,SR);
+    FindFirst(Dir+'*'+TemplateExt,AnyFile,SR);
     while (DosError=0) do
     begin
       S:=NameOf(SR.Name);
@@ -170,7 +289,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.8  1999-06-25 00:33:40  pierre
+  Revision 1.9  2000-05-02 08:42:28  pierre
+   * new set of Gabor changes: see fixes.txt
+
+  Revision 1.8  1999/06/25 00:33:40  pierre
    * avoid lost memory on duplicate Template Items
 
   Revision 1.7  1999/03/08 14:58:11  peter

@@ -58,7 +58,7 @@ begin
   Err:=ParseToolParams(Params,false);
   if Err=-1 then Exit;
   if Err<>0 then
-    begin ErrorBox(^C'Error parsing tool params.',nil); Exit; end;
+    begin ErrorBox(msg_errorparsingtoolparams,nil); Exit; end;
   if CaptureToolTo<>capNone then
     begin
       CaptureFile:=ToolCaptureName;
@@ -81,7 +81,7 @@ begin
   else
     ToFocus:=-1;
   if CaptureToolTo<>capNone then
-    ShowMessage('Executing tool '+KillTilde(Title)+'...');
+    ShowMessage(FormatStrStr(msg_executingtool,KillTilde(Title)));
 
   Executed:=DoExecute(ProgramPath,Params,'',CaptureFile,ExecMode);
 
@@ -96,27 +96,27 @@ begin
           W:=OpenEditorWindow(nil,'',0,0);
           if W<>nil then
             if StartEditor(W^.Editor,CaptureFile)=false then
-              ErrorBox('Error reading output.',nil);
+              ErrorBox(msg_errorreadingoutput,nil);
         end
       else
       if ToolFilter<>'' then
         begin
-          ShowMessage('Executing filter for '+KillTilde(Title)+'...');
+          ShowMessage(FormatStrStr(msg_executingfilterfor,KillTilde(Title)));
           DoExecute(ToolFilter,'',CaptureFile,FilterCaptureName,exNoSwap);
           HideMessage;
           if (DosError=0) and (DosExitCode=0) then
             begin
               if ExistsFile(FilterCaptureName)=false then
-                ErrorBox('Can''t find filtered output.',nil)
+                ErrorBox(msg_cantfindfilteredoutput,nil)
               else
                 if ProcessMessageFile(FilterCaptureName)=false then
-                  ErrorBox('Error processing filtered output.',nil);
+                  ErrorBox(msg_errorprocessingfilteredoutput,nil);
             end
           else
             if (DosError<>0) then
-              ErrorBox('Error executing filter '+KillTilde(GetToolName(Idx-1)),nil) else
+              ErrorBox(FormatStrStr(msg_errorexecutingfilter,KillTilde(GetToolName(Idx-1))),nil) else
             if DosExitCode<>0 then
-              ErrorBox('Filter execution successful. Exit code '+IntToStr(DosExitCode),nil);
+              ErrorBox(FormatStrInt(msg_filterexecutionsuccessfulexitcodeis,DosExitCode),nil);
           UpdateToolMessages;
           if (ToFocus<>-1) then
             if Assigned(MessagesWindow) then
@@ -126,9 +126,9 @@ begin
         end;
     end else
   if (DosError<>0) then
-    ErrorBox('Error executing tool '+KillTilde(GetToolName(Idx-1)),nil) else
+    ErrorBox(FormatStrStr(msg_errorexecutingtool,KillTilde(GetToolName(Idx-1))),nil) else
   if DosExitCode<>0 then
-    ErrorBox('Tool execution successful. Exit code '+IntToStr(DosExitCode),nil);
+    ErrorBox(FormatStrInt(msg_toolexecutionsuccessfulexitcodeis,DosExitCode),nil);
 {$ifndef DEBUG}
   EraseFile(CaptureFile);
   EraseFile(FilterCaptureName);
@@ -162,7 +162,7 @@ begin
   GrepExe:=GrepExeName;
   If not LocateExeFile(GrepExe) then
     Begin
-      ErrorBox('Grep program not found',nil);
+      ErrorBox(msg_grepprogramnotfound,nil);
       Exit;
     End;
 { Try to load the word from the editor }
@@ -182,7 +182,7 @@ begin
   GrepArgs:=' -i "$TEXT" '+s;
 { Dialog }
   R.Assign(0,0,50,8);
-  new(PGrepDialog,Init(R,'Grep arguments'));
+  new(PGrepDialog,Init(R,dialog_greparguments));
   with PGrepDialog^ do
     begin
       R2.A.Y:=R.A.Y+3;
@@ -193,7 +193,7 @@ begin
       IL1^.Data^:=SearchWord;
       Insert(IL1);
       R2.Move(0,-1);
-      Insert(New(PLabel, Init(R2, '~T~ext to find', IL1)));
+      Insert(New(PLabel, Init(R2, label_grep_texttofind, IL1)));
       R1.Assign(R2.B.X, R2.A.Y+1, R2.B.X+3, R2.B.Y+1);
       Control := New(PHistory, Init(R1, IL1, TextGrepId));
       Insert(Control);
@@ -203,7 +203,7 @@ begin
       IL2^.Data^:=GrepArgs;
       Insert(IL2);
       R2.Move(0,-1);
-      Insert(New(PLabel, Init(R2, '~G~rep arguments', IL2)));
+      Insert(New(PLabel, Init(R2, label_grep_greparguments, IL2)));
       R1.Assign(R2.B.X, R2.A.Y+1, R2.B.X+3, R2.B.Y+1);
       Control := New(PHistory, Init(R1, IL2, GrepArgsId));
       Insert(Control);
@@ -227,7 +227,7 @@ begin
            MessagesWindow^.FocusItem(ToFocus);
          showmsg:=true;
          Messages;
-         PushStatus('Running Grep '+' -n '+GrepArgs);
+         PushStatus(FormatStrStr(msg_runninggrepwithargs,GrepArgs));
          if not ExecuteRedir(GrepExe,'-n '+GrepArgs,'',GrepOutName,GrepErrName) then
            Begin
               PopStatus;
@@ -237,7 +237,7 @@ begin
                 begin
                   Params[0]:=IOStatus;
                   Params[1]:=ExecuteResult;
-                  WarningBox(#3'Error running Grep'#13#3'DosError = %d'#13#3'Exit code = %d',@Params);
+                  WarningBox(msg_errorrunninggrep,@Params);
                 end;
            End
          else
@@ -269,8 +269,10 @@ begin
            Erase(GrepOut)
          else
            begin
-             Params[0]:=GrepOutputLine;
-             WarningBox(#3'Error reading Grep output'#13#3'In line %d of '+GrepOutName,@Params);
+             ClearFormatParams;
+             AddFormatParamInt(GrepOutputLine);
+             AddFormatParamStr(GrepOutName);
+             WarningBox(msg_errorreadinggrepoutput,@FormatParams);
            end;
        { Delete also grep$$.err }
          if not error_in_reading then
@@ -294,7 +296,10 @@ end;
 
 {
   $Log$
-  Revision 1.19  2000-03-13 20:32:56  pierre
+  Revision 1.20  2000-05-02 08:42:28  pierre
+   * new set of Gabor changes: see fixes.txt
+
+  Revision 1.19  2000/03/13 20:32:56  pierre
    + Grep running also in Status line
 
   Revision 1.18  2000/03/02 22:33:36  pierre

@@ -106,6 +106,7 @@
   {$define DEBUG}
   {$undef EXEDEBUG}
   {$undef USERESSTRINGS}
+  {$define LANG_HUN}
 {$endif}
 
 {$ifdef NOWINCLIP}

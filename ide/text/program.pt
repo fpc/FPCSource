@@ -1,6 +1,6 @@
-program ;
+program $PROMPT('program');
 
-uses ;
+uses $PROMPT('uses');
 
 BEGIN
 END.

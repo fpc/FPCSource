@@ -262,10 +262,10 @@ begin
   GetExtent(R); R.Grow(-3,-2); R3.Copy(R);
   Inc(R.A.Y); R.B.Y:=R.A.Y+1; R.B.X:=R.A.X+46;
   New(ShortCutIL, Init(R, 128)); Insert(ShortcutIL);
-  R2.Copy(R); R2.Move(-1,-1); Insert(New(PLabel, Init(R2, '~S~hortcut', ShortcutIL)));
+  R2.Copy(R); R2.Move(-1,-1); Insert(New(PLabel, Init(R2, label_codetemplate_shortcut, ShortcutIL)));
   R.Move(0,3); R.B.Y:=R.A.Y+8;
   New(CodeMemo, Init(R, nil,nil,nil{,4096 does not compile !! })); Insert(CodeMemo);
-  R2.Copy(R); R2.Move(-1,-1); R2.B.Y:=R2.A.Y+1; Insert(New(PLabel, Init(R2, '~T~emplate content', CodeMemo)));
+  R2.Copy(R); R2.Move(-1,-1); R2.B.Y:=R2.A.Y+1; Insert(New(PLabel, Init(R2, label_codetemplate_content, CodeMemo)));
 
   InsertButtons(@Self);
 
@@ -309,7 +309,7 @@ begin
   New(CodeTemplatesLB, Init(R,1,SB));
   Insert(CodeTemplatesLB);
   R2.Copy(R); R2.Move(0,-1); R2.B.Y:=R2.A.Y+1; Dec(R2.A.X);
-  Insert(New(PLabel, Init(R2, '~T~emplates', CodeTemplatesLB)));
+  Insert(New(PLabel, Init(R2, label_codetemplate_templates, CodeTemplatesLB)));
 
   GetExtent(R); R.Grow(-2,-2); Inc(R.A.Y,12);
   R2.Copy(R); R2.Move(1,0); R2.A.X:=R2.B.X-1;
@@ -323,15 +323,15 @@ begin
   Insert(TemplateViewer);
 
   R.Copy(R3); R.A.X:=R.B.X-10; R.B.Y:=R.A.Y+2;
-  Insert(New(PButton, Init(R, 'O~K~', cmOK, bfNormal)));
+  Insert(New(PButton, Init(R, button_OK, cmOK, bfNormal)));
   R.Move(0,2);
-  Insert(New(PButton, Init(R, '~E~dit', cmEditItem, bfDefault)));
+  Insert(New(PButton, Init(R, button_Edit, cmEditItem, bfDefault)));
   R.Move(0,2);
-  Insert(New(PButton, Init(R, '~N~ew', cmAddItem, bfNormal)));
+  Insert(New(PButton, Init(R, button_New, cmAddItem, bfNormal)));
   R.Move(0,2);
-  Insert(New(PButton, Init(R, '~D~elete', cmDeleteItem, bfNormal)));
+  Insert(New(PButton, Init(R, button_Delete, cmDeleteItem, bfNormal)));
   R.Move(0,2);
-  Insert(New(PButton, Init(R, 'Cancel', cmCancel, bfNormal)));
+  Insert(New(PButton, Init(R, button_Cancel, cmCancel, bfNormal)));
   SelectNext(false);
 end;
 
@@ -441,14 +441,17 @@ begin
     end;
   New(P, Init(S,L));
   repeat
-    Cmd:=Application^.ExecuteDialog(New(PCodeTemplateDialog, Init('New template',P)), nil);
+    Cmd:=Application^.ExecuteDialog(New(PCodeTemplateDialog, Init(dialog_newtemplate,P)), nil);
     CanExit:=(Cmd<>cmOK);
     if CanExit=false then
       begin
         P2:=PCodeTemplateCollection(CodeTemplatesLB^.List)^.SearchByShortCut(P^.GetShortCut);
         CanExit:=(Assigned(P2)=false);
         if CanExit=false then
-          ErrorBox('A template named "'+P^.GetShortCut+'" is already in the list',nil);
+        begin
+          ClearFormatParams; AddFormatParamStr(P^.GetShortCut);
+          ErrorBox(msg_codetemplate_alreadyinlist,@FormatParams);
+        end;
       end;
   until CanExit;
   if Cmd=cmOK then
@@ -478,14 +481,17 @@ begin
   O^.GetParams(S,L);
   P:=New(PCodeTemplate, Init(S, L));
   repeat
-    Cmd:=Application^.ExecuteDialog(New(PCodeTemplateDialog, Init('Modify template',P)), nil);
+    Cmd:=Application^.ExecuteDialog(New(PCodeTemplateDialog, Init(dialog_modifytemplate,P)), nil);
     CanExit:=(Cmd<>cmOK);
     if CanExit=false then
       begin
         P2:=PCodeTemplateCollection(CodeTemplatesLB^.List)^.SearchByShortCut(P^.GetShortCut);
         CanExit:=(Assigned(P2)=false) or (CodeTemplatesLB^.List^.IndexOf(P2)=I);
         if CanExit=false then
-          ErrorBox('A template named "'+P^.GetShortCut+'" is already in the list',nil);
+        begin
+          ClearFormatParams; AddFormatParamStr(P^.GetShortCut);
+          ErrorBox(msg_codetemplate_alreadyinlist,@FormatParams);
+        end;
       end;
   until CanExit;
   if Cmd=cmOK then

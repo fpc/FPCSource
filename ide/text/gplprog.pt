@@ -1,9 +1,9 @@
 {
-    $Id$
-    <partof>
-    Copyright (c) 1998 by <yourname>
+    $Id$DATE $TIME peter Exp $
+    This file is part of $PROMPT('This file is part of')
+    Copyright (c) $DATE('yyyy') by $PROMPT('Your name')
 
-    <infoline>
+    $PROMPT('Description of file')
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -13,16 +13,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-program ;
+program $PROMPT('program');
 
-uses ;
+uses $PROMPT('uses');
 
 BEGIN
 END.
 {
   $Log$
-  Revision 1.1  1999-02-19 15:37:26  peter
+  Revision 1.2  2000-05-02 08:42:29  pierre
+   * new set of Gabor changes: see fixes.txt
+
+  Revision 1.1  1999/02/19 15:37:26  peter
     + init
 
 }
-

@@ -193,6 +193,21 @@ function  GetMenuItemBefore(Menu:PMenu; BeforeOf: PMenuItem): PMenuItem;
 
 procedure NotImplemented;
 
+var  FormatParams     : array[1..20] of longint;
+     FormatParamCount : integer;
+     FormatParamStrs  : array[1..10] of string;
+     FormatParamStrCount: integer;
+
+procedure ClearFormatParams;
+procedure AddFormatParam(P: pointer);
+procedure AddFormatParamInt(L: longint);
+procedure AddFormatParamChar(C: char);
+procedure AddFormatParamStr(const S: string);
+function FormatStrF(const Format: string; var Params): string;
+function FormatStrStr(const Format, Param: string): string;
+function FormatStrStr2(const Format, Param1,Param2: string): string;
+function FormatStrInt(const Format: string; L: longint): string;
+
 procedure RegisterWViews;
 
 implementation
@@ -2063,6 +2078,67 @@ begin
   S.Write(Default,SizeOf(Default));
 end;
 
+procedure ClearFormatParams;
+begin
+  FormatParamCount:=0; FillChar(FormatParams,sizeof(FormatParams),0);
+  FormatParamStrCount:=0;
+end;
+
+procedure AddFormatParam(P: pointer);
+begin
+  AddFormatParamInt(longint(P));
+end;
+
+procedure AddFormatParamInt(L: longint);
+begin
+  Inc(FormatParamCount);
+  FormatParams[FormatParamCount]:=L;
+end;
+
+procedure AddFormatParamChar(C: char);
+begin
+  AddFormatParamInt(ord(C));
+end;
+
+procedure AddFormatParamStr(const S: string);
+begin
+  Inc(FormatParamStrCount); FormatParamStrs[FormatParamStrCount]:=S;
+  AddFormatParam(@FormatParamStrs[FormatParamStrCount]);
+end;
+
+function FormatStrF(const Format: string; var Params): string;
+var S: string;
+begin
+  S:='';
+  FormatStr(S,Format,Params);
+  FormatStrF:=S;
+end;
+
+function FormatStrStr(const Format, Param: string): string;
+var S: string;
+    P: pointer;
+begin
+  P:=@Param;
+  FormatStr(S,Format,P);
+  FormatStrStr:=S;
+end;
+
+function FormatStrStr2(const Format, Param1,Param2: string): string;
+var S: string;
+    P: array[1..2] of pointer;
+begin
+  P[1]:=@Param1; P[2]:=@Param2;
+  FormatStr(S,Format,P);
+  FormatStrStr2:=S;
+end;
+
+function FormatStrInt(const Format: string; L: longint): string;
+var S: string;
+begin
+  FormatStr(S,Format,L);
+  FormatStrInt:=S;
+end;
+
 procedure RegisterWViews;
 begin
 {$ifndef NOOBJREG}
@@ -2077,7 +2153,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.12  2000-04-18 11:42:39  pierre
+  Revision 1.13  2000-05-02 08:42:29  pierre
+   * new set of Gabor changes: see fixes.txt
+
+  Revision 1.12  2000/04/18 11:42:39  pierre
    lot of Gabor changes : see fixes.txt
 
   Revision 1.11  2000/01/10 15:53:37  pierre

@@ -45,14 +45,11 @@ const
      DesktopTempName      = 'fp___.dsk';
 
      HTMLIndexExt         = '.htx';
+     HTMLExt              = '.htm';
      HelpFileExts         = '*.tph;*.htm*;*'+HTMLIndexExt;
+     TemplateExt          = '.pt';
 
      EnterSign            = #17#196#217;
-
-     { Strings/Messages }
-     strLoadingHelp       = 'Loading help files...';
-     strBuildingHelpIndex = 'Building Help Index...';
-     strLocatingTopic     = 'Locating topic...';
 
      { Main menu submenu indexes }
      menuFile             = 0;
@@ -71,6 +68,7 @@ const
 
      { Startup Option constants }
      soReturnToLastDir    = $00000001;
+     soHeapMonitor        = $00000002;
 
      { Desktop Flag constants - what to include in the desktop file }
      dfHistoryLists       = $00000001;
@@ -395,7 +393,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.37  2000-04-25 08:42:33  pierre
+  Revision 1.38  2000-05-02 08:42:27  pierre
+   * new set of Gabor changes: see fixes.txt
+
+  Revision 1.37  2000/04/25 08:42:33  pierre
    * New Gabor changes : see fixes.txt
 
   Revision 1.36  2000/04/18 11:42:36  pierre

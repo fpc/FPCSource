@@ -43,7 +43,7 @@ uses
   drivers,
 {$endif FPC}
   app,commands,msgbox,
-  fpide,fpviews;
+  FPString,FPViews,FPIDE;
 
 
 {$ifdef HasSignal}
@@ -76,7 +76,7 @@ begin
                else
                  begin
                    if Assigned(Application) then
-                     MustQuit:=MessageBox(#3'Do You really want to quit?',nil,mferror+mfyesbutton+mfnobutton)=cmYes
+                     MustQuit:=MessageBox(#3+msg_QuitConfirm,nil,mferror+mfyesbutton+mfnobutton)=cmYes
                    else
                      MustQuit:=true;
                  end;
@@ -112,7 +112,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2000-03-07 21:09:20  pierre
+  Revision 1.5  2000-05-02 08:42:26  pierre
+   * new set of Gabor changes: see fixes.txt
+
+  Revision 1.4  2000/03/07 21:09:20  pierre
     * Use globdir.inc HasSignal conditional
     + Uses PutKeyEvent for CtrlC
 

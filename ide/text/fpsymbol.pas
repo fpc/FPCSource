@@ -207,7 +207,7 @@ uses Commands,App,
      symconst,
 {$endif BROWSERCOL}
      WUtils,WEditor,
-     FPConst,FPUtils,FPVars,{$ifndef FPDEBUG}FPDebug{$endif},FPIDE;
+     FPConst,FPString,FPUtils,FPVars,{$ifndef FPDEBUG}FPDebug{$endif},FPIDE;
 
 procedure CloseAllBrowsers;
   procedure SendCloseIfBrowser(P: PView); {$ifndef FPC}far;{$endif}
@@ -309,11 +309,11 @@ begin
        else
          begin
            P:=@Name;
-           ErrorBox(#3'Symbol %s not found',@P);
+           ErrorBox(msg_symbolnotfound,@P);
          end;
      end
    else
-     ErrorBox('No Browser info available',nil);
+     ErrorBox(msg_nobrowserinfoavailable,nil);
 end;
 
 (*procedure ReadBrowseLog(FileName: string);
@@ -614,11 +614,11 @@ end;
 function TSymbolView.GetLocalMenu: PMenu;
 begin
   GetLocalMenu:=NewMenu(
-    NewItem('~B~rowse','',kbNoKey,cmSymBrowse,hcSymBrowse,
-    NewItem('~G~oto source','',kbNoKey,cmSymGotoSource,hcSymGotoSource,
-    NewItem('~T~rack source','',kbNoKey,cmSymTrackSource,hcSymTrackSource,
+    NewItem(menu_symlocal_browse,'',kbNoKey,cmSymBrowse,hcSymBrowse,
+    NewItem(menu_symlocal_gotosource,'',kbNoKey,cmSymGotoSource,hcSymGotoSource,
+    NewItem(menu_symlocal_tracksource,'',kbNoKey,cmSymTrackSource,hcSymTrackSource,
     NewLine(
-    NewItem('~O~ptions...','',kbNoKey,cmSymOptions,hcSymOptions,
+    NewItem(menu_symlocal_options,'',kbNoKey,cmSymOptions,hcSymOptions,
     nil))))));
 end;
 
@@ -673,7 +673,8 @@ begin
   end;
   Desktop^.UnLock;
   if Assigned(W)=false then
-    ErrorBox('Can''t find '+R^.GetFileName,nil);
+    ErrorBox(FormatStrStr(msg_cantfindfile,R^.GetFileName),nil);
+
   TrackReference:=W<>nil;
 end;
 
@@ -686,7 +687,7 @@ begin
     W^.Select;
   Desktop^.UnLock;
   if Assigned(W)=false then
-    ErrorBox('Can''t find '+R^.GetFileName,nil);
+    ErrorBox(FormatStrStr(msg_cantfindfile,R^.GetFileName),nil);
   GotoReference:=W<>nil;
 end;
 
@@ -937,6 +938,9 @@ begin
   AddrStr:='$'+IntToHexL(HiW,4)+IntToHexL(HiW,4);
 end;
 begin
+  ClearFormatParams;
+  AddFormatParamStr(msg_sizeinmemory);
+  AddFormatParamStr(msg_sizeonstack);
   S:=
    #13+
 {  ' Memory location: '+AddrStr(MemInfo^.Addr)+#13+
@@ -944,8 +948,8 @@ begin
 
   { ??? internal linker ??? }
 
-  '  Size in memory: '+SizeStr(MemInfo^.Size)+#13+
-  '   Size on stack: '+SizeStr(MemInfo^.PushSize)+#13+
+  '%18s: '+SizeStr(MemInfo^.Size)+#13+
+  '%18s: '+SizeStr(MemInfo^.PushSize)+#13+
   ''
   ;
 end;
@@ -1233,7 +1237,7 @@ begin
   CreateHSB:=SB;
 end;
 begin
-  inherited Init(Bounds, 'Browse: '+ATitle, ANumber);
+  inherited Init(Bounds, FormatStrStr(dialog_browse,ATitle), ANumber);
   HelpCtx:=hcBrowserWindow;
   Sym:=ASym;
   Prefix:=NewStr(APrefix);
@@ -1294,10 +1298,10 @@ begin
 
   GetExtent(R); R.Grow(-1,-1); R.Move(0,1); R.B.Y:=R.A.Y+1;
   New(PageTab, Init(R,
-    NewBrowserTabItem('S',ScopeView,
-    NewBrowserTabItem('R',ReferenceView,
-    NewBrowserTabItem('I',InheritanceView,
-    NewBrowserTabItem('M',MemInfoView,
+    NewBrowserTabItem(label_browsertab_scope,ScopeView,
+    NewBrowserTabItem(label_browsertab_reference,ReferenceView,
+    NewBrowserTabItem(label_browsertab_inheritance,InheritanceView,
+    NewBrowserTabItem(label_browsertab_memory,MemInfoView,
     nil))
     ))));
   PageTab^.GrowMode:=gfGrowHiX;
@@ -1551,7 +1555,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.25  2000-04-18 11:42:37  pierre
+  Revision 1.26  2000-05-02 08:42:28  pierre
+   * new set of Gabor changes: see fixes.txt
+
+  Revision 1.25  2000/04/18 11:42:37  pierre
    lot of Gabor changes : see fixes.txt
 
   Revision 1.24  2000/03/21 23:26:55  pierre

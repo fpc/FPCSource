@@ -1,3 +1,30 @@
+Gabor's log 1/5/2000 commits
+========================= Already fixed ================================
+
+ [*] a just freshly created editor window (without any chars entered) simply
+     "ate" all Save commands
+
+========================== Other improvements ============================
+
+ [+] source paths are now "adjusted" to show only important path elements
+     when they don't fit in the title area of the source window
+ [+] template macros implemented (you can use them in the .PT files)
+     $TIME - actual time
+     $DATE - actual date
+     $DATE('yyyy/mm/dd hh.nn.ss') - actual date formatted using specified str
+     $PROMPT('paramname') - variable parameter entered by user
+ [+] the size of some windows is now dependant on the current resolution
+ [+] all IDE strings contants converted to resourcestrings
+ [+] /hm command-line switch for enabling/disabling heap monitor
+
+=========================== Todo ========================================
+
+ [!] convert all API,FV,etc. message strings to resourcestrings
+ [!] add "Find in files" command, probably using internal grep routine
+ [!] implement Projects & project managment
+     - specifying project files
+     - todo list mangment
+     - generating project list file
 Gabor's log 25/4/2000 commits
 
 ========================= Fixes to apply ==============================
