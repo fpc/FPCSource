@@ -176,7 +176,8 @@
        { create unit flags }
          with Current_Module^ do
           begin
-            if cs_create_staticlib in aktmoduleswitches then
+            if (cs_create_staticlib in aktmoduleswitches) or
+	       (cs_smartlink in aktmoduleswitches) then
              begin
                flags:=flags or uf_static_linked;
                if SplitName(ppufilename^)<>SplitName(staticlibfilename^) then
@@ -447,7 +448,10 @@
 
 {
   $Log$
-  Revision 1.25  1998-10-26 09:35:47  peter
+  Revision 1.26  1998-11-26 14:36:02  peter
+    * set also library flag if smartlinking and outputname is different
+
+  Revision 1.25  1998/10/26 09:35:47  peter
     * don't count includefiles which are found in the includepath for a
       recompile.
 
