@@ -265,8 +265,8 @@ operator :=(const source : variant) dest : extended;
 operator :=(const source : variant) dest : comp;
 
 { Misc. }
-{ Fixme!!!!
 operator :=(const source : variant) dest : currency;
+{ Fixme!!!!
 operator :=(const source : variant) dest : tdatetime;
 }
 {**********************************************************************
@@ -295,7 +295,10 @@ operator <=(const op1,op2 : variant) dest : boolean;
 
 {
   $Log$
-  Revision 1.13  2003-10-08 16:24:47  florian
+  Revision 1.14  2003-11-05 15:26:37  florian
+    + currency type can be assigned to variants now
+
+  Revision 1.13  2003/10/08 16:24:47  florian
     * fixed some variant issues
     * improved type declarations
 

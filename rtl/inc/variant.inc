@@ -419,21 +419,19 @@ begin
 end;
 
 { Misc. }
-{ FIXME !!!!!!!
 operator :=(const source : variant) dest : currency;
 
 begin
   dest:=variantmanager.vartocurr(source);
 end;
 
-
+(* FIXME !!!
 operator :=(const source : variant) dest : tdatetime;
 
 begin
-
+  dest:=variantmanager.currtovar(source);
 end;
-}
-
+*)
 {**********************************************************************
                                Operators
  **********************************************************************}
@@ -589,7 +587,10 @@ procedure initvariantmanager;
 
 {
   $Log$
-  Revision 1.14  2003-10-04 23:40:42  florian
+  Revision 1.15  2003-11-05 15:26:37  florian
+    + currency type can be assigned to variants now
+
+  Revision 1.14  2003/10/04 23:40:42  florian
     * write helper comproc for variants fixed
 
   Revision 1.13  2003/09/03 14:09:37  florian
