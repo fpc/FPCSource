@@ -1823,21 +1823,33 @@ implementation
     function  searchsym(const s : stringid;var srsym:tsym;var srsymtable:tsymtable):boolean;
       var
         speedvalue : cardinal;
+        topclass   : tobjectdef;
       begin
          speedvalue:=getspeedvalue(s);
          srsymtable:=symtablestack;
          while assigned(srsymtable) do
            begin
-              srsym:=tsym(srsymtable.speedsearch(s,speedvalue));
-              if assigned(srsym) and
-                 (not assigned(current_procinfo) or
-                  Tsym(srsym).is_visible_for_object(current_procinfo.procdef._class)) then
+             srsym:=tsym(srsymtable.speedsearch(s,speedvalue));
+             if assigned(srsym) then
                begin
-                 searchsym:=true;
-                 exit;
-               end
-              else
-               srsymtable:=srsymtable.next;
+                 topclass:=nil;
+                 if (srsymtable.symtabletype=withsymtable) and
+                    assigned(srsymtable.defowner) and
+                    (srsymtable.defowner.deftype=objectdef) then
+                   topclass:=tobjectdef(srsymtable.defowner)
+                 else
+                   begin
+                     if assigned(current_procinfo) then
+                       topclass:=current_procinfo.procdef._class;
+                   end;
+                 if (not assigned(topclass)) or
+                    Tsym(srsym).is_visible_for_object(topclass) then
+                   begin 
+                     searchsym:=true;
+                     exit;
+                   end;  
+               end;
+             srsymtable:=srsymtable.next;
            end;
          searchsym:=false;
       end;
@@ -2410,7 +2422,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.136  2004-02-11 19:59:06  peter
+  Revision 1.137  2004-02-13 15:40:58  peter
+    * fixed protected checking in withsymtable
+
+  Revision 1.136  2004/02/11 19:59:06  peter
     * fix compilation without GDB
 
   Revision 1.135  2004/02/06 22:37:00  daniel
