@@ -16,10 +16,13 @@
 program FP;
 
 uses
+{$ifdef HeapTrc}
+  HeapTrc,
+{$endif HeapTrc}
   Dos,
   BrowCol,
   FPIni,FPViews,FPConst,FPVars,FPUtils,FPIde,FPHelp,FPSwitch,FPUsrScr,
-  FPTools
+  FPTools,FPDebug
 {$ifdef TEMPHEAP}
   ,dpmiexcp
 {$endif TEMPHEAP}
@@ -73,6 +76,7 @@ BEGIN
 
   ProcessParams(true);
 
+  InitBreakpoints;
   InitReservedWords;
   InitHelpFiles;
   InitSwitches;
@@ -93,16 +97,23 @@ BEGIN
 
   WriteSwitches(SwitchesPath);
   WriteINIFile;
-
-  DoneBrowserCol;
+  
   DoneTools;
   DoneUserScreen;
   DoneSwitches;
   DoneHelpFiles;
+  DoneReservedWords;
+  DoneBrowserCol;
+  DoneDebugger;
+  DoneBreakpoints;
 END.
 {
   $Log$
-  Revision 1.8  1999-02-08 09:30:59  florian
+  Revision 1.9  1999-02-10 09:55:43  pierre
+     + Memory tracing if compiled with -dHEAPTRC
+     * Many memory leaks removed
+
+  Revision 1.8  1999/02/08 09:30:59  florian
     + some split heap stuff, in $ifdef TEMPHEAP
 
   Revision 1.7  1999/02/05 13:51:38  peter
