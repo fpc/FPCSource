@@ -5,5 +5,5 @@ Var
   P :Longint;
 
 begin
-  P:=Sptr; { P Contains now the current stack position. }
+  P:=Longint(Sptr); { P Contains now the current stack position. }
 end.
