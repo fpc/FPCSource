@@ -15,15 +15,19 @@
  **********************************************************************}
 Program messagedif;
 
+Uses
+  Strings;
+
 Type
   TEnum = String;
   TText = String;
 
   PMsg = ^TMsg;
   TMsg = Record
-     Line : Longint;
+     Line,cnb : Longint;
      enum : TEnum;
      text : TText;
+     comment : pchar;
      Next,Prev : PMsg;
      FileNext,
      Equivalent : PMsg;
@@ -34,7 +38,7 @@ Var
   OrgFirst,DiffFirst : PMsg;
   Last : PMsg;
 
-Function NewMsg (Var RM : PMsg; L : Longint; Const E : TEnum;Const T : TText) : PMsg;
+Function NewMsg (Var RM : PMsg; L : Longint; Const E : TEnum;Const T : TText;C : pchar;NbLn : longint) : PMsg;
 
 Var
   P,R : PMsg;
@@ -46,6 +50,8 @@ begin
     Line:=L;
     Text:=T;
     enum:=E;
+    comment:=c;
+    cnb:=NbLn;
     next:=Nil;
     prev:=Nil;
     filenext:=nil;
@@ -106,19 +112,26 @@ end;
 
 Procedure ProcessFile (FileName : String; Var Root,First : PMsg);
 
+Const
+    ArrayLength = 65500;
 Var F : Text;
-    S : String;
-    J,LineNo,Count : Longint;
-
+    S,prevS : String;
+    J,LineNo,Count,NbLn : Longint;
+    chararray : array[0..ArrayLength] of char;
+    currentindex : longint;
+    c : pchar;
 begin
   Assign(F,FileName);
   Reset(F);
   Write ('Processing: ',Filename,'...');
   LineNo:=0;
+  NbLn:=0;
   Count:=0;
+  currentindex:=0;
   Root:=Nil;
   First:=nil;
   Last:=nil;
+  PrevS:='';
   While not eof(f) do
     begin
     Readln(F,S);
@@ -130,21 +143,44 @@ begin
         writeln (Filename,'(',LineNo,') : Invalid entry')
       else
         begin
-        NewMsg(Root,LineNo,Copy(S,1,J-1),Copy(S,j+1,255));
+        chararray[currentindex]:=#0;
+        c:=strnew(@chararray);
+        if PrevS<>'' then
+          NewMsg(Root,LineNo,Copy(PrevS,1,Pos('=',PrevS)-1),
+           Copy(PrevS,Pos('=',PrevS)+1,255),c,NbLn);
+        currentindex:=0;
+        NbLn:=0;
+        PrevS:=S;
         if First=nil then
           First:=Root;
         Inc(Count);
         end;
+      end
+    else
+      begin
+        if currentindex+length(s)+1>ArrayLength then
+          Writeln('Comment too long : over ',ArrayLength,' chars')
+        else
+          begin
+            strpcopy(@chararray[currentindex],s+#10);
+            inc(currentindex,length(s)+1);
+            inc(NbLn);
+          end;
       end;
     end;
+  chararray[currentindex]:=#0;
+  c:=strnew(@chararray);
+  if PrevS<>'' then
+    NewMsg(Root,LineNo,Copy(PrevS,1,Pos('=',PrevS)-1),
+     Copy(PrevS,Pos('=',PrevS)+1,255),c,NbLn);
   Writeln (' Done. Read ',LineNo,' lines, got ',Count,' constants.');
   Close(f);
 end;
 
 Procedure ShowDiff (POrg,PDiff : PMsg);
 
-Var P : PMsg;
-    count,orgcount,diffcount : longint;
+Var
+  count,orgcount,diffcount : longint;
 
 Procedure NotFound (Org : Boolean; P : PMsg);
 
@@ -203,9 +239,9 @@ end;
 
 procedure WriteReorderedFile(FileName : string;orgnext,diffnext : PMsg);
   var t,t2,t3 : text;
-      i,i2,i3,ntcount : longint;
-      s,s3 : string;
-      CurrentMsg : PMsg;
+      i,ntcount : longint;
+      s,s2,s3 : string;
+      is_msg : boolean;
       nextdiffkept : pmsg;
   begin
      ntcount:=0;
@@ -217,103 +253,81 @@ procedure WriteReorderedFile(FileName : string;orgnext,diffnext : PMsg);
      Reset(t2);
      Assign(t3,OrgFileName);
      Reset(t3);
-     i:=2;i2:=0;i3:=0;
+     i:=2;
      s:='';s3:='';
      nextdiffkept:=diffnext;
      while assigned(nextdiffkept) and (nextdiffkept^.equivalent=nil) do
        nextdiffkept:=nextdiffkept^.filenext;
-     While not eof(t2) do
+     { First write the header of diff }
+     repeat
+       Readln(t2,s);
+       is_msg:=(pos('=',s)>1) and (s[1]<>'%') and (s[1]<>'#');
+       if not is_msg then
+         begin
+           Writeln(t,s);
+           inc(i);
+         end;
+     until is_msg;
+     { Write all messages in Org order }
+     while assigned(orgnext) do
        begin
-          while assigned(orgnext) and assigned(nextdiffkept) and
-             (UpCase(orgnext^.enum)<>UpCase(nextdiffkept^.enum)) and not(eof(t3)) do
-             begin
-                if not assigned(orgnext^.equivalent) then
-                  begin
-                    { Insert a new error msg with the english comments }
-                    while i3<orgnext^.line do
-                      begin
-                         readln(t3,s3);
-                         inc(i3);
-                      end;
-                         writeln(t,s3);
-                         inc(i);
-                         readln(t3,s3);
-                         inc(i3);
-                    while (s3<>'') and (s3[1] in ['#','%']) do
-                      begin
-                         writeln(t,s3);
-                         inc(i);
-                         readln(t3,s3);
-                         inc(i3);
-                      end;
-                    Writeln('New error ',orgnext^.enum,' added');
-                  end;
-                orgnext:=orgnext^.filenext;
-             end;
-          if s='' then
-            begin
-               readln(t2,s);
-               inc(i2);
-            end;
-          if assigned(orgnext) and
-             assigned(diffnext) and (i2=diffnext^.line) then
-            begin
-               if assigned(diffnext^.Equivalent) then
-                 begin
-                    if diffnext^.equivalent<>orgnext then
-                      Writeln('Problem inside WriteReorderedFile');
-                    Writeln(t,s);
-                    if diffnext^.Equivalent^.Text=diffnext^.Text then
-                      begin
-                        Writeln(diffnext^.Enum,': ',DiffFileName,'(',i2,') not translated');
-                        inc(ntcount);
-                      end;
-                    s:='';
-                    inc(i);
-                    readln(t2,s);
-                    inc(i2);
-                    while (s<>'') and (s[1] in ['#','%']) do
-                      begin
-                         writeln(t,s);
-                         inc(i);
-                         readln(t2,s);
-                         inc(i2);
-                      end;
-                    Diffnext:=Diffnext^.FileNext;
-                    nextdiffkept:=diffnext;
-                    while assigned(nextdiffkept) and (nextdiffkept^.equivalent=nil) do
-                      nextdiffkept:=nextdiffkept^.filenext;
-                    Orgnext:=orgnext^.filenext;
-                 end
-               else
-                 begin
-                    { Skip removed enum in errore.msg}
-                    { maybe a renaming of an enum !}
-                    Writeln(diffnext^.enum,' commented out');
-                    Writeln(t,'%%% ',s);
-                    inc(i);
-                    readln(t2,s);
-                    inc(i2);
-                    Diffnext:=Diffnext^.FileNext;
-                    nextdiffkept:=diffnext;
-                    while assigned(nextdiffkept) and (nextdiffkept^.equivalent=nil) do
-                      nextdiffkept:=nextdiffkept^.filenext;
-                    if assigned(diffnext) then
-                      while (i2<diffnext^.line) do
-                        begin
-                           writeln(t,'%%% ',s);
-                           inc(i);
-                           readln(t2,s);
-                           inc(i2);
-                        end;
-                 end;
-            end
-          else
-            begin
-               writeln(t,s);
-               inc(i);
-               s:='';
-            end;
+         if not assigned(orgnext^.equivalent) then
+           begin
+             { Insert a new error msg with the english comments }
+             Writeln('New error ',orgnext^.enum,' added');
+             Writeln(t,orgnext^.enum,'=',orgnext^.text);
+             inc(i);
+             Write(t,orgnext^.comment);
+             inc(i,orgnext^.cnb);
+           end
+         else
+           begin
+             Writeln(t,orgnext^.enum,'=',orgnext^.equivalent^.text);
+             s2:=orgnext^.text;
+             s2:=upcase(copy(s2,1,pos('_',s2)));
+             s3:=orgnext^.equivalent^.text;
+             s3:=upcase(copy(s3,1,pos('_',s3)));
+             { that are the conditions in verbose unit }
+             if (length(s3)<5) and (s2<>s3) then
+               begin
+                 Writeln('Warning: different options for ',orgnext^.enum);
+                 Writeln('in ',orgFileName,' : ',s2);
+                 Writeln('in ',diffFileName,' : ',s3);
+               end;
+
+             inc(i);
+             if orgnext^.text=orgnext^.equivalent^.text then
+               begin
+                 Writeln(FileName,'(',i,') ',orgnext^.enum,' not translated');
+                 inc(ntcount);
+               end;
+             if assigned(orgnext^.equivalent^.comment) and
+               (strlen(orgnext^.equivalent^.comment)>0) then
+               Write(t,orgnext^.equivalent^.comment)
+             else if assigned(orgnext^.comment) and
+               (strlen(orgnext^.comment)>0) then
+               begin
+                 Writeln('Comment from ',OrgFileName,' for enum ',orgnext^.enum,' added');
+                 Write(t,orgnext^.comment);
+               end;
+             inc(i,orgnext^.equivalent^.cnb);
+           end;
+         orgnext:=orgnext^.filenext;
+       end;
+
+     while assigned(diffnext) do
+       begin
+         if not assigned(diffnext^.Equivalent) then
+           begin
+              { Skip removed enum in errore.msg}
+              { maybe a renaming of an enum !}
+              Writeln(diffnext^.enum,' commented out');
+              Writeln(t,'%%% ',diffnext^.enum,'=',diffnext^.text);
+              inc(i);
+              Write(t,diffnext^.comment);
+              inc(i,diffnext^.cnb);
+           end;
+         diffnext:=diffnext^.filenext;
        end;
      Close(t);
      Close(t2);
@@ -332,7 +346,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2000-05-11 13:37:37  pierre
+  Revision 1.11  2000-05-12 08:47:25  pierre
+    + add a warning if the error level is different in the two files
+    + force to keep the order of orgfile
+
+  Revision 1.10  2000/05/11 13:37:37  pierre
    * ordering bugs fixed
 
   Revision 1.9  2000/02/09 13:23:11  peter
