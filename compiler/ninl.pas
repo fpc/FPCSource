@@ -1101,7 +1101,7 @@ implementation
         end;
 
       var
-         vl,vl2    : longint;
+         vl,vl2    : TConstExprInt;
          vr        : bestreal;
          hp        : tnode;
          srsym     : tsym;
@@ -1236,6 +1236,13 @@ implementation
                       CGMessage(type_e_mismatch)
                      else
                       hp:=cordconstnode.create((vl and $ffff) shl 16+(vl shr 16),left.resulttype,true);
+                   end;
+                 in_const_swap_qword :
+                   begin
+                     if isreal then
+                      CGMessage(type_e_mismatch)
+                     else
+                      hp:=cordconstnode.create((vl and $ffff) shl 32+(vl shr 32),left.resulttype,true);
                    end;
                  in_const_ptr :
                    begin
@@ -2401,7 +2408,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.96  2002-11-18 17:31:57  peter
+  Revision 1.97  2002-11-18 18:35:01  peter
+    * Swap(QWord) constant support
+
+  Revision 1.96  2002/11/18 17:31:57  peter
     * pass proccalloption to ret_in_xxx and push_xxx functions
 
   Revision 1.95  2002/11/16 17:59:31  peter

@@ -88,6 +88,7 @@ const
    in_arctan_extended  = 125;
    in_ln_extended      = 126;
    in_sin_extended     = 127;
+   in_const_swap_qword = 128;
 
 { MMX functions }
 { these contants are used by the mmx unit }
@@ -106,7 +107,10 @@ const
 
 {
   $Log$
-  Revision 1.9  2002-10-02 18:20:52  peter
+  Revision 1.10  2002-11-18 18:35:01  peter
+    * Swap(QWord) constant support
+
+  Revision 1.9  2002/10/02 18:20:52  peter
     * Copy() is now internal syssym that calls compilerprocs
 
   Revision 1.8  2002/07/16 15:34:20  florian

@@ -198,12 +198,12 @@ Begin
   Swap:=(X and $ffff) shl 16 + (X shr 16)
 End;
 
-Function Swap (X : QWord) : QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Swap (X : QWord) : QWord;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:in_const_swap_qword];
 Begin
   Swap:=(X and $ffffffff) shl 32 + (X shr 32);
 End;
 
-Function swap (X : Int64) : Int64;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function swap (X : Int64) : Int64;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:in_const_swap_qword];
 Begin
   Swap:=(X and $ffffffff) shl 32 + (X shr 32);
 End;
@@ -757,7 +757,10 @@ end;
 
 {
   $Log$
-  Revision 1.36  2002-10-14 19:39:17  peter
+  Revision 1.37  2002-11-18 18:33:51  peter
+    * Swap(QWord) constant support
+
+  Revision 1.36  2002/10/14 19:39:17  peter
     * threads unit added for thread support
 
   Revision 1.35  2002/09/18 18:32:01  carl

@@ -82,6 +82,7 @@ const
    in_arctan_extended  = 125;
    in_ln_extended      = 126;
    in_sin_extended     = 127;
+   in_const_swap_qword = 128;
 
 { MMX functions }
 { these contants are used by the mmx unit }
@@ -100,7 +101,10 @@ const
 
 {
   $Log$
-  Revision 1.4  2002-09-07 15:07:45  peter
+  Revision 1.5  2002-11-18 18:33:51  peter
+    * Swap(QWord) constant support
+
+  Revision 1.4  2002/09/07 15:07:45  peter
     * old logs removed and tabs fixed
 
 }
