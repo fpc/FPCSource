@@ -18,6 +18,7 @@ dirs_darwin=darwin
 dirs_beos=beos
 dirs_amiga=amiga
 dirs_netbsd=netbsd
+dirs_macos=macos
 
 [install]
 fpcpackage=y
