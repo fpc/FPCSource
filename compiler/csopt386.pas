@@ -65,7 +65,7 @@ Function CheckSequence(p: Pai; Reg: TRegister; Var Found: Longint; Var RegInfo: 
 Var hp2, hp3{, EndMod}: Pai;
     PrevNonRemovablePai: Pai;
     {Cnt,} OldNrOfMods: Longint;
-    OrgRegInfo, HighRegInfo: TRegInfo;
+    startRegInfo, OrgRegInfo, HighRegInfo: TRegInfo;
     HighFound, OrgRegFound: Byte;
     RegCounter, regCounter2: TRegister;
     OrgRegResult: Boolean;
@@ -75,9 +75,17 @@ Begin {CheckSequence}
   Reg := Reg32(Reg);
   TmpResult := False;
   FillChar(OrgRegInfo, SizeOf(OrgRegInfo), 0);
+  FillChar(startRegInfo, sizeof(startRegInfo), 0);
   OrgRegFound := 0;
   HighFound := 0;
   OrgRegResult := False;
+  with startRegInfo do
+    begin
+      newRegsEncountered := [procinfo^.FramePointer, stack_pointer];
+      new2OldReg[procinfo^.FramePointer] := procinfo^.FramePointer;
+      new2OldReg[stack_pointer] := stack_pointer;
+      oldRegsEncountered := newRegsEncountered;
+    end;
   RegCounter := R_EAX;
   GetLastInstruction(p, PrevNonRemovablePai);
   While (RegCounter <= R_EDI) And
@@ -86,11 +94,7 @@ Begin {CheckSequence}
     Inc(RegCounter);
   While (RegCounter <= R_EDI) Do
     Begin
-      FillChar(RegInfo, SizeOf(RegInfo), 0);
-      RegInfo.NewRegsEncountered := [procinfo^.FramePointer, R_ESP];
-      RegInfo.OldRegsEncountered := RegInfo.NewRegsEncountered;
-      RegInfo.New2OldReg[procinfo^.FramePointer] := procinfo^.FramePointer;
-      RegInfo.New2OldReg[R_ESP] := R_ESP;
+      regInfo := startRegInfo;
       Found := 0;
       hp2 := PPaiProp(PrevNonRemovablePai^.OptInfo)^.Regs[RegCounter].StartMod;
       If (PrevNonRemovablePai <> PPaiProp(PrevNonRemovablePai^.OptInfo)^.Regs[RegCounter].StartMod)
@@ -829,7 +833,7 @@ Procedure DoCSE(AsmL: PAasmOutput; First, Last: Pai);
 {marks the instructions that can be removed by RemoveInstructs. They're not
  removed immediately because sometimes an instruction needs to be checked in
  two different sequences}
-Var Cnt, Cnt2: Longint;
+var cnt, cnt2, cnt3: longint;
     p, hp1, hp2: Pai;
     hp3, hp4: pai;
     hp5 : pai;
@@ -892,9 +896,9 @@ Begin
 {   movl 4(%eax), eax                                                       }
                                    hp2 := p;
                                    Cnt2 := 1;
-                                  While Cnt2 <= Cnt Do
+                                   While Cnt2 <= Cnt Do
                                      Begin
-                                       If Not(RegInInstruction(reg32(Paicpu(hp2)^.oper[1].reg), p)) then
+                                       If Not(RegInInstruction(Paicpu(hp2)^.oper[1].reg, p)) then
                                          begin
                                            if ((p^.typ = ait_instruction) And
                                                ((paicpu(p)^.OpCode = A_MOV)  or
@@ -912,14 +916,20 @@ Begin
                                                  end
 {$ifndef noremove}
                                                else
-                                                 PPaiProp(p^.OptInfo)^.CanBeRemoved := True;
-{$endif noremove}
+                                                 begin
+                                                   hp5 := p;
+                                                   for cnt3 := ppaiprop(p^.optinfo)^.regs[regCounter].nrofmods downto 1 do
+                                                     begin
+                                                       if regModifiedByInstruction(regCounter,hp5) then
+                                                         PPaiProp(hp5^.OptInfo)^.CanBeRemoved := True;
+                                                       getNextInstruction(hp5,hp5);
+                                                     end;
+{$endif noremove}                                end
                                              end
                                          end
 {$ifndef noremove}
                                        else
-                                         if regInInstruction(Paicpu(hp2)^.oper[1].reg,p) then
-                                           PPaiProp(p^.OptInfo)^.CanBeRemoved := True
+                                         PPaiProp(p^.OptInfo)^.CanBeRemoved := True
 {$endif noremove}
                                        ; Inc(Cnt2);
                                        GetNextInstruction(p, p);
@@ -1157,7 +1167,12 @@ End.
 
 {
   $Log$
-  Revision 1.6  2000-08-23 12:55:10  jonas
+  Revision 1.7  2000-08-25 19:40:45  jonas
+    * refined previous fix a bit, some instructions weren't being removed
+      while they could (merged from fixes branch)
+    * made checksequence a bit faster
+
+  Revision 1.6  2000/08/23 12:55:10  jonas
     * fix for web bug 1112 and a bit of clean up in csopt386 (merged from
       fixes branch)
 
