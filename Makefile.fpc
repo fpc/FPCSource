@@ -94,6 +94,9 @@ export RELEASE
 ifndef DESTZIPDIR
 export DESTZIPDIR:=$(BASEDIR)
 endif
+ifndef DIST_DESTDIR
+export DIST_DESTDIR:=$(BASEDIR)
+endif
 
 # Temporary path to pack a file
 BASEPACKDIR=$(BASEDIR)/basepack
@@ -258,8 +261,6 @@ installersrc:
 
 .PHONY: all clean distclean build install installbase zipinstall zipinstallbase zipinstallfcl \
         zipinstallpackages
-
-export RELEASE DESTZIPDIR
 
 all: build
 
