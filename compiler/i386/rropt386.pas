@@ -87,17 +87,17 @@ begin
     reg := reg1
   else if (reg.enum in regset8bit) then
     begin
-      if (reg.enum = rg.makeregsize(reg1,OS_8).enum) then
-        reg := rg.makeregsize(reg2,OS_8)
-      else if reg.enum = rg.makeregsize(reg2,OS_8).enum then
-        reg := rg.makeregsize(reg1,OS_8);
+      if (reg.enum = changeregsize(reg1,S_B).enum) then
+        reg := changeregsize(reg2,S_B)
+      else if reg.enum = changeregsize(reg2,S_B).enum then
+        reg := changeregsize(reg1,S_B);
     end
   else if (reg.enum in regset16bit) then
     begin
-      if reg.enum = rg.makeregsize(reg1,OS_16).enum then
-        reg := rg.makeregsize(reg2,OS_16)
-      else if reg.enum = rg.makeregsize(reg2,OS_16).enum then
-        reg := rg.makeregsize(reg1,OS_16);
+      if reg.enum = changeregsize(reg1,S_W).enum then
+        reg := changeregsize(reg2,S_W)
+      else if reg.enum = changeregsize(reg2,S_W).enum then
+        reg := changeregsize(reg1,S_W);
     end;
 end;
 
@@ -358,7 +358,12 @@ End.
 
 {
   $Log$
-  Revision 1.21  2003-03-28 19:16:57  peter
+  Revision 1.22  2003-06-03 21:09:05  peter
+    * internal changeregsize for optimizer
+    * fix with a hack to not remove the first instruction of a block
+      which will leave blockstart pointing to invalid memory
+
+  Revision 1.21  2003/03/28 19:16:57  peter
     * generic constructor working for i386
     * remove fixed self register
     * esi added as address register for i386
@@ -401,7 +406,7 @@ End.
       the parast, detected by tcalcst3 test
 
   Revision 1.13  2002/04/21 15:42:17  carl
-  * changeregsize -> rg.makeregsize
+  * changeregsize -> changeregsize
 
   Revision 1.12  2002/04/20 21:37:08  carl
   + generic FPC_CHECKPOINTER

@@ -832,11 +832,11 @@ begin
   if reg.enum = newReg.enum then
     reg := orgReg
   else if (reg.enum in regset8bit) and
-          (reg.enum = rg.makeregsize(newReg,OS_8).enum) then
-    reg := rg.makeregsize(orgReg,OS_8)
+          (reg.enum = changeregsize(newReg,S_B).enum) then
+    reg := changeregsize(orgReg,S_B)
   else if (reg.enum in regset16bit) and
-          (reg.enum = rg.makeregsize(newReg,OS_16).enum) then
-    reg := rg.makeregsize(orgReg,OS_16)
+          (reg.enum = changeregsize(newReg,S_W).enum) then
+    reg := changeregsize(orgReg,S_W)
   else
     changeReg := false;
 end;
@@ -1396,9 +1396,9 @@ begin
             begin
               case t.opsize of
                 S_B,S_BW,S_BL:
-                  memtoreg := rg.makeregsize(regcounter,OS_8);
+                  memtoreg := changeregsize(regcounter,S_B);
                 S_W,S_WL:
-                  memtoreg := rg.makeregsize(regcounter,OS_16);
+                  memtoreg := changeregsize(regcounter,S_W);
                 S_L:
                   memtoreg := regcounter;
               end;
@@ -1997,7 +1997,12 @@ End.
 
 {
   $Log$
-  Revision 1.46  2003-05-30 23:57:08  peter
+  Revision 1.47  2003-06-03 21:09:05  peter
+    * internal changeregsize for optimizer
+    * fix with a hack to not remove the first instruction of a block
+      which will leave blockstart pointing to invalid memory
+
+  Revision 1.46  2003/05/30 23:57:08  peter
     * more sparc cleanup
     * accumulator removed, splitted in function_return_reg (called) and
       function_result_reg (caller)

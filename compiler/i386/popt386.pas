@@ -611,7 +611,9 @@ Begin
                { remove jumps to a label coming right after them }
                If GetNextInstruction(p, hp1) then
                  Begin
-                   if FindLabel(tasmlabel(Taicpu(p).oper[0].sym), hp1) then
+                   if FindLabel(tasmlabel(Taicpu(p).oper[0].sym), hp1) and
+{$warning FIXME removing the first instruction fails}
+                      (p<>blockstart) then
                      Begin
                        hp2:=Tai(hp1.next);
                        asml.remove(p);
@@ -1226,7 +1228,7 @@ Begin
                       Case Taicpu(p).opsize of
                         S_BW:
                           Begin
-                            If (rg.makeregsize(Taicpu(p).oper[0].reg,OS_16).enum=Taicpu(p).oper[1].reg.enum) And
+                            If (changeregsize(Taicpu(p).oper[0].reg,S_W).enum=Taicpu(p).oper[1].reg.enum) And
                                Not(CS_LittleSize In aktglobalswitches)
                               Then
                                 {Change "movzbw %al, %ax" to "andw $0x0ffh, %ax"}
@@ -1248,13 +1250,13 @@ Begin
                                     Begin
                                       Taicpu(p).opcode := A_MOV;
                                       Taicpu(p).changeopsize(S_W);
-                                      Taicpu(p).LoadReg(0,rg.makeregsize(Taicpu(p).oper[0].reg,OS_16));
+                                      Taicpu(p).LoadReg(0,changeregsize(Taicpu(p).oper[0].reg,S_W));
                                       Taicpu(hp1).LoadConst(0,Taicpu(hp1).oper[0].val And $ff);
                                     End;
                           End;
                         S_BL:
                           Begin
-                            If (rg.makeregsize(Taicpu(p).oper[0].reg,OS_32).enum=Taicpu(p).oper[1].reg.enum) And
+                            If (changeregsize(Taicpu(p).oper[0].reg,S_L).enum=Taicpu(p).oper[1].reg.enum) And
                                Not(CS_LittleSize in aktglobalswitches)
                               Then
                                 {Change "movzbl %al, %eax" to "andl $0x0ffh, %eax"}
@@ -1276,13 +1278,13 @@ Begin
                                     Begin
                                       Taicpu(p).opcode := A_MOV;
                                       Taicpu(p).changeopsize(S_L);
-                                      Taicpu(p).LoadReg(0,rg.makeregsize(Taicpu(p).oper[0].reg,OS_32));
+                                      Taicpu(p).LoadReg(0,changeregsize(Taicpu(p).oper[0].reg,S_L));
                                       Taicpu(hp1).LoadConst(0,Taicpu(hp1).oper[0].val And $ff);
                                     End
                           End;
                         S_WL:
                           Begin
-                            If (rg.makeregsize(Taicpu(p).oper[0].reg,OS_32).enum=Taicpu(p).oper[1].reg.enum) And
+                            If (changeregsize(Taicpu(p).oper[0].reg,S_L).enum=Taicpu(p).oper[1].reg.enum) And
                                Not(CS_LittleSize In aktglobalswitches)
                               Then
                                {Change "movzwl %ax, %eax" to "andl $0x0ffffh, %eax"}
@@ -1304,7 +1306,7 @@ Begin
                                     Begin
                                       Taicpu(p).opcode := A_MOV;
                                       Taicpu(p).changeopsize(S_L);
-                                      Taicpu(p).LoadReg(0,rg.makeregsize(Taicpu(p).oper[0].reg,OS_32));
+                                      Taicpu(p).LoadReg(0,changeregsize(Taicpu(p).oper[0].reg,S_L));
                                       Taicpu(hp1).LoadConst(0,Taicpu(hp1).oper[0].val And $ffff);
                                     End;
                           End;
@@ -1612,7 +1614,7 @@ Begin
                             Begin
                               Taicpu(hp1).changeopsize(S_L);
                               if Taicpu(hp1).oper[0].typ=top_reg then
-                                Taicpu(hp1).LoadReg(0,rg.makeregsize(Taicpu(hp1).oper[0].reg,OS_32));
+                                Taicpu(hp1).LoadReg(0,changeregsize(Taicpu(hp1).oper[0].reg,S_L));
                               hp1 := Tai(p.next);
                               asml.Remove(p);
                               p.free;
@@ -1976,7 +1978,7 @@ See test/tgadint64 in the test suite.
                                     InsertLLItem(AsmL,p.previous, p, hp1);
                                     Taicpu(p).opcode := A_MOV;
                                     Taicpu(p).changeopsize(S_B);
-                                    Taicpu(p).LoadReg(1,rg.makeregsize(Taicpu(p).oper[1].reg,OS_8));
+                                    Taicpu(p).LoadReg(1,changeregsize(Taicpu(p).oper[1].reg,S_B));
                                   End;
                             End;
                         End
@@ -1996,7 +1998,7 @@ See test/tgadint64 in the test suite.
                                          Taicpu(p).oper[1].reg);
                               Taicpu(p).opcode := A_MOV;
                               Taicpu(p).changeopsize(S_B);
-                              Taicpu(p).LoadReg(1,rg.makeregsize(Taicpu(p).oper[1].reg,OS_8));
+                              Taicpu(p).LoadReg(1,changeregsize(Taicpu(p).oper[1].reg,S_B));
                               InsertLLItem(AsmL,p.previous, p, hp1);
                             End;
                  End;
@@ -2061,7 +2063,12 @@ End.
 
 {
   $Log$
-  Revision 1.45  2003-06-02 21:42:05  jonas
+  Revision 1.46  2003-06-03 21:09:05  peter
+    * internal changeregsize for optimizer
+    * fix with a hack to not remove the first instruction of a block
+      which will leave blockstart pointing to invalid memory
+
+  Revision 1.45  2003/06/02 21:42:05  jonas
     * function results can now also be regvars
     - removed tprocinfo.return_offset, never use it again since it's invalid
       if the result is a regvar
@@ -2165,7 +2172,7 @@ End.
       the parast, detected by tcalcst3 test
 
   Revision 1.23  2002/04/21 15:40:49  carl
-  * changeregsize -> rg.makeregsize
+  * changeregsize -> changeregsize
 
   Revision 1.22  2002/04/20 21:37:07  carl
   + generic FPC_CHECKPOINTER
@@ -2180,7 +2187,7 @@ End.
   Revision 1.21  2002/04/15 19:44:21  peter
     * fixed stackcheck that would be called recursively when a stack
       error was found
-    * generic rg.makeregsize(reg,size) for i386 register resizing
+    * generic changeregsize(reg,size) for i386 register resizing
     * removed some more routines from cga unit
     * fixed returnvalue handling
     * fixed default stacksize of linux and go32v2, 8kb was a bit small :-)

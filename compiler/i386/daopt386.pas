@@ -158,6 +158,8 @@ type
 
 Procedure InsertLLItem(AsmL: TAAsmOutput; prev, foll, new_one: TLinkedListItem);
 
+
+function changeregsize(r:tregister;size:topsize):tregister;
 Function Reg32(Reg: TRegister): TRegister;
 Function RefsEquivalent(Const R1, R2: TReference; Var RegInfo: TRegInfo; OpAct: TOpAction): Boolean;
 Function RefsEqual(Const R1, R2: TReference): Boolean;
@@ -573,6 +575,64 @@ End;
 
 {************************ Some general functions ************************}
 
+  const
+    reg2reg32 : array[firstreg..lastreg] of Toldregister = (R_NO,
+      R_EAX,R_ECX,R_EDX,R_EBX,R_ESP,R_EBP,R_ESI,R_EDI,
+      R_EAX,R_ECX,R_EDX,R_EBX,R_ESP,R_EBP,R_ESI,R_EDI,
+      R_EAX,R_ECX,R_EDX,R_EBX,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO
+    );
+    reg2reg16 : array[firstreg..lastreg] of Toldregister = (R_NO,
+      R_AX,R_CX,R_DX,R_BX,R_SP,R_BP,R_SI,R_DI,
+      R_AX,R_CX,R_DX,R_BX,R_SP,R_BP,R_SI,R_DI,
+      R_AX,R_CX,R_DX,R_BX,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO
+    );
+    reg2reg8 : array[firstreg..lastreg] of Toldregister = (R_NO,
+      R_AL,R_CL,R_DL,R_BL,R_NO,R_NO,R_NO,R_NO,
+      R_AL,R_CL,R_DL,R_BL,R_NO,R_NO,R_NO,R_NO,
+      R_AL,R_CL,R_DL,R_BL,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO
+    );
+
+    { convert a register to a specfied register size }
+    function changeregsize(r:tregister;size:topsize):tregister;
+      var
+        reg : tregister;
+      begin
+        case size of
+          S_B :
+            reg.enum:=reg2reg8[r.enum];
+          S_W :
+            reg.enum:=reg2reg16[r.enum];
+          S_L :
+            reg.enum:=reg2reg32[r.enum];
+          else
+            internalerror(200204101);
+        end;
+        if reg.enum=R_NO then
+         internalerror(200204102);
+        changeregsize:=reg;
+      end;
+
 Function TCh2Reg(Ch: TInsChange): ToldRegister;
 {converts a TChange variable to a TRegister}
 Begin
@@ -599,10 +659,10 @@ Begin
   If (Reg.enum >= R_AX)
     Then
       If (Reg.enum <= R_DI)
-        Then Reg32 := rg.makeregsize(Reg,OS_INT)
+        Then Reg32 := changeregsize(Reg,S_L)
         Else
           If (Reg.enum <= R_BL)
-            Then Reg32 := rg.makeregsize(Reg,OS_INT);
+            Then Reg32 := changeregsize(Reg,S_L);
 End;
 
 { inserts new_one between prev and foll }
@@ -665,37 +725,37 @@ Begin
       Case OldReg.enum Of
         R_EAX..R_EDI:
           Begin
-            NewRegsEncountered := NewRegsEncountered + [rg.makeregsize(NewReg,OS_16).enum];
-            OldRegsEncountered := OldRegsEncountered + [rg.makeregsize(OldReg,OS_16).enum];
-            New2OldReg[rg.makeregsize(NewReg,OS_16).enum] := rg.makeregsize(OldReg,OS_16);
+            NewRegsEncountered := NewRegsEncountered + [changeregsize(NewReg,S_W).enum];
+            OldRegsEncountered := OldRegsEncountered + [changeregsize(OldReg,S_W).enum];
+            New2OldReg[changeregsize(NewReg,S_W).enum] := changeregsize(OldReg,S_W);
             If (NewReg.enum in [R_EAX..R_EBX]) And
                (OldReg.enum in [R_EAX..R_EBX]) Then
               Begin
-                NewRegsEncountered := NewRegsEncountered + [rg.makeregsize(NewReg,OS_8).enum];
-                OldRegsEncountered := OldRegsEncountered + [rg.makeregsize(OldReg,OS_8).enum];
-                New2OldReg[rg.makeregsize(NewReg,OS_8).enum] := rg.makeregsize(OldReg,OS_8);
+                NewRegsEncountered := NewRegsEncountered + [changeregsize(NewReg,S_B).enum];
+                OldRegsEncountered := OldRegsEncountered + [changeregsize(OldReg,S_B).enum];
+                New2OldReg[changeregsize(NewReg,S_B).enum] := changeregsize(OldReg,S_B);
               End;
           End;
         R_AX..R_DI:
           Begin
-            NewRegsEncountered := NewRegsEncountered + [rg.makeregsize(NewReg,OS_32).enum];
-            OldRegsEncountered := OldRegsEncountered + [rg.makeregsize(OldReg,OS_32).enum];
-            New2OldReg[rg.makeregsize(NewReg,OS_32).enum] := rg.makeregsize(OldReg,OS_32);
+            NewRegsEncountered := NewRegsEncountered + [changeregsize(NewReg,S_L).enum];
+            OldRegsEncountered := OldRegsEncountered + [changeregsize(OldReg,S_L).enum];
+            New2OldReg[changeregsize(NewReg,S_L).enum] := changeregsize(OldReg,S_L);
             If (NewReg.enum in [R_AX..R_BX]) And
                (OldReg.enum in [R_AX..R_BX]) Then
               Begin
-                NewRegsEncountered := NewRegsEncountered + [rg.makeregsize(NewReg,OS_8).enum];
-                OldRegsEncountered := OldRegsEncountered + [rg.makeregsize(OldReg,OS_8).enum];
-                New2OldReg[rg.makeregsize(NewReg,OS_8).enum] := rg.makeregsize(OldReg,OS_8);
+                NewRegsEncountered := NewRegsEncountered + [changeregsize(NewReg,S_B).enum];
+                OldRegsEncountered := OldRegsEncountered + [changeregsize(OldReg,S_B).enum];
+                New2OldReg[changeregsize(NewReg,S_B).enum] := changeregsize(OldReg,S_B);
               End;
           End;
         R_AL..R_BL:
           Begin
-            NewRegsEncountered := NewRegsEncountered + [rg.makeregsize(NewReg,OS_32).enum]
-                               + [rg.makeregsize(NewReg,OS_16).enum];
-            OldRegsEncountered := OldRegsEncountered + [rg.makeregsize(OldReg,OS_32).enum]
-                               + [rg.makeregsize(OldReg,OS_8).enum];
-            New2OldReg[rg.makeregsize(NewReg,OS_32).enum] := rg.makeregsize(OldReg,OS_32);
+            NewRegsEncountered := NewRegsEncountered + [changeregsize(NewReg,S_L).enum]
+                               + [changeregsize(NewReg,S_W).enum];
+            OldRegsEncountered := OldRegsEncountered + [changeregsize(OldReg,S_L).enum]
+                               + [changeregsize(OldReg,S_B).enum];
+            New2OldReg[changeregsize(NewReg,S_L).enum] := changeregsize(OldReg,S_L);
           End;
       End;
     End;
@@ -2669,7 +2729,12 @@ End.
 
 {
   $Log$
-  Revision 1.50  2003-05-26 21:17:18  peter
+  Revision 1.51  2003-06-03 21:09:05  peter
+    * internal changeregsize for optimizer
+    * fix with a hack to not remove the first instruction of a block
+      which will leave blockstart pointing to invalid memory
+
+  Revision 1.50  2003/05/26 21:17:18  peter
     * procinlinenode removed
     * aktexit2label removed, fast exit removed
     + tcallnode.inlined_pass_2 added
@@ -2749,7 +2814,7 @@ End.
       the parast, detected by tcalcst3 test
 
   Revision 1.33  2002/04/21 15:32:59  carl
-  * changeregsize -> rg.makeregsize
+  * changeregsize -> changeregsize
 
   Revision 1.32  2002/04/20 21:37:07  carl
   + generic FPC_CHECKPOINTER
