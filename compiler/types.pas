@@ -474,7 +474,7 @@ unit types;
            end;
          b:=false;
 
-         { wenn beide auf die gleiche Definition zeigen sind sie wohl gleich...}
+         { both point to the same definition ? }
          if def1=def2 then
            b:=true
          else
@@ -586,6 +586,9 @@ unit types;
             if (def1^.deftype=arraydef) and (def2^.deftype=arraydef) and
               (is_open_array(def1) or is_open_array(def2)) then
               begin
+                if parraydef(def1)^.IsArrayOfConst or parraydef(def2)^.IsArrayOfConst then
+                 b:=true
+                else
                  b:=is_equal(parraydef(def1)^.definition,parraydef(def2)^.definition);
               end
           else
@@ -919,7 +922,10 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.29  1998-09-16 12:37:31  michael
+  Revision 1.30  1998-09-22 15:40:58  peter
+    * some extra ifdef GDB
+
+  Revision 1.29  1998/09/16 12:37:31  michael
   Added FPC_ prefix to abstracterror
 
   Revision 1.28  1998/09/09 16:44:23  florian

@@ -187,8 +187,10 @@
              end;
             if cs_smartlink in aktmoduleswitches then
              flags:=flags or uf_smartlink;
+{$ifdef GDB}
             if use_dbx then
              flags:=flags or uf_has_dbx;
+{$endif GDB}
             if target_os.endian=en_big_endian then
              flags:=flags or uf_big_endian;
 {$ifdef UseBrowser}
@@ -386,7 +388,7 @@
       { main source is always the last }
         stringdispose(current_module^.mainsource);
         current_module^.mainsource:=stringdup(hs);
-        
+
         { the indexing is corrected here PM }
         current_module^.sourcefiles.inverse_register_indexes;
       { check if we want to rebuild every unit, only if the sources are
@@ -439,7 +441,10 @@
 
 {
   $Log$
-  Revision 1.15  1998-09-21 08:45:23  pierre
+  Revision 1.16  1998-09-22 15:40:56  peter
+    * some extra ifdef GDB
+
+  Revision 1.15  1998/09/21 08:45:23  pierre
     + added vmt_offset in tobjectdef.write for fututre use
       (first steps to have objects without vmt if no virtual !!)
     + added fpu_used field for tabstractprocdef  :

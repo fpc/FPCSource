@@ -746,7 +746,9 @@ unit pmodules;
          { tests, if all forwards are resolved }
          symtablestack^.check_forwards;
          symtablestack^.symtabletype:=unitsymtable;
+{$ifdef GDB}
          punitsymtable(symtablestack)^.is_stab_written:=false;
+{$endif GDB}
 
          { insert own objectfile }
          insertobjectfile;
@@ -755,12 +757,14 @@ unit pmodules;
          if status.errorcount=0 then
           writeunitas(current_module^.ppufilename^,punitsymtable(symtablestack));
 
+{$ifdef GDB}
          pu:=pused_unit(usedunits.first);
          while assigned(pu) do
            begin
               punitsymtable(pu^.u^.symtable)^.is_stab_written:=false;
               pu:=pused_unit(pu^.next);
            end;
+{$endif GDB}
          inc(datasize,symtablestack^.datasize);
 
          { leave when we got an error }
@@ -924,7 +928,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.50  1998-09-21 08:45:17  pierre
+  Revision 1.51  1998-09-22 15:40:55  peter
+    * some extra ifdef GDB
+
+  Revision 1.50  1998/09/21 08:45:17  pierre
     + added vmt_offset in tobjectdef.write for fututre use
       (first steps to have objects without vmt if no virtual !!)
     + added fpu_used field for tabstractprocdef  :
