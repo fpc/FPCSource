@@ -483,6 +483,7 @@ unit cgx86;
       var
         op: tasmop;
         s: topsize;
+        tmpsize : tcgsize;
         tmpreg : tregister;
       begin
         check_register_size(fromsize,reg);
@@ -499,10 +500,15 @@ unit cgx86;
                 which clears the upper 64 bit too, so it could be that s is S_L while the reg is
                 64 bit (FK) }
               if s in [S_BL,S_WL,S_L] then
-                tmpreg:=makeregsize(list,tmpreg,OS_32);
+                begin
+                  tmpreg:=makeregsize(list,tmpreg,OS_32);
+                  tmpsize:=OS_32;
+                end
+              else
+                tmpsize:=tosize;
 {$endif x86_64}
               list.concat(taicpu.op_reg_reg(op,s,reg,tmpreg));
-              a_load_reg_ref(list,tosize,tosize,tmpreg,ref);
+              a_load_reg_ref(list,tmpsize,tosize,tmpreg,ref);
             end;
         else
           list.concat(taicpu.op_reg_ref(op,s,reg,ref));
@@ -1674,7 +1680,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.130  2004-10-24 11:44:28  peter
+  Revision 1.131  2004-10-24 20:10:08  peter
+    * -Or fixes
+
+  Revision 1.130  2004/10/24 11:44:28  peter
     * small regvar fixes
     * loadref parameter removed from concatcopy,incrrefcount,etc
 
