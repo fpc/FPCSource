@@ -369,7 +369,11 @@ begin
   { try to erase the current directory }
   write('Trying to erase current directory...');
   RmDir('.');
+{$ifndef macos}
   test(IOResult, 16);
+{$else}
+  test(IOResult, 5); {..since the system is not aware of current dir}
+{$endif}
   WriteLn(' Passed!');
   { try to erase the previous directory }
   write('Trying to erase parent directory...');
@@ -380,6 +384,9 @@ end;
 
 
 begin
+{$ifdef macos}
+  pathTranslation:= true;
+{$endif}
   test_read_text;
   test_read_typed;
   test_read_untyped;
@@ -398,7 +405,10 @@ end.
 
 {
  $Log$
- Revision 1.7  2005-02-14 17:13:37  peter
+ Revision 1.8  2005-04-03 20:53:40  olle
+   * adapted to MacOS
+
+ Revision 1.7  2005/02/14 17:13:37  peter
    * truncate log
 
 }

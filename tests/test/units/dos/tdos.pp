@@ -187,14 +187,20 @@ begin
   exedir:=dir;
   TestInfo;
   TestEnvironment;
+{$ifndef macos}
+  {Since Dos.Exec is not reentrant in MacOS it cannot be tested by doTest.}
   TestExec;
+{$endif macos}
   TestDisk;
   TestFile;
 end.
 
 {
   $Log$
-  Revision 1.10  2005-02-14 17:13:37  peter
+  Revision 1.11  2005-04-03 20:56:43  olle
+    * adapted to MacOS
+
+  Revision 1.10  2005/02/14 17:13:37  peter
     * truncate log
 
 }

@@ -292,10 +292,14 @@ Begin
  { SO IN FPC!                                                           }
  {**********************************************************************}
  {********************** TURBO PASCAL BUG ******************************}
- Write('Opening an invalid file...');
+ Write('Assigning an invalid file...');
  Assign(f,'x');
  GetFTime(f,Time);
+{$ifndef macos}
  CheckDosError(6);
+{$else}
+ CheckDosError(2); {Since on MacOS, GetFTime works even for non-opened files}
+{$endif}
 
  Write('Trying to open ',TestFName,'...');
  Assign(f,TestFName);
@@ -664,6 +668,9 @@ var
  F: File;
  Attr : Word;
 Begin
+{$IFDEF MACOS}
+ pathTranslation:= true;
+{$ENDIF}
  TestSystemDate;
  TestSystemTime;
 
@@ -699,7 +706,10 @@ end.
 
 {
   $Log$
-  Revision 1.13  2005-02-14 17:13:37  peter
+  Revision 1.14  2005-04-03 20:56:43  olle
+    * adapted to MacOS
+
+  Revision 1.13  2005/02/14 17:13:37  peter
     * truncate log
 
 }
