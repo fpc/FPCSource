@@ -383,9 +383,15 @@ BEGIN
      OpenFlags, OpenMode, 0) = 0) Then
        FileOpen := Handle Else FileOpen := 0;         { Return handle/fail }
    {$ELSE}                                            { OTHER OS2 COMPILERS }
-   If (DosOpen(FileName, Handle, ActionTaken, 0, 0,
-     OpenFlags, OpenMode, Nil) = 0) Then
-       FileOpen := Handle Else FileOpen := 0;         { Return handle/fail }
+    {$IFDEF PPC_FPC}
+    If (DosOpen(@FileName, Longint(Handle), ActionTaken), 0, 0,
+      OpenFlags, OpenMode, Nil) = 0) Then
+        FileOpen := Handle Else FileOpen := 0;         { Return handle/fail }
+    {$ELSE}
+    If (DosOpen(FileName, Handle, ActionTaken, 0, 0,
+      OpenFlags, OpenMode, Nil) = 0) Then
+        FileOpen := Handle Else FileOpen := 0;         { Return handle/fail }
+    {$ENDIF}
    {$ENDIF}
 END;
 {$ENDIF}
@@ -688,7 +694,10 @@ END;
 END.
 {
  $Log$
- Revision 1.8  2002-09-22 19:42:22  hajny
+ Revision 1.9  2002-10-12 19:39:00  hajny
+   * FPC/2 support
+
+ Revision 1.8  2002/09/22 19:42:22  hajny
    + FPC/2 support added
 
  Revision 1.7  2002/09/07 15:06:36  peter

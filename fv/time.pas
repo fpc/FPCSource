@@ -165,6 +165,8 @@ PROCEDURE SecondsToTime (Sd: LongInt; Var Hour24, Minute, Second: Word);
 
   {$IFDEF PPC_FPC}                                    { FPC }
   USES Dos, DosCalls;                                 { Standard unit }
+
+  TYPE DateTime = TDateTime;                          { Type correction }
   {$ENDIF}
   
   {$IFDEF PPC_BPOS2}                                  { C'T PATCH TO BP CODE }
@@ -451,7 +453,10 @@ END.
 
 {
  $Log$
- Revision 1.10  2002-09-24 16:48:24  hajny
+ Revision 1.11  2002-10-12 19:39:00  hajny
+   * FPC/2 support
+
+ Revision 1.10  2002/09/24 16:48:24  hajny
    * fix for TDateTime clash
 
  Revision 1.9  2002/09/22 19:42:22  hajny
