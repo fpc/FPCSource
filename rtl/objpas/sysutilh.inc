@@ -85,13 +85,14 @@ type
    { Run-time and I/O Errors }
    EInOutError = class(Exception)
      public
-     ErrorCode : Longint;
-     end;
+       ErrorCode : Longint;
+   end;
+
    EHeapMemoryError = class(Exception)
      protected
-     AllowFree : boolean;
-     procedure FreeInstance;override;
-     end;
+       AllowFree : boolean;
+       procedure FreeInstance;override;
+   end;
 
    EInvalidPointer  = Class(EHeapMemoryError);
    EOutOfMemory     = Class(EHeapMemoryError);
@@ -126,9 +127,12 @@ Var
   {$i filerec.inc}
   {$i textrec.inc}
 
+Const
+   HexDisplayPrefix : string = '$';
+
 Type
-  TFileRec=FileRec;
-  TTextRec=TextRec;
+   TFileRec=FileRec;
+   TTextRec=TextRec;
 
   { Read internationalization settings }
   {$i sysinth.inc}
@@ -149,8 +153,11 @@ Type
 
 {
   $Log$
-  Revision 1.11  2001-08-19 21:02:02  florian
-    * fixed and added a lot of stuff to get the Jedi DX( headers
+  Revision 1.12  2001-08-22 14:11:28  florian
+    + HexDisplayPrefix added
+
+  Revision 1.11  2001/08/19 21:02:02  florian
+    * fixed and added a lot of stuff to get the Jedi DX8 headers
       compiled
 
   Revision 1.10  2001/08/12 22:11:48  peter
