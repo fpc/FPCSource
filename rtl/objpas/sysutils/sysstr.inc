@@ -860,12 +860,10 @@ function Checkarg (AT : Longint;err:boolean):boolean;
 begin
   result:=false;
   if Index=-1 then
-    begin
-    DoArg:=Argpos;
-    inc(ArgPos);
-    end
+    DoArg:=Argpos
   else
     DoArg:=Index;
+  ArgPos:=DoArg+1;
   If (Doarg>High(Args)) or (Args[Doarg].Vtype<>AT) then
    begin
      if err then
@@ -2012,7 +2010,10 @@ const
 
 {
   $Log$
-  Revision 1.3  2003-11-03 09:42:28  marco
+  Revision 1.4  2003-11-09 13:37:42  michael
+  + Position specifier in format string affects all later specifiers
+
+  Revision 1.3  2003/11/03 09:42:28  marco
    * Peter's Cardinal<->Longint fixes patch
 
   Revision 1.2  2003/10/07 12:02:47  marco
