@@ -55,6 +55,7 @@ begin
 end;
 
 begin
+  testport(80,'tcp');
   testport(25,'');
   testport(23,'');
   testport(53,'udp');
@@ -66,7 +67,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2003-05-17 20:54:03  michael
+  Revision 1.3  2004-08-17 18:30:43  michael
+  + Added HTTP test
+
+  Revision 1.2  2003/05/17 20:54:03  michael
   + uriparser unit added. Header/Footer blocks added
 
 }
