@@ -1470,13 +1470,17 @@ implementation
          { restore register, this restores automatically the }
          { result                                           }
          popusedregisters(pushed);
+         maybe_loadesi;
       end;
 
 
 end.
 {
   $Log$
-  Revision 1.90  1999-10-06 08:32:00  peter
+  Revision 1.91  1999-10-22 14:36:04  peter
+    * fixed esi reload with as
+
+  Revision 1.90  1999/10/06 08:32:00  peter
     * fixed empty const ansistring 2 pchar
 
   Revision 1.89  1999/09/26 21:30:15  peter
