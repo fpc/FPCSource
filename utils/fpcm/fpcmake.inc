@@ -851,8 +851,8 @@ const fpcmakeini : array[0..189,1..240] of char=(
   '# Netware'#013#010+
   'ifeq ($(OS_TARGET),netware)'#013#010+
   'STATICLIBPREFIX='#013#010+
-  'PPUEXT=.ppn'#013#010+
-  'OEXT=.on'#013#010+
+  'PPUEXT=.ppu'#013#010+
+  'OEXT=.o'#013#010+
   'ASMEXT=.s'#013#010+
   'SMARTEXT=.sl'#013#010+
   'STATICLIBEXT=.a'#013#010+
