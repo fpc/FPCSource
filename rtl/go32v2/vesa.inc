@@ -1888,6 +1888,8 @@ Const
            { linear mode for lines not yet implemented PM }
            HLine:=@HLineDefault;
            VLine:=@VLineDefault;
+           GetScanLine := @GetScanLineDefault;
+           PatternLine := @PatternLineDefault;
          end;
        m640x400x256,
        m640x480x256,
@@ -1901,6 +1903,8 @@ Const
            { linear mode for lines not yet implemented PM }
            HLine:=@HLineDefault;
            VLine:=@VLineDefault;
+           GetScanLine := @GetScanLineDefault;
+           PatternLine := @PatternLineDefault;
          end;
      else
        begin
@@ -2596,7 +2600,11 @@ Const
 
 (*
 $Log$
-Revision 1.22  2000-03-19 11:20:13  peter
+Revision 1.23  2000-05-13 14:08:42  jonas
+  * set some more procedures back to the defaults when using linear
+    VESA modes because they only work for windowed VESA modes
+
+Revision 1.22  2000/03/19 11:20:13  peter
   * graph unit include is now independent and the dependent part
     is now in graph.pp
   * ggigraph unit for linux added
