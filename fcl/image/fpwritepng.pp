@@ -477,12 +477,24 @@ procedure TFPWriterPNG.FillScanLine (y : integer; ScanLine : pByteArray);
 var r, x : integer;
     cd : TColorData;
     index : longword;
+    b : byte;
 begin
   index := 0;
   for x := 0 to pred(TheImage.Width) do
     begin
     cd := FGetPixel (x,y);
     move (cd, ScanLine^[index], FBytewidth);
+    if WordSized then
+      begin
+      r := 1;
+      while (r < FByteWidth) do
+        begin
+        b := Scanline^[index+r];
+        Scanline^[index+r] := Scanline^[index+r-1];
+        Scanline^[index+r-1] := b;
+        inc (r,2);
+        end;
+      end;
     inc (index, FByteWidth);
     end;
 end;

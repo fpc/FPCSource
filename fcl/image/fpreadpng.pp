@@ -51,7 +51,8 @@ Type
       UseTransparent, EndOfFile : boolean;
       TransparentDataValue : TColorData;
       UsingBitGroup : byte;
-      DataIndex,DataBytes : longword;
+      DataIndex : longword;
+      DataBytes : TColorData;
       function CurrentLine(x:longword) : byte;
       function PrevSample (x:longword): byte;
       function PreviousLine (x:longword) : byte;
@@ -366,10 +367,23 @@ end;
 
 function TFPReaderPNG.CalcColor: TColorData;
 var cd : longword;
+    r : word;
+    b : byte;
 begin
   if UsingBitGroup = 0 then
     begin
     Databytes := 0;
+    if Header.BitDepth = 16 then
+      begin
+      r := 1;
+      while (r < ByteWidth) do
+        begin
+        b := FCurrentLine^[Dataindex+r];
+        FCurrentLine^[Dataindex+r] := FCurrentLine^[Dataindex+r-1];
+        FCurrentLine^[Dataindex+r-1] := b;
+        inc (r,2);
+        end;
+      end;
     move (FCurrentLine^[DataIndex], Databytes, bytewidth);
     inc (DataIndex,bytewidth);
     end;
