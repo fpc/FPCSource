@@ -592,15 +592,6 @@
                     temp:=unitsearchpath.FindFile(hs,main_found)
                   else
                     temp:=includesearchpath.FindFile(hs,incfile_found);
-{$ifdef ORDERSOURCES}
-                  if is_main then
-                    begin
-                      stringdispose(current_module^.mainsource);
-                      current_module^.mainsource:=stringdup(hs);
-                      if main_found then
-                        main_dir:=temp;
-                    end;
-{$endif ORDERSOURCES}
                   if incfile_found or main_found then
                    begin
                      hs:=temp+hs;
@@ -634,6 +625,15 @@
               { the indexing is wrong here PM }
               current_module^.sourcefiles^.register_file(hp);
             end;
+{$ifdef ORDERSOURCES}
+           if is_main then
+             begin
+               stringdispose(current_module^.mainsource);
+               current_module^.mainsource:=stringdup(hs);
+               if main_found then
+                 main_dir:=temp;
+             end;
+{$endif ORDERSOURCES}
            Message1(unit_u_ppu_source,hs+temp);
 {$ifdef ORDERSOURCES}
            is_main:=false;
@@ -734,7 +734,10 @@
 
 {
   $Log$
-  Revision 1.60  2000-02-29 21:58:31  pierre
+  Revision 1.61  2000-02-29 22:32:13  pierre
+   * first bug with ORDERSOURCES corrected :(
+
+  Revision 1.60  2000/02/29 21:58:31  pierre
    * ORDERSOURCES released
 
   Revision 1.59  2000/02/09 13:23:05  peter
