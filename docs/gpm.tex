@@ -1,5 +1,25 @@
+%
+%   $Id$
+%   This file is part of the FPC documentation.
+%   Copyright (C) 1997, by Michael Van Canneyt
+%
+%   The FPC documentation is free text; you can redistribute it and/or
+%   modify it under the terms of the GNU Library General Public License as
+%   published by the Free Software Foundation; either version 2 of the
+%   License, or (at your option) any later version.
+%
+%   The FPC Documentation is distributed in the hope that it will be useful,
+%   but WITHOUT ANY WARRANTY; without even the implied warranty of
+%   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+%   Library General Public License for more details.
+%
+%   You should have received a copy of the GNU Library General Public
+%   License along with the FPC documentation; see the file COPYING.LIB.  If not,
+%   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+%   Boston, MA 02111-1307, USA. 
+%
 \chapter{The GPM unit}
-
+\FPCexampledir{gpmex}
 \section{Introduction}
 The \file{GPM} unit implements an interface to file{libgpm}, the console
 program for mouse handling. This unit was created by Peter Vreman, and 
@@ -67,12 +87,10 @@ TGpmEvent = record
   buttons : byte;
   modifiers : byte;
   vc : word;
-  dx : integer;
-  dy : integer;
-  x : integer;
-  y : integer;
-  wdx : integer;
-  wdy : integer;
+  dx : word;
+  dy : word;
+  x : word;
+  y : word;
   EventType : TGpmEType;
   clicks : longint;
   margin : TGpmMargin;
@@ -198,6 +216,8 @@ None.
 \seefl{Gpm\_Open}{GpmOpen}
 \end{functionl}
 
+for an example, see \seefl{Gpm_GetEvent}{GpmGetEvent}.
+
 \begin{functionl}{Gpm\_FitValues}{GpmFitValues}
 \Declaration
 function Gpm\_FitValues(var x,y:longint):longint;cdecl;external;
@@ -237,6 +257,8 @@ On error, -1 is returned.
 \SeeAlso
 seefl{Gpm\_GetSnapshot}{GpmGetSnapshot}
 \end{functionl}
+
+\FPCexample{gpmex}
 
 \begin{functionl}{Gpm\_GetLibVersion}{GpmGetLibVersion}
 \Declaration
@@ -337,6 +359,8 @@ On Error, the return value is -1.
 \SeeAlso
 \seefl{Gpm\_Open}{GpmOpen}
 \end{functionl}
+
+for an example, see \seefl{Gpm_GetEvent}{GpmGetEvent}.
 
 \begin{functionl}{Gpm\_PopRoi}{GpmPopRoi}
 \Declaration
