@@ -92,7 +92,7 @@ endif
 endif
 export ECHO
 endif
-override DEFAULT_FPCDIR=../..
+override DEFAULT_FPCDIR=../../..
 ifndef FPC
 ifdef PP
 FPC=$(PP)
@@ -221,11 +221,10 @@ endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=fcl
 PACKAGEDIR_MAIN:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /fcl/Makefile.fpc,$(PACKAGESDIR))))))
-override TARGET_UNITS+=fpcunit  testregistry  testreport testutils
-override TARGET_EXAMPLEDIRS+=exampletests tests
+override TARGET_EXAMPLES+=fpcunittests  money  moneytest
 override INSTALL_FPCPACKAGE=y
 override COMPILER_OPTIONS+=-S2h
-override COMPILER_TARGETDIR+=../$(OS_TARGET)
+override COMPILER_TARGETDIR+=../../$(OS_TARGET)
 ifdef REQUIRE_UNITSDIR
 override UNITSDIR+=$(REQUIRE_UNITSDIR)
 endif
@@ -1285,15 +1284,6 @@ ifeq ($(FULL_SOURCE),$(FULL_TARGET))
 EXECPPAS:=@$(PPAS)
 endif
 endif
-.PHONY: fpc_units
-ifneq ($(TARGET_UNITS),)
-override ALLTARGET+=fpc_units
-override UNITPPUFILES=$(addsuffix $(PPUEXT),$(TARGET_UNITS))
-override IMPLICITUNITPPUFILES=$(addsuffix $(PPUEXT),$(TARGET_IMPLICITUNITS))
-override INSTALLPPUFILES+=$(UNITPPUFILES) $(IMPLICITUNITPPUFILES)
-override CLEANPPUFILES+=$(UNITPPUFILES) $(IMPLICITUNITPPUFILES)
-endif
-fpc_units: $(COMPILER_UNITTARGETDIR) $(UNITPPUFILES)
 ifdef TARGET_RSTS
 override RSTFILES=$(addsuffix $(RSTEXT),$(TARGET_RSTS))
 override CLEANRSTFILES+=$(RSTFILES)
@@ -1591,98 +1581,6 @@ endif
 fpc_makefile_sub2: $(addsuffix _makefile_dirs,$(TARGET_DIRS) $(TARGET_EXAMPLEDIRS))
 fpc_makefile_dirs: fpc_makefile_sub1 fpc_makefile_sub2
 fpc_makefiles: fpc_makefile fpc_makefile_dirs
-TARGET_EXAMPLEDIRS_EXAMPLETESTS=1
-TARGET_EXAMPLEDIRS_TESTS=1
-ifdef TARGET_EXAMPLEDIRS_EXAMPLETESTS
-exampletests_all:
-	$(MAKE) -C exampletests all
-exampletests_debug:
-	$(MAKE) -C exampletests debug
-exampletests_smart:
-	$(MAKE) -C exampletests smart
-exampletests_release:
-	$(MAKE) -C exampletests release
-exampletests_units:
-	$(MAKE) -C exampletests units
-exampletests_examples:
-	$(MAKE) -C exampletests examples
-exampletests_shared:
-	$(MAKE) -C exampletests shared
-exampletests_install:
-	$(MAKE) -C exampletests install
-exampletests_sourceinstall:
-	$(MAKE) -C exampletests sourceinstall
-exampletests_exampleinstall:
-	$(MAKE) -C exampletests exampleinstall
-exampletests_distinstall:
-	$(MAKE) -C exampletests distinstall
-exampletests_zipinstall:
-	$(MAKE) -C exampletests zipinstall
-exampletests_zipsourceinstall:
-	$(MAKE) -C exampletests zipsourceinstall
-exampletests_zipexampleinstall:
-	$(MAKE) -C exampletests zipexampleinstall
-exampletests_zipdistinstall:
-	$(MAKE) -C exampletests zipdistinstall
-exampletests_clean:
-	$(MAKE) -C exampletests clean
-exampletests_distclean:
-	$(MAKE) -C exampletests distclean
-exampletests_cleanall:
-	$(MAKE) -C exampletests cleanall
-exampletests_info:
-	$(MAKE) -C exampletests info
-exampletests_makefiles:
-	$(MAKE) -C exampletests makefiles
-exampletests:
-	$(MAKE) -C exampletests all
-.PHONY: exampletests_all exampletests_debug exampletests_smart exampletests_release exampletests_units exampletests_examples exampletests_shared exampletests_install exampletests_sourceinstall exampletests_exampleinstall exampletests_distinstall exampletests_zipinstall exampletests_zipsourceinstall exampletests_zipexampleinstall exampletests_zipdistinstall exampletests_clean exampletests_distclean exampletests_cleanall exampletests_info exampletests_makefiles exampletests
-endif
-ifdef TARGET_EXAMPLEDIRS_TESTS
-tests_all:
-	$(MAKE) -C tests all
-tests_debug:
-	$(MAKE) -C tests debug
-tests_smart:
-	$(MAKE) -C tests smart
-tests_release:
-	$(MAKE) -C tests release
-tests_units:
-	$(MAKE) -C tests units
-tests_examples:
-	$(MAKE) -C tests examples
-tests_shared:
-	$(MAKE) -C tests shared
-tests_install:
-	$(MAKE) -C tests install
-tests_sourceinstall:
-	$(MAKE) -C tests sourceinstall
-tests_exampleinstall:
-	$(MAKE) -C tests exampleinstall
-tests_distinstall:
-	$(MAKE) -C tests distinstall
-tests_zipinstall:
-	$(MAKE) -C tests zipinstall
-tests_zipsourceinstall:
-	$(MAKE) -C tests zipsourceinstall
-tests_zipexampleinstall:
-	$(MAKE) -C tests zipexampleinstall
-tests_zipdistinstall:
-	$(MAKE) -C tests zipdistinstall
-tests_clean:
-	$(MAKE) -C tests clean
-tests_distclean:
-	$(MAKE) -C tests distclean
-tests_cleanall:
-	$(MAKE) -C tests cleanall
-tests_info:
-	$(MAKE) -C tests info
-tests_makefiles:
-	$(MAKE) -C tests makefiles
-tests:
-	$(MAKE) -C tests all
-.PHONY: tests_all tests_debug tests_smart tests_release tests_units tests_examples tests_shared tests_install tests_sourceinstall tests_exampleinstall tests_distinstall tests_zipinstall tests_zipsourceinstall tests_zipexampleinstall tests_zipdistinstall tests_clean tests_distclean tests_cleanall tests_info tests_makefiles tests
-endif
 all: fpc_all
 debug: fpc_debug
 smart: fpc_smart
@@ -1698,7 +1596,7 @@ zipinstall:
 zipsourceinstall:
 zipexampleinstall:
 zipdistinstall:
-clean: fpc_clean $(addsuffix _clean,$(TARGET_EXAMPLEDIRS))
+clean: fpc_clean
 distclean: fpc_distclean
 cleanall: fpc_cleanall
 info: fpc_info

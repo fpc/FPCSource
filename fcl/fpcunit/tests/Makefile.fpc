@@ -6,15 +6,14 @@
 main=fcl
 
 [target]
-units=fpcunit  testregistry  testreport testutils
-exampledirs=exampletests tests
+examples=asserttest frameworktest suitetest
 
 [compiler]
 options=-S2h
-targetdir=../$(OS_TARGET)
+targetdir=../../$(OS_TARGET)
 
 [install]
 fpcpackage=y
 
 [default]
-fpcdir=../..
+fpcdir=../../..
