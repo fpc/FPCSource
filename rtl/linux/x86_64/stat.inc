@@ -16,6 +16,8 @@
 {$ifndef FPC_USE_LIBC} // kernel record
 
   stat = packed record
+     case byte of
+      0: (
     st_dev : qword;
     st_ino : qword;
     st_nlink : qword;
@@ -36,6 +38,27 @@
     st_ctime : qword;
     __reserved2 : qword;    { reserved for atime.nanoseconds }
     __unused : array[0..2] of int64;
+         );
+      1: (
+          dev,
+          ino,
+          nlink : qword;
+          mode,
+          uid,
+          gid           : dword;
+          pad1_dummy : dword;
+          rdev          : qword;
+          size,
+          blksze,
+          blocks    : int64;
+          atime,
+          unused1_dummy,
+          mtime,
+          unused2_dummy,
+          ctime,
+          unused3_dummy,
+          unused4_dummy,
+          unused5_dummy : qword;)
   end;
 
 {$else}
@@ -46,6 +69,9 @@
 
 {
   $Log$
-  Revision 1.1  2004-02-05 01:16:12  florian
+  Revision 1.2  2004-05-09 15:42:50  peter
+    * added aliases
+
+  Revision 1.1  2004/02/05 01:16:12  florian
     + completed x86-64/linux system unit
 }
