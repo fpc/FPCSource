@@ -161,14 +161,7 @@ interface
 {$else INT64FUNCRESOK}
     function get_ordinal_value(p : tnode) : longint;
 {$endif INT64FUNCRESOK}
-    function is_constnode(p : tnode) : boolean;
-    function is_constintnode(p : tnode) : boolean;
-    function is_constcharnode(p : tnode) : boolean;
-    function is_constrealnode(p : tnode) : boolean;
-    function is_constboolnode(p : tnode) : boolean;
-    function is_constenumnode(p : tnode) : boolean;
     function is_constresourcestringnode(p : tnode) : boolean;
-    function is_constwidecharnode(p : tnode) : boolean;
     function str_length(p : tnode) : longint;
     function is_emptyset(p : tnode):boolean;
     function genconstsymtree(p : tconstsym) : tnode;
@@ -216,53 +209,6 @@ implementation
           end
         else
           Message(type_e_constant_expr_expected);
-      end;
-
-
-    function is_constnode(p : tnode) : boolean;
-      begin
-        is_constnode:=(p.nodetype in [niln,ordconstn,realconstn,stringconstn,setconstn,guidconstn]);
-      end;
-
-
-    function is_constintnode(p : tnode) : boolean;
-      begin
-         is_constintnode:=(p.nodetype=ordconstn) and is_integer(p.resulttype.def);
-      end;
-
-
-    function is_constcharnode(p : tnode) : boolean;
-
-      begin
-         is_constcharnode:=(p.nodetype=ordconstn) and is_char(p.resulttype.def);
-      end;
-
-
-    function is_constwidecharnode(p : tnode) : boolean;
-
-      begin
-         is_constwidecharnode:=(p.nodetype=ordconstn) and is_widechar(p.resulttype.def);
-      end;
-
-
-    function is_constrealnode(p : tnode) : boolean;
-
-      begin
-         is_constrealnode:=(p.nodetype=realconstn);
-      end;
-
-
-    function is_constboolnode(p : tnode) : boolean;
-
-      begin
-         is_constboolnode:=(p.nodetype=ordconstn) and is_boolean(p.resulttype.def);
-      end;
-
-
-    function is_constenumnode(p : tnode) : boolean;
-
-      begin
-         is_constenumnode:=(p.nodetype=ordconstn) and (p.resulttype.def.deftype=enumdef);
       end;
 
 
@@ -969,7 +915,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.61  2004-04-29 19:56:37  daniel
+  Revision 1.62  2004-05-24 20:39:41  florian
+    * stricter handling of formal const parameters and IE fixed
+
+  Revision 1.61  2004/04/29 19:56:37  daniel
     * Prepare compiler infrastructure for multiple ansistring types
 
   Revision 1.60  2004/03/23 22:34:49  peter

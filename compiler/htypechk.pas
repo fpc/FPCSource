@@ -1087,27 +1087,8 @@ implementation
 
 
     function  valid_for_formal_const(p : tnode) : boolean;
-      var
-        v : boolean;
       begin
-        { p must have been firstpass'd before }
-        { accept about anything but not a statement ! }
-        case p.nodetype of
-          calln,
-          statementn,
-          addrn :
-           begin
-             { addrn is not allowed as this generate a constant value,
-               but a tp procvar are allowed (PFV) }
-             if nf_procvarload in p.flags then
-              v:=true
-             else
-              v:=false;
-           end;
-          else
-            v:=true;
-        end;
-        valid_for_formal_const:=v;
+        valid_for_formal_const:=is_constnode(p) or is_procsym_load(p) or valid_for_assign(p,[valid_void]);
       end;
 
 
@@ -1922,7 +1903,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.88  2004-05-23 18:28:40  peter
+  Revision 1.89  2004-05-24 20:39:41  florian
+    * stricter handling of formal const parameters and IE fixed
+
+  Revision 1.88  2004/05/23 18:28:40  peter
     * methodpointer is loaded into a temp when it was a calln
 
   Revision 1.87  2004/05/23 15:03:40  peter

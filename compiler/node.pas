@@ -406,12 +406,21 @@ interface
     procedure printnodeunindent;
     procedure printnode(var t:text;n:tnode);
 
+    function is_constnode(p : tnode) : boolean;
+    function is_constintnode(p : tnode) : boolean;
+    function is_constcharnode(p : tnode) : boolean;
+    function is_constrealnode(p : tnode) : boolean;
+    function is_constboolnode(p : tnode) : boolean;
+    function is_constenumnode(p : tnode) : boolean;
+    function is_constwidecharnode(p : tnode) : boolean;
 
 
 implementation
 
     uses
-       cutils,verbose,ppu;
+       cutils,verbose,ppu,
+       symconst,
+       defutil;
 
     const
       ppunodemarker = 255;
@@ -551,6 +560,47 @@ implementation
          writeln(t,printnodeindention,'nil');
       end;
 
+
+    function is_constnode(p : tnode) : boolean;
+      begin
+        is_constnode:=(p.nodetype in [niln,ordconstn,realconstn,stringconstn,setconstn,guidconstn]);
+      end;
+
+
+    function is_constintnode(p : tnode) : boolean;
+      begin
+         is_constintnode:=(p.nodetype=ordconstn) and is_integer(p.resulttype.def);
+      end;
+
+
+    function is_constcharnode(p : tnode) : boolean;
+      begin
+         is_constcharnode:=(p.nodetype=ordconstn) and is_char(p.resulttype.def);
+      end;
+
+
+    function is_constwidecharnode(p : tnode) : boolean;
+      begin
+         is_constwidecharnode:=(p.nodetype=ordconstn) and is_widechar(p.resulttype.def);
+      end;
+
+
+    function is_constrealnode(p : tnode) : boolean;
+      begin
+         is_constrealnode:=(p.nodetype=realconstn);
+      end;
+
+
+    function is_constboolnode(p : tnode) : boolean;
+      begin
+         is_constboolnode:=(p.nodetype=ordconstn) and is_boolean(p.resulttype.def);
+      end;
+
+
+    function is_constenumnode(p : tnode) : boolean;
+      begin
+         is_constenumnode:=(p.nodetype=ordconstn) and (p.resulttype.def.deftype=enumdef);
+      end;
 
 {****************************************************************************
                                  TNODE
@@ -1082,7 +1132,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.84  2004-05-23 18:28:41  peter
+  Revision 1.85  2004-05-24 20:39:41  florian
+    * stricter handling of formal const parameters and IE fixed
+
+  Revision 1.84  2004/05/23 18:28:41  peter
     * methodpointer is loaded into a temp when it was a calln
 
   Revision 1.83  2004/05/23 15:06:21  peter
