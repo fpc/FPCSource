@@ -32,7 +32,7 @@ fpcdir=../..
 target=freebsd
 
 [compiler]
-includedir=$(INC) $(PROCINC) $(UNIXINC) $(BSDINC) $(BSDPROCINC)
+includedir=$(INC) $(PROCINC) $(UNIXINC) $(BSDINC) $(BSDPROCINC) $(OSPROCINC)
 sourcedir=$(INC) $(PROCINC) $(UNIXINC) $(BSDINC)
 targetdir=.
 
@@ -50,6 +50,7 @@ libunits=$(SYSTEMUNIT) objpas strings \
 RTL=..
 INC=$(RTL)/inc
 PROCINC=$(RTL)/$(CPU_TARGET)
+OSPROCINC=$(RTL)/freebsd/$(CPU_TARGET)
 BSDINC=$(RTL)/bsd
 BSDPROCINC=$(BSDINC)/$(CPU_TARGET)
 UNIXINC=$(RTL)/unix
