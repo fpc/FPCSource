@@ -717,7 +717,8 @@ unit pstatmnt;
          else
            p:=nil;
          p:=gensinglenode(exitn,p);
-         p^.resulttype:=procinfo^.returntype.def;
+         // p^.resulttype:=procinfo^.returntype.def;
+         p^.resulttype:=voiddef;
          exit_statement:=p;
       end;
 
@@ -1381,7 +1382,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.4  2000-08-12 06:46:06  florian
+  Revision 1.5  2000-08-12 15:41:15  peter
+    * fixed bug 1096 (merged)
+
+  Revision 1.4  2000/08/12 06:46:06  florian
     + case statement for int64/qword implemented
 
   Revision 1.3  2000/07/13 12:08:27  michael

@@ -386,6 +386,7 @@ implementation
       var
          pt : ptree;
       begin
+         p^.resulttype:=voiddef;
          if assigned(p^.left) then
            begin
               firstpass(p^.left);
@@ -393,12 +394,12 @@ implementation
               if codegenerror then
                exit;
               { Check the 2 types }
-              p^.left:=gentypeconvnode(p^.left,p^.resulttype);
+              p^.left:=gentypeconvnode(p^.left,procinfo^.returntype.def);
               firstpass(p^.left);
-              if ret_in_param(p^.resulttype) or procinfo^.no_fast_exit then
+              if ret_in_param(procinfo^.returntype.def) or procinfo^.no_fast_exit then
                 begin
                   pt:=genzeronode(funcretn);
-                  pt^.rettype.setdef(p^.resulttype);
+                  pt^.rettype.setdef(procinfo^.returntype.def);
                   pt^.funcretprocinfo:=procinfo;
                   p^.left:=gennode(assignn,pt,p^.left);
                   firstpass(p^.left);
@@ -634,7 +635,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2000-08-02 07:04:56  jonas
+  Revision 1.4  2000-08-12 15:41:15  peter
+    * fixed bug 1096 (merged)
+
+  Revision 1.3  2000/08/02 07:04:56  jonas
     * fixed crash when an undeclared identifier is used in a raise statement
       (merged from fixes branch)
 
