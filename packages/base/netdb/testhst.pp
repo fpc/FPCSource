@@ -15,7 +15,7 @@
  **********************************************************************}
 program testhst;
 
-uses netdb;
+uses netdb,sockets;
 
 Procedure DumpHostEntry(Const H : THostEntry);
 
@@ -64,7 +64,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2005-02-14 17:13:19  peter
+  Revision 1.4  2005-03-18 12:08:09  marco
+   * sockets now imported for conversion funcs
+
+  Revision 1.3  2005/02/14 17:13:19  peter
     * truncate log
 
 }
