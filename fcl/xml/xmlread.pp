@@ -52,6 +52,7 @@ const
   PubidChars: set of Char = [' ', #13, #10, 'a'..'z', 'A'..'Z', '0'..'9',
     '-', '''', '(', ')', '+', ',', '.', '/', ':', '=', '?', ';', '!', '*',
     '#', '@', '$', '_', '%'];
+  WhitespaceChars: set of Char = [#9, #10, #13, ' '];
 
   NmToken: set of Char = Letter + Digit + ['.', '-', '_', ':'];
 
@@ -150,7 +151,8 @@ end;
 function TXMLReader.SkipWhitespace: Boolean;
 begin
   Result := False;
-  while buf[0] in [#9, #10, #13, ' '] do begin
+  while buf[0] in WhitespaceChars do
+  begin
     Inc(buf);
     Result := True;
   end;
@@ -348,7 +350,7 @@ procedure TXMLReader.ExpectProlog;    // [22]
   procedure ParseDoctypeDecls;
   begin
     repeat
-        SkipWhitespace;
+      SkipWhitespace;
     until not (ParseMarkupDecl or ParsePEReference);
     ExpectString(']');
   end;
@@ -731,7 +733,7 @@ var
     begin
       // Check if s has non-whitespace content
       i := Length(s);
-      while (i > 0) and (s[i] in [#10, #13, ' ']) do
+      while (i > 0) and (s[i] in WhitespaceChars) do
         Dec(i);
       if i > 0 then
 	NewElem.AppendChild(doc.CreateTextNode(s));
@@ -1115,7 +1117,11 @@ end.
 
 {
   $Log$
-  Revision 1.18  2000-07-09 13:56:09  sg
+  Revision 1.19  2000-07-09 14:23:42  sg
+  * Tabs are now considered as whitespace, too, when the reader determines if
+    a text node would be empty or not
+
+  Revision 1.18  2000/07/09 13:56:09  sg
   * Added support for predefined entities for attribute values
 
   Revision 1.17  2000/07/09 11:39:15  sg
