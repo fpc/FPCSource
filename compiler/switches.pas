@@ -71,7 +71,7 @@ const
    {E} (typesw:programglobal; setsw:cs_fp_emulation; proc:nil),
    {F} (typesw:unsupported; setsw:cs_none; proc:nil),
    {G} (typesw:unsupported; setsw:cs_none; proc:nil),
-   {H} (typesw:unsupported; setsw:cs_none; proc:nil),
+   {H} (typesw:local; setsw:cs_ansistrings; proc:nil),
    {I} (typesw:local; setsw:cs_iocheck; proc:nil),
    {J} (typesw:illegal; setsw:cs_none; proc:nil),
    {K} (typesw:unsupported; setsw:cs_none; proc:nil),
@@ -161,7 +161,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  1998-06-04 23:52:00  peter
+  Revision 1.6  1998-07-18 17:11:13  florian
+    + ansi string constants fixed
+    + switch $H partial implemented
+
+  Revision 1.5  1998/06/04 23:52:00  peter
     * m68k compiles
     + .def file creation moved to gendef.pas so it could also be used
       for win32

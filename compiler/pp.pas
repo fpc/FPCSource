@@ -36,6 +36,8 @@
                       MMX instructions
   EXTERN_MSG          Don't compile the msgfiles in the compiler, always
                       use external messagefiles
+  NOAG386INT          no Intel Assembler output
+  NOAG386NSM          no NASM output
   -----------------------------------------------------------------
 
   Required switches for a i386 compiler be compiled by Free Pascal Compiler:
@@ -106,8 +108,7 @@ uses
   {$ifopt o+}
     Overlay,ppovin,
   {$else}
-  { warn when not $O+ is used }
-    - You must compile with the $O+ switch
+  {$error You must compile with the $O+ switch}
   {$endif}
 {$endif useoverlay}
 {$ifdef lock}
@@ -192,16 +193,22 @@ uses
         {$O cg386ld}
         {$O cg386mat}
         {$O cg386set}
+{$ifndef NOOPT}
         {$O aopt386}
+{$endif NOOPT}
         {$O cgai386}
         {$O i386}
         {$O ra386dir}
         {$O ra386int}
         {$O ra386att}
         {$O tgeni386}
+{$ifndef NoAg386Int}
         {$O ag386int}
+{$endif NoAg386Int}
         {$O ag386att}
+{$ifndef NoAg386Nsm}
         {$O ag386nsm}
+{$endif}
   {$endif}
   {$ifdef m68k}
         {$O opts68k}
@@ -392,7 +399,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  1998-07-14 14:46:55  peter
+  Revision 1.21  1998-07-18 17:11:12  florian
+    + ansi string constants fixed
+    + switch $H partial implemented
+
+  Revision 1.20  1998/07/14 14:46:55  peter
     * released NEWINPUT
 
   Revision 1.19  1998/07/07 11:20:04  peter

@@ -82,6 +82,7 @@ unit pdecl;
          sym : psym;
          ps : pconstset;
          pd : pdouble;
+         sp : pstring;
 
       begin
          consume(_CONST);
@@ -109,7 +110,15 @@ unit pdecl;
                         end;
                       stringconstn:
                         {values is disposed with p so I need a copy !}
+{$ifdef USEANSISTRING}  begin
+                           getmem(sp,p^.length+1);
+                           move(p^.values^,sp^[1],p^.length);
+                           sp^[0]:=chr(p^.length);
+                           symtablestack^.insert(new(pconstsym,init(name,conststring,longint(sp),nil)));
+                        end;
+{$else USEANSISTRING}
                         symtablestack^.insert(new(pconstsym,init(name,conststring,longint(stringdup(p^.values^)),nil)));
+{$endif USEANSISTRING}
                       realconstn : begin
                                       new(pd);
                                       pd^:=p^.valued;
@@ -1864,7 +1873,11 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.32  1998-07-14 21:46:50  peter
+  Revision 1.33  1998-07-18 17:11:11  florian
+    + ansi string constants fixed
+    + switch $H partial implemented
+
+  Revision 1.32  1998/07/14 21:46:50  peter
     * updated messages file
 
   Revision 1.31  1998/07/14 14:46:53  peter

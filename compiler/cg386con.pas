@@ -37,7 +37,7 @@ interface
 implementation
 
     uses
-      cobjects,verbose,
+      cobjects,verbose,globals,
       symtable,aasm,i386,
       hcodegen,cgai386,temp_gen,tgeni386,cgi386;
 
@@ -190,24 +190,32 @@ implementation
                    getmem(pc,length(p^.values^)+3);
                    move(p^.values^,pc^,length(p^.values^)+1);
                    pc[length(p^.values^)+1]:=#0;
-{$else UseAnsiString}
-                   pc:=getpcharcopy(p);
-{$endif UseAnsiString}
-
                    concat_constlabel(lastlabel,conststring);
-{$ifdef UseAnsiString}
-{$ifdef debug}
-                   consts^.concat(new(pai_asm_comment,init('Header of ansistring')));
-{$endif debug}
-                   consts^.concat(new(pai_const,init_32bit(p^.length)));
-                   consts^.concat(new(pai_const,init_32bit(p^.length)));
-                   consts^.concat(new(pai_const,init_32bit(-1)));
-                   { to overcome this problem we set the length explicitly }
-                   { with the ending null char }
-                   consts^.concat(new(pai_string,init_length_pchar(pc,p^.length+1)));
-{$else UseAnsiString}
                    { we still will have a problem if there is a #0 inside the pchar }
                    consts^.concat(new(pai_string,init_length_pchar(pc,length(p^.values^)+2)));
+{$else UseAnsiString}
+                   if cs_ansistrings in aktswitches then
+                     begin
+                        concat_constlabel(lastlabel,conststring);
+                        consts^.concat(new(pai_const,init_32bit(p^.length)));
+                        consts^.concat(new(pai_const,init_32bit(p^.length)));
+                        consts^.concat(new(pai_const,init_32bit(-1)));
+                        getmem(pc,p^.length+1);
+                        move(p^.values^,pc^,p^.length+1);
+                        { to overcome this problem we set the length explicitly }
+                        { with the ending null char }
+                        consts^.concat(new(pai_string,init_length_pchar(pc,p^.length+1)));
+                     end
+                   else
+                     begin
+                        getmem(pc,p^.length+3);
+                        move(p^.values^,pc[1],p^.length+1);
+                        pc[0]:=chr(p^.length);
+                        concat_constlabel(lastlabel,conststring);
+                        { to overcome this problem we set the length explicitly }
+                        { with the ending null char }
+                        consts^.concat(new(pai_string,init_length_pchar(pc,p^.length+2)));
+                     end;
 {$endif UseAnsiString}
                 end;
            end;
@@ -328,7 +336,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  1998-06-25 08:48:07  florian
+  Revision 1.6  1998-07-18 17:11:07  florian
+    + ansi string constants fixed
+    + switch $H partial implemented
+
+  Revision 1.5  1998/06/25 08:48:07  florian
     * first version of rtti support
 
   Revision 1.4  1998/06/08 13:13:31  pierre

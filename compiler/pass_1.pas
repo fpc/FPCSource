@@ -1498,7 +1498,10 @@ unit pass_1;
          {why this !!! lost of dummy type definitions
          one per const string !!!
          p^.resulttype:=new(pstringdef,init(length(p^.values^)));}
-         p^.resulttype:=cstringdef;
+         if cs_ansistrings in aktswitches then
+           p^.resulttype:=cansistringdef
+         else
+           p^.resulttype:=cstringdef;
          p^.location.loc:=LOC_MEM;
       end;
 
@@ -5040,7 +5043,11 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.39  1998-07-14 21:46:47  peter
+  Revision 1.40  1998-07-18 17:11:09  florian
+    + ansi string constants fixed
+    + switch $H partial implemented
+
+  Revision 1.39  1998/07/14 21:46:47  peter
     * updated messages file
 
   Revision 1.38  1998/07/14 14:46:50  peter
