@@ -712,15 +712,19 @@ var
     i: Integer;
   begin
     SetLength(s, 0);
-    while not (buf[0] in [#0, '<', '&']) do begin
+    while not (buf[0] in [#0, '<', '&']) do
+    begin
       s := s + buf[0];
       Inc(buf);
     end;
-    if Length(s) > 0 then begin
-      // Strip whitespace from end of s
+    if Length(s) > 0 then
+    begin
+      // Check if s has non-whitespace content
       i := Length(s);
-      while (i > 0) and (s[i] in [#10, #13, ' ']) do Dec(i);
-      NewElem.AppendChild(doc.CreateTextNode(Copy(s, 1, i)));
+      while (i > 0) and (s[i] in [#10, #13, ' ']) do
+        Dec(i);
+      if i > 0 then
+	NewElem.AppendChild(doc.CreateTextNode(s));
       Result := True;
     end else
       Result := False;
@@ -730,9 +734,11 @@ var
   var
     cdata: String;
   begin
-    if CheckFor('<![CDATA[') then begin
+    if CheckFor('<![CDATA[') then
+    begin
       SetLength(cdata, 0);
-      while not CheckFor(']]>') do begin
+      while not CheckFor(']]>') do
+      begin
         cdata := cdata + buf[0];
         Inc(buf);
       end;
@@ -742,16 +748,47 @@ var
       Result := False;
   end;
 
+
+  procedure ReplaceEntityRef(EntityNode: TDOMNode; const Replacement: String);
+  var
+    PrevSibling, NextSibling: TDOMNode;
+  begin
+    // ###
+    PrevSibling := EntityNode.PreviousSibling;
+    NextSibling := EntityNode.NextSibling;
+    if Assigned(PrevSibling) and (PrevSibling.NodeType = TEXT_NODE) then
+    begin
+      TDOMCharacterData(PrevSibling).AppendData(Replacement);
+      NewElem.RemoveChild(EntityNode);
+      if Assigned(NextSibling) and (NextSibling.NodeType = TEXT_NODE) then
+      begin
+        TDOMCharacterData(PrevSibling).AppendData(
+	  TDOMCharacterData(NextSibling).Data);
+	NewElem.RemoveChild(NextSibling);
+      end
+    end else
+      if Assigned(NextSibling) and (NextSibling.NodeType = TEXT_NODE) then
+      begin
+        TDOMCharacterData(NextSibling).InsertData(0, Replacement);
+	NewElem.RemoveChild(EntityNode);
+      end else
+        NewElem.ReplaceChild(Doc.CreateTextNode(Replacement), EntityNode);
+  end;
+
+
 var
   IsEmpty: Boolean;
   name: String;
   oldpos: PChar;
 
   attr: TDOMAttr;
+  Node, NextSibling: TDOMNode;
 begin
   oldpos := buf;
-  if CheckFor('<') then begin
-    if not GetName(name) then begin
+  if CheckFor('<') then
+  begin
+    if not GetName(name) then
+    begin
       buf := oldpos;
       Result := False;
       exit;
@@ -762,12 +799,15 @@ begin
 
     SkipWhitespace;
     IsEmpty := False;
-    while True do begin
-      if CheckFor('/>') then begin
+    while True do
+    begin
+      if CheckFor('/>') then
+      begin
         IsEmpty := True;
         break;
       end;
-      if CheckFor('>') then break;
+      if CheckFor('>') then
+        break;
 
       // Get Attribute [41]
       attr := doc.CreateAttribute(ExpectName);
@@ -778,17 +818,39 @@ begin
       SkipWhitespace;
     end;
 
-    if not IsEmpty then begin
+    if not IsEmpty then
+    begin
       // Get content
-      while SkipWhitespace or ParseCharData or ParseCDSect or ParsePI or
+      SkipWhitespace;
+      while ParseCharData or ParseCDSect or ParsePI or
         ParseComment(NewElem) or ParseElement(NewElem) or
         ParseReference(NewElem) do;
 
       // Get ETag [42]
       ExpectString('</');
-      ExpectName;
+      if ExpectName <> name then
+        RaiseExc('Unmatching element end tag');
       SkipWhitespace;
       ExpectString('>');
+    end;
+
+    // Resolve predefined entities
+    Node := NewElem.FirstChild;
+    while Assigned(Node) do
+    begin
+      NextSibling := Node.NextSibling;
+      if Node.NodeType = ENTITY_REFERENCE_NODE then
+        if Node.NodeName = 'amp' then
+	  ReplaceEntityRef(Node, '&')
+        else if Node.NodeName = 'apos' then
+	  ReplaceEntityRef(Node, '''')
+        else if Node.NodeName = 'gt' then
+	  ReplaceEntityRef(Node, '>')
+        else if Node.NodeName = 'lt' then
+	  ReplaceEntityRef(Node, '<')
+        else if Node.NodeName = 'quot' then
+	  ReplaceEntityRef(Node, '"');
+      Node := NextSibling;
     end;
 
     Result := True;
@@ -1031,7 +1093,11 @@ end.
 
 {
   $Log$
-  Revision 1.16  2000-04-20 14:15:45  sg
+  Revision 1.17  2000-07-09 11:39:15  sg
+  * Added support for predefined entities
+  * Improved whitespace handling
+
+  Revision 1.16  2000/04/20 14:15:45  sg
   * Minor bugfixes
   * Started support for DOM level 2
 
