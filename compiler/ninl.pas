@@ -77,7 +77,7 @@ implementation
     uses
       verbose,globals,systems,
       globtype, cutils,
-      symbase,symconst,symdef,symsym,symtable,paramgr,defutil,
+      symconst,symdef,symsym,symtable,paramgr,defutil,
       pass_1,
       ncal,ncon,ncnv,nadd,nld,nbas,nflw,nmem,nmat,nutils,
       cgbase,procinfo
@@ -311,7 +311,6 @@ implementation
         procprefix,
         name          : string[31];
         textsym       : ttypesym;
-        tempowner     : tsymtable;
         readfunctype  : ttype;
         is_typed,
         do_read,
@@ -524,7 +523,7 @@ implementation
                   begin
                     { create temp for result }
                     temp := ctempcreatenode.create(para.left.resulttype,
-                      para.left.resulttype.def.size,tt_persistent,true);
+                      para.left.resulttype.def.size,tt_persistent,false);
                     addstatement(newstatement,temp);
                     { assign result to temp }
                     addstatement(newstatement,
@@ -1191,7 +1190,6 @@ implementation
          hightree,
          hp        : tnode;
          srsym     : tsym;
-         isreal    : boolean;
          checkrange : boolean;
       label
          myexit;
@@ -2465,7 +2463,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.154  2004-11-21 21:27:31  peter
+  Revision 1.155  2004-11-26 22:33:00  peter
+    * fixed read temp for result
+
+  Revision 1.154  2004/11/21 21:27:31  peter
     * add checks for filedef type to prevent crashes
 
   Revision 1.153  2004/11/21 17:54:59  peter
