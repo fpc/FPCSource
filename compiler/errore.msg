@@ -788,6 +788,15 @@ parser_e_only_publishable_classes_can__be_published=E_Only class which are compi
 % In the published section of a class can be only class as fields used which
 % are compiled in $M+ or which are derived from such a class. Normally
 % such a class should be derived from TPersitent
+parser_e_proc_directive_expected=E_Procedure directive expected
+% When declaring a procedure in a const block you used a ; after the
+% procedure declaration after which a procedure directive must follow.
+% Correct declarations are:
+% \begin{verbatim}
+% const
+%   p : procedure;stdcall=nil;
+%   p : procedure stdcall=nil;
+% \end{verbatim}
 % \end{description}
 #
 # Type Checking

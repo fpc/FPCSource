@@ -352,6 +352,7 @@
           procedure concattypesym(p : ptypesym;vsp : tvarspez);
           function  para_size : longint;
           function  demangled_paras : string;
+          function  proccalloption2str : string;
           procedure test_if_fpu_result;
           { debug }
 {$ifdef GDB}
@@ -530,7 +531,10 @@
 
 {
   $Log$
-  Revision 1.42  1999-10-01 08:02:48  peter
+  Revision 1.43  1999-10-01 10:05:44  peter
+    + procedure directive support in const declarations, fixes bug 232
+
+  Revision 1.42  1999/10/01 08:02:48  peter
     * forward type declaration rewritten
 
   Revision 1.41  1999/08/10 12:34:49  pierre

@@ -2420,6 +2420,48 @@
       end;
 
 
+    function tabstractprocdef.proccalloption2str : string;
+      type
+        tproccallopt=record
+          mask : tproccalloption;
+          str  : string[30];
+        end;
+      const
+        proccallopts=12;
+        proccallopt : array[1..proccallopts] of tproccallopt=(
+           (mask:pocall_none;         str:''),
+           (mask:pocall_clearstack;   str:'ClearStack'),
+           (mask:pocall_leftright;    str:'LeftRight'),
+           (mask:pocall_cdecl;        str:'Cdecl'),
+           (mask:pocall_register;     str:'Register'),
+           (mask:pocall_stdcall;      str:'StdCall'),
+           (mask:pocall_safecall;     str:'SafeCall'),
+           (mask:pocall_palmossyscall;str:'PalmOSSysCall'),
+           (mask:pocall_system;       str:'System'),
+           (mask:pocall_inline;       str:'Inline'),
+           (mask:pocall_internproc;   str:'InternProc'),
+           (mask:pocall_internconst;  str:'InternConst')
+        );
+      var
+        s : string;
+        i : longint;
+        first : boolean;
+      begin
+        s:='';
+        first:=true;
+        for i:=1to proccallopts do
+         if (proccallopt[i].mask in proccalloptions) then
+          begin
+            if first then
+              first:=false
+            else
+              s:=s+';';
+            s:=s+proccallopt[i].str;
+          end;
+        proccalloption2str:=s;
+      end;
+
+
 {$ifdef GDB}
     function tabstractprocdef.stabstring : pchar;
       begin
@@ -3098,13 +3140,14 @@ Const local_symtable_index : longint = $8001;
 
 
     function tprocvardef.gettypename : string;
-
       begin
          if assigned(retdef) and
             (retdef<>pdef(voiddef)) then
-           gettypename:='<procedure variable type of function'+demangled_paras+':'+retdef^.gettypename+'>'
+           gettypename:='<procedure variable type of function'+demangled_paras+
+             ':'+retdef^.gettypename+';'+proccalloption2str+'>'
          else
-           gettypename:='<procedure variable type of procedure'+demangled_paras+'>';
+           gettypename:='<procedure variable type of procedure'+demangled_paras+
+             ';'+proccalloption2str+'>';
       end;
 
 
@@ -3816,7 +3859,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.167  1999-10-01 08:02:48  peter
+  Revision 1.168  1999-10-01 10:05:44  peter
+    + procedure directive support in const declarations, fixes bug 232
+
+  Revision 1.167  1999/10/01 08:02:48  peter
     * forward type declaration rewritten
 
   Revision 1.166  1999/09/26 21:30:21  peter

@@ -146,6 +146,7 @@ unit pdecl;
          ps : pconstset;
          pd : pbestreal;
          sp : pchar;
+         skipequal : boolean;
       begin
          consume(_CONST);
          old_block_type:=block_type;
@@ -155,6 +156,7 @@ unit pdecl;
            filepos:=tokenpos;
            consume(_ID);
            case token of
+
              _EQUAL:
                 begin
                    consume(_EQUAL);
@@ -210,6 +212,7 @@ unit pdecl;
                    consume(_SEMICOLON);
                    disposetree(p);
                 end;
+
              _COLON:
                 begin
                    { set the blocktype first so a consume also supports a
@@ -220,6 +223,8 @@ unit pdecl;
                    def:=read_type('');
                    ignore_equal:=false;
                    block_type:=bt_const;
+                   skipequal:=false;
+                   { create symbol }
                    storetokenpos:=tokenpos;
                    tokenpos:=filepos;
 {$ifdef DELPHI_CONST_IN_RODATA}
@@ -240,16 +245,45 @@ unit pdecl;
                      end;
                    tokenpos:=storetokenpos;
                    symtablestack^.insert(sym);
-                   consume(_EQUAL);
+                   { procvar can have proc directives }
+                   if (def^.deftype=procvardef) then
+                    begin
+                      { support p : procedure;stdcall=nil; }
+                      if (token=_SEMICOLON) then
+                       begin
+                         consume(_SEMICOLON);
+                         if is_proc_directive(token) then
+                          parse_var_proc_directives(sym)
+                         else
+                          begin
+                            Message(parser_e_proc_directive_expected);
+                            skipequal:=true;
+                          end;
+                       end
+                      else
+                      { support p : procedure stdcall=nil; }
+                       begin
+                         if is_proc_directive(token) then
+                          parse_var_proc_directives(sym);
+                       end;
+                    end;
+                   if not skipequal then
+                    begin
+                      { get init value }
+                      consume(_EQUAL);
 {$ifdef DELPHI_CONST_IN_RODATA}
-                   if m_delphi in aktmodeswitches then
-                     readtypedconst(def,ptypedconstsym(sym),true)
-                   else
+                      if m_delphi in aktmodeswitches then
+                       readtypedconst(def,ptypedconstsym(sym),true)
+                      else
 {$endif DELPHI_CONST_IN_RODATA}
-                     readtypedconst(def,ptypedconstsym(sym),false);
-                   consume(_SEMICOLON);
+                       readtypedconst(def,ptypedconstsym(sym),false);
+                      consume(_SEMICOLON);
+                    end;
                 end;
-              else consume(_EQUAL);
+
+              else
+                { generate an error }
+                consume(_EQUAL);
            end;
          until token<>_ID;
          block_type:=old_block_type;
@@ -506,7 +540,7 @@ unit pdecl;
              if (p^.deftype=procvardef) and (p^.sym=nil) then
                begin
                   newtype:=new(ptypesym,init('unnamed',p));
-                  parse_var_proc_directives(newtype);
+                  parse_var_proc_directives(psym(newtype));
                   newtype^.definition:=nil;
                   p^.sym:=nil;
                   dispose(newtype,done);
@@ -2387,7 +2421,7 @@ unit pdecl;
            consume(_SEMICOLON);
            if assigned(newtype^.definition) and
               (newtype^.definition^.deftype=procvardef) then
-             parse_var_proc_directives(newtype);
+             parse_var_proc_directives(psym(newtype));
          until token<>_ID;
          typecanbeforward:=false;
          symtablestack^.foreach({$ifndef TP}@{$endif}resolve_type_forward);
@@ -2567,7 +2601,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.158  1999-10-01 08:02:46  peter
+  Revision 1.159  1999-10-01 10:05:42  peter
+    + procedure directive support in const declarations, fixes bug 232
+
+  Revision 1.158  1999/10/01 08:02:46  peter
     * forward type declaration rewritten
 
   Revision 1.157  1999/09/27 23:44:53  peter

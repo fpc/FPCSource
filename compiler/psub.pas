@@ -25,7 +25,7 @@ interface
 
 uses
   cobjects,
-  symconst,symtable;
+  symconst,tokens,symtable;
 
 const
   pd_global    = $1;    { directive must be global }
@@ -40,7 +40,8 @@ procedure compile_proc_body(const proc_names:Tstringcontainer;
                             make_global,parent_has_class:boolean);
 procedure parse_proc_head(options:tproctypeoption);
 procedure parse_proc_dec;
-procedure parse_var_proc_directives(var sym : ptypesym);
+function  is_proc_directive(tok:ttoken):boolean;
+procedure parse_var_proc_directives(var sym : psym);
 procedure parse_object_proc_directives(var sym : pprocsym);
 procedure read_proc;
 
@@ -48,7 +49,7 @@ procedure read_proc;
 implementation
 
 uses
-  globtype,systems,tokens,
+  globtype,systems,
   strings,globals,verbose,files,
   scanner,aasm,tree,types,
   import,gendef,
@@ -912,10 +913,6 @@ end;
   {$F-}
 {$endif}
 
-function parse_proc_direc(const proc_names:Tstringcontainer;var pdflags:word):boolean;
-{
-  Parse the procedure directive, returns true if a correct directive is found
-}
 const
    namelength=15;
 type
@@ -1199,6 +1196,25 @@ const
     )
    );
 
+
+function is_proc_directive(tok:ttoken):boolean;
+var
+  i : longint;
+begin
+  is_proc_directive:=false;
+  for i:=1 to num_proc_directives do
+   if proc_direcdata[i].idtok=idtoken then
+    begin
+      is_proc_directive:=true;
+      exit;
+    end;
+end;
+
+
+function parse_proc_direc(const proc_names:Tstringcontainer;var pdflags:word):boolean;
+{
+  Parse the procedure directive, returns true if a correct directive is found
+}
 var
   p     : longint;
   found : boolean;
@@ -1810,28 +1826,45 @@ begin
       end
      else
       res:=parse_proc_direc(Anames^,pdflags);
-   { A procedure directive is always followed by a semicolon }
+   { A procedure directive normally followed by a semicolon, but in
+     a const section we should stop when _EQUAL is found }
      if res then
-      consume(_SEMICOLON)
+      begin
+        if (block_type=bt_const) and
+           (token=_EQUAL) then
+         break;
+        consume(_SEMICOLON);
+      end
      else
       break;
    end;
 end;
 
-procedure parse_var_proc_directives(var sym : ptypesym);
+procedure parse_var_proc_directives(var sym : psym);
 var
-  anames : pstringcontainer;
+  anames  : pstringcontainer;
   pdflags : word;
-  oldsym : pprocsym;
+  oldsym  : pprocsym;
+  pd      : pabstractprocdef;
 begin
   oldsym:=aktprocsym;
   anames:=new(pstringcontainer,init);
   pdflags:=pd_procvar;
   { we create a temporary aktprocsym to read the directives }
   aktprocsym:=new(pprocsym,init(sym^.name));
-  { aktprocsym^.definition:=pprocdef(sym^.definition);
-    this breaks the rule for TESTOBJEXT !! }
-  pabstractprocdef(aktprocsym^.definition):=pabstractprocdef(sym^.definition);
+  case sym^.typ of
+    varsym :
+      pd:=pabstractprocdef(pvarsym(sym)^.definition);
+    typedconstsym :
+      pd:=pabstractprocdef(ptypedconstsym(sym)^.definition);
+    typesym :
+      pd:=pabstractprocdef(ptypesym(sym)^.definition);
+    else
+      internalerror(994932432);
+  end;
+  if pd^.deftype<>procvardef then
+   internalerror(994932433);
+  pabstractprocdef(aktprocsym^.definition):=pd;
   { names should never be used anyway }
   inc(lexlevel);
   parse_proc_directives(anames,pdflags);
@@ -2044,7 +2077,10 @@ end.
 
 {
   $Log$
-  Revision 1.24  1999-10-01 08:02:47  peter
+  Revision 1.25  1999-10-01 10:05:44  peter
+    + procedure directive support in const declarations, fixes bug 232
+
+  Revision 1.24  1999/10/01 08:02:47  peter
     * forward type declaration rewritten
 
   Revision 1.23  1999/09/27 23:44:56  peter
