@@ -236,7 +236,6 @@ unit tree;
              onn : (exceptsymtable : psymtable;excepttype : pobjectdef);
            end;
 
-    procedure init_tree;
     function gennode(t : ttreetyp;l,r : ptree) : ptree;
     function genlabelnode(t : ttreetyp;nr : plabel) : ptree;
     function genloadnode(v : pvarsym;st : psymtable) : ptree;
@@ -279,9 +278,6 @@ unit tree;
     procedure disposetree(p : ptree);
     procedure putnode(p : ptree);
     function getnode : ptree;
-{***Obsolete
-    procedure clearnodes;
-***}
     procedure set_location(var destloc,sourceloc : tlocation);
     procedure swap_location(var destloc,sourceloc : tlocation);
     procedure set_file_line(from,_to : ptree);
@@ -313,38 +309,6 @@ unit tree;
 { $endif extdebug}
        verbose,files;
 
-{****************************************************************************
-        this is a pool for the tree nodes to get more performance
- ****************************************************************************}
-
-{***Obsolete
-    var
-       root : ptree;
-***}
-
-    procedure init_tree;
-
-      begin
-{***Obsolete
-         root:=nil;
-***}
-      end;
-{***Obsolete
-    procedure clearnodes;
-
-      var
-         hp : ptree;
-
-      begin
-         hp:=root;
-         while assigned(hp) do
-           begin
-              root:=hp^.left;
-              dispose(hp);
-              hp:=root;
-           end;
-      end;
-***}
 
     function getnode : ptree;
 
@@ -352,15 +316,6 @@ unit tree;
          hp : ptree;
 
       begin
-{***Obsolete
-         if root=nil then
-           new(hp)
-         else
-           begin
-              hp:=root;
-              root:=root^.left;
-           end;
-***}
          new(hp);
 
          { makes error tracking easier }
@@ -1607,7 +1562,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.25  1998-08-02 16:42:02  florian
+  Revision 1.26  1998-08-10 09:57:19  peter
+    - Remove InitTree which was empty and obsolete
+
+  Revision 1.25  1998/08/02 16:42:02  florian
     * on o : tobject do should also work now, the exceptsymtable shouldn't be
       disposed by dellexlevel
 
