@@ -39,7 +39,15 @@ const
 {$I heaph.inc}
 
 const
-  UnusedHandle    = -1;
+{$ifndef VER0_99_5}
+  {$ifndef VER0_99_6}
+    UnusedHandle    = -1;
+  {$else}
+    UnusedHandle    = $ffff;
+  {$endif}
+{$else}
+  UnusedHandle    = $ffff;
+{$endif}  
   StdInputHandle  = 0;
   StdOutputHandle = 1;
   StdErrorHandle  = 2;
@@ -689,7 +697,10 @@ End.
 
 {
   $Log$
-  Revision 1.14  1998-09-04 18:16:16  peter
+  Revision 1.15  1998-09-06 19:41:40  peter
+    * fixed unusedhandle for 0.99.5
+
+  Revision 1.14  1998/09/04 18:16:16  peter
     * uniform filerec/textrec (with recsize:longint and name:0..255)
 
   Revision 1.13  1998/08/14 11:59:41  carl
