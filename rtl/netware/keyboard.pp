@@ -91,3 +91,11 @@ begin
   PendingKeyEvent := 0;
   SetKeyBoardDriver(SysKeyBoardDriver);
 end.
+
+{
+  $Log$
+  Revision 1.3  2002-03-08 19:02:59  armin
+  Changes for new style (TKeyboardDriver record)
+
+  
+}
