@@ -1641,7 +1641,7 @@ implementation
 {$endif CPUSPARC}
 
 {$ifndef HASSETFPUEXCEPTIONMASK}
-      function SetFPUExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
+      procedure SetFPUExceptionMask(const Mask: TFPUExceptionMask);
         begin
         end;
 {$endif HASSETFPUEXCEPTIONMASK}
@@ -2135,7 +2135,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.152  2004-10-31 21:45:02  peter
+  Revision 1.153  2004-11-05 13:14:30  florian
+    * fixed arm compilation
+
+  Revision 1.152  2004/10/31 21:45:02  peter
     * generic tlocation
     * move tlocation to cgutils
 
