@@ -696,7 +696,7 @@ Begin
 end;
 
 
-Procedure BuildConstSymbolExpression(needofs,exitreg:boolean;var value:longint;var asmsym:string);
+Procedure BuildConstSymbolExpression(needofs,isref:boolean;var value:longint;var asmsym:string);
 var
   tempstr,expr,hs : string;
   parenlevel,l,k : longint;
@@ -751,16 +751,22 @@ Begin
       AS_STAR:
         Begin
           Consume(AS_STAR);
-          if exitreg and (actasmtoken=AS_REGISTER) then
+          if isref and (actasmtoken=AS_REGISTER) then
            break;
           expr:=expr + '*';
         end;
       AS_PLUS:
         Begin
           Consume(AS_PLUS);
-          if exitreg and (actasmtoken=AS_REGISTER) then
+          if isref and (actasmtoken=AS_REGISTER) then
            break;
           expr:=expr + '+';
+        end;
+      AS_LBRACKET:
+        begin
+          { Support ugly delphi constructs like: [ECX].1+2[EDX] }
+          if isref then
+            break;
         end;
       AS_MINUS:
         Begin
@@ -1012,8 +1018,8 @@ Procedure T386IntelOperand.BuildReference;
 
 var
   k,l,scale : longint;
-  tempstr2,
   tempstr,hs : string;
+  typesize : longint;
   code : integer;
   hreg,
   oldbase : tregister;
@@ -1070,15 +1076,14 @@ Begin
              Consume(AS_ID);
              { typecasting? }
              if (actasmtoken=AS_LPAREN) and
-                SearchType(tempstr) then
+                SearchType(tempstr,typesize) then
               begin
                 hastype:=true;
                 Consume(AS_LPAREN);
-                tempstr2:=actasmpattern;
-                Consume(AS_ID);
+                BuildOperand;
                 Consume(AS_RPAREN);
-                if not SetupVar(tempstr2,GotOffset) then
-                 Message1(sym_e_unknown_id,tempstr2);
+                if opr.typ in [OPR_REFERENCE,OPR_LOCAL] then
+                  SetSize(typesize,true);
               end
              else
               if not SetupVar(tempstr,GotOffset) then
@@ -1301,9 +1306,9 @@ end;
 
 Procedure T386IntelOperand.BuildOperand;
 var
-  tempstr,
   expr    : string;
   tempreg : tregister;
+  typesize,
   l       : longint;
   hl      : tasmlabel;
 
@@ -1385,12 +1390,14 @@ var
   end;
 
 Begin
+  repeat
   expr:='';
+  if actasmtoken=AS_DOT then
+    Consume(AS_DOT);
   case actasmtoken of
 
     AS_OFFSET,
     AS_TYPE,
-    AS_INTNUM,
     AS_PLUS,
     AS_MINUS,
     AS_NOT,
@@ -1400,6 +1407,21 @@ Begin
         if not (opr.typ in [OPR_NONE,OPR_CONSTANT]) then
           Message(asmr_e_invalid_operand_type);
         BuildConstant;
+      end;
+
+    AS_INTNUM :
+      begin
+        case opr.typ of
+          OPR_REFERENCE :
+            inc(opr.ref.offset,BuildRefConstExpression);
+          OPR_LOCAL :
+            inc(opr.localsymofs,BuildRefConstExpression);
+          OPR_NONE,
+          OPR_CONSTANT :
+            BuildConstant;
+          else
+            Message(asmr_e_invalid_operand_type);
+        end;
       end;
 
     AS_ID : { A constant expression, or a Variable ref. }
@@ -1444,9 +1466,17 @@ Begin
            { is it a constant ? }
            if SearchIConstant(actasmpattern,l) then
             Begin
-              if not (opr.typ in [OPR_NONE,OPR_CONSTANT]) then
-               Message(asmr_e_invalid_operand_type);
-              BuildConstant;
+              case opr.typ of
+                OPR_REFERENCE :
+                  inc(opr.ref.offset,BuildRefConstExpression);
+                OPR_LOCAL :
+                  inc(opr.localsymofs,BuildRefConstExpression);
+                OPR_NONE,
+                OPR_CONSTANT :
+                  BuildConstant;
+                else
+                  Message(asmr_e_invalid_operand_type);
+              end;
             end
            else
             { Check for pascal label }
@@ -1465,28 +1495,14 @@ Begin
                Consume(AS_ID);
                { typecasting? }
                if (actasmtoken=AS_LPAREN) and
-                  SearchType(expr) then
+                  SearchType(expr,typesize) then
                 begin
                   hastype:=true;
                   Consume(AS_LPAREN);
-                  tempstr:=actasmpattern;
-                  Consume(AS_ID);
+                  BuildOperand;
                   Consume(AS_RPAREN);
-                  if SetupVar(tempstr,false) then
-                   begin
-                     MaybeRecordOffset;
-                     { add a constant expression? }
-                     if (actasmtoken=AS_PLUS) then
-                      begin
-                        l:=BuildConstExpression;
-                        if opr.typ=OPR_CONSTANT then
-                         inc(opr.val,l)
-                        else
-                         inc(opr.ref.offset,l);
-                      end
-                   end
-                  else
-                   Message1(sym_e_unknown_id,tempstr);
+                  if opr.typ in [OPR_REFERENCE,OPR_LOCAL] then
+                    SetSize(typesize,true);
                 end
                else
                 begin
@@ -1530,7 +1546,6 @@ Begin
                  opr.Ref.Offset:=l;
                end;
               BuildReference;
-              MaybeRecordOffset;
             end;
          end;
       end;
@@ -1562,7 +1577,6 @@ Begin
       Begin
         InitRef;
         BuildReference;
-        MaybeRecordOffset;
       end;
 
     AS_SEG :
@@ -1573,12 +1587,15 @@ Begin
 
     AS_SEPARATOR,
     AS_END,
-    AS_COMMA: ;
+    AS_COMMA:
+      break;
 
     else
       Message(asmr_e_syn_operand);
   end;
-  if not(actasmtoken in [AS_END,AS_SEPARATOR,AS_COMMA]) then
+  until not(actasmtoken in [AS_DOT,AS_LBRACKET]);
+  if not((actasmtoken in [AS_END,AS_SEPARATOR,AS_COMMA]) or
+         (hastype and (actasmtoken=AS_RPAREN))) then
    begin
      Message(asmr_e_syntax_error);
      RecoverConsume(true);
@@ -1936,7 +1953,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.57  2003-10-21 18:17:40  peter
+  Revision 1.58  2003-10-23 17:19:44  peter
+    * typecasting fixes
+    * reference building more delphi compatible
+
+  Revision 1.57  2003/10/21 18:17:40  peter
     * ignore @ in Unit.@Proc
 
   Revision 1.56  2003/10/10 17:48:14  peter

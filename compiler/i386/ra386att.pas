@@ -1271,8 +1271,9 @@ end;
 
 Procedure T386ATTOperand.BuildOperand;
 var
-  tempstr,tempstr2,
+  tempstr,
   expr : string;
+  typesize,
   l,k : longint;
 
   procedure AddLabelOperand(hl:tasmlabel);
@@ -1357,15 +1358,14 @@ var
           Consume(AS_ID);
           { typecasting? }
           if (actasmtoken=AS_LPAREN) and
-             SearchType(tempstr) then
+             SearchType(tempstr,typesize) then
            begin
              hastype:=true;
              Consume(AS_LPAREN);
-             tempstr2:=actasmpattern;
-             Consume(AS_ID);
+             BuildOperand;
              Consume(AS_RPAREN);
-             if not SetupVar(tempstr2,false) then
-              Message1(sym_e_unknown_id,tempstr2);
+             if opr.typ in [OPR_REFERENCE,OPR_LOCAL] then
+               SetSize(typesize,true);
            end
           else
            if not SetupVar(tempstr,false) then
@@ -1482,28 +1482,14 @@ Begin
               Consume(AS_ID);
               { typecasting? }
               if (actasmtoken=AS_LPAREN) and
-                 SearchType(expr) then
+                 SearchType(expr,typesize) then
                begin
                  hastype:=true;
                  Consume(AS_LPAREN);
-                 tempstr:=actasmpattern;
-                 Consume(AS_ID);
+                 BuildOperand;
                  Consume(AS_RPAREN);
-                 if SetupVar(tempstr,false) then
-                  begin
-                    MaybeRecordOffset;
-                    { add a constant expression? }
-                    if (actasmtoken=AS_PLUS) then
-                     begin
-                       l:=BuildConstExpression(true,false);
-                       if opr.typ=OPR_CONSTANT then
-                        inc(opr.val,l)
-                       else
-                        inc(opr.ref.offset,l);
-                     end
-                  end
-                 else
-                  Message1(sym_e_unknown_id,tempstr);
+                 if opr.typ in [OPR_REFERENCE,OPR_LOCAL] then
+                   SetSize(typesize,true);
                end
               else
                begin
@@ -2140,7 +2126,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.52  2003-10-20 19:29:35  peter
+  Revision 1.53  2003-10-23 17:19:44  peter
+    * typecasting fixes
+    * reference building more delphi compatible
+
+  Revision 1.52  2003/10/20 19:29:35  peter
     * fix check for register subscription of reference parameter
 
   Revision 1.51  2003/10/16 21:29:24  peter
