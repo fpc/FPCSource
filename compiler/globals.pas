@@ -1120,7 +1120,7 @@ implementation
          else
           begin
             CurrPath:=FixPath(FExpand(CurrPath),false);
-            if (Copy(CurrPath,1,length(CurrentDir))=CurrentDir) then
+            if (CurrentDir<>'') and (Copy(CurrPath,1,length(CurrentDir))=CurrentDir) then
              CurrPath:='.'+DirSep+Copy(CurrPath,length(CurrentDir)+1,255);
           end;
          { wildcard adding ? }
@@ -1563,7 +1563,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.55  2000-03-08 15:39:45  daniel
+  Revision 1.56  2000-03-20 16:04:05  pierre
+   * probably a fix for bug 615
+
+  Revision 1.55  2000/03/08 15:39:45  daniel
     + Added align_from_size function as suggested by Peter.
 
   Revision 1.54  2000/02/28 17:23:57  daniel
