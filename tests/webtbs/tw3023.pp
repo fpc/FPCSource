@@ -9,8 +9,8 @@ Var
   A : Array of Integer;
 
 begin
-// Commented version does work.
-//  If (Length(A)=0) then
   If Not Assigned(A) then
-    Writeln('All OK');
+    halt(0)
+  else
+    halt(1);
 end.
