@@ -297,6 +297,8 @@ getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMPPU)
 # Libs
 #####################################################################
 
+libs: staticlib sharedlib
+
 staticlib:
 	make clean
 	make all SMARTLINK=YES LIBNAME=fpc LIBTYPE=static
@@ -310,13 +312,13 @@ staticlibinstall: staticlib
 	$(MKDIR) $(STATIC_LIBINSTALLDIR)
 	$(MKDIR) $(STATIC_UNITINSTALLDIR)
 	$(INSTALLEXE) libfpc$(STATICLIBEXT) $(STATIC_LIBINSTALLDIR)
-	$(INSTALL) *$(PPUEXT) *$(OEXT) $(STATIC_UNITINSTALLDIR)
+	$(INSTALL) *$(PPUEXT) $(OBJLOADERS) $(STATIC_UNITINSTALLDIR)
 
 sharedlibinstall: sharedlib
 	$(MKDIR) $(SHARED_LIBINSTALLDIR)
 	$(MKDIR) $(SHARED_UNITINSTALLDIR)
 	$(INSTALLEXE) libfpc$(SHAREDLIBEXT) $(SHARED_LIBINSTALLDIR)
-	$(INSTALL) *$(PPUEXT) *$(OEXT) $(SHARED_UNITINSTALLDIR)
+	$(INSTALL) *$(PPUEXT)  $(OBJLOADERS) $(SHARED_UNITINSTALLDIR)
 	ldconfig
 
 libinstall: staticlibinstall sharedlibinstall
@@ -332,7 +334,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.1  1998-09-10 14:15:49  peter
+# Revision 1.2  1998-09-11 13:14:01  michael
+# many libs and libinstall fixes
+#
+# Revision 1.1  1998/09/10 14:15:49  peter
 #   - renamed makefile to Makefile
 #
 # Revision 1.24  1998/09/10 09:10:05  michael
