@@ -1,4 +1,4 @@
-{
+ {
     $Id$
     Copyright (c) 1998-2000 by Florian Klaempfl
 
@@ -150,6 +150,7 @@ implementation
         href       : treference;
         pushed,
         cmpop      : boolean;
+        regstopush : byte;
       begin
         { string operations are not commutative }
         if p^.swaped then
@@ -296,7 +297,7 @@ implementation
                              clear_location(p^.left^.location);
                              p^.left^.location.loc:=LOC_MEM;
                              p^.left^.location.reference:=href;
-                             
+
                              { length of temp string = 255 (JM) }
                              pstringdef(p^.left^.resulttype)^.len := 255;
                           end;
@@ -324,7 +325,7 @@ implementation
                               { no, make sure it is in a register }
                               if p^.right^.location.loc in [LOC_REFERENCE,LOC_MEM] then
                                 begin
-                                  { free the registers of p^.right } 
+                                  { free the registers of p^.right }
                                   del_reference(p^.right^.location.reference);
                                   { get register for the char }
                                   hreg := reg32toreg8(getregister32);
@@ -378,24 +379,36 @@ implementation
                         else
                           begin
 {$endif  newoptimizations}
-{$IfNDef regallocfix}
                         { on the right we do not need the register anymore too }
-                            del_reference(p^.right^.location.reference);
-                            pushusedregisters(pushedregs,$ff);
-{$Else regallocfix}
-                            pushusedregisters(pushedregs,$ff
-                              xor ($80 shr byte(p^.right^.location.reference.base))
-                              xor ($80 shr byte(p^.right^.location.reference.index)));
-{$EndIf regallocfix}
+                        { Instead of releasing them already, simply do not }
+                        { push them (so the release is in the right place, }
+                        { because emitpushreferenceaddr doesn't need extra }
+                        { registers) (JM)                                  }
+                            regstopush := $ff;
+                            remove_non_regvars_from_loc(p^.right^.location,
+                              regstopush);
+                           pushusedregisters(pushedregs,regstopush);
+                           { push the maximum possible length of the result }
+{$ifdef newoptimizations}
+                           { string (could be < 255 chars now) (JM)         }
+                            emit_const(A_PUSH,S_L,
+                              pstringdef(p^.left^.resulttype)^.len);
+{$endif newoptimizations}
                             emitpushreferenceaddr(p^.left^.location.reference);
-                            emitpushreferenceaddr(p^.right^.location.reference);
-{$IfDef regallocfix}
+                           { the optimizer can more easily put the          }
+                           { deallocations in the right place if it happens }
+                           { too early than when it happens too late (if    }
+                           { the pushref needs a "lea (..),edi; push edi")  }
                             del_reference(p^.right^.location.reference);
-{$EndIf regallocfix}
+                            emitpushreferenceaddr(p^.right^.location.reference);
+{$ifdef newoptimizations}
+                            emitcall('FPC_SHORTSTR_CONCAT_LEN');
+{$else newoptimizations}
                             emitcall('FPC_SHORTSTR_CONCAT');
+{$endif newoptimizations}
+                            ungetiftemp(p^.right^.location.reference);
                             maybe_loadesi;
                             popusedregisters(pushedregs);
-                            ungetiftemp(p^.right^.location.reference);
 {$ifdef newoptimizations}
                         end;
 {$endif newoptimizations}
@@ -2356,7 +2369,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.99  2000-04-21 12:35:05  jonas
+  Revision 1.100  2000-04-23 09:28:19  jonas
+    * use FPC_SHPRTSTR_CONCAT_LEN for -dnewoptimizations (temp)
+    * more precise reg deallocation when calling the above)
+
+  Revision 1.99  2000/04/21 12:35:05  jonas
     + special code for string + char, between -dnewoptimizations
 
   Revision 1.98  2000/04/10 12:23:19  jonas
