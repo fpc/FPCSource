@@ -1595,70 +1595,56 @@ unit pexpr;
 
                  if (pd^.deftype<>pointerdef) then
                    Message1(type_e_pointer_type_expected,pd^.typename)
-                 else if {(ppointerdef(pd)^.definition^.deftype<>objectdef)}
-                       token=_RKLAMMER then
-                  begin
-                    if (ppointerdef(pd)^.definition^.deftype=objectdef) and
-                       (oo_has_vmt in pobjectdef(ppointerdef(pd)^.definition)^.objectoptions)  then
-                     Message(parser_w_use_extended_syntax_for_objects);
-                    p1:=gensinglenode(newn,nil);
-                    p1^.resulttype:=pd2;
-                    consume(_RKLAMMER);
-                    (*Message(parser_e_pointer_to_class_expected);
-                    { if an error occurs, read til the end of
-                      the new statement }
-                    p1:=genzeronode(errorn);
-                    l:=1;
-                    while true do
-                     begin
-                       case token of
-                        _LKLAMMER : inc(l);
-                        _RKLAMMER : dec(l);
-                       end;
-                       consume(token);
-                       if l=0 then
-                        break;
-                     end;*)
-                  end
                  else
-                  begin
-                    disposetree(p1);
-                    p1:=genzeronode(hnewn);
-                    p1^.resulttype:=ppointerdef(pd)^.definition;
-                    consume(_COMMA);
-                    afterassignment:=false;
-                    { determines the current object defintion }
-                    classh:=pobjectdef(ppointerdef(pd)^.definition);
-                    { check for an abstract class }
-                    if (oo_has_abstract in classh^.objectoptions) then
-                      Message(sym_e_no_instance_of_abstract_object);
-
-                    { search the constructor also in the symbol tables of
-                      the parents }
-
-                    { no constructor found }
-                    sym:=nil;
-                    while assigned(classh) do
-                     begin
-                       sym:=pvarsym(classh^.symtable^.search(pattern));
-                       srsymtable:=classh^.symtable;
-                       if assigned(sym) then
-                        break;
-                       classh:=classh^.childof;
-                     end;
-
-                    consume(_ID);
-                    do_member_read(false,sym,p1,pd,again);
-                    if (p1^.treetype<>calln) or
-                       (assigned(p1^.procdefinition) and
-                       (p1^.procdefinition^.proctypeoption<>potype_constructor)) then
-                      Message(parser_e_expr_have_to_be_constructor_call);
-                    p1:=gensinglenode(newn,p1);
-                    { set the resulttype }
-                    p1^.resulttype:=pd2;
-                    consume(_RKLAMMER);
-                  end;
-                  postfixoperators;
+                  if token=_RKLAMMER then
+                   begin
+                     if (ppointerdef(pd)^.definition^.deftype=objectdef) and
+                        (oo_has_vmt in pobjectdef(ppointerdef(pd)^.definition)^.objectoptions)  then
+                      Message(parser_w_use_extended_syntax_for_objects);
+                     p1:=gensinglenode(newn,nil);
+                     p1^.resulttype:=pd2;
+                     consume(_RKLAMMER);
+                   end
+                 else
+                   begin
+                     disposetree(p1);
+                     p1:=genzeronode(hnewn);
+                     p1^.resulttype:=ppointerdef(pd)^.definition;
+                     consume(_COMMA);
+                     afterassignment:=false;
+                     { determines the current object defintion }
+                     classh:=pobjectdef(ppointerdef(pd)^.definition);
+                     if classh^.deftype<>objectdef then
+                      Message(parser_e_pointer_to_class_expected)
+                     else
+                      begin
+                        { check for an abstract class }
+                        if (oo_has_abstract in classh^.objectoptions) then
+                         Message(sym_e_no_instance_of_abstract_object);
+                        { search the constructor also in the symbol tables of
+                          the parents }
+                        sym:=nil;
+                        while assigned(classh) do
+                         begin
+                           sym:=pvarsym(classh^.symtable^.search(pattern));
+                           srsymtable:=classh^.symtable;
+                           if assigned(sym) then
+                            break;
+                           classh:=classh^.childof;
+                         end;
+                        consume(_ID);
+                        do_member_read(false,sym,p1,pd,again);
+                        if (p1^.treetype<>calln) or
+                           (assigned(p1^.procdefinition) and
+                           (p1^.procdefinition^.proctypeoption<>potype_constructor)) then
+                         Message(parser_e_expr_have_to_be_constructor_call);
+                      end;
+                     p1:=gensinglenode(newn,p1);
+                     { set the resulttype }
+                     p1^.resulttype:=pd2;
+                     consume(_RKLAMMER);
+                   end;
+                 postfixoperators;
                end;
        _SELF : begin
                  again:=true;
@@ -2117,7 +2103,10 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.151  1999-10-26 12:30:44  peter
+  Revision 1.152  1999-10-27 16:06:19  peter
+    * check for object in extended new
+
+  Revision 1.151  1999/10/26 12:30:44  peter
     * const parameter is now checked
     * better and generic check if a node can be used for assigning
     * export fixes
