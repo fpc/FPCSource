@@ -35,6 +35,7 @@ ifndef PP
 PP=ppc386
 endif
 
+
 #####################################################################
 # Setup Targets
 #####################################################################
@@ -156,6 +157,19 @@ endif
 # End of configurable section. Do not edit after this line.
 #####################################################################
 
+DIFFEXIST:=$(shell $(DIFF) --help)
+
+# Used to avoid unnecessary steps in remake3
+ifdef DIFFEXIST
+ifdef OLDPP
+DIFFRESULT:=$(shell $(DIFF) $(OLDPP) $(PP))
+else
+DIFFRESULT=Not equal
+endif
+else
+DIFFRESULT=No diff program
+endif
+
 # set correct defines (also needed by mkdep)
 PPDEFS:=-d$(CPU) -dGDB -dFPC
 
@@ -210,6 +224,18 @@ MSGFILES:=$(wildcard *.msg)
 	$(COMPILER) $<
 
 all : $(EXENAME)
+
+ifndef DIFFRESULT
+next :
+	@echo $(OLDPP) and $(PP) are equal
+	$(CP) $(PP) $(EXENAME)
+else
+next :
+	$(MAKE) clean
+	$(MAKE) -C $(UNITDIR) clean
+	$(MAKE) -C $(UNITDIR) 'PP=$(COMPILERDIR)/$(PP)' all
+	$(MAKE) all
+endif
 
 clean :
 	-rm -f *.o *.ppu *.s $(EXENAME)
@@ -276,27 +302,18 @@ remake: $(EXENAME)
 	$(MAKE) 'PP=./$(TEMPNAME)' all
 
 remake3: $(TEMPNAME3)
-	$(MAKE) clean
-	$(MAKE) -C $(UNITDIR) clean
-	$(MAKE) -C $(UNITDIR) 'PP=$(COMPILERDIR)/$(TEMPNAME3)' all
-	$(MAKE) 'PP=./$(TEMPNAME3)' all
+	$(MAKE) 'PP=./$(TEMPNAME3)' 'OLDPP=./$(TEMPNAME2)' next
 	diff $(TEMPNAME3) $(EXENAME)
 
 $(TEMPNAME1) : $(EXENAME)
 	$(REPLACE) $(EXENAME) $(TEMPNAME1)
 
 $(TEMPNAME2) : $(TEMPNAME1)
-	$(MAKE) clean
-	$(MAKE) -C $(UNITDIR) clean
-	$(MAKE) -C $(UNITDIR) 'PP=$(COMPILERDIR)/$(TEMPNAME1)' all
-	$(MAKE) 'PP=./$(TEMPNAME1)' all
+	$(MAKE) 'PP=./$(TEMPNAME1)' 'OLDPP=' next
 	$(REPLACE) $(EXENAME) $(TEMPNAME2)
 
 $(TEMPNAME3) : $(TEMPNAME2)
-	$(MAKE) clean
-	$(MAKE) -C $(UNITDIR) clean
-	$(MAKE) -C $(UNITDIR) 'PP=$(COMPILERDIR)/$(TEMPNAME2)' all
-	$(MAKE) 'PP=./$(TEMPNAME2)' all
+	$(MAKE) 'PP=./$(TEMPNAME2)' 'OLDPP=./$(TEMPNAME1)' next
 	$(REPLACE) $(EXENAME) $(TEMPNAME3)
 
 cycle:
@@ -419,10 +436,15 @@ rtl :
 
 rtlclean :
 	make -C $(UNITDIR) clean
+
 # Test of log at the end
 # does CVS add # at start of each line ??
 # $Log$
-# Revision 1.22  1998-07-23 18:17:58  michael
+# Revision 1.23  1998-08-06 10:42:56  pierre
+#   + faster remake3 :
+#     stops when two executables are equal
+#
+# Revision 1.22  1998/07/23 18:17:58  michael
 # + Added ansirtl target to make an ansistrings capable rtl
 #
 # Revision 1.21  1998/07/22 21:33:32  michael
