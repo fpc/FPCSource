@@ -27,12 +27,6 @@ interface
 uses
   dos,cobjects,globtype,globals,aasm;
 
-{$ifdef Ag386Bin}
-  {$define NoAg386Att}
-  {$define NoAg386Int}
-  {$define NoAg386Nsm}
-{$endif}
-
 const
 {$ifdef tp}
   AsmOutSize=1024;
@@ -133,10 +127,10 @@ begin
   DoPipe:=(cs_asm_pipe in aktglobalswitches) and
           not(cs_asm_leave in aktglobalswitches)
 {$ifdef i386}
-          and (aktoutputformat=as_i386_o)
+          and (aktoutputformat=as_i386_as)
 {$endif i386}
 {$ifdef m68k}
-          and (aktoutputformat=as_m68k_o);
+          and (aktoutputformat=as_m68k_as);
 {$endif m68k}
 end;
 
@@ -508,8 +502,8 @@ begin
        end;
   {$endif Ag386Bin}
   {$ifndef NoAg386Att}
-     as_i386_o,
-     as_i386_o_aout,
+     as_i386_as,
+     as_i386_as_aout,
      as_i386_asw :
        a:=new(pi386attasmlist,Init);
   {$endif NoAg386Att}
@@ -526,7 +520,7 @@ begin
 {$endif}
 {$ifdef m68k}
   {$ifndef NoAg68kGas}
-     as_m68k_o,
+     as_m68k_as,
      as_m68k_gas :
        a:=new(pm68kgasasmlist,Init);
   {$endif NoAg86KGas}
@@ -568,7 +562,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.37  1999-02-24 00:59:11  peter
+  Revision 1.38  1999-02-26 00:48:15  peter
+    * assembler writers fixed for ag386bin
+
+  Revision 1.37  1999/02/24 00:59:11  peter
     * small updates for ag386bin
 
   Revision 1.36  1999/02/22 02:15:01  peter

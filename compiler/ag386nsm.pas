@@ -40,7 +40,12 @@ unit ag386nsm;
   implementation
 
     uses
-      dos,globals,systems,cobjects,i386,
+      dos,globals,systems,cobjects,
+{$ifdef AG386BIN}
+      i386base,i386asm,
+{$else}
+      i386,
+{$endif}
       strings,files,verbose
 {$ifdef GDB}
       ,gdb
@@ -110,7 +115,10 @@ unit ag386nsm;
       first : boolean;
     begin
       if ref.is_immediate then
-       s:= tostr(ref.offset)
+       begin
+         getreferencestring:=tostr(ref.offset);
+         exit;
+       end
       else
       with ref do
         begin
@@ -151,7 +159,92 @@ unit ag386nsm;
        getreferencestring:=s;
      end;
 
-    function getopstr(t : byte;o : pointer;opofs:longint;s : topsize; _operator: tasmop;dest : boolean) : string;
+{$ifdef AG386BIN}
+    function getopstr(t : byte;o : pointer;s : topsize; opcode: tasmop;dest : boolean) : string;
+    var
+      hs : string;
+    begin
+      if (t and OT_REGISTER)=OT_REGISTER then
+        getopstr:=int_nasmreg2str[tregister(o)]
+      else
+       if (t and OT_SYMBOL)=OT_SYMBOL then
+        begin
+          hs:='dword '+pasmsymbol(o)^.name;
+          if preference(o)^.offset>0 then
+           hs:=hs+'+'+tostr(preference(o)^.offset)
+          else
+           if preference(o)^.offset<0 then
+            hs:=hs+tostr(preference(o)^.offset);
+          getopstr:=hs;
+        end
+      else
+       if (t and (OT_IMMEDIATE or OT_MEMORY))<>0 then
+        begin
+          hs:=getreferencestring(preference(o)^);
+          if not ((opcode = A_LEA) or (opcode = A_LGS) or
+                  (opcode = A_LSS) or (opcode = A_LFS) or
+                  (opcode = A_LES) or (opcode = A_LDS) or
+                  (opcode = A_SHR) or (opcode = A_SHL) or
+                  (opcode = A_SAR) or (opcode = A_SAL) or
+                  (opcode = A_OUT) or (opcode = A_IN)) then
+           begin
+             case s of
+                S_B : hs:='byte '+hs;
+                S_W : hs:='word '+hs;
+                S_L : hs:='dword '+hs;
+                S_IS : hs:='word '+hs;
+                S_IL : hs:='dword '+hs;
+                S_IQ : hs:='qword '+hs;
+                S_FS : hs:='dword '+hs;
+                S_FL : hs:='qword '+hs;
+                S_FX : hs:='tword '+hs;
+                S_BW : if dest then
+                    hs:='word '+hs
+                  else
+                    hs:='byte '+hs;
+                S_BL : if dest then
+                    hs:='dword '+hs
+                  else
+                    hs:='byte '+hs;
+                S_WL : if dest then
+                    hs:='dword '+hs
+                  else
+                    hs:='word '+hs;
+             end
+           end;
+          getopstr:=hs;
+        end
+      else
+        internalerror(10001);
+    end;
+
+    function getopstr_jmp(t : byte;o : pointer) : string;
+    var
+      hs : string;
+    begin
+      if (t and OT_REGISTER)=OT_REGISTER then
+       getopstr_jmp:=int_nasmreg2str[tregister(o)]
+      else
+       if (t and OT_SYMBOL)=OT_SYMBOL then
+        begin
+          hs:=pasmsymbol(o)^.name;
+          if preference(o)^.offset>0 then
+           hs:=hs+'+'+tostr(preference(o)^.offset)
+          else
+           if preference(o)^.offset<0 then
+            hs:=hs+tostr(preference(o)^.offset);
+          getopstr_jmp:=hs;
+        end
+      else
+       if (t and (OT_MEMORY or OT_IMMEDIATE))<>0 then
+        getopstr_jmp:=getreferencestring(preference(o)^)
+      else
+        internalerror(10001);
+    end;
+
+{$else}
+
+    function getopstr(t : byte;o : pointer;opofs:longint;s : topsize; opcode: tasmop;dest : boolean) : string;
     var
       hs : string;
     begin
@@ -163,12 +256,12 @@ unit ag386nsm;
                      hs := tostr(longint(o))
                    else
                      hs:=getreferencestring(preference(o)^);
-                   if not ((_operator = A_LEA) or (_operator = A_LGS) or
-                           (_operator = A_LSS) or (_operator = A_LFS) or
-                           (_operator = A_LES) or (_operator = A_LDS) or
-                           (_operator = A_SHR) or (_operator = A_SHL) or
-                           (_operator = A_SAR) or (_operator = A_SAL) or
-                           (_operator = A_OUT) or (_operator = A_IN)) then
+                   if not ((opcode = A_LEA) or (opcode = A_LGS) or
+                           (opcode = A_LSS) or (opcode = A_LFS) or
+                           (opcode = A_LES) or (opcode = A_LDS) or
+                           (opcode = A_SHR) or (opcode = A_SHL) or
+                           (opcode = A_SAR) or (opcode = A_SAL) or
+                           (opcode = A_OUT) or (opcode = A_IN)) then
                      begin
                        case s of
                           S_B : hs:='byte '+hs;
@@ -232,6 +325,9 @@ unit ag386nsm;
       end;
     end;
 
+{$endif}
+
+
 {****************************************************************************
                                Ti386nasmasmlist
  ****************************************************************************}
@@ -283,6 +379,9 @@ unit ag386nsm;
       consttyp : tait;
       found,
       quoted   : boolean;
+{$ifdef AG386Bin}
+      sep      : char;
+{$endif}
     begin
       if not assigned(p) then
        exit;
@@ -429,13 +528,13 @@ unit ag386nsm;
                      end;
 ait_labeled_instruction :
                      begin
-                       op:=pai386_labeled(hp)^._operator;
+                       op:=pai386_labeled(hp)^.opcode;
                        if not((op=A_JMP) or (op=A_LOOP) or (op=A_LOOPZ) or
                               (op=A_LOOPE) or (op=A_LOOPNZ) or (op=A_LOOPNE) or
                               (op=A_JCXZ) or (op=A_JECXZ)) then
-                        AsmWriteLn(#9#9+int_op2str[pai386_labeled(hp)^._operator]+#9+'near '+lab2str(pai386_labeled(hp)^.lab))
+                        AsmWriteLn(#9#9+int_op2str[pai386_labeled(hp)^.opcode]+#9+'near '+lab2str(pai386_labeled(hp)^.lab))
                        else
-                        AsmWriteLn(#9#9+int_op2str[pai386_labeled(hp)^._operator]+#9+lab2str(pai386_labeled(hp)^.lab));
+                        AsmWriteLn(#9#9+int_op2str[pai386_labeled(hp)^.opcode]+#9+lab2str(pai386_labeled(hp)^.lab));
                      end;
         ait_symbol : begin
                        if pai_symbol(hp)^.is_global then
@@ -449,15 +548,64 @@ ait_labeled_instruction :
                      end;
    ait_instruction : begin
                        suffix:='';
-                       prefix:= '';
+                       prefix:='';
+{$ifdef AG386BIN}
+                       for i:=1to pai386(hp)^.nprefixes do
+                        AsmWriteln(int_prefix2str[pai386(hp)^.prefixes[i-1]]);
+                       if pai386(hp)^.ops<>0 then
+                        begin
+                          if pai386(hp)^.opcode=A_CALL then
+                           s:=#9+getopstr_jmp(pai386(hp)^.opertype[0],pai386(hp)^.oper[0])
+                          else
+                           begin
+                             for i:=0to pai386(hp)^.ops-1 do
+                              begin
+                                if i=0 then
+                                 sep:=#9
+                                else
+                                 sep:=',';
+                                s:=s+sep+getopstr(pai386(hp)^.opertype[i],pai386(hp)^.oper[i],
+                                  pai386(hp)^.opsize,pai386(hp)^.opcode,(i=1))
+                              end;
+                           end;
+                        end
+                       else
+                        begin
+                          { check if string instruction }
+                          { long form, otherwise may give range check errors }
+                          { in turbo pascal...                               }
+                       {   if ((pai386(hp)^.opcode = A_CMPS) or
+                             (pai386(hp)^.opcode = A_INS) or
+                             (pai386(hp)^.opcode = A_OUTS) or
+                             (pai386(hp)^.opcode = A_SCAS) or
+                             (pai386(hp)^.opcode = A_STOS) or
+                             (pai386(hp)^.opcode = A_MOVS) or
+                             (pai386(hp)^.opcode = A_LODS) or
+                             (pai386(hp)^.opcode = A_XLAT)) then
+                           Begin
+                             case pai386(hp)^.opsize of
+                              S_B: suffix:='b';
+                              S_W: suffix:='w';
+                              S_L: suffix:='d';
+                             else
+                              Message(assem_f_invalid_suffix_intel);
+                             end;
+                           end; }
+                          s:='';
+                        end;
+                       if pai386(hp)^.opcode=A_FWAIT then
+                        AsmWriteln(#9#9'DB'#9'09bh')
+                       else
+                        AsmWriteLn(#9#9+prefix+int_op2str[pai386(hp)^.opcode]+cond2str[pai386_labeled(hp)^.condition]+suffix+s);
+{$else}
                      { added prefix instructions, must be on same line as opcode }
                        if (pai386(hp)^.op1t = top_none) and
-                          ((pai386(hp)^._operator = A_REP) or
-                           (pai386(hp)^._operator = A_LOCK) or
-                           (pai386(hp)^._operator =  A_REPE) or
-                           (pai386(hp)^._operator = A_REPNE)) then
+                          ((pai386(hp)^.opcode = A_REP) or
+                           (pai386(hp)^.opcode = A_LOCK) or
+                           (pai386(hp)^.opcode =  A_REPE) or
+                           (pai386(hp)^.opcode = A_REPNE)) then
                         Begin
-                          prefix:=int_op2str[pai386(hp)^._operator]+#9;
+                          prefix:=int_op2str[pai386(hp)^.opcode]+#9;
                           hp:=Pai(hp^.next);
                         { this is theorically impossible... }
                           if hp=nil then
@@ -473,31 +621,31 @@ ait_labeled_instruction :
                        else
                         prefix:= '';
                        { A_FNSTS need the w as suffix at least for nasm}
-                       if (pai386(hp)^._operator = A_FNSTS) then
-                        pai386(hp)^._operator:=A_FNSTSW
+                       if (pai386(hp)^.opcode = A_FNSTS) then
+                        pai386(hp)^.opcode:=A_FNSTSW
                        else
-                        if (pai386(hp)^._operator = A_FSTS) then
-                         pai386(hp)^._operator:=A_FSTSW;
+                        if (pai386(hp)^.opcode = A_FSTS) then
+                         pai386(hp)^.opcode:=A_FSTSW;
                        if pai386(hp)^.op1t<>top_none then
                         begin
-                          if pai386(hp)^._operator=A_CALL then
+                          if pai386(hp)^.opcode=A_CALL then
                            s:=getopstr_jmp(pai386(hp)^.op1t,pai386(hp)^.op1,pai386(hp)^.op1ofs)
                           else
                            begin
                              s:=getopstr(pai386(hp)^.op1t,pai386(hp)^.op1,pai386(hp)^.op1ofs,
-                               pai386(hp)^.size,pai386(hp)^._operator,false);
+                               pai386(hp)^.opsize,pai386(hp)^.opcode,false);
                              if pai386(hp)^.op3t<>top_none then
                               begin
                                 if pai386(hp)^.op2t<>top_none then
                                  s:=getopstr(pai386(hp)^.op2t,pointer(longint(twowords(pai386(hp)^.op2).word1)),0,
-                                             pai386(hp)^.size,pai386(hp)^._operator,true)+','+s;
+                                             pai386(hp)^.opsize,pai386(hp)^.opcode,true)+','+s;
                                           s:=getopstr(pai386(hp)^.op3t,pointer(longint(twowords(pai386(hp)^.op2).word2)),0,
-                                           pai386(hp)^.size,pai386(hp)^._operator,false)+','+s;
+                                           pai386(hp)^.opsize,pai386(hp)^.opcode,false)+','+s;
                               end
                              else
                               if pai386(hp)^.op2t<>top_none then
-                               s:=getopstr(pai386(hp)^.op2t,pai386(hp)^.op2,0,pai386(hp)^.size,
-                                           pai386(hp)^._operator,true)+','+s;
+                               s:=getopstr(pai386(hp)^.op2t,pai386(hp)^.op2,0,pai386(hp)^.opsize,
+                                           pai386(hp)^.opcode,true)+','+s;
                            end;
                           s:=#9+s;
                         end
@@ -506,16 +654,16 @@ ait_labeled_instruction :
                           { check if string instruction }
                           { long form, otherwise may give range check errors }
                           { in turbo pascal...                               }
-                          if ((pai386(hp)^._operator = A_CMPS) or
-                             (pai386(hp)^._operator = A_INS) or
-                             (pai386(hp)^._operator = A_OUTS) or
-                             (pai386(hp)^._operator = A_SCAS) or
-                             (pai386(hp)^._operator = A_STOS) or
-                             (pai386(hp)^._operator = A_MOVS) or
-                             (pai386(hp)^._operator = A_LODS) or
-                             (pai386(hp)^._operator = A_XLAT)) then
+                          if ((pai386(hp)^.opcode = A_CMPS) or
+                             (pai386(hp)^.opcode = A_INS) or
+                             (pai386(hp)^.opcode = A_OUTS) or
+                             (pai386(hp)^.opcode = A_SCAS) or
+                             (pai386(hp)^.opcode = A_STOS) or
+                             (pai386(hp)^.opcode = A_MOVS) or
+                             (pai386(hp)^.opcode = A_LODS) or
+                             (pai386(hp)^.opcode = A_XLAT)) then
                            Begin
-                             case pai386(hp)^.size of
+                             case pai386(hp)^.opsize of
                               S_B: suffix:='b';
                               S_W: suffix:='w';
                               S_L: suffix:='d';
@@ -525,10 +673,11 @@ ait_labeled_instruction :
                            end;
                           s:='';
                         end;
-                       if pai386(hp)^._operator=A_FWAIT then
+                       if pai386(hp)^.opcode=A_FWAIT then
                         AsmWriteln(#9#9'DB'#9'09bh')
                        else
-                        AsmWriteLn(#9#9+prefix+int_op2str[pai386(hp)^._operator]+suffix+s);
+                        AsmWriteLn(#9#9+prefix+int_op2str[pai386(hp)^.opcode]+suffix+s);
+{$endif AG386BIN}
                      end;
 {$ifdef GDB}
              ait_stabn,
@@ -600,7 +749,10 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.19  1999-02-25 21:02:19  peter
+  Revision 1.20  1999-02-26 00:48:14  peter
+    * assembler writers fixed for ag386bin
+
+  Revision 1.19  1999/02/25 21:02:19  peter
     * ag386bin updates
     + coff writer
 

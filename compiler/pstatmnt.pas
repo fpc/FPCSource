@@ -22,6 +22,11 @@
 }
 unit pstatmnt;
 
+{$ifdef Ag386Bin}
+  {$define NoRA386ATT}
+  {$define NoRA386Int}
+{$endif}
+
   interface
 
     uses tree;
@@ -1285,7 +1290,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.67  1999-02-22 13:07:01  pierre
+  Revision 1.68  1999-02-26 00:48:23  peter
+    * assembler writers fixed for ag386bin
+
+  Revision 1.67  1999/02/22 13:07:01  pierre
     + -b and -bl options work !
     + cs_local_browser ($L+) is disabled if cs_browser ($Y+)
       is not enabled when quitting global section

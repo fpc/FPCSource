@@ -108,17 +108,17 @@ Begin {CheckSequence}
 (*              If ((Found+1) = OldNrOfMods) And
               Assigned(hp2) And
               (Pai(hp2)^.typ = ait_instruction) And
-              ((Pai386(hp2)^._operator = A_MOV) or
-               (Pai386(p1)^._operator = A_MOVZX)) And
+              ((Pai386(hp2)^.opcode = A_MOV) or
+               (Pai386(p1)^.opcode = A_MOVZX)) And
               (Pai386(hp2)^.op1t = top_ref) And
               (Pai386(hp2)^.op2t = top_reg) And
               Assigned(hp3) And
               (Pai(hp3)^.typ = ait_instruction) And
-              ((Pai386(hp3)^._operator = A_MOV) or
-               (Pai386(hp3)^._operator = A_MOVZX)) And
+              ((Pai386(hp3)^.opcode = A_MOV) or
+               (Pai386(hp3)^.opcode = A_MOVZX)) And
               (Pai386(hp3)^.op1t = top_ref) And
               (Pai386(hp3)^.op2t = top_reg) And
-               (Pai386(hp2)^._operator <> Pai386(hp3)^._operator) And
+               (Pai386(hp2)^.opcode <> Pai386(hp3)^.opcode) And
               RefsEquivalent(TReference(Pai386(hp2)^.op1^),TReference(Pai386(hp3)^.op1^), RegInfo)
              Then
 
@@ -132,17 +132,17 @@ Begin {CheckSequence}
      mov (reg), reg
      movzx (reg), reg [*]}
 
-               If (Pai386(hp2)^._operator = A_MOV)
+               If (Pai386(hp2)^.opcode = A_MOV)
                  Then
                    Begin
-                    If (Pai386(hp2)^.Size = S_B) And
+                    If (Pai386(hp2)^.opsize = S_B) And
                        RegsEquivalent(Reg8toReg32(TRegister(Pai386(hp2)^.op2)),
                                       TRegister(Pai386(hp3)^.op2), RegInfo)
                        Then
                          Begin
-                           Pai386(hp2)^._operator := A_MOVZX;
+                           Pai386(hp2)^.opcode := A_MOVZX;
                            Pai386(hp2)^.op2 := Pai386(hp3)^.op2;
-                           Pai386(hp2)^.Size := S_BL;
+                           Pai386(hp2)^.opsize := S_BL;
                            Inc(Found);
                            TmpResult := True;
                          End
@@ -155,7 +155,7 @@ Begin {CheckSequence}
                    End
                  Else
                    Begin
-                     If (Pai386(hp3)^.Size = S_B) And
+                     If (Pai386(hp3)^.opsize = S_B) And
                        RegsEquivalent(TRegister(Pai386(hp2)^.op2),
                                       Reg8toReg32(TRegister(Pai386(hp3)^.op2)),
                                       RegInfo)
@@ -247,7 +247,7 @@ Begin
       Case p^.typ Of
         ait_instruction:
           Begin
-            Case Pai386(p)^._operator Of
+            Case Pai386(p)^.opcode Of
               A_CLD: If GetLastInstruction(p, hp1) And
                         (PPaiProp(hp1^.fileinfo.line)^.DirFlag = F_NotSet) Then
                        PPaiProp(Pai(p)^.fileinfo.line)^.CanBeRemoved := True;
@@ -552,7 +552,10 @@ End.
 
 {
  $Log$
- Revision 1.18  1998-12-29 18:48:22  jonas
+ Revision 1.19  1999-02-26 00:48:17  peter
+   * assembler writers fixed for ag386bin
+
+ Revision 1.18  1998/12/29 18:48:22  jonas
    + optimize pascal code surrounding assembler blocks
 
  Revision 1.17  1998/12/17 16:37:39  jonas

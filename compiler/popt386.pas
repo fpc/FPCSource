@@ -85,8 +85,8 @@ Var
         p1 := LTable^[hp^.lab^.nb-LoLab].PaiObj; {the jump's destination}
         p1 := SkipLabels(p1);
         If (pai(p1)^.typ = ait_labeled_instruction) and
-           ((pai386_labeled(p1)^._operator = A_JMP) or
-            (pai386_labeled(p1)^._operator = hp^._operator))
+           ((pai386_labeled(p1)^.opcode = A_JMP) or
+            (pai386_labeled(p1)^.opcode = hp^.opcode))
           Then
             Begin
               GetFinalDestination(pai386_labeled(p1));
@@ -110,7 +110,7 @@ Begin
           Begin
   {the following if-block removes all code between a jmp and the next label,
    because it can never be executed}
-            If (pai386_labeled(p)^._operator = A_JMP) Then
+            If (pai386_labeled(p)^.opcode = A_JMP) Then
               Begin
                 hp1 := pai(p^.next);
                 While GetNextInstruction(p, hp1) and
@@ -126,30 +126,30 @@ Begin
             If GetNextInstruction(p, hp1) then
               Begin
                 If (pai(hp1)^.typ=ait_labeled_instruction) and
-                   (pai386_labeled(hp1)^._operator=A_JMP) and
+                   (pai386_labeled(hp1)^.opcode=A_JMP) and
                    GetNextInstruction(hp1, hp2) And
                    FindLabel(pai386_labeled(p)^.lab, hp2)
                   Then
                     Begin
-                      Case pai386_labeled(p)^._operator Of
-                        A_JE : pai386_labeled(p)^._operator:=A_JNE;
-                        A_JNE : pai386_labeled(p)^._operator:=A_JE;
-                        A_JL : pai386_labeled(p)^._operator:=A_JGE;
-                        A_JG : pai386_labeled(p)^._operator:=A_JLE;
-                        A_JLE : pai386_labeled(p)^._operator:=A_JG;
-                        A_JGE : pai386_labeled(p)^._operator:=A_JL;
-                        A_JNZ : pai386_labeled(p)^._operator:=A_JZ;
-                        A_JNO : pai386_labeled(p)^._operator:=A_JO;
-                        A_JZ : pai386_labeled(p)^._operator:=A_JNZ;
-                        A_JS : pai386_labeled(p)^._operator:=A_JNS;
-                        A_JNS : pai386_labeled(p)^._operator:=A_JS;
-                        A_JO : pai386_labeled(p)^._operator:=A_JNO;
-                        A_JC : pai386_labeled(p)^._operator:=A_JNC;
-                        A_JNC : pai386_labeled(p)^._operator:=A_JC;
-                        A_JA : pai386_labeled(p)^._operator:=A_JBE;
-                        A_JAE : pai386_labeled(p)^._operator:=A_JB;
-                        A_JB : pai386_labeled(p)^._operator:=A_JAE;
-                        A_JBE : pai386_labeled(p)^._operator:=A_JA;
+                      Case pai386_labeled(p)^.opcode Of
+                        A_JE : pai386_labeled(p)^.opcode:=A_JNE;
+                        A_JNE : pai386_labeled(p)^.opcode:=A_JE;
+                        A_JL : pai386_labeled(p)^.opcode:=A_JGE;
+                        A_JG : pai386_labeled(p)^.opcode:=A_JLE;
+                        A_JLE : pai386_labeled(p)^.opcode:=A_JG;
+                        A_JGE : pai386_labeled(p)^.opcode:=A_JL;
+                        A_JNZ : pai386_labeled(p)^.opcode:=A_JZ;
+                        A_JNO : pai386_labeled(p)^.opcode:=A_JO;
+                        A_JZ : pai386_labeled(p)^.opcode:=A_JNZ;
+                        A_JS : pai386_labeled(p)^.opcode:=A_JNS;
+                        A_JNS : pai386_labeled(p)^.opcode:=A_JS;
+                        A_JO : pai386_labeled(p)^.opcode:=A_JNO;
+                        A_JC : pai386_labeled(p)^.opcode:=A_JNC;
+                        A_JNC : pai386_labeled(p)^.opcode:=A_JC;
+                        A_JA : pai386_labeled(p)^.opcode:=A_JBE;
+                        A_JAE : pai386_labeled(p)^.opcode:=A_JB;
+                        A_JB : pai386_labeled(p)^.opcode:=A_JAE;
+                        A_JBE : pai386_labeled(p)^.opcode:=A_JA;
                         Else
                           begin
                             If (LabDif <> 0) Then GetFinalDestination(pai386_labeled(p));
@@ -204,14 +204,14 @@ Begin
                         index := R_NO
                       End
                 End;
-            Case Pai386(p)^._operator Of
+            Case Pai386(p)^.opcode Of
               A_AND:
                 Begin
                   If (Pai386(p)^.op1t = top_const) And
                      (Pai386(p)^.op2t = top_reg) And
                      GetNextInstruction(p, hp1) And
                      (Pai(hp1)^.typ = ait_instruction) And
-                     (Pai386(hp1)^._operator = A_AND) And
+                     (Pai386(hp1)^.opcode = A_AND) And
                      (Pai386(hp1)^.op1t = top_const) And
                      (Pai386(hp1)^.op2t = top_reg) And
                      (Pai386(hp1)^.op2 = Pai386(hp1)^.op2)
@@ -229,7 +229,7 @@ Begin
                          GetNextInstruction(p, hp1) And
                          (hp1^.typ = ait_labeled_instruction) And
                          Not(TRegister(Pai386(p)^.op2) in UsedRegs)
-                        Then Pai386(p)^._operator := A_TEST;
+                        Then Pai386(p)^.opcode := A_TEST;
                 End;
               A_CMP:
                 Begin
@@ -238,7 +238,7 @@ Begin
                      (Pai386(p)^.op1 = Pointer(0)) Then
                  {change "cmp $0, %reg" to "test %reg, %reg"}
                     Begin
-                      Pai386(p)^._operator := A_TEST;
+                      Pai386(p)^.opcode := A_TEST;
                       Pai386(p)^.opxt := Top_reg+Top_reg shl 4;
                       Pai386(p)^.op1 := Pai386(p)^.op2;
                     End;
@@ -250,18 +250,18 @@ Begin
                      (hp2^.typ = Ait_Instruction) And
                      (Pai386(hp2)^.Op1t = top_reg) And
                      (Pai386(hp2)^.Op2t = top_reg) And
-                     (Pai386(p)^.Size in [S_FS, S_FL]) And
+                     (Pai386(p)^.opsize in [S_FS, S_FL]) And
                      (TRegister(Pai386(hp2)^.Op1) = R_ST) And
                      (TRegister(Pai386(hp2)^.Op2) = R_ST1) Then
                     If GetLastInstruction(p, hp1) And
                        (hp1^.typ = Ait_Instruction) And
-                       ((Pai386(hp1)^._operator = A_FLD) Or
-                        (Pai386(hp1)^._operator = A_FST)) And
-                       (Pai386(hp1)^.size = Pai386(p)^.size) And
+                       ((Pai386(hp1)^.opcode = A_FLD) Or
+                        (Pai386(hp1)^.opcode = A_FST)) And
+                       (Pai386(hp1)^.opsize = Pai386(p)^.opsize) And
                        (Pai386(hp1)^.op1t = top_ref) And
                        RefsEqual(TReference(Pai386(p)^.Op1^), TReference(Pai386(hp1)^.Op1^)) Then
-                      If ((Pai386(hp2)^._operator = A_FMULP) Or
-                          (Pai386(hp2)^._operator = A_FADDP)) Then
+                      If ((Pai386(hp2)^.opcode = A_FMULP) Or
+                          (Pai386(hp2)^.opcode = A_FADDP)) Then
 
                       { change                      to
                           fld/fst   mem1  (hp1)       fld/fst   mem1
@@ -272,9 +272,9 @@ Begin
                           AsmL^.Remove(p);
                           Dispose(p, Done);
                           p := hp1;
-                          If (Pai386(hp2)^._operator = A_FADDP)
-                            Then Pai386(hp2)^._operator := A_FADD
-                            Else Pai386(hp2)^._operator := A_FMUL;
+                          If (Pai386(hp2)^.opcode = A_FADDP)
+                            Then Pai386(hp2)^.opcode := A_FADD
+                            Else Pai386(hp2)^.opcode := A_FMUL;
                           Pai386(hp2)^.op2 := Pointer(R_ST);
                         End
                       Else
@@ -282,14 +282,14 @@ Begin
                           fld/fst mem1 (hp1)   fld/fst mem1
                           fld     mem1 (p)     fld      st}
                         Begin
-                          Pai386(p)^.Size := S_FL;
+                          Pai386(p)^.opsize := S_FL;
                           Clear_Reference(TReference(Pai386(p)^.Op1^));
                           Pai386(p)^.Op1 := Pointer(R_ST);
                           Pai386(p)^.Opxt := top_reg;
                         End
                     Else
                       Begin
-                        Case Pai386(hp2)^._operator Of
+                        Case Pai386(hp2)^.opcode Of
                           A_FMULP,A_FADDP,A_FSUBP,A_FDIVP,A_FSUBRP,A_FDIVRP:
                      { change                        to
                          fld/fst  mem1    (hp1)      fld/fst    mem1
@@ -297,13 +297,13 @@ Begin
                          fxxxp    st, st1 (hp2)                      }
 
                             Begin
-                              Case Pai386(hp2)^._operator Of
-                                A_FADDP: Pai386(p)^._operator := A_FADD;
-                                A_FMULP: Pai386(p)^._operator := A_FMUL;
-                                A_FSUBP: Pai386(p)^._operator := A_FSUBR;
-                                A_FSUBRP: Pai386(p)^._operator := A_FSUB;
-                                A_FDIVP: Pai386(p)^._operator := A_FDIVR;
-                                A_FDIVRP: Pai386(p)^._operator := A_FDIV;
+                              Case Pai386(hp2)^.opcode Of
+                                A_FADDP: Pai386(p)^.opcode := A_FADD;
+                                A_FMULP: Pai386(p)^.opcode := A_FMUL;
+                                A_FSUBP: Pai386(p)^.opcode := A_FSUBR;
+                                A_FSUBRP: Pai386(p)^.opcode := A_FSUB;
+                                A_FDIVP: Pai386(p)^.opcode := A_FDIVR;
+                                A_FDIVRP: Pai386(p)^.opcode := A_FDIV;
                               End;
                               AsmL^.Remove(hp2);
                               Dispose(hp2, Done)
@@ -316,19 +316,19 @@ Begin
                   If (Pai386(p)^.op1t = top_ref) And
                      GetNextInstruction(p, hp1) And
                      (Pai(hp1)^.typ = ait_instruction) And
-                     (((Pai386(hp1)^._operator = A_FLD) And
-                       (Pai386(p)^._operator = A_FSTP)) Or
-                      ((Pai386(p)^._operator = A_FISTP) And
-                       (Pai386(hp1)^._operator = A_FILD))) And
+                     (((Pai386(hp1)^.opcode = A_FLD) And
+                       (Pai386(p)^.opcode = A_FSTP)) Or
+                      ((Pai386(p)^.opcode = A_FISTP) And
+                       (Pai386(hp1)^.opcode = A_FILD))) And
                      (Pai386(hp1)^.op1t = top_ref) And
-                     (Pai386(hp1)^.Size = Pai386(p)^.Size) And
+                     (Pai386(hp1)^.opsize = Pai386(p)^.opsize) And
                      RefsEqual(TReference(Pai386(p)^.op1^), TReference(Pai386(hp1)^.op1^))
                     Then
                       Begin
                         If GetNextInstruction(hp1, hp2) And
                            (hp2^.typ = ait_instruction) And
-                           ((Pai386(hp2)^._operator = A_LEAVE) Or
-                            (Pai386(hp2)^._operator = A_RET)) And
+                           ((Pai386(hp2)^.opcode = A_LEAVE) Or
+                            (Pai386(hp2)^.opcode = A_RET)) And
                            (TReference(Pai386(p)^.op1^).Base = ProcInfo.FramePointer) And
                            (TReference(Pai386(p)^.op1^).Offset >= ProcInfo.RetOffset) And
                            (TReference(Pai386(p)^.op1^).Index = R_NO)
@@ -343,12 +343,12 @@ Begin
                             End
                           Else
                    {fst can't store an extended value!}
-                           If (Pai386(p)^.Size <> S_FX) And
-                              (Pai386(p)^.Size <> S_IQ) Then
+                           If (Pai386(p)^.opsize <> S_FX) And
+                              (Pai386(p)^.opsize <> S_IQ) Then
                              Begin
-                               If (Pai386(p)^._operator = A_FSTP) Then
-                                 Pai386(p)^._operator := A_FST
-                               Else Pai386(p)^._operator := A_FIST;
+                               If (Pai386(p)^.opcode = A_FSTP) Then
+                                 Pai386(p)^.opcode := A_FST
+                               Else Pai386(p)^.opcode := A_FIST;
                                AsmL^.Remove(hp1);
                                Dispose(hp1, done)
                              End
@@ -359,7 +359,7 @@ Begin
                 Begin
                   If (Pai386(p)^.op1t = Top_Const) And
                      (Pai386(p)^.op2t = Top_Reg) And
-                     (Pai386(p)^.Size = S_L) Then
+                     (Pai386(p)^.opsize = S_L) Then
                     If (Longint(Pai386(p)^.op1) = 1) Then
                       If (Pai386(p)^.op3t = Top_None) Then
                        {remove "imul $1, reg"}
@@ -389,8 +389,8 @@ Begin
                      (Not(GetNextInstruction(p, hp1)) Or
                        {GetNextInstruction(p, hp1) And}
                        Not((Pai(hp1)^.typ = ait_labeled_instruction) And
-                           ((pai386_labeled(hp1)^._operator = A_JO) or
-                            (pai386_labeled(hp1)^._operator = A_JNO))))
+                           ((pai386_labeled(hp1)^.opcode = A_JO) or
+                            (pai386_labeled(hp1)^.opcode = A_JNO))))
                     Then
                       Begin
                         New(TmpRef);
@@ -632,7 +632,7 @@ Begin
                      (TRegister(Pai386(p)^.op2) In [R_EAX, R_EBX, R_EDX, R_EDI]) And
                      GetNextInstruction(p, hp1) And
                      (Pai(hp1)^.typ = ait_instruction) And
-                     (Pai386(hp1)^._operator = A_MOV) And
+                     (Pai386(hp1)^.opcode = A_MOV) And
                      (Pai386(hp1)^.op1t = top_reg) And
                      (Pai386(hp1)^.op1 = Pai386(p)^.op2)
                     Then
@@ -697,8 +697,8 @@ Begin
                         Then
                   {we have "mov %reg1, %reg2; XXX %reg2, ???"}
                           Begin
-                            If ((Pai386(hp1)^._operator = A_OR) Or
-                                (Pai386(hp1)^._operator = A_TEST)) And
+                            If ((Pai386(hp1)^.opcode = A_OR) Or
+                                (Pai386(hp1)^.opcode = A_TEST)) And
                                (Pai386(hp1)^.op2t = top_reg) And
                                (Pai386(hp1)^.op1 = Pai386(hp1)^.op2)
                               Then
@@ -728,7 +728,7 @@ Begin
                                       End;
                                 End
 {                              Else
-                                If (Pai386(p^.next)^._operator
+                                If (Pai386(p^.next)^.opcode
                                    In [A_PUSH, A_OR, A_XOR, A_AND, A_TEST])}
                          {change "mov %reg1, %reg2; push/or/xor/... %reg2, ???" to
                           "mov %reg1, %reg2; push/or/xor/... %reg1, ???"}
@@ -741,8 +741,8 @@ Begin
                           If GetNextInstruction(p, hp1) And
                              (Pai(hp1)^.typ = ait_instruction)
                             Then
-                              If ((Pai386(hp1)^._operator = A_LEAVE) Or
-                                  (Pai386(hp1)^._operator = A_RET)) And
+                              If ((Pai386(hp1)^.opcode = A_LEAVE) Or
+                                  (Pai386(hp1)^.opcode = A_RET)) And
                                  (Pai386(p)^.op2t = top_ref) And
                                  (TReference(Pai386(p)^.op2^).base = ProcInfo.FramePointer) And
                                  (TReference(Pai386(p)^.op2^).offset >= ProcInfo.RetOffset) And
@@ -757,8 +757,8 @@ Begin
                                Else
                                  If (Pai386(p)^.op1t = top_reg) And
                                     (Pai386(p)^.op2t = top_ref) And
-                                    (Pai386(p)^.Size = Pai386(hp1)^.Size) And
-                                    (Pai386(hp1)^._operator = A_CMP) And
+                                    (Pai386(p)^.opsize = Pai386(hp1)^.opsize) And
+                                    (Pai386(hp1)^.opcode = A_CMP) And
                                     (Pai386(hp1)^.op2t = top_ref) And
                                     RefsEqual(TReference(Pai386(p)^.op2^),
                                               TReference(Pai386(hp1)^.op2^))
@@ -772,7 +772,7 @@ Begin
                 { Next instruction is also a MOV ? }
                   If GetNextInstruction(p, hp1) And
                      (pai(hp1)^.typ = ait_instruction) and
-                     (Pai386(hp1)^._operator = A_MOV)
+                     (Pai386(hp1)^.opcode = A_MOV)
                     Then
                       Begin
                         If (Pai386(hp1)^.op1t = Pai386(p)^.op2t) and
@@ -811,7 +811,7 @@ Begin
                                           mov mem2, reg1 }
                                          GetNextInstruction(hp1, hp2) And
                                          (hp2^.typ = ait_instruction) And
-                                         (Pai386(hp2)^._operator = A_CMP) And
+                                         (Pai386(hp2)^.opcode = A_CMP) And
                                          (Pai386(hp2)^.Op1t = TOp_Ref) And
                                          (Pai386(hp2)^.Op2t = TOp_Reg) And
                                          RefsEqual(TReference(Pai386(hp2)^.Op1^),
@@ -826,7 +826,7 @@ Begin
                                         Begin
                                           AsmL^.Remove(hp2);
                                           Dispose(hp2, Done);
-                                          Pai386(hp1)^._operator := A_CMP;
+                                          Pai386(hp1)^.opcode := A_CMP;
                                           Pai386(hp1)^.Opxt := top_reg + top_ref shl 4;
                                           Pai386(hp1)^.Op2 := Pai386(hp1)^.Op1;
                                           Pai386(hp1)^.Op1 := Pai386(p)^.Op1
@@ -842,7 +842,7 @@ Begin
                                        (Pai386(hp1)^.op1 = Pai386(p)^.op2) And
                                        (Pai386(hp1)^.op2t = top_ref) And
                                        (Pai(hp2)^.typ = ait_instruction) And
-                                       (Pai386(hp2)^._operator = A_MOV) And
+                                       (Pai386(hp2)^.opcode = A_MOV) And
                                        (Pai386(hp2)^.op2t = top_reg) And
                                        (Pai386(hp2)^.op1t = top_ref) And
                                        RefsEqual(TReference(Pai386(hp2)^.op1^),
@@ -899,7 +899,7 @@ Begin
                                (Pai386(p)^.op2t = top_reg) and
                                (Pai386(hp1)^.op1t = top_ref) and
                                (Pai386(hp1)^.op2t = top_reg) and
-                               (Pai386(p)^.size = Pai386(hp1)^.size) and
+                               (Pai386(p)^.opsize = Pai386(hp1)^.opsize) and
                                RefsEqual(TReference(Pai386(p)^.op1^),TReference(Pai386(hp1)^.op1^)) and
                                (TRegister(Pai386(p)^.op2)<>TReference(Pai386(hp1)^.op1^).base) and
                                (TRegister(Pai386(p)^.op2)<>TReference(Pai386(hp1)^.op1^).index) then
@@ -918,7 +918,7 @@ Begin
                                  (Pai386(p)^.op2t = top_ref) and
                                  (Pai386(hp1)^.op1t = top_ref) and
                                  (Pai386(hp1)^.op2t = top_reg) and
-                                 (Pai386(p)^.size = Pai386(hp1)^.size) and
+                                 (Pai386(p)^.opsize = Pai386(hp1)^.opsize) and
                                  RefsEqual(TReference(Pai386(hp1)^.op1^),TReference(Pai386(p)^.op2^)) then
                                 Begin
                                   Pai386(hp1)^.op1:=Pai386(hp1)^.op2;
@@ -934,7 +934,7 @@ Begin
                      (Pai386(p)^.op2t = Top_Reg)
                     Then
                       Begin
-                        Pai386(p)^._operator := A_XOR;
+                        Pai386(p)^.opcode := A_XOR;
                         Pai386(p)^.opxt := Top_Reg+Top_reg shl 4;
                         Pai386(p)^.op1 := Pai386(p)^.op2;
                       End;
@@ -945,12 +945,12 @@ Begin
                   If (Pai386(p)^.op2t = top_reg) And
                      GetNextInstruction(p, hp1) And
                      (Pai(hp1)^.typ = ait_instruction) And
-                     (Pai386(hp1)^._operator = A_AND) And
+                     (Pai386(hp1)^.opcode = A_AND) And
                      (Pai386(hp1)^.op1t = top_const) And
                      (Pai386(hp1)^.op2t = top_reg) And
                      (Pai386(hp1)^.op2 = Pai386(p)^.op2)
                     Then
-                      Case Pai386(p)^.Size Of
+                      Case Pai386(p)^.opsize Of
                         S_BL, S_BW:
                           If (Longint(Pai386(hp1)^.op1) = $ff)
                             Then
@@ -971,7 +971,7 @@ Begin
                   If (Pai386(p)^.op2t = top_reg) Then
                     If (Pai386(p)^.op1t = top_reg)
                       Then
-                        Case Pai386(p)^.size of
+                        Case Pai386(p)^.opsize of
                           S_BW:
                             Begin
                               If (TRegister(Pai386(p)^.op1) = Reg16ToReg8(TRegister(Pai386(p)^.op2))) And
@@ -979,15 +979,15 @@ Begin
                                 Then
                                   {Change "movzbw %al, %ax" to "andw $0x0ffh, %ax"}
                                   Begin
-                                    Pai386(p)^._operator := A_AND;
+                                    Pai386(p)^.opcode := A_AND;
                                     Pai386(p)^.opxt := top_const+Top_reg shl 4;
                                     Longint(Pai386(p)^.op1) := $ff;
-                                    Pai386(p)^.Size := S_W
+                                    Pai386(p)^.opsize := S_W
                                   End
                                 Else
                                   If GetNextInstruction(p, hp1) And
                                      (Pai(hp1)^.typ = ait_instruction) And
-                                     (Pai386(hp1)^._operator = A_AND) And
+                                     (Pai386(hp1)^.opcode = A_AND) And
                                      (Pai386(hp1)^.op1t = top_const) And
                                      (Pai386(hp1)^.op2t = top_reg) And
                                      (Pai386(hp1)^.op2 = Pai386(p)^.op2)
@@ -995,8 +995,8 @@ Begin
                                       {Change "movzbw %reg1, %reg2; andw $const, %reg2"
                                        to "movw %reg1, reg2; andw $(const1 and $ff), %reg2"}
                                       Begin
-                                        Pai386(p)^._operator := A_MOV;
-                                        Pai386(p)^.Size := S_W;
+                                        Pai386(p)^.opcode := A_MOV;
+                                        Pai386(p)^.opsize := S_W;
                                         Pai386(p)^.op1 := Pointer(Reg8ToReg16(TRegister(Pai386(p)^.op1)));
                                         Pai386(hp1)^.op1 := Pointer(Longint(Pai386(hp1)^.op1) And $ff);
                                       End;
@@ -1008,15 +1008,15 @@ Begin
                                 Then
                                   {Change "movzbl %al, %eax" to "andl $0x0ffh, %eax"}
                                   Begin
-                                    Pai386(p)^._operator := A_AND;
+                                    Pai386(p)^.opcode := A_AND;
                                     Pai386(p)^.opxt := top_const+Top_reg shl 4;
                                     Longint(Pai386(p)^.op1) := $ff;
-                                    Pai386(p)^.Size := S_L;
+                                    Pai386(p)^.opsize := S_L;
                                   End
                                 Else
                                   If GetNextInstruction(p, hp1) And
                                      (Pai(hp1)^.typ = ait_instruction) And
-                                     (Pai386(hp1)^._operator = A_AND) And
+                                     (Pai386(hp1)^.opcode = A_AND) And
                                      (Pai386(hp1)^.op1t = top_const) And
                                      (Pai386(hp1)^.op2t = top_reg) And
                                      (Pai386(hp1)^.op2 = Pai386(p)^.op2)
@@ -1024,8 +1024,8 @@ Begin
                                      {Change "movzbl %reg1, %reg2; andl $const, %reg2"
                                       to "movl %reg1, reg2; andl $(const1 and $ff), %reg2"}
                                       Begin
-                                        Pai386(p)^._operator := A_MOV;
-                                        Pai386(p)^.Size := S_L;
+                                        Pai386(p)^.opcode := A_MOV;
+                                        Pai386(p)^.opsize := S_L;
                                         Pai386(p)^.op1 := Pointer(Reg8ToReg32(TRegister(Pai386(p)^.op1)));
                                         Pai386(hp1)^.op1 := Pointer(Longint(Pai386(hp1)^.op1) And $ff);
                                       End
@@ -1037,15 +1037,15 @@ Begin
                                 Then
                                  {Change "movzwl %ax, %eax" to "andl $0x0ffffh, %eax"}
                                   Begin
-                                    Pai386(p)^._operator := A_AND;
+                                    Pai386(p)^.opcode := A_AND;
                                     Pai386(p)^.opxt := top_const+Top_reg shl 4;
                                     Longint(Pai386(p)^.op1) := $ffff;
-                                    Pai386(p)^.Size := S_L
+                                    Pai386(p)^.opsize := S_L
                                   End
                                 Else
                                   If GetNextInstruction(p, hp1) And
                                      (Pai(hp1)^.typ = ait_instruction) And
-                                     (Pai386(hp1)^._operator = A_AND) And
+                                     (Pai386(hp1)^.opcode = A_AND) And
                                      (Pai386(hp1)^.op1t = top_const) And
                                      (Pai386(hp1)^.op2t = top_reg) And
                                      (Pai386(hp1)^.op2 = Pai386(p)^.op2)
@@ -1053,8 +1053,8 @@ Begin
                                       {Change "movzwl %reg1, %reg2; andl $const, %reg2"
                                        to "movl %reg1, reg2; andl $(const1 and $ffff), %reg2"}
                                       Begin
-                                        Pai386(p)^._operator := A_MOV;
-                                        Pai386(p)^.Size := S_L;
+                                        Pai386(p)^.opcode := A_MOV;
+                                        Pai386(p)^.opsize := S_L;
                                         Pai386(p)^.op1 := Pointer(Reg16ToReg32(TRegister(Pai386(p)^.op1)));
                                         Pai386(hp1)^.op1 := Pointer(Longint(Pai386(hp1)^.op1) And $ffff);
                                       End;
@@ -1065,28 +1065,28 @@ Begin
                           Begin
                             If GetNextInstruction(p, hp1) And
                                (Pai(hp1)^.typ = ait_instruction) And
-                               (Pai386(hp1)^._operator = A_AND) And
+                               (Pai386(hp1)^.opcode = A_AND) And
                                (Pai386(hp1)^.op1t = Top_Const) And
                                (Pai386(hp1)^.op2t = Top_Reg) And
                                (Pai386(hp1)^.op2 = Pai386(p)^.op2) Then
                               Begin
-                                Pai386(p)^._operator := A_MOV;
-                                Case Pai386(p)^.Size Of
+                                Pai386(p)^.opcode := A_MOV;
+                                Case Pai386(p)^.opsize Of
                                   S_BL:
                                     Begin
-                                      Pai386(p)^.Size := S_L;
+                                      Pai386(p)^.opsize := S_L;
                                       Pai386(hp1)^.op1 := Pointer(Longint(Pai386(hp1)^.op1)
                                         And $ff);
                                     End;
                                   S_WL:
                                     Begin
-                                      Pai386(p)^.Size := S_L;
+                                      Pai386(p)^.opsize := S_L;
                                       Pai386(hp1)^.op1 := Pointer(Longint(Pai386(hp1)^.op1)
                                         And $ffff);
                                     End;
                                   S_BW:
                                     Begin
-                                      Pai386(p)^.Size := S_W;
+                                      Pai386(p)^.opsize := S_W;
                                       Pai386(hp1)^.op1 := Pointer(Longint(Pai386(hp1)^.op1)
                                         And $ff);
                                     End;
@@ -1099,7 +1099,7 @@ Begin
                    if (Pai386(p)^.op1t = top_reg) And
                       GetNextInstruction(p, hp1) And
                       (pai(hp1)^.typ=ait_instruction) and
-                      (Pai386(hp1)^._operator=A_PUSH) and
+                      (Pai386(hp1)^.opcode=A_PUSH) and
                       (Pai386(hp1)^.op1t = top_reg) And
                       (Pai386(hp1)^.op1=Pai386(p)^.op1) then
                      If (Not(cs_regalloc in aktglobalswitches)) Then
@@ -1114,7 +1114,7 @@ Begin
                        End
                      Else
                        Begin
-                         Pai386(p)^._operator := A_MOV;
+                         Pai386(p)^.opcode := A_MOV;
                          Pai386(p)^.op2 := Pai386(p)^.op1;
                          Pai386(p)^.opxt := top_ref + top_reg shl 4;
                          New(TmpRef);
@@ -1133,15 +1133,15 @@ Begin
                 end;
               A_PUSH:
                 Begin
-                  If (Pai386(p)^.size = S_W) And
+                  If (Pai386(p)^.opsize = S_W) And
                      (Pai386(p)^.op1t = Top_Const) And
                      GetNextInstruction(p, hp1) And
                      (Pai(hp1)^.typ = ait_instruction) And
-                     (Pai386(hp1)^._operator = A_PUSH) And
+                     (Pai386(hp1)^.opcode = A_PUSH) And
                      (Pai386(hp1)^.op1t = Top_Const) And
-                     (Pai386(hp1)^.size = S_W) Then
+                     (Pai386(hp1)^.opsize = S_W) Then
                     Begin
-                      Pai386(p)^.Size := S_L;
+                      Pai386(p)^.opsize := S_L;
                       Pai386(p)^.op1 := Pointer(Longint(Pai386(p)^.op1) shl 16 + Longint(Pai386(hp1)^.op1));
                       AsmL^.Remove(hp1);
                       Dispose(hp1, Done)
@@ -1151,7 +1151,7 @@ Begin
                 Begin
                   If (Pai386(p)^.op1t = Top_Const) And
                      (Pai386(p)^.op2t = Top_Reg) And
-                     (Pai386(p)^.Size = S_L) And
+                     (Pai386(p)^.opsize = S_L) And
                      (Longint(Pai386(p)^.op1) <= 3)
                 {Changes "shl const, %reg32; add const/reg, %reg32" to one lea statement}
                     Then
@@ -1170,8 +1170,8 @@ Begin
                         While TmpBool1 And
                               GetNextInstruction(p, hp1) And
                               (Pai(hp1)^.typ = ait_instruction) And
-                              ((Pai386(hp1)^._operator = A_ADD) Or
-                               (Pai386(hp1)^._operator = A_SUB)) And
+                              ((Pai386(hp1)^.opcode = A_ADD) Or
+                               (Pai386(hp1)^.opcode = A_SUB)) And
                               (Pai386(hp1)^.op2t = Top_Reg) And
                               (Pai386(hp1)^.op2 = Pai386(p)^.op2) Do
                           Begin
@@ -1181,7 +1181,7 @@ Begin
                                 Begin
                                   TmpBool1 := True;
                                   TmpBool2 := True;
-                                  If Pai386(hp1)^._operator = A_ADD
+                                  If Pai386(hp1)^.opcode = A_ADD
                                     Then Inc(TmpRef^.offset, Longint(Pai386(hp1)^.op1))
                                     Else Dec(TmpRef^.offset, Longint(Pai386(hp1)^.op1));
                                   AsmL^.Remove(hp1);
@@ -1189,7 +1189,7 @@ Begin
                                 End
                               Else
                                 If (Pai386(hp1)^.op1t = Top_Reg) And
-                                   (Pai386(hp1)^._operator = A_ADD) And
+                                   (Pai386(hp1)^.opcode = A_ADD) And
                                    (TmpRef^.base = R_NO) Then
                                   Begin
                                     TmpBool1 := True;
@@ -1210,7 +1210,7 @@ Begin
                                 Then
                                   Begin
                                     Dispose(TmpRef);
-                                    hp1 := new(Pai386,op_reg_reg(A_ADD,Pai386(p)^.Size,
+                                    hp1 := new(Pai386,op_reg_reg(A_ADD,Pai386(p)^.opsize,
                                                TRegister(Pai386(p)^.op2), TRegister(Pai386(p)^.op2)))
                                   End
                                 Else hp1 := New(Pai386, op_ref_reg(A_LEA, S_L, TmpRef,
@@ -1231,14 +1231,14 @@ Begin
    but faster on a 486, and pairable in both U and V pipes on the Pentium
    (unlike shl, which is only pairable in the U pipe)}
                             Begin
-                              hp1 := new(Pai386,op_reg_reg(A_ADD,Pai386(p)^.Size,
+                              hp1 := new(Pai386,op_reg_reg(A_ADD,Pai386(p)^.opsize,
                                          TRegister(Pai386(p)^.op2), TRegister(Pai386(p)^.op2)));
                               hp1^.fileinfo := p^.fileinfo;
                               InsertLLItem(AsmL,p^.previous, p^.next, hp1);
                               Dispose(p, done);
                               p := hp1;
                             End
-                          Else If (Pai386(p)^.size = S_L) and
+                          Else If (Pai386(p)^.opsize = S_L) and
                                   (Longint(Pai386(p)^.op1) <= 3) Then
                     {changes "shl $2, %reg" to "lea (,%reg,4), %reg"
                              "shl $3, %reg" to "lea (,%reg,8), %reg}
@@ -1266,10 +1266,10 @@ Begin
                 Begin
                   If GetNextInstruction(p, hp1) And
                      (pai(hp1)^.typ = ait_instruction) and
-                     (Pai386(hp1)^._operator = A_SHL) and
+                     (Pai386(hp1)^.opcode = A_SHL) and
                      (Pai386(p)^.op1t = top_const) and
                      (Pai386(hp1)^.op1t = top_const) and
-                     (Pai386(hp1)^.Size = Pai386(p)^.Size) And
+                     (Pai386(hp1)^.opsize = Pai386(p)^.opsize) And
                      (Pai386(hp1)^.op2t = Pai386(p)^.op2t) And
                      OpsEqual(Pai386(hp1)^.op2t, Pai386(hp1)^.Op2, Pai386(p)^.Op2)
                     Then
@@ -1281,9 +1281,9 @@ Begin
                       with const1 > const2 }
                           Begin
                             Dec(Longint(Pai386(p)^.op1), Longint(Pai386(hp1)^.op1));
-                            Pai386(hp1)^._operator := A_And;
+                            Pai386(hp1)^.opcode := A_And;
                             Pai386(hp1)^.op1 := Pointer(1 shl Longint(Pai386(hp1)^.op1)-1);
-                            Case Pai386(p)^.Size Of
+                            Case Pai386(p)^.opsize Of
                               S_L: Pai386(hp1)^.op1 := Pointer(Longint(Pai386(hp1)^.op1) Xor $ffffffff);
                               S_B: Pai386(hp1)^.op1 := Pointer(Longint(Pai386(hp1)^.op1) Xor $ff);
                               S_W: Pai386(hp1)^.op1 := Pointer(Longint(Pai386(hp1)^.op1) Xor $ffff);
@@ -1298,9 +1298,9 @@ Begin
                       with const1 < const2 }
                               Begin
                                 Dec(Longint(Pai386(hp1)^.op1), Longint(Pai386(p)^.op1));
-                                Pai386(p)^._operator := A_And;
+                                Pai386(p)^.opcode := A_And;
                                 Pai386(p)^.op1 := Pointer(1 shl Longint(Pai386(p)^.op1)-1);
-                                Case Pai386(p)^.Size Of
+                                Case Pai386(p)^.opsize Of
                                   S_L: Pai386(p)^.op1 := Pointer(Longint(Pai386(p)^.op1) Xor $ffffffff);
                                   S_B: Pai386(p)^.op1 := Pointer(Longint(Pai386(p)^.op1) Xor $ff);
                                   S_W: Pai386(p)^.op1 := Pointer(Longint(Pai386(p)^.op1) Xor $ffff);
@@ -1311,9 +1311,9 @@ Begin
                      shl     const2, %reg
                       with const1 = const2 }
                               Begin
-                                Pai386(p)^._operator := A_And;
+                                Pai386(p)^.opcode := A_And;
                                 Pai386(p)^.op1 := Pointer(1 shl Longint(Pai386(p)^.op1)-1);
-                                Case Pai386(p)^.Size Of
+                                Case Pai386(p)^.opsize Of
                                   S_B: Pai386(p)^.op1 := Pointer(Longint(Pai386(p)^.op1) Xor $ff);
                                   S_W: Pai386(p)^.op1 := Pointer(Longint(Pai386(p)^.op1) Xor $ffff);
                                   S_L: Pai386(p)^.op1 := Pointer(Longint(Pai386(p)^.op1) Xor $ffffffff);
@@ -1328,14 +1328,14 @@ Begin
                      GetNextInstruction(p, hp1) And
                      GetNextInstruction(hp1, hp2) And
                      (hp2^.typ = ait_instruction) And
-                     ((Pai386(hp2)^._operator = A_LEAVE) or
-                      (Pai386(hp2)^._operator = A_RET)) And
+                     ((Pai386(hp2)^.opcode = A_LEAVE) or
+                      (Pai386(hp2)^.opcode = A_RET)) And
                      (TReference(Pai386(p)^.Op1^).Base = ProcInfo.FramePointer) And
                      (TReference(Pai386(p)^.Op1^).Index = R_NO) And
                      (TReference(Pai386(p)^.Op1^).Offset >= ProcInfo.RetOffset) And
                      (hp1^.typ = ait_instruction) And
-                     (Pai386(hp1)^._operator = A_MOV) And
-                     (Pai386(hp1)^.Size = S_B) And
+                     (Pai386(hp1)^.opcode = A_MOV) And
+                     (Pai386(hp1)^.opsize = S_B) And
                      (Pai386(hp1)^.Op1t = top_ref) And
                      RefsEqual(TReference(Pai386(hp1)^.Op1^), TReference(Pai386(p)^.Op1^)) Then
                     Begin
@@ -1360,19 +1360,19 @@ Begin
                         While Assigned(hp1) And
                               (Pai(hp1)^.typ In [ait_instruction]+SkipInstr) And
                                Not((Pai(hp1)^.typ = ait_instruction) And
-                                   ((Pai386(hp1)^._operator = A_CALL) or
-                                    (Pai386(hp1)^._operator = A_PUSH) or
-                                    ((Pai386(hp1)^._operator = A_MOV) And
+                                   ((Pai386(hp1)^.opcode = A_CALL) or
+                                    (Pai386(hp1)^.opcode = A_PUSH) or
+                                    ((Pai386(hp1)^.opcode = A_MOV) And
                                      (Pai386(hp1)^.op2t = top_ref) And
                                      (TReference(Pai386(hp1)^.op2^).base = R_ESP)))) do
                           hp1 := Pai(hp1^.next);
                         If Assigned(hp1) And
                             (Pai(hp1)^.typ = ait_instruction) And
-                            (Pai386(hp1)^._operator = A_PUSH) And
-                            (Pai386(hp1)^.Size = S_W)
+                            (Pai386(hp1)^.opcode = A_PUSH) And
+                            (Pai386(hp1)^.opsize = S_W)
                           Then
                             Begin
-                              Pai386(hp1)^.size := S_L;
+                              Pai386(hp1)^.opsize := S_L;
                               If (Pai386(hp1)^.op1t = top_reg) Then
                                 Pai386(hp1)^.op1 := Pointer(Reg16ToReg32(TRegister(Pai386(hp1)^.op1)));
                               hp1 := Pai(p^.next);
@@ -1384,7 +1384,7 @@ Begin
                           Else
                             If GetLastInstruction(p, hp1) And
                                (Pai(hp1)^.typ = ait_instruction) And
-                               (Pai386(hp1)^._operator = A_SUB) And
+                               (Pai386(hp1)^.opcode = A_SUB) And
                                (Pai386(hp1)^.op1t = top_const) And
                                (Pai386(hp1)^.op2t = top_reg) And
                                (TRegister(Pai386(hp1)^.Op2) = R_ESP)
@@ -1398,8 +1398,8 @@ Begin
                     Else
                       If GetLastInstruction(p, hp1) And
                          (hp1^.typ = ait_instruction) And
-                         (Pai386(hp1)^.Size = Pai386(p)^.Size) then
-                        Case Pai386(hp1)^._operator Of
+                         (Pai386(hp1)^.opsize = Pai386(p)^.opsize) then
+                        Case Pai386(hp1)^.opcode Of
                           A_DEC:
                             If (Pai386(hp1)^.Op1t = top_reg) And
                                (Pai386(hp1)^.Op1 = Pai386(p)^.op2) Then
@@ -1438,7 +1438,7 @@ Begin
                    If (Pai386(p)^.op1 = Pai386(p)^.op2) And
                       GetLastInstruction(p, hp1) And
                       (pai(hp1)^.typ = ait_instruction) Then
-                     Case Pai386(hp1)^._operator Of
+                     Case Pai386(hp1)^.opcode Of
                        A_ADD, A_SUB, A_OR, A_XOR, A_AND, A_SHL, A_SHR:
                          Begin
                            If (Pai386(hp1)^.op2 = Pai386(p)^.op1) Then
@@ -1454,16 +1454,16 @@ Begin
                          Begin
                            If (Pai386(hp1)^.op1 = Pai386(p)^.op1) Then
                              Begin
-                               Case Pai386(hp1)^._operator Of
+                               Case Pai386(hp1)^.opcode Of
                                  A_DEC, A_INC:
  {replace inc/dec with add/sub 1, because inc/dec doesn't set the carry flag}
                                    Begin
                                      Pai386(hp1)^.opxt := Pai386(hp1)^.opxt shl 4 + top_const;
                                      Pai386(hp1)^.Op2 := Pai386(hp1)^.Op1;
                                      Pai386(hp1)^.Op1 := Pointer(1);
-                                     Case Pai386(hp1)^._operator Of
-                                       A_DEC: Pai386(hp1)^._operator := A_SUB;
-                                       A_INC: Pai386(hp1)^._operator := A_ADD;
+                                     Case Pai386(hp1)^.opcode Of
+                                       A_DEC: Pai386(hp1)^.opcode := A_SUB;
+                                       A_INC: Pai386(hp1)^.opcode := A_ADD;
                                      End
                                    End
                                  End;
@@ -1506,17 +1506,17 @@ Begin
       Case P^.Typ Of
         Ait_Instruction:
           Begin
-            Case Pai386(p)^._operator Of
+            Case Pai386(p)^.opcode Of
               A_CALL:
                 If (AktOptProcessor < ClassP6) And
                    GetNextInstruction(p, hp1) And
                    (hp1^.typ = ait_labeled_instruction) And
-                   (pai386_labeled(hp1)^._operator = A_JMP) Then
+                   (pai386_labeled(hp1)^.opcode = A_JMP) Then
                   Begin
                     hp2 := New(Pai386,op_sym(A_PUSH,S_L,NewAsmSymbol(Lab2Str(pai386_labeled(hp1)^.lab))));
                     hp2^.fileinfo := p^.fileinfo;
                     InsertLLItem(AsmL, p^.previous, p, hp2);
-                    Pai386(p)^._operator := A_JMP;
+                    Pai386(p)^.opcode := A_JMP;
                     AsmL^.Remove(hp1);
                     Dispose(hp1, Done)
                   End;
@@ -1526,7 +1526,7 @@ Begin
                      (Pai386(p)^.op2t = top_reg) And
                      GetNextInstruction(p, hp1) And
                      (hp1^.typ = ait_Instruction) And
-                     (Pai386(hp1)^._operator = A_MOV) And
+                     (Pai386(hp1)^.opcode = A_MOV) And
                      (Pai386(hp1)^.op1t = top_ref) And
                      (Pai386(hp1)^.op2t = top_reg) And
                      ((TReference(Pai386(hp1)^.op1^).Base = TRegister(Pai386(p)^.op2)) Or
@@ -1550,7 +1550,7 @@ Begin
                   If (Pai386(p)^.op2t = top_reg) Then
                     If (Pai386(p)^.op1t = top_reg)
                       Then
-                        Case Pai386(p)^.size of
+                        Case Pai386(p)^.opsize of
                           S_BL:
                             Begin
                               If IsGP32Reg(TRegister(Pai386(p)^.op2)) And
@@ -1565,8 +1565,8 @@ Begin
                                                TRegister(Pai386(p)^.op2), TRegister(Pai386(p)^.op2)));
                                     hp1^.fileinfo := p^.fileinfo;
                                     InsertLLItem(AsmL,p^.previous, p, hp1);
-                                    Pai386(p)^._operator := A_MOV;
-                                    Pai386(p)^.size := S_B;
+                                    Pai386(p)^.opcode := A_MOV;
+                                    Pai386(p)^.opsize := S_B;
                                     Pai386(p)^.op2 :=
                                       Pointer(Reg32ToReg8(TRegister(Pai386(p)^.op2)));
                                     { Jonas
@@ -1584,7 +1584,7 @@ Begin
                            Not(CS_LittleSize in aktglobalswitches) And
                            IsGP32Reg(TRegister(Pai386(p)^.op2)) And
                            (aktoptprocessor = ClassP5) And
-                           (Pai386(p)^.Size = S_BL)
+                           (Pai386(p)^.opsize = S_BL)
                           Then
                             {changes "movzbl mem, %reg" to "xorl %reg, %reg; movb mem, %reg8" for
                              Pentium and PentiumMMX}
@@ -1592,8 +1592,8 @@ Begin
                               hp1 := New(Pai386,op_reg_reg(A_XOR, S_L, TRegister(Pai386(p)^.op2),
                                          TRegister(Pai386(p)^.op2)));
                               hp1^.fileinfo := p^.fileinfo;
-                              Pai386(p)^._operator := A_MOV;
-                              Pai386(p)^.size := S_B;
+                              Pai386(p)^.opcode := A_MOV;
+                              Pai386(p)^.opsize := S_B;
                               Pai386(p)^.op2 := Pointer(Reg32ToReg8(TRegister(Pai386(p)^.op2)));
                               InsertLLItem(AsmL,p^.previous, p, hp1);
                             End;
@@ -1609,7 +1609,10 @@ End.
 
 {
  $Log$
- Revision 1.38  1999-02-25 21:02:44  peter
+ Revision 1.39  1999-02-26 00:48:22  peter
+   * assembler writers fixed for ag386bin
+
+ Revision 1.38  1999/02/25 21:02:44  peter
    * ag386bin updates
    + coff writer
 

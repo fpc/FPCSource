@@ -374,7 +374,7 @@ unit i386;
        pai386_labeled = ^tai386_labeled;
 
        tai386_labeled = object(tai)
-          _operator : tasmop;
+          opcode : tasmop;
           lab : plabel;
           constructor op_lab(op : tasmop; l : plabel);
           destructor done;virtual;
@@ -397,12 +397,11 @@ unit i386;
        pai386 = ^tai386;
 
        tai386 = object(tai)
-          { this isn't a proper style, but not very memory expensive }
-          op1,op2 : pointer; { op3 is also used for the csymbol offset }
-          _operator : tasmop;
-          op1ofs : longint;
+          opcode : tasmop;
+          opsize:topsize;
           opxt:word;
-          size:topsize;
+          op1,op2 : pointer;
+          op1ofs : longint;
           constructor op_none(op : tasmop;_size : topsize);
 
           constructor op_reg(op : tasmop;_size : topsize;_op1 : tregister);
@@ -1414,9 +1413,9 @@ unit i386;
       begin
          inherited init;
          typ:=ait_instruction;
-         _operator:=op;
+         opcode:=op;
          opxt:=0;
-         size:=_size;
+         opsize:=_size;
 
          { the following isn't required ! }
          op1:=nil;
@@ -1428,9 +1427,9 @@ unit i386;
       begin
          inherited init;
          typ:=ait_instruction;
-         _operator:=op;
+         opcode:=op;
          opxt:=Top_reg;
-         size:=_size;
+         opsize:=_size;
          op1:=pointer(_op1);
 
          op2:=nil;
@@ -1441,9 +1440,9 @@ unit i386;
       begin
          inherited init;
          typ:=ait_instruction;
-         _operator:=op;
+         opcode:=op;
          opxt:=Top_const;
-         size:=_size;
+         opsize:=_size;
          op1:=pointer(_op1);
 
          op2:=nil;
@@ -1454,8 +1453,8 @@ unit i386;
       begin
          inherited init;
          typ:=ait_instruction;
-         _operator:=op;
-         size:=_size;
+         opcode:=op;
+         opsize:=_size;
          if _op1^.is_immediate then
            begin
               opxt:=top_const;
@@ -1476,8 +1475,8 @@ unit i386;
       begin
          inherited init;
          typ:=ait_instruction;
-         _operator:=op;
-         size:=_size;
+         opcode:=op;
+         opsize:=_size;
          if (_op1.loc=loc_register) or (_op1.loc=loc_cregister)  then
            begin
              opxt:=top_reg;
@@ -1503,9 +1502,9 @@ unit i386;
       begin
          inherited init;
          typ:=ait_instruction;
-         _operator:=op;
+         opcode:=op;
          opxt:=Top_reg shl 4+Top_reg;
-         size:=_size;
+         opsize:=_size;
          op1:=pointer(_op1);
          op2:=pointer(_op2);
 
@@ -1521,9 +1520,9 @@ unit i386;
       begin
          inherited init;
          typ:=ait_instruction;
-         _operator:=op;
+         opcode:=op;
          opxt:=Top_reg shl 8+Top_reg shl 4+Top_reg;
-         size:=_size;
+         opsize:=_size;
          op1:=pointer(_op1);
          twowords(op2).word1:=word(_op2);
          twowords(op2).word2:=word(_op3);
@@ -1534,9 +1533,9 @@ unit i386;
       begin
          inherited init;
          typ:=ait_instruction;
-         _operator:=op;
+         opcode:=op;
          opxt:=top_reg;
-         size:=_size;
+         opsize:=_size;
          op1:=pointer(_op1);
 
          if _op2^.is_immediate then
@@ -1558,9 +1557,9 @@ unit i386;
       begin
          inherited init;
          typ:=ait_instruction;
-         _operator:=op;
+         opcode:=op;
          opxt:=top_reg;
-         size:=_size;
+         opsize:=_size;
          op1:=pointer(_op1);
 
          if (_op2.loc=loc_register) or (_op2.loc=loc_cregister)  then
@@ -1587,9 +1586,9 @@ unit i386;
       begin
          inherited init;
          typ:=ait_instruction;
-         _operator:=op;
+         opcode:=op;
          opxt:=top_reg shl 4;
-         size:=_size;
+         opsize:=_size;
          op2:=pointer(_op2);
 
          if (_op1.loc=loc_register) or (_op1.loc=loc_cregister)  then
@@ -1616,9 +1615,9 @@ unit i386;
       begin
          inherited init;
          typ:=ait_instruction;
-         _operator:=op;
+         opcode:=op;
          opxt:=Top_const+Top_reg shl 4+Top_reg shl 8;
-         size:=_size;
+         opsize:=_size;
          op1:=pointer(_op1);
          twowords(op2).word1:=word(_op2);
          twowords(op2).word2:=word(_op3);
@@ -1629,7 +1628,7 @@ unit i386;
       begin
          inherited init;
          typ:=ait_instruction;
-         _operator:=op;
+         opcode:=op;
          if ((op=A_CMP) or (op=A_AND) or (op=A_ADD) or
             (op=A_ADC) or (op=A_SUB) or (op=A_SBB)) and
             ((_size=S_B) or (_size=S_BW) or (_size=S_BL)) and
@@ -1645,7 +1644,7 @@ unit i386;
                 _size:=S_L;
            end;
          opxt:=Top_const+Top_reg shl 4;
-         size:=_size;
+         opsize:=_size;
          op1:=pointer(_op1);
          op2:=pointer(_op2);
 
@@ -1656,9 +1655,9 @@ unit i386;
       begin
          inherited init;
          typ:=ait_instruction;
-         _operator:=op;
+         opcode:=op;
          opxt:=Top_const+Top_const shl 4;
-         size:=_size;
+         opsize:=_size;
          op1:=pointer(_op1);
          op2:=pointer(_op2);
 
@@ -1669,9 +1668,9 @@ unit i386;
       begin
          inherited init;
          typ:=ait_instruction;
-         _operator:=op;
+         opcode:=op;
          opxt:=top_const;
-         size:=_size;
+         opsize:=_size;
          op1:=pointer(_op1);
 
          if _op2^.is_immediate then
@@ -1693,9 +1692,9 @@ unit i386;
       begin
          inherited init;
          typ:=ait_instruction;
-         _operator:=op;
+         opcode:=op;
          opxt:=top_const;
-         size:=_size;
+         opsize:=_size;
          op1:=pointer(_op1);
 
          if (_op2.loc=loc_register) or (_op2.loc=loc_cregister)  then
@@ -1722,9 +1721,9 @@ unit i386;
       begin
          inherited init;
          typ:=ait_instruction;
-         _operator:=op;
+         opcode:=op;
          opxt:=top_reg shl 4;
-         size:=_size;
+         opsize:=_size;
          op2:=pointer(_op2);
 
          if _op1^.is_immediate then
@@ -1746,8 +1745,8 @@ unit i386;
       begin
          inherited init;
          typ:=ait_instruction;
-         _operator:=op;
-         size:=_size;
+         opcode:=op;
+         opsize:=_size;
 
          if _op1^.is_immediate then
            begin
@@ -1780,11 +1779,11 @@ unit i386;
       begin
          inherited init;
          typ:=ait_instruction;
-         _operator:=op;
+         opcode:=op;
          if (op=A_CALL) and (use_esp_stackframe) then
           Message(cg_e_stackframe_with_esp);
          opxt:=top_symbol;
-         size:=_size;
+         opsize:=_size;
          op1:=pointer(_op1);
          op1ofs:=0;
          op2:=nil;
@@ -1796,11 +1795,11 @@ unit i386;
       begin
          inherited init;
          typ:=ait_instruction;
-         _operator:=op;
+         opcode:=op;
          if (op=A_CALL) and (use_esp_stackframe) then
           Message(cg_e_stackframe_with_esp);
          opxt:=top_symbol;
-         size:=_size;
+         opsize:=_size;
          op1:=pointer(_op1);
          op1ofs:=_op1ofs;
          op2:=nil;
@@ -1811,9 +1810,9 @@ unit i386;
       begin
          inherited init;
          typ:=ait_instruction;
-         _operator:=op;
+         opcode:=op;
          opxt:=Top_symbol+Top_reg shl 4;
-         size:=_size;
+         opsize:=_size;
          op1:=pointer(_op1);
          op1ofs:=_op1ofs;
          op2:=pointer(_op2);
@@ -1824,9 +1823,9 @@ unit i386;
       begin
          inherited init;
          typ:=ait_instruction;
-         _operator:=op;
+         opcode:=op;
          opxt:=top_symbol;
-         size:=_size;
+         opsize:=_size;
          op1:=pointer(_op1);
          op1ofs:=_op1ofs;
 
@@ -1849,9 +1848,9 @@ unit i386;
       begin
          inherited init;
          typ:=ait_instruction;
-         _operator:=op;
+         opcode:=op;
          opxt:=top_symbol;
-         size:=_size;
+         opsize:=_size;
          op1:=pointer(_op1);
          op1ofs:=_op1ofs;
          if (_op2.loc=loc_register) or (_op2.loc=loc_cregister)  then
@@ -1878,9 +1877,9 @@ unit i386;
     begin
          inherited init;
          typ:=ait_instruction;
-         _operator:=op;
+         opcode:=op;
          opxt:=top_reg+top_const shl 4;
-         size:=_size;
+         opsize:=_size;
          op1:=pointer(_op1);
          op2:=pointer(_op2);
     end;
@@ -1928,7 +1927,7 @@ unit i386;
       begin
          inherited init;
          typ:=ait_labeled_instruction;
-         _operator:=op;
+         opcode:=op;
          lab:=l;
          lab^.is_used:=true;
          inc(lab^.refcount);
@@ -1977,7 +1976,10 @@ Begin
 end.
 {
   $Log$
-  Revision 1.36  1999-02-25 21:02:38  peter
+  Revision 1.37  1999-02-26 00:48:20  peter
+    * assembler writers fixed for ag386bin
+
+  Revision 1.36  1999/02/25 21:02:38  peter
     * ag386bin updates
     + coff writer
 

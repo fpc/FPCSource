@@ -65,11 +65,11 @@ unit systems;
 
      type
        tasm = (as_none
-            ,as_i386_o,as_i386_o_aout,as_i386_asw,
+            ,as_i386_as,as_i386_as_aout,as_i386_asw,
             as_i386_nasmcoff,as_i386_nasmelf,as_i386_nasmobj,
             as_i386_tasm,as_i386_masm,
             as_i386_dbg,as_i386_coff,as_i386_pecoff
-            ,as_m68k_o,as_m68k_gas,as_m68k_mit,as_m68k_mot,as_m68k_mpw
+            ,as_m68k_as,as_m68k_gas,as_m68k_mit,as_m68k_mot,as_m68k_mpw
        );
      const
        {$ifdef i386} i386asmcnt=11; {$else} i386asmcnt=0; {$endif}
@@ -223,6 +223,8 @@ unit systems;
     function set_string_target(s : string) : boolean;
     function set_string_asm(s : string) : boolean;
     function set_string_asmmode(s:string;var t:tasmmode):boolean;
+
+    procedure InitSystems;
 
 
 implementation
@@ -452,8 +454,8 @@ implementation
           )
 {$ifdef i386}
           ,(
-            id     : as_i386_o;
-            idtxt  : 'O';
+            id     : as_i386_as;
+            idtxt  : 'AS';
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM';
             externals : false;
@@ -461,8 +463,8 @@ implementation
             comment : '# '
           )
           ,(
-            id     : as_i386_o_aout;
-            idtxt  : 'O_AOUT';
+            id     : as_i386_as_aout;
+            idtxt  : 'AS_AOUT';
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM';
             externals : false;
@@ -511,7 +513,7 @@ implementation
             asmbin : 'tasm';
             asmcmd : '/m2 $ASM $OBJ';
             externals : true;
-            labelprefix : '.L';
+            labelprefix : 'L';
             comment : '; '
           )
           ,(
@@ -553,8 +555,8 @@ implementation
 {$endif i386}
 {$ifdef m68k}
           ,(
-            id     : as_m68k_o;
-            idtxt  : 'O';
+            id     : as_m68k_as;
+            idtxt  : 'AS';
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM';
             externals : false;
@@ -786,7 +788,7 @@ implementation
             exeext      : ''; { The linker produces a.out }
             os          : os_i386_GO32V1;
             link        : link_i386_ldgo32v1;
-            assem       : as_i386_o;
+            assem       : as_i386_as;
             ar          : ar_i386_ar;
             res         : res_none;
             heapsize    : 2048*1024;
@@ -813,7 +815,7 @@ implementation
 {$ifdef Ag386Bin}
             assem       : as_i386_coff;
 {$else}
-            assem       : as_i386_o;
+            assem       : as_i386_as;
 {$endif}
             ar          : ar_i386_ar;
             res         : res_none;
@@ -838,7 +840,7 @@ implementation
             exeext      : '';
             os          : os_i386_Linux;
             link        : link_i386_ld;
-            assem       : as_i386_o;
+            assem       : as_i386_as;
             ar          : ar_i386_ar;
             res         : res_none;
             heapsize    : 2048*1024;
@@ -862,7 +864,7 @@ implementation
             exeext      : ''; { The linker produces a.out }
             os          : os_i386_OS2;
             link        : link_i386_ldos2;
-            assem       : as_i386_o_aout;
+            assem       : as_i386_as_aout;
             ar          : ar_i386_ar;
             res         : res_none;
             heapsize    : 256*1024;
@@ -1257,6 +1259,7 @@ begin
 end;
 
 
+procedure InitSystems;
 begin
 { first get source OS }
   source_os.name:='';
@@ -1343,10 +1346,18 @@ begin
     {$endif atari}
   {$endif amiga}
 {$endif m68k}
+end;
+
+
+begin
+  InitSystems;
 end.
 {
   $Log$
-  Revision 1.59  1999-02-25 21:02:53  peter
+  Revision 1.60  1999-02-26 00:48:25  peter
+    * assembler writers fixed for ag386bin
+
+  Revision 1.59  1999/02/25 21:02:53  peter
     * ag386bin updates
     + coff writer
 

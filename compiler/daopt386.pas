@@ -1316,9 +1316,9 @@ Begin
         (Counter <= Content.NrOfMods) Do
     Begin
       If (p^.typ = ait_instruction) and
-         ((Pai386(p)^._operator = A_MOV) or
-          (Pai386(p)^._operator = A_MOVZX) or
-          (Pai386(p)^._operator = A_MOVSX))
+         ((Pai386(p)^.opcode = A_MOV) or
+          (Pai386(p)^.opcode = A_MOVZX) or
+          (Pai386(p)^.opcode = A_MOVSX))
         Then
           If (Pai386(p)^.op1t = top_ref)
             Then
@@ -1438,16 +1438,16 @@ Begin {checks whether two Pai386 instructions are equal}
   If Assigned(p1) And Assigned(p2) And
      (Pai(p1)^.typ = ait_instruction) And
      (Pai(p1)^.typ = ait_instruction) And
-     (Pai386(p1)^._operator = Pai386(p2)^._operator) And
+     (Pai386(p1)^.opcode = Pai386(p2)^.opcode) And
      (Pai386(p1)^.op1t = Pai386(p2)^.op1t) And
      (Pai386(p1)^.op2t = Pai386(p2)^.op2t) And
      (Pai386(p1)^.op3t = Pai386(p2)^.op3t)
     Then
  {both instructions have the same structure:
   "<operator> <operand of type1>, <operand of type 2>"}
-      If ((Pai386(p1)^._operator = A_MOV) or
-          (Pai386(p1)^._operator = A_MOVZX) or
-          (Pai386(p1)^._operator = A_MOVSX)) And
+      If ((Pai386(p1)^.opcode = A_MOV) or
+          (Pai386(p1)^.opcode = A_MOVZX) or
+          (Pai386(p1)^.opcode = A_MOVSX)) And
          (Pai386(p1)^.op1t = top_ref) {then op2t = top_reg} Then
         If Not(RegInRef(TRegister(Pai386(p1)^.op2), TReference(Pai386(p1)^.op1^))) Then
  {the "old" instruction is a load of a register with a new value, not with
@@ -1544,7 +1544,7 @@ Begin {checks whether two Pai386 instructions are equal}
     Assigned(p1) And Assigned(p2) And
     ((Pai(p1)^.typ = ait_instruction) And
      (Pai(p1)^.typ = ait_instruction) And
-     (Pai386(p1)^._operator = Pai386(p2)^._operator) And
+     (Pai386(p1)^.opcode = Pai386(p2)^.opcode) And
      (Pai386(p1)^.op1t = Pai386(p2)^.op1t) And
      (Pai386(p1)^.op2t = Pai386(p2)^.op2t) And
      OpsEqual(Pai386(p1)^.op1t, Pai386(p1)^.op1, Pai386(p2)^.op1) And
@@ -1791,7 +1791,7 @@ Begin
                         If (GetLastInstruction(p, hp) And
                            Not(((hp^.typ = ait_labeled_instruction) or
                                 (hp^.typ = ait_instruction)) And
-                                (pai386_labeled(hp)^._operator = A_JMP))
+                                (pai386_labeled(hp)^.opcode = A_JMP))
                           Then
   {previous instruction not a JMP -> the contents of the registers after the
    previous intruction has been executed have to be taken into account as well}
@@ -1808,7 +1808,7 @@ Begin
   already been processed}
                       If GetLastInstruction(p, hp) And
                          Not(hp^.typ = ait_labeled_instruction) And
-                            (pai386_labeled(hp)^._operator = A_JMP))
+                            (pai386_labeled(hp)^.opcode = A_JMP))
                         Then
   {previous instruction not a jmp, so keep all the registers' contents from the
    previous instruction}
@@ -1890,7 +1890,7 @@ Begin
 {                    If (JmpsProcessed > 0) Or
                        Not(GetLastInstruction(PaiObj, hp) And
                            (hp^.typ = ait_labeled_instruction) And
-                           (pai386_labeled(hp)^._operator = A_JMP))
+                           (pai386_labeled(hp)^.opcode = A_JMP))
                       Then}
 {instruction prior to label is not a jmp, or at least one jump to the label
  has yet been processed}
@@ -1950,8 +1950,8 @@ Begin
 {$endif GDB}
         ait_instruction:
           Begin
-            InstrProp := AsmInstr[Pai386(p)^._operator];
-            Case Pai386(p)^._operator Of
+            InstrProp := AsmInstr[Pai386(p)^.opcode];
+            Case Pai386(p)^.opcode Of
               A_MOV, A_MOVZX, A_MOVSX:
                 Begin
                   Case Pai386(p)^.op1t Of
@@ -2165,7 +2165,7 @@ Begin
           End;
 {        ait_instruction:
           Begin
-           If (Pai386(p)^._operator = A_PUSH) And
+           If (Pai386(p)^.opcode = A_PUSH) And
               (Pai386(p)^.op1t = top_symbol) And
               (PCSymbol(Pai386(p)^.op1)^.offset = 0) Then
              Begin
@@ -2227,7 +2227,10 @@ End.
 
 {
  $Log$
- Revision 1.38  1999-02-25 21:02:34  peter
+ Revision 1.39  1999-02-26 00:48:18  peter
+   * assembler writers fixed for ag386bin
+
+ Revision 1.38  1999/02/25 21:02:34  peter
    * ag386bin updates
    + coff writer
 

@@ -151,6 +151,7 @@ begin
   if CompilerInited then
    DoneCompiler;
 { inits which need to be done before the arguments are parsed }
+  InitSystems;
   InitVerbose;
 {$ifdef BrowserLog}
   InitBrowserLog;
@@ -261,7 +262,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.17  1999-01-12 14:25:25  peter
+  Revision 1.18  1999-02-26 00:48:16  peter
+    * assembler writers fixed for ag386bin
+
+  Revision 1.17  1999/01/12 14:25:25  peter
     + BrowserLog for browser.log generation
     + BrowserCol for browser info in TCollections
     * released all other UseBrowser
