@@ -457,7 +457,7 @@ implementation
 
                 if (target_info.system in [system_powerpc_morphos]) then
                   begin
-                    if (token=_LOCATION) then
+                    if (idtoken=_LOCATION) then
                       begin
                         consume(_LOCATION);
                         locationstr:=pattern;
@@ -2190,7 +2190,10 @@ const
 end.
 {
   $Log$
-  Revision 1.165  2004-04-18 15:22:24  florian
+  Revision 1.166  2004-04-19 02:12:18  karoly
+   * quick fix for PowerPC/MorphOS location support
+
+  Revision 1.165  2004/04/18 15:22:24  florian
     + location support for arguments, currently PowerPC/MorphOS only
 
   Revision 1.164  2004/02/26 16:13:25  peter
