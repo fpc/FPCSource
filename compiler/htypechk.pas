@@ -744,10 +744,10 @@ implementation
                  todef:=hp.resulttype.def;
                  if not((fromdef.deftype=formaldef) or
                         is_void(fromdef) or
+                        is_open_array(fromdef) or
                         ((fromdef.deftype=pointerdef) and (todef.deftype=arraydef)) or
                         ((fromdef.deftype = objectdef) and (todef.deftype = objectdef) and
                          (tobjectdef(fromdef).is_related(tobjectdef(todef))))) and
-                    is_open_array(fromdef) and
                     (fromdef.size<>todef.size) then
                   begin
                     { in TP it is allowed to typecast to smaller types }
@@ -941,7 +941,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.69  2003-10-08 19:19:45  peter
+  Revision 1.70  2003-10-20 19:29:12  peter
+    * fix check for typecasting wrong sizes in assignment left
+
+  Revision 1.69  2003/10/08 19:19:45  peter
     * set_varstate cleanup
 
   Revision 1.68  2003/10/05 21:21:52  peter
