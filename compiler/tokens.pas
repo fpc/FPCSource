@@ -173,6 +173,7 @@ type
     _PROTECTED,
     _PUBLISHED,
     _DESTRUCTOR,
+    _OPENSTRING,
     _CONSTRUCTOR,
     _SHORTSTRING,
     _FINALIZATION,
@@ -332,6 +333,7 @@ const
       (str:'PROTECTED'     ;special:false;keyword:m_none),
       (str:'PUBLISHED'     ;special:false;keyword:m_none),
       (str:'DESTRUCTOR'    ;special:false;keyword:m_all),
+      (str:'OPENSTRING'    ;special:false;keyword:m_none),
       (str:'CONSTRUCTOR'   ;special:false;keyword:m_all),
       (str:'SHORTSTRING'   ;special:false;keyword:m_none),
       (str:'FINALIZATION'  ;special:false;keyword:m_class),
@@ -344,7 +346,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  1998-12-11 00:04:02  peter
+  Revision 1.2  1999-02-05 12:51:21  florian
+    + openstring id is now supported
+
+  Revision 1.1  1998/12/11 00:04:02  peter
     + globtype,tokens,version unit splitted from globals
 
 }
