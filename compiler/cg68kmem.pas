@@ -691,7 +691,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  1998-09-07 18:45:57  peter
+  Revision 1.3  1998-09-11 12:29:44  pierre
+    * removed explicit range_checking as it is buggy
+
+  Revision 1.2.2.1  1998/09/11 12:08:59  pierre
+    * removed explicit range_check was buggy
+
+  Revision 1.2  1998/09/07 18:45:57  peter
     * update smartlinking, uses getdatalabel
     * renamed ptree.value vars to value_str,value_real,value_set
 
@@ -699,4 +705,3 @@ end.
     * m68k fixes, splitted cg68k like cgi386
 
 }
-

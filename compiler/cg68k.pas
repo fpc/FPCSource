@@ -2276,7 +2276,7 @@ implementation
            (porddef(p^.resulttype)^.high<porddef(hp^.resulttype)^.high)) then
            begin
               if (cs_check_range in aktlocalswitches) and
-                 (not(p^.explizit) or not(cs_tp_compatible in aktmoduleswitches)) then
+                 (not(p^.explizit){ or not(cs_tp_compatible in aktmoduleswitches)}) then
               porddef(p^.resulttype)^.genrangecheck;
               if porddef(hp^.resulttype)^.typ=s32bit then
                 begin
@@ -2317,7 +2317,7 @@ implementation
               else internalerror(6);
 
               if (cs_check_range in aktlocalswitches) and
-                 (not(p^.explizit) or not(cs_tp_compatible in aktmoduleswitches)) then
+                 (not(p^.explizit) {or not(cs_tp_compatible in aktmoduleswitches)}) then
               Begin
               new(hpp);
               reset_reference(hpp^);
@@ -5505,7 +5505,13 @@ end.
 
 {
   $Log$
-  Revision 1.15  1998-08-31 12:26:21  peter
+  Revision 1.16  1998-09-11 12:29:41  pierre
+    * removed explicit range_checking as it is buggy
+
+  Revision 1.15.2.1  1998/09/11 12:08:55  pierre
+    * removed explicit range_check was buggy
+
+  Revision 1.15  1998/08/31 12:26:21  peter
     * m68k and palmos updates from surebugfixes
 
   Revision 1.14  1998/08/19 16:07:39  jonas
