@@ -374,7 +374,8 @@ unit cg64f32;
           LOC_REFERENCE,
           LOC_CREFERENCE :
             a_load64low_ref_reg(list,l.reference,reg);
-          LOC_REGISTER :
+          LOC_REGISTER,
+          LOC_CREGISTER :
             cg.a_load_reg_reg(list,OS_32,OS_32,l.register64.reglo,reg);
           LOC_CONSTANT :
             cg.a_load_const_reg(list,OS_32,aint(lo(l.value64)),reg);
@@ -390,7 +391,8 @@ unit cg64f32;
           LOC_REFERENCE,
           LOC_CREFERENCE :
             a_load64high_ref_reg(list,l.reference,reg);
-          LOC_REGISTER :
+          LOC_REGISTER,
+          LOC_CREGISTER :
             cg.a_load_reg_reg(list,OS_32,OS_32,l.register64.reghi,reg);
           LOC_CONSTANT :
             cg.a_load_const_reg(list,OS_32,hi(l.value64),reg);
@@ -777,7 +779,10 @@ unit cg64f32;
 end.
 {
   $Log$
-  Revision 1.65  2004-10-31 21:45:02  peter
+  Revision 1.66  2004-12-03 15:58:11  peter
+    * LOC_CREGISTER fix
+
+  Revision 1.65  2004/10/31 21:45:02  peter
     * generic tlocation
     * move tlocation to cgutils
 
