@@ -622,7 +622,8 @@ implementation
                   exprasmlist^.concat(new(pai386,op_const_reg(A_XOR,opsize,1,p^.location.register)));}
                   p^.location.loc:=LOC_FLAGS;
                   p^.location.resflags:=F_E;
-                  exprasmlist^.concat(new(pai386,op_reg_reg(A_TEST,opsize,p^.left^.location.register,p^.left^.location.register)));
+                  exprasmlist^.concat(new(pai386,op_reg_reg(A_TEST,opsize,
+                    p^.left^.location.register,p^.left^.location.register)));
                   ungetregister(p^.left^.location.register);
                 end;
               LOC_CREGISTER :
@@ -762,7 +763,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  1999-02-03 10:11:12  pierre
+  Revision 1.19  1999-02-04 10:49:40  florian
+    + range checking for ansi- and widestrings
+    * made it compilable with TP
+
+  Revision 1.18  1999/02/03 10:11:12  pierre
    * fix for bug0211 for i386
 
   Revision 1.17  1999/01/21 22:10:41  peter

@@ -423,6 +423,15 @@ implementation
                         maybe_loadesi;
                         popusedregisters(pushed);
                      end;
+                   { check for a zero length ansistring }
+                   if (cs_check_range in aktlocalswitches) then
+                     begin
+                        pushusedregisters(pushed,$ff);
+                        exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_L,newreference(p^.left^.location.reference))));
+                        emitcall('FPC_ANSISTR_CHECKZERO',true);
+                        maybe_loadesi;
+                        popusedregisters(pushed);
+                     end;
                 end
               else
                 begin
@@ -431,6 +440,16 @@ implementation
                         pushusedregisters(pushed,$ff);
                         emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
                         emitcall('FPC_WIDESTR_UNIQUE',true);
+                        maybe_loadesi;
+                        popusedregisters(pushed);
+                     end;
+                   { check for a zero length widestring,
+                     we can use the ansistring routine here }
+                   if (cs_check_range in aktlocalswitches) then
+                     begin
+                        pushusedregisters(pushed,$ff);
+                        exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_L,newreference(p^.left^.location.reference))));
+                        emitcall('FPC_ANSISTR_CHECKZERO',true);
                         maybe_loadesi;
                         popusedregisters(pushed);
                      end;
@@ -485,6 +504,7 @@ implementation
                    else
                      begin
                         { range checking for open arrays !!!! }
+                        {!!!!!!!!!!!!!!!!!}
                      end;
                 end
               else if (p^.left^.resulttype^.deftype=stringdef) then
@@ -492,23 +512,32 @@ implementation
                    if (p^.right^.value=0) and not(is_shortstring(p^.left^.resulttype)) then
                      CGMessage(cg_e_can_access_element_zero);
 
-                   case pstringdef(p^.left^.resulttype)^.string_typ of
-                      st_ansistring:
-                        begin
-                        end;
+                   if (cs_check_range in aktlocalswitches) then
+                     case pstringdef(p^.left^.resulttype)^.string_typ of
+                        { it's the same for ansi- and wide strings }
+                        st_widestring,
+                        st_ansistring:
+                          begin
+                             pushusedregisters(pushed,$ff);
+                             push_int(p^.right^.value);
+                             hp:=newreference(p^.location.reference);
+                             dec(hp^.offset,7);
+                             exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_L,hp)));
+                             emitcall('FPC_ANSISTR_RANGECHECK',true);
+                             popusedregisters(pushed);
+                             maybe_loadesi;
+                          end;
 
-                      st_shortstring:
-                        begin
-                        end;
+                        st_shortstring:
+                          begin
+                             {!!!!!!!!!!!!!!!!!}
+                          end;
 
-                      st_longstring:
-                        begin
-                        end;
-
-                      st_widestring:
-                        begin
-                        end;
-                   end;
+                        st_longstring:
+                          begin
+                             {!!!!!!!!!!!!!!!!!}
+                          end;
+                     end;
                 end;
 
               inc(p^.left^.location.reference.offset,
@@ -639,7 +668,36 @@ implementation
                       parraydef(p^.left^.resulttype)^.genrangecheck;
                       hp^.symbol:=stringdup(parraydef(p^.left^.resulttype)^.getrangecheckstring);
                       exprasmlist^.concat(new(pai386,op_reg_ref(A_BOUND,S_L,ind,hp)));
+                   end
+                 else if (p^.left^.resulttype^.deftype=stringdef) then
+                   begin
+                      case pstringdef(p^.left^.resulttype)^.string_typ of
+                         { it's the same for ansi- and wide strings }
+                         st_widestring,
+                         st_ansistring:
+                           begin
+                              pushusedregisters(pushed,$ff);
+                              exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,ind)));
+                              hp:=newreference(p^.location.reference);
+                              dec(hp^.offset,7);
+                              exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_L,hp)));
+                              emitcall('FPC_ANSISTR_RANGECHECK',true);
+                              popusedregisters(pushed);
+                              maybe_loadesi;
+                           end;
+
+                         st_shortstring:
+                           begin
+                              {!!!!!!!!!!!!!!!!!}
+                           end;
+
+                         st_longstring:
+                           begin
+                              {!!!!!!!!!!!!!!!!!}
+                           end;
+                      end;
                    end;
+
               end;
             if p^.location.reference.index=R_NO then
               begin
@@ -763,7 +821,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  1999-01-21 16:40:52  pierre
+  Revision 1.26  1999-02-04 10:49:41  florian
+    + range checking for ansi- and widestrings
+    * made it compilable with TP
+
+  Revision 1.25  1999/01/21 16:40:52  pierre
    * fix for constructor inside with statements
 
   Revision 1.24  1999/01/19 12:05:27  pierre

@@ -849,7 +849,8 @@ implementation
 {$else TESTOBJEXT}
                    if (cs_check_range in aktlocalswitches) then
                      begin
-                        exprasmlist^.concat(new(pai386,op_csymbol(A_PUSH,S_L,newcsymbol(p^.procdefinition^._class^.vmt_mangledname,0))));
+                        exprasmlist^.concat(new(pai386,op_csymbol(A_PUSH,S_L,
+                          newcsymbol(p^.procdefinition^._class^.vmt_mangledname,0))));
                         exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,r^.base)));
                         emitcall('FPC_CHECK_OBJECT_EXT',true);
                      end;
@@ -1291,7 +1292,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.63  1999-02-03 10:18:14  pierre
+  Revision 1.64  1999-02-04 10:49:39  florian
+    + range checking for ansi- and widestrings
+    * made it compilable with TP
+
+  Revision 1.63  1999/02/03 10:18:14  pierre
    * conditionnal code for extended check of virtual methods
 
   Revision 1.62  1999/02/02 23:52:32  florian
