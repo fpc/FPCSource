@@ -832,6 +832,117 @@ Begin
   ExitProc:=@DoExitProc;
 End;
 
+function ArrayStringToPPchar(const S:Array of AnsiString;reserveentries:Longint):ppchar; // const ?
+// Extra allocate reserveentries pchar's at the beginning (default param=0 after 1.0.x ?)
+// Note: for internal use by skilled programmers only
+// if "s" goes out of scope in the parent procedure, the pointer is dangling.
+
+var p   : ppchar;
+    Res,
+    i   : LongInt;
+begin
+  if High(s)<Low(s) Then Exit(NIL);
+  Getmem(p,sizeof(pchar)*(high(s)-low(s)+ReserveEntries+2));  // one more for NIL, one more
+					      // for cmd
+  if p=nil then
+    begin
+      {$ifdef xunix}
+      fpseterrno(ESysEnomem);
+      {$endif}
+      exit(NIL);
+    end;
+  for i:=low(s) to high(s) do
+     p[i+Reserveentries]:=pchar(s[i]);
+  p[high(s)+1+Reserveentries]:=nil; 
+  ArrayStringToPPchar:=p;
+end;
+
+Function StringToPPChar(Var S:AnsiString;ReserveEntries:integer):ppchar;
+{
+  Create a PPChar to structure of pchars which are the arguments specified
+  in the string S. Especially usefull for creating an ArgV for Exec-calls
+}
+
+begin
+  StringToPPChar:=StringToPPChar(PChar(S),ReserveEntries);
+end;
+
+Function StringToPPChar(S: PChar;ReserveEntries:integer):ppchar;
+
+var
+  i,nr  : longint;
+  Buf : ^char;
+  p   : ppchar;
+  InQuote : Boolean;
+
+begin
+  buf:=s;
+  nr:=1;
+  InQuote:=false;
+  while (buf^<>#0) do			// count nr of args
+   begin
+     while (buf^ in [' ',#9,#10]) do	// Kill separators.
+      inc(buf);
+     inc(nr);
+     if buf^='"' Then			// quotes argument?
+      begin 
+	inc(buf);
+	while not (buf^ in [#0,'"']) do	// then end of argument is end of string or next quote 
+	 inc(buf);
+        if buf^='"' then		// skip closing quote.
+	  inc(buf);
+      end
+     else
+       begin				// else std
+	 while not (buf^ in [' ',#0,#9,#10]) do
+	   inc(buf);
+       end;	
+   end;
+  getmem(p,(ReserveEntries+nr)*sizeof(pchar));
+  StringToPPChar:=p;
+  if p=nil then
+   begin
+     {$ifdef xunix}
+     fpseterrno(ESysEnomem);
+     {$endif}
+     exit;
+   end;
+  for i:=1 to ReserveEntries do inc(p);	// skip empty slots
+  buf:=s;
+  while (buf^<>#0) do
+   begin
+     while (buf^ in [' ',#9,#10]) do	// Kill separators.
+      begin
+       buf^:=#0;
+       inc(buf);
+      end;
+     if buf^='"' Then			// quotes argument?
+      begin 
+	inc(buf);
+        p^:=buf;
+	inc(p);
+	p^:=nil;
+	while not (buf^ in [#0,'"']) do	// then end of argument is end of string or next quote 
+	 inc(buf);
+        if buf^='"' then		// skip closing quote.
+	  begin
+	    buf^:=#0;
+  	    inc(buf);
+          end;
+      end
+     else
+       begin
+	p^:=buf;
+	inc(p);
+	p^:=nil;
+	 while not (buf^ in [' ',#0,#9,#10]) do
+	   inc(buf);
+       end;	
+   end;
+end;
+
+
+
 
 {*****************************************************************************
                           Abstract/Assert support.
@@ -891,7 +1002,10 @@ end;
 
 {
   $Log$
-  Revision 1.66  2004-10-24 20:01:42  peter
+  Revision 1.67  2004-10-30 20:49:10  marco
+   * arraytostring added
+
+  Revision 1.66  2004/10/24 20:01:42  peter
     * saveregisters calling convention is obsolete
 
   Revision 1.65  2004/10/09 21:00:46  jonas

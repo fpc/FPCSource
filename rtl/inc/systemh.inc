@@ -713,6 +713,11 @@ Procedure SysResetFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
                          Abstract/Assert/Error Handling
 *****************************************************************************}
 
+function ArrayStringToPPchar(const S:Array of AnsiString;reserveentries:Longint):ppchar; // const ?
+Function StringToPPChar(Var S:AnsiString;ReserveEntries:integer):ppchar;
+Function StringToPPChar(S: PChar;ReserveEntries:integer):ppchar;
+
+
 procedure AbstractError;
 Function  SysBackTraceStr(Addr:Pointer): ShortString;
 Procedure SysAssert(Const Msg,FName:ShortString;LineNo:Longint;ErrorAddr:Pointer);
@@ -764,7 +769,10 @@ const
 
 {
   $Log$
-  Revision 1.104  2004-10-14 17:39:33  florian
+  Revision 1.105  2004-10-30 20:49:10  marco
+   * arraytostring added
+
+  Revision 1.104  2004/10/14 17:39:33  florian
     + added system.align
     + threadvars are now aligned
 
