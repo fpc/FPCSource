@@ -34,7 +34,8 @@ type
 {10+04 : Offset of image data : size if the file hieder + the info header}
       bfOffset:longint;
    end;
-
+   PBitMapFileHeader = ^TBitMapFileHeader;
+   
    TBitMapInfoHeader = packed record
 {14+04 : Size of the bitmap info header : sould be 40=$28}
       Size:longint;
@@ -59,15 +60,20 @@ type
 {50+04 : Number of imprtant colors used : usefull for displaying on VGA256}
       ClrImportant:longint;
    end;
-  
-    TColorRGB=packed record
-      B,G,R:Byte;
-    end;
-    TColorRGBA=packed record
-      case Boolean of
-        False:(B,G,R,A:Byte);
-        True:(RGB:TColorRGB);
-      end;
+   PBitMapInfoHeader = ^TBitMapInfoHeader;
+   
+   TColorRGB=packed record
+     B,G,R:Byte;
+   end;
+   PColorRGB = ^TColorRGB;
+   
+   TColorRGBA=packed record
+   case Boolean of
+      False:(B,G,R,A:Byte);
+      True:(RGB:TColorRGB);
+   end;
+   PColorRGBA = ^TColorRGBA; 
+    
 {54+?? : Color map : Lenght of color map is 4 bytes + the rest until the beginning of image data fixed in BFH.bfOffset}
     TColorMap=TColorRGBA;
 
@@ -76,7 +82,10 @@ implementation
 end.
 {
 $Log$
-Revision 1.3  2004-02-15 20:59:06  michael
+Revision 1.4  2004-02-20 22:42:44  michael
++ More modular reading of BMP for easier overriding in descendents
+
+Revision 1.3  2004/02/15 20:59:06  michael
 + Patch from Colin Western
 
 Revision 1.2  2003/09/09 11:22:30  mazen
