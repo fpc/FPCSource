@@ -1837,7 +1837,10 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.10  1999-07-06 22:44:17  florian
+  Revision 1.1  1999-09-16 13:38:24  peter
+    * windows unit include moved to wininc/
+
+  Revision 1.10  1999/07/06 22:44:17  florian
     * some fixes to compile ddraw units from the jedi project
 
   Revision 1.9  1999/05/10 19:34:14  florian

@@ -1822,7 +1822,10 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.11  1999-07-06 22:44:10  florian
+  Revision 1.1  1999-09-16 13:38:22  peter
+    * windows unit include moved to wininc/
+
+  Revision 1.11  1999/07/06 22:44:10  florian
     * some fixes to compile ddraw units from the jedi project
 
   Revision 1.10  1999/07/05 14:47:43  florian

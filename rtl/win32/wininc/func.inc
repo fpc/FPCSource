@@ -3536,7 +3536,8 @@ in define line 6852 *)
     function DescribePixelFormat(_para1:HDC; _para2:longint; _para3:UINT; _para4:LPPIXELFORMATDESCRIPTOR):longint;
 
 (* Const before type ignored *)
-    function SetPixelFormat(_para1:HDC; _para2:longint; 
+    function SetPixelFormat(_para1:HDC; _para2:longint;
+
        _para3:PPIXELFORMATDESCRIPTOR):WINBOOL;
 
     function SwapBuffers(_para1:HDC):WINBOOL;
@@ -6622,7 +6623,8 @@ in define line 6826 *)
 
 {    function GetPixelFormat(_para1:HDC):longint; external 'gdi32' name 'GetPixelFormat'; }
 
-    function SetPixelFormat(_para1:HDC; _para2:longint; 
+    function SetPixelFormat(_para1:HDC; _para2:longint;
+
       _para3:PPIXELFORMATDESCRIPTOR):WINBOOL; external 'gdi32' name 'SetPixelFormat';
 
     function SwapBuffers(_para1:HDC):WINBOOL; external 'gdi32' name 'SwapBuffers';
@@ -6698,7 +6700,10 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.12  1999-07-06 22:44:12  florian
+  Revision 1.1  1999-09-16 13:38:22  peter
+    * windows unit include moved to wininc/
+
+  Revision 1.12  1999/07/06 22:44:12  florian
     * some fixes to compile ddraw units from the jedi project
 
   Revision 1.11  1999/05/10 19:34:10  florian

@@ -32,6 +32,7 @@ override CPU=i386
 RTL=..
 INC=$(RTL)/inc
 PROCINC=$(RTL)/$(CPU)
+WININC=wininc
 
 # Unit dir
 UNITDIR=.
@@ -72,11 +73,9 @@ UNITOBJECTS=$(SYSTEMUNIT) objpas strings \
 	    cpu mmx getopts heaptrc
 
 # Files used by windows.pp
-WINDOWS_FILES=base errors defines \
-	struct ascfun ascdef \
-	unifun unidef func
+include $(WININC)/makefile.inc
 
-WINDOWS_SOURCE_FILES=$(addsuffix .pp,$(WINDOWS_FILES))
+WINDOWS_SOURCE_FILES=$(addprefix $(WININC)/,$(addsuffix .inc,$(WINDOWS_FILES)))
 
 
 #####################################################################
@@ -205,9 +204,12 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
 # System Dependent Units
 #
 
-windows$(PPUEXT) : windows.pp redef.inc $(WINDOWS_SOURCE_FILES) $(SYSTEMPPU)
+windows$(PPUEXT) : windows.pp $(WINDOWS_SOURCE_FILES) $(SYSTEMPPU)
+	$(COMPILER) -I$(WININC) windows.pp $(REDIR)
 
 ole2$(PPUEXT) : ole2.pp windows$(PPUEXT) $(SYSTEMPPU)
+
+opengl32$(PPUEXT) : opengl32.pp windows$(PPUEXT) $(SYSTEMPPU)
 
 winsock$(PPUEXT) : winsock.pp windows$(PPUEXT) $(SYSTEMPPU)
 
@@ -256,189 +258,9 @@ heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMPPU)
 #
 
 
-#####################################################################
-# windows.pp
-#####################################################################
-
-# Getting DLL names
-# not present in headers !!
-
-# first get the list of all exported function names
-# uses pedump
-# for system dll 's
-# gdi32.exp will contain all exported functions names of gdi32.dll
-
-WINDOWS_DIR:=c\:/windows
-
-%.exp : $(WINDOWS_DIR)/system/%.dll
-	pedump $< > $*.tmp
-	sed -n -e "s/Addr:\(.*\)Ord:\(.*\)Name: \(.*\)/@\3@/p" $*.tmp > $*.exp
-#	-rm $*.tmp
-
-%.exd : $(WINDOWS_DIR)/system/%.drv
-	pedump $< > $*.tmp
-	sed -n -e "s/Addr:\(.*\)Ord:\(.*\)Name: \(.*\)/@\3@/p" $*.tmp > $*.exd
-#	-rm $*.tmp
-
-# list of usefull dll's for windows.pp
-dllexps : gdi32.exp kernel32.exp advapi32.exp user32.exp mapi32.exp  \
-	comdlg32.exp shell32.exp mpr.exp comctl32.exp version.exp \
-	opengl32.exp spoolss.exp winspool.exd
-
-# get a complete listing of all system dll's
-allexps : $(notdir $(patsubst %.dll,%.exp,$(wildcard $(WINDOWS_DIR)/system/*.dll)) \
-	$(patsubst %.drv,%.exd,$(wildcard $(WINDOWS_DIR)/system/*.drv)))
-
-# extract the dllnames for which the real dll file is not
-# known yet
-# func.lst will contain all functions for which we still do
-# not know the origin DLL
-%.lst : %.pp
-	@$(ECHO) listing DLL function names of $*.pp
-	sed -n -e "s/\(.*\)External_library name '\([^']*\)'\(.*\)/\2/p" $*.pp > $*.lst
-
-# get the DLL name from the listing in .exp files
-# of the current target
-define grepname
-$(filter %.dll %.drv ,$(subst .exd:,.drv ,$(subst .exp:,.dll ,$(shell grep @$*@ *.ex*))))
-endef
-
-# creating of a sed script that
-# will substitute all External_library
-# by the real name of the DLL if found in exports files
-
-# two stages
-# because you cannot set a variable inside the commands
-# Level 1 : set filename variable
-# Level 2 :
-%.sub : %.lst
-	@$(ECHO) getting DLL file name for $*
-	-rm $*.sub
-	@$(ECHO) # Substitutions for $* >$*.sub
-# call make for all names in lst file
-# define LongList if there is an error
-# because the list is too long
-ifdef LongList
-	$(foreach name,$(shell cat $*.lst),$(MAKE) subfile=$*.sub $(name).find ; )
-else
-	$(MAKE) subfile=$*.sub $(addsuffix .find,$(shell cat $*.lst))
-endif
-# resubstitute unfound ones !!
-	@$(ECHO) s/external \'\' name \'\([^\']*\)\'/external\
-	External_library name \'\1\'/ >>$*.sub
-	@$(ECHO) # End of substitutions for $* >>$*.sub
-
-# Change file according to function found in export
-# list remaining unfound functions in $*.mis
-%.npp : %.sub
-	sed -f $*.sub $*.pp > $*.npp
-	sed -n -e "s/\(.*\)External_library name \'\([^\']*\)\'\(.*\)/\2/p" $*.npp > $*.mis
-
-%.find :
-	@$(ECHO) $* is in $(grepname)
-ifdef subfile
-	@$(ECHO) s/external External_library name \'$*\'/external\
-	\'$(filter %.dll %.drv ,$(subst .exd:,.drv ,$(subst .exp:,.dll ,$(shell grep @$*@ *.ex*))))\'\
-	name \'$*\'/ >>$(subfile)
-else
-	@$(ECHO) external \
-	\'$(filter %.dll %.drv ,$(subst .exd:,.drv ,$(subst .exp:,.dll ,$(shell grep @$*@ *.ex*))))\'\
-	name $*
-endif
-
-GNUWIN32LIBDIR=./
-
-%.find2 :
-	@$(ECHO) s/In archive \(.*\)/\1/p >find.sed
-	@$(ECHO) s/\(.*\)___imp_$*@\(.*\)/found: $*/p >>find.sed
-ifdef subfile
-	sed -n -f find.sed alllibs.sym >> $(subfile)
-else
-	sed -n -f find.sed alllibs.sym > $*.res
-endif
-
-missing : $(GNUWIN32LIBDIR)alllibs.sym $(addsuffix .lst,$(WINDOWS_FILES))
-	-rm missing
-	$(MAKE) subfile=missing $(addsuffix .find2,$(shell cat *.lst))
-
-substmissing : missing
-	dtou missing
-	@$(ECHO) N > test.sed
-	@$(ECHO) s/lib\(.*\)\.a:\nfound: \(.*\)/\1.dll : \2/p >> test.sed
-	@$(ECHO) D >> test.sed
-	sed -n -f test.sed missing > missing.tmp
-	sed -e "s#\(.*\) : \(.*\)#s/external External_library name \'\2\'/external \'\1\' name \'\2\'/#" missing.tmp > missing.sub
-
-dllnames:
-	$(MAKE) $(addsuffix .lst,$(WINDOWS_FILES))
-
-test:
-	@$(ECHO) namelist of $(filename) is "$(namelist)"
-
-# automatic conversion from ascfun.pp to ascdef.pp
-# and unifun.pp to unidef.pp
-# only if sed is present
-ifdef SED
-ascdef.pp : ascfun.pp ascdef.sed
-	sed -f ascdef.sed ascfun.pp > ascdef.pp
-
-unidef.pp : unifun.pp unidef.sed
-	sed -f unidef.sed unifun.pp > unidef.pp
-endif
-
 #
 # $Log$
-# Revision 1.35  1999-08-13 15:36:38  peter
-#   * dependencies for crt fixed
-#
-# Revision 1.34  1999/06/21 12:41:33  florian
-#   * minor typos in winsock.pp fixed
-#   + makefile for sockets.pp updated
-#
-# Revision 1.33  1999/06/18 13:59:49  florian
-#   * changes for the winsock unit
-#
-# Revision 1.32  1999/06/10 15:02:15  peter
-#   * last fixes for 0.99.12 release
-#
-# Revision 1.31  1999/05/13 22:38:03  peter
-#   * -Sg for heaptrc
-#
-# Revision 1.30  1999/05/10 19:34:06  florian
-#   * moved all opengl32.dll stuff to a newly created opengl32 unit, so
-#     win32 programs should also run on Windows without opengl32.dll
-#
-# Revision 1.29  1999/05/05 22:24:09  peter
-#   * 0.99.10 check for browser
-#
-# Revision 1.28  1999/05/04 11:59:52  peter
-#   * browser off by default
-#
-# Revision 1.27  1999/04/28 11:42:50  peter
-#   + FileNameCaseSensetive boolean
-#
-# Revision 1.26  1999/04/22 10:56:33  peter
-#   * fixed sysutils dependencys
-#   * objpas files are agian in the main Makefile, makefile.op is obsolete
-#
-# Revision 1.25  1999/04/20 11:34:11  peter
-#   + crt unit that compiles
-#
-# Revision 1.24  1999/03/22 22:12:50  florian
-#   + addition and changes to compile the direct draw unit
-#     of Erik Ungerer (with -dv2com and indirect disabled)
-#
-# Revision 1.23  1999/03/16 00:47:10  peter
-#   * makefile.fpc targets start with fpc_
-#   * small updates for install scripts
-#
-# Revision 1.22  1999/03/12 21:02:19  michael
-# +  clean and libsclean added
-#
-# Revision 1.21  1999/03/10 23:45:21  peter
-#   * AS is now always asw
-#
-# Revision 1.20  1999/03/09 01:35:56  peter
-#   * makefile.fpc updates and defaultfpcdir var
+# Revision 1.36  1999-09-16 13:38:07  peter
+#   * windows unit include moved to wininc/
 #
 #

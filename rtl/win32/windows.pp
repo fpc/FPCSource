@@ -22,44 +22,43 @@ unit windows;
 
 {$define read_interface}
 {$undef read_implementation}
-  
+
 {$message starting interface of windows unit }
 
-{$i base.pp}
-{$i errors.pp}
-{$i defines.pp}
-{$i messages.pp}
-{$i struct.pp}
+{$i base.inc}
+{$i errors.inc}
+{$i defines.inc}
+{$i messages.inc}
+{$i struct.inc}
 {$i redef.inc}
-{$i ascfun.pp}
-{$i unifun.pp}
+{$i ascfun.inc}
+{$i unifun.inc}
 {$ifdef UNICODE}
-{$i unidef.pp}
+{$i unidef.inc}
 {$else not UNICODE}
-{$i ascdef.pp}
+{$i ascdef.inc}
 {$endif UNICODE}
-{$i func.pp}
+{$i func.inc}
 
   implementation
 
 {$undef read_interface}
 {$define read_implementation}
-  
-const External_library='kernel32';
 
-{$i base.pp}
-{$i errors.pp}
-{$i defines.pp}
-{$i messages.pp}
-{$i struct.pp}
-{$i ascfun.pp}
-{$i unifun.pp}
+{$i base.inc}
+{$i errors.inc}
+{$i defines.inc}
+{$i messages.inc}
+{$i struct.inc}
+{$i ascfun.inc}
+{$i unifun.inc}
 {$ifdef UNICODE}
-{$i unidef.pp}
+{$i unidef.inc}
 {$else not UNICODE}
-{$i ascdef.pp}
+{$i ascdef.inc}
 {$endif UNICODE}
-{$i func.pp}
+{$i func.inc}
+
   procedure InitializeCriticalSection(var CriticalSection : TRTLCriticalSection); external 'kernel32' name 'InitializeCriticalSection';
   procedure EnterCriticalSection(var CriticalSection : TRTLCriticalSection); external 'kernel32' name 'EnterCriticalSection';
   procedure LeaveCriticalSection(var CriticalSection : TRTLCriticalSection); external 'kernel32' name 'LeaveCriticalSection';
@@ -68,7 +67,10 @@ const External_library='kernel32';
 end.
 {
   $Log$
-  Revision 1.3  1999-05-10 19:34:15  florian
+  Revision 1.4  1999-09-16 13:38:21  peter
+    * windows unit include moved to wininc/
+
+  Revision 1.3  1999/05/10 19:34:15  florian
     * moved all opengl32.dll stuff to a newly created opengl32 unit, so
       win32 programs should also run on Windows without opengl32.dll
 
@@ -76,7 +78,7 @@ end.
     * some updates to compile API units for win32
 
   Revision 1.1  1998/08/31 11:54:02  pierre
-    * compilable windows.pp file
+    * compilable windows.inc file
       still to do :
        - findout problems
        - findout the correct DLL for each call !!

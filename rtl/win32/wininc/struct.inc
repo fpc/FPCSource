@@ -6927,7 +6927,10 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.10  1999-07-14 08:46:27  florian
+  Revision 1.1  1999-09-16 13:38:24  peter
+    * windows unit include moved to wininc/
+
+  Revision 1.10  1999/07/14 08:46:27  florian
     * some fixes (KEY_EVENT_STRUCT was wrong)
 
   Revision 1.9  1999/05/19 16:22:03  peter

@@ -102,7 +102,10 @@ type
 
 {
   $Log$
-  Revision 1.4  1999-06-18 13:59:50  florian
+  Revision 1.1  1999-09-16 13:38:24  peter
+    * windows unit include moved to wininc/
+
+  Revision 1.4  1999/06/18 13:59:50  florian
     * changes for the winsock unit
 
   Revision 1.3  1999/04/20 11:36:16  peter

@@ -5718,7 +5718,10 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.11  1999-07-09 21:12:23  michael
+  Revision 1.1  1999-09-16 13:38:22  peter
+    * windows unit include moved to wininc/
+
+  Revision 1.11  1999/07/09 21:12:23  michael
   Fix in HKEY_DYN_DATA
 
   Revision 1.10  1999/06/01 19:23:11  peter
