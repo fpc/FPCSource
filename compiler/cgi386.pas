@@ -224,8 +224,8 @@ implementation
                          { first handle local and temporary variables }
                          if (symtabletype=parasymtable) or
 {$ifdef TestInline}
-                            (symtabletype=inlinelocalsymtable) then
-                            (symtabletype=inlineparasymtable) then
+                            (symtabletype=inlinelocalsymtable) or
+                            (symtabletype=inlineparasymtable) or
 {$endif TestInline}
                             (symtabletype=localsymtable) then
                            begin
@@ -3195,8 +3195,8 @@ implementation
                   ((p^.symtableproc^.symtabletype=objectsymtable) and
                   (pobjectdef(p^.symtableproc^.defowner)^.owner^.symtabletype=unitsymtable)))
               else { inlined proc }
-                { inlined code is in p^.right }
-                secondpass(p^.right);
+                { inlined code is in inlinecode }
+                secondpass(inlinecode);
               if ((p^.procdefinition^.options and poclearstack)<>0) then
                 begin
                    { consider the alignment with the rest (PM) }
@@ -5266,6 +5266,8 @@ do_jmp:
 
          { true, if we can omit the range check of the jump table }
          jumptable_no_range : boolean;
+         { where to put the jump table }
+         jumpsegment : paasmoutput;
 
       procedure gentreejmp(p : pcaserecord);
 
@@ -5420,10 +5422,10 @@ do_jmp:
                genitem(t^.less);
              { fill possible hole }
              for i:=last+1 to t^._low-1 do
-               datasegment^.concat(new(pai_const,init_symbol(strpnew(lab2str
+               jumpsegment^.concat(new(pai_const,init_symbol(strpnew(lab2str
                  (elselabel)))));
              for i:=t^._low to t^._high do
-               datasegment^.concat(new(pai_const,init_symbol(strpnew(lab2str
+               jumpsegment^.concat(new(pai_const,init_symbol(strpnew(lab2str
                     (t^.statement)))));
               last:=t^._high;
              if assigned(t^.greater) then
@@ -5462,9 +5464,9 @@ do_jmp:
            exprasmlist^.concat(new(pai386,op_ref(A_JMP,S_NO,hr)));
            { !!!!! generate tables
              if not(cs_littlesize in aktswitches^ ) then
-             datasegment^.concat(new(pai386,op_const(A_ALIGN,S_NO,4)));
+             jumpsegment^.concat(new(pai386,op_const(A_ALIGN,S_NO,4)));
            }
-           datasegment^.concat(new(pai_label,init(table)));
+           jumpsegment^.concat(new(pai_label,init(table)));
              last:=min_;
            genitem(hp);
              { !!!!!!!
@@ -5480,6 +5482,10 @@ do_jmp:
       begin
          getlabel(endlabel);
          getlabel(elselabel);
+         if smartlink then
+           jumpsegment:=procinfo.aktlocaldata
+         else
+           jumpsegment:=datasegment;
          with_sign:=is_signed(p^.left^.resulttype);
          if with_sign then
            begin
@@ -6017,6 +6023,10 @@ do_jmp:
                 end;
               do_secondpass(p);
 
+{$ifdef StoreFPULevel}
+              if assigned(aktprocsym) then
+                aktprocsym^.fpu_used:=p^.registersfpu;
+{$endif StoreFPULevel}
               { all registers can be used again }
               usableregs:=[R_EAX,R_EBX,R_ECX,R_EDX];
 {$ifdef SUPPORT_MMX}
@@ -6033,7 +6043,15 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.20  1998-05-01 16:38:44  florian
+  Revision 1.21  1998-05-06 08:38:36  pierre
+    * better position info with UseTokenInfo
+      UseTokenInfo greatly simplified
+    + added check for changed tree after first time firstpass
+      (if we could remove all the cases were it happen
+      we could skip all firstpass if firstpasscount > 1)
+      Only with ExtDebug
+
+  Revision 1.20  1998/05/01 16:38:44  florian
     * handling of private and protected fixed
     + change_keywords_to_tp implemented to remove
       keywords which aren't supported by tp

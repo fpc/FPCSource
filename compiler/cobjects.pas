@@ -143,7 +143,7 @@ unit cobjects;
           { gets a string }
           function get : string;
 {$ifdef UseTokenInfo}
-    function get_with_tokeninfo(var file_info : tfileposinfo) : string;
+          function get_with_tokeninfo(var file_info : tfileposinfo) : string;
 {$endif UseTokenInfo}
 
           { deletes all strings }
@@ -1063,7 +1063,15 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  1998-04-30 15:59:40  pierre
+  Revision 1.6  1998-05-06 08:38:37  pierre
+    * better position info with UseTokenInfo
+      UseTokenInfo greatly simplified
+    + added check for changed tree after first time firstpass
+      (if we could remove all the cases were it happen
+      we could skip all firstpass if firstpasscount > 1)
+      Only with ExtDebug
+
+  Revision 1.5  1998/04/30 15:59:40  pierre
     * GDB works again better :
       correct type info in one pass
     + UseTokenInfo for better source position

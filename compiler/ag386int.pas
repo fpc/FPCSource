@@ -594,9 +594,13 @@ ait_stab_function_name : ;
          AsmLn;
          AsmWriteLn('SECTION .data');
 {$ifdef EXTDEBUG}
-         AsmWriteLn(#9#9'DB'#9'"compiled by FPC '+version_string+'\0"');
-         AsmWriteLn(#9#9'DB'#9'"target: '+target_info.target_name+'\0"');
+         if not comp_unit then
 {$endif EXTDEBUG}
+           begin
+              DataSegment^.insert(new(pai_align,init(4)));
+              DataSegment^.insert(new(pai_string,init('target: '+target_info.short_name)));
+              DataSegment^.insert(new(pai_string,init('compiled by FPC '+version_string)));
+           end;
          WriteTree(datasegment);
          WriteTree(consts);
          WriteTree(rttilist);
@@ -624,9 +628,13 @@ ait_stab_function_name : ;
          AsmLn;
          AsmWriteLn('_DATA'#9#9'SEGMENT'#9'PARA PUBLIC USE32 ''DATA''');
 {$ifdef EXTDEBUG}
-         AsmWriteLn(#9#9'DB'#9'"compiled by FPC '+version_string+'\0"');
-         AsmWriteLn(#9#9'DB'#9'"target: '+target_info.target_name+'\0"');
+         if not comp_unit then
 {$endif EXTDEBUG}
+           begin
+              DataSegment^.insert(new(pai_align,init(4)));
+              DataSegment^.insert(new(pai_string,init('target: '+target_info.short_name)));
+              DataSegment^.insert(new(pai_string,init('compiled by FPC '+version_string)));
+           end;
          WriteTree(datasegment);
          WriteTree(consts);
          WriteTree(rttilist);
@@ -649,7 +657,15 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.6  1998-05-04 17:54:24  peter
+  Revision 1.7  1998-05-06 08:38:32  pierre
+    * better position info with UseTokenInfo
+      UseTokenInfo greatly simplified
+    + added check for changed tree after first time firstpass
+      (if we could remove all the cases were it happen
+      we could skip all firstpass if firstpasscount > 1)
+      Only with ExtDebug
+
+  Revision 1.6  1998/05/04 17:54:24  peter
     + smartlinking works (only case jumptable left todo)
     * redesign of systems.pas to support assemblers and linkers
     + Unitname is now also in the PPU-file, increased version to 14

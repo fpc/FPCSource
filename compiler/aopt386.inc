@@ -829,8 +829,12 @@ Begin
         Inc(NrOfInstrSinceLastMod[TmpReg]);
       Case p^.typ Of
         ait_label: DestroyAllRegs(p);
-        ait_labeled_instruction, ait_stabs, ait_stabn,
-        ait_stab_function_name:; {nothing changes}
+        ait_labeled_instruction
+{$ifdef GDB}
+        , ait_stabs, ait_stabn,
+        ait_stab_function_name
+{$endif GDB}
+        :; {nothing changes}
 {$ifdef regalloc}
         ait_regalloc, ait_regdealloc:;
 {$endif regalloc}
@@ -1035,7 +1039,13 @@ Begin
                                      hp2 := p;
                                      For Cnt2 := 1 to Cnt Do
                                        Begin
-                                         If Not(Pai(p)^.typ In [ait_stabs, ait_stabn, ait_stab_function_name]) Then
+                                         { Note to Jonas :
+                                           ait_stab_function_name is only at the begin of one function
+                                           ait_stabn is only inserted in ag so you should not see any
+                                           ait_stabs are only in head and tail of procs
+                                           so you should no have problems with those neither !! (PM)
+                                           Tell me if I am wrong
+                                         If Not(Pai(p)^.typ In [ait_stabs, ait_stabn, ait_stab_function_name]) Then }
                                            Begin
                                              If (hp1 = nil) And
                                                 Not(RegInInstruction(Tregister(Pai386(hp2)^.op2), p))
@@ -1191,7 +1201,15 @@ End;
 
 {
  $Log$
- Revision 1.5  1998-04-29 10:33:42  pierre
+ Revision 1.6  1998-05-06 08:38:33  pierre
+   * better position info with UseTokenInfo
+     UseTokenInfo greatly simplified
+   + added check for changed tree after first time firstpass
+     (if we could remove all the cases were it happen
+     we could skip all firstpass if firstpasscount > 1)
+     Only with ExtDebug
+
+ Revision 1.5  1998/04/29 10:33:42  pierre
    + added some code for ansistring (not complete nor working yet)
    * corrected operator overloading
    * corrected nasm output

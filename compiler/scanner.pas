@@ -161,21 +161,18 @@ unit scanner;
 
 
 {$ifdef UseTokenInfo}
-    type
+{    type
       ttokeninfo = record
                  token : ttoken;
                  fi : tfileposinfo;
                  end;
-      ptokeninfo = ^ttokeninfo;
+      ptokeninfo = ^ttokeninfo; }
+      var tokenpos : tfileposinfo;
 {$endif UseTokenInfo}
 
       {public}
         procedure syntaxerror(const s : string);
-{$ifndef UseTokenInfo}
         function yylex : ttoken;
-{$else UseTokenInfo}
-        function yylex : ptokeninfo;
-{$endif UseTokenInfo}
         function asmgetchar : char;
         function get_current_col : longint;
         procedure get_cur_file_pos(var fileinfo : tfileposinfo);
@@ -667,16 +664,11 @@ unit scanner;
       end;
 
 
-{$ifndef UseTokenInfo}
         function yylex : ttoken;
-{$else UseTokenInfo}
-        function yylex : ptokeninfo;
-{$endif UseTokenInfo}
      var
         y    : ttoken;
 {$ifdef UseTokenInfo}
-        newyylex : ptokeninfo;
-        line,column : longint;
+        fileindex,line,column : longint;
 {$endif UseTokenInfo}
         code : word;
         l    : longint;
@@ -691,6 +683,7 @@ unit scanner;
 {$ifdef UseTokenInfo}
         line:=current_module^.current_inputfile^.line_no;
         column:=get_current_col;
+        fileindex:=current_module^.current_index;
 {$endif UseTokenInfo}
         { was the last character a point ? }
         { this code is needed because the scanner if there is a 1. found if  }
@@ -708,10 +701,10 @@ unit scanner;
              yylex:=POINT;
              exit;
 {$else UseTokenInfo}
-                  y:=POINTPOINT;
+                  yylex:=POINTPOINT;
                   goto exit_label;
                end;
-             y:=POINT;
+             yylex:=POINT;
              goto exit_label;
 {$endif UseTokenInfo}
           end;
@@ -729,6 +722,7 @@ unit scanner;
 {$ifdef UseTokenInfo}
         line:=current_module^.current_inputfile^.line_no;
         column:=get_current_col;
+        fileindex:=current_module^.current_index;
         { will become line:=lasttokenpos ??;}
 {$endif UseTokenInfo}
         case c of
@@ -737,9 +731,7 @@ unit scanner;
                         orgpattern:=readstring;
                         pattern:=upper(orgpattern);
                         if (length(pattern) in [2..id_len]) and is_keyword(y) then
-{$ifndef UseTokenInfo}
                          yylex:=y
-{$endif UseTokenInfo}
                         else
                          begin
                          { this takes some time ... }
@@ -786,33 +778,29 @@ unit scanner;
                                  exit;
                                end;
                             end;
-{$ifndef UseTokenInfo}
                            yylex:=ID;
                          end;
+{$ifndef UseTokenInfo}
                         exit;
 {$else UseTokenInfo}
-                           y:=ID;
-                         end;
                         goto exit_label;
 {$endif UseTokenInfo}
                       end;
                 '$' : begin
                          pattern:=readnumber;
-{$ifndef UseTokenInfo}
                          yylex:=INTCONST;
+{$ifndef UseTokenInfo}
                          exit;
 {$else UseTokenInfo}
-                         y:=INTCONST;
                          goto exit_label;
 {$endif UseTokenInfo}
                       end;
                 '%' : begin
                          pattern:=readnumber;
-{$ifndef UseTokenInfo}
                          yylex:=INTCONST;
+{$ifndef UseTokenInfo}
                          exit;
 {$else UseTokenInfo}
-                         y:=INTCONST;
                          goto exit_label;
 {$endif UseTokenInfo}
                       end;
@@ -824,11 +812,10 @@ unit scanner;
                                  if not(c in ['0'..'9']) then
                                   begin
                                     s_point:=true;
-{$ifndef UseTokenInfo}
                                     yylex:=INTCONST;
+{$ifndef UseTokenInfo}
                                     exit;
 {$else UseTokenInfo}
-                                    y:=INTCONST;
                                     goto exit_label;
 {$endif UseTokenInfo}
                                   end;
@@ -838,11 +825,10 @@ unit scanner;
                                     pattern:=pattern+c;
                                     readchar;
                                   end;
-{$ifndef UseTokenInfo}
                                  yylex:=REALNUMBER;
+{$ifndef UseTokenInfo}
                                  exit;
 {$else UseTokenInfo}
-                                 y:=REALNUMBER;
                                  goto exit_label;
 {$endif UseTokenInfo}
                                end;
@@ -861,50 +847,45 @@ unit scanner;
                                     pattern:=pattern+c;
                                     readchar;
                                   end;
-{$ifndef UseTokenInfo}
                                  yylex:=REALNUMBER;
+{$ifndef UseTokenInfo}
                                  exit;
 {$else UseTokenInfo}
-                                 y:=REALNUMBER;
                                  goto exit_label;
 {$endif UseTokenInfo}
                                end;
                         end;
-{$ifndef UseTokenInfo}
                         yylex:=INTCONST;
+{$ifndef UseTokenInfo}
                         exit;
 {$else UseTokenInfo}
-                        y:=INTCONST;
                         goto exit_label;
 {$endif UseTokenInfo}
                       end;
                 ';' : begin
                         readchar;
-{$ifndef UseTokenInfo}
                         yylex:=SEMICOLON;
+{$ifndef UseTokenInfo}
                         exit;
 {$else UseTokenInfo}
-                        y:=SEMICOLON;
                         goto exit_label;
 {$endif UseTokenInfo}
                       end;
                 '[' : begin
                         readchar;
-{$ifndef UseTokenInfo}
                         yylex:=LECKKLAMMER;
+{$ifndef UseTokenInfo}
                         exit;
 {$else UseTokenInfo}
-                        y:=LECKKLAMMER;
                         goto exit_label;
 {$endif UseTokenInfo}
                       end;
                 ']' : begin
                         readchar;
-{$ifndef UseTokenInfo}
                         yylex:=RECKKLAMMER;
+{$ifndef UseTokenInfo}
                         exit;
 {$else UseTokenInfo}
-                        y:=RECKKLAMMER;
                         goto exit_label;
 {$endif UseTokenInfo}
                       end;
@@ -920,21 +901,19 @@ unit scanner;
 {$endif TP}
                            exit;
                          end;
-{$ifndef UseTokenInfo}
                         yylex:=LKLAMMER;
+{$ifndef UseTokenInfo}
                         exit;
 {$else UseTokenInfo}
-                        y:=LKLAMMER;
                         goto exit_label;
 {$endif UseTokenInfo}
                       end;
                 ')' : begin
                         readchar;
-{$ifndef UseTokenInfo}
                         yylex:=RKLAMMER;
+{$ifndef UseTokenInfo}
                         exit;
 {$else UseTokenInfo}
-                        y:=RKLAMMER;
                         goto exit_label;
 {$endif UseTokenInfo}
                       end;
@@ -943,19 +922,17 @@ unit scanner;
                         if (c='=') and c_like_operators then
                          begin
                            readchar;
-{$ifndef UseTokenInfo}
                            yylex:=_PLUSASN;
+{$ifndef UseTokenInfo}
                            exit;
 {$else UseTokenInfo}
-                           y:=_PLUSASN;
                            goto exit_label;
 {$endif UseTokenInfo}
                          end;
-{$ifndef UseTokenInfo}
                         yylex:=PLUS;
+{$ifndef UseTokenInfo}
                         exit;
 {$else UseTokenInfo}
-                        y:=PLUS;
                         goto exit_label;
 {$endif UseTokenInfo}
                       end;
@@ -964,19 +941,17 @@ unit scanner;
                         if (c='=') and c_like_operators then
                          begin
                            readchar;
-{$ifndef UseTokenInfo}
                            yylex:=_MINUSASN;
+{$ifndef UseTokenInfo}
                            exit;
 {$else UseTokenInfo}
-                           y:=_MINUSASN;
                            goto exit_label;
 {$endif UseTokenInfo}
                          end;
-{$ifndef UseTokenInfo}
                         yylex:=MINUS;
+{$ifndef UseTokenInfo}
                         exit;
 {$else UseTokenInfo}
-                        y:=MINUS;
                         goto exit_label;
 {$endif UseTokenInfo}
                       end;
@@ -985,19 +960,17 @@ unit scanner;
                         if c='=' then
                          begin
                            readchar;
-{$ifndef UseTokenInfo}
                            yylex:=ASSIGNMENT;
+{$ifndef UseTokenInfo}
                            exit;
 {$else UseTokenInfo}
-                           y:=ASSIGNMENT;
                            goto exit_label;
 {$endif UseTokenInfo}
                          end;
-{$ifndef UseTokenInfo}
                         yylex:=COLON;
+{$ifndef UseTokenInfo}
                         exit;
 {$else UseTokenInfo}
-                        y:=COLON;
                         goto exit_label;
 {$endif UseTokenInfo}
                       end;
@@ -1006,26 +979,17 @@ unit scanner;
                         if (c='=') and c_like_operators then
                          begin
                            readchar;
-{$ifndef UseTokenInfo}
                            yylex:=_STARASN;
-{$else UseTokenInfo}
-                           y:=_STARASN;
-{$endif UseTokenInfo}
                          end else if c='*' then
                          begin
                            readchar;
-{$ifndef UseTokenInfo}
                            yylex:=STARSTAR;
-{$else UseTokenInfo}
-                           y:=STARSTAR;
-{$endif UseTokenInfo}
                          end
                         else
-{$ifndef UseTokenInfo}
                           yylex:=STAR;
+{$ifndef UseTokenInfo}
                         exit;
 {$else UseTokenInfo}
-                          y:=STAR;
                         goto exit_label;
 {$endif UseTokenInfo}
                       end;
@@ -1036,11 +1000,10 @@ unit scanner;
                                  if c_like_operators then
                                   begin
                                     readchar;
-{$ifndef UseTokenInfo}
                                     yylex:=_SLASHASN;
+{$ifndef UseTokenInfo}
                                     exit;
 {$else UseTokenInfo}
-                                    y:=_SLASHASN;
                                     goto exit_label;
 {$endif UseTokenInfo}
                                   end;
@@ -1055,21 +1018,19 @@ unit scanner;
                                  exit;
                                end;
                         end;
-{$ifndef UseTokenInfo}
                         yylex:=SLASH;
+{$ifndef UseTokenInfo}
                         exit;
 {$else UseTokenInfo}
-                        y:=SLASH;
                         goto exit_label;
 {$endif UseTokenInfo}
                       end;
            '='      : begin
                         readchar;
-{$ifndef UseTokenInfo}
                         yylex:=EQUAL;
+{$ifndef UseTokenInfo}
                         exit;
 {$else UseTokenInfo}
-                        y:=EQUAL;
                         goto exit_label;
 {$endif UseTokenInfo}
                       end;
@@ -1078,20 +1039,18 @@ unit scanner;
                         if c='.' then
                          begin
                            readchar;
-{$ifndef UseTokenInfo}
                            yylex:=POINTPOINT;
+{$ifndef UseTokenInfo}
                            exit;
 {$else UseTokenInfo}
-                           y:=POINTPOINT;
                            goto exit_label;
 {$endif UseTokenInfo}
                          end
                         else
-{$ifndef UseTokenInfo}
                          yylex:=POINT;
+{$ifndef UseTokenInfo}
                         exit;
 {$else UseTokenInfo}
-                         y:=POINT;
                         goto exit_label;
 {$endif UseTokenInfo}
                       end;
@@ -1100,28 +1059,22 @@ unit scanner;
                         if c='@' then
                          begin
                            readchar;
-{$ifndef UseTokenInfo}
                            yylex:=DOUBLEADDR;
-{$else UseTokenInfo}
-                           y:=DOUBLEADDR;
-{$endif UseTokenInfo}
                          end
                         else
-{$ifndef UseTokenInfo}
                          yylex:=KLAMMERAFFE;
+{$ifndef UseTokenInfo}
                         exit;
 {$else UseTokenInfo}
-                         y:=KLAMMERAFFE;
                         goto exit_label;
 {$endif UseTokenInfo}
                       end;
                 ',' : begin
                         readchar;
-{$ifndef UseTokenInfo}
                         yylex:=COMMA;
+{$ifndef UseTokenInfo}
                         exit;
 {$else UseTokenInfo}
-                        y:=COMMA;
                         goto exit_label;
 {$endif UseTokenInfo}
                       end;
@@ -1138,11 +1091,10 @@ unit scanner;
                             end
                            else
                             begin
-{$ifndef UseTokenInfo}
                               yylex:=CARET;
+{$ifndef UseTokenInfo}
                               exit;
 {$else UseTokenInfo}
-                              y:=CARET;
                               goto exit_label;
 {$endif UseTokenInfo}
                             end;
@@ -1187,17 +1139,13 @@ unit scanner;
                           end;
                         until false;
                       { strings with length 1 become const chars }
-{$ifndef UseTokenInfo}
                         if length(pattern)=1 then
                          yylex:=CCHAR
                         else
                          yylex:=CSTRING;
+{$ifndef UseTokenInfo}
                         exit;
 {$else UseTokenInfo}
-                        if length(pattern)=1 then
-                         y:=CCHAR
-                        else
-                         y:=CSTRING;
                         goto exit_label;
 {$endif UseTokenInfo}
                       end;
@@ -1206,40 +1154,36 @@ unit scanner;
                         case c of
                          '=' : begin
                                  readchar;
-{$ifndef UseTokenInfo}
                                  yylex:=GTE;
+{$ifndef UseTokenInfo}
                                  exit;
 {$else UseTokenInfo}
-                                 y:=GTE;
                                  goto exit_label;
 {$endif UseTokenInfo}
                                end;
                          '>' : begin
                                  readchar;
-{$ifndef UseTokenInfo}
                                  yylex:=_SHR;
+{$ifndef UseTokenInfo}
                                  exit;
 {$else UseTokenInfo}
-                                 y:=_SHR;
                                  goto exit_label;
 {$endif UseTokenInfo}
                                end;
                          '<' : begin { >< is for a symetric diff for sets }
                                  readchar;
-{$ifndef UseTokenInfo}
                                  yylex:=SYMDIF;
+{$ifndef UseTokenInfo}
                                  exit;
 {$else UseTokenInfo}
-                                 y:=SYMDIF;
                                  goto exit_label;
 {$endif UseTokenInfo}
                                end;
                         end;
-{$ifndef UseTokenInfo}
                         yylex:=GT;
+{$ifndef UseTokenInfo}
                         exit;
 {$else UseTokenInfo}
-                        y:=GT;
                         goto exit_label;
 {$endif UseTokenInfo}
                       end;
@@ -1248,49 +1192,44 @@ unit scanner;
                         case c of
                          '>' : begin
                                  readchar;
-{$ifndef UseTokenInfo}
                                  yylex:=UNEQUAL;
+{$ifndef UseTokenInfo}
                                  exit;
 {$else UseTokenInfo}
-                                 y:=UNEQUAL;
                                  goto exit_label;
 {$endif UseTokenInfo}
                                end;
                          '=' : begin
                                  readchar;
-{$ifndef UseTokenInfo}
                                  yylex:=LTE;
+{$ifndef UseTokenInfo}
                                  exit;
 {$else UseTokenInfo}
-                                 y:=LTE;
                                  goto exit_label;
 {$endif UseTokenInfo}
                                end;
                          '<' : begin
                                  readchar;
-{$ifndef UseTokenInfo}
                                  yylex:=_SHL;
+{$ifndef UseTokenInfo}
                                  exit;
 {$else UseTokenInfo}
-                                 y:=_SHL;
                                  goto exit_label;
 {$endif UseTokenInfo}
                                end;
                         end;
-{$ifndef UseTokenInfo}
                         yylex:=LT;
+{$ifndef UseTokenInfo}
                         exit;
 {$else UseTokenInfo}
-                        y:=LT;
                         goto exit_label;
 {$endif UseTokenInfo}
                       end;
                 #26 : begin
-{$ifndef UseTokenInfo}
                         yylex:=_EOF;
+{$ifndef UseTokenInfo}
                         exit;
 {$else UseTokenInfo}
-                        y:=_EOF;
                         goto exit_label;
 {$endif UseTokenInfo}
                       end;
@@ -1301,12 +1240,9 @@ unit scanner;
            end;
 {$ifdef UseTokenInfo}
       exit_label:
-        new(newyylex);
-        newyylex^.token:=y;
-        newyylex^.fi.fileindex:=current_module^.current_index;
-        newyylex^.fi.line:=line;
-        newyylex^.fi.column:=column;
-        yylex:=newyylex;
+        tokenpos.fileindex:=fileindex;
+        tokenpos.line:=line;
+        tokenpos.column:=column;
 {$endif UseTokenInfo}
      end;
 
@@ -1461,7 +1397,15 @@ unit scanner;
 end.
 {
   $Log$
-  Revision 1.16  1998-05-04 17:54:28  peter
+  Revision 1.17  1998-05-06 08:38:47  pierre
+    * better position info with UseTokenInfo
+      UseTokenInfo greatly simplified
+    + added check for changed tree after first time firstpass
+      (if we could remove all the cases were it happen
+      we could skip all firstpass if firstpasscount > 1)
+      Only with ExtDebug
+
+  Revision 1.16  1998/05/04 17:54:28  peter
     + smartlinking works (only case jumptable left todo)
     * redesign of systems.pas to support assemblers and linkers
     + Unitname is now also in the PPU-file, increased version to 14

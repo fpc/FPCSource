@@ -120,12 +120,12 @@ unit parser;
     procedure compile(const filename:string;compile_system:boolean);
       var
          hp : pmodule;
-         comp_unit : boolean;
+         old_comp_unit : boolean;
 
          { some variables to save the compiler state }
          oldtoken : ttoken;
 {$ifdef UseTokenInfo}
-         oldtokeninfo : ptokeninfo;
+         oldtokenpos : tfileposinfo;
 {$endif UseTokenInfo}
          oldpattern : stringid;
 
@@ -222,6 +222,7 @@ unit parser;
          oldrefsymtable:=refsymtable;
          refsymtable:=nil;
          oldprocprefix:=procprefix;
+         old_comp_unit:=comp_unit;
 
          { a long time, this was only in init_parser
            but it should be reset to zero for each module }
@@ -239,7 +240,7 @@ unit parser;
          oldpattern:=pattern;
          oldtoken:=token;
 {$ifdef UseTokenInfo}
-         oldtokeninfo:=tokeninfo;
+         oldtokenpos:=tokenpos;
 {$endif UseTokenInfo}
          oldorgpattern:=orgpattern;
          old_block_type:=block_type;
@@ -289,12 +290,7 @@ unit parser;
          define_macros;
 
          { startup scanner }
-{$ifndef UseTokenInfo}
          token:=yylex;
-{$else UseTokenInfo}
-         tokeninfo:=yylex;
-         token:=tokeninfo^.token;
-{$endif UseTokenInfo}
 
          reset_gdb_info;
          { init asm writing }
@@ -482,10 +478,11 @@ done:
          pattern:=oldpattern;
          token:=oldtoken;
 {$ifdef UseTokenInfo}
-         tokeninfo:=oldtokeninfo;
+         tokenpos:=oldtokenpos;
 {$endif UseTokenInfo}
          orgpattern:=oldorgpattern;
          block_type:=old_block_type;
+         comp_unit:=old_comp_unit;
 
          { call donescanner before restoring preprocstack, because }
          { donescanner tests for a empty preprocstack              }
@@ -537,7 +534,15 @@ done:
 end.
 {
   $Log$
-  Revision 1.12  1998-05-04 17:54:28  peter
+  Revision 1.13  1998-05-06 08:38:42  pierre
+    * better position info with UseTokenInfo
+      UseTokenInfo greatly simplified
+    + added check for changed tree after first time firstpass
+      (if we could remove all the cases were it happen
+      we could skip all firstpass if firstpasscount > 1)
+      Only with ExtDebug
+
+  Revision 1.12  1998/05/04 17:54:28  peter
     + smartlinking works (only case jumptable left todo)
     * redesign of systems.pas to support assemblers and linkers
     + Unitname is now also in the PPU-file, increased version to 14

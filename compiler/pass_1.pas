@@ -614,7 +614,7 @@ unit pass_1;
            exit;
 
          { overloaded operator ? }
-         if (p^.treetype=caretn) or
+         if (p^.treetype=starstarn) or
             (ld^.deftype=recorddef) or
             { <> and = are defined for classes }
             ((ld^.deftype=objectdef) and
@@ -731,6 +731,7 @@ unit pass_1;
                    Message(sym_e_type_mismatch);
                 end;
               disposetree(p);
+              firstpass(t);
               p:=t;
               exit;
               end
@@ -879,6 +880,7 @@ unit pass_1;
               dispose(s2);
 {$endif UseAnsiString}
               disposetree(p);
+              firstpass(t);
               p:=t;
               exit;
            end;
@@ -1287,6 +1289,11 @@ unit pass_1;
            exit;
 
          { determines result type for comparions }
+         { here the is a problem with multiple passes }
+         { example length(s)+1 gets internal 'longint' type first }
+         { if it is a arg it is converted to 'LONGINT' }
+         { but a second first pass will reset this to 'longint' }
+         if not assigned(p^.resulttype) then
          case p^.treetype of
             ltn,lten,gtn,gten,equaln,unequaln:
               begin
@@ -1336,6 +1343,7 @@ unit pass_1;
                  divn : t:=genordinalconstnode(p^.left^.value div p^.right^.value,s32bitdef);
               end;
               disposetree(p);
+              firstpass(t);
               p:=t;
               exit;
            end;
@@ -1378,6 +1386,7 @@ unit pass_1;
                  shln : t:=genordinalconstnode(p^.left^.value shl p^.right^.value,s32bitdef);
               end;
               disposetree(p);
+              firstpass(t);
               p:=t;
               exit;
            end;
@@ -1660,6 +1669,7 @@ unit pass_1;
            begin
               t:=genordinalconstnode(not(p^.left^.value),p^.left^.resulttype);
               disposetree(p);
+              firstpass(t);
               p:=t;
               exit;
            end;
@@ -1929,23 +1939,24 @@ unit pass_1;
            exit;
 
          { determine return type }
-         if p^.left^.resulttype^.deftype=arraydef then
-           p^.resulttype:=parraydef(p^.left^.resulttype)^.definition
-         else if (p^.left^.resulttype^.deftype=pointerdef) then
-           begin
-              { convert pointer to array }
-              harr:=new(parraydef,init(0,$7fffffff,s32bitdef));
-              parraydef(harr)^.definition:=ppointerdef(p^.left^.resulttype)^.definition;
-              p^.left:=gentypeconvnode(p^.left,harr);
-              firstpass(p^.left);
-
-              if codegenerror then
-                exit;
-              p^.resulttype:=parraydef(harr)^.definition
-           end
-         else
-         { indexed access to arrays }
-           p^.resulttype:=cchardef;
+         if not assigned(p^.resulttype) then
+           if p^.left^.resulttype^.deftype=arraydef then
+             p^.resulttype:=parraydef(p^.left^.resulttype)^.definition
+           else if (p^.left^.resulttype^.deftype=pointerdef) then
+             begin
+                { convert pointer to array }
+                harr:=new(parraydef,init(0,$7fffffff,s32bitdef));
+                parraydef(harr)^.definition:=ppointerdef(p^.left^.resulttype)^.definition;
+                p^.left:=gentypeconvnode(p^.left,harr);
+                firstpass(p^.left);
+  
+                if codegenerror then
+                  exit;
+                p^.resulttype:=parraydef(harr)^.definition
+             end
+           else
+           { indexed access to arrays }
+             p^.resulttype:=cchardef;
 
          { the register calculation is easy if a const index is used }
          if p^.right^.treetype=ordconstn then
@@ -2048,6 +2059,9 @@ unit pass_1;
               { convert constants direct }
               { not because of type conversion }
               t:=genrealconstnode(p^.left^.value);
+              { do a first pass here
+                because firstpass of typeconv does
+                not redo it for left field !! }
               firstpass(t);
               { the type can be something else than s64real !!}
               t:=gentypeconvnode(t,p^.resulttype);
@@ -2175,12 +2189,11 @@ unit pass_1;
           { Florian I think this is overestimated
             but I still do not really understand how to get this right (PM) }
           { Hmmm, I think we need only one reg to return the result of      }
-          { this node => so
+          { this node => so }
           if p^.registers32<1 then
             p^.registers32:=1;
-            should work (FK)
-          }
-          p^.registers32:=p^.left^.registers32+1;
+          {  should work (FK)
+          p^.registers32:=p^.left^.registers32+1;}
        end;
 
     procedure first_proc_to_procvar(var p : ptree);
@@ -2425,6 +2438,7 @@ unit pass_1;
                             begin
                                hp:=genordinalconstnode(p^.left^.value,p^.resulttype);
                                disposetree(p);
+                               firstpass(hp);
                                p:=hp;
                                exit;
                             end
@@ -2444,6 +2458,7 @@ unit pass_1;
                               begin
                                  hp:=genordinalconstnode(p^.left^.value,p^.resulttype);
                                  disposetree(p);
+                                 firstpass(hp);
                                  p:=hp;
                                  exit;
                               end
@@ -2461,6 +2476,7 @@ unit pass_1;
                             if p^.left^.treetype=ordconstn then
                               begin
                                  hp:=genordinalconstnode(p^.left^.value,p^.resulttype);
+                                 firstpass(hp);
                                  disposetree(p);
                                  p:=hp;
                                  exit;
@@ -2504,6 +2520,7 @@ unit pass_1;
                    testrange(p^.resulttype,p^.left^.value);
                  hp:=genordinalconstnode(p^.left^.value,p^.resulttype);
                  disposetree(p);
+                 firstpass(hp);
                  p:=hp;
                  exit;
               end;
@@ -2534,7 +2551,10 @@ unit pass_1;
            end;
          if defcoll=nil then
            begin
-              if not(assigned(p^.resulttype)) then
+              { this breaks typeconversions in write !!! (PM) }
+              {if not(assigned(p^.resulttype)) then }
+              if not(assigned(p^.resulttype)) or
+                (p^.left^.treetype=typeconvn) then
                 firstpass(p^.left)
               else
                 exit;
@@ -2691,6 +2711,9 @@ unit pass_1;
          must_be_valid:=false;
 
          { procedure variable ? }
+         { right contains inline code for inlined procedures }
+         if (not assigned(p^.procdefinition)) or
+            ((p^.procdefinition^.options and poinline)=0) then
          if assigned(p^.right) then
            begin
               { procedure does a call }
@@ -3131,14 +3154,17 @@ unit pass_1;
                 begin
                    if assigned(p^.methodpointer) then
                      comment(v_fatal,'Unable to inline object methods');
-                   if assigned(p^.right) then
+                   if assigned(p^.right) and (p^.right^.treetype<>procinlinen) then
                      comment(v_fatal,'Unable to inline procvar calls');
                    { p^.treetype:=procinlinen; }
-                   if assigned(p^.procdefinition^.code) then
-                     p^.right:=genprocinlinenode(p,ptree(p^.procdefinition^.code))
-                   else
-                     comment(v_fatal,'no code for inline procedure stored');
-                   firstpass(p^.right);
+                   if not assigned(p^.right) then
+                     begin
+                        if assigned(p^.procdefinition^.code) then
+                          p^.right:=genprocinlinenode(p,ptree(p^.procdefinition^.code))
+                        else
+                          comment(v_fatal,'no code for inline procedure stored');
+                        firstpass(p^.right);
+                     end;
                 end
               else
                 procinfo.flags:=procinfo.flags or pi_do_call;
@@ -3204,6 +3230,10 @@ unit pass_1;
                 end;
            end;
 
+{$ifdef StoreFPULevel}
+         { a fpu can be used in any procedure !! }
+         p^.registersfpu:=p^.procdefinition^.fpu_used;
+{$endif StoreFPULevel}
          { if this is a call to a method calc the registers }
          if (p^.methodpointer<>nil) then
            begin
@@ -3307,6 +3337,7 @@ unit pass_1;
                   else
                     v:=porddef(Adef)^.bis;
                   hp:=genordinalconstnode(v,adef);
+                  firstpass(hp);
                   disposetree(p);
                   p:=hp;
                end;
@@ -4777,6 +4808,11 @@ unit pass_1;
          { there some calls of do_firstpass in the parser }
          oldis : pinputfile;
          oldnr : longint;
+{$ifdef extdebug}
+         str1,str2 : string;
+         oldp : ptree;
+         not_first : boolean;
+{$endif extdebug}
 
       begin
          { if we save there the whole stuff, }
@@ -4786,7 +4822,16 @@ unit pass_1;
          oldcodegenerror:=codegenerror;
          oldswitches:=aktswitches;
 {$ifdef extdebug}
-        inc(p^.firstpasscount);
+         if p^.firstpasscount>0 then
+           begin
+              move(p^,str1[1],sizeof(ttree));
+              str1[0]:=char(sizeof(ttree));
+              new(oldp);
+              oldp^:=p^;
+              not_first:=true;
+           end
+         else
+           not_first:=false;
 {$endif extdebug}
 
          codegenerror:=false;
@@ -4802,6 +4847,23 @@ unit pass_1;
               codegenerror:=codegenerror or oldcodegenerror;
            end
          else codegenerror:=true;
+{$ifdef extdebug}
+         if not_first then
+           begin
+              { dirty trick to compare two ttree's (PM) }
+              move(p^,str2[1],sizeof(ttree));
+              str2[0]:=char(sizeof(ttree));
+              if str1<>str2 then
+                begin
+                   comment(v_debug,'tree changed after first counting pass '
+                     +tostr(longint(p^.treetype)));
+                   compare_trees(p,oldp);
+                end;
+              dispose(oldp);
+           end;
+         if count_ref then
+           inc(p^.firstpasscount);
+{$endif extdebug}
          aktswitches:=oldswitches;
          current_module^.current_inputfile:=oldis;
          current_module^.current_inputfile^.line_no:=oldnr;
@@ -4829,7 +4891,15 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.16  1998-05-01 16:38:45  florian
+  Revision 1.17  1998-05-06 08:38:43  pierre
+    * better position info with UseTokenInfo
+      UseTokenInfo greatly simplified
+    + added check for changed tree after first time firstpass
+      (if we could remove all the cases were it happen
+      we could skip all firstpass if firstpasscount > 1)
+      Only with ExtDebug
+
+  Revision 1.16  1998/05/01 16:38:45  florian
     * handling of private and protected fixed
     + change_keywords_to_tp implemented to remove
       keywords which aren't supported by tp

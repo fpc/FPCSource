@@ -655,12 +655,32 @@ unit pexpr;
          d : bestreal;
          constset : pconstset;
          propsym : ppropertysym;
+{$ifdef UseTokenInfo}
+         oldp1 : ptree;
+         filepos : tfileposinfo;
+{$endif UseTokenInfo}
 
+
+{$ifdef UseTokenInfo}
+      procedure check_tokenpos;
+        begin
+           if (p1<>oldp1) then
+             begin
+                if assigned(p1) then
+                  set_tree_filepos(p1,filepos);
+                oldp1:=p1;
+                filepos:=tokenpos;
+             end;
+        end;
+{$endif UseTokenInfo}
 
       { p1 and p2 must contain valid values }
       procedure postfixoperators;
 
         begin
+{$ifdef UseTokenInfo}
+             check_tokenpos;
+{$endif UseTokenInfo}
            while again do
              begin
                 case token of
@@ -885,6 +905,9 @@ unit pexpr;
                         else again:=false;
                      end;
                 end;
+{$ifdef UseTokenInfo}
+             check_tokenpos;
+{$endif UseTokenInfo}
            end;
       end;
 
@@ -910,6 +933,10 @@ unit pexpr;
          actprocsym : pprocsym;
 
       begin
+{$ifdef UseTokenInfo}
+         oldp1:=nil;
+         filepos:=tokenpos;
+{$endif UseTokenInfo}
          case token of
             ID:
               begin
@@ -1492,6 +1519,9 @@ unit pexpr;
               end;
          end;
          factor:=p1;
+{$ifdef UseTokenInfo}
+         check_tokenpos;
+{$endif UseTokenInfo}
       end;
 
     type    Toperator_precedence=(opcompare,opaddition,opmultiply);
@@ -1529,6 +1559,10 @@ unit pexpr;
 
     var p1,p2:Ptree;
         oldt:Ttoken;
+{$ifdef UseTokenInfo}
+         filepos : tfileposinfo;
+{$endif UseTokenInfo}
+
 
     begin
 {        if pred_level=high(Toperator_precedence) then }
@@ -1543,6 +1577,10 @@ unit pexpr;
                ((token<>EQUAL) or accept_equal) then
                 begin
                     oldt:=token;
+{$ifdef UseTokenInfo}
+                    filepos:=tokenpos;
+{$endif UseTokenInfo}
+
                     consume(token);
 {                    if pred_level=high(Toperator_precedence) then }
                     if pred_level=opmultiply then
@@ -1550,6 +1588,10 @@ unit pexpr;
                     else
                         p2:=sub_expr(succ(pred_level),true);
                     p1:=gennode(tok2node[oldt],p1,p2);
+{$ifdef UseTokenInfo}
+                    set_tree_filepos(p1,filepos);
+{$endif UseTokenInfo}
+
                 end
             else
                 break;
@@ -1574,12 +1616,20 @@ unit pexpr;
       var
          p1,p2 : ptree;
          oldafterassignment : boolean;
+{$ifdef UseTokenInfo}
+         oldp1 : ptree;
+         filepos : tfileposinfo;
+{$endif UseTokenInfo}
 
       begin
          oldafterassignment:=afterassignment;
          p1:=sub_expr(opcompare,true);
          if token in [ASSIGNMENT,_PLUSASN,_MINUSASN,_STARASN,_SLASHASN] then
            afterassignment:=true;
+{$ifdef UseTokenInfo}
+         filepos:=tokenpos;
+         oldp1:=p1;
+{$endif UseTokenInfo}
          case token of
             POINTPOINT : begin
                             consume(POINTPOINT);
@@ -1632,6 +1682,10 @@ unit pexpr;
                          end;
          end;
          afterassignment:=oldafterassignment;
+{$ifdef UseTokenInfo}
+         if p1<>oldp1 then
+           set_tree_filepos(p1,filepos);
+{$endif UseTokenInfo}
          expr:=p1;
       end;
 
@@ -1681,7 +1735,15 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.12  1998-05-05 12:05:42  florian
+  Revision 1.13  1998-05-06 08:38:45  pierre
+    * better position info with UseTokenInfo
+      UseTokenInfo greatly simplified
+    + added check for changed tree after first time firstpass
+      (if we could remove all the cases were it happen
+      we could skip all firstpass if firstpasscount > 1)
+      Only with ExtDebug
+
+  Revision 1.12  1998/05/05 12:05:42  florian
     * problems with properties fixed
     * crash fixed:  i:=l when i and l are undefined, was a problem with
       implementation of private/protected

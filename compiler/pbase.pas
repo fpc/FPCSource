@@ -45,9 +45,6 @@ unit pbase;
     var
        { contains the current token to be processes }
        token : ttoken;
-{$ifdef UseTokenInfo}
-       tokeninfo : ptokeninfo;
-{$endif UseTokenInfo}
 
        { size of data segment, set by proc_unit or proc_program }
        datasize : longint;
@@ -89,6 +86,10 @@ unit pbase;
     { sc is disposed                                         }
     procedure insert_syms(st : psymtable;sc : pstringcontainer;def : pdef);
 
+    { just for an accurate position of the end of a procedure (PM) }
+    var
+       last_endtoken_filepos: tfileposinfo;
+
   implementation
 
 
@@ -124,7 +125,6 @@ unit pbase;
          j : integer;
 
       begin
-{$ifndef UseTokenInfo}
          if token<>i then
            begin
               if i<_AND then
@@ -143,33 +143,15 @@ unit pbase;
                 end;
            end
          else
-           token:=yylex;
+           begin
+             if token=_END then
+{$ifdef UseTokenInfo}
+                last_endtoken_filepos:=tokenpos;
 {$else UseTokenInfo}
-         if token<>i then
-           begin
-              if i<_AND then
-                syntaxerror(tokens[i])
-              else
-                begin
-
-                   { um die Programmgr”áe klein zu halten, }
-                   { wird fr ein Schlsselwort-Token der  }
-                   { "Text" in der Schlsselworttabelle    }
-                   { des Scanners nachgeschaut             }
-
-                   for j:=1 to anz_keywords do
-                     if keyword_token[j]=i then
-                       syntaxerror(keyword[j])
-                end;
-           end
-         else
-           begin
-             if assigned(tokeninfo) then
-               dispose(tokeninfo);
-             tokeninfo:=yylex;
-             token:=tokeninfo^.token;
-           end;
+                get_cur_file_pos(last_endtoken_filepos);
 {$endif UseTokenInfo}
+             token:=yylex;
+           end;
       end;
 
     procedure consume_all_until(atoken : ttoken);
@@ -212,7 +194,7 @@ unit pbase;
            sc^.insert(pattern);
 {$else UseTokenInfo}
            sc^.insert_with_tokeninfo(pattern,
-             tokeninfo^.fi);
+             tokenpos);
 {$endif UseTokenInfo}
            consume(ID);
            if token=COMMA then consume(COMMA)
@@ -268,7 +250,15 @@ end.
 
 {
   $Log$
-  Revision 1.4  1998-04-30 15:59:41  pierre
+  Revision 1.5  1998-05-06 08:38:44  pierre
+    * better position info with UseTokenInfo
+      UseTokenInfo greatly simplified
+    + added check for changed tree after first time firstpass
+      (if we could remove all the cases were it happen
+      we could skip all firstpass if firstpasscount > 1)
+      Only with ExtDebug
+
+  Revision 1.4  1998/04/30 15:59:41  pierre
     * GDB works again better :
       correct type info in one pass
     + UseTokenInfo for better source position

@@ -45,6 +45,9 @@ unit systems;
        {$ifdef i386}
               ,link_ldgo32v1, link_ldgo32v2, link_ldw, link_ldos2);
        {$endif i386}
+       {$ifdef m68k}
+              );
+       {$endif}
 
        tendian = (endian_little,en_big_endian);
 
@@ -516,7 +519,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  1998-05-04 20:19:54  peter
+  Revision 1.9  1998-05-06 08:38:49  pierre
+    * better position info with UseTokenInfo
+      UseTokenInfo greatly simplified
+    + added check for changed tree after first time firstpass
+      (if we could remove all the cases were it happen
+      we could skip all firstpass if firstpasscount > 1)
+      Only with ExtDebug
+
+  Revision 1.8  1998/05/04 20:19:54  peter
     * small fix for go32v2
 
   Revision 1.7  1998/05/04 17:54:29  peter

@@ -61,6 +61,9 @@ unit pstatmnt;
        { read assembler tokens                                        }
        ,pbase,pexpr,pdecl;
 
+    const
+
+      statement_level : longint = 0;
 
     function statement : ptree;forward;
 
@@ -177,6 +180,7 @@ unit pstatmnt;
            Message(parser_e_ordinal_expected);
 
          consume(_OF);
+         inc(statement_level);
          wurzel:=nil;
          ranges:=false;
          instruc:=nil;
@@ -242,6 +246,7 @@ unit pstatmnt;
               elseblock:=nil;
               consume(_END);
            end;
+         dec(statement_level);
 
          code:=gencasenode(caseexpr,instruc,wurzel);
 
@@ -258,6 +263,8 @@ unit pstatmnt;
       begin
          consume(_REPEAT);
          first:=nil;
+         inc(statement_level);
+
          while token<>_UNTIL do
            begin
               if first=nil then
@@ -277,6 +284,8 @@ unit pstatmnt;
                 consume(SEMICOLON);
            end;
          consume(_UNTIL);
+         dec(statement_level);
+
          first:=gensinglenode(blockn,first);
          p_e:=comp_expr(true);
          repeat_statement:=genloopnode(repeatn,p_e,first,nil,false);
@@ -454,6 +463,8 @@ unit pstatmnt;
          { read statements to try }
          consume(_TRY);
          first:=nil;
+         inc(statement_level);
+
          while (token<>_FINALLY) and (token<>_EXCEPT) do
            begin
               if first=nil then
@@ -478,6 +489,8 @@ unit pstatmnt;
               consume(_FINALLY);
               p_finally_block:=statements_til_end;
               try_statement:=gennode(tryfinallyn,p_try_block,p_finally_block);
+              dec(statement_level);
+
            end
          else
            begin
@@ -519,6 +532,8 @@ unit pstatmnt;
                 begin
                    p_default:=statements_til_end;
                 end;
+              dec(statement_level);
+
               in_except_block:=old_in_except_block;
               try_statement:=genloopnode(tryexceptn,p_try_block,p_specific,p_default,false);
            end;
@@ -783,10 +798,18 @@ unit pstatmnt;
 
       var
          first,last : ptree;
+{$ifdef UseTokenInfo}
+         filepos : tfileposinfo;
+{$endif UseTokenInfo}
 
       begin
          first:=nil;
+{$ifdef UseTokenInfo}
+         filepos:=tokenpos;
+{$endif UseTokenInfo}
          consume(_BEGIN);
+         inc(statement_level);
+
          while token<>_END do
            begin
               if first=nil then
@@ -816,8 +839,14 @@ unit pstatmnt;
               emptystats;
            end;
          consume(_END);
+         dec(statement_level);
+
          last:=gensinglenode(blockn,first);
+{$ifdef UseTokenInfo}
+         set_tree_filepos(last,filepos);
+{$else UseTokenInfo}
          set_file_line(first,last);
+{$endif UseTokenInfo}
          statement_block:=last;
       end;
 
@@ -836,7 +865,7 @@ unit pstatmnt;
 
       begin
 {$ifdef UseTokenInfo}
-         filepos:=tokeninfo^.fi;
+         filepos:=tokenpos;
 {$endif UseTokenInfo}
          case token of
             _GOTO : begin
@@ -993,7 +1022,9 @@ unit pstatmnt;
                    { as it is handled differently }
                    funcretsym^._name:=strpnew('func_result');
 {$else  TEST_FUNCRET }
-                   procinfo.retoffset:=procinfo.firsttemp-procinfo.retdef^.size;
+                   { align func result at 4 byte }
+                   procinfo.retoffset:=
+                     -((-procinfo.firsttemp+(procinfo.retdef^.size+3)) div 4)*4;
                    procinfo.firsttemp:=procinfo.retoffset;
 {$endif TEST_FUNCRET }
                    if (procinfo.flags and pi_operator)<>0 then
@@ -1052,7 +1083,7 @@ unit pstatmnt;
                    usedinproc:=usedinproc or ($800 shr word(R_D0))
 {$endif}
                 end
-              else
+              else if not is_fpu(procinfo.retdef) then
               { should we allow assembler functions of big elements ? }
                Message(parser_e_asm_incomp_with_function_return);
            end;
@@ -1068,8 +1099,8 @@ unit pstatmnt;
                   procinfo.framepointer:=R_SP;
 {$endif}
                   { set the right value for parameters }
-                  dec(aktprocsym^.definition^.parast^.call_offset,4);
-                  dec(procinfo.call_offset,4);
+                  dec(aktprocsym^.definition^.parast^.call_offset,sizeof(pointer));
+                  dec(procinfo.call_offset,sizeof(pointer));
               end;
             assembler_block:=_asm_statement;
           end;
@@ -1077,7 +1108,15 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.8  1998-05-05 12:05:42  florian
+  Revision 1.9  1998-05-06 08:38:46  pierre
+    * better position info with UseTokenInfo
+      UseTokenInfo greatly simplified
+    + added check for changed tree after first time firstpass
+      (if we could remove all the cases were it happen
+      we could skip all firstpass if firstpasscount > 1)
+      Only with ExtDebug
+
+  Revision 1.8  1998/05/05 12:05:42  florian
     * problems with properties fixed
     * crash fixed:  i:=l when i and l are undefined, was a problem with
       implementation of private/protected

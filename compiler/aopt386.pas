@@ -42,7 +42,10 @@ Unit aopt386;
 
         {ait_* types which don't result in executable code or which don't
          influence the way the program runs/behaves}
-  Const SkipInstr = [ait_comment,ait_stabs, ait_stabn, ait_stab_function_name
+  Const SkipInstr = [ait_comment
+{$ifdef GDB}
+  ,ait_stabs, ait_stabn, ait_stab_function_name
+{$endif GDB}
 {$ifdef regalloc}
                      ,ait_regalloc, ait_regdealloc
 {$endif regalloc}
@@ -1615,7 +1618,15 @@ end;
 End.
 {
   $Log$
-  Revision 1.8  1998-04-29 10:33:43  pierre
+  Revision 1.9  1998-05-06 08:38:34  pierre
+    * better position info with UseTokenInfo
+      UseTokenInfo greatly simplified
+    + added check for changed tree after first time firstpass
+      (if we could remove all the cases were it happen
+      we could skip all firstpass if firstpasscount > 1)
+      Only with ExtDebug
+
+  Revision 1.8  1998/04/29 10:33:43  pierre
     + added some code for ansistring (not complete nor working yet)
     * corrected operator overloading
     * corrected nasm output
