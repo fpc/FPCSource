@@ -1,6 +1,8 @@
 unit system;
 interface
 
+{$Y-}
+
 type
   integer=-32768..32767;
   byte=0..255;
