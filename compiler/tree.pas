@@ -1516,7 +1516,8 @@ unit tree;
     procedure clear_location(var loc : tlocation);
 
       begin
-        if assigned(loc.reference.symbol) then
+        if ((loc.loc=LOC_MEM) or (loc.loc=LOC_REFERENCE)) and
+           assigned(loc.reference.symbol) then
           stringdispose(loc.reference.symbol);
         loc.loc:=LOC_INVALID;
       end;
@@ -1603,7 +1604,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.51  1998-11-13 10:15:53  peter
+  Revision 1.52  1998-11-23 17:51:58  pierre
+   * added checking before dispose of reference string
+
+  Revision 1.51  1998/11/13 10:15:53  peter
     * fixed ptr() with constants
 
   Revision 1.50  1998/11/10 10:09:20  peter
