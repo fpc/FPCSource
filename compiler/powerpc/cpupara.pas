@@ -64,7 +64,10 @@ unit cpupara;
 
     function tppcparamanager.get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;
       begin
-        result := [RS_R3..RS_R12];
+        if (target_info.system = system_powerpc_darwin) then
+          result := [RS_R2..RS_R12]
+        else
+          result := [RS_R3..RS_R12];
       end;
 
 
@@ -657,7 +660,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.82  2005-01-13 19:32:08  jonas
+  Revision 1.83  2005-01-13 22:02:40  jonas
+    * r2 can be used by the register allocator under Darwin
+    * merged the initialisations of the fpu register allocator for AIX and
+      SYSV
+
+  Revision 1.82  2005/01/13 19:32:08  jonas
     * fixed copy_value_on_stack() for AIX abi
     + added support for passing empty record parameters
 
