@@ -33,13 +33,13 @@ end;
 Procedure MakeWideString (Var P : PWideChar; W : WideString);
 
 begin
-  P:=W;
+  P:=PWideChar(W);
 end;
 
 Procedure CopyAsWideString (Var PDest : PWideChar; PSource : PWideChar);
 
 begin
-  PDest:=WideString(PSource);
+  PDest:=PWideChar(WideString(PSource));
 end;
 
 { ---------------------------------------------------------------------
@@ -709,7 +709,10 @@ end;
 {$endif HASVARIANT}
 {
   $Log$
-  Revision 1.9  2002-10-11 12:21:55  florian
+  Revision 1.10  2002-11-22 16:30:05  peter
+    * Widestring->PWidechar requires a typecast
+
+  Revision 1.9  2002/10/11 12:21:55  florian
     * fixes for new widestring handling
 
   Revision 1.8  2002/09/07 16:01:23  peter
