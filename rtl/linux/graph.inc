@@ -3,7 +3,7 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 1998 by the Free Pascal development team
 
-    <What does this file>
+    Graph include file for linux.
     
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -15,7 +15,6 @@
  **********************************************************************}
 
 { decide what to load }
-
 {$ifdef USEGGI}
 { use GGI libs }
 {$i ggigraph.inc}

@@ -42,6 +42,16 @@ UNITPREFIX=rtl
 # Default library name
 LIBNAME=fprtl
 
+#
+# Use new Graph unit ?
+#
+NEWGRAPH=YES
+#
+# Use LibGGI ? 
+#
+ifndef USELIBGGI
+USELIBGGI=NO
+endif
 
 #####################################################################
 # Own defaults
@@ -260,6 +270,12 @@ graph$(PPUEXT) : graph.pp linux$(PPUEXT) objects$(PPUEXT)
 else
 include $(GRAPHDIR)/makefile.inc
 GRAPHINCDEPS=$(addprefix $(GRAPHDIR)/,$(GRAPHINCNAMES))
+ifeq ($(USELIBGGI),YES)
+GRAPHINCDEPS+=ggigraph.inc
+override COMPILER+=-dUSEGGI -S2
+else
+GRAPHINCDEPS+=vgagraph.inc
+endif
 graph$(PPUEXT) : $(GRAPHDIR)/graph.pp $(SYSTEMPPU) $(GRAPHINCDEPS) graph.inc
 	$(COMPILER) -I$(GRAPHDIR) $(GRAPHDIR)/graph.pp $(REDIR)
 endif
@@ -307,7 +323,11 @@ ipc$(PPUEXT) : ipc.pp linux$(PPUEXT) $(SYSTEMPPU)
 
 #
 # $Log$
-# Revision 1.32  1999-11-07 16:57:26  michael
+# Revision 1.33  1999-11-08 00:08:43  michael
+# * Fist working version of svgalib new graph unit
+# * Initial implementation of ggi new graph unit
+#
+# Revision 1.32  1999/11/07 16:57:26  michael
 # + Start of common graph implementation
 #
 # Revision 1.31  1999/08/04 11:30:05  michael

@@ -1,78 +1,30 @@
 {
-     $Id$
-}
+    $Id$
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 1999 by the Free Pascal development team
+
+    svgalib implementation of graph unit.
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+ 
   const
-   InternalDriverName = 'LinuxGX';
+   InternalDriverName = 'LinuxVGA';
 
   var SavePtr : Pointer;
 
 { ---------------------------------------------------------------------
-   SVGA bindings.
-
+   GGI bindings.
   ---------------------------------------------------------------------}
 
-{  Link with VGA, gl and c libraries }
-{$linklib vga}
-{$linklib vgagl}
-{$linklib c}
-
 Const
-  { Text }
-
-  WRITEMODE_OVERWRITE = 0;
-  WRITEMODE_MASKED    = 1;
-  FONT_EXPANDED       = 0;
-  FONT_COMPRESSED     = 2;
-
- { Types }
- type
-   pvga_modeinfo = ^vga_modeinfo;
-   vga_modeinfo = record
-     width,
-     height,
-     bytesperpixel,
-     colors,
-     linewidth,          { scanline width in bytes }
-     maxlogicalwidth,    { maximum logical scanline width }
-     startaddressrange,  { changeable bits set }
-     maxpixels,          { video memory / bytesperpixel }
-     haveblit,           { mask of blit functions available }
-     flags: Longint;     { other flags }
-    { Extended fields: }
-     chiptype,           { Chiptype detected }
-     memory,             { videomemory in KB }
-     linewidth_unit: Longint;    { Use only a multiple of this as parameter for                                   set_displaystart }
-     linear_aperture: PChar;     { points to mmap secondary mem aperture of card }
-     aperture_size: Longint;     { size of aperture in KB if size>=videomemory.}
-
-     set_aperture_page: procedure (page: Longint);
-            { if aperture_size<videomemory select a memory page }
-     extensions: Pointer;        { points to copy of eeprom for mach32 }
-            { depends from actual driver/chiptype.. etc. }
-     end;
-
-  PGraphicsContext = ^TGraphicsContext;
-  TGraphicsContext = record
-                       ModeType: Byte;
-                       ModeFlags: Byte;
-                       Dummy: Byte;
-                       FlipPage: Byte;
-                       Width: LongInt;
-                       Height: LongInt;
-                       BytesPerPixel: LongInt;
-                       Colors: LongInt;
-                       BitsPerPixel: LongInt;
-                       ByteWidth: LongInt;
-                       VBuf: pointer;
-                       Clip: LongInt;
-                       ClipX1: LongInt;
-                       ClipY1: LongInt;
-                       ClipX2: LongInt;
-                       ClipY2: LongInt;
-                       ff: pointer;
-                     end;
-Const
-  { VGA modes }
+  { Supported modes }
   GTEXT             = 0;                { Compatible with VGAlib v1.2 }
   G320x200x16       = 1;
   G640x200x16       = 2;
@@ -134,179 +86,307 @@ Const
   G1600x1200x16M32  = 49;
 
   GLASTMODE         = 49;
-  ModeNames : Array[1..GLastMode] of string [20] = 
-   ('G320x200x16',
-    'G640x200x16',
-    'G640x350x16',
-    'G640x480x16',
-    'G320x200x256',
-    'G320x240x256',
-    'G320x400x256',
-    'G360x480x256',
-    'G640x480x2',
-    'G640x480x256',
-    'G800x600x256',
-    'G1024x768x256',
-    'G1280x1024x256',
-    'G320x200x32K',
-    'G320x200x64K',
-    'G320x200x16M',
-    'G640x480x32K',
-    'G640x480x64K',
-    'G640x480x16M',
-    'G800x600x32K',
-    'G800x600x64K',
-    'G800x600x16M',
-    'G1024x768x32K',
-    'G1024x768x64K',
-    'G1024x768x16M',
-    'G1280x1024x32K',
-    'G1280x1024x64K',
-    'G1280x1024x16M',
-    'G800x600x16',
-    '1024x768x16',
-    '1280x1024x16',
-    'G720x348x2',
-    'G320x200x16M32',
-    'G640x480x16M32',
-    'G800x600x16M32',
-    'G1024x768x16M32',
-    'G1280x1024x16M32',
-    'G1152x864x16',
-    'G1152x864x256',
-    'G1152x864x32K',
-    'G1152x864x64K',
-    'G1152x864x16M',
-    'G1152x864x16M32',
-    'G1600x1200x16',
-    'G1600x1200x256',
-    'G1600x1200x32K',
-    'G1600x1200x64K',
-    'G1600x1200x16M',
-    'G1600x1200x16M32');
+  ModeNames : Array[0..GLastMode] of string [18] = 
+   ('80x40[T]',
+    'S320x200[GT_4BIT]',
+    'S640x200[GT_4BIT]',
+    'S640x350[GT_4BIT]',
+    'S640x480[GT_4BIT]',
+    'S320x200[GT_8BIT]',
+    'S320x240[GT_8BIT]',
+    'S320x400[GT_8BIT]',
+    'S360x480[GT_8BIT]',
+    'S640x480x[GT_1BIT]',
+    'S640x480[GT_8BIT]',
+    'S800x600[GT_8BIT]',
+    'S1024x768[GT_8BIT]',
+    'S1280x1024[GT_8BIT]',
+    'S320x200[GT_15BIT]',
+    'S320x200[GT_16BIT]',
+    'S320x200[GT_24BIT]',
+    'S640x480[GT_15BIT]',
+    'S640x480[GT_16BIT]',
+    'S640x480[GT_24BIT]',
+    'S800x600[GT_15BIT]',
+    'S800x600[GT_16BIT]',
+    'S800x600[GT_24BIT]',
+    'S1024x768[GT_15BIT]',
+    'S1024x768[GT_16BIT]',
+    'S1024x768[GT_24BIT]',
+    'S1280x1024[GT_15BIT]',
+    'S1280x1024[GT_16BIT]',
+    'S1280x1024[GT_24BIT]',
+    'S800x600[GT_4BIT]',
+    'S1024x768[GT_4BIT]',
+    'S1280x1024[GT_4BIT]',
+    'S720x348x[GT_1BIT]',
+    'S320x200[GT_32BIT]',
+    'S640x480[GT_32BIT]',
+    'S800x600[GT_32BIT]',
+    'S1024x768[GT_32BIT]',
+    'S1280x1024[GT_32BIT]',
+    'S1152x864[GT_4BIT]',
+    'S1152x864[gt_8BIT]',
+    'S1152x864[GT_15BIT]',
+    'S1152x864[GT_16BIT]',
+    'S1152x864[GT_24BIT]',
+    'S1152x864[GT_32BIT]',
+    'S1600x1200[GT_4BIT]',
+    'S1600x1200[gt_8BIT]',
+    'S1600x1200[GT_15BIT]',
+    'S1600x1200[GT_16BIT]',
+    'S1600x1200[GT_24BIT]',
+    'S1600x1200[GT_32BIT]');
 
- { vga functions }
- Function vga_init: Longint; Cdecl; External;
- Function vga_getdefaultmode: Longint; Cdecl; External;
+type
+  TGGIVisual = Pointer;
+  TGGIResource = Pointer;
+  TGGICoord = record
+    x, y: Integer;
+  end;
+  TGGIPixel = LongWord;
+  PGGIColor = ^TGGIColor;
+  TGGIColor = record
+    r, g, b, a: Integer;
+  end;
+  PGGIClut = ^TGGIClut;
+  TGGIClut = record
+    size: Integer;
+    data: PGGIColor;
+  end;
+  TGGIGraphType = LongWord;
+  TGGIAttr = LongWord;
+  TGGIMode = record			// requested by user and changed by driver
+    Frames: LongInt;			// frames needed
+    Visible: TGGICoord;			// vis. pixels, may change slightly
+    Virt: TGGICoord;			// virtual pixels, may change
+    Size: TGGICoord;			// size of visible in mm
+    GraphType: TGGIGraphType;		// which mode ?
+    dpp: TGGICoord;			// dots per pixel
+  end;
 
- Function vga_hasmode(mode: Longint): Boolean; Cdecl; External;
+Const 
+  libggi = 'ggi';
+function  ggiInit: Integer; cdecl; external libggi;
+procedure ggiExit; cdecl; external libggi;
+function  ggiOpen(display: PChar; args: Array of const): TGGIVisual; cdecl; external libggi;
+function  ggiClose(vis: TGGIVisual): Integer; cdecl; external libggi;
+function  ggiParseMode(s: PChar; var m: TGGIMode): Integer; cdecl; external libggi;
+function  ggiSetMode(visual: TGGIVisual; var tm: TGGIMode): Integer; cdecl; external libggi;
+function  ggiGetMode(visual: TGGIVisual; var tm: TGGIMode): Integer; cdecl; external libggi;
+function  ggiCheckMode(visual: TGGIVisual; var tm: TGGIMode): Integer; cdecl; external libggi;
 
- Function vga_getmodeinfo(mode: Longint): pvga_modeinfo; Cdecl; External;
- Function vga_setmode(mode: Longint): Longint; Cdecl; External;
- Function vga_getxdim : Longint; cdecl;external;
- Function vga_getydim : longint; cdecl;external;
+function  ggiPutPixel(vis: TGGIVisual; x, y: Integer; pixel: TGGIPixel): Integer; cdecl; external libggi;
+function  ggiGetPixel(vis: TGGIVisual; x, y: Integer; var pixel: TGGIPixel): Integer; cdecl; external libggi;
+function  ggiDrawBox(vis: TGGIVisual; x, y, w, h: Integer): Integer; cdecl; external libggi;
+function  ggiPutBox(vis: TGGIVisual; x, y, w, h: Integer; var buffer): Integer; cdecl; external libggi;
+function  ggiGetBox(vis: TGGIVisual; x, y, w, h: Integer; var buffer): Integer; cdecl; external libggi;
 
- { gl functions }
- procedure gl_setpixel(x, y, c: LongInt); Cdecl; External;
- function  gl_getpixel(x, y: LongInt): LongInt; cdecl; external;
- procedure gl_line(x1, y1, x2, y2, c: LongInt); Cdecl; External;
- procedure gl_fillbox(x, y, w, h, c: LongInt); Cdecl; External;
- procedure gl_circle(x, y, r, c: LongInt ); Cdecl; External;
- procedure gl_getbox(x, y, w, h: LongInt; dp: pointer); Cdecl; External;
- procedure gl_putbox(x, y, w, h: LongInt; dp: pointer); Cdecl; External;
- procedure gl_disableclipping; Cdecl; External;
- procedure gl_enableclipping; Cdecl; External;
- procedure gl_putboxpart(x, y, w, h, bw, bh: LongInt; b: pointer; xo, yo: LongInt); Cdecl; External;
- function  gl_rgbcolor(r, g, b: LongInt): LongInt; Cdecl; External;
- function  gl_setcontextvga(m: LongInt): LongInt; Cdecl; External;
- function  gl_allocatecontext: PGraphicsContext; Cdecl; External;
- procedure gl_getcontext(gc: PGraphicsContext); Cdecl; External;
- procedure gl_setrgbpalette; Cdecl; External;
- procedure gl_freecontext(gc: PGraphicsContext); Cdecl; External;
- procedure gl_setclippingwindow(x1, y1, x2, y2: LongInt); Cdecl; External;
- procedure gl_setwritemode(wm: LongInt); Cdecl; External;
- procedure gl_setfontcolors(bg, fg: LongInt); Cdecl; External;
- procedure gl_writen(x, y, n: LongInt; s: PChar); Cdecl; External;
- procedure gl_setfont(fw, fh: LongInt; fdp: pointer); Cdecl; External;
-
- procedure gl_copyboxfromcontext(var gc: TGraphicsContext; x1, y1, w, h, x2, y2: LongInt); Cdecl; External;
- procedure gl_setcontext(gc: PGraphicsContext); Cdecl; External;
-
- function  gl_setcontextvgavirtual(m: LongInt): LongInt; cdecl; external;
- procedure gl_font8x8; Cdecl; External;
+function  ggiGetPalette(vis: TGGIVisual; s, len: Integer; var cmap: TGGIColor): Integer; cdecl; external libggi;
+function  ggiSetPalette(vis: TGGIVisual; s, len: Integer; var cmap: TGGIColor): Integer; cdecl; external libggi;
 
 
-{ ---------------------------------------------------------------------
-    Required procedures
-  ---------------------------------------------------------------------}
-procedure libvga_initmodeproc;
+var
+  Visual: TGGIVisual;
+  CurrentMode : TGGIMode;
+    
+procedure ggi_savevideostate;
+
 begin
-  vga_setmode(IntCurrentMode);
 end;
+
+procedure ggi_restorevideostate;
+
+Var mode : TGGIMode;
+
+begin
+  ggiparsemode(@ModeNames[Gtext][1],Mode);
+  ggisetmode(Visual,Mode);
+end;
+
+const
+  BgiColors: array[0..15] of LongInt
+    = ($000000, $000080, $008000, $008080,
+       $800000, $800080, $808000, $C0C0C0,
+       $808080, $0000FF, $00FF00, $00FFFF,
+       $FF0000, $FF00FF, $FFFF00, $FFFFFF);
+
+procedure ggi_initmodeproc;
+
+Var
+  ModeName : string[20];
+    
+begin
+  ggiparsemode(@ModeNames[IntCurrentMode][1],CurrentMode);
+  ggisetmode(Visual,CurrentMode);
+end;
+
+Function ClipCoords (Var X,Y : Integer) : Boolean;
+{ Adapt to viewport, return TRUE if still in viewport,
+  false if outside viewport}
   
-function libvga_getpixelproc (X,Y: Integer): word;
+begin
+  X:= X + StartXViewPort;
+  Y:= Y + StartYViewPort;
+  ClipCoords:=Not ClipPixels;
+  if ClipCoords then
+    Begin
+    ClipCoords:=(X < StartXViewPort) or (X > (StartXViewPort + ViewWidth));
+    ClipCoords:=ClipCoords or
+               ((Y < StartYViewPort) or (Y > (StartYViewPort + ViewHeight)));
+    ClipCoords:=Not ClipCoords;
+    end;           
+end;  
+
+
+procedure ggi_directpixelproc(X,Y: Integer);
+
+Var Color : Word;
+
+begin
+  case CurrentWriteMode of
+    XORPut:
+      begin
+      { getpixel wants local/relative coordinates }
+      Color := GetPixel(x-StartXViewPort,y-StartYViewPort);
+      Color := CurrentColor Xor Color;
+      end;
+    OrPut: 
+      begin
+      { getpixel wants local/relative coordinates }
+      Color := GetPixel(x-StartXViewPort,y-StartYViewPort);
+      Color := CurrentColor Or Color;
+      end; 
+    AndPut:
+      begin
+      { getpixel wants local/relative coordinates }
+      Color := GetPixel(x-StartXViewPort,y-StartYViewPort);
+      Color := CurrentColor And Color;
+      end; 
+    NotPut:
+      begin
+      Color := Not Color;
+      end
+  else
+    Color:=CurrentColor;  
+  end;
+  ggiPutPixel(Visual,x, y, Color);
+end;
+
+procedure ggi_putpixelproc(X,Y: Integer; Color: Word);
+begin
+  If Not ClipCoords(X,Y) Then exit;
+  ggiputpixel(Visual,x, y, Color);
+end;
+
+function ggi_getpixelproc (X,Y: Integer): word;
+
+Var i : TGGIPixel;
+
+begin
+ ClipCoords(X,Y);
+ ggigetpixel(Visual,x, y,I);
+ ggi_getpixelproc:=i;
+end;
+
+procedure ggi_clrviewproc;
+begin
+  ggidrawbox(Visual,StartXViewPort,StartYViewPort,ViewWidth,ViewHeight);
+end;
+
+{ Bitmap utilities }
+type
+  PBitmap = ^TBitmap;
+  TBitmap = record
+            Width, Height: Integer;
+            Data: record end;
+            end;
+
+procedure ggi_putimageproc (X,Y: Integer; var Bitmap; BitBlt: Word);
+begin
+  With TBitMap(BitMap) do
+    ggiputbox(Visual,x, y, width, height, @Data);
+end;
+
+procedure ggi_getimageproc (X1,Y1,X2,Y2: Integer; Var Bitmap);
+begin
+  with TBitmap(Bitmap) do
+    begin
+    Width := x2 - x1 + 1;
+    Height := y2 - y1 + 1;
+    ggigetbox(Visual,x1,y1, x2 - x1 + 1, y2 - y1 + 1, @Data);
+    end;
+end;
+
+function  ggi_imagesizeproc (X1,Y1,X2,Y2: Integer): longint;
+begin
+ // 32 bits per pixel -- change ASAP !! 
+ ggi_imagesizeproc := SizeOf(TBitmap) + (x2 - x1 + 1) * (y2 - y1 + 1) * SizeOF(longint);
+end;
+
+procedure ggi_hlineproc (x, x2,y : integer);
 begin
 end;
 
-procedure libvga_putpixelproc(X,Y: Integer; Color: Word);
+procedure ggi_vlineproc (x,y,y2: integer);
 begin
 end;
 
-procedure libvga_clrviewproc;
+procedure ggi_patternlineproc (x1,x2,y: integer);
 begin
 end;
 
-procedure libvga_putimageproc (X,Y: Integer; var Bitmap; BitBlt: Word);
-begin
-end;
-
-procedure libvga_getimageproc (X1,Y1,X2,Y2: Integer; Var Bitmap);
-begin
-end;
-
-function  libvga_imagesizeproc (X1,Y1,X2,Y2: Integer): longint;
-begin
-end;
-
-procedure libvga_hlineproc (x, x2,y : integer);
-begin
-end;
-
-procedure libvga_vlineproc (x,y,y2: integer);
-begin
-end;
-
-procedure libvga_patternlineproc (x1,x2,y: integer);
-begin
-end;
-
-procedue libvga_ellipseproc  (X,Y: Integer;XRadius: word;
+procedure ggi_ellipseproc  (X,Y: Integer;XRadius: word;
   YRadius:word; stAngle,EndAngle: word; fp: PatternLineProc);
 begin
 end;
 
-procedure libvga_lineproc (X1, Y1, X2, Y2 : Integer);
+procedure ggi_lineproc (X1, Y1, X2, Y2 : Integer);
 begin
 end;
 
-procedure libvga_getscanlineproc = procedure (Y : integer; var data);
+procedure ggi_getscanlineproc (Y : integer; var data);
 begin
 end;
 
-procedure libvga_setactivepageproc (page: word);
+procedure ggi_setactivepageproc (page: word);
 begin
 end;
 
-procedure libvga_setvisualpageproc (page: word);
+procedure ggi_setvisualpageproc (page: word);
 begin
 end;
 
 
-procedure libvga_savestateproc;
+procedure ggi_savestateproc;
 begin
 end;
 
-procedure libvga_restorestateproc;
+procedure ggi_restorestateproc;
 begin
 end;
 
-procedure libvga_setrgbpaletteproc(ColorNum, RedValue, GreenValue, BlueValue: Integer);
+procedure ggi_setrgbpaletteproc(ColorNum, RedValue, GreenValue, BlueValue: Integer);
+
+Var Col : TGGIcolor;
+
 begin
+  col.r:=redvalue;
+  col.g:=greenvalue;
+  col.b:=bluevalue;
+  ggisetpalette(Visual,ColorNum,1,col);  
 end;
 
-procedure libvga_getrgbpaletteproc =(ColorNum: integer; var
-     RedValue, GreenValue, BlueValue: Integer);
+procedure ggi_getrgbpaletteproc (ColorNum: integer; 
+                                    var RedValue, GreenValue, BlueValue: Integer);
+
+Var Col : TGGIColor;
+
 begin
+  ggigetpalette(Visual,ColorNum,1,col);
+  RedValue:=Col.R;
+  GreenValue:=Col.G;
+  BlueValue:=Col.B;
 end;
  
 {************************************************************************}
@@ -330,8 +410,9 @@ end;
   { Returns nil if no graphics mode supported.        }
   { This list is READ ONLY!                           }
    var
+    modename : string[20];
     mode: TModeInfo;
-    modeinfo : vga_modeinfo;
+    modeinfo : TGGImode;
     i : longint;
     
    begin
@@ -341,65 +422,71 @@ end;
      { anything...                           }
      if assigned(ModeList) then
        exit;
-     vga_init;
-     For I:=1 to GLastMode do
-       If vga_hasmode(I) then
+     SaveVideoState:=ggi_savevideostate;
+     RestoreVideoState:=ggi_restorevideostate;  
+     Writeln ('ggiInit');
+     If ggiInit<>0 then
+       begin
+       _graphresult:=grNoInitGraph;
+       exit;
+       end;
+     Writeln ('ggiOPen');  
+     Visual:=ggiOpen(nil, []); // Use default visual  
+     For I:=0 to GLastMode do
+       begin
+       Writeln(' testing mode : ',Modenames[I]);
+       modename:=ModeNames[I]+#0;
+       ggiparsemode(@ModeName[1],modeinfo);
+       If ggiCheckMode(visual,modeinfo)=0 then
          begin
-         ModeInfo:=vga_getmodeinfo(i)^; 
+         Writeln('OK for mode : ',Modenames[I]);
          InitMode(Mode);
-         With Mode,ModeInfo do
+         With Mode do
            begin
            ModeNumber:=I;
            ModeName:=ModeNames[i];
-           DriverNumber := 0;
-           MaxX:=Width;
-           MaxY:=height;
-           MaxColor := colors;
+           // Pretend we're VGA always.
+           DriverNumber := VGA;
+           MaxX:=ModeInfo.Visible.X;
+           MaxY:=ModeInfo.Visible.Y;
+           // MaxColor := ModeInfo.colors;
+           MaxColor:=255;
            PaletteSize := MaxColor;
            HardwarePages := 0;
-           {
            // necessary hooks ... 
-           DirectPutPixel : DefPixelProc;
-           GetPixel       : GetPixelProc;
-           PutPixel       : PutPixelProc;
-           SetRGBPalette  : SetRGBPaletteProc;
-           GetRGBPalette  : GetRGBPaletteProc;
-           // defaults possible ... 
-           SetVisualPage  : SetVisualPageProc;
-           SetActivePage  : SetActivePageProc;
-           ClearViewPort  : ClrViewProc;
-           PutImage       : PutImageProc;
-           GetImage       : GetImageProc;
-           ImageSize      : ImageSizeProc;
-           GetScanLine    : GetScanLineProc;
-           Line           : LineProc;
-           InternalEllipse: EllipseProc;
-           PatternLine    : PatternLineProc;
-           HLine          : HLineProc;
-           VLine          : VLineProc;
-           InitMode       : InitModeProc;
-           next: PModeInfo;
-           DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixVESA256;
-           PutPixel:={$ifdef fpc}@{$endif}PutPixVESA256;
-           GetPixel:={$ifdef fpc}@{$endif}GetPixVESA256;
-           SetRGBPalette := {$ifdef fpc}@{$endif}SetVESARGBPalette;
-           GetRGBPalette := {$ifdef fpc}@{$endif}GetVESARGBPalette;
-           InitMode := {$ifdef fpc}@{$endif}Init640x480x256;
-           SetVisualPage := {$ifdef fpc}@{$endif}SetVisualVESA;
-           SetActivePage := {$ifdef fpc}@{$endif}SetActiveVESA;
-           hline := {$ifdef fpc}@{$endif}HLineVESA256;
-           hline := {$ifdef fpc}@{$endif}HLineVESA256;
-           XAspect := 10000;
-           YAspect := 10000;
+           DirectPutPixel := @ggi_DirectPixelProc;
+           GetPixel       := @ggi_GetPixelProc;
+           PutPixel       := @ggi_PutPixelProc;
+           SetRGBPalette  := @ggi_SetRGBPaletteProc;
+           GetRGBPalette  := @ggi_GetRGBPaletteProc;
+           ClearViewPort  := @ggi_ClrViewProc;
+           PutImage       := @ggi_PutImageProc;
+           GetImage       := @ggi_GetImageProc;
+           ImageSize      := @ggi_ImageSizeProc;
+           { Add later maybe ? 
+           SetVisualPage  := SetVisualPageProc;
+           SetActivePage  := SetActivePageProc;
+           GetScanLine    := @ggi_GetScanLineProc;
+           Line           := @ggi_LineProc;
+           InternalEllipse:= @ggi_EllipseProc;
+           PatternLine    := @ggi_PatternLineProc;
+           HLine          := @ggi_HLineProc;
+           VLine          := @ggi_VLineProc;
            }
+           InitMode       := @ggi_InitModeProc;
            end;
          AddMode(Mode);
          end;
+       end;
    end;
 
 {
 $Log$
-Revision 1.1  1999-11-07 16:57:26  michael
+Revision 1.2  1999-11-08 00:08:43  michael
+* Fist working version of svgalib new graph unit
+* Initial implementation of ggi new graph unit
+
+Revision 1.1  1999/11/07 16:57:26  michael
 + Start of common graph implementation
 
 }

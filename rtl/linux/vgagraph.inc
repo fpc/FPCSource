@@ -1,8 +1,21 @@
 {
-     $Id$
-}
+    $Id$
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 1999 by the Free Pascal development team
+
+    svgalib implementation of graph unit.
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+ 
   const
-   InternalDriverName = 'LinuxGX';
+   InternalDriverName = 'LinuxVGA';
 
   var SavePtr : Pointer;
 
@@ -134,8 +147,9 @@ Const
   G1600x1200x16M32  = 49;
 
   GLASTMODE         = 49;
-  ModeNames : Array[1..GLastMode] of string [20] = 
-   ('G320x200x16',
+  ModeNames : Array[0..GLastMode] of string [18] = 
+   ('Text',
+    'G320x200x16',
     'G640x200x16',
     'G640x350x16',
     'G640x480x16',
@@ -184,78 +198,166 @@ Const
     'G1600x1200x64K',
     'G1600x1200x16M',
     'G1600x1200x16M32');
+var
+  PhysicalScreen: PGraphicsContext;
 
  { vga functions }
  Function vga_init: Longint; Cdecl; External;
- Function vga_getdefaultmode: Longint; Cdecl; External;
-
  Function vga_hasmode(mode: Longint): Boolean; Cdecl; External;
-
  Function vga_getmodeinfo(mode: Longint): pvga_modeinfo; Cdecl; External;
  Function vga_setmode(mode: Longint): Longint; Cdecl; External;
- Function vga_getxdim : Longint; cdecl;external;
- Function vga_getydim : longint; cdecl;external;
-
  { gl functions }
  procedure gl_setpixel(x, y, c: LongInt); Cdecl; External;
  function  gl_getpixel(x, y: LongInt): LongInt; cdecl; external;
- procedure gl_line(x1, y1, x2, y2, c: LongInt); Cdecl; External;
  procedure gl_fillbox(x, y, w, h, c: LongInt); Cdecl; External;
- procedure gl_circle(x, y, r, c: LongInt ); Cdecl; External;
  procedure gl_getbox(x, y, w, h: LongInt; dp: pointer); Cdecl; External;
  procedure gl_putbox(x, y, w, h: LongInt; dp: pointer); Cdecl; External;
- procedure gl_disableclipping; Cdecl; External;
- procedure gl_enableclipping; Cdecl; External;
- procedure gl_putboxpart(x, y, w, h, bw, bh: LongInt; b: pointer; xo, yo: LongInt); Cdecl; External;
- function  gl_rgbcolor(r, g, b: LongInt): LongInt; Cdecl; External;
  function  gl_setcontextvga(m: LongInt): LongInt; Cdecl; External;
  function  gl_allocatecontext: PGraphicsContext; Cdecl; External;
  procedure gl_getcontext(gc: PGraphicsContext); Cdecl; External;
  procedure gl_setrgbpalette; Cdecl; External;
- procedure gl_freecontext(gc: PGraphicsContext); Cdecl; External;
- procedure gl_setclippingwindow(x1, y1, x2, y2: LongInt); Cdecl; External;
- procedure gl_setwritemode(wm: LongInt); Cdecl; External;
- procedure gl_setfontcolors(bg, fg: LongInt); Cdecl; External;
- procedure gl_writen(x, y, n: LongInt; s: PChar); Cdecl; External;
- procedure gl_setfont(fw, fh: LongInt; fdp: pointer); Cdecl; External;
-
- procedure gl_copyboxfromcontext(var gc: TGraphicsContext; x1, y1, w, h, x2, y2: LongInt); Cdecl; External;
- procedure gl_setcontext(gc: PGraphicsContext); Cdecl; External;
-
- function  gl_setcontextvgavirtual(m: LongInt): LongInt; cdecl; external;
- procedure gl_font8x8; Cdecl; External;
-
+ Procedure gl_setpalettecolor(c, r, b, g: LongInt); cdecl;external;
+ Procedure gl_getpalettecolor(c: LongInt; var r, b, g: LongInt); cdecl;external;
 
 { ---------------------------------------------------------------------
     Required procedures
   ---------------------------------------------------------------------}
+  
+procedure libvga_savevideostate;
+
+begin
+end;
+
+procedure libvga_restorevideostate;
+
+begin
+  vga_setmode(Gtext);
+end;
+
+const
+  BgiColors: array[0..15] of LongInt
+    = ($000000, $000080, $008000, $008080,
+       $800000, $800080, $808000, $C0C0C0,
+       $808080, $0000FF, $00FF00, $00FFFF,
+       $FF0000, $FF00FF, $FFFF00, $FFFFFF);
+
+procedure InitColors;
+
+var
+  i: Integer;
+begin
+  for i:=0 to 15 do
+    gl_setpalettecolor(I,BgiColors[i] shr 16,
+                       (BgiColors[i] shr 8) and 255,
+                       BgiColors[i] and 255)
+end;
+
 procedure libvga_initmodeproc;
 begin
   vga_setmode(IntCurrentMode);
+  gl_setcontextvga(IntCurrentMode); 
+  PhysicalScreen := gl_allocatecontext;
+  gl_getcontext(PhysicalScreen);
+  if (PhysicalScreen^.colors = 256) then gl_setrgbpalette; 
+  InitColors;
 end;
+
+Function ClipCoords (Var X,Y : Integer) : Boolean;
+{ Adapt to viewport, return TRUE if still in viewport,
+  false if outside viewport}
   
-function libvga_getpixelproc (X,Y: Integer): word;
 begin
+  X:= X + StartXViewPort;
+  Y:= Y + StartYViewPort;
+  ClipCoords:=Not ClipPixels;
+  if ClipCoords then
+    Begin
+    ClipCoords:=(X < StartXViewPort) or (X > (StartXViewPort + ViewWidth));
+    ClipCoords:=ClipCoords or
+               ((Y < StartYViewPort) or (Y > (StartYViewPort + ViewHeight)));
+    ClipCoords:=Not ClipCoords;
+    end;           
+end;  
+
+
+procedure libvga_directpixelproc(X,Y: Integer);
+
+Var Color : Word;
+
+begin
+  case CurrentWriteMode of
+    XORPut:
+      begin
+      { getpixel wants local/relative coordinates }
+      Color := GetPixel(x-StartXViewPort,y-StartYViewPort);
+      Color := CurrentColor Xor Color;
+      end;
+    OrPut: 
+      begin
+      { getpixel wants local/relative coordinates }
+      Color := GetPixel(x-StartXViewPort,y-StartYViewPort);
+      Color := CurrentColor Or Color;
+      end; 
+    AndPut:
+      begin
+      { getpixel wants local/relative coordinates }
+      Color := GetPixel(x-StartXViewPort,y-StartYViewPort);
+      Color := CurrentColor And Color;
+      end; 
+    NotPut:
+      begin
+      Color := Not Color;
+      end
+  else
+    Color:=CurrentColor;  
+  end;
+  gl_setpixel(x, y, Color);
 end;
 
 procedure libvga_putpixelproc(X,Y: Integer; Color: Word);
 begin
+  If Not ClipCoords(X,Y) Then exit;
+  gl_setpixel(x, y, Color);
+end;
+
+function libvga_getpixelproc (X,Y: Integer): word;
+begin
+ ClipCoords(X,Y);
+ libvga_getpixelproc:=gl_getpixel(x, y);
 end;
 
 procedure libvga_clrviewproc;
 begin
+  gl_fillbox(StartXViewPort,StartYViewPort,ViewWidth,ViewHeight,CurrentBkColor);
 end;
+
+{ Bitmap utilities }
+type
+  PBitmap = ^TBitmap;
+  TBitmap = record
+            Width, Height: Integer;
+            Data: record end;
+            end;
 
 procedure libvga_putimageproc (X,Y: Integer; var Bitmap; BitBlt: Word);
 begin
+  With TBitMap(BitMap) do
+    gl_putbox(x, y, width, height, @Data);
 end;
 
 procedure libvga_getimageproc (X1,Y1,X2,Y2: Integer; Var Bitmap);
 begin
+  with TBitmap(Bitmap) do
+    begin
+    Width := x2 - x1 + 1;
+    Height := y2 - y1 + 1;
+    gl_getbox(x1,y1, x2 - x1 + 1, y2 - y1 + 1, @Data);
+    end;
 end;
 
 function  libvga_imagesizeproc (X1,Y1,X2,Y2: Integer): longint;
 begin
+ libvga_imagesizeproc := SizeOf(TBitmap) + (x2 - x1 + 1) * (y2 - y1 + 1) * PhysicalScreen^.BytesPerPixel;
 end;
 
 procedure libvga_hlineproc (x, x2,y : integer);
@@ -270,7 +372,7 @@ procedure libvga_patternlineproc (x1,x2,y: integer);
 begin
 end;
 
-procedue libvga_ellipseproc  (X,Y: Integer;XRadius: word;
+procedure libvga_ellipseproc  (X,Y: Integer;XRadius: word;
   YRadius:word; stAngle,EndAngle: word; fp: PatternLineProc);
 begin
 end;
@@ -279,7 +381,7 @@ procedure libvga_lineproc (X1, Y1, X2, Y2 : Integer);
 begin
 end;
 
-procedure libvga_getscanlineproc = procedure (Y : integer; var data);
+procedure libvga_getscanlineproc (Y : integer; var data);
 begin
 end;
 
@@ -302,11 +404,19 @@ end;
 
 procedure libvga_setrgbpaletteproc(ColorNum, RedValue, GreenValue, BlueValue: Integer);
 begin
+  gl_setpalettecolor(ColorNum,RedValue,GreenValue,BlueValue);  
 end;
 
-procedure libvga_getrgbpaletteproc =(ColorNum: integer; var
-     RedValue, GreenValue, BlueValue: Integer);
+procedure libvga_getrgbpaletteproc (ColorNum: integer; 
+                                    var RedValue, GreenValue, BlueValue: Integer);
+
+Var R,G,B : longint;
+
 begin
+  gl_getpalettecolor(ColorNum,R,G,B);
+  RedValue:=R;
+  GreenValue:=G;
+  BlueValue:=B;
 end;
  
 {************************************************************************}
@@ -341,65 +451,60 @@ end;
      { anything...                           }
      if assigned(ModeList) then
        exit;
+     SaveVideoState:=libvga_savevideostate;
+     RestoreVideoState:=libvga_restorevideostate;  
      vga_init;
-     For I:=1 to GLastMode do
+     For I:=0 to GLastMode do
+       begin
        If vga_hasmode(I) then
          begin
          ModeInfo:=vga_getmodeinfo(i)^; 
          InitMode(Mode);
-         With Mode,ModeInfo do
+         With Mode do
            begin
            ModeNumber:=I;
            ModeName:=ModeNames[i];
-           DriverNumber := 0;
-           MaxX:=Width;
-           MaxY:=height;
-           MaxColor := colors;
+           // Pretend we're VGA always.
+           DriverNumber := VGA;
+           MaxX:=ModeInfo.Width;
+           MaxY:=ModeInfo.height;
+           MaxColor := ModeInfo.colors;
            PaletteSize := MaxColor;
            HardwarePages := 0;
-           {
            // necessary hooks ... 
-           DirectPutPixel : DefPixelProc;
-           GetPixel       : GetPixelProc;
-           PutPixel       : PutPixelProc;
-           SetRGBPalette  : SetRGBPaletteProc;
-           GetRGBPalette  : GetRGBPaletteProc;
-           // defaults possible ... 
-           SetVisualPage  : SetVisualPageProc;
-           SetActivePage  : SetActivePageProc;
-           ClearViewPort  : ClrViewProc;
-           PutImage       : PutImageProc;
-           GetImage       : GetImageProc;
-           ImageSize      : ImageSizeProc;
-           GetScanLine    : GetScanLineProc;
-           Line           : LineProc;
-           InternalEllipse: EllipseProc;
-           PatternLine    : PatternLineProc;
-           HLine          : HLineProc;
-           VLine          : VLineProc;
-           InitMode       : InitModeProc;
-           next: PModeInfo;
-           DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixVESA256;
-           PutPixel:={$ifdef fpc}@{$endif}PutPixVESA256;
-           GetPixel:={$ifdef fpc}@{$endif}GetPixVESA256;
-           SetRGBPalette := {$ifdef fpc}@{$endif}SetVESARGBPalette;
-           GetRGBPalette := {$ifdef fpc}@{$endif}GetVESARGBPalette;
-           InitMode := {$ifdef fpc}@{$endif}Init640x480x256;
-           SetVisualPage := {$ifdef fpc}@{$endif}SetVisualVESA;
-           SetActivePage := {$ifdef fpc}@{$endif}SetActiveVESA;
-           hline := {$ifdef fpc}@{$endif}HLineVESA256;
-           hline := {$ifdef fpc}@{$endif}HLineVESA256;
-           XAspect := 10000;
-           YAspect := 10000;
+           DirectPutPixel := @libvga_DirectPixelProc;
+           GetPixel       := @Libvga_GetPixelProc;
+           PutPixel       := @libvga_PutPixelProc;
+           SetRGBPalette  := @libvga_SetRGBPaletteProc;
+           GetRGBPalette  := @libvga_GetRGBPaletteProc;
+           ClearViewPort  := libvga_ClrViewProc;
+           PutImage       := @Libvga_PutImageProc;
+           GetImage       := @libvga_GetImageProc;
+           ImageSize      := @libvga_ImageSizeProc;
+           { Add later maybe ? 
+           SetVisualPage  := SetVisualPageProc;
+           SetActivePage  := SetActivePageProc;
+           GetScanLine    := @libvga_GetScanLineProc;
+           Line           := @libvga_LineProc;
+           InternalEllipse:= @libvga_EllipseProc;
+           PatternLine    := @libvga_PatternLineProc;
+           HLine          := @libvga_HLineProc;
+           VLine          := @libvga_VLineProc;
            }
+           InitMode       := @libvga_InitModeProc;
            end;
          AddMode(Mode);
          end;
+       end;
    end;
 
 {
 $Log$
-Revision 1.1  1999-11-07 16:57:26  michael
+Revision 1.2  1999-11-08 00:08:43  michael
+* Fist working version of svgalib new graph unit
+* Initial implementation of ggi new graph unit
+
+Revision 1.1  1999/11/07 16:57:26  michael
 + Start of common graph implementation
 
 }
