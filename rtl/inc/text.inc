@@ -775,9 +775,17 @@ var
 begin
   s:='';
   IgnoreSpaces:=false;
-  while TextRec(f).Bufptr^[TextRec(f).BufPos] in [#9,#10,#13,' '] do
-   if not NextChar(f,s) then
-    exit;
+  { Return false when already at EOF }
+  if (TextRec(f).BufPos>=TextRec(f).BufEnd) then
+   exit;
+  while (TextRec(f).Bufptr^[TextRec(f).BufPos] in [#9,#10,#13,' ']) do
+   begin
+     if not NextChar(f,s) then
+      exit;
+     { EOF? }
+     if (TextRec(f).BufPos<TextRec(f).BufEnd) then
+      break;
+   end;
   IgnoreSpaces:=true;
 end;
 
@@ -1024,7 +1032,13 @@ Begin
    FileFunc(TextRec(f).InOutFunc)(TextRec(f));
   hs:='';
   if IgnoreSpaces(f) then
-   ReadNumeric(f,hs);
+   begin
+     { When spaces were found and we are now at EOF,
+       then we return 0 }
+     if (TextRec(f).BufPos>=TextRec(f).BufEnd) then
+      exit;
+     ReadNumeric(f,hs);
+   end;
 {$ifdef hascompilerproc}
   Val(hs,l,code);
 {$else hascompilerproc}
@@ -1066,7 +1080,13 @@ Begin
    FileFunc(TextRec(f).InOutFunc)(TextRec(f));
   hs:='';
   if IgnoreSpaces(f) then
-   ReadNumeric(f,hs);
+   begin
+     { When spaces were found and we are now at EOF,
+       then we return 0 }
+     if (TextRec(f).BufPos>=TextRec(f).BufEnd) then
+      exit;
+     ReadNumeric(f,hs);
+   end;
 {$ifdef hascompilerproc}
   val(hs,u,code);
 {$else hascompilerproc}
@@ -1108,7 +1128,13 @@ begin
    FileFunc(TextRec(f).InOutFunc)(TextRec(f));
   hs:='';
   if IgnoreSpaces(f) then
-    ReadNumeric(f,hs);
+   begin
+     { When spaces were found and we are now at EOF,
+       then we return 0 }
+     if (TextRec(f).BufPos>=TextRec(f).BufEnd) then
+      exit;
+     ReadNumeric(f,hs);
+   end;
 {$ifdef hascompilerproc}
   val(hs,v,code);
 {$else hascompilerproc}
@@ -1150,7 +1176,13 @@ Begin
    FileFunc(TextRec(f).InOutFunc)(TextRec(f));
   hs:='';
   if IgnoreSpaces(f) then
-   ReadNumeric(f,hs);
+   begin
+     { When spaces were found and we are now at EOF,
+       then we return 0 }
+     if (TextRec(f).BufPos>=TextRec(f).BufEnd) then
+      exit;
+     ReadNumeric(f,hs);
+   end;
 {$ifdef hascompilerproc}
   val(hs,q,code);
 {$else hascompilerproc}
@@ -1191,7 +1223,13 @@ Begin
    FileFunc(TextRec(f).InOutFunc)(TextRec(f));
   hs:='';
   if IgnoreSpaces(f) then
-   ReadNumeric(f,hs);
+   begin
+     { When spaces were found and we are now at EOF,
+       then we return 0 }
+     if (TextRec(f).BufPos>=TextRec(f).BufEnd) then
+      exit;
+     ReadNumeric(f,hs);
+   end;
 {$ifdef hascompilerproc}
   Val(hs,i,code);
 {$else hascompilerproc}
@@ -1228,7 +1266,10 @@ end;
 
 {
   $Log$
-  Revision 1.18  2002-09-07 15:07:46  peter
+  Revision 1.19  2002-11-29 15:50:27  peter
+    * fix for tw1896
+
+  Revision 1.18  2002/09/07 15:07:46  peter
     * old logs removed and tabs fixed
 
   Revision 1.17  2002/07/01 16:29:05  peter
