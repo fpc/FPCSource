@@ -88,14 +88,12 @@ Const
   Firstreg = R_0;
   LastReg = R_F31;
 
-  stack_pointer = R_30;
-  frame_pointer = R_15;
-  self_pointer  = R_16;
+  stack_pointer_reg = R_30;
+  frame_pointer_reg = R_15;
+  self_pointer_reg  = R_16;
   accumulator   = R_0;
   global_pointer = R_29;
   return_pointer = R_26;
-  { it is used to pass the offset to the destructor helper routine }
-  vmt_offset_reg = R_1;
 
   max_scratch_regs = 2;
   scratch_regs : array[1..max_scratch_regs] of tregister = (R_1,R_2);
@@ -105,15 +103,8 @@ Const
   LoGPReg = R_0;
   HiGPReg = R_31;
 
-{ low and high of every possible width general purpose register (same as }
-{ above on most architctures apart from the 80x86)                       }
-  LoReg = R_0;
-  HiReg = R_31;
-
-  cpuflags = [cf_64bitaddr];
-
   { sizes }
-  pointersize   = 8;
+  pointer_size  = 8;
   extended_size = 16;
 
   general_registers = [R_0..R_31];
@@ -135,10 +126,30 @@ Const
 
   max_operands = 4;
 
-  registers_saved_on_cdecl = [R_9..R_14,R_F2..R_F9];
-
   varregs : Array [1..6] of Tregister =
             (R_9,R_10,R_11,R_12,R_13,R_14);
+            
+{*****************************************************************************
+                       GCC /ABI linking information
+*****************************************************************************}
+
+  {# Registers which must be saved when calling a routine declared as
+     cppdecl, cdecl, stdcall, safecall, palmossyscall. The registers
+     saved should be the ones as defined in the target ABI and / or GCC.
+     
+     This value can be deduced from CALLED_USED_REGISTERS array in the
+     GCC source.
+  }
+  std_saved_registers = [R_9..R_14,R_F2..R_F9];
+  {# Required parameter alignment when calling a routine declared as
+     stdcall and cdecl. The alignment value should be the one defined
+     by GCC or the target ABI. 
+     
+     The value of this constant is equal to the constant 
+     PARM_BOUNDARY / BITS_PER_UNIT in the GCC source.
+  }     
+  std_param_align = ???;
+            
 
 Type
    TReference = record
@@ -195,7 +206,6 @@ Type
 
   procedure set_location(var destloc : tlocation;const sourceloc : tlocation);
 
-  function reg2str(r : tregister) : string;
 
 {*****************************************************************************
                                   Init/Done
@@ -209,15 +219,6 @@ implementation
   uses
      verbose;
 
-  function reg2str(r : tregister) : string;
-
-    begin
-       if r in [R_0..R_31] then
-         reg2str:='R'+tostr(longint(r)-longint(R_0))
-       else if r in [R_F0..R_F31] then
-         reg2str:='F'+tostr(longint(r)-longint(R_F0))
-       else internalerror(38991);
-    end;
 
   procedure reset_reference(var ref : treference);
   begin
@@ -274,7 +275,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2001-01-05 17:36:58  florian
+  Revision 1.3  2002-04-20 21:38:45  carl
+  * renamed some constants
+
+  Revision 1.2  2001/01/05 17:36:58  florian
   * the info about exception frames is stored now on the stack
   instead on the heap
 

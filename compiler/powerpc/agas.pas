@@ -51,7 +51,7 @@ unit agas;
     uses cpuasm;
 
     const
-       att_op2str : array[tasmop] of string[14] = ('<none>',
+       gas_op2str : array[tasmop] of string[14] = ('<none>',
     'add','add.','addo','addo.','addc','addc.','addco','addco.',
     'adde','adde.','addeo','addeo.','addi','addic','addic.','addis',
     'addme','addme.','addmeo','addmeo.','addze','addze.','addzeo',
@@ -203,7 +203,7 @@ unit agas;
       else
     { process operands }
         begin
-          s:=#9+att_op2str[op];
+          s:=#9+gas_op2str[op];
           if paicpu(hp)^.ops<>0 then
             begin
               if not is_calljmp(op) then
@@ -226,7 +226,7 @@ unit agas;
     begin
       tempstr := '#9';
       case c.simple of
-        false: cond2str := tempstr+att_op2str[op]+'#9'+tostr(c.bo)+','+
+        false: cond2str := tempstr+gas_op2str[op]+'#9'+tostr(c.bo)+','+
                            tostr(c.bi);
         true:
           if (op >= A_B) and (op <= A_BCLRL) then
@@ -273,7 +273,10 @@ unit agas;
 end.
 {
   $Log$
-  Revision 1.2  2002-04-06 18:13:01  jonas
+  Revision 1.3  2002-04-20 21:41:51  carl
+  * renamed some constants
+
+  Revision 1.2  2002/04/06 18:13:01  jonas
     * several powerpc-related additions and fixes
 
   Revision 1.1  2001/08/26 13:31:04  florian

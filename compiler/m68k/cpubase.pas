@@ -245,9 +245,9 @@ unit cpubase;
 
        {This constant is an alias for the stack pointer, as it's name may
         differ from processor to processor.}
-       stack_pointer = R_SP;
+       stack_pointer_reg = R_SP;
 
-       frame_pointer = R_A6;
+       frame_pointer_reg = R_A6;
 
        {This constant is an alias for the accumulator, as it's name may
         differ from processor to processor.}
@@ -345,8 +345,6 @@ unit cpubase;
     procedure disposereference(var r : preference);
 
     function newreference(const r : treference) : preference;
-
-    function reg2str(r : tregister) : string;
 
     { generates an help record for constants }
     function newcsymbol(const s : string;l : longint) : pcsymbol;
@@ -855,20 +853,6 @@ unit cpubase;
     uses
       strings,globals,verbose;
 
-    function reg2str(r : tregister) : string;
-
-      const
-     a : array[R_NO..R_FPSR] of string[3] =
-      ('','D0','D1','D2','D3','D4','D5','D6','D7',
-       'A0','A1','A2','A3','A4','A5','A6','A7',
-      '-(SP)','(SP)+',
-       'CCR','FP0','FP1','FP2',
-       'FP3','FP4','FP5','FP6','FP7','FPCR','SR',
-       'SSP','DFC','SFC','VBR','FPSR');
-
-      begin
-         reg2str:=a[r];
-      end;
 
     procedure disposereference(var r : preference);
 
@@ -1576,7 +1560,10 @@ unit cpubase;
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:05  michael
+  Revision 1.2  2002-04-20 21:40:48  carl
+  * renamed some constants
+
+  Revision 1.1  2000/07/13 06:30:05  michael
   + Initial import
 
   Revision 1.2  2000/01/07 01:14:50  peter

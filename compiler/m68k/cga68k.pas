@@ -606,7 +606,7 @@ begin
 {$endif GDB}
 
     { omit stack frame ? }
-    if procinfo^.framepointer=stack_pointer then
+    if procinfo^.framepointer=stack_pointer_reg then
         begin
             CGMessage(cg_d_stackframe_omited);
             nostackframe:=true;
@@ -1391,7 +1391,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-11-30 20:30:34  peter
+  Revision 1.2  2002-04-20 21:40:48  carl
+  * renamed some constants
+
+  Revision 1.1  2000/11/30 20:30:34  peter
     * moved into m68k subdir
 
   Revision 1.2  2000/07/13 11:32:37  michael

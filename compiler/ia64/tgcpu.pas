@@ -213,7 +213,7 @@ implementation
            if saved[r]<>reg_not_saved then
              begin
                 reset_reference(hr);
-                hr.base:=frame_pointer;
+                hr.base:=frame_pointer_reg;
                 hr.offset:=saved[r];
                 exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOV,S_L,newreference(hr),r)));
                 unused:=unused-[r];
@@ -393,7 +393,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-12-31 16:54:19  florian
+  Revision 1.2  2002-04-20 21:38:45  carl
+  * renamed some constants
+
+  Revision 1.1  2000/12/31 16:54:19  florian
     + initial revision
 
 }

@@ -149,7 +149,7 @@ const
         else
           begin
             reset_reference(ref);
-            ref.base := stack_pointer;
+            ref.base := STACK_POINTER_REG;
             ref.offset := LinkageAreaSize+para_size_till_now;
             a_load_reg_ref(list,size,reg,ref);
           end;
@@ -169,7 +169,7 @@ const
         else
           begin
             reset_reference(ref);
-            ref.base := stack_pointer;
+            ref.base := STACK_POINTER_REG;
             ref.offset := LinkageAreaSize+para_size_till_now;
             a_load_const_ref(list,size,a,ref);
           end;
@@ -190,7 +190,7 @@ const
         else
           begin
             reset_reference(ref);
-            ref.base := stack_pointer;
+            ref.base := STACK_POINTER_REG;
             ref.offset := LinkageAreaSize+para_size_till_now;
             tmpreg := get_scratch_reg(list);
             a_load_ref_reg(list,size,r,tmpreg);
@@ -214,7 +214,7 @@ const
         else
           begin
             reset_reference(ref);
-            ref.base := stack_pointer;
+            ref.base := STACK_POINTER_REG;
             ref.offset := LinkageAreaSize+para_size_till_now;
             tmpreg := get_scratch_reg(list);
             a_loadaddr_ref_reg(list,size,r,tmpreg);
@@ -233,10 +233,10 @@ const
  { save our RTOC register value. Only necessary when doing pointer based    }
  { calls or cross TOC calls, but currently done always                      }
          list.concat(taicpu.op_reg_ref(A_STW,R_RTOC,
-           new_reference(stack_pointer,LA_RTOC)));
+           new_reference(STACK_POINTER_REG,LA_RTOC)));
          list.concat(taicpu.op_sym(A_BL,newasmsymbol(s)));
          list.concat(taicpu.op_reg_ref(A_LWZ,R_RTOC,
-           new_reference(stack_pointer,LA_RTOC)));
+           new_reference(STACK_POINTER_REG,LA_RTOC)));
       end;
 
 {********************** load instructions ********************}
@@ -709,7 +709,7 @@ const
  { procedure, but currently this isn't checked, so save them always         }
         { following is the entry code as described in "Altivec Programming }
         { Interface Manual", bar the saving of AltiVec registers           }
-        a_reg_alloc(list,stack_pointer);
+        a_reg_alloc(list,STACK_POINTER_REG);
         a_reg_alloc(list,R_0);
         { allocate registers containing reg parameters }
         for regcounter := R_3 to R_10 do
@@ -717,20 +717,20 @@ const
         { save return address... }
         list.concat(taicpu.op_reg_reg(A_MFSPR,R_0,R_LR));
         { ... in caller's frame }
-        list.concat(taicpu.op_reg_ref(A_STW,R_0,new_reference(STACK_POINTER,4)));
+        list.concat(taicpu.op_reg_ref(A_STW,R_0,new_reference(STACK_POINTER_REG,4)));
         a_reg_dealloc(list,R_0);
         a_reg_alloc(list,R_11);
         { save end of fpr save area }
-        list.concat(taicpu.op_reg_reg_const(A_ORI,R_11,STACK_POINTER,0));
+        list.concat(taicpu.op_reg_reg_const(A_ORI,R_11,STACK_POINTER_REG,0));
         a_reg_alloc(list,R_12);
         { 0 or 8 based on SP alignment }
         list.concat(taicpu.op_reg_reg_const_const_const(A_RLWINM,
-          R_12,STACK_POINTER,0,28,28));
+          R_12,STACK_POINTER_REG,0,28,28));
         { add in stack length }
         list.concat(taicpu.op_reg_reg_const(A_SUBFIC,R_12,R_12,
           -localsize));
         { establish new alignment }
-        list.concat(taicpu.op_reg_reg_reg(A_STWUX,STACK_POINTER,STACK_POINTER,R_12));
+        list.concat(taicpu.op_reg_reg_reg(A_STWUX,STACK_POINTER,STACK_POINTER_REG,R_12));
         a_reg_dealloc(list,R_12);
         { save floating-point registers }
         { !!! has to be optimized: only save registers that are used }
@@ -748,7 +748,7 @@ const
         a_reg_alloc(list,R_0);
         list.concat(taicpu.op_reg_reg(A_MFSPR,R_0,R_CR);
         list.concat(taicpu.op_reg_ref(A_STW,scratch_register,
-          new_reference(stack_pointer,LA_CR)));
+          new_reference(STACK_POINTER_REG,LA_CR)));
         a_reg_dealloc(list,R_0); }
         { save pointer to incoming arguments }
         list.concat(taicpu.op_reg_reg_const(A_ADDI,R_30,R_11,144));
@@ -769,7 +769,7 @@ const
  { procedure, but currently this isn't checked, so save them always         }
         { following is the entry code as described in "Altivec Programming }
         { Interface Manual", bar the saving of AltiVec registers           }
-        a_reg_alloc(list,STACK_POINTER);
+        a_reg_alloc(list,STACK_POINTER_REG);
         a_reg_alloc(list,R_0);
         { allocate registers containing reg parameters }
         for regcounter := R_3 to R_10 do
@@ -777,14 +777,14 @@ const
         { save return address... }
         list.concat(taicpu.op_reg_reg(A_MFSPR,R_0,R_LR));
         { ... in caller's frame }
-        list.concat(taicpu.op_reg_ref(A_STW,R_0,new_reference(STACK_POINTER,8)));
+        list.concat(taicpu.op_reg_ref(A_STW,R_0,new_reference(STACK_POINTER_REG,8)));
         a_reg_dealloc(list,R_0);
         { save floating-point registers }
         { !!! has to be optimized: only save registers that are used }
         list.concat(taicpu.op_sym_ofs(A_BL,newasmsymbol('_savef14'),0));
         { save gprs in gpr save area }
         { !!! has to be optimized: only save registers that are used }
-        list.concat(taicpu.op_reg_ref(A_STMW,R_13,new_reference(STACK_POINTER,-220)));
+        list.concat(taicpu.op_reg_ref(A_STMW,R_13,new_reference(STACK_POINTER_REG,-220)));
         { save the CR if necessary ( !!! always done currently ) }
         a_reg_alloc(list,R_0);
         list.concat(taicpu.op_reg_reg(A_MFSPR,R_0,R_CR));
@@ -792,16 +792,16 @@ const
           new_reference(stack_pointer,LA_CR)));
         a_reg_dealloc(list,R_0);
         { save pointer to incoming arguments }
-        list.concat(taicpu.op_reg_reg_const(A_ORI,R_31,STACK_POINTER,0));
+        list.concat(taicpu.op_reg_reg_const(A_ORI,R_31,STACK_POINTER_REG,0));
         a_reg_alloc(list,R_12);
         { 0 or 8 based on SP alignment }
         list.concat(taicpu.op_reg_reg_const_const_const(A_RLWINM,
-          R_12,STACK_POINTER,0,28,28));
+          R_12,STACK_POINTER_REG,0,28,28));
         { add in stack length }
         list.concat(taicpu.op_reg_reg_const(A_SUBFIC,R_12,R_12,
           -localsize));
         { establish new alignment }
-        list.concat(taicpu.op_reg_reg_reg(A_STWUX,STACK_POINTER,STACK_POINTER,R_12));
+        list.concat(taicpu.op_reg_reg_reg(A_STWUX,STACK_POINTER_REG,STACK_POINTER_REG,R_12));
         a_reg_dealloc(list,R_12);
         { now comes the AltiVec context save, not yet implemented !!! }
       end;
@@ -1021,11 +1021,11 @@ const
         { AltiVec context restore, not yet implemented !!! }
 
         { restore SP }
-        list.concat(taicpu.op_reg_reg_const(A_ORI,STACK_POINTER,R_31,0));
+        list.concat(taicpu.op_reg_reg_const(A_ORI,STACK_POINTER_REG,R_31,0));
         { restore gprs }
-        list.concat(taicpu.op_reg_ref(A_LMW,R_13,new_reference(STACK_POINTER,-220)));
+        list.concat(taicpu.op_reg_ref(A_LMW,R_13,new_reference(STACK_POINTER_REG,-220)));
         { restore return address ... }
-        list.concat(taicpu.op_reg_ref(A_LWZ,R_0,new_reference(STACK_POINTER,8)));
+        list.concat(taicpu.op_reg_ref(A_LWZ,R_0,new_reference(STACK_POINTER_REG,8)));
         { ... and return from _restf14 }
         list.concat(taicpu.op_sym_ofs(A_B,newasmsymbol('_restf14'),0));
       end;
@@ -1174,7 +1174,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2002-04-06 18:13:01  jonas
+  Revision 1.13  2002-04-20 21:41:51  carl
+  * renamed some constants
+
+  Revision 1.12  2002/04/06 18:13:01  jonas
     * several powerpc-related additions and fixes
 
   Revision 1.11  2002/01/02 14:53:04  jonas

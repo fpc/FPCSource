@@ -287,7 +287,6 @@ const
 *****************************************************************************}
 
 type
-  trefoptions=(ref_none,ref_parafixup,ref_localfixup);
 
   { since we have only 16 offsets, we need to be able to specify the high }
   { and low 16 bits of the address of a symbol                            }
@@ -302,7 +301,6 @@ type
      symbol      : tasmsymbol;
      symaddr     : trefsymaddr;
      offsetfixup : longint;
-     options     : trefoptions;
      alignment   : byte;
   end;
 
@@ -391,9 +389,6 @@ const
   firstsavemmreg = R_NO;
   lastsavemmreg = R_NO;
 
-  lowsavereg = firstsaveintreg;
-  highsavereg = lastsavefpureg;
-
   lvaluelocations = [LOC_REFERENCE, LOC_CREGISTER, LOC_CFPUREGISTER,
                      LOC_CMMREGISTER];
 
@@ -435,18 +430,15 @@ const
   fpuregs = [R_F0..R_F31];
   mmregs = [R_M0..R_M31];
 
-  cpuflags = [];
 
-  registers_saved_on_cdecl = [R_13..R_29];
 
   { generic register names }
-  stack_pointer    = R_1;
+  stack_pointer_reg= R_1;
   R_RTOC           = R_2;
-  frame_pointer    = stack_pointer;
-  self_pointer     = R_9;
+  frame_pointer_reg    = stack_pointer_reg;
+  self_pointer_reg  = R_9;
   accumulator      = R_3;
   accumulatorhigh  = R_4;
-  vmt_offset_reg   = R_0;
   max_scratch_regs = 3;
   scratch_regs: Array[1..max_scratch_regs] of TRegister = (R_11,R_12,R_31);
 
@@ -463,10 +455,7 @@ const
   LoReg = R_0;
   HiReg = R_31;
 
-(*  cpuflags : set of tcpuflags = []; *)
-
   { sizes }
-  pointersize   = 4;
   extended_size = 8;
 
   LinkageAreaSize = 24;
@@ -478,6 +467,28 @@ const
   LA_LR = 8;
  { offset in the linkage area for the saved RTOC register}
   LA_RTOC = 20;
+  
+{*****************************************************************************
+                       GCC /ABI linking information
+*****************************************************************************}
+
+  {# Registers which must be saved when calling a routine declared as
+     cppdecl, cdecl, stdcall, safecall, palmossyscall. The registers
+     saved should be the ones as defined in the target ABI and / or GCC.
+     
+     This value can be deduced from CALLED_USED_REGISTERS array in the
+     GCC source.
+  }
+  std_saved_registers = [R_13..R_29];
+  {# Required parameter alignment when calling a routine declared as
+     stdcall and cdecl. The alignment value should be the one defined
+     by GCC or the target ABI. 
+     
+     The value of this constant is equal to the constant 
+     PARM_BOUNDARY / BITS_PER_UNIT in the GCC source.
+  }     
+  std_param_align = 4;  { for 32-bit version only }
+  
 
 {*****************************************************************************
                                   Helpers
@@ -491,7 +502,6 @@ const
     function newreference(const r : treference) : preference;
     procedure disposereference(var r : preference);
 
-    function reg2str(r : tregister) : string;
 
     function is_calljmp(o:tasmop):boolean;
 
@@ -525,10 +535,6 @@ implementation
                                   Helpers
 *****************************************************************************}
 
-    function reg2str(r : tregister) : string;
-      begin
-         reg2str:=mot_reg2str[r];
-      end;
 
 
     function is_calljmp(o:tasmop):boolean;
@@ -662,7 +668,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2002-04-06 18:13:02  jonas
+  Revision 1.8  2002-04-20 21:41:51  carl
+  * renamed some constants
+
+  Revision 1.7  2002/04/06 18:13:02  jonas
     * several powerpc-related additions and fixes
 
   Revision 1.6  2001/12/30 17:24:48  jonas
