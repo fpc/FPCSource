@@ -555,11 +555,11 @@ begin
   Result:=False;
   If P^=#0 then exit;
   PS:=P;
-  While not (P^ in [#10,#13]) do P:=P+1;
+  While not (P^ in [#0,#10,#13]) do P:=P+1;
   SetLength (S,P-PS);
   System.Move (PS^,Pointer(S)^,P-PS);
   If P^=#13 then P:=P+1;
-  P:=P+1; // Point to character after #10(#13)
+  If P^<>#0 then P:=P+1; // Point to character after #10(#13)
   Result:=True;
 end;
 
@@ -938,7 +938,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  1999-04-15 07:51:45  michael
+  Revision 1.3  1999-04-27 07:46:18  michael
+  * Fixed bug that caused error in loadfromstream when last line in stream has not CRLF pair
+
+  Revision 1.2  1999/04/15 07:51:45  michael
   + Bugfix in strings.Loadfromstream
 
   Revision 1.1  1999/04/13 08:52:28  michael
