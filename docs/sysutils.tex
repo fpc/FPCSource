@@ -213,7 +213,7 @@ use the \var{OsDirSeparator} character.
 \begin{verbatim}
 Const
   DirSeparators : set of char = ['/','\'];  
-{$ifdef Linux}
+{$ifdef unix}
   OSDirSeparator = '/';
 {$else}
   OsDirSeparator = '\';
