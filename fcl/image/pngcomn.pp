@@ -18,7 +18,7 @@ unit PNGcomn;
 
 interface
 
-uses FPImage, FPImgCmn;
+uses SysUtils, FPImage, FPImgCmn;
 
 type
 
@@ -85,3 +85,9 @@ const
 implementation
 
 end.
+{
+  $Log$
+  Revision 1.3  2003-11-04 16:03:42  peter
+    * Sysutils added
+
+}
