@@ -24,6 +24,10 @@ unit assemble;
 
 interface
 
+{$ifdef OLDASM}
+  {$define NOAG386BIN}
+{$endif}
+  
 uses
   dos,cobjects,globtype,globals,aasm;
 
@@ -541,7 +545,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.43  1999-05-02 22:41:51  peter
+  Revision 1.44  1999-05-02 23:28:42  peter
+    * don't include ag386bin for oldasm
+
+  Revision 1.43  1999/05/02 22:41:51  peter
     * moved section names to systems
     * fixed nasm,intel writer
 
