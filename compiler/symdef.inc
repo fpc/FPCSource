@@ -306,7 +306,7 @@
 
       begin
          tdef.init;
-         string_typ:=shortstring;
+         string_typ:=st_shortstring;
          deftype:=stringdef;
          len:=l;
          savesize:=len+1;
@@ -316,7 +316,7 @@
 
       begin
          tdef.load;
-         string_typ:=shortstring;
+         string_typ:=st_shortstring;
          deftype:=stringdef;
          len:=readbyte;
          savesize:=len+1;
@@ -326,7 +326,7 @@
 
       begin
          tdef.init;
-         string_typ:=longstring;
+         string_typ:=st_longstring;
          deftype:=stringdef;
          len:=l;
          savesize:=Sizeof(pointer);
@@ -337,7 +337,7 @@
       begin
          tdef.load;
          deftype:=stringdef;
-         string_typ:=longstring;
+         string_typ:=st_longstring;
          len:=readlong;
          savesize:=Sizeof(pointer);
       end;
@@ -346,7 +346,7 @@
 
       begin
          tdef.init;
-         string_typ:=ansistring;
+         string_typ:=st_ansistring;
          deftype:=stringdef;
          len:=l;
          savesize:=sizeof(pointer);
@@ -357,7 +357,7 @@
       begin
          tdef.load;
          deftype:=stringdef;
-         string_typ:=ansistring;
+         string_typ:=st_ansistring;
          len:=readlong;
          savesize:=sizeof(pointer);
       end;
@@ -366,7 +366,7 @@
 
       begin
          tdef.init;
-         string_typ:=widestring;
+         string_typ:=st_widestring;
          deftype:=stringdef;
          len:=l;
          savesize:=sizeof(pointer);
@@ -377,7 +377,7 @@
       begin
          tdef.load;
          deftype:=stringdef;
-         string_typ:=ansistring;
+         string_typ:=st_ansistring;
          len:=readlong;
          savesize:=sizeof(pointer);
       end;
@@ -402,16 +402,20 @@
          end;
 {$endif}
          tdef.write;
-         if string_typ=shortstring then
+         if string_typ=st_shortstring then
            writebyte(len)
          else
            writelong(len);
 {$ifndef OLDPPU}
          case string_typ of
-           shortstring : current_ppu^.writeentry(ibstringdef);
-            longstring : current_ppu^.writeentry(iblongstringdef);
-            ansistring : current_ppu^.writeentry(ibansistringdef);
-            widestring : current_ppu^.writeentry(ibwidestringdef);
+            st_shortstring:
+              current_ppu^.writeentry(ibstringdef);
+            st_longstring:
+              current_ppu^.writeentry(iblongstringdef);
+            st_ansistring:
+              current_ppu^.writeentry(ibansistringdef);
+            st_widestring:
+              current_ppu^.writeentry(ibwidestringdef);
          end;
 {$endif}
       end;
@@ -422,7 +426,8 @@
         bytest,charst,longst : string;
       begin
         case string_typ of
-    shortstring : begin
+           st_shortstring:
+             begin
                     charst := typeglobalnumber('char');
                     { this is what I found in stabs.texinfo but
                     gdb 4.12 for go32 doesn't understand that !! }
@@ -435,7 +440,8 @@
                       +';1;'+tostr(len)+';'+charst+',8,'+tostr(len*8)+';;');
                     {$EndIf}
                   end;
-     longstring : begin
+           st_longstring:
+             begin
                     charst := typeglobalnumber('char');
                     { this is what I found in stabs.texinfo but
                     gdb 4.12 for go32 doesn't understand that !! }
@@ -449,11 +455,13 @@
                                   +';1;'+tostr(len)+';'+charst+',40,'+tostr(len*8)+';;');
                     {$EndIf}
                   end;
-     ansistring : begin
+           st_ansistring:
+             begin
                     { an ansi string looks like a pchar easy !! }
                     stabstring:=strpnew('*'+typeglobalnumber('char'));
                   end;
-     widestring : begin
+           st_widestring:
+             begin
                     { an ansi string looks like a pchar easy !! }
                     stabstring:=strpnew('*'+typeglobalnumber('char'));
                   end;
@@ -468,7 +476,7 @@
 
     function tstringdef.needs_rtti : boolean;
       begin
-         needs_rtti:=string_typ in [ansistring,widestring];
+         needs_rtti:=string_typ in [st_ansistring,st_widestring];
       end;
 
     procedure tstringdef.generate_rtti;
@@ -476,20 +484,20 @@
       begin
          inherited generate_rtti;
          case string_typ of
-            ansistring:
+            st_ansistring:
               begin
                  rttilist^.concat(new(pai_const,init_8bit(10)));
               end;
-            widestring:
+            st_widestring:
               begin
                  rttilist^.concat(new(pai_const,init_8bit(11)));
               end;
-            longstring:
+            st_longstring:
               begin
                  rttilist^.concat(new(pai_const,init_8bit(9)));
                  rttilist^.concat(new(pai_const,init_32bit(len)));
               end;
-            shortstring:
+            st_shortstring:
               begin
                  rttilist^.concat(new(pai_const,init_8bit(8)));
                  rttilist^.concat(new(pai_const,init_32bit(len)));
@@ -2658,7 +2666,12 @@
 
 {
   $Log$
-  Revision 1.19  1998-07-14 14:47:05  peter
+  Revision 1.20  1998-07-18 22:54:30  florian
+    * some ansi/wide/longstring support fixed:
+       o parameter passing
+       o returning as result from functions
+
+  Revision 1.19  1998/07/14 14:47:05  peter
     * released NEWINPUT
 
   Revision 1.18  1998/07/10 10:51:04  peter

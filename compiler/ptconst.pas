@@ -162,13 +162,12 @@ unit ptconst;
                   begin
                     getlabel(ll);
                     datasegment^.concat(new(pai_const,init_symbol(strpnew(lab2str(ll)))));
-                    datasegment^.concat(new(pai_label,init(ll)));
-                    { insert string at the begin }
+                    consts^.concat(new(pai_label,init(ll)));
                     if p^.treetype=stringconstn then
-                      datasegment^.concat(new(pai_string,init(p^.values^+#0)))
+                      consts^.concat(new(pai_string,init(p^.values^+#0)))
                     else
                       if is_constcharnode(p) then
-                        datasegment^.concat(new(pai_string,init(char(byte(p^.value))+#0)))
+                        consts^.concat(new(pai_string,init(char(byte(p^.value))+#0)))
                     else
                       Message(cg_e_illegal_expression);
                     { insert label }
@@ -255,7 +254,7 @@ unit ptconst;
                 end else
 {$endif UseLongString}
 {$ifdef UseAnsiString}
-              if pstringdef(def)^.string_typ=ansistring then
+              if pstringdef(def)^.string_typ=st_ansistring then
                 begin
 {$ifdef debug}
                   datasegment^.concat(new(pai_asm_comment,init('Header of ansistring')));
@@ -451,7 +450,12 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.6  1998-06-08 22:59:52  peter
+  Revision 1.7  1998-07-18 22:54:29  florian
+    * some ansi/wide/longstring support fixed:
+       o parameter passing
+       o returning as result from functions
+
+  Revision 1.6  1998/06/08 22:59:52  peter
     * smartlinking works for win32
     * some defines to exclude some compiler parts
 

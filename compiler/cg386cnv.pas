@@ -392,6 +392,110 @@ implementation
 
       begin
 {$ifdef UseAnsiString}
+         { does anybody know a better solution than this big case statement ? }
+         { ok, a proc table woudl do the job                                  }
+         case pstringdef(p)^.string_typ of
+
+            st_shortstring:
+              case pstringdef(p^.left)^.string_typ of
+                 st_shortstring:
+                   begin
+                      stringdispose(p^.location.reference.symbol);
+                      gettempofsizereference(p^.resulttype^.size,p^.location.reference);
+                      del_reference(p^.left^.location.reference);
+                      copystring(p^.location.reference,p^.left^.location.reference,pstringdef(p^.resulttype)^.len);
+                      ungetiftemp(p^.left^.location.reference);
+                   end;
+                 st_longstring:
+                   begin
+                      {!!!!!!!}
+                      internalerror(8888);
+                   end;
+                 st_ansistring:
+                   begin
+                      {!!!!!!!}
+                      internalerror(8888);
+                   end;
+                 st_widestring:
+                   begin
+                      {!!!!!!!}
+                      internalerror(8888);
+                   end;
+              end;
+
+            st_longstring:
+              case pstringdef(p^.left)^.string_typ of
+                 st_shortstring:
+                   begin
+                      {!!!!!!!}
+                      internalerror(8888);
+                   end;
+                 st_longstring:
+                   begin
+                      {!!!!!!!}
+                      internalerror(8888);
+                   end;
+                 st_ansistring:
+                   begin
+                      {!!!!!!!}
+                      internalerror(8888);
+                   end;
+                 st_widestring:
+                   begin
+                      {!!!!!!!}
+                      internalerror(8888);
+                   end;
+              end;
+
+            st_ansistring:
+              case pstringdef(p^.left)^.string_typ of
+                 st_shortstring:
+                   begin
+                      {!!!!!!!}
+                      internalerror(8888);
+                   end;
+                 st_longstring:
+                   begin
+                      {!!!!!!!}
+                      internalerror(8888);
+                   end;
+                 st_ansistring:
+                   begin
+                      {!!!!!!!}
+                      internalerror(8888);
+                   end;
+                 st_widestring:
+                   begin
+                      {!!!!!!!}
+                      internalerror(8888);
+                   end;
+              end;
+
+            st_widestring:
+              case pstringdef(p^.left)^.string_typ of
+                 st_shortstring:
+                   begin
+                      {!!!!!!!}
+                      internalerror(8888);
+                   end;
+                 st_longstring:
+                   begin
+                      {!!!!!!!}
+                      internalerror(8888);
+                   end;
+                 st_ansistring:
+                   begin
+                      {!!!!!!!}
+                      internalerror(8888);
+                   end;
+                 st_widestring:
+                   begin
+                      {!!!!!!!}
+                      internalerror(8888);
+                   end;
+              end;
+         end;
+{$ifdef dummy}
          if is_ansistring(p^.resulttype) and not is_ansistring(p^.left^.resulttype) then
            begin
               { call shortstring to ansistring conversion }
@@ -414,7 +518,8 @@ implementation
               ungetiftemp(p^.left^.location.reference);
            end
          else
-{$endif UseAnsiString}
+{$endif dummy}
+{$else UseAnsiString}
            begin
               stringdispose(p^.location.reference.symbol);
               gettempofsizereference(p^.resulttype^.size,p^.location.reference);
@@ -422,6 +527,7 @@ implementation
               copystring(p^.location.reference,p^.left^.location.reference,pstringdef(p^.resulttype)^.len);
               ungetiftemp(p^.left^.location.reference);
            end;
+{$endif UseAnsiString}
       end;
 
     procedure second_cstring_charpointer(p,hp : ptree;convtyp : tconverttype);
@@ -1064,7 +1170,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  1998-06-12 13:10:34  peter
+  Revision 1.8  1998-07-18 22:54:24  florian
+    * some ansi/wide/longstring support fixed:
+       o parameter passing
+       o returning as result from functions
+
+  Revision 1.7  1998/06/12 13:10:34  peter
     * small internalerror nr change
 
   Revision 1.6  1998/06/12 10:43:12  michael

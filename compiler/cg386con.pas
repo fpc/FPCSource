@@ -38,7 +38,7 @@ implementation
 
     uses
       cobjects,verbose,globals,
-      symtable,aasm,i386,
+      symtable,aasm,i386,types,
       hcodegen,cgai386,temp_gen,tgeni386,cgi386;
 
 {*****************************************************************************
@@ -155,6 +155,12 @@ implementation
                      lastlabel:=pai_label(hp1)^.l
                    else
                      begin
+                        { when changing that code, be careful that }
+                        { you don't use typed consts, which are    }
+                        { are also written to consts               }
+                        { currently, this is no problem, because   }
+                        { typed consts have no leading length or   }
+                        { they have no trailing zero               }
                         if (hp1^.typ=ait_string) and (lastlabel<>nil) and
                           (pai_string(hp1)^.len=length(p^.values^)+2) then
                           begin
@@ -194,7 +200,9 @@ implementation
                    { we still will have a problem if there is a #0 inside the pchar }
                    consts^.concat(new(pai_string,init_length_pchar(pc,length(p^.values^)+2)));
 {$else UseAnsiString}
-                   if cs_ansistrings in aktswitches then
+
+                   { generate an ansi string ? }
+                   if is_ansistring(p^.resulttype) then
                      begin
                         concat_constlabel(lastlabel,conststring);
                         consts^.concat(new(pai_const,init_32bit(p^.length)));
@@ -336,7 +344,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  1998-07-18 17:11:07  florian
+  Revision 1.7  1998-07-18 22:54:25  florian
+    * some ansi/wide/longstring support fixed:
+       o parameter passing
+       o returning as result from functions
+
+  Revision 1.6  1998/07/18 17:11:07  florian
     + ansi string constants fixed
     + switch $H partial implemented
 

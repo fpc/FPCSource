@@ -102,6 +102,7 @@ implementation
          r : preference;
          s : topsize;
          op : tasmop;
+
       begin
          { push from left to right if specified }
          if push_from_left_to_right and assigned(p^.right) then
@@ -391,8 +392,10 @@ implementation
                           end;
                         arraydef,recorddef,stringdef,setdef,objectdef :
                           begin
-                             { small set ? }
-                             if ((p^.resulttype^.deftype=setdef) and
+                             { 32 bit type set ? }
+                             if is_widestring(p^.resulttype) or
+                               is_ansistring(p^.resulttype) or
+                                ((p^.resulttype^.deftype=setdef) and
                                  (psetdef(p^.resulttype)^.settype=smallset)) then
                                begin
                                   inc(pushedparasize,4);
@@ -447,8 +450,8 @@ implementation
                                       stackref.base:=procinfo.framepointer;
                                       stackref.offset:=para_offset-pushedparasize;
                                     end;
-                                  { produce copy }
-                                  if p^.resulttype^.deftype=stringdef then
+                                  { generate copy }
+                                  if is_shortstring(p^.resulttype) then
                                     begin
                                        copystring(stackref,p^.left^.location.reference,
                                          pstringdef(p^.resulttype)^.len);
@@ -1551,18 +1554,26 @@ implementation
                                        { push maximum string length }
                                        push_int(pstringdef(pararesult)^.len);
                                        case pstringdef(pararesult)^.string_typ of
-                                        shortstring: emitcall ('READ_TEXT_STRING',true);
-                                        ansistring : emitcall ('READ_TEXT_ANSISTRING',true);
-                                        longstring : emitcall ('READ_TEXT_LONGSTRING',true);
-                                        widestring : emitcall ('READ_TEXT_ANSISTRING',true);
+                                        st_shortstring:
+                                          emitcall ('READ_TEXT_STRING',true);
+                                        st_ansistring:
+                                          emitcall ('READ_TEXT_ANSISTRING',true);
+                                        st_longstring:
+                                          emitcall ('READ_TEXT_LONGSTRING',true);
+                                        st_widestring:
+                                          emitcall ('READ_TEXT_ANSISTRING',true);
                                         end
                                        end
                                      else
                                        Case pstringdef(Pararesult)^.string_typ of
-                                        shortstring: emitcall ('WRITE_TEXT_STRING',true);
-                                        ansistring : emitcall ('WRITE_TEXT_ANSISTRING',true);
-                                        longstring : emitcall ('WRITE_TEXT_LONGSTRING',true);
-                                        widestring : emitcall ('WRITE_TEXT_ANSISTRING',true);
+                                        st_shortstring:
+                                          emitcall ('WRITE_TEXT_STRING',true);
+                                        st_ansistring:
+                                          emitcall ('WRITE_TEXT_ANSISTRING',true);
+                                        st_longstring:
+                                          emitcall ('WRITE_TEXT_LONGSTRING',true);
+                                        st_widestring:
+                                          emitcall ('WRITE_TEXT_ANSISTRING',true);
                                         end;
                                    end;
                       pointerdef : begin
@@ -2250,7 +2261,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  1998-07-07 17:40:37  peter
+  Revision 1.10  1998-07-18 22:54:23  florian
+    * some ansi/wide/longstring support fixed:
+       o parameter passing
+       o returning as result from functions
+
+  Revision 1.9  1998/07/07 17:40:37  peter
     * packrecords 4 works
     * word aligning of parameters
 

@@ -185,28 +185,28 @@ unit types;
     function is_ansistring(p : pdef) : boolean;
       begin
          is_ansistring:=(p^.deftype=stringdef) and
-                        (pstringdef(p)^.string_typ=ansistring);
+                        (pstringdef(p)^.string_typ=st_ansistring);
       end;
 
     { true if o is an long string def }
     function is_longstring(p : pdef) : boolean;
       begin
          is_longstring:=(p^.deftype=stringdef) and
-                        (pstringdef(p)^.string_typ=longstring);
+                        (pstringdef(p)^.string_typ=st_longstring);
       end;
 
     { true if o is an wide string def }
     function is_widestring(p : pdef) : boolean;
       begin
          is_widestring:=(p^.deftype=stringdef) and
-                        (pstringdef(p)^.string_typ=widestring);
+                        (pstringdef(p)^.string_typ=st_widestring);
       end;
 
     { true if o is an short string def }
     function is_shortstring(p : pdef) : boolean;
       begin
          is_shortstring:=(p^.deftype=stringdef) and
-                         (pstringdef(p)^.string_typ=shortstring);
+                         (pstringdef(p)^.string_typ=st_shortstring);
       end;
 
     { true if the return value is in accumulator (EAX for i386), D0 for 68k }
@@ -214,6 +214,7 @@ unit types;
 
       begin
          ret_in_acc:=(def^.deftype in [orddef,pointerdef,enumdef,classrefdef]) or
+                     ((def^.deftype=stringdef) and (pstringdef(def)^.string_typ in [st_ansistring,st_widestring])) or
                      ((def^.deftype=procvardef) and ((pprocvardef(def)^.options and pomethodpointer)=0)) or
                      ((def^.deftype=objectdef) and pobjectdef(def)^.isclass) or
                      ((def^.deftype=setdef) and (psetdef(def)^.settype=smallset)) or
@@ -224,19 +225,21 @@ unit types;
     function ret_in_param(def : pdef) : boolean;
 
       begin
-         ret_in_param:=(def^.deftype in [arraydef,recorddef,stringdef]) or
-                       ((def^.deftype=procvardef) and ((pprocvardef(def)^.options and pomethodpointer)<>0)) or
-                       ((def^.deftype=objectdef) and ((pobjectdef(def)^.options and oois_class)=0)) or
-                       ((def^.deftype=setdef) and (psetdef(def)^.settype<>smallset));
+         ret_in_param:=(def^.deftype in [arraydef,recorddef]) or
+           ((def^.deftype=stringdef) and (pstringdef(def)^.string_typ in [st_shortstring,st_longstring])) or
+           ((def^.deftype=procvardef) and ((pprocvardef(def)^.options and pomethodpointer)<>0)) or
+           ((def^.deftype=objectdef) and ((pobjectdef(def)^.options and oois_class)=0)) or
+           ((def^.deftype=setdef) and (psetdef(def)^.settype<>smallset));
       end;
 
     { true if a const parameter is too large to copy }
     function dont_copy_const_param(def : pdef) : boolean;
 
       begin
-         dont_copy_const_param:=(def^.deftype in [arraydef,stringdef,objectdef,formaldef,recorddef]) or
-                       ((def^.deftype=procvardef) and ((pprocvardef(def)^.options and pomethodpointer)<>0)) or
-                       ((def^.deftype=setdef) and (psetdef(def)^.settype<>smallset));
+         dont_copy_const_param:=(def^.deftype in [arraydef,objectdef,formaldef,recorddef]) or
+           ((def^.deftype=stringdef) and (pstringdef(def)^.string_typ in [st_shortstring,st_longstring])) or
+           ((def^.deftype=procvardef) and ((pprocvardef(def)^.options and pomethodpointer)<>0)) or
+           ((def^.deftype=setdef) and (psetdef(def)^.settype<>smallset));
       end;
 
     procedure testrange(def : pdef;l : longint);
@@ -437,11 +440,13 @@ unit types;
              begin
                 case porddef(def1)^.typ of
                 u8bit,u16bit,u32bit,
-                s8bit,s16bit,s32bit : b:=((porddef(def1)^.typ=porddef(def2)^.typ) and
-                                          (porddef(def1)^.low=porddef(def2)^.low) and
-                                          (porddef(def1)^.high=porddef(def2)^.high));
-                        uvoid,uchar,
-       bool8bit,bool16bit,bool32bit : b:=(porddef(def1)^.typ=porddef(def2)^.typ);
+                s8bit,s16bit,s32bit:
+                  b:=((porddef(def1)^.typ=porddef(def2)^.typ) and
+                   (porddef(def1)^.low=porddef(def2)^.low) and
+                   (porddef(def1)^.high=porddef(def2)^.high));
+                uvoid,uchar,
+                bool8bit,bool16bit,bool32bit:
+                  b:=(porddef(def1)^.typ=porddef(def2)^.typ);
                 end;
              end
          else
@@ -853,7 +858,12 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.14  1998-06-12 14:50:50  peter
+  Revision 1.15  1998-07-18 22:54:32  florian
+    * some ansi/wide/longstring support fixed:
+       o parameter passing
+       o returning as result from functions
+
+  Revision 1.14  1998/06/12 14:50:50  peter
     * removed the tree dependency to types.pas
     * long_fil.pas support (not fully tested yet)
 

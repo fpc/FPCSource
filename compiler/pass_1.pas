@@ -469,7 +469,7 @@ unit pass_1;
          else
            { nil is compatible with ansi- and wide strings }
            if (fromtreetype=niln) and (def_to^.deftype=stringdef)
-             and (pstringdef(def_to)^.string_typ in [ansistring,widestring]) then
+             and (pstringdef(def_to)^.string_typ in [st_ansistring,st_widestring]) then
              begin
                 doconv:=tc_equal;
                 b:=true;
@@ -477,7 +477,7 @@ unit pass_1;
          else
            { ansi- and wide strings can be assigned to void pointers }
            if (def_from^.deftype=stringdef) and
-             (pstringdef(def_from)^.string_typ in [ansistring,widestring]) and
+             (pstringdef(def_from)^.string_typ in [st_ansistring,st_widestring]) and
              (def_to^.deftype=pointerdef) and
              (ppointerdef(def_to)^.definition^.deftype=orddef) and
              (porddef(ppointerdef(def_to)^.definition)^.typ=uvoid) then
@@ -2066,8 +2066,12 @@ unit pass_1;
          if pstringdef(p^.resulttype)^.string_typ<>
             pstringdef(p^.left^.resulttype)^.string_typ then
            begin
-              { call shortstring_to_ansistring or ansistring_to_shortstring }
-              procinfo.flags:=procinfo.flags or pi_do_call;
+              { trick: secondstringconstn generates a const entry depending on }
+              { the result type                                                }
+              if p^.left^.treetype=stringconstn then
+                p^.left^.resulttype:=p^.resulttype
+              else
+                procinfo.flags:=procinfo.flags or pi_do_call;
            end;
          { for simplicity lets first keep all ansistrings
            as LOC_MEM, could also become LOC_REGISTER }
@@ -2712,8 +2716,8 @@ unit pass_1;
                     firstpass(p^.left);
                     must_be_valid:=store_valid;
                  end;
-              if not((p^.left^.resulttype^.deftype=stringdef) and
-                     (defcoll^.data^.deftype=stringdef)) and
+              if not(is_shortstring(p^.left^.resulttype) and
+                     is_shortstring(defcoll^.data)) and
                      (defcoll^.data^.deftype<>formaldef) then
                 begin
                    if (defcoll^.paratyp=vs_var) and
@@ -2761,8 +2765,8 @@ unit pass_1;
                 end;
               { check var strings }
               if (cs_strict_var_strings in aktswitches) and
-                 (p^.left^.resulttype^.deftype=stringdef) and
-                 (defcoll^.data^.deftype=stringdef) and
+                 is_shortstring(p^.left^.resulttype) and
+                 is_shortstring(defcoll^.data) and
                  (defcoll^.paratyp=vs_var) and
                  not(is_equal(p^.left^.resulttype,defcoll^.data)) then
                  Message(parser_e_strict_var_string_violation);
@@ -2823,15 +2827,14 @@ unit pass_1;
            { all types can be passed to a formaldef }
            is_equal:=(def1^.deftype=formaldef) or
              (assigned(def2) and types.is_equal(def1,def2))
-{$ifdef USEANSISTRING}
            { to support ansi/long/wide strings in a proper way }
            { string and string[10] are assumed as equal        }
+           { when searching the correct overloaded procedure   }
              or
              (assigned(def1) and assigned(def2) and
               (def1^.deftype=stringdef) and (def2^.deftype=stringdef) and
               (pstringdef(def1)^.string_typ=pstringdef(def2)^.string_typ)
              )
-{$endif USEANSISTRING}
              ;
         end;
 
@@ -5043,7 +5046,12 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.40  1998-07-18 17:11:09  florian
+  Revision 1.41  1998-07-18 22:54:27  florian
+    * some ansi/wide/longstring support fixed:
+       o parameter passing
+       o returning as result from functions
+
+  Revision 1.40  1998/07/18 17:11:09  florian
     + ansi string constants fixed
     + switch $H partial implemented
 
