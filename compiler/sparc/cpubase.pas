@@ -3,18 +3,13 @@
 { Author                 : Mazen NEIFER                                       }
 { Project                : Free Pascal Compiler (FPC)                         }
 { Creation date          : 2002\04\26                                         }
-{ Last modification date : 2002\08\22                                         }
 { Licence                : GPL                                                }
 { Bug report             : mazen.neifer.01@supaero.org                        }
 {*****************************************************************************}
 {    $Id$
     Copyright (c) 1998-2000 by Florian Klaempfl and Peter Vreman
 
-    Contains the base types for the i386
-
-    * This code was inspired by the NASM sources
-      The Netwide Assembler is copyright (C) 1996 Simon Tatham and
-      Julian Hall. All rights reserved.
+    Contains the base types for the Scalable Processor ARChitecture (SPARC)
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -49,10 +44,6 @@ CONST
 {$DEFINE ATTOP}
 {$DEFINE ATTREG}
 {$DEFINE ATTSUF}
-{We Don't need the intel style opcodes as we are coding for SPARC architecture}
-{$DEFINE NORA386INT}
-{$DEFINE NOAG386NSM}
-{$DEFINE NOAG386INT}
 CONST
 {Operand types}
   OT_NONE      = $00000000;
@@ -496,15 +487,17 @@ CONST
 
   stab_regindex:ARRAY[tregister]OF ShortInt=({$INCLUDE stabregi.inc});
   { generic register names }
-  stack_pointer_reg=R_O6;
-  frame_pointer_reg=R_I6;
-  self_pointer_reg=R_G5;
-  accumulator   = R_G0;
-  accumulatorhigh = R_I7;
-  { WARNING: don't change to R_ST0!! See comments above implementation of }
-  { a_loadfpu* methods in rgcpu (JM)                                      }
-  fpu_result_reg=R_F0;
-  mmresultreg=R_G0;
+  stack_pointer_reg =R_O6;
+  frame_pointer_reg =R_I6;
+  self_pointer_reg  =R_G5;
+{There is no accumulator in the SPARC architecture. There are just families of
+registers. All registers belonging to the same family are identical except in
+the "global registers" family where GO is different from the others : G0 gives
+always 0 when it is red and thows away any value written to it}
+  accumulator     = R_L0;
+  accumulatorhigh = R_L7;
+  fpu_result_reg  =R_F0;
+  mmresultreg     =R_G0;
 {*****************************************************************************}
 {                        GCC /ABI linking information                         }
 {*****************************************************************************}
