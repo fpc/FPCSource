@@ -20,8 +20,8 @@
 
 function InterLockedDecrement (var Target: longint) : longint; assembler;
 asm
-        movl    %rdi,%rax
-        movl		  $-1,%edx
+        movq    %rdi,%rax
+        movl    $-1,%edx
         xchgq   %rdx,%rax
         lock
         xaddl   %eax, (%rdx)
@@ -31,7 +31,7 @@ end;
 
 function InterLockedIncrement (var Target: longint) : longint; assembler;
 asm
-        movl    %rdi,%rax
+        movq    %rdi,%rax
         movl    $1,%edx
         xchgq   %rdx,%rax
         lock
@@ -42,8 +42,8 @@ end;
 
 function InterLockedExchange (var Target: longint;Source : longint) : longint; assembler;
 asm
-        xchgl   (%rdi),%rsi
-        movl    %rsi,%eax
+        xchgl   (%rdi),%esi
+        movl    %esi,%eax
 end;
 
 
@@ -51,13 +51,17 @@ function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint
 asm
         xchgq   %rdi,%rsi
         lock
-        xaddl   %rdi, (%rsi)
+        xaddl   %edi, (%rsi)
+	movl	%edi,%eax
 end;
 
 
 {
   $Log$
-  Revision 1.4  2004-11-01 20:31:35  florian
+  Revision 1.5  2004-11-01 20:37:49  florian
+    * fixed some x86-64 multithreading stuff
+
+  Revision 1.4  2004/11/01 20:31:35  florian
     * another fix for locked reference counting
 
   Revision 1.2  2004/03/05 12:17:50  marco

@@ -29,9 +29,9 @@ type
      size    : longint;
   end;
 
-  TltvInitTablesTable = record
+  TltvInitTablesTable = packed record
     count  : dword;
-    tables : array [1..32767] of pltvInitEntry;
+    tables : packed array [1..32767] of pltvInitEntry;
   end;
 
 var
@@ -102,7 +102,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2003-11-26 20:10:59  michael
+  Revision 1.3  2004-11-01 20:37:49  florian
+    * fixed some x86-64 multithreading stuff
+
+  Revision 1.2  2003/11/26 20:10:59  michael
   + New threadmanager implementation
 
   Revision 1.1  2002/10/31 13:46:11  carl
