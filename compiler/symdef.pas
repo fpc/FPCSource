@@ -3622,7 +3622,8 @@ implementation
 
     function tprocdef.is_addressonly:boolean;
       begin
-        result:=true;
+        result:=assigned(owner) and
+                (owner.symtabletype<>objectsymtable);
       end;
 
 
@@ -5647,7 +5648,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.125  2003-01-15 01:44:33  peter
+  Revision 1.126  2003-01-16 22:11:33  peter
+    * fixed tprocdef.is_addressonly
+
+  Revision 1.125  2003/01/15 01:44:33  peter
     * merged methodpointer fixes from 1.0.x
 
   Revision 1.124  2003/01/09 21:52:37  peter
