@@ -1,9 +1,9 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    This unit contains the record definition for the Win32 API
-    Copyright (c) 1993,97 by Florian KLaempfl,
-    member of the Free Pascal development team.
+    Copyright (c) 1999 by the Free Pascal development team.
+
+    Contains the Ascii functions for windows unit
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -23,26 +23,14 @@
 {$ifndef windows_include_files}
 
 unit ascfun;
-
-{  Automatically converted by H2PAS.EXE from asciifun.h
-   Utility made by Florian Klaempfl 25th-28th september 96
-   Improvements made by Mark A. Malakanov 22nd-25th may 97
-   Further improvements by Michael Van Canneyt, April 1998
-   define handling and error recovery by Pierre Muller, June 1998 }
-
-
-  interface
-
-   uses
-      base,defines,struct;
+interface
+uses
+  base,defines,struct;
 
 {$endif windows_include_files}
 
 {$ifdef read_interface}
 
-  { C default packing is dword }
-
-{$PACKRECORDS 4}
   {
      ASCIIFunctions.h
 
@@ -72,10 +60,6 @@ unit ascfun;
      If not, write to the Free Software Foundation,
      59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
    }
-{$ifndef _GNU_H_WINDOWS32_ASCIIFUNCTIONS}
-{$define _GNU_H_WINDOWS32_ASCIIFUNCTIONS}
-{ C++ extern C conditionnal removed }
-  { __cplusplus  }
 
   function GetBinaryTypeA(lpApplicationName:LPCSTR; lpBinaryType:LPDWORD):WINBOOL;
 
@@ -323,9 +307,6 @@ unit ascfun;
   function GetUserNameA(lpBuffer:LPSTR; nSize:LPDWORD):WINBOOL;
 
   function wvsprintfA(_para1:LPSTR; _para2:LPCSTR; arglist:va_list):longint;
-
-  (* function wsprintfA(_para1:LPSTR; _para2:LPCSTR; ...):longint;
-      not allowed in FPC *)
 
   function LoadKeyboardLayoutA(pwszKLID:LPCSTR; Flags:UINT):HKL;
 
@@ -911,14 +892,11 @@ unit ascfun;
 
   function StartServiceA(hService:SC_HANDLE; dwNumServiceArgs:DWORD; var lpServiceArgVectors:LPCSTR):WINBOOL;
 
-  { Extensions to OpenGL  }
   function wglUseFontBitmapsA(_para1:HDC; _para2:DWORD; _para3:DWORD; _para4:DWORD):WINBOOL;
 
   function wglUseFontOutlinesA(_para1:HDC; _para2:DWORD; _para3:DWORD; _para4:DWORD; _para5:FLOAT;
              _para6:FLOAT; _para7:longint; _para8:LPGLYPHMETRICSFLOAT):WINBOOL;
 
-  { -------------------------------------  }
-  { From shellapi.h in old Cygnus headers  }
   function DragQueryFileA(_para1:HDROP; _para2:cardinal; var _para3:char; _para4:cardinal):cardinal;
 
   function ExtractAssociatedIconA(_para1:HINST; var _para2:char; var _para3:WORD):HICON;
@@ -932,28 +910,18 @@ unit ascfun;
   function ShellExecuteA(_para1:HWND; var _para2:char; var _para3:char; var _para4:char; var _para5:char;
              _para6:longint):HINST;
 
-  { end of stuff from shellapi.h in old Cygnus headers  }
-  { --------------------------------------------------  }
-  { From ddeml.h in old Cygnus headers  }
   function DdeCreateStringHandleA(_para1:DWORD; var _para2:char; _para3:longint):HSZ;
 
   function DdeInitializeA(var _para1:DWORD; _para2:CALLB; _para3:DWORD; _para4:DWORD):UINT;
 
   function DdeQueryStringA(_para1:DWORD; _para2:HSZ; var _para3:char; _para4:DWORD; _para5:longint):DWORD;
 
-  { end of stuff from ddeml.h in old Cygnus headers  }
-  { -----------------------------------------------  }
   function LogonUserA(_para1:LPSTR; _para2:LPSTR; _para3:LPSTR; _para4:DWORD; _para5:DWORD;
              var _para6:HANDLE):WINBOOL;
 
   function CreateProcessAsUserA(_para1:HANDLE; _para2:LPCTSTR; _para3:LPTSTR; var _para4:SECURITY_ATTRIBUTES; var _para5:SECURITY_ATTRIBUTES;
              _para6:WINBOOL; _para7:DWORD; _para8:LPVOID; _para9:LPCTSTR; var _para10:STARTUPINFO;
              var _para11:PROCESS_INFORMATION):WINBOOL;
-
-{ C++ end of extern C conditionnal removed }
-  { __cplusplus  }
-{$endif}
-  { _GNU_H_WINDOWS32_ASCIIFUNCTIONS  }
 
 {$endif read_interface}
 
@@ -1850,7 +1818,10 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.7  1999-04-20 11:36:08  peter
+  Revision 1.8  1999-05-01 12:27:50  peter
+    * fixed conflicting declarations
+
+  Revision 1.7  1999/04/20 11:36:08  peter
     * compatibility fixes
 
   Revision 1.6  1999/01/07 15:52:23  peter

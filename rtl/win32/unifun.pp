@@ -1,9 +1,9 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    This unit contains the record definition for the Win32 API
-    Copyright (c) 1993,97 by Florian KLaempfl,
-    member of the Free Pascal development team.
+    Copyright (c) 1999 by the Free Pascal development team.
+
+    Contains the Unicode functions for windows unit
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -23,18 +23,9 @@
 {$ifndef windows_include_files}
 
 unit unifun;
-
-{  Automatically converted by H2PAS.EXE from unicfun.h
-   Utility made by Florian Klaempfl 25th-28th september 96
-   Improvements made by Mark A. Malakanov 22nd-25th may 97
-   Further improvements by Michael Van Canneyt, April 1998
-   define handling and error recovery by Pierre Muller, June 1998 }
-
-
-  interface
-
-   uses
-      base,defines,struct;
+interface
+uses
+  base,defines,struct;
 
 {$endif not windows_include_files}
 
@@ -42,7 +33,6 @@ unit unifun;
 
   { C default packing is dword }
 
-{$PACKRECORDS 4}
   {
      UnicodeFunctions.h
 
@@ -73,10 +63,6 @@ unit unifun;
      If not, write to the Free Software Foundation,
      59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
    }
-{$ifndef _GNU_H_WINDOWS32_UNICODEFUNCTIONS}
-{$define _GNU_H_WINDOWS32_UNICODEFUNCTIONS}
-{ C++ extern C conditionnal removed }
-  { __cplusplus  }
 
   function GetBinaryTypeW(lpApplicationName:LPCWSTR; lpBinaryType:LPDWORD):WINBOOL;
 
@@ -353,7 +339,6 @@ unit unifun;
 
   function GetMessageW(lpMsg:LPMSG; hWnd:HWND; wMsgFilterMin:UINT; wMsgFilterMax:UINT):WINBOOL;
 
-(* Const before type ignored *)
   function DispatchMessageW(var lpMsg:MSG):LONG;
 
   function PeekMessageW(lpMsg:LPMSG; hWnd:HWND; wMsgFilterMin:UINT; wMsgFilterMax:UINT; wRemoveMsg:UINT):WINBOOL;
@@ -376,14 +361,12 @@ unit unifun;
 
   function CallWindowProcW(lpPrevWndFunc:WNDPROC; hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):LRESULT;
 
-(* Const before type ignored *)
   function RegisterClassW(var lpWndClass:WNDCLASS):ATOM;
 
   function UnregisterClassW(lpClassName:LPCWSTR; hInstance:HINST):WINBOOL;
 
   function GetClassInfoW(hInstance:HINST; lpClassName:LPCWSTR; lpWndClass:LPWNDCLASS):WINBOOL;
 
-(* Const before type ignored *)
   function RegisterClassExW(var _para1:WNDCLASSEX):ATOM;
 
   function GetClassInfoExW(_para1:HINST; _para2:LPCWSTR; _para3:LPWNDCLASSEX):WINBOOL;
@@ -462,7 +445,6 @@ unit unifun;
 
   function LoadMenuW(hInstance:HINST; lpMenuName:LPCWSTR):HMENU;
 
-(* Const before type ignored *)
   function LoadMenuIndirectW(var lpMenuTemplate:MENUTEMPLATE):HMENU;
 
   function ChangeMenuW(hMenu:HMENU; cmd:UINT; lpszNewItem:LPCWSTR; cmdInsert:UINT; flags:UINT):WINBOOL;
@@ -577,14 +559,12 @@ unit unifun;
 
   function CopyMetaFileW(_para1:HMETAFILE; _para2:LPCWSTR):HMETAFILE;
 
-(* Const before type ignored *)
   function CreateFontIndirectW(var _para1:LOGFONT):HFONT;
 
   function CreateFontW(_para1:longint; _para2:longint; _para3:longint; _para4:longint; _para5:longint;
              _para6:DWORD; _para7:DWORD; _para8:DWORD; _para9:DWORD; _para10:DWORD;
              _para11:DWORD; _para12:DWORD; _para13:DWORD; _para14:LPCWSTR):HFONT;
 
-(* Const before type ignored *)
   function CreateICW(_para1:LPCWSTR; _para2:LPCWSTR; _para3:LPCWSTR; var _para4:DEVMODE):HDC;
 
   function CreateMetaFileW(_para1:LPCWSTR):HDC;
@@ -607,7 +587,6 @@ unit unifun;
 
   function GetCharABCWidthsFloatW(_para1:HDC; _para2:UINT; _para3:UINT; _para4:LPABCFLOAT):WINBOOL;
 
-(* Const before type ignored *)
   function GetGlyphOutlineW(_para1:HDC; _para2:UINT; _para3:UINT; _para4:LPGLYPHMETRICS; _para5:DWORD;
              _para6:LPVOID; var _para7:MAT2):DWORD;
 
@@ -625,14 +604,12 @@ unit unifun;
   function GetCharacterPlacementW(_para1:HDC; _para2:LPCWSTR; _para3:longint; _para4:longint; _para5:LPGCP_RESULTS;
              _para6:DWORD):DWORD;
 
-(* Const before type ignored *)
   function ResetDCW(_para1:HDC; var _para2:DEVMODE):HDC;
 
   function RemoveFontResourceW(_para1:LPCWSTR):WINBOOL;
 
   function CopyEnhMetaFileW(_para1:HENHMETAFILE; _para2:LPCWSTR):HENHMETAFILE;
 
-(* Const before type ignored *)
   function CreateEnhMetaFileW(_para1:HDC; _para2:LPCWSTR; var _para3:RECT; _para4:LPCWSTR):HDC;
 
   function GetEnhMetaFileW(_para1:LPCWSTR):HENHMETAFILE;
@@ -641,19 +618,15 @@ unit unifun;
 
   function GetTextMetricsW(_para1:HDC; _para2:LPTEXTMETRIC):WINBOOL;
 
-(* Const before type ignored *)
   function StartDocW(_para1:HDC; var _para2:DOCINFO):longint;
 
   function GetObjectW(_para1:HGDIOBJ; _para2:longint; _para3:LPVOID):longint;
 
   function TextOutW(_para1:HDC; _para2:longint; _para3:longint; _para4:LPCWSTR; _para5:longint):WINBOOL;
 
-(* Const before type ignored *)
-(* Const before type ignored *)
   function ExtTextOutW(_para1:HDC; _para2:longint; _para3:longint; _para4:UINT; var _para5:RECT;
              _para6:LPCWSTR; _para7:UINT; var _para8:INT):WINBOOL;
 
-(* Const before type ignored *)
   function PolyTextOutW(_para1:HDC; var _para2:POLYTEXT; _para3:longint):WINBOOL;
 
   function GetTextFaceW(_para1:HDC; _para2:longint; _para3:LPWSTR):longint;
@@ -729,7 +702,6 @@ unit unifun;
   { was #define dname(params) def_expr }
   function DialogBoxIndirectW(hInstance:HINST; lpTemplate:LPCDLGTEMPLATE; hWndParent:HWND; lpDialogFunc:DLGPROC):longint;
 
-(* Const before type ignored *)
   function CreateDCW(_para1:LPCWSTR; _para2:LPCWSTR; _para3:LPCWSTR; var _para4:DEVMODE):HDC;
 
   function CreateFontA(_para1:longint; _para2:longint; _para3:longint; _para4:longint; _para5:longint;
@@ -745,13 +717,11 @@ unit unifun;
 
   function VerLanguageNameW(wLang:DWORD; szLang:LPWSTR; nSize:DWORD):DWORD;
 
-(* Const before type ignored *)
   function VerQueryValueW(pBlock:LPVOID; lpSubBlock:LPWSTR; var lplpBuffer:LPVOID; puLen:PUINT):WINBOOL;
 
   function VerFindFileW(uFlags:DWORD; szFileName:LPWSTR; szWinDir:LPWSTR; szAppDir:LPWSTR; szCurDir:LPWSTR;
              lpuCurDirLen:PUINT; szDestDir:LPWSTR; lpuDestDirLen:PUINT):DWORD;
 
-(* Const before type ignored *)
   function RegSetValueExW(hKey:HKEY; lpValueName:LPCWSTR; Reserved:DWORD; dwType:DWORD; var lpData:BYTE;
              cbData:DWORD):LONG;
 
@@ -815,19 +785,15 @@ unit unifun;
 
   function SetLocaleInfoW(Locale:LCID; LCType:LCTYPE; lpLCData:LPCWSTR):WINBOOL;
 
-(* Const before type ignored *)
   function GetTimeFormatW(Locale:LCID; dwFlags:DWORD; var lpTime:SYSTEMTIME; lpFormat:LPCWSTR; lpTimeStr:LPWSTR;
              cchTime:longint):longint;
 
-(* Const before type ignored *)
   function GetDateFormatW(Locale:LCID; dwFlags:DWORD; var lpDate:SYSTEMTIME; lpFormat:LPCWSTR; lpDateStr:LPWSTR;
              cchDate:longint):longint;
 
-(* Const before type ignored *)
   function GetNumberFormatW(Locale:LCID; dwFlags:DWORD; lpValue:LPCWSTR; var lpFormat:NUMBERFMT; lpNumberStr:LPWSTR;
              cchNumber:longint):longint;
 
-(* Const before type ignored *)
   function GetCurrencyFormatW(Locale:LCID; dwFlags:DWORD; lpValue:LPCWSTR; var lpFormat:CURRENCYFMT; lpCurrencyStr:LPWSTR;
              cchCurrency:longint):longint;
 
@@ -851,12 +817,10 @@ unit unifun;
 
   function ReadConsoleInputW(hConsoleInput:HANDLE; var lpBuffer:TINPUTRECORD; nLength:DWORD; var lpNumberOfEventsRead:DWORD):WINBOOL;
 
-(* Const before type ignored *)
   function WriteConsoleInputW(hConsoleInput:HANDLE; var lpBuffer:TINPUTRECORD; nLength:DWORD; var lpNumberOfEventsWritten:DWORD):WINBOOL;
 
   function ReadConsoleOutputW(hConsoleOutput:HANDLE; lpBuffer:PCHAR_INFO; dwBufferSize:COORD; dwBufferCoord:COORD; lpReadRegion:PSMALL_RECT):WINBOOL;
 
-(* Const before type ignored *)
   function WriteConsoleOutputW(hConsoleOutput:HANDLE; var lpBuffer:CHAR_INFO; dwBufferSize:COORD; dwBufferCoord:COORD; lpWriteRegion:PSMALL_RECT):WINBOOL;
 
   function ReadConsoleOutputCharacterW(hConsoleOutput:HANDLE; lpCharacter:LPWSTR; nLength:DWORD; dwReadCoord:COORD; lpNumberOfCharsRead:LPDWORD):WINBOOL;
@@ -865,9 +829,6 @@ unit unifun;
 
   function FillConsoleOutputCharacterW(hConsoleOutput:HANDLE; cCharacter:WCHAR; nLength:DWORD; dwWriteCoord:COORD; lpNumberOfCharsWritten:LPDWORD):WINBOOL;
 
-(* Const before type ignored *)
-(* Const before type ignored *)
-(* Const before type ignored *)
   function ScrollConsoleScreenBufferW(hConsoleOutput:HANDLE; var lpScrollRectangle:SMALL_RECT; var lpClipRectangle:SMALL_RECT; dwDestinationOrigin:COORD; var lpFill:CHAR_INFO):WINBOOL;
 
   function GetConsoleTitleW(lpConsoleTitle:LPWSTR; nSize:DWORD):DWORD;
@@ -876,7 +837,6 @@ unit unifun;
 
   function ReadConsoleW(hConsoleInput:HANDLE; lpBuffer:LPVOID; nNumberOfCharsToRead:DWORD; lpNumberOfCharsRead:LPDWORD; lpReserved:LPVOID):WINBOOL;
 
-(* Const before type ignored *)
   function WriteConsoleW(hConsoleOutput:HANDLE;lpBuffer:pointer; nNumberOfCharsToWrite:DWORD; lpNumberOfCharsWritten:LPDWORD; lpReserved:LPVOID):WINBOOL;
 
   function WNetAddConnectionW(lpRemoteName:LPCWSTR; lpPassword:LPCWSTR; lpLocalName:LPCWSTR):DWORD;
@@ -960,45 +920,27 @@ unit unifun;
 
   function ExtractAssociatedIconW(_para1:HINST; _para2:LPCWSTR; var _para3:WORD):HICON;
 
-(* Const before type ignored *)
   function ExtractIconW(_para1:HINST; _para2:LPCWSTR; _para3:cardinal):HICON;
 
-(* Const before type ignored *)
-(* Const before type ignored *)
   function FindExecutableW(_para1:LPCWSTR; _para2:LPCWSTR; _para3:LPCWSTR):HINST;
 
-(* Const before type ignored *)
-(* Const before type ignored *)
   function ShellAboutW(_para1:HWND; _para2:LPCWSTR; _para3:LPCWSTR; _para4:HICON):longint;
 
-(* Const before type ignored *)
-(* Const before type ignored *)
-(* Const before type ignored *)
   function ShellExecuteW(_para1:HWND; _para2:LPCWSTR; _para3:LPCWSTR; _para4:LPCWSTR; _para5:LPCWSTR;
              _para6:longint):HINST;
 
-  { end of stuff from shellapi.h in old Cygnus headers  }
-  { --------------------------------------------------  }
-  { From ddeml.h in old Cygnus headers  }
   function DdeCreateStringHandleW(_para1:DWORD; _para2:LPCWSTR; _para3:longint):HSZ;
 
   function DdeInitializeW(var _para1:DWORD; _para2:CALLB; _para3:DWORD; _para4:DWORD):UINT;
 
   function DdeQueryStringW(_para1:DWORD; _para2:HSZ; _para3:LPCWSTR; _para4:DWORD; _para5:longint):DWORD;
 
-  { end of stuff from ddeml.h in old Cygnus headers  }
-  { -----------------------------------------------  }
   function LogonUserW(_para1:LPWSTR; _para2:LPWSTR; _para3:LPWSTR; _para4:DWORD; _para5:DWORD;
              var _para6:HANDLE):WINBOOL;
 
   function CreateProcessAsUserW(_para1:HANDLE; _para2:LPCWSTR; _para3:LPWSTR; var _para4:SECURITY_ATTRIBUTES; var _para5:SECURITY_ATTRIBUTES;
              _para6:WINBOOL; _para7:DWORD; _para8:LPVOID; _para9:LPCWSTR; var _para10:STARTUPINFO;
              var _para11:PROCESS_INFORMATION):WINBOOL;
-
-{ C++ end of extern C conditionnal removed }
-  { __cplusplus  }
-{$endif}
-  { _GNU_H_WINDOWS32_UNICODEFUNCTIONS  }
 
 {$endif read_interface}
 
@@ -1908,7 +1850,10 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.7  1999-04-20 11:36:21  peter
+  Revision 1.8  1999-05-01 12:27:54  peter
+    * fixed conflicting declarations
+
+  Revision 1.7  1999/04/20 11:36:21  peter
     * compatibility fixes
 
   Revision 1.6  1999/01/07 15:52:27  peter
