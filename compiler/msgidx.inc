@@ -160,6 +160,8 @@ type tmsgconst=(
   parser_m_macro_undefined,
   parser_m_macro_set_to,
   parser_i_compiling,
+  parser_i_reading_interface,
+  parser_i_parsing_implementation,
   parser_d_compiling_second_time,
   parser_e_no_paras_allowed,
   parser_e_no_property_found_to_override,

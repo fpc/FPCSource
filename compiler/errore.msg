@@ -627,6 +627,12 @@ parser_m_macro_set_to=M_Macro $1 set to $2
 parser_i_compiling=I_Compiling $1
 % When you turn on information messages (\var{-vi}), the compiler tells you
 % what units it is recompiling.
+parser_i_reading_interface=I_Parsing interface of unit $1
+% This tells you that the reading of the interface
+% of the current unit starts
+parser_i_parsing_implementation=I_Parsing implementation of $1
+% This tells you that the code reading of the implementation
+% of the current unit, library or program starts
 parser_d_compiling_second_time=D_Compiling $1 for the second time
 % When you request debug messages (\var{-vd}) the compiler tells you what
 % units it recompiles for the second time.

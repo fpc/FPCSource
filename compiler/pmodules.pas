@@ -378,8 +378,8 @@ unit pmodules;
               pu^.u:=loaded_unit;
               pu^.loaded:=true;
             { need to recompile the current unit ? }
-              if (loaded_unit^.interface_crc<>pu^.interface_checksum) and
-                 not(current_module^.in_second_compile) then
+              if (loaded_unit^.interface_crc<>pu^.interface_checksum) {and
+                 not(current_module^.in_second_compile) } then
                 begin
                   Message2(unit_u_recompile_crc_change,current_module^.modulename^,pu^.name^+' {impl}');
                   current_module^.recompile_reason:=rr_crcchanged;
@@ -1012,6 +1012,7 @@ unit pmodules;
          numberunits;
 
          { ... parse the declarations }
+         Message1(parser_i_reading_interface,current_module^.modulename^);
          read_interface_declarations;
 
          { leave when we got an error }
@@ -1087,6 +1088,7 @@ unit pmodules;
          allow_special:=false;
 {$endif Splitheap}
 
+         Message1(parser_i_parsing_implementation,current_module^.modulename^);
          { Generate a procsym }
          gen_main_procsym(current_module^.modulename^+'_init',potype_unitinit,st);
 
@@ -1341,6 +1343,7 @@ unit pmodules;
          { the elements of enumeration types are inserted       }
          constsymtable:=st;
 
+         Message1(parser_i_parsing_implementation,current_module^.mainsource^);
          { Generate a procsym for main }
          gen_main_procsym('main',potype_proginit,st);
 
@@ -1446,7 +1449,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.147  1999-08-27 10:57:56  pierre
+  Revision 1.148  1999-08-27 14:53:00  pierre
+   * double checksum problem solved
+
+  Revision 1.147  1999/08/27 10:57:56  pierre
     + define SHORT_ON_FILE_HANDLES for DOS targets
       causes tempclose of ppufiles
     + double_checksum code released
