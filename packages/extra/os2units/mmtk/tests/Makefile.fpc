@@ -5,9 +5,6 @@
 [target]
 programs=mciapi1 mciapi2
 
-[require]
-packages=mmtk
-
 [install]
 fpcpackage=y
 
