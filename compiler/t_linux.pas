@@ -173,11 +173,13 @@ begin
    begin
      if not hp2^.is_var then
       begin
+{$ifdef i386}
         { place jump in codesegment }
         codesegment^.concat(new(pai_align,init_op(4,$90)));
         codesegment^.concat(new(pai_symbol,initname_global(hp2^.name^,0)));
         codesegment^.concat(new(paicpu,op_sym(A_JMP,S_NO,newasmsymbol(hp2^.sym^.mangledname))));
         codesegment^.concat(new(pai_symbol_end,initname(hp2^.name^)));
+{$endif i386}
       end
      else
       Comment(V_Error,'Exporting of variables is not supported under linux');
@@ -435,7 +437,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  1999-11-04 10:55:31  peter
+  Revision 1.3  1999-11-05 13:15:00  florian
+    * some fixes to get the new cg compiling again
+
+  Revision 1.2  1999/11/04 10:55:31  peter
     * TSearchPathString for the string type of the searchpaths, which is
       ansistring under FPC/Delphi
 

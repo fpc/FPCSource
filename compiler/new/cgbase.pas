@@ -176,6 +176,11 @@ unit cgbase;
     procedure cgmessage2(const t : tmsgconst;const s1,s2 : string);
     procedure cgmessage3(const t : tmsgconst;const s1,s2,s3 : string);
 
+    procedure CGMessagePos(const pos:tfileposinfo;t:tmsgconst);
+    procedure CGMessagePos1(const pos:tfileposinfo;t:tmsgconst;const s1:string);
+    procedure CGMessagePos2(const pos:tfileposinfo;t:tmsgconst;const s1,s2:string);
+    procedure CGMessagePos3(const pos:tfileposinfo;t:tmsgconst;const s1,s2,s3:string);
+
     { initialize respectively terminates the code generator }
     { for a new module or procedure                         }
     procedure codegen_doneprocedure;
@@ -254,6 +259,54 @@ unit cgbase;
            end;
       end;
 
+
+    procedure cgmessagepos(const pos:tfileposinfo;t : tmsgconst);
+      var
+         olderrorcount : longint;
+      begin
+         if not(codegenerror) then
+           begin
+              olderrorcount:=Errorcount;
+              verbose.MessagePos(pos,t);
+              codegenerror:=olderrorcount<>Errorcount;
+           end;
+      end;
+
+    procedure cgmessagepos1(const pos:tfileposinfo;t : tmsgconst;const s1 : string);
+      var
+         olderrorcount : longint;
+      begin
+         if not(codegenerror) then
+           begin
+              olderrorcount:=Errorcount;
+              verbose.MessagePos1(pos,t,s1);
+              codegenerror:=olderrorcount<>Errorcount;
+           end;
+      end;
+
+    procedure cgmessagepos2(const pos:tfileposinfo;t : tmsgconst;const s1,s2 : string);
+      var
+         olderrorcount : longint;
+      begin
+         if not(codegenerror) then
+           begin
+              olderrorcount:=Errorcount;
+              verbose.MessagePos2(pos,t,s1,s2);
+              codegenerror:=olderrorcount<>Errorcount;
+           end;
+      end;
+
+    procedure cgmessagepos3(const pos:tfileposinfo;t : tmsgconst;const s1,s2,s3 : string);
+      var
+         olderrorcount : longint;
+      begin
+         if not(codegenerror) then
+           begin
+              olderrorcount:=Errorcount;
+              verbose.MessagePos3(pos,t,s1,s2,s3);
+              codegenerror:=olderrorcount<>Errorcount;
+           end;
+      end;
 
 {*****************************************************************************
          initialize/terminate the codegen for procedure and modules
@@ -428,7 +481,10 @@ unit cgbase;
 end.
 {
   $Log$
-  Revision 1.11  1999-10-14 14:57:54  florian
+  Revision 1.12  1999-11-05 13:15:00  florian
+    * some fixes to get the new cg compiling again
+
+  Revision 1.11  1999/10/14 14:57:54  florian
     - removed the hcodegen use in the new cg, use cgbase instead
 
   Revision 1.10  1999/10/12 21:20:46  florian

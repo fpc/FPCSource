@@ -1,5 +1,3 @@
-stack alignment !!!!!!
-
 {
     $Id$
     Copyright (c) 1993-99 by Florian Klaempfl
@@ -1118,7 +1116,10 @@ unit cgobj;
 end.
 {
   $Log$
-  Revision 1.30  1999-11-05 07:05:56  jonas
+  Revision 1.31  1999-11-05 13:15:00  florian
+    * some fixes to get the new cg compiling again
+
+  Revision 1.30  1999/11/05 07:05:56  jonas
     + a_jmp_cond()
 
   Revision 1.29  1999/10/21 16:41:41  florian

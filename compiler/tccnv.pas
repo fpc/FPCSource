@@ -42,7 +42,12 @@ implementation
       globtype,systems,tokens,
       cobjects,verbose,globals,
       symconst,symtable,aasm,types,
-      hcodegen,htypechk,pass_1,cpubase;
+{$ifdef newcg}
+      cgbase,
+{$else newcg}
+      hcodegen,
+{$endif newcg}
+      htypechk,pass_1,cpubase;
 
 
 {*****************************************************************************
@@ -962,7 +967,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.50  1999-09-27 23:45:00  peter
+  Revision 1.51  1999-11-05 13:15:00  florian
+    * some fixes to get the new cg compiling again
+
+  Revision 1.50  1999/09/27 23:45:00  peter
     * procinfo is now a pointer
     * support for result setting in sub procedure
 

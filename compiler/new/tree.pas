@@ -249,6 +249,7 @@ unit tree;
 {$ifdef TEMPS_NOT_PUSH}
           temp_offset : longint;
 {$endif TEMPS_NOT_PUSH}
+          procvarload,isproperty : boolean;
           case treetype : ttreetyp of
              addn : (use_strconcat : boolean;string_typ : tstringtype);
              callparan : (is_colon_para : boolean;exact_match_found,
@@ -2043,7 +2044,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.15  1999-10-12 21:20:47  florian
+  Revision 1.16  1999-11-05 13:15:01  florian
+    * some fixes to get the new cg compiling again
+
+  Revision 1.15  1999/10/12 21:20:47  florian
     * new codegenerator compiles again
 
   Revision 1.14  1999/09/14 11:16:09  florian

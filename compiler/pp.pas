@@ -168,10 +168,6 @@ uses
   {$O messages}
   {$O gendef}
   {$O import}
-{$ifdef i386}
-  {$O os2_targ}
-  {$O win_targ}
-{$endif i386}
   {$ifdef gdb}
         {$O gdb}
   {$endif gdb}
@@ -277,7 +273,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.50  1999-09-17 17:14:10  peter
+  Revision 1.51  1999-11-05 13:15:00  florian
+    * some fixes to get the new cg compiling again
+
+  Revision 1.50  1999/09/17 17:14:10  peter
     * @procvar fixes for tp mode
     * @<id>:= gives now an error
 
