@@ -668,7 +668,7 @@ implementation
 {$ifdef GDB}
          pu     : tused_unit;
 {$endif GDB}
-         store_crc,store_interface_crc : longint;
+         store_crc,store_interface_crc : cardinal;
          s2  : ^string; {Saves stack space}
          force_init_final : boolean;
 
@@ -1031,12 +1031,12 @@ implementation
          if not(cs_compilesystem in aktmoduleswitches) then
            if store_interface_crc<>current_module.interface_crc then
              Comment(V_Warning,current_module.ppufilename^+' Interface CRC changed '+
-               tostr(store_crc)+'<>'+tostr(current_module.interface_crc));
+               hexstr(store_crc,8)+'<>'+hexstr(current_module.interface_crc,8));
 {$ifdef EXTDEBUG}
          if not(cs_compilesystem in aktmoduleswitches) then
            if (store_crc<>current_module.crc) and simplify_ppu then
              Comment(V_Warning,current_module.ppufilename^+' implementation CRC changed '+
-               tostr(store_crc)+'<>'+tostr(current_module.interface_crc));
+               hexstr(store_crc,8)+'<>'+hexstr(current_module.interface_crc,8));
 {$endif EXTDEBUG}
 
          { remove static symtable (=refsymtable) here to save some mem }
@@ -1300,7 +1300,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.30  2001-05-06 14:49:17  peter
+  Revision 1.31  2001-05-09 14:11:10  jonas
+    * range check error fixes from Peter
+
+  Revision 1.30  2001/05/06 14:49:17  peter
     * ppu object to class rewrite
     * move ppu read and write stuff to fppu
 

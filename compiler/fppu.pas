@@ -191,8 +191,8 @@ uses
       { Show Debug info }
         Message1(unit_u_ppu_time,filetimestring(ppufiletime));
         Message1(unit_u_ppu_flags,tostr(flags));
-        Message1(unit_u_ppu_crc,tostr(ppufile.header.checksum));
-        Message1(unit_u_ppu_crc,tostr(ppufile.header.interface_checksum)+' (intfc)');
+        Message1(unit_u_ppu_crc,hexstr(ppufile.header.checksum,8));
+        Message1(unit_u_ppu_crc,hexstr(ppufile.header.interface_checksum,8)+' (intfc)');
         do_compile:=false;
         openppu:=true;
       end;
@@ -394,8 +394,8 @@ uses
            ppufile.putstring(hp.name^);
            { the checksum should not affect the crc of this unit ! (PFV) }
            ppufile.do_crc:=false;
-           ppufile.putlongint(hp.checksum);
-           ppufile.putlongint(hp.interface_checksum);
+           ppufile.putlongint(longint(hp.checksum));
+           ppufile.putlongint(longint(hp.interface_checksum));
            ppufile.putbyte(byte(hp.in_interface));
            ppufile.do_crc:=true;
            hp:=tused_unit(hp.next);
@@ -570,14 +570,14 @@ uses
       var
         hs : string;
         intfchecksum,
-        checksum : longint;
+        checksum : cardinal;
         in_interface : boolean;
       begin
         while not ppufile.endofentry do
          begin
            hs:=ppufile.getstring;
-           checksum:=ppufile.getlongint;
-           intfchecksum:=ppufile.getlongint;
+           checksum:=cardinal(ppufile.getlongint);
+           intfchecksum:=cardinal(ppufile.getlongint);
            in_interface:=(ppufile.getbyte<>0);
            used_units.concat(tused_unit.create_to_load(hs,checksum,intfchecksum,in_interface));
          end;
@@ -1143,7 +1143,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.3  2001-05-08 21:06:30  florian
+  Revision 1.4  2001-05-09 14:11:10  jonas
+    * range check error fixes from Peter
+
+  Revision 1.3  2001/05/08 21:06:30  florian
     * some more support for widechars commited especially
       regarding type casting and constants
 

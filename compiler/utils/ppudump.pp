@@ -153,6 +153,21 @@ begin
 end;
 
 
+function hexstr(val : cardinal;cnt : byte) : string;
+const
+  HexTbl : array[0..15] of char='0123456789ABCDEF';
+var
+  i : longint;
+begin
+  hexstr[0]:=char(cnt);
+  for i:=cnt downto 1 do
+   begin
+     hexstr[i]:=hextbl[val and $f];
+     val:=val shr 4;
+   end;
+end;
+
+
 {****************************************************************************
                              Read Routines
 ****************************************************************************}
@@ -1349,8 +1364,8 @@ begin
         WriteLn('Target operating system : ',Target2Str(target));
         Writeln('Unit flags              : ',PPUFlags2Str(flags));
         Writeln('FileSize (w/o header)   : ',size);
-        Writeln('Checksum                : ',checksum);
-        Writeln('Interface Checksum      : ',interface_checksum);
+        Writeln('Checksum                : ',hexstr(checksum,8));
+        Writeln('Interface Checksum      : ',hexstr(interface_checksum,8));
       end;
    end;
 {read the general stuff}
@@ -1528,7 +1543,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2001-05-06 14:49:19  peter
+  Revision 1.3  2001-05-09 14:11:10  jonas
+    * range check error fixes from Peter
+
+  Revision 1.2  2001/05/06 14:49:19  peter
     * ppu object to class rewrite
     * move ppu read and write stuff to fppu
 

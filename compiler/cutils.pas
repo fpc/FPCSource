@@ -45,7 +45,7 @@ interface
     function lower(const s : string) : string;
     function trimspace(const s:string):string;
     procedure uppervar(var s : string);
-    function hexstr(val : longint;cnt : byte) : string;
+    function hexstr(val : cardinal;cnt : byte) : string;
     function tostru(i:cardinal) : string;
     function tostr(i : longint) : string;
     function int64tostr(i : int64) : string;
@@ -267,7 +267,7 @@ uses
       end;
 
 
-    function hexstr(val : longint;cnt : byte) : string;
+    function hexstr(val : cardinal;cnt : byte) : string;
       const
         HexTbl : array[0..15] of char='0123456789ABCDEF';
       var
@@ -633,7 +633,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.5  2000-12-24 12:25:31  peter
+  Revision 1.6  2001-05-09 14:11:10  jonas
+    * range check error fixes from Peter
+
+  Revision 1.5  2000/12/24 12:25:31  peter
     + cstreams unit
     * dynamicarray object to class
 

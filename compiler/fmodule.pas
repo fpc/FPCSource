@@ -139,14 +139,14 @@ interface
           unitid          : longint;
           name            : pstring;
           checksum,
-          interface_checksum : longint;
+          interface_checksum : cardinal;
           loaded          : boolean;
           in_uses,
           in_interface,
           is_stab_written : boolean;
           u               : tmodule;
           constructor create(_u : tmodule;intface:boolean);
-          constructor create_to_load(const n:string;c,intfc:longint;intface:boolean);
+          constructor create_to_load(const n:string;c,intfc:cardinal;intface:boolean);
           destructor destroy;override;
        end;
 
@@ -319,7 +319,7 @@ uses
       end;
 
 
-    constructor tused_unit.create_to_load(const n:string;c,intfc:longint;intface:boolean);
+    constructor tused_unit.create_to_load(const n:string;c,intfc:cardinal;intface:boolean);
       begin
         u:=nil;
         in_interface:=intface;
@@ -636,7 +636,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.14  2001-05-06 14:49:16  peter
+  Revision 1.15  2001-05-09 14:11:10  jonas
+    * range check error fixes from Peter
+
+  Revision 1.14  2001/05/06 14:49:16  peter
     * ppu object to class rewrite
     * move ppu read and write stuff to fppu
 

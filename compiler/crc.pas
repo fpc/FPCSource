@@ -26,9 +26,9 @@ Unit CRC;
 
 Interface
 
-Function Crc32(Const HStr:String):longint;
-Function UpdateCrc32(InitCrc:longint;var InBuf;InLen:Longint):longint;
-Function UpdCrc32(InitCrc:longint;b:byte):longint;
+Function Crc32(Const HStr:String):cardinal;
+Function UpdateCrc32(InitCrc:cardinal;var InBuf;InLen:integer):cardinal;
+Function UpdCrc32(InitCrc:cardinal;b:byte):cardinal;
 
 
 Implementation
@@ -38,19 +38,19 @@ Implementation
 *****************************************************************************}
 
 var
-  Crc32Tbl : array[0..255] of longint;
+  Crc32Tbl : array[0..255] of cardinal;
 
 procedure MakeCRC32Tbl;
 var
-  crc : longint;
-  i,n : byte;
+  crc : cardinal;
+  i,n : integer;
 begin
   for i:=0 to 255 do
    begin
      crc:=i;
      for n:=1 to 8 do
-      if odd(crc) then
-       crc:=(crc shr 1) xor longint($edb88320)
+      if (crc and 1)<>0 then
+       crc:=(crc shr 1) xor cardinal($edb88320)
       else
        crc:=crc shr 1;
      Crc32Tbl[i]:=crc;
@@ -58,19 +58,14 @@ begin
 end;
 
 
-{$ifopt R+}
-{$define Range_check_on}
-{$endif opt R+}
-
-{$R- needed here }
-{CRC 32}
-Function Crc32(Const HStr:String):longint;
+Function Crc32(Const HStr:String):cardinal;
 var
-  i,InitCrc : longint;
+  i : integer;
+  InitCrc : cardinal;
 begin
   if Crc32Tbl[1]=0 then
    MakeCrc32Tbl;
-  InitCrc:=longint($ffffffff);
+  InitCrc:=cardinal($ffffffff);
   for i:=1 to Length(Hstr) do
    InitCrc:=Crc32Tbl[byte(InitCrc) xor ord(Hstr[i])] xor (InitCrc shr 8);
   Crc32:=InitCrc;
@@ -78,9 +73,9 @@ end;
 
 
 
-Function UpdateCrc32(InitCrc:longint;var InBuf;InLen:Longint):longint;
+Function UpdateCrc32(InitCrc:cardinal;var InBuf;InLen:Integer):cardinal;
 var
-  i : word;
+  i : integer;
   p : pchar;
 begin
   if Crc32Tbl[1]=0 then
@@ -89,29 +84,27 @@ begin
   for i:=1 to InLen do
    begin
      InitCrc:=Crc32Tbl[byte(InitCrc) xor byte(p^)] xor (InitCrc shr 8);
-     inc(longint(p));
+     inc(p);
    end;
   UpdateCrc32:=InitCrc;
 end;
 
 
 
-Function UpdCrc32(InitCrc:longint;b:byte):longint;
+Function UpdCrc32(InitCrc:cardinal;b:byte):cardinal;
 begin
   if Crc32Tbl[1]=0 then
    MakeCrc32Tbl;
   UpdCrc32:=Crc32Tbl[byte(InitCrc) xor b] xor (InitCrc shr 8);
 end;
 
-{$ifdef Range_check_on}
-{$R+}
-{$undef Range_check_on}
-{$endif Range_check_on}
-
 end.
 {
   $Log$
-  Revision 1.4  2000-09-24 15:06:14  peter
+  Revision 1.5  2001-05-09 14:11:10  jonas
+    * range check error fixes from Peter
+
+  Revision 1.4  2000/09/24 15:06:14  peter
     * use defines.inc
 
   Revision 1.3  2000/08/13 13:04:38  peter
