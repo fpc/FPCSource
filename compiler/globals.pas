@@ -1595,14 +1595,86 @@ end;
           fnstcw (%rsp)
           popq %rax
         end;
+        
+
+      procedure SetSSECSR(w : dword);
+        var
+          _w : dword;
+        begin
+          _w:=w;
+          asm
+            ldmxcsr _w
+          end;    
+        end;
 
 
+      function GetSSECSR : dword;
+          var
+            _w : dword;
+          begin
+            asm
+              stmxcsr _w
+            end;
+            result:=_w;
+          end;
+  
+                
       procedure SetFPUExceptionMask(const Mask: TFPUExceptionMask);
         var
           CtlWord: Word;
+          newmask : dword;
+        const
+          MM_MaskInvalidOp = %0000000010000000;
+          MM_MaskDenorm    = %0000000100000000;
+          MM_MaskDivZero   = %0000001000000000;
+          MM_MaskOverflow  = %0000010000000000;
+          MM_MaskUnderflow = %0000100000000000;
+          MM_MaskPrecision = %0001000000000000;
         begin
+          { classic FPU }
           CtlWord:=Get8087CW;
           Set8087CW( (CtlWord and $FFC0) or Byte(Longint(Mask)) );
+          
+          { SSE }
+          
+          newmask:=GetSSECSR;
+          
+          { invalid operation }
+          if (exInvalidOp in mask) then
+            newmask:=newmask or MM_MaskInvalidOp
+          else
+            newmask:=newmask and not(MM_MaskInvalidOp);
+
+          { denormals }
+          if (exDenormalized in mask) then
+            newmask:=newmask or MM_MaskDenorm
+          else
+            newmask:=newmask and not(MM_MaskDenorm);
+
+          { zero divide }
+          if (exZeroDivide in mask) then
+            newmask:=newmask or MM_MaskDivZero
+          else
+            newmask:=newmask and not(MM_MaskDivZero);
+
+          { overflow }
+          if (exOverflow in mask) then
+            newmask:=newmask or MM_MaskOverflow
+          else
+            newmask:=newmask and not(MM_MaskOverflow);
+
+          { underflow }
+          if (exUnderflow in mask) then
+            newmask:=newmask or MM_MaskUnderflow
+          else
+            newmask:=newmask and not(MM_MaskUnderflow);
+
+          { Precision (inexact result) }
+          if (exPrecision in mask) then
+            newmask:=newmask or MM_MaskPrecision
+          else
+            newmask:=newmask and not(MM_MaskPrecision);
+          SetSSECSR(newmask);
         end;
 {$endif CPUX86_64}
 
@@ -2218,7 +2290,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.166  2005-02-01 17:57:30  olle
+  Revision 1.167  2005-02-05 16:17:19  florian
+    + setting sse exception mask on x86_64
+
+  Revision 1.166  2005/02/01 17:57:30  olle
     * macpas now uses tp style proc params
 
   Revision 1.165  2005/02/01 08:46:13  michael
