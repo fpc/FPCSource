@@ -19,6 +19,101 @@
 
 
 {****************************************************************************
+                           PowerPC specific stuff
+****************************************************************************}
+
+{ This function is never called directly, it's a dummy to hold the register save/
+  load subroutines
+}
+procedure saverestorereg;assembler;
+asm
+{ exit }
+.global _restfpr_14_x
+_restfpr_14_x:  lfd     f14, -144(r11)
+.global _restfpr_15_x
+_restfpr_15_x:  lfd     f15, -136(r11)
+.global _restfpr_16_x
+_restfpr_16_x:  lfd     f16, -128(r11)
+.global _restfpr_17_x
+_restfpr_17_x:  lfd     f17, -120(r11)
+.global _restfpr_18_x
+_restfpr_18_x:  lfd     f18, -112(r11)
+.global _restfpr_19_x
+_restfpr_19_x:  lfd     f19, -104(r11)
+.global _restfpr_20_x
+_restfpr_20_x:  lfd     f20, -96(r11)
+.global _restfpr_21_x
+_restfpr_21_x:  lfd     f21, -88(r11)
+.global _restfpr_22_x
+_restfpr_22_x:  lfd     f22, -80(r11)
+.global _restfpr_23_x
+_restfpr_23_x:  lfd     f23, -72(r11)
+.global _restfpr_24_x
+_restfpr_24_x:  lfd     f24, -64(r11)
+.global _restfpr_25_x
+_restfpr_25_x:  lfd     f25, -56(r11)
+.global _restfpr_26_x
+_restfpr_26_x:  lfd     f26, -48(r11)
+.global _restfpr_27_x
+_restfpr_27_x:  lfd     f27, -40(r11)
+.global _restfpr_28_x
+_restfpr_28_x:  lfd     f28, -32(r11)
+.global _restfpr_29_x
+_restfpr_29_x:  lfd     f29, -24(r11)
+.global _restfpr_30_x
+_restfpr_30_x:  lfd     f30, -16(r11)
+.global _restfpr_31_x
+_restfpr_31_x:  lwz     r0, 4(r11)
+                lfd     f31, -8(r11)
+                mtlr    r0
+                ori     r1, r11, 0
+                blr
+
+{ exit with restoring lr }
+.global _restfpr_14_l
+_restfpr_14_l:  lfd     f14, -144(r11)
+.global _restfpr_15_l
+_restfpr_15_l:  lfd     f15, -136(r11)
+.global _restfpr_16_l
+_restfpr_16_l:  lfd     f16, -128(r11)
+.global _restfpr_17_l
+_restfpr_17_l:  lfd     f17, -120(r11)
+.global _restfpr_18_l
+_restfpr_18_l:  lfd     f18, -112(r11)
+.global _restfpr_19_l
+_restfpr_19_l:  lfd     f19, -104(r11)
+.global _restfpr_20_l
+_restfpr_20_l:  lfd     f20, -96(r11)
+.global _restfpr_21_l
+_restfpr_21_l:  lfd     f21, -88(r11)
+.global _restfpr_22_l
+_restfpr_22_l:  lfd     f22, -80(r11)
+.global _restfpr_23_l
+_restfpr_23_l:  lfd     f23, -72(r11)
+.global _restfpr_24_l
+_restfpr_24_l:  lfd     f24, -64(r11)
+.global _restfpr_25_l
+_restfpr_25_l:  lfd     f25, -56(r11)
+.global _restfpr_26_l
+_restfpr_26_l:  lfd     f26, -48(r11)
+.global _restfpr_27_l
+_restfpr_27_l:  lfd     f27, -40(r11)
+.global _restfpr_28_l
+_restfpr_28_l:  lfd     f28, -32(r11)
+.global _restfpr_29_l
+_restfpr_29_l:  lfd     f29, -24(r11)
+.global _restfpr_30_l
+_restfpr_30_l:  lfd     f30, -16(r11)
+.global _restfpr_31_l
+_restfpr_31_l:  lwz     r0, 4(r11)
+                lfd     f31, -8(r11)
+                mtlr    r0
+                ori     r1, r11, 0
+                blr
+end;
+
+
+{****************************************************************************
                                 Move / Fill
 ****************************************************************************}
 
@@ -187,7 +282,7 @@ Procedure FillChar(var x;count:longint;value:byte);assembler;
 { in the AIX ABI, we can use te red zone for temp storage, otherwise we have }
 { to explicitely allocate room                                               }
 var
-  temp: record
+  temp : packed record
     case byte of
       0: (l1,l2: longint);
       1: (d: double);
@@ -257,7 +352,7 @@ L32ByteAlignLoopDone:
         addi      r3,r3,4
 LFillCharDCBZLoop:
         dcbz      0,r3
-        add       r3,r3,32
+        addi      r3,r3,32
         bdnz      LFillCharDCBZLoop
         { if there was no rest, we're finished }
         beq       LFillCharDone
@@ -268,9 +363,9 @@ LFillCharNoZero:
         stw       r5,4(sp)
         lfd       f0,0(sp)
 {$else ABI_AIX}
-        stw       r5,temp.l1
-        stw       r5,temp.l2
-        lfd       f0,temp.d
+        stw       r5,temp
+        stw       r5,4+temp
+        lfd       f0,temp
 {$endif ABI_AIX}
         { make r3 point to address-8, so we're able to use fp double stores }
         { with update (it's already -4 now)                                 }
@@ -326,7 +421,6 @@ asm
         r18             scratch
         f1              value.value.value.value
 }
-        asm
                 cmpwi   cr0,r3,0
                 mtctr   r4
                 subi    r3,r3,4
@@ -648,11 +742,11 @@ asm
         { put length in ctr }
         mtctr   r3
         stb     r3,0(r5)
-        beq     LShortStrCopyDone
-LShortStrCopyLoop:
+        beq     LShortStrCopyDone2
+LShortStrCopyLoop2:
         lbzu    r0,1(r4)
         stbu    r0,1(r5)
-        bdnz    LShortStrCopyLoop
+        bdnz    LShortStrCopyLoop2
 end ['R0','R3','R4','R5','R10','CR0','CTR'];
 
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
@@ -833,7 +927,7 @@ LDecLockedLoop:
 {$else MT}
     lwzx    r10,0,r3
     subi    r10,r10,1
-    stw     r10,0,r3
+    stw     r10,0(r3)
 {$endif MT}
     mr.     r3,r10
 end ['R3','R10'];
@@ -849,14 +943,17 @@ LIncLockedLoop:
 {$else MT}
     lwzx    r10,0,r3
     addi    r10,r10,1
-    stw     r10,0,r3
+    stw     r10,0(r3)
 {$endif MT}
 end ['R3','R10'];
 
 
 {
   $Log$
-  Revision 1.12  2002-08-10 17:14:36  jonas
+  Revision 1.13  2002-08-18 21:37:48  florian
+    * several errors in inline assembler fixed
+
+  Revision 1.12  2002/08/10 17:14:36  jonas
     * various fixes, mostly changing the names of the modifies registers to
       upper case since that seems to be required by the compiler
 

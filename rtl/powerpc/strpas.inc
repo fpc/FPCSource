@@ -13,24 +13,24 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-
+{
+   r3: result address
+   r4: src
+}
 asm
         {  load the begin of the string in the data cache }
-        dcbt    0,r3
-        { load result address in r9 }
-        li      r0,__RESULT@l
-        addis   r0,__RESULT@ha
+        dcbt    0,r4
         { maxlength }
         li      r10,255
         mtctr   r10
-        lwz     r0,0(r0)
+        lwz     r0,0(r3)
         { save address for at the end }
         mr      r3,r0
         { no "subi r0,r0,1" because the first byte = length byte }
         subi    r4,r4,1
 LStrPasLoop:
         lbzu    r10,1(r4)
-        cmpli   r10,0
+        cmpli   cr0,r10,0
         stbu    r10,1(r0)
         bdnzf   cr0*4+eq, LStrPasLoop
 
@@ -50,7 +50,10 @@ end ['R0','R3','R4','R10','CR0','CTR'];
 
 {
   $Log$
-  Revision 1.3  2002-08-10 17:14:36  jonas
+  Revision 1.4  2002-08-18 21:37:48  florian
+    * several errors in inline assembler fixed
+
+  Revision 1.3  2002/08/10 17:14:36  jonas
     * various fixes, mostly changing the names of the modifies registers to
       upper case since that seems to be required by the compiler
 
@@ -67,5 +70,4 @@ end ['R0','R3','R4','R10','CR0','CTR'];
       those reserved for local vars (since those have to be saved by the
       called anyway, while the ones for local vars have to be saved by the
       callee)
-
 }

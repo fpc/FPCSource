@@ -99,7 +99,7 @@ Lset_set_byte_copy:
        // insert it
        or       r5,r4,r5
        // store result
-       stw      r5,(r3)
+       stw      r5,0(r3)
 end ['R0','R3','R4','R5','CTR'];
 
 
@@ -133,7 +133,7 @@ Lset_unset_byte_copy:
        // remove it
        andc     r5,r4,r5
        // store result
-       stw      r4,(r3)
+       stw      r4,0(r3)
 end ['R0','R3','R4','R5','CTR'];
 
 
@@ -176,7 +176,7 @@ Lset_set_range_copy:
                               //  current mask and adjust for hi bit
   subic. r9,r9,4              // bit hi in next longint?
   or     r5,r5,r10            // merge and
-  stw    r5,(r3)              // store current mask
+  stw    r5,0(r3)             // store current mask
   li     r10,-1               // new mask
   lwzu   r5,4(r3)             // load next longint of set
   beq    Lset_range_hi        // bit hi in this longint -> go to adjust for hi
@@ -194,7 +194,7 @@ Lset_range_hi:                // in all cases, r3 here contains the address of
                               //   taken)
   and    r10,r9,r10           // combine lo and hi bitmasks for this longint
   or     r5,r5,r10            // and combine with existing set
-  stw    r5,(r3)              // store to set
+  stw    r5,0(r3)             // store to set
 Lset_range_exit:
 end ['R0','R3','R4','R5','R6','R9','R10','CR0','CTR'];
 
@@ -523,7 +523,10 @@ end;
 
 {
   $Log$
-  Revision 1.12  2002-08-10 17:14:36  jonas
+  Revision 1.13  2002-08-18 21:37:48  florian
+    * several errors in inline assembler fixed
+
+  Revision 1.12  2002/08/10 17:14:36  jonas
     * various fixes, mostly changing the names of the modifies registers to
       upper case since that seems to be required by the compiler
 

@@ -84,17 +84,16 @@
       { output: result in r3 }
       assembler;
       var
-        temp:
-          record
+        temp: packed record
             case byte of
               0: (l1,l2: longint);
               1: (d: double);
           end;
       asm
         fctiwz   fr1,fr1
-        stfd     fr1,temp.d
-        lwz      r3,temp.l1
-        lwz      r4,temp.l2
+        stfd     fr1,temp
+        lwz      r3,temp
+        lwz      r4,4+temp
       end ['R3','F1'];
 
 
@@ -104,17 +103,16 @@
       { output: result in r3 }
       assembler;
       var
-        temp:
-          record
+        temp : packed record
             case byte of
               0: (l1,l2: longint);
               1: (d: double);
           end;
       asm
         fctiw    fr1,fr1
-        stfd     fr1,temp.d
-        lwz      r3,temp.l1
-        lwz      r4,temp.l2
+        stfd     fr1,temp
+        lwz      r3,temp
+        lwz      r4,4+temp
       end ['R3','F1'];
 
 
@@ -159,9 +157,9 @@
            if bas<0 then
             begin
               if odd(expo) then
-               power:=-round(exp(ln(-bas)*expo))
+                power:=-round(exp(ln(-bas)*expo))
               else
-               power:=round(exp(ln(-bas)*expo));
+                power:=round(exp(ln(-bas)*expo));
             end
            else
             power:=round(exp(ln(bas)*expo));
@@ -217,21 +215,20 @@ assembler;
 { input: high(i) in r3, low(i) in r4 }
 { output: double(i) in f0            }
 var
-  temp:
-    record
+  temp: packed record
       case byte of
         0: (l1,l2: cardinal);
         1: (d: double);
     end;
 asm
            lis    r0,$4330
-           stw    r0,temp.l1
+           stw    r0,temp
            xoris  r3,r3,$8000
-           stw    r3,temp.l2
+           stw    r3,4+temp
            lis    r3,longint_to_real_helper@ha
            lfd    fr1,longint_to_real_helper@l(r3)
-           lfd    fr0,temp.d
-           stw    r4,temp.l2
+           lfd    fr0,temp
+           stw    r4,4+temp
            fsub   fr0,fr0,fr1
            lis    r4,cardinal_to_real_helper@ha
            lfd    fr1,cardinal_to_real_helper@l(r4)
@@ -248,20 +245,19 @@ assembler;
 { input: high(q) in r3, low(q) in r4 }
 { output: double(q) in f0            }
 var
-  temp:
-    record
+  temp: packed record
       case byte of
         0: (l1,l2: cardinal);
         1: (d: double);
     end;
 asm
            lis    r0,$4330
-           stw    r0,temp.l1
-           stw    r3,temp.l2
-           lfd    fr0,temp.d
+           stw    r0,temp
+           stw    r3,4+temp
+           lfd    fr0,temp
            lis    r3,cardinal_to_real_helper@ha
            lfd    fr1,cardinal_to_real_helper@l(r3)
-           stw    r4,temp.l2
+           stw    r4,4+temp
            fsub   fr0,fr0,fr1
            lfd    fr3,temp
            lis    r3,int_to_real_factor@ha
@@ -274,7 +270,10 @@ end ['R0','R3','F0','F1','F2','F3'];
 
 {
   $Log$
-  Revision 1.8  2002-08-10 17:14:36  jonas
+  Revision 1.9  2002-08-18 21:37:48  florian
+    * several errors in inline assembler fixed
+
+  Revision 1.8  2002/08/10 17:14:36  jonas
     * various fixes, mostly changing the names of the modifies registers to
       upper case since that seems to be required by the compiler
 
