@@ -409,11 +409,8 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2002-08-13 18:01:52  carl
-    * rename swatoperands to swapoperands
-    + m68k first compilable version (still needs a lot of testing):
-        assembler generator, system information , inline
-        assembler reader.
+  Revision 1.4  2002-08-13 18:58:54  carl
+    + m68k problems with cvs fixed?()!
 
   Revision 1.2  2002/08/12 15:08:43  carl
     + stab register indexes for powerpc (moved from gdb to cpubase)
