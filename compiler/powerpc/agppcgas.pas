@@ -79,7 +79,7 @@ unit agppcgas;
          'dcbf','dcbi','dcbst','dcbt','divw','divw.','divwo','divwo.',
          'divwu','divwu.','divwuo','divwuo.','eciwx','ecowx','eieio','eqv',
          'eqv.','extsb','extsb.','extsh','extsh.','fabs','fabs.','fadd',
-         'fadd.','fadds','fadds.','fcompo','fcmpu','fctiw','fctw.','fctwz',
+         'fadd.','fadds','fadds.','fcmpo','fcmpu','fctiw','fctw.','fctwz',
          'fctwz.','fdiv','fdiv.','fdivs','fdivs.','fmadd','fmadd.','fmadds',
          'fmadds.','fmr','fmsub','fmsub.','fmsubs','fmsubs.','fmul','fmul.',
          'fmuls','fmuls.','fnabs','fnabs.','fneg','fneg.','fnmadd',
@@ -96,7 +96,7 @@ unit agppcgas;
          'mulhw.','mulhwu','mulhwu.','mulli','mullw','mullw.','mullwo',
          'mullwo.','nand','nand.','neg','neg.','nego','nego.','nor','nor.',
          'or','or.','orc','orc.','ori','oris', 'rfi', 'rlwimi', 'rlwimi.',
-         'rlwinm', 'tlwinm.','rlwnm','sc','slw', 'slw.', 'sraw', 'sraw.',
+         'rlwinm', 'rlwinm.','rlwnm','sc','slw', 'slw.', 'sraw', 'sraw.',
          'srawi', 'srawi.','srw', 'srw.', 'stb', 'stbu', 'stbux','stbx','stfd',
          'stfdu', 'stfdux', 'stfdx', 'stfiwx', 'stfs', 'stfsu', 'stfsux', 'stfsx',
          'sth', 'sthbrx', 'sthu', 'sthux', 'sthx', 'stmw', 'stswi', 'stswx', 'stw',
@@ -107,7 +107,7 @@ unit agppcgas;
          'tlbsync', 'tw', 'twi', 'xor', 'xor.', 'xori', 'xoris',
          { some simplified mnemonics }
          'subi', 'subis', 'subic', 'subic.', 'sub', 'sub.', 'subo', 'subo.',
-         'subc', 'subc.', 'subco', '.subco.', 'cmpwi', 'cmpw', 'cmplwi', 'cmplw',
+         'subc', 'subc.', 'subco', 'subco.', 'cmpwi', 'cmpw', 'cmplwi', 'cmplw',
          'extlwi', 'extlwi.', 'extrwi', 'extrwi.', 'inslwi', 'inslwi.', 'insrwi',
          'insrwi.', 'rotlwi', 'rotlwi.', 'rotlw', 'rotlw.', 'slwi', 'slwi.',
          'srwi', 'srwi.', 'clrlwi', 'clrlwi.', 'clrrwi', 'clrrwi.', 'clrslwi',
@@ -115,16 +115,16 @@ unit agppcgas;
          'crnot', 'mt', 'mf','nop', 'li', 'lis', 'la', 'mr','mr.','not', 'mtcr');
 
       reg2str : reg2strtable = ('',
-        '0','1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16',
-        '17','18','19','20','21','22','23','24','25','26','27','28','29','30','31',
-        'F0','F1','F2','F3','F4','F5','F6','F7', 'F8','F9','F10','F11','F12',
-        'F13','F14','F15','F16','F17', 'F18','F19','F20','F21','F22', 'F23','F24',
-        'F25','F26','F27','F28','F29','F30','F31',
-        'M0','M1','M2','M3','M4','M5','M6','M7','M8','M9','M10','M11','M12',
-        'M13','M14','M15','M16','M17','M18','M19','M20','M21','M22', 'M23','M24',
-        'M25','M26','M27','M28','M29','M30','M31',
-        'CR','CR0','CR1','CR2','CR3','CR4','CR5','CR6','CR7',
-        'XER','LR','CTR','FPSCR'
+        'r0','r1','r2','r3','r4','r5','r6','r7','r8','r9','r10','r11','r12','r13','r14','r15','r16',
+        'r17','r18','r19','r20','r21','r22','r23','r24','r25','r26','r27','r28','r29','r30','r31',
+        'f0','f1','f2','f3','f4','f5','f6','f7', 'f8','f9','f10','f11','f12',
+        'f13','f14','f15','f16','f17', 'f18','f19','f20','f21','f22', 'f23','f24',
+        'f25','f26','f27','f28','f29','f30','f31',
+        'v0','v1','v2','v3','v4','v5','v6','v7','v8','v9','v10','v11','v12',
+        'v13','v14','v15','v16','v17','v18','v19','v20','v21','v22', 'v23','v24',
+        'v25','v26','v27','v28','v29','v30','v31',
+        'cR','cr0','cr1','cr2','cr3','cr4','cr5','cr6','cr7',
+        'xer','lr','ctr','fpscr'
       );
 
      symaddr2str: array[trefsymaddr] of string[4] = ('','ha16','lo16');
@@ -340,7 +340,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2002-07-26 21:15:45  florian
+  Revision 1.9  2002-07-27 19:57:18  jonas
+    * some typo corrections in the instruction tables
+    * renamed the m* registers to v*
+
+  Revision 1.8  2002/07/26 21:15:45  florian
     * rewrote the system handling
 
   Revision 1.7  2002/07/26 11:19:57  jonas

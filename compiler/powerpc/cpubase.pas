@@ -66,7 +66,7 @@ uses
         a_mulhw_, a_mulhwu, a_mulhwu_, a_mulli, a_mullw, a_mullw_, a_mullwo,
         a_mullwo_, a_nand, a_nand_, a_neg, a_neg_, a_nego, a_nego_, a_nor, a_nor_,
         a_or, a_or_, a_orc, a_orc_, a_ori, a_oris, a_rfi, a_rlwimi, a_rlwimi_,
-        a_rlwinm, a_tlwinm_, a_rlwnm, a_sc, a_slw, a_slw_, a_sraw, a_sraw_,
+        a_rlwinm, a_rlwinm_, a_rlwnm, a_sc, a_slw, a_slw_, a_sraw, a_sraw_,
         a_srawi, a_srawi_,a_srw, a_srw_, a_stb, a_stbu, a_stbux, a_stbx, a_stfd,
         a_stfdu, a_stfdux, a_stfdx, a_stfiwx, a_stfs, a_stfsu, a_stfsux, a_stfsx,
         a_sth, a_sthbrx, a_sthu, a_sthux, a_sthx, a_stmw, a_stswi, a_stswx, a_stw,
@@ -647,7 +647,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  2002-07-26 12:30:51  jonas
+  Revision 1.22  2002-07-27 19:57:18  jonas
+    * some typo corrections in the instruction tables
+    * renamed the m* registers to v*
+
+  Revision 1.21  2002/07/26 12:30:51  jonas
     * fixed typo in instruction table (_subco_ -> a_subco)
 
   Revision 1.20  2002/07/25 18:04:10  carl
