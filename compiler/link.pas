@@ -65,11 +65,14 @@ Implementation
 
 uses
   Script,globals,systems,verbose
+{$ifdef i386}  
+  ,win_targ
+{$endif}  
 {$ifdef linux}
   ,linux
 {$endif}
   ,dos
-  ,win_targ;
+  ;
 
 {$ifndef linux}
 Procedure Shell(command:string);
@@ -425,8 +428,10 @@ begin
       end;
      DoExec(bindbin,s,false,false);
    end;
+{$ifdef i386}  
   if target_info.target=target_Win32 then
     win_targ.postprocessexecutable;
+{$endif}    
 {Remove ReponseFile}
   if (success) and not(cs_link_extern in aktglobalswitches) then
    RemoveFile(LinkResName);
@@ -491,7 +496,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.23  1998-09-03 17:39:04  florian
+  Revision 1.24  1998-09-07 18:32:45  peter
+    * fixed for m68k
+
+  Revision 1.23  1998/09/03 17:39:04  florian
     + better code for type conversation longint/dword to real type
 
   Revision 1.22  1998/09/01 09:01:00  peter
