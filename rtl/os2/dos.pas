@@ -183,50 +183,74 @@ var i,p1:longint;
     ND: PathStr;
 
 begin
-    {No wildcards allowed in these things:}
-    if (pos('?',path)<>0) or (pos('*',path)<>0) then
-        fsearch:=''
+{ check if the file specified exists }
+    if OS_Mode = osOS2 then
+        begin
+            New (FStat);
+            ND := NewDir + Path;
+            Handle := $FFFFFFFF;
+            Count := 1;
+            RC := DosFindFirst (ND, Handle, $37, FStat, SizeOf (FStat^),
+                                                            Count, ilStandard);
+            DosFindClose (Handle);
+            Dispose (FStat);
+        end
     else
         begin
-            { allow slash as backslash }
-            for i:=1 to length(dirlist) do
-                if dirlist[i]='/' then dirlist[i]:='\';
-            repeat
-                p1:=pos(';',dirlist);
-                if p1<>0 then
-                    begin
-                        newdir:=copy(dirlist,1,p1-1);
-                        delete(dirlist,1,p1);
-                    end
-                else
-                    begin
-                        newdir:=dirlist;
-                        dirlist:='';
-                    end;
-                if (newdir<>'') and
-                 not (newdir[length(newdir)] in ['\',':']) then
-                    newdir:=newdir+'\';
-                if OS_Mode = osOS2 then
+            FindFirst (path,anyfile,s);
+            FindClose (s);
+            RC := DosError;
+        end;
+    if RC = 0 then
+        FSearch := Path
+    else
+        begin
+            {No wildcards allowed in these things:}
+            if (pos('?',path)<>0) or (pos('*',path)<>0) then
+                fsearch:=''
+            else
                 begin
-                 New (FStat);
-                 ND := NewDir + Path;
-                 Handle := $FFFFFFFF;
-                 Count := 1;
-                 RC := DosFindFirst (ND, Handle, $37, FStat, SizeOf (FStat^),
-                                                            Count, ilStandard);
-                 DosFindClose (Handle);
-                 Dispose (FStat);
-                end else
-                begin
-                 findfirst(newdir+path,anyfile,s);
-                 RC := DosError;
+                    { allow slash as backslash }
+                    for i:=1 to length(dirlist) do
+                       if dirlist[i]='/' then dirlist[i]:='\';
+                    repeat
+                        p1:=pos(';',dirlist);
+                        if p1<>0 then
+                            begin
+                                newdir:=copy(dirlist,1,p1-1);
+                                delete(dirlist,1,p1);
+                            end
+                        else
+                            begin
+                                newdir:=dirlist;
+                                dirlist:='';
+                            end;
+                        if (newdir<>'') and
+                         not (newdir[length(newdir)] in ['\',':']) then
+                            newdir:=newdir+'\';
+                        if OS_Mode = osOS2 then
+                        begin
+                         New (FStat);
+                         ND := NewDir + Path;
+                         Handle := $FFFFFFFF;
+                         Count := 1;
+                         RC := DosFindFirst (ND, Handle, $37, FStat,
+                                           SizeOf (FStat^), Count, ilStandard);
+                         DosFindClose (Handle);
+                         Dispose (FStat);
+                        end else
+                        begin
+                         FindFirst (newdir+path,anyfile,s);
+                         RC := DosError;
+                         FindClose (S);
+                        end;
+                        if RC = 0 then
+                            newdir:=newdir+path
+                        else
+                            newdir:='';
+                    until (dirlist='') or (newdir<>'');
+                    fsearch:=newdir;
                 end;
-                if RC = 0 then
-                    newdir:=newdir+path
-                else
-                    newdir:='';
-            until (dirlist='') or (newdir<>'');
-            fsearch:=newdir;
         end;
 end;
 
@@ -1001,7 +1025,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.22  2000-03-12 18:32:17  hajny
+  Revision 1.23  2000-04-18 20:30:02  hajny
+    * FSearch with given path corrected
+
+  Revision 1.22  2000/03/12 18:32:17  hajny
     * missing parentheses added
 
   Revision 1.21  2000/03/05 19:00:37  hajny
