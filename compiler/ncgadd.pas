@@ -633,69 +633,69 @@ interface
         case nodetype of
           addn:
             begin
-              cgop := OP_ADD;
-              checkoverflow := true;
+              cgop:=OP_ADD;
+              checkoverflow:=true;
             end;
           xorn :
             begin
-              cgop := OP_XOR;
+              cgop:=OP_XOR;
             end;
           orn :
             begin
-              cgop := OP_OR;
+              cgop:=OP_OR;
             end;
           andn:
             begin
-              cgop := OP_AND;
+              cgop:=OP_AND;
             end;
           muln:
             begin
-              checkoverflow := true;
+              checkoverflow:=true;
               if unsigned then
-                cgop := OP_MUL
+                cgop:=OP_MUL
               else
-                cgop := OP_IMUL;
+                cgop:=OP_IMUL;
             end;
           subn :
             begin
-              checkoverflow := true;
-              cgop := OP_SUB;
+              checkoverflow:=true;
+              cgop:=OP_SUB;
             end;
         end;
 
-       if nodetype <> subn then
+       if nodetype<>subn then
         begin
-          if (right.location.loc <> LOC_CONSTANT) then
-            cg.a_op_reg_reg_reg(exprasmlist,cgop,location.size,
+          if (right.location.loc >LOC_CONSTANT) then
+            cg.a_op_reg_reg_reg_setflags(exprasmlist,cgop,location.size,
                left.location.register,right.location.register,
-               location.register)
+               location.register,checkoverflow)
           else
-            cg.a_op_const_reg_reg(exprasmlist,cgop,location.size,
+            cg.a_op_const_reg_reg_setflags(exprasmlist,cgop,location.size,
                right.location.value,left.location.register,
-               location.register);
+               location.register,checkoverflow);
         end
       else  { subtract is a special case since its not commutative }
         begin
           if (nf_swaped in flags) then
             swapleftright;
-          if left.location.loc <> LOC_CONSTANT then
+          if left.location.loc<>LOC_CONSTANT then
             begin
-              if right.location.loc <> LOC_CONSTANT then
-                cg.a_op_reg_reg_reg(exprasmlist,OP_SUB,location.size,
+              if right.location.loc<>LOC_CONSTANT then
+                cg.a_op_reg_reg_reg_setflags(exprasmlist,OP_SUB,location.size,
                     right.location.register,left.location.register,
-                    location.register)
+                    location.register,checkoverflow)
               else
-                cg.a_op_const_reg_reg(exprasmlist,OP_SUB,location.size,
-                    aword(right.location.value),left.location.register,
-                    location.register);
+                cg.a_op_const_reg_reg_setflags(exprasmlist,OP_SUB,location.size,
+                  aword(right.location.value),left.location.register,
+                  location.register,checkoverflow);
             end
           else
             begin
-              tmpreg := cg.getintregister(exprasmlist,location.size);
+              tmpreg:=cg.getintregister(exprasmlist,location.size);
               cg.a_load_const_reg(exprasmlist,location.size,
                 aword(left.location.value),tmpreg);
-              cg.a_op_reg_reg_reg(exprasmlist,OP_SUB,location.size,
-                right.location.register,tmpreg,location.register);
+              cg.a_op_reg_reg_reg_setflags(exprasmlist,OP_SUB,location.size,
+                right.location.register,tmpreg,location.register,checkoverflow);
             end;
         end;
 
@@ -777,7 +777,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  2004-09-25 14:23:54  peter
+  Revision 1.33  2004-09-26 21:04:35  florian
+    + partial overflow checking on sparc; multiplication still missing
+
+  Revision 1.32  2004/09/25 14:23:54  peter
     * ungetregister is now only used for cpuregisters, renamed to
       ungetcpuregister
     * renamed (get|unget)explicitregister(s) to ..cpuregister

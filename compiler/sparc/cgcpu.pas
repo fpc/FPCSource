@@ -61,6 +61,8 @@ interface
         procedure a_op_reg_reg(list:TAasmOutput;Op:TOpCG;size:TCGSize;src, dst:TRegister);override;
         procedure a_op_const_reg_reg(list:TAasmOutput;op:TOpCg;size:tcgsize;a:aint;src, dst:tregister);override;
         procedure a_op_reg_reg_reg(list:TAasmOutput;op:TOpCg;size:tcgsize;src1, src2, dst:tregister);override;
+        procedure a_op_const_reg_reg_setflags(list: taasmoutput; op: TOpCg; size: tcgsize; a: aint; src, dst: tregister;setflags : boolean);override;
+        procedure a_op_reg_reg_reg_setflags(list: taasmoutput; op: TOpCg; size: tcgsize; src1, src2, dst: tregister;setflags : boolean);override;
         { move instructions }
         procedure a_load_const_reg(list:TAasmOutput;size:tcgsize;a:aint;reg:tregister);override;
         procedure a_load_const_ref(list:TAasmOutput;size:tcgsize;a:aint;const ref:TReference);override;
@@ -105,7 +107,10 @@ interface
 
     const
       TOpCG2AsmOp : array[topcg] of TAsmOp=(
-        A_NONE,A_ADD,A_AND,A_UDIV,A_SDIV,A_UMUL,A_SMUL,A_NEG,A_NOT,A_OR,A_SRA,A_SLL,A_SRL,A_SUB,A_XOR
+        A_NONE,A_ADD,A_AND,A_UDIV,A_SDIV,A_SMUL,A_UMUL,A_NEG,A_NOT,A_OR,A_SRA,A_SLL,A_SRL,A_SUB,A_XOR
+      );
+      TOpCG2AsmOpWithFlags : array[topcg] of TAsmOp=(
+        A_NONE,A_ADDcc,A_ANDcc,A_UDIVcc,A_SDIVcc,A_SMULcc,A_UMULcc,A_NEG,A_NOT,A_ORcc,A_SRA,A_SLL,A_SRL,A_SUBcc,A_XORcc
       );
       TOpCmp2AsmCond : array[topcmp] of TAsmCond=(C_NONE,
         C_E,C_G,C_L,C_GE,C_LE,C_NE,C_BE,C_B,C_AE,C_A
@@ -767,10 +772,10 @@ implementation
         power : longInt;
       begin
         case op of
-          OP_IMUL :
+          OP_MUL,
+          OP_IMUL:
             begin
-              if not(cs_check_overflow in aktlocalswitches) and
-                 ispowerof2(a,power) then
+              if ispowerof2(a,power) then
                 begin
                   { can be done with a shift }
                   inherited a_op_const_reg_reg(list,op,size,a,src,dst);
@@ -795,6 +800,38 @@ implementation
       begin
         list.concat(taicpu.op_reg_reg_reg(TOpCG2AsmOp[op],src2,src1,dst));
       end;
+
+
+    procedure tcgsparc.a_op_const_reg_reg_setflags(list: taasmoutput; op: TOpCg; size: tcgsize; a: aint; src, dst: tregister;setflags : boolean);
+      var
+        power : longInt;
+      begin
+        case op of
+          OP_SUB,
+          OP_ADD :
+            begin
+              if (a=0) then
+                begin
+                  a_load_reg_reg(list,size,size,src,dst);
+                  exit;
+                end;
+            end;
+        end;
+        if setflags then
+          handle_reg_const_reg(list,TOpCG2AsmOpWithFlags[op],src,a,dst)
+        else
+          handle_reg_const_reg(list,TOpCG2AsmOp[op],src,a,dst)
+      end;
+
+
+    procedure tcgsparc.a_op_reg_reg_reg_setflags(list: taasmoutput; op: TOpCg; size: tcgsize; src1, src2, dst: tregister;setflags : boolean);
+      begin
+        if setflags then
+          list.concat(taicpu.op_reg_reg_reg(TOpCG2AsmOpWithFlags[op],src2,src1,dst))
+        else
+          list.concat(taicpu.op_reg_reg_reg(TOpCG2AsmOp[op],src2,src1,dst))
+      end;
+
 
 
   {*************** compare instructructions ****************}
@@ -876,21 +913,24 @@ implementation
     procedure TCgSparc.g_overflowCheck(List:TAasmOutput;const Loc:TLocation;def:TDef);
       var
         hl : tasmlabel;
+        ai:TAiCpu;
       begin
         if not(cs_check_overflow in aktlocalswitches) then
           exit;
         objectlibrary.getlabel(hl);
-        if not((def.deftype=pointerdef)or
-              ((def.deftype=orddef)and
+        if not((def.deftype=pointerdef) or
+              ((def.deftype=orddef) and
                (torddef(def).typ in [u64bit,u16bit,u32bit,u8bit,uchar,bool8bit,bool16bit,bool32bit]))) then
           begin
-            //r.enum:=R_CR7;
-            //list.concat(taicpu.op_reg(A_MCRXR,r));
-            //a_jmp_cond(list,A_Bxx,C_OV,hl)
-            a_jmp_always(list,hl)
+            ai:=TAiCpu.Op_sym(A_Bxx,hl);
+            ai.SetCondition(C_NO);
+            list.Concat(ai);
+            { Delay slot }
+            list.Concat(TAiCpu.Op_none(A_NOP));
           end
         else
           a_jmp_cond(list,OC_AE,hl);
+
         a_call_name(list,'FPC_OVERFLOW');
         a_label(list,hl);
       end;
@@ -1216,7 +1256,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.90  2004-09-26 17:36:12  florian
+  Revision 1.91  2004-09-26 21:04:35  florian
+    + partial overflow checking on sparc; multiplication still missing
+
+  Revision 1.90  2004/09/26 17:36:12  florian
     + a_jmp_name for sparc added
 
   Revision 1.89  2004/09/25 14:23:55  peter

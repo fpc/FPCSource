@@ -259,6 +259,8 @@ unit cgobj;
           { are any processors that support it (JM)                         }
           procedure a_op_const_reg_reg(list: taasmoutput; op: TOpCg; size: tcgsize; a: aint; src, dst: tregister); virtual;
           procedure a_op_reg_reg_reg(list: taasmoutput; op: TOpCg; size: tcgsize; src1, src2, dst: tregister); virtual;
+          procedure a_op_const_reg_reg_setflags(list: taasmoutput; op: TOpCg; size: tcgsize; a: aint; src, dst: tregister;setflags : boolean); virtual;
+          procedure a_op_reg_reg_reg_setflags(list: taasmoutput; op: TOpCg; size: tcgsize; src1, src2, dst: tregister;setflags : boolean); virtual;
 
           {  comparison operations }
           procedure a_cmp_const_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aint;reg : tregister;
@@ -1267,6 +1269,17 @@ implementation
       end;
 
 
+    procedure tcg.a_op_const_reg_reg_setflags(list: taasmoutput; op: TOpCg; size: tcgsize; a: aint; src, dst: tregister;setflags : boolean);
+      begin
+        a_op_const_reg_reg(list,op,size,a,src,dst);
+      end;
+
+
+    procedure tcg.a_op_reg_reg_reg_setflags(list: taasmoutput; op: TOpCg; size: tcgsize; src1, src2, dst: tregister;setflags : boolean);
+      begin
+        a_op_reg_reg_reg(list,op,size,src1,src2,dst);
+      end;
+
 
     procedure tcg.a_cmp_const_ref_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aint;const ref : treference;
      l : tasmlabel);
@@ -2204,7 +2217,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.171  2004-09-26 17:45:30  peter
+  Revision 1.172  2004-09-26 21:04:35  florian
+    + partial overflow checking on sparc; multiplication still missing
+
+  Revision 1.171  2004/09/26 17:45:30  peter
     * simple regvar support, not yet finished
 
   Revision 1.170  2004/09/25 14:23:54  peter
