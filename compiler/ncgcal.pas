@@ -126,7 +126,6 @@ implementation
     procedure tcgcallparanode.push_value_para;
 {$ifdef i386}
       var
-        cgsize : tcgsize;
         href   : treference;
         size   : longint;
 {$endif i386}
@@ -961,7 +960,17 @@ implementation
              case procdefinition.funcretloc[callerside].loc of
                LOC_REGISTER,
                LOC_CREGISTER:
-                 exclude(regs_to_save_int,getsupreg(procdefinition.funcretloc[callerside].register));
+                 begin
+{$ifndef cpu64bit}
+                   if procdefinition.funcretloc[callerside].size in [OS_64,OS_S64] then
+                     begin
+                       exclude(regs_to_save_int,getsupreg(procdefinition.funcretloc[callerside].register64.reghi));
+                       exclude(regs_to_save_int,getsupreg(procdefinition.funcretloc[callerside].register64.reglo));
+                     end
+                   else
+{$endif cpu64bit}
+                     exclude(regs_to_save_int,getsupreg(procdefinition.funcretloc[callerside].register));
+                 end;
                LOC_FPUREGISTER,
                LOC_CFPUREGISTER:
                  exclude(regs_to_save_fpu,getsupreg(procdefinition.funcretloc[callerside].register));
@@ -1226,7 +1235,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.201  2005-02-15 21:39:48  peter
+  Revision 1.202  2005-02-27 16:40:13  peter
+  fix register deallocation for 64bit results
+
+  Revision 1.201  2005/02/15 21:39:48  peter
     * remove is_single_reference
     * revert loading of ref-to-ref para valu
 
