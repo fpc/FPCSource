@@ -24,7 +24,7 @@ const
 
     single_pchar : pchar = 'Alone test';
 
-const filename  = 'ts010022.hlp';
+const filename  = 'ts010022.tmp';
 
 var en : pchar;
     f : text;

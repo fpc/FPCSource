@@ -8,5 +8,6 @@ type
 
   begin
         a:=@a2;
+        a2:=@a;
         a:=a2^;
   end.

@@ -8,10 +8,6 @@
 { Win32 signal support is still missing ! }
 
 {$ifdef OK}
-{$R+}
-{ BOUND check error... I don't think this is a code generator error }
-{ but an error because the type casting is not considered at all!   }
-{ Must be compiled with -Cr                                         }
 
 {$ifdef go32v2}
  uses dpmiexcp;
@@ -23,23 +19,22 @@
   function our_sig(l : longint) : longint;{$ifdef linux}cdecl;{$endif}
     begin
        { If we land here the program works correctly !! }
-       Writeln('Bound check error signal recieved');
+       Writeln('Sigsegv signal recieved');
        our_sig:=0;
        Halt(0);
     end;
 
 Var
  Sel: Word;
- v: longint;
+ v: pointer;
 {$endif OK}
 Begin
 {$ifdef OK}
  Signal(SIGSEGV,signalhandler(@our_sig));
- v:=$00ffffff;
- Sel:=word(v);
- writeln(sel);
- { should trigger Bound check error }
- sel:=v;
+ { generate a sigsegv by writing to null-address }
+ sel:=0;
+ v:=nil;
+ word(v^):=sel;
  { we should not go to here }
  Writeln('Error : signal not called');
  Halt(1);

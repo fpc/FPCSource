@@ -24,7 +24,7 @@ end;
 
 
 begin
-  assign(fileof,'test.dat');
+  assign(fileof,'tbs0238.tmp');
   rewrite(fileof);
   a:='dummy string !!';
   for nu:=1 to 8 do write(fileof,a);

@@ -25,7 +25,7 @@ end;
 var Foo:tFoo;
 begin
 
-  assign(t,'tbug772.txt');
+  assign(t,'tbug772.tmp');
   rewrite(t);
   writeln(t,'4');
   close(t);
