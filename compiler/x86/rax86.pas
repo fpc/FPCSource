@@ -310,6 +310,8 @@ begin
                so:=operands[i].opr.symofs;
                operands[i].opr.typ:=OPR_REFERENCE;
                Fillchar(operands[i].opr.ref,sizeof(treference),0);
+               operands[i].opr.ref.index.enum:=R_INTREGISTER;
+               operands[i].opr.ref.base.enum:=R_INTREGISTER;
                operands[i].opr.ref.symbol:=s;
                operands[i].opr.ref.offset:=so;
              end;
@@ -716,7 +718,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2003-06-20 12:57:15  pierre
+  Revision 1.7  2003-08-26 12:42:45  peter
+    * fix wrong registers in reference
+
+  Revision 1.6  2003/06/20 12:57:15  pierre
    * fix a bug preventing correct reading of intel 'mov [edi],al'
 
   Revision 1.5  2003/06/07 10:23:50  peter
