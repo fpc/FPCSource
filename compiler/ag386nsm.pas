@@ -50,7 +50,7 @@ unit ag386nsm;
       ;
 
     const
-      line_length = 70;
+      line_length = 64;
 
 {$ifdef EXTTYPE}
       extstr : array[EXT_NEAR..EXT_ABS] of String[8] =
@@ -270,7 +270,7 @@ unit ag386nsm;
               else
                if o.symofs<0 then
                 hs:=hs+tostr(o.symofs);
-              getopstr_jmp:=hs;
+              getopstr_jmp:='NEAR '+hs;
             end;
           else
             internalerror(10001);
@@ -352,210 +352,253 @@ unit ag386nsm;
                    tostr(paitempalloc(hp)^.tempsize)+allocstr[paitempalloc(hp)^.allocation]);
              end;
 
-       ait_section : begin
-                       if pai_section(hp)^.sec<>sec_none then
+           ait_section :
+             begin
+               if pai_section(hp)^.sec<>sec_none then
+                begin
+                  AsmLn;
+                  AsmWriteLn('SECTION '+target_asm.secnames[pai_section(hp)^.sec]);
+                end;
+               LastSec:=pai_section(hp)^.sec;
+             end;
+
+           ait_align :
+             AsmWriteLn(#9'ALIGN '+tostr(pai_align(hp)^.aligntype));
+
+           ait_datablock :
+             begin
+               if pai_datablock(hp)^.is_global then
+                begin
+                  AsmWrite(#9'GLOBAL ');
+                  AsmWriteLn(pai_datablock(hp)^.sym^.name);
+                end;
+               AsmWrite(PadTabs(pai_datablock(hp)^.sym^.name,':'));
+               AsmWriteLn('RESB'#9+tostr(pai_datablock(hp)^.size));
+             end;
+
+           ait_const_32bit,
+           ait_const_16bit,
+           ait_const_8bit :
+             begin
+               AsmWrite(ait_const2str[hp^.typ]+tostr(pai_const(hp)^.value));
+               consttyp:=hp^.typ;
+               l:=0;
+               repeat
+                 found:=(not (Pai(hp^.next)=nil)) and (Pai(hp^.next)^.typ=consttyp);
+                 if found then
+                  begin
+                    hp:=Pai(hp^.next);
+                    s:=','+tostr(pai_const(hp)^.value);
+                    AsmWrite(s);
+                    inc(l,length(s));
+                  end;
+               until (not found) or (l>line_length);
+               AsmLn;
+             end;
+
+           ait_const_symbol :
+             begin
+               AsmWrite(#9#9'DD'#9);
+               AsmWrite(pai_const_symbol(hp)^.sym^.name);
+               if pai_const_symbol(hp)^.offset>0 then
+                 AsmWrite('+'+tostr(pai_const_symbol(hp)^.offset))
+               else if pai_const_symbol(hp)^.offset<0 then
+                 AsmWrite(tostr(pai_const_symbol(hp)^.offset));
+               AsmLn;
+             end;
+
+           ait_const_rva :
+             begin
+               AsmWrite(#9#9'RVA'#9);
+               AsmWriteLn(pai_const_symbol(hp)^.sym^.name);
+             end;
+
+           ait_real_32bit :
+             AsmWriteLn(#9#9'DD'#9+single2str(pai_real_32bit(hp)^.value));
+
+           ait_real_64bit :
+             AsmWriteLn(#9#9'DQ'#9+double2str(pai_real_64bit(hp)^.value));
+
+           ait_real_80bit :
+             AsmWriteLn(#9#9'DT'#9+extended2str(pai_real_80bit(hp)^.value));
+
+           ait_comp_64bit :
+             AsmWriteLn(#9#9'DQ'#9+comp2str(pai_real_80bit(hp)^.value));
+
+           ait_string :
+             begin
+               counter := 0;
+               lines := pai_string(hp)^.len div line_length;
+             { separate lines in different parts }
+               if pai_string(hp)^.len > 0 then
+                Begin
+                  for j := 0 to lines-1 do
+                   begin
+                     AsmWrite(#9#9'DB'#9);
+                     quoted:=false;
+                     for i:=counter to counter+line_length-1 do
                         begin
-                          AsmLn;
-                          AsmWriteLn('SECTION '+target_asm.secnames[pai_section(hp)^.sec]);
-                        end;
-                       LastSec:=pai_section(hp)^.sec;
-                     end;
-         ait_align : AsmWriteLn(#9'ALIGN '+tostr(pai_align(hp)^.aligntype));
-     ait_datablock : begin
-                       if pai_datablock(hp)^.is_global then
-                        AsmWriteLn(#9'GLOBAL '+pai_datablock(hp)^.sym^.name);
-                       AsmWriteLn(PadTabs(pai_datablock(hp)^.sym^.name,':')+'RESB'#9+tostr(pai_datablock(hp)^.size));
-                     end;
-   ait_const_32bit,
-    ait_const_8bit,
-   ait_const_16bit : begin
-                       AsmWrite(ait_const2str[hp^.typ]+tostr(pai_const(hp)^.value));
-                       consttyp:=hp^.typ;
-                       l:=0;
-                       repeat
-                         found:=(not (Pai(hp^.next)=nil)) and (Pai(hp^.next)^.typ=consttyp);
-                         if found then
-                          begin
-                            hp:=Pai(hp^.next);
-                            s:=','+tostr(pai_const(hp)^.value);
-                            AsmWrite(s);
-                            inc(l,length(s));
-                          end;
-                       until (not found) or (l>line_length);
-                       AsmLn;
-                     end;
-  ait_const_symbol : begin
-                       AsmWriteLn(#9#9'DD'#9+pai_const_symbol(hp)^.sym^.name);
-                       if pai_const_symbol(hp)^.offset>0 then
-                         AsmWrite('+'+tostr(pai_const_symbol(hp)^.offset))
-                       else if pai_const_symbol(hp)^.offset<0 then
-                         AsmWrite(tostr(pai_const_symbol(hp)^.offset));
-                       AsmLn;
-                     end;
-     ait_const_rva : begin
-                       AsmWriteLn(#9#9'RVA'#9+pai_const_symbol(hp)^.sym^.name);
-                     end;
-    ait_real_32bit     : AsmWriteLn(#9#9'DD'#9+single2str(pai_real_32bit(hp)^.value));
-    ait_real_64bit     : AsmWriteLn(#9#9'DQ'#9+double2str(pai_real_64bit(hp)^.value));
-    ait_real_80bit   : AsmWriteLn(#9#9'DT'#9+extended2str(pai_real_80bit(hp)^.value));
-          ait_comp_64bit : AsmWriteLn(#9#9'DQ'#9+comp2str(pai_real_80bit(hp)^.value));
-        ait_string : begin
-                       counter := 0;
-                       lines := pai_string(hp)^.len div line_length;
-                     { separate lines in different parts }
-                       if pai_string(hp)^.len > 0 then
-                        Begin
-                          for j := 0 to lines-1 do
-                           begin
-                             AsmWrite(#9#9'DB'#9);
-                             quoted:=false;
-                             for i:=counter to counter+line_length do
-                                begin
-                                  { it is an ascii character. }
-                                  if (ord(pai_string(hp)^.str[i])>31) and
-                                     (ord(pai_string(hp)^.str[i])<128) and
-                                     (pai_string(hp)^.str[i]<>'"') then
-                                      begin
-                                        if not(quoted) then
-                                            begin
-                                              if i>counter then
-                                                AsmWrite(',');
-                                              AsmWrite('"');
-                                            end;
-                                        AsmWrite(pai_string(hp)^.str[i]);
-                                        quoted:=true;
-                                      end { if > 31 and < 128 and ord('"') }
-                                  else
-                                      begin
-                                          if quoted then
-                                              AsmWrite('"');
-                                          if i>counter then
-                                              AsmWrite(',');
-                                          quoted:=false;
-                                          AsmWrite(tostr(ord(pai_string(hp)^.str[i])));
-                                      end;
-                               end; { end for i:=0 to... }
-                             if quoted then AsmWrite('"');
-                               AsmWrite(target_os.newline);
-                             counter := counter+line_length;
-                          end; { end for j:=0 ... }
-                        { do last line of lines }
-                        AsmWrite(#9#9'DB'#9);
-                        quoted:=false;
-                        for i:=counter to pai_string(hp)^.len-1 do
-                          begin
-                            { it is an ascii character. }
-                            if (ord(pai_string(hp)^.str[i])>31) and
-                               (ord(pai_string(hp)^.str[i])<128) and
-                               (pai_string(hp)^.str[i]<>'"') then
-                                begin
-                                  if not(quoted) then
-                                      begin
-                                        if i>counter then
-                                          AsmWrite(',');
-                                        AsmWrite('"');
-                                      end;
-                                  AsmWrite(pai_string(hp)^.str[i]);
-                                  quoted:=true;
-                                end { if > 31 and < 128 and " }
-                            else
-                                begin
+                          { it is an ascii character. }
+                          if (ord(pai_string(hp)^.str[i])>31) and
+                             (ord(pai_string(hp)^.str[i])<128) and
+                             (pai_string(hp)^.str[i]<>'"') then
+                              begin
+                                if not(quoted) then
+                                    begin
+                                      if i>counter then
+                                        AsmWrite(',');
+                                      AsmWrite('"');
+                                    end;
+                                AsmWrite(pai_string(hp)^.str[i]);
+                                quoted:=true;
+                              end { if > 31 and < 128 and ord('"') }
+                          else
+                              begin
                                   if quoted then
-                                    AsmWrite('"');
+                                      AsmWrite('"');
                                   if i>counter then
                                       AsmWrite(',');
                                   quoted:=false;
                                   AsmWrite(tostr(ord(pai_string(hp)^.str[i])));
-                                end;
-                          end; { end for i:=0 to... }
-                        if quoted then
-                          AsmWrite('"');
+                              end;
+                       end; { end for i:=0 to... }
+                     if quoted then AsmWrite('"');
+                       AsmWrite(target_os.newline);
+                     inc(counter,line_length);
+                  end; { end for j:=0 ... }
+                { do last line of lines }
+                AsmWrite(#9#9'DB'#9);
+                quoted:=false;
+                for i:=counter to pai_string(hp)^.len-1 do
+                  begin
+                    { it is an ascii character. }
+                    if (ord(pai_string(hp)^.str[i])>31) and
+                       (ord(pai_string(hp)^.str[i])<128) and
+                       (pai_string(hp)^.str[i]<>'"') then
+                        begin
+                          if not(quoted) then
+                              begin
+                                if i>counter then
+                                  AsmWrite(',');
+                                AsmWrite('"');
+                              end;
+                          AsmWrite(pai_string(hp)^.str[i]);
+                          quoted:=true;
+                        end { if > 31 and < 128 and " }
+                    else
+                        begin
+                          if quoted then
+                            AsmWrite('"');
+                          if i>counter then
+                              AsmWrite(',');
+                          quoted:=false;
+                          AsmWrite(tostr(ord(pai_string(hp)^.str[i])));
                         end;
-                       AsmLn;
-                     end;
-         ait_label : begin
-                       if pai_label(hp)^.l^.is_used then
-                        AsmWriteLn(pai_label(hp)^.l^.name+':');
-                     end;
-        ait_direct : begin
-                       AsmWritePChar(pai_direct(hp)^.str);
-                       AsmLn;
-                     end;
-        ait_symbol : begin
-                       if pai_symbol(hp)^.is_global then
-                        AsmWriteLn(#9'GLOBAL '+pai_symbol(hp)^.sym^.name);
-                       AsmWrite(pai_symbol(hp)^.sym^.name);
-                       if assigned(hp^.next) and not(pai(hp^.next)^.typ in
-                          [ait_const_32bit,ait_const_16bit,ait_const_8bit,
-                           ait_const_symbol,ait_const_rva,
-                           ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_string]) then
-                        AsmWriteLn(':')
-                     end;
+                  end; { end for i:=0 to... }
+                if quoted then
+                  AsmWrite('"');
+                end;
+               AsmLn;
+             end;
+
+           ait_label :
+             begin
+               if pai_label(hp)^.l^.is_used then
+                AsmWriteLn(pai_label(hp)^.l^.name+':');
+             end;
+
+           ait_direct :
+             begin
+               AsmWritePChar(pai_direct(hp)^.str);
+               AsmLn;
+             end;
+
+           ait_symbol :
+             begin
+               if pai_symbol(hp)^.is_global then
+                begin
+                  AsmWrite(#9'GLOBAL ');
+                  AsmWriteLn(pai_symbol(hp)^.sym^.name);
+                end;
+               AsmWrite(pai_symbol(hp)^.sym^.name);
+               if assigned(hp^.next) and not(pai(hp^.next)^.typ in
+                  [ait_const_32bit,ait_const_16bit,ait_const_8bit,
+                   ait_const_symbol,ait_const_rva,
+                   ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_string]) then
+                AsmWriteLn(':')
+             end;
+
            ait_symbol_end :
              begin
              end;
-   ait_instruction : begin
-                     { We need intel order, no At&t }
-                       paicpu(hp)^.SwapOperands;
-                     { Reset }
-                       suffix:='';
-                       prefix:='';
-                       s:='';
-                       if paicpu(hp)^.ops<>0 then
-                        begin
-                          if is_calljmp(paicpu(hp)^.opcode) then
-                           s:=#9+getopstr_jmp(paicpu(hp)^.oper[0])
-                          else
-                           begin
-                             for i:=0to paicpu(hp)^.ops-1 do
-                              begin
-                                if i=0 then
-                                 sep:=#9
-                                else
-                                 sep:=',';
-                                s:=s+sep+getopstr(paicpu(hp)^.oper[i],paicpu(hp)^.opsize,paicpu(hp)^.opcode,
-                                  paicpu(hp)^.ops,(i=2));
-                              end;
-                           end;
-                        end;
-                       if paicpu(hp)^.opcode=A_FWAIT then
-                        AsmWriteln(#9#9'DB'#9'09bh')
-                       else
-                        AsmWriteLn(#9#9+prefix+int_op2str[paicpu(hp)^.opcode]+
-                          cond2str[paicpu(hp)^.condition]+suffix+s);
-                     end;
+
+           ait_instruction :
+             begin
+             { We need intel order, no At&t }
+               paicpu(hp)^.SwapOperands;
+             { Reset }
+               suffix:='';
+               prefix:='';
+               s:='';
+               if paicpu(hp)^.ops<>0 then
+                begin
+                  if is_calljmp(paicpu(hp)^.opcode) then
+                   s:=#9+getopstr_jmp(paicpu(hp)^.oper[0])
+                  else
+                   begin
+                     for i:=0to paicpu(hp)^.ops-1 do
+                      begin
+                        if i=0 then
+                         sep:=#9
+                        else
+                         sep:=',';
+                        s:=s+sep+getopstr(paicpu(hp)^.oper[i],paicpu(hp)^.opsize,paicpu(hp)^.opcode,
+                          paicpu(hp)^.ops,(i=2));
+                      end;
+                   end;
+                end;
+               if paicpu(hp)^.opcode=A_FWAIT then
+                AsmWriteln(#9#9'DB'#9'09bh')
+               else
+                AsmWriteLn(#9#9+prefix+int_op2str[paicpu(hp)^.opcode]+
+                  cond2str[paicpu(hp)^.condition]+suffix+s);
+             end;
 {$ifdef GDB}
-             ait_stabn,
-             ait_stabs,
-        ait_force_line,
-ait_stab_function_name : ;
+           ait_stabn,
+           ait_stabs,
+           ait_force_line,
+           ait_stab_function_name : ;
 {$endif GDB}
-           ait_cut : begin
-                     { only reset buffer if nothing has changed }
-                       if AsmSize=AsmStartSize then
-                        AsmClear
-                       else
-                        begin
-                          AsmClose;
-                          DoAssemble;
-                          if pai_cut(hp)^.EndName then
-                           IsEndFile:=true;
-                          AsmCreate;
-                        end;
-                     { avoid empty files }
-                       while assigned(hp^.next) and (pai(hp^.next)^.typ in [ait_cut,ait_section,ait_comment]) do
-                        begin
-                          if pai(hp^.next)^.typ=ait_section then
-                            lastsec:=pai_section(hp^.next)^.sec;
-                          hp:=pai(hp^.next);
-                        end;
-                       if lastsec<>sec_none then
-                         AsmWriteLn('SECTION '+target_asm.secnames[lastsec]);
-                       AsmStartSize:=AsmSize;
-                     end;
-        ait_marker : ;
-         else
-          internalerror(10000);
+
+           ait_cut :
+             begin
+             { only reset buffer if nothing has changed }
+               if AsmSize=AsmStartSize then
+                AsmClear
+               else
+                begin
+                  AsmClose;
+                  DoAssemble;
+                  if pai_cut(hp)^.EndName then
+                   IsEndFile:=true;
+                  AsmCreate;
+                end;
+             { avoid empty files }
+               while assigned(hp^.next) and (pai(hp^.next)^.typ in [ait_cut,ait_section,ait_comment]) do
+                begin
+                  if pai(hp^.next)^.typ=ait_section then
+                    lastsec:=pai_section(hp^.next)^.sec;
+                  hp:=pai(hp^.next);
+                end;
+               if lastsec<>sec_none then
+                 AsmWriteLn('SECTION '+target_asm.secnames[lastsec]);
+               AsmStartSize:=AsmSize;
+             end;
+
+           ait_marker : ;
+
+           else
+             internalerror(10000);
          end;
          hp:=pai(hp^.next);
        end;
@@ -574,11 +617,7 @@ ait_stab_function_name : ;
     procedure ti386nasmasmlist.WriteExternals;
       begin
         currentasmlist:=@self;
-{$ifdef Delphi}
-        AsmSymbolList^.foreach(@writeexternal);
-{$else}
         AsmSymbolList^.foreach({$ifndef TP}@{$endif}writeexternal);
-{$endif Delphi}
       end;
 
 
@@ -617,7 +656,11 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.51  1999-09-10 15:41:18  peter
+  Revision 1.52  1999-09-13 16:27:24  peter
+    * fix for jmps to be always near
+    * string writing fixed
+
+  Revision 1.51  1999/09/10 15:41:18  peter
     * added symbol_end
 
   Revision 1.50  1999/09/02 18:47:43  daniel
