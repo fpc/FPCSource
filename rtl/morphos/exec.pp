@@ -27,15 +27,6 @@ var
 {$include execd.inc}
 {$include execf.inc}
 
-{ * Define real AllocMem() and FreeMem() * }
-function AllocMem(byteSize     : LongInt location 'd0';
-                   requirements: LongInt location 'd1'): Pointer; 
-SysCall MOS_ExecBase 198;
-
-procedure FreeMem(memoryBlock: Pointer location 'a1';
-                   byteSize  : LongInt location 'd0'); 
-SysCall MOS_ExecBase 210;
-
 implementation
 
 begin
@@ -44,7 +35,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2004-06-13 22:46:36  karoly
+  Revision 1.2  2004-08-03 15:35:23  karoly
+    - removed conflicting calls
+
+  Revision 1.1  2004/06/13 22:46:36  karoly
     * initial revision
 
 }
