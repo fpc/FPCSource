@@ -19,8 +19,8 @@ libname=fpapi
 [dirs]
 fpcdir=../..
 targetdir=.
-sourcesdir=$(INC)
-
+sourcesdir=$(INC) ../test
+incdir=$(INC)
 
 [presettings]
 INC=../inc
