@@ -59,9 +59,8 @@ implementation
     procedure tppccasenode.genlinearlist(hp : pcaserecord);
 
       var
-         first : boolean;
+         first, lastrange : boolean;
          last : TConstExprInt;
-         resflags: tresflags;
 
       procedure genitem(t : pcaserecord);
 
@@ -92,20 +91,17 @@ implementation
            { need we to test the first value }
            if first and (t^._low>get_min_value(left.resulttype.def)) then
              begin
-               cg.a_cmp_const_reg_label(exprasmlist,OS_INT,jmp_lt,
-                 aword(t^._low),hregister,elselabel);
+               cg.a_cmp_const_reg_label(exprasmlist,OS_INT,jmp_lt,aword(t^._low),hregister,elselabel);
              end;
            if t^._low=t^._high then
              begin
                 if t^._low-last=0 then
-                  exprasmlist.concat(taicpu.op_reg_reg_const(A_CMPWI,NR_CR0,
-                    hregister,0))
+                  cg.a_cmp_const_reg_label(exprasmlist, opsize, OC_EQ,0,hregister,t^.statement)
                 else
                   gensub(longint(t^._low-last));
+                tcgppc(cg).a_jmp_cond(exprasmlist,OC_EQ,t^.statement);
                 last:=t^._low;
-                resflags.cr := RS_CR0;
-                resflags.flag := F_EQ;
-                cg.a_jmp_flags(exprasmlist,resflags,t^.statement);
+                lastrange := false;
              end
            else
              begin
@@ -124,12 +120,14 @@ implementation
                     { present label then the lower limit can be checked    }
                     { immediately. else check the range in between:       }
                     gensub(longint(t^._low-last));
-                    if (t^._low-last) <> 1 then
+                    if ((t^._low-last) <> 1) or
+                       (not lastrange) then
                       tcgppc(cg).a_jmp_cond(exprasmlist,jmp_lt,elselabel);
                   end;
                 gensub(longint(t^._high-t^._low));
                 tcgppc(cg).a_jmp_cond(exprasmlist,jmp_le,t^.statement);
                 last:=t^._high;
+                lastrange := true;
              end;
            first:=false;
            if assigned(t^.greater) then
@@ -144,6 +142,7 @@ implementation
          else
            begin
               last:=0;
+              lastrange:=false;
               first:=true;
               genitem(hp);
               cg.a_jmp_always(exprasmlist,elselabel);
@@ -158,7 +157,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2003-10-17 01:22:08  florian
+  Revision 1.13  2003-12-09 19:13:32  jonas
+    * fixed case bugs
+
+  Revision 1.12  2003/10/17 01:22:08  florian
     * compilation of the powerpc compiler fixed
 
   Revision 1.11  2003/10/01 20:34:49  peter
