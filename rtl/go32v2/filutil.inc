@@ -222,8 +222,8 @@ Regs.Eax := $5700;
 RealIntr($21, Regs);
 if Regs.Flags and CarryFlag <> 0 then result := -Regs.Ax
 else begin
-   LongRec(result).Lo := Regs.Edx;
-   LongRec(result).Hi := Regs.Eax;
+   LongRec(result).Lo := Regs.cx;
+   LongRec(result).Hi := Regs.dx;
    end ;
 end;
 
@@ -454,7 +454,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  1999-08-26 11:02:50  peter
+  Revision 1.9  1999-11-25 15:55:52  pierre
+   * web bug 716
+
+  Revision 1.8  1999/08/26 11:02:50  peter
     * findclose freemem fixed
 
   Revision 1.7  1999/08/24 13:14:28  peter
