@@ -2218,12 +2218,19 @@ type
         newblock: tblocknode;
         newstatement: tstatementnode;
         temp: ttempcreatenode;
+        curparaitem: tparaitem;
+        orgtype: ^ttype;
         foundcall: boolean;
+        take_addr: boolean;
       begin
         foundcall := false;
         curpara := tcallparanode(left);
+        curparaitem:=tparaitem(procdefinition.Para.last);
         if assigned(curpara) then
-          curpara := tcallparanode(curpara.right);
+          begin
+            curpara := tcallparanode(curpara.right);
+            curparaitem:=tparaitem(curparaitem.previous);
+          end;
         newblock := nil;
         while assigned(curpara) do
           begin
@@ -2234,16 +2241,29 @@ type
                     foundcall := true;
                     newblock := internalstatements(newstatement,false);
                   end;
-                temp := ctempcreatenode.create(curpara.left.resulttype,curpara.left.resulttype.def.size,true);
+                take_addr := (curparaitem.paratyp in [vs_var,vs_out]) or
+                             ((curparaitem.paratype.def.deftype = formaldef));
+                if not(take_addr) then
+                  temp := ctempcreatenode.create(curpara.left.resulttype,curpara.left.resulttype.def.size,true)
+                else
+                  begin
+                    temp := ctempcreatenode.create(voidpointertype,pointer_size,true);
+                    orgtype := @curpara.left.resulttype;
+                  end;
                 addstatement(newstatement,temp);
+                if take_addr then
+                  curpara.left := caddrnode.create(curpara.left);
                 addstatement(newstatement,
                   cassignmentnode.create(ctemprefnode.create(temp),curpara.left));
                 { after the assignment, turn the temp into a non-persistent one, so }
                 { that it will be freed once it's used as parameter                 }
                 addstatement(newstatement,ctempdeletenode.create_normal_temp(temp));
                 curpara.left := ctemprefnode.create(temp);
+                if take_addr then
+                  curpara.left := ctypeconvnode.create_explicit(cderefnode.create(curpara.left),orgtype^);
               end;
             curpara := tcallparanode(curpara.right);
+            curparaitem := tparaitem(curparaitem.previous);
           end;
         if assigned(newblock) then
           firstpass(newblock);
@@ -2724,7 +2744,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.153  2003-05-13 20:53:41  peter
+  Revision 1.154  2003-05-14 19:35:50  jonas
+    * fixed callparatemp so it works with vs_var, vs_out and formal const
+      parameters
+
+  Revision 1.153  2003/05/13 20:53:41  peter
     * constructors return in register
 
   Revision 1.152  2003/05/13 15:18:49  peter
