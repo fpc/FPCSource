@@ -621,23 +621,32 @@ uses
       var
         s1 : string;
         i  : integer;
+        quoted : boolean;
       begin
-        if (pos('"',s)>0) then
+        quoted:=false;
+        s1:='"';
+        for i:=1 to length(s) do
          begin
-           s1:='"';
-           for i:=1 to length(s) do
-            begin
-              if s[i]='"' then
-               s1:=s1+'\"'
-              else
+           case s[i] of
+             '"' :
+               begin
+                 quoted:=true;
+                 s1:=s1+'\"';
+               end;
+             ' ',
+             #128..#255 :
+               begin
+                 quoted:=true;
+                 s1:=s1+s[i];
+               end;
+             else
                s1:=s1+s[i];
-            end;
-           maybequoted:=s1+'"';
-         end
-        else if (pos(' ',s)>0) then
-         maybequoted:='"'+s+'"'
+           end;
+         end;
+        if quoted then
+          maybequoted:=s1+'"'
         else
-         maybequoted:=s;
+          maybequoted:=s;
       end;
 
 
@@ -857,7 +866,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.25  2003-01-09 21:42:27  peter
+  Revision 1.26  2003-04-04 15:34:25  peter
+    * quote names with hi-ascii chars
+
+  Revision 1.25  2003/01/09 21:42:27  peter
     * realtostr added
 
   Revision 1.24  2002/12/27 18:05:27  peter
