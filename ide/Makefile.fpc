@@ -116,6 +116,12 @@ ifneq ($(wildcard $(UNITDIR_FV)/fvconsts$(PPUEXT)),)
 override COMPILER+=-dFVISION
 endif
 
+ifeq ($(GDB),1)
+ifneq ($(GDBFOUND),0)
+override COMPILER+=-dWITH_GDB
+endif
+endif
+
 fp$(EXEEXT): $(wildcard *.pas) $(wildcard *.inc)
 
 testgdb:
@@ -203,6 +209,9 @@ install: fpc_install
         $(MKDIR) $(INSTALL_DATADIR)
         $(MKDIR) $(INSTALL_DOCDIR)
         $(INSTALL) fp.ans $(wildcard *.pt) $(wildcard *.tdf) $(INSTALL_DATADIR)
+ifeq ($(OS_TARGET),win32)
+        $(INSTALL) fp32.ico $(INSTALL_DATADIR)
+endif
         $(INSTALL) readme.ide $(INSTALL_DOCDIR)
 
 
