@@ -1326,7 +1326,8 @@ uses
         i : integer;
       begin
         inherited Create;
-        condition:=tasmcond(ppufile.getbyte);
+        { hopefully, we don't get problems with big/litte endian here when cross compiling :/ }
+        ppufile.getdata(condition,sizeof(tasmcond));
         ops:=ppufile.getbyte;
         for i:=1 to ops do
           ppuloadoper(ppufile,oper[i-1]);
@@ -1342,7 +1343,7 @@ uses
       var
         i : integer;
       begin
-        ppufile.putbyte(byte(condition));
+        ppufile.putdata(condition,sizeof(tasmcond));
         ppufile.putbyte(ops);
         for i:=1 to ops do
           ppuwriteoper(ppufile,oper[i-1]);
@@ -1436,7 +1437,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.5  2002-08-15 19:10:35  peter
+  Revision 1.6  2002-08-16 05:21:09  florian
+    * powerpc compilation fix
+
+  Revision 1.5  2002/08/15 19:10:35  peter
     * first things tai,tnode storing in ppu
 
   Revision 1.4  2002/08/11 14:32:25  peter
