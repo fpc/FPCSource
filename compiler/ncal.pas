@@ -585,11 +585,6 @@ implementation
                    begin
                      hightree:=caddnode.create(subn,geninlinenode(in_length_x,false,left.getcopy),
                                                cordconstnode.create(1,s32bittype));
-{
-                     not necessary (JM) 
-                     firstpass(hightree);
-}
-                     hightree:=ctypeconvnode.create(hightree,s32bittype);
                      loadconst:=false;
                    end;
                end;
@@ -598,7 +593,9 @@ implementation
           len:=0;
         end;
         if loadconst then
-          hightree:=cordconstnode.create(len,s32bittype);
+          hightree:=cordconstnode.create(len,s32bittype)
+        else
+          hightree:=ctypeconvnode.create(hightree,s32bittype);
         firstpass(hightree);
       end;
 
@@ -1758,7 +1755,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.59  2001-12-10 14:28:47  jonas
+  Revision 1.60  2001-12-11 13:21:36  jonas
+    * fixed to my previous patch: the hightree must always be converted to a
+      longint
+
+  Revision 1.59  2001/12/10 14:28:47  jonas
     * gen_high_tree now uses an inline node of type in_high_x in most cases
       so that it doesn't duplicate any code anymore from ninl.pas (and
       dynamic array support was still missing)
