@@ -1118,6 +1118,15 @@ implementation
                          CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
                        exit;
                      end;
+                   constsym:
+                     begin
+                       if (tconstsym(tloadnode(hp).symtableentry).consttyp=constresourcestring) and
+                         (valid_addr in opts) then
+                         result:=true
+                       else
+                         CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
+                       exit;
+                     end;
                    else
                      begin
                        CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
@@ -1986,7 +1995,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.110  2005-01-19 22:19:41  peter
+  Revision 1.111  2005-01-19 23:23:12  florian
+    * taking the address of a resourcestring is allowed now
+
+  Revision 1.110  2005/01/19 22:19:41  peter
     * unit mapping rewrite
     * new derefmap added
 
