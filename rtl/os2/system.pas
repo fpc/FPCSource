@@ -30,7 +30,7 @@
 
 ****************************************************************************}
 
-unit sysos2;
+unit {$ifdef VER1_0}sysos2{$else}System{$endif};
 
 {Changelog:
 
@@ -119,6 +119,12 @@ procedure DosGetInfoBlocks (var Atib: PThreadInfoBlock;
 
 function DosSetRelMaxFH (var ReqCount, CurMaxFH: longint): longint; cdecl;
 external 'DOSCALLS' index 382;
+
+function DosSetCurrentDir (Name:PChar): longint; cdecl;
+external 'DOSCALLS' index 255;
+
+function DosSetDefaultDisk (DiskNum:longint): longint; cdecl;
+external 'DOSCALLS' index 220;
 
 {This is the correct way to call external assembler procedures.}
 procedure syscall; external name '___SYSCALL';
@@ -632,30 +638,95 @@ begin
         movb func,%ah
         call syscall
         jnc  .LDOS_DIRS1
-        movw %ax,inoutres;
+        movw %ax,inoutres
     .LDOS_DIRS1:
     end;
 end;
 
 
-procedure mkdir(const s : string);
+procedure MkDir (const S: string);
 
 begin
-    DosDir($39,s);
+    if InOutRes = 0 then
+        DosDir ($39, S);
 end;
 
 
 procedure rmdir(const s : string);
 
 begin
-    DosDir($3a,s);
+    if InOutRes = 0 then
+        DosDir ($3A, S);
 end;
 
-procedure chdir(const s : string);
+{$ASMMODE INTEL}
+
+procedure ChDir (const S: string);
+
+var RC: longint;
+    Buffer: array [0..255] of char;
 
 begin
-    DosDir($3b,s);
+    if InOutRes = 0 then
+        begin
+(* According to EMX documentation, EMX has only one current directory
+   for all processes, so we'll use native calls under OS/2. *)
+            if os_Mode = osOS2 then
+                begin
+                    if (Length (S) >= 2) and (S [2] = ':') then
+                        begin
+                            RC := DosSetDefaultDisk ((Ord (S [1]) and
+                                                             not ($20)) - $40);
+                            if RC <> 0 then
+                                InOutRes := RC
+                            else
+                                if Length (S) > 2 then
+                                    begin
+                                        Move (S [1], Buffer, Length (S));
+                                        Buffer [Length (S)] := #0;
+                                        AllowSlash (PChar (@Buffer));
+                                        RC := DosSetCurrentDir (@Buffer);
+                                        if RC <> 0 then
+                                            InOutRes := RC;
+                                    end;
+                        end
+                    else
+                        begin
+                            Move (S [1], Buffer, Length (S));
+                            Buffer [Length (S)] := #0;
+                            AllowSlash (PChar (@Buffer));
+                            RC := DosSetCurrentDir (@Buffer);
+                            if RC <> 0 then
+                                InOutRes := RC;
+                        end;
+                end
+            else
+                if (Length (S) >= 2) and (S [2] = ':') then
+                    begin
+                        asm
+                            mov esi, S
+                            mov al, [esi + 1]
+                            and al, not (20h)
+                            sub al, 41h
+                            mov edx, eax
+                            mov ah, 0Eh
+                            call syscall
+                            mov ah, 19h
+                            call syscall
+                            cmp al, dl
+                            jz @LCHDIR
+                            mov InOutRes, 15
+@LCHDIR:
+                        end;
+                        if (Length (S) > 2) and (InOutRes <> 0) then
+                            DosDir ($3B, S);
+                    end
+                else
+                    DosDir ($3B, S);
+        end;
 end;
+
+{$ASMMODE ATT}
 
 procedure getdir(drivenr : byte;var dir : shortstring);
 
@@ -810,7 +881,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-10-15 08:19:49  peter
+  Revision 1.2  2000-10-15 20:43:10  hajny
+    * ChDir correction, unit name changed
+
+  Revision 1.1  2000/10/15 08:19:49  peter
     * system unit rename for 1.1 branch
 
   Revision 1.3  2000/09/29 21:49:41  jonas
