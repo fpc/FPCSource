@@ -13,9 +13,14 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+
 {$ifndef IN_SYSTEM}
 {$GOTO ON}
 {$define IN_DPMIEXCP_UNIT}
+{$ifndef NO_EXCEPTIONS_IN_SYSTEM}
+{ $ define EXCEPTIONS_IN_SYSTEM}
+{$endif NO_EXCEPTIONS_IN_SYSTEM}
+
 Unit DpmiExcp;
 
 { If linking to C code we must avoid loading of the dpmiexcp.o
@@ -35,7 +40,11 @@ uses
 {$S-}
 
 
+{ Decide if we want to create the C functions or not }
+
 {$ifdef EXCEPTIONS_IN_SYSTEM}
+{ If exceptions are in system the C functions must be
+  inserted in the system unit }
 {$ifdef IN_DPMIEXCP_UNIT}
 {$undef CREATE_C_FUNCTIONS}
 {$else not IN_DPMIEXCP_UNIT}
@@ -45,7 +54,7 @@ uses
 {$define CREATE_C_FUNCTIONS}
 {$endif not EXCEPTIONS_IN_SYSTEM}
 { Error Messages }
-function do_faulting_finish_message(fake : boolean) : integer;
+function do_faulting_finish_message(fake : boolean) : integer;cdecl;
 {$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
 
 { SetJmp/LongJmp }
@@ -130,14 +139,11 @@ function  djgpp_set_ctrl_c(enable : boolean) : boolean;
 { Other }
 function dpmi_set_coprocessor_emulation(flag : longint) : longint;
 {$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
-function __djgpp_set_sigint_key(new_key : longint) : longint;
-{$ifdef CREATE_C_FUNCTIONS}cdecl;{$endif CREATE_C_FUNCTIONS}
+function __djgpp_set_sigint_key(new_key : longint) : longint;cdecl;
 {$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
-function __djgpp_set_sigquit_key(new_key : longint) : longint;
-{$ifdef CREATE_C_FUNCTIONS}cdecl;{$endif CREATE_C_FUNCTIONS}
+function __djgpp_set_sigquit_key(new_key : longint) : longint;cdecl;
 {$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
-function __djgpp__traceback_exit(sig : longint) : longint;
-{$ifdef CREATE_C_FUNCTIONS}cdecl;{$endif CREATE_C_FUNCTIONS}
+function __djgpp__traceback_exit(sig : longint) : longint;cdecl;
 {$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
 
 {$ifndef IN_SYSTEM}
@@ -155,10 +161,12 @@ procedure djgpp_exception_toggle;
 external name '___djgpp_exception_toggle';
 procedure djgpp_exception_setup;
 external name '___djgpp_exception_setup';
-function __djgpp_set_sigint_key(new_key : longint) : longint;
+function __djgpp_set_sigint_key(new_key : longint) : longint;cdecl;
 external name '___djgpp_set_sigint_key';
-function __djgpp_set_sigquit_key(new_key : longint) : longint;
+function __djgpp_set_sigquit_key(new_key : longint) : longint;cdecl;
 external name '___djgpp_set_sigquit_key';
+function __djgpp__traceback_exit(sig : longint) : longint;cdecl;
+external name '__djgpp__traceback_exit';
 {$endif CREATE_C_FUNCTIONS}
 var
   v2prt0_ds_alias : word;external name '___v2prt0_ds_alias';
@@ -182,6 +190,7 @@ procedure djgpp_kbd_hdlr_pc98;external name '___djgpp_kbd_hdlr_pc98';
 procedure djgpp_cbrk_hdlr;external name '___djgpp_cbrk_hdlr';
 
 
+{$ifdef CREATE_C_FUNCTIONS}
 var
   exceptions_on : boolean;
 {  old_int00 : tseginfo;cvar;external;
@@ -190,6 +199,7 @@ var
 const
   cbrk_vect : byte = $1b;
   exception_level : longint = 0;
+{$endif CREATE_C_FUNCTIONS}
 
 
 {$ifndef IN_DPMIEXCP_UNIT}
@@ -466,6 +476,10 @@ function c_setjmp(var rec : dpmi_jmp_buf) : longint;[public, alias : '_setjmp'];
 {$endif CREATE_C_FUNCTIONS}
 
 function dpmi_setjmp(var rec : dpmi_jmp_buf) : longint;
+{$ifndef CREATE_C_FUNCTIONS}
+external name 'FPC_setjmp';
+{$else CREATE_C_FUNCTIONS}
+[alias : 'FPC_setjmp'];
 begin
   asm
         pushl   %edi
@@ -513,6 +527,7 @@ begin
         ret  $4 not anymore since cdecl !! }
   end;
 end;
+{$endif CREATE_C_FUNCTIONS}
 
 
 {$ifdef CREATE_C_FUNCTIONS}
@@ -523,7 +538,11 @@ procedure c_longjmp(var  rec : dpmi_jmp_buf;return_value : longint);[public, ali
   end;
 {$endif CREATE_C_FUNCTIONS}
 
-procedure dpmi_longjmp(var  rec : dpmi_jmp_buf;return_value : longint);[alias : 'FPC_longjmp'];
+procedure dpmi_longjmp(var  rec : dpmi_jmp_buf;return_value : longint);
+{$ifndef CREATE_C_FUNCTIONS}
+external name 'FPC_longjmp';
+{$else CREATE_C_FUNCTIONS}
+[public, alias : 'FPC_longjmp'];
 begin
   if (exception_level>0) then
     dec(exception_level);
@@ -573,6 +592,7 @@ begin
         iret                    { actually jump to new cs:eip loading flags }
   end;
 end;
+{$endif CREATE_C_FUNCTIONS}
 
 
 {****************************************************************************
@@ -698,6 +718,7 @@ end;
                                  Exceptions
 ****************************************************************************}
 
+{$ifdef CREATE_C_FUNCTIONS}
 function except_to_sig(excep : longint) : longint;
 begin
   case excep of
@@ -792,8 +813,13 @@ end;
 const message_level : byte = 0;
 
 procedure ___exit(c:longint);cdecl;external name '___exit';
+{$endif CREATE_C_FUNCTIONS}
 
-function do_faulting_finish_message(fake : boolean) : integer;
+function do_faulting_finish_message(fake : boolean) : integer;cdecl;
+{$ifndef CREATE_C_FUNCTIONS}
+external;
+{$else CREATE_C_FUNCTIONS}
+public;
 var
   en : pchar;
   signum,i : longint;
@@ -912,7 +938,7 @@ simple_exit:
     djgpp_exception_toggle;
   ___exit(-1);
 end;
-
+{$endif CREATE_C_FUNCTIONS}
 
 function djgpp_exception_state:pexception_state;assembler;
 asm
@@ -963,7 +989,6 @@ begin
     end;
   do_faulting_finish_message(djgpp_exception_state<>nil);
 end;
-{$endif CREATE_C_FUNCTIONS}
 
 
 type
@@ -982,7 +1007,6 @@ var
   v2prt0_exceptions_on : longbool;external name '_v2prt0_exceptions_on';
 
 
-{$ifdef CREATE_C_FUNCTIONS}
 procedure djgpp_exception_toggle;
 [public,alias : '___djgpp_exception_toggle'];
 var
@@ -1119,6 +1143,7 @@ var
   ___djgpp_app_DS : word;external name '___djgpp_app_DS';
   ___djgpp_our_DS : word;external name '___djgpp_our_DS';
 
+{$ifdef CREATE_C_FUNCTIONS}
   __djgpp_sigint_mask : word;external name '___djgpp_sigint_mask';
   __djgpp_sigint_key  : word;external name '___djgpp_sigint_key';
   __djgpp_sigquit_mask : word;external name '___djgpp_sigquit_mask';
@@ -1182,7 +1207,6 @@ function set_signal_key(sig,new_key : longint) : longint;
     exit(old_key);
   end;
 
-{$ifdef CREATE_C_FUNCTIONS}
 function __djgpp_set_sigint_key(new_key : longint) : longint;cdecl;
 begin
   __djgpp_set_sigint_key:=set_signal_key(SIGINT, new_key);
@@ -1192,10 +1216,8 @@ function __djgpp_set_sigquit_key(new_key : longint) : longint;cdecl;
 begin
   __djgpp_set_sigquit_key:=set_signal_key(SIGQUIT, new_key);
 end;
-{$endif CREATE_C_FUNCTIONS}
 
-function __djgpp__traceback_exit(sig : longint) : longint;
-{$ifdef CREATE_C_FUNCTIONS}cdecl;{$endif CREATE_C_FUNCTIONS}
+function __djgpp__traceback_exit(sig : longint) : longint;cdecl;
 var
   fake_exception : texception_state;
 begin
@@ -1224,10 +1246,6 @@ begin
   ___exit(-1);
 end;
 
-
-
-
-{$ifdef CREATE_C_FUNCTIONS}
 procedure djgpp_exception_setup;
 [alias : '___djgpp_exception_setup'];
 var
@@ -1408,7 +1426,10 @@ end;
 {$endif IN_SYSTEM}
 {
   $Log$
-  Revision 1.12  2000-03-09 09:15:10  pierre
+  Revision 1.13  2000-03-10 09:53:17  pierre
+   * some clean up for exceptions in system
+
+  Revision 1.12  2000/03/09 09:15:10  pierre
     + support for djgpp v2.03 (added some new functions that are in v2.03 ofdpmiexcp.c)
     + code to integrate exception support inside the system unit
 
