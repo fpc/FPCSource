@@ -387,6 +387,7 @@ implementation
         withstartlabel,withendlabel : tasmlabel;
         pp : pchar;
         mangled_length  : longint;
+        refnode : tnode;
 {$endif GDB}
       begin
         location_reset(location,LOC_VOID,OS_NO);
@@ -397,7 +398,14 @@ implementation
             { load reference }
             if (withrefnode.nodetype=derefn) and
                (tderefnode(withrefnode).left.nodetype=temprefn) then
-              secondpass(withrefnode);
+              refnode:=tderefnode(withrefnode).left
+            else
+              refnode:=withrefnode;
+            secondpass(refnode);
+            location_release(exprasmlist,refnode.location);
+            location_freetemp(exprasmlist,refnode.location);
+            if not(refnode.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+              internalerror(2003092810);
 
             inc(withlevel);
             objectlibrary.getaddrlabel(withstartlabel);
@@ -406,7 +414,7 @@ implementation
             withdebugList.concat(Tai_stabs.Create(strpnew(
                '"with'+tostr(withlevel)+':'+tostr(symtablestack.getnewtypecount)+
                '=*'+tstoreddef(left.resulttype.def).numberstring+'",'+
-               tostr(N_LSYM)+',0,0,'+tostr(withrefnode.location.reference.offset))));
+               tostr(N_LSYM)+',0,0,'+tostr(refnode.location.reference.offset))));
             mangled_length:=length(current_procinfo.procdef.mangledname);
             getmem(pp,mangled_length+50);
             strpcopy(pp,'192,0,0,'+withstartlabel.name);
@@ -866,7 +874,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.74  2003-09-28 17:55:03  peter
+  Revision 1.75  2003-09-28 21:45:52  peter
+    * fix register leak in with debug
+
+  Revision 1.74  2003/09/28 17:55:03  peter
     * parent framepointer changed to hidden parameter
     * tloadparentfpnode added
 

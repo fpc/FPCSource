@@ -94,7 +94,7 @@ implementation
              'add-slashn',  {slashn}
              'add-andn',  {andn}
              'subscriptn',  {subscriptn}
-             'dderef',       {derefn}
+             'deref',       {derefn}
              'addr',        {addrn}
              'ordconst',    {ordconstn}
              'typeconv',    {typeconvn}
@@ -299,7 +299,7 @@ implementation
 {$ifdef EXTDEBUG}
               for sr:=first_int_imreg to last_int_imreg do
                 if not(sr in rg.unusedregsint) then
-                  Comment(V_Warning,'Register '+std_regname(newreg(R_INTREGISTER,sr,R_SUBWHOLE))+' not released');
+                  Comment(V_Warning,'Register '+std_regname(newreg(R_INTREGISTER,sr,R_SUBNONE))+' not released');
 {$endif EXTDEBUG}
 
               if assigned(current_procinfo.procdef) then
@@ -312,7 +312,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.65  2003-09-28 17:55:04  peter
+  Revision 1.66  2003-09-28 21:45:52  peter
+    * fix register leak in with debug
+
+  Revision 1.65  2003/09/28 17:55:04  peter
     * parent framepointer changed to hidden parameter
     * tloadparentfpnode added
 
