@@ -147,6 +147,13 @@ implementation
               result:=hp;
               exit;
            end;
+         { Stop checking when an error was found in the operator checking }
+         if codegenerror then
+           begin
+             result:=cerrornode.create;
+             exit;
+           end;
+
 
          { Kylix allows enum+ordconstn in an enum declaration (blocktype
            is bt_type), we need to do the conversion here before the
@@ -1922,7 +1929,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.77  2002-12-06 16:56:57  peter
+  Revision 1.78  2002-12-11 22:41:03  peter
+    * stop processing assignment node when the binaryoverload generates
+      a codegenerror
+
+  Revision 1.77  2002/12/06 16:56:57  peter
     * only compile cs_fp_emulation support when cpufpuemu is defined
     * define cpufpuemu for m68k only
 
