@@ -831,6 +831,27 @@ interface
               '.idata2','.idata4','.idata5','.idata6','.idata7','.edata',
               '.stab','.stabstr')
           );
+          
+       as_i386_nasmwdosx_info : tasminfo =
+          (
+            id           : as_i386_nasmwdosx;
+            idtxt  : 'NASMWDOSX';
+            asmbin : 'nasm';
+            asmcmd : '-f win32 -o $OBJ $ASM';
+            supported_target : target_i386_wdosx;
+            outputbinary: false;
+            allowdirect : true;
+            externals : true;
+            needar : true;
+            labelprefix_only_inside_procedure: false;
+            labelprefix : '..@';
+            comment : '; ';
+            secnames : ('',
+              '.text','.data','.bss',
+              '.idata2','.idata4','.idata5','.idata6','.idata7','.edata',
+              '.stab','.stabstr')
+          );
+          
 
        as_i386_nasmelf_info : tasminfo =
           (
@@ -856,12 +877,16 @@ interface
 initialization
   RegisterAssembler(as_i386_nasmcoff_info,T386NasmAssembler);
   RegisterAssembler(as_i386_nasmwin32_info,T386NasmAssembler);
+  RegisterAssembler(as_i386_nasmwdosx_info,T386NasmAssembler); 
   RegisterAssembler(as_i386_nasmobj_info,T386NasmAssembler);
   RegisterAssembler(as_i386_nasmelf_info,T386NasmAssembler);
 end.
 {
   $Log$
-  Revision 1.13  2002-04-02 17:11:33  peter
+  Revision 1.14  2002-04-04 18:27:37  carl
+  + added wdosx support (patch from Pavel)
+
+  Revision 1.13  2002/04/02 17:11:33  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines
