@@ -299,7 +299,7 @@ implementation
                                 load_vmt_pointer_node,
                                 cnilnode.create),
                             cassignmentnode.create(
-                                ctypeconvnode.create_explicit(
+                                ctypeconvnode.create_internal(
                                     load_self_pointer_node,
                                     voidpointertype),
                                 ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_vmt_pointer_node,[])),
@@ -321,16 +321,16 @@ implementation
                       para:=ccallparanode.create(
                                 cordconstnode.create(current_procinfo.procdef._class.vmt_offset,s32inttype,false),
                             ccallparanode.create(
-                                ctypeconvnode.create_explicit(
+                                ctypeconvnode.create_internal(
                                     load_vmt_pointer_node,
                                     voidpointertype),
                             ccallparanode.create(
-                                ctypeconvnode.create_explicit(
+                                ctypeconvnode.create_internal(
                                     load_self_pointer_node,
                                     voidpointertype),
                             nil)));
                       addstatement(newstatement,cassignmentnode.create(
-                          ctypeconvnode.create_explicit(
+                          ctypeconvnode.create_internal(
                               load_self_pointer_node,
                               voidpointertype),
                           ccallnode.createintern('fpc_help_constructor',para)));
@@ -444,11 +444,11 @@ implementation
                       para:=ccallparanode.create(
                                 cordconstnode.create(current_procinfo.procdef._class.vmt_offset,s32inttype,false),
                             ccallparanode.create(
-                                ctypeconvnode.create_explicit(
+                                ctypeconvnode.create_internal(
                                     load_vmt_pointer_node,
                                     voidpointertype),
                             ccallparanode.create(
-                                ctypeconvnode.create_explicit(
+                                ctypeconvnode.create_internal(
                                     load_self_pointer_node,
                                     voidpointertype),
                             nil)));
@@ -1403,7 +1403,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.212  2004-10-31 18:54:25  peter
+  Revision 1.213  2004-11-02 12:55:17  peter
+    * nf_internal flag for internal inserted typeconvs. This will
+      supress the generation of warning/hints
+
+  Revision 1.212  2004/10/31 18:54:25  peter
     * $fpctarget expands to <cpu>-<os>
     * allow * in middle of the path to support ../*/units/$fpctarget
 

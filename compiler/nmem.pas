@@ -769,9 +769,9 @@ implementation
             (is_ansistring(left.resulttype.def) or
              is_widestring(left.resulttype.def)) then
            begin
-             left := ctypeconvnode.create_explicit(ccallnode.createintern('fpc_'+tstringdef(left.resulttype.def).stringtypname+'_unique',
+             left := ctypeconvnode.create_internal(ccallnode.createintern('fpc_'+tstringdef(left.resulttype.def).stringtypname+'_unique',
                ccallparanode.create(
-                 ctypeconvnode.create_explicit(left,voidpointertype),nil)),
+                 ctypeconvnode.create_internal(left,voidpointertype),nil)),
                left.resulttype);
              firstpass(left);
              { double resulttype passes somwhere else may cause this to be }
@@ -982,7 +982,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.86  2004-09-26 17:45:30  peter
+  Revision 1.87  2004-11-02 12:55:16  peter
+    * nf_internal flag for internal inserted typeconvs. This will
+      supress the generation of warning/hints
+
+  Revision 1.86  2004/09/26 17:45:30  peter
     * simple regvar support, not yet finished
 
   Revision 1.85  2004/06/20 08:55:29  florian

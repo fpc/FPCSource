@@ -234,6 +234,7 @@ interface
 
          { ttypeconvnode }
          nf_explicit,
+         nf_internal,  { no warnings/hints generated }
 
          { tinlinenode }
          nf_inlineconst,
@@ -1135,7 +1136,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.89  2004-11-01 17:15:47  peter
+  Revision 1.90  2004-11-02 12:55:16  peter
+    * nf_internal flag for internal inserted typeconvs. This will
+      supress the generation of warning/hints
+
+  Revision 1.89  2004/11/01 17:15:47  peter
     * no checkpointer code for dynarr to openarr
 
   Revision 1.88  2004/10/31 21:45:03  peter

@@ -343,7 +343,7 @@ type
             if not assigned(hightree) then
               internalerror(200304071);
             { Need to use explicit, because it can also be a enum }
-            hightree:=ctypeconvnode.create_explicit(hightree,s32inttype);
+            hightree:=ctypeconvnode.create_internal(hightree,s32inttype);
           end;
         result:=hightree;
       end;
@@ -1128,7 +1128,7 @@ type
         { Load tmehodpointer(right).self }
         result:=csubscriptnode.create(
                      hsym,
-                     ctypeconvnode.create_explicit(right.getcopy,methodpointertype));
+                     ctypeconvnode.create_internal(right.getcopy,methodpointertype));
       end;
 
 
@@ -2038,9 +2038,7 @@ type
                     addstatement(createstatement,tempnode);
                     addstatement(createstatement,cassignmentnode.create(ctemprefnode.create(tempnode),
                       caddrnode.create(para.left)));
-                    hp := cderefnode.create(ctemprefnode.create(tempnode));
-                    inserttypeconv_explicit(hp,para.left.resulttype);
-                    para.left := hp;
+                    para.left := ctypeconvnode.create_internal(cderefnode.create(ctemprefnode.create(tempnode)),para.left.resulttype);
                     addstatement(deletestatement,ctempdeletenode.create(tempnode));
                   end;
                 para := tcallparanode(para.right);
@@ -2416,7 +2414,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.256  2004-11-01 18:16:48  peter
+  Revision 1.257  2004-11-02 12:55:16  peter
+    * nf_internal flag for internal inserted typeconvs. This will
+      supress the generation of warning/hints
+
+  Revision 1.256  2004/11/01 18:16:48  peter
     * removed wrong check for symtableprocentry
 
   Revision 1.255  2004/11/01 16:58:57  peter

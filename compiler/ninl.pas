@@ -392,7 +392,7 @@ implementation
             { create a new fileparameter as follows: file_type(temp^)    }
             { (so that we pass the value and not the address of the temp }
             { to the read/write routine)                                 }
-            filepara := ccallparanode.create(ctypeconvnode.create_explicit(
+            filepara := ccallparanode.create(ctypeconvnode.create_internal(
               cderefnode.create(ctemprefnode.create(filetemp)),srsym.vartype),nil);
           end
         else
@@ -427,7 +427,7 @@ implementation
                 { create a new fileparameter as follows: file_type(temp^)    }
                 { (so that we pass the value and not the address of the temp }
                 { to the read/write routine)                                 }
-                nextpara := ccallparanode.create(ctypeconvnode.create_explicit(
+                nextpara := ccallparanode.create(ctypeconvnode.create_internal(
                   cderefnode.create(ctemprefnode.create(filetemp)),filepara.left.resulttype),nil);
 
                 { replace the old file para with the new one }
@@ -958,7 +958,7 @@ implementation
           { and cardinals are fine. Since the formal code para type is      }
           { longint, insert a typecoversion to longint for cardinal para's  }
           begin
-            codepara.left := ctypeconvnode.create_explicit(codepara.left,sinttype);
+            codepara.left := ctypeconvnode.create_internal(codepara.left,sinttype);
             { make it explicit, oterwise you may get a nonsense range }
             { check error if the cardinal already contained a value   }
             { > $7fffffff                                             }
@@ -1488,7 +1488,7 @@ implementation
                            uchar:
                              begin
                                { change to byte() }
-                               hp:=ctypeconvnode.create_explicit(left,u8inttype);
+                               hp:=ctypeconvnode.create_internal(left,u8inttype);
                                left:=nil;
                                result:=hp;
                              end;
@@ -1496,14 +1496,14 @@ implementation
                            uwidechar :
                              begin
                                { change to word() }
-                               hp:=ctypeconvnode.create_explicit(left,u16inttype);
+                               hp:=ctypeconvnode.create_internal(left,u16inttype);
                                left:=nil;
                                result:=hp;
                              end;
                            bool32bit :
                              begin
                                { change to dword() }
-                               hp:=ctypeconvnode.create_explicit(left,u32inttype);
+                               hp:=ctypeconvnode.create_internal(left,u32inttype);
                                left:=nil;
                                result:=hp;
                              end;
@@ -1520,7 +1520,7 @@ implementation
                        end;
                      enumdef :
                        begin
-                         hp:=ctypeconvnode.create_explicit(left,s32inttype);
+                         hp:=ctypeconvnode.create_internal(left,s32inttype);
                          left:=nil;
                          result:=hp;
                        end;
@@ -1528,7 +1528,7 @@ implementation
                        begin
                          if m_mac in aktmodeswitches then
                            begin
-                             hp:=ctypeconvnode.create_explicit(left,ptrinttype);
+                             hp:=ctypeconvnode.create_internal(left,ptrinttype);
                              left:=nil;
                              result:=hp;
                            end
@@ -1544,7 +1544,7 @@ implementation
                 begin
                    { convert to explicit char() }
                    set_varstate(left,vs_used,true);
-                   hp:=ctypeconvnode.create_explicit(left,cchartype);
+                   hp:=ctypeconvnode.create_internal(left,cchartype);
                    left:=nil;
                    result:=hp;
                 end;
@@ -1636,7 +1636,7 @@ implementation
                           end
                         else
                           begin
-                            hp := ccallparanode.create(ctypeconvnode.create_explicit(left,voidpointertype),nil);
+                            hp := ccallparanode.create(ctypeconvnode.create_internal(left,voidpointertype),nil);
                             result := ccallnode.createintern('fpc_dynarray_length',hp);
                             { make sure the left node doesn't get disposed, since it's }
                             { reused in the new node (JM)                              }
@@ -1756,7 +1756,7 @@ implementation
                           if assigned(tcallparanode(left).right) then
                            begin
                              set_varstate(tcallparanode(tcallparanode(left).right).left,vs_used,true);
-                             inserttypeconv_explicit(tcallparanode(tcallparanode(left).right).left,tcallparanode(left).left.resulttype);
+                             inserttypeconv_internal(tcallparanode(tcallparanode(left).right).left,tcallparanode(left).left.resulttype);
                              if assigned(tcallparanode(tcallparanode(left).right).right) then
                                CGMessage(parser_e_illegal_expression);
                            end;
@@ -1860,7 +1860,7 @@ implementation
                               begin
                                 { can't use inserttypeconv because we need }
                                 { an explicit type conversion (JM)         }
-                                hp := ccallparanode.create(ctypeconvnode.create_explicit(left,voidpointertype),nil);
+                                hp := ccallparanode.create(ctypeconvnode.create_internal(left,voidpointertype),nil);
                                 result := ccallnode.createintern('fpc_dynarray_high',hp);
                                 { make sure the left node doesn't get disposed, since it's }
                                 { reused in the new node (JM)                              }
@@ -2093,10 +2093,10 @@ implementation
                   shiftconst := 8;
               end;
               if shiftconst <> 0 then
-                result := ctypeconvnode.create_explicit(cshlshrnode.create(shrn,left,
+                result := ctypeconvnode.create_internal(cshlshrnode.create(shrn,left,
                     cordconstnode.create(shiftconst,u32inttype,false)),resulttype)
               else
-                result := ctypeconvnode.create_explicit(left,resulttype);
+                result := ctypeconvnode.create_internal(left,resulttype);
               left := nil;
               firstpass(result);
             end;
@@ -2205,7 +2205,7 @@ implementation
                        addstatement(newstatement,cassignmentnode.create(ctemprefnode.create(tempnode),
                          caddrnode.create(tcallparanode(left).left.getcopy)));
                        hp := cderefnode.create(ctemprefnode.create(tempnode));
-                       inserttypeconv_explicit(hp,tcallparanode(left).left.resulttype);
+                       inserttypeconv_internal(hp,tcallparanode(left).left.resulttype);
                      end
                    else
                      begin
@@ -2442,7 +2442,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.148  2004-11-01 18:26:52  florian
+  Revision 1.149  2004-11-02 12:55:16  peter
+    * nf_internal flag for internal inserted typeconvs. This will
+      supress the generation of warning/hints
+
+  Revision 1.148  2004/11/01 18:26:52  florian
     - removed unnecessary printnode
 
   Revision 1.147  2004/11/01 17:41:28  florian

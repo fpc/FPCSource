@@ -373,11 +373,11 @@ implementation
               para:=ccallparanode.create(
                         cordconstnode.create(current_procinfo.procdef._class.vmt_offset,s32inttype,false),
                     ccallparanode.create(
-                        ctypeconvnode.create_explicit(
+                        ctypeconvnode.create_internal(
                             load_vmt_pointer_node,
                             voidpointertype),
                     ccallparanode.create(
-                        ctypeconvnode.create_explicit(
+                        ctypeconvnode.create_internal(
                             load_self_pointer_node,
                             voidpointertype),
                     nil)));
@@ -405,7 +405,7 @@ implementation
            is_dynamic_array(p.resulttype.def) then
           begin
             result:=cassignmentnode.create(
-               ctypeconvnode.create_explicit(p,voidpointertype),
+               ctypeconvnode.create_internal(p,voidpointertype),
                cnilnode.create
                );
           end
@@ -519,7 +519,11 @@ end.
 
 {
   $Log$
-  Revision 1.19  2004-08-25 15:54:46  peter
+  Revision 1.20  2004-11-02 12:55:16  peter
+    * nf_internal flag for internal inserted typeconvs. This will
+      supress the generation of warning/hints
+
+  Revision 1.19  2004/08/25 15:54:46  peter
     * fix possible wrong typecast
 
   Revision 1.18  2004/08/04 08:35:59  jonas

@@ -39,6 +39,7 @@ interface
           convtype : tconverttype;
           constructor create(node : tnode;const t : ttype);virtual;
           constructor create_explicit(node : tnode;const t : ttype);
+          constructor create_internal(node : tnode;const t : ttype);
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
@@ -190,7 +191,7 @@ interface
        cisnode : tisnodeclass;
 
     procedure inserttypeconv(var p:tnode;const t:ttype);
-    procedure inserttypeconv_explicit(var p:tnode;const t:ttype);
+    procedure inserttypeconv_internal(var p:tnode;const t:ttype);
     procedure arrayconstructor_to_set(var p : tnode);
 
 
@@ -235,7 +236,7 @@ implementation
       end;
 
 
-    procedure inserttypeconv_explicit(var p:tnode;const t:ttype);
+    procedure inserttypeconv_internal(var p:tnode;const t:ttype);
 
       begin
         if not assigned(p.resulttype.def) then
@@ -255,10 +256,11 @@ implementation
          end
         else
          begin
-           p:=ctypeconvnode.create_explicit(p,t);
+           p:=ctypeconvnode.create_internal(p,t);
            resulttypepass(p);
          end;
       end;
+
 
 {*****************************************************************************
                     Array constructor to Set Conversion
@@ -514,6 +516,16 @@ implementation
       end;
 
 
+    constructor ttypeconvnode.create_internal(node : tnode;const t:ttype);
+
+      begin
+         self.create(node,t);
+         { handle like explicit conversions }
+         include(flags,nf_explicit);
+         include(flags,nf_internal);
+      end;
+
+
     constructor ttypeconvnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
       begin
         inherited ppuload(t,ppufile);
@@ -738,7 +750,7 @@ implementation
              begin
                { create word(byte(char) shl 8 or 1) for litte endian machines }
                { and word(byte(char) or 256) for big endian machines          }
-               left := ctypeconvnode.create_explicit(left,u8inttype);
+               left := ctypeconvnode.create_internal(left,u8inttype);
                if (target_info.endian = endian_little) then
                  left := caddnode.create(orn,
                    cshlshrnode.create(shln,left,cordconstnode.create(8,s32inttype,false)),
@@ -746,7 +758,7 @@ implementation
                else
                  left := caddnode.create(orn,left,
                    cordconstnode.create(1 shl 8,s32inttype,false));
-               left := ctypeconvnode.create_explicit(left,u16inttype);
+               left := ctypeconvnode.create_internal(left,u16inttype);
                resulttypepass(left);
              end;
       end;
@@ -989,7 +1001,7 @@ implementation
       begin
         { a dynamic array is a pointer to an array, so to convert it to }
         { an open array, we have to dereference it (JM)                 }
-        result := ctypeconvnode.create_explicit(left,voidpointertype);
+        result := ctypeconvnode.create_internal(left,voidpointertype);
         resulttypepass(result);
         { left is reused }
         left := nil;
@@ -1036,8 +1048,8 @@ implementation
     function ttypeconvnode.resulttype_variant_to_enum : tnode;
 
       begin
-        result := ctypeconvnode.create_explicit(left,sinttype);
-        result := ctypeconvnode.create_explicit(result,resulttype);
+        result := ctypeconvnode.create_internal(left,sinttype);
+        result := ctypeconvnode.create_internal(result,resulttype);
         resulttypepass(result);
         { left is reused }
         left := nil;
@@ -1047,8 +1059,8 @@ implementation
     function ttypeconvnode.resulttype_enum_to_variant : tnode;
 
       begin
-        result := ctypeconvnode.create_explicit(left,sinttype);
-        result := ctypeconvnode.create_explicit(result,cvarianttype);
+        result := ctypeconvnode.create_internal(left,sinttype);
+        result := ctypeconvnode.create_internal(result,cvarianttype);
         resulttypepass(result);
         { left is reused }
         left := nil;
@@ -1339,7 +1351,7 @@ implementation
                      end;
                      { we need explicit, because it can also be an enum }
                      if assigned(htype.def) then
-                       inserttypeconv_explicit(left,htype)
+                       inserttypeconv_internal(left,htype)
                      else
                        CGMessage2(type_e_illegal_type_conversion,left.resulttype.def.gettypename,resulttype.def.gettypename);
                    end;
@@ -1370,7 +1382,8 @@ implementation
                      else
                       begin
                         { check if the types are related }
-                        if (not(tobjectdef(left.resulttype.def).is_related(tobjectdef(resulttype.def)))) and
+                        if not(nf_internal in flags) and
+                           (not(tobjectdef(left.resulttype.def).is_related(tobjectdef(resulttype.def)))) and
                            (not(tobjectdef(resulttype.def).is_related(tobjectdef(left.resulttype.def)))) then
                           begin
                             { Give an error when typecasting class to interface, this is compatible
@@ -1416,7 +1429,8 @@ implementation
         { Give hint or warning for unportable code, exceptions are
            - typecasts from constants
            - void }
-        if (left.nodetype<>ordconstn) and
+        if not(nf_internal in flags) and
+           (left.nodetype<>ordconstn) and
            not(is_void(left.resulttype.def)) and
            (((left.resulttype.def.deftype=orddef) and
              (resulttype.def.deftype in [pointerdef,procvardef,classrefdef])) or
@@ -1682,7 +1696,7 @@ implementation
          { convert to a 64bit int (only necessary for 32bit processors) (JM) }
          if resulttype.def.size > sizeof(aint) then
            begin
-             result := ctypeconvnode.create_explicit(left,u32inttype);
+             result := ctypeconvnode.create_internal(left,u32inttype);
              result := ctypeconvnode.create(result,resulttype);
              left := nil;
              firstpass(result);
@@ -1764,7 +1778,7 @@ implementation
         { reused }
         left := nil;
         { convert parameter explicitely to fpc_small_set }
-        p.left := ctypeconvnode.create_explicit(p.left,srsym.restype);
+        p.left := ctypeconvnode.create_internal(p.left,srsym.restype);
         { create call, adjust resulttype }
         result :=
           ccallnode.createinternres('fpc_set_load_small',p,resulttype);
@@ -2467,7 +2481,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.160  2004-11-01 23:30:11  peter
+  Revision 1.161  2004-11-02 12:55:16  peter
+    * nf_internal flag for internal inserted typeconvs. This will
+      supress the generation of warning/hints
+
+  Revision 1.160  2004/11/01 23:30:11  peter
     * support > 32bit accesses for x86_64
     * rewrote array size checking to support 64bit
 

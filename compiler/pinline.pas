@@ -501,7 +501,7 @@ implementation
                       (counter,s32inttype,true),
                    ccallparanode.create(caddrnode.create
                       (crttinode.create(tstoreddef(destppn.resulttype.def),initrtti)),
-                   ccallparanode.create(ctypeconvnode.create_explicit(destppn,voidpointertype),nil))));
+                   ccallparanode.create(ctypeconvnode.create_internal(destppn,voidpointertype),nil))));
             addstatement(newstatement,ccallnode.createintern('fpc_dynarray_setlength',npara));
             addstatement(newstatement,ctempdeletenode.create(temp));
 
@@ -727,9 +727,9 @@ implementation
                    ccallparanode.create(caddrnode.create
                       (crttinode.create(tstoreddef(ppn.left.resulttype.def),initrtti)),
                    ccallparanode.create
-                      (ctypeconvnode.create_explicit(ppn.left,voidpointertype),
+                      (ctypeconvnode.create_internal(ppn.left,voidpointertype),
                    ccallparanode.create
-                      (ctypeconvnode.create_explicit(ctemprefnode.create(temp),voidpointertype),nil)))));
+                      (ctypeconvnode.create_internal(ctemprefnode.create(temp),voidpointertype),nil)))));
             addstatement(newstatement,ccallnode.createintern('fpc_dynarray_copy',npara));
 
             { convert the temp to normal and return the reference to the
@@ -754,7 +754,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.34  2004-11-01 10:32:27  peter
+  Revision 1.35  2004-11-02 12:55:16  peter
+    * nf_internal flag for internal inserted typeconvs. This will
+      supress the generation of warning/hints
+
+  Revision 1.34  2004/11/01 10:32:27  peter
     * temp for dynarray copy needs to be typed
 
   Revision 1.33  2004/10/15 09:14:17  mazen

@@ -593,7 +593,7 @@ implementation
          begin
            hp:=ccallparanode.create(caddrnode.create
                    (crttinode.create(tstoreddef(left.resulttype.def),initrtti)),
-               ccallparanode.create(ctypeconvnode.create_explicit(left,voidpointertype),nil));
+               ccallparanode.create(ctypeconvnode.create_internal(left,voidpointertype),nil));
            result := ccallnode.createintern('fpc_dynarray_clear',hp);
            left:=nil;
            exit;
@@ -665,9 +665,9 @@ implementation
         { call helpers for interface }
         if is_interfacecom(left.resulttype.def) then
          begin
-           hp:=ccallparanode.create(ctypeconvnode.create_explicit
+           hp:=ccallparanode.create(ctypeconvnode.create_internal
                    (right,voidpointertype),
-               ccallparanode.create(ctypeconvnode.create_explicit
+               ccallparanode.create(ctypeconvnode.create_internal
                    (left,voidpointertype),nil));
            result:=ccallnode.createintern('fpc_intf_assign',hp);
            left:=nil;
@@ -938,7 +938,7 @@ implementation
                begin
                  case hp.left.resulttype.def.deftype of
                    enumdef :
-                     hp.left:=ctypeconvnode.create_explicit(hp.left,s32inttype);
+                     hp.left:=ctypeconvnode.create_internal(hp.left,s32inttype);
                    arraydef :
                      hp.left:=ctypeconvnode.create(hp.left,charpointertype);
                    orddef :
@@ -1168,7 +1168,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.137  2004-11-01 15:32:12  peter
+  Revision 1.138  2004-11-02 12:55:16  peter
+    * nf_internal flag for internal inserted typeconvs. This will
+      supress the generation of warning/hints
+
+  Revision 1.137  2004/11/01 15:32:12  peter
     * support @labelsym
 
   Revision 1.136  2004/10/31 21:45:03  peter

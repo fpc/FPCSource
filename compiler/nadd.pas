@@ -171,7 +171,7 @@ implementation
                (right.resulttype.def.deftype=orddef) then
              begin
                { insert explicit typecast to default signed int }
-               left:=ctypeconvnode.create_explicit(left,sinttype);
+               left:=ctypeconvnode.create_internal(left,sinttype);
                resulttypepass(left);
              end
             else
@@ -179,7 +179,7 @@ implementation
                 (right.resulttype.def.deftype=enumdef) then
               begin
                 { insert explicit typecast to default signed int }
-                right:=ctypeconvnode.create_explicit(right,sinttype);
+                right:=ctypeconvnode.create_internal(right,sinttype);
                 resulttypepass(right);
               end;
           end;
@@ -667,13 +667,13 @@ implementation
               begin
                 if torddef(left.resulttype.def).size>torddef(right.resulttype.def).size then
                  begin
-                   right:=ctypeconvnode.create_explicit(right,left.resulttype);
+                   right:=ctypeconvnode.create_internal(right,left.resulttype);
                    ttypeconvnode(right).convtype:=tc_bool_2_int;
                    resulttypepass(right);
                  end
                 else if torddef(left.resulttype.def).size<torddef(right.resulttype.def).size then
                  begin
-                   left:=ctypeconvnode.create_explicit(left,right.resulttype);
+                   left:=ctypeconvnode.create_internal(left,right.resulttype);
                    ttypeconvnode(left).convtype:=tc_bool_2_int;
                    resulttypepass(left);
                  end;
@@ -785,9 +785,9 @@ implementation
                      is_integer(ld) and is_integer(rd) then
                begin
                  if rd.size>ld.size then
-                   inserttypeconv_explicit(left,right.resulttype)
+                   inserttypeconv_internal(left,right.resulttype)
                  else
-                   inserttypeconv_explicit(right,left.resulttype);
+                   inserttypeconv_internal(right,left.resulttype);
                end
              { is there a signed 64 bit type ? }
              else if ((torddef(rd).typ=s64bit) or (torddef(ld).typ=s64bit)) then
@@ -983,8 +983,8 @@ implementation
                     { a voidpointer of 8 bytes). A conversion to voidpointer would be  }
                     { optimized away, since the result already was a voidpointer, so   }
                     { use a charpointer instead (JM)                                   }
-                    inserttypeconv_explicit(left,charpointertype);
-                    inserttypeconv_explicit(right,charpointertype);
+                    inserttypeconv_internal(left,charpointertype);
+                    inserttypeconv_internal(right,charpointertype);
                  end;
                ltn,lten,gtn,gten:
                  begin
@@ -1269,8 +1269,8 @@ implementation
               begin
                 { convert both to voidpointer, because methodpointers are 8 bytes }
                 { even though only the first 4 bytes must be compared (JM)        }
-                inserttypeconv_explicit(left,voidpointertype);
-                inserttypeconv_explicit(right,voidpointertype);
+                inserttypeconv_internal(left,voidpointertype);
+                inserttypeconv_internal(right,voidpointertype);
               end
             else
               CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
@@ -1384,7 +1384,7 @@ implementation
                       { compare the pointer with nil (for ansistrings etc), }
                       { faster than getting the length (JM)                 }
                       result:= caddnode.create(nodetype,
-                        ctypeconvnode.create_explicit(left,voidpointertype),
+                        ctypeconvnode.create_internal(left,voidpointertype),
                         cpointerconstnode.create(0,voidpointertype));
                     end;
                   { left is reused }
@@ -1438,8 +1438,8 @@ implementation
                    end;
                end;
                { convert the arguments (explicitely) to fpc_normal_set's }
-               left := ctypeconvnode.create_explicit(left,srsym.restype);
-               right := ctypeconvnode.create_explicit(right,srsym.restype);
+               left := ctypeconvnode.create_internal(left,srsym.restype);
+               right := ctypeconvnode.create_internal(right,srsym.restype);
                result := ccallnode.createintern(procname,ccallparanode.create(right,
                  ccallparanode.create(left,nil)));
                { left and right are reused as parameters }
@@ -1459,7 +1459,7 @@ implementation
                   { type cast the value to pass as argument to a byte, }
                   { since that's what the helper expects               }
                   tsetelementnode(right).left :=
-                    ctypeconvnode.create_explicit(tsetelementnode(right).left,u8inttype);
+                    ctypeconvnode.create_internal(tsetelementnode(right).left,u8inttype);
                   { set the resulttype to the actual one (otherwise it's }
                   { "fpc_normal_set")                                    }
                   result := ccallnode.createinternres('fpc_set_create_element',
@@ -1475,18 +1475,18 @@ implementation
                      { convert the arguments to bytes, since that's what }
                      { the helper expects                               }
                      tsetelementnode(right).left :=
-                       ctypeconvnode.create_explicit(tsetelementnode(right).left,
+                       ctypeconvnode.create_internal(tsetelementnode(right).left,
                        u8inttype);
 
                      { convert the original set (explicitely) to an   }
                      { fpc_normal_set so we can pass it to the helper }
-                     left := ctypeconvnode.create_explicit(left,srsym.restype);
+                     left := ctypeconvnode.create_internal(left,srsym.restype);
 
                      { add a range or a single element? }
                      if assigned(tsetelementnode(right).right) then
                        begin
                          tsetelementnode(right).right :=
-                           ctypeconvnode.create_explicit(tsetelementnode(right).right,
+                           ctypeconvnode.create_internal(tsetelementnode(right).right,
                            u8inttype);
 
                          { create the call }
@@ -1515,7 +1515,7 @@ implementation
                        ccallparanode.create(
                          ctypeconvnode.create_explicit(right,srsym.restype),
                        ccallparanode.create(
-                         ctypeconvnode.create_explicit(left,srsym.restype),nil)),resulttype);
+                         ctypeconvnode.create_internal(left,srsym.restype),nil)),resulttype);
                      { remove reused parts from original node }
                      left := nil;
                      right := nil;
@@ -1525,8 +1525,8 @@ implementation
           subn,symdifn,muln:
             begin
               { convert the sets to fpc_normal_set's }
-              paras := ccallparanode.create(ctypeconvnode.create_explicit(right,srsym.restype),
-                ccallparanode.create(ctypeconvnode.create_explicit(left,srsym.restype),nil));
+              paras := ccallparanode.create(ctypeconvnode.create_internal(right,srsym.restype),
+                ccallparanode.create(ctypeconvnode.create_internal(left,srsym.restype),nil));
               case nodetype of
                 subn:
                   result := ccallnode.createinternres('fpc_set_sub_sets',
@@ -2032,7 +2032,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.130  2004-11-01 12:43:28  peter
+  Revision 1.131  2004-11-02 12:55:16  peter
+    * nf_internal flag for internal inserted typeconvs. This will
+      supress the generation of warning/hints
+
+  Revision 1.130  2004/11/01 12:43:28  peter
     * shortstr compare with empty string fixed
     * removed special i386 code
 
