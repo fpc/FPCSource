@@ -158,13 +158,17 @@ end;
 function TranslateKeyEventUniCode (KeyEvent: TKeyEvent): TKeyEvent;
 begin
  TranslateKeyEventUniCode := KeyEvent;
- ErrorHandler (errKbdNotImplemented, nil);
+ ErrorCode := errKbdNotImplemented;
+(* ErrorHandler (errKbdNotImplemented, nil);*)
 end;
 
 end.
 {
   $Log$
-  Revision 1.1  2001-01-13 11:03:58  peter
+  Revision 1.2  2001-01-13 12:01:07  hajny
+    * ErrorHandler correction
+
+  Revision 1.1  2001/01/13 11:03:58  peter
     * API 2 RTL commit
 
 }
