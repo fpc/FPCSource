@@ -1158,6 +1158,9 @@ implementation
         if (nf_absolute in flags) then
           begin
             convtype:=tc_equal;
+            if not(tstoreddef(resulttype.def).is_intregable) and
+               not(tstoreddef(resulttype.def).is_fpuregable) then
+              make_not_regable(left);
             exit;
           end;
 
@@ -2463,7 +2466,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.157  2004-10-24 11:44:28  peter
+  Revision 1.158  2004-11-01 15:31:58  peter
+    * -Or fix for absolute
+
+  Revision 1.157  2004/10/24 11:44:28  peter
     * small regvar fixes
     * loadref parameter removed from concatcopy,incrrefcount,etc
 

@@ -78,10 +78,6 @@ interface
 implementation
 
     uses
-{$ifdef GDB}
-      strings,
-      gdb,
-{$endif GDB}
       systems,
       cutils,verbose,globals,
       symconst,symdef,symsym,defutil,paramgr,
@@ -645,6 +641,10 @@ implementation
          else
            location_copy(location,left.location);
 
+         { location must be memory }
+         if not(location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+           internalerror(200411013);
+
          { offset can only differ from 0 if arraydef }
          if (left.resulttype.def.deftype=arraydef) and
             not(is_dynamic_array(left.resulttype.def)) then
@@ -879,7 +879,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.98  2004-10-25 15:38:41  peter
+  Revision 1.99  2004-11-01 15:31:57  peter
+    * -Or fix for absolute
+
+  Revision 1.98  2004/10/25 15:38:41  peter
     * heap and heapsize removed
     * checkpointer fixes
 

@@ -478,6 +478,8 @@ interface
 
         { but use the new size, but we don't know the size of all arrays }
         location.size:=def_cgsize(resulttype.def);
+        if location.loc in [LOC_REGISTER,LOC_CREGISTER] then
+          location.register:=cg.makeregsize(exprasmlist,location.register,location.size);
       end;
 
 
@@ -529,7 +531,10 @@ end.
 
 {
   $Log$
-  Revision 1.61  2004-10-31 21:45:03  peter
+  Revision 1.62  2004-11-01 15:31:58  peter
+    * -Or fix for absolute
+
+  Revision 1.61  2004/10/31 21:45:03  peter
     * generic tlocation
     * move tlocation to cgutils
 
