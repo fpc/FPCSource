@@ -50,8 +50,13 @@ Const
   EmptyStr : string = '';
   NullStr : PString = @EmptyStr;
 
+{$IFDEF VIRTUALPASCAL}
+  EmptyWideStr : AnsiString = '';
+  NullWideStr : PString = @EmptyWideStr;
+{$ELSE}
   EmptyWideStr : WideString = '';
 //  NullWideStr : PWideString = @EmptyWideStr;
+{$ENDIF}
 
 function NewStr(const S: string): PString;
 procedure DisposeStr(S: PString);
@@ -86,14 +91,20 @@ function AnsiExtractQuotedStr(Const Src: PChar; Quote: Char): string;
 function AdjustLineBreaks(const S: string): string;
 function IsValidIdent(const Ident: string): boolean;
 function IntToStr(Value: integer): string;
+{$IFNDEF VIRTUALPASCAL}
 function IntToStr(Value: Int64): string;
+{$ENDIF}
 function IntToStr(Value: QWord): string;
 function IntToHex(Value: integer; Digits: integer): string;
 function IntToHex(Value: Int64; Digits: integer): string;
 function StrToInt(const s: string): integer;
+{$IFNDEF VIRTUALPASCAL}
 function StrToInt64(const s: string): int64;
+{$ENDIF}
 function StrToIntDef(const S: string; Default: integer): integer;
+{$IFNDEF VIRTUALPASCAL}
 function StrToInt64Def(const S: string; Default: int64): int64;
+{$ENDIF}
 function LoadStr(Ident: integer): string;
 // function FmtLoadStr(Ident: integer; const Args: array of const): string;
 Function Format (Const Fmt : String; const Args : Array of const) : String;
@@ -149,7 +160,10 @@ function BCDToInt(Value: integer): integer;
 
 {
   $Log$
-  Revision 1.16  2002-12-24 23:33:37  peter
+  Revision 1.17  2003-09-06 21:22:08  marco
+   * More objpas fixes
+
+  Revision 1.16  2002/12/24 23:33:37  peter
     * export StrToFloatDef
 
   Revision 1.15  2002/12/23 23:12:34  florian

@@ -133,8 +133,8 @@ begin
   while (result=0) and (I<length) do
     begin
     result:=byte(P1^)-byte(P2^);
-    P1:=P1+1;
-    P2:=P2+1;
+    P1:=pchar(P1)+1;		// VP compat.
+    P2:=pchar(P2)+1;
     i := i + 1;
    end ;
 end ;
@@ -150,8 +150,8 @@ begin
       Result := False;
       exit;
     end;
-    Inc(P1);
-    Inc(P2);
+    Inc(pchar(P1));
+    Inc(pchar(P2));
   end;
   Result := True;
 end;
@@ -543,10 +543,12 @@ begin
 end ;
 
 
+{$IFNDEF VIRTUALPASCAL}
 function IntToStr(Value: int64): string;
 begin
  System.Str(Value, result);
 end ;
+{$ENDIF}
 
 function IntToStr(Value: QWord): string;
 begin
@@ -570,7 +572,7 @@ begin
   end ;
 end ;
 
-
+{$IFNDEF VIRTUALPASCAL} // overloading
 function IntToHex(Value: int64; Digits: integer): string;
 var i: integer;
 begin
@@ -581,14 +583,17 @@ begin
    value := value shr 4;
   end ;
 end ;
+{$ENDIF}
 
 {   StrToInt converts the string S to an integer value,
     if S does not represent a valid integer value EConvertError is raised  }
 
 function StrToInt(const S: string): integer;
-
+{$IFDEF VIRTUALPASCAL} 
+var Error: longint;
+{$ELSE}
 var Error: word;
-
+{$ENDIF}
 begin
   Val(S, result, Error);
   if Error <> 0 then raise EConvertError.createfmt(SInValidInteger,[S]);
@@ -596,8 +601,11 @@ end ;
 
 
 function StrToInt64(const S: string): int64;
-
+{$IFDEF VIRTUALPASCAL} 
+var Error: longint;
+{$ELSE}
 var Error: word;
+{$ENDIF}
 
 begin
   Val(S, result, Error);
@@ -609,7 +617,11 @@ end ;
     Default is returned in case S does not represent a valid integer value  }
 
 function StrToIntDef(const S: string; Default: integer): integer;
+{$IFDEF VIRTUALPASCAL} 
+var Error: longint;
+{$ELSE}
 var Error: word;
+{$ENDIF}
 begin
 Val(S, result, Error);
 if Error <> 0 then result := Default;
@@ -619,7 +631,11 @@ end ;
     Default is returned in case S does not represent a valid integer value  }
 
 function StrToInt64Def(const S: string; Default: int64): int64;
+{$IFDEF VIRTUALPASCAL} 
+var Error: longint;
+{$ELSE}
 var Error: word;
+{$ENDIF}
 begin
 Val(S, result, Error);
 if Error <> 0 then result := Default;
@@ -689,7 +705,11 @@ Var ChPos,OldPos,ArgPos,DoArg,Len : Longint;
 
     Procedure ReadInteger;
 
-    Var Code : Word;
+{$IFDEF VIRTUALPASCAL} 
+var Code: longint;
+{$ELSE}
+var Code: word;
+{$ENDIF}
 
     begin
       If Value<>-1 then exit; // Was already read.
@@ -790,7 +810,11 @@ Var ChPos,OldPos,ArgPos,DoArg,Len : Longint;
     Prec:=-1;
     Value:=-1;
     inc(chpos);
-    If Fmt[Chpos]='%' then exit('%');
+    If Fmt[Chpos]='%' then
+      begin
+	Result:='%';
+  	exit;				// VP fix
+      end;
     ReadIndex;
     ReadLeft;
     ReadWidth;
@@ -864,8 +888,11 @@ begin
         'D' : begin
               if Checkarg(vtinteger,false) then
                 Str(Args[Doarg].VInteger,ToAdd)
+  	      {$IFNDEF VIRTUALPASCAL} 
               else if CheckArg(vtInt64,true) then
-                Str(Args[DoArg].VInt64^,toadd);
+                Str(Args[DoArg].VInt64^,toadd)
+	      {$ENDIF}
+	      ;
               Width:=Abs(width);
               Index:=Prec-Length(ToAdd);
               If ToAdd[1]<>'-' then
@@ -1239,7 +1266,11 @@ function StrToBool(const S: string): Boolean;
 Var
   Temp : String;
   D : Double;
-  Code : word;
+{$IFDEF VIRTUALPASCAL} 
+  Code: longint;
+{$ELSE}
+  Code: word;
+{$ENDIF}
 
 begin
   Temp:=upcase(S);
@@ -1969,7 +2000,10 @@ const
 
 {
   $Log$
-  Revision 1.25  2002-12-23 23:26:08  florian
+  Revision 1.26  2003-09-06 21:22:07  marco
+   * More objpas fixes
+
+  Revision 1.25  2002/12/23 23:26:08  florian
     + addition to previous commit, forgot to save in the editor
 
   Revision 1.23  2002/11/28 22:26:30  michael
