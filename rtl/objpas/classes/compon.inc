@@ -377,6 +377,7 @@ Destructor TComponent.Destroy;
 Var Runner : Longint;
 
 begin
+  Destroying;
   If Assigned(FFreeNotifies) then
     begin
     For Runner:=0 To FFreeNotifies.Count-1 do
@@ -384,10 +385,16 @@ begin
     FFreeNotifies.Free;
     FFreeNotifies:=Nil;
     end;
-  Destroying;
   DestroyComponents;
   If FOwner<>Nil Then FOwner.RemoveComponent(Self);
   inherited destroy;
+end;
+
+
+Procedure TComponent.BeforeDestruction;
+begin
+  if not(csDestroying in FComponentstate) then
+    Destroying;
 end;
 
 
@@ -533,7 +540,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2004-01-12 17:44:22  peter
+  Revision 1.3  2004-08-07 16:44:35  florian
+    * tcomponent.destroying is now called in tcomponent.beforedestruction
+
+  Revision 1.2  2004/01/12 17:44:22  peter
     * LongRec is a packed record
 
   Revision 1.1  2003/10/06 21:01:06  peter
