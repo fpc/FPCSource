@@ -1,0 +1,16 @@
+#
+#   Makefile.fpc for FPC Netware libc demos (part of FPC demo package)
+#
+
+[target]
+programs_netwlibc=nuttest
+
+[default]
+fpcdir=../..
+
+[prerules]
+# binutils are the same for targets netware and netwlibc
+override BINUTILSPREFIX=$(CPU_TARGET)-netware-
+
+
+[rules]

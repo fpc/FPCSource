@@ -13,6 +13,7 @@ dirs_win32=win32 graph
 dirs_linux=linux graph
 dirs_os2=os2 graph
 dirs_netware=netware
+dirs_netwlibc=netwlibc
 
 [install]
 fpcpackage=y

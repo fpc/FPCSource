@@ -1,13 +1,14 @@
 #
-#   Makefile.fpc for FPC Netware demos (part of FPC demo package)
+#   Makefile.fpc for FPC Netware clib demos (part of FPC demo package)
 #
 
 [target]
-programs_netware=nutmon check
+programs_netware=nutmon check nuttest
 
 [default]
 fpcdir=../..
 
 [rules]
 nutmon.nlm: nutmon.pp nutconnection.pp
-#        $(COMPILER) -Dw -Ch8096 -Cs32728 basicpm.pas
+
+nuttest.nlm: nuttest.pp ../netwlibc/nuttest.pp
