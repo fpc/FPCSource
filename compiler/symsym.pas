@@ -63,6 +63,7 @@ interface
           destructor destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);virtual;abstract;
           procedure writesym(ppufile:tcompilerppufile);
+          procedure buildderef;override;
           procedure deref;override;
 {$ifdef GDB}
           function  stabstring : pchar;virtual;
@@ -127,6 +128,7 @@ interface
           procedure check_forward;
           procedure unchain_overload;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure buildderef;override;
           procedure deref;override;
           procedure addprocdef(p:tprocdef);
           procedure addprocdef_deref(const d:tderef);
@@ -160,6 +162,7 @@ interface
           constructor create(const n : string;const tt : ttype);
           constructor ppuload(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure buildderef;override;
           procedure deref;override;
           function  gettypedef:tdef;override;
           procedure load_references(ppufile:tcompilerppufile;locals:boolean);override;
@@ -186,6 +189,7 @@ interface
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure buildderef;override;
           procedure deref;override;
           procedure generate_mangledname;override;
           procedure set_mangledname(const s:string);
@@ -223,6 +227,7 @@ interface
           function  getsize : longint;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function  gettypedef:tdef;override;
+          procedure buildderef;override;
           procedure deref;override;
           procedure dooverride(overriden:tpropertysym);
 {$ifdef GDB}
@@ -239,6 +244,7 @@ interface
           constructor create(const n : string;const tt : ttype);
           constructor create_ref(const n : string;const tt : ttype;sym:tstoredsym);
           constructor ppuload(ppufile:tcompilerppufile);
+          procedure buildderef;override;
           procedure deref;override;
           function  mangledname : string;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -256,6 +262,7 @@ interface
           destructor destroy;override;
           procedure generate_mangledname;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure buildderef;override;
           procedure deref;override;
           function  getsize:longint;
 {$ifdef GDB}
@@ -284,6 +291,7 @@ interface
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
           function  mangledname : string;
+          procedure buildderef;override;
           procedure deref;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
 {$ifdef GDB}
@@ -300,6 +308,7 @@ interface
           constructor create(const n : string;def : tenumdef;v : longint);
           constructor ppuload(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure buildderef;override;
           procedure deref;override;
           procedure order;
 {$ifdef GDB}
@@ -435,6 +444,11 @@ implementation
       end;
 
 
+    procedure tstoredsym.buildderef;
+      begin
+      end;
+
+
     procedure tstoredsym.deref;
       begin
       end;
@@ -489,7 +503,8 @@ implementation
               { write address to this symbol }
                 if not symref_written then
                   begin
-                     ppufile.putderef(self,d);
+                     d.build(self);
+                     ppufile.putderef(d);
                      symref_written:=true;
                   end;
                 ppufile.putposinfo(ref.posinfo);
@@ -795,7 +810,7 @@ implementation
                to this procsym and are in the global symtable }
              if (p^.def.procsym=self) and
                 (p^.def.owner.symtabletype in [globalsymtable,objectsymtable]) then
-               ppufile.putderef(p^.def,p^.defderef);
+               ppufile.putderef(p^.defderef);
              p:=p^.next;
            end;
          ppufile.writeentry(ibprocsym);
@@ -831,6 +846,19 @@ implementation
                    p^.def.forwarddef:=false;
                 end;
               p:=p^.next;
+           end;
+      end;
+
+
+    procedure tprocsym.buildderef;
+      var
+         p : pprocdeflist;
+      begin
+         p:=pdlistfirst;
+         while assigned(p) do
+           begin
+             p^.defderef.build(p^.def);
+             p:=p^.next;
            end;
       end;
 
@@ -1355,6 +1383,23 @@ implementation
       end;
 
 
+    procedure tpropertysym.buildderef;
+      begin
+        if (ppo_is_override in propoptions) then
+         begin
+           propoverridenderef.build(propoverriden);
+         end
+        else
+         begin
+           proptype.buildderef;
+           indextype.buildderef;
+           readaccess.buildderef;
+           writeaccess.buildderef;
+           storedaccess.buildderef;
+         end;
+      end;
+
+
     procedure tpropertysym.deref;
       begin
         if (ppo_is_override in propoptions) then
@@ -1384,7 +1429,7 @@ implementation
         inherited writesym(ppufile);
         ppufile.putsmallset(propoptions);
         if (ppo_is_override in propoptions) then
-         ppufile.putderef(propoverriden,propoverridenderef)
+         ppufile.putderef(propoverridenderef)
         else
          begin
            ppufile.puttype(proptype);
@@ -1502,6 +1547,13 @@ implementation
       end;
 
 
+    procedure tabsolutesym.buildderef;
+      begin
+        { inheritance of varsym.deref ! }
+        vartype.buildderef;
+      end;
+
+
     procedure tabsolutesym.deref;
       var
         srsym : tsym;
@@ -1613,6 +1665,12 @@ implementation
         if assigned(notifications) then
           notifications.destroy;
         inherited destroy;
+      end;
+
+
+    procedure tvarsym.buildderef;
+      begin
+        vartype.buildderef;
       end;
 
 
@@ -1948,6 +2006,12 @@ implementation
       end;
 
 
+    procedure ttypedconstsym.buildderef;
+      begin
+        typedconsttype.buildderef;
+      end;
+
+
     procedure ttypedconstsym.deref;
       begin
         typedconsttype.resolve;
@@ -2143,6 +2207,13 @@ implementation
       end;
 
 
+    procedure tconstsym.buildderef;
+      begin
+        if consttyp in [constord,constpointer,constset] then
+         consttype.buildderef;
+      end;
+
+
     procedure tconstsym.deref;
       begin
         if consttyp in [constord,constpointer,constset] then
@@ -2266,6 +2337,12 @@ implementation
       end;
 
 
+    procedure tenumsym.buildderef;
+      begin
+         definitionderef.build(definition);
+      end;
+
+
     procedure tenumsym.deref;
       begin
          definition:=tenumdef(definitionderef.resolve);
@@ -2303,7 +2380,7 @@ implementation
     procedure tenumsym.ppuwrite(ppufile:tcompilerppufile);
       begin
          inherited writesym(ppufile);
-         ppufile.putderef(definition,definitionderef);
+         ppufile.putderef(definitionderef);
          ppufile.putlongint(value);
          ppufile.writeentry(ibenumsym);
       end;
@@ -2355,6 +2432,12 @@ implementation
       end;
 
 
+    procedure ttypesym.buildderef;
+      begin
+         restype.buildderef;
+      end;
+
+
     procedure ttypesym.deref;
       begin
          restype.resolve;
@@ -2391,7 +2474,8 @@ implementation
            because we need it for the symtable }
            if (restype.def.deftype in [recorddef,objectdef]) then
             begin
-              ppufile.putderef(self,d);
+              d.build(self);
+              ppufile.putderef(d);
               ppufile.writeentry(ibsymref);
             end;
          end;
@@ -2605,7 +2689,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.129  2003-10-22 15:22:33  peter
+  Revision 1.130  2003-10-22 20:40:00  peter
+    * write derefdata in a separate ppu entry
+
+  Revision 1.129  2003/10/22 15:22:33  peter
     * fixed unitsym-globalsymtable relation so the uses of a unit
       is counted correctly
 

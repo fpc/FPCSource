@@ -30,7 +30,7 @@ uses
 const
   Version   = 'Version 1.10';
   Title     = 'PPU-Analyser';
-  Copyright = 'Copyright (c) 1998-2002 by the Free Pascal Development Team';
+  Copyright = 'Copyright (c) 1998-2003 by the Free Pascal Development Team';
 
 { verbosity }
   v_none           = $0;
@@ -59,8 +59,11 @@ var
   ppufile     : tppufile;
   space       : string;
   read_member : boolean;
+  unitnumber,
   unitindex   : longint;
   verbose     : longint;
+  derefdata   : pbyte;
+  derefdatalen : longint;
 
 {****************************************************************************
                           Helper Routines
@@ -344,6 +347,35 @@ begin
 end;
 
 
+procedure ReadLoadUnit;
+var
+  ucrc,uintfcrc : longint;
+begin
+  while not ppufile.EndOfEntry do
+    begin
+      inc(unitnumber);
+      write('Uses unit: ',ppufile.getstring,' (Number: ',unitnumber,')');
+      ucrc:=ppufile.getlongint;
+      uintfcrc:=ppufile.getlongint;
+      write(' (Crc: ',hexstr(ucrc,8),', IntfcCrc: ',hexstr(uintfcrc,8),')');
+    end;
+end;
+
+
+Procedure ReadDerefdata;
+begin
+  derefdatalen:=ppufile.entrysize;
+  if derefdatalen=0 then
+    begin
+      writeln('!! Error: derefdatalen=0');
+      exit;
+    end;
+  Writeln('Derefdata length: ',derefdatalen);
+  derefdata:=allocmem(derefdatalen);
+  ppufile.getdata(derefdata^,derefdatalen);
+end;
+
+
 Procedure ReadRef;
 begin
   if (verbose and v_browser)=0 then
@@ -454,40 +486,50 @@ var
   b : tdereftype;
   first : boolean;
   idx : word;
-  typ,
   i,n : byte;
-  s : string;
+  pdata : pbyte;
 begin
+  if not assigned(derefdata) then
+    exit;
   first:=true;
+  idx:=ppufile.getlongint;
+  if (idx>derefdatalen) then
+    begin
+      writeln('!! Error: Deref idx ',idx,' > ',derefdatalen);
+      exit;
+    end;
+  write('(',idx,') ');
+  pdata:=@derefdata[idx];
   i:=0;
-  n:=ppufile.getbyte;
+  n:=pdata[i];
+  inc(i);
   if n<1 then
-   begin
-     writeln('!! Error, deref len < 1');
-     exit;
-   end;
+    begin
+      writeln('!! Error: Deref len < 1');
+      exit;
+    end;
   while (i<n) do
    begin
      if not first then
       write(', ')
      else
       first:=false;
-     b:=tdereftype(ppufile.getbyte);
+     b:=tdereftype(pdata[i]);
      inc(i);
      case b of
        deref_nil :
          write('Nil');
        deref_def :
          begin
-           idx:=ppufile.getbyte shl 8;
-           idx:=idx or ppufile.getbyte;
+           idx:=pdata[i] shl 8;
+           idx:=idx or pdata[i+1];
            inc(i,2);
            write('Definition ',idx);
          end;
        deref_sym :
          begin
-           idx:=ppufile.getbyte shl 8;
-           idx:=idx or ppufile.getbyte;
+           idx:=pdata[i] shl 8;
+           idx:=idx or pdata[i+1];
            inc(i,2);
            write('Symbol ',idx);
          end;
@@ -503,8 +545,8 @@ begin
          write('AktPara');
        deref_unit :
          begin
-           idx:=ppufile.getbyte shl 8;
-           idx:=idx or ppufile.getbyte;
+           idx:=pdata[i] shl 8;
+           idx:=idx or pdata[i+1];
            inc(i,2);
            write('Unit ',idx);
          end;
@@ -1127,80 +1169,6 @@ end;
                          Read defintions Part
 ****************************************************************************}
 
-procedure getusedregisters_i386;
-type
-  tregister = (R_NO,
-    R_EAX,R_ECX,R_EDX,R_EBX,R_ESP,R_EBP,R_ESI,R_EDI,
-    R_AX,R_CX,R_DX,R_BX,R_SP,R_BP,R_SI,R_DI,
-    R_AL,R_CL,R_DL,R_BL,R_AH,R_CH,R_BH,R_DH,
-    R_CS,R_DS,R_ES,R_SS,R_FS,R_GS,
-    R_ST,R_ST0,R_ST1,R_ST2,R_ST3,R_ST4,R_ST5,R_ST6,R_ST7,
-    R_DR0,R_DR1,R_DR2,R_DR3,R_DR6,R_DR7,
-    R_CR0,R_CR2,R_CR3,R_CR4,
-    R_TR3,R_TR4,R_TR5,R_TR6,R_TR7,
-    R_MM0,R_MM1,R_MM2,R_MM3,R_MM4,R_MM5,R_MM6,R_MM7,
-    R_XMM0,R_XMM1,R_XMM2,R_XMM3,R_XMM4,R_XMM5,R_XMM6,R_XMM7
-  );
-  tregisterset = set of tregister;
-  reg2strtable = array[tregister] of string[6];
-const
-  std_reg2str : reg2strtable = ('',
-    'eax','ecx','edx','ebx','esp','ebp','esi','edi',
-    'ax','cx','dx','bx','sp','bp','si','di',
-    'al','cl','dl','bl','ah','ch','bh','dh',
-    'cs','ds','es','ss','fs','gs',
-    'st','st(0)','st(1)','st(2)','st(3)','st(4)','st(5)','st(6)','st(7)',
-    'dr0','dr1','dr2','dr3','dr6','dr7',
-    'cr0','cr2','cr3','cr4',
-    'tr3','tr4','tr5','tr6','tr7',
-    'mm0','mm1','mm2','mm3','mm4','mm5','mm6','mm7',
-    'xmm0','xmm1','xmm2','xmm3','xmm4','xmm5','xmm6','xmm7'
-  );
-  firstsaveintreg = R_EAX;
-  lastsaveintreg = R_EBX;
-  firstsavefpureg = R_NO;
-  lastsavefpureg = R_NO;
-  firstsavemmreg = R_MM0;
-  lastsavemmreg = R_MM7;
-var
-  regs: tregisterset;
-  r: tregister;
-  first: boolean;
-begin
-  first := true;
-  ppufile.getnormalset(regs);
-  for r := firstsaveintreg to lastsaveintreg do
-    if r in regs then
-      begin
-        if not first then
-          write(', ')
-        else
-          first := false;
-        write(std_reg2str[r])
-      end;
-  if (firstsavefpureg <> R_NO) then
-    for r := firstsavefpureg to lastsavefpureg do
-      if r in regs then
-        begin
-          if not first then
-            write(', ')
-          else
-            first := false;
-          write(std_reg2str[r])
-        end;
-  if (firstsavemmreg <> R_NO) then
-    for r := firstsavemmreg to lastsavemmreg do
-      if r in regs then
-        begin
-          if not first then
-            write(', ')
-          else
-            first := false;
-          write(std_reg2str[r])
-        end;
-  writeln;
-end;
-
 procedure readdefinitions(start_read : boolean);
 type
   tsettype  = (normset,smallset,varset);
@@ -1218,13 +1186,15 @@ type
     odt_interfacecorba,
     odt_cppclass
   );
+  tvarianttype = (
+    vt_normalvariant,vt_olevariant
+  );
 var
   b : byte;
   oldread_member : boolean;
   totaldefs,l,j,
   defcnt : longint;
   calloption : tproccalloption;
-  regs : set of char;
 begin
   defcnt:=0;
   with ppufile do
@@ -1303,23 +1273,6 @@ begin
            begin
              readcommondef('Procedure definition');
              calloption:=read_abstract_proc_def;
-             write  (space,'     Used IntRegs : ');
-             getnormalset(regs);
-             writeln('<not yet implemented>');
-             write  (space,'   Used OtherRegs : ');
-             getnormalset(regs);
-             writeln('<not yet implemented>');
-{$ifdef OLDRA}
-             case ttargetcpu(header.cpu) of
-               i386 :
-                 getusedregisters_i386
-               else
-                 begin
-                   getnormalset(regs);
-                   writeln('<not yet implemented>');
-                 end;
-             end;
-{$endif OLDRA}
              if (getbyte<>0) then
                writeln(space,'     Mangled name : ',getstring);
              writeln(space,'  Overload Number : ',getword);
@@ -1500,10 +1453,20 @@ begin
              end;
            end;
 
-
          ibvariantdef :
            begin
              readcommondef('Variant definition');
+             write  (space,'      Varianttype : ');
+             b:=getbyte;
+             case tvarianttype(b) of
+               vt_normalvariant :
+                 writeln('Normal');
+               vt_olevariant :
+                 writeln('OLE');
+               else
+                 writeln('!! Warning: Invalid varianttype ',b);
+             end;
+
            end;
 
          iberror :
@@ -1534,9 +1497,7 @@ end;
 procedure readinterface;
 var
   b : byte;
-  sourcenumber,
-  unitnumber : word;
-  ucrc,uintfcrc : longint;
+  sourcenumber : longint;
 begin
   with ppufile do
    begin
@@ -1574,22 +1535,9 @@ begin
                   writeln;
               end;
            end;
+
          ibloadunit :
-           begin
-             unitnumber:=1;
-             while not EndOfEntry do
-              begin
-                write('Uses unit: ',getstring,' (Number: ',unitnumber,')');
-                ucrc:=getlongint;
-                uintfcrc:=getlongint;
-                write(' (Crc: ',hexstr(ucrc,8),', IntfcCrc: ',hexstr(uintfcrc,8),')');
-                if getbyte<>0 then
-                 writeln(' (interface)')
-                else
-                 writeln(' (implementation)');
-                inc(unitnumber);
-              end;
-           end;
+           ReadLoadUnit;
 
          iblinkunitofiles :
            ReadLinkContainer('Link unit object file: ');
@@ -1608,6 +1556,9 @@ begin
 
          iblinkothersharedlibs :
            ReadLinkContainer('Link other shared lib: ');
+
+         ibderefdata :
+           ReadDerefData;
 
          iberror :
            begin
@@ -1642,6 +1593,9 @@ begin
        case b of
          ibasmsymbols :
            ReadAsmSymbols;
+
+         ibloadunit :
+           ReadLoadUnit;
 
          iberror :
            begin
@@ -1945,7 +1899,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.46  2003-07-02 22:18:04  peter
+  Revision 1.47  2003-10-22 20:40:00  peter
+    * write derefdata in a separate ppu entry
+
+  Revision 1.46  2003/07/02 22:18:04  peter
     * paraloc splitted in callerparaloc,calleeparaloc
     * sparc calling convention updates
 

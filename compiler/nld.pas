@@ -44,6 +44,7 @@ interface
           constructor create_procvar(v : tsym;d:tprocdef;st : tsymtable);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure buildderef;override;
           procedure derefimpl;override;
           procedure set_mp(p:tnode);
           function  getcopy : tnode;override;
@@ -97,6 +98,7 @@ interface
           constructor create(t : ttype);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure buildderef;override;
           procedure derefimpl;override;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
@@ -112,6 +114,7 @@ interface
           constructor create(def:tstoreddef;rt:trttitype);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure buildderef;override;
           procedure derefimpl;override;
           function  getcopy : tnode;override;
           function pass_1 : tnode;override;
@@ -319,8 +322,16 @@ implementation
     procedure tloadnode.ppuwrite(ppufile:tcompilerppufile);
       begin
         inherited ppuwrite(ppufile);
-        ppufile.putderef(symtableentry,symtableentryderef);
-        ppufile.putderef(procdef,procdefderef);
+        ppufile.putderef(symtableentryderef);
+        ppufile.putderef(procdefderef);
+      end;
+
+
+    procedure tloadnode.buildderef;
+      begin
+        inherited buildderef;
+        symtableentryderef.build(symtableentry);
+        procdefderef.build(procdef);
       end;
 
 
@@ -1122,6 +1133,13 @@ implementation
       end;
 
 
+    procedure ttypenode.buildderef;
+      begin
+        inherited buildderef;
+        restype.buildderef;
+      end;
+
+
     procedure ttypenode.derefimpl;
       begin
         inherited derefimpl;
@@ -1183,8 +1201,15 @@ implementation
     procedure trttinode.ppuwrite(ppufile:tcompilerppufile);
       begin
         inherited ppuwrite(ppufile);
-        ppufile.putderef(rttidef,rttidefderef);
+        ppufile.putderef(rttidefderef);
         ppufile.putbyte(byte(rttitype));
+      end;
+
+
+    procedure trttinode.buildderef;
+      begin
+        inherited buildderef;
+        rttidefderef.build(rttidef);
       end;
 
 
@@ -1247,7 +1272,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.113  2003-10-17 14:38:32  peter
+  Revision 1.114  2003-10-22 20:40:00  peter
+    * write derefdata in a separate ppu entry
+
+  Revision 1.113  2003/10/17 14:38:32  peter
     * 64k registers supported
     * fixed some memory leaks
 

@@ -55,6 +55,7 @@ interface
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure mark_write;override;
+          procedure buildderef;override;
           procedure derefimpl;override;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
@@ -76,6 +77,7 @@ interface
           constructor create(varsym : tsym;l : tnode);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure buildderef;override;
           procedure derefimpl;override;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
@@ -227,7 +229,7 @@ implementation
     procedure taddrnode.ppuwrite(ppufile:tcompilerppufile);
       begin
         inherited ppuwrite(ppufile);
-        ppufile.putderef(getprocvardef,getprocvardefderef);
+        ppufile.putderef(getprocvardefderef);
       end;
 
     procedure Taddrnode.mark_write;
@@ -236,6 +238,13 @@ implementation
       {@procvar:=nil is legal in Delphi mode.}
       left.mark_write;
     end;
+
+    procedure taddrnode.buildderef;
+      begin
+        inherited buildderef;
+        getprocvardefderef.build(getprocvardef);
+      end;
+
 
     procedure taddrnode.derefimpl;
       begin
@@ -517,7 +526,14 @@ implementation
     procedure tsubscriptnode.ppuwrite(ppufile:tcompilerppufile);
       begin
         inherited ppuwrite(ppufile);
-        ppufile.putderef(vs,vsderef);
+        ppufile.putderef(vsderef);
+      end;
+
+
+    procedure tsubscriptnode.buildderef;
+      begin
+        inherited buildderef;
+        vsderef.build(vs);
       end;
 
 
@@ -904,7 +920,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.66  2003-10-21 18:16:13  peter
+  Revision 1.67  2003-10-22 20:40:00  peter
+    * write derefdata in a separate ppu entry
+
+  Revision 1.66  2003/10/21 18:16:13  peter
     * IncompatibleTypes() added that will include unit names when
       the typenames are the same
 

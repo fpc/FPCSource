@@ -266,7 +266,8 @@ interface
          pos,
          used : integer;
          Next : pdynamicblock;
-         data : array[0..high(integer)-20] of byte;
+         { can't use sizeof(integer) because it crashes gdb }
+         data : array[0..1024*1024] of byte;
        end;
 
        tdynamicarray = class
@@ -1746,9 +1747,9 @@ end;
            { not found ? then increase blocks }
            if not assigned(FPosnblock) then
             begin
-              { the current FLastblock is now also fully used }
-              FLastblock^.used:=blocksize;
               repeat
+                { the current FLastblock is now also fully used }
+                FLastblock^.used:=blocksize;
                 grow;
                 FPosnblock:=FLastblock;
               until FPosnblock^.pos+blocksize>=i;
@@ -1884,7 +1885,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.26  2003-10-11 16:06:42  florian
+  Revision 1.27  2003-10-22 20:40:00  peter
+    * write derefdata in a separate ppu entry
+
+  Revision 1.26  2003/10/11 16:06:42  florian
     * fixed some MMX<->SSE
     * started to fix ppc, needs an overhaul
     + stabs info improve for spilling, not sure if it works correctly/completly

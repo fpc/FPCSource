@@ -210,6 +210,7 @@ interface
       protected
          procedure ppuloadoper(ppufile:tcompilerppufile;var o:toper);override;
          procedure ppuwriteoper(ppufile:tcompilerppufile;const o:toper);override;
+         procedure ppubuildderefoper(var o:toper);override;
          procedure ppuderefoper(var o:toper);override;
       private
          { next fields are filled in pass1, so pass2 is faster }
@@ -799,9 +800,18 @@ implementation
             end;
           top_local :
             begin
-              ppufile.putderef(tvarsym(o.localsym),o.localsymderef);
+              ppufile.putderef(o.localsymderef);
               ppufile.putlongint(longint(o.localsymofs));
             end;
+        end;
+      end;
+
+
+    procedure taicpu.ppubuildderefoper(var o:toper);
+      begin
+        case o.typ of
+          top_local :
+            o.localsymderef.build(tvarsym(o.localsym));
         end;
       end;
 
@@ -2318,7 +2328,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.33  2003-10-21 15:15:36  peter
+  Revision 1.34  2003-10-22 20:40:00  peter
+    * write derefdata in a separate ppu entry
+
+  Revision 1.33  2003/10/21 15:15:36  peter
     * taicpu_abstract.oper[] changed to pointers
 
   Revision 1.32  2003/10/17 14:38:32  peter

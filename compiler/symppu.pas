@@ -48,7 +48,7 @@ interface
          procedure putexprint(v:tconstexprint);
          procedure PutPtrUInt(v:TConstPtrUInt);
          procedure putposinfo(const p:tfileposinfo);
-         procedure putderef(s:tsymtableentry;const d:tderef);
+         procedure putderef(const d:tderef);
          procedure putsymlist(p:tsymlist);
          procedure puttype(const t:ttype);
          procedure putasmsymbol(s:tasmsymbol);
@@ -166,8 +166,7 @@ implementation
 
     procedure tcompilerppufile.getderef(var d:tderef);
       begin
-        d.len:=getbyte;
-        getdata(d.data,d.len);
+        d.dataidx:=getlongint;
       end;
 
 
@@ -332,11 +331,9 @@ implementation
       end;
 
 
-    procedure tcompilerppufile.putderef(s:tsymtableentry;const d:tderef);
+    procedure tcompilerppufile.putderef(const d:tderef);
       begin
-        d.build(s);
-        putbyte(d.len);
-        putdata(d.data,d.len);
+        putlongint(d.dataidx);
       end;
 
 
@@ -344,7 +341,7 @@ implementation
       var
         hp : psymlistitem;
       begin
-        putderef(p.procdef,p.procdefderef);
+        putderef(p.procdefderef);
         hp:=p.firstsym;
         while assigned(hp) do
          begin
@@ -353,7 +350,7 @@ implementation
              sl_call,
              sl_load,
              sl_subscript :
-               putderef(hp^.sym,hp^.symderef);
+               putderef(hp^.symderef);
              sl_vec :
                putlongint(hp^.value);
              else
@@ -367,22 +364,7 @@ implementation
 
     procedure tcompilerppufile.puttype(const t:ttype);
       begin
-        { Write symbol references when the symbol is a redefine,
-          but don't write symbol references for the current unit
-          and for the system unit }
-        if assigned(t.sym) and
-           (
-            (t.sym<>t.def.typesym) or
-            ((t.sym.owner.unitid<>0) and
-             (t.sym.owner.unitid<>1))
-           ) then
-         begin
-           putderef(t.sym,t.deref);
-         end
-        else
-         begin
-           putderef(t.def,t.deref);
-         end;
+        putderef(t.deref);
       end;
 
 
@@ -405,7 +387,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  2003-10-07 16:06:30  peter
+  Revision 1.21  2003-10-22 20:40:00  peter
+    * write derefdata in a separate ppu entry
+
+  Revision 1.20  2003/10/07 16:06:30  peter
     * tsymlist.def renamed to tsymlist.procdef
     * tsymlist.procdef is now only used to store the procdef
 

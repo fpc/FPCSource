@@ -40,6 +40,7 @@ interface
           constructor create(v : bestreal;const t:ttype);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure buildderef;override;
           procedure derefimpl;override;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
@@ -60,6 +61,7 @@ interface
           constructor create(v : tconstexprint;const t:ttype; _rangecheck : boolean);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure buildderef;override;
           procedure derefimpl;override;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
@@ -75,6 +77,7 @@ interface
           constructor create(v : TConstPtrUInt;const t:ttype);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure buildderef;override;
           procedure derefimpl;override;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
@@ -93,6 +96,7 @@ interface
           constructor createwstr(w : pcompilerwidestring);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure buildderef;override;
           procedure derefimpl;override;
           destructor destroy;override;
           function getcopy : tnode;override;
@@ -111,6 +115,7 @@ interface
           destructor destroy;override;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure buildderef;override;
           procedure derefimpl;override;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
@@ -365,6 +370,13 @@ implementation
       end;
 
 
+    procedure trealconstnode.buildderef;
+      begin
+        inherited buildderef;
+        restype.buildderef;
+      end;
+
+
     procedure trealconstnode.derefimpl;
       begin
         inherited derefimpl;
@@ -451,6 +463,13 @@ implementation
       end;
 
 
+    procedure tordconstnode.buildderef;
+      begin
+        inherited buildderef;
+        restype.buildderef;
+      end;
+
+
     procedure tordconstnode.derefimpl;
       begin
         inherited derefimpl;
@@ -526,6 +545,13 @@ implementation
         inherited ppuwrite(ppufile);
         ppufile.puttype(restype);
         ppufile.putptruint(value);
+      end;
+
+
+    procedure tpointerconstnode.buildderef;
+      begin
+        inherited buildderef;
+        restype.buildderef;
       end;
 
 
@@ -655,6 +681,12 @@ implementation
       end;
 
 
+    procedure tstringconstnode.buildderef;
+      begin
+        inherited buildderef;
+      end;
+
+
     procedure tstringconstnode.derefimpl;
       begin
         inherited derefimpl;
@@ -770,6 +802,13 @@ implementation
         inherited ppuwrite(ppufile);
         ppufile.puttype(restype);
         ppufile.putdata(value_set^,sizeof(tconstset));
+      end;
+
+
+    procedure tsetconstnode.buildderef;
+      begin
+        inherited buildderef;
+        restype.buildderef;
       end;
 
 
@@ -911,7 +950,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.54  2003-10-07 18:17:44  peter
+  Revision 1.55  2003-10-22 20:40:00  peter
+    * write derefdata in a separate ppu entry
+
+  Revision 1.54  2003/10/07 18:17:44  peter
     * Give message that constant expr is expected when a none constant
       is passed to get_ordinal_value
 

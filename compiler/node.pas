@@ -296,6 +296,7 @@ interface
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);virtual;
           destructor destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);virtual;
+          procedure buildderef;virtual;
           procedure derefimpl;virtual;
 
           { toggles the flag }
@@ -356,6 +357,7 @@ interface
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           destructor destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure buildderef;override;
           procedure derefimpl;override;
           procedure concattolist(l : tlinkedlist);override;
           function ischild(p : tnode) : boolean;override;
@@ -373,6 +375,7 @@ interface
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           destructor destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure buildderef;override;
           procedure derefimpl;override;
           procedure concattolist(l : tlinkedlist);override;
           function ischild(p : tnode) : boolean;override;
@@ -556,6 +559,12 @@ implementation
       end;
 
 
+    procedure tnode.buildderef;
+      begin
+        resulttype.buildderef;
+      end;
+
+
     procedure tnode.derefimpl;
       begin
         resulttype.resolve;
@@ -735,6 +744,14 @@ implementation
       end;
 
 
+    procedure tunarynode.buildderef;
+      begin
+        inherited buildderef;
+        if assigned(left) then
+          left.buildderef;
+      end;
+
+
     procedure tunarynode.derefimpl;
       begin
         inherited derefimpl;
@@ -829,6 +846,14 @@ implementation
       begin
         inherited ppuwrite(ppufile);
         ppuwritenode(ppufile,right);
+      end;
+
+
+    procedure tbinarynode.buildderef;
+      begin
+        inherited buildderef;
+        if assigned(right) then
+          right.buildderef;
       end;
 
 
@@ -969,7 +994,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.71  2003-10-18 15:41:26  peter
+  Revision 1.72  2003-10-22 20:40:00  peter
+    * write derefdata in a separate ppu entry
+
+  Revision 1.71  2003/10/18 15:41:26  peter
     * made worklists dynamic in size
 
   Revision 1.70  2003/10/17 01:22:08  florian

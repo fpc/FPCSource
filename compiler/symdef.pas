@@ -76,6 +76,7 @@ interface
           function getcopy : tstoreddef;virtual;
           procedure ppuwritedef(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);virtual;abstract;
+          procedure buildderef;override;
           procedure deref;override;
           procedure derefimpl;override;
           function  size:longint;override;
@@ -126,6 +127,7 @@ interface
           constructor createtyped(const tt : ttype);
           constructor ppuload(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure buildderef;override;
           procedure deref;override;
           function  gettypename:string;override;
           function  getmangledparaname:string;override;
@@ -193,6 +195,7 @@ interface
           constructor createfar(const tt : ttype);
           constructor ppuload(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure buildderef;override;
           procedure deref;override;
           function  gettypename:string;override;
           { debug }
@@ -227,6 +230,7 @@ interface
           constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure buildderef;override;
           procedure deref;override;
           function  size:longint;override;
           function  alignment : longint;override;
@@ -279,6 +283,7 @@ interface
           destructor  destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function gettypename:string;override;
+          procedure buildderef;override;
           procedure deref;override;
           function  getparentdef:tdef;override;
           function  size : longint;override;
@@ -322,6 +327,7 @@ interface
           function  searchintf(def: tdef): longint;
           procedure addintf(def: tdef);
 
+          procedure buildderef;
           procedure deref;
           { add interface reference loaded from ppu }
           procedure addintf_deref(const d:tderef);
@@ -376,6 +382,7 @@ interface
           function stabstring : pchar;override;
           procedure concatstabto(asmlist : taasmoutput);override;
 {$endif GDB}
+          procedure buildderef;override;
           procedure deref;override;
           function size : longint;override;
           function alignment : longint;override;
@@ -440,6 +447,7 @@ interface
           constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy;override;
           procedure  ppuwrite(ppufile:tcompilerppufile);override;
+          procedure buildderef;override;
           procedure deref;override;
           procedure releasemem;
           function  concatpara(afterpara:tparaitem;const tt:ttype;sym : tsym;defval:tsym;vhidden:boolean):tparaitem;
@@ -460,6 +468,7 @@ interface
           constructor create(level:byte);
           constructor ppuload(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure buildderef;override;
           procedure deref;override;
           function  getsymtable(t:tgetsymtable):tsymtable;override;
           function  size : longint;override;
@@ -534,6 +543,7 @@ interface
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure buildderef;override;
           procedure deref;override;
           procedure derefimpl;override;
           function  getsymtable(t:tgetsymtable):tsymtable;override;
@@ -608,6 +618,7 @@ interface
           constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure buildderef;override;
           procedure deref;override;
           function  gettypename:string;override;
           function  is_publishable : boolean;override;
@@ -634,6 +645,7 @@ interface
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure buildderef;override;
           procedure deref;override;
           function  gettypename:string;override;
           function  is_publishable : boolean;override;
@@ -960,12 +972,12 @@ implementation
     procedure tstoreddef.ppuwritedef(ppufile:tcompilerppufile);
       begin
         ppufile.putword(indexnr);
-        ppufile.putderef(typesym,typesymderef);
+        ppufile.putderef(typesymderef);
         ppufile.putsmallset(defoptions);
         if df_has_rttitable in defoptions then
-         ppufile.putderef(rttitablesym,rttitablesymderef);
+         ppufile.putderef(rttitablesymderef);
         if df_has_inittable in defoptions then
-         ppufile.putderef(inittablesym,inittablesymderef);
+         ppufile.putderef(inittablesymderef);
 {$ifdef GDB}
         if globalnb = 0 then
           begin
@@ -978,6 +990,14 @@ implementation
               end;
            end;
 {$endif GDB}
+      end;
+
+
+    procedure tstoreddef.buildderef;
+      begin
+        typesymderef.build(typesym);
+        rttitablesymderef.build(rttitablesym);
+        inittablesymderef.build(inittablesym);
       end;
 
 
@@ -1560,6 +1580,13 @@ implementation
       end;
 
 
+    procedure tenumdef.buildderef;
+      begin
+        inherited buildderef;
+        basedefderef.build(basedef);
+      end;
+
+
     procedure tenumdef.deref;
       begin
         inherited deref;
@@ -1576,7 +1603,7 @@ implementation
     procedure tenumdef.ppuwrite(ppufile:tcompilerppufile);
       begin
          inherited ppuwritedef(ppufile);
-         ppufile.putderef(basedef,basedefderef);
+         ppufile.putderef(basedefderef);
          ppufile.putlongint(min);
          ppufile.putlongint(max);
          ppufile.putlongint(savesize);
@@ -2067,6 +2094,14 @@ implementation
       end;
 
 
+    procedure tfiledef.buildderef;
+      begin
+        inherited buildderef;
+        if filetyp=ft_typed then
+          typedfiletype.buildderef;
+      end;
+
+
     procedure tfiledef.deref;
       begin
         inherited deref;
@@ -2281,6 +2316,13 @@ implementation
          ppufile.gettype(pointertype);
          is_far:=(ppufile.getbyte<>0);
          savesize:=POINTER_SIZE;
+      end;
+
+
+    procedure tpointerdef.buildderef;
+      begin
+        inherited buildderef;
+        pointertype.buildderef;
       end;
 
 
@@ -2523,6 +2565,13 @@ implementation
 {$endif GDB}
 
 
+    procedure tsetdef.buildderef;
+      begin
+        inherited buildderef;
+        elementtype.buildderef;
+      end;
+
+
     procedure tsetdef.deref;
       begin
         inherited deref;
@@ -2649,6 +2698,14 @@ implementation
          IsDynamicArray:=boolean(ppufile.getbyte);
          IsVariant:=false;
          IsConstructor:=false;
+      end;
+
+
+    procedure tarraydef.buildderef;
+      begin
+        inherited buildderef;
+        _elementtype.buildderef;
+        rangetype.buildderef;
       end;
 
 
@@ -2966,6 +3023,19 @@ implementation
       end;
 
 
+    procedure trecorddef.buildderef;
+      var
+         oldrecsyms : tsymtable;
+      begin
+         inherited buildderef;
+         oldrecsyms:=aktrecordsymtable;
+         aktrecordsymtable:=symtable;
+         { now build the definitions }
+         tstoredsymtable(symtable).buildderef;
+         aktrecordsymtable:=oldrecsyms;
+      end;
+
+
     procedure trecorddef.deref;
       var
          oldrecsyms : tsymtable;
@@ -3223,6 +3293,26 @@ implementation
       end;
 
 
+    procedure tabstractprocdef.buildderef;
+      var
+         hp : TParaItem;
+      begin
+         inherited buildderef;
+         rettype.buildderef;
+         { parast }
+         tparasymtable(parast).buildderef;
+         { paraitems }
+         hp:=TParaItem(Para.first);
+         while assigned(hp) do
+          begin
+            hp.paratype.buildderef;
+            hp.defaultvaluederef.build(hp.defaultvalue);
+            hp.parasymderef.build(hp.parasym);
+            hp:=TParaItem(hp.next);
+          end;
+      end;
+
+
     procedure tabstractprocdef.deref;
       var
          hp : TParaItem;
@@ -3321,8 +3411,8 @@ implementation
           begin
             ppufile.putbyte(byte(hp.paratyp));
             ppufile.puttype(hp.paratype);
-            ppufile.putderef(hp.defaultvalue,hp.defaultvaluederef);
-            ppufile.putderef(hp.parasym,hp.parasymderef);
+            ppufile.putderef(hp.defaultvaluederef);
+            ppufile.putderef(hp.parasymderef);
             ppufile.putbyte(byte(hp.is_hidden));
             hp:=TParaItem(hp.next);
           end;
@@ -3611,8 +3701,8 @@ implementation
           ppufile.putstring(mangledname);
          ppufile.putword(overloadnumber);
          ppufile.putword(extnumber);
-         ppufile.putderef(_class,_classderef);
-         ppufile.putderef(procsym,procsymderef);
+         ppufile.putderef(_classderef);
+         ppufile.putderef(procsymderef);
          ppufile.putposinfo(fileinfo);
          ppufile.putsmallset(symoptions);
 
@@ -3623,7 +3713,7 @@ implementation
          { inline stuff }
          if proccalloption=pocall_inline then
           begin
-            ppufile.putderef(funcretsym,funcretsymderef);
+            ppufile.putderef(funcretsymderef);
             ppuwritenode(ppufile,code);
           end;
          ppufile.do_crc:=oldintfcrc;
@@ -3825,9 +3915,10 @@ implementation
         oldlocalsymtable:=aktlocalsymtable;
         aktparasymtable:=parast;
         aktlocalsymtable:=localst;
-      { write address of this symbol }
-        ppufile.putderef(self,d);
-      { write refs }
+        { write address of this symbol }
+        d.build(self);
+        ppufile.putderef(d);
+        { write refs }
         if assigned(lastwritten) then
           ref:=lastwritten
         else
@@ -3989,6 +4080,38 @@ implementation
       is_def_stab_written := written;
     end;
 {$endif GDB}
+
+
+    procedure tprocdef.buildderef;
+      var
+        oldparasymtable,
+        oldlocalsymtable : tsymtable;
+      begin
+         oldparasymtable:=aktparasymtable;
+         oldlocalsymtable:=aktlocalsymtable;
+         aktparasymtable:=parast;
+         aktlocalsymtable:=localst;
+
+         inherited buildderef;
+         _classderef.build(_class);
+         { procsym that originaly defined this definition, should be in the
+           same symtable }
+         procsymderef.build(procsym);
+
+         { locals }
+         if assigned(localst) then
+          begin
+            tlocalsymtable(localst).buildderef;
+            funcretsymderef.build(funcretsym);
+          end;
+
+         { inline tree }
+         if (proccalloption=pocall_inline) then
+           code.buildderef;
+
+         aktparasymtable:=oldparasymtable;
+         aktlocalsymtable:=oldlocalsymtable;
+      end;
 
 
     procedure tprocdef.deref;
@@ -4208,6 +4331,23 @@ implementation
 
         { Save the para symtable, this is taken from the interface }
         tparasymtable(parast).ppuwrite(ppufile);
+
+        aktparasymtable:=oldparasymtable;
+        aktlocalsymtable:=oldlocalsymtable;
+      end;
+
+
+    procedure tprocvardef.buildderef;
+      var
+        oldparasymtable,
+        oldlocalsymtable : tsymtable;
+      begin
+        oldparasymtable:=aktparasymtable;
+        oldlocalsymtable:=aktlocalsymtable;
+        aktparasymtable:=parast;
+        aktlocalsymtable:=nil;
+
+        inherited buildderef;
 
         aktparasymtable:=oldparasymtable;
         aktlocalsymtable:=oldlocalsymtable;
@@ -4532,7 +4672,7 @@ implementation
          ppufile.putlongint(size);
          ppufile.putlongint(vmt_offset);
          ppufile.putstring(objrealname^);
-         ppufile.putderef(childof,childofderef);
+         ppufile.putderef(childofderef);
          ppufile.putsmallset(objectoptions);
          if objecttype in [odt_interfacecom,odt_interfacecorba] then
            begin
@@ -4547,7 +4687,7 @@ implementation
               ppufile.putlongint(implintfcount);
               for i:=1 to implintfcount do
                 begin
-                   ppufile.putderef(implementedinterfaces.interfaces(i),implementedinterfaces.interfacesderef(i));
+                   ppufile.putderef(implementedinterfaces.interfacesderef(i));
                    ppufile.putlongint(implementedinterfaces.ioffsets(i)^);
                 end;
            end;
@@ -4563,6 +4703,21 @@ implementation
     function tobjectdef.gettypename:string;
       begin
         gettypename:=typename;
+      end;
+
+
+    procedure tobjectdef.buildderef;
+      var
+         oldrecsyms : tsymtable;
+      begin
+         inherited buildderef;
+         childofderef.build(childof);
+         oldrecsyms:=aktrecordsymtable;
+         aktrecordsymtable:=symtable;
+         tstoredsymtable(symtable).buildderef;
+         aktrecordsymtable:=oldrecsyms;
+         if objecttype in [odt_class,odt_interfacecorba] then
+           implementedinterfaces.buildderef;
       end;
 
 
@@ -5528,6 +5683,17 @@ implementation
           searchintf:=-1;
       end;
 
+
+    procedure timplementedinterfaces.buildderef;
+      var
+        i: longint;
+      begin
+        for i:=1 to count do
+          with timplintfentry(finterfaces.search(i)) do
+            intfderef.build(intf);
+      end;
+
+
     procedure timplementedinterfaces.deref;
       var
         i: longint;
@@ -5884,7 +6050,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.182  2003-10-21 18:14:49  peter
+  Revision 1.183  2003-10-22 20:40:00  peter
+    * write derefdata in a separate ppu entry
+
+  Revision 1.182  2003/10/21 18:14:49  peter
     * fix counting of parameters when loading ppu
 
   Revision 1.181  2003/10/17 15:08:34  peter

@@ -79,6 +79,7 @@ interface
           destructor destroy;override;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure buildderef;override;
           procedure derefimpl;override;
           function getcopy : tnode;override;
           procedure insertintolist(l : tnodelist);override;
@@ -508,7 +509,6 @@ implementation
       end;
 
 
-
 {*****************************************************************************
                               TCASENODE
 *****************************************************************************}
@@ -543,6 +543,15 @@ implementation
         inherited ppuwrite(ppufile);
         ppuwritenode(ppufile,elseblock);
         ppuwritecaserecord(ppufile,nodes);
+      end;
+
+
+    procedure tcasenode.buildderef;
+      begin
+        inherited buildderef;
+        if assigned(elseblock) then
+          elseblock.buildderef;
+        {ppubuildderefcaserecord(nodes);}
       end;
 
 
@@ -686,7 +695,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.47  2003-10-09 21:31:37  daniel
+  Revision 1.48  2003-10-22 20:40:00  peter
+    * write derefdata in a separate ppu entry
+
+  Revision 1.47  2003/10/09 21:31:37  daniel
     * Register allocator splitted, ans abstract now
 
   Revision 1.46  2003/10/08 19:19:45  peter

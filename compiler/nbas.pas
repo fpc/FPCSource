@@ -60,6 +60,7 @@ interface
           destructor destroy;override;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure buildderef;override;
           procedure derefimpl;override;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
@@ -543,6 +544,20 @@ implementation
       end;
 
 
+    procedure tasmnode.buildderef;
+      var
+        hp : tai;
+      begin
+        inherited buildderef;
+        hp:=tai(p_asm.first);
+        while assigned(hp) do
+         begin
+           hp.buildderef;
+           hp:=tai(hp.next);
+         end;
+      end;
+
+
     procedure tasmnode.derefimpl;
       var
         hp : tai;
@@ -830,7 +845,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.67  2003-10-21 18:15:16  peter
+  Revision 1.68  2003-10-22 20:40:00  peter
+    * write derefdata in a separate ppu entry
+
+  Revision 1.67  2003/10/21 18:15:16  peter
     * fixed check for $X- result usage
 
   Revision 1.66  2003/10/19 01:34:30  florian

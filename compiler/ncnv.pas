@@ -44,6 +44,7 @@ interface
           constructor create_explicit(node : tnode;const t : ttype);
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure buildderef;override;
           procedure derefimpl;override;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
@@ -495,6 +496,13 @@ implementation
         inherited ppuwrite(ppufile);
         ppufile.puttype(totype);
         ppufile.putbyte(byte(convtype));
+      end;
+
+
+    procedure ttypeconvnode.buildderef;
+      begin
+        inherited buildderef;
+        totype.buildderef;
       end;
 
 
@@ -2103,7 +2111,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.124  2003-10-21 18:16:13  peter
+  Revision 1.125  2003-10-22 20:40:00  peter
+    * write derefdata in a separate ppu entry
+
+  Revision 1.124  2003/10/21 18:16:13  peter
     * IncompatibleTypes() added that will include unit names when
       the typenames are the same
 

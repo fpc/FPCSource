@@ -209,6 +209,7 @@ interface
           constructor Create;
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);virtual;
           procedure ppuwrite(ppufile:tcompilerppufile);virtual;
+          procedure buildderef;virtual;
           procedure derefimpl;virtual;
        end;
 
@@ -434,6 +435,7 @@ interface
        protected
           procedure ppuloadoper(ppufile:tcompilerppufile;var o:toper);virtual;abstract;
           procedure ppuwriteoper(ppufile:tcompilerppufile;const o:toper);virtual;abstract;
+          procedure ppubuildderefoper(var o:toper);virtual;abstract;
           procedure ppuderefoper(var o:toper);virtual;abstract;
        public
           { Condition flags for instruction }
@@ -456,6 +458,7 @@ interface
           function getcopy:TLinkedListItem;override;
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure buildderef;override;
           procedure derefimpl;override;
           procedure SetCondition(const c:TAsmCond);
           procedure allocate_oper(opers:longint);
@@ -609,6 +612,11 @@ implementation
 
 
     procedure tai.ppuwrite(ppufile:tcompilerppufile);
+      begin
+      end;
+
+
+    procedure tai.buildderef;
       begin
       end;
 
@@ -2006,6 +2014,15 @@ implementation
       end;
 
 
+    procedure taicpu_abstract.buildderef;
+      var
+        i : integer;
+      begin
+        for i:=0 to ops-1 do
+          ppubuildderefoper(oper[i]^);
+      end;
+
+
     procedure taicpu_abstract.derefimpl;
       var
         i : integer;
@@ -2122,7 +2139,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.45  2003-10-21 15:15:35  peter
+  Revision 1.46  2003-10-22 20:39:59  peter
+    * write derefdata in a separate ppu entry
+
+  Revision 1.45  2003/10/21 15:15:35  peter
     * taicpu_abstract.oper[] changed to pointers
 
   Revision 1.44  2003/10/17 14:38:32  peter

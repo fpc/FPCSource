@@ -69,12 +69,14 @@ interface
           procedure writesourcefiles;
           procedure writeusedunit(intf:boolean);
           procedure writelinkcontainer(var p:tlinkcontainer;id:byte;strippath:boolean);
+          procedure writederefdata;
           procedure putasmsymbol_in_idx(s:tnamedindexitem;arg:pointer);
           procedure writeasmsymbols;
           procedure readusedmacros;
           procedure readsourcefiles;
           procedure readloadunit;
           procedure readlinkcontainer(var p:tlinkcontainer);
+          procedure readderefdata;
           procedure readasmsymbols;
        end;
 
@@ -479,6 +481,27 @@ uses
       end;
 
 
+    procedure tppumodule.writederefdata;
+      var
+        len,hlen : longint;
+        buf : array[0..1023] of byte;
+      begin
+        len:=derefdata.size;
+        derefdata.seek(0);
+        while (len>0) do
+          begin
+            if len>1024 then
+              hlen:=1024
+            else
+              hlen:=len;
+            derefdata.read(buf,hlen);
+            ppufile.putdata(buf,hlen);
+            dec(len,hlen);
+          end;
+        ppufile.writeentry(ibderefdata);
+      end;
+
+
     procedure tppumodule.putasmsymbol_in_idx(s:tnamedindexitem;arg:pointer);
       begin
         if tasmsymbol(s).ppuidx<>-1 then
@@ -714,6 +737,25 @@ uses
       end;
 
 
+    procedure tppumodule.readderefdata;
+      var
+        len,hlen : longint;
+        buf : array[0..1023] of byte;
+      begin
+        len:=ppufile.entrysize;
+        while (len>0) do
+          begin
+            if len>1024 then
+              hlen:=1024
+            else
+              hlen:=len;
+            ppufile.getdata(buf,hlen);
+            derefdata.write(buf,hlen);
+            dec(len,hlen);
+          end;
+      end;
+
+
     procedure tppumodule.readasmsymbols;
       var
         labelnr,
@@ -794,6 +836,8 @@ uses
                readlinkcontainer(LinkotherStaticLibs);
              iblinkothersharedlibs :
                readlinkcontainer(LinkotherSharedLibs);
+             ibderefdata :
+               readderefdata;
              ibendinterface :
                break;
            else
@@ -913,6 +957,13 @@ uses
          writelinkcontainer(linkotherstaticlibs,iblinkotherstaticlibs,true);
          writelinkcontainer(linkothersharedlibs,iblinkothersharedlibs,true);
          ppufile.do_crc:=true;
+
+         { generate and write deref data }
+         tstoredsymtable(globalsymtable).buildderef;
+         if ((flags and uf_local_browser)<>0) and
+            assigned(localsymtable) then
+           tstoredsymtable(localsymtable).buildderef;
+         writederefdata;
 
          ppufile.writeentry(ibendinterface);
 
@@ -1415,7 +1466,10 @@ if modulename^='SYMSYM' then
 end.
 {
   $Log$
-  Revision 1.41  2003-10-22 17:38:25  peter
+  Revision 1.42  2003-10-22 20:40:00  peter
+    * write derefdata in a separate ppu entry
+
+  Revision 1.41  2003/10/22 17:38:25  peter
     * write implementation units in implementation part of the ppu
       so it doesn't confuse the unit loading
 

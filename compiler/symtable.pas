@@ -70,6 +70,7 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);virtual;
           procedure load_references(ppufile:tcompilerppufile;locals:boolean);virtual;
           procedure write_references(ppufile:tcompilerppufile;locals:boolean);virtual;
+          procedure buildderef;virtual;
           procedure deref;virtual;
           procedure derefimpl;virtual;
           procedure insert(sym : tsymentry);override;
@@ -468,6 +469,28 @@ implementation
               pd:=tstoredsym(pd.indexnext);
            end;
          ppufile.writeentry(ibendsymtablebrowser);
+      end;
+
+
+    procedure tstoredsymtable.buildderef;
+      var
+        hp : tdef;
+        hs : tsym;
+      begin
+        { interface definitions }
+        hp:=tdef(defindex.first);
+        while assigned(hp) do
+         begin
+           hp.buildderef;
+           hp:=tdef(hp.indexnext);
+         end;
+        { interface symbols }
+        hs:=tsym(symindex.first);
+        while assigned(hs) do
+         begin
+           hs.buildderef;
+           hs:=tsym(hs.indexnext);
+         end;
       end;
 
 
@@ -2259,7 +2282,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.118  2003-10-22 15:22:33  peter
+  Revision 1.119  2003-10-22 20:40:00  peter
+    * write derefdata in a separate ppu entry
+
+  Revision 1.118  2003/10/22 15:22:33  peter
     * fixed unitsym-globalsymtable relation so the uses of a unit
       is counted correctly
 

@@ -70,6 +70,7 @@ interface
          typesym    : tsym;  { which type the definition was generated this def }
          defoptions : tdefoptions;
          constructor create;
+         procedure buildderef;virtual;abstract;
          procedure deref;virtual;abstract;
          procedure derefimpl;virtual;abstract;
          function  typename:string;
@@ -96,6 +97,7 @@ interface
          constructor create(const n : string);
          destructor destroy;override;
          function  realname:string;
+         procedure buildderef;virtual;abstract;
          procedure deref;virtual;abstract;
          function  gettypedef:tdef;virtual;
       end;
@@ -104,16 +106,12 @@ interface
                    TDeref
 ************************************************}
 
-      tderefdata = array[0..31] of byte;
-
       tderef = object
-        len  : longint;
-        data : tderefdata;
+        dataidx : longint;
         procedure reset;
-        procedure setdata(l:longint;var d);
         procedure build(s:tsymtableentry);
-        function resolve:tsymtableentry;
-      end;
+        function  resolve:tsymtableentry;
+     end;
 
 {************************************************
                    TType
@@ -127,6 +125,7 @@ interface
         procedure setdef(p:tdef);
         procedure setsym(p:tsym);
         procedure resolve;
+        procedure buildderef;
       end;
 
 {************************************************
@@ -156,6 +155,7 @@ interface
         procedure clear;
         function  getcopy:tsymlist;
         procedure resolve;
+        procedure buildderef;
       end;
 
 
@@ -360,6 +360,23 @@ implementation
       end;
 
 
+    procedure ttype.buildderef;
+      begin
+        { Write symbol references when the symbol is a redefine,
+          but don't write symbol references for the current unit
+          and for the system unit }
+        if assigned(sym) and
+           (
+            (sym<>def.typesym) or
+            ((sym.owner.unitid<>0) and
+             (sym.owner.unitid<>1))
+           ) then
+          deref.build(sym)
+        else
+          deref.build(def);
+      end;
+
+
 {****************************************************************************
                                  TSymList
 ****************************************************************************}
@@ -495,6 +512,29 @@ implementation
       end;
 
 
+    procedure tsymlist.buildderef;
+      var
+        hp : psymlistitem;
+      begin
+        procdefderef.build(procdef);
+        hp:=firstsym;
+        while assigned(hp) do
+         begin
+           case hp^.sltype of
+             sl_call,
+             sl_load,
+             sl_subscript :
+               hp^.symderef.build(hp^.sym);
+             sl_vec :
+               ;
+             else
+              internalerror(200110205);
+           end;
+           hp:=hp^.next;
+         end;
+      end;
+
+
 {****************************************************************************
                                 Tderef
 ****************************************************************************}
@@ -502,20 +542,14 @@ implementation
 
     procedure tderef.reset;
       begin
-        len:=0;
-      end;
-
-
-    procedure tderef.setdata(l:longint;var d);
-      begin
-        len:=l;
-        if l>sizeof(tderefdata) then
-          internalerror(200306068);
-        move(d,data,len);
+        dataidx:=-1;
       end;
 
 
     procedure tderef.build(s:tsymtableentry);
+      var
+        len  : byte;
+        data : array[0..255] of byte;
 
         function is_child(currdef,ownerdef:tdef):boolean;
         begin
@@ -588,7 +622,7 @@ implementation
             else
               internalerror(200306065);
           end;
-          if len+3>sizeof(tderefdata) then
+          if len>252 then
             internalerror(200306062);
         end;
 
@@ -649,7 +683,8 @@ implementation
         end;
 
       begin
-        len:=0;
+        { skip length byte }
+        len:=1;
         if assigned(s) then
          begin
            { Static symtable of current unit ? }
@@ -712,6 +747,11 @@ implementation
            data[len]:=0;
            inc(len);
          end;
+        { store data length in first byte }
+        data[0]:=len-1;
+        { store index and write to derefdata }
+        dataidx:=current_module.derefdata.size;
+        current_module.derefdata.write(data,len);
       end;
 
 
@@ -723,11 +763,23 @@ implementation
         st     : tsymtable;
         idx    : word;
         i      : longint;
+        len    : byte;
+        data   : array[0..255] of byte;
       begin
         result:=nil;
         { not initialized }
-        if len=0 then
+        if dataidx=-1 then
           internalerror(200306067);
+        { read data }
+        current_module.derefdata.seek(dataidx);
+        if current_module.derefdata.read(len,1)<>1 then
+          internalerror(200310221);
+        if len>0 then
+          begin
+            if current_module.derefdata.read(data,len)<>len then
+              internalerror(200310222);
+          end;
+        { process data }
         st:=nil;
         i:=0;
         while (i<len) do
@@ -862,7 +914,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.30  2003-10-22 15:22:33  peter
+  Revision 1.31  2003-10-22 20:40:00  peter
+    * write derefdata in a separate ppu entry
+
+  Revision 1.30  2003/10/22 15:22:33  peter
     * fixed unitsym-globalsymtable relation so the uses of a unit
       is counted correctly
 

@@ -114,6 +114,7 @@ interface
           destructor destroy;override;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure buildderef;override;
           procedure derefimpl;override;
           function  getcopy : tnode;override;
           { Goes through all symbols in a class and subclasses and calls
@@ -154,7 +155,6 @@ interface
           destructor destroy;override;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          procedure derefimpl;override;
           function getcopy : tnode;override;
           procedure insertintolist(l : tnodelist);override;
           procedure get_paratype;
@@ -519,12 +519,6 @@ type
       begin
         inherited ppuwrite(ppufile);
         ppufile.putsmallset(callparaflags);
-      end;
-
-
-    procedure tcallparanode.derefimpl;
-      begin
-        inherited derefimpl;
       end;
 
 
@@ -971,12 +965,26 @@ type
     procedure tcallnode.ppuwrite(ppufile:tcompilerppufile);
       begin
         inherited ppuwrite(ppufile);
-        ppufile.putderef(symtableprocentry,symtableprocentryderef);
-        ppufile.putderef(procdefinition,procdefinitionderef);
+        ppufile.putderef(symtableprocentryderef);
+        ppufile.putderef(procdefinitionderef);
         ppufile.putbyte(byte(restypeset));
         ppuwritenode(ppufile,methodpointer);
         ppuwritenode(ppufile,_funcretnode);
         ppuwritenode(ppufile,inlinecode);
+      end;
+
+
+    procedure tcallnode.buildderef;
+      begin
+        inherited buildderef;
+        symtableprocentryderef.build(symtableprocentry);
+        procdefinitionderef.build(procdefinition);
+        if assigned(methodpointer) then
+          methodpointer.buildderef;
+        if assigned(_funcretnode) then
+          _funcretnode.buildderef;
+        if assigned(inlinecode) then
+          inlinecode.buildderef;
       end;
 
 
@@ -2576,7 +2584,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.198  2003-10-21 18:17:02  peter
+  Revision 1.199  2003-10-22 20:40:00  peter
+    * write derefdata in a separate ppu entry
+
+  Revision 1.198  2003/10/21 18:17:02  peter
     * only search for overloaded constructors in classes
 
   Revision 1.197  2003/10/21 15:14:55  peter

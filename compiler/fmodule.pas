@@ -97,6 +97,7 @@ interface
         islibrary     : boolean;  { if it is a library (win32 dll) }
         map           : punitmap; { mapping of all used units }
         mapsize       : longint;  { number of units in the map }
+        derefdata     : tdynamicarray;
         globalsymtable,           { pointer to the global symtable of this unit }
         localsymtable : tsymtable;{ pointer to the local symtable of this unit }
         scanner       : pointer;  { scanner object used }
@@ -381,6 +382,7 @@ implementation
         scanner:=nil;
         map:=nil;
         mapsize:=0;
+        derefdata:=TDynamicArray.Create(1024);
         globalsymtable:=nil;
         localsymtable:=nil;
         loaded_from:=LoadedFrom;
@@ -515,6 +517,8 @@ implementation
             localsymtable.free;
             localsymtable:=nil;
           end;
+        derefdata.free;
+        derefdata:=TDynamicArray.Create(1024);
         if assigned(map) then
           begin
             freemem(map);
@@ -683,7 +687,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.39  2003-10-22 15:22:33  peter
+  Revision 1.40  2003-10-22 20:40:00  peter
+    * write derefdata in a separate ppu entry
+
+  Revision 1.39  2003/10/22 15:22:33  peter
     * fixed unitsym-globalsymtable relation so the uses of a unit
       is counted correctly
 

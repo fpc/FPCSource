@@ -41,7 +41,7 @@ type
 {$endif Test_Double_checksum}
 
 const
-  CurrentPPUVersion=37;
+  CurrentPPUVersion=38;
 
 { buffer sizes }
   maxentrysize = 1024;
@@ -77,6 +77,7 @@ const
   ibendsymtablebrowser   = 14;
   ibbeginsymtablebrowser = 15;
   ibusedmacros           = 16;
+  ibderefdata            = 17;
   {syms}
   ibtypesym       = 20;
   ibprocsym       = 21;
@@ -210,6 +211,7 @@ type
     procedure skipdata(len:integer);
     function  readentry:byte;
     function  EndOfEntry:boolean;
+    function  entrysize:longint;
     procedure getdatabuf(var b;len:integer;var res:integer);
     procedure getdata(var b;len:integer);
     function  getbyte:byte;
@@ -518,6 +520,12 @@ end;
 function tppufile.endofentry:boolean;
 begin
   endofentry:=(entryidx>=entry.size);
+end;
+
+
+function tppufile.entrysize:longint;
+begin
+  entrysize:=entry.size;
 end;
 
 
@@ -985,7 +993,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.42  2003-09-23 17:56:05  peter
+  Revision 1.43  2003-10-22 20:40:00  peter
+    * write derefdata in a separate ppu entry
+
+  Revision 1.42  2003/09/23 17:56:05  peter
     * locals and paras are allocated in the code generation
     * tvarsym.localloc contains the location of para/local when
       generating code for the current procedure

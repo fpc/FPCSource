@@ -60,6 +60,7 @@ interface
           function getcopy : tnode;override;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure buildderef;override;
           procedure derefimpl;override;
           procedure insertintolist(l : tnodelist);override;
           procedure printnodetree(var t:text);override;
@@ -124,6 +125,7 @@ interface
 {          constructor createintern(g:tinterngotolabel);}
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure buildderef;override;
           procedure derefimpl;override;
           function getcopy : tnode;override;
           function det_resulttype:tnode;override;
@@ -141,6 +143,7 @@ interface
           constructor create(p : tlabelsym;l:tnode);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure buildderef;override;
           procedure derefimpl;override;
           function getcopy : tnode;override;
           function det_resulttype:tnode;override;
@@ -154,6 +157,7 @@ interface
           constructor create(l,taddr,tframe:tnode);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure buildderef;override;
           procedure derefimpl;override;
           function getcopy : tnode;override;
           procedure insertintolist(l : tnodelist);override;
@@ -280,6 +284,16 @@ implementation
         inherited ppuwrite(ppufile);
         ppuwritenode(ppufile,t1);
         ppuwritenode(ppufile,t2);
+      end;
+
+
+    procedure tloopnode.buildderef;
+      begin
+        inherited buildderef;
+        if assigned(t1) then
+          t1.buildderef;
+        if assigned(t2) then
+          t2.buildderef;
       end;
 
 
@@ -960,8 +974,15 @@ implementation
     procedure tgotonode.ppuwrite(ppufile:tcompilerppufile);
       begin
         inherited ppuwrite(ppufile);
-        ppufile.putderef(labsym,labsymderef);
+        ppufile.putderef(labsymderef);
         ppufile.putbyte(exceptionblock);
+      end;
+
+
+    procedure tgotonode.buildderef;
+      begin
+        inherited buildderef;
+        labsymderef.build(labsym);
       end;
 
 
@@ -1049,9 +1070,16 @@ implementation
     procedure tlabelnode.ppuwrite(ppufile:tcompilerppufile);
       begin
         inherited ppuwrite(ppufile);
-        ppufile.putderef(labsym,labsymderef);
+        ppufile.putderef(labsymderef);
         ppufile.putasmsymbol(labelnr);
         ppufile.putbyte(exceptionblock);
+      end;
+
+
+    procedure tlabelnode.buildderef;
+      begin
+        inherited buildderef;
+        labsymderef.build(labsym);
       end;
 
 
@@ -1129,6 +1157,14 @@ implementation
       begin
         inherited ppuwrite(ppufile);
         ppuwritenode(ppufile,frametree);
+      end;
+
+
+    procedure traisenode.buildderef;
+      begin
+        inherited buildderef;
+        if assigned(frametree) then
+          frametree.buildderef;
       end;
 
 
@@ -1431,7 +1467,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.83  2003-10-09 21:31:37  daniel
+  Revision 1.84  2003-10-22 20:40:00  peter
+    * write derefdata in a separate ppu entry
+
+  Revision 1.83  2003/10/09 21:31:37  daniel
     * Register allocator splitted, ans abstract now
 
   Revision 1.82  2003/10/08 19:19:45  peter
