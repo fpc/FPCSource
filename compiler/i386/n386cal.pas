@@ -942,18 +942,21 @@ implementation
                    if pprocdef(procdefinition)^.extnumber=-1 then
                      internalerror(44584);
                    r^.offset:=pprocdef(procdefinition)^._class^.vmtmethodoffset(pprocdef(procdefinition)^.extnumber);
-                   if (cs_check_object_ext in aktlocalswitches) and
-                     not(is_interface(pprocdef(procdefinition)^._class)) then
+                   if not(is_interface(pprocdef(procdefinition)^._class)) and
+                     not(is_cppclass(pprocdef(procdefinition)^._class)) then
                      begin
-                        emit_sym(A_PUSH,S_L,
-                          newasmsymbol(pprocdef(procdefinition)^._class^.vmt_mangledname));
-                        emit_reg(A_PUSH,S_L,r^.base);
-                        emitcall('FPC_CHECK_OBJECT_EXT');
-                     end
-                   else if (cs_check_range in aktlocalswitches) then
-                     begin
-                        emit_reg(A_PUSH,S_L,r^.base);
-                        emitcall('FPC_CHECK_OBJECT');
+                        if (cs_check_object_ext in aktlocalswitches) then
+                          begin
+                             emit_sym(A_PUSH,S_L,
+                               newasmsymbol(pprocdef(procdefinition)^._class^.vmt_mangledname));
+                             emit_reg(A_PUSH,S_L,r^.base);
+                             emitcall('FPC_CHECK_OBJECT_EXT');
+                          end
+                        else if (cs_check_range in aktlocalswitches) then
+                          begin
+                             emit_reg(A_PUSH,S_L,r^.base);
+                             emitcall('FPC_CHECK_OBJECT');
+                          end;
                      end;
                    emit_ref(A_CALL,S_NO,r);
 {$ifndef noAllocEdi}
@@ -1589,7 +1592,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2000-11-12 23:24:14  florian
+  Revision 1.8  2000-11-17 09:54:58  florian
+    * INT_CHECK_OBJECT_* isn't applied to interfaces anymore
+
+  Revision 1.7  2000/11/12 23:24:14  florian
     * interfaces are basically running
 
   Revision 1.6  2000/11/07 23:40:49  florian
