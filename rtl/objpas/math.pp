@@ -156,6 +156,8 @@ function sumofsquares(const data : PFloat; Const N : Integer) : float;
 { calculates the sum and the sum of squares of data }
 procedure sumsandsquares(const data : array of float;
   var sum,sumofsquares : float);
+procedure sumsandsquares(const data : PFloat; Const N : Integer;
+  var sum,sumofsquares : float);
 function minvalue(const data : array of float) : float;
 function minvalue(const data : array of integer) : Integer;
 function minvalue(const data : PFloat; Const N : Integer) : float;
@@ -173,11 +175,15 @@ procedure meanandstddev(const data : PFloat;
   Const N : Longint;var mean,stddev : float);
 function variance(const data : array of float) : float;
 function totalvariance(const data : array of float) : float;
+function variance(const data : PFloat; Const N : Integer) : float;
+function totalvariance(const data : PFloat; Const N : Integer) : float;
 { returns random values with gaussian distribution }
 function randg(mean,stddev : float) : float;
 
 { I don't know what the following functions do: }
 function popnstddev(const data : array of float) : float;
+function popnstddev(const data : PFloat; Const N : Integer) : float;
+function popnvariance(const data : PFloat; Const N : Integer) : float;
 function popnvariance(const data : array of float) : float;
 procedure momentskewkurtosis(const data : array of float;
   var m1,m2,m3,m4,skew,kurtosis : float);
@@ -547,14 +553,21 @@ function sum(const data : PFloat;Const N : longint) : float;
 procedure sumsandsquares(const data : array of float;
   var sum,sumofsquares : float);
 
+begin
+  sumsandsquares (@Data[0],High(Data)+1,Sum,sumofsquares);
+end;
+
+procedure sumsandsquares(const data : PFloat; Const N : Integer;
+  var sum,sumofsquares : float);
+
   var
-     i : longint;
+     i : Integer;
      temp : float;
 
   begin
      sumofsquares:=0.0;
      sum:=0.0;
-     for i:=low(data) to high(data) do
+     for i:=0 to N-1 do
        begin
           temp:=data[i];
           sumofsquares:=sumofsquares+sqr(temp);
@@ -591,27 +604,48 @@ begin
     StdDev:=StdDev+Sqr(Data[i]);
     end;
   Mean:=Mean/N;
-  StdDev:=StdDev/N-Sqr(Mean);
-  // the following depends on the definition of standard deviation...
+  StdDev:=StdDev/sqr(N)-Sqr(Mean);
+{  // the following depends on the definition of standard deviation...
   If N>1 then
     StdDev:=Sqrt(Stddev/(N-1))
   else  
     StdDev:=0;
+}
 end;
 
 function variance(const data : array of float) : float;
 
   begin
-     Variance:=TotalVariance(Data)/(High(Data)-Low(Data));
+     Variance:=Variance(@Data[0],High(Data)+1);
+  end;
+
+function variance(const data : PFloat; Const N : Integer) : float;
+
+  begin
+     If N=1 then 
+       Result:=0
+     else
+       Result:=TotalVariance(Data,N)/(N-1);
   end;
 
 function totalvariance(const data : array of float) : float;
 
+begin
+  Result:=TotalVariance(@Data[0],High(Data)+1);
+end;
+
+function totalvariance(const data : Pfloat;Const N : Integer) : float;
+
    var S,SS : Float;
 
   begin
-     SumsAndSquares(Data,S,SS);
-     TotalVariance := SS-Sqr(S)/(High(Data)-Low(Data));
+    If N=1 then
+      Result:=0
+    else
+      begin
+      SumsAndSquares(Data,N,S,SS);
+      Result := SS-Sqr(S)/(N-1);
+      end;
   end;
 
 function randg(mean,stddev : float) : float;
@@ -629,13 +663,25 @@ function randg(mean,stddev : float) : float;
 function popnstddev(const data : array of float) : float;
 
   begin
-     PopnStdDev:=Sqrt(PopnVariance(Data));
+     PopnStdDev:=Sqrt(PopnVariance(@Data[0],High(Data)+1));
+  end;
+
+function popnstddev(const data : PFloat; Const N : Integer) : float;
+
+  begin
+     PopnStdDev:=Sqrt(PopnVariance(Data,N));
   end;
 
 function popnvariance(const data : array of float) : float;
 
+begin
+  popnvariance:=popnvariance(@data[0],high(Data)+1);
+end;
+
+function popnvariance(const data : PFloat; Const N : Integer) : float;
+
   begin
-     PopnVariance:=TotalVariance(Data)/(High(Data)-Low(Data)+1);
+     PopnVariance:=TotalVariance(Data,N)/N;
   end;
 
 procedure momentskewkurtosis(const data : array of float;
@@ -812,7 +858,10 @@ end;
 end.
 {
     $Log$
-    Revision 1.22  2000-07-06 21:59:25  michael
+    Revision 1.23  2000-07-08 06:45:07  michael
+    + Added some functions
+
+    Revision 1.22  2000/07/06 21:59:25  michael
     + Added many overloaded functions with as argument pointer to
       array and count
     + Implemented meanandstddev
