@@ -1,3 +1,6 @@
+uses 
+  erroru;
+
 begin
   if 1=1 then
     begin
@@ -5,6 +8,6 @@ begin
     end;
   if 1<>1 then
     begin
-      Halt(1);
+      Error;
     end;
 end.

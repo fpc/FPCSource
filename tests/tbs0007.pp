@@ -1,3 +1,6 @@
+uses
+  erroru;
+
 var
    count : byte;
    test : longint;
@@ -8,7 +11,7 @@ begin
         inc(test);
         writeln(count,'. loop');
         if test>127 then 
-          Halt(1);
+          Error;
      end;
 end.
 

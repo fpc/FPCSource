@@ -451,9 +451,10 @@ begin
   Domem(tempmem);
 end;
 
-Var StartMem : Longint;
+Var GlobalStartMem,StartMem : Longint;
 
 begin
+  GlobalStartMem:=MemAvail;
   StartMem:=MemAvail;
   Writeln ('Testing Initialize/Finalize.');
   TestInitFinal;
@@ -482,4 +483,5 @@ begin
   Writeln;Writeln ('Testing standard functions.');
   TestStdfunc;
   Write ('End of standard functions: ');DoMem(StartMem);
+  Write ('For the whole program ');DoMem(GlobalStartMem);
 end.

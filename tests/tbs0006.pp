@@ -1,3 +1,5 @@
+uses
+  erroru;
 var
    a,b,c,d,e,f,g,r : double;
 
@@ -12,5 +14,5 @@ begin
    a:= a - 2*b*e - 2*c*f - 2*d*g - Sqr(r);
    writeln(a,' (must be -1010)');
    if a<>-1010.0 then
-     Halt(1);
+     Error;
 end.
