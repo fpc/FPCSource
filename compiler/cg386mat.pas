@@ -123,7 +123,7 @@ implementation
                 begin
                    if not(R_EDX in unused) then
                      begin
-                              exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EDX)));
+                        exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EDX)));
                         popedx:=true;
                      end;
                    if hreg1<>R_EAX then
@@ -148,7 +148,7 @@ implementation
                         emit_reg_reg(A_MOV,S_L,R_EAX,hreg1)
                      end
                    else
-                          if hreg1<>R_EAX then
+                     if hreg1<>R_EAX then
                        emit_reg_reg(A_MOV,S_L,R_EAX,hreg1);
                 end
               else
@@ -549,7 +549,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  1998-08-18 09:24:38  pierre
+  Revision 1.5  1998-08-23 16:07:20  florian
+    * internalerror with mod/div fixed
+
+  Revision 1.4  1998/08/18 09:24:38  pierre
     * small warning position bug fixed
     * support_mmx switches splitting was missing
     * rhide error and warning output corrected

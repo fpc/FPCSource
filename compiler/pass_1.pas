@@ -1506,6 +1506,9 @@ unit pass_1;
            exit;
 
          left_right_max(p);
+         if p^.left^.registers32<=p^.right^.registers32 then
+           inc(p^.registers32);
+
          p^.resulttype:=s32bitdef;
          p^.location.loc:=LOC_REGISTER;
       end;
@@ -5234,7 +5237,10 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.61  1998-08-21 14:08:47  pierre
+  Revision 1.62  1998-08-23 16:07:22  florian
+    * internalerror with mod/div fixed
+
+  Revision 1.61  1998/08/21 14:08:47  pierre
     + TEST_FUNCRET now default (old code removed)
       works also for m68k (at least compiles)
 

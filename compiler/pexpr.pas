@@ -685,7 +685,7 @@ unit pexpr;
             begin
                { is this an access to a function result ? }
                if assigned(p^.funcretsym) and
-                  ((sym=p^.funcretsym) or
+                  ((pfuncretsym(sym)=p^.funcretsym) or
                   ((pvarsym(sym)=opsym) and
                   ((p^.flags and pi_operator)<>0))) and
                   (p^.retdef<>pdef(voiddef)) and
@@ -1856,7 +1856,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.42  1998-08-21 14:08:50  pierre
+  Revision 1.43  1998-08-23 16:07:24  florian
+    * internalerror with mod/div fixed
+
+  Revision 1.42  1998/08/21 14:08:50  pierre
     + TEST_FUNCRET now default (old code removed)
       works also for m68k (at least compiles)
 
