@@ -75,6 +75,7 @@ type
      procedure ResetPass2;
      function  CheckIfValid:boolean;
      function  Pass1(offset:longint):longint;virtual;
+     procedure SetCondition(const c:TAsmCond);
   private
      { next fields are filled in pass1, so pass2 is faster }
      insentry  : PInsEntry;
@@ -722,9 +723,6 @@ begin
   insentry:=nil;
   inssize:=-1;
 end;
-
-
-
 function taicpu.Pass1(offset:longint):longint;
 begin
   Pass1:=0;
@@ -762,6 +760,20 @@ begin
    end;
   LastInsOffset:=-1;
 end;
+procedure TAiCpu.SetCondition(const c:TAsmCond);
+  begin
+    inherited SetCondition(c);
+    if Opcode=A_BA
+    then
+      begin
+        is_jmp:=true;
+        case c of
+          C_NE:Opcode:=A_BNE;
+        else
+          InternalError(2003021800);
+        end;
+      end;
+  end;
 function taicpu.NeedAddrPrefix(opidx:byte):boolean;
 var
   i,b:tregister;
@@ -1081,7 +1093,10 @@ procedure InitAsm;
 end.
 {
     $Log$
-    Revision 1.16  2003-01-08 18:43:58  daniel
+    Revision 1.17  2003-02-18 22:00:20  mazen
+    * asm condition generation modified by TAiCpu.SetCondition
+
+    Revision 1.16  2003/01/08 18:43:58  daniel
      * Tregister changed into a record
 
     Revision 1.15  2003/01/05 21:32:35  mazen

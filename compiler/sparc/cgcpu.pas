@@ -827,18 +827,15 @@ procedure TCgSparc.a_op_const_reg(list:TAasmOutput;Op:TOpCG;a:AWord;reg:TRegiste
       end;
 
 {*************** compare instructructions ****************}
-
-      procedure TCgSparc.a_cmp_const_reg_label(list:TAasmOutput;size:tcgsize;cmp_op:topcmp;a:aword;reg:tregister;
-        l:tasmlabel);
-
-        begin
-          if (a = 0) then
-            list.concat(taicpu.op_reg_reg(A_CMP,reg,reg))
-          else
-            list.concat(taicpu.op_const_reg(A_CMP,a,reg));
-          a_jmp_cond(list,cmp_op,l);
-        end;
-
+procedure TCgSparc.a_cmp_const_reg_label(list:TAasmOutput;size:tcgsize;cmp_op:topcmp;a:aword;reg:tregister;l:tasmlabel);
+  begin
+    if(a=0)
+    then
+      list.concat(taicpu.op_reg_reg(A_CMP,reg,reg))
+    else
+      list.concat(taicpu.op_const_reg(A_CMP,a,reg));
+    a_jmp_cond(list,cmp_op,l);
+  end;
 procedure TCgSparc.a_cmp_const_ref_label(list:TAasmOutput;size:tcgsize;cmp_op:topcmp;a:aword;const ref:TReference;l:tasmlabel);
   begin
     with List do
@@ -869,24 +866,15 @@ procedure TCgSparc.a_cmp_ref_reg_label(list:TAasmOutput;size:tcgsize;cmp_op:topc
      a_jmp_cond(list,cmp_op,l);
      cg.free_scratch_reg(exprasmlist,TempReg);
    end;
-procedure TCgSparc.a_jmp_cond(list:TAasmOutput;cond:TOpCmp;l:tasmlabel);
-
-       var
-         ai:taicpu;
-
-       begin
-         if cond=OC_None then
-           ai := Taicpu.Op_sym(A_JMPL,S_NO,l)
-         else
-           begin
-             ai:=Taicpu.Op_sym(A_JMPL,S_NO,l);
-             ai.SetCondition(TOpCmp2AsmCond[cond]);
-           end;
-         ai.is_jmp:=true;
-         list.concat(ai);
-       end;
-
-     procedure TCgSparc.a_jmp_flags(list:TAasmOutput;CONST f:TResFlags;l:tasmlabel);
+procedure TCgSparc.a_jmp_cond(list:TAasmOutput;cond:TOpCmp;l:TAsmLabel);
+  var
+    ai:TAiCpu;
+  begin
+    ai:=TAiCpu.Op_sym(A_BA,S_NO,l);
+    ai.SetCondition(TOpCmp2AsmCond[cond]);
+    list.concat(ai);
+  end;
+procedure TCgSparc.a_jmp_flags(list:TAasmOutput;CONST f:TResFlags;l:tasmlabel);
        var
          ai:taicpu;
        begin
@@ -1415,7 +1403,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.37  2003-02-05 21:48:34  mazen
+  Revision 1.38  2003-02-18 22:00:20  mazen
+  * asm condition generation modified by TAiCpu.SetCondition
+
+  Revision 1.37  2003/02/05 21:48:34  mazen
   * fixing run time errors related to unimplemented abstract methods in CG
   + giving empty emplementations for some RTL functions
 
