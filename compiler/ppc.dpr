@@ -96,7 +96,7 @@ uses
   {$ifdef heaptrc}
     ppheap,
   {$endif heaptrc}
-  {$ifdef linux}
+  {$ifdef Unix}
     catch,
   {$endif}
   {$ifdef go32v2}
@@ -158,7 +158,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-09-24 15:06:24  peter
+  Revision 1.3  2000-11-13 15:43:07  marco
+   * Renamefest
+
+  Revision 1.2  2000/09/24 15:06:24  peter
     * use defines.inc
 
   Revision 1.1  2000/07/13 06:29:54  michael

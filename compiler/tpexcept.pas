@@ -26,7 +26,7 @@ unit tpexcept;
 
 interface
 
-{$ifndef LINUX}
+{$ifndef UNIX}
   {$S-}
 {$endif}
 
@@ -243,7 +243,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2000-09-24 21:19:53  peter
+  Revision 1.5  2000-11-13 15:43:07  marco
+   * Renamefest
+
+  Revision 1.4  2000/09/24 21:19:53  peter
     * delphi compile fixes
 
   Revision 1.3  2000/09/24 15:06:32  peter

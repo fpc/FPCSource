@@ -67,7 +67,7 @@ var
 implementation
 
 uses
-{$ifdef linux}
+{$ifdef Unix}
   linux,
 {$endif}
   globals,systems;
@@ -126,7 +126,7 @@ begin
   while not data.Empty do
    Writeln(t,data.Get);
   Close(t);
-{$ifdef linux}
+{$ifdef Unix}
   if executable then
    ChMod(fn,493);
 {$endif}
@@ -145,7 +145,7 @@ end;
 
 Procedure TAsmScript.AddAsmCommand (Const Command, Options,FileName : String);
 begin
-{$ifdef linux}
+{$ifdef Unix}
   if FileName<>'' then
    Add('echo Assembling '+FileName);
   Add (Command+' '+Options);
@@ -164,7 +164,7 @@ end;
 
 Procedure TasmScript.AddLinkCommand (Const Command, Options, FileName : String);
 begin
-{$ifdef linux}
+{$ifdef Unix}
   if FileName<>'' then
    Add('echo Linking '+FileName);
   Add (Command+' '+Options);
@@ -183,7 +183,7 @@ end;
 
 Procedure TAsmScript.AddDeleteCommand (Const FileName : String);
 begin
-{$ifdef linux}
+{$ifdef Unix}
   Add('rm '+FileName);
 {$else}
   Add('Del '+FileName);
@@ -193,7 +193,7 @@ end;
 
 Procedure TAsmScript.WriteToDisk;
 Begin
-{$ifdef linux}
+{$ifdef Unix}
   AddStart('{ echo "An error occurred while linking $1"; exit 1; }');
   AddStart('DoExitLink ()');
   AddStart('{ echo "An error occurred while assembling $1"; exit 1; }');
@@ -237,7 +237,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2000-09-24 15:06:28  peter
+  Revision 1.4  2000-11-13 15:43:07  marco
+   * Renamefest
+
+  Revision 1.3  2000/09/24 15:06:28  peter
     * use defines.inc
 
   Revision 1.2  2000/07/13 11:32:49  michael
