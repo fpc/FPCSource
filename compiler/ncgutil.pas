@@ -1121,7 +1121,11 @@ implementation
              enumdef :
                begin
                  uses_acc:=true;
-                 cg.a_reg_alloc(list,accumulator);
+{$WARNING accumulator was replaced by return_result_reg}
+{Here, we return the function result. In most architectures, the value is
+passed into the accumulator, but in a windowed architecure like sparc a
+function returns in a register and the caller receives it in an other one}
+                  cg.a_reg_alloc(list,return_result_reg);
 {$ifndef cpu64bit}
                  if cgsize in [OS_64,OS_S64] then
                   begin
@@ -1132,7 +1136,11 @@ implementation
                  else
 {$endif cpu64bit}
                   begin
-                    hreg:=rg.makeregsize(accumulator,cgsize);
+{$WARNING accumulator was replaced by return_result_reg}
+{Here, we return the function result. In most architectures, the value is
+passed into the accumulator, but in a windowed architecure like sparc a
+function returns in a register and the caller receives it in an other one}
+                    hreg:=rg.makeregsize(return_result_reg,cgsize);
                     cg.a_load_ref_reg(list,cgsize,href,hreg);
                   end;
                end;
@@ -1867,7 +1875,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.60  2002-11-17 16:31:56  carl
+  Revision 1.61  2002-11-17 17:49:08  mazen
+  + return_result_reg and function_result_reg are now used, in all plateforms, to pass functions result between called function and its caller. See the explanation of each one
+
+  Revision 1.60  2002/11/17 16:31:56  carl
     * memory optimization (3-4%) : cleanup of tai fields,
        cleanup of tdef and tsym fields.
     * make it work for m68k

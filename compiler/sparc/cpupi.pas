@@ -50,8 +50,6 @@ stack frame.}
   end;
 implementation
 uses
-	globtype,globals,
-	aasmtai,
 	tgobj;
 constructor TSparcprocinfo.create;
 	begin
@@ -65,7 +63,7 @@ procedure TSparcprocinfo.after_header;
     register overflow/underflow}
     {The 17th word is used to save the address of the variable which will
     receive the return value of the called function}
-    Return_Offset:=-64;{16*4}
+    Return_Offset:=64;{16*4}
     procdef.parast.address_fixup:=(16+1)*4;
   	{Reserve the stack for copying parameters passed into registers. By default
     we reserve space for the 6 input registers even if the function had less
@@ -83,8 +81,11 @@ procedure TSparcProcInfo.after_pass1;
 	      WriteLn('Parameter copies start at: %i6+'+tostr(parast.address_fixup));
     		WriteLn('Locals start at: %o6+'+tostr(localst.address_fixup));
 	      WriteLn('Temp. space start: %o6+'+tostr(firsttemp_offset));
-    		tg.firsttemp:=procinfo.firsttemp_offset;
-		    tg.lasttemp:=procinfo.firsttemp_offset;
+        with tg do
+          begin
+        		FirstTemp:=firsttemp_offset;
+		        LastTemp:=firsttemp_offset;
+          end;
       end;
 	end;
 begin
@@ -92,7 +93,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2002-11-14 21:42:08  mazen
+  Revision 1.8  2002-11-17 17:49:09  mazen
+  + return_result_reg and function_result_reg are now used, in all plateforms, to pass functions result between called function and its caller. See the explanation of each one
+
+  Revision 1.7  2002/11/14 21:42:08  mazen
   * fixing return value variable address
 
   Revision 1.6  2002/11/10 19:07:46  mazen

@@ -157,6 +157,9 @@ unit tgobj;
 {$else powerpc}
        direction:=-1;
 {$endif powerpc}
+{$IFDEF SPARC}
+        Direction:=1;
+{$ENDIF SPARC}
      end;
 
 
@@ -532,7 +535,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.19  2002-11-15 01:58:54  peter
+  Revision 1.20  2002-11-17 17:49:08  mazen
+  + return_result_reg and function_result_reg are now used, in all plateforms, to pass functions result between called function and its caller. See the explanation of each one
+
+  Revision 1.19  2002/11/15 01:58:54  peter
     * merged changes from 1.0.7 up to 04-11
       - -V option for generating bug report tracing
       - more tracing for option parsing

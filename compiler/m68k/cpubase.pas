@@ -490,6 +490,14 @@ uses
       pic_offset_reg = R_A5;
       {# Results are returned in this register (32-bit values) }
       accumulator   = R_D0;
+  {the return_result_reg, is used inside the called function to store its return
+  value when that is a scalar value otherwise a pointer to the address of the
+  result is placed inside it}
+	return_result_reg		=	accmulator;
+
+  {the function_result_reg contains the function result after a call to a scalar
+  function othewise it contains a pointer to the returned result}
+	function_result_reg	=	accumulator;
       {# Hi-Results are returned in this register (64-bit value high register) }
       accumulatorhigh = R_D1;
       {# Floating point results will be placed into this register }
@@ -584,7 +592,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  2002-10-14 16:32:36  carl
+  Revision 1.12  2002-11-17 17:49:09  mazen
+  + return_result_reg and function_result_reg are now used, in all plateforms, to pass functions result between called function and its caller. See the explanation of each one
+
+  Revision 1.11  2002/10/14 16:32:36  carl
     + flag_2_cond implemented
 
   Revision 1.10  2002/08/18 09:02:12  florian

@@ -132,6 +132,14 @@ unit cpubase;
        frame_pointer_reg = R_15;
        self_pointer_reg = R_16;
        accumulator   = R_0;
+  {the return_result_reg, is used inside the called function to store its return
+  value when that is a scalar value otherwise a pointer to the address of the
+  result is placed inside it}
+	return_result_reg		=	accmulator;
+
+  {the function_result_reg contains the function result after a call to a scalar
+  function othewise it contains a pointer to the returned result}
+	function_result_reg	=	accumulator;
        fpu_result_reg = R_F0;
        global_pointer = R_29;
        return_pointer = R_26;
@@ -450,7 +458,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2002-09-29 23:54:12  florian
+  Revision 1.5  2002-11-17 17:49:08  mazen
+  + return_result_reg and function_result_reg are now used, in all plateforms, to pass functions result between called function and its caller. See the explanation of each one
+
+  Revision 1.4  2002/09/29 23:54:12  florian
     * alpha compiles again, changes to common code not yet commited
 
   Revision 1.3  2002/09/29 23:42:45  florian

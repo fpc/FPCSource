@@ -445,6 +445,14 @@ uses
       pic_offset_reg = R_EBX;
       {# Results are returned in this register (32-bit values) }
       accumulator   = R_EAX;
+  {the return_result_reg, is used inside the called function to store its return
+  value when that is a scalar value otherwise a pointer to the address of the
+  result is placed inside it}
+	return_result_reg		=	accmulator;
+
+  {the function_result_reg contains the function result after a call to a scalar
+  function othewise it contains a pointer to the returned result}
+	function_result_reg	=	accumulator;
       {# Hi-Results are returned in this register (64-bit value high register) }
       accumulatorhigh = R_EDX;
       { WARNING: don't change to R_ST0!! See comments above implementation of }
@@ -525,7 +533,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.32  2002-10-05 12:43:29  carl
+  Revision 1.33  2002-11-17 17:49:08  mazen
+  + return_result_reg and function_result_reg are now used, in all plateforms, to pass functions result between called function and its caller. See the explanation of each one
+
+  Revision 1.32  2002/10/05 12:43:29  carl
     * fixes for Delphi 6 compilation
      (warning : Some features do not work under Delphi)
 

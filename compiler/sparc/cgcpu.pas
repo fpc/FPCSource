@@ -821,7 +821,7 @@ stack frame. In the "SAVE %i6,size,%i6" the first %i6 is related to the state
 before execution of the SAVE instrucion so it is the caller %i6, when the %i6
 after execution of that instruction is the called function stack pointer}
     with list do
-      concat(Taicpu.Op_reg_const_reg(A_SAVE,Stack_Pointer_Reg,LocalSize,Stack_Pointer_Reg));
+      concat(Taicpu.Op_reg_const_reg(A_SAVE,Stack_Pointer_Reg,-LocalSize,Stack_Pointer_Reg));
   end;
 procedure tcgSPARC.g_restore_frame_pointer(list:TAasmOutput);
   begin
@@ -1253,7 +1253,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.23  2002-11-10 19:07:46  mazen
+  Revision 1.24  2002-11-17 17:49:09  mazen
+  + return_result_reg and function_result_reg are now used, in all plateforms, to pass functions result between called function and its caller. See the explanation of each one
+
+  Revision 1.23  2002/11/10 19:07:46  mazen
   * SPARC calling mechanism almost OK (as in GCC./mppcsparc )
 
   Revision 1.22  2002/11/06 11:31:24  mazen

@@ -413,6 +413,14 @@ const
        frame_pointer_reg = R_RBP;
        self_pointer_reg  = R_RSI;
        accumulator   = R_RAX;
+  {the return_result_reg, is used inside the called function to store its return
+  value when that is a scalar value otherwise a pointer to the address of the
+  result is placed inside it}
+	return_result_reg		=	accmulator;
+
+  {the function_result_reg contains the function result after a call to a scalar
+  function othewise it contains a pointer to the returned result}
+	function_result_reg	=	accumulator;
        accumulatorhigh = R_RDX;
        { the register where the vmt offset is passed to the destructor }
        { helper routine                                                }
@@ -491,7 +499,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2002-07-25 22:55:33  florian
+  Revision 1.3  2002-11-17 17:49:09  mazen
+  + return_result_reg and function_result_reg are now used, in all plateforms, to pass functions result between called function and its caller. See the explanation of each one
+
+  Revision 1.2  2002/07/25 22:55:33  florian
     * several fixes, small test units can be compiled
 
   Revision 1.1  2002/07/24 22:38:15  florian
