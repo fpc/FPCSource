@@ -1259,6 +1259,9 @@ BEGIN
      LastWhereY:=MouseWhere.y;
      MouseEvents := True;                             { Set initialized flag }
    end;
+{$ifdef HasSysMsgUnit}
+   InitSystemMsg;
+{$endif HasSysMsgUnit}
 END;
 
 {---------------------------------------------------------------------------}
@@ -1266,6 +1269,9 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE DoneEvents;
 BEGIN
+{$ifdef HasSysMsgUnit}
+   DoneSystemMsg;
+{$endif HasSysMsgUnit}
 END;
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
@@ -1629,6 +1635,9 @@ BEGIN
    {$ifdef Graph_API}
    TextModeGFV:=false;
    {$endif Graph_API}
+{$ifdef HasSysMsgUnit}
+   InitSystemMsg;
+{$endif HasSysMsgUnit}
 {$ifdef win32}
    SetFileApisToOEM;
    SetConsoleCP(437);
@@ -1640,7 +1649,10 @@ BEGIN
 END.
 {
  $Log$
- Revision 1.25  2002-06-06 06:43:29  pierre
+ Revision 1.26  2002-06-06 13:57:50  pierre
+  + activate/desactivate system messages
+
+ Revision 1.25  2002/06/06 06:43:29  pierre
   * avoid more than 132 columns, to avoid TDrawBuffer overrun
 
  Revision 1.24  2002/06/04 11:12:41  marco
