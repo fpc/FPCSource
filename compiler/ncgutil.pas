@@ -1206,7 +1206,7 @@ implementation
                end;
              else
                begin
-                 if paramanager.ret_in_acc(current_procdef.rettype.def,current_procdef.proccalloption) then
+                 if not paramanager.ret_in_param(current_procdef.rettype.def,current_procdef.proccalloption) then
                   begin
                     uses_acc:=true;
                     r.enum:=R_INTREGISTER;
@@ -1276,7 +1276,7 @@ implementation
              else
                begin
                  r.enum:=accumulator;
-                 if paramanager.ret_in_acc(current_procdef.rettype.def,current_procdef.proccalloption) then
+                 if not paramanager.ret_in_param(current_procdef.rettype.def,current_procdef.proccalloption) then
                   cg.a_load_reg_ref(list,cgsize,r,href);
                end;
            end;
@@ -1850,7 +1850,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.100  2003-05-12 08:08:27  jonas
+  Revision 1.101  2003-05-13 15:16:13  peter
+    * removed ret_in_acc, it's the reverse of ret_in_param
+    * fixed ret_in_param for win32 cdecl array
+
+  Revision 1.100  2003/05/12 08:08:27  jonas
     * fixed several initialization and finalization related bugs (missing
       tg.direction's, wrong paralocation for decreasing refcount of
       everything but ansistrings)

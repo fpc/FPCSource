@@ -40,7 +40,6 @@ unit cpupara;
          rtl are used.
        }
        ti386paramanager = class(tparamanager)
-          function ret_in_acc(def : tdef;calloption : tproccalloption) : boolean;override;
           function ret_in_param(def : tdef;calloption : tproccalloption) : boolean;override;
           function push_addr_param(def : tdef;calloption : tproccalloption) : boolean;override;
           function getintparaloc(nr : longint) : tparalocation;override;
@@ -55,27 +54,28 @@ unit cpupara;
        symconst,
        cginfo;
 
-    function ti386paramanager.ret_in_acc(def : tdef;calloption : tproccalloption) : boolean;
-      begin
-        { Win32 returns small records in the accumulator }
-        if ((target_info.system=system_i386_win32) and
-            (calloption=pocall_stdcall) and
-            (def.deftype=recorddef) and (def.size<=8)) then
-          result:=true
-        else
-          result:=inherited ret_in_acc(def,calloption);
-      end;
 
     function ti386paramanager.ret_in_param(def : tdef;calloption : tproccalloption) : boolean;
       begin
-        { Win32 returns small records in the accumulator }
-        if ((target_info.system=system_i386_win32) and
-            (calloption=pocall_stdcall) and
-            (def.deftype=recorddef) and (def.size<=8)) then
-          result:=false
-        else
-          result:=inherited ret_in_param(def,calloption);
+        case target_info.system of
+          system_i386_win32 :
+            begin
+              { Win32 returns small records in the accumulator }
+              case def.deftype of
+                recorddef :
+                  begin
+                    if (calloption in [pocall_stdcall,pocall_cdecl,pocall_cppdecl]) and (def.size<=8) then
+                     begin
+                       result:=false;
+                       exit;
+                     end;
+                  end;
+              end;
+            end;
+        end;
+        result:=inherited ret_in_param(def,calloption);
       end;
+
 
     function ti386paramanager.push_addr_param(def : tdef;calloption : tproccalloption) : boolean;
       begin
@@ -96,7 +96,7 @@ unit cpupara;
                     if (tarraydef(def).highrange>=tarraydef(def).lowrange) and
                        (calloption in [pocall_cdecl,pocall_cppdecl]) then
                      begin
-                       result:=false;
+                       result:=true;
                        exit;
                      end;
                   end;
@@ -133,7 +133,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2003-04-22 23:50:23  peter
+  Revision 1.11  2003-05-13 15:16:13  peter
+    * removed ret_in_acc, it's the reverse of ret_in_param
+    * fixed ret_in_param for win32 cdecl array
+
+  Revision 1.10  2003/04/22 23:50:23  peter
     * firstpass uses expectloc
     * checks if there are differences between the expectloc and
       location.loc from secondpass in EXTDEBUG

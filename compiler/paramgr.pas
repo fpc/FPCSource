@@ -38,9 +38,6 @@ unit paramgr;
           parameters. It should be overriden for each new processor
        }
        tparamanager = class
-          {# Returns true if the return value can be put in accumulator }
-          function ret_in_acc(def : tdef;calloption : tproccalloption) : boolean;virtual;
-
           {# Returns true if the return value is actually a parameter
              pointer.
           }
@@ -114,18 +111,6 @@ unit paramgr;
        symbase,symsym,
        rgobj,
        defutil,cgbase,cginfo,verbose;
-
-    { true if the return value is in accumulator (EAX for i386), D0 for 68k }
-    function tparamanager.ret_in_acc(def : tdef;calloption : tproccalloption) : boolean;
-      begin
-         ret_in_acc:=(def.deftype in [pointerdef,enumdef,classrefdef]) or
-                     ((def.deftype=orddef) and (torddef(def).typ<>uvoid)) or
-                     ((def.deftype=stringdef) and (tstringdef(def).string_typ in [st_ansistring,st_widestring])) or
-                     ((def.deftype=procvardef) and not(po_methodpointer in tprocvardef(def).procoptions)) or
-                     ((def.deftype=objectdef) and not is_object(def)) or
-                     ((def.deftype=setdef) and (tsetdef(def).settype=smallset));
-      end;
-
 
     { true if uses a parameter as return value }
     function tparamanager.ret_in_param(def : tdef;calloption : tproccalloption) : boolean;
@@ -299,7 +284,7 @@ unit paramgr;
              end;
           else
              begin
-                if ret_in_acc(def,calloption) then
+                if not ret_in_param(def,calloption) then
                   begin
                     result.loc := LOC_REGISTER;
                     result.register.enum := accumulator;
@@ -403,7 +388,11 @@ end.
 
 {
    $Log$
-   Revision 1.37  2003-04-30 22:15:59  florian
+   Revision 1.38  2003-05-13 15:16:13  peter
+     * removed ret_in_acc, it's the reverse of ret_in_param
+     * fixed ret_in_param for win32 cdecl array
+
+   Revision 1.37  2003/04/30 22:15:59  florian
      * some 64 bit adaptions in ncgadd
      * x86-64 now uses ncgadd
      * tparamanager.ret_in_acc doesn't return true anymore for a void-def
