@@ -407,6 +407,7 @@ End;
 
 {$ifdef replacereg}
 function FindRegDealloc(reg: tregister; p: pai): boolean;
+{ assumes reg is a 32bit register }
 begin
   findregdealloc := false;
   while assigned(p^.previous) and
@@ -425,6 +426,7 @@ begin
 end;
 
 function regLoadedWithNewValue(reg: tregister; hp: pai): boolean;
+{ assumes reg is a 32bit register }
 var p: paicpu;
 begin
   p := paicpu(hp);
@@ -436,12 +438,9 @@ begin
        (p^.opcode = A_MOVSX) or
        (p^.opcode = A_LEA)) and
       (p^.oper[1].typ = top_reg) and
-      (p^.oper[1].reg = reg) {and
-      (not(p^.oper[0].typ = top_ref) or
-       not RegInRef(p^.oper[1].reg,p^.oper[0].ref^))}) or
+      (Reg32(p^.oper[1].reg) = reg)) or
      ((p^.opcode = A_POP) and
-      (p^.oper[0].reg = reg))) {or
-    findRegDealloc(reg,hp)};
+      (Reg32(p^.oper[0].reg) = reg)));
 end;
 
 Procedure RestoreRegContentsTo(reg: TRegister; const c: TContent; p: pai);
@@ -558,7 +557,8 @@ begin
 end;
 
 function RegReadByInstruction(reg: TRegister; hp: pai): boolean;
-{ assumes p doesn't modify registers implicitely (like div) }
+{ assumes hp doesn't modify registers implicitely (like div) }
+{ and that reg is a 32bit register                           }
 var p: paicpu;
     opCount: byte;
 begin
@@ -577,21 +577,21 @@ begin
     case InsProp[p^.opcode].Ch[opCount] of
       Ch_RWOp1,Ch_ROp1{$ifdef arithopt},Ch_MOp1{$endif}:
         if (p^.oper[0].typ = top_reg) and
-           (p^.oper[0].reg = reg) then
+           (reg32(p^.oper[0].reg) = reg) then
           begin
             RegReadByInstruction := true;
             exit
           end;
       Ch_RWOp2,Ch_ROp2{$ifdef arithopt},Ch_MOp2{$endif}:
         if (p^.oper[1].typ = top_reg) and
-           (p^.oper[1].reg = reg) then
+           (reg32(p^.oper[1].reg) = reg) then
           begin
             RegReadByInstruction := true;
             exit
           end;
       Ch_RWOp3,Ch_ROp3{$ifdef arithopt},Ch_MOp3{$endif}:
         if (p^.oper[2].typ = top_reg) and
-           (p^.oper[2].reg = reg) then
+           (reg32(p^.oper[2].reg) = reg) then
           begin
             RegReadByInstruction := true;
             exit
@@ -1054,7 +1054,11 @@ End.
 
 {
  $Log$
- Revision 1.33  1999-11-20 11:37:03  jonas
+ Revision 1.34  1999-11-21 13:09:41  jonas
+   * fixed some missed optimizations because 8bit regs were not always
+     taken into account
+
+ Revision 1.33  1999/11/20 11:37:03  jonas
    * make cycle works with -dreplacereg (register renaming)! I have not
      tested it yet together with -darithopt, but I don't expect problems
 

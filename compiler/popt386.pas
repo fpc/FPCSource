@@ -230,7 +230,7 @@ Begin
                          ((hp1^.typ <> ait_label) or
                    { skip unused labels, they're not referenced anywhere }
                           Not(Pai_Label(hp1)^.l^.is_used)) Do
-                     If not(hp1^.typ in [ait_label,ait_align]) Then
+                     If not(hp1^.typ in ([ait_label,ait_align]+skipinstr)) Then
                        Begin
                          AsmL^.Remove(hp1);
                          Dispose(hp1, done);
@@ -1600,7 +1600,7 @@ Begin
                      (Paicpu(hp1)^.oper[1].typ = top_reg) And
                      ((Paicpu(hp1)^.oper[0].ref^.Base = Paicpu(p)^.oper[1].reg) Or
                       (Paicpu(hp1)^.oper[0].ref^.Index = Paicpu(p)^.oper[1].reg)) And
-                     (Paicpu(hp1)^.oper[1].reg = Paicpu(p)^.oper[1].reg) Then
+                     (Reg32(Paicpu(hp1)^.oper[1].reg) = Paicpu(p)^.oper[1].reg) Then
               {mov reg1, reg2
                mov/zx/sx (reg2, ..), reg2      to   mov/zx/sx (reg1, ..), reg2}
                     Begin
@@ -1672,7 +1672,11 @@ End.
 
 {
  $Log$
- Revision 1.69  1999-11-13 19:03:56  jonas
+ Revision 1.70  1999-11-21 13:09:41  jonas
+   * fixed some missed optimizations because 8bit regs were not always
+     taken into account
+
+ Revision 1.69  1999/11/13 19:03:56  jonas
    * don't remove align objects between JMP's and labels
 
  Revision 1.68  1999/11/06 16:24:00  jonas
