@@ -4,7 +4,7 @@
     Copyright (c) 1993-98 by Florian Klaempfl
     member of the Free Pascal development team
 
-    This is the install program for the DOS and OS/2 versions of Free Pascal
+    This is the install program for Free Pascal
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -78,7 +78,7 @@ program install;
 
 
   const
-     installerversion='1.00';
+     installerversion='1.02';
 
      maxpacks=10;
      maxpackages=20;
@@ -90,11 +90,27 @@ program install;
      StatusChars: string [MaxStatusPos] = '/-\|';
      StatusPos: byte = 1;
 
-{$ifdef linux}
+{$IFDEF LINUX}
      DirSep='/';
-{$else}
+{$ELSE}
+ {$IFDEF UNIX}
+     DirSep='/';
+ {$ELSE}
      DirSep='\';
-{$endif}
+ {$ENDIF}
+{$ENDIF}
+
+{$IFNDEF GO32V2}
+ {$IFDEF GO32V1}
+     LFNSupport = false;
+ {$ELSE}
+  {$IFDEF TP}
+     LFNSupport = false;
+  {$ELSE}
+     LFNSupport = true;
+  {$ENDIF}
+ {$ENDIF}
+{$ENDIF}
 
   type
      tpackage=record
@@ -596,6 +612,9 @@ program install;
      islfn : boolean;
 
   procedure lfnreport( Retcode : longint;Rec : pReportRec );
+{$IFDEF TP}
+                                                             far;
+{$ENDIF}
 
     var
        p : pathstr;
@@ -741,7 +760,7 @@ program install;
        {-------- Pack Sheets ----------}
        for j:=1 to cfg.packs do
         begin
-          R.Copy(TabIR);
+          R.Copy (TabIR);
           new(packcbs[j],init(r,items[j]));
           if data.packmask[j]=$ffff then
            data.packmask[j]:=packmask[j];
@@ -752,7 +771,7 @@ program install;
        {--------- Main ---------}
        packtd:=nil;
        for j:=cfg.packs downto 1 do
-        packtd:=NewTabDef(cfg.pack[j].name,PackCbs[j],NewTabItem(PackCbs[j],nil),packtd);
+        packtd:=NewTabDef(cfg.pack[j].name,packcbs[j],NewTabItem(packcbs[j],nil),packtd);
 
        New(Tab, Init(TabR,
          NewTabDef('~G~eneral',IlPath,
@@ -1292,7 +1311,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-07-21 10:43:01  florian
+  Revision 1.3  2000-09-17 14:44:12  hajny
+    * compilable with TP again
+
+  Revision 1.2  2000/07/21 10:43:01  florian
     + added for lfn support
 
   Revision 1.1  2000/07/13 06:30:21  michael
