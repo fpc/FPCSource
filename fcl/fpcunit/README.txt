@@ -40,11 +40,9 @@ and you'll inherit all your testcases from TMoneyTestCase;
 
 
 Your testcase class will have a set of published methods, one for each test.
-Each test method name has to begin with "test",  as the framework picks up all the published methods that begin with the string "test" and registers them as tests in the suite.
-It will skip all the other published methods in the class. This way it's easy to temporarily disable a test from the suite: I suggest to prepend a "Todo" or some meaninfull string to it's name:
+The framework picks up all the published methods and registers them as tests in the suite.
+It's easy to temporarily disable a test from the suite: just move the declaration to the public section.
 
-published
-  TodoTestAdd(...
 
 The fact that all assertions are static (class methods) make's it possible to use them outside of the test case, by simply adding fpcunit to your uses clause: 
 e.g. by calling TAssert.AssertEqual(....)

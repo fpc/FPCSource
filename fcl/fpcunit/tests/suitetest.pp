@@ -25,7 +25,7 @@ uses
 type
 
   TNoTestCases = class(TTestCase)
-  published
+  public
     procedure NoTestCase;  
   end;
   
@@ -37,14 +37,15 @@ type
   {$M-}
   
   TOneTestCase = class(TTestCase)
-  published
+  public
     procedure NoTestCase;
-    procedure TestCase; virtual;
+  published
+    procedure OnlyOneTestCase; virtual;
   end;
 
   TOverrideTestCase = class(TOneTestCase)
   published
-    procedure TestCase; override;
+    procedure OnlyOneTestCase; override;
   end;
 
   
@@ -87,11 +88,11 @@ procedure TOneTestCase.NoTestCase;
 begin
 end;
 
-procedure TOneTestCase.TestCase;
+procedure TOneTestCase.OnlyOneTestCase;
 begin
 end;
 
-procedure TOverrideTestCase.TestCase;
+procedure TOverrideTestCase.OnlyOneTestCase;
 begin
 end;
 
