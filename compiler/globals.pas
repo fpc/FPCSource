@@ -231,6 +231,7 @@ interface
        aktsourcecodepage : tcodepagestring;
 
      { Memory sizes }
+       heapsize,
        stacksize    : longint;
 
 {$Ifdef EXTDEBUG}
@@ -2128,7 +2129,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.148  2004-10-25 15:38:41  peter
+  Revision 1.149  2004-10-26 15:11:01  peter
+    * -Ch for heapsize added again
+    * __heapsize contains the heapsize
+
+  Revision 1.148  2004/10/25 15:38:41  peter
     * heap and heapsize removed
     * checkpointer fixes
 

@@ -549,6 +549,14 @@ implementation
         l:=current_scanner.readval;
         if l>1024 then
           stacksize:=l;
+        if c=',' then
+          begin
+            current_scanner.readchar;
+            current_scanner.skipspace;
+            l:=current_scanner.readval;
+            if l>1024 then
+              heapsize:=l;
+          end;
       end;
 
 
@@ -1130,7 +1138,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.45  2004-10-25 15:38:41  peter
+  Revision 1.46  2004-10-26 15:11:01  peter
+    * -Ch for heapsize added again
+    * __heapsize contains the heapsize
+
+  Revision 1.45  2004/10/25 15:38:41  peter
     * heap and heapsize removed
     * checkpointer fixes
 

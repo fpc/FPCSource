@@ -512,6 +512,13 @@ begin
                      end;
                     'g' :
                       include(initmoduleswitches,cs_create_pic);
+                    'h' :
+                      begin
+                         val(copy(more,j+1,length(more)-j),heapsize,code);
+                         if (code<>0) or (heapsize<1024) then
+                           IllegalPara(opt);
+                         break;
+                      end;
                     'i' :
                       If UnsetBool(More, j) then
                         exclude(initlocalswitches,cs_check_io)
@@ -2107,7 +2114,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.149  2004-10-25 15:38:41  peter
+  Revision 1.150  2004-10-26 15:11:01  peter
+    * -Ch for heapsize added again
+    * __heapsize contains the heapsize
+
+  Revision 1.149  2004/10/25 15:38:41  peter
     * heap and heapsize removed
     * checkpointer fixes
 

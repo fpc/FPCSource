@@ -352,12 +352,14 @@ implementation
       end;
 
 
-    procedure insertstacklength;
+    procedure insertmemorysizes;
       begin
         { stacksize can be specified and is now simulated }
         dataSegment.concat(Tai_align.Create(const_align(4)));
         dataSegment.concat(Tai_symbol.Createname_global('__stklen',AT_DATA,4));
         dataSegment.concat(Tai_const.Create_32bit(stacksize));
+        dataSegment.concat(Tai_symbol.Createname_global('__heapsize',AT_DATA,4));
+        dataSegment.concat(Tai_const.Create_32bit(heapsize));
       end;
 
 
@@ -1443,7 +1445,7 @@ implementation
          insertThreadVarTablesTable;
          insertResourceTablesTable;
          insertinitfinaltable;
-         insertstacklength;
+         insertmemorysizes;
 
          { create dwarf debuginfo }
          create_dwarf;
@@ -1506,7 +1508,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.167  2004-10-25 15:38:41  peter
+  Revision 1.168  2004-10-26 15:11:01  peter
+    * -Ch for heapsize added again
+    * __heapsize contains the heapsize
+
+  Revision 1.167  2004/10/25 15:38:41  peter
     * heap and heapsize removed
     * checkpointer fixes
 
