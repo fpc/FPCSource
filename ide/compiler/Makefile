@@ -926,6 +926,9 @@ info: fpc_info
 ifneq ($(wildcard fpcmake.loc),)
 include fpcmake.loc
 endif
-all: fpc_all
+.PHONY: compiler_ppuclean all clean install
+compiler_ppuclean:
+	$(MAKE) -C $(COMPILERDIR) ppuclean
+all: compiler_ppuclean fpc_all
 clean: cleanall
 install:
