@@ -618,7 +618,7 @@ function MMap(const m:tmmapargs):longint;
 
 begin
   {Last argument (offset) is actually 64-bit under BSD. Therefore extra 0}
- MMap:=do_syscall(syscall_nr_mmap,m.address,m.size,m.prot,m.flags,m.fd,m.offset,0);
+ MMap:=fpmmap(m.address,m.size,m.prot,m.flags,m.fd,m.offset);
  LinuxError:=Errno;
 end;
 
@@ -758,7 +758,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2003-01-21 15:39:45  marco
+  Revision 1.3  2003-05-31 16:57:22  marco
+   * works via system unit call now, because of powerpc
+
+  Revision 1.2  2003/01/21 15:39:45  marco
    * NetBSD first rtl. Still not 100%, but close
 
   Revision 1.1.2.3  2002/09/26 08:13:08  marco
