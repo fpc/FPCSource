@@ -639,6 +639,41 @@ function  TTYname(Handle:Longint):string;
 function  TTYname(var F:Text):string;
 
 {**************************
+     Memory functions
+***************************}
+
+const
+  PROT_READ  = $1;             { page can be read }
+  PROT_WRITE = $2;             { page can be written }
+  PROT_EXEC  = $4;             { page can be executed }
+  PROT_NONE  = $0;             { page can not be accessed }
+
+  MAP_SHARED    = $1;          { Share changes }
+  MAP_PRIVATE   = $2;          { Changes are private }
+  MAP_TYPE      = $f;          { Mask for type of mapping }
+  MAP_FIXED     = $10;         { Interpret addr exactly }
+  MAP_ANONYMOUS = $20;         { don't use a file }
+
+  MAP_GROWSDOWN  = $100;       { stack-like segment }
+  MAP_DENYWRITE  = $800;       { ETXTBSY }
+  MAP_EXECUTABLE = $1000;      { mark it as an executable }
+  MAP_LOCKED     = $2000;      { pages are locked }
+  MAP_NORESERVE  = $4000;      { don't check for reservations }
+
+type
+  tmmapargs=record
+    address : longint;
+    size    : longint;
+    prot    : longint;
+    flags   : longint;
+    fd      : longint;
+    offset  : longint;
+  end;
+
+function MMap(const m:tmmapargs):longint;
+
+
+{**************************
      Port IO functions
 ***************************}
 
@@ -3522,11 +3557,24 @@ begin
   S_ISSOCK:=(m and STAT_IFMT)=STAT_IFSOCK;
 end;
 
+
+{--------------------------------
+      Memory functions
+--------------------------------}
+
+function MMap(const m:tmmapargs):longint;
+Var
+  Sr : Syscallregs;
+begin
+  Sr.reg2:=longint(@m);
+  MMap:=syscall(syscall_nr_mmap,sr);
+  LinuxError:=Errno;
+end;
+
+
 {--------------------------------
       Port IO functions
 --------------------------------}
-
-
 
 Function  IOperm (From,Num : Cardinal; Value : Longint) : boolean;
 {
@@ -3742,7 +3790,10 @@ End.
 
 {
   $Log$
-  Revision 1.48  1999-10-22 10:37:44  peter
+  Revision 1.49  1999-10-28 09:48:31  peter
+    + mmap
+
+  Revision 1.48  1999/10/22 10:37:44  peter
     * fixed sigset
 
   Revision 1.47  1999/10/06 17:43:58  peter
