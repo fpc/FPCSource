@@ -156,7 +156,7 @@ Function fpc_WideStr_To_AnsiStr (const S2 : WideString): AnsiString; compilerpro
 Function fpc_AnsiStr_To_WideStr (Const S2 : AnsiString): WideString; compilerproc;
 Procedure fpc_WideStr_Assign (Var S1 : Pointer;S2 : Pointer); compilerproc;
 Function fpc_WideStr_Concat (const S1,S2 : WideString) : WideString; compilerproc;
-Function fpc_Char_To_WideStr(const c : Char): WideString; compilerproc;
+Function fpc_Char_To_WideStr(const c : WideChar): WideString; compilerproc;
 Function fpc_PChar_To_WideStr(const p : pchar): WideString; compilerproc;
 Function fpc_CharArray_To_WideStr(const arr: array of char): WideString; compilerproc;
 function fpc_widestr_to_chararray(arraysize: SizeInt; const src: WideString): fpc_big_chararray; compilerproc;
@@ -330,7 +330,11 @@ function fpc_qword_to_double(q: qword): double; compilerproc;
 
 {
   $Log$
-  Revision 1.57  2004-05-31 14:31:57  peter
+  Revision 1.58  2004-09-29 14:55:49  mazen
+  * widestring conversion routines takes a widechar so no
+  information is lost
+
+  Revision 1.57  2004/05/31 14:31:57  peter
     * remove comment warnings
 
   Revision 1.56  2004/05/01 23:55:18  peter

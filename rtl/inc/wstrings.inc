@@ -434,7 +434,7 @@ begin
 end;
 
 
-Function fpc_Char_To_WideStr(const c : Char): WideString; {$ifdef hascompilerproc} compilerproc; {$endif}
+Function fpc_Char_To_WideStr(const c : WideChar): WideString; {$ifdef hascompilerproc} compilerproc; {$endif}
 {
   Converts a Char to a WideString;
 }
@@ -450,7 +450,7 @@ end;
 
 { old style helper }
 {$ifndef hascompilerproc}
-Procedure fpc_Char_To_WideStr(var S1 : Pointer; c : Char);[Public, alias: 'FPC_CHAR_TO_WIDESTR'];
+Procedure fpc_Char_To_WideStr(var S1 : Pointer; c : WideChar);[Public, alias: 'FPC_CHAR_TO_WIDESTR'];
 begin
   s1 := pointer(fpc_Char_To_WideStr(c));
 end;
@@ -1237,7 +1237,11 @@ function Utf8ToAnsi(const s : UTF8String) : ansistring;{$ifdef SYSTEMINLINE}inli
 
 {
   $Log$
-  Revision 1.43  2004-09-18 10:23:08  jonas
+  Revision 1.44  2004-09-29 14:55:49  mazen
+  * widestring conversion routines takes a widechar so no
+  information is lost
+
+  Revision 1.43  2004/09/18 10:23:08  jonas
     - removed unused local variable
     * fixed bug in Utf8ToUnicode (use of uninitialised variable)
 
