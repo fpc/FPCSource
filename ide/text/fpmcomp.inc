@@ -47,29 +47,32 @@ begin
   Dispose(D, Done);
 end;
 
-procedure TIDEApp.PrimaryFile_;
+procedure TIDEApp.DoPrimaryFile;
 var
   D : PFileDialog;
   FileName : string;
 begin
-  New(D, Init('*.pas','Primary file','*.pas',fdOpenButton,0));
+  New(D, Init('*.pri;*.pas','Primary file','*.pri;*.pas',fdOpenButton,0));
   if Desktop^.ExecView(D)<>cmCancel then
   begin
     D^.GetFileName(FileName);
-    PrimaryFile:=FileName;
+    SetPrimaryFile(FileName);
     UpdatePrimaryFile;
   end;
 end;
 
 
-procedure TIDEApp.ClearPrimary;
+procedure TIDEApp.DoClearPrimary;
 begin
   PrimaryFile:='';
+  PrimaryFileMain:='';
+  PrimaryFileSwitches:='';
+  PrimaryFilePara:='';
   UpdatePrimaryFile;
 end;
 
 
-procedure TIDEApp.Information;
+procedure TIDEApp.DoInformation;
 begin
   with ProgramInfoWindow^ do
    begin
@@ -81,7 +84,11 @@ end;
 
 {
   $Log$
-  Revision 1.2  1998-12-28 15:47:46  peter
+  Revision 1.3  1999-03-12 01:13:59  peter
+    * flag if trytoopen should look for other extensions
+    + browser tab in the tools-compiler
+
+  Revision 1.2  1998/12/28 15:47:46  peter
     + Added user screen support, display & window
     + Implemented Editor,Mouse Options dialog
     + Added location of .INI and .CFG file

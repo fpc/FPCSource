@@ -238,8 +238,10 @@ begin
       end;
     end;
   { Run }
+  { First read the primary file, which can also set the parameters which can
+    be overruled with the parameter loading }
+  SetPrimaryFile(INIFile^.GetEntry(secCompile,iePrimaryFile,PrimaryFile));
   SetRunParameters(INIFile^.GetEntry(secRun,ieRunParameters,GetRunParameters));
-  PrimaryFile:=INIFile^.GetEntry(secCompile,iePrimaryFile,PrimaryFile);
   { Compile }
   S:=INIFile^.GetEntry(secCompile,ieCompileMode,'');
   for ts:=low(TSwitchMode) to high(TSwitchMode) do
@@ -297,6 +299,7 @@ begin
   PS:=PS+StrToPalette(INIFile^.GetEntry(secColors,iePalette+'_161_200',PaletteToStr(copy(S,161,40))));
   PS:=PS+StrToPalette(INIFile^.GetEntry(secColors,iePalette+'_201_240',PaletteToStr(copy(S,201,40))));
   AppPalette:=PS;
+  { Open files }
   for I:=INIFile^.GetIntEntry(secFiles,ieOpenFileCount,0) downto 1 do
     begin
       S:=INIFile^.GetEntry(secFiles,ieOpenFile+IntToStr(I),'');
@@ -329,9 +332,9 @@ begin
       if P=0 then P:=length(S)+1;
       R.B.Y:=Max(0,StrToInt(copy(S,1,P-1)));
       if (R.A.X<R.B.X) and (R.A.Y<R.B.Y) then
-        TryToOpenFile(@R,S1,X,Y)
+        TryToOpenFile(@R,S1,X,Y,false)
       else
-        TryToOpenFile(nil,S1,X,Y);
+        TryToOpenFile(nil,S1,X,Y,false);
       { remove it because otherwise we allways keep old files }
       INIFile^.DeleteEntry(secFiles,ieOpenFile+IntToStr(I));
     end;
@@ -461,7 +464,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.16  1999-03-08 14:58:09  peter
+  Revision 1.17  1999-03-12 01:13:58  peter
+    * flag if trytoopen should look for other extensions
+    + browser tab in the tools-compiler
+
+  Revision 1.16  1999/03/08 14:58:09  peter
     + prompt with dialogs for tools
 
   Revision 1.15  1999/03/05 17:53:02  pierre

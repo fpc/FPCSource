@@ -115,7 +115,7 @@ const
       ('NORMAL','DEBUG','RELEASE');
     CustomArg : array[TSwitchMode] of string=
       ('','','');
-      
+
 var
     LibLinkerSwitches,
     DebugInfoSwitches,
@@ -131,6 +131,7 @@ var
     TargetSwitches,
     ConditionalSwitches,
     MemorySwitches,
+    BrowserSwitches,
     DirectorySwitches : PSwitches;
 
 { write/read the Switches to ppc.cfg file }
@@ -154,7 +155,7 @@ var
   CfgFile : text;
 
 {*****************************************************************************
-	    TSwitchItem
+            TSwitchItem
 *****************************************************************************}
 
 constructor TSwitchItem.Init(const n,p:string);
@@ -183,7 +184,7 @@ end;
 
 
 {*****************************************************************************
-	    TSelectItem
+            TSelectItem
 *****************************************************************************}
 
 constructor TSelectItem.Init(const n,p:string);
@@ -194,7 +195,7 @@ end;
 
 
 {*****************************************************************************
-		TBooleanItem
+                TBooleanItem
 *****************************************************************************}
 
 constructor TBooleanItem.Init(const n,p:string);
@@ -218,7 +219,7 @@ end;
 
 
 {*****************************************************************************
-	    TStringItem
+            TStringItem
 *****************************************************************************}
 
 constructor TStringItem.Init(const n,p:string;mult:boolean);
@@ -249,7 +250,7 @@ end;
 
 
 {*****************************************************************************
-		TLongintItem
+                TLongintItem
 *****************************************************************************}
 
 constructor TLongintItem.Init(const n,p:string);
@@ -282,7 +283,7 @@ end;
 
 
 {*****************************************************************************
-	       TSwitch
+               TSwitch
 *****************************************************************************}
 
 constructor TSwitches.Init(ch:char);
@@ -457,23 +458,23 @@ var
     if P^.NeedParam then
      begin
        if (P^.Typ=ot_string) and (PStringItem(P)^.Multiple) then
-	 begin
-	   s:=PStringItem(P)^.Str[SwitchesMode];
-	   repeat
-	     i:=pos(';',s);
-	     j:=pos(' ',s);
-	     if i=0 then
-	      i:=256;
-	     if (j>0) and (j<i) then
-	       i:=j;
-	     s1:=Copy(s,1,i-1);
-	     if s1<>'' then
-	      writeln(CfgFile,' -'+Pref+P^.Param+s1);
-	     Delete(s,1,i);
-	   until s='';
-	 end
+         begin
+           s:=PStringItem(P)^.Str[SwitchesMode];
+           repeat
+             i:=pos(';',s);
+             j:=pos(' ',s);
+             if i=0 then
+              i:=256;
+             if (j>0) and (j<i) then
+               i:=j;
+             s1:=Copy(s,1,i-1);
+             if s1<>'' then
+              writeln(CfgFile,' -'+Pref+P^.Param+s1);
+             Delete(s,1,i);
+           until s='';
+         end
        else
-	 Writeln(CfgFile,' -'+Pref+P^.Param+P^.ParamValue);
+         Writeln(CfgFile,' -'+Pref+P^.Param+P^.ParamValue);
      end;
   end;
 
@@ -497,9 +498,9 @@ begin
        if i=0 then i:=256;
        writeln(CfgFile,' '+Copy(s,1,i-1));
        if i=256 then
-	 s:=''
+         s:=''
        else
-	 s:=copy(s,i+1,255);
+         s:=copy(s,i+1,255);
     end;
 end;
 
@@ -510,7 +511,7 @@ function TSwitches.ReadItemsCfg(const s:string):boolean;
   begin
     { empty items are not equivalent to others !! }
     CheckItem:=((S='') and (P^.Param='')) or
-	       ((Length(S)>0) and (P^.Param=Copy(s,1,length(P^.Param))));
+               ((Length(S)>0) and (P^.Param=Copy(s,1,length(P^.Param))));
   end;
 
 var
@@ -524,12 +525,12 @@ begin
       ot_Select  : SelNr[SwitchesMode]:=Items^.IndexOf(FoundP);
       ot_Boolean : PBooleanItem(FoundP)^.IsSet[SwitchesMode]:=true;
       ot_String  : begin
-	   if (PStringItem(FoundP)^.Multiple) and (PStringItem(FoundP)^.Str[SwitchesMode]<>'') then
-	    PStringItem(FoundP)^.Str[SwitchesMode]:=PStringItem(FoundP)^.Str[SwitchesMode]+';'+
-	 Copy(s,length(FoundP^.Param)+1,255)
-	   else
-	    PStringItem(FoundP)^.Str[SwitchesMode]:=Copy(s,length(FoundP^.Param)+1,255);
-	 end;
+           if (PStringItem(FoundP)^.Multiple) and (PStringItem(FoundP)^.Str[SwitchesMode]<>'') then
+            PStringItem(FoundP)^.Str[SwitchesMode]:=PStringItem(FoundP)^.Str[SwitchesMode]+';'+
+              Copy(s,length(FoundP^.Param)+1,255)
+           else
+            PStringItem(FoundP)^.Str[SwitchesMode]:=Copy(s,length(FoundP^.Param)+1,255);
+         end;
       ot_Longint : Val(Copy(s,length(FoundP^.Param)+1,255),PLongintItem(FoundP)^.Val[SwitchesMode],code);
      end;
      ReadItemsCfg:=true;
@@ -540,7 +541,7 @@ end;
 
 
 {*****************************************************************************
-	     Read / Write
+             Read / Write
 *****************************************************************************}
 
 procedure WriteSwitches(const fn:string);
@@ -573,6 +574,7 @@ begin
      LibLinkerSwitches^.WriteItemsCfg;
      DebugInfoSwitches^.WriteItemsCfg;
      ProfileInfoSwitches^.WriteItemsCfg;
+     BrowserSwitches^.WriteItemsCfg;
      {MemorySizeSwitches^.WriteItemsCfg;}
      WriteCustom;
      Writeln(CfgFile,'#ENDIF');
@@ -617,17 +619,18 @@ begin
        'T' : res:=TargetSwitches^.ReadItemsCfg(s);
        'R' : res:=AsmReaderSwitches^.ReadItemsCfg(s);
        'C' : begin
-	       res:=CodegenSwitches^.ReadItemsCfg(s);
-	       if not res then
-		 res:=MemorySwitches^.ReadItemsCfg(s);
-	     end;
+               res:=CodegenSwitches^.ReadItemsCfg(s);
+               if not res then
+                 res:=MemorySwitches^.ReadItemsCfg(s);
+             end;
        'v' : res:=VerboseSwitches^.ReadItemsCfg(s);
        'O' : begin
-	       res:=true;
-	       if not OptimizationSwitches^.ReadItemsCfg(s) then
-		 if not ProcessorSwitches^.ReadItemsCfg(s) then
-		   res:=OptimizingGoalSwitches^.ReadItemsCfg(s)
-	     end;
+               res:=true;
+               if not OptimizationSwitches^.ReadItemsCfg(s) then
+                 if not ProcessorSwitches^.ReadItemsCfg(s) then
+                   res:=OptimizingGoalSwitches^.ReadItemsCfg(s);
+             end;
+       'b' : res:=BrowserSwitches^.ReadItemsCfg(s);
        end;
       { keep all others as a string }
       if not res then
@@ -636,13 +639,13 @@ begin
      else
       if (Copy(s,1,7)='#IFDEF ') then
        begin
-	 Delete(s,1,7);
-	 for i:=low(TSwitchMode) to high(TSwitchMode) do
-	 if s=SwitchesModeStr[i] then
-	   begin
-	     SwitchesMode:=i;
-	     break;
-	   end;
+         Delete(s,1,7);
+         for i:=low(TSwitchMode) to high(TSwitchMode) do
+         if s=SwitchesModeStr[i] then
+           begin
+             SwitchesMode:=i;
+             break;
+           end;
        end
       else;
    end;
@@ -678,7 +681,7 @@ begin
 end;
 
 {*****************************************************************************
-	     Initialize
+             Initialize
 *****************************************************************************}
 
 procedure InitSwitches;
@@ -752,6 +755,13 @@ begin
      AddSelectItem('~A~T&T style assembler','att');
      AddSelectItem('Int~e~l style assembler','intel');
    end;
+  New(BrowserSwitches,InitSelect('b'));
+  with BrowserSwitches^ do
+   begin
+     AddSelectItem('~N~o browser','-');
+     AddSelectItem('Only ~G~lobal browser','+');
+     AddSelectItem('~L~ocal and global browser','l');
+   end;
   New(ConditionalSwitches,Init('d'));
   with ConditionalSwitches^ do
    begin
@@ -772,7 +782,7 @@ begin
      AddStringItem('~O~bject directories','o',true);
      AddStringItem('~E~XE & PPU directories','E',true);
    end;
-   
+
   New(LibLinkerSwitches,InitSelect('X'));
   with LibLinkerSwitches^ do
    begin
@@ -814,6 +824,7 @@ begin
   dispose(OptimizationSwitches,Done);
   dispose(OptimizingGoalSwitches,Done);
   dispose(ProcessorSwitches,Done);
+  dispose(BrowserSwitches,Done);
   dispose(TargetSwitches,Done);
   dispose(AsmReaderSwitches,Done);
   dispose(ConditionalSwitches,Done);
@@ -830,7 +841,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  1999-02-16 12:46:38  pierre
+  Revision 1.11  1999-03-12 01:14:01  peter
+    * flag if trytoopen should look for other extensions
+    + browser tab in the tools-compiler
+
+  Revision 1.10  1999/02/16 12:46:38  pierre
    * String items can also be separated by spaces
 
   Revision 1.9  1999/02/10 09:45:55  pierre

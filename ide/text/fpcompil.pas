@@ -187,13 +187,13 @@ var
 begin
 { Get FileName }
   P:=Message(Desktop,evBroadcast,cmSearchWindow,nil);
-  if (PrimaryFile='') and (P=nil) then
+  if (PrimaryFileMain='') and (P=nil) then
     begin
       ErrorBox('Oooops, nothing to compile.',nil);
       Exit;
     end;
-  if PrimaryFile<>'' then
-    FileName:=PrimaryFile
+  if PrimaryFileMain<>'' then
+    FileName:=PrimaryFileMain
   else
     begin
       if P^.Editor^.Modified and (not P^.Editor^.Save) then
@@ -279,14 +279,19 @@ end;
 end.
 {
   $Log$
-  Revision 1.16  1999-03-07 23:00:47  pierre
+  Revision 1.17  1999-03-12 01:13:56  peter
+    * flag if trytoopen should look for other extensions
+    + browser tab in the tools-compiler
+
+  Revision 1.16  1999/03/07 23:00:47  pierre
    * Fix for path of executable
 
   Revision 1.15  1999/03/01 15:41:50  peter
     + Added dummy entries for functions not yet implemented
     * MenuBar didn't update itself automatically on command-set changes
     * Fixed Debugging/Profiling options dialog
-    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
+    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is
+ set
     * efBackSpaceUnindents works correctly
     + 'Messages' window implemented
     + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros

@@ -61,13 +61,15 @@ procedure TIDEApp.DoCompilerSwitch;
 var R,R2,TabR,TabIR: TRect;
     D: PCenterDialog;
     CB1,CB2,CB3,CB4: PCheckBoxes;
-    RB1,RB2,RB3: PRadioButtons;
+    RB1,RB2,RB3,RB4: PRadioButtons;
     Items: PSItem;
     IL: PInputLine;
     Count : integer;
     I,L: longint;
     Tab: PTab;
-    Label11,Label21,Label22,Label23,Label24,Label31: PLabel;
+    Label11,Label12,
+    Label21,Label22,Label23,
+    Label31,Label41: PLabel;
 begin
   R.Assign(0,0,72,18);
   New(D, Init(R, 'Compiler Switches'));
@@ -85,7 +87,7 @@ begin
     Count:=SyntaxSwitches^.ItemCount;
     R.Copy(TabIR);
     R2.Copy(R);
-    R2.B.X:=R2.A.X+(R2.B.X-R2.A.X) div 2;
+    R2.B.X:=(R2.A.X+(R2.B.X-R2.A.X) div 2)-2;
     R2.B.Y:=R2.A.Y+Count;
     Items:=nil;
     for I:=Count-1 downto 0 do
@@ -97,6 +99,21 @@ begin
     Dec(R2.A.Y);
     R2.B.Y:=R2.A.Y+1;
     New(Label11, Init(R2, 'Syntax Switches', CB1));
+
+    Count:=AsmReaderSwitches^.ItemCount;
+    R2.Copy(TabIR);
+    R2.A.X:=R2.B.X-(R2.B.X-R2.A.X) div 2;
+    Dec(R2.B.X,4);
+    R2.B.Y:=R2.A.Y+Count;
+    Items:=nil;
+    for I:=Count-1 downto 0 do
+      Items:=NewSItem(AsmReaderSwitches^.ItemName(I), Items);
+    New(RB2, Init(R2, Items));
+    L:=AsmReaderSwitches^.GetCurrSel;
+    RB2^.SetData(L);
+    Dec(R2.A.Y);
+    R2.B.Y:=R2.A.Y+1;
+    New(Label12, Init(R2, 'Assembler format', RB2));
 
     { --- Sheet 2 --- }
     Count:=CodegenSwitches^.ItemCount;
@@ -149,7 +166,7 @@ begin
     Count:=ProcessorSwitches^.ItemCount;
     R2.Copy(TabIR);
     R2.B.X:=R2.A.X+(R2.B.X-R2.A.X) div 2-2;
-    Inc(R2.A.Y,1+CodegenSwitches^.ItemCount);
+    Inc(R2.A.Y,CodegenSwitches^.ItemCount+2);
     R2.B.Y:=R2.A.Y+Count;
     Items:=nil;
     for I:=Count-1 downto 0 do
@@ -160,22 +177,6 @@ begin
     Dec(R2.A.Y);
     R2.B.Y:=R2.A.Y+1;
     New(Label23, Init(R2, 'Target processor', RB1));
-
-    Count:=AsmReaderSwitches^.ItemCount;
-    R2.Copy(TabIR);
-    R2.A.X:=R2.B.X-(R2.B.X-R2.A.X) div 2;
-    Dec(R2.B.X,4);
-    Inc(R2.A.Y, OptimizationSwitches^.ItemCount+OptimizingGoalSwitches^.ItemCount);
-    R2.B.Y:=R2.A.Y+Count;
-    Items:=nil;
-    for I:=Count-1 downto 0 do
-      Items:=NewSItem(AsmReaderSwitches^.ItemName(I), Items);
-    New(RB2, Init(R2, Items));
-    L:=AsmReaderSwitches^.GetCurrSel;
-    RB2^.SetData(L);
-    Dec(R2.A.Y);
-    R2.B.Y:=R2.A.Y+1;
-    New(Label24, Init(R2, 'Assembler format', RB2));
 
     { --- Sheet 3 --- }
     Count:=VerboseSwitches^.ItemCount;
@@ -194,12 +195,30 @@ begin
     R2.B.Y:=R2.A.Y+1;
     New(Label31, Init(R2, 'Verbose Switches', CB4));
 
+    { --- Sheet 4 --- }
+    Count:=BrowserSwitches^.ItemCount;
+    R.Copy(TabIR);
+    R2.Copy(R);
+    R2.B.X:=R2.A.X+(R2.B.X-R2.A.X) div 2;
+    R2.B.Y:=R2.A.Y+Count;
+    Items:=nil;
+    for I:=Count-1 downto 0 do
+      Items:=NewSItem(BrowserSwitches^.ItemName(I), Items);
+    New(RB4, Init(R2, Items));
+    L:=BrowserSwitches^.GetCurrSel;
+    RB4^.SetData(L);
+    Dec(R2.A.Y);
+    R2.B.Y:=R2.A.Y+1;
+    New(Label41, Init(R2, 'Browser', RB4));
+
     { create tabs }
     New(Tab, Init(TabR,
       NewTabDef('S~y~ntax',CB1,
         NewTabItem(Label11,
         NewTabItem(CB1,
-        nil)),
+        NewTabItem(Label12,
+        NewTabItem(RB2,
+        nil)))),
       NewTabDef('Code ~g~eneration',CB3,
         NewTabItem(Label21,
         NewTabItem(CB3,
@@ -208,14 +227,16 @@ begin
         NewTabItem(Label23,
         NewTabItem(RB3,
         NewTabItem(RB1,
-        NewTabItem(Label24,
-        NewTabItem(RB2,
-        nil))))))))),
+        nil))))))),
       NewTabDef('~V~erbose',CB4,
         NewTabItem(Label31,
         NewTabItem(CB4,
         nil)),
-      nil)))));
+      NewTabDef('~B~rowser',RB4,
+        NewTabItem(Label41,
+        NewTabItem(RB4,
+        nil)),
+      nil))))));
     Tab^.GrowMode:=0;
     Insert(Tab);
 
@@ -241,6 +262,7 @@ begin
     OptimizingGoalSwitches^.SetCurrSel(RB3^.Value);
     ProcessorSwitches^.SetCurrSel(RB1^.Value);
     AsmReaderSwitches^.SetCurrSel(RB2^.Value);
+    BrowserSwitches^.SetCurrSel(RB4^.Value);
     ConditionalSwitches^.SetStringItem(0,IL^.Data^);
   end;
   Dispose(D, Done);
@@ -354,7 +376,7 @@ var R,R2: TRect;
 begin
   R.Assign(0,0,60,2+DebugInfoSwitches^.ItemCount+2
       +ProfileInfoSwitches^.ItemCount+2+2+1);
-  New(D, Init(R, 'Debugging/Profiling'));
+  New(D, Init(R, 'Browsing/Debugging/Profiling'));
   with D^ do
   begin
     GetExtent(R); R.Grow(-3,-1);
@@ -805,11 +827,16 @@ end;
 
 {
   $Log$
-  Revision 1.18  1999-03-01 15:41:57  peter
+  Revision 1.19  1999-03-12 01:14:00  peter
+    * flag if trytoopen should look for other extensions
+    + browser tab in the tools-compiler
+
+  Revision 1.18  1999/03/01 15:41:57  peter
     + Added dummy entries for functions not yet implemented
     * MenuBar didn't update itself automatically on command-set changes
     * Fixed Debugging/Profiling options dialog
-    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
+    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is
+ set
     * efBackSpaceUnindents works correctly
     + 'Messages' window implemented
     + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros

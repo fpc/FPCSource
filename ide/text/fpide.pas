@@ -40,6 +40,8 @@ type
     public
       procedure ShowUserScreen;
       procedure ShowIDEScreen;
+    public
+      procedure UpdatePrimaryFile;
     private
       Heap: PFPHeapView;
       procedure NewEditor;
@@ -59,13 +61,13 @@ type
       procedure DoResetDebugger;
       procedure DoContToCursor;
       procedure Target;
-      procedure PrimaryFile_;
-      procedure ClearPrimary;
+      procedure DoPrimaryFile;
+      procedure DoClearPrimary;
       procedure DoUserScreenWindow;
       procedure DoUserScreen;
       procedure DoOpenGDBWindow;
       procedure DoToggleBreak;
-      procedure Information;
+      procedure DoInformation;
       procedure Messages;
       procedure Calculator;
       procedure DoAsciiTable;
@@ -105,7 +107,6 @@ type
     private
       procedure Update;
       procedure CurDirChanged;
-      procedure UpdatePrimaryFile;
       procedure UpdateINIFile;
       procedure UpdateRecentFileList;
       procedure UpdateTools;
@@ -388,9 +389,9 @@ begin
              cmBuild         : DoCompile(cBuild);
              cmMake          : DoCompile(cMake);
              cmTarget        : Target;
-             cmPrimaryFile   : PrimaryFile_;
-             cmClearPrimary  : ClearPrimary;
-             cmInformation   : Information;
+             cmPrimaryFile   : DoPrimaryFile;
+             cmClearPrimary  : DoClearPrimary;
+             cmInformation   : DoInformation;
            { -- Debug menu -- }
              cmUserScreen    : DoUserScreen;
         cmToggleBreakpoint   : DoToggleBreak;
@@ -551,6 +552,7 @@ begin
   UpdateINIFile;
   UpdateMenu(MenuBar^.Menu);
 end;
+
 
 procedure TIDEApp.UpdatePrimaryFile;
 begin
@@ -716,7 +718,11 @@ end;
 END.
 {
   $Log$
-  Revision 1.21  1999-03-02 13:48:29  peter
+  Revision 1.22  1999-03-12 01:13:57  peter
+    * flag if trytoopen should look for other extensions
+    + browser tab in the tools-compiler
+
+  Revision 1.21  1999/03/02 13:48:29  peter
     * fixed far problem is fpdebug
     * tile/cascading with message window
     * grep fixes

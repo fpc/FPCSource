@@ -37,6 +37,9 @@ const ClipboardWindow  : PClipboardWindow = nil;
       TabsPattern      : string = 'make*;make*.*';
       SourceDirs       : string = '';
       PrimaryFile      : string = '';
+      PrimaryFileMain  : string = '';
+      PrimaryFileSwitches : string = '';
+      PrimaryFilePara  : string = '';
       GDBOutputFile    : string = 'gdb$$$.txt';
       IsEXECompiled    : boolean = false;
       MainFile         : string = '';
@@ -70,7 +73,11 @@ implementation
 END.
 {
   $Log$
-  Revision 1.11  1999-03-08 14:58:15  peter
+  Revision 1.12  1999-03-12 01:14:02  peter
+    * flag if trytoopen should look for other extensions
+    + browser tab in the tools-compiler
+
+  Revision 1.11  1999/03/08 14:58:15  peter
     + prompt with dialogs for tools
 
   Revision 1.10  1999/03/01 15:42:07  peter
