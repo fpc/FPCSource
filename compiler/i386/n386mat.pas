@@ -230,7 +230,14 @@ implementation
           if (right.nodetype=ordconstn) then
             begin
               { shrd/shl works only for values <=31 !! }
-              if Tordconstnode(right).value>31 then
+              if Tordconstnode(right).value>63 then
+                begin
+                  cg.a_load_const_reg(exprasmlist,OS_32,0,hregisterhigh);
+                  cg.a_load_const_reg(exprasmlist,OS_32,0,hregisterlow);
+                  location.registerlow:=hregisterlow;
+                  location.registerhigh:=hregisterhigh;
+                end
+              else if Tordconstnode(right).value>31 then
                 begin
                   if nodetype=shln then
                     begin
@@ -572,7 +579,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.65  2003-10-10 17:48:14  peter
+  Revision 1.66  2003-12-10 17:28:41  peter
+    * int64 shl/shr > 63 returns 0
+
+  Revision 1.65  2003/10/10 17:48:14  peter
     * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
     * tregisteralloctor renamed to trgobj
     * removed rgobj from a lot of units
