@@ -193,7 +193,13 @@ asm
         jz      .LHC_5
       { init self for the constructor }
         movl    %esi,12(%ebp)
+        jmp     .LHC_6
+      { Why was the VMT reset to zero here ????
+        I need it fail to know if I should
+        zero the VMT field in static objects PM }
 .LHC_4:
+      {  movl    $0,8(%ebp)                      }
+.LHC_6:
       { is there a VMT address ? }
         orl     %eax,%eax
         jnz     .LHC_7
@@ -226,6 +232,39 @@ asm
 .LHC_5:
 end;
 
+procedure int_help_fail;assembler;[public,alias:'FPC_HELP_FAIL'];
+{ should be called with a object that needs to be
+  freed if VMT field is at -1
+  %edi contains VMT offset in object again }
+asm
+        orl    %esi,%esi
+        je     .LHF_1
+        cmpl   $-1,8(%ebp)
+        je     .LHF_2
+        { reset vmt field to zero for static instances }
+        cmpl    $0,8(%ebp)
+        je      .LHF_3
+        { main constructor, we can zero the VMT field now }
+        movl    $0,(%esi,%edi,1)
+.LHF_3:
+        { we zero esi to indicate failure }
+        xorl    %esi,%esi
+        jmp    .LHF_1
+.LHF_2:
+        { get vmt address in eax }
+        movl    (%esi,%edi,1),%eax
+        movl    %esi,12(%ebp)
+        { push object size }
+        pushl   (%eax)
+        { push object position }
+        leal    12(%ebp),%eax
+        pushl   %eax
+        call    FreeMem
+        { set both object places to zero }
+        xorl    %esi,%esi
+        movl    %esi,12(%ebp)
+.LHF_1:
+end;
 
 {$define FPC_SYSTEM_HAS_FPC_HELP_DESTRUCTOR}
 
@@ -833,7 +872,10 @@ end;
 
 {
   $Log$
-  Revision 1.52  1999-08-18 10:43:31  pierre
+  Revision 1.53  1999-08-19 12:50:08  pierre
+   * changes for fail support
+
+  Revision 1.52  1999/08/18 10:43:31  pierre
    + VMT reset to -1 if getmem called, neede for fail
 
   Revision 1.51  1999/08/09 22:20:02  peter
