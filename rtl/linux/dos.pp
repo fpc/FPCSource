@@ -122,7 +122,7 @@ Procedure AddDisk(const path:string);
 {$else}
  Function  DiskFree(drive: byte) : longint;
  Function  DiskSize(drive: byte) : longint;
-{$endif} 
+{$endif}
 Procedure FindFirst(const path: pathstr; attr: word; var f: searchRec);
 Procedure FindNext(var f: searchRec);
 Procedure FindClose(Var f: SearchRec);
@@ -210,7 +210,7 @@ Begin
    Move(info.release,buffer[0],40);
    TmpStr:=StrPas(Buffer);
   {$ELSE}
-   TmpStr:='FreeBSD doesn''t support UName';  
+   TmpStr:='FreeBSD doesn''t support UName';
  {$ENDIF}
   SubRel:=0;
   TmpPos:=Pos('.',TmpStr);
@@ -324,8 +324,9 @@ var
 Procedure Exec (Const Path: PathStr; Const ComLine: ComStr);
 var
   pid    : longint;
-  status : integer;
+  status : longint;
 Begin
+  LastDosExitCode:=0;
   pid:=Fork;
   if pid=0 then
    begin
@@ -411,13 +412,13 @@ Begin
   else
    Diskfree:=-1;
 End;
-  
+
 
 
 Function DiskSize(Drive: Byte): int64;
 var
   fs : statfs;
-Begin   
+Begin
   if ((Drive<4) and (not (fixdrivestr[Drive]=nil)) and fsstat(StrPas(fixdrivestr[drive]),fs)) or
      ((not (drivestr[Drive]=nil)) and fsstat(StrPas(drivestr[drive]),fs)) then
    DiskSize:=int64(fs.blocks)*int64(fs.bsize)
@@ -908,7 +909,10 @@ End.
 
 {
   $Log$
-  Revision 1.18  2000-03-16 15:23:02  marco
+  Revision 1.19  2000-03-19 18:48:19  peter
+    * dosexitcode finally works correct
+
+  Revision 1.18  2000/03/16 15:23:02  marco
    * Added one BSD conditional (uname not supported)
 
   Revision 1.17  2000/02/09 16:59:31  peter
