@@ -118,7 +118,8 @@
             fxch        %st(1)
             fsub        %st(1),%st
             f2xm1
-            faddl       .LC0
+            fld1
+            faddp
             fscale
             fstp        %st(1)
             leave
@@ -130,10 +131,6 @@
             .word       0
     .LCW2:
             .word       0
-    .LC0:
-            .double     0d1.0e+00
-
-            // do not forget to switch back to text
             .text
          end;
       end;
@@ -363,7 +360,7 @@
             fsub        %st(1),%st
             f2xm1
             fld1
-            fadd
+            faddp
             fscale
             fstp        %st(1)
             leave
@@ -375,10 +372,6 @@
             .word       0
     .LCW2:
             .word       0
-    .LC0:
-            .double     0d1.0e+00
-
-            // do not forget to switch back to text
             .text
          end;
       end;
@@ -641,7 +634,10 @@
 
 {
   $Log$
-  Revision 1.6  1998-08-11 21:39:04  peter
+  Revision 1.7  1998-08-25 08:49:05  florian
+    * corrected exp() function
+
+  Revision 1.6  1998/08/11 21:39:04  peter
     * splitted default_extended from support_extended
 
   Revision 1.5  1998/08/11 00:04:50  peter
