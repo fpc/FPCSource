@@ -156,6 +156,10 @@ implementation
                                 FirstAdd
 *****************************************************************************}
 
+{$ifdef fpc}
+{$maxfpuregisters 0}
+{$endif fpc}
+
     procedure firstadd(var p : ptree);
 
       procedure make_bool_equal_size(var p:ptree);
@@ -176,10 +180,6 @@ implementation
             firstpass(p^.left);
           end;
       end;
-
-{$ifdef fpc}
-{$maxfpuregisters 0}
-{$endif fpc}
 
       var
          t,hp    : ptree;
@@ -1260,7 +1260,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.70  2000-02-19 10:12:48  florian
+  Revision 1.71  2000-03-18 15:01:19  jonas
+    * moved a $maxfpuregisters directive a bit up because it was being
+      ignored
+
+  Revision 1.70  2000/02/19 10:12:48  florian
     * fixed one more internalerror 10
 
   Revision 1.69  2000/02/17 14:53:42  florian
