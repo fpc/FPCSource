@@ -137,17 +137,17 @@ interface
       }
       TRegister = type cardinal;
       TRegisterRec=packed record
-{$ifdef FPC_ENDIAN_BIG}
+{$ifdef FPC_BIG_ENDIAN}
          regtype : Tregistertype;
          subreg  : Tsubregister;
          unused  : byte;
          supreg  : Tsuperregister;
-{$else FPC_ENDIAN_BIG}
+{$else FPC_BIG_ENDIAN}
          supreg  : Tsuperregister;
          unused  : byte;
          subreg  : Tsubregister;
          regtype : Tregistertype;
-{$endif FPC_ENDIAN_BIG}
+{$endif FPC_BIG_ENDIAN}
       end;
 
       { A type to store register locations for 64 Bit values. }
@@ -306,7 +306,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  2003-09-04 21:07:03  florian
+  Revision 1.26  2003-09-14 19:30:58  daniel
+    * Fixed endian problem in Tregisterrec record
+
+  Revision 1.25  2003/09/04 21:07:03  florian
     * ARM compiler compiles again
 
   Revision 1.24  2003/09/03 21:06:19  peter
