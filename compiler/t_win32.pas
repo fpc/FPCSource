@@ -628,7 +628,7 @@ begin
    begin
      ExeCmd[1]:='ldw $OPT $STRIP $APPTYPE $IMAGEBASE $RELOC -o $EXE $RES';
      DllCmd[1]:='ldw $OPT $STRIP --dll $APPTYPE $IMAGEBASE $RELOC -o $EXE $RES';
-     if RelocSection then
+     if RelocSection or UseDeffileForExport then
        begin
           { ExeCmd[2]:='dlltool --as $ASBIN --dllname $EXE --output-exp exp.$$$ $RELOC $DEF';
             use short forms to avoid 128 char limitation problem }
@@ -851,7 +851,7 @@ begin
 
 { Call linker }
   success:=false;
-  for i:=1to 3 do
+  for i:=1 to 3 do
    begin
      SplitBinCmd(Info.DllCmd[i],binstr,cmdstr);
      if binstr<>'' then
@@ -1087,7 +1087,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.20  2000-02-28 17:23:57  daniel
+  Revision 1.21  2000-03-10 09:14:40  pierre
+   * dlltool is also needed if we use DefFile
+
+  Revision 1.20  2000/02/28 17:23:57  daniel
   * Current work of symtable integration committed. The symtable can be
     activated by defining 'newst', but doesn't compile yet. Changes in type
     checking and oop are completed. What is left is to write a new
