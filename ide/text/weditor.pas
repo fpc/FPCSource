@@ -983,7 +983,7 @@ begin
   if State and sfActive<>0 then
    begin
      if Modified then
-       WordRec (B[0]).Lo := 77;
+       WordRec (B[0]).Lo := ord('*');
      L[0] := Location.Y + 1;
      L[1] := Location.X + 1;
      FormatStr(S, ' %d:%d ', L);
@@ -1480,9 +1480,10 @@ begin
   if I<Lines^.Count then
    begin
      L:=Lines^.At(I);
-     if assigned(L^.Format) and assigned(L^.Text) then
+     if assigned(L^.Text) then
       begin
-        DF:=L^.Format^;
+        if assigned(L^.Format)=false then DF:='' else
+          DF:=L^.Format^;
         DT:=L^.Text^;
         p:=0;
         while p<length(DT) do
@@ -3200,7 +3201,11 @@ end;
 END.
 {
   $Log$
-  Revision 1.6  1999-01-12 14:29:44  peter
+  Revision 1.7  1999-01-14 21:41:17  peter
+    * use * as modified indicator
+    * fixed syntax highlighting
+
+  Revision 1.6  1999/01/12 14:29:44  peter
     + Implemented still missing 'switch' entries in Options menu
     + Pressing Ctrl-B sets ASCII mode in editor, after which keypresses (even
       ones with ASCII < 32 ; entered with Alt+<###>) are interpreted always as
