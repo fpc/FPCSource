@@ -1149,7 +1149,9 @@ implementation
               begin
                 resulttype.setdef(tpointerdef.create(tarraydef(rd).elementtype));
                 inserttypeconv(right,resulttype);
-              end;
+              end
+            else
+              resulttype:=right.resulttype;
             inserttypeconv(left,sinttype);
             if nodetype=addn then
               begin
@@ -1158,8 +1160,10 @@ implementation
                   CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
                 if (rd.deftype=pointerdef) and
                    (tpointerdef(rd).pointertype.def.size>1) then
-                  left:=caddnode.create(muln,left,
-                      cordconstnode.create(tpointerdef(rd).pointertype.def.size,sinttype,true));
+                   begin
+                     left:=caddnode.create(muln,left,
+                       cordconstnode.create(tpointerdef(rd).pointertype.def.size,sinttype,true));
+                   end;
               end
             else
               CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
@@ -1171,7 +1175,10 @@ implementation
                begin
                   resulttype.setdef(tpointerdef.create(tarraydef(ld).elementtype));
                   inserttypeconv(left,resulttype);
-               end;
+               end
+             else
+               resulttype:=left.resulttype;
+
              inserttypeconv(right,sinttype);
              if nodetype in [addn,subn] then
                begin
@@ -1180,8 +1187,10 @@ implementation
                    CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
                  if (ld.deftype=pointerdef) and
                     (tpointerdef(ld).pointertype.def.size>1) then
-                   right:=caddnode.create(muln,right,
-                     cordconstnode.create(tpointerdef(ld).pointertype.def.size,sinttype,true));
+                   begin
+                     right:=caddnode.create(muln,right,
+                       cordconstnode.create(tpointerdef(ld).pointertype.def.size,sinttype,true));
+                   end;
                end
              else
                CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
@@ -1948,7 +1957,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.119  2004-05-20 21:54:33  florian
+  Revision 1.120  2004-05-21 13:08:14  florian
+    * fixed <ordinal>+<pointer>
+
+  Revision 1.119  2004/05/20 21:54:33  florian
     + <pointer> - <pointer> result is divided by the pointer element size now
       this is delphi compatible as well as resulting in the expected result for p1+(p2-p1)
 
