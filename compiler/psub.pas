@@ -992,9 +992,6 @@ implementation
              { Finish type checking pass }
              do_resulttypepass(code);
 
-             { Print the node to tree.log }
-             if paraprintnodetree=1 then
-               printnode_procdef(procdef);
            end;
 
          { store a copy of the original tree for inline, for
@@ -1007,6 +1004,10 @@ implementation
            end
          else
            procdef.inlininginfo^.code:=code;
+
+         { Print the node to tree.log }
+         if paraprintnodetree=1 then
+           printnode_procdef(procdef);
 
          { ... remove symbol tables }
          remove_from_symtablestack;
@@ -1345,7 +1346,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.186  2004-02-19 17:07:42  florian
+  Revision 1.187  2004-04-11 12:37:30  peter
+    * fix tree printing
+
+  Revision 1.186  2004/02/19 17:07:42  florian
     * fixed arg. area calculation
 
   Revision 1.185  2004/02/08 18:08:59  jonas
