@@ -855,6 +855,7 @@ begin
    begin
      AddSelectItem('~S~trip all debug symbols from executable','-');
      AddSelectItem('Generate ~d~ebug symbol information','');
+     AddSelectItem('Generate also backtrace ~l~ine information','l');
      { AddSelectItem('Generate ~d~bx symbol information','d');
        does not work anyhow (PM) }
    end;
@@ -961,7 +962,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.19  2000-03-07 22:52:50  pierre
+  Revision 1.20  2000-03-08 16:51:50  pierre
+   + -gl option support
+
+  Revision 1.19  2000/03/07 22:52:50  pierre
    + Assembler tab in Options|Compiler
 
   Revision 1.18  2000/03/07 21:17:29  pierre
