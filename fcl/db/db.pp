@@ -235,6 +235,8 @@ type
     function GetAsFloat: Double; virtual;
     function GetAsLongint: Longint; virtual;
     function GetAsInteger: Longint; virtual;
+    function GetAsVariant: variant; virtual;
+    function GetOldValue: variant; virtual;
     function GetAsString: string; virtual;
     function GetCanModify: Boolean; virtual;
     function GetDataSize: Word; virtual;
@@ -252,6 +254,7 @@ type
     procedure SetAsFloat(AValue: Double); virtual;
     procedure SetAsLongint(AValue: Longint); virtual;
     procedure SetAsInteger(AValue: Integer); virtual;
+    procedure SetAsVariant(AValue: variant); virtual;
     procedure SetAsString(const AValue: string); virtual;
     procedure SetDataType(AValue: TFieldType);
     procedure SetSize(AValue: Word); virtual;
@@ -290,6 +293,8 @@ type
     property Size: Word read FSize write FSize;
     property Text: string read FEditText write FEditText;
     property ValidChars : TFieldChars Read FValidChars;
+    property Value: variant read GetAsVariant write SetAsVariant;
+    property OldValue: variant read GetOldValue;
   published
     property AlignMent : TAlignMent Read FAlignMent write SetAlignment;
     property CustomConstraint: string read FCustomConstraint write FCustomConstraint;
@@ -327,6 +332,7 @@ type
     function GetAsFloat: Double; override;
     function GetAsLongint: Longint; override;
     function GetAsString: string; override;
+    function GetAsVariant: variant; override;
     function GetDataSize: Word; override;
     function GetDefaultWidth: Longint; override;
     procedure GetText(var AText: string; ADisplayText: Boolean); override;
@@ -338,7 +344,6 @@ type
     procedure SetAsString(const AValue: string); override;
   public
     constructor Create(AOwner: TComponent); override;
-    property Value: string read GetAsString write SetAsString;
   published
     property Size default 20;
   end;
@@ -373,12 +378,14 @@ type
     function GetAsFloat: Double; override;
     function GetAsLongint: Longint; override;
     function GetAsString: string; override;
+    function GetAsVariant: variant; override;
     function GetDataSize: Word; override;
     procedure GetText(var AText: string; ADisplayText: Boolean); override;
     function GetValue(var AValue: Longint): Boolean;
     procedure SetAsFloat(AValue: Double); override;
     procedure SetAsLongint(AValue: Longint); override;
     procedure SetAsString(const AValue: string); override;
+    procedure SetAsVariant(AValue: variant); override;
   public
     constructor Create(AOwner: TComponent); override;
     Function CheckRange(AValue : longint) : Boolean;
@@ -404,6 +411,7 @@ type
     function GetAsLongint: Longint; override;
     function GetAsLargeint: Largeint; virtual;
     function GetAsString: string; override;
+    function GetAsVariant: variant; override;
     function GetDataSize: Word; override;
     procedure GetText(var AText: string; ADisplayText: Boolean); override;
     function GetValue(var AValue: Largeint): Boolean;
@@ -457,6 +465,7 @@ type
   protected
     function GetAsFloat: Double; override;
     function GetAsLongint: Longint; override;
+    function GetAsVariant: variant; override;
     function GetAsString: string; override;
     function GetDataSize: Word; override;
     procedure GetText(var theText: string; ADisplayText: Boolean); override;
@@ -486,6 +495,7 @@ type
   protected
     function GetAsBoolean: Boolean; override;
     function GetAsString: string; override;
+    function GetAsVariant: variant; override;
     function GetDataSize: Word; override;
     function GetDefaultWidth: Longint; override;
     procedure SetAsBoolean(AValue: Boolean); override;
@@ -506,6 +516,7 @@ type
     function GetAsDateTime: TDateTime; override;
     function GetAsFloat: Double; override;
     function GetAsString: string; override;
+    function GetAsVariant: variant; override;
     function GetDataSize: Word; override;
     procedure GetText(var theText: string; ADisplayText: Boolean); override;
     procedure SetAsDateTime(AValue: TDateTime); override;
@@ -583,6 +594,7 @@ type
     function GetAsFloat: Double; override;
     function GetAsLongint: Longint; override;
     function GetAsString: string; override;
+    function GetAsVariant: variant; override;
     function GetDataSize: Word; override;
     function GetDefaultWidth: Longint; override;
     procedure GetText(var TheText: string; ADisplayText: Boolean); override;
@@ -1314,6 +1326,7 @@ type
     procedure Open;
     procedure CloseDataSets;
     procedure CloseTransactions;
+//    procedure ApplyUpdates;
     procedure StartTransaction; virtual; abstract;
     procedure EndTransaction; virtual; abstract;
     property DataSetCount: Longint read GetDataSetCount;
@@ -1339,6 +1352,23 @@ type
     BookmarkFlag : TBookmarkFlag;
   end;
 
+  PFieldUpdateBuffer = ^TFieldUpdateBuffer;
+  TFieldUpdateBuffer = record
+    FieldNo      : integer;
+    NewValue     : pointer;
+    IsNull       : boolean;
+  end;
+
+  TFieldsUpdateBuffer = array of TFieldUpdateBuffer;
+
+  PRecUpdateBuffer = ^TRecUpdateBuffer;
+  TRecUpdateBuffer = record
+    RecordNo           : integer;
+    FieldsUpdateBuffer : TFieldsUpdateBuffer;
+  end;
+
+  TRecordsUpdateBuffer = array of TRecUpdateBuffer;
+
   TBufDataset = class(TDBDataSet)
   private
     FBBuffers       : TBufferArray;
@@ -1351,9 +1381,13 @@ type
     FRecordSize     : Integer;
     FNullmaskSize   : byte;
     FOpen           : Boolean;
+    FUpdateBuffer   : TRecordsUpdateBuffer;
+    FEditBuf        : PRecUpdateBuffer;
     procedure CalcRecordSize;
     function LoadBuffer(Buffer : PChar): TGetResult;
     function GetFieldSize(FieldDef : TFieldDef) : longint;
+    function GetRecordUpdateBuffer(rno : integer;var RecUpdBuf : PRecUpdateBuffer) : boolean;
+    function GetFieldUpdateBuffer(fieldno : integer;RecUpdBuf : PRecUpdateBuffer;var FieldUpdBuf : pFieldUpdateBuffer) : boolean;
   protected
     procedure SetRecNo(Value: Longint); override;
     function  GetRecNo: Longint; override;
@@ -1367,6 +1401,7 @@ type
     function getnextpacket : integer;
     function GetRecordSize: Word; override;
     procedure InternalPost; override;
+    procedure InternalEdit; override;
     procedure InternalFirst; override;
     procedure InternalLast; override;
     procedure InternalSetToRecord(Buffer: PChar); override;
@@ -1379,11 +1414,14 @@ type
     procedure SetFieldData(Field: TField; Buffer: Pointer); override;
     function IsCursorOpen: Boolean; override;
     function  GetRecordCount: Longint; override;
+    function ApplyRecUpdate : boolean; virtual;
   {abstracts, must be overidden by descendents}
     function Fetch : boolean; virtual; abstract;
     function LoadField(FieldDef : TFieldDef;buffer : pointer) : boolean; virtual; abstract;
   public
     constructor Create(AOwner: TComponent); override;
+    procedure ApplyUpdates; virtual;
+    procedure CancelUpdates; virtual;
     destructor Destroy; override;
   end;
 
@@ -1780,7 +1818,14 @@ end.
 
 {
   $Log$
-  Revision 1.32  2004-12-13 20:19:49  michael
+  Revision 1.33  2004-12-29 14:30:53  michael
+    + Patch from Joost van der Sluis
+    - implemented CachedUpdates (only modifications, no inserts/deletes)
+    - implemented GetAsVariant/SetAsVariant for all fields
+    - implemented TField.OldValue as a variant
+    - changed TField.Value to a variant
+
+  Revision 1.32  2004/12/13 20:19:49  michael
   + Initial implementation of params
 
   Revision 1.31  2004/12/13 19:20:12  michael
