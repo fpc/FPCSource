@@ -1047,14 +1047,19 @@ implementation
         ps:=tvarsym(symindex.first);
         while assigned(ps) do
           begin
-            { this is used to insert case variant into the main
-              record }
-            tsymt.datasize:=ps.address+offset;
             nps:=tvarsym(ps.indexnext);
+            { remove from current symtable }
             symindex.deleteindex(ps);
             ps.left:=nil;
             ps.right:=nil;
-            tsymt.insert(ps);
+            { add to symt }
+            ps.owner:=tsymt;
+            tsymt.datasize:=ps.address+offset;
+            tsymt.symindex.insert(ps);
+            tsymt.symsearch.insert(ps);
+            { update address }
+            ps.address:=tsymt.datasize;
+            { next }
             ps:=nps;
           end;
         pd:=tdef(defindex.first);
@@ -2023,7 +2028,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.52  2002-01-24 18:25:50  peter
+  Revision 1.53  2002-01-29 19:46:00  peter
+    * fixed recordsymtable.insert_in() for inserting variant record fields
+      to not used symtable.insert() because that also updates alignmentinfo
+      which was already set
+
+  Revision 1.52  2002/01/24 18:25:50  peter
    * implicit result variable generation for assembler routines
    * removed m_tp modeswitch, use m_tp7 or not(m_fpc) instead
 
