@@ -363,7 +363,7 @@ VAR slide : pchar;            {Sliding dictionary for unzipping}
     dlghandle : word;         {optional: handle of a cancel and "%-done"-dialog}
     dlgnotify : integer;      {notification code to tell dialog how far the decompression is}
 
-VAR w : word;                 {Current Position in slide}
+VAR w : longint;                 {Current Position in slide}
     b : longint;              {Bit Buffer}
     k : byte;                 {Bits in bit buffer}
     infile,                 {handle to zipfile}
@@ -506,8 +506,8 @@ CONST crc_32_tab : ARRAY [ 0..255 ] of longint =
 
 {*********************************** CRC Checking ********************************}
 
-PROCEDURE UpdateCRC ( VAR s : iobuf;len : integer );
-VAR i : integer;
+PROCEDURE UpdateCRC ( VAR s : iobuf;len : word );
+VAR i : word;
 BEGIN
 {$ifndef assembler}
  FOR i := 0 TO Pred ( len ) DO BEGIN
@@ -1032,7 +1032,7 @@ END;
 FUNCTION inflate_codes ( tl, td : phuftlist;bl, bd : integer ) : integer;
 VAR
     n, d, e1,          {length and index for copy}
-    ml, md : word;      {masks for bl and bd bits}
+    ml, md : longint;      {masks for bl and bd bits}
     t : phuft;         {pointer to table entry}
     e : byte;          {table entry flag/number of extra bits}
 
@@ -1100,7 +1100,7 @@ BEGIN
                ELSE e1 := WSIZE -w;
         IF e1 > n THEN e1 := n;
         dec ( n, e1 );
-        IF ( w -d >= e1 ) THEN BEGIN
+        IF ( longint(w) -d >= e1 ) THEN BEGIN
           move ( slide [ d ], slide [ w ], e1 );
           inc ( w, e1 );
           inc ( d, e1 );

@@ -1,0 +1,195 @@
+#
+# Go32 Install file
+#
+title=Free Pascal Compiler for Go32v2
+version=0.99.8
+
+basepath=c:\pp
+binsub=\bin
+ppc386=ppc386
+
+package=basego32.zip,~B~asic system for Go32v2 (required)
+package=asldgo32.zip,GNU ~L~inker and GNU Assembler for Go32v2 (required)
+package=gdbgo32.zip,GNU ~D~ebugger for Go32v2
+package=gnuutils.zip,GNU ~U~tilities (required to recompile run time library)
+package=demo.zip,D~e~mos
+package=docs.zip,Documentation (~H~TML)
+package=doc110ps.zip,Documentation (~P~ostscript)
+package=rl0998s.zip,~R~un time library sources
+package=pp0998s.zip,~C~ompiler sources
+package=doc110s.zip,Documentation sources (La~T~eX)
+
+cfgfile=ppc386.cfg
+defaultcfg=
+#
+# Example ppc386.cfg for Free Pascal Compiler Version 0.99.8
+#
+
+# ----------------------
+# Defines (preprocessor)
+# ----------------------
+
+#
+# nested #IFNDEF, #IFDEF, #ENDIF, #ELSE, #DEFINE, #UNDEF are allowed
+#
+# -d is the same as #DEFINE
+# -u is the same as #UNDEF
+#
+
+# When not m68k is defined at the commandline, define i386
+#IFNDEF m68k
+  #DEFINE i386
+#ENDIF
+
+#
+# Some examples (for switches see below, and the -? helppages)
+#
+# Try compiling with the -dRELEASE or -dDEBUG on the commandline
+#
+
+# For a release compile with optimizes and strip debuginfo
+#IFDEF RELEASE
+  -OG2p2
+  -Xs
+  #WRITE Compiling Release Version
+#ENDIF
+
+# For a debug version compile with debuginfo and all codegeneration checks on
+#IFDEF DEBUG
+  -g
+  -Crtoi
+  #WRITE Compiling Debug Version
+#ENDIF
+
+# ----------------
+# Parsing switches
+# ----------------
+
+# All assembler blocks are intel styled by default
+#-Rintel
+
+# All assembler blocks are AT&T styled by default
+#-Ratt
+
+# Semantic checking
+# -S2   switch some Delphi 2 extension on
+# -Sc   supports operators like C (*=,+=,/= and -=)
+# -Sg   allows LABEL and GOTO
+# -Si   support C++ stlyed INLINE
+# -Sm   support macros like C (global)
+# -So   tries to be TP/BP 7.0 compatible
+# -Ss   constructor name must be init (destructor must be done)
+# -St   allows static keyword in objects
+# -Sv   allow CVAR variable directive
+
+# Allow goto, inline, C-operators, CVar directive
+-Sgicv
+
+# ---------------
+# Code generation
+# ---------------
+
+# Uncomment the next line if you always want static/dynamic units by default
+# (can be overruled with -CD, -CS at the commandline)
+#-CS
+#-CD
+
+# Set the default heapsize to 8Mb
+#-Ch8000000
+
+# Set default codegeneration checks (iocheck, overflow, range, stack)
+#-Ci
+#-Co
+#-Cr
+#-Ct
+
+# Optimizer switches
+# -Og        generate smaller code
+# -OG        generate faster code (default)
+# -Or        keep certain variables in registers (still BUGGY!!!)
+# -Ou        enable uncertain optimizations (see docs)
+# -O1        level 1 optimizations (quick optimizations)
+# -O2        level 2 optimizations (-O1 + slower optimizations)
+# -O3        level 3 optimizations (same as -O2u)
+# -Op        target processor
+#     -Op1  set target processor to 386/486
+#     -Op2  set target processor to Pentium/PentiumMMX (tm)
+#     -Op3  set target processor to PPro/PII/c6x86/K6 (tm)
+
+# Optimize always for Size and Pentium
+#-OG2p2
+
+
+# -----------------------
+# Set Filenames and Paths
+# -----------------------
+
+# Slashes are also allowed under dos
+
+# path to the messagefile, not necessary anymore but can be used to override
+# the default language
+#-Fr$1/bin/errore.msg
+#-Fr$1/bin/errorn.msg
+
+# path to the gcclib
+#-Fg$1/lib
+
+# searchpath for includefiles
+#-Fi$1/inc;$1/rtl/inc
+
+# searchpath for units (does the same as -Up)
+#IFDEF Go32V1
+  -Fu$1/rtl/dos/go32v1
+#ENDIF
+#IFDEF Go32V2
+  -Fu$1/rtl/dos/go32v2
+#ENDIF
+#IFDEF Win32
+  -Fu$1/rtl/dos/win32
+#ENDIF
+
+# searchpath for libraries
+#-Fl$1/lib
+#-Fl/lib;/usr/lib
+
+
+# -------------
+# Linking
+# -------------
+
+# generate always debugging information for GDB (slows down the compiling
+# process)
+#-g
+
+# always pass an option to the linker
+#-k-s
+
+# Always strip debuginfo from the executable
+#-Xs
+
+
+# -------------
+# Miscellaneous
+# -------------
+
+# Write always a nice FPC logo ;)
+-l
+
+# Verbosity
+# e : Show errors (default)       d : Show debug info
+# w : Show warnings               u : Show used files
+# n : Show notes                  t : Show tried files
+# h : Show hints                  m : Show defined macros
+# i : Show general info           p : Show compiled procedures
+# l : Show linenumbers            c : Show conditionals
+# a : Show everything             0 : Show nothing (except errors)
+
+# Display Info, Warnings, Notes and Hints
+-viwnh
+# If you don't want so much verbosity use
+#-vw
+
+#
+# That's all folks
+#
+endcfg

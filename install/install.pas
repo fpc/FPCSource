@@ -14,53 +14,110 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-
-{$A+,B-,D+,E+,F-,G-,I-,L+,N-,O-,P-,Q+,R+,S+,T-,V-,X+,Y+}
 program install;
 
   uses
      app,dialogs,views,objects,menus,drivers,strings,msgbox,dos,unzip,ziptypes;
 
-  var
-     binpath,startpath : string;
-     successfull : boolean;
-
   const
-     version = '0';
-     release = '99';
-     patchlevel = '8';
+     maxpackages=20;
+     maxdefcfgs=200;
 
-     filenr = version+release+patchlevel;
+     cfgfile='install.dat';
 
-     doc_version = '110';
+  type
+     tpackage=record
+       name : string[60];
+       zip  : string[12];
+     end;
+
+     cfgrec=record
+       title    : string[80];
+       version  : string[20];
+       basepath : string[80];
+       binsub   : string[12];
+       ppc386   : string[12];
+       packages : longint;
+       package  : array[1..maxpackages] of tpackage;
+       defcfgfile : string[12];
+       defcfgs  : longint;
+       defcfg   : array[1..maxdefcfgs] of pstring;
+     end;
+
+     datarec=record
+       basepath : string[80];
+       mask     : word;
+     end;
+
+  var
+     startpath   : string;
+     successfull : boolean;
+     cfg         : cfgrec;
+     data        : datarec;
 
 {*****************************************************************************
                                   Helpers
 *****************************************************************************}
 
-  procedure uppervar(var s : string);
-
-    var
-       i : integer;
-
+  function packagemask(i:longint):longint;
     begin
-       for i:=1 to length(s) do
-         s[i]:=upcase(s[i]);
+      packagemask:=1 shl (i-1);
     end;
 
-  function file_exists(const f : string;const path : string) : boolean;
 
+  function upper(const s : string):string;
+    var
+       i : integer;
+    begin
+       for i:=1 to length(s) do
+         if s[i] in ['a'..'z'] then
+          upper[i]:=chr(ord(s[i])-32)
+         else
+          upper[i]:=s[i];
+       upper[0]:=s[0];
+    end;
+
+
+  function lower(const s : string):string;
+    var
+       i : integer;
+    begin
+       for i:=1 to length(s) do
+         if s[i] in ['A'..'Z'] then
+          lower[i]:=chr(ord(s[i])+32)
+         else
+          lower[i]:=s[i];
+       lower[0]:=s[0];
+    end;
+
+
+  procedure Replace(var s:string;const s1,s2:string);
+    var
+       i  : longint;
+    begin
+      repeat
+        i:=pos(s1,s);
+        if i>0 then
+         begin
+           Delete(s,i,length(s1));
+           Insert(s2,s,i);
+         end;
+      until i=0;
+    end;
+
+
+  function file_exists(const f : string;const path : string) : boolean;
     begin
        file_exists:=fsearch(f,path)<>'';
     end;
 
 
-  function diskspace(const path,zipfile : string) : string;
+  function diskspace(const zipfile : string) : string;
     var
       compressed,uncompressed : longint;
       s : string;
     begin
-      s:=path+zipfile+#0;
+      s:=zipfile+#0;
       uncompressed:=UnzipSize(@s[1],compressed);
       uncompressed:=uncompressed shr 10;
       str(uncompressed,s);
@@ -68,43 +125,164 @@ program install;
     end;
 
 
-
-  function createdir(const s : string) : boolean;
-
+  function createdir(var s : string) : boolean;
     var
-       result : longint;
-
+      result : longint;
+      dir : searchrec;
+      params : array[0..0] of pointer;
     begin
-       chdir(s);
-       if ioresult=0 then
+       if s[length(s)]='\' then
+        dec(s[0]);
+       s:=lower(s);
+       FindFirst(s,$ff,dir);
+       if doserror=0 then
          begin
             result:=messagebox('The installation directory exists already. '+
               'Do want to enter a new installation directory ?',nil,
               mferror+mfyesbutton+mfnobutton);
-            createdir:=result=cmyes;
+            createdir:=(result=cmNo);
             exit;
          end;
-       mkdir(s);
+       {$I-}
+        mkdir(s);
+       {$I+}
        if ioresult<>0 then
          begin
-            messagebox('The installation directory couldn''t be created',
-              @s,mferror+mfokbutton);
-            createdir:=true;
+            params[0]:=@s;
+            messagebox('The installation directory %s couldn''t be created',
+              @params,mferror+mfokbutton);
+            createdir:=false;
             exit;
          end;
-       createdir:=false;
+       createdir:=true;
     end;
 
 
-  procedure changedir(const s : string);
+{*****************************************************************************
+                          Writing of ppc386.cfg
+*****************************************************************************}
 
+  procedure writedefcfg(const fn:string);
+    var
+      t      : text;
+      i      : longint;
+      s      : string;
+      dir    : searchrec;
+      params : array[0..0] of pointer;
     begin
-       chdir(s);
-       if ioresult<>0 then
+      findfirst(fn,$ff,dir);
+      if doserror=0 then
+       begin
+         params[0]:=@fn;
+         MessageBox('Config file %s already exists, default config not written',@params,mfinformation+mfokbutton);
+         exit;
+       end;
+      assign(t,fn);
+      {$I-}
+       rewrite(t);
+      {$I+}
+      if ioresult<>0 then
+       begin
+         params[0]:=@fn;
+         MessageBox('Can''t create %s, default config not written',@params,mfinformation+mfokbutton);
+         exit;
+       end;
+      for i:=1to cfg.defcfgs do
+       if assigned(cfg.defcfg[i]) then
          begin
-            messagebox('Error when changing directory ',@s,mferror+mfokbutton);
-            halt(1);
-         end;
+           s:=cfg.defcfg[i]^;
+           Replace(s,'$1',data.basepath);
+           writeln(t,s);
+         end
+       else
+         writeln(t,'');
+      close(t);
+    end;
+
+
+{*****************************************************************************
+                                   Cfg Read
+*****************************************************************************}
+
+  procedure readcfg(const fn:string);
+    var
+      t    : text;
+      i,j,
+      line : longint;
+      item,
+      s    : string;
+    begin
+      assign(t,fn);
+      {$I-}
+       reset(t);
+      {$I+}
+      if ioresult<>0 then
+       begin
+         writeln('error: ',fn,' not found!');
+         halt(1);
+       end;
+      line:=0;
+      while not eof(t) do
+       begin
+         readln(t,s);
+         inc(line);
+         if (s<>'') and not(s[1] in ['#',';']) then
+          begin
+            i:=pos('=',s);
+            if i>0 then
+             begin
+               item:=upper(Copy(s,1,i-1));
+               delete(s,1,i);
+               if item='VERSION' then
+                cfg.version:=s
+               else
+                if item='TITLE' then
+                 cfg.title:=s
+               else
+                if item='BASEPATH' then
+                 cfg.basepath:=s
+               else
+                if item='PPC386' then
+                 cfg.ppc386:=s
+               else
+                if item='BINSUB' then
+                 cfg.binsub:=s
+               else
+                if item='CFGFILE' then
+                 cfg.defcfgfile:=s
+               else
+                if item='DEFAULTCFG' then
+                 begin
+                   repeat
+                     readln(t,s);
+                     if upper(s)='ENDCFG' then
+                      break;
+                     if cfg.defcfgs<maxdefcfgs then
+                      begin
+                        inc(cfg.defcfgs);
+                        cfg.defcfg[cfg.defcfgs]:=newstr(s);
+                      end;
+                   until false;
+                 end
+               else
+                if item='PACKAGE' then
+                 begin
+                   j:=pos(',',s);
+                   if (j>0) and (cfg.packages<maxpackages) then
+                    begin
+                      inc(cfg.packages);
+                      cfg.package[cfg.packages].zip:=copy(s,1,j-1);
+                      cfg.package[cfg.packages].name:=copy(s,j+1,255);
+                    end;
+                 end
+               else
+                writeln('error in confg, unknown item "',item,'" skipping line ',line);
+             end
+            else
+             writeln('error in confg, skipping line ',line);
+          end;
+       end;
+      close(t);
     end;
 
 
@@ -117,8 +295,9 @@ program install;
      tunzipdialog=object(tdialog)
          filetext : pstatictext;
          constructor Init(var Bounds: TRect; ATitle: TTitleStr);
-         procedure do_unzip(s:string);
+         procedure do_unzip(s,topath:string);
      end;
+
 
   constructor tunzipdialog.init;
     var
@@ -131,11 +310,10 @@ program install;
     end;
 
 
-  procedure tunzipdialog.do_unzip(s : string);
+  procedure tunzipdialog.do_unzip(s,topath : string);
     var
       fn,dir,wild : string;
     begin
-       s:=s+'.ZIP';
        Disposestr(filetext^.text);
        filetext^.Text:=NewStr('File: '+s);
        filetext^.drawview;
@@ -146,7 +324,7 @@ program install;
             halt(1);
          end;
        fn:=startpath+'\'+s+#0;
-       dir:='.'#0;
+       dir:=topath+#0;
        wild:='*.*'#0;
        FileUnzipEx(@fn[1],@dir[1],@wild[1]);
        if doserror<>0 then
@@ -166,78 +344,75 @@ program install;
      tinstalldialog = object(tdialog)
         constructor init;
      end;
-  var
-     mask_components : longint;
 
 
   constructor tinstalldialog.init;
     var
        r : trect;
-       line : integer;
+       mask_components : longint;
+       i,line : integer;
+       items : psitem;
        p,f : pview;
        s : string;
 
-    const breite = 76;
-          hoehe = 20;
-          x1 = (80-breite) div 2;
-          y1 = (23-hoehe) div 2;
-          x2 = x1+breite;
-          y2 = y1+hoehe;
+    const
+       width = 76;
+       height = 20;
+       x1 = (79-width) div 2;
+       y1 = (23-height) div 2;
+       x2 = x1+width;
+       y2 = y1+height;
 
     begin
        r.assign(x1,y1,x2,y2);
-       inherited init(r,'Install');
+       inherited init(r,cfg.title+' Installation');
+
        line:=2;
-       r.assign(3,line+1,28,line+2);
-       p:=new(pinputline,init(r,79));
-       f:=p;
-       s:='C:\PP';
-       p^.setdata(s);
-       insert(p);
        r.assign(3,line,8,line+1);
        insert(new(plabel,init(r,'~P~ath',p)));
        insert(p);
+       r.assign(3,line+1,28,line+2);
+
+       f:=new(pinputline,init(r,80));
+       insert(f);
+
+     { walk packages reverse and insert a newsitem for each, and set the mask }
+       items:=nil;
+       mask_components:=0;
+       for i:=cfg.packages downto 1 do
+        begin
+          if file_exists(cfg.package[i].zip,startpath) then
+           begin
+             items:=newsitem(cfg.package[i].name+diskspace(startpath+'\'+cfg.package[i].zip),items);
+             mask_components:=mask_components or packagemask(i);
+           end
+          else
+           begin
+             items:=newsitem(cfg.package[i].name,items);
+           end;
+        end;
+
+     { If no component found abort }
+       if mask_components=0 then
+        begin
+          messagebox('No components found to install, aborting.',nil,mferror+mfokbutton);
+          halt(1);
+        end;
+
        inc(line,3);
-       r.assign(3,line+1,breite-3,line+11);
-       p:=new(pcheckboxes,init(r,
-         newsitem('~B~asic system (required)'+diskspace(startpath,'BASEDOS.ZIP'),
-         newsitem('GNU ~L~inker and GNU Assembler (required)'+diskspace(startpath,'GNUASLD.ZIP'),
-         newsitem('D~e~mos'+diskspace(startpath,'DEMO.ZIP'),
-         newsitem('GNU ~D~ebugger'+diskspace(startpath,'GDB.ZIP'),
-         newsitem('GNU ~U~tilities (required to recompile run time library)'+diskspace(startpath,'GNUUTILS.ZIP'),
-         newsitem('Documentation (~H~TML)'+diskspace(startpath,'DOCS.ZIP'),
-         newsitem('Documentation (~P~ostscript)'+diskspace(startpath,'DOC'+doc_version+'PS.ZIP'),
-         newsitem('~R~un time library sources'+diskspace(startpath,'RL'+filenr+'S.ZIP'),
-         newsitem('~C~ompiler sources'+diskspace(startpath,'PP'+filenr+'S.ZIP'),
-         newsitem('Documentation sources (La~T~eX)'+diskspace(startpath,'DOC'+doc_version+'.ZIP'),
-         nil
-       ))))))))))));
+       r.assign(3,line,14,line+1);
+       insert(new(plabel,init(r,'~C~omponents',p)));
+       r.assign(3,line+1,width-3,line+cfg.packages+1);
+       p:=new(pcheckboxes,init(r,items));
        pcluster(p)^.enablemask:=mask_components;
        insert(p);
 
-       r.assign(3,line,14,line+1);
-       insert(new(plabel,init(r,'~C~omponents',p)));
-
-       inc(line,12);
-       { Free Vision
-       r.assign(3,line+1,breite-3,line+3);
-       p:=new(pcheckboxes,init(r,
-         newsitem('~B~asic system',
-         newsitem('~D~ocumentation',
-         newsitem('S~a~mples',
-         newsitem('~S~ources',
-         nil
-       ))))));
-       pcluster(p)^.enablemask:=mask_freevision;
-       insert(p);
-       r.assign(3,line,15,line+1);
-       insert(new(plabel,init(r,'~F~ree Vision',p)));
-       inc(line,4);
-       }
-       r.assign((breite div 2)-14,line,(breite div 2)-4,line+2);
+       inc(line,cfg.packages+2);
+       r.assign((width div 2)-14,line,(width div 2)-4,line+2);
        insert(new(pbutton,init(r,'~O~k',cmok,bfdefault)));
-       r.assign((breite div 2)+4,line,(breite div 2)+14,line+2);
+       r.assign((width div 2)+4,line,(width div 2)+14,line+2);
        insert(new(pbutton,init(r,'~C~ancel',cmcancel,bfnormal)));
+
        f^.select;
     end;
 
@@ -259,134 +434,72 @@ program install;
 
   procedure tapp.do_installdialog;
     var
-       p : pinstalldialog;
-       p2 : punzipdialog;
-       p3 : pstatictext;
-       r : trect;
-       c : word;
-       t : text;
-       installdata : record
-                       path : string[79];
-                       components : word;
-                     end;
-       f : file;
-    label
-      newpath;
+       p    : pinstalldialog;
+       p2   : punzipdialog;
+       p3   : pstatictext;
+       r    : trect;
+       result,
+       c    : word;
+       i    : longint;
     begin
-      installdata.path:='C:\PP';
-      installdata.components:=0;
+      data.basepath:=cfg.basepath;
+      data.mask:=0;
 
-      mask_components:=$0;
-
-      { searching files }
-      if file_exists('BASEDOS.ZIP',startpath) then
-        inc(mask_components,1);
-
-      if file_exists('GNUASLD.ZIP',startpath) then
-        inc(mask_components,2);
-
-      if file_exists('DEMO.ZIP',startpath) then
-        inc(mask_components,4);
-
-      if file_exists('GDB.ZIP',startpath) then
-        inc(mask_components,8);
-
-      if file_exists('GNUUTILS.ZIP',startpath) then
-        inc(mask_components,16);
-
-      if file_exists('DOCS.ZIP',startpath) then
-        inc(mask_components,32);
-
-      if file_exists('DOC+doc_version+PS.ZIP',startpath) then
-        inc(mask_components,64);
-
-      if file_exists('RL'+filenr+'S.ZIP',startpath) then
-        inc(mask_components,128);
-
-      if file_exists('PP'+filenr+'S.ZIP',startpath) then
-        inc(mask_components,256);
-
-      if file_exists('DOC+doc_version+S.ZIP',startpath) then
-        inc(mask_components,512);
-
-      while true do
-        begin
-      newpath:
-           p:=new(pinstalldialog,init);
-           { default settings }
-           c:=executedialog(p,@installdata);
-           if c=cmok then
+      repeat
+        p:=new(pinstalldialog,init);
+        { default settings }
+        c:=executedialog(p,@data);
+        if (c=cmok) then
+          begin
+            if (data.mask>0) then
              begin
-                if installdata.path[length(installdata.path)]='\' then
-                  dec(byte(installdata.path[0]));
-                uppervar(installdata.path);
-                binpath:=installdata.path+'\BIN';
-                if createdir(installdata.path) then
-                  goto newpath;
-                changedir(installdata.path);
-
-                r.assign(20,7,60,16);
-                p2:=new(punzipdialog,init(r,'Extracting files'));
-                desktop^.insert(p2);
-
-                if (installdata.components and 1)<>0 then
-                   p2^.do_unzip('BASEDOS');
-
-                if (installdata.components and 2)<>0 then
-                   p2^.do_unzip('GNUASLD');
-
-                if (installdata.components and 4)<>0 then
-                   p2^.do_unzip('DEMO');
-
-                if (installdata.components and 8)<>0 then
-                   p2^.do_unzip('GDB');
-
-                if (installdata.components and 16)<>0 then
-                   p2^.do_unzip('GNUUTILS');
-
-                if (installdata.components and 32)<>0 then
-                   p2^.do_unzip('DOCS');
-
-                if (installdata.components and 64)<>0 then
-                   p2^.do_unzip('DOC+doc_version+PS');
-
-                if (installdata.components and 128)<>0 then
-                   p2^.do_unzip('RL'+filenr+'S');
-
-                if (installdata.components and 256)<>0 then
-                   p2^.do_unzip('PP'+filenr+'S');
-
-                if (installdata.components and 512)<>0 then
-                   p2^.do_unzip('DOC+doc_version+S');
-
-                assign(t,'BIN\PPC386.CFG');
-                rewrite(t);
-                writeln(t,'-l');
-                writeln(t,'#ifdef GO32V1');
-                writeln(t,'-Up',installdata.path+'\RTL\DOS\GO32V1');
-                writeln(t,'#endif GO32V1');
-                writeln(t,'#ifdef GO32V2');
-                writeln(t,'-Up',installdata.path+'\RTL\DOS\GO32V2');
-                writeln(t,'#endif GO32V2');
-                writeln(t,'#ifdef Win32');
-                writeln(t,'-Up',installdata.path+'\RTL\WIN32');
-                writeln(t,'#endif Win32');
-                close(t);
-
-                desktop^.delete(p2);
-                dispose(p2,done);
-                messagebox('Installation successfull',nil,mfinformation+mfokbutton);
-                successfull:=true;
+               if createdir(data.basepath) then
+                break;
+             end
+            else
+             begin
+               result:=messagebox('No components selected.'#13#13'Abort installation?',nil,
+                 mferror+mfyesbutton+mfnobutton);
+               if result=cmYes then
+                exit;
              end;
-           break;
-        end;
+          end
+        else
+          exit;
+      until false;
+
+      r.assign(20,7,60,16);
+      p2:=new(punzipdialog,init(r,'Extracting files'));
+      desktop^.insert(p2);
+      for i:=1to cfg.packages do
+       begin
+         if data.mask and packagemask(i)<>0 then
+          p2^.do_unzip(cfg.package[i].zip,data.basepath);
+       end;
+      desktop^.delete(p2);
+      dispose(p2,done);
+
+      writedefcfg(data.basepath+cfg.binsub+'\'+cfg.defcfgfile);
+
+      messagebox('Installation successfull',nil,mfinformation+mfokbutton);
+      successfull:=true;
     end;
 
+
+  procedure tapp.initmenubar;
+    var
+       r : trect;
+    begin
+       getextent(r);
+       r.b.y:=r.a.y+1;
+       menubar:=new(pmenubar,init(r,newmenu(
+          newsubmenu('~F~ree Pascal '+cfg.version,hcnocontext,newmenu(nil
+          ),
+       nil))));
+    end;
+
+
   procedure tapp.handleevent(var event : tevent);
-
-    label
-       insertdisk1,insertdisk2,newpath;
-
     begin
        inherited handleevent(event);
        if event.what=evcommand then
@@ -403,43 +516,33 @@ program install;
            end;
     end;
 
-  procedure tapp.initmenubar;
-    var
-       r : trect;
-    begin
-       getextent(r);
-       r.b.y:=r.a.y+1;
-       menubar:=new(pmenubar,init(r,newmenu(
-          newsubmenu('~I~nstallation',hcnocontext,newmenu(
-            newitem('~S~tart','',kbnokey,cmstart,hcnocontext,
-            newline(
-            newitem('~E~xit','Alt+X',kbaltx,cmquit,hcnocontext,
-            nil)))
-          ),
-       nil))));
-    end;
-
 
 var
   installapp : tapp;
 begin
    getdir(0,startpath);
    successfull:=false;
+
+   readcfg(cfgfile);
+
    installapp.init;
    installapp.do_installdialog;
    installapp.done;
+
    if successfull then
      begin
-        writeln('Extend your PATH variable with');
-        writeln(binpath);
+        writeln('Extend your PATH variable with ''',data.basepath+cfg.binsub+'''');
         writeln;
-        writeln('To compile files enter PPC386 [file]');
-        chdir(startpath);
+        writeln('To compile files enter ''',cfg.ppc386,' [file]''');
+        writeln;
      end;
 end.
 {
   $Log$
-  Revision 1.4  1998-09-10 10:50:49  florian
+  Revision 1.5  1998-09-15 12:06:06  peter
+    * install updated to support w32 and dos and config file
+
+  Revision 1.4  1998/09/10 10:50:49  florian
     * DOS install program updated
 
   Revision 1.3  1998/09/09 13:39:58  peter
