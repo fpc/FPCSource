@@ -781,7 +781,26 @@ implementation
               convdone:=true;
             end
          else
-
+           { compare pchar to char arrays by addresses
+             like BP/Delphi }
+           if (is_pchar(ld) and is_chararray(rd)) or
+              (is_pchar(rd) and is_chararray(ld)) then
+             begin
+               if is_chararray(rd) then
+                 begin
+                   p^.right:=gentypeconvnode(p^.right,ld);
+                   firstpass(p^.right);
+                 end
+               else
+                 begin
+                   p^.left:=gentypeconvnode(p^.left,rd);
+                   firstpass(p^.left);
+                 end;
+               p^.location.loc:=LOC_REGISTER;
+               calcregisters(p,1,0,0);
+               convdone:=true;
+             end
+         else
            { is one of the operands a string?,
              chararrays are also handled as strings (after conversion) }
            if (rd^.deftype=stringdef) or (ld^.deftype=stringdef) or
@@ -1266,7 +1285,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.72  2000-03-20 10:16:51  florian
+  Revision 1.73  2000-03-28 21:14:18  pierre
+   * fix for bug 891
+
+  Revision 1.72  2000/03/20 10:16:51  florian
    * fixed <dword>/<dword>, <int64>/<int64> and <qword>/<qword>
 
   Revision 1.71  2000/03/18 15:01:19  jonas
