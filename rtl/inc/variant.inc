@@ -114,7 +114,7 @@ operator :=(const source : comp) dest : variant;
   end;
 
 { Misc. }
-{ Fixme!!! 
+{ Fixme!!!
 operator :=(const source : currency) dest : variant;
   begin
   end;
@@ -129,7 +129,7 @@ operator :=(const source : tdatetime) dest : variant;
 
 { Integer }
 operator :=(const source : variant) dest : byte;
-  begin     
+  begin
      dest:=variantmanager.vartoint(source);
   end;
 
@@ -252,7 +252,7 @@ operator :=(const source : variant) dest : tdatetime;
 
 procedure invalidvariantop;
   begin
-     Runerror(221);
+     HandleErrorFrame(221,get_frame);
   end;
 
 procedure varclear(var v : tvardata);
@@ -261,10 +261,18 @@ begin
      invalidvariantop;
 end;
 
+procedure vardisperror;
+
+  begin
+     HandleErrorFrame(222,get_frame);
+  end;
+
 procedure initvariantmanager;
   var
-     i : longint;     
+     i : longint;
   begin
+     VarDispProc:=@vardisperror;
+     DispCallByIDProc:=@vardisperror;
      for i:=0 to (sizeof(tvariantmanager) div sizeof(pointer))-1 do
        ppointer(@variantmanager+i*sizeof(pointer))^:=@invalidvariantop;
      pointer(variantmanager.varclear):=@varclear
@@ -272,8 +280,10 @@ procedure initvariantmanager;
 
 {
   $Log$
-  Revision 1.1  2001-08-19 21:02:01  florian
-    * fixed and added a lot of stuff to get the Jedi DX( headers
-      compiled
+  Revision 1.2  2001-11-08 16:17:30  florian
+    + beginning of variant dispatching
 
+  Revision 1.1  2001/08/19 21:02:01  florian
+    * fixed and added a lot of stuff to get the Jedi DX8 headers
+      compiled
 }

@@ -162,7 +162,9 @@ type
    pvariantmanager = ^tvariantmanager;
 
 var
-   variantmanager : tvariantmanager;   
+   VarDispProc : pointer;
+   DispCallByIDProc : pointer;
+   variantmanager : tvariantmanager;
 
 {**********************************************************************
                        to Variant assignments
@@ -244,8 +246,10 @@ operator :=(const source : variant) dest : tdatetime;
 }
 {
   $Log$
-  Revision 1.1  2001-08-19 21:02:02  florian
-    * fixed and added a lot of stuff to get the Jedi DX( headers
-      compiled
+  Revision 1.2  2001-11-08 16:17:30  florian
+    + beginning of variant dispatching
 
+  Revision 1.1  2001/08/19 21:02:02  florian
+    * fixed and added a lot of stuff to get the Jedi DX8 headers
+      compiled
 }

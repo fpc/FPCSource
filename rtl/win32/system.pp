@@ -66,7 +66,7 @@ const
 
    FileNameCaseSensitive : boolean = true;
 
-   sLineBreak : string[2] = LineEnding;
+   sLineBreak : string = LineEnding;
    DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCRLF;
 
    { Thread count for DLL }
@@ -1503,25 +1503,23 @@ begin
   Rewrite(T);
 end;
 
-
-
 const
    Exe_entry_code : pointer = @Exe_entry;
    Dll_entry_code : pointer = @Dll_entry;
 
 begin
-{ get some helpful informations }
+  { get some helpful informations }
   GetStartupInfo(@startupinfo);
-{ some misc Win32 stuff }
+  { some misc Win32 stuff }
   hprevinst:=0;
   if not IsLibrary then
     HInstance:=getmodulehandle(GetCommandFile);
   MainInstance:=HInstance;
   cmdshow:=startupinfo.wshowwindow;
-{ to test stack depth }
+  { to test stack depth }
   loweststack:=maxlongint;
-{ real test stack depth        }
-{   stacklimit := setupstack;  }
+  { real test stack depth        }
+  {   stacklimit := setupstack;  }
 {$ifdef MT}
   { allocate one threadvar entry from windows, we use this entry }
   { for a pointer to our threadvars                              }
@@ -1529,11 +1527,11 @@ begin
   { the exceptions use threadvars so do this _before_ initexceptions }
   AllocateThreadVars;
 {$endif MT}
-{ Setup heap }
+  { Setup heap }
   InitHeap;
   InitExceptions;
-{ Setup stdin, stdout and stderr, for GUI apps redirect stderr,stdout to be
-  displayed in and messagebox }
+  { Setup stdin, stdout and stderr, for GUI apps redirect stderr,stdout to be
+    displayed in and messagebox }
   StdInputHandle:=longint(GetStdHandle(STD_INPUT_HANDLE));
   StdOutputHandle:=longint(GetStdHandle(STD_OUTPUT_HANDLE));
   StdErrorHandle:=longint(GetStdHandle(STD_ERROR_HANDLE));
@@ -1551,11 +1549,11 @@ begin
      OpenStdIO(StdOut,fmOutput,StdOutputHandle);
      OpenStdIO(StdErr,fmOutput,StdErrorHandle);
    end;
-{ Arguments }
+  { Arguments }
   setup_arguments;
-{ Reset IO Error }
+  { Reset IO Error }
   InOutRes:=0;
-{ Reset internal error variable }
+  { Reset internal error variable }
   errno:=0;
 {$ifdef HASVARIANT}
   initvariantmanager;
@@ -1564,7 +1562,10 @@ end.
 
 {
   $Log$
-  Revision 1.20  2001-11-07 13:05:16  michael
+  Revision 1.21  2001-11-08 16:16:54  florian
+    + beginning of variant dispatching
+
+  Revision 1.20  2001/11/07 13:05:16  michael
   + Fixed Append() bug. Appending non-existing file now gives an error
 
   Revision 1.19  2001/10/23 21:51:03  peter
@@ -1574,7 +1575,7 @@ end.
   * bugfix #1639 (IsMultiThread varialbe setting)
 
   Revision 1.17  2001/08/19 21:02:02  florian
-    * fixed and added a lot of stuff to get the Jedi DX( headers
+    * fixed and added a lot of stuff to get the Jedi DX8 headers
       compiled
 
   Revision 1.16  2001/07/30 20:53:50  peter
