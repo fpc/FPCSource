@@ -373,7 +373,8 @@ begin
 { Fix command line options }
   If not SharedLibFiles.Empty then
    LinkOptions:='-dynamic-linker='+DynamicLinker+' '+LinkOptions;
-  if Strip and not(cs_debuginfo in aktmoduleswitches) then
+  if Strip and not(cs_debuginfo in aktmoduleswitches) and
+                           not (Target_Link.StripBind) then
    LinkOptions:=LinkOptions+' '+target_link.stripopt;
 
 { Open linkresponse and write header }
@@ -533,6 +534,9 @@ begin
      {When an EMX program runs in DOS, the heap and stack share the
       same memory pool. The heap grows upwards, the stack grows downwards.}
      Replace(s,'$DOSHEAPKB',tostr((stacksize+maxheapsize+1023) shr 10));
+     if Strip and Target_Link.StripBind then
+                   Replace (S, '$STRIP', Target_Link.StripOpt) else
+                                                     Replace (S, '$STRIP', '');
      if utilsdirectory<>'' then
        begin
           bindbin:=Search(target_link.bindbin[ii]+source_os.exeext,
@@ -640,7 +644,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.53  1999-05-04 21:44:44  florian
+  Revision 1.54  1999-06-02 13:25:35  hajny
+    * fixed stripping symbols for OS/2
+
+  Revision 1.53  1999/05/04 21:44:44  florian
     * changes to compile it with Delphi 4.0
 
   Revision 1.52  1999/05/03 21:30:30  peter
