@@ -44,22 +44,19 @@ const
        plongint = ^longint;
 
 {$S-}
-    procedure st1(stack_size : longint);[public,alias: 'STACKCHECK'];
-
-      begin
-         { called when trying to get local stack }
-         { if the compiler directive $S is set   }
-         { it must preserve all registers !!     }
+    procedure Stack_Check; assembler;
+    { Check for local variable allocation }
+    { On Entry -> d0 : size of local stack we are trying to allocate }
          asm
-           move.l   sp,d0
-           sub.l    stack_size,d0
-           cmp.l    __BREAK,d0
+          XDEF STACKCHECK
+           move.l  sp,d1            { get value of stack pointer            }
+           sub.l   d0,d1            {  sp - stack_size                      }
+           cmp.l    __BREAK,d1
            bgt      @st1nosweat
            move.l   #202,d0
            jsr      HALT_ERROR
          @st1nosweat:
          end;
-      end;
 
 
     procedure halt(errnum : byte);
@@ -455,25 +452,25 @@ begin
 end;
 
 
-procedure mkdir(const s : string);
+procedure mkdir(const s : string);[IOCheck];
 begin
   DosDir($39,s);
 end;
 
 
-procedure rmdir(const s : string);
+procedure rmdir(const s : string);[IOCheck];
 begin
   DosDir($3a,s);
 end;
 
 
-procedure chdir(const s : string);
+procedure chdir(const s : string);[IOCheck];
 begin
   DosDir($3b,s);
 end;
 
 
-procedure getdir(drivenr : byte;var dir : string);
+procedure getdir(drivenr : byte;var dir : string);[IOCheck];
 var
   temp : array[0..255] of char;
   sof  : pchar;
@@ -567,8 +564,9 @@ end.
 
 {
   $Log$
-  Revision 1.2  1998-05-25 12:13:51  carl
-   * bugfix of all routines with pea
+  Revision 1.3  1998-07-01 14:40:20  carl
+    + new stack checking implemented
+    + IOCheck for chdir , getdir , mkdir and rmdir
 
   Revision 1.1.1.1  1998/03/25 11:18:47  root
   * Restored version
