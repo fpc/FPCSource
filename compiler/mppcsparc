@@ -10,7 +10,7 @@ TEST_DIR="-FE$FPC_SRC_DIR/tests/sparc"
 if [[ "$1" == "-B" ]] || [[ "$#" == 0 ]]
 then
   cd "$COMP_DIR"
-  fpc pp -gl -oppcsparc -dExtDebug -Fu"sparc;systems" -FE"sparc" -dSPARC -dNoOpt -dGDB "$1"
+  fpc pp -gl -oppcsparc -dExtDebug -Fu"sparc;systems" -FE"sparc" -dSPARC -dGDB -dNewRA "$1"
 fi
 if [[ "$#" -gt "0" ]] && ( [[ "$1" != "-B" ]] || [[ "$#" -gt "1" ]] )
 then
