@@ -114,7 +114,7 @@ begin
 { *********************** qword to longint ********************* }
   writeln;
   writeln('qword to longint');
-  q := $ffffffffffffffff;
+  q := qword($ffffffffffffffff);
   writeln(q);
   if not testlongint_qword(q,true) then
     writeln('test1 failed');
