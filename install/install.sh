@@ -7,8 +7,8 @@
 # Everything can be set when the script is run.
 #
 
-# Release Version
-VERSION=1.9.4
+# Release Version %version% will be replaced by makepack
+VERSION=%version%
 
 # some useful functions
 # ask displays 1st parameter, and ask new value for variable, whose name is
@@ -87,6 +87,57 @@ checkpath ()
  return 1
 }
 
+# Install files from binary-*.tar
+#  $1 = cpu-target
+installbinary ()
+{
+  BINARYTAR=binary.$1.tar
+  
+  # conversion from long to short archname for ppc<x>
+  case $1 in
+    m68k*)
+      PPCSUFFIX=68k;;
+    sparc*) 
+      PPCSUFFIX=sparc;;
+    i386*)
+      PPCSUFFIX=386;;
+    powerpc*)
+      PPCSUFFIX=ppc;;
+    arm*)
+      PPCSUFFIX=arm;;
+    x86_64*)
+      PPCSUFFIX=x64;;
+  esac
+
+  # Install compiler/RTL. Mandatory.
+  echo Installing compiler and RTL for $1...
+  unztarfromtar $BINARYTAR base${OSNAME}.tar.gz $PREFIX
+  
+  # Install symlink
+  rm -f $EXECDIR/ppc${PPCSUFFIX}
+  ln -sf $LIBDIR/ppc${PPCSUFFIX} $EXECDIR/ppc${PPCSUFFIX}
+  
+  echo Installing utilities...
+  unztarfromtar $BINARYTAR util${OSNAME}.tar.gz $PREFIX
+  if yesno "Install FCL"; then
+      unztarfromtar $BINARYTAR unitsfcl${OSNAME}.tar.gz $PREFIX
+  fi
+  if yesno "Install packages"; then
+    listtarfiles $BINARYTAR packages units
+    for f in $packages 
+    do
+      if [ $f != unitsfcl${OSNAME}.tar.gz ]; then
+        basename $f .tar.gz |\
+        sed -e s/units// -e s/${OSNAME}// |\
+        xargs echo Installing 
+        unztarfromtar $BINARYTAR $f $PREFIX
+      fi
+    done
+  fi
+  rm -f *${OSNAME}.tar.gz
+}
+
+
 # --------------------------------------------------------------------------
 # welcome message.
 #
@@ -117,7 +168,6 @@ LIBDIR=$PREFIX/lib/fpc/$VERSION
 SRCDIR=$PREFIX/src/fpc-$VERSION
 EXECDIR=$PREFIX/bin
 OSNAME=`uname -s | tr A-Z a-z`
-ARCHNAME=`uname -m | tr A-Z a-z`
 
 BSDHIER=0
 case $OSNAME in 
@@ -125,79 +175,19 @@ case $OSNAME in
   BSDHIER=1;;
 esac
 
-# conversion from GNU/OS archname to FPC archname
-case $ARCHNAME in
-*sun4u) 
-  ARCHNAME=sparc64;;
-*sun4)  
-  ARCHNAME=sparc32;;
-*i486)
-  ARCHNAME=i386;;
-*i586)
-  ARCHNAME=i386;;
-*i686)
-  ARCHNAME=i386;;
-*ppc)
-  ARCHNAME=powerpc;;
-*armc4l)
-  ARCHNAME=arm;;
-*amd64)
-  ARCHNAME=x86_64;;
-esac
-
 SHORTARCH=$ARCHNAME
 
-# conversion from long to short archname for ppc<x>
-case $SHORTARC in
-*m68k)
-  SHORTARCH=68k;;
-*sparc) 
-  SHORTARCH=sparc;;
-*i386)
-  SHORTARCH=386;;
-*powerpc)
-  SHORTARCH=ppc;;
-*arm)
-  SHORTARCH=arm;;
-*x86_64)
-  SHORTARCH=x64;;
-esac
-
 FULLARCH=$ARCHNAME-$OSNAME
-
-if [ "${BSDHIER}" = "1" ]; then
 DOCDIR=$PREFIX/share/doc/fpc-$VERSION
-else
-DOCDIR=$PREFIX/doc/fpc-$VERSION
-fi
-
-echo $DOCDIR
-
 DEMODIR=$DOCDIR/examples
 
-# Install compiler/RTL. Mandatory.
-echo Installing compiler and RTL ...
-unztarfromtar binary.tar base${OSNAME}.tar.gz $PREFIX
-rm -f $EXECDIR/ppc$(SHORTARCH)
-ln -sf $LIBDIR/ppc$(SHORTARCH) $EXECDIR/ppc$(SHORTARCH)
-echo Installing utilities...
-unztarfromtar binary.tar util${OSNAME}.tar.gz $PREFIX
-if yesno "Install FCL"; then
-    unztarfromtar binary.tar unitsfcl${OSNAME}.tar.gz $PREFIX
-fi
-if yesno "Install packages"; then
-  listtarfiles binary.tar packages units
-  for f in $packages 
-  do
-    if [ $f != unitsfcl${OSNAME}.tar.gz ]; then
-      basename $f .tar.gz |\
-      sed -e s/units// -e s/${OSNAME}// |\
-      xargs echo Installing 
-      unztarfromtar binary.tar $f $PREFIX
-    fi
-  done
-fi
-rm -f *${OSNAME}.tar.gz
+# Install all binary releases
+for f in binary*.tar
+do
+  a=`echo $f | sed "s+binary.\(.*\).tar+\1+"`
+  installbinary $a
+done
+
 echo Done.
 echo
 
