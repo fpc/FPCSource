@@ -47,7 +47,8 @@ type
     FUserName            : string;
     FCharSet             : string;
     FDialect             : integer;
-
+    FRole                : String;
+    
     procedure SetDBDialect;
     procedure SetTransaction(Value : TIBTransaction);
   protected
@@ -96,6 +97,7 @@ type
       path looks like this: <server_name>:<path_on_server>, where server_name
       is absolute IP address, or name of server in DNS or hosts file, path_on_server
       is absolute path to the file again }
+    Property Role :  String read FRole write FRole;  
     property DatabaseName;
     property KeepConnection;
     property LoginPrompt;
@@ -382,6 +384,8 @@ begin
     if (FPassword <> '') then
       DPB := DPB + chr(isc_dpb_password) + chr(Length(FPassword)) + FPassword;
   end;
+  if (FRole <> '') then
+     DPB := DPB + chr(isc_dpb_sql_role_name) + chr(Length(FRole)) + FRole;
   if Length(CharSet) > 0 then
     DPB := DPB + Chr(isc_dpb_lc_ctype) + Chr(Length(CharSet)) + CharSet;
 
