@@ -242,7 +242,10 @@ interface
           internalerror(200108222);
 
         { get a (persistent) temp }
-        gettempofsizereferencepersistant(size,tempinfo^.ref);
+        if persistent then
+          gettempofsizereferencepersistant(size,tempinfo^.ref)
+        else
+          gettempofsizereference(size,tempinfo^.ref);
         tempinfo^.valid := true;
       end;
 
@@ -282,7 +285,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2001-08-23 14:28:35  jonas
+  Revision 1.6  2001-08-24 13:47:27  jonas
+    * moved "reverseparameters" from ninl.pas to ncal.pas
+    + support for non-persistent temps in ttempcreatenode.create, for use
+      with typeconversion nodes
+
+  Revision 1.5  2001/08/23 14:28:35  jonas
     + tempcreate/ref/delete nodes (allows the use of temps in the
       resulttype and first pass)
     * made handling of read(ln)/write(ln) processor independent

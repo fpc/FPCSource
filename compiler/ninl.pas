@@ -99,24 +99,6 @@ implementation
 
 {$ifdef hascompilerproc}
 
-      { helper, doesn't really belong here (JM) }
-      function reverseparameters(p: tcallparanode): tcallparanode;
-        var
-          hp1, hp2: tcallparanode;
-        begin
-          hp1:=nil;
-          while assigned(p) do
-            begin
-               { pull out }
-               hp2:=p;
-               p:=tcallparanode(p.right);
-               { pull in }
-               hp2.right:=hp1;
-               hp1:=hp2;
-            end;
-          reverseparameters:=hp1;
-        end;
-
       function tinlinenode.handle_str : tnode;
       var
         lenpara,
@@ -394,7 +376,7 @@ implementation
             if (filepara.left.nodetype <> loadn) then
               begin
                 { create a temp which will hold a pointer to the file }
-                filetemp := ctempcreatenode.create(voidpointertype,voidpointertype.def.size);
+                filetemp := ctempcreatenode.create(voidpointertype,voidpointertype.def.size,true);
 
                 { add it to the statements }
                 newstatement.left := cstatementnode.create(nil,filetemp);
@@ -704,7 +686,7 @@ implementation
                           restype := @u32bittype;
 
                         { create the parameter list: the temp ... }
-                        temp := ctempcreatenode.create(restype^,restype^.def.size);
+                        temp := ctempcreatenode.create(restype^,restype^.def.size,true);
                         newstatement.left := cstatementnode.create(nil,temp);
                         newstatement := tstatementnode(newstatement.left);
 
@@ -879,7 +861,7 @@ implementation
         if not assigned(codepara) or
            (torddef(codepara.resulttype.def).typ in [u8bit,u16bit,s8bit,s16bit]) then
           begin
-            tempcode := ctempcreatenode.create(s32bittype,4);
+            tempcode := ctempcreatenode.create(s32bittype,4,true);
             newstatement.left := cstatementnode.create(nil,tempcode);
             newstatement := tstatementnode(newstatement.left);
             { set the resulttype of the temp (needed to be able to get }
@@ -2730,7 +2712,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.50  2001-08-24 12:33:54  jonas
+  Revision 1.51  2001-08-24 13:47:27  jonas
+    * moved "reverseparameters" from ninl.pas to ncal.pas
+    + support for non-persistent temps in ttempcreatenode.create, for use
+      with typeconversion nodes
+
+  Revision 1.50  2001/08/24 12:33:54  jonas
     * fixed big bug in handle_str that caused it to (almost) always call
       fpc_<stringtype>_longint
     * fixed small bug in handle_read_write that caused wrong warnigns about

@@ -80,16 +80,25 @@ interface
          valid: boolean;
        end;
 
-       { a node which will create a *persistent* temp of a given type with a given size }
-       { (the size is separate to allow creating "void" temps with a custom size)       }
+       { a node which will create a (non)persistent temp of a given type with a given  }
+       { size (the size is separate to allow creating "void" temps with a custom size) }
        ttempcreatenode = class(tnode)
           size: longint;
           tempinfo: ptempinfo;
-          constructor create(const _restype: ttype; _size: longint); virtual;
+          { * persistent temps are used in manually written code where the temp }
+          { be usable among different statements and where you can manually say }
+          { when the temp has to be freed (using a ttempdeletenode)             }
+          { * non-persistent temps are mostly used in typeconversion helpers,   }
+          { where the node that receives the temp becomes responsible for       }
+          { freeing it. In this last case, you should use only one reference    }
+          { to it and *not* generate a ttempdeletenode                          }
+          constructor create(const _restype: ttype; _size: longint; _persistent: boolean); virtual;
           function getcopy: tnode; override;
           function pass_1 : tnode; override;
           function det_resulttype: tnode; override;
           function docompare(p: tnode): boolean; override;
+         protected
+          persistent: boolean;
         end;
 
         { a node which is a reference to a certain temp }
@@ -442,13 +451,14 @@ implementation
                           TEMPCREATENODE
 *****************************************************************************}
 
-    constructor ttempcreatenode.create(const _restype: ttype; _size: longint);
+    constructor ttempcreatenode.create(const _restype: ttype; _size: longint; _persistent: boolean);
       begin
         inherited create(tempn);
         size := _size;
         new(tempinfo);
         fillchar(tempinfo^,sizeof(tempinfo^),0);
         tempinfo^.restype := _restype;
+        persistent := _persistent;
       end;
 
     function ttempcreatenode.getcopy: tnode;
@@ -610,7 +620,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2001-08-23 14:28:35  jonas
+  Revision 1.15  2001-08-24 13:47:26  jonas
+    * moved "reverseparameters" from ninl.pas to ncal.pas
+    + support for non-persistent temps in ttempcreatenode.create, for use
+      with typeconversion nodes
+
+  Revision 1.14  2001/08/23 14:28:35  jonas
     + tempcreate/ref/delete nodes (allows the use of temps in the
       resulttype and first pass)
     * made handling of read(ln)/write(ln) processor independent

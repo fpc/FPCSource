@@ -96,6 +96,9 @@ interface
           function docompare(p: tnode): boolean; override;
        end;
 
+    function reverseparameters(p: tcallparanode): tcallparanode;
+
+
     var
        ccallnode : class of tcallnode;
        ccallparanode : class of tcallparanode;
@@ -114,6 +117,29 @@ implementation
       ,cgbase
 {$endif newcg}
       ;
+
+
+{****************************************************************************
+                             HELPERS
+ ****************************************************************************}
+
+    function reverseparameters(p: tcallparanode): tcallparanode;
+      var
+        hp1, hp2: tcallparanode;
+      begin
+        hp1:=nil;
+        while assigned(p) do
+          begin
+             { pull out }
+             hp2:=p;
+             p:=tcallparanode(p.right);
+             { pull in }
+             hp2.right:=hp1;
+             hp1:=hp2;
+          end;
+        reverseparameters:=hp1;
+      end;
+
 
 
 {****************************************************************************
@@ -1691,7 +1717,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.43  2001-08-23 14:28:35  jonas
+  Revision 1.44  2001-08-24 13:47:27  jonas
+    * moved "reverseparameters" from ninl.pas to ncal.pas
+    + support for non-persistent temps in ttempcreatenode.create, for use
+      with typeconversion nodes
+
+  Revision 1.43  2001/08/23 14:28:35  jonas
     + tempcreate/ref/delete nodes (allows the use of temps in the
       resulttype and first pass)
     * made handling of read(ln)/write(ln) processor independent
