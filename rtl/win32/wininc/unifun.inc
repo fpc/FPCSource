@@ -351,8 +351,6 @@ function CreateDialogIndirectW(hInstance:HINST; lpTemplate:LPCDLGTEMPLATE; hWndP
 function DialogBoxW(hInstance:HINST; lpTemplate:LPCWSTR; hWndParent:HWND; lpDialogFunc:DLGPROC):longint;
 function DialogBoxIndirectW(hInstance:HINST; lpTemplate:LPCDLGTEMPLATE; hWndParent:HWND; lpDialogFunc:DLGPROC):longint;
 function CreateDCW(_para1:LPCWSTR; _para2:LPCWSTR; _para3:LPCWSTR; _para4:pDEVMODE):HDC; external 'gdi32' name 'CreateDCW';
-function CreateFontA(_para1:longint; _para2:longint; _para3:longint; _para4:longint; _para5:longint;_para6:DWORD; _para7:DWORD; _para8:DWORD; _para9:DWORD; _para10:DWORD;_para11:DWORD; _para12:DWORD; _para13:DWORD; _para14:LPCSTR):HFONT;
-  external 'gdi32' name 'CreateFontA';
 function VerInstallFileW(uFlags:DWORD; szSrcFileName:LPWSTR; szDestFileName:LPWSTR; szSrcDir:LPWSTR; szDestDir:LPWSTR;szCurDir:LPWSTR; szTmpFile:LPWSTR; lpuTmpFileLen:PUINT):DWORD; external 'version' name 'VerInstallFileW';
 function GetFileVersionInfoSizeW(lptstrFilename:LPWSTR; lpdwHandle:LPDWORD):DWORD; external 'version' name 'GetFileVersionInfoSizeW';
 function GetFileVersionInfoW(lptstrFilename:LPWSTR; dwHandle:DWORD; dwLen:DWORD; lpData:LPVOID):WINBOOL; external 'version' name 'GetFileVersionInfoW';
@@ -494,7 +492,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  2002-12-12 17:34:36  peter
+  Revision 1.8  2004-05-02 14:46:46  marco
+   * some confusion over createfont, cleaned up (bug 3056)
+
+  Revision 1.7  2002/12/12 17:34:36  peter
     * Renaming INT type to WINT
 
   Revision 1.6  2002/09/15 17:53:45  peter

@@ -283,8 +283,7 @@ function EnumDisplaySettings(lpszDeviceName:LPCSTR; iModeNum:DWORD; lpDevMode:LP
 function SystemParametersInfo(uiAction:UINT; uiParam:UINT; pvParam:PVOID; fWinIni:UINT):WINBOOL; external 'user32' name 'SystemParametersInfoA';
 function AddFontResource(_para1:LPCSTR):longint; external 'gdi32' name 'AddFontResourceA';
 function CopyMetaFile(_para1:HMETAFILE; _para2:LPCSTR):HMETAFILE; external 'gdi32' name 'CopyMetaFileA';
-function CreateFont(_para1:longint; _para2:longint; _para3:longint; _para4:longint; _para5:longint;_para6:DWORD; _para7:DWORD; _para8:DWORD; _para9:DWORD; _para10:DWORD;_para11:DWORD; _para12:DWORD; _para13:DWORD; _para14:LPCWSTR):HFONT;
-external 'gdi32' name 'CreateFontA';
+function CreateFont(_para1:longint; _para2:longint; _para3:longint; _para4:longint; _para5:longint;_para6:DWORD; _para7:DWORD; _para8:DWORD; _para9:DWORD; _para10:DWORD;_para11:DWORD; _para12:DWORD; _para13:DWORD; _para14:LPCSTR):HFONT; external 'gdi32' name 'CreateFontA';
 function CreateFontIndirect(_para1:LPLOGFONT):HFONT; external 'gdi32' name 'CreateFontIndirectA';
 function CreateIC(_para1:LPCSTR; _para2:LPCSTR; _para3:LPCSTR; _para4:LPDEVMODE):HDC; external 'gdi32' name 'CreateICA';
 function CreateMetaFile(_para1:LPCSTR):HDC; external 'gdi32' name 'CreateMetaFileA';
@@ -491,7 +490,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  2002-12-12 17:34:35  peter
+  Revision 1.9  2004-05-02 14:46:45  marco
+   * some confusion over createfont, cleaned up (bug 3056)
+
+  Revision 1.8  2002/12/12 17:34:35  peter
     * Renaming INT type to WINT
 
   Revision 1.7  2002/09/15 17:53:44  peter
