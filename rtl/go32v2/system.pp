@@ -372,6 +372,8 @@ begin
      { skip leading spaces }
      while pc^ in [#1..#32] do
       inc(pc);
+     if pc^=#0 then
+      break;
      { calc argument length }
      quote:=' ';
      argstart:=pc;
@@ -1531,7 +1533,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.8  2001-06-01 22:23:21  peter
+  Revision 1.9  2001-06-07 21:16:30  peter
+    * fixed empty arguments
+
+  Revision 1.8  2001/06/01 22:23:21  peter
     * same argument parsing -"abc" becomes -abc. This is compatible with
       delphi and with unix shells (merged)
 
