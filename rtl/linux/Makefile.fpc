@@ -293,4 +293,3 @@ gpm$(PPUEXT): gpm.pp unix$(PPUEXT) baseunix$(PPUEXT) sockets$(PPUEXT)
 
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
 
-legacymem$(PPUEXT) :  $(INC)/legacymem.pp sysutils$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)

@@ -16,7 +16,7 @@ units=$(SYSTEMUNIT) ctypes objpas macpas strings \
       cpu mmx charset ucomplex getopts \
       wincrt winmouse winevent sockets printer \
       video mouse keyboard \
-      comobj winsysut ole2 activex shellapi shlobj legacymem
+      comobj winsysut ole2 activex shellapi shlobj 
 
 rsts=math varutils typinfo variants classes dateutils sysconst
 
@@ -247,4 +247,3 @@ callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)
 
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
 
-legacymem$(PPUEXT) :  $(INC)/legacymem.pp sysutils$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
