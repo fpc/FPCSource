@@ -95,7 +95,7 @@ type
         If (frac(x)<0) then dec(t);
         floor := t;
   end;
-
+(*
   { simple descriptive name }
   function max(a, b : graph_int) : graph_int;
   begin
@@ -109,7 +109,7 @@ type
         if (a <= b) then min := a
         else min := b;
   end;
-
+*)
   { needed for the compare functions; should NOT be used for anything else }
 var
         ptable : ppointarray; { pointer to points list }
@@ -273,19 +273,24 @@ begin
     DrawPoly(NumPoints, PolyPoints);
 end;
 
-
+{ maximum supported Y resultion }
+const
+  MaxYRes = 2048;
+  { changing this to 1 or 2 doesn't improve performance noticably }
+  YResDiv = 4;
 
 type
+  PFloodLine = ^TFloodLine;
   TFloodLine = record
+    next: PFloodLine;
     x1 : smallint;
     x2 : smallint;
     y  : smallint;
   end;
 
-  TDrawnList  = Array[0..StdBuffersize] of TFloodLine;
+  TDrawnList  = Array[0..(MaxYRes - 1) div 4] of PFloodLine;
 
 var
-   DrawnIndex : Word;
    DrawnList : TDrawnList;
    Buffer : Record                         { Union for byte and word addressing of buffer }
      ByteIndex : Word;
@@ -346,11 +351,14 @@ var
   { Y axis, from the x1 to x2 coordinates.                 }
   {********************************************************}
   Procedure AddLinePoints(x1,x2,y: smallint);
+   var temp: PFloodLine;
    begin
-     DrawnList[DrawnIndex].x1 := x1;
-     DrawnList[DrawnIndex].x2 := x2;
-     DrawnList[DrawnIndex].y := y;
-     Inc(DrawnIndex);
+     new(temp);
+     temp^.x1 := x1;
+     temp^.x2 := x2;
+     temp^.y := y;
+     temp^.next := DrawnList[y div YResDiv];
+     DrawnList[y div YResDiv] := temp;
    end;
 
   {********************************************************}
@@ -366,28 +374,46 @@ var
   { to draw, otherwise returns FALSE.                      }
   {********************************************************}
   Function AlreadyDrawn(x, y: smallint): boolean;
-   var
-    LocalIndex : smallint;
+  var
+    temp : PFloodLine;
    begin
-    AlreadyDrawn := FALSE;
-    LocalIndex := 0;
-    while LocalIndex < DrawnIndex do
-     Begin
-       { if vertical val is equal to our y point ... }
-       if DrawnList[LocalIndex].y = y then
-         Begin
-           { then check if x >< ... }
-           if (x >= DrawnList[LocalIndex].x1) and
-               (x <= DrawnList[LocalIndex].x2) then
-                 Begin
-                   AlreadyDrawn := TRUE;
-                   exit;
-                 end;
-         end;
-       Inc(LocalIndex);
-     end;
+    AlreadyDrawn := false;
+    temp := DrawnList[y div YResDiv];
+    while assigned(temp) do
+      begin
+        if (temp^.y = y) and
+           (temp^.x1 <= x) and
+           (temp^.x2 >= x) then
+          begin
+            AlreadyDrawn := true;
+            exit;
+          end;
+        temp := temp^.next;
+      end;
    end;
 
+  {********************************************************}
+  { Procedure CleanUpDrawnList                             }
+  {--------------------------------------------------------}
+  { removes all elements from the DrawnList. Doesn't init  }
+  { elements of it with NILL                               }
+  {********************************************************}
+  Procedure CleanUpDrawnList;
+  var
+    l: longint;
+    temp1, temp2: PFloodLine;
+  begin
+    for l := 0 to high(DrawnList) do
+      begin
+        temp1 := DrawnList[l];
+        while assigned(temp1) do
+          begin
+            temp2 := temp1;
+            temp1 := temp1^.next;
+            dispose(temp2);
+          end;
+      end;
+  end;
 
   Procedure FloodFill (x, y : smallint; Border: word);
   {********************************************************}
@@ -407,6 +433,7 @@ var
    x1, x2, prevy: smallint;
    Index : smallint;
   Begin
+    FillChar(DrawnList,sizeof(DrawnList),0);
     { init prevy }
     prevy := 32767;
     { Save current drawing color }
@@ -425,8 +452,6 @@ var
        (x>ViewWidth) Or (y>ViewHeight) then Exit;
     { Some internal variables }
     Index := 0;
-    { Index of segments to draw }
-    DrawnIndex := 0;
     { Index of points to check  }
     Buffer.WordIndex:=0;
     PushPoint (x,y);
@@ -434,25 +459,35 @@ var
      Begin
        PopPoint (x,y);
        { Get the complete lines for the following }
-       If (prevy - y = 1) then
-         { previous line was one below the new one, so the previous s2 }
-         { = new s1                                                    }
-         Begin
-           stemp := s1;
-           s1 := s2;
-           s2 := stemp;
-         End
-       Else If (y - prevy = 1) then
-         { previous line was one above the new one, so the previous s3 }
-         { = new s1                                                    }
-         Begin
-           stemp := s1;
-           s1 := s3;
-           s3 := stemp;
-         End
-       Else GetScanline(0,ViewWidth,y,s1^);
-       GetScanline(0,ViewWidth,y-1,s2^);
-       GetScanline(0,ViewWidth,y+1,s3^);
+       If y <> prevy then
+         begin
+           If (prevy - y = 1) then
+             { previous line was one below the new one, so the previous s2 }
+             { = new s1                                                    }
+             Begin
+               stemp := s3;
+               s3 := s1;
+               s1 := s2;
+               s2 := stemp;
+               GetScanline(0,ViewWidth,y-1,s2^);
+             End
+           Else If (y - prevy = 1) then
+             { previous line was one above the new one, so the previous s3 }
+             { = new s1                                                    }
+             Begin
+               stemp := s2;
+               s2 := s1;
+               s1 := s3;
+               s3 := stemp;
+               GetScanline(0,ViewWidth,y+1,s3^);
+             End
+           Else
+             begin
+               GetScanline(0,ViewWidth,y-1,s2^);
+               GetScanline(0,ViewWidth,y,s1^);
+               GetScanline(0,ViewWidth,y+1,s3^);
+             end;
+         end;
        prevy := y;
        { check the current scan line }
        While (s1^[x]<>Border) And (x<=ViewWidth) Do Inc (x);
@@ -504,12 +539,16 @@ var
     FreeMem (s1,(ViewWidth+1)*2);
     FreeMem (s2,(ViewWidth+1)*2);
     FreeMem (s3,(ViewWidth+1)*2);
+    CleanUpDrawnList;
     CurrentColor := BackUpColor;
   End;
 
 {
 $Log$
-Revision 1.13  1999-12-20 11:22:36  peter
+Revision 1.14  2000-01-02 19:01:32  jonas
+  * made floodfill a *LOT* faster (better DrawnPoints management)
+
+Revision 1.13  1999/12/20 11:22:36  peter
   * integer -> smallint to overcome -S2 switch needed for ggi version
 
 Revision 1.12  1999/12/11 23:41:38  jonas
