@@ -114,7 +114,7 @@ begin
               { update the max index }
               val(number,num,code);
               numpart:=num div 1000;
-              numidx:=num mod 1000;
+              numidx:=succ(num mod 1000);
               { duplicate ? }
               if msgs[numpart,numidx] then
                err('duplicate number found');
@@ -266,7 +266,8 @@ begin
   write(t,'    ');
   for i:=1to 20 do
    begin
-     write(t,msgidxmax[i]+1);
+     { no +1 anymore because we now have succ(number mod 1000) (JM) }
+     write(t,msgidxmax[i]);
      if i<20 then
       write(t,',');
      if i=10 then
@@ -803,7 +804,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-09-27 20:59:55  peter
+  Revision 1.4  2000-09-28 11:57:03  jonas
+    * fixed range errors (merged from fixes branch)
+
+  Revision 1.3  2000/09/27 20:59:55  peter
     * check for dup numbers
 
   Revision 1.2  2000/07/13 11:32:55  michael
