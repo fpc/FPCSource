@@ -1230,17 +1230,14 @@ end;
 
     procedure TNamedIndexItem.setname(const n:string);
       begin
-        if speedvalue=cardinal($ffffffff) then
-         begin
-           if assigned(FName) then
-             stringdispose(FName);
-           fspeedvalue:=getspeedvalue(n);
-         {$ifdef compress}
-           FName:=stringdup(minilzw_encode(n));
-         {$else}
-           FName:=stringdup(n);
-         {$endif}
-         end;
+        if assigned(FName) then
+          stringdispose(FName);
+        fspeedvalue:=getspeedvalue(n);
+      {$ifdef compress}
+        FName:=stringdup(minilzw_encode(n));
+      {$else}
+        FName:=stringdup(n);
+      {$endif}
       end;
 
 
@@ -2303,7 +2300,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.32  2004-05-23 14:31:31  peter
+  Revision 1.33  2004-05-24 17:30:09  peter
+    * allow setting of name in dictionary always. Otherwise it is never
+      possible to create an item with a name and rename before insert
+      this is used in the symtable to hide the current symbol
+
+  Revision 1.32  2004/05/23 14:31:31  peter
     * count fixes for tlinkedlist
 
   Revision 1.31  2004/04/28 18:02:54  peter
