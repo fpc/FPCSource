@@ -616,6 +616,7 @@ implementation
               ((aktprocsym.definition.options and postaticmethod)<>0)} then
                   Message(sym_e_only_static_in_static);
            if (unitid<>0) and
+              (symtabletype = globalsymtable) and
               assigned(tglobalsymtable(self).unitsym) then
              inc(tglobalsymtable(self).unitsym.refs);
 
@@ -2103,7 +2104,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.46  2001-09-30 21:29:47  peter
+  Revision 1.47  2001-10-12 20:27:43  jonas
+    * fixed crashing bug in unit reference counting
+
+  Revision 1.46  2001/09/30 21:29:47  peter
     * gdb fixes merged
 
   Revision 1.45  2001/09/19 11:06:03  michael
