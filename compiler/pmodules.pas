@@ -785,6 +785,9 @@ unit pmodules;
                 end;
               hp:=pused_unit(hp^.next);
            end;
+{$ifndef DONOTCHAINOPERATORS}
+          symtablestack^.chainoperators;
+{$endif DONOTCHAINOPERATORS}
           aktprocsym:=oldprocsym;
       end;
 
@@ -1109,6 +1112,8 @@ unit pmodules;
             status.skip_error:=true;
             exit;
           end;
+         {else  in inteface its somatimes necessary even if unused
+          st^.allunitsused; }
 
 {$ifdef New_GDB}
          write_gdb_info;
@@ -1270,6 +1275,7 @@ unit pmodules;
          if (Errorcount=0) then
            begin
              st^.allsymbolsused;
+             st^.allunitsused;
              st^.allprivatesused;
            end;
 
@@ -1596,7 +1602,8 @@ unit pmodules;
          { test static symtable }
          if (Errorcount=0) then
            begin
-              st^.allsymbolsused;
+             st^.allsymbolsused;
+             st^.allunitsused;
              st^.allprivatesused;
            end;
 
@@ -1661,7 +1668,12 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.188  2000-04-14 08:15:05  pierre
+  Revision 1.189  2000-04-25 23:55:30  pierre
+    + Hint about unused unit
+    * Testop bug fixed !!
+      Now the operators are only applied if the unit is explicitly loaded
+
+  Revision 1.188  2000/04/14 08:15:05  pierre
    * close ppu file if errors
 
   Revision 1.187  2000/04/02 10:18:18  florian

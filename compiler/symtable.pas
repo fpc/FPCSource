@@ -219,6 +219,9 @@ unit symtable;
 {$ifdef CHAINPROCSYMS}
           procedure chainprocsyms;
 {$endif CHAINPROCSYMS}
+{$ifndef DONOTCHAINOPERATORS}
+          procedure chainoperators;
+{$endif DONOTCHAINOPERATORS}
           procedure load_browser;
           procedure write_browser;
 {$ifdef BrowserLog}
@@ -1095,8 +1098,11 @@ implementation
     procedure unitsymbolused(p : pnamedindexobject);
       begin
          if (psym(p)^.typ=unitsym) and
-            (punitsym(p)^.refs=0) then
-           comment(V_info,'Unit '+p^.name+' is not used');
+            (punitsym(p)^.refs=0) and
+            { do not claim for unit name itself !! }
+            (punitsym(p)^.unitsymtable^.symtabletype=unitsymtable) then
+           MessagePos2(psym(p)^.fileinfo,sym_n_unit_not_used,
+             p^.name,current_module^.modulename^);
       end;
 
     procedure varsymbolused(p : pnamedindexobject);
@@ -1241,6 +1247,63 @@ implementation
            end;
       end;
 {$endif}
+
+{$ifndef DONOTCHAINOPERATORS}
+    procedure tsymtable.chainoperators;
+      var
+        p : pprocsym;
+        t : ttoken;
+        def : pprocdef;
+        storesymtablestack : psymtable;
+      begin
+         storesymtablestack:=symtablestack;
+         symtablestack:=@self;
+         for t:=first_overloaded to last_overloaded do
+           begin
+              p:=nil;
+              def:=nil;
+              overloaded_operators[t]:=nil;
+              { each operator has a unique lowercased internal name PM }
+              while assigned(symtablestack) do
+                begin
+                  { search for same procsym in other units }
+                  getsym(overloaded_names[t],false);
+                  if assigned(srsym) then
+                    begin
+                       if (srsym^.typ<>procsym) or
+                          (pprocsym(srsym)^.definition^.proctypeoption<> potype_operator) then
+                         internalerror(12344321);
+                       if assigned(p) then
+                         begin
+{$ifdef CHAINPROCSYMS}
+                           p^.nextprocsym:=pprocsym(srsym);
+{$endif CHAINPROCSYMS}
+                           def^.nextoverloaded:=pprocsym(srsym)^.definition;
+                         end
+                       else
+                         overloaded_operators[t]:=pprocsym(srsym);
+                       p:=pprocsym(srsym);
+                       def:=p^.definition;
+                       while assigned(def^.nextoverloaded) and
+                         (def^.nextoverloaded^.owner=p^.owner) do
+                         def:=def^.nextoverloaded;
+                       def^.nextoverloaded:=nil;
+                       symtablestack:=srsymtable^.next;
+                    end
+                  else
+                    begin
+                      symtablestack:=nil;
+{$ifdef CHAINPROCSYMS}
+                      if assigned(p) then
+                        p^.nextprocsym:=nil;
+{$endif CHAINPROCSYMS}
+                    end;
+                end;
+              symtablestack:=@self;
+           end;
+         symtablestack:=storesymtablestack;
+      end;
+{$endif DONOTCHAINOPERATORS}
 
     procedure write_refs(sym : pnamedindexobject);
       begin
@@ -2816,7 +2879,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.84  2000-04-24 12:45:44  peter
+  Revision 1.85  2000-04-25 23:55:30  pierre
+    + Hint about unused unit
+    * Testop bug fixed !!
+      Now the operators are only applied if the unit is explicitly loaded
+
+  Revision 1.84  2000/04/24 12:45:44  peter
     * made overloaded_operators local per unit, but it still doesn't work
       correct
 

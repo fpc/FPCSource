@@ -264,6 +264,7 @@ begin
      aktprocsym:=new(pprocsym,init(sp));
      { for operator we have only one definition for each overloaded
        operation }
+{$ifdef DONOTCHAINOPERATORS}
      if (options=potype_operator) then
        begin
           { the only problem is that nextoverloaded might not be in a unit
@@ -271,6 +272,7 @@ begin
           if assigned(overloaded_operators[optoken]) then
             aktprocsym^.definition:=overloaded_operators[optoken]^.definition;
        end;
+{$endif DONOTCHAINOPERATORS}
      symtablestack^.insert(aktprocsym);
    end;
 
@@ -2012,7 +2014,12 @@ end.
 
 {
   $Log$
-  Revision 1.57  2000-04-24 12:48:37  peter
+  Revision 1.58  2000-04-25 23:55:29  pierre
+    + Hint about unused unit
+    * Testop bug fixed !!
+      Now the operators are only applied if the unit is explicitly loaded
+
+  Revision 1.57  2000/04/24 12:48:37  peter
     * removed unused vars
 
   Revision 1.56  2000/03/31 22:56:47  pierre
