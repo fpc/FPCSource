@@ -1,7 +1,8 @@
 #!/bin/bash
-if [[ "$1" != "" ]]
+if [[ "$#" != "0" ]]
 then
-  FPCSRC="$HOME/FPC/Demo/src/fpc"
+  cd "`dirname "$0"`/.."
+  FPCSRC="$PWD"
   cd $FPCSRC/tests/sparc
   $FPCSRC/compiler/ppcsparc -s -al -Fi$FPCSRC/rtl/{unix,linux,sparc,inc} -dSPARC "$@"
 else
