@@ -1696,9 +1696,9 @@ implementation
           inc(stl,length(s));
           p:=p.nextenum;
         end;
-      st[stl-1]:=';';
-      st[stl]:=#0;
-      reallocmem(st,stl+1);
+      st[stl]:=';';
+      st[stl+1]:=#0;
+      reallocmem(st,stl+2);
       stabstring:=st;
     end;
 {$endif GDB}
@@ -6118,7 +6118,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.221  2004-02-22 18:49:03  daniel
+  Revision 1.222  2004-02-22 19:55:25  daniel
+    * Revert my latest change
+
+  Revision 1.221  2004/02/22 18:49:03  daniel
     * Fixed minor bug in Tenumdef.stabstring
 
   Revision 1.220  2004/02/19 17:07:42  florian
