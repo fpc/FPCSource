@@ -38,13 +38,8 @@ interface
 implementation
 
   uses
-{$ifdef Delphi}
-     sysutils,
-     dmisc,
-{$else Delphi}
      strings,
      dos,
-{$endif Delphi}
      cutils,cclasses,
      globtype,comphook,systems,symsym,symdef,
      globals,verbose,fmodule,script,
@@ -518,7 +513,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.12  2004-10-14 18:16:17  mazen
+  Revision 1.13  2004-10-15 09:24:38  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.12  2004/10/14 18:16:17  mazen
   * USE_SYSUTILS merged successfully : cycles with and without defines
   * Need to be optimized in performance
 

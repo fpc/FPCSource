@@ -26,12 +26,7 @@ unit t_win32;
 
 interface
     uses
-{$ifdef Delphi}
-       dmisc,
-       sysutils,
-{$else Delphi}
        dos,
-{$endif Delphi}
        cutils,cclasses,
        aasmbase,aasmtai,aasmcpu,fmodule,globtype,globals,systems,verbose,
        symconst,symdef,symsym,
@@ -1659,7 +1654,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.38  2004-10-14 18:16:17  mazen
+  Revision 1.39  2004-10-15 09:24:38  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.38  2004/10/14 18:16:17  mazen
   * USE_SYSUTILS merged successfully : cycles with and without defines
   * Need to be optimized in performance
 

@@ -40,9 +40,6 @@ uses
   cpuinfo,
   aasmbase,
   cgbase
-{$ifdef delphi}
-  ,dmisc
-{$endif}
   ;
 
 
@@ -543,7 +540,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.46  2004-08-24 21:23:11  florian
+  Revision 1.47  2004-10-15 09:22:23  mazen
+  - remove $IFDEF DELPHI and related code
+  - remove $IFDEF FPCPROCVAR and related code
+
+  Revision 1.46  2004/08/24 21:23:11  florian
     * fixed i386 compilation
 
   Revision 1.45  2004/07/09 23:30:13  jonas
