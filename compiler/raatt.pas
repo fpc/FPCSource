@@ -792,7 +792,7 @@ unit raatt;
                  begin
                    if constsize<>sizeof(aint) then
                     Message(asmr_w_32bit_const_for_address);
-                   ConcatConstSymbol(curlist,asmsym,value)
+                   ConcatConstSymbol(curlist,asmsym,asmsymtyp,value)
                  end
                 else
                  ConcatConstant(curlist,value,constsize);
@@ -1514,7 +1514,11 @@ end.
 
 {
   $Log$
-  Revision 1.14  2004-11-21 15:35:23  peter
+  Revision 1.15  2004-11-29 18:50:15  peter
+    * os2 fixes for import
+    * asmsymtype support for intel reader
+
+  Revision 1.14  2004/11/21 15:35:23  peter
     * float routines all use internproc and compilerproc helpers
 
   Revision 1.13  2004/11/08 22:09:59  peter

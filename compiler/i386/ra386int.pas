@@ -30,6 +30,7 @@ Unit Ra386int;
       cclasses,
       cpubase,
       globtype,
+      aasmbase,
       rasm,
       rax86;
 
@@ -62,7 +63,7 @@ Unit Ra386int;
          function consume(t : tasmtoken):boolean;
          procedure RecoverConsume(allowcomma:boolean);
          procedure BuildRecordOffsetSize(const expr: string;var offset:aint;var size:aint);
-         procedure BuildConstSymbolExpression(needofs,isref:boolean;var value:aint;var asmsym:string);
+         procedure BuildConstSymbolExpression(needofs,isref:boolean;var value:aint;var asmsym:string;var asmsymtyp:TAsmsymtype);
          function BuildConstExpression:aint;
          function BuildRefConstExpression:aint;
          procedure BuildReference(oper : tx86operand);
@@ -82,7 +83,7 @@ Unit Ra386int;
        globals,verbose,
        systems,
        { aasm }
-       aasmbase,aasmtai,aasmcpu,
+       aasmtai,aasmcpu,
        { symtable }
        symconst,symbase,symtype,symsym,symdef,symtable,
        { parser }
@@ -713,7 +714,7 @@ Unit Ra386int;
       end;
 
 
-    Procedure ti386intreader.BuildConstSymbolExpression(needofs,isref:boolean;var value:aint;var asmsym:string);
+    Procedure ti386intreader.BuildConstSymbolExpression(needofs,isref:boolean;var value:aint;var asmsym:string;var asmsymtyp:TAsmsymtype);
       var
         tempstr,expr,hs : string;
         parenlevel : longint;
@@ -722,6 +723,7 @@ Unit Ra386int;
         errorflag : boolean;
         prevtok : tasmtoken;
         hl : tasmlabel;
+        hssymtyp : Tasmsymtype;
         def : tdef;
         sym : tsym;
         srsymtable : tsymtable;
@@ -729,6 +731,7 @@ Unit Ra386int;
         { reset }
         value:=0;
         asmsym:='';
+        asmsymtyp:=AT_DATA;
         errorflag:=FALSE;
         tempstr:='';
         expr:='';
@@ -894,6 +897,7 @@ Unit Ra386int;
             AS_ID:
               Begin
                 hs:='';
+                hssymtyp:=AT_DATA;
                 def:=nil;
                 tempstr:=actasmpattern;
                 prevtok:=prevasmtoken;
@@ -908,11 +912,15 @@ Unit Ra386int;
                    if is_locallabel(tempstr) then
                     begin
                       CreateLocalLabel(tempstr,hl,false);
-                      hs:=hl.name
+                      hs:=hl.name;
+                      hssymtyp:=AT_FUNCTION;
                     end
                    else
                     if SearchLabel(tempstr,hl,false) then
-                     hs:=hl.name
+                      begin
+                        hs:=hl.name;
+                        hssymtyp:=AT_FUNCTION;
+                      end
                    else
                     begin
                       searchsym(tempstr,sym,srsymtable);
@@ -939,6 +947,7 @@ Unit Ra386int;
                                if Tprocsym(sym).procdef_count>1 then
                                 Message(asmr_w_calling_overload_func);
                                hs:=tprocsym(sym).first_procdef.mangledname;
+                               hssymtyp:=AT_FUNCTION;
                              end;
                            typesym :
                              begin
@@ -956,7 +965,10 @@ Unit Ra386int;
                    if hs<>'' then
                     begin
                       if asmsym='' then
-                       asmsym:=hs
+                        begin
+                          asmsym:=hs;
+                          asmsymtyp:=hssymtyp;
+                        end
                       else
                        Message(asmr_e_cant_have_multiple_relocatable_symbols);
                       if (expr='') or (expr[length(expr)]='+') then
@@ -1039,8 +1051,9 @@ Unit Ra386int;
       var
         l : aint;
         hs : string;
+        hssymtyp : TAsmsymtype;
       begin
-        BuildConstSymbolExpression(false,false,l,hs);
+        BuildConstSymbolExpression(false,false,l,hs,hssymtyp);
         if hs<>'' then
          Message(asmr_e_relocatable_symbol_not_allowed);
         BuildConstExpression:=l;
@@ -1051,8 +1064,9 @@ Unit Ra386int;
       var
         l : aint;
         hs : string;
+        hssymtyp : TAsmsymtype;
       begin
-        BuildConstSymbolExpression(false,true,l,hs);
+        BuildConstSymbolExpression(false,true,l,hs,hssymtyp);
         if hs<>'' then
          Message(asmr_e_relocatable_symbol_not_allowed);
         BuildRefConstExpression:=l;
@@ -1063,6 +1077,7 @@ Unit Ra386int;
       var
         k,l,scale : aint;
         tempstr,hs : string;
+        tempsymtyp : tasmsymtype;
         typesize : longint;
         code : integer;
         hreg : tregister;
@@ -1320,14 +1335,14 @@ Unit Ra386int;
               begin
                 if not GotPlus and not GotStar then
                   Message(asmr_e_invalid_reference_syntax);
-                BuildConstSymbolExpression(true,true,l,tempstr);
+                BuildConstSymbolExpression(true,true,l,tempstr,tempsymtyp);
 
                 if tempstr<>'' then
                  begin
                    if GotStar then
                     Message(asmr_e_only_add_relocatable_symbol);
                    if not assigned(oper.opr.ref.symbol) then
-                    oper.opr.ref.symbol:=objectlibrary.newasmsymbol(tempstr,AB_EXTERNAL,AT_FUNCTION)
+                    oper.opr.ref.symbol:=objectlibrary.newasmsymbol(tempstr,AB_EXTERNAL,tempsymtyp)
                    else
                     Message(asmr_e_cant_have_multiple_relocatable_symbols);
                  end;
@@ -1401,17 +1416,16 @@ Unit Ra386int;
       var
         l : aint;
         tempstr : string;
+        tempsymtyp : tasmsymtype;
       begin
         if not (oper.opr.typ in [OPR_NONE,OPR_CONSTANT]) then
           Message(asmr_e_invalid_operand_type);
-        BuildConstSymbolExpression(true,false,l,tempstr);
+        BuildConstSymbolExpression(true,false,l,tempstr,tempsymtyp);
         if tempstr<>'' then
          begin
            oper.opr.typ:=OPR_SYMBOL;
            oper.opr.symofs:=l;
-           { the symbol already exists, but we don't know whether it is data or
-             a function. we can use AT_NONE }
-           oper.opr.symbol:=objectlibrary.newasmsymbol(tempstr,AB_EXTERNAL,AT_NONE);
+           oper.opr.symbol:=objectlibrary.newasmsymbol(tempstr,AB_EXTERNAL,tempsymtyp);
          end
         else
          begin
@@ -1832,9 +1846,10 @@ Unit Ra386int;
 
     Procedure ti386intreader.BuildConstant(constsize: longint);
       var
-       asmsym,
-       expr: string;
-       value : aint;
+        asmsymtyp : tasmsymtype;
+        asmsym,
+        expr: string;
+        value : aint;
       Begin
         Repeat
           Case actasmtoken of
@@ -1865,12 +1880,12 @@ Unit Ra386int;
             AS_INTNUM,
             AS_ID :
               Begin
-                BuildConstSymbolExpression(false,false,value,asmsym);
+                BuildConstSymbolExpression(false,false,value,asmsym,asmsymtyp);
                 if asmsym<>'' then
                  begin
                    if constsize<>sizeof(aint) then
                      Message1(asmr_w_const32bit_for_address,asmsym);
-                   ConcatConstSymbol(curlist,asmsym,value)
+                   ConcatConstSymbol(curlist,asmsym,asmsymtyp,value)
                  end
                 else
                  ConcatConstant(curlist,value,constsize);
@@ -2022,7 +2037,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.81  2004-11-21 21:36:13  peter
+  Revision 1.82  2004-11-29 18:50:15  peter
+    * os2 fixes for import
+    * asmsymtype support for intel reader
+
+  Revision 1.81  2004/11/21 21:36:13  peter
     * allow spaces before : of a label
 
   Revision 1.80  2004/11/09 22:32:59  peter

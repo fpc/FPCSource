@@ -1277,9 +1277,11 @@ implementation
            begin
               consume(_LIBRARY);
               stringdispose(current_module.modulename);
+              stringdispose(current_module.realmodulename);
               current_module.modulename:=stringdup(pattern);
+              current_module.realmodulename:=stringdup(orgpattern);
               current_module.islibrary:=true;
-              exportlib.preparelib(pattern);
+              exportlib.preparelib(orgpattern);
               consume(_ID);
               consume(_SEMICOLON);
            end
@@ -1293,7 +1295,7 @@ implementation
               current_module.modulename:=stringdup(pattern);
               current_module.realmodulename:=stringdup(orgpattern);
               if (target_info.system in [system_i386_WIN32,system_i386_wdosx]) then
-                exportlib.preparelib(pattern);
+                exportlib.preparelib(orgpattern);
               consume(_ID);
               if token=_LKLAMMER then
                 begin
@@ -1306,7 +1308,7 @@ implementation
               consume(_SEMICOLON);
             end
          else if (target_info.system in [system_i386_WIN32,system_i386_wdosx]) then
-           exportlib.preparelib(current_module.modulename^);
+           exportlib.preparelib(current_module.realmodulename^);
 
          { global switches are read, so further changes aren't allowed }
          current_module.in_global:=false;
@@ -1521,7 +1523,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.176  2004-11-19 08:17:02  michael
+  Revision 1.177  2004-11-29 18:50:15  peter
+    * os2 fixes for import
+    * asmsymtype support for intel reader
+
+  Revision 1.176  2004/11/19 08:17:02  michael
   * Split po_public into po_public and po_global (Peter)
 
   Revision 1.175  2004/11/16 20:32:40  peter

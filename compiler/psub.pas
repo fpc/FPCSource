@@ -1289,7 +1289,7 @@ implementation
                      if not(current_module.uses_imports) then
                        begin
                          current_module.uses_imports:=true;
-                         importlib.preparelib(current_module.modulename^);
+                         importlib.preparelib(current_module.realmodulename^);
                        end;
 
                      if assigned(pd.import_name) then
@@ -1438,7 +1438,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.219  2004-11-21 17:17:03  florian
+  Revision 1.220  2004-11-29 18:50:15  peter
+    * os2 fixes for import
+    * asmsymtype support for intel reader
+
+  Revision 1.219  2004/11/21 17:17:03  florian
     * changed funcret location back to tlocation
 
   Revision 1.218  2004/11/19 08:17:02  michael

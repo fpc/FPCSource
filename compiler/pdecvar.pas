@@ -1118,7 +1118,7 @@ implementation
                              if not(current_module.uses_imports) then
                               begin
                                 current_module.uses_imports:=true;
-                                importlib.preparelib(current_module.modulename^);
+                                importlib.preparelib(current_module.realmodulename^);
                               end;
                              importlib.importvariable(tglobalvarsym(vs),C_name,dll_name);
                            end
@@ -1306,7 +1306,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.85  2004-11-16 20:32:40  peter
+  Revision 1.86  2004-11-29 18:50:15  peter
+    * os2 fixes for import
+    * asmsymtype support for intel reader
+
+  Revision 1.85  2004/11/16 20:32:40  peter
   * fixes for win32 mangledname
 
   Revision 1.84  2004/11/15 23:35:31  peter

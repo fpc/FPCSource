@@ -200,7 +200,7 @@ Function SearchIConstant(const s:string; var l:aint): boolean;
   Procedure ConcatDirect(p : TAAsmoutput;s:string);
   Procedure ConcatLabel(p: TAAsmoutput;var l : tasmlabel);
   Procedure ConcatConstant(p : TAAsmoutput;value: aint; constsize:byte);
-  Procedure ConcatConstSymbol(p : TAAsmoutput;const sym:string;l:aint);
+  Procedure ConcatConstSymbol(p : TAAsmoutput;const sym:string;symtyp:tasmsymtype;l:aint);
   Procedure ConcatRealConstant(p : TAAsmoutput;value: bestreal; real_typ : tfloattype);
   Procedure ConcatString(p : TAAsmoutput;s:string);
   procedure ConcatAlign(p:TAAsmoutput;l:aint);
@@ -1521,9 +1521,9 @@ Begin
 end;
 
 
-  Procedure ConcatConstSymbol(p : TAAsmoutput;const sym:string;l:aint);
+  Procedure ConcatConstSymbol(p : TAAsmoutput;const sym:string;symtyp:tasmsymtype;l:aint);
   begin
-    p.concat(Tai_const.Createname(sym,AT_DATA,l));
+    p.concat(Tai_const.Createname(sym,symtyp,l));
   end;
 
 
@@ -1617,7 +1617,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.96  2004-11-21 15:35:23  peter
+  Revision 1.97  2004-11-29 18:50:15  peter
+    * os2 fixes for import
+    * asmsymtype support for intel reader
+
+  Revision 1.96  2004/11/21 15:35:23  peter
     * float routines all use internproc and compilerproc helpers
 
   Revision 1.95  2004/11/09 22:32:59  peter
