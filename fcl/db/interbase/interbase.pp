@@ -52,6 +52,8 @@ type
     procedure SetDBDialect;
     procedure SetTransaction(Value : TIBTransaction);
   protected
+    procedure Notification(AComponent: TComponent; 
+      Operation: TOperation); override;
     function GetHandle : pointer; virtual;
       { This procedure makes connection to Interbase server internally.
         Is visible only by descendants, in application programming
@@ -180,7 +182,7 @@ type
     property AccessMode: TAccessMode
       read FAccessMode write FAccessMode default amReadWrite;
     property IsolationLevel: TIsolationLevel
-      read FIsolationLevel write FIsolationLevel default ilReadCommitted;
+      read FIsolationLevel write FIsolationLevel default ilConcurrent;
     property LockResolution: TLockResolution
       read FLockResolution write FLockResolution default lrWait;
     property TableReservation: TTableReservation
@@ -383,22 +385,24 @@ end;
 
 procedure TIBDatabase.SetTransaction(Value : TIBTransaction);
 begin
-  if FTransaction = nil then
+  if Value <> FTransaction then
   begin
-    FTransaction := Value;
-    if Assigned(FTransaction) then
-      FTransaction.Database := Self;
-    exit;
-  end;
-
-  if (Value <> FTransaction) and (Value <> nil) then
-    if (not FTransaction.Active) then
+    if FTransaction <> nil then
     begin
-      FTransaction := Value;
+      if FTransaction.Active then
+        raise EInterBaseError.Create(
+          'Cannot assign transaction while old transaction active!');
+      FTransaction.RemoveFreeNotification(Self);
+    end;
+
+    FTransaction := Value;
+
+    if FTransaction <> nil then
+    begin
       FTransaction.Database := Self;
-    end
-    else
-      raise EInterBaseError.Create('Cannot assign transaction while old transaction active!');
+      FTransaction.FreeNotification(Self);
+    end;
+  end;
 end;
 
 function TIBDatabase.GetHandle: pointer;
@@ -466,6 +470,14 @@ begin
     FTransaction.Database := nil;
   end;
   inherited Destroy;
+end;
+
+procedure TIBDatabase.Notification(AComponent: TComponent; 
+  Operation: TOperation); 
+begin
+  inherited;
+  if (AComponent = FTransaction) and (Operation = opRemove) then
+    FTransaction := nil;
 end;
 
 { TIBTransaction }
@@ -573,7 +585,7 @@ end;
 constructor TIBTransaction.Create(AOwner : TComponent);
 begin
   inherited Create(AOwner);
-  FIsolationLevel := ilReadCommitted;
+  FIsolationLevel := ilConcurrent;
 end;
 
 destructor TIBTransaction.Destroy;
@@ -990,7 +1002,7 @@ begin
   for x := 0 to FSQLDA^.SQLD - 1 do
   begin
     {$R-}
-    if (Field.FieldName = FSQLDA^.SQLVar[x].SQLName) then
+    if (Field.FieldName = FSQLDA^.SQLVar[x].AliasName) then
     begin
       Result := not PFieldDataPrefix(CurrBuff)^.IsNull;
 
@@ -1138,7 +1150,7 @@ begin
     begin
       TranslateFldType(FSQLDA^.SQLVar[x].SQLType, FSQLDA^.SQLVar[x].SQLLen, lenset,
         TransType, TransLen);
-      TFieldDef.Create(FieldDefs, FSQLDA^.SQLVar[x].SQLName, TransType,
+      TFieldDef.Create(FieldDefs, FSQLDA^.SQLVar[x].AliasName, TransType,
         TransLen, False, (x + 1));
     end;
     {$R+}
@@ -1247,7 +1259,10 @@ end.
 
 {
   $Log$
-  Revision 1.16  2005-03-17 09:02:17  michael
+  Revision 1.17  2005-03-23 08:35:05  michael
+  + Patch from Michalis Kamburelis to correct transactions
+
+  Revision 1.16  2005/03/17 09:02:17  michael
   + Patch from Michalis Kamburelis to fix TField.IsNull
 
   Revision 1.15  2005/02/14 17:13:12  peter
