@@ -5,12 +5,14 @@
 [targets]
 programs=entry notebook scribble-simple clist ttt_test pixmap list progressbar
 
+[require]
+packages=gtk
+
 [clean]
 units=tictactoe
 
 [dirs]
-fpcdir=../..
-unitdir=..
+fpcdir=../../..
 targetdir=.
 
 [libs]

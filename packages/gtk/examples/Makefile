@@ -128,7 +128,7 @@ endif
 
 # Default FPCDIR
 ifeq ($(FPCDIR),wrong)
-override FPCDIR=../..
+override FPCDIR=../../..
 ifeq ($(wildcard $(FPCDIR)/rtl),)
 override FPCDIR=wrong
 endif
@@ -180,14 +180,13 @@ ZIPTARGET=install
 
 # Directories
 
-override NEEDUNITDIR=..
 ifndef TARGETDIR
 TARGETDIR=.
 endif
 
 # Packages
 
-override PACKAGES+=rtl
+override PACKAGES+=rtl gtk
 
 # Libraries
 
@@ -484,6 +483,7 @@ endif
 # PACKAGESDIR packages
 
 PACKAGERTL=1
+PACKAGEGTK=1
 
 ifdef PACKAGERTL
 ifneq ($(wildcard $(FPCDIR)/rtl),)
@@ -512,6 +512,35 @@ endif
 endif
 ifdef UNITDIR_RTL
 override NEEDUNITDIR+=$(UNITDIR_RTL)
+endif
+endif
+ifdef PACKAGEGTK
+ifneq ($(wildcard $(PACKAGESDIR)/gtk),)
+ifneq ($(wildcard $(PACKAGESDIR)/gtk/$(OS_TARGET)),)
+PACKAGEDIR_GTK=$(PACKAGESDIR)/gtk/$(OS_TARGET)
+else
+PACKAGEDIR_GTK=$(PACKAGESDIR)/gtk
+endif
+ifeq ($(wildcard $(PACKAGEDIR_GTK)/$(FPCMADE)),)
+override COMPILEPACKAGES+=package_gtk
+package_gtk:
+	$(MAKE) -C $(PACKAGEDIR_GTK) all
+endif
+UNITDIR_GTK=$(PACKAGEDIR_GTK)
+else
+PACKAGEDIR_GTK=
+ifneq ($(wildcard $(UNITSDIR)/gtk),)
+ifneq ($(wildcard $(UNITSDIR)/gtk/$(OS_TARGET)),)
+UNITDIR_GTK=$(UNITSDIR)/gtk/$(OS_TARGET)
+else
+UNITDIR_GTK=$(UNITSDIR)/gtk
+endif
+else
+UNITDIR_GTK=
+endif
+endif
+ifdef UNITDIR_GTK
+override NEEDUNITDIR+=$(UNITDIR_GTK)
 endif
 endif
 

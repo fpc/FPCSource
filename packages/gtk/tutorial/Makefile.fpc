@@ -5,9 +5,11 @@
 [targets]
 programs=$(subst $(PASEXT),,$(wildcard tut*$(PASEXT)))
 
+[require]
+packages=gtk
+
 [dirs]
-fpcdir=../..
-unitdir=..
+fpcdir=../../..
 targetdir=.
 
 [libs]

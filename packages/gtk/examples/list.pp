@@ -29,7 +29,6 @@ var
   dlist, free_list : pGList;
   new_prisoner     : pGtkWidget;
   list_item        : pGtkWidget;
-  static_dlist     : TGList;
 begin
   { we only do something if the third (rightmost mouse button
     was released }
@@ -63,9 +62,6 @@ begin
         we need to unselect the item before }
       if new_prisoner<>nil then
        begin
-         static_dlist.data := new_prisoner;
-         static_dlist.next := nil;
-         static_dlist.prev := nil;
          gtk_list_unselect_child(pGTKLIST(gtklist),new_prisoner);
          gtk_widget_reparent(new_prisoner, frame);
        end;
@@ -217,7 +213,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  1999-11-24 23:36:33  peter
+  Revision 1.2  2000-01-24 23:57:56  peter
+    * updated for fpcmake require section
+
+  Revision 1.1  1999/11/24 23:36:33  peter
     * moved to packages dir
 
   Revision 1.8  1999/10/05 09:28:26  peter
