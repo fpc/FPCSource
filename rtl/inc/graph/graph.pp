@@ -2902,12 +2902,18 @@ end;
 
   procedure InitGraph(var GraphDriver:smallint;var GraphMode:smallint;
     const PathToDriver:String);
+  const
+    {$IFDEF Linux}
+    dirchar = '/';
+    {$ELSE}
+    dirchar = '\';
+    {$ENDIF}
   begin
     InitVars;
     { path to the fonts (where they will be searched)...}
     bgipath:=PathToDriver;
-    if bgipath[length(bgipath)]<>'\' then
-    bgipath:=bgipath+'\';
+    if (Length(bgipath) > 0) and (bgipath[length(bgipath)]<>dirchar) then
+      bgipath:=bgipath+dirchar;
 
     if not assigned(SaveVideoState) then
       RunError(216);
@@ -3046,7 +3052,11 @@ SetGraphBufSize
 
 {
   $Log$
-  Revision 1.55  2000-01-07 16:41:37  daniel
+  Revision 1.56  2000-02-06 01:47:15  sg
+  * For Linux, "/" is added to the bgipath instead of "\" if this character
+    isn't already there.
+
+  Revision 1.55  2000/01/07 16:41:37  daniel
     * copyright 2000
 
   Revision 1.54  2000/01/07 16:32:25  daniel
