@@ -1,3 +1,5 @@
+{ %fail }
+
 { Source provided for Free Pascal Bug Report 2478 }
 { Submitted by "Louis Jean-Richard" on  2003-04-30 }
 { e-mail: Ljean_richard@compuserve.com }
