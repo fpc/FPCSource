@@ -442,16 +442,22 @@ unit cg64f32;
     procedure tcg64f32.a_param64_ref(list : taasmoutput;const r : treference;const locpara : tparalocation);
       var
         tmpref: treference;
+        tmploc: tparalocation;
       begin
-{$warning FIX ME}
         tmpref := r;
         inc(tmpref.offset,4);
-        cg.a_param_ref(list,OS_32,tmpref,locpara);
-        { the nr+1 needs definitivly a fix FK }
-        { maybe the parameter numbering needs }
-        { to take care of this on 32 Bit      }
-        { systems FK                          }
-        cg.a_param_ref(list,OS_32,r,locpara);
+        tmploc := locpara;
+        tmploc.registerlow:=tmploc.registerhigh;
+        if target_info.endian = endian_big then
+          begin
+            cg.a_param_ref(list,OS_32,tmpref,tmploc);
+            cg.a_param_ref(list,OS_32,r,locpara);
+          end
+        else
+          begin
+            cg.a_param_ref(list,OS_32,tmpref,locpara);
+            cg.a_param_ref(list,OS_32,r,locpara);
+          end;
       end;
 
 
@@ -732,7 +738,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  2002-09-07 15:25:00  peter
+  Revision 1.29  2002-09-10 21:24:38  jonas
+    * fixed a_param64_ref
+
+  Revision 1.28  2002/09/07 15:25:00  peter
     * old logs removed and tabs fixed
 
   Revision 1.27  2002/08/19 18:17:47  carl
