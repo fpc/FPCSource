@@ -21,7 +21,11 @@ interface
 Uses Classes,
      pipes,
 {$ifdef linux}
+{$ifdef ver1_0}
      Linux,
+{$else}
+     unix,
+{$endif}     
 {$else}          
      Windows,
 {$endif}     
@@ -907,7 +911,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2001-11-05 21:07:08  michael
+  Revision 1.5  2001-11-05 21:45:35  michael
+  + unix/linux unit name conflict
+
+  Revision 1.4  2001/11/05 21:07:08  michael
   + Added header and mode switch
 
 }
