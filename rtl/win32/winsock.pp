@@ -685,6 +685,7 @@ unit winsock;
     function connect(s:TSocket; addr:PSockAddr; namelen:tOS_INT):tOS_INT;stdcall;external winsockdll name 'connect';
     function connect(s:TSocket; Const name:TSockAddr; namelen:tOS_INT):tOS_INT;stdcall;external winsockdll name 'connect';
     function ioctlsocket(s:TSocket; cmd:longint; var arg:u_long):tOS_INT;stdcall;external winsockdll name 'ioctlsocket'; { really a c-long }
+    function ioctlsocket(s:TSocket; cmd:longint; var arg:longint):tOS_INT;stdcall;external winsockdll name 'ioctlsocket'; { really a c-long }
     function ioctlsocket(s:TSocket; cmd:longint; argp:pu_long):tOS_INT;stdcall;external winsockdll name 'ioctlsocket'; { really a c-long }
     function getpeername(s:TSocket; var name:TSockAddr;var namelen:tOS_INT):tOS_INT;stdcall;
       external winsockdll name 'getpeername';
@@ -881,7 +882,10 @@ unit winsock;
 end.
 {
   $Log$
-  Revision 1.7  2002-01-19 11:58:20  peter
+  Revision 1.8  2002-08-12 14:18:53  florian
+    * ioctlselect overloaded to take a longint is second parameter
+
+  Revision 1.7  2002/01/19 11:58:20  peter
     * more functions from webbugs
 
   Revision 1.6  2001/10/15 15:09:51  jonas
@@ -898,5 +902,4 @@ end.
 
   Revision 1.2  2000/07/13 11:33:58  michael
   + removed logs
-
 }
