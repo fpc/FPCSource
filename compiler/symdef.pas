@@ -208,15 +208,17 @@ interface
 {$endif GDB}
        end;
 
+       Trecord_stabgen_state=record
+          stabstring:Pchar;
+          stabsize,staballoc,recoffset:integer;
+       end;
+
        tabstractrecorddef = class(tstoreddef)
        private
           Count         : integer;
           FRTTIType     : trttitype;
 {$ifdef GDB}
-          StabRecString : pchar;
-          StabRecSize   : Integer;
-          RecOffset     : Integer;
-          procedure addname(p : tnamedindexitem;arg:pointer);
+          procedure addname(p:Tnamedindexitem;arg:pointer);
 {$endif}
           procedure count_field_rtti(sym : tnamedindexitem;arg:pointer);
           procedure write_field_rtti(sym : tnamedindexitem;arg:pointer);
@@ -1157,11 +1159,10 @@ implementation
         end;
       end;
 
+
     function tstoreddef.allstabstring : pchar;
     var stabchar : string[2];
         ss,st,su : pchar;
-        sname : string;
-        sym_line_no : longint;
     begin
       ss := stabstring;
       stabchar := 't';
@@ -2964,47 +2965,47 @@ implementation
 
 
 {$ifdef GDB}
-    procedure tabstractrecorddef.addname(p : tnamedindexitem;arg:pointer);
-      var
-        news, newrec : pchar;
-        spec : string[3];
-        varsize : longint;
-      begin
-        { static variables from objects are like global objects }
-        if (sp_static in tsym(p).symoptions) then
-          exit;
-        If tsym(p).typ = varsym then
-         begin
-           if (sp_protected in tsym(p).symoptions) then
-             spec:='/1'
-           else if (sp_private in tsym(p).symoptions) then
-             spec:='/0'
-           else
-             spec:='';
-           if not assigned(tvarsym(p).vartype.def) then
-            writeln(tvarsym(p).name);
-           { class fields are pointers PM, obsolete now PM }
-           {if (tvarsym(p).vartype.def.deftype=objectdef) and
-              tobjectdef(tvarsym(p).vartype.def).is_class then
-              spec:=spec+'*'; }
-           varsize:=tvarsym(p).vartype.def.size;
-           { open arrays made overflows !! }
-           if varsize>$fffffff then
-             varsize:=$fffffff;
-           newrec:=stabstr_evaluate('$1:$2,$3,$4;',[p.name,
-                                    spec+tstoreddef(tvarsym(p).vartype.def).numberstring,
-                                    tostr(tvarsym(p).fieldoffset*8),tostr(varsize*8)]);
-           if strlen(StabRecString) + strlen(newrec) >= StabRecSize-256 then
-             begin
-                inc(stabrecsize,memsizeinc);
-                reallocmem(stabrecstring,stabrecsize);
-             end;
-           strcat(StabRecstring,newrec);
-           strdispose(newrec);
-           {This should be used for case !!}
-           inc(RecOffset,tvarsym(p).vartype.def.size);
-         end;
-      end;
+    procedure tabstractrecorddef.addname(p:Tnamedindexitem;arg:pointer);
+
+    var newrec:Pchar;
+        spec:string[3];
+        varsize:longint;
+        state:^Trecord_stabgen_state;
+
+    begin
+      state:=arg;
+      { static variables from objects are like global objects }
+      if (Tsym(p).typ=varsym) and not (sp_static in Tsym(p).symoptions) then
+        begin
+          if (sp_protected in tsym(p).symoptions) then
+            spec:='/1'
+          else if (sp_private in tsym(p).symoptions) then
+            spec:='/0'
+          else
+            spec:='';
+          { class fields are pointers PM, obsolete now PM }
+          {if (tvarsym(p).vartype.def.deftype=objectdef) and
+             tobjectdef(tvarsym(p).vartype.def).is_class then
+             spec:=spec+'*'; }
+          varsize:=tvarsym(p).vartype.def.size;
+          { open arrays made overflows !! }
+          if varsize>$fffffff then
+            varsize:=$fffffff;
+          newrec:=stabstr_evaluate('$1:$2,$3,$4;',[p.name,
+                                   spec+tstoreddef(tvarsym(p).vartype.def).numberstring,
+                                   tostr(tvarsym(p).fieldoffset*8),tostr(varsize*8)]);
+          if state^.stabsize+strlen(newrec)>=state^.staballoc-256 then
+            begin
+              inc(state^.staballoc,memsizeinc);
+              reallocmem(state^.stabstring,state^.staballoc);
+            end;
+          strcopy(state^.stabstring+state^.stabsize,newrec);
+          inc(state^.stabsize,strlen(newrec));
+          strdispose(newrec);
+          {This should be used for case !!}
+          inc(state^.recoffset,Tvarsym(p).vartype.def.size);
+        end;
+    end;
 {$endif GDB}
 
 
@@ -3173,16 +3174,22 @@ implementation
 
 {$ifdef GDB}
     function trecorddef.stabstring : pchar;
-      begin
-        GetMem(stabrecstring,memsizeinc);
-        stabrecsize:=memsizeinc;
-        strpcopy(stabRecString,'s'+tostr(size));
-        RecOffset := 0;
-        symtable.foreach({$ifdef FPCPROCVAR}@{$endif}addname,nil);
-        strpcopy(strend(StabRecString),';');
-        reallocmem(stabrecstring,strlen(stabrecstring));
-        stabstring:=stabrecstring;
-      end;
+
+    var state:Trecord_stabgen_state;
+
+    begin
+      getmem(state.stabstring,memsizeinc);
+      state.staballoc:=memsizeinc;
+      strpcopy(state.stabstring,'s'+tostr(size));
+      state.recoffset:=0;
+      state.stabsize:=strlen(state.stabstring);
+      symtable.foreach({$ifdef FPCPROCVAR}@{$endif}addname,@state);
+{      strpcopy(strend(state.stabstring),';');}
+      state.stabstring[state.stabsize]:=';';
+      state.stabstring[state.stabsize+1]:=#0;
+      reallocmem(state.stabstring,state.stabsize+2);
+      stabstring:=state.stabstring;
+    end;
 
 
     procedure trecorddef.concatstabto(asmlist : taasmoutput);
@@ -4551,7 +4558,7 @@ implementation
           Please do not remove this part
           might be used once
           gdb for pascal is ready PM }
-        (*
+      {$ifdef disabled}
         param := para1;
         i := 0;
         while assigned(param) do
@@ -4563,7 +4570,8 @@ implementation
           strcat(nss,pst);
           strdispose(pst);
           param := param^.next;
-          end; *)
+          end;
+      {$endif}
         {strpcopy(strend(nss),';');}
         stabstring := strnew(nss);
         freemem(nss,1024);
@@ -5082,14 +5090,17 @@ implementation
 {$ifdef GDB}
     procedure tobjectdef.addprocname(p :tnamedindexitem;arg:pointer);
       var virtualind,argnames : string;
-          news, newrec : pchar;
+          newrec : pchar;
           pd,ipd : tprocdef;
           lindex : longint;
           para : TParaItem;
           arglength : byte;
           sp : char;
+          state:^Trecord_stabgen_state;
+          olds:integer;
       begin
-        If tsym(p).typ = procsym then
+        state:=arg;
+        if tsym(p).typ = procsym then
          begin
            pd := tprocsym(p).first_procdef;
            { this will be used for full implementation of object stabs
@@ -5153,12 +5164,14 @@ implementation
                                    Tstoreddef(pd.rettype.def).numberstring,argnames,sp,
                                    virtualind]);
           { get spare place for a string at the end }
-          if strlen(StabRecString) + strlen(newrec) >= StabRecSize-256 then
+          olds:=state^.stabsize;
+          inc(state^.stabsize,strlen(newrec));
+          if state^.stabsize>=state^.staballoc-256 then
             begin
-               inc(stabrecsize,memsizeinc);
-               reallocmem(stabrecstring,stabrecsize);
+               inc(state^.staballoc,memsizeinc);
+               reallocmem(state^.stabstring,state^.staballoc);
             end;
-          strcat(StabRecstring,newrec);
+          strcopy(state^.stabstring+olds,newrec);
           strdispose(newrec);
           {This should be used for case !!
           RecOffset := RecOffset + pd.size;}
@@ -5168,50 +5181,46 @@ implementation
 
     function tobjectdef.stabstring : pchar;
       var anc : tobjectdef;
-          oldrec : pchar;
-          oldrecsize,oldrecoffset : longint;
-          str_end : string;
+          state:Trecord_stabgen_state;
+          ts : string;
       begin
         if not (objecttype=odt_class) or writing_class_record_stab then
           begin
-            oldrec := stabrecstring;
-            oldrecsize:=stabrecsize;
-            stabrecsize:=memsizeinc;
-            GetMem(stabrecstring,stabrecsize);
-            strpcopy(stabRecString,'s'+tostr(tobjectsymtable(symtable).datasize));
+            state.staballoc:=memsizeinc;
+            getmem(state.stabstring,state.staballoc);
+            strpcopy(state.stabstring,'s'+tostr(tobjectsymtable(symtable).datasize));
             if assigned(childof) then
               begin
                 {only one ancestor not virtual, public, at base offset 0 }
                 {       !1           ,    0       2         0    ,       }
-                strpcopy(strend(stabrecstring),'!1,020,'+childof.classnumberstring+';');
+                strpcopy(strend(state.stabstring),'!1,020,'+childof.classnumberstring+';');
               end;
             {virtual table to implement yet}
-            OldRecOffset:=RecOffset;
-            RecOffset := 0;
-            symtable.foreach({$ifdef FPCPROCVAR}@{$endif}addname,nil);
-            RecOffset:=OldRecOffset;
+            state.recoffset:=0;
+            state.stabsize:=strlen(state.stabstring);
+            symtable.foreach({$ifdef FPCPROCVAR}@{$endif}addname,@state);
             if (oo_has_vmt in objectoptions) then
               if not assigned(childof) or not(oo_has_vmt in childof.objectoptions) then
                  begin
-                    strpcopy(strend(stabrecstring),'$vf'+classnumberstring+':'+typeglobalnumber('vtblarray')
-                      +','+tostr(vmt_offset*8)+';');
+                    ts:='$vf'+classnumberstring+':'+typeglobalnumber('vtblarray')+','+tostr(vmt_offset*8)+';';
+                    strpcopy(state.stabstring+state.stabsize,ts);
+                    inc(state.stabsize,length(ts));
                  end;
-            symtable.foreach({$ifdef FPCPROCVAR}@{$endif}addprocname,nil);
+            symtable.foreach({$ifdef FPCPROCVAR}@{$endif}addprocname,@state);
             if (oo_has_vmt in objectoptions) then
               begin
                  anc := self;
                  while assigned(anc.childof) and (oo_has_vmt in anc.childof.objectoptions) do
                    anc := anc.childof;
                  { just in case anc = self }
-                 str_end:=';~%'+anc.classnumberstring+';';
+                 ts:=';~%'+anc.classnumberstring+';';
               end
             else
-              str_end:=';';
-            strpcopy(strend(stabrecstring),str_end);
-            stabstring := strnew(StabRecString);
-            freemem(stabrecstring,stabrecsize);
-            stabrecstring := oldrec;
-            stabrecsize:=oldrecsize;
+              ts:=';';
+            strpcopy(state.stabstring+state.stabsize,ts);
+            inc(state.stabsize,length(ts));
+            reallocmem(state.stabstring,state.stabsize+1);
+            stabstring:=state.stabstring;
           end
         else
           begin
@@ -6182,7 +6191,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.205  2004-01-25 13:18:59  daniel
+  Revision 1.206  2004-01-25 20:23:28  daniel
+    * More gdb cleanup: make record & object stab generation linear instead
+      of quadratic.
+
+  Revision 1.205  2004/01/25 13:18:59  daniel
     * Made varags parameter constant
 
   Revision 1.204  2004/01/25 12:37:15  daniel
