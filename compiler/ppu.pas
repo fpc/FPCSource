@@ -45,9 +45,9 @@ type
 
 const
 {$ifdef ansistring_bits}
-  CurrentPPUVersion=42;
+  CurrentPPUVersion=43;
 {$else}
-  CurrentPPUVersion=42;
+  CurrentPPUVersion=43;
 {$endif}
 
 { buffer sizes }
@@ -1053,7 +1053,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.53  2004-07-12 09:14:04  jonas
+  Revision 1.54  2004-08-17 16:29:21  jonas
+    + padalgingment field for recordsymtables (saved by recorddefs)
+    + support for Macintosh PowerPC alignment (if the first field of a record
+      or union has an alignment > 4, then the record or union size must be
+      padded to a multiple of this size)
+
+  Revision 1.53  2004/07/12 09:14:04  jonas
     * inline procedures at the node tree level, but only under some very
       limited circumstances for now (only procedures, and only if they have
       no or only vs_out/vs_var parameters).

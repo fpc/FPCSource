@@ -244,6 +244,7 @@ interface
           procedure deref;override;
           function  size:longint;override;
           function  alignment : longint;override;
+          function  padalignment: longint;
           function  gettypename:string;override;
           { debug }
 {$ifdef GDB}
@@ -3112,8 +3113,9 @@ implementation
          deftype:=recorddef;
          symtable:=trecordsymtable.create(0);
          trecordsymtable(symtable).datasize:=ppufile.getlongint;
-         trecordsymtable(symtable).fieldalignment:=ppufile.getbyte;
-         trecordsymtable(symtable).recordalignment:=ppufile.getbyte;
+         trecordsymtable(symtable).fieldalignment:=shortint(ppufile.getbyte);
+         trecordsymtable(symtable).recordalignment:=shortint(ppufile.getbyte);
+         trecordsymtable(symtable).padalignment:=shortint(ppufile.getbyte);
          trecordsymtable(symtable).ppuload(ppufile);
          symtable.defowner:=self;
          isunion:=false;
@@ -3171,8 +3173,9 @@ implementation
       begin
          inherited ppuwritedef(ppufile);
          ppufile.putlongint(trecordsymtable(symtable).datasize);
-         ppufile.putbyte(trecordsymtable(symtable).fieldalignment);
-         ppufile.putbyte(trecordsymtable(symtable).recordalignment);
+         ppufile.putbyte(byte(trecordsymtable(symtable).fieldalignment));
+         ppufile.putbyte(byte(trecordsymtable(symtable).recordalignment));
+         ppufile.putbyte(byte(trecordsymtable(symtable).padalignment));
          ppufile.writeentry(ibrecorddef);
          trecordsymtable(symtable).ppuwrite(ppufile);
       end;
@@ -3189,6 +3192,11 @@ implementation
         alignment:=trecordsymtable(symtable).recordalignment;
       end;
 
+
+    function trecorddef.padalignment:longint;
+      begin
+        padalignment := trecordsymtable(symtable).padalignment;
+      end;
 
 {$ifdef GDB}
     function trecorddef.stabstring : pchar;
@@ -6146,7 +6154,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.251  2004-08-15 15:05:16  peter
+  Revision 1.252  2004-08-17 16:29:21  jonas
+    + padalgingment field for recordsymtables (saved by recorddefs)
+    + support for Macintosh PowerPC alignment (if the first field of a record
+      or union has an alignment > 4, then the record or union size must be
+      padded to a multiple of this size)
+
+  Revision 1.251  2004/08/15 15:05:16  peter
     * fixed padding of records to alignment
 
   Revision 1.250  2004/08/14 14:50:42  florian

@@ -686,7 +686,8 @@ implementation
          { startvarrec contains the start of the variant part of a record }
          maxsize, startvarrecsize : longint;
          usedalign,
-         maxalignment,startvarrecalign : byte;
+         maxalignment,startvarrecalign,
+         maxpadalign, startpadalign: shortint;
          hp,pt : tnode;
          vs,vs2    : tvarsym;
          srsym : tsym;
@@ -699,7 +700,14 @@ implementation
          uniontype : ttype;
          dummysymoptions : tsymoptions;
          semicolonatend: boolean;
+{$ifdef powerpc}
+         tempdef: tdef;
+         is_first_field: boolean;
+{$endif powerpc}
       begin
+{$ifdef powerpc}
+        is_first_field := true;
+{$endif powerpc}
          old_current_object_option:=current_object_option;
          { all variables are public if not in a object declaration }
          if not is_object then
@@ -760,6 +768,36 @@ implementation
                   tt.def.typesym:=nil;
                   newtype.free;
                end;
+{$ifdef powerpc}
+               { from gcc/gcc/config/rs6000/rs6000.h: 
+                /* APPLE LOCAL begin Macintosh alignment 2002-1-22 ff */
+                /* Return the alignment of a struct based on the Macintosh PowerPC
+                   alignment rules.  In general the alignment of a struct is
+                   determined by the greatest alignment of its elements.  However, the
+                   PowerPC rules cause the alignment of a struct to peg at word
+                   alignment except when the first field has greater than word
+                   (32-bit) alignment, in which case the alignment is determined by
+                   the alignment of the first field.  */
+               }
+               if (target_info.system in [system_powerpc_darwin, system_powerpc_macos]) and
+                  is_record and
+                  is_first_field and
+                  (trecordsymtable(symtablestack).usefieldalignment = -1) then
+                 begin
+                   tempdef := tt.def;
+                   while tempdef.deftype = arraydef do
+                     tempdef := tarraydef(tempdef).elementtype.def;
+                   if tempdef.deftype <> recorddef then
+                     maxpadalign := tempdef.alignment
+                   else
+                     maxpadalign := trecorddef(tempdef).padalignment;
+                       
+                   if (maxpadalign > 4) and
+                      (maxpadalign > trecordsymtable(symtablestack).padalignment) then
+                     trecordsymtable(symtablestack).padalignment := maxpadalign;
+                   is_first_field := false;
+                 end;
+{$endif powerpc}
              { types that use init/final are not allowed in variant parts, but
                classes are allowed }
              if (variantrecordlevel>0) and
@@ -1125,6 +1163,7 @@ implementation
            begin
               maxsize:=0;
               maxalignment:=0;
+              maxpadalign:=0;
               consume(_CASE);
               sorg:=orgpattern;
               hs:=pattern;
@@ -1169,6 +1208,7 @@ implementation
               registerdef:=true;
               startvarrecsize:=UnionSymtable.datasize;
               startvarrecalign:=UnionSymtable.fieldalignment;
+              startpadalign:=Unionsymtable.padalignment;
               symtablestack:=UnionSymtable;
               repeat
                 repeat
@@ -1192,9 +1232,11 @@ implementation
                 { calculates maximal variant size }
                 maxsize:=max(maxsize,unionsymtable.datasize);
                 maxalignment:=max(maxalignment,unionsymtable.fieldalignment);
+                maxpadalign:=max(maxpadalign,unionsymtable.padalignment);
                 { the items of the next variant are overlayed }
                 unionsymtable.datasize:=startvarrecsize;
                 unionsymtable.fieldalignment:=startvarrecalign;
+                unionsymtable.padalignment:=startpadalign;
                 if (token<>_END) and (token<>_RKLAMMER) then
                   consume(_SEMICOLON)
                 else
@@ -1207,6 +1249,15 @@ implementation
               uniontype.sym:=nil;
               UnionSym:=tvarsym.create('$case',vs_value,uniontype);
               symtablestack:=symtablestack.next;
+              unionsymtable.addalignmentpadding;
+{$ifdef powerpc}
+              { parent inherits the alignment padding if the variant is the first "field" of the parent record/variant }
+              if (target_info.system in [system_powerpc_darwin, system_powerpc_macos]) and
+                 is_first_field and
+                 (trecordsymtable(symtablestack).usefieldalignment = -1) and
+                 (maxpadalign > trecordsymtable(symtablestack).padalignment) then
+                trecordsymtable(symtablestack).padalignment:=maxpadalign;
+{$endif powerpc}
               { Align the offset where the union symtable is added }
               if (trecordsymtable(symtablestack).usefieldalignment=-1) then
                 usedalign:=used_align(unionsymtable.recordalignment,aktalignment.recordalignmin,aktalignment.maxCrecordalign)
@@ -1229,12 +1280,21 @@ implementation
          current_object_option:=old_current_object_option;
          { free the list }
          sc.free;
+{$ifdef powerpc}
+         is_first_field := false;
+{$endif powerpc}
       end;
 
 end.
 {
   $Log$
-  Revision 1.78  2004-08-15 13:30:18  florian
+  Revision 1.79  2004-08-17 16:29:21  jonas
+    + padalgingment field for recordsymtables (saved by recorddefs)
+    + support for Macintosh PowerPC alignment (if the first field of a record
+      or union has an alignment > 4, then the record or union size must be
+      padded to a multiple of this size)
+
+  Revision 1.78  2004/08/15 13:30:18  florian
     * fixed alignment of variant records
     * more alignment problems fixed
 

@@ -90,7 +90,8 @@ interface
           datasize       : longint;
           usefieldalignment,     { alignment to use for fields (PACKRECORDS value), -1 is C style }
           recordalignment,       { alignment required when inserting this record }
-          fieldalignment : shortint; { alignment current alignment used when fields are inserted }
+          fieldalignment,        { alignment current alignment used when fields are inserted }
+          padalignment : shortint;   { size to a multiple of which the symtable has to be rounded up }
           constructor create(const n:string;usealign:shortint);
           procedure ppuload(ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -908,6 +909,7 @@ implementation
         datasize:=0;
         recordalignment:=1;
         usefieldalignment:=usealign;
+        padalignment:=1;
         { recordalign -1 means C record packing, that starts
           with an alignment of 1 }
         if usealign=-1 then
@@ -1044,18 +1046,17 @@ implementation
 
 
     procedure tabstractrecordsymtable.addalignmentpadding;
-      var
-        padalign : shortint;
       begin
         { make the record size aligned correctly so it can be
           used as elements in an array. For C records we
           use the fieldalignment, because that is updated with the
           used alignment. }
-        if usefieldalignment=-1 then
-          padalign:=fieldalignment
-        else
-          padalign:=recordalignment;
-        datasize:=align(datasize,padalign);
+        if (padalignment = 1) then
+          if usefieldalignment=-1 then
+            padalignment:=fieldalignment
+          else
+            padalignment:=recordalignment;
+        datasize:=align(datasize,padalignment);
       end;
 
 
@@ -2314,7 +2315,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.154  2004-08-15 15:05:16  peter
+  Revision 1.155  2004-08-17 16:29:21  jonas
+    + padalgingment field for recordsymtables (saved by recorddefs)
+    + support for Macintosh PowerPC alignment (if the first field of a record
+      or union has an alignment > 4, then the record or union size must be
+      padded to a multiple of this size)
+
+  Revision 1.154  2004/08/15 15:05:16  peter
     * fixed padding of records to alignment
 
   Revision 1.153  2004/08/15 13:30:18  florian
