@@ -307,6 +307,8 @@ all : allexectests
 
 full : clean allexectests digest
 
+fulldb : clean allexectests digest dbdigest
+
 onlyknown :
         $(MAKE) full "DOTESTOPT= $(DOTESTOPT) -k-"
 

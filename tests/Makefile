@@ -1460,6 +1460,7 @@ dbdigest: utils
 	-$(DBDIGEST) -v $(TEST_FPC_VERSION) -o $(TEST_OS_TARGET) -c $(TEST_CPU_TARGET) -l $(LOG) $(DBDIGESTOPT)
 all : allexectests
 full : clean allexectests digest
+fulldb : clean allexectests digest dbdigest
 onlyknown :
 	$(MAKE) full "DOTESTOPT= $(DOTESTOPT) -k-"
 onlygraph :
