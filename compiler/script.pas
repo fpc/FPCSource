@@ -97,7 +97,7 @@ uses
   {$ifdef ver1_0}
     Linux,
   {$else}
-    BaseUnix,Unix,
+    BaseUnix,
   {$endif}
 {$endif}
   cutils,
@@ -419,7 +419,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.22  2003-09-14 20:26:18  marco
+  Revision 1.23  2003-09-16 13:42:39  marco
+   * Had a useless dependancy on unit unix in 1_1 mode
+
+  Revision 1.22  2003/09/14 20:26:18  marco
    * Unix reform
 
   Revision 1.21  2003/04/22 14:33:38  peter
