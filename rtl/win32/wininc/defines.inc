@@ -1949,10 +1949,10 @@ Const
      TIME_FORCE24HOURFORMAT = 8;
   { GetTimeZoneInformation  }
     { was #define dname def_expr }
-    function TIME_ZONE_ID_INVALID : DWORD;
 
 
   const
+     TIME_ZONE_ID_INVALID = DWORD(-1);
      TIME_ZONE_ID_UNKNOWN = 0;
      TIME_ZONE_ID_STANDARD = 1;
      TIME_ZONE_ID_DAYLIGHT = 2;
@@ -5609,11 +5609,6 @@ const
          INVALID_HANDLE_VALUE:=HANDLE(-(1));
       end;
 }
-    { was #define dname def_expr }
-    function TIME_ZONE_ID_INVALID : DWORD;
-      begin
-         TIME_ZONE_ID_INVALID:=DWORD(-(1));
-      end;
 
     { was #define dname def_expr }
     function HWND_BROADCAST : HWND;
@@ -5917,7 +5912,10 @@ const
 
 {
   $Log$
-  Revision 1.15  2003-12-05 09:13:46  marco
+  Revision 1.16  2004-02-06 22:47:19  marco
+   * Macro changed to constant
+
+  Revision 1.15  2003/12/05 09:13:46  marco
    * small fix
 
   Revision 1.14  2003/10/26 16:31:38  florian
