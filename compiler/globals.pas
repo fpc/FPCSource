@@ -1467,7 +1467,7 @@ implementation
                (length(hs1) - length(source_info.exeext)+1) then
             hs1 := hs1 + source_info.exeext;
           p:=GetEnvPchar('PATH');
-          found:=FindFilePChar(hs1,p,exepath);
+          FindFilePChar(hs1,p,exepath);
           FreeEnvPChar(p);
           exepath:=SplitPath(exepath);
         end;
@@ -1575,7 +1575,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.90  2003-05-23 14:39:56  peter
+  Revision 1.91  2003-05-23 15:03:31  peter
+    * fix previous commit for unix
+
+  Revision 1.90  2003/05/23 14:39:56  peter
     * FindFilePChar added to allow PATH variables > 256 chars
 
   Revision 1.89  2003/05/15 18:58:53  peter
