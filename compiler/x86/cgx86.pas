@@ -665,13 +665,24 @@ unit cgx86;
 
 
     procedure tcgx86.a_loadmm_reg_ref(list: taasmoutput; fromsize, tosize : tcgsize;reg: tregister; const ref: treference;shuffle : pmmshuffle);
+       var
+         hreg : tregister;
        begin
          if shuffle=nil then
            begin
              list.concat(taicpu.op_reg_ref(A_MOVQ,S_NO,reg,ref));
            end
          else if shufflescalar(shuffle) then
-           list.concat(taicpu.op_reg_ref(get_scalar_mm_op(fromsize,tosize),S_NO,reg,ref))
+           begin
+             if tosize<>fromsize then
+               begin
+                 hreg:=getmmregister(list,tosize);
+                 list.concat(taicpu.op_reg_reg(get_scalar_mm_op(fromsize,tosize),S_NO,reg,hreg));
+                 list.concat(taicpu.op_reg_ref(get_scalar_mm_op(tosize,tosize),S_NO,hreg,ref));
+               end
+             else
+               list.concat(taicpu.op_reg_ref(get_scalar_mm_op(fromsize,tosize),S_NO,reg,ref))
+           end
          else
            internalerror(200312252);
        end;
@@ -1626,7 +1637,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.134  2004-11-01 10:30:06  peter
+  Revision 1.135  2004-11-01 15:42:47  florian
+    * cvt*2* can't write to memory location, fixed
+
+  Revision 1.134  2004/11/01 10:30:06  peter
     * fixed uninited var in a_load_reg_ref
 
   Revision 1.133  2004/10/31 21:45:04  peter
