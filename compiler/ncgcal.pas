@@ -2,7 +2,7 @@
     $Id$
     Copyright (c) 1998-2002 by Florian Klaempfl
 
-    Generate i386 assembler for in call nodes
+    Generate assembler for call nodes
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -134,8 +134,8 @@ implementation
              if paramanager.push_addr_param(vs_value,left.resulttype.def,calloption) then
                begin
                  inc(pushedparasize,POINTER_SIZE);
-                 cg.a_paramaddr_ref(exprasmlist,left.location.reference,tempparaloc);
                  location_release(exprasmlist,left.location);
+                 cg.a_paramaddr_ref(exprasmlist,left.location.reference,tempparaloc);
                end
              else
                push_value_para(exprasmlist,left,vs_value,calloption,alignment,tempparaloc);
@@ -153,8 +153,8 @@ implementation
                     internalerror(200305071);
 
                   inc(pushedparasize,POINTER_SIZE);
-                  cg.a_paramaddr_ref(exprasmlist,left.location.reference,tempparaloc);
                   location_release(exprasmlist,left.location);
+                  cg.a_paramaddr_ref(exprasmlist,left.location.reference,tempparaloc);
                end
              else
                begin
@@ -180,64 +180,52 @@ implementation
               if (left.nodetype=addrn) and
                  (not(nf_procvarload in left.flags)) then
                 begin
-                  cg.a_param_loc(exprasmlist,left.location,tempparaloc);
                   location_release(exprasmlist,left.location);
+                  cg.a_param_loc(exprasmlist,left.location,tempparaloc);
                 end
               else
                 begin
                    if not(left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
                      internalerror(200304235);
 
-                   cg.a_paramaddr_ref(exprasmlist,left.location.reference,tempparaloc);
                    location_release(exprasmlist,left.location);
+                   cg.a_paramaddr_ref(exprasmlist,left.location.reference,tempparaloc);
                 end;
            end
+         { Normal parameter }
          else
-              { don't push a node that already generated a pointer type
-                by address for implicit hidden parameters }
-              if (not(
-                      paraitem.is_hidden and
-                      (left.resulttype.def.deftype in [pointerdef,classrefdef])
-                     ) and
-                  paramanager.push_addr_param(paraitem.paratyp,paraitem.paratype.def,calloption)) then
-                begin
-                   { Check for passing a constant to var,out parameter }
-                   if (paraitem.paratyp in [vs_var,vs_out]) and
-                      (left.location.loc<>LOC_REFERENCE) then
-                    begin
-                      { passing self to a var parameter is allowed in
-                        TP and delphi }
-                      if not((left.location.loc=LOC_CREFERENCE) and
-                             is_self_node(left)) then
-                       internalerror(200106041);
-                    end;
-                   if not(left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
-                    begin
-                      { allow passing nil to a procvardef (methodpointer) }
-                      if (left.nodetype=typeconvn) and
-                         (left.resulttype.def.deftype=procvardef) and
-                         (ttypeconvnode(left).left.nodetype=niln) then
-                       begin
-                         tg.GetTemp(exprasmlist,tcgsize2size[left.location.size],tt_normal,href);
-                         if not (left.location.size in [OS_64,OS_S64]) then
-                           cg.a_load_loc_ref(exprasmlist,left.location.size,left.location,href)
-                         else
-                           cg64.a_load64_loc_ref(exprasmlist,left.location,href);
-                         location_reset(left.location,LOC_REFERENCE,left.location.size);
-                         left.location.reference:=href;
-                       end
-                      else
-                       internalerror(200204011);
-                    end;
-
-                   inc(pushedparasize,POINTER_SIZE);
-                   cg.a_paramaddr_ref(exprasmlist,left.location.reference,tempparaloc);
-                   location_release(exprasmlist,left.location);
-                end
-              else
-                begin
-                  push_value_para(exprasmlist,left,paraitem.paratyp,calloption,alignment,tempparaloc);
-                end;
+           begin
+             { don't push a node that already generated a pointer type
+               by address for implicit hidden parameters }
+             if (not(
+                     paraitem.is_hidden and
+                     (left.resulttype.def.deftype in [pointerdef,classrefdef])
+                    ) and
+                 paramanager.push_addr_param(paraitem.paratyp,paraitem.paratype.def,calloption)) then
+               begin
+                  { Check for passing a constant to var,out parameter }
+                  if (paraitem.paratyp in [vs_var,vs_out]) and
+                     (left.location.loc<>LOC_REFERENCE) then
+                   begin
+                     { passing self to a var parameter is allowed in
+                       TP and delphi }
+                     if not((left.location.loc=LOC_CREFERENCE) and
+                            is_self_node(left)) then
+                      internalerror(200106041);
+                   end;
+                  { Move to memory }
+                  if not(left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
+                    location_force_mem(exprasmlist,left.location);
+                  { Push address }
+                  inc(pushedparasize,POINTER_SIZE);
+                  location_release(exprasmlist,left.location);
+                  cg.a_paramaddr_ref(exprasmlist,left.location.reference,tempparaloc);
+               end
+             else
+               begin
+                 push_value_para(exprasmlist,left,paraitem.paratyp,calloption,alignment,tempparaloc);
+               end;
+           end;
          truelabel:=otlabel;
          falselabel:=oflabel;
 
@@ -483,9 +471,7 @@ implementation
          href,helpref : treference;
          para_alignment,
          pop_size : longint;
-{$ifndef usecallref}
          pvreg,
-{$endif usecallref}
          vmtreg,vmtreg2 : tregister;
          oldaktcallnode : tcallnode;
 
@@ -615,50 +601,37 @@ implementation
          { Align stack if required }
          pop_size:=align_parasize;
 
-         { Push parameters }
+         { Process parameters, register parameters will be loaded
+           in imaginary registers. The actual load to the correct
+           register is done just before the call }
          oldaktcallnode:=aktcallnode;
          aktcallnode:=self;
-
-{$ifndef i386}
-         { process procvar. Done here already, because otherwise it may }
-         { destroy registers containing a parameter for the actual      }
-         { function call (e.g. if it's a function, its result will      }
-         { overwrite r3, which contains the first parameter) (JM)       }
-         if assigned(right) then
-           secondpass(right);
-
-         if (po_virtualmethod in procdefinition.procoptions) and
-            assigned(methodpointer) then
-           begin
-             secondpass(methodpointer);
-             location_force_reg(exprasmlist,methodpointer.location,OS_ADDR,false);
-
-             { virtual methods require an index }
-             if tprocdef(procdefinition).extnumber=-1 then
-               internalerror(200304021);
-             { VMT should already be loaded in a register }
-             if methodpointer.location.register=NR_NO then
-               internalerror(200304022);
-
-             { test validity of VMT }
-             if not(is_interface(tprocdef(procdefinition)._class)) and
-                not(is_cppclass(tprocdef(procdefinition)._class)) then
-               cg.g_maybe_testvmt(exprasmlist,methodpointer.location.register,tprocdef(procdefinition)._class);
-           end;
-{$endif not i386}
-
-         { Process parameters }
          if assigned(left) then
-           begin
-             tcallparanode(left).secondcallparan(procdefinition.proccalloption,procdefinition.paraalign);
-
-             pushparas;
-           end;
+           tcallparanode(left).secondcallparan(procdefinition.proccalloption,procdefinition.paraalign);
          aktcallnode:=oldaktcallnode;
 
          { procedure variable or normal function call ? }
          if (right=nil) then
            begin
+             if (po_virtualmethod in procdefinition.procoptions) and
+                assigned(methodpointer) then
+               begin
+                 secondpass(methodpointer);
+                 location_force_reg(exprasmlist,methodpointer.location,OS_ADDR,false);
+
+                 { virtual methods require an index }
+                 if tprocdef(procdefinition).extnumber=-1 then
+                   internalerror(200304021);
+                 { VMT should already be loaded in a register }
+                 if methodpointer.location.register=NR_NO then
+                   internalerror(200304022);
+
+                 { test validity of VMT }
+                 if not(is_interface(tprocdef(procdefinition)._class)) and
+                    not(is_cppclass(tprocdef(procdefinition)._class)) then
+                   cg.g_maybe_testvmt(exprasmlist,methodpointer.location.register,tprocdef(procdefinition)._class);
+               end;
+
               { push base pointer ?}
               if (current_procinfo.procdef.parast.symtablelevel>=normal_function_level) and
                  assigned(tprocdef(procdefinition).parast) and
@@ -670,38 +643,25 @@ implementation
               if (po_virtualmethod in procdefinition.procoptions) and
                  assigned(methodpointer) then
                 begin
-{$ifdef i386}
-                   secondpass(methodpointer);
-                   location_force_reg(exprasmlist,methodpointer.location,OS_ADDR,false);
                    vmtreg:=methodpointer.location.register;
 
-                   { virtual methods require an index }
-                   if tprocdef(procdefinition).extnumber=-1 then
-                     internalerror(200304021);
-                   { VMT should already be loaded in a register }
-                   if vmtreg=NR_NO then
-                     internalerror(200304022);
-
-                   { test validity of VMT }
-                   if not(is_interface(tprocdef(procdefinition)._class)) and
-                      not(is_cppclass(tprocdef(procdefinition)._class)) then
-                     cg.g_maybe_testvmt(exprasmlist,vmtreg,tprocdef(procdefinition)._class);
-{$else}
-                   vmtreg:=methodpointer.location.register;
-{$endif}
                    { release self }
                    rg.ungetaddressregister(exprasmlist,vmtreg);
                    vmtreg2:=rg.getabtregisterint(exprasmlist,OS_ADDR);
                    rg.ungetregisterint(exprasmlist,vmtreg2);
                    cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,vmtreg,vmtreg2);
 
-{$ifndef usecallref}
+                   { load virtual method (procvar) }
                    pvreg:=rg.getabtregisterint(exprasmlist,OS_ADDR);
                    reference_reset_base(href,vmtreg2,
                       tprocdef(procdefinition)._class.vmtmethodoffset(tprocdef(procdefinition).extnumber));
                    rg.ungetregisterint(exprasmlist,pvreg);
                    cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,pvreg);
-{$endif usecallref}
+
+                   { Load parameters that are in temporary registers in the
+                     correct parameter register }
+                   if assigned(left) then
+                     pushparas;
 
                    { free the resources allocated for the parameters }
                    freeparas;
@@ -709,16 +669,15 @@ implementation
                    rg.allocexplicitregistersint(exprasmlist,regs_to_alloc);
 
                    { call method }
-{$ifdef usecallref}
-                   reference_reset_base(href,vmtreg2,
-                      tprocdef(procdefinition)._class.vmtmethodoffset(tprocdef(procdefinition).extnumber));
-                   cg.a_call_ref(exprasmlist,href);
-{$else usecallref}
                    cg.a_call_reg(exprasmlist,pvreg);
-{$endif usecallref}
                 end
               else
                 begin
+                  { Load parameters that are in temporary registers in the
+                    correct parameter register }
+                  if assigned(left) then
+                    pushparas;
+
                   { free the resources allocated for the parameters }
                   freeparas;
 
@@ -733,34 +692,8 @@ implementation
          else
            { now procedure variable case }
            begin
-{$ifdef i386}
               secondpass(right);
-{$endif i386}
-
-{$ifdef usecallref}
-              if right.location.loc in  [LOC_REFERENCE,LOC_CREFERENCE] then
-                begin
-                  helpref:=right.location.reference;
-                  if (helpref.index<>NR_NO) and (helpref.index<>NR_FRAME_POINTER_REG) then
-                    begin
-                      rg.ungetregisterint(exprasmlist,helpref.index);
-                      helpref.index:=rg.getabtregisterint(exprasmlist,OS_ADDR);
-                      cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,
-                                        right.location.reference.index,helpref.index);
-                    end;
-                  if (helpref.base<>NR_NO) and (helpref.base<>NR_FRAME_POINTER_REG) then
-                    begin
-                      rg.ungetregisterint(exprasmlist,helpref.base);
-                      helpref.base:=rg.getabtregisterint(exprasmlist,OS_ADDR);
-                      cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,
-                                        right.location.reference.base,helpref.base);
-                    end;
-                  reference_release(exprasmlist,helpref);
-                end
-              else
-                rg.ungetregisterint(exprasmlist,right.location.register);
-              location_freetemp(exprasmlist,right.location);
-{$else usecallref}
+              location_release(exprasmlist,right.location);
               pvreg:=rg.getabtregisterint(exprasmlist,OS_ADDR);
               rg.ungetregisterint(exprasmlist,pvreg);
               { Only load OS_ADDR from the reference }
@@ -768,9 +701,12 @@ implementation
                 cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,right.location.reference,pvreg)
               else
                 cg.a_load_loc_reg(exprasmlist,OS_ADDR,right.location,pvreg);
-              location_release(exprasmlist,right.location);
               location_freetemp(exprasmlist,right.location);
-{$endif usecallref}
+
+              { Load parameters that are in temporary registers in the
+                correct parameter register }
+              if assigned(left) then
+                pushparas;
 
               { free the resources allocated for the parameters }
               freeparas;
@@ -783,14 +719,7 @@ implementation
                 extra_interrupt_code;
 
               rg.saveotherregvars(exprasmlist,ALL_OTHERREGISTERS);
-{$ifdef usecallref}
-              if right.location.loc in  [LOC_REFERENCE,LOC_CREFERENCE] then
-                cg.a_call_ref(exprasmlist,helpref)
-              else
-                cg.a_call_reg(exprasmlist,right.location.register);
-{$else usecallref}
               cg.a_call_reg(exprasmlist,pvreg);
-{$endif usecallref}
            end;
 
          { Need to remove the parameters from the stack? }
@@ -1233,7 +1162,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.117  2003-09-25 21:28:00  peter
+  Revision 1.118  2003-09-28 13:54:43  peter
+    * removed a_call_ref
+
+  Revision 1.117  2003/09/25 21:28:00  peter
     * parameter fixes
 
   Revision 1.116  2003/09/23 17:56:05  peter
