@@ -341,7 +341,7 @@ begin
  FpAccess:=do_syscall(syscall_nr_access,TSysParam(pathname),amode);
 end;
 
-{ overloaded
+(* overloaded
 function Fpaccess(pathname : pathstr; amode : cint): cint;
 
 {
@@ -361,7 +361,7 @@ begin
  pathname:=pathname+#0;
  Access:=do_syscall(syscall_nr_access, TSysParam(@pathname[1]),mode)=0;
 end;
-}
+*)
 
 Function FpDup(fildes:cint):cint; [public, alias : 'FPC_SYSC_DUP'];
 
@@ -538,7 +538,10 @@ end;
 
 {
  $Log$
- Revision 1.26  2004-05-31 09:22:42  peter
+ Revision 1.27  2004-05-31 14:31:57  peter
+   * remove comment warnings
+
+ Revision 1.26  2004/05/31 09:22:42  peter
    * sigaction fixed for sparc
 
  Revision 1.25  2004/05/16 18:51:20  peter

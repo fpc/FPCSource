@@ -1042,7 +1042,10 @@ end;
 
 {
   $Log$
-  Revision 1.38  2004-05-29 15:39:08  florian
+  Revision 1.39  2004-05-31 14:31:57  peter
+    * remove comment warnings
+
+  Revision 1.38  2004/05/29 15:39:08  florian
     * the decr functions set the data now to nil
 
   Revision 1.37  2004/05/01 23:55:18  peter
@@ -1068,7 +1071,7 @@ end;
     * fixed conversion of fpc_*str_unique to compilerproc
 
   Revision 1.30  2003/06/17 16:38:53  jonas
-    * fpc_{ansistr|widestr}_unique is now a function so it can be used as
+    * fpc_ansistr|widestr_unique is now a function so it can be used as
       compilerproc
 
   Revision 1.29  2003/05/01 08:05:23  florian

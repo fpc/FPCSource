@@ -330,7 +330,10 @@ function fpc_qword_to_double(q: qword): double; compilerproc;
 
 {
   $Log$
-  Revision 1.56  2004-05-01 23:55:18  peter
+  Revision 1.57  2004-05-31 14:31:57  peter
+    * remove comment warnings
+
+  Revision 1.56  2004/05/01 23:55:18  peter
     * replace strlenint with sizeint
 
   Revision 1.55  2004/05/01 20:52:50  peter
@@ -369,7 +372,7 @@ function fpc_qword_to_double(q: qword): double; compilerproc;
     * fixed conversion of fpc_*str_unique to compilerproc
 
   Revision 1.44  2003/06/17 16:38:53  jonas
-    * fpc_{ansistr|widestr}_unique is now a function so it can be used as
+    * fpc_ansistr|widestr_unique is now a function so it can be used as
       compilerproc
 
   Revision 1.43  2003/05/26 19:36:46  peter

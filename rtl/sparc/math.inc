@@ -116,7 +116,10 @@ const
 
 {
   $Log$
-  Revision 1.8  2004-01-06 21:33:38  peter
+  Revision 1.9  2004-05-31 14:31:57  peter
+    * remove comment warnings
+
+  Revision 1.8  2004/01/06 21:33:38  peter
     * remove generic functions
 
   Revision 1.7  2003/09/14 15:02:24  peter
@@ -144,7 +147,7 @@ const
   * some errors fixed in RTL
 
   Revision 1.14  2002/11/28 11:04:16  olle
-    * macos: refs to globals in begin{asm} adapted to macos
+    * macos: refs to globals in beginasm adapted to macos
 
   Revision 1.13  2002/10/21 18:08:28  jonas
     * round has int64 instead of longint result

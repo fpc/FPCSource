@@ -62,6 +62,9 @@ function fpc_dynarray_high(p : pointer) : tdynarrayindex;[Public,Alias:'FPC_DYNA
 
 { releases and finalizes the data of a dyn. array and sets p to nil }
 procedure fpc_dynarray_clear_internal(p : pointer;ti : pointer);
+  var
+    elesize : t_size;
+    eletype : pdynarraytypeinfo;
   begin
      if p=nil then
        exit;
@@ -69,9 +72,17 @@ procedure fpc_dynarray_clear_internal(p : pointer;ti : pointer);
      { skip kind and name }
      inc(pointer(ti),ord(pdynarraytypeinfo(ti)^.namelen));
 
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+     move(pdynarraytypeinfo(ti)^.elesize,elesize,sizeof(elesize));
+     move(pdynarraytypeinfo(ti)^.eletype,eletype,sizeof(eletype));
+{$else FPC_REQUIRES_PROPER_ALIGNMENT}
+     elesize:=pdynarraytypeinfo(ti)^.elesize;
+     eletype:=pdynarraytypeinfo(ti)^.eletype;
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+
      { finalize all data }
-     int_finalizearray(p+sizeof(tdynarray),pdynarraytypeinfo(ti)^.eletype,pdynarray(p)^.high+1,
-                       pdynarraytypeinfo(ti)^.elesize);
+     int_finalizearray(p+sizeof(tdynarray),eletype,pdynarray(p)^.high+1,
+                       elesize);
 
      { release the data }
      freemem(p);
@@ -150,15 +161,25 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
      realp,newp : pdynarray;
      ti : pdynarraytypeinfo;
      updatep: boolean;
+     elesize : t_size;
+     eletype : pdynarraytypeinfo;
 
   begin
      ti:=pdynarraytypeinfo(pti);
      { skip kind and name }
      inc(pointer(ti),ord(ti^.namelen));
 
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+     move(pdynarraytypeinfo(ti)^.elesize,elesize,sizeof(elesize));
+     move(pdynarraytypeinfo(ti)^.eletype,eletype,sizeof(eletype));
+{$else FPC_REQUIRES_PROPER_ALIGNMENT}
+     elesize:=pdynarraytypeinfo(ti)^.elesize;
+     eletype:=pdynarraytypeinfo(ti)^.eletype;
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+
      { determine new memory size }
      { dims[dimcount-1] because the dimensions are in reverse order! (JM) }
-     size:=ti^.elesize*dims[dimcount-1]+sizeof(tdynarray);
+     size:=elesize*dims[dimcount-1]+sizeof(tdynarray);
      updatep := false;
 
      { not assigned yet? }
@@ -196,11 +217,11 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
                  movelen := realp^.high+1
                else
                  movelen := dims[dimcount-1];
-               move(p^,(pointer(newp)+sizeof(tdynarray))^,ti^.elesize*movelen);
+               move(p^,(pointer(newp)+sizeof(tdynarray))^,elesize*movelen);
 
                { increment ref. count of members }
                for i:= 0 to movelen-1 do
-                 int_addref(pointer(newp)+sizeof(tdynarray)+ti^.elesize*i,ti^.eletype);
+                 int_addref(pointer(newp)+sizeof(tdynarray)+elesize*i,eletype);
 
                { a declock(ref. count) isn't enough here }
                { it could be that the in MT enviroments  }
@@ -220,7 +241,7 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
                { if size overflows then it is less than }
                { the values it was calculated from      }
                if (size<sizeof(tdynarray)) or
-                 ((ti^.elesize>0) and (size<ti^.elesize)) then
+                 ((elesize>0) and (size<elesize)) then
                  HandleErrorFrame(201,get_frame);
 
                { resize? }
@@ -233,15 +254,15 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
                     if dims[dimcount-1]<realp^.high+1 then
                       begin
                           int_finalizearray(pointer(realp)+sizeof(tdynarray)+
-                            ti^.elesize*dims[dimcount-1],
-                            ti^.eletype,realp^.high-dims[dimcount-1]+1,ti^.elesize);
+                            elesize*dims[dimcount-1],
+                            eletype,realp^.high-dims[dimcount-1]+1,elesize);
                          reallocmem(realp,size);
                       end
                     else if dims[dimcount-1]>realp^.high+1 then
                       begin
                          reallocmem(realp,size);
-                         fillchar((pointer(realp)+sizeof(tdynarray)+ti^.elesize*(realp^.high+1))^,
-                           (dims[dimcount-1]-realp^.high-1)*ti^.elesize,0);
+                         fillchar((pointer(realp)+sizeof(tdynarray)+elesize*(realp^.high+1))^,
+                           (dims[dimcount-1]-realp^.high-1)*elesize,0);
                       end;
                     newp := realp;
                     updatep := true;
@@ -252,8 +273,8 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
     if dimcount>1 then
       begin
          for i:=0 to dims[dimcount-1]-1 do
-           int_dynarray_setlength(pointer((pointer(newp)+sizeof(tdynarray)+i*ti^.elesize)^),
-             ti^.eletype,dimcount-1,dims);
+           int_dynarray_setlength(pointer((pointer(newp)+sizeof(tdynarray)+i*elesize)^),
+             eletype,dimcount-1,dims);
       end;
      if updatep then
        begin
@@ -276,6 +297,8 @@ procedure fpc_dynarray_copy(var pdest : pointer;psrc : pointer;ti : pointer;
     cnt,
     i,size : longint;
     highidx : tdynarrayindex;
+    elesize : t_size;
+    eletype : pdynarraytypeinfo;
   begin
      highidx:=lowidx+count-1;
      pdest:=nil;
@@ -284,6 +307,15 @@ procedure fpc_dynarray_copy(var pdest : pointer;psrc : pointer;ti : pointer;
      realpsrc:=pdynarray(psrc-sizeof(tdynarray));
      { skip kind and name }
      inc(pointer(ti),ord(pdynarraytypeinfo(ti)^.namelen));
+     
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+     move(pdynarraytypeinfo(ti)^.elesize,elesize,sizeof(elesize));
+     move(pdynarraytypeinfo(ti)^.eletype,eletype,sizeof(eletype));
+{$else FPC_REQUIRES_PROPER_ALIGNMENT}
+     elesize:=pdynarraytypeinfo(ti)^.elesize;
+     eletype:=pdynarraytypeinfo(ti)^.eletype;
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+
      { -1, -1 (highidx=lowidx-1-1=-3) is used to copy the whole array like a:=copy(b);, so
        update the lowidx and highidx with the values from psrc }
      if (lowidx=-1) and (highidx=-3) then
@@ -296,23 +328,26 @@ procedure fpc_dynarray_copy(var pdest : pointer;psrc : pointer;ti : pointer;
        HandleErrorFrame(201,get_frame);
      cnt:=highidx-lowidx+1;
      { create new array }
-     size:=pdynarraytypeinfo(ti)^.elesize*cnt;
+     size:=elesize*cnt;
      getmem(realpdest,size+sizeof(tdynarray));
      pdest:=pointer(realpdest)+sizeof(tdynarray);
      { copy data }
-     move(pointer(psrc+pdynarraytypeinfo(ti)^.elesize*lowidx)^,pdest^,size);
+     move(pointer(psrc+elesize*lowidx)^,pdest^,size);
      { fill new refcount }
      realpdest^.refcount:=1;
      realpdest^.high:=cnt-1;
      { increment ref. count of members }
      for i:= 0 to cnt-1 do
-       int_addref(pointer(pdest+sizeof(tdynarray)+pdynarraytypeinfo(ti)^.elesize*i),pdynarraytypeinfo(ti)^.eletype);
+       int_addref(pointer(pdest+sizeof(tdynarray)+elesize*i),eletype);
   end;
 
 
 {
   $Log$
-  Revision 1.26  2004-05-24 07:18:17  michael
+  Revision 1.27  2004-05-31 14:31:57  peter
+    * remove comment warnings
+
+  Revision 1.26  2004/05/24 07:18:17  michael
   + Patch from peter to fix crash
 
   Revision 1.25  2004/05/20 15:56:32  florian
