@@ -414,8 +414,10 @@ implementation
                             floatdef :
                               begin
                                 emitcall(rdwrprefix[doread]+'FLOAT');
+                                {
                                 if pfloatdef(p^.resulttype)^.typ<>f32bit then
-                                  inc(fpuvaroffset);
+                                  dec(fpuvaroffset);
+                                }
                                 if doread then
                                   StoreDirectFuncResult(hp^.left);
                               end;
@@ -1404,7 +1406,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.71  1999-09-16 07:52:37  pierre
+  Revision 1.72  1999-09-26 13:26:05  florian
+    * exception patch of Romio nevertheless the excpetion handling
+      needs some corections regarding register saving
+    * gettempansistring is again a procedure
+
+  Revision 1.71  1999/09/16 07:52:37  pierre
     * FLDPI must increment fpuvaroffset
 
   Revision 1.70  1999/09/15 20:35:38  florian

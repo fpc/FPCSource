@@ -1044,8 +1044,8 @@ implementation
                 begin
                    hregister:=getexplicitregister32(R_EAX);
                    emit_reg_reg(A_MOV,S_L,R_EAX,hregister);
-                   if gettempansistringreference(hr) then
-                     decrstringref(p^.resulttype,hr);
+                   gettempansistringreference(hr);
+                   decrstringref(p^.resulttype,hr);
                    emit_reg_ref(A_MOV,S_L,hregister,
                      newreference(hr));
                    ungetregister32(hregister);
@@ -1217,7 +1217,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.104  1999-09-16 11:34:46  pierre
+  Revision 1.105  1999-09-26 13:26:02  florian
+    * exception patch of Romio nevertheless the excpetion handling
+      needs some corections regarding register saving
+    * gettempansistring is again a procedure
+
+  Revision 1.104  1999/09/16 11:34:46  pierre
    * typo correction
 
   Revision 1.103  1999/09/07 07:54:23  peter

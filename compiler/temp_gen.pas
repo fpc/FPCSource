@@ -70,7 +70,7 @@ unit temp_gen;
     function istemp(const ref : treference) : boolean;
     procedure ungetiftemp(const ref : treference);
     function ungetiftempansi(const ref : treference) : boolean;
-    function gettempansistringreference(var ref : treference):boolean;
+    procedure gettempansistringreference(var ref : treference);
 
 
   implementation
@@ -282,7 +282,7 @@ unit temp_gen;
       end;
 
 
-    function gettempansistringreference(var ref : treference):boolean;
+    procedure gettempansistringreference(var ref : treference);
       var
          foundslot,tl : ptemprecord;
       begin
@@ -310,7 +310,12 @@ unit temp_gen;
             ref.offset:=foundslot^.pos;
             { we're reusing an old slot then set the function result to true
               so that we can call a decr_ansistr }
+
+            { we never know if a slot was used previously:
+              imagine a loop: in the first run the slot wasn't used
+              while in later runs it is reused (FK)
             gettempansistringreference:=true;
+            }
           end
          else
           begin
@@ -319,8 +324,10 @@ unit temp_gen;
             templist^.posinfo:=aktfilepos;
 {$endif}
             templist^.temptype:=tt_ansistring;
-            { set result to false, we don't need an decr_ansistr }
-            gettempansistringreference:=true;
+            { set result to false, we don't need an decr_ansistr
+              gettempansistringreference:=true;
+              Not necessary, the above (FK)
+            }
           end;
          exprasmlist^.concat(new(paitempalloc,alloc(ref.offset,target_os.size_of_pointer)));
       end;
@@ -520,7 +527,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.35  1999-09-16 11:34:59  pierre
+  Revision 1.36  1999-09-26 13:26:08  florian
+    * exception patch of Romio nevertheless the excpetion handling
+      needs some corections regarding register saving
+    * gettempansistring is again a procedure
+
+  Revision 1.35  1999/09/16 11:34:59  pierre
    * typo correction
 
   Revision 1.34  1999/08/04 00:23:46  florian

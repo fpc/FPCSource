@@ -168,8 +168,8 @@ implementation
                           still used for the push (PFV) }
                         clear_location(p^.location);
                         p^.location.loc:=LOC_MEM;
-                        if gettempansistringreference(p^.location.reference) then
-                          decrstringref(cansistringdef,p^.location.reference);
+                        gettempansistringreference(p^.location.reference);
+                        decrstringref(cansistringdef,p^.location.reference);
                         { release used registers }
                         del_location(p^.right^.location);
                         del_location(p^.left^.location);
@@ -2142,7 +2142,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.79  1999-09-21 20:53:21  florian
+  Revision 1.80  1999-09-26 13:26:01  florian
+    * exception patch of Romio nevertheless the excpetion handling
+      needs some corections regarding register saving
+    * gettempansistring is again a procedure
+
+  Revision 1.79  1999/09/21 20:53:21  florian
     * fixed 1/s problem from mailing list
 
   Revision 1.78  1999/09/07 07:52:19  peter

@@ -3063,7 +3063,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
           exprasmlist^.insert(new(pai_align,init_op(16,$90)))
          else
           if not(cs_littlesize in aktglobalswitches) then
-           exprasmlist^.insert(new(pai_align,init_op(4,$90)));
+           exprasmlist^.insert(new(pai_align,init_op(16,$90)));
        end;
       exprasmlist:=oldexprasmlist;
   end;
@@ -3359,7 +3359,12 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.45  1999-09-20 16:35:43  peter
+  Revision 1.46  1999-09-26 13:26:07  florian
+    * exception patch of Romio nevertheless the excpetion handling
+      needs some corections regarding register saving
+    * gettempansistring is again a procedure
+
+  Revision 1.45  1999/09/20 16:35:43  peter
     * restored old alignment, saves 40k on ppc386
 
   Revision 1.44  1999/09/16 07:58:14  pierre

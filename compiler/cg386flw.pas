@@ -628,9 +628,12 @@ do_jmp:
               maybe_loadesi;
               secondpass(p^.t1);
               emitcall('FPC_POPOBJECTSTACK');
+              maybe_loadesi;
            end
          else
            emitcall('FPC_RERAISE');
+         { reraise doesn't need a maybe_loadesi because it never }
+         { returns (FK)                                          }
          emitlab(endexceptlabel);
          freelabel(exceptlabel);
          freelabel(doexceptlabel);
@@ -808,7 +811,12 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.50  1999-09-20 16:35:43  peter
+  Revision 1.51  1999-09-26 13:26:05  florian
+    * exception patch of Romio nevertheless the excpetion handling
+      needs some corections regarding register saving
+    * gettempansistring is again a procedure
+
+  Revision 1.50  1999/09/20 16:35:43  peter
     * restored old alignment, saves 40k on ppc386
 
   Revision 1.49  1999/09/15 20:35:37  florian

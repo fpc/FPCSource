@@ -408,8 +408,8 @@ implementation
                    begin
                       clear_location(pto^.location);
                       pto^.location.loc:=LOC_REFERENCE;
-                      if gettempansistringreference(pto^.location.reference) then
-                       decrstringref(cansistringdef,pto^.location.reference);
+                      gettempansistringreference(pto^.location.reference);
+                      decrstringref(cansistringdef,pto^.location.reference);
                       pushusedregisters(pushed,$ff);
                       emit_push_lea_loc(pfrom^.location,true);
                       emit_push_lea_loc(pto^.location,false);
@@ -584,8 +584,8 @@ implementation
              end;
            st_ansistring :
              begin
-               if gettempansistringreference(pto^.location.reference) then
-                 decrstringref(cansistringdef,pto^.location.reference);
+               gettempansistringreference(pto^.location.reference);
+               decrstringref(cansistringdef,pto^.location.reference);
                release_loc(pfrom^.location);
                pushusedregisters(pushed,$ff);
                push_int(l);
@@ -630,8 +630,8 @@ implementation
              end;
            st_ansistring :
              begin
-               if gettempansistringreference(pto^.location.reference) then
-                 decrstringref(cansistringdef,pto^.location.reference);
+               gettempansistringreference(pto^.location.reference);
+               decrstringref(cansistringdef,pto^.location.reference);
                release_loc(pfrom^.location);
                pushusedregisters(pushed,$ff);
                emit_pushw_loc(pfrom^.location);
@@ -1210,8 +1210,8 @@ implementation
            st_ansistring:
              begin
                 pto^.location.loc:=LOC_REFERENCE;
-                if gettempansistringreference(pto^.location.reference) then
-                  decrstringref(cansistringdef,pto^.location.reference);
+                gettempansistringreference(pto^.location.reference);
+                decrstringref(cansistringdef,pto^.location.reference);
                 case pfrom^.location.loc of
                   LOC_REFERENCE,LOC_MEM:
                     begin
@@ -1455,7 +1455,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.87  1999-09-23 21:20:37  peter
+  Revision 1.88  1999-09-26 13:26:04  florian
+    * exception patch of Romio nevertheless the excpetion handling
+      needs some corections regarding register saving
+    * gettempansistring is again a procedure
+
+  Revision 1.87  1999/09/23 21:20:37  peter
     * fixed temp allocation for short->ansi
 
   Revision 1.86  1999/09/01 09:42:13  peter
