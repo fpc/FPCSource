@@ -37,12 +37,14 @@ uses
   const
     gmoduledll='gmodule-1.3';
   {$define gtkwin}
+
+  {$packrecords 4}
 {$else}
   const
     gmoduledll='gmodule';
-{$endif}
 
-{$packrecords C}
+  {$packrecords C}
+{$endif}
 
     var
        g_log_domain_gmodule : Pgchar;external gmoduledll name 'g_log_domain_gmodule';
@@ -74,7 +76,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2000-08-06 10:46:23  peter
+  Revision 1.4  2000-09-06 21:14:28  peter
+    * packrecords 4 for win32, packrecords c for linux
+
+  Revision 1.3  2000/08/06 10:46:23  peter
     * force smartlink (merged)
 
   Revision 1.2  2000/07/13 11:33:20  michael

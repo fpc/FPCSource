@@ -38,6 +38,8 @@ uses
   const
     gtkdll='gtk-1.3';
   {$define gtkwin}
+
+  {$packrecords 4}
 {$else}
   const
     gtkdll='gtk';
@@ -46,9 +48,9 @@ uses
   {$linklib Xext}
   {$linklib X11}
   {$linklib m}
-{$endif}
 
-{$packrecords C}
+  {$packrecords C}
+{$endif}
 
 Type
   PLongint  = ^Longint;
@@ -76,7 +78,10 @@ Type
 end.
 {
   $Log$
-  Revision 1.3  2000-08-06 10:46:23  peter
+  Revision 1.4  2000-09-06 21:13:55  peter
+    * packrecords 4 for win32, packrecords c for linux
+
+  Revision 1.3  2000/08/06 10:46:23  peter
     * force smartlink (merged)
 
   Revision 1.2  2000/07/13 11:33:20  michael

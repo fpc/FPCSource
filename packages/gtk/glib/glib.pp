@@ -34,13 +34,15 @@ interface
   const
     glibdll='glib-1.3';
   {$define gtkwin}
+
+  {$packrecords 4}
 {$else}
   const
     glibdll='glib';
   {$linklib c}
-{$endif}
 
-{$packrecords C}
+  {$packrecords C}
+{$endif}
 
 { Pointers to basic pascal types, inserted by h2pas conversion program.}
 Type
@@ -1648,7 +1650,10 @@ procedure set_year(var a : TGDate; __year : guint);
 end.
 {
   $Log$
-  Revision 1.3  2000-08-06 10:46:23  peter
+  Revision 1.4  2000-09-06 21:14:28  peter
+    * packrecords 4 for win32, packrecords c for linux
+
+  Revision 1.3  2000/08/06 10:46:23  peter
     * force smartlink (merged)
 
   Revision 1.2  2000/07/13 11:33:19  michael
