@@ -240,14 +240,18 @@ asm
         repne
         scasb
         not     %ecx
+{$ifdef REGCALL}
         cmpl    saveecx,%ecx
         jl      .LSTRLCOMP1
         movl    saveecx,%ecx
 .LSTRLCOMP1:
-{$ifdef REGCALL}
         movl    saveedx,%edi
         movl    saveeax,%esi
 {$else}
+        cmpl    l,%ecx
+        jl      .LSTRLCOMP1
+        movl    l,%ecx
+.LSTRLCOMP1:
         movl    str2,%edi
         movl    str1,%esi
 {$endif}
@@ -333,14 +337,18 @@ asm
         repne
         scasb
         not     %ecx
+{$ifdef REGCALL}
         cmpl    saveecx,%ecx
         jl      .LSTRLICOMP5
         movl    saveecx,%ecx
 .LSTRLICOMP5:
-{$ifdef REGCALL}
         movl    saveedx,%edi
         movl    saveeax,%esi
 {$else}
+        cmpl    l,%ecx
+        jl      .LSTRLICOMP5
+        movl    l,%ecx
+.LSTRLICOMP5:
         movl    str2,%edi
         movl    str1,%esi
 {$endif}
@@ -599,7 +607,10 @@ end;
 
 {
   $Log$
-  Revision 1.12  2003-12-17 21:56:33  peter
+  Revision 1.13  2003-12-19 09:28:00  michael
+  + Patch from Peter to fix strlcomp
+
+  Revision 1.12  2003/12/17 21:56:33  peter
     * win32 regcall patches
 
   Revision 1.11  2003/11/23 16:50:49  peter
