@@ -7,7 +7,7 @@
 
 procedure fail;
 begin
-  Fail;
+  WriteLn('Failed!');
   halt(1);
 end;
 

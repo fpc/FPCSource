@@ -7,7 +7,7 @@
 
 procedure fail;
 begin
-  Fail;
+  WriteLn('Failed!');
   halt(1);
 end;
 
@@ -339,7 +339,10 @@ end.
 
 {
  $Log$
- Revision 1.3  2002-03-05 21:55:11  carl
+ Revision 1.4  2002-04-13 21:02:48  carl
+ * fixed typos
+
+ Revision 1.3  2002/03/05 21:55:11  carl
  * Adapted for automated testing
 
  Revision 1.2  2001/06/24 23:58:14  carl
