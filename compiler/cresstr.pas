@@ -24,8 +24,8 @@ unit cresstr;
   interface
 
     procedure insertresourcestrings;
-    procedure registerresourcestring(Const name : string;p : pchar;len,hash : longint);
-    function calc_resstring_hashvalue(p : pchar;len : longint) : longint;
+    function registerresourcestring(Const name : string;p : pchar;len : longint) : longint;
+    function calc_resstring_hashvalue(N : String) : longint;
     Procedure WriteResourceFile(FileName : String);
 
   implementation
@@ -34,6 +34,7 @@ unit cresstr;
        globals,aasm,verbose,files;
 
     Type
+      { These are used to form a singly-linked list, ordered by hash value }
       PResourcestring = ^TResourceString;
       TResourceString = record
         Name : String;
@@ -50,20 +51,18 @@ unit cresstr;
 
     Var
       ResourceListRoot : PResourceString;
-
-    { calcs the hash value for a give resourcestring, len is }
-    { necessary because the resourcestring can contain #0    }
-
-    function calc_resstring_hashvalue(p : pchar;len : longint) : longint;
+ 
+    { Calculate hash value, based on the name of the string }
+    function calc_resstring_hashvalue(N : String) : longint;
 
       Var hash,g,I : longint;
 
       begin
          hash:=0;
-         For I:=0 to Len-1 do { 0 terminated }
+         For I:=0 to Length(N)-1 do { 0 terminated }
            begin
            hash:=hash shl 4;
-           inc(Hash,Ord(p[i]));
+           inc(Hash,Ord(N[i]));
            g:=hash and ($f shl 28);
            if g<>0 then
              begin
@@ -77,72 +76,116 @@ unit cresstr;
            calc_resstring_hashvalue:=Hash;
       end;
 
-    procedure insertresourcestrings;
-
-      begin
-         if not(assigned(resourcestringlist)) then
-           resourcestringlist:=new(paasmoutput,init);
-         resourcestringlist^.insert(new(pai_const,init_32bit(resstrcount)));
-         resourcestringlist^.insert(new(pai_symbol,initname_global('RESOURCESTRINGLIST',0)));
-         resourcestringlist^.concat(new(pai_symbol_end,initname('RESOURCESTRINGLIST')));
-      end;
-
 
     Procedure AppendToResourceList(const name : string;p : pchar;len,hash : longint);
 
-    Var R : PResourceString;
+    Var R,Run,prev : PResourceString;
 
     begin
       inc(resstrcount);
       New(R);
-      R^.Name:=Lower(Name);
+      { name is lower case... }
+      R^.Name:=Name;
       r^.Len:=Len;
       R^.Hash:=hash;
       GetMem(R^.Value,Len);
       Move(P^,R^.Value^,Len);
-      R^.Next:=ResourceListRoot;
-      ResourceListRoot:=R;
+      { insert at correct position }
+      Run:=ResourceListRoot;
+      Prev:=Nil;
+      While (Run<>Nil) and (Run^.Hash<Hash) do
+        begin
+        Prev:=Run;
+        Run:=Run^.Next;
+        end;
+      If Prev<>Nil Then
+        Prev^.next:=R;
+      R^.Next:=Run;
+      If ResourceListRoot=Nil then
+        ResourceListRoot:=R;
     end;
 
-    procedure registerresourcestring(const name : string;p : pchar;len,hash : longint);
+   Procedure AppendToAsmResList (P : PResourceString);
 
-      var
-         l1 : pasmlabel;
-         s : pchar;
+   Var 
+     l1 : pasmlabel;
+     s : pchar;
+   
+   begin
+     With P^ Do
+       begin
+       if (Value=nil) or (len=0) then
+         resourcestringlist^.concat(new(pai_const,init_32bit(0)))
+       else
+         begin
+            getdatalabel(l1);
+            resourcestringlist^.concat(new(pai_const_symbol,init(l1)));
+            consts^.concat(new(pai_const,init_32bit(len)));
+            consts^.concat(new(pai_const,init_32bit(len)));
+            consts^.concat(new(pai_const,init_32bit(-1)));
+            consts^.concat(new(pai_label,init(l1)));
+            getmem(s,len+1);
+            move(Value^,s^,len);
+            s[len]:=#0;
+            consts^.concat(new(pai_string,init_length_pchar(s,len)));
+            consts^.concat(new(pai_const,init_8bit(0)));
+         end;
+       { append Current value (nil) and hash...}  
+       resourcestringlist^.concat(new(pai_const,init_32bit(0)));
+       resourcestringlist^.concat(new(pai_const,init_32bit(hash)));
+       { Append the name as a ansistring. }
+       getdatalabel(l1);
+       Len:=Length(Name);
+       resourcestringlist^.concat(new(pai_const_symbol,init(l1)));
+       consts^.concat(new(pai_const,init_32bit(len)));
+       consts^.concat(new(pai_const,init_32bit(len)));
+       consts^.concat(new(pai_const,init_32bit(-1)));
+       consts^.concat(new(pai_label,init(l1)));
+       getmem(s,len+1);
+       move(Name[1],s^,len);
+       s[len]:=#0;
+       consts^.concat(new(pai_string,init_length_pchar(s,len)));
+       consts^.concat(new(pai_const,init_8bit(0)));
+       end;
+   end;
+
+
+    procedure insertresourcestrings;
+
+      Var R : PresourceString;
 
       begin
+      if not(assigned(resourcestringlist)) then
+        resourcestringlist:=new(paasmoutput,init);
+      resourcestringlist^.insert(new(pai_const,init_32bit(resstrcount)));
+      resourcestringlist^.insert(new(pai_symbol,initname_global('RESOURCESTRINGLIST',0)));
+      R:=ResourceListRoot;
+      While R<>Nil do
+        begin
+        AppendToAsmResList(R);
+        R:=R^.Next;
+        end;
+      resourcestringlist^.concat(new(pai_symbol_end,initname('RESOURCESTRINGLIST')));
+      end;
+
+
+    function  registerresourcestring(const name : string;p : pchar;len : longint) : longint;
+
+      var
+         fullname : string;
+         hash : longint;
+      begin
+         { Calculate result }
+         fullname:=lower(current_module^.modulename^+'.'+Name);
+         hash:=calc_resstring_hashvalue(FullName);
+         registerresourcestring:=hash;
          { we don't need to generate consts in units }
          if (main_module^.is_unit) then
            exit;
 
          if not(assigned(resourcestringlist)) then
            resourcestringlist:=new(paasmoutput,init);
-
-         AppendToResourceList(current_module^.modulename^+'.'+Name,P,Len,Hash);
-
-         { an empty ansi string is nil! }
-         if (p=nil) or (len=0) then
-           resourcestringlist^.concat(new(pai_const,init_32bit(0)))
-         else
-           begin
-              getdatalabel(l1);
-              resourcestringlist^.concat(new(pai_const_symbol,init(l1)));
-              { first write the maximum size }
-              consts^.concat(new(pai_const,init_32bit(len)));
-              { second write the real length }
-              consts^.concat(new(pai_const,init_32bit(len)));
-              { redondent with maxlength but who knows ... (PM) }
-              { third write use count (set to -1 for safety ) }
-              consts^.concat(new(pai_const,init_32bit(-1)));
-              consts^.concat(new(pai_label,init(l1)));
-              getmem(s,len+1);
-              move(p^,s^,len);
-              s[len]:=#0;
-              consts^.concat(new(pai_string,init_length_pchar(s,len)));
-              consts^.concat(new(pai_const,init_8bit(0)));
-           end;
-         resourcestringlist^.concat(new(pai_const,init_32bit(0)));
-         resourcestringlist^.concat(new(pai_const,init_32bit(hash)));
+         AppendToResourceList(fullname,P,Len,Hash);
       end;
 
     Procedure WriteResourceFile(Filename : String);
@@ -229,7 +272,10 @@ unit cresstr;
 end.
 {
   $Log$
-  Revision 1.8  1999-07-29 20:54:01  peter
+  Revision 1.9  1999-08-15 21:57:59  michael
+  Changes for resource strings
+
+  Revision 1.8  1999/07/29 20:54:01  peter
     * write .size also
 
   Revision 1.7  1999/07/26 09:42:00  florian

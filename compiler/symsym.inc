@@ -1659,10 +1659,7 @@
          definition:=nil;
          len:=l;
          if t=constresourcestring then
-           begin
-           reshash:=calc_resstring_hashvalue(pchar(value),len);
-           registerresourcestring(name,pchar(value),len,reshash);
-           end;
+           reshash:=registerresourcestring(name,pchar(value),len);
       end;
 
     constructor tconstsym.load;
@@ -1688,10 +1685,7 @@
                getmem(pchar(value),len+1);
                current_ppu^.getdata(pchar(value)^,len);
                if consttype=constresourcestring then
-                 begin
-                 reshash:=readlong;
-                 registerresourcestring(name,pchar(value),len,reshash);
-                 end;
+                 reshash:=registerresourcestring(name,pchar(value),len);
              end;
            constreal :
              begin
@@ -1759,8 +1753,6 @@
              begin
                writelong(len);
                current_ppu^.putdata(pchar(value)^,len);
-               If consttype = constresourcestring then
-                 writelong(reshash);
              end;
            constreal :
              writereal(pbestreal(value)^);
@@ -2161,7 +2153,10 @@
 
 {
   $Log$
-  Revision 1.113  1999-08-14 00:39:00  peter
+  Revision 1.114  1999-08-15 21:57:58  michael
+  Changes for resource strings
+
+  Revision 1.113  1999/08/14 00:39:00  peter
     * hack to support property with record fields
 
   Revision 1.112  1999/08/13 14:24:20  pierre
