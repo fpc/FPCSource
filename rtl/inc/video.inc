@@ -24,24 +24,31 @@ end;
 Procedure UnLockScreenUpdate;
 
 begin
-  Dec(LockUpdateScreen);
+  If LockUpdateScreen>0 then
+    Dec(LockUpdateScreen);
 end;
 
-Var 
+Function GetLockScreenCount : integer;
+begin
+  GetLockScreenCount:=LockUpdateScreen;
+end;
+
+Var
   CurrentVideoDriver : TVideoDriver;
 
 Const
   VideoInitialized : Boolean = False;
-  
-Procedure SetVideoDriver (Const Driver : TVideoDriver);
+
+Function SetVideoDriver (Const Driver : TVideoDriver) : Boolean;
 { Sets the videodriver to be used }
 begin
   If Not VideoInitialized then
     CurrentVideoDriver:=Driver;
+  SetVideoDriver:=Not VideoInitialized;  
 end;
 
 Procedure GetVideoDriver (Var Driver : TVideoDriver);
-{ Retrieves the current videodriver }                                           
+{ Retrieves the current videodriver }
 begin
   Driver:=CurrentVideoDriver;
 end;
@@ -57,8 +64,8 @@ begin
     begin
     If Assigned(CurrentVideoDriver.InitDriver) then
       CurrentVideoDriver.InitDriver;
-    VideoInitialized:=True;  
-    end;  
+    VideoInitialized:=True;
+    end;
 end;
 
 Procedure DoneVideo;
@@ -68,8 +75,8 @@ begin
     begin
     If Assigned(CurrentVideoDriver.DoneDriver) then
       CurrentVideoDriver.DoneDriver;
-    VideoInitialized:=False;  
-    end;  
+    VideoInitialized:=False;
+    end;
 end;
 
 Procedure UpdateScreen (Force : Boolean);
@@ -77,7 +84,7 @@ Procedure UpdateScreen (Force : Boolean);
 begin
   If (LockUpdateScreen<=0) and
      Assigned(CurrentVideoDriver.UpdateScreen) then
-      CurrentVideoDriver.UpdateScreen(Force);  
+      CurrentVideoDriver.UpdateScreen(Force);
 end;
 
 Procedure ClearScreen;
@@ -89,7 +96,7 @@ begin
     begin
     FillWord(VideoBuf^,VideoBufSize shr 1,$0720);
     UpdateScreen(True);
-    // Is this needed ? 
+    // Is this needed ?
     {
     CurrentX:=1;
     CurrentY:=1;
@@ -125,14 +132,14 @@ begin
   If Assigned(CurrentVideoDriver.GetCapabilities) then
     GetCapabilities:=CurrentVideoDriver.GetCapabilities()
   else
-    GetCapabilities:=0;  
+    GetCapabilities:=0;
 end;
-    
+
 
 { ---------------------------------------------------------------------
     General functions
   ---------------------------------------------------------------------}
-  
+
 
 procedure GetVideoMode(var Mode: TVideoMode);
 begin
@@ -200,8 +207,17 @@ end;
 
 {
   $Log$
-  Revision 1.2  2001-09-21 19:50:18  michael
+  Revision 1.3  2001-10-04 20:51:56  michael
+  + merged function setvideodriver
+
+  Revision 1.2  2001/09/21 19:50:18  michael
   + Merged driver support from fixbranch
+
+  Revision 1.1.2.4  2001/10/04 18:59:11  michael
+  + Made setVideoDriver a function
+
+  Revision 1.1.2.3  2001/10/02 15:10:45  pierre
+   + GetLockScreenCount function added
 
   Revision 1.1.2.2  2001/09/21 18:42:08  michael
   + Implemented support for custom video drivers.

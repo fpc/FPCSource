@@ -32,11 +32,11 @@ type
     UpdateScreen    : Procedure(Force : Boolean);
     ClearScreen     : Procedure;
     SetVideoMode    : Procedure (Const Mode : TVideoMode; Params : Longint);
-    HasVideoMode    : Function (Const Mode : TVideoMode; Params : Longint) : Boolean; 
+    HasVideoMode    : Function (Const Mode : TVideoMode; Params : Longint) : Boolean;
     SetCursorPos    : procedure (NewCursorX, NewCursorY: Word);
     GetCursorType   : function : Word;
     SetCursorType   : procedure (NewType: Word);
-    GetCapabilities : Function : Word; 
+    GetCapabilities : Function : Word;
   end;
 
 const
@@ -106,7 +106,9 @@ Procedure LockScreenUpdate;
 { Increments the screen update lock count with one.}
 Procedure UnlockScreenUpdate;
 { Decrements the screen update lock count with one.}
-Procedure SetVideoDriver (Const Driver : TVideoDriver);
+Function GetLockScreenCount : integer;
+{ Gets the current lock level }
+Function SetVideoDriver (Const Driver : TVideoDriver) : Boolean;
 { Sets the videodriver to be used }
 Procedure GetVideoDriver (Var Driver : TVideoDriver);
 { Retrieves the current videodriver }
@@ -174,10 +176,19 @@ const
 
 {
   $Log$
-  Revision 1.3  2001-09-21 19:50:18  michael
+  Revision 1.4  2001-10-04 20:51:56  michael
+  + merged function setvideodriver
+
+  Revision 1.3  2001/09/21 19:50:18  michael
   + Merged driver support from fixbranch
 
   Revision 1.2  2001/06/06 17:20:22  jonas
+
+  Revision 1.1.2.5  2001/10/04 18:59:11  michael
+  + Made setVideoDriver a function
+
+  Revision 1.1.2.4  2001/10/02 15:10:45  pierre
+   + GetLockScreenCount function added
 
   Revision 1.1.2.3  2001/09/21 18:42:08  michael
   + Implemented support for custom video drivers.
