@@ -73,7 +73,7 @@ interface
        'fbeq','fbne','fbngt','fbgt','fbge','fbnge',
        'fblt','fbnlt','fble','fbgl','fbngl','fbgle','fbngle',
        'fdbeq','fdbne','fdbgt','fdbngt','fdbge','fdnbge',
-       'fdblt','fdbnlt','fdble','fdbgl','fdbngl','fdbgle','fbdngle',
+       'fdblt','fdbnlt','fdble','fdbgl','fdbngl','fdbgle','fdbngle',
        'fseq','fsne','fsgt','fsngt','fsge','fsnge',
        'fslt','fsnlt','fsle','fsgl','fsngl','fsgle','fsngle',
        'fcmp','fdiv','fmove','fmovem',
@@ -417,7 +417,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.3  2002-09-07 15:25:11  peter
+  Revision 1.4  2002-11-30 23:33:02  carl
+    * merges from Pierre's fixes in m68k fixes branch
+
+  Revision 1.3  2002/09/07 15:25:11  peter
     * old logs removed and tabs fixed
 
   Revision 1.2  2002/08/13 18:58:54  carl

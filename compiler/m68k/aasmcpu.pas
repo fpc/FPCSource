@@ -373,7 +373,7 @@ implementation
          init(_size);
          ops:=2;
          if ((op >= A_DBCC) and (op <= A_DBF))
-          or ((op >= A_FDBEQ) and (op <= A_FBDNGLE)) then
+          or ((op >= A_FDBEQ) and (op <= A_FDBNGLE)) then
            begin
              loadreg(0,_op2);
              loadsymbol(1,_op1,_op1ofs);
@@ -409,7 +409,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2002-09-07 15:25:11  peter
+  Revision 1.6  2002-11-30 23:33:02  carl
+    * merges from Pierre's fixes in m68k fixes branch
+
+  Revision 1.5  2002/09/07 15:25:11  peter
     * old logs removed and tabs fixed
 
   Revision 1.4  2002/08/13 18:58:54  carl

@@ -101,7 +101,7 @@ type
    AS_SEPARATOR,AS_ID,AS_REGISTER,AS_OPCODE,AS_SLASH,AS_APPT,AS_REALNUM,
    AS_ALIGN,
      {------------------ Assembler directives --------------------}
-   AS_DB,AS_DW,AS_DD,AS_XDEF,AS_END,
+   AS_DB,AS_DW,AS_DD,AS_END,
      {------------------ Assembler Operators  --------------------}
    AS_MOD,AS_SHL,AS_SHR,AS_NOT,AS_AND,AS_OR,AS_XOR);
 
@@ -117,7 +117,7 @@ const
    _count_asmoperators  = longint(lastoperator)-longint(firstoperator);
 
    _asmdirectives : array[0.._count_asmdirectives] of tasmkeyword =
-    ('DC.B','DC.W','DC.L','XDEF','END');
+    ('DC.B','DC.W','DC.L','END');
 
     { problems with shl,shr,not,and,or and xor, they are }
     { context sensitive.                                 }
@@ -1622,7 +1622,7 @@ type
                      end
                      else
                      Begin
-                        Message(asmr_e_68020_mode_required);
+                        Message1(asmr_e_higher_cpu_mode_required,'68020');
                         if not (actasmtoken in [AS_SEPARATOR,AS_COMMA]) then
                         Begin
                           Message(asmr_e_invalid_reg_list_for_opcode);
@@ -2059,7 +2059,7 @@ type
        end
        else
        if ((opcode >= A_DBCC) and (opcode <= A_DBF))
-       or ((opcode >= A_FDBEQ) and (opcode <= A_FBDNGLE)) then
+       or ((opcode >= A_FDBEQ) and (opcode <= A_FDBNGLE)) then
        begin
          if (ops<>2) or
             (operands[1].opr.typ <> OPR_REGISTER) or
@@ -2133,34 +2133,6 @@ type
                  Consume(AS_DD);
                  BuildConstant($ffffffff);
                 end;
-        AS_XDEF:
-                  Begin
-                   { normal units should not be able to declare }
-                   { direct label names like this... anyhow     }
-                   { procedural calls in asm blocks are         }
-                   { supposedely replaced automatically         }
-                   if (cs_compilesystem in aktmoduleswitches) then
-                   begin
-                     Consume(AS_XDEF);
-                      if actasmtoken <> AS_ID then
-                       Message(asmr_e_invalid_global_def)
-                      else
-                        ConcatPublic(curlist,actasmpattern);
-                      Consume(actasmtoken);
-                      if actasmtoken <> AS_SEPARATOR then
-                      Begin
-                        Message(asmr_e_syntax_error);
-                        while actasmtoken <> AS_SEPARATOR do
-                         Consume(actasmtoken);
-                      end;
-                   end
-                   else
-                   begin
-                     Message(asmr_w_xdef_not_supported);
-                     while actasmtoken <> AS_SEPARATOR do
-                       Consume(actasmtoken);
-                   end;
-                  end;
         AS_ALIGN: Begin
                     Message(asmr_w_align_not_supported);
                     while actasmtoken <> AS_SEPARATOR do
@@ -2225,7 +2197,10 @@ Begin
 end.
 {
   $Log$
-  Revision 1.8  2002-09-07 15:25:13  peter
+  Revision 1.9  2002-11-30 23:33:03  carl
+    * merges from Pierre's fixes in m68k fixes branch
+
+  Revision 1.8  2002/09/07 15:25:13  peter
     * old logs removed and tabs fixed
 
   Revision 1.7  2002/09/03 19:04:18  daniel

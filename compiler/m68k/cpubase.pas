@@ -71,7 +71,7 @@ uses
          a_fbeq,a_fbne,a_fbngt,a_fbgt,a_fbge,a_fbnge,
          a_fblt,a_fbnlt,a_fble,a_fbgl,a_fbngl,a_fbgle,a_fbngle,
          a_fdbeq,a_fdbne,a_fdbgt,a_fdbngt,a_fdbge,a_fdbnge,
-         a_fdblt,a_fdbnlt,a_fdble,a_fdbgl,a_fdbngl,a_fdbgle,a_fbdngle,
+         a_fdblt,a_fdbnlt,a_fdble,a_fdbgl,a_fdbngl,a_fdbgle,a_fdbngle,
          a_fseq,a_fsne,a_fsgt,a_fsngt,a_fsge,a_fsnge,
          a_fslt,a_fsnlt,a_fsle,a_fsgl,a_fsngl,a_fsgle,a_fsngle,
          a_fcmp,a_fdiv,a_fmove,a_fmovem,
@@ -493,11 +493,11 @@ uses
   {the return_result_reg, is used inside the called function to store its return
   value when that is a scalar value otherwise a pointer to the address of the
   result is placed inside it}
-	return_result_reg		=	accumulator;
+  return_result_reg   = accumulator;
 
   {the function_result_reg contains the function result after a call to a scalar
   function othewise it contains a pointer to the returned result}
-	function_result_reg	=	accumulator;
+  function_result_reg = accumulator;
       {# Hi-Results are returned in this register (64-bit value high register) }
       accumulatorhigh = R_D1;
       {# Floating point results will be placed into this register }
@@ -592,7 +592,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  2002-11-17 18:26:16  mazen
+  Revision 1.14  2002-11-30 23:33:03  carl
+    * merges from Pierre's fixes in m68k fixes branch
+
+  Revision 1.13  2002/11/17 18:26:16  mazen
   * fixed a compilation bug accmulator-->accumulator, in definition of return_result_reg
 
   Revision 1.12  2002/11/17 17:49:09  mazen
