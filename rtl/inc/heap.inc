@@ -783,7 +783,9 @@ begin
   if p+size>=heapptr then
    begin
      heapptr:=p;
-     internal_memavail:=internal_heapsize;
+     {internal_memavail:=internal_heapsize;
+      THIS IS WRONG !!!!!! PM
+      it would only be true if p is heaporg ! }
      goto freemem_exit;
    end;
 { heap block? }
@@ -1087,7 +1089,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  1999-03-18 11:21:16  peter
+  Revision 1.8  1999-04-19 11:11:39  pierre
+   * wrong statement in freemem removed : corrupted memavail result
+
+  Revision 1.7  1999/03/18 11:21:16  peter
     * memavail fixed for too big freemem calls
 
   Revision 1.6  1999/02/08 09:31:39  florian
