@@ -7,7 +7,7 @@
 procedure printf(t:pchar);varargs;cdecl;external;
 
 begin
-  printf("Test %d",1);
+  printf('Test %d\n',1);
 {$else}
 begin
   writeln('Unix only test');
