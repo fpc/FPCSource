@@ -208,7 +208,7 @@ unit og386;
           cut_end :
             s:=s+tostr(smarthcount)+'t';
         end;
-        ObjFile:=Path+FixFileName(s+tostr(SmartLinkFilesCnt)+target_info.objext)
+        ObjFile:=FixFileName(s+tostr(SmartLinkFilesCnt)+target_info.objext);
       end;
 
 
@@ -279,7 +279,10 @@ unit og386;
 end.
 {
   $Log$
-  Revision 1.3  2000-07-13 12:08:26  michael
+  Revision 1.4  2000-08-06 10:42:29  peter
+    * merged patches name generation in lib and asm constant eval
+
+  Revision 1.3  2000/07/13 12:08:26  michael
   + patched to 1.1.0 with former 1.09patch from peter
 
   Revision 1.2  2000/07/13 11:32:43  michael

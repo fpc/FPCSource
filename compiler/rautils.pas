@@ -249,6 +249,7 @@ end;
 Procedure TExprParse.RPNCalc(Token : String15; prefix:boolean);                       { RPN Calculator }
 Var
   Temp  : longint;
+  n1,n2 : longint;
   LocalError : Integer;
 begin
   { Handle operators }
@@ -264,14 +265,38 @@ begin
         if prefix then
          RPNPush(-(RPNPop))
         else
-         RPNPush(RPNPop - RPNPop);
+         begin
+           n1:=RPNPop;
+           n2:=RPNPop;
+           RPNPush(n2 - n1);
+         end;
       end;
     '*' : RPNPush(RPNPop * RPNPop);
-    '&' : RPNPush(RPNPop AND RPNPop);
-    '|' : RPNPush(RPNPop OR RPNPop);
+    '&' :
+      begin
+        n1:=RPNPop;
+        n2:=RPNPop;
+        RPNPush(n2 and n1);
+      end;
+    '|' :
+      begin
+        n1:=RPNPop;
+        n2:=RPNPop;
+        RPNPush(n2 or n1);
+      end;
     '~' : RPNPush(NOT RPNPop);
-    '<' : RPNPush(RPNPop SHL RPNPop);
-    '>' : RPNPush(RPNPop SHR RPNPop);
+    '<' :
+      begin
+        n1:=RPNPop;
+        n2:=RPNPop;
+        RPNPush(n2 SHL n1);
+      end;
+    '>' :
+      begin
+        n1:=RPNPop;
+        n2:=RPNPop;
+        RPNPush(n2 SHR n1);
+      end;
     '%' :
       begin
         Temp:=RPNPop;
@@ -1540,7 +1565,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:48  michael
+  Revision 1.3  2000-08-06 10:42:29  peter
+    * merged patches name generation in lib and asm constant eval
+
+  Revision 1.2  2000/07/13 11:32:48  michael
   + removed logs
 
 }
