@@ -33,6 +33,11 @@ RTL=..
 INC=$(RTL)/inc
 PROCINC=$(RTL)/$(CPU)
 
+# Options needed
+ifndef BROWSER
+NEEDOPT=-b-
+endif
+
 # Where to place the result files
 TARGETDIR=.
 
@@ -274,7 +279,10 @@ ipc$(PPUEXT) : ipc.pp linux$(PPUEXT) $(SYSTEMPPU)
 
 #
 # $Log$
-# Revision 1.22  1999-05-03 23:30:28  peter
+# Revision 1.23  1999-05-04 11:59:45  peter
+#   * browser off by default
+#
+# Revision 1.22  1999/05/03 23:30:28  peter
 #   * small update
 #   * uses gprt1 again for gprt21 becuase gprt21.as crashes
 #

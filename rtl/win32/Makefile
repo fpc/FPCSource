@@ -33,6 +33,11 @@ RTL=..
 INC=$(RTL)/inc
 PROCINC=$(RTL)/$(CPU)
 
+# Needed options
+ifndef BROWSER
+NEEDOPT=-b-
+endif
+
 # Where to place the result files
 TARGETDIR=.
 
@@ -371,7 +376,10 @@ endif
 
 #
 # $Log$
-# Revision 1.27  1999-04-28 11:42:50  peter
+# Revision 1.28  1999-05-04 11:59:52  peter
+#   * browser off by default
+#
+# Revision 1.27  1999/04/28 11:42:50  peter
 #   + FileNameCaseSensetive boolean
 #
 # Revision 1.26  1999/04/22 10:56:33  peter

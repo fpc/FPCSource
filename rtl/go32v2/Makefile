@@ -33,6 +33,11 @@ RTL=..
 INC=$(RTL)/inc
 PROCINC=$(RTL)/$(CPU)
 
+# Needed options
+ifndef BROWSER
+NEEDOPT=-b-
+endif
+ 
 # Where to place the result files
 TARGETDIR=.
 
@@ -248,7 +253,10 @@ msmouse$(PPUEXT) : msmouse.pp $(SYSTEMPPU)
 
 #
 # $Log$
-# Revision 1.12  1999-04-22 10:56:31  peter
+# Revision 1.13  1999-05-04 11:59:42  peter
+#   * browser off by default
+#
+# Revision 1.12  1999/04/22 10:56:31  peter
 #   * fixed sysutils dependencys
 #   * objpas files are agian in the main Makefile, makefile.op is obsolete
 #
