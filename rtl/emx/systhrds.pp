@@ -351,7 +351,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.1  2002-11-17 16:22:54  hajny
+  Revision 1.1  2002-11-17 16:45:35  hajny
+    * threads.pp renamed to systhrds.pp
+
+  Revision 1.1  2002/11/17 16:22:54  hajny
     + RTL for emx target
 
   Revision 1.1  2002/10/14 19:39:18  peter
