@@ -3,6 +3,8 @@ unit tw1820;
 
 interface
 
+{$ifdef win32}
+
 {$mode Delphi}
 Uses Windows;
 
@@ -15,7 +17,8 @@ type
 const
   IEnumTasks = IEnumWorkItems;
 
+{$endif}
+
   implementation
 
 end.
-
