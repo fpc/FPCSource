@@ -330,11 +330,12 @@ end;
       end;
   end;
 
+
 {Gives the path for a given file or directory. If parent is true, 
  a path to the directory, where the file or directory is located,
- is returned. Functioning even with System 6.
- TODO use AnsiString instead of Mac_Handle}
-function FSpGetFullPath (spec: FSSpec; var fullPathHandle: Mac_Handle;
+ is returned. Functioning even with System 6.}
+
+function FSpGetFullPath (spec: FSSpec; var fullPath: AnsiString;
   parent: Boolean): OSErr;
 
   var
@@ -342,26 +343,19 @@ function FSpGetFullPath (spec: FSSpec; var fullPathHandle: Mac_Handle;
     pb: CInfoPBRec;
 
 begin
-  fullPathHandle:= NewHandle(0); { Allocate a zero-length handle }
-  if fullPathHandle = nil then
-    begin
-      FSpGetFullPath:= MemError;
-      Exit;
-    end;
-
+  res := noErr;
   if spec.parID = fsRtParID then { The object is a volume }
     begin
       if not parent then
         begin
           { Add a colon to make it a full pathname }
-          spec.name := Concat(spec.name, ':');
-
-          { We're done }
-          Munger(fullPathHandle, 0, nil, 0, @spec.name[1], Length(spec.name));
-          res := MemError;
+          fullPath:= spec.name + ':';
         end
       else
-        res := noErr;
+        begin
+          fullPath:= '';
+          res:= afpObjectTypeErr; {to have something close to this error.}
+        end;
     end
   else
     begin
@@ -369,7 +363,9 @@ begin
 
       { Add the object name }
       if not parent then
-        Munger(fullPathHandle, 0, nil, 0, @spec.name[1], Length(spec.name));
+        fullPath:= spec.name
+      else
+        fullPath:= '';
 
       { Get the ancestor directory names }
       pb.ioNamePtr := @spec.name;
@@ -385,19 +381,12 @@ begin
           if res = noErr then
             begin
               { Append colon to directory name }
-              spec.name := Concat(spec.name, ':');
+              spec.name := spec.name + ':';
               { Add directory name to fullPathHandle }
-              Munger(fullPathHandle, 0, nil, 0, @spec.name[1], Length(spec.name));
-              res := MemError;
+              fullPath:= spec.name + fullPath;
             end
         end
       until not ((res = noErr) and (pb.ioDrDirID <> fsRtDirID));
-    end;
-
-  if res <> noErr then
-    begin
-      DisposeHandle(fullPathHandle);
-      fullPathHandle:= nil;
     end;
 
   FSpGetFullPath := res;
@@ -418,22 +407,13 @@ var
   err: OSErr;
   res: Integer;
   spec: FSSpec;
-  pathHandle: Mac_Handle;
 
 begin
   res:= PathArgToFSSpec(s, spec);
   if (res = 0) or (res = 2) then
     begin
-      err:= FSpGetFullPath(spec, pathHandle, false);
-      if err = noErr then
-        begin
-          HLock(pathHandle);
-          SetString(fullpath, pathHandle^, GetHandleSize(pathHandle));
-          DisposeHandle(pathHandle);
-          PathArgToFullPath:= 0;
-        end
-      else
-        PathArgToFullPath:= MacOSErr2RTEerr(err);
+      err:= FSpGetFullPath(spec, fullpath, false);
+      PathArgToFullPath:= MacOSErr2RTEerr(err);
     end
   else
     PathArgToFullPath:=res;
