@@ -62,6 +62,7 @@ const
 var
 
   BytesPerLine: word;              { Number of bytes per scanline }
+  YOffset : word;                  { Pixel offset for VESA page flipping }
 
   { window management }
   ReadWindow : byte;      { Window number for reading. }
@@ -72,6 +73,8 @@ var
   CurrentWriteBank: integer; { active write bank         }
 
   BankShift : word;       { address to shift by when switching banks. }
+
+  ScanLines: word;        { maximum number of scan lines for mode }
 
 function hexstr(val : longint;cnt : byte) : string;
 const
@@ -411,6 +414,7 @@ end;
        if (Y < StartYViewPort) or (Y > (StartYViewPort + ViewHeight)) then
          exit;
      end;
+     Y := Y + YOffset; { adjust pixel for correct virtual page }
      offs := longint(y) * BytesPerLine + x;
      SetWriteBank(integer(offs shr 16));
      mem[WinWriteSeg : word(offs)] := byte(color);
@@ -421,6 +425,7 @@ end;
      offs : longint;
      col : byte;
   begin
+     y := y + YOffset;
      offs := longint(y) * BytesPerLine + x;
      SetWriteBank(integer(offs shr 16));
      Case CurrentWriteMode of
@@ -454,7 +459,7 @@ end;
      offs : longint;
   begin
      X:= X + StartXViewPort;
-     Y:= Y + StartYViewPort;
+     Y:= Y + StartYViewPort + YOffset;
      offs := longint(y) * BytesPerLine + x;
      SetReadBank(integer(offs shr 16));
      GetPixVESA256:=mem[WinReadSeg : word(offs)];
@@ -483,6 +488,7 @@ end;
                 StartXViewPort+ViewWidth, StartYViewPort+ViewHeight) then
             exit;
       end;
+    Y:= Y + YOffset; { Adjust for correct virtual page }
     {$ifdef logging}
     LogLn('hline '+strf(x)+' - '+strf(x2)+' on '+strf(y)+' in mode '+strf(currentwritemode));
     {$endif logging}
@@ -758,6 +764,8 @@ end;
                 StartXViewPort+ViewWidth, StartYViewPort+ViewHeight) then
             exit;
       end;
+    Y := Y + YOffset;
+    Y2 := Y2 + YOffset; { adjust for current virtual page }
     Col := Byte(CurrentColor);
     {$ifdef logging}
     LogLn('vline '+strf(y)+' - '+strf(y2)+' on '+strf(x)+' in mode '+strf(currentwritemode));
@@ -907,6 +915,7 @@ end;
        if (Y < StartYViewPort) or (Y > (StartYViewPort + ViewHeight)) then
          exit;
      end;
+     Y := Y + YOffset; { adjust pixel for correct virtual page }
      offs := longint(y) * BytesPerLine + 2*x;
      SetWriteBank(integer(offs shr 16));
      memW[WinWriteSeg : word(offs)] := color;
@@ -926,6 +935,7 @@ end;
        if (Y < StartYViewPort) or (Y > (StartYViewPort + ViewHeight)) then
          exit;
      end;
+     Y := Y + YOffset; { adjust pixel for correct virtual page }
     offs := longint(y) * BytesPerLine + 2*x;
     SetWriteBank(integer(offs shr 16));
     memW[WinWriteSeg : word(offs)] := color;
@@ -936,7 +946,7 @@ end;
      offs : longint;
   begin
      X:= X + StartXViewPort;
-     Y:= Y + StartYViewPort;
+     Y:= Y + StartYViewPort + YOffset;
      offs := longint(y) * BytesPerLine + 2*x;
      SetReadBank(integer(offs shr 16));
      GetPixVESA32k:=memW[WinReadSeg : word(offs)];
@@ -947,7 +957,7 @@ end;
      offs : longint;
   begin
      X:= X + StartXViewPort;
-     Y:= Y + StartYViewPort;
+     Y:= Y + StartYViewPort + YOffset;
      offs := longint(y) * BytesPerLine + 2*x;
      SetReadBank(integer(offs shr 16));
      GetPixVESA64k:=memW[WinReadSeg : word(offs)];
@@ -958,6 +968,7 @@ end;
      offs : longint;
      col : word;
   begin
+     y:= Y + YOffset;
      offs := longint(y) * BytesPerLine + 2*x;
      SetWriteBank(integer((offs shr 16) and $ff));
      Case CurrentWriteMode of
@@ -991,6 +1002,7 @@ end;
      offs : longint;
      Col : word;
   begin
+     Y:= y + YOffset;
      offs := longint(y) * BytesPerLine + 2*x;
      SetWriteBank(integer(offs shr 16));
      Case CurrentWriteMode of
@@ -1038,6 +1050,7 @@ end;
        if (Y < StartYViewPort) or (Y > (StartYViewPort + ViewHeight)) then
          exit;
      end;
+     Y := Y + YOffset; { adjust pixel for correct virtual page }
      { }
      offs := longint(y) * BytesPerLine + (x div 8);
      SetWriteBank(integer(offs shr 16));
@@ -1061,7 +1074,7 @@ end;
      shift: byte;
   Begin
     X:= X + StartXViewPort;
-    Y:= Y + StartYViewPort;
+    Y:= Y + StartYViewPort + YOffset;
     offset := longint(Y) * BytesPerLine + (x div 8);
     SetReadBank(integer(offset shr 16));
     Port[$3ce] := 4;
@@ -1084,6 +1097,7 @@ end;
      dummy : byte;
      Color : word;
   begin
+    y:= Y + YOffset;
     case CurrentWriteMode of
       XORPut:
         begin
@@ -1622,91 +1636,159 @@ end;
  {*                     VESA Modes inits                                 *}
  {************************************************************************}
 
+{$IFDEF DPMI}
+
+  {******************************************************** }
+  { Function GetMaxScanLines()                              }
+  {-------------------------------------------------------- }
+  { This routine returns the maximum number of scan lines   }
+  { possible for this mode. This is done using the Get      }
+  { Scan Line length VBE function.                          }
+  {******************************************************** }
+  function GetMaxScanLines: word;
+   var
+    regs : TDPMIRegisters;
+   begin
+     FillChar(regs, sizeof(regs), #0);
+     { play it safe, call the real mode int, the 32-bit entry point }
+     { may not be defined as stated in VBE v3.0                     }
+     regs.eax := $4f06; {_ setup function      }
+     regs.ebx := $0001; { get scan line length }
+     RealIntr($10, regs);
+     GetMaxScanLines := (regs.edx and $0000ffff);
+   end;
+
+{$ELSE}
+
+  function GetMaxScanLines: word; assembler;
+     asm
+      mov ax, 4f06h
+      mov bx, 0001h
+      int 10h
+      mov ax, dx
+   end;
+
+{$ENDIF}
+
  procedure Init1280x1024x64k; {$ifndef fpc}far;{$endif fpc}
   begin
     SetVesaMode(m1280x1024x64k);
+    { Get maximum number of scanlines for page flipping }
+    ScanLines := GetMaxScanLines;
   end;
 
  procedure Init1280x1024x32k; {$ifndef fpc}far;{$endif fpc}
   begin
     SetVESAMode(m1280x1024x32k);
+    { Get maximum number of scanlines for page flipping }
+    ScanLines := GetMaxScanLines;
   end;
 
  procedure Init1280x1024x256; {$ifndef fpc}far;{$endif fpc}
   begin
     SetVESAMode(m1280x1024x256);
+    { Get maximum number of scanlines for page flipping }
+    ScanLines := GetMaxScanLines;
   end;
 
 
  procedure Init1280x1024x16; {$ifndef fpc}far;{$endif fpc}
   begin
     SetVESAMode(m1280x1024x16);
+    { Get maximum number of scanlines for page flipping }
+    ScanLines := GetMaxScanLines;
   end;
 
  procedure Init1024x768x64k; {$ifndef fpc}far;{$endif fpc}
   begin
     SetVESAMode(m1024x768x64k);
+    { Get maximum number of scanlines for page flipping }
+    ScanLines := GetMaxScanLines;
   end;
 
  procedure Init640x480x32k; {$ifndef fpc}far;{$endif fpc}
   begin
     SetVESAMode(m640x480x32k);
+    { Get maximum number of scanlines for page flipping }
+    ScanLines := GetMaxScanLines;
   end;
 
  procedure Init1024x768x256; {$ifndef fpc}far;{$endif fpc}
   begin
     SetVESAMode(m1024x768x256);
+    { Get maximum number of scanlines for page flipping }
+    ScanLines := GetMaxScanLines;
   end;
 
  procedure Init1024x768x16; {$ifndef fpc}far;{$endif fpc}
   begin
     SetVESAMode(m1024x768x16);
+    { Get maximum number of scanlines for page flipping }
+    ScanLines := GetMaxScanLines;
   end;
 
  procedure Init800x600x64k; {$ifndef fpc}far;{$endif fpc}
   begin
     SetVESAMode(m800x600x64k);
+    { Get maximum number of scanlines for page flipping }
+    ScanLines := GetMaxScanLines;
   end;
 
  procedure Init800x600x32k; {$ifndef fpc}far;{$endif fpc}
   begin
     SetVESAMode(m800x600x32k);
+    { Get maximum number of scanlines for page flipping }
+    ScanLines := GetMaxScanLines;
   end;
 
  procedure Init800x600x256; {$ifndef fpc}far;{$endif fpc}
   begin
     SetVESAMode(m800x600x256);
+    { Get maximum number of scanlines for page flipping }
+    ScanLines := GetMaxScanLines;
   end;
 
  procedure Init800x600x16; {$ifndef fpc}far;{$endif fpc}
   begin
     SetVesaMode(m800x600x16);
+    { Get maximum number of scanlines for page flipping }
+    ScanLines := GetMaxScanLines;
   end;
 
  procedure Init640x480x64k; {$ifndef fpc}far;{$endif fpc}
   begin
     SetVESAMode(m640x480x64k);
+    { Get maximum number of scanlines for page flipping }
+    ScanLines := GetMaxScanLines;
   end;
 
 
  procedure Init640x480x256; {$ifndef fpc}far;{$endif fpc}
   begin
     SetVESAMode(m640x480x256);
+    { Get maximum number of scanlines for page flipping }
+    ScanLines := GetMaxScanLines;
   end;
 
  procedure Init640x400x256; {$ifndef fpc}far;{$endif fpc}
   begin
     SetVESAMode(m640x400x256);
+    { Get maximum number of scanlines for page flipping }
+    ScanLines := GetMaxScanLines;
   end;
 
  procedure Init320x200x64k; {$ifndef fpc}far;{$endif fpc}
   begin
     SetVESAMode(m320x200x64k);
+    { Get maximum number of scanlines for page flipping }
+    ScanLines := GetMaxScanLines;
   end;
 
  procedure Init320x200x32k; {$ifndef fpc}far;{$endif fpc}
   begin
     SetVESAMode(m320x200x32k);
+    { Get maximum number of scanlines for page flipping }
+    ScanLines := GetMaxScanLines;
   end;
 
 
@@ -1936,20 +2018,54 @@ end;
  { Note: These routines, according  to the VBE3 specification, will NOT   }
  { work with the 24 bpp modes, because of the alignment.                  }
  {************************************************************************}
+
+  {******************************************************** }
+  { Procedure SetVisualVESA()                               }
+  {-------------------------------------------------------- }
+  { This routine changes the page which will be displayed   }
+  { on the screen, since the method has changed somewhat    }
+  { between VBE versions , we will use the old method where }
+  { the new pixel offset is used to display different pages }
+  {******************************************************** }
  procedure SetVisualVESA(page: word); {$ifndef fpc}far;{$endif fpc}
-  { two page support... }
+  var
+   newStartVisible : word;
   begin
     if page > HardwarePages then exit;
+    newStartVisible := (MaxY+1)*page;
+    if newStartVisible > ScanLines then exit;
+    asm
+      mov ax, 4f07h
+      mov bx, 0000h   { set display start }
+      mov cx, 0000h   { pixel zero !      }
+      mov dx, [NewStartVisible]  { new scanline }
+{$ifdef fpc}
+      push    ebp
+{$endif}
+      int     10h
+{$ifdef fpc}
+      pop     ebp
+{$endif}
+    end;
   end;
 
  procedure SetActiveVESA(page: word); {$ifndef fpc}far;{$endif fpc}
-  { two page support... }
   begin
+    { video offset is in pixels under VESA VBE! }
+    { This value is reset after a mode set to page ZERO = YOffset = 0 ) }
+    YOffset := (MaxY+1)*page;
   end;
 
 {
 $Log$
-Revision 1.5  1999-12-02 22:34:14  pierre
+Revision 1.6  1999-12-09 02:06:00  carl
+  + page flipping for all VESA modes.
+   (important note: The VESAModeInfo structure returns the MAXIMUM
+    number of image pages, and not the actual available number of
+    pages (cf. VBE 3.0 specification), that is the reason why
+    SetVisualPage() has so much checking).
+
+Revision 1.5  1999/12/02 22:34:14  pierre
  * avoid FPC problem in array of char comp
 
 Revision 1.4  1999/11/30 02:25:15  carl
