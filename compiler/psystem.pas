@@ -167,6 +167,7 @@ implementation
         addtype('Int64',cs64bittype);
         adddef('TypedFile',tfiledef.createtyped(voidtype));
         addtype('Variant',cvarianttype);
+        addtype('OleVariant',colevarianttype);
         { Internal types }
         addtype('$formal',cformaltype);
         addtype('$void',voidtype);
@@ -190,6 +191,7 @@ implementation
         addtype('$openchararray',openchararraytype);
         addtype('$file',cfiletype);
         addtype('$variant',cvarianttype);
+        addtype('$olevariant',cvarianttype);
         addtype('$s32real',s32floattype);
         addtype('$s64real',s64floattype);
         addtype('$s80real',s80floattype);
@@ -252,6 +254,7 @@ implementation
         globaldef('file',cfiletype);
         globaldef('pvmt',pvmttype);
         globaldef('variant',cvarianttype);
+        globaldef('olevariant',colevarianttype);
         globaldef('methodpointer',methodpointertype);
 {$ifdef i386}
         ordpointertype:=u32bittype;
@@ -361,7 +364,8 @@ implementation
         charpointertype.setdef(tpointerdef.create(cchartype));
         voidfarpointertype.setdef(tpointerdef.createfar(voidtype));
         cfiletype.setdef(tfiledef.createuntyped);
-        cvarianttype.setdef(tvariantdef.create);
+        cvarianttype.setdef(tvariantdef.create(vt_normalvariant));
+        colevarianttype.setdef(tvariantdef.create(vt_olevariant));
         registerdef:=oldregisterdef;
       end;
 
@@ -505,7 +509,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.56  2003-09-28 17:55:04  peter
+  Revision 1.57  2003-10-06 22:23:41  florian
+    + added basic olevariant support
+
+  Revision 1.56  2003/09/28 17:55:04  peter
     * parent framepointer changed to hidden parameter
     * tloadparentfpnode added
 

@@ -168,6 +168,10 @@ type
     normset,smallset,varset
   );
 
+  tvarianttype = (
+    vt_normalvariant,vt_olevariant
+  );
+
   tcallercallee = (callerside,calleeside);
 
   { basic type for tprocdef and tprocvardef }
@@ -375,7 +379,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.65  2003-09-28 17:55:04  peter
+  Revision 1.66  2003-10-06 22:23:41  florian
+    + added basic olevariant support
+
+  Revision 1.65  2003/09/28 17:55:04  peter
     * parent framepointer changed to hidden parameter
     * tloadparentfpnode added
 

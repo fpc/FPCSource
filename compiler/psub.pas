@@ -986,7 +986,6 @@ implementation
          { reset to normal non static function }
          if (current_procinfo.procdef.parast.symtablelevel=normal_function_level) then
            allow_only_static:=false;
-
          current_procinfo:=oldprocinfo;
       end;
 
@@ -1291,7 +1290,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.157  2003-10-03 14:45:09  peter
+  Revision 1.158  2003-10-06 22:23:41  florian
+    + added basic olevariant support
+
+  Revision 1.157  2003/10/03 14:45:09  peter
     * more proc directive for procvar fixes
 
   Revision 1.156  2003/10/02 21:20:32  peter

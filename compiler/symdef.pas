@@ -138,7 +138,8 @@ interface
        end;
 
        tvariantdef = class(tstoreddef)
-          constructor create;
+          varianttype : tvarianttype;
+          constructor create(v : tvarianttype);
           constructor ppuload(ppufile:tcompilerppufile);
           function gettypename:string;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -696,8 +697,9 @@ interface
        cfiletype,                 { get the same definition for all file }
                                   { used for stabs }
        methodpointertype,         { typecasting of methodpointers to extract self }
-       { we use only one variant def }
+       { we use only one variant def for every variant class }
        cvarianttype,
+       colevarianttype,
        { unsigned ord type with the same size as a pointer }
        ordpointertype,
        defaultordconsttype,       { pointer to type of ordinal constants }
@@ -2192,9 +2194,10 @@ implementation
                                TVARIANTDEF
 ****************************************************************************}
 
-    constructor tvariantdef.create;
+    constructor tvariantdef.create(v : tvarianttype);
       begin
          inherited create;
+         varianttype:=v;
          deftype:=variantdef;
          setsize;
       end;
@@ -2203,6 +2206,7 @@ implementation
     constructor tvariantdef.ppuload(ppufile:tcompilerppufile);
       begin
          inherited ppuloaddef(ppufile);
+         varianttype:=tvarianttype(ppufile.getbyte);
          deftype:=variantdef;
          setsize;
       end;
@@ -2211,6 +2215,7 @@ implementation
     procedure tvariantdef.ppuwrite(ppufile:tcompilerppufile);
       begin
          inherited ppuwritedef(ppufile);
+         ppufile.putbyte(byte(varianttype));
          ppufile.writeentry(ibvariantdef);
       end;
 
@@ -2223,7 +2228,12 @@ implementation
 
     function tvariantdef.gettypename : string;
       begin
-         gettypename:='Variant';
+         case varianttype of
+           vt_normalvariant:
+             gettypename:='Variant';
+           vt_olevariant:
+             gettypename:='OleVariant';
+         end;
       end;
 
 
@@ -5903,7 +5913,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.172  2003-10-05 21:21:52  peter
+  Revision 1.173  2003-10-06 22:23:41  florian
+    + added basic olevariant support
+
+  Revision 1.172  2003/10/05 21:21:52  peter
     * c style array of const generates callparanodes
     * varargs paraloc fixes
 
