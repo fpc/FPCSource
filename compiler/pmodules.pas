@@ -738,6 +738,32 @@ implementation
        end;
 
 
+    procedure free_localsymtables(st:tsymtable);
+      var
+        def : tstoreddef;
+        pd  : tprocdef;
+      begin
+        def:=tstoreddef(st.defindex.first);
+        while assigned(def) do
+          begin
+            if def.deftype=procdef then
+              begin
+                pd:=tprocdef(def);
+                if assigned(pd.localst) and
+                   (pd.localst.symtabletype<>staticsymtable) and
+                   not((pd.proccalloption=pocall_inline) or
+                       ((current_module.flags and uf_local_browser)<>0)) then
+                  begin     
+                    free_localsymtables(pd.localst);
+                    pd.localst.free;
+                    pd.localst:=nil;
+                  end;  
+              end;
+             def:=tstoreddef(def.indexnext);
+          end;
+      end;
+      
+      
     procedure parse_implementation_uses;
       begin
          if token=_USES then
@@ -1224,6 +1250,10 @@ implementation
              Message1(unit_u_implementation_crc_changed,current_module.ppufilename^);
 {$endif EXTDEBUG}
 
+         { release all local symtables that are not needed anymore }
+         free_localsymtables(current_module.globalsymtable);
+         free_localsymtables(current_module.localsymtable);
+         
          { remove static symtable (=refsymtable) here to save some mem }
          if not (cs_local_browser in aktmoduleswitches) then
            begin
@@ -1483,7 +1513,10 @@ implementation
 
          { assemble and link }
          create_objectfile;
-
+         
+         { release all local symtables that are not needed anymore }
+         free_localsymtables(current_module.localsymtable);
+         
          { leave when we got an error }
          if (Errorcount>0) and not status.skip_error then
           begin
@@ -1530,7 +1563,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.163  2004-09-04 21:18:47  armin
+  Revision 1.164  2004-09-14 16:33:46  peter
+    * release localsymtables when module is compiled
+
+  Revision 1.163  2004/09/04 21:18:47  armin
   * target netwlibc added (libc is preferred for newer netware versions)
 
   Revision 1.162  2004/09/03 16:12:32  armin

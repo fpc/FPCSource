@@ -870,6 +870,7 @@ implementation
                 begin
                   pd:=tprocsym(p).procdef[i];
                   if assigned(pd.localst) and
+                     (pd.procsym=tprocsym(p)) and
                      (pd.localst.symtabletype<>staticsymtable) then
                     pd.localst.foreach_static(@finalize_local_typedconst,arg);
                 end;    
@@ -906,6 +907,7 @@ implementation
                 begin
                   pd:=tprocsym(p).procdef[i];
                   if assigned(pd.localst) and
+                     (pd.procsym=tprocsym(p)) and
                      (pd.localst.symtabletype<>staticsymtable) then
                     pd.localst.foreach_static(@finalize_local_typedconst,arg);
                 end;    
@@ -2146,7 +2148,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.214  2004-09-13 20:30:05  peter
+  Revision 1.215  2004-09-14 16:33:46  peter
+    * release localsymtables when module is compiled
+
+  Revision 1.214  2004/09/13 20:30:05  peter
     * finalize all (also procedure local) typedconst at unit finalization
 
   Revision 1.213  2004/08/23 11:00:06  michael
