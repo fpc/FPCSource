@@ -608,82 +608,6 @@ end ['R0','R3','R4','R9','R10','CR0','CTR'];
 
 
 {****************************************************************************
-                              Object Helpers
-****************************************************************************}
-
-{ use generic implementation for now }
-{ that's a problem currently, the generic has a another prototyp than this defined in compproc.inc (FK) }
-
-{$define FPC_SYSTEM_HAS_FPC_HELP_CONSTRUCTOR}
-procedure fpc_help_constructor; assembler;compilerproc;
-asm
-end;
-
-{$define FPC_SYSTEM_HAS_FPC_HELP_FAIL}
-procedure fpc_help_fail(var _self:pointer;var vmt:pointer;vmt_pos:cardinal);assembler;[public,alias:'FPC_HELP_FAIL']; compilerproc;
-assembler;
-asm
-{$warning FIX ME!}
-// !!!!!!!!!!!
-end;
-
-
-{$define FPC_SYSTEM_HAS_FPC_HELP_DESTRUCTOR}
-{ use generic implementation for now }
-{ that's a problem currently, the generic has a another prototyp than this defined in compproc.inc (FK) }
-
-procedure fpc_help_destructor(var _self : pointer; vmt : pointer; vmt_pos : cardinal);assembler; compilerproc;
-asm
-end;
-
-{$define FPC_SYSTEM_HAS_FPC_NEW_CLASS}
-function fpc_new_class(_vmt:pointer;_self:pointer):pointer;assembler;[public,alias:'FPC_NEW_CLASS']; compilerproc;
-assembler;
-asm
-{$warning FIX ME!}
-// !!!!!!!!!!!
-end;
-
-
-{$define FPC_SYSTEM_HAS_FPC_DISPOSE_CLASS}
-procedure fpc_dispose_class(_self: tobject; flag : longint);assembler;[public,alias:'FPC_DISPOSE_CLASS']; compilerproc;
-assembler;
-asm
-{$warning FIX ME!}
-// !!!!!!!!!!!
-end;
-
-{$define FPC_SYSTEM_HAS_FPC_HELP_FAIL_CLASS}
-function fpc_help_fail_class(_vmt:pointer;_self:pointer):pointer;assembler;[public,alias:'FPC_HELP_FAIL_CLASS']; {$ifdef hascompilerproc} compilerproc; {$endif}
-{ a non zero class must allways be disposed
-  VMT is allways at pos 0 }
-assembler;
-asm
-{$warning FIX ME!}
-// !!!!!!!!!!!
-end;
-
-
-
-{$define FPC_SYSTEM_HAS_FPC_CHECK_OBJECT}
-{ use generic implementation for now }
-{ that's a problem currently, the generic has a another prototy than this defined in compproc.inc (FK) }
-procedure fpc_check_object(obj : pointer);assembler; compilerproc;
-asm
-{$warning FIX ME!}
-// !!!!!!!!!!!
-end;
-
-{ use generic implementation for now }
-{ that's a problem currently, the generic has a another prototy than this defined in compproc.inc (FK) }
-{$define FPC_SYSTEM_HAS_FPC_CHECK_OBJECT_EXT}
-procedure fpc_check_object_ext(vmt,expvmt:pointer); compilerproc;assembler;
-asm
-{$warning FIX ME!}
-// !!!!!!!!!!!
-end;
-
-{****************************************************************************
                                  String
 ****************************************************************************}
 
@@ -950,7 +874,10 @@ end ['R3','R10'];
 
 {
   $Log$
-  Revision 1.33  2003-04-26 11:55:52  florian
+  Revision 1.34  2003-04-26 12:05:10  florian
+    * removed object/class helpers, the compiler uses the generic ones
+
+  Revision 1.33  2003/04/26 11:55:52  florian
     * fixed newlines
 
   Revision 1.32  2003/04/23 21:04:48  florian
