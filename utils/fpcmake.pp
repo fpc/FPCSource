@@ -609,60 +609,6 @@ var
       end;
   end;
 
-  procedure AddTargetsUnitDir(const packpre:string;var t:TTargetsString);
-  var
-    i,j,k : integer;
-    hs,pack,packdirvar,unitdirvar,unitdir,packdir : string;
-  begin
-    for i:=0 to targets do
-     if (t[i]<>'') then
-      begin
-        hs:=t[i];
-        repeat
-          j:=pos(' ',hs);
-          if j=0 then
-           j:=length(hs)+1;
-          pack:=Copy(hs,1,j-1);
-          packdirvar:='PACKAGEDIR_'+VarName(pack);
-          unitdirvar:='UNITDIR_'+VarName(pack);
-          packdir:=packpre+'/'+pack;
-          unitdir:='$(UNITSDIR)/'+pack;
-          for k:=1to specialdirs do
-           begin
-             if specialdir[k].dir=pack then
-              begin
-                packdir:=specialdir[k].packdir;
-                unitdir:=specialdir[k].unitdir;
-                break;
-              end;
-           end;
-          mf.Add('ifneq ($(wildcard '+packdir+'),)');
-          mf.Add('ifneq ($(wildcard '+packdir+'/$(OS_TARGET)),)');
-          mf.Add(packdirvar+'='+packdir+'/$(OS_TARGET)');
-          mf.Add('else');
-          mf.Add(packdirvar+'='+packdir);
-          mf.Add('endif');
-          mf.Add(unitdirvar+'=$('+packdirvar+')');
-          mf.Add('else');
-          mf.Add(packdirvar+'=');
-          mf.Add('ifneq ($(wildcard '+unitdir+'),)');
-          mf.Add('ifneq ($(wildcard '+unitdir+'/$(OS_TARGET)),)');
-          mf.Add(unitdirvar+'='+unitdir+'/$(OS_TARGET)');
-          mf.Add('else');
-          mf.Add(unitdirvar+'='+unitdir);
-          mf.Add('endif');
-          mf.Add('else');
-          mf.Add(unitdirvar+'=');
-          mf.Add('endif');
-          mf.Add('endif');
-          mf.Add('ifdef '+unitdirvar);
-          mf.Add('override NEEDUNITDIR+=$('+unitdirvar+')');
-          mf.Add('endif');
-          system.delete(hs,1,j);
-        until hs='';
-      end;
-  end;
-
   procedure AddTargetDir(const s:string);
   var
     j  : integer;
@@ -683,22 +629,6 @@ var
         mf.Add('');
      end;
     mf.Add('endif');
-  end;
-
-  procedure AddPackageDep(const s:string);
-  var
-    packagedir : string;
-  begin
-    packagedir:='$(PACKAGEDIR_'+VarName(s)+')';
-    mf.Add('ifdef PACKAGE'+VarName(s));
-    mf.Add('ifneq ($(wildcard '+packagedir+'),)');
-    mf.Add('override COMPILEPACKAGES+='+s);
-    mf.Add(s+'_package: '+packagedir+'/$(FPCMADE)');
-    mf.Add(packagedir+'/$(FPCMADE):');
-    mf.Add(#9'$(MAKE) -C '+packagedir+' all');
-    mf.Add('endif');
-    mf.Add('endif');
-    Phony:=Phony+' '+s+'_package';
   end;
 
   function AddTargetDefines(const ts:TTargetsString;const prefix:string):string;
@@ -728,7 +658,61 @@ var
      AddTargetDefines:=hs2;
   end;
 
-  procedure AddTargetsPackageDep(const ts:TTargetsString);
+  procedure AddPackage(const path,pack:string);
+  var
+    k : integer;
+    packdirvar,unitdirvar,unitdir,packdir : string;
+  begin
+    mf.Add('ifdef PACKAGE'+VarName(pack));
+    { create needed variables }
+    packdirvar:='PACKAGEDIR_'+VarName(pack);
+    unitdirvar:='UNITDIR_'+VarName(pack);
+    packdir:=path+'/'+pack;
+    unitdir:='$(UNITSDIR)/'+pack;
+    for k:=1to specialdirs do
+     begin
+       if specialdir[k].dir=pack then
+        begin
+          packdir:=specialdir[k].packdir;
+          unitdir:=specialdir[k].unitdir;
+          break;
+        end;
+     end;
+    mf.Add('ifneq ($(wildcard '+packdir+'),)');
+    { Use Package dir, add build rules }
+    mf.Add('ifneq ($(wildcard '+packdir+'/$(OS_TARGET)),)');
+    mf.Add(packdirvar+'='+packdir+'/$(OS_TARGET)');
+    mf.Add('else');
+    mf.Add(packdirvar+'='+packdir);
+    mf.Add('endif');
+    mf.Add('ifeq ($(wildcard $('+packdirvar+')/$(FPCMADE)),)');
+    mf.Add('override COMPILEPACKAGES+=package_'+pack);
+    Phony:=Phony+'package_'+pack;
+    mf.Add('package_'+pack+':');
+    mf.Add(#9'$(MAKE) -C $('+packdirvar+') all');
+    mf.Add('endif');
+    mf.Add(unitdirvar+'=$('+packdirvar+')');
+    mf.Add('else');
+    { Package dir doesn''t exists, create unit dir }
+    mf.Add(packdirvar+'=');
+    mf.Add('ifneq ($(wildcard '+unitdir+'),)');
+    mf.Add('ifneq ($(wildcard '+unitdir+'/$(OS_TARGET)),)');
+    mf.Add(unitdirvar+'='+unitdir+'/$(OS_TARGET)');
+    mf.Add('else');
+    mf.Add(unitdirvar+'='+unitdir);
+    mf.Add('endif');
+    mf.Add('else');
+    mf.Add(unitdirvar+'=');
+    mf.Add('endif');
+    mf.Add('endif');
+    { Add Unit dir to the command line -Fu }
+    mf.Add('ifdef '+unitdirvar);
+    mf.Add('override NEEDUNITDIR+=$('+unitdirvar+')');
+    mf.Add('endif');
+    mf.Add('endif');
+  end;
+
+  procedure AddTargetsPackages(const path:string;const ts:TTargetsString);
   var
     Phony,hs : string;
     i  : integer;
@@ -737,12 +721,14 @@ var
      Phony:='';
      if not TargetStringEmpty(ts) then
       begin
+        AddHead(VarName(path)+' packages');
         hs:=AddTargetDefines(ts,'PACKAGE');
+        mf.Add('');
         repeat
           i:=pos(' ',hs);
           if i=0 then
            i:=length(hs)+1;
-          AddPackageDep(Copy(hs,1,i-1));
+          AddPackage(path,Copy(hs,1,i-1));
           system.delete(hs,1,i);
         until hs='';
         mf.Add('');
@@ -892,9 +878,15 @@ begin
 
    { Packages }
      AddHead('Packages');
+     Phony:='';
      AddTargets('PACKAGES',userini.Requirepackages,false);
      AddTargets('TOOLKITS',userini.Requiretoolkits,false);
      AddTargets('COMPONENTS',userini.Requirecomponents,false);
+     if Phony<>'' then
+      begin
+        Add('.PHONY: '+Phony);
+        Add('');
+      end;
 
    { Libs }
      AddHead('Libraries');
@@ -934,12 +926,35 @@ begin
         Add('');
       end;
 
+   { shell tools like copy,del,echo }
+     AddSection(userini.section[sec_command] or userini.section[sec_tools],'shelltools');
+
+   { write tools }
+     if userini.section[sec_tools] then
+      begin
+        AddSection(true,'tool_default');
+        AddSection(userini.toolsppdep,'tool_ppdep');
+        AddSection(userini.toolsppumove,'tool_ppumove');
+        AddSection(userini.toolsppufiles,'tool_ppufiles');
+        AddSection(userini.toolsdata2inc,'tool_data2inc');
+        AddSection(userini.toolsupx,'tool_upx');
+        AddSection(userini.toolssed,'tool_sed');
+        AddSection(userini.toolsdate,'tool_date');
+        AddSection(userini.toolszip,'tool_zip');
+        AddSection(userini.toolscmp,'tool_cmp');
+        AddSection(userini.toolsdiff,'tool_diff');
+      end;
+
+   { extensions }
+     if userini.section[sec_exts] then
+      AddSection(true,'extensions');
+
    { package/component dirs }
-     AddHead('Package/component dirs');
+     AddSection(true,'packagerequirerules');
      AddSection(userini.requirertl,'checkfpcdirsubs');
-     AddTargetsUnitDir('$(TOOLKITSDIR)',userini.Requiretoolkits);
-     AddTargetsUnitDir('$(PACKAGESDIR)',userini.Requirepackages);
-     AddTargetsUnitDir('$(COMPONENTSDIR)',userini.Requirecomponents);
+     AddTargetsPackages('$(PACKAGESDIR)',userini.Requirepackages);
+     AddTargetsPackages('$(TOOLKITSDIR)',userini.Requiretoolkits);
+     AddTargetsPackages('$(COMPONENTSDIR)',userini.Requirecomponents);
      Add('');
 
    { write dirs }
@@ -953,9 +968,6 @@ begin
 
    { redirection }
      AddSection(true,'redir');
-
-   { shell tools like copy,del,echo }
-     AddSection(userini.section[sec_command] or userini.section[sec_tools],'shelltools');
 
    { commandline }
      if userini.section[sec_command] then
@@ -980,43 +992,11 @@ begin
         AddSection(true,'command_end');
       end;
 
-   { write tools }
-     if userini.section[sec_tools] then
-      begin
-        AddSection(true,'tool_default');
-        AddSection(userini.toolsppdep,'tool_ppdep');
-        AddSection(userini.toolsppumove,'tool_ppumove');
-        AddSection(userini.toolsppufiles,'tool_ppufiles');
-        AddSection(userini.toolsdata2inc,'tool_data2inc');
-        AddSection(userini.toolsupx,'tool_upx');
-        AddSection(userini.toolssed,'tool_sed');
-        AddSection(userini.toolsdate,'tool_date');
-        AddSection(userini.toolszip,'tool_zip');
-        AddSection(userini.toolscmp,'tool_cmp');
-        AddSection(userini.toolsdiff,'tool_diff');
-      end;
-
-   { extensions }
-     if userini.section[sec_exts] then
-      AddSection(true,'extensions');
-
    { add default rules }
      AddSection(true,'standardrules');
      Phony:='';
      for i:=1 to rules do
       AddRule(i);
-     if Phony<>'' then
-      begin
-        Add('.PHONY: '+Phony);
-        Add('');
-      end;
-
-   { Package requirements, must be before the other rules so it's done first }
-     AddSection(true,'packagerequirerules');
-     Phony:='';
-     AddTargetsPackageDep(userini.RequireToolkits);
-     AddTargetsPackageDep(userini.RequirePackages);
-     AddTargetsPackageDep(userini.RequireComponents);
      if Phony<>'' then
       begin
         Add('.PHONY: '+Phony);
@@ -1134,7 +1114,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  2000-01-12 23:20:37  peter
+  Revision 1.24  2000-01-13 11:34:26  peter
+    * better package dep creation
+
+  Revision 1.23  2000/01/12 23:20:37  peter
     * gecho support
     * use foreach to write fpcext.cmd
     * add fpcext.cmd to clean targets
