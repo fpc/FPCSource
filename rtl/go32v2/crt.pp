@@ -1,6 +1,5 @@
 {
     $Id$
-    This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team.
 
     Borland Pascal 7 Compatible CRT Unit for Go32V2
@@ -454,6 +453,10 @@ end;
 
 procedure initdelay;assembler;
 asm
+        { for some reason, using int $31/ax=$901 doesn't work here }
+        { and interrupts are always disabled at this point when    }
+        { running a program inside gdb(pas). Web bug 1345 (JM)     }
+        sti
         movl    $0x46c,%edi
         movl    $-28,%edx
         movl    %fs:(%edi),%ebx
@@ -827,7 +830,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2000-10-31 23:39:30  pierre
+  Revision 1.5  2001-02-27 15:46:48  jonas
+    * fixed web bug 1345 (merged)
+
+  Revision 1.4  2000/10/31 23:39:30  pierre
    * fix for bug 1152 (merged)
 
   Revision 1.1.2.2  2000/10/31 09:32:16  pierre
