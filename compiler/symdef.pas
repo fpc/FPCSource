@@ -5483,7 +5483,7 @@ implementation
                    else
                      writeproc(tpropertysym(sym).storedaccess,4);
                    rttiList.concat(Tai_const.Create_32bit(tpropertysym(sym).index));
-                   rttiList.concat(Tai_const.Create_32bit(tpropertysym(sym).default));
+                   rttiList.concat(Tai_const.Create_32bit(cardinal(tpropertysym(sym).default)));
                    rttiList.concat(Tai_const.Create_16bit(count));
                    inc(count);
                    rttiList.concat(Tai_const.Create_8bit(proctypesinfo));
@@ -6150,7 +6150,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.239  2004-05-23 20:57:10  peter
+  Revision 1.240  2004-05-25 18:51:14  peter
+    * range check error
+
+  Revision 1.239  2004/05/23 20:57:10  peter
     * removed unused voidprocdef
 
   Revision 1.238  2004/05/23 15:23:30  peter
