@@ -29,9 +29,9 @@ interface
 
        { version string }
 
-       version_nr = '0';
-       release_nr = '99';
-       patch_nr   = '15';
+       version_nr = '1';
+       release_nr = '00';
+       patch_nr   = '0';
 {$ifdef newcg}
        minorpatch = ' NCG';
 {$else newcg}
@@ -80,7 +80,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2000-03-21 21:35:27  peter
+  Revision 1.18  2000-07-06 20:08:46  peter
+    * version 1.00.0 so the snapshots can test with this version number
+      for a few days
+
+  Revision 1.17  2000/03/21 21:35:27  peter
     * add OPT for optimizing compiler
 
   Revision 1.16  2000/02/09 13:23:09  peter
