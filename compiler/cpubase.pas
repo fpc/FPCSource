@@ -26,12 +26,6 @@
 }
 unit cpubase;
 
-{$ifdef newOptimizations}
-{$define foropt}
-{$define replacereg}
-{$define arithopt}
-{$define foldarithops}
-{$endif newOptimizations}
 
 interface
 {$ifdef TP}
@@ -606,33 +600,16 @@ Type
      {modify the contents of a register with the purpose of using
       this changed content afterwards (add/sub/..., but e.g. not rep
       or movsd)}
-{$ifdef arithopt}
      Ch_MEAX, Ch_MECX, Ch_MEDX, Ch_MEBX, Ch_MESP, Ch_MEBP, Ch_MESI, Ch_MEDI,
-{$endif arithopt}
      Ch_CDirFlag {clear direction flag}, Ch_SDirFlag {set dir flag},
      Ch_RFlags, Ch_WFlags, Ch_RWFlags, Ch_FPU,
-     Ch_Rop1, Ch_Wop1, Ch_RWop1,{$ifdef arithopt}Ch_Mop1,{$endif}
-     Ch_Rop2, Ch_Wop2, Ch_RWop2,{$ifdef arithopt}Ch_Mop2,{$endif}
-     Ch_Rop3, Ch_WOp3, Ch_RWOp3,{$ifdef arithopt}Ch_Mop3,{$endif}
-
+     Ch_Rop1, Ch_Wop1, Ch_RWop1,Ch_Mop1,
+     Ch_Rop2, Ch_Wop2, Ch_RWop2,Ch_Mop2,
+     Ch_Rop3, Ch_WOp3, Ch_RWOp3,Ch_Mop3,
      Ch_WMemEDI,
      Ch_All
   );
 
-{$ifndef arithopt}
-Const
-   Ch_MEAX = Ch_RWEAX;
-   Ch_MECX = Ch_RWECX;
-   Ch_MEDX = Ch_RWEDX;
-   Ch_MEBX = Ch_RWEBX;
-   Ch_MESP = Ch_RWESP;
-   Ch_MEBP = Ch_RWEBP;
-   Ch_MESI = Ch_RWESI;
-   Ch_MEDI = Ch_RWEDI;
-   Ch_Mop1 = Ch_RWOp1;
-   Ch_Mop2 = Ch_RWOp2;
-   Ch_Mop3 = Ch_RWOp3;
-{$endif arithopt}
 
 const
   MaxCh = 3; { Max things a instruction can change }
@@ -919,7 +896,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:39  michael
+  Revision 1.3  2000-07-14 05:11:48  michael
+  + Patch to 1.1
+
+  Revision 1.2  2000/07/13 11:32:39  michael
   + removed logs
 
 }

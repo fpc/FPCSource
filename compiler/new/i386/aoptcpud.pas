@@ -75,17 +75,9 @@ Begin
               CurProp^.DestroyReg(R_EDX, InstrSinceLastMod)
             End
           Else
-  {$ifdef arithopt}
             CurProp^.ModifyOp(p^.oper[1], InstrSinceLastMod)
-  {$else arithopt}
-            CurProp^.DestroyOp(p^.oper[1], InstrSinceLastMod)
-  {$endif arithopt}
         Else
-  {$ifdef arithopt}
           CurProp^.ModifyOp(p^.oper[2], InstrSinceLastMod);
-  {$else arithopt}
-          CurProp^.DestroyOp(p^.oper[2], InstrsinceLastMod);
-  {$endif arithopt}
       End;
     A_XOR:
       Begin
@@ -100,11 +92,7 @@ Begin
             CurProp^.Regs[RegMaxSize(p^.oper[0].reg)].StartMod := Pointer(0)
           End
         Else
-{$Ifdef ArithOpt}
           CurProp^.ModifyOp(p^.oper[1], InstrSinceLastMod);
-{$Else ArithOpt}
-          CurProp^.DestroyOp(p^.oper[1], InstrSinceLastMod);
-{$EndIf ArithOpt}
         End
     Else
       Begin
@@ -122,10 +110,8 @@ Begin
                     CurProp^.ReadReg(TCh2Reg(InstrProp.Ch[Cnt]));
                   CurProp^.DestroyReg(TCh2Reg(InstrProp.Ch[Cnt]),InstrSinceLastMod);
                 End;
-          {$ifdef arithopt}
               Ch_MEAX..Ch_MEDI:
                 CurProp^.ModifyReg(TCh2Reg(InstrProp.Ch[Cnt]), InstrSinceLastMod);
-          {$endif arithopt}
               Ch_CDirFlag: CurProp^.CondRegs.ClearFlag(DirFlag);
               Ch_SDirFlag: CurProp^.CondRegs.SetFlag(DirFlag);
               Ch_Rop1: CurProp^.ReadOp(p^.oper[0]);
@@ -137,30 +123,24 @@ Begin
                     CurProp^.ReadOp(p^.oper[0]);
                   CurProp^.DestroyOp(p^.oper[0], InstrSinceLastMod);
                 End;
-        {$ifdef arithopt}
               Ch_Mop1:
                 CurProp^.ModifyOp(p^.oper[0], InstrSinceLastMod);
-        {$endif arithopt}
               Ch_Wop2..Ch_RWop2:
                 Begin
                   If (InstrProp.Ch[Cnt] = Ch_RWop2) Then
                     CurProp^.ReadOp(p^.oper[1]);
                   CurProp^.DestroyOp(p^.oper[1], InstrSinceLastMod);
                 End;
-        {$ifdef arithopt}
               Ch_Mop2:
                 CurProp^.ModifyOp(p^.oper[1], InstrSinceLastMod);
-        {$endif arithopt}
               Ch_Wop3..Ch_RWop3:
                 Begin
                   If (InstrProp.Ch[Cnt] = Ch_RWop3) Then
                     CurProp^.ReadOp(p^.oper[2]);
                   CurProp^.DestroyOp(p^.oper[2], InstrSinceLastMod);
                 End;
-        {$ifdef arithopt}
               Ch_Mop3:
                 CurProp^.ModifyOp(p^.oper[2], InstrSinceLastMod);
-        {$endif arithopt}
               Ch_WMemEDI:
                 Begin
                   CurProp^.ReadReg(R_EDI);
@@ -211,15 +191,13 @@ Begin
             Begin
               Case InstrProp.Ch[Cnt] Of
                 Ch_REAX..Ch_REDI,Ch_RWEAX..Ch_RWEDI
-  {$ifdef arithopt}
                 ,Ch_MEAX..Ch_MEDI
-  {$endif arithopt}:
                   TmpResult := Reg = TCh2Reg(InstrProp.Ch[Cnt]);
-                Ch_ROp1,Ch_RWOp1{$ifdef arithopt},Ch_Mop1{$endif arithopt}:
+                Ch_ROp1,Ch_RWOp1,Ch_Mop1:
                   TmpResult := RegInOp(Reg,PInstr(p)^.oper[0]);
-                Ch_ROp2,Ch_RWOp2{$ifdef arithopt},Ch_Mop2{$endif arithopt}:
+                Ch_ROp2,Ch_RWOp2,Ch_Mop2:
                   TmpResult := RegInOp(Reg,PInstr(p)^.oper[1]);
-                Ch_ROp3,Ch_RWOp3{$ifdef arithopt},Ch_Mop3{$endif arithopt}:
+                Ch_ROp3,Ch_RWOp3,Ch_Mop3:
                   TmpResult := RegInOp(Reg,PInstr(p)^.oper[2]);
                 Ch_WOp1: TmpResult := (PInstr(p)^.oper[0].typ = top_ref) And
                                      RegInRef(Reg,PInstr(p)^.oper[0].ref^);
@@ -257,7 +235,10 @@ End.
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:10  michael
+  Revision 1.2  2000-07-14 05:11:49  michael
+  + Patch to 1.1
+
+  Revision 1.1  2000/07/13 06:30:10  michael
   + Initial import
 
   Revision 1.5  2000/01/07 01:14:57  peter

@@ -29,13 +29,6 @@
 
 Unit DAOpt386;
 
-{$ifdef newOptimizations}
-{$define foropt}
-{$define replacereg}
-{$define arithopt}
-{$define foldarithops}
-{$endif newOptimizations}
-
 Interface
 
 Uses
@@ -809,21 +802,21 @@ begin
                   RegReadByInstruction := true;
                   exit
                 end;
-            Ch_RWOp1,Ch_ROp1{$ifdef arithopt},Ch_MOp1{$endif}:
+            Ch_RWOp1,Ch_ROp1,Ch_MOp1:
               if (p^.oper[0].typ = top_reg) and
                  (reg32(p^.oper[0].reg) = reg) then
                 begin
                   RegReadByInstruction := true;
                   exit
                 end;
-            Ch_RWOp2,Ch_ROp2{$ifdef arithopt},Ch_MOp2{$endif}:
+            Ch_RWOp2,Ch_ROp2,Ch_MOp2:
               if (p^.oper[1].typ = top_reg) and
                  (reg32(p^.oper[1].reg) = reg) then
                 begin
                   RegReadByInstruction := true;
                   exit
                 end;
-            Ch_RWOp3,Ch_ROp3{$ifdef arithopt},Ch_MOp3{$endif}:
+            Ch_RWOp3,Ch_ROp3,Ch_MOp3:
               if (p^.oper[2].typ = top_reg) and
                  (reg32(p^.oper[2].reg) = reg) then
                 begin
@@ -934,13 +927,13 @@ Begin
               Case InstrProp.Ch[Cnt] Of
                 Ch_WEAX..Ch_MEDI:
                   TmpResult := Reg = TCh2Reg(InstrProp.Ch[Cnt]);
-                Ch_RWOp1,Ch_WOp1{$ifdef arithopt},Ch_Mop1{$endif arithopt}:
+                Ch_RWOp1,Ch_WOp1,Ch_Mop1:
                   TmpResult := (paicpu(p1)^.oper[0].typ = top_reg) and
                                (Reg32(paicpu(p1)^.oper[0].reg) = reg);
-                Ch_RWOp2,Ch_WOp2{$ifdef arithopt},Ch_Mop2{$endif arithopt}:
+                Ch_RWOp2,Ch_WOp2,Ch_Mop2:
                   TmpResult := (paicpu(p1)^.oper[1].typ = top_reg) and
                                (Reg32(paicpu(p1)^.oper[1].reg) = reg);
-                Ch_RWOp3,Ch_WOp3{$ifdef arithopt},Ch_Mop3{$endif arithopt}:
+                Ch_RWOp3,Ch_WOp3,Ch_Mop3:
                   TmpResult := (paicpu(p1)^.oper[2].typ = top_reg) and
                                (Reg32(paicpu(p1)^.oper[2].reg) = reg);
                 Ch_FPU: TmpResult := Reg in [R_ST..R_ST7,R_MM0..R_MM7];
@@ -1680,7 +1673,6 @@ Begin
   DFAPass1 := BlockEnd;
 End;
 
-{$ifdef arithopt}
 Procedure AddInstr2RegContents({$ifdef statedebug} asml: paasmoutput; {$endif}
 p: paicpu; reg: TRegister);
 {$ifdef statedebug}
@@ -1730,7 +1722,6 @@ Begin
       DestroyOp(p, oper);
     End
 End;
-{$endif arithopt}
 
 Procedure DoDFAPass2(
 {$Ifdef StateDebug}
@@ -2107,22 +2098,13 @@ Begin
                         DestroyReg(CurProp, R_EDX, true)
                       End
                     Else
-            {$ifdef arithopt}
                       AddInstr2OpContents(
                         {$ifdef statedebug}asml,{$endif}
                           Paicpu(p), Paicpu(p)^.oper[1])
-            {$else arithopt}
-                      DestroyOp(p, Paicpu(p)^.oper[1])
-            {$endif arithopt}
                   Else
-            {$ifdef arithopt}
                     AddInstr2OpContents({$ifdef statedebug}asml,{$endif}
                       Paicpu(p), Paicpu(p)^.oper[2]);
-            {$else arithopt}
-                    DestroyOp(p, Paicpu(p)^.oper[2]);
-            {$endif arithopt}
                 End;
-{$ifdef arithopt}
               A_LEA:
                 begin
                   readop(curprop,paicpu(p)^.oper[0]);
@@ -2139,7 +2121,6 @@ Begin
                       destroyreg(curprop,paicpu(p)^.oper[1].reg,true);
                     end;
                 end;
-{$endif arithopt}
               Else
                 Begin
                   Cnt := 1;
@@ -2159,11 +2140,9 @@ Begin
 {$endif statedebug}
                             DestroyReg(CurProp, TCh2Reg(InstrProp.Ch[Cnt]), true);
                           End;
-{$ifdef arithopt}
                         Ch_MEAX..Ch_MEDI:
                           AddInstr2RegContents({$ifdef statedebug} asml,{$endif}
                                                Paicpu(p),TCh2Reg(InstrProp.Ch[Cnt]));
-{$endif arithopt}
                         Ch_CDirFlag: CurProp^.DirFlag := F_NotSet;
                         Ch_SDirFlag: CurProp^.DirFlag := F_Set;
                         Ch_Rop1: ReadOp(CurProp, Paicpu(p)^.oper[0]);
@@ -2175,33 +2154,27 @@ Begin
                               ReadOp(CurProp, Paicpu(p)^.oper[0]);
                             DestroyOp(p, Paicpu(p)^.oper[0]);
                           End;
-{$ifdef arithopt}
                         Ch_Mop1:
                           AddInstr2OpContents({$ifdef statedebug} asml, {$endif}
                           Paicpu(p), Paicpu(p)^.oper[0]);
-{$endif arithopt}
                         Ch_Wop2..Ch_RWop2:
                           Begin
                             If (InstrProp.Ch[Cnt] = Ch_RWop2) Then
                               ReadOp(CurProp, Paicpu(p)^.oper[1]);
                             DestroyOp(p, Paicpu(p)^.oper[1]);
                           End;
-{$ifdef arithopt}
                         Ch_Mop2:
                           AddInstr2OpContents({$ifdef statedebug} asml, {$endif}
                           Paicpu(p), Paicpu(p)^.oper[1]);
-{$endif arithopt}
                         Ch_WOp3..Ch_RWOp3:
                           Begin
                             If (InstrProp.Ch[Cnt] = Ch_RWOp3) Then
                               ReadOp(CurProp, Paicpu(p)^.oper[2]);
                             DestroyOp(p, Paicpu(p)^.oper[2]);
                           End;
-{$ifdef arithopt}
                         Ch_Mop3:
                           AddInstr2OpContents({$ifdef statedebug} asml, {$endif}
                           Paicpu(p), Paicpu(p)^.oper[2]);
-{$endif arithopt}
                         Ch_WMemEDI:
                           Begin
                             ReadReg(CurProp, R_EDI);
@@ -2337,7 +2310,10 @@ End.
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:40  michael
+  Revision 1.3  2000-07-14 05:11:48  michael
+  + Patch to 1.1
+
+  Revision 1.2  2000/07/13 11:32:40  michael
   + removed logs
 
 }

@@ -22,12 +22,6 @@
 }
 Unit POpt386;
 
-{$ifdef newOptimizations}
-{$define foropt}
-{$define replacereg}
-{$define arithopt}
-{$define foldarithops}
-{$endif newOptimizations}
 
 Interface
 
@@ -109,9 +103,7 @@ Procedure PeepHoleOptPass1(Asml: PAasmOutput; BlockStart, BlockEnd: Pai);
 Var
   l : longint;
   p,hp1,hp2 : pai;
-{$ifdef foropt}
   hp3,hp4: pai;
-{$endif foropt}
   TmpBool1, TmpBool2: Boolean;
 
   TmpRef: TReference;
@@ -387,7 +379,6 @@ Begin
                   If (Paicpu(p)^.oper[0].typ = top_const) And
                      (Paicpu(p)^.oper[1].typ in [top_reg,top_ref]) And
                      (Paicpu(p)^.oper[0].val = 0) Then
-{$ifdef foropt}
                     If GetNextInstruction(p, hp1) And
                        (hp1^.typ = ait_instruction) And
                        (Paicpu(hp1)^.is_jmp) and
@@ -422,7 +413,6 @@ Begin
                           continue;
                         End
                       Else
-{$endif foropt}
                  {change "cmp $0, %reg" to "test %reg, %reg"}
                   If (Paicpu(p)^.oper[1].typ = top_reg) Then
                       Begin
@@ -749,14 +739,9 @@ Begin
                 {changes "lea (%reg1), %reg2" into "mov %reg1, %reg2"}
                   If (Paicpu(p)^.oper[0].ref^.Base In [R_EAX..R_EDI]) And
                      (Paicpu(p)^.oper[0].ref^.Index = R_NO) And
-{$ifndef newOptimizations}
-                     (Paicpu(p)^.oper[0].ref^.Offset = 0) And
-{$endif newOptimizations}
                      (Not(Assigned(Paicpu(p)^.oper[0].ref^.Symbol))) Then
                     If (Paicpu(p)^.oper[0].ref^.Base <> Paicpu(p)^.oper[1].reg)
-{$ifdef newOptimizations}
                        and (Paicpu(p)^.oper[0].ref^.Offset = 0)
-{$endif newOptimizations}
                        Then
                         Begin
                           hp1 := New(Paicpu, op_reg_reg(A_MOV, S_L,Paicpu(p)^.oper[0].ref^.Base,
@@ -767,9 +752,7 @@ Begin
                          Continue;
                        End
                      Else
-{$ifdef newOptimizations}
                       if (Paicpu(p)^.oper[0].ref^.Offset = 0) then
-{$endif newOptimizations}
                        Begin
                          hp1 := Pai(p^.Next);
                          AsmL^.Remove(p);
@@ -777,7 +760,6 @@ Begin
                          p := hp1;
                          Continue;
                        End
-{$ifdef newOptimizations}
                       else
                         with Paicpu(p)^.oper[0].ref^ do
                           if (Base = Paicpu(p)^.oper[1].reg) then
@@ -799,7 +781,6 @@ Begin
                                   end;
                               end;
                             end;
-{$endif newOptimizations}
 
                 End;
               A_MOV:
@@ -1932,7 +1913,10 @@ End.
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:45  michael
+  Revision 1.3  2000-07-14 05:11:49  michael
+  + Patch to 1.1
+
+  Revision 1.2  2000/07/13 11:32:45  michael
   + removed logs
 
 }

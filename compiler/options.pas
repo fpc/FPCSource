@@ -1204,7 +1204,6 @@ begin
   disable_configfile:=false;
 { default defines }
   def_symbol(target_info.short_name);
-  def_symbol('FPK');
   def_symbol('FPC');
   def_symbol('VER'+version_nr);
   def_symbol('VER'+version_nr+'_'+release_nr);
@@ -1214,14 +1213,6 @@ begin
 {$endif}
 
 { Temporary defines, until things settle down }
-  def_symbol('INT64');
-  def_symbol('HASRESOURCESTRINGS');
-  def_symbol('HASSAVEREGISTERS');
-  def_symbol('NEWVMTOFFSET');
-  def_symbol('HASINTERNMATH');
-  def_symbol('SYSTEMTVARREC');
-  def_symbol('INCLUDEOK');
-  def_symbol('NEWMM');
   def_symbol('HASWIDECHAR');
 
 {$ifdef SUPPORT_FIXED}
@@ -1233,8 +1224,6 @@ begin
 { for the RTL }
   def_symbol('CARDINALMULFIXED');
 {$endif cardinalmulfix}
-  def_symbol('CORRECTFLDCW');
-  def_symbol('ENHANCEDRAISE');
 
 { New since 1.09 }
   def_symbol('HASOUT');
@@ -1491,7 +1480,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2000-07-13 12:08:26  michael
+  Revision 1.4  2000-07-14 05:11:48  michael
+  + Patch to 1.1
+
+  Revision 1.3  2000/07/13 12:08:26  michael
   + patched to 1.1.0 with former 1.09patch from peter
 
   Revision 1.2  2000/07/13 11:32:44  michael

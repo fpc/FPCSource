@@ -843,14 +843,12 @@ implementation
                 calcregisters(p,0,0,0)
               else
                 calcregisters(p,1,0,0);
-{$ifdef newoptimizations}
 {$ifdef i386}
               { not always necessary, only if it is not a constant char and }
               { not a regvar, but don't know how to check this here (JM)    }
               if is_char(rd) then
                 inc(p^.registers32);
 {$endif i386}
-{$endif newoptimizations}
               convdone:=true;
            end
          else
@@ -1280,7 +1278,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:50  michael
+  Revision 1.3  2000-07-14 05:11:49  michael
+  + Patch to 1.1
+
+  Revision 1.2  2000/07/13 11:32:50  michael
   + removed logs
 
 }

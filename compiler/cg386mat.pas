@@ -53,9 +53,7 @@ implementation
     procedure secondmoddiv(var p : ptree);
       var
          hreg1 : tregister;
-{$ifdef newOptimizations}
          hreg2 : tregister;
-{$endif}
          shrdiv, andmod, pushed,popeax,popedx : boolean;
 
          power : longint;
@@ -140,7 +138,6 @@ implementation
                      "Cardinal($ffffffff) div 16" overflows! (JM)}
                     If is_signed(p^.left^.resulttype) Then
                       Begin
-{$ifdef newOptimizations}
                         If (aktOptProcessor <> class386) and
                            not(CS_LittleSize in aktglobalswitches) then
                         { use a sequence without jumps, saw this in
@@ -180,7 +177,6 @@ implementation
                             emit_const_reg(A_SAR,S_L,power,hreg1);
                           end
                         else
-{$endif newOptimizations}
                           begin
                           { a jump, but less operations }
                             emit_reg_reg(A_TEST,S_L,hreg1,hreg1);
@@ -990,7 +986,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:35  michael
+  Revision 1.3  2000-07-14 05:11:48  michael
+  + Patch to 1.1
+
+  Revision 1.2  2000/07/13 11:32:35  michael
   + removed logs
 
 }

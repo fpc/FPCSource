@@ -34,11 +34,7 @@ interface
 {$ifdef newcg}
        minorpatch = ' NCG';
 {$else newcg}
-  {$ifdef newoptimizations}
-       minorpatch = ' OPT';
-  {$else}
        minorpatch = '';
-  {$endif}
 {$endif newcg}
 
        { date string }
@@ -98,7 +94,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-07-13 12:08:28  michael
+  Revision 1.4  2000-07-14 05:11:49  michael
+  + Patch to 1.1
+
+  Revision 1.3  2000/07/13 12:08:28  michael
   + patched to 1.1.0 with former 1.09patch from peter
 
   Revision 1.2  2000/07/13 11:32:54  michael

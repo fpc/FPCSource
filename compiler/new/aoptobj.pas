@@ -152,7 +152,6 @@ Type
       TInstrSinceLastMod);
     { destroy the contents of all registers }
     Procedure DestroyAllRegs(var InstrSinceLastMod: TInstrSinceLastMod);
-{$ifdef arithopt}
     { a register's contents are modified, but not destroyed (the new value }
     { depends on the old one)                                              }
     Procedure ModifyReg(reg: TRegister; var InstrSinceLastMod:
@@ -161,7 +160,6 @@ Type
     { depends on the old one)                                              }
     Procedure ModifyOp(const oper: TOper; var InstrSinceLastMod:
       TInstrSinceLastMod);
-{$endif arithopt}
 
     { increase the write state of a register (call every time a register is }
     { written to)                                                           }
@@ -558,7 +556,6 @@ Begin
   End;
 End;
 
-{$ifdef arithopt}
 Procedure TPaiProp.ModifyReg(reg: TRegister; Var InstrSinceLastMod:
                                TInstrSinceLastMod);
 Begin
@@ -589,7 +586,6 @@ Begin
       DestroyOp(oper, InstrSinceLastMod);
     End
 End;
-{$endif arithopt}
 
 Procedure TPaiProp.IncWState(Reg: TRegister);{$ifdef inl} inline;{$endif inl}
 Begin
@@ -791,7 +787,10 @@ End.
 
 {
  $Log$
- Revision 1.1  2000-07-13 06:30:07  michael
+ Revision 1.2  2000-07-14 05:11:49  michael
+ + Patch to 1.1
+
+ Revision 1.1  2000/07/13 06:30:07  michael
  + Initial import
 
  Revision 1.8  2000/01/07 01:14:52  peter

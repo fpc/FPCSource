@@ -21,12 +21,6 @@
 
  ****************************************************************************
 }
-{$ifdef newOptimizations}
-{$define foropt}
-{$define replacereg}
-{$define arithopt}
-{$define foldarithops}
-{$endif newOptimizations}
 
 Unit aopt386;
 
@@ -101,7 +95,10 @@ End.
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:31  michael
+  Revision 1.3  2000-07-14 05:11:48  michael
+  + Patch to 1.1
+
+  Revision 1.2  2000/07/13 11:32:31  michael
   + removed logs
 
 }

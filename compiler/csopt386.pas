@@ -23,12 +23,6 @@
 }
 Unit CSOpt386;
 
-{$ifdef newOptimizations}
-{$define foropt}
-{$define replacereg}
-{$define arithopt}
-{$define foldarithops}
-{$endif newOptimizations}
 
 Interface
 
@@ -384,7 +378,6 @@ begin
 {$endif replaceregdebug}
 end;
 
-{$ifdef replacereg}
 function FindRegDealloc(reg: tregister; p: pai): boolean;
 { assumes reg is a 32bit register }
 begin
@@ -739,9 +732,7 @@ begin
        end;
 {$endif replaceregdebug}
 End;
-{$endif replacereg}
 
-{$ifdef arithopt}
 Function FindRegWithConst(p: Pai; size: topsize; l: longint; Var Res: TRegister): Boolean;
 {Finds a register which contains the constant l}
 Var Counter: TRegister;
@@ -773,7 +764,6 @@ Begin
   res := counter;
   FindRegWithConst := tmpResult;
 End;
-{$endif arithopt}
 
 Procedure DoCSE(AsmL: PAasmOutput; First, Last: Pai);
 {marks the instructions that can be removed by RemoveInstructs. They're not
@@ -782,13 +772,7 @@ Procedure DoCSE(AsmL: PAasmOutput; First, Last: Pai);
 Var Cnt, Cnt2: Longint;
     p, hp1, hp2: Pai;
     hp3, hp4: pai;
-{$ifdef replacereg}
     hp5 : pai;
-{$else}
-  {$ifdef csdebug}
-    hp5 : pai;
-  {$endif}
-{$endif}
     RegInfo: TRegInfo;
     RegCounter: TRegister;
     TmpState: Byte;
@@ -888,21 +872,17 @@ Begin
                                                         {old reg                new reg}
                                             (RegInfo.New2OldReg[RegCounter] <> RegCounter) Then
                                            Begin
-{$ifdef replacereg}
                                              getLastInstruction(p,hp3);
                                              If not(regCounter in usableRegs + [R_EDI,R_ESI]) or
                                                 not ReplaceReg(asmL,RegInfo.New2OldReg[RegCounter],
                                                       regCounter,hp3,
                                                       PPaiProp(hp4^.optInfo)^.Regs[regCounter],true,hp5) then
                                                begin
-{$endif replacereg}
                                                  hp3 := New(Paicpu,Op_Reg_Reg(A_MOV, S_L,
                                                                          {old reg          new reg}
                                                        RegInfo.New2OldReg[RegCounter], RegCounter));
                                                  InsertLLItem(AsmL, Pai(hp2^.previous), hp2, hp3);
-{$ifdef replacereg}
                                                end
-{$endif replacereg}
                                            End
                                          Else
 {   imagine the following code:                                            }
@@ -1019,7 +999,6 @@ Begin
                               End;
                           End;
                       End;
-{$ifdef replacereg}
                     top_Reg:
                       { try to replace the new reg with the old reg }
                       if not(PPaiProp(p^.optInfo)^.canBeRemoved) and
@@ -1043,7 +1022,6 @@ Begin
                                 end;
                           end
                         end;
-{$endif replacereg}
                     top_symbol,Top_Const:
                       Begin
                         Case Paicpu(p)^.oper[1].typ Of
@@ -1060,7 +1038,6 @@ Begin
                                       allocRegBetween(asmL,regCounter,startMod,p);
                                     end;
                             End;
-{$ifdef arithopt}
                           Top_Ref:
                             if (paicpu(p)^.oper[0].typ = top_const) and
                                getLastInstruction(p,hp1) and
@@ -1070,7 +1047,6 @@ Begin
                                 allocRegBetween(AsmL,reg32(regCounter),
                                   PPaiProp(hp1^.optinfo)^.regs[regCounter].startMod,p);
                               end;
-{$endif arithopt}
                         End;
                       End;
                   End;
@@ -1140,7 +1116,10 @@ End.
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:39  michael
+  Revision 1.3  2000-07-14 05:11:48  michael
+  + Patch to 1.1
+
+  Revision 1.2  2000/07/13 11:32:39  michael
   + removed logs
 
 }
