@@ -39,6 +39,7 @@ type
     ResultCode    : longint;
     KnownRunError : longint;
     NeedRecompile : boolean;
+    NeedLibrary   : boolean;
     IsInteractive : boolean;
     IsKnown       : boolean;
     NoRun         : boolean;
@@ -356,6 +357,9 @@ begin
                if GetEntry('NORUN') then
                 r.NoRun:=true
               else
+               if GetEntry('NEEDLIBRARY') then
+                r.NeedLibrary:=true
+              else
                if GetEntry('KNOWNRUNERROR') then
                 begin
                   if res<>'' then
@@ -478,6 +482,11 @@ begin
   RunCompiler:=false;
   OutName:=ForceExtension(PPFile,'log');
   args:='-n -Fuunits';
+{$ifdef unix}
+  { Add runtime library path to current dir to find .so files }
+  if Config.NeedLibrary then
+   args:=args+' ''-k-rpath .''';
+{$endif unix}
   if Config.NeedOptions<>'' then
    args:=args+' '+Config.NeedOptions;
   args:=args+' '+ppfile;
@@ -805,7 +814,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2002-12-05 16:03:34  pierre
+  Revision 1.22  2002-12-15 13:30:46  peter
+    * NEEDLIBRARY option to add -rpath to the linker for unix. This is
+      needed to test runtime library tests. The library needs the -FE.
+      option to place the .so in the correct directory
+
+  Revision 1.21  2002/12/05 16:03:34  pierre
    + -X option to disable UseComSpec
 
   Revision 1.20  2002/11/18 16:42:43  pierre
