@@ -310,7 +310,7 @@ var
 begin
   if p=nil then
    exit;
-  Size := IndexWord(p^, $7fffffff, 0);
+  Size := IndexWord(p^, -1, 0);
   Setlength (result,Size);
   if Size>0 then
    begin
@@ -327,7 +327,7 @@ var
 begin
   if p=nil then
    exit;
-  Size := IndexWord(p^, $7fffffff, 0);
+  Size := IndexWord(p^, -1, 0);
   Setlength (result,Size);
   if Size>0 then
    begin
@@ -993,7 +993,10 @@ end;
 
 {
   $Log$
-  Revision 1.31  2003-06-17 19:24:08  jonas
+  Revision 1.32  2003-11-05 15:33:51  florian
+    * made Index* usage consistent with astrings.inc
+
+  Revision 1.31  2003/06/17 19:24:08  jonas
     * fixed conversion of fpc_*str_unique to compilerproc
 
   Revision 1.30  2003/06/17 16:38:53  jonas
