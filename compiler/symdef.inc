@@ -3637,10 +3637,7 @@ Const local_symtable_index : longint = $8001;
                      internalerror(1509992);
                    { access to implicit class property as field }
                    proctypesinfo:=(0 shl 0) or (0 shl 2) or (0 shl 4);
-                   if not pvarsym(sym)^.vartype.def^.has_rtti then
-                     rttilist^.concat(new(pai_const,init_32bit(0)))
-                   else
-                     rttilist^.concat(new(pai_const_symbol,initname(pvarsym(sym)^.vartype.def^.get_rtti_label)));
+                   rttilist^.concat(new(pai_const_symbol,initname(pvarsym(sym)^.vartype.def^.get_rtti_label)));
                    rttilist^.concat(new(pai_const,init_32bit(pvarsym(sym)^.address)));
                    rttilist^.concat(new(pai_const,init_32bit(pvarsym(sym)^.address)));
                    { per default stored }
@@ -3661,10 +3658,7 @@ Const local_symtable_index : longint = $8001;
                      proctypesinfo:=$40
                    else
                      proctypesinfo:=0;
-                   if not ppropertysym(sym)^.proptype.def^.has_rtti then
-                     rttilist^.concat(new(pai_const,init_32bit(0)))
-                   else
-                     rttilist^.concat(new(pai_const_symbol,initname(ppropertysym(sym)^.proptype.def^.get_rtti_label)));
+                   rttilist^.concat(new(pai_const_symbol,initname(ppropertysym(sym)^.proptype.def^.get_rtti_label)));
                    writeproc(ppropertysym(sym)^.readaccess,0);
                    writeproc(ppropertysym(sym)^.writeaccess,2);
                    { isn't it stored ? }
@@ -3798,6 +3792,8 @@ Const local_symtable_index : longint = $8001;
     function  tobjectdef.get_rtti_label : string;
 
       begin
+         if not(has_rtti) then
+           generate_rtti;
          get_rtti_label:=rtti_name;
       end;
 
@@ -3853,7 +3849,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.183  1999-12-23 12:19:42  peter
+  Revision 1.184  1999-12-31 14:24:34  peter
+    * fixed rtti generation for classes with no published section
+
+  Revision 1.183  1999/12/23 12:19:42  peter
     * check_rec_inittable fix from sg
 
   Revision 1.182  1999/12/19 17:00:27  peter
