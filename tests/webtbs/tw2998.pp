@@ -1,4 +1,5 @@
-{ %cpu=i386 %OPT=-OaVARMIN=8 }
+{ %cpu=i386 }
+{ %OPT=-OaVARMIN=8 }
 
 { Source provided for Free Pascal Bug Report 2998 }
 { Submitted by "bartek" on  2004-03-02 }
