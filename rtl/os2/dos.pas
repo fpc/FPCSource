@@ -555,6 +555,8 @@ begin
     end;
 end;
 
+{$asmmode intel}
+
 procedure SetDate (Year, Month, Day: word);
 var DT: TDateTime;
 begin
@@ -568,17 +570,15 @@ begin
         end
     else
         asm
-            movw Year, %cx
-            movb Month, %dh
-            movb Day, %dl
-            movb $0x2b, %ah
+            mov  cx, Year
+            mov  dh, byte ptr Month
+            mov  dl, byte ptr Day
+            mov  ah, $2b
             call syscall
-(* SetDate isn't supposed to change DosError!!!
-            xorb %ah,%ah
-            movw %ax,doserror
-*)
         end;
 end;
+
+{$asmmode att}
 
 procedure GetTime (var Hour, Minute, Second, Sec100: word); assembler;
 asm
@@ -599,6 +599,7 @@ asm
     stosw
 end;
 
+{$asmmode intel}
 procedure SetTime (Hour, Minute, Second, Sec100: word);
 var DT: TDateTime;
 begin
@@ -613,18 +614,16 @@ begin
         end
     else
         asm
-            movb Hour, %ch
-            movb Minute ,%cl
-            movb Second, %dh
-            movb Sec100, %dl
-            movb $0x2d, %ah
+            mov  ch, byte ptr Hour
+            mov  cl, byte ptr Minute
+            mov  dh, byte ptr Second
+            mov  dl, byte ptr Sec100
+            mov  ah, $2d
             call syscall
-(* SetTime isn't supposed to change DosError!!!
-            xorb %ah, %ah
-            movw %ax, DosError
-*)
         end;
 end;
+
+{$asmmode att}
 
 procedure getcbreak(var breakvalue:boolean);
 
@@ -1123,7 +1122,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-14 10:33:10  michael
+  Revision 1.3  2000-09-29 21:49:41  jonas
+    * removed warnings
+
+  Revision 1.2  2000/07/14 10:33:10  michael
   + Conditionals fixed
 
   Revision 1.1  2000/07/13 06:31:04  michael

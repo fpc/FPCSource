@@ -248,11 +248,14 @@ begin
             int $0x10
             movl y,%eax
             movl x,%ebx
-            movb %dh,(%eax)
-            movb %dl,(%ebx)
+            movzbl %dh,%edi
+            andw $255,%dx
+            movw %di,(%eax)
+            movw %dx,(%ebx)
         end;
 end;
 
+{$asmmode intel}
 procedure setcursor(y,x:word);
 
 {Set the cursor position.}
@@ -262,11 +265,11 @@ begin
         viosetcurpos(y,x,0)
     else
         asm
-            movb $2,%ah
-            movb $0,%bh
-            movb y,%dh
-            movb x,%dl
-            int $0x10
+            mov  ah, 2
+            mov  bl, 0
+            mov  dh, byte ptr y
+            mov  dl, byte ptr x
+            int  010h
         end;
 end;
 
@@ -277,15 +280,15 @@ begin
         vioscrollup(top,left,bottom,right,lines,screl,0)
     else
         asm
-            movb $6,%ah
-            movb lines,%al
-            movl screl,%edi
-            movb 1(%edi),%bh
-            movb top,%ch
-            movb left,%cl
-            movb bottom,%dh
-            movb right,%dl
-            int $0x10
+            mov  ah, 6
+            mov  al, byte ptr lines
+            mov  edi, screl
+            mov  bl, byte ptr [edi+1]
+            mov  ch, byte ptr top
+            mov  cl, byte ptr left
+            mov  dh, byte ptr bottom
+            mov  dl, byte ptr right
+            int  010h
         end;
 end;
 
@@ -296,17 +299,19 @@ begin
         vioscrolldn(top,left,bottom,right,lines,screl,0)
     else
         asm
-            movb $7,%ah
-            movb lines,%al
-            movl screl,%edi
-            movb 1(%edi),%bh
-            movb top,%ch
-            movb left,%cl
-            movb bottom,%dh
-            movb right,%dl
-            int $0x10
+            mov  ah, 7
+            mov  al, byte ptr lines
+            mov  edi, screl
+            mov  bh, byte ptr [edi+1]
+            mov  ch, byte ptr top
+            mov  cl, byte ptr left
+            mov  dh, byte ptr bottom
+            mov  dl, byte ptr right
+            int  010h
         end;
 end;
+
+{$asmmode att}
 
 function keypressed:boolean;
 
@@ -607,19 +612,21 @@ begin
                         if os_mode=osOS2 then
                             viowrtcharstratt(ca,n,y,x,textattr,0)
                         else
+{$asmmode intel}
                             asm
-                                movw $0x1300,%ax
-                                movb $0,%bh
-                                movb TEXTATTR,%bl
-{                                movb U_CRT_TEXTATTR,%bl }
-                                movb y,%dh
-                                movb x,%dl
-                                movw n,%cx
-                                pushl %ebp
-                                movl ca,%ebp
-                                int $0x10
-                                popl %ebp
+                                mov  ax, 01300h
+                                mov  bh, 0
+                                mov  bl, TEXTATTR
+{                                mov  bl, U_CRT_TEXTATTR }
+                                mov  dh, byte ptr y
+                                mov  dl, byte ptr x
+                                mov  cx, n
+                                push ebp
+                                mov  ebp, ca
+                                int  010h
+                                pop  ebp
                             end;
+{$asmmode att}
                         x:=x+n;
                     end;
             end;

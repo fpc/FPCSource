@@ -172,13 +172,15 @@ end;
 
 ****************************************************************************}
 
+{$asmmode intel}
 procedure system_exit; assembler;
 asm
-    movb $0x4c,%ah
-    movb exitcode,%al
+    mov  ah, 04ch
+    mov  al, byte ptr exitcode
     call syscall
 end;
 
+{$asmmode att}
 
 {$asmmode direct}
 function paramcount:longint;assembler;
@@ -281,7 +283,7 @@ begin
    begin
      asm
         movb $0x3e,%ah
-        mov h,%ebx
+        movl h,%ebx
         call syscall
      end;
    end;
@@ -806,7 +808,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-07-14 10:33:11  michael
+  Revision 1.3  2000-09-29 21:49:41  jonas
+    * removed warnings
+
+  Revision 1.2  2000/07/14 10:33:11  michael
   + Conditionals fixed
 
   Revision 1.1  2000/07/13 06:31:07  michael

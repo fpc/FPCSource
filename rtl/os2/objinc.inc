@@ -54,8 +54,8 @@ begin
         xorl %eax, %eax
         movw %ax, DosStreamError
         movl FileName, %edx
-        movw $0x7f0b, %eax
-        movw AMode, %ecx
+        movl $0x7f0b, %eax
+        movl AMode, %ecx
         call syscall
         cmpl $0xffffffff, %eax
         jnz .Lexit1
@@ -132,12 +132,12 @@ end;
 function SetFileSize (Handle: THandle; FileSize: longint): word; assembler;
 asm
     movl $0x7F18, %eax
-    movl Handle, %ebx
+    movzwl Handle, %ebx
     movl FileSize,%edx
     call syscall
     jc .LSetFSize1
     movl $0x4202, %eax
-    movl Handle, %ebx
+    movzwl Handle, %ebx
     movl $0, %edx
     call syscall
     movl $0, %eax
@@ -148,7 +148,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:52  michael
+  Revision 1.3  2000-09-29 21:49:41  jonas
+    * removed warnings
+
+  Revision 1.2  2000/07/13 11:33:52  michael
   + removed logs
  
 }

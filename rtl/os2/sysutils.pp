@@ -320,18 +320,18 @@ end;
 
 procedure FindClose (var F: TSearchrec);
 
-var SR: PSearchRec;
+{ var SR: PSearchRec; }
 
 begin
     if os_mode = osOS2 then
         begin
             DosFindClose (F.FindHandle);
         end
-    else
+{    else
         begin
             DOS.FindClose (SR^);
             FreeMem (SR, SizeOf (SearchRec));
-        end;
+        end};
     F.FindHandle := 0;
 end;
 
@@ -756,7 +756,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.4  2000-08-30 06:30:55  michael
+  Revision 1.5  2000-09-29 21:49:41  jonas
+    * removed warnings
+
+  Revision 1.4  2000/08/30 06:30:55  michael
   + Merged syserrormsg fix
 
   Revision 1.3  2000/08/25 17:23:56  hajny
