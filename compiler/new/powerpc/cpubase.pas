@@ -395,7 +395,7 @@ const
   accumulator   = R_3;
   vmt_offset_reg = R_0;
   max_scratch_regs = 3;
-  scratch_regs: Array[1..max_scratch_regs] of TRegister = (R_0,R_30,R_31);
+  scratch_regs: Array[1..max_scratch_regs] of TRegister = (R_11,R_12,R_30);
 
 (*  cpuflags : set of tcpuflags = []; *)
 
@@ -549,7 +549,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  1999-10-14 14:57:55  florian
+  Revision 1.9  1999-10-20 12:21:34  jonas
+    * changed scratch_registers to (R_11,_R12,R_30) because R_0 is a special
+      case and R_31 is used as some kind of frame pointer under LinuxPPC
+
+  Revision 1.8  1999/10/14 14:57:55  florian
     - removed the hcodegen use in the new cg, use cgbase instead
 
   Revision 1.7  1999/09/15 20:35:47  florian
