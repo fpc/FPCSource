@@ -224,7 +224,10 @@ begin
          WriteLn(DStr(memavail shr 10),'/',DStr(system.heapsize shr 10),' Kb Free');
 {$endif HASGETHEAPSTATUS}
        end;
-   end
+   end;
+{$ifdef macos}
+  Yield;
+{$endif}
 end;
 
 
@@ -270,6 +273,7 @@ begin
      (status.currentsource<>'') and
      (status.currentline>0) then
    begin
+     {$ifndef macos}
      { Adding the column should not confuse RHIDE,
      even if it does not yet use it PM
      but only if it is after error or warning !! PM }
@@ -289,6 +293,14 @@ begin
         else
           hs:=status.currentsource+'('+tostr(status.currentline)+') '+hs+' '+s;
       end;
+     {$else}
+     {MPW style error}
+     if status.currentcolumn>0 then
+       hs:='File "'+status.currentsource+'"; Line '+tostr(status.currentline)+
+         ' # (' + tostr(status.currentcolumn) + ')' +hs+' '+s
+     else
+       hs:='File "'+status.currentsource+'"; Line '+tostr(status.currentline)+' #'+hs+' '+s;
+     {$endif}
    end
   else
    begin
@@ -386,7 +398,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.32  2004-11-22 19:34:58  peter
+  Revision 1.33  2004-12-28 01:39:07  olle
+    + added support for MPW error messages
+    + added support for cooperative multitasking under MPW
+
+  Revision 1.32  2004/11/22 19:34:58  peter
     * GetHeapStatus added, removed MaxAvail,MemAvail,HeapSize
 
   Revision 1.31  2004/10/15 09:14:16  mazen
