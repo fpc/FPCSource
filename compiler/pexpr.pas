@@ -1478,7 +1478,10 @@ implementation
                     consume(_POINT);
                     if (p1.resulttype.def.deftype=pointerdef) and
                        (m_autoderef in aktmodeswitches) then
-                      p1:=cderefnode.create(p1);
+                      begin
+                        p1:=cderefnode.create(p1);
+                        do_resulttypepass(p1);
+                      end;
                     case p1.resulttype.def.deftype of
                        recorddef:
                          begin
@@ -2308,7 +2311,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.32  2001-05-09 19:52:51  peter
+  Revision 1.33  2001-05-19 12:23:59  peter
+    * fixed crash with auto dereferencing
+
+  Revision 1.32  2001/05/09 19:52:51  peter
     * removed unused allow_type
 
   Revision 1.31  2001/05/04 15:52:03  florian
