@@ -234,7 +234,7 @@ const
 {$ifdef Unix}
 Procedure CalcSigFPE(sig : longint);cdecl;
 {$else}
-function CalcSigFPE(sig : longint) : longint;
+function CalcSigFPE(sig : longint) : longint;cdecl;
 {$endif}
 begin
 {$ifdef CPUI386}
@@ -572,7 +572,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  2003-09-29 14:36:59  peter
+  Revision 1.10  2004-03-09 12:08:47  marco
+   * fix calling convention sighandler
+
+  Revision 1.9  2003/09/29 14:36:59  peter
     * win32 fixed
 
   Revision 1.8  2003/09/27 14:03:45  peter
