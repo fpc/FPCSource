@@ -5,7 +5,27 @@
 #######################################################################
 
 # Compiler
-PP=ppc386
+
+ifndef FPC
+ifdef PP
+FPC=$(PP)
+endif
+endif
+ifndef FPC
+FPCPROG:=$(strip $(wildcard $(addsuffix /fpc$(SRCEXEEXT),$(SEARCHPATH))))
+ifneq ($(FPCPROG),)
+FPCPROG:=$(firstword $(FPCPROG))
+FPC:=$(shell $(FPCPROG) -PB)
+ifneq ($(findstring Error,$(FPC)),)
+override FPC=ppc386
+endif
+else
+override FPC=ppc386
+endif
+endif
+override FPC:=$(subst $(SRCEXEEXT),,$(FPC))
+override FPC:=$(subst \,/,$(FPC))$(SRCEXEEXT)
+
 
 # Unit directory
 # UNITDIR=/usr/lib/ppc/0.99.0/linuxunits
@@ -47,7 +67,7 @@ clean :
 	rm -f *.o *.s $(OBJECTS) $(TEXOBJECTS)
  
 $(OBJECTS): %: %.pp
-	$(PP) $(PPOPTS) $*
+	$(FPC) $(PPOPTS) $*
 
 $(TEXOBJECTS): %.tex: %.pp head.tex foot.tex
 	$(PP2TEX) $*
