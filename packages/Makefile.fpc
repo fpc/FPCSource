@@ -10,6 +10,7 @@ all:
         $(MAKE) -C ibase
         $(MAKE) -C mysql
         $(MAKE) -C uncgi
+	$(MAKE) -C paszlib
 ifdef inlinux
         $(MAKE) -C utmp
         $(MAKE) -C inet
@@ -23,6 +24,7 @@ clean:
         $(MAKE) -C ibase clean
         $(MAKE) -C mysql clean
         $(MAKE) -C uncgi clean
+	$(MAKE) -C paszlib clean
 ifdef inlinux
         $(MAKE) -C utmp clean
         $(MAKE) -C inet clean
@@ -36,6 +38,7 @@ install:
         $(MAKE) -C ibase DEFAULTUNITS=1 install
         $(MAKE) -C mysql DEFAULTUNITS=1 install
         $(MAKE) -C uncgi DEFAULTUNITS=1 install
+	$(MAKE) -C paszlib DEFAULTUNITS=1 install
 ifdef inlinux
         $(MAKE) -C utmp DEFAULTUNITS=1 install
         $(MAKE) -C inet DEFAULTUNITS=1 install
