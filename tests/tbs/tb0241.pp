@@ -1,5 +1,7 @@
 { %OPT=-al }
-{ %SKIPTARGET=macos Crashes when assembling, linking or running}
+{ %SKIPTARGET=macos }
+{ On macos, PPCAsm chokes on this and crashes}
+
 { this forces use of GNU as }
 { Old file: tbs0282.pp }
 { long mangledname problem with -Aas                   OK 0.99.13 (PFV) }

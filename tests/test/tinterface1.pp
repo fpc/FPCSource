@@ -1,5 +1,7 @@
 { %VERSION=1.1 }
-{ %SKIPTARGET=macos Crashes when assembling, linking or running}
+{ %SKIPTARGET=macos }
+{ On macos it crashes when run.}
+
 {$mode objfpc}
 type
   IInterface = interface(IUnknown)
