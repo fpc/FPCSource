@@ -29,11 +29,11 @@ interface
     SIG_SETMASK = 2;
     SIG_UNBLOCK = 3;
 
-  function SIG_DFL( x: longint) : longint;
+  function SIG_DFL( x: longint) : longint; cdecl;
 
-  function SIG_ERR( x: longint) : longint;
+  function SIG_ERR( x: longint) : longint; cdecl;
 
-  function SIG_IGN( x: longint) : longint;
+  function SIG_IGN( x: longint) : longint; cdecl;
 
   type
 
@@ -158,7 +158,7 @@ var
 var
   { value of the stack segment
     to check if the call stack can be written on exceptions }
-  _SS : longint;
+  _SS : cardinal;
 
 const
   fpucw : word = $1332;
@@ -323,7 +323,7 @@ var
     end;
 
 
-    function API_signals_exception_handler(except : PEXCEPTION_POINTERS) : longint;
+    function API_signals_exception_handler(except : PEXCEPTION_POINTERS) : longint; stdcall;
     begin
       API_signals_exception_handler:=Signals_exception_handler(
         @except^.ExceptionRecord,
@@ -409,19 +409,19 @@ const
     end;
 
 
-function SIG_ERR(x:longint):longint;
+function SIG_ERR(x:longint):longint; cdecl;
 begin
   SIG_ERR:=-1;
 end;
 
 
-function SIG_IGN(x:longint):longint;
+function SIG_IGN(x:longint):longint; cdecl;
 begin
   SIG_IGN:=-1;
 end;
 
 
-function SIG_DFL(x:longint):longint;
+function SIG_DFL(x:longint):longint; cdecl;
 begin
   SIG_DFL:=0;
 end;
