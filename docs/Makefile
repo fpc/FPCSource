@@ -159,6 +159,7 @@ clean:
 	-$(MAKE) -C stringex clean
 	-$(MAKE) -C sockex clean
 	-$(MAKE) -C mouseex clean
+
 unitex.chk:
 	$(MAKE) -C crtex tex
 	$(MAKE) -C linuxex tex
