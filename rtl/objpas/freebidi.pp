@@ -276,51 +276,24 @@ end;
 
 function InsertChar(Src:TCharacter; var Dest:TString; vp:Integer; pDir:TDirection):Integer;
 var
-  v2l:TVisualToLogical;
-  lp:Integer;
-  c:TCharacter;
+  vSrc,vDest:TString;
 begin
-  v2l := VisualToLogical(Dest, pDir);
-  Result := v2l[0];
-  if vp > Result
-  then
-    begin
-      lp := Length(Dest) + 1;
-      vp := Result;
-    end
-  else
-    lp := v2l[vp];
-  c := Dest[lp];
-  Result := vp;
-  case DirectionOf(c) of
+  vSrc := VStr(Src,pDir);
+  vDest := VStr(Dest,pDir);
+  Insert(vSrc, vDest, vp);
+  Dest := VStr(vDest, pDir);
+  case DirectionOf(Src) of
   drRTL:
-    begin
-      lp += Length(c);
-      if DirectionOf(Src) <> drRTL
-      then
-        begin
-          while (Result <= Length(Dest)) and (DirectionOf(Dest[v2l[Result]]) <> drLTR) do
-            Result += 1;
-          while (Result > vp) and (DirectionOf(Dest[v2l[Result]]) <> drRTL) do
-            Result -= 1;
-          Result += 2;
-        end;
-    end;
+    Result := vp;
   drLTR:
-    Result += 1;
+    Result := vp + 1;
   else
-    if DirectionOf(Src) = drRTL
+    if(vp < Length(vDest)) and (DirectionOf(vDest[vp + 1]) = drRTL)
     then
-      begin
-        while (Result > 0) and (DirectionOf(Dest[v2l[Result]]) <> drLTR) do
-          Result -= 1;
-        while (Result < vp) and (DirectionOf(Dest[v2l[Result]]) <> drRTL) do
-          Result += 1;
-      end
+      Result := vp
     else
-      Result += 1;
+      Result := vp + 1;
   end;
-  Insert(Src, Dest, lp);
 end;
 
 procedure VInsert(const Src:TString;var Dest:TString; vp:Integer; pDir:TDirection);
