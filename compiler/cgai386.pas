@@ -878,11 +878,11 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                         ungetregister32(p^.location.registerhigh);
                      end
                    else
+{$endif INT64}
                      begin
                         gettempofsizereference(href,4);
                         p^.temp_offset:=href.offset;
                      end;
-{$endif INT64}
                    pushed:=true;
                    exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,p^.location.register,href)));
                    ungetregister32(p^.location.register);
@@ -3086,7 +3086,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.4  1999-06-02 22:44:06  pierre
+  Revision 1.5  1999-06-03 16:21:15  pierre
+   * fixes a bug due to int64 code in maybe_savetotemp
+
+  Revision 1.4  1999/06/02 22:44:06  pierre
    * previous wrong log corrected
 
   Revision 1.3  1999/06/02 22:25:29  pierre
