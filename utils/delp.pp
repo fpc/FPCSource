@@ -46,13 +46,12 @@ end;
 Procedure EraseFile(Const HStr:String);
 var
   f : file;
-  i : word;
 begin
   Assign(f,Hstr);
   {$I-}
    Erase(f);
   {$I+}
-  i:=ioresult;
+  if ioresult<>0 then;
 end;
 
 
@@ -163,7 +162,7 @@ var
   found  : boolean;
 begin
   AddMask('*.exe *.so *.dll');
-  AddMask('ppas.bat ppas.sh link.res fpcmaked');
+  AddMask('ppas.bat ppas.sh link.res fpcmaked fpcmade fpcmade.*');
   AddMask('*.tpu *.tpp *.tpw *.tr');
   AddMask('*.log *.bak');
   AddMask('*.ppu *.o *.a *.s');
@@ -210,7 +209,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  1999-12-02 11:31:11  peter
+  Revision 1.3  1999-12-19 17:12:10  peter
+    * added fpcmade
+
+  Revision 1.2  1999/12/02 11:31:11  peter
     * removed temp comment
 
   Revision 1.1  1999/12/01 22:45:04  peter
