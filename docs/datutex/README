@@ -75,3 +75,21 @@ ex83.pp contains an example of the DecodeDateDay and EncodeDateDay functions.
 ex84.pp contains an example of the TryEncodeDateDay function.
 ex85.pp contains an example of the DecodeDateMonthWeek and EncodeDateMonthWeek functions.
 ex86.pp contains an example of the TryEncodeDateMonthWeek function.
+ex87.pp contains an example of the RecodeYear function.
+ex88.pp contains an example of the RecodeMonth function.
+ex89.pp contains an example of the RecodeDay function.
+ex90.pp contains an example of the RecodeHour function.
+ex91.pp contains an example of the RecodeMinute function.
+ex92.pp contains an example of the RecodeSecond function.
+ex93.pp contains an example of the RecodeMilliSecond function.
+ex94.pp contains an example of the RecodeDate function.
+ex95.pp contains an example of the RecodeTime function.
+ex96.pp contains an example of the RecodeDateTime function.
+ex96.pp contains an example of the TryRecodeDateTime function.
+ex98.pp contains an example of the CompareDateTime function.
+ex99.pp contains an example of the CompareDate function.
+ex100.pp contains an example of the CompareTime function.
+ex101.pp contains an example of the SameDateTime function.
+ex104.pp contains an example of the NthDayOfWeek function.
+ex105.pp contains an example of the DecodeDayOfWeekInMonth function.
+ex106.pp contains an example of the TryEncodeDayOfWeekInMonth function.

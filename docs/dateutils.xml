@@ -4426,6 +4426,7 @@ exception is raised.
 <link id="TryEncodeDateWeek"/>
 <link id="TryEncodeDateMonthWeek"/>
 <link id="TryEncodeDateDay"/>
+<link id="NthDayOfWeek"/>
 </seealso>
 </element>
 
@@ -4522,6 +4523,7 @@ if any of the arguments is not valid.
 <link id="TryEncodeDateTime"/>
 <link id="TryEncodeDateWeek"/>
 <link id="TryEncodeDateDay"/>
+<link id="NthDayOfWeek"/>
 </seealso>
 <example file="datutex/ex86"/>
 </element>
@@ -4559,6 +4561,26 @@ if any of the arguments is not valid.
 <!-- function Visibility: default -->
 <element name="RecodeYear">
 <short>Replace year part of a <var>TDateTime</var> value with another year.</short>
+<descr>
+<var>RecodeYear</var> replaces the year part of the timestamp <var>AValue</var>
+with <var>AYear</var>. All other parts of the date/time stamp are left untouched.
+</descr>
+<errors>
+If the <var>AYear</var> value is not within a valid range (1..9999) then 
+an <var>EConvertError</var> exception is raised.
+</errors>
+<seealso>
+<link id="RecodeMonth"/>
+<link id="RecodeDay"/>
+<link id="RecodeHour"/>
+<link id="RecodeMinute"/>
+<link id="RecodeSecond"/>
+<link id="RecodeMilliSecond"/>
+<link id="RecodeDate"/>
+<link id="RecodeTime"/>
+<link id="RecodeDateTime"/>
+</seealso>
+<example file="datutex/ex87"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -4579,6 +4601,26 @@ if any of the arguments is not valid.
 <!-- function Visibility: default -->
 <element name="RecodeMonth">
 <short>Replace month part of a <var>TDateTime</var> value with another month.</short>
+<descr>
+<var>RecodeMonth</var> replaces the Month part of the timestamp <var>AValue</var>
+with <var>AMonth</var>. All other parts of the date/time stamp are left untouched.
+</descr>
+<errors>
+If the <var>AMonth</var> value is not within a valid range (1..12) then 
+an <var>EConvertError</var> exception is raised.
+</errors>
+<seealso>
+<link id="RecodeYear"/>
+<link id="RecodeDay"/>
+<link id="RecodeHour"/>
+<link id="RecodeMinute"/>
+<link id="RecodeSecond"/>
+<link id="RecodeMilliSecond"/>
+<link id="RecodeDate"/>
+<link id="RecodeTime"/>
+<link id="RecodeDateTime"/>
+</seealso>
+<example file="datutex/ex88"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -4599,6 +4641,26 @@ if any of the arguments is not valid.
 <!-- function Visibility: default -->
 <element name="RecodeDay">
 <short>Replace day part of a <var>TDateTime</var> value with another day.</short>
+<descr>
+<var>RecodeDay</var> replaces the Day part of the timestamp <var>AValue</var>
+with <var>ADay</var>. All other parts of the date/time stamp are left untouched.
+</descr>
+<errors>
+If the <var>ADay</var> value is not within a valid range (1..12) then 
+an <var>EConvertError</var> exception is raised.
+</errors>
+<seealso>
+<link id="RecodeYear"/>
+<link id="RecodeMonth"/>
+<link id="RecodeHour"/>
+<link id="RecodeMinute"/>
+<link id="RecodeSecond"/>
+<link id="RecodeMilliSecond"/>
+<link id="RecodeDate"/>
+<link id="RecodeTime"/>
+<link id="RecodeDateTime"/>
+</seealso>
+<example file="datutex/ex89"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -4619,6 +4681,26 @@ if any of the arguments is not valid.
 <!-- function Visibility: default -->
 <element name="RecodeHour">
 <short>Replace hours part of a <var>TDateTime</var> value with another hour.</short>
+<descr>
+<var>RecodeHour</var> replaces the Hour part of the timestamp <var>AValue</var>
+with <var>AHour</var>. All other parts of the date/time stamp are left untouched.
+</descr>
+<errors>
+If the <var>AHour</var> value is not within a valid range (0..23) then 
+an <var>EConvertError</var> exception is raised.
+</errors>
+<seealso>
+<link id="RecodeYear"/>
+<link id="RecodeMonth"/>
+<link id="RecodeDay"/>
+<link id="RecodeMinute"/>
+<link id="RecodeSecond"/>
+<link id="RecodeMilliSecond"/>
+<link id="RecodeDate"/>
+<link id="RecodeTime"/>
+<link id="RecodeDateTime"/>
+</seealso>
+<example file="datutex/ex90"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -4639,6 +4721,26 @@ if any of the arguments is not valid.
 <!-- function Visibility: default -->
 <element name="RecodeMinute">
 <short>Replace minutse part of a <var>TDateTime</var> value with another minute.</short>
+<descr>
+<var>RecodeMinute</var> replaces the Minute part of the timestamp <var>AValue</var>
+with <var>AMinute</var>. All other parts of the date/time stamp are left untouched.
+</descr>
+<errors>
+If the <var>AMinute</var> value is not within a valid range (0..59) then 
+an <var>EConvertError</var> exception is raised.
+</errors>
+<seealso>
+<link id="RecodeYear"/>
+<link id="RecodeMonth"/>
+<link id="RecodeDay"/>
+<link id="RecodeHour"/>
+<link id="RecodeSecond"/>
+<link id="RecodeMilliSecond"/>
+<link id="RecodeDate"/>
+<link id="RecodeTime"/>
+<link id="RecodeDateTime"/>
+</seealso>
+<example file="datutex/ex91"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -4659,6 +4761,26 @@ if any of the arguments is not valid.
 <!-- function Visibility: default -->
 <element name="RecodeSecond">
 <short>Replace seconds part of a <var>TDateTime</var> value with another second.</short>
+<descr>
+<var>RecodeSecond</var> replaces the Second part of the timestamp <var>AValue</var>
+with <var>ASecond</var>. All other parts of the date/time stamp are left untouched.
+</descr>
+<errors>
+If the <var>ASecond</var> value is not within a valid range (0..59) then 
+an <var>EConvertError</var> exception is raised.
+</errors>
+<seealso>
+<link id="RecodeYear"/>
+<link id="RecodeMonth"/>
+<link id="RecodeDay"/>
+<link id="RecodeHour"/>
+<link id="RecodeMinute"/>
+<link id="RecodeMilliSecond"/>
+<link id="RecodeDate"/>
+<link id="RecodeTime"/>
+<link id="RecodeDateTime"/>
+</seealso>
+<example file="datutex/ex92"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -4679,6 +4801,26 @@ if any of the arguments is not valid.
 <!-- function Visibility: default -->
 <element name="RecodeMilliSecond">
 <short>Replace milliseconds part of a <var>TDateTime</var> value with another millisecond.</short>
+<descr>
+<var>RecodeMilliSecond</var> replaces the millisecond part of the timestamp <var>AValue</var>
+with <var>AMilliSecond</var>. All other parts of the date/time stamp are left untouched.
+</descr>
+<errors>
+If the <var>AMilliSecond</var> value is not within a valid range (0..999) then 
+an <var>EConvertError</var> exception is raised.
+</errors>
+<seealso>
+<link id="RecodeYear"/>
+<link id="RecodeMonth"/>
+<link id="RecodeDay"/>
+<link id="RecodeHour"/>
+<link id="RecodeMinute"/>
+<link id="RecodeSecond"/>
+<link id="RecodeDate"/>
+<link id="RecodeTime"/>
+<link id="RecodeDateTime"/>
+</seealso>
+<example file="datutex/ex93"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -4699,6 +4841,27 @@ if any of the arguments is not valid.
 <!-- function Visibility: default -->
 <element name="RecodeDate">
 <short>Replace date part of a <var>TDateTime</var> value with another date.</short>
+<descr>
+<var>RecodeDate</var> replaces the date part of the timestamp <var>AValue</var>
+with the date specified in <var>AYear</var>, <var>AMonth</var>, <var>ADay</var>. 
+All other parts (the time part) of the date/time stamp are left untouched.
+</descr>
+<errors>
+If one of the <var>AYear</var>, <var>AMonth</var>, <var>ADay</var> values is not within 
+a valid range then an <var>EConvertError</var> exception is raised.
+</errors>
+<seealso>
+<link id="RecodeYear"/>
+<link id="RecodeMonth"/>
+<link id="RecodeDay"/>
+<link id="RecodeHour"/>
+<link id="RecodeMinute"/>
+<link id="RecodeSecond"/>
+<link id="RecodeDate"/>
+<link id="RecodeTime"/>
+<link id="RecodeDateTime"/>
+</seealso>
+<example file="datutex/ex94"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -4729,6 +4892,29 @@ if any of the arguments is not valid.
 <!-- function Visibility: default -->
 <element name="RecodeTime">
 <short>Replace time part of a <var>TDateTime</var> value with another time.</short>
+<descr>
+<var>RecodeTime</var> replaces the time part of the timestamp <var>AValue</var>
+with the date specified in <var>AHour</var>, <var>AMinute</var>,
+<var>ASecond</var> and <var>AMilliSecond</var>. 
+All other parts (the date part) of the date/time stamp are left untouched.
+</descr>
+<errors>
+If one of the values <var>AHour</var>, <var>AMinute</var>, <var>ASecond</var>
+<var>AMilliSecond</var> is not within a valid range then an <var>EConvertError</var> 
+exception is raised.
+</errors>
+<seealso>
+<link id="RecodeYear"/>
+<link id="RecodeMonth"/>
+<link id="RecodeDay"/>
+<link id="RecodeHour"/>
+<link id="RecodeMinute"/>
+<link id="RecodeSecond"/>
+<link id="RecodeMilliSecond"/>
+<link id="RecodeDate"/>
+<link id="RecodeDateTime"/>
+</seealso>
+<example file="datutex/ex95"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -4764,6 +4950,33 @@ if any of the arguments is not valid.
 <!-- function Visibility: default -->
 <element name="RecodeDateTime">
 <short>Replace selected parts of a <var>TDateTime</var> value with other values </short>
+<descr>
+<var>RecodeDateTime</var> replaces selected parts of the timestamp <var>AValue</var>
+with the date/time values specified in <var>AYear</var>, <var>AMonth</var>,
+<var>ADay</var>, <var>AHour</var>, <var>AMinute</var>, <var>ASecond</var> and 
+<var>AMilliSecond</var>. If any of these values
+equals the pre-defined constant <link id="RecodeLeaveFieldAsIs"/>, then 
+the corresponding part of the date/time stamp is left untouched.
+</descr>
+<errors>
+If one of the values <var>AYear</var>, <var>AMonth</var>,
+<var>ADay</var>, <var>AHour</var>, <var>AMinute</var>, <var>ASecond</var>
+<var>AMilliSecond</var> is not within a valid range (<var>RecodeLeaveFieldAsIs</var> excepted) 
+then an <var>EConvertError</var> exception is raised.
+</errors>
+<seealso>
+<link id="RecodeYear"/>
+<link id="RecodeMonth"/>
+<link id="RecodeDay"/>
+<link id="RecodeHour"/>
+<link id="RecodeMinute"/>
+<link id="RecodeSecond"/>
+<link id="RecodeMilliSecond"/>
+<link id="RecodeDate"/>
+<link id="RecodeTime"/>
+<link id="TryRecodeDateTime"/>
+</seealso>
+<example file="datutex/ex96"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -4814,6 +5027,38 @@ if any of the arguments is not valid.
 <!-- function Visibility: default -->
 <element name="TryRecodeDateTime">
 <short>Replace selected parts of a <var>TDateTime</var> value with other values</short>
+<descr>
+<p>
+<var>TryRecodeDateTime</var> replaces selected parts of the timestamp <var>AValue</var>
+with the date/time values specified in <var>AYear</var>, <var>AMonth</var>,
+<var>ADay</var>, <var>AHour</var>, <var>AMinute</var>, <var>ASecond</var> and 
+<var>AMilliSecond</var>. If any of these values
+equals the pre-defined constant <link id="RecodeLeaveFieldAsIs"/>, then 
+the corresponding part of the date/time stamp is left untouched.
+</p>
+<p>
+The resulting date/time is returned in <var>AValue</var>.
+</p>
+<p>
+The function returns <var>True</var> if the encoding was succesful. It
+returns <var>False</var> if one of the values <var>AYear</var>, <var>AMonth</var>,
+<var>ADay</var>, <var>AHour</var>, <var>AMinute</var>, <var>ASecond</var>
+<var>AMilliSecond</var> is not within a valid range.
+</p>
+</descr>
+<seealso>
+<link id="RecodeYear"/>
+<link id="RecodeMonth"/>
+<link id="RecodeDay"/>
+<link id="RecodeHour"/>
+<link id="RecodeMinute"/>
+<link id="RecodeSecond"/>
+<link id="RecodeMilliSecond"/>
+<link id="RecodeDate"/>
+<link id="RecodeTime"/>
+<link id="RecodeDateTime"/>
+</seealso>
+<example file="datutex/ex97"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -4868,6 +5113,25 @@ if any of the arguments is not valid.
 <!-- function Visibility: default -->
 <element name="CompareDateTime">
 <short>Compare 2 dates, taking into account the time of day</short>
+<descr>
+<p>
+<var>CompareDateTime</var> compares two timestamps <var>A</var> and
+<var>B</var> and returns the following results:
+</p>
+<dl>
+<dt>&lt; 0</dt><dd>if <var>A</var> is earlier in date/time than <var>B</var>.</dd>
+<dt>0</dt><dd>if <var>A</var> and <var>B</var> are the same date/time .</dd>
+<dt>&gt; 0</dt><dd>if <var>A</var> is later in date/time than <var>B</var>.</dd>
+</dl>
+</descr>
+<seealso>
+<link id="CompareTime"/>
+<link id="CompareDate"/>
+<link id="SameDate"/>
+<link id="SameTime"/>
+<link id="SameDateTime"/>
+</seealso>
+<example file="datutex/ex98"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -4888,6 +5152,25 @@ if any of the arguments is not valid.
 <!-- function Visibility: default -->
 <element name="CompareDate">
 <short>Compare 2 dates, disregarding the time of day</short>
+<descr>
+<p>
+<var>CompareDate</var> compares the date parts of two timestamps <var>A</var> and
+<var>B</var> and returns the following results:
+</p>
+<dl>
+<dt>&lt; 0</dt><dd>if the day part of <var>A</var> is earlier than the day part of <var>B</var>.</dd>
+<dt>0</dt><dd>if <var>A</var> and <var>B</var> are the on same day (times may differ) .</dd>
+<dt>&gt; 0</dt><dd>if the day part of <var>A</var> is later than the day part of <var>B</var>.</dd>
+</dl>
+</descr>
+<seealso>
+<link id="CompareTime"/>
+<link id="CompareDateTime"/>
+<link id="SameDate"/>
+<link id="SameTime"/>
+<link id="SameDateTime"/>
+</seealso>
+<example file="datutex/ex99"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -4908,6 +5191,25 @@ if any of the arguments is not valid.
 <!-- function Visibility: default -->
 <element name="CompareTime">
 <short>Compares two times of the day, disregarding the date part.</short>
+<descr>
+<p>
+<var>CompareTime</var> compares the time parts of two timestamps <var>A</var> and
+<var>B</var> and returns the following results:
+</p>
+<dl>
+<dt>&lt; 0</dt><dd>if the time part of <var>A</var> is earlier than the time part of <var>B</var>.</dd>
+<dt>0</dt><dd>if <var>A</var> and <var>B</var> have the same time part (dates may differ) .</dd>
+<dt>&gt; 0</dt><dd>if the time part of <var>A</var> is later than the time part of <var>B</var>.</dd>
+</dl>
+</descr>
+<seealso>
+<link id="CompareDateTime"/>
+<link id="CompareDate"/>
+<link id="SameDate"/>
+<link id="SameTime"/>
+<link id="SameDateTime"/>
+</seealso>
+<example file="datutex/ex100"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -4928,6 +5230,24 @@ if any of the arguments is not valid.
 <!-- function Visibility: default -->
 <element name="SameDateTime">
 <short>Check whether two <var>TDateTime</var> values have the same date and time parts.</short>
+<descr>
+<p>
+<var>SameDateTime</var> compares the date/time parts of two timestamps <var>A</var> and
+<var>B</var> and returns <var>True</var> if they are equal, <var>False</var>
+if they are not.
+</p>
+<p>
+The function simply checks whether <link id="CompareDateTime"/> returns zero.
+</p>
+</descr>
+<seealso>
+<link id="CompareDateTime"/>
+<link id="CompareDate"/>
+<link id="CompareTime"/>
+<link id="SameDate"/>
+<link id="SameTime"/>
+</seealso>
+<example file="datutex/ex101"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -4948,6 +5268,24 @@ if any of the arguments is not valid.
 <!-- function Visibility: default -->
 <element name="SameDate">
 <short>Check whether two <var>TDateTime</var> values have the same date part.</short>
+<descr>
+<p>
+<var>SameDate</var> compares the date parts of two timestamps <var>A</var> and
+<var>B</var> and returns <var>True</var> if they are equal, <var>False</var>
+if they are not.
+</p>
+<p>
+The function simply checks whether <link id="CompareDate"/> returns zero.
+</p>
+</descr>
+<seealso>
+<link id="CompareDateTime"/>
+<link id="CompareDate"/>
+<link id="CompareTime"/>
+<link id="SameDateTime"/>
+<link id="SameTime"/>
+</seealso>
+<example file="datutex/ex102"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -4968,6 +5306,24 @@ if any of the arguments is not valid.
 <!-- function Visibility: default -->
 <element name="SameTime">
 <short>Check whether two <var>TDateTime</var> values have the same time part.</short>
+<descr>
+<p>
+<var>SameTime</var> compares the time parts of two timestamps <var>A</var> and
+<var>B</var> and returns <var>True</var> if they are equal, <var>False</var>
+if they are not.
+</p>
+<p>
+The function simply checks whether <link id="CompareTime"/> returns zero.
+</p>
+</descr>
+<seealso>
+<link id="CompareDateTime"/>
+<link id="CompareDate"/>
+<link id="CompareTime"/>
+<link id="SameDateTime"/>
+<link id="SameDate"/>
+</seealso>
+<example file="datutex/ex103"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -4988,6 +5344,19 @@ if any of the arguments is not valid.
 <!-- function Visibility: default -->
 <element name="NthDayOfWeek">
 <short>Calculate which occurrence of weekday in the month a given day represents</short>
+<descr>
+<var>NthDayOfWeek</var> returns the occurence of the weekday of <var>AValue</var> in the
+month. This is the N-th time that this weekday occurs in the month (e.g. the
+third saturday of the month).
+</descr>
+<seealso>
+<link id="EncodeDateMonthWeek"/>
+<link id="#rtl.sysutils.DayOfWeek"/>
+<link id="DecodeDayOfWeekInMonth"/>
+<link id="EncodeDayOfWeekInMonth"/>
+<link id="TryEncodeDayOfWeekInMonth"/>
+</seealso>
+<example file="datutex/ex104"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -5003,6 +5372,21 @@ if any of the arguments is not valid.
 <!-- procedure Visibility: default -->
 <element name="DecodeDayOfWeekInMonth">
 <short>Decode a DateTime value in year, month, day of week parts</short>
+<descr>
+<var>DecodeDayOfWeekInMonth</var> decodes the date <var>AValue</var> in a
+<var>AYear</var>, <var>AMonth</var>, <var>ADayOfweek</var> and
+<var>ANthDayOfweek</var>.
+(This is the N-th time that this weekday occurs in the month, e.g. the
+third saturday of the month.)
+</descr>
+<seealso>
+<link id="NthDayOfWeek"/>
+<link id="EncodeDateMonthWeek"/>
+<link id="#rtl.sysutils.DayOfWeek"/>
+<link id="EncodeDayOfWeekInMonth"/>
+<link id="TryEncodeDayOfWeekInMonth"/>
+</seealso>
+<example file="datutex/ex105"/>
 </element>
 
 <!-- argument Visibility: default -->
@@ -5033,6 +5417,31 @@ if any of the arguments is not valid.
 <!-- function Visibility: default -->
 <element name="EncodeDayOfWeekInMonth">
 <short>Encodes a year, month, week, day of week specification to a <var>TDateTime</var> value</short>
+<descr>
+<p>
+<var>EncodeDayOfWeekInMonth</var> encodes <var>AYear</var>, <var>AMonth</var>, 
+<var>ADayOfweek</var> and <var>ANthDayOfweek</var> to a valid date stamp and 
+returns the result.
+</p>
+<p>
+<var>ANthDayOfweek</var>is the N-th time that this weekday occurs in the month, e.g. the
+third saturday of the month.
+</p>
+<p>
+For an example, see <link id="DecodeDayOfWeekInMonth"/>.
+</p>
+</descr>
+<errors>
+If any of the values is not in range, then an <var>EConvertError</var>
+exception will be raised.
+</errors>
+<seealso>
+<link id="NthDayOfWeek"/>
+<link id="EncodeDateMonthWeek"/>
+<link id="#rtl.sysutils.DayOfWeek"/>
+<link id="DecodeDayOfWeekInMonth"/>
+<link id="TryEncodeDayOfWeekInMonth"/>
+</seealso>
 </element>
 
 <!-- function result Visibility: default -->
@@ -5063,6 +5472,30 @@ if any of the arguments is not valid.
 <!-- function Visibility: default -->
 <element name="TryEncodeDayOfWeekInMonth">
 <short>Encode a year, month, week, day of week triplet to a <var>TDateTime</var> value</short>
+<descr>
+<p>
+<var>EncodeDayOfWeekInMonth</var> encodes 
+<var>AYear</var>, <var>AMonth</var>, <var>ADayOfweek</var> and
+<var>ANthDayOfweek</var> to a valid date stamp and returns the result in
+<var>AValue</var>.
+</p>
+<p>
+<var>ANthDayOfweek</var>is the N-th time that this weekday occurs in the month, e.g. the
+third saturday of the month.
+</p>
+<p>
+The function returns <var>True</var> if the encoding was succesful,
+<var>False</var> if any of the values is not in range.
+</p>
+</descr>
+<seealso>
+<link id="NthDayOfWeek"/>
+<link id="EncodeDateMonthWeek"/>
+<link id="#rtl.sysutils.DayOfWeek"/>
+<link id="DecodeDayOfWeekInMonth"/>
+<link id="EncodeDayOfWeekInMonth"/>
+</seealso>
+<example file="datutex/ex106"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -5104,6 +5537,25 @@ if any of the arguments is not valid.
 <!-- procedure Visibility: default -->
 <element name="InvalidDateTimeError">
 <short>Raise an <var>EConvertError</var> about an invalid date-time specification.</short>
+<descr>
+<p>
+<var>InvalidDateTimeError</var> raises an <link id="#rtl.sysutils.EConvertError">EConvertError</link> 
+exception and formats the error message with an appropriate description made
+up from the parts <var>AYear</var>, <var>AMonth</var>,
+<var>ADay</var>,<var>AHour</var>, <var>AMinute</var>, <var>ASecond</var> and 
+<var>AMilliSecond</var>.
+</p>
+<p>
+Normally this function should not be needed, the conversion routines call it
+when they have received invalid arguments.
+</p>
+</descr>
+<seealso>
+<link id="InvalidDateWeekError"/>
+<link id="InvalidDateDayError"/>
+<link id="InvalidDateMonthWeekError"/>
+<link id="InvalidDayOfWeekInMonthError"/>
+</seealso>
 </element>
 
 <!-- argument Visibility: default -->
@@ -5144,11 +5596,58 @@ if any of the arguments is not valid.
 <!-- procedure Visibility: default -->
 <element name="InvalidDateWeekError">
 <short>Raise an EConvertError with an invalid Year, WeekOfyear and DayOfWeek specification</short>
+<descr>
+<p>
+<var>InvalidDateWeekError</var> raises an <link id="#rtl.sysutils.EConvertError">EConvertError</link> 
+exception and formats the error message with an appropriate description made
+up from the parts <var>AYear</var>, <var>AWeek</var>,
+<var>ADayOfWeek</var>
+</p>
+<p>
+Normally this function should not be needed, the conversion routines call it
+when they have received invalid arguments.
+</p>
+</descr>
+<seealso>
+<link id="InvalidDateTime"/>
+<link id="InvalidDateDayError"/>
+<link id="InvalidDateMonthWeekError"/>
+<link id="InvalidDayOfWeekInMonthError"/>
+</seealso>
+</element>
+
+<element name="InvalidDateWeekError.AYear">
+<short>The year</short>
+</element>
+
+<element name="InvalidDateWeekError.AWeekOfYear">
+<short>The week</short>
+</element>
+
+<element name="InvalidDateWeekError.ADayOfweek">
+<short>The day of theweek</short>
 </element>
 
 <!-- procedure Visibility: default -->
 <element name="InvalidDateDayError">
 <short>Raise an <var>EConvertError</var> exception when a day is not a valid day of a year.</short>
+<descr>
+<p>
+<var>InvalidDateDayError</var> raises an <link id="#rtl.sysutils.EConvertError">EConvertError</link> 
+exception and formats the error message with an appropriate description made
+up from the parts <var>AYear</var> and <var>ADayOfYear</var>.
+</p>
+<p>
+Normally this function should not be needed, the conversion routines call it
+when they have received invalid arguments.
+</p>
+</descr>
+<seealso>
+<link id="InvalidDateWeekError"/>
+<link id="InvalidDateTimeError"/>
+<link id="InvalidDateMonthWeekError"/>
+<link id="InvalidDayOfWeekInMonthError"/>
+</seealso>
 </element>
 
 <!-- argument Visibility: default -->
@@ -5164,6 +5663,24 @@ if any of the arguments is not valid.
 <!-- procedure Visibility: default -->
 <element name="InvalidDateMonthWeekError">
 <short>Raise an <var>EConvertError</var> exception when a Year,Month,WeekOfMonth,DayofWeek is invalid.</short>
+<descr>
+<p>
+<var>InvalidDateMonthWeekError</var> raises an <link id="#rtl.sysutils.EConvertError">EConvertError</link> 
+exception and formats the error message with an appropriate description made
+up from the parts <var>AYear</var>, <var>Amonth</var>,
+<var>AWeekOfMonth</var> and <var>ADayOfWeek</var>.
+</p>
+<p>
+Normally this function should not be needed, the conversion routines call it
+when they have received invalid arguments.
+</p>
+</descr>
+<seealso>
+<link id="InvalidDateWeekError"/>
+<link id="InvalidDateTimeError"/>
+<link id="InvalidDateDayError"/>
+<link id="InvalidDayOfWeekInMonthError"/>
+</seealso>
 </element>
 
 <!-- argument Visibility: default -->
@@ -5189,6 +5706,24 @@ if any of the arguments is not valid.
 <!-- procedure Visibility: default -->
 <element name="InvalidDayOfWeekInMonthError">
 <short>Raise an <var>EConvertError</var> exception when a Year,Month,NthDayofWeek,DayofWeek is invalid.</short>
+<descr>
+<p>
+<var>InvalidDayOfWeekInMonthError</var> raises an <link id="#rtl.sysutils.EConvertError">EConvertError</link> 
+exception and formats the error message with an appropriate description made
+up from the parts <var>AYear</var>, <var>Amonth</var>,
+<var>ANthDayOfWeek</var> and <var>ADayOfWeek</var>.
+</p>
+<p>
+Normally this function should not be needed, the conversion routines call it
+when they have received invalid arguments.
+</p>
+</descr>
+<seealso>
+<link id="InvalidDateWeekError"/>
+<link id="InvalidDateTimeError"/>
+<link id="InvalidDateDayError"/>
+<link id="InvalidDateMonthWeekError"/>
+</seealso>
 </element>
 
 <!-- argument Visibility: default -->
@@ -5214,6 +5749,18 @@ if any of the arguments is not valid.
 <!-- function Visibility: default -->
 <element name="DateTimeToJulianDate">
 <short>Converts a TDateTime value to a Julian date representation</short>
+<descr>
+Not yet implemented.
+</descr>
+<errors>
+Currently, trying to use this function will raise an exception.
+</errors>
+<seealso>
+<link id="JulianDateToDateTime"/>
+<link id="TryJulianDateToDateTime"/>
+<link id="DateTimeToModifiedJulianDate"/>
+<link id="TryModifiedJulianDateToDateTime"/>
+</seealso>
 </element>
 
 <!-- function result Visibility: default -->
@@ -5229,6 +5776,18 @@ if any of the arguments is not valid.
 <!-- function Visibility: default -->
 <element name="JulianDateToDateTime">
 <short>Convert a Julian date representation to a <var>TDateTime</var> value.</short>
+<descr>
+Not yet implemented.
+</descr>
+<errors>
+Currently, trying to use this function will raise an exception.
+</errors>
+<seealso>
+<link id="DateTimeToJulianDate"/>
+<link id="TryJulianDateToDateTime"/>
+<link id="DateTimeToModifiedJulianDate"/>
+<link id="TryModifiedJulianDateToDateTime"/>
+</seealso>
 </element>
 
 <!-- function result Visibility: default -->
@@ -5244,6 +5803,18 @@ if any of the arguments is not valid.
 <!-- function Visibility: default -->
 <element name="TryJulianDateToDateTime">
 <short>Convert a Julian date representation to a <var>TDateTime</var> value.</short>
+<descr>
+Not yet implemented.
+</descr>
+<errors>
+Currently, trying to use this function will raise an exception.
+</errors>
+<seealso>
+<link id="DateTimeToJulianDate"/>
+<link id="JulianDateToDateTime"/>
+<link id="DateTimeToModifiedJulianDate"/>
+<link id="TryModifiedJulianDateToDateTime"/>
+</seealso>
 </element>
 
 <!-- function result Visibility: default -->
@@ -5264,6 +5835,18 @@ if any of the arguments is not valid.
 <!-- function Visibility: default -->
 <element name="DateTimeToModifiedJulianDate">
 <short>Convert a <var>TDateTime</var> value to a modified Julian date representation</short>
+<descr>
+Not yet implemented.
+</descr>
+<errors>
+Currently, trying to use this function will raise an exception.
+</errors>
+<seealso>
+<link id="DateTimeToJulianDate"/>
+<link id="JulianDateToDateTime"/>
+<link id="TryJulianDateToDateTime"/>
+<link id="TryModifiedJulianDateToDateTime"/>
+</seealso>
 </element>
 
 <!-- function result Visibility: default -->
@@ -5279,6 +5862,19 @@ if any of the arguments is not valid.
 <!-- function Visibility: default -->
 <element name="ModifiedJulianDateToDateTime">
 <short>Convert a modified Julian date representation to a <var>TDateTime</var> value.</short>
+<descr>
+Not yet implemented.
+</descr>
+<errors>
+Currently, trying to use this function will raise an exception.
+</errors>
+<seealso>
+<link id="DateTimeToJulianDate"/>
+<link id="JulianDateToDateTime"/>
+<link id="TryJulianDateToDateTime"/>
+<link id="DateTimeToModifiedJulianDate"/>
+<link id="TryModifiedJulianDateToDateTime"/>
+</seealso>
 </element>
 
 <!-- function result Visibility: default -->
@@ -5294,6 +5890,19 @@ if any of the arguments is not valid.
 <!-- function Visibility: default -->
 <element name="TryModifiedJulianDateToDateTime">
 <short>Convert a modified Julian date representation to a <var>TDateTime</var> value.</short>
+<descr>
+Not yet implemented.
+</descr>
+<errors>
+Currently, trying to use this function will raise an exception.
+</errors>
+<seealso>
+<link id="DateTimeToJulianDate"/>
+<link id="JulianDateToDateTime"/>
+<link id="TryJulianDateToDateTime"/>
+<link id="DateTimeToModifiedJulianDate"/>
+<link id="ModifiedJulianDateToDateTime"/>
+</seealso>
 </element>
 
 <!-- function result Visibility: default -->
@@ -5314,6 +5923,15 @@ if any of the arguments is not valid.
 <!-- function Visibility: default -->
 <element name="DateTimeToUnix">
 <short>Convert a <var>TDateTime</var> value to Unix epoch time</short>
+<descr>
+Not yet implemented.
+</descr>
+<errors>
+Currently, trying to use this function will raise an exception.
+</errors>
+<seealso>
+<link id="UnixToDateTime"/>
+</seealso>
 </element>
 
 <!-- function result Visibility: default -->
@@ -5329,6 +5947,15 @@ if any of the arguments is not valid.
 <!-- function Visibility: default -->
 <element name="UnixToDateTime">
 <short>Convert Unix epoch time to a <var>TDateTime</var> value</short>
+<descr>
+Not yet implemented.
+</descr>
+<errors>
+Currently, trying to use this function will raise an exception.
+</errors>
+<seealso>
+<link id="DateTimeToUnix"/>
+</seealso>
 </element>
 
 <!-- function result Visibility: default -->
