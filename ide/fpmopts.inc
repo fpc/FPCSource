@@ -130,9 +130,8 @@ begin
     for I:=Count-1 downto 0 do
       Items:=NewSItem(OptimizingGoalSwitches^.ItemName(I), Items);
     New(RB3, Init(R2, Items));
-    for I:=0 to Count-1 do
-      if OptimizingGoalSwitches^.GetBooleanItem(I) then
-        RB3^.Press(I);
+    L:=OptimizingGoalSwitches^.GetCurrSel;
+    RB3^.SetData(L);
     Dec(R2.A.Y);
     R2.B.Y:=R2.A.Y+1;
     New(Label22, Init(R2, label_compiler_optimizations, RB3));
@@ -1286,7 +1285,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2001-10-12 14:21:47  pierre
+  Revision 1.5  2001-11-09 11:14:40  pierre
+   * fix the bug about smaller optimization not recorded
+
+  Revision 1.4  2001/10/12 14:21:47  pierre
    + show error if switch to new screen mode failed
 
   Revision 1.3  2001/10/11 11:35:53  pierre
