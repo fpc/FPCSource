@@ -973,23 +973,24 @@ implementation
                   found:=2;
                end;
              '''' :
-               begin
-                 repeat
-                   readchar;
-                   case c of
-                     #26 :
-                       end_of_file;
-                     newline :
-                       break;
-                     '''' :
-                       begin
-                         readchar;
-                         if c<>'''' then
-                          break;
-                       end;
-                   end;
-                 until false;
-               end;
+               if not(m_nested_comment in aktmodeswitches) then
+                begin
+                  repeat
+                    readchar;
+                    case c of
+                      #26 :
+                        end_of_file;
+                      newline :
+                        break;
+                      '''' :
+                        begin
+                          readchar;
+                          if c<>'''' then
+                           break;
+                        end;
+                    end;
+                  until false;
+                end;
              '(' :
                begin
                  readchar;
@@ -1833,7 +1834,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.115  2000-07-08 16:22:30  peter
+  Revision 1.116  2000-07-08 18:03:11  peter
+    * undid my previous commit, because it breaks some code
+
+  Revision 1.115  2000/07/08 16:22:30  peter
     * also support string parsing in skipuntildirective for fpc modes
 
   Revision 1.114  2000/06/30 20:23:38  peter
