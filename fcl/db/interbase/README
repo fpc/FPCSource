@@ -44,7 +44,9 @@ testib.pp(92,1) Warning: Error while linking
 
 you must to program source add compiler directives
 
-{$linklib dl}
+{$ifndef BSD}		// BSD has libdl in libc
+ {$linklib dl}	
+{$endif}
 {$linklib crypt}
 
 and all should be OK. For running testib you must have

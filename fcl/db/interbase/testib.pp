@@ -15,8 +15,10 @@
 
 program TestIB;
 
-{$ifdef linux}
-{$linklib dl}
+{$ifdef unix}
+ {$ifndef BSD}		// BSD has libdl built in libc
+  {$linklib dl}
+ {$endif}
 {$linklib crypt}
 {$endif}
 
@@ -92,7 +94,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2003-07-19 15:36:24  michael
+  Revision 1.6  2003-08-09 15:15:26  marco
+   * libdl not imported under *BSD
+
+  Revision 1.5  2003/07/19 15:36:24  michael
   + dl and crypt only needed on Linux
 
   Revision 1.4  2002/09/07 15:15:23  peter
