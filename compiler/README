@@ -68,3 +68,5 @@ Changes in the syntax or semantic of FPC:
   07/11/99   Small change to property writing in PPU => all units
              exporting classes with properties must be recompiled
              (no new unit format, so be careful) (FK)
+  08/11/99   PP variable in Makefiles changed to FPC
+  
