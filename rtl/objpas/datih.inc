@@ -28,6 +28,9 @@ const
 
    DateDelta = 693594;        // Days between 1/1/0001 and 12/31/1899
 
+   TwoDigitYearCenturyWindow : word=0;
+                             { Threshold to be subtracted from year before
+                               age-detection.}
 
    {  date time formatting characters:
       c      : shortdateformat + ' ' + shorttimeformat
@@ -103,7 +106,10 @@ Function FileDateToDateTime (Filedate : Longint) : TDateTime;
 {
 
   $Log$
-  Revision 1.7  2000-04-24 11:09:05  peter
+  Revision 1.8  2000-07-08 18:50:21  marco
+   * added twoyearsomethingwindow
+
+  Revision 1.7  2000/04/24 11:09:05  peter
     * removed eoln
 
   Revision 1.6  2000/02/09 16:59:32  peter
