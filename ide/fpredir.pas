@@ -148,6 +148,39 @@ begin
 end;
 
 
+    function maybequoted(const s:string):string;
+      var
+        s1 : string;
+        i  : integer;
+        quoted : boolean;
+      begin
+        quoted:=false;
+        s1:='"';
+        for i:=1 to length(s) do
+         begin
+           case s[i] of
+             '"' :
+               begin
+                 quoted:=true;
+                 s1:=s1+'\"';
+               end;
+             ' ',
+             #128..#255 :
+               begin
+                 quoted:=true;
+                 s1:=s1+s[i];
+               end;
+             else
+               s1:=s1+s[i];
+           end;
+         end;
+        if quoted then
+          maybequoted:=s1+'"'
+        else
+          maybequoted:=s;
+      end;
+
+
 {*****************************************************************************
                                      Dos
 *****************************************************************************}
@@ -929,7 +962,7 @@ end;
     { Must use shell() for linux for the wildcard expansion (PFV) }
 {$ifdef UNIX}
     IOStatus:=0;
-    ExecuteResult:=Shell(FixPath(Progname)+' '+Comline);
+    ExecuteResult:=Shell(MaybeQuoted(FixPath(Progname))+' '+Comline);
   {$ifdef ver1_0}
     { Signal that causes the stop of the shell }
     IOStatus:=ExecuteResult and $7F;
@@ -951,7 +984,7 @@ end;
   {$endif win32}
     DosError:=0;
     If UseComSpec then
-      Dos.Exec (Getenv('COMSPEC'),'/C '+FixPath(progname)+' '+Comline)
+      Dos.Exec (Getenv('COMSPEC'),'/C '+MaybeQuoted(FixPath(progname))+' '+Comline)
     else
       begin
         if LocateExeFile(progname) then
@@ -990,7 +1023,10 @@ finalization
 End.
 {
   $Log$
-  Revision 1.11  2005-02-14 17:13:18  peter
+  Revision 1.12  2005-03-07 17:08:14  peter
+    * add quotes
+
+  Revision 1.11  2005/02/14 17:13:18  peter
     * truncate log
 
 }
