@@ -113,6 +113,9 @@ uses X;
        { Added this for functions at the end. }
        PCardinal = ^Cardinal;
 
+       PDisplay=^TDisplay;
+
+
        PXExtData = ^TXExtData ;
        PPXExtData = ^PXExtData ;
        { Put this in to accomodate for the next in the following record. MVC}
@@ -299,12 +302,23 @@ uses X;
     {
      * Data structure for "image" data, used by image manipulation routines.
      }
-     { Added the following empty record - needed in Ximage.
-       Fill in later. MVC }
-       Funcsrecord = record
-          dummy : integer; { Just something stupid }
-          end;
-       TXImage = record
+      PXImage = ^TXImage;
+
+      TXImageFunctions = record
+         create_image: function(display: PDisplay; visual: PVisual;
+	   depth: Cardinal; format, offset: LongInt; data: PChar;
+	   width, height: Cardinal;
+	   bitmap_pad, bytes_per_line: Cardinal): PXImage; cdecl;
+	 destroy_image: function(image: PXImage): LongInt; cdecl;
+	 get_pixel: function(image: PXImage; x, y: LongInt): LongInt; cdecl;
+	 put_pixel: function(image: PXImage; x, y: LongInt;
+	   color: Cardinal): LongInt; cdecl;
+	 sub_image: function(image: PXImage; x, y: LongInt;
+	   w, h: Cardinal): PXImage; cdecl;
+	 add_pixel: function(image: PXImage; value: LongInt): LongInt;
+      end;
+
+      TXImage = record
             width : longint;
             height : longint;
             xoffset : longint;
@@ -321,9 +335,8 @@ uses X;
             green_mask : cardinal;
             blue_mask : cardinal;
             obdata : TXPointer;
-            funcs : funcsrecord {Added this. Incorrectly converted}
+            f : TXImageFunctions
          end;
-      PXImage = ^TXImage;
     {
      * Data structure for XReconfigureWindow
      }
@@ -481,7 +494,6 @@ uses X;
             private19 : longint;
             xdefaults : pchar;
          end;
-         PDisplay=^TDisplay;
     {
      * Definitions of specific events.
      }
@@ -1723,7 +1735,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2000-10-26 16:40:27  sg
+  Revision 1.4  2000-10-29 12:35:09  sg
+  * Fixed XImage (function pointers are now declared)
+
+  Revision 1.3  2000/10/26 16:40:27  sg
   * Fixed declaration of TVisual
 
   Revision 1.2  2000/07/13 11:33:34  michael
