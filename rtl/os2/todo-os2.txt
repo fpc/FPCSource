@@ -24,8 +24,7 @@ OS/2 only rtl                                 medium
   - SysOS2
   - DOS
   - ObjInc.INC
-  - disk.inc
-  - filutil.inc
+  - sysutils.pp
   - autothunking for 16-bit calls
   - ? linker (ALINK)
 
