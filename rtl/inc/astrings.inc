@@ -155,8 +155,8 @@ Procedure UniqueAnsiString (Var S : AnsiString); [Public,Alias : 'FPC_ANSISTR_UN
 Var
   SNew : Pointer;
 begin
-  If Pointer(S)=Nil
-    then exit;
+  If Pointer(S)=Nil then
+    exit;
   if PAnsiRec(Pointer(S)-Firstoff)^.Ref<>1 then
     begin
     SNew:=NewAnsiString (PAnsiRec(Pointer(S)-FirstOff)^.len);
@@ -217,7 +217,7 @@ Procedure Ansi_ShortString_Concat (Var S1: AnsiString; Var S2 : ShortString);
 Var
   Size,Location : Longint;
 begin
-  Size:=byte(S2[0]);
+  Size:=Length(S2);
   Location:=Length(S1);
   If Size=0 then exit;
   { Setlength takes case of uniqueness
@@ -236,10 +236,16 @@ Procedure Ansi_To_ShortString (Var S1 : ShortString;S2 : Pointer; Maxlen : Longi
 Var
   Size : Longint;
 begin
-  Size:=PAnsiRec(S2-FirstOff)^.Len;
-  If Size>maxlen then Size:=maxlen;
-  Move (S2^,S1[1],Size);
-  byte(S1[0]):=Size;
+  if S2=nil then
+   S1:=''
+  else
+   begin
+     Size:=PAnsiRec(S2-FirstOff)^.Len;
+     If Size>maxlen then
+      Size:=maxlen;
+     Move (S2^,S1[1],Size);
+     byte(S1[0]):=Size;
+   end;
 end;
 
 
@@ -250,11 +256,14 @@ Procedure Short_To_AnsiString (Var S1 : Pointer; Const S2 : ShortString);[Public
 Var
   Size : Longint;
 begin
-  Size:=Byte(S2[0]);
+  Size:=Length(S2);
   Setlength (AnsiString(S1),Size);
-  Move (S2[1],Pointer(S1)^,Size);
-  { Terminating Zero }
-  PByte(Pointer(S1)+Size)^:=0;
+  if Size>0 then
+   begin
+     Move (S2[1],Pointer(S1)^,Size);
+     { Terminating Zero }
+     PByte(Pointer(S1)+Size)^:=0;
+   end;
 end;
 
 
@@ -459,7 +468,7 @@ begin
  i := 0;
  j := 0;
  e := true;
- if Plongint(substr)^=0 then e := false;
+ if Length(SubStr)=0 then e := false;
  while (e) and (i <= length (Source) - length (substr)) do
    begin
    inc (i);
@@ -659,6 +668,7 @@ Procedure Delete (Var S : AnsiString; Index,Size: Longint);
 Var LS : Longint;
 
 begin
+  If Length(S)=0 then exit;
   if index<=0 then
     begin
     Size:=Size+index-1;
@@ -704,7 +714,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  1998-11-17 10:34:18  michael
+  Revision 1.2  1998-11-17 11:33:22  peter
+    + several checks for empty string
+
+  Revision 1.1  1998/11/17 10:34:18  michael
   + renamed from astrings.pp to astrings.inc
 
   Revision 1.34  1998/11/17 00:41:11  peter
