@@ -1108,12 +1108,13 @@ BEGIN
            end
          else
            If (P = Current) Then Color := CSelect;    { Select colour }
-         If TextModeGFV then
+         If TextModeGFV or UseFixedFont then
            Begin
-             CreateBorder(NormalLine);
+             If Not TextModeGFV then
+               MoveChar(B, ' ', Color, Size.X);    { Clear buffer }
+             If TextModeGFV  then
+               CreateBorder(NormalLine);
              Index:=2;
-             If UseFixedFont then
-               MoveChar(B, ' ', Color, Size.X-4);    { Clear buffer }
            End
          Else
            Begin
@@ -1132,7 +1133,12 @@ BEGIN
          If (OldItem = Nil) OR (OldItem = P) OR
          (Current = P) Then Begin                     { We need to fix draw }
            If TextModeGFV or UseFixedFont then
-             WriteBuf(0, Y, Size.X, 1, B)             { Write the whole line }
+             Begin
+               if TextModeGFV then
+                 WriteBuf(0, Y, Size.X, 1, B)             { Write the whole line }
+               else
+                 WriteBuf(1, Y, Size.X-2, 1, B[1]);
+             end
            Else
              WriteBuf(2, Y, CStrLen(S), 1, B);          { Write the line }
            If (P = Current) Then Begin                { Selected item }
@@ -1742,7 +1748,10 @@ END;
 END.
 {
  $Log$
- Revision 1.12  2002-05-29 19:36:52  pierre
+ Revision 1.13  2002-05-30 06:58:28  pierre
+  * fix grpah related menubar draw issues
+
+ Revision 1.12  2002/05/29 19:36:52  pierre
   * fix UseFixedFont related code
 
  Revision 1.11  2002/05/21 10:53:25  pierre
