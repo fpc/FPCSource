@@ -88,6 +88,7 @@ type tmsgconst=(
   parser_e_string_too_long,
   parser_w_use_extended_syntax_for_objects,
   parser_e_class_id_expected,
+  parser_e_no_type_not_allowed_here,
   parser_e_methode_id_expected,
   parser_e_header_dont_match_any_member,
   parser_p_procedure_start,

@@ -59,6 +59,8 @@ unit pexpr;
 {$endif}
        ;
 
+    const allow_type : boolean = false;
+    
     function parse_paras(_colon,in_prop_paras : boolean) : ptree;
 
       var
@@ -146,7 +148,9 @@ unit pexpr;
             begin
               consume(LKLAMMER);
               in_args:=true;
+              allow_type:=true;
               p1:=comp_expr(true);
+              allow_type:=false;
               consume(RKLAMMER);
               pd:=voidpointerdef;
               if p1^.treetype=typen then
@@ -189,7 +193,9 @@ unit pexpr;
             begin
               consume(LKLAMMER);
               in_args:=true;
+              allow_type:=true;
               p1:=comp_expr(true);
+              allow_type:=false;
               consume(RKLAMMER);
               pd:=s32bitdef;
               if p1^.treetype=typen then
@@ -273,7 +279,9 @@ unit pexpr;
             begin
               consume(LKLAMMER);
               in_args:=true;
+              allow_type:=true;
               p1:=comp_expr(true);
+              allow_type:=false;
               do_firstpass(p1);
               Must_be_valid:=false;
               p2:=geninlinenode(l,false,p1);
@@ -879,7 +887,7 @@ unit pexpr;
                                   p1^.resulttype:=pd;
                                   pd:=voiddef;
                                 end
-                              else
+                              else { not type block }
                                begin
                                  if token=LKLAMMER then
                                   begin
@@ -889,7 +897,7 @@ unit pexpr;
                                     p1:=gentypeconvnode(p1,pd);
                                     p1^.explizit:=true;
                                   end
-                                 else
+                                 else { not LKLAMMER}
                                   if (token=POINT) and
                                      (pd^.deftype=objectdef) and
                                      ((pobjectdef(pd)^.options and oo_is_class)=0) then
@@ -957,9 +965,14 @@ unit pexpr;
                                          begin
                                             { generate a type node }
                                             { (for typeof etc)     }
-                                            p1:=genzeronode(typen);
-                                            p1^.resulttype:=pd;
-                                            pd:=voiddef;
+                                            if allow_type then
+                                              begin
+                                                 p1:=genzeronode(typen);
+                                                 p1^.resulttype:=pd;
+                                                 pd:=voiddef;
+                                              end
+                                            else
+                                              Message(parser_e_no_type_not_allowed_here);
                                          end;
                                     end;
                                end;
@@ -1381,7 +1394,9 @@ unit pexpr;
         _NEW : begin
                  consume(_NEW);
                  consume(LKLAMMER);
+                 allow_type:=true;
                  p1:=factor(false);
+                 allow_type:=false;
                  if p1^.treetype<>typen then
                   begin
                     Message(type_e_type_id_expected);
@@ -1883,7 +1898,11 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.68  1998-10-20 11:15:44  pierre
+  Revision 1.69  1998-10-20 15:10:19  pierre
+    * type ptree only allowed inside expression
+      if following sizeof typeof low high or as first arg of new !!
+
+  Revision 1.68  1998/10/20 11:15:44  pierre
    * calling of private method allowed inside child object method
 
   Revision 1.67  1998/10/19 08:54:57  pierre
