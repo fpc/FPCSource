@@ -1,0 +1,27 @@
+{ don't edit, this file is generated from m68kreg.dat }
+RS_NO = $00;
+RS_D0 = $00;
+RS_D1 = $01;
+RS_D2 = $02;
+RS_D3 = $03;
+RS_D4 = $04;
+RS_D5 = $05;
+RS_D6 = $06;
+RS_D7 = $07;
+RS_A0 = $08;
+RS_A1 = $09;
+RS_A2 = $0a;
+RS_A3 = $0b;
+RS_A4 = $0c;
+RS_A5 = $0d;
+RS_A6 = $0e;
+RS_SP = $0f;
+RS_FP0 = $00;
+RS_FP1 = $01;
+RS_FP2 = $02;
+RS_FP3 = $03;
+RS_FP4 = $04;
+RS_FP5 = $05;
+RS_FP6 = $06;
+RS_FP7 = $07;
+RS_PC = $00;
