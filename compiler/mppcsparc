@@ -4,7 +4,7 @@ FPC_SRC_DIR="$PWD"
 COMP_DIR="$FPC_SRC_DIR/compiler"
 RTL_DIR="$FPC_SRC_DIR/rtl"
 SPARC_BINUTILS_DIR="/usr/local/bin/sparc-linux"
-INCLUDE_PATH=`echo -Fi"$RTL_DIR/"{unix,linux,sparc,inc,linux/sparc}`
+INCLUDE_PATH=`echo -Fi"$RTL_DIR/"{unix,linux,sparc,inc,linux/sparc,objpas/sysutils}`
 UNITS_PATH=`echo -Fu"$RTL_DIR/"{unix,linux,sparc,inc,linux/sparc,objpas,inc}`
 SRC_DIR=`echo "$COMP_DIR/"{,sparc,systems}:`
 TEST_DIR="$FPC_SRC_DIR/tests/test"
@@ -27,7 +27,6 @@ then
     for FileName in $FILES_LIST
     do
       eval "$COMPILE_COMMAND" "$FileName" "$@"
-      exit
       if [[ $? != 0 ]]
       then
         break;
