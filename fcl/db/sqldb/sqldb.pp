@@ -86,6 +86,7 @@ type
     procedure RollBackRetaining(trans : TSQLHandle); virtual; abstract;
     procedure UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string); virtual;
     function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; virtual;
+    function CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream; virtual;abstract;
   public
     property Handle: Pointer read GetHandle;
     destructor Destroy; override;
@@ -179,6 +180,7 @@ type
     constructor Create(AOwner : TComponent); override;
     destructor Destroy; override;
     procedure SetSchemaInfo( SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string); virtual;
+    function CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream; override;
   published
     // redeclared data set properties
     property Active;
@@ -426,7 +428,7 @@ begin
 
   Buf := '';
   for x := 0 to FSQL.Count - 1 do
-    Buf := Buf + FSQL[x] + ' ';
+    Buf := Buf + FSQL[x] + ' '#10;  // multiline SQl. Provides line info in sqlErrors and allows single line comments
 
   if Buf='' then
     begin
@@ -617,9 +619,10 @@ begin
             if ixPrimary in indexdefs[tel].options then
               begin
               // Todo: If there is more then one field in the key, that must be parsed
-              s := indexdefs[tel].fields;
-              F := fieldbyname(s);
-              F.ProviderFlags := F.ProviderFlags + [pfInKey];
+                s := indexdefs[tel].fields;
+                F := Findfield(s);
+                if F <> nil then
+                  F.ProviderFlags := F.ProviderFlags + [pfInKey];
               end;
             end;
           end;
@@ -883,11 +886,26 @@ begin
 end;
 
 
+function TSQLQuery.CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream;
+begin
+  result := (DataBase as tsqlconnection).CreateBlobStream(Field, Mode);
+end;
+
 end.
 
 {
   $Log$
-  Revision 1.14  2005-02-14 17:13:12  peter
+  Revision 1.15  2005-03-23 08:17:51  michael
+  + Several patches from Jose A. Rimon
+  # Prevents "field not found" error, when use a query without the primary key
+  Set SQLlen of different data types
+   Use AliasName instead of SQLname to avoid "duplicate field name" error, for
+  example when using "coalesce" more than once
+  use SQLScale in ftLargeInt to get actual values
+   Send query to server with different lines. Provides line info in sqlErrors
+  and allows single line comments
+
+  Revision 1.14  2005/02/14 17:13:12  peter
     * truncate log
 
   Revision 1.13  2005/02/07 11:23:41  joost

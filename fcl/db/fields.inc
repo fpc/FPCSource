@@ -2085,12 +2085,7 @@ Var I : longint;
 
 begin
   If FindField(Value)<>Nil then
-    begin
-    S:=UpperCase(Value);
-    For I:=0 To FFieldList.Count-1 do
-      If S=UpperCase(TField(FFieldList[i]).FieldName) Then
-        DataBaseErrorFmt(SDuplicateFieldName,[Value],FDataset);
-    end;
+    DataBaseErrorFmt(SDuplicateFieldName,[Value],FDataset);
 end;
 
 Procedure TFields.CheckFieldNames (Const Value : String);
@@ -2190,7 +2185,17 @@ end;
 
 {
   $Log$
-  Revision 1.27  2005-03-15 22:44:22  michael
+  Revision 1.28  2005-03-23 08:17:51  michael
+  + Several patches from Jose A. Rimon
+  # Prevents "field not found" error, when use a query without the primary key
+  Set SQLlen of different data types
+   Use AliasName instead of SQLname to avoid "duplicate field name" error, for
+  example when using "coalesce" more than once
+  use SQLScale in ftLargeInt to get actual values
+   Send query to server with different lines. Provides line info in sqlErrors
+  and allows single line comments
+
+  Revision 1.27  2005/03/15 22:44:22  michael
     * Patch from Luiz Americo
       - fixes a memory leak in TBlobField.GetAsString
 

@@ -56,6 +56,7 @@ type
     procedure GetDateTime(CurrBuff, Buffer : pointer; AType : integer);
     procedure GetFloat(CurrBuff, Buffer : pointer; Field : TFieldDef);
     procedure CheckError(ProcName : string; Status : array of ISC_STATUS);
+    function getMaxBlobSize(blobHandle : TIsc_Blob_Handle) : longInt;
   protected
     procedure DoInternalConnect; override;
     procedure DoInternalDisconnect; override;
@@ -79,6 +80,8 @@ type
     procedure RollBackRetaining(trans : TSQLHandle); override;
     procedure UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string); override;
     function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; override;
+    function CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream; override;
+
   published
     property Dialect  : integer read FDialect write FDialect;
     property DatabaseName;
@@ -317,7 +320,7 @@ begin
   if (SQLScale >= -4) and (SQLScale <= -1) then //in [-4..-1] then
     begin
     LensSet := True;
-    TrLen := SQLScale;
+    TrLen := SQLLen;
     TrType := ftBCD
     end
   else case (SQLType and not 1) of
@@ -364,13 +367,13 @@ begin
     SQL_DOUBLE :
       begin
         LensSet := True;
-        TrLen := 0;
+        TrLen := SQLLen;
         TrType := ftFloat;
       end;
     SQL_FLOAT :
       begin
         LensSet := True;
-        TrLen := 0;
+        TrLen := SQLLen;
         TrType := ftFloat;
       end
     else
@@ -488,7 +491,7 @@ begin
       begin
       TranslateFldType(SQLDA^.SQLVar[x].SQLType, SQLDA^.SQLVar[x].SQLLen, SQLDA^.SQLVar[x].SQLScale,
         lenset, TransType, TransLen);
-      FD := TFieldDef.Create(FieldDefs, SQLDA^.SQLVar[x].SQLName, TransType,
+      FD := TFieldDef.Create(FieldDefs, SQLDA^.SQLVar[x].AliasName, TransType,
          TransLen, False, (x + 1));
       if TransType = ftBCD then FD.precision := SQLDA^.SQLVar[x].SQLLen;
       FD.DisplayName := SQLDA^.SQLVar[x].AliasName;
@@ -570,8 +573,12 @@ begin
         ftLargeint :
           begin
             li := 0;
-            Move(li, Buffer^, sizeof(largeint));
-            Move(CurrBuff^, Buffer^, SQLDA^.SQLVar[x].SQLLen);
+            Move(CurrBuff^, li, SQLDA^.SQLVar[x].SQLLen);
+            if SQLDA^.SQLVar[x].SQLScale > 0 then
+              li := li * trunc(intpower(10, SQLDA^.SQLVar[x].SQLScale))
+            else if SQLDA^.SQLVar[x].SQLScale < 0 then
+              li := li div trunc(intpower(10, -SQLDA^.SQLVar[x].SQLScale));
+            Move(li, Buffer^, SQLDA^.SQLVar[x].SQLLen);
           end;
         ftDate, ftTime, ftDateTime:
           GetDateTime(CurrBuff, Buffer, SQLDA^.SQLVar[x].SQLType);
@@ -581,7 +588,13 @@ begin
             PChar(Buffer + VarCharLen)^ := #0;
           end;
         ftFloat   :
-          GetFloat(CurrBuff, Buffer, FieldDef)
+          GetFloat(CurrBuff, Buffer, FieldDef);
+        ftBlob : begin  // load the BlobIb in field's buffer
+            li := 0;
+            Move(li, Buffer^, sizeof(largeint));
+            Move(CurrBuff^, Buffer^, SQLDA^.SQLVar[x].SQLLen);
+         end
+
       else result := false;
       end;
       end;
@@ -756,6 +769,73 @@ begin
       end;
   end;
   Move(Dbl, Buffer^, 8);
+end;
+
+
+function TIBConnection.getMaxBlobSize(blobHandle : TIsc_Blob_Handle) : longInt;
+var
+  iscInfoBlobMaxSegment : byte = isc_info_blob_max_segment;
+  blobInfo : array[0..50] of byte;
+
+begin
+  if isc_blob_info(@Fstatus, @blobHandle, sizeof(iscInfoBlobMaxSegment), @iscInfoBlobMaxSegment, sizeof(blobInfo) - 2, @blobInfo) <> 0 then
+    CheckError('isc_blob_info', FStatus);
+  if blobInfo[0]  = isc_info_blob_max_segment then
+    begin
+      result :=  isc_vax_integer(pchar(@blobInfo[3]), isc_vax_integer(pchar(@blobInfo[1]), 2));
+    end
+  else
+     CheckError('isc_blob_info', FStatus);
+end;
+
+function TIBConnection.CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream;
+const
+  isc_segstr_eof = 335544367; // It's not defined in ibase60 but in ibase40. Would it be better to define in ibase60?
+
+var
+  mStream : TMemoryStream;
+  blobHandle : Isc_blob_Handle;
+  blobSegment : pointer;
+  blobSegLen : smallint;
+  maxBlobSize : longInt;
+  TransactionHandle : pointer;
+  blobId : ISC_QUAD;
+begin
+
+  result := nil;
+  if mode = bmRead then begin
+
+    if not field.getData(@blobId) then
+      exit;
+
+    TransactionHandle := transaction.Handle;
+    blobHandle := nil;
+
+    if isc_open_blob(@FStatus, @FSQLDatabaseHandle, @TransactionHandle, @blobHandle, @blobId) <> 0 then
+      CheckError('TIBConnection.CreateBlobStream', FStatus);
+
+    maxBlobSize := getMaxBlobSize(blobHandle);
+
+    blobSegment := AllocMem(maxBlobSize);
+    mStream := TMemoryStream.create;
+
+    while (isc_get_segment(@FStatus, @blobHandle, @blobSegLen, maxBlobSize, blobSegment) = 0) do begin
+        mStream.writeBuffer(blobSegment^, blobSegLen);
+    end;
+    freemem(blobSegment);
+    mStream.seek(0,soFromBeginning);
+
+    if FStatus[1] = isc_segstr_eof then
+      begin
+        if isc_close_blob(@FStatus, @blobHandle) <> 0 then
+          CheckError('TIBConnection.CreateBlobStream isc_close_blob', FStatus);
+      end
+    else
+      CheckError('TIBConnection.CreateBlobStream isc_get_segment', FStatus);
+
+    result := mStream;
+
+  end;
 end;
 
 end.
