@@ -616,6 +616,8 @@ Procedure SigSuspend(Mask:Sigset);
 Function  Signal(Signum:Integer;Handler:SignalHandler):SignalHandler;
 Function  Kill(Pid:longint;Sig:integer):integer;
 Procedure SigRaise(Sig:integer);
+Function  Alarm(Sec : Longint) : longint;
+Procedure Pause;
 
 {**************************
   IOCtl/Termios Functions
@@ -1346,7 +1348,7 @@ Procedure EpochToLocal(epoch:longint;var year,month,day,hour,minute,second:Word)
 Var
   DateNum: LongInt;
 Begin { Beginning of Localtime }
-  dec(Epoch,LocalTZ.minuteswest*60);
+//  dec(Epoch,LocalTZ.minuteswest*60);
   Datenum:=(Epoch Div 86400) + c1970;
   JulianToGregorian(DateNum,Year,Month,day);
   Epoch:=Epoch Mod 86400;
@@ -2791,6 +2793,22 @@ begin
   Kill(GetPid,Sig);
 end;
 
+Function  Alarm(Sec : Longint) : longint;
+
+Var Sr : Syscallregs;
+
+begin
+  sr.reg2:=Sec;
+  Alarm:=Syscall(syscall_nr_alarm,sr);
+end;
+
+Procedure Pause;
+
+Var Sr : Syscallregs;
+
+begin
+  syscall(syscall_nr_pause,sr);
+end;
 
 {******************************************************************************
                          IOCtl and Termios calls
@@ -3792,7 +3810,10 @@ End.
 
 {
   $Log$
-  Revision 1.51  1999-11-11 19:43:49  sg
+  Revision 1.52  1999-11-14 11:11:15  michael
+  + Added Pause() and alarm()
+
+  Revision 1.51  1999/11/11 19:43:49  sg
   * fixed severe bug: change by ? in dup2 (flushing) resulted in broken
     AssignStream functions
 
