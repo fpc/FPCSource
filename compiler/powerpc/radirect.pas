@@ -98,7 +98,7 @@ interface
             { consider it set function set if the offset was loaded }
            if assigned(aktprocdef.funcretsym) and
               (pos(retstr,upper(s))>0) then
-             tfuncretsym(aktprocdef.funcretsym).funcretstate:=vs_assigned;
+             tvarsym(aktprocdef.funcretsym).varstate:=vs_assigned;
            s:='';
          end;
 
@@ -107,7 +107,7 @@ interface
        s:='';
        if assigned(aktprocdef.funcretsym) and
           is_fpu(aktprocdef.rettype.def) then
-         tfuncretsym(aktprocdef.funcretsym).funcretstate:=vs_assigned;
+         tvarsym(aktprocdef.funcretsym).varstate:=vs_assigned;
        { !!!!!
        if (not is_void(aktprocdef.rettype.def)) then
          retstr:=upper(tostr(procinfo^.return_offset)+'('+gas_reg2str[procinfo^.framepointer]+')')
@@ -311,7 +311,7 @@ interface
               '{',';',#10,#13:
                 begin
                    if pos(retstr,s) > 0 then
-                     tfuncretsym(aktprocdef.funcretsym).funcretstate:=vs_assigned;
+                     tvarsym(aktprocdef.funcretsym).varstate:=vs_assigned;
                    writeasmline;
                    c:=current_scanner.asmgetchar;
                 end;
@@ -347,7 +347,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.10  2003-04-24 12:05:53  florian
+  Revision 1.11  2003-04-25 21:05:22  florian
+    * fixed tfuncretsym stuff in powerpc specific part
+
+  Revision 1.10  2003/04/24 12:05:53  florian
     * symbols which are register identifiers aren't resolved anymore
 
   Revision 1.9  2003/04/23 22:18:01  peter
