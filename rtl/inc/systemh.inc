@@ -371,24 +371,30 @@ Var
                         Processor specific routines
 ****************************************************************************}
 
-Procedure Move(const source;var dest;count:SizeInt);
+{$ifdef FPC_USE_LIBC}
+{$ifdef SYSTEMINLINE}
+{$define INLINEGENERICS}
+{$endif}
+{$endif}
+
+Procedure Move(const source;var dest;count:SizeInt);{$ifdef INLINEGENERICS}inline;{$endif}
 Procedure FillChar(Var x;count:SizeInt;Value:Boolean);{$ifdef SYSTEMINLINE}inline;{$endif}
 Procedure FillChar(Var x;count:SizeInt;Value:Char);{$ifdef SYSTEMINLINE}inline;{$endif}
-Procedure FillChar(Var x;count:SizeInt;Value:Byte);
-procedure FillByte(var x;count:SizeInt;value:byte);
+Procedure FillChar(Var x;count:SizeInt;Value:Byte);{$ifdef INLINEGENERICS}inline;{$endif}
+procedure FillByte(var x;count:SizeInt;value:byte);{$ifdef INLINEGENERICS}inline;{$endif}
 Procedure FillWord(Var x;count:SizeInt;Value:Word);
 procedure FillDWord(var x;count:SizeInt;value:DWord);
 function  IndexChar(const buf;len:SizeInt;b:char):SizeInt;
-function  IndexByte(const buf;len:SizeInt;b:byte):SizeInt;
+function  IndexByte(const buf;len:SizeInt;b:byte):SizeInt;{$ifdef INLINEGENERICS}inline;{$endif}
 function  Indexword(const buf;len:SizeInt;b:word):SizeInt;
 function  IndexDWord(const buf;len:SizeInt;b:DWord):SizeInt;
 function  CompareChar(const buf1,buf2;len:SizeInt):SizeInt;
-function  CompareByte(const buf1,buf2;len:SizeInt):SizeInt;
+function  CompareByte(const buf1,buf2;len:SizeInt):SizeInt;{$ifdef INLINEGENERICS}inline;{$endif}
 function  CompareWord(const buf1,buf2;len:SizeInt):SizeInt;
 function  CompareDWord(const buf1,buf2;len:SizeInt):SizeInt;
 procedure MoveChar0(const buf1;var buf2;len:SizeInt);
 function  IndexChar0(const buf;len:SizeInt;b:char):SizeInt;
-function  CompareChar0(const buf1,buf2;len:SizeInt):SizeInt;
+function  CompareChar0(const buf1,buf2;len:SizeInt):SizeInt;{$ifdef INLINEGENERICS}inline;{$endif}
 procedure prefetch(const mem);
 
 
@@ -453,7 +459,7 @@ Function  Sseg:Word;{$ifdef SYSTEMINLINE}inline;{$endif}
 ****************************************************************************}
 
 function strpas(p:pchar):shortstring;
-function strlen(p:pchar):longint;
+function strlen(p:pchar):longint;{$ifdef INLINEGENERICS}inline;{$endif}
 
 { Shortstring functions }
 {$ifndef INTERNSETLENGTH}
@@ -755,7 +761,15 @@ const
 
 {
   $Log$
-  Revision 1.102  2004-09-22 05:56:11  hajny
+  Revision 1.103  2004-10-09 21:00:46  jonas
+    + cgenmath with libc math functions. Faster than the routines in genmath
+      and also have full double support (exp() only has support for values in
+      the single range in genmath, for example). Used in FPC_USE_LIBC is
+      defined
+    * several fixes to allow compilation with -dHASINLINE, but internalerrors
+      because of missing support for inlining assembler code
+
+  Revision 1.102  2004/09/22 05:56:11  hajny
     * compilation fix
 
   Revision 1.101  2004/09/21 23:43:26  hajny

@@ -53,7 +53,7 @@ procedure FillByte (var x;count : longint;value : byte );{$ifdef SYSTEMINLINE}in
 begin
   if count <= 0 then
     exit;
-  FillChar (X,Count,CHR(VALUE));
+  FillChar (X,Count,value);
 end;
 {$endif not FPC_SYSTEM_HAS_FILLBYTE}
 
@@ -140,7 +140,7 @@ end;
 
 function libc_pchar_length(p:pchar):cardinal; cdecl; external 'c' name 'strlen';
 
-function fpc_pchar_length(p:pchar):longint;[public,alias:'FPC_PCHAR_LENGTH']; {$ifdef hascompilerproc} compilerproc; {$endif} {$ifdef SYSTEMINLINE}inline;{$endif}
+function fpc_pchar_length(p:pchar):longint;[public,alias:'FPC_PCHAR_LENGTH']; {$ifdef hascompilerproc} compilerproc; {$endif}
 begin
   fpc_pchar_length:=libc_pchar_length(p);
 end;
@@ -150,7 +150,15 @@ end;
 
 {
   $Log$
-  Revision 1.2  2004-05-01 15:26:33  jonas
+  Revision 1.3  2004-10-09 21:00:46  jonas
+    + cgenmath with libc math functions. Faster than the routines in genmath
+      and also have full double support (exp() only has support for values in
+      the single range in genmath, for example). Used in FPC_USE_LIBC is
+      defined
+    * several fixes to allow compilation with -dHASINLINE, but internalerrors
+      because of missing support for inlining assembler code
+
+  Revision 1.2  2004/05/01 15:26:33  jonas
     * use some more string routines from libc if FPC_USE_LIBC is used
 
   Revision 1.1  2004/01/11 11:10:07  jonas

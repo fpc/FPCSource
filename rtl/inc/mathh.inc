@@ -33,18 +33,26 @@
 
    { declarations of the math routines }
 
+{$ifndef cpui386}
+{$ifdef FPC_USE_LIBC}
+{$ifdef SYSTEMINLINE}
+{$define MATHINLINE}
+{$endif}
+{$endif}
+{$endif}
+
     function abs(d : extended) : extended;
-    function arctan(d : extended) : extended;
-    function cos(d : extended) : extended;
-    function exp(d : extended) : extended;
+    function arctan(d : extended) : extended;{$ifdef MATHINLINE}inline;{$endif}
+    function cos(d : extended) : extended;{$ifdef MATHINLINE}inline;{$endif}
+    function exp(d : extended) : extended;{$ifdef MATHINLINE}inline;{$endif}
     function frac(d : extended) : extended;
-    function int(d : extended) : extended;
-    function ln(d : extended) : extended;
+    function int(d : extended) : extended;{$ifdef MATHINLINE}inline;{$endif}
+    function ln(d : extended) : extended;{$ifdef MATHINLINE}inline;{$endif}
     function pi : extended;
     function round(d : extended) : int64;
-    function sin(d : extended) : extended;
+    function sin(d : extended) : extended;{$ifdef MATHINLINE}inline;{$endif}
     function sqr(d : extended) : extended;
-    function sqrt(d : extended) : extended;
+    function sqrt(d : extended) : extended;{$ifdef MATHINLINE}inline;{$endif}
     function trunc(d : extended) : int64;
     function power(bas,expo : extended) : extended;
     function power(bas,expo : int64) : int64;
@@ -70,7 +78,15 @@
 
 {
   $Log$
-  Revision 1.15  2004-02-08 15:33:50  florian
+  Revision 1.16  2004-10-09 21:00:46  jonas
+    + cgenmath with libc math functions. Faster than the routines in genmath
+      and also have full double support (exp() only has support for values in
+      the single range in genmath, for example). Used in FPC_USE_LIBC is
+      defined
+    * several fixes to allow compilation with -dHASINLINE, but internalerrors
+      because of missing support for inlining assembler code
+
+  Revision 1.15  2004/02/08 15:33:50  florian
     * linking problems fixed
     + abi tag added
 

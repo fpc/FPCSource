@@ -1030,7 +1030,7 @@ function fpc_pchar_length(p:pchar):longint;assembler;[public,alias:'FPC_PCHAR_LE
 
 
 {$define FPC_SYSTEM_HAS_GET_FRAME}
-function get_frame:pointer;assembler;
+function get_frame:pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
   { all abi's I know use r1 as stack pointer }
   mr r3, r1
@@ -1038,7 +1038,7 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
-function get_caller_addr(framebp:pointer):pointer;assembler;
+function get_caller_addr(framebp:pointer):pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
    cmplwi  r3,0
    beq     .Lcaller_addr_frame_null
@@ -1055,7 +1055,7 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
-function get_caller_frame(framebp:pointer):pointer;assembler;
+function get_caller_frame(framebp:pointer):pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
     cmplwi  r3,0
     beq     .Lcaller_frame_null
@@ -1064,7 +1064,7 @@ asm
 end;
 
 {$define FPC_SYSTEM_HAS_ABS_LONGINT}
-function abs(l:longint):longint; assembler;[internconst:in_const_abs];
+function abs(l:longint):longint; assembler;[internconst:in_const_abs];{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
         srawi   r0,r3,31
         add     r3,r0,r3
@@ -1077,21 +1077,21 @@ end;
 ****************************************************************************}
 
 {$define FPC_SYSTEM_HAS_ODD_LONGINT}
-function odd(l:longint):boolean;assembler;[internconst:in_const_odd];
+function odd(l:longint):boolean;assembler;[internconst:in_const_odd];{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
         rlwinm  r3,r3,0,31,31
 end;
 
 
 {$define FPC_SYSTEM_HAS_SQR_LONGINT}
-function sqr(l:longint):longint;assembler;[internconst:in_const_sqr];
+function sqr(l:longint):longint;assembler;[internconst:in_const_sqr];{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
         mullw   r3,r3,r3
 end;
 
 
 {$define FPC_SYSTEM_HAS_SPTR}
-Function Sptr : Pointer;assembler;
+Function Sptr : Pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
         mr    r3,r1
 end;
@@ -1137,7 +1137,15 @@ end;
 
 {
   $Log$
-  Revision 1.67  2004-05-01 17:02:37  jonas
+  Revision 1.68  2004-10-09 21:00:46  jonas
+    + cgenmath with libc math functions. Faster than the routines in genmath
+      and also have full double support (exp() only has support for values in
+      the single range in genmath, for example). Used in FPC_USE_LIBC is
+      defined
+    * several fixes to allow compilation with -dHASINLINE, but internalerrors
+      because of missing support for inlining assembler code
+
+  Revision 1.67  2004/05/01 17:02:37  jonas
     * use some more string routines from libc if FPC_USE_LIBC is used
 
   Revision 1.66  2004/04/29 20:00:47  peter

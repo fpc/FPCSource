@@ -1216,7 +1216,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_SYSRESETFPU}
 
-procedure SysResetFpu;
+procedure SysResetFpu;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   { nothing todo }
 end;
@@ -1225,7 +1225,15 @@ end;
 
 {
   $Log$
-  Revision 1.80  2004-07-18 20:21:44  florian
+  Revision 1.81  2004-10-09 21:00:46  jonas
+    + cgenmath with libc math functions. Faster than the routines in genmath
+      and also have full double support (exp() only has support for values in
+      the single range in genmath, for example). Used in FPC_USE_LIBC is
+      defined
+    * several fixes to allow compilation with -dHASINLINE, but internalerrors
+      because of missing support for inlining assembler code
+
+  Revision 1.80  2004/07/18 20:21:44  florian
     + several unicode (to/from utf-8 conversion) stuff added
     * some longint -> SizeInt changes
 

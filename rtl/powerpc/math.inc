@@ -35,38 +35,11 @@ const
     {$define FPC_SYSTEM_HAS_SQR}
     function sqr(d : extended) : extended;[internproc:in_sqr_extended];
 
-    {
-    function arctan(d : extended) : extended;[internconst:in_arctan_extended];
-      begin
-        runerror(207);
-      end;
-
-    function ln(d : extended) : extended;[internconst:in_ln_extended];
-      begin
-        runerror(207);
-      end;
-
-    function sin(d : extended) : extended;[internconst: in_sin_extended];
-      begin
-        runerror(207);
-      end;
-
-    function cos(d : extended) : extended;[internconst:in_cos_extended];
-      begin
-        runerror(207);
-      end;
-
-    function exp(d : extended) : extended;[internconst:in_const_exp];
-      begin
-        runerror(207);
-      end;
-
-    }
-
       const
         factor: double = double(int64(1) shl 32);
         factor2: double = double(int64(1) shl 31);
 
+{$ifndef FPC_SYSTEM_HAS_TRUNC}
     {$define FPC_SYSTEM_HAS_TRUNC}
     function trunc(d : extended) : int64;assembler;[internconst:in_const_trunc];
       { input: d in fr1      }
@@ -154,8 +127,10 @@ const
         subfze r3,r3
 .LTruncPositive:
       end;
+{$endif not FPC_SYSTEM_HAS_TRUNC}
 
 
+{$ifndef FPC_SYSTEM_HAS_ROUND}
     {$define FPC_SYSTEM_HAS_ROUND}
 {$ifdef hascompilerproc}
     function round(d : extended) : int64;[internconst:in_const_round, external name 'FPC_ROUND'];
@@ -250,92 +225,7 @@ const
         subfze r3,r3
 .LRoundPositive:
       end;
-
-
-   {$define FPC_SYSTEM_HAS_POWER}
-   function power(bas,expo : extended) : extended;
-     begin
-        if bas=0 then
-          begin
-            if expo<>0 then
-              power:=0.0
-            else
-              HandleError(207);
-          end
-        else if expo=0 then
-         power:=1
-        else
-        { bas < 0 is not allowed }
-         if bas<0 then
-          handleerror(207)
-         else
-          power:=exp(ln(bas)*expo);
-     end;
-
-
-{****************************************************************************
-                       Longint data type routines
- ****************************************************************************}
-
-   {$define FPC_SYSTEM_HAS_POWER_INT64}
-   function power(bas,expo : int64) : int64;
-     begin
-        if bas=0 then
-          begin
-            if expo<>0 then
-              power:=0
-            else
-              HandleError(207);
-          end
-        else if expo=0 then
-         power:=1
-        else
-         begin
-           if bas<0 then
-            begin
-              if odd(expo) then
-                power:=-round(exp(ln(-bas)*expo))
-              else
-                power:=round(exp(ln(-bas)*expo));
-            end
-           else
-            power:=round(exp(ln(bas)*expo));
-         end;
-     end;
-
-{****************************************************************************
-                    Helper routines to support old TP styled reals
- ****************************************************************************}
-
-    { warning: the following converts a little-endian TP-style real }
-    { to a big-endian double. So don't byte-swap the TP real!       }
-    {$define FPC_SYSTEM_HAS_REAL2DOUBLE}
-    function real2double(r : real48) : double;
-
-      var
-         res : array[0..7] of byte;
-         exponent : word;
-
-      begin
-         { copy mantissa }
-         res[6]:=0;
-         res[5]:=r[1] shl 5;
-         res[4]:=(r[1] shr 3) or (r[2] shl 5);
-         res[3]:=(r[2] shr 3) or (r[3] shl 5);
-         res[2]:=(r[3] shr 3) or (r[4] shl 5);
-         res[1]:=(r[4] shr 3) or (r[5] and $7f) shl 5;
-         res[0]:=(r[5] and $7f) shr 3;
-
-         { copy exponent }
-         { correct exponent: }
-         exponent:=(word(r[0])+(1023-129));
-         res[1]:=res[1] or ((exponent and $f) shl 4);
-         res[0]:=exponent shr 4;
-
-         { set sign }
-         res[0]:=res[0] or (r[5] and $80);
-         real2double:=double(res);
-      end;
+{$endif not FPC_SYSTEM_HAS_ROUND}
 
 
 {****************************************************************************
@@ -426,7 +316,15 @@ end;
 
 {
   $Log$
-  Revision 1.33  2004-02-09 20:21:06  olle
+  Revision 1.34  2004-10-09 21:00:46  jonas
+    + cgenmath with libc math functions. Faster than the routines in genmath
+      and also have full double support (exp() only has support for values in
+      the single range in genmath, for example). Used in FPC_USE_LIBC is
+      defined
+    * several fixes to allow compilation with -dHASINLINE, but internalerrors
+      because of missing support for inlining assembler code
+
+  Revision 1.33  2004/02/09 20:21:06  olle
     * fixed global variable access in asm
 
   Revision 1.32  2003/12/07 19:55:37  jonas

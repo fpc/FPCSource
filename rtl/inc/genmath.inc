@@ -415,6 +415,7 @@ type
 {$endif not FPC_SYSTEM_HAS_ABS}
 
 
+{$ifndef SYSTEM_HAS_FREXP}
     function frexp(x:Real; var e:Integer ):Real;
     {*  frexp() extracts the exponent from x.  It returns an integer     *}
     {*  power of two to expnt and the significand between 0.5 and 1      *}
@@ -435,8 +436,10 @@ type
        end;
       frexp := x;
     end;
+{$endif not SYSTEM_HAS_FREXP}
 
 
+{$ifndef SYSTEM_HAS_LDEXP}
     function ldexp( x: Real; N: Integer):Real;
     {* ldexp() multiplies x by 2**n.                                    *}
     var r : Real;
@@ -456,6 +459,7 @@ type
         end;
       ldexp := x * R;
     end;
+{$endif not SYSTEM_HAS_LDEXP}
 
 
     function polevl(var x:Real; var Coef:TabCoef; N:Integer):Real;
@@ -1244,7 +1248,15 @@ function fpc_int64_to_double(i : int64): double; compilerproc;
 
 {
   $Log$
-  Revision 1.26  2004-10-03 14:09:39  florian
+  Revision 1.27  2004-10-09 21:00:46  jonas
+    + cgenmath with libc math functions. Faster than the routines in genmath
+      and also have full double support (exp() only has support for values in
+      the single range in genmath, for example). Used in FPC_USE_LIBC is
+      defined
+    * several fixes to allow compilation with -dHASINLINE, but internalerrors
+      because of missing support for inlining assembler code
+
+  Revision 1.26  2004/10/03 14:09:39  florian
     * fixed trunc for abs(value) < 1
 
   Revision 1.25  2004/10/03 14:00:21  florian
