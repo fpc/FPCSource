@@ -889,10 +889,13 @@ unit pmodules;
         { The Heap variable is simply a POINTER to the }
         { real HEAP. The HEAP must be set up by the RTL }
         { and must store the pointer in this value.    }
-         if (target_info.target = target_MAC68k) then
-          bsssegment^.concat(new(pai_datablock,init_global('HEAP',4)))
-         else
-          bsssegment^.concat(new(pai_datablock,init_global('HEAP',heapsize)));
+        {On OS/2 the heap is also intialized by the RTL. We do
+         not  output a pointer.}
+         if target_info.target<>target_OS2 then
+            if (target_info.target = target_MAC68k) then
+                bsssegment^.concat(new(pai_datablock,init_global('HEAP',4)))
+            else
+                bsssegment^.concat(new(pai_datablock,init_global('HEAP',heapsize)));
          if target_info.target=target_GO32V2 then
            begin
               { stacksize can be specified }
@@ -932,7 +935,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.2  1998-03-30 15:53:01  florian
+  Revision 1.3  1998-04-03 09:51:00  daniel
+  * Fixed heap allocation for OS/2.
+
+  Revision 1.2  1998/03/30 15:53:01  florian
     * last changes before release:
        - gdb fixed
        - ratti386 warning removed (about unset function result)
