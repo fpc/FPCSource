@@ -2860,7 +2860,14 @@
                 { arguments are not listed here }
                 {we don't need another definition}
                  para := pd^.para1;
-                 argnames := '';
+                 { used by gdbpas to recognize constructor and destructors }
+                 if (pd^.options and poconstructor) <> 0 then
+                   argnames:='__ct__'
+                 else if (pd^.options and podestructor) <> 0 then
+                   argnames:='__dt__'
+                 else
+                   argnames := '';
+                 
                  while assigned(para) do
                    begin
                    if para^.data^.deftype = formaldef then
@@ -3223,7 +3230,10 @@
 
 {
   $Log$
-  Revision 1.77  1998-12-01 23:37:39  pierre
+  Revision 1.78  1998-12-08 09:06:30  pierre
+   + constructor destructor info for gdbpas
+
+  Revision 1.77  1998/12/01 23:37:39  pierre
    * function type problem for gdb fix
 
   Revision 1.76  1998/11/29 21:45:48  florian
