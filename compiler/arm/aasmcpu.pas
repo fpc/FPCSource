@@ -59,6 +59,8 @@ uses
          constructor op_reg_reg_sym_ofs(op : tasmop;_op1,_op2 : tregister; _op3: tasmsymbol;_op3ofs: longint);
          constructor op_reg_reg_ref(op : tasmop;_op1,_op2 : tregister; const _op3: treference);
          constructor op_reg_reg_shifterop(op : tasmop;_op1,_op2 : tregister;_op3 : tshifterop);
+         { SFM/LFM }
+         constructor op_reg_const_ref(op : tasmop;_op1 : tregister;_op2 : aword;_op3 : treference);
 
          { this is for Jmp instructions }
          constructor op_cond_sym(op : tasmop;cond:TAsmCond;_op1 : tasmsymbol);
@@ -215,6 +217,16 @@ implementation
          loadreg(0,_op1);
          loadreg(1,_op2);
          loadconst(2,aword(_op3));
+      end;
+
+
+    constructor taicpu.op_reg_const_ref(op : tasmop;_op1 : tregister;_op2 : aword;_op3 : treference);
+      begin
+         inherited create(op);
+         ops:=3;
+         loadreg(0,_op1);
+         loadconst(1,_op2);
+         loadref(2,_op3);
       end;
 
 
@@ -461,7 +473,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.30  2004-03-15 22:20:13  florian
+  Revision 1.31  2004-03-29 19:19:35  florian
+    + arm floating point register saving implemented
+    * hopefully stabs generation for MacOSX fixed
+    + some defines for arm added
+
+  Revision 1.30  2004/03/15 22:20:13  florian
     * handling of spilling improved
 
   Revision 1.29  2004/03/14 16:15:39  florian

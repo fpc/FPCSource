@@ -1776,6 +1776,7 @@ begin
   def_symbol('CPU32');
   def_symbol('FPC_HAS_TYPE_DOUBLE');
   def_symbol('FPC_HAS_TYPE_SINGLE');
+  def_symbol('FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE');
   def_symbol('FPC_CURRENCY_IS_INT64');
   def_symbol('FPC_COMP_IS_INT64');
   def_symbol('FPC_REQUIRES_PROPER_ALIGNMENT');
@@ -2039,7 +2040,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.131  2004-03-27 23:23:03  florian
+  Revision 1.132  2004-03-29 19:19:35  florian
+    + arm floating point register saving implemented
+    * hopefully stabs generation for MacOSX fixed
+    + some defines for arm added
+
+  Revision 1.131  2004/03/27 23:23:03  florian
     + added FPC_COMP_IS_INT64 define
 
   Revision 1.130  2004/03/23 22:34:49  peter

@@ -1903,7 +1903,10 @@ implementation
       {even GDB v4.16 only now 'i' 'r' and 'e' !!!}
       case consttyp of
         conststring:
-          st:='s'''+backspace_quote(strpas(pchar(value.valueptr)),['''','"','\',#10,#13])+'''';
+          if target_info.system in [system_powerpc_macos,system_powerpc_darwin] then
+            st:='s'''+backspace_quote(octal_quote(strpas(pchar(value.valueptr)),['''']),['"','\',#10,#13])+''''
+          else
+            st:='s'''+backspace_quote(strpas(pchar(value.valueptr)),['''','"','\',#10,#13])+'''';
         constord:
           st:='i'+int64tostr(value.valueord);
         constpointer:
@@ -2200,7 +2203,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.168  2004-03-23 22:34:49  peter
+  Revision 1.169  2004-03-29 19:19:35  florian
+    + arm floating point register saving implemented
+    * hopefully stabs generation for MacOSX fixed
+    + some defines for arm added
+
+  Revision 1.168  2004/03/23 22:34:49  peter
     * constants ordinals now always have a type assigned
     * integer constants have the smallest type, unsigned prefered over
       signed

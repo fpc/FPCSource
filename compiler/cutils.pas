@@ -77,6 +77,7 @@ interface
     }
     function ispowerof2(value : int64;var power : longint) : boolean;
     function backspace_quote(const s:string;const qchars:Tcharset):string;
+    function octal_quote(const s:string;const qchars:Tcharset):string;
     function maybequoted(const s:string):string;
     function CompareText(S1, S2: string): longint;
 
@@ -206,9 +207,9 @@ uses
           begin
             if i<0 then
               result:=((i-a+1) div a) * a
-            else  
+            else
               result:=((i+a-1) div a) * a;
-          end;  
+          end;
       end;
 
 
@@ -644,6 +645,26 @@ uses
                 backspace_quote:=backspace_quote+'\';
               backspace_quote:=backspace_quote+s[i];
             end;
+        end;
+    end;
+
+    function octal_quote(const s:string;const qchars:Tcharset):string;
+
+    var i:byte;
+
+    begin
+      octal_quote:='';
+      for i:=1 to length(s) do
+        begin
+          if s[i] in qchars then
+            begin
+              if ord(s[i])<64 then
+                octal_quote:=octal_quote+'\'+octstr(ord(s[i]),3)
+              else
+                octal_quote:=octal_quote+'\'+octstr(ord(s[i]),4);
+            end
+          else
+            octal_quote:=octal_quote+s[i];
         end;
     end;
 
@@ -1141,7 +1162,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.37  2004-03-22 09:28:34  michael
+  Revision 1.38  2004-03-29 19:19:35  florian
+    + arm floating point register saving implemented
+    * hopefully stabs generation for MacOSX fixed
+    + some defines for arm added
+
+  Revision 1.37  2004/03/22 09:28:34  michael
   + Patch from peter for stack overflow
 
   Revision 1.36  2004/02/27 10:21:05  florian

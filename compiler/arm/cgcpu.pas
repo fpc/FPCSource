@@ -847,9 +847,19 @@ unit cgcpu;
       var
          ref : treference;
          shift : byte;
+         firstfloatreg,lastfloatreg,
+         r : byte;
       begin
         LocalSize:=align(LocalSize,4);
-
+        firstfloatreg:=RS_NO;
+        { save floating point registers? }
+        for r:=RS_F0 to RS_F7 do
+          if r in rg[R_FPUREGISTER].used_in_proc-paramanager.get_volatile_registers_fpu(pocall_stdcall) then
+            begin
+              if firstfloatreg=RS_NO then
+                firstfloatreg:=r;
+              lastfloatreg:=r;
+            end;
         a_reg_alloc(list,NR_STACK_POINTER_REG);
         a_reg_alloc(list,NR_FRAME_POINTER_REG);
         a_reg_alloc(list,NR_R12);
@@ -859,7 +869,9 @@ unit cgcpu;
         reference_reset(ref);
         ref.index:=NR_STACK_POINTER_REG;
         ref.addressmode:=AM_PREINDEXED;
-        list.concat(setoppostfix(taicpu.op_ref_regset(A_STM,ref,rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall)+[RS_R11,RS_R12,RS_R14,RS_R15]),PF_FD));
+        list.concat(setoppostfix(taicpu.op_ref_regset(A_STM,ref,
+          rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall)+[RS_R11,RS_R12,RS_R14,RS_R15]),
+          PF_FD));
 
         list.concat(taicpu.op_reg_reg_const(A_SUB,NR_FRAME_POINTER_REG,NR_R12,4));
 
@@ -877,13 +889,42 @@ unit cgcpu;
             a_reg_dealloc(list,NR_R12);
             list.concat(taicpu.op_reg_reg_const(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,LocalSize));
           end;
+        if firstfloatreg<>RS_NO then
+          begin
+            reference_reset(ref);
+            ref.base:=NR_FRAME_POINTER_REG;
+            ref.offset:=tarmprocinfo(current_procinfo).floatregstart;
+            list.concat(taicpu.op_reg_const_ref(A_SFM,newreg(R_FPUREGISTER,firstfloatreg,R_SUBWHOLE),
+              lastfloatreg-firstfloatreg+1,ref));
+          end;
       end;
 
 
     procedure tcgarm.g_return_from_proc(list : taasmoutput;parasize : aword);
       var
          ref : treference;
+         firstfloatreg,lastfloatreg,
+         r : byte;
       begin
+        { restore floating point register }
+        firstfloatreg:=RS_NO;
+        { save floating point registers? }
+        for r:=RS_F0 to RS_F7 do
+          if r in rg[R_FPUREGISTER].used_in_proc-paramanager.get_volatile_registers_fpu(pocall_stdcall) then
+            begin
+              if firstfloatreg=RS_NO then
+                firstfloatreg:=r;
+              lastfloatreg:=r;
+            end;
+        if firstfloatreg<>RS_NO then
+          begin
+            reference_reset(ref);
+            ref.base:=NR_FRAME_POINTER_REG;
+            ref.offset:=tarmprocinfo(current_procinfo).floatregstart;
+            list.concat(taicpu.op_reg_const_ref(A_LFM,newreg(R_FPUREGISTER,firstfloatreg,R_SUBWHOLE),
+              lastfloatreg-firstfloatreg+1,ref));
+          end;
+
         if (current_procinfo.framepointer=NR_STACK_POINTER_REG) then
           list.concat(taicpu.op_reg_reg(A_MOV,NR_R15,NR_R14))
         else
@@ -1288,7 +1329,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.49  2004-03-14 21:42:24  florian
+  Revision 1.50  2004-03-29 19:19:35  florian
+    + arm floating point register saving implemented
+    * hopefully stabs generation for MacOSX fixed
+    + some defines for arm added
+
+  Revision 1.49  2004/03/14 21:42:24  florian
     * optimized mul code generation
 
   Revision 1.48  2004/03/14 16:15:40  florian

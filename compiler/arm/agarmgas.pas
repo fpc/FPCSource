@@ -220,6 +220,16 @@ unit agarmgas;
                        internalerror(200311292);
                    end;
                  end
+               { register count of SFM and LFM is written without # }
+               else if (i=1) and (op in [A_SFM,A_LFM]) then
+                 begin
+                   case taicpu(hp).oper[1]^.typ of
+                     top_const:
+                       s:=s+sep+tostr(taicpu(hp).oper[1]^.val);
+                     else
+                       internalerror(200311292);
+                   end;
+                 end
                else
                   s:=s+sep+getopstr(taicpu(hp).oper[i]^);
 
@@ -235,7 +245,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2004-03-06 20:35:19  florian
+  Revision 1.19  2004-03-29 19:19:35  florian
+    + arm floating point register saving implemented
+    * hopefully stabs generation for MacOSX fixed
+    + some defines for arm added
+
+  Revision 1.18  2004/03/06 20:35:19  florian
     * fixed arm compilation
     * cleaned up code generation for exported linux procedures
 

@@ -34,6 +34,7 @@ unit cpupi;
 
     type
        tarmprocinfo = class(tcgprocinfo)
+          floatregstart : aword;
           constructor create(aparent:tprocinfo);override;
           // procedure handle_body_start;override;
           // procedure after_pass1;override;
@@ -50,7 +51,9 @@ unit cpupi;
        cpubase,
        aasmtai,
        tgobj,
-       symconst,symsym,paramgr;
+       symconst,symsym,paramgr,
+       cgbase,
+       cgobj;
 
     constructor tarmprocinfo.create(aparent:tprocinfo);
 
@@ -124,9 +127,28 @@ unit cpupi;
 
 
     function tarmprocinfo.calc_stackframe_size:longint;
+      var
+         firstfloatreg,lastfloatreg,
+         r : byte;
+         floatsavesize : aword;
       begin
-        { align to 4 bytes at least }
-        result:=Align(tg.direction*tg.lasttemp+maxpushedparasize,max(aktalignment.localalignmin,4));
+        maxpushedparasize:=align(maxpushedparasize,max(aktalignment.localalignmin,4));
+        firstfloatreg:=RS_NO;
+        { save floating point registers? }
+        for r:=RS_F0 to RS_F7 do
+          if r in cg.rg[R_FPUREGISTER].used_in_proc-paramanager.get_volatile_registers_fpu(pocall_stdcall) then
+            begin
+              if firstfloatreg=RS_NO then
+                firstfloatreg:=r;
+              lastfloatreg:=r;
+            end;
+        if firstfloatreg<>RS_NO then
+          floatsavesize:=(lastfloatreg-firstfloatreg+1)*12
+        else
+          floatsavesize:=0;
+        floatsavesize:=align(floatsavesize,max(aktalignment.localalignmin,4));
+        result:=Align(tg.direction*tg.lasttemp,max(aktalignment.localalignmin,4))+maxpushedparasize+floatsavesize;
+        floatregstart:=-result+maxpushedparasize;
       end;
 
 
@@ -135,7 +157,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2004-03-06 20:35:20  florian
+  Revision 1.7  2004-03-29 19:19:35  florian
+    + arm floating point register saving implemented
+    * hopefully stabs generation for MacOSX fixed
+    + some defines for arm added
+
+  Revision 1.6  2004/03/06 20:35:20  florian
     * fixed arm compilation
     * cleaned up code generation for exported linux procedures
 
