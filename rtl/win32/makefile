@@ -128,16 +128,19 @@ OBJECTS=strings objpas \
 #	base messages defines
 
 # Files used by windows.pp
-WINDOWS_FILES=base.pp errors.pp defines.pp \
-	struct.pp ascfun.pp ascdef.pp \
-	unifun.pp unidef.pp func.pp
+WINDOWS_FILES=base errors defines \
+	struct ascfun ascdef \
+	unifun unidef func
 
 # Add Prefix and Suffixes
 PPUOBJECTS=$(addsuffix $(PPUEXT), $(OBJECTS))
 
+WINDOWS_SOURCE_FILES=$(addsuffix .pp,$(WINDOWS_FILES))
+
 .PHONY : all install clean \
 	 libs libsclean \
 	 diffs diffclean \
+	dllnames test
 
 all : $(OBJLOADERS) $(PPUOBJECTS)
 
@@ -187,7 +190,7 @@ messages$(PPUEXT) : messages.pp $(SYSTEMPPU)
 defines$(PPUEXT) : defines.pp $(SYSTEMPPU)
 	$(PP) $(OPT) defines.pp $(REDIR)
 
-windows$(PPUEXT) : windows.pp $(WINDOWS_INCLUDE) $(SYSTEMPPU)
+windows$(PPUEXT) : windows.pp $(WINDOWS_SOURCE_FILES) $(SYSTEMPPU)
 	$(PP) $(OPT) windows.pp $(REDIR)
 
 #
@@ -237,6 +240,97 @@ libinstall: staticlibinstall
 libsclean : clean
 	-$(DEL) *$(SMARTLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
 
+# Getting DLL names
+# not present in headers !!
+
+# first get the list of all exported function names
+# uses pedump 
+# for system dll 's
+# gdi32.exp will contain all exported functions names of gdi32.dll
+
+WINDOWS_DIR:=c:/windows
+%.exp : $(WINDOWS_DIR)/system/%.dll
+	pedump $< > $*.tmp
+	sed -n -e "s/Addr:\(.*\)Ord:\(.*\)Name: \(.*\)/@\3@/p" $*.tmp > $*.exp
+	-rm $*.tmp
+
+# list of usefull dll's for windows.pp
+dllexps : gdi32.exp kernel32.exp advapi32.exp user32.exp mapi32.exp  \
+	comdlg32.exp shell32.exp mpr.exp comctl32.exp version.exp \
+	opengl32.exp spoolss.exp
+
+# get a complete listing of all system dll's
+allexps : $(notdir $(patsubst %.dll,%.exp,$(wildcard $(WINDOWS_DIR)/system/*.dll)))
+
+# extract the dllnames for which the real dll file is not 
+# known yet
+# func.lst will contain all functions for which we still do
+# not know the origin DLL
+%.lst : %.pp
+	@echo listing DLL function names of $*.pp
+	sed -n -e "s/\(.*\)External_library name '\([^']*\)'\(.*\)/\2/p" $*.pp > $*.lst
+
+# get the DLL name from the listing in .exp files
+# of the current target 
+define grepname
+$(filter %.dll,$(subst .exp:,.dll ,$(shell grep @$*@ *.exp)))
+endef
+
+# creating of a sed script that
+# will substitute all External_library 
+# by the real name of the DLL if found in exports files
+
+# two stages
+# because you cannot set a variable inside the commands
+# Level 1 : set filename variable
+# Level 2 :
+%.sub : %.lst
+	@echo getting DLL file name for $*
+	-rm $*.sub
+	@echo # Substitutions for $* >$*.sub
+# call make for all names in lst file
+# define LongList if there is an error 
+# because the list is too long
+ifdef LongList
+	$(foreach name,$(shell cat $*.lst),$(MAKE) subfile=$*.sub $(name).find ; )
+else
+	$(MAKE) subfile=$*.sub $(addsuffix .find,$(shell cat $*.lst))
+endif
+# resubstitute unfound ones !!
+	@echo s/external \'\' name \'\([^\']*\)\'/external\
+	External_library name \'\1\'/ >>$*.sub
+	@echo # End of substitutions for $* >>$*.sub
+
+# Change file according to function found in export
+# list remaining unfound functions in $*.mis
+%.npp : %.sub
+	sed -f $*.sub $*.pp > $*.npp
+	sed -n -e "s/\(.*\)External_library name \'\([^\']*\)\'\(.*\)/\2/p" $*.npp > $*.mis
+
+%.find : 
+	@echo $* is in $(grepname)
+ifdef subfile
+	@echo s/external External_library name \'$*\'/external\
+	\'$(filter %.dll,$(subst .exp:,.dll ,$(shell grep @$*@ *.exp)))\'\
+	name \'$*\'/ >>$(subfile)
+else
+	@echo external \
+	\'$(filter %.dll,$(subst .exp:,.dll ,$(shell grep @$*@ *.exp)))\'\
+	name $* 
+endif
+
+dllnames:
+	$(MAKE) $(addsuffix .lst,$(WINDOWS_FILES))
+
+test:
+	@echo namelist of $(filename) is "$(namelist)"
+
+ascdef.pp : ascfun.pp ascdef.sed
+	sed -f ascdef.sed ascfun.pp > ascdef.pp
+
+unidef.pp : unifun.pp unidef.sed
+	sed -f unidef.sed unifun.pp > unidef.pp
+
 #####################################################################
 # Default targets
 #####################################################################
@@ -245,11 +339,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.8  1998-08-31 11:53:57  pierre
-#   * compilable windows.pp file
-#     still to do :
-#      - findout problems
-#      - findout the correct DLL for each call !!
+# Revision 1.9  1998-09-03 17:14:54  pierre
+#   * most functions found in main DLL's
+#     still some missing
+#     use 'make dllnames' to get missing names
 #
 # Revision 1.7  1998/08/21 15:17:01  peter
 #   * win32 compiles a bit better, no growheap crash

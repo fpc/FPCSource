@@ -3678,370 +3678,371 @@ in define line 6852 *)
 
   function AbnormalTermination:WINBOOL; external External_library name 'AbnormalTermination';
 
-(*  function AbortDoc(_para1:HDC):longint; external External_library name 'AbortDoc';*)
+(*  function AbortDoc(_para1:HDC):longint; external 'gdi32.dll' name 'AbortDoc';
+*)
 
-  function AbortPath(_para1:HDC):WINBOOL; external External_library name 'AbortPath';
+  function AbortPath(_para1:HDC):WINBOOL; external 'gdi32.dll' name 'AbortPath';
 
-  function AbortPrinter(_para1:HANDLE):WINBOOL; external External_library name 'AbortPrinter';
+  function AbortPrinter(_para1:HANDLE):WINBOOL; external 'spoolss.dll' name 'AbortPrinter';
 
   function AbortProc(_para1:HDC; _para2:longint):WINBOOL; external External_library name 'AbortProc';
 
 {$ifndef windows_include_files}
-  function AbortSystemShutdown(_para1:LPTSTR):WINBOOL; external External_library name 'AbortSystemShutdown';
+  function AbortSystemShutdown(_para1:LPTSTR):WINBOOL; external External_library name 'AbortSystemShutdownA';
 {$endif windows_include_files}
 
   function AccessCheck(pSecurityDescriptor:PSECURITY_DESCRIPTOR; ClientToken:HANDLE; DesiredAccess:DWORD; GenericMapping:PGENERIC_MAPPING; PrivilegeSet:PPRIVILEGE_SET; 
-             PrivilegeSetLength:LPDWORD; GrantedAccess:LPDWORD; AccessStatus:LPBOOL):WINBOOL; external External_library name 'AccessCheck';
+             PrivilegeSetLength:LPDWORD; GrantedAccess:LPDWORD; AccessStatus:LPBOOL):WINBOOL; external 'advapi32.dll' name 'AccessCheck';
 
 {$ifndef windows_include_files}
   function AccessCheckAndAuditAlarm(SubsystemName:LPCTSTR; HandleId:LPVOID; ObjectTypeName:LPTSTR; ObjectName:LPTSTR; SecurityDescriptor:PSECURITY_DESCRIPTOR; 
              DesiredAccess:DWORD; GenericMapping:PGENERIC_MAPPING; ObjectCreation:WINBOOL; GrantedAccess:LPDWORD; AccessStatus:LPBOOL; 
-             pfGenerateOnClose:LPBOOL):WINBOOL; external External_library name 'AccessCheckAndAuditAlarm';
+             pfGenerateOnClose:LPBOOL):WINBOOL; external External_library name 'AccessCheckAndAuditAlarmA';
 {$endif windows_include_files}
 
-  function InterlockedIncrement(lpAddend:LPLONG):LONG; external External_library name 'InterlockedIncrement';
+  function InterlockedIncrement(lpAddend:LPLONG):LONG; external 'kernel32.dll' name 'InterlockedIncrement';
 
-  function InterlockedDecrement(lpAddend:LPLONG):LONG; external External_library name 'InterlockedDecrement';
+  function InterlockedDecrement(lpAddend:LPLONG):LONG; external 'kernel32.dll' name 'InterlockedDecrement';
 
-  function InterlockedExchange(Target:LPLONG; Value:LONG):LONG; external External_library name 'InterlockedExchange';
+  function InterlockedExchange(Target:LPLONG; Value:LONG):LONG; external 'kernel32.dll' name 'InterlockedExchange';
 
-  function FreeResource(hResData:HGLOBAL):WINBOOL; external External_library name 'FreeResource';
+  function FreeResource(hResData:HGLOBAL):WINBOOL; external 'kernel32.dll' name 'FreeResource';
 
-  function LockResource(hResData:HGLOBAL):LPVOID; external External_library name 'LockResource';
+  function LockResource(hResData:HGLOBAL):LPVOID; external 'kernel32.dll' name 'LockResource';
 
   function WinMain(hInstance:HINSTANCE; hPrevInstance:HINSTANCE; lpCmdLine:LPSTR; nShowCmd:longint):longint; external External_library name 'WinMain';
 
-  function FreeLibrary(hLibModule:HINSTANCE):WINBOOL; external External_library name 'FreeLibrary';
+  function FreeLibrary(hLibModule:HINSTANCE):WINBOOL; external 'kernel32.dll' name 'FreeLibrary';
 
-  procedure FreeLibraryAndExitThread(hLibModule:HMODULE; dwExitCode:DWORD); external External_library name 'FreeLibraryAndExitThread';
+  procedure FreeLibraryAndExitThread(hLibModule:HMODULE; dwExitCode:DWORD); external 'kernel32.dll' name 'FreeLibraryAndExitThread';
 
-  function DisableThreadLibraryCalls(hLibModule:HMODULE):WINBOOL; external External_library name 'DisableThreadLibraryCalls';
+  function DisableThreadLibraryCalls(hLibModule:HMODULE):WINBOOL; external 'kernel32.dll' name 'DisableThreadLibraryCalls';
 
-  function GetProcAddress(hModule:HINSTANCE; lpProcName:LPCSTR):FARPROC; external External_library name 'GetProcAddress';
+  function GetProcAddress(hModule:HINSTANCE; lpProcName:LPCSTR):FARPROC; external 'kernel32.dll' name 'GetProcAddress';
 
-  function GetVersion:DWORD; external External_library name 'GetVersion';
+  function GetVersion:DWORD; external 'kernel32.dll' name 'GetVersion';
 
-  function GlobalAlloc(uFlags:UINT; dwBytes:DWORD):HGLOBAL; external External_library name 'GlobalAlloc';
+  function GlobalAlloc(uFlags:UINT; dwBytes:DWORD):HGLOBAL; external 'kernel32.dll' name 'GlobalAlloc';
 
   function GlobalDiscard(hglbMem:HGLOBAL):HGLOBAL;CDECL; external External_library name 'GlobalDiscard';
 
-  function GlobalReAlloc(hMem:HGLOBAL; dwBytes:DWORD; uFlags:UINT):HGLOBAL; external External_library name 'GlobalReAlloc';
+  function GlobalReAlloc(hMem:HGLOBAL; dwBytes:DWORD; uFlags:UINT):HGLOBAL; external 'kernel32.dll' name 'GlobalReAlloc';
 
-  function GlobalSize(hMem:HGLOBAL):DWORD; external External_library name 'GlobalSize';
+  function GlobalSize(hMem:HGLOBAL):DWORD; external 'kernel32.dll' name 'GlobalSize';
 
-  function GlobalFlags(hMem:HGLOBAL):UINT; external External_library name 'GlobalFlags';
+  function GlobalFlags(hMem:HGLOBAL):UINT; external 'kernel32.dll' name 'GlobalFlags';
 
-  function GlobalLock(hMem:HGLOBAL):LPVOID; external External_library name 'GlobalLock';
+  function GlobalLock(hMem:HGLOBAL):LPVOID; external 'kernel32.dll' name 'GlobalLock';
 
-  function GlobalHandle(pMem:LPCVOID):HGLOBAL; external External_library name 'GlobalHandle';
+  function GlobalHandle(pMem:LPCVOID):HGLOBAL; external 'kernel32.dll' name 'GlobalHandle';
 
-  function GlobalUnlock(hMem:HGLOBAL):WINBOOL; external External_library name 'GlobalUnlock';
+  function GlobalUnlock(hMem:HGLOBAL):WINBOOL; external 'kernel32.dll' name 'GlobalUnlock';
 
-  function GlobalFree(hMem:HGLOBAL):HGLOBAL; external External_library name 'GlobalFree';
+  function GlobalFree(hMem:HGLOBAL):HGLOBAL; external 'kernel32.dll' name 'GlobalFree';
 
-  function GlobalCompact(dwMinFree:DWORD):UINT; external External_library name 'GlobalCompact';
+  function GlobalCompact(dwMinFree:DWORD):UINT; external 'kernel32.dll' name 'GlobalCompact';
 
-  procedure GlobalFix(hMem:HGLOBAL); external External_library name 'GlobalFix';
+  procedure GlobalFix(hMem:HGLOBAL); external 'kernel32.dll' name 'GlobalFix';
 
-  procedure GlobalUnfix(hMem:HGLOBAL); external External_library name 'GlobalUnfix';
+  procedure GlobalUnfix(hMem:HGLOBAL); external 'kernel32.dll' name 'GlobalUnfix';
 
-  function GlobalWire(hMem:HGLOBAL):LPVOID; external External_library name 'GlobalWire';
+  function GlobalWire(hMem:HGLOBAL):LPVOID; external 'kernel32.dll' name 'GlobalWire';
 
-  function GlobalUnWire(hMem:HGLOBAL):WINBOOL; external External_library name 'GlobalUnWire';
+  function GlobalUnWire(hMem:HGLOBAL):WINBOOL; external 'kernel32.dll' name 'GlobalUnWire';
 
-  procedure GlobalMemoryStatus(lpBuffer:LPMEMORYSTATUS); external External_library name 'GlobalMemoryStatus';
+  procedure GlobalMemoryStatus(lpBuffer:LPMEMORYSTATUS); external 'kernel32.dll' name 'GlobalMemoryStatus';
 
-  function LocalAlloc(uFlags:UINT; uBytes:UINT):HLOCAL; external External_library name 'LocalAlloc';
+  function LocalAlloc(uFlags:UINT; uBytes:UINT):HLOCAL; external 'kernel32.dll' name 'LocalAlloc';
 
   function LocalDiscard(hlocMem:HLOCAL):HLOCAL;CDECL; external External_library name 'LocalDiscard';
 
-  function LocalReAlloc(hMem:HLOCAL; uBytes:UINT; uFlags:UINT):HLOCAL; external External_library name 'LocalReAlloc';
+  function LocalReAlloc(hMem:HLOCAL; uBytes:UINT; uFlags:UINT):HLOCAL; external 'kernel32.dll' name 'LocalReAlloc';
 
-  function LocalLock(hMem:HLOCAL):LPVOID; external External_library name 'LocalLock';
+  function LocalLock(hMem:HLOCAL):LPVOID; external 'kernel32.dll' name 'LocalLock';
 
-  function LocalHandle(pMem:LPCVOID):HLOCAL; external External_library name 'LocalHandle';
+  function LocalHandle(pMem:LPCVOID):HLOCAL; external 'kernel32.dll' name 'LocalHandle';
 
-  function LocalUnlock(hMem:HLOCAL):WINBOOL; external External_library name 'LocalUnlock';
+  function LocalUnlock(hMem:HLOCAL):WINBOOL; external 'kernel32.dll' name 'LocalUnlock';
 
-  function LocalSize(hMem:HLOCAL):UINT; external External_library name 'LocalSize';
+  function LocalSize(hMem:HLOCAL):UINT; external 'kernel32.dll' name 'LocalSize';
 
-  function LocalFlags(hMem:HLOCAL):UINT; external External_library name 'LocalFlags';
+  function LocalFlags(hMem:HLOCAL):UINT; external 'kernel32.dll' name 'LocalFlags';
 
-  function LocalFree(hMem:HLOCAL):HLOCAL; external External_library name 'LocalFree';
+  function LocalFree(hMem:HLOCAL):HLOCAL; external 'kernel32.dll' name 'LocalFree';
 
-  function LocalShrink(hMem:HLOCAL; cbNewSize:UINT):UINT; external External_library name 'LocalShrink';
+  function LocalShrink(hMem:HLOCAL; cbNewSize:UINT):UINT; external 'kernel32.dll' name 'LocalShrink';
 
-  function LocalCompact(uMinFree:UINT):UINT; external External_library name 'LocalCompact';
+  function LocalCompact(uMinFree:UINT):UINT; external 'kernel32.dll' name 'LocalCompact';
 
-  function FlushInstructionCache(hProcess:HANDLE; lpBaseAddress:LPCVOID; dwSize:DWORD):WINBOOL; external External_library name 'FlushInstructionCache';
+  function FlushInstructionCache(hProcess:HANDLE; lpBaseAddress:LPCVOID; dwSize:DWORD):WINBOOL; external 'kernel32.dll' name 'FlushInstructionCache';
 
-  function VirtualAlloc(lpAddress:LPVOID; dwSize:DWORD; flAllocationType:DWORD; flProtect:DWORD):LPVOID; external External_library name 'VirtualAlloc';
+  function VirtualAlloc(lpAddress:LPVOID; dwSize:DWORD; flAllocationType:DWORD; flProtect:DWORD):LPVOID; external 'kernel32.dll' name 'VirtualAlloc';
 
-  function VirtualFree(lpAddress:LPVOID; dwSize:DWORD; dwFreeType:DWORD):WINBOOL; external External_library name 'VirtualFree';
+  function VirtualFree(lpAddress:LPVOID; dwSize:DWORD; dwFreeType:DWORD):WINBOOL; external 'kernel32.dll' name 'VirtualFree';
 
-  function VirtualProtect(lpAddress:LPVOID; dwSize:DWORD; flNewProtect:DWORD; lpflOldProtect:PDWORD):WINBOOL; external External_library name 'VirtualProtect';
+  function VirtualProtect(lpAddress:LPVOID; dwSize:DWORD; flNewProtect:DWORD; lpflOldProtect:PDWORD):WINBOOL; external 'kernel32.dll' name 'VirtualProtect';
 
-  function VirtualQuery(lpAddress:LPCVOID; lpBuffer:PMEMORY_BASIC_INFORMATION; dwLength:DWORD):DWORD; external External_library name 'VirtualQuery';
+  function VirtualQuery(lpAddress:LPCVOID; lpBuffer:PMEMORY_BASIC_INFORMATION; dwLength:DWORD):DWORD; external 'kernel32.dll' name 'VirtualQuery';
 
-  function VirtualProtectEx(hProcess:HANDLE; lpAddress:LPVOID; dwSize:DWORD; flNewProtect:DWORD; lpflOldProtect:PDWORD):WINBOOL; external External_library name 'VirtualProtectEx';
+  function VirtualProtectEx(hProcess:HANDLE; lpAddress:LPVOID; dwSize:DWORD; flNewProtect:DWORD; lpflOldProtect:PDWORD):WINBOOL; external 'kernel32.dll' name 'VirtualProtectEx';
 
-  function VirtualQueryEx(hProcess:HANDLE; lpAddress:LPCVOID; lpBuffer:PMEMORY_BASIC_INFORMATION; dwLength:DWORD):DWORD; external External_library name 'VirtualQueryEx';
+  function VirtualQueryEx(hProcess:HANDLE; lpAddress:LPCVOID; lpBuffer:PMEMORY_BASIC_INFORMATION; dwLength:DWORD):DWORD; external 'kernel32.dll' name 'VirtualQueryEx';
 
-  function HeapCreate(flOptions:DWORD; dwInitialSize:DWORD; dwMaximumSize:DWORD):HANDLE; external External_library name 'HeapCreate';
+  function HeapCreate(flOptions:DWORD; dwInitialSize:DWORD; dwMaximumSize:DWORD):HANDLE; external 'kernel32.dll' name 'HeapCreate';
 
-  function HeapDestroy(hHeap:HANDLE):WINBOOL; external External_library name 'HeapDestroy';
+  function HeapDestroy(hHeap:HANDLE):WINBOOL; external 'kernel32.dll' name 'HeapDestroy';
 
-  function HeapAlloc(hHeap:HANDLE; dwFlags:DWORD; dwBytes:DWORD):LPVOID; external External_library name 'HeapAlloc';
+  function HeapAlloc(hHeap:HANDLE; dwFlags:DWORD; dwBytes:DWORD):LPVOID; external 'kernel32.dll' name 'HeapAlloc';
 
-  function HeapReAlloc(hHeap:HANDLE; dwFlags:DWORD; lpMem:LPVOID; dwBytes:DWORD):LPVOID; external External_library name 'HeapReAlloc';
+  function HeapReAlloc(hHeap:HANDLE; dwFlags:DWORD; lpMem:LPVOID; dwBytes:DWORD):LPVOID; external 'kernel32.dll' name 'HeapReAlloc';
 
-  function HeapFree(hHeap:HANDLE; dwFlags:DWORD; lpMem:LPVOID):WINBOOL; external External_library name 'HeapFree';
+  function HeapFree(hHeap:HANDLE; dwFlags:DWORD; lpMem:LPVOID):WINBOOL; external 'kernel32.dll' name 'HeapFree';
 
-  function HeapSize(hHeap:HANDLE; dwFlags:DWORD; lpMem:LPCVOID):DWORD; external External_library name 'HeapSize';
+  function HeapSize(hHeap:HANDLE; dwFlags:DWORD; lpMem:LPCVOID):DWORD; external 'kernel32.dll' name 'HeapSize';
 
-  function HeapValidate(hHeap:HANDLE; dwFlags:DWORD; lpMem:LPCVOID):WINBOOL; external External_library name 'HeapValidate';
+  function HeapValidate(hHeap:HANDLE; dwFlags:DWORD; lpMem:LPCVOID):WINBOOL; external 'kernel32.dll' name 'HeapValidate';
 
-  function HeapCompact(hHeap:HANDLE; dwFlags:DWORD):UINT; external External_library name 'HeapCompact';
+  function HeapCompact(hHeap:HANDLE; dwFlags:DWORD):UINT; external 'kernel32.dll' name 'HeapCompact';
 
-  function GetProcessHeap:HANDLE; external External_library name 'GetProcessHeap';
+  function GetProcessHeap:HANDLE; external 'kernel32.dll' name 'GetProcessHeap';
 
-  function GetProcessHeaps(NumberOfHeaps:DWORD; ProcessHeaps:PHANDLE):DWORD; external External_library name 'GetProcessHeaps';
+  function GetProcessHeaps(NumberOfHeaps:DWORD; ProcessHeaps:PHANDLE):DWORD; external 'kernel32.dll' name 'GetProcessHeaps';
 
-  function HeapLock(hHeap:HANDLE):WINBOOL; external External_library name 'HeapLock';
+  function HeapLock(hHeap:HANDLE):WINBOOL; external 'kernel32.dll' name 'HeapLock';
 
-  function HeapUnlock(hHeap:HANDLE):WINBOOL; external External_library name 'HeapUnlock';
+  function HeapUnlock(hHeap:HANDLE):WINBOOL; external 'kernel32.dll' name 'HeapUnlock';
 
-  function HeapWalk(hHeap:HANDLE; lpEntry:LPPROCESS_HEAP_ENTRY):WINBOOL; external External_library name 'HeapWalk';
+  function HeapWalk(hHeap:HANDLE; lpEntry:LPPROCESS_HEAP_ENTRY):WINBOOL; external 'kernel32.dll' name 'HeapWalk';
 
-  function GetProcessAffinityMask(hProcess:HANDLE; lpProcessAffinityMask:LPDWORD; lpSystemAffinityMask:LPDWORD):WINBOOL; external External_library name 'GetProcessAffinityMask';
+  function GetProcessAffinityMask(hProcess:HANDLE; lpProcessAffinityMask:LPDWORD; lpSystemAffinityMask:LPDWORD):WINBOOL; external 'kernel32.dll' name 'GetProcessAffinityMask';
 
-  function GetProcessTimes(hProcess:HANDLE; lpCreationTime:LPFILETIME; lpExitTime:LPFILETIME; lpKernelTime:LPFILETIME; lpUserTime:LPFILETIME):WINBOOL; external External_library name 'GetProcessTimes';
+  function GetProcessTimes(hProcess:HANDLE; lpCreationTime:LPFILETIME; lpExitTime:LPFILETIME; lpKernelTime:LPFILETIME; lpUserTime:LPFILETIME):WINBOOL; external 'kernel32.dll' name 'GetProcessTimes';
 
-  function GetProcessWorkingSetSize(hProcess:HANDLE; lpMinimumWorkingSetSize:LPDWORD; lpMaximumWorkingSetSize:LPDWORD):WINBOOL; external External_library name 'GetProcessWorkingSetSize';
+  function GetProcessWorkingSetSize(hProcess:HANDLE; lpMinimumWorkingSetSize:LPDWORD; lpMaximumWorkingSetSize:LPDWORD):WINBOOL; external 'kernel32.dll' name 'GetProcessWorkingSetSize';
 
-  function SetProcessWorkingSetSize(hProcess:HANDLE; dwMinimumWorkingSetSize:DWORD; dwMaximumWorkingSetSize:DWORD):WINBOOL; external External_library name 'SetProcessWorkingSetSize';
+  function SetProcessWorkingSetSize(hProcess:HANDLE; dwMinimumWorkingSetSize:DWORD; dwMaximumWorkingSetSize:DWORD):WINBOOL; external 'kernel32.dll' name 'SetProcessWorkingSetSize';
 
-  function OpenProcess(dwDesiredAccess:DWORD; bInheritHandle:WINBOOL; dwProcessId:DWORD):HANDLE; external External_library name 'OpenProcess';
+  function OpenProcess(dwDesiredAccess:DWORD; bInheritHandle:WINBOOL; dwProcessId:DWORD):HANDLE; external 'kernel32.dll' name 'OpenProcess';
 
-  function GetCurrentProcess:HANDLE; external External_library name 'GetCurrentProcess';
+  function GetCurrentProcess:HANDLE; external 'kernel32.dll' name 'GetCurrentProcess';
 
-  function GetCurrentProcessId:DWORD; external External_library name 'GetCurrentProcessId';
+  function GetCurrentProcessId:DWORD; external 'kernel32.dll' name 'GetCurrentProcessId';
 
-  procedure ExitProcess(uExitCode:UINT);external External_library name 'ExitProcess';
+  procedure ExitProcess(uExitCode:UINT);external 'kernel32.dll' name 'ExitProcess';
 
-  function TerminateProcess(hProcess:HANDLE; uExitCode:UINT):WINBOOL; external External_library name 'TerminateProcess';
+  function TerminateProcess(hProcess:HANDLE; uExitCode:UINT):WINBOOL; external 'kernel32.dll' name 'TerminateProcess';
 
-  function GetExitCodeProcess(hProcess:HANDLE; lpExitCode:LPDWORD):WINBOOL; external External_library name 'GetExitCodeProcess';
+  function GetExitCodeProcess(hProcess:HANDLE; lpExitCode:LPDWORD):WINBOOL; external 'kernel32.dll' name 'GetExitCodeProcess';
 
-  procedure FatalExit(ExitCode:longint); external External_library name 'FatalExit';
+  procedure FatalExit(ExitCode:longint); external 'kernel32.dll' name 'FatalExit';
 
-  procedure RaiseException(dwExceptionCode:DWORD; dwExceptionFlags:DWORD; nNumberOfArguments:DWORD; var lpArguments:DWORD); external External_library name 'RaiseException';
+  procedure RaiseException(dwExceptionCode:DWORD; dwExceptionFlags:DWORD; nNumberOfArguments:DWORD; var lpArguments:DWORD); external 'kernel32.dll' name 'RaiseException';
 
-  function UnhandledExceptionFilter(var ExceptionInfo:emptyrecord):LONG; external External_library name 'UnhandledExceptionFilter';
+  function UnhandledExceptionFilter(var ExceptionInfo:emptyrecord):LONG; external 'kernel32.dll' name 'UnhandledExceptionFilter';
 
   function CreateThread(lpThreadAttributes:LPSECURITY_ATTRIBUTES; dwStackSize:DWORD; lpStartAddress:LPTHREAD_START_ROUTINE; lpParameter:LPVOID; dwCreationFlags:DWORD; 
-             lpThreadId:LPDWORD):HANDLE; external External_library name 'CreateThread';
+             lpThreadId:LPDWORD):HANDLE; external 'kernel32.dll' name 'CreateThread';
 
   function CreateRemoteThread(hProcess:HANDLE; lpThreadAttributes:LPSECURITY_ATTRIBUTES; dwStackSize:DWORD; lpStartAddress:LPTHREAD_START_ROUTINE; lpParameter:LPVOID; 
-             dwCreationFlags:DWORD; lpThreadId:LPDWORD):HANDLE; external External_library name 'CreateRemoteThread';
+             dwCreationFlags:DWORD; lpThreadId:LPDWORD):HANDLE; external 'kernel32.dll' name 'CreateRemoteThread';
 
-  function GetCurrentThread:HANDLE; external External_library name 'GetCurrentThread';
+  function GetCurrentThread:HANDLE; external 'kernel32.dll' name 'GetCurrentThread';
 
-  function GetCurrentThreadId:DWORD; external External_library name 'GetCurrentThreadId';
+  function GetCurrentThreadId:DWORD; external 'kernel32.dll' name 'GetCurrentThreadId';
 
-  function SetThreadAffinityMask(hThread:HANDLE; dwThreadAffinityMask:DWORD):DWORD; external External_library name 'SetThreadAffinityMask';
+  function SetThreadAffinityMask(hThread:HANDLE; dwThreadAffinityMask:DWORD):DWORD; external 'kernel32.dll' name 'SetThreadAffinityMask';
 
-  function SetThreadPriority(hThread:HANDLE; nPriority:longint):WINBOOL; external External_library name 'SetThreadPriority';
+  function SetThreadPriority(hThread:HANDLE; nPriority:longint):WINBOOL; external 'kernel32.dll' name 'SetThreadPriority';
 
-  function GetThreadPriority(hThread:HANDLE):longint; external External_library name 'GetThreadPriority';
+  function GetThreadPriority(hThread:HANDLE):longint; external 'kernel32.dll' name 'GetThreadPriority';
 
-  function GetThreadTimes(hThread:HANDLE; lpCreationTime:LPFILETIME; lpExitTime:LPFILETIME; lpKernelTime:LPFILETIME; lpUserTime:LPFILETIME):WINBOOL; external External_library name 'GetThreadTimes';
+  function GetThreadTimes(hThread:HANDLE; lpCreationTime:LPFILETIME; lpExitTime:LPFILETIME; lpKernelTime:LPFILETIME; lpUserTime:LPFILETIME):WINBOOL; external 'kernel32.dll' name 'GetThreadTimes';
 
-  procedure ExitThread(dwExitCode:DWORD); external External_library name 'ExitThread';
+  procedure ExitThread(dwExitCode:DWORD); external 'kernel32.dll' name 'ExitThread';
 
-  function TerminateThread(hThread:HANDLE; dwExitCode:DWORD):WINBOOL; external External_library name 'TerminateThread';
+  function TerminateThread(hThread:HANDLE; dwExitCode:DWORD):WINBOOL; external 'kernel32.dll' name 'TerminateThread';
 
-  function GetExitCodeThread(hThread:HANDLE; lpExitCode:LPDWORD):WINBOOL; external External_library name 'GetExitCodeThread';
+  function GetExitCodeThread(hThread:HANDLE; lpExitCode:LPDWORD):WINBOOL; external 'kernel32.dll' name 'GetExitCodeThread';
 
-  function GetThreadSelectorEntry(hThread:HANDLE; dwSelector:DWORD; lpSelectorEntry:LPLDT_ENTRY):WINBOOL; external External_library name 'GetThreadSelectorEntry';
+  function GetThreadSelectorEntry(hThread:HANDLE; dwSelector:DWORD; lpSelectorEntry:LPLDT_ENTRY):WINBOOL; external 'kernel32.dll' name 'GetThreadSelectorEntry';
 
-  function GetLastError:DWORD; external External_library name 'GetLastError';
+  function GetLastError:DWORD; external 'kernel32.dll' name 'GetLastError';
 
-  procedure SetLastError(dwErrCode:DWORD); external External_library name 'SetLastError';
+  procedure SetLastError(dwErrCode:DWORD); external 'kernel32.dll' name 'SetLastError';
 
-  function GetOverlappedResult(hFile:HANDLE; lpOverlapped:LPOVERLAPPED; lpNumberOfBytesTransferred:LPDWORD; bWait:WINBOOL):WINBOOL; external External_library name 'GetOverlappedResult';
+  function GetOverlappedResult(hFile:HANDLE; lpOverlapped:LPOVERLAPPED; lpNumberOfBytesTransferred:LPDWORD; bWait:WINBOOL):WINBOOL; external 'kernel32.dll' name 'GetOverlappedResult';
 
-  function CreateIoCompletionPort(FileHandle:HANDLE; ExistingCompletionPort:HANDLE; CompletionKey:DWORD; NumberOfConcurrentThreads:DWORD):HANDLE; external External_library name 'CreateIoCompletionPort';
+  function CreateIoCompletionPort(FileHandle:HANDLE; ExistingCompletionPort:HANDLE; CompletionKey:DWORD; NumberOfConcurrentThreads:DWORD):HANDLE; external 'kernel32.dll' name 'CreateIoCompletionPort';
 
-  function GetQueuedCompletionStatus(CompletionPort:HANDLE; lpNumberOfBytesTransferred:LPDWORD; lpCompletionKey:LPDWORD; var lpOverlapped:LPOVERLAPPED; dwMilliseconds:DWORD):WINBOOL; external External_library name 'GetQueuedCompletionStatus';
+  function GetQueuedCompletionStatus(CompletionPort:HANDLE; lpNumberOfBytesTransferred:LPDWORD; lpCompletionKey:LPDWORD; var lpOverlapped:LPOVERLAPPED; dwMilliseconds:DWORD):WINBOOL; external 'kernel32.dll' name 'GetQueuedCompletionStatus';
 
-  function SetErrorMode(uMode:UINT):UINT; external External_library name 'SetErrorMode';
+  function SetErrorMode(uMode:UINT):UINT; external 'kernel32.dll' name 'SetErrorMode';
 
-  function ReadProcessMemory(hProcess:HANDLE; lpBaseAddress:LPCVOID; lpBuffer:LPVOID; nSize:DWORD; lpNumberOfBytesRead:LPDWORD):WINBOOL; external External_library name 'ReadProcessMemory';
+  function ReadProcessMemory(hProcess:HANDLE; lpBaseAddress:LPCVOID; lpBuffer:LPVOID; nSize:DWORD; lpNumberOfBytesRead:LPDWORD):WINBOOL; external 'kernel32.dll' name 'ReadProcessMemory';
 
-  function WriteProcessMemory(hProcess:HANDLE; lpBaseAddress:LPVOID; lpBuffer:LPVOID; nSize:DWORD; lpNumberOfBytesWritten:LPDWORD):WINBOOL; external External_library name 'WriteProcessMemory';
+  function WriteProcessMemory(hProcess:HANDLE; lpBaseAddress:LPVOID; lpBuffer:LPVOID; nSize:DWORD; lpNumberOfBytesWritten:LPDWORD):WINBOOL; external 'kernel32.dll' name 'WriteProcessMemory';
 
-  function GetThreadContext(hThread:HANDLE; lpContext:LPCONTEXT):WINBOOL; external External_library name 'GetThreadContext';
+  function GetThreadContext(hThread:HANDLE; lpContext:LPCONTEXT):WINBOOL; external 'kernel32.dll' name 'GetThreadContext';
 
-  function SetThreadContext(hThread:HANDLE; var lpContext:CONTEXT):WINBOOL; external External_library name 'SetThreadContext';
+  function SetThreadContext(hThread:HANDLE; var lpContext:CONTEXT):WINBOOL; external 'kernel32.dll' name 'SetThreadContext';
 
-  function SuspendThread(hThread:HANDLE):DWORD; external External_library name 'SuspendThread';
+  function SuspendThread(hThread:HANDLE):DWORD; external 'kernel32.dll' name 'SuspendThread';
 
-  function ResumeThread(hThread:HANDLE):DWORD; external External_library name 'ResumeThread';
+  function ResumeThread(hThread:HANDLE):DWORD; external 'kernel32.dll' name 'ResumeThread';
 
-  procedure DebugBreak; external External_library name 'DebugBreak';
+  procedure DebugBreak; external 'kernel32.dll' name 'DebugBreak';
 
-  function WaitForDebugEvent(lpDebugEvent:LPDEBUG_EVENT; dwMilliseconds:DWORD):WINBOOL; external External_library name 'WaitForDebugEvent';
+  function WaitForDebugEvent(lpDebugEvent:LPDEBUG_EVENT; dwMilliseconds:DWORD):WINBOOL; external 'kernel32.dll' name 'WaitForDebugEvent';
 
-  function ContinueDebugEvent(dwProcessId:DWORD; dwThreadId:DWORD; dwContinueStatus:DWORD):WINBOOL; external External_library name 'ContinueDebugEvent';
+  function ContinueDebugEvent(dwProcessId:DWORD; dwThreadId:DWORD; dwContinueStatus:DWORD):WINBOOL; external 'kernel32.dll' name 'ContinueDebugEvent';
 
-  function DebugActiveProcess(dwProcessId:DWORD):WINBOOL; external External_library name 'DebugActiveProcess';
+  function DebugActiveProcess(dwProcessId:DWORD):WINBOOL; external 'kernel32.dll' name 'DebugActiveProcess';
 
-  procedure InitializeCriticalSection(lpCriticalSection:LPCRITICAL_SECTION); external External_library name 'InitializeCriticalSection';
+  procedure InitializeCriticalSection(lpCriticalSection:LPCRITICAL_SECTION); external 'kernel32.dll' name 'InitializeCriticalSection';
 
-  procedure EnterCriticalSection(lpCriticalSection:LPCRITICAL_SECTION); external External_library name 'EnterCriticalSection';
+  procedure EnterCriticalSection(lpCriticalSection:LPCRITICAL_SECTION); external 'kernel32.dll' name 'EnterCriticalSection';
 
-  procedure LeaveCriticalSection(lpCriticalSection:LPCRITICAL_SECTION); external External_library name 'LeaveCriticalSection';
+  procedure LeaveCriticalSection(lpCriticalSection:LPCRITICAL_SECTION); external 'kernel32.dll' name 'LeaveCriticalSection';
 
-  procedure DeleteCriticalSection(lpCriticalSection:LPCRITICAL_SECTION); external External_library name 'DeleteCriticalSection';
+  procedure DeleteCriticalSection(lpCriticalSection:LPCRITICAL_SECTION); external 'kernel32.dll' name 'DeleteCriticalSection';
 
-  function SetEvent(hEvent:HANDLE):WINBOOL; external External_library name 'SetEvent';
+  function SetEvent(hEvent:HANDLE):WINBOOL; external 'kernel32.dll' name 'SetEvent';
 
-  function ResetEvent(hEvent:HANDLE):WINBOOL; external External_library name 'ResetEvent';
+  function ResetEvent(hEvent:HANDLE):WINBOOL; external 'kernel32.dll' name 'ResetEvent';
 
-  function PulseEvent(hEvent:HANDLE):WINBOOL; external External_library name 'PulseEvent';
+  function PulseEvent(hEvent:HANDLE):WINBOOL; external 'kernel32.dll' name 'PulseEvent';
 
-  function ReleaseSemaphore(hSemaphore:HANDLE; lReleaseCount:LONG; lpPreviousCount:LPLONG):WINBOOL; external External_library name 'ReleaseSemaphore';
+  function ReleaseSemaphore(hSemaphore:HANDLE; lReleaseCount:LONG; lpPreviousCount:LPLONG):WINBOOL; external 'kernel32.dll' name 'ReleaseSemaphore';
 
-  function ReleaseMutex(hMutex:HANDLE):WINBOOL; external External_library name 'ReleaseMutex';
+  function ReleaseMutex(hMutex:HANDLE):WINBOOL; external 'kernel32.dll' name 'ReleaseMutex';
 
-  function WaitForSingleObject(hHandle:HANDLE; dwMilliseconds:DWORD):DWORD; external External_library name 'WaitForSingleObject';
+  function WaitForSingleObject(hHandle:HANDLE; dwMilliseconds:DWORD):DWORD; external 'kernel32.dll' name 'WaitForSingleObject';
 
-  function WaitForMultipleObjects(nCount:DWORD; var lpHandles:HANDLE; bWaitAll:WINBOOL; dwMilliseconds:DWORD):DWORD; external External_library name 'WaitForMultipleObjects';
+  function WaitForMultipleObjects(nCount:DWORD; var lpHandles:HANDLE; bWaitAll:WINBOOL; dwMilliseconds:DWORD):DWORD; external 'kernel32.dll' name 'WaitForMultipleObjects';
 
-  procedure Sleep(dwMilliseconds:DWORD); external External_library name 'Sleep';
+  procedure Sleep(dwMilliseconds:DWORD); external 'kernel32.dll' name 'Sleep';
 
-  function LoadResource(hModule:HINSTANCE; hResInfo:HRSRC):HGLOBAL; external External_library name 'LoadResource';
+  function LoadResource(hModule:HINSTANCE; hResInfo:HRSRC):HGLOBAL; external 'kernel32.dll' name 'LoadResource';
 
-  function SizeofResource(hModule:HINSTANCE; hResInfo:HRSRC):DWORD; external External_library name 'SizeofResource';
+  function SizeofResource(hModule:HINSTANCE; hResInfo:HRSRC):DWORD; external 'kernel32.dll' name 'SizeofResource';
 
-  function GlobalDeleteAtom(nAtom:ATOM):ATOM; external External_library name 'GlobalDeleteAtom';
+  function GlobalDeleteAtom(nAtom:ATOM):ATOM; external 'kernel32.dll' name 'GlobalDeleteAtom';
 
-  function InitAtomTable(nSize:DWORD):WINBOOL; external External_library name 'InitAtomTable';
+  function InitAtomTable(nSize:DWORD):WINBOOL; external 'kernel32.dll' name 'InitAtomTable';
 
-  function DeleteAtom(nAtom:ATOM):ATOM; external External_library name 'DeleteAtom';
+  function DeleteAtom(nAtom:ATOM):ATOM; external 'kernel32.dll' name 'DeleteAtom';
 
-  function SetHandleCount(uNumber:UINT):UINT; external External_library name 'SetHandleCount';
+  function SetHandleCount(uNumber:UINT):UINT; external 'kernel32.dll' name 'SetHandleCount';
 
-  function GetLogicalDrives:DWORD; external External_library name 'GetLogicalDrives';
+  function GetLogicalDrives:DWORD; external 'kernel32.dll' name 'GetLogicalDrives';
 
-  function LockFile(hFile:HANDLE; dwFileOffsetLow:DWORD; dwFileOffsetHigh:DWORD; nNumberOfBytesToLockLow:DWORD; nNumberOfBytesToLockHigh:DWORD):WINBOOL; external External_library name 'LockFile';
+  function LockFile(hFile:HANDLE; dwFileOffsetLow:DWORD; dwFileOffsetHigh:DWORD; nNumberOfBytesToLockLow:DWORD; nNumberOfBytesToLockHigh:DWORD):WINBOOL; external 'kernel32.dll' name 'LockFile';
 
-  function UnlockFile(hFile:HANDLE; dwFileOffsetLow:DWORD; dwFileOffsetHigh:DWORD; nNumberOfBytesToUnlockLow:DWORD; nNumberOfBytesToUnlockHigh:DWORD):WINBOOL; external External_library name 'UnlockFile';
+  function UnlockFile(hFile:HANDLE; dwFileOffsetLow:DWORD; dwFileOffsetHigh:DWORD; nNumberOfBytesToUnlockLow:DWORD; nNumberOfBytesToUnlockHigh:DWORD):WINBOOL; external 'kernel32.dll' name 'UnlockFile';
 
   function LockFileEx(hFile:HANDLE; dwFlags:DWORD; dwReserved:DWORD; nNumberOfBytesToLockLow:DWORD; nNumberOfBytesToLockHigh:DWORD; 
-             lpOverlapped:LPOVERLAPPED):WINBOOL; external External_library name 'LockFileEx';
+             lpOverlapped:LPOVERLAPPED):WINBOOL; external 'kernel32.dll' name 'LockFileEx';
 
-  function UnlockFileEx(hFile:HANDLE; dwReserved:DWORD; nNumberOfBytesToUnlockLow:DWORD; nNumberOfBytesToUnlockHigh:DWORD; lpOverlapped:LPOVERLAPPED):WINBOOL; external External_library name 'UnlockFileEx';
+  function UnlockFileEx(hFile:HANDLE; dwReserved:DWORD; nNumberOfBytesToUnlockLow:DWORD; nNumberOfBytesToUnlockHigh:DWORD; lpOverlapped:LPOVERLAPPED):WINBOOL; external 'kernel32.dll' name 'UnlockFileEx';
 
-  function GetFileInformationByHandle(hFile:HANDLE; lpFileInformation:LPBY_HANDLE_FILE_INFORMATION):WINBOOL; external External_library name 'GetFileInformationByHandle';
+  function GetFileInformationByHandle(hFile:HANDLE; lpFileInformation:LPBY_HANDLE_FILE_INFORMATION):WINBOOL; external 'kernel32.dll' name 'GetFileInformationByHandle';
 
-  function GetFileType(hFile:HANDLE):DWORD; external External_library name 'GetFileType';
+  function GetFileType(hFile:HANDLE):DWORD; external 'kernel32.dll' name 'GetFileType';
 
-  function GetFileSize(hFile:HANDLE; lpFileSizeHigh:LPDWORD):DWORD; external External_library name 'GetFileSize';
+  function GetFileSize(hFile:HANDLE; lpFileSizeHigh:LPDWORD):DWORD; external 'kernel32.dll' name 'GetFileSize';
 
-  function GetStdHandle(nStdHandle:DWORD):HANDLE; external External_library name 'GetStdHandle';
+  function GetStdHandle(nStdHandle:DWORD):HANDLE; external 'kernel32.dll' name 'GetStdHandle';
 
-  function SetStdHandle(nStdHandle:DWORD; hHandle:HANDLE):WINBOOL; external External_library name 'SetStdHandle';
+  function SetStdHandle(nStdHandle:DWORD; hHandle:HANDLE):WINBOOL; external 'kernel32.dll' name 'SetStdHandle';
 
-  function WriteFile(hFile:HANDLE; lpBuffer:LPCVOID; nNumberOfBytesToWrite:DWORD; lpNumberOfBytesWritten:LPDWORD; lpOverlapped:LPOVERLAPPED):WINBOOL; external External_library name 'WriteFile';
+  function WriteFile(hFile:HANDLE; lpBuffer:LPCVOID; nNumberOfBytesToWrite:DWORD; lpNumberOfBytesWritten:LPDWORD; lpOverlapped:LPOVERLAPPED):WINBOOL; external 'kernel32.dll' name 'WriteFile';
 
-  function ReadFile(hFile:HANDLE; lpBuffer:LPVOID; nNumberOfBytesToRead:DWORD; lpNumberOfBytesRead:LPDWORD; lpOverlapped:LPOVERLAPPED):WINBOOL; external External_library name 'ReadFile';
+  function ReadFile(hFile:HANDLE; lpBuffer:LPVOID; nNumberOfBytesToRead:DWORD; lpNumberOfBytesRead:LPDWORD; lpOverlapped:LPOVERLAPPED):WINBOOL; external 'kernel32.dll' name 'ReadFile';
 
-  function FlushFileBuffers(hFile:HANDLE):WINBOOL; external External_library name 'FlushFileBuffers';
+  function FlushFileBuffers(hFile:HANDLE):WINBOOL; external 'kernel32.dll' name 'FlushFileBuffers';
 
   function DeviceIoControl(hDevice:HANDLE; dwIoControlCode:DWORD; lpInBuffer:LPVOID; nInBufferSize:DWORD; lpOutBuffer:LPVOID; 
-             nOutBufferSize:DWORD; lpBytesReturned:LPDWORD; lpOverlapped:LPOVERLAPPED):WINBOOL; external External_library name 'DeviceIoControl';
+             nOutBufferSize:DWORD; lpBytesReturned:LPDWORD; lpOverlapped:LPOVERLAPPED):WINBOOL; external 'kernel32.dll' name 'DeviceIoControl';
 
-  function SetEndOfFile(hFile:HANDLE):WINBOOL; external External_library name 'SetEndOfFile';
+  function SetEndOfFile(hFile:HANDLE):WINBOOL; external 'kernel32.dll' name 'SetEndOfFile';
 
-  function SetFilePointer(hFile:HANDLE; lDistanceToMove:LONG; lpDistanceToMoveHigh:PLONG; dwMoveMethod:DWORD):DWORD; external External_library name 'SetFilePointer';
+  function SetFilePointer(hFile:HANDLE; lDistanceToMove:LONG; lpDistanceToMoveHigh:PLONG; dwMoveMethod:DWORD):DWORD; external 'kernel32.dll' name 'SetFilePointer';
 
-  function FindClose(hFindFile:HANDLE):WINBOOL; external External_library name 'FindClose';
+  function FindClose(hFindFile:HANDLE):WINBOOL; external 'kernel32.dll' name 'FindClose';
 
-  function GetFileTime(hFile:HANDLE; lpCreationTime:LPFILETIME; lpLastAccessTime:LPFILETIME; lpLastWriteTime:LPFILETIME):WINBOOL; external External_library name 'GetFileTime';
+  function GetFileTime(hFile:HANDLE; lpCreationTime:LPFILETIME; lpLastAccessTime:LPFILETIME; lpLastWriteTime:LPFILETIME):WINBOOL; external 'kernel32.dll' name 'GetFileTime';
 
-  function SetFileTime(hFile:HANDLE; var lpCreationTime:FILETIME; var lpLastAccessTime:FILETIME; var lpLastWriteTime:FILETIME):WINBOOL; external External_library name 'SetFileTime';
+  function SetFileTime(hFile:HANDLE; var lpCreationTime:FILETIME; var lpLastAccessTime:FILETIME; var lpLastWriteTime:FILETIME):WINBOOL; external 'kernel32.dll' name 'SetFileTime';
 
-  function CloseHandle(hObject:HANDLE):WINBOOL; external External_library name 'CloseHandle';
+  function CloseHandle(hObject:HANDLE):WINBOOL; external 'kernel32.dll' name 'CloseHandle';
 
   function DuplicateHandle(hSourceProcessHandle:HANDLE; hSourceHandle:HANDLE; hTargetProcessHandle:HANDLE; lpTargetHandle:LPHANDLE; dwDesiredAccess:DWORD; 
-             bInheritHandle:WINBOOL; dwOptions:DWORD):WINBOOL; external External_library name 'DuplicateHandle';
+             bInheritHandle:WINBOOL; dwOptions:DWORD):WINBOOL; external 'kernel32.dll' name 'DuplicateHandle';
 
-  function GetHandleInformation(hObject:HANDLE; lpdwFlags:LPDWORD):WINBOOL; external External_library name 'GetHandleInformation';
+  function GetHandleInformation(hObject:HANDLE; lpdwFlags:LPDWORD):WINBOOL; external 'kernel32.dll' name 'GetHandleInformation';
 
-  function SetHandleInformation(hObject:HANDLE; dwMask:DWORD; dwFlags:DWORD):WINBOOL; external External_library name 'SetHandleInformation';
+  function SetHandleInformation(hObject:HANDLE; dwMask:DWORD; dwFlags:DWORD):WINBOOL; external 'kernel32.dll' name 'SetHandleInformation';
 
-  function LoadModule(lpModuleName:LPCSTR; lpParameterBlock:LPVOID):DWORD; external External_library name 'LoadModule';
+  function LoadModule(lpModuleName:LPCSTR; lpParameterBlock:LPVOID):DWORD; external 'kernel32.dll' name 'LoadModule';
 
-  function WinExec(lpCmdLine:LPCSTR; uCmdShow:UINT):UINT; external External_library name 'WinExec';
+  function WinExec(lpCmdLine:LPCSTR; uCmdShow:UINT):UINT; external 'kernel32.dll' name 'WinExec';
 
-  function ClearCommBreak(hFile:HANDLE):WINBOOL; external External_library name 'ClearCommBreak';
+  function ClearCommBreak(hFile:HANDLE):WINBOOL; external 'kernel32.dll' name 'ClearCommBreak';
 
-  function ClearCommError(hFile:HANDLE; lpErrors:LPDWORD; lpStat:LPCOMSTAT):WINBOOL; external External_library name 'ClearCommError';
+  function ClearCommError(hFile:HANDLE; lpErrors:LPDWORD; lpStat:LPCOMSTAT):WINBOOL; external 'kernel32.dll' name 'ClearCommError';
 
-  function SetupComm(hFile:HANDLE; dwInQueue:DWORD; dwOutQueue:DWORD):WINBOOL; external External_library name 'SetupComm';
+  function SetupComm(hFile:HANDLE; dwInQueue:DWORD; dwOutQueue:DWORD):WINBOOL; external 'kernel32.dll' name 'SetupComm';
 
-  function EscapeCommFunction(hFile:HANDLE; dwFunc:DWORD):WINBOOL; external External_library name 'EscapeCommFunction';
+  function EscapeCommFunction(hFile:HANDLE; dwFunc:DWORD):WINBOOL; external 'kernel32.dll' name 'EscapeCommFunction';
 
-  function GetCommConfig(hCommDev:HANDLE; lpCC:LPCOMMCONFIG; lpdwSize:LPDWORD):WINBOOL; external External_library name 'GetCommConfig';
+  function GetCommConfig(hCommDev:HANDLE; lpCC:LPCOMMCONFIG; lpdwSize:LPDWORD):WINBOOL; external 'kernel32.dll' name 'GetCommConfig';
 
-  function GetCommMask(hFile:HANDLE; lpEvtMask:LPDWORD):WINBOOL; external External_library name 'GetCommMask';
+  function GetCommMask(hFile:HANDLE; lpEvtMask:LPDWORD):WINBOOL; external 'kernel32.dll' name 'GetCommMask';
 
-  function GetCommProperties(hFile:HANDLE; lpCommProp:LPCOMMPROP):WINBOOL; external External_library name 'GetCommProperties';
+  function GetCommProperties(hFile:HANDLE; lpCommProp:LPCOMMPROP):WINBOOL; external 'kernel32.dll' name 'GetCommProperties';
 
-  function GetCommModemStatus(hFile:HANDLE; lpModemStat:LPDWORD):WINBOOL; external External_library name 'GetCommModemStatus';
+  function GetCommModemStatus(hFile:HANDLE; lpModemStat:LPDWORD):WINBOOL; external 'kernel32.dll' name 'GetCommModemStatus';
 
-  function GetCommState(hFile:HANDLE; lpDCB:LPDCB):WINBOOL; external External_library name 'GetCommState';
+  function GetCommState(hFile:HANDLE; lpDCB:LPDCB):WINBOOL; external 'kernel32.dll' name 'GetCommState';
 
-  function GetCommTimeouts(hFile:HANDLE; lpCommTimeouts:LPCOMMTIMEOUTS):WINBOOL; external External_library name 'GetCommTimeouts';
+  function GetCommTimeouts(hFile:HANDLE; lpCommTimeouts:LPCOMMTIMEOUTS):WINBOOL; external 'kernel32.dll' name 'GetCommTimeouts';
 
-  function PurgeComm(hFile:HANDLE; dwFlags:DWORD):WINBOOL; external External_library name 'PurgeComm';
+  function PurgeComm(hFile:HANDLE; dwFlags:DWORD):WINBOOL; external 'kernel32.dll' name 'PurgeComm';
 
-  function SetCommBreak(hFile:HANDLE):WINBOOL; external External_library name 'SetCommBreak';
+  function SetCommBreak(hFile:HANDLE):WINBOOL; external 'kernel32.dll' name 'SetCommBreak';
 
-  function SetCommConfig(hCommDev:HANDLE; lpCC:LPCOMMCONFIG; dwSize:DWORD):WINBOOL; external External_library name 'SetCommConfig';
+  function SetCommConfig(hCommDev:HANDLE; lpCC:LPCOMMCONFIG; dwSize:DWORD):WINBOOL; external 'kernel32.dll' name 'SetCommConfig';
 
-  function SetCommMask(hFile:HANDLE; dwEvtMask:DWORD):WINBOOL; external External_library name 'SetCommMask';
+  function SetCommMask(hFile:HANDLE; dwEvtMask:DWORD):WINBOOL; external 'kernel32.dll' name 'SetCommMask';
 
-  function SetCommState(hFile:HANDLE; lpDCB:LPDCB):WINBOOL; external External_library name 'SetCommState';
+  function SetCommState(hFile:HANDLE; lpDCB:LPDCB):WINBOOL; external 'kernel32.dll' name 'SetCommState';
 
-  function SetCommTimeouts(hFile:HANDLE; lpCommTimeouts:LPCOMMTIMEOUTS):WINBOOL; external External_library name 'SetCommTimeouts';
+  function SetCommTimeouts(hFile:HANDLE; lpCommTimeouts:LPCOMMTIMEOUTS):WINBOOL; external 'kernel32.dll' name 'SetCommTimeouts';
 
-  function TransmitCommChar(hFile:HANDLE; cChar:char):WINBOOL; external External_library name 'TransmitCommChar';
+  function TransmitCommChar(hFile:HANDLE; cChar:char):WINBOOL; external 'kernel32.dll' name 'TransmitCommChar';
 
-  function WaitCommEvent(hFile:HANDLE; lpEvtMask:LPDWORD; lpOverlapped:LPOVERLAPPED):WINBOOL; external External_library name 'WaitCommEvent';
+  function WaitCommEvent(hFile:HANDLE; lpEvtMask:LPDWORD; lpOverlapped:LPOVERLAPPED):WINBOOL; external 'kernel32.dll' name 'WaitCommEvent';
 
   function SetTapePosition(hDevice:HANDLE; dwPositionMethod:DWORD; dwPartition:DWORD; dwOffsetLow:DWORD; dwOffsetHigh:DWORD; 
-             bImmediate:WINBOOL):DWORD; external External_library name 'SetTapePosition';
+             bImmediate:WINBOOL):DWORD; external 'kernel32.dll' name 'SetTapePosition';
 
-  function GetTapePosition(hDevice:HANDLE; dwPositionType:DWORD; lpdwPartition:LPDWORD; lpdwOffsetLow:LPDWORD; lpdwOffsetHigh:LPDWORD):DWORD; external External_library name 'GetTapePosition';
+  function GetTapePosition(hDevice:HANDLE; dwPositionType:DWORD; lpdwPartition:LPDWORD; lpdwOffsetLow:LPDWORD; lpdwOffsetHigh:LPDWORD):DWORD; external 'kernel32.dll' name 'GetTapePosition';
 
-  function PrepareTape(hDevice:HANDLE; dwOperation:DWORD; bImmediate:WINBOOL):DWORD; external External_library name 'PrepareTape';
+  function PrepareTape(hDevice:HANDLE; dwOperation:DWORD; bImmediate:WINBOOL):DWORD; external 'kernel32.dll' name 'PrepareTape';
 
-  function EraseTape(hDevice:HANDLE; dwEraseType:DWORD; bImmediate:WINBOOL):DWORD; external External_library name 'EraseTape';
+  function EraseTape(hDevice:HANDLE; dwEraseType:DWORD; bImmediate:WINBOOL):DWORD; external 'kernel32.dll' name 'EraseTape';
 
-  function CreateTapePartition(hDevice:HANDLE; dwPartitionMethod:DWORD; dwCount:DWORD; dwSize:DWORD):DWORD; external External_library name 'CreateTapePartition';
+  function CreateTapePartition(hDevice:HANDLE; dwPartitionMethod:DWORD; dwCount:DWORD; dwSize:DWORD):DWORD; external 'kernel32.dll' name 'CreateTapePartition';
 
-  function WriteTapemark(hDevice:HANDLE; dwTapemarkType:DWORD; dwTapemarkCount:DWORD; bImmediate:WINBOOL):DWORD; external External_library name 'WriteTapemark';
+  function WriteTapemark(hDevice:HANDLE; dwTapemarkType:DWORD; dwTapemarkCount:DWORD; bImmediate:WINBOOL):DWORD; external 'kernel32.dll' name 'WriteTapemark';
 
-  function GetTapeStatus(hDevice:HANDLE):DWORD; external External_library name 'GetTapeStatus';
+  function GetTapeStatus(hDevice:HANDLE):DWORD; external 'kernel32.dll' name 'GetTapeStatus';
 
-  function GetTapeParameters(hDevice:HANDLE; dwOperation:DWORD; lpdwSize:LPDWORD; lpTapeInformation:LPVOID):DWORD; external External_library name 'GetTapeParameters';
+  function GetTapeParameters(hDevice:HANDLE; dwOperation:DWORD; lpdwSize:LPDWORD; lpTapeInformation:LPVOID):DWORD; external 'kernel32.dll' name 'GetTapeParameters';
 
-  function SetTapeParameters(hDevice:HANDLE; dwOperation:DWORD; lpTapeInformation:LPVOID):DWORD; external External_library name 'SetTapeParameters';
+  function SetTapeParameters(hDevice:HANDLE; dwOperation:DWORD; lpTapeInformation:LPVOID):DWORD; external 'kernel32.dll' name 'SetTapeParameters';
 
-  function Beep(dwFreq:DWORD; dwDuration:DWORD):WINBOOL; external External_library name 'Beep';
+  function Beep(dwFreq:DWORD; dwDuration:DWORD):WINBOOL; external 'kernel32.dll' name 'Beep';
 
   procedure OpenSound; external External_library name 'OpenSound';
 
@@ -4075,304 +4076,306 @@ in define line 6852 *)
 
   function SetVoiceThreshold(nVoice:DWORD; nNotes:DWORD):DWORD; external External_library name 'SetVoiceThreshold';
 
-  function MulDiv(nNumber:longint; nNumerator:longint; nDenominator:longint):longint; external External_library name 'MulDiv';
+  function MulDiv(nNumber:longint; nNumerator:longint; nDenominator:longint):longint; external 'kernel32.dll' name 'MulDiv';
 
-  procedure GetSystemTime(lpSystemTime:LPSYSTEMTIME); external External_library name 'GetSystemTime';
+  procedure GetSystemTime(lpSystemTime:LPSYSTEMTIME); external 'kernel32.dll' name 'GetSystemTime';
 
-  function SetSystemTime(var lpSystemTime:SYSTEMTIME):WINBOOL; external External_library name 'SetSystemTime';
+  function SetSystemTime(var lpSystemTime:SYSTEMTIME):WINBOOL; external 'kernel32.dll' name 'SetSystemTime';
 
-  procedure GetLocalTime(lpSystemTime:LPSYSTEMTIME); external External_library name 'GetLocalTime';
+  procedure GetLocalTime(lpSystemTime:LPSYSTEMTIME); external 'kernel32.dll' name 'GetLocalTime';
 
-  function SetLocalTime(var lpSystemTime:SYSTEMTIME):WINBOOL; external External_library name 'SetLocalTime';
+  function SetLocalTime(var lpSystemTime:SYSTEMTIME):WINBOOL; external 'kernel32.dll' name 'SetLocalTime';
 
-  procedure GetSystemInfo(lpSystemInfo:LPSYSTEM_INFO); external External_library name 'GetSystemInfo';
+  procedure GetSystemInfo(lpSystemInfo:LPSYSTEM_INFO); external 'kernel32.dll' name 'GetSystemInfo';
 
-  function SystemTimeToTzSpecificLocalTime(lpTimeZoneInformation:LPTIME_ZONE_INFORMATION; lpUniversalTime:LPSYSTEMTIME; lpLocalTime:LPSYSTEMTIME):WINBOOL; external External_library name 'SystemTimeToTzSpecificLocalTime';
+  function SystemTimeToTzSpecificLocalTime(lpTimeZoneInformation:LPTIME_ZONE_INFORMATION; lpUniversalTime:LPSYSTEMTIME; lpLocalTime:LPSYSTEMTIME):WINBOOL; external 'kernel32.dll' name 'SystemTimeToTzSpecificLocalTime';
 
-  function GetTimeZoneInformation(lpTimeZoneInformation:LPTIME_ZONE_INFORMATION):DWORD; external External_library name 'GetTimeZoneInformation';
+  function GetTimeZoneInformation(lpTimeZoneInformation:LPTIME_ZONE_INFORMATION):DWORD; external 'kernel32.dll' name 'GetTimeZoneInformation';
 
-  function SetTimeZoneInformation(var lpTimeZoneInformation:TIME_ZONE_INFORMATION):WINBOOL; external External_library name 'SetTimeZoneInformation';
+  function SetTimeZoneInformation(var lpTimeZoneInformation:TIME_ZONE_INFORMATION):WINBOOL; external 'kernel32.dll' name 'SetTimeZoneInformation';
 
-  function SystemTimeToFileTime(var lpSystemTime:SYSTEMTIME; lpFileTime:LPFILETIME):WINBOOL; external External_library name 'SystemTimeToFileTime';
+  function SystemTimeToFileTime(var lpSystemTime:SYSTEMTIME; lpFileTime:LPFILETIME):WINBOOL; external 'kernel32.dll' name 'SystemTimeToFileTime';
 
-  function FileTimeToLocalFileTime(var lpFileTime:FILETIME; lpLocalFileTime:LPFILETIME):WINBOOL; external External_library name 'FileTimeToLocalFileTime';
+  function FileTimeToLocalFileTime(var lpFileTime:FILETIME; lpLocalFileTime:LPFILETIME):WINBOOL; external 'kernel32.dll' name 'FileTimeToLocalFileTime';
 
-  function LocalFileTimeToFileTime(var lpLocalFileTime:FILETIME; lpFileTime:LPFILETIME):WINBOOL; external External_library name 'LocalFileTimeToFileTime';
+  function LocalFileTimeToFileTime(var lpLocalFileTime:FILETIME; lpFileTime:LPFILETIME):WINBOOL; external 'kernel32.dll' name 'LocalFileTimeToFileTime';
 
-  function FileTimeToSystemTime(var lpFileTime:FILETIME; lpSystemTime:LPSYSTEMTIME):WINBOOL; external External_library name 'FileTimeToSystemTime';
+  function FileTimeToSystemTime(var lpFileTime:FILETIME; lpSystemTime:LPSYSTEMTIME):WINBOOL; external 'kernel32.dll' name 'FileTimeToSystemTime';
 
-  function CompareFileTime(var lpFileTime1:FILETIME; var lpFileTime2:FILETIME):LONG; external External_library name 'CompareFileTime';
+  function CompareFileTime(var lpFileTime1:FILETIME; var lpFileTime2:FILETIME):LONG; external 'kernel32.dll' name 'CompareFileTime';
 
-  function FileTimeToDosDateTime(var lpFileTime:FILETIME; lpFatDate:LPWORD; lpFatTime:LPWORD):WINBOOL; external External_library name 'FileTimeToDosDateTime';
+  function FileTimeToDosDateTime(var lpFileTime:FILETIME; lpFatDate:LPWORD; lpFatTime:LPWORD):WINBOOL; external 'kernel32.dll' name 'FileTimeToDosDateTime';
 
-  function DosDateTimeToFileTime(wFatDate:WORD; wFatTime:WORD; lpFileTime:LPFILETIME):WINBOOL; external External_library name 'DosDateTimeToFileTime';
+  function DosDateTimeToFileTime(wFatDate:WORD; wFatTime:WORD; lpFileTime:LPFILETIME):WINBOOL; external 'kernel32.dll' name 'DosDateTimeToFileTime';
 
-  function GetTickCount:DWORD; external External_library name 'GetTickCount';
+  function GetTickCount:DWORD; external 'kernel32.dll' name 'GetTickCount';
 
-  function SetSystemTimeAdjustment(dwTimeAdjustment:DWORD; bTimeAdjustmentDisabled:WINBOOL):WINBOOL; external External_library name 'SetSystemTimeAdjustment';
+  function SetSystemTimeAdjustment(dwTimeAdjustment:DWORD; bTimeAdjustmentDisabled:WINBOOL):WINBOOL; external 'kernel32.dll' name 'SetSystemTimeAdjustment';
 
-  function GetSystemTimeAdjustment(lpTimeAdjustment:PDWORD; lpTimeIncrement:PDWORD; lpTimeAdjustmentDisabled:PWINBOOL):WINBOOL; external External_library name 'GetSystemTimeAdjustment';
+  function GetSystemTimeAdjustment(lpTimeAdjustment:PDWORD; lpTimeIncrement:PDWORD; lpTimeAdjustmentDisabled:PWINBOOL):WINBOOL; external 'kernel32.dll' name 'GetSystemTimeAdjustment';
 
-  function CreatePipe(hReadPipe:PHANDLE; hWritePipe:PHANDLE; lpPipeAttributes:LPSECURITY_ATTRIBUTES; nSize:DWORD):WINBOOL; external External_library name 'CreatePipe';
+  function CreatePipe(hReadPipe:PHANDLE; hWritePipe:PHANDLE; lpPipeAttributes:LPSECURITY_ATTRIBUTES; nSize:DWORD):WINBOOL; external 'kernel32.dll' name 'CreatePipe';
 
-  function ConnectNamedPipe(hNamedPipe:HANDLE; lpOverlapped:LPOVERLAPPED):WINBOOL; external External_library name 'ConnectNamedPipe';
+  function ConnectNamedPipe(hNamedPipe:HANDLE; lpOverlapped:LPOVERLAPPED):WINBOOL; external 'kernel32.dll' name 'ConnectNamedPipe';
 
-  function DisconnectNamedPipe(hNamedPipe:HANDLE):WINBOOL; external External_library name 'DisconnectNamedPipe';
+  function DisconnectNamedPipe(hNamedPipe:HANDLE):WINBOOL; external 'kernel32.dll' name 'DisconnectNamedPipe';
 
-  function SetNamedPipeHandleState(hNamedPipe:HANDLE; lpMode:LPDWORD; lpMaxCollectionCount:LPDWORD; lpCollectDataTimeout:LPDWORD):WINBOOL; external External_library name 'SetNamedPipeHandleState';
+  function SetNamedPipeHandleState(hNamedPipe:HANDLE; lpMode:LPDWORD; lpMaxCollectionCount:LPDWORD; lpCollectDataTimeout:LPDWORD):WINBOOL; external 'kernel32.dll' name 'SetNamedPipeHandleState';
 
-  function GetNamedPipeInfo(hNamedPipe:HANDLE; lpFlags:LPDWORD; lpOutBufferSize:LPDWORD; lpInBufferSize:LPDWORD; lpMaxInstances:LPDWORD):WINBOOL; external External_library name 'GetNamedPipeInfo';
+  function GetNamedPipeInfo(hNamedPipe:HANDLE; lpFlags:LPDWORD; lpOutBufferSize:LPDWORD; lpInBufferSize:LPDWORD; lpMaxInstances:LPDWORD):WINBOOL; external 'kernel32.dll' name 'GetNamedPipeInfo';
 
   function PeekNamedPipe(hNamedPipe:HANDLE; lpBuffer:LPVOID; nBufferSize:DWORD; lpBytesRead:LPDWORD; lpTotalBytesAvail:LPDWORD; 
-             lpBytesLeftThisMessage:LPDWORD):WINBOOL; external External_library name 'PeekNamedPipe';
+             lpBytesLeftThisMessage:LPDWORD):WINBOOL; external 'kernel32.dll' name 'PeekNamedPipe';
 
   function TransactNamedPipe(hNamedPipe:HANDLE; lpInBuffer:LPVOID; nInBufferSize:DWORD; lpOutBuffer:LPVOID; nOutBufferSize:DWORD; 
-             lpBytesRead:LPDWORD; lpOverlapped:LPOVERLAPPED):WINBOOL; external External_library name 'TransactNamedPipe';
+             lpBytesRead:LPDWORD; lpOverlapped:LPOVERLAPPED):WINBOOL; external 'kernel32.dll' name 'TransactNamedPipe';
 
-  function GetMailslotInfo(hMailslot:HANDLE; lpMaxMessageSize:LPDWORD; lpNextSize:LPDWORD; lpMessageCount:LPDWORD; lpReadTimeout:LPDWORD):WINBOOL; external External_library name 'GetMailslotInfo';
+  function GetMailslotInfo(hMailslot:HANDLE; lpMaxMessageSize:LPDWORD; lpNextSize:LPDWORD; lpMessageCount:LPDWORD; lpReadTimeout:LPDWORD):WINBOOL; external 'kernel32.dll' name 'GetMailslotInfo';
 
-  function SetMailslotInfo(hMailslot:HANDLE; lReadTimeout:DWORD):WINBOOL; external External_library name 'SetMailslotInfo';
+  function SetMailslotInfo(hMailslot:HANDLE; lReadTimeout:DWORD):WINBOOL; external 'kernel32.dll' name 'SetMailslotInfo';
 
-  function MapViewOfFile(hFileMappingObject:HANDLE; dwDesiredAccess:DWORD; dwFileOffsetHigh:DWORD; dwFileOffsetLow:DWORD; dwNumberOfBytesToMap:DWORD):LPVOID; external External_library name 'MapViewOfFile';
+  function MapViewOfFile(hFileMappingObject:HANDLE; dwDesiredAccess:DWORD; dwFileOffsetHigh:DWORD; dwFileOffsetLow:DWORD; dwNumberOfBytesToMap:DWORD):LPVOID; external 'kernel32.dll' name 'MapViewOfFile';
 
-  function FlushViewOfFile(lpBaseAddress:LPCVOID; dwNumberOfBytesToFlush:DWORD):WINBOOL; external External_library name 'FlushViewOfFile';
+  function FlushViewOfFile(lpBaseAddress:LPCVOID; dwNumberOfBytesToFlush:DWORD):WINBOOL; external 'kernel32.dll' name 'FlushViewOfFile';
 
-  function UnmapViewOfFile(lpBaseAddress:LPVOID):WINBOOL; external External_library name 'UnmapViewOfFile';
+  function UnmapViewOfFile(lpBaseAddress:LPVOID):WINBOOL; external 'kernel32.dll' name 'UnmapViewOfFile';
 
-  function OpenFile(lpFileName:LPCSTR; lpReOpenBuff:LPOFSTRUCT; uStyle:UINT):HFILE; external External_library name 'OpenFile';
+  function OpenFile(lpFileName:LPCSTR; lpReOpenBuff:LPOFSTRUCT; uStyle:UINT):HFILE; external 'kernel32.dll' name 'OpenFile';
 
-  function _lopen(lpPathName:LPCSTR; iReadWrite:longint):HFILE; external External_library name '_lopen';
+  function _lopen(lpPathName:LPCSTR; iReadWrite:longint):HFILE; external 'kernel32.dll' name '_lopen';
 
-  function _lcreat(lpPathName:LPCSTR; iAttribute:longint):HFILE; external External_library name '_lcreat';
+  function _lcreat(lpPathName:LPCSTR; iAttribute:longint):HFILE; external 'kernel32.dll' name '_lcreat';
 
-  function _lread(hFile:HFILE; lpBuffer:LPVOID; uBytes:UINT):UINT; external External_library name '_lread';
+  function _lread(hFile:HFILE; lpBuffer:LPVOID; uBytes:UINT):UINT; external 'kernel32.dll' name '_lread';
 
-  function _lwrite(hFile:HFILE; lpBuffer:LPCSTR; uBytes:UINT):UINT; external External_library name '_lwrite';
+  function _lwrite(hFile:HFILE; lpBuffer:LPCSTR; uBytes:UINT):UINT; external 'kernel32.dll' name '_lwrite';
 
-  function _hread(hFile:HFILE; lpBuffer:LPVOID; lBytes:longint):longint; external External_library name '_hread';
+  function _hread(hFile:HFILE; lpBuffer:LPVOID; lBytes:longint):longint; external 'kernel32.dll' name '_hread';
 
-  function _hwrite(hFile:HFILE; lpBuffer:LPCSTR; lBytes:longint):longint; external External_library name '_hwrite';
+  function _hwrite(hFile:HFILE; lpBuffer:LPCSTR; lBytes:longint):longint; external 'kernel32.dll' name '_hwrite';
 
-  function _lclose(hFile:HFILE):HFILE; external External_library name '_lclose';
+  function _lclose(hFile:HFILE):HFILE; external 'kernel32.dll' name '_lclose';
 
-  function _llseek(hFile:HFILE; lOffset:LONG; iOrigin:longint):LONG; external External_library name '_llseek';
+  function _llseek(hFile:HFILE; lOffset:LONG; iOrigin:longint):LONG; external 'kernel32.dll' name '_llseek';
 
-  function IsTextUnicode(lpBuffer:LPVOID; cb:longint; lpi:LPINT):WINBOOL; external External_library name 'IsTextUnicode';
+  function IsTextUnicode(lpBuffer:LPVOID; cb:longint; lpi:LPINT):WINBOOL; external 'advapi32.dll' name 'IsTextUnicode';
 
-  function TlsAlloc:DWORD; external External_library name 'TlsAlloc';
+  function TlsAlloc:DWORD; external 'kernel32.dll' name 'TlsAlloc';
 
-  function TlsGetValue(dwTlsIndex:DWORD):LPVOID; external External_library name 'TlsGetValue';
+  function TlsGetValue(dwTlsIndex:DWORD):LPVOID; external 'kernel32.dll' name 'TlsGetValue';
 
-  function TlsSetValue(dwTlsIndex:DWORD; lpTlsValue:LPVOID):WINBOOL; external External_library name 'TlsSetValue';
+  function TlsSetValue(dwTlsIndex:DWORD; lpTlsValue:LPVOID):WINBOOL; external 'kernel32.dll' name 'TlsSetValue';
 
-  function TlsFree(dwTlsIndex:DWORD):WINBOOL; external External_library name 'TlsFree';
+  function TlsFree(dwTlsIndex:DWORD):WINBOOL; external 'kernel32.dll' name 'TlsFree';
 
-  function SleepEx(dwMilliseconds:DWORD; bAlertable:WINBOOL):DWORD; external External_library name 'SleepEx';
+  function SleepEx(dwMilliseconds:DWORD; bAlertable:WINBOOL):DWORD; external 'kernel32.dll' name 'SleepEx';
 
-  function WaitForSingleObjectEx(hHandle:HANDLE; dwMilliseconds:DWORD; bAlertable:WINBOOL):DWORD; external External_library name 'WaitForSingleObjectEx';
+  function WaitForSingleObjectEx(hHandle:HANDLE; dwMilliseconds:DWORD; bAlertable:WINBOOL):DWORD; external 'kernel32.dll' name 'WaitForSingleObjectEx';
 
-  function WaitForMultipleObjectsEx(nCount:DWORD; var lpHandles:HANDLE; bWaitAll:WINBOOL; dwMilliseconds:DWORD; bAlertable:WINBOOL):DWORD; external External_library name 'WaitForMultipleObjectsEx';
+  function WaitForMultipleObjectsEx(nCount:DWORD; var lpHandles:HANDLE; bWaitAll:WINBOOL; dwMilliseconds:DWORD; bAlertable:WINBOOL):DWORD; external 'kernel32.dll' name 'WaitForMultipleObjectsEx';
 
-  function ReadFileEx(hFile:HANDLE; lpBuffer:LPVOID; nNumberOfBytesToRead:DWORD; lpOverlapped:LPOVERLAPPED; lpCompletionRoutine:LPOVERLAPPED_COMPLETION_ROUTINE):WINBOOL; external External_library name 'ReadFileEx';
+  function ReadFileEx(hFile:HANDLE; lpBuffer:LPVOID; nNumberOfBytesToRead:DWORD; lpOverlapped:LPOVERLAPPED; lpCompletionRoutine:LPOVERLAPPED_COMPLETION_ROUTINE):WINBOOL; external 'kernel32.dll' name 'ReadFileEx';
 
-  function WriteFileEx(hFile:HANDLE; lpBuffer:LPCVOID; nNumberOfBytesToWrite:DWORD; lpOverlapped:LPOVERLAPPED; lpCompletionRoutine:LPOVERLAPPED_COMPLETION_ROUTINE):WINBOOL; external External_library name 'WriteFileEx';
+  function WriteFileEx(hFile:HANDLE; lpBuffer:LPCVOID; nNumberOfBytesToWrite:DWORD; lpOverlapped:LPOVERLAPPED; lpCompletionRoutine:LPOVERLAPPED_COMPLETION_ROUTINE):WINBOOL; external 'kernel32.dll' name 'WriteFileEx';
 
   function BackupRead(hFile:HANDLE; lpBuffer:LPBYTE; nNumberOfBytesToRead:DWORD; lpNumberOfBytesRead:LPDWORD; bAbort:WINBOOL; 
-             bProcessSecurity:WINBOOL; var lpContext:LPVOID):WINBOOL; external External_library name 'BackupRead';
+             bProcessSecurity:WINBOOL; var lpContext:LPVOID):WINBOOL; external 'kernel32.dll' name 'BackupRead';
 
   function BackupSeek(hFile:HANDLE; dwLowBytesToSeek:DWORD; dwHighBytesToSeek:DWORD; lpdwLowByteSeeked:LPDWORD; lpdwHighByteSeeked:LPDWORD; 
-             var lpContext:LPVOID):WINBOOL; external External_library name 'BackupSeek';
+             var lpContext:LPVOID):WINBOOL; external 'kernel32.dll' name 'BackupSeek';
 
   function BackupWrite(hFile:HANDLE; lpBuffer:LPBYTE; nNumberOfBytesToWrite:DWORD; lpNumberOfBytesWritten:LPDWORD; bAbort:WINBOOL; 
-             bProcessSecurity:WINBOOL; var lpContext:LPVOID):WINBOOL; external External_library name 'BackupWrite';
+             bProcessSecurity:WINBOOL; var lpContext:LPVOID):WINBOOL; external 'kernel32.dll' name 'BackupWrite';
 
-  function SetProcessShutdownParameters(dwLevel:DWORD; dwFlags:DWORD):WINBOOL; external External_library name 'SetProcessShutdownParameters';
+  function SetProcessShutdownParameters(dwLevel:DWORD; dwFlags:DWORD):WINBOOL; external 'kernel32.dll' name 'SetProcessShutdownParameters';
 
-  function GetProcessShutdownParameters(lpdwLevel:LPDWORD; lpdwFlags:LPDWORD):WINBOOL; external External_library name 'GetProcessShutdownParameters';
+  function GetProcessShutdownParameters(lpdwLevel:LPDWORD; lpdwFlags:LPDWORD):WINBOOL; external 'kernel32.dll' name 'GetProcessShutdownParameters';
 
-  procedure SetFileApisToOEM; external External_library name 'SetFileApisToOEM';
+  procedure SetFileApisToOEM; external 'kernel32.dll' name 'SetFileApisToOEM';
 
-  procedure SetFileApisToANSI; external External_library name 'SetFileApisToANSI';
+  procedure SetFileApisToANSI; external 'kernel32.dll' name 'SetFileApisToANSI';
 
-  function AreFileApisANSI:WINBOOL; external External_library name 'AreFileApisANSI';
+  function AreFileApisANSI:WINBOOL; external 'kernel32.dll' name 'AreFileApisANSI';
 
-  function CloseEventLog(hEventLog:HANDLE):WINBOOL; external External_library name 'CloseEventLog';
+  function CloseEventLog(hEventLog:HANDLE):WINBOOL; external 'advapi32.dll' name 'CloseEventLog';
 
-  function DeregisterEventSource(hEventLog:HANDLE):WINBOOL; external External_library name 'DeregisterEventSource';
+  function DeregisterEventSource(hEventLog:HANDLE):WINBOOL; external 'advapi32.dll' name 'DeregisterEventSource';
 
-  function NotifyChangeEventLog(hEventLog:HANDLE; hEvent:HANDLE):WINBOOL; external External_library name 'NotifyChangeEventLog';
+  function NotifyChangeEventLog(hEventLog:HANDLE; hEvent:HANDLE):WINBOOL; external 'advapi32.dll' name 'NotifyChangeEventLog';
 
-  function GetNumberOfEventLogRecords(hEventLog:HANDLE; NumberOfRecords:PDWORD):WINBOOL; external External_library name 'GetNumberOfEventLogRecords';
+  function GetNumberOfEventLogRecords(hEventLog:HANDLE; NumberOfRecords:PDWORD):WINBOOL; external 'advapi32.dll' name 'GetNumberOfEventLogRecords';
 
-  function GetOldestEventLogRecord(hEventLog:HANDLE; OldestRecord:PDWORD):WINBOOL; external External_library name 'GetOldestEventLogRecord';
+  function GetOldestEventLogRecord(hEventLog:HANDLE; OldestRecord:PDWORD):WINBOOL; external 'advapi32.dll' name 'GetOldestEventLogRecord';
 
-  function DuplicateToken(ExistingTokenHandle:HANDLE; ImpersonationLevel:SECURITY_IMPERSONATION_LEVEL; DuplicateTokenHandle:PHANDLE):WINBOOL; external External_library name 'DuplicateToken';
+  function DuplicateToken(ExistingTokenHandle:HANDLE; ImpersonationLevel:SECURITY_IMPERSONATION_LEVEL; DuplicateTokenHandle:PHANDLE):WINBOOL; external 'advapi32.dll' name 'DuplicateToken';
 
-  function GetKernelObjectSecurity(Handle:HANDLE; RequestedInformation:SECURITY_INFORMATION; pSecurityDescriptor:PSECURITY_DESCRIPTOR; nLength:DWORD; lpnLengthNeeded:LPDWORD):WINBOOL; external External_library name 'GetKernelObjectSecurity';
+  function GetKernelObjectSecurity(Handle:HANDLE; RequestedInformation:SECURITY_INFORMATION; pSecurityDescriptor:PSECURITY_DESCRIPTOR; nLength:DWORD; lpnLengthNeeded:LPDWORD):WINBOOL; external 'advapi32.dll' name 'GetKernelObjectSecurity';
 
-  function ImpersonateNamedPipeClient(hNamedPipe:HANDLE):WINBOOL; external External_library name 'ImpersonateNamedPipeClient';
+  function ImpersonateNamedPipeClient(hNamedPipe:HANDLE):WINBOOL; external 'advapi32.dll' name 'ImpersonateNamedPipeClient';
 
-  function ImpersonateLoggedOnUser(hToken:HANDLE):WINBOOL; external External_library name 'ImpersonateLoggedOnUser';
+  function ImpersonateLoggedOnUser(hToken:HANDLE):WINBOOL; external 'advapi32.dll' name 'ImpersonateLoggedOnUser';
 
-  function ImpersonateSelf(ImpersonationLevel:SECURITY_IMPERSONATION_LEVEL):WINBOOL; external External_library name 'ImpersonateSelf';
+  function ImpersonateSelf(ImpersonationLevel:SECURITY_IMPERSONATION_LEVEL):WINBOOL; external 'advapi32.dll' name 'ImpersonateSelf';
 
-  function RevertToSelf:WINBOOL; external External_library name 'RevertToSelf';
+  function RevertToSelf:WINBOOL; external 'advapi32.dll' name 'RevertToSelf';
 
-  function SetThreadToken(Thread:PHANDLE; Token:HANDLE):WINBOOL; external External_library name 'SetThreadToken';
+  function SetThreadToken(Thread:PHANDLE; Token:HANDLE):WINBOOL; external 'advapi32.dll' name 'SetThreadToken';
 
 {  function AccessCheck(pSecurityDescriptor:PSECURITY_DESCRIPTOR; ClientToken:HANDLE; DesiredAccess:DWORD; GenericMapping:PGENERIC_MAPPING; PrivilegeSet:PPRIVILEGE_SET;
-             PrivilegeSetLength:LPDWORD; GrantedAccess:LPDWORD; AccessStatus:LPBOOL):WINBOOL; external External_library name 'AccessCheck'; }
+             PrivilegeSetLength:LPDWORD; GrantedAccess:LPDWORD; AccessStatus:LPBOOL):WINBOOL; external 'advapi32.dll' name 'AccessCheck';
+             }
 
-  function OpenProcessToken(ProcessHandle:HANDLE; DesiredAccess:DWORD; TokenHandle:PHANDLE):WINBOOL; external External_library name 'OpenProcessToken';
+  function OpenProcessToken(ProcessHandle:HANDLE; DesiredAccess:DWORD; TokenHandle:PHANDLE):WINBOOL; external 'advapi32.dll' name 'OpenProcessToken';
 
-  function OpenThreadToken(ThreadHandle:HANDLE; DesiredAccess:DWORD; OpenAsSelf:WINBOOL; TokenHandle:PHANDLE):WINBOOL; external External_library name 'OpenThreadToken';
+  function OpenThreadToken(ThreadHandle:HANDLE; DesiredAccess:DWORD; OpenAsSelf:WINBOOL; TokenHandle:PHANDLE):WINBOOL; external 'advapi32.dll' name 'OpenThreadToken';
 
-  function GetTokenInformation(TokenHandle:HANDLE; TokenInformationClass:TOKEN_INFORMATION_CLASS; TokenInformation:LPVOID; TokenInformationLength:DWORD; ReturnLength:PDWORD):WINBOOL; external External_library name 'GetTokenInformation';
+  function GetTokenInformation(TokenHandle:HANDLE; TokenInformationClass:TOKEN_INFORMATION_CLASS; TokenInformation:LPVOID; TokenInformationLength:DWORD; ReturnLength:PDWORD):WINBOOL; external 'advapi32.dll' name 'GetTokenInformation';
 
-  function SetTokenInformation(TokenHandle:HANDLE; TokenInformationClass:TOKEN_INFORMATION_CLASS; TokenInformation:LPVOID; TokenInformationLength:DWORD):WINBOOL; external External_library name 'SetTokenInformation';
+  function SetTokenInformation(TokenHandle:HANDLE; TokenInformationClass:TOKEN_INFORMATION_CLASS; TokenInformation:LPVOID; TokenInformationLength:DWORD):WINBOOL; external 'advapi32.dll' name 'SetTokenInformation';
 
   function AdjustTokenPrivileges(TokenHandle:HANDLE; DisableAllPrivileges:WINBOOL; NewState:PTOKEN_PRIVILEGES; BufferLength:DWORD; PreviousState:PTOKEN_PRIVILEGES; 
-             ReturnLength:PDWORD):WINBOOL; external External_library name 'AdjustTokenPrivileges';
+             ReturnLength:PDWORD):WINBOOL; external 'advapi32.dll' name 'AdjustTokenPrivileges';
 
   function AdjustTokenGroups(TokenHandle:HANDLE; ResetToDefault:WINBOOL; NewState:PTOKEN_GROUPS; BufferLength:DWORD; PreviousState:PTOKEN_GROUPS; 
-             ReturnLength:PDWORD):WINBOOL; external External_library name 'AdjustTokenGroups';
+             ReturnLength:PDWORD):WINBOOL; external 'advapi32.dll' name 'AdjustTokenGroups';
 
-  function PrivilegeCheck(ClientToken:HANDLE; RequiredPrivileges:PPRIVILEGE_SET; pfResult:LPBOOL):WINBOOL; external External_library name 'PrivilegeCheck';
+  function PrivilegeCheck(ClientToken:HANDLE; RequiredPrivileges:PPRIVILEGE_SET; pfResult:LPBOOL):WINBOOL; external 'advapi32.dll' name 'PrivilegeCheck';
 
-  function IsValidSid(pSid:PSID):WINBOOL; external External_library name 'IsValidSid';
+  function IsValidSid(pSid:PSID):WINBOOL; external 'advapi32.dll' name 'IsValidSid';
 
-  function EqualSid(pSid1:PSID; pSid2:PSID):WINBOOL; external External_library name 'EqualSid';
+  function EqualSid(pSid1:PSID; pSid2:PSID):WINBOOL; external 'advapi32.dll' name 'EqualSid';
 
-  function EqualPrefixSid(pSid1:PSID; pSid2:PSID):WINBOOL; external External_library name 'EqualPrefixSid';
+  function EqualPrefixSid(pSid1:PSID; pSid2:PSID):WINBOOL; external 'advapi32.dll' name 'EqualPrefixSid';
 
-  function GetSidLengthRequired(nSubAuthorityCount:UCHAR):DWORD; external External_library name 'GetSidLengthRequired';
+  function GetSidLengthRequired(nSubAuthorityCount:UCHAR):DWORD; external 'advapi32.dll' name 'GetSidLengthRequired';
 
   function AllocateAndInitializeSid(pIdentifierAuthority:PSID_IDENTIFIER_AUTHORITY; nSubAuthorityCount:BYTE; nSubAuthority0:DWORD; nSubAuthority1:DWORD; nSubAuthority2:DWORD; 
              nSubAuthority3:DWORD; nSubAuthority4:DWORD; nSubAuthority5:DWORD; nSubAuthority6:DWORD; nSubAuthority7:DWORD; 
-             var pSid:PSID):WINBOOL; external External_library name 'AllocateAndInitializeSid';
+             var pSid:PSID):WINBOOL; external 'advapi32.dll' name 'AllocateAndInitializeSid';
 
-  function FreeSid(pSid:PSID):PVOID; external External_library name 'FreeSid';
+  function FreeSid(pSid:PSID):PVOID; external 'advapi32.dll' name 'FreeSid';
 
-  function InitializeSid(Sid:PSID; pIdentifierAuthority:PSID_IDENTIFIER_AUTHORITY; nSubAuthorityCount:BYTE):WINBOOL; external External_library name 'InitializeSid';
+  function InitializeSid(Sid:PSID; pIdentifierAuthority:PSID_IDENTIFIER_AUTHORITY; nSubAuthorityCount:BYTE):WINBOOL; external 'advapi32.dll' name 'InitializeSid';
 
-  function GetSidIdentifierAuthority(pSid:PSID):PSID_IDENTIFIER_AUTHORITY; external External_library name 'GetSidIdentifierAuthority';
+  function GetSidIdentifierAuthority(pSid:PSID):PSID_IDENTIFIER_AUTHORITY; external 'advapi32.dll' name 'GetSidIdentifierAuthority';
 
-  function GetSidSubAuthority(pSid:PSID; nSubAuthority:DWORD):PDWORD; external External_library name 'GetSidSubAuthority';
+  function GetSidSubAuthority(pSid:PSID; nSubAuthority:DWORD):PDWORD; external 'advapi32.dll' name 'GetSidSubAuthority';
 
-  function GetSidSubAuthorityCount(pSid:PSID):PUCHAR; external External_library name 'GetSidSubAuthorityCount';
+  function GetSidSubAuthorityCount(pSid:PSID):PUCHAR; external 'advapi32.dll' name 'GetSidSubAuthorityCount';
 
-  function GetLengthSid(pSid:PSID):DWORD; external External_library name 'GetLengthSid';
+  function GetLengthSid(pSid:PSID):DWORD; external 'advapi32.dll' name 'GetLengthSid';
 
-  function CopySid(nDestinationSidLength:DWORD; pDestinationSid:PSID; pSourceSid:PSID):WINBOOL; external External_library name 'CopySid';
+  function CopySid(nDestinationSidLength:DWORD; pDestinationSid:PSID; pSourceSid:PSID):WINBOOL; external 'advapi32.dll' name 'CopySid';
 
-  function AreAllAccessesGranted(GrantedAccess:DWORD; DesiredAccess:DWORD):WINBOOL; external External_library name 'AreAllAccessesGranted';
+  function AreAllAccessesGranted(GrantedAccess:DWORD; DesiredAccess:DWORD):WINBOOL; external 'advapi32.dll' name 'AreAllAccessesGranted';
 
-  function AreAnyAccessesGranted(GrantedAccess:DWORD; DesiredAccess:DWORD):WINBOOL; external External_library name 'AreAnyAccessesGranted';
+  function AreAnyAccessesGranted(GrantedAccess:DWORD; DesiredAccess:DWORD):WINBOOL; external 'advapi32.dll' name 'AreAnyAccessesGranted';
 
-  procedure MapGenericMask(AccessMask:PDWORD; GenericMapping:PGENERIC_MAPPING); external External_library name 'MapGenericMask';
+  procedure MapGenericMask(AccessMask:PDWORD; GenericMapping:PGENERIC_MAPPING); external 'advapi32.dll' name 'MapGenericMask';
 
-  function IsValidAcl(pAcl:PACL):WINBOOL; external External_library name 'IsValidAcl';
+  function IsValidAcl(pAcl:PACL):WINBOOL; external 'advapi32.dll' name 'IsValidAcl';
 
-  function InitializeAcl(pAcl:PACL; nAclLength:DWORD; dwAclRevision:DWORD):WINBOOL; external External_library name 'InitializeAcl';
+  function InitializeAcl(pAcl:PACL; nAclLength:DWORD; dwAclRevision:DWORD):WINBOOL; external 'advapi32.dll' name 'InitializeAcl';
 
-  function GetAclInformation(pAcl:PACL; pAclInformation:LPVOID; nAclInformationLength:DWORD; dwAclInformationClass:ACL_INFORMATION_CLASS):WINBOOL; external External_library name 'GetAclInformation';
+  function GetAclInformation(pAcl:PACL; pAclInformation:LPVOID; nAclInformationLength:DWORD; dwAclInformationClass:ACL_INFORMATION_CLASS):WINBOOL; external 'advapi32.dll' name 'GetAclInformation';
 
-  function SetAclInformation(pAcl:PACL; pAclInformation:LPVOID; nAclInformationLength:DWORD; dwAclInformationClass:ACL_INFORMATION_CLASS):WINBOOL; external External_library name 'SetAclInformation';
+  function SetAclInformation(pAcl:PACL; pAclInformation:LPVOID; nAclInformationLength:DWORD; dwAclInformationClass:ACL_INFORMATION_CLASS):WINBOOL; external 'advapi32.dll' name 'SetAclInformation';
 
-  function AddAce(pAcl:PACL; dwAceRevision:DWORD; dwStartingAceIndex:DWORD; pAceList:LPVOID; nAceListLength:DWORD):WINBOOL; external External_library name 'AddAce';
+  function AddAce(pAcl:PACL; dwAceRevision:DWORD; dwStartingAceIndex:DWORD; pAceList:LPVOID; nAceListLength:DWORD):WINBOOL; external 'advapi32.dll' name 'AddAce';
 
-  function DeleteAce(pAcl:PACL; dwAceIndex:DWORD):WINBOOL; external External_library name 'DeleteAce';
+  function DeleteAce(pAcl:PACL; dwAceIndex:DWORD):WINBOOL; external 'advapi32.dll' name 'DeleteAce';
 
-  function GetAce(pAcl:PACL; dwAceIndex:DWORD; var pAce:LPVOID):WINBOOL; external External_library name 'GetAce';
+  function GetAce(pAcl:PACL; dwAceIndex:DWORD; var pAce:LPVOID):WINBOOL; external 'advapi32.dll' name 'GetAce';
 
-  function AddAccessAllowedAce(pAcl:PACL; dwAceRevision:DWORD; AccessMask:DWORD; pSid:PSID):WINBOOL; external External_library name 'AddAccessAllowedAce';
+  function AddAccessAllowedAce(pAcl:PACL; dwAceRevision:DWORD; AccessMask:DWORD; pSid:PSID):WINBOOL; external 'advapi32.dll' name 'AddAccessAllowedAce';
 
-  function AddAccessDeniedAce(pAcl:PACL; dwAceRevision:DWORD; AccessMask:DWORD; pSid:PSID):WINBOOL; external External_library name 'AddAccessDeniedAce';
+  function AddAccessDeniedAce(pAcl:PACL; dwAceRevision:DWORD; AccessMask:DWORD; pSid:PSID):WINBOOL; external 'advapi32.dll' name 'AddAccessDeniedAce';
 
   function AddAuditAccessAce(pAcl:PACL; dwAceRevision:DWORD; dwAccessMask:DWORD; pSid:PSID; bAuditSuccess:WINBOOL; 
-             bAuditFailure:WINBOOL):WINBOOL; external External_library name 'AddAuditAccessAce';
+             bAuditFailure:WINBOOL):WINBOOL; external 'advapi32.dll' name 'AddAuditAccessAce';
 
-  function FindFirstFreeAce(pAcl:PACL; var pAce:LPVOID):WINBOOL; external External_library name 'FindFirstFreeAce';
+  function FindFirstFreeAce(pAcl:PACL; var pAce:LPVOID):WINBOOL; external 'advapi32.dll' name 'FindFirstFreeAce';
 
-  function InitializeSecurityDescriptor(pSecurityDescriptor:PSECURITY_DESCRIPTOR; dwRevision:DWORD):WINBOOL; external External_library name 'InitializeSecurityDescriptor';
+  function InitializeSecurityDescriptor(pSecurityDescriptor:PSECURITY_DESCRIPTOR; dwRevision:DWORD):WINBOOL; external 'advapi32.dll' name 'InitializeSecurityDescriptor';
 
-  function IsValidSecurityDescriptor(pSecurityDescriptor:PSECURITY_DESCRIPTOR):WINBOOL; external External_library name 'IsValidSecurityDescriptor';
+  function IsValidSecurityDescriptor(pSecurityDescriptor:PSECURITY_DESCRIPTOR):WINBOOL; external 'advapi32.dll' name 'IsValidSecurityDescriptor';
 
-  function GetSecurityDescriptorLength(pSecurityDescriptor:PSECURITY_DESCRIPTOR):DWORD; external External_library name 'GetSecurityDescriptorLength';
+  function GetSecurityDescriptorLength(pSecurityDescriptor:PSECURITY_DESCRIPTOR):DWORD; external 'advapi32.dll' name 'GetSecurityDescriptorLength';
 
-  function GetSecurityDescriptorControl(pSecurityDescriptor:PSECURITY_DESCRIPTOR; pControl:PSECURITY_DESCRIPTOR_CONTROL; lpdwRevision:LPDWORD):WINBOOL; external External_library name 'GetSecurityDescriptorControl';
+  function GetSecurityDescriptorControl(pSecurityDescriptor:PSECURITY_DESCRIPTOR; pControl:PSECURITY_DESCRIPTOR_CONTROL; lpdwRevision:LPDWORD):WINBOOL; external 'advapi32.dll' name 'GetSecurityDescriptorControl';
 
-  function SetSecurityDescriptorDacl(pSecurityDescriptor:PSECURITY_DESCRIPTOR; bDaclPresent:WINBOOL; pDacl:PACL; bDaclDefaulted:WINBOOL):WINBOOL; external External_library name 'SetSecurityDescriptorDacl';
+  function SetSecurityDescriptorDacl(pSecurityDescriptor:PSECURITY_DESCRIPTOR; bDaclPresent:WINBOOL; pDacl:PACL; bDaclDefaulted:WINBOOL):WINBOOL; external 'advapi32.dll' name 'SetSecurityDescriptorDacl';
 
-  function GetSecurityDescriptorDacl(pSecurityDescriptor:PSECURITY_DESCRIPTOR; lpbDaclPresent:LPBOOL; var pDacl:PACL; lpbDaclDefaulted:LPBOOL):WINBOOL; external External_library name 'GetSecurityDescriptorDacl';
+  function GetSecurityDescriptorDacl(pSecurityDescriptor:PSECURITY_DESCRIPTOR; lpbDaclPresent:LPBOOL; var pDacl:PACL; lpbDaclDefaulted:LPBOOL):WINBOOL; external 'advapi32.dll' name 'GetSecurityDescriptorDacl';
 
-  function SetSecurityDescriptorSacl(pSecurityDescriptor:PSECURITY_DESCRIPTOR; bSaclPresent:WINBOOL; pSacl:PACL; bSaclDefaulted:WINBOOL):WINBOOL; external External_library name 'SetSecurityDescriptorSacl';
+  function SetSecurityDescriptorSacl(pSecurityDescriptor:PSECURITY_DESCRIPTOR; bSaclPresent:WINBOOL; pSacl:PACL; bSaclDefaulted:WINBOOL):WINBOOL; external 'advapi32.dll' name 'SetSecurityDescriptorSacl';
 
-  function GetSecurityDescriptorSacl(pSecurityDescriptor:PSECURITY_DESCRIPTOR; lpbSaclPresent:LPBOOL; var pSacl:PACL; lpbSaclDefaulted:LPBOOL):WINBOOL; external External_library name 'GetSecurityDescriptorSacl';
+  function GetSecurityDescriptorSacl(pSecurityDescriptor:PSECURITY_DESCRIPTOR; lpbSaclPresent:LPBOOL; var pSacl:PACL; lpbSaclDefaulted:LPBOOL):WINBOOL; external 'advapi32.dll' name 'GetSecurityDescriptorSacl';
 
-  function SetSecurityDescriptorOwner(pSecurityDescriptor:PSECURITY_DESCRIPTOR; pOwner:PSID; bOwnerDefaulted:WINBOOL):WINBOOL; external External_library name 'SetSecurityDescriptorOwner';
+  function SetSecurityDescriptorOwner(pSecurityDescriptor:PSECURITY_DESCRIPTOR; pOwner:PSID; bOwnerDefaulted:WINBOOL):WINBOOL; external 'advapi32.dll' name 'SetSecurityDescriptorOwner';
 
-  function GetSecurityDescriptorOwner(pSecurityDescriptor:PSECURITY_DESCRIPTOR; var pOwner:PSID; lpbOwnerDefaulted:LPBOOL):WINBOOL; external External_library name 'GetSecurityDescriptorOwner';
+  function GetSecurityDescriptorOwner(pSecurityDescriptor:PSECURITY_DESCRIPTOR; var pOwner:PSID; lpbOwnerDefaulted:LPBOOL):WINBOOL; external 'advapi32.dll' name 'GetSecurityDescriptorOwner';
 
-  function SetSecurityDescriptorGroup(pSecurityDescriptor:PSECURITY_DESCRIPTOR; pGroup:PSID; bGroupDefaulted:WINBOOL):WINBOOL; external External_library name 'SetSecurityDescriptorGroup';
+  function SetSecurityDescriptorGroup(pSecurityDescriptor:PSECURITY_DESCRIPTOR; pGroup:PSID; bGroupDefaulted:WINBOOL):WINBOOL; external 'advapi32.dll' name 'SetSecurityDescriptorGroup';
 
-  function GetSecurityDescriptorGroup(pSecurityDescriptor:PSECURITY_DESCRIPTOR; var pGroup:PSID; lpbGroupDefaulted:LPBOOL):WINBOOL; external External_library name 'GetSecurityDescriptorGroup';
+  function GetSecurityDescriptorGroup(pSecurityDescriptor:PSECURITY_DESCRIPTOR; var pGroup:PSID; lpbGroupDefaulted:LPBOOL):WINBOOL; external 'advapi32.dll' name 'GetSecurityDescriptorGroup';
 
   function CreatePrivateObjectSecurity(ParentDescriptor:PSECURITY_DESCRIPTOR; CreatorDescriptor:PSECURITY_DESCRIPTOR; var NewDescriptor:PSECURITY_DESCRIPTOR; IsDirectoryObject:WINBOOL; Token:HANDLE; 
-             GenericMapping:PGENERIC_MAPPING):WINBOOL; external External_library name 'CreatePrivateObjectSecurity';
+             GenericMapping:PGENERIC_MAPPING):WINBOOL; external 'advapi32.dll' name 'CreatePrivateObjectSecurity';
 
   function SetPrivateObjectSecurity(SecurityInformation:SECURITY_INFORMATION; ModificationDescriptor:PSECURITY_DESCRIPTOR; var ObjectsSecurityDescriptor:PSECURITY_DESCRIPTOR; GenericMapping:PGENERIC_MAPPING; Token:HANDLE):WINBOOL;
-             external External_library name 'SetPrivateObjectSecurity';
+             external 'advapi32.dll' name 'SetPrivateObjectSecurity';
 
   function GetPrivateObjectSecurity(ObjectDescriptor:PSECURITY_DESCRIPTOR; SecurityInformation:SECURITY_INFORMATION; ResultantDescriptor:PSECURITY_DESCRIPTOR; DescriptorLength:DWORD; ReturnLength:PDWORD):WINBOOL;
-             external External_library name 'GetPrivateObjectSecurity';
+             external 'advapi32.dll' name 'GetPrivateObjectSecurity';
 
-  function DestroyPrivateObjectSecurity(var ObjectDescriptor:PSECURITY_DESCRIPTOR):WINBOOL; external External_library name 'DestroyPrivateObjectSecurity';
+  function DestroyPrivateObjectSecurity(var ObjectDescriptor:PSECURITY_DESCRIPTOR):WINBOOL; external 'advapi32.dll' name 'DestroyPrivateObjectSecurity';
 
-  function MakeSelfRelativeSD(pAbsoluteSecurityDescriptor:PSECURITY_DESCRIPTOR; pSelfRelativeSecurityDescriptor:PSECURITY_DESCRIPTOR; lpdwBufferLength:LPDWORD):WINBOOL; external External_library name 'MakeSelfRelativeSD';
+  function MakeSelfRelativeSD(pAbsoluteSecurityDescriptor:PSECURITY_DESCRIPTOR; pSelfRelativeSecurityDescriptor:PSECURITY_DESCRIPTOR; lpdwBufferLength:LPDWORD):WINBOOL; external 'advapi32.dll' name 'MakeSelfRelativeSD';
 
   function MakeAbsoluteSD(pSelfRelativeSecurityDescriptor:PSECURITY_DESCRIPTOR; pAbsoluteSecurityDescriptor:PSECURITY_DESCRIPTOR; lpdwAbsoluteSecurityDescriptorSize:LPDWORD; pDacl:PACL; lpdwDaclSize:LPDWORD; 
              pSacl:PACL; lpdwSaclSize:LPDWORD; pOwner:PSID; lpdwOwnerSize:LPDWORD; pPrimaryGroup:PSID; 
-             lpdwPrimaryGroupSize:LPDWORD):WINBOOL; external External_library name 'MakeAbsoluteSD';
+             lpdwPrimaryGroupSize:LPDWORD):WINBOOL; external 'advapi32.dll' name 'MakeAbsoluteSD';
 
-  function SetKernelObjectSecurity(Handle:HANDLE; SecurityInformation:SECURITY_INFORMATION; SecurityDescriptor:PSECURITY_DESCRIPTOR):WINBOOL; external External_library name 'SetKernelObjectSecurity';
+  function SetKernelObjectSecurity(Handle:HANDLE; SecurityInformation:SECURITY_INFORMATION; SecurityDescriptor:PSECURITY_DESCRIPTOR):WINBOOL; external 'advapi32.dll' name 'SetKernelObjectSecurity';
 
-  function FindNextChangeNotification(hChangeHandle:HANDLE):WINBOOL; external External_library name 'FindNextChangeNotification';
+  function FindNextChangeNotification(hChangeHandle:HANDLE):WINBOOL; external 'kernel32.dll' name 'FindNextChangeNotification';
 
-  function FindCloseChangeNotification(hChangeHandle:HANDLE):WINBOOL; external External_library name 'FindCloseChangeNotification';
+  function FindCloseChangeNotification(hChangeHandle:HANDLE):WINBOOL; external 'kernel32.dll' name 'FindCloseChangeNotification';
 
-  function VirtualLock(lpAddress:LPVOID; dwSize:DWORD):WINBOOL; external External_library name 'VirtualLock';
+  function VirtualLock(lpAddress:LPVOID; dwSize:DWORD):WINBOOL; external 'kernel32.dll' name 'VirtualLock';
 
-  function VirtualUnlock(lpAddress:LPVOID; dwSize:DWORD):WINBOOL; external External_library name 'VirtualUnlock';
+  function VirtualUnlock(lpAddress:LPVOID; dwSize:DWORD):WINBOOL; external 'kernel32.dll' name 'VirtualUnlock';
 
   function MapViewOfFileEx(hFileMappingObject:HANDLE; dwDesiredAccess:DWORD; dwFileOffsetHigh:DWORD; dwFileOffsetLow:DWORD; dwNumberOfBytesToMap:DWORD; 
-             lpBaseAddress:LPVOID):LPVOID; external External_library name 'MapViewOfFileEx';
+             lpBaseAddress:LPVOID):LPVOID; external 'kernel32.dll' name 'MapViewOfFileEx';
 
-  function SetPriorityClass(hProcess:HANDLE; dwPriorityClass:DWORD):WINBOOL; external External_library name 'SetPriorityClass';
+  function SetPriorityClass(hProcess:HANDLE; dwPriorityClass:DWORD):WINBOOL; external 'kernel32.dll' name 'SetPriorityClass';
 
-  function GetPriorityClass(hProcess:HANDLE):DWORD; external External_library name 'GetPriorityClass';
+  function GetPriorityClass(hProcess:HANDLE):DWORD; external 'kernel32.dll' name 'GetPriorityClass';
 
-  function IsBadReadPtr(lp:pointer; ucb:UINT):WINBOOL; external External_library name 'IsBadReadPtr';
+  function IsBadReadPtr(lp:pointer; ucb:UINT):WINBOOL; external 'kernel32.dll' name 'IsBadReadPtr';
 
-  function IsBadWritePtr(lp:LPVOID; ucb:UINT):WINBOOL; external External_library name 'IsBadWritePtr';
+  function IsBadWritePtr(lp:LPVOID; ucb:UINT):WINBOOL; external 'kernel32.dll' name 'IsBadWritePtr';
 
-  function IsBadHugeReadPtr(lp:pointer; ucb:UINT):WINBOOL; external External_library name 'IsBadHugeReadPtr';
+  function IsBadHugeReadPtr(lp:pointer; ucb:UINT):WINBOOL; external 'kernel32.dll' name 'IsBadHugeReadPtr';
 
-  function IsBadHugeWritePtr(lp:LPVOID; ucb:UINT):WINBOOL; external External_library name 'IsBadHugeWritePtr';
+  function IsBadHugeWritePtr(lp:LPVOID; ucb:UINT):WINBOOL; external 'kernel32.dll' name 'IsBadHugeWritePtr';
 
-  function IsBadCodePtr(lpfn:FARPROC):WINBOOL; external External_library name 'IsBadCodePtr';
+  function IsBadCodePtr(lpfn:FARPROC):WINBOOL; external 'kernel32.dll' name 'IsBadCodePtr';
 
-  function AllocateLocallyUniqueId(Luid:PLUID):WINBOOL; external External_library name 'AllocateLocallyUniqueId';
+  function AllocateLocallyUniqueId(Luid:PLUID):WINBOOL; external 'advapi32.dll' name 'AllocateLocallyUniqueId';
 
-  function QueryPerformanceCounter(var lpPerformanceCount:LARGE_INTEGER):WINBOOL; external External_library name 'QueryPerformanceCounter';
+  function QueryPerformanceCounter(var lpPerformanceCount:LARGE_INTEGER):WINBOOL; external 'kernel32.dll' name 'QueryPerformanceCounter';
 
-  function QueryPerformanceFrequency(var lpFrequency:LARGE_INTEGER):WINBOOL; external External_library name 'QueryPerformanceFrequency';
+  function QueryPerformanceFrequency(var lpFrequency:LARGE_INTEGER):WINBOOL; external 'kernel32.dll' name 'QueryPerformanceFrequency';
 
 {  procedure MoveMemory(Destination:PVOID; Source:pointer; Length:DWORD); external External_library name 'MoveMemory';
 
   procedure FillMemory(Destination:PVOID; Length:DWORD; Fill:BYTE); external External_library name 'FillMemory';
 
-  procedure ZeroMemory(Destination:PVOID; Length:DWORD); external External_library name 'ZeroMemory'; }
+  procedure ZeroMemory(Destination:PVOID; Length:DWORD); external External_library name 'ZeroMemory';
+  }
 
 
   { was #define dname(params) def_expr }
@@ -4398,11 +4401,11 @@ in define line 6852 *)
 
 {$ifdef WIN95}
 
-  function ActivateKeyboardLayout(hkl:HKL; Flags:UINT):HKL; external External_library name 'ActivateKeyboardLayout';
+  function ActivateKeyboardLayout(hkl:HKL; Flags:UINT):HKL; external 'user32.dll' name 'ActivateKeyboardLayout';
 
 {$else}
 
-  function ActivateKeyboardLayout(hkl:HKL; Flags:UINT):WINBOOL; external External_library name 'ActivateKeyboardLayout';
+  function ActivateKeyboardLayout(hkl:HKL; Flags:UINT):WINBOOL; external 'user32.dll' name 'ActivateKeyboardLayout';
 
 {$endif}
 
@@ -4410,1018 +4413,1019 @@ in define line 6852 *)
   function ToUnicodeEx(wVirtKey:UINT; wScanCode:UINT; lpKeyState:PBYTE; pwszBuff:LPWSTR; cchBuff:longint; 
              wFlags:UINT; dwhkl:HKL):longint; external External_library name 'ToUnicodeEx';
 
-  function UnloadKeyboardLayout(hkl:HKL):WINBOOL; external External_library name 'UnloadKeyboardLayout';
+  function UnloadKeyboardLayout(hkl:HKL):WINBOOL; external 'user32.dll' name 'UnloadKeyboardLayout';
 
-  function GetKeyboardLayoutList(nBuff:longint; var lpList:HKL):longint; external External_library name 'GetKeyboardLayoutList';
+  function GetKeyboardLayoutList(nBuff:longint; var lpList:HKL):longint; external 'user32.dll' name 'GetKeyboardLayoutList';
 
-  function GetKeyboardLayout(dwLayout:DWORD):HKL; external External_library name 'GetKeyboardLayout';
+  function GetKeyboardLayout(dwLayout:DWORD):HKL; external 'user32.dll' name 'GetKeyboardLayout';
 
-  function OpenInputDesktop(dwFlags:DWORD; fInherit:WINBOOL; dwDesiredAccess:DWORD):HDESK; external External_library name 'OpenInputDesktop';
+  function OpenInputDesktop(dwFlags:DWORD; fInherit:WINBOOL; dwDesiredAccess:DWORD):HDESK; external 'user32.dll' name 'OpenInputDesktop';
 
-  function EnumDesktopWindows(hDesktop:HDESK; lpfn:ENUMWINDOWSPROC; lParam:LPARAM):WINBOOL; external External_library name 'EnumDesktopWindows';
+  function EnumDesktopWindows(hDesktop:HDESK; lpfn:ENUMWINDOWSPROC; lParam:LPARAM):WINBOOL; external 'user32.dll' name 'EnumDesktopWindows';
 
-  function SwitchDesktop(hDesktop:HDESK):WINBOOL; external External_library name 'SwitchDesktop';
+  function SwitchDesktop(hDesktop:HDESK):WINBOOL; external 'user32.dll' name 'SwitchDesktop';
 
-  function SetThreadDesktop(hDesktop:HDESK):WINBOOL; external External_library name 'SetThreadDesktop';
+  function SetThreadDesktop(hDesktop:HDESK):WINBOOL; external 'user32.dll' name 'SetThreadDesktop';
 
-  function CloseDesktop(hDesktop:HDESK):WINBOOL; external External_library name 'CloseDesktop';
+  function CloseDesktop(hDesktop:HDESK):WINBOOL; external 'user32.dll' name 'CloseDesktop';
 
-  function GetThreadDesktop(dwThreadId:DWORD):HDESK; external External_library name 'GetThreadDesktop';
+  function GetThreadDesktop(dwThreadId:DWORD):HDESK; external 'user32.dll' name 'GetThreadDesktop';
 
-  function CloseWindowStation(hWinSta:HWINSTA):WINBOOL; external External_library name 'CloseWindowStation';
+  function CloseWindowStation(hWinSta:HWINSTA):WINBOOL; external 'user32.dll' name 'CloseWindowStation';
 
-  function SetProcessWindowStation(hWinSta:HWINSTA):WINBOOL; external External_library name 'SetProcessWindowStation';
+  function SetProcessWindowStation(hWinSta:HWINSTA):WINBOOL; external 'user32.dll' name 'SetProcessWindowStation';
 
-  function GetProcessWindowStation:HWINSTA; external External_library name 'GetProcessWindowStation';
+  function GetProcessWindowStation:HWINSTA; external 'user32.dll' name 'GetProcessWindowStation';
 
-  function SetUserObjectSecurity(hObj:HANDLE; pSIRequested:PSECURITY_INFORMATION; pSID:PSECURITY_DESCRIPTOR):WINBOOL; external External_library name 'SetUserObjectSecurity';
+  function SetUserObjectSecurity(hObj:HANDLE; pSIRequested:PSECURITY_INFORMATION; pSID:PSECURITY_DESCRIPTOR):WINBOOL; external 'user32.dll' name 'SetUserObjectSecurity';
 
-  function GetUserObjectSecurity(hObj:HANDLE; pSIRequested:PSECURITY_INFORMATION; pSID:PSECURITY_DESCRIPTOR; nLength:DWORD; lpnLengthNeeded:LPDWORD):WINBOOL; external External_library name 'GetUserObjectSecurity';
+  function GetUserObjectSecurity(hObj:HANDLE; pSIRequested:PSECURITY_INFORMATION; pSID:PSECURITY_DESCRIPTOR; nLength:DWORD; lpnLengthNeeded:LPDWORD):WINBOOL; external 'user32.dll' name 'GetUserObjectSecurity';
 
-  function TranslateMessage(var lpMsg:MSG):WINBOOL; external External_library name 'TranslateMessage';
+  function TranslateMessage(var lpMsg:MSG):WINBOOL; external 'user32.dll' name 'TranslateMessage';
 
-  function SetMessageQueue(cMessagesMax:longint):WINBOOL; external External_library name 'SetMessageQueue';
+  function SetMessageQueue(cMessagesMax:longint):WINBOOL; external 'user32.dll' name 'SetMessageQueue';
 
-  function RegisterHotKey(hWnd:HWND; anID:longint; fsModifiers:UINT; vk:UINT):WINBOOL; external External_library name 'RegisterHotKey';
+  function RegisterHotKey(hWnd:HWND; anID:longint; fsModifiers:UINT; vk:UINT):WINBOOL; external 'user32.dll' name 'RegisterHotKey';
 
-  function UnregisterHotKey(hWnd:HWND; anID:longint):WINBOOL; external External_library name 'UnregisterHotKey';
+  function UnregisterHotKey(hWnd:HWND; anID:longint):WINBOOL; external 'user32.dll' name 'UnregisterHotKey';
 
-  function ExitWindowsEx(uFlags:UINT; dwReserved:DWORD):WINBOOL; external External_library name 'ExitWindowsEx';
+  function ExitWindowsEx(uFlags:UINT; dwReserved:DWORD):WINBOOL; external 'user32.dll' name 'ExitWindowsEx';
 
-  function SwapMouseButton(fSwap:WINBOOL):WINBOOL; external External_library name 'SwapMouseButton';
+  function SwapMouseButton(fSwap:WINBOOL):WINBOOL; external 'user32.dll' name 'SwapMouseButton';
 
-  function GetMessagePos:DWORD; external External_library name 'GetMessagePos';
+  function GetMessagePos:DWORD; external 'user32.dll' name 'GetMessagePos';
 
-  function GetMessageTime:LONG; external External_library name 'GetMessageTime';
+  function GetMessageTime:LONG; external 'user32.dll' name 'GetMessageTime';
 
-  function GetMessageExtraInfo:LONG; external External_library name 'GetMessageExtraInfo';
+  function GetMessageExtraInfo:LONG; external 'user32.dll' name 'GetMessageExtraInfo';
 
-  function SetMessageExtraInfo(lParam:LPARAM):LPARAM; external External_library name 'SetMessageExtraInfo';
+  function SetMessageExtraInfo(lParam:LPARAM):LPARAM; external 'user32.dll' name 'SetMessageExtraInfo';
 
-  function BroadcastSystemMessage(_para1:DWORD; _para2:LPDWORD; _para3:UINT; _para4:WPARAM; _para5:LPARAM):longint; external External_library name 'BroadcastSystemMessage';
+  function BroadcastSystemMessage(_para1:DWORD; _para2:LPDWORD; _para3:UINT; _para4:WPARAM; _para5:LPARAM):longint; external 'user32.dll' name 'BroadcastSystemMessage';
 
-  function AttachThreadInput(idAttach:DWORD; idAttachTo:DWORD; fAttach:WINBOOL):WINBOOL; external External_library name 'AttachThreadInput';
+  function AttachThreadInput(idAttach:DWORD; idAttachTo:DWORD; fAttach:WINBOOL):WINBOOL; external 'user32.dll' name 'AttachThreadInput';
 
-  function ReplyMessage(lResult:LRESULT):WINBOOL; external External_library name 'ReplyMessage';
+  function ReplyMessage(lResult:LRESULT):WINBOOL; external 'user32.dll' name 'ReplyMessage';
 
-  function WaitMessage:WINBOOL; external External_library name 'WaitMessage';
+  function WaitMessage:WINBOOL; external 'user32.dll' name 'WaitMessage';
 
-  function WaitForInputIdle(hProcess:HANDLE; dwMilliseconds:DWORD):DWORD; external External_library name 'WaitForInputIdle';
+  function WaitForInputIdle(hProcess:HANDLE; dwMilliseconds:DWORD):DWORD; external 'user32.dll' name 'WaitForInputIdle';
 
-  procedure PostQuitMessage(nExitCode:longint); external External_library name 'PostQuitMessage';
+  procedure PostQuitMessage(nExitCode:longint); external 'user32.dll' name 'PostQuitMessage';
 
-  function InSendMessage:WINBOOL; external External_library name 'InSendMessage';
+  function InSendMessage:WINBOOL; external 'user32.dll' name 'InSendMessage';
 
-  function GetDoubleClickTime:UINT; external External_library name 'GetDoubleClickTime';
+  function GetDoubleClickTime:UINT; external 'user32.dll' name 'GetDoubleClickTime';
 
-  function SetDoubleClickTime(_para1:UINT):WINBOOL; external External_library name 'SetDoubleClickTime';
+  function SetDoubleClickTime(_para1:UINT):WINBOOL; external 'user32.dll' name 'SetDoubleClickTime';
 
-  function IsWindow(hWnd:HWND):WINBOOL; external External_library name 'IsWindow';
+  function IsWindow(hWnd:HWND):WINBOOL; external 'user32.dll' name 'IsWindow';
 
-  function IsMenu(hMenu:HMENU):WINBOOL; external External_library name 'IsMenu';
+  function IsMenu(hMenu:HMENU):WINBOOL; external 'user32.dll' name 'IsMenu';
 
-  function IsChild(hWndParent:HWND; hWnd:HWND):WINBOOL; external External_library name 'IsChild';
+  function IsChild(hWndParent:HWND; hWnd:HWND):WINBOOL; external 'user32.dll' name 'IsChild';
 
-  function DestroyWindow(hWnd:HWND):WINBOOL; external External_library name 'DestroyWindow';
+  function DestroyWindow(hWnd:HWND):WINBOOL; external 'user32.dll' name 'DestroyWindow';
 
-  function ShowWindow(hWnd:HWND; nCmdShow:longint):WINBOOL; external External_library name 'ShowWindow';
+  function ShowWindow(hWnd:HWND; nCmdShow:longint):WINBOOL; external 'user32.dll' name 'ShowWindow';
 
-  function ShowWindowAsync(hWnd:HWND; nCmdShow:longint):WINBOOL; external External_library name 'ShowWindowAsync';
+  function ShowWindowAsync(hWnd:HWND; nCmdShow:longint):WINBOOL; external 'user32.dll' name 'ShowWindowAsync';
 
-  function FlashWindow(hWnd:HWND; bInvert:WINBOOL):WINBOOL; external External_library name 'FlashWindow';
+  function FlashWindow(hWnd:HWND; bInvert:WINBOOL):WINBOOL; external 'user32.dll' name 'FlashWindow';
 
-  function ShowOwnedPopups(hWnd:HWND; fShow:WINBOOL):WINBOOL; external External_library name 'ShowOwnedPopups';
+  function ShowOwnedPopups(hWnd:HWND; fShow:WINBOOL):WINBOOL; external 'user32.dll' name 'ShowOwnedPopups';
 
-  function OpenIcon(hWnd:HWND):WINBOOL; external External_library name 'OpenIcon';
+  function OpenIcon(hWnd:HWND):WINBOOL; external 'user32.dll' name 'OpenIcon';
 
-  function CloseWindow(hWnd:HWND):WINBOOL; external External_library name 'CloseWindow';
+  function CloseWindow(hWnd:HWND):WINBOOL; external 'user32.dll' name 'CloseWindow';
 
   function MoveWindow(hWnd:HWND; X:longint; Y:longint; nWidth:longint; nHeight:longint; 
-             bRepaint:WINBOOL):WINBOOL; external External_library name 'MoveWindow';
+             bRepaint:WINBOOL):WINBOOL; external 'user32.dll' name 'MoveWindow';
 
   function SetWindowPos(hWnd:HWND; hWndInsertAfter:HWND; X:longint; Y:longint; cx:longint; 
-             cy:longint; uFlags:UINT):WINBOOL; external External_library name 'SetWindowPos';
+             cy:longint; uFlags:UINT):WINBOOL; external 'user32.dll' name 'SetWindowPos';
 
-  function GetWindowPlacement(hWnd:HWND; var lpwndpl:WINDOWPLACEMENT):WINBOOL; external External_library name 'GetWindowPlacement';
+  function GetWindowPlacement(hWnd:HWND; var lpwndpl:WINDOWPLACEMENT):WINBOOL; external 'user32.dll' name 'GetWindowPlacement';
 
-  function SetWindowPlacement(hWnd:HWND; var lpwndpl:WINDOWPLACEMENT):WINBOOL; external External_library name 'SetWindowPlacement';
+  function SetWindowPlacement(hWnd:HWND; var lpwndpl:WINDOWPLACEMENT):WINBOOL; external 'user32.dll' name 'SetWindowPlacement';
 
-  function BeginDeferWindowPos(nNumWindows:longint):HDWP; external External_library name 'BeginDeferWindowPos';
+  function BeginDeferWindowPos(nNumWindows:longint):HDWP; external 'user32.dll' name 'BeginDeferWindowPos';
 
   function DeferWindowPos(hWinPosInfo:HDWP; hWnd:HWND; hWndInsertAfter:HWND; x:longint; y:longint; 
-             cx:longint; cy:longint; uFlags:UINT):HDWP; external External_library name 'DeferWindowPos';
+             cx:longint; cy:longint; uFlags:UINT):HDWP; external 'user32.dll' name 'DeferWindowPos';
 
-  function EndDeferWindowPos(hWinPosInfo:HDWP):WINBOOL; external External_library name 'EndDeferWindowPos';
+  function EndDeferWindowPos(hWinPosInfo:HDWP):WINBOOL; external 'user32.dll' name 'EndDeferWindowPos';
 
-  function IsWindowVisible(hWnd:HWND):WINBOOL; external External_library name 'IsWindowVisible';
+  function IsWindowVisible(hWnd:HWND):WINBOOL; external 'user32.dll' name 'IsWindowVisible';
 
-  function IsIconic(hWnd:HWND):WINBOOL; external External_library name 'IsIconic';
+  function IsIconic(hWnd:HWND):WINBOOL; external 'user32.dll' name 'IsIconic';
 
-  function AnyPopup:WINBOOL; external External_library name 'AnyPopup';
+  function AnyPopup:WINBOOL; external 'user32.dll' name 'AnyPopup';
 
-  function BringWindowToTop(hWnd:HWND):WINBOOL; external External_library name 'BringWindowToTop';
+  function BringWindowToTop(hWnd:HWND):WINBOOL; external 'user32.dll' name 'BringWindowToTop';
 
-  function IsZoomed(hWnd:HWND):WINBOOL; external External_library name 'IsZoomed';
+  function IsZoomed(hWnd:HWND):WINBOOL; external 'user32.dll' name 'IsZoomed';
 
-  function EndDialog(hDlg:HWND; nResult:longint):WINBOOL; external External_library name 'EndDialog';
+  function EndDialog(hDlg:HWND; nResult:longint):WINBOOL; external 'user32.dll' name 'EndDialog';
 
-  function GetDlgItem(hDlg:HWND; nIDDlgItem:longint):HWND; external External_library name 'GetDlgItem';
+  function GetDlgItem(hDlg:HWND; nIDDlgItem:longint):HWND; external 'user32.dll' name 'GetDlgItem';
 
-  function SetDlgItemInt(hDlg:HWND; nIDDlgItem:longint; uValue:UINT; bSigned:WINBOOL):WINBOOL; external External_library name 'SetDlgItemInt';
+  function SetDlgItemInt(hDlg:HWND; nIDDlgItem:longint; uValue:UINT; bSigned:WINBOOL):WINBOOL; external 'user32.dll' name 'SetDlgItemInt';
 
-  function GetDlgItemInt(hDlg:HWND; nIDDlgItem:longint; var lpTranslated:WINBOOL; bSigned:WINBOOL):UINT; external External_library name 'GetDlgItemInt';
+  function GetDlgItemInt(hDlg:HWND; nIDDlgItem:longint; var lpTranslated:WINBOOL; bSigned:WINBOOL):UINT; external 'user32.dll' name 'GetDlgItemInt';
 
-  function CheckDlgButton(hDlg:HWND; nIDButton:longint; uCheck:UINT):WINBOOL; external External_library name 'CheckDlgButton';
+  function CheckDlgButton(hDlg:HWND; nIDButton:longint; uCheck:UINT):WINBOOL; external 'user32.dll' name 'CheckDlgButton';
 
-  function CheckRadioButton(hDlg:HWND; nIDFirstButton:longint; nIDLastButton:longint; nIDCheckButton:longint):WINBOOL; external External_library name 'CheckRadioButton';
+  function CheckRadioButton(hDlg:HWND; nIDFirstButton:longint; nIDLastButton:longint; nIDCheckButton:longint):WINBOOL; external 'user32.dll' name 'CheckRadioButton';
 
-  function IsDlgButtonChecked(hDlg:HWND; nIDButton:longint):UINT; external External_library name 'IsDlgButtonChecked';
+  function IsDlgButtonChecked(hDlg:HWND; nIDButton:longint):UINT; external 'user32.dll' name 'IsDlgButtonChecked';
 
-  function GetNextDlgGroupItem(hDlg:HWND; hCtl:HWND; bPrevious:WINBOOL):HWND; external External_library name 'GetNextDlgGroupItem';
+  function GetNextDlgGroupItem(hDlg:HWND; hCtl:HWND; bPrevious:WINBOOL):HWND; external 'user32.dll' name 'GetNextDlgGroupItem';
 
-  function GetNextDlgTabItem(hDlg:HWND; hCtl:HWND; bPrevious:WINBOOL):HWND; external External_library name 'GetNextDlgTabItem';
+  function GetNextDlgTabItem(hDlg:HWND; hCtl:HWND; bPrevious:WINBOOL):HWND; external 'user32.dll' name 'GetNextDlgTabItem';
 
-  function GetDlgCtrlID(hWnd:HWND):longint; external External_library name 'GetDlgCtrlID';
+  function GetDlgCtrlID(hWnd:HWND):longint; external 'user32.dll' name 'GetDlgCtrlID';
 
-  function GetDialogBaseUnits:longint; external External_library name 'GetDialogBaseUnits';
+  function GetDialogBaseUnits:longint; external 'user32.dll' name 'GetDialogBaseUnits';
 
-  function OpenClipboard(hWndNewOwner:HWND):WINBOOL; external External_library name 'OpenClipboard';
+  function OpenClipboard(hWndNewOwner:HWND):WINBOOL; external 'user32.dll' name 'OpenClipboard';
 
-  function CloseClipboard:WINBOOL; external External_library name 'CloseClipboard';
+  function CloseClipboard:WINBOOL; external 'user32.dll' name 'CloseClipboard';
 
-  function GetClipboardOwner:HWND; external External_library name 'GetClipboardOwner';
+  function GetClipboardOwner:HWND; external 'user32.dll' name 'GetClipboardOwner';
 
-  function SetClipboardViewer(hWndNewViewer:HWND):HWND; external External_library name 'SetClipboardViewer';
+  function SetClipboardViewer(hWndNewViewer:HWND):HWND; external 'user32.dll' name 'SetClipboardViewer';
 
-  function GetClipboardViewer:HWND; external External_library name 'GetClipboardViewer';
+  function GetClipboardViewer:HWND; external 'user32.dll' name 'GetClipboardViewer';
 
-  function ChangeClipboardChain(hWndRemove:HWND; hWndNewNext:HWND):WINBOOL; external External_library name 'ChangeClipboardChain';
+  function ChangeClipboardChain(hWndRemove:HWND; hWndNewNext:HWND):WINBOOL; external 'user32.dll' name 'ChangeClipboardChain';
 
-  function SetClipboardData(uFormat:UINT; hMem:HANDLE):HANDLE; external External_library name 'SetClipboardData';
+  function SetClipboardData(uFormat:UINT; hMem:HANDLE):HANDLE; external 'user32.dll' name 'SetClipboardData';
 
-  function GetClipboardData(uFormat:UINT):HANDLE; external External_library name 'GetClipboardData';
+  function GetClipboardData(uFormat:UINT):HANDLE; external 'user32.dll' name 'GetClipboardData';
 
-  function CountClipboardFormats:longint; external External_library name 'CountClipboardFormats';
+  function CountClipboardFormats:longint; external 'user32.dll' name 'CountClipboardFormats';
 
-  function EnumClipboardFormats(format:UINT):UINT; external External_library name 'EnumClipboardFormats';
+  function EnumClipboardFormats(format:UINT):UINT; external 'user32.dll' name 'EnumClipboardFormats';
 
-  function EmptyClipboard:WINBOOL; external External_library name 'EmptyClipboard';
+  function EmptyClipboard:WINBOOL; external 'user32.dll' name 'EmptyClipboard';
 
-  function IsClipboardFormatAvailable(format:UINT):WINBOOL; external External_library name 'IsClipboardFormatAvailable';
+  function IsClipboardFormatAvailable(format:UINT):WINBOOL; external 'user32.dll' name 'IsClipboardFormatAvailable';
 
-  function GetPriorityClipboardFormat(var paFormatPriorityList:UINT; cFormats:longint):longint; external External_library name 'GetPriorityClipboardFormat';
+  function GetPriorityClipboardFormat(var paFormatPriorityList:UINT; cFormats:longint):longint; external 'user32.dll' name 'GetPriorityClipboardFormat';
 
-  function GetOpenClipboardWindow:HWND; external External_library name 'GetOpenClipboardWindow';
+  function GetOpenClipboardWindow:HWND; external 'user32.dll' name 'GetOpenClipboardWindow';
 
-  function CharNextExA(CodePage:WORD; lpCurrentChar:LPCSTR; dwFlags:DWORD):LPSTR; external External_library name 'CharNextExA';
+  function CharNextExA(CodePage:WORD; lpCurrentChar:LPCSTR; dwFlags:DWORD):LPSTR; external 'user32.dll' name 'CharNextExA';
 
-  function CharPrevExA(CodePage:WORD; lpStart:LPCSTR; lpCurrentChar:LPCSTR; dwFlags:DWORD):LPSTR; external External_library name 'CharPrevExA';
+  function CharPrevExA(CodePage:WORD; lpStart:LPCSTR; lpCurrentChar:LPCSTR; dwFlags:DWORD):LPSTR; external 'user32.dll' name 'CharPrevExA';
 
-  function SetFocus(hWnd:HWND):HWND; external External_library name 'SetFocus';
+  function SetFocus(hWnd:HWND):HWND; external 'user32.dll' name 'SetFocus';
 
-  function GetActiveWindow:HWND; external External_library name 'GetActiveWindow';
+  function GetActiveWindow:HWND; external 'user32.dll' name 'GetActiveWindow';
 
-  function GetFocus:HWND; external External_library name 'GetFocus';
+  function GetFocus:HWND; external 'user32.dll' name 'GetFocus';
 
-  function GetKBCodePage:UINT; external External_library name 'GetKBCodePage';
+  function GetKBCodePage:UINT; external 'user32.dll' name 'GetKBCodePage';
 
-  function GetKeyState(nVirtKey:longint):SHORT; external External_library name 'GetKeyState';
+  function GetKeyState(nVirtKey:longint):SHORT; external 'user32.dll' name 'GetKeyState';
 
-  function GetAsyncKeyState(vKey:longint):SHORT; external External_library name 'GetAsyncKeyState';
+  function GetAsyncKeyState(vKey:longint):SHORT; external 'user32.dll' name 'GetAsyncKeyState';
 
-  function GetKeyboardState(lpKeyState:PBYTE):WINBOOL; external External_library name 'GetKeyboardState';
+  function GetKeyboardState(lpKeyState:PBYTE):WINBOOL; external 'user32.dll' name 'GetKeyboardState';
 
-  function SetKeyboardState(lpKeyState:LPBYTE):WINBOOL; external External_library name 'SetKeyboardState';
+  function SetKeyboardState(lpKeyState:LPBYTE):WINBOOL; external 'user32.dll' name 'SetKeyboardState';
 
-  function GetKeyboardType(nTypeFlag:longint):longint; external External_library name 'GetKeyboardType';
+  function GetKeyboardType(nTypeFlag:longint):longint; external 'user32.dll' name 'GetKeyboardType';
 
-  function ToAscii(uVirtKey:UINT; uScanCode:UINT; lpKeyState:PBYTE; lpChar:LPWORD; uFlags:UINT):longint; external External_library name 'ToAscii';
+  function ToAscii(uVirtKey:UINT; uScanCode:UINT; lpKeyState:PBYTE; lpChar:LPWORD; uFlags:UINT):longint; external 'user32.dll' name 'ToAscii';
 
   function ToAsciiEx(uVirtKey:UINT; uScanCode:UINT; lpKeyState:PBYTE; lpChar:LPWORD; uFlags:UINT; 
-             dwhkl:HKL):longint; external External_library name 'ToAsciiEx';
+             dwhkl:HKL):longint; external 'user32.dll' name 'ToAsciiEx';
 
   function ToUnicode(wVirtKey:UINT; wScanCode:UINT; lpKeyState:PBYTE; pwszBuff:LPWSTR; cchBuff:longint; 
-             wFlags:UINT):longint; external External_library name 'ToUnicode';
+             wFlags:UINT):longint; external 'user32.dll' name 'ToUnicode';
 
-  function OemKeyScan(wOemChar:WORD):DWORD; external External_library name 'OemKeyScan';
+  function OemKeyScan(wOemChar:WORD):DWORD; external 'user32.dll' name 'OemKeyScan';
 
-  procedure keybd_event(bVk:BYTE; bScan:BYTE; dwFlags:DWORD; dwExtraInfo:DWORD); external External_library name 'keybd_event';
+  procedure keybd_event(bVk:BYTE; bScan:BYTE; dwFlags:DWORD; dwExtraInfo:DWORD); external 'user32.dll' name 'keybd_event';
 
-  procedure mouse_event(dwFlags:DWORD; dx:DWORD; dy:DWORD; cButtons:DWORD; dwExtraInfo:DWORD); external External_library name 'mouse_event';
+  procedure mouse_event(dwFlags:DWORD; dx:DWORD; dy:DWORD; cButtons:DWORD; dwExtraInfo:DWORD); external 'user32.dll' name 'mouse_event';
 
-  function GetInputState:WINBOOL; external External_library name 'GetInputState';
+  function GetInputState:WINBOOL; external 'user32.dll' name 'GetInputState';
 
-  function GetQueueStatus(flags:UINT):DWORD; external External_library name 'GetQueueStatus';
+  function GetQueueStatus(flags:UINT):DWORD; external 'user32.dll' name 'GetQueueStatus';
 
-  function GetCapture:HWND; external External_library name 'GetCapture';
+  function GetCapture:HWND; external 'user32.dll' name 'GetCapture';
 
-  function SetCapture(hWnd:HWND):HWND; external External_library name 'SetCapture';
+  function SetCapture(hWnd:HWND):HWND; external 'user32.dll' name 'SetCapture';
 
-  function ReleaseCapture:WINBOOL; external External_library name 'ReleaseCapture';
+  function ReleaseCapture:WINBOOL; external 'user32.dll' name 'ReleaseCapture';
 
-  function MsgWaitForMultipleObjects(nCount:DWORD; pHandles:LPHANDLE; fWaitAll:WINBOOL; dwMilliseconds:DWORD; dwWakeMask:DWORD):DWORD; external External_library name 'MsgWaitForMultipleObjects';
+  function MsgWaitForMultipleObjects(nCount:DWORD; pHandles:LPHANDLE; fWaitAll:WINBOOL; dwMilliseconds:DWORD; dwWakeMask:DWORD):DWORD; external 'user32.dll' name 'MsgWaitForMultipleObjects';
 
-  function SetTimer(hWnd:HWND; nIDEvent:UINT; uElapse:UINT; lpTimerFunc:TIMERPROC):UINT; external External_library name 'SetTimer';
+  function SetTimer(hWnd:HWND; nIDEvent:UINT; uElapse:UINT; lpTimerFunc:TIMERPROC):UINT; external 'user32.dll' name 'SetTimer';
 
-  function KillTimer(hWnd:HWND; uIDEvent:UINT):WINBOOL; external External_library name 'KillTimer';
+  function KillTimer(hWnd:HWND; uIDEvent:UINT):WINBOOL; external 'user32.dll' name 'KillTimer';
 
-  function IsWindowUnicode(hWnd:HWND):WINBOOL; external External_library name 'IsWindowUnicode';
+  function IsWindowUnicode(hWnd:HWND):WINBOOL; external 'user32.dll' name 'IsWindowUnicode';
 
-  function EnableWindow(hWnd:HWND; bEnable:WINBOOL):WINBOOL; external External_library name 'EnableWindow';
+  function EnableWindow(hWnd:HWND; bEnable:WINBOOL):WINBOOL; external 'user32.dll' name 'EnableWindow';
 
-  function IsWindowEnabled(hWnd:HWND):WINBOOL; external External_library name 'IsWindowEnabled';
+  function IsWindowEnabled(hWnd:HWND):WINBOOL; external 'user32.dll' name 'IsWindowEnabled';
 
-  function DestroyAcceleratorTable(hAccel:HACCEL):WINBOOL; external External_library name 'DestroyAcceleratorTable';
+  function DestroyAcceleratorTable(hAccel:HACCEL):WINBOOL; external 'user32.dll' name 'DestroyAcceleratorTable';
 
-  function GetSystemMetrics(nIndex:longint):longint; external External_library name 'GetSystemMetrics';
+  function GetSystemMetrics(nIndex:longint):longint; external 'user32.dll' name 'GetSystemMetrics';
 
-  function GetMenu(hWnd:HWND):HMENU; external External_library name 'GetMenu';
+  function GetMenu(hWnd:HWND):HMENU; external 'user32.dll' name 'GetMenu';
 
-  function SetMenu(hWnd:HWND; hMenu:HMENU):WINBOOL; external External_library name 'SetMenu';
+  function SetMenu(hWnd:HWND; hMenu:HMENU):WINBOOL; external 'user32.dll' name 'SetMenu';
 
-  function HiliteMenuItem(hWnd:HWND; hMenu:HMENU; uIDHiliteItem:UINT; uHilite:UINT):WINBOOL; external External_library name 'HiliteMenuItem';
+  function HiliteMenuItem(hWnd:HWND; hMenu:HMENU; uIDHiliteItem:UINT; uHilite:UINT):WINBOOL; external 'user32.dll' name 'HiliteMenuItem';
 
-  function GetMenuState(hMenu:HMENU; uId:UINT; uFlags:UINT):UINT; external External_library name 'GetMenuState';
+  function GetMenuState(hMenu:HMENU; uId:UINT; uFlags:UINT):UINT; external 'user32.dll' name 'GetMenuState';
 
-  function DrawMenuBar(hWnd:HWND):WINBOOL; external External_library name 'DrawMenuBar';
+  function DrawMenuBar(hWnd:HWND):WINBOOL; external 'user32.dll' name 'DrawMenuBar';
 
-  function GetSystemMenu(hWnd:HWND; bRevert:WINBOOL):HMENU; external External_library name 'GetSystemMenu';
+  function GetSystemMenu(hWnd:HWND; bRevert:WINBOOL):HMENU; external 'user32.dll' name 'GetSystemMenu';
 
-  function CreateMenu:HMENU; external External_library name 'CreateMenu';
+  function CreateMenu:HMENU; external 'user32.dll' name 'CreateMenu';
 
-  function CreatePopupMenu:HMENU; external External_library name 'CreatePopupMenu';
+  function CreatePopupMenu:HMENU; external 'user32.dll' name 'CreatePopupMenu';
 
-  function DestroyMenu(hMenu:HMENU):WINBOOL; external External_library name 'DestroyMenu';
+  function DestroyMenu(hMenu:HMENU):WINBOOL; external 'user32.dll' name 'DestroyMenu';
 
-  function CheckMenuItem(hMenu:HMENU; uIDCheckItem:UINT; uCheck:UINT):DWORD; external External_library name 'CheckMenuItem';
+  function CheckMenuItem(hMenu:HMENU; uIDCheckItem:UINT; uCheck:UINT):DWORD; external 'user32.dll' name 'CheckMenuItem';
 
-  function EnableMenuItem(hMenu:HMENU; uIDEnableItem:UINT; uEnable:UINT):WINBOOL; external External_library name 'EnableMenuItem';
+  function EnableMenuItem(hMenu:HMENU; uIDEnableItem:UINT; uEnable:UINT):WINBOOL; external 'user32.dll' name 'EnableMenuItem';
 
-  function GetSubMenu(hMenu:HMENU; nPos:longint):HMENU; external External_library name 'GetSubMenu';
+  function GetSubMenu(hMenu:HMENU; nPos:longint):HMENU; external 'user32.dll' name 'GetSubMenu';
 
-  function GetMenuItemID(hMenu:HMENU; nPos:longint):UINT; external External_library name 'GetMenuItemID';
+  function GetMenuItemID(hMenu:HMENU; nPos:longint):UINT; external 'user32.dll' name 'GetMenuItemID';
 
-  function GetMenuItemCount(hMenu:HMENU):longint; external External_library name 'GetMenuItemCount';
+  function GetMenuItemCount(hMenu:HMENU):longint; external 'user32.dll' name 'GetMenuItemCount';
 
-  function RemoveMenu(hMenu:HMENU; uPosition:UINT; uFlags:UINT):WINBOOL; external External_library name 'RemoveMenu';
+  function RemoveMenu(hMenu:HMENU; uPosition:UINT; uFlags:UINT):WINBOOL; external 'user32.dll' name 'RemoveMenu';
 
-  function DeleteMenu(hMenu:HMENU; uPosition:UINT; uFlags:UINT):WINBOOL; external External_library name 'DeleteMenu';
+  function DeleteMenu(hMenu:HMENU; uPosition:UINT; uFlags:UINT):WINBOOL; external 'user32.dll' name 'DeleteMenu';
 
-  function SetMenuItemBitmaps(hMenu:HMENU; uPosition:UINT; uFlags:UINT; hBitmapUnchecked:HBITMAP; hBitmapChecked:HBITMAP):WINBOOL; external External_library name 'SetMenuItemBitmaps';
+  function SetMenuItemBitmaps(hMenu:HMENU; uPosition:UINT; uFlags:UINT; hBitmapUnchecked:HBITMAP; hBitmapChecked:HBITMAP):WINBOOL; external 'user32.dll' name 'SetMenuItemBitmaps';
 
-  function GetMenuCheckMarkDimensions:LONG; external External_library name 'GetMenuCheckMarkDimensions';
+  function GetMenuCheckMarkDimensions:LONG; external 'user32.dll' name 'GetMenuCheckMarkDimensions';
 
   function TrackPopupMenu(hMenu:HMENU; uFlags:UINT; x:longint; y:longint; nReserved:longint; 
-             hWnd:HWND; var prcRect:RECT):WINBOOL; external External_library name 'TrackPopupMenu';
+             hWnd:HWND; var prcRect:RECT):WINBOOL; external 'user32.dll' name 'TrackPopupMenu';
 
-  function GetMenuDefaultItem(hMenu:HMENU; fByPos:UINT; gmdiFlags:UINT):UINT; external External_library name 'GetMenuDefaultItem';
+  function GetMenuDefaultItem(hMenu:HMENU; fByPos:UINT; gmdiFlags:UINT):UINT; external 'user32.dll' name 'GetMenuDefaultItem';
 
-  function SetMenuDefaultItem(hMenu:HMENU; uItem:UINT; fByPos:UINT):WINBOOL; external External_library name 'SetMenuDefaultItem';
+  function SetMenuDefaultItem(hMenu:HMENU; uItem:UINT; fByPos:UINT):WINBOOL; external 'user32.dll' name 'SetMenuDefaultItem';
 
-  function GetMenuItemRect(hWnd:HWND; hMenu:HMENU; uItem:UINT; lprcItem:LPRECT):WINBOOL; external External_library name 'GetMenuItemRect';
+  function GetMenuItemRect(hWnd:HWND; hMenu:HMENU; uItem:UINT; lprcItem:LPRECT):WINBOOL; external 'user32.dll' name 'GetMenuItemRect';
 
-  function MenuItemFromPoint(hWnd:HWND; hMenu:HMENU; ptScreen:POINT):longint; external External_library name 'MenuItemFromPoint';
+  function MenuItemFromPoint(hWnd:HWND; hMenu:HMENU; ptScreen:POINT):longint; external 'user32.dll' name 'MenuItemFromPoint';
 
-  function DragObject(_para1:HWND; _para2:HWND; _para3:UINT; _para4:DWORD; _para5:HCURSOR):DWORD; external External_library name 'DragObject';
+  function DragObject(_para1:HWND; _para2:HWND; _para3:UINT; _para4:DWORD; _para5:HCURSOR):DWORD; external 'user32.dll' name 'DragObject';
 
-  function DragDetect(hwnd:HWND; pt:POINT):WINBOOL; external External_library name 'DragDetect';
+  function DragDetect(hwnd:HWND; pt:POINT):WINBOOL; external 'user32.dll' name 'DragDetect';
 
-  function DrawIcon(hDC:HDC; X:longint; Y:longint; hIcon:HICON):WINBOOL; external External_library name 'DrawIcon';
+  function DrawIcon(hDC:HDC; X:longint; Y:longint; hIcon:HICON):WINBOOL; external 'user32.dll' name 'DrawIcon';
 
-  function UpdateWindow(hWnd:HWND):WINBOOL; external External_library name 'UpdateWindow';
+  function UpdateWindow(hWnd:HWND):WINBOOL; external 'user32.dll' name 'UpdateWindow';
 
-  function SetActiveWindow(hWnd:HWND):HWND; external External_library name 'SetActiveWindow';
+  function SetActiveWindow(hWnd:HWND):HWND; external 'user32.dll' name 'SetActiveWindow';
 
-  function GetForegroundWindow:HWND; external External_library name 'GetForegroundWindow';
+  function GetForegroundWindow:HWND; external 'user32.dll' name 'GetForegroundWindow';
 
-  function PaintDesktop(hdc:HDC):WINBOOL; external External_library name 'PaintDesktop';
+  function PaintDesktop(hdc:HDC):WINBOOL; external 'user32.dll' name 'PaintDesktop';
 
-  function SetForegroundWindow(hWnd:HWND):WINBOOL; external External_library name 'SetForegroundWindow';
+  function SetForegroundWindow(hWnd:HWND):WINBOOL; external 'user32.dll' name 'SetForegroundWindow';
 
-  function WindowFromDC(hDC:HDC):HWND; external External_library name 'WindowFromDC';
+  function WindowFromDC(hDC:HDC):HWND; external 'user32.dll' name 'WindowFromDC';
 
-  function GetDC(hWnd:HWND):HDC; external External_library name 'GetDC';
+  function GetDC(hWnd:HWND):HDC; external 'user32.dll' name 'GetDC';
 
-  function GetDCEx(hWnd:HWND; hrgnClip:HRGN; flags:DWORD):HDC; external External_library name 'GetDCEx';
+  function GetDCEx(hWnd:HWND; hrgnClip:HRGN; flags:DWORD):HDC; external 'user32.dll' name 'GetDCEx';
 
-  function GetWindowDC(hWnd:HWND):HDC; external External_library name 'GetWindowDC';
+  function GetWindowDC(hWnd:HWND):HDC; external 'user32.dll' name 'GetWindowDC';
 
-  function ReleaseDC(hWnd:HWND; hDC:HDC):longint; external External_library name 'ReleaseDC';
+  function ReleaseDC(hWnd:HWND; hDC:HDC):longint; external 'user32.dll' name 'ReleaseDC';
 
-  function BeginPaint(hWnd:HWND; lpPaint:LPPAINTSTRUCT):HDC; external External_library name 'BeginPaint';
+  function BeginPaint(hWnd:HWND; lpPaint:LPPAINTSTRUCT):HDC; external 'user32.dll' name 'BeginPaint';
 
-  function EndPaint(hWnd:HWND; var lpPaint:PAINTSTRUCT):WINBOOL; external External_library name 'EndPaint';
+  function EndPaint(hWnd:HWND; var lpPaint:PAINTSTRUCT):WINBOOL; external 'user32.dll' name 'EndPaint';
 
-  function GetUpdateRect(hWnd:HWND; lpRect:LPRECT; bErase:WINBOOL):WINBOOL; external External_library name 'GetUpdateRect';
+  function GetUpdateRect(hWnd:HWND; lpRect:LPRECT; bErase:WINBOOL):WINBOOL; external 'user32.dll' name 'GetUpdateRect';
 
-  function GetUpdateRgn(hWnd:HWND; hRgn:HRGN; bErase:WINBOOL):longint; external External_library name 'GetUpdateRgn';
+  function GetUpdateRgn(hWnd:HWND; hRgn:HRGN; bErase:WINBOOL):longint; external 'user32.dll' name 'GetUpdateRgn';
 
-  function SetWindowRgn(hWnd:HWND; hRgn:HRGN; bRedraw:WINBOOL):longint; external External_library name 'SetWindowRgn';
+  function SetWindowRgn(hWnd:HWND; hRgn:HRGN; bRedraw:WINBOOL):longint; external 'user32.dll' name 'SetWindowRgn';
 
-  function GetWindowRgn(hWnd:HWND; hRgn:HRGN):longint; external External_library name 'GetWindowRgn';
+  function GetWindowRgn(hWnd:HWND; hRgn:HRGN):longint; external 'user32.dll' name 'GetWindowRgn';
 
-  function ExcludeUpdateRgn(hDC:HDC; hWnd:HWND):longint; external External_library name 'ExcludeUpdateRgn';
+  function ExcludeUpdateRgn(hDC:HDC; hWnd:HWND):longint; external 'user32.dll' name 'ExcludeUpdateRgn';
 
-  function InvalidateRect(hWnd:HWND; var lpRect:RECT; bErase:WINBOOL):WINBOOL; external External_library name 'InvalidateRect';
+  function InvalidateRect(hWnd:HWND; var lpRect:RECT; bErase:WINBOOL):WINBOOL; external 'user32.dll' name 'InvalidateRect';
 
-  function ValidateRect(hWnd:HWND; var lpRect:RECT):WINBOOL; external External_library name 'ValidateRect';
+  function ValidateRect(hWnd:HWND; var lpRect:RECT):WINBOOL; external 'user32.dll' name 'ValidateRect';
 
-  function InvalidateRgn(hWnd:HWND; hRgn:HRGN; bErase:WINBOOL):WINBOOL; external External_library name 'InvalidateRgn';
+  function InvalidateRgn(hWnd:HWND; hRgn:HRGN; bErase:WINBOOL):WINBOOL; external 'user32.dll' name 'InvalidateRgn';
 
-  function ValidateRgn(hWnd:HWND; hRgn:HRGN):WINBOOL; external External_library name 'ValidateRgn';
+  function ValidateRgn(hWnd:HWND; hRgn:HRGN):WINBOOL; external 'user32.dll' name 'ValidateRgn';
 
-  function RedrawWindow(hWnd:HWND; var lprcUpdate:RECT; hrgnUpdate:HRGN; flags:UINT):WINBOOL; external External_library name 'RedrawWindow';
+  function RedrawWindow(hWnd:HWND; var lprcUpdate:RECT; hrgnUpdate:HRGN; flags:UINT):WINBOOL; external 'user32.dll' name 'RedrawWindow';
 
-  function LockWindowUpdate(hWndLock:HWND):WINBOOL; external External_library name 'LockWindowUpdate';
+  function LockWindowUpdate(hWndLock:HWND):WINBOOL; external 'user32.dll' name 'LockWindowUpdate';
 
-  function ScrollWindow(hWnd:HWND; XAmount:longint; YAmount:longint; var lpRect:RECT; var lpClipRect:RECT):WINBOOL; external External_library name 'ScrollWindow';
+  function ScrollWindow(hWnd:HWND; XAmount:longint; YAmount:longint; var lpRect:RECT; var lpClipRect:RECT):WINBOOL; external 'user32.dll' name 'ScrollWindow';
 
   function ScrollDC(hDC:HDC; dx:longint; dy:longint; var lprcScroll:RECT; var lprcClip:RECT; 
-             hrgnUpdate:HRGN; lprcUpdate:LPRECT):WINBOOL; external External_library name 'ScrollDC';
+             hrgnUpdate:HRGN; lprcUpdate:LPRECT):WINBOOL; external 'user32.dll' name 'ScrollDC';
 
   function ScrollWindowEx(hWnd:HWND; dx:longint; dy:longint; var prcScroll:RECT; var prcClip:RECT; 
-             hrgnUpdate:HRGN; prcUpdate:LPRECT; flags:UINT):longint; external External_library name 'ScrollWindowEx';
+             hrgnUpdate:HRGN; prcUpdate:LPRECT; flags:UINT):longint; external 'user32.dll' name 'ScrollWindowEx';
 
-  function SetScrollPos(hWnd:HWND; nBar:longint; nPos:longint; bRedraw:WINBOOL):longint; external External_library name 'SetScrollPos';
+  function SetScrollPos(hWnd:HWND; nBar:longint; nPos:longint; bRedraw:WINBOOL):longint; external 'user32.dll' name 'SetScrollPos';
 
-  function GetScrollPos(hWnd:HWND; nBar:longint):longint; external External_library name 'GetScrollPos';
+  function GetScrollPos(hWnd:HWND; nBar:longint):longint; external 'user32.dll' name 'GetScrollPos';
 
-  function SetScrollRange(hWnd:HWND; nBar:longint; nMinPos:longint; nMaxPos:longint; bRedraw:WINBOOL):WINBOOL; external External_library name 'SetScrollRange';
+  function SetScrollRange(hWnd:HWND; nBar:longint; nMinPos:longint; nMaxPos:longint; bRedraw:WINBOOL):WINBOOL; external 'user32.dll' name 'SetScrollRange';
 
-  function GetScrollRange(hWnd:HWND; nBar:longint; lpMinPos:LPINT; lpMaxPos:LPINT):WINBOOL; external External_library name 'GetScrollRange';
+  function GetScrollRange(hWnd:HWND; nBar:longint; lpMinPos:LPINT; lpMaxPos:LPINT):WINBOOL; external 'user32.dll' name 'GetScrollRange';
 
-  function ShowScrollBar(hWnd:HWND; wBar:longint; bShow:WINBOOL):WINBOOL; external External_library name 'ShowScrollBar';
+  function ShowScrollBar(hWnd:HWND; wBar:longint; bShow:WINBOOL):WINBOOL; external 'user32.dll' name 'ShowScrollBar';
 
-  function EnableScrollBar(hWnd:HWND; wSBflags:UINT; wArrows:UINT):WINBOOL; external External_library name 'EnableScrollBar';
+  function EnableScrollBar(hWnd:HWND; wSBflags:UINT; wArrows:UINT):WINBOOL; external 'user32.dll' name 'EnableScrollBar';
 
-  function GetClientRect(hWnd:HWND; lpRect:LPRECT):WINBOOL; external External_library name 'GetClientRect';
+  function GetClientRect(hWnd:HWND; lpRect:LPRECT):WINBOOL; external 'user32.dll' name 'GetClientRect';
 
-  function GetWindowRect(hWnd:HWND; lpRect:LPRECT):WINBOOL; external External_library name 'GetWindowRect';
+  function GetWindowRect(hWnd:HWND; lpRect:LPRECT):WINBOOL; external 'user32.dll' name 'GetWindowRect';
 
-  function AdjustWindowRect(lpRect:LPRECT; dwStyle:DWORD; bMenu:WINBOOL):WINBOOL; external External_library name 'AdjustWindowRect';
+  function AdjustWindowRect(lpRect:LPRECT; dwStyle:DWORD; bMenu:WINBOOL):WINBOOL; external 'user32.dll' name 'AdjustWindowRect';
 
-  function AdjustWindowRectEx(lpRect:LPRECT; dwStyle:DWORD; bMenu:WINBOOL; dwExStyle:DWORD):WINBOOL; external External_library name 'AdjustWindowRectEx';
+  function AdjustWindowRectEx(lpRect:LPRECT; dwStyle:DWORD; bMenu:WINBOOL; dwExStyle:DWORD):WINBOOL; external 'user32.dll' name 'AdjustWindowRectEx';
 
-  function SetWindowContextHelpId(_para1:HWND; _para2:DWORD):WINBOOL; external External_library name 'SetWindowContextHelpId';
+  function SetWindowContextHelpId(_para1:HWND; _para2:DWORD):WINBOOL; external 'user32.dll' name 'SetWindowContextHelpId';
 
-  function GetWindowContextHelpId(_para1:HWND):DWORD; external External_library name 'GetWindowContextHelpId';
+  function GetWindowContextHelpId(_para1:HWND):DWORD; external 'user32.dll' name 'GetWindowContextHelpId';
 
-  function SetMenuContextHelpId(_para1:HMENU; _para2:DWORD):WINBOOL; external External_library name 'SetMenuContextHelpId';
+  function SetMenuContextHelpId(_para1:HMENU; _para2:DWORD):WINBOOL; external 'user32.dll' name 'SetMenuContextHelpId';
 
-  function GetMenuContextHelpId(_para1:HMENU):DWORD; external External_library name 'GetMenuContextHelpId';
+  function GetMenuContextHelpId(_para1:HMENU):DWORD; external 'user32.dll' name 'GetMenuContextHelpId';
 
-  function MessageBeep(uType:UINT):WINBOOL; external External_library name 'MessageBeep';
+  function MessageBeep(uType:UINT):WINBOOL; external 'user32.dll' name 'MessageBeep';
 
-  function ShowCursor(bShow:WINBOOL):longint; external External_library name 'ShowCursor';
+  function ShowCursor(bShow:WINBOOL):longint; external 'user32.dll' name 'ShowCursor';
 
-  function SetCursorPos(X:longint; Y:longint):WINBOOL; external External_library name 'SetCursorPos';
+  function SetCursorPos(X:longint; Y:longint):WINBOOL; external 'user32.dll' name 'SetCursorPos';
 
-  function SetCursor(hCursor:HCURSOR):HCURSOR; external External_library name 'SetCursor';
+  function SetCursor(hCursor:HCURSOR):HCURSOR; external 'user32.dll' name 'SetCursor';
 
-  function GetCursorPos(lpPoint:LPPOINT):WINBOOL; external External_library name 'GetCursorPos';
+  function GetCursorPos(lpPoint:LPPOINT):WINBOOL; external 'user32.dll' name 'GetCursorPos';
 
-  function ClipCursor(var lpRect:RECT):WINBOOL; external External_library name 'ClipCursor';
+  function ClipCursor(var lpRect:RECT):WINBOOL; external 'user32.dll' name 'ClipCursor';
 
-  function GetClipCursor(lpRect:LPRECT):WINBOOL; external External_library name 'GetClipCursor';
+  function GetClipCursor(lpRect:LPRECT):WINBOOL; external 'user32.dll' name 'GetClipCursor';
 
-  function GetCursor:HCURSOR; external External_library name 'GetCursor';
+  function GetCursor:HCURSOR; external 'user32.dll' name 'GetCursor';
 
-  function CreateCaret(hWnd:HWND; hBitmap:HBITMAP; nWidth:longint; nHeight:longint):WINBOOL; external External_library name 'CreateCaret';
+  function CreateCaret(hWnd:HWND; hBitmap:HBITMAP; nWidth:longint; nHeight:longint):WINBOOL; external 'user32.dll' name 'CreateCaret';
 
-  function GetCaretBlinkTime:UINT; external External_library name 'GetCaretBlinkTime';
+  function GetCaretBlinkTime:UINT; external 'user32.dll' name 'GetCaretBlinkTime';
 
-  function SetCaretBlinkTime(uMSeconds:UINT):WINBOOL; external External_library name 'SetCaretBlinkTime';
+  function SetCaretBlinkTime(uMSeconds:UINT):WINBOOL; external 'user32.dll' name 'SetCaretBlinkTime';
 
-  function DestroyCaret:WINBOOL; external External_library name 'DestroyCaret';
+  function DestroyCaret:WINBOOL; external 'user32.dll' name 'DestroyCaret';
 
-  function HideCaret(hWnd:HWND):WINBOOL; external External_library name 'HideCaret';
+  function HideCaret(hWnd:HWND):WINBOOL; external 'user32.dll' name 'HideCaret';
 
-  function ShowCaret(hWnd:HWND):WINBOOL; external External_library name 'ShowCaret';
+  function ShowCaret(hWnd:HWND):WINBOOL; external 'user32.dll' name 'ShowCaret';
 
-  function SetCaretPos(X:longint; Y:longint):WINBOOL; external External_library name 'SetCaretPos';
+  function SetCaretPos(X:longint; Y:longint):WINBOOL; external 'user32.dll' name 'SetCaretPos';
 
-  function GetCaretPos(lpPoint:LPPOINT):WINBOOL; external External_library name 'GetCaretPos';
+  function GetCaretPos(lpPoint:LPPOINT):WINBOOL; external 'user32.dll' name 'GetCaretPos';
 
-  function ClientToScreen(hWnd:HWND; lpPoint:LPPOINT):WINBOOL; external External_library name 'ClientToScreen';
+  function ClientToScreen(hWnd:HWND; lpPoint:LPPOINT):WINBOOL; external 'user32.dll' name 'ClientToScreen';
 
-  function ScreenToClient(hWnd:HWND; lpPoint:LPPOINT):WINBOOL; external External_library name 'ScreenToClient';
+  function ScreenToClient(hWnd:HWND; lpPoint:LPPOINT):WINBOOL; external 'user32.dll' name 'ScreenToClient';
 
-  function MapWindowPoints(hWndFrom:HWND; hWndTo:HWND; lpPoints:LPPOINT; cPoints:UINT):longint; external External_library name 'MapWindowPoints';
+  function MapWindowPoints(hWndFrom:HWND; hWndTo:HWND; lpPoints:LPPOINT; cPoints:UINT):longint; external 'user32.dll' name 'MapWindowPoints';
 
-  function WindowFromPoint(Point:POINT):HWND; external External_library name 'WindowFromPoint';
+  function WindowFromPoint(Point:POINT):HWND; external 'user32.dll' name 'WindowFromPoint';
 
-  function ChildWindowFromPoint(hWndParent:HWND; Point:POINT):HWND; external External_library name 'ChildWindowFromPoint';
+  function ChildWindowFromPoint(hWndParent:HWND; Point:POINT):HWND; external 'user32.dll' name 'ChildWindowFromPoint';
 
-  function GetSysColor(nIndex:longint):DWORD; external External_library name 'GetSysColor';
+  function GetSysColor(nIndex:longint):DWORD; external 'user32.dll' name 'GetSysColor';
 
-  function GetSysColorBrush(nIndex:longint):HBRUSH; external External_library name 'GetSysColorBrush';
+  function GetSysColorBrush(nIndex:longint):HBRUSH; external 'user32.dll' name 'GetSysColorBrush';
 
-  function SetSysColors(cElements:longint; var lpaElements:INT; var lpaRgbValues:COLORREF):WINBOOL; external External_library name 'SetSysColors';
+  function SetSysColors(cElements:longint; var lpaElements:INT; var lpaRgbValues:COLORREF):WINBOOL; external 'user32.dll' name 'SetSysColors';
 
-  function DrawFocusRect(hDC:HDC; var lprc:RECT):WINBOOL; external External_library name 'DrawFocusRect';
+  function DrawFocusRect(hDC:HDC; var lprc:RECT):WINBOOL; external 'user32.dll' name 'DrawFocusRect';
 
-  function FillRect(hDC:HDC; var lprc:RECT; hbr:HBRUSH):longint; external External_library name 'FillRect';
+  function FillRect(hDC:HDC; var lprc:RECT; hbr:HBRUSH):longint; external 'user32.dll' name 'FillRect';
 
-  function FrameRect(hDC:HDC; var lprc:RECT; hbr:HBRUSH):longint; external External_library name 'FrameRect';
+  function FrameRect(hDC:HDC; var lprc:RECT; hbr:HBRUSH):longint; external 'user32.dll' name 'FrameRect';
 
-  function InvertRect(hDC:HDC; var lprc:RECT):WINBOOL; external External_library name 'InvertRect';
+  function InvertRect(hDC:HDC; var lprc:RECT):WINBOOL; external 'user32.dll' name 'InvertRect';
 
-  function SetRect(lprc:LPRECT; xLeft:longint; yTop:longint; xRight:longint; yBottom:longint):WINBOOL; external External_library name 'SetRect';
+  function SetRect(lprc:LPRECT; xLeft:longint; yTop:longint; xRight:longint; yBottom:longint):WINBOOL; external 'user32.dll' name 'SetRect';
 
-  function SetRectEmpty(lprc:LPRECT):WINBOOL; external External_library name 'SetRectEmpty';
+  function SetRectEmpty(lprc:LPRECT):WINBOOL; external 'user32.dll' name 'SetRectEmpty';
 
-  function CopyRect(lprcDst:LPRECT; var lprcSrc:RECT):WINBOOL; external External_library name 'CopyRect';
+  function CopyRect(lprcDst:LPRECT; var lprcSrc:RECT):WINBOOL; external 'user32.dll' name 'CopyRect';
 
-  function InflateRect(lprc:LPRECT; dx:longint; dy:longint):WINBOOL; external External_library name 'InflateRect';
+  function InflateRect(lprc:LPRECT; dx:longint; dy:longint):WINBOOL; external 'user32.dll' name 'InflateRect';
 
-  function IntersectRect(lprcDst:LPRECT; var lprcSrc1:RECT; var lprcSrc2:RECT):WINBOOL; external External_library name 'IntersectRect';
+  function IntersectRect(lprcDst:LPRECT; var lprcSrc1:RECT; var lprcSrc2:RECT):WINBOOL; external 'user32.dll' name 'IntersectRect';
 
-  function UnionRect(lprcDst:LPRECT; var lprcSrc1:RECT; var lprcSrc2:RECT):WINBOOL; external External_library name 'UnionRect';
+  function UnionRect(lprcDst:LPRECT; var lprcSrc1:RECT; var lprcSrc2:RECT):WINBOOL; external 'user32.dll' name 'UnionRect';
 
-  function SubtractRect(lprcDst:LPRECT; var lprcSrc1:RECT; var lprcSrc2:RECT):WINBOOL; external External_library name 'SubtractRect';
+  function SubtractRect(lprcDst:LPRECT; var lprcSrc1:RECT; var lprcSrc2:RECT):WINBOOL; external 'user32.dll' name 'SubtractRect';
 
-  function OffsetRect(lprc:LPRECT; dx:longint; dy:longint):WINBOOL; external External_library name 'OffsetRect';
+  function OffsetRect(lprc:LPRECT; dx:longint; dy:longint):WINBOOL; external 'user32.dll' name 'OffsetRect';
 
-  function IsRectEmpty(var lprc:RECT):WINBOOL; external External_library name 'IsRectEmpty';
+  function IsRectEmpty(var lprc:RECT):WINBOOL; external 'user32.dll' name 'IsRectEmpty';
 
-  function EqualRect(var lprc1:RECT; var lprc2:RECT):WINBOOL; external External_library name 'EqualRect';
+  function EqualRect(var lprc1:RECT; var lprc2:RECT):WINBOOL; external 'user32.dll' name 'EqualRect';
 
-  function PtInRect(var lprc:RECT; pt:POINT):WINBOOL; external External_library name 'PtInRect';
+  function PtInRect(var lprc:RECT; pt:POINT):WINBOOL; external 'user32.dll' name 'PtInRect';
 
-  function GetWindowWord(hWnd:HWND; nIndex:longint):WORD; external External_library name 'GetWindowWord';
+  function GetWindowWord(hWnd:HWND; nIndex:longint):WORD; external 'user32.dll' name 'GetWindowWord';
 
-  function SetWindowWord(hWnd:HWND; nIndex:longint; wNewWord:WORD):WORD; external External_library name 'SetWindowWord';
+  function SetWindowWord(hWnd:HWND; nIndex:longint; wNewWord:WORD):WORD; external 'user32.dll' name 'SetWindowWord';
 
-  function GetClassWord(hWnd:HWND; nIndex:longint):WORD; external External_library name 'GetClassWord';
+  function GetClassWord(hWnd:HWND; nIndex:longint):WORD; external 'user32.dll' name 'GetClassWord';
 
-  function SetClassWord(hWnd:HWND; nIndex:longint; wNewWord:WORD):WORD; external External_library name 'SetClassWord';
+  function SetClassWord(hWnd:HWND; nIndex:longint; wNewWord:WORD):WORD; external 'user32.dll' name 'SetClassWord';
 
-  function GetDesktopWindow:HWND; external External_library name 'GetDesktopWindow';
+  function GetDesktopWindow:HWND; external 'user32.dll' name 'GetDesktopWindow';
 
-  function GetParent(hWnd:HWND):HWND; external External_library name 'GetParent';
+  function GetParent(hWnd:HWND):HWND; external 'user32.dll' name 'GetParent';
 
-  function SetParent(hWndChild:HWND; hWndNewParent:HWND):HWND; external External_library name 'SetParent';
+  function SetParent(hWndChild:HWND; hWndNewParent:HWND):HWND; external 'user32.dll' name 'SetParent';
 
-  function EnumChildWindows(hWndParent:HWND; lpEnumFunc:ENUMWINDOWSPROC; lParam:LPARAM):WINBOOL; external External_library name 'EnumChildWindows';
+  function EnumChildWindows(hWndParent:HWND; lpEnumFunc:ENUMWINDOWSPROC; lParam:LPARAM):WINBOOL; external 'user32.dll' name 'EnumChildWindows';
 
-  function EnumWindows(lpEnumFunc:ENUMWINDOWSPROC; lParam:LPARAM):WINBOOL; external External_library name 'EnumWindows';
+  function EnumWindows(lpEnumFunc:ENUMWINDOWSPROC; lParam:LPARAM):WINBOOL; external 'user32.dll' name 'EnumWindows';
 
-  function EnumThreadWindows(dwThreadId:DWORD; lpfn:ENUMWINDOWSPROC; lParam:LPARAM):WINBOOL; external External_library name 'EnumThreadWindows';
+  function EnumThreadWindows(dwThreadId:DWORD; lpfn:ENUMWINDOWSPROC; lParam:LPARAM):WINBOOL; external 'user32.dll' name 'EnumThreadWindows';
 
-  function GetTopWindow(hWnd:HWND):HWND; external External_library name 'GetTopWindow';
+  function GetTopWindow(hWnd:HWND):HWND; external 'user32.dll' name 'GetTopWindow';
 
-  function GetWindowThreadProcessId(hWnd:HWND; lpdwProcessId:LPDWORD):DWORD; external External_library name 'GetWindowThreadProcessId';
+  function GetWindowThreadProcessId(hWnd:HWND; lpdwProcessId:LPDWORD):DWORD; external 'user32.dll' name 'GetWindowThreadProcessId';
 
-  function GetLastActivePopup(hWnd:HWND):HWND; external External_library name 'GetLastActivePopup';
+  function GetLastActivePopup(hWnd:HWND):HWND; external 'user32.dll' name 'GetLastActivePopup';
 
-  function GetWindow(hWnd:HWND; uCmd:UINT):HWND; external External_library name 'GetWindow';
+  function GetWindow(hWnd:HWND; uCmd:UINT):HWND; external 'user32.dll' name 'GetWindow';
 
-  function UnhookWindowsHook(nCode:longint; pfnFilterProc:HOOKPROC):WINBOOL; external External_library name 'UnhookWindowsHook';
+  function UnhookWindowsHook(nCode:longint; pfnFilterProc:HOOKPROC):WINBOOL; external 'user32.dll' name 'UnhookWindowsHook';
 
-  function UnhookWindowsHookEx(hhk:HHOOK):WINBOOL; external External_library name 'UnhookWindowsHookEx';
+  function UnhookWindowsHookEx(hhk:HHOOK):WINBOOL; external 'user32.dll' name 'UnhookWindowsHookEx';
 
-  function CallNextHookEx(hhk:HHOOK; nCode:longint; wParam:WPARAM; lParam:LPARAM):LRESULT; external External_library name 'CallNextHookEx';
+  function CallNextHookEx(hhk:HHOOK; nCode:longint; wParam:WPARAM; lParam:LPARAM):LRESULT; external 'user32.dll' name 'CallNextHookEx';
 
-  function CheckMenuRadioItem(_para1:HMENU; _para2:UINT; _para3:UINT; _para4:UINT; _para5:UINT):WINBOOL; external External_library name 'CheckMenuRadioItem';
+  function CheckMenuRadioItem(_para1:HMENU; _para2:UINT; _para3:UINT; _para4:UINT; _para5:UINT):WINBOOL; external 'user32.dll' name 'CheckMenuRadioItem';
 
   function CreateCursor(hInst:HINSTANCE; xHotSpot:longint; yHotSpot:longint; nWidth:longint; nHeight:longint; 
-             pvANDPlane:pointer; pvXORPlane:pointer):HCURSOR; external External_library name 'CreateCursor';
+             pvANDPlane:pointer; pvXORPlane:pointer):HCURSOR; external 'user32.dll' name 'CreateCursor';
 
-  function DestroyCursor(hCursor:HCURSOR):WINBOOL; external External_library name 'DestroyCursor';
+  function DestroyCursor(hCursor:HCURSOR):WINBOOL; external 'user32.dll' name 'DestroyCursor';
 
-  function SetSystemCursor(hcur:HCURSOR; anID:DWORD):WINBOOL; external External_library name 'SetSystemCursor';
+  function SetSystemCursor(hcur:HCURSOR; anID:DWORD):WINBOOL; external 'user32.dll' name 'SetSystemCursor';
 
   function CreateIcon(hInstance:HINSTANCE; nWidth:longint; nHeight:longint; cPlanes:BYTE; cBitsPixel:BYTE; 
-             var lpbANDbits:BYTE; var lpbXORbits:BYTE):HICON; external External_library name 'CreateIcon';
+             var lpbANDbits:BYTE; var lpbXORbits:BYTE):HICON; external 'user32.dll' name 'CreateIcon';
 
-  function DestroyIcon(hIcon:HICON):WINBOOL; external External_library name 'DestroyIcon';
+  function DestroyIcon(hIcon:HICON):WINBOOL; external 'user32.dll' name 'DestroyIcon';
 
-  function LookupIconIdFromDirectory(presbits:PBYTE; fIcon:WINBOOL):longint; external External_library name 'LookupIconIdFromDirectory';
+  function LookupIconIdFromDirectory(presbits:PBYTE; fIcon:WINBOOL):longint; external 'user32.dll' name 'LookupIconIdFromDirectory';
 
-  function LookupIconIdFromDirectoryEx(presbits:PBYTE; fIcon:WINBOOL; cxDesired:longint; cyDesired:longint; Flags:UINT):longint; external External_library name 'LookupIconIdFromDirectoryEx';
+  function LookupIconIdFromDirectoryEx(presbits:PBYTE; fIcon:WINBOOL; cxDesired:longint; cyDesired:longint; Flags:UINT):longint; external 'user32.dll' name 'LookupIconIdFromDirectoryEx';
 
-  function CreateIconFromResource(presbits:PBYTE; dwResSize:DWORD; fIcon:WINBOOL; dwVer:DWORD):HICON; external External_library name 'CreateIconFromResource';
+  function CreateIconFromResource(presbits:PBYTE; dwResSize:DWORD; fIcon:WINBOOL; dwVer:DWORD):HICON; external 'user32.dll' name 'CreateIconFromResource';
 
   function CreateIconFromResourceEx(presbits:PBYTE; dwResSize:DWORD; fIcon:WINBOOL; dwVer:DWORD; cxDesired:longint; 
-             cyDesired:longint; Flags:UINT):HICON; external External_library name 'CreateIconFromResourceEx';
+             cyDesired:longint; Flags:UINT):HICON; external 'user32.dll' name 'CreateIconFromResourceEx';
 
-  function CopyImage(_para1:HANDLE; _para2:UINT; _para3:longint; _para4:longint; _para5:UINT):HICON; external External_library name 'CopyImage';
+  function CopyImage(_para1:HANDLE; _para2:UINT; _para3:longint; _para4:longint; _para5:UINT):HICON; external 'user32.dll' name 'CopyImage';
 
-  function CreateIconIndirect(piconinfo:PICONINFO):HICON; external External_library name 'CreateIconIndirect';
+  function CreateIconIndirect(piconinfo:PICONINFO):HICON; external 'user32.dll' name 'CreateIconIndirect';
 
-  function CopyIcon(hIcon:HICON):HICON; external External_library name 'CopyIcon';
+  function CopyIcon(hIcon:HICON):HICON; external 'user32.dll' name 'CopyIcon';
 
-  function GetIconInfo(hIcon:HICON; piconinfo:PICONINFO):WINBOOL; external External_library name 'GetIconInfo';
+  function GetIconInfo(hIcon:HICON; piconinfo:PICONINFO):WINBOOL; external 'user32.dll' name 'GetIconInfo';
 
-  function MapDialogRect(hDlg:HWND; lpRect:LPRECT):WINBOOL; external External_library name 'MapDialogRect';
+  function MapDialogRect(hDlg:HWND; lpRect:LPRECT):WINBOOL; external 'user32.dll' name 'MapDialogRect';
 
-  function SetScrollInfo(_para1:HWND; _para2:longint; _para3:LPCSCROLLINFO; _para4:WINBOOL):longint; external External_library name 'SetScrollInfo';
+  function SetScrollInfo(_para1:HWND; _para2:longint; _para3:LPCSCROLLINFO; _para4:WINBOOL):longint; external 'user32.dll' name 'SetScrollInfo';
 
-  function GetScrollInfo(_para1:HWND; _para2:longint; _para3:LPSCROLLINFO):WINBOOL; external External_library name 'GetScrollInfo';
+  function GetScrollInfo(_para1:HWND; _para2:longint; _para3:LPSCROLLINFO):WINBOOL; external 'user32.dll' name 'GetScrollInfo';
 
-  function TranslateMDISysAccel(hWndClient:HWND; lpMsg:LPMSG):WINBOOL; external External_library name 'TranslateMDISysAccel';
+  function TranslateMDISysAccel(hWndClient:HWND; lpMsg:LPMSG):WINBOOL; external 'user32.dll' name 'TranslateMDISysAccel';
 
-  function ArrangeIconicWindows(hWnd:HWND):UINT; external External_library name 'ArrangeIconicWindows';
+  function ArrangeIconicWindows(hWnd:HWND):UINT; external 'user32.dll' name 'ArrangeIconicWindows';
 
-  function TileWindows(hwndParent:HWND; wHow:UINT; var lpRect:RECT; cKids:UINT; var lpKids:HWND):WORD; external External_library name 'TileWindows';
+  function TileWindows(hwndParent:HWND; wHow:UINT; var lpRect:RECT; cKids:UINT; var lpKids:HWND):WORD; external 'user32.dll' name 'TileWindows';
 
-  function CascadeWindows(hwndParent:HWND; wHow:UINT; var lpRect:RECT; cKids:UINT; var lpKids:HWND):WORD; external External_library name 'CascadeWindows';
+  function CascadeWindows(hwndParent:HWND; wHow:UINT; var lpRect:RECT; cKids:UINT; var lpKids:HWND):WORD; external 'user32.dll' name 'CascadeWindows';
 
-  procedure SetLastErrorEx(dwErrCode:DWORD; dwType:DWORD); external External_library name 'SetLastErrorEx';
+  procedure SetLastErrorEx(dwErrCode:DWORD; dwType:DWORD); external 'user32.dll' name 'SetLastErrorEx';
 
-  procedure SetDebugErrorLevel(dwLevel:DWORD); external External_library name 'SetDebugErrorLevel';
+  procedure SetDebugErrorLevel(dwLevel:DWORD); external 'user32.dll' name 'SetDebugErrorLevel';
 
-  function DrawEdge(hdc:HDC; qrc:LPRECT; edge:UINT; grfFlags:UINT):WINBOOL; external External_library name 'DrawEdge';
+  function DrawEdge(hdc:HDC; qrc:LPRECT; edge:UINT; grfFlags:UINT):WINBOOL; external 'user32.dll' name 'DrawEdge';
 
-  function DrawFrameControl(_para1:HDC; _para2:LPRECT; _para3:UINT; _para4:UINT):WINBOOL; external External_library name 'DrawFrameControl';
+  function DrawFrameControl(_para1:HDC; _para2:LPRECT; _para3:UINT; _para4:UINT):WINBOOL; external 'user32.dll' name 'DrawFrameControl';
 
-  function DrawCaption(_para1:HWND; _para2:HDC; var _para3:RECT; _para4:UINT):WINBOOL; external External_library name 'DrawCaption';
+  function DrawCaption(_para1:HWND; _para2:HDC; var _para3:RECT; _para4:UINT):WINBOOL; external 'user32.dll' name 'DrawCaption';
 
-  function DrawAnimatedRects(hwnd:HWND; idAni:longint; var lprcFrom:RECT; var lprcTo:RECT):WINBOOL; external External_library name 'DrawAnimatedRects';
+  function DrawAnimatedRects(hwnd:HWND; idAni:longint; var lprcFrom:RECT; var lprcTo:RECT):WINBOOL; external 'user32.dll' name 'DrawAnimatedRects';
 
   function TrackPopupMenuEx(_para1:HMENU; _para2:UINT; _para3:longint; _para4:longint; _para5:HWND; 
-             _para6:LPTPMPARAMS):WINBOOL; external External_library name 'TrackPopupMenuEx';
+             _para6:LPTPMPARAMS):WINBOOL; external 'user32.dll' name 'TrackPopupMenuEx';
 
-  function ChildWindowFromPointEx(_para1:HWND; _para2:POINT; _para3:UINT):HWND; external External_library name 'ChildWindowFromPointEx';
+  function ChildWindowFromPointEx(_para1:HWND; _para2:POINT; _para3:UINT):HWND; external 'user32.dll' name 'ChildWindowFromPointEx';
 
   function DrawIconEx(hdc:HDC; xLeft:longint; yTop:longint; hIcon:HICON; cxWidth:longint; 
-             cyWidth:longint; istepIfAniCur:UINT; hbrFlickerFreeDraw:HBRUSH; diFlags:UINT):WINBOOL; external External_library name 'DrawIconEx';
+             cyWidth:longint; istepIfAniCur:UINT; hbrFlickerFreeDraw:HBRUSH; diFlags:UINT):WINBOOL; external 'user32.dll' name 'DrawIconEx';
 
-  function AnimatePalette(_para1:HPALETTE; _para2:UINT; _para3:UINT; var _para4:PALETTEENTRY):WINBOOL; external External_library name 'AnimatePalette';
+  function AnimatePalette(_para1:HPALETTE; _para2:UINT; _para3:UINT; var _para4:PALETTEENTRY):WINBOOL; external 'gdi32.dll' name 'AnimatePalette';
 
   function Arc(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint; 
-             _para6:longint; _para7:longint; _para8:longint; _para9:longint):WINBOOL; external External_library name 'Arc';
+             _para6:longint; _para7:longint; _para8:longint; _para9:longint):WINBOOL; external 'gdi32.dll' name 'Arc';
 
   function BitBlt(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint; 
-             _para6:HDC; _para7:longint; _para8:longint; _para9:DWORD):WINBOOL; external External_library name 'BitBlt';
+             _para6:HDC; _para7:longint; _para8:longint; _para9:DWORD):WINBOOL; external 'gdi32.dll' name 'BitBlt';
 
-  function CancelDC(_para1:HDC):WINBOOL; external External_library name 'CancelDC';
+  function CancelDC(_para1:HDC):WINBOOL; external 'gdi32.dll' name 'CancelDC';
 
   function Chord(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint; 
-             _para6:longint; _para7:longint; _para8:longint; _para9:longint):WINBOOL; external External_library name 'Chord';
+             _para6:longint; _para7:longint; _para8:longint; _para9:longint):WINBOOL; external 'gdi32.dll' name 'Chord';
 
-  function CloseMetaFile(_para1:HDC):HMETAFILE; external External_library name 'CloseMetaFile';
+  function CloseMetaFile(_para1:HDC):HMETAFILE; external 'gdi32.dll' name 'CloseMetaFile';
 
-  function CombineRgn(_para1:HRGN; _para2:HRGN; _para3:HRGN; _para4:longint):longint; external External_library name 'CombineRgn';
+  function CombineRgn(_para1:HRGN; _para2:HRGN; _para3:HRGN; _para4:longint):longint; external 'gdi32.dll' name 'CombineRgn';
 
-  function CreateBitmap(_para1:longint; _para2:longint; _para3:UINT; _para4:UINT; _para5:pointer):HBITMAP; external External_library name 'CreateBitmap';
+  function CreateBitmap(_para1:longint; _para2:longint; _para3:UINT; _para4:UINT; _para5:pointer):HBITMAP; external 'gdi32.dll' name 'CreateBitmap';
 
-  function CreateBitmapIndirect(var _para1:BITMAP):HBITMAP; external External_library name 'CreateBitmapIndirect';
+  function CreateBitmapIndirect(var _para1:BITMAP):HBITMAP; external 'gdi32.dll' name 'CreateBitmapIndirect';
 
-  function CreateBrushIndirect(var _para1:LOGBRUSH):HBRUSH; external External_library name 'CreateBrushIndirect';
+  function CreateBrushIndirect(var _para1:LOGBRUSH):HBRUSH; external 'gdi32.dll' name 'CreateBrushIndirect';
 
-  function CreateCompatibleBitmap(_para1:HDC; _para2:longint; _para3:longint):HBITMAP; external External_library name 'CreateCompatibleBitmap';
+  function CreateCompatibleBitmap(_para1:HDC; _para2:longint; _para3:longint):HBITMAP; external 'gdi32.dll' name 'CreateCompatibleBitmap';
 
-  function CreateDiscardableBitmap(_para1:HDC; _para2:longint; _para3:longint):HBITMAP; external External_library name 'CreateDiscardableBitmap';
+  function CreateDiscardableBitmap(_para1:HDC; _para2:longint; _para3:longint):HBITMAP; external 'gdi32.dll' name 'CreateDiscardableBitmap';
 
-  function CreateCompatibleDC(_para1:HDC):HDC; external External_library name 'CreateCompatibleDC';
+  function CreateCompatibleDC(_para1:HDC):HDC; external 'gdi32.dll' name 'CreateCompatibleDC';
 
   function CreateDIBitmap(_para1:HDC; var _para2:BITMAPINFOHEADER; _para3:DWORD; _para4:pointer; var _para5:BITMAPINFO;
-             _para6:UINT):HBITMAP; external External_library name 'CreateDIBitmap';
+             _para6:UINT):HBITMAP; external 'gdi32.dll' name 'CreateDIBitmap';
 
-  function CreateDIBPatternBrush(_para1:HGLOBAL; _para2:UINT):HBRUSH; external External_library name 'CreateDIBPatternBrush';
+  function CreateDIBPatternBrush(_para1:HGLOBAL; _para2:UINT):HBRUSH; external 'gdi32.dll' name 'CreateDIBPatternBrush';
 
-  function CreateDIBPatternBrushPt(_para1:pointer; _para2:UINT):HBRUSH; external External_library name 'CreateDIBPatternBrushPt';
+  function CreateDIBPatternBrushPt(_para1:pointer; _para2:UINT):HBRUSH; external 'gdi32.dll' name 'CreateDIBPatternBrushPt';
 
-  function CreateEllipticRgn(_para1:longint; _para2:longint; _para3:longint; _para4:longint):HRGN; external External_library name 'CreateEllipticRgn';
+  function CreateEllipticRgn(_para1:longint; _para2:longint; _para3:longint; _para4:longint):HRGN; external 'gdi32.dll' name 'CreateEllipticRgn';
 
-  function CreateEllipticRgnIndirect(var _para1:RECT):HRGN; external External_library name 'CreateEllipticRgnIndirect';
+  function CreateEllipticRgnIndirect(var _para1:RECT):HRGN; external 'gdi32.dll' name 'CreateEllipticRgnIndirect';
 
-  function CreateHatchBrush(_para1:longint; _para2:COLORREF):HBRUSH; external External_library name 'CreateHatchBrush';
+  function CreateHatchBrush(_para1:longint; _para2:COLORREF):HBRUSH; external 'gdi32.dll' name 'CreateHatchBrush';
 
-  function CreatePalette(var _para1:LOGPALETTE):HPALETTE; external External_library name 'CreatePalette';
+  function CreatePalette(var _para1:LOGPALETTE):HPALETTE; external 'gdi32.dll' name 'CreatePalette';
 
-  function CreatePen(_para1:longint; _para2:longint; _para3:COLORREF):HPEN; external External_library name 'CreatePen';
+  function CreatePen(_para1:longint; _para2:longint; _para3:COLORREF):HPEN; external 'gdi32.dll' name 'CreatePen';
 
-  function CreatePenIndirect(var _para1:LOGPEN):HPEN; external External_library name 'CreatePenIndirect';
+  function CreatePenIndirect(var _para1:LOGPEN):HPEN; external 'gdi32.dll' name 'CreatePenIndirect';
 
-  function CreatePolyPolygonRgn(var _para1:POINT; var _para2:INT; _para3:longint; _para4:longint):HRGN; external External_library name 'CreatePolyPolygonRgn';
+  function CreatePolyPolygonRgn(var _para1:POINT; var _para2:INT; _para3:longint; _para4:longint):HRGN; external 'gdi32.dll' name 'CreatePolyPolygonRgn';
 
-  function CreatePatternBrush(_para1:HBITMAP):HBRUSH; external External_library name 'CreatePatternBrush';
+  function CreatePatternBrush(_para1:HBITMAP):HBRUSH; external 'gdi32.dll' name 'CreatePatternBrush';
 
-  function CreateRectRgn(_para1:longint; _para2:longint; _para3:longint; _para4:longint):HRGN; external External_library name 'CreateRectRgn';
+  function CreateRectRgn(_para1:longint; _para2:longint; _para3:longint; _para4:longint):HRGN; external 'gdi32.dll' name 'CreateRectRgn';
 
-  function CreateRectRgnIndirect(var _para1:RECT):HRGN; external External_library name 'CreateRectRgnIndirect';
+  function CreateRectRgnIndirect(var _para1:RECT):HRGN; external 'gdi32.dll' name 'CreateRectRgnIndirect';
 
   function CreateRoundRectRgn(_para1:longint; _para2:longint; _para3:longint; _para4:longint; _para5:longint; 
-             _para6:longint):HRGN; external External_library name 'CreateRoundRectRgn';
+             _para6:longint):HRGN; external 'gdi32.dll' name 'CreateRoundRectRgn';
 
-  function CreateSolidBrush(_para1:COLORREF):HBRUSH; external External_library name 'CreateSolidBrush';
+  function CreateSolidBrush(_para1:COLORREF):HBRUSH; external 'gdi32.dll' name 'CreateSolidBrush';
 
-  function DeleteDC(_para1:HDC):WINBOOL; external External_library name 'DeleteDC';
+  function DeleteDC(_para1:HDC):WINBOOL; external 'gdi32.dll' name 'DeleteDC';
 
-  function DeleteMetaFile(_para1:HMETAFILE):WINBOOL; external External_library name 'DeleteMetaFile';
+  function DeleteMetaFile(_para1:HMETAFILE):WINBOOL; external 'gdi32.dll' name 'DeleteMetaFile';
 
-  function DeleteObject(_para1:HGDIOBJ):WINBOOL; external External_library name 'DeleteObject';
+  function DeleteObject(_para1:HGDIOBJ):WINBOOL; external 'gdi32.dll' name 'DeleteObject';
 
-  function DrawEscape(_para1:HDC; _para2:longint; _para3:longint; _para4:LPCSTR):longint; external External_library name 'DrawEscape';
+  function DrawEscape(_para1:HDC; _para2:longint; _para3:longint; _para4:LPCSTR):longint; external 'gdi32.dll' name 'DrawEscape';
 
-  function Ellipse(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint):WINBOOL; external External_library name 'Ellipse';
+  function Ellipse(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint):WINBOOL; external 'gdi32.dll' name 'Ellipse';
 
-  function EnumObjects(_para1:HDC; _para2:longint; _para3:ENUMOBJECTSPROC; _para4:LPARAM):longint; external External_library name 'EnumObjects';
+  function EnumObjects(_para1:HDC; _para2:longint; _para3:ENUMOBJECTSPROC; _para4:LPARAM):longint; external 'gdi32.dll' name 'EnumObjects';
 
-  function EqualRgn(_para1:HRGN; _para2:HRGN):WINBOOL; external External_library name 'EqualRgn';
+  function EqualRgn(_para1:HRGN; _para2:HRGN):WINBOOL; external 'gdi32.dll' name 'EqualRgn';
 
-  function Escape(_para1:HDC; _para2:longint; _para3:longint; _para4:LPCSTR; _para5:LPVOID):longint; external External_library name 'Escape';
+  function Escape(_para1:HDC; _para2:longint; _para3:longint; _para4:LPCSTR; _para5:LPVOID):longint; external 'gdi32.dll' name 'Escape';
 
   function ExtEscape(_para1:HDC; _para2:longint; _para3:longint; _para4:LPCSTR; _para5:longint; 
-             _para6:LPSTR):longint; external External_library name 'ExtEscape';
+             _para6:LPSTR):longint; external 'gdi32.dll' name 'ExtEscape';
 
-  function ExcludeClipRect(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint):longint; external External_library name 'ExcludeClipRect';
+  function ExcludeClipRect(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint):longint; external 'gdi32.dll' name 'ExcludeClipRect';
 
-  function ExtCreateRegion(var _para1:XFORM; _para2:DWORD; var _para3:RGNDATA):HRGN; external External_library name 'ExtCreateRegion';
+  function ExtCreateRegion(var _para1:XFORM; _para2:DWORD; var _para3:RGNDATA):HRGN; external 'gdi32.dll' name 'ExtCreateRegion';
 
-  function ExtFloodFill(_para1:HDC; _para2:longint; _para3:longint; _para4:COLORREF; _para5:UINT):WINBOOL; external External_library name 'ExtFloodFill';
+  function ExtFloodFill(_para1:HDC; _para2:longint; _para3:longint; _para4:COLORREF; _para5:UINT):WINBOOL; external 'gdi32.dll' name 'ExtFloodFill';
 
-  function FillRgn(_para1:HDC; _para2:HRGN; _para3:HBRUSH):WINBOOL; external External_library name 'FillRgn';
+  function FillRgn(_para1:HDC; _para2:HRGN; _para3:HBRUSH):WINBOOL; external 'gdi32.dll' name 'FillRgn';
 
-  function FloodFill(_para1:HDC; _para2:longint; _para3:longint; _para4:COLORREF):WINBOOL; external External_library name 'FloodFill';
+  function FloodFill(_para1:HDC; _para2:longint; _para3:longint; _para4:COLORREF):WINBOOL; external 'gdi32.dll' name 'FloodFill';
 
-  function FrameRgn(_para1:HDC; _para2:HRGN; _para3:HBRUSH; _para4:longint; _para5:longint):WINBOOL; external External_library name 'FrameRgn';
+  function FrameRgn(_para1:HDC; _para2:HRGN; _para3:HBRUSH; _para4:longint; _para5:longint):WINBOOL; external 'gdi32.dll' name 'FrameRgn';
 
-  function GetROP2(_para1:HDC):longint; external External_library name 'GetROP2';
+  function GetROP2(_para1:HDC):longint; external 'gdi32.dll' name 'GetROP2';
 
-  function GetAspectRatioFilterEx(_para1:HDC; _para2:LPSIZE):WINBOOL; external External_library name 'GetAspectRatioFilterEx';
+  function GetAspectRatioFilterEx(_para1:HDC; _para2:LPSIZE):WINBOOL; external 'gdi32.dll' name 'GetAspectRatioFilterEx';
 
-  function GetBkColor(_para1:HDC):COLORREF; external External_library name 'GetBkColor';
+  function GetBkColor(_para1:HDC):COLORREF; external 'gdi32.dll' name 'GetBkColor';
 
-  function GetBkMode(_para1:HDC):longint; external External_library name 'GetBkMode';
+  function GetBkMode(_para1:HDC):longint; external 'gdi32.dll' name 'GetBkMode';
 
-  function GetBitmapBits(_para1:HBITMAP; _para2:LONG; _para3:LPVOID):LONG; external External_library name 'GetBitmapBits';
+  function GetBitmapBits(_para1:HBITMAP; _para2:LONG; _para3:LPVOID):LONG; external 'gdi32.dll' name 'GetBitmapBits';
 
-  function GetBitmapDimensionEx(_para1:HBITMAP; _para2:LPSIZE):WINBOOL; external External_library name 'GetBitmapDimensionEx';
+  function GetBitmapDimensionEx(_para1:HBITMAP; _para2:LPSIZE):WINBOOL; external 'gdi32.dll' name 'GetBitmapDimensionEx';
 
-  function GetBoundsRect(_para1:HDC; _para2:LPRECT; _para3:UINT):UINT; external External_library name 'GetBoundsRect';
+  function GetBoundsRect(_para1:HDC; _para2:LPRECT; _para3:UINT):UINT; external 'gdi32.dll' name 'GetBoundsRect';
 
-  function GetBrushOrgEx(_para1:HDC; _para2:LPPOINT):WINBOOL; external External_library name 'GetBrushOrgEx';
+  function GetBrushOrgEx(_para1:HDC; _para2:LPPOINT):WINBOOL; external 'gdi32.dll' name 'GetBrushOrgEx';
 
-  function GetClipBox(_para1:HDC; _para2:LPRECT):longint; external External_library name 'GetClipBox';
+  function GetClipBox(_para1:HDC; _para2:LPRECT):longint; external 'gdi32.dll' name 'GetClipBox';
 
-  function GetClipRgn(_para1:HDC; _para2:HRGN):longint; external External_library name 'GetClipRgn';
+  function GetClipRgn(_para1:HDC; _para2:HRGN):longint; external 'gdi32.dll' name 'GetClipRgn';
 
-  function GetMetaRgn(_para1:HDC; _para2:HRGN):longint; external External_library name 'GetMetaRgn';
+  function GetMetaRgn(_para1:HDC; _para2:HRGN):longint; external 'gdi32.dll' name 'GetMetaRgn';
 
-  function GetCurrentObject(_para1:HDC; _para2:UINT):HGDIOBJ; external External_library name 'GetCurrentObject';
+  function GetCurrentObject(_para1:HDC; _para2:UINT):HGDIOBJ; external 'gdi32.dll' name 'GetCurrentObject';
 
-  function GetCurrentPositionEx(_para1:HDC; _para2:LPPOINT):WINBOOL; external External_library name 'GetCurrentPositionEx';
+  function GetCurrentPositionEx(_para1:HDC; _para2:LPPOINT):WINBOOL; external 'gdi32.dll' name 'GetCurrentPositionEx';
 
-  function GetDeviceCaps(_para1:HDC; _para2:longint):longint; external External_library name 'GetDeviceCaps';
+  function GetDeviceCaps(_para1:HDC; _para2:longint):longint; external 'gdi32.dll' name 'GetDeviceCaps';
 
   function GetDIBits(_para1:HDC; _para2:HBITMAP; _para3:UINT; _para4:UINT; _para5:LPVOID; 
-             _para6:LPBITMAPINFO; _para7:UINT):longint; external External_library name 'GetDIBits';
+             _para6:LPBITMAPINFO; _para7:UINT):longint; external 'gdi32.dll' name 'GetDIBits';
 
-  function GetFontData(_para1:HDC; _para2:DWORD; _para3:DWORD; _para4:LPVOID; _para5:DWORD):DWORD; external External_library name 'GetFontData';
+  function GetFontData(_para1:HDC; _para2:DWORD; _para3:DWORD; _para4:LPVOID; _para5:DWORD):DWORD; external 'gdi32.dll' name 'GetFontData';
 
-  function GetGraphicsMode(_para1:HDC):longint; external External_library name 'GetGraphicsMode';
+  function GetGraphicsMode(_para1:HDC):longint; external 'gdi32.dll' name 'GetGraphicsMode';
 
-  function GetMapMode(_para1:HDC):longint; external External_library name 'GetMapMode';
+  function GetMapMode(_para1:HDC):longint; external 'gdi32.dll' name 'GetMapMode';
 
-  function GetMetaFileBitsEx(_para1:HMETAFILE; _para2:UINT; _para3:LPVOID):UINT; external External_library name 'GetMetaFileBitsEx';
+  function GetMetaFileBitsEx(_para1:HMETAFILE; _para2:UINT; _para3:LPVOID):UINT; external 'gdi32.dll' name 'GetMetaFileBitsEx';
 
-  function GetNearestColor(_para1:HDC; _para2:COLORREF):COLORREF; external External_library name 'GetNearestColor';
+  function GetNearestColor(_para1:HDC; _para2:COLORREF):COLORREF; external 'gdi32.dll' name 'GetNearestColor';
 
-  function GetNearestPaletteIndex(_para1:HPALETTE; _para2:COLORREF):UINT; external External_library name 'GetNearestPaletteIndex';
+  function GetNearestPaletteIndex(_para1:HPALETTE; _para2:COLORREF):UINT; external 'gdi32.dll' name 'GetNearestPaletteIndex';
 
-  function GetObjectType(h:HGDIOBJ):DWORD; external External_library name 'GetObjectType';
+  function GetObjectType(h:HGDIOBJ):DWORD; external 'gdi32.dll' name 'GetObjectType';
 
-  function GetPaletteEntries(_para1:HPALETTE; _para2:UINT; _para3:UINT; _para4:LPPALETTEENTRY):UINT; external External_library name 'GetPaletteEntries';
+  function GetPaletteEntries(_para1:HPALETTE; _para2:UINT; _para3:UINT; _para4:LPPALETTEENTRY):UINT; external 'gdi32.dll' name 'GetPaletteEntries';
 
-  function GetPixel(_para1:HDC; _para2:longint; _para3:longint):COLORREF; external External_library name 'GetPixel';
+  function GetPixel(_para1:HDC; _para2:longint; _para3:longint):COLORREF; external 'gdi32.dll' name 'GetPixel';
 
-  function GetPixelFormat(_para1:HDC):longint; external External_library name 'GetPixelFormat';
+  function GetPixelFormat(_para1:HDC):longint; external 'gdi32.dll' name 'GetPixelFormat';
 
-  function GetPolyFillMode(_para1:HDC):longint; external External_library name 'GetPolyFillMode';
+  function GetPolyFillMode(_para1:HDC):longint; external 'gdi32.dll' name 'GetPolyFillMode';
 
-  function GetRasterizerCaps(_para1:LPRASTERIZER_STATUS; _para2:UINT):WINBOOL; external External_library name 'GetRasterizerCaps';
+  function GetRasterizerCaps(_para1:LPRASTERIZER_STATUS; _para2:UINT):WINBOOL; external 'gdi32.dll' name 'GetRasterizerCaps';
 
-  function GetRegionData(_para1:HRGN; _para2:DWORD; _para3:LPRGNDATA):DWORD; external External_library name 'GetRegionData';
+  function GetRegionData(_para1:HRGN; _para2:DWORD; _para3:LPRGNDATA):DWORD; external 'gdi32.dll' name 'GetRegionData';
 
-  function GetRgnBox(_para1:HRGN; _para2:LPRECT):longint; external External_library name 'GetRgnBox';
+  function GetRgnBox(_para1:HRGN; _para2:LPRECT):longint; external 'gdi32.dll' name 'GetRgnBox';
 
-  function GetStockObject(_para1:longint):HGDIOBJ; external External_library name 'GetStockObject';
+  function GetStockObject(_para1:longint):HGDIOBJ; external 'gdi32.dll' name 'GetStockObject';
 
-  function GetStretchBltMode(_para1:HDC):longint; external External_library name 'GetStretchBltMode';
+  function GetStretchBltMode(_para1:HDC):longint; external 'gdi32.dll' name 'GetStretchBltMode';
 
-  function GetSystemPaletteEntries(_para1:HDC; _para2:UINT; _para3:UINT; _para4:LPPALETTEENTRY):UINT; external External_library name 'GetSystemPaletteEntries';
+  function GetSystemPaletteEntries(_para1:HDC; _para2:UINT; _para3:UINT; _para4:LPPALETTEENTRY):UINT; external 'gdi32.dll' name 'GetSystemPaletteEntries';
 
-  function GetSystemPaletteUse(_para1:HDC):UINT; external External_library name 'GetSystemPaletteUse';
+  function GetSystemPaletteUse(_para1:HDC):UINT; external 'gdi32.dll' name 'GetSystemPaletteUse';
 
-  function GetTextCharacterExtra(_para1:HDC):longint; external External_library name 'GetTextCharacterExtra';
+  function GetTextCharacterExtra(_para1:HDC):longint; external 'gdi32.dll' name 'GetTextCharacterExtra';
 
-  function GetTextAlign(_para1:HDC):UINT; external External_library name 'GetTextAlign';
+  function GetTextAlign(_para1:HDC):UINT; external 'gdi32.dll' name 'GetTextAlign';
 
-  function GetTextColor(_para1:HDC):COLORREF; external External_library name 'GetTextColor';
+  function GetTextColor(_para1:HDC):COLORREF; external 'gdi32.dll' name 'GetTextColor';
 
-  function GetTextCharset(hdc:HDC):longint; external External_library name 'GetTextCharset';
+  function GetTextCharset(hdc:HDC):longint; external 'gdi32.dll' name 'GetTextCharset';
 
-  function GetTextCharsetInfo(hdc:HDC; lpSig:LPFONTSIGNATURE; dwFlags:DWORD):longint; external External_library name 'GetTextCharsetInfo';
+  function GetTextCharsetInfo(hdc:HDC; lpSig:LPFONTSIGNATURE; dwFlags:DWORD):longint; external 'gdi32.dll' name 'GetTextCharsetInfo';
 
-  function TranslateCharsetInfo(var lpSrc:DWORD; lpCs:LPCHARSETINFO; dwFlags:DWORD):WINBOOL; external External_library name 'TranslateCharsetInfo';
+  function TranslateCharsetInfo(var lpSrc:DWORD; lpCs:LPCHARSETINFO; dwFlags:DWORD):WINBOOL; external 'gdi32.dll' name 'TranslateCharsetInfo';
 
-  function GetFontLanguageInfo(_para1:HDC):DWORD; external External_library name 'GetFontLanguageInfo';
+  function GetFontLanguageInfo(_para1:HDC):DWORD; external 'gdi32.dll' name 'GetFontLanguageInfo';
 
-  function GetViewportExtEx(_para1:HDC; _para2:LPSIZE):WINBOOL; external External_library name 'GetViewportExtEx';
+  function GetViewportExtEx(_para1:HDC; _para2:LPSIZE):WINBOOL; external 'gdi32.dll' name 'GetViewportExtEx';
 
-  function GetViewportOrgEx(_para1:HDC; _para2:LPPOINT):WINBOOL; external External_library name 'GetViewportOrgEx';
+  function GetViewportOrgEx(_para1:HDC; _para2:LPPOINT):WINBOOL; external 'gdi32.dll' name 'GetViewportOrgEx';
 
-  function GetWindowExtEx(_para1:HDC; _para2:LPSIZE):WINBOOL; external External_library name 'GetWindowExtEx';
+  function GetWindowExtEx(_para1:HDC; _para2:LPSIZE):WINBOOL; external 'gdi32.dll' name 'GetWindowExtEx';
 
-  function GetWindowOrgEx(_para1:HDC; _para2:LPPOINT):WINBOOL; external External_library name 'GetWindowOrgEx';
+  function GetWindowOrgEx(_para1:HDC; _para2:LPPOINT):WINBOOL; external 'gdi32.dll' name 'GetWindowOrgEx';
 
-  function IntersectClipRect(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint):longint; external External_library name 'IntersectClipRect';
+  function IntersectClipRect(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint):longint; external 'gdi32.dll' name 'IntersectClipRect';
 
-  function InvertRgn(_para1:HDC; _para2:HRGN):WINBOOL; external External_library name 'InvertRgn';
+  function InvertRgn(_para1:HDC; _para2:HRGN):WINBOOL; external 'gdi32.dll' name 'InvertRgn';
 
   function LineDDA(_para1:longint; _para2:longint; _para3:longint; _para4:longint; _para5:LINEDDAPROC; 
-             _para6:LPARAM):WINBOOL; external External_library name 'LineDDA';
+             _para6:LPARAM):WINBOOL; external 'gdi32.dll' name 'LineDDA';
 
-  function LineTo(_para1:HDC; _para2:longint; _para3:longint):WINBOOL; external External_library name 'LineTo';
+  function LineTo(_para1:HDC; _para2:longint; _para3:longint):WINBOOL; external 'gdi32.dll' name 'LineTo';
 
   function MaskBlt(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint; 
              _para6:HDC; _para7:longint; _para8:longint; _para9:HBITMAP; _para10:longint; 
-             _para11:longint; _para12:DWORD):WINBOOL; external External_library name 'MaskBlt';
+             _para11:longint; _para12:DWORD):WINBOOL; external 'gdi32.dll' name 'MaskBlt';
 
   function PlgBlt(_para1:HDC; var _para2:POINT; _para3:HDC; _para4:longint; _para5:longint; 
-             _para6:longint; _para7:longint; _para8:HBITMAP; _para9:longint; _para10:longint):WINBOOL; external External_library name 'PlgBlt';
+             _para6:longint; _para7:longint; _para8:HBITMAP; _para9:longint; _para10:longint):WINBOOL; external 'gdi32.dll' name 'PlgBlt';
 
-  function OffsetClipRgn(_para1:HDC; _para2:longint; _para3:longint):longint; external External_library name 'OffsetClipRgn';
+  function OffsetClipRgn(_para1:HDC; _para2:longint; _para3:longint):longint; external 'gdi32.dll' name 'OffsetClipRgn';
 
-  function OffsetRgn(_para1:HRGN; _para2:longint; _para3:longint):longint; external External_library name 'OffsetRgn';
+  function OffsetRgn(_para1:HRGN; _para2:longint; _para3:longint):longint; external 'gdi32.dll' name 'OffsetRgn';
 
   function PatBlt(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint; 
-             _para6:DWORD):WINBOOL; external External_library name 'PatBlt';
+             _para6:DWORD):WINBOOL; external 'gdi32.dll' name 'PatBlt';
 
   function Pie(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint; 
-             _para6:longint; _para7:longint; _para8:longint; _para9:longint):WINBOOL; external External_library name 'Pie';
+             _para6:longint; _para7:longint; _para8:longint; _para9:longint):WINBOOL; external 'gdi32.dll' name 'Pie';
 
-  function PlayMetaFile(_para1:HDC; _para2:HMETAFILE):WINBOOL; external External_library name 'PlayMetaFile';
+  function PlayMetaFile(_para1:HDC; _para2:HMETAFILE):WINBOOL; external 'gdi32.dll' name 'PlayMetaFile';
 
-  function PaintRgn(_para1:HDC; _para2:HRGN):WINBOOL; external External_library name 'PaintRgn';
+  function PaintRgn(_para1:HDC; _para2:HRGN):WINBOOL; external 'gdi32.dll' name 'PaintRgn';
 
-  function PolyPolygon(_para1:HDC; var _para2:POINT; var _para3:INT; _para4:longint):WINBOOL; external External_library name 'PolyPolygon';
+  function PolyPolygon(_para1:HDC; var _para2:POINT; var _para3:INT; _para4:longint):WINBOOL; external 'gdi32.dll' name 'PolyPolygon';
 
-  function PtInRegion(_para1:HRGN; _para2:longint; _para3:longint):WINBOOL; external External_library name 'PtInRegion';
+  function PtInRegion(_para1:HRGN; _para2:longint; _para3:longint):WINBOOL; external 'gdi32.dll' name 'PtInRegion';
 
-  function PtVisible(_para1:HDC; _para2:longint; _para3:longint):WINBOOL; external External_library name 'PtVisible';
+  function PtVisible(_para1:HDC; _para2:longint; _para3:longint):WINBOOL; external 'gdi32.dll' name 'PtVisible';
 
-  function RectInRegion(_para1:HRGN; var _para2:RECT):WINBOOL; external External_library name 'RectInRegion';
+  function RectInRegion(_para1:HRGN; var _para2:RECT):WINBOOL; external 'gdi32.dll' name 'RectInRegion';
 
-  function RectVisible(_para1:HDC; var _para2:RECT):WINBOOL; external External_library name 'RectVisible';
+  function RectVisible(_para1:HDC; var _para2:RECT):WINBOOL; external 'gdi32.dll' name 'RectVisible';
 
-  function Rectangle(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint):WINBOOL; external External_library name 'Rectangle';
+  function Rectangle(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint):WINBOOL; external 'gdi32.dll' name 'Rectangle';
 
-  function RestoreDC(_para1:HDC; _para2:longint):WINBOOL; external External_library name 'RestoreDC';
+  function RestoreDC(_para1:HDC; _para2:longint):WINBOOL; external 'gdi32.dll' name 'RestoreDC';
 
-  function RealizePalette(_para1:HDC):UINT; external External_library name 'RealizePalette';
+  function RealizePalette(_para1:HDC):UINT; external 'gdi32.dll' name 'RealizePalette';
 
   function RoundRect(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint; 
-             _para6:longint; _para7:longint):WINBOOL; external External_library name 'RoundRect';
+             _para6:longint; _para7:longint):WINBOOL; external 'gdi32.dll' name 'RoundRect';
 
-  function ResizePalette(_para1:HPALETTE; _para2:UINT):WINBOOL; external External_library name 'ResizePalette';
+  function ResizePalette(_para1:HPALETTE; _para2:UINT):WINBOOL; external 'gdi32.dll' name 'ResizePalette';
 
-  function SaveDC(_para1:HDC):longint; external External_library name 'SaveDC';
+  function SaveDC(_para1:HDC):longint; external 'gdi32.dll' name 'SaveDC';
 
-  function SelectClipRgn(_para1:HDC; _para2:HRGN):longint; external External_library name 'SelectClipRgn';
+  function SelectClipRgn(_para1:HDC; _para2:HRGN):longint; external 'gdi32.dll' name 'SelectClipRgn';
 
-  function ExtSelectClipRgn(_para1:HDC; _para2:HRGN; _para3:longint):longint; external External_library name 'ExtSelectClipRgn';
+  function ExtSelectClipRgn(_para1:HDC; _para2:HRGN; _para3:longint):longint; external 'gdi32.dll' name 'ExtSelectClipRgn';
 
-  function SetMetaRgn(_para1:HDC):longint; external External_library name 'SetMetaRgn';
+  function SetMetaRgn(_para1:HDC):longint; external 'gdi32.dll' name 'SetMetaRgn';
 
-  function SelectObject(_para1:HDC; _para2:HGDIOBJ):HGDIOBJ; external External_library name 'SelectObject';
+  function SelectObject(_para1:HDC; _para2:HGDIOBJ):HGDIOBJ; external 'gdi32.dll' name 'SelectObject';
 
-  function SelectPalette(_para1:HDC; _para2:HPALETTE; _para3:WINBOOL):HPALETTE; external External_library name 'SelectPalette';
+  function SelectPalette(_para1:HDC; _para2:HPALETTE; _para3:WINBOOL):HPALETTE; external 'gdi32.dll' name 'SelectPalette';
 
-  function SetBkColor(_para1:HDC; _para2:COLORREF):COLORREF; external External_library name 'SetBkColor';
+  function SetBkColor(_para1:HDC; _para2:COLORREF):COLORREF; external 'gdi32.dll' name 'SetBkColor';
 
-  function SetBkMode(_para1:HDC; _para2:longint):longint; external External_library name 'SetBkMode';
+  function SetBkMode(_para1:HDC; _para2:longint):longint; external 'gdi32.dll' name 'SetBkMode';
 
-  function SetBitmapBits(_para1:HBITMAP; _para2:DWORD; _para3:pointer):LONG; external External_library name 'SetBitmapBits';
+  function SetBitmapBits(_para1:HBITMAP; _para2:DWORD; _para3:pointer):LONG; external 'gdi32.dll' name 'SetBitmapBits';
 
-  function SetBoundsRect(_para1:HDC; var _para2:RECT; _para3:UINT):UINT; external External_library name 'SetBoundsRect';
+  function SetBoundsRect(_para1:HDC; var _para2:RECT; _para3:UINT):UINT; external 'gdi32.dll' name 'SetBoundsRect';
 
   function SetDIBits(_para1:HDC; _para2:HBITMAP; _para3:UINT; _para4:UINT; _para5:pointer;
-             var _para6:BITMAPINFO; _para7:UINT):longint; external External_library name 'SetDIBits';
+             var _para6:BITMAPINFO; _para7:UINT):longint; external 'gdi32.dll' name 'SetDIBits';
 
   function SetDIBitsToDevice(_para1:HDC; _para2:longint; _para3:longint; _para4:DWORD; _para5:DWORD; 
              _para6:longint; _para7:longint; _para8:UINT; _para9:UINT; _para10:pointer;
-             var _para11:BITMAPINFO; _para12:UINT):longint; external External_library name 'SetDIBitsToDevice';
+             var _para11:BITMAPINFO; _para12:UINT):longint; external 'gdi32.dll' name 'SetDIBitsToDevice';
 
-  function SetMapperFlags(_para1:HDC; _para2:DWORD):DWORD; external External_library name 'SetMapperFlags';
+  function SetMapperFlags(_para1:HDC; _para2:DWORD):DWORD; external 'gdi32.dll' name 'SetMapperFlags';
 
-  function SetGraphicsMode(hdc:HDC; iMode:longint):longint; external External_library name 'SetGraphicsMode';
+  function SetGraphicsMode(hdc:HDC; iMode:longint):longint; external 'gdi32.dll' name 'SetGraphicsMode';
 
-  function SetMapMode(_para1:HDC; _para2:longint):longint; external External_library name 'SetMapMode';
+  function SetMapMode(_para1:HDC; _para2:longint):longint; external 'gdi32.dll' name 'SetMapMode';
 
-  function SetMetaFileBitsEx(_para1:UINT; var _para2:BYTE):HMETAFILE; external External_library name 'SetMetaFileBitsEx';
+  function SetMetaFileBitsEx(_para1:UINT; var _para2:BYTE):HMETAFILE; external 'gdi32.dll' name 'SetMetaFileBitsEx';
 
-  function SetPaletteEntries(_para1:HPALETTE; _para2:UINT; _para3:UINT; var _para4:PALETTEENTRY):UINT; external External_library name 'SetPaletteEntries';
+  function SetPaletteEntries(_para1:HPALETTE; _para2:UINT; _para3:UINT; var _para4:PALETTEENTRY):UINT; external 'gdi32.dll' name 'SetPaletteEntries';
 
-  function SetPixel(_para1:HDC; _para2:longint; _para3:longint; _para4:COLORREF):COLORREF; external External_library name 'SetPixel';
+  function SetPixel(_para1:HDC; _para2:longint; _para3:longint; _para4:COLORREF):COLORREF; external 'gdi32.dll' name 'SetPixel';
 
-  function SetPixelV(_para1:HDC; _para2:longint; _para3:longint; _para4:COLORREF):WINBOOL; external External_library name 'SetPixelV';
+  function SetPixelV(_para1:HDC; _para2:longint; _para3:longint; _para4:COLORREF):WINBOOL; external 'gdi32.dll' name 'SetPixelV';
 
-  function SetPolyFillMode(_para1:HDC; _para2:longint):longint; external External_library name 'SetPolyFillMode';
+  function SetPolyFillMode(_para1:HDC; _para2:longint):longint; external 'gdi32.dll' name 'SetPolyFillMode';
 
   function StretchBlt(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint; 
              _para6:HDC; _para7:longint; _para8:longint; _para9:longint; _para10:longint; 
-             _para11:DWORD):WINBOOL; external External_library name 'StretchBlt';
+             _para11:DWORD):WINBOOL; external 'gdi32.dll' name 'StretchBlt';
 
-  function SetRectRgn(_para1:HRGN; _para2:longint; _para3:longint; _para4:longint; _para5:longint):WINBOOL; external External_library name 'SetRectRgn';
+  function SetRectRgn(_para1:HRGN; _para2:longint; _para3:longint; _para4:longint; _para5:longint):WINBOOL; external 'gdi32.dll' name 'SetRectRgn';
 
   function StretchDIBits(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint; 
              _para6:longint; _para7:longint; _para8:longint; _para9:longint; _para10:pointer;
-             var _para11:BITMAPINFO; _para12:UINT; _para13:DWORD):longint; external External_library name 'StretchDIBits';
+             var _para11:BITMAPINFO; _para12:UINT; _para13:DWORD):longint; external 'gdi32.dll' name 'StretchDIBits';
 
-  function SetROP2(_para1:HDC; _para2:longint):longint; external External_library name 'SetROP2';
+  function SetROP2(_para1:HDC; _para2:longint):longint; external 'gdi32.dll' name 'SetROP2';
 
-  function SetStretchBltMode(_para1:HDC; _para2:longint):longint; external External_library name 'SetStretchBltMode';
+  function SetStretchBltMode(_para1:HDC; _para2:longint):longint; external 'gdi32.dll' name 'SetStretchBltMode';
 
-  function SetSystemPaletteUse(_para1:HDC; _para2:UINT):UINT; external External_library name 'SetSystemPaletteUse';
+  function SetSystemPaletteUse(_para1:HDC; _para2:UINT):UINT; external 'gdi32.dll' name 'SetSystemPaletteUse';
 
-  function SetTextCharacterExtra(_para1:HDC; _para2:longint):longint; external External_library name 'SetTextCharacterExtra';
+  function SetTextCharacterExtra(_para1:HDC; _para2:longint):longint; external 'gdi32.dll' name 'SetTextCharacterExtra';
 
-  function SetTextColor(_para1:HDC; _para2:COLORREF):COLORREF; external External_library name 'SetTextColor';
+  function SetTextColor(_para1:HDC; _para2:COLORREF):COLORREF; external 'gdi32.dll' name 'SetTextColor';
 
-  function SetTextAlign(_para1:HDC; _para2:UINT):UINT; external External_library name 'SetTextAlign';
+  function SetTextAlign(_para1:HDC; _para2:UINT):UINT; external 'gdi32.dll' name 'SetTextAlign';
 
-  function SetTextJustification(_para1:HDC; _para2:longint; _para3:longint):WINBOOL; external External_library name 'SetTextJustification';
+  function SetTextJustification(_para1:HDC; _para2:longint; _para3:longint):WINBOOL; external 'gdi32.dll' name 'SetTextJustification';
 
-  function UpdateColors(_para1:HDC):WINBOOL; external External_library name 'UpdateColors';
+  function UpdateColors(_para1:HDC):WINBOOL; external 'gdi32.dll' name 'UpdateColors';
 
-  function PlayMetaFileRecord(_para1:HDC; _para2:LPHANDLETABLE; _para3:LPMETARECORD; _para4:UINT):WINBOOL; external External_library name 'PlayMetaFileRecord';
+  function PlayMetaFileRecord(_para1:HDC; _para2:LPHANDLETABLE; _para3:LPMETARECORD; _para4:UINT):WINBOOL; external 'gdi32.dll' name 'PlayMetaFileRecord';
 
-  function EnumMetaFile(_para1:HDC; _para2:HMETAFILE; _para3:ENUMMETAFILEPROC; _para4:LPARAM):WINBOOL; external External_library name 'EnumMetaFile';
+  function EnumMetaFile(_para1:HDC; _para2:HMETAFILE; _para3:ENUMMETAFILEPROC; _para4:LPARAM):WINBOOL; external 'gdi32.dll' name 'EnumMetaFile';
 
-  function CloseEnhMetaFile(_para1:HDC):HENHMETAFILE; external External_library name 'CloseEnhMetaFile';
+  function CloseEnhMetaFile(_para1:HDC):HENHMETAFILE; external 'gdi32.dll' name 'CloseEnhMetaFile';
 
-  function DeleteEnhMetaFile(_para1:HENHMETAFILE):WINBOOL; external External_library name 'DeleteEnhMetaFile';
+  function DeleteEnhMetaFile(_para1:HENHMETAFILE):WINBOOL; external 'gdi32.dll' name 'DeleteEnhMetaFile';
 
-  function EnumEnhMetaFile(_para1:HDC; _para2:HENHMETAFILE; _para3:ENHMETAFILEPROC; _para4:LPVOID; var _para5:RECT):WINBOOL; external External_library name 'EnumEnhMetaFile';
+  function EnumEnhMetaFile(_para1:HDC; _para2:HENHMETAFILE; _para3:ENHMETAFILEPROC; _para4:LPVOID; var _para5:RECT):WINBOOL; external 'gdi32.dll' name 'EnumEnhMetaFile';
 
-  function GetEnhMetaFileHeader(_para1:HENHMETAFILE; _para2:UINT; _para3:LPENHMETAHEADER):UINT; external External_library name 'GetEnhMetaFileHeader';
+  function GetEnhMetaFileHeader(_para1:HENHMETAFILE; _para2:UINT; _para3:LPENHMETAHEADER):UINT; external 'gdi32.dll' name 'GetEnhMetaFileHeader';
 
-  function GetEnhMetaFilePaletteEntries(_para1:HENHMETAFILE; _para2:UINT; _para3:LPPALETTEENTRY):UINT; external External_library name 'GetEnhMetaFilePaletteEntries';
+  function GetEnhMetaFilePaletteEntries(_para1:HENHMETAFILE; _para2:UINT; _para3:LPPALETTEENTRY):UINT; external 'gdi32.dll' name 'GetEnhMetaFilePaletteEntries';
 
-  function GetWinMetaFileBits(_para1:HENHMETAFILE; _para2:UINT; _para3:LPBYTE; _para4:INT; _para5:HDC):UINT; external External_library name 'GetWinMetaFileBits';
+  function GetWinMetaFileBits(_para1:HENHMETAFILE; _para2:UINT; _para3:LPBYTE; _para4:INT; _para5:HDC):UINT; external 'gdi32.dll' name 'GetWinMetaFileBits';
 
-  function PlayEnhMetaFile(_para1:HDC; _para2:HENHMETAFILE; var _para3:RECT):WINBOOL; external External_library name 'PlayEnhMetaFile';
+  function PlayEnhMetaFile(_para1:HDC; _para2:HENHMETAFILE; var _para3:RECT):WINBOOL; external 'gdi32.dll' name 'PlayEnhMetaFile';
 
-  function PlayEnhMetaFileRecord(_para1:HDC; _para2:LPHANDLETABLE; var _para3:ENHMETARECORD; _para4:UINT):WINBOOL; external External_library name 'PlayEnhMetaFileRecord';
+  function PlayEnhMetaFileRecord(_para1:HDC; _para2:LPHANDLETABLE; var _para3:ENHMETARECORD; _para4:UINT):WINBOOL; external 'gdi32.dll' name 'PlayEnhMetaFileRecord';
 
-  function SetEnhMetaFileBits(_para1:UINT; var _para2:BYTE):HENHMETAFILE; external External_library name 'SetEnhMetaFileBits';
+  function SetEnhMetaFileBits(_para1:UINT; var _para2:BYTE):HENHMETAFILE; external 'gdi32.dll' name 'SetEnhMetaFileBits';
 
-  function SetWinMetaFileBits(_para1:UINT; var _para2:BYTE; _para3:HDC; var _para4:METAFILEPICT):HENHMETAFILE; external External_library name 'SetWinMetaFileBits';
+  function SetWinMetaFileBits(_para1:UINT; var _para2:BYTE; _para3:HDC; var _para4:METAFILEPICT):HENHMETAFILE; external 'gdi32.dll' name 'SetWinMetaFileBits';
 
-  function GdiComment(_para1:HDC; _para2:UINT; var _para3:BYTE):WINBOOL; external External_library name 'GdiComment';
+  function GdiComment(_para1:HDC; _para2:UINT; var _para3:BYTE):WINBOOL; external 'gdi32.dll' name 'GdiComment';
 
   function AngleArc(_para1:HDC; _para2:longint; _para3:longint; _para4:DWORD; _para5:FLOAT; 
-             _para6:FLOAT):WINBOOL; external External_library name 'AngleArc';
+             _para6:FLOAT):WINBOOL; external 'gdi32.dll' name 'AngleArc';
 
-  function PolyPolyline(_para1:HDC; var _para2:POINT; var _para3:DWORD; _para4:DWORD):WINBOOL; external External_library name 'PolyPolyline';
+  function PolyPolyline(_para1:HDC; var _para2:POINT; var _para3:DWORD; _para4:DWORD):WINBOOL; external 'gdi32.dll' name 'PolyPolyline';
 
-  function GetWorldTransform(_para1:HDC; _para2:LPXFORM):WINBOOL; external External_library name 'GetWorldTransform';
+  function GetWorldTransform(_para1:HDC; _para2:LPXFORM):WINBOOL; external 'gdi32.dll' name 'GetWorldTransform';
 
-  function SetWorldTransform(_para1:HDC; var _para2:XFORM):WINBOOL; external External_library name 'SetWorldTransform';
+  function SetWorldTransform(_para1:HDC; var _para2:XFORM):WINBOOL; external 'gdi32.dll' name 'SetWorldTransform';
 
-  function ModifyWorldTransform(_para1:HDC; var _para2:XFORM; _para3:DWORD):WINBOOL; external External_library name 'ModifyWorldTransform';
+  function ModifyWorldTransform(_para1:HDC; var _para2:XFORM; _para3:DWORD):WINBOOL; external 'gdi32.dll' name 'ModifyWorldTransform';
 
-  function CombineTransform(_para1:LPXFORM; var _para2:XFORM; var _para3:XFORM):WINBOOL; external External_library name 'CombineTransform';
+  function CombineTransform(_para1:LPXFORM; var _para2:XFORM; var _para3:XFORM):WINBOOL; external 'gdi32.dll' name 'CombineTransform';
 
   function CreateDIBSection(_para1:HDC; var _para2:BITMAPINFO; _para3:UINT; var _para4:pointer; _para5:HANDLE; 
-             _para6:DWORD):HBITMAP; external External_library name 'CreateDIBSection';
+             _para6:DWORD):HBITMAP; external 'gdi32.dll' name 'CreateDIBSection';
 
-  function GetDIBColorTable(_para1:HDC; _para2:UINT; _para3:UINT; var _para4:RGBQUAD):UINT; external External_library name 'GetDIBColorTable';
+  function GetDIBColorTable(_para1:HDC; _para2:UINT; _para3:UINT; var _para4:RGBQUAD):UINT; external 'gdi32.dll' name 'GetDIBColorTable';
 
-  function SetDIBColorTable(_para1:HDC; _para2:UINT; _para3:UINT; var _para4:RGBQUAD):UINT; external External_library name 'SetDIBColorTable';
+  function SetDIBColorTable(_para1:HDC; _para2:UINT; _para3:UINT; var _para4:RGBQUAD):UINT; external 'gdi32.dll' name 'SetDIBColorTable';
 
-  function SetColorAdjustment(_para1:HDC; var _para2:COLORADJUSTMENT):WINBOOL; external External_library name 'SetColorAdjustment';
+  function SetColorAdjustment(_para1:HDC; var _para2:COLORADJUSTMENT):WINBOOL; external 'gdi32.dll' name 'SetColorAdjustment';
 
-  function GetColorAdjustment(_para1:HDC; _para2:LPCOLORADJUSTMENT):WINBOOL; external External_library name 'GetColorAdjustment';
+  function GetColorAdjustment(_para1:HDC; _para2:LPCOLORADJUSTMENT):WINBOOL; external 'gdi32.dll' name 'GetColorAdjustment';
 
-  function CreateHalftonePalette(_para1:HDC):HPALETTE; external External_library name 'CreateHalftonePalette';
+  function CreateHalftonePalette(_para1:HDC):HPALETTE; external 'gdi32.dll' name 'CreateHalftonePalette';
 
-  function EndDoc(_para1:HDC):longint; external External_library name 'EndDoc';
+  function EndDoc(_para1:HDC):longint; external 'gdi32.dll' name 'EndDoc';
 
-  function StartPage(_para1:HDC):longint; external External_library name 'StartPage';
+  function StartPage(_para1:HDC):longint; external 'gdi32.dll' name 'StartPage';
 
-  function EndPage(_para1:HDC):longint; external External_library name 'EndPage';
+  function EndPage(_para1:HDC):longint; external 'gdi32.dll' name 'EndPage';
 
-  function AbortDoc(_para1:HDC):longint; external External_library name 'AbortDoc';
+  function AbortDoc(_para1:HDC):longint; external 'gdi32.dll' name 'AbortDoc';
 
-  function SetAbortProc(_para1:HDC; _para2:TABORTPROC):longint; external External_library name 'SetAbortProc';
+  function SetAbortProc(_para1:HDC; _para2:TABORTPROC):longint; external 'gdi32.dll' name 'SetAbortProc';
 
-(*  function AbortPath(_para1:HDC):WINBOOL; external External_library name 'AbortPath';*)
+(*  function AbortPath(_para1:HDC):WINBOOL; external 'gdi32.dll' name 'AbortPath';
+*)
 
   function ArcTo(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint; 
-             _para6:longint; _para7:longint; _para8:longint; _para9:longint):WINBOOL; external External_library name 'ArcTo';
+             _para6:longint; _para7:longint; _para8:longint; _para9:longint):WINBOOL; external 'gdi32.dll' name 'ArcTo';
 
-  function BeginPath(_para1:HDC):WINBOOL; external External_library name 'BeginPath';
+  function BeginPath(_para1:HDC):WINBOOL; external 'gdi32.dll' name 'BeginPath';
 
-  function CloseFigure(_para1:HDC):WINBOOL; external External_library name 'CloseFigure';
+  function CloseFigure(_para1:HDC):WINBOOL; external 'gdi32.dll' name 'CloseFigure';
 
-  function EndPath(_para1:HDC):WINBOOL; external External_library name 'EndPath';
+  function EndPath(_para1:HDC):WINBOOL; external 'gdi32.dll' name 'EndPath';
 
-  function FillPath(_para1:HDC):WINBOOL; external External_library name 'FillPath';
+  function FillPath(_para1:HDC):WINBOOL; external 'gdi32.dll' name 'FillPath';
 
-  function FlattenPath(_para1:HDC):WINBOOL; external External_library name 'FlattenPath';
+  function FlattenPath(_para1:HDC):WINBOOL; external 'gdi32.dll' name 'FlattenPath';
 
-  function GetPath(_para1:HDC; _para2:LPPOINT; _para3:LPBYTE; _para4:longint):longint; external External_library name 'GetPath';
+  function GetPath(_para1:HDC; _para2:LPPOINT; _para3:LPBYTE; _para4:longint):longint; external 'gdi32.dll' name 'GetPath';
 
-  function PathToRegion(_para1:HDC):HRGN; external External_library name 'PathToRegion';
+  function PathToRegion(_para1:HDC):HRGN; external 'gdi32.dll' name 'PathToRegion';
 
-  function PolyDraw(_para1:HDC; var _para2:POINT; var _para3:BYTE; _para4:longint):WINBOOL; external External_library name 'PolyDraw';
+  function PolyDraw(_para1:HDC; var _para2:POINT; var _para3:BYTE; _para4:longint):WINBOOL; external 'gdi32.dll' name 'PolyDraw';
 
-  function SelectClipPath(_para1:HDC; _para2:longint):WINBOOL; external External_library name 'SelectClipPath';
+  function SelectClipPath(_para1:HDC; _para2:longint):WINBOOL; external 'gdi32.dll' name 'SelectClipPath';
 
-  function SetArcDirection(_para1:HDC; _para2:longint):longint; external External_library name 'SetArcDirection';
+  function SetArcDirection(_para1:HDC; _para2:longint):longint; external 'gdi32.dll' name 'SetArcDirection';
 
-  function SetMiterLimit(_para1:HDC; _para2:FLOAT; _para3:PFLOAT):WINBOOL; external External_library name 'SetMiterLimit';
+  function SetMiterLimit(_para1:HDC; _para2:FLOAT; _para3:PFLOAT):WINBOOL; external 'gdi32.dll' name 'SetMiterLimit';
 
-  function StrokeAndFillPath(_para1:HDC):WINBOOL; external External_library name 'StrokeAndFillPath';
+  function StrokeAndFillPath(_para1:HDC):WINBOOL; external 'gdi32.dll' name 'StrokeAndFillPath';
 
-  function StrokePath(_para1:HDC):WINBOOL; external External_library name 'StrokePath';
+  function StrokePath(_para1:HDC):WINBOOL; external 'gdi32.dll' name 'StrokePath';
 
-  function WidenPath(_para1:HDC):WINBOOL; external External_library name 'WidenPath';
+  function WidenPath(_para1:HDC):WINBOOL; external 'gdi32.dll' name 'WidenPath';
 
-  function ExtCreatePen(_para1:DWORD; _para2:DWORD; var _para3:LOGBRUSH; _para4:DWORD; var _para5:DWORD):HPEN; external External_library name 'ExtCreatePen';
+  function ExtCreatePen(_para1:DWORD; _para2:DWORD; var _para3:LOGBRUSH; _para4:DWORD; var _para5:DWORD):HPEN; external 'gdi32.dll' name 'ExtCreatePen';
 
-  function GetMiterLimit(_para1:HDC; _para2:PFLOAT):WINBOOL; external External_library name 'GetMiterLimit';
+  function GetMiterLimit(_para1:HDC; _para2:PFLOAT):WINBOOL; external 'gdi32.dll' name 'GetMiterLimit';
 
-  function GetArcDirection(_para1:HDC):longint; external External_library name 'GetArcDirection';
+  function GetArcDirection(_para1:HDC):longint; external 'gdi32.dll' name 'GetArcDirection';
 
-  function MoveToEx(_para1:HDC; _para2:longint; _para3:longint; _para4:LPPOINT):WINBOOL; external External_library name 'MoveToEx';
+  function MoveToEx(_para1:HDC; _para2:longint; _para3:longint; _para4:LPPOINT):WINBOOL; external 'gdi32.dll' name 'MoveToEx';
 
-  function CreatePolygonRgn(var _para1:POINT; _para2:longint; _para3:longint):HRGN; external External_library name 'CreatePolygonRgn';
+  function CreatePolygonRgn(var _para1:POINT; _para2:longint; _para3:longint):HRGN; external 'gdi32.dll' name 'CreatePolygonRgn';
 
-  function DPtoLP(_para1:HDC; _para2:LPPOINT; _para3:longint):WINBOOL; external External_library name 'DPtoLP';
+  function DPtoLP(_para1:HDC; _para2:LPPOINT; _para3:longint):WINBOOL; external 'gdi32.dll' name 'DPtoLP';
 
-  function LPtoDP(_para1:HDC; _para2:LPPOINT; _para3:longint):WINBOOL; external External_library name 'LPtoDP';
+  function LPtoDP(_para1:HDC; _para2:LPPOINT; _para3:longint):WINBOOL; external 'gdi32.dll' name 'LPtoDP';
 
-  function Polygon(_para1:HDC; var _para2:POINT; _para3:longint):WINBOOL; external External_library name 'Polygon';
+  function Polygon(_para1:HDC; var _para2:POINT; _para3:longint):WINBOOL; external 'gdi32.dll' name 'Polygon';
 
-  function Polyline(_para1:HDC; var _para2:POINT; _para3:longint):WINBOOL; external External_library name 'Polyline';
+  function Polyline(_para1:HDC; var _para2:POINT; _para3:longint):WINBOOL; external 'gdi32.dll' name 'Polyline';
 
-  function PolyBezier(_para1:HDC; var _para2:POINT; _para3:DWORD):WINBOOL; external External_library name 'PolyBezier';
+  function PolyBezier(_para1:HDC; var _para2:POINT; _para3:DWORD):WINBOOL; external 'gdi32.dll' name 'PolyBezier';
 
-  function PolyBezierTo(_para1:HDC; var _para2:POINT; _para3:DWORD):WINBOOL; external External_library name 'PolyBezierTo';
+  function PolyBezierTo(_para1:HDC; var _para2:POINT; _para3:DWORD):WINBOOL; external 'gdi32.dll' name 'PolyBezierTo';
 
-  function PolylineTo(_para1:HDC; var _para2:POINT; _para3:DWORD):WINBOOL; external External_library name 'PolylineTo';
+  function PolylineTo(_para1:HDC; var _para2:POINT; _para3:DWORD):WINBOOL; external 'gdi32.dll' name 'PolylineTo';
 
-  function SetViewportExtEx(_para1:HDC; _para2:longint; _para3:longint; _para4:LPSIZE):WINBOOL; external External_library name 'SetViewportExtEx';
+  function SetViewportExtEx(_para1:HDC; _para2:longint; _para3:longint; _para4:LPSIZE):WINBOOL; external 'gdi32.dll' name 'SetViewportExtEx';
 
-  function SetViewportOrgEx(_para1:HDC; _para2:longint; _para3:longint; _para4:LPPOINT):WINBOOL; external External_library name 'SetViewportOrgEx';
+  function SetViewportOrgEx(_para1:HDC; _para2:longint; _para3:longint; _para4:LPPOINT):WINBOOL; external 'gdi32.dll' name 'SetViewportOrgEx';
 
-  function SetWindowExtEx(_para1:HDC; _para2:longint; _para3:longint; _para4:LPSIZE):WINBOOL; external External_library name 'SetWindowExtEx';
+  function SetWindowExtEx(_para1:HDC; _para2:longint; _para3:longint; _para4:LPSIZE):WINBOOL; external 'gdi32.dll' name 'SetWindowExtEx';
 
-  function SetWindowOrgEx(_para1:HDC; _para2:longint; _para3:longint; _para4:LPPOINT):WINBOOL; external External_library name 'SetWindowOrgEx';
+  function SetWindowOrgEx(_para1:HDC; _para2:longint; _para3:longint; _para4:LPPOINT):WINBOOL; external 'gdi32.dll' name 'SetWindowOrgEx';
 
-  function OffsetViewportOrgEx(_para1:HDC; _para2:longint; _para3:longint; _para4:LPPOINT):WINBOOL; external External_library name 'OffsetViewportOrgEx';
+  function OffsetViewportOrgEx(_para1:HDC; _para2:longint; _para3:longint; _para4:LPPOINT):WINBOOL; external 'gdi32.dll' name 'OffsetViewportOrgEx';
 
-  function OffsetWindowOrgEx(_para1:HDC; _para2:longint; _para3:longint; _para4:LPPOINT):WINBOOL; external External_library name 'OffsetWindowOrgEx';
+  function OffsetWindowOrgEx(_para1:HDC; _para2:longint; _para3:longint; _para4:LPPOINT):WINBOOL; external 'gdi32.dll' name 'OffsetWindowOrgEx';
 
   function ScaleViewportExtEx(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint; 
-             _para6:LPSIZE):WINBOOL; external External_library name 'ScaleViewportExtEx';
+             _para6:LPSIZE):WINBOOL; external 'gdi32.dll' name 'ScaleViewportExtEx';
 
   function ScaleWindowExtEx(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint; 
-             _para6:LPSIZE):WINBOOL; external External_library name 'ScaleWindowExtEx';
+             _para6:LPSIZE):WINBOOL; external 'gdi32.dll' name 'ScaleWindowExtEx';
 
-  function SetBitmapDimensionEx(_para1:HBITMAP; _para2:longint; _para3:longint; _para4:LPSIZE):WINBOOL; external External_library name 'SetBitmapDimensionEx';
+  function SetBitmapDimensionEx(_para1:HBITMAP; _para2:longint; _para3:longint; _para4:LPSIZE):WINBOOL; external 'gdi32.dll' name 'SetBitmapDimensionEx';
 
-  function SetBrushOrgEx(_para1:HDC; _para2:longint; _para3:longint; _para4:LPPOINT):WINBOOL; external External_library name 'SetBrushOrgEx';
+  function SetBrushOrgEx(_para1:HDC; _para2:longint; _para3:longint; _para4:LPPOINT):WINBOOL; external 'gdi32.dll' name 'SetBrushOrgEx';
 
-  function GetDCOrgEx(_para1:HDC; _para2:LPPOINT):WINBOOL; external External_library name 'GetDCOrgEx';
+  function GetDCOrgEx(_para1:HDC; _para2:LPPOINT):WINBOOL; external 'gdi32.dll' name 'GetDCOrgEx';
 
-  function FixBrushOrgEx(_para1:HDC; _para2:longint; _para3:longint; _para4:LPPOINT):WINBOOL; external External_library name 'FixBrushOrgEx';
+  function FixBrushOrgEx(_para1:HDC; _para2:longint; _para3:longint; _para4:LPPOINT):WINBOOL; external 'gdi32.dll' name 'FixBrushOrgEx';
 
-  function UnrealizeObject(_para1:HGDIOBJ):WINBOOL; external External_library name 'UnrealizeObject';
+  function UnrealizeObject(_para1:HGDIOBJ):WINBOOL; external 'gdi32.dll' name 'UnrealizeObject';
 
-  function GdiFlush:WINBOOL; external External_library name 'GdiFlush';
+  function GdiFlush:WINBOOL; external 'gdi32.dll' name 'GdiFlush';
 
-  function GdiSetBatchLimit(_para1:DWORD):DWORD; external External_library name 'GdiSetBatchLimit';
+  function GdiSetBatchLimit(_para1:DWORD):DWORD; external 'gdi32.dll' name 'GdiSetBatchLimit';
 
-  function GdiGetBatchLimit:DWORD; external External_library name 'GdiGetBatchLimit';
+  function GdiGetBatchLimit:DWORD; external 'gdi32.dll' name 'GdiGetBatchLimit';
 
-  function SetICMMode(_para1:HDC; _para2:longint):longint; external External_library name 'SetICMMode';
+  function SetICMMode(_para1:HDC; _para2:longint):longint; external 'gdi32.dll' name 'SetICMMode';
 
-  function CheckColorsInGamut(_para1:HDC; _para2:LPVOID; _para3:LPVOID; _para4:DWORD):WINBOOL; external External_library name 'CheckColorsInGamut';
+  function CheckColorsInGamut(_para1:HDC; _para2:LPVOID; _para3:LPVOID; _para4:DWORD):WINBOOL; external 'gdi32.dll' name 'CheckColorsInGamut';
 
-  function GetColorSpace(_para1:HDC):HANDLE; external External_library name 'GetColorSpace';
+  function GetColorSpace(_para1:HDC):HANDLE; external 'gdi32.dll' name 'GetColorSpace';
 
-  function SetColorSpace(_para1:HDC; _para2:HCOLORSPACE):WINBOOL; external External_library name 'SetColorSpace';
+  function SetColorSpace(_para1:HDC; _para2:HCOLORSPACE):WINBOOL; external 'gdi32.dll' name 'SetColorSpace';
 
-  function DeleteColorSpace(_para1:HCOLORSPACE):WINBOOL; external External_library name 'DeleteColorSpace';
+  function DeleteColorSpace(_para1:HCOLORSPACE):WINBOOL; external 'gdi32.dll' name 'DeleteColorSpace';
 
-  function GetDeviceGammaRamp(_para1:HDC; _para2:LPVOID):WINBOOL; external External_library name 'GetDeviceGammaRamp';
+  function GetDeviceGammaRamp(_para1:HDC; _para2:LPVOID):WINBOOL; external 'gdi32.dll' name 'GetDeviceGammaRamp';
 
-  function SetDeviceGammaRamp(_para1:HDC; _para2:LPVOID):WINBOOL; external External_library name 'SetDeviceGammaRamp';
+  function SetDeviceGammaRamp(_para1:HDC; _para2:LPVOID):WINBOOL; external 'gdi32.dll' name 'SetDeviceGammaRamp';
 
-  function ColorMatchToTarget(_para1:HDC; _para2:HDC; _para3:DWORD):WINBOOL; external External_library name 'ColorMatchToTarget';
+  function ColorMatchToTarget(_para1:HDC; _para2:HDC; _para3:DWORD):WINBOOL; external 'gdi32.dll' name 'ColorMatchToTarget';
 
-  function CreatePropertySheetPageA(lppsp:LPCPROPSHEETPAGE):HPROPSHEETPAGE; external External_library name 'CreatePropertySheetPageA';
+  function CreatePropertySheetPageA(lppsp:LPCPROPSHEETPAGE):HPROPSHEETPAGE; external 'comctl32.dll' name 'CreatePropertySheetPageA';
 
-  function DestroyPropertySheetPage(hPSPage:HPROPSHEETPAGE):WINBOOL; external External_library name 'DestroyPropertySheetPage';
+  function DestroyPropertySheetPage(hPSPage:HPROPSHEETPAGE):WINBOOL; external 'comctl32.dll' name 'DestroyPropertySheetPage';
 
-  procedure InitCommonControls; external External_library name 'InitCommonControls';
+  procedure InitCommonControls; external 'comctl32.dll' name 'InitCommonControls';
 
   { was #define dname(params) def_expr }
   function ImageList_AddIcon(himl:HIMAGELIST; hicon:HICON):longint;
@@ -5429,85 +5433,85 @@ in define line 6852 *)
        ImageList_AddIcon:=ImageList_ReplaceIcon(himl,-(1),hicon);
     end;
 
-  function ImageList_Create(cx:longint; cy:longint; flags:UINT; cInitial:longint; cGrow:longint):HIMAGELIST; external External_library name 'ImageList_Create';
+  function ImageList_Create(cx:longint; cy:longint; flags:UINT; cInitial:longint; cGrow:longint):HIMAGELIST; external 'comctl32.dll' name 'ImageList_Create';
 
-  function ImageList_Destroy(himl:HIMAGELIST):WINBOOL; external External_library name 'ImageList_Destroy';
+  function ImageList_Destroy(himl:HIMAGELIST):WINBOOL; external 'comctl32.dll' name 'ImageList_Destroy';
 
-  function ImageList_GetImageCount(himl:HIMAGELIST):longint; external External_library name 'ImageList_GetImageCount';
+  function ImageList_GetImageCount(himl:HIMAGELIST):longint; external 'comctl32.dll' name 'ImageList_GetImageCount';
 
-  function ImageList_Add(himl:HIMAGELIST; hbmImage:HBITMAP; hbmMask:HBITMAP):longint; external External_library name 'ImageList_Add';
+  function ImageList_Add(himl:HIMAGELIST; hbmImage:HBITMAP; hbmMask:HBITMAP):longint; external 'comctl32.dll' name 'ImageList_Add';
 
-  function ImageList_ReplaceIcon(himl:HIMAGELIST; i:longint; hicon:HICON):longint; external External_library name 'ImageList_ReplaceIcon';
+  function ImageList_ReplaceIcon(himl:HIMAGELIST; i:longint; hicon:HICON):longint; external 'comctl32.dll' name 'ImageList_ReplaceIcon';
 
-  function ImageList_SetBkColor(himl:HIMAGELIST; clrBk:COLORREF):COLORREF; external External_library name 'ImageList_SetBkColor';
+  function ImageList_SetBkColor(himl:HIMAGELIST; clrBk:COLORREF):COLORREF; external 'comctl32.dll' name 'ImageList_SetBkColor';
 
-  function ImageList_GetBkColor(himl:HIMAGELIST):COLORREF; external External_library name 'ImageList_GetBkColor';
+  function ImageList_GetBkColor(himl:HIMAGELIST):COLORREF; external 'comctl32.dll' name 'ImageList_GetBkColor';
 
-  function ImageList_SetOverlayImage(himl:HIMAGELIST; iImage:longint; iOverlay:longint):WINBOOL; external External_library name 'ImageList_SetOverlayImage';
+  function ImageList_SetOverlayImage(himl:HIMAGELIST; iImage:longint; iOverlay:longint):WINBOOL; external 'comctl32.dll' name 'ImageList_SetOverlayImage';
 
   function ImageList_Draw(himl:HIMAGELIST; i:longint; hdcDst:HDC; x:longint; y:longint; 
-             fStyle:UINT):WINBOOL; external External_library name 'ImageList_Draw';
+             fStyle:UINT):WINBOOL; external 'comctl32.dll' name 'ImageList_Draw';
 
-  function ImageList_Replace(himl:HIMAGELIST; i:longint; hbmImage:HBITMAP; hbmMask:HBITMAP):WINBOOL; external External_library name 'ImageList_Replace';
+  function ImageList_Replace(himl:HIMAGELIST; i:longint; hbmImage:HBITMAP; hbmMask:HBITMAP):WINBOOL; external 'comctl32.dll' name 'ImageList_Replace';
 
-  function ImageList_AddMasked(himl:HIMAGELIST; hbmImage:HBITMAP; crMask:COLORREF):longint; external External_library name 'ImageList_AddMasked';
+  function ImageList_AddMasked(himl:HIMAGELIST; hbmImage:HBITMAP; crMask:COLORREF):longint; external 'comctl32.dll' name 'ImageList_AddMasked';
 
   function ImageList_DrawEx(himl:HIMAGELIST; i:longint; hdcDst:HDC; x:longint; y:longint; 
-             dx:longint; dy:longint; rgbBk:COLORREF; rgbFg:COLORREF; fStyle:UINT):WINBOOL; external External_library name 'ImageList_DrawEx';
+             dx:longint; dy:longint; rgbBk:COLORREF; rgbFg:COLORREF; fStyle:UINT):WINBOOL; external 'comctl32.dll' name 'ImageList_DrawEx';
 
-  function ImageList_Remove(himl:HIMAGELIST; i:longint):WINBOOL; external External_library name 'ImageList_Remove';
+  function ImageList_Remove(himl:HIMAGELIST; i:longint):WINBOOL; external 'comctl32.dll' name 'ImageList_Remove';
 
-  function ImageList_GetIcon(himl:HIMAGELIST; i:longint; flags:UINT):HICON; external External_library name 'ImageList_GetIcon';
+  function ImageList_GetIcon(himl:HIMAGELIST; i:longint; flags:UINT):HICON; external 'comctl32.dll' name 'ImageList_GetIcon';
 
-  function ImageList_BeginDrag(himlTrack:HIMAGELIST; iTrack:longint; dxHotspot:longint; dyHotspot:longint):WINBOOL; external External_library name 'ImageList_BeginDrag';
+  function ImageList_BeginDrag(himlTrack:HIMAGELIST; iTrack:longint; dxHotspot:longint; dyHotspot:longint):WINBOOL; external 'comctl32.dll' name 'ImageList_BeginDrag';
 
-  procedure ImageList_EndDrag; external External_library name 'ImageList_EndDrag';
+  procedure ImageList_EndDrag; external 'comctl32.dll' name 'ImageList_EndDrag';
 
-  function ImageList_DragEnter(hwndLock:HWND; x:longint; y:longint):WINBOOL; external External_library name 'ImageList_DragEnter';
+  function ImageList_DragEnter(hwndLock:HWND; x:longint; y:longint):WINBOOL; external 'comctl32.dll' name 'ImageList_DragEnter';
 
-  function ImageList_DragLeave(hwndLock:HWND):WINBOOL; external External_library name 'ImageList_DragLeave';
+  function ImageList_DragLeave(hwndLock:HWND):WINBOOL; external 'comctl32.dll' name 'ImageList_DragLeave';
 
-  function ImageList_DragMove(x:longint; y:longint):WINBOOL; external External_library name 'ImageList_DragMove';
+  function ImageList_DragMove(x:longint; y:longint):WINBOOL; external 'comctl32.dll' name 'ImageList_DragMove';
 
-  function ImageList_SetDragCursorImage(himlDrag:HIMAGELIST; iDrag:longint; dxHotspot:longint; dyHotspot:longint):WINBOOL; external External_library name 'ImageList_SetDragCursorImage';
+  function ImageList_SetDragCursorImage(himlDrag:HIMAGELIST; iDrag:longint; dxHotspot:longint; dyHotspot:longint):WINBOOL; external 'comctl32.dll' name 'ImageList_SetDragCursorImage';
 
-  function ImageList_DragShowNolock(fShow:WINBOOL):WINBOOL; external External_library name 'ImageList_DragShowNolock';
+  function ImageList_DragShowNolock(fShow:WINBOOL):WINBOOL; external 'comctl32.dll' name 'ImageList_DragShowNolock';
 
-  function ImageList_GetDragImage(var ppt:POINT; var pptHotspot:POINT):HIMAGELIST; external External_library name 'ImageList_GetDragImage';
+  function ImageList_GetDragImage(var ppt:POINT; var pptHotspot:POINT):HIMAGELIST; external 'comctl32.dll' name 'ImageList_GetDragImage';
 
-  function ImageList_GetIconSize(himl:HIMAGELIST; var cx:longint; var cy:longint):WINBOOL; external External_library name 'ImageList_GetIconSize';
+  function ImageList_GetIconSize(himl:HIMAGELIST; var cx:longint; var cy:longint):WINBOOL; external 'comctl32.dll' name 'ImageList_GetIconSize';
 
-  function ImageList_SetIconSize(himl:HIMAGELIST; cx:longint; cy:longint):WINBOOL; external External_library name 'ImageList_SetIconSize';
+  function ImageList_SetIconSize(himl:HIMAGELIST; cx:longint; cy:longint):WINBOOL; external 'comctl32.dll' name 'ImageList_SetIconSize';
 
-  function ImageList_GetImageInfo(himl:HIMAGELIST; i:longint; var pImageInfo:IMAGEINFO):WINBOOL; external External_library name 'ImageList_GetImageInfo';
+  function ImageList_GetImageInfo(himl:HIMAGELIST; i:longint; var pImageInfo:IMAGEINFO):WINBOOL; external 'comctl32.dll' name 'ImageList_GetImageInfo';
 
   function ImageList_Merge(himl1:HIMAGELIST; i1:longint; himl2:HIMAGELIST; i2:longint; dx:longint; 
-             dy:longint):HIMAGELIST; external External_library name 'ImageList_Merge';
+             dy:longint):HIMAGELIST; external 'comctl32.dll' name 'ImageList_Merge';
 
   function CreateToolbarEx(hwnd:HWND; ws:DWORD; wID:UINT; nBitmaps:longint; hBMInst:HINSTANCE; 
              wBMID:UINT; lpButtons:LPCTBBUTTON; iNumButtons:longint; dxButton:longint; dyButton:longint; 
-             dxBitmap:longint; dyBitmap:longint; uStructSize:UINT):HWND; external External_library name 'CreateToolbarEx';
+             dxBitmap:longint; dyBitmap:longint; uStructSize:UINT):HWND; external 'comctl32.dll' name 'CreateToolbarEx';
 
-  function CreateMappedBitmap(hInstance:HINSTANCE; idBitmap:longint; wFlags:UINT; lpColorMap:LPCOLORMAP; iNumMaps:longint):HBITMAP; external External_library name 'CreateMappedBitmap';
+  function CreateMappedBitmap(hInstance:HINSTANCE; idBitmap:longint; wFlags:UINT; lpColorMap:LPCOLORMAP; iNumMaps:longint):HBITMAP; external 'comctl32.dll' name 'CreateMappedBitmap';
 
   procedure MenuHelp(uMsg:UINT; wParam:WPARAM; lParam:LPARAM; hMainMenu:HMENU; hInst:HINSTANCE; 
-              hwndStatus:HWND; var lpwIDs:UINT); external External_library name 'MenuHelp';
+              hwndStatus:HWND; var lpwIDs:UINT); external 'comctl32.dll' name 'MenuHelp';
 
-  function ShowHideMenuCtl(hWnd:HWND; uFlags:UINT; lpInfo:LPINT):WINBOOL; external External_library name 'ShowHideMenuCtl';
+  function ShowHideMenuCtl(hWnd:HWND; uFlags:UINT; lpInfo:LPINT):WINBOOL; external 'comctl32.dll' name 'ShowHideMenuCtl';
 
-  procedure GetEffectiveClientRect(hWnd:HWND; lprc:LPRECT; lpInfo:LPINT); external External_library name 'GetEffectiveClientRect';
+  procedure GetEffectiveClientRect(hWnd:HWND; lprc:LPRECT; lpInfo:LPINT); external 'comctl32.dll' name 'GetEffectiveClientRect';
 
-  function MakeDragList(hLB:HWND):WINBOOL; external External_library name 'MakeDragList';
+  function MakeDragList(hLB:HWND):WINBOOL; external 'comctl32.dll' name 'MakeDragList';
 
-  procedure DrawInsert(handParent:HWND; hLB:HWND; nItem:longint); external External_library name 'DrawInsert';
+  procedure DrawInsert(handParent:HWND; hLB:HWND; nItem:longint); external 'comctl32.dll' name 'DrawInsert';
 
-  function LBItemFromPt(hLB:HWND; pt:POINT; bAutoScroll:WINBOOL):longint; external External_library name 'LBItemFromPt';
+  function LBItemFromPt(hLB:HWND; pt:POINT; bAutoScroll:WINBOOL):longint; external 'comctl32.dll' name 'LBItemFromPt';
 
   function CreateUpDownControl(dwStyle:DWORD; x:longint; y:longint; cx:longint; cy:longint; 
              hParent:HWND; nID:longint; hInst:HINSTANCE; hBuddy:HWND; nUpper:longint; 
-             nLower:longint; nPos:longint):HWND; external External_library name 'CreateUpDownControl';
+             nLower:longint; nPos:longint):HWND; external 'comctl32.dll' name 'CreateUpDownControl';
 
-  function CommDlgExtendedError:DWORD; external External_library name 'CommDlgExtendedError';
+  function CommDlgExtendedError:DWORD; external 'comdlg32.dll' name 'CommDlgExtendedError';
 
   { was #define dname(params) def_expr }
   function Animate_Create(hWndP:HWND; id:HMENU;dwStyle:DWORD;hInstance:HINSTANCE):HWND;
@@ -6470,200 +6474,200 @@ in define line 6826 *)
          CommDlg_OpenSave_SetDefExt:=SNDMSG(_hdlg,CDM_SETDEFEXT,0,LPARAM(_pszext));
       end;
 
-    function RegCloseKey(hKey:HKEY):LONG; external External_library name 'RegCloseKey';
+    function RegCloseKey(hKey:HKEY):LONG; external 'advapi32.dll' name 'RegCloseKey';
 
-    function RegSetKeySecurity(hKey:HKEY; SecurityInformation:SECURITY_INFORMATION; pSecurityDescriptor:PSECURITY_DESCRIPTOR):LONG; external External_library name 'RegSetKeySecurity';
+    function RegSetKeySecurity(hKey:HKEY; SecurityInformation:SECURITY_INFORMATION; pSecurityDescriptor:PSECURITY_DESCRIPTOR):LONG; external 'advapi32.dll' name 'RegSetKeySecurity';
 
-    function RegFlushKey(hKey:HKEY):LONG; external External_library name 'RegFlushKey';
+    function RegFlushKey(hKey:HKEY):LONG; external 'advapi32.dll' name 'RegFlushKey';
 
-    function RegGetKeySecurity(hKey:HKEY; SecurityInformation:SECURITY_INFORMATION; pSecurityDescriptor:PSECURITY_DESCRIPTOR; lpcbSecurityDescriptor:LPDWORD):LONG; external External_library name 'RegGetKeySecurity';
+    function RegGetKeySecurity(hKey:HKEY; SecurityInformation:SECURITY_INFORMATION; pSecurityDescriptor:PSECURITY_DESCRIPTOR; lpcbSecurityDescriptor:LPDWORD):LONG; external 'advapi32.dll' name 'RegGetKeySecurity';
 
-    function RegNotifyChangeKeyValue(hKey:HKEY; bWatchSubtree:WINBOOL; dwNotifyFilter:DWORD; hEvent:HANDLE; fAsynchronus:WINBOOL):LONG; external External_library name 'RegNotifyChangeKeyValue';
+    function RegNotifyChangeKeyValue(hKey:HKEY; bWatchSubtree:WINBOOL; dwNotifyFilter:DWORD; hEvent:HANDLE; fAsynchronus:WINBOOL):LONG; external 'advapi32.dll' name 'RegNotifyChangeKeyValue';
 
-    function IsValidCodePage(CodePage:UINT):WINBOOL; external External_library name 'IsValidCodePage';
+    function IsValidCodePage(CodePage:UINT):WINBOOL; external 'kernel32.dll' name 'IsValidCodePage';
 
-    function GetACP:UINT; external External_library name 'GetACP';
+    function GetACP:UINT; external 'kernel32.dll' name 'GetACP';
 
-    function GetOEMCP:UINT; external External_library name 'GetOEMCP';
+    function GetOEMCP:UINT; external 'kernel32.dll' name 'GetOEMCP';
 
-    function GetCPInfo(_para1:UINT; _para2:LPCPINFO):WINBOOL; external External_library name 'GetCPInfo';
+    function GetCPInfo(_para1:UINT; _para2:LPCPINFO):WINBOOL; external 'kernel32.dll' name 'GetCPInfo';
 
-    function IsDBCSLeadByte(TestChar:BYTE):WINBOOL; external External_library name 'IsDBCSLeadByte';
+    function IsDBCSLeadByte(TestChar:BYTE):WINBOOL; external 'kernel32.dll' name 'IsDBCSLeadByte';
 
-    function IsDBCSLeadByteEx(CodePage:UINT; TestChar:BYTE):WINBOOL; external External_library name 'IsDBCSLeadByteEx';
+    function IsDBCSLeadByteEx(CodePage:UINT; TestChar:BYTE):WINBOOL; external 'kernel32.dll' name 'IsDBCSLeadByteEx';
 
     function MultiByteToWideChar(CodePage:UINT; dwFlags:DWORD; lpMultiByteStr:LPCSTR; cchMultiByte:longint; lpWideCharStr:LPWSTR; 
-               cchWideChar:longint):longint; external External_library name 'MultiByteToWideChar';
+               cchWideChar:longint):longint; external 'kernel32.dll' name 'MultiByteToWideChar';
 
     function WideCharToMultiByte(CodePage:UINT; dwFlags:DWORD; lpWideCharStr:LPCWSTR; cchWideChar:longint; lpMultiByteStr:LPSTR; 
-               cchMultiByte:longint; lpDefaultChar:LPCSTR; lpUsedDefaultChar:LPBOOL):longint; external External_library name 'WideCharToMultiByte';
+               cchMultiByte:longint; lpDefaultChar:LPCSTR; lpUsedDefaultChar:LPBOOL):longint; external 'kernel32.dll' name 'WideCharToMultiByte';
 
-    function IsValidLocale(Locale:LCID; dwFlags:DWORD):WINBOOL; external External_library name 'IsValidLocale';
+    function IsValidLocale(Locale:LCID; dwFlags:DWORD):WINBOOL; external 'kernel32.dll' name 'IsValidLocale';
 
-    function ConvertDefaultLocale(Locale:LCID):LCID; external External_library name 'ConvertDefaultLocale';
+    function ConvertDefaultLocale(Locale:LCID):LCID; external 'kernel32.dll' name 'ConvertDefaultLocale';
 
-    function GetThreadLocale:LCID; external External_library name 'GetThreadLocale';
+    function GetThreadLocale:LCID; external 'kernel32.dll' name 'GetThreadLocale';
 
-    function SetThreadLocale(Locale:LCID):WINBOOL; external External_library name 'SetThreadLocale';
+    function SetThreadLocale(Locale:LCID):WINBOOL; external 'kernel32.dll' name 'SetThreadLocale';
 
-    function GetSystemDefaultLangID:LANGID; external External_library name 'GetSystemDefaultLangID';
+    function GetSystemDefaultLangID:LANGID; external 'kernel32.dll' name 'GetSystemDefaultLangID';
 
-    function GetUserDefaultLangID:LANGID; external External_library name 'GetUserDefaultLangID';
+    function GetUserDefaultLangID:LANGID; external 'kernel32.dll' name 'GetUserDefaultLangID';
 
-    function GetSystemDefaultLCID:LCID; external External_library name 'GetSystemDefaultLCID';
+    function GetSystemDefaultLCID:LCID; external 'kernel32.dll' name 'GetSystemDefaultLCID';
 
-    function GetUserDefaultLCID:LCID; external External_library name 'GetUserDefaultLCID';
+    function GetUserDefaultLCID:LCID; external 'kernel32.dll' name 'GetUserDefaultLCID';
 
-    function ReadConsoleOutputAttribute(hConsoleOutput:HANDLE; lpAttribute:LPWORD; nLength:DWORD; dwReadCoord:COORD; lpNumberOfAttrsRead:LPDWORD):WINBOOL; external External_library name 'ReadConsoleOutputAttribute';
+    function ReadConsoleOutputAttribute(hConsoleOutput:HANDLE; lpAttribute:LPWORD; nLength:DWORD; dwReadCoord:COORD; lpNumberOfAttrsRead:LPDWORD):WINBOOL; external 'kernel32.dll' name 'ReadConsoleOutputAttribute';
 
-    function WriteConsoleOutputAttribute(hConsoleOutput:HANDLE; var lpAttribute:WORD; nLength:DWORD; dwWriteCoord:COORD; lpNumberOfAttrsWritten:LPDWORD):WINBOOL; external External_library name 'WriteConsoleOutputAttribute';
+    function WriteConsoleOutputAttribute(hConsoleOutput:HANDLE; var lpAttribute:WORD; nLength:DWORD; dwWriteCoord:COORD; lpNumberOfAttrsWritten:LPDWORD):WINBOOL; external 'kernel32.dll' name 'WriteConsoleOutputAttribute';
 
-    function FillConsoleOutputAttribute(hConsoleOutput:HANDLE; wAttribute:WORD; nLength:DWORD; dwWriteCoord:COORD; lpNumberOfAttrsWritten:LPDWORD):WINBOOL; external External_library name 'FillConsoleOutputAttribute';
+    function FillConsoleOutputAttribute(hConsoleOutput:HANDLE; wAttribute:WORD; nLength:DWORD; dwWriteCoord:COORD; lpNumberOfAttrsWritten:LPDWORD):WINBOOL; external 'kernel32.dll' name 'FillConsoleOutputAttribute';
 
-    function GetConsoleMode(hConsoleHandle:HANDLE; lpMode:LPDWORD):WINBOOL; external External_library name 'GetConsoleMode';
+    function GetConsoleMode(hConsoleHandle:HANDLE; lpMode:LPDWORD):WINBOOL; external 'kernel32.dll' name 'GetConsoleMode';
 
-    function GetNumberOfConsoleInputEvents(hConsoleInput:HANDLE; lpNumberOfEvents:LPDWORD):WINBOOL; external External_library name 'GetNumberOfConsoleInputEvents';
+    function GetNumberOfConsoleInputEvents(hConsoleInput:HANDLE; lpNumberOfEvents:LPDWORD):WINBOOL; external 'kernel32.dll' name 'GetNumberOfConsoleInputEvents';
 
-    function GetConsoleScreenBufferInfo(hConsoleOutput:HANDLE; lpConsoleScreenBufferInfo:PCONSOLE_SCREEN_BUFFER_INFO):WINBOOL; external External_library name 'GetConsoleScreenBufferInfo';
+    function GetConsoleScreenBufferInfo(hConsoleOutput:HANDLE; lpConsoleScreenBufferInfo:PCONSOLE_SCREEN_BUFFER_INFO):WINBOOL; external 'kernel32.dll' name 'GetConsoleScreenBufferInfo';
 
-    function GetLargestConsoleWindowSize(hConsoleOutput:HANDLE):COORD; external External_library name 'GetLargestConsoleWindowSize';
+    function GetLargestConsoleWindowSize(hConsoleOutput:HANDLE):COORD; external 'kernel32.dll' name 'GetLargestConsoleWindowSize';
 
-    function GetConsoleCursorInfo(hConsoleOutput:HANDLE; lpConsoleCursorInfo:PCONSOLE_CURSOR_INFO):WINBOOL; external External_library name 'GetConsoleCursorInfo';
+    function GetConsoleCursorInfo(hConsoleOutput:HANDLE; lpConsoleCursorInfo:PCONSOLE_CURSOR_INFO):WINBOOL; external 'kernel32.dll' name 'GetConsoleCursorInfo';
 
-    function GetNumberOfConsoleMouseButtons(lpNumberOfMouseButtons:LPDWORD):WINBOOL; external External_library name 'GetNumberOfConsoleMouseButtons';
+    function GetNumberOfConsoleMouseButtons(lpNumberOfMouseButtons:LPDWORD):WINBOOL; external 'kernel32.dll' name 'GetNumberOfConsoleMouseButtons';
 
-    function SetConsoleMode(hConsoleHandle:HANDLE; dwMode:DWORD):WINBOOL; external External_library name 'SetConsoleMode';
+    function SetConsoleMode(hConsoleHandle:HANDLE; dwMode:DWORD):WINBOOL; external 'kernel32.dll' name 'SetConsoleMode';
 
-    function SetConsoleActiveScreenBuffer(hConsoleOutput:HANDLE):WINBOOL; external External_library name 'SetConsoleActiveScreenBuffer';
+    function SetConsoleActiveScreenBuffer(hConsoleOutput:HANDLE):WINBOOL; external 'kernel32.dll' name 'SetConsoleActiveScreenBuffer';
 
-    function FlushConsoleInputBuffer(hConsoleInput:HANDLE):WINBOOL; external External_library name 'FlushConsoleInputBuffer';
+    function FlushConsoleInputBuffer(hConsoleInput:HANDLE):WINBOOL; external 'kernel32.dll' name 'FlushConsoleInputBuffer';
 
-    function SetConsoleScreenBufferSize(hConsoleOutput:HANDLE; dwSize:COORD):WINBOOL; external External_library name 'SetConsoleScreenBufferSize';
+    function SetConsoleScreenBufferSize(hConsoleOutput:HANDLE; dwSize:COORD):WINBOOL; external 'kernel32.dll' name 'SetConsoleScreenBufferSize';
 
-    function SetConsoleCursorPosition(hConsoleOutput:HANDLE; dwCursorPosition:COORD):WINBOOL; external External_library name 'SetConsoleCursorPosition';
+    function SetConsoleCursorPosition(hConsoleOutput:HANDLE; dwCursorPosition:COORD):WINBOOL; external 'kernel32.dll' name 'SetConsoleCursorPosition';
 
-    function SetConsoleCursorInfo(hConsoleOutput:HANDLE; var lpConsoleCursorInfo:CONSOLE_CURSOR_INFO):WINBOOL; external External_library name 'SetConsoleCursorInfo';
+    function SetConsoleCursorInfo(hConsoleOutput:HANDLE; var lpConsoleCursorInfo:CONSOLE_CURSOR_INFO):WINBOOL; external 'kernel32.dll' name 'SetConsoleCursorInfo';
 
-    function SetConsoleWindowInfo(hConsoleOutput:HANDLE; bAbsolute:WINBOOL; var lpConsoleWindow:SMALL_RECT):WINBOOL; external External_library name 'SetConsoleWindowInfo';
+    function SetConsoleWindowInfo(hConsoleOutput:HANDLE; bAbsolute:WINBOOL; var lpConsoleWindow:SMALL_RECT):WINBOOL; external 'kernel32.dll' name 'SetConsoleWindowInfo';
 
-    function SetConsoleTextAttribute(hConsoleOutput:HANDLE; wAttributes:WORD):WINBOOL; external External_library name 'SetConsoleTextAttribute';
+    function SetConsoleTextAttribute(hConsoleOutput:HANDLE; wAttributes:WORD):WINBOOL; external 'kernel32.dll' name 'SetConsoleTextAttribute';
 
-    function SetConsoleCtrlHandler(HandlerRoutine:PHANDLER_ROUTINE; Add:WINBOOL):WINBOOL; external External_library name 'SetConsoleCtrlHandler';
+    function SetConsoleCtrlHandler(HandlerRoutine:PHANDLER_ROUTINE; Add:WINBOOL):WINBOOL; external 'kernel32.dll' name 'SetConsoleCtrlHandler';
 
-    function GenerateConsoleCtrlEvent(dwCtrlEvent:DWORD; dwProcessGroupId:DWORD):WINBOOL; external External_library name 'GenerateConsoleCtrlEvent';
+    function GenerateConsoleCtrlEvent(dwCtrlEvent:DWORD; dwProcessGroupId:DWORD):WINBOOL; external 'kernel32.dll' name 'GenerateConsoleCtrlEvent';
 
-    function AllocConsole:WINBOOL; external External_library name 'AllocConsole';
+    function AllocConsole:WINBOOL; external 'kernel32.dll' name 'AllocConsole';
 
-    function FreeConsole:WINBOOL; external External_library name 'FreeConsole';
+    function FreeConsole:WINBOOL; external 'kernel32.dll' name 'FreeConsole';
 
-    function CreateConsoleScreenBuffer(dwDesiredAccess:DWORD; dwShareMode:DWORD; var lpSecurityAttributes:SECURITY_ATTRIBUTES; dwFlags:DWORD; lpScreenBufferData:LPVOID):HANDLE; external External_library name 'CreateConsoleScreenBuffer';
+    function CreateConsoleScreenBuffer(dwDesiredAccess:DWORD; dwShareMode:DWORD; var lpSecurityAttributes:SECURITY_ATTRIBUTES; dwFlags:DWORD; lpScreenBufferData:LPVOID):HANDLE; external 'kernel32.dll' name 'CreateConsoleScreenBuffer';
 
-    function GetConsoleCP:UINT; external External_library name 'GetConsoleCP';
+    function GetConsoleCP:UINT; external 'kernel32.dll' name 'GetConsoleCP';
 
-    function SetConsoleCP(wCodePageID:UINT):WINBOOL; external External_library name 'SetConsoleCP';
+    function SetConsoleCP(wCodePageID:UINT):WINBOOL; external 'kernel32.dll' name 'SetConsoleCP';
 
-    function GetConsoleOutputCP:UINT; external External_library name 'GetConsoleOutputCP';
+    function GetConsoleOutputCP:UINT; external 'kernel32.dll' name 'GetConsoleOutputCP';
 
-    function SetConsoleOutputCP(wCodePageID:UINT):WINBOOL; external External_library name 'SetConsoleOutputCP';
+    function SetConsoleOutputCP(wCodePageID:UINT):WINBOOL; external 'kernel32.dll' name 'SetConsoleOutputCP';
 
-    function WNetConnectionDialog(hwnd:HWND; dwType:DWORD):DWORD; external External_library name 'WNetConnectionDialog';
+    function WNetConnectionDialog(hwnd:HWND; dwType:DWORD):DWORD; external 'mpr.dll' name 'WNetConnectionDialog';
 
-    function WNetDisconnectDialog(hwnd:HWND; dwType:DWORD):DWORD; external External_library name 'WNetDisconnectDialog';
+    function WNetDisconnectDialog(hwnd:HWND; dwType:DWORD):DWORD; external 'mpr.dll' name 'WNetDisconnectDialog';
 
-    function WNetCloseEnum(hEnum:HANDLE):DWORD; external External_library name 'WNetCloseEnum';
+    function WNetCloseEnum(hEnum:HANDLE):DWORD; external 'mpr.dll' name 'WNetCloseEnum';
 
-    function CloseServiceHandle(hSCObject:SC_HANDLE):WINBOOL; external External_library name 'CloseServiceHandle';
+    function CloseServiceHandle(hSCObject:SC_HANDLE):WINBOOL; external 'advapi32.dll' name 'CloseServiceHandle';
 
-    function ControlService(hService:SC_HANDLE; dwControl:DWORD; lpServiceStatus:LPSERVICE_STATUS):WINBOOL; external External_library name 'ControlService';
+    function ControlService(hService:SC_HANDLE; dwControl:DWORD; lpServiceStatus:LPSERVICE_STATUS):WINBOOL; external 'advapi32.dll' name 'ControlService';
 
-    function DeleteService(hService:SC_HANDLE):WINBOOL; external External_library name 'DeleteService';
+    function DeleteService(hService:SC_HANDLE):WINBOOL; external 'advapi32.dll' name 'DeleteService';
 
-    function LockServiceDatabase(hSCManager:SC_HANDLE):SC_LOCK; external External_library name 'LockServiceDatabase';
+    function LockServiceDatabase(hSCManager:SC_HANDLE):SC_LOCK; external 'advapi32.dll' name 'LockServiceDatabase';
 
-    function NotifyBootConfigStatus(BootAcceptable:WINBOOL):WINBOOL; external External_library name 'NotifyBootConfigStatus';
+    function NotifyBootConfigStatus(BootAcceptable:WINBOOL):WINBOOL; external 'advapi32.dll' name 'NotifyBootConfigStatus';
 
     function QueryServiceObjectSecurity(hService:SC_HANDLE; dwSecurityInformation:SECURITY_INFORMATION; lpSecurityDescriptor:PSECURITY_DESCRIPTOR; cbBufSize:DWORD; pcbBytesNeeded:LPDWORD):WINBOOL;
-               external External_library name 'QueryServiceObjectSecurity';
+               external 'advapi32.dll' name 'QueryServiceObjectSecurity';
 
-    function QueryServiceStatus(hService:SC_HANDLE; lpServiceStatus:LPSERVICE_STATUS):WINBOOL; external External_library name 'QueryServiceStatus';
+    function QueryServiceStatus(hService:SC_HANDLE; lpServiceStatus:LPSERVICE_STATUS):WINBOOL; external 'advapi32.dll' name 'QueryServiceStatus';
 
     function SetServiceObjectSecurity(hService:SC_HANDLE; dwSecurityInformation:SECURITY_INFORMATION; lpSecurityDescriptor:PSECURITY_DESCRIPTOR):WINBOOL;
-               external External_library name 'SetServiceObjectSecurity';
+               external 'advapi32.dll' name 'SetServiceObjectSecurity';
 
-    function SetServiceStatus(hServiceStatus:SERVICE_STATUS_HANDLE; lpServiceStatus:LPSERVICE_STATUS):WINBOOL; external External_library name 'SetServiceStatus';
+    function SetServiceStatus(hServiceStatus:SERVICE_STATUS_HANDLE; lpServiceStatus:LPSERVICE_STATUS):WINBOOL; external 'advapi32.dll' name 'SetServiceStatus';
 
-    function UnlockServiceDatabase(ScLock:SC_LOCK):WINBOOL; external External_library name 'UnlockServiceDatabase';
+    function UnlockServiceDatabase(ScLock:SC_LOCK):WINBOOL; external 'advapi32.dll' name 'UnlockServiceDatabase';
 
-    function ChoosePixelFormat(_para1:HDC; var _para2:PIXELFORMATDESCRIPTOR):longint; external External_library name 'ChoosePixelFormat';
+    function ChoosePixelFormat(_para1:HDC; var _para2:PIXELFORMATDESCRIPTOR):longint; external 'gdi32.dll' name 'ChoosePixelFormat';
 
-    function DescribePixelFormat(_para1:HDC; _para2:longint; _para3:UINT; _para4:LPPIXELFORMATDESCRIPTOR):longint; external External_library name 'DescribePixelFormat';
+    function DescribePixelFormat(_para1:HDC; _para2:longint; _para3:UINT; _para4:LPPIXELFORMATDESCRIPTOR):longint; external 'gdi32.dll' name 'DescribePixelFormat';
 
     function GetEnhMetaFilePixelFormat(_para1:HENHMETAFILE; _para2:DWORD; var _para3:PIXELFORMATDESCRIPTOR):UINT; external External_library name 'GetEnhMetaFilePixelFormat';
 
-{    function GetPixelFormat(_para1:HDC):longint; external External_library name 'GetPixelFormat'; }
+{    function GetPixelFormat(_para1:HDC):longint; external 'gdi32.dll' name 'GetPixelFormat'; }
 
-    function SetPixelFormat(_para1:HDC; _para2:longint; var _para3:PIXELFORMATDESCRIPTOR):WINBOOL; external External_library name 'SetPixelFormat';
+    function SetPixelFormat(_para1:HDC; _para2:longint; var _para3:PIXELFORMATDESCRIPTOR):WINBOOL; external 'gdi32.dll' name 'SetPixelFormat';
 
-    function SwapBuffers(_para1:HDC):WINBOOL; external External_library name 'SwapBuffers';
+    function SwapBuffers(_para1:HDC):WINBOOL; external 'gdi32.dll' name 'SwapBuffers';
 
-    function wglCreateContext(_para1:HDC):HGLRC; external External_library name 'wglCreateContext';
+    function wglCreateContext(_para1:HDC):HGLRC; external 'opengl32.dll' name 'wglCreateContext';
 
-    function wglCreateLayerContext(_para1:HDC; _para2:longint):HGLRC; external External_library name 'wglCreateLayerContext';
+    function wglCreateLayerContext(_para1:HDC; _para2:longint):HGLRC; external 'opengl32.dll' name 'wglCreateLayerContext';
 
-    function wglCopyContext(_para1:HGLRC; _para2:HGLRC; _para3:UINT):WINBOOL; external External_library name 'wglCopyContext';
+    function wglCopyContext(_para1:HGLRC; _para2:HGLRC; _para3:UINT):WINBOOL; external 'opengl32.dll' name 'wglCopyContext';
 
-    function wglDeleteContext(_para1:HGLRC):WINBOOL; external External_library name 'wglDeleteContext';
+    function wglDeleteContext(_para1:HGLRC):WINBOOL; external 'opengl32.dll' name 'wglDeleteContext';
 
-    function wglDescribeLayerPlane(_para1:HDC; _para2:longint; _para3:longint; _para4:UINT; _para5:LPLAYERPLANEDESCRIPTOR):WINBOOL; external External_library name 'wglDescribeLayerPlane';
+    function wglDescribeLayerPlane(_para1:HDC; _para2:longint; _para3:longint; _para4:UINT; _para5:LPLAYERPLANEDESCRIPTOR):WINBOOL; external 'opengl32.dll' name 'wglDescribeLayerPlane';
 
-    function wglGetCurrentContext:HGLRC; external External_library name 'wglGetCurrentContext';
+    function wglGetCurrentContext:HGLRC; external 'opengl32.dll' name 'wglGetCurrentContext';
 
-    function wglGetCurrentDC:HDC; external External_library name 'wglGetCurrentDC';
+    function wglGetCurrentDC:HDC; external 'opengl32.dll' name 'wglGetCurrentDC';
 
-    function wglGetLayerPaletteEntries(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; var _para5:COLORREF):longint; external External_library name 'wglGetLayerPaletteEntries';
+    function wglGetLayerPaletteEntries(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; var _para5:COLORREF):longint; external 'opengl32.dll' name 'wglGetLayerPaletteEntries';
 
-    function wglGetProcAddress(_para1:LPCSTR):PROC; external External_library name 'wglGetProcAddress';
+    function wglGetProcAddress(_para1:LPCSTR):PROC; external 'opengl32.dll' name 'wglGetProcAddress';
 
-    function wglMakeCurrent(_para1:HDC; _para2:HGLRC):WINBOOL; external External_library name 'wglMakeCurrent';
+    function wglMakeCurrent(_para1:HDC; _para2:HGLRC):WINBOOL; external 'opengl32.dll' name 'wglMakeCurrent';
 
-    function wglRealizeLayerPalette(_para1:HDC; _para2:longint; _para3:WINBOOL):WINBOOL; external External_library name 'wglRealizeLayerPalette';
+    function wglRealizeLayerPalette(_para1:HDC; _para2:longint; _para3:WINBOOL):WINBOOL; external 'opengl32.dll' name 'wglRealizeLayerPalette';
 
-    function wglSetLayerPaletteEntries(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; var _para5:COLORREF):longint; external External_library name 'wglSetLayerPaletteEntries';
+    function wglSetLayerPaletteEntries(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; var _para5:COLORREF):longint; external 'opengl32.dll' name 'wglSetLayerPaletteEntries';
 
-    function wglShareLists(_para1:HGLRC; _para2:HGLRC):WINBOOL; external External_library name 'wglShareLists';
+    function wglShareLists(_para1:HGLRC; _para2:HGLRC):WINBOOL; external 'opengl32.dll' name 'wglShareLists';
 
-    function wglSwapLayerBuffers(_para1:HDC; _para2:UINT):WINBOOL; external External_library name 'wglSwapLayerBuffers';
+    function wglSwapLayerBuffers(_para1:HDC; _para2:UINT):WINBOOL; external 'opengl32.dll' name 'wglSwapLayerBuffers';
 
-    function DragQueryPoint(_para1:HDROP; _para2:LPPOINT):WINBOOL; external External_library name 'DragQueryPoint';
+    function DragQueryPoint(_para1:HDROP; _para2:LPPOINT):WINBOOL; external 'shell32.dll' name 'DragQueryPoint';
 
-    procedure DragFinish(_para1:HDROP); external External_library name 'DragFinish';
+    procedure DragFinish(_para1:HDROP); external 'shell32.dll' name 'DragFinish';
 
-    procedure DragAcceptFiles(_para1:HWND; _para2:WINBOOL); external External_library name 'DragAcceptFiles';
+    procedure DragAcceptFiles(_para1:HWND; _para2:WINBOOL); external 'shell32.dll' name 'DragAcceptFiles';
 
-    function DuplicateIcon(_para1:HINSTANCE; _para2:HICON):HICON; external External_library name 'DuplicateIcon';
+    function DuplicateIcon(_para1:HINSTANCE; _para2:HICON):HICON; external 'shell32.dll' name 'DuplicateIcon';
 
-    function DdeConnect(_para1:DWORD; _para2:HSZ; _para3:HSZ; var _para4:CONVCONTEXT):HCONV; external External_library name 'DdeConnect';
+    function DdeConnect(_para1:DWORD; _para2:HSZ; _para3:HSZ; var _para4:CONVCONTEXT):HCONV; external 'user32.dll' name 'DdeConnect';
 
-    function DdeDisconnect(_para1:HCONV):WINBOOL; external External_library name 'DdeDisconnect';
+    function DdeDisconnect(_para1:HCONV):WINBOOL; external 'user32.dll' name 'DdeDisconnect';
 
-    function DdeFreeDataHandle(_para1:HDDEDATA):WINBOOL; external External_library name 'DdeFreeDataHandle';
+    function DdeFreeDataHandle(_para1:HDDEDATA):WINBOOL; external 'user32.dll' name 'DdeFreeDataHandle';
 
-    function DdeGetData(_para1:HDDEDATA; var _para2:BYTE; _para3:DWORD; _para4:DWORD):DWORD; external External_library name 'DdeGetData';
+    function DdeGetData(_para1:HDDEDATA; var _para2:BYTE; _para3:DWORD; _para4:DWORD):DWORD; external 'user32.dll' name 'DdeGetData';
 
-    function DdeGetLastError(_para1:DWORD):UINT; external External_library name 'DdeGetLastError';
+    function DdeGetLastError(_para1:DWORD):UINT; external 'user32.dll' name 'DdeGetLastError';
 
-    function DdeNameService(_para1:DWORD; _para2:HSZ; _para3:HSZ; _para4:UINT):HDDEDATA; external External_library name 'DdeNameService';
+    function DdeNameService(_para1:DWORD; _para2:HSZ; _para3:HSZ; _para4:UINT):HDDEDATA; external 'user32.dll' name 'DdeNameService';
 
-    function DdePostAdvise(_para1:DWORD; _para2:HSZ; _para3:HSZ):WINBOOL; external External_library name 'DdePostAdvise';
+    function DdePostAdvise(_para1:DWORD; _para2:HSZ; _para3:HSZ):WINBOOL; external 'user32.dll' name 'DdePostAdvise';
 
-    function DdeReconnect(_para1:HCONV):HCONV; external External_library name 'DdeReconnect';
+    function DdeReconnect(_para1:HCONV):HCONV; external 'user32.dll' name 'DdeReconnect';
 
-    function DdeUninitialize(_para1:DWORD):WINBOOL; external External_library name 'DdeUninitialize';
+    function DdeUninitialize(_para1:DWORD):WINBOOL; external 'user32.dll' name 'DdeUninitialize';
 
-    function DdeCmpStringHandles(_para1:HSZ; _para2:HSZ):longint; external External_library name 'DdeCmpStringHandles';
+    function DdeCmpStringHandles(_para1:HSZ; _para2:HSZ):longint; external 'user32.dll' name 'DdeCmpStringHandles';
 
     function DdeCreateDataHandle(_para1:DWORD; _para2:LPBYTE; _para3:DWORD; _para4:DWORD; _para5:HSZ; 
-               _para6:UINT; _para7:UINT):HDDEDATA; external External_library name 'DdeCreateDataHandle';
+               _para6:UINT; _para7:UINT):HDDEDATA; external 'user32.dll' name 'DdeCreateDataHandle';
 
     function NetUserEnum(_para1:LPWSTR; _para2:DWORD; _para3:DWORD; var _para4:LPBYTE; _para5:DWORD; 
                _para6:LPDWORD; _para7:LPDWORD; _para8:LPDWORD):DWORD; external External_library name 'NetUserEnum';
@@ -6680,21 +6684,21 @@ in define line 6826 *)
     function NetLocalGroupEnum(_para1:LPWSTR; _para2:DWORD; var _para3:LPBYTE; _para4:DWORD; _para5:LPDWORD; 
                _para6:LPDWORD; _para7:LPDWORD):DWORD; external External_library name 'NetLocalGroupEnum';
 
-    procedure SHAddToRecentDocs(_para1:UINT; _para2:LPCVOID); external External_library name 'SHAddToRecentDocs';
+    procedure SHAddToRecentDocs(_para1:UINT; _para2:LPCVOID); external 'shell32.dll' name 'SHAddToRecentDocs';
 
-    function SHBrowseForFolder(_para1:LPBROWSEINFO):LPITEMIDLIST; external External_library name 'SHBrowseForFolder';
+    function SHBrowseForFolder(_para1:LPBROWSEINFO):LPITEMIDLIST; external 'shell32.dll' name 'SHBrowseForFolder';
 
-    procedure SHChangeNotify(_para1:LONG; _para2:UINT; _para3:LPCVOID; _para4:LPCVOID); external External_library name 'SHChangeNotify';
+    procedure SHChangeNotify(_para1:LONG; _para2:UINT; _para3:LPCVOID; _para4:LPCVOID); external 'shell32.dll' name 'SHChangeNotify';
 
-    function SHFileOperation(_para1:LPSHFILEOPSTRUCT):longint; external External_library name 'SHFileOperation';
+    function SHFileOperation(_para1:LPSHFILEOPSTRUCT):longint; external 'shell32.dll' name 'SHFileOperation';
 
-    procedure SHFreeNameMappings(_para1:HANDLE); external External_library name 'SHFreeNameMappings';
+    procedure SHFreeNameMappings(_para1:HANDLE); external 'shell32.dll' name 'SHFreeNameMappings';
 
-    function SHGetFileInfo(_para1:LPCTSTR; _para2:DWORD; var _para3:SHFILEINFO; _para4:UINT; _para5:UINT):DWORD; external External_library name 'SHGetFileInfo';
+    function SHGetFileInfo(_para1:LPCTSTR; _para2:DWORD; var _para3:SHFILEINFO; _para4:UINT; _para5:UINT):DWORD; external 'shell32.dll' name 'SHGetFileInfo';
 
-    function SHGetPathFromIDList(_para1:LPCITEMIDLIST; _para2:LPTSTR):WINBOOL; external External_library name 'SHGetPathFromIDList';
+    function SHGetPathFromIDList(_para1:LPCITEMIDLIST; _para2:LPTSTR):WINBOOL; external 'shell32.dll' name 'SHGetPathFromIDList';
 
-    function SHGetSpecialFolderLocation(_para1:HWND; _para2:longint; var _para3:LPITEMIDLIST):HRESULT; external External_library name 'SHGetSpecialFolderLocation';
+    function SHGetSpecialFolderLocation(_para1:HWND; _para2:longint; var _para3:LPITEMIDLIST):HRESULT; external 'shell32.dll' name 'SHGetSpecialFolderLocation';
 
 {$endif read_implementation}
 
@@ -6703,7 +6707,12 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.1  1998-08-31 11:53:56  pierre
+  Revision 1.2  1998-09-03 17:14:52  pierre
+    * most functions found in main DLL's
+      still some missing
+      use 'make dllnames' to get missing names
+
+  Revision 1.1  1998/08/31 11:53:56  pierre
     * compilable windows.pp file
       still to do :
        - findout problems
