@@ -55,7 +55,7 @@ unit cpupara;
          else if nr<=8 then
            begin
               result.loc:=LOC_REGISTER;
-              result.register:=tregister(longint(R_2)+nr);
+              result.register.enum:=Toldregister(longint(R_2)+nr);
            end
          else
            begin
@@ -299,7 +299,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2003-01-08 18:43:58  daniel
+  Revision 1.20  2003-01-09 11:22:14  olle
+    * made powerpc compiler compile after Daniels Tregister modification
+
+  Revision 1.19  2003/01/08 18:43:58  daniel
    * Tregister changed into a record
 
   Revision 1.18  2002/12/15 19:22:01  florian
