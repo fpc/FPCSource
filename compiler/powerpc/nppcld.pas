@@ -31,6 +31,7 @@ unit nppcld;
 
     type
       tppcloadnode = class(tcgloadnode)
+        procedure pass_2; override;
         procedure generate_picvaraccess;override;
       end;
 
@@ -47,6 +48,39 @@ unit nppcld;
       procinfo,
       nld;
 
+
+    procedure tppcloadnode.pass_2;
+      var
+        l : tasmsymbol;
+        ref : treference;
+      begin
+        case target_info.system of
+          system_powerpc_darwin:
+            begin
+              if (symtableentry.typ = procsym) and
+                 not assigned(left) and
+                 ((tprocsym(symtableentry).owner.unitid<>0) or
+                  (po_external in tprocsym(symtableentry).procdef[1].procoptions)) then
+                begin
+                  l:=objectlibrary.getasmsymbol('L'+tprocsym(symtableentry).procdef[1].mangledname+'$non_lazy_ptr');
+                  if not(assigned(l)) then
+                    begin
+                      l:=objectlibrary.newasmsymbol('L'+tprocsym(symtableentry).procdef[1].mangledname+'$non_lazy_ptr',AB_COMMON,AT_DATA);
+                      picdata.concat(tai_symbol.create(l,0));
+                      picdata.concat(tai_const.create_indirect_sym(objectlibrary.newasmsymbol(tprocsym(symtableentry).procdef[1].mangledname,AB_EXTERNAL,AT_DATA)));
+                      picdata.concat(tai_const.create_32bit(0));
+                    end;
+                  reference_reset_symbol(ref,l,0);
+                  reference_reset_base(location.reference,cg.getaddressregister(exprasmlist),0);
+                  cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,ref,location.reference.base);
+                end
+              else
+                inherited pass_2;
+            end;
+          else
+            inherited pass_2;
+        end;
+      end;
 
     procedure tppcloadnode.generate_picvaraccess;
       var
@@ -87,7 +121,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2004-06-17 16:55:46  peter
+  Revision 1.4  2004-07-19 12:45:43  jonas
+    * fixed loading external procedure addresses
+
+  Revision 1.3  2004/06/17 16:55:46  peter
     * powerpc compiles again
 
   Revision 1.2  2004/03/05 22:17:11  jonas
