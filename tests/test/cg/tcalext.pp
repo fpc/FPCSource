@@ -39,7 +39,7 @@ type
   u8 : byte;
   u16 : word;
  end;
- 
+
 _7byte_ = record
   u8: byte;
   s64: int64;
@@ -54,7 +54,7 @@ procedure test_param_u32(x: cardinal); cdecl; external;
 procedure test_param_s64(x: int64); cdecl; external;
 procedure test_param_float(x : single); cdecl; external;
 procedure test_param_double(x: double); cdecl; external;
-procedure test_param_longdouble(x: double); cdecl; external;
+procedure test_param_longdouble(x: extended); cdecl; external;
 procedure test_param_var_u8(var x: byte); cdecl; external;
 
 { mixed parameter passing }
@@ -132,10 +132,10 @@ var failed : boolean;
 begin
   Write('External simple parameter testing...');
   failed := false;
-  
+
   clear_values;
   clear_globals;
-  
+
   value_u8bit := RESULT_U8BIT;
   test_param_u8(value_u8bit);
   if global_u8bit <> RESULT_U8BIT then
@@ -143,7 +143,7 @@ begin
 
   clear_values;
   clear_globals;
-  
+
   value_u16bit := RESULT_U16BIT;
   test_param_u16(value_u16bit);
   if global_u16bit <> RESULT_U16BIT then
@@ -159,7 +159,7 @@ begin
 
   clear_values;
   clear_globals;
-  
+
   value_s64bit := RESULT_S64BIT;
   test_param_s64(value_s64bit);
   if global_s64bit <> RESULT_S64BIT then
@@ -168,15 +168,15 @@ begin
   clear_values;
   clear_globals;
 
-  value_float := RESULT_FLOAT;    
+  value_float := RESULT_FLOAT;
   test_param_float(value_float);
   if trunc(global_float) <> trunc(RESULT_FLOAT) then
     failed := true;
-    
+
   clear_values;
   clear_globals;
-  
-  value_double := RESULT_DOUBLE;    
+
+  value_double := RESULT_DOUBLE;
   test_param_double(value_double);
   if trunc(global_double) <> trunc(RESULT_DOUBLE) then
     failed := true;
@@ -184,30 +184,30 @@ begin
   clear_values;
   clear_globals;
 
-  value_longdouble := RESULT_LONGDOUBLE;    
+  value_longdouble := RESULT_LONGDOUBLE;
   test_param_longdouble(value_longdouble);
   if trunc(global_long_double) <> trunc(RESULT_LONGDOUBLE) then
     failed := true;
-    
-  { var parameter testing }    
+
+  { var parameter testing }
   clear_values;
   clear_globals;
   test_param_var_u8(value_u8bit);
   if value_u8bit <> RESULT_U8BIT then
      failed := true;
-    
-    
-  If failed then 
+
+
+  If failed then
    fail
   else
     WriteLn('Passed!');
 
   Write('External mixed parameter testing...');
   failed := false;
-  
+
   clear_values;
   clear_globals;
-  
+
   value_u8bit := RESULT_U8BIT;
   value_u16bit := RESULT_U16BIT;
   test_param_mixed_u16(value_u8bit, value_u16bit, value_u8bit);
@@ -229,7 +229,7 @@ begin
 
   clear_values;
   clear_globals;
-  
+
   value_u8bit := RESULT_U8BIT;
   value_s64bit := RESULT_S64BIT;
   test_param_mixed_s64(value_u8bit, value_s64bit, value_u8bit);
@@ -237,19 +237,19 @@ begin
     failed := true;
   if global_u8bit <> RESULT_U8BIT then
     failed := true;
-  
-  If failed then 
+
+  If failed then
    fail
   else
     WriteLn('Passed!');
 
   Write('External struct parameter testing...');
-  
+
   failed := false;
 
   clear_values;
   clear_globals;
-  
+
   smallstruct.u8 := RESULT_U8BIT;
   smallstruct.u16 := RESULT_u16BIT;
   test_param_struct_small(smallstruct);
@@ -273,7 +273,7 @@ begin
   if global_u8bit <> RESULT_U8BIT then
     failed := true;
 
-  If failed then 
+  If failed then
    fail
   else
     WriteLn('Passed!');
@@ -281,24 +281,24 @@ begin
 
   Write('Function result testing...');
   failed := false;
-  
+
   clear_values;
   clear_globals;
-  
+
   value_u8bit := test_function_u8;
   if value_u8bit <> RESULT_U8BIT then
     failed := true;
 
   clear_values;
   clear_globals;
-  
+
   value_u16bit := test_function_u16;
   if value_u16bit <> RESULT_U16BIT then
     failed := true;
 
   clear_values;
   clear_globals;
-  
+
   value_u32bit := test_function_u32;
   if value_u32bit <> RESULT_U32BIT then
     failed := true;
@@ -312,7 +312,7 @@ begin
 
   clear_values;
   clear_globals;
-  
+
   { verify if the contents both strings are equal }
   pc := test_function_pchar;
   if strcomp(pc, RESULT_PCHAR) <> 0 then
@@ -338,7 +338,7 @@ begin
   value_longdouble := test_function_longdouble;
   if trunc(value_longdouble) <> trunc(RESULT_LONGDOUBLE) then
     failed := true;
- 
+
   clear_values;
   clear_globals;
 
@@ -350,16 +350,19 @@ begin
   if bigstruct.u16 <> RESULT_U16BIT then
     failed := true;
 
-  If failed then 
+  If failed then
    fail
   else
     WriteLn('Passed!');
-  
+
 end.
 
 {
   $Log$
-  Revision 1.3  2002-05-04 16:56:54  carl
+  Revision 1.4  2002-08-25 19:28:07  peter
+    * fixed long double typo that was using double instead of extended
+
+  Revision 1.3  2002/05/04 16:56:54  carl
   + var parameter testing
   + function result testing
   + floating point testing
