@@ -410,7 +410,7 @@ var
 begin
   addr:=get_caller_addr(frame);
   If ErrorProc<>Nil then
-    TErrorProc (ErrorProc)(Errno,pointer(addr));
+    ErrorProc(Errno,pointer(addr));
   errorcode:=Errno;
   exitcode:=Errno;
   erroraddr:=pointer(addr);
@@ -487,8 +487,9 @@ Begin
   { Show runtime error }
   If erroraddr<>nil Then
    Begin
-     Writeln(stdout,'Run time error  ',Errorcode,' at 0x',hexstr(Longint(Erroraddr),8));
+     Writeln(stdout,'Runtime error ',Errorcode,' at 0x',hexstr(Longint(Erroraddr),8));
      dump_stack(stdout,ErrorBase);
+     Writeln(stdout,'');
    End;
   { call system dependent exit code }
   System_exit;
@@ -537,33 +538,30 @@ End;
 *****************************************************************************}
 
 procedure AbstractError;[public,alias : 'FPC_ABSTRACTERROR'];
-Type
-  TAbstractErrorProc=Procedure;
 begin
   If AbstractErrorProc<>nil then
-    TAbstractErrorProc(AbstractErrorProc);
+    AbstractErrorProc();
   HandleError(211);
 end;
 
 
-Procedure int_assert(Const Msg,FName:string;LineNo,ErrorAddr:Longint); [{$ifdef HASSAVEREGISTERS}SaveRegisters,{$endif}Public,Alias : 'FPC_ASSERT'];
-type
-  TAssertErrorProc=procedure(const msg,fname:string;lineno,erroraddr:longint);
+Procedure int_assert(Const Msg,FName:Shortstring;LineNo,ErrorAddr:Longint); [{$ifdef HASSAVEREGISTERS}SaveRegisters,{$endif}Public,Alias : 'FPC_ASSERT'];
 begin
   if AssertErrorProc<>nil then
-   TAssertErrorProc(AssertErrorProc)(Msg,FName,LineNo,ErrorAddr)
+    AssertErrorProc(Msg,FName,LineNo,ErrorAddr)
   else
-   HandleError(227);
+    HandleError(227);
 end;
 
 
-Procedure SysAssert(Const Msg,FName:string;LineNo,ErrorAddr:Longint);
+Procedure SysAssert(Const Msg,FName:Shortstring;LineNo,ErrorAddr:Longint);
 begin
   If msg='' then
     write(stderr,'Assertion failed')
   else
     write(stderr,msg);
-  writeln(stderr,' (',FName,', line ',LineNo,').');
+  Writeln(stderr,' (',FName,', line ',LineNo,').');
+  Writeln(stderr,'');
 end;
 
 
@@ -582,7 +580,11 @@ end;
 
 {
   $Log$
-  Revision 1.67  1999-09-18 16:05:12  jonas
+  Revision 1.68  1999-10-26 12:31:00  peter
+    * *errorproc are not procvars instead of pointers which allows better
+      error checking for the parameters (shortstring<->ansistring)
+
+  Revision 1.67  1999/09/18 16:05:12  jonas
     * dump_stack now actually dumps its info to f (was still hardcoded
       to stderr)
 

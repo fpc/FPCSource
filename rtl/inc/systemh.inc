@@ -125,9 +125,6 @@ const
   Filemode : byte = 2;
   CmdLine : PChar = nil;
 
-Type
-  TErrorProc = Procedure (ErrNo : Longint; Address : Pointer);
-
 var
 { Standard In- and Output }
   Output,
@@ -139,8 +136,7 @@ var
   StackBottom,
   LowestStack,
   RandSeed    : Cardinal;
-{ Error handlers }
-  ErrorProc         : Pointer;
+
 
 {****************************************************************************
                         Processor specific routines
@@ -369,15 +365,21 @@ Procedure halt;
 
 
 {*****************************************************************************
-                              Abstract/Assert
+                         Abstract/Assert/Error Handling
 *****************************************************************************}
 
 procedure AbstractError;
-Procedure SysAssert(Const Msg,FName:string;LineNo,ErrorAddr:Longint);
+Procedure SysAssert(Const Msg,FName:ShortString;LineNo,ErrorAddr:Longint);
 
+{ Error handlers }
+Type
+  TErrorProc = Procedure (ErrNo : Longint; Address : Pointer);
+  TAbstractErrorProc = Procedure;
+  TAssertErrorProc = Procedure(const msg,fname:ShortString;lineno,erroraddr:longint);
 const
-  AssertErrorProc   : Pointer=@SysAssert;
-  AbstractErrorProc : Pointer=nil;
+  ErrorProc         : TErrorProc = nil;
+  AbstractErrorProc : TAbstractErrorProc = nil;
+  AssertErrorProc   : TAssertErrorProc = @SysAssert;
 
 
 {*****************************************************************************
@@ -395,7 +397,11 @@ const
 
 {
   $Log$
-  Revision 1.62  1999-08-19 11:16:13  peter
+  Revision 1.63  1999-10-26 12:31:00  peter
+    * *errorproc are not procvars instead of pointers which allows better
+      error checking for the parameters (shortstring<->ansistring)
+
+  Revision 1.62  1999/08/19 11:16:13  peter
     * settextbuf size is now longint
 
   Revision 1.61  1999/07/05 20:04:28  peter
