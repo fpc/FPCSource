@@ -390,6 +390,7 @@ implementation
 {$endif GDB}
              end;
           end;
+         {
          if pop_allowed and (cs_align in aktglobalswitches) then
            begin
               pop_esp:=true;
@@ -410,6 +411,7 @@ implementation
               emit_reg(A_PUSH,S_L,R_EDI);
            end
          else
+         }
            pop_esp:=false;
          if (resulttype<>pdef(voiddef)) and
             ret_in_param(resulttype) then
@@ -1585,7 +1587,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2001-01-08 21:46:46  peter
+  Revision 1.18  2001-01-27 21:29:35  florian
+     * behavior -Oa optimized
+
+  Revision 1.17  2001/01/08 21:46:46  peter
     * don't push high value for open array with cdecl;external;
 
   Revision 1.16  2000/12/25 00:07:32  peter

@@ -66,14 +66,10 @@ procedure TLinkerGo32v2.SetDefaultInfo;
 begin
   with Info do
    begin
-{$ifdef OPTALIGN}
       if cs_align in aktglobalswitches then
         ExeCmd[1]:='ld $SCRIPT $OPT $STRIP -o $EXE'
       else
         ExeCmd[1]:='ld -oformat coff-go32-exe $OPT $STRIP -o $EXE @$RES'
-{$else OPTALIGN}
-      ExeCmd[1]:='ld -oformat coff-go32-exe $OPT $STRIP -o $EXE @$RES';
-{$endif OPTALIGN}
    end;
 end;
 
@@ -295,15 +291,11 @@ begin
   if (cs_link_strip in aktglobalswitches) then
    StripStr:='-s';
 
-{$ifdef OPTALIGN}
   if cs_align in aktglobalswitches then
     WriteScript(false)
   else
+    { Write used files and libraries }
     WriteResponseFile(false);
-{$else OPTALIGN}
-{ Write used files and libraries }
-  WriteResponseFile(false);
-{$endif OPTALIGN}
 
 { Call linker }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
@@ -311,9 +303,7 @@ begin
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$RES',outputexedir+Info.ResName);
   Replace(cmdstr,'$STRIP',StripStr);
-{$ifdef OPTALIGN}
   Replace(cmdstr,'$SCRIPT','--script='+outputexedir+Info.ResName);
-{$endif OPTALIGN}
   success:=DoExec(FindUtil(BinStr),cmdstr,true,false);
 
 { Remove ReponseFile }
@@ -429,7 +419,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2000-12-25 00:07:30  peter
+  Revision 1.7  2001-01-27 21:29:35  florian
+     * behavior -Oa optimized
+
+  Revision 1.6  2000/12/25 00:07:30  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

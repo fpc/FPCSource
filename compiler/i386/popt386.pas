@@ -1644,7 +1644,7 @@ Procedure PeepHoleOptPass2(AsmL: TAAsmOutput; BlockStart, BlockEnd: Tai);
          (Taicpu(p).opcode=A_MOV) and
          (Taicpu(p).opsize in [S_L,S_W]) and
          (Taicpu(p).oper[0].typ in [top_reg,top_ref]) and
-         (Taicpu(p).oper[1].typ in [top_reg,top_ref]);
+         (Taicpu(p).oper[1].typ in [top_reg]);
     end;
 {$endif USECMOV}
 
@@ -2001,7 +2001,10 @@ End.
 
 {
   $Log$
-  Revision 1.8  2001-01-10 10:29:36  jonas
+  Revision 1.9  2001-01-27 21:29:35  florian
+     * behavior -Oa optimized
+
+  Revision 1.8  2001/01/10 10:29:36  jonas
     * really fixed problems with -Op2 opts (merged)
 
   Revision 1.7  2001/01/07 15:49:49  jonas

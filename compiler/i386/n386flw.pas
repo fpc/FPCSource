@@ -119,6 +119,16 @@ implementation
          if nodetype=whilen then
            emitjmp(C_None,lcont);
 
+
+         { align loop target }
+         if not(cs_littlesize in aktglobalswitches) then
+           begin
+              if (cs_align in aktglobalswitches) then
+                exprasmList.concat(Tai_align.Create_op(16,$90))
+              else
+                exprasmList.concat(Tai_align.Create_op(4,$90))
+           end;
+
          emitlab(lloop);
 
          aktcontinuelabel:=lcont;
@@ -346,7 +356,12 @@ implementation
 
          { align loop target }
          if not(cs_littlesize in aktglobalswitches) then
-           exprasmList.concat(Tai_align.Create_op(4,$90));
+           begin
+              if (cs_align in aktglobalswitches) then
+                exprasmList.concat(Tai_align.Create_op(16,$90))
+              else
+                exprasmList.concat(Tai_align.Create_op(4,$90))
+           end;
 
          emitlab(l3);
 
@@ -1381,7 +1396,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2001-01-06 23:35:05  jonas
+  Revision 1.8  2001-01-27 21:29:35  florian
+     * behavior -Oa optimized
+
+  Revision 1.7  2001/01/06 23:35:05  jonas
     * fixed webbug 1323
 
   Revision 1.6  2001/01/05 17:36:58  florian
