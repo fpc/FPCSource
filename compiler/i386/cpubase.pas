@@ -288,7 +288,9 @@ uses
             LOC_CONSTANT : (
               case longint of
                 1 : (value : AWord);
-                2 : (valuelow, valuehigh:AWord);
+                { can't do this, this layout depends on the host cpu. Use }
+                { lo(valueqword)/hi(valueqword) instead (JM)              }
+                { 2 : (valuelow, valuehigh:AWord);                        }
                 { overlay a complete 64 Bit value }
                 3 : (valueqword : qword);
               );
@@ -519,7 +521,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.30  2002-08-13 21:40:58  florian
+  Revision 1.31  2002-08-14 18:41:48  jonas
+    - remove valuelow/valuehigh fields from tlocation, because they depend
+      on the endianess of the host operating system -> difficult to get
+      right. Use lo/hi(location.valueqword) instead (remember to use
+      valueqword and not value!!)
+
+  Revision 1.30  2002/08/13 21:40:58  florian
     * more fixes for ppc calling conventions
 
   Revision 1.29  2002/08/12 15:08:41  carl

@@ -300,7 +300,7 @@ unit cg64f32;
           LOC_REGISTER :
             cg.a_load_reg_reg(list,OS_32,l.registerlow,reg);
           LOC_CONSTANT :
-            cg.a_load_const_reg(list,OS_32,l.valuelow,reg);
+            cg.a_load_const_reg(list,OS_32,lo(l.valueqword),reg);
           else
             internalerror(200203244);
         end;
@@ -315,7 +315,7 @@ unit cg64f32;
           LOC_REGISTER :
             cg.a_load_reg_reg(list,OS_32,l.registerhigh,reg);
           LOC_CONSTANT :
-            cg.a_load_const_reg(list,OS_32,l.valuehigh,reg);
+            cg.a_load_const_reg(list,OS_32,hi(l.valueqword),reg);
           else
             internalerror(200203244);
         end;
@@ -617,7 +617,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2002-08-11 14:32:26  peter
+  Revision 1.25  2002-08-14 18:41:47  jonas
+    - remove valuelow/valuehigh fields from tlocation, because they depend
+      on the endianess of the host operating system -> difficult to get
+      right. Use lo/hi(location.valueqword) instead (remember to use
+      valueqword and not value!!)
+
+  Revision 1.24  2002/08/11 14:32:26  peter
     * renamed current_library to objectlibrary
 
   Revision 1.23  2002/08/11 13:24:11  peter

@@ -1050,9 +1050,9 @@ interface
                   end;
                 LOC_CONSTANT :
                   begin
-                    exprasmlist.concat(taicpu.op_const_reg(A_CMP,S_L,right.location.valuehigh,left.location.registerhigh));
+                    exprasmlist.concat(taicpu.op_const_reg(A_CMP,S_L,hi(right.location.valueqword),left.location.registerhigh));
                     firstjmp64bitcmp;
-                    exprasmlist.concat(taicpu.op_const_reg(A_CMP,S_L,right.location.valuelow,left.location.registerlow));
+                    exprasmlist.concat(taicpu.op_const_reg(A_CMP,S_L,lo(right.location.valueqword),left.location.registerlow));
                     secondjmp64bitcmp;
                   end;
                 else
@@ -1551,7 +1551,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.47  2002-08-11 14:32:29  peter
+  Revision 1.48  2002-08-14 18:41:48  jonas
+    - remove valuelow/valuehigh fields from tlocation, because they depend
+      on the endianess of the host operating system -> difficult to get
+      right. Use lo/hi(location.valueqword) instead (remember to use
+      valueqword and not value!!)
+
+  Revision 1.47  2002/08/11 14:32:29  peter
     * renamed current_library to objectlibrary
 
   Revision 1.46  2002/08/11 13:24:16  peter

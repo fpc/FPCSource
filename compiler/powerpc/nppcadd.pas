@@ -198,7 +198,7 @@ interface
         if (right.location.loc = LOC_CONSTANT) then
           begin
 {$ifdef extdebug}
-            if (qword(right.location.valuehigh) <> 0) then
+            if (high(right.location.valueqword) <> 0) then
               internalerror(2002080301);
 {$endif extdebug}
             if (nodetype in [equaln,unequaln]) then
@@ -1302,7 +1302,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2002-08-11 14:32:32  peter
+  Revision 1.12  2002-08-14 18:41:48  jonas
+    - remove valuelow/valuehigh fields from tlocation, because they depend
+      on the endianess of the host operating system -> difficult to get
+      right. Use lo/hi(location.valueqword) instead (remember to use
+      valueqword and not value!!)
+
+  Revision 1.11  2002/08/11 14:32:32  peter
     * renamed current_library to objectlibrary
 
   Revision 1.10  2002/08/11 13:24:18  peter
