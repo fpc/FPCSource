@@ -709,40 +709,32 @@ implementation
                         wrong size is already checked (PFV) }
                       {if ((parsing_para_level=0) or (p^.left<>nil)) and
                          (nextprocsym=nil) then }
-                      if parsing_para_level=0 then
-                       begin
-                         if (not assigned(lastparatype)) or (not assigned(pt^.resulttype)) then
-                          internalerror(39393)
-                         else
-                          begin
-                             aktfilepos:=pt^.fileinfo;
-                             CGMessage3(type_e_wrong_parameter_type,tostr(lastpara),
-                               pt^.resulttype^.typename,lastparatype^.typename);
-                          end;
-                          aktcallprocsym^.write_parameter_lists;
-                          goto errorexit;
-                       end
+                      if (parsing_para_level>0) and
+                         (m_tp_procvar in aktmodeswitches) then
+                        begin
+                          { try to convert to procvar }
+                          p^.treetype:=loadn;
+                          p^.resulttype:=pprocsym(p^.symtableprocentry)^.definition;
+                          p^.symtableentry:=p^.symtableprocentry;
+                          p^.is_first:=false;
+                          p^.disposetyp:=dt_nothing;
+                          firstpass(p);
+                        end
                       else
-                       begin
-                         if (m_tp_procvar in aktmodeswitches) then
-                          begin
-                            { try to convert to procvar }
-                            p^.treetype:=loadn;
-                            p^.resulttype:=pprocsym(p^.symtableprocentry)^.definition;
-                            p^.symtableentry:=p^.symtableprocentry;
-                            p^.is_first:=false;
-                            p^.disposetyp:=dt_nothing;
-                            firstpass(p);
-                          end
-                         else
-                          begin
-                            { only return the resulttype, the check for equal will be done
-                              in the para parsing of the previous function }
-                            p^.resulttype:=pprocsym(p^.symtableprocentry)^.definition^.retdef;
-                          end;
-                         goto errorexit;
-                       end;
-                     end;
+                        begin
+                          if (not assigned(lastparatype)) or (not assigned(pt)) or
+                             (not assigned(pt^.resulttype)) then
+                            internalerror(39393)
+                          else
+                            begin
+                               aktfilepos:=pt^.fileinfo;
+                               CGMessage3(type_e_wrong_parameter_type,tostr(lastpara),
+                                 pt^.resulttype^.typename,lastparatype^.typename);
+                            end;
+                          aktcallprocsym^.write_parameter_lists;
+                        end;
+                       goto errorexit;
+                    end;
 
                    { if there are several choices left then for orddef }
                    { if a type is totally included in the other }
@@ -1192,7 +1184,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.51.2.1  1999-06-28 00:33:47  pierre
+  Revision 1.51.2.2  1999-06-29 12:12:13  pierre
+   * fix for bug0272
+
+  Revision 1.51.2.1  1999/06/28 00:33:47  pierre
    * better error position bug0269
 
   Revision 1.51  1999/06/01 19:27:57  peter
