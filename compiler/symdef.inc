@@ -1282,7 +1282,10 @@
             is_def_stab_written := true;
             end else
             begin
+            { p =^p1; p1=^p problem }
+            is_def_stab_written := true;
             forcestabto(asmlist,definition);
+            is_def_stab_written := false;
             inherited concatstabto(asmlist);
             end;
         end;
@@ -2820,7 +2823,8 @@
       s1,s2:string;
     begin
         if (options and oo_hasvmt)=0 then
-          internalerror(12346);
+          {internalerror(12346);}
+          Message1(parser_object_has_no_vmt,name^);
         if owner^.name=nil then
             s1:=''
         else
@@ -3274,7 +3278,10 @@
 
 {
   $Log$
-  Revision 1.86  1999-01-12 14:25:32  peter
+  Revision 1.87  1999-01-19 10:56:05  pierre
+   typeof(object) without vmt generates an error instead of an internalerror
+
+  Revision 1.86  1999/01/12 14:25:32  peter
     + BrowserLog for browser.log generation
     + BrowserCol for browser info in TCollections
     * released all other UseBrowser

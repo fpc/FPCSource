@@ -76,6 +76,7 @@ type tmsgconst=(
   parser_n_only_one_destructor,
   parser_e_no_local_objects,
   parser_f_no_anonym_objects,
+  parser_object_has_no_vmt,
   parser_e_illegal_parameter_list,
   parser_e_wrong_parameter_type,
   parser_e_wrong_parameter_size,
