@@ -37,7 +37,7 @@ implementation
 
     uses
       globtype,systems,
-      cobjects,verbose,globals,
+      cutils,cobjects,verbose,globals,
       aasm,symtable,types,
       htypechk,
       tcadd,tccal,tccnv,tccon,tcflw,
@@ -390,7 +390,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:44  michael
+  Revision 1.3  2000-09-19 23:09:07  pierre
+   * problems wih extdebug cond. solved
+
+  Revision 1.2  2000/07/13 11:32:44  michael
   + removed logs
 
 }

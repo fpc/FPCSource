@@ -41,7 +41,7 @@ implementation
 
     uses
       globtype,systems,
-      cobjects,verbose,globals,
+      cutils,cobjects,verbose,globals,
       symconst,aasm,types,
 {$ifdef GDB}
       strings,gdb,
@@ -1525,7 +1525,7 @@ implementation
           exprasmlist^.concat(new(pai_asm_comment,init(strpnew('End of inlined proc'))));
 {$endif extdebug}
           exprasmlist^.concat(new(Pai_Marker, Init(InlineEnd)));
-          
+
           {we can free the local data now, reset also the fixup address }
           if st^.datasize>0 then
             begin
@@ -1589,7 +1589,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  2000-09-16 12:21:56  peter
+  Revision 1.10  2000-09-19 23:09:07  pierre
+   * problems wih extdebug cond. solved
+
+  Revision 1.9  2000/09/16 12:21:56  peter
     * fixed for with and local object loading
 
   Revision 1.8  2000/09/10 20:18:06  peter

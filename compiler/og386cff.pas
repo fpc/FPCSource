@@ -169,7 +169,7 @@ unit og386cff;
   implementation
 
       uses
-        strings,verbose,
+        cutils,strings,verbose,
         globtype,globals,fmodule;
 
     const
@@ -1038,7 +1038,10 @@ unit og386cff;
 end.
 {
   $Log$
-  Revision 1.5  2000-08-27 16:11:51  peter
+  Revision 1.6  2000-09-19 23:09:07  pierre
+   * problems wih extdebug cond. solved
+
+  Revision 1.5  2000/08/27 16:11:51  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 
