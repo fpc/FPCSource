@@ -567,7 +567,6 @@ begin
         ' (('+FrameName+' + 12)^ <> 0)');  }
 {$endif FrameNameKnown}
       SetArgs(GetRunParameters);
-      SetDir(GetRunDir);
       SetSourceDirs;
       InsertBreakpoints;
       ReadWatches;
@@ -814,7 +813,11 @@ begin
     Command('continue');
   end else
 {$endif SUPPORT_REMOTE}
+  { Set cwd for debuggee }
+  SetDir(GetRunDir);
   inherited Run;
+  { Restore cwd for IDE }
+  SetDir(StartupDir);
   DebuggerScreen;
   If assigned(GDBWindow) then
     GDBWindow^.Editor^.UnLock;
@@ -3589,7 +3592,11 @@ end.
 
 {
   $Log$
-  Revision 1.53  2004-11-08 20:28:26  peter
+  Revision 1.54  2004-11-08 21:55:09  peter
+    * fixed run directory
+    * Open dialog starts in dir of last editted file
+
+  Revision 1.53  2004/11/08 20:28:26  peter
     * Breakpoints are now deleted when removed from source, disabling is
       still possible from the breakpoint list
     * COMPILER_1_0, FVISION, GABOR defines removed, only support new

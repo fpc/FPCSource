@@ -454,6 +454,7 @@ procedure TranslateMouseClick(View: PView; var Event: TEvent);
 function GetNextEditorBounds(var Bounds: TRect): boolean;
 function OpenEditorWindow(Bounds: PRect; FileName: string; CurX,CurY: sw_integer): PSourceWindow;
 function IOpenEditorWindow(Bounds: PRect; FileName: string; CurX,CurY: sw_integer; ShowIt: boolean): PSourceWindow;
+function LastSourceEditor : PSourceWindow;
 function SearchOnDesktop(FileName : string;tryexts:boolean) : PSourceWindow;
 function TryToOpenFile(Bounds: PRect; FileName: string; CurX,CurY: sw_integer;tryexts: boolean): PSourceWindow;
 function ITryToOpenFile(Bounds: PRect; FileName: string; CurX,CurY: sw_integer;tryexts, ShowIt,
@@ -3711,6 +3712,23 @@ begin
   OpenEditorWindow:=IOpenEditorWindow(Bounds,FileName,CurX,CurY,true);
 end;
 
+
+function LastSourceEditor : PSourceWindow;
+
+  function IsSearchedSource(P: PView) : boolean; {$ifndef FPC}far;{$endif}
+  begin
+    if assigned(P) and
+       (TypeOf(P^)=TypeOf(TSourceWindow)) then
+         IsSearchedSource:=true
+       else
+         IsSearchedSource:=false;
+  end;
+
+begin
+  LastSourceEditor:=PSourceWindow(Desktop^.FirstThat(@IsSearchedSource));
+end;
+
+
 function SearchOnDesktop(FileName : string;tryexts:boolean) : PSourceWindow;
 var
     D,DS : DirStr;
@@ -4437,7 +4455,11 @@ end;
 END.
 {
   $Log$
-  Revision 1.47  2004-11-08 20:28:29  peter
+  Revision 1.48  2004-11-08 21:55:09  peter
+    * fixed run directory
+    * Open dialog starts in dir of last editted file
+
+  Revision 1.47  2004/11/08 20:28:29  peter
     * Breakpoints are now deleted when removed from source, disabling is
       still possible from the breakpoint list
     * COMPILER_1_0, FVISION, GABOR defines removed, only support new

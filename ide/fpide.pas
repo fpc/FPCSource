@@ -34,7 +34,7 @@ type
       procedure   InitDesktop; virtual;
       procedure   InitMenuBar; virtual;
       procedure   InitStatusLine; virtual;
-      procedure   Open(FileName: string);
+      procedure   Open(FileName: string;FileDir:string);
       function    OpenSearch(FileName: string) : boolean;
       function    AskSaveAll: boolean;
       function    SaveAll: boolean;
@@ -598,6 +598,10 @@ procedure TIDEApp.HandleEvent(var Event: TEvent);
 var DontClear: boolean;
     TempS: string;
     ForceDlg: boolean;
+    W  : PSourceWindow;
+    DS : DirStr;
+    NS : NameStr;
+    ES : ExtStr;
 {$ifdef HasSignal}
     CtrlCCatched : boolean;
 {$endif HasSignal}
@@ -642,7 +646,14 @@ begin
                                  if ForceDlg then
                                    OpenSearch(OpenFileName)
                                  else
-                                   Open(OpenFileName);
+                                   begin
+                                     W:=LastSourceEditor;
+                                     if assigned(W) then
+                                       FSplit(W^.Editor^.FileName,DS,NS,ES)
+                                     else
+                                       DS:='';
+                                     Open(OpenFileName,DS);
+                                   end;
                                  OpenFileName:='';
                                end;
              cmSaveAll       : SaveAll;
@@ -1229,7 +1240,11 @@ end;
 END.
 {
   $Log$
-  Revision 1.30  2004-11-08 20:28:26  peter
+  Revision 1.31  2004-11-08 21:55:09  peter
+    * fixed run directory
+    * Open dialog starts in dir of last editted file
+
+  Revision 1.30  2004/11/08 20:28:26  peter
     * Breakpoints are now deleted when removed from source, disabling is
       still possible from the breakpoint list
     * COMPILER_1_0, FVISION, GABOR defines removed, only support new

@@ -74,7 +74,7 @@ begin
 end;
 
 
-procedure TIDEApp.Open(FileName: string);
+procedure TIDEApp.Open(FileName: string;FileDir:string);
 var D: PFileDialog;
     OpenIt: boolean;
     DriveNumber : byte;
@@ -225,7 +225,11 @@ end;
 
 {
   $Log$
-  Revision 1.8  2004-11-08 20:28:26  peter
+  Revision 1.9  2004-11-08 21:55:09  peter
+    * fixed run directory
+    * Open dialog starts in dir of last editted file
+
+  Revision 1.8  2004/11/08 20:28:26  peter
     * Breakpoints are now deleted when removed from source, disabling is
       still possible from the breakpoint list
     * COMPILER_1_0, FVISION, GABOR defines removed, only support new

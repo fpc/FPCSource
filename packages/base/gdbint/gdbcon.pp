@@ -21,7 +21,8 @@ uses
 type
   PGDBController=^TGDBController;
   TGDBController=object(TGDBInterface)
-    progname   : pchar;
+    progname,
+    progdir,
     progargs   : pchar;
     in_command,
     init_count : longint;
@@ -45,6 +46,7 @@ type
     function  GetOutput : Pchar;
     function  GetError : Pchar;
     function  LoadFile(var fn:string):boolean;
+    procedure SetDir(const s : string);
     procedure SetArgs(const s : string);
     procedure ClearSymbols;
   end;
@@ -145,6 +147,8 @@ destructor TGDBController.Done;
 begin
   if assigned(progname) then
     strdispose(progname);
+  if assigned(progdir) then
+    strdispose(progdir);
   if assigned(progargs) then
     strdispose(progargs);
   inherited done;
@@ -199,6 +203,19 @@ begin
   if fn<>'' then
     Command('file '+fn);
   LoadFile:=true;
+end;
+
+procedure TGDBController.SetDir(const s : string);
+var
+  hs : string;
+begin
+  hs:=s;
+  UnixDir(hs);
+  if assigned(progdir) then
+    strdispose(progdir);
+  getmem(progdir,length(hs)+1);
+  strpcopy(progdir,hs);
+  command('cd '+hs);
 end;
 
 procedure TGDBController.SetArgs(const s : string);
@@ -330,7 +347,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2002-09-17 20:57:04  pierre
+  Revision 1.6  2004-11-08 21:55:09  peter
+    * fixed run directory
+    * Open dialog starts in dir of last editted file
+
+  Revision 1.5  2002/09/17 20:57:04  pierre
     * increment in_command before calling CommandBegin
       and after calling CommandEnd to be able to count
       command levels inside these methods.
