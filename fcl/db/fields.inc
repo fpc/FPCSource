@@ -855,7 +855,7 @@ var l : longint;
 
 begin
   Atext:='';
-  If Not GetData(@l) then exit;
+  If Not GetValue(l) then exit;
   If ADisplayText or (FEditFormat='') then
     fmt:=FDisplayFormat
   else
@@ -1865,7 +1865,10 @@ end;
 
 {
   $Log$
-  Revision 1.13  2004-07-19 20:27:29  michael
+  Revision 1.14  2004-08-01 13:00:29  michael
+  + Patch for Tlongintfield by Joost van der Sluis
+
+  Revision 1.13  2004/07/19 20:27:29  michael
   + Fixes from Jesus Reyes to implement DisplayWith, DisplayLabel, Visibility
 
   Revision 1.12  2004/07/18 13:16:50  michael
