@@ -947,16 +947,6 @@ implementation
                 begin
                   doconv:=tc_intf_2_guid;
                   eq:=te_convert_l1;
-                end
-               else
-                begin
-                  { assignment overwritten ?? }
-                  if check_operator then
-                   begin
-                     operatorpd:=assignment_overloaded(def_from,def_to);
-                     if assigned(operatorpd) then
-                      eq:=te_convert_operator;
-                   end;
                 end;
              end;
 
@@ -967,17 +957,7 @@ implementation
                else
                 { Just about everything can be converted to a formaldef...}
                 if not (def_from.deftype in [abstractdef,errordef]) then
-                  eq:=te_convert_l1
-               else
-                 begin
-                   { assignment overwritten ?? }
-                   if check_operator then
-                    begin
-                      operatorpd:=assignment_overloaded(def_from,def_to);
-                      if assigned(operatorpd) then
-                       eq:=te_convert_operator;
-                    end;
-                 end;
+                  eq:=te_convert_l1;
              end;
         end;
 
@@ -985,8 +965,8 @@ implementation
           there is a variant involved then we search also the := operator }
         if (eq=te_incompatible) and
            check_operator and
-           ((def_from.deftype=variantdef) or
-            (def_to.deftype=variantdef)) then
+           ((def_from.deftype in [objectdef,recorddef,arraydef,stringdef,variantdef]) or
+            (def_to.deftype in [objectdef,recorddef,arraydef,stringdef,variantdef])) then
           begin
             operatorpd:=assignment_overloaded(def_from,def_to);
             if assigned(operatorpd) then
@@ -1198,7 +1178,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  2002-12-29 18:15:19  peter
+  Revision 1.14  2003-01-03 17:16:04  peter
+    * fixed assignment operator checking for typecast
+
+  Revision 1.13  2002/12/29 18:15:19  peter
     * varargs is not checked in proc->procvar for delphi
 
   Revision 1.12  2002/12/29 14:57:50  peter
