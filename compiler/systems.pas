@@ -576,11 +576,11 @@ implementation
 {$ifdef i386}
           (
             id : I386_DIRECT;
-            idtxt : 'DIRECT';
+            idtxt : 'DIRECT'
           ),
           (
             id    : I386_INTEL;
-            idtxt : 'INTEL';
+            idtxt : 'INTEL'
           ),
           (
             id    : I386_ATT;
@@ -590,7 +590,7 @@ implementation
 {$ifdef m68k}
           (
             id    : M68K_MOT;
-            idtxt : 'MOT';
+            idtxt : 'MOT'
           )
 {$endif}
           );
@@ -650,7 +650,7 @@ begin
     begin
       t:=asmmodeinfos[tasmmode(i)].id;
       set_string_asmmode:=true;
-    end;   
+    end;
 end;
 
 
@@ -700,7 +700,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  1998-05-30 14:31:11  peter
+  Revision 1.16  1998-06-01 16:50:22  peter
+    + boolean -> ord conversion
+    * fixed ord -> boolean conversion
+
+  Revision 1.15  1998/05/30 14:31:11  peter
     + $ASMMODE
 
   Revision 1.14  1998/05/29 13:24:45  peter

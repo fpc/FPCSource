@@ -141,11 +141,11 @@ unit tree;
                       tc_u8bit_2_u32bit,tc_u32bit_2_s32bit,
                       tc_u32bit_2_s8bit,tc_u32bit_2_u8bit,
                       tc_u32bit_2_s16bit,tc_u32bit_2_u16bit,
+                      tc_bool_2_int,tc_int_2_bool,
                       tc_int_2_real,tc_real_2_fix,
                       tc_fix_2_real,tc_int_2_fix,tc_real_2_real,
-                      tc_chararray_2_string,tc_bool_2_u8bit,
-                      tc_proc2procvar,
-                      tc_cchar_charpointer);
+                      tc_chararray_2_string,
+                      tc_proc2procvar,tc_cchar_charpointer);
 
        { allows to determine which elementes are to be replaced }
        tdisposetyp = (dt_nothing,dt_leftright,dt_left,
@@ -293,7 +293,7 @@ unit tree;
 
   implementation
 
-    uses    
+    uses
        scanner,verbose,files,types,pbase;
 
 {****************************************************************************
@@ -961,7 +961,6 @@ unit tree;
          p^.registersmmx:=0;
 {$endif SUPPORT_MMX}
          p^.resulttype:=t;
-         p^.convtyp:=tc_equal;
          p^.explizit:=false;
          set_file_line(node,p);
          gentypeconvnode:=p;
@@ -1535,7 +1534,11 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.10  1998-05-20 09:42:38  pierre
+  Revision 1.11  1998-06-01 16:50:23  peter
+    + boolean -> ord conversion
+    * fixed ord -> boolean conversion
+
+  Revision 1.10  1998/05/20 09:42:38  pierre
     + UseTokenInfo now default
     * unit in interface uses and implementation uses gives error now
     * only one error for unknown symbol (uses lastsymknown boolean)

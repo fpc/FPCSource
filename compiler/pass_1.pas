@@ -182,12 +182,12 @@ unit pass_1;
          basedefconverts : array[u8bit..u32bit,u8bit..u32bit] of tconverttype =
            {u8bit}
            ((tc_only_rangechecks32bit,tc_u8bit_2_s32bit,tc_not_possible,
-             tc_not_possible,tc_not_possible,tc_only_rangechecks32bit,tc_u8bit_2_s16bit,
+             tc_int_2_bool,tc_not_possible,tc_only_rangechecks32bit,tc_u8bit_2_s16bit,
              tc_u8bit_2_u16bit,{tc_not_possible}tc_u8bit_2_u32bit),
 
            {s32bit}
             (tc_s32bit_2_u8bit,tc_only_rangechecks32bit,tc_not_possible,
-             tc_not_possible,tc_not_possible,tc_s32bit_2_s8bit,
+             tc_int_2_bool,tc_not_possible,tc_s32bit_2_s8bit,
              tc_s32bit_2_s16bit,tc_s32bit_2_u16bit,{tc_not_possible}tc_s32bit_2_u32bit),
 
            {uvoid}
@@ -196,9 +196,12 @@ unit pass_1;
              tc_not_possible),
 
            {bool8bit}
-            (tc_not_possible,tc_not_possible,tc_not_possible,
+{            (tc_not_possible,tc_not_possible,tc_not_possible,
              tc_only_rangechecks32bit,tc_not_possible,tc_not_possible,tc_not_possible,
-             tc_not_possible,tc_not_possible),
+             tc_not_possible,tc_not_possible),}
+            (tc_bool_2_int,tc_bool_2_int,tc_not_possible,
+             tc_only_rangechecks32bit,tc_not_possible,tc_bool_2_int,
+             tc_bool_2_int,tc_bool_2_int,tc_bool_2_int),
 
            {uchar}
             (tc_not_possible,tc_not_possible,tc_not_possible,
@@ -207,22 +210,22 @@ unit pass_1;
 
            {s8bit}
             (tc_only_rangechecks32bit,tc_s8bit_2_s32bit,tc_not_possible,
-             tc_not_possible,tc_not_possible,tc_only_rangechecks32bit,tc_s8bit_2_s16bit,
+             tc_int_2_bool,tc_not_possible,tc_only_rangechecks32bit,tc_s8bit_2_s16bit,
              tc_s8bit_2_u16bit,{tc_not_possible}tc_s8bit_2_u32bit),
 
            {s16bit}
             (tc_s16bit_2_u8bit,tc_s16bit_2_s32bit,tc_not_possible,
-             tc_not_possible,tc_not_possible,tc_s16bit_2_s8bit,tc_only_rangechecks32bit,
+             tc_int_2_bool,tc_not_possible,tc_s16bit_2_s8bit,tc_only_rangechecks32bit,
              tc_only_rangechecks32bit,{tc_not_possible}tc_s8bit_2_u32bit),
 
            {u16bit}
             (tc_u16bit_2_u8bit,tc_u16bit_2_s32bit,tc_not_possible,
-             tc_not_possible,tc_not_possible,tc_u16bit_2_s8bit,tc_only_rangechecks32bit,
+             tc_int_2_bool,tc_not_possible,tc_u16bit_2_s8bit,tc_only_rangechecks32bit,
              tc_only_rangechecks32bit,{tc_not_possible}tc_u16bit_2_u32bit),
 
            {u32bit}
             (tc_u32bit_2_u8bit,{tc_not_possible}tc_u32bit_2_s32bit,tc_not_possible,
-             tc_not_possible,tc_not_possible,tc_u32bit_2_s8bit,tc_u32bit_2_s16bit,
+             tc_int_2_bool,tc_not_possible,tc_u32bit_2_s8bit,tc_u32bit_2_s16bit,
              tc_u32bit_2_u16bit,tc_only_rangechecks32bit)
             );
 
@@ -919,11 +922,11 @@ unit pass_1;
                      a working hack    (FK)                             }
                    p^.left:=gentypeconvnode(p^.left,u8bitdef);
                    p^.right:=gentypeconvnode(p^.right,u8bitdef);
-                   p^.left^.convtyp:=tc_bool_2_u8bit;
+                   p^.left^.convtyp:=tc_bool_2_int;
                    p^.left^.explizit:=true;
                    firstpass(p^.left);
                    p^.left^.resulttype:=booldef;
-                   p^.right^.convtyp:=tc_bool_2_u8bit;
+                   p^.right^.convtyp:=tc_bool_2_int;
                    p^.right^.explizit:=true;
                    firstpass(p^.right);
                    p^.right^.resulttype:=booldef;
@@ -2181,18 +2184,22 @@ unit pass_1;
          p^.location.loc:=LOC_MEM;
       end;
 
-    procedure first_bool_byte(var p : ptree);
+    procedure first_bool_int(var p : ptree);
+       begin
+          p^.location.loc:=LOC_REGISTER;
+          if p^.registers32<1 then
+            p^.registers32:=1;
+       end;
+
+    procedure first_int_bool(var p : ptree);
 
        begin
           p^.location.loc:=LOC_REGISTER;
-          { Florian I think this is overestimated
-            but I still do not really understand how to get this right (PM) }
-          { Hmmm, I think we need only one reg to return the result of      }
-          { this node => so }
+          p^.left:=gentypeconvnode(p^.left,s32bitdef);
+          firstpass(p^.left);
           if p^.registers32<1 then
             p^.registers32:=1;
-          {  should work (FK)
-          p^.registers32:=p^.left^.registers32+1;}
+          p^.resulttype:=booldef;
        end;
 
     procedure first_proc_to_procvar(var p : ptree);
@@ -2277,9 +2284,10 @@ unit pass_1;
                            first_bigger_smaller,first_bigger_smaller,
                            first_bigger_smaller,first_bigger_smaller,
                            first_bigger_smaller,first_bigger_smaller,
+                           first_bool_int,first_int_bool,
                            first_int_real,first_real_fix,
                            first_fix_real,first_int_fix,first_real_real,
-                           first_locmem,first_bool_byte,first_proc_to_procvar,
+                           first_locmem,first_proc_to_procvar,
                            first_cchar_charpointer);
 
     begin
@@ -2421,7 +2429,7 @@ unit pass_1;
                         (p^.left^.resulttype^.deftype=orddef) and
                         (porddef(p^.left^.resulttype)^.typ=bool8bit) then
                        begin
-                          p^.convtyp:=tc_bool_2_u8bit;
+                          p^.convtyp:=tc_bool_2_int;
                           firstconvert[p^.convtyp](p);
                           exit;
                        end;
@@ -3446,15 +3454,14 @@ unit pass_1;
                   else
                     begin
                        if (p^.left^.resulttype^.deftype=orddef) then
-                         if (porddef(p^.left^.resulttype)^.typ=uchar) or
-                            (porddef(p^.left^.resulttype)^.typ=bool8bit) then
+                         if (porddef(p^.left^.resulttype)^.typ in [uchar,bool8bit]) then
                            begin
                               if porddef(p^.left^.resulttype)^.typ=bool8bit then
                                 begin
                                    hp:=gentypeconvnode(p^.left,u8bitdef);
                                    putnode(p);
                                    p:=hp;
-                                   p^.convtyp:=tc_bool_2_u8bit;
+                                   p^.convtyp:=tc_bool_2_int;
                                    p^.explizit:=true;
                                    firstpass(p);
                                 end
@@ -4912,7 +4919,11 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.22  1998-05-28 17:26:49  peter
+  Revision 1.23  1998-06-01 16:50:20  peter
+    + boolean -> ord conversion
+    * fixed ord -> boolean conversion
+
+  Revision 1.22  1998/05/28 17:26:49  peter
     * fixed -R switch, it didn't work after my previous akt/init patch
     * fixed bugs 110,130,136
 
