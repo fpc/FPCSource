@@ -548,6 +548,7 @@ ait_labeled_instruction : AsmWriteLn(#9#9+int_op2str[pai_labeled(hp)^._operator]
         ait_force_line,
 ait_stab_function_name : ;
 {$endif GDB}
+             ait_marker: ;
          else
           internalerror(10000);
          end;
@@ -594,7 +595,10 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.18  1998-11-12 11:19:33  pierre
+  Revision 1.19  1998-11-16 12:38:05  jonas
+    + readded ait_marker support
+
+  Revision 1.18  1998/11/12 11:19:33  pierre
    * fix for first line of function break
 
   Revision 1.17  1998/10/12 12:20:40  pierre
