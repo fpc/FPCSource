@@ -471,11 +471,11 @@ SysCall MOS_ExecBase 810;
 function ReadGayle: Cardinal;
 SysCall MOS_ExecBase 816;
 
-function VNewRawDoFmt(FmtString: PChar   location 'd0'; 
-                      PutChProc: Pointer location 'd0'; 
-                      PutChData: PChar   location 'd0'; 
-                      args     : PChar   location 'd0'): PChar;
-SysCall MOS_ExecBase 822;
+function VNewRawDoFmt(FmtString: PChar; 
+                      PutChProc: Pointer; 
+                      PutChData: PChar; 
+                      args     : PChar): PChar;
+SysCall BaseSysV MOS_ExecBase 822;
 
 procedure CacheFlushDataArea(Address: Pointer  location 'a0'; 
                              Size   : Cardinal location 'd0');
@@ -535,36 +535,29 @@ SysCall MOS_ExecBase 912;
 function NewCreateTaskA(Tags: PTagItem location 'a0'): PTask;
 SysCall MOS_ExecBase 918;
 
-{$WARNING FIX ME!!! Calls with wrong location}
-{
-function AllocateAligned(memHeader  : pMemHeader location 'd0'; 
-                         byteSize   : Cardinal   location 'd0'; 
-                         alignSize  : Cardinal   location 'd0'; 
-                         alignOffset: Cardinal   location 'd0'): Pointer;
-SysCall MOS_ExecBase 930;
-}
+function AllocateAligned(memHeader  : pMemHeader; 
+                         byteSize   : Cardinal; 
+                         alignSize  : Cardinal; 
+                         alignOffset: Cardinal): Pointer;
+SysCall BaseSysV MOS_ExecBase 930;
 
-{
-function AllocMemAligned(byteSize   : Cardinal location 'd0'; 
-                         attributes : Cardinal location 'd0'; 
-                         alignSize  : Cardinal location 'd0'; 
-                         alignOffset: Cardinal location 'd0'): Pointer;
-SysCall MOS_ExecBase 936;
-}
+function AllocMemAligned(byteSize   : Cardinal; 
+                         attributes : Cardinal; 
+                         alignSize  : Cardinal; 
+                         alignOffset: Cardinal): Pointer;
+SysCall BaseSysV MOS_ExecBase 936;
 
-{
-function AllocVecAligned(byteSize   : Cardinal location 'd0'; 
-                         attributes : Cardinal location 'd0'; 
-                         alignSize  : Cardinal location 'd0'; 
-                         alignOffset: Cardinal location 'd0'): Pointer;
-SysCall MOS_ExecBase 942;
-}
+function AllocVecAligned(byteSize   : Cardinal; 
+                         attributes : Cardinal; 
+                         alignSize  : Cardinal; 
+                         alignOffset: Cardinal): Pointer;
+SysCall BaseSysV MOS_ExecBase 942;
 
-procedure AddExecNotify(hook: PHook location 'd0');
-SysCall MOS_ExecBase 948;
+procedure AddExecNotify(hook: PHook);
+SysCall BaseSysV MOS_ExecBase 948;
 
-procedure RemExecNotify(hook: PHook location 'd0');
-SysCall MOS_ExecBase 954;
+procedure RemExecNotify(hook: PHook);
+SysCall BaseSysV MOS_ExecBase 954;
 
 function FindExecNode(ttype: Cardinal location 'd0';  
                       name : PChar    location 'a0'): PNode;
@@ -581,24 +574,25 @@ SysCall MOS_ExecBase 972;
 procedure FreeVecDMA(memoryBlock: Pointer location 'a1');
 SysCall MOS_ExecBase 978;
 
-{
-function AllocPooledAligned(poolHeader : Pointer  location 'd0'; 
-                            byteSize   : Cardinal location 'd0'; 
-                            alignSize  : Cardinal location 'd0'; 
-                            alignOffset: Cardinal location 'd0'): Pointer;
-SysCall MOS_ExecBase 984;
-}
+function AllocPooledAligned(poolHeader : Pointer; 
+                            byteSize   : Cardinal; 
+                            alignSize  : Cardinal; 
+                            alignOffset: Cardinal): Pointer;
+SysCall BaseSysV MOS_ExecBase 984;
 
 function AddResident(resident: pResident location 'd0'): LongInt;
-SysCall MOS_ExecBase 990;
+SysCall BaseSysV MOS_ExecBase 990;
 
-function FindTaskByPID(processID: Cardinal location 'd0'): PTask;
-SysCall MOS_ExecBase 996;
+function FindTaskByPID(processID: Cardinal): PTask;
+SysCall BaseSysV MOS_ExecBase 996;
 
 
 {
   $Log$
-  Revision 1.4  2004-08-21 22:24:58  karoly
+  Revision 1.5  2005-01-30 03:02:36  karoly
+    * syscalls with basesysv abi fixed
+
+  Revision 1.4  2004/08/21 22:24:58  karoly
     + added ReplyMsg, which was accidentally still missing
 
   Revision 1.3  2004/08/03 14:48:48  karoly
