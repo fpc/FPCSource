@@ -485,7 +485,9 @@ implementation
                            end
                          else
                            begin
-                              if p^.right^.resulttype^.needs_inittable then
+                              if (p^.right^.resulttype^.needs_inittable) and
+                                ( (p^.right^.resulttype^.deftype<>objectdef) or
+                                  not(pobjectdef(p^.right^.resulttype)^.isclass)) then
                                 begin
                                    { this would be a problem }
                                    if not(p^.left^.resulttype^.needs_inittable) then
@@ -805,7 +807,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.48  1999-04-09 15:48:47  jonas
+  Revision 1.49  1999-04-13 18:57:48  florian
+    * classes which contain ansistring get unnecessary calls
+      to addref/decref when they are assigned, fixed
+
+  Revision 1.48  1999/04/09 15:48:47  jonas
     * added fix for missing register deallocation (-dregallocfix)
 
   Revision 1.47  1999/03/31 13:55:07  peter
