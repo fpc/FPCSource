@@ -77,6 +77,7 @@ unit cgai386;
     procedure emit_lea_loc_ref(const t:tlocation;const ref:treference;freetemp:boolean);
     procedure emit_lea_loc_reg(const t:tlocation;reg:tregister;freetemp:boolean);
     procedure emit_push_loc(const t:tlocation);
+    procedure emit_push_mem_size(const t: treference; size: longint);
 
     { pushes qword location to the stack }
     procedure emit_pushq_loc(const t : tlocation);
@@ -842,6 +843,38 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
         end;
       end;
 
+    procedure emit_push_mem_size(const t: treference; size: longint);
+      
+      var
+        s: topsize;
+      
+      begin
+        if t.is_immediate then
+           push_int(t.offset)
+        else
+          if size < 4 then
+            begin
+              getexplicitregister32(R_EDI);
+              case size of
+                1: s := S_BL;
+                2: s := S_WL;
+                else internalerror(200008071);
+              end;
+              exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVZX,s,
+                newreference(t),R_EDI)));
+              if target_os.stackalignment=4 then
+                exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,R_EDI)))
+              else
+                exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_W,R_DI)));
+              ungetregister32(R_EDI);
+            end
+          else
+            if size = 4 then
+              emit_push_mem(t)
+            else
+              internalerror(200008072);
+      end;
+
 
     procedure emit_to_mem(var p:ptree);
 
@@ -1356,10 +1389,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                end;
            else
              begin
-               if target_os.stackalignment=4 then
-                 exprasmlist^.concat(new(paicpu,op_ref(A_PUSH,S_L,newreference(p^.location.reference))))
-               else
-                 exprasmlist^.concat(new(paicpu,op_ref(A_PUSH,S_W,newreference(p^.location.reference))));
+               { you can't push more bytes than the size of the element, }
+               { because this may cross a page boundary and you'll get a }
+               { sigsegv (JM)                                            }
+               emit_push_mem_size(p^.location.reference,1);
                del_reference(p^.location.reference);
              end;
            end;
@@ -1682,8 +1715,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 {$endif noAllocEdi}
                                 end
                                else
-                                exprasmlist^.concat(new(paicpu,op_ref(A_PUSH,opsize,
-                                  newreference(tempreference))));
+                                emit_push_mem_size(tempreference,p^.resulttype^.size);
                              end;
                            else
                              internalerror(234231);
@@ -4029,7 +4061,14 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.7  2000-08-03 13:17:25  jonas
+  Revision 1.8  2000-08-07 11:29:40  jonas
+    + emit_push_mem_size() which pushes a value in memory of a certain size
+    * pushsetelement() and pushvaluepara() use this new procedure, because
+      otherwise they could sometimes try to push data past the end of the
+      heap, causing a crash
+     (merged from fixes branch)
+
+  Revision 1.7  2000/08/03 13:17:25  jonas
     + allow regvars to be used inside inlined procs, which required  the
       following changes:
         + load regvars in genentrycode/free them in genexitcode (cgai386)
