@@ -23,6 +23,9 @@
 \usepackage{html}
 \latex{\usepackage{multicol}}
 \latex{\usepackage{fpcman}}
+\usepackage{fancyheadings}
+\pagestyle{fancy}
+\renewcommand{\chaptermark}[1]{\markboth{#1}{}}
 \html{\input{fpc-html.tex}}
 % define the version number here, and not in the fpc.sty !!!
 \newcommand{\remark}[1]{\par$\rightarrow$\textbf{#1}\par}
@@ -67,11 +70,24 @@ updated. If you find something which isn't correct, or you think something
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Compiler directives}
 \label{ch:CompSwitch}
+
 \fpc supports compiler directives in your source file. They are not the same
 as Turbo Pascal directives, although some are supported for compatibility.
 There is a distinction between local and global directives; local directives
 take effect from the moment they are encountered, global directives have an
 effect on all of the compiled code.
+
+Many switches have a long form also. If they do, then the name of the
+long form is given also. For long switches, the + or - character to switch
+the option on or off, may be replaced by \var{ON} or \var{OFF} keywords.
+
+Thus \verb|{$I+}| is equivalent to \verb|{$IOCHECKS ON}| or 
+\verb|{$IOCHECKS +}| and 
+\verb|{$C-}| is equivalent to \verb|{$ASSERTIONS OFF}| or
+\verb|{$ASSERTIONS -}|
+
+The long forms of the switches are the same as their Delphi 
+counterparts.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Local switches
@@ -81,6 +97,58 @@ Local directives have no command-line counterpart. They influence the
 compiler's behaviour from the moment they're encountered until the moment
 another switch annihilates their behaviour, or the end of the unit or
 program is reached.
+
+\subsection{\var{\$DEFINE} : Define a symbol}
+
+The directive
+\begin{verbatim}
+{$DEFINE name}
+\end{verbatim}
+defines the symbol \var{name}. This symbol remains defined until the end of
+the current module, or until a \var{\$UNDEF name} directive is encountered.
+
+If \var{name} is already defined, this has no effect. \var{Name} is case
+insensitive.
+
+
+\subsection{\var{\$ELSE} : Switch conditional compilation}
+
+The \var{\{\$ELSE \}} switches between compiling and ignoting the source
+text delimited by the preceding \var{\{\$IFxxx\}} and following 
+\var{\{\$ENDIF\}}. Any text after the \var{ELSE} keyword but before the 
+brace is ignored: 
+\begin{verbatim}
+{$ELSE some ignored text}
+\end{verbatim}
+is the same as
+\begin{verbatim}
+{$ELSE}
+\end{verbatim}
+This is useful for indication what switch is meant.
+
+\subsection{\var{\$ENDIF} : End conditional compilation}
+
+The \var{\{\$ENDIF\}} directive ends the conditional compilation initiated by the
+last \var{\{\$IFxxx\}} directive. Any text after the \var{ENDIF} keyword but
+before the closing brace is ignored:
+\begin{verbatim}
+{$ENDIF some ignored text}
+\end{verbatim}
+is the same as
+\begin{verbatim}
+{$ENDIF}
+\end{verbatim}
+This is useful for indication what switch is meant to be ended.
+
+\subsection{\var{\$ERROR} : Generate error message}
+
+The following code
+\begin{verbatim}
+{$ERROR This code is erroneous !}
+\end{verbatim}
+will display an error message when the compiler encounters it, 
+and increase the error count of the compiler. 
+The compiler will continue to compile, but no code will be emitted.
 
 \subsection{\var{\$F} : Far or near functions}
 This directive is recognized for compatibility with Turbo Pascal. Under the
@@ -132,10 +200,103 @@ displayed in that case is:
 testf.pp(3) Warning: NEAR ignored
 \end{verbatim}
 
-\subsection{\var{\$I} : Input/Output checking}
-The \var{\{\$I-\}} directive tells the compiler not to generate input/output
-checking code in your program. If you compile using the \var{-Ci} compiler
-switch, the \fpc compiler inserts input/output
+\subsection{\var{\$FATAL} : Generate fatal error message}
+
+The following code
+\begin{verbatim}
+{$FATAL This code is erroneous !}
+\end{verbatim}
+will display an error message when the compiler encounters it, and trigger
+and increase the error count of the compiler. 
+The compiler will immediatly stop the compilation process.
+
+
+\subsection{\var{\$H} or \var{\$LONGSTRINGS} : Use AnsiStrings}
+
+If \var{\{\$LONGSTRINGS ON\}} is specified, the keyword \var{String} (no
+length specifier) will be treated as \var{AnsiString}, and the compiler 
+will treat the corresponding varible as an ansistring, and will 
+generate corresponding code. 
+
+By default, the use of ansistrings is off, corresponding to \var{\{\$H-\}}.
+
+This feature is still experimental, and should be used with caution for the
+time being.
+
+\subsection{\var{\$HINT} : Generate hint message}
+
+If the generation of hints is turned on, through the \var{-vh} command-line
+option or the \var{\{\$HINTS ON\}} directive, then
+\begin{verbatim}
+{$Hint This code should be optimized }
+\end{verbatim}
+will display a hint message when the compiler encounters it.
+
+\subsection{\var{\$HINTS} : Emit hints}
+
+\var{\{\$HINTS ON\}} switches the generation of hints on. 
+\var{\{\$HINTS OFF\}} switches the generation of hints off. 
+Contrary to the command-line option \var{-vh} this is a local switch, 
+this is useful for checking parts of your code.
+
+\subsection{\var{\$IF} : Start conditional compilation}
+
+The directive \var{\{\$IF expr\}} will continue the compilation
+if the boolean expression \var{expr} evaluates to \var{true}. If the 
+compilation evaluates to false, then the source are skipped to the first
+\var{\{\$ELSE\}} or \var{\{\$ENDIF\}} directive.
+
+The compiler must be able to evaluate the expression at compile time.
+This means that you cannot use variables or constants that are defined in
+the source. Macros and symbols may be used, however.   
+
+More information on this can be found in the section about 
+conditionals.
+
+\subsection{\var{\$IFDEF} : Start conditional compilation}
+
+The \var{\{\$IFDEF name\}} will skip the compilation of the text that
+follows it if the symbol \var{name} is not defined. If it is defined, then
+compilation continues as if the directive wasn't there. 
+
+\subsection{\var{\$IFNDEF} : Start conditional compilation}
+
+The \var{\{\$IFNDEF name\}} will skip the compilation of the text that
+follows it if the symbol \var{name} is defined. If it is not defined, then
+compilation continues as if the directive wasn't there. 
+
+\subsection{\var{\$IFOPT} : Start conditional compilation}
+
+The \var{\{\$IFOPT switch\}} will skip the compilation of the text that
+follows it if the switch \var{switch} is currently not in the specified 
+state.  If it is in the specified state, then compilation continues as if the directive 
+wasn't there. 
+
+As an example:
+\begin{verbatim}
+{$IFOPT M+}
+  Writeln ('Compiled with type information');
+{$ENDIF}
+\end{verbatim}
+Will compile the writeln statement if generation of type information is on.
+
+\subsection{\var{\$INFO} : Generate info message}
+
+If the generation of info is turned on, through the \var{-vi} command-line
+option, then 
+\begin{verbatim}
+{$INFO This was coded on a rainy day by Bugs Bunny }
+\end{verbatim}
+will display an info message when the compiler encounters it.
+
+
+\subsection{\var{\$I} or \var{\$IOCHECK} : Input/Output checking}
+The \var{\{\$I-\}} or \var{\{\$IOCHECK OFF\}} directive tells the compiler 
+not to generate input/output checking code in your program. By default, the
+compiler does not generate this code, you must switch it on using the
+\var{-Ci} command-lne switch.
+
+If you compile using the \var{-Ci} compiler switch, the \fpc compiler inserts input/output
 checking code after every input/output call in your program. If an error
 occurred during input or output, then a run-time error will be generated.
 Use this switch if you wish to avoid this behavior.
@@ -161,10 +322,11 @@ if IOResult<>0 then
 ...
 \end{verbatim}
 
-\subsection{\var{\$I} : Include file }
-The \var{\{\$I filename\}} directive tells the compiler to read further
-statements from the file \var{filename}. The statements read there will be
-inserted as if they occurred in the current file.
+\subsection{\var{\$I} or \var{\$INCLUDE} : Include file }
+The \var{\{\$I filename\}} or \var{\{\$INCLUDE filename\}} directive 
+tells the compiler to read further statements from the file \var{filename}. 
+The statements read there will be inserted as if they occurred in the 
+current file.
 
 The compiler will append the \file{.pp} extension to the file if you don't
 specify an extension yourself. Do not put the filename between quotes, as
@@ -178,32 +340,32 @@ a block in one file (with a \var{Begin} keyword) and end it in another (with
 a \var{End} keyword). The smallest entity in an include file must be a token,
 i.e. an identifier, keyword or operator.
 
-\subsection{\var{\$L} : Link object file}
-The \var{\{\$L filename\}} directive tells the compiler that the file \file{filename}
-should be linked to your program. You can only use this directive in a
-program. If you do use it in a unit, the compiler will not complain, but
-simply ignores the directive.
+The compiler will look for the file to include in the following places:
 
-The compiler will {\em not} look for the file in the unit path.
-The name will be passed to the linker {\em exactly} as you've typed it.
+\begin{enumerate}
+\item It will look in the path specified in the incude file name. 
+\item It will look in the directory where the current source file is.
+\item it will look in all directories specified in the include file search
+path.
+\end{enumerate}
+You can add files to the include file search path with the \var{-I} 
+command-line option.
 
-Since the files name is passed directly to the linker, this means that on
-\linux systems, the name is case sensitive, and must be typed exactly as it
-appears on your system.
+\subsection{\var{\$I} or \var{\$INCLUDE} : Include compiler info}
 
-{\em Remark :} Take care that the object file you're linking is in a
-format the linker understands. Which format this is, depends on the platform
-you're on. Typing \var{ld} on the command line gives a list of formats
-\var{ld} knows about.
-
-You can pass other files and options to the linker using the \var{-k}
-command-line option. You can specify more than one of these options, and
-they will be passed to the linker, in the order that you specified them on
-the command line, just before the names of the object files that must be
-linked.
+In this form:
+\begin{verbatim}
+{$INCLUDE %xxx%}
+\end{verbatim}
+where \var{xxx} is one of \var{TIME}, \var{DATE}, \var{FPCVERSION} or
+\var{FPCTARGET}, will generate a macro with the value of these things.
+If \var{xxx} is none of the above, then it is assumed to be the value of
+an environment variable. It's value will be fetched.
 
 % Assembler type
-\subsection{\var{\$I386\_XXX} : Specify assembler format (Intel x86 only)}
+\subsection{\var{\$I386\_XXX} : Specify assembler format}
+This switch can only be used in the i386 assembler.
+
 This switch informs the compiler what kind of assembler it can expect in an
 \var{asm} block. The \var{XXX} should be replaced by one of the following:
 \begin{description}
@@ -217,8 +379,74 @@ These switches are local, and retain their value to the end of the unit that
 is compiled, unless they are replaced by another directive of the same type.
 The command-line switch that corresponds to this switch is \var{-R}.
 
+\subsection{\var{\$L} or \var{\$LINK} : Link object file}
+The \var{\{\$L filename\}} or \var{\{\$LINK filename\}} directive 
+tells the compiler that the file \file{filename} should be linked to 
+your program. 
 
-\subsection{\var{\$MMX} : MMX support (Intel x86 only)}
+the compiler will look for this file in the following way:
+
+\begin{enumerate}
+\item It will look in the path specified in the object file name. 
+\item It will look in the directory where the current source file is.
+\item it will look in all directories specified in the object file search path.
+\end{enumerate}
+You can add files to the object file search path with the \var{-Fo}
+option.
+
+On \linux systems, the name is case sensitive, and must be typed 
+exactly as it appears on your system.
+
+{\em Remark :} Take care that the object file you're linking is in a
+format the linker understands. Which format this is, depends on the platform
+you're on. Typing \var{ld} on the command line gives a list of formats
+\var{ld} knows about.
+
+You can pass other files and options to the linker using the \var{-k}
+command-line option. You can specify more than one of these options, and
+they will be passed to the linker, in the order that you specified them on
+the command line, just before the names of the object files that must be
+linked.
+
+\subsection{\var{\$LINKLIB} : Link to a library}
+The \var{\{\$LINKLIB name\}} will link to a library \file{name}.
+This has the effect of passing \var{-lname} to the linker. 
+
+As an example, consider the following unit:
+\begin{verbatim}
+unit getlen;
+
+interface
+{$LINKLIB c}
+
+function strlen (P : pchar) : longint;cdecl;
+
+implementation
+
+function strlen (P : pchar) : longint;cdecl;external;
+
+end.
+\end{verbatim}
+If one would issue the command the command
+\begin{verbatim}
+ppc386 foo.pp
+\end{verbatim}
+where foo.pp has the above unit in its \var{uses} clause, 
+then the compiler would link your program to the c library, by passing the
+linker the \var{-lc} option.
+
+The same effect could be obtained by removing the linklib directive in the
+above unit, and specify \var{-k-lc} on the command-line:
+\begin{verbatim}
+ppc386 -k-lc foo.pp
+\end{verbatim}
+
+\subsection{\var{\$M} or \var{\$TYPEINFO} : Generate type info}
+
+This switch is recognized for Delphi compatibility only since the generation
+of type information isn't fully implemented yet.
+ 
+\subsection{\var{\$MMX} : Intel MMX support}
 As of version 0.9.8, \fpc supports optimization for the \textbf{MMX} Intel
 processor (see also \ref{ch:MMXSupport}). This optimizes certain code parts for the \textbf{MMX} Intel
 processor, thus greatly improving speed. The speed is noticed mostly when
@@ -260,6 +488,23 @@ end.
 See, however, the chapter on MMX (\ref{ch:MMXSupport}) for more information
 on this topic.
 
+\subsection{\var{\$NOTE} : Generate note message}
+
+If the generation of notes is turned on, through the \var{-vn} command-line
+option or the \var{\{\$NOTES ON\}} directive, then
+\begin{verbatim}
+{$NOTE Ask Santa Claus to look at this code }
+\end{verbatim}
+will display a note message when the compiler encounters it.
+
+
+\subsection{\var{\$NOTES} : Emit notes}
+
+\var{\{\$NOTES ON\}} switches the generation of notes on. 
+\var{\{\$NOTES OFF\}} switches the generation of notes off.
+ Contrary to the command-line option \var{-vn} this
+is a local switch, this is useful for checking parts of your code.
+
 \subsection{\var{\$OUTPUT\_FORMAT} : Specify the output format}
 \var{\{\$OUTPUT\_FORMAT format\}} has the same functionality as the \var{-A}
 command-line option : It tells the compiler what kind of object file must be
@@ -275,11 +520,122 @@ obj  & OMF file.\\
 wasm & assembler for the Watcom assembler. \\ \hline
 \end{FPCltable}
 
-\subsection{\var{\$V} : Var-string checking}
+\subsection{\var{\$P} or \var{\$OPENSTRINGS} : Use open strings}
 
-When in the \var{+} state, the compiler checks that strings passed as
-parameters are of the same, identical, string type as the declared
+This switch is provided for compatibility only, as open strings aren't
+implemented yet.
+
+\subsection{\var{\$PACKENUM} : Minimum enumeration type size}
+
+This directive tells the compiler the minimum number of bytes it should
+use when storing enumerated types. It is of the following form:
+\begin{verbatim}
+{$PACKENUM xxx}
+{$MINENUMSIZE xxx}
+\end{verbatim}
+Where the form with \var{\$MINENUMSIZE} is for Delphi compatibility.
+var{xxx} can be one of \var{1,2} or \var{4}, or \var{NORMAL} or
+\var{DEFAULT}, corresponding to the default value of 4.
+
+
+As an alternative form one can use \var{\{\$Z1\}}, \var{\{\$Z2\}} 
+\var{\{\$Z4\}}. Contrary to Delphi, the default size is 4 bytes
+(\var{\{\$Z4\}}).
+
+So the follwoing code
+\begin{verbatim}
+{$PACKENUM 1}
+Type
+  Days = (monday, tuesday, wednesday, thursday, friday, 
+          saturday, sunday);
+\end{verbatim}
+will use 1 byte to store a variable of type \var{Days}, wheras it nomally
+would use 4 bytes. The above code is equivalent to
+\begin{verbatim}
+{$Z1}
+Type
+  Days = (monday, tuesday, wednesday, thursday, friday, 
+          saturday, sunday);
+\end{verbatim}
+
+\subsection{\var{\$PACKRECORDS} : Alignment of record elements}
+
+This directive controls the byte alignment of the elements in a record,
+object or class type definition.
+
+It is of the following form:
+\begin{verbatim}
+{$PACKRECORDS xx}
+\end{verbatim}
+
+Where \var{xxx} is one of 1,2,4,16 or \var{NORMAL} or \var{DEFAULT}. 
+This means that the elements of a record will be aligned on 1,2, 4 or 
+16 byte boundaries. Thus, the size of a record will always be a multiple of
+the alignment size.
+The default alignment (which can be selected with \var{DEFAULT}) is 2, 
+contrary to Turbo Pascal, where it is 1.
+
+More information of this can be found in the reference guide, in the section
+about record types.
+
+\subsection{\var{\$STOP} : Generate fatal error message}
+
+The following code
+\begin{verbatim}
+{$STOP This code is erroneous !}
+\end{verbatim}
+will display an error message when the compiler encounters it.
+The compiler will immediatly stop the compilation process.
+
+It has the same effect as the \var{\{\$FATAL\}} directive.
+
+
+\subsection{\var{\$UNDEF} : Undefine a symbol}
+
+The directive
+\begin{verbatim}
+{$UNDEF name}
+\end{verbatim}
+un-defines the symbol \var{name} if it was previously defined.
+\var{Name} is case insensitive.
+
+
+\subsection{\var{\$V} or \var{\$VARSTRINGCHECKS} : Var-string checking}
+
+When in the \var{+} or \var{ON} state, the compiler checks that strings 
+passed as parameters are of the same, identical, string type as the declared
 parameters of the procedure.
+
+\subsection{\var{\$WAIT} : Wait for enter key press}
+
+If the compiler encaounters a
+\begin{verbatim}
+{$WAIT }
+\end{verbatim}
+directive, it will resume compiling only after the user has pressed the
+enter key. If the generation of info messages is turned on, then the compiler 
+will display the follwing message:
+\begin{verbatim}
+Press <return> to continue
+\end{verbatim}
+before waiting for a keypress. Careful ! this may interfere with automatic
+compilation processes. It should be used for debuggig purposes only.
+
+\subsection{\var{\$WARNING} : Generate warning message}
+
+If the generation of warnings is turned on, through the \var{-vw} 
+command-line option or the \var{\{\$WARNINGS ON\}} directive, then
+\begin{verbatim}
+{$WARNING This is dubious code }
+\end{verbatim}
+will display a warning message when the compiler encounters it.
+
+\subsection{\var{\$WARNINGS} : Emit warnings}
+
+\var{\{\$WARNINGS ON\}} switches the generation of warnings on. 
+\var{\{\$WARNINGS OFF\}} switches the generation of warnings off. 
+Contrary to the command-line option \var{-vw} this
+is a local switch, this is useful for checking parts of your code.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Global switches
@@ -289,13 +645,13 @@ Global directives affect the whole of the compilation process. That is why
 they also have a command - line counterpart. The command-line counterpart is
 given for each of the directives.
 
-\subsection{\var{\$A} : Align Data}
+\subsection{\var{\$A} or \var{\$ALIGN}: Align Data}
 
 This switch is recognized for Turbo Pascal Compatibility, but is not
 yet implemented. The alignment of data will be different in any case, since
 \fpc is a 32-bit compiler.
 
-\subsection{\var{\$B} : Complete boolean evaluation}
+\subsection{\var{\$B} or \var{\$BOOLEVAL}: Complete boolean evaluation}
 
 This switch is understood by the \fpc compiler, but is ignored. The compiler
 always uses shortcut evaluation, i.e. the evaluation of a boolean expression
@@ -308,9 +664,10 @@ If False and Bofu then
   ...
 \end{verbatim}
 
-\subsection{\var{\$D} : Debugging symbols}
+\subsection{\var{\$D} or \var{\$DEBUGINFO}: Debugging symbols}
 
-When this switch is on, the compiler inserts GNU debugging information in
+When this switch is on (\var{\{\$DEBUGINFO ON\}}), 
+the compiler inserts GNU debugging information in
 the executable. The effect of this switch is the same as the command-line
 switch \var{-g}. By default, insertion of debugging information is off.
 
@@ -352,12 +709,25 @@ long as the only type used is single or real.
 
 This option is recognised for Turbo Pascal compatibility, but is ignored,
 
-\subsection{\var{\$L} : Local symbol information}
+\subsection{\var{\$L} or \var{\$LOCALSYMBOLS}: Local symbol information}
 
 This switch (not to be confused with the \var{\{\$L file\}} file linking
 directive) is recognised for Turbo Pascal compatibility, but is ignored.
 generation of symbol information is controlled by the \var{\$D} switch.
 
+\subsection{\var{\$M} or \var{\$MEMORY}: Memory sizes}
+
+This switch can be used to set the heap and stacksize. It's format is as
+follows:
+\begin{verbatim}
+{$M StackSize,HeapSize}
+\end{verbatim}
+Wher \var{StackSize} and \var{HeapSize} should be two integer values,
+greater than 1024. The first number sets the size of the stack, and the
+second the size of the heap. (Stack setting is ignored under \linux).
+The two numbers can be set on the command line using the \var{-Ch}
+(and \var{-Cs} switches.
+ 
 \subsection{\var{\$N} : Numeric processing }
 
 This switch is recognised for Turbo Pascal compatibility, but is otherwise
@@ -369,10 +739,10 @@ mathematics.
 This switch is recognised for Turbo Pascal compatibility, but is otherwise
 ignored.
 
-\subsection{\var{\$Q} : Overflow checking}
-The \var{\{\$Q+\}} directive turns on integer overflow checking.
-This means that the compiler inserts code to check for overflow when doing
-computations with an integer.
+\subsection{\var{\$Q} \var{\$OVERFLOWCHECKS}: Overflow checking}
+The \var{\{\$Q+\}} or \var{\{\$OVERFLOWCHECKS ON\}} directive turns on 
+integer overflow checking. This means that the compiler inserts code 
+to check for overflow when doing computations with integers.
 When an overflow occurs, the run-time library will print a message
 \var{Overflow at xxx}, and exit the program with exit code 215.
 
@@ -388,7 +758,7 @@ generation.
 The generation of overflow checking code can also be controlled
 using the \var{-Co} command line compiler option (see \userref).
 
-\subsection{\var{\$R} : Range checking}
+\subsection{\var{\$R} or \var{\$RANGECHECKS} : Range checking}
 By default, the computer doesn't generate code to check the ranges of array
 indices, enumeration types, subrange types, etc. Specifying the
 \var{\{\$R+\}} switch tells the computer to generate code to check these
@@ -396,7 +766,7 @@ indices. If, at run-time, an index or enumeration type is specified that is
 out of the declared range of the compiler, then a run-time error is
 generated, and the program exits with exit code 201.
 
-The \var{\{\$R-\}} switch tells the compiler not to generate range checking
+The \var{\{\$RANGECHECKS OFF\}} switch tells the compiler not to generate range checking
 code. This may result in faulty program behaviour, but no run-time errors
 will be generated.
 
@@ -415,11 +785,19 @@ Specifying \var{\{\$S-\}} will turn generation of stack-checking code off.
 The command-line compiler switch \var{-Ct} has the same effect as the
 \var{\{\$S+\}} directive.
 
+\subsection{\var{\$T} or \var{\$TYPEDADDRESS} : Typed address operator (@)}
 
-\subsection{\var{\$X} : Extended syntax}
+In the \var{\{\$T+\}} or \var{\{\$TYPEDADDRESS ON\}} state the @ operator,
+when applied to a variable, returns a result of type \var{\^{}T}, if the 
+type of the variable is \var{T}. In the \var{\{\$T-\}} state, the result is
+always an untyped pointer, which is assignment compatible with all other 
+pointer types.
+
+\subsection{\var{\$X} or \var{\$EXTENDEDSYNTAX} : Extended syntax}
 Extended syntax allows you to drop the result of a function. This means that
 you can use a function call as if it were a procedure. Standard this feature
-is on. You can switch it off using the \var{\{\$X-\}} directive.
+is on. You can switch it off using the \var{\{\$X-\}} or
+\var{\{\$EXTENDEDSYNTAX OFF\}}directive.
 
 The following, for instance, will not compile :
 \begin{verbatim}
@@ -440,6 +818,12 @@ you an extra variable.
 
 The command-line compiler switch \var{-Sa1} has the same effect as the
 \var{\{\$X+\}} directive.
+
+\subsection{\var{\$Y} or \var{\$REFERENCEINFO} : Insert Browser information}
+
+This switch controls the generation of browser inforation. It is recognized
+for compatibility with Turbo Pascal and Delphi only, as Browser information
+generation is not yet fully supported.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -840,10 +1224,12 @@ some substantial differences, as will be explained in the following.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Intel syntax
-\section{Intel syntax (Intel x86 only) }
+\section{Intel syntax}
 \label{se:Intel}
 
-As of version 0.9.7, \fpc supports Intel syntax in it's \var{asm} blocks.
+As of version 0.9.7, \fpc supports Intel syntax for the Intel family of Ix86
+processors  in it's \var{asm} blocks.
+
 The Intel syntax in your \var{asm} block is converted to AT\&T syntax by the
 compiler, after which it is inserted in the compiled source.
 The supported assembler constructs are a subset of the normal assembly
@@ -979,9 +1365,10 @@ The Intel inline assembler supports the following macros :
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % AT&T syntax
-\section{AT\&T Syntax (Intel x86 only) }
+\section{AT\&T Syntax}
 \label{se:AttSyntax}
-\fpc uses the \gnu \var{as} assembler to generate its object files. Since
+\fpc uses the \gnu \var{as} assembler to generate its object files for
+the Intel Ix86 processors . Since
 the \gnu assembler uses AT\&T assembly syntax, the code you write should
 use the same syntax. The differences between AT\&T and Intel syntax as used
 in Turbo Pascal are summarized in the following:
@@ -1136,9 +1523,7 @@ popstack & Right-to-left & Caller  & No \\ \hline
 More about this can be found in \seec{Linking} on linking.
 
 
-
-
-\subsection{ Intel x86 calling conventions }
+\subsection{ Ix86 calling conventions }
 
 Standard entry code for procedures and functions is as follows on the
 x86 architecture:
@@ -1159,7 +1544,7 @@ To have more information on function return values take a look at the
 \seec{RegConvs} section.
 
 
-\subsection{ Motorola 680x0 calling conventions }
+\subsection{ M680x0 calling conventions }
 
 Standard entry code for procedures and functions is as follows on the
 680x0 architecture:
@@ -1185,7 +1570,7 @@ To have more information on function return values take a look at the
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Telling the compiler what registers have changed
-\section{Telling the compiler what registers have changed}
+\section{Signalling changed registers}
 \label{se:RegChanges}
 When the compiler uses variables, it sometimes stores them, or the result of
 some calculations, in the processor registers. If you insert assembler code
@@ -1343,7 +1728,7 @@ However, the \var{[ C ]} directive is no longer supoerted as of version
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Linking an object file in your program
-\section{Explicitly linking an object file in your program}
+\section{Linking to an object file}
 \label{se:LinkIn}
 
 Having declared the external function that resides in an object file,
@@ -1412,8 +1797,9 @@ and your Pascal program in \file{fibo.pp}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Linking your program to a library
-\section{Linking your program to a library}
+\section{Linking to a library}
 \label{se:LinkOut}
+
 To link your program to a library, the procedure depends on how you declared
 the external procedure. If you used thediffers a little from the
 procedure when you link in an object file. although the declaration step
@@ -1757,7 +2143,7 @@ set up the stack. Then it calls the main program.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % MMX Support
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{MMX support (Intel x86 only) }
+\chapter{Intel MMX support}
 \label{ch:MMXSupport}
 
 \section{What is it about ?}
@@ -2183,7 +2569,7 @@ ReleaseTempHeap;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Accessing DOS memory under the GO32 extender
-\section{Accessing \dos memory under the Go32 extender (Intel x86 only) }
+\section{using \dos memory under the Go32 extender}
 \label{se:AccessingDosMemory}
 
 Because \fpc is a 32 bit compiler, and uses a \dos extender, accessing DOS
@@ -2587,6 +2973,8 @@ set in the unit flags
 implementation part.
 \end{enumerate}
 
+\section{reading ppufiles}
+
 We will first create an object ppufile which will be used below. We are
 opening unit \file{test.ppu} as an example.
 
@@ -2609,7 +2997,7 @@ begin
 end;
 \end{verbatim}
 
-\emph{ Remark: }  When a function fails (for example not enough bytes left in an
+Note: When a function fails (for example not enough bytes left in an
 entry) it sets the \var{ppufile.error} variable.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2631,48 +3019,55 @@ tppuheader=packed record
   end;                 
 \end{verbatim}
 
-The header is already read by the ppufile.open command. You can access all
-fields using ppufile.header which holds the current header record
+The header is already read by the \var{ppufile.open} command. 
+You can access all fields using \var{ppufile.header} which holds 
+the current header record.
 
-\begin{description}
-\item[\var{id}] this is always 'PPU' \\
-  \var{function ppufile.CheckPPUId:boolean;}
-\item[\var{ver}] ppu version, currently '015' \\
-  \var{function ppufile.GetPPUVersion:longint;} (returns 15)
-\item[\var{compiler}] compiler version used to create the unit. Doesn't contain the
-patchlevel. Currently 0.99 where 0 is the high byte and 99 the low byte
-\item[\var{cpu}]      cpu for which this unit is created
-  \begin{description}
-     \item[0] i386
-     \item[1] m68k
-  \end{description}
-\item[\var{target}]  target for which this unit is created, this
-depends also on the cpu!
-For i386:
-  \begin{description}
-    \item[\var{0}] Go32v1
-    \item[\var{1}] Go32V2
-    \item[\var{2}] Linux-i386
-    \item[\var{3}] OS/2
-    \item[\var{4}] Win32 (Windows 95/98/NT)
-  \end{description}
+\begin{tabular}{lp{10cm}}
+\raggedright
+field & description \\ \hline
+\var{id} & 
+this is allways 'PPU', can be checked with
+\mbox{\var{function ppufile.CheckPPUId:boolean;}} \\
+\var{ver} & ppu version, currently '015', can be checked with
+\mbox{\var{function ppufile.GetPPUVersion:longint;}} (returns 15) \\
+\var{compiler}
+ & compiler version used to create the unit. Doesn't contain the
+	 patchlevel. Currently 0.99 where 0 is the high byte and 99 the
+	 low byte \\
+\var{cpu} & cpu for which this unit is created.
+          0 = i386
+          1 = m68k \\
+\var{target} & target for which this unit is created, this depends also on the
+	 cpu! 
+
+	 For i386:
+\begin{tabular}[t]{ll}
+0 & Go32v1 \\
+1 & Go32V2 \\
+2 & Linux-i386 \\
+3 & OS/2 \\
+4 & Win32
+\end{tabular}
+
 For m68k:
-  \begin{description}
-    \item[\var{0}] Amiga
-    \item[\var{1}] Mac68k
-    \item[\var{2}] Atari
-    \item[\var{3}] Linux-m68k
-  \end{description}
+\begin{tabular}[t]{ll}
+0 & Amiga \\
+1 & Mac68k \\
+2 & Atari \\
+3 & Linux-m68k
+\end{tabular} \\
+\var{flag} & 
+the unit flags, contains a combination of the uf\_ constants which
+are definied in \file{ppu.pas} \\
+\var{size} & size of this unit without this header \\
+\var{checksum} & 
+  checksum of the interface parts of this unit, which determine if
+         a unit is changed or not, so other units can see if they need to
+	 be recompiled 
+\\ \hline
+\end{tabular}
 
-\item[\var{flags}] the unit flags, contains a combination of
-the uf\_ constants which are definied in \file{ppu.pas}
-\item[\var{size}] size of this unit without this header
-\item[\var{checksum}] checksum of the interface parts of this
-unit, which determine if a unit is changed or not,
-so other units can see if they need to be recompiled
-\end{description}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The sections
 \section{The sections}
 
@@ -2689,20 +3084,22 @@ Each entry starts with an entryheader.
   end;      
 \end{verbatim}
 
-\begin{description}
-\item[\var{id}] this is 1 or 2 and can be check if it the entry is correctly
+\begin{tabular}{lp{10cm}}
+field & Description \\ \hline
+id & this is 1 or 2 and can be check if it the entry is correctly
 found. 1 means its a main entry, which says that it is part of the
 basic layout as explained before. 2 toggles that it it a sub entry
-of a record or object
-\item[\var{nr}] contains the ib constant number which determines what kind of
-entry it is
-\item[\var{size}] size of this entry without the header, can be used to skip entries
-very easily.
-\end{description}
+of a record or object \\
+nr & contains the ib constant number which determines what kind of
+entry it is \\
+size & size of this entry without the header, can be used to skip entries
+very easily. \\ \hline
+\end{tabular}
 
-To read an entry you can simply call \var{ppufile.readentry:byte} it returns the
-\var{tppuentry.nr} field, which holds the type of the entry. A common way how
-this works is (example is for the symbols):
+To read an entry you can simply call \var{ppufile.readentry:byte}, 
+it returns the
+\var{tppuentry.nr} field, which holds the type of the entry. 
+A common way how this works is (example is for the symbols):
 
 \begin{verbatim}
   repeat
@@ -2716,47 +3113,45 @@ this works is (example is for the symbols):
 \end{verbatim}
 
 Then you can parse each entry type yourself. \var{ppufile.readentry} will take
-care of skipping unread byte in the entry an read the next entry
+care of skipping unread bytes in the entry an read the next entry
 correctly! A special function is \var{skipuntilentry(untilb:byte):boolean;}
-which will read the ppufile until it finds entry untilb in the main
-entrys.
+which will read the ppufile until it finds entry \var{untilb} in the main
+entries.
 
-Parsing an entry can be done with \var{ppufile.get<type>} functions. The
+Parsing an entry can be done with \var{ppufile.getxxx} functions. The
 available functions are:
-
 \begin{verbatim}
-    procedure ppufile.getdata(var b;len:longint);
-    function  getbyte:byte;                                                     
-    function  getword:word;                                                     
-    function  getlongint:longint;                                               
-    function  getreal:ppureal;                                                  
-    function  getstring:string;      
+procedure ppufile.getdata(var b;len:longint);
+function  getbyte:byte;                                                     
+function  getword:word;                                                     
+function  getlongint:longint;                                               
+function  getreal:ppureal;                                                  
+function  getstring:string;      
 \end{verbatim}
 
 To check if you're at the end of an entry you can use the following
 function:
 
 \begin{verbatim}
-   function  EndOfEntry:boolean;                                               
+function  EndOfEntry:boolean;                                               
 \end{verbatim}
+{\em notes:}
+\begin{enumerate}
+\item \var{ppureal} is the best real that exists for the cpu where the
+unit is created for. Currently it is \var{extended} for i386 and 
+\var{single} for m68k.
+\item the \var{ibobjectdef} and \var{ibrecorddef} have stored a definition 
+and symbol section for themselves. So you'll need a recursive call. See
+\file{ppudump.pp} for a correct implementation.
+\end{enumerate}
 
-\emph{ Remark: } ppureal is the bestreal that is possible for the cpu where the
-unit is created for. Currently its extended for i386 and single for m68k.
+A complete list of entries and what their fields contain can be found
+in \file{ppudump.pp}.
 
-\emph{ Remark: }  the ibobjectdef and ibrecorddef have stored a definition and
-symbol section for themselves. So you'll need a recursive call. See
-\file{ppudump.pas} for a good implementation.
-
-For a complete list of entries and what their fields contain can be found
-in \file{ppudump.pp}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Creating ppufiles
 \section{Creating ppufiles}
 
-To create a new ppufile works almost the same as writing. First you need
+Creating a new ppufile works almost the same as writing. First you need
 to init the object and call create:
-
 \begin{verbatim}
   ppufile:=new(pppufile,'output.ppu');
   ppufile.create;
@@ -2764,7 +3159,6 @@ to init the object and call create:
 
 After that you can simply write all needed entries. You'll have to take
 care that you write at least the basic entries for the sections:
-
 \begin{verbatim}
   ibendinterface
   ibenddefs
@@ -2775,38 +3169,36 @@ care that you write at least the basic entries for the sections:
 \end{verbatim}
 
 Writing an entry is a little different than reading it. You need to first
-put everything in the entry with \var{ppufile.put<type>}:
-
+put everything in the entry with ppufile.putxxx:
 \begin{verbatim}
-    procedure putdata(var b;len:longint);
-    procedure putbyte(b:byte);                                                  
-    procedure putword(w:word);                                                  
-    procedure putlongint(l:longint);                                            
-    procedure putreal(d:ppureal);                                               
-    procedure putstring(s:string);
+procedure putdata(var b;len:longint);                                       
+procedure putbyte(b:byte);                                                  
+procedure putword(w:word);                                                  
+procedure putlongint(l:longint);                                            
+procedure putreal(d:ppureal);                                               
+procedure putstring(s:string); 
 \end{verbatim}
 
 After putting all the things in the entry you need to call
-\var{ppufile.writeentry(ibnr:byte)} where \var{ibnr}
-is the entry number you're writing.
+\var{ppufile.writeentry(ibnr:byte)} where \var{ibnr} is the entry number 
+you're writing.
 
-At the end of the file you need to call ppufile.writeheader to write the
-new header to the file. This takes automaticly care of the new size of the
-ppufile. When that's also done you can call \var{ppufile.close} and dispose the
+At the end of the file you need to call \var{ppufile.writeheader} to write the
+new header to the file. This takes automatically care of the new size of the
+ppufile. When that is also done you can call \var{ppufile.close} and dispose the
 object.
 
 Extra functions/variables available for writing are:
-
 \begin{verbatim}
-    ppufile.NewHeader;                                           
-    ppufile.NewEntry;
+ppufile.NewHeader;                                           
+ppufile.NewEntry;   
+\end{verbatim}
+This will give you a clean header or entry. Normally called automatically
+in \var{ppufile.writeentry}, so you can't forget it.
+\begin{verbatim}
+ppufile.flush;                                                            
 \end{verbatim}
 
-this will give you a clean header or entry. Normally called automaticly
-in \var{ppufile.writeentry()}, so you can't forget it.
-\begin{verbatim}
-ppufile.flush;
-\end{verbatim}
 to flush the current buffers to the disk
 \begin{verbatim}
 ppufile.do_crc:boolean;
