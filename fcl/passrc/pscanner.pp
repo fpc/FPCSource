@@ -590,12 +590,11 @@ begin
 	    begin
 	      SectionLength := TokenStr - TokenStart + 1;
 	      SetLength(FCurTokenString, OldLength + SectionLength);
-	      if SectionLength > 1 then
-	        Move(TokenStart^, FCurTokenString[OldLength + 1],
-		  SectionLength);
+	      if SectionLength > 0 then
+	        Move(TokenStart^, FCurTokenString[OldLength + 1], SectionLength);
 	      Inc(OldLength, SectionLength);
 	      Inc(TokenStr);
-	      TokenStart := TokenStr;
+	      TokenStart := TokenStr+1;
 	    end else
 	      break;
 
@@ -1027,7 +1026,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2004-05-01 20:08:51  marco
+  Revision 1.7  2004-07-23 23:41:10  michael
+  + Fixed scanning of strings with quotes in them
+
+  Revision 1.6  2004/05/01 20:08:51  marco
    * Exception on file not found
 
   Revision 1.5  2003/10/25 16:24:29  michael
