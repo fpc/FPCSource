@@ -406,7 +406,7 @@ const
               Message1(scan_d_handling_switch,'$'+directive[t]);
             end;
          end;
-        oldaktfilepos:=aktfilepos;
+        aktfilepos:=oldaktfilepos;
       end;
 
 
@@ -908,10 +908,10 @@ const
       var
         s : string;
       begin
-        If Inside_asm_statement then
-          Message1(scan_w_no_asm_reader_switch_inside_asm,s);
         current_scanner^.skipspace;
         s:=current_scanner^.readid;
+        If Inside_asm_statement then
+          Message1(scan_w_no_asm_reader_switch_inside_asm,s);
         if s='DEFAULT' then
          aktasmmode:=initasmmode
         else
@@ -1155,7 +1155,10 @@ const
 
 {
   $Log$
-  Revision 1.67  1999-11-12 11:03:50  peter
+  Revision 1.68  1999-11-24 11:39:53  pierre
+   * asmmode message was placed too early
+
+  Revision 1.67  1999/11/12 11:03:50  peter
     * searchpaths changed to stringqueue object
 
   Revision 1.66  1999/11/06 14:34:26  peter
