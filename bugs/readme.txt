@@ -400,3 +400,4 @@ bug0293.pp   no error with variable name = type name
 bug0299.pp   passing Array[0..1] of char by value to proc leads to problems
 bug0305.pp   Finally is not handled correctly after inputting 0
 bug0310.pp   local and para dup are not detected
+bug0311.pp   No dup id checking in variant records
