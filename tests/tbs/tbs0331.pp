@@ -1,5 +1,5 @@
 {$mode tp}
-unit test;
+unit tbs0331;
 
   interface
 
