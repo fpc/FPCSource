@@ -794,7 +794,7 @@ begin
         if HasAncestor then
           DefBoolValue := GetOrdProp(Ancestor, PropInfo)<>0
         else
-          DefBoolValue := false;
+          DefBoolValue := PPropInfo(PropInfo)^.Default<>0;
         if BoolValue <> DefBoolValue then
           begin
           Driver.BeginProperty(FPropPath + PPropInfo(PropInfo)^.Name);
@@ -823,7 +823,10 @@ end;}
 
 {
   $Log$
-  Revision 1.4  2002-09-03 06:02:57  michael
+  Revision 1.5  2002-09-04 13:33:58  michael
+   Fix from Mattias Gaertner, boolean streaming now respects default
+
+  Revision 1.4  2002/09/03 06:02:57  michael
   + Applied patch from Matthias Gaertner to stream booleans
 
   Revision 1.3  2000/12/21 09:10:16  sg
