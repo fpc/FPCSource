@@ -74,8 +74,7 @@ unit cpupara;
     function tppcparamanager.get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;
       begin
         case target_info.abi of
-          abi_powerpc_aix:
-            result := [RS_F0..RS_F13];
+          abi_powerpc_aix,
           abi_powerpc_sysv:
             result := [RS_F0..RS_F13];
           else
@@ -310,7 +309,7 @@ unit cpupara;
     function tppcparamanager.create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras:tparalist;
                var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword):longint;
       var
-         stack_offset, parasize: longint;
+         stack_offset: longint;
          paralen: aint;
          nextintreg,nextfloatreg,nextmmreg, maxfpureg : tsuperregister;
          paradef : tdef;
@@ -357,7 +356,6 @@ unit cpupara;
          nextfloatreg := curfloatreg;
          nextmmreg := curmmreg;
          stack_offset := cur_stack_offset;
-         parasize := cur_stack_offset;
          case target_info.abi of
            abi_powerpc_aix:
              maxfpureg := RS_F13;
@@ -477,9 +475,8 @@ unit cpupara;
                       paraloc^.register:=newreg(R_INTREGISTER,nextintreg,R_SUBNONE);
                       inc(nextintreg);
                       dec(paralen,tcgsize2size[paraloc^.size]);
-                      inc(parasize,tcgsize2size[paraloc^.size]);
                       if target_info.abi=abi_powerpc_aix then
-                        stack_offset := parasize;
+                        inc(stack_offset,tcgsize2size[paraloc^.size]);
                     end
                   else if (loc = LOC_FPUREGISTER) and
                           (nextfloatreg <= maxfpureg) then
@@ -491,30 +488,29 @@ unit cpupara;
                       dec(paralen,tcgsize2size[paraloc^.size]);
                       { if nextfpureg > maxfpureg, all intregs are already used, since there }
                       { are less of those available for parameter passing in the AIX abi     }
-{$ifndef cpu64bit}
-                      if (paracgsize = OS_F32) then
-                        begin
-                          inc(parasize,4);
-                          if (nextintreg < RS_R11) then
-                            inc(nextintreg);
-                        end
-                      else
-                        begin
-                          inc(parasize,8);
-                          if (nextintreg < RS_R10) then
-                            inc(nextintreg,2)
-                          else
-                            nextintreg := RS_R11;
-                        end;
-{$else not cpu64bit}
-                        begin
-                          inc(parasize,tcgsize2size[paracgsize]);
-                          if (nextintreg < RS_R11) then
-                            inc(nextintreg);
-                        end;
-{$endif not cpu64bit}
                       if target_info.abi=abi_powerpc_aix then
-                        stack_offset := parasize;
+{$ifndef cpu64bit}
+                        if (paracgsize = OS_F32) then
+                          begin
+                            inc(stack_offset,4);
+                            if (nextintreg < RS_R11) then
+                              inc(nextintreg);
+                          end
+                        else
+                          begin
+                            inc(stack_offset,8);
+                            if (nextintreg < RS_R10) then
+                              inc(nextintreg,2)
+                            else
+                              nextintreg := RS_R11;
+                          end;
+{$else not cpu64bit}
+                          begin
+                            inc(stack_offset,tcgsize2size[paracgsize]);
+                            if (nextintreg < RS_R11) then
+                              inc(nextintreg);
+                          end;
+{$endif not cpu64bit}
                     end
                   else { LOC_REFERENCE }
                     begin
@@ -526,7 +522,6 @@ unit cpupara;
                          paraloc^.reference.index:=NR_R12;
                        paraloc^.reference.offset:=stack_offset;
                        inc(stack_offset,align(paralen,4));
-                       inc(parasize,align(paralen,4));
                        paralen := 0;
                     end;
                 end;
@@ -535,7 +530,7 @@ unit cpupara;
          curfloatreg:=nextfloatreg;
          curmmreg:=nextmmreg;
          cur_stack_offset:=stack_offset;
-         result:=parasize;
+         result:=stack_offset;
       end;
 
 
@@ -660,7 +655,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.83  2005-01-13 22:02:40  jonas
+  Revision 1.84  2005-01-14 20:59:17  jonas
+    * fixed overallocation of stack space for parameters under SYSV
+      (introduced in one of my previous commits)
+    * unified code of get_volatile_registers_fpu for SYSV and AIX
+
+  Revision 1.83  2005/01/13 22:02:40  jonas
     * r2 can be used by the register allocator under Darwin
     * merged the initialisations of the fpu register allocator for AIX and
       SYSV
