@@ -137,7 +137,7 @@ linux$(PPUEXT) : linux.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc
 
 ports$(PPUEXT) : ports.pp linux$(PPUEXT) objpas$(PPUEXT)
 
-dl$(PPUEXT) : dl.pp
+dl$(PPUEXT) : $(UNIXINC)/dl.pp
 
 dynlibs$(PPUEXT) : $(INC)/dynlibs.pp $(UNIXINC)/dynlibs.inc dl$(PPUEXT) objpas$(PPUEXT)
 
