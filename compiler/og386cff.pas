@@ -172,6 +172,18 @@ unit og386cff;
         strings,verbose,
         globtype,globals,files;
 
+    const
+{$ifdef TP}
+      symbolresize = 20*18;
+      strsresize   = 256;
+      DataResize   = 1024;
+{$else}
+      symbolresize = 200*18;
+      strsresize   = 8192;
+      DataResize   = 8192;
+{$endif}
+
+
       type
       { Structures which are written directly to the output file }
         coffheader=packed record
@@ -254,7 +266,7 @@ unit og386cff;
         if sec=sec_bss then
          data:=nil
         else
-         new(Data,Init(1,8192));
+         new(Data,Init(DataResize));
       end;
 
 
@@ -318,15 +330,6 @@ unit og386cff;
                             Genericcoffoutput
 ****************************************************************************}
 
-    const
-{$ifdef TP}
-      symbolresize = 50;
-      strsresize   = 200;
-{$else}
-      symbolresize = 200;
-      strsresize   = 8192;
-{$endif}
-
     constructor tgenericcoffoutput.init(smart:boolean);
       begin
         inherited init(smart);
@@ -346,8 +349,8 @@ unit og386cff;
         inherited initwriting(Aplace);
         { reset }
         initsym:=0;
-        new(syms,init(sizeof(TSymbol),symbolresize));
-        new(strs,init(1,strsresize));
+        new(syms,init(symbolresize));
+        new(strs,init(strsresize));
         FillChar(Sects,sizeof(Sects),0);
         { we need at least the following 3 sections }
         createsection(sec_code);
@@ -457,7 +460,7 @@ unit og386cff;
         if (p^.section<>sec_none) and not(assigned(sects[p^.section])) then
           createsection(p^.section);
         { symbolname }
-        pos:=strs^.usedsize+4;
+        pos:=strs^.size+4;
         s:=p^.name;
         if length(s)>8 then
          begin
@@ -491,11 +494,11 @@ unit og386cff;
            sym.value:=p^.address+sects[p^.section]^.mempos;
          end;
         { update the asmsymbol index }
-        p^.idx:=syms^.count;
+        p^.idx:=syms^.size div sizeof(TSymbol);
         { store the symbol, but not the local ones (PM) }
         if (sym.typ<>AB_LOCAL) or ((copy(s,1,2)<>'.L') and
           ((copy(s,1,1)<>'L') or not win32)) then
-          syms^.write(sym,1);
+          syms^.write(sym,sizeof(tsymbol));
         { make the exported syms known to the objectwriter
           (needed for .a generation) }
         if (sym.typ=AB_GLOBAL) or
@@ -521,7 +524,8 @@ unit og386cff;
 
 
     procedure tgenericcoffoutput.writealign(len:longint);
-      var modulo : longint;
+      var
+        modulo : longint;
       begin
         if not assigned(sects[currsec]) then
          createsection(currsec);
@@ -814,9 +818,9 @@ unit og386cff;
           end;
         { The real symbols. }
         syms^.seek(0);
-        for i:=1 to syms^.count do
+        for i:=1 to syms^.size div sizeof(TSymbol) do
          begin
-           syms^.read(sym,1);
+           syms^.read(sym,sizeof(TSymbol));
            if sym.typ=AB_LOCAL then
              globalval:=3
            else
@@ -834,11 +838,13 @@ unit og386cff;
       var
         datapos,secsymidx,
         nsects,sympos,i : longint;
+        hstab  : coffstab;
         gotreloc : boolean;
         sec    : tsection;
         header : coffheader;
         sechdr : coffsechdr;
         empty  : array[0..15] of byte;
+        hp     : pdynamicblock;
       begin
       { calc amount of sections we have and align sections at 4 bytes }
         fillchar(empty,sizeof(empty),0);
@@ -895,7 +901,7 @@ unit og386cff;
         header.mach:=$14c;
         header.nsects:=nsects;
         header.sympos:=sympos;
-        header.syms:=syms^.count+initsym;
+        header.syms:=(syms^.size div sizeof(TSymbol))+initsym;
         if gotreloc then
          header.flag:=$104
         else
@@ -934,12 +940,20 @@ unit og386cff;
               calculated more easily }
             if sec=sec_stab then
              begin
-               pcoffstab(sects[sec_stab]^.data^.data)^.nvalue:=sects[sec_stabstr]^.len;
-               pcoffstab(sects[sec_stab]^.data^.data)^.strpos:=1;
-               pcoffstab(sects[sec_stab]^.data^.data)^.ndesc:=
-                 (sects[sec_stab]^.len div sizeof(coffstab))-1{+1 according to gas output PM};
+               hstab.strpos:=1;
+               hstab.ntype:=0;
+               hstab.nother:=0;
+               hstab.ndesc:=(sects[sec_stab]^.len div sizeof(coffstab))-1{+1 according to gas output PM};
+               hstab.nvalue:=sects[sec_stabstr]^.len;
+               sects[sec_stab]^.data^.seek(0);
+               sects[sec_stab]^.data^.write(hstab,sizeof(hstab));
              end;
-            writer^.write(sects[sec]^.data^.data^,sects[sec]^.data^.usedsize);
+            hp:=sects[sec]^.data^.firstblock;
+            while assigned(hp) do
+             begin
+               writer^.write(hp^.data,hp^.used);
+               hp:=hp^.next;
+             end;
           end;
       { Relocs }
         for sec:=low(tsection) to high(tsection) do
@@ -948,9 +962,14 @@ unit og386cff;
       { Symbols }
         write_symbols;
       { Strings }
-        i:=strs^.usedsize+4;
+        i:=strs^.size+4;
         writer^.write(i,4);
-        writer^.write(strs^.data^,strs^.usedsize);
+        hp:=strs^.firstblock;
+        while assigned(hp) do
+         begin
+           writer^.write(hp^.data,hp^.used);
+           hp:=hp^.next;
+         end;
       end;
 
 
@@ -1019,7 +1038,11 @@ unit og386cff;
 end.
 {
   $Log$
-  Revision 1.3  2000-07-13 12:08:26  michael
+  Revision 1.4  2000-08-19 18:44:27  peter
+    * new tdynamicarray implementation using blocks instead of
+      reallocmem (merged)
+
+  Revision 1.3  2000/07/13 12:08:26  michael
   + patched to 1.1.0 with former 1.09patch from peter
 
   Revision 1.2  2000/07/13 11:32:43  michael

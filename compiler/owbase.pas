@@ -30,7 +30,7 @@ type
     destructor  Done;virtual;
     procedure create(const fn:string);virtual;
     procedure close;virtual;
-    procedure writesym(sym:string);virtual;
+    procedure writesym(const sym:string);virtual;
     procedure write(var b;len:longint);virtual;
   private
     f      : file;
@@ -114,7 +114,7 @@ begin
 end;
 
 
-procedure tobjectwriter.writesym(sym:string);
+procedure tobjectwriter.writesym(const sym:string);
 begin
 end;
 
@@ -152,7 +152,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:44  michael
+  Revision 1.3  2000-08-19 18:44:27  peter
+    * new tdynamicarray implementation using blocks instead of
+      reallocmem (merged)
+
+  Revision 1.2  2000/07/13 11:32:44  michael
   + removed logs
 
 }

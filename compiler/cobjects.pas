@@ -25,7 +25,7 @@
   {$E+,N+,D+,F+}
 {$endif}
 {$I-}
-{$R-}{ necessary for crc calculation }
+{$R-}{ necessary for crc calculation and dynamicblock acessing }
 
 {$ifdef fpc}
 {$define USEREALLOCMEM}
@@ -275,25 +275,35 @@ unit cobjects;
          procedure insert(p:Pnamedindexobject);
        end;
 
+     const
+       dynamicblockbasesize = 12;
+
+     type
+       pdynamicblock = ^tdynamicblock;
+       tdynamicblock = record
+         pos,
+         used : longint;
+         next : pdynamicblock;
+         data : array[0..1] of byte;
+       end;
+
        pdynamicarray = ^tdynamicarray;
        tdynamicarray = object
-         posn,
-         count,
-         limit,
-         elemlen,
-         growcount : longint;
-         data      : pchar;
-         constructor init(Aelemlen,Agrow:longint);
+         blocksize  : longint;
+         firstblock,
+         lastblock  : pdynamicblock;
+         constructor init(Ablocksize:longint);
          destructor  done;
          function  size:longint;
-         function  usedsize:longint;
-         procedure grow;
          procedure align(i:longint);
          procedure seek(i:longint);
          procedure write(var d;len:longint);
-         procedure read(var d;len:longint);
-         procedure writepos(pos:longint;var d;len:longint);
-         procedure readpos(pos:longint;var d;len:longint);
+         function  read(var d;len:longint):longint;
+         procedure blockwrite(var f:file);
+       private
+         posn      : longint;
+         posnblock : pdynamicblock;
+         procedure grow;
        end;
 
       tindexobjectarray=array[1..16000] of Pnamedindexobject;
@@ -1832,124 +1842,205 @@ end;
                                 tdynamicarray
 ****************************************************************************}
 
-    constructor tdynamicarray.init(Aelemlen,Agrow:longint);
+    constructor tdynamicarray.init(Ablocksize:longint);
       begin
         posn:=0;
-        count:=0;
-        limit:=0;
-        data:=nil;
-        elemlen:=Aelemlen;
-        growcount:=Agrow;
+        posnblock:=nil;
+        firstblock:=nil;
+        lastblock:=nil;
+        blocksize:=Ablocksize;
         grow;
       end;
 
+
     function  tdynamicarray.size:longint;
       begin
-        size:=limit*elemlen;
+        if assigned(lastblock) then
+         size:=lastblock^.pos+lastblock^.used
+        else
+         size:=0;
       end;
 
-    function  tdynamicarray.usedsize:longint;
-      begin
-        usedsize:=count*elemlen;
-      end;
 
     procedure tdynamicarray.grow;
       var
-        osize : longint;
-{$ifndef USEREALLOCMEM}
-        odata : pchar;
-{$endif USEREALLOCMEM}
+        nblock : pdynamicblock;
       begin
-        osize:=size;
-        inc(limit,growcount);
-{$ifndef USEREALLOCMEM}
-        odata:=data;
-        getmem(data,size);
-        if assigned(odata) then
+        getmem(nblock,blocksize+dynamicblockbasesize);
+        if not assigned(firstblock) then
          begin
-           move(odata^,data^,osize);
-           freemem(odata,osize);
+           firstblock:=nblock;
+           posnblock:=nblock;
+           nblock^.pos:=0;
+         end
+        else
+         begin
+           lastblock^.next:=nblock;
+           nblock^.pos:=lastblock^.pos+lastblock^.used;
          end;
-{$else USEREALLOCMEM}
-        reallocmem(data,size);
-{$endif USEREALLOCMEM}
-        fillchar(data[osize],growcount*elemlen,0);
+        nblock^.used:=0;
+        nblock^.next:=nil;
+        fillchar(nblock^.data,blocksize,0);
+        lastblock:=nblock;
       end;
+
 
     procedure tdynamicarray.align(i:longint);
       var
         j : longint;
       begin
-        j:=(posn*elemlen mod i);
+        j:=(posn mod i);
         if j<>0 then
          begin
            j:=i-j;
-           while limit<(posn+j) do
-            grow;
+           if posnblock^.used+j>blocksize then
+            begin
+              posnblock^.used:=blocksize;
+              dec(j,blocksize-posnblock^.used);
+              grow;
+              posnblock:=lastblock;
+            end;
+           inc(posnblock^.used,j);
            inc(posn,j);
-           if (posn>count) then
-            count:=posn;
          end;
       end;
 
+
     procedure tdynamicarray.seek(i:longint);
       begin
-        while limit<i do
-         grow;
+        if (i<posnblock^.pos) or (i>posnblock^.pos+blocksize) then
+         begin
+           { set posnblock correct if the size is bigger then
+             the current block }
+           if posnblock^.pos>i then
+            posnblock:=firstblock;
+           while assigned(posnblock) do
+            begin
+              if posnblock^.pos+blocksize>i then
+               break;
+              posnblock:=posnblock^.next;
+            end;
+           { not found ? then increase blocks }
+           if not assigned(posnblock) then
+            begin
+              { the current lastblock is now also fully used }
+              lastblock^.used:=blocksize;
+              repeat
+                grow;
+                posnblock:=lastblock;
+              until posnblock^.pos+blocksize>=i;
+            end;
+         end;
         posn:=i;
-        if (posn>count) then
-         count:=posn;
+        if posn mod blocksize>posnblock^.used then
+         posnblock^.used:=posn mod blocksize;
       end;
+
 
     procedure tdynamicarray.write(var d;len:longint);
+      var
+        p : pchar;
+        i,j : longint;
       begin
-        while limit<(posn+len) do
-         grow;
-        move(d,data[posn*elemlen],len*elemlen);
-        inc(posn,len);
-        if (posn>count) then
-         count:=posn;
+        p:=pchar(@d);
+        while (len>0) do
+         begin
+           i:=posn mod blocksize;
+           if i+len>=blocksize then
+            begin
+              j:=blocksize-i;
+              move(p^,posnblock^.data[i],j);
+              inc(p,j);
+              inc(posn,j);
+              dec(len,j);
+              posnblock^.used:=blocksize;
+              if assigned(posnblock^.next) then
+               posnblock:=posnblock^.next
+              else
+               begin
+                 grow;
+                 posnblock:=lastblock;
+               end;
+            end
+           else
+            begin
+              move(p^,posnblock^.data[i],len);
+              inc(p,len);
+              inc(posn,len);
+              i:=posn mod blocksize;
+              if i>posnblock^.used then
+               posnblock^.used:=i;
+              len:=0;
+            end;
+         end;
       end;
 
-    procedure tdynamicarray.read(var d;len:longint);
+
+    function tdynamicarray.read(var d;len:longint):longint;
+      var
+        p : pchar;
+        i,j,res : longint;
       begin
-        move(data[posn*elemlen],d,len*elemlen);
-        inc(posn,len);
-        if (posn>count) then
-         count:=posn;
+        res:=0;
+        p:=pchar(@d);
+        while (len>0) do
+         begin
+           i:=posn mod blocksize;
+           if i+len>=posnblock^.used then
+            begin
+              j:=posnblock^.used-i;
+              move(posnblock^.data[i],p^,j);
+              inc(p,j);
+              inc(posn,j);
+              inc(res,j);
+              dec(len,j);
+              if assigned(posnblock^.next) then
+               posnblock:=posnblock^.next
+              else
+               break;
+            end
+           else
+            begin
+              move(posnblock^.data[i],p^,len);
+              inc(p,len);
+              inc(posn,len);
+              inc(res,len);
+              len:=0;
+            end;
+         end;
+        read:=res;
       end;
 
-    procedure tdynamicarray.writepos(pos:longint;var d;len:longint);
+
+    procedure tdynamicarray.blockwrite(var f:file);
+      var
+        hp : pdynamicblock;
       begin
-        while limit<(pos+len) do
-         grow;
-        move(d,data[pos*elemlen],len*elemlen);
-        posn:=pos+len;
-        if (posn>count) then
-         count:=posn;
+        hp:=firstblock;
+        while assigned(hp) do
+         begin
+           system.blockwrite(f,hp^.data,hp^.used);
+           hp:=hp^.next;
+         end;
       end;
 
-    procedure tdynamicarray.readpos(pos:longint;var d;len:longint);
-      begin
-        while limit<(pos+len) do
-         grow;
-        move(data[pos*elemlen],d,len*elemlen);
-        posn:=pos+len;
-        if (posn>count) then
-         count:=posn;
-      end;
 
     destructor tdynamicarray.done;
+      var
+        hp : pdynamicblock;
       begin
-        if assigned(data) then
-         freemem(data,size);
+        while assigned(firstblock) do
+         begin
+           hp:=firstblock;
+           firstblock:=firstblock^.next;
+           freemem(hp,blocksize+dynamicblockbasesize);
+         end;
       end;
 
 
 {****************************************************************************
                                tindexarray
  ****************************************************************************}
-
 
     constructor tindexarray.init(Agrowsize:longint);
       begin
@@ -2492,7 +2583,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  2000-08-16 18:33:53  peter
+  Revision 1.10  2000-08-19 18:44:27  peter
+    * new tdynamicarray implementation using blocks instead of
+      reallocmem (merged)
+
+  Revision 1.9  2000/08/16 18:33:53  peter
     * splitted namedobjectitem.next into indexnext and listnext so it
       can be used in both lists
     * don't allow "word = word" type definitions (merged)

@@ -134,6 +134,17 @@ unit og386elf;
         globtype,globals,files;
 
     const
+{$ifdef TP}
+      symbolresize = 20*18;
+      strsresize   = 256;
+      DataResize   = 1024;
+{$else}
+      symbolresize = 200*18;
+      strsresize   = 8192;
+      DataResize   = 8192;
+{$endif}
+
+    const
       R_386_32 = 1;                    { ordinary absolute relocation }
       R_386_PC32 = 2;                  { PC-relative relocation }
       R_386_GOT32 = 3;                 { an offset into GOT }
@@ -298,7 +309,7 @@ unit og386elf;
         if shtype=SHT_NOBITS then
          data:=nil
         else
-         new(Data,Init(1,8192));
+         new(Data,Init(8192));
         { relocation }
         NRelocs:=0;
         relocHead:=nil;
@@ -411,15 +422,6 @@ unit og386elf;
                             TElf32Output
 ****************************************************************************}
 
-    const
-{$ifdef TP}
-      symbolresize = 50;
-      strsresize   = 200;
-{$else}
-      symbolresize = 200;
-      strsresize   = 8192;
-{$endif}
-
     constructor telf32output.init(smart:boolean);
       begin
         inherited init(smart);
@@ -439,7 +441,7 @@ unit og386elf;
         inherited initwriting(Aplace);
         { reset }
         initsym:=0;
-        new(syms,init(sizeof(TSymbol),symbolresize));
+        new(syms,init(symbolresize));
         FillChar(Sects,sizeof(Sects),0);
         { default sections }
         new(symtabsect,initname('.symtab',2,0,0,0,4,16));
@@ -522,7 +524,7 @@ unit og386elf;
             end;
         end;
         { update the asmsymbol index }
-        p^.idx:=syms^.count;
+        p^.idx:=syms^.size div sizeof(tsymbol);
         { store the symbol, but not the local ones (PM) }
         if (sym.bind<>AB_LOCAL) then
          begin
@@ -530,7 +532,7 @@ unit og386elf;
            sym.name:=strtabsect^.writestr(p^.name);
            strtabsect^.writestr(#0);
            { symbol }
-           syms^.write(sym,1);
+           syms^.write(sym,sizeof(tsymbol));
          end;
         { make the exported syms known to the objectwriter
           (needed for .a generation) }
@@ -797,9 +799,9 @@ unit og386elf;
           end;
       { symbols }
         syms^.seek(0);
-        for i:=1 to syms^.count do
+        for i:=1 to (syms^.size div sizeof(TSymbol)) do
          begin
-           syms^.read(sym,1);
+           syms^.read(sym,sizeof(TSymbol));
            fillchar(elfsym,sizeof(elfsym),0);
            elfsym.st_name:=sym.name;
            elfsym.st_value:=sym.value;
@@ -884,8 +886,10 @@ unit og386elf;
         datapos,
         shoffset,
         nsects : longint;
+        hstab  : telf32stab;
         sec    : tsection;
         empty  : array[0..63] of byte;
+        hp     : pdynamicblock;
       begin
       { calc amount of sections we have and align sections at 4 bytes }
         fillchar(empty,sizeof(empty),0);
@@ -974,18 +978,30 @@ unit og386elf;
                 calculated more easily }
             if sec=sec_stab then
              begin
-               pelf32stab(sects[sec_stab]^.data^.data)^.nvalue:=sects[sec_stabstr]^.datalen;
-               pelf32stab(sects[sec_stab]^.data^.data)^.strpos:=1;
-               pelf32stab(sects[sec_stab]^.data^.data)^.ndesc:=
-                 (sects[sec_stab]^.datalen div sizeof(telf32stab))-1{+1 according to gas output PM};
+               hstab.strpos:=1;
+               hstab.ntype:=0;
+               hstab.nother:=0;
+               hstab.ndesc:=(sects[sec_stab]^.datalen div sizeof(telf32stab))-1{+1 according to gas output PM};
+               hstab.nvalue:=sects[sec_stabstr]^.datalen;
+               sects[sec_stab]^.data^.seek(0);
+               sects[sec_stab]^.data^.write(hstab,sizeof(hstab));
              end;
-            { save the original section length }
             sects[sec]^.alignsection;
-            writer^.write(sects[sec]^.data^.data^,sects[sec]^.data^.usedsize);
+            hp:=sects[sec]^.data^.firstblock;
+            while assigned(hp) do
+             begin
+               writer^.write(hp^.data,hp^.used);
+               hp:=hp^.next;
+             end;
           end;
       { .shstrtab }
         shstrtabsect^.alignsection;
-        writer^.write(shstrtabsect^.data^.data^,shstrtabsect^.data^.usedsize);
+        hp:=shstrtabsect^.data^.firstblock;
+        while assigned(hp) do
+         begin
+           writer^.write(hp^.data,hp^.used);
+           hp:=hp^.next;
+         end;
       { section headers, start with an empty header for sh_undef }
         writer^.write(empty,sizeof(telf32sechdr));
         for sec:=low(tsection) to high(tsection) do
@@ -1000,17 +1016,32 @@ unit og386elf;
         writesectionheader(strtabsect);
       { .symtab }
         symtabsect^.alignsection;
-        writer^.write(symtabsect^.data^.data^,symtabsect^.data^.usedsize);
+        hp:=symtabsect^.data^.firstblock;
+        while assigned(hp) do
+         begin
+           writer^.write(hp^.data,hp^.used);
+           hp:=hp^.next;
+         end;
       { .strtab }
         strtabsect^.writealign(4);
-        writer^.write(strtabsect^.data^.data^,strtabsect^.data^.usedsize);
+        hp:=strtabsect^.data^.firstblock;
+        while assigned(hp) do
+         begin
+           writer^.write(hp^.data,hp^.used);
+           hp:=hp^.next;
+         end;
       { .rel sections }
         for sec:=low(tsection) to high(tsection) do
          if assigned(sects[sec]) and
             assigned(sects[sec]^.relocsect) then
           begin
             sects[sec]^.relocsect^.alignsection;
-            writer^.write(sects[sec]^.relocsect^.data^.data^,sects[sec]^.relocsect^.data^.usedsize);
+            hp:=sects[sec]^.relocsect^.data^.firstblock;
+            while assigned(hp) do
+             begin
+               writer^.write(hp^.data,hp^.used);
+               hp:=hp^.next;
+             end;
           end;
       end;
 
@@ -1018,7 +1049,11 @@ unit og386elf;
 end.
 {
   $Log$
-  Revision 1.4  2000-08-12 19:14:58  peter
+  Revision 1.5  2000-08-19 18:44:27  peter
+    * new tdynamicarray implementation using blocks instead of
+      reallocmem (merged)
+
+  Revision 1.4  2000/08/12 19:14:58  peter
     * ELF writer works now also with -g
     * ELF writer is default again for linux
 

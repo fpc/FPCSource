@@ -43,20 +43,18 @@ type
     destructor  Done;virtual;
     procedure create(const fn:string);virtual;
     procedure close;virtual;
-    procedure writesym(sym:string);virtual;
+    procedure writesym(const sym:string);virtual;
     procedure write(var b;len:longint);virtual;
   private
-    arfn   : string;
-    arhdr  : tarhdr;
+    arfn        : string;
+    arhdr       : tarhdr;
     symreloc,
     symstr,
     lfnstr,
-    ardata{,
-    objdata }: PDynamicArray;
-    objfixup,
-    objdatasize : longint;
-    objfn   : string;
-    timestamp : string[12];
+    ardata      : PDynamicArray;
+    objpos      : longint;
+    objfn       : string;
+    timestamp   : string[12];
     procedure createarhdr(fn:string;size:longint;const gid,uid,mode:string);
     procedure writear;
   end;
@@ -74,13 +72,13 @@ uses
 
 const
 {$ifdef TP}
-  symrelocbufsize = 32;
+  symrelocbufsize = 256;
   symstrbufsize = 256;
   lfnstrbufsize = 256;
   arbufsize  = 256;
   objbufsize = 256;
 {$else}
-  symrelocbufsize = 1024;
+  symrelocbufsize = 4096;
   symstrbufsize = 8192;
   lfnstrbufsize = 4096;
   arbufsize  = 65536;
@@ -128,10 +126,10 @@ var
   dummy : word;
 begin
   arfn:=Aarfn;
-  new(arData,init(1,arbufsize));
-  new(symreloc,init(4,symrelocbufsize));
-  new(symstr,init(1,symstrbufsize));
-  new(lfnstr,init(1,lfnstrbufsize));
+  new(arData,init(arbufsize));
+  new(symreloc,init(symrelocbufsize));
+  new(symstr,init(symstrbufsize));
+  new(lfnstr,init(lfnstrbufsize));
 { create timestamp }
   getdate(time.year,time.month,time.day,dummy);
   gettime(time.hour,time.min,time.sec,dummy);
@@ -160,7 +158,7 @@ begin
   if length(fn)>16 then
    begin
      arhdr.name[0]:='/';
-     str(lfnstr^.usedsize,tmp);
+     str(lfnstr^.size,tmp);
      move(tmp[1],arhdr.name[1],length(tmp));
      fn:=fn+#10;
      lfnstr^.write(fn[1],length(fn));
@@ -182,47 +180,36 @@ end;
 procedure tarobjectwriter.create(const fn:string);
 begin
   objfn:=fn;
-  objfixup:=ardata^.usedsize;
-{ reset size }
-{  new(objdata,init(1,objbufsize)); }
-  objdatasize := 0;
-  ardata^.seek(ardata^.usedsize + sizeof(tarhdr));
+  objpos:=ardata^.size;
+  ardata^.seek(objpos + sizeof(tarhdr));
 end;
 
 
 procedure tarobjectwriter.close;
 begin
-  if (objdatasize and 1) <> 0 then
-    begin
-      inc(objdatasize);
-      ardata^.seek(ardata^.usedsize+1);
-    end;
+  ardata^.align(2);
 { fix the size in the header }
-{  createarhdr(objfn,objdata^.usedsize,'42','42','644');}
-  createarhdr(objfn,objdatasize,'42','42','644');
+  createarhdr(objfn,ardata^.size-objpos-sizeof(tarhdr),'42','42','644');
 { write the header }
-  ardata^.seek(objfixup);
+  ardata^.seek(objpos);
   ardata^.write(arhdr,sizeof(tarhdr));
-{ write the data of this objfile }
-{  ardata^.write(objdata^.data^,objdata^.usedsize);}
-{ free this object }
-{  dispose(objdata,done);}
 end;
 
 
-procedure tarobjectwriter.writesym(sym:string);
+procedure tarobjectwriter.writesym(const sym:string);
+var
+  c : char;
 begin
-  sym:=sym+#0;
-  symreloc^.write(objfixup,1);
+  c:=#0;
+  symreloc^.write(objpos,4);
   symstr^.write(sym[1],length(sym));
+  symstr^.write(c,1);
 end;
 
 
 procedure tarobjectwriter.write(var b;len:longint);
 begin
-{  objdata^.write(b,len);}
-   ardata^.write(b,len);
-   inc(objdatasize,len);
+  ardata^.write(b,len);
 end;
 
 
@@ -247,7 +234,7 @@ type
   plongint=^longint;
 var
   arf : file;
-  fixup,
+  fixup,l,
   relocs,i : longint;
 begin
   assign(arf,arfn);
@@ -261,31 +248,38 @@ begin
     end;
   blockwrite(arf,armagic,sizeof(armagic));
   { align first, because we need the size for the fixups of the symbol reloc }
-  if lfnstr^.usedsize>0 then
+  if lfnstr^.size>0 then
    lfnstr^.align(2);
-  if symreloc^.usedsize>0 then
+  if symreloc^.size>0 then
    begin
      symstr^.align(2);
-     fixup:=12+sizeof(tarhdr)+symreloc^.usedsize+symstr^.usedsize;
-     if lfnstr^.usedsize>0 then
-      inc(fixup,lfnstr^.usedsize+sizeof(tarhdr));
-     relocs:=symreloc^.count;
+     fixup:=12+sizeof(tarhdr)+symreloc^.size+symstr^.size;
+     if lfnstr^.size>0 then
+      inc(fixup,lfnstr^.size+sizeof(tarhdr));
+     relocs:=symreloc^.size div 4;
+     { fixup relocs }
      for i:=0to relocs-1 do
-      plongint(@symreloc^.data[i*4])^:=lsb2msb(plongint(@symreloc^.data[i*4])^+fixup);
-     createarhdr('',4+symreloc^.usedsize+symstr^.usedsize,'0','0','0');
+      begin
+        symreloc^.seek(i*4);
+        symreloc^.read(l,4);
+        symreloc^.seek(i*4);
+        l:=lsb2msb(l+fixup);
+        symreloc^.write(l,4);
+      end;
+     createarhdr('',4+symreloc^.size+symstr^.size,'0','0','0');
      blockwrite(arf,arhdr,sizeof(tarhdr));
      relocs:=lsb2msb(relocs);
      blockwrite(arf,relocs,4);
-     blockwrite(arf,symreloc^.data^,symreloc^.usedsize);
-     blockwrite(arf,symstr^.data^,symstr^.usedsize);
+     symreloc^.blockwrite(arf);
+     symstr^.blockwrite(arf);
    end;
-  if lfnstr^.usedsize>0 then
+  if lfnstr^.size>0 then
    begin
-     createarhdr('/',lfnstr^.usedsize,'','','');
+     createarhdr('/',lfnstr^.size,'','','');
      blockwrite(arf,arhdr,sizeof(tarhdr));
-     blockwrite(arf,lfnstr^.data^,lfnstr^.usedsize);
+     lfnstr^.blockwrite(arf);
    end;
-  blockwrite(arf,ardata^.data^,ardata^.usedsize);
+  ardata^.blockwrite(arf);
   system.close(arf);
 end;
 
@@ -293,7 +287,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2000-08-08 19:28:57  peter
+  Revision 1.4  2000-08-19 18:44:27  peter
+    * new tdynamicarray implementation using blocks instead of
+      reallocmem (merged)
+
+  Revision 1.3  2000/08/08 19:28:57  peter
     * memdebug/memory patches (merged)
     * only once illegal directive (merged)
 
