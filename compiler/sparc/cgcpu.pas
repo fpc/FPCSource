@@ -38,7 +38,6 @@ USES
 TYPE
   tcgSPARC=CLASS(tcg)
 		FreeParamRegSet:TRegisterSet;
-		constructor Create;
 {This method is used to pass a parameter, which is located in a register, to a
 routine. It should give the parameter to the routine, as required by the
 specific processor ABI. It is overriden for each CPU target.
@@ -48,7 +47,7 @@ specific processor ABI. It is overriden for each CPU target.
          from one from left to right}
     procedure a_param_reg(list:TAasmOutput;size:tcgsize;r:tregister;const LocPara:TParaLocation);override;
     PROCEDURE a_param_const(list:TAasmOutput;size:tcgsize;a:aword;CONST LocPara:TParaLocation);override;
-    PROCEDURE a_param_ref(list:TAasmOutput;size:tcgsize;CONST r:TReference;CONST LocPara:TParaLocation);override;
+    procedure a_param_ref(list:TAasmOutput;size:tcgsize;CONST r:TReference;CONST LocPara:TParaLocation);override;
     PROCEDURE a_paramaddr_ref(list:TAasmOutput;CONST r:TReference;CONST LocPara:TParaLocation);override;
     PROCEDURE a_call_name(list:TAasmOutput;CONST s:string);override;
     PROCEDURE a_call_ref(list:TAasmOutput;CONST ref:TReference);override;
@@ -111,7 +110,7 @@ USES
   globtype,globals,verbose,systems,cutils,
   symdef,symsym,defbase,paramgr,
   rgobj,tgobj,rgcpu;
-function GetFreeParamReg(var FreeParamRegSet:TRegisterSet):TRegister;
+{function GetFreeParamReg(var FreeParamRegSet:TRegisterSet):TRegister;
 	begin
 		if FreeParamRegSet=[]
 		then
@@ -126,7 +125,7 @@ constructor tcgSPARC.Create;
 	begin
 		inherited Create;
 		FreeParamRegSet:=[R_O0..R_O5];
-	end;
+	end;}
     { we implement the following routines because otherwise we can't }
     { instantiate the class since it's abstract                      }
 PROCEDURE tcgSPARC.a_param_reg(list:TAasmOutput;size:tcgsize;r:tregister;CONST LocPara:TParaLocation);
@@ -145,16 +144,40 @@ PROCEDURE tcgSPARC.a_param_const(list:TAasmOutput;size:tcgsize;a:aword;CONST Loc
   END;
 procedure tcgSPARC.a_param_ref(list:TAasmOutput;size:tcgsize;const r:TReference;const LocPara:TParaLocation);
 	var
+		ref: treference;
 		tmpreg:TRegister;
 	begin
-		if((Size=OS_32)and(Size=OS_S32))
+		if Size<>OS_32
 		then
-			InternalError(2002032214);
-		tmpReg:=GetFreeParamReg(FreeParamRegSet);
-		if tmpReg=R_NONE
+			InternalError(2002100400);
+		case locpara.loc of
+			LOC_REGISTER,LOC_CREGISTER:
+				a_load_ref_reg(list,size,r,locpara.register);
+			LOC_REFERENCE:
+				begin
+					reference_reset(ref);
+					ref.base:=locpara.reference.index;
+					ref.offset:=locpara.reference.offset;
+					tmpreg := get_scratch_reg_int(list);
+					a_load_ref_reg(list,size,r,tmpreg);
+					a_load_reg_ref(list,size,tmpreg,ref);
+					free_scratch_reg(list,tmpreg);
+				end;
+			LOC_FPUREGISTER,LOC_CFPUREGISTER:
+				case size of
+					OS_32:
+						a_loadfpu_ref_reg(list,OS_F32,r,locpara.register);
+					OS_64:
+						a_loadfpu_ref_reg(list,OS_F64,r,locpara.register);
+				else
+					internalerror(2002072801);
+				end;
+		else
+			internalerror(2002081103);
+		end;
+		if locpara.sp_fixup<>0
 		then
-			InternalError(200210030020);
-		list.concat(taicpu.op_ref_reg(A_LD,S_L,r,tmpReg));
+			internalerror(2002081104);
   end;
 PROCEDURE tcgSPARC.a_paramaddr_ref(list:TAasmOutput;CONST r:TReference;CONST LocPara:TParaLocation);
   VAR
@@ -221,15 +244,14 @@ PROCEDURE tcgSPARC.a_load_reg_ref(list:TAasmOutput;size:TCGSize;reg:tregister;CO
   BEGIN
     list.concat(taicpu.op_reg_ref(A_LD,TCGSize2OpSize[size],reg,ref));
   END;
-PROCEDURE tcgSPARC.a_load_ref_reg(list:TAasmOutput;size:tcgsize;CONST ref:TReference;reg:tregister);
-  VAR
-    op:tasmop;
-    s:topsize;
-  begin
-        sizes2load(size,S_L,op,s);
-        list.concat(taicpu.op_ref_reg(op,s,ref,reg));
-      end;
-
+procedure tcgSPARC.a_load_ref_reg(list:TAasmOutput;size:tcgsize;const ref:TReference;reg:tregister);
+	var
+		op:tasmop;
+		s:topsize;
+	begin
+		sizes2load(size,S_L,op,s);
+		list.concat(taicpu.op_ref_reg(op,s,ref,reg));
+	end;
 
     PROCEDURE tcgSPARC.a_load_reg_reg(list:TAasmOutput;fromsize,size:tcgsize;reg1,reg2:tregister);
 
@@ -1001,40 +1023,49 @@ PROCEDURE tcgSPARC.a_loadaddr_ref_reg(list:TAasmOutput;CONST ref:TReference;r:tr
 
 
 {***************** This is private property, keep out! :) *****************}
-PROCEDURE tcgSPARC.sizes2load(s1:tcgsize;s2:topsize;VAR op:tasmop;VAR s3:topsize);
-  BEGIN
-{         case s2 of
-           S_B:
-             if S1 in [OS_8,OS_S8] then
-               s3 := S_B
-             else internalerror(200109221);
-           S_W:
-             case s1 of
-               OS_8,OS_S8:
-                 s3 := S_BW;
-               OS_16,OS_S16:
-                 s3 := S_W;
-               else internalerror(200109222);
-             end;
-           S_L:
-             case s1 of
-               OS_8,OS_S8:
-                 s3 := S_BL;
-               OS_16,OS_S16:
-                 s3 := S_WL;
-               OS_32,OS_S32:
-                 s3 := S_L;
-               else internalerror(200109223);
-             end;
-           else internalerror(200109227);
-         end;
-         if s3 in [S_B,S_W,S_L] then
-           op := A_NONE
-         else if s1 in [OS_8,OS_16,OS_32] then
-           op := A_NONEZX
-         else
-           op := A_NONESX;}
-  END;
+procedure tcgSPARC.sizes2load(s1:tcgsize;s2:topsize;var op:tasmop;var s3:topsize);
+	begin
+		case s2 of
+			S_B:
+				if S1 in [OS_8,OS_S8]
+				then
+					s3 := S_B
+				else
+					internalerror(200109221);
+			S_W:
+				case s1 of
+					OS_8,OS_S8:
+						s3 := S_BW;
+					OS_16,OS_S16:
+						s3 := S_W;
+				else
+					internalerror(200109222);
+				end;
+			S_L:
+				case s1 of
+					OS_8,OS_S8:
+						s3 := S_BL;
+					OS_16,OS_S16:
+						s3 := S_WL;
+					OS_32,OS_S32:
+						s3 := S_L;
+					else
+						internalerror(200109223);
+				end;
+			else internalerror(200109227);
+		end;
+		if s3 in [S_B,S_W,S_L]
+		then
+			op := A_LD
+{		else if s3=S_DW
+		then
+		  op:=A_LDD
+		else if s3 in [OS_8,OS_16,OS_32]
+		then
+			op := A_NONE}
+		else
+			op := A_NONE;
+	end;
 PROCEDURE tcgSPARC.floatloadops(t:tcgsize;VAR op:tasmop;VAR s:topsize);
   BEGIN
 (*         case t of
@@ -1104,7 +1135,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.9  2002-10-02 22:20:28  mazen
+  Revision 1.10  2002-10-04 21:57:42  mazen
+  * register allocation for parameters now done in cpupara, but InternalError(200109223) in cgcpu.pas:1053 is still not fixed du to location_force problem in ncgutils.pas:419
+
+  Revision 1.9  2002/10/02 22:20:28  mazen
   + out registers allocator for the first 6 scalar parameters which must be passed into %o0..%o5
 
   Revision 1.8  2002/10/01 21:35:58  mazen

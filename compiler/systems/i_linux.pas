@@ -388,7 +388,7 @@ unit i_linux;
             ar           : ar_gnu_ar;
             res          : res_none;
             script       : script_unix;
-            endian       : endian_little;
+            endian       : endian_big;
             alignment    :
               (
                 procalign       : 4;
@@ -446,7 +446,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.1  2002-09-06 15:03:51  carl
+  Revision 1.2  2002-10-04 21:57:42  mazen
+  * register allocation for parameters now done in cpupara, but InternalError(200109223) in cgcpu.pas:1053 is still not fixed du to location_force problem in ncgutils.pas:419
+
+  Revision 1.1  2002/09/06 15:03:51  carl
     * moved files to systems directory
 
   Revision 1.3  2002/08/13 18:01:51  carl
