@@ -383,6 +383,10 @@ implementation
            genentrycode(procinfo^.aktentrycode,proc_names,make_global,stackframe,parasize,nostackframe,false);
 {$endif newcg}
 
+         { FPC_POPADDRSTACK destroys all registers (JM) }
+         if (procinfo^.flags and (pi_needs_implicit_finally or pi_uses_exceptions)) <> 0 then
+           usedinproc := $ff;
+
          { now generate exit code with the correct position and switches }
          aktfilepos:=exitpos;
          aktlocalswitches:=exitswitches;
@@ -832,7 +836,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  2000-11-01 23:04:38  peter
+  Revision 1.22  2000-11-08 16:38:24  jonas
+    * if a procedure uses exceptions (be it implicit or explicit), the
+      usedregisters are set to all (because FPC_POPADDRSTACK doesn't save
+      any registers) ("merged", fixes make cycle woth -Or)
+
+  Revision 1.21  2000/11/01 23:04:38  peter
     * tprocdef.fullprocname added for better casesensitve writing of
       procedures
 
