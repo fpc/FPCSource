@@ -1,0 +1,7 @@
+#! /bin/sh
+
+# create link
+ln -sf /usr/lib/fpc/0.99.12/ppc386 /usr/bin/ppc386
+
+# create /etc/ppc386.cfg
+/usr/lib/fpc/0.99.12/samplecfg /usr/lib/fpc/0.99.12

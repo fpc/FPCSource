@@ -1,64 +1,105 @@
 #!/usr/bin/make -f
-# Sample debian/rules that uses debhelper. GNU copyright 1997 by Joey Hess.
+# debian/rules for Free Pascal 0.99.12 
 
-# Uncomment this to turn on verbose mode.
+# Don't load the system makefile.fpc
+export FPCMAKE=
+export FPCDIR=
+
+# Get current dir
+PWD=$(shell pwd)
+
+BUILD_DIR=$(PWD)/debian/build
+INSTALL_DIR=$(PWD)/debian/tmp
+NEWPP=$(PWD)/compiler/ppc386
+
 #export DH_VERBOSE=1
 
 build: build-stamp
 build-stamp:
+	@echo "--- Building"
 	dh_testdir
 
-#       Add here commands to compile the package.
-	$(MAKE) compiler_all
-	$(MAKE) rtl_all
+# First make a new Compiler which will be used in the next compiles
+	$(MAKE) rtl_all compiler_all
+	$(MAKE) rtl_clean compiler_clean
+# Compile everything with the new compiler, the RTL must be the first
+	$(MAKE) rtl_all PP=$(NEWPP)
+	$(MAKE) compiler_all PP=$(NEWPP)
+	$(MAKE) utils_all PP=$(NEWPP)
 
 	touch build-stamp
 
 clean:
+	@echo "--- Cleaning"
 	dh_testdir
 	dh_testroot
-	rm -f build-stamp
+	rm -f build-stamp install-stamp
 
-#       Add here commands to clean up after the build process.
 	$(MAKE) compiler_clean
 	$(MAKE) rtl_clean
+	$(MAKE) utils_clean
 
 	dh_clean
 
-# Build architecture-independent files here.
-binary-indep: build
-# We have nothing to do by default.
-
-# Build architecture-dependent files here.
-binary-arch: build
-	dh_testversion
+install: install-stamp
+install-stamp: build
+	@echo "--- Installing"
 	dh_testdir
 	dh_testroot
-	dh_clean -k
-	dh_installdirs
+	dh_clean
 
-        # Add here commands to install the files into debian/tmp
-	$(MAKE) compiler_installlib PREFIXINSTALLDIR=`pwd`/debian/tmp/usr
-	$(MAKE) rtl_install PREFIXINSTALLDIR=`pwd`/debian/tmp/usr
+# Specify the compiler to use so installing will do correctly
+	$(MAKE) compiler_install PP=$(NEWPP) PREFIXINSTALLDIR=${INSTALL_DIR}/usr
+	$(MAKE) rtl_install PP=$(NEWPP) PREFIXINSTALLDIR=${INSTALL_DIR}/usr
+	$(MAKE) utils_install PP=$(NEWPP) PREFIXINSTALLDIR=${INSTALL_DIR}/usr
+	
+	touch install-stamp
 
-#	dh_installdocs TODO NEWS AUTHORS KNOWNBUGS README README.guile
-	dh_installexamples
-	dh_installmenu
-#	dh_installinit
-#	dh_installcron
-#	dh_installmanpages
-#	dh_undocumented
-#	dh_installchangelogs ChangeLog
-	dh_strip
-	dh_compress
-	dh_fixperms
-	dh_suidregister
-	dh_installdeb
-	dh_shlibdeps
-	dh_gencontrol
-	dh_makeshlibs
-	dh_md5sums
-	dh_builddeb
+binary-indep:
+# We have nothing to do by default.
+
+binary-arch: install \
+	fp-compiler \
+	fp-rtl \
+	fp-utils
+
+fp-compiler:
+	@echo "--- Building: $@"
+	dh_installdocs		-p$@ -P$(BUILD_DIR)/$@
+	dh_installchangelogs	-p$@ -P$(BUILD_DIR)/$@
+	dh_movefiles		-p$@ -P$(BUILD_DIR)/$@
+	dh_compress		-p$@ -P$(BUILD_DIR)/$@
+	dh_fixperms		-p$@ -P$(BUILD_DIR)/$@
+	dh_installdeb	 	-p$@ -P$(BUILD_DIR)/$@
+#	dh_shlibdeps	 	-p$@ -P$(BUILD_DIR)/$@
+	dh_gencontrol	 	-p$@ -P$(BUILD_DIR)/$@
+	dh_md5sums		-p$@ -P$(BUILD_DIR)/$@
+	dh_builddeb		-p$@ -P$(BUILD_DIR)/$@
+
+fp-rtl:
+	@echo "--- Building: $@"
+	dh_installdocs		-p$@ -P$(BUILD_DIR)/$@
+#	dh_installchangelogs	-p$@ -P$(BUILD_DIR)/$@ src/ChangeLog
+	dh_movefiles		-p$@ -P$(BUILD_DIR)/$@
+	dh_compress		-p$@ -P$(BUILD_DIR)/$@
+	dh_fixperms		-p$@ -P$(BUILD_DIR)/$@
+	dh_installdeb	 	-p$@ -P$(BUILD_DIR)/$@
+	dh_gencontrol	 	-p$@ -P$(BUILD_DIR)/$@
+	dh_md5sums		-p$@ -P$(BUILD_DIR)/$@
+	dh_builddeb		-p$@ -P$(BUILD_DIR)/$@
+
+fp-utils:
+	@echo "--- Building: $@"
+	dh_installdocs		-p$@ -P$(BUILD_DIR)/$@
+	dh_installchangelogs	-p$@ -P$(BUILD_DIR)/$@
+	dh_movefiles		-p$@ -P$(BUILD_DIR)/$@
+	dh_compress		-p$@ -P$(BUILD_DIR)/$@
+	dh_fixperms		-p$@ -P$(BUILD_DIR)/$@
+	dh_installdeb	 	-p$@ -P$(BUILD_DIR)/$@
+#	dh_shlibdeps	 	-p$@ -P$(BUILD_DIR)/$@
+	dh_gencontrol	 	-p$@ -P$(BUILD_DIR)/$@
+	dh_md5sums		-p$@ -P$(BUILD_DIR)/$@
+	dh_builddeb		-p$@ -P$(BUILD_DIR)/$@
 
 source diff:                                                                  
 	@echo >&2 'source and diff are obsolete - use dpkg-source -b'; false

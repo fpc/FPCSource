@@ -2,14 +2,38 @@ Source: fpc
 Section: devel
 Priority: optional
 Maintainer: Peter Vreman <pfv@cooldown.demon.nl>
-Standards-Version: 2.4.1.2
+Standards-Version: 2.5.0.0
 
-Package: fpc
+Package: fp-compiler
 Architecture: i386
-Depends: 
+Recommends:
+Depends: fp-rtl (= 0.99.12)
+Suggests: fp-utils
+Replaces: fpc
 Description: Free Pascal Compiler
- The Free Pascal Compiler is a Turbo Pascal 7.0 and Delphi II compatible
- 32bit Pascal Compiler. It comes with fully TP 7.0 compatible run-time library.
+ The Free Pascal Compiler is a Turbo Pascal 7.0 and Delphi compatible 32bit
+ Pascal Compiler. It comes with fully TP 7.0 compatible run-time library.
  Some extensions are added to the language, like function overloading. Shared
- libraries can be linked and created.
-
+ libraries can be linked and created. Basic Delphi support is already
+ implemented (classes,exceptions,ansistrings). This package contains
+ the commandline compiler. You need at least the RTL package before you
+ can start compiling anything.
+ 
+Package: fp-rtl
+Architecture: i386
+Recommends: fp-compiler (= 0.99.12)
+Description: Free Pascal Runtime Library
+ Runtime Libraries for the Free Pascal Compiler.
+ 
+Package: fp-utils
+Architecture: i386
+Recommends: fp-compiler (= 0.99.12)
+Description: Free Pascal Utils
+ This package contains some handy utils for usage with the Free Pascal
+ Compiler:
+   - h2pas : Convert .h files to pascal units
+   - ppdep : Create a dependency file which can be used with Makefiles
+   - ptop  : Source beautifier
+   - ppudump : Dump the information stored in a .ppu (unit) file
+   - ppumove : Place multiple units in a shared library
+  
