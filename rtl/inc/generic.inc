@@ -118,7 +118,7 @@ begin
   while (bytearray(buf)[I]<>b) and (I<Len) do
    inc(I);
   if (i=Len) then
-   i:=-1;                                {Can't use 0, since it is a possible value}
+   i:=-1;                      {Can't use 0, since it is a possible value}
   IndexByte:=I;
 end;
 {$endif not FPC_SYSTEM_HAS_INDEXBYTE}
@@ -965,7 +965,10 @@ end;
 
 {
   $Log$
-  Revision 1.46  2003-01-06 23:04:21  mazen
+  Revision 1.47  2003-01-07 22:04:12  mazen
+  - space removed
+
+  Revision 1.46  2003/01/06 23:04:21  mazen
   * functions headers modified in generic.inc to make it possible compiling sparc
     RTL based on generic code
 
