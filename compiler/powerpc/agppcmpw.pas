@@ -53,6 +53,8 @@ interface
         Function  DoAssemble:boolean;override;
         procedure WriteExternals;
         procedure WriteAsmFileHeader;
+        private
+        procedure GenProcedureHeader(var hp:tai);
       end;
 
 
@@ -68,7 +70,7 @@ interface
 
     const
       line_length = 70;
-
+      use_PR = false; {Whether internal references should be xxx[PR] }
 
 
     function ReplaceForbiddenChars(var s: string):Boolean;
@@ -333,7 +335,7 @@ function getreferencestring(var ref : treference) : string;
           case op of
              A_B,A_BA,A_BLA:
                s:=#9+op2str[op]+#9;
-             A_BCTR,A_BCTRL,A_BLR,A_BLRL:  
+             A_BCTR,A_BCTRL,A_BLR,A_BLRL:
                s:=#9+op2str[op];
              A_BL:
                s:=#9+op2str[op]+#9'.';
@@ -342,8 +344,9 @@ function getreferencestring(var ref : treference) : string;
           end;
           if (taicpu(hp).oper[0].typ <> top_none) then
             s:=s+getopstr_jmp(taicpu(hp).oper[0]);
-          if op=A_BL then
-            s:=s+'[PR]';
+          if use_PR then
+            if op=A_BL then
+              s:=s+'[PR]';
         end
       else
         { process operands }
@@ -452,6 +455,123 @@ function getreferencestring(var ref : treference) : string;
 {****************************************************************************
                                PowerPC MPW Assembler
  ****************************************************************************}
+    procedure TPPCMPWAssembler.GenProcedureHeader(var hp:tai);
+      {Returns the current hp where the caller should continue from}
+      {For multiple entry procedures, only the last is exported as xxx[PR]
+       (if use_PR is set) }
+
+      procedure WriteExportHeader(hp:tai);
+
+        var
+          s: string;
+          replaced: boolean;
+
+      begin
+        s:= tai_symbol(hp).sym.name;
+        replaced:= ReplaceForbiddenChars(s);
+
+        if replaced then
+          begin
+            if not use_PR then
+              AsmWriteLn(#9'export'#9'.'+s+' => ''.'+tai_symbol(hp).sym.name+'''');
+            AsmWriteLn(#9'export'#9+s+'[DS] => '''+tai_symbol(hp).sym.name+'[DS]''');
+          end
+        else
+          begin
+            if not use_PR then
+              AsmWriteLn(#9'export'#9'.'+s);
+            AsmWriteLn(#9'export'#9+s+'[DS]');
+          end;
+        {Entry in transition vector: }
+        AsmWriteLn(#9'csect'#9+s+'[DS]');
+        AsmWriteLn(#9'dc.l'#9'.'+s);
+        AsmWriteln(#9'dc.l'#9'TOC[tc0]');
+        {Entry in TOC: }
+        AsmWriteLn(#9'toc');
+        AsmWriteLn(#9'tc'#9+s+'[TC],'+s+'[DS]');
+      end;
+
+    function GetAdjacentTaiSymbol(var hp:tai):Boolean;
+
+    begin
+      GetAdjacentTaiSymbol:= false;
+      if assigned(hp.next) and (tai(hp.next).typ=ait_symbol) then
+        begin
+          hp:=tai(hp.next);
+          GetAdjacentTaiSymbol:= true;
+        end;
+    end;
+
+    var
+      first,last: tai;
+      s: string;
+      replaced: boolean;
+
+
+    begin
+      s:= tai_symbol(hp).sym.name;
+      {Write all headers}
+      first:= hp;
+      repeat
+        WriteExportHeader(hp);
+        last:= hp;
+      until not GetAdjacentTaiSymbol(hp);
+
+      {Start the section of the body of the proc: }
+      s:= tai_symbol(last).sym.name;
+      replaced:= ReplaceForbiddenChars(s);
+
+      if use_PR then
+        if replaced then
+           AsmWriteLn(#9'export'#9'.'+s+'[PR] => ''.'+tai_symbol(last).sym.name+'[PR]''')
+        else
+           AsmWriteLn(#9'export'#9'.'+s+'[PR]');
+
+      AsmWriteLn(#9'csect'#9'.'+s+'[PR]');    //starts the section
+      AsmWriteLn(#9'function'#9'.'+s+'[PR]'); //info for debugger
+
+      {Write all labels: }
+      hp:= first;
+      repeat
+        s:= tai_symbol(hp).sym.name;
+        ReplaceForbiddenChars(s);
+        AsmWriteLn('.'+s+':');
+      until not GetAdjacentTaiSymbol(hp);
+    end;
+
+    (*
+    procedure TPPCMPWAssembler.GenProcedureHeader(hp:tai);
+
+    var
+      s: string;
+      replaced: boolean;
+
+    begin
+      s:= tai_symbol(hp).sym.name;
+      replaced:= ReplaceForbiddenChars(s);
+      if replaced then
+        begin
+           AsmWriteLn(#9'export'#9'.'+s+'[PR] => ''.'+tai_symbol(hp).sym.name+'[PR]''');
+           AsmWriteLn(#9'export'#9+s+'[DS] => '''+tai_symbol(hp).sym.name+'[DS]''');
+        end
+      else
+        begin
+           AsmWriteLn(#9'export'#9'.'+s+'[PR]');
+           AsmWriteLn(#9'export'#9+s+'[DS]');
+        end;
+      {Entry in transition vector: }
+      AsmWriteLn(#9'csect'#9+s+'[DS]');
+      AsmWriteLn(#9'dc.l'#9'.'+s);
+      AsmWriteln(#9'dc.l'#9'TOC[tc0]');
+      {Entry in TOC: }
+      AsmWriteLn(#9'toc');
+      AsmWriteLn(#9'tc'#9+s+'[TC],'+s+'[DS]');
+      {Start the section of the body of the proc: }
+      AsmWriteLn(#9'csect'#9'.'+s+'[PR]');
+
+      AsmWriteLn('.'+s+':');
+    end;
+    *)
 
     var
       LasTSec : TSection;
@@ -641,7 +761,12 @@ function getreferencestring(var ref : treference) : string;
 
 
                 if tai_const_symbol(hp).sym.typ = AT_FUNCTION then
-                  AsmWriteLn(#9'dc.l'#9'.'+ s +'[PR]')
+                  begin
+                    if use_PR then
+                      AsmWriteLn(#9'dc.l'#9'.'+ s +'[PR]')
+                    else
+                      AsmWriteLn(#9'dc.l'#9'.'+ s)
+                  end
                 else
                   AsmWriteLn(#9'dc.l'#9+ s);
 
@@ -768,43 +893,12 @@ function getreferencestring(var ref : treference) : string;
                end;
              ait_symbol:
                begin
-                  {Two adjacent symbols, which only differ in case, is to be treated as
-                  a single symbol, due to the case insensitivity of PPCAsm.}
-                  if (not (tai(hp.next)=nil)) and (tai(hp.next).typ=ait_stab_function_name) then
-                    if (not (tai(hp.next.next)=nil)) and (tai(hp.next.next).typ=ait_symbol) then
-                      if CompareText(tai_label(hp).l.name,tai_label(hp.next.next).l.name) = 0  then
-                        hp:=tai(hp.next.next);
-
-
-                  s:= tai_label(hp).l.name;
-                  replaced:= ReplaceForbiddenChars(s);
-                  if tai_label(hp).l.typ=AT_FUNCTION then
-                    begin
-                       if replaced then
-                         begin
-                            AsmWriteLn(#9'export'#9'.'+s+'[PR] => ''.'+tai_symbol(hp).sym.name+'[PR]''');
-                            AsmWriteLn(#9'export'#9+s+'[DS] => '''+tai_symbol(hp).sym.name+'[DS]''');
-                         end
-                       else
-                         begin
-                            AsmWriteLn(#9'export'#9'.'+s+'[PR]');
-                            AsmWriteLn(#9'export'#9+s+'[DS]');
-                         end;
-                       {Entry in transition vector: }
-                       AsmWriteLn(#9'csect'#9+s+'[DS]');
-                       AsmWriteLn(#9'dc.l'#9'.'+s);
-                       AsmWriteln(#9'dc.l'#9'TOC[tc0]');
-                       {Entry in TOC: }
-                       AsmWriteLn(#9'toc');
-                       AsmWriteLn(#9'tc'#9+s+'[TC],'+s+'[DS]');
-                       {Start the section of the body of the proc: }
-                       AsmWriteLn(#9'csect'#9'.'+s+'[PR]');
-                       AsmWrite('.');
-                       AsmWrite(s);
-                       AsmWriteLn(':');
-                    end
+                  if tai_symbol(hp).sym.typ=AT_FUNCTION then
+                    GenProcedureHeader(hp)
                   else
                     begin
+                       s:= tai_symbol(hp).sym.name;
+                       replaced:= ReplaceForbiddenChars(s);
                        if tai_symbol(hp).is_global then
                          if replaced then
                            AsmWriteLn(#9'export'#9+s+' => '''+tai_symbol(hp).sym.name+'''')
@@ -885,19 +979,25 @@ ait_stab_function_name : ;
       begin
         if tasmsymbol(p).defbind=AB_EXTERNAL then
           begin
-            {currentasmlist.AsmWriteln(#9'import'#9+p.name);}
+            //Writeln('ZZZ ',p.name,' ',p.classname,' ',Ord(tasmsymbol(p).typ));
             s:= p.name;
             case tasmsymbol(p).typ of
               AT_FUNCTION:
                 begin
                    if ReplaceForbiddenChars(s) then
                      begin
-                        currentasmlist.AsmWriteLn(#9'import'#9'.'+s+'[PR] <= ''.'+p.name+'[PR]''');
+                        if not use_PR then
+                          currentasmlist.AsmWriteLn(#9'import'#9'.'+s+' <= ''.'+p.name+'''')
+                        else
+                          currentasmlist.AsmWriteLn(#9'import'#9'.'+s+'[PR] <= ''.'+p.name+'[PR]''');
                         currentasmlist.AsmWriteLn(#9'import'#9+s+'[DS] <= '''+p.name+'[DS]''');
                      end
                    else
                      begin
-                        currentasmlist.AsmWriteLn(#9'import'#9'.'+s+'[PR]');
+                        if not use_PR then
+                          currentasmlist.AsmWriteLn(#9'import'#9'.'+s)
+                        else
+                          currentasmlist.AsmWriteLn(#9'import'#9'.'+s+'[PR]');
                         currentasmlist.AsmWriteLn(#9'import'#9+s+'[DS]');
                      end;
                    currentasmlist.AsmWriteLn(#9'toc');
@@ -1022,7 +1122,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.15  2002-11-17 16:31:59  carl
+  Revision 1.16  2002-11-28 10:56:07  olle
+    * changed proc ref from .xxx[PR] (refering to its section)
+      to .xxx (refering to its label) to allow for multiple ref to a proc.
+
+  Revision 1.15  2002/11/17 16:31:59  carl
     * memory optimization (3-4%) : cleanup of tai fields,
        cleanup of tdef and tsym fields.
     * make it work for m68k
