@@ -95,6 +95,8 @@ unit aasm;
        pai = ^tai;
        tai = object(tlinkedlist_item)
           typ      : tait;
+         {pointer to record with optimizer info about this tai object}
+          optinfo: pointer;
           fileinfo : tfileposinfo;
           constructor init;
        end;
@@ -351,6 +353,7 @@ uses
 
     constructor tai.init;
       begin
+        optinfo := nil;
         fileinfo:=aktfilepos;
       end;
 
@@ -1006,7 +1009,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.42  1999-05-06 09:05:05  peter
+  Revision 1.43  1999-05-08 20:38:02  jonas
+    * seperate OPTimizer INFO pointer field in tai object
+
+  Revision 1.42  1999/05/06 09:05:05  peter
     * generic write_float and str_float
     * fixed constant float conversions
 

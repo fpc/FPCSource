@@ -79,7 +79,7 @@ Begin {CheckSequence}
   RegCounter := R_EAX;
   GetLastInstruction(p, PrevNonRemovablePai);
   While (RegCounter <= R_EDI) And
-        (PPaiProp(PrevNonRemovablePai^.fileinfo.line)^.Regs[RegCounter].Typ <> Con_Ref) Do
+        (PPaiProp(PrevNonRemovablePai^.OptInfo)^.Regs[RegCounter].Typ <> Con_Ref) Do
     Inc(RegCounter);
   While (RegCounter <= R_EDI) Do
     Begin
@@ -89,9 +89,9 @@ Begin {CheckSequence}
       RegInfo.New2OldReg[ProcInfo.FramePointer] := ProcInfo.FramePointer;
       RegInfo.New2OldReg[R_ESP] := R_ESP;
       Found := 0;
-      hp2 := PPaiProp(PrevNonRemovablePai^.fileinfo.line)^.Regs[RegCounter].StartMod;
-      If (PrevNonRemovablePai <> PPaiProp(PrevNonRemovablePai^.fileinfo.line)^.Regs[RegCounter].StartMod)
-        Then OldNrOfMods := PPaiProp(PrevNonRemovablePai^.fileinfo.line)^.Regs[RegCounter].NrOfMods
+      hp2 := PPaiProp(PrevNonRemovablePai^.OptInfo)^.Regs[RegCounter].StartMod;
+      If (PrevNonRemovablePai <> PPaiProp(PrevNonRemovablePai^.OptInfo)^.Regs[RegCounter].StartMod)
+        Then OldNrOfMods := PPaiProp(PrevNonRemovablePai^.OptInfo)^.Regs[RegCounter].NrOfMods
         Else OldNrOfMods := 1;
       hp3 := p;
       While (Found <> OldNrOfMods) And
@@ -150,7 +150,7 @@ Begin {CheckSequence}
                          Begin
                            TmpResult := False;
                            If (Found > 0) Then
-                             Found := PPaiProp(Pai(p)^.fileinfo.line)^.Regs[Reg].NrOfMods
+                             Found := PPaiProp(Pai(p)^.OptInfo)^.Regs[Reg].NrOfMods
                          End
                    End
                  Else
@@ -168,7 +168,7 @@ Begin {CheckSequence}
                          Begin
                            TmpResult := False;
                            If (Found > 0) Then
-                             Found := PPaiProp(Pai(p)^.fileinfo.line)^.Regs[Reg].NrOfMods
+                             Found := PPaiProp(Pai(p)^.OptInfo)^.Regs[Reg].NrOfMods
                          End
                    End
              Else *)
@@ -183,7 +183,7 @@ Begin {CheckSequence}
   and that it was equal (otherwise CheckSequence would have returned false
   and the instruction wouldn't have been removed). If this "If found > 0"
   check is left out, incorrect optimizations are performed.}
-                    Found := PPaiProp(Pai(p)^.fileinfo.line)^.Regs[Reg].NrOfMods
+                    Found := PPaiProp(Pai(p)^.OptInfo)^.Regs[Reg].NrOfMods
                 End
           End
         Else TmpResult := True;
@@ -203,9 +203,9 @@ Begin {CheckSequence}
       Repeat
         Inc(RegCounter);
       Until (RegCounter > R_EDI) or
-            ((PPaiProp(PrevNonRemovablePai^.fileinfo.line)^.Regs[RegCounter].Typ = Con_Ref) {And
+            ((PPaiProp(PrevNonRemovablePai^.OptInfo)^.Regs[RegCounter].Typ = Con_Ref) {And
              ((Regcounter = Reg) Or
-              Not(PaiInSequence(p, PPaiProp(PrevNonRemovablePai^.fileinfo.line)^.Regs[RegCounter]))) }
+              Not(PaiInSequence(p, PPaiProp(PrevNonRemovablePai^.OptInfo)^.Regs[RegCounter]))) }
             );
     End;
   If (HighFound > 0) And
@@ -249,8 +249,8 @@ Begin
           Begin
             Case Pai386(p)^.opcode Of
               A_CLD: If GetLastInstruction(p, hp1) And
-                        (PPaiProp(hp1^.fileinfo.line)^.DirFlag = F_NotSet) Then
-                       PPaiProp(Pai(p)^.fileinfo.line)^.CanBeRemoved := True;
+                        (PPaiProp(hp1^.OptInfo)^.DirFlag = F_NotSet) Then
+                       PPaiProp(Pai(p)^.OptInfo)^.CanBeRemoved := True;
               A_MOV, A_MOVZX, A_MOVSX:
                 Begin
                   Case Pai386(p)^.oper[0].typ Of
@@ -261,7 +261,7 @@ Begin
                       End;}
                     Top_Ref:
                       Begin {destination is always a register in this case}
-                        With PPaiProp(p^.fileinfo.line)^.Regs[Reg32(Pai386(p)^.oper[1].reg)] Do
+                        With PPaiProp(p^.OptInfo)^.Regs[Reg32(Pai386(p)^.oper[1].reg)] Do
                           Begin
                             If GetLastInstruction (p, hp1) And
                               (hp1^.typ <> ait_marker) Then
@@ -295,7 +295,7 @@ Begin
                                                 RegInInstruction(Reg32(Pai386(hp2)^.oper[1].reg), p))
                                            Then hp1 := p;
 {$ifndef noremove}
-                                         PPaiProp(p^.fileinfo.line)^.CanBeRemoved := True;
+                                         PPaiProp(p^.OptInfo)^.CanBeRemoved := True;
 {$endif noremove}
                                          Inc(Cnt2);
                                          GetNextInstruction(p, p);
@@ -344,7 +344,6 @@ Begin
                                                                     {old reg          new reg}
                                                       RegInfo.New2OldReg[RegCounter], RegCounter));
                                                hp3^.fileinfo := hp2^.fileinfo;
-                                               hp3^.fileinfo.line := PPaiProp(hp2^.fileinfo.line)^.LineSave;
                                                InsertLLItem(AsmL, Pai(hp2^.previous), hp2, hp3);
                                              End
                                            Else
@@ -354,7 +353,7 @@ Begin
   is reloaded)}
                                              Begin
  {load Cnt2 with the total number of instructions of this sequence}
-                                               Cnt2 := PPaiProp(hp4^.fileinfo.line)^.
+                                               Cnt2 := PPaiProp(hp4^.OptInfo)^.
                                                        Regs[RegInfo.New2OldReg[RegCounter]].NrOfMods;
  {sometimes, a register can not be removed from a sequence, because it's
   still used afterwards:
@@ -373,10 +372,10 @@ Begin
                                                hp3 := hp2;
                                                For Cnt := 1 to Pred(Cnt2) Do
                                                  GetNextInstruction(hp3, hp3);
-                                               TmpState := PPaiProp(hp3^.fileinfo.line)^.Regs[RegCounter].WState;
+                                               TmpState := PPaiProp(hp3^.OptInfo)^.Regs[RegCounter].WState;
                                                GetNextInstruction(hp3, hp3);
-                                               If (TmpState <> PPaiProp(hp3^.fileinfo.line)^.Regs[RegCounter].WState) Or
-                                                  Not(RegCounter in PPaiProp(hp3^.fileinfo.line)^.UsedRegs) Then
+                                               If (TmpState <> PPaiProp(hp3^.OptInfo)^.Regs[RegCounter].WState) Or
+                                                  Not(RegCounter in PPaiProp(hp3^.OptInfo)^.UsedRegs) Then
                                                  Begin
 {$ifdef csdebug}
              Writeln('Cnt2: ',Cnt2);
@@ -388,30 +387,30 @@ Begin
                                                    For Cnt := 1 to Cnt2 Do
                                                      Begin
  {save the WState of the last pai object of the sequence for later use}
-                                                       TmpState := PPaiProp(hp3^.fileinfo.line)^.Regs[RegCounter].WState;
+                                                       TmpState := PPaiProp(hp3^.OptInfo)^.Regs[RegCounter].WState;
 {$ifdef csdebug}
              hp5 := new(pai_asm_comment,init(strpnew('WState for '+att_reg2str[Regcounter]+': '
                                                       +tostr(tmpstate))));
              InsertLLItem(AsmL, hp3, pai(hp3^.next), hp5);
 {$endif csdebug}
-                                                       PPaiProp(hp3^.fileinfo.line)^.Regs[RegCounter] :=
-                                                         PPaiProp(hp4^.fileinfo.line)^.Regs[RegCounter];
+                                                       PPaiProp(hp3^.OptInfo)^.Regs[RegCounter] :=
+                                                         PPaiProp(hp4^.OptInfo)^.Regs[RegCounter];
                                                        GetNextInstruction(hp3, hp3);
                                                      End;
  {here, hp3 = p = Pai object right after the sequence, TmpState = WState of
   RegCounter at the last Pai object of the sequence}
                                                    GetLastInstruction(hp3, hp3);
                                                    While GetNextInstruction(hp3, hp3) And
-                                                         (PPaiProp(hp3^.fileinfo.line)^.Regs[RegCounter].WState
+                                                         (PPaiProp(hp3^.OptInfo)^.Regs[RegCounter].WState
                                                           = TmpState) Do
 {$ifdef csdebug}
         begin
              hp5 := new(pai_asm_comment,init(strpnew('WState for '+att_reg2str[Regcounter]+': '+
-                                                      tostr(PPaiProp(hp3^.fileinfo.line)^.Regs[RegCounter].WState))));
+                                                      tostr(PPaiProp(hp3^.OptInfo)^.Regs[RegCounter].WState))));
              InsertLLItem(AsmL, hp3, pai(hp3^.next), hp5);
 {$endif csdebug}
-                                                     PPaiProp(hp3^.fileinfo.line)^.Regs[RegCounter] :=
-                                                       PPaiProp(hp4^.fileinfo.line)^.Regs[RegCounter];
+                                                     PPaiProp(hp3^.OptInfo)^.Regs[RegCounter] :=
+                                                       PPaiProp(hp4^.OptInfo)^.Regs[RegCounter];
 {$ifdef csdebug}
         end;
 {$endif csdebug}
@@ -425,7 +424,7 @@ Begin
                                                    For Cnt := 1 to Cnt2 Do
                                                      Begin
                                                        If RegModifiedByInstruction(RegCounter, hp3)
-                                                         Then PPaiProp(hp3^.fileinfo.line)^.CanBeRemoved := False;
+                                                         Then PPaiProp(hp3^.OptInfo)^.CanBeRemoved := False;
                                                        GetNextInstruction(hp3, hp3);
                                                      End;
                                                  End;
@@ -442,9 +441,9 @@ Begin
                                    End
                                  Else
                                    If (Cnt > 0) And
-                                      (PPaiProp(p^.fileinfo.line)^.
+                                      (PPaiProp(p^.OptInfo)^.
                                         Regs[Reg32(Pai386(p)^.oper[1].reg)].Typ = Con_Ref) And
-                                      (PPaiProp(p^.fileinfo.line)^.CanBeRemoved) Then
+                                      (PPaiProp(p^.OptInfo)^.CanBeRemoved) Then
                                      Begin
                                        hp2 := p;
                                        Cnt2 := 1;
@@ -452,7 +451,7 @@ Begin
                                          Begin
                                            If RegInInstruction(Pai386(hp2)^.oper[1].reg, p) Or
                                               RegInInstruction(Reg32(Pai386(hp2)^.oper[1].reg), p) Then
-                                             PPaiProp(p^.fileinfo.line)^.CanBeRemoved := False;
+                                             PPaiProp(p^.OptInfo)^.CanBeRemoved := False;
                                            Inc(Cnt2);
                                            GetNextInstruction(p, p);
                                          End;
@@ -466,10 +465,10 @@ Begin
                           Top_Reg:
                             Begin
                               If GetLastInstruction(p, hp1) Then
-                                With PPaiProp(hp1^.fileinfo.line)^.Regs[Reg32(Pai386(p)^.oper[1].reg)] Do
+                                With PPaiProp(hp1^.OptInfo)^.Regs[Reg32(Pai386(p)^.oper[1].reg)] Do
                                   If (Typ = Con_Const) And
                                      (StartMod = p) Then
-                                    PPaiProp(p^.fileinfo.line)^.CanBeRemoved := True;
+                                    PPaiProp(p^.OptInfo)^.CanBeRemoved := True;
                             End;
 {                          Top_Ref:;}
                         End;
@@ -477,17 +476,17 @@ Begin
                   End;
                 End;
               A_STD: If GetLastInstruction(p, hp1) And
-                        (PPaiProp(hp1^.fileinfo.line)^.DirFlag = F_Set) Then
-                        PPaiProp(Pai(p)^.fileinfo.line)^.CanBeRemoved := True;
+                        (PPaiProp(hp1^.OptInfo)^.DirFlag = F_Set) Then
+                        PPaiProp(Pai(p)^.OptInfo)^.CanBeRemoved := True;
               A_XOR:
                 Begin
                   If (Pai386(p)^.oper[0].typ = top_reg) And
                      (Pai386(p)^.oper[0].typ = top_reg) And
                      (Pai386(p)^.oper[1].reg = Pai386(p)^.oper[1].reg) And
                      GetLastInstruction(p, hp1) And
-                     (PPaiProp(hp1^.fileinfo.line)^.Regs[Reg32(Pai386(p)^.oper[1].reg)].typ = con_const) And
-                     (PPaiProp(hp1^.fileinfo.line)^.Regs[Reg32(Pai386(p)^.oper[1].reg)].StartMod = nil)
-                    Then PPaiProp(p^.fileinfo.line)^.CanBeRemoved := True
+                     (PPaiProp(hp1^.OptInfo)^.Regs[Reg32(Pai386(p)^.oper[1].reg)].typ = con_const) And
+                     (PPaiProp(hp1^.OptInfo)^.Regs[Reg32(Pai386(p)^.oper[1].reg)].StartMod = nil)
+                    Then PPaiProp(p^.OptInfo)^.CanBeRemoved := True
                 End
             End
           End;
@@ -511,11 +510,11 @@ Begin
   While (p <> Last) Do
     Begin
 {$ifndef noinstremove}
-      If PPaiProp(p^.fileinfo.line)^.CanBeRemoved
+      If PPaiProp(p^.OptInfo)^.CanBeRemoved
         Then
           Begin
 {$IfDef TP}
-            Dispose(PPaiProp(p^.fileinfo.line));
+            Dispose(PPaiProp(p^.OptInfo));
 {$EndIf}
             GetNextInstruction(p, hp1);
             AsmL^.Remove(p);
@@ -527,12 +526,9 @@ Begin
 {$endif noinstremove}
           Begin
 {$IfDef TP}
-            TmpLine := PPaiProp(p^.fileinfo.line)^.linesave;
-            Dispose(PPaiProp(p^.fileinfo.line));
-            p^.fileinfo.line := TmpLine;
-{$Else TP}
-            p^.fileinfo.line := PPaiProp(p^.fileinfo.line)^.linesave;
+            Dispose(PPaiProp(p^.OptInfo));
 {$EndIf TP}
+            p^.OptInfo := nil;
             GetNextInstruction(p, p);
             Inc(InstrCnt);
           End;
@@ -552,7 +548,10 @@ End.
 
 {
  $Log$
- Revision 1.20  1999-05-01 13:24:19  peter
+ Revision 1.21  1999-05-08 20:38:03  jonas
+   * seperate OPTimizer INFO pointer field in tai object
+
+ Revision 1.20  1999/05/01 13:24:19  peter
    * merged nasm compiler
    * old asm moved to oldasm/
 
