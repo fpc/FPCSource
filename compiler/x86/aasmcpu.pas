@@ -2135,6 +2135,7 @@ implementation
                               list.insertafter(helpins,list.first)
                             else
                               list.insertafter(helpins,pos.next);
+                            oper[0].reg:=helpreg;
                             rgunget(list,helpins,helpreg);
                             forward_allocation(Tai(helpins.next),unusedregsint);
                           end;
@@ -2234,7 +2235,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  2003-09-12 20:25:17  daniel
+  Revision 1.23  2003-09-14 14:22:51  daniel
+    * Fixed incorrect movzx spilling
+
+  Revision 1.22  2003/09/12 20:25:17  daniel
     * Add BTR to destination memory location check in spilling
 
   Revision 1.21  2003/09/10 19:14:31  daniel
