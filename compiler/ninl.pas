@@ -42,6 +42,7 @@ interface
 {$ifdef hascompilerproc}
         private
           function str_pass_1: tnode;
+          function reset_rewrite_typed_pass_1: tnode;
 {$endif hascompilerproc}
        end;
 
@@ -1479,6 +1480,26 @@ implementation
         { and return it }
         result := newnode;
       end;
+      
+      
+    function tinlinenode.reset_rewrite_typed_pass_1: tnode;
+      begin
+        { add the recsize parameter }
+        { note: for some reason, the parameter of intern procedures with only one }
+        {   parameter is gets lifted out of its original tcallparanode (see round }
+        {   line 1301 of ncal.pas), so recreate a tcallparanode here (JM)         }
+        left := ccallparanode.create(cordconstnode.create(
+          tfiledef(left.resulttype.def).typedfiletype.def.size,s32bittype),
+          ccallparanode.create(left,nil));
+        { create the correct call }
+        if inlinenumber=in_reset_typedfile then
+          result := ccallnode.createintern('fpc_reset_typed',left)
+        else
+          result := ccallnode.createintern('fpc_rewrite_typed',left);
+        firstpass(result);
+        { make sure left doesn't get disposed, since we use it in the new call }
+        left := nil;
+      end;
 {$endif hascompilerproc}
 
 
@@ -1731,14 +1752,18 @@ implementation
          in_reset_typedfile,
          in_rewrite_typedfile :
            begin
+{$ifndef hascompilerproc}
               procinfo^.flags:=procinfo^.flags or pi_do_call;
+{$else not hascompilerproc}
+              result := reset_rewrite_typed_pass_1;
+{$endif not hascompilerproc}
            end;
 
          in_str_x_string :
            begin
+{$ifndef hascompilerproc}
               procinfo^.flags:=procinfo^.flags or pi_do_call;
               { calc registers }
-{$ifndef hascompilerproc}
               left_max;
 {$else not hascompilerproc}
               result := str_pass_1;
@@ -1901,7 +1926,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.47  2001-08-13 12:41:57  jonas
+  Revision 1.48  2001-08-13 15:39:52  jonas
+    * made in_reset_typedfile/in_rewrite_typedfile handling processor
+      independent
+
+  Revision 1.47  2001/08/13 12:41:57  jonas
     * made code for str(x,y) completely processor independent
 
   Revision 1.46  2001/08/06 12:47:31  jonas

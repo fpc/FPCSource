@@ -1388,6 +1388,7 @@ implementation
               end;
              in_reset_typedfile,in_rewrite_typedfile :
                begin
+{$ifndef hascompilerproc}
                   pushusedregisters(pushed,$ff);
                   emit_const(A_PUSH,S_L,tfiledef(left.resulttype.def).typedfiletype.def.size);
                   secondpass(left);
@@ -1398,6 +1399,10 @@ implementation
                   else
                     emitcall('FPC_REWRITE_TYPED');
                   popusedregisters(pushed);
+{$else not hascompilerproc}
+                  { should be removed in pass_1 (JM) }
+                  internalerror(200108132);
+{$endif not hascompilerproc}
                end;
             in_setlength_x:
                begin
@@ -1700,7 +1705,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2001-08-13 12:41:57  jonas
+  Revision 1.18  2001-08-13 15:39:52  jonas
+    * made in_reset_typedfile/in_rewrite_typedfile handling processor
+      independent
+
+  Revision 1.17  2001/08/13 12:41:57  jonas
     * made code for str(x,y) completely processor independent
 
   Revision 1.16  2001/07/10 18:01:08  peter
