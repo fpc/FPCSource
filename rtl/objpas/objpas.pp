@@ -15,6 +15,7 @@
  **********************************************************************}
 {$Mode ObjFpc}
 {$I-,S-}
+
 unit objpas;
 
   interface
@@ -53,6 +54,13 @@ unit objpas;
      { ParamStr should return also an ansistring }
      Function ParamStr(Param : Integer) : Ansistring;
 
+     { Resourcestring support }
+     Function GetResourceString(Hash : Longint) : AnsiString;
+     Procedure ResetResourceTables;
+     Function SetResourceString(Hash : longint; Const Value : AnsiString) : Boolean;
+     
+     
+     
   implementation
 
 {****************************************************************************
@@ -148,11 +156,82 @@ begin
     else
       paramstr:='';
   end;
+  
+{ ---------------------------------------------------------------------
+    ResourceString support
+  ---------------------------------------------------------------------}
 
+Type
+
+  TResourceStringRecord = Record
+     DefaultValue,
+     CurrentValue : AnsiString;
+     HashValue : longint;
+     end;
+   TResourceStringTable = Record 
+     Count : longint;
+     Resrec : Array[Cardinal] of TResourceStringRecord;
+     end;
+  
+Var 
+  ResourceStringTable : TResourceStringTable; External Name 'RESOURCESTRINGLIST';
+
+Function FindHashIndex (Value : Longint) : Longint;
+
+VAr I : longint;
+
+begin
+  // Linear search, later we can implement binary search.
+  With ResourceStringTable do 
+    For I:=0 to Count-1 do
+      If Value=Resrec[result].HashValue then
+        begin
+        Result:=I;
+        exit;
+        end;
+  Result:=-1;  
+end;
+  
+Function GetResourceString(Hash : Longint) : AnsiString;[Public,Alias : 'FPC_GETRESOURCESTRING'];
+
+begin
+  Hash:=FindHashIndex(Hash);
+  If Hash<>-1 then
+     Result:=ResourceStringTable.ResRec[Hash].CurrentValue
+  else
+     Result:='';     
+end;
+
+Function SetResourceString(Hash : longint; Const Value : AnsiString) : Boolean;
+
+begin
+  Hash:=FindHashIndex(Hash);
+  Result:=Hash<>-1;
+  If Result then
+    ResourceStringTable.ResRec[Hash].CurrentValue:=Value;
+end;
+
+Procedure ResetResourceTables;
+
+Var I : longint;
+
+begin
+  With ResourceStringTable do 
+    For I:=0 to Count-1 do
+      With ResRec[i] do 
+        CurrentValue:=DefaultValue;
+end;
+
+Initialization
+  ResetResourceTables;
 end.
+
 {
   $Log$
-  Revision 1.26  1999-07-07 10:04:04  michael
+  Revision 1.27  1999-07-22 20:30:13  michael
+  + Implemented resource stuff
+
+  Revision 1.26  1999/07/07 10:04:04  michael
   + Paramstr now returns cmdline args >255 chars in ansistring objpas.pp
 
   Revision 1.25  1999/07/06 22:44:22  florian
