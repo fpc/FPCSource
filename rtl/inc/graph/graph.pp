@@ -305,6 +305,7 @@ Interface
        LowRes        = 1;
        HercMono      = 7;
        VGA           = 9;
+       VESA          = 10;
 
        { graph modes }
        Default = 0;
@@ -606,6 +607,10 @@ procedure SetFillPattern(Pattern: FillPatternType; Color: word);
 
 
 Implementation
+
+{$IFDEF DPMI}
+uses WinAPI;
+{$ENDIF}
 
 const
    StdBufferSize = 4096;   { Buffer size for FloodFill }
@@ -2320,7 +2325,7 @@ end;
 
 
 	 CurrentColor:=white;
-	 SetBkColor(Black);
+	 SetBkColor(Blue);
 
 
 	 ClipPixels := TRUE;
@@ -2363,7 +2368,7 @@ end;
   procedure SetWriteMode(WriteMode : integer);
    begin
      if (writemode<>xorput) and (writemode<>CopyPut) then
-	exit;
+	    exit;
      CurrentWriteMode := WriteMode;
    end;
 
@@ -2383,16 +2388,16 @@ end;
 
 
 
-    procedure DrawPoly(numpoints : word;var polypoints);
+  procedure DrawPoly(numpoints : word;var polypoints);
 
       type
-	 ppointtype = ^pointtype;
-	 pt = array[0..16000] of pointtype;
+	    ppointtype = ^pointtype;
+        pt = array[0..16000] of pointtype;
 
       var
-	 i : longint;
+	    i : longint;
 
-      begin
+    begin
 	 if numpoints < 2 then
 	   begin
 	     _GraphResult := grError;
@@ -2403,7 +2408,7 @@ end;
 		pt(polypoints)[i].y,
 		pt(polypoints)[i+1].x,
 		pt(polypoints)[i+1].y);
-      end;
+    end;
 
 
   procedure PieSlice(X,Y,stangle,endAngle:integer;Radius: Word);
