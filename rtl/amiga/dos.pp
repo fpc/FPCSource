@@ -857,7 +857,7 @@ end;
 
 
 {$ifdef HASTHREADVAR}
-threadvar
+{thread}var
 {$else HASTHREADVAR}
 var
 {$endif HASTHREADVAR}
@@ -1612,7 +1612,10 @@ End.
 
 {
   $Log$
-  Revision 1.6  2004-02-15 21:26:37  hajny
+  Revision 1.7  2004-02-16 22:16:55  hajny
+    * LastDosExitCode changed back from threadvar temporarily
+
+  Revision 1.6  2004/02/15 21:26:37  hajny
     * overloaded ExecuteProcess added, EnvStr param changed to longint
 
   Revision 1.5  2004/02/09 12:03:16  michael

@@ -310,7 +310,7 @@ type
      stdcall; external 'kernel32' name 'CloseHandle';
 
 {$ifdef HASTHREADVAR}
-threadvar
+{thread}var
 {$else HASTHREADVAR}
 var
 {$endif HASTHREADVAR}
@@ -960,7 +960,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2004-02-15 21:36:10  hajny
+  Revision 1.25  2004-02-16 22:18:44  hajny
+    * LastDosExitCode changed back from threadvar temporarily
+
+  Revision 1.24  2004/02/15 21:36:10  hajny
     * overloaded ExecuteProcess added, EnvStr param changed to longint
 
   Revision 1.23  2004/02/09 12:03:16  michael

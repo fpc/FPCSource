@@ -500,7 +500,29 @@ begin
 {$ENDIF}
   p:=int_heap_end;
   // commit memory
-  rc:=DosSetMem(p, size, $10+3);
+  rc:=DosSetMem(p, size, $13);
+
+{
+  Not yet working
+  if RC = 8 then
+
+( * Not enough memory was allocated - let's try to allocate more
+   (4 MB steps or as much as requested if more than 4 MB needed). * )
+
+   begin
+    if Size > 4 * 1024 * 1024 then
+     RC := DosAllocMem (P, Size, 3)
+    else
+     RC := DosAllocMem (P, 4 * 1024 * 1024, 3);
+    if RC = 0 then
+     begin
+      Int_Heap := P;
+      Int_Heap_End := Int_Heap;
+      RC := DosSetMem (P, Size, $13);
+     end;
+   end;
+}
+
   if rc<>0 then p:=nil;
 {$IFDEF DUMPGROW}
   WriteLn ('New heap at ', Cardinal(p));
@@ -1405,7 +1427,18 @@ begin
     //   Note: Check for higher limit of heap not implemented yet.
     //   Note: Check for amount of memory for process not implemented yet.
     //         While used hard-coded value of max heapsize (256Mb)
+
+{}
     DosAllocMem(Int_Heap, 256*1024*1024, 3);
+{
+This should be changed as soon as dynamic allocation within sbrk works.
+
+256 MB RAM is way too much - there might not be so much physical RAM and swap
+space on some systems. Let's start on 16 MB - that isn't enough for cycling
+the compiler, of course, but more should get allocated dynamically on demand.
+
+    DosAllocMem(Int_Heap, 16 * 1024 * 1024, 3);
+}
     Int_Heap_End:=Int_Heap;
     InitHeap;
 
@@ -1438,7 +1471,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.65  2004-02-02 03:24:09  yuri
+  Revision 1.66  2004-02-16 22:18:44  hajny
+    * LastDosExitCode changed back from threadvar temporarily
+
+  Revision 1.65  2004/02/02 03:24:09  yuri
   - prt1.as removed
   - removed tmporary code/comments
   - prt1 compilation error workaround removed
