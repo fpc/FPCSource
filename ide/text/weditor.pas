@@ -4593,7 +4593,11 @@ begin
           S:=GetStr(pa^.text);
           if S<>'' then
            DisposeStr(pa^.text);
-          pa^.text:=NewStr(S+AText);
+          if (AAction=eaDeleteText) and
+             (AStartPos.X>AEndPos.X) then
+            pa^.text:=NewStr(AText+S)
+          else
+            pa^.text:=NewStr(S+AText);
           ActionIntegrated:=true;
         end;
     end;
@@ -5517,7 +5521,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.75  2000-01-14 15:36:42  pierre
+  Revision 1.76  2000-01-25 00:12:23  pierre
+   * fix for Backspace Undo
+
+  Revision 1.75  2000/01/14 15:36:42  pierre
    + GetShortFileName used for tcodeeditor file opening
 
   Revision 1.74  2000/01/10 23:20:04  pierre
