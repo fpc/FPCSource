@@ -39,11 +39,12 @@ type
       constructor Init(Const AExpr : String;ASym : PSymbol);
       procedure GetValue;
       function  GetText : String;
+      destructor Done;virtual;
+    private
       expr : Pstring;
       St   : Pstring;
       S    : PSymbol;
       GDBI : longint;
-      destructor Done;virtual;
       end;
 
     TGDBValueCollection = Object(TCollection)
@@ -559,7 +560,7 @@ begin
         Desktop^.Delete(W);
         Desktop^.InsertBefore(W,BW^.NextView);
       end;
-    W^.Editor^.SetHighlightRow(P.Y);
+    W^.Editor^.SetLineFlagExclusive(lfHighlightRow,P.Y);
   end;
   Desktop^.UnLock;
   TrackReference:=W<>nil;
@@ -1358,8 +1359,10 @@ begin
   PB:=New(PBrowserWindow, Init(R,
     st2,SearchFreeWindowNo,S,Line,st,
     Symbols,References,Inheritance,MemInfo));
+{$ifndef GABOR}
   if (S^.typ=varsym) or (assigned(ParentBrowser) and ParentBrowser^.IsValid) then
      PB^.IsValid:=true;
+{$endif}
 
   Desktop^.Insert(PB);
 end;
@@ -1367,7 +1370,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.23  2000-03-15 10:29:03  pierre
+  Revision 1.24  2000-03-21 23:26:55  pierre
+   adapted to wcedit addition
+
+  Revision 1.23  2000/03/15 10:29:03  pierre
    * TGDBValue object
 
   Revision 1.22  2000/03/08 16:53:21  pierre

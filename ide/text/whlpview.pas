@@ -22,7 +22,7 @@ uses
 {$ifdef EDITORS}
   Editors,
 {$else}
-  WEditor,
+  WEditor,WCEdit,
 {$endif}
   WUtils,WHelp;
 
@@ -542,8 +542,8 @@ end;
 
 constructor THelpViewer.Init(var Bounds: TRect; AHScrollBar, AVScrollBar: PScrollBar);
 begin
-  inherited Init(Bounds, AHScrollBar, AVScrollBar, nil, 0);
-  Flags:=efInsertMode; IsReadOnly:=true;
+  inherited Init(Bounds, AHScrollBar, AVScrollBar, nil, nil);
+  Flags:=efInsertMode; ReadOnly:=true;
   New(WordList, Init(50,50));
   Margin:=1; CurLink:=-1;
 end;
@@ -1139,7 +1139,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.11  2000-02-07 08:29:13  michael
+  Revision 1.12  2000-03-21 23:21:38  pierre
+   adapted to wcedit addition
+
+  Revision 1.11  2000/02/07 08:29:13  michael
   [*] the fake (!) TOKENS.PAS still contained the typo bug
        FSplit(,n,d,e) (correctly FSplit(,d,n,e))
   [*] CodeComplete had a very ugly bug - coordinates were document-relative

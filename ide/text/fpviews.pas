@@ -25,7 +25,7 @@ uses
 {$ifdef EDITORS}
   Editors,
 {$else}
-  WEditor,
+  WEditor,WCEdit,
 {$endif}
   WUtils,WHelp,WHlpView,WViews,
   Comphook,
@@ -80,8 +80,8 @@ type
       constructor Init(var Bounds: TRect; ATitle: TTitleStr; ASourceFileID: word; AContext: THelpCtx; ANumber: Integer);
       destructor  Done;virtual;
       procedure   InitHelpView; virtual;
-      procedure   Show; virtual;
-      procedure   Hide; virtual;
+      procedure   Show; {virtual;}
+      procedure   Hide; {virtual;}
       procedure   HandleEvent(var Event: TEvent); virtual;
       function    GetPalette: PPalette; virtual;
       constructor Load(var S: TStream);
@@ -173,7 +173,7 @@ type
 
     PGDBSourceEditor = ^TGDBSourceEditor;
     TGDBSourceEditor = object(TSourceEditor)
-      function   InsertLine : Sw_integer;virtual;
+      function   InsertNewLine : Sw_integer;virtual;
       function   Valid(Command: Word): Boolean; virtual;
       procedure  AddLine(const S: string); virtual;
       procedure  AddErrorLine(const S: string); virtual;
@@ -353,7 +353,7 @@ type
     PFPCodeMemo = ^TFPCodeMemo;
     TFPCodeMemo = object(TCodeEditor)
       constructor Init(var Bounds: TRect; AHScrollBar, AVScrollBar:
-                    PScrollBar; AIndicator: PIndicator; ABufSize:Sw_Word);
+                    PScrollBar; AIndicator: PIndicator);
       function    IsReservedWord(const S: string): boolean; virtual;
       function    GetSpecSymbolCount(SpecClass: TSpecSymbolClass): integer; virtual;
       function    GetSpecSymbol(SpecClass: TSpecSymbolClass; Index: integer): string; virtual;
@@ -382,8 +382,13 @@ procedure TranslateMouseClick(View: PView; var Event: TEvent);
 
 function GetNextEditorBounds(var Bounds: TRect): boolean;
 function OpenEditorWindow(Bounds: PRect; FileName: string; CurX,CurY: sw_integer): PSourceWindow;
+function IOpenEditorWindow(Bounds: PRect; FileName: string; CurX,CurY: sw_integer; ShowIt: boolean): PSourceWindow;
 function SearchOnDesktop(FileName : string;tryexts:boolean) : PSourceWindow;
-function TryToOpenFile(Bounds: PRect; FileName: string; CurX,CurY: sw_integer;tryexts:boolean): PSourceWindow;
+function TryToOpenFile(Bounds: PRect; FileName: string; CurX,CurY: sw_integer;tryexts: boolean): PSourceWindow;
+function ITryToOpenFile(Bounds: PRect; FileName: string; CurX,CurY: sw_integer;tryexts, ShowIt,
+         ForceNewWindow:boolean): PSourceWindow;
+
+function SearchWindow(const Title: string): PWindow;
 
 function StartEditor(Editor: PCodeEditor; FileName: string): boolean;
 
@@ -737,6 +742,34 @@ begin
   SearchWindowWithNo:=P;
 end;
 
+function SearchWindow(const Title: string): PWindow;
+function Match(P: PView): boolean; {$ifndef FPC}far;{$endif}
+var W: PWindow;
+    OK: boolean;
+begin
+  W:=nil;
+  if (P^.HelpCtx=hcSourceWindow) or
+     (P^.HelpCtx=hcHelpWindow) or
+     (P^.HelpCtx=hcClipboardWindow) or
+     (P^.HelpCtx=hcCalcWindow) or
+     (P^.HelpCtx=hcInfoWindow) or
+     (P^.HelpCtx=hcBrowserWindow) or
+     (P^.HelpCtx=hcMessagesWindow) or
+     (P^.HelpCtx=hcGDBWindow) or
+     (P^.HelpCtx=hcBreakpointListWindow) or
+     (P^.HelpCtx=hcASCIITableWindow)
+    then W:=PWindow(P);
+  OK:=(W<>nil);
+  if OK then
+  begin
+    OK:=CompareText(W^.GetTitle(255),Title)=0;
+  end;
+  Match:=OK;
+end;
+begin
+  SearchWindow:=PWindow(Desktop^.FirstThat(@Match));
+end;
+
 function SearchFreeWindowNo: integer;
 var No: integer;
 begin
@@ -754,7 +787,8 @@ end;
 
 constructor TIntegerLine.Init(var Bounds: TRect; AMin, AMax: longint);
 begin
-  inherited Init(Bounds, Bounds.B.X-Bounds.A.X-1);
+  if inherited Init(Bounds, Bounds.B.X-Bounds.A.X-1)=false then
+    Fail;
   Validator:=New(PRangeValidator, Init(AMin, AMax));
 end;
 
@@ -764,11 +798,34 @@ end;
 *****************************************************************************}
 
 {$ifndef EDITORS}
+
+function SearchCoreForFileName(const AFileName: string): PCodeEditorCore;
+var EC: PCodeEditorCore;
+function Check(P: PView): boolean; {$ifndef FPC}far;{$endif}
+var OK: boolean;
+begin
+  OK:=P^.HelpCtx=hcSourceWindow;
+  if OK then
+  with PSourceWindow(P)^ do
+  if CompareText(Editor^.FileName,AFileName)=0 then
+  begin
+    EC:=Editor^.Core;
+  end;
+  Check:=OK;
+end;
+begin
+  EC:=nil;
+  Desktop^.FirstThat(@Check);
+  SearchCoreForFileName:=EC;
+end;
+
 constructor TSourceEditor.Init(var Bounds: TRect; AHScrollBar, AVScrollBar:
           PScrollBar; AIndicator: PIndicator;const AFileName: string);
+var EC: PCodeEditorCore;
 begin
-  inherited Init(Bounds,AHScrollBar,AVScrollBar,AIndicator,AFileName);
-  StoreUndo:=true;
+  EC:=SearchCoreForFileName(AFileName);
+  inherited Init(Bounds,AHScrollBar,AVScrollBar,AIndicator,EC,AFileName);
+  SetStoreUndo(true);
 end;
 
 function TSourceEditor.GetSpecSymbolCount(SpecClass: TSpecSymbolClass): integer;
@@ -899,7 +956,7 @@ end;
 procedure TSourceEditor.ModifiedChanged;
 begin
   inherited ModifiedChanged;
-  if (@Self<>Clipboard) and Modified then
+  if (@Self<>Clipboard) and GetModified then
     EditorModified:=true;
 end;
 
@@ -940,8 +997,8 @@ var
 begin
   ClearToolMessages;
   AddToolCommand('UndoList Dump');
-  for i:=0 to UndoList^.count-1 do
-    with UndoList^.At(i)^ do
+  for i:=0 to Core^.UndoList^.count-1 do
+    with Core^.UndoList^.At(i)^ do
       begin
        if is_grouped_action then
          AddToolMessage('','Group '+ActionString[action]+' '+IntToStr(ActionCount)+' elementary actions',0,0)
@@ -949,10 +1006,10 @@ begin
          AddToolMessage('',ActionString[action]+' '+IntToStr(StartPos.X)+':'+IntToStr(StartPos.Y)+
            ' '+IntToStr(EndPos.X)+':'+IntToStr(EndPos.Y)+' "'+GetStr(Text)+'"',0,0);
       end;
-  if RedoList^.count>0 then
+  if Core^.RedoList^.count>0 then
     AddToolCommand('RedoList Dump');
-  for i:=0 to RedoList^.count-1 do
-    with RedoList^.At(i)^ do
+  for i:=0 to Core^.RedoList^.count-1 do
+    with Core^.RedoList^.At(i)^ do
       begin
        if is_grouped_action then
          AddToolMessage('','Group '+ActionString[action]+' '+IntToStr(ActionCount)+' elementary actions',0,0)
@@ -967,13 +1024,13 @@ end;
 
 procedure TSourceEditor.UndoAll;
 begin
-  While UndoList^.count>0 do
+  While Core^.UndoList^.count>0 do
     Undo;
 end;
 
 procedure TSourceEditor.RedoAll;
 begin
-  While RedoList^.count>0 do
+  While Core^.RedoList^.count>0 do
     Redo;
 end;
 
@@ -1033,7 +1090,7 @@ end;
 
 constructor TFPHeapView.Init(var Bounds: TRect);
 begin
-  inherited Init(Bounds);
+  if inherited Init(Bounds)=false then Fail;
   Options:=Options or gfGrowHiX or gfGrowHiY;
   EventMask:=EventMask or evIdle;
   GrowMode:=gfGrowAll;
@@ -1041,7 +1098,7 @@ end;
 
 constructor TFPHeapView.InitKb(var Bounds: TRect);
 begin
-  inherited InitKb(Bounds);
+  if inherited InitKb(Bounds)=false then Fail;
   Options:=Options or gfGrowHiX or gfGrowHiY;
   EventMask:=EventMask or evIdle;
   GrowMode:=gfGrowAll;
@@ -1241,11 +1298,11 @@ begin
     begin
       if Editor^.LoadFile=false then
         ErrorBox(#3'Error reading file.',nil)
-      else if Editor^.Modified then
+      else if Editor^.GetModified then
         begin
           PA[1]:=@AFileName;
-          longint(PA[2]):=Editor^.ChangedLine;
-          EditorDialog(edChangedOnloading,@PA);
+(*          longint(PA[2]):=Editor^.ChangedLine;
+          EditorDialog(edChangedOnloading,@PA);*)
         end;
    end;
   Insert(Editor);
@@ -1256,9 +1313,18 @@ end;
 
 procedure TSourceWindow.UpdateTitle;
 var Name: string;
+    Count: sw_integer;
 begin
   if Editor^.FileName<>'' then
-  begin Name:=SmartPath(Editor^.FileName); SetTitle(Name); end;
+  begin
+    Name:=SmartPath(Editor^.FileName);
+    Count:=Editor^.Core^.GetBindingCount;
+    if Count>1 then
+    begin
+      Name:=Name+':'+IntToStr(Editor^.Core^.GetBindingIndex(Editor)+1);
+    end;
+    SetTitle(Name);
+  end;
 end;
 
 procedure TSourceWindow.SetTitle(ATitle: string);
@@ -1288,10 +1354,10 @@ begin
         case Event.Command of
           cmSave :
             if Editor^.IsClipboard=false then
-            Editor^.Save;
+              Editor^.Save;
           cmSaveAs :
             if Editor^.IsClipboard=false then
-            Editor^.SaveAs;
+              Editor^.SaveAs;
         else DontClear:=true;
         end;
         if DontClear=false then ClearEvent(Event);
@@ -1414,16 +1480,16 @@ begin
    if Silent then exit;
    inherited AddLine(S);
    { display like breakpoints in red }
-   Lines^.At(GetLineCount-1)^.IsBreakpoint:=true;
+   SetLineFlagState(GetLineCount-1,lfBreakpoint,true);
    LimitsChanged;
 end;
 
-function TGDBSourceEditor.InsertLine: Sw_integer;
+function TGDBSourceEditor.InsertNewLine: Sw_integer;
 Var
   S : string;
 
 begin
-  if IsReadOnly then begin InsertLine:=-1; Exit; end;
+  if IsReadOnly then begin InsertNewLine:=-1; Exit; end;
   if CurPos.Y<GetLineCount then S:=GetDisplayText(CurPos.Y) else S:='';
   s:=Copy(S,1,CurPos.X);
   if assigned(Debugger) then
@@ -1438,7 +1504,7 @@ begin
       end
     else if AutoRepeat then
       Debugger^.Command(LastCommand);
-  InsertLine:=inherited InsertLine;
+  InsertNewLine:=inherited InsertNewLine;
 end;
 
 
@@ -1761,7 +1827,7 @@ begin
     begin
       W^.Select;
       W^.Editor^.TrackCursor(true);
-      W^.Editor^.SetHighlightRow(Row);
+      W^.Editor^.SetLineFlagExclusive(lfHighlightRow,Row);
     end;
   if Assigned(Owner) then
     Owner^.Select;
@@ -2577,7 +2643,7 @@ begin
   GetNextEditorBounds:=P<>nil;
 end;
 
-function OpenEditorWindow(Bounds: PRect; FileName: string; CurX,CurY: sw_integer): PSourceWindow;
+function IOpenEditorWindow(Bounds: PRect; FileName: string; CurX,CurY: sw_integer; ShowIt: boolean): PSourceWindow;
 var R: TRect;
     W: PSourceWindow;
 begin
@@ -2585,6 +2651,8 @@ begin
     GetNextEditorBounds(R);
   PushStatus('Opening source file... ('+SmartPath(FileName)+')');
   New(W, Init(R, FileName));
+  if ShowIt=false then
+    W^.Hide;
   if W<>nil then
   begin
     if (CurX<>0) or (CurY<>0) then
@@ -2598,18 +2666,19 @@ begin
     Message(Application,evBroadcast,cmUpdate,nil);
   end;
   PopStatus;
-  OpenEditorWindow:=W;
+  IOpenEditorWindow:=W;
+end;
+
+function OpenEditorWindow(Bounds: PRect; FileName: string; CurX,CurY: sw_integer): PSourceWindow;
+begin
+  OpenEditorWindow:=IOpenEditorWindow(Bounds,FileName,CurX,CurY,true);
 end;
 
 function SearchOnDesktop(FileName : string;tryexts:boolean) : PSourceWindow;
 var
-    V: PView;
-    W: PWindow;
-    I: integer;
     D,DS : DirStr;
     N,NS : NameStr;
     E,ES : ExtStr;
-    Found : boolean;
     SName : string;
 
 function IsSearchedFile(W : PSourceWindow) : boolean;
@@ -2656,6 +2725,12 @@ begin
 end;
 
 function TryToOpenFile(Bounds: PRect; FileName: string; CurX,CurY: sw_integer;tryexts:boolean): PSourceWindow;
+begin
+  TryToOpenFile:=ITryToOpenFile(Bounds,FileName,CurX,CurY,tryexts,true,false);
+end;
+
+function ITryToOpenFile(Bounds: PRect; FileName: string; CurX,CurY: sw_integer;tryexts:boolean;
+         ShowIt,ForceNewWindow: boolean): PSourceWindow;
 var D : DirStr;
     N : NameStr;
     E : ExtStr;
@@ -2703,7 +2778,7 @@ var D : DirStr;
     else
       begin
         FileName:=FExpand(D+N+E);
-        W:=OpenEditorWindow(Bounds,FileName,CurX,CurY);
+        W:=IOpenEditorWindow(Bounds,FileName,CurX,CurY,ShowIt);
       end;
     TryToOpen:=W;
   end;
@@ -2711,7 +2786,10 @@ var D : DirStr;
 var
   W : PSourceWindow;
 begin
-  W:=SearchOnDesktop(FileName,tryexts);
+  if ForceNewWindow then
+    W:=nil
+  else
+    W:=SearchOnDesktop(FileName,tryexts);
   if W<>nil then
     begin
       NewEditorOpened:=false;
@@ -2736,7 +2814,7 @@ begin
       if assigned(W) then
         W^.Editor^.SetCurPtr(CurX,CurY);
     end;
-  TryToOpenFile:=W;
+  ITryToOpenFile:=W;
 end;
 
 function StartEditor(Editor: PCodeEditor; FileName: string): boolean;
@@ -2745,7 +2823,7 @@ var OK: boolean;
     R: TRect;
 begin
   R.Assign(0,0,0,0);
-  New(E, Init(R,nil,nil,nil,FileName));
+  New(E, Init(R,nil,nil,nil,nil,FileName));
   OK:=E<>nil;
   if OK then OK:=E^.LoadFile;
   if OK then
@@ -3109,9 +3187,9 @@ begin
 end;
 
 constructor TFPCodeMemo.Init(var Bounds: TRect; AHScrollBar, AVScrollBar:
-          PScrollBar; AIndicator: PIndicator; ABufSize:Sw_Word);
+          PScrollBar; AIndicator: PIndicator);
 begin
-  inherited Init(Bounds,AHScrollBar,AVScrollBar,AIndicator,ABufSize);
+  inherited Init(Bounds,AHScrollBar,AVScrollBar,AIndicator,nil);
   SetFlags(Flags and not (efPersistentBlocks) or efSyntaxHighlight);
 end;
 
@@ -3227,7 +3305,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.64  2000-03-14 13:59:41  pierre
+  Revision 1.65  2000-03-21 23:25:16  pierre
+   adapted to wcedit addition
+
+  Revision 1.64  2000/03/14 13:59:41  pierre
    + add a warning if Changed on loading
 
   Revision 1.63  2000/03/13 20:39:25  pierre
