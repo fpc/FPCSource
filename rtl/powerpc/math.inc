@@ -64,21 +64,7 @@ const
         runerror(207);
       end;
 
-
-    function frac(d : extended) : extended;[internconst:in_const_frac];
-      begin
-        runerror(207);
-      end;
-
-
     }
-    {$define FPC_SYSTEM_HAS_INT}
-    {$warning FIX ME}
-    function int(d : extended) : extended;[internconst:in_const_int];
-      begin
-        runerror(207);
-      end;
-
 
       const
         factor: double = double(int64(1) shl 32);
@@ -370,7 +356,12 @@ end ['R0','R3','F0','F1','F2','F3'];
 
 {
   $Log$
-  Revision 1.19  2003-04-26 20:36:24  jonas
+  Revision 1.20  2003-05-02 15:12:19  jonas
+    - removed empty ppc-specific frac()
+    + added correct generic frac() implementation for doubles (translated
+      from glibc code)
+
+  Revision 1.19  2003/04/26 20:36:24  jonas
     * trunc now also supports int64 (no NaN's etc though)
 
   Revision 1.18  2003/04/26 17:20:16  florian

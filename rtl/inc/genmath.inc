@@ -78,9 +78,8 @@ const sincof : TabCoef = (
 
 
 
-{$ifndef FPC_SYSTEM_HAS_TRUNC}
+{ also necessary for Int() on systems with 64bit floats (JM) }
 type
-  float32 = longint;
 {$ifdef ENDIAN_LITTLE}
   float64 = packed record
     low: longint;
@@ -92,6 +91,10 @@ type
     low: longint;
   end;
 {$endif}
+
+{$ifndef FPC_SYSTEM_HAS_TRUNC}
+type
+  float32 = longint;
   flag = byte;
 
   Function extractFloat64Frac0(a: float64): longint;
@@ -258,12 +261,60 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
 
 
 {$ifndef FPC_SYSTEM_HAS_INT}
+
+{$ifdef SUPPORT_DOUBLE}
+
+    { straight Pascal translation of the code for __trunc() in }
+    { the file sysdeps/libm-ieee754/s_trunc.c of glibc (JM)    }
+    function int(d: double): double;[internconst:in_const_int];
+      var
+        i0, j0: longint;
+        i1: cardinal;
+        sx: longint;
+      begin
+        i0 := float64(d).high;
+        i1 := cardinal(float64(d).low);
+        sx := i0 and $80000000;
+        j0 := ((i0 shr 20) and $7ff) - $3ff;
+        if (j0 < 20) then
+          begin
+            if (j0 < 0) then
+              begin
+                { the magnitude of the number is < 1 so the result is +-0. }
+                float64(d).high := sx;
+                float64(d).low := 0;
+              end
+            else
+              begin
+                float64(d).high := sx or (i0 and not($fffff shr j0));
+                float64(d).low := 0;
+              end
+          end
+        else if (j0 > 51) then
+          begin
+            if (j0 = $400) then
+              { d is inf or NaN }
+              exit(d + d); { don't know why they do this (JM) }
+          end
+        else
+          begin
+            float64(d).high := i0;
+            float64(d).low := longint(i1 and not(cardinal($ffffffff) shr (j0 - 20)));
+          end;
+        result := d;
+      end;
+
+{$else SUPPORT_DOUBLE}
+
+
     function int(d : real) : real;[internconst:in_const_int];
       begin
         { this will be correct since real = single in the case of }
         { the motorola version of the compiler...                 }
         int:=real(trunc(d));
       end;
+{$endif SUPPORT_DOUBLE}
+
 {$endif}
 
 
@@ -1030,7 +1081,12 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
 
 {
   $Log$
-  Revision 1.11  2003-04-23 21:28:21  peter
+  Revision 1.12  2003-05-02 15:12:19  jonas
+    - removed empty ppc-specific frac()
+    + added correct generic frac() implementation for doubles (translated
+      from glibc code)
+
+  Revision 1.11  2003/04/23 21:28:21  peter
     * fpc_round added, needed for int64 currency
 
   Revision 1.10  2003/01/15 00:45:17  peter
