@@ -547,7 +547,8 @@ end;
               { because this loop alwys runs for very little pixels,  }
               { there's little gained by splitting it up              }
               setreadbank(offs shr 16);
-              WordArray(Data)[index+l] := mem[WinReadSeg:offs+l];
+              WordArray(Data)[index+l] := mem[WinReadSeg:word(offs)];
+              inc(offs);
             end;
           amount := 0
         End
@@ -655,8 +656,9 @@ end;
                          { there's little gained by splitting it up              }
                          setreadbank(offs shr 16);
                          setwritebank(offs shr 16);
-                         Mem[WinWriteSeg:word(offs)+l] :=
-                           Mem[WinReadSeg:word(offs)+l] And byte(currentColor);
+                         Mem[WinWriteSeg:word(offs)] :=
+                           Mem[WinReadSeg:word(offs)] And byte(currentColor);
+                         inc(offs);
                        end;
                      HLength := 0
                    End
@@ -724,8 +726,9 @@ end;
                          { there's little gained by splitting it up              }
                          setreadbank(offs shr 16);
                          setwritebank(offs shr 16);
-                         Mem[WinWriteSeg:word(offs)+l] :=
-                           Mem[WinReadSeg:word(offs)+l] xor byte(currentColor);
+                         Mem[WinWriteSeg:word(offs)] :=
+                           Mem[WinReadSeg:word(offs)] xor byte(currentColor);
+                         inc(offs);
                        end;
                      HLength := 0
                    End
@@ -793,8 +796,9 @@ end;
                          { there's little gained by splitting it up              }
                          setreadbank(offs shr 16);
                          setwritebank(offs shr 16);
-                         Mem[WinWriteSeg:word(offs)+l] :=
-                           Mem[WinReadSeg:word(offs)+l] And byte(currentColor);
+                         Mem[WinWriteSeg:word(offs)] :=
+                           Mem[WinReadSeg:word(offs)] And byte(currentColor);
+                         inc(offs);
                        end;
                      HLength := 0
                    End
@@ -859,7 +863,8 @@ end;
                          { because this loop alwys runs for very little pixels,  }
                          { there's little gained by splitting it up              }
                          setwritebank(offs shr 16);
-                         Mem[WinWriteSeg:word(offs)+l] := byte(mask);
+                         Mem[WinWriteSeg:word(offs)] := byte(mask);
+                         inc(offs);
                        end;
                      HLength := 0
                    End
@@ -1148,7 +1153,8 @@ end;
                { because this loop alwys runs for very little pixels,  }
                { there's little gained by splitting it up              }
                setwritebank(offs shr 16);
-               Mem[WinWriteSeg:word(offs)+l] := fill.pat[patternPos and 7];
+               Mem[WinWriteSeg:word(offs)] := fill.pat[patternPos and 7];
+               inc(offs);
                inc(patternPos);
              end;
            amount := 0;
@@ -1223,7 +1229,7 @@ end;
      seg_move(WinReadSeg,offs+LinearPageOfs,get_ds,longint(@col),1);
      GetPixVESA256Linear:=col;
   end;
-
+(*
 function SetVESADisplayStart(PageNum : word;x,y : integer):Boolean;
 var
   dregs : registers;
@@ -1251,7 +1257,7 @@ begin
   else
     SetVESADisplayStart:=true;
 end;
-
+*)
 {$endif FPC}
 
 
@@ -1512,22 +1518,20 @@ end;
    Procedure SetVESARGBPalette(ColorNum, RedValue, GreenValue,
       BlueValue : Integer);
     var
-     FunctionNr : byte;   { use blankbit or normal RAMDAC programming? }
      pal: palrec;
-     Error : boolean;     { VBE call error                             }
      regs: TDPMIRegisters;
      Ptr: longint;
 {$ifndef fpc}
      PalPtr : ^PalRec;
 {$endif fpc}
      RealSeg: word;
+     FunctionNr : byte;   { use blankbit or normal RAMDAC programming? }
     begin
       if DirectColor then
         Begin
           _GraphResult := grError;
           exit;
         end;
-        Error := TRUE;
         pal.align := 0;
         pal.red := byte(RedValue);
         pal.green := byte(GreenValue);
@@ -2036,7 +2040,7 @@ end;
   end;
  end;
 
-
+(*
  function getVESAMode:word;assembler;
    asm  {return -1 if error}
     mov ax,4F03h
@@ -2055,7 +2059,7 @@ end;
     mov ax,bx
   @@X:
    end;
-
+*)
 
 
 
@@ -2485,7 +2489,10 @@ end;
 
 (*
 $Log$
-Revision 1.14  1999-12-29 12:15:41  jonas
+Revision 1.15  2000-01-02 18:51:05  jonas
+  * again small fix to patternline-, hline- and getscanlinevesa256
+
+Revision 1.14  1999/12/29 12:15:41  jonas
   * fixed small bug in hlinevesa256, getscanlinevesa25 and patternlinevesa256
   * small speed-up in the above procedures
 
