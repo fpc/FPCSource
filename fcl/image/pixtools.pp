@@ -210,8 +210,8 @@ var PutPixelProc : TPutPixelProc;
 begin
   with canv.pen do
     case mode of
-      pmAnd : PutPixelProc := @PutPixelAnd;
-      pmOr : PutPixelProc := @PutPixelOr;
+      pmMerge : PutPixelProc := @PutPixelAnd;
+      pmMask : PutPixelProc := @PutPixelOr;
       pmXor : PutPixelProc := @PutPixelXor;
       else PutPixelProc := @PutPixelCopy;
     end;
@@ -336,8 +336,8 @@ begin
   PatternToPoints (pattern, @LinePoints);
   with canv.pen do
     case mode of
-      pmAnd : PutPixelProc := @PutPixelAnd;
-      pmOr : PutPixelProc := @PutPixelOr;
+      pmMask : PutPixelProc := @PutPixelAnd;
+      pmMerge : PutPixelProc := @PutPixelOr;
       pmXor : PutPixelProc := @PutPixelXor;
       else PutPixelProc := @PutPixelCopy;
     end;
