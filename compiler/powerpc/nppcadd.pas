@@ -166,17 +166,17 @@ interface
            (cmpop or
             (location.register.enum <> right.location.register.enum)) then
           begin
-            rg.ungetregister(exprasmlist,right.location.register);
+            rg.ungetregisterint(exprasmlist,right.location.register);
             if is_64bitint(right.resulttype.def) then
-              rg.ungetregister(exprasmlist,right.location.registerhigh);
+              rg.ungetregisterint(exprasmlist,right.location.registerhigh);
           end;
         if (left.location.loc in [LOC_REGISTER,LOC_FPUREGISTER]) and
            (cmpop or
             (location.register.enum <> left.location.register.enum)) then
           begin
-            rg.ungetregister(exprasmlist,left.location.register);
+            rg.ungetregisterint(exprasmlist,left.location.register);
             if is_64bitint(left.resulttype.def) then
-              rg.ungetregister(exprasmlist,left.location.registerhigh);
+              rg.ungetregisterint(exprasmlist,left.location.registerhigh);
           end;
       end;
 
@@ -1468,7 +1468,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2003-02-19 22:00:16  daniel
+  Revision 1.23  2003-03-10 18:11:41  olle
+    * changed ungetregister to ungetregisterint in tppcaddnode.clear_left_right
+
+  Revision 1.22  2003/02/19 22:00:16  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 
