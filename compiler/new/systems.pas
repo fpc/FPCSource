@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (C) 1995,97 by Florian Klaempfl
+    Copyright (C) 1995-98 by Florian Klaempfl
 
     This unit contains information about the target systems supported
     (these are not processor specific)
@@ -1227,7 +1227,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  1998-12-15 16:32:59  florian
+  Revision 1.2  1998-12-15 22:18:58  florian
+    * some code added
+
+  Revision 1.1  1998/12/15 16:32:59  florian
     + first version, derived from old routines
 
 }

@@ -1430,7 +1430,6 @@ unit i386;
               opxt:=opxt+top_ref;
               op1:=pointer(newreference(_op1.reference));
            end;
-
       end;
 
     constructor tai386.op_const_reg_reg(op : tasmop;_size : topsize;_op1 : longint;_op2 : tregister;_op3 : tregister);
@@ -1470,7 +1469,6 @@ unit i386;
          size:=_size;
          op1:=pointer(_op1);
          op2:=pointer(_op2);
-
       end;
 
     constructor tai386.op_const_const(op : tasmop;_size : topsize;_op1,_op2 : longint);
@@ -1483,7 +1481,6 @@ unit i386;
          size:=_size;
          op1:=pointer(_op1);
          op2:=pointer(_op2);
-
       end;
 
     constructor tai386.op_const_ref(op : tasmop;_size : topsize;_op1 : longint;_op2 : preference);
@@ -1757,7 +1754,9 @@ unit i386;
 end.
 {
   $Log$
-  Revision 1.1  1998-12-15 16:32:58  florian
-    + first version, derived from old routines
+  Revision 1.2  1998-12-15 22:18:56  florian
+    * some code added
 
+  Revision 1.1  1998/12/15 16:32:58  florian
+    + first version, derived from old routines
 }

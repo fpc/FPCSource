@@ -1,46 +1,71 @@
+{
+    $Id$
+    Copyright (c) 1993-98 by Florian Klaempfl
+
+    This unit implements the basic code generator object
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+ ****************************************************************************
+}
 unit cgobj;
 
   interface
 
-    pcg = ^tcg;
+    uses
+       aasm;
 
-    tcg = object
-       procedure a_call_name_ext(list : paasmoutput;const s : string;
-         offset : longint;m : texternaltyp);
+    type
+       pcg = ^tcg;
+       tcg = object
+          procedure a_call_name_ext(list : paasmoutput;const s : string;
+            offset : longint;m : texternaltyp);
 
-       procedure g_entrycode(list : paasmoutput;const proc_names:Tstringcontainer;make_global:boolean;
-                           stackframe:longint;
-                           var parasize:longint;var nostackframe:boolean;
-                           inlined : boolean);
+          procedure g_entrycode(list : paasmoutput;const proc_names:Tstringcontainer;make_global:boolean;
+                              stackframe:longint;
+                              var parasize:longint;var nostackframe:boolean;
+                              inlined : boolean);
 
-       { these methods must be overriden: }
-       procedure a_push_reg(list : paasmoutput;r : tregister);virtual;
-       procedure a_call_name(list : paasmoutput;const s : string;
-         offset : longint);virtual;
+          { these methods must be overriden: }
+          procedure a_push_reg(list : paasmoutput;r : tregister);virtual;
+          procedure a_call_name(list : paasmoutput;const s : string;
+            offset : longint);virtual;
 
-       procedure a_load_const8_ref(list : paasmoutput;b : byte;ref : treference);virtual;
-       procedure a_load_const16_ref(list : paasmoutput;w : word;ref : treference);virtual;
-       procedure a_load_const32_ref(list : paasmoutput;l : longint;ref : treference);virtual;
-       procedure a_load_const64_ref(list : paasmoutput;{ q : qword; }ref : treference);virtual;
+          procedure a_load_const8_ref(list : paasmoutput;b : byte;ref : treference);virtual;
+          procedure a_load_const16_ref(list : paasmoutput;w : word;ref : treference);virtual;
+          procedure a_load_const32_ref(list : paasmoutput;l : longint;ref : treference);virtual;
+          procedure a_load_const64_ref(list : paasmoutput;{ q : qword; }ref : treference);virtual;
 
-       procedure g_stackframe_entry(list : paasmoutput;localsize : longint);
+          procedure g_stackframe_entry(list : paasmoutput;localsize : longint);
 
-       { these methods can be overriden for extra functionality }
+          { these methods can be overriden for extra functionality }
 
-       { the following do nothing: }
-       procedure g_interrupt_stackframe_entry(list : paasmoutput);virtual;
-       procedure g_interrupt_stackframe_exit(list : paasmoutput);virtual;
+          { the following methods do nothing: }
+          procedure g_interrupt_stackframe_entry(list : paasmoutput);virtual;
+          procedure g_interrupt_stackframe_exit(list : paasmoutput);virtual;
 
-       procedure g_profilecode(list : paasmoutput);virtual;
-       procedure g_stackcheck(list : paasmoutput);virtual;
+          procedure g_profilecode(list : paasmoutput);virtual;
+          procedure g_stackcheck(list : paasmoutput);virtual;
 
-       { passing parameters, per default the parameter is pushed }
-       { nr gives the number of the parameter (enumerated from   }
-       { left to right), this allows to move the parameter to    }
-       { register, if the cpu supports register calling          }
-       { conventions                                             }
-       procedure a_param_reg(list : paasmoutput;r : tregister;nr : longint);virtual;
-    end;
+          { passing parameters, per default the parameter is pushed }
+          { nr gives the number of the parameter (enumerated from   }
+          { left to right), this allows to move the parameter to    }
+          { register, if the cpu supports register calling          }
+          { conventions                                             }
+          procedure a_param_reg(list : paasmoutput;r : tregister;nr : longint);virtual;
+       end;
 
   implementation
 
@@ -279,43 +304,13 @@ unit cgobj;
         curlist:=nil;
     end;
 
-              if stackframe<>0 then
-                  begin
-                      if (cs_littlesize in aktglobalswitches) and (stackframe<=65535) then
-                          begin
-                             list^.insert(new(pai386,op_const_const(A_ENTER,S_NO,stackframe,0)))
-                          end
-                      else
-                          begin
-                             g_stackframe_entry(list,stackframe);
-                              list^.insert(new(pai386,op_reg(A_PUSH,S_L,R_EBP)));
-                              list^.insert(new(pai386,op_reg_reg(A_MOV,S_L,R_ESP,R_EBP)));
-                              list^.insert(new(pai386,op_const_reg(A_SUB,S_L,stackframe,R_ESP)));
-                              if (cs_check_stack in aktlocalswitches) and
-                                 (target_info.flags in tf_supports_stack_check) then
-                                 emit_stackcheck(@initcode);
-
-                          end;
-                      if (cs_check_stack in aktlocalswitches) and
-                        (target_info.flags in tf_supports_stack_check) then
-                        g_stackcheck(@initcode);
-                  end { endif stackframe <> 0 }
-              else
-                 begin
-                   list^.insert(new(pai386,op_reg(A_PUSH,S_L,R_EBP)));
-                   list^.insert(new(pai386,op_reg_reg(A_MOV,S_L,R_ESP,R_EBP)));
-                 end;
-            end;
-                         begin
-                            unitinits.concat(new(pai386,op_csymbol(A_CALL,S_NO,newcsymbol())));
-                            concat_external('INIT$$'+hp^.u^.modulename^,EXT_NEAR);
-                         end;
-
-
 end.
 {
   $Log$
-  Revision 1.1  1998-12-15 16:32:58  florian
+  Revision 1.2  1998-12-15 22:18:55  florian
+    * some code added
+
+  Revision 1.1  1998/12/15 16:32:58  florian
     + first version, derived from old routines
 
 }
