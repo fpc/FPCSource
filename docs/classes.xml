@@ -4805,9 +4805,12 @@ file, and thus the valid range depends on the value of <var>Origin</var>.
 </tr>
 </table>
 <p>
-<var>Seek</var> returns the new position in the file.
+<var>Seek</var> returns the new position in the file, or -1 on error.
 </p>
 </descr>
+<errors>
+On error, -1 is returned, and the position is not changed.
+</error>
 <seealso>
 <link id="TStream.Position"/>
 <link id="TStream.Size"/>
@@ -4817,8 +4820,13 @@ file, and thus the valid range depends on the value of <var>Origin</var>.
 <element name="TFileStream.FileName">  <!-- Property -->
 <short>The filename of the stream.</short>
 <descr>
+<var>FileName</var> is the name of the file that the stream reads from or writes
+to. It is the name as passed in the constructor of the stream; it cannot be
+changed. To write to another file, the stream must be freed and created
+again with the new filename.
 </descr>
 <seealso>
+<link id="TFileStream.Create"/>
 </seealso>
 </element>
 
@@ -4831,61 +4839,86 @@ file, and thus the valid range depends on the value of <var>Origin</var>.
 <element name="TCustomMemoryStream">  <!-- Class -->
 <short>Abstract stream that stores its data in memory.</short>
 <descr>
+<p>
+<var>TCustomMemoryStream</var> is the parent class for streams that stored
+their data in memory. It introduces all needed functions to handle reading
+from and navigating through the memory, and introduces a 
+<link id="TCustomMemoryStream.Memory">Memory</link> property which points to
+the memory area where the stream data is kept. 
+</p>
+<p>
+The only thing which <var>TCustomMemoryStream</var> does not do is obtain 
+memory to store data when writing data  or the writing of data. This
+functionality is implemented in descendent streams such as <link
+id='TMemoryData'/>. The reason for this approach is that this way it is
+possible to create e.g. read-only descendents of
+<var>TCustomMemoryStream</var> that point to a fixed part in memory which
+can be read from, but not written to. 
 </descr>
 <seealso>
-</seealso>
-</element>
-
-<element name="TCustomMemoryStream.FMemory">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TCustomMemoryStream.FSize">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TCustomMemoryStream.FPosition">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
+<link id="TMemoryStream"/>
 </seealso>
 </element>
 
 <element name="TCustomMemoryStream.SetPointer">  <!-- Procedure -->
-<short></short>
+<short>Sets the internal memory pointer and size of the memory block.</short>
 <descr>
+<p>
+<var>SetPointer</var> updates the internal memory pointer and the size of
+the memory area pointed to.  
+</p>
+<p>
+Descendent memory streams should call this method whenever they set or reset
+the memory the stream should read from or write to.
+</p>
 </descr>
 <seealso>
 </seealso>
 </element>
 
 <element name="TCustomMemoryStream.Read">  <!-- Function -->
-<short></short>
+<short>Reads <var>Count</var> bytes from the stream into <var>buffer</var>.</short>
 <descr>
+<p>
+<var>Read</var> reads <var>Count</var> bytes from the stream into the memory
+pointed to by <var>buffer</var>. It returns the number of bytes actually
+read.
+</p>
+<p>
+This method overrides the abstract <link id="TStream.Read"/> method of <link
+id="TStream"/>. It will read as much bytes as are still available in the
+memory area pointer to by <link id="TCustomMemoryStream.Memory">Memory</link>.
+After the bytes are read, the internal stream position is updated.
+</p>
 </descr>
 <seealso>
+<link id="TCustomMemoryStream.Memory"/>
+<link id="TStream.Read"/>
 </seealso>
 </element>
 
 <element name="TCustomMemoryStream.Seek">  <!-- Function -->
-<short></short>
+<short>Sets a new position in the stream.</short>
 <descr>
+<var>Seek</var> overrides the abstract <link id="TStream.Seek"/> method.
+It simply updates the internal stream position, and returns the new
+position.
 </descr>
+<errors>
+No checking is done whether the new position is still a valid position, i.e.
+whether the position is still within the range <var>0..Size</var>.
+Attempting a seek outside the valid memory range of the stream may result in
+an exception at the next read or write operation.
+</errors>
 <seealso>
+<link id="TStream.Position"/>
+<link id="TStream.Size"/>
+<link id="TCustomMemoryStream.Memory"/>
 </seealso>
 </element>
 
 <element name="TCustomMemoryStream.SaveToStream">  <!-- Procedure -->
-<short></short>
+<short>Writes the contents of the memory stream to another stream.</short>
 <descr>
 </descr>
 <seealso>
