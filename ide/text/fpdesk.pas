@@ -198,7 +198,10 @@ begin
       OK:=(S^.Status=stOK);
 
       If OK and assigned(OBC) and assigned(BreakpointsCollection) then
-        Dispose(OBC,Done)
+        Begin
+          Dispose(OBC,Done);
+          BreakpointsCollection^.ShowAllBreakpoints;
+        end
       else if assigned(OBC) then
         BreakpointsCollection:=OBC;
     end;
@@ -460,10 +463,10 @@ begin
       OK:=OK and ReadHistory(F);
     if ((DesktopFileFlags and dfWatches)<>0) then
       OK:=OK and ReadWatches(F);
-    if ((DesktopFileFlags and dfBreakpoints)<>0) then
-      OK:=OK and ReadBreakpoints(F);
     if ((DesktopFileFlags and dfOpenWindows)<>0) then
       OK:=OK and ReadOpenWindows(F);
+    if ((DesktopFileFlags and dfBreakpoints)<>0) then
+      OK:=OK and ReadBreakpoints(F);
     { no errors if no browser info available PM }
     if ((DesktopFileFlags and dfSymbolInformation)<>0) then
       OK:=OK and ReadSymbols(F);
@@ -498,10 +501,10 @@ begin
         OK:=OK and WriteHistory(F);
       if ((DesktopFileFlags and dfWatches)<>0) then
         OK:=OK and WriteWatches(F);
-      if ((DesktopFileFlags and dfBreakpoints)<>0) then
-        OK:=OK and WriteBreakpoints(F);
       if ((DesktopFileFlags and dfOpenWindows)<>0) then
         OK:=OK and WriteOpenWindows(F);
+      if ((DesktopFileFlags and dfBreakpoints)<>0) then
+        OK:=OK and WriteBreakpoints(F);
       { no errors if no browser info available PM }
       if ((DesktopFileFlags and dfSymbolInformation)<>0) then
         OK:=OK and (WriteSymbols(F) or not Assigned(Modules));
@@ -555,7 +558,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.19  2000-01-25 00:26:36  pierre
+  Revision 1.20  2000-02-04 00:12:57  pierre
+   * Breakpoint are marked in source at desktop loading
+
+  Revision 1.19  2000/01/25 00:26:36  pierre
    + Browser info saving
 
   Revision 1.18  2000/01/03 11:38:33  michael
