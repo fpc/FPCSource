@@ -734,7 +734,8 @@ implementation
            for example
          }
          if (p^.location.loc=LOC_MEM) and
-           (p^.left^.resulttype^.deftype=stringdef) then
+            assigned(p^.left) and
+            (p^.left^.resulttype^.deftype=stringdef) then
            begin
               case pstringdef(p^.left^.resulttype)^.string_typ of
                  st_ansistring:
@@ -849,7 +850,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.27  1999-02-04 11:44:46  florian
+  Revision 1.28  1999-02-04 17:16:51  peter
+    * fixed crash with temp ansistring indexing
+
+  Revision 1.27  1999/02/04 11:44:46  florian
     * fixed indexed access of ansistrings to temp. ansistring, i.e.
       c:=(s1+s2)[i], the temp is now correctly remove and the generated
       code is also fixed
