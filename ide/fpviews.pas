@@ -162,6 +162,9 @@ type
       procedure   InsertOptions; virtual;
       procedure   PushInfo(Const st : string);virtual;
       procedure   PopInfo;virtual;
+      procedure   DeleteLine(I: sw_integer); virtual;
+      function    InsertLine(LineNo: sw_integer; const S: string): PCustomLine; virtual;
+      procedure   AddLine(const S: string); virtual;
     end;
 
     PSourceWindow = ^TSourceWindow;
@@ -1453,6 +1456,26 @@ begin
   PopStatus;
 end;
 
+procedure TSourceEditor.DeleteLine(I: sw_integer);
+begin
+  inherited DeleteLine(I);
+  BreakpointsCollection^.AdaptBreakpoints(@Self,I,-1);
+end;
+
+function TSourceEditor.InsertLine(LineNo: sw_integer; const S: string): PCustomLine;
+begin
+  InsertLine := inherited InsertLine(LineNo,S);
+  BreakpointsCollection^.AdaptBreakpoints(@Self,LineNo,1);
+end;
+
+procedure TSourceEditor.AddLine(const S: string);
+begin
+  inherited AddLine(S);
+  BreakpointsCollection^.AdaptBreakpoints(@Self,GetLineCount,1);
+end;
+
+
+
 function TSourceEditor.GetLocalMenu: PMenu;
 var M: PMenu;
 begin
@@ -1992,6 +2015,7 @@ begin
   PutSubViewPtr(S,Editor);
   PopStatus;
 end;
+
 
 procedure TSourceWindow.Close;
 begin
@@ -4371,7 +4395,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.37  2002-11-30 01:56:52  pierre
+  Revision 1.38  2002-12-12 00:09:08  pierre
+   * move line breakpoints if lines added or deleted in editor window
+
+  Revision 1.37  2002/11/30 01:56:52  pierre
    + powerpc cpu support started
 
   Revision 1.36  2002/09/19 22:15:45  pierre
