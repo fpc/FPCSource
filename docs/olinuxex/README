@@ -1,0 +1,76 @@
+These are the example programs that appear in the FPC documentation.
+ 
+Units guide, Linux unit :
+
+ex1.pp contains an example of the GetEpochTime function.
+ex2.pp contains an example of the GetTimeOfDay function.
+ex3.pp contains an example of the EpochToLocal function.
+ex4.pp contains an example of the LocalToEpoch function.
+ex5.pp contains an example of the GetTime function.
+ex6.pp contains an example of the GetDate function.
+ex7.pp contains an example of the Execve function.
+ex8.pp contains an example of the Execv function.
+ex9.pp contains an example of the Execvp function.
+ex10.pp contains an example of the Execl function.
+ex11.pp contains an example of the Execle function.
+ex11.pp contains an example of the Execlp function.
+ex13.pp contains an example of the Shell function.
+ex14.pp contains an example of the Fork function.
+ex15.pp contains an example of the Nice, Set- and GetPriority functions.
+ex16.pp contains an example of the GetPid and GetPPid functions.
+ex17.pp contains an example of the GetUid and GetEUid functions.
+ex18.pp contains an example of the GetGid and GetEgid functions.
+ex19.pp contains an example of the fdOpen, fdWrite and fdCLose functions.
+ex20.pp contains an example of the fdRead and fdTuncate functions.
+ex21.pp contains an example of the Link and UnLink functions.
+ex22.pp contains an example of the SymLink and UnLink functions.
+ex23.pp contains an example of the Chmod function.
+ex24.pp contains an example of the Chown function.
+ex25.pp contains an example of the UTime function.
+ex26.pp contains an example of the Access function.
+ex27.pp contains an example of the Umask function.
+ex28.pp contains an example of the FStat function.
+ex29.pp contains an example of the LStat function.
+ex30.pp contains an example of the FSStat function.
+ex31.pp contains an example of the Dup function.
+ex32.pp contains an example of the Dup2 function.
+ex33.pp contains an example of the Select function.
+ex34.pp contains an example of the SelectText function.
+ex35.pp contains an example of the OpenDir, ReadDir Telldir and SeekDir functions.
+ex36.pp contains an example of the AssignPipe function.
+ex37.pp contains an example of the POpen and PClose functions.
+ex38.pp contains an example of the AssignStream function.
+ex39.pp contains an example of the GetDomainName function.
+ex40.pp contains an example of the GetHostName function.
+ex41.pp contains an example of the GetEnv function.
+ex42.pp contains an example of the SysInfo function.
+ex43.pp contains an example of the Uname function.
+ex44.pp contains an example of the Octal function.
+ex45.pp contains an example of the FExpand function.
+ex46.pp contains an example of the FSearch function.
+ex47.pp contains an example of the DirName function.
+ex48.pp contains an example of the BaseName function.
+ex49.pp contains an example of the Glob function.
+ex51.pp contains an example of the StringToPPChar function.
+ex52.pp contains an example of the GetFS function.
+ex53.pp contains an example of the S_ISLNK and related functions.
+ex54.pp contains an example of the IOCtl function.
+ex55.pp contains an example of the TCGetAttr,TCSetAttr,CFMakeRaw functions.
+ex56.pp contains an example of the Shell function.
+ex57.pp contains an example of the SigAction function.
+ex58.pp contains an example of the Signal function.
+ex59.pp contains an example of the Alarm function.
+ex60.pp contains an example of the GetDateTime function.
+ex61.pp contains an example of the CreateShellArgV function.
+ex62.pp contains an example of the ReadLink function.
+ex63.pp contains an example of the FRename function.
+ex64.pp contains an example of the SysInfo function.
+ex64.pp contains an example of the SigRaise function.
+ex66.pp contains an example of the MMap function.
+ex67.pp contains an example of the FSplit function.
+ex68.pp contains an example of the Octal function.
+ex69.pp contains an example of the FNMatch function.
+ex70.pp contains an example of the StringToPPchar function.
+ex71.pp contains an example of the clone function.
+ex72.pp contains an example of the NanoSleep function.
+serial.pp contains an example of serial port programming in FPC.
