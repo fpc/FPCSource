@@ -978,15 +978,61 @@ end;
 
 
 {$ifdef INT64}
-procedure read_qword(len : longint;var t : textrec;q : qword);[public,alias:'FPC_READ_TEXT_QWORD'];
-begin
-  { !!!!!!!!!!!!! }
-end;
+function Read_QWord(var f : textrec) : qword;[public,alias:'FPC_READ_TEXT_QWORD'];
+var
+  hs   : String;
+  code : longint;
+  base : longint;
+Begin
+  Read_QWord:=0;
+  { Leave if error or not open file, else check for empty buf }
+  If (InOutRes<>0) then
+   exit;
+  if (f.mode<>fmInput) Then
+   begin
+     if TextRec(f).mode=fmClosed then
+      InOutRes:=103
+     else
+      InOutRes:=104;
+     exit;
+   end;
+  If f.BufPos>=f.BufEnd Then
+   FileFunc(f.InOutFunc)(f);
+  hs:='';
+  if IgnoreSpaces(f) and ReadSign(f,hs) and ReadBase(f,hs,Base) then
+   ReadNumeric(f,hs,Base);
+  val(hs,Read_QWord,code);
+  If code<>0 Then
+   InOutRes:=106;
+End;
 
-procedure read_int64(len : longint;var t : textrec;q : int64);[public,alias:'FPC_READ_TEXT_INT64'];
-begin
-  { !!!!!!!!!!!!! }
-end;
+function Read_Int64(var f : textrec) : int64;[public,alias:'FPC_READ_TEXT_INT64'];
+var
+  hs   : String;
+  code : Longint;
+  base : longint;
+Begin
+  Read_Int64:=0;
+{ Leave if error or not open file, else check for empty buf }
+  If (InOutRes<>0) then
+   exit;
+  if (f.mode<>fmInput) Then
+   begin
+     if TextRec(f).mode=fmClosed then
+      InOutRes:=103
+     else
+      InOutRes:=104;
+     exit;
+   end;
+  If f.BufPos>=f.BufEnd Then
+   FileFunc(f.InOutFunc)(f);
+  hs:='';
+  if IgnoreSpaces(f) and ReadSign(f,hs) and ReadBase(f,hs,Base) then
+   ReadNumeric(f,hs,Base);
+  Val(hs,Read_Int64,code);
+  If code<>0 Then
+   InOutRes:=106;
+End;
 {$endif INT64}
 
 
@@ -1016,7 +1062,10 @@ end;
 
 {
   $Log$
-  Revision 1.65  2000-01-20 20:19:37  florian
+  Revision 1.66  2000-01-23 12:22:37  florian
+    * reading of 64 bit type implemented
+
+  Revision 1.65  2000/01/20 20:19:37  florian
    * writing of int64/qword fixed
 
   Revision 1.64  2000/01/08 17:08:36  jonas

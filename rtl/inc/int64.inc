@@ -256,7 +256,7 @@
          if value<0 then
            begin
               q:=qword(-value);
-              int_str(q,hs);
+              qword_str(q,hs);
               s:='-'+hs;
            end
          else
@@ -299,10 +299,103 @@
        s:=ss;
     end;
 
+  Function ValInt64(DestSize: longint; Const S: ShortString; var Code: ValSInt): Int64; [public, alias:'FPC_VAL_INT64_SHORTSTR'];
+
+    var
+       u, temp, prev : Int64;
+       base : byte;
+       negative : boolean;
+
+  begin
+    ValInt64 := 0;
+    Temp:=0;
+    Code:=InitVal(s,negative,base);
+    if Code>length(s) then
+     exit;
+    if negative and (s='-9223372036854775808') then
+     begin
+       Code:=0;
+       ValInt64:=Int64($80000000) shl 32;
+       exit;
+     end;
+
+    while Code<=Length(s) do
+     begin
+       case s[Code] of
+         '0'..'9' : u:=Ord(S[Code])-Ord('0');
+         'A'..'F' : u:=Ord(S[Code])-(Ord('A')-10);
+         'a'..'f' : u:=Ord(S[Code])-(Ord('a')-10);
+       else
+        u:=16;
+       end;
+       Prev:=Temp;
+       Temp:=Temp*Int64(base);
+       if (Temp<prev) Then
+         Begin
+           ValInt64:=0;
+           Exit
+         End;
+       prev:=temp;
+       Temp:=Temp+u;
+       if prev>temp then
+         begin
+           ValInt64:=0;
+           exit;
+         end;
+       inc(code);
+     end;
+    code:=0;
+    ValInt64:=Temp;
+    If Negative Then
+      ValInt64:=-ValInt64;
+  end;
+
+
+  Function ValQWord(Const S: ShortString; var Code: ValSInt): QWord; [public, alias:'FPC_VAL_QWORD_SHORTSTR'];
+    var
+       u, prev: QWord;
+       base : byte;
+       negative : boolean;
+  begin
+    ValQWord:=0;
+    Code:=InitVal(s,negative,base);
+    If Negative or (Code>length(s)) Then
+      Exit;
+    while Code<=Length(s) do
+     begin
+       case s[Code] of
+         '0'..'9' : u:=Ord(S[Code])-Ord('0');
+         'A'..'F' : u:=Ord(S[Code])-(Ord('A')-10);
+         'a'..'f' : u:=Ord(S[Code])-(Ord('a')-10);
+       else
+        u:=16;
+       end;
+       prev := ValQWord;
+       ValQWord:=ValQWord*QWord(base);
+       If (prev>ValQWord) or (u>base) Then
+         Begin
+           ValQWord := 0;
+           Exit
+         End;
+       prev:=ValQWord;
+       ValQWord:=ValQWord+u;
+       if prev>ValQWord then
+         begin
+            ValQWord:=0;
+            exit;
+         end;
+       inc(code);
+     end;
+    code := 0;
+  end;
+
 
 {
   $Log$
-  Revision 1.14  2000-01-07 16:41:34  daniel
+  Revision 1.15  2000-01-23 12:22:37  florian
+    * reading of 64 bit type implemented
+
+  Revision 1.14  2000/01/07 16:41:34  daniel
     * copyright 2000
 
   Revision 1.13  1999/07/05 20:04:23  peter
