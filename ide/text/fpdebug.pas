@@ -302,6 +302,7 @@ implementation
 uses
   Dos,Mouse,Video,
   App,Commands,Strings,
+  Systems,
   FPVars,FPUtils,FPConst,
   FPIntf,FPCompile,FPIde,FPHelp,
   Validate,WEditor,WUtils;
@@ -2470,6 +2471,12 @@ begin
      ErrorBox('Oooops, nothing to debug.',nil);
      Exit;
    end;
+  if target_os.shortname<>source_os.shortname then
+    begin
+     ErrorBox(#3'Sorry, I can only debug'#13#3'programs compiled for '#13#3
+       +source_os.shortname,nil);
+     Exit;
+    end;
 { init debugcontroller }
   if assigned(Debugger) then
    dispose(Debugger,Done);
@@ -2592,7 +2599,10 @@ end.
 
 {
   $Log$
-  Revision 1.39  2000-01-10 00:25:06  pierre
+  Revision 1.40  2000-01-10 13:20:57  pierre
+   + debug only possible on source target
+
+  Revision 1.39  2000/01/10 00:25:06  pierre
    * RegisterWindow problem fixed
 
   Revision 1.38  2000/01/09 21:05:51  florian
