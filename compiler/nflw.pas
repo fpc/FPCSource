@@ -537,8 +537,7 @@ implementation
 
          resulttypepass(right);
          set_varstate(right,true);
-         if right.nodetype<>ordconstn then
-           inserttypeconv(right,t2.resulttype);
+         inserttypeconv(right,t2.resulttype);
       end;
 
 
@@ -1178,7 +1177,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2001-11-02 22:58:02  peter
+  Revision 1.27  2001-11-19 14:21:30  jonas
+    * upper constant limits for "for" loops are now also converted to the
+      type of the counter var ('merged')
+
+  Revision 1.26  2001/11/02 22:58:02  peter
     * procsym definition rewrite
 
   Revision 1.25  2001/10/16 15:10:35  jonas
