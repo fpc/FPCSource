@@ -1254,7 +1254,7 @@ end;
 {---------------------------------------------------------------------------}
 PROCEDURE InitEvents;
 BEGIN
-   If (ButtonCount <> 0) Then
+  If (ButtonCount <> 0) Then
     begin                   { Mouse is available }
      Mouse.InitMouse;                                 { Hook the mouse }
      { this is required by the use of HideCount variable }
@@ -1269,9 +1269,9 @@ BEGIN
      LastWhere.y:=MouseWhere.y;
      LastWhereY:=MouseWhere.y;
      MouseEvents := True;                             { Set initialized flag }
-   end;
+    end;
 {$ifdef HasSysMsgUnit}
-   InitSystemMsg;
+  InitSystemMsg;
 {$endif HasSysMsgUnit}
 END;
 
@@ -1281,8 +1281,10 @@ END;
 PROCEDURE DoneEvents;
 BEGIN
 {$ifdef HasSysMsgUnit}
-   DoneSystemMsg;
+  DoneSystemMsg;
 {$endif HasSysMsgUnit}
+  Mouse.DoneMouse;
+  MouseEvents:=false;
 END;
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
@@ -1671,7 +1673,10 @@ BEGIN
 END.
 {
  $Log$
- Revision 1.29  2002-06-10 18:16:55  pierre
+ Revision 1.30  2002-06-10 19:40:14  pierre
+  * add DoneMouse in DoneEvents
+
+ Revision 1.29  2002/06/10 18:16:55  pierre
   * set Event.What to evNothing if no event in GetSystemEvent
 
  Revision 1.28  2002/06/07 14:08:28  pierre
