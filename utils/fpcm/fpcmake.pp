@@ -200,6 +200,7 @@ program fpcmake;
 
     procedure ProcessFile(const fn:string);
       begin
+        Show(V_Verbose,TitleDate);
         case ParaMode of
           m_None :
             Error('No operation specified, see -h for help');
@@ -302,7 +303,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2005-01-11 21:13:12  armin
+  Revision 1.13  2005-01-31 19:26:47  peter
+    * show version+date if -v is used
+
+  Revision 1.12  2005/01/11 21:13:12  armin
   * added -V to print version
 
   Revision 1.11  2005/01/10 20:33:09  peter
