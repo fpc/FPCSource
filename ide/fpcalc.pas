@@ -343,7 +343,7 @@ begin
           begin
             GetDisplay(R);
             X:=trunc(abs(R));
-            Number:=HexStr(X,8);
+            Number:=HexStr(longint(X),8);
             HexShown:=true;
           end;
         '_', #241:
@@ -571,7 +571,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2002-09-07 15:40:42  peter
+  Revision 1.7  2002-09-13 08:13:07  pierre
+   * avoid RTE 201 in hexstr calls
+
+  Revision 1.6  2002/09/07 15:40:42  peter
     * old logs removed and tabs fixed
 
   Revision 1.5  2002/01/22 14:56:37  pierre

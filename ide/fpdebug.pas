@@ -1002,7 +1002,7 @@ var
   st : string;
   p : longint;
 begin
-  Command('x /wd 0x'+hexstr(addr,8));
+  Command('x /wd 0x'+hexstr(longint(addr),8));
   st:=strpas(GetOutput);
   p:=pos(':',st);
   while (p<length(st)) and (st[p+1] in [' ',#9]) do
@@ -1021,7 +1021,7 @@ var
   st : string;
   p : longint;
 begin
-  Command('x /wx 0x'+hexstr(addr,8));
+  Command('x /wx 0x'+hexstr(longint(addr),8));
   st:=strpas(GetOutput);
   p:=pos(':',st);
   while (p<length(st)) and (st[p+1] in [' ',#9]) do
@@ -3263,23 +3263,23 @@ end;
          begin
 {$ifdef i386}
             SetColor(rs.eax,OldReg.eax);
-            WriteStr(1,0,'EAX '+HexStr(rs.eax,8),color);
+            WriteStr(1,0,'EAX '+HexStr(longint(rs.eax),8),color);
             SetColor(rs.ebx,OldReg.ebx);
-            WriteStr(1,1,'EBX '+HexStr(rs.ebx,8),color);
+            WriteStr(1,1,'EBX '+HexStr(longint(rs.ebx),8),color);
             SetColor(rs.ecx,OldReg.ecx);
-            WriteStr(1,2,'ECX '+HexStr(rs.ecx,8),color);
+            WriteStr(1,2,'ECX '+HexStr(longint(rs.ecx),8),color);
             SetColor(rs.edx,OldReg.edx);
-            WriteStr(1,3,'EDX '+HexStr(rs.edx,8),color);
+            WriteStr(1,3,'EDX '+HexStr(longint(rs.edx),8),color);
             SetColor(rs.eip,OldReg.eip);
-            WriteStr(1,4,'EIP '+HexStr(rs.eip,8),color);
+            WriteStr(1,4,'EIP '+HexStr(longint(rs.eip),8),color);
             SetColor(rs.esi,OldReg.esi);
-            WriteStr(1,5,'ESI '+HexStr(rs.esi,8),color);
+            WriteStr(1,5,'ESI '+HexStr(longint(rs.esi),8),color);
             SetColor(rs.edi,OldReg.edi);
-            WriteStr(1,6,'EDI '+HexStr(rs.edi,8),color);
+            WriteStr(1,6,'EDI '+HexStr(longint(rs.edi),8),color);
             SetColor(rs.esp,OldReg.esp);
-            WriteStr(1,7,'ESP '+HexStr(rs.esp,8),color);
+            WriteStr(1,7,'ESP '+HexStr(longint(rs.esp),8),color);
             SetColor(rs.ebp,OldReg.ebp);
-            WriteStr(1,8,'EBP '+HexStr(rs.ebp,8),color);
+            WriteStr(1,8,'EBP '+HexStr(longint(rs.ebp),8),color);
             SetColor(rs.cs,OldReg.cs);
             WriteStr(14,0,'CS '+HexStr(rs.cs,4),color);
             SetColor(rs.ds,OldReg.ds);
@@ -3311,39 +3311,39 @@ end;
 {$endif i386}
 {$ifdef m68k}
             SetColor(rs.d0,OldReg.d0);
-            WriteStr(1,0,'d0 '+HexStr(rs.d0,8),color);
+            WriteStr(1,0,'d0 '+HexStr(longint(rs.d0),8),color);
             SetColor(rs.d1,OldReg.d1);
-            WriteStr(1,1,'d1 '+HexStr(rs.d1,8),color);
+            WriteStr(1,1,'d1 '+HexStr(longint(rs.d1),8),color);
             SetColor(rs.d2,OldReg.d2);
-            WriteStr(1,2,'d2 '+HexStr(rs.d2,8),color);
+            WriteStr(1,2,'d2 '+HexStr(longint(rs.d2),8),color);
             SetColor(rs.d3,OldReg.d3);
-            WriteStr(1,3,'d3 '+HexStr(rs.d3,8),color);
+            WriteStr(1,3,'d3 '+HexStr(longint(rs.d3),8),color);
             SetColor(rs.d4,OldReg.d4);
-            WriteStr(1,4,'d4 '+HexStr(rs.d4,8),color);
+            WriteStr(1,4,'d4 '+HexStr(longint(rs.d4),8),color);
             SetColor(rs.d5,OldReg.d5);
-            WriteStr(1,5,'d5 '+HexStr(rs.d5,8),color);
+            WriteStr(1,5,'d5 '+HexStr(longint(rs.d5),8),color);
             SetColor(rs.d6,OldReg.d6);
-            WriteStr(1,6,'d6 '+HexStr(rs.d6,8),color);
+            WriteStr(1,6,'d6 '+HexStr(longint(rs.d6),8),color);
             SetColor(rs.d7,OldReg.d7);
-            WriteStr(1,7,'d7 '+HexStr(rs.d7,8),color);
+            WriteStr(1,7,'d7 '+HexStr(longint(rs.d7),8),color);
             SetColor(rs.a0,OldReg.a0);
-            WriteStr(14,0,'a0 '+HexStr(rs.a0,8),color);
+            WriteStr(14,0,'a0 '+HexStr(longint(rs.a0),8),color);
             SetColor(rs.a1,OldReg.a1);
-            WriteStr(14,1,'a1 '+HexStr(rs.a1,8),color);
+            WriteStr(14,1,'a1 '+HexStr(longint(rs.a1),8),color);
             SetColor(rs.a2,OldReg.a2);
-            WriteStr(14,2,'a2 '+HexStr(rs.a2,8),color);
+            WriteStr(14,2,'a2 '+HexStr(longint(rs.a2),8),color);
             SetColor(rs.a3,OldReg.a3);
-            WriteStr(14,3,'a3 '+HexStr(rs.a3,8),color);
+            WriteStr(14,3,'a3 '+HexStr(longint(rs.a3),8),color);
             SetColor(rs.a4,OldReg.a4);
-            WriteStr(14,4,'a4 '+HexStr(rs.a4,8),color);
+            WriteStr(14,4,'a4 '+HexStr(longint(rs.a4),8),color);
             SetColor(rs.a5,OldReg.a5);
-            WriteStr(14,5,'a5 '+HexStr(rs.a5,8),color);
+            WriteStr(14,5,'a5 '+HexStr(longint(rs.a5),8),color);
             SetColor(rs.fp,OldReg.fp);
-            WriteStr(14,6,'fp '+HexStr(rs.fp,8),color);
+            WriteStr(14,6,'fp '+HexStr(longint(rs.fp),8),color);
             SetColor(rs.sp,OldReg.sp);
-            WriteStr(14,7,'sp '+HexStr(rs.sp,8),color);
+            WriteStr(14,7,'sp '+HexStr(longint(rs.sp),8),color);
             SetColor(rs.pc,OldReg.pc);
-            WriteStr(1,8,'pc '+HexStr(rs.pc,8),color);
+            WriteStr(1,8,'pc '+HexStr(longint(rs.pc),8),color);
             SetColor(rs.ps and $1,OldReg.ps and $1);
             WriteStr(20,8,'c'+chr(byte((rs.ps and $1)<>0)+48),color);
             SetColor(rs.ps and $2,OldReg.ps and $2);
@@ -4167,7 +4167,10 @@ end.
 
 {
   $Log$
-  Revision 1.27  2002-09-07 21:04:41  carl
+  Revision 1.28  2002-09-13 08:13:07  pierre
+   * avoid RTE 201 in hexstr calls
+
+  Revision 1.27  2002/09/07 21:04:41  carl
     * fix range check errors for version 1.1 compilation
 
   Revision 1.26  2002/09/07 15:40:42  peter
