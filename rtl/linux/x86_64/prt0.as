@@ -59,8 +59,8 @@ _start:
         .type   _haltproc,@function
 _haltproc:
         movl    $60,%eax                 /* exit call */
-        xorq    %rbx,%rbx
-        movw    U_SYSTEM_EXITCODE,%bx
+	xorq	%rdi,%rdi
+        movw    U_SYSTEM_EXITCODE,%di
         syscall
         jmp     _haltproc
 
@@ -90,7 +90,11 @@ __data_start:
 
 #
 # $Log$
-# Revision 1.6  2004-04-20 20:30:11  florian
+# Revision 1.7  2004-04-24 17:14:09  florian
+#   * prt0.as exit code handling fixed
+#   * int64 mod int64 for negative numbers fixed
+#
+# Revision 1.6  2004/04/20 20:30:11  florian
 #   * fixed halt code
 #
 # Revision 1.5  2004/04/12 19:05:55  florian

@@ -263,22 +263,19 @@
          if n=0 then
            HandleErrorFrame(200,get_frame);
          if n<0 then
-           begin
-              nq:=-n;
-              signed:=true;
-           end
+           nq:=-n
          else
-           begin
-              signed:=false;
-              nq:=n;
-           end;
+           nq:=n;
          if z<0 then
            begin
-              zq:=qword(-z);
-              signed:=not(signed);
+             signed:=true;
+             zq:=qword(-z)
            end
          else
-           zq:=z;
+           begin
+             signed:=false;
+             zq:=z;
+           end;
          r:=zq mod nq;
          if signed then
            fpc_mod_int64:=-int64(r)
@@ -562,7 +559,11 @@
 
 {
   $Log$
-  Revision 1.23  2004-01-23 15:14:04  florian
+  Revision 1.24  2004-04-24 17:14:09  florian
+    * prt0.as exit code handling fixed
+    * int64 mod int64 for negative numbers fixed
+
+  Revision 1.23  2004/01/23 15:14:04  florian
     + implemented software shl/shr for 64 bit ints
 
   Revision 1.22  2003/09/14 11:34:13  peter
