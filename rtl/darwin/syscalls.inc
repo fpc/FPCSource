@@ -362,8 +362,69 @@ begin
   Sys_FTruncate:=syscall(syscall_nr_ftruncate,sr);
 end;
 
-{ getdents is declared obsolete in Darwin! }
-{$I readdir.inc}
+
+Function Sys_ReadDir(p:pdir):pdirent;
+{
+Different from Linux, Readdir on BSD is based on Getdents/getdirentries,
+due to the absense of the readdir syscall.
+}
+
+  function readbuffer:longint;
+    var
+      retval :longint;
+      dummy  :longint;
+    begin
+      retval:=do_syscall(syscall_nr_getdirentries,longint(p^.fd),
+        longint(@p^.buf^),DIRBLKSIZ,longint(@dummy));
+
+      p^.rewind:=longint(p^.buf);
+      if retval=0 then
+       begin
+        p^.rewind:=0;
+        p^.loc:=0;
+       end
+      else
+       P^.loc:=retval;
+      readbuffer:=retval;
+    end;
+
+var
+  l       : pdirent;
+  novalid : boolean;
+
+begin
+ if (p^.buf=nil) or (p^.loc=0) THEN
+  exit(nil);
+ if p^.loc=-1 then         {First readdir on this pdir. Initial fill of buffer}
+  begin
+   if readbuffer()=0 Then    {nothing to be read}
+    exit(nil)
+  end;
+ l:=nil;
+ repeat
+  novalid:=false;
+  if (pdirent(p^.rewind)^.reclen<>0) then
+   begin {valid direntry?}
+    if pdirent(p^.rewind)^.ino<>0 then
+     l:=pdirent(p^.rewind);
+    inc(p^.rewind,pdirent(p^.rewind)^.reclen);
+    if p^.rewind>=(longint(p^.buf)+dirblksiz) then
+     novalid:=true;
+   end
+  else
+   novalid:=true;
+  if novalid then
+   begin {block entirely searched or reclen=0}
+    if p^.loc<>0 then             {blocks left?}
+     if readbuffer()<>0 then        {succesful read?}
+      novalid:=false;
+   end;
+ until (l<>nil) or novalid;
+ if novalid then
+  l:=nil;
+ Sys_ReadDir:=l;
+end;
+
 
 
 Function Sys_mmap(adr,len,prot,flags,fdes,off:longint):longint; // moved from sysunix.inc, used in sbrk
@@ -401,7 +462,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2002-09-07 16:01:17  peter
+  Revision 1.3  2002-09-08 15:29:23  jonas
+    + added sys_readdir code from OpenBSD in fixes branch
+
+  Revision 1.2  2002/09/07 16:01:17  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/09/06 18:35:59  jonas
