@@ -692,7 +692,7 @@ rle_write:
             inc(bufptr);
             dec(count);
             dec(rle_len);
-        until (rle_len and count)=0;
+        until (rle_len=0) or (count=0);
       until count=0;
       short:=count;
     end;
