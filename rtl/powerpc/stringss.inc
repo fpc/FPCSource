@@ -24,7 +24,7 @@ asm
         { get length  }
         lbz     r0,0(r4)
         { put in counter }
-        cmpli   r0,0
+        cmplwi  r0,0
         mtctr   r0
         subi    r10,r3,1
         beq     LStrPCopyEmpty
@@ -41,7 +41,10 @@ end ['R0','R4','R10','CR0','CTR'];
 
 {
   $Log$
-  Revision 1.7  2002-09-07 16:01:26  peter
+  Revision 1.8  2002-09-11 07:49:40  jonas
+    * fixed assembler errors
+
+  Revision 1.7  2002/09/07 16:01:26  peter
     * old logs removed and tabs fixed
 
   Revision 1.6  2002/09/06 16:58:43  jonas

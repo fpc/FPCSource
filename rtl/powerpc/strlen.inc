@@ -20,13 +20,13 @@ asm
         {  load the begin of the string in the data cache }
         dcbt    0,r3
         { empty/invalid string? }
-        cmpli   cr0,r3,0
+        cmplwi  cr0,r3,0
         { if yes, do nothing }
         beq     LStrLenDone
         subi    r29,r3,1
 LStrLenLoop:
         lbzu    r30,1(r29)
-        cmpli   cr0,r30,0
+        cmplwi  cr0,r30,0
         bne     LStrLenLoop
         sub     r3,r29,r3
 LStrLenDone:
@@ -34,7 +34,10 @@ end ['R3','R4','R29','R30','CR0'];
 
 {
   $Log$
-  Revision 1.4  2002-09-07 16:01:26  peter
+  Revision 1.5  2002-09-11 07:49:40  jonas
+    * fixed assembler errors
+
+  Revision 1.4  2002/09/07 16:01:26  peter
     * old logs removed and tabs fixed
 
   Revision 1.3  2002/08/18 21:37:48  florian

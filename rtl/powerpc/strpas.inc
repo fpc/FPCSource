@@ -30,7 +30,7 @@ asm
         subi    r4,r4,1
 LStrPasLoop:
         lbzu    r10,1(r4)
-        cmpli   cr0,r10,0
+        cmplwi  cr0,r10,0
         stbu    r10,1(r11)
         bdnzf   cr0*4+eq, LStrPasLoop
 
@@ -50,7 +50,10 @@ end ['R0','R3','R4','R10','R11','CR0','CTR'];
 
 {
   $Log$
-  Revision 1.6  2002-09-07 16:01:26  peter
+  Revision 1.7  2002-09-11 07:49:40  jonas
+    * fixed assembler errors
+
+  Revision 1.6  2002/09/07 16:01:26  peter
     * old logs removed and tabs fixed
 
   Revision 1.5  2002/08/18 22:11:10  florian

@@ -39,7 +39,7 @@ LStrCopyAlignLoop:
         {  load next byte  }
         lbzu    r0,1(r4)
         {  end of string?  }
-        cmpli   cr0,r0,0
+        cmplwi  cr0,r0,0
         {  store byte  }
         stbu    r0,1(r9)
         {  loop if misaligned bytes left and not end of string found }
@@ -49,11 +49,16 @@ LStrCopyAligned:
         subi    r4,r4,3
         subi    r9,r9,3
         { setup magic constants }
-        li      r8,0x0feff
-        addis   r8,r8,0x0feff
-        li      r7,0x08080
-        addis    r7,r7,0x08081
-
+        lis     r8,(0xfefefeff)@ha
+        addi    r8,r8,(0xfefefeff)@l
+        lis     r7,(0x80808080)@ha
+        addi    r7,r7,(0x80808080)@l
+{
+        li      r8,-257        { 0x0feff }
+        andis.  r8,r8,0x0fefe
+        li      r7,-32640      { 0x08080 }
+        andis.  r7,r7,0x08080
+}
         { load first 4 bytes  }
         lwzu    r0,4(r4)
 
@@ -94,26 +99,32 @@ asm
         mtctr   r10
         subi    r3,r3,1
         subi    r4,r4,1
-        beq     LStrCopyAligned
-LStrCopyAlignLoop:
+        beq     LStrECopyAligned
+LStrECopyAlignLoop:
         {  load next byte  }
         lbzu    r0,1(r4)
         {  end of string?  }
-        cmpli   cr0,r0,0
+        cmplwi  cr0,r0,0
         {  store byte  }
         stbu    r0,1(r3)
         {  loop if misaligned bytes left and not end of string found }
-        bdnzf   eq,LStrCopyAlignLoop
-        beq     LStrCopyDone
-LStrCopyAligned:
+        bdnzf   eq,LStrECopyAlignLoop
+        beq     LStrECopyDone
+LStrECopyAligned:
         subi    r4,r4,3
         subi    r3,r3,3
         { setup magic constants }
-        li      r8,0x0feff
-        addis   r8,r8,0x0feff
-        li      r9,0x08080
-        addis    r9,r9,0x08081
-LStrCopyAlignedLoop:
+        lis     r8,(0xfefefeff)@ha
+        addi    r8,r8,(0xfefefeff)@l
+        lis     r7,(0x80808080)@ha
+        addi    r7,r7,(0x80808080)@l
+{
+        li      r8,-257        { 0x0feff }
+        andis.  r8,r8,0x0fefe
+        li      r9,-32640      { 0x08080 }
+        andis.  r9,r9,0x08080
+}
+LStrECopyAlignedLoop:
 
         {  load next 4 bytes  }
         lwzu    r0,4(r4)
@@ -122,21 +133,21 @@ LStrCopyAlignedLoop:
         add     r10,r0,r8
         andc    r10,r10,r0
         and.    r10,r10,r9
-        bne     LStrCopyEndFound
+        bne     LStrECopyEndFound
         stwu    r0,4(r3)
-        b       LStrCopyAlignedLoop
-LStrCopyEndFound:
+        b       LStrECopyAlignedLoop
+LStrECopyEndFound:
         { result is either 0, 8, 16 or 24 depending on which byte is zero }
         cntlzw  r10,r10
         addi    r3,r3,3
-LStrCopyWrapUpLoop:
+LStrECopyWrapUpLoop:
         subic.  r10,r10,8
         rlwinm  r0,r0,8,0,31
         stbu    r0,1(r3)
-        bge     LStrCopyWrapUpLoop
-LStrCopyDone:
+        bge     LStrECopyWrapUpLoop
+LStrECopyDone:
         {  r3 contains new dest here  }
-end ['R3','R4','R8','R0','R3','R10','CR0','CTR'];
+end ['R3','R4','R8','R0','R3','R9','R10','CR0','CTR'];
 
 
 function strlcopy(dest,source : pchar;maxlen : longint) : pchar;assembler;
@@ -150,7 +161,7 @@ asm
         subi    r10,r3,1
 LStrlCopyLoop:
         lbzu    r0,1(r4)
-        cmpli   r0,0
+        cmplwi  r0,0
         stbu    r0,1(r10)
         bdnzf   cr0*4+eq, LStrlCopyLoop
         { if we stopped because we copied a #0, we're done }
@@ -172,13 +183,13 @@ asm
         {  load the begin of the string in the data cache }
         dcbt    0,r3
         { empty/invalid string? }
-        cmpli   r3,0
+        cmplwi  r3,0
         { if yes, do nothing }
         beq     LStrEndDone
         subi    r3,r3,1
 LStrEndLoop:
         lbzu    r0,1(r3)
-        cmpli   r0,0
+        cmplwi  r0,0
         bne     LStrEndLoop
 LStrEndDone:
 end ['R0','R3','R4','CR0'];
@@ -196,7 +207,7 @@ LStrCompLoop:
         { load next chars }
         lbzu    r0,1(r9)
         { check if one is zero }
-        cmpli   cr1,r0,0
+        cmplwi  cr1,r0,0
         lbzu    r10,1(r4)
         { calculate difference }
         sub.    r3,r0,r10
@@ -219,7 +230,7 @@ asm
         { load the begin of one of the strings in the data cache }
         dcbt    0,r3
         { use r0 instead of r3 for str1 since r3 contains result }
-        cmpl    r5,0
+        cmplwi  r5,0
         subi    r9,r3,1
         li      r3,0
         beq     LStrlCompDone
@@ -229,7 +240,7 @@ LStrlCompLoop:
         { load next chars }
         lbzu    r0,1(r9)
         { check if one is zero }
-        cmpli   cr1,r0,0
+        cmplwi  cr1,r0,0
         lbzu    r10,1(r4)
         { calculate difference }
         sub.    r3,r0,r10
@@ -254,7 +265,7 @@ LStriCompLoop:
         { load next chars }
         lbzu    r29,1(r28)
         { check if one is zero }
-        cmpli   cr1,r29,0
+        cmplwi  cr1,r29,0
         lbzu    r30,1(r4)
         { calculate difference }
         sub.    r3,r29,r30
@@ -276,12 +287,12 @@ LStriCompLoop:
         { r3 := 'Z' - r29 }
         subfic   r3,r29,'Z'
         { if r29 < 'A' then r27 := 0 else r27 := $20 }
-        andi     r27,r27,0x020
+        andi.    r27,r27,0x020
         { if r29 > Z then r26 := 0 else r26 := $ffffffff }
         subfe    r26,r26,r26
         { same for r30 }
         subfic   r3,r30,'Z'
-        andi     r25,r25,0x020
+        andi.    r25,r25,0x020
         subfe    r24,r24,r24
 
         { if (r29 in ['A'..'Z'] then r27 := $20 else r27 := 0 }
@@ -296,7 +307,7 @@ LStriCompLoop:
 
         { compare again }
         sub.     r3,r29,r30
-        bne      LStrCompDone
+        bne      LStriCompDone
 LStriCompEqual:
         { if they are equal and one is zero, then the other one is zero too }
         { and we're done as well (r3 also contains 0 then)                  }
@@ -314,22 +325,22 @@ asm
         {  load the begin of one of the string in the data cache }
         dcbt    0,r3
         { use r0 instead of r3 for str1 since r3 contains result }
-        cmpl    r5,0
+        cmplwi  r5,0
         subi    r9,r3,1
         li      r3,0
-        beq-    LStrlCompDone
+        beq-    LStrliCompDone
         mtctr   r5
         subi    r4,r4,1
-LStriCompLoop:
+LStrliCompLoop:
         { load next chars }
         lbzu    r0,1(r9)
         { check if one is zero }
-        cmpli   cr1,r0,0
+        cmplwi  cr1,r0,0
         lbzu    r10,1(r4)
         { calculate difference }
         sub.    r3,r0,r10
         { if chars are equal, no further test is necessary }
-        beq     LStriCompEqual
+        beq     LStrliCompEqual
 
         { see stricomp for explanation }
         li       r8,0
@@ -341,10 +352,10 @@ LStriCompLoop:
         addme    r5,r5
 
         subfic   r3,r0,'Z'
-        andi     r8,r8,0x020
+        andi.    r8,r8,0x020
         subfe    r7,r7,r7
         subfic   r3,r10,'Z'
-        andi     r5,r5,0x020
+        andi.    r5,r5,0x020
         subfe    r24,r24,r24
 
         and      r8,r8,r7
@@ -354,27 +365,27 @@ LStriCompLoop:
 
         { compare again }
         sub.     r3,r0,r10
-        bne      LStrCompDone
-LStriCompEqual:
+        bne      LStrliCompDone
+LStrliCompEqual:
         { if they are equal and one is zero, then the other one is zero too }
         { and we're done as well (r3 also contains 0 then)                  }
         { otherwise loop (if ctr <> 0)                                      }
-        bdnzf    cr1*4+eq,LStriCompLoop
-LStriCompDone:
+        bdnzf    cr1*4+eq,LStrliCompLoop
+LStrliCompDone:
 end ['R0','R3','R4','R5','R7','R8','R9','R10','CR0','CR1','CTR'];
 
 
 function strscan(p : pchar;c : char) : pchar;assembler;
 asm
         { empty/invalid string? }
-        cmpli   r3,0
+        cmplwi  r3,0
         { if yes, do nothing }
         beq     LStrScanDone
         subi    r3,r3,1
 LStrScanLoop:
         lbzu    r0,1(r3)
-        cmpl    cr1,r0,r4
-        cmpli   r0,0
+        cmplw   cr1,r0,r4
+        cmplwi  r0,0
         beq     cr1,LStrScanDone
         bne     LStrScanLoop
 LStrScanDone:
@@ -384,16 +395,16 @@ end ['R0','R3','R4','CR0','CR1'];
 function strrscan(p : pchar;c : char) : pchar;assembler;
 asm
         { empty/invalid string? }
-        cmpli   r3,0
+        cmplwi  r3,0
         { if yes, do nothing }
         beq     LStrrScanDone
         { make r0 $ffffffff, later on we take min(r0,r3) }
-        li      r0,0x0ffff
+        li      r0,-1
         subi    r3,r3,1
 LStrrScanLoop:
         lbzu    r10,1(r3)
-        cmpl    cr1,r10,r4
-        cmpli   cr0,r10,0
+        cmplw   cr1,r10,r4
+        cmplwi  cr0,r10,0
         bne+    cr1,LStrrScanNotFound
         { store address of found position }
         mr      r0,r3
@@ -413,15 +424,15 @@ end ['R0','R3','R4','R10','CR0','CR1'];
 
 function strupper(p : pchar) : pchar;assembler;
 asm
-        cmpli   r3,0
+        cmplwi  r3,0
         beq     LStrUpperNil
         subi    r9,r3,1
 LStrUpperLoop:
         lbzu    r10,1(r9)
         { a <= x <= b <=> cardinal(x-a) <= cardinal(b-a) }
         subi    r0,r10,97
-        cmpli   r0,122-97
-        cmpli   cr1,r10,0
+        cmplwi  r0,122-97
+        cmplwi  cr1,r10,0
         subi    r10,r10,0x20
         bgt     LStrUpper1
         stb     r10,0(r9)
@@ -433,15 +444,15 @@ end ['R0','R9','R10','CR0','CR1'];
 
 function strlower(p : pchar) : pchar;assembler;
 asm
-        cmpli   r3,0
+        cmplwi  r3,0
         beq     LStrLowerNil
         subi    r9,r3,1
 LStrLowerLoop:
         lbzu    r10,1(r9)
         { a <= x <= b <=> cardinal(x-a) <= cardinal(b-a) }
         subi    r0,r10,65
-        cmpli   r0,90-65
-        cmpli   cr1,r10,0
+        cmplwi  r0,90-65
+        cmplwi  cr1,r10,0
         addi    r10,r10,0x20
         bgt     LStrLower1
         stb     r10,0(r9)
@@ -453,7 +464,10 @@ end ['R0','R9','R10','CR0','CR1'];
 
 {
   $Log$
-  Revision 1.13  2002-09-07 16:01:26  peter
+  Revision 1.14  2002-09-11 07:49:40  jonas
+    * fixed assembler errors
+
+  Revision 1.13  2002/09/07 16:01:26  peter
     * old logs removed and tabs fixed
 
   Revision 1.12  2002/09/06 16:58:43  jonas
