@@ -170,7 +170,6 @@ begin
 {$ifdef excdebug}
   writeln ('In reraise');
 {$endif}
-  PopAddrStack;
   If ExceptAddrStack=Nil then
     DoUnHandledException;
   longjmp(ExceptAddrStack^.Buf^,FPC_Exception);
@@ -213,7 +212,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.11  1999-06-14 00:47:35  peter
+  Revision 1.12  1999-07-26 12:11:28  florian
+    * reraise doesn't call popaddrstack anymode
+
+  Revision 1.11  1999/06/14 00:47:35  peter
     * merged
 
   Revision 1.10.2.1  1999/06/14 00:38:18  peter
