@@ -24,6 +24,7 @@ Type
    { Architecture word - Native unsigned type }
    aword  = longword;
    PAWord = ^AWord;
+   AInt = longint;
 
    { this must be an ordinal type with the same size as a pointer }
    { to allow some dirty type casts for example when using        }
@@ -104,7 +105,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.8  2004-01-30 12:17:18  florian
+  Revision 1.9  2004-04-18 21:13:59  florian
+    * more adaptions for m68k
+
+  Revision 1.8  2004/01/30 12:17:18  florian
     * fixed some m68k compilation problems
 
   Revision 1.7  2003/11/07 15:58:32  florian

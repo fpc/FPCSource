@@ -191,7 +191,10 @@ uses
          scalefactor : byte;
          offset      : longint;
          symbol      : tasmsymbol;
-         offsetfixup : longint;
+         { symbol the symbol of this reference is relative to, nil if none }
+         relsymbol      : tasmsymbol;
+         { reference type addr or symbol itself }
+         refaddr : trefaddr;
          options     : trefoptions;
          { indexed increment and decrement mode }
          { (An)+ and -(An)                      }
@@ -218,6 +221,7 @@ uses
       tparalocation = record
          size : TCGSize;
          loc  : TCGLoc;
+         lochigh : TCGLoc;
          alignment : byte;
          case TCGLoc of
             LOC_REFERENCE : (reference : tparareference);
@@ -393,6 +397,8 @@ uses
     function std_regnum_search(const s:string):Tregister;
     function std_regname(r:Tregister):string;
 
+    function isaddressregister(reg : tregister) : boolean;
+
 implementation
 
     uses
@@ -497,10 +503,20 @@ implementation
           result:=generic_regname(r);
       end;
 
+
+    function isaddressregister(reg : tregister) : boolean;
+      begin
+        result:=getregtype(reg)=R_ADDRESSREGISTER;
+      end;
+
+
 end.
 {
   $Log$
-  Revision 1.24  2004-01-30 12:17:18  florian
+  Revision 1.25  2004-04-18 21:13:59  florian
+    * more adaptions for m68k
+
+  Revision 1.24  2004/01/30 12:17:18  florian
     * fixed some m68k compilation problems
 
   Revision 1.23  2003/08/17 16:59:20  jonas
