@@ -95,7 +95,7 @@ procedure cursorbig;
 implementation
 
 uses
-  go32,dpmiexcp;
+  go32;
 
 
 {$ASMMODE ATT}
@@ -790,6 +790,10 @@ begin
   TextRec(F).OpenFunc:=@CrtOpen;
 end;
 
+{ use the C version to avoid using dpmiexcp unit
+  which makes sysutils and exceptions working incorrectly  PM }
+
+function __djgpp_set_ctrl_c(enable : longint) : boolean;cdecl;external;
 
 var
   x,y : longint;
@@ -818,12 +822,19 @@ begin
 { Calculates delay calibration }
   initdelay;
 { Enable ctrl-c input (JM) }
-  djgpp_set_ctrl_c(false);
+  __djgpp_set_ctrl_c(0);
 end.
 
 {
   $Log$
-  Revision 1.3  2000-07-31 14:07:43  jonas
+  Revision 1.4  2000-10-31 23:39:30  pierre
+   * fix for bug 1152 (merged)
+
+  Revision 1.1.2.2  2000/10/31 09:32:16  pierre
+   * fix for bug1152
+
+  Revision 1.3  2000/07/31 14:07:43  jonas
+  Revision 1.1.2.1  2000/07/31 14:05:58  jonas
     * fixed web bug 1037 (disable linking of ctrl-c to exception handler,
       ctrl-break still works fine then) (merged from fixes)
 
