@@ -1049,7 +1049,7 @@ begin
     TheText:=FormatFloat(fmt,E)
   else
 }
-    Text:=FloatToStrF(E,ffgeneral,FPrecision,0);
+    TheText:=FloatToStrF(E,ffgeneral,FPrecision,0);
 end;
 
 procedure TFloatField.SetAsFloat(AValue: Double);
@@ -1865,7 +1865,13 @@ end;
 
 {
   $Log$
-  Revision 1.14  2004-08-01 13:00:29  michael
+  Revision 1.15  2004-08-21 21:10:00  michael
+  * Patch from Joost van der Sluis
+    - Empty recordsets don't show any bogus data anymore
+    - Floatfiels.gettext fix
+    - SetBufListsize fix forTDBGrid
+
+  Revision 1.14  2004/08/01 13:00:29  michael
   + Patch for Tlongintfield by Joost van der Sluis
 
   Revision 1.13  2004/07/19 20:27:29  michael

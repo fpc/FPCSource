@@ -325,6 +325,7 @@ begin
 {$endif}
     FRecordcount := 0;
     RecalcBufListSize;
+    FEOF := (FRecordcount = 0);
 {$ifdef dsdebug}
     Writeln ('Setting state to browse');
 {$endif}
@@ -697,13 +698,6 @@ begin
   Writeln('Setting buffer list size');
 {$endif}
 
-  if (ABuffercount<FRecordcount) then
-    begin
-    for i := 0 to (FActiveRecord-ABuffercount) do
-      shiftbuffersbackward;
-    FActiverecord := ABuffercount -1;
-    end;
-
   SetBufListSize(ABufferCount);
   GetNextRecords;
 {$Ifdef dsDebug}
@@ -768,12 +762,20 @@ begin
 {$ifdef dsdebug}
     Writeln ('   Freeing buffers :',FBufferCount-Value);
 {$endif}
+    if (value > -1) and (FActiveRecord>Value-1) then
+      begin
+      for i := 0 to (FActiveRecord-Value) do
+        shiftbuffersbackward;
+      FActiverecord := Value -1;
+      end;
+
    If Assigned(FBuffers) then
       begin
       For I:=Value+1 to FBufferCount do
         FreeRecordBuffer(FBuffers[i]);
       ReAllocMem(FBuffers,(Value+1)*SizeOf(Pchar));
       end;
+    if FRecordcount > Value then FRecordcount := Value;
     end;
   If Value=-1 then
     Value:=0;
@@ -1547,7 +1549,8 @@ begin
       exit;
       end;
   FCurrentRecord := 0;
-
+  FEOF := false;
+  FBOF := false;
 
 // If we've arrived here, FBuffer[0] is the current record
   If (rmCenter in Mode) then
@@ -1685,7 +1688,13 @@ end;
 
 {
   $Log$
-  Revision 1.19  2004-08-14 12:46:36  michael
+  Revision 1.20  2004-08-21 21:10:00  michael
+  * Patch from Joost van der Sluis
+    - Empty recordsets don't show any bogus data anymore
+    - Floatfiels.gettext fix
+    - SetBufListsize fix forTDBGrid
+
+  Revision 1.19  2004/08/14 12:46:36  michael
   + Patch from Joost van der Sluis to implement Modified and UpdateRecord event
 
   Revision 1.18  2004/08/13 07:06:02  michael
