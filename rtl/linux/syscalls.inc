@@ -258,6 +258,17 @@ begin
 end;
 
 
+Function Sys_ReadLink(name,linkname:pchar;maxlen:longint):longint;
+var
+  regs : SysCallRegs;
+begin
+  regs.reg2:=longint(name);
+  regs.reg3:=longint(linkname);
+  regs.reg4:=maxlen;
+  Sys_ReadLink:=SysCall(Syscall_nr_readlink,regs);
+end;
+
+
 {*****************************************************************************
                --- Directory:Directory related calls ---
 *****************************************************************************}
@@ -360,6 +371,14 @@ end;
         --- Process:Process & program handling - related calls ---
 *****************************************************************************}
 
+Function Sys_GetPid:LongInt;
+var
+  regs : SysCallregs;
+begin
+  Sys_GetPid:=SysCall(SysCall_nr_getpid,regs);
+end;
+
+
 Procedure Sys_Exit(ExitCode:Integer);
 var
   regs : SysCallregs;
@@ -370,7 +389,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  2000-01-07 16:41:41  daniel
+  Revision 1.9  2000-02-08 11:47:09  peter
+    * paramstr(0) support
+
+  Revision 1.8  2000/01/07 16:41:41  daniel
     * copyright 2000
 
   Revision 1.7  2000/01/07 16:32:28  daniel

@@ -106,45 +106,35 @@ End;
 
 Function ParamCount: Longint;
 Begin
-{$ifdef crtlib}
-  ParamCount:=_rtl_paramcount;
-{$else}
   Paramcount:=argc-1
-{$endif}
 End;
 
 
 Function ParamStr(l: Longint): String;
-Var
-{$ifndef crtlib}
-  i      : longint;
-  pp     : ppchar;
-{$else}
-  b      : Array[0..255] of Char;
-{$endif}
-Begin
-{$ifdef crtlib}
-  _rtl_paramstr(@b, l);
-  ParamStr:=StrPas(b);
-{$else}
-  if l>argc then
+var
+  link,
+  hs : string;
+  i : longint;
+begin
+  if l=0 then
    begin
-     paramstr:='';
-     exit
-   end;
-  pp:=argv;
-  i:=0;
-  while (i<l) and (pp^<>nil) do
-   begin
-     inc(pp);
-     inc(i);
-   end;
-  if pp^<>nil then
-    Paramstr:=StrPas(pp^)
+     str(sys_getpid,hs);
+     hs:='/proc/'+hs+'/exe'#0;
+     i:=Sys_readlink(@hs[1],@link[1],high(link));
+     if i>0 then
+      begin
+        link[0]:=chr(i);
+        paramstr:=link;
+      end
+     else
+      paramstr:=strpas(argv[0]);
+   end
   else
-    ParamStr:='';
-{$endif}
-End;
+   if (l>0) and (l<argc) then
+    paramstr:=strpas(argv[l])
+  else
+    paramstr:='';
+end;
 
 
 Procedure Randomize;
@@ -745,7 +735,10 @@ End.
 
 {
   $Log$
-  Revision 1.34  2000-01-20 23:38:02  peter
+  Revision 1.35  2000-02-08 11:47:09  peter
+    * paramstr(0) support
+
+  Revision 1.34  2000/01/20 23:38:02  peter
     * support fm_inout as stdoutput for assign(f,'');rewrite(f,1); becuase
       rewrite opens always with filemode 2
 
