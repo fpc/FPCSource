@@ -2631,6 +2631,7 @@ var W: PSourceWindow;
     R:TRect;
     Row,Col: sw_integer;
     Found : boolean;
+    Event : TEvent;
 begin
   Message(Application,evBroadcast,cmClearLineHighlights,@Self);
   if Range=0 then Exit;
@@ -2669,9 +2670,16 @@ begin
       if (P^.TClass<>0) then
         W^.Editor^.SetErrorMessage(P^.GetText(R.B.X-R.A.X));
       W^.Select;
-      Message(Owner,evCommand,cmClose,nil);
+      Owner^.Hide;
     end;
   Desktop^.UnLock;
+  if assigned(W) then
+    begin
+      Event.What:=evCommand;
+      Event.command:=cmClose;
+      Event.InfoPtr:=nil;
+      fpide.PutEvent(Owner,Event);
+    end;
 end;
 
 procedure TMessageListBox.Draw;
@@ -4210,7 +4218,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.22  2002-06-13 10:54:54  pierre
+  Revision 1.23  2002-06-13 11:52:01  pierre
+   * try to avoid crash with fvision library
+
+  Revision 1.22  2002/06/13 10:54:54  pierre
    * avoid random colors in Screen view
 
   Revision 1.21  2002/06/06 08:15:29  pierre
