@@ -132,6 +132,7 @@ Fixed bugs:
                correct
   bug0105.pp   typecasts are now ignored problem (NOT A BUG)         OK 0.99.1
   bug0106.pp   typecasts are now ignored problem (NOT A BUG)         OK 0.99.1
+  bug0107.pp   shows page fault problem (run in TRUE DOS mode)       OK ??.??
   bug0108.pp   gives wrong error message                             OK 0.99.1 (PFV)
   bug0109.pp   syntax error not detected when using a set as pointer OK 0.99.1 (FK)
   bug0110.pp   SigSegv when using undeclared var in Case             OK 0.99.6 (PFV)
@@ -178,8 +179,6 @@ Unproducable bugs:
 bug0048.pp   shows a problem with putimage on some computers
              (I can't reproduce the bug neither with a Millenium II
               nor a Trio64 card (FK)  )
-bug0107.pp   shows page fault problem (run in TRUE DOS mode)
-             (runs here fine with/without qemm under dos6.2 (PFV) )
 
 
 Unfixed not important bugs (mostly incompatibilities):
@@ -210,3 +209,6 @@ bug0150.pp   Shows that the assert() macro is missing under Delphi.
 bug0152.pp   End value of loop variable must be calculated before loop
              variable is initialized.
 bug0156.pp   (a,b) forward type def in record crashes when loading ppu
+bug0157.pp   Invalid compilation and also crashes
+bug0158.pp   Invalid boolean typecast
+bug0159.pp   Invalid virtual functions - should compile
