@@ -512,6 +512,7 @@ begin
         // comment at the beginning of the ini file
         oSection := TIniFileSection.Create(sLine);
         FSectionList.Add(oSection);
+        continue;
       end;
       if (Copy(sLine, 1, 1) = Brackets[0]) and (Copy(sLine, length(sLine), 1) = Brackets[1]) then begin
         // regular section
@@ -670,10 +671,10 @@ var
 begin
   oSection := FSectionList.SectionByName(Section);
   if oSection <> nil then begin
-    oSection.Free;
     { It is needed so UpdateFile doesn't find a defunct section }
     { and cause the program to crash }
     FSectionList.Delete(FSectionList.IndexOf(oSection));
+    oSection.Free;
     UpdateFile;
   end;
 end;
@@ -790,7 +791,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  2005-02-14 17:13:15  peter
+  Revision 1.9  2005-04-05 21:08:08  peter
+    * fix memory leaks
+
+  Revision 1.8  2005/02/14 17:13:15  peter
     * truncate log
 
 }
