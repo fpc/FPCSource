@@ -51,36 +51,35 @@ type
     constructor op_ref_ref(op:tasmop;_size:topsize;const _op1,_op2:treference);
     constructor op_reg_reg_reg(op:tasmop;_op1,_op2,_op3:tregister);
     constructor op_reg_const_reg(Op:TAsmOp;SrcReg:TRegister;value:aWord;DstReg:TRegister);
-  constructor op_const_ref_reg(op:tasmop;_size:topsize;_op1:aword;const _op2:treference;_op3:tregister);
-  constructor op_const_reg_ref(op:tasmop;_size:topsize;_op1:aword;_op2:tregister;const _op3:treference);
+    constructor op_const_ref_reg(op:tasmop;_size:topsize;_op1:aword;const _op2:treference;_op3:tregister);
+    constructor op_const_reg_ref(op:tasmop;_size:topsize;_op1:aword;_op2:tregister;const _op3:treference);
 
  { this is for Jmp instructions }
-  constructor op_cond_sym(op:tasmop;cond:TAsmCond;_size:topsize;_op1:tasmsymbol);
-  constructor op_sym(op:tasmop;_size:topsize;_op1:tasmsymbol);
-  constructor op_sym_ofs(op:tasmop;_size:topsize;_op1:tasmsymbol;_op1ofs:longint);
-  constructor op_sym_ofs_reg(op:tasmop;_size:topsize;_op1:tasmsymbol;_op1ofs:longint;_op2:tregister);
-  constructor op_sym_ofs_ref(op:tasmop;_size:topsize;_op1:tasmsymbol;_op1ofs:longint;const _op2:treference);
-  constructor op_caddr_reg(op:TAsmOp;rgb:TRegister;cnst:Integer;reg:TRegister);
-  constructor op_raddr_reg(op:TAsmOp;rg1,rg2:TRegister;reg:TRegister);
-  procedure changeopsize(siz:topsize);
-  procedure CheckNonCommutativeOpcodes;
-  procedure loadcaddr(opidx:longint;aReg:TRegister;cnst:Integer);
-  procedure loadraddr(opidx:longint;rg1,rg2:TRegister);
+    constructor op_cond_sym(op:tasmop;cond:TAsmCond;_size:topsize;_op1:tasmsymbol);
+    constructor op_sym(op:tasmop;_size:topsize;_op1:tasmsymbol);
+    constructor op_sym_ofs(op:tasmop;_size:topsize;_op1:tasmsymbol;_op1ofs:longint);
+    constructor op_sym_ofs_reg(op:tasmop;_size:topsize;_op1:tasmsymbol;_op1ofs:longint;_op2:tregister);
+    constructor op_sym_ofs_ref(op:tasmop;_size:topsize;_op1:tasmsymbol;_op1ofs:longint;const _op2:treference);
+    constructor op_caddr_reg(op:TAsmOp;rgb:TRegister;cnst:Integer;reg:TRegister);
+    constructor op_raddr_reg(op:TAsmOp;rg1,rg2:TRegister;reg:TRegister);
+    procedure changeopsize(siz:topsize);
+    procedure loadcaddr(opidx:longint;aReg:TRegister;cnst:Integer);
+    procedure loadraddr(opidx:longint;rg1,rg2:TRegister);
   private
- procedure init(_size:topsize);{this need to be called by all constructor}
- public
-     { the next will reset all instructions that can change in pass 2 }
-     procedure SetCondition(const c:TAsmCond);
+    procedure init(_size:topsize);{this need to be called by all constructor}
+  public
+    { the next will reset all instructions that can change in pass 2 }
+    procedure SetCondition(const c:TAsmCond);
   private
-     { next fields are filled in pass1, so pass2 is faster }
-     insentry  : PInsEntry;
-     insoffset,
-     inssize   : longint;
-     LastInsOffset : longint; { need to be public to be reset }
-     function  InsEnd:longint;
-     function  calcsize(p:PInsEntry):longint;
-     function  NeedAddrPrefix(opidx:byte):boolean;
-     procedure Swatoperands;
+    { next fields are filled in pass1, so pass2 is faster }
+    insentry  : PInsEntry;
+    insoffset,
+    inssize   : longint;
+    LastInsOffset : longint; { need to be public to be reset }
+    function  InsEnd:longint;
+    function  calcsize(p:PInsEntry):longint;
+    function  NeedAddrPrefix(opidx:byte):boolean;
+    procedure Swatoperands;
   end;
 PROCEDURE DoneAsm;
 PROCEDURE InitAsm;
@@ -310,43 +309,6 @@ procedure taicpu.Swatoperands;
 { This check must be done with the operand in ATT order
   i.e.after swapping in the intel reader
   but before swapping in the NASM and TASM writers PM }
-procedure taicpu.CheckNonCommutativeOpcodes;
-begin
-{  if ((ops=2) and
- (oper[0].typ=top_reg) and
- (oper[1].typ=top_reg) and
- (oper[0].reg IN [R_F0..RF31])) or
- (ops=0) then
-  if opcode=A_FSUBR then
-    opcode:=A_FSUB
-  else if opcode=A_FSUB then
-    opcode:=A_FSUBR
-  else if opcode=A_FDIVR then
-    opcode:=A_FDIV
-  else if opcode=A_FDIV then
-    opcode:=A_FDIVR
-  else if opcode=A_FSUBRP then
-    opcode:=A_FSUBP
-  else if opcode=A_FSUBP then
-    opcode:=A_FSUBRP
-  else if opcode=A_FDIVRP then
-    opcode:=A_FDIVP
-  else if opcode=A_FDIVP then
-    opcode:=A_FDIVRP;
-   if  ((ops=1) and
-  (oper[0].typ=top_reg) and
-  (oper[0].reg in [R_ST1..R_ST7])) then
-  if opcode=A_FSUBRP then
-    opcode:=A_FSUBP
-  else if opcode=A_FSUBP then
-    opcode:=A_FSUBRP
-  else if opcode=A_FDIVRP then
-    opcode:=A_FDIVP
-  else if opcode=A_FDIVP then
-    opcode:=A_FDIVRP;}
-end;
-
-
 {*****************************************************************************
                             Assembler
 *****************************************************************************}
@@ -698,7 +660,10 @@ procedure InitAsm;
 end.
 {
     $Log$
-    Revision 1.23  2003-05-06 20:27:43  mazen
+    Revision 1.24  2003-05-07 11:28:26  mazen
+    - method CheckNonCommutativeOpcode removed as not used
+
+    Revision 1.23  2003/05/06 20:27:43  mazen
     * A_BI changed to A_BL
 
     Revision 1.22  2003/05/06 15:00:36  mazen
