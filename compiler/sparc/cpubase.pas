@@ -168,10 +168,10 @@ uses
          offset      : longint;
          { symbol this reference refers to, nil if none }
          symbol      : tasmsymbol;
-         { used in conjunction with symbols and offsets: refs_full means }
-         { means a full 32bit reference, refs_hi means the upper 16 bits }
-         { and refs_lo the lower 16 bits of the address                   }
-         symaddr     : trefsymaddr;
+         { symbol the symbol of this reference is relative to, nil if none }
+         relsymbol      : tasmsymbol;
+         { reference type addr or symbol itself }
+         refaddr : trefaddr;
          { changed when inlining and possibly in other cases, don't }
          { set manually                                             }
          offsetfixup : longint;
@@ -187,10 +187,6 @@ uses
          index       : tregister;
          offset      : longint;
       end;
-
-    const
-      symaddr2str: array[trefsymaddr] of string[3] = ('','','%hi','%lo');
-
 
 {*****************************************************************************
                                 Operand Sizes
@@ -548,7 +544,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.62  2004-02-27 10:21:05  florian
+  Revision 1.63  2004-02-27 11:43:56  mazen
+  * symaddr ==> refaddr to follow the rest of compiler changes
+
+  Revision 1.62  2004/02/27 10:21:05  florian
     * top_symbol killed
     + refaddr to treference added
     + refsymbol to treference added

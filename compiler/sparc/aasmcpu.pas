@@ -170,7 +170,7 @@ implementation
       begin
          inherited create(op);
          { only allowed to load the address }
-         if not(_op2.symaddr in [refs_lo,refs_hi]) then
+         if not(_op2.refaddr in [addr_lo,addr_hi]) then
            internalerror(200305311);
          ops:=3;
          loadreg(0,_op1);
@@ -297,7 +297,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.43  2004-02-08 23:10:21  jonas
+  Revision 1.44  2004-02-27 11:47:32  mazen
+  * symaddr ==> refaddr to follow the rest of compiler changes
+
+  Revision 1.43  2004/02/08 23:10:21  jonas
     * taicpu.is_same_reg_move() now gets a regtype parameter so it only
       removes moves of that particular register type. This is necessary so
       we don't remove the live_start instruction of a register before it
