@@ -84,9 +84,13 @@ procedure insert_intern_types(p : tsymtable);
   all the types inserted into the system unit
 }
 
-  procedure addtype(const s:string;const t:ttype);
+  function addtype(const s:string;const t:ttype):ttypesym;
   begin
-    p.insert(ttypesym.create(s,t));
+    result:=ttypesym.create(s,t);
+    p.insert(result);
+    { add init/final table if required }
+    if t.def.needs_inittable then
+     generate_inittable(result);
   end;
 
   procedure adddef(const s:string;def:tdef);
@@ -271,7 +275,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.18  2001-07-30 20:59:27  peter
+  Revision 1.19  2001-08-30 20:13:53  peter
+    * rtti/init table updates
+    * rttisym for reusable global rtti/init info
+    * support published for interfaces
+
+  Revision 1.18  2001/07/30 20:59:27  peter
     * m68k updates from v10 merged
 
   Revision 1.17  2001/07/09 21:15:41  peter

@@ -52,11 +52,11 @@ implementation
        globtype,tokens,verbose,
        systems,
        { aasm }
-       aasm,
+       aasm,fmodule,
        { symtable }
        symconst,symbase,symtype,symdef,symtable,
        { pass 1 }
-       nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,
+       nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,nobj,
        { parser }
        scanner,
        pbase,pexpr,ptype,ptconst,pdecsub,pdecvar,pdecobj;
@@ -374,8 +374,10 @@ implementation
          sym      : tsym;
          srsymtable : tsymtable;
          tt       : ttype;
+         oldfilepos,
          defpos,storetokenpos : tfileposinfo;
          old_block_type : tblock_type;
+         ch       : tclassheader;
       begin
          old_block_type:=block_type;
          block_type:=bt_type;
@@ -408,6 +410,7 @@ implementation
                     { the definition is modified }
                     object_dec(orgtypename,tobjectdef(ttypesym(sym).restype.def));
                     newtype:=ttypesym(sym);
+                    tt:=newtype.restype;
                   end;
                end;
             end;
@@ -437,15 +440,15 @@ implementation
                  assigned(tt.def) and (tt.def.deftype=recorddef) and (tt.def.size=16) then
                 rec_tguid:=trecorddef(tt.def);
             end;
-           if assigned(newtype.restype.def) then
+           if assigned(tt.def) then
             begin
-              case newtype.restype.def.deftype of
+              case tt.def.deftype of
                 pointerdef :
                   begin
                     consume(_SEMICOLON);
                     if try_to_consume(_FAR) then
                      begin
-                       tpointerdef(newtype.restype.def).is_far:=true;
+                       tpointerdef(tt.def).is_far:=true;
                        consume(_SEMICOLON);
                      end;
                   end;
@@ -464,6 +467,47 @@ implementation
                 else
                   consume(_SEMICOLON);
               end;
+            end;
+
+           { Write tables if we are the typesym that defines
+             this type. This will not be done for simple type renamings }
+           if (tt.def.typesym=newtype) then
+            begin
+              { file position }
+              oldfilepos:=aktfilepos;
+              aktfilepos:=newtype.fileinfo;
+
+              { generate rtti info for classes, but not for forward classes }
+              if (tt.def.deftype=objectdef) and
+                 (oo_can_have_published in tobjectdef(tt.def).objectoptions) and
+                 not(oo_is_forward in tobjectdef(tt.def).objectoptions) then
+                generate_rtti(newtype);
+
+              { generate persistent init/final tables when it's declared in the interface so it can
+                be reused in other used }
+              if (not current_module.in_implementation) and
+                 (tt.def.needs_inittable or
+                  is_class(tt.def)) then
+                generate_inittable(newtype);
+
+              { for objects we should write the vmt and interfaces.
+                This need to be done after the rtti has been written, because
+                it can contain a reference to that data (PFV)
+                This is not for forward classes }
+              if (tt.def.deftype=objectdef) and
+                 not(oo_is_forward in tobjectdef(tt.def).objectoptions) then
+               begin
+                 if (cs_create_smart in aktmoduleswitches) then
+                   dataSegment.concat(Tai_cut.Create);
+                 ch:=cclassheader.create(tobjectdef(tt.def));
+                 if is_interface(tobjectdef(tt.def)) then
+                   ch.writeinterfaceids;
+                 if (oo_has_vmt in tobjectdef(tt.def).objectoptions) then
+                   ch.writevmt;
+                 ch.free;
+               end;
+
+              aktfilepos:=oldfilepos;
             end;
          until token<>_ID;
          typecanbeforward:=false;
@@ -551,7 +595,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.31  2001-06-03 21:57:35  peter
+  Revision 1.32  2001-08-30 20:13:53  peter
+    * rtti/init table updates
+    * rttisym for reusable global rtti/init info
+    * support published for interfaces
+
+  Revision 1.31  2001/06/03 21:57:35  peter
     + hint directive parsing support
 
   Revision 1.30  2001/05/08 21:06:31  florian

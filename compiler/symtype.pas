@@ -64,9 +64,10 @@ interface
 
       tdef = class(tdefentry)
          typesym    : tsym;  { which type the definition was generated this def }
+         defoptions : tdefoptions;
          constructor create;
-         procedure deref;virtual;
-         procedure derefimpl;virtual;
+         procedure deref;virtual;abstract;
+         procedure derefimpl;virtual;abstract;
          function  typename:string;
          function  gettypename:string;virtual;
          function  size:longint;virtual;abstract;
@@ -74,7 +75,6 @@ interface
          function  getsymtable(t:tgetsymtable):tsymtable;virtual;
          function  is_publishable:boolean;virtual;abstract;
          function  needs_inittable:boolean;virtual;abstract;
-         function  get_rtti_label : string;virtual;abstract;
       end;
 
 {************************************************
@@ -89,7 +89,7 @@ interface
          constructor create(const n : string);
          destructor destroy;override;
          function  realname:string;
-         procedure deref;virtual;
+         procedure deref;virtual;abstract;
          function  gettypedef:tdef;virtual;
          function  mangledname : string;virtual;abstract;
       end;
@@ -153,6 +153,7 @@ implementation
          deftype:=abstractdef;
          owner := nil;
          typesym := nil;
+         defoptions:=[];
       end;
 
 
@@ -174,17 +175,6 @@ implementation
       end;
 
 
-    procedure tdef.deref;
-      begin
-        resolvesym(typesym);
-      end;
-
-
-    procedure tdef.derefimpl;
-      begin
-      end;
-
-
     function tdef.getsymtable(t:tgetsymtable):tsymtable;
       begin
         getsymtable:=nil;
@@ -203,6 +193,7 @@ implementation
           inherited createname(upper(n));
          _realname:=stringdup(n);
          typ:=abstractsym;
+         symoptions:=[];
       end;
 
 
@@ -210,11 +201,6 @@ implementation
       begin
         stringdispose(_realname);
         inherited destroy;
-      end;
-
-
-    procedure tsym.deref;
-      begin
       end;
 
 
@@ -501,7 +487,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  2001-08-06 21:40:49  peter
+  Revision 1.9  2001-08-30 20:13:57  peter
+    * rtti/init table updates
+    * rttisym for reusable global rtti/init info
+    * support published for interfaces
+
+  Revision 1.8  2001/08/06 21:40:49  peter
     * funcret moved from tprocinfo to tprocdef
 
   Revision 1.7  2001/05/06 14:49:19  peter

@@ -58,6 +58,7 @@ interface
           destructor destroy;override;
           procedure write(ppufile:tcompilerppufile);virtual;abstract;
           procedure writesym(ppufile:tcompilerppufile);
+          procedure deref;override;
           function  mangledname : string;override;
           procedure insert_in_data;virtual;
 {$ifdef GDB}
@@ -288,6 +289,17 @@ interface
 {$endif GDB}
        end;
 
+       { compiler generated symbol to point to rtti and init/finalize tables }
+       trttisym = class(tstoredsym)
+          lab     : tasmsymbol;
+          rttityp : trttitype;
+          constructor create(const n:string;rt:trttitype);
+          constructor load(ppufile:tcompilerppufile);
+          procedure write(ppufile:tcompilerppufile);override;
+          function  mangledname:string;override;
+          function  get_label:tasmsymbol;
+       end;
+
        { register variables }
        pregvarinfo = ^tregvarinfo;
        tregvarinfo = record
@@ -319,6 +331,12 @@ interface
 
     const
        current_object_option : tsymoptions = [sp_public];
+
+
+    { rtti and init/final }
+    procedure generate_rtti(p:tsym);
+    procedure generate_inittable(p:tsym);
+
 
 
 implementation
@@ -391,6 +409,11 @@ implementation
 {$ifdef GDB}
          isstabwritten := false;
 {$endif GDB}
+      end;
+
+
+    procedure tstoredsym.deref;
+      begin
       end;
 
 
@@ -2237,10 +2260,144 @@ implementation
 {$endif GDB}
 
 
+{****************************************************************************
+                                  TRTTISYM
+****************************************************************************}
+
+    constructor trttisym.create(const n:string;rt:trttitype);
+      const
+        prefix : array[trttitype] of string[5]=('$rtti','$init');
+      begin
+        inherited create(prefix[rt]+n);
+        typ:=rttisym;
+        lab:=nil;
+        rttityp:=rt;
+      end;
+
+
+    constructor trttisym.load(ppufile:tcompilerppufile);
+      begin
+        inherited loadsym(ppufile);
+        typ:=rttisym;
+        lab:=nil;
+        rttityp:=trttitype(ppufile.getbyte);
+      end;
+
+
+    procedure trttisym.write(ppufile:tcompilerppufile);
+      begin
+         inherited writesym(ppufile);
+         ppufile.putbyte(byte(rttityp));
+         ppufile.writeentry(ibrttisym);
+      end;
+
+
+    function trttisym.mangledname : string;
+      const
+        prefix : array[trttitype] of string[5]=('RTTI_','INIT_');
+      var
+        s : string;
+        p : tsymtable;
+      begin
+        s:='';
+        p:=owner;
+        while assigned(p) and (p.symtabletype=localsymtable) do
+         begin
+           s:=s+'_'+p.defowner.name;
+           p:=p.defowner.owner;
+         end;
+        if not(p.symtabletype in [globalsymtable,staticsymtable]) then
+         internalerror(200108265);
+        mangledname:=prefix[rttityp]+p.name^+s+'$_'+Copy(name,5,255);
+      end;
+
+
+    function trttisym.get_label:tasmsymbol;
+      begin
+        { the label is always a global label }
+        if not assigned(lab) then
+         lab:=newasmsymboltype(mangledname,AB_GLOBAL,AT_DATA);
+        get_label:=lab;
+      end;
+
+
+    { persistent rtti generation }
+    procedure generate_rtti(p:tsym);
+      var
+        rsym : trttisym;
+        def  : tstoreddef;
+      begin
+        { rtti can only be generated for classes that are always typesyms }
+        if not(p.typ=typesym) then
+         internalerror(200108261);
+        def:=tstoreddef(ttypesym(p).restype.def);
+        { only create rtti once for each definition }
+        if not(df_has_rttitable in def.defoptions) then
+         begin
+           { definition should be in the same symtable as the symbol }
+           if p.owner<>def.owner then
+            internalerror(200108262);
+           { create rttisym }
+           rsym:=trttisym.create(p.name,fullrtti);
+           p.owner.insert(rsym);
+           { register rttisym in definition }
+           include(def.defoptions,df_has_rttitable);
+           def.rttitablesym:=rsym;
+           { write rtti data }
+           def.write_child_rtti_data(fullrtti);
+           rttiList.concat(Tai_symbol.Create(rsym.get_label,0));
+           def.write_rtti_data(fullrtti);
+           rttiList.concat(Tai_symbol_end.Create(rsym.get_label));
+         end;
+      end;
+
+
+    { persistent init table generation }
+    procedure generate_inittable(p:tsym);
+      var
+        rsym : trttisym;
+        def  : tstoreddef;
+      begin
+        { anonymous types are also allowed for records that can be varsym }
+        case p.typ of
+          typesym :
+            def:=tstoreddef(ttypesym(p).restype.def);
+          varsym :
+            def:=tstoreddef(tvarsym(p).vartype.def);
+          else
+            internalerror(200108263);
+        end;
+        { only create inittable once for each definition }
+        if not(df_has_inittable in def.defoptions) then
+         begin
+           { definition should be in the same symtable as the symbol }
+           if p.owner<>def.owner then
+            internalerror(200108264);
+           { create rttisym }
+           rsym:=trttisym.create(p.name,initrtti);
+           p.owner.insert(rsym);
+           { register rttisym in definition }
+           include(def.defoptions,df_has_inittable);
+           def.inittablesym:=rsym;
+           { write inittable data }
+           def.write_child_rtti_data(initrtti);
+           rttiList.concat(Tai_symbol.Create(rsym.get_label,0));
+           def.write_rtti_data(initrtti);
+           rttiList.concat(Tai_symbol_end.Create(rsym.get_label));
+         end;
+      end;
+
+
+
 end.
 {
   $Log$
-  Revision 1.19  2001-08-26 13:36:50  florian
+  Revision 1.20  2001-08-30 20:13:54  peter
+    * rtti/init table updates
+    * rttisym for reusable global rtti/init info
+    * support published for interfaces
+
+  Revision 1.19  2001/08/26 13:36:50  florian
     * some cg reorganisation
     * some PPC updates
 

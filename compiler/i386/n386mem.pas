@@ -149,7 +149,7 @@ implementation
                 begin
                    new(r);
                    reset_reference(r^);
-                   r^.symbol:=tstoreddef(tpointerdef(resulttype.def).pointertype.def).get_inittable_label;
+                   r^.symbol:=tstoreddef(tpointerdef(resulttype.def).pointertype.def).get_rtti_label(initrtti);
                    emitpushreferenceaddr(r^);
                    dispose(r);
                    { push pointer we just allocated, we need to initialize the
@@ -223,7 +223,7 @@ implementation
                   begin
                      new(r);
                      reset_reference(r^);
-                     r^.symbol:=tstoreddef(tpointerdef(left.resulttype.def).pointertype.def).get_inittable_label;
+                     r^.symbol:=tstoreddef(tpointerdef(left.resulttype.def).pointertype.def).get_rtti_label(initrtti);
                      emitpushreferenceaddr(r^);
                      dispose(r);
                      { push pointer adress }
@@ -243,7 +243,7 @@ implementation
                   begin
                      new(r);
                      reset_reference(r^);
-                     r^.symbol:=tstoreddef(tpointerdef(left.resulttype.def).pointertype.def).get_inittable_label;
+                     r^.symbol:=tstoreddef(tpointerdef(left.resulttype.def).pointertype.def).get_rtti_label(initrtti);
                      emitpushreferenceaddr(r^);
                      dispose(r);
                      emit_push_loc(left.location);
@@ -1055,7 +1055,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2001-08-26 13:37:00  florian
+  Revision 1.16  2001-08-30 20:13:57  peter
+    * rtti/init table updates
+    * rttisym for reusable global rtti/init info
+    * support published for interfaces
+
+  Revision 1.15  2001/08/26 13:37:00  florian
     * some cg reorganisation
     * some PPC updates
 

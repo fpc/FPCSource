@@ -91,6 +91,7 @@ const
   iblabelsym      = 30;
   ibfuncretsym    = 31;
   ibsyssym        = 32;
+  ibrttisym       = 33;
   {definitions}
   iborddef         = 40;
   ibpointerdef     = 41;
@@ -985,7 +986,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  2001-06-27 21:37:36  peter
+  Revision 1.12  2001-08-30 20:13:53  peter
+    * rtti/init table updates
+    * rttisym for reusable global rtti/init info
+    * support published for interfaces
+
+  Revision 1.11  2001/06/27 21:37:36  peter
     * v10 merges
 
   Revision 1.10  2001/06/18 20:36:25  peter

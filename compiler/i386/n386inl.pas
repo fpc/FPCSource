@@ -522,19 +522,16 @@ implementation
 
             in_typeinfo_x:
                begin
-                  tstoreddef(ttypenode(tcallparanode(left).left).resulttype.def).generate_rtti;
                   location.register:=getregister32;
                   new(r);
                   reset_reference(r^);
-                  r^.symbol:=tstoreddef(ttypenode(tcallparanode(left).left).resulttype.def).rtti_label;
+                  r^.symbol:=tstoreddef(ttypenode(tcallparanode(left).left).resulttype.def).get_rtti_label(fullrtti);
                   emit_ref_reg(A_LEA,S_L,r,location.register);
                end;
 
              in_finalize_x:
                begin
                   pushusedregisters(pushed,$ff);
-                  { force rtti generation }
-                  tstoreddef(ttypenode(tcallparanode(left).left).resulttype.def).generate_rtti;
                   { if a count is passed, push size, typeinfo and count }
                   if assigned(tcallparanode(left).right) then
                     begin
@@ -547,7 +544,7 @@ implementation
 
                   { generate a reference }
                   reset_reference(hr);
-                  hr.symbol:=tstoreddef(ttypenode(tcallparanode(left).left).resulttype.def).rtti_label;
+                  hr.symbol:=tstoreddef(ttypenode(tcallparanode(left).left).resulttype.def).get_rtti_label(initrtti);
                   emitpushreferenceaddr(hr);
 
                   { data to finalize }
@@ -642,7 +639,7 @@ implementation
                        emitpushreferenceaddr(hr2);
                        push_int(l);
                        reset_reference(hr2);
-                       hr2.symbol:=tstoreddef(def).get_inittable_label;
+                       hr2.symbol:=tstoreddef(def).get_rtti_label(initrtti);
                        emitpushreferenceaddr(hr2);
                        emitpushreferenceaddr(tcallparanode(hp).left.location.reference);
                        saveregvars($ff);
@@ -882,7 +879,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2001-08-28 13:24:47  jonas
+  Revision 1.23  2001-08-30 20:13:57  peter
+    * rtti/init table updates
+    * rttisym for reusable global rtti/init info
+    * support published for interfaces
+
+  Revision 1.22  2001/08/28 13:24:47  jonas
     + compilerproc implementation of most string-related type conversions
     - removed all code from the compiler which has been replaced by
       compilerproc implementations (using {$ifdef hascompilerproc} is not

@@ -59,6 +59,8 @@ implementation
        { global }
        globals,tokens,verbose,
        systems,
+       { aasm }
+       aasm,
        { symtable }
        symconst,symbase,symdef,symsym,symtable,types,
        { pass 1 }
@@ -602,7 +604,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.29  2001-08-12 22:10:16  peter
+  Revision 1.30  2001-08-30 20:13:53  peter
+    * rtti/init table updates
+    * rttisym for reusable global rtti/init info
+    * support published for interfaces
+
+  Revision 1.29  2001/08/12 22:10:16  peter
     * write name in original case when type not found
 
   Revision 1.28  2001/07/09 21:15:41  peter

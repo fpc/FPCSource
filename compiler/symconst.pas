@@ -110,12 +110,8 @@ type
     sp_static,
     sp_hint_deprecated,
     sp_hint_platform,
-    sp_hint_library
-    { is there any use for this constants        }
-    { else sp_has_overloaded can be moved up  FK }
-    ,sp_7
-    ,sp_8
-    ,sp_9
+    sp_hint_library,
+    sp_has_overloaded
     ,sp_10
     ,sp_11
     ,sp_12
@@ -131,14 +127,13 @@ type
     ,sp_22
     ,sp_23
     ,sp_24
-    ,sp_has_overloaded
   );
   tsymoptions=set of tsymoption;
 
   { flags for a definition }
   tdefoption=(df_none,
-    df_need_rtti,          { the definitions needs rtti }
-    df_has_rtti            { the rtti is generated      }
+    df_has_inittable,           { init data has been generated }
+    df_has_rttitable            { rtti data has been generated }
     ,df_3
     ,df_4
     ,df_5
@@ -393,7 +388,7 @@ type
   tsymtyp = (abstractsym,varsym,typesym,procsym,unitsym,
              constsym,enumsym,typedconstsym,errorsym,syssym,
              labelsym,absolutesym,propertysym,funcretsym,
-             macrosym);
+             macrosym,rttisym);
 
   { State of the variable, if it's declared, assigned or used }
   tvarstate=(vs_none,
@@ -407,6 +402,11 @@ type
     constord,conststring,constreal,constbool,
     constint,constchar,constset,constpointer,constnil,
     constresourcestring,constwstring,constwchar
+  );
+
+  { RTTI information to store }
+  trttitype = (
+    fullrtti,initrtti
   );
 
 {$ifdef GDB}
@@ -446,14 +446,19 @@ const
      ('abstractsym','variable','type','proc','unit',
       'const','enum','typed const','errorsym','system sym',
       'label','absolute','property','funcret',
-      'macrosym');
+      'macrosym','rttisym');
 
 implementation
 
 end.
 {
   $Log$
-  Revision 1.22  2001-08-19 21:11:21  florian
+  Revision 1.23  2001-08-30 20:13:54  peter
+    * rtti/init table updates
+    * rttisym for reusable global rtti/init info
+    * support published for interfaces
+
+  Revision 1.22  2001/08/19 21:11:21  florian
     * some bugs fix:
       - overload; with external procedures fixed
       - better selection of routine to do an overloaded

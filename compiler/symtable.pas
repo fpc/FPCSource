@@ -381,6 +381,7 @@ implementation
                 ibunitsym : sym:=tunitsym.load(ppufile);
                iblabelsym : sym:=tlabelsym.load(ppufile);
                  ibsyssym : sym:=tsyssym.load(ppufile);
+                ibrttisym : sym:=trttisym.load(ppufile);
                 ibendsyms : break;
                     ibend : Message(unit_f_ppu_read_error);
            else
@@ -2071,7 +2072,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.42  2001-08-26 13:36:51  florian
+  Revision 1.43  2001-08-30 20:13:56  peter
+    * rtti/init table updates
+    * rttisym for reusable global rtti/init info
+    * support published for interfaces
+
+  Revision 1.42  2001/08/26 13:36:51  florian
     * some cg reorganisation
     * some PPC updates
 

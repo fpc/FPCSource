@@ -47,17 +47,17 @@ interface
 ************************************************}
 
        tstoreddef = class(tdef)
-          has_inittable : boolean;
-          { adress of init informations }
-          inittable_label : tasmlabel;
-          has_rtti   : boolean;
-          { address of rtti }
-          rtti_label : tasmlabel;
+          { persistent (available across units) rtti and init tables }
+          rttitablesym,
+          inittablesym  : tsym; {trttisym}
+          { local (per module) rtti and init tables }
+          localrttilab  : array[trttitype] of tasmlabel;
+          { linked list of global definitions }
+          nextglobal,
+          previousglobal : tstoreddef;
 {$ifdef EXTDEBUG}
           fileinfo   : tfileposinfo;
 {$endif}
-          nextglobal,
-          previousglobal : tstoreddef;
 {$ifdef GDB}
           globalnb       : word;
           is_def_stab_written : tdefstabstatus;
@@ -67,9 +67,12 @@ interface
           destructor  destroy;override;
           procedure writedef(ppufile:tcompilerppufile);
           procedure write(ppufile:tcompilerppufile);virtual;abstract;
+          procedure deref;override;
+          procedure derefimpl;override;
           function  size:longint;override;
           function  alignment:longint;override;
           function  is_publishable : boolean;override;
+          function  needs_inittable : boolean;override;
           { debug }
 {$ifdef GDB}
           function  stabstring : pchar;virtual;
@@ -78,21 +81,12 @@ interface
           procedure set_globalnb;virtual;
           function  allstabstring : pchar;virtual;
 {$endif GDB}
-          { init. tables }
-          function  needs_inittable : boolean;override;
-          procedure generate_inittable;
-          function  get_inittable_label : tasmlabel;
-          { the default implemenation calls write_rtti_data     }
-          { if init and rtti data is different these procedures }
-          { must be overloaded                                  }
-          procedure write_init_data;virtual;
-          procedure write_child_init_data;virtual;
-          { rtti }
+          { rtti generation }
           procedure write_rtti_name;
-          function  get_rtti_label : string;override;
-          procedure generate_rtti;virtual;
-          procedure write_rtti_data;virtual;
-          procedure write_child_rtti_data;virtual;
+          procedure write_rtti_data(rt:trttitype);virtual;
+          procedure write_child_rtti_data(rt:trttitype);virtual;
+          function  get_rtti_label(rt:trttitype):tasmsymbol;
+          { regvars }
           function is_intregable : boolean;
           function is_fpuregable : boolean;
        private
@@ -145,7 +139,7 @@ interface
           procedure write(ppufile:tcompilerppufile);override;
           procedure setsize;
           function needs_inittable : boolean;override;
-          procedure write_rtti_data;override;
+          procedure write_rtti_data(rt:trttitype);override;
        end;
 
        tformaldef = class(tstoreddef)
@@ -198,19 +192,17 @@ interface
 
        tabstractrecorddef = class(tstoreddef)
        private
-          Count     : integer;
+          Count         : integer;
+          FRTTIType     : trttitype;
 {$ifdef GDB}
           StabRecString : pchar;
           StabRecSize   : Integer;
           RecOffset     : Integer;
           procedure addname(p : tnamedindexitem);
 {$endif}
-          procedure count_inittable_fields(sym : tnamedindexitem);
-          procedure count_fields(sym : tnamedindexitem);
-          procedure write_field_inittable(sym : tnamedindexitem);
+          procedure count_field_rtti(sym : tnamedindexitem);
           procedure write_field_rtti(sym : tnamedindexitem);
-          procedure generate_child_inittable(sym:tnamedindexitem);
-          procedure generate_child_rtti(sym : tnamedindexitem);
+          procedure generate_field_rtti(sym : tnamedindexitem);
        public
           symtable : tsymtable;
           function  getsymtable(t:tgetsymtable):tsymtable;override;
@@ -231,13 +223,10 @@ interface
           function  stabstring : pchar;override;
           procedure concatstabto(asmlist : taasmoutput);override;
 {$endif GDB}
-          { init/final }
-          procedure write_init_data;override;
-          procedure write_child_init_data;override;
           function  needs_inittable : boolean;override;
           { rtti }
-          procedure write_rtti_data;override;
-          procedure write_child_rtti_data;override;
+          procedure write_child_rtti_data(rt:trttitype);override;
+          procedure write_rtti_data(rt:trttitype);override;
        end;
 
        tprocdef = class;
@@ -282,6 +271,7 @@ interface
           function  alignment:longint;override;
           function  vmtmethodoffset(index:longint):longint;
           function  is_publishable : boolean;override;
+          function  needs_inittable : boolean;override;
           function  vmt_mangledname : string;
           function  rtti_name : string;
           procedure check_forwards;
@@ -298,15 +288,9 @@ interface
           procedure concatstabto(asmlist : taasmoutput);override;
           function  allstabstring : pchar;override;
 {$endif GDB}
-          { init/final }
-          function  needs_inittable : boolean;override;
-          procedure write_init_data;override;
-          procedure write_child_init_data;override;
           { rtti }
-          function  get_rtti_label : string;override;
-          procedure generate_rtti;override;
-          procedure write_rtti_data;override;
-          procedure write_child_rtti_data;override;
+          procedure write_child_rtti_data(rt:trttitype);override;
+          procedure write_rtti_data(rt:trttitype);override;
           function generate_field_table : tasmlabel;
        end;
 
@@ -380,8 +364,8 @@ interface
           { returns the label of the range check string }
           function getrangecheckstring : string;
           function needs_inittable : boolean;override;
-          procedure write_rtti_data;override;
-          procedure write_child_rtti_data;override;
+          procedure write_child_rtti_data(rt:trttitype);override;
+          procedure write_rtti_data(rt:trttitype);override;
        end;
 
        torddef = class(tstoreddef)
@@ -403,7 +387,7 @@ interface
           function  stabstring : pchar;override;
 {$endif GDB}
           { rtti }
-          procedure write_rtti_data;override;
+          procedure write_rtti_data(rt:trttitype);override;
        end;
 
        tfloatdef = class(tstoreddef)
@@ -419,7 +403,7 @@ interface
           function stabstring : pchar;override;
 {$endif GDB}
           { rtti }
-          procedure write_rtti_data;override;
+          procedure write_rtti_data(rt:trttitype);override;
        end;
 
        tabstractprocdef = class(tstoreddef)
@@ -463,8 +447,7 @@ interface
           procedure concatstabto(asmlist : taasmoutput); override;
 {$endif GDB}
           { rtti }
-          procedure write_child_rtti_data;override;
-          procedure write_rtti_data;override;
+          procedure write_rtti_data(rt:trttitype);override;
        end;
 
        tmessageinf = record
@@ -573,7 +556,7 @@ interface
           { init/final }
           function  needs_inittable : boolean;override;
           { rtti }
-          procedure write_rtti_data;override;
+          procedure write_rtti_data(rt:trttitype);override;
        end;
 
        tenumdef = class(tstoreddef)
@@ -603,8 +586,8 @@ interface
           function stabstring : pchar;override;
 {$endif GDB}
           { rtti }
-          procedure write_child_rtti_data;override;
-          procedure write_rtti_data;override;
+          procedure write_rtti_data(rt:trttitype);override;
+          procedure write_child_rtti_data(rt:trttitype);override;
        private
           procedure correct_owner_symtable;
        end;
@@ -625,8 +608,8 @@ interface
           procedure concatstabto(asmlist : taasmoutput);override;
 {$endif GDB}
           { rtti }
-          procedure write_rtti_data;override;
-          procedure write_child_rtti_data;override;
+          procedure write_rtti_data(rt:trttitype);override;
+          procedure write_child_rtti_data(rt:trttitype);override;
        end;
 
 
@@ -766,8 +749,6 @@ implementation
       begin
          inherited create;
          savesize := 0;
-         has_rtti:=false;
-         has_inittable:=false;
 {$ifdef EXTDEBUG}
          fileinfo := aktfilepos;
 {$endif}
@@ -789,6 +770,7 @@ implementation
            end;
          lastglobaldef := self;
          nextglobal := nil;
+         fillchar(localrttilab,sizeof(localrttilab),0);
       end;
 
 {$ifdef MEMDEBUG}
@@ -799,8 +781,6 @@ implementation
     constructor tstoreddef.loaddef(ppufile:tcompilerppufile);
       begin
          inherited create;
-         has_rtti:=false;
-         has_inittable:=false;
 {$ifdef EXTDEBUG}
          fillchar(fileinfo,sizeof(fileinfo),0);
 {$endif}
@@ -820,9 +800,15 @@ implementation
            end;
          lastglobaldef := self;
          nextglobal := nil;
+         fillchar(localrttilab,sizeof(localrttilab),0);
       { load }
          indexnr:=ppufile.getword;
          typesym:=ttypesym(ppufile.getderef);
+         ppufile.getsmallset(defoptions);
+         if df_has_rttitable in defoptions then
+          rttitablesym:=tsym(ppufile.getderef);
+         if df_has_inittable in defoptions then
+          inittablesym:=tsym(ppufile.getderef);
       end;
 
 
@@ -858,6 +844,11 @@ implementation
       begin
         ppufile.putword(indexnr);
         ppufile.putderef(typesym);
+        ppufile.putsmallset(defoptions);
+        if df_has_rttitable in defoptions then
+         ppufile.putderef(rttitablesym);
+        if df_has_inittable in defoptions then
+         ppufile.putderef(inittablesym);
 {$ifdef GDB}
         if globalnb = 0 then
           begin
@@ -870,6 +861,19 @@ implementation
               end;
            end;
 {$endif GDB}
+      end;
+
+
+    procedure tstoreddef.deref;
+      begin
+        resolvesym(typesym);
+        resolvesym(rttitablesym);
+        resolvesym(inittablesym);
+      end;
+
+
+    procedure tstoreddef.derefimpl;
+      begin
       end;
 
 
@@ -1010,65 +1014,6 @@ implementation
 {$endif GDB}
 
 
-    { rtti generation }
-    procedure tstoreddef.generate_rtti;
-      begin
-         if not has_rtti then
-          begin
-            has_rtti:=true;
-            getdatalabel(rtti_label);
-            write_child_rtti_data;
-            rttiList.concat(Tai_symbol.Create(rtti_label,0));
-            write_rtti_data;
-            rttiList.concat(Tai_symbol_end.Create(rtti_label));
-          end;
-      end;
-
-
-    function tstoreddef.get_rtti_label : string;
-      begin
-         generate_rtti;
-         get_rtti_label:=rtti_label.name;
-      end;
-
-
-    { init table handling }
-    function tstoreddef.needs_inittable : boolean;
-      begin
-         needs_inittable:=false;
-      end;
-
-
-    procedure tstoreddef.generate_inittable;
-      begin
-         has_inittable:=true;
-         getdatalabel(inittable_label);
-         write_child_init_data;
-         rttiList.concat(Tai_label.Create(inittable_label));
-         write_init_data;
-      end;
-
-
-    procedure tstoreddef.write_init_data;
-      begin
-         write_rtti_data;
-      end;
-
-
-    procedure tstoreddef.write_child_init_data;
-      begin
-         write_child_rtti_data;
-      end;
-
-
-    function tstoreddef.get_inittable_label : tasmlabel;
-      begin
-         if not(has_inittable) then
-           generate_inittable;
-         get_inittable_label:=inittable_label;
-      end;
-
-
     procedure tstoreddef.write_rtti_name;
       var
          str : string;
@@ -1084,6 +1029,39 @@ implementation
       end;
 
 
+    procedure tstoreddef.write_rtti_data(rt:trttitype);
+      begin
+      end;
+
+
+    procedure tstoreddef.write_child_rtti_data(rt:trttitype);
+      begin
+      end;
+
+
+    function tstoreddef.get_rtti_label(rt:trttitype) : tasmsymbol;
+      begin
+         { try to reuse persistent rtti data }
+         if (rt=fullrtti) and (df_has_rttitable in defoptions) then
+          get_rtti_label:=trttisym(rttitablesym).get_label
+         else
+          if (rt=initrtti) and (df_has_inittable in defoptions) then
+           get_rtti_label:=trttisym(inittablesym).get_label
+         else
+          begin
+            if not assigned(localrttilab[rt]) then
+             begin
+               getdatalabel(localrttilab[rt]);
+               write_child_rtti_data(rt);
+               rttiList.concat(Tai_symbol.Create(localrttilab[rt],0));
+               write_rtti_data(rt);
+               rttiList.concat(Tai_symbol_end.Create(localrttilab[rt]));
+             end;
+            get_rtti_label:=localrttilab[rt];
+          end;
+      end;
+
+
     { returns true, if the definition can be published }
     function tstoreddef.is_publishable : boolean;
       begin
@@ -1091,18 +1069,14 @@ implementation
       end;
 
 
-    procedure tstoreddef.write_rtti_data;
+    { needs an init table }
+    function tstoreddef.needs_inittable : boolean;
       begin
-      end;
-
-
-    procedure tstoreddef.write_child_rtti_data;
-      begin
+         needs_inittable:=false;
       end;
 
 
    function tstoreddef.is_intregable : boolean;
-
      begin
         is_intregable:=false;
         case deftype of
@@ -1123,8 +1097,8 @@ implementation
         end;
      end;
 
-   function tstoreddef.is_fpuregable : boolean;
 
+   function tstoreddef.is_fpuregable : boolean;
      begin
         is_fpuregable:=(deftype=floatdef);
      end;
@@ -1331,7 +1305,7 @@ implementation
          gettypename:=names[string_typ];
       end;
 
-    procedure tstringdef.write_rtti_data;
+    procedure tstringdef.write_rtti_data(rt:trttitype);
       begin
          case string_typ of
             st_ansistring:
@@ -1558,18 +1532,16 @@ implementation
 {$endif GDB}
 
 
-    procedure tenumdef.write_child_rtti_data;
+    procedure tenumdef.write_child_rtti_data(rt:trttitype);
       begin
          if assigned(basedef) then
-           basedef.get_rtti_label;
+           basedef.get_rtti_label(rt);
       end;
 
 
-    procedure tenumdef.write_rtti_data;
-
+    procedure tenumdef.write_rtti_data(rt:trttitype);
       var
          hp : tenumsym;
-
       begin
          rttiList.concat(Tai_const.Create_8bit(tkEnumeration));
          write_rtti_name;
@@ -1584,7 +1556,7 @@ implementation
          rttiList.concat(Tai_const.Create_32bit(min));
          rttiList.concat(Tai_const.Create_32bit(max));
          if assigned(basedef) then
-           rttiList.concat(Tai_const_symbol.Createname(basedef.get_rtti_label))
+           rttiList.concat(Tai_const_symbol.Create(basedef.get_rtti_label(rt)))
          else
            rttiList.concat(Tai_const.Create_32bit(0));
          hp:=tenumsym(firstenum);
@@ -1776,7 +1748,7 @@ implementation
 {$endif GDB}
 
 
-    procedure torddef.write_rtti_data;
+    procedure torddef.write_rtti_data(rt:trttitype);
 
         procedure dointeger;
         const
@@ -1917,7 +1889,7 @@ implementation
 {$endif GDB}
 
 
-    procedure tfloatdef.write_rtti_data;
+    procedure tfloatdef.write_rtti_data(rt:trttitype);
       const
          {tfloattype = (s32real,s64real,s80real,s64bit);}
          translate : array[tfloattype] of byte =
@@ -2125,7 +2097,7 @@ implementation
       end;
 
 
-    procedure tvariantdef.write_rtti_data;
+    procedure tvariantdef.write_rtti_data(rt:trttitype);
       begin
          rttiList.concat(Tai_const.Create_8bit(tkVariant));
       end;
@@ -2413,28 +2385,28 @@ implementation
       end;
 
 
-    procedure tsetdef.write_rtti_data;
+    procedure tsetdef.write_child_rtti_data(rt:trttitype);
+      begin
+        tstoreddef(elementtype.def).get_rtti_label(rt);
+      end;
+
+
+    procedure tsetdef.write_rtti_data(rt:trttitype);
       begin
          rttiList.concat(Tai_const.Create_8bit(tkSet));
          write_rtti_name;
          rttiList.concat(Tai_const.Create_8bit(otULong));
-         rttiList.concat(Tai_const_symbol.Createname(elementtype.def.get_rtti_label));
-      end;
-
-
-    procedure tsetdef.write_child_rtti_data;
-      begin
-         elementtype.def.get_rtti_label;
+         rttiList.concat(Tai_const_symbol.Create(tstoreddef(elementtype.def).get_rtti_label(rt)));
       end;
 
 
     function tsetdef.is_publishable : boolean;
       begin
-         is_publishable:=settype=smallset;
+         is_publishable:=(settype=smallset);
       end;
 
-    function tsetdef.gettypename : string;
 
+    function tsetdef.gettypename : string;
       begin
          if assigned(elementtype.def) then
           gettypename:='Set Of '+elementtype.def.typename
@@ -2662,13 +2634,13 @@ implementation
       end;
 
 
-    procedure tarraydef.write_child_rtti_data;
+    procedure tarraydef.write_child_rtti_data(rt:trttitype);
       begin
-         elementtype.def.get_rtti_label;
+        tstoreddef(elementtype.def).get_rtti_label(rt);
       end;
 
 
-    procedure tarraydef.write_rtti_data;
+    procedure tarraydef.write_rtti_data(rt:trttitype);
       begin
          if IsDynamicArray then
            rttiList.concat(Tai_const.Create_8bit(tkdynarray))
@@ -2681,13 +2653,13 @@ implementation
          if not(IsDynamicArray) then
            rttiList.concat(Tai_const.Create_32bit(highrange-lowrange+1));
          { element type }
-         rttiList.concat(Tai_const_symbol.Createname(elementtype.def.get_rtti_label));
+         rttiList.concat(Tai_const_symbol.Create(tstoreddef(elementtype.def).get_rtti_label(rt)));
          { variant type }
          // !!!!!!!!!!!!!!!!
       end;
 
-    function tarraydef.gettypename : string;
 
+    function tarraydef.gettypename : string;
       begin
          if isarrayofconst or isConstructor then
            begin
@@ -2770,50 +2742,33 @@ implementation
 {$endif GDB}
 
 
-    procedure tabstractrecorddef.count_inittable_fields(sym : tnamedindexitem);
+    procedure tabstractrecorddef.count_field_rtti(sym : tnamedindexitem);
       begin
-         if ((tsym(sym).typ=varsym) and
+         if (FRTTIType=fullrtti) or
+            ((tsym(sym).typ=varsym) and
              tvarsym(sym).vartype.def.needs_inittable) then
-           inc(count);
+           inc(Count);
       end;
 
 
-    procedure tabstractrecorddef.count_fields(sym : tnamedindexitem);
+    procedure tabstractrecorddef.generate_field_rtti(sym:tnamedindexitem);
       begin
-        inc(count);
-      end;
-
-
-    procedure tabstractrecorddef.write_field_inittable(sym : tnamedindexitem);
-      begin
-         if ((tsym(sym).typ=varsym) and
-            tvarsym(sym).vartype.def.needs_inittable) then
-           begin
-              rttiList.concat(Tai_const_symbol.Create(tstoreddef(tvarsym(sym).vartype.def).get_inittable_label));
-              rttiList.concat(Tai_const.Create_32bit(tvarsym(sym).address));
-           end;
+         if (FRTTIType=fullrtti) or
+            ((tsym(sym).typ=varsym) and
+             tvarsym(sym).vartype.def.needs_inittable) then
+           tstoreddef(tvarsym(sym).vartype.def).get_rtti_label(FRTTIType);
       end;
 
 
     procedure tabstractrecorddef.write_field_rtti(sym : tnamedindexitem);
       begin
-         rttiList.concat(Tai_const_symbol.Createname(tvarsym(sym).vartype.def.get_rtti_label));
-         rttiList.concat(Tai_const.Create_32bit(tvarsym(sym).address));
-      end;
-
-
-    procedure tabstractrecorddef.generate_child_inittable(sym:tnamedindexitem);
-      begin
-         if (tsym(sym).typ=varsym) and
-            tvarsym(sym).vartype.def.needs_inittable then
-         { force inittable generation }
-           tstoreddef(tvarsym(sym).vartype.def).get_inittable_label;
-      end;
-
-
-    procedure tabstractrecorddef.generate_child_rtti(sym : tnamedindexitem);
-      begin
-         tvarsym(sym).vartype.def.get_rtti_label;
+         if (FRTTIType=fullrtti) or
+            ((tsym(sym).typ=varsym) and
+             tvarsym(sym).vartype.def.needs_inittable) then
+          begin
+            rttiList.concat(Tai_const_symbol.Create(tstoreddef(tvarsym(sym).vartype.def).get_rtti_label(FRTTIType)));
+            rttiList.concat(Tai_const.Create_32bit(tvarsym(sym).address));
+          end;
       end;
 
 
@@ -2899,6 +2854,7 @@ implementation
          read_member:=oldread_member;
       end;
 
+
     function trecorddef.size:longint;
       begin
         size:=symtable.datasize;
@@ -2962,43 +2918,27 @@ implementation
 
 {$endif GDB}
 
-    procedure trecorddef.write_child_rtti_data;
+    procedure trecorddef.write_child_rtti_data(rt:trttitype);
       begin
-         symtable.foreach({$ifdef FPCPROCVAR}@{$endif}generate_child_rtti);
+         FRTTIType:=rt;
+         symtable.foreach({$ifdef FPCPROCVAR}@{$endif}generate_field_rtti);
       end;
 
 
-    procedure trecorddef.write_child_init_data;
-      begin
-         symtable.foreach({$ifdef FPCPROCVAR}@{$endif}generate_child_inittable);
-      end;
-
-
-    procedure trecorddef.write_rtti_data;
+    procedure trecorddef.write_rtti_data(rt:trttitype);
       begin
          rttiList.concat(Tai_const.Create_8bit(tkrecord));
          write_rtti_name;
          rttiList.concat(Tai_const.Create_32bit(size));
-         count:=0;
-         symtable.foreach({$ifdef FPCPROCVAR}@{$endif}count_fields);
-         rttiList.concat(Tai_const.Create_32bit(count));
+         Count:=0;
+         FRTTIType:=rt;
+         symtable.foreach({$ifdef FPCPROCVAR}@{$endif}count_field_rtti);
+         rttiList.concat(Tai_const.Create_32bit(Count));
          symtable.foreach({$ifdef FPCPROCVAR}@{$endif}write_field_rtti);
       end;
 
 
-    procedure trecorddef.write_init_data;
-      begin
-         rttiList.concat(Tai_const.Create_8bit(tkrecord));
-         write_rtti_name;
-         rttiList.concat(Tai_const.Create_32bit(size));
-         count:=0;
-         symtable.foreach({$ifdef FPCPROCVAR}@{$endif}count_inittable_fields);
-         rttiList.concat(Tai_const.Create_32bit(count));
-         symtable.foreach({$ifdef FPCPROCVAR}@{$endif}write_field_inittable);
-      end;
-
     function trecorddef.gettypename : string;
-
       begin
          gettypename:='<record type>'
       end;
@@ -3564,8 +3504,6 @@ implementation
     procedure tprocdef.load_references(ppufile:tcompilerppufile;locals:boolean);
       var
         pos : tfileposinfo;
-        oldsymtablestack,
-        st : tsymtable;
         move_last : boolean;
       begin
         move_last:=lastwritten=lastref;
@@ -3955,7 +3893,7 @@ implementation
 {$endif GDB}
 
 
-    procedure tprocvardef.write_rtti_data;
+    procedure tprocvardef.write_rtti_data(rt:trttitype);
       var
          pdc : TParaItem;
          methodkind, paraspec : byte;
@@ -4010,16 +3948,11 @@ implementation
       end;
 
 
-    procedure tprocvardef.write_child_rtti_data;
-      begin
-         {!!!!!!!!}
-      end;
-
-
     function tprocvardef.is_publishable : boolean;
       begin
          is_publishable:=(po_methodpointer in procoptions);
       end;
+
 
     function tprocvardef.gettypename : string;
       begin
@@ -4095,7 +4028,6 @@ implementation
          objname:=stringdup(ppufile.getstring);
          childof:=tobjectdef(ppufile.getderef);
          ppufile.getsmallset(objectoptions);
-         has_rtti:=boolean(ppufile.getbyte);
 
          { load guid }
          iidstr:=nil;
@@ -4173,7 +4105,6 @@ implementation
          ppufile.putstring(objname^);
          ppufile.putderef(childof);
          ppufile.putsmallset(objectoptions);
-         ppufile.putbyte(byte(has_rtti));
          if objecttype in [odt_interfacecom,odt_interfacecorba] then
            begin
               ppufile.putbyte(byte(isiidguidvalid));
@@ -4229,7 +4160,8 @@ implementation
              { only important for classes }
              lastvtableindex:=c.lastvtableindex;
              objectoptions:=objectoptions+(c.objectoptions*
-               [oo_has_virtual,oo_has_private,oo_has_protected,oo_has_constructor,oo_has_destructor]);
+               [oo_has_virtual,oo_has_private,oo_has_protected,
+                oo_has_constructor,oo_has_destructor]);
              if not (objecttype in [odt_interfacecom,odt_interfacecorba]) then
                begin
                   { add the data of the anchestor class }
@@ -4252,28 +4184,19 @@ implementation
 
    procedure tobjectdef.insertvmt;
      begin
-        if objecttype in [odt_interfacecom,odt_interfacecorba] then exit;
+        if objecttype in [odt_interfacecom,odt_interfacecorba] then
+          exit;
         if (oo_has_vmt in objectoptions) then
           internalerror(12345)
         else
           begin
-             { first round up to multiple of 4 }
-             if (symtable.dataalignment=2) then
-               begin
-                 if (symtable.datasize and 1)<>0 then
-                   inc(symtable.datasize);
-               end
-             else
-              if (symtable.dataalignment>=4) then
-               begin
-                 if (symtable.datasize mod 4) <> 0 then
-                   inc(symtable.datasize,4-(symtable.datasize mod 4));
-               end;
+             symtable.datasize:=align(symtable.datasize,symtable.dataalignment);
              vmt_offset:=symtable.datasize;
              inc(symtable.datasize,target_info.size_of_pointer);
              include(objectoptions,oo_has_vmt);
           end;
      end;
+
 
 
    procedure tobjectdef.check_forwards;
@@ -4663,48 +4586,11 @@ implementation
 {$endif GDB}
 
 
-    procedure tobjectdef.write_child_init_data;
-      begin
-         symtable.foreach({$ifdef FPCPROCVAR}@{$endif}generate_child_inittable);
-      end;
-
-
-    procedure tobjectdef.write_init_data;
-      begin
-         case objecttype of
-            odt_class:
-              rttiList.concat(Tai_const.Create_8bit(tkclass));
-            odt_object:
-              rttiList.concat(Tai_const.Create_8bit(tkobject));
-            odt_interfacecom:
-              rttiList.concat(Tai_const.Create_8bit(tkinterface));
-            odt_interfacecorba:
-              rttiList.concat(Tai_const.Create_8bit(tkinterfaceCorba));
-          else
-            exit;
-          end;
-
-         { generate the name }
-         rttiList.concat(Tai_const.Create_8bit(length(objname^)));
-         rttiList.concat(Tai_string.Create(objname^));
-
-         rttiList.concat(Tai_const.Create_32bit(size));
-         count:=0;
-         if objecttype in [odt_interfacecom,odt_interfacecorba] then
-           begin
-           end
-         else
-           begin
-              symtable.foreach({$ifdef FPCPROCVAR}@{$endif}count_inittable_fields);
-              rttiList.concat(Tai_const.Create_32bit(count));
-              symtable.foreach({$ifdef FPCPROCVAR}@{$endif}write_field_inittable);
-           end;
-      end;
-
-
     function tobjectdef.needs_inittable : boolean;
       begin
          case objecttype of
+            odt_class :
+              needs_inittable:=false;
             odt_interfacecom:
               needs_inittable:=true;
             odt_interfacecorba:
@@ -4712,7 +4598,7 @@ implementation
             odt_object:
               needs_inittable:=tobjectsymtable(symtable).needs_init_final;
             else
-              needs_inittable:=false;
+              internalerror(200108267);
          end;
       end;
 
@@ -4805,7 +4691,7 @@ implementation
                      proctypesinfo:=$40
                    else
                      proctypesinfo:=0;
-                   rttiList.concat(Tai_const_symbol.Createname(tpropertysym(sym).proptype.def.get_rtti_label));
+                   rttiList.concat(Tai_const_symbol.Create(tstoreddef(tpropertysym(sym).proptype.def).get_rtti_label(fullrtti)));
                    writeproc(tpropertysym(sym).readaccess,0);
                    writeproc(tpropertysym(sym).writeaccess,2);
                    { isn't it stored ? }
@@ -4832,39 +4718,30 @@ implementation
     procedure tobjectdef.generate_published_child_rtti(sym : tnamedindexitem);
       begin
          if needs_prop_entry(tsym(sym)) then
-           case tsym(sym).typ of
-              varsym:
-                ;
-                { now ignored:
-                tvarsym(sym).vartype.def.get_rtti_label;
-                }
+          begin
+            case tsym(sym).typ of
               propertysym:
-                tpropertysym(sym).proptype.def.get_rtti_label;
+                tstoreddef(tpropertysym(sym).proptype.def).get_rtti_label(fullrtti);
               else
                 internalerror(1509991);
-           end;
-      end;
-
-
-    procedure tobjectdef.write_child_rtti_data;
-      begin
-         symtable.foreach({$ifdef FPCPROCVAR}@{$endif}generate_published_child_rtti);
-      end;
-
-
-    procedure tobjectdef.generate_rtti;
-      begin
-         if not has_rtti then
-          begin
-            has_rtti:=true;
-            getdatalabel(rtti_label);
-            write_child_rtti_data;
-            rttiList.concat(Tai_symbol.Createname_global(rtti_name,0));
-            rttiList.concat(Tai_label.Create(rtti_label));
-            write_rtti_data;
-            rttiList.concat(Tai_symbol_end.Createname(rtti_name));
+            end;
           end;
       end;
+
+
+    procedure tobjectdef.write_child_rtti_data(rt:trttitype);
+      begin
+         FRTTIType:=rt;
+         case rt of
+           initrtti :
+             symtable.foreach({$ifdef FPCPROCVAR}@{$endif}generate_field_rtti);
+           fullrtti :
+             symtable.foreach({$ifdef FPCPROCVAR}@{$endif}generate_published_child_rtti);
+           else
+             internalerror(200108301);
+         end;
+      end;
+
 
     type
        tclasslistitem = class(tlinkedlistitem)
@@ -4983,62 +4860,82 @@ implementation
       end;
 
 
-    procedure tobjectdef.write_rtti_data;
+    procedure tobjectdef.write_rtti_data(rt:trttitype);
       begin
          case objecttype of
-           odt_class: rttiList.concat(Tai_const.Create_8bit(tkclass));
-           odt_object: rttiList.concat(Tai_const.Create_8bit(tkobject));
-           odt_interfacecom: rttiList.concat(Tai_const.Create_8bit(tkinterface));
-           odt_interfacecorba: rttiList.concat(Tai_const.Create_8bit(tkinterfaceCorba));
-         else
-           exit;
-         end;
-
+            odt_class:
+              rttiList.concat(Tai_const.Create_8bit(tkclass));
+            odt_object:
+              rttiList.concat(Tai_const.Create_8bit(tkobject));
+            odt_interfacecom:
+              rttiList.concat(Tai_const.Create_8bit(tkinterface));
+            odt_interfacecorba:
+              rttiList.concat(Tai_const.Create_8bit(tkinterfaceCorba));
+          else
+            exit;
+          end;
 
          { generate the name }
          rttiList.concat(Tai_const.Create_8bit(length(objname^)));
          rttiList.concat(Tai_string.Create(objname^));
 
-         if objecttype in [odt_interfacecom,odt_interfacecorba] then
-           rttiList.concat(Tai_const.Create_32bit(0))
-         else
-           rttiList.concat(Tai_const_symbol.Createname(vmt_mangledname));
+         case rt of
+           initrtti :
+             begin
+               rttiList.concat(Tai_const.Create_32bit(size));
+               if objecttype in [odt_class,odt_object] then
+                begin
+                  count:=0;
+                  FRTTIType:=rt;
+                  symtable.foreach({$ifdef FPCPROCVAR}@{$endif}count_field_rtti);
+                  rttiList.concat(Tai_const.Create_32bit(count));
+                  symtable.foreach({$ifdef FPCPROCVAR}@{$endif}write_field_rtti);
+                end;
+             end;
+           fullrtti :
+             begin
+               if objecttype in [odt_interfacecom,odt_interfacecorba] then
+                 rttiList.concat(Tai_const.Create_32bit(0))
+               else
+                 rttiList.concat(Tai_const_symbol.Createname(vmt_mangledname));
 
-         { write owner typeinfo }
-         if assigned(childof) and (oo_can_have_published in childof.objectoptions) then
-           rttiList.concat(Tai_const_symbol.Createname(childof.get_rtti_label))
-         else
-           rttiList.concat(Tai_const.Create_32bit(0));
+               { write owner typeinfo }
+               if assigned(childof) and (oo_can_have_published in childof.objectoptions) then
+                 rttiList.concat(Tai_const_symbol.Create(childof.get_rtti_label(fullrtti)))
+               else
+                 rttiList.concat(Tai_const.Create_32bit(0));
 
-         { count total number of properties }
-         if assigned(childof) and (oo_can_have_published in childof.objectoptions) then
-           count:=childof.next_free_name_index
-         else
-           count:=0;
+               { count total number of properties }
+               if assigned(childof) and (oo_can_have_published in childof.objectoptions) then
+                 count:=childof.next_free_name_index
+               else
+                 count:=0;
 
-         { write it }
-         symtable.foreach({$ifdef FPCPROCVAR}@{$endif}count_published_properties);
-         rttiList.concat(Tai_const.Create_16bit(count));
+               { write it }
+               symtable.foreach({$ifdef FPCPROCVAR}@{$endif}count_published_properties);
+               rttiList.concat(Tai_const.Create_16bit(count));
 
-         { write unit name }
-         rttiList.concat(Tai_const.Create_8bit(length(current_module.realmodulename^)));
-         rttiList.concat(Tai_string.Create(current_module.realmodulename^));
+               { write unit name }
+               rttiList.concat(Tai_const.Create_8bit(length(current_module.realmodulename^)));
+               rttiList.concat(Tai_string.Create(current_module.realmodulename^));
 
-         { write published properties count }
-         count:=0;
-         symtable.foreach({$ifdef FPCPROCVAR}@{$endif}count_published_properties);
-         rttiList.concat(Tai_const.Create_16bit(count));
+               { write published properties count }
+               count:=0;
+               symtable.foreach({$ifdef FPCPROCVAR}@{$endif}count_published_properties);
+               rttiList.concat(Tai_const.Create_16bit(count));
 
-         { count is used to write nameindex   }
+               { count is used to write nameindex   }
 
-         { but we need an offset of the owner }
-         { to give each property an own slot  }
-         if assigned(childof) and (oo_can_have_published in childof.objectoptions) then
-           count:=childof.next_free_name_index
-         else
-           count:=0;
+               { but we need an offset of the owner }
+               { to give each property an own slot  }
+               if assigned(childof) and (oo_can_have_published in childof.objectoptions) then
+                 count:=childof.next_free_name_index
+               else
+                 count:=0;
 
-         symtable.foreach({$ifdef FPCPROCVAR}@{$endif}write_property_info);
+               symtable.foreach({$ifdef FPCPROCVAR}@{$endif}write_property_info);
+             end;
+         end;
       end;
 
 
@@ -5047,12 +4944,6 @@ implementation
          is_publishable:=objecttype in [odt_class,odt_interfacecom,odt_interfacecorba];
       end;
 
-
-    function  tobjectdef.get_rtti_label : string;
-      begin
-         generate_rtti;
-         get_rtti_label:=rtti_name;
-      end;
 
 {****************************************************************************
                              TIMPLEMENTEDINTERFACES
@@ -5428,18 +5319,14 @@ implementation
               ttypesym(def.typesym).isusedinstab:=false;
             def.is_def_stab_written:=not_written;
 {$endif GDB}
-            {if not current_module.in_implementation then}
-              begin
-                { reset rangenr's }
-                case def.deftype of
-                  orddef   : torddef(def).rangenr:=0;
-                  enumdef  : tenumdef(def).rangenr:=0;
-                  arraydef : tarraydef(def).rangenr:=0;
-                end;
-                if def.deftype<>objectdef then
-                  def.has_rtti:=false;
-                def.has_inittable:=false;
-              end;
+            { reset rangenr's }
+            case def.deftype of
+              orddef   : torddef(def).rangenr:=0;
+              enumdef  : tenumdef(def).rangenr:=0;
+              arraydef : tarraydef(def).rangenr:=0;
+            end;
+            def.localrttilab[initrtti]:=nil;
+            def.localrttilab[fullrtti]:=nil;
 {$ifdef debug}
             prevdef:=def;
 {$endif debug}
@@ -5507,7 +5394,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.45  2001-08-26 13:36:49  florian
+  Revision 1.46  2001-08-30 20:13:54  peter
+    * rtti/init table updates
+    * rttisym for reusable global rtti/init info
+    * support published for interfaces
+
+  Revision 1.45  2001/08/26 13:36:49  florian
     * some cg reorganisation
     * some PPC updates
 

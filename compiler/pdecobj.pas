@@ -39,7 +39,7 @@ implementation
       globals,verbose,systems,tokens,
       aasm,symconst,symbase,symsym,symtable,types,
       cgbase,
-      node,nld,ncon,ncnv,nobj,pass_1,
+      node,nld,ncon,ncnv,pass_1,
       scanner,
       pbase,pexpr,pdecsub,pdecvar,ptype;
 
@@ -534,9 +534,10 @@ implementation
       procedure setclassattributes;
 
         begin
-           if classtype=odt_class then
+           { publishable }
+           if classtype in [odt_interfacecom,odt_class] then
              begin
-                aktclass.objecttype:=odt_class;
+                aktclass.objecttype:=classtype;
                 if (cs_generate_rtti in aktlocalswitches) or
                     (assigned(aktclass.childof) and
                      (oo_can_have_published in aktclass.childof.objectoptions)) then
@@ -829,7 +830,6 @@ implementation
 
       var
         temppd : tprocdef;
-        ch : tclassheader;
       begin
          {Nowadays aktprocsym may already have a value, so we need to save
           it.}
@@ -1007,9 +1007,6 @@ implementation
             until false;
             current_object_option:=[sp_public];
           end;
-         testcurobject:=0;
-         curobjectname:='';
-         typecanbeforward:=storetypecanbeforward;
 
          { generate vmt space if needed }
          if not(oo_has_vmt in aktclass.objectoptions) and
@@ -1017,19 +1014,14 @@ implementation
              (classtype in [odt_class])
             ) then
            aktclass.insertvmt;
-         if (cs_create_smart in aktmoduleswitches) then
-           dataSegment.concat(Tai_cut.Create);
-
-         ch:=cclassheader.create(aktclass);
-         if is_interface(aktclass) then
-           ch.writeinterfaceids;
-         if (oo_has_vmt in aktclass.objectoptions) then
-           ch.writevmt;
-         ch.free;
 
          if is_interface(aktclass) then
            setinterfacemethodoptions;
 
+         { reset }
+         testcurobject:=0;
+         curobjectname:='';
+         typecanbeforward:=storetypecanbeforward;
          { restore old state }
          symtablestack:=symtablestack.next;
          aktobjectdef:=nil;
@@ -1045,7 +1037,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  2001-08-26 13:36:44  florian
+  Revision 1.29  2001-08-30 20:13:53  peter
+    * rtti/init table updates
+    * rttisym for reusable global rtti/init info
+    * support published for interfaces
+
+  Revision 1.28  2001/08/26 13:36:44  florian
     * some cg reorganisation
     * some PPC updates
 

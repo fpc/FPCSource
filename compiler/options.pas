@@ -1297,8 +1297,6 @@ end;
 procedure read_arguments(cmd:string);
 var
   configpath : pathstr;
-  s : string;
-  i : integer;
 begin
   option:=coption.create;
   disable_configfile:=false;
@@ -1597,7 +1595,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.56  2001-08-20 10:58:48  florian
+  Revision 1.57  2001-08-30 20:13:53  peter
+    * rtti/init table updates
+    * rttisym for reusable global rtti/init info
+    * support published for interfaces
+
+  Revision 1.56  2001/08/20 10:58:48  florian
     * renamed messages unit to cmsgs to avoid conflicts with the
       win32 messages unit
 

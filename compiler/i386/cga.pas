@@ -1646,11 +1646,10 @@ implementation
          else
            begin
               reset_reference(hr);
-              hr.symbol:=tstoreddef(t).get_inittable_label;
+              hr.symbol:=tstoreddef(t).get_rtti_label(initrtti);
               emitpushreferenceaddr(hr);
               if is_already_ref then
-                exprasmList.concat(Taicpu.Op_ref(A_PUSH,S_L,
-                  newreference(ref)))
+                exprasmList.concat(Taicpu.Op_ref(A_PUSH,S_L,newreference(ref)))
               else
                 emitpushreferenceaddr(ref);
               emitcall('FPC_INITIALIZE');
@@ -1667,7 +1666,7 @@ implementation
 
       begin
          if is_ansistring(t) or
-           is_widestring(t) then
+            is_widestring(t) then
            begin
               decrstringref(t,ref);
            end
@@ -1678,7 +1677,7 @@ implementation
          else
            begin
               reset_reference(r);
-              r.symbol:=tstoreddef(t).get_inittable_label;
+              r.symbol:=tstoreddef(t).get_rtti_label(initrtti);
               emitpushreferenceaddr(r);
               if is_already_ref then
                 exprasmList.concat(Taicpu.Op_ref(A_PUSH,S_L,
@@ -1751,7 +1750,7 @@ implementation
                else
                  begin
                    reset_reference(hr);
-                   hr.symbol:=tstoreddef(tvarsym(p).vartype.def).get_inittable_label;
+                   hr.symbol:=tstoreddef(tvarsym(p).vartype.def).get_rtti_label(initrtti);
                    emitpushreferenceaddr(hr);
                    emitpushreferenceaddr(hrv);
                    emitcall('FPC_ADDREF');
@@ -1803,7 +1802,7 @@ implementation
                else
                  begin
                    reset_reference(hr);
-                   hr.symbol:=tstoreddef(tvarsym(p).vartype.def).get_inittable_label;
+                   hr.symbol:=tstoreddef(tvarsym(p).vartype.def).get_rtti_label(initrtti);
                    emitpushreferenceaddr(hr);
                    emitpushreferenceaddr(hrv);
                    emitcall('FPC_DECREF');
@@ -2561,7 +2560,7 @@ implementation
                    emitinsertcall('FPC_FINALIZE');
                    ungetregister32(R_EDI);
                    exprasmList.insert(Taicpu.Op_reg(A_PUSH,S_L,R_ESI));
-                   exprasmList.insert(Taicpu.Op_sym(A_PUSH,S_L,procinfo^._class.get_inittable_label));
+                   exprasmList.insert(Taicpu.Op_sym(A_PUSH,S_L,procinfo^._class.get_rtti_label(initrtti)));
                    ai:=Taicpu.Op_sym(A_Jcc,S_NO,nofinal);
                    ai.SetCondition(C_Z);
                    exprasmList.insert(ai);
@@ -2984,7 +2983,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2001-08-29 12:01:47  jonas
+  Revision 1.4  2001-08-30 20:13:57  peter
+    * rtti/init table updates
+    * rttisym for reusable global rtti/init info
+    * support published for interfaces
+
+  Revision 1.3  2001/08/29 12:01:47  jonas
     + support for int64 LOC_REGISTERS in remove_non_regvars_from_loc
 
   Revision 1.2  2001/08/26 13:36:52  florian

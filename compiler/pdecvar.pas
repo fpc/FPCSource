@@ -170,7 +170,10 @@ implementation
               end
              else
               read_type(tt,'');
-             if (variantrecordlevel>0) and tt.def.needs_inittable then
+             { types that use init/final are not allowed in variant parts, but
+               classes are allowed }
+             if (variantrecordlevel>0) and
+                (tt.def.needs_inittable and not is_class(tt.def)) then
                Message(parser_e_cant_use_inittable_here);
              ignore_equal:=false;
              symdone:=false;
@@ -550,7 +553,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  2001-07-01 20:16:16  peter
+  Revision 1.19  2001-08-30 20:13:53  peter
+    * rtti/init table updates
+    * rttisym for reusable global rtti/init info
+    * support published for interfaces
+
+  Revision 1.18  2001/07/01 20:16:16  peter
     * alignmentinfo record added
     * -Oa argument supports more alignment settings that can be specified
       per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN

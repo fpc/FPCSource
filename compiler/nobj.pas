@@ -1146,7 +1146,6 @@ implementation
 {$endif WITHDMT}
          interfacetable : tasmlabel;
       begin
-
 {$ifdef WITHDMT}
          dmtlabel:=gendmt;
 {$endif WITHDMT}
@@ -1160,9 +1159,6 @@ implementation
           begin
             methodnametable:=genpublishedmethodstable;
             fieldtablelabel:=_class.generate_field_table;
-            { rtti }
-            if (oo_can_have_published in _class.objectoptions) then
-             _class.generate_rtti;
             { write class name }
             getdatalabel(classnamelabel);
             dataSegment.concat(Tai_label.Create(classnamelabel));
@@ -1234,20 +1230,11 @@ implementation
             dataSegment.concat(Tai_const_symbol.Create(fieldtablelabel));
             { pointer to type info of published section }
             if (oo_can_have_published in _class.objectoptions) then
-              dataSegment.concat(Tai_const_symbol.Createname(_class.rtti_name))
+              dataSegment.concat(Tai_const_symbol.Create(_class.get_rtti_label(fullrtti)))
             else
               dataSegment.concat(Tai_const.Create_32bit(0));
-            { inittable for con-/destruction }
-            {
-            if _class.needs_inittable then
-            }
-            { we generate the init table for classes always, because needs_inittable }
-            { for classes is always false, it applies only for objects               }
-            dataSegment.concat(Tai_const_symbol.Create(_class.get_inittable_label));
-            {
-            else
-              dataSegment.concat(Tai_const.Create_32bit(0));
-            }
+            { inittable for con-/destruction, for classes this is always generated }
+            dataSegment.concat(Tai_const_symbol.Create(_class.get_rtti_label(initrtti)));
             { auto table }
             dataSegment.concat(Tai_const.Create_32bit(0));
             { interface table }
@@ -1273,7 +1260,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.2  2001-08-22 21:16:20  florian
+  Revision 1.3  2001-08-30 20:13:53  peter
+    * rtti/init table updates
+    * rttisym for reusable global rtti/init info
+    * support published for interfaces
+
+  Revision 1.2  2001/08/22 21:16:20  florian
     * some interfaces related problems regarding
       mapping of interface implementions fixed
 

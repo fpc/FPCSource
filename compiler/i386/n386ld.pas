@@ -643,7 +643,7 @@ implementation
                                    { increment source reference counter }
                                    new(r);
                                    reset_reference(r^);
-                                   r^.symbol:=tstoreddef(right.resulttype.def).get_inittable_label;
+                                   r^.symbol:=tstoreddef(right.resulttype.def).get_rtti_label(initrtti);
                                    emitpushreferenceaddr(r^);
 
                                    emitpushreferenceaddr(right.location.reference);
@@ -651,7 +651,7 @@ implementation
                                    { decrement destination reference counter }
                                    new(r);
                                    reset_reference(r^);
-                                   r^.symbol:=tstoreddef(left.resulttype.def).get_inittable_label;
+                                   r^.symbol:=tstoreddef(left.resulttype.def).get_rtti_label(initrtti);
                                    emitpushreferenceaddr(r^);
                                    emitpushreferenceaddr(left.location.reference);
                                    emitcall('FPC_DECREF');
@@ -1088,7 +1088,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2001-08-30 11:57:20  michael
+  Revision 1.21  2001-08-30 20:13:57  peter
+    * rtti/init table updates
+    * rttisym for reusable global rtti/init info
+    * support published for interfaces
+
+  Revision 1.20  2001/08/30 11:57:20  michael
   + Patch for wrong paramsize
 
   Revision 1.19  2001/08/26 13:36:59  florian

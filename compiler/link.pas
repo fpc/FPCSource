@@ -42,6 +42,7 @@ Type
       ExeCmd,
       DllCmd        : array[1..3] of string[100];
       ResName       : string[12];
+      ScriptName    : string[12];
       ExtraOptions  : string;
       DynamicLinker : string[100];
     end;
@@ -105,6 +106,7 @@ begin
 { set generic defaults }
   FillChar(Info,sizeof(Info),0);
   Info.ResName:='link.res';
+  Info.ScriptName:='script.res';
 { set the linker specific defaults }
   SetDefaultInfo;
 { Allow Parameter overrides for linker info }
@@ -483,7 +485,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.21  2001-08-19 11:22:22  peter
+  Revision 1.22  2001-08-30 20:13:53  peter
+    * rtti/init table updates
+    * rttisym for reusable global rtti/init info
+    * support published for interfaces
+
+  Revision 1.21  2001/08/19 11:22:22  peter
     * palmos support from v10 merged
 
   Revision 1.20  2001/08/13 19:26:03  peter
