@@ -768,7 +768,7 @@ begin
   InsOffset:=Offset;
 { Things which may only be done once, not when a second pass is done to
   optimize }
-  if not assigned(Insentry) then
+  if Insentry=nil then
    begin
      { Check if error last time then InsSize=-1 }
      if InsSize=-1 then
@@ -852,7 +852,7 @@ var
   c : longint;
 begin
   { error in pass1 ? }
-  if not assigned(insentry) then
+  if insentry=nil then
    exit;
   aktfilepos:=fileinfo;
   { Segment override }
@@ -1569,7 +1569,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  1999-05-01 13:24:23  peter
+  Revision 1.2  1999-05-02 21:33:52  florian
+    * several bugs regarding -Or fixed
+
+  Revision 1.1  1999/05/01 13:24:23  peter
     * merged nasm compiler
     * old asm moved to oldasm/
 

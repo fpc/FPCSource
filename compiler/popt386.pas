@@ -1033,6 +1033,9 @@ Begin
                        End
                      Else
                        Begin
+                         { change it to a two op operation }
+                         Pai386(p)^.oper[1].typ:=top_none;
+                         Pai386(p)^.ops:=2;
                          Pai386(p)^.opcode := A_MOV;
                          Pai386(p)^.Loadoper(1,Pai386(p)^.oper[0]);
                          New(TmpRef);
@@ -1508,7 +1511,10 @@ End.
 
 {
  $Log$
- Revision 1.49  1999-05-02 14:26:31  peter
+ Revision 1.50  1999-05-02 21:33:55  florian
+   * several bugs regarding -Or fixed
+
+ Revision 1.49  1999/05/02 14:26:31  peter
    * fixed dec -> sub $1 opt which didn't set ops=2
 
  Revision 1.48  1999/05/01 13:24:34  peter

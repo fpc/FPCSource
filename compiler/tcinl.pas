@@ -933,6 +933,10 @@ implementation
                    end;
                   { calc registers }
                   left_right_max(p);
+
+                  { val doesn't calculate the registers really }
+                  { correct, we need one register extra   (FK) }
+                  inc(p^.registers32,2);
                end;
 {$EndIf OLDVAL}
 
@@ -1100,7 +1104,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.30  1999-05-01 13:24:53  peter
+  Revision 1.31  1999-05-02 21:33:57  florian
+    * several bugs regarding -Or fixed
+
+  Revision 1.30  1999/05/01 13:24:53  peter
     * merged nasm compiler
     * old asm moved to oldasm/
 

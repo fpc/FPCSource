@@ -518,15 +518,21 @@ implementation
                                { dummy }
                                regsize:=S_W;
                           end;
-                        if (status.verbosity and v_debug)=v_debug then
+                        for i:=1 to maxvarregs do
                           begin
-                             for i:=1 to maxvarregs do
+                             if assigned(regvars[i]) then
                                begin
-                                  if assigned(regvars[i]) then
-                                   Message3(cg_d_register_weight,reg2str(regvars[i]^.reg),
-                                           tostr(regvars[i]^.refs),regvars[i]^.name);
+                                  if cs_asm_source in aktglobalswitches then
+                                    procinfo.aktentrycode^.insert(new(pai_asm_comment,init(strpnew(regvars[i]^.name+
+                                      ' with weight '+tostr(regvars[i]^.refs)+' assigned to register '+
+                                      reg2str(regvars[i]^.reg)))));
+                                  if (status.verbosity and v_debug)=v_debug then
+                                    Message3(cg_d_register_weight,reg2str(regvars[i]^.reg),
+                                      tostr(regvars[i]^.refs),regvars[i]^.name);
                                end;
                           end;
+                        if cs_asm_source in aktglobalswitches then
+                          procinfo.aktentrycode^.insert(new(pai_asm_comment,init(strpnew('Register variable assignment:'))));
                      end;
                 end;
               if assigned(aktprocsym) and
@@ -547,7 +553,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  1999-05-01 13:24:28  peter
+  Revision 1.20  1999-05-02 21:33:54  florian
+    * several bugs regarding -Or fixed
+
+  Revision 1.19  1999/05/01 13:24:28  peter
     * merged nasm compiler
     * old asm moved to oldasm/
 
