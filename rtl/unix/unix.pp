@@ -33,11 +33,11 @@ Uses UnixUtil,BaseUnix;
 ********************}
 
 Const
-  P_IN  = 1;			// pipes (?)
+  P_IN  = 1;                    // pipes (?)
   P_OUT = 2;
 
 Const
-  LOCK_SH = 1;			// flock constants ?
+  LOCK_SH = 1;                  // flock constants ?
   LOCK_EX = 2;
   LOCK_UN = 8;
   LOCK_NB = 4;
@@ -140,7 +140,7 @@ Function AssignPipe  (var pipe_in,pipe_out:file):cint;
 Function PClose      (Var F:text) : cint;
 Function PClose      (Var F:file) : cint;
 Function POpen       (var F:text;const Prog:String;rw:char):cint;
-Function POpen	     (var F:file;const Prog:String;rw:char):cint;
+Function POpen       (var F:file;const Prog:String;rw:char):cint;
 function AssignStream(Var StreamIn,Streamout:text;Const Prog:String) : cint;
 function AssignStream(var StreamIn, StreamOut, StreamErr: Text; const prog: String): cint;
 
@@ -178,7 +178,7 @@ const
 
 Function  FExpand  (Const Path: PathStr):PathStr;
 Function  FSearch  (const path:pathstr;dirlist:string):pathstr;
-Function  Glob	   (Const path:pathstr):pglob;
+Function  Glob     (Const path:pathstr):pglob;
 Procedure Globfree (var p:pglob);
 
 procedure SigRaise (sig:integer);
@@ -203,7 +203,7 @@ Uses Strings,Syscall;
 {$i filerec.inc}
 
 { Raw System calls are in Syscalls.inc}
-{$ifdef Linux}			// Linux has more "oldlinux" compability.
+{$ifdef Linux}                  // Linux has more "oldlinux" compability.
 {$i sysc11.inc}
 {$else}
 {$i syscalls.inc}
@@ -331,7 +331,7 @@ Function Execv(const path:pathstr;args:ppchar):cint;
   the current environment is passed on.
 }
 begin
-  Execv:=fpExecve(path,args,envp); 
+  Execv:=fpExecve(path,args,envp);
 end;
 
 Function Execvp(Path:Pathstr;Args:ppchar;Ep:ppchar):cint;
@@ -481,7 +481,7 @@ begin
      fpExit(127);  // was Exit(127)
    end
   else if (pid<>-1) then // Successfull started
-   Shell:=WaitProcess(pid) 
+   Shell:=WaitProcess(pid)
   else // no success
    Shell:=-1; // indicate an error
   FreeShellArgV(p);
@@ -503,7 +503,7 @@ begin { Changes as above }
      fpExit(127); // was exit(127)!! We must exit the Process, not the function
    end
   else if (pid<>-1) then // Successfull started
-   Shell:=WaitProcess(pid) 
+   Shell:=WaitProcess(pid)
   else // no success
    Shell:=-1;
   FreeShellArgV(p);
@@ -755,8 +755,8 @@ begin
       end;
     fminput : Begin
                 textrec(f).bufend:=fpread(textrec(f).handle,pchar(textrec(f).bufptr),textrec(f).bufsize);
-		IOPipe:=textrec(f).bufend;
-	      End;
+                IOPipe:=textrec(f).bufend;
+              End;
   end;
   textrec(f).bufpos:=0;
 end;
@@ -810,7 +810,7 @@ Function AssignPipe(var pipe_in,pipe_out:file):cint;
 {
   Sets up a pair of file variables, which act as a pipe. The first one can
   be read from, the second one can be written to.
-  If the operation was unsuccesful, 
+  If the operation was unsuccesful,
 }
 var
   f_in,f_out : cint;
@@ -1268,7 +1268,8 @@ Begin
         NewDir:=NewDir+'/';
        NewDir:=NewDir+Path;
        Delete(DirList,1,p1);
-       if FpStat(NewDir,Info)>=0 then
+       if (FpStat(NewDir,Info)>=0) and
+          (not fpS_ISDIR(Info.st_Mode)) then
         Begin
           If Pos('./',NewDir)=1 Then
            Delete(NewDir,1,2);
@@ -1380,7 +1381,10 @@ End.
 
 {
   $Log$
-  Revision 1.51  2003-11-19 17:11:40  marco
+  Revision 1.52  2003-12-08 17:16:30  peter
+    * fsearch should only find files
+
+  Revision 1.51  2003/11/19 17:11:40  marco
    * termio unit
 
   Revision 1.50  2003/11/19 10:54:32  marco
