@@ -86,6 +86,16 @@ type
     ftDataSet, ftOraBlob, ftOraClob, ftVariant, ftInterface,
     ftIDispatch, ftGuid, ftTimeStamp, ftFMTBcd);
 
+{ TDateTimeRec }
+
+  TDateTimeAlias = type TDateTime;
+  TDateTimeRec = record
+    case TFieldType of
+      ftDate: (Date: Longint);
+      ftTime: (Time: Longint);
+      ftDateTime: (DateTime: TDateTimeAlias);
+  end;
+
   TFieldDef = class(TComponent)
   Private
     FDataType : TFieldType;
@@ -896,6 +906,7 @@ type
     procedure FreeRecordBuffer(var Buffer: PChar); virtual; abstract;
     procedure GetBookmarkData(Buffer: PChar; Data: Pointer); virtual; abstract;
     function GetBookmarkFlag(Buffer: PChar): TBookmarkFlag; virtual; abstract;
+    function GetDataSource: TDataSource; virtual;
     function GetFieldData(Field: TField; Buffer: Pointer): Boolean; virtual; abstract;
     function GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResult; virtual; abstract;
     function GetRecordSize: Word; virtual; abstract;
@@ -960,12 +971,13 @@ type
     procedure Refresh;
     procedure Resync(Mode: TResyncMode); virtual;
     procedure SetFields(const Values: array of const);
-    procedure Translate(Src, Dest: PChar; ToOem: Boolean); virtual;
+    function  Translate(Src, Dest: PChar; ToOem: Boolean): Integer; virtual;
     procedure UpdateCursorPos;
     procedure UpdateRecord;
     property BOF: Boolean read FBOF;
     property Bookmark: TBookmarkStr read GetBookmarkStr write SetBookmarkStr;
     property CanModify: Boolean read GetCanModify;
+    property DataSource: TDataSource read GetDataSource;
     property DefaultFields: Boolean read FDefaultFields;
     property EOF: Boolean read FEOF;
     property FieldCount: Longint read GetFieldCount;
@@ -1462,7 +1474,10 @@ end.
 
 {
   $Log$
-  Revision 1.11  2003-10-06 17:04:27  florian
+  Revision 1.12  2003-11-09 21:23:10  michael
+  + Patch from Micha Nelissen, fixing some Delphi compatibility issues
+
+  Revision 1.11  2003/10/06 17:04:27  florian
     * small step towards calculated fields
 
   Revision 1.10  2003/08/16 16:42:21  michael

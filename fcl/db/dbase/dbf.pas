@@ -408,11 +408,7 @@ type
 {$ifdef DELPHI_3}
     procedure Translate(Src, Dest: PChar; ToOem: Boolean); override; {virtual}
 {$else}
-{$ifdef fpc}
-    procedure Translate(Src, Dest: PChar; ToOem: Boolean); override; {virtual}
-{$else}
     function Translate(Src, Dest: PChar; ToOem: Boolean): Integer; override; {virtual}
-{$endif}
 {$endif}
     procedure ClearCalcFields(Buffer : PChar); override;
   protected
@@ -1813,7 +1809,7 @@ begin
   end else result:=0;
 end;
 {$else}
-procedure TDbf.Translate(Src, Dest: PChar; ToOem: Boolean); {override virtual}
+function TDbf.Translate(Src, Dest: PChar; ToOem: Boolean): Integer; {override virtual}
 begin
 end;
 {$endif}

@@ -437,6 +437,11 @@ begin
   //!! To be implemented
 end;
 
+Function TDataset.GetDataSource: TDataSource;
+begin
+  Result:=nil;
+end;
+
 Function TDataset.GetField (Index : Longint) : TField;
 
 begin
@@ -1558,7 +1563,7 @@ begin
     end;
 end;
 
-Procedure TDataset.Translate(Src, Dest: PChar; ToOem: Boolean);
+Function TDataset.Translate(Src, Dest: PChar; ToOem: Boolean): Integer;
 
 begin
   //!! To be implemented
@@ -1685,7 +1690,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  2003-10-06 17:04:28  florian
+  Revision 1.10  2003-11-09 21:23:10  michael
+  + Patch from Micha Nelissen, fixing some Delphi compatibility issues
+
+  Revision 1.9  2003/10/06 17:04:28  florian
     * small step towards calculated fields
 
   Revision 1.8  2003/05/06 12:08:52  michael
