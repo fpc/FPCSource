@@ -44,6 +44,10 @@ TheHeight-1
 
 }
 
+{$ifdef Linux}
+ {$define Unix}
+{$endif}
+
 {$ifdef UseGraphics}
  {$ifdef Win32}
    {$define Win32Graph}
@@ -611,7 +615,7 @@ BEGIN
 {$IFNDEF UseGraphics}
  HelpMode :=TRUE;
 {$ENDIF}
- {$IFDEF Linux}
+ {$IFDEF Unix}
   UseColor:=FALSE;
  {$ELSE}
   UseColor:=TRUE;
@@ -773,7 +777,7 @@ ORD('p') : BEGIN                             {"p" : Pause}
              Key:=ORD(ReadKey);
            END;
 {$IFNDEF UseGraphics}
-{$IFDEF Linux}
+{$IFDEF Unix}
  ORD('i')  : write(#27+'(K');
 {$ENDIF}
 {$ENDIF}
@@ -782,7 +786,7 @@ ORD('p') : BEGIN                             {"p" : Pause}
 
   ELSE
    BEGIN
-    {$IFDEF Linux}
+    {$IFDEF Unix}
      GotoXY(50,10);      {Get cursor out of the way, CursorOn/Off
                             doesn't work on telnet-terminals}
     {$ENDIF}
@@ -853,7 +857,10 @@ END.
 
 {
   $Log$
-  Revision 1.2  2001-11-11 21:09:49  marco
+  Revision 1.3  2001-12-11 11:24:52  marco
+   * some linux <-> unix fixes.
+
+  Revision 1.2  2001/11/11 21:09:49  marco
    * Gameunit, Fpctris and samegame  fixed for win32 GUI
 
   Revision 1.1  2001/05/03 21:39:33  peter
