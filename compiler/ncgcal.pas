@@ -542,13 +542,11 @@ implementation
 {$ifdef newra}
                       { the FUNCTION_RESULT_REG is already allocated }
                       rg.ungetregisterint(exprasmlist,r);
-                      { change register size after the unget because the getregister
-                        was done for the full register }
+                      { change register size after the unget because the
+                      getregister was done for the full register }
                       r:=rg.makeregsize(r,cgsize);
                       location.register:=rg.getregisterint(exprasmlist,cgsize);
 {$else newra}
-                      r.enum:=R_INTREGISTER;
-                      r.number:=NR_FUNCTION_RESULT_REG;
                       r:=rg.makeregsize(r,cgsize);
                       cg.a_reg_alloc(exprasmlist,r);
                       if RS_FUNCTION_RESULT_REG in rg.unusedregsint then
@@ -1543,7 +1541,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.103  2003-07-23 11:01:14  jonas
+  Revision 1.104  2003-08-11 14:22:06  mazen
+  - dupplicated code removed
+
+  Revision 1.103  2003/07/23 11:01:14  jonas
     * several rg.allocexplicitregistersint/rg.deallocexplicitregistersint
       pairs round calls to helpers
 
