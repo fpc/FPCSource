@@ -490,11 +490,11 @@ implementation
                   { nevertheless, this has to be changed, because otherwise the }
                   { register is released before it's contents are pushed ->     }
                   { problems with the optimizer (JM)                            }
-                  del_reference(left.location.reference);
                   ungettemp:=false;
                   { Find out which registers have to be pushed (JM) }
                   regs_to_push := $ff;
                   remove_non_regvars_from_loc(right.location,regs_to_push);
+                  remove_non_regvars_from_loc(left.location,regs_to_push);
                   { And push them (JM) }
                   pushusedregisters(regspushed,regs_to_push);
                   case right.location.loc of
@@ -1088,7 +1088,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2001-08-30 20:13:57  peter
+  Revision 1.22  2001-09-09 08:51:09  jonas
+    * fixed bug with assigning ansistrings (left^.location was released too
+      early, caused bug reported by Aleksey V. Vaneev in mailing list on
+      2001/09/07 regarding 'problems with nested procedures and local vars'
+      ("merged" from cga.pas in the fixes branch)
+
+  Revision 1.21  2001/08/30 20:13:57  peter
     * rtti/init table updates
     * rttisym for reusable global rtti/init info
     * support published for interfaces
