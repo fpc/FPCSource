@@ -4157,6 +4157,9 @@ unit pass_1;
                                     end;
 
                                     { some format options ? }
+                                    (* commented
+                                       because supposes reverse order of parameters
+                                          PM
                                     hpp:=hp^.right;
                                     if assigned(hpp) and hpp^.is_colon_para then
                                       begin
@@ -4177,7 +4180,7 @@ unit pass_1;
                                             else
                                              Message(parser_e_illegal_colon_qualifier);
                                           end;
-                                      end;
+                                      end;  *)
 
                                   end;
                                  hp:=hp^.right;
@@ -5495,7 +5498,13 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.82  1998-09-09 15:54:42  florian
+  Revision 1.83  1998-09-11 15:40:21  pierre
+     * wrong checks for colon paras in write commented out
+
+  Revision 1.82.2.1  1998/09/11 15:36:37  pierre
+    * wrong check code for colon in write commented out
+
+  Revision 1.82  1998/09/09 15:54:42  florian
     * my last fix was buggy, corrected
 
   Revision 1.81  1998/09/09 14:37:39  florian
