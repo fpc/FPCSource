@@ -84,12 +84,14 @@ endif
 #
 # Digest program
 #
+ifeq ($(USESQL),YES)
 ifndef DBDIGEST
 DBDIGEST=./dbdigest$(EXEEXT)
 DIGESTDEP+=$(DBDIGEST)
 
 $(DBDIGEST) : units utils/dbdigest.pp utils/teststr.pp utils/testu.pp utils/dbtests.pp
         $(FPC) -n -Fuunits -Fu../packages/base/mysql -FE. utils/dbdigest.pp
+endif
 endif
 
 ifndef DIGEST
@@ -260,9 +262,9 @@ info :
         @echo "  onlyknown - run only known bugs"
         @echo "  onlygraph - run only graph tests"
         @echo "  onlyinteractive - run only interactive tests"
-	@echo Done using FPC=$(FPC)
+        @echo Done using FPC=$(FPC)
 ifdef COMSPEC
-	@echo And using COMSPEC=$(COMSPEC)
+        @echo And using COMSPEC=$(COMSPEC)
 endif
 
 override DATESUFFIX:=$(shell $(DATE) +%Y.%m.%d)
