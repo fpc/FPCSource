@@ -48,7 +48,7 @@ implementation
      cutils,cclasses,
      globtype,comphook,systems,symsym,
      globals,verbose,fmodule,script,
-     import,link,i_os2;
+     import,link,i_os2,ppu;
 
   type
     timportlibos2=class(timportlib)
@@ -517,7 +517,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.2  2002-12-01 13:20:33  hajny
+  Revision 1.3  2002-12-01 16:19:16  carl
+    * fix compilation problems
+
+  Revision 1.2  2002/12/01 13:20:33  hajny
     * fix for not linked import libraries for units with no code
 
   Revision 1.1  2002/09/06 15:03:50  carl
