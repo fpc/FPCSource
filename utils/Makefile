@@ -58,7 +58,7 @@ ifdef inUnix
 PATHSEP=/
 else
 PATHSEP:=$(subst /,\,/)
-ifdef inCygWin
+ifneq ($(findstring sh.exe,$(SHELL)),)
 PATHSEP=/
 endif
 endif
@@ -206,6 +206,9 @@ PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/ext
 override PACKAGE_NAME=utils
 override PACKAGE_VERSION=1.0.6
 override TARGET_DIRS+=fpcm tply h2pas fprcp dxegen
+ifeq ($(OS_TARGET),win32)
+override TARGET_DIRS+=fpmc
+endif
 override TARGET_PROGRAMS+=ppdep ptop rstconv data2inc delp bin2obj postw32
 override CLEAN_UNITS+=ptopu
 override INSTALL_FPCPACKAGE=y
@@ -1503,6 +1506,9 @@ TARGET_DIRS_TPLY=1
 TARGET_DIRS_H2PAS=1
 TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
+ifeq ($(OS_TARGET),win32)
+TARGET_DIRS_FPMC=1
+endif
 ifdef TARGET_DIRS_FPCM
 fpcm_all:
 	$(MAKE) -C fpcm all
@@ -1717,6 +1723,49 @@ dxegen_makefiles:
 dxegen:
 	$(MAKE) -C dxegen all
 .PHONY: dxegen_all dxegen_debug dxegen_smart dxegen_release dxegen_examples dxegen_shared dxegen_install dxegen_sourceinstall dxegen_exampleinstall dxegen_distinstall dxegen_zipinstall dxegen_zipsourceinstall dxegen_zipexampleinstall dxegen_zipdistinstall dxegen_clean dxegen_distclean dxegen_cleanall dxegen_info dxegen_makefiles dxegen
+endif
+ifdef TARGET_DIRS_FPMC
+fpmc_all:
+	$(MAKE) -C fpmc all
+fpmc_debug:
+	$(MAKE) -C fpmc debug
+fpmc_smart:
+	$(MAKE) -C fpmc smart
+fpmc_release:
+	$(MAKE) -C fpmc release
+fpmc_examples:
+	$(MAKE) -C fpmc examples
+fpmc_shared:
+	$(MAKE) -C fpmc shared
+fpmc_install:
+	$(MAKE) -C fpmc install
+fpmc_sourceinstall:
+	$(MAKE) -C fpmc sourceinstall
+fpmc_exampleinstall:
+	$(MAKE) -C fpmc exampleinstall
+fpmc_distinstall:
+	$(MAKE) -C fpmc distinstall
+fpmc_zipinstall:
+	$(MAKE) -C fpmc zipinstall
+fpmc_zipsourceinstall:
+	$(MAKE) -C fpmc zipsourceinstall
+fpmc_zipexampleinstall:
+	$(MAKE) -C fpmc zipexampleinstall
+fpmc_zipdistinstall:
+	$(MAKE) -C fpmc zipdistinstall
+fpmc_clean:
+	$(MAKE) -C fpmc clean
+fpmc_distclean:
+	$(MAKE) -C fpmc distclean
+fpmc_cleanall:
+	$(MAKE) -C fpmc cleanall
+fpmc_info:
+	$(MAKE) -C fpmc info
+fpmc_makefiles:
+	$(MAKE) -C fpmc makefiles
+fpmc:
+	$(MAKE) -C fpmc all
+.PHONY: fpmc_all fpmc_debug fpmc_smart fpmc_release fpmc_examples fpmc_shared fpmc_install fpmc_sourceinstall fpmc_exampleinstall fpmc_distinstall fpmc_zipinstall fpmc_zipsourceinstall fpmc_zipexampleinstall fpmc_zipdistinstall fpmc_clean fpmc_distclean fpmc_cleanall fpmc_info fpmc_makefiles fpmc
 endif
 all: fpc_all $(addsuffix _all,$(TARGET_DIRS))
 debug: fpc_debug
