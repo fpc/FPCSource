@@ -22,5 +22,5 @@ begin
   if length(b)<>3 then
     err:=true;
   if err then
-    halt(1);  
+    halt(1);
 end.
