@@ -669,17 +669,24 @@ implementation
         v : boolean;
      begin
         case p^.treetype of
-         loadn : v:=(p^.symtableentry^.typ in [typedconstsym,varsym]);
-     typeconvn : v:=valid_for_formal_var(p^.left);
-         typen : v:=false;
-     derefn,subscriptn,vecn,
-     funcretn,selfn : v:=true;
-        { procvars are callnodes first }
-         calln : v:=assigned(p^.right) and not assigned(p^.left);
-        { should this depend on mode ? }
-         addrn : v:=true;
-        { no other node accepted (PM) }
-        else v:=false;
+         loadn :
+           v:=(p^.symtableentry^.typ in [typedconstsym,varsym]);
+         typeconvn :
+           v:=valid_for_formal_var(p^.left);
+         derefn,
+         subscriptn,
+         vecn,
+         funcretn,
+         selfn :
+           v:=true;
+         calln : { procvars are callnodes first }
+           v:=assigned(p^.right) and not assigned(p^.left);
+         addrn,
+         typen : { addrn is not allowed as this generate a constant value (PFV) }
+           v:=false;
+         { no other node accepted (PM) }
+         else
+           v:=false;
         end;
         valid_for_formal_var:=v;
      end;
@@ -690,10 +697,14 @@ implementation
      begin
         { p must have been firstpass'd before }
         { accept about anything but not a statement ! }
-        v:=true;
-        if (p^.treetype in [calln,statementn]) then
-      {  if not assigned(p^.resulttype) or (p^.resulttype=pdef(voiddef)) then }
-          v:=false;
+        case p^.treetype of
+          calln,
+          statementn,
+          addrn : { addrn is not allowed as this generate a constant value and not a reference (PFV) }
+            v:=false;
+          else
+            v:=true;
+        end;
         valid_for_formal_const:=v;
      end;
 
@@ -901,7 +912,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.60  2000-05-16 16:01:03  florian
+  Revision 1.61  2000-05-26 18:21:41  peter
+    * give error for @ with formal const,var parameter. Because @ generates
+      a constant value and not a reference
+
+  Revision 1.60  2000/05/16 16:01:03  florian
     * fixed type conversion test for open arrays: the to and from fields where
       exchanged which leads under certain circumstances to problems when
       passing arrays of classes/class references as open array parameters
