@@ -24,18 +24,17 @@ begin
   flock:=do_Syscall(Syscall_nr_flock,fd,mode);
 end;
 
-{
-Function StatFS(Path:Pathstr;Var Info:tstatfs):cint;
+
+Function StatFS(Path:Pchar;Var Info:tstatfs):cint;
 {
   Get all information on a fileSystem, and return it in Info.
   Path is the name of a file/directory on the fileSystem you wish to
   investigate.
 }
 begin
-  path:=path+#0;
-  StatFS:=(do_SysCall(SysCall_nr_statfs,longint(@path[1]),longint(@Info)));
+  StatFS:=(do_SysCall(SysCall_nr_statfs,longint(path),longint(@Info)));
 end;
-}
+
 Function fStatFS(Fd:cint;Var Info:tstatfs):cint;
 {
   Get all information on a fileSystem, and return it in Info.
@@ -118,7 +117,10 @@ end;
 
 {
   $Log$
-  Revision 1.23  2003-12-30 15:43:20  marco
+  Revision 1.24  2003-12-31 20:23:31  marco
+   * small fixes for exporting statfs(pchar,..)
+
+  Revision 1.23  2003/12/30 15:43:20  marco
    * linux now compiles with FPC_USE_LIBC
 
   Revision 1.22  2003/12/30 12:36:56  marco
