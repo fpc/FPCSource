@@ -1212,11 +1212,20 @@
                     l:=2
                    else
 {$endif}
-                   if (l>=4) and (modulo<>0) then
-                    inc(l,4-modulo)
+{
+                   if (cs_optimize in aktglobalswitches) and
+                      (aktoptprocessor in [classp5,classp6]) and
+                      (l>=8) and ((owner^.datasize and 7)<>0) then
+                     inc(owner^.datasize,8-(owner^.datasize and 7))
                    else
-                    if (l>=2) and ((modulo and 1)<>0) then
-                     inc(l,2-(modulo and 1));
+}
+                     begin
+                        if (l>=4) and (modulo<>0) then
+                          inc(l,4-modulo)
+                        else
+                          if (l>=2) and ((modulo and 1)<>0) then
+                            inc(l,2-(modulo and 1));
+                     end;
                    inc(owner^.datasize,l);
                    address:=owner^.datasize;
                  end;
@@ -1359,12 +1368,12 @@
                  end
                else
                  begin
-                   modulo:=owner^.datasize and 3 ;
-                   if (l>=4) and (modulo<>0) then
-                     inc(owner^.datasize,4-modulo)
-                   else
-                     if (l>=2) and ((modulo and 1)<>0) then
-                       inc(owner^.datasize);
+                     modulo:=owner^.datasize and 3;
+                     if (l>=4) and (modulo<>0) then
+                       inc(owner^.datasize,4-modulo)
+                     else
+                       if (l>=2) and ((modulo and 1)<>0) then
+                         inc(owner^.datasize);
                    address:=owner^.datasize;
                    inc(owner^.datasize,l);
                  end;
@@ -2131,7 +2140,13 @@
 
 {
   $Log$
-  Revision 1.121  1999-10-01 08:02:48  peter
+  Revision 1.122  1999-10-21 16:41:41  florian
+    * problems with readln fixed: esi wasn't restored correctly when
+      reading ordinal fields of objects futher the register allocation
+      didn't take care of the extra register when reading ordinal values
+    * enumerations can now be used in constant indexes of properties
+
+  Revision 1.121  1999/10/01 08:02:48  peter
     * forward type declaration rewritten
 
   Revision 1.120  1999/09/27 23:44:58  peter

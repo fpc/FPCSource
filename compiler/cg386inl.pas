@@ -82,7 +82,9 @@ implementation
         oldregisterdef : boolean;
       begin
         { Get the accumulator first so it can't be used in the dest }
-        hregister:=getexplicitregister32(accumulator);
+        if (dest^.resulttype^.deftype=orddef) and
+          not(is_64bitint(dest^.resulttype)) then
+          hregister:=getexplicitregister32(accumulator);
         { process dest }
         SecondPass(dest);
         if Codegenerror then
@@ -93,7 +95,7 @@ implementation
             floatstore(PFloatDef(dest^.resulttype)^.typ,dest^.location.reference);
           orddef:
             begin
-              if porddef(dest^.resulttype)^.typ in [u64bit,s64bit] then
+              if is_64bitint(dest^.resulttype) then
                 begin
                    emit_movq_reg_loc(R_EDX,R_EAX,dest^.location);
                 end
@@ -146,6 +148,7 @@ implementation
                     RegisterDef := OldRegisterDef;
                     disposetree(hp);
                   End;
+                 ungetregister(hregister);
                end;
             End;
           else
@@ -153,7 +156,6 @@ implementation
         end;
         { free used registers }
         del_locref(dest^.location);
-        ungetregister(hregister);
       end;
 
 
@@ -202,6 +204,8 @@ implementation
            dummycoll  : tdefcoll;
            iolabel    : pasmlabel;
            npara      : longint;
+           esireloaded : boolean;
+
         begin
            { here we don't use register calling conventions }
            dummycoll.register:=R_NO;
@@ -286,6 +290,7 @@ implementation
 
                 while assigned(node) do
                   begin
+                     esireloaded:=false;
                      pushusedregisters(pushed,$ff);
                      hp:=node;
                      node:=node^.right;
@@ -419,7 +424,11 @@ implementation
                                   dec(fpuvaroffset);
                                 }
                                 if doread then
-                                  StoreDirectFuncResult(hp^.left);
+                                  begin
+                                     maybe_loadesi;
+                                     esireloaded:=true;
+                                     StoreDirectFuncResult(hp^.left);
+                                  end;
                               end;
                             orddef :
                               begin
@@ -440,13 +449,18 @@ implementation
                                     emitcall(rdwrprefix[doread]+'BOOLEAN');
                                 end;
                                 if doread then
-                                  StoreDirectFuncResult(hp^.left);
+                                  begin
+                                     maybe_loadesi;
+                                     esireloaded:=true;
+                                     StoreDirectFuncResult(hp^.left);
+                                  end;
                               end;
                           end;
                        end;
                    { load ESI in methods again }
                      popusedregisters(pushed);
-                     maybe_loadesi;
+                     if not(esireloaded) then
+                       maybe_loadesi;
                   end;
              end;
          { Insert end of writing for textfiles }
@@ -1409,7 +1423,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.73  1999-09-28 20:48:23  florian
+  Revision 1.74  1999-10-21 16:41:38  florian
+    * problems with readln fixed: esi wasn't restored correctly when
+      reading ordinal fields of objects futher the register allocation
+      didn't take care of the extra register when reading ordinal values
+    * enumerations can now be used in constant indexes of properties
+
+  Revision 1.73  1999/09/28 20:48:23  florian
     * fixed bug 610
     + added $D- for TP in symtable.pas else it can't be compiled anymore
       (too much symbols :()

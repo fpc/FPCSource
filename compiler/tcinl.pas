@@ -55,6 +55,7 @@ implementation
          frac_para,length_para : ptree;
 {$endif ndef NOCOLONCHECK}
          store_count_ref,
+         extra_register,
          isreal,
          dowrite,
          store_valid,
@@ -625,6 +626,8 @@ implementation
                   { needs a call }
                   procinfo^.flags:=procinfo^.flags or pi_do_call;
                   p^.resulttype:=voiddef;
+                  { true, if readln needs an extra register }
+                  extra_register:=false;
                   { we must know if it is a typed file or not }
                   { but we must first do the firstpass for it }
                   file_is_typed:=false;
@@ -725,6 +728,9 @@ implementation
                                             else
                                               CGMessage(type_e_cant_read_write_type);
                                           end;
+                                          if not(dowrite) and
+                                            not(is_64bitint(hp^.left^.resulttype)) then
+                                            extra_register:=true;
                                         end;
                                       arraydef :
                                         begin
@@ -784,6 +790,8 @@ implementation
                        firstcallparan(p^.left,nil);
                        { calc registers }
                        left_right_max(p);
+                       if extra_register then
+                         inc(p^.registers32);
                     end;
                end;
 
@@ -1254,7 +1262,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.53  1999-09-28 20:48:27  florian
+  Revision 1.54  1999-10-21 16:41:41  florian
+    * problems with readln fixed: esi wasn't restored correctly when
+      reading ordinal fields of objects futher the register allocation
+      didn't take care of the extra register when reading ordinal values
+    * enumerations can now be used in constant indexes of properties
+
+  Revision 1.53  1999/09/28 20:48:27  florian
     * fixed bug 610
     + added $D- for TP in symtable.pas else it can't be compiled anymore
       (too much symbols :()

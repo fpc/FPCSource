@@ -797,6 +797,7 @@ parser_e_proc_directive_expected=E_Procedure directive expected
 %   p : procedure;stdcall=nil;
 %   p : procedure stdcall=nil;
 % \end{verbatim}
+parser_e_invalid_property_index_value=E_The value for a property index must be of an ordinal type
 % \end{description}
 #
 # Type Checking

@@ -2787,6 +2787,32 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          end;
    end;
 
+  var
+     ls : longint;
+
+  procedure largest_size(p : pnamedindexobject);{$ifndef FPC}far;{$endif}
+
+    begin
+       if (psym(p)^.typ=varsym) and
+         (pvarsym(p)^.getsize>ls) then
+         ls:=pvarsym(p)^.getsize;
+    end;
+
+  procedure alignstack(alist : paasmoutput);
+
+    begin
+{$ifdef dummy}
+       if (cs_optimize in aktglobalswitches) and
+         (aktoptprocessor in [classp5,classp6]) then
+         begin
+            ls:=0;
+            aktprocsym^.definition^.localst^.foreach({$ifndef TP}@{$endif}largest_size);
+            if ls>=8 then
+              alist^.insert(new(paicpu,op_const_reg(A_AND,S_L,-8,R_ESP)));
+         end;
+{$endif dummy}
+    end;
+
   procedure genentrycode(alist : paasmoutput;const proc_names:Tstringcontainer;make_global:boolean;
                          stackframe:longint;
                          var parasize:longint;var nostackframe:boolean;
@@ -2899,6 +2925,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
           end
       else
           begin
+              alignstack(alist);
               if (aktprocsym^.definition^.proctypeoption in [potype_unitinit,potype_proginit,potype_unitfinalize]) then
                 parasize:=0
               else
@@ -3419,7 +3446,13 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.54  1999-10-21 14:29:32  peter
+  Revision 1.55  1999-10-21 16:41:38  florian
+    * problems with readln fixed: esi wasn't restored correctly when
+      reading ordinal fields of objects futher the register allocation
+      didn't take care of the extra register when reading ordinal values
+    * enumerations can now be used in constant indexes of properties
+
+  Revision 1.54  1999/10/21 14:29:32  peter
     * redesigned linker object
     + library support for linux (only procedures can be exported)
 

@@ -212,6 +212,7 @@ type tmsgconst=(
   parser_e_ill_property_storage_sym,
   parser_e_only_publishable_classes_can__be_published,
   parser_e_proc_directive_expected,
+  parser_e_invalid_property_index_value,
   type_e_mismatch,
   type_e_incompatible_types,
   type_e_not_equal_types,

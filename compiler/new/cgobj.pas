@@ -1,3 +1,5 @@
+stack alignment !!!!!!
+
 {
     $Id$
     Copyright (c) 1993-99 by Florian Klaempfl
@@ -1108,7 +1110,13 @@ unit cgobj;
 end.
 {
   $Log$
-  Revision 1.28  1999-10-12 21:20:46  florian
+  Revision 1.29  1999-10-21 16:41:41  florian
+    * problems with readln fixed: esi wasn't restored correctly when
+      reading ordinal fields of objects futher the register allocation
+      didn't take care of the extra register when reading ordinal values
+    * enumerations can now be used in constant indexes of properties
+
+  Revision 1.28  1999/10/12 21:20:46  florian
     * new codegenerator compiles again
 
   Revision 1.27  1999/09/29 11:46:20  florian

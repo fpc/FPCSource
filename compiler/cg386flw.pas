@@ -282,7 +282,7 @@ implementation
 
          { align loop target }
          if not(cs_littlesize in aktglobalswitches) then
-           exprasmlist^.concat(new(pai_align,init(4)));
+           exprasmlist^.concat(new(pai_align,init_op(4,$90)));
 
          emitlab(l3);
 
@@ -818,7 +818,13 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.53  1999-10-05 22:01:52  pierre
+  Revision 1.54  1999-10-21 16:41:37  florian
+    * problems with readln fixed: esi wasn't restored correctly when
+      reading ordinal fields of objects futher the register allocation
+      didn't take care of the extra register when reading ordinal values
+    * enumerations can now be used in constant indexes of properties
+
+  Revision 1.53  1999/10/05 22:01:52  pierre
    * bug exit('test') + fail for classes
 
   Revision 1.52  1999/09/27 23:44:46  peter

@@ -1134,20 +1134,24 @@ unit pdecl;
                      if (idtoken=_INDEX) then
                        begin
                           consume(_INDEX);
+                          pt:=comp_expr(true);
+                          do_firstpass(pt);
+                          if not(is_ordinal(pt^.resulttype)) or
+                             is_64bitint(pt^.resulttype) then
+                            Message(parser_e_invalid_property_index_value);
+                          p^.index:=pt^.value;
 {$ifdef INCLUDEOK}
                           include(p^.propoptions,ppo_indexed);
 {$else}
                           p^.propoptions:=p^.propoptions+[ppo_indexed];
 {$endif}
-                          if token=_INTCONST then
-                            val(pattern,p^.index,code);
-                          consume(_INTCONST);
                           { concat a longint to the para template }
                           new(hp2);
                           hp2^.paratyp:=vs_value;
-                          hp2^.data:=s32bitdef;
+                          hp2^.data:=pt^.resulttype;
                           hp2^.next:=propertyparas;
                           propertyparas:=hp2;
+                          disposetree(pt);
                        end;
                   end
                 else
@@ -2617,7 +2621,13 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.164  1999-10-14 14:57:52  florian
+  Revision 1.165  1999-10-21 16:41:41  florian
+    * problems with readln fixed: esi wasn't restored correctly when
+      reading ordinal fields of objects futher the register allocation
+      didn't take care of the extra register when reading ordinal values
+    * enumerations can now be used in constant indexes of properties
+
+  Revision 1.164  1999/10/14 14:57:52  florian
     - removed the hcodegen use in the new cg, use cgbase instead
 
   Revision 1.163  1999/10/06 17:39:14  peter
