@@ -47,7 +47,7 @@ type
   TVideoCell = Word;
   PVideoCell = ^TVideoCell;
 
-  TVideoBuf = array[0..3999] of TVideoCell;
+  TVideoBuf = array[0..32767] of TVideoCell;
   PVideoBuf = ^TVideoBuf;
 
 const
@@ -223,7 +223,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:39  michael
+  Revision 1.2  2000-09-24 19:52:21  hajny
+    * max TVideoBuf size extended
+
+  Revision 1.1  2000/07/13 06:29:39  michael
   + Initial import
 
   Revision 1.3  2000/02/29 11:43:16  pierre
