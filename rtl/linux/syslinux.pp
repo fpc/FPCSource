@@ -601,7 +601,11 @@ var
   dotdotino    : longint;
   rootdev,
   thisdev,
-  dotdotdev    : word;
+  {$ifdef bsd}
+   dotdotdev    : longint;
+  {$else}
+   dotdotdev    : word;
+  {$endif}
   thedir,dummy : string[255];
   dirstream    : pdir;
   d            : pdirent;
@@ -865,7 +869,10 @@ End.
 
 {
   $Log$
-  Revision 1.44  2000-04-14 13:04:53  marco
+  Revision 1.45  2000-04-16 16:07:58  marco
+   * BSD fixes
+
+  Revision 1.44  2000/04/14 13:04:53  marco
    * Merged bsd/syslinux.pp and 1.43 linux/syslinux.pp to this file with ifdefs
 
   Revision 1.43  2000/04/07 14:56:36  peter
