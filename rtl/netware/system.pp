@@ -15,11 +15,6 @@
 {$S-}
 unit system;
 
-{ 2000/09/03 armin: first version
-  2001/03/08 armin: changes for fpc 1.1
-  2001/04/16 armin: dummy envp for heaptrc-unit
-}
-
 interface
 
 {$ifdef SYSTEMDEBUG}
@@ -39,8 +34,8 @@ interface
 {Why the hell do i have to define that ???
  otherwise FPC_FREEMEM expects 2 parameters but the compiler only
  puhes the address}
-{$DEFINE NEWMM}
-{$I heaph.inc}
+{  DEFINE NEWMM}
+{  I heaph.inc}
 
 {Platform specific information}
 const
@@ -51,6 +46,21 @@ const
  PathSeparator = ';';
 { FileNameCaseSensitive is defined separately below!!! }
 
+type
+   { the fields of this record are os dependent  }
+   { and they shouldn't be used in a program     }
+   { only the type TCriticalSection is important }
+   TRTLCriticalSection = packed record
+      SemaHandle : LONGINT;
+      SemaIsOpen : BOOLEAN;
+   end;
+
+{ include threading stuff }
+{$i threadh.inc}
+
+{ include heap support headers }
+{$I heaph.inc}
+
 CONST
   { Default filehandles }
    UnusedHandle    : longint = -1;
@@ -60,7 +70,7 @@ CONST
 
    FileNameCaseSensitive : boolean = false;
 
-   sLineBreak : STRING [2] = LineEnding;
+   sLineBreak : STRING = LineEnding;
    DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCRLF;
 
 VAR
@@ -82,6 +92,8 @@ end;}
 { include system independent routines }
 
 {$I system.inc}
+
+{ some declarations for Netware API calls }
 {$I nwsys.inc}
 {$I errno.inc}
 
@@ -112,13 +124,19 @@ BEGIN
 END;
 
 
-
+{$ifdef MT}
+PROCEDURE CloseAllRemainingSemaphores; FORWARD;
+{$endif}
 
 {*****************************************************************************
                          System Dependent Exit code
 *****************************************************************************}
 Procedure system_exit;
 begin
+  {ConsolePrintf ('system_exit called'#13#10,0);}
+  {$ifdef MT}
+  CloseAllRemainingSemaphores;
+  {$endif}
   _exit (ExitCode);
 end;
 
@@ -541,19 +559,46 @@ begin
     InOutRes := 1;
 end;
 
+
+{*****************************************************************************
+                             Thread Handling
+*****************************************************************************}
+
+const
+  fpucw : word = $1332;
+
+procedure InitFPU;assembler;
+
+  asm
+     fninit
+     fldcw   fpucw
+  end;
+
+
+{ include threading stuff, this is os dependend part }
+{$I thread.inc}
+
+
+
 {*****************************************************************************
                          SystemUnit Initialization
 *****************************************************************************}
 
 Begin
+_EnterDebugger;
+{$ifdef MT}
+  { the exceptions use threadvars so do this _before_ initexceptions }
+  AllocateThreadVars;
+{$endif MT}
+
 { Setup heap }
   InitHeap;
+  InitExceptions;
+
 { Setup stdin, stdout and stderr }
   StdInputHandle := _fileno (LONGINT (_GetStdIn^));    // GetStd** returns **FILE !
   StdOutputHandle:= _fileno (LONGINT (_GetStdOut^));
   StdErrorHandle := _fileno (LONGINT (_GetStdErr^));
-
-  InitExceptions;
 
   OpenStdIO(Input,fmInput,StdInputHandle);
   OpenStdIO(Output,fmOutput,StdOutputHandle);
@@ -570,7 +615,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.5  2001-06-18 14:26:16  jonas
+  Revision 1.6  2002-03-08 19:13:49  armin
+  * changes for current rtl, basic MT support
+
+  Revision 1.5  2001/06/18 14:26:16  jonas
     * move platform independent constant declarations after inclusion of
       systemh.inc
 
