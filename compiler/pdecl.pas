@@ -1070,7 +1070,7 @@ unit pdecl;
          hfp        : pforwardpointer;
          oldprocsym : pprocsym;
          oldparse_only : boolean;
-         strmessagetable,classnamelabel : plabel;
+         intmessagetable,strmessagetable,classnamelabel : plabel;
          storetypeforwardsallowed : boolean;
          pt : ptree;
 
@@ -1481,12 +1481,14 @@ unit pdecl;
 
               { generate message and dynamic tables }
               strmessagetable:=genstrmsgtab(aktclass);
+              intmessagetable:=genintmsgtab(aktclass);
 
               { table for string messages }
               datasegment^.concat(new(pai_const,init_symbol(strpnew(lab2str(strmessagetable)))));
 
               { interface table }
               datasegment^.concat(new(pai_const,init_32bit(0)));
+
               { auto table }
               datasegment^.concat(new(pai_const,init_32bit(0)));
 
@@ -1506,8 +1508,10 @@ unit pdecl;
               datasegment^.concat(new(pai_const,init_32bit(0)));
               { pointer to method table }
               datasegment^.concat(new(pai_const,init_32bit(0)));
+
               { pointer to dynamic table }
-              datasegment^.concat(new(pai_const,init_32bit(0)));
+              datasegment^.concat(new(pai_const,init_symbol(strpnew(lab2str(intmessagetable)))));
+
               { pointer to class name string }
               datasegment^.concat(new(pai_const,init_symbol(strpnew(lab2str(classnamelabel)))));
            end;
@@ -2189,7 +2193,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.98  1999-02-22 20:13:36  florian
+  Revision 1.99  1999-02-22 23:33:29  florian
+    + message directive for integers added
+
+  Revision 1.98  1999/02/22 20:13:36  florian
     + first implementation of message keyword
 
   Revision 1.97  1999/02/22 02:44:10  peter

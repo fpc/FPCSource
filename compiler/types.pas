@@ -126,8 +126,9 @@ unit types;
     { generates a VMT for _class }
     procedure genvmt(_class : pobjectdef);
 
-    { generates the message table for a class }
+    { generates the message tables for a class }
     function genstrmsgtab(_class : pobjectdef) : plabel;
+    function genintmsgtab(_class : pobjectdef) : plabel;
 
     { some type helper routines for MMX support }
     function is_mmx_able_array(p : pdef) : boolean;
@@ -783,7 +784,7 @@ unit types;
        root : pprocdeftree;
        count : longint;
 
-    procedure insert(p : pprocdeftree;var at : pprocdeftree);
+    procedure insertstr(p : pprocdeftree;var at : pprocdeftree);
 
       var
          i : longint;
@@ -798,9 +799,9 @@ unit types;
            begin
               i:=strcomp(p^.p^.messageinf.str,at^.p^.messageinf.str);
               if i<0 then
-                insert(p,at^.l)
+                insertstr(p,at^.l)
               else if i>0 then
-                insert(p,at^.r)
+                insertstr(p,at^.r)
               else
                 Message1(parser_e_duplicate_message_label,strpas(p^.p^.messageinf.str));
            end;
@@ -834,7 +835,7 @@ unit types;
                         pt^.p:=hp;
                         pt^.l:=nil;
                         pt^.r:=nil;
-                        insert(pt,root);
+                        insertstr(pt,root);
                      end;
                    hp:=hp^.nextoverloaded;
                 end;
@@ -884,7 +885,8 @@ unit types;
          _class^.publicsyms^.foreach(insertmsgstr);
 
          { write all names }
-         writenames(root);
+         if assigned(root) then
+           writenames(root);
 
          { now start writing of the message string table }
          getlabel(r);
@@ -894,6 +896,95 @@ unit types;
          if assigned(root) then
            begin
               writestrentry(root);
+              disposeprocdeftree(root);
+           end;
+      end;
+
+    procedure insertint(p : pprocdeftree;var at : pprocdeftree);
+
+      var
+         i : longint;
+
+      begin
+         if at=nil then
+           begin
+              at:=p;
+              inc(count);
+           end
+         else
+           begin
+              i:=strcomp(p^.p^.messageinf.str,at^.p^.messageinf.str);
+              if p^.p^.messageinf.i<at^.p^.messageinf.i then
+                insertstr(p,at^.l)
+              else if p^.p^.messageinf.i>at^.p^.messageinf.i then
+                insertstr(p,at^.r)
+              else
+                Message1(parser_e_duplicate_message_label,tostr(p^.p^.messageinf.i));
+           end;
+      end;
+
+    procedure writeintentry(p : pprocdeftree);
+
+      begin
+         if assigned(p^.l) then
+           writeintentry(p^.l);
+
+         { write name label }
+         datasegment^.concat(new(pai_const,init_32bit(p^.p^.messageinf.i)));
+
+         datasegment^.concat(new(pai_const,
+           init_symbol(strpnew(p^.p^.mangledname))));
+         maybe_concat_external(p^.p^.owner,p^.p^.mangledname);
+
+         if assigned(p^.r) then
+           writeintentry(p^.r);
+      end;
+
+    procedure insertmsgint(p : psym);{$ifndef FPC}far;{$endif FPC}
+
+      var
+         hp : pprocdef;
+         pt : pprocdeftree;
+
+      begin
+         if p^.typ=procsym then
+           begin
+              hp:=pprocsym(p)^.definition;
+              while assigned(hp) do
+                begin
+                   if (hp^.options and pomsgint)<>0 then
+                     begin
+                        new(pt);
+                        pt^.p:=hp;
+                        pt^.l:=nil;
+                        pt^.r:=nil;
+                        insertint(pt,root);
+                     end;
+                   hp:=hp^.nextoverloaded;
+                end;
+           end;
+      end;
+
+    function genintmsgtab(_class : pobjectdef) : plabel;
+
+
+      var
+         r : plabel;
+
+      begin
+         root:=nil;
+         count:=0;
+         { insert all message handlers into a tree, sorted by name }
+         _class^.publicsyms^.foreach(insertmsgint);
+
+         { now start writing of the message string table }
+         getlabel(r);
+         datasegment^.concat(new(pai_label,init(r)));
+         genintmsgtab:=r;
+         datasegment^.concat(new(pai_const,init_32bit(count)));
+         if assigned(root) then
+           begin
+              writeintentry(root);
               disposeprocdeftree(root);
            end;
       end;
@@ -1193,7 +1284,10 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.50  1999-02-22 20:13:42  florian
+  Revision 1.51  1999-02-22 23:33:31  florian
+    + message directive for integers added
+
+  Revision 1.50  1999/02/22 20:13:42  florian
     + first implementation of message keyword
 
   Revision 1.49  1999/02/16 00:45:30  peter
