@@ -7941,7 +7941,7 @@ begin
   if (r = 0) then
     result := ''
   else
-    result := string(s^);
+    result := strpas(s);
 end;
 
 procedure TFPgtkCList.SetCellText (Row:integer; Column:integer; TheValue:string);
