@@ -7,7 +7,7 @@
 {$mode delphi}
 procedure p;
 asm
-  and [eax],$ff0000000
+  and [eax],$ff000000
   and [edx + ebx + 3], $0000ffff
   and [edx + 3], $00ffffff
 end;
