@@ -34,6 +34,9 @@ unit cgobj;
 
        pcg = ^tcg;
        tcg = object
+          constructor init;
+          destructor done;virtual;
+
           procedure a_call_name_ext(list : paasmoutput;const s : string;
             offset : longint;m : texternal_typ);
 
@@ -75,7 +78,7 @@ unit cgobj;
           procedure a_load_const64_ref(list : paasmoutput;q : qword;const ref : treference);virtual;
 
 
-          procedure g_stackframe_entry(list : paasmoutput;localsize : longint);
+          procedure g_stackframe_entry(list : paasmoutput;localsize : longint);virtual;
           procedure g_maybe_loadself(list : paasmoutput);virtual;
 
           {********************************************************}
@@ -112,6 +115,16 @@ unit cgobj;
        ,tgeni386
 {$endif i386}
        ;
+
+    constructor tcg.init;
+
+      begin
+      end;
+
+    destructor tcg.done;
+
+      begin
+      end;
 
 {*****************************************************************************
                   per default, this methods nothing, can overriden
@@ -534,7 +547,7 @@ unit cgobj;
       var
          hs : string;
          hp : pused_unit;
-         unitinits,initcode : taasmoutput;
+         initcode : taasmoutput;
 {$ifdef GDB}
          stab_function_name : Pai_stab_function_name;
 {$endif GDB}
@@ -552,61 +565,6 @@ unit cgobj;
                 if not(cs_littlesize in aktglobalswitches) then
                   list^.insert(new(pai_align,init(4)));
           end;
-          if (not inlined) and ((aktprocsym^.definition^.options and poproginit)<>0) then
-            begin
-
-              { needs the target a console flags ? }
-              if tf_needs_isconsole in target_info.flags then
-                begin
-                   hr.symbol:=stringdup('U_'+target_info.system_unit+'_ISCONSOLE');
-                   if apptype=at_cui then
-                     a_load_const8_ref(list,1,hr)
-                   else
-                     a_load_const8_ref(list,0,hr);
-                   stringdispose(hr.symbol);
-                end;
-
-              { Call the unit init procedures }
-              unitinits.init;
-
-              hp:=pused_unit(usedunits.first);
-              while assigned(hp) do
-                begin
-                   { call the unit init code and make it external }
-                   if (hp^.u^.flags and uf_init)<>0 then
-                     a_call_name_ext(@unitinits,
-                       'INIT$$'+hp^.u^.modulename^,0,EXT_NEAR);
-                    hp:=Pused_unit(hp^.next);
-                end;
-              list^.insertlist(@unitinits);
-              unitinits.done;
-           end;
-
-         { a constructor needs a help procedure }
-         if (aktprocsym^.definition^.options and poconstructor)<>0 then
-           begin
-             if procinfo._class^.isclass then
-               begin
-                 list^.insert(new(pai_labeled,init(A_JZ,quickexitlabel)));
-                 list^.insert(new(pai386,op_csymbol(A_CALL,S_NO,
-                   newcsymbol('FPC_NEW_CLASS',0))));
-                 concat_external('FPC_NEW_CLASS',EXT_NEAR);
-               end
-             else
-               begin
-                 list^.insert(new(pai_labeled,init(A_JZ,quickexitlabel)));
-                 list^.insert(new(pai386,op_csymbol(A_CALL,S_NO,
-                   newcsymbol('FPC_HELP_CONSTRUCTOR',0))));
-                 list^.insert(new(pai386,op_const_reg(A_MOV,S_L,procinfo._class^.vmt_offset,R_EDI)));
-                 concat_external('FPC_HELP_CONSTRUCTOR',EXT_NEAR);
-               end;
-           end;
-
-  {$ifdef GDB}
-         if (cs_debuginfo in aktmoduleswitches) then
-           list^.insert(new(pai_force_line,init));
-  {$endif GDB}
-
          { save registers on cdecl }
          if ((aktprocsym^.definition^.options and pocdecl)<>0) then
            begin
@@ -622,7 +580,6 @@ unit cgobj;
                        a_push_reg(list,r);
                 end;
            end;
-
         { omit stack frame ? }
         if not inlined then
           if procinfo.framepointer=stack_pointer then
@@ -654,6 +611,55 @@ unit cgobj;
 
          if cs_profile in aktmoduleswitches then
            g_profilecode(@initcode);
+          if (not inlined) and ((aktprocsym^.definition^.options and poproginit)<>0) then
+            begin
+
+              { needs the target a console flags ? }
+              if tf_needs_isconsole in target_info.flags then
+                begin
+                   hr.symbol:=stringdup('U_'+target_info.system_unit+'_ISCONSOLE');
+                   if apptype=at_cui then
+                     a_load_const8_ref(list,1,hr)
+                   else
+                     a_load_const8_ref(list,0,hr);
+                   stringdispose(hr.symbol);
+                end;
+
+              hp:=pused_unit(usedunits.first);
+              while assigned(hp) do
+                begin
+                   { call the unit init code and make it external }
+                   if (hp^.u^.flags and uf_init)<>0 then
+                     a_call_name_ext(list,
+                       'INIT$$'+hp^.u^.modulename^,0,EXT_NEAR);
+                    hp:=Pused_unit(hp^.next);
+                end;
+           end;
+
+         { a constructor needs a help procedure }
+         if (aktprocsym^.definition^.options and poconstructor)<>0 then
+           begin
+             if procinfo._class^.isclass then
+               begin
+                 list^.insert(new(pai_labeled,init(A_JZ,quickexitlabel)));
+                 list^.insert(new(pai386,op_csymbol(A_CALL,S_NO,
+                   newcsymbol('FPC_NEW_CLASS',0))));
+                 concat_external('FPC_NEW_CLASS',EXT_NEAR);
+               end
+             else
+               begin
+                 list^.insert(new(pai_labeled,init(A_JZ,quickexitlabel)));
+                 list^.insert(new(pai386,op_csymbol(A_CALL,S_NO,
+                   newcsymbol('FPC_HELP_CONSTRUCTOR',0))));
+                 list^.insert(new(pai386,op_const_reg(A_MOV,S_L,procinfo._class^.vmt_offset,R_EDI)));
+                 concat_external('FPC_HELP_CONSTRUCTOR',EXT_NEAR);
+               end;
+           end;
+
+  {$ifdef GDB}
+         if (cs_debuginfo in aktmoduleswitches) then
+           list^.insert(new(pai_force_line,init));
+  {$endif GDB}
 
          { initialize return value }
          if is_ansistring(procinfo.retdef) or
@@ -925,7 +931,11 @@ unit cgobj;
 end.
 {
   $Log$
-  Revision 1.4  1999-01-13 22:52:36  florian
+  Revision 1.5  1999-01-23 23:29:46  florian
+    * first running version of the new code generator
+    * when compiling exceptions under Linux fixed
+
+  Revision 1.4  1999/01/13 22:52:36  florian
     + YES, finally the new code generator is compilable, but it doesn't run yet :(
 
   Revision 1.3  1998/12/26 15:20:30  florian

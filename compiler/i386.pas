@@ -207,9 +207,16 @@ unit i386;
          R_ST,R_ST0,R_ST1,R_ST2,R_ST3,R_ST4,R_ST5,R_ST6,R_ST7,
          R_MM0,R_MM1,R_MM2,R_MM3,R_MM4,R_MM5,R_MM6,R_MM7,
          R_XMM0,R_XMM1,R_XMM2,R_XMM3,R_XMM4,R_XMM5,R_XMM6,R_XMM7);
+
+       tregisterset = set of tregister;
+
     const
        firstreg = low(tregister);
        lastreg  = high(tregister);
+
+       regset8bit : tregisterset = [R_AL..R_DH];
+       regset16bit : tregisterset = [R_AX..R_DI,R_CS..R_SS];
+       regset32bit : tregisterset = [R_EAX..R_EDI];
 
     type
        { S_NO = No Size of operand }
@@ -462,6 +469,9 @@ unit i386;
 
     { can be ignored on 32 bit systems }
     function regtoreg64(reg : tregister) : tregister;
+
+    { returns the operand prefix for a given register }
+    function regsize(reg : tregister) : topsize;
 
     { resets all values of ref to defaults }
     procedure reset_reference(var ref : treference);
@@ -1327,6 +1337,17 @@ unit i386;
         internalerror(6464);
      end;
 
+    function regsize(reg : tregister) : topsize;
+
+      begin
+         if reg in regset8bit then
+           regsize:=S_B
+         else if reg in regset16bit then
+           regsize:=S_W
+         else if reg in regset32bit then
+           regsize:=S_L;
+      end;
+
     procedure reset_reference(var ref : treference);
 
       begin
@@ -1954,7 +1975,11 @@ Begin
 end.
 {
   $Log$
-  Revision 1.30  1999-01-19 10:50:01  pierre
+  Revision 1.31  1999-01-23 23:29:31  florian
+    * first running version of the new code generator
+    * when compiling exceptions under Linux fixed
+
+  Revision 1.30  1999/01/19 10:50:01  pierre
    * avoid result no set warning in regtoreg64
 
   Revision 1.29  1999/01/19 10:19:02  florian

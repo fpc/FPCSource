@@ -108,84 +108,6 @@ implementation
       end;
 
 
-    procedure firstblock(var p : ptree);
-      var
-         hp : ptree;
-         count : longint;
-      begin
-         count:=0;
-         hp:=p^.left;
-         while assigned(hp) do
-           begin
-              if cs_regalloc in aktglobalswitches then
-                begin
-                   { Codeumstellungen }
-
-                   { Funktionsresultate an exit anh„ngen }
-                   { this is wrong for string or other complex
-                     result types !!! }
-                   if ret_in_acc(procinfo.retdef) and
-                      assigned(hp^.left) and
-                      (hp^.left^.right^.treetype=exitn) and
-                      (hp^.right^.treetype=assignn) and
-                      (hp^.right^.left^.treetype=funcretn) then
-                      begin
-                         if assigned(hp^.left^.right^.left) then
-                           CGMessage(cg_n_inefficient_code)
-                         else
-                           begin
-                              hp^.left^.right^.left:=getcopy(hp^.right^.right);
-                              disposetree(hp^.right);
-                              hp^.right:=nil;
-                           end;
-                      end
-                   { warning if unreachable code occurs and elimate this }
-                   else if (hp^.right^.treetype in
-                     [exitn,breakn,continuen,goton]) and
-                     assigned(hp^.left) and
-                     (hp^.left^.treetype<>labeln) then
-                     begin
-                        { use correct line number }
-                        aktfilepos:=hp^.left^.fileinfo;
-                        disposetree(hp^.left);
-                        hp^.left:=nil;
-                        CGMessage(cg_w_unreachable_code);
-                        { old lines }
-                        aktfilepos:=hp^.right^.fileinfo;
-                     end;
-                end;
-              if assigned(hp^.right) then
-                begin
-                   cleartempgen;
-                   firstpass(hp^.right);
-                   if (not (cs_extsyntax in aktmoduleswitches)) and
-                      assigned(hp^.right^.resulttype) and
-                      (hp^.right^.resulttype<>pdef(voiddef)) then
-                     CGMessage(cg_e_illegal_expression);
-                   if codegenerror then
-                     exit;
-                   hp^.registers32:=hp^.right^.registers32;
-                   hp^.registersfpu:=hp^.right^.registersfpu;
-{$ifdef SUPPORT_MMX}
-                   hp^.registersmmx:=hp^.right^.registersmmx;
-{$endif SUPPORT_MMX}
-                end
-              else
-                hp^.registers32:=0;
-
-              if hp^.registers32>p^.registers32 then
-                p^.registers32:=hp^.registers32;
-              if hp^.registersfpu>p^.registersfpu then
-                p^.registersfpu:=hp^.registersfpu;
-{$ifdef SUPPORT_MMX}
-              if hp^.registersmmx>p^.registersmmx then
-                p^.registersmmx:=hp^.registersmmx;
-{$endif}
-              inc(count);
-              hp:=hp^.left;
-           end;
-      end;
-
     procedure firstasm(var p : ptree);
 
       begin
@@ -298,7 +220,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  1999-01-13 22:52:37  florian
+  Revision 1.3  1999-01-23 23:29:48  florian
+    * first running version of the new code generator
+    * when compiling exceptions under Linux fixed
+
+  Revision 1.2  1999/01/13 22:52:37  florian
     + YES, finally the new code generator is compilable, but it doesn't run yet :(
 
   Revision 1.1  1998/12/26 15:20:31  florian

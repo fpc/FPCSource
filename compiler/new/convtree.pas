@@ -34,7 +34,7 @@ unit convtree;
   implementation
 
     uses
-       verbose;
+       verbose,nstatmnt;
 
     function convtree2node(p : ptree) : pnode;
 
@@ -59,7 +59,11 @@ unit convtree;
 end.
 {
   $Log$
-  Revision 1.2  1999-01-19 10:19:04  florian
+  Revision 1.3  1999-01-23 23:29:47  florian
+    * first running version of the new code generator
+    * when compiling exceptions under Linux fixed
+
+  Revision 1.2  1999/01/19 10:19:04  florian
     * bug with mul. of dwords fixed, reported by Alexander Stohr
     * some changes to compile with TP
     + small enhancements for the new code generator

@@ -846,10 +846,12 @@
          var_options:=0;
          { can we load the value into a register ? }
          case p^.deftype of
-        pointerdef,
+           pointerdef,
            enumdef,
-        procvardef : var_options:=var_options or vo_regable;
-            orddef : case porddef(p)^.typ of
+           procvardef:
+             var_options:=var_options or vo_regable;
+
+           orddef: case porddef(p)^.typ of
                        u8bit,u16bit,u32bit,
                        bool8bit,bool16bit,bool32bit,
                        s8bit,s16bit,s32bit :
@@ -857,6 +859,9 @@
                      else
                        var_options:=var_options and not vo_regable;
                      end;
+           setdef:
+             if psetdef(p)^.settype=smallset then
+               var_options:=var_options or vo_regable;
          else
            var_options:=var_options and not vo_regable;
          end;
@@ -1764,7 +1769,11 @@
 
 {
   $Log$
-  Revision 1.70  1999-01-21 22:10:48  peter
+  Revision 1.71  1999-01-23 23:29:41  florian
+    * first running version of the new code generator
+    * when compiling exceptions under Linux fixed
+
+  Revision 1.70  1999/01/21 22:10:48  peter
     * fixed array of const
     * generic platform independent high() support
 

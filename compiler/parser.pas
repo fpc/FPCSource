@@ -44,7 +44,7 @@ unit parser;
 
     const
        parser_current_file : string = '';
-       
+
   implementation
 
     uses
@@ -61,6 +61,12 @@ unit parser;
 {$ifdef UseExcept}
       tpexcept,compiler,
 {$endif UseExcept}
+{$ifdef newcg}
+      cgobj,
+  {$ifdef i386}
+      cg386,
+  {$endif i386}
+{$endif newcg}
       tree,scanner,pbase,pdecl,psystem,pmodules;
 
 
@@ -169,6 +175,9 @@ unit parser;
          recoverpos    : jmp_buf;
          oldrecoverpos : pjmp_buf;
 {$endif useexcept}
+{$ifdef newcg}
+         oldcg         : pcg;
+{$endif newcg}
 
       begin
          inc(compile_level);
@@ -214,7 +223,9 @@ unit parser;
          oldaktasmmode:=aktasmmode;
          oldaktfilepos:=aktfilepos;
          oldaktmodeswitches:=aktmodeswitches;
-
+{$ifdef newcg}
+         oldcg:=cg;
+{$endif newcg}
        { show info }
          Message1(parser_i_compiling,filename);
 
@@ -267,7 +278,11 @@ unit parser;
 
        { init code generator for a new module }
          codegen_newmodule;
-
+{$ifdef newcg}
+{$ifdef i386}
+         cg:=new(pcg386,init);
+{$endif i386}
+{$endif newcg}
        { Handle things which need to be once }
          if (compile_level=1) then
           begin
@@ -314,6 +329,10 @@ unit parser;
          it's the default to release the trees }
          codegen_donemodule;
 
+{$ifdef newcg}
+         dispose(cg,done);
+{$endif newcg}
+
        { free ppu }
          if assigned(current_module^.ppufile) then
           begin
@@ -333,6 +352,9 @@ unit parser;
 
          if (compile_level>1) then
            begin
+{$ifdef newcg}
+              cg:=oldcg;
+{$endif newcg}
               { restore scanner }
               c:=oldc;
               pattern:=oldpattern;
@@ -424,7 +446,11 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.65  1999-01-22 12:19:31  pierre
+  Revision 1.66  1999-01-23 23:29:35  florian
+    * first running version of the new code generator
+    * when compiling exceptions under Linux fixed
+
+  Revision 1.65  1999/01/22 12:19:31  pierre
    + currently compiled file name added on errors
 
   Revision 1.64  1999/01/12 14:25:29  peter

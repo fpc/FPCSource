@@ -386,7 +386,7 @@ implementation
                                begin
                                   { it is nonsens, to copy the variable to }
                                   { a register because we need then much   }
-                                  { pushes ?                               }
+                                  { too pushes ?                           }
                                   if reg_pushes[varregs[i]]>=regvars[i]^.refs then
                                     begin
                                        regvars[i]:=nil;
@@ -495,7 +495,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  1998-12-30 13:41:09  peter
+  Revision 1.14  1999-01-23 23:29:37  florian
+    * first running version of the new code generator
+    * when compiling exceptions under Linux fixed
+
+  Revision 1.13  1998/12/30 13:41:09  peter
     * released valuepara
 
   Revision 1.12  1998/12/19 00:23:51  florian

@@ -281,12 +281,13 @@ unit tree;
           tunarynode = object(tnode)
              left : pnode;
              procedure dowrite;virtual;
-            constructor init(l : pnode);
+             constructor init(l : pnode);
           end;
 
           pbinarynode = ^tbinarynode;
           tbinarynode = object(tunarynode)
              right : pnode;
+             constructor init(l,r : pnode);
           end;
 
           pbinopnode = ^tbinopnode;
@@ -294,11 +295,7 @@ unit tree;
              { is true, if the right and left operand are swaped }
              { against the original order                        }
              swaped : boolean;
-          end;
-
-          pblocknode = ^tblocknode;
-          tblocknode = object(tunarynode)
-            constructor init(l : pnode);
+             constructor init(l,r : pnode);
           end;
 
 {$ifdef dummy}
@@ -460,7 +457,9 @@ unit tree;
     procedure tnode.pass_1;
 
       begin
-         det_resulttype;
+         if not(assigned(resulttype)) then
+           det_resulttype;
+
          det_temp;
       end;
 
@@ -623,20 +622,31 @@ unit tree;
       end;
 
 {****************************************************************************
-                                 TBLOCKNODE
+                            TBINARYNODE
  ****************************************************************************}
 
-    constructor tblocknode.init(l : pnode);
+    constructor tbinarynode.init(l,r : pnode);
 
       begin
          inherited init(l);
-         treetype:=blockn;
+         right:=r
+      end;
+
+{****************************************************************************
+                            TBINOPYNODE
+ ****************************************************************************}
+
+    constructor tbinopnode.init(l,r : pnode);
+
+      begin
+         inherited init(l,r);
+         swaped:=false;
       end;
 
 {$ifdef dummy}
          { clean up the contents of a node }
          case p^.treetype of
-          asmn : if assigned(p^.p_asm) then
+           asmn : if assigned(p^.p_asm) then
                   dispose(p^.p_asm,done);
   stringconstn : begin
                    ansistringdispose(p^.value_str,p^.length);
@@ -1925,7 +1935,11 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.4  1999-01-19 10:19:06  florian
+  Revision 1.5  1999-01-23 23:29:49  florian
+    * first running version of the new code generator
+    * when compiling exceptions under Linux fixed
+
+  Revision 1.4  1999/01/19 10:19:06  florian
     * bug with mul. of dwords fixed, reported by Alexander Stohr
     * some changes to compile with TP
     + small enhancements for the new code generator

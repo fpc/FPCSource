@@ -272,7 +272,6 @@ unit cgbase;
       end;
 
 
-
     procedure codegen_donemodule;
       begin
          dispose(exprasmlist,done);
@@ -395,7 +394,11 @@ unit cgbase;
 end.
 {
   $Log$
-  Revision 1.3  1999-01-06 22:58:48  florian
+  Revision 1.4  1999-01-23 23:29:45  florian
+    * first running version of the new code generator
+    * when compiling exceptions under Linux fixed
+
+  Revision 1.3  1999/01/06 22:58:48  florian
     + some stuff for the new code generator
 
   Revision 1.2  1998/12/26 15:20:28  florian

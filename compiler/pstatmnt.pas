@@ -551,9 +551,6 @@ unit pstatmnt;
                           { is a explicit name for the exception given ? }
                           if token=COLON then
                             begin
-                               sym:=new(pvarsym,init(objname,nil));
-                               exceptsymtable:=new(psymtable,init(stt_exceptsymtable));
-                               exceptsymtable^.insert(sym);
                                consume(COLON);
                                getsym(pattern,false);
                                consume(ID);
@@ -571,7 +568,9 @@ unit pstatmnt;
                                     message(type_e_class_type_expected);
                                     ot:=pobjectdef(generrordef);
                                  end;
-                               sym^.definition:=ot;
+                               sym:=new(pvarsym,init(objname,ot));
+                               exceptsymtable:=new(psymtable,init(stt_exceptsymtable));
+                               exceptsymtable^.insert(sym);
                                { insert the exception symtable stack }
                                exceptsymtable^.next:=symtablestack;
                                symtablestack:=exceptsymtable;
@@ -1247,7 +1246,11 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.59  1999-01-21 16:41:02  pierre
+  Revision 1.60  1999-01-23 23:29:38  florian
+    * first running version of the new code generator
+    * when compiling exceptions under Linux fixed
+
+  Revision 1.59  1999/01/21 16:41:02  pierre
    * fix for constructor inside with statements
 
   Revision 1.58  1999/01/05 08:20:07  florian
