@@ -143,11 +143,15 @@ var
   argvlen : longint;
 
   procedure allocarg(idx,len:longint);
+    var
+      oldargvlen : longint;
     begin
       if idx>=argvlen then
        begin
+         oldargvlen:=argvlen;
          argvlen:=(idx+8) and (not 7);
          sysreallocmem(argv,argvlen*sizeof(pointer));
+         fillchar(argv[oldargvlen],(argvlen-oldargvlen)*sizeof(pointer),0);
        end;
       { use realloc to reuse already existing memory }
       { always allocate, even if length is zero, since }
@@ -715,7 +719,7 @@ var
 {$ifdef SYSTEMEXCEPTIONDEBUG}
 procedure DebugHandleErrorAddrFrame(error, addr, frame : longint);
 begin
-  if IsConsole then 
+  if IsConsole then
     begin
       write(stderr,'HandleErrorAddrFrame(error=',error);
       write(stderr,',addr=',hexstr(addr,8));
@@ -918,13 +922,13 @@ end;
 
 function CharUpperBuff(lpsz:LPWSTR; cchLength:DWORD):DWORD; stdcall; external 'user32' name 'CharUpperBuffW';
 function CharLowerBuff(lpsz:LPWSTR; cchLength:DWORD):DWORD; stdcall; external 'user32' name 'CharLowerBuffW';
-  
+
 
 function Win32WideUpper(const s : WideString) : WideString;
   begin
     result:=s;
     UniqueString(result);
-    if length(result)>0 then  	
+    if length(result)>0 then
       CharUpperBuff(LPWSTR(result),length(result));
   end;
 
@@ -936,7 +940,7 @@ function Win32WideLower(const s : WideString) : WideString;
     if length(result)>0 then
       CharLowerBuff(LPWSTR(result),length(result));
   end;
-  
+
 
 { there is a similiar procedure in sysutils which inits the fields which
   are only relevant for the sysutils units }
@@ -945,7 +949,7 @@ procedure InitWin32Widestrings;
     widestringmanager.UpperWideStringProc:=@Win32WideUpper;
     widestringmanager.LowerWideStringProc:=@Win32WideLower;
   end;
-  
+
 {$endif HASWIDESTRING}
 
 
@@ -1106,7 +1110,10 @@ end.
 
 {
   $Log$
-  Revision 1.71  2005-03-02 19:18:42  florian
+  Revision 1.72  2005-03-21 16:31:33  peter
+    * fix crash under win32 with previous reallocmem fix
+
+  Revision 1.71  2005/03/02 19:18:42  florian
     * fixed compilation with 1.0.10
 
   Revision 1.70  2005/02/26 20:43:52  florian

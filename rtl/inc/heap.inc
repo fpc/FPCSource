@@ -734,6 +734,9 @@ var
   mc_tmp : pmemchunk_var;
   size_right : ptrint;
 begin
+  // mc_right can't be a fixed size block
+  if mc_right^.size and fixedsizeflag<>0 then
+    HandleError(204);
   // left block free, concat with right-block
   size_right := mc_right^.size and sizemask;
   inc(mc_left^.size, size_right);
@@ -1106,6 +1109,7 @@ begin
 {$endif TestFreeLists}
 end;
 
+
 function SysFreeMem(p: pointer): ptrint;
 var
   pcurrsize: ptrint;
@@ -1214,9 +1218,9 @@ begin
       currsize := pcurrsize and fixedsizemask;
       size := (size+sizeof(tmemchunk_fixed_hdr)+(blocksize-1)) and fixedsizemask;
     end;
-  oldsize := currsize;
+
   { is the allocated block still correct? }
-  if (currsize>=size) and (size>(currsize-16)) then
+  if (currsize>=size) and (size>(currsize-blocksize)) then
     begin
       SysTryResizeMem := true;
 {$ifdef TestFreeLists}
@@ -1235,6 +1239,7 @@ begin
 
   { get pointer to block }
   pcurr := pmemchunk_var(pointer(p)-sizeof(tmemchunk_var_hdr));
+  oldsize := currsize;
 
   { do we need to allocate more memory ? }
   if size>currsize then
@@ -1349,7 +1354,10 @@ end;
 
 {
   $Log$
-  Revision 1.48  2005-03-20 18:57:29  peter
+  Revision 1.49  2005-03-21 16:31:33  peter
+    * fix crash under win32 with previous reallocmem fix
+
+  Revision 1.48  2005/03/20 18:57:29  peter
     * fixed tryresizemem
 
   Revision 1.47  2005/03/04 16:49:34  peter
