@@ -1782,17 +1782,25 @@ end;
     procedure tdynamicarray.grow;
       var
         osize : longint;
+{ Can also be done with Delphi, but I don't feel like playing with all the }
+{ conditianals (JM)                                                        }
+{$ifndef fpc}
         odata : pchar;
+{$endif fpc}
       begin
         osize:=size;
-        odata:=data;
         inc(limit,growcount);
+{$ifndef fpc}
+        odata:=data;
         getmem(data,size);
         if assigned(odata) then
          begin
            move(odata^,data^,osize);
            freemem(odata,osize);
          end;
+{$else fpc}
+        reallocmem(data,size);
+{$endif fpc}
         fillchar(data[osize],growcount*elemlen,0);
       end;
 
@@ -1927,17 +1935,25 @@ end;
     procedure tindexarray.grow(gsize:longint);
       var
         osize : longint;
+{ Can also be done with Delphi, but I don't feel like playing with all the }
+{ conditianals (JM)                                                        }
+{$ifndef fpc}
         odata : Pnamedindexobjectarray;
+{$endif fpc}
       begin
         osize:=size;
-        odata:=data;
         inc(size,gsize);
+{$ifndef fpc}
+        odata:=data;
         getmem(data,size*4);
         if assigned(odata) then
          begin
            move(odata^,data^,osize*4);
            freemem(odata,osize*4);
          end;
+{$else fpc}
+        reallocmem(data,size*4);
+{$endif fpc}
         fillchar(data^[osize+1],gsize*4,0);
       end;
 
@@ -2404,7 +2420,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2000-08-06 19:42:40  peter
+  Revision 1.5  2000-08-09 12:09:45  jonas
+    * tidexarray and tdynamicarray now use reallocmem() under FPC for
+      growing (merged from fixes branch)
+
+  Revision 1.4  2000/08/06 19:42:40  peter
     * removed note
 
   Revision 1.3  2000/08/02 19:49:58  peter
