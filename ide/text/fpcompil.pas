@@ -572,7 +572,9 @@ begin
   switch_to_temp_heap;
 {$endif TEMPHEAP}
   Compile(FileName);
-  if LinkAfter then
+  if LinkAfter and
+     (CompilationPhase<>cpAborted) and
+     (status.errorCount=0) then
     begin
        CompilationPhase:=cpLinking;
        CompilerStatusDialog^.Update;
@@ -700,7 +702,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.34  1999-08-16 18:25:13  peter
+  Revision 1.35  1999-08-22 22:27:30  pierre
+   * not ppas call on compile failure
+
+  Revision 1.34  1999/08/16 18:25:13  peter
     * Adjusting the selection when the editor didn't contain any line.
     * Reserved word recognition redesigned, but this didn't affect the overall
       syntax highlight speed remarkably (at least not on my Amd-K6/350).
