@@ -193,6 +193,9 @@ end;
 procedure InternalClearIOCallback(Handle: TAsyncHandle; IOHandle: LongInt;
   CallbackTypes: TCallbackTypes);
 begin
+  if not Assigned(Handle) then
+    exit;
+
   if cbRead in CallbackTypes then
     {$ifdef VER1_0}FD_CLR{$else}fpFD_CLR{$endif}(IOHandle, PFDSet(Handle^.Data.FDData)[0]);
   if cbWrite in CallbackTypes then
@@ -218,7 +221,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2003-09-28 09:38:17  peter
+  Revision 1.8  2003-11-21 01:06:18  sg
+  * Now resistent against clearing already removed notify handles
+
+  Revision 1.7  2003/09/28 09:38:17  peter
     * fixed for 1.0.x
 
   Revision 1.6  2003/09/19 17:46:23  marco
