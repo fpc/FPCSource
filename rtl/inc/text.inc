@@ -667,7 +667,7 @@ begin
   repeat
     if not NextChar(f,s) then
       exit;
-  until f.BufPtr^[f.BufPos] in [#9,#10,#13,' '];
+  until (length(s)=high(s)) or (f.BufPtr^[f.BufPos] in [#9,#10,#13,' ']);
 end;
 
 
@@ -1009,7 +1009,10 @@ end;
 
 {
   $Log$
-  Revision 1.70  2000-03-17 21:27:56  jonas
+  Revision 1.71  2000-03-19 08:36:41  peter
+    * length check for readnumeric
+
+  Revision 1.70  2000/03/17 21:27:56  jonas
     * fixed declaration of val_int64 (removed destsize parameter)
     * fixed val_int64 and val_qword so they reject invalid input
       (u >= base)
