@@ -14,6 +14,8 @@ const
 
   StarCount = 500;
 
+  Frame: Integer = 0;
+
 type
 
   TStar = record
@@ -24,7 +26,7 @@ var
 
   Visual: TGGIVisual;
   mode: TGGIMode;
-  ScreenW, ScreenH, Frame: Integer;
+  ScreenW, ScreenH: Integer;
 
   i, rx, ry: Integer;
   angle: Single;
@@ -33,14 +35,16 @@ var
 
 begin
 
-  if ggiInit <> 0 then begin
+  if ggiInit <> 0 then
+  begin
     WriteLn(StdErr, 'Initialization of GGI failed');
     Halt(2);
   end;
 
 
   Visual := ggiOpen(nil, []);	// Open default visual
-  if not Assigned(Visual) then begin
+  if not Assigned(Visual) then
+  begin
     WriteLn(StdErr, 'Could not get default visual');
     Halt(3);
   end;
@@ -57,7 +61,8 @@ begin
 
   White := ggiMapColor(Visual, WhiteColor);
 
-  for i := 1 to StarCount do begin
+  for i := 1 to StarCount do
+  begin
     Stars[i].x := Random(ScreenW) - ScreenW div 2;
     Stars[i].y := Random(ScreenH) - ScreenH div 2;
     Stars[i].z := Random(99) + 1;
@@ -65,12 +70,14 @@ begin
 
   angle := 0.0;
 
-  while ggiKbhit(Visual) = 0 do begin
+  while ggiKbhit(Visual) = 0 do
+  begin
 
     ggiSetWriteFrame(Visual, Frame);
     ggiFillscreen(Visual);
 
-    for i := 1 to StarCount do begin
+    for i := 1 to StarCount do
+    begin
       // the following is not as optimized as it could be...
       rx := Trunc(Sin(angle) * Stars[i].x + Cos(angle) * Stars[i].y) * 50 div Stars[i].z + (ScreenW div 2);
       ry := Trunc(Cos(angle) * Stars[i].x - Sin(angle) * Stars[i].y) * 50 div Stars[i].z + (ScreenH div 2);
@@ -96,7 +103,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  1999-11-14 15:59:05  peter
+  Revision 1.2  2000-04-14 16:59:03  sg
+  * Some cosmetic changes
+
+  Revision 1.1  1999/11/14 15:59:05  peter
     * fpcmake'd
 
   Revision 1.2  1999/11/12 18:51:24  sg
