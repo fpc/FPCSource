@@ -228,6 +228,9 @@ echo *Compiling unit VioCalls ...
 echo *Compiling PM units ...
 %FPCTOOLS%%COMPILER% %OS2RTL%PMWIN.PAS
 %FPCTOOLS%%COMPILER% %OS2RTL%PMBITMAP.PAS
+%FPCTOOLS%%COMPILER% %OS2RTL%PMGPI.PAS
+echo *Compiling MMOS2 units ...
+%FPCTOOLS%%COMPILER% %OS2RTL%DIVE.PAS
 
 if %PARAMS% == rtl goto End
 
@@ -313,7 +316,10 @@ goto End
 
 
   $Log$
-  Revision 1.2  1999-09-15 07:31:49  hajny
+  Revision 1.3  1999-10-01 09:00:21  hajny
+    + PMGPI and DIVE added
+
+  Revision 1.2  1999/09/15 07:31:49  hajny
     + some units added, OTHEROPTS variable support
 
 
