@@ -165,6 +165,7 @@ implementation
       var
         i : integer;
       begin
+        result:='<unknown>';
         for i:=1 to tok2nodes do
           if tok2node[i].nod=nt then
             begin
@@ -1920,7 +1921,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.83  2004-03-18 16:19:03  peter
+  Revision 1.84  2004-03-18 16:29:07  peter
+    * missing result initialization in node2opstr
+
+  Revision 1.83  2004/03/18 16:19:03  peter
     * fixed operator overload allowing for pointer-string
     * replaced some type_e_mismatch with more informational messages
 
