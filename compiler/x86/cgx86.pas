@@ -120,7 +120,7 @@ unit cgx86;
         procedure g_exception_reason_load(list : taasmoutput; const href : treference);override;
 
         { entry/exit code helpers }
-        procedure g_copyvaluepara_openarray(list : taasmoutput;const ref, lenref:treference;elesize:integer);override;
+        procedure g_copyvaluepara_openarray(list : taasmoutput;const ref, lenref:treference;elesize:aword);override;
         procedure g_interrupt_stackframe_entry(list : taasmoutput);override;
         procedure g_interrupt_stackframe_exit(list : taasmoutput;accused,acchiused:boolean);override;
         procedure g_profilecode(list : taasmoutput);override;
@@ -1331,7 +1331,7 @@ unit cgx86;
                               Entry/Exit Code Helpers
 ****************************************************************************}
 
-    procedure tcgx86.g_copyvaluepara_openarray(list : taasmoutput;const ref, lenref:treference;elesize:integer);
+    procedure tcgx86.g_copyvaluepara_openarray(list : taasmoutput;const ref, lenref:treference;elesize:aword);
       var
         power,len  : longint;
         opsize : topsize;
@@ -1480,11 +1480,11 @@ unit cgx86;
 
 
     procedure tcgx86.g_profilecode(list : taasmoutput);
-    
+
       var
         pl           : tasmlabel;
         mcountprefix : String[4];
-        
+
       begin
         case target_info.system of
         {$ifndef NOTARGETWIN32}
@@ -1496,7 +1496,7 @@ unit cgx86;
            system_i386_wdosx,
            system_i386_linux:
              begin
-		Case target_info.system Of 
+		Case target_info.system Of
 		 system_i386_freebsd : mcountprefix:='.';
 		 system_i386_netbsd : mcountprefix:='__';
 //		 system_i386_openbsd : mcountprefix:='.';
@@ -1749,7 +1749,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.86  2003-10-30 18:53:53  marco
+  Revision 1.87  2003-11-05 23:06:03  florian
+    * elesize of g_copyvaluepara_openarray changed
+
+  Revision 1.86  2003/10/30 18:53:53  marco
    * profiling fix
 
   Revision 1.85  2003/10/30 16:22:40  peter
