@@ -49,6 +49,7 @@ var
   InputFiles, DescrFiles: TStringList;
   DocLang: String;
   Engine: TSkelEngine;
+  UpdateMode,
   DisableErrors,
   DisableSeealso,
   DisableArguments,
@@ -64,14 +65,29 @@ var
 function TSkelEngine.CreateElement(AClass: TPTreeElement; const AName: String;
   AParent: TPasElement; AVisibility : TPasMemberVisibility;
   const ASourceFilename: String; ASourceLinenumber: Integer): TPasElement;
+  
+  Function WriteThisNode(APasElement : TPasElement)  : Boolean;
+  
+  begin
+    Result:=Assigned(AParent) and (Length(AName) > 0) and
+            (not DisableArguments or (APasElement.ClassType <> TPasArgument)) and
+            (not DisableFunctionResults or (APasElement.ClassType <> TPasResultElement)) and
+            (not DisablePrivate or (AVisibility<>visPrivate)) and
+            (not DisableProtected or (AVisibility<>visProtected));
+    If Result and updateMode then
+      begin        
+      Result:=FindDocNode(APasElement)=Nil;
+      If Result then
+        Writeln(stderr,'Creating documentation for new node ',APasElement.PathName);
+      end;
+  end;
+  
 begin
   Result := AClass.Create(AName, AParent);
-
   if AClass.InheritsFrom(TPasModule) then
     CurModule := TPasModule(Result);
-
   if Result.ClassType = TPasModule then
-  begin
+    begin
     WriteLn(f);
     WriteLn(f, '<!--');
     WriteLn(f, '  ====================================================================');
@@ -83,39 +99,36 @@ begin
     WriteLn(f, '<short></short>');
     WriteLn(f, '<descr>');
     WriteLn(f, '</descr>');
-  end else if Assigned(AParent) and (Length(AName) > 0) and
-    (not DisableArguments or (Result.ClassType <> TPasArgument)) and
-    (not DisableFunctionResults or (Result.ClassType <> TPasResultElement)) and
-    (not DisablePrivate or (AVisibility<>visPrivate)) and
-    (not DisableProtected or (AVisibility<>visProtected)) then
-  begin
+    end 
+  else if WriteThisNode(Result) then
+    begin
     WriteLn(f);
     if EmitClassSeparator and (Result.ClassType = TPasClassType) then
-    begin
+      begin
       WriteLn(f, '<!--');
       WriteLn(f, '  ********************************************************************');
       WriteLn(f, '    ', Result.PathName);
       WriteLn(f, '  ********************************************************************');
       WriteLn(f, '-->');
       WriteLn(f);
-    end;
+      end;
     Writeln(F,'<!-- ', Result.ElementTypeName,' Visibility: ',VisibilityNames[AVisibility], ' -->');
     WriteLn(f,'<element name="', Result.FullName, '">');
     WriteLn(f, '<short></short>');
     WriteLn(f, '<descr>');
     WriteLn(f, '</descr>');
     if not DisableErrors then
-    begin
+      begin
       WriteLn(f, '<errors>');
       WriteLn(f, '</errors>');
-    end;
+      end;
     if not DisableSeealso then
-    begin
+      begin
       WriteLn(f, '<seealso>');
       WriteLn(f, '</seealso>');
-    end;
+      end;
     WriteLn(f, '</element>');
-  end;
+    end;
 end;
 
 
@@ -158,6 +171,8 @@ var
 begin
   if (s = '-h') or (s = '--help') then
     CmdLineAction := actionHelp
+  else if s = '--update' then
+    UpdateMode := True
   else if s = '--disable-arguments' then
     DisableArguments := True
   else if s = '--disable-errors' then
@@ -195,6 +210,11 @@ begin
       OutputName := Arg
     else if Cmd = '--package' then
       PackageName := Arg
+    else if Cmd = '--descr' then
+      begin
+      if FileExists(Arg) then
+        DescrFiles.Add(Arg);
+      end
     else
       WriteLn(StdErr, Format(SCmdLineInvalidOption, [s]));
   end;
@@ -266,6 +286,9 @@ begin
       try
        try
          Engine.SetPackageName(PackageName);
+         if UpdateMode then
+           For I:=0 to DescrFiles.Count-1 do
+             Engine.AddDocFile(DescrFiles[i]);
          Module := ParseSource(Engine, InputFiles[i], OSTarget, CPUTarget);
    	 WriteLn(f, '</module> <!-- ', Module.Name, ' -->');
        except
@@ -295,7 +318,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  2004-08-25 07:16:43  michael
+  Revision 1.9  2004-08-28 18:04:06  michael
+  + Added update mode
+
+  Revision 1.8  2004/08/25 07:16:43  michael
   + Improved translation handling
 
   Revision 1.7  2004/08/24 14:48:25  michael
