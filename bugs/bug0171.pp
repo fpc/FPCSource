@@ -2,6 +2,6 @@ type
   pstring=^string;
 const
   drivestr:string='c:';
-  pdrivestr:pstring=@drivestr;
+  pdrivestr:pstring=pstring(@drivestr);
 begin
 end.
