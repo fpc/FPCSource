@@ -565,7 +565,10 @@ end;
 
 {
   $Log$
-  Revision 1.29  1999-07-05 20:04:26  peter
+  Revision 1.30  1999-11-06 14:35:39  peter
+    * truncated log
+
+  Revision 1.29  1999/07/05 20:04:26  peter
     * removed temp defines
 
   Revision 1.28  1999/05/06 09:05:13  peter
@@ -632,29 +635,5 @@ end;
 
   Revision 1.10  1998/08/08 12:28:13  florian
     * a lot small fixes to the extended data type work
-
-  Revision 1.9  1998/07/18 17:14:23  florian
-    * strlenint type implemented
-
-  Revision 1.8  1998/07/10 11:02:38  peter
-    * support_fixed, becuase fixed is not 100% yet for the m68k
-
-  Revision 1.7  1998/07/02 12:14:19  carl
-    * No SINGLE type for non-intel processors!!
-
-  Revision 1.6  1998/06/25 09:44:19  daniel
-  + RTLLITE directive to compile minimal RTL.
-
-  Revision 1.5  1998/06/04 23:45:59  peter
-    * comp,extended are only i386 added support_comp,support_extended
-
-  Revision 1.4  1998/05/31 14:14:52  peter
-    * removed warnings using comp()
-
-  Revision 1.3  1998/05/12 10:42:45  peter
-    * moved getopts to inc/, all supported OS's need argc,argv exported
-    + strpas, strlen are now exported in the systemunit
-    * removed logs
-    * removed $ifdef ver_above
 
 }

@@ -362,7 +362,10 @@ end.
 
 {
   $Log$
-  Revision 1.43  1999-10-30 17:39:05  peter
+  Revision 1.44  1999-11-06 14:41:30  peter
+    * truncated log
+
+  Revision 1.43  1999/10/30 17:39:05  peter
     * memorymanager expanded with allocmem/reallocmem
 
   Revision 1.42  1999/10/03 19:41:30  peter
@@ -424,70 +427,5 @@ end.
 
   Revision 1.24  1999/05/17 21:52:43  florian
     * most of the Object Pascal stuff moved to the system unit
-
-  Revision 1.23  1999/05/13 21:54:28  peter
-    * objpas fixes
-
-  Revision 1.22  1999/04/16 20:47:20  florian
-    + tobject.messagestringtable function for Megido/GTK support
-      added
-
-  Revision 1.21  1999/02/23 14:04:36  pierre
-   * call %edi => call *%edi
-
-  Revision 1.20  1999/02/22 23:30:54  florian
-    + TObject.Dispatch and TObject.DispatchStr added, working
-
-  Revision 1.19  1998/12/24 10:12:03  michael
-  Implemented AssignFile and CloseFile compatibility
-
-  Revision 1.18  1998/10/12 12:42:58  florian
-    * as operator runtime error can be now caught by an errorproc
-
-  Revision 1.17  1998/10/05 12:32:53  peter
-    + assert() support
-
-  Revision 1.16  1998/10/03 15:07:16  florian
-    + TObject.AfterConstruction and TObject.BeforeDestruction of Delphi 4
-
-  Revision 1.15  1998/09/24 16:13:48  michael
-  Changes in exception and open array handling
-
-  Revision 1.14  1998/09/23 12:40:43  michael
-  Fixed TVarRec again. Should be OK now
-
-  Revision 1.13  1998/09/23 12:18:32  michael
-  + added VType in TVArRec
-
-  Revision 1.12  1998/09/23 10:00:47  peter
-    * tvarrec should be 8 bytes
-
-  Revision 1.11  1998/09/22 15:30:07  peter
-    * array of const update
-
-  Revision 1.9  1998/09/16 13:08:19  michael
-  Added AbstractErrorHandler
-
-  Revision 1.8  1998/09/06 21:27:31  florian
-    + method tobject.classinfo added
-
-  Revision 1.7  1998/09/04 08:49:06  peter
-    * 0.99.5 doesn't compile a whole objpas anymore to overcome crashes
-
-  Revision 1.6  1998/08/23 20:58:52  florian
-    + rtti for objects and classes
-    + TObject.GetClassName implemented
-
-  Revision 1.5  1998/07/30 16:10:11  michael
-  + Added support for ExceptProc+
-
-  Revision 1.4  1998/07/29 15:44:33  michael
-   included sysutils and math.pp as target. They compile now.
-
-  Revision 1.3  1998/07/29 10:09:28  michael
-  + put in exception support
-
-  Revision 1.2  1998/03/25 23:40:24  florian
-    + stuff from old objpash.inc and objpas.inc merged in
 
 }

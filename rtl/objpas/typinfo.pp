@@ -759,8 +759,8 @@ unit typinfo;
               CallIntegerProc(Instance,PropInfo^.SetProc,Integer(@Value), Index, IValue);
             ptvirtual:
               CallIntegerProc(Instance,
-	        PPointer(Pointer(Instance.ClassType)+Longint(PropInfo^.SetProc))^,
-		Integer(@Value), Index, IValue);
+                PPointer(Pointer(Instance.ClassType)+Longint(PropInfo^.SetProc))^,
+                Integer(@Value), Index, IValue);
          end;
       end;
 
@@ -807,7 +807,10 @@ end.
 
 {
   $Log$
-  Revision 1.29  1999-09-16 08:59:48  florian
+  Revision 1.30  1999-11-06 14:41:31  peter
+    * truncated log
+
+  Revision 1.29  1999/09/16 08:59:48  florian
     * GetPropInfo returns now nil if the property wasn't found
 
   Revision 1.28  1999/09/15 20:27:24  florian
@@ -868,23 +871,4 @@ end.
   Revision 1.7  1998/09/08 09:52:31  florian
     * small problems fixed
 
-  Revision 1.6  1998/09/08 00:08:36  michael
-  Made it compilable
-
-  Revision 1.5  1998/09/07 23:11:43  florian
-    + more fields to TTypeInfo added
-
-  Revision 1.4  1998/09/07 19:34:47  florian
-    * constant value is now supported as stored condition
-
-  Revision 1.3  1998/09/07 08:32:59  florian
-    + procedure IsStoredProc added
-
-  Revision 1.2  1998/09/06 21:27:05  florian
-    + some methods and declarations added
-
-  Revision 1.1  1998/08/25 22:30:00  florian
-    + initial revision:
-       o constants
-       o basic type data record
 }

@@ -293,7 +293,10 @@ Finalization
 end.
 {
     $Log$
-    Revision 1.34  1999-10-30 17:39:05  peter
+    Revision 1.35  1999-11-06 14:41:31  peter
+      * truncated log
+
+    Revision 1.34  1999/10/30 17:39:05  peter
       * memorymanager expanded with allocmem/reallocmem
 
     Revision 1.33  1999/10/26 12:29:07  peter
@@ -354,40 +357,4 @@ end.
     Revision 1.15  1998/10/10 09:53:10  michael
     Added assertion handling
 
-    Revision 1.14  1998/10/03 15:08:05  florian
-      * EInvalidCast added (from runerror 219)
-
-    Revision 1.13  1998/10/02 13:00:11  michael
-    + More RTL error handling
-
-    Revision 1.12  1998/10/02 12:17:18  michael
-    + Made sure it compiles with official 0.99.8
-
-    Revision 1.11  1998/10/01 16:04:11  michael
-    + Added RTL error handling
-
-    Revision 1.10  1998/09/24 23:45:27  peter
-      * updated for auto objpas loading
-
-    Revision 1.9  1998/09/24 16:13:49  michael
-    Changes in exception and open array handling
-
-    Revision 1.8  1998/09/18 23:57:26  michael
-    * Changed use_excepions to useexceptions
-
-    Revision 1.7  1998/09/16 14:34:38  pierre
-      * go32v2 did not compile
-      * wrong code in systr.inc corrected
-
-    Revision 1.6  1998/09/16 08:28:44  michael
-    Update from gertjan Schouten, plus small fix for linux
-
-    Revision 1.5  1998/09/04 08:49:07  peter
-      * 0.99.5 doesn't compile a whole objpas anymore to overcome crashes
-
-    Revision 1.4  1998/08/10 15:52:27  peter
-      * fixed so 0.99.5 compiles it, but no exception class
-
-    Revision 1.3  1998/07/29 15:44:32  michael
-     included sysutils and math.pp as target. They compile now.
 }

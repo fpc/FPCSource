@@ -994,7 +994,10 @@ end;
 
 {
   $Log$
-  Revision 1.59  1999-10-26 12:25:19  peter
+  Revision 1.60  1999-11-06 14:35:39  peter
+    * truncated log
+
+  Revision 1.59  1999/10/26 12:25:19  peter
     * inoutres 103 for closed files, just like delphi
 
   Revision 1.58  1999/10/04 20:42:45  peter
@@ -1059,126 +1062,4 @@ end;
     * use external names
     * removed all direct assembler modes
 
-  Revision 1.39  1999/02/17 10:13:29  peter
-    * when error when opening a file, then reset the mode to fmclosed
-
-  Revision 1.38  1999/01/28 19:38:19  peter
-    * fixed readln(ansistring)
-
-  Revision 1.37  1998/12/15 22:43:06  peter
-    * removed temp symbols
-
-  Revision 1.36  1998/12/11 18:07:39  peter
-    * fixed read(char) with empty buffer
-
-  Revision 1.35  1998/11/27 14:50:58  peter
-    + open strings, $P switch support
-
-  Revision 1.34  1998/11/16 12:21:48  peter
-    * fixes for 0.99.8
-
-  Revision 1.33  1998/10/23 00:03:29  peter
-    * write(pchar) has check for nil
-
-  Revision 1.32  1998/10/20 14:37:45  peter
-    * fixed maxlen which was not correct after my read_string update
-
-  Revision 1.31  1998/10/10 15:28:48  peter
-    + read single,fixed
-    + val with code:longint
-    + val for fixed
-
-  Revision 1.30  1998/09/29 08:39:07  michael
-  + Ansistring write now gets pointer.
-
-  Revision 1.29  1998/09/28 14:27:08  michael
-  + AnsiStrings update
-
-  Revision 1.28  1998/09/24 23:32:24  peter
-    * fixed small bug with a #13#10 on a line
-
-  Revision 1.27  1998/09/18 12:23:22  peter
-    * fixed a bug introduced by my previous update
-
-  Revision 1.26  1998/09/17 16:34:18  peter
-    * new eof,eoln,seekeoln,seekeof
-    * speed upgrade for read_string
-    * inoutres 104/105 updates for read_* and write_*
-
-  Revision 1.25  1998/09/14 10:48:23  peter
-    * FPC_ names
-    * Heap manager is now system independent
-
-  Revision 1.24  1998/09/08 10:14:06  peter
-    + textrecbufsize
-
-  Revision 1.23  1998/08/26 15:33:28  peter
-    * reset bufpos,bufend in opentext like tp7
-
-  Revision 1.22  1998/08/26 11:23:25  pierre
-    * close did not reset the bufpos and bufend fields
-      led to problems when using the same file several times
-
-  Revision 1.21  1998/08/17 22:42:17  michael
-  + Flush on close only for output files cd ../inc
-
-  Revision 1.20  1998/08/11 00:05:28  peter
-    * $ifdef ver0_99_5 updates
-
-  Revision 1.19  1998/07/30 13:26:16  michael
-  + Added support for ErrorProc variable. All internal functions are required
-    to call HandleError instead of runerror from now on.
-    This is necessary for exception support.
-
-  Revision 1.18  1998/07/29 21:44:35  michael
-  + Implemented reading/writing of ansistrings
-
-  Revision 1.17  1998/07/19 19:55:33  michael
-  + fixed rename. Changed p to p^
-
-  Revision 1.16  1998/07/10 11:02:40  peter
-    * support_fixed, becuase fixed is not 100% yet for the m68k
-
-  Revision 1.15  1998/07/06 15:56:43  michael
-  Added length checking for string reading
-
-  Revision 1.14  1998/07/02 12:14:56  carl
-    + Each IOCheck routine now check InOutRes before, just like TP
-
-  Revision 1.13  1998/07/01 15:30:00  peter
-    * better readln/writeln
-
-  Revision 1.12  1998/07/01 14:48:10  carl
-    * bugfix of WRITE_TEXT_BOOLEAN , was not TP compatible
-    + added explicit typecast in OpenText
-
-  Revision 1.11  1998/06/25 09:44:22  daniel
-  + RTLLITE directive to compile minimal RTL.
-
-  Revision 1.10  1998/06/04 23:46:03  peter
-    * comp,extended are only i386 added support_comp,support_extended
-
-  Revision 1.9  1998/06/02 16:47:56  pierre
-    * bug for boolean values greater than one fixed
-
-  Revision 1.8  1998/05/31 14:14:54  peter
-    * removed warnings using comp()
-
-  Revision 1.7  1998/05/27 00:19:21  peter
-    * fixed crt input
-
-  Revision 1.6  1998/05/21 19:31:01  peter
-    * objects compiles for linux
-    + assign(pchar), assign(char), rename(pchar), rename(char)
-    * fixed read_text_as_array
-    + read_text_as_pchar which was not yet in the rtl
-
-  Revision 1.5  1998/05/12 10:42:45  peter
-    * moved getopts to inc/, all supported OS's need argc,argv exported
-    + strpas, strlen are now exported in the systemunit
-    * removed logs
-    * removed $ifdef ver_above
-
-  Revision 1.4  1998/04/07 22:40:46  florian
-    * final fix of comp writing
 }

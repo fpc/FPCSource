@@ -680,7 +680,10 @@ end;
 
 {
   $Log$
-  Revision 1.17  1999-10-28 09:52:29  peter
+  Revision 1.18  1999-11-06 14:41:30  peter
+    * truncated log
+
+  Revision 1.17  1999/10/28 09:52:29  peter
     * fixed dayofweek
 
   Revision 1.16  1999/08/11 21:53:04  peter

@@ -680,7 +680,10 @@ End.
 
 {
   $Log$
-  Revision 1.28  1999-10-28 09:50:06  peter
+  Revision 1.29  1999-11-06 14:39:12  peter
+    * truncated log
+
+  Revision 1.28  1999/10/28 09:50:06  peter
     * use mmap instead of brk
 
   Revision 1.27  1999/09/10 15:40:35  peter
@@ -744,24 +747,4 @@ End.
   Revision 1.9  1998/07/20 23:40:20  michael
   changed sbrk to fc_sbrk, to avoid conflicts with C library.
 
-  Revision 1.8  1998/07/13 21:19:14  florian
-    * some problems with ansi string support fixed
-
-  Revision 1.7  1998/07/02 12:36:21  carl
-    * IOCheck/InOutRes check for mkdir, chdir and rmdir as in TP
-
-  Revision 1.6  1998/07/01 15:30:01  peter
-    * better readln/writeln
-
-  Revision 1.4  1998/05/30 14:18:43  peter
-    * fixed to remake with -Rintel in the ppc386.cfg
-
-  Revision 1.3  1998/05/12 10:42:48  peter
-    * moved getopts to inc/, all supported OS's need argc,argv exported
-    + strpas, strlen are now exported in the systemunit
-    * removed logs
-    * removed $ifdef ver_above
-
-  Revision 1.2  1998/05/06 12:35:26  michael
-  + Removed log from before restored version.
 }

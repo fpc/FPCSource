@@ -1026,7 +1026,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.12  1999-09-10 17:14:09  peter
+  Revision 1.13  1999-11-06 14:38:23  peter
+    * truncated log
+
+  Revision 1.12  1999/09/10 17:14:09  peter
     * better errorcode returning using int21h,5900
 
   Revision 1.11  1999/09/08 18:55:49  peter
@@ -1089,50 +1092,6 @@ end.
   Revision 1.11.2.2  1998/09/16 16:16:04  peter
     * go32v1 compiles again
 
-  Revision 1.12  1998/09/11 12:46:44  pierre
-    * range check problem with LFN attr removed
-
-  Revision 1.11.2.1  1998/09/11 12:38:41  pierre
-    * conversion from LFN attr to Dos attr did not respect range checking
-
-  Revision 1.11  1998/08/28 10:45:58  peter
-    * fixed path buffer in findfirst
-
-  Revision 1.10  1998/08/27 10:30:48  pierre
-    * go32v1 RTL did not compile (LFNsupport outside go32v2 defines !)
-      I renamed tb_selector to tb_segment because
-        it is a real mode segment as opposed to
-        a protected mode selector
-      Fixed it for go32v1 (remove the $E0000000 offset !)
-
-  Revision 1.9  1998/08/26 10:04:01  peter
-    * new lfn check from mailinglist
-    * renamed win95 -> LFNSupport
-    + tb_selector, tb_offset for easier access to transferbuffer
-
-  Revision 1.8  1998/08/16 20:39:49  peter
-    + LFN Support
-
-  Revision 1.7  1998/08/16 09:12:13  michael
-  Corrected fexpand behaviour.
-
-  Revision 1.6  1998/08/05 21:01:50  michael
-  applied bugfix from maillist to fsearch
-
-  Revision 1.5  1998/05/31 14:18:13  peter
-    * force att or direct assembling
-    * cleanup of some files
-
-  Revision 1.4  1998/05/22 00:39:22  peter
-    * go32v1, go32v2 recompiles with the new objects
-    * remake3 works again with go32v2
-    - removed some "optimizes" from daniel which were wrong
-
-  Revision 1.3  1998/05/21 19:30:47  peter
-    * objects compiles for linux
-    + assign(pchar), assign(char), rename(pchar), rename(char)
-    * fixed read_text_as_array
-    + read_text_as_pchar which was not yet in the rtl
 }
 
 

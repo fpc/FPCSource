@@ -1285,7 +1285,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.21  1999-10-31 09:34:48  jonas
+  Revision 1.22  1999-11-06 14:38:24  peter
+    * truncated log
+
+  Revision 1.21  1999/10/31 09:34:48  jonas
     * updated for new syntax of sysgetmem
 
   Revision 1.20  1999/10/28 09:53:19  peter
@@ -1347,99 +1350,4 @@ End.
   Revision 1.2  1998/12/21 14:22:02  pierre
    * old_int?? transformed to cvar to be readable by dpmiexcp
 
-  Revision 1.1  1998/12/21 13:07:03  peter
-    * use -FE
-
-  Revision 1.25  1998/12/15 22:42:52  peter
-    * removed temp symbols
-
-  Revision 1.24  1998/11/29 22:28:10  peter
-    + io-error 103 added
-
-  Revision 1.23  1998/11/16 14:15:02  pierre
-    * changed getdir(byte,string) to getdir(byte,shortstring)
-
-  Revision 1.22  1998/10/26 14:49:46  pierre
-   * system debug info output to stderr
-
-  Revision 1.21  1998/10/20 07:34:07  pierre
-   + systemdebug reports about unclosed files at exit
-
-  Revision 1.20  1998/10/13 21:41:06  peter
-    + int 0 for divide by zero
-
-  Revision 1.19  1998/09/14 10:48:05  peter
-    * FPC_ names
-    * Heap manager is now system independent
-
-  Revision 1.18  1998/08/28 10:48:04  peter
-    * fixed chdir with drive changing
-    * updated checklfn from mailinglist
-
-  Revision 1.17  1998/08/27 10:30:51  pierre
-    * go32v1 RTL did not compile (LFNsupport outside go32v2 defines !)
-      I renamed tb_selector to tb_segment because
-        it is a real mode segment as opposed to
-        a protected mode selector
-      Fixed it for go32v1 (remove the $E0000000 offset !)
-
-  Revision 1.16  1998/08/26 10:04:03  peter
-    * new lfn check from mailinglist
-    * renamed win95 -> LFNSupport
-    + tb_selector, tb_offset for easier access to transferbuffer
-
-  Revision 1.15  1998/08/19 10:56:34  pierre
-    + added some special code for C interface
-      to avoid loading of crt1.o or dpmiexcp.o from the libc.a
-
-  Revision 1.14  1998/08/04 14:34:38  pierre
-    * small bug fix to get it compiled with bugfix version !!
-      (again the asmmode problem !!!
-      Peter it was really not the best idea you had !!)
-
-  Revision 1.13  1998/07/30 13:26:22  michael
-  + Added support for ErrorProc variable. All internal functions are required
-    to call HandleError instead of runerror from now on.
-    This is necessary for exception support.
-
-  Revision 1.12  1998/07/13 21:19:08  florian
-    * some problems with ansi string support fixed
-
-  Revision 1.11  1998/07/07 12:33:08  carl
-    * added 2k buffer for stack checking for correct io on error
-
-  Revision 1.10  1998/07/02 12:29:20  carl
-    * IOCheck for rmdir,chdir and mkdir as in TP
-    NOTE: I'm pretty SURE this will not compile and link correctly with FPC
-  0.99.5
-
-  Revision 1.9  1998/07/01 15:29:57  peter
-    * better readln/writeln
-
-  Revision 1.8  1998/06/26 08:19:10  pierre
-    + all debug in ifdef SYSTEMDEBUG
-    + added local arrays :
-      opennames names of opened files
-      fileopen boolean array to know if still open
-      usefull with gdb if you get problems about too
-      many open files !!
-
-  Revision 1.7  1998/06/15 15:17:08  daniel
-  * RTLLITE conditional added to produce smaller RTL.
-
-  Revision 1.6  1998/05/31 14:18:29  peter
-    * force att or direct assembling
-    * cleanup of some files
-
-  Revision 1.5  1998/05/21 19:30:52  peter
-    * objects compiles for linux
-    + assign(pchar), assign(char), rename(pchar), rename(char)
-    * fixed read_text_as_array
-    + read_text_as_pchar which was not yet in the rtl
-
-  Revision 1.4  1998/05/04 17:58:41  peter
-    * fix for smartlinking with _ARGS
-
-  Revision 1.3  1998/05/04 16:21:54  florian
-    + LFNSupport flag to the interface moved
 }

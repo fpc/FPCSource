@@ -3790,7 +3790,10 @@ End.
 
 {
   $Log$
-  Revision 1.49  1999-10-28 09:48:31  peter
+  Revision 1.50  1999-11-06 14:39:12  peter
+    * truncated log
+
+  Revision 1.49  1999/10/28 09:48:31  peter
     + mmap
 
   Revision 1.48  1999/10/22 10:37:44  peter
@@ -3852,86 +3855,4 @@ End.
   Revision 1.29  1999/02/02 21:19:54  michael
   Corrected wrong mode error in fdopen
 
-  Revision 1.28  1999/01/20 13:29:09  peter
-    * utimbuf alias added
-
-  Revision 1.27  1998/12/11 18:08:57  peter
-    * fixed assignstream
-
-  Revision 1.26  1998/11/24 15:30:12  michael
-  * Bugfix in assignstream. . Now wait is performed upon close
-
-  Revision 1.25  1998/11/16 10:21:28  peter
-    * fixes for H+
-
-  Revision 1.24  1998/11/10 14:57:53  peter
-    * renamed rename -> FRename
-
-  Revision 1.23  1998/10/30 15:47:11  peter
-    * fixed glob, which did not reset  the root
-
-  Revision 1.22  1998/10/23 00:05:32  peter
-    * getenv with envp=nil check
-
-  Revision 1.21  1998/10/15 08:31:11  peter
-    * type aliases using delphi typenaming
-
-  Revision 1.20  1998/10/11 12:23:11  michael
-  + Implemented Rename
-
-  Revision 1.19  1998/09/18 09:56:33  peter
-    * merged
-
-  Revision 1.18.2.1  1998/09/18 09:53:46  peter
-    * fixed winsize record
-
-  Revision 1.18  1998/09/08 13:01:51  michael
-  + Signal call now correctly implemented
-
-  Revision 1.17  1998/08/19 00:50:31  peter
-    * 'i<>0 and ' needs brackets
-
-  Revision 1.16  1998/08/16 10:23:28  michael
-  fixed typos
-
-  Revision 1.15  1998/08/16 09:12:14  michael
-  Corrected fexpand behaviour.
-
-  Revision 1.14  1998/08/14 12:01:04  carl
-    * ifdef i386 for ports access
-
-  Revision 1.13  1998/08/12 11:10:25  michael
-  Added settimeofday function
-
-  Revision 1.12  1998/07/28 09:27:06  michael
-  restored previous version. A bug in the compiler prevents compilation.
-
-  Revision 1.10  1998/06/16 08:21:58  michael
-  * PClose didn't flush textfiles before closing. Now it does
-
-  Revision 1.9  1998/06/03 11:55:33  michael
-  + Added IO port calls
-
-  Revision 1.8  1998/05/06 18:45:32  peter
-    * fixed the shell() bug (the correct code was also in Popen) moved the
-      argv generation to CreateShellArgv
-    + Execve with pchar instead of string
-
-  Revision 1.7  1998/05/06 12:35:26  michael
-  + Removed log from before restored version.
-
-  Revision 1.6  1998/04/15 11:23:53  michael
-  + Added some calls to make common API more efficient
-
-  Revision 1.5  1998/04/10 15:23:03  michael
-  + Pclose now returns exit status of process
-
-  Revision 1.4  1998/04/07 13:08:29  michael
-  + Added flock for file locking
-
-  Revision 1.3  1998/04/07 12:27:41  peter
-    * fixed fexpand('..')
-
-  Revision 1.2  1998/04/04 17:07:17  michael
-  + Fixed AssignStream, it completely refused to work
 }

@@ -1137,7 +1137,10 @@ const
 
 {
   $Log$
-  Revision 1.28  1999-10-12 19:16:27  florian
+  Revision 1.29  1999-11-06 14:41:31  peter
+    * truncated log
+
+  Revision 1.28  1999/10/12 19:16:27  florian
     * bug 645 fixed: format('%x',...) should writes unsigned hexadecimals, also
       prec fixed: max. value in delphi is 15 (and not 32)
 
@@ -1199,30 +1202,5 @@ const
   Revision 1.9  1998/11/04 10:20:52  peter
     * ansistring fixes
 
-  Revision 1.8  1998/10/02 13:57:38  michael
-  Format error now causes exception
-
-  Revision 1.7  1998/10/02 12:17:17  michael
-  + Made sure it compiles with official 0.99.8
-
-  Revision 1.6  1998/10/02 10:42:17  michael
-  + Initial implementation of format
-
-  Revision 1.5  1998/10/01 16:05:37  michael
-  Added (empty) format function
-
-  Revision 1.4  1998/09/17 12:39:52  michael
-  + Further fixes from GertJan Schouten
-
-  Revision 1.3  1998/09/16 14:34:37  pierre
-    * go32v2 did not compile
-    * wrong code in systr.inc corrected
-
-  Revision 1.2  1998/09/16 08:28:42  michael
-  Update from gertjan Schouten, plus small fix for linux
-
-  Revision 1.1  1998/04/10 15:17:46  michael
-  + Initial implementation; Donated by Gertjan Schouten
-    His file was split into several files, to keep it a little bit structured.
 }
 

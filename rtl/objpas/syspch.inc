@@ -101,7 +101,10 @@ end ;
 
 {
   $Log$
-  Revision 1.6  1999-08-24 13:14:50  peter
+  Revision 1.7  1999-11-06 14:41:31  peter
+    * truncated log
+
+  Revision 1.6  1999/08/24 13:14:50  peter
     * disposestr allocstr compatible with delphi
 
   Revision 1.5  1999/07/09 10:06:34  peter

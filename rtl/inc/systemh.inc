@@ -398,7 +398,10 @@ const
 
 {
   $Log$
-  Revision 1.64  1999-10-27 14:19:10  florian
+  Revision 1.65  1999-11-06 14:35:39  peter
+    * truncated log
+
+  Revision 1.64  1999/10/27 14:19:10  florian
     + StringOfChar
 
   Revision 1.63  1999/10/26 12:31:00  peter
@@ -464,142 +467,4 @@ const
   Revision 1.45  1998/12/15 22:43:04  peter
     * removed temp symbols
 
-  Revision 1.44  1998/11/27 14:50:57  peter
-    + open strings, $P switch support
-
-  Revision 1.43  1998/11/26 23:16:13  jonas
-    * changed RandSeed and OldRandSeed to Cardinal to avoid negative random numbers
-
-  Revision 1.42  1998/11/24 17:12:43  peter
-    * fixed length(char)
-    - removed obsolete version.inc
-
-  Revision 1.41  1998/11/16 10:21:26  peter
-    * fixes for H+
-
-  Revision 1.40  1998/11/05 10:29:37  pierre
-   * fix for length(char) in const expressions
-
-  Revision 1.39  1998/11/04 20:34:01  michael
-  + Removed ifdef useansistrings
-
-  Revision 1.38  1998/11/04 10:20:51  peter
-    * ansistring fixes
-
-  Revision 1.37  1998/10/10 15:28:47  peter
-    + read single,fixed
-    + val with code:longint
-    + val for fixed
-
-  Revision 1.36  1998/10/05 17:22:54  pierre
-   * avoid overflow on $8000000 with $Q-
-
-  Revision 1.35  1998/10/05 12:32:52  peter
-    + assert() support
-
-  Revision 1.34  1998/10/01 14:54:48  peter
-    * export also stackframe functions
-
-  Revision 1.33  1998/09/28 14:02:33  michael
-  + AnsiString changes
-
-  Revision 1.32  1998/09/22 15:30:55  peter
-    * shortstring=string type added
-
-  Revision 1.31  1998/09/20 17:49:09  florian
-    * some ansistring fixes
-
-  Revision 1.30  1998/09/17 16:34:17  peter
-    * new eof,eoln,seekeoln,seekeof
-    * speed upgrade for read_string
-    * inoutres 104/105 updates for read_* and write_*
-
-  Revision 1.29  1998/09/16 13:08:04  michael
-  Added AbstractErrorHandler
-
-  Revision 1.28  1998/09/14 10:48:22  peter
-    * FPC_ names
-    * Heap manager is now system independent
-
-  Revision 1.27  1998/09/08 15:03:28  peter
-    * moved getmem/freemem/memavail/maxavail to heaph.inc
-
-  Revision 1.26  1998/09/04 18:16:14  peter
-    * uniform filerec/textrec (with recsize:longint and name:0..255)
-
-  Revision 1.25  1998/09/01 17:36:22  peter
-    + internconst
-
-  Revision 1.24  1998/08/11 21:39:08  peter
-    * splitted default_extended from support_extended
-
-  Revision 1.23  1998/08/11 00:05:27  peter
-    * $ifdef ver0_99_5 updates
-
-  Revision 1.22  1998/08/08 12:28:14  florian
-    * a lot small fixes to the extended data type work
-
-  Revision 1.21  1998/07/30 13:26:17  michael
-  + Added support for ErrorProc variable. All internal functions are required
-    to call HandleError instead of runerror from now on.
-    This is necessary for exception support.
-
-  Revision 1.20  1998/07/28 20:37:47  michael
-  + added setjmp/longjmp and exception support
-
-  Revision 1.19  1998/07/20 23:36:57  michael
-  changes for ansistrings
-
-  Revision 1.18  1998/07/18 17:14:24  florian
-    * strlenint type implemented
-
-  Revision 1.17  1998/07/10 11:02:39  peter
-    * support_fixed, becuase fixed is not 100% yet for the m68k
-
-  Revision 1.16  1998/07/02 12:13:18  carl
-    * No SINGLE type for m68k or other non-intel processors!
-
-  Revision 1.15  1998/07/01 14:43:46  carl
-    - max_frame_dump reduced to 8, 20 is too much!
-
-  Revision 1.14  1998/06/25 14:04:26  peter
-    + internal inc/dec
-
-  Revision 1.13  1998/06/25 09:44:21  daniel
-  + RTLLITE directive to compile minimal RTL.
-
-  Revision 1.12  1998/06/15 15:16:27  daniel
-
-  * RTLLITE conditional added to produce smaller RTL
-
-  Revision 1.11  1998/06/08 12:38:23  michael
-  Implemented rtti, inserted ansistrings again
-
-  Revision 1.10  1998/06/04 23:46:02  peter
-    * comp,extended are only i386 added support_comp,support_extended
-
-  Revision 1.9  1998/06/04 08:26:03  pierre
-    * boolean internal definition again (needed to compile
-      older RTL's)
-
-  Revision 1.8  1998/06/03 23:39:53  peter
-    + boolean=bytebool
-
-  Revision 1.7  1998/05/22 12:34:11  peter
-    * fixed the optimizes of daniel
-
-  Revision 1.6  1998/05/21 19:31:00  peter
-    * objects compiles for linux
-    + assign(pchar), assign(char), rename(pchar), rename(char)
-    * fixed read_text_as_array
-    + read_text_as_pchar which was not yet in the rtl
-
-  Revision 1.5  1998/05/12 10:42:45  peter
-    * moved getopts to inc/, all supported OS's need argc,argv exported
-    + strpas, strlen are now exported in the systemunit
-    * removed logs
-    * removed $ifdef ver_above
-
-  Revision 1.4  1998/04/16 12:30:47  peter
-    + inc(pchar), dec(pchar), incc(pchar,a),dec(pchar,a)
 }

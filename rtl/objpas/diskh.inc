@@ -4,7 +4,7 @@
     Copyright (c) 1998 by the Free Pascal development team
 
     Disk functions from Delphi's sysutils.pas
-        
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -23,7 +23,10 @@ Function RemoveDir (Const Dir : String) : Boolean;
 
 {
  $Log$
- Revision 1.1  1998-10-11 13:41:32  michael
+ Revision 1.2  1999-11-06 14:41:30  peter
+   * truncated log
+
+ Revision 1.1  1998/10/11 13:41:32  michael
  + Added disk functions
 
 }

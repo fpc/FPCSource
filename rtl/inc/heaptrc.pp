@@ -897,7 +897,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.26  1999-11-01 13:56:50  peter
+  Revision 1.27  1999-11-06 14:35:38  peter
+    * truncated log
+
+  Revision 1.26  1999/11/01 13:56:50  peter
     * freemem,reallocmem now get var argument
 
   Revision 1.25  1999/10/30 17:39:05  peter
@@ -958,34 +961,5 @@ end.
 
   Revision 1.9  1999/01/22 12:39:22  pierre
    + added text arg for dump_stack
-
-  Revision 1.8  1998/12/15 23:49:51  michael
-  + Removed underscores in heaptrc unit
-
-  Revision 1.7  1998/11/16 12:20:13  peter
-    * write extra info also for wrong size
-
-  Revision 1.6  1998/11/06 08:46:01  pierre
-    * size is now also checked
-    + added halt_on_error variable (default true)
-      to stop at first error in getmem/freemem
-
-  Revision 1.5  1998/10/09 11:59:31  pierre
-    * changed default to keepreleased=false
-      (allows to compile pp in one call without reaching the
-      64Mb limit of Windows 95 dos box)
-    * corrected so typo errors
-
-  Revision 1.4  1998/10/08 14:49:05  pierre
-   + added possibility for more info
-
-  Revision 1.3  1998/10/06 17:09:13  pierre
-   + added trace of first dispose for errors
-
-  Revision 1.2  1998/10/02 10:35:38  peter
-    + quicktrace
-
-  Revision 1.1  1998/10/01 14:54:20  peter
-    + first version
 
 }

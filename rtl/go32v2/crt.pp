@@ -817,7 +817,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  1999-11-03 23:47:34  peter
+  Revision 1.8  1999-11-06 14:38:23  peter
+    * truncated log
+
+  Revision 1.7  1999/11/03 23:47:34  peter
     * support extended keys
 
   Revision 1.6  1999/10/22 14:36:20  peter
@@ -880,11 +883,6 @@ end.
   Revision 1.3  1998/05/27 00:19:16  peter
     * fixed crt input
 
-  Revision 1.2  1998/05/21 19:30:46  peter
-    * objects compiles for linux
-    + assign(pchar), assign(char), rename(pchar), rename(char)
-    * fixed read_text_as_array
-    + read_text_as_pchar which was not yet in the rtl
 }
 
 

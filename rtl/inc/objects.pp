@@ -2758,7 +2758,10 @@ END;
 END.
 {
   $Log$
-  Revision 1.30  1999-09-10 17:15:13  peter
+  Revision 1.31  1999-11-06 14:35:38  peter
+    * truncated log
+
+  Revision 1.30  1999/09/10 17:15:13  peter
     * fixed freeall
 
   Revision 1.29  1999/06/14 17:48:04  peter
@@ -2821,30 +2824,5 @@ END.
 
   Revision 1.10  1998/10/23 16:51:18  pierre
    * vmtlink type changed to pointer
-
-  Revision 1.9  1998/10/22 18:23:55  peter
-    + packed record for conversion records
-
-  Revision 1.8  1998/09/09 15:29:02  peter
-    * removed some warnings
-
-  Revision 1.7  1998/07/15 12:08:33  carl
-    + Atari TOS support
-
-  Revision 1.6  1998/07/08 12:00:25  carl
-    * fixed problem with m68k asm syntax
-    * i386_att put back in, and only in cpu86 defined
-
-  Revision 1.4  1998/05/30 14:24:42  peter
-    * ATT asmparsing always
-
-  Revision 1.3  1998/05/25 09:50:04  peter
-    * Platform.inc -> platform.inc
-
-  Revision 1.2  1998/05/21 19:30:58  peter
-    * objects compiles for linux
-    + assign(pchar), assign(char), rename(pchar), rename(char)
-    * fixed read_text_as_array
-    + read_text_as_pchar which was not yet in the rtl
 
 }
