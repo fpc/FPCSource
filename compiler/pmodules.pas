@@ -141,6 +141,7 @@ implementation
         if assigned(debuglist) then
           begin
             debuglist^.insert(new(pai_symbol,initname('gcc2_compiled',0)));
+            debuglist^.insert(new(pai_symbol,initname('fpc_compiled',0)));
             fixseg(debuglist,sec_code);
           end;
 {$endif GDB}
@@ -1705,7 +1706,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  2000-10-15 09:08:58  peter
+  Revision 1.16  2000-10-21 14:36:26  peter
+    * merged pierres fixes
+
+  Revision 1.15  2000/10/15 09:08:58  peter
     * use System for the systemunit instead of target dependent
 
   Revision 1.14  2000/10/15 07:47:51  peter

@@ -620,12 +620,13 @@ implementation
            if (s<>sec_none) then
             inc(offset,sects[s]^.mempos);
          end;
-        fillchar(stab,sizeof(coffstab),0);
         if assigned(p) and (p[0]<>#0) then
          begin
            stab.strpos:=sects[sec_stabstr]^.len;
            sects[sec_stabstr]^.write(p^,strlen(p)+1);
-         end;
+         end
+        else
+         stab.strpos:=0;
         stab.ntype:=nidx;
         stab.ndesc:=line;
         stab.nother:=nother;
@@ -672,12 +673,13 @@ implementation
            if (s<>sec_none) then
             inc(offset,sects[s]^.mempos);
          end;
-        fillchar(stab,sizeof(coffstab),0);
         if assigned(p) and (p[0]<>#0) then
          begin
            stab.strpos:=sects[sec_stabstr]^.len;
            sects[sec_stabstr]^.write(p^,strlen(p)+1);
-         end;
+         end
+        else
+         stab.strpos:=0;
         stab.ntype:=nidx;
         stab.ndesc:=line;
         stab.nother:=nother;
@@ -1040,7 +1042,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2000-09-24 15:06:19  peter
+  Revision 1.8  2000-10-21 14:36:26  peter
+    * merged pierres fixes
+
+  Revision 1.7  2000/09/24 15:06:19  peter
     * use defines.inc
 
   Revision 1.6  2000/09/19 23:09:07  pierre
