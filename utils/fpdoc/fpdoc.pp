@@ -87,11 +87,12 @@ begin
       Writeln(Format(SUsageFormatSpecific,[Lowercase(Backend)]));
       C:=GetWriterClass(backend);
       C.Usage(L);
-      For I:=0 to (L.Count-1) div 2 do
-        begin
-        S:=L[i*2];
-        Writeln(Format('%s %s',[S+Space(30-Length(S)),L[(i*2)+1]]));
-        end;
+      If L.Count>0 then
+        For I:=0 to (L.Count-1) div 2 do
+          begin
+          S:=L[i*2];
+          Writeln(Format('%s %s',[S+Space(30-Length(S)),L[(i*2)+1]]));
+          end;
       end;
   Finally
     L.Free;
@@ -283,7 +284,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  2005-01-14 17:55:07  michael
+  Revision 1.9  2005-02-05 12:30:08  michael
+  + Fixed bug report from Ales Katona
+
+  Revision 1.8  2005/01/14 17:55:07  michael
   + Added unix man page output; Implemented usage
 
   Revision 1.7  2005/01/12 21:11:41  michael
