@@ -496,9 +496,22 @@ Begin
   ExitProc:=@DoExitProc;
 End;
 
+{*****************************************************************************
+      Assert() support.
+*****************************************************************************}
+
+Procedure do_assert (Const Name : string; LineNo : Longint); [Public,Alias : 'FPC_DO_ASSERT'];
+
+begin
+  writeln (stderr,'Assertion failed in ',Name,', line ',LineNo,'.');
+end;
+
 {
   $Log$
-  Revision 1.21  1998-07-15 12:09:35  carl
+  Revision 1.22  1998-07-23 13:08:41  michael
+  + Implemented DO_ASSERT function.
+
+  Revision 1.21  1998/07/15 12:09:35  carl
     * would not compile under FPC v0.99.5
 
   Revision 1.20  1998/07/13 21:19:12  florian
