@@ -544,7 +544,9 @@ begin
   security.lpSecurityDescriptor:=nil;
   filerec(f).handle:=CreateFile(p,oflags,shflags,@security,cd,FILE_ATTRIBUTE_NORMAL,0);
 { append mode }
-  if (flags and $100)<>0 then
+  if ((flags and $100)<>0) and
+     (filerec(f).handle<>0) and
+     (filerec(f).handle<>-1) then
    begin
      do_seekend(filerec(f).handle);
      filerec(f).mode:=fmoutput; {fool fmappend}
@@ -1530,7 +1532,10 @@ end.
 
 {
   $Log$
-  Revision 1.42  2003-09-17 15:06:36  peter
+  Revision 1.43  2003-09-26 07:30:34  michael
+  + Win32 Do_open crahs on append
+
+  Revision 1.42  2003/09/17 15:06:36  peter
     * stdcall patch
 
   Revision 1.41  2003/09/12 12:33:43  olle
