@@ -3142,6 +3142,7 @@ years). This means the fractional part of a year is dropped.
 <link id="MinutesBetween"/>
 <link id="SecondsBetween"/>
 <link id="MilliSecondsBetween"/>
+<link id="YearSpan"/>
 </seealso>
 <example file="datutex/ex55"/>
 </element>
@@ -3415,6 +3416,23 @@ This means a fractional part of a millisecond is dropped.
 <!-- function result Visibility: default -->
 <element name="YearSpan.Result">
 <short>Number (fractions included) of years between <var>ANow</var> and <var>AThen</var></short>
+<descr>
+<var>YearSpan</var> returns the number of years between <var>ANow</var> and
+<var>AThen</var>, including any fractional parts of a year. This number is an approximation,
+based on an average number of days of 365.25 per year (average over 4
+years). 
+</descr>
+<seealso>
+<link id="MonthSpan"/>
+<link id="WeekSpan"/>
+<link id="DaySpan"/>
+<link id="HourSpan"/>
+<link id="MinuteSpan"/>
+<link id="SecondSpan"/>
+<link id="MilliSecondSpan"/>
+<link id="YearsBetween"/>
+</seealso>
+<example file="datutex/ex63"/>
 </element>
 
 <!-- argument Visibility: default -->
@@ -3430,6 +3448,23 @@ This means a fractional part of a millisecond is dropped.
 <!-- function Visibility: default -->
 <element name="MonthSpan">
 <short>Calculate the approximate number of months between two DateTime values.</short>
+<descr>
+<var>MonthSpan</var> returns the number of month between <var>ANow</var> and
+<var>AThen</var>, including any fractional parts of a month. This number is an approximation,
+based on an average number of days of 30.4375 per month (average over 4
+years). 
+</descr>
+<seealso>
+<link id="YearSpan"/>
+<link id="WeekSpan"/>
+<link id="DaySpan"/>
+<link id="HourSpan"/>
+<link id="MinuteSpan"/>
+<link id="SecondSpan"/>
+<link id="MilliSecondSpan"/>
+<link id="MonthsBetween"/>
+</seealso>
+<example file="datutex/ex64"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -3450,6 +3485,21 @@ This means a fractional part of a millisecond is dropped.
 <!-- function Visibility: default -->
 <element name="WeekSpan">
 <short>Calculate the approximate number of weeks between two DateTime values.</short>
+<descr>
+<var>WeekSpan</var> returns the number of weeks between <var>ANow</var> and
+<var>AThen</var>, including any fractional parts of a week. 
+</descr>
+<seealso>
+<link id="YearSpan"/>
+<link id="MonthSpan"/>
+<link id="DaySpan"/>
+<link id="HourSpan"/>
+<link id="MinuteSpan"/>
+<link id="SecondSpan"/>
+<link id="MilliSecondSpan"/>
+<link id="WeeksBetween"/>
+</seealso>
+<example file="datutex/ex65"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -3470,6 +3520,21 @@ This means a fractional part of a millisecond is dropped.
 <!-- function Visibility: default -->
 <element name="DaySpan">
 <short>Calculate the approximate number of days between two DateTime values.</short>
+<descr>
+<var>DaySpan</var> returns the number of Days between <var>ANow</var> and
+<var>AThen</var>, including any fractional parts of a Day. 
+</descr>
+<seealso>
+<link id="YearSpan"/>
+<link id="MonthSpan"/>
+<link id="WeekSpan"/>
+<link id="HourSpan"/>
+<link id="MinuteSpan"/>
+<link id="SecondSpan"/>
+<link id="MilliSecondSpan"/>
+<link id="DaysBetween"/>
+</seealso>
+<example file="datutex/ex66"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -3490,6 +3555,21 @@ This means a fractional part of a millisecond is dropped.
 <!-- function Visibility: default -->
 <element name="HourSpan">
 <short>Calculate the approximate number of hours between two DateTime values.</short>
+<descr>
+<var>HourSpan</var> returns the number of Hours between <var>ANow</var> and
+<var>AThen</var>, including any fractional parts of a Hour. 
+</descr>
+<seealso>
+<link id="YearSpan"/>
+<link id="MonthSpan"/>
+<link id="WeekSpan"/>
+<link id="DaySpan"/>
+<link id="MinuteSpan"/>
+<link id="SecondSpan"/>
+<link id="MilliSecondSpan"/>
+<link id="HoursBetween"/>
+</seealso>
+<example file="datutex/ex67"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -3510,6 +3590,21 @@ This means a fractional part of a millisecond is dropped.
 <!-- function Visibility: default -->
 <element name="MinuteSpan">
 <short>Calculate the approximate number of minutes between two DateTime values.</short>
+<descr>
+<var>MinuteSpan</var> returns the number of minutes between <var>ANow</var> and
+<var>AThen</var>, including any fractional parts of a minute. 
+</descr>
+<seealso>
+<link id="YearSpan"/>
+<link id="MonthSpan"/>
+<link id="WeekSpan"/>
+<link id="DaySpan"/>
+<link id="HourSpan"/>
+<link id="SecondSpan"/>
+<link id="MilliSecondSpan"/>
+<link id="MinutesBetween"/>
+</seealso>
+<example file="datutex/ex68"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -3530,6 +3625,21 @@ This means a fractional part of a millisecond is dropped.
 <!-- function Visibility: default -->
 <element name="SecondSpan">
 <short>Calculate the approximate number of seconds between two DateTime values.</short>
+<descr>
+<var>SecondSpan</var> returns the number of seconds between <var>ANow</var> and
+<var>AThen</var>, including any fractional parts of a second. 
+</descr>
+<seealso>
+<link id="YearSpan"/>
+<link id="MonthSpan"/>
+<link id="WeekSpan"/>
+<link id="DaySpan"/>
+<link id="HourSpan"/>
+<link id="MinuteSpan"/>
+<link id="MilliSecondSpan"/>
+<link id="SecondsBetween"/>
+</seealso>
+<example file="datutex/ex69"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -3549,13 +3659,24 @@ This means a fractional part of a millisecond is dropped.
 
 <!-- function Visibility: default -->
 <element name="MilliSecondSpan">
-<short>alculate the approximate number of seconds between two DateTime values.</short>
+<short>Calculate the approximate number of milliseconds between two DateTime values.</short>
 <descr>
-<p>
-Since millisecond are the smallest unit of a <var>TDateTime</var> value, the number
-will always be an integer value, even though a double is returned.
-</p>
+<var>MilliSecondSpan</var> returns the number of milliseconds between <var>ANow</var> and
+<var>AThen</var>. Since millisecond is the smallest fraction of a
+<var>TDateTime</var> indication, the returned number will always be an
+integer value.
 </descr>
+<seealso>
+<link id="YearSpan"/>
+<link id="MonthSpan"/>
+<link id="WeekSpan"/>
+<link id="DaySpan"/>
+<link id="HourSpan"/>
+<link id="MinuteSpan"/>
+<link id="SecondSpan"/>
+<link id="MilliSecondsBetween"/>
+</seealso>
+<example file="datutex/ex70"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -3576,6 +3697,21 @@ will always be an integer value, even though a double is returned.
 <!-- function Visibility: default -->
 <element name="IncYear">
 <short>Increase a DateTime value with a number of years.</short>
+<descr>
+<var>IncYear</var> adds <var>ANumberOfYears</var> years to <var>AValue</var> and
+returns the resulting date/time. <var>ANumberOfYears</var> can be positive or
+negative. 
+</descr>
+<seealso>
+<link id="#rtl.sysutils.IncMonth"/>
+<link id="IncWeek"/>
+<link id="IncDay"/>
+<link id="IncHour"/>
+<link id="IncMinute"/>
+<link id="IncSecond"/>
+<link id="IncMilliSecond"/>
+</seealso>
+<example file="datutex/ex71"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -3589,6 +3725,12 @@ will always be an integer value, even though a double is returned.
 </element>
 
 <!-- argument Visibility: default -->
+<element name="IncYear.ANumberOfYears">
+<short>Number of years to add</short>
+</element>
+
+
+<!-- argument Visibility: default -->
 <element name="IncWeek.ANumberOfWeeks">
 <short>Number of weeks to add</short>
 </element>
@@ -3596,6 +3738,21 @@ will always be an integer value, even though a double is returned.
 <!-- function Visibility: default -->
 <element name="IncWeek">
 <short>Increase a DateTime value with a number of weeks.</short>
+<descr>
+<var>IncWeek</var> adds <var>ANumberOfWeeks</var> weeks to <var>AValue</var> and
+returns the resulting date/time.<var>ANumberOfWeeks</var> can be positive or
+negative.
+</descr>
+<seealso>
+<link id="IncYear"/>
+<link id="#rtl.sysutils.IncMonth"/>
+<link id="IncDay"/>
+<link id="IncHour"/>
+<link id="IncMinute"/>
+<link id="IncSecond"/>
+<link id="IncMilliSecond"/>
+</seealso>
+<example file="datutex/ex73"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -3617,6 +3774,21 @@ will always be an integer value, even though a double is returned.
 <!-- function Visibility: default -->
 <element name="IncDay">
 <short>Increase a DateTime value with a number of days.</short>
+<descr>
+<var>IncDay</var> adds <var>ANumberOfDays</var> days to <var>AValue</var> and
+returns the resulting date/time.<var>ANumberOfDays</var> can be positive or
+negative.
+</descr>
+<seealso>
+<link id="IncYear"/>
+<link id="#rtl.sysutils.IncMonth"/>
+<link id="IncWeek"/>
+<link id="IncHour"/>
+<link id="IncMinute"/>
+<link id="IncSecond"/>
+<link id="IncMilliSecond"/>
+</seealso>
+<example file="datutex/ex74"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -3637,6 +3809,21 @@ will always be an integer value, even though a double is returned.
 <!-- function Visibility: default -->
 <element name="IncHour">
 <short>Increase a DateTime value with a number of hours.</short>
+<descr>
+<var>IncHour</var> adds <var>ANumberOfHours</var> hours to <var>AValue</var> and
+returns the resulting date/time.<var>ANumberOfHours</var> can be positive or
+negative.
+</descr>
+<seealso>
+<link id="IncYear"/>
+<link id="#rtl.sysutils.IncMonth"/>
+<link id="IncWeek"/>
+<link id="IncDay"/>
+<link id="IncMinute"/>
+<link id="IncSecond"/>
+<link id="IncMilliSecond"/>
+</seealso>
+<example file="datutex/ex75"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -3657,6 +3844,21 @@ will always be an integer value, even though a double is returned.
 <!-- function Visibility: default -->
 <element name="IncMinute">
 <short>Increase a DateTime value with a number of minutes.</short>
+<descr>
+<var>IncMinute</var> adds <var>ANumberOfMinutes</var> minutes to <var>AValue</var> and
+returns the resulting date/time.<var>ANumberOfMinutes</var> can be positive or
+negative.
+</descr>
+<seealso>
+<link id="IncYear"/>
+<link id="#rtl.sysutils.IncMonth"/>
+<link id="IncWeek"/>
+<link id="IncDay"/>
+<link id="IncHour"/>
+<link id="IncSecond"/>
+<link id="IncMilliSecond"/>
+</seealso>
+<example file="datutex/ex76"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -3677,6 +3879,21 @@ will always be an integer value, even though a double is returned.
 <!-- function Visibility: default -->
 <element name="IncSecond">
 <short>Increase a DateTime value with a number of seconds.</short>
+<descr>
+<var>IncSecond</var> adds <var>ANumberOfSeconds</var> seconds to <var>AValue</var> and
+returns the resulting date/time.<var>ANumberOfSeconds</var> can be positive or
+negative.
+</descr>
+<seealso>
+<link id="IncYear"/>
+<link id="#rtl.sysutils.IncMonth"/>
+<link id="IncWeek"/>
+<link id="IncDay"/>
+<link id="IncHour"/>
+<link id="IncSecond"/>
+<link id="IncMilliSecond"/>
+</seealso>
+<example file="datutex/ex77"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -3697,6 +3914,21 @@ will always be an integer value, even though a double is returned.
 <!-- function Visibility: default -->
 <element name="IncMilliSecond">
 <short>Increase a DateTime value with a number of milliseconds.</short>
+<descr>
+<var>IncMilliSecond</var> adds <var>ANumberOfMilliSeconds</var> milliseconds to <var>AValue</var> and
+returns the resulting date/time.<var>ANumberOfMilliSeconds</var> can be positive or
+negative.
+</descr>
+<seealso>
+<link id="IncYear"/>
+<link id="#rtl.sysutils.IncMonth"/>
+<link id="IncWeek"/>
+<link id="IncDay"/>
+<link id="IncHour"/>
+<link id="IncSecond"/>
+<link id="IncMilliSecond"/>
+</seealso>
+<example file="datutex/ex78"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -3712,6 +3944,31 @@ will always be an integer value, even though a double is returned.
 <!-- function Visibility: default -->
 <element name="EncodeDateTime">
 <short>Encodes a DateTime value from all its parts</short>
+<descr>
+<p>
+<var>EncodeDateTime</var> encodes the values <var>AYear</var>
+<var>AMonth</var>, <var>ADay</var>,<var>AHour</var>,
+<var>AMinute</var>,<var>ASecond</var> and <var>AMilliSecond</var>
+to a date/time valueand returns this value.
+</p>
+<p>
+For an example, see <link id="DecodeDateTime"/>.
+</p>
+</descr>
+<errors>
+If any of the arguments is not valid, then an <var>EConvertError</var>
+exception is raised.
+</errors>
+<seealso>
+<link id="DecodeDateTime"/>
+<link id="EncodeDateMonthWeek"/>
+<link id="EncodeDateWeek"/>
+<link id="EncodeDateDay"/>
+<link id="TryEncodeDateTime"/>
+<link id="TryEncodeDateWeek"/>
+<link id="TryEncodeDateDay"/>
+<link id="TryEncodeDateMonthWeek"/>
+</seealso>
 </element>
 
 <!-- function result Visibility: default -->
@@ -3757,6 +4014,22 @@ will always be an integer value, even though a double is returned.
 <!-- procedure Visibility: default -->
 <element name="DecodeDateTime">
 <short>Decode a datetime value in a date and time value</short>
+<descr>
+<var>DecodeDateTime</var> decomposes the date/time indication in
+<var>AValue</var> and returns the various components in <var>AYear</var>,
+<var>AMonth</var>, <var>ADay</var>, <var>AHour</var>, <var>AMinute</var>,
+<var>ASecond</var>, <var>AMilliSecond</var>
+</descr>
+<seealso>
+<link id="EncodeDateTime"/>
+<link id="EncodeDateMonthWeek"/>
+<link id="EncodeDateWeek"/>
+<link id="EncodeDateDay"/>
+<link id="DecodeDateWeek"/>
+<link id="DecodeDateDay"/>
+<link id="DecodeDateMonthWeek"/>
+</seealso>
+<example file="datutex/ex79"/>
 </element>
 
 <!-- argument Visibility: default -->
@@ -3802,6 +4075,28 @@ will always be an integer value, even though a double is returned.
 <!-- function Visibility: default -->
 <element name="TryEncodeDateTime">
 <short>Encode a Year, Month, Day, Hour, minute, seconds, milliseconds tuplet to a <var>TDateTime</var> value</short>
+<descr>
+<p>
+<var>EncodeDateTime</var> encodes the values <var>AYear</var>
+<var>AMonth</var>, <var>ADay</var>,<var>AHour</var>,
+<var>AMinute</var>,<var>ASecond</var> and <var>AMilliSecond</var>
+to a date/time valueand returns this value in <var>AValue</var>.
+</p>
+<p>
+If the date was encoded succesfully, <var>True</var> is returned,
+<var>False</var> is returned if one of the arguments is not valid.
+</p>
+</descr>
+<seealso>
+<link id="EncodeDateTime"/>
+<link id="EncodeDateMonthWeek"/>
+<link id="EncodeDateWeek"/>
+<link id="EncodeDateDay"/>
+<link id="TryEncodeDateDay"/>
+<link id="TryEncodeDateWeek"/>
+<link id="TryEncodeDateMonthWeek"/>
+</seealso>
+<example file="datutex/ex80"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -3852,6 +4147,28 @@ will always be an integer value, even though a double is returned.
 <!-- function Visibility: default -->
 <element name="EncodeDateWeek">
 <short>Encode a <var>TDateTime</var> value from a year, week and day of week triplet</short>
+<descr>
+<p>
+<var>EncodeDateWeek</var> encodes the values <var>AYear</var>, <var>AWeekOfYear</var>
+and <var>ADayOfWeek</var> to a date value and returns this value.
+</p>
+<p>
+For an example, see <link id="DecodeDateWeek"/>.
+</p>
+</descr>
+<errors>
+If any of the arguments is not valid, then an <var>EConvertError</var>
+exception is raised.
+</errors>
+<seealso>
+<link id="EncodeDateMonthWeek"/>
+<link id="DecodeDateWeek"/>
+<link id="EncodeDateTime"/>
+<link id="EncodeDateDay"/>
+<link id="TryEncodeDateTime"/>
+<link id="TryEncodeDateWeek"/>
+<link id="TryEncodeDateMonthWeek"/>
+</seealso>
 </element>
 
 <!-- function result Visibility: default -->
@@ -3872,6 +4189,21 @@ will always be an integer value, even though a double is returned.
 <!-- procedure Visibility: default -->
 <element name="DecodeDateWeek">
 <short>Decode a DateTime value in a week of year and day of week.</short>
+<descr>
+<var>DecodeDateWeek</var> decomposes the date indication in
+<var>AValue</var> and returns the various components in <var>AYear</var>,
+<var>AWeekOfYear</var>, <var>ADayOfWeek</var>.
+</descr>
+<seealso>
+<link id="EncodeDateTime"/>
+<link id="EncodeDateMonthWeek"/>
+<link id="EncodeDateWeek"/>
+<link id="EncodeDateDay"/>
+<link id="DecodeDateTime"/>
+<link id="DecodeDateDay"/>
+<link id="DecodeDateMonthWeek"/>
+</seealso>
+<example file="datutex/ex81"/>
 </element>
 
 <!-- argument Visibility: default -->
@@ -3897,6 +4229,27 @@ will always be an integer value, even though a double is returned.
 <!-- function Visibility: default -->
 <element name="TryEncodeDateWeek">
 <short>Encode a year, week and day of week triplet to a <var>TDateTime</var> value</short>
+<descr>
+<p>
+<var>TryEncodeDateWeek</var> encodes the values <var>AYear</var>, <var>AWeekOfYear</var>
+and <var>ADayOfWeek</var> to a date value and returns this value in
+<var>AValue</var>.
+</p>
+<p>
+If the encoding was succcesful, <var>True</var> is returned.
+<var>False</var> is returned if any of the arguments is not valid.
+</p>
+</descr>
+<seealso>
+<link id="EncodeDateMonthWeek"/>
+<link id="EncodeDateWeek"/>
+<link id="EncodeDateTime"/>
+<link id="EncodeDateDay"/>
+<link id="TryEncodeDateTime"/>
+<link id="TryEncodeDateMonthWeek"/>
+<link id="TryEncodeDateDay"/>
+</seealso>
+<example file="datutex/ex82"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -3927,6 +4280,28 @@ will always be an integer value, even though a double is returned.
 <!-- function Visibility: default -->
 <element name="EncodeDateDay">
 <short>Encodes a year and day of year to a DateTime value</short>
+<descr>
+<p>
+<var>EncodeDateDay</var> encodes the values <var>AYear</var> and <var>ADayOfYear</var>
+to a date value and returns this value.
+</p>
+<p>
+For an example, see <link id="DecodeDateDay"/>.
+</p>
+</descr>
+<errors>
+If any of the arguments is not valid, then an <var>EConvertError</var>
+exception is raised.
+</errors>
+<seealso>
+<link id="EncodeDateMonthWeek"/>
+<link id="DecodeDateDay"/>
+<link id="EncodeDateTime"/>
+<link id="EncodeDateWeek"/>
+<link id="TryEncodeDateTime"/>
+<link id="TryEncodeDateMonthWeek"/>
+<link id="TryEncodeDateWeek"/>
+</seealso>
 </element>
 
 <!-- function result Visibility: default -->
@@ -3947,6 +4322,21 @@ will always be an integer value, even though a double is returned.
 <!-- procedure Visibility: default -->
 <element name="DecodeDateDay">
 <short>Decode a DateTime value in year and year of day.</short>
+<descr>
+<var>DecodeDateDay</var> decomposes the date indication in
+<var>AValue</var> and returns the various components in <var>AYear</var>,
+<var>ADayOfYear</var>.
+</descr>
+<seealso>
+<link id="EncodeDateTime"/>
+<link id="EncodeDateMonthWeek"/>
+<link id="EncodeDateWeek"/>
+<link id="EncodeDateDay"/>
+<link id="DecodeDateTime"/>
+<link id="DecodeDateWeek"/>
+<link id="DecodeDateMonthWeek"/>
+</seealso>
+<example file="datutex/ex83"/>
 </element>
 
 <!-- argument Visibility: default -->
@@ -3967,6 +4357,27 @@ will always be an integer value, even though a double is returned.
 <!-- function Visibility: default -->
 <element name="TryEncodeDateDay">
 <short>Encode a year and day of year to a <var>TDateTime</var> value</short>
+<descr>
+<p>
+<var>TryEncodeDateDay</var> encodes the values <var>AYear</var>
+and <var>ADayOfYear</var> to a date value and returns this value in
+<var>AValue</var>.
+</p>
+<p>
+If the encoding was succcesful, <var>True</var> is returned.
+<var>False</var> is returned if any of the arguments is not valid.
+</p>
+</descr>
+<seealso>
+<link id="EncodeDateDay"/>
+<link id="EncodeDateTime"/>
+<link id="EncodeDateMonthWeek"/>
+<link id="EncodeDateWeek"/>
+<link id="TryEncodeDateTime"/>
+<link id="TryEncodeDateMonthWeek"/>
+<link id="TryEncodeDateWeek"/>
+</seealso>
+<example file="datutex/ex84"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -3992,6 +4403,30 @@ will always be an integer value, even though a double is returned.
 <!-- function Visibility: default -->
 <element name="EncodeDateMonthWeek">
 <short>Encodes a year, month, week of month and day of week to a DateTime value</short>
+<descr>
+<p>
+<var>EncodeDateTime</var> encodes the values <var>AYear</var>
+<var>AMonth</var>, <var>WeekOfMonth</var>,<var>ADayOfWeek</var>,
+to a date value and returns this value.
+</p>
+<p>
+For an example, see <link id="DecodeDateMonthWeek"/>.
+</p>
+</descr>
+<errors>
+If any of the arguments is not valid, then an <var>EConvertError</var>
+exception is raised.
+</errors>
+<seealso>
+<link id="DecodeDateMonthWeek"/>
+<link id="EncodeDateTime"/>
+<link id="EncodeDateWeek"/>
+<link id="EncodeDateDay"/>
+<link id="TryEncodeDateTime"/>
+<link id="TryEncodeDateWeek"/>
+<link id="TryEncodeDateMonthWeek"/>
+<link id="TryEncodeDateDay"/>
+</seealso>
 </element>
 
 <!-- function result Visibility: default -->
@@ -4022,6 +4457,21 @@ will always be an integer value, even though a double is returned.
 <!-- procedure Visibility: default -->
 <element name="DecodeDateMonthWeek">
 <short>Decode a DateTime value in a month, week of month and day of week</short>
+<descr>
+<var>DecodeDateMonthWeek</var> decomposes the date indication in
+<var>AValue</var> and returns the various components in <var>AYear</var>,
+<var>AMonth</var> <var>AWeekOfMonth</var> and <var>ADayOfWeek</var>.
+</descr>
+<seealso>
+<link id="EncodeDateTime"/>
+<link id="EncodeDateMonthWeek"/>
+<link id="EncodeDateWeek"/>
+<link id="EncodeDateDay"/>
+<link id="DecodeDateTime"/>
+<link id="DecodeDateWeek"/>
+<link id="DecodeDateDay"/>
+</seealso>
+<example file="datutex/ex85"/>
 </element>
 
 <!-- argument Visibility: default -->
@@ -4052,6 +4502,28 @@ will always be an integer value, even though a double is returned.
 <!-- function Visibility: default -->
 <element name="TryEncodeDateMonthWeek">
 <short>Encode a year, month, week of month and day of week to a <var>TDateTime</var> value</short>
+<descr>
+<p>
+<var>TryEncodeDateTime</var> encodes the values <var>AYear</var>
+<var>AMonth</var>, <var>WeekOfMonth</var>,<var>ADayOfWeek</var>,
+to a date value and returns this value in <var>AValue</var>.
+</p>
+<p>
+If the encoding was succesful, <var>True</var> is returned, <var>False</var>
+if any of the arguments is not valid.
+</p>
+</descr>
+<seealso>
+<link id="DecodeDateMonthWeek"/>
+<link id="EncodeDateTime"/>
+<link id="EncodeDateWeek"/>
+<link id="EncodeDateDay"/>
+<link id="EncodeDateMonthWeek"/>
+<link id="TryEncodeDateTime"/>
+<link id="TryEncodeDateWeek"/>
+<link id="TryEncodeDateDay"/>
+</seealso>
+<example file="datutex/ex86"/>
 </element>
 
 <!-- function result Visibility: default -->

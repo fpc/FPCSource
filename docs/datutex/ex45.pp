@@ -1,4 +1,4 @@
-Program Example44;
+Program Example45;
 
 { This program demonstrates the SecondOfTheMinute function }
 

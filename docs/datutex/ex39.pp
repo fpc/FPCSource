@@ -1,4 +1,4 @@
-Program Example36;
+Program Example39;
 
 { This program demonstrates the EndOfADay function }
 

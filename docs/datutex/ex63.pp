@@ -1,15 +1,15 @@
-Program Example56;
+Program Example63;
 
-{ This program demonstrates the MonthsBetween function }
+{ This program demonstrates the YearSpan function }
 
 Uses SysUtils,DateUtils;
 
 Procedure Test(ANow,AThen : TDateTime);
 
 begin
- Write('Number of months between ');
+ Write('Number of years between ');
  Write(DateToStr(AThen),' and ',DateToStr(ANow));
- Writeln(' : ',MonthsBetween(ANow,AThen));
+ Writeln(' : ',YearSpan(ANow,AThen));
 end;
 
 Var

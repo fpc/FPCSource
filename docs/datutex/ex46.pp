@@ -1,4 +1,4 @@
-Program Example44;
+Program Example46;
 
 { This program demonstrates the MilliSecondOfTheSecond function }
 

@@ -1,4 +1,4 @@
-Program Example36;
+Program Example38;
 
 { This program demonstrates the StartOfADay function }
 

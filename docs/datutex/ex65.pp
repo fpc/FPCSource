@@ -1,15 +1,15 @@
-Program Example56;
+Program Example57;
 
-{ This program demonstrates the MonthsBetween function }
+{ This program demonstrates the WeekSpan function }
 
 Uses SysUtils,DateUtils;
 
 Procedure Test(ANow,AThen : TDateTime);
 
 begin
- Write('Number of months between ');
+ Write('Number of weeks between ');
  Write(DateToStr(AThen),' and ',DateToStr(ANow));
- Writeln(' : ',MonthsBetween(ANow,AThen));
+ Writeln(' : ',WeekSpan(ANow,AThen));
 end;
 
 Var
@@ -17,16 +17,16 @@ Var
 
 Begin
   D1:=Today;
-  D2:=Today-364;
+  D2:=Today-7;
   Test(D1,D2);
-  D2:=Today-365;
+  D2:=Today-8;
   Test(D1,D2);
-  D2:=Today-366;
+  D2:=Today-14;
   Test(D1,D2);
-  D2:=Today-390;
+  D2:=Today-35;
   Test(D1,D2);
-  D2:=Today-368;
+  D2:=Today-36;
   Test(D1,D2);
-  D2:=Today-1000;
+  D2:=Today-17;
   Test(D1,D2);
 End.

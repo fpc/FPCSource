@@ -59,3 +59,19 @@ ex59.pp contains an example of the HoursBetween function.
 ex60.pp contains an example of the MinutesBetween function.
 ex61.pp contains an example of the SecondsBetween function.
 ex62.pp contains an example of the MilliSecondsBetween function.
+ex71.pp contains an example of the IncYear function.
+ex72.pp contains an example of the IncMonth function.
+ex73.pp contains an example of the IncWeek function.
+ex74.pp contains an example of the IncDay function.
+ex75.pp contains an example of the IncHour function.
+ex76.pp contains an example of the IncMinute function.
+ex77.pp contains an example of the IncSecond function.
+ex78.pp contains an example of the IncMilliSecond function.
+ex79.pp contains an example of the DecodeDateTime and EncodeDateTime functions.
+ex80.pp contains an example of the TryEncodeDateTime function.
+ex81.pp contains an example of the DecodeDateWeek and EncodeDateWeek functions.
+ex82.pp contains an example of the TryEncodeDateWeek function.
+ex83.pp contains an example of the DecodeDateDay and EncodeDateDay functions.
+ex84.pp contains an example of the TryEncodeDateDay function.
+ex85.pp contains an example of the DecodeDateMonthWeek and EncodeDateMonthWeek functions.
+ex86.pp contains an example of the TryEncodeDateMonthWeek function.
