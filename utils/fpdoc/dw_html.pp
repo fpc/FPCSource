@@ -192,6 +192,7 @@ type
 
     procedure AppendTitle(const AText: DOMString);
     procedure AppendMenuBar(ASubpageIndex: Integer);
+    procedure AppendSourceRef(AElement: TPasElement);
     procedure FinishElementPage(AElement: TPasElement);
 
     procedure CreatePageBody(AElement: TPasElement; ASubpageIndex: Integer); virtual;
@@ -492,6 +493,8 @@ var
   Path: String;
 begin
   EndIndex := Length(AFilename);
+  if EndIndex = 0 then
+    exit;
   while not (AFilename[EndIndex] in DirSeparators) do
   begin
     Dec(EndIndex);
@@ -513,7 +516,8 @@ var
   PageDoc: TXMLDocument;
   Filename: String;
 begin
-  Engine.Output := IncludeTrailingBackSlash(Engine.Output);
+  if Engine.Output <> '' then
+    Engine.Output := IncludeTrailingBackSlash(Engine.Output);
   for i := 0 to PageInfos.Count - 1 do
     with TPageInfo(PageInfos[i]) do
     begin
@@ -1550,6 +1554,12 @@ begin
   end;
 end;
 
+procedure THTMLWriter.AppendSourceRef(AElement: TPasElement);
+begin
+  AppendText(CreatePara(BodyElement), Format(SDocSourcePosition,
+    [AElement.SourceFilename, AElement.SourceLinenumber]));
+end;
+
 procedure THTMLWriter.FinishElementPage(AElement: TPasElement);
 var
   DocNode: TDocNode;
@@ -1848,6 +1858,7 @@ begin
   AppendTitle(AConst.Name);
   AppendShortDescr(CreatePara(BodyElement), AConst);
   AppendText(CreateH2(BodyElement), SDocDeclaration);
+  AppendSourceRef(AConst);
 
   TableEl := CreateTable(BodyElement);
   CodeEl := CreateCode(CreatePara(CreateTD(CreateTR(TableEl))));
@@ -1878,6 +1889,7 @@ begin
   AppendTitle(AType.Name);
   AppendShortDescr(CreatePara(BodyElement), AType);
   AppendText(CreateH2(BodyElement), SDocDeclaration);
+  AppendSourceRef(AType);
 
   TableEl := CreateTable(BodyElement);
   TREl := CreateTR(TableEl);
@@ -2075,6 +2087,7 @@ var
 
     AppendShortDescr(CreatePara(BodyElement), AClass);
     AppendText(CreateH2(BodyElement), SDocDeclaration);
+    AppendSourceRef(AClass);
 
     TableEl := CreateTable(BodyElement);
 
@@ -2484,6 +2497,7 @@ begin
   AppendTitle(AElement.FullName);
   AppendShortDescr(CreatePara(BodyElement), AElement);
   AppendText(CreateH2(BodyElement), SDocDeclaration);
+  AppendSourceRef(AElement);
 
   TableEl := CreateTable(BodyElement);
   TREl := CreateTR(TableEl);
@@ -2523,6 +2537,7 @@ begin
   AppendTitle(AVar.FullName);
   AppendShortDescr(CreatePara(BodyElement), AVar);
   AppendText(CreateH2(BodyElement), SDocDeclaration);
+  AppendSourceRef(AVar);
 
   TableEl := CreateTable(BodyElement);
   TREl := CreateTR(TableEl);
@@ -2553,6 +2568,7 @@ begin
   AppendTitle(AProc.Name);
   AppendShortDescr(CreatePara(BodyElement), AProc);
   AppendText(CreateH2(BodyElement), SDocDeclaration);
+  AppendSourceRef(AProc);
 
   TableEl := CreateTable(BodyElement);
   TREl := CreateTR(TableEl);
@@ -2577,7 +2593,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2003-04-22 00:00:05  sg
+  Revision 1.5  2003-11-28 12:51:37  sg
+  * Added support for source references
+
+  Revision 1.4  2003/04/22 00:00:05  sg
   * Fixed bug in path building for links to elements which don't have their
     own page, but their parent element has
 

@@ -71,6 +71,7 @@ resourcestring
   SDocValue = 'Value';
   SDocExplanation = 'Explanation';
   SDocValuesForEnum = 'Enumeration values for type %s';
+  SDocSourcePosition = 'Source position: %s line %d';
 
 type
 
@@ -172,7 +173,8 @@ type
     procedure WriteContentFile(const AFilename: String);
 
     function CreateElement(AClass: TPTreeElement; const AName: String;
-      AParent: TPasElement; AVisibility: TPasMemberVisibility): TPasElement;
+      AParent: TPasElement; AVisibility: TPasMemberVisibility;
+      const ASourceFilename: String; ASourceLinenumber: Integer): TPasElement;
       override;
     function FindElement(const AName: String): TPasElement; override;
     function FindModule(const AName: String): TPasModule; override;
@@ -446,7 +448,8 @@ end;
 procedure TFPDocEngine.SetPackageName(const APackageName: String);
 begin
   ASSERT(not Assigned(Package));
-  FPackage := TPasPackage(inherited CreateElement(TPasPackage, '#' + APackageName, nil));
+  FPackage := TPasPackage(inherited CreateElement(TPasPackage,
+    '#' + APackageName, nil, '', 0));
   FPackages.Add(FPackage);
   CurPackageDocNode := RootDocNode.FindChild('#' + APackageName);
 end;
@@ -529,7 +532,8 @@ var
 	end;
       if not Assigned(Package) then
       begin
-        Package := TPasPackage(inherited CreateElement(TPasPackage, s, nil));
+        Package := TPasPackage(inherited CreateElement(TPasPackage, s, nil,
+	  '', 0));
         FPackages.Add(Package);
       end;
 
@@ -728,12 +732,15 @@ begin
 end;
 
 function TFPDocEngine.CreateElement(AClass: TPTreeElement; const AName: String;
-  AParent: TPasElement; AVisibility: TPasMemberVisibility): TPasElement;
+  AParent: TPasElement; AVisibility: TPasMemberVisibility;
+  const ASourceFilename: String; ASourceLinenumber: Integer): TPasElement;
 begin
   Result := AClass.Create(AName, AParent);
   Result.Visibility := AVisibility;
   if AClass.InheritsFrom(TPasModule) then
     CurModule := TPasModule(Result);
+  Result.SourceFilename := ASourceFilename;
+  Result.SourceLinenumber := ASourceLinenumber;
 end;
 
 function TFPDocEngine.FindElement(const AName: String): TPasElement;
@@ -1087,7 +1094,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2003-03-17 23:03:20  michael
+  Revision 1.2  2003-11-28 12:51:37  sg
+  * Added support for source references
+
+  Revision 1.1  2003/03/17 23:03:20  michael
   + Initial import in CVS
 
   Revision 1.13  2003/03/13 22:02:13  sg

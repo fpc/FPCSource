@@ -36,7 +36,8 @@ type
   TSkelEngine = class(TFPDocEngine)
   public
     function CreateElement(AClass: TPTreeElement; const AName: String;
-      AParent: TPasElement; AVisibility :TPasMemberVisibility): TPasElement; override;
+      AParent: TPasElement; AVisibility :TPasMemberVisibility;
+      const ASourceFilename: String; ASourceLinenumber: Integer): TPasElement; override;
   end;
 
 const
@@ -61,7 +62,8 @@ var
 
 
 function TSkelEngine.CreateElement(AClass: TPTreeElement; const AName: String;
-  AParent: TPasElement; AVisibility : TPasMemberVisibility): TPasElement;
+  AParent: TPasElement; AVisibility : TPasMemberVisibility;
+  const ASourceFilename: String; ASourceLinenumber: Integer): TPasElement;
 begin
   Result := AClass.Create(AName, AParent);
 
@@ -280,7 +282,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2003-09-02 13:26:47  mattias
+  Revision 1.5  2003-11-28 12:51:37  sg
+  * Added support for source references
+
+  Revision 1.4  2003/09/02 13:26:47  mattias
   MG: makeskel now ignores missing translation file
 
   Revision 1.3  2003/05/07 16:31:32  sg
