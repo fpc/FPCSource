@@ -452,7 +452,7 @@ end;
      end;
      offs := longint(y) * BytesPerLine + x;
      SetWriteBank(integer(offs shr 16));
-     mem[WinWriteSeg : word(offs)] := byte(color)
+     mem[WinWriteSeg : word(offs)] := byte(color);
   end;
 
   procedure DirectPutPixVESA256(x, y : integer); {$ifndef fpc}far;{$endif fpc}
@@ -467,12 +467,12 @@ end;
        XorPut:
          Begin
            SetReadBank(integer(offs shr 16));
-           mem[WinWriteSeg : word(offs)] := mem[WinReadSeg : word(offs)] xor byte(currentcolor);
+           mem[WinWriteSeg : word(offs)] := mem[WinReadSeg : word(offs)] xor byte(CurrentColor);
          End;
        AndPut:
          Begin
            SetReadBank(integer(offs shr 16));
-           mem[WinWriteSeg : word(offs)] := mem[WinReadSeg : word(offs)] And byte(currentcolor);
+           mem[WinWriteSeg : word(offs)] := mem[WinReadSeg : word(offs)] And byte(CurrentColor);
          End;
        OrPut:
          Begin
@@ -1921,7 +1921,10 @@ end;
 
 {
 $Log$
-Revision 1.12  1999-09-18 22:21:11  jonas
+Revision 1.13  1999-09-20 09:34:30  florian
+  * conflicts solved
+
+Revision 1.12  1999/09/18 22:21:11  jonas
   + hlinevesa256 and vlinevesa256
   + support for not/xor/or/andput in vesamodes with 32k/64k colors
   * lots of changes to avoid warnings under FPC
