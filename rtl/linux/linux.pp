@@ -497,6 +497,7 @@ Procedure GetDate(Var Year,Month,Day:Integer);
 ***************************}
 
 function  CreateShellArgV(const prog:string):ppchar;
+function  CreateShellArgV(const prog:Ansistring):ppchar;
 Procedure Execve(Path:pathstr;args:ppchar;ep:ppchar);
 Procedure Execve(path:pchar;args:ppchar;ep:ppchar);
 Procedure Execv(const path:pathstr;args:ppchar);
@@ -505,6 +506,7 @@ Procedure Execl(const Todo:string);
 Procedure Execle(Todo:string;Ep:ppchar);
 Procedure Execlp(Todo:string;Ep:ppchar);
 Function  Shell(const Command:String):Longint;
+Function  Shell(const Command:AnsiString):Longint;
 Function  Fork:longint;
 function  Clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint;
 Procedure ExitProcess(val:longint);
@@ -729,6 +731,28 @@ begin
   p:=p+4;
   p^:=@temp[12];
   p:=p+4;
+  p^:=Nil;
+  CreateShellArgV:=pp;
+end;
+
+function CreateShellArgV(const prog:Ansistring):ppchar;
+{
+  Create an argv which executes a command in a shell using /bin/sh -c
+  using a AnsiString;
+}
+var
+  pp,p : ppchar;
+  temp : AnsiString;
+begin
+  getmem(pp,4*4);
+  temp:='/bin/sh'#0'-c'#0+prog+#0;
+  GetMem(PP[0],Length(Temp));
+  Move(@Temp[1],PP[0]^,Length(Temp)); 
+  p:=pp+SizeOf(Pointer);
+  p^:=@pp[0][8];
+  p:=p+SizeOf(Pointer);
+  p^:=@pp[0][11];
+  p:=p+SizeOf(Pointer);
   p^:=Nil;
   CreateShellArgV:=pp;
 end;
@@ -977,6 +1001,28 @@ begin
   Shell:=temp;{ Return exit status }
 end;
 
+Function Shell(const Command:AnsiString):Longint;
+{
+  AnsiString version of Shell
+}
+var
+  p        : ppchar;
+  temp,pid : longint;
+begin
+  pid:=fork;
+  if pid=-1 then
+   exit; {Linuxerror already set in Fork}
+  if pid=0 then
+   begin
+     {This is the child.}
+     p:=CreateShellArgv(command);
+     Execve(p^,p,envp);
+     exit(127);
+   end;
+  temp:=0;
+  WaitPid(pid,@temp,0);{Linuxerror is set there}
+  Shell:=temp;{ Return exit status }
+end;
 
 
 Function GetPriority(Which,Who:Integer):integer;
@@ -3600,7 +3646,10 @@ End.
 
 {
   $Log$
-  Revision 1.39  1999-05-30 11:37:27  peter
+  Revision 1.40  1999-07-15 20:00:31  michael
+  + Added ansistring version of shell()
+
+  Revision 1.39  1999/05/30 11:37:27  peter
     * clone function like the libc version
     + sigraise, exitprocess
 
