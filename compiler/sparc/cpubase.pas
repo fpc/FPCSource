@@ -207,8 +207,8 @@ TYPE
   Tsupregset=set of Tsuperregister;
 CONST
   R_NO=R_NONE;
-  firstreg = low(Toldregister);
-  lastreg  = high(R_ASR31);
+  firstreg = R_G0;
+  lastreg  = R_I7;
 
 {General registers.}
 
@@ -283,7 +283,7 @@ const
   R_SUBL=$00;
   
 type
-  reg2strtable=ARRAY[firstreg..lastreg] OF STRING[7];
+  reg2strtable=ARRAY[TOldRegister] OF STRING[7];
 
 const
   std_reg2str:reg2strtable=({$INCLUDE strregs.inc});
@@ -482,7 +482,7 @@ const
   {# Register indexes for stabs information, when some parameters or variables
   are stored in registers.
   Taken from rs6000.h (DBX_REGISTER_NUMBER) from GCC 3.x source code.}
-  stab_regindex:ARRAY[firstreg..lastreg]OF ShortInt=({$INCLUDE stabregi.inc});
+  stab_regindex:ARRAY[TOldRegister]OF ShortInt=({$INCLUDE stabregi.inc});
 {*************************** generic register names **************************}
   stack_pointer_reg   = R_O6;
   NR_STACK_POINTER_REG = NR_O6;
@@ -676,7 +676,12 @@ END.
 
 {
   $Log$
-  Revision 1.23  2003-02-19 22:00:17  daniel
+  Revision 1.24  2003-02-26 22:06:27  mazen
+  * FirstReg <-- R_G0 instead of Low(TOldRegister)=R_NONE
+  * LastReg <-- R_L7 instead of High(R_ASR31)=High(TOldRegister)
+  * FirstReg..LastReg rplaced by TOldRegister in several arrays declarions
+
+  Revision 1.23  2003/02/19 22:00:17  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 
