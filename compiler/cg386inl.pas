@@ -295,7 +295,7 @@ implementation
                         { support openstring calling for readln(shortstring) }
                         if doread and (is_shortstring(hp^.resulttype)) then
                           dummycoll.data:=openshortstringdef;
-                        secondcallparan(hp,@dummycoll,false,false,0);
+                        secondcallparan(hp,@dummycoll,false,false,false,0);
                         if ft=ft_typed then
                           never_copy_const_param:=false;
                       end;
@@ -337,7 +337,7 @@ implementation
                                    hp:=node;
                                    node:=node^.right;
                                    hp^.right:=nil;
-                                   secondcallparan(hp,@dummycoll,false,false,0);
+                                   secondcallparan(hp,@dummycoll,false,false,false,0);
                                    hp^.right:=node;
                                    if codegenerror then
                                      exit;
@@ -354,7 +354,7 @@ implementation
                                    hp:=node;
                                    node:=node^.right;
                                    hp^.right:=nil;
-                                   secondcallparan(hp,@dummycoll,false,false,0);
+                                   secondcallparan(hp,@dummycoll,false,false,false,0);
                                    hp^.right:=node;
                                    if pararesult^.deftype<>floatdef then
                                      CGMessage(parser_e_illegal_colon_qualifier);
@@ -556,7 +556,7 @@ implementation
            else
              dummycoll.data:=hp^.resulttype;
            procedureprefix:='FPC_'+pstringdef(hp^.resulttype)^.stringtypname+'_';
-           secondcallparan(hp,@dummycoll,false,false,0);
+           secondcallparan(hp,@dummycoll,false,false,false,0);
            if codegenerror then
              exit;
 
@@ -573,7 +573,7 @@ implementation
              begin
                 dummycoll.data:=hp^.resulttype;
                 secondcallparan(hp,@dummycoll,false
-                  ,false,0
+                  ,false,false,0
                   );
                 if codegenerror then
                   exit;
@@ -592,7 +592,7 @@ implementation
              begin
                 dummycoll.data:=hp^.resulttype;
                 secondcallparan(hp,@dummycoll,false
-                  ,false,0
+                  ,false,false,0
                   );
                 if codegenerror then
                   exit;
@@ -609,7 +609,7 @@ implementation
 
            { last arg longint or real }
            secondcallparan(hp,@dummycoll,false
-             ,false,0
+             ,false,false,0
              );
            disposetree(hp);
 
@@ -721,7 +721,7 @@ implementation
              Begin
                dummycoll.paratyp:=vs_var;
                dummycoll.data:=code_para^.resulttype;
-               secondcallparan(code_para,@dummycoll,false,false,0);
+               secondcallparan(code_para,@dummycoll,false,false,false,0);
                if codegenerror then
                  exit;
                Disposetree(code_para);
@@ -736,7 +736,7 @@ implementation
           {node = first parameter = string}
            dummycoll.paratyp:=vs_const;
            dummycoll.data:=node^.resulttype;
-           secondcallparan(node,@dummycoll,false,false,0);
+           secondcallparan(node,@dummycoll,false,false,false,0);
            if codegenerror then
              exit;
 
@@ -1287,7 +1287,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.42  1999-04-14 09:11:59  peter
+  Revision 1.43  1999-04-19 09:45:48  pierre
+    +  cdecl or stdcall push all args with longint size
+    *  tempansi stuff cleaned up
+
+  Revision 1.42  1999/04/14 09:11:59  peter
     * fixed include
 
   Revision 1.41  1999/04/08 23:59:49  pierre

@@ -62,7 +62,7 @@ implementation
            hightree:=genloadnode(pvarsym(srsym),p^.symtable);
            firstpass(hightree);
            secondpass(hightree);
-           push_value_para(hightree,false,0);
+           push_value_para(hightree,false,0,4);
            disposetree(hightree);
          end
         else
@@ -319,7 +319,7 @@ implementation
                    begin
                       clear_location(pto^.location);
                       pto^.location.loc:=LOC_REFERENCE;
-                      gettempofsizereference(pto^.resulttype^.size,pto^.location.reference);
+                      gettempansistringreference(pto^.location.reference);
                       ltemptoremove^.concat(new(ptemptodestroy,init(pto^.location.reference,pto^.resulttype)));
                       exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_L,0,newreference(pto^.location.reference))));
                       pushusedregisters(pushed,$ff);
@@ -498,7 +498,7 @@ implementation
              end;
            st_ansistring :
              begin
-               gettempofsizereference(4,pto^.location.reference);
+               gettempansistringreference(pto^.location.reference);
                ltemptoremove^.concat(new(ptemptodestroy,init(pto^.location.reference,pto^.resulttype)));
                exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_L,0,newreference(pto^.location.reference))));
                release_loc(pfrom^.location);
@@ -545,7 +545,7 @@ implementation
              end;
            st_ansistring :
              begin
-               gettempofsizereference(4,pto^.location.reference);
+               gettempansistringreference(pto^.location.reference);
                ltemptoremove^.concat(new(ptemptodestroy,init(pto^.location.reference,pto^.resulttype)));
                exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_L,0,newreference(pto^.location.reference))));
                release_loc(pfrom^.location);
@@ -1062,7 +1062,7 @@ implementation
              end;
            st_ansistring:
              begin
-                gettempofsizereference(pto^.resulttype^.size,pto^.location.reference);
+                gettempansistringreference(pto^.location.reference);
                 ltemptoremove^.concat(new(ptemptodestroy,init(pto^.location.reference,pto^.resulttype)));
                 exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_L,0,newreference(pto^.location.reference))));
                 case pfrom^.location.loc of
@@ -1288,7 +1288,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.64  1999-04-16 13:42:25  jonas
+  Revision 1.65  1999-04-19 09:45:47  pierre
+    +  cdecl or stdcall push all args with longint size
+    *  tempansi stuff cleaned up
+
+  Revision 1.64  1999/04/16 13:42:25  jonas
     * more regalloc fixes (still not complete)
 
   Revision 1.63  1999/04/15 08:56:25  peter

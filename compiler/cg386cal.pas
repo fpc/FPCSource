@@ -29,7 +29,7 @@ interface
       symtable,tree;
 
     procedure secondcallparan(var p : ptree;defcoll : pdefcoll;
-                push_from_left_to_right,inlined : boolean;para_offset : longint);
+                push_from_left_to_right,inlined,dword_align : boolean;para_offset : longint);
     procedure secondcalln(var p : ptree);
     procedure secondprocinline(var p : ptree);
 
@@ -56,7 +56,7 @@ implementation
 *****************************************************************************}
 
     procedure secondcallparan(var p : ptree;defcoll : pdefcoll;
-                push_from_left_to_right,inlined : boolean;para_offset : longint);
+                push_from_left_to_right,inlined,dword_align : boolean;para_offset : longint);
 
       procedure maybe_push_high;
         begin
@@ -68,7 +68,8 @@ implementation
                if assigned(p^.hightree) then
                 begin
                   secondpass(p^.hightree);
-                  push_value_para(p^.hightree,inlined,para_offset);
+                  { this is a longint anyway ! }
+                  push_value_para(p^.hightree,inlined,para_offset,4);
                 end
                else
                 internalerror(432645);
@@ -77,13 +78,15 @@ implementation
 
       var
          otlabel,oflabel : plabel;
+         align : longint;
          { temporary variables: }
          tempdeftype : tdeftype;
          r : preference;
       begin
          { push from left to right if specified }
          if push_from_left_to_right and assigned(p^.right) then
-           secondcallparan(p^.right,defcoll^.next,push_from_left_to_right,inlined,para_offset);
+           secondcallparan(p^.right,defcoll^.next,push_from_left_to_right,
+             inlined,dword_align,para_offset);
          otlabel:=truelabel;
          oflabel:=falselabel;
          getlabel(truelabel);
@@ -172,7 +175,12 @@ implementation
                    del_reference(p^.left^.location.reference);
                 end
               else
-                push_value_para(p^.left,inlined,para_offset);
+                begin
+                   align:=target_os.stackalignment;
+                   if dword_align then
+                     align:=4;
+                   push_value_para(p^.left,inlined,para_offset,align);
+                end;
            end;
          freelabel(truelabel);
          freelabel(falselabel);
@@ -180,7 +188,8 @@ implementation
          falselabel:=oflabel;
          { push from right to left }
          if not push_from_left_to_right and assigned(p^.right) then
-           secondcallparan(p^.right,defcoll^.next,push_from_left_to_right,inlined,para_offset);
+           secondcallparan(p^.right,defcoll^.next,push_from_left_to_right,
+             inlined,dword_align,para_offset);
       end;
 
 
@@ -357,10 +366,12 @@ implementation
                 para_offset:=0;
               if assigned(p^.right) then
                 secondcallparan(p^.left,pprocvardef(p^.right^.resulttype)^.para1,
-                  (p^.procdefinition^.options and poleftright)<>0,inlined,para_offset)
+                  (p^.procdefinition^.options and poleftright)<>0,
+                  inlined,(p^.procdefinition^.options and (pocdecl or postdcall))<>0,para_offset)
               else
                 secondcallparan(p^.left,p^.procdefinition^.para1,
-                  (p^.procdefinition^.options and poleftright)<>0,inlined,para_offset);
+                  (p^.procdefinition^.options and poleftright)<>0,
+                  inlined,(p^.procdefinition^.options and (pocdecl or postdcall))<>0,para_offset);
            end;
          params:=p^.left;
          p^.left:=nil;
@@ -1084,7 +1095,8 @@ implementation
            begin
               if assigned(pp^.left) then
                 begin
-                  if pp^.left^.location.loc in [LOC_REFERENCE,LOC_MEM] then
+                  if (pp^.left^.location.loc in [LOC_REFERENCE,LOC_MEM]) and
+                     ungettempoftype(pp^.left^.resulttype) then
                     ungetiftemp(pp^.left^.location.reference);
                 { process also all nodes of an array of const }
                   if pp^.left^.treetype=arrayconstructn then
@@ -1094,7 +1106,8 @@ implementation
                          hp:=pp^.left;
                          while assigned(hp) do
                           begin
-                            if hp^.left^.location.loc in [LOC_REFERENCE,LOC_MEM] then
+                            if (hp^.left^.location.loc in [LOC_REFERENCE,LOC_MEM]) and
+                               ungettempoftype(hp^.left^.resulttype) then
                               ungetiftemp(hp^.left^.location.reference);
                             hp:=hp^.right;
                           end;
@@ -1202,7 +1215,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.74  1999-04-16 13:42:23  jonas
+  Revision 1.75  1999-04-19 09:45:46  pierre
+    +  cdecl or stdcall push all args with longint size
+    *  tempansi stuff cleaned up
+
+  Revision 1.74  1999/04/16 13:42:23  jonas
     * more regalloc fixes (still not complete)
 
   Revision 1.73  1999/04/16 10:26:56  pierre
