@@ -162,7 +162,7 @@ begin
       inc(p);
      Setlength (S,P-PS);
      L:=Pointer(S);
-     Move (PS^,L,P-PS);
+     Move (PS^,L^,P-PS);
    end;
   if p^=',' then
    inc(p);
@@ -1031,7 +1031,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  2001-04-13 18:03:28  peter
+  Revision 1.10  2001-05-20 12:10:03  peter
+    * fixed setcommatext
+
+  Revision 1.9  2001/04/13 18:03:28  peter
     * commatext fixes
 
   Revision 1.8  2001/04/10 23:24:51  peter
