@@ -29,6 +29,8 @@ begin
   b := 255;
   b := b * 17;
 
+{ 64 bit cpus do all calculations in 64 bit so longint and cardinal can't overflow }
+{$ifndef CPU64}
   l := high(longint);
   try
     l := l+1;
@@ -119,9 +121,11 @@ begin
       doerror(16);
   end;
 
+{$endif CPU64}
+
 {$ifdef fpc}
 {$ifndef ver1_0}
-  
+
   n := high(int64);
   try
     n := n+1;
