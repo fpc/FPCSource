@@ -36,6 +36,10 @@ dirs_emx=os2units \
          imlib fpgtk
 dirs_go32v2=unzip
 dirs_netware=zlib
+dirs_darwin= unzip \
+             x11 opengl gtk syslog \
+             forms svgalib ggi libpng libgd \
+             utmp bfd zlib gdbm ncurses fpgtk tcl imlib gnome1
 
 [install]
 fpcpackage=y
