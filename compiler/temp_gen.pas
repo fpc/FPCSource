@@ -160,6 +160,11 @@ interface
       var
         tl : ptemprecord;
       begin
+        { we need to allocate at least a minimum of 4 bytes, else
+          we get two temps at the same position resulting in problems
+          when finding the corresponding temprecord }
+        if size=0 then
+         size:=4;
         { Just extend the temp, everything below has been use
           already }
         dec(lasttemp,size);
@@ -188,6 +193,10 @@ const
          bestslot:=nil;
          tl:=nil;
          bestsize:=0;
+{$ifdef EXTDEBUG}
+         if size=0 then
+          Comment(V_Warning,'Temp of size 0 requested');
+{$endif}
          { Align needed size on 4 bytes }
          if (size mod 4)<>0 then
            size:=size+(4-(size mod 4));
@@ -605,7 +614,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2001-05-27 14:30:55  florian
+  Revision 1.15  2001-06-02 19:20:10  peter
+    * allocate at least 4 bytes, also for 0 byte temps. Give a warning
+      with extdebug
+
+  Revision 1.14  2001/05/27 14:30:55  florian
     + some widestring stuff added
 
   Revision 1.13  2001/04/18 22:02:00  peter
