@@ -45,6 +45,10 @@ begin
   if Desktop^.ExecView(D)=cmOK then
     begin
        TargetSwitches^.SetCurrSel(RB^.Value);
+       { we allways need to recompile if we change
+         the target OS PM }
+       if L<>RB^.Value then
+         PrevMainFile:='';
        UpdateTarget;
     end;
   Dispose(D, Done);
@@ -112,7 +116,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  1999-06-25 00:37:56  pierre
+  Revision 1.7  2000-01-10 14:59:08  pierre
+   * force recompiling if we change target OS
+
+  Revision 1.6  1999/06/25 00:37:56  pierre
    + UpdateTarget to see current target main in Menu
 
   Revision 1.5  1999/04/07 21:55:49  peter
