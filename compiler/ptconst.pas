@@ -398,7 +398,10 @@ implementation
                             begin
                               if Tprocsym(srsym).procdef_count>1 then
                                 Message(parser_e_no_overloaded_procvars);
-                              curconstSegment.concat(Tai_const_symbol.Createname_offset(tprocsym(srsym).first_procdef.mangledname,offset));
+                              if po_abstractmethod in tprocsym(srsym).first_procdef.procoptions then
+                                Message(type_e_cant_take_address_of_abstract_method)
+                              else
+                                curconstSegment.concat(Tai_const_symbol.Createname_offset(tprocsym(srsym).first_procdef.mangledname,offset));
                             end;
                           varsym :
                             curconstSegment.concat(Tai_const_symbol.Createname_offset(tvarsym(srsym).mangledname,offset));
@@ -1001,7 +1004,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.67  2003-04-24 22:29:58  florian
+  Revision 1.68  2003-04-30 20:53:32  florian
+    * error when address of an abstract method is taken
+    * fixed some x86-64 problems
+    * merged some more x86-64 and i386 code
+
+  Revision 1.67  2003/04/24 22:29:58  florian
     * fixed a lot of PowerPC related stuff
 
   Revision 1.66  2003/04/06 21:11:23  olle

@@ -1107,6 +1107,8 @@ type_w_smaller_possible_range_check=04048_W_Type size mismatch, possible loss of
 type_h_smaller_possible_range_check=04049_H_Type size mismatch, possible loss of data / range check error
 % There is an assignment to a smaller type than the source type. This means that
 % this may cause a range-check error, or may lead to possible loss of data.
+type_e_cant_take_address_of_abstract_method=04050_E_The address of an abstract method can't be taken
+% An abstract method has no body, so the address of an abstract method can't be taken.
 % \end{description}
 #
 # Symtable

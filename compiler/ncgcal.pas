@@ -85,10 +85,15 @@ implementation
       cginfo,cgbase,pass_2,
       cpuinfo,cpupi,aasmbase,aasmtai,aasmcpu,
       nbas,nmem,nld,ncnv,
-{$ifdef i386}
+{$ifdef x86}
       cga,
-{$endif i386}
-      cg64f32,ncgutil,cgobj,tgobj,regvars,rgobj,rgcpu,cgcpu;
+{$endif x86}
+{$ifdef cpu64bit}
+      cg64f64,
+{$else cpu64bit}
+      cg64f32,
+{$endif cpu64bit}
+      ncgutil,cgobj,tgobj,regvars,rgobj,rgcpu,cgcpu;
 
 
     var
@@ -1438,7 +1443,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.56  2003-04-29 07:28:52  michael
+  Revision 1.57  2003-04-30 20:53:32  florian
+    * error when address of an abstract method is taken
+    * fixed some x86-64 problems
+    * merged some more x86-64 and i386 code
+
+  Revision 1.56  2003/04/29 07:28:52  michael
   + Patch from peter to fix wrong pushing of ansistring function results in open array
 
   Revision 1.55  2003/04/27 11:21:33  peter

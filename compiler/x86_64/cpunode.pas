@@ -32,17 +32,31 @@ unit cpunode;
   implementation
 
     uses
-       ncgbas,ncgflw,ncgcnv,ncgmem,ncgcon,ncgld
-       // n386add,n386cal,n386con,n386flw,n386mat,n386mem,
+       ncgbas,
+       ncgflw,
+       ncgcnv,
+       ncgmem,
+       ncgcon,
+       ncgld,
+       ncgcal,
+       // n386add,n386con,n386flw,n386mat,n386mem,
        // n386set,n386inl,n386opt,
        { this not really a node }
        // n386obj
+       { the cpu specific node units must be used after the generic ones to
+         get the correct class pointer }
+       nx64cnv
        ;
 
 end.
 {
   $Log$
-  Revision 1.2  2002-07-25 22:55:34  florian
+  Revision 1.3  2003-04-30 20:53:32  florian
+    * error when address of an abstract method is taken
+    * fixed some x86-64 problems
+    * merged some more x86-64 and i386 code
+
+  Revision 1.2  2002/07/25 22:55:34  florian
     * several fixes, small test units can be compiled
 
   Revision 1.1  2002/07/24 22:38:15  florian

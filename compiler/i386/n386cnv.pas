@@ -27,10 +27,10 @@ unit n386cnv;
 interface
 
     uses
-      node,ncgcnv,defutil,defcmp;
+      node,ncgcnv,defutil,defcmp,nx86cnv;
 
     type
-       ti386typeconvnode = class(tcgtypeconvnode)
+       ti386typeconvnode = class(tx86typeconvnode)
          protected
          { procedure second_int_to_int;override; }
          { procedure second_string_to_string;override; }
@@ -46,7 +46,7 @@ interface
          { procedure second_cord_to_pointer;override; }
          { procedure second_proc_to_procvar;override; }
          { procedure second_bool_to_int;override; }
-          procedure second_int_to_bool;override;
+         { procedure second_int_to_bool;override; }
          { procedure second_load_smallset;override;  }
          { procedure second_ansistring_to_pchar;override; }
          { procedure second_pchar_to_string;override; }
@@ -69,10 +69,6 @@ implementation
       cpubase,
       cgobj,cga,tgobj,rgobj,rgcpu,ncgutil;
 
-
-{*****************************************************************************
-                             SecondTypeConv
-*****************************************************************************}
 
     function ti386typeconvnode.first_int_to_real : tnode;
 
@@ -227,100 +223,6 @@ implementation
       end;
 
 
-    procedure ti386typeconvnode.second_int_to_bool;
-      var
-        hregister : tregister;
-        pref      : treference;
-        resflags  : tresflags;
-        hlabel,oldtruelabel,oldfalselabel : tasmlabel;
-      begin
-         oldtruelabel:=truelabel;
-         oldfalselabel:=falselabel;
-         objectlibrary.getlabel(truelabel);
-         objectlibrary.getlabel(falselabel);
-         secondpass(left);
-         if codegenerror then
-          exit;
-         { byte(boolean) or word(wordbool) or longint(longbool) must }
-         { be accepted for var parameters                            }
-         if (nf_explicit in flags) and
-            (left.resulttype.def.size=resulttype.def.size) and
-            (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
-           begin
-              location_copy(location,left.location);
-              truelabel:=oldtruelabel;
-              falselabel:=oldfalselabel;
-              exit;
-           end;
-
-         { Load left node into flag F_NE/F_E }
-         resflags:=F_NE;
-         location_release(exprasmlist,left.location);
-         case left.location.loc of
-            LOC_CREFERENCE,
-            LOC_REFERENCE :
-              begin
-                if left.location.size in [OS_64,OS_S64] then
-                 begin
-                   hregister:=rg.getregisterint(exprasmlist,OS_INT);
-                   emit_ref_reg(A_MOV,S_L,left.location.reference,hregister);
-                   pref:=left.location.reference;
-                   inc(pref.offset,4);
-                   emit_ref_reg(A_OR,S_L,pref,hregister);
-                 end
-                else
-                 begin
-                   location_force_reg(exprasmlist,left.location,left.location.size,true);
-                   cg.a_op_reg_reg(exprasmlist,OP_OR,left.location.size,left.location.register,left.location.register);
-                 end;
-              end;
-            LOC_FLAGS :
-              begin
-                resflags:=left.location.resflags;
-              end;
-            LOC_REGISTER,LOC_CREGISTER :
-              begin
-                if left.location.size in [OS_64,OS_S64] then
-                 begin
-                 {$ifdef newra}
-                   hregister:=rg.getregisterint(exprasmlist,OS_32);
-                 {$else}
-                   hregister:=cg.get_scratch_reg_int(exprasmlist,OS_32);
-                 {$endif}
-                   cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,left.location.registerlow,hregister);
-                   cg.a_op_reg_reg(exprasmlist,OP_OR,OS_32,left.location.registerhigh,hregister);
-                 {$ifdef newra}
-                   rg.ungetregisterint(exprasmlist,hregister);
-                 {$else}
-                   cg.free_scratch_reg(exprasmlist,hregister);
-                 {$endif}
-                 end
-                else
-                 cg.a_op_reg_reg(exprasmlist,OP_OR,left.location.size,left.location.register,left.location.register);
-              end;
-            LOC_JUMP :
-              begin
-                hregister:=rg.getregisterint(exprasmlist,OS_INT);
-                objectlibrary.getlabel(hlabel);
-                cg.a_label(exprasmlist,truelabel);
-                cg.a_load_const_reg(exprasmlist,OS_INT,1,hregister);
-                cg.a_jmp_always(exprasmlist,hlabel);
-                cg.a_label(exprasmlist,falselabel);
-                cg.a_load_const_reg(exprasmlist,OS_INT,0,hregister);
-                cg.a_label(exprasmlist,hlabel);
-                cg.a_op_reg_reg(exprasmlist,OP_OR,OS_INT,hregister,hregister);
-              end;
-            else
-              internalerror(10062);
-         end;
-         { load flags to register }
-         location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def));
-         location.register:=def_getreg(resulttype.def);
-         cg.g_flags2reg(exprasmlist,location.size,resflags,location.register);
-         truelabel:=oldtruelabel;
-         falselabel:=oldfalselabel;
-       end;
-
 {$ifdef TESTOBJEXT2}
     procedure ti386typeconvnode.checkobject;
       var
@@ -456,7 +358,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.60  2003-04-23 20:16:04  peter
+  Revision 1.61  2003-04-30 20:53:32  florian
+    * error when address of an abstract method is taken
+    * fixed some x86-64 problems
+    * merged some more x86-64 and i386 code
+
+  Revision 1.60  2003/04/23 20:16:04  peter
     + added currency support based on int64
     + is_64bit for use in cg units instead of is_64bitint
     * removed cgmessage from n386add, replace with internalerrors

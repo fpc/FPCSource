@@ -128,6 +128,34 @@ uses
 
       {Super register numbers:}
    const
+{$ifdef x86_64}
+      RS_SPECIAL    = $00;      {Special register}
+      RS_RAX        = $01;      {EAX}
+      RS_RBX        = $02;      {EBX}
+      RS_RCX        = $03;      {ECX}
+      RS_RDX        = $04;      {EDX}
+      RS_RSI        = $05;      {ESI}
+      RS_RDI        = $06;      {EDI}
+      RS_RBP        = $07;      {EBP}
+      RS_RSP        = $08;      {ESP}
+      RS_R8         = $09;      {R8}
+      RS_R9         = $0a;      {R9}
+      RS_R10        = $0b;      {R10}
+      RS_R11        = $0c;      {R11}
+      RS_R12        = $0d;      {R12}
+      RS_R13        = $0e;      {R13}
+      RS_R14        = $0f;      {R14}
+      RS_R15        = $10;      {R15}
+      { create aliases to allow code sharing between x86-64 and i386 }
+      RS_EAX        = RS_RAX;
+      RS_EBX        = RS_RBX;
+      RS_ECX        = RS_RCX;
+      RS_EDX        = RS_RDX;
+      RS_ESI        = RS_RSI;
+      RS_EDI        = RS_RDI;
+      RS_EBP        = RS_RBP;
+      RS_ESP        = RS_RSP;
+{$else x86_64}
       RS_SPECIAL    = $00;      {Special register}
       RS_EAX        = $01;      {EAX}
       RS_EBX        = $02;      {EBX}
@@ -137,14 +165,7 @@ uses
       RS_EDI        = $06;      {EDI}
       RS_EBP        = $07;      {EBP}
       RS_ESP        = $08;      {ESP}
-      RS_R8         = $09;      {R8}
-      RS_R9         = $0a;      {R9}
-      RS_R10        = $0b;      {R10}
-      RS_R11        = $0c;      {R11}
-      RS_R12        = $0d;      {R12}
-      RS_R13        = $0e;      {R13}
-      RS_R14        = $0f;      {R14}
-      RS_R15        = $10;      {R15}
+{$endif x86_64}
 
 
       {Number of first and last superregister.}
@@ -233,27 +254,35 @@ uses
       NR_R8L   = $0900;      {R8L}
       NR_R8W   = $0902;      {R8W}
       NR_R8D   = $0903;      {R8D}
+      NR_R8    = $0904;      {R8}
       NR_R9L   = $0a00;      {R9D}
       NR_R9W   = $0a02;      {R9W}
       NR_R9D   = $0a03;      {R9D}
+      NR_R9    = $0a04;      {R9}
       NR_R10L  = $0b00;      {R10L}
       NR_R10W  = $0b02;      {R10W}
       NR_R10D  = $0b03;      {R10D}
+      NR_R10   = $0b04;      {R10}
       NR_R11L  = $0c00;      {R11L}
       NR_R11W  = $0c02;      {R11W}
       NR_R11D  = $0c03;      {R11D}
+      NR_R11   = $0c04;      {R11}
       NR_R12L  = $0d00;      {R12L}
       NR_R12W  = $0d02;      {R12W}
       NR_R12D  = $0d03;      {R12D}
+      NR_R12   = $0d04;      {R12}
       NR_R13L  = $0e00;      {R13L}
       NR_R13W  = $0e02;      {R13W}
       NR_R13D  = $0e03;      {R13D}
+      NR_R13   = $0e04;      {R13}
       NR_R14L  = $0f00;      {R14L}
       NR_R14W  = $0f02;      {R14W}
       NR_R14D  = $0f03;      {R14D}
+      NR_R14   = $0f04;      {R14}
       NR_R15L  = $1000;      {R15L}
       NR_R15W  = $1002;      {R15W}
       NR_R15D  = $1003;      {R15D}
+      NR_R15   = $1004;      {R15}
 
    type
       tnewregister=word;
@@ -465,9 +494,6 @@ uses
       ALL_REGISTERS = [firstreg..lastreg];
       ALL_INTREGISTERS = [1..255];
 
-      general_registers = [R_EAX,R_EBX,R_ECX,R_EDX];
-      general_superregisters = [RS_EAX,RS_EBX,RS_ECX,RS_EDX];
-
       {# low and high of the available maximum width integer general purpose }
       { registers                                                            }
       LoGPReg = R_EAX;
@@ -492,12 +518,6 @@ uses
 
       maxintregs = 4;
       intregs = [R_EAX..R_BL]-[R_ESI,R_SI];
-{$ifdef newra}
-      usableregsint = [first_imreg..last_imreg];
-{$else}
-      usableregsint = [RS_EAX,RS_EBX,RS_ECX,RS_EDX];
-{$endif}
-      c_countusableregsint = 4;
 
       maxfpuregs = 8;
       fpuregs = [R_ST0..R_ST7];
@@ -507,25 +527,6 @@ uses
       mmregs = [R_MM0..R_MM7];
       usableregsmm = [R_MM0..R_MM7];
       c_countusableregsmm  = 8;
-
-      maxaddrregs = 1;
-      addrregs    = [R_ESI];
-      usableregsaddr = [RS_ESI];
-      c_countusableregsaddr = 1;
-
-      maxvarregs = 4;
-      varregs : array[1..maxvarregs] of Toldregister =
-         (R_EBX,R_EDX,R_ECX,R_EAX);
-
-      maxfpuvarregs = 8;
-
-      {# Registers which are defined as scratch and no need to save across
-         routine calls or in assembler blocks.
-      }
-{$ifndef newra}
-      max_scratch_regs = 1;
-      scratch_regs : array[1..max_scratch_regs] of Tsuperregister = (RS_EDI);
-{$endif}
 
 {*****************************************************************************
                             CPU Dependent Constants
@@ -714,7 +715,19 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2003-04-25 11:12:09  florian
+  Revision 1.4  2003-04-30 20:53:32  florian
+    * error when address of an abstract method is taken
+    * fixed some x86-64 problems
+    * merged some more x86-64 and i386 code
+
+  Revision 1.3  2002/04/25 20:15:40  florian
+    * block nodes within expressions shouldn't release the used registers,
+      fixed using a flag till the new rg is ready
+
+  Revision 1.2  2002/04/25 16:12:09  florian
+    * fixed more problems with cpubase and x86-64
+
+  Revision 1.1  2003/04/25 11:12:09  florian
     * merged i386/cpubase and x86_64/cpubase to x86/cpubase;
       different stuff went to cpubase.inc
 

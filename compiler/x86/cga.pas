@@ -76,8 +76,12 @@ implementation
          1 : def_opsize:=S_B;
          2 : def_opsize:=S_W;
          4 : def_opsize:=S_L;
+{$ifdef x86_64}
+         8 : def_opsize:=S_Q;
+{$else x86_64}
          { I don't know if we need it (FK) }
          8 : def_opsize:=S_L;
+{$endif x86_64}
         else
          internalerror(130820001);
         end;
@@ -186,7 +190,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.38  2003-04-17 16:48:21  daniel
+  Revision 1.1  2003-04-30 20:53:32  florian
+    * error when address of an abstract method is taken
+    * fixed some x86-64 problems
+    * merged some more x86-64 and i386 code
+
+  Revision 1.38  2003/04/17 16:48:21  daniel
     * Added some code to keep track of move instructions in register
       allocator
 

@@ -190,11 +190,26 @@ unit cgx86;
                  s3 := S_L;
                else internalerror(200109223);
              end;
+{$ifdef x86_64}
+           S_D,
+           S_Q:
+             case s1 of
+               OS_8,OS_S8:
+                 s3 := S_BQ;
+               OS_16,OS_S16:
+                 s3 := S_WQ;
+               OS_32,OS_S32:
+                 s3 := S_LQ;
+               OS_64,OS_S64:
+                 s3 := S_Q;
+               else internalerror(200304302);
+             end;
+{$endif x86_64}
            else internalerror(200109227);
          end;
-         if s3 in [S_B,S_W,S_L] then
+         if s3 in [S_B,S_W,S_L,S_Q] then
            op := A_MOV
-         else if s1 in [OS_8,OS_16,OS_32] then
+         else if s1 in [OS_8,OS_16,OS_32,OS_64] then
            op := A_MOVZX
          else
            op := A_MOVSX;
@@ -383,6 +398,8 @@ unit cgx86;
             end;
           OS_32,OS_S32:
             list.concat(taicpu.op_ref(A_PUSH,S_L,r));
+          OS_64,OS_S64:
+            list.concat(taicpu.op_ref(A_PUSH,S_Q,r));
           else
             internalerror(2002032214);
         end;
@@ -1938,7 +1955,12 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.43  2003-04-27 11:21:36  peter
+  Revision 1.44  2003-04-30 20:53:32  florian
+    * error when address of an abstract method is taken
+    * fixed some x86-64 problems
+    * merged some more x86-64 and i386 code
+
+  Revision 1.43  2003/04/27 11:21:36  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be

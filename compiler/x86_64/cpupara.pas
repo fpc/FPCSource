@@ -51,7 +51,7 @@ unit cpupara;
        cpuinfo,cginfo,cgbase,
        defutil;
 
-    function getparaloc(p : tdef) : tloc;
+    function getparaloc(p : tdef) : tcgloc;
 
       begin
          { Later, the LOC_REFERENCE is in most cases changed into LOC_REGISTER
@@ -117,7 +117,25 @@ unit cpupara;
       end;
 
     function tx86_64paramanager.getintparaloc(nr : longint) : tparalocation;
+      const
+         nr2reg : array[1..6] of word = (NR_RDI,NR_RSI,NR_RDX,NR_RCX,NR_R8,NR_R9);
       begin
+         fillchar(result,sizeof(tparalocation),0);
+         if nr<1 then
+           internalerror(200304303)
+         else if nr<=6 then
+           begin
+              result.loc:=LOC_REGISTER;
+              result.register.enum:=R_INTREGISTER;
+              result.register.number:=nr2reg[nr];
+           end
+         else
+           begin
+              result.loc:=LOC_REFERENCE;
+              result.reference.index.enum:=R_INTREGISTER;
+              result.reference.index.number:=NR_STACK_POINTER_REG;
+              result.reference.offset:=(nr-6)*8;
+           end;
       end;
 
     procedure tx86_64paramanager.create_param_loc_info(p : tabstractprocdef);
@@ -134,11 +152,18 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2003-01-05 13:36:54  florian
+  Revision 1.4  2003-04-30 20:53:32  florian
+    * error when address of an abstract method is taken
+    * fixed some x86-64 problems
+    * merged some more x86-64 and i386 code
+
+  Revision 1.3  2002/04/25 16:12:09  florian
+    * fixed more problems with cpubase and x86-64
+
+  Revision 1.2  2003/01/05 13:36:54  florian
     * x86-64 compiles
     + very basic support for float128 type (x86-64 only)
 
   Revision 1.1  2002/07/24 22:38:15  florian
     + initial release of x86-64 target code
-
 }
