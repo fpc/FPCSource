@@ -838,7 +838,7 @@ begin
   else
    begin
      { newcursorx,y is 0 based ! }
-     SendEscapeSeq(XY2Ansi(NewCursorX+1,NewCursorY+1,0,0));
+     SendEscapeSeq(XY2Ansi(NewCursorX+1,NewCursorY+1,CursorX,CursorY));
    end;
   CursorX:=NewCursorX+1;
   CursorY:=NewCursorY+1;
@@ -898,7 +898,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.17  2003-10-25 22:48:52  marco
+  Revision 1.18  2003-10-26 15:32:25  marco
+   * partial fix for bug 2212.
+
+  Revision 1.17  2003/10/25 22:48:52  marco
    * small after merge fixes
 
   Revision 1.16  2003/10/24 17:51:39  marco
