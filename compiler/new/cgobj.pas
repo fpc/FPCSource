@@ -32,28 +32,26 @@ unit cgobj;
     type
        talignment = (AM_NATURAL,AM_NONE,AM_2BYTE,AM_4BYTE,AM_8BYTE);
 
-       pcg = ^tcg;
-       tcg = object
+       tcg = class
           scratch_register_array_pointer : aword;
           unusedscratchregisters : tregisterset;
 
           alignment : talignment;
           {************************************************}
           {                 basic routines                 }
-          constructor init;
-          destructor done;virtual;
+          constructor create;
 
-          procedure a_label(list : paasmoutput;l : pasmlabel);virtual;
+          procedure a_label(list : taasmoutput;l : pasmlabel);virtual;
 
           { allocates register r by inserting a pai_realloc record }
-          procedure a_reg_alloc(list : paasmoutput;r : tregister);
+          procedure a_reg_alloc(list : taasmoutput;r : tregister);
           { deallocates register r by inserting a pa_regdealloc record}
-          procedure a_reg_dealloc(list : paasmoutput;r : tregister);
+          procedure a_reg_dealloc(list : taasmoutput;r : tregister);
 
           { returns a register for use as scratch register }
-          function get_scratch_reg(list : paasmoutput) : tregister;
+          function get_scratch_reg(list : taasmoutput) : tregister;
           { releases a scratch register }
-          procedure free_scratch_reg(list : paasmoutput;r : tregister);
+          procedure free_scratch_reg(list : taasmoutput;r : tregister);
 
           {************************************************}
           { code generation for subroutine entry/exit code }
@@ -61,42 +59,42 @@ unit cgobj;
           { initilizes data of type t                           }
           { if is_already_ref is true then the routines assumes }
           { that r points to the data to initialize             }
-          procedure g_initialize(list : paasmoutput;t : pdef;const ref : treference;is_already_ref : boolean);
+          procedure g_initialize(list : taasmoutput;t : pdef;const ref : treference;is_already_ref : boolean);
 
           { finalizes data of type t                            }
           { if is_already_ref is true then the routines assumes }
           { that r points to the data to finalizes              }
-          procedure g_finalize(list : paasmoutput;t : pdef;const ref : treference;is_already_ref : boolean);
+          procedure g_finalize(list : taasmoutput;t : pdef;const ref : treference;is_already_ref : boolean);
 
           { helper routines }
-          procedure g_initialize_data(list : paasmoutput;p : psym);
-          procedure g_incr_data(list : paasmoutput;p : psym);
-          procedure g_finalize_data(list : paasmoutput;p : pnamedindexobject);
-          procedure g_copyvalueparas(list : paasmoutput;p : pnamedindexobject);
-          procedure g_finalizetempansistrings(list : paasmoutput);
+          procedure g_initialize_data(list : taasmoutput;p : psym);
+          procedure g_incr_data(list : taasmoutput;p : psym);
+          procedure g_finalize_data(list : taasmoutput;p : pnamedindexobject);
+          procedure g_copyvalueparas(list : taasmoutput;p : pnamedindexobject);
+          procedure g_finalizetempansistrings(list : taasmoutput);
 
-          procedure g_entrycode(list : paasmoutput;
+          procedure g_entrycode(list : taasmoutput;
             const proc_names : tstringcontainer;make_global : boolean;
             stackframe : longint;var parasize : longint;
             var nostackframe : boolean;inlined : boolean);
 
-          procedure g_exitcode(list : paasmoutput;parasize : longint;
+          procedure g_exitcode(list : taasmoutput;parasize : longint;
             nostackframe,inlined : boolean);
 
           { string helper routines }
-          procedure g_decrstrref(list : paasmoutput;const ref : treference;t : pdef);
+          procedure g_decrstrref(list : taasmoutput;const ref : treference;t : pdef);
 
-          procedure g_removetemps(list : paasmoutput;p : plinkedlist);
+          procedure g_removetemps(list : taasmoutput;p : plinkedlist);
 
           { passing parameters, per default the parameter is pushed }
           { nr gives the number of the parameter (enumerated from   }
           { left to right), this allows to move the parameter to    }
           { register, if the cpu supports register calling          }
           { conventions                                             }
-          procedure a_param_reg(list : paasmoutput;size : tcgsize;r : tregister;nr : longint);virtual;
-          procedure a_param_const(list : paasmoutput;size : tcgsize;a : aword;nr : longint);virtual;
-          procedure a_param_ref(list : paasmoutput;size : tcgsize;const r : treference;nr : longint);virtual;
-          procedure a_paramaddr_ref(list : paasmoutput;const r : treference;nr : longint);virtual;
+          procedure a_param_reg(list : taasmoutput;size : tcgsize;r : tregister;nr : longint);virtual; abstract;
+          procedure a_param_const(list : taasmoutput;size : tcgsize;a : aword;nr : longint);virtual;
+          procedure a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;nr : longint);virtual;
+          procedure a_paramaddr_ref(list : taasmoutput;const r : treference;nr : longint);virtual;
 
           {**********************************}
           { these methods must be overriden: }
@@ -118,63 +116,81 @@ unit cgobj;
               second the destination
           }
 
-          procedure a_call_name(list : paasmoutput;const s : string;
+          procedure a_call_name(list : taasmoutput;const s : string;
             offset : longint);virtual;
 
           { move instructions }
-          procedure a_load_const_reg(list : paasmoutput;size : tcgsize;a : aword;register : tregister);virtual;
-          procedure a_load_const_ref(list : paasmoutput;size : tcgsize;a : aword;const ref : treference);virtual;
-          procedure a_load_reg_ref(list : paasmoutput;size : tcgsize;register : tregister;const ref : treference);virtual;
-          procedure a_load_ref_reg(list : paasmoutput;size : tcgsize;const ref : treference;register : tregister);virtual;
-          procedure a_load_reg_reg(list : paasmoutput;size : tcgsize;reg1,reg2 : tregister);virtual;
+          procedure a_load_const_reg(list : taasmoutput;size : tcgsize;a : aword;register : tregister);virtual; abstract;
+          procedure a_load_const_ref(list : taasmoutput;size : tcgsize;a : aword;const ref : treference);virtual;
+          procedure a_load_reg_ref(list : taasmoutput;size : tcgsize;register : tregister;const ref : treference);virtual; abstract;
+          procedure a_load_ref_reg(list : taasmoutput;size : tcgsize;const ref : treference;register : tregister);virtual; abstract;
+          procedure a_load_reg_reg(list : taasmoutput;size : tcgsize;reg1,reg2 : tregister);virtual; abstract;
+
+          { basic arithmetic operations }
+          { note: for operators which require only one argument (not, neg), use }
+          { the op_reg_reg, op_reg_reg or op_reg_loc methods and keep in mind   }
+          { that in this case the *second* operand is used as both source and   }
+          { destination (JM)                                                    }
+          procedure a_op_const_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; a: AWord; reg: TRegister); virtual; abstract;
+          procedure a_op_const_ref(list : taasmoutput; Op: TOpCG; size: TCGSize; a: AWord; const ref: TReference); virtual;
+          procedure a_op_const_loc(list : taasmoutput; Op: TOpCG; size: TCGSize; a: AWord; const loc: tloocation); virtual;
+          procedure a_op_reg_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; reg1, reg2: TRegister); virtual; abstract;
+          procedure a_op_reg_ref(list : taasmoutput; Op: TOpCG; size: TCGSize; reg: TRegister; const ref: TReference); virtual;
+          procedure a_op_ref_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; const ref: TReference; reg: TRegister); virtual;
+          procedure a_op_reg_loc(list : taasmoutput; Op: TOpCG; size: TCGSize; const ref: TReference; const loc: tloocation); virtual;
+          procedure a_op_ref_loc(list : taasmoutput; Op: TOpCG; size: TCGSize; const ref: TReference; const loc: tloocation); virtual;
 
           {  comparison operations }
-          procedure a_cmp_const_reg_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
-            l : pasmlabel);virtual;
-          procedure a_cmp_reg_reg_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : pasmlabel); virtual;
-          procedure a_cmp_reg_ref_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;reg : tregister; const ref: treference; l : pasmlabel); virtual;
-          procedure a_cmp_const_ref_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;const ref : treference;
+          procedure a_cmp_const_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
+            l : pasmlabel);virtual; abstract;
+          procedure a_cmp_const_ref_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;const ref : treference;
             l : pasmlabel); virtual;
-          procedure a_cmp_const_loc_label(list: paasmoutput; size: tcgsiwe;cmp_op: topcmp; const loc: tlocation;
+          procedure a_cmp_const_loc_label(list: taasmoutput; size: tcgsiwe;cmp_op: topcmp; a: aword; const loc: tlocation;
+            l : pasmlabel); virtual;
+          procedure a_cmp_reg_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : pasmlabel); virtual; abstract;
+          procedure a_cmp_reg_ref_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;reg : tregister; const ref: treference; l : pasmlabel); virtual;
+          procedure a_cmp_ref_loc_label(list: taasmoutput; size: tcgsiwe;cmp_op: topcmp; const ref: treference; const loc: tlocation;
             l : pasmlabel); virtual;
 
-          procedure a_jmp_cond(list : paasmoutput;cond : TOpCmp;l: pasmlabel);
+          procedure a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: pasmlabel); abstract;
 
-          procedure a_loadaddress_ref_reg(list : paasmoutput;const ref : treference;r : tregister);virtual;
-          procedure g_stackframe_entry(list : paasmoutput;localsize : longint);virtual;
+          procedure g_flags2reg(list: taasmoutput; const f: TAsmCond; reg: TRegister); abstract;
+
+          procedure a_loadaddress_ref_reg(list : taasmoutput;const ref : treference;r : tregister);virtual; abstract;
+          procedure g_stackframe_entry(list : taasmoutput;localsize : longint);virtual; abstract;
           { restores the frame pointer at procedure exit, for the }
           { i386 it generates a simple leave                      }
-          procedure g_restore_frame_pointer(list : paasmoutput);virtual;
+          procedure g_restore_frame_pointer(list : taasmoutput);virtual; abstract;
 
           { some processors like the PPC doesn't allow to change the stack in }
           { a procedure, so we need to maintain an extra stack for the        }
           { result values of setjmp in exception code                         }
           { this two procedures are for pushing an exception value,           }
           { they can use the scratch registers                                }
-          procedure g_push_exception_value_reg(list : paasmoutput;reg : tregister);virtual;
-          procedure g_push_exception_value_const(list : paasmoutput;reg : tregister);virtual;
+          procedure g_push_exception_value_reg(list : taasmoutput;reg : tregister);virtual; abstract;
+          procedure g_push_exception_value_const(list : taasmoutput;reg : tregister);virtual; abstract;
           { that procedure pops a exception value                             }
-          procedure g_pop_exception_value_reg(list : paasmoutput;reg : tregister);virtual;
-          procedure g_return_from_proc(list : paasmoutput;parasize : aword);virtual;
+          procedure g_pop_exception_value_reg(list : taasmoutput;reg : tregister);virtual; abstract;
+          procedure g_return_from_proc(list : taasmoutput;parasize : aword);virtual; abstract;
           {********************************************************}
           { these methods can be overriden for extra functionality }
 
           { the following methods do nothing: }
-          procedure g_interrupt_stackframe_entry(list : paasmoutput);virtual;
-          procedure g_interrupt_stackframe_exit(list : paasmoutput);virtual;
+          procedure g_interrupt_stackframe_entry(list : taasmoutput);virtual;
+          procedure g_interrupt_stackframe_exit(list : taasmoutput);virtual;
 
-          procedure g_profilecode(list : paasmoutput);virtual;
-          procedure g_stackcheck(list : paasmoutput;stackframesize : longint);virtual;
+          procedure g_profilecode(list : taasmoutput);virtual; abstract;
+          procedure g_stackcheck(list : taasmoutput;stackframesize : longint);virtual; abstract;
 
-          procedure g_maybe_loadself(list : paasmoutput);virtual;
+          procedure g_maybe_loadself(list : taasmoutput);virtual; abstract;
           { copies len bytes from the source to destination, if }
           { loadref is true, it assumes that it first must load }
           { the source address from the memory location where   }
           { source points to                                    }
-          procedure g_concatcopy(list : paasmoutput;const source,dest : treference;len : aword;loadref : boolean);virtual;
+          procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aword;loadref : boolean);virtual; abstract;
 
           { uses the addr of ref as param, was emitpushreferenceaddr }
-          procedure a_param_ref_addr(list : paasmoutput;r : treference;nr : longint);virtual;
+          procedure a_param_ref_addr(list : taasmoutput;r : treference;nr : longint);virtual; abstract;
        end;
 
     var
@@ -193,7 +209,7 @@ unit cgobj;
                             basic functionallity
 ******************************************************************************}
 
-    constructor tcg.init;
+    constructor tcg.create;
 
       var
          i : longint;
@@ -204,30 +220,25 @@ unit cgobj;
            include(unusedscratchregisters,scratch_regs[i]);
       end;
 
-    destructor tcg.done;
-
-      begin
-      end;
-
-    procedure tcg.a_reg_alloc(list : paasmoutput;r : tregister);
+    procedure tcg.a_reg_alloc(list : taasmoutput;r : tregister);
 
       begin
          list^.concat(new(pairegalloc,alloc(r)));
       end;
 
-    procedure tcg.a_reg_dealloc(list : paasmoutput;r : tregister);
+    procedure tcg.a_reg_dealloc(list : taasmoutput;r : tregister);
 
       begin
          list^.concat(new(pairegalloc,dealloc(r)));
       end;
 
-    procedure tcg.a_label(list : paasmoutput;l : pasmlabel);
+    procedure tcg.a_label(list : taasmoutput;l : pasmlabel);
 
       begin
          list^.concat(new(pai_label,init(l)));
       end;
 
-    function tcg.get_scratch_reg(list : paasmoutput) : tregister;
+    function tcg.get_scratch_reg(list : taasmoutput) : tregister;
 
       var
          r : tregister;
@@ -252,7 +263,7 @@ unit cgobj;
          get_scratch_reg:=r;
       end;
 
-    procedure tcg.free_scratch_reg(list : paasmoutput;r : tregister);
+    procedure tcg.free_scratch_reg(list : taasmoutput;r : tregister);
 
       begin
          include(unusedscratchregisters,r);
@@ -263,17 +274,17 @@ unit cgobj;
             this methods must be overridden for extra functionality
 ******************************************************************************}
 
-    procedure tcg.g_interrupt_stackframe_entry(list : paasmoutput);
+    procedure tcg.g_interrupt_stackframe_entry(list : taasmoutput);
 
       begin
       end;
 
-    procedure tcg.g_interrupt_stackframe_exit(list : paasmoutput);
+    procedure tcg.g_interrupt_stackframe_exit(list : taasmoutput);
 
       begin
       end;
 
-    procedure tcg.g_profilecode(list : paasmoutput);
+    procedure tcg.g_profilecode(list : taasmoutput);
 
       begin
       end;
@@ -282,7 +293,7 @@ unit cgobj;
           for better code generation these methods should be overridden
 ******************************************************************************}
 
-    procedure tcg.a_param_const(list : paasmoutput;size : tcgsize;a : aword;nr : longint);
+    procedure tcg.a_param_const(list : taasmoutput;size : tcgsize;a : aword;nr : longint);
 
       var
          hr : tregister;
@@ -294,7 +305,7 @@ unit cgobj;
          free_scratch_reg(list,hr);
       end;
 
-    procedure tcg.a_param_ref(list : paasmoutput;size : tcgsize;const r : treference;nr : longint);
+    procedure tcg.a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;nr : longint);
 
       var
          hr : tregister;
@@ -306,7 +317,7 @@ unit cgobj;
          free_scratch_reg(list,hr);
       end;
 
-    procedure tcg.a_param_ref_addr(list : paasmoutput;r : treference;nr : longint);
+    procedure tcg.a_param_ref_addr(list : taasmoutput;r : treference;nr : longint);
 
       var
          hr : tregister;
@@ -318,14 +329,14 @@ unit cgobj;
          free_scratch_reg(list,hr);
       end;
 
-    procedure tcg.g_stackcheck(list : paasmoutput;stackframesize : longint);
+    procedure tcg.g_stackcheck(list : taasmoutput;stackframesize : longint);
 
       begin
          a_param_const(list,OS_32,stackframesize,1);
          a_call_name(list,'FPC_STACKCHECK',0);
       end;
 
-    procedure tcg.a_load_const_ref(list : paasmoutput;size : tcgsize;a : aword;const ref : treference);
+    procedure tcg.a_load_const_ref(list : taasmoutput;size : tcgsize;a : aword;const ref : treference);
 
       var
          hr : tregister;
@@ -338,18 +349,12 @@ unit cgobj;
       end;
 
 
-    procedure tcg.g_concatcopy(list : paasmoutput;const source,dest : treference;len : aword;loadref : boolean);
-
-      begin
-         abstract;
-      end;
-
 
 {*****************************************************************************
                          String helper routines
 *****************************************************************************}
 
-    procedure tcg.g_removetemps(list : paasmoutput;p : plinkedlist);
+    procedure tcg.g_removetemps(list : taasmoutput;p : plinkedlist);
 
       var
          hp : ptemptodestroy;
@@ -372,7 +377,7 @@ unit cgobj;
          tg.popusedregisters(pushedregs);
       end;
 
-    procedure tcg.g_decrstrref(list : paasmoutput;const ref : treference;t : pdef);
+    procedure tcg.g_decrstrref(list : taasmoutput;const ref : treference;t : pdef);
 
       var
          pushedregs : tpushed;
@@ -395,7 +400,7 @@ unit cgobj;
     { initilizes data of type t                           }
     { if is_already_ref is true then the routines assumes }
     { that r points to the data to initialize             }
-    procedure tcg.g_initialize(list : paasmoutput;t : pdef;const ref : treference;is_already_ref : boolean);
+    procedure tcg.g_initialize(list : taasmoutput;t : pdef;const ref : treference;is_already_ref : boolean);
 
       var
          hr : treference;
@@ -417,7 +422,7 @@ unit cgobj;
            end;
       end;
 
-    procedure tcg.g_finalize(list : paasmoutput;t : pdef;const ref : treference;is_already_ref : boolean);
+    procedure tcg.g_finalize(list : taasmoutput;t : pdef;const ref : treference;is_already_ref : boolean);
 
       var
          r : treference;
@@ -442,7 +447,7 @@ unit cgobj;
       end;
 
     { generates the code for initialisation of local data }
-    procedure tcg.g_initialize_data(list : paasmoutput;p : psym);
+    procedure tcg.g_initialize_data(list : taasmoutput;p : psym);
 
       var
          hr : treference;
@@ -493,7 +498,7 @@ unit cgobj;
 
 
     { generates the code for incrementing the reference count of parameters }
-    procedure tcg.g_incr_data(list : paasmoutput;p : psym);
+    procedure tcg.g_incr_data(list : taasmoutput;p : psym);
 
       var
          hr : treference;
@@ -540,7 +545,7 @@ unit cgobj;
 
 
     { generates the code for finalisation of local data }
-    procedure tcg.g_finalize_data(list : paasmoutput;p : pnamedindexobject);
+    procedure tcg.g_finalize_data(list : taasmoutput;p : pnamedindexobject);
 
       var
          hr : treference;
@@ -611,13 +616,13 @@ unit cgobj;
 
 
     { generates the code to make local copies of the value parameters }
-    procedure tcg.g_copyvalueparas(list : paasmoutput;p : pnamedindexobject);
+    procedure tcg.g_copyvalueparas(list : taasmoutput;p : pnamedindexobject);
       begin
          runerror(255);
       end;
 
     var
-       _list : paasmoutput;
+       _list : taasmoutput;
 
     { wrappers for the methods, because TP doesn't know procedures }
     { of objects                                                   }
@@ -630,7 +635,7 @@ unit cgobj;
       end;
     {$ENDIF NEWST}
 
-    procedure tcg.g_finalizetempansistrings(list : paasmoutput);
+    procedure tcg.g_finalizetempansistrings(list : taasmoutput);
 
       var
          hp : ptemprecord;
@@ -691,7 +696,7 @@ unit cgobj;
  {$ENDIF NEWST}
 
     { generates the entry code for a procedure }
-    procedure tcg.g_entrycode(list : paasmoutput;const proc_names:Tstringcontainer;make_global:boolean;
+    procedure tcg.g_entrycode(list : taasmoutput;const proc_names:Tstringcontainer;make_global:boolean;
        stackframe:longint;var parasize:longint;var nostackframe:boolean;
        inlined : boolean);
 
@@ -950,7 +955,7 @@ unit cgobj;
   {$endif GDB}
     end;
 
-    procedure tcg.g_exitcode(list : paasmoutput;parasize:longint;nostackframe,inlined:boolean);
+    procedure tcg.g_exitcode(list : taasmoutput;parasize:longint;nostackframe,inlined:boolean);
 
       var
   {$ifdef GDB}
@@ -1193,112 +1198,112 @@ unit cgobj;
       end;
 
 {*****************************************************************************
-                       some abstract definitions
+                       some generic implementations
  ****************************************************************************}
 
-    procedure tcg.a_call_name(list : paasmoutput;const s : string;
-      offset : longint);
 
+    procedure tcg.a_load_const_ref(list : taasmoutput;size : tcgsize;a : aword;const ref : treference);
+    
+    var
+      tmpreg: tregister;
+      
       begin
-         abstract;
+        tmpreg := get_scratch_reg(list);
+        a_load_const_reg(list,size,a,tmpreg);
+        a_load_reg_ref(list,size,tmpref,ref);
+        free_scratch_reg(list,tmpreg);
       end;
 
-    procedure tcg.g_stackframe_entry(list : paasmoutput;localsize : longint);
-
-      begin
-         abstract;
-      end;
-
-    procedure tcg.g_maybe_loadself(list : paasmoutput);
-
-      begin
-         abstract;
-      end;
-
-    procedure tcg.g_restore_frame_pointer(list : paasmoutput);
-
-      begin
-         abstract;
-      end;
-
-    procedure g_return_from_proc(list : paasmoutput;parasize : aword);
-
-      begin
-         abstract;
-      end;
-
-    procedure tcg.a_loadaddress_ref_reg(list : paasmoutput;const ref : treference;r : tregister);
-
-      begin
-         abstract;
-      end;
-
-    procedure tcg.g_push_exception_value_reg(list : paasmoutput;reg : tregister);
-
-      begin
-         abstract;
-      end;
-
-    procedure tcg.g_push_exception_value_const(list : paasmoutput;reg : tregister);
-
-      begin
-         abstract;
-      end;
-
-    procedure tcg.g_pop_exception_value_reg(list : paasmoutput;reg : tregister);
-
-      begin
-         abstract;
-      end;
-
-    procedure tcg.a_load_const_reg(list : paasmoutput;size : tcgsize;a : aword;register : tregister);
-
-      begin
-         abstract;
-      end;
-
-    procedure tcg.a_load_reg_ref(list : paasmoutput;size : tcgsize;register : tregister;const ref : treference);
-
-      begin
-         abstract;
-      end;
-
-    procedure tcg.a_load_ref_reg(list : paasmoutput;size : tcgsize;const ref : treference;register : tregister);
-
-      begin
-         abstract;
-      end;
-
-    procedure tcg.a_load_reg_reg(list : paasmoutput;size : tcgsize;reg1,reg2 : tregister);
-
-      begin
-         abstract;
-      end;
-
-    procedure tcg.a_cmp_const_reg_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
-      l : pasmlabel);
-
-      begin
-         abstract;
-      end;
-
-    procedure tcg.a_cmp_reg_reg_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : pasmlabel);
-
-      begin
-         abstract;
-      end;
-
-    procedure tcg.a_cmp_ref_reg_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp; const ref: treference; reg : tregister; l : pasmlabel);
+    
+    procedure tcg.a_op_const_ref(list : taasmoutput; Op: TOpCG; size: TCGSize; a: AWord; const ref: TReference);
+    
       var
         tmpreg: tregister;
+
       begin
         tmpreg := get_scratch_reg(list);
         a_load_ref_reg(list,size,ref,tmpreg);
-        a_cmp_reg_reg_label(list,size,cmp_op,a,tmpreg,l);
+        a_op_const_reg(list,op,size,a,tmpreg);
+        a_load_reg_ref(list,size,tmpreg,ref);
         free_scratch_reg(tmpreg);
       end;
 
-    procedure tcg.a_cmp_const_ref_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;const ref : treference;
+
+    procedure tcg.a_op_const_loc(list : taasmoutput; Op: TOpCG; size: TCGSize; a: AWord; const loc: tloocation);
+    
+      begin
+        case loc.loc of
+          LOC_REGISTER, LOC_CREGISTER:
+            a_op_const_reg(list,op,size,a,loc.register);
+          LOC_REFERENCE, LOC_MEM:
+            a_op_const_reg(list,op,size,a,loc.reference);
+          else
+            internalerror(200109061);
+      end;
+
+
+    procedure tcg.a_op_reg_ref(list : taasmoutput; Op: TOpCG; size: TCGSize;reg: TRegister;  const ref: TReference);
+
+      var
+        tmpreg: tregister;
+
+      begin
+        tmpreg := get_scratch_reg(list);
+        a_load_ref_reg(list,size,ref,tmpreg);
+        a_op_reg_reg(list,op,size,reg,tmpreg);
+        a_load_reg_ref(list,size,tmpreg,ref);
+        free_scratch_reg(tmpreg);
+      end;
+
+
+    procedure tcg.a_op_ref_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; const ref: TReference; reg: TRegister); virtual;
+      var
+        tmpreg: tregister;
+
+      begin
+        tmpreg := get_scratch_reg(list);
+        a_load_ref_reg(list,size,ref,tmpreg);
+        a_op_reg_reg(list,op,size,tmpreg,reg);
+        free_scratch_reg(tmpreg);
+      end;
+
+
+    procedure tcg.a_op_reg_loc(list : taasmoutput; Op: TOpCG; size: TCGSize; const ref: TReference; const loc: tloocation);
+
+      begin
+        case loc.loc of
+          LOC_REGISTER, LOC_CREGISTER:
+            a_op_reg_reg(list,op,size,a,loc.register);
+          LOC_REFERENCE, LOC_MEM:
+            a_op_reg_ref(list,op,size,a,loc.reference);
+          else
+            internalerror(200109061);
+      end;
+
+
+    procedure tcg.a_op_ref_loc(list : taasmoutput; Op: TOpCG; size: TCGSize; const ref: TReference; const loc: tloocation);
+
+      var
+        tmpreg: tregister;
+
+      begin
+        case loc.loc of
+          LOC_REGISTER,LOC_CREGISTER:
+            a_op_ref_reg(list,op,size,ref,loc.register,l);
+          LOC_REFERENCE,LOC_MEM:
+            begin
+              tmpreg := get_scratch_reg(list);
+              a_load_ref_reg(size,reftmpreg);
+              a_op_reg_ref(list,op,size,tmpreg,location.reference);
+              free_scratch_reg(list,tmpreg);
+            end;
+          else
+            internalerror(200109061);
+        end;
+      end;
+
+
+    procedure tcg.a_cmp_const_ref_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;const ref : treference;
      l : pasmlabel);
 
       var
@@ -1311,65 +1316,67 @@ unit cgobj;
         free_scratch_reg(tmpreg);
       end;
 
-    procedure tcg.a_cmp_const_loc_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;const loc : tlocation;
+    procedure tcg.a_cmp_const_loc_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;const loc : tlocation;
       l : pasmlabel);
 
       begin
         case loc.loc of
           LOC_REGISTER,LOC_CREGISTER:
-          !!!!!! 64bit locations -> two registers!!
             a_cmp_const_reg_label(list,size,cmp_op,a,loc.register,l);
           LOC_REFERENCE,LOC_MEM:
             a_cmp_const_ref_label(list,size,cmp_op,a,loc.reference,l);
+          else
+            internalerror(200109061);
         end;
       end;
 
-    procedure tcg.a_cmp_ref_loc_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;const ref: treference;const loc : tlocation;
-      l : pasmlabel);
+    procedure tcg.a_cmp_ref_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp; const ref: treference; reg : tregister; l : pasmlabel);
+
       var
         tmpreg: tregister;
+
+      begin
+        tmpreg := get_scratch_reg(list);
+        a_load_ref_reg(list,size,ref,tmpreg);
+        a_cmp_reg_reg_label(list,size,cmp_op,a,tmpreg,l);
+        free_scratch_reg(tmpreg);
+      end;
+
+    procedure tcg.a_cmp_ref_loc_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;const ref: treference;const loc : tlocation;
+      l : pasmlabel);
+
+      var
+        tmpreg: tregister;
+
       begin
         case loc.loc of
           LOC_REGISTER,LOC_CREGISTER:
-            a_cmp_ref_reg_label(list,size,cmp_op,ref,loc.register,l);
+            { we reverse the operands, so also do the inverse comparison }
+            a_cmp_reg_ref_label(list,size,inverse_opcmp(cmp_op),loc.register,ref,l);
           LOC_REFERENCE,LOC_MEM:
             begin
               tmpreg := get_scratch_reg(list);
-              a_load_ref_reg(size,location.reference,tmpreg);
-              a_cmp_ref_reg(list,size,cmp_op,ref,tmpreg,l);
+              a_load_ref_reg(size,reftmpreg);
+              a_cmp_reg_ref(list,size,cmp_op,tmpreg,location.reference,l);
               free_scratch_reg(list,tmpreg);
             end;
+          else
+            internalerror(200109061);
         end;
-      end;
-
-    procedure tcg.a_jmp_cond(list : paasmoutput;cond : TOpCmp;l: pasmlabel);
-
-      begin
-        abstract;
-      end;
-
-    procedure tcg.g_return_from_proc(list : paasmoutput;parasize : aword);
-
-      begin
-         abstract;
-      end;
-
-    procedure tcg.a_param_reg(list : paasmoutput;size : tcgsize;r : tregister;nr : longint);
-
-      begin
-         abstract;
-      end;
-
-    procedure tcg.a_paramaddr_ref(list : paasmoutput;const r : treference;nr : longint);
-
-      begin
-         abstract;
       end;
 
 end.
 {
   $Log$
-  Revision 1.3  2001-09-05 20:21:03  jonas
+  Revision 1.4  2001-09-06 15:25:55  jonas
+    * changed type of tcg from object to class ->  abstract methods are now
+      a lot cleaner :)
+    + more updates: load_*_loc methods, op_*_* methods, g_flags2reg method
+      (if possible with geenric implementation and necessary ppc
+       implementations)
+    * worked a bit further on cgflw, now working on exitnode
+
+  Revision 1.3  2001/09/05 20:21:03  jonas
     * new cgflow based on n386flw with all nodes until forn "translated"
     + a_cmp_loc_*_label methods for tcg
     + base implementatino for a_cmp_ref_*_label methods
@@ -1381,135 +1388,5 @@ end.
 
   Revision 1.1  2000/07/13 06:30:07  michael
     + Initial import
-
-  Revision 1.38  2000/04/29 09:01:06  jonas
-    * nmem compiles again (at least for powerpc)
-
-  Revision 1.37  2000/04/22 14:25:03  jonas
-    * aasm.pas: pai_align instead of pai_align_abstract if cpu <> i386
-    + systems.pas: info for macos/ppc
-    * new/cgobj.pas: compiles again without newst define
-    * new/powerpc/cgcpu: generate different entry/exit code depending on
-      whether target_os is MacOs or Linux
-
-  Revision 1.36  2000/03/11 21:11:24  daniel
-    * Ported hcgdata to new symtable.
-    * Alignment code changed as suggested by Peter
-    + Usage of my is operator replacement, is_object
-
-  Revision 1.35  2000/03/01 15:36:13  florian
-    * some new stuff for the new cg
-
-  Revision 1.34  2000/02/20 20:49:46  florian
-    * newcg is compiling
-    * fixed the dup id problem reported by Paul Y.
-
-  Revision 1.33  2000/01/07 01:14:53  peter
-    * updated copyright to 2000
-
-  Revision 1.32  1999/12/01 12:42:33  peter
-    * fixed bug 698
-    * removed some notes about unused vars
-
-  Revision 1.31  1999/11/05 13:15:00  florian
-    * some fixes to get the new cg compiling again
-
-  Revision 1.30  1999/11/05 07:05:56  jonas
-    + a_jmp_cond()
-
-  Revision 1.29  1999/10/21 16:41:41  florian
-    * problems with readln fixed: esi wasn't restored correctly when
-      reading ordinal fields of objects futher the register allocation
-      didn't take care of the extra register when reading ordinal values
-    * enumerations can now be used in constant indexes of properties
-
-  Revision 1.28  1999/10/12 21:20:46  florian
-    * new codegenerator compiles again
-
-  Revision 1.27  1999/09/29 11:46:20  florian
-    * fixed bug 292 from bugs directory
-
-  Revision 1.26  1999/09/14 11:16:09  florian
-    * only small updates to work with the current compiler
-
-  Revision 1.25  1999/09/03 13:09:09  jonas
-    * fixed typo regarding scratchregs pointer
-
-  Revision 1.24  1999/08/26 14:51:54  jonas
-    * changed get_scratch_reg so it actually uses the
-      scratch_reg_array_pointer
-
-  Revision 1.23  1999/08/25 12:00:11  jonas
-    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
-
-  Revision 1.22  1999/08/18 17:05:55  florian
-    + implemented initilizing of data for the new code generator
-      so it should compile now simple programs
-
-  Revision 1.21  1999/08/07 14:21:08  florian
-    * some small problems fixed
-
-  Revision 1.20  1999/08/06 18:05:52  florian
-    * implemented some stuff for assignments
-
-  Revision 1.19  1999/08/06 17:00:54  florian
-    + definition of concatcopy
-
-  Revision 1.18  1999/08/06 16:37:45  jonas
-    * completed bugfix done by Florian o I wouldn't get conflicts :)
-
-  Revision 1.17  1999/08/06 16:27:26  florian
-    * for Jonas: else he will get conflicts
-
-  Revision 1.16  1999/08/06 16:04:05  michael
-  + introduced tainstruction
-
-  Revision 1.15  1999/08/06 15:53:50  florian
-    * made the alpha version compilable
-
-  Revision 1.14  1999/08/06 14:15:51  florian
-    * made the alpha version compilable
-
-  Revision 1.13  1999/08/06 13:26:50  florian
-    * more changes ...
-
-  Revision 1.12  1999/08/05 17:10:56  florian
-    * some more additions, especially procedure
-      exit code generation
-
-  Revision 1.11  1999/08/05 14:58:11  florian
-    * some fixes for the floating point registers
-    * more things for the new code generator
-
-  Revision 1.10  1999/08/04 00:23:52  florian
-    * renamed i386asm and i386base to cpuasm and cpubase
-
-  Revision 1.9  1999/08/02 23:13:21  florian
-    * more changes to compile for the Alpha
-
-  Revision 1.8  1999/08/02 17:14:07  florian
-    + changed the temp. generator to an object
-
-  Revision 1.7  1999/08/01 23:05:55  florian
-    * changes to compile with FPC
-
-  Revision 1.6  1999/08/01 18:22:33  florian
-   * made it again compilable
-
-  Revision 1.5  1999/01/23 23:29:46  florian
-    * first running version of the new code generator
-    * when compiling exceptions under Linux fixed
-
-  Revision 1.4  1999/01/13 22:52:36  florian
-    + YES, finally the new code generator is compilable, but it doesn't run yet :(
-
-  Revision 1.3  1998/12/26 15:20:30  florian
-    + more changes for the new version
-
-  Revision 1.2  1998/12/15 22:18:55  florian
-    * some code added
-
-  Revision 1.1  1998/12/15 16:32:58  florian
-    + first version, derived from old routines
 
 }

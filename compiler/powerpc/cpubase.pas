@@ -226,20 +226,22 @@ type
                      C_None: ();
                      { specifies in which part of the cr the bit has to be }
                      { tested for blt,bgt,beq etc.                         }
-                     C_LT,C_LE,C_EQ,C_GE,C_GT,C_NL,C_NE,C_NG,C_SO,
-                       C_NS,C_UN,C_NU: (cr: R_CR0..R_CR7);
+                     C_LT..C_NU: (cr: R_CR0..R_CR7);
                      { specifies the bit to test for bt,bf,bdz etc. }
-                     C_T,C_F,C_DNZ,C_DNZT,C_DNZF,C_DZ,C_DZT,C_DZF:
+                     C_T..C_DZF:
                        (crbit: byte)
                    );
              end;
 
 const
-{  AsmCondFlag2BO: Array[TAsmCondFlags] of Byte =
-    (0,12,4,12,4,12,4,4,4,12,4,12,4,
-    );
-  AsmCondFlag2BI: Array[TAsmCondFlags] of Byte =
-    (0,0,1,2,0,1,0,2,1,3,3,3,3);}
+  AsmCondFlag2BO: Array[C_T..C_DZF] of Byte =
+    (12,4,16,8,0,18,10,2);
+  AsmCondFlag2BI: Array[C_LR..C_NU] of Byte =
+    (0,1,2,0,1,0,2,1,3,3,3,3);
+  AsmCondFlagTF: Array[TAsmCondFlags] of Boolean =
+    (false,true,false,true,false,true,false,false,false,true,false,true,false,
+     true,false,false,true,false,false,true,false);
+  
 
   AsmCondFlag2Str: Array[tasmcondflags] of string[2] = ({cf_none}'',
      { conditions when not using ctr decrement etc}
@@ -394,12 +396,13 @@ const
   registers_saved_on_cdecl = [R_13..R_29];
 
   { generic register names }
-  stack_pointer = R_1;
-  R_RTOC        = R_2;
-  frame_pointer = stack_pointer;
-  self_pointer  = R_9;
-  accumulator   = R_3;
-  vmt_offset_reg = R_0;
+  stack_pointer    = R_1;
+  R_RTOC           = R_2;
+  frame_pointer    = stack_pointer;
+  self_pointer     = R_9;
+  accumulator      = R_3;
+  accumulatorhigh  = R_4;
+  vmt_offset_reg   = R_0;
   max_scratch_regs = 3;
   scratch_regs: Array[1..max_scratch_regs] of TRegister = (R_11,R_12,R_30);
 
@@ -599,7 +602,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2001-08-26 13:31:04  florian
+  Revision 1.3  2001-09-06 15:25:56  jonas
+    * changed type of tcg from object to class ->  abstract methods are now
+      a lot cleaner :)
+    + more updates: load_*_loc methods, op_*_* methods, g_flags2reg method
+      (if possible with geenric implementation and necessary ppc
+       implementations)
+    * worked a bit further on cgflw, now working on exitnode
+
+  Revision 1.2  2001/08/26 13:31:04  florian
     * some cg reorganisation
     * some PPC updates
 

@@ -270,7 +270,7 @@ implementation
                      right.location.register,newreference(temp1));
                  end
               else
-                 cgcpu.concatcopy(exprasmlist,right.location.reference,temp1,
+                 cgcpu.g_concatcopy(exprasmlist,right.location.reference,temp1,
                    hs,false,false);
            end
          else
@@ -385,8 +385,8 @@ implementation
          otlabel,oflabel : tasmlabel;
          r : preference;
          is_mem,
-         allocated_eax,
-         allocated_edx: boolean;
+         allocated_acc,
+         allocated_acchigh: boolean;
 
       procedure cleanleft;
         begin
@@ -413,12 +413,12 @@ implementation
            begin
               { just do a normal assignment followed by exit }
               secondpass(left);
-              emitjmp(C_None,aktexitlabel);
+              cgcpu.a_jmp_cond(exprasmlist,C_None,aktexitlabel);
            end
          else
            begin
-              allocated_eax := false;
-              allocated_edx := false;
+              allocated_acc := false;
+              allocated_acchigh := false;
               otlabel:=truelabel;
               oflabel:=falselabel;
               getlabel(truelabel);
@@ -431,19 +431,19 @@ implementation
            LOC_CREGISTER,
             LOC_REGISTER : is_mem:=false;
                LOC_FLAGS : begin
-                             exprasmlist.concat(tairegalloc.alloc(R_EAX));
-                             allocated_eax := true;
-                             emit_flag2reg(left.location.resflags,R_AL);
+                             exprasmlist.concat(tairegalloc.alloc(accumulator));
+                             allocated_acc := true;
+                             cgcpu.g_flag2reg(left.location.resflags,accumulator);
                              goto do_jmp;
                            end;
                 LOC_JUMP : begin
-                             exprasmlist.concat(tairegalloc.alloc(R_EAX));
-                             allocated_eax := true;
-                             emitlab(truelabel);
-                             emit_const_reg(A_MOV,S_B,1,R_AL);
-                             emitjmp(C_None,aktexit2label);
-                             emitlab(falselabel);
-                             emit_reg_reg(A_XOR,S_B,R_AL,R_AL);
+                             exprasmlist.concat(tairegalloc.alloc(accumulator));
+                             allocated_acc := true;
+                             cgcpu.a_label(exprasmlist,truelabel);
+                             cgcpu.a_load_const_reg(exprasmlist,OS_8,1,acc);
+                             cgcpu.a_jmp_cond(exprasmlist,C_None,aktexit2label);
+                             cgcpu.a_label(exprasmlist,falselabel);
+                             cgcpu.a_load_const_reg(exprasmlist,OS_8,0,acc);
                              goto do_jmp;
                            end;
               else
@@ -453,14 +453,14 @@ implementation
            pointerdef,
            procvardef : begin
                           cleanleft;
-                          exprasmlist.concat(tairegalloc.alloc(R_EAX));
-                          allocated_eax := true;
+                          exprasmlist.concat(tairegalloc.alloc(accumulator));
+                          allocated_acc := true;
                           if is_mem then
-                            emit_ref_reg(A_MOV,S_L,
-                              newreference(left.location.reference),R_EAX)
+                            cgcpu.a_load_ref_reg(exprasmlist,OS_ADDR,
+                              left.location.reference,accumulator)
                           else
-                            emit_reg_reg(A_MOV,S_L,
-                              left.location.register,R_EAX);
+                            gcpu.a_load_reg_reg(exprasmlist,A_MOV,OS_ADDR,
+                              left.location.register,accumulator);
                         end;
              floatdef : begin
                           cleanleft;
@@ -1273,9 +1273,17 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2001-09-05 20:21:03  jonas
+  Revision 1.3  2001-09-06 15:25:55  jonas
+    * changed type of tcg from object to class ->  abstract methods are now
+      a lot cleaner :)
+    + more updates: load_*_loc methods, op_*_* methods, g_flags2reg method
+      (if possible with geenric implementation and necessary ppc
+       implementations)
+    * worked a bit further on cgflw, now working on exitnode
+
+  Revision 1.2  2001/09/05 20:21:03  jonas
     * new cgflow based on n386flw with all nodes until forn "translated"
-    + a_cmp_loc_*_label methods for tcg
+    + a_cmp_*_loc_label methods for tcg
     + base implementatino for a_cmp_ref_*_label methods
     * small bugfixes to powerpc cg
 
