@@ -361,7 +361,7 @@ unit cgobj;
           {# Generates overflow checking code for a node }
           procedure g_overflowcheck(list: taasmoutput; const l:tlocation; def:tdef); virtual; abstract;
 
-          procedure g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;elesize:integer);virtual;abstract;
+          procedure g_copyvaluepara_openarray(list : taasmoutput;const arrayref,lenref:treference;elesize:integer);virtual;abstract;
           {# Emits instructions which should be emitted when entering
              a routine declared as @var(interrupt). The default
              behavior does nothing, should be overriden as required.
@@ -1700,7 +1700,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.107  2003-06-03 21:11:09  peter
+  Revision 1.108  2003-06-06 14:43:02  peter
+    * g_copyopenarrayvalue gets length reference
+    * don't copy open arrays for cdecl
+
+  Revision 1.107  2003/06/03 21:11:09  peter
     * cg.a_load_* get a from and to size specifier
     * makeregsize only accepts newregister
     * i386 uses generic tcgnotnode,tcgunaryminus

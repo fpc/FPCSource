@@ -996,6 +996,7 @@ implementation
       var
         href1,href2 : treference;
         list : taasmoutput;
+        hsym : tvarsym;
         loadref: boolean;
       begin
         list:=taasmoutput(arg);
@@ -1010,10 +1011,21 @@ implementation
              reference_reset_base(href1,tvarsym(p).reg,0);
            if is_open_array(tvarsym(p).vartype.def) or
               is_array_of_const(tvarsym(p).vartype.def) then
-             if loadref then
-               cg.g_copyvaluepara_openarray(list,href1,tarraydef(tvarsym(p).vartype.def).elesize)
-             else
-               internalerror(2003053101)
+            begin
+              { cdecl functions don't have a high pointer so it is not possible to generate
+                a local copy }
+              if not(current_procinfo.procdef.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
+                begin
+                  hsym:=tvarsym(tsym(p).owner.search('high'+p.name));
+                  if not assigned(hsym) then
+                    internalerror(200306061);
+                  reference_reset_base(href2,current_procinfo.framepointer,tvarsym(hsym).adjusted_address);
+                  if loadref then
+                   cg.g_copyvaluepara_openarray(list,href1,href2,tarraydef(tvarsym(p).vartype.def).elesize)
+                  else
+                   internalerror(2003053101)
+                end;
+            end
            else
             begin
               reference_reset_base(href2,current_procinfo.framepointer,tvarsym(p).localvarsym.adjusted_address);
@@ -1942,7 +1954,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.121  2003-06-03 21:11:09  peter
+  Revision 1.122  2003-06-06 14:43:02  peter
+    * g_copyopenarrayvalue gets length reference
+    * don't copy open arrays for cdecl
+
+  Revision 1.121  2003/06/03 21:11:09  peter
     * cg.a_load_* get a from and to size specifier
     * makeregsize only accepts newregister
     * i386 uses generic tcgnotnode,tcgunaryminus
