@@ -1,0 +1,19 @@
+#
+#   Makefile.fpc for cdrom
+#
+
+[package]
+name=cdrom
+version=1.0.6
+
+[target]
+units=cdrom discid
+examples=showcds getdiscid
+
+[install]
+fpcpackage=y
+units_win32=scsidefs wnaspi32 cdromioctl wincd
+units_linux=lincd major
+
+[default]
+fpcdir=../../..
