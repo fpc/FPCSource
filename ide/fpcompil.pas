@@ -118,6 +118,7 @@ const
     CompilerMessageWindow : PCompilerMessageWindow  = nil;
     CompilerStatusDialog  : PCompilerStatusDialog = nil;
     CompileStamp          : longint = 0;
+    RestartingDebugger    : boolean = false;
 
 procedure DoCompile(Mode: TCompileMode);
 function  NeedRecompile(Mode :TCompileMode; verbose : boolean): boolean;
@@ -792,10 +793,12 @@ begin
         FileName:=PrimaryFileMain
       else if assigned(P) then
         begin
-            FileName:=P^.Editor^.FileName;
-            if FileName='' then
+          FileName:=P^.Editor^.FileName;
+          if FileName='' then
+            begin
               P^.Editor^.SaveAsk(true);
-            FileName:=P^.Editor^.FileName;
+              FileName:=P^.Editor^.FileName;
+            end;
         end
       else
         FileName:='';
@@ -948,7 +951,6 @@ begin
             MustRestartDebugger:=true;
           end;
 {$endif NODEBUG}
-      LastCompileTime := cardinal(Now);
       FpIntF.Compile(FileName,SwitchesPath);
       SetStatus('Finished compiling...');
     end
@@ -1049,7 +1051,10 @@ begin
 { Set end status }
   if not (CompilationPhase in [cpAborted,cpFailed]) then
     if (status.errorCount=0) then
-      CompilationPhase:=cpDone
+      begin
+        CompilationPhase:=cpDone;
+        LastCompileTime := cardinal(Now);
+      end
     else
       CompilationPhase:=cpFailed;
 { Show end status }
@@ -1060,12 +1065,15 @@ begin
       CompilerStatusDialog^.Update;
       CompilerStatusDialog^.ReDraw;
       CompilerStatusDialog^.SetState(sfModal,false);
-      if ((CompilationPhase in[cpAborted,cpDone,cpFailed]) or (ShowStatusOnError)) and (Mode<>cRun) then
+      if ((CompilationPhase in [cpAborted,cpDone,cpFailed]) or (ShowStatusOnError))
+        and ((Mode<>cRun) or (CompilationPhase<>cpDone)) then
        repeat
          CompilerStatusDialog^.GetEvent(E);
          if IsExitEvent(E)=false then
           CompilerStatusDialog^.HandleEvent(E);
        until IsExitEvent(E) or not assigned(CompilerStatusDialog);
+       {if IsExitEvent(E) then
+         Application^.PutEvent(E);}
       if assigned(CompilerStatusDialog) then
         begin
           Application^.Delete(CompilerStatusDialog);
@@ -1279,7 +1287,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  2002-09-04 14:07:12  pierre
+  Revision 1.11  2002-09-05 08:45:40  pierre
+   * try to fix recompilation on changes problems
+
+  Revision 1.10  2002/09/04 14:07:12  pierre
    + Enhance code complete by inserting unit symbols
 
   Revision 1.9  2002/08/26 13:03:14  pierre

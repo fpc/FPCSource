@@ -49,6 +49,11 @@ begin
    begin
      if (MessageBox(#3+'You''ve edited a file, recompile the project?',nil,mfinformation+mfyesbutton+mfnobutton)=cmYes) then
       begin
+        if Assigned(Debugger) then
+          begin
+            if Debugger^.IsRunning then
+              RestartingDebugger:=true;
+          end;
         DoResetDebugger;
         DoRun;
         AskRecompileIfModified:=true;
@@ -208,7 +213,7 @@ begin
 {$ifndef NODEBUG}
       { we use debugger if and only if there are active breakpoints
         AND the target is correct for debugging !! PM }
-      if ActiveBreakpoints and
+      if (ActiveBreakpoints or RestartingDebugger) and
 {$ifdef COMPILER_1_0}
         (target_os.shortname=source_os.shortname)
 {$else COMPILER_1_0}
@@ -220,7 +225,13 @@ begin
             InitDebugger;
           if assigned(Debugger) then
             begin
-              Debugger^.Run;
+              if RestartingDebugger then
+                begin
+                  RestartingDebugger:=false;
+                  Debugger^.StartTrace;
+                end
+              else
+                Debugger^.Run;
               RunDirect:=false;
             end;
         end;
@@ -472,7 +483,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2002-08-13 08:59:12  pierre
+  Revision 1.4  2002-09-05 08:45:59  pierre
+   * try to fix recompilation on changes problems
+
+  Revision 1.3  2002/08/13 08:59:12  pierre
    + Run menu changes depending on wether the debuggee is running or not
 
   Revision 1.2  2001/11/07 00:28:53  pierre
