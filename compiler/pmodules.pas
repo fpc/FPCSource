@@ -1055,7 +1055,7 @@ implementation
          if not(cs_compilesystem in aktmoduleswitches) then
            if (store_crc<>current_module.crc) and simplify_ppu then
              Comment(V_Warning,current_module.ppufilename^+' implementation CRC changed '+
-               hexstr(store_crc,8)+'<>'+hexstr(current_module.interface_crc,8));
+               hexstr(store_crc,8)+'<>'+hexstr(current_module.crc,8));
 {$endif EXTDEBUG}
 
          { remove static symtable (=refsymtable) here to save some mem }
@@ -1339,7 +1339,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.42  2001-08-06 21:40:47  peter
+  Revision 1.43  2001-08-12 19:59:49  peter
+    * typo in extdebug msg
+
+  Revision 1.42  2001/08/06 21:40:47  peter
     * funcret moved from tprocinfo to tprocdef
 
   Revision 1.41  2001/08/05 12:26:52  peter
