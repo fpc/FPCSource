@@ -60,7 +60,7 @@ begin
                  '3' : initglobalswitches:=initglobalswitches+[cs_optimize,cs_fastoptimize,cs_slowoptimize,cs_uncertainopts];
                  'p' :
                    Begin
-                     If j < Length(Opt)) Then
+                     If j < Length(Opt) Then
                        Begin
                          Case opt[j+1] Of
                            '1': initoptprocessor := Class386;
@@ -97,7 +97,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  1998-11-11 20:11:39  jonas
+  Revision 1.14  1998-11-12 09:00:26  michael
+  * Fixed syntax error
+
+  Revision 1.13  1998/11/11 20:11:39  jonas
     * lower optimization levels disable higher optimization level features
     * check if there actually is a character after -Op before comparing it with a number
 
