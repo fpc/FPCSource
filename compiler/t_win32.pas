@@ -625,7 +625,7 @@ begin
   with Info do
    begin
      ExeCmd[1]:='ldw $OPT $STRIP $APPTYPE $IMAGEBASE $RELOC -o $EXE $RES';
-     DllCmd[1]:='ldw $OPT --dll $APPTYPE $IMAGEBASE $RELOC -o $EXE $RES';
+     DllCmd[1]:='ldw $OPT $STRIP --dll $APPTYPE $IMAGEBASE $RELOC -o $EXE $RES';
      if RelocSection then
        begin
           ExeCmd[2]:='dlltool --as asw.exe --dllname $EXE --output-exp exp.$$$ $RELOC $DEF';
@@ -1050,7 +1050,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  1999-11-22 22:20:43  pierre
+  Revision 1.10  1999-11-24 11:45:36  pierre
+   * $STRIP was missign in DllCmd[1]
+
+  Revision 1.9  1999/11/22 22:20:43  pierre
     * Def file syntax for win32 with index corrected
     * direct output of .edata leads to same indexes
       (index 5 leads to next export being 6 unless otherwise
