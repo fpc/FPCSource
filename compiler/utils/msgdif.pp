@@ -49,27 +49,46 @@ const
   Is_interactive : boolean = false;
   Auto_verbosity : boolean = false;
 
+
 Procedure GetTranslation( p : PMsg);
 var
    s : string;
-   i,j : longint;
+   i,j,k : longint;
 begin
   i:=pos('_',p^.text);
-  if (i>0) and (i<=5) then
+  if i>0 then
+    for j:=i+1 to Length(p^.text) do
+      if p^.text[j]='_' then
+        begin
+          i:=j;
+          break;
+        end;
+  if (i>0) and (i<=15) then
       Writeln(P^.Enum,' type  "',copy(p^.text,1,i-1),'" "',copy(p^.text,i+1,255),'"')
   else
     Writeln(P^.enum,' "',p^.text,'"');
+  Writeln('Type translated error message in,');
+  Writeln('Press return to keep it unchanged, or "q" to finish interactive mode');
   Readln(s);
   if s='' then
+    exit;
+  if s='q' then
     begin
       Is_interactive:=false;
       exit;
     end;
   j:=pos('_',s);
-  if (j>0) and (j<=5) then
+  if j>0 then
+    for k:=j+1 to Length(s) do
+      if s[j]='_' then
+        begin
+          j:=k;
+          break;
+        end;
+  if (j>0) then
     begin
       if copy(p^.text,1,i)<>copy(s,1,j) then
-        Writeln('Different verbosity !!');
+        Writeln('Warning : different verbosity !!');
       p^.text:=s;
     end
   else
@@ -511,7 +530,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2002-05-18 13:34:27  peter
+  Revision 1.9  2002-11-15 01:13:42  peter
+    * merged verbosity check
+
+  Revision 1.8  2002/05/18 13:34:27  peter
     * readded missing revisions
 
   Revision 1.7  2002/05/16 19:46:53  carl
