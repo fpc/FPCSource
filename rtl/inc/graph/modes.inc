@@ -93,14 +93,15 @@ end;
       if not assigned(newModeList.modeinfo[driverNr]) then
         begin
 {$ifdef logging}
-          logln('Adding resolution '+strf(modenr)+' for drivernr '+strf(drivernr));
+          logln('Adding resolution '+strf(modenr)+' for drivernr '+strf(drivernr)+
+                ' ('+strf(mode.maxx)+'x'+strf(mode.maxy)+')');
 {$endif logging}
           new(newModeList.modeinfo[driverNr]);
           newModeList.modeinfo[driverNr]^ := mode;
           with newModeList.modeinfo[driverNr]^ do
             begin
               driverNumber := driverNr;
-              modeNumber := 1;
+              internModeNumber := 1;
               next := nil;
             end;
           newModeList.loHiModeNr[driverNr].lo := 1;
@@ -126,15 +127,16 @@ end;
              (list^.maxy = mode.maxy) then
             begin
 {$ifdef logging}
-              logln('replacing resolution '+strf(modenr)+' for drivernr '+strf(drivernr));
+              logln('replacing resolution '+strf(modenr)+' for drivernr '+strf(drivernr)+
+                ' ('+strf(mode.maxx)+'x'+strf(mode.maxy)+')');
 {$endif logging}
               { save/restore next, drivernr and drivermode in list }
               driverNr := list^.driverNumber;
-              modeNr := list^.modeNumber;
+              modeNr := list^.internModeNumber;
               prev := list^.next;
               list^ := mode;
               list^.driverNumber := driverNr;
-              list^.modeNumber := modeNr;
+              list^.internModeNumber := modeNr;
               list^.next := prev;
             end
           else
@@ -145,7 +147,8 @@ end;
               newLst^ := mode;
               newLst^.driverNumber := driverNr;
 {$ifdef logging}
-              logln('Adding resolution '+strf(modenr)+' for drivernr '+strf(drivernr));
+              logln('Adding resolution '+strf(modenr)+' for drivernr '+strf(drivernr)+
+                ' ('+strf(mode.maxx)+'x'+strf(mode.maxy)+')');
 {$endif logging}
               if assigned(list) then
                 newLst^.next := list^.next
@@ -154,19 +157,19 @@ end;
               if assigned(prev) then
                 begin
                   prev^.next := newLst;
-                  newLst^.modeNumber := succ(prev^.modeNumber)
+                  newLst^.internModeNumber := succ(prev^.internModeNumber)
                 end
               else
                 begin
                   newModeList.modeinfo[driverNr] := newLst;
-                  newLst^.modeNumber := 1;
+                  newLst^.internModeNumber := 1;
                 end;
               { Increase the modenumbers of all modes coming after this one }
               { with 1                                                      }
               newLst := newLst^.next;
               while assigned(newLst) do
                 begin
-                  inc(newLst^.modeNumber);
+                  inc(newLst^.internModeNumber);
                   newLst := newLst^.next;
                 end;
             end;
@@ -271,7 +274,7 @@ end;
                 else
                   begin
                     while assigned(list) and
-                          (list^.modeNumber <> reqMode) do
+                          (list^.internModeNumber <> reqMode) do
                       list := list^.next;
                     searchMode := list;
                   end;
@@ -307,10 +310,10 @@ end;
 {$endif logging}
                  searchmode := list;
                  If reqMode = -32768 then
-                   reqMode := list^.modeNumber
+                   reqMode := list^.ModeNumber
                  else if reqMode = -32767 then
                    begin
-                     reqMode := lastModeInfo^.modeNumber;
+                     reqMode := lastModeInfo^.ModeNumber;
                      searchMode := lastModeInfo;
                    end;
                  exit;
@@ -519,6 +522,9 @@ end;
 
       IntCurrentMode := modeinfo^.ModeNumber;
       IntCurrentDriver := modeinfo^.DriverNumber;
+{$ifdef logging}
+       logln('Entering mode '+strf(intCurrentMode)+' of driver '+strf(intCurrentDriver));
+{$endif logging}
       XAspect := modeinfo^.XAspect;
       YAspect := modeinfo^.YAspect;
       MaxX := modeinfo^.MaxX;
@@ -571,7 +577,11 @@ end;
 
 {
 $Log$
-Revision 1.28  2000-06-27 13:37:04  jonas
+Revision 1.29  2000-07-05 11:25:20  jonas
+  * added internModeNumber to modeinfo type to fix Linux compatibility
+    with -dnewmodes code
+
+Revision 1.28  2000/06/27 13:37:04  jonas
   * released -dnewmodes
 
 Revision 1.27  2000/06/23 19:56:38  jonas

@@ -590,6 +590,7 @@ TYPE
     TModeInfo = record
       DriverNumber: smallint;
       ModeNumber: smallint;
+      internModeNumber: smallint;
       MaxColor: Longint;            { Maximum colors on screen        }
       PaletteSize : Longint;        { Maximum palette entry we can change }
       XAspect : word;            { XAspect ratio correction factor }
@@ -804,7 +805,11 @@ Function GetDriverName: string;
 
 {
   $Log$
-  Revision 1.10  2000-06-27 13:37:04  jonas
+  Revision 1.11  2000-07-05 11:25:20  jonas
+    * added internModeNumber to modeinfo type to fix Linux compatibility
+      with -dnewmodes code
+
+  Revision 1.10  2000/06/27 13:37:04  jonas
     * released -dnewmodes
 
   Revision 1.9  2000/06/19 08:57:52  jonas
