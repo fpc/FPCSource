@@ -470,9 +470,7 @@ implementation
                 make_const_global:=true;
               do_secondpass(p);
 
-{$ifdef StoreFPULevel}
               procinfo.def^.fpu_used:=p^.registersfpu;
-{$endif StoreFPULevel}
               { all registers can be used again }
               resetusableregisters;
            end;
@@ -483,7 +481,27 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  1998-09-17 09:42:40  peter
+  Revision 1.4  1998-09-21 08:45:16  pierre
+    + added vmt_offset in tobjectdef.write for fututre use
+      (first steps to have objects without vmt if no virtual !!)
+    + added fpu_used field for tabstractprocdef  :
+      sets this level to 2 if the functions return with value in FPU
+      (is then set to correct value at parsing of implementation)
+      THIS MIGHT refuse some code with FPU expression too complex
+      that were accepted before and even in some cases
+      that don't overflow in fact
+      ( like if f : float; is a forward that finally in implementation
+       only uses one fpu register !!)
+      Nevertheless I think that it will improve security on
+      FPU operations !!
+    * most other changes only for UseBrowser code
+      (added symtable references for record and objects)
+      local switch for refs to args and local of each function
+      (static symtable still missing)
+      UseBrowser still not stable and probably broken by
+      the definition hash array !!
+
+  Revision 1.3  1998/09/17 09:42:40  peter
     + pass_2 for cg386
     * Message() -> CGMessage() for pass_1/pass_2
 

@@ -133,18 +133,13 @@
     procedure writesourcefiles;
       var
         hp    : pinputfile;
-        index : longint;
       begin
       { second write the used source files }
         hp:=current_module^.sourcefiles.files;
-        index:=current_module^.sourcefiles.last_ref_index;
         while assigned(hp) do
          begin
          { only name and extension }
            current_ppu^.putstring(hp^.name^);
-         { index in that order }
-           hp^.ref_index:=index;
-           dec(index);
            hp:=hp^.ref_next;
          end;
         current_ppu^.writeentry(ibsourcefiles);
@@ -380,17 +375,20 @@
                     temp:=temp+' *'
                   end;
                end;
+{$ifdef UseBrowser}
+              new(hp,init(hs));
+              { the indexing is wrong here PM }
+              current_module^.sourcefiles.register_file(hp);
+{$endif UseBrowser}
             end;
            Message1(unit_t_ppu_source,hs+temp);
-{$ifdef UseBrowser}
-           new(hp,init(hs));
-           { the indexing should match what is done in writeasunit }
-           current_module^.sourcefiles.register_file(hp);
-{$endif UseBrowser}
          end;
       { main source is always the last }
         stringdispose(current_module^.mainsource);
         current_module^.mainsource:=stringdup(hs);
+        
+        { the indexing is corrected here PM }
+        current_module^.sourcefiles.inverse_register_indexes;
       { check if we want to rebuild every unit, only if the sources are
         available }
         if do_build and current_module^.sources_avail then
@@ -441,7 +439,27 @@
 
 {
   $Log$
-  Revision 1.14  1998-09-01 07:54:24  pierre
+  Revision 1.15  1998-09-21 08:45:23  pierre
+    + added vmt_offset in tobjectdef.write for fututre use
+      (first steps to have objects without vmt if no virtual !!)
+    + added fpu_used field for tabstractprocdef  :
+      sets this level to 2 if the functions return with value in FPU
+      (is then set to correct value at parsing of implementation)
+      THIS MIGHT refuse some code with FPU expression too complex
+      that were accepted before and even in some cases
+      that don't overflow in fact
+      ( like if f : float; is a forward that finally in implementation
+       only uses one fpu register !!)
+      Nevertheless I think that it will improve security on
+      FPU operations !!
+    * most other changes only for UseBrowser code
+      (added symtable references for record and objects)
+      local switch for refs to args and local of each function
+      (static symtable still missing)
+      UseBrowser still not stable and probably broken by
+      the definition hash array !!
+
+  Revision 1.14  1998/09/01 07:54:24  pierre
     * UseBrowser a little updated (might still be buggy !!)
     * bug in psub.pas in function specifier removed
     * stdcall allowed in interface and in implementation

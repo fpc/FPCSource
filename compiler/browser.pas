@@ -41,6 +41,7 @@ type
     nextref     : pref;
     posinfo     : tfileposinfo;
     moduleindex : word;
+    is_written  : boolean;
     constructor init(ref:pref;pos:pfileposinfo);
     destructor  done; virtual;
     function  get_file_line : string;
@@ -50,7 +51,9 @@ type
   tbrowser=object
     fname    : string;
     logopen  : boolean;
+    stderrlog : boolean;
     f        : file;
+    elements_to_list : pstringqueue;
     buf      : pchar;
     bufidx   : longint;
     identidx : longint;
@@ -64,6 +67,8 @@ type
     procedure closelog;
     procedure ident;
     procedure unident;
+    procedure browse_symbol(s : string);
+    procedure list_elements;
   end;
 
 var
@@ -74,7 +79,7 @@ var
 implementation
 
   uses
-    comphook,globals,systems,verbose;
+    comphook,globals,symtable,systems,verbose;
 
 {****************************************************************************
                                TRef
@@ -90,6 +95,7 @@ implementation
           moduleindex:=current_module^.unit_index;
         if assigned(ref) then
           ref^.nextref:=@self;
+        is_written:=false;
       end;
 
 
@@ -138,6 +144,7 @@ implementation
       begin
         fname:=FixFileName('browser.log');
         logopen:=false;
+        elements_to_list:=new(pstringqueue,init);
       end;
 
 
@@ -174,7 +181,17 @@ implementation
     procedure tbrowser.flushlog;
       begin
         if logopen then
-         blockwrite(f,buf^,bufidx);
+         if not stderrlog then
+           blockwrite(f,buf^,bufidx)
+         else
+           begin
+             buf[bufidx]:=#0;
+{$ifndef TP}
+             write(stderr,buf);
+{$else TP}
+             write(buf);
+{$endif TP}
+           end;
         bufidx:=0;
       end;
 
@@ -189,7 +206,21 @@ implementation
            logopen:=false;
          end;
       end;
+      
+    procedure tbrowser.list_elements;
 
+      begin
+
+         stderrlog:=true;
+         getmem(buf,logbufsize);
+         logopen:=true;
+         while not elements_to_list^.empty do
+           browse_symbol(elements_to_list^.get);
+         flushlog;
+         logopen:=false;
+         freemem(buf,logbufsize);
+         stderrlog:=false;
+      end;
 
     procedure tbrowser.addlog(const s:string);
       begin
@@ -234,6 +265,112 @@ implementation
       end;
 
 
+    procedure tbrowser.browse_symbol(s : string);
+      var
+         sym,symb : psym;
+         symt : psymtable;
+         hp : pmodule;
+         ss : string;
+         p : byte;
+
+         procedure next_substring;
+           begin
+              p:=pos('.',s);
+              if p>0 then
+                begin
+                   ss:=copy(s,1,p-1);
+                   s:=copy(s,p+1,255);
+                end
+              else
+                begin
+                  ss:=s;
+                  s:='';
+                end;
+          end;
+      begin
+         symt:=symtablestack;
+         next_substring;
+         sym:=symt^.search(ss);
+         if not assigned(sym) then
+           begin
+              symt:=nil;
+              { try all loaded_units }
+              hp:=pmodule(loaded_units.first);
+              while assigned(hp) do
+                begin
+                   if hp^.modulename^=ss then
+                     begin
+                        symt:=hp^.symtable;
+                        break;
+                     end;
+                   hp:=pmodule(hp^.next);
+                end;
+              if not assigned(symt) then
+                begin
+                   addlog('!!!Symbol '+ss+' not found !!!');
+                   exit;
+                end
+              else
+                begin
+                   next_substring;
+                   sym:=symt^.search(ss);
+                end;
+           end;
+
+         if (sym^.typ=unitsym) and (s<>'') then
+           begin
+              symt:=punitsym(sym)^.unitsymtable;
+              next_substring;
+              sym:=symt^.search(ss);
+           end;
+         while assigned(sym) and (s<>'') do
+           begin
+              next_substring;
+              case sym^.typ of
+                typesym :
+                  begin
+                     if ptypesym(sym)^.definition^.deftype in [recorddef,objectdef] then
+                       begin
+                          if ptypesym(sym)^.definition^.deftype=recorddef then
+                            symt:=precdef(ptypesym(sym)^.definition)^.symtable
+                          else
+                            symt:=pobjectdef(ptypesym(sym)^.definition)^.publicsyms;
+                          sym:=symt^.search(ss);
+                       end;
+                  end;
+                varsym :
+                  begin
+                     if pvarsym(sym)^.definition^.deftype in [recorddef,objectdef] then
+                       begin
+                          if pvarsym(sym)^.definition^.deftype=recorddef then
+                            symt:=precdef(pvarsym(sym)^.definition)^.symtable
+                          else
+                            symt:=pobjectdef(pvarsym(sym)^.definition)^.publicsyms;
+                          sym:=symt^.search(ss);
+                       end;
+                  end;
+                procsym :
+                  begin
+                     symt:=pprocsym(sym)^.definition^.parast;
+                     symb:=symt^.search(ss);
+                     if not assigned(symb) then
+                       begin
+                          symt:=pprocsym(sym)^.definition^.parast;
+                          sym:=symt^.search(ss);
+                       end
+                     else
+                       sym:=symb;
+                  end;
+                {else
+                  sym^.add_to_browserlog;}
+                end;
+           end;
+           if assigned(sym) then
+             sym^.add_to_browserlog
+           else
+             addlog('!!!Symbol '+ss+' not found !!!');
+      end;
+      
     procedure tbrowser.ident;
       begin
         inc(identidx,2);
@@ -271,7 +408,7 @@ implementation
                    get_source_file:=f;
                    exit;
                 end;
-              f:=pinputfile(f^.next);
+              f:=pinputfile(f^.ref_next);
            end;
       end;
 
@@ -280,7 +417,27 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  1998-09-01 07:54:16  pierre
+  Revision 1.7  1998-09-21 08:45:05  pierre
+    + added vmt_offset in tobjectdef.write for fututre use
+      (first steps to have objects without vmt if no virtual !!)
+    + added fpu_used field for tabstractprocdef  :
+      sets this level to 2 if the functions return with value in FPU
+      (is then set to correct value at parsing of implementation)
+      THIS MIGHT refuse some code with FPU expression too complex
+      that were accepted before and even in some cases
+      that don't overflow in fact
+      ( like if f : float; is a forward that finally in implementation
+       only uses one fpu register !!)
+      Nevertheless I think that it will improve security on
+      FPU operations !!
+    * most other changes only for UseBrowser code
+      (added symtable references for record and objects)
+      local switch for refs to args and local of each function
+      (static symtable still missing)
+      UseBrowser still not stable and probably broken by
+      the definition hash array !!
+
+  Revision 1.6  1998/09/01 07:54:16  pierre
     * UseBrowser a little updated (might still be buggy !!)
     * bug in psub.pas in function specifier removed
     * stdcall allowed in interface and in implementation

@@ -1774,9 +1774,7 @@
       begin
          inherited init;
          para1:=nil;
-{$ifdef StoreFPULevel}
-         fpu_used:=255;
-{$endif StoreFPULevel}
+         fpu_used:=0;
          options:=0;
          retdef:=voiddef;
          savesize:=Sizeof(pointer);
@@ -1810,6 +1808,15 @@
          para1:=hp;
       end;
 
+    { all functions returning in FPU are
+      assume to use 2 FPU registers
+      until the function implementation
+      is processed   PM }
+    procedure tabstractprocdef.test_if_fpu_result;
+      begin
+         if assigned(retdef) and is_fpu(retdef) then
+           fpu_used:=2;
+      end;
 
     procedure tabstractprocdef.deref;
       var
@@ -1833,9 +1840,7 @@
       begin
          inherited load;
          retdef:=readdefref;
-{$ifdef StoreFPULevel}
          fpu_used:=readbyte;
-{$endif StoreFPULevel}
          options:=readlong;
          count:=readword;
          para1:=nil;
@@ -1888,9 +1893,7 @@
       begin
          inherited write;
          writedefref(retdef);
-{$ifdef StoreFPULevel}
          writebyte(fpu_used);
-{$endif StoreFPULevel}
          writelong(options);
          hp:=para1;
          count:=0;
@@ -2046,23 +2049,37 @@
     procedure tprocdef.load_references;
       var
         pos : tfileposinfo;
+        move_last : boolean;
       begin
+        move_last:=lastwritten=lastref;
         while (not current_ppu^.endofentry) do
          begin
            readposinfo(pos);
            inc(refcount);
            lastref:=new(pref,init(lastref,@pos));
+           lastref^.is_written:=true;
            if refcount=1 then
             defref:=lastref;
          end;
+        if move_last then
+          lastwritten:=lastref;
+        if (current_module^.flags and uf_local_browser)<>0 then
+          begin
+             new(parast,load);
+             parast^.load_browser;
+             new(localst,load);
+             localst^.load_browser;
+          end;
       end;
 
 
-    procedure tprocdef.write_references;
+    function tprocdef.write_references : boolean;
       var
         ref : pref;
+        move_last : boolean;
       begin
-        if lastwritten=lastref then
+        move_last:=lastwritten=lastref;
+        if move_last and ((current_module^.flags and uf_local_browser)=0) then
           exit;
       { write address of this symbol }
         writedefref(@self);
@@ -2072,12 +2089,35 @@
         else
           ref:=defref;
         while assigned(ref) do
-          begin
-             writeposinfo(ref^.posinfo);
-             ref:=ref^.nextref;
-          end;
+         begin
+           if ref^.moduleindex=current_module^.unit_index then
+             begin
+                writeposinfo(ref^.posinfo);
+                ref^.is_written:=true;
+                if move_last then
+                  lastwritten:=ref;
+             end
+           else if not ref^.is_written then
+             move_last:=false
+           else if move_last then
+             lastwritten:=ref;
+           ref:=ref^.nextref;
+         end;
         current_ppu^.writeentry(ibdefref);
-        lastwritten:=lastref;
+        write_references:=true;
+        if (current_module^.flags and uf_local_browser)<>0 then
+          begin
+             { we need dummy para and local symtables
+               PPU files are then easier to read PM }
+             if not assigned(parast) then
+               parast:=new(psymtable,init(parasymtable));
+             parast^.write;
+             parast^.write_browser;
+             if not assigned(localst) then
+               localst:=new(psymtable,init(localsymtable));
+             localst^.write;
+             localst^.write_browser;
+          end;
       end;
 
 
@@ -2087,10 +2127,13 @@
           begin
             Browse.AddLog('***'+mangledname);
             Browse.AddLogRefs(defref);
-            if assigned(parast) then
-              parast^.writebrowserlog;
-            if assigned(localst) then
-              localst^.writebrowserlog;
+            if (current_module^.flags and uf_local_browser)<>0 then
+              begin
+                 if assigned(parast) then
+                   parast^.writebrowserlog;
+                 if assigned(localst) then
+                   localst^.writebrowserlog;
+              end;
           end;
       end;
 {$endif UseBrowser}
@@ -2317,12 +2360,12 @@
       begin
          { here we cannot get a real good value so just give something }
          { plausible (PM) }
-{$ifdef StoreFPULevel}
+         { a more secure way would be
+           to allways store in a temp }
          if is_fpu(retdef) then
            fpu_used:=2
          else
            fpu_used:=0;
-{$endif StoreFPULevel}
          inherited write;
          current_ppu^.writeentry(ibprocvardef);
       end;
@@ -2417,6 +2460,7 @@
         deftype:=objectdef;
         childof:=c;
         options:=0;
+        vmt_offset:=0;
         { some options are inherited !! }
         if assigned(c) then
           options:= c^.options and
@@ -2447,6 +2491,7 @@
          tdef.load;
          deftype:=objectdef;
          savesize:=readlong;
+         vmt_offset:=readlong;
          name:=stringdup(readstring);
          childof:=pobjectdef(readdefref);
          options:=readlong;
@@ -2601,6 +2646,7 @@
       begin
          tdef.write;
          writelong(size);
+         writelong(vmt_offset);
          writestring(name^);
          writedefref(childof);
          writelong(options);
@@ -2969,7 +3015,27 @@
 
 {
   $Log$
-  Revision 1.45  1998-09-20 08:31:29  florian
+  Revision 1.46  1998-09-21 08:45:21  pierre
+    + added vmt_offset in tobjectdef.write for fututre use
+      (first steps to have objects without vmt if no virtual !!)
+    + added fpu_used field for tabstractprocdef  :
+      sets this level to 2 if the functions return with value in FPU
+      (is then set to correct value at parsing of implementation)
+      THIS MIGHT refuse some code with FPU expression too complex
+      that were accepted before and even in some cases
+      that don't overflow in fact
+      ( like if f : float; is a forward that finally in implementation
+       only uses one fpu register !!)
+      Nevertheless I think that it will improve security on
+      FPU operations !!
+    * most other changes only for UseBrowser code
+      (added symtable references for record and objects)
+      local switch for refs to args and local of each function
+      (static symtable still missing)
+      UseBrowser still not stable and probably broken by
+      the definition hash array !!
+
+  Revision 1.45  1998/09/20 08:31:29  florian
     + bit 6 of tpropinfo.propprocs is set, if the property contains a
       constant index
 

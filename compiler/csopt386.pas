@@ -278,7 +278,10 @@ Procedure RemoveInstructs(AsmL: PAasmOutput; First, Last: Pai);
 {Removes the marked instructions and disposes the PPaiProps of the other
  instructions, restoring theirline number}
 Var p, hp1: Pai;
-    TmpLine, InstrCnt: Longint;
+{$IfDef TP}
+    TmpLine: Longint;
+{$EndIf TP}
+    InstrCnt: Longint;
 Begin
   p := First;
   If (p^.typ in SkipInstr) Then
@@ -324,7 +327,27 @@ End.
 
 {
  $Log$
- Revision 1.7  1998-09-20 17:12:35  jonas
+ Revision 1.8  1998-09-21 08:45:09  pierre
+   + added vmt_offset in tobjectdef.write for fututre use
+     (first steps to have objects without vmt if no virtual !!)
+   + added fpu_used field for tabstractprocdef  :
+     sets this level to 2 if the functions return with value in FPU
+     (is then set to correct value at parsing of implementation)
+     THIS MIGHT refuse some code with FPU expression too complex
+     that were accepted before and even in some cases
+     that don't overflow in fact
+     ( like if f : float; is a forward that finally in implementation
+      only uses one fpu register !!)
+     Nevertheless I think that it will improve security on
+     FPU operations !!
+   * most other changes only for UseBrowser code
+     (added symtable references for record and objects)
+     local switch for refs to args and local of each function
+     (static symtable still missing)
+     UseBrowser still not stable and probably broken by
+     the definition hash array !!
+
+ Revision 1.7  1998/09/20 17:12:35  jonas
  * small fix for uncertain optimizations & more cleaning up
 
  Revision 1.5  1998/09/16 17:59:59  jonas

@@ -94,6 +94,7 @@ unit files;
           constructor init;
           destructor done;
           procedure register_file(f : pinputfile);
+          procedure inverse_register_indexes;
           function  get_file(l:longint) : pinputfile;
           function  get_file_name(l :longint):string;
           function  get_file_path(l :longint):string;
@@ -485,6 +486,23 @@ unit files;
       end;
 
 
+   { this procedure is necessary after loading the
+     sources files from a PPU file  PM }
+   procedure tfilemanager.inverse_register_indexes;
+     var
+        f : pinputfile;
+     begin
+        f:=files;
+        while assigned(f) do
+          begin
+             f^.ref_index:=last_ref_index-f^.ref_index+1;
+             f:=f^.ref_next;
+          end;
+
+     end;
+     
+   
+   
    function tfilemanager.get_file(l :longint) : pinputfile;
      var
         ff : pinputfile;
@@ -869,7 +887,27 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.45  1998-09-18 09:58:51  peter
+  Revision 1.46  1998-09-21 08:45:10  pierre
+    + added vmt_offset in tobjectdef.write for fututre use
+      (first steps to have objects without vmt if no virtual !!)
+    + added fpu_used field for tabstractprocdef  :
+      sets this level to 2 if the functions return with value in FPU
+      (is then set to correct value at parsing of implementation)
+      THIS MIGHT refuse some code with FPU expression too complex
+      that were accepted before and even in some cases
+      that don't overflow in fact
+      ( like if f : float; is a forward that finally in implementation
+       only uses one fpu register !!)
+      Nevertheless I think that it will improve security on
+      FPU operations !!
+    * most other changes only for UseBrowser code
+      (added symtable references for record and objects)
+      local switch for refs to args and local of each function
+      (static symtable still missing)
+      UseBrowser still not stable and probably broken by
+      the definition hash array !!
+
+  Revision 1.45  1998/09/18 09:58:51  peter
     * -s doesn't require the .o to be available, this allows compiling of
       everything on other platforms (profiling the windows.pp loading ;)
 

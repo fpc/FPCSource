@@ -191,8 +191,6 @@ unit tree;
 {$endif SUPPORT_MMX}
           left,right : ptree;
           resulttype : pdef;
-          { line : longint;
-          fileindex,colon : word; }
           fileinfo : tfileposinfo;
           localswitches : tlocalswitches;
 {$ifdef extdebug}
@@ -1569,7 +1567,27 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.38  1998-09-16 01:06:47  carl
+  Revision 1.39  1998-09-21 08:45:27  pierre
+    + added vmt_offset in tobjectdef.write for fututre use
+      (first steps to have objects without vmt if no virtual !!)
+    + added fpu_used field for tabstractprocdef  :
+      sets this level to 2 if the functions return with value in FPU
+      (is then set to correct value at parsing of implementation)
+      THIS MIGHT refuse some code with FPU expression too complex
+      that were accepted before and even in some cases
+      that don't overflow in fact
+      ( like if f : float; is a forward that finally in implementation
+       only uses one fpu register !!)
+      Nevertheless I think that it will improve security on
+      FPU operations !!
+    * most other changes only for UseBrowser code
+      (added symtable references for record and objects)
+      local switch for refs to args and local of each function
+      (static symtable still missing)
+      UseBrowser still not stable and probably broken by
+      the definition hash array !!
+
+  Revision 1.38  1998/09/16 01:06:47  carl
     * crash bugfix in firstaddr
 
   Revision 1.37  1998/09/08 10:38:04  pierre

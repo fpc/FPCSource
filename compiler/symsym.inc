@@ -76,27 +76,38 @@
     procedure tsym.load_references;
       var
         pos : tfileposinfo;
+        move_last : boolean;
       begin
+        move_last:=lastwritten=lastref;
         while (not current_ppu^.endofentry) do
          begin
            readposinfo(pos);
            inc(refcount);
            lastref:=new(pref,init(lastref,@pos));
+           lastref^.is_written:=true;
            if refcount=1 then
             defref:=lastref;
          end;
-        lastwritten:=lastref;
+        if move_last then
+          lastwritten:=lastref;
       end;
 
-    procedure tsym.write_references;
+    { big problem here :
+      wrong refs were written because of
+      interface parsing of other units PM
+      moduleindex must be checked !! }
+      
+    function tsym.write_references : boolean;
       var
         ref   : pref;
-        prdef : pdef;
+        symref_written,move_last : boolean;
       begin
+        write_references:=false;
         if lastwritten=lastref then
           exit;
-      { write address to this symbol }
-        writesymref(@self);
+      { should we update lastref }
+        move_last:=true;
+        symref_written:=false;
       { write symbol refs }
         if assigned(lastwritten) then
           ref:=lastwritten
@@ -104,17 +115,32 @@
           ref:=defref;
         while assigned(ref) do
          begin
-           writeposinfo(ref^.posinfo);
+           if ref^.moduleindex=current_module^.unit_index then
+             begin
+              { write address to this symbol }
+                if not symref_written then
+                  begin
+                     writesymref(@self);
+                     symref_written:=true;
+                  end;
+                writeposinfo(ref^.posinfo);
+                ref^.is_written:=true;
+                if move_last then
+                  lastwritten:=ref;
+             end
+           else if not ref^.is_written then
+             move_last:=false
+           else if move_last then
+             lastwritten:=ref;
            ref:=ref^.nextref;
          end;
-        lastwritten:=lastref;
-        current_ppu^.writeentry(ibsymref);
+        if symref_written then
+          current_ppu^.writeentry(ibsymref);
+        write_references:=symref_written;
       end;
 
 
     procedure tsym.add_to_browserlog;
-      var
-        prdef : pprocdef;
       begin
         if assigned(defref) then
          begin
@@ -147,10 +173,6 @@
          writestring(name);
          if object_options then
            writebyte(byte(properties));
-{$ifdef UseBrowser}
-{         if cs_browser in aktmoduleswitches then
-           write_references; }
-{$endif UseBrowser}
       end;
 
     procedure tsym.deref;
@@ -237,6 +259,17 @@
          defined:=false;
       end;
 
+    constructor tlabelsym.load;
+
+      begin
+         tsym.load;
+         typ:=labelsym;
+         { this is all dummy
+           it is only used for local browsing }
+         number:=nil;
+         defined:=true;
+      end;
+
     destructor tlabelsym.done;
 
       begin
@@ -255,7 +288,13 @@
     procedure tlabelsym.write;
 
       begin
-         Message(sym_e_ill_label_decl);
+         if owner^.symtabletype in [unitsymtable,globalsymtable] then
+           Message(sym_e_ill_label_decl)
+         else
+           begin
+              tsym.write;
+              current_ppu^.writeentry(iblabelsym);
+           end;
       end;
 
 {****************************************************************************
@@ -277,6 +316,15 @@
          refs:=0;
       end;
 
+    constructor tunitsym.load;
+
+      begin
+         tsym.load;
+         typ:=unitsym;
+         unitsymtable:=punitsymtable(current_module^.symtable);
+         prevsym:=nil;
+      end;
+      
     destructor tunitsym.done;
       begin
          if assigned(unitsymtable) and (unitsymtable^.unitsym=@self) then
@@ -286,6 +334,8 @@
 
     procedure tunitsym.write;
       begin
+         tsym.write;
+         current_ppu^.writeentry(ibunitsym);
       end;
 
 {$ifdef GDB}
@@ -422,11 +472,14 @@
           end;
       end;
 
-    procedure tprocsym.write_references;
+    function tprocsym.write_references : boolean;
       var
         prdef : pprocdef;
       begin
-         inherited write_references;
+         write_references:=false;
+         if not inherited write_references then
+           exit;
+         write_references:=true;
          prdef:=definition;
          while assigned(prdef) and (prdef^.owner=definition^.owner) do
           begin
@@ -1567,22 +1620,19 @@
              pobjectdef(definition)^.publicsyms^.load_browser;
       end;
 
-    procedure ttypesym.write_references;
+    function ttypesym.write_references : boolean;
       begin
-        if lastwritten<>lastref then
-          begin
-             inherited write_references;
-          end
+        if not inherited write_references then
          { write address of this symbol if record or object
            even if no real refs are there
            because we need it for the symtable }
-         else if (definition^.deftype=recorddef) or
-                 (definition^.deftype=objectdef) then
+         if (definition^.deftype=recorddef) or
+            (definition^.deftype=objectdef) then
           begin
              writesymref(@self);
              current_ppu^.writeentry(ibsymref);
           end;
-             
+         write_references:=true;
          if (definition^.deftype=recorddef) then
             precdef(definition)^.symtable^.write_browser;
          if (definition^.deftype=objectdef) then
@@ -1590,8 +1640,6 @@
       end;
 
     procedure ttypesym.add_to_browserlog;
-      var
-        aktobjdef : pobjectdef;
       begin
          inherited add_to_browserlog;
          if (definition^.deftype=recorddef) then
@@ -1669,7 +1717,27 @@
 
 {
   $Log$
-  Revision 1.44  1998-09-18 16:03:47  florian
+  Revision 1.45  1998-09-21 08:45:24  pierre
+    + added vmt_offset in tobjectdef.write for fututre use
+      (first steps to have objects without vmt if no virtual !!)
+    + added fpu_used field for tabstractprocdef  :
+      sets this level to 2 if the functions return with value in FPU
+      (is then set to correct value at parsing of implementation)
+      THIS MIGHT refuse some code with FPU expression too complex
+      that were accepted before and even in some cases
+      that don't overflow in fact
+      ( like if f : float; is a forward that finally in implementation
+       only uses one fpu register !!)
+      Nevertheless I think that it will improve security on
+      FPU operations !!
+    * most other changes only for UseBrowser code
+      (added symtable references for record and objects)
+      local switch for refs to args and local of each function
+      (static symtable still missing)
+      UseBrowser still not stable and probably broken by
+      the definition hash array !!
+
+  Revision 1.44  1998/09/18 16:03:47  florian
     * some changes to compile with Delphi
 
   Revision 1.43  1998/09/18 08:01:38  pierre

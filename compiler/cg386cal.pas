@@ -883,6 +883,7 @@ implementation
                                          new(r);
                                          reset_reference(r^);
                                          r^.base:=R_ESI;
+                                         r^.offset:= p^.procdefinition^._class^.vmt_offset;
                                          exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,r,R_ESI)));
                                       end;
 
@@ -930,6 +931,7 @@ implementation
                              new(r);
                              reset_reference(r^);
                              r^.base:=R_ESI;
+                             r^.offset:= p^.procdefinition^._class^.vmt_offset;
                              exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,r,R_ESI)));
                           end
                         else
@@ -1024,6 +1026,8 @@ implementation
                             new(r);
                             reset_reference(r^);
                             r^.base:=R_ESI;
+                            { this is one point where we need vmt_offset (PM) }
+                            r^.offset:= p^.procdefinition^._class^.vmt_offset;
                             exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,r,R_EDI)));
                             new(r);
                             reset_reference(r^);
@@ -1390,7 +1394,27 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  1998-09-20 12:26:35  peter
+  Revision 1.26  1998-09-21 08:45:06  pierre
+    + added vmt_offset in tobjectdef.write for fututre use
+      (first steps to have objects without vmt if no virtual !!)
+    + added fpu_used field for tabstractprocdef  :
+      sets this level to 2 if the functions return with value in FPU
+      (is then set to correct value at parsing of implementation)
+      THIS MIGHT refuse some code with FPU expression too complex
+      that were accepted before and even in some cases
+      that don't overflow in fact
+      ( like if f : float; is a forward that finally in implementation
+       only uses one fpu register !!)
+      Nevertheless I think that it will improve security on
+      FPU operations !!
+    * most other changes only for UseBrowser code
+      (added symtable references for record and objects)
+      local switch for refs to args and local of each function
+      (static symtable still missing)
+      UseBrowser still not stable and probably broken by
+      the definition hash array !!
+
+  Revision 1.25  1998/09/20 12:26:35  peter
     * merged fixes
 
   Revision 1.24  1998/09/17 09:42:10  peter

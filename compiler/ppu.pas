@@ -70,7 +70,9 @@ const
   ibabsolutesym   = 26;
   ibpropertysym   = 27;
   ibvarsym_C      = 28;
-  {defenitions}
+  ibunitsym       = 29;  { needed for browser }
+  iblabelsym      = 30;
+  {definitions}
   iborddef        = 40;
   ibpointerdef    = 41;
   ibarraydef      = 42;
@@ -99,7 +101,7 @@ const
   uf_in_library    = $40; { is the file in another file than <ppufile>.* ? }
   uf_static_linked = $80;
   uf_shared_linked = $100;
-
+  uf_local_browser = $200;
 
 type
 {$ifdef m68k}
@@ -772,7 +774,27 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  1998-09-18 08:01:37  pierre
+  Revision 1.13  1998-09-21 08:45:18  pierre
+    + added vmt_offset in tobjectdef.write for fututre use
+      (first steps to have objects without vmt if no virtual !!)
+    + added fpu_used field for tabstractprocdef  :
+      sets this level to 2 if the functions return with value in FPU
+      (is then set to correct value at parsing of implementation)
+      THIS MIGHT refuse some code with FPU expression too complex
+      that were accepted before and even in some cases
+      that don't overflow in fact
+      ( like if f : float; is a forward that finally in implementation
+       only uses one fpu register !!)
+      Nevertheless I think that it will improve security on
+      FPU operations !!
+    * most other changes only for UseBrowser code
+      (added symtable references for record and objects)
+      local switch for refs to args and local of each function
+      (static symtable still missing)
+      UseBrowser still not stable and probably broken by
+      the definition hash array !!
+
+  Revision 1.12  1998/09/18 08:01:37  pierre
     + improvement on the usebrowser part
       (does not work correctly for now)
 

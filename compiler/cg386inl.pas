@@ -626,6 +626,8 @@ implementation
                          p^.location.loc:=LOC_REGISTER;
                          p^.location.register:=getregister32;
                          { load VMT pointer }
+                         inc(p^.left^.location.reference.offset,
+                           pobjectdef(p^.left^.resulttype)^.vmt_offset);
                          exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
                          newreference(p^.left^.location.reference),
                            p^.location.register)));
@@ -934,7 +936,27 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  1998-09-20 12:26:37  peter
+  Revision 1.7  1998-09-21 08:45:07  pierre
+    + added vmt_offset in tobjectdef.write for fututre use
+      (first steps to have objects without vmt if no virtual !!)
+    + added fpu_used field for tabstractprocdef  :
+      sets this level to 2 if the functions return with value in FPU
+      (is then set to correct value at parsing of implementation)
+      THIS MIGHT refuse some code with FPU expression too complex
+      that were accepted before and even in some cases
+      that don't overflow in fact
+      ( like if f : float; is a forward that finally in implementation
+       only uses one fpu register !!)
+      Nevertheless I think that it will improve security on
+      FPU operations !!
+    * most other changes only for UseBrowser code
+      (added symtable references for record and objects)
+      local switch for refs to args and local of each function
+      (static symtable still missing)
+      UseBrowser still not stable and probably broken by
+      the definition hash array !!
+
+  Revision 1.6  1998/09/20 12:26:37  peter
     * merged fixes
 
   Revision 1.5  1998/09/17 09:42:15  peter
