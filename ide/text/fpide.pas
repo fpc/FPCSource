@@ -42,6 +42,8 @@ type
       procedure Modules;
       procedure Globals;
       procedure Parameters;
+      procedure DoStepOver;
+      procedure DoTraceInto;
       procedure DoRun;
       procedure Target;
       procedure PrimaryFile_;
@@ -52,10 +54,10 @@ type
       procedure Calculator;
       procedure ExecuteTool(Idx: integer);
       procedure SetSwitchesMode;
-      procedure Compiler;
+      procedure DoCompilerSwitch;
       procedure MemorySizes;
-      procedure Linker;
-      procedure Debugger;
+      procedure DoLinkerSwitch;
+      procedure DoDebuggerSwitch;
       procedure Directories;
       procedure Tools;
       procedure EditorOptions(Editor: PEditor);
@@ -100,7 +102,7 @@ uses
   Systems,BrowCol,
   WHelp,WHlpView,WINI,
   FPConst,FPVars,FPUtils,FPSwitches,FPIni,FPIntf,FPCompile,FPHelp,
-  FPTemplt,FPCalc,FPUsrScr,FPSymbol,FPTools;
+  FPTemplt,FPCalc,FPUsrScr,FPSymbol,FPTools,FPDebug;
 
 
 function IDEUseSyntaxHighlight(Editor: PFileEditor): boolean; {$ifndef FPC}far;{$endif}
@@ -164,8 +166,10 @@ begin
       nil))))))))))),
     NewSubMenu('~R~un',hcRunMenu, NewMenu(
       NewItem('~R~un','Ctrl+F9', kbCtrlF9, cmRun, hcRun,
+      NewItem('~S~tep Over','F8', kbF8, cmStepOver, hcRun,
+      NewItem('~T~race Into','F7', kbF7, cmTraceInto, hcRun,
       NewItem('P~a~rameters...','', kbNoKey, cmParameters, hcParameters,
-      nil))),
+      nil))))),
     NewSubMenu('~C~ompile',hcCompileMenu, NewMenu(
       NewItem('~C~ompile','Alt+F9', kbAltF9, cmCompile, hcCompile,
       NewItem('~M~ake','F9', kbF9, cmMake, hcMake,
@@ -310,6 +314,8 @@ begin
              cmGlobals       : Globals;
            { -- Run menu -- }
              cmParameters    : Parameters;
+             cmStepOver      : DoStepOver;
+             cmTraceInto     : DoTraceInto;
              cmRun           : DoRun;
            { -- Compile menu -- }
              cmCompile       : DoCompile(cCompile);
@@ -323,10 +329,10 @@ begin
              cmUserScreen    : ShowUserScreen;
            { -- Options menu -- }
              cmSwitchesMode  : SetSwitchesMode;
-             cmCompiler      : Compiler;
+             cmCompiler      : DoCompilerSwitch;
              cmMemorySizes   : MemorySizes;
-             cmLinker        : Linker;
-             cmDebugger      : Debugger;
+             cmLinker        : DoLinkerSwitch;
+             cmDebugger      : DoDebuggerSwitch;
              cmDirectories   : Directories;
              cmTools         : Tools;
              cmEditor        : EditorOptions(nil);
@@ -596,7 +602,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.3  1999-01-21 11:54:14  peter
+  Revision 1.4  1999-01-22 10:24:03  peter
+    * first debugger things
+
+  Revision 1.3  1999/01/21 11:54:14  peter
     + tools menu
     + speedsearch in symbolbrowser
     * working run command

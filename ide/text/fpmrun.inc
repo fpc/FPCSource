@@ -14,6 +14,35 @@
 
  **********************************************************************}
 
+
+procedure TIDEApp.DoStepOver;
+begin
+  if not assigned(Debugger) then
+   begin
+     InitDebugger;
+     if not assigned(Debugger) then
+      exit;
+     Debugger^.StartTrace;
+   end
+  else
+   Debugger^.TraceNext;
+end;
+
+
+procedure TIDEApp.DoTraceInto;
+begin
+  if not assigned(Debugger) then
+   begin
+     InitDebugger;
+     if not assigned(Debugger) then
+      exit;
+     Debugger^.StartTrace;
+   end
+  else
+   Debugger^.TraceStep;
+end;
+
+
 procedure TIDEApp.DoRun;
 begin
   if (not ExistsFile(ExeFile)) or (CompilationPhase<>cpDone) then
@@ -36,6 +65,7 @@ begin
 
   LastExitCode:=DosExitCode;
 end;
+
 
 procedure TIDEApp.Parameters;
 var R,R2: TRect;
@@ -65,7 +95,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  1999-01-21 11:54:20  peter
+  Revision 1.6  1999-01-22 10:24:05  peter
+    * first debugger things
+
+  Revision 1.5  1999/01/21 11:54:20  peter
     + tools menu
     + speedsearch in symbolbrowser
     * working run command

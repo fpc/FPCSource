@@ -73,6 +73,8 @@ const
      cmGotoCursor        = 223;
      cmToggleBreakpoint  = 224;
      cmAddWatch          = 225;
+     cmTraceInto         = 226;
+     cmStepOver          = 227;
 
      cmNotImplemented    = 1000;
      cmNewFromTemplate   = 1001;
@@ -261,7 +263,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.6  1999-01-21 11:54:12  peter
+  Revision 1.7  1999-01-22 10:24:02  peter
+    * first debugger things
+
+  Revision 1.6  1999/01/21 11:54:12  peter
     + tools menu
     + speedsearch in symbolbrowser
     * working run command

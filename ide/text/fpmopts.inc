@@ -57,7 +57,7 @@ begin
   Dispose(D, Done);
 end;
 
-procedure TIDEApp.Compiler;
+procedure TIDEApp.DoCompilerSwitch;
 var R,R2,TabR,TabIR: TRect;
     D: PCenterDialog;
     CB1,CB2,CB3,CB4: PCheckBoxes;
@@ -271,7 +271,7 @@ begin
   Dispose(D, Done);
 end;
 
-procedure TIDEApp.Linker;
+procedure TIDEApp.DoLinkerSwitch;
 var R,R2: TRect;
     D: PCenterDialog;
     RB2: PRadioButtons;
@@ -324,7 +324,7 @@ begin
   Dispose(D, Done);
 end;
 
-procedure TIDEApp.Debugger;
+procedure TIDEApp.DoDebuggerSwitch;
 var R,R2: TRect;
     D: PCenterDialog;
     RB1,RB2: PRadioButtons;
@@ -673,7 +673,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  1999-01-21 11:54:19  peter
+  Revision 1.7  1999-01-22 10:24:04  peter
+    * first debugger things
+
+  Revision 1.6  1999/01/21 11:54:19  peter
     + tools menu
     + speedsearch in symbolbrowser
     * working run command
