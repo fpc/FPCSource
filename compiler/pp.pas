@@ -1,4 +1,4 @@
- {
+{
     $Id$
     Copyright (c) 1993-98 by Florian Klaempfl
 
@@ -152,30 +152,62 @@ uses
   {$O globals}
   {$O systems}
   {$O parser}
+  {$O pbase}
+  {$O pdecl}
+  {$O pexports}
+  {$O pexpr}
+  {$O pmodules}
+  {$O pstatmnt}
+  {$O psub}
+  {$O psystem}
+  {$O ptconst}
+  {$O script}
+  {$O switches}
+  {$O temp_gen}
+  {$O verb_def}
   {$O dos}
   {$O scanner}
   {$O symtable}
   {$O objects}
   {$O aasm}
+  {$O link}
+  {$O assemble}
+  {$O messages}
+  {$O gendef}
+  {$O import}
+  {$O os2_targ}
+  {$O win_targ}
   {$ifdef gdb}
-    {$O gdb}
+	{$O gdb}
   {$endif gdb}
   {$ifdef i386}
-    {$O opts386}
-    {$O cgi386}
-    {$O aopt386}
-    {$O cgai386}
-    {$O i386}
-    {$O radi386}
-    {$O rai386}
-    {$O ratti386}
-    {$O tgeni386}
+	{$O opts386}
+	{$O cgi386}
+	{$O cg386add}
+	{$O cg386cal}
+	{$O cg386cnv}
+	{$O cg386con}
+	{$O cg386flw}
+	{$O cg386ld}
+	{$O cg386mat}
+	{$O cg386set}
+	{$O aopt386}
+	{$O cgai386}
+	{$O i386}
+	{$O radi386}
+	{$O rai386}
+	{$O ratti386}
+	{$O tgeni386}
+	{$O ag386int}
+	{$O ag386att}
+	{$O ag386nsm}
+	{$O asmutils}
   {$endif}
   {$ifdef m68k}
-    {$O opts68k}
-    {$O cg68k}
-    {$O ra68k}
-    {$O ag68kgas}
+	{$O opts68k}
+	{$O cg68k}
+	{$O ra68k}
+	{$O ag68kgas}
   {$endif}
 {$endif useoverlay}
 
@@ -195,6 +227,13 @@ var
 procedure myexit;{$ifndef FPC}far;{$endif}
 begin
   exitproc:=oldexit;
+{$ifdef UseBrowser}
+  if browser_file_open then
+    begin
+       close(browserfile);
+       browser_file_open:=false;
+    end;
+{$endif UseBrowser}
 {$ifdef tp}
   if use_big then
    symbolstream.done;
@@ -210,11 +249,6 @@ begin
               erroraddr:=nil;
               Writeln('Error: Out of memory');
             end;
-     else
-      begin
-        erroraddr:=nil;
-        Writeln('Error: Runtime Error ',exitcode);
-      end;
      end;
    {when the module is assigned, then the messagefile is also loaded}
      if assigned(current_module) and assigned(current_module^.current_inputfile) then
@@ -336,9 +370,6 @@ begin
 {$ifdef linux}
    Message1(general_u_gcclibpath,Linker.librarysearchpath);
 {$endif}
-{$ifdef TP}
-   Comment(V_Info,'Memory: '+tostr(MemAvail)+' Bytes Free');
-{$endif}
 
    start:=getrealtime;
    compile(inputdir+inputfile+inputextension,false);
@@ -350,9 +381,6 @@ begin
 
    clearnodes;
    done_symtable;
-{$ifdef TP}
-   Comment(V_Info,'Memory: '+tostr(MemAvail)+' Bytes Free');
-{$endif}
 {$ifdef EXTDEBUG}
    Comment(V_Info,'Memory lost = '+tostr(EntryMemAvail-MemAvail));
 {$endif EXTDEBUG}
@@ -364,10 +392,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  1998-06-13 00:10:11  peter
-    * working browser and newppu
-    * some small fixes against crashes which occured in bp7 (but not in
-      fpc?!)
+  Revision 1.14  1998-06-15 13:43:45  daniel
+
+
+  * Updated overlays.
 
   Revision 1.12  1998/05/23 01:21:23  peter
     + aktasmmode, aktoptprocessor, aktoutputformat
