@@ -613,9 +613,12 @@ implementation
 
       var
         vardebuglist : taasmoutput;
+        storefilepos : tfileposinfo;
       begin
         if not (cs_debuginfo in aktmoduleswitches) then
          exit;
+        storefilepos:=aktfilepos;
+        aktfilepos:=current_module.mainfilepos;
         { include symbol that will be referenced from the program to be sure to
           include this debuginfo .o file }
         if current_module.is_unit then
@@ -658,6 +661,7 @@ implementation
             dbx_counter:=tglobalsymtable(current_module.globalsymtable).prev_dbx_counter;
             do_count_dbx:=false;
           end;
+        aktfilepos:=storefilepos;
       end;
 {$EndIf GDB}
 
@@ -1082,6 +1086,8 @@ implementation
              tcgprocinfo(current_procinfo).parse_body;
              tcgprocinfo(current_procinfo).generate_code;
              tcgprocinfo(current_procinfo).resetprocdef;
+             { save file pos for debuginfo }
+             current_module.mainfilepos:=current_procinfo.entrypos;
              release_main_proc(pd);
            end;
 
@@ -1364,6 +1370,8 @@ implementation
          tcgprocinfo(current_procinfo).parse_body;
          tcgprocinfo(current_procinfo).generate_code;
          tcgprocinfo(current_procinfo).resetprocdef;
+         { save file pos for debuginfo }
+         current_module.mainfilepos:=current_procinfo.entrypos;
          release_main_proc(pd);
 
          { should we force unit initialization? }
@@ -1511,7 +1519,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.170  2004-11-04 17:09:54  peter
+  Revision 1.171  2004-11-04 23:59:13  peter
+  use filepos of main when generating the module stabs
+
+  Revision 1.170  2004/11/04 17:09:54  peter
   fixed debuginfo for variables in staticsymtable
 
   Revision 1.169  2004/10/31 15:29:39  olle

@@ -92,6 +92,7 @@ interface
         is_unit,
         in_interface,             { processing the implementation part? }
         in_global     : boolean;  { allow global settings }
+        mainfilepos   : tfileposinfo;
         recompile_reason : trecompile_reason;  { the reason why the unit should be recompiled }
         crc,
         interface_crc : cardinal;
@@ -396,6 +397,9 @@ implementation
         do_reload:=false;
         do_compile:=false;
         sources_avail:=true;
+        mainfilepos.line:=0;
+        mainfilepos.column:=0;
+        mainfilepos.fileindex:=0;
         recompile_reason:=rr_unknown;
         in_interface:=true;
         in_global:=true;
@@ -575,6 +579,9 @@ implementation
         crc:=0;
         interface_crc:=0;
         flags:=0;
+        mainfilepos.line:=0;
+        mainfilepos.column:=0;
+        mainfilepos.fileindex:=0;
         recompile_reason:=rr_unknown;
         {
           The following fields should not
@@ -701,7 +708,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.48  2004-10-14 18:16:17  mazen
+  Revision 1.49  2004-11-04 23:59:13  peter
+  use filepos of main when generating the module stabs
+
+  Revision 1.48  2004/10/14 18:16:17  mazen
   * USE_SYSUTILS merged successfully : cycles with and without defines
   * Need to be optimized in performance
 
