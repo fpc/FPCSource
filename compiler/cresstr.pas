@@ -59,7 +59,7 @@ unit cresstr;
       Var hash,g,I : longint;
 
       begin
-         hash:=len;
+         hash:=0;
          For I:=0 to Len-1 do // 0 terminated
            begin
            hash:=hash shl 4;
@@ -228,7 +228,10 @@ unit cresstr;
 end.
 {
   $Log$
-  Revision 1.5  1999-07-24 18:35:41  michael
+  Revision 1.6  1999-07-25 19:27:15  michael
+  + Fixed hash computing, now compatible with gnu .mo file
+
+  Revision 1.5  1999/07/24 18:35:41  michael
   * Forgot to add unitname to resourcestring data
 
   Revision 1.4  1999/07/24 16:22:10  michael
