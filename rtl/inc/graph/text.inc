@@ -360,8 +360,7 @@
          ch: char;
          b1,b2         : shortint;
          b3            : byte;
-         c             : byte;
-         i,j,k         : longint;
+         i,j,k,c       : longint;
          oldvalues     : linesettingstype;
          nextpos       : word;
          xpos,ypos,offs: longint;
@@ -389,6 +388,8 @@
          begin
            c:=length(textstring);
            { We must a length strength which is ZERO based }
+           { if c is a byte and length is zero, this is    }
+           { dangerous, fixed                              }
            Dec(c);
            if CurrentTextInfo.direction=HorizDir then
            { Horizontal direction }
@@ -689,7 +690,11 @@
 
 {
 $Log$
-Revision 1.5  1999-07-26 09:38:43  florian
+Revision 1.6  1999-09-12 08:02:22  florian
+  * fixed outtext(''), c was a byte, this leads to an underflow and
+    garbage was written
+
+Revision 1.5  1999/07/26 09:38:43  florian
   * bar: y2 can be less y1, fixed
   * settextstyle: charsize can be 0, must be changed into 1
 
