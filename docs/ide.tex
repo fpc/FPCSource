@@ -1,11 +1,35 @@
+%
+%   $Id$
+%   This file is part of the FPC documentation.
+%   Copyright (C) 2000 by Florian Klaempfl
+%
+%   The FPC documentation is free text; you can redistribute it and/or
+%   modify it under the terms of the GNU Library General Public License as
+%   published by the Free Software Foundation; either version 2 of the
+%   License, or (at your option) any later version.
+%
+%   The FPC Documentation is distributed in the hope that it will be useful,
+%   but WITHOUT ANY WARRANTY; without even the implied warranty of
+%   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+%   Library General Public License for more details.
+%
+%   You should have received a copy of the GNU Library General Public
+%   License along with the FPC documentation; see the file COPYING.LIB.  If not,
+%   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+%   Boston, MA 02111-1307, USA.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Using the IDE
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Using the IDE}
 
-The IDE (\textbf{I}ntegrated \textbf{D}evelopment \textbf{E}nvironment) 
-provides a comfortable user interface to the compiler. The IDE is a textmode
+The IDE (\textbf{I}ntegrated \textbf{D}evelopment \textbf{E}nvironment)
+provides a comfortable user interface to the compiler, further it
+provides a debugger, symbol browser etc. The IDE is a textmode
 application this allows the same look and feel for all supported
 operating systems. Furthermore, it will be very familiar to all
 Turbo Pascal users.
-Currently is the IDE available for DOS, Win32 and Linux.
+Currently the IDE is available for DOS, Win32 and Linux.
 
 \section{First steps with the IDE}
 
@@ -18,8 +42,45 @@ from a graphical user interface (under the Windows enviroment, you
 can switch between windowed mode and full screen mode by pressing
 Alt-Enter).
 
-You can exit from the IDE by selecting \var{File|Exit} or by pressing
-Alt-X.
+\subsection{The IDE screen}
+
+\begin{htmlonly}
+The screen of the IDE looks like this after start up:
+\htmladdimg{../pics/idestart.gif}
+\end{htmlonly}
+\begin{latexonly}
+The screen of the IDE looks like this after start up like figure \ref{fig:idestart}.
+\begin{figure}
+\caption{The IDE screen immediatly after startup}
+\label{fig:idestart}
+\ifpdf
+\epsfig{file=pics/idestart.pdf,width=\textwidth}
+\else
+\epsfig{file=pics/idestart.eps,width=\textwidth}
+\fi
+\end{figure}
+\end{latexonly}
+At top of the screen you see the menu bar, at the bottom the statusbar.
+The empty bar between them is called the desktop.
+
+The statusbar allows a quick access to often used commands by
+clicking them with the mouse. Further, it reminds you about often used
+keyboard shortcuts.
+
+In upper right corner of the IDE screen a clock is displayed to
+remind you to go to bed in time. At lower right corner a you'll
+see the current amount of unsed memory. Don't worry if this value
+is low the IDE allocates more memory from the operating system
+if it runs out of memory.
+
+You can exit from the IDE by selecting \var{File|Exit}\footnote{Select
+the item Exit in the menu File} or by pressing
+\textsc{Alt-X}.
+
+\begin{remark}
+A complete reference of all keyboard shortcuts can be found in the
+section \ref{ide:keyshortcuts}.
+\end{remark}
 
 \subsection{IDE Command line options}
 
@@ -32,7 +93,7 @@ Option is one of the following switches (the option letters
 aren't case sensitive):
 
 \begin{description}
-\item [-N] Only DOS: Don't use long file names. Since Win95 an interface
+\item [-N] DOS only: Don't use long file names. Since Win95 an interface
 is provided to DOS applications to access long file names. The IDE uses
 this interface by default to access files. Under certain circumstances, this
 can lead to problems.
@@ -42,116 +103,519 @@ a filename uses the given file to read the options
 which was active when you left the IDE the last time.
 \end{description}
 
-Under DOS/Win32, \var{/} can be used instead of \var{\-} to pass a 
+Under DOS/Win32, \var{/} can be used instead of \var{\-} to pass a
 command line switch to the IDE
 
 Furthermore, the files given at the command line are loaded into edit
 windows automatically.
 
-\section{Debugging programs with the IDE}
+\subsection{Using the mouse}
+\label{ide:mouseusage}
+If the system is equipped with a mouse, it can be use it to work with the
+IDE. The left button is used to select menu items, press buttons, select
+text blocks etc. The right mouse button is used to access the local menu.
+The local menu isn't always available. Holding down the \textsc{Ctrl} or
+\textsc{Alt} key and clicking the right button will
+execute user defined functions, see \ref{ide:prefmouse}
 
+\begin{remark}
+This manual uses at several places the term "drag the mouse". This
+means that you have to move the mouse while keeping the left
+mouse button pressed.
+\end{remark}
+
+\begin{remark}
+When talking about left and right mouse, it means always that the
+mouse buttons aren't reversed, if you want you can exchange the
+bavior of the left and right mouse button, see \ref{ide:prefmouse}.
+\end{remark}
+
+\begin{remark}
+Under certain circumstances you won't be able to use the mouse,
+even if your system has one:
+\begin{itemize}
+\item The IDE is running under Linux throught a telnet connection
+\item The IDE is running under Linux in a window
+\end{itemize}
+\end{remark}
+
+\subsection{Accessing the menu}
+The menu (the gray bar at the top of the IDE) can be accessed by using
+the mouse to select items. If you don't use a mouse, you can use
+\textsc{F10} to switch the menu. Use the arrow keys to navigate and the Enter
+key to select items. To access the menu very fast without leaving the
+keyboard with your hands, \textsc{Alt-<highlighted letter>}
+can be used, afterwards
+menu entries can be selected by pressing also the highlighted letter, but
+without \textsc{Alt}. E.g. \textsc{Alt-S G} is a fast way to
+display the goto line dialog.
+
+Every menu item is explained by a short text in the statusbar.
+
+In certain cases, a local menu is available. It can be access by pressing
+the right mouse button or \textsc{Alt-F10}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Windows
+\section{Windows}
+In our days, working with windowed applications should be a known
+by most users. Nevertheless, the following section describes how
+the windows work in the \fpc IDE to allow an efficient work with it.
+
+\subsection{Basics}
+\begin{htmlonly}
+A common IDE window looks like:
+\htmladdimg{../pics/idewin.gif}
+\end{htmlonly}
+\begin{latexonly}
+Figure \ref{fig:idewin} shows a common IDE edit window.
+\begin{figure}
+\caption{A common IDE window}
+\label{fig:idewin}
+\ifpdf
+\epsfig{file=pics/idewin.pdf,width=\textwidth}
+\else
+\epsfig{file=pics/idewin.eps,width=\textwidth}
+\fi
+\end{figure}
+\end{latexonly}
+The window is surround by the so called frame, the whith double
+line around the window.
+At the top of the window you'll see the title bar, it contains the title
+of the window (what else?). To move the window click on
+the title bar and drag window with the mouse.
+If you don't have a mouse, see \ref{ide:keyboardwindow} how
+to use the keyboard to work with windows.
+
+At the upper left corner you see the close icon. If you click it the
+window will be closed, it can be also closed by pressing \textsc{Alt-F3} or
+selecting the menu item \var{Window|Close}. All open windows can be closed
+by selecting the menu item \var{Window|Close all}
+
+To resize the window click on the lower left corner of the window
+and drag it (move the mouse while holding the left button pressed).
+Keyboard users should look at the section \ref{ide:keyboardwindow}.
+Not all windows can be resized, for examples dialog windows
+(\ref{ide:dialogwindow}) can't be resized.
+
+At the upper right you'll see a green arrow. Clicking this arrow
+zooms the window to the whole desktop. If you click this arrow on
+a zoomed window, the old size of the window will be restored. Pressing
+the key F5 has the same affect as clicking that arrow. Furthermore,
+this can be also done by selecting the menu item \var{Window|Zoom}.
+Windows which aren't resizeable can't be zoom.
+
+The scrollbars at the right and bottom border can be used to scroll
+the window contents with the mouse. Click on the arrows to scroll
+line by line and on the dotted area between the arrows and the cyan
+rectangle to scroll page by page. By dragging the rectangle you can
+scroll continously throught the window contents.
+
+The star and the numbers at the lower left corner
+are explained in the section about the editor, see \ref{ide:editingtext}.
+
+\subsection{Working with multiple windows}
+When working with larger projects, you'll have multile windows on your
+desktop. An inactive window is identified by a greyed frame, you can
+activate it, by clicking on the window with the mouse. Or you can
+step trought all open windows by pressing \textsc{F6}
+(menu item \var{Window|Next}).
+To activate the last activated window, press \textsc{Shift-F6}
+(menu item \var{Window|Previous}).
+
+If the window has number at the upper
+right corner, you can activate it by pressing \textsc{Alt-<number>}.
+\textsc{Alt-0} has a special meaning,
+it shows a dialog box with all available
+windows which allows a quick activation of windows which doesn't have a
+number.
+
+Of course, you can order the windows on the IDE desktop by zooming and
+resizing them with the mouse or keyboard. Especially with the
+keyboard, this is very hard. You can use instead the menu items
+\var{Window|Tile} and \var{Window|Cascade}. Tile means that the
+whole desktop space is tiled even by all windows. Cascade brings
+all windows in a cascaded position. Just try these commands if you've
+multiple windows on the IDE desktop.
+
+In very rare cases the screen of the IDE may be mixed up. In this
+case the whole IDE screen can be forced to be redrawn by selecting
+the menu item \var{Window|Refresh}.
+
+\subsection{Dialog windows}
+\label{ide:dialogwindow}
+In many cases the IDE displays a dialog window to get user input.
+The main difference to other windows is that you can't activate
+other windows will the dialog is active. This behavior is called modal.
+To activate another window, you've to close a modal window/dialog.
+
+\begin{htmlonly}
+A typical dialog window looks like:
+\htmladdimg{../pics/idedlg.gif}
+\end{htmlonly}
+\begin{latexonly}
+Figure \ref{fig:idedlg} shows a typical dialog window.
+\begin{figure}
+\caption{A typical dialog window}
+\label{fig:idedlg}
+\ifpdf
+\epsfig{file=pics/idedlg.pdf,width=\textwidth}
+\else
+\epsfig{file=pics/idedlg.eps,width=\textwidth}
+\fi
+\end{figure}
+\end{latexonly}
+
+\subsection{Moving and zooming windows with the keyboard}
+\label{ide:keyboardwindow}
+To resize/move a window with the keyboard, go into the size/move mode
+by pressing \textsc{Ctrl-F5} or selecting the menu item
+\var{Window|Size/Move}. Now the window frame will be green. Using the
+cursor keys you can move window and pressing shift and the cursor
+keys, it can be resized. The size/move mode can be left by pressing
+\textsc{Enter} and the window will keep it's size and position
+or by pressing \textsc{Esc} and the old size will be restored.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% The help system
+\section{The help system}
+If you are stuck somewhere while editing files, regarding the syntax
+of a pascal statment or the behavior of a subroutine of the runtime
+library, you can use the help system to get some information. The
+help system is called by pressing F1.
+
+\subsection{Navigating in the help system}
+The help system contains hyperlinks which can be access by clicking
+them with the mouse. Alternativly, \textsc{Tab} and \textsc{Shift-Tab}
+can be used to move between the different hyperlinks of a page
+and the \textsc{Enter} key can be used to select them.
+
+The contents of the help system is display, if you press \textsc{Shift-F1}.
+To go back to the last help topic, \textsc{press Alt-F1}. This works
+also if the help window isn't displayed on the window.
+
+\subsection{Working with help files}
+The IDE contains a help system which can display HTML files
+as well as the TPH format known from TP. Of course, the HTML
+viewer of the help system is limited, so forget about displaying
+HTML files which use e.g. CSS. It is designed to display the FPC
+help files, but feel free to improve it and send us patches...
+
+The menu item \var{Help|Files} allows you to add and delete
+help files.
+
+Press the new button to add a new file. You'll be asked for the location
+of the help file. If it is a HTML file, a dialog box will be display
+which asks for a title, this title will be included in the
+contents of help.
+
+A help file can be deleted from the help system (it ISN'T deleted from
+your hard disk) by pressing the delete button.
+
+\subsection{The about dialog}
+The about dialog (\var{Help|About...}) shows some information
+about the IDE, please include versions and dates of this
+dialog if you report bugs, have suggestion etc regarding the IDE.
+Furthermore, it contains the copyright information.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Editing text
+\section{Editing text}
+\label{ide:editingtext}
+%%%!!!!!!!!!!!!!!
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Searching in the text
+\section{Searching in the text}
+\label{ide:searching}
+%%%!!!!!!!!!!!!!!
+
+\subsection{The symbol browser}
+%%%!!!!!!!!!!!!!!
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Running programs
+\section{Running programs}
+\label{ide:running}
+%%%!!!!!!!!!!!!!!
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Debugging programs
+\section{Debugging programs}
+%%%!!!!!!!!!!!!!!
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% The tools menu
+\section{The tools menu}
+\label{ide:toolsmenu}
+The tools menu allows you an easy access to external tools. Further,
+it contains two other probaly helpful tools for programmers: an
+ascii table and a calculator.
+
+\subsection{The messages window}
+The output of the external utilies is redirected by the IDE and it
+will be displayed in the message window. The message window is
+displayed automatically, if an external tool was run. The
+messages window can be also display manual by the selecting the
+menu item \var{Tools|Messages} or by pressing the key \textsc{F11}.
+
+If the output of the tools contains filenames and line numbers,
+you can goto the source line by pressing \textsc{Enter} or
+double clicking the output line. To trace the source, press
+\textsc{Space}. The difference between goto and tracking is that
+goto closes the message window while tracking keeps the message
+window active and the source file is displayed only in the background.
+
+The algorithm which extracts the file names and line numbers from
+the tool output is quite sophisticated, but in some cases it may
+fail. In this case, please refer the sources of the IDE.
+
+\subsection{GREP}
+One external tool in the Tools menu is already predefined: an
+menu item to call the \file{grep} utility (\var{Tools|Grep} or
+\textsc{Shift-F2}). \file{grep} search for a given string in files and
+returns the lines which contain the string. The search string can
+be even a regular expression (see \ref{ide:regexpr}).
+%%%!!!!!!!!!!!!!!
+
+\subsection{The ascii table}
+%%%!!!!!!!!!!!!!!
+
+\subsection{The calculator}
+%%%!!!!!!!!!!!!!!
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Project management
+\section{Project management}
+\label{ide:projectmanagement}
+Lucily, project mangament in pascal is much easier than with C. The
+compiler knows from the source which units, sources etc. it needs.
+So the \fpc IDE doesn't need a full features project manager like
+some C development environments offer. But some things make life easier...
+
+\subsection{The primary file}
+Without a primary file the IDE compiles/runs the source of the actived
+window when you start your program. If you have specified a primary
+file, the IDE compiles/runs always this source, no matter if another
+source window is active. Select the menu item \var{Compile|Primary file...}
+to get a file dialog where you can enter the primary file. Only the command
+\var{Compile|Compile} compiles still the active window, this is usefull
+if you have a large project and you want only check the syntax of the
+current source.
+
+The menu item \var{Compiler|Clear primary file} restores the default behavior
+i.e. the compile and run commands apply to the active window.
+
+\subsection{The switches mode}
+The IDE allows you to work with three different sets of compiler
+switches: Normal, Debug and Release. The different switch
+sets can be selected in the \var{Switches Mode} dialog which
+is executed by the menu item \var{Options|Mode...}.
+Change the switches mode doesn't do any active switch change, i.e.
+the debug mode doesn't include debug information automatically,
+it just loads another set of switches which were adjusted before
+by the user in the compiler or directory dialog.
+
+\subsection{The directory dialog}
+%%%!!!!!!!!!!!!!!
+
+\subsection{The target operating system}
+The menu item \var{Compile|Target} allows you to specify the target
+operating system. Changing the target doesn't affect any compiler
+switches or directories.
+
+\subsection{The configuration files}
+%%%!!!!!!!!!!!!!!
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Customize the IDE
+\section{Customize the IDE}
+The IDE is configurable in a wide range, you can change colors, screen
+resolution etc. The configuration setting can reached via the
+submenu \var{Environment} in the \var{Options} menu.
+
+\subsection{Mouse}
+\label{ide:prefmouse}
+The mouse options dialog is called by the menu item
+\var{Options|Environment|Mouse}. You can use the slider to adjust the
+double clock speed. If you're left handed you can exchange the
+behavior of the left and right mouse button by checking the checkbox
+item \var{Reverse mouse buttons}.
+
+The two lists with the radio buttons allows you
+to configure the behavior of the
+right mouse button, if it is clicked together while
+pressing the \textsc{Ctrl} or
+\textsc{Alt} key in an edit window.
+
+The following actions can be assigned to \textsc{Ctrl}-right mouse button or
+\textsc{Alt}-right mouse button:
+
+\begin{description}
+\item [Topic search] The keyword at the mouse cursor is searched in the
+help index
+\item [Go to cursor] The program is executed until the line where
+the mouse cursor is located
+\item [Breakpoint] Set a breakpoint at the mouse cursor position
+\item [Evalute] Evaluate the value of the variable at the mouse
+cursor
+\item [Add watch] Add the variable at the mouse cursor to the
+watch window
+\item [Browse symbol] The symbol at the mouse cursor is displayed
+by the browser
+\end{description}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Trouble shooting
 \section{Trouble shooting}
+%%%!!!!!!!!!!!!!!
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Regular expressions
+\section{Regular expressions}
+\label{ide:regexpr}
+%%%!!!!!!!!!!!!!!
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Keyboard shortcuts
 \section{Keyboard shortcuts}
+\label{ide:keyshortcuts}
 
 A lot of keyboard shortcuts used by the IDE are compatible with the
 good old WordStar and should be well known to Turbo Pascal users.
 
-\begin{FPCltable}{p{5cm}ll}{Key shortcuts in the IDE}{shortcuts}
-\hline \\
+\begin{FPCltable}{p{5cm}ll}{General}{shortcutsgeneral}
 Command & Key shortcut & Alternative \\
-\hline \\
-Help & F1 & \\
-Goto last help topic & Alt-F1 & \\
-Search word at cursor position in help & Ctrl-F1 & \\
-Help index & Shift-F1 & \\
-Save file & F2 & Ctrl-K-S\\
-Close active window & Alt-F3 & \\
-Reset debugger/program & Ctrl-F2 & \\
-Open file & F3 & \\
-Display call stack & Ctrl-F3 & \\
-Run til cursor & F4 & \\
-Zomm/Unzoom window & F5 & \\
-Switch to user screen & Alt-F5 & \\
-Move/Zoom active window & Ctrl-F5 & \\
-Switch to next window & F6 & \\
-Switch to last window & Shift-F6 & \\
-Trace into & F7 & \\
-Add watch & Ctrl-F7 & \\
-Step over & F8 & \\
-Set breakpoint at current line & Ctrl-F8 & \\
-Make & F9 & \\
-Run & Ctrl-F9 & \\
-Compile the active source file & Alt-F9 & \\
-Menu & F10 & \\
-Message & F11 & \\
-Compiler messages & F12 & \\
-List of windows & Alt-0 & \\
-Exit IDE & Alt-X & \\
-\hline \\
-Char left & Arrow left & Ctrl-S \\
-Char right & Arrow right & Ctrl-D \\
-Line up & Arrow up & Ctrl-E \\
-Line down & Arrow down & Ctrl-X \\
-Word left & Ctrl-Arrow left & Ctrl-A \\
-Word right & Ctrl-Arror right & Ctrl-F \\
-Scroll one line up & Ctrl-W & \\
-Scroll one line down & Ctrl-Z & \\
-Page up & PageUp & Ctrl-R \\
-Page down & PageDown & \\
-Beginning of Line & Pos1 & Ctrl-Q-S \\
-End of Line & End & Ctrl-Q-D \\
-First line of window & Ctrl-Pos1 & Ctrl-Q-E \\
-Last line of window & Ctrl-End & Ctrl-Q-X \\
-First line of file & Ctrl-PageUp & Ctrl-Q-R \\
-Last line of file & Ctrl-PageDown & Ctrl-Q-C \\
-Last cursor position & Ctrl-Q-P & \\
-\hline \\
-Delete char & Del & Ctrl-G \\
-Delete left char & Backspace & Ctrl-H \\
-Delete line & Ctrl-Y & \\
-Delete til end of line & Ctrl-Q-Y & \\
-Delete word & Ctrl-T & \\
-Insert line & Ctrl-N & \\
-Toggle insert mode & Insert & Ctrl-V \\
-\hline \\
-Goto Beginning of selected text & Ctrl-Q-B & \\
-Goto end of selected text & Ctrl-Q-K & \\
-Mark beginning of selected text & Ctrl-K-B & \\
-Mark end of selected text& Ctrl-K-K & \\
-Remove selection & Ctrl-K-H & \\
-Select current line & Ctrl-K-L & \\
-Print selected text & Ctrl-K-P & \\
-Select current word & Ctrl-K-T & \\
-Delete selected text & Ctrl-Del & Ctrl-K-Y \\
-Copy selected text to cursor position & Ctrl-K-C & \\
-Move selected text to cursor position & Ctrl-K-V & \\
-Copy selected text to clipboard & Ctrl-Ins & \\
-Move selected text to the clipboard & Shift-Del & \\
-Indent block one coloumn & Ctrl-K-I & \\
-Unindent block one coloumn & Ctrl-K-U & \\
-Insert text from clipboard & Shift-Insert & \\
-Insert file & Ctrl-K-R & \\
-Write selected text to file & Ctrl-K-W & \\
-Extend selection one char to the left & Shift-Arrow left & \\
-Extend selection one char to the right & Shift-Arrow right & \\
-Extend selection to the beginning of the line & Shift-Pos1 & \\
-Extend selection to the end of the line & Shift-End & \\
-Extend selection to the same coloumn in the last row & Shift-Arrow up & \\
-Extend selection to the same coloumn in the next row & Shift-Arrow down & \\
-Extend selection to the end of the line & Shift-End & \\
-Extend selection one word to the left & Ctrl-Shift-Arrow left & \\
-Extend selection one word to the right & Ctrl-Shift-Arrow right & \\
-Extend selection one page up & Shift-PageUp & \\
-Extend selection one page down & Shift-PageDown & \\
-Extend selection to the beginning of the file & Ctrl-Shift-Pos1 & Ctrl-Shift-PageUp \\
-Extend selection to the end of the file & Ctrl-Shift-End & Ctrl-Shift-PageUp \\
-\hline \\
-Search & Ctrl-Q-F & \\
-Search again & Ctrl-L & \\
-Search and replace & Ctrl-Q-A & \\
-Set mark & Ctrl-K-n (where n can be 0..9) & \\
-Goto mark & Ctrl-Q-n (where n can be 0..9) & \\
-Undo & Alt-Backspace & \\
-\hline \\
+\hline
+Help & \textsc{F1} & \\
+Goto last help topic & \textsc{Alt-F1} & \\
+Search word at cursor position in help & \textsc{Ctrl-F1} & \\
+Help index & \textsc{Shift-F1} & \\
+Close active window & \textsc{Alt-F3} & \\
+Zomm/Unzoom window & \textsc{F5} & \\
+Move/Zoom active window & \textsc{Ctrl-F5} & \\
+Switch to next window & \textsc{F6} & \\
+Switch to last window & \textsc{Shift-F6} & \\
+Menu & \textsc{F10} & \\
+Local menu & \textsc{Alt-F10} & \\
+List of windows & \textsc{Alt-0} & \\
+Active another window & \textsc{Alt-<digit>} & \\
+Call \var{GREP} utility & \textsc{Shift-F2} & \\
+Exit IDE & \textsc{Alt-X} & \\
 \end{FPCltable}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{FPCltable}{p{5cm}ll}{Compiler}{shortcutscompiler}
+Command & Key shortcut & Alternative \\
+\hline
+Reset debugger/program & \textsc{Ctrl-F2} & \\
+Display call stack & \textsc{Ctrl-F3} & \\
+Run til cursor & \textsc{F4} & \\
+Switch to user screen & \textsc{Alt-F5} & \\
+Trace into & \textsc{F7} & \\
+Add watch & \textsc{Ctrl-F7} & \\
+Step over & \textsc{F8} & \\
+Set breakpoint at current line & \textsc{Ctrl-F8} & \\
+Make & \textsc{F9} & \\
+Run & \textsc{Ctrl-F9} & \\
+Compile the active source file & \textsc{Alt-F9} & \\
+Message & \textsc{F11} & \\
+Compiler messages & \textsc{F12} & \\
+\end{FPCltable}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{FPCltable}{p{5cm}ll}{Text navigation}{shortcutstextnavigation}
+Command & Key shortcut & Alternative \\
+\hline
+Char left & \textsc{Arrow left} & \textsc{Ctrl-S} \\
+Char right & \textsc{Arrow right} & \textsc{Ctrl-D} \\
+Line up & \textsc{Arrow up} & \textsc{Ctrl-E} \\
+Line down & \textsc{Arrow down} & \textsc{Ctrl-X} \\
+Word left & \textsc{Ctrl-Arrow left} & \textsc{Ctrl-A} \\
+Word right & \textsc{Ctrl-Arror right} & \textsc{Ctrl-F} \\
+Scroll one line up & \textsc{Ctrl-W} & \\
+Scroll one line down & \textsc{Ctrl-Z} & \\
+Page up & \textsc{PageUp} & \textsc{Ctrl-R} \\
+Page down & \textsc{PageDown} & \\
+Beginning of Line & \textsc{Pos1} & \textsc{Ctrl-Q-S} \\
+End of Line & \textsc{End} & \textsc{Ctrl-Q-D} \\
+First line of window & \textsc{Ctrl-Pos1} & \textsc{Ctrl-Q-E} \\
+Last line of window & \textsc{Ctrl-End} & \textsc{Ctrl-Q-X} \\
+First line of file & \textsc{Ctrl-PageUp} & \textsc{Ctrl-Q-R} \\
+Last line of file & \textsc{Ctrl-PageDown} & \textsc{Ctrl-Q-C} \\
+Last cursor position & \textsc{Ctrl-Q-P} & \\
+\end{FPCltable}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{FPCltable}{p{5cm}ll}{Edit}{shortcutsedit}
+Command & Key shortcut & Alternative \\
+\hline
+Delete char & \textsc{Del} & \textsc{Ctrl-G} \\
+Delete left char & \textsc{Backspace} & \textsc{Ctrl-H} \\
+Delete line & \textsc{Ctrl-Y} & \\
+Delete til end of line & \textsc{Ctrl-Q-Y} & \\
+Delete word & \textsc{Ctrl-T} & \\
+Insert line & \textsc{Ctrl-N} & \\
+Toggle insert mode & \textsc{Insert} & \textsc{Ctrl-V} \\
+\end{FPCltable}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{FPCltable}{p{5cm}ll}{Block commands}{shortcutsblockcommands}
+Command & Key shortcut & Alternative \\
+\hline
+Goto Beginning of selected text & \textsc{Ctrl-Q-B} & \\
+Goto end of selected text & \textsc{Ctrl-Q-K} & \\
+Select current line & \textsc{Ctrl-K-L} & \\
+Print selected text & \textsc{Ctrl-K-P} & \\
+Select current word & \textsc{Ctrl-K-T} & \\
+Delete selected text & \textsc{Ctrl-Del} & \textsc{Ctrl-K-Y} \\
+Copy selected text to cursor position & \textsc{Ctrl-K-C} & \\
+Move selected text to cursor position & \textsc{Ctrl-K-V} & \\
+Copy selected text to clipboard & \textsc{Ctrl-Ins} & \\
+Move selected text to the clipboard & \textsc{Shift-Del} & \\
+Indent block one coloumn & \textsc{Ctrl-K-I} & \\
+Unindent block one coloumn & \textsc{Ctrl-K-U} & \\
+Insert text from clipboard & \textsc{Shift-Insert} & \\
+Insert file & \textsc{Ctrl-K-R} & \\
+Write selected text to file & \textsc{Ctrl-K-W} & \\
+\end{FPCltable}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{FPCltable}{p{5cm}ll}{Change selection}{changeselection}
+Command & Key shortcut & Alternative \\
+\hline
+Mark beginning of selected text & \textsc{Ctrl-K-B} & \\
+Mark end of selected text& \textsc{Ctrl-K-K} & \\
+Remove selection & \textsc{Ctrl-K-H} & \\
+Extend selection one char to the left & \textsc{Shift-Arrow left} & \\
+Extend selection one char to the right & \textsc{Shift-Arrow right} & \\
+Extend selection to the beginning of the line & \textsc{Shift-Pos1} & \\
+Extend selection to the end of the line & \textsc{Shift-End} & \\
+Extend selection to the same coloumn in the last row & \textsc{Shift-Arrow up} & \\
+Extend selection to the same coloumn in the next row & \textsc{Shift-Arrow down} & \\
+Extend selection to the end of the line & \textsc{Shift-End} & \\
+Extend selection one word to the left & \textsc{Ctrl-Shift-Arrow left} & \\
+Extend selection one word to the right & \textsc{Ctrl-Shift-Arrow right} & \\
+Extend selection one page up & \textsc{Shift-PageUp} & \\
+Extend selection one page down & \textsc{Shift-PageDown} & \\
+Extend selection to the beginning of the file & \textsc{Ctrl-Shift-Pos1} &
+\textsc{Ctrl-Shift-PageUp} \\
+Extend selection to the end of the file & \textsc{Ctrl-Shift-End} &
+\textsc{Ctrl-Shift-PageUp} \\
+\end{FPCltable}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{FPCltable}{p{5cm}ll}{Misc. commands}{shortcutsmisccommands}
+Command & Key shortcut & Alternative \\
+\hline
+Save file & \textsc{F2} & \textsc{Ctrl-K-S} \\
+Open file & \textsc{F3} & \\
+Search & \textsc{Ctrl-Q-F} & \\
+Search again & \textsc{Ctrl-L}\ & \\
+Search and replace & \textsc{Ctrl-Q-A} & \\
+Set mark & \textsc{Ctrl-K-n} (where n can be 0..9) & \\
+Goto mark & \textsc{Ctrl-Q-n} (where n can be 0..9) & \\
+Undo & \textsc{Alt-Backspace} & \\
+\end{FPCltable}
+%
+%  $Log$
+%  Revision 1.3  2000-02-28 17:45:40  florian
+%    * a lot of new stuff
+%
+%
