@@ -52,3 +52,5 @@ testsres.pp  Test serviceresolver in resolve
 testrhre.pp  Test reverse hostresolver in resolve
 testrnre.pp  Test reverse netresolver in resolve
 testrsre.pp  Test reverse serviceresolver in resolve
+txmlreg.pp   Test of xmlreg unit (xml-like registry)
+testreg.pp   Test of registry unit.
