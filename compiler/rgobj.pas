@@ -1997,12 +1997,13 @@ unit rgobj;
           end;
       end;
 
-begin
-  writeln(sizeof(Treginfo));
 end.
 {
   $Log$
-  Revision 1.150  2004-11-06 17:44:47  florian
+  Revision 1.151  2004-11-06 18:58:18  florian
+    * debug writeln removed
+
+  Revision 1.150  2004/11/06 17:44:47  florian
     + additional extdebug check for wrong add_reg_instructions added
     * too long manglednames are cut off at 200 chars using a crc
 
