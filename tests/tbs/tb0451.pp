@@ -6,6 +6,12 @@
 { "Morten Juel Skovrup" <ms@mek.dtu.dk>        }
 program tb0451;
 
+procedure error(l : longint);
+  begin
+    writeln('Error: ',l);
+    halt(1);
+  end;
+
 type
   TDoubleArray = array of Double;
   TTestProp =
@@ -51,16 +57,18 @@ end;
 
 begin
   SetLength(Test,5);
-  Init(Test);                       //!!! FPC compile error - Delphi
-compiles fine...
+  Init(Test);                       //!!! FPC compile error - Delphi compiles fine...
   for i:=0 to High(Test) do
-    WriteLn(Test[i]);
+    if test[i]<>1 then
+      error(1);
   Finalize(Test);
 
   TestClass := TTestClass.Create;
   with TestClass.TestProp[1] do     //!!! FPC stops with runtime-error 201
     TestItem := 2;
-  WriteLn(TestClass.TestProp[0].TestItem);
-  WriteLn(TestClass.TestProp[1].TestItem);
+  if TestClass.TestProp[0].TestItem<>0 then
+    error(2);
+  if TestClass.TestProp[1].TestItem<>2 then
+    error(3);
   TestClass.Free;
 end.
