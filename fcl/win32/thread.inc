@@ -116,7 +116,7 @@ begin
   FSuspended := CreateSuspended;
   Flags := 0;
   if CreateSuspended then Flags := CREATE_SUSPENDED;
-  FHandle := CreateThread(nil, 0, @ThreadProc, Pointer(self), Flags, FThreadID);
+  FHandle := CreateThread(nil, 0, @ThreadProc, Pointer(self), Flags, DWord(FThreadID));
 end;
 
 
@@ -206,14 +206,17 @@ begin
       PeekMessage(Msg, 0, 0, 0, PM_NOREMOVE)
   else
     WaitForSingleObject(ulong(FHandle), INFINITE);
-  GetExitCodeThread(FHandle, Result);
+  GetExitCodeThread(FHandle, DWord(Result));
 end;
 {
   $Log$
-  Revision 1.3  2000-07-25 11:27:35  jonas
+  Revision 1.4  2001-04-17 17:36:17  peter
+    * fixed for stricter argument checking
+
+  Revision 1.3  2000/07/25 11:27:35  jonas
     * fixed missing comment openers for log section
 
   Revision 1.2  2000/07/13 11:33:07  michael
   + removed logs
- 
+
 }
