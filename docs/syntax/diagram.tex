@@ -12,7 +12,7 @@
 \rule{0.5pt}{1ex}\end{quote}}
 % Define mysyntdiag for my style of diagrams
 \newenvironment{mysyntdiag}%
-{\begin{syntdiag}\setlength{\sdmidskip}{.5em}\sffamily}%
+{\begin{syntdiag}\setlength{\sdmidskip}{.5em}\sffamily\sloppy}%
 {\end{syntdiag}}%
 % Finally, define a combination of the above two.
 \newenvironment{psyntax}[2]{\begin{diagram}{#1}{#2}\begin{mysyntdiag}}%

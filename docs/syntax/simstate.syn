@@ -3,6 +3,7 @@
 \(
 \synt{assignment\ statement} \\
 \synt{procedure\ statement} \\
-\synt{goto\ statement}
+\synt{goto\ statement}\\
+\synt{raise\ statement}
 \)
 \end{psyntax}

@@ -9,7 +9,7 @@
 \lit{sign} \synt{factor}\\
 \synt{set\ constructor}\\
 \synt{value\ typecast}\\
-\synt{address\ factor}\\
+\synt{address\ factor}
 \)
 \end{mysyntdiag}
 \begin{mysyntdiag}
