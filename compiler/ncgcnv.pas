@@ -84,10 +84,13 @@ interface
         if not(nf_explizit in flags) then
           cg.g_rangecheck(exprasmlist,left,resulttype.def);
 
-        { is the result size smaller ? }
+        { is the result size smaller? when typecasting from void
+          we always reuse the current location, because there is
+          nothing that we can load in a register }
         ressize := resulttype.def.size;
         leftsize := left.resulttype.def.size;
-        if ressize<>leftsize then
+        if (ressize<>leftsize) and
+           not is_void(left.resulttype.def) then
           begin
             location_copy(location,left.location);
             { reuse a loc_reference when the newsize is smaller than
@@ -507,7 +510,10 @@ end.
 
 {
   $Log$
-  Revision 1.34  2002-11-25 17:43:17  peter
+  Revision 1.35  2003-01-02 22:20:51  peter
+    * fix typecasts from void to int
+
+  Revision 1.34  2002/11/25 17:43:17  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once
