@@ -54,7 +54,69 @@ procedure UnixDir(var s : string);
 implementation
 
 uses
+{$ifdef win32}
+  windows,
+{$endif win32}
   strings;
+
+{$ifdef win32}
+const
+  CygDrivePrefixKey1 = 'Software';
+  CygDrivePrefixKey2 = 'Cygnus Solutions';
+  CygDrivePrefixKey3 = 'Cygwin';
+  CygDrivePrefixKey4 = 'mounts v2';
+  CygDrivePrefixKey = 'cygdrive prefix';
+
+function CygDrivePrefix : string;
+var
+  i : longint;
+  length : dword;
+  Value : pchar;
+  _type : dword;
+  Key,NKey : HKey;
+begin
+  Length:=0;
+  Key:=HKEY_CURRENT_USER;
+  i := RegOpenKeyEx(Key, CygDrivePrefixKey1, 0, KEY_ENUMERATE_SUB_KEYS, @NKey);
+  if i=ERROR_SUCCESS then
+    begin
+      Key:=NKey;
+      i := RegOpenKeyEx(Key, CygDrivePrefixKey2, 0, KEY_ENUMERATE_SUB_KEYS, @NKey);
+    end;
+  if i=ERROR_SUCCESS then
+    begin
+      RegCloseKey(Key);
+      Key:=NKey;
+      i := RegOpenKeyEx(Key, CygDrivePrefixKey3, 0, KEY_ENUMERATE_SUB_KEYS, @NKey);
+    end;
+  if i=ERROR_SUCCESS then
+    begin
+      RegCloseKey(Key);
+      Key:=NKey;
+      i := RegOpenKeyEx(Key, CygDrivePrefixKey4, 0, KEY_ENUMERATE_SUB_KEYS, @NKey);
+    end;
+  if i=ERROR_SUCCESS then
+    begin
+      RegCloseKey(Key);
+      Key:=NKey;
+      i := RegQueryValueEx( Key, CygDrivePrefixKey, nil, @_type, nil, @length);
+    end;
+  if i<>ERROR_SUCCESS then
+    CygDrivePrefix:='/cygdrive'
+  else
+    Begin
+      GetMem(Value,Length);
+      i := RegQueryValueEx( Key, CygDrivePrefixKey, nil, @_type, LPByte(Value), @length);
+      if i<>ERROR_SUCCESS then
+        CygDrivePrefix:='/cygdrive'
+      else
+        CygDrivePrefix:=StrPas(Value);
+      FreeMem(Value,Length);
+    End;
+  if Key<>HKEY_CURRENT_USER then
+    RegCloseKey(Key);
+end;
+{$endif win32}
 
 procedure UnixDir(var s : string);
 var i : longint;
@@ -66,6 +128,11 @@ begin
      if (i=length(s)) or (s[i+1]<>' ') then
 {$endif win32}
       s[i]:='/';
+{$ifdef win32}
+{ for win32 we should convert e:\ into //e/ PM }
+  if (length(s)>2) and (s[2]=':') and (s[3]='/') then
+    s:=CygDrivePrefix+'/'+s[1]+copy(s,3,length(s));
+{$endif win32}
 end;
 
 constructor TGDBController.Init;
@@ -263,7 +330,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2002-03-26 16:23:14  pierre
+  Revision 1.3  2002-04-03 09:09:22  pierre
+   * fix UniwDir for win32 gdbcon.pp
+
+  Revision 1.2  2002/03/26 16:23:14  pierre
    * get IDE to work with dirs containing spaces for win32
 
   Revision 1.1  2002/01/29 17:54:49  peter

@@ -108,7 +108,7 @@ ifndef FPC_VERSION
 FPC_VERSION:=$(shell $(FPC) -iV)
 endif
 export FPC FPC_VERSION
-unexport CHECKDEPEND ALLDEPENDENCIES
+unexport CHECKDEPEND ALL_DEPENDENCIES
 ifeq ($(findstring 1.0.,$(FPC_VERSION)),)
 COMPILERINFO:=$(shell $(FPC) -iSP -iTP -iSO -iTO)
 ifndef CPU_SOURCE
@@ -324,7 +324,7 @@ else
 INSTALL_SOURCEDIR:=$(INSTALL_BASEDIR)/source/$(PACKAGE_NAME)
 endif
 else
-INSTALL_SOURCEDIR:=$(INSTALL_BASEDIR)/source
+INSTALL_SOURCEDIRL:=$(INSTALL_BASEDIR)/source
 endif
 endif
 endif
@@ -944,7 +944,7 @@ HASEXAMPLES=1
 endif
 fpc_examples: all $(EXAMPLEFILES) $(addsuffix _all,$(TARGET_EXAMPLEDIRS))
 .PHONY: fpc_all fpc_smart fpc_debug fpc_release
-$(FPCMADE): $(ALLDEPENDENCIES) $(ALLTARGET)
+$(FPCMADE): $(ALL_DEPENDENCIES) $(ALLTARGET)
 	@$(ECHOREDIR) Compiled > $(FPCMADE)
 fpc_all: $(FPCMADE)
 fpc_smart:
@@ -1026,7 +1026,7 @@ ifdef INSTALL_FILES
 endif
 fpc_sourceinstall: distclean
 	$(MKDIR) $(INSTALL_SOURCEDIR)
-	$(COPYTREE) $(BASEDIR)/* $(INSTALL_SOURCEDIR)
+	$(COPYTREE) $(BASEDIR) $(INSTALL_SOURCEDIR)
 fpc_exampleinstall: $(addsuffix _distclean,$(TARGET_EXAMPLEDIRS))
 ifdef HASEXAMPLES
 	$(MKDIR) $(INSTALL_EXAMPLEDIR)
