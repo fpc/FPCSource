@@ -3,7 +3,6 @@
 { e-mail: scamp@untergrund.net }
 
 {$mode delphi}
-{$asmmode intel}
 
 function Q_CompStr(const S1, S2: string): Integer;assembler;
 asm
