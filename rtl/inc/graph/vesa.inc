@@ -452,26 +452,7 @@ end;
      end;
      offs := longint(y) * BytesPerLine + x;
      SetWriteBank(integer(offs shr 16));
-     Case CurrentWriteMode of
-       XorPut:
-         Begin
-           SetReadBank(integer(offs shr 16));
-           mem[WinWriteSeg : word(offs)] := mem[WinReadSeg : word(offs)] xor byte(color);
-         End;
-       AndPut:
-         Begin
-           SetReadBank(integer(offs shr 16));
-           mem[WinWriteSeg : word(offs)] := mem[WinReadSeg : word(offs)] And byte(color);
-         End;
-       OrPut:
-         Begin
-           SetReadBank(integer(offs shr 16));
-           mem[WinWriteSeg : word(offs)] := mem[WinReadSeg : word(offs)] or byte(color);
-         End;
-       NormalPut:
-         mem[WinWriteSeg : word(offs)] := byte(color)
-     Else mem[WinWriteSeg : word(offs)] := byte(color);
-   End;
+     mem[WinWriteSeg : word(offs)] := byte(color)
   end;
 
   procedure DirectPutPixVESA256(x, y : integer); far;
@@ -1461,7 +1442,10 @@ end;
 
 {
 $Log$
-Revision 1.10  1999-09-11 19:43:02  jonas
+Revision 1.11  1999-09-15 11:40:30  jonas
+  * fixed PutPixVESA256
+
+Revision 1.10  1999/09/11 19:43:02  jonas
   * FloodFill: did not take into account current viewport settings
   * GetScanLine: only get line inside viewport, data outside of it
     is not used anyway
