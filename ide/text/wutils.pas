@@ -82,6 +82,7 @@ function Trim(const S: string): string;
 function IntToStr(L: longint): string;
 function StrToInt(const S: string): longint;
 function GetStr(P: PString): string;
+function GetPChar(P: PChar): string;
 
 function DirOf(const S: string): string;
 function ExtOf(const S: string): string;
@@ -99,7 +100,7 @@ const LastStrToIntResult : integer = 0;
 implementation
 
 uses
-  Dos;
+  Strings, Dos;
 
 {$ifdef TPUNIXLF}
   procedure readln(var t:text;var s:string);
@@ -265,6 +266,10 @@ begin
   if P=nil then GetStr:='' else GetStr:=P^;
 end;
 
+function GetPChar(P: PChar): string;
+begin
+  if P=nil then GetPChar:='' else GetPChar:=StrPas(P);
+end;
 
 function DirOf(const S: string): string;
 var D: DirStr; E: ExtStr; N: NameStr;
@@ -443,7 +448,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.7  1999-09-13 11:44:00  peter
+  Revision 1.8  1999-10-25 16:39:03  pierre
+   + GetPChar to avoid nil pointer problems
+
+  Revision 1.7  1999/09/13 11:44:00  peter
     * fixes from gabor, idle event, html fix
 
   Revision 1.6  1999/08/24 22:01:48  pierre

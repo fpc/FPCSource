@@ -603,7 +603,7 @@ begin
          (PB^.typ<>bt_file_line) and (PB^.typ<>bt_function) then
         begin
            Command('p '+GetStr(PB^.Name));
-           S:=StrPas(GetOutput);
+           S:=GetPChar(GetOutput);
            got_error:=false;
            If Pos('=',S)>0 then
              S:=Copy(S,Pos('=',S)+1,255);
@@ -1783,9 +1783,9 @@ begin
         S:=' '+GetStr(PW^.Expr)+' <Unknown value>'
       else if not assigned(PW^.last_value) or
         (strcomp(PW^.Last_value,PW^.Current_value)=0) then
-        S:=' '+GetStr(PW^.Expr)+' '+StrPas(PW^.Current_value)
+        S:=' '+GetStr(PW^.Expr)+' '+GetPChar(PW^.Current_value)
       else
-        S:='!'+GetStr(PW^.Expr)+'!'+StrPas(PW^.Current_value);
+        S:='!'+GetStr(PW^.Expr)+'!'+GetPchar(PW^.Current_value);
       GetIndentedText:=Copy(S,Indent,MaxLen);
     end
   else
@@ -1794,7 +1794,7 @@ begin
          (StrLen(PW^.Current_value)<Indent-Valoffset) then
         S:=''
       else
-        S:=StrPas(@(PW^.Current_Value[Indent-Valoffset]));
+        S:=GetStr(@(PW^.Current_Value[Indent-Valoffset]));
       GetIndentedText:=Copy(S,1,MaxLen);
    end;
 end;
@@ -2097,12 +2097,12 @@ begin
   NameIL^.SetData(S1);
 
   if assigned(Watch^.Current_value) then
-    S1:=StrPas(Watch^.Current_value)
+    S1:=GetPChar(Watch^.Current_value)
   else
     S1:='';
 
   if assigned(Watch^.Last_value) then
-    S2:=StrPas(Watch^.Last_value)
+    S2:=GetPChar(Watch^.Last_value)
   else
     S2:='';
 
@@ -2156,8 +2156,8 @@ end;
         begin
           with Debugger^.frames[i]^ do
             begin
-              AddItem(new(PMessageItem,init(0,StrPas(function_name)+StrPas(args),
-                AddModuleName(StrPas(file_name)),line_number,1)));
+              AddItem(new(PMessageItem,init(0,GetPChar(function_name)+GetPChar(args),
+                AddModuleName(GetPChar(file_name)),line_number,1)));
             end;
         end;
       if List^.Count > 0 then
@@ -2373,7 +2373,10 @@ end.
 
 {
   $Log$
-  Revision 1.32  1999-09-16 14:34:57  pierre
+  Revision 1.33  1999-10-25 16:39:03  pierre
+   + GetPChar to avoid nil pointer problems
+
+  Revision 1.32  1999/09/16 14:34:57  pierre
     + TBreakpoint and TWatch registering
     + WatchesCollection and BreakpointsCollection stored in desk file
     * Syntax highlighting was broken
