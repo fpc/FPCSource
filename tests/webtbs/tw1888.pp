@@ -1,3 +1,4 @@
+{ %version=1.1 }
 program dumpprops;
 
 {$ifdef fpc}
@@ -38,11 +39,11 @@ begin
   t:=TTest.Create;
   p:=GetPropInfo(t,'Next');
   if (p<>nil) and
-     (p^.name=Upcase('Next')) then
+     (p^.name='Next') then
    writeln('Success')
   else
    begin
-     writeln('ERROR!');
+     writeln('ERROR! Got: ',p^.name);
      halt(1);
    end;
 end.
