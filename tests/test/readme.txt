@@ -5,8 +5,10 @@ Shortstrings .......... teststr.pp     compatibility and speed of
                                               string functions
                         teststr2.pp    some misc. tests mainly collected
                                        from bug reports
+                        testcstr.pp    Typed Constant string loading from
+                                       other constants
 Ansistrings ........... testansi.pp
-                        testa2.pp 
+                        testa2.pp
 Classes ............... testdom.pp
 Exceptions ............ testexc.pp
                         testexc2.pp
