@@ -1335,6 +1335,12 @@ unit pass_1;
                    p^.resulttype:=booldef;
                  p^.location.loc:=LOC_FLAGS;
               end;
+            xorn:
+              begin
+                if not assigned(p^.resulttype) then
+                  p^.resulttype:=p^.left^.resulttype;
+                 p^.location.loc:=LOC_REGISTER;
+              end;
             addn:
               begin
                  { the result of a string addition is a string of length 255 }
@@ -5012,7 +5018,10 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.31  1998-06-13 00:10:09  peter
+  Revision 1.32  1998-06-14 18:23:57  peter
+    * fixed xor bug (from mailinglist)
+
+  Revision 1.31  1998/06/13 00:10:09  peter
     * working browser and newppu
     * some small fixes against crashes which occured in bp7 (but not in
       fpc?!)
