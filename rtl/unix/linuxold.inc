@@ -1635,7 +1635,7 @@ Uses Strings;
 {$endif}
 
 
-Procedure Do_SysCall( callnr:longint;var regs : SysCallregs );assembler; stdcall;
+Procedure Do_SysCall( callnr:longint;var regs : SysCallregs );assembler; oldfpccall;
 {
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
@@ -5908,7 +5908,10 @@ End.
 
 {
   $Log$
-  Revision 1.12  2004-02-19 19:34:04  marco
+  Revision 1.13  2004-02-19 19:43:36  daniel
+    * Do_syscall needs oldfpccall
+
+  Revision 1.12  2004/02/19 19:34:04  marco
    * stdcall to syscall
 
   Revision 1.11  2003/12/10 09:36:16  mazen
