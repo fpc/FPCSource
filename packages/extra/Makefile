@@ -237,13 +237,13 @@ ifeq ($(FULL_TARGET),i386-go32v2)
 override TARGET_DIRS+=unzip
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_DIRS+=unzip opengl gtk zlib mmsystem tcl cdrom fpgtk winver
+override TARGET_DIRS+=unzip opengl gtk gtk2 zlib mmsystem tcl cdrom fpgtk winver
 endif
 ifeq ($(FULL_TARGET),i386-os2)
 override TARGET_DIRS+=os2units rexx unzip zlib x11 gtk libpng tcl imlib fpgtk
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_DIRS+=unzip zlib x11 opengl gtk syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses fpgtk tcl imlib gnome1
+override TARGET_DIRS+=unzip zlib x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses fpgtk tcl imlib gnome1
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
 override TARGET_DIRS+=unzip zlib x11 opengl gtk syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses fpgtk tcl imlib gnome1
@@ -264,7 +264,7 @@ ifeq ($(FULL_TARGET),m68k-linux)
 override TARGET_DIRS+=unzip zlib x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk unixutil newt
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_DIRS+=unzip zlib x11 opengl gtk syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses fpgtk tcl imlib gnome1
+override TARGET_DIRS+=unzip zlib x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses fpgtk tcl imlib gnome1
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
 override TARGET_DIRS+=unzip zlib x11 opengl gtk syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses fpgtk tcl imlib gnome1
@@ -297,7 +297,7 @@ ifeq ($(FULL_TARGET),x86_64-linux)
 override TARGET_DIRS+=unzip zlib x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk unixutil newt
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_DIRS+=unzip zlib x11 opengl gtk syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses fpgtk tcl imlib gnome1
+override TARGET_DIRS+=unzip zlib x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses fpgtk tcl imlib gnome1
 endif
 ifeq ($(FULL_TARGET),arm-linux)
 override TARGET_DIRS+=unzip zlib x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk unixutil newt
@@ -1370,6 +1370,7 @@ ifeq ($(FULL_TARGET),i386-win32)
 TARGET_DIRS_UNZIP=1
 TARGET_DIRS_OPENGL=1
 TARGET_DIRS_GTK=1
+TARGET_DIRS_GTK2=1
 TARGET_DIRS_ZLIB=1
 TARGET_DIRS_MMSYSTEM=1
 TARGET_DIRS_TCL=1
@@ -1395,6 +1396,7 @@ TARGET_DIRS_ZLIB=1
 TARGET_DIRS_X11=1
 TARGET_DIRS_OPENGL=1
 TARGET_DIRS_GTK=1
+TARGET_DIRS_GTK2=1
 TARGET_DIRS_SYSLOG=1
 TARGET_DIRS_FORMS=1
 TARGET_DIRS_SVGALIB=1
@@ -1503,6 +1505,7 @@ TARGET_DIRS_ZLIB=1
 TARGET_DIRS_X11=1
 TARGET_DIRS_OPENGL=1
 TARGET_DIRS_GTK=1
+TARGET_DIRS_GTK2=1
 TARGET_DIRS_SYSLOG=1
 TARGET_DIRS_FORMS=1
 TARGET_DIRS_SVGALIB=1
@@ -1710,6 +1713,7 @@ TARGET_DIRS_ZLIB=1
 TARGET_DIRS_X11=1
 TARGET_DIRS_OPENGL=1
 TARGET_DIRS_GTK=1
+TARGET_DIRS_GTK2=1
 TARGET_DIRS_SYSLOG=1
 TARGET_DIRS_FORMS=1
 TARGET_DIRS_SVGALIB=1
