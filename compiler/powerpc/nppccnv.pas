@@ -188,11 +188,7 @@ implementation
               leftreg := left.location.register;
               if signed then
                 begin
-{$ifndef newra}
-                  valuereg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
-{$else newra}
-                  valuereg := rg.getregisterint(exprasmlist,OS_INT);               
-{$endif newra}
+                  valuereg := rg.getregisterint(exprasmlist,OS_INT);
                   valuereg_is_scratch := true;
                 end
               else
@@ -200,11 +196,7 @@ implementation
             end;
           LOC_REFERENCE,LOC_CREFERENCE:
             begin
-{$ifndef newra}
-              leftreg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
-{$else newra}
-              leftreg := rg.getregisterint(exprasmlist,OS_INT);               
-{$endif newra}
+              leftreg := rg.getregisterint(exprasmlist,OS_INT);
               valuereg := leftreg;
               valuereg_is_scratch := true;
               if signed then
@@ -217,18 +209,10 @@ implementation
           else
             internalerror(200110012);
          end;
-{$ifndef newra}
-         tempreg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
-{$else newra}
-         tempreg := rg.getregisterint(exprasmlist,OS_INT);               
-{$endif newra}
+         tempreg := rg.getregisterint(exprasmlist,OS_INT);
          exprasmlist.concat(taicpu.op_reg_const(A_LIS,tempreg,$4330));
          cg.a_load_reg_ref(exprasmlist,OS_32,OS_32,tempreg,ref);
-{$ifndef newra}
-         cg.free_scratch_reg(exprasmlist,tempreg);
-{$else newra}
-         rg.ungetregisterint(exprasmlist,tempreg);               
-{$endif newra}
+         rg.ungetregisterint(exprasmlist,tempreg);
          if signed then
            exprasmlist.concat(taicpu.op_reg_reg_const(A_XORIS,valuereg,
              { xoris expects a unsigned 16 bit int (FK) }
@@ -237,23 +221,15 @@ implementation
          cg.a_load_reg_ref(exprasmlist,OS_32,OS_32,valuereg,ref);
          dec(ref.offset,4);
          if (valuereg_is_scratch) then
-{$ifndef newra}
-           cg.free_scratch_reg(exprasmlist,valuereg);
-{$else newra}         
            rg.ungetregisterint(exprasmlist,valuereg);
-{$endif newra}         
- 
+
          if (left.location.loc = LOC_REGISTER) or
             ((left.location.loc = LOC_CREGISTER) and
              not signed) then
            rg.ungetregisterint(exprasmlist,leftreg)
          else
-{$ifndef newra}
-           cg.free_scratch_reg(exprasmlist,valuereg);
-{$else newra}         
-           rg.ungetregisterint(exprasmlist,valuereg);                                         
-{$endif newra}         
- 
+           rg.ungetregisterint(exprasmlist,valuereg);
+
          tmpfpureg := rg.getregisterfpu(exprasmlist,OS_F64);
          cg.a_loadfpu_ref_reg(exprasmlist,OS_F64,tempconst.location.reference,
            tmpfpureg);
@@ -455,7 +431,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.41  2003-08-09 15:28:29  jonas
+  Revision 1.42  2003-09-03 19:35:24  peter
+    * powerpc compiles again
+
+  Revision 1.41  2003/08/09 15:28:29  jonas
     * fixed conversion from signed value to floats if the compiler is
       compiled with a 1.0.x compiler
 

@@ -34,19 +34,6 @@ interface
        globals,aasmbase,aasmcpu,assemble,
        cpubase;
 
-    const
-      mpw_reg2str : treg2strtable = ('',
-        'r0','r1','r2','r3','r4','r5','r6','r7','r8','r9','r10','r11','r12','r13','r14','r15','r16',
-        'r17','r18','r19','r20','r21','r22','r23','r24','r25','r26','r27','r28','r29','r30','r31',
-        'f0','f1','f2','f3','f4','f5','f6','f7', 'f8','f9','f10','f11','f12',
-        'f13','f14','f15','f16','f17', 'f18','f19','f20','f21','f22', 'f23','f24',
-        'f25','f26','f27','f28','f29','f30','f31',
-        'v0','v1','v2','v3','v4','v5','v6','v7','v8','v9','v10','v11','v12',
-        'v13','v14','v15','v16','v17','v18','v19','v20','v21','v22', 'v23','v24',
-        'v25','v26','v27','v28','v29','v30','v31',
-        'cR','cr0','cr1','cr2','cr3','cr4','cr5','cr6','cr7',
-        'xer','lr','ctr','fpscr'
-      );
     type
       TPPCMPWAssembler = class(TExternalAssembler)
         procedure WriteTree(p:TAAsmoutput);override;
@@ -70,7 +57,9 @@ interface
       sysutils,
 {$endif}
       cutils,globtype,systems,cclasses,
-      verbose,finput,fmodule,script,cpuinfo
+      verbose,finput,fmodule,script,cpuinfo,
+      cginfo,
+      itppcgas
       ;
 
     const
@@ -112,72 +101,9 @@ var
           end;
     end;
 
-    const
 
 {*** From here is copyed from agppcgas.pp, except where marked with CHANGED.
      Perhaps put in a third common file. ***}
-
-       op2str : array[tasmop] of string[14] = ('<none>',
-         'add','add.','addo','addo.','addc','addc.','addco','addco.',
-         'adde','adde.','addeo','addeo.','addi','addic','addic.','addis',
-         'addme','addme.','addmeo','addmeo.','addze','addze.','addzeo',
-         'addzeo.','and','and.','andc','andc.','andi.','andis.','b',
-         'ba','bl','bla','bc','bca','bcl','bcla','bcctr','bcctrl','bclr',
-         'bclrl','cmp','cmpi','cmpl','cmpli','cntlzw','cntlzw.','crand',
-         'crandc','creqv','crnand','crnor','cror','crorc','crxor','dcba',
-         'dcbf','dcbi','dcbst','dcbt','divw','divw.','divwo','divwo.',
-         'divwu','divwu.','divwuo','divwuo.','eciwx','ecowx','eieio','eqv',
-         'eqv.','extsb','extsb.','extsh','extsh.','fabs','fabs.','fadd',
-         'fadd.','fadds','fadds.','fcmpo','fcmpu','fctiw','fctw.','fctwz',
-         'fctwz.','fdiv','fdiv.','fdivs','fdivs.','fmadd','fmadd.','fmadds',
-         'fmadds.','fmr','fmsub','fmsub.','fmsubs','fmsubs.','fmul','fmul.',
-         'fmuls','fmuls.','fnabs','fnabs.','fneg','fneg.','fnmadd',
-         'fnmadd.','fnmadds','fnmadds.','fnmsub','fnmsub.','fnmsubs',
-         'fnmsubs.','fres','fres.','frsp','frsp.','frsqrte','frsqrte.',
-         'fsel','fsel.','fsqrt','fsqrt.','fsqrts','fsqrts.','fsub','fsub.',
-         'fsubs','fsubs.','icbi','isync','lbz','lbzu','lbzux','lbzx',
-         'lfd','lfdu','lfdux','lfdx','lfs','lfsu','lfsux','lfsx','lha',
-         'lhau','lhaux','lhax','hbrx','lhz','lhzu','lhzux','lhzx','lmw',
-         'lswi','lswx','lwarx','lwbrx','lwz','lwzu','lwzux','lwzx','mcrf',
-         'mcrfs','mcrxr','lcrxe','mfcr','mffs','maffs.','mfmsr','mfspr','mfsr',
-         'mfsrin','mftb','mtfcrf','mtfd0','mtfsb1','mtfsf','mtfsf.',
-         'mtfsfi','mtfsfi.','mtmsr','mtspr','mtsr','mtsrin','mulhw',
-         'mulhw.','mulhwu','mulhwu.','mulli','mullw','mullw.','mullwo',
-         'mullwo.','nand','nand.','neg','neg.','nego','nego.','nor','nor.',
-         'or','or.','orc','orc.','ori','oris', 'rfi', 'rlwimi', 'rlwimi.',
-         'rlwinm', 'rlwinm.','rlwnm','sc','slw', 'slw.', 'sraw', 'sraw.',
-         'srawi', 'srawi.','srw', 'srw.', 'stb', 'stbu', 'stbux','stbx','stfd',
-         'stfdu', 'stfdux', 'stfdx', 'stfiwx', 'stfs', 'stfsu', 'stfsux', 'stfsx',
-         'sth', 'sthbrx', 'sthu', 'sthux', 'sthx', 'stmw', 'stswi', 'stswx', 'stw',
-         'stwbrx', 'stwx.', 'stwu', 'stwux', 'stwx', 'subf', 'subf.', 'subfo',
-         'subfo.', 'subfc', 'subc.', 'subfco', 'subfco.', 'subfe', 'subfe.',
-         'subfeo', 'subfeo.', 'subfic', 'subfme', 'subfme.', 'subfmeo', 'subfmeo.',
-         'subfze', 'subfze.', 'subfzeo', 'subfzeo.', 'sync', 'tlbia', 'tlbie',
-         'tlbsync', 'tw', 'twi', 'xor', 'xor.', 'xori', 'xoris',
-         { some simplified mnemonics }
-         'subi', 'subis', 'subic', 'subic.', 'sub', 'sub.', 'subo', 'subo.',
-         'subc', 'subc.', 'subco', 'subco.', 'cmpwi', 'cmpw', 'cmplwi', 'cmplw',
-         'extlwi', 'extlwi.', 'extrwi', 'extrwi.', 'inslwi', 'inslwi.', 'insrwi',
-         'insrwi.', 'rotlwi', 'rotlwi.', 'rotlw', 'rotlw.', 'slwi', 'slwi.',
-         'srwi', 'srwi.', 'clrlwi', 'clrlwi.', 'clrrwi', 'clrrwi.', 'clrslwi',
-         'clrslwi.', 'blr', 'bctr', 'blrl', 'bctrl', 'crset', 'crclr', 'crmove',
-         'crnot', 'mt', 'mf','nop', 'li', 'lis', 'la', 'mr','mr.','not', 'mtcr', 'mtlr', 'mflr',
-         'mtctr', 'mfctr');
-
-    function mpw_regname(r:Tnewregister):string;
-
-    var s:Tsuperregister;
-
-    begin
-      s:=r shr 8;
-      if s in [RS_R0..RS_R31] then
-        mpw_regname:='r'+tostr(s-RS_R0)
-      else
-        begin
-          {Generate a systematic name.}
-          mpw_regname:='reg'+tostr(s)+'d';
-        end;
-    end;
 
 
     function getreferencestring(var ref : treference) : string;
@@ -220,25 +146,20 @@ var
                s:=s+tostr(offset);
             end;
 
-          b:=(base.enum=R_NO) or ((base.enum=R_INTREGISTER) and (base.number=NR_NO));
-          i:=(index.enum=R_NO) or ((index.enum=R_INTREGISTER) and (index.number=NR_NO));
-          if i and not b then
+          if (index=NR_NO) and (base<>NR_NO) then
             begin
               if offset=0 then
                 if not assigned(symbol) then
                   s:=s+'0';
-              if base.enum=R_INTREGISTER then
-                s:=s+'('+mpw_regname(base.number)+')'
-              else
-                s:=s+'('+mpw_reg2str[base.enum]+')';
+              s:=s+'('+gas_regname(base)+')';
             end
-          else if (not i) and (not b) and (offset=0) then
-            if base.enum=R_INTREGISTER then
-              s:=s+mpw_regname(base.number)+','+mpw_regname(index.number)
-            else
-              s:=s+mpw_reg2str[base.enum]+','+mpw_reg2str[index.enum]
-          else if (not i) or (not b) then
-            internalerror(19992);
+          else if (index<>NR_NO) and (base<>NR_NO) and (offset=0) then
+            begin
+              if (offset=0) then
+                s:=s+gas_regname(base)+','+gas_regname(index)
+              else
+                internalerror(19992);
+            end;
         end;
       getreferencestring:=s;
     end;
@@ -249,12 +170,7 @@ var
     begin
       case o.typ of
         top_reg :
-          begin
-            if o.reg.enum=R_INTREGISTER then
-              getopstr_jmp:=mpw_regname(o.reg.number)
-            else
-              getopstr_jmp:=mpw_reg2str[o.reg.enum];
-          end;
+          getopstr_jmp:=gas_regname(o.reg);
         { no top_ref jumping for powerpc }
         top_const :
           getopstr_jmp:=tostr(o.val);
@@ -282,12 +198,7 @@ var
     begin
       case o.typ of
         top_reg:
-          begin
-            if  o.reg.enum=R_INTREGISTER then
-              getopstr:=mpw_regname(o.reg.number)
-            else
-              getopstr:=mpw_reg2str[o.reg.enum];
-          end;
+          getopstr:=gas_regname(o.reg);
         top_const:
           getopstr:=tostr(longint(o.val));
         top_ref:
@@ -332,14 +243,14 @@ var
     begin
       tempstr:=#9;
       case c.simple of
-        false: cond2str := tempstr+op2str[op]+#9+tostr(c.bo)+','+
+        false: cond2str := tempstr+gas_op2str[op]+#9+tostr(c.bo)+','+
                            tostr(c.bi);
         true:
           if (op >= A_B) and (op <= A_BCLRL) then
             case c.cond of
               { unconditional branch }
               C_NONE:
-                cond2str := tempstr+op2str[op];
+                cond2str := tempstr+gas_op2str[op];
               { bdnzt etc }
               else
                 begin
@@ -347,7 +258,7 @@ var
                               branchmode(op)+#9;
                   case c.cond of
                     C_LT..C_NU:
-                      cond2str := tempstr+mpw_reg2str[c.cr];
+                      cond2str := tempstr+gas_regname(newreg(R_SPECIALREGISTER,c.cr,R_SUBNONE));
                     C_T..C_DZF:
                       cond2str := tempstr+tostr(c.crbit);
                   end;
@@ -375,11 +286,11 @@ var
           { direct BO/BI in op[0] and op[1] not supported, put them in condition! }
           case op of
              A_B,A_BA:
-               s:=#9+op2str[op]+#9;
+               s:=#9+gas_op2str[op]+#9;
              A_BCTR,A_BCTRL,A_BLR,A_BLRL:
-               s:=#9+op2str[op];
+               s:=#9+gas_op2str[op];
              A_BL,A_BLA:
-               s:=#9+op2str[op]+#9'.';
+               s:=#9+gas_op2str[op]+#9'.';
              else
                s:=cond2str(op,taicpu(hp).condition)+',';
           end;
@@ -394,13 +305,13 @@ var
         begin
           case op of
              A_MFSPR:
-               case taicpu(hp).oper[1].reg.enum of
-                  R_CR:
+               case taicpu(hp).oper[1].reg of
+                  NR_CR:
                     begin
                        op:=A_MFCR;
                        taicpu(hp).ops:=1;
                     end;
-                  R_LR:
+                  NR_LR:
                     begin
                        op:=A_MFLR;
                        taicpu(hp).ops:=1;
@@ -409,13 +320,13 @@ var
                     internalerror(2002100701);
                end;
              A_MTSPR:
-               case taicpu(hp).oper[1].reg.enum of
-                  R_CR:
+               case taicpu(hp).oper[1].reg of
+                  NR_CR:
                     begin
                        op:=A_MTCR;
                        taicpu(hp).ops:=1;
                     end;
-                  R_LR:
+                  NR_LR:
                     begin
                        op:=A_MTLR;
                        taicpu(hp).ops:=1;
@@ -424,7 +335,7 @@ var
                     internalerror(2002100701);
                end;
           end;
-          s:=#9+op2str[op];
+          s:=#9+gas_op2str[op];
           if taicpu(hp).ops<>0 then
             begin
                sep:=#9;
@@ -1351,7 +1262,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.23  2003-08-24 21:40:12  olle
+  Revision 1.24  2003-09-03 19:35:24  peter
+    * powerpc compiles again
+
+  Revision 1.23  2003/08/24 21:40:12  olle
     * minor adjustment
 
   Revision 1.21  2003/08/18 11:47:15  olle

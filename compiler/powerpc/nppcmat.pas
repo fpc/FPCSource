@@ -71,24 +71,16 @@ implementation
         divops: array[boolean, boolean] of tasmop =
           ((A_DIVWU,A_DIVWUO_),(A_DIVW,A_DIVWO_));
       var
-         power,
-         l1, l2     : longint;
+         power  : longint;
          op         : tasmop;
          numerator,
          divider,
          resultreg  : tregister;
-         saved      : tmaybesave;
          size       : Tcgsize;
 
       begin
          secondpass(left);
-{$ifndef newra}
-         maybe_save(exprasmlist,right.registers32,left.location,saved);
-{$endif newra}
          secondpass(right);
-{$ifndef newra}
-         maybe_restore(exprasmlist,left.location,saved);
-{$endif newra}
          location_copy(location,left.location);
 
          { put numerator in register }
@@ -106,12 +98,8 @@ implementation
            end;
          if (nodetype = modn) then
            begin
-{$ifndef newra}
-             resultreg := cg.get_scratch_reg_int(exprasmlist,size);
-{$else newra}         
-             resultreg := rg.getregisterint(exprasmlist,size);                                         
-{$endif newra}         
-            end;
+             resultreg := rg.getregisterint(exprasmlist,size);
+           end;
 
          if (nodetype = divn) and
             (right.nodetype = ordconstn) and
@@ -153,18 +141,14 @@ implementation
                rg.ungetregisterint(exprasmlist,divider);
                exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUB,location.register,
                  numerator,resultreg));
-{$ifndef newra}
-               cg.free_scratch_reg(exprasmlist,resultreg);
-{$else newra}         
                rg.ungetregisterint(exprasmlist,resultreg);
-{$endif newra}         
                resultreg := location.register;
              end
            else
              rg.ungetregisterint(exprasmlist,divider);
            end;
        { free used registers }
-        if numerator.number <> resultreg.number then
+        if numerator <> resultreg then
           rg.ungetregisterint(exprasmlist,numerator);
         { set result location }
         location.loc:=LOC_REGISTER;
@@ -190,18 +174,11 @@ implementation
          op : topcg;
          asmop1, asmop2: tasmop;
          shiftval: aword;
-         saved : tmaybesave;
          r : Tregister;
 
       begin
          secondpass(left);
-{$ifndef newra}
-         maybe_save(exprasmlist,right.registers32,left.location,saved);
-{$endif newra}
          secondpass(right);
-{$ifndef newra}
-         maybe_restore(exprasmlist,left.location,saved);
-{$endif newra}
 
          if is_64bitint(left.resulttype.def) then
            begin
@@ -285,25 +262,23 @@ implementation
                    end;
 
                  rg.getexplicitregisterint(exprasmlist,NR_R0);
-                 r.enum:=R_INTREGISTER;
-                 r.number:=NR_R0;
                  exprasmlist.concat(taicpu.op_reg_reg_const(A_SUBFIC,
-                   r,hregister1,32));
+                   NR_R0,hregister1,32));
                  exprasmlist.concat(taicpu.op_reg_reg_reg(asmop1,
                    location.registerhigh,hregisterhigh,hregister1));
                  exprasmlist.concat(taicpu.op_reg_reg_reg(asmop2,
-                   r,hregisterlow,r));
+                   NR_R0,hregisterlow,NR_R0));
                  exprasmlist.concat(taicpu.op_reg_reg_reg(A_OR,
-                   location.registerhigh,location.registerhigh,r));
+                   location.registerhigh,location.registerhigh,NR_R0));
                  exprasmlist.concat(taicpu.op_reg_reg_const(A_SUBI,
-                   r,hregister1,32));
+                   NR_R0,hregister1,32));
                  exprasmlist.concat(taicpu.op_reg_reg_reg(asmop1,
-                   r,hregisterlow,r));
+                   NR_R0,hregisterlow,NR_R0));
                  exprasmlist.concat(taicpu.op_reg_reg_reg(A_OR,
-                   location.registerhigh,location.registerhigh,r));
+                   location.registerhigh,location.registerhigh,NR_R0));
                  exprasmlist.concat(taicpu.op_reg_reg_reg(asmop1,
                    location.registerlow,hregisterlow,hregister1));
-                 rg.ungetregisterint(exprasmlist,r);
+                 rg.ungetregisterint(exprasmlist,NR_R0);
 
                  if nodetype = shrn then
                    begin
@@ -312,11 +287,6 @@ implementation
                      location.registerlow := resultreg;
                    end;
 
-{$ifndef newra}
-                 if right.location.loc in [LOC_CREFERENCE,LOC_REFERENCE] then
-                   cg.free_scratch_reg(exprasmlist,hregister1)
-                  else
-{$endif newra}
                    rg.ungetregisterint(exprasmlist,hregister1);
                end
            end
@@ -498,7 +468,7 @@ implementation
                       exprasmlist.concat(taicpu.op_reg_const(A_CMPWI,left.location.register,0));
                       location_release(exprasmlist,left.location);
                       location_reset(location,LOC_FLAGS,OS_NO);
-                      location.resflags.cr:=r_cr0;
+                      location.resflags.cr:=RS_CR0;
                       location.resflags.flag:=F_EQ;
                    end;
                   else
@@ -538,7 +508,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.31  2003-06-14 22:32:43  jonas
+  Revision 1.32  2003-09-03 19:35:24  peter
+    * powerpc compiles again
+
+  Revision 1.31  2003/06/14 22:32:43  jonas
     * ppc compiles with -dnewra, haven't tried to compile anything with it
       yet though
 

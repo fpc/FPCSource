@@ -95,161 +95,64 @@ uses
       {# Last value of opcode enumeration  }
       lastop  = high(tasmop);
 
+
 {*****************************************************************************
                                   Registers
 *****************************************************************************}
 
     type
-      Toldregister = (R_NO,
-        R_0,R_1,R_2,R_3,R_4,R_5,R_6,R_7,R_8,R_9,R_10,R_11,R_12,R_13,R_14,R_15,R_16,
-        R_17,R_18,R_19,R_20,R_21,R_22,R_23,R_24,R_25,R_26,R_27,R_28,R_29,R_30,R_31,
-        R_F0,R_F1,R_F2,R_F3,R_F4,R_F5,R_F6,R_F7,R_F8,R_F9,R_F10,R_F11,R_F12,
-        R_F13,R_F14,R_F15,R_F16,R_F17, R_F18,R_F19,R_F20,R_F21,R_F22, R_F23,R_F24,
-        R_F25,R_F26,R_F27,R_F28,R_F29,R_F30,R_F31,
-        R_M0,R_M1,R_M2,R_M3,R_M4,R_M5,R_M6,R_M7,R_M8,R_M9,R_M10,R_M11,R_M12,
-        R_M13,R_M14,R_M15,R_M16,R_M17,R_M18,R_M19,R_M20,R_M21,R_M22, R_M23,R_M24,
-        R_M25,R_M26,R_M27,R_M28,R_M29,R_M30,R_M31,
-        R_CR,R_CR0,R_CR1,R_CR2,R_CR3,R_CR4,R_CR5,R_CR6,R_CR7,
-        R_XER,R_LR,R_CTR,R_FPSCR,
-
-        R_INTREGISTER {Only for use by the register allocator.}
-      );
-
-      Tnewregister=word;
-      Tsuperregister=byte;
-      Tsubregister=byte;
-
-      Tregister=record
-        enum:Toldregister;
-        number:Tnewregister;
-      end;
-
-      {# Set type definition for registers }
-      tregisterset = set of Toldregister;
-      Tsupregset=set of Tsuperregister;
-
-      { A type to store register locations for 64 Bit values. }
-      tregister64 = packed record
-        reglo,reghi : tregister;
-      end;
-
-      { alias for compact code }
-      treg64 = tregister64;
-
-
-    Const
-      {# First register in the tregister enumeration }
-      firstreg = low(Toldregister);
-      {# Last register in the tregister enumeration }
-      lastreg  = R_FPSCR;
-    type
-      {# Type definition for the array of string of register nnames }
-      treg2strtable = array[firstreg..lastreg] of string[5];
+      { Number of registers used for indexing in tables }
+      tregisterindex=0..{$i rppcnor.inc}-1;
+      totherregisterset = set of tregisterindex;
 
     const
+      { Available Superregisters }
+      {$i rppcsup.inc}
 
-      R_SPR1 = R_XER;
-      R_SPR8 = R_LR;
-      R_SPR9 = R_CTR;
-      R_TOC = R_2;
-   {   CR0 = 0;
-      CR1 = 4;
-      CR2 = 8;
-      CR3 = 12;
-      CR4 = 16;
-      CR5 = 20;
-      CR6 = 24;
-      CR7 = 28;
-      LT = 0;
-      GT = 1;
-      EQ = 2;
-      SO = 3;
-      FX = 4;
-      FEX = 5;
-      VX = 6;
-      OX = 7;}
+      { No Subregisters }
+      R_SUBWHOLE=R_SUBNONE;
 
-      mot_reg2str : treg2strtable = ('',
-        'r0','r1','r2','r3','r4','r5','r6','r7','r8','r9','r10','r11','r12','r13',
-        'r14','r15','r16','r17','r18','r19','r20','r21','r22','r23','r24','r25',
-        'r26','r27','r28','r29','r30','r31',
-        'F0','F1','F2','F3','F4','F5','F6','F7', 'F8','F9','F10','F11','F12',
-        'F13','F14','F15','F16','F17', 'F18','F19','F20','F21','F22', 'F23','F24',
-        'F25','F26','F27','F28','F29','F30','F31',
-        'M0','M1','M2','M3','M4','M5','M6','M7','M8','M9','M10','M11','M12',
-        'M13','M14','M15','M16','M17','M18','M19','M20','M21','M22', 'M23','M24',
-        'M25','M26','M27','M28','M29','M30','M31',
-        'CR','CR0','CR1','CR2','CR3','CR4','CR5','CR6','CR7',
-        'XER','LR','CTR','FPSCR'
+      { Available Registers }
+      {$i rppccon.inc}
+
+      { Integer Super registers first and last }
+{$warning Supreg shall be $00-$1f}
+      first_int_supreg = RS_R3;
+      last_int_supreg = RS_R31;
+
+      first_int_imreg = $20;
+      last_int_imreg = $fe;
+
+      { Float Super register first and last }
+      first_fpu_supreg    = $00;
+      last_fpu_supreg     = $1f;
+
+      first_fpu_imreg     = $20;
+      last_fpu_imreg      = $fe;
+
+      { MM Super register first and last }
+      first_mmx_supreg    = RS_INVALID;
+      last_mmx_supreg     = RS_INVALID;
+      first_mmx_imreg     = RS_INVALID;
+      last_mmx_imreg      = RS_INVALID;
+
+{$warning TODO Calculate bsstart}
+      regnumber_count_bsstart = 64;
+
+      regnumber_table : array[tregisterindex] of tregister = (
+        {$i rppcnum.inc}
       );
 
-      std_reg2str : treg2strtable = ('',
-        'r0','r1','r2','r3','r4','r5','r6','r7','r8','r9','r10','r11','r12','r13',
-        'r14','r15','r16','r17','r18','r19','r20','r21','r22','r23','r24','r25',
-        'r26','r27','r28','r29','r30','r31',
-        'F0','F1','F2','F3','F4','F5','F6','F7', 'F8','F9','F10','F11','F12',
-        'F13','F14','F15','F16','F17', 'F18','F19','F20','F21','F22', 'F23','F24',
-        'F25','F26','F27','F28','F29','F30','F31',
-        'M0','M1','M2','M3','M4','M5','M6','M7','M8','M9','M10','M11','M12',
-        'M13','M14','M15','M16','M17','M18','M19','M20','M21','M22', 'M23','M24',
-        'M25','M26','M27','M28','M29','M30','M31',
-        'CR','CR0','CR1','CR2','CR3','CR4','CR5','CR6','CR7',
-        'XER','LR','CTR','FPSCR'
+      regstabs_table : array[tregisterindex] of tregister = (
+        {$i rppcstab.inc}
       );
-
-    {New register coding:}
-
-    {Special registers:}
-    const
-      NR_NO = $0000;  {Invalid register}
-
-    {Normal registers:}
-
-    {General purpose registers:}
-      NR_R0 = $0100; NR_R1 = $0200; NR_R2 = $0300;
-      NR_R3 = $0400; NR_R4 = $0500; NR_R5 = $0600;
-      NR_R6 = $0700; NR_R7 = $0800; NR_R8 = $0900;
-      NR_R9 = $0A00; NR_R10 = $0B00; NR_R11 = $0C00;
-      NR_R12 = $0D00; NR_R13 = $0E00; NR_R14 = $0F00;
-      NR_R15 = $1000; NR_R16 = $1100; NR_R17 = $1200;
-      NR_R18 = $1300; NR_R19 = $1400; NR_R20 = $1500;
-      NR_R21 = $1600; NR_R22 = $1700; NR_R23 = $1800;
-      NR_R24 = $1900; NR_R25 = $1A00; NR_R26 = $1B00;
-      NR_R27 = $1C00; NR_R28 = $1D00; NR_R29 = $1E00;
-      NR_R30 = $1F00; NR_R31 = $2000;
-
-      NR_RTOC = NR_R2;
-
-    {Super registers:}
-      RS_NONE=$00;
-      RS_R0 = $01; RS_R1 = $02; RS_R2 = $03;
-      RS_R3 = $04; RS_R4 = $05; RS_R5 = $06;
-      RS_R6 = $07; RS_R7 = $08; RS_R8 = $09;
-      RS_R9 = $0A; RS_R10 = $0B; RS_R11 = $0C;
-      RS_R12 = $0D; RS_R13 = $0E; RS_R14 = $0F;
-      RS_R15 = $10; RS_R16 = $11; RS_R17 = $12;
-      RS_R18 = $13; RS_R19 = $14; RS_R20 = $15;
-      RS_R21 = $16; RS_R22 = $17; RS_R23 = $18;
-      RS_R24 = $19; RS_R25 = $1A; RS_R26 = $1B;
-      RS_R27 = $1C; RS_R28 = $1D; RS_R29 = $1E;
-      RS_R30 = $1F; RS_R31 = $20;
-
-      first_supreg = RS_R3;
-      last_supreg = RS_R31;
 
       { registers which may be destroyed by calls }
       VOLATILE_INTREGISTERS = [RS_R3..RS_R12];
 {$warning FIXME!!}
       { FIXME: only R_F1..R_F8 under the SYSV ABI -> has to become a }
-      {   typed const (JM) 																					 }
-      VOLATILE_FPUREGISTERS = [R_F3..R_F13];
-      {Number of first and last imaginary register.}
-      first_imreg     = $21;
-      last_imreg      = $ff;
-
-    {Subregisters, situation unknown!!.}
-      R_SUBWHOLE=$00;
-      R_SUBL=$00;
+      {   typed const (JM)                                                                                                                                                                       }
+      VOLATILE_FPUREGISTERS = [RS_F3..RS_F13];
 
 
 {*****************************************************************************
@@ -279,7 +182,7 @@ uses
                          0: ();
                          { specifies in which part of the cr the bit has to be }
                          { tested for blt,bgt,beq,..,bnu                       }
-                         1: (cr: R_CR0..R_CR7);
+                         1: (cr: RS_CR0..RS_CR7);
                          { specifies the bit to test for bt,bf,bdz,..,bdzf }
                          2: (crbit: byte)
                        );
@@ -314,7 +217,7 @@ uses
     type
       TResFlagsEnum = (F_EQ,F_NE,F_LT,F_LE,F_GT,F_GE,F_SO,F_FX,F_FEX,F_VX,F_OX);
       TResFlags = record
-        cr: R_CR0..R_CR7;
+        cr: RS_CR0..RS_CR7;
         flag: TResFlagsEnum;
       end;
 
@@ -481,22 +384,7 @@ uses
     const
       max_operands = 5;
 
-      {# Constant defining possibly all registers which might require saving }
-{$warning FIX ME !!!!!!!!! }
-      ALL_REGISTERS = [R_0..R_FPSCR];
-
-      general_registers = [R_0..R_31];
       general_superregisters = [RS_R0..RS_R31];
-
-      {# low and high of the available maximum width integer general purpose }
-      { registers                                                            }
-      LoGPReg = R_0;
-      HiGPReg = R_31;
-
-      {# low and high of every possible width general purpose register (same as }
-      { above on most architctures apart from the 80x86)                        }
-      LoReg = R_0;
-      HiReg = R_31;
 
       {# Table of registers which can be allocated by the code generator
          internally, when generating the code.
@@ -513,17 +401,14 @@ uses
       maxintregs = 18;
       { to determine how many registers to use for regvars }
       maxintscratchregs = 3;
-      intregs    = [R_0..R_31];
       usableregsint = [RS_R13..RS_R27];
       c_countusableregsint = 18;
 
       maxfpuregs = 31-14+1;
-      fpuregs    = [R_F0..R_F31];
-      usableregsfpu = [R_F14..R_F31];
+      usableregsfpu = [RS_F14..RS_F31];
       c_countusableregsfpu = 31-14+1;
 
-      mmregs     = [R_M0..R_M31];
-      usableregsmm  = [R_M14..R_M31];
+      usableregsmm  = [RS_M14..RS_M31];
       c_countusableregsmm  = 31-14+1;
 
       { no distinction on this platform }
@@ -532,48 +417,38 @@ uses
       usableregsaddr = [];
       c_countusableregsaddr = 0;
 
-
       firstsaveintreg = RS_R13;
-{$ifndef newra}
-      lastsaveintreg  = RS_R27;
-{$else newra}
       lastsaveintreg  = RS_R31;
-{$endif newra}
-      firstsavefpureg = R_F14;
-      lastsavefpureg  = R_F31;
+      firstsavefpureg = RS_F14;
+      lastsavefpureg  = RS_F31;
       { no altivec support yet. Need to override tcgobj.a_loadmm_* first in tcgppc }
-      firstsavemmreg  = R_NO;
-      lastsavemmreg   = R_NO;
+      firstsavemmreg  = RS_INVALID;
+      lastsavemmreg   = RS_INVALID;
 
       maxvarregs = 15;
-      varregs : Array [1..maxvarregs] of Tnewregister =
+      varregs : Array [1..maxvarregs] of Tsuperregister =
                 (RS_R14,RS_R15,RS_R16,RS_R17,RS_R18,RS_R19,RS_R20,RS_R21,
                  RS_R22,RS_R23,RS_R24,RS_R25,RS_R26,RS_R27,RS_R28);
 
       maxfpuvarregs = 31-14+1;
-      fpuvarregs : Array [1..maxfpuvarregs] of Toldregister =
-                (R_F14,R_F15,R_F16,R_F17,R_F18,R_F19,R_F20,R_F21,R_F22,R_F23,
-                 R_F24,R_F25,R_F26,R_F27,R_F28,R_F29,R_F30,R_F31);
+      fpuvarregs : Array [1..maxfpuvarregs] of Tsuperregister =
+                (RS_F14,RS_F15,RS_F16,RS_F17,RS_F18,RS_F19,RS_F20,RS_F21,RS_F22,RS_F23,
+                 RS_F24,RS_F25,RS_F26,RS_F27,RS_F28,RS_F29,RS_F30,RS_F31);
 
-      max_param_regs_int = 8;
-      param_regs_int: Array[1..max_param_regs_int] of Toldregister =
-        (R_3,R_4,R_5,R_6,R_7,R_8,R_9,R_10);
+{
+//      max_param_regs_int = 8;
+//      param_regs_int: Array[1..max_param_regs_int] of Tsuperregister =
+//        (R_3,R_4,R_5,R_6,R_7,R_8,R_9,R_10);
 
-      max_param_regs_fpu = 13;
-      param_regs_fpu: Array[1..max_param_regs_fpu] of Toldregister =
-        (R_F1,R_F2,R_F3,R_F4,R_F5,R_F6,R_F7,R_F8,R_F9,R_F10,R_F11,R_F12,R_F13);
+//      max_param_regs_fpu = 13;
+//      param_regs_fpu: Array[1..max_param_regs_fpu] of Toldregister =
+//        (RS_F1,RS_F2,RS_F3,RS_F4,RS_F5,RS_F6,RS_F7,RS_F8,RS_F9,RS_F10,RS_F11,RS_F12,RS_F13);
 
       max_param_regs_mm = 13;
       param_regs_mm: Array[1..max_param_regs_mm] of Toldregister =
         (R_M1,R_M2,R_M3,R_M4,R_M5,R_M6,R_M7,R_M8,R_M9,R_M10,R_M11,R_M12,R_M13);
+}
 
-{$ifndef newra}
-      {# Registers which are defined as scratch and no need to save across
-         routine calls or in assembler blocks.
-      }
-      max_scratch_regs = 3;
-      scratch_regs: Array[1..max_scratch_regs] of Tsuperregister = (RS_R29,RS_R30,RS_R31);
-{$endif newra}
 
 {*****************************************************************************
                           Default generic sizes
@@ -602,46 +477,8 @@ uses
 
       }
 
-      stab_regindex : array[firstreg..lastreg] of shortint =
-      (
-        { R_NO }
-        -1,
-        { R0..R7 }
-        0,1,2,3,4,5,6,7,
-        { R8..R15 }
-        8,9,10,11,12,13,14,15,
-        { R16..R23 }
-        16,17,18,19,20,21,22,23,
-        { R24..R32 }
-        24,25,26,27,28,29,30,31,
-        { F0..F7 }
-        32,33,34,35,36,37,38,39,
-        { F8..F15 }
-        40,41,42,43,44,45,46,47,
-        { F16..F23 }
-        48,49,50,51,52,53,54,55,
-        { F24..F31 }
-        56,57,58,59,60,61,62,63,
-        { M0..M7 Multimedia registers are not supported by GCC }
-        -1,-1,-1,-1,-1,-1,-1,-1,
-        { M8..M15 }
-        -1,-1,-1,-1,-1,-1,-1,-1,
-        { M16..M23 }
-        -1,-1,-1,-1,-1,-1,-1,-1,
-        { M24..M31 }
-        -1,-1,-1,-1,-1,-1,-1,-1,
-        { CR }
-        -1,
-        { CR0..CR7 }
-        68,69,70,71,72,73,74,75,
-        { XER }
-        76,
-        { LR }
-        65,
-        { CTR }
-        66,
-        { FPSCR }
-        -1
+      stab_regindex : array[tregisterindex] of shortint = (
+        {$i rppcstab.inc}
       );
 
 
@@ -682,10 +519,8 @@ uses
       NR_FUNCTION_RESULT64_HIGH_REG = NR_FUNCTION_RETURN64_HIGH_REG;
       RS_FUNCTION_RESULT64_HIGH_REG = RS_FUNCTION_RETURN64_HIGH_REG;
 
-      { WARNING: don't change to R_ST0!! See comments above implementation of }
-      { a_loadfpu* methods in rgcpu (JM)                                      }
-      FPU_RESULT_REG = R_F1;
-      mmresultreg = R_M0;
+      NR_FPU_RESULT_REG = RS_F1;
+      NR_MM_RESULT_REG = RS_M0;
 
 {*****************************************************************************
                        GCC /ABI linking information
@@ -726,11 +561,11 @@ uses
 
       PARENT_FRAMEPOINTER_OFFSET = 12;
 
+      NR_RTOC = NR_R2;
+
 {*****************************************************************************
                                   Helpers
 *****************************************************************************}
-
-    function supreg_name(r:Tsuperregister):string;
 
     function  is_calljmp(o:tasmop):boolean;
 
@@ -739,8 +574,11 @@ uses
     function  flags_to_cond(const f: TResFlags) : TAsmCond;
     procedure create_cond_imm(BO,BI:byte;var r : TAsmCond);
     procedure create_cond_norm(cond: TAsmCondFlag; cr: byte;var r : TasmCond);
-    procedure convert_register_to_enum(var r:Tregister);
     function cgsize2subreg(s:Tcgsize):Tsubregister;
+    function findreg_by_number(r:Tregister):tregisterindex;
+    function std_regnum_search(const s:string):Tregister;
+    function std_regname(r:Tregister):string;
+    function gas_regname(r:Tregister):string;
 
 
 implementation
@@ -748,31 +586,27 @@ implementation
     uses
       verbose;
 
+    const
+      std_regname_table : array[tregisterindex] of string[7] = (
+        {$i rppcstd.inc}
+      );
+
+      gas_regname_table : array[tregisterindex] of string[7] = (
+        {$i rppcgas.inc}
+      );
+
+      regnumber_index : array[tregisterindex] of tregisterindex = (
+        {$i rppcrni.inc}
+      );
+
+      std_regname_index : array[tregisterindex] of tregisterindex = (
+        {$i rppcsri.inc}
+      );
+
+
 {*****************************************************************************
                                   Helpers
 *****************************************************************************}
-
-   function supreg_name(r:Tsuperregister):string;
-
-    var s:string[4];
-
-    const supreg_names:array[0..last_supreg] of string[3]=
-          ('INV',
-           'r0','r1','r2','r3','r4','r5','r6','r7','r8','r9',
-           'r10','r11','r12','r13','r14','r15','r16','r17','r18','r19',
-           'r20','r21','r22','r23','r24','r25','r26','r27','r28','r29',
-           'r30' ,'r31');
-
-    begin
-      if r in [0..last_supreg] then
-        supreg_name:=supreg_names[r]
-      else
-        begin
-          str(r,s);
-          supreg_name:='invalid_reg'+s;
-        end;
-    end;
-
 
     function is_calljmp(o:tasmop):boolean;
       begin
@@ -832,23 +666,8 @@ implementation
         case cond of
           C_NONE:;
           C_T..C_DZF: r.crbit := cr
-          else r.cr := Toldregister(ord(R_CR0)+cr);
+          else r.cr := RS_CR0+cr;
         end;
-      end;
-
-
-    procedure convert_register_to_enum(var r:Tregister);
-      begin
-        if r.enum = R_INTREGISTER then
-{$ifndef notranslation}
-         if (r.number >= NR_NO) and
-            (r.number <= NR_R31) then
-{$endif not notranslation}
-           r.enum := toldregister(r.number shr 8)
-{$ifndef notranslation}
-         else
-           internalerror(200301082);
-{$endif notranslation}
       end;
 
 
@@ -857,10 +676,81 @@ implementation
         cgsize2subreg:=R_SUBWHOLE;
       end;
 
+
+    function findreg_by_stdname(const s:string):byte;
+      var
+        i,p : tregisterindex;
+      begin
+        {Binary search.}
+        p:=0;
+        i:=regnumber_count_bsstart;
+        repeat
+          if (p+i<=high(tregisterindex)) and (std_regname_table[std_regname_index[p+i]]<=s) then
+            p:=p+i;
+          i:=i shr 1;
+        until i=0;
+        if std_regname_table[std_regname_index[p]]=s then
+          result:=std_regname_index[p]
+        else
+          result:=0;
+      end;
+
+
+    function findreg_by_number(r:Tregister):tregisterindex;
+      var
+        i,p : tregisterindex;
+      begin
+        {Binary search.}
+        p:=0;
+        i:=regnumber_count_bsstart;
+        repeat
+          if (p+i<=high(tregisterindex)) and (regnumber_table[regnumber_index[p+i]]<=r) then
+            p:=p+i;
+          i:=i shr 1;
+        until i=0;
+        if regnumber_table[regnumber_index[p]]=r then
+          result:=regnumber_index[p]
+        else
+          result:=0;
+      end;
+
+
+    function std_regnum_search(const s:string):Tregister;
+      begin
+        result:=regnumber_table[findreg_by_stdname(s)];
+      end;
+
+
+    function std_regname(r:Tregister):string;
+      var
+        p : tregisterindex;
+      begin
+        p:=findreg_by_number(r);
+        if p<>0 then
+          result:=std_regname_table[p]
+        else
+          result:=generic_regname(r);
+      end;
+
+
+    function gas_regname(r:Tregister):string;
+      var
+        p : tregisterindex;
+      begin
+        p:=findreg_by_number(r);
+        if p<>0 then
+          result:=gas_regname_table[p]
+        else
+          result:=generic_regname(r);
+      end;
+
 end.
 {
   $Log$
-  Revision 1.65  2003-09-03 11:18:37  florian
+  Revision 1.66  2003-09-03 19:35:24  peter
+    * powerpc compiles again
+
+  Revision 1.65  2003/09/03 11:18:37  florian
     * fixed arm concatcopy
     + arm support in the common compiler sources added
     * moved some generic cg code around

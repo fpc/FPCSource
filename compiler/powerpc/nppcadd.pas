@@ -27,25 +27,24 @@ unit nppcadd;
 interface
 
     uses
-       node,nadd,cpubase,cginfo;
+       node,nadd,ncgadd,cpubase,cginfo;
 
     type
-       tppcaddnode = class(taddnode)
+       tppcaddnode = class(tcgaddnode)
           function pass_1: tnode; override;
           procedure pass_2;override;
          private
           procedure pass_left_and_right;
           procedure load_left_right(cmpop, load_constants: boolean);
-          procedure clear_left_right(cmpop: boolean);
           function  getresflags : tresflags;
           procedure emit_compare(unsigned : boolean);
-          procedure second_addfloat;
-          procedure second_addboolean;
-          procedure second_addsmallset;
+          procedure second_addfloat;override;
+          procedure second_addboolean;override;
+          procedure second_addsmallset;override;
 {$ifdef SUPPORT_MMX}
-          procedure second_addmmx;
+          procedure second_addmmx;override;
 {$endif SUPPORT_MMX}
-          procedure second_add64bit;
+          procedure second_add64bit;override;
        end;
 
   implementation
@@ -87,7 +86,6 @@ interface
 
     procedure tppcaddnode.pass_left_and_right;
       var
-        pushedregs : tmaybesave;
         tmpreg     : tregister;
         pushedfpu  : boolean;
       begin
@@ -101,17 +99,11 @@ interface
         secondpass(left);
 
         { are too few registers free? }
-{$ifndef newra}
-        maybe_save(exprasmlist,right.registers32,left.location,pushedregs);
-{$endif newra}
         if location.loc=LOC_FPUREGISTER then
           pushedfpu:=maybe_pushfpu(exprasmlist,right.registersfpu,left.location)
         else
           pushedfpu:=false;
         secondpass(right);
-{$ifndef newra}
-        maybe_restore(exprasmlist,left.location,pushedregs);
-{$endif newra}
         if pushedfpu then
           begin
             tmpreg := rg.getregisterfpu(exprasmlist,left.location.size);
@@ -162,7 +154,7 @@ interface
         load_node(left);
         load_node(right);
         if not(cmpop) and
-           (location.register.number = NR_NO) then
+           (location.register = NR_NO) then
          begin
            location.register := rg.getregisterint(exprasmlist,OS_INT);
            if is_64bit(resulttype.def) then
@@ -171,43 +163,12 @@ interface
       end;
 
 
-    procedure tppcaddnode.clear_left_right(cmpop: boolean);
-      begin
-        if (right.location.loc in [LOC_REGISTER,LOC_FPUREGISTER]) and
-           (cmpop or
-            ((location.register.enum = R_INTREGISTER) and
-             (location.register.number <> right.location.register.number)) or
-              (location.register.enum <> right.location.register.enum)) then
-          begin
-            if (right.location.register.enum = R_INTREGISTER) then
-              rg.ungetregisterint(exprasmlist,right.location.register)
-            else
-              rg.ungetregister(exprasmlist,right.location.register);
-            if is_64bit(right.resulttype.def) then
-              rg.ungetregisterint(exprasmlist,right.location.registerhigh)
-          end;
-        if (left.location.loc in [LOC_REGISTER,LOC_FPUREGISTER]) and
-           (cmpop or
-            ((location.register.enum = R_INTREGISTER) and
-             (location.register.number <> left.location.register.number)) or
-              (location.register.enum <> left.location.register.enum)) then
-          begin
-            if (left.location.register.enum = R_INTREGISTER) then
-              rg.ungetregisterint(exprasmlist,left.location.register)
-            else
-              rg.ungetregister(exprasmlist,left.location.register);
-            if is_64bit(left.resulttype.def) then
-              rg.ungetregisterint(exprasmlist,left.location.registerhigh)
-          end;
-      end;
-
-
     function tppcaddnode.getresflags : tresflags;
       begin
         if (left.resulttype.def.deftype <> floatdef) then
-          result.cr := R_CR0
+          result.cr := RS_CR0
         else
-          result.cr := R_CR1;
+          result.cr := RS_CR1;
         case nodetype of
           equaln : result.flag:=F_EQ;
           unequaln : result.flag:=F_NE;
@@ -266,11 +227,7 @@ interface
             else
               begin
                 useconst := false;
-{$ifndef newra}
-                tmpreg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
-{$else newra}
                 tmpreg := rg.getregisterint(exprasmlist,OS_INT);
-{$endif newra}
                 cg.a_load_const_reg(exprasmlist,OS_INT,
                   aword(right.location.value),tmpreg);
                end
@@ -298,11 +255,7 @@ interface
             begin
               exprasmlist.concat(taicpu.op_reg_reg(op,
                 left.location.register,tmpreg));
-{$ifndef newra}
-              cg.free_scratch_reg(exprasmlist,tmpreg);
-{$else newra}
               rg.ungetregisterint(exprasmlist,tmpreg);
-{$endif newra}
             end
         else
           exprasmlist.concat(taicpu.op_reg_reg(op,
@@ -321,7 +274,6 @@ interface
         cmpop,
         isjump  : boolean;
         otl,ofl : tasmlabel;
-        pushedregs : tmaybesave;
       begin
         { calculate the operator which is more difficult }
         firstcomplex(self);
@@ -360,9 +312,6 @@ interface
                falselabel:=ofl;
              end;
 
-{$ifndef newra}
-            maybe_save(exprasmlist,right.registers32,left.location,pushedregs);
-{$endif newra}
             isjump:=(right.location.loc=LOC_JUMP);
             if isjump then
               begin
@@ -372,9 +321,6 @@ interface
                  objectlibrary.getlabel(falselabel);
               end;
             secondpass(right);
-{$ifndef newra}
-            maybe_restore(exprasmlist,left.location,pushedregs);
-{$endif newra}
             if right.location.loc in [LOC_FLAGS,LOC_JUMP] then
              location_force_reg(exprasmlist,right.location,cgsize,false);
             if isjump then
@@ -469,7 +415,8 @@ interface
                end;
            end;
          end;
-        clear_left_right(cmpop);
+
+        release_reg_left_right;
       end;
 
 
@@ -479,10 +426,8 @@ interface
 
     procedure tppcaddnode.second_addfloat;
       var
-        reg   : tregister;
         op    : TAsmOp;
         cmpop : boolean;
-        r     : Tregister;
       begin
         pass_left_and_right;
 
@@ -541,12 +486,11 @@ interface
           end
         else
           begin
-            r.enum:=location.resflags.cr;
             exprasmlist.concat(taicpu.op_reg_reg_reg(op,
-              r,left.location.register,right.location.register))
+              newreg(R_SPECIALREGISTER,location.resflags.cr,R_SUBNONE),left.location.register,right.location.register))
           end;
 
-        clear_left_right(cmpop);
+        release_reg_left_right;
       end;
 
 {*****************************************************************************
@@ -581,7 +525,7 @@ interface
         load_left_right(cmpop,false);
 
         if not(cmpop) and
-           (location.register.number = NR_NO) then
+           (location.register = NR_NO) then
           location.register := rg.getregisterint(exprasmlist,OS_INT);
 
         case nodetype of
@@ -601,11 +545,7 @@ interface
                       left.location.register,location.register)
                   else
                     begin
-{$ifndef newra}
-                      tmpreg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
-{$else newra}
                       tmpreg := rg.getregisterint(exprasmlist,OS_INT);
-{$endif newra}
                       cg.a_load_const_reg(exprasmlist,OS_INT,1,tmpreg);
                       cg.a_op_reg_reg(exprasmlist,OP_SHL,OS_INT,
                         right.location.register,tmpreg);
@@ -615,11 +555,7 @@ interface
                       else
                         cg.a_op_const_reg_reg(exprasmlist,OP_OR,OS_INT,
                           aword(left.location.value),tmpreg,location.register);
-{$ifndef newra}
-                      cg.free_scratch_reg(exprasmlist,tmpreg);
-{$else newra}
                       rg.ungetregisterint(exprasmlist,tmpreg);
-{$endif newra}
                     end;
                   opdone := true;
                 end
@@ -649,20 +585,12 @@ interface
                 begin
                   if left.location.loc = LOC_CONSTANT then
                     begin
-{$ifndef newra}
-                      tmpreg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
-{$else newra}
                       tmpreg := rg.getregisterint(exprasmlist,OS_INT);
-{$endif newra}
                       cg.a_load_const_reg(exprasmlist,OS_INT,
                         aword(left.location.value),tmpreg);
                       exprasmlist.concat(taicpu.op_reg_reg_reg(A_ANDC,
                         location.register,tmpreg,right.location.register));
-{$ifndef newra}
-                      cg.free_scratch_reg(exprasmlist,tmpreg);
-{$else newra}
                       rg.ungetregisterint(exprasmlist,tmpreg);
-{$endif newra}
                     end
                   else
                     exprasmlist.concat(taicpu.op_reg_reg_reg(A_ANDC,
@@ -684,11 +612,7 @@ interface
                   (nodetype = gten)) then
                 swapleftright;
               // now we have to check whether left >= right
-{$ifndef newra}
-              tmpreg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
-{$else newra}
               tmpreg := rg.getregisterint(exprasmlist,OS_INT);
-{$endif newra}
               if left.location.loc = LOC_CONSTANT then
                 begin
                   cg.a_op_const_reg_reg(exprasmlist,OP_AND,OS_INT,
@@ -710,12 +634,8 @@ interface
                     exprasmlist.concat(taicpu.op_reg_reg_reg(A_ANDC_,tmpreg,
                       right.location.register,left.location.register));
                 end;
-{$ifndef newra}
-              cg.free_scratch_reg(exprasmlist,tmpreg);
-{$else newra}
               rg.ungetregisterint(exprasmlist,tmpreg);
-{$endif newra}
-              location.resflags.cr := R_CR0;
+              location.resflags.cr := RS_CR0;
               location.resflags.flag := F_EQ;
               opdone := true;
             end;
@@ -738,7 +658,7 @@ interface
                 location.register);
           end;
 
-        clear_left_right(cmpop);
+        release_reg_left_right;
       end;
 
 {*****************************************************************************
@@ -940,19 +860,11 @@ interface
                       else
                         begin
                           if (aword(right.location.valueqword) <> 0) then
-{$ifndef newra}
-                            tempreg64.reglo := cg.get_scratch_reg_int(exprasmlist,OS_32)
-{$else newra}
                             tempreg64.reglo := rg.getregisterint(exprasmlist,OS_32)
-{$endif newra}
                           else
                             tempreg64.reglo := left.location.registerlow;
                           if ((right.location.valueqword shr 32) <> 0) then
-{$ifndef newra}
-                            tempreg64.reghi := cg.get_scratch_reg_int(exprasmlist,OS_32)
-{$else newra}
                             tempreg64.reghi := rg.getregisterint(exprasmlist,OS_32)
-{$endif newra}
                           else
                             tempreg64.reghi := left.location.registerhigh;
                         end;
@@ -983,43 +895,28 @@ interface
                     end
                   else
                     begin
-{$ifndef newra}
-                       tempreg64.reglo := cg.get_scratch_reg_int(exprasmlist,OS_32);
-                       tempreg64.reghi := cg.get_scratch_reg_int(exprasmlist,OS_32);
-{$else newra}
                        tempreg64.reglo := rg.getregisterint(exprasmlist,OS_INT);
                        tempreg64.reghi := rg.getregisterint(exprasmlist,OS_INT);
-{$endif newra}
                        cg64.a_op64_reg_reg_reg(exprasmlist,OP_XOR,
                          left.location.register64,right.location.register64,
                          tempreg64);
                     end;
 
-                  r.enum:=R_INTREGISTER;
-                  r.number:=NR_R0;
-                  cg.a_reg_alloc(exprasmlist,r);
-                  exprasmlist.concat(taicpu.op_reg_reg_reg(A_OR_,r,
+                  cg.a_reg_alloc(exprasmlist,NR_R0);
+                  exprasmlist.concat(taicpu.op_reg_reg_reg(A_OR_,NR_R0,
                     tempreg64.reglo,tempreg64.reghi));
-                  cg.a_reg_dealloc(exprasmlist,r);
-                  if (tempreg64.reglo.number <> left.location.registerlow.number) then
-{$ifndef newra}
-                    cg.free_scratch_reg(exprasmlist,tempreg64.reglo);
-{$else newra}
-                    rg.ungetregisterint(exprasmlist,tempreg64.reglo);                                          
-{$endif newra}
-                  if (tempreg64.reghi.number <> left.location.registerhigh.number) then
-{$ifndef newra}
-                    cg.free_scratch_reg(exprasmlist,tempreg64.reghi);
-{$else newra}
+                  cg.a_reg_dealloc(exprasmlist,NR_R0);
+                  if (tempreg64.reglo <> left.location.registerlow) then
+                    rg.ungetregisterint(exprasmlist,tempreg64.reglo);
+                  if (tempreg64.reghi <> left.location.registerhigh) then
                     rg.ungetregisterint(exprasmlist,tempreg64.reghi);
-{$endif newra}
 
                   location_reset(location,LOC_FLAGS,OS_NO);
                   location.resflags := getresflags;
                 end;
               xorn,orn,andn,addn:
                 begin
-                  if (location.registerlow.number = NR_NO) then
+                  if (location.registerlow = NR_NO) then
                     begin
                       location.registerlow := rg.getregisterint(exprasmlist,OS_INT);
                       location.registerhigh := rg.getregisterint(exprasmlist,OS_INT);
@@ -1041,7 +938,7 @@ interface
 
                   if left.location.loc <> LOC_CONSTANT then
                     begin
-                      if (location.registerlow.number = NR_NO) then
+                      if (location.registerlow = NR_NO) then
                         begin
                          location.registerlow := rg.getregisterint(exprasmlist,OS_INT);
                          location.registerhigh := rg.getregisterint(exprasmlist,OS_INT);
@@ -1059,7 +956,7 @@ interface
                     end
                   else if ((left.location.valueqword shr 32) = 0) then
                     begin
-                      if (location.registerlow.number = NR_NO) then
+                      if (location.registerlow = NR_NO) then
                         begin
                          location.registerlow := rg.getregisterint(exprasmlist,OS_INT);
                          location.registerhigh := rg.getregisterint(exprasmlist,OS_INT);
@@ -1087,7 +984,7 @@ interface
                   else if (aword(left.location.valueqword) = 0) then
                     begin
                       // (const32 shl 32) - reg64
-                      if (location.registerlow.number = NR_NO) then
+                      if (location.registerlow = NR_NO) then
                         begin
                          location.registerlow := rg.getregisterint(exprasmlist,OS_INT);
                          location.registerhigh := rg.getregisterint(exprasmlist,OS_INT);
@@ -1107,7 +1004,7 @@ interface
                         def_cgsize(left.resulttype.def),false);
                       if (left.location.loc = LOC_REGISTER) then
                         location.register64 := left.location.register64
-                      else if (location.registerlow.number = NR_NO) then
+                      else if (location.registerlow = NR_NO) then
                         begin
                          location.registerlow := rg.getregisterint(exprasmlist,OS_INT);
                          location.registerhigh := rg.getregisterint(exprasmlist,OS_INT);
@@ -1151,7 +1048,7 @@ interface
            not(nodetype in [equaln,unequaln]) then
           location_reset(location,LOC_JUMP,OS_NO);
 
-        clear_left_right(cmpop);
+        release_reg_left_right;
 
       end;
 
@@ -1358,8 +1255,6 @@ interface
          { true, if unsigned types are compared }
          unsigned : boolean;
 
-         regstopush: tregisterset;
-
       begin
          { to make it more readable, string and set (not smallset!) have their
            own procedures }
@@ -1433,7 +1328,7 @@ interface
          load_left_right(cmpop, (cs_check_overflow in aktlocalswitches) and
             (nodetype in [addn,subn,muln]));
 
-         if (location.register.number = NR_NO) and
+         if (location.register = NR_NO) and
             not(cmpop) then
            location.register := rg.getregisterint(exprasmlist,OS_INT);
 
@@ -1493,20 +1388,12 @@ interface
                        end
                      else
                        begin
-{$ifndef newra}
-                         tmpreg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
-{$else newra}
-                         tmpreg := rg.getregisterint(exprasmlist,OS_INT);               
-{$endif newra}
+                         tmpreg := rg.getregisterint(exprasmlist,OS_INT);
                          cg.a_load_const_reg(exprasmlist,OS_INT,
                            aword(left.location.value),tmpreg);
                          cg.a_op_reg_reg_reg(exprasmlist,OP_SUB,OS_INT,
                            right.location.register,tmpreg,location.register);
-{$ifndef newra}
-                         cg.free_scratch_reg(exprasmlist,tmpreg);
-{$else newra}
                          rg.ungetregisterint(exprasmlist,tmpreg);
-{$endif newra}
                        end;
                  end;
                ltn,lten,gtn,gten,equaln,unequaln :
@@ -1533,7 +1420,7 @@ interface
              cg.g_overflowcheck(exprasmlist,location,resulttype.def);
            end;
 
-         clear_left_right(cmpop);
+         release_reg_left_right;
       end;
 
 begin
@@ -1541,7 +1428,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  2003-06-14 22:32:43  jonas
+  Revision 1.34  2003-09-03 19:35:24  peter
+    * powerpc compiles again
+
+  Revision 1.33  2003/06/14 22:32:43  jonas
     * ppc compiles with -dnewra, haven't tried to compile anything with it
       yet though
 

@@ -53,26 +53,17 @@ interface
        { codegen }
        cgbase,
        { constants }
-       agppcgas,
-       cpubase
+       cginfo,cpubase,
+       itppcgas
        ;
 
-    { checks if a string identifies a register }
-    { it should be optimized                   }
-    function is_register(const s : string) : boolean;
-      var
-         r : toldregister;
-      begin
-         is_register:=false;
-         if length(s)>5 then
-           exit;
-         for r:=low(gas_reg2str) to high(gas_reg2str) do
-           if gas_reg2str[r]=s then
-              begin
-                 is_register:=true;
-                 exit;
-              end;
-      end;
+function is_register(const s:string):boolean;
+begin
+  is_register:=false;
+  if gas_regnum_search(lower(s))<>NR_NO then
+    is_register:=true;
+end;
+
 
     function assemble : tnode;
 
@@ -105,9 +96,7 @@ interface
 
      begin
        ende:=false;
-       framereg.enum:=R_INTREGISTER;
-       framereg.number:=NR_STACK_POINTER_REG;
-       convert_register_to_enum(framereg);
+       framereg:=NR_STACK_POINTER_REG;
        s:='';
        if assigned(current_procinfo.procdef.funcretsym) and
           is_fpu(current_procinfo.procdef.rettype.def) then
@@ -192,14 +181,14 @@ interface
                                                  hs:=tvarsym(sym).mangledname
                                                else
                                                  begin
-                                                    if (tvarsym(sym).reg.enum<>R_NO) then
+                                                    if (tvarsym(sym).reg<>NR_NO) then
 // until new regallocator stuff settles down
 //                                                      hs:=gas_reg2str[procinfo.framepointer.enum]
-                                                      hs:=gas_reg2str[framereg.enum]
+                                                      hs:=gas_regname(framereg)
                                                     else
                                                       hs:=tostr(tvarsym(sym).address)+
 //                                                        '('+gas_reg2str[procinfo.framepointer.enum]+')';
-                                                        '('+gas_reg2str[framereg.enum]+')';
+                                                        '('+gas_regname(framereg)+')';
                                                  end;
                                             end
                                           else
@@ -221,7 +210,7 @@ interface
                                                     { set offset }
                                                     inc(l,current_procinfo.procdef.parast.address_fixup);
 //                                                    hs:=tostr(l)+'('+gas_reg2str[procinfo.framepointer.enum]+')';
-                                                    hs:=tostr(l)+'('+gas_reg2str[framereg.enum]+')';
+                                                    hs:=tostr(l)+'('+gas_regname(framereg)+')';
                                                     if pos(',',s) > 0 then
                                                       tvarsym(sym).varstate:=vs_used;
                                                  end;
@@ -291,7 +280,7 @@ interface
                                                       Message(asmr_e_void_function);
                                                  end
                                                { implement old stack/frame pointer access for nested procedures }
-                                               {!!!!
+                                               (* !!!!
                                                else if upper(hs)='__OLDSP' then
                                                  begin
                                                     { complicate to check there }
@@ -302,7 +291,7 @@ interface
                                                     else
                                                       Message(asmr_e_cannot_use_OLDEBP_outside_nested_procedure);
                                                  end;
-                                               }
+                                               *)
                                                end;
 {$endif dummy}
                                             end;
@@ -351,7 +340,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.16  2003-06-13 21:19:32  peter
+  Revision 1.17  2003-09-03 19:35:24  peter
+    * powerpc compiles again
+
+  Revision 1.16  2003/06/13 21:19:32  peter
     * current_procdef removed, use current_procinfo.procdef instead
 
   Revision 1.15  2003/06/02 21:42:05  jonas

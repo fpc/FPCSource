@@ -78,19 +78,11 @@ implementation
                 hregister,value))
             else
               begin
-{$ifndef newra}
-                tmpreg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
-{$else newra}         
                 tmpreg := rg.getregisterint(exprasmlist,OS_INT);
-{$endif newra}         
                  cg.a_load_const_reg(exprasmlist,OS_INT,aword(value),tmpreg);
                 exprasmlist.concat(taicpu.op_reg_reg_reg(A_ADD_,hregister,
                   hregister,tmpreg));
-{$ifndef newra}
-                cg.free_scratch_reg(exprasmlist,tmpreg);
-{$else newra}         
-                rg.ungetregisterint(exprasmlist,tmpreg);                                         
-{$endif newra}         
+                rg.ungetregisterint(exprasmlist,tmpreg);
                end;
           end;
 
@@ -105,14 +97,13 @@ implementation
              end;
            if t^._low=t^._high then
              begin
-                r.enum:=R_CR0;
                 if t^._low-last=0 then
-                  exprasmlist.concat(taicpu.op_reg_reg_const(A_CMPWI,r,
+                  exprasmlist.concat(taicpu.op_reg_reg_const(A_CMPWI,NR_CR0,
                     hregister,0))
                 else
                   gensub(longint(t^._low-last));
                 last:=t^._low;
-                resflags.cr := R_CR0;
+                resflags.cr := RS_CR0;
                 resflags.flag := F_EQ;
                 cg.a_jmp_flags(exprasmlist,resflags,t^.statement);
              end
@@ -167,7 +158,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2003-06-14 22:32:43  jonas
+  Revision 1.9  2003-09-03 19:35:24  peter
+    * powerpc compiles again
+
+  Revision 1.8  2003/06/14 22:32:43  jonas
     * ppc compiles with -dnewra, haven't tried to compile anything with it
       yet though
 

@@ -24,6 +24,7 @@ var s : string;
     regcount:byte;
     regcount_bsstart:byte;
     names,
+    regtypes,
     numbers,
     stdnames,
     motnames,
@@ -227,6 +228,8 @@ begin
         i:=1;
         names[regcount]:=readstr;
         readcomma;
+        regtypes[regcount]:=readstr;
+        readcomma;
         numbers[regcount]:=readstr;
         readcomma;
         stdnames[regcount]:=readstr;
@@ -253,7 +256,7 @@ end;
 procedure write_inc_files;
 
 var
-    norfile,stdfile,motfile,
+    norfile,stdfile,motfile,supfile,
     numfile,stabfile,confile,
     rnifile,srifile,mrifile:text;
     first:boolean;
@@ -261,6 +264,7 @@ var
 begin
   { create inc files }
   openinc(confile,'rppccon.inc');
+  openinc(supfile,'rppcsup.inc');
   openinc(numfile,'rppcnum.inc');
   openinc(stdfile,'rppcstd.inc');
   openinc(motfile,'rppcmot.inc');
@@ -284,8 +288,9 @@ begin
         end
       else
         first:=false;
-      writeln(confile,names[i],' = ',numbers[i],';');
-      write(numfile,numbers[i]);
+      writeln(confile,'NR_',names[i],' = ',regtypes[i],'0000',copy(numbers[i],2,255),';');
+      writeln(supfile,'RS_',names[i],' = ',numbers[i],';');
+      write(numfile,'NR_',names[i]);
       write(stdfile,'''',stdnames[i],'''');
       write(motfile,'''',motnames[i],'''');
       write(stabfile,stabs[i]);
@@ -295,6 +300,7 @@ begin
     end;
   write(norfile,regcount);
   close(confile);
+  close(supfile);
   closeinc(numfile);
   closeinc(stdfile);
   closeinc(motfile);
@@ -323,7 +329,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2003-09-03 15:55:01  peter
+  Revision 1.3  2003-09-03 19:35:24  peter
+    * powerpc compiles again
+
+  Revision 1.2  2003/09/03 15:55:01  peter
     * NEWRA branch merged
 
   Revision 1.1.2.1  2003/09/02 20:48:22  peter

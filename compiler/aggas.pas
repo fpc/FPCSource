@@ -80,14 +80,14 @@ implementation
   {$endif}
       ,gdb
 {$endif GDB}
-{$ifdef i386}
+{$ifdef x86}
       ,itx86att
+{$endif}
+{$ifdef powerpc}
+      ,itppcgas
 {$endif}
 {$ifdef arm}
       ,agarmgas
-{$endif}
-{$ifdef powerpc}
-      ,agppcgas
 {$endif}
       ;
 
@@ -828,7 +828,10 @@ var
 end.
 {
   $Log$
-  Revision 1.31  2003-09-03 15:55:00  peter
+  Revision 1.32  2003-09-03 19:35:24  peter
+    * powerpc compiles again
+
+  Revision 1.31  2003/09/03 15:55:00  peter
     * NEWRA branch merged
 
   Revision 1.30  2003/09/03 11:18:36  florian

@@ -75,16 +75,14 @@ implementation
   procedure tppccallnode.push_framepointer;
     var
        href : treference;
-       hregister1,hregister2 : tregister;
+       hregister1 : tregister;
        i : longint;
     begin
        if current_procinfo.procdef.parast.symtablelevel=(tprocdef(procdefinition).parast.symtablelevel) then
          begin
             { pass the same framepointer as the current procedure got }
-            hregister2.enum:=R_INTREGISTER;
-            hregister2.number:=NR_R11;
             reference_reset_base(href,current_procinfo.framepointer,PARENT_FRAMEPOINTER_OFFSET);
-            cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,hregister2);
+            cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,NR_R11);
             { it must be adjusted! }
          end
          { this is only true if the difference is one !!
@@ -92,11 +90,7 @@ implementation
        else if (current_procinfo.procdef.parast.symtablelevel=(tprocdef(procdefinition).parast.symtablelevel)-1) then
          begin
             { pass the same framepointer as the current procedure got }
-            hregister1.enum:=R_INTREGISTER;
-            hregister1.number:=NR_R1;
-            hregister2.enum:=R_INTREGISTER;
-            hregister2.number:=NR_R11;
-            cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,hregister1,hregister2);
+            cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,NR_R1,NR_R11);
          end
        else if (current_procinfo.procdef.parast.symtablelevel>(tprocdef(procdefinition).parast.symtablelevel)) then
          begin
@@ -112,9 +106,7 @@ implementation
                  cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,hregister1);
                  dec(i);
               end;
-            hregister2.enum:=R_INTREGISTER;
-            hregister2.number:=NR_R11;
-            cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,hregister1,hregister2);
+            cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,hregister1,NR_R11);
             rg.ungetregisterint(exprasmlist,hregister1);
          end
        else
@@ -131,7 +123,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2003-07-08 21:24:59  peter
+  Revision 1.21  2003-09-03 19:35:24  peter
+    * powerpc compiles again
+
+  Revision 1.20  2003/07/08 21:24:59  peter
     * sparc fixes
 
   Revision 1.19  2003/07/06 20:25:03  jonas

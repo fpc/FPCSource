@@ -58,15 +58,13 @@ unit cpupara;
          else if nr<=8 then
            begin
               result.loc:=LOC_REGISTER;
-              result.register.enum:=R_INTREGISTER;
-              result.register.number:=NR_R2+nr*(NR_R1-NR_R0);
-              rg.getexplicitregisterint(list,result.register.number);
+              result.register:=newreg(R_INTREGISTER,RS_R2+nr,R_SUBWHOLE);
+              rg.getexplicitregisterint(list,result.register);
            end
          else
            begin
               result.loc:=LOC_REFERENCE;
-              result.reference.index.enum:=R_INTREGISTER;
-              result.reference.index.number:=NR_STACK_POINTER_REG;
+              result.reference.index:=NR_STACK_POINTER_REG;
               result.reference.offset:=(nr-8)*4;
            end;
          result.size := OS_INT;
@@ -83,8 +81,7 @@ unit cpupara;
            internalerror(2003060401)
          else if nr<=8 then
            begin
-             r.enum := R_INTREGISTER;
-             r.number := NR_R2+nr*(NR_R1-NR_R0);
+             r:=newreg(R_INTREGISTER,RS_R2+nr,R_SUBWHOLE);
              rg.ungetregisterint(list,r);
            end;
       end;
@@ -169,7 +166,7 @@ unit cpupara;
     procedure tppcparamanager.create_paraloc_info(p : tabstractprocdef; side: tcallercallee);
 
       var
-         nextintreg,nextfloatreg,nextmmreg : tregister;
+         nextintreg,nextfloatreg,nextmmreg : tsuperregister;
          paradef : tdef;
          paraloc : tparalocation;
          stack_offset : aword;
@@ -180,33 +177,27 @@ unit cpupara;
       procedure assignintreg;
 
         begin
-           if nextintreg.number<=NR_R10 then
+           if nextintreg<=NR_R10 then
              begin
                 paraloc.loc:=LOC_REGISTER;
                 paraloc.register:=nextintreg;
-                inc(nextintreg.number,NR_R1-NR_R0);
+                inc(nextintreg,NR_R1-NR_R0);
                 if target_info.abi=abi_powerpc_aix then
                   inc(stack_offset,4);
              end
            else
               begin
                  paraloc.loc:=LOC_REFERENCE;
-                 paraloc.reference.index.enum:=R_INTREGISTER;
-                 paraloc.reference.index.number:=NR_STACK_POINTER_REG;
+                 paraloc.reference.index:=NR_STACK_POINTER_REG;
                  paraloc.reference.offset:=stack_offset;
                  inc(stack_offset,4);
              end;
         end;
 
       begin
-         { zero alignment bytes }
-         fillchar(nextintreg,sizeof(nextintreg),0);
-         fillchar(nextfloatreg,sizeof(nextfloatreg),0);
-         fillchar(nextmmreg,sizeof(nextmmreg),0);
-         nextintreg.enum:=R_INTREGISTER;
-         nextintreg.number:=NR_R3;
-         nextfloatreg.enum:=R_F1;
-         nextmmreg.enum:=R_M1;
+         nextintreg:=RS_R3;
+         nextfloatreg:=RS_F1;
+         nextmmreg:=RS_M1;
          case target_info.abi of
            abi_powerpc_aix:
              stack_offset:=24;
@@ -243,30 +234,29 @@ unit cpupara;
                       if paraloc.size = OS_NO then
                         paraloc.size := OS_ADDR;
                       is_64bit := paraloc.size in [OS_64,OS_S64];
-                      if nextintreg.number<=(NR_R10-ord(is_64bit)*(NR_R1-NR_R0))  then
+                      if nextintreg<=(RS_R10-ord(is_64bit))  then
                         begin
                            paraloc.loc:=LOC_REGISTER;
                            if is_64bit then
                              begin
-                               if odd((nextintreg.number-NR_R3) shr 8) and (target_info.abi=abi_powerpc_sysv) Then
-                                inc(nextintreg.number,NR_R1-NR_R0);
+                               if odd(nextintreg-RS_R3) and (target_info.abi=abi_powerpc_sysv) Then
+                                 inc(nextintreg);
                                paraloc.registerhigh:=nextintreg;
-                               inc(nextintreg.number,NR_R1-NR_R0);
+                               inc(nextintreg);
                                if target_info.abi=abi_powerpc_aix then
                                  inc(stack_offset,4);
                              end;
                            paraloc.registerlow:=nextintreg;
-                           inc(nextintreg.number,NR_R1-NR_R0);
+                           inc(nextintreg);
                            if target_info.abi=abi_powerpc_aix then
                              inc(stack_offset,4);
 
                         end
                       else
                          begin
-                            nextintreg.number := NR_R11;
+                            nextintreg:=RS_R11;
                             paraloc.loc:=LOC_REFERENCE;
-                            paraloc.reference.index.enum:=R_INTREGISTER;
-                            paraloc.reference.index.number:=NR_STACK_POINTER_REG;
+                            paraloc.reference.index:=NR_STACK_POINTER_REG;
                             paraloc.reference.offset:=stack_offset;
                             if not is_64bit then
                               inc(stack_offset,4)
@@ -277,11 +267,11 @@ unit cpupara;
                  LOC_FPUREGISTER:
                    begin
                       paraloc.size:=def_cgsize(paradef);
-                      if nextfloatreg.enum<=R_F10 then
+                      if nextfloatreg<=RS_F10 then
                         begin
                            paraloc.loc:=LOC_FPUREGISTER;
-                           paraloc.register:=nextfloatreg;
-                           inc(nextfloatreg.enum);
+                           paraloc.register:=newreg(R_FPUREGISTER,nextfloatreg,R_SUBWHOLE);
+                           inc(nextfloatreg);
                            if target_info.abi=abi_powerpc_aix then
                              inc(stack_offset,8);
                         end
@@ -302,8 +292,7 @@ unit cpupara;
                       else
                         begin
                            paraloc.loc:=LOC_REFERENCE;
-                           paraloc.reference.index.enum:=R_INTREGISTER;
-                           paraloc.reference.index.number:=NR_STACK_POINTER_REG;
+                           paraloc.reference.index:=NR_STACK_POINTER_REG;
                            paraloc.reference.offset:=stack_offset;
                            inc(stack_offset,hp.paratype.def.size);
                         end;
@@ -327,7 +316,7 @@ unit cpupara;
         if p.rettype.def.deftype=floatdef then
           begin
             paraloc.loc:=LOC_FPUREGISTER;
-            paraloc.register.enum:=FPU_RESULT_REG;
+            paraloc.register:=NR_FPU_RESULT_REG;
           end
         else
          { Return in register? }
@@ -337,17 +326,12 @@ unit cpupara;
 {$ifndef cpu64bit}
             if paraloc.size in [OS_64,OS_S64] then
              begin
-               paraloc.register64.reglo.enum:=R_INTREGISTER;
-               paraloc.register64.reglo.number:=NR_FUNCTION_RETURN64_LOW_REG;
-               paraloc.register64.reghi.enum:=R_INTREGISTER;
-               paraloc.register64.reghi.number:=NR_FUNCTION_RETURN64_HIGH_REG;
+               paraloc.register64.reglo:=NR_FUNCTION_RETURN64_LOW_REG;
+               paraloc.register64.reghi:=NR_FUNCTION_RETURN64_HIGH_REG;
              end
             else
 {$endif cpu64bit}
-             begin
-               paraloc.register.enum:=R_INTREGISTER;
-               paraloc.register.number:=NR_FUNCTION_RETURN_REG;
-             end;
+             paraloc.register:=NR_FUNCTION_RETURN_REG;
           end
         else
           begin
@@ -361,7 +345,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.42  2003-08-11 21:18:20  peter
+  Revision 1.43  2003-09-03 19:35:24  peter
+    * powerpc compiles again
+
+  Revision 1.42  2003/08/11 21:18:20  peter
     * start of sparc support for newra
 
   Revision 1.41  2003/07/05 20:11:41  jonas

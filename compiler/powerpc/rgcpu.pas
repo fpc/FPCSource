@@ -36,22 +36,16 @@ unit rgcpu;
 
      type
        trgcpu = class(trgobj)
+{
          function getexplicitregisterint(list: taasmoutput; reg: Tnewregister): tregister; override;
          procedure ungetregisterint(list: taasmoutput; reg: tregister); override;
          function getexplicitregisterfpu(list : taasmoutput; r : Toldregister) : tregister;override;
          procedure ungetregisterfpu(list: taasmoutput; r : tregister; size:TCGsize);override;
-{$ifndef newra}
-         procedure saveusedintregisters(list:Taasmoutput;
-                                         var saved:Tpushedsavedint;
-                                         const s:Tsupregset);override;
-         procedure saveusedotherregisters(list:Taasmoutput;
-                                           var saved:Tpushedsavedother;
-                                           const s:Tregisterset);override;
-{$endif newra}
          procedure cleartempgen; override;
         private
          usedpararegs: Tsupregset;
          usedparafpuregs: tregisterset;
+}
        end;
 
   implementation
@@ -59,14 +53,15 @@ unit rgcpu;
     uses
       cgobj, verbose, cutils;
 
+(*
     function trgcpu.getexplicitregisterint(list: taasmoutput; reg: Tnewregister): tregister;
 
       begin
-        if ((reg shr 8) in [RS_R0{$ifndef newra},RS_R2..RS_R12{$endif}]) and
+        if ((reg shr 8) in [RS_R0]) and
            not((reg shr 8) in is_reg_var_int) then
           begin
             if (reg shr 8) in usedpararegs then
-              internalerror(2003060701); 
+              internalerror(2003060701);
 {              comment(v_warning,'Double allocation of register '+tostr((reg shr 8)-1));}
             include(usedpararegs,reg shr 8);
             result.enum:=R_INTREGISTER;
@@ -80,11 +75,11 @@ unit rgcpu;
     procedure trgcpu.ungetregisterint(list: taasmoutput; reg: tregister);
 
       begin
-        if ((reg.number shr 8) in [RS_R0{$ifndef newra},RS_R2..RS_R12{$endif newra}]) and
+        if ((reg.number shr 8) in [RS_R0]) and
             not((reg.number shr 8) in is_reg_var_int) then
           begin
             if not((reg.number shr 8) in usedpararegs) then
-              internalerror(2003060702); 
+              internalerror(2003060702);
 {               comment(v_warning,'Double free of register '+tostr((reg.number shr 8)-1));}
             exclude(usedpararegs,reg.number shr 8);
             cg.a_reg_dealloc(list,reg);
@@ -125,30 +120,6 @@ unit rgcpu;
       end;
 
 
-{$ifndef newra}
-    procedure trgcpu.saveusedintregisters(list:Taasmoutput;
-                                         var saved:Tpushedsavedint;
-                                         const s:Tsupregset);
-      begin
-        // saving/restoring is done by the callee (except for registers
-        // which already contain parameters, but those aren't allocated
-        // correctly yet)
-        filldword(saved,sizeof(saved) div 4,reg_not_saved);
-      end;
-
-
-    procedure trgcpu.saveusedotherregisters(list:Taasmoutput;
-                                           var saved:Tpushedsavedother;
-                                           const s:Tregisterset);
-      begin
-        // saving/restoring is done by the callee (except for registers
-        // which already contain parameters, but those aren't allocated
-        // correctly yet)
-        filldword(saved,sizeof(saved) div 4,reg_not_saved);
-      end;
-{$endif newra}
-
-
     procedure trgcpu.cleartempgen;
 
       begin
@@ -156,14 +127,18 @@ unit rgcpu;
         usedpararegs := [];
         usedparafpuregs := [];
       end;
+*)
 
 initialization
-  rg := trgcpu.create(last_supreg-first_supreg+1);
+  rg := trgcpu.create(last_int_supreg-first_int_supreg+1);
 end.
 
 {
   $Log$
-  Revision 1.13  2003-07-06 15:27:44  jonas
+  Revision 1.14  2003-09-03 19:35:24  peter
+    * powerpc compiles again
+
+  Revision 1.13  2003/07/06 15:27:44  jonas
     * make sure all registers except r0 are handled by the register
       allocator for -dnewra
 
