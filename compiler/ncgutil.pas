@@ -1057,7 +1057,7 @@ implementation
                   uses_fpu := true;
     {$ifdef cpufpemu}
                   if cs_fp_emulation in aktmoduleswitches then
-                    cg.a_loadfpu_loc_reg(list,resloc,NR_FUNCTION_RETURN_REG);
+                    cg.a_loadfpu_loc_reg(list,resloc,NR_FUNCTION_RETURN_REG)
                   else
     {$endif cpufpemu}
                     cg.a_loadfpu_loc_reg(list,resloc,NR_FPU_RESULT_REG);
@@ -2001,7 +2001,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.173  2003-12-06 01:15:22  florian
+  Revision 1.174  2003-12-07 16:28:30  jonas
+    * fixed typo found by Charlie
+
+  Revision 1.173  2003/12/06 01:15:22  florian
     * reverted Peter's alloctemp patch; hopefully properly
 
   Revision 1.172  2003/12/03 23:13:20  peter
