@@ -22,28 +22,6 @@ interface
 uses FPImage, classes, sysutils;
 
 type
-   
-   TBitMapFileHeader = record
-      bfType:word;              // is always 19778 : 'BM'
-      bfSize:longint;           // Filesize
-      bfReserved:longint;
-      bfOffset:longint;         // Offset of image data
-   end;
-
-   TBitMapInfoHeader = record
-      Size:longint;
-      Width:longint;
-      Height:longint;
-      Planes:word;
-      BitCount:word;
-      Compression:longint;
-      SizeImage:longint;
-      XPelsPerMeter:Longint;
-      YPelsPerMeter:Longint;
-      ClrUsed:longint;
-      ClrImportant:longint;
-   end;
-  
   TFPReaderBMP = class (TFPCustomImageReader)
     private
       BytesPerPixel:Integer;
@@ -144,7 +122,10 @@ initialization
 end.
 {
 $Log$
-Revision 1.3  2003-09-15 11:39:01  mazen
+Revision 1.4  2003-09-30 06:17:38  mazen
+- all common defintions are now included into bmpcomn unit
+
+Revision 1.3  2003/09/15 11:39:01  mazen
 * fixed InternalRead method to load BMP files.
   But still too long to load images.
 
