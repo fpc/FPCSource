@@ -132,7 +132,7 @@ type
   GLXContextID = TXID;
 
 var
-  glXChooseVisual: function(dpy: PDisplay; screen: Integer; var attribList: Integer): PXVisualInfo; cdecl;
+  glXChooseVisual: function(dpy: PDisplay; screen: Integer; attribList: PInteger): PXVisualInfo; cdecl;
   glXCreateContext: function(dpy: PDisplay; vis: PXVisualInfo; shareList: GLXContext; direct: Boolean): GLXContext; cdecl;
   glXDestroyContext: procedure(dpy: PDisplay; ctx: GLXContext); cdecl;
   glXMakeCurrent: function(dpy: PDisplay; drawable: GLXDrawable; ctx: GLXContext): Boolean; cdecl;
@@ -246,7 +246,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-10-13 13:57:31  sg
+  Revision 1.2  2003-03-17 17:00:08  peter
+    * ChooseVisual attriblist is a PInteger array
+
+  Revision 1.1  2002/10/13 13:57:31  sg
   * Finally, the new units are available: Match the C headers more closely;
     support for OpenGL extensions, and much more. Based on the Delphi units
     by Tom Nuydens of delphi3d.net
