@@ -64,6 +64,8 @@ Source: bin\i386-win32\windres.exe; DestDir: {app}\bin\i386-win32; Flags: ignore
 Source: bin\i386-win32\windres.h; DestDir: {app}\bin\i386-win32; Flags: ignoreversion; Components: binutils
 Source: bin\i386-win32\strip.exe; DestDir: {app}\bin\i386-win32; Flags: ignoreversion; Components: binutils
 Source: bin\i386-win32\gdb.exe; DestDir: {app}\bin\i386-win32; Flags: ignoreversion; Components: gdb
+Source: bin\i386-win32\cygncurses-8.dll; DestDir: {app}\bin\i386-win32; Flags: ignoreversion; Components: gdb
+Source: bin\i386-win32\cygiconv-2.dll; DestDir: {app}\bin\i386-win32; Flags: ignoreversion; Components: gdb
 ; IDE files
 Source: bin\i386-win32\fp.exe; DestDir: {app}\bin\i386-win32; Flags: ignoreversion; Components: ide
 Source: bin\i386-win32\fp32.ico; DestDir: {app}\bin\i386-win32; Flags: ignoreversion; Components: ide
