@@ -86,7 +86,7 @@ procedure fpc_dynarray_clear_internal(p : pointer;ti : pointer);
 {$endif FPC_ALIGNSRTTI}
 
      elesize:=psizeint(ti)^;
-     eletype:=pdynarraytypeinfo(pointer(ti)+sizeof(sizeint));
+     eletype:=pdynarraytypeinfo(pointer(pdynarraytypeinfo(pointer(ti)+sizeof(sizeint)))^);
 
      { finalize all data }
      int_finalizearray(p+sizeof(tdynarray),eletype,pdynarray(p)^.high+1,
@@ -187,7 +187,7 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
 {$endif FPC_ALIGNSRTTI}
 
      elesize:=psizeint(ti)^;
-     eletype:=pdynarraytypeinfo(pointer(ti)+sizeof(sizeint));
+     eletype:=pdynarraytypeinfo(pointer(pdynarraytypeinfo(pointer(ti)+sizeof(sizeint)))^);
 
      { determine new memory size }
      { dims[dimcount-1] because the dimensions are in reverse order! (JM) }
@@ -325,7 +325,7 @@ procedure fpc_dynarray_copy(var pdest : pointer;psrc : pointer;ti : pointer;
 {$endif FPC_ALIGNSRTTI}
 
      elesize:=psizeint(ti)^;
-     eletype:=pdynarraytypeinfo(pointer(ti)+sizeof(sizeint));
+     eletype:=pdynarraytypeinfo(pointer(pdynarraytypeinfo(pointer(ti)+sizeof(sizeint)))^);
 
      { -1, -1 (highidx=lowidx-1-1=-3) is used to copy the whole array like a:=copy(b);, so
        update the lowidx and highidx with the values from psrc }
@@ -355,7 +355,10 @@ procedure fpc_dynarray_copy(var pdest : pointer;psrc : pointer;ti : pointer;
 
 {
   $Log$
-  Revision 1.33  2004-11-07 18:02:47  jonas
+  Revision 1.34  2004-11-07 18:31:50  jonas
+    * fixed getting pointer to nested dynarray types
+
+  Revision 1.33  2004/11/07 18:02:47  jonas
     * fixed pointer arithmetic errors
 
   Revision 1.32  2004/11/06 15:29:19  florian
