@@ -26,7 +26,7 @@ type
    directivestr=string[directivelen];
    tdirectivetoken=(
      _DIR_NONE,
-     _DIR_ALIGN,_DIR_ASMMODE,_DIR_ASSERTIONS,
+     _DIR_ALIGN,_DIR_APPTYPE,_DIR_ASMMODE,_DIR_ASSERTIONS,
      _DIR_BOOLEVAL,
      _DIR_D,_DIR_DEBUGINFO,_DIR_DEFINE,_DIR_DESCRIPTION,
      _DIR_ELSE,_DIR_ENDIF,_DIR_ERROR,_DIR_EXTENDEDSYNTAX,
@@ -52,7 +52,7 @@ const
    lastdirective=_DIR_Z4;
    directive:array[tdirectivetoken] of directivestr=(
      '',
-     'ALIGN','ASMMODE','ASSERTIONS',
+     'ALIGN','APPTYPE','ASMMODE','ASSERTIONS',
      'BOOLEVAL',
      'D','DEBUGINFO','DEFINE','DESCRIPTION',
      'ELSE','ENDIF','ERROR','EXTENDEDSYNTAX',
@@ -700,6 +700,29 @@ const
          end;
       end;
 
+    procedure dir_apptype(t:tdirectivetoken);
+
+      var
+         hs : string;
+
+      begin
+        if target_info.target<>target_i386_win32 then
+          Message(scan_w_app_type_not_support);
+        if not current_module^.in_global then
+          Message(scan_w_switch_is_global)
+        else
+          begin
+             current_scanner^.skipspace;
+             hs:=current_scanner^.readid;
+             if hs='GUI' then
+               apptype:=at_gui
+             else if hs='CONSOLE' then
+               apptype:=at_cui
+             else
+               Message1(scan_w_unsupported_app_type,hs);
+          end;
+      end;
+
     procedure dir_wait(t:tdirectivetoken);
       var had_info : boolean;
       begin
@@ -823,6 +846,7 @@ const
         directiveproc:array[tdirectivetoken] of tdirectiveproc=(
          {_DIR_NONE} nil,
          {_DIR_ALIGN} dir_delphiswitch,
+         {_DIR_APPTYPE} dir_apptype,
          {_DIR_ASMMODE} dir_asmmode,
          {_DIR_ASSERTION} dir_delphiswitch,
          {_DIR_BOOLEVAL} dir_delphiswitch,
@@ -950,7 +974,10 @@ const
 
 {
   $Log$
-  Revision 1.40  1998-10-21 20:16:04  peter
+  Revision 1.41  1998-10-22 17:54:08  florian
+    + switch $APPTYPE for win32 added
+
+  Revision 1.40  1998/10/21 20:16:04  peter
     * beter line info for conditionals
 
   Revision 1.39  1998/10/13 16:50:21  pierre

@@ -53,6 +53,8 @@ type tmsgconst=(
   scan_w_unsupported_switch,
   scan_w_illegal_directive,
   scan_t_back_in,
+  scan_w_unsupported_app_type,
+  scan_w_app_type_not_support,
   scan_w_unsupported_asmmode_specifier,
   scan_e_wrong_switch_toggle,
   parser_e_syntax_error,

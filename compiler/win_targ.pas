@@ -372,13 +372,28 @@ unit win_targ;
          Message1(execinfo_x_uninitdatasize,tostr(peheader.SizeOfUninitializedData));
          Message1(execinfo_x_stackreserve,tostr(peheader.SizeOfStackReserve));
          Message1(execinfo_x_stackcommit,tostr(peheader.SizeOfStackCommit));
+
+         { change the header }
+
+         { sub system }
+         { gui=2 }
+         { cui=3 }
+         if apptype=at_gui then
+           peheader.Subsystem:=2
+         else if apptype=at_cui then
+           peheader.Subsystem:=3;
+         seek(f,peheaderpos);
+         blockwrite(f,peheader,sizeof(tpeheader));
          close(f);
       end;
 
 end.
 {
   $Log$
-  Revision 1.10  1998-10-22 15:18:51  florian
+  Revision 1.11  1998-10-22 17:54:09  florian
+    + switch $APPTYPE for win32 added
+
+  Revision 1.10  1998/10/22 15:18:51  florian
     + switch -vx for win32 added
 
   Revision 1.9  1998/10/19 15:41:03  peter
