@@ -34,8 +34,8 @@ _start:
         lis 	11,operatingsystem_parameter_argc@ha
 	stw 	3,operatingsystem_parameter_argc@l(11);
 
-        lis 	11,operatingsystem_parameter_argc@ha
-	stw 	4,operatingsystem_parameter_argc@l(11);
+        lis 	11,operatingsystem_parameter_argv@ha
+	stw 	4,operatingsystem_parameter_argv@l(11);
 
 	lis 	11,operatingsystem_parameter_envp@ha
 	stw 	5,operatingsystem_parameter_envp@l(11);
@@ -75,7 +75,10 @@ ___fpc_brk_addr:
 
 /*
   $Log$
-  Revision 1.8  2004-08-18 14:26:50  karoly
+  Revision 1.9  2004-09-02 18:57:37  marco
+   * fixed argc<->argv
+
+  Revision 1.8  2004/08/18 14:26:50  karoly
     * quick fix to make it compile
 
   Revision 1.7  2004/07/03 21:50:31  daniel
