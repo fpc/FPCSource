@@ -616,10 +616,10 @@ implementation
         consume(_THREADVAR);
         if not(symtablestack.symtabletype in [staticsymtable,globalsymtable]) then
           message(parser_e_threadvars_only_sg);
-        if not(cs_threading in aktmoduleswitches) and
+{        if not(cs_threading in aktmoduleswitches) and
            not(cs_compilesystem in aktmoduleswitches) then
-          Comment(V_Error,'Threading is turned off');
-        read_var_decs(false,false,true);
+          Comment(V_Error,'Threading is turned off');}
+        read_var_decs(false,false,cs_threading in aktmoduleswitches);
       end;
 
 
@@ -682,7 +682,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.79  2004-02-12 15:54:03  peter
+  Revision 1.80  2004-02-17 17:38:11  daniel
+    * Enable threadvars for all modes
+
+  Revision 1.79  2004/02/12 15:54:03  peter
     * make extcycle is working again
 
   Revision 1.78  2004/02/11 19:59:06  peter

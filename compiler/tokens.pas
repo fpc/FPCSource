@@ -425,7 +425,7 @@ const
       (str:'PROTECTED'     ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'PUBLISHED'     ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'SOFTFLOAT'     ;special:false;keyword:m_none;op:NOTOKEN),
-      (str:'THREADVAR'     ;special:false;keyword:m_class;op:NOTOKEN),
+      (str:'THREADVAR'     ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'DEPRECATED'    ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'DESTRUCTOR'    ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'IMPLEMENTS'    ;special:false;keyword:m_none;op:NOTOKEN),
@@ -504,7 +504,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.25  2003-11-07 15:58:32  florian
+  Revision 1.26  2004-02-17 17:38:11  daniel
+    * Enable threadvars for all modes
+
+  Revision 1.25  2003/11/07 15:58:32  florian
     * Florian's culmutative nr. 1; contains:
       - invalid calling conventions for a certain cpu are rejected
       - arm softfloat calling conventions
