@@ -4,7 +4,7 @@
 
 [targets]
 loaders=prt0 cprt0 gprt0 cprt21 gprt21
-units=$(SYSTEMUNIT) objpas strings \
+units=$(SYSTEMUNIT) objpas strings initc \
       linux ports \
       dos crt objects printer graph \
       sysutils typinfo math \
