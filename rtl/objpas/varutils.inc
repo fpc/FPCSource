@@ -482,7 +482,7 @@ begin
         for j:=Count-1 downto Count+D do
           begin
           P:=SafeArrayCalculateElementAddress(psa,j);
-          if vat = varInterface then
+          if vat = vatInterface then
             NoInterfaces // Set to nil
           else
             NoWideStrings; // Set to empty...
@@ -664,9 +664,9 @@ begin
     case VariantArrayType(psa) of
       vatNormal:
         Move(P^, Data^, psa^.ElementSize);
-      varInterface:
+      vatInterface:
         NoInterfaces; // Just assign...
-      varWideString:
+      vatWideString:
         NoWideStrings; // Just assign...
     end;
   except
@@ -687,10 +687,12 @@ begin
     exit;
   try
     case VariantArrayType(psa) of
-      vatNormal: 
+      vatNormal:
         Move(Data^,P^,psa^.ElementSize);
-      varInterface: 
-      varWideString: NoWideStrings;
+      vatInterface:
+        NoInterfaces;
+      vatWideString:
+        NoWideStrings;
     end;
   except
     On E : Exception do
@@ -718,7 +720,10 @@ end;
 {$endif HASVARIANT}
 {
   $Log$
-  Revision 1.22  2005-03-28 13:38:05  florian
+  Revision 1.23  2005-03-28 17:04:58  florian
+    * compilation on non win32 fixed
+
+  Revision 1.22  2005/03/28 13:38:05  florian
     + a lot of vararray stuff
 
   Revision 1.21  2005/02/25 14:39:31  peter
