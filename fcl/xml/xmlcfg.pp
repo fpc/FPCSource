@@ -3,7 +3,7 @@
     This file is part of the Free Component Library
 
     Implementation of TXMLConfig class
-    Copyright (c) 1999-2000 by Sebastian Guenther, sg@freepascal.org
+    Copyright (c) 1999 - 2001 by Sebastian Guenther, sg@freepascal.org
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -25,7 +25,7 @@
 unit XMLCfg;
 
 interface
-uses DOM, XMLRead, XMLWrite;
+uses Classes, DOM, XMLRead, XMLWrite;
 
 type
 
@@ -34,12 +34,16 @@ type
    is the name of the value. The path components will be mapped to XML
    elements, the name will be an element attribute.}
 
-  TXMLConfig = class
+  TXMLConfig = class(TComponent)
+  private
+    FFilename: String;
+    procedure SetFilename(const AFilename: String);
   protected
     doc: TXMLDocument;
-    FileName: String;
+    FModified: Boolean;
+    procedure Loaded; override;
   public
-    constructor Create(const AFileName: String);
+    constructor Create(const AFilename: String);
     destructor Destroy; override;
     procedure Flush;    // Writes the XML file
     function  GetValue(const APath, ADefault: String): String;
@@ -48,6 +52,9 @@ type
     procedure SetValue(const APath, AValue: String);
     procedure SetValue(const APath: String; AValue: Integer);
     procedure SetValue(const APath: String; AValue: Boolean);
+    property Modified: Boolean read FModified;
+  published
+    property Filename: String read FFilename write SetFilename;
   end;
 
 
@@ -58,41 +65,19 @@ implementation
 uses SysUtils;
 
 
-constructor TXMLConfig.Create(const AFileName: String);
-var
-  f: File;
-  cfg: TDOMElement;
+constructor TXMLConfig.Create(const AFilename: String);
 begin
-  FileName := AFileName;
-  Assign(f, AFileName);
-  {$I-}
-  Reset(f, 1);
-  {$I+}
-  if IOResult = 0 then begin
-    try
-      ReadXMLFile(doc, f);
-    except
-      on e: EXMLReadError do
-        WriteLn(StdErr, 'Warning: XML config parsing error: ', e.Message);
-    end;
-    Close(f);
-  end;
-
-  if not Assigned(doc) then
-    doc := TXMLDocument.Create;
-
-  cfg :=TDOMElement(doc.FindNode('CONFIG'));
-  if not Assigned(cfg) then begin
-    cfg := doc.CreateElement('CONFIG');
-    doc.AppendChild(cfg);
-  end;
+  inherited Create(nil);
+  SetFilename(AFilename);
 end;
 
 destructor TXMLConfig.Destroy;
 begin
-  Flush;
   if Assigned(doc) then
+  begin
+    Flush;
     doc.Free;
+  end;
   inherited Destroy;
 end;
 
@@ -100,35 +85,44 @@ procedure TXMLConfig.Flush;
 var
   f: Text;
 begin
-  Assign(f, FileName);
-  Rewrite(f);
-  WriteXMLFile(doc, f);
-  Close(f);
+  if Modified then
+  begin
+    AssignFile(f, Filename);
+    Rewrite(f);
+    try
+      WriteXMLFile(doc, f);
+    finally
+      CloseFile(f);
+    end;
+    FModified := False;
+  end;
 end;
 
 function TXMLConfig.GetValue(const APath, ADefault: String): String;
 var
-  node, subnode, attr: TDOMNode;
+  Node, Child, Attr: TDOMNode;
   i: Integer;
-  name, path: String;
+  NodePath: String;
 begin
-  node := doc.DocumentElement;
-  path := APath;
-  while True do begin
-    i := Pos('/', path);
-    if i = 0 then break;
-    name := Copy(path, 1, i - 1);
-    path := Copy(path, i + 1, Length(path));
-    subnode := node.FindNode(name);
-    if not Assigned(subnode) then begin
+  Node := doc.DocumentElement;
+  NodePath := APath;
+  while True do
+  begin
+    i := Pos('/', NodePath);
+    if i = 0 then
+      break;
+    Child := Node.FindNode(Copy(NodePath, 1, i - 1));
+    NodePath := Copy(NodePath, i + 1, Length(NodePath));
+    if not Assigned(Child) then
+    begin
       Result := ADefault;
       exit;
     end;
-    node := subnode;
+    Node := Child;
   end;
-  attr := node.Attributes.GetNamedItem(path);
-  if Assigned(attr) then
-    Result := attr.NodeValue
+  Attr := Node.Attributes.GetNamedItem(NodePath);
+  if Assigned(Attr) then
+    Result := Attr.NodeValue
   else
     Result := ADefault;
 end;
@@ -159,34 +153,34 @@ end;
 
 procedure TXMLConfig.SetValue(const APath, AValue: String);
 var
-  node, subnode, attr: TDOMNode;
+  Node, Child, Attr: TDOMNode;
   i: Integer;
-  name, path: String;
+  NodeName, NodePath: String;
 begin
-  node := doc.DocumentElement;
-  path := APath;
+  Node := Doc.DocumentElement;
+  NodePath := APath;
   while True do
   begin
-    i := Pos('/', path);
+    i := Pos('/', NodePath);
     if i = 0 then
       break;
-    name := Copy(path, 1, i - 1);
-    path := Copy(path, i + 1, Length(path));
-    subnode := node.FindNode(name);
-    if not Assigned(subnode) then
+    NodeName := Copy(NodePath, 1, i - 1);
+    NodePath := Copy(NodePath, i + 1, Length(NodePath));
+    Child := Node.FindNode(NodeName);
+    if not Assigned(Child) then
     begin
-      subnode := doc.CreateElement(name);
-      node.AppendChild(subnode);
+      Child := Doc.CreateElement(NodeName);
+      Node.AppendChild(Child);
     end;
-    node := subnode;
+    Node := Child;
   end;
-  TDOMElement(node).SetAttribute(path, AValue);
-{  attr := node.Attributes.GetNamedItem(path);
-  if not Assigned(attr) then begin
-    attr := doc.CreateAttribute(path);
-    node.Attributes.SetNamedItem(attr);
+
+  if (not Assigned(TDOMElement(Node).GetAttributeNode(NodePath))) or
+    (TDOMElement(Node)[NodePath] <> AValue) then
+  begin
+    TDOMElement(Node)[NodePath] := AValue;
+    FModified := True;
   end;
-  attr.NodeValue := AValue;}
 end;
 
 procedure TXMLConfig.SetValue(const APath: String; AValue: Integer);
@@ -202,13 +196,60 @@ begin
     SetValue(APath, 'False');
 end;
 
+procedure TXMLConfig.Loaded;
+begin
+  inherited Loaded;
+  if Length(Filename) > 0 then
+    SetFilename(Filename);		// Load the XML config file
+end;
+
+procedure TXMLConfig.SetFilename(const AFilename: String);
+var
+  f: File;
+  cfg: TDOMElement;
+begin
+  FFilename := AFilename;
+
+  if csLoading in ComponentState then
+    exit;
+
+  if Assigned(doc) then
+  begin
+    Flush;
+    doc.Free;
+  end;
+
+  AssignFile(f, AFileName);
+  {$I-}
+  Reset(f, 1);
+  {$I+}
+  if IOResult = 0 then
+    try
+      ReadXMLFile(doc, f);
+    finally
+      CloseFile(f);
+    end;
+
+  if not Assigned(doc) then
+    doc := TXMLDocument.Create;
+
+  cfg :=TDOMElement(doc.FindNode('CONFIG'));
+  if not Assigned(cfg) then begin
+    cfg := doc.CreateElement('CONFIG');
+    doc.AppendChild(cfg);
+  end;
+end;
+
 
 end.
 
 
 {
   $Log$
-  Revision 1.1.2.1  2000-07-29 14:20:54  sg
+  Revision 1.1.2.2  2001-04-08 11:19:57  sg
+  * TXMLConfig is now a true component
+
+  Revision 1.1.2.1  2000/07/29 14:20:54  sg
   * Modified the copyright notice to remove ambiguities
 
   Revision 1.1  2000/07/13 06:33:49  michael
