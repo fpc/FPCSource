@@ -104,20 +104,20 @@ Count1 := Length(S1);
 Count2 := Length(S2);
 if Count1 > Count2 then Count := Count2
 else Count := Count1;
-result := CompareMem(Pointer(S1),Pointer(S2), Count);
+result := CompareMemRange(Pointer(S1),Pointer(S2), Count);
 if (result = 0) and (Count1 <> Count2) then begin
    if Count1 > Count2 then result := ord(s1[Count1 + 1])
    else result := -ord(s2[Count2 + 1]);
    end ;
 end ;
 
-{   CompareMem returns the result of comparison of Length bytes at P1 and P2
+{   CompareMemRange returns the result of comparison of Length bytes at P1 and P2
     case       result
     P1 < P2    < 0
     P1 > P2    > 0
     P1 = P2    = 0    }
 
-function CompareMem(P1, P2: Pointer; Length: cardinal): integer;
+function CompareMemRange(P1, P2: Pointer; Length: cardinal): integer;
 var i: integer;
 begin
 i := 0;
@@ -129,6 +129,24 @@ while (result = 0) and (i < length) do begin
    i := i + 1;
    end ;
 end ;
+
+function CompareMem(P1, P2: Pointer; Length: cardinal): Boolean;
+var
+  i: Integer;
+begin
+  for i := 0 to Length - 1 do
+  begin
+    if Byte(P1^) <> Byte(P2^) then
+    begin
+      Result := False;
+      exit;
+    end;
+    Inc(P1);
+    Inc(P2);
+  end;
+  Result := True;
+end;
+
 
 {   CompareText compares S1 and S2, the result is the based on
     substraction of the ascii values of characters in S1 and S2
@@ -1157,7 +1175,11 @@ const
 
 {
   $Log$
-  Revision 1.33  2000-05-08 13:26:42  peter
+  Revision 1.34  2000-05-08 17:03:02  sg
+  * Changed CompareMem to CompareMemRange and added new (Delphi compatible)
+    CompareMem. (CompareMem needs a Boolean as result type, not Integer)
+
+  Revision 1.33  2000/05/08 13:26:42  peter
     * vtchar support for %s
     * define debug -> define fmtdebug
 

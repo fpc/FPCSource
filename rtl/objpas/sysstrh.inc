@@ -39,7 +39,8 @@ procedure AppendStr(var Dest: String; const S: string);
 function UpperCase(const s: string): string;
 function LowerCase(const s: string): string;
 function CompareStr(const S1, S2: string): Integer;
-function CompareMem(P1, P2: Pointer; Length: cardinal): integer;
+function CompareMemRange(P1, P2: Pointer; Length: cardinal): integer;
+function CompareMem(P1, P2: Pointer; Length: cardinal): Boolean;
 function CompareText(const S1, S2: string): integer;
 
 function AnsiUpperCase(const s: string): string;
@@ -93,7 +94,11 @@ function BCDToInt(Value: integer): integer;
 
 {
   $Log$
-  Revision 1.9  2000-02-09 16:59:33  peter
+  Revision 1.10  2000-05-08 17:03:02  sg
+  * Changed CompareMem to CompareMemRange and added new (Delphi compatible)
+    CompareMem. (CompareMem needs a Boolean as result type, not Integer)
+
+  Revision 1.9  2000/02/09 16:59:33  peter
     * truncated log
 
 }
