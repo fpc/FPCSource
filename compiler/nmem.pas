@@ -699,9 +699,10 @@ implementation
             (is_ansistring(left.resulttype.def) or
              is_widestring(left.resulttype.def)) then
            begin
-             left := ccallnode.createintern('fpc_'+tstringdef(left.resulttype.def).stringtypname+'_unique',
+             left := ctypeconvnode.create_explicit(ccallnode.createintern('fpc_'+tstringdef(left.resulttype.def).stringtypname+'_unique',
                ccallparanode.create(
-                 ctypeconvnode.create_explicit(left,voidpointertype),nil));
+                 ctypeconvnode.create_explicit(left,voidpointertype),nil)),
+               left.resulttype);
              firstpass(left);
              { double resulttype passes somwhere else may cause this to be }
              { reset though :/                                             }
@@ -912,7 +913,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.58  2003-06-17 16:34:44  jonas
+  Revision 1.59  2003-06-17 19:24:08  jonas
+    * fixed conversion of fpc_*str_unique to compilerproc
+
+  Revision 1.58  2003/06/17 16:34:44  jonas
     * lots of newra fixes (need getfuncretparaloc implementation for i386)!
     * renamed all_intregisters to volatile_intregisters and made it
       processor dependent

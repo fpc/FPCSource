@@ -103,7 +103,7 @@ Function fpc_AnsiStr_ShortStr_Compare (Var S1 : Pointer; Var S2 : ShortString): 
 { pointer argument because otherwise when calling this, we get }
 { an endless loop since a 'var s: ansistring' must be made     }
 { unique as well                                               }
-Function fpc_ansistr_Unique(Var S : Pointer): Ansistring; compilerproc;
+Function fpc_ansistr_Unique(Var S : Pointer): Pointer; compilerproc;
 
 Procedure fpc_WideStr_Decr_Ref (Var S : Pointer); compilerproc;
 Procedure fpc_WideStr_Incr_Ref (S : Pointer); compilerproc;
@@ -121,7 +121,7 @@ Function fpc_WideStr_Compare(const S1,S2 : WideString): Longint; compilerproc;
 Procedure fpc_WideStr_CheckZero(p : pointer); compilerproc;
 Procedure fpc_WideStr_CheckRange(len,index : longint); compilerproc;
 Procedure fpc_WideStr_SetLength (Var S : WideString; l : Longint); compilerproc;
-function fpc_widestr_Unique(Var S : Pointer): Widestring; compilerproc;
+function fpc_widestr_Unique(Var S : Pointer): Pointer; compilerproc;
 
 {$ifdef HASWIDECHAR}
 Function fpc_PWideChar_To_AnsiStr(const p : pwidechar): ansistring; compilerproc;
@@ -294,7 +294,10 @@ function fpc_qword_to_double(q: qword): double; compilerproc;
 
 {
   $Log$
-  Revision 1.44  2003-06-17 16:38:53  jonas
+  Revision 1.45  2003-06-17 19:24:08  jonas
+    * fixed conversion of fpc_*str_unique to compilerproc
+
+  Revision 1.44  2003/06/17 16:38:53  jonas
     * fpc_{ansistr|widestr}_unique is now a function so it can be used as
       compilerproc
 

@@ -512,7 +512,7 @@ end;
 { overloaded version of UniqueString for interface }
 Procedure UniqueString(Var S : AnsiString); [external name 'FPC_ANSISTR_UNIQUE'];
 
-Function fpc_ansistr_Unique(Var S : Pointer): Ansistring; [Public,Alias : 'FPC_ANSISTR_UNIQUE']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Function fpc_ansistr_Unique(Var S : Pointer): Pointer; [Public,Alias : 'FPC_ANSISTR_UNIQUE']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {
   Make sure reference count of S is 1,
   using copy-on-write semantics.
@@ -835,7 +835,10 @@ end;
 
 {
   $Log$
-  Revision 1.38  2003-06-17 16:38:53  jonas
+  Revision 1.39  2003-06-17 19:24:08  jonas
+    * fixed conversion of fpc_*str_unique to compilerproc
+
+  Revision 1.38  2003/06/17 16:38:53  jonas
     * fpc_{ansistr|widestr}_unique is now a function so it can be used as
       compilerproc
 

@@ -582,37 +582,7 @@ implementation
             is_widestring(left.resulttype.def) then
            begin
               if nf_callunique in flags then
-                begin
-                   if left.location.loc<>LOC_REFERENCE then
-                     internalerror(200304236);
-                {$ifndef newra}
-                   rg.saveusedintregisters(exprasmlist,pushed,VOLATILE_INTREGISTERS);
-                {$endif}
-                   cg.a_paramaddr_ref(exprasmlist,left.location.reference,paramanager.getintparaloc(exprasmlist,1));
-                {$ifdef newra}
-                   hreg.enum:=R_INTREGISTER;
-                   for i:=first_supreg to last_supreg do
-                     if i<>RS_FRAME_POINTER_REG then
-                       begin
-                         hreg.number:=i shl 8 or R_SUBWHOLE;
-                         rg.getexplicitregisterint(exprasmlist,hreg.number);
-                       end;
-                {$else}
-                   rg.saveintregvars(exprasmlist,VOLATILE_INTREGISTERS);
-                {$endif}
-                   cg.a_call_name(exprasmlist,'FPC_'+upper(tstringdef(left.resulttype.def).stringtypname)+'_UNIQUE');
-                   paramanager.freeintparaloc(exprasmlist,1);
-                {$ifdef newra}
-                   for i:=first_supreg to last_supreg do
-                     if i<>RS_FRAME_POINTER_REG then
-                       begin
-                         hreg.number:=i shl 8 or R_SUBWHOLE;
-                         rg.ungetregisterint(exprasmlist,hreg);
-                       end;
-                {$else}
-                   rg.restoreusedintregisters(exprasmlist,pushed);
-                {$endif}
-                end;
+                internalerror(200304236);
 
               case left.location.loc of
                 LOC_REGISTER,
@@ -954,7 +924,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.63  2003-06-17 16:34:44  jonas
+  Revision 1.64  2003-06-17 19:24:08  jonas
+    * fixed conversion of fpc_*str_unique to compilerproc
+
+  Revision 1.63  2003/06/17 16:34:44  jonas
     * lots of newra fixes (need getfuncretparaloc implementation for i386)!
     * renamed all_intregisters to volatile_intregisters and made it
       processor dependent
