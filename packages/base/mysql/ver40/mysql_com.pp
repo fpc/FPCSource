@@ -11,17 +11,17 @@ interface
     mysql_com.ph
 }
 
-  const
-    External_library='mysqlclient'; {Setup as you need}
+const
+  External_library='mysqlclient'; {Setup as you need}
 
-  { Pointers to basic pascal types, inserted by h2pas conversion program.}
-  Type
-    PLongint  = ^Longint;
-    PSmallInt = ^SmallInt;
-    PByte     = ^Byte;
-    PWord     = ^Word;
-    PDWord    = ^DWord;
-    PDouble   = ^Double;
+{ Pointers to basic pascal types, inserted by h2pas conversion program.}
+Type
+  PLongint  = ^Longint;
+  PSmallInt = ^SmallInt;
+  PByte     = ^Byte;
+  PWord     = ^Word;
+  PDWord    = ^DWord;
+  PDouble   = ^Double;
 
 { Extra manually added types }
     PVIO = Pointer;
@@ -53,178 +53,123 @@ interface
    }
   { Field/table name length  }
 
-  const
-     NAME_LEN = 64;
-     HOSTNAME_LENGTH = 60;
-     USERNAME_LENGTH = 16;
-     SERVER_VERSION_LENGTH = 60;
-     LOCAL_HOST = 'localhost';
-     LOCAL_HOST_NAMEDPIPE = '.';
+const
+  NAME_LEN = 64;
+  HOSTNAME_LENGTH = 60;
+  USERNAME_LENGTH = 16;
+  SERVER_VERSION_LENGTH = 60;
+  LOCAL_HOST = 'localhost';
+  LOCAL_HOST_NAMEDPIPE = '.';
 
-  type
-     enum_server_command = (COM_SLEEP,COM_QUIT,COM_INIT_DB,COM_QUERY,
-       COM_FIELD_LIST,COM_CREATE_DB,COM_DROP_DB,
-       COM_REFRESH,COM_SHUTDOWN,COM_STATISTICS,
-       COM_PROCESS_INFO,COM_CONNECT,COM_PROCESS_KILL,
-       COM_DEBUG,COM_PING,COM_TIME,COM_DELAYED_INSERT,
-       COM_CHANGE_USER,COM_BINLOG_DUMP,COM_TABLE_DUMP,
-       COM_CONNECT_OUT,COM_REGISTER_SLAVE);
+type
+  enum_server_command = (COM_SLEEP,COM_QUIT,COM_INIT_DB,COM_QUERY,
+     COM_FIELD_LIST,COM_CREATE_DB,COM_DROP_DB,
+     COM_REFRESH,COM_SHUTDOWN,COM_STATISTICS,
+     COM_PROCESS_INFO,COM_CONNECT,COM_PROCESS_KILL,
+     COM_DEBUG,COM_PING,COM_TIME,COM_DELAYED_INSERT,
+     COM_CHANGE_USER,COM_BINLOG_DUMP,COM_TABLE_DUMP,
+     COM_CONNECT_OUT,COM_REGISTER_SLAVE);
 
-  { Field can't be NULL  }
+{ Field can't be NULL  }
 
-  const
-     NOT_NULL_FLAG = 1;
-  { Field is part of a primary key  }
-     PRI_KEY_FLAG = 2;
-  { Field is part of a unique key  }
-     UNIQUE_KEY_FLAG = 4;
-  { Field is part of a key  }
-     MULTIPLE_KEY_FLAG = 8;
-  { Field is a blob  }
-     BLOB_FLAG = 16;
-  { Field is unsigned  }
-     UNSIGNED_FLAG = 32;
-  { Field is zerofill  }
-     ZEROFILL_FLAG = 64;
-     BINARY_FLAG = 128;
-  { The following are only sent to new clients  }
-  { field is an enum  }
-     ENUM_FLAG = 256;
-  { field is a autoincrement field  }
-     AUTO_INCREMENT_FLAG = 512;
-  { Field is a timestamp  }
-     TIMESTAMP_FLAG = 1024;
-  { field is a set  }
-     SET_FLAG = 2048;
-  { Field is num (for clients)  }
-     NUM_FLAG = 32768;
-  { Intern; Part of some key  }
-     PART_KEY_FLAG = 16384;
-  { Intern: Group field  }
-     GROUP_FLAG = 32768;
-  { Intern: Used by sql_yacc  }
-     UNIQUE_FLAG = 65536;
-  { Refresh grant tables  }
-     REFRESH_GRANT = 1;
-  { Start on new log file  }
-     REFRESH_LOG = 2;
-  { close all tables  }
-     REFRESH_TABLES = 4;
-  { Flush host cache  }
-     REFRESH_HOSTS = 8;
-  { Flush status variables  }
-     REFRESH_STATUS = 16;
-  { Flush status variables  }
-     REFRESH_THREADS = 32;
-  { Reset master info and restart slave
-                                           thread  }
-     REFRESH_SLAVE = 64;
-  { Remove all bin logs in the index
-                                           and truncate the index  }
-     REFRESH_MASTER = 128;
-  { The following can't be set with mysql_refresh()  }
-  { Lock tables for read  }
-     REFRESH_READ_LOCK = 16384;
-  { Intern flag  }
-     REFRESH_FAST = 32768;
-  { RESET (remove all queries) from query cache  }
-     REFRESH_QUERY_CACHE = 65536;
-  { pack query cache  }
-     REFRESH_QUERY_CACHE_FREE = $20000;
-     REFRESH_DES_KEY_FILE = $40000;
-  { new more secure passwords  }
-     CLIENT_LONG_PASSWORD = 1;
-  { Found instead of affected rows  }
-     CLIENT_FOUND_ROWS = 2;
-  { Get all column flags  }
-     CLIENT_LONG_FLAG = 4;
-  { One can specify db on connect  }
-     CLIENT_CONNECT_WITH_DB = 8;
-  { Don't allow database.table.column  }
-     CLIENT_NO_SCHEMA = 16;
-  { Can use compression protocol  }
-     CLIENT_COMPRESS = 32;
-  { Odbc client  }
-     CLIENT_ODBC = 64;
-  { Can use LOAD DATA LOCAL  }
-     CLIENT_LOCAL_FILES = 128;
-  { Ignore spaces before '('  }
-     CLIENT_IGNORE_SPACE = 256;
-  { Support the mysql_change_user()  }
-     CLIENT_CHANGE_USER = 512;
-  { This is an interactive client  }
-     CLIENT_INTERACTIVE = 1024;
-  { Switch to SSL after handshake  }
-     CLIENT_SSL = 2048;
-  { IGNORE sigpipes  }
-     CLIENT_IGNORE_SIGPIPE = 4096;
-  { Client knows about transactions  }
-     CLIENT_TRANSACTIONS = 8192;
-  { Transaction has started  }
-     SERVER_STATUS_IN_TRANS = 1;
-  { Server in auto_commit mode  }
-     SERVER_STATUS_AUTOCOMMIT = 2;
-     MYSQL_ERRMSG_SIZE = 200;
-  { Timeout on read  }
-     NET_READ_TIMEOUT = 30;
-  { Timeout on write  }
-     NET_WRITE_TIMEOUT = 60;
-  {
-  #define NET_WAIT_TIMEOUT      (8 60 60)
-   }
-  { Wait for new query  }
-  {
-  struct st_vio;                                        // Only C
-  typedef struct st_vio Vio;
-   }
-  { Default width for blob }
-     MAX_BLOB_WIDTH = 8192;
-  { For Perl DBI/dbd  }
-  {
-      The following variable is set if we are doing several queries in one
-      command ( as in LOAD TABLE ... FROM MASTER ),
-      and do not want to confuse the client with OK at the wrong time
-     }
+const
+   NOT_NULL_FLAG = 1;
+   PRI_KEY_FLAG = 2;
+   UNIQUE_KEY_FLAG = 4;
+   MULTIPLE_KEY_FLAG = 8;
+   BLOB_FLAG = 16;
+   UNSIGNED_FLAG = 32;
+   ZEROFILL_FLAG = 64;
+   BINARY_FLAG = 128;
+   ENUM_FLAG = 256;
+   AUTO_INCREMENT_FLAG = 512;
+   TIMESTAMP_FLAG = 1024;
+   SET_FLAG = 2048;
+   NUM_FLAG = 32768;
+   PART_KEY_FLAG = 16384;
+   GROUP_FLAG = 32768;
+   UNIQUE_FLAG = 65536;
+   REFRESH_GRANT = 1;
+   REFRESH_LOG = 2;
+   REFRESH_TABLES = 4;
+   REFRESH_HOSTS = 8;
+   REFRESH_STATUS = 16;
+   REFRESH_THREADS = 32;
+   REFRESH_SLAVE = 64;
+   REFRESH_MASTER = 128;
+   REFRESH_READ_LOCK = 16384;
+   REFRESH_FAST = 32768;
+   REFRESH_QUERY_CACHE = 65536;
+   REFRESH_QUERY_CACHE_FREE = $20000;
+   REFRESH_DES_KEY_FILE = $40000;
+   CLIENT_LONG_PASSWORD = 1;
+   CLIENT_FOUND_ROWS = 2;
+   CLIENT_LONG_FLAG = 4;
+   CLIENT_CONNECT_WITH_DB = 8;
+   CLIENT_NO_SCHEMA = 16;
+   CLIENT_COMPRESS = 32;
+   CLIENT_ODBC = 64;
+   CLIENT_LOCAL_FILES = 128;
+   CLIENT_IGNORE_SPACE = 256;
+   CLIENT_CHANGE_USER = 512;
+   CLIENT_INTERACTIVE = 1024;
+   CLIENT_SSL = 2048;
+   CLIENT_IGNORE_SIGPIPE = 4096;
+   CLIENT_TRANSACTIONS = 8192;
+   SERVER_STATUS_IN_TRANS = 1;
+   SERVER_STATUS_AUTOCOMMIT = 2;
+   MYSQL_ERRMSG_SIZE = 200;
+   NET_READ_TIMEOUT = 30;
+   NET_WRITE_TIMEOUT = 60;
+   MAX_BLOB_WIDTH = 8192;
+{
+#define NET_WAIT_TIMEOUT      (8 60 60)
+ }
+{
+struct st_vio;                                        // Only C
+typedef struct st_vio Vio;
+ }
 
-  type
+type
+  Pst_net = ^st_net;
+  st_net = record
+    vio : PVio;
+    buff : Pbyte;
+    buff_end : Pbyte;
+    write_pos : Pbyte;
+    read_pos : Pbyte;
+    fd : my_socket;
+    max_packet : dword;
+    max_packet_size : dword;
+    last_errno : dword;
+    pkt_nr : dword;
+    compress_pkt_nr : dword;
+    write_timeout : dword;
+    read_timeout : dword;
+    retry_count : dword;
+    fcntl : longint;
+    last_error : array[0..(MYSQL_ERRMSG_SIZE)-1] of char;
+    error : byte;
+    return_errno : my_bool;
+    compress : my_bool;
+    remain_in_buf : dword;
+    length : dword;
+    buf_length : dword;
+    where_b : dword;
+    return_status : Pdword;
+    reading_or_writing : byte;
+    save_char : char;
+    no_send_ok : my_bool;
+    query_cache_query : gptr;
+  end;
+  NET = st_net;
+  TNET = NET;
+  PNET = ^NET;
 
-     Pst_net = ^st_net;
-     st_net = record
-          vio : PVio;
-          buff : Pbyte;
-          buff_end : Pbyte;
-          write_pos : Pbyte;
-          read_pos : Pbyte;
-          fd : my_socket;
-          max_packet : dword;
-          fcntl : longint;
-          last_errno : dword;
-          timeout : dword;
-          pkt_nr : dword;
-          compress_pkt_nr : dword;
-          last_error : array[0..(MYSQL_ERRMSG_SIZE)-1] of char;
-          error : byte;
-          return_errno : my_bool;
-          compress : my_bool;
-          remain_in_buf : dword;
-          length : dword;
-          buf_length : dword;
-          where_b : dword;
-          return_status : Pdword;
-          reading_or_writing : byte;
-          save_char : char;
-          no_send_ok : my_bool;
-          query_cache_query : gptr;
-       end;
-     NET = st_net;
-     PNET = ^NET;
-  { was #define dname def_expr }
-  function packet_error : longint;
-      { return type might be wrong }
+function packet_error : longint;
 
-
-  type
-     enum_field_types = (FIELD_TYPE_DECIMAL,FIELD_TYPE_TINY,FIELD_TYPE_SHORT,
+type
+  enum_field_types = (FIELD_TYPE_DECIMAL,FIELD_TYPE_TINY,FIELD_TYPE_SHORT,
        FIELD_TYPE_LONG,FIELD_TYPE_FLOAT,FIELD_TYPE_DOUBLE,
        FIELD_TYPE_NULL,FIELD_TYPE_TIMESTAMP,
        FIELD_TYPE_LONGLONG,FIELD_TYPE_INT24,
