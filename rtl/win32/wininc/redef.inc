@@ -33,6 +33,7 @@ type
   TFarProc = FARPROC;
   TFNDlgProc = FARPROC;
   TFNThreadStartRoutine = FARPROC;
+  TFNTimerAPCRoutine = FARPROC;
 
   PObjectTypeList = ^TObjectTypeList;
   _OBJECT_TYPE_LIST = record
@@ -774,7 +775,7 @@ function SetSysColors(cElements: Integer; const lpaElements; const lpaRgbValues)
 function SetThreadContext(hThread: THandle; const lpContext: TContext): BOOL; external 'kernel32' name 'SetThreadContext';
 //function SetTimeZoneInformation(const lpTimeZoneInformation: TTimeZoneInformation): BOOL; external 'kernel32' name 'SetTimeZoneInformation';
 function SetUserObjectSecurity(hObj: THandle; var pSIRequested: DWORD; pSID: PSecurityDescriptor): BOOL;external 'user32' name 'SetUserObjectSecurity';
-//function SetWaitableTimer(hTimer: THandle; const lpDueTime: TLargeInteger; lPeriod: Longint; pfnCompletionRoutine: TFNTimerAPCRoutine; lpArgToCompletionRoutine: Pointer; fResume: BOOL): BOOL;external 'kernel32' name 'SetWaitableTimer';
+function SetWaitableTimer(hTimer: THandle; const lpDueTime: TLargeInteger; lPeriod: Longint; pfnCompletionRoutine: TFNTimerAPCRoutine; lpArgToCompletionRoutine: Pointer; fResume: BOOL): BOOL;external 'kernel32' name 'SetWaitableTimer';
 function SetWinMetaFileBits(p1: UINT; p2: PChar; p3: HDC; const p4: TMetaFilePict): HENHMETAFILE; external 'gdi32' name 'SetWinMetaFileBits';
 //function SetWorldTransform(DC: HDC; const p2: TXForm): BOOL; external 'gdi32' name 'SetWorldTransform';
 function StartDoc(DC: HDC; const p2: TDocInfo): Integer;external 'gdi32' name 'StartDocA';
@@ -892,10 +893,13 @@ function WriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpB
 
 {
   $Log$
-  Revision 1.3  2001-07-30 12:02:51  marco
+  Revision 1.4  2001-07-30 21:06:06  peter
+    * added SetWaitableTimer
+
+  Revision 1.3  2001/07/30 12:02:51  marco
    * Added WinCertificate
 
   Revision 1.2  2000/07/13 11:34:00  michael
   + removed logs
- 
+
 }
