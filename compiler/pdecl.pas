@@ -434,7 +434,7 @@ implementation
                     tt:=newtype.restype;
                   end
                  else
-                  message1(parser_h_type_redef,typename);
+                  message1(parser_h_type_redef,orgtypename);
                end;
             end;
            { no old type reused ? Then insert this new type }
@@ -659,7 +659,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.87  2004-06-20 08:55:30  florian
+  Revision 1.88  2004-09-13 20:33:17  peter
+    * use realname in error msg
+
+  Revision 1.87  2004/06/20 08:55:30  florian
     * logs truncated
 
   Revision 1.86  2004/06/16 20:07:09  florian
