@@ -26,6 +26,9 @@ override RELEASEVER:=0.99.11
 # define inWinNT when running under WinNT
 #####################################################################
 
+# We want only / in the path !
+override PATH:=$(subst \,/,$(PATH))
+
 PWD=$(strip $(wildcard $(addsuffix /pwd.exe,$(subst ;, ,$(PATH)))))
 ifeq ($(PWD),)
 PWD=$(strip $(wildcard $(addsuffix /pwd,$(subst :, ,$(PATH)))))
@@ -250,6 +253,27 @@ SED:=$(subst \,/,$(firstword $(SED)))
 endif
 endif
 
+# Look if UPX is found for go32v2 and win32
+ifeq ($(OS_TARGET),go32v2)
+UPX=1
+endif
+ifeq ($(OS_TARGET),win32)
+UPX=1
+endif
+ifdef UPX
+UPX=$(strip $(wildcard $(addsuffix /upx.exe,$(subst ;, ,$(PATH)))))
+ifeq ($(UPX),)
+UPX=
+endif
+else
+UPX=
+endif
+
+# Zip
+ifndef ZIP
+ZIP=zip -D9 -r
+endif
+
 
 #####################################################################
 # Default Directories
@@ -317,6 +341,11 @@ BININSTALLDIR=$(PREFIXINSTALLDIR)/bin
 else
 BININSTALLDIR=$(BASEINSTALLDIR)/bin/$(OS_TARGET)
 endif
+endif
+
+# set the directory where to install extra files
+ifndef EXTRAINSTALLDIR
+EXTRAINSTALLDIR=$(BININSTALLDIR)
 endif
 
 # Where the .msg files will be stored
@@ -410,6 +439,9 @@ override PPOPT+=$(addprefix -Fl,$(NEEDLIBDIR))
 endif
 
 # Object dirs
+ifdef OBJDIR
+override PPOPT+=$(addprefix -Fo,$(OBJDIR))
+endif
 ifdef NEEDOBJDIR
 override PPOPT+=$(addprefix -Fo,$(NEEDOBJDIR))
 endif
@@ -631,6 +663,10 @@ install : all
 ifndef DEFAULTUNITS
 ifdef EXEOBJECTS
 	$(MKDIR) $(BININSTALLDIR)
+# Compress the exes if upx is defined
+ifdef UPX
+	-$(UPX) $(EXEFILES)
+endif
 	$(INSTALLEXE) $(EXEFILES) $(BININSTALLDIR)
 endif
 endif
@@ -642,6 +678,9 @@ ifeq ($(SMARTLINK),YES)
 else
 	-$(INSTALL) $(UNITOFILES) $(UNITINSTALLDIR)
 endif
+endif
+ifdef INSTALLEXTRA
+	$(INSTALL) $(INSTALLEXTRA) $(EXTRAINSTALLDIR)
 endif
 
 
@@ -661,6 +700,32 @@ sharedlibinstall: sharedlib
 
 libinstall: staticlibinstall sharedlibinstall
 
+
+#####################################################################
+# Zip
+#####################################################################
+
+# Temporary path to pack a file
+ifndef PACKDIR
+PACKDIR=pack_tmp
+endif
+
+# Test dir if none specified
+ifndef PACKAGEDIR
+PACKAGEDIR=$(BASEDIR)
+endif
+
+zipinstall:
+# Some checks first
+ifndef ZIPNAME
+	@echo Please specify ZIPNAME!
+	@exit
+endif
+	make install BASEINSTALLDIR=$(PACKDIR)
+	cd $(PACKDIR)
+	$(ZIP) $(PACKAGEDIR)/$(ZIPNAME) *
+	cd $(BASEDIR)
+	$(DELTREE) $(PACKDIR)
 
 #####################################################################
 # Clean rules
@@ -708,6 +773,9 @@ cfginfo:
 ifdef SED
 	@echo  Sed....... $(SED)
 endif
+ifdef UPX
+	@echo  Upx....... $(UPX)
+endif
 	@echo
 
 objectinfo:
@@ -732,6 +800,7 @@ installinfo:
 	@echo  SharedLibInstallDir.. $(SHARED_LIBINSTALLDIR)
 	@echo  MsgInstallDir........ $(MSGINSTALLDIR)
 	@echo  DocInstallDir........ $(DOCINSTALLDIR)
+	@echo  ExtraInstallDir...... $(EXTRAINSTALLDIR)
 	@echo
 
 # try to get the files in the currentdir
