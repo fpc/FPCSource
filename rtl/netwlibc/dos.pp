@@ -459,7 +459,6 @@ var
   s      : searchrec;
   newdir : pathstr;
 begin
-  system.write ('FSearch ("',path,'","',dirlist,'"');
 { check if the file specified exists }
   findfirst(path,anyfile,s);
   if doserror=0 then
@@ -690,7 +689,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.5  2004-12-05 16:44:43  hajny
+  Revision 1.6  2005-01-14 20:59:15  armin
+  * forgot to remove debug output in fsearch
+
+  Revision 1.5  2004/12/05 16:44:43  hajny
     * GetMsCount added, platform independent routines moved to single include file
 
   Revision 1.4  2004/09/26 19:23:34  armin
