@@ -4,7 +4,7 @@
     Copyright (c) 1999-2000 by Michael Van Canneyt,
     member of the Free Pascal development team.
 
-    Syscall nrs for 2.4.18 
+    Syscall nrs for 2.4.18
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -19,253 +19,295 @@
 {
 * This file contains the system call numbers.
 }
+const
+  syscall_nr_read                                = 0;
+  syscall_nr_write                               = 1;
+  syscall_nr_open                                = 2;
+  syscall_nr_close                               = 3;
+  syscall_nr_stat                                = 4;
+  syscall_nr_fstat                               = 5;
+  syscall_nr_lstat                               = 6;
+  syscall_nr_poll                                = 7;
+  syscall_nr_lseek                               = 8;
+  syscall_nr_mmap                                = 9;
+  syscall_nr_mprotect                           = 10;
+  syscall_nr_munmap                             = 11;
+  syscall_nr_brk                                = 12;
+  syscall_nr_rt_sigaction                       = 13;
+  syscall_nr_rt_sigprocmask                     = 14;
+  syscall_nr_rt_sigreturn                       = 15;
+  syscall_nr_ioctl                              = 16;
+  syscall_nr_pread64                            = 17;
+  syscall_nr_pwrite64                           = 18;
+  syscall_nr_readv                              = 19;
+  syscall_nr_writev                             = 20;
+  syscall_nr_access                             = 21;
+  syscall_nr_pipe                               = 22;
+  syscall_nr_select                             = 23;
+  syscall_nr_sched_yield                        = 24;
+  syscall_nr_mremap                             = 25;
+  syscall_nr_msync                              = 26;
+  syscall_nr_mincore                            = 27;
+  syscall_nr_madvise                            = 28;
+  syscall_nr_shmget                             = 29;
+  syscall_nr_shmat                              = 30;
+  syscall_nr_shmctl                             = 31;
+  syscall_nr_dup                                = 32;
+  syscall_nr_dup2                               = 33;
+  syscall_nr_pause                              = 34;
+  syscall_nr_nanosleep                          = 35;
+  syscall_nr_getitimer                          = 36;
+  syscall_nr_alarm                              = 37;
+  syscall_nr_setitimer                          = 38;
+  syscall_nr_getpid                             = 39;
+  syscall_nr_sendfile                           = 40;
+  syscall_nr_socket                             = 41;
+  syscall_nr_connect                            = 42;
+  syscall_nr_accept                             = 43;
+  syscall_nr_sendto                             = 44;
+  syscall_nr_recvfrom                           = 45;
+  syscall_nr_sendmsg                            = 46;
+  syscall_nr_recvmsg                            = 47;
 
-Const
-        syscall_nr_exit		  	=  1;
-        syscall_nr_fork		  	=  2;
-        syscall_nr_read		  	=  3;
-        syscall_nr_write		=  4;
-        syscall_nr_open		  	=  5;
-        syscall_nr_close		=  6;
-        syscall_nr_waitpid		=  7;
-        syscall_nr_creat		=  8;
-        syscall_nr_link		  	=  9;
-        syscall_nr_unlink		= 10;
-        syscall_nr_execve		= 11;
-        syscall_nr_chdir		= 12;
-        syscall_nr_time		 	= 13;
-        syscall_nr_mknod		= 14;
-        syscall_nr_chmod		= 15;
-        syscall_nr_lchown		= 16;
-        syscall_nr_break		= 17;
-        syscall_nr_oldstat		= 18;
-        syscall_nr_lseek		= 19;
-        syscall_nr_getpid		= 20;
-        syscall_nr_mount		= 21;
-        syscall_nr_umount		= 22;
-        syscall_nr_setuid		= 23;
-        syscall_nr_getuid		= 24;
-        syscall_nr_stime		= 25;
-        syscall_nr_ptrace		= 26;
-        syscall_nr_alarm		= 27;
-        syscall_nr_oldfstat		= 28;
-        syscall_nr_pause		= 29;
-        syscall_nr_utime		= 30;
-        syscall_nr_stty		 	= 31;
-        syscall_nr_gtty		 	= 32;
-        syscall_nr_access		= 33;
-        syscall_nr_nice		 	= 34;
-        syscall_nr_ftime		= 35;
-        syscall_nr_sync		 	= 36;
-        syscall_nr_kill		 	= 37;
-        syscall_nr_rename		= 38;
-        syscall_nr_mkdir		= 39;
-        syscall_nr_rmdir		= 40;
-        syscall_nr_dup		 	= 41;
-        syscall_nr_pipe		 	= 42;
-        syscall_nr_times		= 43;
-        syscall_nr_prof		 	= 44;
-        syscall_nr_brk		 	= 45;
-        syscall_nr_setgid		= 46;
-        syscall_nr_getgid		= 47;
-        syscall_nr_signal		= 48;
-        syscall_nr_geteuid		= 49;
-        syscall_nr_getegid		= 50;
-        syscall_nr_acct		 	= 51;
-        syscall_nr_umount2		= 52;
-        syscall_nr_lock		 	= 53;
-        syscall_nr_ioctl		= 54;
-        syscall_nr_fcntl		= 55;
-        syscall_nr_mpx		 	= 56;
-        syscall_nr_setpgid		= 57;
-        syscall_nr_ulimit		= 58;
-        syscall_nr_oldolduname	 	= 59;
-        syscall_nr_umask		= 60;
-        syscall_nr_chroot		= 61;
-        syscall_nr_ustat		= 62;
-        syscall_nr_dup2		 	= 63;
-        syscall_nr_getppid		= 64;
-        syscall_nr_getpgrp		= 65;
-        syscall_nr_setsid		= 66;
-        syscall_nr_sigaction		= 67;
-        syscall_nr_sgetmask		= 68;
-        syscall_nr_ssetmask		= 69;
-        syscall_nr_setreuid		= 70;
-        syscall_nr_setregid		= 71;
-        syscall_nr_sigsuspend		= 72;
-        syscall_nr_sigpending		= 73;
-        syscall_nr_sethostname	 	= 74;
-        syscall_nr_setrlimit		= 75;
-        syscall_nr_getrlimit		= 76;	{ Back compatible 2Gig limited rlimit }
-        syscall_nr_getrusage		= 77;
-        syscall_nr_gettimeofday	 	= 78;
-        syscall_nr_settimeofday	 	= 79;
-        syscall_nr_getgroups		= 80;
-        syscall_nr_setgroups		= 81;
-        syscall_nr_select		= 82;
-        syscall_nr_symlink		= 83;
-        syscall_nr_oldlstat		= 84;
-        syscall_nr_readlink		= 85;
-        syscall_nr_uselib		= 86;
-        syscall_nr_swapon		= 87;
-        syscall_nr_reboot		= 88;
-        syscall_nr_readdir		= 89;
-        syscall_nr_mmap		 	= 90;
-        syscall_nr_munmap		= 91;
-        syscall_nr_truncate		= 92;
-        syscall_nr_ftruncate		= 93;
-        syscall_nr_fchmod		= 94;
-        syscall_nr_fchown		= 95;
-        syscall_nr_getpriority	 	= 96;
-        syscall_nr_setpriority	 	= 97;
-        syscall_nr_profil		= 98;
-        syscall_nr_statfs		= 99;
-        syscall_nr_fstatfs		= 100;
-        syscall_nr_ioperm		= 101;
-        syscall_nr_socketcall		= 102;
-        syscall_nr_syslog		= 103;
-        syscall_nr_setitimer		= 104;
-        syscall_nr_getitimer		= 105;
-        syscall_nr_stat			= 106;
-        syscall_nr_lstat		= 107;
-        syscall_nr_fstat		= 108;
-        syscall_nr_olduname		= 109;
-        syscall_nr_iopl			= 110;
-        syscall_nr_vhangup		= 111;
-        syscall_nr_idle			= 112;
-        syscall_nr_vm86old		= 113;
-        syscall_nr_wait4		= 114;
-        syscall_nr_swapoff		= 115;
-        syscall_nr_sysinfo		= 116;
-        syscall_nr_ipc			= 117;
-        syscall_nr_fsync		= 118;
-        syscall_nr_sigreturn		= 119;
-        syscall_nr_clone		= 120;
-        syscall_nr_setdomainname	= 121;
-        syscall_nr_uname		= 122;
-        syscall_nr_modify_ldt		= 123;
-        syscall_nr_adjtimex		= 124;
-        syscall_nr_mprotect		= 125;
-        syscall_nr_sigprocmask		= 126;
-        syscall_nr_create_module	= 127;
-        syscall_nr_init_module		= 128;
-        syscall_nr_delete_module	= 129;
-        syscall_nr_get_kernel_syms	= 130;
-        syscall_nr_quotactl		= 131;
-        syscall_nr_getpgid		= 132;
-        syscall_nr_fchdir		= 133;
-        syscall_nr_bdflush		= 134;
-        syscall_nr_sysfs		= 135;
-        syscall_nr_personality		= 136;
-        syscall_nr_afs_syscall		= 137; { Syscall for Andrew File System }
-        syscall_nr_setfsuid		= 138;
-        syscall_nr_setfsgid		= 139;
-        syscall_nr__llseek		= 140;
-        syscall_nr_getdents		= 141;
-        syscall_nr__newselect		= 142;
-        syscall_nr_flock		= 143;
-        syscall_nr_msync		= 144;
-        syscall_nr_readv		= 145;
-        syscall_nr_writev		= 146;
-        syscall_nr_getsid		= 147;
-        syscall_nr_fdatasync		= 148;
-        syscall_nr__sysctl		= 149;
-        syscall_nr_mlock		= 150;
-        syscall_nr_munlock		= 151;
-        syscall_nr_mlockall		= 152;
-        syscall_nr_munlockall		= 153;
-        syscall_nr_sched_setparam	= 154;
-        syscall_nr_sched_getparam	= 155;
-        syscall_nr_sched_setscheduler	= 156;
-        syscall_nr_sched_getscheduler	= 157;
-        syscall_nr_sched_yield		= 158;
-        syscall_nr_sched_get_priority_max    	= 159;
-        syscall_nr_sched_get_priority_min    	= 160;
-        syscall_nr_sched_rr_get_interval     	= 161;
-        syscall_nr_nanosleep		= 162;
-        syscall_nr_mremap		= 163;
-        syscall_nr_setresuid		= 164;
-        syscall_nr_getresuid		= 165;
-        syscall_nr_vm86			= 166;
-        syscall_nr_query_module		= 167;
-        syscall_nr_poll			= 168;
-        syscall_nr_nfsservctl		= 169;
-        syscall_nr_setresgid		= 170;
-        syscall_nr_getresgid		= 171;
-        syscall_nr_prctl        	= 172;
-        syscall_nr_rt_sigreturn		= 173;
-        syscall_nr_rt_sigaction		= 174;
-        syscall_nr_rt_sigprocmask	= 175;
-        syscall_nr_rt_sigpending	= 176;
-        syscall_nr_rt_sigtimedwait	= 177;
-        syscall_nr_rt_sigqueueinfo	= 178;
-        syscall_nr_rt_sigsuspend	= 179;
-        syscall_nr_pread		= 180;
-        syscall_nr_pwrite		= 181;
-        syscall_nr_chown		= 182;
-        syscall_nr_getcwd		= 183;
-        syscall_nr_capget		= 184;
-        syscall_nr_capset		= 185;
-        syscall_nr_sigaltstack		= 186;
-        syscall_nr_sendfile		= 187;
-        syscall_nr_getpmsg		= 188;	{ some people actually want streams }
-        syscall_nr_putpmsg		= 189;	{ some people actually want streams }
-        syscall_nr_vfork		= 190;
-        syscall_nr_ugetrlimit		= 191;	{ SuS compliant getrlimit }
-        syscall_nr_mmap2		= 192;
-        syscall_nr_truncate64		= 193;
-        syscall_nr_ftruncate64		= 194;
-        syscall_nr_stat64		= 195;
-        syscall_nr_lstat64		= 196;
-        syscall_nr_fstat64		= 197;
-        syscall_nr_lchown32		= 198;
-        syscall_nr_getuid32		= 199;
-        syscall_nr_getgid32		= 200;
-        syscall_nr_geteuid32		= 201;
-        syscall_nr_getegid32		= 202;
-        syscall_nr_setreuid32		= 203;
-        syscall_nr_setregid32		= 204;
-        syscall_nr_getgroups32		= 205;
-        syscall_nr_setgroups32		= 206;
-        syscall_nr_fchown32		= 207;
-        syscall_nr_setresuid32		= 208;
-        syscall_nr_getresuid32		= 209;
-        syscall_nr_setresgid32		= 210;
-        syscall_nr_getresgid32		= 211;
-        syscall_nr_chown32		= 212;
-        syscall_nr_setuid32		= 213;
-        syscall_nr_setgid32		= 214;
-        syscall_nr_setfsuid32		= 215;
-        syscall_nr_setfsgid32		= 216;
-        syscall_nr_pivot_root		= 217;
-        syscall_nr_mincore		= 218;
-        syscall_nr_madvise		= 219;
-        syscall_nr_madvise1		= 219;	{ delete when C lib stub is removed }
-        syscall_nr_getdents64		= 220;
-        syscall_nr_fcntl64		= 221;
-        syscall_nr_security		= 223;	{ syscall for security modules }
-        syscall_nr_gettid		= 224;
-        syscall_nr_readahead		= 225;
-        syscall_nr_setxattr		= 226;
-        syscall_nr_lsetxattr		= 227;
-        syscall_nr_fsetxattr		= 228;
-        syscall_nr_getxattr		= 229;
-        syscall_nr_lgetxattr		= 230;
-        syscall_nr_fgetxattr		= 231;
-        syscall_nr_listxattr		= 232;
-        syscall_nr_llistxattr		= 233;
-        syscall_nr_flistxattr		= 234;
-        syscall_nr_removexattr		= 235;
-        syscall_nr_lremovexattr		= 236;
-        syscall_nr_fremovexattr		= 237;
+  syscall_nr_shutdown                           = 48;
+  syscall_nr_bind                               = 49;
+  syscall_nr_listen                             = 50;
+  syscall_nr_getsockname                        = 51;
+  syscall_nr_getpeername                        = 52;
+  syscall_nr_socketpair                         = 53;
+  syscall_nr_setsockopt                         = 54;
+  syscall_nr_getsockopt                         = 55;
+
+  syscall_nr_clone                              = 56;
+  syscall_nr_fork                               = 57;
+  syscall_nr_vfork                              = 58;
+  syscall_nr_execve                             = 59;
+  syscall_nr_exit                               = 60;
+  syscall_nr_wait4                              = 61;
+  syscall_nr_kill                               = 62;
+  syscall_nr_uname                              = 63;
+
+  syscall_nr_semget                             = 64;
+  syscall_nr_semop                              = 65;
+  syscall_nr_semctl                             = 66;
+  syscall_nr_shmdt                              = 67;
+  syscall_nr_msgget                             = 68;
+  syscall_nr_msgsnd                             = 69;
+  syscall_nr_msgrcv                             = 70;
+  syscall_nr_msgctl                             = 71;
+
+  syscall_nr_fcntl                              = 72;
+  syscall_nr_flock                              = 73;
+  syscall_nr_fsync                              = 74;
+  syscall_nr_fdatasync                          = 75;
+  syscall_nr_truncate                           = 76;
+  syscall_nr_ftruncate                          = 77;
+  syscall_nr_getdents                           = 78;
+  syscall_nr_getcwd                             = 79;
+
+  syscall_nr_chdir                              = 80;
+  syscall_nr_fchdir                             = 81;
+  syscall_nr_rename                             = 82;
+  syscall_nr_mkdir                              = 83;
+  syscall_nr_rmdir                              = 84;
+  syscall_nr_creat                              = 85;
+  syscall_nr_link                               = 86;
+  syscall_nr_unlink                             = 87;
+
+  syscall_nr_symlink                            = 88;
+  syscall_nr_readlink                           = 89;
+  syscall_nr_chmod                              = 90;
+  syscall_nr_fchmod                             = 91;
+  syscall_nr_chown                              = 92;
+  syscall_nr_fchown                             = 93;
+  syscall_nr_lchown                             = 94;
+  syscall_nr_umask                              = 95;
+
+  syscall_nr_gettimeofday                       = 96;
+  syscall_nr_getrlimit                          = 97;
+  syscall_nr_getrusage                          = 98;
+  syscall_nr_sysinfo                            = 99;
+  syscall_nr_times                             = 100;
+  syscall_nr_ptrace                            = 101;
+  syscall_nr_getuid                            = 102;
+  syscall_nr_syslog                            = 103;
+
+  syscall_nr_getgid                            = 104;
+  syscall_nr_setuid                            = 105;
+  syscall_nr_setgid                            = 106;
+  syscall_nr_geteuid                           = 107;
+  syscall_nr_getegid                           = 108;
+  syscall_nr_setpgid                           = 109;
+  syscall_nr_getppid                           = 110;
+  syscall_nr_getpgrp                           = 111;
+
+  syscall_nr_setsid                            = 112;
+  syscall_nr_setreuid                          = 113;
+  syscall_nr_setregid                          = 114;
+  syscall_nr_getgroups                         = 115;
+  syscall_nr_setgroups                         = 116;
+  syscall_nr_setresuid                         = 117;
+  syscall_nr_getresuid                         = 118;
+  syscall_nr_setresgid                         = 119;
+
+  syscall_nr_getresgid                         = 120;
+  syscall_nr_getpgid                           = 121;
+  syscall_nr_setfsuid                          = 122;
+  syscall_nr_setfsgid                          = 123;
+  syscall_nr_getsid                            = 124;
+  syscall_nr_capget                            = 125;
+  syscall_nr_capset                            = 126;
+
+  syscall_nr_rt_sigpending                     = 127;
+  syscall_nr_rt_sigtimedwait                   = 128;
+  syscall_nr_rt_sigqueueinfo                   = 129;
+  syscall_nr_rt_sigsuspend                     = 130;
+  syscall_nr_sigaltstack                       = 131;
+  syscall_nr_utime                             = 132;
+  syscall_nr_mknod                             = 133;
+
+  syscall_nr_uselib                            = 134;
+  syscall_nr_personality                       = 135;
+
+  syscall_nr_ustat                             = 136;
+  syscall_nr_statfs                            = 137;
+  syscall_nr_fstatfs                           = 138;
+  syscall_nr_sysfs                             = 139;
+
+  syscall_nr_getpriority                       = 140;
+  syscall_nr_setpriority                       = 141;
+  syscall_nr_sched_setparam                    = 142;
+  syscall_nr_sched_getparam                    = 143;
+  syscall_nr_sched_setscheduler                = 144;
+  syscall_nr_sched_getscheduler                = 145;
+  syscall_nr_sched_get_priority_max            = 146;
+  syscall_nr_sched_get_priority_min            = 147;
+  syscall_nr_sched_rr_get_interval             = 148;
+
+  syscall_nr_mlock                             = 149;
+  syscall_nr_munlock                           = 150;
+  syscall_nr_mlockall                          = 151;
+  syscall_nr_munlockall                        = 152;
+
+  syscall_nr_vhangup                           = 153;
+
+  syscall_nr_modify_ldt                        = 154;
+
+  syscall_nr_pivot_root                        = 155;
+
+  syscall_nr__sysctl                           = 156;
+
+  syscall_nr_prctl                             = 157;
+  syscall_nr_arch_prctl                        = 158;
+
+  syscall_nr_adjtimex                          = 159;
+
+  syscall_nr_setrlimit                         = 160;
+
+  syscall_nr_chroot                            = 161;
+
+  syscall_nr_sync                              = 162;
+
+  syscall_nr_acct                              = 163;
+
+  syscall_nr_settimeofday                      = 164;
+
+  syscall_nr_mount                             = 165;
+  syscall_nr_umount2                           = 166;
+
+  syscall_nr_swapon                            = 167;
+  syscall_nr_swapoff                           = 168;
+
+  syscall_nr_reboot                            = 169;
+
+  syscall_nr_sethostname                       = 170;
+  syscall_nr_setdomainname                     = 171;
+
+  syscall_nr_iopl                              = 172;
+  syscall_nr_ioperm                            = 173;
+
+  syscall_nr_create_module                     = 174;
+  syscall_nr_init_module                       = 175;
+  syscall_nr_delete_module                     = 176;
+  syscall_nr_get_kernel_syms                   = 177;
+  syscall_nr_query_module                      = 178;
+
+  syscall_nr_quotactl                          = 179;
+
+  syscall_nr_nfsservctl                        = 180;
+
+  syscall_nr_getpmsg                           = 181;
+  syscall_nr_putpmsg                           = 182;
+
+  syscall_nr_afs_syscall                       = 183;
+
+  syscall_nr_tuxcall                    = 184;
+
+  syscall_nr_security                   = 185;
+
+  syscall_nr_gettid             = 186;
+
+  syscall_nr_readahead          = 187;
+  syscall_nr_setxattr           = 188;
+  syscall_nr_lsetxattr          = 189;
+  syscall_nr_fsetxattr          = 190;
+  syscall_nr_getxattr           = 191;
+  syscall_nr_lgetxattr          = 192;
+  syscall_nr_fgetxattr          = 193;
+  syscall_nr_listxattr          = 194;
+  syscall_nr_llistxattr         = 195;
+  syscall_nr_flistxattr         = 196;
+  syscall_nr_removexattr        = 197;
+  syscall_nr_lremovexattr       = 198;
+  syscall_nr_fremovexattr       = 199;
+  syscall_nr_tkill      = 200;
+  syscall_nr_time      = 201;
+  syscall_nr_futex     = 202;
+  syscall_nr_sched_setaffinity    = 203;
+  syscall_nr_sched_getaffinity     = 204;
+  syscall_nr_set_thread_area    = 205;
+  syscall_nr_io_setup   = 206;
+  syscall_nr_io_destroy = 207;
+  syscall_nr_io_getevents       = 208;
+  syscall_nr_io_submit  = 209;
+  syscall_nr_io_cancel  = 210;
+  syscall_nr_get_thread_area    = 211;
+  syscall_nr_lookup_dcookie     = 212;
+  syscall_nr_epoll_create       = 213;
+  syscall_nr_epoll_ctl_old      = 214;
+  syscall_nr_epoll_wait_old     = 215;
+  syscall_nr_remap_file_pages   = 216;
+  syscall_nr_getdents64 = 217;
+  syscall_nr_set_tid_address    = 218;
+  syscall_nr_restart_syscall    = 219;
+  syscall_nr_semtimedop         = 220;
+  syscall_nr_fadvise64          = 221;
+  syscall_nr_timer_create               = 222;
+  syscall_nr_timer_settime              = 223;
+  syscall_nr_timer_gettime              = 224;
+  syscall_nr_timer_getoverrun           = 225;
+  syscall_nr_timer_delete       = 226;
+  syscall_nr_clock_settime      = 227;
+  syscall_nr_clock_gettime      = 228;
+  syscall_nr_clock_getres       = 229;
+  syscall_nr_clock_nanosleep    = 230;
+  syscall_nr_exit_group         = 231;
+  syscall_nr_epoll_wait         = 232;
+  syscall_nr_epoll_ctl          = 233;
+  syscall_nr_tgkill             = 234;
+  syscall_nr_utimes             = 235;
+  syscall_nr_vserver            = 236;
+
+{ 237,238,239 reserved for NUMA API }
 
 {
     $Log$
-    Revision 1.1  2003-07-06 21:12:30  peter
+    Revision 1.2  2004-04-20 20:27:01  florian
+      * x86_64 syscall numbers fixed
+
+    Revision 1.1  2003/07/06 21:12:30  peter
       * Syscall number is architecture dependent
 
     Revision 1.4  2002/11/12 14:46:46  marco
      * 2.4.18 version.
-
-
 }

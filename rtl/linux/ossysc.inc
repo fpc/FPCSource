@@ -206,6 +206,14 @@ end;
   If OldAct is non-nil the previous action is saved there.
 }
 
+{$ifdef CPUARM}
+{$define RTSIGACTION}
+{$endif CPUARM}
+
+{$ifdef CPUx86_64}
+{$define RTSIGACTION}
+{$endif CPUx86_64}
+
 function Fpsigaction(sig: cint; act : psigactionrec; oact : psigactionrec): cint; [public, alias : 'FPC_SYSC_SIGACTION'];
 
 {
@@ -216,11 +224,11 @@ function Fpsigaction(sig: cint; act : psigactionrec; oact : psigactionrec): cint
 }
 
 begin
-{$ifdef CPUARM}
+{$ifdef RTSIGACTION}
   do_syscall(syscall_nr_rt_sigaction,TSysParam(sig),TSysParam(act),TSysParam(oact),8);
-{$else CPUARM}
+{$else RTSIGACTION}
   do_syscall(syscall_nr_sigaction,TSysParam(sig),TSysParam(act),TSysParam(oact));
-{$endif CPUARM}
+{$endif RTSIGACTION}
 end;
 
 function Fpftruncate(fd : cint; flength : off_t): cint; [public, alias : 'FPC_SYSC_FTRUNCATE'];
@@ -282,6 +290,15 @@ Begin
 End;
 }
 
+{$ifdef CPUARM}
+{$define WAIT4}
+{$endif CPUARM}
+
+{$ifdef CPUx86_64}
+{$define WAIT4}
+{$endif CPUx86_64}
+
+
 function Fpwaitpid(pid : pid_t; stat_loc : pcint; options: cint): pid_t; [public, alias : 'FPC_SYSC_WAITPID'];
 {
   Waits until a child with PID Pid exits, or returns if it is exited already.
@@ -291,11 +308,11 @@ function Fpwaitpid(pid : pid_t; stat_loc : pcint; options: cint): pid_t; [public
 }
 
 begin
-{$ifdef CPUARM}
+{$ifdef WAIT4}
  FpWaitPID:=do_syscall(syscall_nr_Wait4,PID,TSysParam(Stat_loc),options,0);
-{$else CPUARM}
+{$else WAIT4}
  FpWaitPID:=do_syscall(syscall_nr_WaitPID,PID,TSysParam(Stat_loc),options);
-{$endif CPUARM}
+{$endif WAIT4}
 end;
 
 function Fpaccess(pathname : pchar; amode : cint): cint; [public, alias : 'FPC_SYSC_ACCESS'];
@@ -496,7 +513,10 @@ end;
 
 {
  $Log$
- Revision 1.20  2004-04-12 16:33:42  peter
+ Revision 1.21  2004-04-20 20:27:01  florian
+   * x86_64 syscall numbers fixed
+
+ Revision 1.20  2004/04/12 16:33:42  peter
    * readdir now uses getdents, patch from Joost van der Sluis
 
  Revision 1.19  2004/03/27 14:34:23  florian
