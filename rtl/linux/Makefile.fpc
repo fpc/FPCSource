@@ -157,7 +157,7 @@ unix$(PPUEXT) : unix.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
 
 baseunix$(PPUEXT) : errno.inc bunxtype.inc ptypes.inc ctypes.inc \
 	signal.inc $(UNIXINC)/bunxh.inc bunxmain.inc ostypes.inc \
-	bunxfunc.inc $(CPU_TARGET)/syscallh.inc sysnr.inc \
+	bunxfunc.inc $(CPU_TARGET)/syscallh.inc $(CPU_TARGET)/sysnr.inc \
 	ostypes.inc ossysch.inc bunxmacr.inc $(UNIXINC)/gensigset.inc \
 	$(UNIXINC)/genfuncs.inc $(SYSTEMUNIT)$(PPUEXT)
 
