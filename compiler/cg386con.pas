@@ -26,7 +26,7 @@ interface
     uses
       tree;
 
-{.$define SMALLSETORD}
+{$define SMALLSETORD}
 
 
     procedure secondrealconst(var p : ptree);
@@ -251,26 +251,15 @@ implementation
          neededtyp   : tait;
       begin
 {$ifdef SMALLSETORD}
+        { small sets are loaded as constants }
         if psetdef(p^.resulttype)^.settype=smallset then
          begin
            p^.location.loc:=LOC_MEM;
            p^.location.reference.isintvalue:=true;
-           p^.location.reference.offset:=p^.value_set^[0];
-         end
-        else
-         begin
-           getdatalabel(lastlabel);
-           p^.lab_set:=lastlabel;
-           if (cs_smartlink in aktmoduleswitches) then
-            consts^.concat(new(pai_cut,init));
-           consts^.concat(new(pai_label,init(duplabel(lastlabel))));
-           for i:=0 to 31 do
-             consts^.concat(new(pai_const,init_8bit(p^.value_set^[i])));
-           clear_reference(p^.location.reference);
-           p^.location.reference.symbol:=stringdup(lab2str(p^.lab_set));
-           p^.location.loc:=LOC_MEM;
+           p^.location.reference.offset:=plongint(p^.value_set)^;
+	   exit;
          end;
-{$else}
+{$endif}
         if psetdef(p^.resulttype)^.settype=smallset then
          neededtyp:=ait_const_32bit
         else
@@ -349,7 +338,6 @@ implementation
         clear_reference(p^.location.reference);
         p^.location.reference.symbol:=stringdup(lab2str(p^.lab_set));
         p^.location.loc:=LOC_MEM;
-{$endif SMALLSETORD}
       end;
 
 
@@ -368,7 +356,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  1998-11-24 12:52:41  peter
+  Revision 1.22  1998-11-24 13:40:59  peter
+    * release smallsetord, so small sets constant are handled like longints
+
+  Revision 1.21  1998/11/24 12:52:41  peter
     * sets are not written twice anymore
     * optimize for emptyset+single element which uses a new routine from
       set.inc FPC_SET_CREATE_ELEMENT
