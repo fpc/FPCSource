@@ -108,8 +108,8 @@ RealIntr($21, Regs);
 if Regs.Flags and CarryFlag <> 0 then
    result := -1
 else begin
-   LongRec(result).Lo := Regs.Edx;
-   LongRec(result).Hi := Regs.Ecx;
+   LongRec(result).Lo := Regs.Eax;
+   LongRec(result).Hi := Regs.Edx;
    end ;
 end;
 
@@ -321,7 +321,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  1998-10-15 09:39:13  michael
+  Revision 1.4  1998-10-29 13:16:19  michael
+  * Fix for fileseek by gertjan schouten
+
+  Revision 1.3  1998/10/15 09:39:13  michael
   Changes from Gretjan Schouten
 
   Revision 1.2  1998/10/12 08:02:16  michael
