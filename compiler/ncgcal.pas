@@ -5,7 +5,7 @@
     Generate i386 assembler for in call nodes
 
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published bymethodpointer
+    it under the terms of the GNU General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
     (at your option) any later version.
 
@@ -1382,7 +1382,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.86  2003-06-07 18:57:04  jonas
+  Revision 1.87  2003-06-08 18:21:47  jonas
+    * fixed weird error in the copyleft statement :)
+
+  Revision 1.86  2003/06/07 18:57:04  jonas
     + added freeintparaloc
     * ppc get/freeintparaloc now check whether the parameter regs are
       properly allocated/deallocated (and get an extra list para)
