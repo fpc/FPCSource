@@ -33,6 +33,10 @@ this code that are retained.
 *}
 
 unit softfpu;
+{ Overflow checking must be disabled,
+  since some operations expect overflow!
+}
+{$Q-}  
 
 interface
 
@@ -43,14 +47,14 @@ Software IEC/IEEE floating-point types.
 -------------------------------------------------------------------------------
 }
 TYPE
-  float32 = longint;
+  float32 = longword;
 
   flag = byte;
   uint8 = byte;
   int8 = shortint;
   uint16 = word;
   int16 = integer;
-  uint32 = longint;
+  uint32 = longword;
   int32 = longint;
 
   bits8 = byte;
@@ -58,15 +62,15 @@ TYPE
   bits16 = word;
   sbits16 = integer;
   sbits32 = longint;
-  bits32 = longint;
+  bits32 = longword;
 {$ifdef ENDIAN_LITTLE}
   float64 = packed record
-    low: longword;
-    high: longword;
+    low: bits32;
+    high: bits32;
   end;
 {$else}
  float64 = packed record
-   high,low : longword;
+   high,low : bits32;
  end;
 
 {$endif}
@@ -815,9 +819,9 @@ Var
     aHigh, aLow, bHigh, bLow: bits16;
     z0, zMiddleA, zMiddleB, z1: bits32;
 Begin
-    aLow := a;
+    aLow := a and $ffff;
     aHigh := a shr 16;
-    bLow := b;
+    bLow := b and $ffff;
     bHigh := b shr 16;
     z1 := ( bits32( aLow) ) * bLow;
     zMiddleA := ( bits32 (aLow) ) * bHigh;
@@ -1414,7 +1418,7 @@ function float32_is_signaling_nan(a: float32):flag;
 | exception is raised.
 *----------------------------------------------------------------------------*)
 Procedure float32ToCommonNaN( a: float32; VAR c:commonNaNT  );
- var 
+ var
   z: commonNANT;
  begin
    if float32_is_signaling_nan(a) then
@@ -1522,7 +1526,7 @@ Procedure commonNaNToFloat64( a : commonNaNT; VAR c: float64  );
     z.high := z.high or ( ( (bits32) a.sign )<<31 ) | 0x7FF80000;
     c:=z;
  end;
- 
+
 (*----------------------------------------------------------------------------
 | Takes two double-precision floating-point values `a' and `b', one of which
 | is a NaN, and returns the appropriate NaN result.  If either `a' or `b' is a
@@ -1955,8 +1959,7 @@ Procedure
     if ( increment )<>0 then
       Begin
         add64( zSig0, zSig1, 0, 1, zSig0, zSig1 );
-        {!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!}
-        zSig1 := zSig1 and not ( flag( zSig2 + zSig2 = 0 ) and roundNearestEven );
+        zSig1 := zSig1 and not ( bits32(flag( zSig2 + zSig2 = 0 )) and roundNearestEven );
       End
     else
       Begin
@@ -4106,7 +4109,7 @@ Begin
         sub64( aSig0, aSig1, bSig0, bSig1, aSig0, aSig1 );
     Until not ( 0 <= sbits32 (aSig0) );
     add64(
-        aSig0, aSig1, alternateASig0, alternateASig1, sigMean0, sigMean1 );
+        aSig0, aSig1, alternateASig0, alternateASig1, bits32(sigMean0), sigMean1 );
     if (    ( sigMean0 < 0 )
          OR ( ( ( sigMean0 OR  sigMean1 ) = 0 ) AND  (( q AND 1 )<>0) ) ) then
     Begin
@@ -4488,7 +4491,12 @@ End;
 end.
 {
    $Log$
-   Revision 1.1  2002-09-16 19:10:17  carl
+   Revision 1.2  2002-10-08 20:07:08  carl
+     * fix range check errors
+     - overflow checking must be off always
+     * debugged and works as expected
+
+   Revision 1.1  2002/09/16 19:10:17  carl
      * first revision of FPU emulation
 
 }
