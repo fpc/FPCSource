@@ -619,7 +619,11 @@ begin
             leave
             ret
          .LDISKFREE1:
+{$ifdef NOATTCDQ}
+            cltd
+{$else}
             cwde
+{$endif}
             leave
             ret
         end
@@ -657,7 +661,11 @@ begin
             leave
             ret
         .LDISKSIZE1:
+{$ifdef NOATTCDQ}
+            cltd
+{$else}
             cwde
+{$endif}
             leave
             ret
         end
@@ -980,7 +988,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  1998-12-07 18:55:41  jonas
+  Revision 1.10  1998-12-10 16:05:39  daniel
+  * Fsearch bug fixed
+
+  Revision 1.9  1998/12/07 18:55:41  jonas
     * fixed bug reported in the mailing list by Frank McCormick (fsearch: changed
       "if p1 = 0" to "if p1 <> 0"
 
