@@ -230,7 +230,7 @@ preamble.inc:
         cp -f preamble.$(PREAMBLETYPE) preamble.inc
 
 ../compiler/msg2inc$(EXEEXT):
-	$(MAKE) -C ../compiler msg2inc
+        $(MAKE) -C ../compiler msg2inc
 
 messages.inc: ../compiler/msg2inc$(EXEEXT) ../compiler/msg/errore.msg
         ../compiler/msg2inc -TE ../compiler/msg/errore.msg messages.inc
@@ -258,8 +258,8 @@ endif
 HOSTOS=$(OS_SOURCE)
 
 # Classes.pp is in rtl/unix/ for several targets
-#ifneq ($(findstring $(OS_SOURCE),linux freebsd darwin netbsd openbsd),)
-#CLASSESUNITDIR=unix
+ifneq ($(findstring $(OS_SOURCE),linux freebsd darwin netbsd openbsd),)
+CLASSESUNITDIR=unix
 #else
 CLASSESUNITDIR=$(OS_SOURCE)
 #endif
@@ -566,7 +566,10 @@ execute:
 
 #
 # $Log$
-# Revision 1.5  2005-02-07 21:05:58  michael
+# Revision 1.6  2005-02-11 16:25:37  peter
+#   * classes in unix dir
+#
+# Revision 1.5  2005/02/07 21:05:58  michael
 # + Small fix for classes.pp
 #
 # Revision 1.4  2005/02/07 20:39:19  peter
