@@ -483,9 +483,9 @@ begin
                        'E' : OutputExeDir:=FixPath(More,true);
                        'i' : AddPathToList(includesearchpath,More,not firstpass);
                        'g' : Message2(option_obsolete_switch_use_new,'-Fg','-Fl');
-                       'l' : AddPathToList(Linker.LibrarySearchPath,More,not firstpass);
+                       'l' : AddPathToList(LibrarySearchPath,More,not firstpass);
                        'L' : if More<>'' then
-                              Linker.DynamicLinker:=More
+                              ParaDynamicLinker:=More
                              else
                               IllegalPara(opt);
                        'o' : AddPathToList(objectsearchpath,More,not firstpass);
@@ -503,7 +503,7 @@ begin
                        begin
 {$ifdef GDB}
                          initmoduleswitches:=initmoduleswitches+[cs_debuginfo];
-                         Linker.Strip:=false;
+                         initglobalswitches:=initglobalswitches-[cs_link_strip];
                          for j:=1 to length(more) do
                           case more[j] of
                            'd' : initglobalswitches:=initglobalswitches+[cs_gdb_dbx];
@@ -556,7 +556,7 @@ begin
                      end;
               'I' : AddPathToList(includesearchpath,More,not firstpass);
               'k' : if more<>'' then
-                     Linker.LinkOptions:=Linker.LinkOptions+' '+More
+                     ParaLinkOptions:=ParaLinkOptions+' '+More
                     else
                      IllegalPara(opt);
               'l' : if more='' then
@@ -677,8 +677,8 @@ begin
               'X' : begin
                       for j:=1 to length(More) do
                        case More[j] of
-                        'c' : Linker.LinkToC:=true;
-                        's' : Linker.Strip:=true;
+                        'c' : initglobalswitches:=initglobalswitches+[cs_link_toc];
+                        's' : initglobalswitches:=initglobalswitches+[cs_link_strip];
                         'D' : begin
                                 def_symbol('FPC_LINK_DYNAMIC');
                                 undef_symbol('FPC_LINK_SMART');
@@ -1143,7 +1143,7 @@ begin
   AddPathToList(UnitSearchPath,ExePath,false);
   { Add unit dir to the object and library path }
   AddPathToList(objectsearchpath,unitsearchpath,false);
-  AddPathToList(Linker.librarysearchpath,unitsearchpath,false);
+  AddPathToList(librarysearchpath,unitsearchpath,false);
 
 { switch assembler if it's binary and we got -a on the cmdline }
   if (cs_asm_leave in initglobalswitches) and
@@ -1163,7 +1163,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  1999-08-10 12:51:17  pierre
+  Revision 1.13  1999-08-11 17:26:35  peter
+    * tlinker object is now inherited for win32 and dos
+    * postprocessexecutable is now a method of tlinker
+
+  Revision 1.12  1999/08/10 12:51:17  pierre
     * bind_win32_dll removed (Relocsection used instead)
     * now relocsection is true by default ! (needs dlltool
       for DLL generation)

@@ -84,6 +84,10 @@ unit globals;
        outputexedir   : dirstr;
        outputunitdir  : dirstr;
 
+       { things specified with parameters }
+       paralinkoptions,
+       paradynamiclinker : string;
+
        { directory where the utils can be found (options -FD) }
        utilsdirectory : dirstr;
 
@@ -93,6 +97,7 @@ unit globals;
        not_unit_proc : boolean;
        { path for searching units, different paths can be seperated by ; }
        exepath            : dirstr;  { Path to ppc }
+       librarysearchpath,
        unitsearchpath,
        objectsearchpath,
        includesearchpath  : string;
@@ -165,17 +170,6 @@ unit globals;
     const
        RelocSection : boolean = true;
        DLLsource : boolean = false;
-       { no binding needed for win32
-         .edata written directly !! PM
-         so use RelocSection here also
-       bind_win32_dll : boolean = false;}
-       {  WARNING !!!!!
-         without relocation a DLL cannot beloaded at any
-         address but the base address written into the
-         PE header !!!
-         So DLL's should allways be compiled with relocation (PM)
-         Thanks to Pavel Ozerski for explaining me that
-       }
 
        { should we allow non static members ? }
        allow_only_static : boolean = false;
@@ -1239,7 +1233,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  1999-08-10 12:51:14  pierre
+  Revision 1.18  1999-08-11 17:26:32  peter
+    * tlinker object is now inherited for win32 and dos
+    * postprocessexecutable is now a method of tlinker
+
+  Revision 1.17  1999/08/10 12:51:14  pierre
     * bind_win32_dll removed (Relocsection used instead)
     * now relocsection is true by default ! (needs dlltool
       for DLL generation)

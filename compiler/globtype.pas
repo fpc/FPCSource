@@ -103,7 +103,8 @@ interface
          cs_asm_leave,cs_asm_extern,cs_asm_pipe,cs_asm_source,
          cs_asm_regalloc,cs_asm_tempalloc,
          { linking }
-         cs_link_extern,cs_link_static,cs_link_smart,cs_link_shared,cs_link_deffile
+         cs_link_extern,cs_link_static,cs_link_smart,cs_link_shared,cs_link_deffile,
+         cs_link_strip,cs_link_toc
        );
        tglobalswitches = set of tglobalswitch;
 
@@ -176,7 +177,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  1999-08-04 13:02:42  jonas
+  Revision 1.16  1999-08-11 17:26:33  peter
+    * tlinker object is now inherited for win32 and dos
+    * postprocessexecutable is now a method of tlinker
+
+  Revision 1.15  1999/08/04 13:02:42  jonas
     * all tokens now start with an underscore
     * PowerPC compiles!!
 

@@ -41,7 +41,6 @@ Type
        ObjectFiles,
        SharedLibFiles,
        StaticLibFiles    : TStringContainer;
-       LibrarySearchPath,                 { Search path for libraries }
        LinkOptions       : string;        { Additional options to the linker }
        DynamicLinker     : String[80];    { What Dynamic linker ? }
        LinkResName       : String[32];    { Name of response file }
@@ -60,11 +59,15 @@ Type
        Function  MakeExecutable:boolean;
        Procedure MakeStaticLibrary(filescnt:longint);
        Procedure MakeSharedLibrary;
+       procedure postprocessexecutable(const n : string);virtual;
      end;
      PLinker=^TLinker;
 
 Var
-  Linker : TLinker;
+  Linker : PLinker;
+
+procedure InitLinker;
+procedure DoneLinker;
 
 
 Implementation
@@ -79,6 +82,7 @@ uses
   script,globals,verbose,ppu
 {$ifdef i386}
   ,win_targ
+  ,dos_targ
 {$endif}
 {$ifdef linux}
   ,linux
@@ -105,31 +109,33 @@ begin
   ObjectFiles.Init_no_double;
   SharedLibFiles.Init_no_double;
   StaticLibFiles.Init_no_double;
-  LinkToC:=False;
+  LinkToC:=(cs_link_toc in aktglobalswitches);
+  Strip:=(cs_link_strip in aktglobalswitches);
+  LinkOptions:=ParaLinkOptions;
+  DynamicLinker:=ParaDynamicLinker;
+  LinkResName:='link.res';
   Glibc2:=false;
   Glibc21:=false;
-  Strip:=false;
-  LinkOptions:='';
-{$ifdef linux}
-  { first try glibc2 }
-  DynamicLinker:='/lib/ld-linux.so.2';
-  if FileExists(DynamicLinker) then
+  if target_info.target=target_i386_linux then
    begin
-     Glibc2:=true;
-     { also glibc 2.1 / 2.1.1 / 2.1.2 ? }
-     if FileExists('/lib/ld-2.1.so') or
-        FileExists('/lib/ld-2.1.1.so') or
-        FileExists('/lib/ld-2.1.2.so') then
-      Glibc21:=true;
-   end
-  else
-   DynamicLinker:='/lib/ld-linux.so.1';
-  LibrarySearchPath:='/lib;/usr/lib;/usr/X11R6/lib';
-{$else}
-  DynamicLinker:='';
-  LibrarySearchPath:='';
-{$endif}
-  LinkResName:='link.res';
+     if DynamicLinker='' then
+      begin
+        { first try glibc2 }
+        DynamicLinker:='/lib/ld-linux.so.2';
+        if FileExists(DynamicLinker) then
+         begin
+           Glibc2:=true;
+           { also glibc 2.1 / 2.1.1 / 2.1.2 ? }
+           if FileExists('/lib/ld-2.1.so') or
+              FileExists('/lib/ld-2.1.1.so') or
+              FileExists('/lib/ld-2.1.2.so') then
+            Glibc21:=true;
+         end
+        else
+         DynamicLinker:='/lib/ld-linux.so.1';
+      end;
+     AddPathToList(LibrarySearchPath,'/lib;/usr/lib;/usr/X11R6/lib',true);
+   end;
 end;
 
 
@@ -644,14 +650,14 @@ begin
    end;
 
 { Post processor executable }
-{$ifdef i386}
-  if (target_info.target=target_i386_Win32) and success and
+  if success and
      not(cs_link_extern in aktglobalswitches) then
-    if DLLsource then
-      win_targ.postprocessexecutable(current_module^.sharedlibfilename^)
-    else
-      win_targ.postprocessexecutable(current_module^.exefilename^);
-{$endif}
+   begin
+     if DLLsource then
+      postprocessexecutable(current_module^.sharedlibfilename^)
+     else
+      postprocessexecutable(current_module^.exefilename^);
+   end;
 
 {Remove ReponseFile}
   if (success) and not(cs_link_extern in aktglobalswitches) then
@@ -731,11 +737,41 @@ begin
    RemoveFile(current_module^.objfilename^);
 end;
 
+procedure tlinker.postprocessexecutable(const n:string);
+begin
+end;
+
+
+procedure InitLinker;
+begin
+  case target_info.target of
+{$ifdef i386}
+    target_i386_Win32 :
+      linker:=new(plinkerwin32,Init);
+    target_i386_Go32v2 :
+      linker:=new(plinkergo32v2,Init);
+{$endif i386}
+    else
+      linker:=new(plinker,Init);
+  end;
+end;
+
+
+procedure DoneLinker;
+begin
+  if assigned(linker) then
+   dispose(linker,done);
+end;
+
 
 end.
 {
   $Log$
-  Revision 1.65  1999-08-10 12:51:16  pierre
+  Revision 1.66  1999-08-11 17:26:34  peter
+    * tlinker object is now inherited for win32 and dos
+    * postprocessexecutable is now a method of tlinker
+
+  Revision 1.65  1999/08/10 12:51:16  pierre
     * bind_win32_dll removed (Relocsection used instead)
     * now relocsection is true by default ! (needs dlltool
       for DLL generation)

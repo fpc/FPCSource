@@ -25,7 +25,7 @@ unit win_targ;
 
   interface
 
-  uses import,export;
+  uses import,export,link;
 
   const
      winstackpagesize = 4096;
@@ -50,8 +50,11 @@ unit win_targ;
       procedure generatelib;virtual;
     end;
 
-    { sets some flags of the executable }
-    procedure postprocessexecutable(n : string);
+    plinkerwin32=^tlinkerwin32;
+    tlinkerwin32=object(tlinker)
+      procedure postprocessexecutable(const n : string);virtual;
+    end;
+
 
   implementation
 
@@ -62,71 +65,6 @@ unit win_targ;
        ,gdb
 {$endif}
        ;
-
-    type
-       tdosheader = packed record
-          e_magic : word;
-          e_cblp : word;
-          e_cp : word;
-          e_crlc : word;
-          e_cparhdr : word;
-          e_minalloc : word;
-          e_maxalloc : word;
-          e_ss : word;
-          e_sp : word;
-          e_csum : word;
-          e_ip : word;
-          e_cs : word;
-          e_lfarlc : word;
-          e_ovno : word;
-          e_res : array[0..3] of word;
-          e_oemid : word;
-          e_oeminfo : word;
-          e_res2 : array[0..9] of word;
-          e_lfanew : longint;
-       end;
-
-       tpeheader = packed record
-          PEMagic : array[0..3] of char;
-          Machine : word;
-          NumberOfSections : word;
-          TimeDateStamp : longint;
-          PointerToSymbolTable : longint;
-          NumberOfSymbols : longint;
-          SizeOfOptionalHeader : word;
-          Characteristics : word;
-          Magic : word;
-          MajorLinkerVersion : byte;
-          MinorLinkerVersion : byte;
-          SizeOfCode : longint;
-          SizeOfInitializedData : longint;
-          SizeOfUninitializedData : longint;
-          AddressOfEntryPoint : longint;
-          BaseOfCode : longint;
-          BaseOfData : longint;
-          ImageBase : longint;
-          SectionAlignment : longint;
-          FileAlignment : longint;
-          MajorOperatingSystemVersion : word;
-          MinorOperatingSystemVersion : word;
-          MajorImageVersion : word;
-          MinorImageVersion : word;
-          MajorSubsystemVersion : word;
-          MinorSubsystemVersion : word;
-          Reserved1 : longint;
-          SizeOfImage : longint;
-          SizeOfHeaders : longint;
-          CheckSum : longint;
-          Subsystem : word;
-          DllCharacteristics : word;
-          SizeOfStackReserve : longint;
-          SizeOfStackCommit : longint;
-          SizeOfHeapReserve : longint;
-          SizeOfHeapCommit : longint;
-          LoaderFlags : longint;
-          NumberOfRvaAndSizes : longint;
-          { DataDirectory : array[0..(IMAGE_NUMBEROF_DIRECTORY_ENTRIES)-1] of IMAGE_DATA_DIRECTORY; }
-       end;
 
     function DllName(Const Name : string) : string;
       var n : string;
@@ -670,14 +608,105 @@ unit win_targ;
          dispose(tempexport,done);
       end;
 
-    procedure postprocessexecutable(n : string);
+
+{****************************************************************************
+                            Postprocess Executable
+****************************************************************************}
+
+    procedure tlinkerwin32.postprocessexecutable(const n : string);
+      type
+         tdosheader = packed record
+            e_magic : word;
+            e_cblp : word;
+            e_cp : word;
+            e_crlc : word;
+            e_cparhdr : word;
+            e_minalloc : word;
+            e_maxalloc : word;
+            e_ss : word;
+            e_sp : word;
+            e_csum : word;
+            e_ip : word;
+            e_cs : word;
+            e_lfarlc : word;
+            e_ovno : word;
+            e_res : array[0..3] of word;
+            e_oemid : word;
+            e_oeminfo : word;
+            e_res2 : array[0..9] of word;
+            e_lfanew : longint;
+         end;
+
+         tpeheader = packed record
+            PEMagic : array[0..3] of char;
+            Machine : word;
+            NumberOfSections : word;
+            TimeDateStamp : longint;
+            PointerToSymbolTable : longint;
+            NumberOfSymbols : longint;
+            SizeOfOptionalHeader : word;
+            Characteristics : word;
+            Magic : word;
+            MajorLinkerVersion : byte;
+            MinorLinkerVersion : byte;
+            SizeOfCode : longint;
+            SizeOfInitializedData : longint;
+            SizeOfUninitializedData : longint;
+            AddressOfEntryPoint : longint;
+            BaseOfCode : longint;
+            BaseOfData : longint;
+            ImageBase : longint;
+            SectionAlignment : longint;
+            FileAlignment : longint;
+            MajorOperatingSystemVersion : word;
+            MinorOperatingSystemVersion : word;
+            MajorImageVersion : word;
+            MinorImageVersion : word;
+            MajorSubsystemVersion : word;
+            MinorSubsystemVersion : word;
+            Reserved1 : longint;
+            SizeOfImage : longint;
+            SizeOfHeaders : longint;
+            CheckSum : longint;
+            Subsystem : word;
+            DllCharacteristics : word;
+            SizeOfStackReserve : longint;
+            SizeOfStackCommit : longint;
+            SizeOfHeapReserve : longint;
+            SizeOfHeapCommit : longint;
+            LoaderFlags : longint;
+            NumberOfRvaAndSizes : longint;
+            DataDirectory : array[1..$80] of byte;
+         end;
+        tcoffsechdr=packed record
+          name     : array[0..7] of char;
+          vsize    : longint;
+          rvaofs   : longint;
+          datalen  : longint;
+          datapos  : longint;
+          relocpos : longint;
+          lineno1  : longint;
+          nrelocs  : word;
+          lineno2  : word;
+          flags    : longint;
+        end;
+        psecfill=^tsecfill;
+        tsecfill=record
+          fillpos,
+          fillsize : longint;
+          next : psecfill;
+        end;
 
       var
          f : file;
          dosheader : tdosheader;
          peheader : tpeheader;
-         peheaderpos : longint;
-
+         firstsecpos,
+         maxfillsize,
+         l,peheaderpos : longint;
+         coffsec : tcoffsechdr;
+         secroot,hsecroot : psecfill;
+         zerobuf : pointer;
       begin
          { when -s is used quit, because there is no .exe }
          if cs_link_extern in aktglobalswitches then
@@ -719,6 +748,50 @@ unit win_targ;
 
          Message1(execinfo_x_stackreserve,tostr(peheader.SizeOfStackReserve));
          Message1(execinfo_x_stackcommit,tostr(peheader.SizeOfStackCommit));
+
+         { read section info }
+         maxfillsize:=0;
+         firstsecpos:=0;
+         secroot:=nil;
+         for l:=1to peheader.NumberOfSections do
+          begin
+            blockread(f,coffsec,sizeof(tcoffsechdr));
+            if coffsec.datapos>0 then
+             begin
+               if secroot=nil then
+                firstsecpos:=coffsec.datapos;
+               new(hsecroot);
+               hsecroot^.fillpos:=coffsec.datapos+coffsec.vsize;
+               hsecroot^.fillsize:=coffsec.datalen-coffsec.vsize;
+               hsecroot^.next:=secroot;
+               secroot:=hsecroot;
+               if secroot^.fillsize>maxfillsize then
+                maxfillsize:=secroot^.fillsize;
+             end;
+          end;
+         if firstsecpos>0 then
+          begin
+            l:=firstsecpos-filepos(f);
+            if l>maxfillsize then
+             maxfillsize:=l;
+          end
+         else
+          l:=0;
+         { get zero buffer }
+         getmem(zerobuf,maxfillsize);
+         fillchar(zerobuf^,maxfillsize,0);
+         { zero from sectioninfo until first section }
+         blockwrite(f,zerobuf^,l);
+         { zero section alignments }
+         while assigned(secroot) do
+          begin
+            seek(f,secroot^.fillpos);
+            blockwrite(f,zerobuf^,secroot^.fillsize);
+            hsecroot:=secroot;
+            secroot:=secroot^.next;
+            dispose(hsecroot);
+          end;
+         freemem(zerobuf,maxfillsize);
          close(f);
          {$I+}
       end;
@@ -726,7 +799,11 @@ unit win_targ;
 end.
 {
   $Log$
-  Revision 1.31  1999-08-04 00:23:50  florian
+  Revision 1.32  1999-08-11 17:26:38  peter
+    * tlinker object is now inherited for win32 and dos
+    * postprocessexecutable is now a method of tlinker
+
+  Revision 1.31  1999/08/04 00:23:50  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.30  1999/07/29 20:54:11  peter

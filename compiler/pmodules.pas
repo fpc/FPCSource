@@ -51,7 +51,7 @@ unit pmodules;
          begin
            GenerateAsm(true);
            if target_asm.needar then
-             Linker.MakeStaticLibrary(SmartLinkFilesCnt);
+             Linker^.MakeStaticLibrary(SmartLinkFilesCnt);
          end;
 
         { resource files }
@@ -222,28 +222,23 @@ unit pmodules;
             end;
           target_i386_WIN32 :
             begin
-              { Generate an external entry to be sure that _mainCRTStarup will be
-                linked, can't use concat_external because those aren't written for
-                asw (PFV) }
-             target_link.bindcmd[1]:=target_link.bindcmd[1]+' -d '+deffile.fname;
-             if DLLsource then
-              target_link.binders:=2;
-             if RelocSection then
-              begin
-               target_link.linkcmd:=target_link.linkcmd+' --base-file base.$$$';
-               target_link.bindcmd[1]:=target_link.bindcmd[1]+' --base-file base.$$$';
-               target_link.binders:=2;
-              end;
-             if apptype=at_gui then
-              begin
-               target_link.linkcmd:='--subsystem windows '+target_link.linkcmd;
-               target_link.bindcmd[2]:='--subsystem windows '+target_link.bindcmd[2];
-              end;
-             if DLLsource then
-              begin
-               target_link.linkcmd:='--dll '+target_link.linkcmd;
-               target_link.bindcmd[2]:='--dll '+target_link.bindcmd[2];
-              end;
+              target_link.bindcmd[1]:=target_link.bindcmd[1]+' -d '+deffile.fname;
+              if DLLsource then
+               begin
+                 target_link.binders:=2;
+                 target_link.linkcmd:='--dll '+target_link.linkcmd;
+                 target_link.bindcmd[2]:='--dll '+target_link.bindcmd[2];
+                 if RelocSection then
+                  begin
+                    target_link.linkcmd:=target_link.linkcmd+' --base-file base.$$$';
+                    target_link.bindcmd[1]:=target_link.bindcmd[1]+' --base-file base.$$$';
+                  end;
+               end;
+              if apptype=at_gui then
+               begin
+                target_link.linkcmd:='--subsystem windows '+target_link.linkcmd;
+                target_link.bindcmd[2]:='--subsystem windows '+target_link.bindcmd[2];
+               end;
             end;
 {$endif i386}
 {$ifdef m68k}
@@ -1346,7 +1341,7 @@ unit pmodules;
             hp:=pmodule(loaded_units.first);
             while assigned(hp) do
              begin
-               Linker.AddModuleFiles(hp);
+               Linker^.AddModuleFiles(hp);
                hp:=pmodule(hp^.next);
              end;
             { write .def file }
@@ -1354,14 +1349,18 @@ unit pmodules;
              deffile.writefile;
             { finally we can create a executable }
             if (not current_module^.is_unit) then
-             Linker.MakeExecutable;
+             Linker^.MakeExecutable;
           end;
       end;
 
 end.
 {
   $Log$
-  Revision 1.140  1999-08-04 13:02:57  jonas
+  Revision 1.141  1999-08-11 17:26:36  peter
+    * tlinker object is now inherited for win32 and dos
+    * postprocessexecutable is now a method of tlinker
+
+  Revision 1.140  1999/08/04 13:02:57  jonas
     * all tokens now start with an underscore
     * PowerPC compiles!!
 

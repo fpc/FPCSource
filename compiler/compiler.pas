@@ -165,12 +165,12 @@ begin
      doneparser;
      DoneImport;
      DoneExport;
+     DoneLinker;
    end;
 { Free memory for the others }
   CompilerInited:=false;
   DoneSymtable;
   DoneGlobals;
-  linker.done;
 {$ifdef USEEXCEPT}
   recoverpospointer:=nil;
   longjump_used:=false;
@@ -193,7 +193,6 @@ begin
 {$endif BrowserCol}
   InitGlobals;
   InitSymtable;
-  linker.init;
   CompilerInited:=true;
 { read the arguments }
   read_arguments(cmd);
@@ -201,6 +200,7 @@ begin
   initparser;
   InitImport;
   InitExport;
+  InitLinker;
   CompilerInitedAfterArgs:=true;
 end;
 
@@ -243,7 +243,7 @@ begin
   Message1(general_t_exepath,exepath);
   Message1(general_t_unitpath,unitsearchpath);
   Message1(general_t_includepath,includesearchpath);
-  Message1(general_t_librarypath,Linker.librarysearchpath);
+  Message1(general_t_librarypath,librarysearchpath);
   Message1(general_t_objectpath,objectsearchpath);
 {$ifdef TP}
 {$ifndef Delphi}
@@ -300,7 +300,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.29  1999-08-09 22:13:43  peter
+  Revision 1.30  1999-08-11 17:26:31  peter
+    * tlinker object is now inherited for win32 and dos
+    * postprocessexecutable is now a method of tlinker
+
+  Revision 1.29  1999/08/09 22:13:43  peter
     * fixed writing of lost memory which should be after donecompiler
 
   Revision 1.28  1999/08/04 13:02:40  jonas
