@@ -47,6 +47,13 @@ ifndef LOG
 export LOG:=log
 endif
 
+ifndef CCOMPILER
+CCOMPILER:=$(strip $(wildcard $(addsuffix /gcc$(SRCEXEEXT),$(SEARCHPATH))))
+ifneq ($(CCOMPILER),)
+CCOMPILER:=$(firstword $(CCOMPILER))
+endif
+endif
+
 units : units/$(FPCMADE)
 units/$(FPCMADE):
         $(MAKE) -C units
@@ -98,6 +105,12 @@ DIRS=webtbs webtbf tbs tbf test test/cg test/units/system test/units/dos test/un
 #
 
 .PHONY: allpreps
+
+
+ifdef CCOMPILER
+test/cg/obj/$(OS_TARGET)/$(CPU_TARGET)/ctest.o : test/cg/obj/ctest.c
+	-$(CCOMPILER) -c -o test/cg/obj/$(OS_TARGET)/$(CPU_TARGET)/ctest.o test/cg/obj/ctest.c
+endif
 
 allpreps: allpreps-stamp.$(OS_TARGET)
 allpreps-stamp.$(OS_TARGET):
