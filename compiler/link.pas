@@ -520,7 +520,7 @@ begin
 { remove the library, to be sure that it is rewritten }
   RemoveFile(current_module.staticlibfilename^);
 { Call AR }
-  smartpath:=current_module.outputpath^+FixPath(FixFileName(current_module.modulename^)+target_info.smartext,false);
+  smartpath:=current_module.outputpath^+FixPath(lower(current_module.modulename^)+target_info.smartext,false);
   SplitBinCmd(target_ar.arcmd,binstr,cmdstr);
   Replace(cmdstr,'$LIB',current_module.staticlibfilename^);
   Replace(cmdstr,'$FILES',FixFileName(smartpath+current_module.asmprefix^+'*'+target_info.objext));
@@ -664,7 +664,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.38  2003-09-14 21:33:11  peter
+  Revision 1.39  2003-12-11 17:53:03  florian
+    * fixed external smartlinking
+
+  Revision 1.38  2003/09/14 21:33:11  peter
     * don't check exepath when linking on target
 
   Revision 1.37  2003/06/12 16:41:51  peter
