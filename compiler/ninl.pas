@@ -2247,7 +2247,8 @@ implementation
                begin
                  { we need a valid node, so insert a nothingn }
                  result:=cnothingnode.create;
-               end
+                 firstpass(result);
+              end
               else
                begin
                  registers32:=left.registers32;
@@ -2277,12 +2278,8 @@ implementation
 
      function tinlinenode.first_pi : tnode;
       begin
-        { create the call to the helper }
-        first_pi := ccallnode.createintern('fpc_pi',nil);
-        { now left is nil, nothing left, so no second pass
-          required.
-        }
-        left := nil;
+        result := crealconstnode.create(pi,pbestrealtype^);
+        firstpass(result);
       end;
 
 
@@ -2295,6 +2292,7 @@ implementation
         { now left is nil, nothing left, so no second pass
           required.
         }
+        firstpass(result);
         left := nil;
       end;
 
@@ -2307,6 +2305,7 @@ implementation
         { now left is nil, nothing left, so no second pass
           required.
         }
+        firstpass(result);
         left := nil;
       end;
 
@@ -2319,6 +2318,7 @@ implementation
         { now left is nil, nothing left, so no second pass
           required.
         }
+        firstpass(result);
         left := nil;
       end;
 
@@ -2331,6 +2331,7 @@ implementation
         { now left is nil, nothing left, so no second pass
           required.
         }
+        firstpass(result);
         left := nil;
       end;
 
@@ -2343,6 +2344,7 @@ implementation
         { now left is nil, nothing left, so no second pass
           required.
         }
+        firstpass(result);
         left := nil;
       end;
 
@@ -2355,6 +2357,7 @@ implementation
         { now left is nil, nothing left, so no second pass
           required.
         }
+        firstpass(result);
         left := nil;
       end;
 
@@ -2367,6 +2370,7 @@ implementation
         { now left is nil, nothing left, so no second pass
           required.
         }
+        firstpass(result);
         left := nil;
       end;
 
@@ -2376,7 +2380,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.87  2002-09-07 20:42:16  carl
+  Revision 1.88  2002-09-08 13:01:25  jonas
+    * first_pi now just generates a constant, added missing calls to firstpass()
+
+  Revision 1.87  2002/09/07 20:42:16  carl
     * cardinal -> longword
 
   Revision 1.86  2002/09/07 12:16:04  carl
