@@ -1389,6 +1389,9 @@ begin
     {$else}
       {$ifdef OS2}
         set_source_os(os_i386_OS2);
+        if (OS_Mode = osDOS) or (OS_Mode = osDPMI)
+                                            then source_os.scriptext := '.bat';
+{OS/2 via EMX can be run under DOS as well}
       {$else}
         {$ifdef LINUX}
           set_source_os(os_i386_LINUX);
@@ -1470,7 +1473,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.74  1999-05-17 13:02:12  pierre
+  Revision 1.75  1999-05-18 09:25:01  michael
+  + changes by thomas hajt
+
+  Revision 1.74  1999/05/17 13:02:12  pierre
    * -Csmmm works for win32 but default is set to 32Mb
 
   Revision 1.73  1999/05/11 00:44:06  peter
