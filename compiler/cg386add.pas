@@ -213,10 +213,7 @@ implementation
                 end
                else }
                 begin
-                  if p^.use_strconcat then
-                    pushusedregisters(pushedregs,pstringdef(p^.left^.resulttype)^.len)
-                  else
-                    pushusedregisters(pushedregs,$ff);
+                  pushusedregisters(pushedregs,$ff);
                   emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
                   emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
                   emitcall('STRCONCAT',true);
@@ -1280,7 +1277,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  1998-09-04 08:41:36  peter
+  Revision 1.10  1998-09-04 10:05:04  florian
+    * ugly fix for STRCAT, nevertheless it needs more fixing !!!!!!!
+      we need an new version of STRCAT which takes a length parameter
+
+  Revision 1.9  1998/09/04 08:41:36  peter
     * updated some error messages
 
   Revision 1.8  1998/08/28 10:54:18  peter
