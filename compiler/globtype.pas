@@ -98,11 +98,18 @@ interface
          { generic }
          m_fpc,m_delphi,m_tp,m_gpc,
          { more specific }
-         m_class,m_objpas,m_result,m_string_pchar,m_cvar_support,
-         m_nested_comment,m_tp_procvar,m_repeat_forward,
+         m_class,               { delphi class model }
+         m_objpas,              { load objpas unit }
+         m_result,              { result in functions }
+         m_string_pchar,        { pchar 2 string conversion }
+         m_cvar_support,        { cvar variable directive }
+         m_nested_comment,      { nested comments }
+         m_tp_procvar,          { tp style procvars (no @ needed) }
+         m_repeat_forward,      { repeating forward declarations is needed }
          m_pointer_2_procedure, { allows the assignement of pointers to
                                   procedure variables                     }
-         m_autoderef            { does auto dereferencing of struct. vars }
+         m_autoderef,           { does auto dereferencing of struct. vars }
+         m_initfinal            { initialization/finalization for units }
        );
        tmodeswitches = set of tmodeswitch;
 
@@ -129,7 +136,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  1999-05-17 14:30:39  pierre
+  Revision 1.10.2.1  1999-07-10 10:03:06  peter
+    * fixed initialization/finalization in fpc mode
+    * allow $TARGET also in search paths
+
+  Revision 1.10  1999/05/17 14:30:39  pierre
    + cs_checkpointer
 
   Revision 1.9  1999/05/12 00:19:49  peter

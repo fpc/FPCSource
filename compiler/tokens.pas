@@ -265,7 +265,7 @@ const
       (str:'IN'            ;special:false;keyword:m_all),
       (str:'IS'            ;special:false;keyword:m_class),
       (str:'OF'            ;special:false;keyword:m_all),
-      (str:'ON'            ;special:false;keyword:m_objpas),
+      (str:'ON'            ;special:false;keyword:m_class),
       (str:'OR'            ;special:false;keyword:m_all),
       (str:'TO'            ;special:false;keyword:m_all),
       (str:'AND'           ;special:false;keyword:m_all),
@@ -281,7 +281,7 @@ const
       (str:'SET'           ;special:false;keyword:m_all),
       (str:'SHL'           ;special:false;keyword:m_all),
       (str:'SHR'           ;special:false;keyword:m_all),
-      (str:'TRY'           ;special:false;keyword:m_objpas),
+      (str:'TRY'           ;special:false;keyword:m_class),
       (str:'VAR'           ;special:false;keyword:m_all),
       (str:'XOR'           ;special:false;keyword:m_all),
       (str:'CASE'          ;special:false;keyword:m_all),
@@ -311,12 +311,12 @@ const
       (str:'FALSE'         ;special:false;keyword:m_all),
       (str:'INDEX'         ;special:false;keyword:m_none),
       (str:'LABEL'         ;special:false;keyword:m_all),
-      (str:'RAISE'         ;special:false;keyword:m_objpas),
+      (str:'RAISE'         ;special:false;keyword:m_class),
       (str:'UNTIL'         ;special:false;keyword:m_all),
       (str:'WHILE'         ;special:false;keyword:m_all),
       (str:'WRITE'         ;special:false;keyword:m_none),
       (str:'DOWNTO'        ;special:false;keyword:m_all),
-      (str:'EXCEPT'        ;special:false;keyword:m_objpas),
+      (str:'EXCEPT'        ;special:false;keyword:m_class),
       (str:'EXPORT'        ;special:false;keyword:m_none),
       (str:'INLINE'        ;special:false;keyword:m_none),
       (str:'OBJECT'        ;special:false;keyword:m_all),
@@ -335,7 +335,7 @@ const
       (str:'DISPOSE'       ;special:false;keyword:m_all),
       (str:'DYNAMIC'       ;special:false;keyword:m_none),
       (str:'EXPORTS'       ;special:false;keyword:m_all),
-      (str:'FINALLY'       ;special:false;keyword:m_objpas),
+      (str:'FINALLY'       ;special:false;keyword:m_class),
       (str:'FORWARD'       ;special:false;keyword:m_none),
       (str:'IOCHECK'       ;special:false;keyword:m_none),
       (str:'LIBRARY'       ;special:false;keyword:m_all),
@@ -366,16 +366,16 @@ const
       (str:'PROCEDURE'     ;special:false;keyword:m_all),
       (str:'PROTECTED'     ;special:false;keyword:m_none),
       (str:'PUBLISHED'     ;special:false;keyword:m_none),
-      (str:'THREADVAR'     ;special:false;keyword:m_objpas),
+      (str:'THREADVAR'     ;special:false;keyword:m_class),
       (str:'DESTRUCTOR'    ;special:false;keyword:m_all),
       (str:'INTERNPROC'    ;special:false;keyword:m_none),
       (str:'OPENSTRING'    ;special:false;keyword:m_none),
       (str:'CONSTRUCTOR'   ;special:false;keyword:m_all),
       (str:'INTERNCONST'   ;special:false;keyword:m_none),
       (str:'SHORTSTRING'   ;special:false;keyword:m_none),
-      (str:'FINALIZATION'  ;special:false;keyword:m_class),
+      (str:'FINALIZATION'  ;special:false;keyword:m_initfinal),
       (str:'IMPLEMENTATION';special:false;keyword:m_all),
-      (str:'INITIALIZATION';special:false;keyword:m_class)
+      (str:'INITIALIZATION';special:false;keyword:m_initfinal)
   );
 
 implementation
@@ -383,7 +383,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  1999-05-24 08:55:30  florian
+  Revision 1.7.2.1  1999-07-10 10:03:18  peter
+    * fixed initialization/finalization in fpc mode
+    * allow $TARGET also in search paths
+
+  Revision 1.7  1999/05/24 08:55:30  florian
     * non working safecall directiv implemented, I don't know if we
       need it
 

@@ -200,6 +200,7 @@ type tmsgconst=(
   parser_f_direct_assembler_not_allowed,
   parser_w_no_objpas_use_mode,
   parser_e_no_object_override,
+  parser_e_cant_use_inittable_here,
   type_e_mismatch,
   type_e_incompatible_types,
   type_e_not_equal_types,
