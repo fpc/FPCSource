@@ -1191,7 +1191,7 @@ var
     while (SendBytes>0) do
      begin
        LeftX:=WinMaxX-CurrX+1;
-       if (SendBytes>LeftX) or (CurrX+SendBytes=81) then
+       if (SendBytes>LeftX) then
         begin
           ttyWrite(Copy(s,i-SendBytes,LeftX));
           dec(SendBytes,LeftX);
@@ -1610,7 +1610,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.24  2000-04-14 12:15:31  pierre
+  Revision 1.25  2000-05-08 13:24:27  peter
+    * removed hardcoded limit of 80 width
+
+  Revision 1.24  2000/04/14 12:15:31  pierre
    * several bugs fixed
 
   Revision 1.23  2000/04/07 13:26:27  jonas
