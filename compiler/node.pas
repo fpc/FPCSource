@@ -217,6 +217,7 @@ interface
          nf_swapable,    { tbinop operands can be swaped }
          nf_swaped,      { tbinop operands are swaped    }
          nf_error,
+         nf_write,       { Node is written to            }
 
          { flags used by tcallnode }
          nf_return_value_used,
@@ -250,10 +251,10 @@ interface
          nf_concat_string,
 
          { tfuncretnode }
-         nf_is_first_funcret, { 20th }
+         nf_is_first_funcret,
 
          { tarrayconstructnode }
-         nf_cargs,
+         nf_cargs,             { 20th }
          nf_cargswap,
          nf_forcevaria,
          nf_novariaallowed,
@@ -269,7 +270,7 @@ interface
          nf_varstateset,
 
          { tasmnode }
-         nf_object_preserved,
+         nf_object_preserved,   { 30th }
 
          { taddnode }
          nf_use_strconcat
@@ -988,7 +989,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.40  2002-09-01 08:01:16  daniel
+  Revision 1.41  2002-09-01 13:28:38  daniel
+   - write_access fields removed in favor of a flag
+
+  Revision 1.40  2002/09/01 08:01:16  daniel
    * Removed sets from Tcallnode.det_resulttype
    + Added read/write notifications of variables. These will be usefull
      for providing information for several optimizations. For example

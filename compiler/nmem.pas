@@ -77,9 +77,6 @@ interface
        tdoubleaddrnodeclass = class of tdoubleaddrnode;
 
        tderefnode = class(tunarynode)
-       {$ifdef var_notification}
-          write_access:boolean;
-       {$endif}
           constructor create(l : tnode);virtual;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
@@ -91,9 +88,6 @@ interface
 
        tsubscriptnode = class(tunarynode)
           vs : tvarsym;
-       {$ifdef var_notification}
-          write_access:boolean;
-       {$endif}
           constructor create(varsym : tsym;l : tnode);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -109,7 +103,6 @@ interface
        tsubscriptnodeclass = class of tsubscriptnode;
 
        tvecnode = class(tbinarynode)
-          write_access:boolean;
           constructor create(l,r : tnode);virtual;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
@@ -589,7 +582,7 @@ implementation
     procedure Tderefnode.mark_write;
 
     begin
-      write_access:=true;
+      include(flags,nf_write);
     end;
 {$endif}
 
@@ -666,7 +659,7 @@ implementation
     procedure Tsubscriptnode.mark_write;
 
     begin
-      write_access:=true;
+      include(flags,nf_write);
     end;
 {$endif}
 
@@ -787,7 +780,7 @@ implementation
     procedure Tvecnode.mark_write;
 
     begin
-      write_access:=true;
+      include(flags,nf_write);
     end;
 {$endif}
 
@@ -1058,7 +1051,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.37  2002-09-01 08:01:16  daniel
+  Revision 1.38  2002-09-01 13:28:38  daniel
+   - write_access fields removed in favor of a flag
+
+  Revision 1.37  2002/09/01 08:01:16  daniel
    * Removed sets from Tcallnode.det_resulttype
    + Added read/write notifications of variables. These will be usefull
      for providing information for several optimizations. For example

@@ -1317,10 +1317,12 @@ implementation
                 result:=hpt;
                 goto errorexit;
             end;
+{$ifdef dummy}
         { Calling a message method directly ? }
         if assigned(procdefinition) and
          (po_containsself in procdefinition.procoptions) then
             message(cg_e_cannot_call_message_direct);
+{$endif}
 
         { ensure that the result type is set }
         if not restypeset then
@@ -2593,7 +2595,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.91  2002-09-01 12:14:15  peter
+  Revision 1.92  2002-09-01 13:28:37  daniel
+   - write_access fields removed in favor of a flag
+
+  Revision 1.91  2002/09/01 12:14:15  peter
     * remove debug line
     * containself methods can be called directly
 

@@ -38,7 +38,6 @@ interface
           symtableentry : tsym;
           symtable : tsymtable;
           procdef : tprocdef;
-          write_access : boolean;
           constructor create(v : tsym;st : tsymtable);virtual;
           constructor create_procvar(v : tsym;d:tprocdef;st : tsymtable);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
@@ -77,7 +76,6 @@ interface
        tassignmentnodeclass = class of tassignmentnode;
 
        tfuncretnode = class(tnode)
-          write_access : boolean;
           funcretsym : tfuncretsym;
           constructor create(v:tsym);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
@@ -363,7 +361,7 @@ implementation
     procedure Tloadnode.mark_write;
 
     begin
-      write_access:=true;
+      include(flags,nf_write);
     end;
 {$endif}
 
@@ -739,7 +737,7 @@ implementation
     procedure Tfuncretnode.mark_write;
 
     begin
-      write_access:=true;
+      include(flags,nf_write);
     end;
 {$endif}
 
@@ -1145,7 +1143,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.55  2002-09-01 08:01:16  daniel
+  Revision 1.56  2002-09-01 13:28:37  daniel
+   - write_access fields removed in favor of a flag
+
+  Revision 1.55  2002/09/01 08:01:16  daniel
    * Removed sets from Tcallnode.det_resulttype
    + Added read/write notifications of variables. These will be usefull
      for providing information for several optimizations. For example
