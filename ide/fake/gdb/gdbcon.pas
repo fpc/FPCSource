@@ -95,13 +95,12 @@ type
     progargs   : pchar;
     in_command,
     init_count : longint;
-    debugger_started,
     call_reset : boolean;
     constructor Init;
     destructor  Done;
     procedure Command(const s:string);
-    procedure Reset;
-    procedure StartTrace;
+    procedure Reset;virtual;
+    procedure StartTrace;virtual;
     procedure TraceStep;
     procedure TraceNext;
     procedure Continue;
@@ -362,7 +361,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  1999-02-08 11:39:33  pierre
+  Revision 1.5  1999-02-08 13:59:58  pierre
+    - removed second debugger_started in TGDBController
+    + StartTrace and Reset made virtual to be able to
+      change CmResetDebugger state in IDE
+
+  Revision 1.4  1999/02/08 11:39:33  pierre
    * reflect added setArgs in gdbint
 
   Revision 1.3  1999/02/06 00:04:55  florian
