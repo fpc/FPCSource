@@ -1237,15 +1237,17 @@ implementation
                internalerror(234234);
            end
          else
-           if ((p.location.loc=LOC_FPU) and
-               (p.right.registersfpu > p.left.registersfpu)) or
-              ((p.location.loc<>LOC_FPU) and
-               (p.left.registers32<p.right.registers32) and
+           if (((p.location.loc=LOC_FPU) and
+                (p.right.registersfpu > p.left.registersfpu)) or
+               ((((p.left.registersfpu = 0) and
+                  (p.right.registersfpu = 0)) or
+                 (p.location.loc<>LOC_FPU)) and
+                (p.left.registers32<p.right.registers32))) and
            { the following check is appropriate, because all }
            { 4 registers are rarely used and it is thereby   }
            { achieved that the extra code is being dropped   }
            { by exchanging not commutative operators     }
-               (p.right.registers32<=4)) then
+               (p.right.registers32<=4) then
             begin
               hp:=p.left;
               p.left:=p.right;
@@ -1532,7 +1534,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  2001-09-17 21:29:14  peter
+  Revision 1.22  2001-10-12 13:51:52  jonas
+    * fixed internalerror(10) due to previous fpu overflow fixes ("merged")
+    * fixed bug in n386add (introduced after compilerproc changes for string
+      operations) where calcregisters wasn't called for shortstring addnodes
+    * NOTE: from now on, the location of a binary node must now always be set
+       before you call calcregisters() for it
+
+  Revision 1.21  2001/09/17 21:29:14  peter
     * merged netbsd, fpu-overflow from fixes branch
 
   Revision 1.20  2001/08/26 13:37:01  florian

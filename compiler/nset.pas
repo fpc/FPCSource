@@ -160,8 +160,8 @@ implementation
          if codegenerror then
           exit;
 
-         calcregisters(self,0,0,0);
          set_location(location,left.location);
+         calcregisters(self,0,0,0);
       end;
 
 
@@ -588,7 +588,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2001-09-02 21:12:07  peter
+  Revision 1.16  2001-10-12 13:51:51  jonas
+    * fixed internalerror(10) due to previous fpu overflow fixes ("merged")
+    * fixed bug in n386add (introduced after compilerproc changes for string
+      operations) where calcregisters wasn't called for shortstring addnodes
+    * NOTE: from now on, the location of a binary node must now always be set
+       before you call calcregisters() for it
+
+  Revision 1.15  2001/09/02 21:12:07  peter
     * move class of definitions into type section for delphi
 
   Revision 1.14  2001/08/26 13:36:43  florian

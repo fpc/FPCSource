@@ -45,8 +45,8 @@ interface
     uses
       globtype,systems,
       cutils,verbose,globals,widestr,
-      symconst,symdef,aasm,types,
-      cgbase,temp_gen,pass_2,
+      symconst,symdef,aasm,types,htypechk,
+      cgbase,temp_gen,pass_2,regvars,
       cpuasm,
       ncon,nset,
       cga,n386util,tgcpu;
@@ -54,48 +54,45 @@ interface
     function ti386addnode.getresflags(unsigned : boolean) : tresflags;
 
       begin
-         if not(unsigned) then
-           begin
-              if nf_swaped in flags then
-                case nodetype of
-                   equaln : getresflags:=F_E;
-                   unequaln : getresflags:=F_NE;
-                   ltn : getresflags:=F_G;
-                   lten : getresflags:=F_GE;
-                   gtn : getresflags:=F_L;
-                   gten : getresflags:=F_LE;
-                end
-              else
-                case nodetype of
-                   equaln : getresflags:=F_E;
-                   unequaln : getresflags:=F_NE;
-                   ltn : getresflags:=F_L;
-                   lten : getresflags:=F_LE;
-                   gtn : getresflags:=F_G;
-                   gten : getresflags:=F_GE;
-                end;
-           end
-         else
-           begin
-              if nf_swaped in flags then
-                case nodetype of
-                   equaln : getresflags:=F_E;
-                   unequaln : getresflags:=F_NE;
-                   ltn : getresflags:=F_A;
-                   lten : getresflags:=F_AE;
-                   gtn : getresflags:=F_B;
-                   gten : getresflags:=F_BE;
-                end
-              else
-                case nodetype of
-                   equaln : getresflags:=F_E;
-                   unequaln : getresflags:=F_NE;
-                   ltn : getresflags:=F_B;
-                   lten : getresflags:=F_BE;
-                   gtn : getresflags:=F_A;
-                   gten : getresflags:=F_AE;
-                end;
-           end;
+         case nodetype of
+           equaln : getresflags:=F_E;
+           unequaln : getresflags:=F_NE;
+          else
+           if not(unsigned) then
+             begin
+                if nf_swaped in flags then
+                  case nodetype of
+                     ltn : getresflags:=F_G;
+                     lten : getresflags:=F_GE;
+                     gtn : getresflags:=F_L;
+                     gten : getresflags:=F_LE;
+                  end
+                else
+                  case nodetype of
+                     ltn : getresflags:=F_L;
+                     lten : getresflags:=F_LE;
+                     gtn : getresflags:=F_G;
+                     gten : getresflags:=F_GE;
+                  end;
+             end
+           else
+             begin
+                if nf_swaped in flags then
+                  case nodetype of
+                     ltn : getresflags:=F_A;
+                     lten : getresflags:=F_AE;
+                     gtn : getresflags:=F_B;
+                     gten : getresflags:=F_BE;
+                  end
+                else
+                  case nodetype of
+                     ltn : getresflags:=F_B;
+                     lten : getresflags:=F_BE;
+                     gtn : getresflags:=F_A;
+                     gten : getresflags:=F_AE;
+                  end;
+             end;
+         end;
       end;
 
 
@@ -142,6 +139,11 @@ interface
                 ((right.nodetype=stringconstn) and (str_length(right)=0))) and
             is_shortstring(left.resulttype.def)) then
           begin
+            if nodetype = addn then
+              location.loc := LOC_MEM
+            else
+              location.loc := LOC_FLAGS;
+            calcregisters(self,0,0,0);
             result := nil;
             exit;
           end;
@@ -299,6 +301,7 @@ interface
            oldnodetype : tnodetype;
 
         begin
+           load_all_regvars(exprasmlist);
            { the jump the sequence is a little bit hairy }
            case nodetype of
               ltn,gtn:
@@ -1861,7 +1864,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2001-09-17 21:29:13  peter
+  Revision 1.25  2001-10-12 13:51:51  jonas
+    * fixed internalerror(10) due to previous fpu overflow fixes ("merged")
+    * fixed bug in n386add (introduced after compilerproc changes for string
+      operations) where calcregisters wasn't called for shortstring addnodes
+    * NOTE: from now on, the location of a binary node must now always be set
+       before you call calcregisters() for it
+
+  Revision 1.24  2001/09/17 21:29:13  peter
     * merged netbsd, fpu-overflow from fixes branch
 
   Revision 1.23  2001/09/05 15:22:09  jonas

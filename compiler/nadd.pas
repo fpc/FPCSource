@@ -1337,6 +1337,7 @@ implementation
          { int/int gives real/real! }
          if nodetype=slashn then
            begin
+             location.loc:=LOC_FPU;
              { maybe we need an integer register to save }
              { a reference                               }
              if ((left.location.loc<>LOC_FPU) or
@@ -1345,7 +1346,6 @@ implementation
                calcregisters(self,1,1,0)
              else
                calcregisters(self,0,1,0);
-             location.loc:=LOC_FPU;
            end
 
          { if both are orddefs then check sub types }
@@ -1357,11 +1357,12 @@ implementation
                 if not(cs_full_boolean_eval in aktlocalswitches) and
                    (nodetype in [andn,orn]) then
                  begin
-                   calcregisters(self,0,0,0);
                    location.loc:=LOC_JUMP;
+                   calcregisters(self,0,0,0);
                  end
                 else
                  begin
+                   location.loc := LOC_FLAGS;
                    if (left.location.loc in [LOC_JUMP,LOC_FLAGS]) and
                       (left.location.loc in [LOC_JUMP,LOC_FLAGS]) then
                      calcregisters(self,2,0,0)
@@ -1375,6 +1376,7 @@ implementation
                begin
                  if nodetype=addn then
                   internalerror(200103291);
+                 location.loc := LOC_FLAGS;
                  calcregisters(self,1,0,0);
                end
               { is there a 64 bit type ? }
@@ -1383,11 +1385,19 @@ implementation
                  result := first_add64bitint;
                  if assigned(result) then
                    exit;
+                  if nodetype in [addn,subn,muln,andn,orn,xorn] then
+                    location.loc := LOC_REGISTER
+                  else
+                    location.loc := LOC_JUMP;
                  calcregisters(self,2,0,0)
                end
              { is there a cardinal? }
              else if (torddef(ld).typ=u32bit) then
                begin
+                  if nodetype in [addn,subn,muln,andn,orn,xorn] then
+                    location.loc := LOC_REGISTER
+                  else
+                    location.loc := LOC_FLAGS;
                  calcregisters(self,1,0,0);
                  { for unsigned mul we need an extra register }
                  if nodetype=muln then
@@ -1395,7 +1405,13 @@ implementation
                end
              { generic s32bit conversion }
              else
-               calcregisters(self,1,0,0);
+               begin
+                  if nodetype in [addn,subn,muln,andn,orn,xorn] then
+                    location.loc := LOC_REGISTER
+                  else
+                    location.loc := LOC_FLAGS;
+                 calcregisters(self,1,0,0);
+               end;
            end
 
          { left side a setdef, must be before string processing,
@@ -1404,22 +1420,22 @@ implementation
            begin
              if tsetdef(ld).settype=smallset then
               begin
+                 location.loc:=LOC_REGISTER;
                  { are we adding set elements ? }
                  if right.nodetype=setelementn then
                    calcregisters(self,2,0,0)
                  else
                    calcregisters(self,1,0,0);
-                 location.loc:=LOC_REGISTER;
               end
              else
               begin
                  result := first_addset;
                  if assigned(result) then
                    exit;
+                 location.loc:=LOC_MEM;
                  calcregisters(self,0,0,0);
                  { here we call SET... }
                  procinfo^.flags:=procinfo^.flags or pi_do_call;
-                 location.loc:=LOC_MEM;
               end;
            end
 
@@ -1486,8 +1502,8 @@ implementation
          { is one a real float ? }
          else if (rd.deftype=floatdef) or (ld.deftype=floatdef) then
             begin
-              calcregisters(self,0,1,0);
               location.loc:=LOC_FPU;
+              calcregisters(self,0,1,0);
             end
 
          { pointer comperation and subtraction }
@@ -1513,8 +1529,8 @@ implementation
          else if ((ld.deftype=procvardef) and (rt=niln)) or
                  ((rd.deftype=procvardef) and (lt=niln)) then
             begin
-              calcregisters(self,1,0,0);
               location.loc:=LOC_REGISTER;
+              calcregisters(self,1,0,0);
             end
 
 {$ifdef SUPPORT_MMX}
@@ -1536,12 +1552,13 @@ implementation
 
          else  if (rd.deftype=procvardef) and (ld.deftype=procvardef) and is_equal(rd,ld) then
            begin
-             calcregisters(self,1,0,0);
              location.loc:=LOC_REGISTER;
+             calcregisters(self,1,0,0);
            end
 
          else if (ld.deftype=enumdef) then
            begin
+              location.loc := LOC_FLAGS;
               calcregisters(self,1,0,0);
            end
 
@@ -1558,23 +1575,9 @@ implementation
          { the general solution is to convert to 32 bit int }
          else
            begin
-             calcregisters(self,1,0,0);
              location.loc:=LOC_REGISTER;
+             calcregisters(self,1,0,0);
            end;
-
-         case nodetype of
-            ltn,lten,gtn,gten,equaln,unequaln:
-              begin
-                 if is_64bitint(left.resulttype.def) then
-                   location.loc:=LOC_JUMP
-                 else
-                   location.loc:=LOC_FLAGS;
-              end;
-            xorn:
-              begin
-                location.loc:=LOC_REGISTER;
-              end;
-         end;
       end;
 
 begin
@@ -1582,7 +1585,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.39  2001-09-05 15:22:09  jonas
+  Revision 1.40  2001-10-12 13:51:51  jonas
+    * fixed internalerror(10) due to previous fpu overflow fixes ("merged")
+    * fixed bug in n386add (introduced after compilerproc changes for string
+      operations) where calcregisters wasn't called for shortstring addnodes
+    * NOTE: from now on, the location of a binary node must now always be set
+       before you call calcregisters() for it
+
+  Revision 1.39  2001/09/05 15:22:09  jonas
     * made multiplying, dividing and mod'ing of int64 and qword processor
       independent with compilerprocs (+ small optimizations by using shift/and
       where possible)

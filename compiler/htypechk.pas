@@ -416,8 +416,17 @@ implementation
          begin
            if assigned(p.right) then
             begin
-              if (abs(p.left.registers32-p.right.registers32)<r32) then
-               inc(p.registers32,r32);
+              { the location must be already filled in because we need it to }
+              { calculate the necessary number of registers (JM)             }
+              if p.location.loc = LOC_INVALID then
+                internalerror(200110101);
+
+              if (abs(p.left.registers32-p.right.registers32)<r32) or
+                 ((p.location.loc = LOC_FPU) and
+                  (p.right.registersfpu <= p.left.registersfpu) and
+                  ((p.right.registersfpu <> 0) or (p.left.registersfpu <> 0)) and
+                  (p.left.registers32   < p.right.registers32)) then
+                inc(p.registers32,r32);
               if (abs(p.left.registersfpu-p.right.registersfpu)<fpu) then
                inc(p.registersfpu,fpu);
 {$ifdef SUPPORT_MMX}
@@ -958,7 +967,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35  2001-09-17 21:29:11  peter
+  Revision 1.36  2001-10-12 13:51:51  jonas
+    * fixed internalerror(10) due to previous fpu overflow fixes ("merged")
+    * fixed bug in n386add (introduced after compilerproc changes for string
+      operations) where calcregisters wasn't called for shortstring addnodes
+    * NOTE: from now on, the location of a binary node must now always be set
+       before you call calcregisters() for it
+
+  Revision 1.35  2001/09/17 21:29:11  peter
     * merged netbsd, fpu-overflow from fixes branch
 
   Revision 1.34  2001/09/07 07:46:17  jonas

@@ -253,6 +253,7 @@ implementation
              result := first_moddiv64bitint;
              if assigned(result) then
                exit;
+             location.loc:=LOC_REGISTER;
              calcregisters(self,2,0,0);
            end
          else
@@ -334,9 +335,8 @@ implementation
 
          if (right.nodetype<>ordconstn) then
           inc(regs);
-         calcregisters(self,regs,0,0);
-
          location.loc:=LOC_REGISTER;
+         calcregisters(self,regs,0,0);
       end;
 
 
@@ -640,7 +640,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  2001-09-05 15:22:09  jonas
+  Revision 1.24  2001-10-12 13:51:51  jonas
+    * fixed internalerror(10) due to previous fpu overflow fixes ("merged")
+    * fixed bug in n386add (introduced after compilerproc changes for string
+      operations) where calcregisters wasn't called for shortstring addnodes
+    * NOTE: from now on, the location of a binary node must now always be set
+       before you call calcregisters() for it
+
+  Revision 1.23  2001/09/05 15:22:09  jonas
     * made multiplying, dividing and mod'ing of int64 and qword processor
       independent with compilerprocs (+ small optimizations by using shift/and
       where possible)

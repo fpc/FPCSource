@@ -559,6 +559,7 @@ implementation
       begin
         firstpass(left);
         firstpass(right);
+        location.loc := LOC_MEM;
         calcregisters(self,0,0,0);
         result:=nil;
       end;
@@ -734,15 +735,15 @@ implementation
                end;
               include(chp.flags,nf_cargs);
               include(chp.flags,nf_cargswap);
-              calcregisters(chp,0,0,0);
               chp.location.loc:=LOC_MEM;
+              calcregisters(chp,0,0,0);
               chp.resulttype:=htype;
               result:=chp;
               exit;
             end;
          end;
-        calcregisters(self,0,0,0);
         location.loc:=LOC_MEM;
+        calcregisters(self,0,0,0);
       end;
 
 
@@ -800,7 +801,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2001-09-02 21:12:07  peter
+  Revision 1.26  2001-10-12 13:51:51  jonas
+    * fixed internalerror(10) due to previous fpu overflow fixes ("merged")
+    * fixed bug in n386add (introduced after compilerproc changes for string
+      operations) where calcregisters wasn't called for shortstring addnodes
+    * NOTE: from now on, the location of a binary node must now always be set
+       before you call calcregisters() for it
+
+  Revision 1.25  2001/09/02 21:12:07  peter
     * move class of definitions into type section for delphi
 
   Revision 1.24  2001/08/30 15:48:34  jonas
