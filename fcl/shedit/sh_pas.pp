@@ -13,10 +13,14 @@
 }
 
 
-// viewer class for Pascal source
+// Syntax highlighting class for Pascal sources
 
 {$MODE objfpc}
 {$H+}
+
+{$IFDEF Debug}
+{$ASSERTIONS On}
+{$ENDIF}
 
 unit sh_pas;
 
@@ -31,8 +35,8 @@ type
     procedure KeyReturn; override;
   public
     // Syntax highlighter style indices
-    shSymbol, shKeyword, shComment, shDirective, shNumbers, shCharacters,
-      shStrings, shAssembler: Integer;
+    shInvalid, shSymbol, shKeyword, shComment, shDirective, shNumbers,
+      shCharacters, shStrings, shAssembler: Integer;
   end;
 
 
@@ -42,8 +46,8 @@ uses Strings;
 
 const
 
-  LF_SH_Comment1 = LF_SH_Multiline1;
-  LF_SH_Comment2 = LF_SH_Multiline2;    { (* Comments}
+  LF_SH_Comment1 = LF_SH_Multiline1;	{ {} Comments}
+  LF_SH_Comment2 = LF_SH_Multiline2;    { (* *) Comments}
   LF_SH_Asm      = LF_SH_Multiline3;
 
   MaxKeywordLength = 15;
@@ -95,11 +99,12 @@ end;
 
 procedure TSHPasEdit.DoHighlighting(var flags: Byte; source, dest: PChar);
 var
-  dp: Integer;    {Destination postion - current offset in dest}
-  LastSHPos: Integer; {Position of last highlighting character, or 0}
+  dp: Integer;		// Destination position - current offset in dest
+  LastSHPos: Integer;	// Position of last highlighting character, or 0
 
   procedure AddSH(sh: Byte);
   begin
+    ASSERT(sh > 0);
     if (LastSHPos > 0) and (dp = LastSHPos + 1) then Dec(dp, 2);
     dest[dp] := LF_Escape; Inc(dp);
     LastSHPos := dp;
@@ -180,7 +185,7 @@ var
         AddSH(shDefault);
         break;
       end else
-  if CheckForComment then LastChar := ' '
+        if CheckForComment then LastChar := ' '
         else begin
           LastChar := source[0];
           PutChar;
@@ -294,13 +299,17 @@ begin
             dest[LastSHPos] := Chr(shCharacters);
           AddSH(shDefault);
         end;
-      '_', 'A'..'Z', 'a'..'z':
-        if not CheckForKeyword then
-          repeat
-            PutChar
-          until not (source[0] in ['0'..'9', '_', 'A'..'Z', 'a'..'z']);
-      else
+      '_', 'A'..'Z', 'a'..'z': begin
+          if not CheckForKeyword then
+            repeat
+              PutChar
+            until not (source[0] in ['0'..'9', '_', 'A'..'Z', 'a'..'z']);
+        end;
+      ' ': PutChar;
+      else begin
+        AddSH(shInvalid);
         PutChar;  // = found an invalid char!
+      end;
     end;
   end;
 
@@ -313,7 +322,11 @@ end.
 
 {
   $Log$
-  Revision 1.6  2000-02-19 19:06:47  sg
+  Revision 1.7  2000-02-20 10:59:46  sg
+  * Added new style: shInvalid
+  * Cosmetic changes
+
+  Revision 1.6  2000/02/19 19:06:47  sg
   * Added NIL keyword, removed READ and WRITE as keywords
 
   Revision 1.5  2000/01/07 01:24:34  peter
