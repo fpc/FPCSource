@@ -69,8 +69,7 @@ implementation
          parasym : boolean;
       begin
          parasym:=pboolean(arg)^;
-         if (tsym(p).typ=varsym) and
-            ((vo_regable in tvarsym(p).varoptions) or
+         if (tsym(p).typ=varsym) and ((tvarsym(p).varregable <> vr_none) or
              ((tvarsym(p).varspez in [vs_var,vs_const,vs_out]) and
               paramanager.push_addr_param(tvarsym(p).varspez,tvarsym(p).vartype.def,current_procinfo.procdef.proccalloption))) and
             not tvarsym(p).vartype.def.needs_inittable then
@@ -106,7 +105,7 @@ implementation
          parasym : boolean;
       begin
          parasym:=pboolean(arg)^;
-         if (tsym(p).typ=varsym) and (vo_fpuregable in tvarsym(p).varoptions) then
+         if (tsym(p).typ=varsym) and (tvarsym(p).varregable <> vr_none) then
            begin
               j:=tvarsym(p).refs;
               { parameter get a less value }
@@ -669,7 +668,10 @@ end.
 
 {
   $Log$
-  Revision 1.81  2004-10-15 09:14:17  mazen
+  Revision 1.82  2004-10-16 13:08:49  olle
+    * uppdated in accordance to varregable for OLDREGVARS
+
+  Revision 1.81  2004/10/15 09:14:17  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 
