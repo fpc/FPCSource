@@ -1,3 +1,6 @@
+{
+  $Id$
+}
 UNIT ziptypes;
 {
 Type definitions for UNZIP
@@ -197,4 +200,10 @@ BEGIN
 END;
 
 END.
+{
+  $Log$
+  Revision 1.1  1999-02-19 16:45:26  peter
+    * moved to fpinst/ directory
+    + makefile
 
+}

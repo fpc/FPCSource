@@ -930,7 +930,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  1999-02-17 22:34:08  peter
+  Revision 1.1  1999-02-19 16:45:26  peter
+    * moved to fpinst/ directory
+    + makefile
+
+  Revision 1.15  1999/02/17 22:34:08  peter
     * updates from TH for OS2
 
   Revision 1.14  1998/12/22 22:47:34  peter

@@ -1,3 +1,6 @@
+{
+  $Id$
+}
 UNIT Unzip;
 INTERFACE
 
@@ -715,7 +718,7 @@ BEGIN
   b := ( n = w ) AND ( ioresult = 0 );  {True-> alles ok}
   UpdateCRC ( iobuf ( pointer ( @slide [ 0 ] ) ^ ), w );
   {--}
-  IF ( b = TRUE ) AND ( @ZipReport <> NIL )  {callback report for high level functions}
+  IF ( b = TRUE ) AND Assigned(ZipReport)  {callback report for high level functions}
   THEN BEGIN
       WITH ZipRec DO BEGIN
            Status := file_unzipping;
@@ -2080,7 +2083,7 @@ BEGIN
   b := ( n = write_ptr ) AND ( ioresult = 0 );  {True-> alles ok}
   UpdateCRC ( iobuf ( pointer ( @writebuf^ [ 0 ] ) ^ ), write_ptr );
   {--}
-  IF ( b = TRUE ) AND ( @ZipReport <> NIL )  {callback report for high level functions}
+  IF ( b = TRUE ) AND Assigned(ZipReport)  {callback report for high level functions}
   THEN BEGIN
       WITH ZipRec DO BEGIN
            Status := file_unzipping;
@@ -2912,6 +2915,12 @@ PROCEDURE DummyReport ( Retcode : longint;Rec : pReportRec );
 BEGIN
 END;
 
+FUNCTION DummyQuestion( Rec : pReportRec ) : Boolean;
+{$ifdef Windows}{$ifdef win32}STDCALL;{$else}EXPORT;{$endif}{$endif}
+{dummy question procedure}
+begin
+  DummyQuestion:=true;
+end;
 
 FUNCTION Matches ( s : String;CONST main : string ) : Boolean;
 {rudimentary matching function;
@@ -2971,6 +2980,11 @@ VAR
     s : string [ 255 ];
 
 BEGIN
+  IF not assigned(Report) THEN
+   Report := DummyReport;
+  IF not assigned(Question) THEN
+   Question := DummyQuestion;
+
   Count := 0;
   rSize := 0;
   cSize := 0;
@@ -2986,7 +3000,6 @@ BEGIN
 
   FillChar ( ZipRec, Sizeof ( ZipRec ), #0 );
 
-  IF @Report <> NIL THEN {start of ZIP file}
   WITH ZipRec DO BEGIN
        IsaDir := FALSE;
        strcopy ( FileName, thename );
@@ -2997,7 +3010,6 @@ BEGIN
        Report ( Status, @ZipRec );
   END; {start of ZIP file}
 
-  IF @Report = NIL THEN Report := DummyReport;
   ZipReport := Report;
 
   rc := getfirstinzip ( thename, r );
@@ -3033,8 +3045,7 @@ BEGIN
            ZipReport ( Status, @ZipRec );
       END;  { start of file }
 
-      IF  ( @Question <> NIL )
-      AND ( FileExists ( StrPas ( buf ) ) )
+      IF ( FileExists ( StrPas ( buf ) ) )
       AND ( Question ( @ZipRec ) = FALSE )
       THEN BEGIN
          rc := unzip_ok;              { we are okay }
@@ -3124,12 +3135,13 @@ BEGIN
   rSize := 0;
   cSize := 0;
   Viewzip := unzip_MissingParameter;
-  IF ( StrPas ( SourceZipFile ) = '' ) OR ( @Report = NIL ) THEN Exit;
+  IF ( StrPas ( SourceZipFile ) = '' ) or
+     not assigned(Report) THEN
+   exit;
 
   Strcopy ( thename, SourceZipFile );
   ViewZip := unzip_NotZipFile;
   IF NOT iszip ( thename ) THEN exit;
-  IF @Report = NIL THEN Report := DummyReport;
   FillChar ( ZipRec, Sizeof ( ZipRec ), #0 );
 
   rc := getfirstinzip ( thename, r );
@@ -3209,13 +3221,13 @@ END; { UnZipSize }
 {***************************************************************************}
 FUNCTION  SetUnZipReportProc ( aProc : UnzipReportProc ) : Pointer;
 BEGIN
-   SetUnZipReportProc := @ZipReport; {save and return original}
+   SetUnZipReportProc := ZipReport; {save and return original}
    ZipReport  := aProc;
 END; { SetUnZipReportProc }
 {***************************************************************************}
 FUNCTION  SetUnZipQuestionProc ( aProc : UnzipQuestionProc ) : Pointer;
 BEGIN
-  SetUnZipQuestionProc := @ZipQuestion;  {save and return original}
+  SetUnZipQuestionProc := ZipQuestion;  {save and return original}
   ZipQuestion := aProc;
 END; { SetUnZipQuestionProc }
 {***************************************************************************}
@@ -3243,3 +3255,11 @@ END;
 BEGIN
    ChfUnzip_Init;
 END.
+{
+  $Log$
+  Revision 1.1  1999-02-19 16:45:26  peter
+    * moved to fpinst/ directory
+    + makefile
+
+}
+

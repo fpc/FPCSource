@@ -1,3 +1,6 @@
+{
+  $Id$
+}
 unit UnzipDLL;
 
 {$Cdecl+,AlignRec-,OrgName+}
@@ -170,4 +173,10 @@ begin
   Halt (255);
  end;
 end.
-
+{
+  $Log$
+  Revision 1.1  1999-02-19 16:45:26  peter
+    * moved to fpinst/ directory
+    + makefile
+
+}
