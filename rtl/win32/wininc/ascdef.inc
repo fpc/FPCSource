@@ -336,6 +336,8 @@ uses
   function DispatchMessage(var lpMsg:MSG):LONG;
 
   function PeekMessage(lpMsg:LPMSG; hWnd:HWND; wMsgFilterMin:UINT; wMsgFilterMax:UINT; wRemoveMsg:UINT):WINBOOL;
+  { delphi compatibility }
+  function PeekMessage(VAR Msg:TMSG; hWnd:HWND; wMsgFilterMin:UINT; wMsgFilterMax:UINT; wRemoveMsg:UINT):WINBOOL;
 
   function SendMessage(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):LRESULT;
 
@@ -1217,6 +1219,8 @@ uses
   function DispatchMessage(var lpMsg:MSG):LONG; external 'user32' name 'DispatchMessageA';
 
   function PeekMessage(lpMsg:LPMSG; hWnd:HWND; wMsgFilterMin:UINT; wMsgFilterMax:UINT; wRemoveMsg:UINT):WINBOOL; external 'user32' name 'PeekMessageA';
+  { delphi compatibility }
+  function PeekMessage(var Msg:TMSG; hWnd:HWND; wMsgFilterMin:UINT; wMsgFilterMax:UINT; wRemoveMsg:UINT):WINBOOL; external 'user32' name 'PeekMessageA';
 
   function SendMessage(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):LRESULT; external 'user32' name 'SendMessageA';
 
@@ -1838,7 +1842,10 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.6  2000-02-09 16:59:35  peter
+  Revision 1.7  2000-03-20 23:44:43  alex
+   + added overlaoded PeekMessage fundtion for delphi compatibility
+
+  Revision 1.6  2000/02/09 16:59:35  peter
     * truncated log
 
   Revision 1.5  2000/01/07 16:41:53  daniel
