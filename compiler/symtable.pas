@@ -1165,12 +1165,11 @@ implementation
 
             { update alignment of this record }
             varalign:=ps.vartype.def.alignment;
-            {
             if varalign=0 then
               varalign:=size_2_align(ps.getvaluesize);
-            }
             varalignrecord:=used_align(varalign,aktalignment.recordalignmin,aktalignment.recordalignmax);
             recordalignment:=max(recordalignment,varalignrecord);
+
             { next }
             ps:=nps;
           end;
@@ -2339,7 +2338,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.130  2004-01-30 13:42:03  florian
+  Revision 1.131  2004-01-30 14:33:06  florian
+    * fixed more alignment issues
+
+  Revision 1.130  2004/01/30 13:42:03  florian
     * fixed more alignment issues
 
   Revision 1.129  2004/01/29 16:51:29  peter
