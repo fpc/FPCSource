@@ -50,13 +50,8 @@ asm
         pushl   %ecx
 {$endif not hascompilerproc}
         movl    %edi,saveedi
-{$ifdef REGCALL}
-        movl    %eax,%edi
-        andl    $0xff,%edx
-{$else}
-        movzbl  b,%edx
         movl    __RESULT,%edi
-{$endif}
+        movzbl  b,%edx
         xorl    %eax,%eax
         movl    $8,%ecx
         rep
@@ -130,15 +125,9 @@ var
 asm
         movl    %edi,saveedi
         movl    %esi,saveesi
-{$ifdef REGCALL}
-        movl    %eax,%edi
-        movl    %edx,%esi
-        movzbl  %cl,%edx
-{$else}
         movl    source,%esi
         movl    __RESULT,%edi
         movzbl  b,%edx
-{$endif}
         movl    $8,%ecx
         rep
         movsl
@@ -181,17 +170,10 @@ asm
         movl    %edi,saveedi
         movl    %esi,saveesi
         movl    %ebx,saveebx
-{$ifdef REGCALL}
-        movl    %eax,%edi
-        movl    %edx,%esi
-        movzbl  l,%eax               // lowest bit to be set in eax
-        movzbl  h,%ebx               // highest in ebx
-{$else}
-        movzbl l,%eax               // lowest bit to be set in eax
-        movzbl h,%ebx               // highest in ebx
         movl   __RESULT,%edi        // target set address in edi
         movl   orgset, %esi         // source set address in esi
-{$endif}
+        movzbl l,%eax               // lowest bit to be set in eax
+        movzbl h,%ebx               // highest in ebx
         movl   $8,%ecx              // we have to copy 32 bytes
         cmpl   %eax,%ebx            // high < low?
         rep                         // copy source to dest (it's possible to do the range
@@ -710,7 +692,10 @@ end;
 
 {
   $Log$
-  Revision 1.14  2003-12-03 22:46:54  peter
+  Revision 1.15  2003-12-03 23:06:35  peter
+    * more fixes
+
+  Revision 1.14  2003/12/03 22:46:54  peter
     * typo in sub_set
 
   Revision 1.13  2003/11/23 16:50:49  peter
