@@ -27,7 +27,6 @@ libgdb                                        medium
 OS/2 only rtl                                 medium
   - SysOS2
   - DOS
-  - ObjInc.INC
   - sysutils.pp
   - autothunking for 16-bit calls
   - ? linker (ALINK)
