@@ -56,6 +56,7 @@ begin
    SwitchesMode:=TSwitchMode(RB^.Value);
   Dispose(D, Done);
   UpdateMode;
+  UpdateTarget;
 end;
 
 procedure TIDEApp.DoCompilerSwitch;
@@ -401,10 +402,18 @@ begin
     Insert(New(PLabel, Init(R2, label_linker_preferredlibtype, RB2)));
   end;
   InsertButtons(D);
+  RB2^.Select;
   if Desktop^.ExecView(D)=cmOK then
   begin
 {    SetEXEFormat(TEXEFormat(RB1^.Value+1));}
     LibLinkerSwitches^.SetCurrSel(RB2^.Value);
+    if LibLinkerSwitches^.GetCurrSelParam='X' then
+     if CompareText(TargetSwitches^.GetCurrSelParam,'win32')=0 then
+      if CompareText(AsmOutputSwitches^.GetCurrSelParam,'pecoff')<>0 then
+        if ConfirmBox(
+          FormatStrStr3(msg_xmustbesettoyforz_doyouwanttochangethis,
+           label_compiler_assembleroutput,'pecoff','smartlinking'),nil,false)=cmYes then
+             AsmOutputSwitches^.SetCurrSelParam('pecoff');
   end;
   Dispose(D, Done);
 end;
@@ -1214,7 +1223,25 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 09:48:35  michael
+  Revision 1.2  2000-08-22 09:41:39  pierre
+   * first big merge from fixes branch
+
+  Revision 1.1.2.2  2000/08/04 14:05:18  michael
+  * Fixes from Gabor:
+   [*] the IDE now doesn't disable Compile|Make & Build when all windows
+       are closed, but there's still a primary file set
+       (set bug 1059 to fixed!)
+
+   [*] the IDE didn't read some compiler options correctly back from the
+       FP.CFG file, for ex. the linker options. Now it read everything
+       correctly, and also automatically handles smartlinking option synch-
+       ronization.
+       (set bug 1048 to fixed!)
+
+  Revision 1.1.2.1  2000/07/15 21:02:08  pierre
+   * Target is Mode dependent
+
+  Revision 1.1  2000/07/13 09:48:35  michael
   + Initial import
 
   Revision 1.35  2000/06/16 08:50:41  pierre

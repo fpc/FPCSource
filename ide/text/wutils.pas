@@ -23,6 +23,11 @@ interface
 uses
   Dos,Objects;
 
+const
+  TempFirstChar = {$ifndef Linux}'~'{$else}'_'{$endif};
+  TempExt       = '.tmp';
+  TempNameLen   = 8;
+
 type
   PByteArray = ^TByteArray;
   TByteArray = array[0..MaxBytes] of byte;
@@ -127,14 +132,19 @@ function GetFileTime(const FileName: string): longint;
 function GetShortName(const n:string):string;
 function GetLongName(const n:string):string;
 function TrimEndSlash(const Path: string): string;
+function CompleteDir(const Path: string): string;
+function GetCurDir: string;
 function OptimizePath(Path: string; MaxLen: integer): string;
 function CompareText(S1, S2: string): integer;
+function ExistsDir(const DirName: string): boolean;
+function ExistsFile(const FileName: string): boolean;
+function DeleteFile(const FileName: string): integer;
+function CopyFile(const SrcFileName, DestFileName: string): boolean;
+function GenTempFileName: string;
 
 function FormatPath(Path: string): string;
 function CompletePath(const Base, InComplete: string): string;
 function CompleteURL(const Base, URLRef: string): string;
-
-function DeleteFile(const FileName: string): integer;
 
 function EatIO: integer;
 
@@ -1010,6 +1020,86 @@ begin
 {$I+}
 end;
 
+function ExistsFile(const FileName: string): boolean;
+var
+  Dir : SearchRec;
+begin
+  Dos.FindFirst(FileName,Archive+ReadOnly,Dir);
+  ExistsFile:=(DosError=0);
+{$ifdef FPC}
+  Dos.FindClose(Dir);
+{$endif def FPC}
+end;
+
+function ExistsDir(const DirName: string): boolean;
+var
+  Dir : SearchRec;
+begin
+  Dos.FindFirst(TrimEndSlash(DirName),Directory,Dir);
+  ExistsDir:=(DosError=0);
+{$ifdef FPC}
+  Dos.FindClose(Dir);
+{$endif def FPC}
+end;
+
+function CompleteDir(const Path: string): string;
+begin
+  { keep c: untouched PM }
+  if (Path<>'') and (Path[Length(Path)]<>DirSep) and
+     (Path[Length(Path)]<>':') then
+   CompleteDir:=Path+DirSep
+  else
+   CompleteDir:=Path;
+end;
+
+function GetCurDir: string;
+var S: string;
+begin
+  GetDir(0,S);
+  if copy(S,length(S),1)<>DirSep then S:=S+DirSep;
+  GetCurDir:=S;
+end;
+
+function GenTempFileName: string;
+var Dir: string;
+    Name: string;
+    I: integer;
+    OK: boolean;
+    Path: string;
+begin
+  Dir:=GetEnv('TEMP');
+  if Dir='' then Dir:=GetEnv('TMP');
+  if (Dir<>'') then if not ExistsDir(Dir) then Dir:='';
+  if Dir='' then Dir:=GetCurDir;
+  repeat
+    Name:=TempFirstChar;
+    for I:=2 to TempNameLen do
+      Name:=Name+chr(ord('a')+random(ord('z')-ord('a')+1));
+    Name:=Name+TempExt;
+    Path:=CompleteDir(Dir)+Name;
+    OK:=not ExistsFile(Path);
+  until OK;
+  GenTempFileName:=Path;
+end;
+
+function CopyFile(const SrcFileName, DestFileName: string): boolean;
+var SrcF,DestF: PBufStream;
+    OK: boolean;
+begin
+  SrcF:=nil; DestF:=nil;
+  New(SrcF, Init(SrcFileName,stOpenRead,4096));
+  OK:=Assigned(SrcF) and (SrcF^.Status=stOK);
+  if OK then
+  begin
+    New(DestF, Init(DestFileName,stCreate,1024));
+    OK:=Assigned(DestF) and (DestF^.Status=stOK);
+  end;
+  if OK then DestF^.CopyFrom(SrcF^,SrcF^.GetSize);
+  if Assigned(DestF) then Dispose(DestF, Done);
+  if Assigned(SrcF) then Dispose(SrcF, Done);
+  CopyFile:=OK;
+end;
+
 procedure GiveUpTimeSlice;
 {$ifdef GO32V2}{$define DOS}{$endif}
 {$ifdef TP}{$define DOS}{$endif}
@@ -1037,15 +1127,31 @@ begin
 {$endif}
 end;
 
-
+BEGIN
+  Randomize;
 END.
 {
   $Log$
-  Revision 1.1  2000-07-13 09:48:37  michael
+  Revision 1.2  2000-08-22 09:41:42  pierre
+   * first big merge from fixes branch
+
+  Revision 1.1.2.3  2000/08/20 15:00:23  peter
+    * windows fix
+
+  Revision 1.1.2.2  2000/08/16 18:46:15  peter
+   [*] double clicking on a droplistbox caused GPF (due to invalid recurson)
+   [*] Make, Build now possible even in Compiler Messages Window
+   [+] when started in a new dir the IDE now ask whether to create a local
+       config, or to use the one located in the IDE dir
+
+  Revision 1.1.2.1  2000/07/20 11:02:16  michael
+  + Fixes from gabor. See fixes.txt
+
+  Revision 1.1  2000/07/13 09:48:37  michael
   + Initial import
 
   Revision 1.27  2000/07/03 08:54:54  pierre
-   * Some enhancements for WinHelp support by G	abor
+   * Some enhancements for WinHelp support by G abor
 
   Revision 1.26  2000/06/26 07:29:23  pierre
    * new bunch of Gabor's changes

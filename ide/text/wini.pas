@@ -57,6 +57,7 @@ type
     TINIFile = object(TObject)
       MakeNullEntries: boolean;
       constructor Init(const AFileName: string);
+      function    GetFileName: string;
       function    Read: boolean; virtual;
       function    Update: boolean; virtual;
       function    IsModified: boolean; virtual;
@@ -79,6 +80,7 @@ type
 
 const MainSectionName : string[40] = 'MainSection';
       CommentChar     : char = ';';
+      ValidStrDelimiters: set of char = ['''','"'];
 
 implementation
 
@@ -141,21 +143,24 @@ end;
 
 procedure TINIEntry.Split;
 var S,ValueS: string;
-    P,P2: byte;
+    P,P2,StartP: byte;
     C: char;
     InString: boolean;
+    Delimiter: char;
 begin
-  S:=GetText;
+  S:=GetText; Delimiter:=#0;
   P:=Pos('=',S); P2:=Pos(CommentChar,S);
   if (P2<>0) and (P2<P) then P:=0;
   if P<>0 then
     begin
       Tag:=NewStr(copy(S,1,P-1));
       P2:=P+1; InString:=false; ValueS:='';
+      StartP:=P2;
       while (P2<=length(S)) do
         begin
           C:=S[P2];
-          if C='"' then InString:=not InString else
+          if (P2=StartP) and (C in ValidStrDelimiters) then begin Delimiter:=C; InString:=true; end else
+          if C=Delimiter then InString:=not InString else
           if (C=CommentChar) and (InString=false) then Break else
           ValueS:=ValueS+C;
           Inc(P2);
@@ -257,6 +262,11 @@ begin
   FileName:=NewStr(AFileName);
   New(Sections, Init(50,50));
   Read;
+end;
+
+function TINIFile.GetFileName: string;
+begin
+  GetFileName:=GetStr(FileName);
 end;
 
 function TINIFile.Read: boolean;
@@ -478,7 +488,30 @@ end;
 END.
 {
   $Log$
-  Revision 1.1  2000-07-13 09:48:37  michael
+  Revision 1.2  2000-08-22 09:41:41  pierre
+   * first big merge from fixes branch
+
+  Revision 1.1.2.3  2000/08/16 18:46:15  peter
+   [*] double clicking on a droplistbox caused GPF (due to invalid recurson)
+   [*] Make, Build now possible even in Compiler Messages Window
+   [+] when started in a new dir the IDE now ask whether to create a local
+       config, or to use the one located in the IDE dir
+
+  Revision 1.1.2.2  2000/08/15 03:40:55  peter
+   [*] no more fatal exits when the IDE can't find the error file (containing
+       the redirected assembler/linker output) after compilation
+   [*] hidden windows are now added always at the end of the Window List
+   [*] TINIFile parsed entries encapsulated in string delimiters incorrectly
+   [*] selection was incorrectly adjusted when typing in overwrite mode
+   [*] the line wasn't expanded when it's end was reached in overw. mode
+   [*] the IDE now tries to locate source files also in the user specified
+       unit dirs (for ex. as a response to 'Open at cursor' (Ctrl+Enter) )
+   [*] 'Open at cursor' is now aware of the extension (if specified)
+
+  Revision 1.1.2.1  2000/07/20 11:02:16  michael
+  + Fixes from gabor. See fixes.txt
+
+  Revision 1.1  2000/07/13 09:48:37  michael
   + Initial import
 
   Revision 1.10  2000/06/22 09:07:15  pierre

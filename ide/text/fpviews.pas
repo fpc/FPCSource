@@ -170,6 +170,7 @@ type
       function    GetPalette: PPalette; virtual;
       constructor Load(var S: TStream);
       procedure   Store(var S: TStream);
+      procedure   Close; virtual;
       destructor  Done; virtual;
     end;
 
@@ -388,7 +389,7 @@ procedure DisposeTabItem(P: PTabItem);
 function  NewTabDef(AName: string; ADefItem: PView; AItems: PTabItem; ANext: PTabDef): PTabDef;
 procedure DisposeTabDef(P: PTabDef);
 
-function  GetEditorCurWord(Editor: PEditor): string;
+function GetEditorCurWord(Editor: PEditor; ValidSpecChars: TCharSet): string;
 procedure InitReservedWords;
 procedure DoneReservedWords;
 function GetReservedWordCount: integer;
@@ -403,6 +404,7 @@ function SearchOnDesktop(FileName : string;tryexts:boolean) : PSourceWindow;
 function TryToOpenFile(Bounds: PRect; FileName: string; CurX,CurY: sw_integer;tryexts: boolean): PSourceWindow;
 function ITryToOpenFile(Bounds: PRect; FileName: string; CurX,CurY: sw_integer;tryexts, ShowIt,
          ForceNewWindow:boolean): PSourceWindow;
+function LocateSourceFile(const FileName: string; tryexts: boolean): string;
 
 function SearchWindow(const Title: string): PWindow;
 
@@ -446,7 +448,7 @@ uses
   gdbint,
 {$endif NODEBUG}
   {$ifdef VESA}Vesa,{$endif}
-  FPString,FPSwitch,FPSymbol,FPDebug,FPVars,FPUtils,FPCompile,FPHelp,
+  FPString,FPSwitch,FPSymbol,FPDebug,FPVars,FPUtils,FPCompil,FPHelp,
   FPTools,FPIDE,FPCodTmp,FPCodCmp;
 
 const
@@ -622,7 +624,7 @@ begin
   EditorWindowFile:=pointer(Desktop^.FirstThat(@EditorWindow));
 end;
 
-function GetEditorCurWord(Editor: PEditor): string;
+function GetEditorCurWord(Editor: PEditor; ValidSpecChars: TCharSet): string;
 var S: string;
     PS,PE: byte;
 function Trim(S: string): string;
@@ -641,7 +643,7 @@ begin
 {$else}
     S:=GetLineText(CurPos.Y);
     PS:=CurPos.X; while (PS>0) and (Upcase(S[PS]) in AlphaNum) do Dec(PS);
-    PE:=CurPos.X; while (PE<length(S)) and (Upcase(S[PE+1]) in AlphaNum) do Inc(PE);
+    PE:=CurPos.X; while (PE<length(S)) and (Upcase(S[PE+1]) in (AlphaNum+ValidSpecChars)) do Inc(PE);
     S:=Trim(copy(S,PS+1,PE-PS));
 {$endif}
   end;
@@ -1150,12 +1152,14 @@ begin
 {$endif DebugUndo}
           cmBrowseAtCursor:
             begin
-              S:=LowerCaseStr(GetEditorCurWord(@Self));
+              S:=LowerCaseStr(GetEditorCurWord(@Self,[]));
               OpenOneSymbolBrowser(S);
             end;
           cmOpenAtCursor :
             begin
-              S:=LowerCaseStr(GetEditorCurWord(@Self));
+              S:=LowerCaseStr(GetEditorCurWord(@Self,['.']));
+              if Pos('.',S)<>0 then
+                OpenFileName:=S else
               OpenFileName:=S+'.pp'+ListSeparator+
                             S+'.pas'+ListSeparator+
                             S+'.inc';
@@ -1448,7 +1452,7 @@ begin
             Hide;
           cmSave :
             if Editor^.IsClipboard=false then
-             if Editor^.FileName='' then
+             if (Editor^.FileName='') and Editor^.GetModified then
               Editor^.SaveAs
              else
               Editor^.Save;
@@ -1543,12 +1547,18 @@ begin
   PopStatus;
 end;
 
+procedure TSourceWindow.Close;
+begin
+  inherited Close;
+end;
+
 destructor TSourceWindow.Done;
 begin
   PushStatus(FormatStrStr(msg_closingfile,GetStr(Title)));
   if not IDEApp.IsClosing then
     Message(Application,evBroadcast,cmSourceWndClosing,@Self);
   inherited Done;
+  IDEApp.SourceWindowClosed;
 {  if not IDEApp.IsClosing then
     Message(Application,evBroadcast,cmUpdate,@Self);}
   PopStatus;
@@ -2834,12 +2844,10 @@ begin
   TryToOpenFile:=ITryToOpenFile(Bounds,FileName,CurX,CurY,tryexts,true,false);
 end;
 
-function ITryToOpenFile(Bounds: PRect; FileName: string; CurX,CurY: sw_integer;tryexts:boolean;
-         ShowIt,ForceNewWindow: boolean): PSourceWindow;
+function LocateSingleSourceFile(const FileName: string; tryexts: boolean): string;
 var D : DirStr;
     N : NameStr;
     E : ExtStr;
-    DrStr : String;
 
   function CheckDir(NewDir: DirStr; NewName: NameStr; NewExt: ExtStr): boolean;
   var OK: boolean;
@@ -2859,9 +2867,8 @@ var D : DirStr;
     CheckExt:=OK;
   end;
 
-  function TryToOpen(const DD : dirstr): PSourceWindow;
+  function TryToLocateIn(const DD : dirstr): boolean;
   var Found: boolean;
-      W : PSourceWindow;
   begin
     D:=CompleteDir(DD);
     Found:=true;
@@ -2876,21 +2883,55 @@ var D : DirStr;
     else
      if CheckExt('.inc') then
       Found:=true
+    { try also without extension if no other exist }
+    else
+     if CheckExt('') then
+      Found:=true
     else
       Found:=false;
-    if Found=false then
-      W:=nil
-    else
-      begin
-        FileName:=FExpand(D+N+E);
-        W:=IOpenEditorWindow(Bounds,FileName,CurX,CurY,ShowIt);
-      end;
-    TryToOpen:=W;
+    TryToLocateIn:=Found;
   end;
+var Path,DrStr: string;
+    Found: boolean;
+begin
+  FSplit(FileName,D,N,E);
+  Found:=CheckDir(D,N,E);
+  if not found then
+    Found:=TryToLocateIn('.');
+  DrStr:=GetSourceDirectories;
+  if not Found then
+   While pos(ListSeparator,DrStr)>0 do
+    Begin
+      Found:=TryToLocateIn(Copy(DrStr,1,pos(ListSeparator,DrStr)-1));
+      if Found then
+        break;
+      DrStr:=Copy(DrStr,pos(ListSeparator,DrStr)+1,High(DrStr));
+    End;
+  if Found then Path:=FExpand(D+N+E) else Path:='';
+  LocateSingleSourceFile:=Path;
+end;
 
+function LocateSourceFile(const FileName: string; tryexts: boolean): string;
+var P: integer;
+    FN,S: string;
+    FFN: string;
+begin
+  FN:=FileName;
+  repeat
+    P:=Pos(ListSeparator,FN); if P=0 then P:=length(FN)+1;
+    S:=copy(FN,1,P-1); Delete(FN,1,P);
+    FFN:=LocateSingleSourceFile(S,tryexts);
+  until (FFN<>'') or (FN='');
+  LocateSourceFile:=FFN;
+end;
+
+function ITryToOpenFile(Bounds: PRect; FileName: string; CurX,CurY: sw_integer;tryexts:boolean;
+         ShowIt,ForceNewWindow: boolean): PSourceWindow;
 var
   W : PSourceWindow;
+  DrStr: string;
 begin
+  W:=nil;
   if ForceNewWindow then
     W:=nil
   else
@@ -2904,20 +2945,9 @@ begin
     end
   else
     begin
-      FSplit(FileName,D,N,E);
-      if D<>'' then
-        W:=TryToOpen(D);
-      DrStr:=GetSourceDirectories;
-      if not assigned(W) then
-       While pos(';',DrStr)>0 do
-        Begin
-           W:=TryToOpen(Copy(DrStr,1,pos(';',DrStr)-1));
-           if assigned(W) then
-             break;
-           DrStr:=Copy(DrStr,pos(';',DrStr)+1,255);
-        End;
-      if not assigned(W) then
-        W:=TryToOpen(DrStr);
+      DrStr:=LocateSourceFile(FileName,tryexts);
+      if DrStr<>'' then
+        W:=IOpenEditorWindow(Bounds,DrStr,CurX,CurY,ShowIt);
       NewEditorOpened:=W<>nil;
       if assigned(W) then
         W^.Editor^.SetCurPtr(CurX,CurY);
@@ -3471,7 +3501,46 @@ end;
 END.
 {
   $Log$
-  Revision 1.1  2000-07-13 09:48:36  michael
+  Revision 1.2  2000-08-22 09:41:41  pierre
+   * first big merge from fixes branch
+
+  Revision 1.1.2.6  2000/08/21 21:23:27  pierre
+   * fix loading problem for sources in other dirs
+
+  Revision 1.1.2.5  2000/08/15 03:40:54  peter
+   [*] no more fatal exits when the IDE can't find the error file (containing
+       the redirected assembler/linker output) after compilation
+   [*] hidden windows are now added always at the end of the Window List
+   [*] TINIFile parsed entries encapsulated in string delimiters incorrectly
+   [*] selection was incorrectly adjusted when typing in overwrite mode
+   [*] the line wasn't expanded when it's end was reached in overw. mode
+   [*] the IDE now tries to locate source files also in the user specified
+       unit dirs (for ex. as a response to 'Open at cursor' (Ctrl+Enter) )
+   [*] 'Open at cursor' is now aware of the extension (if specified)
+
+  Revision 1.1.2.4  2000/08/04 14:05:19  michael
+  * Fixes from Gabor:
+   [*] the IDE now doesn't disable Compile|Make & Build when all windows
+       are closed, but there's still a primary file set
+       (set bug 1059 to fixed!)
+
+   [*] the IDE didn't read some compiler options correctly back from the
+       FP.CFG file, for ex. the linker options. Now it read everything
+       correctly, and also automatically handles smartlinking option synch-
+       ronization.
+       (set bug 1048 to fixed!)
+
+  Revision 1.1.2.3  2000/07/20 11:02:15  michael
+  + Fixes from gabor. See fixes.txt
+
+  Revision 1.1.2.2  2000/07/15 21:35:32  pierre
+   * Avoid asking twice for Unsaved New File at exit
+   * Load files without extensions at startup
+
+  Revision 1.1.2.1  2000/07/15 21:30:06  pierre
+  * Wrong commit text
+
+  Revision 1.1  2000/07/13 09:48:36  michael
   + Initial import
 
   Revision 1.73  2000/06/22 09:07:13  pierre

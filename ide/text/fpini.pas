@@ -20,6 +20,7 @@ uses
   FPUtils;
 
 procedure InitINIFile;
+procedure CheckINIFile;
 function  ReadINIFile: boolean;
 function  WriteINIFile: boolean;
 
@@ -27,10 +28,10 @@ function  WriteINIFile: boolean;
 implementation
 
 uses
-  Dos,Objects,Drivers,
-  WINI,{$ifndef EDITORS}WEditor,WCEdit{$else}Editors{$endif},
+  Dos,Objects,Drivers,Commands,
+  WConsts,WUtils,WINI,WViews,{$ifndef EDITORS}WEditor,WCEdit{$else}Editors{$endif},
   {$ifndef NODEBUG}FPDebug,{$endif}FPConst,FPVars,
-  FPIntf,FPTools,FPSwitch;
+  FPIntf,FPTools,FPSwitch,FPString;
 
 const
   { INI file sections }
@@ -99,6 +100,47 @@ begin
   if S<>'' then
     IniFileName:=S;
   IniFileName:=FExpand(IniFileName);
+end;
+
+procedure CheckINIFile;
+var IniDir,CurDir: DirStr;
+    INI: PINIFile;
+const Btns : array[1..2] of longstring = (btn_config_copyexisting,btn_config_createnew);
+begin
+  IniDir:=DirOf(IniFileName); CurDir:=GetCurDir;
+  if CompareText(IniDir,CurDir)<>0 then
+   if not ExistsFile(CurDir+DirInfoName) then
+     if ConfirmBox(FormatStrStr(msg_doyouwanttocreatelocalconfigfile,IniDir),nil,false)=cmYes then
+       begin
+         if (not ExistsFile(IniFileName)) or
+            (ChoiceBox(msg_configcopyexistingorcreatenew,nil,
+              Btns,false)=cmUserBtn2) then
+           begin
+             { create new config here }
+             IniFileName:=CurDir+IniName;
+             SwitchesPath:=CurDir+SwitchesName;
+           end
+         else
+           begin
+             { copy config here }
+             if CopyFile(IniFileName,CurDir+IniName)=false then
+               ErrorBox(FormatStrStr(msg_errorwritingfile,CurDir+IniName),nil)
+             else
+               IniFileName:=CurDir+IniName;
+             if CopyFile(SwitchesPath,CurDir+SwitchesName)=false then
+               ErrorBox(FormatStrStr(msg_errorwritingfile,CurDir+SwitchesName),nil)
+             else
+               SwitchesPath:=CurDir+SwitchesName;
+           end;
+       end
+     else
+       begin
+         New(INI, Init(CurDir+DirInfoName));
+         INI^.SetEntry(MainSectionName,'Comment','Do NOT delete this file!!!');
+         if INI^.Update=false then
+           ErrorBox(FormatStrStr(msg_errorwritingfile,INI^.GetFileName),nil);
+         Dispose(INI, Done);
+       end;
 end;
 
 function PaletteToStr(S: string): string;
@@ -528,7 +570,19 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 09:48:34  michael
+  Revision 1.2  2000-08-22 09:41:39  pierre
+   * first big merge from fixes branch
+
+  Revision 1.1.2.2  2000/08/16 18:46:14  peter
+   [*] double clicking on a droplistbox caused GPF (due to invalid recurson)
+   [*] Make, Build now possible even in Compiler Messages Window
+   [+] when started in a new dir the IDE now ask whether to create a local
+       config, or to use the one located in the IDE dir
+
+  Revision 1.1.2.1  2000/07/20 11:02:15  michael
+  + Fixes from gabor. See fixes.txt
+
+  Revision 1.1  2000/07/13 09:48:34  michael
   + Initial import
 
   Revision 1.30  2000/06/22 09:07:12  pierre

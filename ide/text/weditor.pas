@@ -471,6 +471,8 @@ type
    {a}function    LoadFromStream(Stream: PStream): boolean; virtual;
    {a}function    SaveToStream(Stream: PStream): boolean; virtual;
    {a}function    SaveAreaToStream(Stream: PStream; StartP,EndP: TPoint): boolean;virtual;
+      function    LoadFromFile(const AFileName: string): boolean; virtual;
+      function    SaveToFile(const AFileName: string): boolean; virtual;
     public
    {a}function    InsertFrom(Editor: PCustomCodeEditor): Boolean; virtual;
    {a}function    InsertText(const S: string): Boolean; virtual;
@@ -1615,9 +1617,9 @@ begin
   S:=GetLineText(Line);
   TabSize:=GetTabSize;
   CP:=1; RX:=0;
-  while (CP<=length(S)) and (CP<=CharIdx) do
+  while {(CP<=length(S)) and }(CP<=CharIdx) do
    begin
-     if S[CP]=TAB then
+     if (CP<=length(S)) and (S[CP]=TAB) then
        Inc(RX,GetTabSize-(RX mod TabSize))
      else
        Inc(RX);
@@ -1977,7 +1979,7 @@ var
     end;
     if EndX+1>=StartX then
       FillChar(Format[StartX],EndX+1-StartX,C);
-    if IsAsmPrefix(WordS) and
+    if IsAsmPrefix(WordS) and (InString=false) and
        (InAsm=false) and (InComment=false) and (InDirective=false) then
       InAsm:=true;
   end;
@@ -2519,6 +2521,34 @@ begin
   SaveAreaToStream:=false;
 end;
 
+function TCustomCodeEditor.LoadFromFile(const AFileName: string): boolean;
+var S: PBufStream;
+    OK: boolean;
+begin
+  New(S, Init(AFileName,stOpenRead,EditorTextBufSize));
+  OK:=Assigned(S);
+{$ifdef TEST_PARTIAL_SYNTAX}
+  SetSyntaxCompleted(false);
+  { Idle necessary }
+  EventMask:=EventMask or evIdle;
+{$endif TEST_PARTIAL_SYNTAX}
+  if OK then OK:=LoadFromStream(S);
+  if Assigned(S) then Dispose(S, Done);
+  LoadFromFile:=OK;
+end;
+
+function TCustomCodeEditor.SaveToFile(const AFileName: string): boolean;
+var OK: boolean;
+    S: PBufStream;
+begin
+  New(S, Init(AFileName,stCreate,EditorTextBufSize));
+  OK:=Assigned(S) and (S^.Status=stOK);
+  if OK then OK:=SaveToStream(S);
+  if Assigned(S) then Dispose(S, Done);
+  SaveToFile:=OK;
+end;
+
+
 function TCustomCodeEditor.InsertFrom(Editor: PCustomCodeEditor): Boolean;
 var OK: boolean;
     LineDelta,LineCount: Sw_integer;
@@ -2990,7 +3020,10 @@ begin
           cmTextEnd     : TextEnd;
           cmWindowStart : WindowStart;
           cmWindowEnd   : WindowEnd;
-          cmNewLine     : InsertNewLine;
+          cmNewLine     : begin
+                            InsertNewLine;
+                            TrackCursor(false);
+                          end;
           cmBreakLine   : BreakLine;
           cmBackSpace   : BackSpace;
           cmDelChar     : DelChar;
@@ -4591,7 +4624,8 @@ begin
         end;
     end;
   UpdateAttrs(CurPos.Y,attrAll);
-  AdjustSelection(CurPos.X-SP.X,CurPos.Y-SP.Y);
+  if GetInsertMode then
+    AdjustSelection(CurPos.X-SP.X,CurPos.Y-SP.Y);
   DrawLines(CurPos.Y);
   SetStoreUndo(HoldUndo);
   SetModified(true);
@@ -5794,7 +5828,12 @@ begin
                 Name:=Name+DefaultSaveExt;
               AskOW:=(Name<>PString(Info)^);
             end;
-          edWriteBlock : AskOW:=true;
+          edWriteBlock :
+            begin
+              if ExtOf(Name)='' then
+                Name:=Name+DefaultSaveExt;
+              AskOW:=true;
+            end;
           edReadBlock  : AskOW:=false;
         else AskOW:=true;
         end;
@@ -5858,7 +5897,31 @@ end;
 END.
 {
   $Log$
-  Revision 1.1  2000-07-13 09:48:37  michael
+  Revision 1.2  2000-08-22 09:41:41  pierre
+   * first big merge from fixes branch
+
+  Revision 1.1.2.4  2000/08/15 03:40:54  peter
+   [*] no more fatal exits when the IDE can't find the error file (containing
+       the redirected assembler/linker output) after compilation
+   [*] hidden windows are now added always at the end of the Window List
+   [*] TINIFile parsed entries encapsulated in string delimiters incorrectly
+   [*] selection was incorrectly adjusted when typing in overwrite mode
+   [*] the line wasn't expanded when it's end was reached in overw. mode
+   [*] the IDE now tries to locate source files also in the user specified
+       unit dirs (for ex. as a response to 'Open at cursor' (Ctrl+Enter) )
+   [*] 'Open at cursor' is now aware of the extension (if specified)
+
+  Revision 1.1.2.3  2000/07/20 11:02:16  michael
+  + Fixes from gabor. See fixes.txt
+
+  Revision 1.1.2.2  2000/07/18 05:50:22  michael
+  + Merged Gabors fixes
+
+  Revision 1.1.2.1  2000/07/15 21:30:06  pierre
+   * Do not consider ASM inside a string as a assembler statement start
+   * Add .pas extension to edWriteBlock if no extension is choosen
+
+  Revision 1.1  2000/07/13 09:48:37  michael
   + Initial import
 
   Revision 1.95  2000/06/22 09:07:13  pierre

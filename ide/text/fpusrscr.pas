@@ -494,6 +494,10 @@ end;
 
 procedure TLinuxScreen.Capture;
 begin
+  if assigned(IDE_screen) then
+    dispose(IDE_screen);
+  new(IDE_screen);
+  move(videobuf^,IDE_screen^,videobufsize);
 end;
 
 
@@ -725,7 +729,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-08-21 10:57:01  jonas
+  Revision 1.3  2000-08-22 09:41:40  pierre
+   * first big merge from fixes branch
+
+  Revision 1.2  2000/08/21 10:57:01  jonas
     * IDE screen saving/restoring implemented for Linux (merged from fixes
       branch)
 

@@ -55,8 +55,13 @@ var Title,ProgramPath,Params: string;
 begin
   if (Idx<1) or (Idx>GetToolCount) then Exit;
   GetToolParams(Idx-1,Title,ProgramPath,Params,Wo);
+  InitToolTempFiles;
   Err:=ParseToolParams(Params,false);
-  if Err=-1 then Exit;
+  if Err=-1 then
+  begin
+    DoneToolTempFiles;
+    Exit;
+  end;
   if Err<>0 then
     begin ErrorBox(msg_errorparsingtoolparams,nil); Exit; end;
   if CaptureToolTo<>capNone then
@@ -133,6 +138,7 @@ begin
   EraseFile(CaptureFile);
   EraseFile(FilterCaptureName);
 {$endif}
+  DoneToolTempFiles;
 end;
 
 
@@ -294,7 +300,13 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 09:48:35  michael
+  Revision 1.2  2000-08-22 09:41:40  pierre
+   * first big merge from fixes branch
+
+  Revision 1.1.2.1  2000/07/20 11:02:15  michael
+  + Fixes from gabor. See fixes.txt
+
+  Revision 1.1  2000/07/13 09:48:35  michael
   + Initial import
 
   Revision 1.21  2000/06/16 08:50:41  pierre

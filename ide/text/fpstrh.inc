@@ -594,6 +594,17 @@ const
       msg_nothingtodebug = 'Hopp , nincs mit debuggolni.';
       msg_startingdebugger = 'Debugger ind¡t sa';
 
+      msg_doyouwanttocreatelocalconfigfile =
+        'A Free Pascal IDE m‚g sosem lett ind¡tva ebben a k”nyvt rban. '+
+         'L‚tre akar hozni egy £j konfigur ci¢s f jlt itt? '{#13+
+         '(If you answer with "No", the IDE will use '+
+         'the config file located in "%s")'};
+      msg_configcopyexistingorcreatenew =
+        'A m r l‚tez‹ konfigur ci¢t m soljam le, vagy hozzak '+
+        'l‚tre egy teljesen £jat?';
+      btn_config_copyexisting = '~M~ sold le!';
+      btn_config_createnew = '~H~ozd l‚tre!';
+
       { Desktop file messages }
       msg_readingdesktopfile = 'Asztal-f jl olvas sa...';
       msg_writingdesktopfile = 'Asztal-f jl ¡r sa...';
@@ -748,6 +759,7 @@ const
       opt_listsource = 'Forr s ~l~ist z sa';
       opt_listregisterallocation = '~r~egister-foglal s list.';
       opt_listtempallocation = ' ~t~meneti foglal s list.';
+      opt_usedefaultas = 'Use ~d~efault output'; { NOT TRANSLATED }
       opt_usegnuas = '~G~NU as haszn lata';
       opt_usenasmcoff = '~N~ASM coff haszn lata';
       opt_usenasmelf = 'Use NASM ~e~lf haszn lata';
@@ -772,8 +784,10 @@ const
       opt_objectdirectories = '~O~bject k”nyvt rak';
       opt_exeppudirectories = '~E~XE & PPU k”nyvt rak';
       { Library options }
+      opt_librariesdefault = '~T~arget default'; { NOT TRANSLATED }
       opt_dynamiclibraries = '~D~inamikus k”nyvt rak';
       opt_staticlibraries = '~S~tatikus k”nyvt rak';
+      opt_smartlibraries = 'S~m~art libraries'; { NOT TRANSLATED }
       { Symbol info options }
       opt_stripalldebugsymbols = 'Debug szimb¢lumok elt vol¡t ~s~a';
       opt_gendebugsymbolinfo = '~D~ebug szimb¢lum info gener l sa';
@@ -781,6 +795,11 @@ const
       { Profiling options }
       opt_noprofileinfo = '~N~incs profile inform ci¢';
       opt_gprofinfo = 'Profile inf¢ gener l sa g~p~rof-hoz';
+
+      msg_xmustbesettoyforz_doyouwanttochangethis =
+        'Az %s ‚rt‚k‚t "%s"-re kell  ll¡tani a %s-hez. '+
+        'K¡v nja, hogy ezt a be ll¡t st automatikusan megtegyem?';
+
 
       { Debugger messages and status hints }
       msg_programexitedwithcodeandsteps = #3'A program kil‚pett '#13+
@@ -961,7 +980,31 @@ const
 
 {
   $Log$
-  Revision 1.1  2000-07-13 09:48:36  michael
+  Revision 1.2  2000-08-22 09:41:40  pierre
+   * first big merge from fixes branch
+
+  Revision 1.1.2.3  2000/08/16 18:46:14  peter
+   [*] double clicking on a droplistbox caused GPF (due to invalid recurson)
+   [*] Make, Build now possible even in Compiler Messages Window
+   [+] when started in a new dir the IDE now ask whether to create a local
+       config, or to use the one located in the IDE dir
+
+  Revision 1.1.2.2  2000/08/04 14:05:19  michael
+  * Fixes from Gabor:
+   [*] the IDE now doesn't disable Compile|Make & Build when all windows
+       are closed, but there's still a primary file set
+       (set bug 1059 to fixed!)
+
+   [*] the IDE didn't read some compiler options correctly back from the
+       FP.CFG file, for ex. the linker options. Now it read everything
+       correctly, and also automatically handles smartlinking option synch-
+       ronization.
+       (set bug 1048 to fixed!)
+
+  Revision 1.1.2.1  2000/07/15 21:16:23  pierre
+   + some new texts
+
+  Revision 1.1  2000/07/13 09:48:36  michael
   + Initial import
 
   Revision 1.4  2000/06/16 08:50:42  pierre

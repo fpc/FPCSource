@@ -14,7 +14,7 @@
 
  **********************************************************************}
 {$i globdir.inc}
-unit FPCompile;
+unit FPCompil;
 
 interface
 
@@ -27,8 +27,9 @@ interface
 
 uses
   Objects,
+  files,
   Drivers,Views,Dialogs,
-  WUtils,WViews,
+  WUtils,WViews,WCEdit,
   FPSymbol,
   FPViews;
 
@@ -59,6 +60,8 @@ type
       procedure   ClearMessages;
       constructor Load(var S: TStream);
       procedure   Store(var S: TStream);
+      procedure   SetState(AState: Word; Enable: Boolean); virtual;
+      procedure   UpdateCommands; virtual;
     private
       {CompileShowed : boolean;}
       {Mode   : TCompileMode;}
@@ -73,6 +76,20 @@ type
       KeyST : PColorStaticText;
       constructor Init;
       procedure   Update;
+    end;
+
+    PFPInputFile = ^TFPInputFile;
+    TFPInputFile = object(tinputfile)
+      constructor Init(AEditor: PFileEditor);
+    {$ifdef FPC}protected{$else}public{$endif}
+      function fileopen(const filename: string): boolean; virtual;
+      function fileseek(pos: longint): boolean; virtual;
+      function fileread(var databuf; maxsize: longint): longint; virtual;
+      function fileeof: boolean; virtual;
+      function fileclose: boolean; virtual;
+    private
+      Editor: PFileEditor;
+      S: PStream;
     end;
 
 const
@@ -404,6 +421,22 @@ begin
   PutSubViewPtr(S,MsgLB);
 end;
 
+procedure TCompilerMessageWindow.UpdateCommands;
+var Active: boolean;
+begin
+  Active:=GetState(sfActive);
+  SetCmdState(CompileCmds,Active);
+  Message(Application,evBroadcast,cmCommandSetChanged,nil);
+end;
+
+procedure TCompilerMessageWindow.SetState(AState: Word; Enable: Boolean);
+var OldState: word;
+begin
+  OldState:=State;
+  inherited SetState(AState,Enable);
+  if ((AState and sfActive)<>0) and (((OldState xor State) and sfActive)<>0) then
+    UpdateCommands;
+end;
 
 destructor TCompilerMessageWindow.Done;
 begin
@@ -543,6 +576,29 @@ procedure CompilerStop; {$ifndef FPC}far;{$endif}
 begin
 end;
 
+Function  CompilerGetNamedFileTime(const filename : string) : Longint; {$ifndef FPC}far;{$endif}
+var t: longint;
+    W: PSourceWindow;
+begin
+  W:=EditorWindowFile(FExpand(filename));
+  if Assigned(W) and (W^.Editor^.GetModified) then
+    t:=Now
+  else
+    t:=def_getnamedfiletime(filename);
+  CompilerGetNamedFileTime:=t;
+end;
+
+function CompilerOpenInputFile(const filename: string): pinputfile; {$ifndef FPC}far;{$endif}
+var f: pinputfile;
+    W: PSourceWindow;
+begin
+  W:=EditorWindowFile(FExpand(filename));
+  if Assigned(W) and (W^.Editor^.GetModified) then
+    f:=new(PFPInputFile, Init(W^.Editor))
+  else
+    f:=def_openinputfile(filename);
+  CompilerOpenInputFile:=f;
+end;
 
 function CompilerComment(Level:Longint; const s:string):boolean; {$ifndef FPC}far;{$endif}
 begin
@@ -616,9 +672,9 @@ begin
         FileName:=PrimaryFileMain
       else
         begin
-          if P^.Editor^.GetModified and (not P^.Editor^.Save) then
+(*          if P^.Editor^.GetModified and (not P^.Editor^.Save) then
             FileName:='*' { file not saved }
-          else
+          else*) { no longer needed - Gabor }
             FileName:=P^.Editor^.FileName;
         end;
     end;
@@ -693,10 +749,14 @@ begin
   do_status:=CompilerStatus;
   do_stop:=CompilerStop;
   do_comment:=CompilerComment;
+  do_openinputfile:=CompilerOpenInputFile;
+  do_getnamedfiletime:=CompilerGetNamedFileTime;
 {$else not TP}
   do_status:=@CompilerStatus;
   do_stop:=@CompilerStop;
   do_comment:=@CompilerComment;
+  do_openinputfile:=@CompilerOpenInputFile;
+  do_getnamedfiletime:=@CompilerGetNamedFileTime;
 {$endif TP}
   do_initsymbolinfo:=InitBrowserCol;
   do_donesymbolinfo:=DoneBrowserCol;
@@ -755,23 +815,31 @@ begin
            Inc(status.errorCount);
            ClearFormatParams; AddFormatParamStr(ExeFile);
            CompilerMessageWindow^.AddMessage(V_error,FormatStrF(msg_couldnotcreatefile,FormatParams),'',0,0);
+         {$I-}
            Assign(ErrFile,FPErrFileName);
            Reset(ErrFile);
-           LinkErrorCount:=0;
-           While not eof(ErrFile) and (LinkErrorCount<25) do
-             begin
-               readln(ErrFile,s);
-               CompilerMessageWindow^.AddMessage(V_error,s,'',0,0);
-               inc(LinkErrorCount);
-             end;
-           if not eof(ErrFile) then
+           if EatIO<>0 then
+             ErrorBox(FormatStrStr(msg_cantopenfile,FPErrFileName),nil)
+           else
            begin
-             ClearFormatParams; AddFormatParamStr(FPErrFileName);
-             CompilerMessageWindow^.AddMessage(V_error,
-               FormatStrF(msg_therearemoreerrorsinfile,FormatParams),'',0,0);
-           end;
+             LinkErrorCount:=0;
+             While not eof(ErrFile) and (LinkErrorCount<25) do
+               begin
+                 readln(ErrFile,s);
+                 CompilerMessageWindow^.AddMessage(V_error,s,'',0,0);
+                 inc(LinkErrorCount);
+               end;
+             if not eof(ErrFile) then
+             begin
+               ClearFormatParams; AddFormatParamStr(FPErrFileName);
+               CompilerMessageWindow^.AddMessage(V_error,
+                 FormatStrF(msg_therearemoreerrorsinfile,FormatParams),'',0,0);
+             end;
 
-           Close(ErrFile);
+             Close(ErrFile);
+           end;
+           EatIO;
+         {$I+}
          end;
     end;
 {$ifdef TEMPHEAP}
@@ -899,6 +967,78 @@ begin
   NeedRecompile:=Need;
 end;
 
+constructor TFPInputFile.Init(AEditor: PFileEditor);
+begin
+  if not Assigned(AEditor) then Fail;
+  if inherited Init(AEditor^.FileName)=false then
+    Fail;
+  Editor:=AEditor;
+end;
+
+function TFPInputFile.fileopen(const filename: string): boolean;
+var OK: boolean;
+begin
+  S:=New(PMemoryStream, Init(0,0));
+  OK:=Assigned(S) and (S^.Status=stOK);
+  if OK then OK:=Editor^.SaveToStream(S);
+  if OK then
+    S^.Seek(0)
+  else
+    begin
+      if Assigned(S) then Dispose(S, Done);
+      S:=nil;
+    end;
+  fileopen:=OK;
+end;
+
+function TFPInputFile.fileseek(pos: longint): boolean;
+var OK: boolean;
+begin
+  OK:=assigned(S);
+  if OK then
+  begin
+    S^.Reset;
+    S^.Seek(pos);
+    OK:=(S^.Status=stOK);
+  end;
+  fileseek:=OK;
+end;
+
+function TFPInputFile.fileread(var databuf; maxsize: longint): longint;
+var
+    size: longint;
+begin
+  if not assigned(S) then size:=0 else
+  begin
+    size:=min(maxsize,(S^.GetSize-S^.GetPos));
+    S^.Read(databuf,size);
+    if S^.Status<>stOK then size:=0;
+  end;
+  fileread:=size;
+end;
+
+function TFPInputFile.fileeof: boolean;
+var EOF: boolean;
+begin
+  EOF:=not assigned(S);
+  if not EOF then
+    EOF:=(S^.Status<>stOK) or (S^.GetPos=S^.GetSize);
+  fileeof:=EOF;
+end;
+
+function TFPInputFile.fileclose: boolean;
+var OK: boolean;
+begin
+  OK:=assigned(S);
+  if OK then
+  begin
+    S^.Reset;
+    Dispose(S, Done);
+    OK:=true;
+  end;
+  fileclose:=OK;
+end;
+
 procedure RegisterFPCompile;
 begin
 {$ifndef NOOBJREG}
@@ -911,7 +1051,38 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 09:48:34  michael
+  Revision 1.2  2000-08-22 09:41:39  pierre
+   * first big merge from fixes branch
+
+  Revision 1.1.2.4  2000/08/16 18:46:14  peter
+   [*] double clicking on a droplistbox caused GPF (due to invalid recurson)
+   [*] Make, Build now possible even in Compiler Messages Window
+   [+] when started in a new dir the IDE now ask whether to create a local
+       config, or to use the one located in the IDE dir
+
+  Revision 1.1.2.3  2000/08/15 03:40:53  peter
+   [*] no more fatal exits when the IDE can't find the error file (containing
+       the redirected assembler/linker output) after compilation
+   [*] hidden windows are now added always at the end of the Window List
+   [*] TINIFile parsed entries encapsulated in string delimiters incorrectly
+   [*] selection was incorrectly adjusted when typing in overwrite mode
+   [*] the line wasn't expanded when it's end was reached in overw. mode
+   [*] the IDE now tries to locate source files also in the user specified
+       unit dirs (for ex. as a response to 'Open at cursor' (Ctrl+Enter) )
+   [*] 'Open at cursor' is now aware of the extension (if specified)
+
+  Revision 1.1.2.2  2000/08/10 07:10:37  michael
+  * 'Auto save editor files' option did the opposite than expected, due
+    to a typo in FPIDE.PAS
+  + saving of source files before compilation is no longer neccessary.
+    When a modified editor file is involved in the compilation, then the
+    IDE saves it's contents to a memory stream and passes this to the
+    compiler (instead of the file on the disk)
+
+  Revision 1.1.2.1  2000/07/18 05:50:22  michael
+  + Merged Gabors fixes
+
+  Revision 1.1  2000/07/13 09:48:34  michael
   + Initial import
 
   Revision 1.60  2000/06/22 09:07:11  pierre

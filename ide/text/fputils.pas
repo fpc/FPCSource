@@ -63,14 +63,11 @@ function NameOf(const S: string): string;
 function NameAndExtOf(const S: string): string;
 function StrToExtended(S: string): Extended;
 function Power(const A,B: double): double;
-function GetCurDir: string;
 function MatchesMask(What, Mask: string): boolean;
 function MatchesMaskList(What, MaskList: string): boolean;
 function MatchesFileList(What, FileList: string): boolean;
 function EatIO: integer;
 function RenameFile(const OldFileName,NewFileName: string): boolean;
-function ExistsFile(const FileName: string): boolean;
-function CompleteDir(const Path: string): string;
 function LocateFile(FileList: string): string;
 function LocatePasFile(const FileName:string):string;
 function LocateExeFile(var FileName:string): boolean;
@@ -87,7 +84,7 @@ implementation
 
 uses Dos,
      WUtils,
-     FPVars;
+     FPVars,FPSwitch;
 
 function IntToStr(L: longint): string;
 var S: string;
@@ -312,14 +309,6 @@ begin
          else Power:=exp(B*ln(A));
 end;
 
-function GetCurDir: string;
-var S: string;
-begin
-  GetDir(0,S);
-  if copy(S,length(S),1)<>DirSep then S:=S+DirSep;
-  GetCurDir:=S;
-end;
-
 function IntToHex(L: longint): string;
 const HexNums : string[16] = '0123456789ABCDEF';
 var S: string;
@@ -511,27 +500,6 @@ begin
   RenameFile:=(EatIO=0);
 end;
 
-function ExistsFile(const FileName: string): boolean;
-var
-  Dir : SearchRec;
-begin
-  FindFirst(FileName,Archive+ReadOnly,Dir);
-  ExistsFile:=(DosError=0);
-{$ifdef FPC}
-  FindClose(Dir);
-{$endif def FPC}
-end;
-
-function CompleteDir(const Path: string): string;
-begin
-  { keep c: untouched PM }
-  if (Path<>'') and (Path[Length(Path)]<>DirSep) and
-     (Path[Length(Path)]<>':') then
-   CompleteDir:=Path+DirSep
-  else
-   CompleteDir:=Path;
-end;
-
 function LocateFile(FileList: string): string;
 var FilePath: string;
 function CheckFile(Path,Name: string): boolean;
@@ -664,7 +632,24 @@ end;
 END.
 {
   $Log$
-  Revision 1.1  2000-07-13 09:48:36  michael
+  Revision 1.2  2000-08-22 09:41:41  pierre
+   * first big merge from fixes branch
+
+  Revision 1.1.2.2  2000/08/15 03:40:53  peter
+   [*] no more fatal exits when the IDE can't find the error file (containing
+       the redirected assembler/linker output) after compilation
+   [*] hidden windows are now added always at the end of the Window List
+   [*] TINIFile parsed entries encapsulated in string delimiters incorrectly
+   [*] selection was incorrectly adjusted when typing in overwrite mode
+   [*] the line wasn't expanded when it's end was reached in overw. mode
+   [*] the IDE now tries to locate source files also in the user specified
+       unit dirs (for ex. as a response to 'Open at cursor' (Ctrl+Enter) )
+   [*] 'Open at cursor' is now aware of the extension (if specified)
+
+  Revision 1.1.2.1  2000/07/20 11:02:15  michael
+  + Fixes from gabor. See fixes.txt
+
+  Revision 1.1  2000/07/13 09:48:36  michael
   + Initial import
 
   Revision 1.16  2000/06/22 09:07:13  pierre

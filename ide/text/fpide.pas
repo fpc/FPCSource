@@ -119,6 +119,8 @@ type
       procedure HelpUsingHelp;
       procedure HelpFiles;
       procedure About;
+    public
+      procedure SourceWindowClosed;
     private
       SaveCancelled: boolean;
       InsideDone : boolean;
@@ -156,7 +158,7 @@ uses
   Dos,Memory,Menus,Dialogs,StdDlg,ColorSel,Commands,HelpCtx,
   Systems,
   WUtils,WHlpView,WViews,
-  FPConst,FPVars,FPUtils,FPSwitch,FPIni,FPIntf,FPCompile,FPHelp,
+  FPConst,FPVars,FPUtils,FPSwitch,FPIni,FPIntf,FPCompil,FPHelp,
   FPTemplt,FPCalc,FPUsrScr,FPTools,{$ifndef NODEBUG}FPDebug,{$endif}FPRedir,
   FPDesk,FPCodCmp,FPCodTmp;
 
@@ -241,6 +243,7 @@ begin
 {$endif TP}
   {$endif}
   inherited Init;
+  InitAdvMsgBox;
   InsideDone:=false;
   MenuBar^.GetBounds(R); R.A.X:=R.B.X-8;
   New(ClockView, Init(R));
@@ -561,7 +564,7 @@ begin
                                  if (OpenFileName<>'') and
                                     ((DirOf(OpenFileName)='') or (Pos(ListSeparator,OpenFileName)<>0)) then
                                    begin
-                                     TempS:=LocateFile(OpenFileName);
+                                     TempS:=LocateSourceFile(OpenFileName,false);
                                      if TempS='' then
                                        ForceDlg:=true
                                      else
@@ -718,6 +721,11 @@ end;
 
 procedure TIDEApp.ShowUserScreen;
 begin
+{$ifdef linux}
+  { We need to get the IDE screen's contents from the API's video buffer (JM) }
+  if assigned(userscreen) then
+    userscreen^.capture;
+{$endif linux}
   DoneSysError;
   DoneEvents;
   DoneKeyboard;
@@ -737,9 +745,11 @@ end;
 
 procedure TIDEApp.ShowIDEScreen;
 begin
+{$ifndef linux}
+  { the video has to be initialized already for linux (JM) }
   if Assigned(UserScreen) then
     UserScreen^.SwitchBack;
-
+{$endif linux}
   InitDosMem;
 {$ifndef go32v2}
   InitScreen;
@@ -753,6 +763,10 @@ begin
   InitSysError;
   CurDirChanged;
   Message(Application,evBroadcast,cmUpdate,nil);
+{$ifdef linux}
+  if Assigned(UserScreen) then
+    UserScreen^.SwitchBack;
+{$endif linux}
 {$ifndef go32v2}
   UpdateScreen(true);
 {$endif go32v2}
@@ -768,7 +782,7 @@ begin
       if IOK=false then
         ErrorBox(error_saving_cfg_file,nil);
     end;
-  if (AutoSaveOptions and asEditorFiles)=0 then
+  if (AutoSaveOptions and asEditorFiles)<>0 then { was a typo here ("=0") - Gabor }
       SOK:=SaveAll;
   if (AutoSaveOptions and asDesktop)<>0 then
     begin
@@ -786,7 +800,7 @@ end;
 
 function TIDEApp.DoExecute(ProgramPath, Params, InFile,OutFile: string; ExecType: TExecType): boolean;
 var CanRun: boolean;
-    posexe : longint;
+    PosExe: sw_integer;
 begin
   SaveCancelled:=false;
   CanRun:=AutoSave;
@@ -849,6 +863,12 @@ begin
   UpdatePrimaryFile;
   UpdateINIFile;
   Message(Application,evBroadcast,cmCommandSetChanged,nil);
+end;
+
+procedure TIDEApp.SourceWindowClosed;
+begin
+  if not IsClosing then
+    Update;
 end;
 
 procedure TIDEApp.CurDirChanged;
@@ -1060,7 +1080,53 @@ end;
 END.
 {
   $Log$
-  Revision 1.1  2000-07-13 09:48:34  michael
+  Revision 1.2  2000-08-22 09:41:39  pierre
+   * first big merge from fixes branch
+
+  Revision 1.1.2.7  2000/08/21 12:10:19  jonas
+    * fixed errors in my previous commit, it now works properly
+
+  Revision 1.1.2.5  2000/08/16 18:46:14  peter
+   [*] double clicking on a droplistbox caused GPF (due to invalid recurson)
+   [*] Make, Build now possible even in Compiler Messages Window
+   [+] when started in a new dir the IDE now ask whether to create a local
+       config, or to use the one located in the IDE dir
+
+  Revision 1.1.2.4  2000/08/15 03:40:53  peter
+   [*] no more fatal exits when the IDE can't find the error file (containing
+       the redirected assembler/linker output) after compilation
+   [*] hidden windows are now added always at the end of the Window List
+   [*] TINIFile parsed entries encapsulated in string delimiters incorrectly
+   [*] selection was incorrectly adjusted when typing in overwrite mode
+   [*] the line wasn't expanded when it's end was reached in overw. mode
+   [*] the IDE now tries to locate source files also in the user specified
+       unit dirs (for ex. as a response to 'Open at cursor' (Ctrl+Enter) )
+   [*] 'Open at cursor' is now aware of the extension (if specified)
+
+  Revision 1.1.2.3  2000/08/10 07:10:37  michael
+  * 'Auto save editor files' option did the opposite than expected, due
+    to a typo in FPIDE.PAS
+  + saving of source files before compilation is no longer neccessary.
+    When a modified editor file is involved in the compilation, then the
+    IDE saves it's contents to a memory stream and passes this to the
+    compiler (instead of the file on the disk)
+
+  Revision 1.1.2.2  2000/08/04 14:05:18  michael
+  * Fixes from Gabor:
+   [*] the IDE now doesn't disable Compile|Make & Build when all windows
+       are closed, but there's still a primary file set
+       (set bug 1059 to fixed!)
+
+   [*] the IDE didn't read some compiler options correctly back from the
+       FP.CFG file, for ex. the linker options. Now it read everything
+       correctly, and also automatically handles smartlinking option synch-
+       ronization.
+       (set bug 1048 to fixed!)
+
+  Revision 1.1.2.1  2000/07/18 05:50:22  michael
+  + Merged Gabors fixes
+
+  Revision 1.1  2000/07/13 09:48:34  michael
   + Initial import
 
   Revision 1.65  2000/06/22 09:07:12  pierre

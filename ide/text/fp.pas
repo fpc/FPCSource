@@ -39,7 +39,7 @@ uses
   {$ifdef EDITORS}Editors{$else}WEditor,WCEdit{$endif},
   ASCIITab,Calc,
   WUtils,WViews,WHTMLScn,
-  FPIDE,FPCalc,FPCompile,
+  FPIDE,FPCalc,FPCompil,
   FPIni,FPViews,FPConst,FPVars,FPUtils,FPHelp,FPSwitch,FPUsrScr,
   FPTools,{$ifndef NODEBUG}FPDebug,{$endif}FPTemplt,FPCatch,FPRedir,FPDesk,
   FPCodTmp,FPCodCmp;
@@ -212,8 +212,9 @@ BEGIN
   InitCodeTemplates;
   InitCodeComplete;
 
-  ReadSwitches(SwitchesPath);
   IDEApp.Init;
+  CheckINIFile;
+  ReadSwitches(SwitchesPath);
   { load all options after init because of open files }
   ReadINIFile;
   InitDesktopFile;
@@ -270,7 +271,19 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.1  2000-07-13 09:48:34  michael
+  Revision 1.2  2000-08-22 09:41:39  pierre
+   * first big merge from fixes branch
+
+  Revision 1.1.2.2  2000/08/16 18:46:14  peter
+   [*] double clicking on a droplistbox caused GPF (due to invalid recurson)
+   [*] Make, Build now possible even in Compiler Messages Window
+   [+] when started in a new dir the IDE now ask whether to create a local
+       config, or to use the one located in the IDE dir
+
+  Revision 1.1.2.1  2000/07/18 05:50:22  michael
+  + Merged Gabors fixes
+
+  Revision 1.1  2000/07/13 09:48:34  michael
   + Initial import
 
   Revision 1.47  2000/06/16 08:50:40  pierre

@@ -46,7 +46,7 @@ implementation
 uses Dos,
      Objects,Drivers,Video,
      Views,App,HistList,BrowCol,
-     WResourc,WViews,WEditor,
+     WUtils,WResourc,WViews,WEditor,
 {$ifndef NODEBUG}
      fpdebug,
 {$endif ndef NODEBUG}
@@ -795,7 +795,13 @@ end;
 END.
 {
   $Log$
-  Revision 1.1  2000-07-13 09:48:34  michael
+  Revision 1.2  2000-08-22 09:41:39  pierre
+   * first big merge from fixes branch
+
+  Revision 1.1.2.1  2000/07/20 11:02:15  michael
+  + Fixes from gabor. See fixes.txt
+
+  Revision 1.1  2000/07/13 09:48:34  michael
   + Initial import
 
   Revision 1.29  2000/06/22 09:07:12  pierre

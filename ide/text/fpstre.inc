@@ -594,6 +594,17 @@ const
       msg_nothingtodebug = 'Oooops, nothing to debug.';
       msg_startingdebugger = 'Starting debugger';
 
+      msg_doyouwanttocreatelocalconfigfile =
+        'The Free Pascal IDE was never started in this directory before. '+
+         'Do you want to create a new config file in this directory? '{#13+
+         '(If you answer with "No", the IDE will use '+
+         'the config file located in "%s")'};
+      msg_configcopyexistingorcreatenew =
+        'Do you want to copy the existing configuration or '+
+        'create a new one from scratch?';
+      btn_config_copyexisting = 'Copy ~e~xisting';
+      btn_config_createnew = ' Create ~n~ew  ';
+
       { Desktop file messages }
       msg_readingdesktopfile = 'Reading desktop file...';
       msg_writingdesktopfile = 'Writing desktop file...';
@@ -748,6 +759,7 @@ const
       opt_listsource = '~L~ist source';
       opt_listregisterallocation = 'list ~r~egister allocation';
       opt_listtempallocation = 'list ~t~emp allocation';
+      opt_usedefaultas = 'Use ~d~efault output';
       opt_usegnuas = 'Use ~G~NU as';
       opt_usenasmcoff = 'Use ~N~ASM coff';
       opt_usenasmelf = 'Use NASM ~e~lf';
@@ -772,8 +784,10 @@ const
       opt_objectdirectories = '~O~bject directories';
       opt_exeppudirectories = '~E~XE & PPU directories';
       { Library options }
+      opt_librariesdefault = '~T~arget default';
       opt_dynamiclibraries = '~D~ynamic libraries';
       opt_staticlibraries = '~S~tatic libraries';
+      opt_smartlibraries = 'S~m~art libraries';
       { Symbol info options }
       opt_stripalldebugsymbols = '~S~trip all debug symbols from executable';
       opt_gendebugsymbolinfo = 'Generate ~d~ebug symbol information';
@@ -781,6 +795,10 @@ const
       { Profiling options }
       opt_noprofileinfo = '~N~o profile information';
       opt_gprofinfo = 'Generate profile code for g~p~rof';
+
+      msg_xmustbesettoyforz_doyouwanttochangethis =
+        '%s must be set to "%s" for %s. '+
+        'Do you want to change this option automatically?';
 
       { Debugger messages and status hints }
       msg_programexitedwithcodeandsteps = #3'Program exited with '#13+
@@ -961,7 +979,31 @@ const
 
 {
   $Log$
-  Revision 1.1  2000-07-13 09:48:35  michael
+  Revision 1.2  2000-08-22 09:41:40  pierre
+   * first big merge from fixes branch
+
+  Revision 1.1.2.3  2000/08/16 18:46:14  peter
+   [*] double clicking on a droplistbox caused GPF (due to invalid recurson)
+   [*] Make, Build now possible even in Compiler Messages Window
+   [+] when started in a new dir the IDE now ask whether to create a local
+       config, or to use the one located in the IDE dir
+
+  Revision 1.1.2.2  2000/08/04 14:05:18  michael
+  * Fixes from Gabor:
+   [*] the IDE now doesn't disable Compile|Make & Build when all windows
+       are closed, but there's still a primary file set
+       (set bug 1059 to fixed!)
+
+   [*] the IDE didn't read some compiler options correctly back from the
+       FP.CFG file, for ex. the linker options. Now it read everything
+       correctly, and also automatically handles smartlinking option synch-
+       ronization.
+       (set bug 1048 to fixed!)
+
+  Revision 1.1.2.1  2000/07/15 21:16:23  pierre
+   + some new texts
+
+  Revision 1.1  2000/07/13 09:48:35  michael
   + Initial import
 
   Revision 1.4  2000/06/16 08:50:41  pierre

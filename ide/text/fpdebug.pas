@@ -349,7 +349,7 @@ uses
 {$endif win32}
   Systems,
   FPString,FPVars,FPUtils,FPConst,FPSwitch,
-  FPIntf,FPCompile,FPIde,FPHelp,
+  FPIntf,FPCompil,FPIde,FPHelp,
   Validate,WEditor,WUtils;
 
 const
@@ -3346,7 +3346,13 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-07-13 09:48:34  michael
+  Revision 1.2  2000-08-22 09:41:39  pierre
+   * first big merge from fixes branch
+
+  Revision 1.1.2.1  2000/07/18 05:50:22  michael
+  + Merged Gabors fixes
+
+  Revision 1.1  2000/07/13 09:48:34  michael
   + Initial import
 
   Revision 1.63  2000/06/22 09:07:11  pierre

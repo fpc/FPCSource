@@ -25,9 +25,22 @@ const
       cmUpdate               = 54101;
       cmListFocusChanged     = 54102;
 
+      mfUserBtn1             = $00010000;
+      mfUserBtn2             = $00020000;
+      mfUserBtn3             = $00040000;
+      mfUserBtn4             = $00080000;
+      mfCantCancel           = $00100000;
+
+      cmUserBtn1             = $fee0;
+      cmUserBtn2             = $fee1;
+      cmUserBtn3             = $fee2;
+      cmUserBtn4             = $fee3;
+
       CPlainCluster          = #7#8#9#9;
 
 type
+    longstring = {$ifdef TP}string{$else}ansistring{$endif};
+
     PCenterDialog = ^TCenterDialog;
     TCenterDialog = object(TDialog)
       constructor Init(var Bounds: TRect; ATitle: TTitleStr);
@@ -180,6 +193,12 @@ type
       constructor Init(var Bounds: TRect);
     end;
 
+    PAdvMessageBox = ^TAdvMessageBox;
+    TAdvMessageBox = object(TDialog)
+      CanCancel: boolean;
+      procedure HandleEvent(var Event: TEvent); virtual;
+    end;
+
 procedure InsertOK(ADialog: PDialog);
 procedure InsertButtons(ADialog: PDialog);
 
@@ -188,6 +207,7 @@ procedure ErrorBox(const S: string; Params: pointer);
 procedure WarningBox(const S: string; Params: pointer);
 procedure InformationBox(const S: string; Params: pointer);
 function  ConfirmBox(const S: string; Params: pointer; CanCancel: boolean): word;
+function ChoiceBox(const S: string; Params: pointer; Buttons: array of longstring; CanCancel: boolean): word;
 
 procedure ShowMessage(Msg: string);
 procedure HideMessage;
@@ -219,14 +239,22 @@ procedure AddFormatParamStr(const S: string);
 function FormatStrF(const Format: string; var Params): string;
 function FormatStrStr(const Format, Param: string): string;
 function FormatStrStr2(const Format, Param1,Param2: string): string;
+function FormatStrStr3(const Format, Param1,Param2,Param3: string): string;
 function FormatStrInt(const Format: string; L: longint): string;
+
+const UserButtonName : array[1..4] of string[40] = ('User~1~','User~2~','User~3~','User~4~');
+
+procedure InitAdvMsgBox;
+function AdvMessageBox(const Msg: String; Params: Pointer; AOptions: longint): Word;
+function AdvMessageBoxRect(var R: TRect; const Msg: String; Params: Pointer; AOptions: longint): Word;
+procedure DoneAdvMsgBox;
 
 procedure RegisterWViews;
 
 implementation
 
 uses Mouse,
-     Commands,App,MsgBox,
+     Resource,Commands,App,MsgBox,
      WConsts,WUtils;
 
 {$ifndef NOOBJREG}
@@ -259,6 +287,7 @@ const
 
 const
   MessageDialog  : PCenterDialog = nil;
+  UserButtonCmd  : array[Low(UserButtonName)..High(UserButtonName)] of word = (cmUserBtn1,cmUserBtn2,cmUserBtn3,cmUserBtn4);
 
 function ColorIndex(Color: byte): word;
 begin
@@ -1425,22 +1454,43 @@ end;
 
 procedure ErrorBox(const S: string; Params: pointer);
 begin
-  MessageBox(S,Params,mfError+mfInsertInApp+mfOKButton);
+  AdvMessageBox(S,Params,mfError+mfInsertInApp+mfOKButton);
 end;
 
 procedure WarningBox(const S: string; Params: pointer);
 begin
-  MessageBox(S,Params,mfWarning+mfInsertInApp+mfOKButton);
+  AdvMessageBox(S,Params,mfWarning+mfInsertInApp+mfOKButton);
 end;
 
 procedure InformationBox(const S: string; Params: pointer);
 begin
-  MessageBox(S,Params,mfInformation+mfInsertInApp+mfOKButton);
+  AdvMessageBox(S,Params,mfInformation+mfInsertInApp+mfOKButton);
+end;
+
+function b2i(B: boolean): longint;
+begin
+  if b then b2i:=1 else b2i:=0;
 end;
 
 function ConfirmBox(const S: string; Params: pointer; CanCancel: boolean): word;
 begin
-  ConfirmBox:=MessageBox(S,Params,mfConfirmation+mfInsertInApp+mfYesButton+mfNoButton+integer(CanCancel)*mfCancelButton);
+  ConfirmBox:=AdvMessageBox(S,Params,mfConfirmation+mfInsertInApp+mfYesButton+mfNoButton+
+     b2i(CanCancel)*mfCancelButton+b2i(not CanCancel)*mfCantCancel);
+end;
+
+function ChoiceBox(const S: string; Params: pointer; Buttons: array of longstring; CanCancel: boolean): word;
+var BtnMask,M: longint;
+    I,BtnCount: integer;
+begin
+  BtnCount:=Min(High(Buttons)-Low(Buttons)+1,High(UserButtonName)-Low(UserButtonName)+1);
+  BtnMask:=0; M:=mfUserBtn1;
+  for I:=Low(Buttons) to Low(Buttons)+BtnCount-1 do
+    begin
+      UserButtonName[Low(UserButtonName)+I-Low(Buttons)]:=Buttons[I];
+      BtnMask:=BtnMask or M; M:=M shl 1;
+    end;
+  ChoiceBox:=AdvMessageBox(S,Params,mfConfirmation+BtnMask+
+    b2i(CanCancel)*mfCancelButton+b2i(not CanCancel)*mfCantCancel);
 end;
 
 function IsSeparator(P: PMenuItem): boolean;
@@ -1928,8 +1978,9 @@ end;
 
 procedure TDropDownListBox.DropList(Drop: boolean);
 var R: TRect;
+    LB: PListBox;
 begin
-  if ListDropped=Drop then Exit;
+  if (ListDropped=Drop) then Exit;
 
   if Drop then
     begin
@@ -1952,8 +2003,8 @@ begin
       if ListBox<>nil then
         begin
 {          ListBox^.List:=nil;}
-          Dispose(ListBox, Done);
-          ListBox:=nil;
+          LB:=ListBox; ListBox:=nil; { this prevents GPFs while deleting }
+          Dispose(LB, Done);
         end;
       if SB<>nil then
         begin
@@ -2114,6 +2165,26 @@ begin
   GrowMode:=gfGrowHiX+gfGrowHiY;
 end;
 
+procedure TAdvMessageBox.HandleEvent(var Event: TEvent);
+var I: integer;
+begin
+  if (not CanCancel) and (Event.What=evCommand) and (Event.Command=cmCancel) then
+    ClearEvent(Event);
+  inherited HandleEvent(Event);
+  case Event.What of
+    evCommand:
+      begin
+        for I:=Low(UserButtonCmd) to High(UserButtonCmd) do
+         if Event.Command=UserButtonCmd[I] then
+          if State and sfModal <> 0 then
+          begin
+            EndModal(Event.Command);
+            ClearEvent(Event);
+          end;
+      end;
+  end;
+end;
+
 procedure ClearFormatParams;
 begin
   FormatParamCount:=0; FillChar(FormatParams,sizeof(FormatParams),0);
@@ -2168,12 +2239,168 @@ begin
   FormatStrStr2:=S;
 end;
 
+function FormatStrStr3(const Format, Param1,Param2,Param3: string): string;
+var S: string;
+    P: array[1..3] of pointer;
+begin
+  P[1]:=@Param1; P[2]:=@Param2; P[3]:=@Param3;
+  FormatStr(S,Format,P);
+  FormatStrStr3:=S;
+end;
+
 function FormatStrInt(const Format: string; L: longint): string;
 var S: string;
 begin
   FormatStr(S,Format,L);
   FormatStrInt:=S;
 end;
+
+const
+  Cmds: array[0..3] of word =
+    (cmYes, cmNo, cmOK, cmCancel);
+var
+
+  ButtonName: array[0..3] of string;
+  Titles: array[0..3] of string;
+
+function AdvMessageBox(const Msg: String; Params: Pointer; AOptions: longint): Word;
+var
+  R: TRect;
+begin
+  R.Assign(0, 0, 0, 0);
+  AdvMessageBox := AdvMessageBoxRect(R, Msg, Params, AOptions);
+end;
+
+procedure GetStaticTextDimensions(const S: string; ViewWidth: integer; var MaxCols, Rows: integer);
+var
+  Color: Byte;
+  Center: Boolean;
+  I, J, L, P, Y: Sw_Integer;
+  CurLine: string;
+begin
+  MaxCols:=0;
+  L := Length(S);
+  P := 1;
+  Y := 0;
+  Center := False;
+  while (Y < 32767) and (P<=length(S)) do
+  begin
+    CurLine:='';
+    if P <= L then
+    begin
+      if S[P] = #3 then
+      begin
+        Center := True;
+        Inc(P);
+      end;
+      I := P;
+      repeat
+        J := P;
+        while (P <= L) and (S[P] = ' ') do Inc(P);
+        while (P <= L) and (S[P] <> ' ') and (S[P] <> #13) do Inc(P);
+      until (P > L) or (P >= I + ViewWidth) or (S[P] = #13);
+      if P > I + ViewWidth then
+        if J > I then P := J else P := I + ViewWidth;
+      if Center then J := (ViewWidth - P + I) div 2 else J := 0;
+      CurLine:=CurLine+copy(S,I,P-I);
+{      MoveBuf(B[J], S[I], Color, P - I);}
+      while (P <= L) and (S[P] = ' ') do Inc(P);
+      if (P <= L) and (S[P] = #13) then
+      begin
+        Center := False;
+        Inc(P);
+        if (P <= L) and (S[P] = #10) then Inc(P);
+      end;
+    end;
+    if length(CurLine)>MaxCols then
+      MaxCols:=length(CurLine);
+{    WriteLine(0, Y, Size.X, 1, B);}
+    Inc(Y);
+  end;
+  Rows:=Y;
+end;
+
+function AdvMessageBoxRect(var R: TRect; const Msg: String; Params: Pointer; AOptions: longint): Word;
+var
+  I, X, ButtonCount: Sw_Integer;
+  Dialog: PAdvMessageBox;
+  Control: PView;
+  ButtonList: array[0..4] of PView;
+  S,BtnName: String;
+  Cols,Rows: integer;
+begin
+  FormatStr(S, Msg, Params^);
+  if R.Empty then
+  begin
+    GetStaticTextDimensions(S,40,Cols,Rows);
+    if Cols<30 then Cols:=30; if Rows=0 then Rows:=1;
+    R.Assign(0,0,3+Cols+3,Rows+6);
+    if (AOptions and mfInsertInApp)= 0 then
+      R.Move((Desktop^.Size.X-(R.B.X-R.A.X)) div 2,(Desktop^.Size.Y-(R.B.Y-R.A.Y)) div 2)
+    else
+      R.Move((Application^.Size.X-(R.B.X-R.A.X)) div 2,(Application^.Size.Y-(R.B.Y-R.A.Y)) div 2);
+  end;
+  New(Dialog,Init(R, Titles[AOptions and $3]));
+  with Dialog^ do
+   begin
+     CanCancel:=(Options and mfCantCancel)=0;
+     R.Assign(3,2, Size.X-2,Size.Y-3);
+     Control := New(PStaticText, Init(R, S));
+     Insert(Control);
+     X := -2;
+     ButtonCount := 0;
+     for I := 0 to 3 do
+      if AOptions and ($10000 shl I) <> 0 then
+       begin
+         BtnName:=UserButtonName[I+1];
+         R.Assign(0, 0, Max(10,length(BtnName)+2), 2);
+         Control := New(PButton, Init(R, BtnName, UserButtonCmd[I+1], bfNormal));
+         Inc(X, Control^.Size.X + 2);
+         ButtonList[ButtonCount] := Control;
+         Inc(ButtonCount);
+       end;
+     for I := 0 to 3 do
+      if AOptions and ($0100 shl I) <> 0 then
+       begin
+         R.Assign(0, 0, 10, 2);
+         Control := New(PButton, Init(R, ButtonName[I], Cmds[i], bfNormal));
+         Inc(X, Control^.Size.X + 2);
+         ButtonList[ButtonCount] := Control;
+         Inc(ButtonCount);
+       end;
+     X := (Size.X - X) div 2;
+     for I := 0 to ButtonCount - 1 do
+      begin
+        Control := ButtonList[I];
+        Insert(Control);
+        Control^.MoveTo(X, Size.Y - 3);
+        Inc(X, Control^.Size.X + 2);
+      end;
+     SelectNext(False);
+   end;
+  if AOptions and mfInsertInApp = 0 then
+    AdvMessageBoxRect := DeskTop^.ExecView(Dialog)
+  else
+    AdvMessageBoxRect := Application^.ExecView(Dialog);
+  Dispose(Dialog, Done);
+end;
+
+procedure InitAdvMsgBox;
+begin
+  ButtonName[0] := Labels^.Get(slYes);
+  ButtonName[1] := Labels^.Get(slNo);
+  ButtonName[2] := Labels^.Get(slOk);
+  ButtonName[3] := Labels^.Get(slCancel);
+  Titles[0] := Labels^.Get(sWarning);
+  Titles[1] := Labels^.Get(sError);
+  Titles[2] := Labels^.Get(sInformation);
+  Titles[3] := Labels^.Get(sConfirm);
+end;
+
+procedure DoneAdvMsgBox;
+begin
+end;
+
 
 procedure RegisterWViews;
 begin
@@ -2189,7 +2416,28 @@ end;
 END.
 {
   $Log$
-  Revision 1.1  2000-07-13 09:48:37  michael
+  Revision 1.2  2000-08-22 09:41:42  pierre
+   * first big merge from fixes branch
+
+  Revision 1.1.2.2  2000/08/16 18:46:15  peter
+   [*] double clicking on a droplistbox caused GPF (due to invalid recurson)
+   [*] Make, Build now possible even in Compiler Messages Window
+   [+] when started in a new dir the IDE now ask whether to create a local
+       config, or to use the one located in the IDE dir
+
+  Revision 1.1.2.1  2000/08/04 14:05:20  michael
+  * Fixes from Gabor:
+   [*] the IDE now doesn't disable Compile|Make & Build when all windows
+       are closed, but there's still a primary file set
+       (set bug 1059 to fixed!)
+
+   [*] the IDE didn't read some compiler options correctly back from the
+       FP.CFG file, for ex. the linker options. Now it read everything
+       correctly, and also automatically handles smartlinking option synch-
+       ronization.
+       (set bug 1048 to fixed!)
+
+  Revision 1.1  2000/07/13 09:48:37  michael
   + Initial import
 
   Revision 1.15  2000/06/22 09:07:15  pierre

@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal Integrated Development Environment
-    Copyright (c) 1998 by Berczi Gabor
+    Copyright (c) 1998-2000 by Berczi Gabor
 
     Compiler switches routines for the IDE
 
@@ -59,7 +59,10 @@ type
 
     PSelectItem = ^TSelectItem;
     TSelectItem = object(TSwitchItem)
+      IsDefault : boolean;
       constructor Init(const n,p:string; AID: TParamID);
+      { Select to avoid anything in config file }
+      constructor InitDefault(const n:string);
     end;
 
     PBooleanItem = ^TBooleanItem;
@@ -103,6 +106,7 @@ type
       function  ItemParam(index:integer):string;
       { type specific }
       procedure AddSelectItem(const name,param:string; AID: TParamID);
+      procedure AddDefaultSelect(const name:string);
       procedure AddBooleanItem(const name,param:string; AID: TParamID);
       procedure AddLongintItem(const name,param:string; AID: TParamID);
       procedure AddStringItem(const name,param:string;AID: TParamID;mult:boolean);
@@ -239,8 +243,15 @@ constructor TSelectItem.Init(const n,p:string; AID: TParamID);
 begin
   Inherited Init(n,p,AID);
   Typ:=ot_Select;
+  IsDefault:=false;
 end;
 
+constructor TSelectItem.InitDefault(const n:string);
+begin
+  Inherited Init(n,'',idNone);
+  Typ:=ot_Select;
+  IsDefault:=true;
+end;
 
 {*****************************************************************************
                 TBooleanItem
@@ -375,6 +386,12 @@ end;
 procedure TSwitches.AddSelectItem(const name,param:string; AID: TParamID);
 begin
   Items^.Insert(New(PSelectItem,Init(name,Param,AID)));
+end;
+
+
+procedure TSwitches.AddDefaultSelect(const name:string);
+begin
+  Items^.Insert(New(PSelectItem,InitDefault(name)));
 end;
 
 
@@ -569,10 +586,16 @@ var
      end;
   end;
 
+var
+  P : PSelectItem;
 begin
   Pref:=Prefix;
   if IsSel then
-    writeln(CfgFile,' '+ItemParam(SelNr[SwitchesMode]))
+    begin
+      P:=Items^.At(SelNr[SwitchesMode]);
+      if not P^.IsDefault then
+        writeln(CfgFile,' '+ItemParam(SelNr[SwitchesMode]));
+    end
   else
     Items^.ForEach(@writeitem);
 end;
@@ -602,7 +625,7 @@ function TSwitches.ReadItemsCfg(const s:string):boolean;
   begin
     { empty items are not equivalent to others !! }
     CheckItem:=((S='') and (P^.Param='')) or
-               ((Length(S)>0) and (P^.Param=Copy(s,1,length(P^.Param))));
+               ((Length(P^.Param)>0) and (P^.Param=Copy(s,1,length(P^.Param))));
   end;
 
 var
@@ -867,6 +890,7 @@ begin
   New(AsmOutputSwitches,InitSelect('A'));
   with AsmOutputSwitches^ do
    begin
+     AddDefaultSelect(opt_usedefaultas);
      AddSelectItem(opt_usegnuas,'as',idNone);
      AddSelectItem(opt_usenasmcoff,'nasmcoff',idNone);
      AddSelectItem(opt_usenasmelf,'nasmelf',idNone);
@@ -907,8 +931,10 @@ begin
   New(LibLinkerSwitches,InitSelect('X'));
   with LibLinkerSwitches^ do
    begin
+     AddDefaultSelect(opt_librariesdefault);
      AddSelectItem(opt_dynamiclibraries,'D',idNone);
      AddSelectItem(opt_staticlibraries,'S',idNone);
+     AddSelectItem(opt_smartlibraries,'X',idNone);
    end;
   New(DebugInfoSwitches,InitSelect('g'));
   with DebugInfoSwitches^ do
@@ -1113,7 +1139,29 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 09:48:36  michael
+  Revision 1.2  2000-08-22 09:41:40  pierre
+   * first big merge from fixes branch
+
+  Revision 1.1.2.3  2000/08/04 14:05:19  michael
+  * Fixes from Gabor:
+   [*] the IDE now doesn't disable Compile|Make & Build when all windows
+       are closed, but there's still a primary file set
+       (set bug 1059 to fixed!)
+
+   [*] the IDE didn't read some compiler options correctly back from the
+       FP.CFG file, for ex. the linker options. Now it read everything
+       correctly, and also automatically handles smartlinking option synch-
+       ronization.
+       (set bug 1048 to fixed!)
+
+  Revision 1.1.2.2  2000/07/15 21:38:47  pierre
+   + Add default selection that does not write anything to config file
+   + Add smart link
+
+  Revision 1.1.2.1  2000/07/15 21:30:06  pierre
+  * Wrong commit text
+
+  Revision 1.1  2000/07/13 09:48:36  michael
   + Initial import
 
   Revision 1.23  2000/06/22 09:07:12  pierre
@@ -1223,3 +1271,4 @@ end.
     + Run program
 
 }
+

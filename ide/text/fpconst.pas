@@ -21,7 +21,7 @@ uses Views,App,Commands,
      WViews,WEditor;
 
 const
-     VersionStr           = '0.9';
+     VersionStr           = '0.9.1';
 
      MaxRecentFileCount   = 5;
      MaxToolCount         = 16;
@@ -31,6 +31,7 @@ const
      CompilerStatusUpdateDelay = 0.8; { in secs }
 
      ININame              = 'fp.ini';
+     DirInfoName          = 'fp.dir';
      SwitchesName         = 'fp.cfg';
      DesktopName          = 'fp.dsk';
      BrowserName          = 'fp.brw';
@@ -407,7 +408,19 @@ implementation
 END.
 {
   $Log$
-  Revision 1.1  2000-07-13 09:48:34  michael
+  Revision 1.2  2000-08-22 09:41:39  pierre
+   * first big merge from fixes branch
+
+  Revision 1.1.2.2  2000/08/16 18:46:14  peter
+   [*] double clicking on a droplistbox caused GPF (due to invalid recurson)
+   [*] Make, Build now possible even in Compiler Messages Window
+   [+] when started in a new dir the IDE now ask whether to create a local
+       config, or to use the one located in the IDE dir
+
+  Revision 1.1.2.1  2000/07/15 20:54:42  pierre
+   * Version increased to 0.9.1
+
+  Revision 1.1  2000/07/13 09:48:34  michael
   + Initial import
 
   Revision 1.42  2000/06/26 07:29:22  pierre

@@ -1530,25 +1530,16 @@ begin
 end;
 
 function TFileEditor.LoadFile: boolean;
-var S: PBufStream;
-    OK: boolean;
+var OK: boolean;
     PA : Array[1..2] of pointer;
 begin
-  New(S, Init(FileName,stOpenRead,EditorTextBufSize));
-  OK:=Assigned(S);
-{$ifdef TEST_PARTIAL_SYNTAX}
-  SetSyntaxCompleted(false);
-  { Idle necessary }
-  EventMask:=EventMask or evIdle;
-{$endif TEST_PARTIAL_SYNTAX}
-  if OK then OK:=LoadFromStream(S);
+  OK:=LoadFromFile(FileName);
   if GetModified then
     begin
       PA[1]:=@FileName;
       longint(PA[2]):=Core^.GetChangedLine;
       EditorDialog(edChangedOnloading,@PA);
     end;
-  if Assigned(S) then Dispose(S, Done);
   OnDiskLoadTime:=GetFileTime(FileName);
   LoadFile:=OK;
 end;
@@ -1561,7 +1552,6 @@ end;
 function TFileEditor.SaveFile: boolean;
 var OK: boolean;
     BAKName: string;
-    S: PBufStream;
     f: text;
 begin
   If IsChangedOnDisk then
@@ -1584,10 +1574,7 @@ begin
      EatIO;
   end;
 {$I+}
-  New(S, Init(FileName,stCreate,EditorTextBufSize));
-  OK:=Assigned(S) and (S^.Status=stOK);
-  if OK then OK:=SaveToStream(S);
-  if Assigned(S) then Dispose(S, Done);
+  OK:=SaveToFile(FileName);
   if OK then
     SetModified(false)
   { Restore the original }
@@ -1690,8 +1677,8 @@ var OK: boolean;
 begin
   OK:=inherited Valid(Command);
   if OK and ((Command=cmClose) or (Command=cmQuit)) then
-     if IsClipboard=false then
-    OK:=SaveAsk(Command=cmQuit);
+    if IsClipboard=false then
+      OK:=SaveAsk(Command=cmQuit);
   Valid:=OK;
 end;
 

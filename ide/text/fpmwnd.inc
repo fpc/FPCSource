@@ -99,7 +99,9 @@ begin
   LB^.Default:=true;
   LB^.NewList(C);
   UpdateList;
-  if C^.Count>=2 then LB^.FocusItem(1); { focus the 2nd one }
+  if C^.Count>=2 then
+   if PWindow(C^.At(1))^.GetState(sfVisible) then
+    LB^.FocusItem(1); { focus the 2nd one }
   Insert(LB);
   R2.Copy(R); Dec(R2.A.Y); R2.B.Y:=R2.A.Y+1;
   Insert(New(PLabel, Init(R2, label_wndlist_windows, LB)));
@@ -122,17 +124,19 @@ begin
 end;
 
 procedure TWindowListDialog.UpdateList;
+var VisState: boolean;
 procedure AddIt(P: PView); {$ifndef FPC}far;{$endif}
 begin
   if (P<>pointer(Desktop^.Background)) and
      (P^.GetState(sfDisabled)=false) and
-     ((P^.Options and ofSelectable)<>0) {and
-     (P^.GetState(sfVisible)) }then
+     ((P^.Options and ofSelectable)<>0) and
+     (P^.GetState(sfVisible)=VisState) then
      C^.Insert(P);
 end;
 begin
   C^.DeleteAll;
-  Desktop^.ForEach(@AddIt);
+  VisState:=true; Desktop^.ForEach(@AddIt); { add visible windows to list }
+  VisState:=false; Desktop^.ForEach(@AddIt); { add hidden windows }
   LB^.SetRange(C^.Count);
   UpdateButtons;
   ReDraw;
@@ -227,7 +231,21 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-07-13 09:48:35  michael
+  Revision 1.2  2000-08-22 09:41:40  pierre
+   * first big merge from fixes branch
+
+  Revision 1.1.2.1  2000/08/15 03:40:53  peter
+   [*] no more fatal exits when the IDE can't find the error file (containing
+       the redirected assembler/linker output) after compilation
+   [*] hidden windows are now added always at the end of the Window List
+   [*] TINIFile parsed entries encapsulated in string delimiters incorrectly
+   [*] selection was incorrectly adjusted when typing in overwrite mode
+   [*] the line wasn't expanded when it's end was reached in overw. mode
+   [*] the IDE now tries to locate source files also in the user specified
+       unit dirs (for ex. as a response to 'Open at cursor' (Ctrl+Enter) )
+   [*] 'Open at cursor' is now aware of the extension (if specified)
+
+  Revision 1.1  2000/07/13 09:48:35  michael
   + Initial import
 
   Revision 1.18  2000/06/16 08:50:41  pierre

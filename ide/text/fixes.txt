@@ -1,3 +1,36 @@
+Gabor's log to 10/8/2000 commits
+========================= Already fixed ================================
+
+ [*] 'Auto save editor files' option did the opposite than expected, due
+     to a typo in FPIDE.PAS
+
+========================= Improvements ================================
+
+ [+] saving of source files before compilation is no longer neccessary.
+     When a modified editor file is involved in the compilation, then the
+     IDE saves it's contents to a memory stream and passes this to the
+     compiler (instead of the file on the disk)
+Gabor's log to 19/7/2000 commits
+========================= Improvements ================================
+
+ [+] the .ini parser now handles string delimiters more flexible
+     (you can now include quotation-marks in an entry value if you use no
+      delimiters at all, or if you use aphostrophes as delimiters)
+ [+] new .TDF view type added: MEMO.
+     Memos can have an additional property, "FileName". After closing the
+     toolparams dialog box the contents of the memo are saved in a file,
+     and the reference to the memo field in the tool command-line is
+     replaced with the name of this file. (If no filename is specified the
+     file is stored under a unique name in the temp dir.)
+
+Gabor's log to 18/7/2000 commits
+========================= Already fixed ================================
+
+ [*] pressing Enter on the last line (eg. appending a line) in the editor
+     didn't scroll the editor window
+ [*] the IDE switches now correctly back to the last video mode at startup
+
+
 Gabors's log to 26/6/2000 commits
 ========================= Already fixed ================================
 

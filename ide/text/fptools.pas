@@ -134,6 +134,8 @@ procedure AddToolCommand(Command: string);
 procedure AddToolMessage(ModuleName, Text: string; Row, Col: longint);
 procedure ClearToolMessages;
 procedure UpdateToolMessages;
+procedure InitToolTempFiles;
+procedure DoneToolTempFiles;
 
 const
      ToolFilter     : string[{$ifndef GABOR}128{$else}40{$endif}]      = '';
@@ -149,7 +151,7 @@ implementation
 
 uses Dos,
      Commands,App,MsgBox,
-     WINI,WEditor,
+     WConsts,WUtils,WINI,WEditor,
      FPConst,FPString,FPVars,FPUtils;
 
 {$ifndef NOOBJREG}
@@ -189,6 +191,7 @@ const
 
      Tools     : PToolCollection = nil;
      AbortTool : boolean         = false;
+     ToolTempFiles: PUnsortedStringCollection = nil;
 
 function GetHotKeyCount: integer;
 begin
@@ -647,17 +650,21 @@ const
       { Additional Label view section entries }
       tieLink          = 'LINK';
       tieText          = 'TEXT';
+      { Additional Memo view section entries }
+      tieFileName      = 'FILENAME';
 
       { View types }
       vtCheckBox       = 1;
       vtRadioButton    = 2;
       vtInputLine      = 3;
+      vtMemo           = 4;
       vtLabel          = 127;
 
       vtsCheckBox      = 'CHECKBOX';
       vtsRadioButton   = 'RADIOBUTTON';
       vtsInputLine     = 'INPUTLINE';
       vtsLabel         = 'LABEL';
+      vtsMemo          = 'MEMO';
 
 var Title        : string;
     DSize        : TPoint;
@@ -698,6 +705,7 @@ var
     if Typ=vtsRadioButton then ViewTypes[ViewCount]:=vtRadioButton else
     if Typ=vtsInputLine   then ViewTypes[ViewCount]:=vtInputLine   else
     if Typ=vtsLabel       then ViewTypes[ViewCount]:=vtLabel       else
+    if Typ=vtsMemo        then ViewTypes[ViewCount]:=vtMemo        else
      begin OK:=false; ErrorBox(FormatStrStr(msg_unknowntypein,Sec^.GetName),nil); Exit; end;
 
     ViewNames[ViewCount]:=Sec^.GetName;
@@ -715,6 +723,7 @@ var
             begin ErrorBox(FormatStrStr(msg_requiredpropertymissingin,Sec^.GetName),nil); Exit; end;
         end;
       vtInputLine  : ;
+      vtMemo  : ;
       vtCheckBox   :
         begin
           OK:=OK and (Sec^.SearchEntry(tieName)<>nil);
@@ -780,6 +789,14 @@ begin
   case ViewTypes[Idx] of
     vtLabel     :
       S:='';
+    vtMemo :
+      begin
+        S:=F^.GetEntry(ViewNames[Idx],tieFileName,'');
+        if S='' then S:=GenTempFileName;
+        ToolTempFiles^.InsertStr(S);
+        if PFPMemo(ViewPtrs[Idx])^.SaveToFile(S)=false then
+          ErrorBox(FormatStrStr(msg_errorsavingfile,S),nil);
+      end;
     vtInputLine :
       S:=PInputLine(ViewPtrs[Idx])^.Data^;
     vtCheckBox  :
@@ -850,6 +867,7 @@ var R: TRect;
     Re: integer;
     OK: boolean;
     I,J,MaxLen: integer;
+    Memo: PFPMemo;
     IL: PInputLine;
     CB: PCheckBoxes;
     RB: PRadioButtons;
@@ -858,6 +876,7 @@ var R: TRect;
     S: string;
     P: PView;
 begin
+  OK:=true;
   R.Assign(0,0,DSize.X,DSize.Y);
   New(PromptDialog, Init(R, Title));
   with PromptDialog^ do
@@ -881,6 +900,14 @@ begin
               New(IL, Init(ViewBounds[I], MaxLen));
               IL^.Data^:=ViewValues[I];
               ViewPtrs[I]:=IL;
+            end;
+          vtMemo :
+            begin
+{              MaxLen:=F^.GetIntEntry(ViewNames[I],tieMaxLen,80);}
+              New(Memo, Init(ViewBounds[I],nil,nil,nil));
+              if ViewValues[I]<>'' then
+                Memo^.AddLine(ViewValues[I]);
+              ViewPtrs[I]:=Memo;
             end;
           vtCheckBox :
             begin
@@ -1303,6 +1330,23 @@ begin
   ProcessMessageFile:=OK;
 end;
 
+procedure InitToolTempFiles;
+begin
+  if not Assigned(ToolTempFiles) then
+    New(ToolTempFiles, Init(10,10));
+end;
+
+procedure DoneToolTempFiles;
+procedure DeleteIt(P: PString); {$ifndef FPC}far;{$endif}
+begin
+  DeleteFile(GetStr(P));
+end;
+begin
+  if not Assigned(ToolTempFiles) then Exit;
+  ToolTempFiles^.ForEach(@DeleteIt);
+  Dispose(ToolTempFiles, Done); ToolTempFiles:=nil;
+end;
+
 constructor TToolMessage.Init(AModule: PString; ALine: string; ARow, ACol: sw_integer);
 begin
   inherited Init(0,ALine,AModule,ARow,ACol);
@@ -1507,7 +1551,13 @@ end;
 END.
 {
   $Log$
-  Revision 1.1  2000-07-13 09:48:36  michael
+  Revision 1.2  2000-08-22 09:41:40  pierre
+   * first big merge from fixes branch
+
+  Revision 1.1.2.1  2000/07/20 11:02:15  michael
+  + Fixes from gabor. See fixes.txt
+
+  Revision 1.1  2000/07/13 09:48:36  michael
   + Initial import
 
   Revision 1.20  2000/06/22 09:07:12  pierre
