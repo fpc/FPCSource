@@ -1821,7 +1821,7 @@ begin
     AppendShortDescr(AElement,TitleElement, DocNode);
     AppendShortDescr(AElement,CreateH2(BodyElement), DocNode);
     if Assigned(DocNode.Descr) then
-       AppendDescrSection(nil, BodyElement, DocNode.Descr, '');
+       AppendDescrSection(AElement, BodyElement, DocNode.Descr, '');
     AppendSeeAlsoSection(AElement,DocNode);
     CreateTopicLinks(DocNode,AElement);
     AppendExampleSection(AElement,DocNode);
@@ -2802,7 +2802,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2004-07-25 22:40:13  michael
+  Revision 1.8  2004-08-28 18:04:49  michael
+  + Added context to topic pages
+
+  Revision 1.7  2004/07/25 22:40:13  michael
   + Strip path from sourcefilename in generated docs
 
   Revision 1.6  2004/06/06 10:53:02  michael
