@@ -12,7 +12,8 @@ type
     seBindFailed,
     seListenFailed,
     seConnectFailed,
-    seAcceptFailed);
+    seAcceptFailed,
+    seAcceptWouldBlock);
 
   TSocketOption = (soDebug,soReuseAddr,soKeepAlive,soDontRoute,soBroadcast,
                    soOOBinline);
@@ -65,13 +66,14 @@ type
     Procedure Listen;
     Procedure StartAccepting;
     Procedure StopAccepting;
+    Procedure SetNonBlocking;
     Property Bound : Boolean Read FBound;
     Property MaxConnections : longint Read FMaxConnections Write FMaxConnections;
     Property QueueSize : Longint Read FQueueSize Write FQueueSize default 5;
     Property OnConnect : TConnectEvent Read FOnConnect Write FOnConnect;
     Property OnConnectQuery : TConnectQuery Read FOnConnectQuery Write FOnConnectQuery;
     Property OnIdle : TNotifyEvent Read FOnIdle Write FOnIdle;
-    Property NonBlocking : Boolean Read FNonBlocking Write FNonBlocking;
+    Property NonBlocking : Boolean Read FNonBlocking;
     Property Socket : Longint Read FSocket;
     Property SockType : Longint Read FSockType;
   end;
@@ -128,7 +130,10 @@ type
 
 Implementation
 
-uses inet;
+uses inet,linux;
+
+Const
+  SocketWouldBlock = -2;
 
 { ---------------------------------------------------------------------
   ESocketError  
@@ -141,7 +146,8 @@ resourcestring
   strSocketListenFailed = 'Listening on port #%d failed: %s';
   strSocketConnectFailed = 'Connect to %s failed.';
   strSocketAcceptFailed = 'Could not accept a client connection: %s';
-
+  strSocketAcceptWouldBlock = 'Accept would block on socket: %d';
+  
 constructor ESocketError.Create(ACode: TSocketErrorType; const MsgArgs: array of const);
 var
   s: String;
@@ -154,6 +160,7 @@ begin
     seListenFailed  : s := strSocketListenFailed;
     seConnectFailed : s := strSocketConnectFailed;
     seAcceptFailed  : s := strSocketAcceptFailed;
+    seAcceptWouldBLock : S:= strSocketAcceptWouldBlock;
   end;
   s := Format(s, MsgArgs);
   inherited Create(s);
@@ -229,19 +236,29 @@ Var
 begin
   Listen;
   Repeat
-    NewSocket:=Accept;
-    If NewSocket<>-1 then
-      begin
-      Inc (NoConnections);
-      If DoConnectQuery(NewSocket) Then
-        begin
-        Stream:=SockToStream(NewSocket);
-        DoConnect(Stream);
-        end
-      end
-    Else 
-      If NonBlocking Then  
-        DoOnIdle;     
+    Repeat
+      Try 
+        NewSocket:=Accept;
+        If NewSocket>=0 then
+          begin
+          Inc (NoConnections);
+          If DoConnectQuery(NewSocket) Then
+            begin
+            Stream:=SockToStream(NewSocket);
+            DoConnect(Stream);
+            end
+          end
+      except
+        On E : ESocketError do
+          If E.Code=seAcceptWouldBlock then
+            begin
+            DoOnIdle;
+            NewSocket:=-1;
+            end;
+          else
+            Raise;  
+       end;     
+    Until (NewSocket>=0) or (Not NonBlocking);      
   Until Not (FAccepting) or ((FMaxConnections<>-1) and (NoConnections>=FMaxConnections));
 end;
 
@@ -271,6 +288,13 @@ begin
   Result:=True;
   If Assigned(FOnConnectQuery) then
     FOnConnectQuery(Self,ASocket,Result);
+end;
+
+Procedure TSocketServer.SetNonBlocking;
+
+begin
+  fcntl(FSocket,F_SETFL,OPEN_NONBLOCK);
+  FNonBlocking:=True;
 end;
 
 { ---------------------------------------------------------------------
@@ -317,6 +341,11 @@ Var l : longint;
 begin
   L:=SizeOf(FAddr);
   Result:=Sockets.Accept(Socket,Faddr,L);
+  If Result<0 then
+    If SocketError=Sys_EWOULDBLOCK then 
+      Raise ESocketError.Create(seAcceptWouldBlock,[socket])
+    else
+      Raise ESocketError.Create(seAcceptFailed,[socket]);
 end;
 
 { ---------------------------------------------------------------------
@@ -361,6 +390,11 @@ Var L : longint;
 begin
   L:=Length(FFileName);
   Result:=Sockets.Accept(Socket,FUnixAddr,L);
+  If Result<0 then
+    If SocketError=Sys_EWOULDBLOCK then 
+      Raise ESocketError.Create(seAcceptWouldBlock,[socket])
+    else
+      Raise ESocketError.Create(seAcceptFailed,[socket]);
 end;
 
 Function  TUnixServer.SockToStream (ASocket : Longint) : TSocketStream;
