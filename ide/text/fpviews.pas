@@ -1235,14 +1235,15 @@ Var
 
 begin
   if IsReadOnly then begin InsertLine:=-1; Exit; end;
-  if CurPos.Y<GetLineCount then S:=GetLineText(CurPos.Y) else S:='';
+  if CurPos.Y<GetLineCount then S:=GetDisplayText(CurPos.Y) else S:='';
   s:=Copy(S,1,CurPos.X);
   if assigned(Debugger) then
     if S<>'' then
       begin
         LastCommand:=S;
         { should be true only if we are at the end ! }
-        IgnoreStringAtEnd:=(CurPos.Y=GetLineCount-1) and (CurPos.X=length(GetDisplayText(GetLineCount-1)));
+        IgnoreStringAtEnd:=(CurPos.Y=GetLineCount-1) and
+          (CurPos.X=length(GetDisplayText(GetLineCount-1)));
         Debugger^.Command(S);
         IgnoreStringAtEnd:=false;
       end
@@ -2637,7 +2638,7 @@ begin
 {$ifdef os2}
   OSStr:='OS/2';
 {$endif}
-  R.Assign(0,0,38,12);
+  R.Assign(0,0,38,13);
   inherited Init(R, 'About');
 
   GetExtent(R); R.Grow(-3,-2);
@@ -2651,7 +2652,7 @@ begin
   if pos('Fake',GDBVersion)=0 then
     begin
       R2.Move(0,1);
-      Insert(New(PStaticText, Init(R2, ^C'(Debugging based on '+GDBVersion+')')));
+      Insert(New(PStaticText, Init(R2, ^C'(Debugger '+GDBVersion+')')));
       R2.Move(0,1);
     end
   else
@@ -2662,6 +2663,8 @@ begin
   Insert(New(PStaticText, Init(R2, ^C'Copyright (C) 1998-99 by')));
   R2.Move(0,2);
   Insert(New(PStaticText, Init(R2, ^C'B‚rczi G bor')));
+  R2.Move(0,1);
+  Insert(New(PStaticText, Init(R2, ^C'Pierre Muller')));
   R2.Move(0,1);
   Insert(New(PStaticText, Init(R2, ^C'and')));
   R2.Move(0,1);
@@ -2829,7 +2832,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.44  1999-10-27 12:10:42  pierre
+  Revision 1.45  1999-10-29 14:50:07  pierre
+   * About dialog changes
+
+  Revision 1.44  1999/10/27 12:10:42  pierre
     + With DebugUndo added 3 menu items
       "Dump Undo" "Undo All" and "Redo All"
       for Undo checks
