@@ -52,22 +52,22 @@ type
   TProgressEvent = TFPImgProgressEvent;
 
   TFPPalette = class
-    private
+    protected
       FData : PFPColorArray;
       FCount, FCapacity : integer;
-      procedure SetCount (Value:integer);
+      procedure SetCount (Value:integer); virtual;
       function GetCount : integer;
-      procedure SetColor (index:integer; const Value:TFPColor);
+      procedure SetColor (index:integer; const Value:TFPColor); virtual;
       function GetColor (index:integer) : TFPColor;
-      procedure CheckIndex (index:integer);
-      procedure EnlargeData;
+      procedure CheckIndex (index:integer); virtual;
+      procedure EnlargeData; virtual;
     public
-      constructor create (ACount : integer);
-      destructor destroy; override;
-      procedure Build (Img : TFPCustomImage);
-      procedure Merge (pal : TFPPalette);
-      function IndexOf (const AColor: TFPColor) : integer;
-      function Add (const Value: TFPColor) : integer;
+      constructor Create (ACount : integer);
+      destructor Destroy; override;
+      procedure Build (Img : TFPCustomImage); virtual;
+      procedure Merge (pal : TFPPalette); virtual;
+      function IndexOf (const AColor: TFPColor) : integer; virtual;
+      function Add (const Value: TFPColor) : integer; virtual;
       property Color [Index : integer] : TFPColor read GetColor write SetColor; default;
       property Count : integer read GetCount write SetCount;
   end;
@@ -238,9 +238,10 @@ function ConvertColor (const From : TFPColor; Fmt : TColorFormat) : TDeviceColor
 function ConvertColor (const From : TDeviceColor; Fmt : TColorFormat) : TDeviceColor;
 
 operator = (const c,d:TFPColor) : boolean;
-operator or (const c,d:TFPColor) : TFPColor; 
+operator or (const c,d:TFPColor) : TFPColor;
 operator and (const c,d:TFPColor) : TFPColor; 
 operator xor (const c,d:TFPColor) : TFPColor; 
+function CompareColors(const Color1, Color2: TFPColor): integer;
 
 var ImageHandlers : TImageHandlersManager;
 

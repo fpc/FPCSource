@@ -226,3 +226,14 @@ begin
   result.data := ConvertColorToData (From, Fmt);
 end;
 
+function CompareColors(const Color1, Color2: TFPColor): integer;
+begin
+  Result:=integer(Color1.Red)-integer(Color2.Red);
+  if Result<>0 then exit;
+  Result:=integer(Color1.Green)-integer(Color2.Green);
+  if Result<>0 then exit;
+  Result:=integer(Color1.Blue)-integer(Color2.Blue);
+  if Result<>0 then exit;
+  Result:=integer(Color1.Alpha)-integer(Color2.Alpha);
+end;
+
