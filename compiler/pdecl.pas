@@ -1370,15 +1370,12 @@ unit pdecl;
          if token=_LKLAMMER then
            begin
               consume(_LKLAMMER);
-              { does not allow objects.tobject !! }
-              {if token<>ID then
-                consume(_ID);
-              getsym(pattern,true);}
               childof:=pobjectdef(id_type(pattern));
               if (childof^.deftype<>objectdef) then
                begin
                  Message1(type_e_class_type_expected,childof^.typename);
                  childof:=nil;
+                 aktclass:=new(pobjectdef,init(n,nil));
                end
               else
                begin
@@ -1386,23 +1383,22 @@ unit pdecl;
                  if (childof^.is_class and not is_a_class) or
                     (not childof^.is_class and is_a_class) then
                   Message(parser_e_mix_of_classes_and_objects);
-               end;
-              if assigned(fd) then
-                begin
-                   { the forward of the child must be resolved to get
-                     correct field addresses
-                   }
-                   if (oo_is_forward in childof^.objectoptions) then
+                 { the forward of the child must be resolved to get
+                   correct field addresses }
+                 if assigned(fd) then
+                  begin
+                    if (oo_is_forward in childof^.objectoptions) then
                      Message1(parser_e_forward_declaration_must_be_resolved,childof^.objname^);
-                   aktclass:=fd;
-                   { we must inherit several options !!
-                     this was missing !!
-                     all is now done in set_parent
-                     including symtable datasize setting PM }
-                   fd^.set_parent(childof);
-                end
-              else
-                aktclass:=new(pobjectdef,init(n,childof));
+                    aktclass:=fd;
+                    { we must inherit several options !!
+                      this was missing !!
+                      all is now done in set_parent
+                      including symtable datasize setting PM }
+                    fd^.set_parent(childof);
+                  end
+                 else
+                  aktclass:=new(pobjectdef,init(n,childof));
+               end;
               consume(_RKLAMMER);
            end
          { if no parent class, then a class get tobject as parent }
@@ -2408,7 +2404,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.144  1999-08-14 00:38:53  peter
+  Revision 1.145  1999-08-26 21:17:39  peter
+    * fixed crash when childof was nil
+
+  Revision 1.144  1999/08/14 00:38:53  peter
     * hack to support property with record fields
 
   Revision 1.143  1999/08/09 22:19:53  peter
