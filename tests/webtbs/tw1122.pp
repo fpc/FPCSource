@@ -1,9 +1,10 @@
 {$mode objfpc}
+uses sysutils;
+{$asmmode intel}
 begin
   try
      asm
-        // invalid opcode, e.g. SSE instruction
-        movaps %xmm6, %xmm7
+        db 0fh,0fh,0fh,0fh
      end;
   except
      halt(0);
