@@ -271,6 +271,7 @@ Fixed bugs:
                in str and val FK)
   bug0219.pp   wrong error message                                  OK 0.99.11 (PFV)
   bug0220.pp   array of char overloading problem with strings        OK 0.99.11 (PFV)
+  bug0221.pp   syntax parsing incompatibilities with tp7            OK 0.99.11 (PFV)
   bug0222.pp   an record field can't be the counter index (compiles with TP) OK 0.99.11 (PFV)
   bug0223.pp   wrong boolean evaluation in writeln                  OK 0.99.11 (PFV)
   bug0224.pp   I/O-Error generation in readln can't be switched off OK 0.99.11 (PFV)
@@ -312,7 +313,6 @@ bug0228.pp   Asm, wrong warning for size
 
 bug0185.pp   missing range checking for Val and subrange types
 bug0217.pp   in tp mode can't use the procvar in writeln
-bug0221.pp   syntax parsing incompatibilities with tp7
 bug0230.pp   several strange happen on the ln function: ln(0): no
              FPE and writeln can't write non numeric values
 bug0232.pp   const. procedure variables need a special syntax
