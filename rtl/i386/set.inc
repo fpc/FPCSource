@@ -409,7 +409,7 @@ asm
 {$ifdef REGCALL}
         movl    set1,%esi
         movl    __RESULT,%edi
-        movl    set2,%edx
+        movl    set2,%ebx
 {$else}
         movl set1,%esi
         movl set2,%ebx
@@ -710,7 +710,10 @@ end;
 
 {
   $Log$
-  Revision 1.13  2003-11-23 16:50:49  peter
+  Revision 1.14  2003-12-03 22:46:54  peter
+    * typo in sub_set
+
+  Revision 1.13  2003/11/23 16:50:49  peter
     * register calling updates
 
   Revision 1.12  2003/11/11 21:08:17  peter
