@@ -167,19 +167,19 @@ var
        attr_t = chtype;
        ldat = record
             text : ^chtype;
-            firstchar : integer;
-            lastchar : integer;
-            oldindex : integer;
+            firstchar : smallint;
+            lastchar : smallint;
+            oldindex : smallint;
          end;
 
        _win_st = record
-            _cury : integer;
-            _curx : integer;
-            _maxy : integer;
-            _maxx : integer;
-            _begy : integer;
-            _begx : integer;
-            _flags : integer;
+            _cury : smallint;
+            _curx : smallint;
+            _maxy : smallint;
+            _maxx : smallint;
+            _begy : smallint;
+            _begx : smallint;
+            _flags : smallint;
             _attrs : attr_t;
             _bkgd : chtype;
             _notimeout : bool;
@@ -193,20 +193,20 @@ var
             _use_keypad : bool;
             _delay : longint;
             _line : ^ldat;
-            _regtop : integer;
-            _regbottom : integer;
+            _regtop : smallint;
+            _regbottom : smallint;
             _parx : longint;
             _pary : longint;
             _parent : ^WINDOW;
             _pad : record
-                 _pad_y : integer;
-                 _pad_x : integer;
-                 _pad_top : integer;
-                 _pad_left : integer;
-                 _pad_bottom : integer;
-                 _pad_right : integer;
+                 _pad_y : smallint;
+                 _pad_x : smallint;
+                 _pad_top : smallint;
+                 _pad_left : smallint;
+                 _pad_bottom : smallint;
+                 _pad_right : smallint;
               end;
-            _yoffset : integer;
+            _yoffset : smallint;
          end;
         WINDOW = _win_st;
         PWINDOW = ^WINDOW;
@@ -1709,7 +1709,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  2005-02-14 17:13:21  peter
+  Revision 1.10  2005-03-16 21:00:18  peter
+    * integer -> smallitn
+
+  Revision 1.9  2005/02/14 17:13:21  peter
     * truncate log
 
 }
