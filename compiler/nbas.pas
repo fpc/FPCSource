@@ -193,6 +193,7 @@ interface
        { Create a blocknode and statement node for multiple statements
          generated internally by the parser }
        function  internalstatements(var laststatement:tstatementnode):tblocknode;
+       function  laststatement(block:tblocknode):tstatementnode;
        procedure addstatement(var laststatement:tstatementnode;n:tnode);
 
 
@@ -217,6 +218,14 @@ implementation
         { create dummy initial statement }
         laststatement := cstatementnode.create(cnothingnode.create,nil);
         internalstatements := cblocknode.create(laststatement);
+      end;
+
+
+    function laststatement(block:tblocknode):tstatementnode;
+      begin
+        result:=tstatementnode(block.left);
+        while assigned(result) do
+          result:=tstatementnode(result.right);
       end;
 
 
@@ -1018,7 +1027,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.87  2004-09-26 17:45:30  peter
+  Revision 1.88  2004-10-12 14:36:38  peter
+    * gen high tree makes copy in temp when there is a calln
+
+  Revision 1.87  2004/09/26 17:45:30  peter
     * simple regvar support, not yet finished
 
   Revision 1.86  2004/07/16 19:45:15  jonas

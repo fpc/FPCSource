@@ -169,7 +169,7 @@ implementation
                                      IncompatibleTypes(p.resulttype.def,tarraydef(def).rangetype.def);
                                  end
                                else
-                                Message(parser_e_illegal_expression)
+                                Message(type_e_ordinal_expr_expected)
                              end;
                             p.free;
                             pl.addconst(sl_vec,idx);
@@ -334,7 +334,7 @@ implementation
               consume(_COLON);
               { insert types in global symtable }
               oldsymtablestack:=symtablestack;
-	      while not(symtablestack.symtabletype in [globalsymtable,staticsymtable]) do
+              while not(symtablestack.symtabletype in [globalsymtable,staticsymtable]) do
                 symtablestack:=symtablestack.next;
               single_type(p.proptype,hs,false);
               symtablestack:=oldsymtablestack;
@@ -769,7 +769,7 @@ implementation
                   newtype.free;
                end;
 {$ifdef powerpc}
-               { from gcc/gcc/config/rs6000/rs6000.h: 
+               { from gcc/gcc/config/rs6000/rs6000.h:
                 /* APPLE LOCAL begin Macintosh alignment 2002-1-22 ff */
                 /* Return the alignment of a struct based on the Macintosh PowerPC
                    alignment rules.  In general the alignment of a struct is
@@ -791,7 +791,7 @@ implementation
                      maxpadalign := tempdef.alignment
                    else
                      maxpadalign := trecorddef(tempdef).padalignment;
-                       
+
                    if (maxpadalign > 4) and
                       (maxpadalign > trecordsymtable(symtablestack).padalignment) then
                      trecordsymtable(symtablestack).padalignment := maxpadalign;
@@ -1288,7 +1288,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.79  2004-08-17 16:29:21  jonas
+  Revision 1.80  2004-10-12 14:36:38  peter
+    * gen high tree makes copy in temp when there is a calln
+
+  Revision 1.79  2004/08/17 16:29:21  jonas
     + padalgingment field for recordsymtables (saved by recorddefs)
     + support for Macintosh PowerPC alignment (if the first field of a record
       or union has an alignment > 4, then the record or union size must be

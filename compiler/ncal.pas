@@ -87,7 +87,7 @@ interface
           procdefinitionderef : tderef;
           { tree that contains the pointer to the object for this method }
           methodpointerinit,
-          methodpointerdone,
+          methodpointerdone : tblocknode;
           methodpointer  : tnode;
           { inline function body }
           inlinecode : tnode;
@@ -220,7 +220,58 @@ type
       end;
 
 
-    function gen_high_tree(p:tnode;paradef:tdef):tnode;
+    procedure maybe_load_para_in_temp(var p:tnode);
+      var
+        hp    : tnode;
+        ptemp : ttempcreatenode;
+        newinitstatement,
+        newdonestatement : tstatementnode;
+      begin
+        if not assigned(aktcallnode) then
+          internalerror(200410121);
+
+        hp:=p;
+        while assigned(hp) and
+              (hp.nodetype=typeconvn) do
+          hp:=tunarynode(hp).left;
+        if assigned(hp) and
+           (
+            { call result must always be loaded in temp to prevent
+              double creation }
+            (hp.nodetype=calln)
+            { Also optimize also complex loads }
+{$warning Complex loads can also be optimized}
+//            or not(hp.nodetype in [typen,loadvmtaddrn,loadn])
+           )  then
+          begin
+            if not assigned(aktcallnode.methodpointerinit) then
+              begin
+                aktcallnode.methodpointerinit:=internalstatements(newinitstatement);
+                aktcallnode.methodpointerdone:=internalstatements(newdonestatement);
+              end
+            else
+              begin
+                newinitstatement:=laststatement(aktcallnode.methodpointerinit);
+                newdonestatement:=laststatement(aktcallnode.methodpointerdone);
+              end;
+            { temp create }
+            ptemp:=ctempcreatenode.create_reg(p.resulttype,p.resulttype.def.size,tt_persistent);
+            addstatement(newinitstatement,ptemp);
+            addstatement(newinitstatement,cassignmentnode.create(
+                ctemprefnode.create(ptemp),
+                p));
+            resulttypepass(aktcallnode.methodpointerinit);
+            { new tree is only a temp reference }
+            p:=ctemprefnode.create(ptemp);
+            resulttypepass(p);
+            { temp release }
+            addstatement(newdonestatement,ctempdeletenode.create(ptemp));
+            resulttypepass(aktcallnode.methodpointerdone);
+          end;
+      end;
+
+
+    function gen_high_tree(var p:tnode;paradef:tdef):tnode;
       var
         temp: tnode;
         len : integer;
@@ -240,6 +291,7 @@ type
                 len:=0
               else
                 begin
+                  maybe_load_para_in_temp(p);
                   { handle via a normal inline in_high_x node }
                   loadconst := false;
                   hightree := geninlinenode(in_high_x,false,p.getcopy);
@@ -258,6 +310,7 @@ type
             begin
               if is_open_string(paradef) then
                begin
+                 maybe_load_para_in_temp(p);
                  { handle via a normal inline in_high_x node }
                  loadconst := false;
                  hightree := geninlinenode(in_high_x,false,p.getcopy);
@@ -273,6 +326,7 @@ type
                    end
                  else
                    begin
+                     maybe_load_para_in_temp(p);
                      hightree:=caddnode.create(subn,geninlinenode(in_length_x,false,p.getcopy),
                                                cordconstnode.create(1,s32inttype,false));
                      loadconst:=false;
@@ -789,8 +843,8 @@ type
         ppufile.getderef(procdefinitionderef);
         ppufile.getsmallset(callnodeflags);
         methodpointer:=ppuloadnode(ppufile);
-        methodpointerinit:=ppuloadnode(ppufile);
-        methodpointerdone:=ppuloadnode(ppufile);
+        methodpointerinit:=tblocknode(ppuloadnode(ppufile));
+        methodpointerdone:=tblocknode(ppuloadnode(ppufile));
         _funcretnode:=ppuloadnode(ppufile);
         inlinecode:=ppuloadnode(ppufile);
       end;
@@ -885,7 +939,7 @@ type
         n.restype := restype;
         n.callnodeflags := callnodeflags;
         if assigned(methodpointerinit) then
-         n.methodpointerinit:=methodpointerinit.getcopy
+         n.methodpointerinit:=tblocknode(methodpointerinit.getcopy)
         else
          n.methodpointerinit:=nil;
         { methodpointerinit is copied, now references to the temp will also be copied
@@ -899,7 +953,7 @@ type
         else
          n.methodpointer:=nil;
         if assigned(methodpointerdone) then
-         n.methodpointerdone:=methodpointerdone.getcopy
+         n.methodpointerdone:=tblocknode(methodpointerdone.getcopy)
         else
          n.methodpointerdone:=nil;
         if assigned(_funcretnode) then
@@ -1352,8 +1406,6 @@ type
         method_must_be_valid,
         is_const : boolean;
         hp : tnode;
-        mptemp : ttempcreatenode;
-        newstatement : tstatementnode;
       label
         errorexit;
       begin
@@ -1361,7 +1413,7 @@ type
          candidates:=nil;
 
          oldcallnode:=aktcallnode;
-         aktcallnode:=nil;
+         aktcallnode:=self;
 
          { determine length of parameter list }
          pt:=tcallparanode(left);
@@ -1383,35 +1435,7 @@ type
          if assigned(methodpointer) then
            begin
              resulttypepass(methodpointer);
-             hp:=methodpointer;
-             while assigned(hp) and
-                   (hp.nodetype=typeconvn) do
-               hp:=tunarynode(hp).left;
-             if assigned(hp) and
-                (
-                 { call result must always be loaded in temp to prevent
-                   double creation }
-                 (hp.nodetype=calln)
-                 { Also optimize also complex loads }
-{$warning Complex loads can also be optimized}
-//                 not(hp.nodetype in [typen,loadvmtaddrn,loadn])
-                )  then
-               begin
-                 { methodpointer loading }
-                 methodpointerinit:=internalstatements(newstatement);
-                 mptemp:=ctempcreatenode.create_reg(methodpointer.resulttype,methodpointer.resulttype.def.size,tt_persistent);
-                 addstatement(newstatement,mptemp);
-                 addstatement(newstatement,cassignmentnode.create(
-                     ctemprefnode.create(mptemp),
-                     methodpointer));
-                 resulttypepass(methodpointerinit);
-                 { new methodpointer is only a temp reference }
-                 methodpointer:=ctemprefnode.create(mptemp);
-                 resulttypepass(methodpointer);
-                 { methodpointer cleanup }
-                 methodpointerdone:=ctempdeletenode.create(mptemp);
-                 resulttypepass(methodpointerdone);
-               end;
+             maybe_load_para_in_temp(methodpointer);
            end;
 
          { procedure variable ? }
@@ -1745,7 +1769,6 @@ type
            convert_carg_array_of_const;
 
          { bind paraitems to the callparanodes and insert hidden parameters }
-         aktcallnode:=self;
          bind_paraitem;
 
          { methodpointer is only needed for virtual calls, and
@@ -2392,7 +2415,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.250  2004-10-10 20:22:53  peter
+  Revision 1.251  2004-10-12 14:36:38  peter
+    * gen high tree makes copy in temp when there is a calln
+
+  Revision 1.250  2004/10/10 20:22:53  peter
     * symtable allocation rewritten
     * loading of parameters to local temps/regs cleanup
     * regvar support for parameters
