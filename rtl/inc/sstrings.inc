@@ -90,7 +90,7 @@ begin
   if index>length(s) then
    index:=length(s)+1;
   indexlen:=Length(s)-Index+1;
-  if (length(s)=sizeof(s)) and (indexlen>0) then
+  if (length(s)+1=sizeof(s)) and (indexlen>0) then
    dec(indexlen);
   move(s[Index],s[Index+1],indexlen);
   s[Index]:=Source;
@@ -1195,7 +1195,10 @@ end;
 
 {
   $Log$
-  Revision 1.25  1999-04-01 22:11:50  peter
+  Revision 1.26  1999-04-05 12:28:27  michael
+  + Fixed insert with char. length byte wrapped around in some cases.
+
+  Revision 1.25  1999/04/01 22:11:50  peter
     * fixed '1.' parsing of val
 
   Revision 1.24  1999/04/01 22:00:49  peter
