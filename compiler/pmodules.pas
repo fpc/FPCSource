@@ -461,22 +461,15 @@ unit pmodules;
       end;
 
       procedure parse_implementation_uses(symt:Psymtable);
-
-      var
-         old_module_in_implementation : boolean;
       begin
          if token=_USES then
            begin
-              old_module_in_implementation:=module_in_implementation;
-              module_in_implementation:=true;
-              current_module^.in_implementation:=true;
               symt^.symtabletype:=unitsymtable;
               loadunits;
               symt^.symtabletype:=globalsymtable;
 {$ifdef DEBUG}
               test_symtablestack;
 {$endif DEBUG}
-              module_in_implementation:=old_module_in_implementation;
            end;
       end;
 
@@ -593,7 +586,10 @@ unit pmodules;
          constsymtable:=symtablestack;
          { ... parse the declarations }
          read_interface_declarations;
+
+         { Parse the implementation section }
          consume(_IMPLEMENTATION);
+         current_module^.in_implementation:=true;
 
          parse_only:=false;
 
@@ -793,6 +789,9 @@ unit pmodules;
               consume(SEMICOLON);
             end;
 
+         { set implementation flag }
+         current_module^.in_implementation:=true;
+
          { insert after the unit symbol tables the static symbol table }
          { of the program                                              }
          st:=new(punitsymtable,init(staticsymtable,current_module^.modulename^));
@@ -897,7 +896,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.41  1998-08-17 10:10:08  peter
+  Revision 1.42  1998-08-19 18:04:54  peter
+    * fixed current_module^.in_implementation flag
+
+  Revision 1.41  1998/08/17 10:10:08  peter
     - removed OLDPPU
 
   Revision 1.40  1998/08/17 09:17:50  peter
