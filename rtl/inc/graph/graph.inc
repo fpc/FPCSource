@@ -983,8 +983,12 @@ CONST
  begin
    dummy := CurrentColor;
    offset := y * 320 + x + VideoOfs;
-   If CurrentWriteMode = XorPut Then
-     dummy := dummy xor Mem[$a000:offset];
+   case CurrentWriteMode of
+     XorPut: dummy := dummy xor Mem[$a000:offset];
+     OrPut: dummy := dummy or Mem[$a000:offset];
+     AndPut: dummy := dummy and Mem[$a000:offset];
+     NotPut: dummy := Not dummy;
+   end;
    Mem[$a000:offset] := dummy;
  end;
 {$else asmgraph}
@@ -2579,7 +2583,11 @@ const CrtAddress: word = 0;
 
 {
 $Log$
-Revision 1.11  1999-09-12 17:28:59  jonas
+Revision 1.12  1999-09-15 13:37:50  jonas
+  * small change to internalellipsedef to be TP compatible
+  * fixed directputpixel for vga 320*200*256
+
+Revision 1.11  1999/09/12 17:28:59  jonas
   * several changes to internalellipse to make it faster
     and to make sure it updates the ArcCall correctly
     (not yet done for width = 3)

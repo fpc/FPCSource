@@ -1358,8 +1358,6 @@ var
      End;
    If xradius = 0 then inc(x);
    if yradius = 0 then inc(y);
-   inc(xradius);
-   inc(yradius);
    { check if valid angles }
    stangle := stAngle mod 361;
    EndAngle := EndAngle mod 361;
@@ -2151,23 +2149,10 @@ end;
   {    supports XORPut but the FloodFill() is still bounded}
   {    by the ellipse. In OUR case, XOR Mode is simply     }
   {    not supported.                                      }
+  {  - update: other write modes are now supported (JM     }
   {********************************************************}
-  var
-   OldWriteMode: Word;
   begin
-    { only normal put supported }
-    OldWriteMode := CurrentWriteMode;
-    CurrentWriteMode := NormalPut;
-    if (XRadius > 0) and (YRadius > 0) then
-      InternalEllipse(X,Y,XRadius,YRadius,0,360,PatternLine)
-    Else
-{$ifdef fpc}
-      InternalEllipse(X,Y,XRadius+1,YRadius+1,0,60,@DummyPatternLine);
-{$else fpc}
-      InternalEllipse(X,Y,XRadius+1,YRadius+1,0,60,DummyPatternLine);
-{$endif fpc}
-    { restore old write mode }
-    CurrentWriteMode := OldWriteMode;
+    InternalEllipse(X,Y,XRadius,YRadius,0,360,PatternLine)
   end;
 
 
@@ -2788,7 +2773,11 @@ DetectGraph
 
 {
   $Log$
-  Revision 1.21  1999-09-13 12:49:08  jonas
+  Revision 1.22  1999-09-15 13:37:50  jonas
+    * small change to internalellipsedef to be TP compatible
+    * fixed directputpixel for vga 320*200*256
+
+  Revision 1.21  1999/09/13 12:49:08  jonas
     * fixed Arc: internallellipse went into an endless loop if StAngle =
       EndAngle
     * FillEllipse is now much faster: no more floodfill,
