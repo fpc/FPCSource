@@ -2512,7 +2512,7 @@
          object_options:=false;
          read_member:=oldread_member;
          publicsyms^.defowner:=@self;
-         publicsyms^.datasize:=savesize;
+         { publicsyms^.datasize:=savesize; }
          publicsyms^.name := stringdup(name^);
 
          { handles the predefined class tobject  }
@@ -2521,7 +2521,7 @@
          if (name^='TOBJECT') and not(cs_compilesystem in aktmoduleswitches) and
            isclass and (childof=pointer($ffffffff)) then
            class_tobject:=@self;
-      end;
+       end;
 
 
    procedure tobjectdef.check_forwards;
@@ -3025,7 +3025,11 @@
 
 {
   $Log$
-  Revision 1.50  1998-09-23 15:46:40  florian
+  Revision 1.51  1998-09-25 12:01:41  florian
+    * tobjectdef.publicsyms.datasize was set to savesize, this is wrong now
+      because the symtable size is read from the ppu file
+
+  Revision 1.50  1998/09/23 15:46:40  florian
     * problem with with and classes fixed
 
   Revision 1.49  1998/09/23 12:03:55  peter
