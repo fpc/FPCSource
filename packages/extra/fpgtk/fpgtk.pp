@@ -3029,7 +3029,7 @@ end;
 
 procedure TFPgtkObject.SignalEmit (aName:string; Args:array of const);
 begin
-  gtk_signal_emit_by_name (TheGtkObject, pgchar(aName), Args);
+//  gtk_signal_emit_by_name (TheGtkObject, pgchar(aName), Args);
 end;
 
 function TFPgtkObject.SignalNEmissions (aName:string) : guint;
