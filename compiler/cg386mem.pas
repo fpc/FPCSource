@@ -395,7 +395,7 @@ implementation
          else
            begin
               { quick hack, to overcome Delphi 2 }
-              if (cs_maxoptimize in aktglobalswitches) and
+              if (cs_regalloc in aktglobalswitches) and
                 (p^.left^.resulttype^.deftype=arraydef) then
                 begin
                    extraoffset:=0;
@@ -608,7 +608,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  1998-08-10 14:49:49  peter
+  Revision 1.7  1998-08-20 11:27:40  michael
+  * Applied Peters Fix
+
+  Revision 1.6  1998/08/10 14:49:49  peter
     + localswitches, moduleswitches, globalswitches splitting
 
   Revision 1.5  1998/07/26 21:58:58  florian
