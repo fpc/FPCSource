@@ -1924,17 +1924,29 @@ implementation
                     b:=2;
                 end;
              end;
-          formaldef:
-            {Just about everything can be converted to a formaldef...}
-            if not (def_from.deftype in [abstractdef,errordef]) then
-               b:=1;
-            else
+
+           variantdef :
+             begin
+               if (fromtreetype=niln) then
                 begin
-                  { assignment overwritten ?? }
-                  if internal_assignment_overloaded(def_from,def_to,overload_procs)<>nil then
-                    b:=2;
+                  doconv:=tc_equal;
+                  b:=1;
                 end;
-         end;
+             end;
+
+           formaldef :
+             begin
+               { Just about everything can be converted to a formaldef...}
+               if not (def_from.deftype in [abstractdef,errordef]) then
+                 b:=1
+               else
+                 begin
+                   { assignment overwritten ?? }
+                   if internal_assignment_overloaded(def_from,def_to,overload_procs)<>nil then
+                     b:=2;
+                 end;
+             end;
+        end;
         overloaded_assignment_isconvertable :=b;
       end;
 
@@ -1969,7 +1981,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  2002-10-06 12:25:04  florian
+  Revision 1.18  2002-10-06 15:08:59  peter
+    * only check for forwarddefs the definitions that really belong to
+      the current procsym
+
+  Revision 1.17  2002/10/06 12:25:04  florian
     + proper support of type <id> = type <another id>;
 
   Revision 1.16  2002/10/05 12:43:24  carl
