@@ -72,7 +72,7 @@ package=asldw32.zip,GNU ~L~inker and GNU Assembler for Win32 (required)
 # Win32 3
 package=idew32.zip,~I~DE with integrated debugger/compiler (BETA)
 # Win32 4
-package=utilsw32.zip,~E~xtra Utilities
+package=utilw32.zip,~E~xtra Utilities
 # Win32 5
 package=makew32.zip,GNU ~U~tilities (needed for Makefile usage)
 # Win32 6
@@ -188,7 +188,7 @@ package=docsrc.zip,~D~ocumentation sources (LaTeX)
 #
 # Source packages 2nd part
 #
-pack=S~o~urces 2
+pack=So~u~rces 2
 filecheck=*src.zip
 # Source-2 1
 package=ugdbintsrc.zip[ugdbsrc.zip],GDB Interfacing units
