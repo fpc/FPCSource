@@ -1146,20 +1146,14 @@ begin
            DownWhere.Y:=MouseWhere.Y;
            DownTicks:=GetDosTicks;
            AutoTicks:=GetDosTicks;
+           if AutoTicks=0 then
+             AutoTicks:=1;
            AutoDelay:=RepeatDelay;
          end;
        MouseActionUp :
          begin
            Event.What:=evMouseUp;
-         end;
-       else
-         begin
-           if GetDosTicks-AutoTicks>=AutoDelay then
-            begin
-              Event.What:=evMouseAuto;
-              AutoTicks:=GetDosTicks;
-              AutoDelay:=1;
-            end;
+           AutoTicks:=0;
          end;
      end;
      Event.Buttons:=e.Buttons;
@@ -1168,6 +1162,15 @@ begin
      LastButtons:=Event.Buttons;
      LastWhere.x:=Event.Where.x;
      LastWhere.y:=Event.Where.y;
+   end
+  else if (AutoTicks <> 0) and (GetDosTicks >= AutoTicks + AutoDelay) then
+   begin
+     Event.What:=evMouseAuto;
+     Event.Buttons:=LastButtons;
+     Event.Where.X:=LastWhere.x;
+     Event.Where.Y:=LastWhere.y;
+     AutoTicks:=GetDosTicks;
+     AutoDelay:=1;
    end
   else
    FillChar(Event,sizeof(TEvent),0);
@@ -1486,7 +1489,10 @@ BEGIN
 END.
 {
  $Log$
- Revision 1.13  2001-10-02 16:35:50  pierre
+ Revision 1.14  2002-05-16 20:21:50  pierre
+  + fix for bug report 1953 adapted from S Wiktor
+
+ Revision 1.13  2001/10/02 16:35:50  pierre
   * fix several problems, try to get the graph version to compile
 
  Revision 1.12  2001/08/05 02:03:13  peter
