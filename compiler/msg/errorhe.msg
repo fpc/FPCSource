@@ -59,7 +59,7 @@ general_t_compilername=01000_T_מהדר: $1
 general_d_sourceos=01001_D_מערכת הפעלה: $1
 % When the \var{-vd} switch is used, this line tells you what the source
 % operating system is.
-general_i_targetos=01002_I_מערכת הפעלה מבוקשת: $1
+general_i_targetos=01002_I_מערכת הפעלה מיועדת: $1
 % When the \var{-vd} switch is used, this line tells you what the target
 % operating system is.
 general_t_exepath=01003_T_משתמש בנתיב הרצה: $1
@@ -180,69 +180,69 @@ scan_e_preproc_syntax_error=02018_E_שגיאת תחביר בעת ניתוח משפט תנאי
 scan_e_error_in_preproc_expr=02019_E_הערכת משפט תנאי
 % There is an error in the expression following the \var{\{\$if ..\}}, $ifc or $setc compiler
 % directives.
-scan_w_macro_cut_after_255_chars=02020_W_Macro contents are limited to 255 characters in length
+scan_w_macro_cut_after_255_chars=02020_W_תוכן המקרו מוגבל לאורך של 255 תווים
 % The contents of macros cannot be longer than 255 characters.
-scan_e_endif_without_if=02021_E_ENDIF without IF(N)DEF
+scan_e_endif_without_if=02021_E_ENDIF ללא  IF(N)DEF
 % Your \var{\{\$IFDEF ..\}} and {\{\$ENDIF\}} statements aren't balanced.
-scan_f_user_defined=02022_F_User defined: $1
+scan_f_user_defined=02022_F_הגדרת משתמש: $1
 % A user defined fatal error occurred. see also the \progref
-scan_e_user_defined=02023_E_User defined: $1
+scan_e_user_defined=02023_E_הגדרת משתמש: $1
 % A user defined error occurred. see also the \progref
-scan_w_user_defined=02024_W_User defined: $1
+scan_w_user_defined=02024_W_הגדרת משתמש: $1
 % A user defined warning occurred. see also the \progref
-scan_n_user_defined=02025_N_User defined: $1
+scan_n_user_defined=02025_N_הגדרת משתמש: $1
 % A user defined note was encountered. see also the \progref
-scan_h_user_defined=02026_H_User defined: $1
+scan_h_user_defined=02026_H_הגדרת משתמש: $1
 % A user defined hint was encountered. see also the \progref
-scan_i_user_defined=02027_I_User defined: $1
+scan_i_user_defined=02027_I_הגדרת משתמש: $1
 % User defined information was encountered. see also the \progref
-scan_e_keyword_cant_be_a_macro=02028_E_Keyword redefined as macro has no effect
+scan_e_keyword_cant_be_a_macro=02028_E_מילת מפתח המוגדרת מחדש כמקרו אינה מכילה השפעה
 % You cannot redefine keywords with macros.
-scan_f_macro_buffer_overflow=02029_F_Macro buffer overflow while reading or expanding a macro
+scan_f_macro_buffer_overflow=02029_F_גלישת מאגר מקרו בעת קריאה או הרחבה של מקרו
 % Your macro or it's result  was too long for the compiler.
-scan_w_macro_deep_ten=02030_W_Expanding of macros exceeds a depth of 16.
+scan_w_macro_deep_ten=02030_W_הרחבת מקרו גולשת מעומק של 16.
 % When expanding a macro, macros have been nested to a level of 16.
 % The compiler will expand no further, since this may be a sign that
 % recursion is used.
-scan_w_wrong_styled_switch=02031_W_compiler switches aren't supported in // styled comments
+scan_w_wrong_styled_switch=02031_W_ מתגי פעולת מהדר אינם נתמכים בהערות מסוג //
 % Compiler switches should be in normal pascal style comments.
-scan_d_handling_switch=02032_DL_Handling switch "$1"
+scan_d_handling_switch=02032_DL_מטפל במתג "$1"
 % When you set debugging info on (\var{-vd}) the compiler tells you when it
 % is evaluating conditional compile statements.
-scan_c_endif_found=02033_CL_ENDIF $1 found
+scan_c_endif_found=02033_CL_נמצא ENDIF $1
 % When you turn on conditional messages(\var{-vc}), the compiler tells you
 % where it encounters conditional statements.
-scan_c_ifdef_found=02034_CL_IFDEF $1 found, $2
+scan_c_ifdef_found=02034_CL_נמצא IFDEF $1, $2
 % When you turn on conditional messages(\var{-vc}), the compiler tells you
 % where it encounters conditional statements.
-scan_c_ifopt_found=02035_CL_IFOPT $1 found, $2
+scan_c_ifopt_found=02035_CL_נמצא IFOPT $1, $2
 % When you turn on conditional messages(\var{-vc}), the compiler tells you
 % where it encounters conditional statements.
-scan_c_if_found=02036_CL_IF $1 found, $2
+scan_c_if_found=02036_CL_נמצא IF $1, $2
 % When you turn on conditional messages(\var{-vc}), the compiler tells you
 % where it encounters conditional statements.
-scan_c_ifndef_found=02037_CL_IFNDEF $1 found, $2
+scan_c_ifndef_found=02037_CL_נמצא IFNDEF $1, $2
 % When you turn on conditional messages(\var{-vc}), the compiler tells you
 % where it encounters conditional statements.
-scan_c_else_found=02038_CL_ELSE $1 found, $2
+scan_c_else_found=02038_CL_נמצא ELSE $1, $2
 % When you turn on conditional messages(\var{-vc}), the compiler tells you
 % where it encounters conditional statements.
-scan_c_skipping_until=02039_CL_Skipping until...
+scan_c_skipping_until=02039_CL_מדלג...
 % When you turn on conditional messages(\var{-vc}), the compiler tells you
 % where it encounters conditional statements, and whether it is skipping or
 % compiling parts.
-scan_i_press_enter=02040_I_Press <return> to continue
+scan_i_press_enter=02040_I_לחץ על <return> להמשיך
 % When the \var{-vi} switch is used, the compiler stops compilation
 % and waits for the \var{Enter} key to be pressed when it encounters
 % a \var{\{\$STOP\}} directive.
-scan_w_unsupported_switch=02041_W_Unsupported switch "$1"
+scan_w_unsupported_switch=02041_W_מתג "$1" אינו נתמך
 % When warnings are turned on (\var{-vw}) the compiler warns you about
 % unsupported switches. This means that the switch is used in Delphi or
 % Turbo Pascal, but not in \fpc
-scan_w_illegal_directive=02042_W_Illegal compiler directive "$1"
+scan_w_illegal_directive=02042_W_הוראת המהדר "$1" אינה חוקית
 % When warings are turned on (\var{-vw}) the compiler warns you about
 % unrecognised switches. For a list of recognised switches, \progref
-scan_t_back_in=02043_TL_Back in $1
+scan_t_back_in=02043_TL_חזרה ב$1
 % When you use (\var{-vt}) the compiler tells you when it has finished
 % reading an include file.
 scan_w_unsupported_app_type=02044_W_Unsupported application type: "$1"
