@@ -733,8 +733,8 @@ end;
       var
         newnode : plinkcontaineritem;
       begin
-         if find(s) then
-          exit;
+         {if find(s) then
+          exit; }
          new(newnode,init(s,m));
          inherited insert(newnode);
       end;
@@ -1340,7 +1340,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.104  1999-09-27 23:40:12  peter
+  Revision 1.105  1999-10-28 13:14:00  pierre
+   * allow doubles in TLinkContainer needed for double libraries
+
+  Revision 1.104  1999/09/27 23:40:12  peter
     * fixed macro within macro endless-loop
 
   Revision 1.103  1999/09/16 08:00:50  pierre
