@@ -82,7 +82,7 @@ begin
   Act^.sa_flags := SA_NOCLDSTOP {or SA_NOMASK or SA_RESTART};
   
   {$ifdef VER1_0}
-   Act^.sa_mask := 0; //Do not block all signals ??. Don't need if SA_NOMASK in flags
+   Act^.sa_mask[0] := 0; //Do not block all signals ??. Don't need if SA_NOMASK in flags
   {$else}
    Act^.sa_mask := sigzero;
   {$endif} 
@@ -295,7 +295,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2003-01-24 21:13:31  marco
+  Revision 1.5  2003-01-31 14:49:56  pierre
+   * adapt 1.0 to change in signal.inc
+
+  Revision 1.4  2003/01/24 21:13:31  marco
    * More bugs, but now gmake all works.
 
   Revision 1.3  2002/09/07 15:15:27  peter
