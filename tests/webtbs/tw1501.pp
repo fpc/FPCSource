@@ -12,7 +12,16 @@ begin
 end;
 
 begin
-        writeln('test', Uper1('test'));
-        writeln('test', Uper2('test'));
-
+  writeln('test', Uper1('test'));
+  writeln('test', Uper2('test'));
+  if Uper1('test')<>'TEST' then
+   begin
+     writeln('ERROR in Uper1!');
+     halt(1);
+   end;
+  if Uper2('test')<>'TEST' then
+   begin
+     writeln('ERROR in Uper2!');
+     halt(1);
+   end;
 end.
