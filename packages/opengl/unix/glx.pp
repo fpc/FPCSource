@@ -132,35 +132,35 @@ type
   GLXContextID = TXID;
 
 var
-  glXChooseVisual: function(dpy: PDisplay; screen: Integer; var attribList: Integer): PXVisualInfo; cdecl; cdecl;
-  glXCreateContext: function(dpy: PDisplay; vis: PXVisualInfo; shareList: GLXContext; direct: Boolean): GLXContext; cdecl; cdecl;
-  glXDestroyContext: procedure(dpy: PDisplay; ctx: GLXContext); cdecl; cdecl;
-  glXMakeCurrent: function(dpy: PDisplay; drawable: GLXDrawable; ctx: GLXContext): Boolean; cdecl; cdecl;
-  glXCopyContext: procedure(dpy: PDisplay; src, dst: GLXContext; mask: LongWord); cdecl; cdecl;
-  glXSwapBuffers: procedure(dpy: PDisplay; drawable: GLXDrawable); cdecl; cdecl;
-  glXCreateGLXPixmap: function(dpy: PDisplay; visual: PXVisualInfo; pixmap: XPixmap): GLXPixmap; cdecl; cdecl;
-  glXDestroyGLXPixmap: procedure(dpy: PDisplay; pixmap: GLXPixmap); cdecl; cdecl;
-  glXQueryExtension: function(dpy: PDisplay; var errorb, event: Integer): Boolean; cdecl; cdecl;
-  glXQueryVersion: function(dpy: PDisplay; var maj, min: Integer): Boolean; cdecl; cdecl;
-  glXIsDirect: function(dpy: PDisplay; ctx: GLXContext): Boolean; cdecl; cdecl;
-  glXGetConfig: function(dpy: PDisplay; visual: PXVisualInfo; attrib: Integer; var value: Integer): Integer; cdecl; cdecl;
-  glXGetCurrentContext: function: GLXContext; cdecl; cdecl;
-  glXGetCurrentDrawable: function: GLXDrawable; cdecl; cdecl;
-  glXWaitGL: procedure; cdecl; cdecl;
-  glXWaitX: procedure; cdecl; cdecl;
-  glXUseXFont: procedure(font: XFont; first, count, list: Integer); cdecl; cdecl;
+  glXChooseVisual: function(dpy: PDisplay; screen: Integer; var attribList: Integer): PXVisualInfo; cdecl;
+  glXCreateContext: function(dpy: PDisplay; vis: PXVisualInfo; shareList: GLXContext; direct: Boolean): GLXContext; cdecl;
+  glXDestroyContext: procedure(dpy: PDisplay; ctx: GLXContext); cdecl;
+  glXMakeCurrent: function(dpy: PDisplay; drawable: GLXDrawable; ctx: GLXContext): Boolean; cdecl;
+  glXCopyContext: procedure(dpy: PDisplay; src, dst: GLXContext; mask: LongWord); cdecl;
+  glXSwapBuffers: procedure(dpy: PDisplay; drawable: GLXDrawable); cdecl;
+  glXCreateGLXPixmap: function(dpy: PDisplay; visual: PXVisualInfo; pixmap: XPixmap): GLXPixmap; cdecl;
+  glXDestroyGLXPixmap: procedure(dpy: PDisplay; pixmap: GLXPixmap); cdecl;
+  glXQueryExtension: function(dpy: PDisplay; var errorb, event: Integer): Boolean; cdecl;
+  glXQueryVersion: function(dpy: PDisplay; var maj, min: Integer): Boolean; cdecl;
+  glXIsDirect: function(dpy: PDisplay; ctx: GLXContext): Boolean; cdecl;
+  glXGetConfig: function(dpy: PDisplay; visual: PXVisualInfo; attrib: Integer; var value: Integer): Integer; cdecl;
+  glXGetCurrentContext: function: GLXContext; cdecl;
+  glXGetCurrentDrawable: function: GLXDrawable; cdecl;
+  glXWaitGL: procedure; cdecl;
+  glXWaitX: procedure; cdecl;
+  glXUseXFont: procedure(font: XFont; first, count, list: Integer); cdecl;
 
   // GLX 1.1 and later
-  glXQueryExtensionsString: function(dpy: PDisplay; screen: Integer): PChar; cdecl; cdecl;
-  glXQueryServerString: function(dpy: PDisplay; screen, name: Integer): PChar; cdecl; cdecl;
-  glXGetClientString: function(dpy: PDisplay; name: Integer): PChar; cdecl; cdecl;
+  glXQueryExtensionsString: function(dpy: PDisplay; screen: Integer): PChar; cdecl;
+  glXQueryServerString: function(dpy: PDisplay; screen, name: Integer): PChar; cdecl;
+  glXGetClientString: function(dpy: PDisplay; name: Integer): PChar; cdecl;
 
   // Mesa GLX Extensions
-  glXCreateGLXPixmapMESA: function(dpy: PDisplay; visual: PXVisualInfo; pixmap: XPixmap; cmap: XColormap): GLXPixmap; cdecl; cdecl;
-  glXReleaseBufferMESA: function(dpy: PDisplay; d: GLXDrawable): Boolean; cdecl; cdecl;
-  glXCopySubBufferMESA: procedure(dpy: PDisplay; drawbale: GLXDrawable; x, y, width, height: Integer); cdecl; cdecl;
-  glXGetVideoSyncSGI: function(var counter: LongWord): Integer; cdecl; cdecl;
-  glXWaitVideoSyncSGI: function(divisor, remainder: Integer; var count: LongWord): Integer; cdecl; cdecl;
+  glXCreateGLXPixmapMESA: function(dpy: PDisplay; visual: PXVisualInfo; pixmap: XPixmap; cmap: XColormap): GLXPixmap; cdecl;
+  glXReleaseBufferMESA: function(dpy: PDisplay; d: GLXDrawable): Boolean; cdecl;
+  glXCopySubBufferMESA: procedure(dpy: PDisplay; drawbale: GLXDrawable; x, y, width, height: Integer); cdecl;
+  glXGetVideoSyncSGI: function(var counter: LongWord): Integer; cdecl;
+  glXWaitVideoSyncSGI: function(divisor, remainder: Integer; var count: LongWord): Integer; cdecl;
 
 
 // =======================================================
@@ -246,7 +246,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2001-06-20 14:22:48  marco
+  Revision 1.3  2001-10-25 21:24:35  peter
+    * removed duplicate cdecl
+
+  Revision 1.2  2001/06/20 14:22:48  marco
    * Introduced Unix dir structure for opengl.
 
   Revision 1.3  2001/06/20 13:59:20  marco
@@ -269,7 +272,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2001-06-20 14:22:48  marco
+  Revision 1.3  2001-10-25 21:24:35  peter
+    * removed duplicate cdecl
+
+  Revision 1.2  2001/06/20 14:22:48  marco
    * Introduced Unix dir structure for opengl.
 
   Revision 1.3  2001/06/20 13:59:20  marco

@@ -21,7 +21,7 @@
           ic_attr : PGdkICAttr;
           clipboard_text : Pgchar;
        end;
-     TGtkTextfunction = procedure (editable:PGtkEditable; time:guint32); cdecl; cdecl;
+     TGtkTextfunction = procedure (editable:PGtkEditable; time:guint32); cdecl;
 
   const
      bm_TGtkEditable_has_selection = $1;
@@ -140,10 +140,13 @@ end;
 
 {
   $Log$
-  Revision 1.3  2000-09-09 18:41:39  peter
+  Revision 1.4  2001-10-25 21:24:35  peter
+    * removed duplicate cdecl
+
+  Revision 1.3  2000/09/09 18:41:39  peter
     * fixes for gtk win32
 
   Revision 1.2  2000/07/13 11:33:21  michael
   + removed logs
- 
+
 }
