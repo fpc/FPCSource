@@ -249,7 +249,7 @@ begin
 {$ifdef GDB}
          'g',
 {$endif}
-{$ifdef linux}
+{$ifdef Unix}
          'L',
 {$endif}
 {$ifdef os2}
@@ -698,7 +698,7 @@ begin
                           IllegalPara(opt);
                         end;
                     end;
-{$ifdef linux}
+{$ifdef Unix}
               'P' : initglobalswitches:=initglobalswitches+[cs_asm_pipe];
 {$endif}
               's' : initglobalswitches:=initglobalswitches+[cs_asm_extern,cs_link_extern];
@@ -1308,7 +1308,7 @@ begin
 {$else Delphi}
   configpath:=FixPath(dos.getenv('PPC_CONFIG_PATH'),false);
 {$endif Delphi}
-{$ifdef linux}
+{$ifdef Unix}
   if configpath='' then
    configpath:='/etc/';
 {$endif}
@@ -1317,7 +1317,7 @@ begin
      read_configfile:=true;
      if not FileExists(ppccfg) then
       begin
-{$ifdef linux}
+{$ifdef Unix}
         if (dos.getenv('HOME')<>'') and FileExists(FixPath(dos.getenv('HOME'),false)+'.'+ppccfg) then
          ppccfg:=FixPath(dos.getenv('HOME'),false)+'.'+ppccfg
         else
@@ -1325,7 +1325,7 @@ begin
          if FileExists(configpath+ppccfg) then
           ppccfg:=configpath+ppccfg
         else
-{$ifndef linux}
+{$ifndef Unix}
          if FileExists(exepath+ppccfg) then
           ppccfg:=exepath+ppccfg
         else
@@ -1393,7 +1393,7 @@ begin
      Message(option_no_source_found);
      StopOptions;
    end;
-{$ifndef linux}
+{$ifndef Unix}
   param_file:=FixFileName(param_file);
 {$endif}
   fsplit(param_file,inputdir,inputfile,inputextension);
@@ -1421,7 +1421,7 @@ begin
 {$else}
   UnitSearchPath.AddPath(dos.getenv(target_info.unit_env),false);
 {$endif Delphi}
-{$ifdef linux}
+{$ifdef Unix}
   fpcdir:=FixPath(getenv('FPCDIR'),false);
   if fpcdir='' then
    begin
@@ -1515,7 +1515,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.16  2000-11-12 22:20:37  peter
+  Revision 1.17  2000-11-13 15:26:12  marco
+   * Renamefest
+
+  Revision 1.16  2000/11/12 22:20:37  peter
     * create generic toutputsection for binary writers
 
   Revision 1.15  2000/11/07 15:09:27  marco

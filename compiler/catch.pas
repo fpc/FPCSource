@@ -36,7 +36,7 @@ Unit catch;
 
 interface
 uses
-{$ifdef linux}
+{$ifdef unix}
   {$define has_signal}
   linux,
 {$endif}
@@ -57,7 +57,7 @@ Const in_const_evaluation : boolean = false;
 Implementation
 
 {$ifdef has_signal}
-{$ifdef linux}
+{$ifdef unix}
 Procedure CatchSignal(Sig : SmallInt);cdecl;
 {$else}
 Function CatchSignal(Sig : longint):longint;
@@ -81,7 +81,7 @@ begin
                Stop;
              end;
   end;
-{$ifndef linux}
+{$ifndef unix}
   CatchSignal:=0;
 {$endif}
 end;
@@ -101,7 +101,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2000-09-24 15:06:11  peter
+  Revision 1.5  2000-11-13 15:26:12  marco
+   * Renamefest
+
+  Revision 1.4  2000/09/24 15:06:11  peter
     * use defines.inc
 
   Revision 1.3  2000/09/10 20:26:55  peter

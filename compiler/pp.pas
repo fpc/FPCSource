@@ -91,7 +91,7 @@ uses
   {$ifdef heaptrc}
     ppheap,
   {$endif heaptrc}
-  {$ifdef linux}
+  {$ifdef Unix}
     catch,
   {$endif}
   {$ifdef go32v2}
@@ -149,7 +149,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2000-10-01 21:15:55  pierre
+  Revision 1.5  2000-11-13 15:26:12  marco
+   * Renamefest
+
+  Revision 1.4  2000/10/01 21:15:55  pierre
    * lineinfo explicit load not needed anymore
 
   Revision 1.3  2000/09/24 15:06:23  peter

@@ -30,7 +30,7 @@ interface
 {$ifdef win32}
       windows,
 {$endif}
-{$ifdef linux}
+{$ifdef unix}
       linux,
 {$endif}
 {$ifdef Delphi}
@@ -43,7 +43,7 @@ interface
       globtype,version,systems,cutils,cobjects;
 
     const
-{$ifdef linux}
+{$ifdef unix}
        DirSep = '/';
 {$else}
   {$ifdef amiga}
@@ -368,7 +368,7 @@ implementation
      convert dos datetime t to a string YY/MM/DD HH:MM:SS
    }
      var
-     {$ifndef linux}
+     {$ifndef unix}
        DT : DateTime;
      {$endif}
        Year,Month,Day,Hour,Min,Sec : Word;
@@ -378,7 +378,7 @@ implementation
           FileTimeString:='Not Found';
           exit;
         end;
-     {$ifndef linux}
+     {$ifndef unix}
        unpacktime(t,DT);
        Year:=dT.year;month:=dt.month;day:=dt.day;
        Hour:=dt.hour;min:=dt.min;sec:=dt.sec;
@@ -426,10 +426,10 @@ implementation
    }
      begin
         path_absolute:=false;
-{$ifdef linux}
+{$ifdef unix}
         if (length(s)>0) and (s[1]='/') then
           path_absolute:=true;
-{$else linux}
+{$else unix}
   {$ifdef amiga}
         if ((length(s)>0) and ((s[1]='\') or (s[1]='/'))) or (Pos(':',s) = length(s)) then
           path_absolute:=true;
@@ -438,7 +438,7 @@ implementation
            ((length(s)>2) and (s[2]=':') and ((s[3]='\') or (s[3]='/'))) then
           path_absolute:=true;
   {$endif amiga}
-{$endif linux}
+{$endif unix}
      end;
 
 {$ifndef FPC}
@@ -593,7 +593,7 @@ implementation
         if (not allowdot) and (s='.'+DirSep) then
          s:='';
         { return }
-{$ifdef linux}
+{$ifdef unix}
         FixPath:=s;
 {$else}
         FixPath:=Lower(s);
@@ -812,12 +812,12 @@ implementation
 
    Function GetFileTime ( Var F : File) : Longint;
    Var
-   {$ifdef linux}
+   {$ifdef unix}
      Info : Stat;
    {$endif}
      L : longint;
    begin
-   {$ifdef linux}
+   {$ifdef unix}
      FStat (F,Info);
      L:=Info.Mtime;
    {$else}
@@ -867,7 +867,7 @@ implementation
         singlepathstring : string;
         i : longint;
      begin
-     {$ifdef linux}
+     {$ifdef unix}
        for i:=1 to length(path) do
         if path[i]=':' then
        path[i]:=';';
@@ -941,7 +941,7 @@ implementation
         hp,p,p2 : pchar;
       {$endif}
       begin
-      {$ifdef linux}
+      {$ifdef unix}
         GetEnvPchar:=Linux.Getenv(envname);
         {$define GETENVOK}
       {$endif}
@@ -977,7 +977,7 @@ implementation
 
     procedure FreeEnvPChar(p:pchar);
       begin
-      {$ifndef linux}
+      {$ifndef unix}
         StrDispose(p);
       {$endif}
       end;
@@ -986,7 +986,7 @@ implementation
     Procedure Shell(const command:string);
       { This is already defined in the linux.ppu for linux, need for the *
         expansion under linux }
-      {$ifdef linux}
+      {$ifdef unix}
       begin
         Linux.Shell(command);
       end;
@@ -1131,9 +1131,9 @@ implementation
                                     Init
 ****************************************************************************}
 
-{$ifdef linux}
+{$ifdef unix}
   {$define need_path_search}
-{$endif linux}
+{$endif unix}
 {$ifdef os2}
   {$define need_path_search}
 {$endif os2}
@@ -1270,7 +1270,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2000-11-12 22:20:37  peter
+  Revision 1.20  2000-11-13 15:26:12  marco
+   * Renamefest
+
+  Revision 1.19  2000/11/12 22:20:37  peter
     * create generic toutputsection for binary writers
 
   Revision 1.18  2000/11/04 14:25:19  florian

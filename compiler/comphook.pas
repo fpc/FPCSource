@@ -138,7 +138,7 @@ const
 implementation
 
   uses
-{$ifdef Linux}
+{$ifdef Unix}
    linux,
 {$endif}
 {$ifdef delphi}
@@ -340,14 +340,14 @@ end;
 Function def_GetNamedFileTime (Const F : String) : Longint;
 var
   L : Longint;
-{$ifndef linux}
+{$ifndef Unix}
   info : SearchRec;
 {$else}
   info : stat;
 {$endif}
 begin
   l:=-1;
-{$ifdef linux}
+{$ifdef Unix}
   if FStat (F,Info) then
    L:=info.mtime;
 {$else}
@@ -359,14 +359,17 @@ begin
   if DosError=0 then
    l:=info.time;
   FindClose(info);
-{$endif linux}
+{$endif Unix}
   def_GetNamedFileTime:=l;
 end;
 
 end.
 {
   $Log$
-  Revision 1.8  2000-09-30 16:07:20  peter
+  Revision 1.9  2000-11-13 15:26:12  marco
+   * Renamefest
+
+  Revision 1.8  2000/09/30 16:07:20  peter
     * prefix fix (merged)
 
   Revision 1.7  2000/09/24 21:33:46  peter

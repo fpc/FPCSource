@@ -90,7 +90,7 @@ Implementation
 
 uses
   cutils,script,fmodule,systems,verbose
-{$ifdef linux}
+{$ifdef unix}
   ,linux
 {$endif}
 {$ifdef i386}
@@ -351,7 +351,7 @@ begin
   place:=Aplace;
   if SmartAsm then
    NextSmartName;
-{$ifdef linux}
+{$ifdef unix}
   if DoPipe then
    begin
      Message1(exec_i_assembling_pipe,asmfile);
@@ -379,7 +379,7 @@ var
   l : longint;
 begin
   AsmFlush;
-{$ifdef linux}
+{$ifdef unix}
   if DoPipe then
    Close(outfile)
   else
@@ -596,7 +596,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2000-10-01 19:48:23  peter
+  Revision 1.7  2000-11-13 15:26:12  marco
+   * Renamefest
+
+  Revision 1.6  2000/10/01 19:48:23  peter
     * lot of compile updates for cg11
 
   Revision 1.5  2000/09/24 15:06:11  peter
