@@ -78,13 +78,15 @@ package=asld.i386-win32.zip,GNU ~L~inker and GNU Assembler for Win32 (required)
 # Win32 3
 package=ide.i386-win32.zip,~I~DE with integrated debugger/compiler (BETA)
 # Win32 4
-package=util.i386-win32.zip,~E~xtra Utilities
+package=utils.i386-win32.zip,~E~xtra Utilities
 # Win32 5
 package=make.i386-win32.zip,GNU ~U~tilities (needed for Makefile usage)
 # Win32 6
 package=gdb.i386-win32.zip,GNU ~D~ebugger for Win32
 # Win32 7
 package=units-fcl.i386-win32.zip,~F~ree Component Libary (FCL)
+# Win32 8
+package=units-fpgtk.i386-win32.zip,fpGTK units
 
 
 #
@@ -305,6 +307,8 @@ package=utils.source.zip[utilsrc.zip],~U~tils sources
 package=installer.source.zip[instsrc.zip],~I~nstaller sources
 # Source 7
 package=doc.source.zip[docsrc.zip],~D~ocumentation sources (LaTeX)
+# Source 8
+package=units-cdrom.source.zip[ucdrsrc.zip],CD-ROM interface units
 # Source 9
 package=units-unzip.source.zip[uzipsrc.zip],Unzip units
 # Source 10
@@ -318,9 +322,9 @@ package=units-zlib.source.zip[uzlibsrc.zip],ZLib interface units
 # Source 14
 package=units-netdb.source.zip[undbsrc.zip],NetDB units
 # Source 15
-package=units-mmsystem.source.zip,MMSystem interface units
+package=units-mmsystem.source.zip,Win32 MMSystem interface units
 # Source 16
-package=units-gdbint.source.zip[ugdbsrc.zip],GDB Interfacing units
+package=units-gdbint.source.zip[ugdbsrc.zip],GDB interface units
 
 #
 # Source packages 2nd part
@@ -328,23 +332,25 @@ package=units-gdbint.source.zip[ugdbsrc.zip],GDB Interfacing units
 pack=So~u~rces 2
 filecheck=*.source.zip[*src.zip]
 # Source-2 1
-package=units-opengl.source.zip[uoglsrc.zip],OpenGL units
+package=units-opengl.source.zip[uoglsrc.zip],OpenGL interface units
 # Source-2 2
-package=units-gtk.source.zip,GTK units
+package=units-gtk.source.zip[ugtksrc.zip],GTK interface units
+# Source-2 3
+package=units-odbc.source.zip[uodbcsrc.zip],ODBC interface units
 # Source-2 4
-package=units-ibase.source.zip,Interbase interface units
+package=units-ibase.source.zip[uibassrc.zip],Interbase interface units
 # Source-2 5
-package=units-mysql.source.zip,MySQL interface units
+package=units-mysql.source.zip[umysqsrc.zip],MySQL interface units
 # Source-2 6
-package=units-ftpapi.source.zip[uftpsrc.zip],FTP API interface units
+package=units-ftpapi.source.zip[uftpsrc.zip],OS/2 FTP API interface units
 # Source-2 7
-package=units-hwvideo.source.zip[uhwvsrc.zip],HW Video interface units
+package=units-hwvideo.source.zip[uhwvsrc.zip],OS/2 HWVideo interface units
 # Source-2 8
 package=units-mmtk.source.zip[ummtksrc.zip],MMOS/2 interface units
 # Source-2 9
 package=units-clkdll.source.zip[uclksrc.zip],CLKDLL interface unit (eCS 1.1+)
 # Source-2 10
-package=units-lvm.source.zip[ulvmsrc.zip],LVM interface unit
+package=units-lvm.source.zip[ulvmsrc.zip],OS/2 LVM interface unit
 # Source-2 11
 package=units-pasjpeg.source.zip[upjpsrc.zip],PasJPEG units
 # Source-2 12
@@ -353,6 +359,18 @@ package=units-fv.source.zip[ufvsrc.zip],Free ~V~ision (FV)
 package=units-libpng.source.zip[ulpngsrc.zip],LibPNG interface units
 # Source-2 14
 package=units-imlib.source.zip[uimlbsrc.zip],ImLib interface units
+# Source-2 15
+package=units-fpgtk.source.zip[ufpgtsrc.zip],fpGTK units
+# Source-2 16
+package=units-sqlite.source.zip[usqltsrc.zip],SQLite interface units
+
+#
+# Source packages 3rd part
+#
+pack=Sources 3
+filecheck=*.source.zip[*src.zip]
+# Source-3 1
+package=units-winver.source.zip[uwversrc.zip],Windows version detection unit
 
 
 defaultcfg=
