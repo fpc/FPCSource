@@ -338,7 +338,7 @@ end;
 
 Function TraceGetMem(size:longint):pointer;
 var
-  i,bp : longint;
+  allocsize,i,bp : longint;
   pl : pdword;
   p : pointer;
   pp : pheap_mem_info;
@@ -346,11 +346,12 @@ begin
   inc(getmem_size,size);
   inc(getmem8_size,((size+7) div 8)*8);
 { Do the real GetMem, but alloc also for the info block }
-  bp:=size+sizeof(theap_mem_info)+extra_info_size;
+  allocsize:=size+sizeof(theap_mem_info)+extra_info_size;
   if add_tail then
-    inc(bp,sizeof(longint));
-  p:=SysGetMem(bp);
+    inc(allocsize,sizeof(longint));
+  p:=SysGetMem(allocsize);
   pp:=pheap_mem_info(p);
+  inc(p,sizeof(theap_mem_info));
 { Create the info block }
   pp^.sig:=$DEADBEEF;
   pp^.size:=size;
@@ -363,7 +364,7 @@ begin
   }
   if extra_info_size>0 then
    begin
-     pp^.extra_info:=pointer(p)+bp-extra_info_size;
+     pp^.extra_info:=pointer(pp)+allocsize-extra_info_size;
      fillchar(pp^.extra_info^,extra_info_size,0);
      pp^.extra_info^.check:=$12345678;
      pp^.extra_info^.fillproc:=fill_extra_info_proc;
@@ -379,36 +380,37 @@ begin
    pp^.extra_info:=nil;
   if add_tail then
     begin
-      pl:=pointer(p)+bp-extra_info_size-sizeof(longint);
+      pl:=pointer(pp)+allocsize-pp^.extra_info_size-sizeof(longint);
       pl^:=$DEADBEEF;
     end;
+  { clear the memory }
+  fillchar(p^,size,#255);
   { retrieve backtrace info }
   bp:=get_caller_frame(get_frame);
   for i:=1 to tracesize do
    begin
-     pheap_mem_info(p)^.calls[i]:=get_caller_addr(bp);
+     pp^.calls[i]:=get_caller_addr(bp);
      bp:=get_caller_frame(bp);
    end;
   { insert in the linked list }
   if heap_mem_root<>nil then
-   heap_mem_root^.next:=pheap_mem_info(p);
-  pheap_mem_info(p)^.previous:=heap_mem_root;
-  pheap_mem_info(p)^.next:=nil;
+   heap_mem_root^.next:=pp;
+  pp^.previous:=heap_mem_root;
+  pp^.next:=nil;
 {$ifdef EXTRA}
-  pheap_mem_info(p)^.prev_valid:=heap_valid_last;
-  heap_valid_last:=pheap_mem_info(p);
+  pp^.prev_valid:=heap_valid_last;
+  heap_valid_last:=pp;
   if not assigned(heap_valid_first) then
-    heap_valid_first:=pheap_mem_info(p);
+    heap_valid_first:=pp;
 {$endif EXTRA}
-  heap_mem_root:=p;
+  heap_mem_root:=pp;
   { must be changed before fill_extra_info is called
     because checkpointer can be called from within
     fill_extra_info PM }
   inc(getmem_cnt);
-{ update the pointer }
+  { update the signature }
   if usecrc then
-    pheap_mem_info(p)^.sig:=calculate_sig(pheap_mem_info(p));
-  inc(p,sizeof(theap_mem_info));
+    pp^.sig:=calculate_sig(pp);
   TraceGetmem:=p;
 end;
 
@@ -428,14 +430,15 @@ var
 begin
   inc(freemem_size,size);
   inc(freemem8_size,((size+7) div 8)*8);
-  dec(p,sizeof(theap_mem_info));
-  pp:=pheap_mem_info(p);
-  extra_size:=pp^.extra_info_size;
+  pp:=pheap_mem_info(p-sizeof(theap_mem_info));
   ppsize:= size + sizeof(theap_mem_info)+pp^.extra_info_size;
   if add_tail then
     inc(ppsize,sizeof(longint));
-  if not quicktrace and not(is_in_getmem_list(pp)) then
-    RunError(204);
+  if not quicktrace then
+    begin
+      if not(is_in_getmem_list(pp)) then
+       RunError(204);
+    end;
   if (pp^.sig=$AAAAAAAA) and not usecrc then
     begin
        error_in_heap:=true;
@@ -465,6 +468,8 @@ begin
        { don't release anything in this case !! }
        exit;
     end;
+  { save old values }
+  extra_size:=pp^.extra_info_size;
   { now it is released !! }
   pp^.sig:=$AAAAAAAA;
   if not keepreleased then
@@ -486,13 +491,11 @@ begin
         end;
     end;
   inc(freemem_cnt);
-  { release the normal memory at least !! }
+  { clear the memory }
+  fillchar(p^,size,#240); { $F0 will lead to GFP if used as pointer ! }
   { this way we keep all info about all released memory !! }
   if keepreleased then
     begin
-       i:=ppsize;
-       inc(p,sizeof(theap_mem_info));
-       fillchar(p^,size,#240); { $F0 will lead to GFP if used as pointer ! }
 {$ifdef EXTRA}
        { We want to check if the memory was changed after release !! }
        pp^.release_sig:=calculate_release_sig(pp);
@@ -501,6 +504,8 @@ begin
             heap_valid_last:=pp^.prev_valid;
             if pp=heap_valid_first then
               heap_valid_first:=nil;
+            TraceFreememsize:=size;
+            p:=nil;
             exit;
          end;
        pp2:=heap_valid_last;
@@ -511,20 +516,25 @@ begin
                  pp2^.prev_valid:=pp^.prev_valid;
                  if pp=heap_valid_first then
                    heap_valid_first:=pp2;
+                 TraceFreememsize:=size;
+                 p:=nil;
                  exit;
               end
             else
               pp2:=pp2^.prev_valid;
          end;
 {$endif EXTRA}
+       TraceFreememsize:=size;
+       p:=nil;
        exit;
-    end
-  else
-    i:=SysFreeMemSize(p,ppsize);
-  dec(i,sizeof(theap_mem_info)+extra_size);
-  if add_tail then
-   dec(i,sizeof(longint));
-  TraceFreeMemSize:=i;
+    end;
+   { release the normal memory at least }
+   i:=SysFreeMemSize(pp,ppsize);
+   { return the correct size }
+   dec(i,sizeof(theap_mem_info)+extra_size);
+   if add_tail then
+     dec(i,sizeof(longint));
+   TraceFreeMemSize:=i;
 end;
 
 
@@ -533,8 +543,7 @@ var
   l : longint;
   pp : pheap_mem_info;
 begin
-  dec(p,sizeof(theap_mem_info));
-  pp:=pheap_mem_info(p);
+  pp:=pheap_mem_info(p-sizeof(theap_mem_info));
   l:=SysMemSize(pp);
   dec(l,sizeof(theap_mem_info)+pp^.extra_info_size);
   if add_tail then
@@ -549,7 +558,6 @@ var
   pp : pheap_mem_info;
 begin
   pp:=pheap_mem_info(p-sizeof(theap_mem_info));
-  size:=TraceMemSize(p);
   size:=TraceMemSize(p);
   { this can never happend normaly }
   if pp^.size>size then
@@ -596,8 +604,7 @@ begin
      exit;
    end;
 { Resize block }
-  dec(p,sizeof(theap_mem_info));
-  pp:=pheap_mem_info(p);
+  pp:=pheap_mem_info(p-sizeof(theap_mem_info));
   { test block }
   if ((pp^.sig<>$DEADBEEF) or usecrc) and
      ((pp^.sig<>calculate_sig(pp)) or not usecrc) then
@@ -625,10 +632,8 @@ begin
    inc(allocsize,sizeof(longint));
   { Try to resize the block, if not possible we need to do a
     getmem, move data, freemem }
-  if not SysTryResizeMem(p,allocsize) then
+  if not SysTryResizeMem(pp,allocsize) then
    begin
-     { restore p }
-     inc(p,sizeof(theap_mem_info));
      { get a new block }
      oldsize:=TraceMemSize(p);
      newP := TraceGetMem(size);
@@ -637,18 +642,18 @@ begin
        move(p^,newP^,oldsize);
      { release p }
      traceFreeMem(p);
-     p := newP;
-     traceReAllocMem := p;
+     { return the new pointer }
+     p:=newp;
+     traceReAllocMem := newp;
      exit;
    end;
-  pp:=pheap_mem_info(p);
 { adjust like a freemem and then a getmem, so you get correct
   results in the summary display }
   inc(freemem_size,pp^.size);
   inc(freemem8_size,((pp^.size+7) div 8)*8);
   inc(getmem_size,size);
   inc(getmem8_size,((size+7) div 8)*8);
-{ Create the info block }
+{ Recreate the info block }
   pp^.sig:=$DEADBEEF;
   pp^.size:=size;
   pp^.extra_info_size:=oldextrasize;
@@ -656,7 +661,7 @@ begin
   { add the new extra_info and tail }
   if pp^.extra_info_size>0 then
    begin
-     pp^.extra_info:=p+allocsize-pp^.extra_info_size;
+     pp^.extra_info:=pointer(pp)+allocsize-pp^.extra_info_size;
      fillchar(pp^.extra_info^,extra_info_size,0);
      pp^.extra_info^.check:=$12345678;
      pp^.extra_info^.fillproc:=old_fill_extra_info_proc;
@@ -668,7 +673,7 @@ begin
    pp^.extra_info:=nil;
   if add_tail then
     begin
-      pl:=pointer(p)+allocsize-pp^.extra_info_size-sizeof(longint);
+      pl:=pointer(pp)+allocsize-pp^.extra_info_size-sizeof(longint);
       pl^:=$DEADBEEF;
     end;
   { generate new backtrace }
@@ -681,8 +686,8 @@ begin
   { regenerate signature }
   if usecrc then
     pp^.sig:=calculate_sig(pp);
-{ update the pointer }
-  inc(p,sizeof(theap_mem_info));
+  { return the pointer }
+  p:=pointer(pp)+sizeof(theap_mem_info);
   TraceReAllocmem:=p;
 end;
 
@@ -1118,8 +1123,8 @@ finalization
 end.
 {
   $Log$
-  Revision 1.9  2001-04-12 18:00:14  peter
-    * allow runtime setting using the environment HEAPTRC
+  Revision 1.10  2001-04-13 01:18:08  peter
+    * always clear memory in getmem and freemem
 
   Revision 1.8  2001/04/11 14:08:31  peter
     * some small fixes to my previous commit
