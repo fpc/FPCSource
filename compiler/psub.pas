@@ -84,6 +84,9 @@ implementation
       var
          storepos : tfileposinfo;
       begin
+         { parse const,types and vars }
+         read_declarations(islibrary);
+
          { do we have an assembler block without the po_assembler?
            we should allow this for Delphi compatibility (PFV) }
          if (token=_ASM) and (m_delphi in aktmodeswitches) then
@@ -92,7 +95,6 @@ implementation
          { Handle assembler block different }
          if (po_assembler in aktprocdef.procoptions) then
           begin
-            read_declarations(false);
             block:=assembler_block;
             exit;
           end;
@@ -117,7 +119,6 @@ implementation
                  symtablestack.insert(aktprocdef.resultfuncretsym);
                end;
            end;
-         read_declarations(islibrary);
 
          procinfo.handle_body_start;
 
@@ -818,7 +819,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.83  2002-12-29 14:57:50  peter
+  Revision 1.84  2002-12-29 18:25:18  peter
+    * parse declarations before check _ASM token
+
+  Revision 1.83  2002/12/29 14:57:50  peter
     * unit loading changed to first register units and load them
       afterwards. This is needed to support uses xxx in yyy correctly
     * unit dependency check fixed
