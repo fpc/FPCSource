@@ -151,7 +151,7 @@ unit files;
 
           constructor init(const s:string;_is_unit:boolean);
           destructor done;virtual;
-          procedure setfilename(const fn:string);
+          procedure setfilename(const fn:string;allowoutput:boolean);
           function  openppu:boolean;
           function  search_unit(const n : string):boolean;
        end;
@@ -502,9 +502,9 @@ unit files;
           end;
 
      end;
-     
-   
-   
+
+
+
    function tfilemanager.get_file(l :longint) : pinputfile;
      var
         ff : pinputfile;
@@ -544,7 +544,7 @@ unit files;
                                   TMODULE
  ****************************************************************************}
 
-    procedure tmodule.setfilename(const fn:string);
+    procedure tmodule.setfilename(const fn:string;allowoutput:boolean);
       var
         p : dirstr;
         n : NameStr;
@@ -559,18 +559,32 @@ unit files;
          stringdispose(path);
          { Create names }
          fsplit(fn,p,n,e);
-         p:=FixPath(p);
          n:=FixFileName(n);
-         { set path and obj,asm,ppu names }
-         path:=stringdup(p);
+         { set path }
+         path:=stringdup(FixPath(p));
+         { obj,asm,ppu names }
+         p:=path^;
+         if AllowOutput then
+          begin
+            if (OutputUnitDir<>'') then
+             p:=OutputUnitDir
+            else
+             if (OutputExeDir<>'') then
+              p:=OutputExeDir;
+          end;
          objfilename:=stringdup(p+n+target_info.objext);
          asmfilename:=stringdup(p+n+target_info.asmext);
          ppufilename:=stringdup(p+n+target_info.unitext);
          { lib and exe could be loaded with a file specified with -o }
-         if OutputFile<>'' then
+         if AllowOutput and (OutputFile<>'') then
           n:=OutputFile;
          staticlibfilename:=stringdup(p+target_os.libprefix+n+target_os.staticlibext);
          sharedlibfilename:=stringdup(p+target_os.libprefix+n+target_os.sharedlibext);
+         { output dir of exe can be specified separatly }
+         if AllowOutput and (OutputExeDir<>'') then
+          p:=OutputExeDir
+         else
+          p:=path^;
          exefilename:=stringdup(p+n+target_os.exeext);
       end;
 
@@ -711,7 +725,7 @@ unit files;
               Found:=UnitExists(target_info.unitlibext);
               if Found then
                Begin
-                 SetFileName(SinglePathString+FileName);
+                 SetFileName(SinglePathString+FileName,false);
                  Found:=OpenPPU;
                End;
              end;
@@ -721,7 +735,7 @@ unit files;
               Found:=UnitExists(target_info.unitext);
               if Found then
                Begin
-                 SetFileName(SinglePathString+FileName);
+                 SetFileName(SinglePathString+FileName,false);
                  Found:=OpenPPU;
                End;
             end;
@@ -747,7 +761,7 @@ unit files;
                  sources_avail:=true;
                {Load Filenames when found}
                  mainsource:=StringDup(SinglePathString+FileName+Ext);
-                 SetFileName(SinglePathString+FileName);
+                 SetFileName(SinglePathString+FileName,false);
                end
               else
                sources_avail:=false;
@@ -787,7 +801,7 @@ unit files;
   {$endif}
 {$endif tp}
          path:=nil;
-         setfilename(p+n);
+         setfilename(p+n,true);
          used_units.init;
          sourcefiles.init;
          linkofiles.init;
@@ -892,7 +906,10 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.47  1998-09-22 17:13:43  pierre
+  Revision 1.48  1998-09-24 23:46:34  peter
+    + outputdir support
+
+  Revision 1.47  1998/09/22 17:13:43  pierre
     + browsing updated and developed
       records and objects fields are also stored
 
