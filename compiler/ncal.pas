@@ -24,6 +24,8 @@ unit ncal;
 
 {$i fpcdefs.inc}
 
+{ define NODEINLINE}
+
 interface
 
     uses
@@ -67,8 +69,9 @@ interface
           procedure order_parameters;
 
           procedure createinlineparas(var createstatement, deletestatement: tstatementnode);
-          function replaceparaload(var n: tnode; arg: pointer): foreachnoderesult;
+          function  replaceparaload(var n: tnode; arg: pointer): foreachnoderesult;
           procedure createlocaltemps(p:TNamedIndexItem;arg:pointer);
+          function  pass1_inline:tnode;
        protected
           pushedparasize : longint;
        public
@@ -85,8 +88,10 @@ interface
           methodpointerinit,
           methodpointerdone : tblocknode;
           methodpointer  : tnode;
+{$ifdef PASS2INLINE}
           { inline function body }
           inlinecode : tnode;
+{$endif PASS2INLINE}
           { varargs parasyms }
           varargsparas : tvarargsparalist;
           { node that specifies where the result should be put for calls }
@@ -707,7 +712,9 @@ type
          methodpointerdone:=nil;
          procdefinition:=nil;
          _funcretnode:=nil;
+{$ifdef PASS2INLINE}
          inlinecode:=nil;
+{$endif PASS2INLINE}
          paralength:=-1;
          varargsparas:=nil;
       end;
@@ -724,7 +731,9 @@ type
          procdefinition:=nil;
          callnodeflags:=[cnf_return_value_used];
          _funcretnode:=nil;
+{$ifdef PASS2INLINE}
          inlinecode:=nil;
+{$endif PASS2INLINE}
          paralength:=-1;
          varargsparas:=nil;
       end;
@@ -823,7 +832,9 @@ type
          methodpointerinit.free;
          methodpointerdone.free;
          _funcretnode.free;
+{$ifdef PASS2INLINE}
          inlinecode.free;
+{$endif PASS2INLINE}
          if assigned(varargsparas) then
            begin
              for i:=0 to varargsparas.count-1 do
@@ -848,7 +859,9 @@ type
         methodpointerinit:=tblocknode(ppuloadnode(ppufile));
         methodpointerdone:=tblocknode(ppuloadnode(ppufile));
         _funcretnode:=ppuloadnode(ppufile);
+{$ifdef PASS2INLINE}
         inlinecode:=ppuloadnode(ppufile);
+{$endif PASS2INLINE}
       end;
 
 
@@ -862,7 +875,9 @@ type
         ppuwritenode(ppufile,methodpointerinit);
         ppuwritenode(ppufile,methodpointerdone);
         ppuwritenode(ppufile,_funcretnode);
+{$ifdef PASS2INLINE}
         ppuwritenode(ppufile,inlinecode);
+{$endif PASS2INLINE}
       end;
 
 
@@ -879,8 +894,10 @@ type
           methodpointerdone.buildderefimpl;
         if assigned(_funcretnode) then
           _funcretnode.buildderefimpl;
+{$ifdef PASS2INLINE}
         if assigned(inlinecode) then
           inlinecode.buildderefimpl;
+{$endif PASS2INLINE}
       end;
 
 
@@ -901,8 +918,10 @@ type
           methodpointerdone.derefimpl;
         if assigned(_funcretnode) then
           _funcretnode.derefimpl;
+{$ifdef PASS2INLINE}
         if assigned(inlinecode) then
           inlinecode.derefimpl;
+{$endif PASS2INLINE}
         { Connect parasyms }
         pt:=tcallparanode(left);
         while assigned(pt) and
@@ -961,10 +980,12 @@ type
          n._funcretnode:=_funcretnode.getcopy
         else
          n._funcretnode:=nil;
+{$ifdef PASS2INLINE}
         if assigned(inlinecode) then
          n.inlinecode:=inlinecode.getcopy
         else
          n.inlinecode:=nil;
+{$endif PASS2INLINE}
         if assigned(varargsparas) then
          begin
            n.varargsparas:=tvarargsparalist.create;
@@ -1955,7 +1976,7 @@ type
           end
         else
           begin
-            tempnode := ctempcreatenode.create(tabstractvarsym(p).vartype,tabstractvarsym(p).vartype.def.size,tt_persistent,tparavarsym(p).varregable<>vr_none);
+            tempnode := ctempcreatenode.create(tabstractvarsym(p).vartype,tabstractvarsym(p).vartype.def.size,tt_persistent,tabstractvarsym(p).varregable<>vr_none);
             addstatement(tempinfo^.createstatement,tempnode);
             if assigned(tlocalvarsym(p).defaultconstsym) then
               begin
@@ -2049,13 +2070,48 @@ type
       end;
 
 
-    function tcallnode.pass_1 : tnode;
+
+    function tcallnode.pass1_inline:tnode;
       var
         createstatement,deletestatement: tstatementnode;
         createblock,deleteblock: tblocknode;
         i: longint;
-      label
-        errorexit;
+      begin
+        if not assigned(tprocdef(procdefinition).inlininginfo^.code) then
+          internalerror(200412021);
+        { inherit flags }
+        current_procinfo.flags := current_procinfo.flags + ((procdefinition as tprocdef).inlininginfo^.flags*inherited_inlining_flags);
+        { create blocks for loading/deleting of local data }
+        createblock:=internalstatements(createstatement);
+        deleteblock:=internalstatements(deletestatement);
+        inlinelocals:=tlist.create;
+        { replace complex parameters with temps }
+        createinlineparas(createstatement,deletestatement);
+        { replace the parameter loads with the parameter values }
+        foreachnode(result,@replaceparaload,@fileinfo);
+        { free the temps for the locals }
+        for i := 0 to inlinelocals.count-1 do
+          if assigned(inlinelocals[i]) then
+            tnode(inlinelocals[i]).free;
+        inlinelocals.free;
+        inlinelocals:=nil;
+        addstatement(createstatement,tprocdef(procdefinition).inlininginfo^.code.getcopy);
+        addstatement(createstatement,deleteblock);
+        { set function result location if necessary }
+        if assigned(funcretnode) and
+           (cnf_return_value_used in callnodeflags) then
+          addstatement(createstatement,funcretnode.getcopy);
+        { consider it must not be inlined if called
+          again inside the args or itself }
+        procdefinition.proccalloption:=pocall_default;
+        firstpass(createblock);
+        procdefinition.proccalloption:=pocall_inline;
+        { return inlined block }
+        result := createblock;
+      end;
+
+
+    function tcallnode.pass_1 : tnode;
       begin
          result:=nil;
 
@@ -2064,49 +2120,8 @@ type
             { can we inline this procedure at the node level? }
             (tprocdef(procdefinition).inlininginfo^.inlinenode) then
            begin
-              { inherit flags }
-              current_procinfo.flags := current_procinfo.flags + ((procdefinition as tprocdef).inlininginfo^.flags*inherited_inlining_flags);
-
-              if assigned(methodpointer) then
-                CGMessage(cg_e_unable_inline_object_methods);
-              if assigned(right) then
-                CGMessage(cg_e_unable_inline_procvar);
-              if assigned(inlinecode) then
-                internalerror(2004071110);
-
-              if assigned(tprocdef(procdefinition).inlininginfo^.code) then
-                result:=tprocdef(procdefinition).inlininginfo^.code.getcopy
-              else
-                CGMessage(cg_e_no_code_for_inline_stored);
-              if assigned(result) then
-                begin
-                  createblock := internalstatements(createstatement);
-                  deleteblock := internalstatements(deletestatement);
-                  inlinelocals:=tlist.create;
-                  { replace complex parameters with temps }
-                  createinlineparas(createstatement,deletestatement);
-                  { replace the parameter loads with the parameter values }
-                  foreachnode(result,@replaceparaload,@fileinfo);
-                  { free the temps for the locals }
-                  for i := 0 to inlinelocals.count-1 do
-                    if assigned(inlinelocals[i]) then
-                      tnode(inlinelocals[i]).free;
-                  inlinelocals.free;
-                  inlinelocals:=nil;
-                  addstatement(createstatement,result);
-                  addstatement(createstatement,deleteblock);
-                  { set function result location if necessary }
-                  if assigned(funcretnode) and
-                     (cnf_return_value_used in callnodeflags) then
-                    addstatement(createstatement,funcretnode.getcopy);
-                  result := createblock;
-                  { consider it must not be inlined if called
-                    again inside the args or itself }
-                  procdefinition.proccalloption:=pocall_default;
-                  firstpass(result);
-                  procdefinition.proccalloption:=pocall_inline;
-                  exit;
-                end;
+             result:=pass1_inline;
+             exit;
            end;
 {$endif NODEINLINE}
 
@@ -2157,6 +2172,7 @@ type
            begin
 	      if procdefinition.deftype<>procdef then
 	        internalerror(200411071);
+{$ifdef PASS2INLINE}
               { calc the correture value for the register }
               { handle predefined procedures }
               if (procdefinition.proccalloption=pocall_inline) then
@@ -2184,6 +2200,7 @@ type
                      end;
                 end
               else
+{$endif PASS2INLINE}
                 begin
                   if not (block_type in [bt_const,bt_type]) then
                     include(current_procinfo.flags,pi_do_call);
@@ -2292,16 +2309,18 @@ type
                end;
            end;
 
+{$ifdef PASS2INLINE}
          { determine the registers of the procedure variable }
          { is this OK for inlined procs also ?? (PM)     }
          if assigned(inlinecode) then
            begin
               registersfpu:=max(inlinecode.registersfpu,registersfpu);
               registersint:=max(inlinecode.registersint,registersint);
-{$ifdef SUPPORT_MMX}
+  {$ifdef SUPPORT_MMX}
               registersmmx:=max(inlinecode.registersmmx,registersmmx);
-{$endif SUPPORT_MMX}
+  {$endif SUPPORT_MMX}
            end;
+{$endif PASS2INLINE}
          { determine the registers of the procedure variable }
          { is this OK for inlined procs also ?? (PM)     }
          if assigned(right) then
@@ -2321,9 +2340,10 @@ type
               registersmmx:=max(left.registersmmx,registersmmx);
 {$endif SUPPORT_MMX}
            end;
-      errorexit:
+{$ifdef PASS2INLINE}
          if assigned(inlinecode) then
            procdefinition.proccalloption:=pocall_inline;
+{$endif PASS2INLINE}
       end;
 
 {$ifdef state_tracking}
@@ -2409,7 +2429,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.265  2004-11-28 14:34:59  jonas
+  Revision 1.266  2004-12-02 19:26:14  peter
+    * disable pass2inline
+
+  Revision 1.265  2004/11/28 14:34:59  jonas
     * only try to replace locals from the inlined procedure with temps,
       cycle now works with -dNODEINLINE
 

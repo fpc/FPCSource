@@ -937,15 +937,6 @@ implementation
        end;
 
 
-    function containsforbiddennode(var n: tnode; arg: pointer): foreachnoderesult;
-      begin
-        if (n.nodetype <> exitn) then
-          result := fen_false
-        else
-          result := fen_norecurse_true;
-      end;
-
-
     function checknodeinlining(procdef: tprocdef): boolean;
       var
         i : integer;
@@ -966,8 +957,7 @@ implementation
                is_special_array(currpara.vartype.def)  then
               exit;
           end;
-        { we currently can't handle exit-statements (would exit the caller) }
-        result := not foreachnodestatic(procdef.inlininginfo^.code,@containsforbiddennode,nil);
+        result:=true;
       end;
 
 
@@ -1057,6 +1047,8 @@ implementation
              procdef.inlininginfo^.code:=code.getcopy;
              procdef.inlininginfo^.flags:=current_procinfo.flags;
              procdef.inlininginfo^.inlinenode:=checknodeinlining(procdef);
+             if procdef.inlininginfo^.code.nodetype=blockn then
+               include(procdef.inlininginfo^.code.flags,nf_block_with_exit);
            end
          else
            procdef.inlininginfo^.code:=code;
@@ -1438,7 +1430,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.220  2004-11-29 18:50:15  peter
+  Revision 1.221  2004-12-02 19:26:15  peter
+    * disable pass2inline
+
+  Revision 1.220  2004/11/29 18:50:15  peter
     * os2 fixes for import
     * asmsymtype support for intel reader
 

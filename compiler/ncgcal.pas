@@ -48,7 +48,9 @@ interface
        private
           procedure release_para_temps;
           procedure normal_pass_2;
+{$ifdef PASS2INLINE}
           procedure inlined_pass_2;
+{$endif PASS2INLINE}
           procedure pushparas;
           procedure freeparas;
        protected
@@ -364,10 +366,12 @@ implementation
              objectlibrary.getlabel(falselabel);
              secondpass(left);
 
-             if not(assigned(aktcallnode.inlinecode)) then
-               paramanager.createtempparaloc(exprasmlist,aktcallnode.procdefinition.proccalloption,parasym,tempcgpara)
+{$ifdef PASS2INLINE}
+             if assigned(aktcallnode.inlinecode) then
+               paramanager.duplicateparaloc(exprasmlist,aktcallnode.procdefinition.proccalloption,parasym,tempcgpara)
              else
-               paramanager.duplicateparaloc(exprasmlist,aktcallnode.procdefinition.proccalloption,parasym,tempcgpara);
+{$endif PASS2INLINE}
+               paramanager.createtempparaloc(exprasmlist,aktcallnode.procdefinition.proccalloption,parasym,tempcgpara);
 
              { handle varargs first, because parasym is not valid }
              if (cpf_varargs_para in callparaflags) then
@@ -698,7 +702,9 @@ implementation
                  { better check for the real location of the parameter here, when stack passed parameters
                    are saved temporary in registers, checking for the tmpparaloc.loc is wrong
                  }
+{$ifdef PASS2INLINE}
                  if not assigned(inlinecode) then
+{$endif PASS2INLINE}
                    paramanager.freeparaloc(exprasmlist,ppn.tempcgpara);
                  tmpparaloc:=ppn.tempcgpara.location;
                  callerparaloc:=ppn.parasym.paraloc[callerside].location;
@@ -738,7 +744,9 @@ implementation
                          end;
                        LOC_REFERENCE:
                          begin
+{$ifdef PASS2INLINE}
                            if not assigned(inlinecode) then
+{$endif PASS2INLINE}
                              begin
 {$ifdef cputargethasfixedstack}
                                reference_reset_base(href,callerparaloc^.reference.index,callerparaloc^.reference.offset);
@@ -781,7 +789,10 @@ implementation
          ppn:=tcgcallparanode(left);
          while assigned(ppn) do
            begin
-             if not assigned(inlinecode) or
+             if
+{$ifdef PASS2INLINE}
+                not assigned(inlinecode) or
+{$endif PASS2INLINE}
                 (ppn.parasym.paraloc[callerside].location^.loc <> LOC_REFERENCE) then
                paramanager.freeparaloc(exprasmlist,ppn.parasym.paraloc[callerside]);
              ppn:=tcgcallparanode(ppn.right);
@@ -1030,6 +1041,7 @@ implementation
       end;
 
 
+{$ifdef PASS2INLINE}
     procedure tcgcallnode.inlined_pass_2;
       var
          oldaktcallnode : tcallnode;
@@ -1224,6 +1236,7 @@ implementation
          current_procinfo:=oldprocinfo;
          inlining_procedure:=oldinlining_procedure;
       end;
+{$endif PASS2INLINE}
 
 
     procedure tcgcallnode.pass_2;
@@ -1231,9 +1244,11 @@ implementation
         if assigned(methodpointerinit) then
           secondpass(methodpointerinit);
 
+{$ifdef PASS2INLINE}
         if assigned(inlinecode) then
           inlined_pass_2
         else
+{$endif PASS2INLINE}
           normal_pass_2;
 
         if assigned(methodpointerdone) then
@@ -1247,7 +1262,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.188  2004-11-21 18:13:31  peter
+  Revision 1.189  2004-12-02 19:26:15  peter
+    * disable pass2inline
+
+  Revision 1.188  2004/11/21 18:13:31  peter
     * fixed funcretloc for sparc
 
   Revision 1.187  2004/11/21 17:54:59  peter

@@ -101,7 +101,9 @@ implementation
           begin
             { not in one statement, won't work because of b- }
             result := foreachnode(tcallnode(n).methodpointer,f,arg) or result;
+{$ifdef PASS2INLINE}
             result := foreachnode(tcallnode(n).inlinecode,f,arg) or result;
+{$endif PASS2INLINE}
           end;
         ifn, whilerepeatn, forn:
           begin
@@ -147,7 +149,9 @@ implementation
         calln:
           begin
             result := foreachnodestatic(tcallnode(n).methodpointer,f,arg) or result;
+{$ifdef PASS2INLINE}
             result := foreachnodestatic(tcallnode(n).inlinecode,f,arg) or result;
+{$endif PASS2INLINE}
           end;
         ifn, whilerepeatn, forn:
           begin
@@ -526,7 +530,10 @@ end.
 
 {
   $Log$
-  Revision 1.22  2004-11-28 19:29:45  jonas
+  Revision 1.23  2004-12-02 19:26:15  peter
+    * disable pass2inline
+
+  Revision 1.22  2004/11/28 19:29:45  jonas
     * loadvmtaddrn and loadparentfpn both have complexity 1 (the latter
       fixes compilation of tw0935 with nodeinlining)
 

@@ -240,7 +240,10 @@ interface
          nf_inlineconst,
 
          { tasmnode }
-         nf_get_asm_position
+         nf_get_asm_position,
+
+         { tblocknode }
+         nf_block_with_exit
        );
 
        tnodeflags = set of tnodeflag;
@@ -1136,7 +1139,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.90  2004-11-02 12:55:16  peter
+  Revision 1.91  2004-12-02 19:26:15  peter
+    * disable pass2inline
+
+  Revision 1.90  2004/11/02 12:55:16  peter
     * nf_internal flag for internal inserted typeconvs. This will
       supress the generation of warning/hints
 

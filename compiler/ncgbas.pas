@@ -68,7 +68,7 @@ interface
 
     uses
       globtype,systems,
-      cutils,verbose,cpuinfo,
+      cutils,verbose,
       aasmbase,aasmtai,aasmcpu,symsym,symconst,
       defutil,
       nflw,pass_2,
@@ -324,8 +324,16 @@ interface
     procedure tcgblocknode.pass_2;
       var
         hp : tstatementnode;
+        oldexitlabel : tasmlabel;
       begin
         location_reset(location,LOC_VOID,OS_NO);
+
+        { replace exitlabel? }
+        if nf_block_with_exit in flags then
+          begin
+            oldexitlabel:=current_procinfo.aktexitlabel;
+            objectlibrary.getlabel(current_procinfo.aktexitlabel);
+          end;
 
         { do second pass on left node }
         if assigned(left) then
@@ -342,6 +350,13 @@ interface
               hp:=tstatementnode(hp.right);
             end;
          end;
+
+        { write exitlabel }
+        if nf_block_with_exit in flags then
+          begin
+            cg.a_label(exprasmlist,current_procinfo.aktexitlabel);
+            current_procinfo.aktexitlabel:=oldexitlabel;
+          end;
       end;
 
 
@@ -491,7 +506,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.71  2004-11-11 19:31:33  peter
+  Revision 1.72  2004-12-02 19:26:15  peter
+    * disable pass2inline
+
+  Revision 1.71  2004/11/11 19:31:33  peter
     * fixed compile of powerpc,sparc,arm
 
   Revision 1.70  2004/11/08 22:09:59  peter
