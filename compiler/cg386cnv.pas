@@ -855,6 +855,7 @@ implementation
                gettempofsizereference(4,pto^.location.reference);
                ltemptoremove^.concat(new(ptemptodestroy,init(pto^.location.reference,pto^.resulttype)));
                exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_L,0,newreference(pto^.location.reference))));
+               release_loc(pfrom^.location);
                pushusedregisters(pushed,$ff);
                emit_pushw_loc(pfrom^.location);
                emitpushreferenceaddr(exprasmlist,pto^.location.reference);
@@ -1613,7 +1614,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.54  1999-02-02 12:35:02  florian
+  Revision 1.55  1999-02-12 10:43:57  florian
+    * internal error 10 with ansistrings fixed
+
+  Revision 1.54  1999/02/02 12:35:02  florian
     * ltemptoremove handling corrected
 
   Revision 1.53  1999/02/02 11:47:55  peter

@@ -142,6 +142,9 @@ implementation
                         temptoremove:=new(plinkedlist,init);
                         cmpop:=false;
                         secondpass(p^.left);
+
+                        { to avoid problem with maybe_push and restore }
+                        set_location(p^.location,p^.left^.location);
                         pushed:=maybe_push(p^.right^.registers32,p);
                         secondpass(p^.right);
                         if pushed then restore(p);
@@ -1806,7 +1809,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.41  1999-01-20 19:23:10  jonas
+  Revision 1.42  1999-02-12 10:43:56  florian
+    * internal error 10 with ansistrings fixed
+
+  Revision 1.41  1999/01/20 19:23:10  jonas
     * fixed set1 <= set2 for small sets
 
   Revision 1.40  1999/01/20 17:39:22  jonas
