@@ -30,6 +30,18 @@ all Ä
   "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc macutils.pp
   "{FPC}" {OPT} {REDIR} -Fi::inc -Fi::powerpc ::inc:ctypes.pp
 
+# The MacOS unit can be built, if the XCode integration kit is installed
+
+# Path to (FPC adapted) Apple Universal Interfaces
+UPINTERFACES = {Boot}Developer:Pascal:UPInterfaces
+
+macos Ä
+  Set Exit 0
+  NewFolder "::units:" ³ Dev:Null
+  NewFolder "::units:powerpc-macos:" ³ Dev:Null
+  Set Exit 1
+  "{FPC}" {OPT} {REDIR} -Fi"{UPINTERFACES}" macos.pp
+
 clean Ä
   Set Exit 0
 	Delete -y fpcmade.powerpc-macos
@@ -104,11 +116,3 @@ install Ä
 #      cmem.ppu matrix.ppu macostp.ppu macutils.ppu
 
 
-UPINTERFACES = {Boot}Developer:Pascal:UPInterfaces
-
-fpcmacos Ä
-  Set Exit 0
-  NewFolder "::units:" ³ Dev:Null
-  NewFolder "::units:powerpc-macos:" ³ Dev:Null
-  Set Exit 1
-  "{FPC}" {OPT} {REDIR} -Fi"{UPINTERFACES}" fpcmacos.pp
