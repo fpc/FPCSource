@@ -122,7 +122,7 @@ implementation
     uses
       globtype,systems,
       cutils,cobjects,verbose,globals,
-      symconst,types,htypechk,pass_1
+      symconst,types,htypechk,pass_1,ncon,nmem
 {$ifdef newcg}
       ,tgobj
       ,tgcpu
@@ -368,7 +368,7 @@ implementation
          if left.nodetype=ordconstn then
            begin
               { optimize }
-              if left.value=1 then
+              if tordconstnode(left).value=1 then
                 begin
                    left.free;
                    hp:=right;
@@ -388,7 +388,7 @@ implementation
                    right.free;
                    { we cannot set p to nil !!! }
                    if assigned(hp) then
-                     pass_1:=hp;
+                     pass_1:=hp
                    else
                      pass_1:=cnothingnode.create;
                 end;
@@ -405,7 +405,7 @@ implementation
     constructor tfornode.create(l,r,_t1,_t2 : tnode;back : boolean);
 
       begin
-         inherited create(forn,l,r,_t1_,t2);
+         inherited create(forn,l,r,_t1,_t2);
          if back then
            include(flags,nf_backward);
       end;
@@ -421,11 +421,15 @@ implementation
          old_t_times:=t_times;
          if not(cs_littlesize in aktglobalswitches) then
            t_times:=t_times*8;
-         { save counter var }
-         t2:=left.left.getcopy;
 
-         if left.treetype<>assignn then
-           CGMessage(cg_e_illegal_expression);
+         if left.nodetype<>assignn then
+           begin
+              CGMessage(cg_e_illegal_expression);
+              exit;
+           end;
+         { save counter var }
+         { tbinarynode should be tassignnode! }
+         t2:=tbinarynode(left).left.getcopy;
 
 {$ifdef newcg}
          tg.cleartempgen;
@@ -433,7 +437,7 @@ implementation
          cleartempgen;
 {$endif newcg}
          firstpass(left);
-         set_varstate(left,false);
+         left.set_varstate(false);
 
 {$ifdef newcg}
          tg.cleartempgen;
@@ -447,8 +451,8 @@ implementation
              exit;
           end;
 
-         registers32:=t1^.registers32;
-         registersfpu:=t1^.registersfpu;
+         registers32:=t1.registers32;
+         registersfpu:=t1.registersfpu;
 {$ifdef SUPPORT_MMX}
          registersmmx:=left.registersmmx;
 {$endif SUPPORT_MMX}
@@ -468,14 +472,14 @@ implementation
          cleartempgen;
 {$endif newcg}
          firstpass(t2);
-         set_varstate(t2,true);
+         t2.set_varstate(true);
          if codegenerror then
           exit;
 
          { Check count var, record fields are also allowed in tp7 }
          hp:=t2;
-         while (hp.treetype=subscriptn) do
-          hp:=hp.left;
+         while (hp.nodetype=subscriptn) do
+          hp:=tsubscriptnode(hp).left;
          { we need a simple loadn, but the load must be in a global symtable or
            in the same lexlevel }
          if (hp.treetype=funcretn) or
@@ -506,7 +510,7 @@ implementation
          cleartempgen;
 {$endif newcg}
          firstpass(right);
-         set_varstate(right,true);
+         right.set_varstate(true);
          if right.treetype<>ordconstn then
            begin
               right:=gentypeconvnode(right,t2^.resulttype);
@@ -639,7 +643,7 @@ implementation
                  ((left.resulttype^.deftype<>objectdef) or
                   not(pobjectdef(left.resulttype)^.is_class)) then
                 CGMessage(type_e_mismatch);
-              set_varstate(left,true);
+              left.set_varstate(left);
               if codegenerror then
                exit;
               { insert needed typeconvs for addr,frame }
@@ -751,7 +755,7 @@ implementation
          aktexceptblock:=left;
          firstpass(left);
          aktexceptblock:=oldexceptblock;
-         set_varstate(left,true);
+         left.set_varstate(true);
 {$ifdef newcg}
          tg.cleartempgen;
 {$else newcg}
@@ -761,7 +765,7 @@ implementation
          aktexceptblock:=right;
          firstpass(right);
          aktexceptblock:=oldexceptblock;
-         set_varstate(right,true);
+         right.set_varstate(true);
          if codegenerror then
            exit;
          left_right_max(p);
@@ -842,7 +846,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-09-24 15:06:19  peter
+  Revision 1.3  2000-09-24 21:15:34  florian
+    * some errors fix to get more stuff compilable
+
+  Revision 1.2  2000/09/24 15:06:19  peter
     * use defines.inc
 
   Revision 1.1  2000/09/22 22:46:03  florian

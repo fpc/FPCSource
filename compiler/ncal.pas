@@ -53,12 +53,15 @@ interface
           destructor destroy;override;
           function pass_1 : tnode;override;
           procedure gen_high_tree(openstring:boolean);
+          { tcallparanode doesn't use pass_1 }
+          { tcallnode takes care of this     }
+          procedure firstcallparan(defcoll : pparaitem;do_count : boolean);virtual;
        end;
 
        tprocinlinenode = class(tnode)
           inlinetree : tnode;
           inlineprocsym : pprocsym;
-          retoffset,para_offset,para_size : longint
+          retoffset,para_offset,para_size : longint;
           function pass_1 : tnode;override;
        end;
 
@@ -73,6 +76,25 @@ interface
        cprocinlinenode : class of tprocinlinenode;
 
   implementation
+
+    uses
+      cutils,globtype,systems,
+      cobjects,verbose,globals,
+      symconst,aasm,types,
+      htypechk,pass_1,cpubase
+{$ifdef newcg}
+      ,cgbase
+      ,tgobj
+{$else newcg}
+      ,hcodegen
+{$ifdef i386}
+      ,tgeni386
+{$endif}
+{$ifdef m68k}
+      ,tgen68k
+{$endif m68k}
+{$endif newcg}
+      ;
 
     function gencallnode(v : pprocsym;st : psymtable) : tnode;
 
@@ -92,7 +114,7 @@ interface
          p : tnode;
 
       begin
-         p:=create.cprocinlinenode(callp,code);
+         p:=cprocinlinenode.create(callp,code);
          genprocinlinenode:=p;
       end;
 
@@ -115,7 +137,7 @@ interface
          inherited destroy;
       end;
 
-    procedure firstcallparan(var p : ptree;defcoll : pparaitem;do_count : boolean);
+    procedure tcallparanode.firstcallparan(defcoll : pparaitem;do_count : boolean);
       var
         old_get_para_resulttype : boolean;
         old_array_constructor : boolean;
@@ -1434,7 +1456,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2000-09-24 20:17:44  florian
+  Revision 1.5  2000-09-24 21:15:34  florian
+    * some errors fix to get more stuff compilable
+
+  Revision 1.4  2000/09/24 20:17:44  florian
     * more conversion work done
 
   Revision 1.3  2000/09/24 15:06:19  peter

@@ -425,7 +425,7 @@ implementation
       globtype,systems,
       cutils,cobjects,verbose,globals,
       aasm,symtable,types,
-      htypechk,
+      htypechk,nflw,
       cpubase,cpuasm
 {$ifdef newcg}
       ,cgbase
@@ -538,12 +538,12 @@ implementation
 
     function tblocknode.pass_1 : tnode;
       var
-         hp : tnode;
+         hp : tstatementnode;
          count : longint;
       begin
          pass_1:=nil;
          count:=0;
-         hp:=left;
+         hp:=tstatementnode(left);
          while assigned(hp) do
            begin
               if cs_regalloc in aktglobalswitches then
@@ -555,18 +555,19 @@ implementation
                      result types !!! }
                    if ret_in_acc(procinfo^.returntype.def) and
                       assigned(hp.left) and
-                      assigned(hp.left.right) and
-                      (hp.left.right.treetype=exitn) and
-                      (hp.right.treetype=assignn) and
-                      (hp.right.left.treetype=funcretn) then
+                      assigned(tstatementnode(hp.left).right) and
+                      (tstatementnode(hp.left).right.nodetype=exitn) and
+                      (hp.right.nodetype=assignn) and
+                      { !!!! this tbinarynode should be tassignmentnode }
+                      (tbinarynode(hp.right).left.nodetype=funcretn) then
                       begin
-                         if assigned(hp.left.right.left) then
+                         if assigned(texitnode(tstatmentnode(hp.left).right).left) then
                            CGMessage(cg_n_inefficient_code)
                          else
                            begin
                               hp.left.right.left:=hp.right.right;
                               hp.right.right:=nil;
-                              disposetree(hp.right);
+                              hp.right.free;
                               hp.right:=nil;
                            end;
                       end
@@ -581,7 +582,7 @@ implementation
                      begin
                         { use correct line number }
                         aktfilepos:=hp.left.fileinfo;
-                        disposetree(hp.left);
+                        hp.left.free;
                         hp.left:=nil;
                         CGMessage(cg_w_unreachable_code);
                         { old lines }
@@ -675,7 +676,7 @@ implementation
            not_first:=false;
 {$endif extdebug}
 
-         if not nf_error in p.flags then
+         if not(nf_error in p.flags) then
            begin
               codegenerror:=false;
               aktfilepos:=p.fileinfo;
@@ -733,7 +734,10 @@ end.
 {$endif cg11}
 {
   $Log$
-  Revision 1.4  2000-09-24 15:06:21  peter
+  Revision 1.5  2000-09-24 21:15:34  florian
+    * some errors fix to get more stuff compilable
+
+  Revision 1.4  2000/09/24 15:06:21  peter
     * use defines.inc
 
   Revision 1.3  2000/09/19 23:09:07  pierre

@@ -27,7 +27,7 @@ unit ncon;
 interface
 
     uses
-      node;
+      globtype,node,aasm,cpuinfo,symconst;
 
     type
        trealconstnode = class(tnode)
@@ -59,14 +59,14 @@ interface
           value_str : pchar;
           length : longint;
           lab_str : pasmlabel;
-          stringtype : tstringtype
+          stringtype : tstringtype;
           // !!!!!!! needs at least create, getcopy, destroy
           function pass_1 : tnode;override;
        end;
 
        tsetconstnode = class(tnode)
           value_set : pconstset;
-          lab_set : pasmlabel
+          lab_set : pasmlabel;
           // !!!!!!! needs at least create,  getcopy
           function pass_1 : tnode;override;
        end;
@@ -80,15 +80,16 @@ implementation
 
     uses
       cobjects,verbose,globals,systems,
-      symconst,symtable,aasm,types,
+      symtable,types,
       hcodegen,pass_1,cpubase;
 
 {*****************************************************************************
                              TREALCONSTNODE
 *****************************************************************************}
 
-    function tpointerconstnode.pass_1 : tnode;
+    function trealconstnode.pass_1 : tnode;
       begin
+         pass_1:=nil;
          if (value_real=1.0) or (value_real=0.0) then
            begin
               location.loc:=LOC_FPU;
@@ -103,8 +104,9 @@ implementation
                              TFIXCONSTNODE
 *****************************************************************************}
 
-    function tpointerconstnode.pass_1 : tnode;
+    function tfixconstnode.pass_1 : tnode;
       begin
+         pass_1:=nil;
          location.loc:=LOC_MEM;
       end;
 
@@ -113,8 +115,9 @@ implementation
                               TORDCONSTNODE
 *****************************************************************************}
 
-    function tpointerconstnode.pass_1 : tnode;
+    function tordconstnode.pass_1 : tnode;
       begin
+         pass_1:=nil;
          location.loc:=LOC_MEM;
       end;
 
@@ -125,6 +128,7 @@ implementation
 
     function tpointerconstnode.pass_1 : tnode;
       begin
+         pass_1:=nil;
          location.loc:=LOC_MEM;
       end;
 
@@ -135,6 +139,7 @@ implementation
 
     function tstringconstnode.pass_1 : tnode;
       begin
+         pass_1:=nil;
 {        if cs_ansistrings in aktlocalswitches then
           resulttype:=cansistringdef
          else
@@ -159,6 +164,7 @@ implementation
 
     function tsetconstnode.pass_1 : tnode;
       begin
+         pass_1:=nil;
          location.loc:=LOC_MEM;
       end;
 
@@ -168,6 +174,7 @@ implementation
 
     function tnilnode.pass_1 : tnode;
       begin
+        pass_1:=nil;
         resulttype:=voidpointerdef;
         location.loc:=LOC_MEM;
       end;
@@ -175,7 +182,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2000-09-24 15:06:19  peter
+  Revision 1.3  2000-09-24 21:15:34  florian
+    * some errors fix to get more stuff compilable
+
+  Revision 1.2  2000/09/24 15:06:19  peter
     * use defines.inc
 
   Revision 1.1  2000/09/22 21:44:48  florian

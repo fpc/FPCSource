@@ -168,7 +168,6 @@
        { this will be used mainly for the newcg }
        tnodeflags = (
          nf_needs_truefalselabel,
-         nf_callunique,
          nf_swapable,    { tbinop operands can be swaped }
          nf_swaped,      { tbinop operands are swaped    }
          nf_error,
@@ -187,7 +186,15 @@
 
          { flags used by loop nodes }
          nf_backward,  { set if it is a for ... downto ... do loop }
-         nf_varstate   { do we need to parse childs to set var state }
+         nf_varstate,  { do we need to parse childs to set var state }
+
+         { taddrnode }
+         nf_procvarload,
+
+         { tvecnode }
+         nf_memindex,
+         nf_memseg,
+         nf_callunique
          );
 
        tnodeflagset = set of tnodeflags;
@@ -303,7 +310,10 @@
 
 {
   $Log$
-  Revision 1.3  2000-09-22 21:45:36  florian
+  Revision 1.4  2000-09-24 21:15:34  florian
+    * some errors fix to get more stuff compilable
+
+  Revision 1.3  2000/09/22 21:45:36  florian
     * some updates e.g. getcopy added
 
   Revision 1.2  2000/09/20 21:52:38  florian
