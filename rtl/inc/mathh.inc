@@ -39,7 +39,7 @@
     function sqrt(d : extended) : extended;
     function trunc(d : extended) : int64;
     function power(bas,expo : extended) : extended;
-    function power(bas,expo : longint) : longint;
+    function power(bas,expo : int64) : int64;
 
     type
        real48 = array[0..5] of byte;
@@ -54,7 +54,10 @@
 
 {
   $Log$
-  Revision 1.10  2003-01-03 20:34:02  peter
+  Revision 1.11  2003-01-15 00:40:18  peter
+    * power returns int64
+
+  Revision 1.10  2003/01/03 20:34:02  peter
     * i386 fpu controlword functions added
 
   Revision 1.9  2002/10/06 21:26:18  peter
