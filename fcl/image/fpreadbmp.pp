@@ -5,7 +5,7 @@
     Copyright (c) 2003 by Mazen NEIFER of the Free Pascal development team
 
     BMP writer implementation.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -31,9 +31,9 @@ type
     protected
       ReadSize : Integer;       // Size (in bytes) of 1 scanline.
       BFI : TBitMapInfoHeader;  // The header as read from the stream.
-      FPalette : PFPcolor;      // Buffer with Palette entries. 
+      FPalette : PFPcolor;      // Buffer with Palette entries.
       LineBuf : PByte;          // Buffer for 1 scanline. Can be Byte, TColorRGB or TColorRGBA
-      
+
       // SetupRead will allocate the needed buffers, and read the colormap if needed.
       procedure SetupRead(nPalette, nRowBits: Integer; Stream : TStream); virtual;
       procedure ReadScanLine(Row : Integer; Stream : TStream); virtual;
@@ -52,7 +52,7 @@ implementation
 function RGBAToFPColor(Const RGBA: TColorRGBA) : TFPcolor;
 
 begin
-  with Result, RGBA do 
+  with Result, RGBA do
     begin
     Red   :=(R shl 8) or R;
     Green :=(G shl 8) or G;
@@ -103,26 +103,47 @@ end;
 
 procedure TFPReaderBMP.SetupRead(nPalette, nRowBits: Integer; Stream : TStream);
 
+{$ifdef VER1_0}
+type
+  tcolinfo = ARRAY [0..0] OF TColorRGBA;
+  pcolinfo = ^tcolinfo;
+var
+  ColInfo: pcolinfo;
+{$else}
 var
   ColInfo: ARRAY OF TColorRGBA;
+{$endif}
   i: Integer;
 
 begin
-  if nPalette>0 then 
+  if nPalette>0 then
     begin
     GetMem(FPalette, nPalette*SizeOf(TFPColor));
+{$ifdef VER1_0}
+    GetMem(ColInfo, nPalette*Sizeof(TColorRGBA));
+    if BFI.ClrUsed>0 then
+      Stream.Read(ColInfo^[0],BFI.ClrUsed*SizeOf(TColorRGBA))
+    else // Seems to me that this is dangerous.
+      Stream.Read(ColInfo^[0],nPalette*SizeOf(TColorRGBA));
+    for i := 0 to nPalette-1 do
+      FPalette[i] := RGBAToFPColor(ColInfo^[i]);
+{$else}
     SetLength(ColInfo, nPalette);
     if BFI.ClrUsed>0 then
       Stream.Read(ColInfo[0],BFI.ClrUsed*SizeOf(TColorRGBA))
-    else // Seems to me that this is dangerous. 
+    else // Seems to me that this is dangerous.
       Stream.Read(ColInfo[0],nPalette*SizeOf(TColorRGBA));
     for i := 0 to High(ColInfo) do
       FPalette[i] := RGBAToFPColor(ColInfo[i]);
-    end 
+{$endif}
+    end
   else if BFI.ClrUsed>0 then { Skip palette }
     Stream.Position := Stream.Position + BFI.ClrUsed*SizeOf(TColorRGBA);
   ReadSize:=((nRowBits + 31) div 32) shl 2;
   GetMem(LineBuf,ReadSize);
+{$ifdef VER1_0}
+    FreeMem(ColInfo, nPalette*Sizeof(TColorRGBA));
+{$endif}
 end;
 
 procedure TFPReaderBMP.InternalRead(Stream:TStream; Img:TFPCustomImage);
@@ -144,9 +165,9 @@ begin
   Case BFI.BitCount of
     1 : { Monochrome }
       SetupRead(2,Img.Width,Stream);
-    4 : 
+    4 :
       SetupRead(16,Img.Width*4,Stream);
-    8 : 
+    8 :
       SetupRead(256,Img.Width*8,Stream);
     16 :
       Raise FPImageException.Create('16 bpp bitmaps not supported');
@@ -156,22 +177,22 @@ begin
       SetupRead(0,Img.Width*8*4,Stream);
   end;
   Try
-    for Row:=Img.Height-1 downto 0 do 
+    for Row:=Img.Height-1 downto 0 do
       begin
       ReadScanLine(Row,Stream); // Scanline in LineBuf with Size ReadSize.
       WriteScanLine(Row,Img);
       end;
   finally
     FreeBufs;
-  end;     
+  end;
 end;
-    
+
 procedure TFPReaderBMP.ReadScanLine(Row : Integer; Stream : TStream);
 
 begin
   {
     Add here support for compressed lines. The 'readsize' is the same in the end.
-  }   
+  }
   Stream.Read(LineBuf[0],ReadSize);
 end;
 
@@ -179,10 +200,10 @@ procedure TFPReaderBMP.WriteScanLine(Row : Integer; Img : TFPCustomImage);
 
 Var
   Column : Integer;
-  
+
 begin
   Case BFI.BitCount of
-   1 : 
+   1 :
      for Column:=0 to Img.Width-1 do
        if ((LineBuf[Column div 8] shr (7-(Column and 7)) ) and 1) <> 0 then
          img.colors[Column,Row]:=FPalette[1]
@@ -220,7 +241,10 @@ initialization
 end.
 {
 $Log$
-Revision 1.10  2004-02-20 23:12:57  michael
+Revision 1.11  2004-02-25 02:36:51  pierre
+* fix compilation with 1.0 compiler
+
+Revision 1.10  2004/02/20 23:12:57  michael
 + Read/WriteScanline virtual, as intended
 
 Revision 1.9  2004/02/20 23:07:44  michael
