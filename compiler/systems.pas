@@ -354,7 +354,7 @@ implementation
             id     : as_o;
             idtxt  : 'O';
             asmbin : 'as';
-            asmcmd : '-D -o $OBJ $ASM';
+            asmcmd : '-o $OBJ $ASM';
             externals : false;
             labelprefix : '.L';
             comment : '# '
@@ -363,7 +363,7 @@ implementation
             id     : as_o_aout;
             idtxt  : 'O_AOUT';
             asmbin : 'as';
-            asmcmd : '-D -o $OBJ $ASM';
+            asmcmd : '-o $OBJ $ASM';
             externals : false;
             labelprefix : 'L';
             comment : '# '
@@ -372,7 +372,7 @@ implementation
             id     : as_asw;
             idtxt  : 'ASW';
             asmbin : 'asw';
-            asmcmd : '-D -o $OBJ $ASM';
+            asmcmd : '-o $OBJ $ASM';
             externals : false;
             labelprefix : '.L';
             comment : '# '
@@ -428,7 +428,7 @@ implementation
             id     : as_o;
             idtxt  : 'O';
             asmbin : 'as';
-            asmcmd : '-D -o $OBJ $ASM';
+            asmcmd : '-o $OBJ $ASM';
             externals : false;
             labelprefix : '.L';
             comment : '# '
@@ -437,7 +437,7 @@ implementation
             id     : as_gas;
             idtxt  : 'GAS';
             asmbin : 'as68k'; { Gas for the Amiga}
-            asmcmd : '-D --register-prefix-optional -o $OBJ $ASM';
+            asmcmd : '--register-prefix-optional -o $OBJ $ASM';
             externals : false;
             labelprefix : '__L';
             comment : '| '
@@ -918,7 +918,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.36  1998-09-16 16:41:50  peter
+  Revision 1.37  1998-10-06 20:40:58  peter
+    * remove -D from assemblers
+
+  Revision 1.36  1998/09/16 16:41:50  peter
     * merged fixes
 
   Revision 1.33.2.3  1998/09/16 16:13:13  peter
@@ -929,7 +932,7 @@ end.
 
   Revision 1.34  1998/09/11 12:27:55  pierre
     * restored m68k part
-    
+
   Revision 1.33.2.2  1998/09/11 17:29:20  peter
     * fixed tabs
 
