@@ -613,6 +613,7 @@ unit pexpr;
       var
          static_name : string;
          isclassref : boolean;
+         pobj : pobjectdef;
 
       begin
          if sym=nil then
@@ -630,9 +631,21 @@ unit pexpr;
            begin
               isclassref:=pd^.deftype=classrefdef;
               { check protected and private members }
+              { protected field can be changed inside
+                child object methods at least in BP (PM) }
               if ((sym^.properties and sp_private)<>0) and
                  (pobjectdef(sym^.owner^.defowner)^.owner^.symtabletype=unitsymtable) then
-                Message(parser_e_cant_access_private_member);
+                begin
+                  if assigned(aktprocsym^.definition^._class) then
+                    begin
+                       if not aktprocsym^.definition^._class^.isrelated(
+                          pobjectdef(sym^.owner^.defowner)) then
+                         Message(parser_e_cant_access_private_member);
+                    end
+                  else
+                    Message(parser_e_cant_access_private_member);
+                end;
+                
               { this is wrong protected should not be overwritten but
               can be called !! PM
               if ((sym^.properties and sp_protected)<>0) and
@@ -808,9 +821,16 @@ unit pexpr;
                      if (srsym^.typ in [propertysym,procsym,varsym]) and
                         (srsymtable^.symtabletype=objectsymtable) then
                       begin
-                        if ((srsym^.properties and sp_private)<>0) and
-                           (pobjectdef(srsym^.owner^.defowner)^.owner^.symtabletype=unitsymtable) then
-                          Message(parser_e_cant_access_private_member);
+                         if ((srsym^.properties and sp_private)<>0) and
+                            (pobjectdef(srsym^.owner^.defowner)^.owner^.symtabletype=unitsymtable) then
+                             if assigned(aktprocsym^.definition^._class) then
+                               begin
+                                  if not aktprocsym^.definition^._class^.isrelated(
+                                     pobjectdef(srsym^.owner^.defowner)) then
+                                    Message(parser_e_cant_access_private_member);
+                               end
+                             else
+                               Message(parser_e_cant_access_private_member);
                       end;
                      case srsym^.typ of
               absolutesym : begin
@@ -1863,7 +1883,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.67  1998-10-19 08:54:57  pierre
+  Revision 1.68  1998-10-20 11:15:44  pierre
+   * calling of private method allowed inside child object method
+
+  Revision 1.67  1998/10/19 08:54:57  pierre
     * wrong stabs info corrected once again !!
     + variable vmt offset with vmt field only if required
       implemented now !!!
