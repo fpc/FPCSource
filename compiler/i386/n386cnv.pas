@@ -62,10 +62,10 @@ implementation
 
    uses
       verbose,systems,
-      symconst,symdef,aasm,
+      symconst,symdef,aasmbase,aasmtai,aasmcpu,
       cginfo,cgbase,pass_2,
       ncon,ncal,ncnv,
-      cpubase,cpuasm,
+      cpubase,
       cgobj,cga,tgobj,rgobj,rgcpu,ncgutil;
 
 
@@ -365,7 +365,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.42  2002-05-20 13:30:40  carl
+  Revision 1.43  2002-07-01 18:46:31  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.42  2002/05/20 13:30:40  carl
   * bugfix of hdisponen (base must be set, not index)
   * more portability fixes
 

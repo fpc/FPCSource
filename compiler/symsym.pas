@@ -35,7 +35,7 @@ interface
        { ppu }
        ppu,symppu,
        { aasm }
-       aasm,cpubase,
+       aasmbase,aasmtai,cpubase,
        globals
        ;
 
@@ -362,7 +362,7 @@ implementation
        gdb,
 {$endif GDB}
        { aasm }
-       cpuasm,
+       aasmcpu,
        { module }
        fmodule,
        { codegen }
@@ -2517,7 +2517,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.39  2002-05-18 13:34:18  peter
+  Revision 1.40  2002-07-01 18:46:27  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.39  2002/05/18 13:34:18  peter
     * readded missing revisions
 
   Revision 1.38  2002/05/16 19:46:45  carl

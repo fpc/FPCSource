@@ -65,7 +65,7 @@ implementation
     uses
       globtype,widestr,systems,
       verbose,globals,
-      symconst,symdef,aasm,types,
+      symconst,symdef,aasmbase,aasmtai,types,
       cpuinfo,cpubase,
       cginfo,cgbase,tgobj,rgobj;
 
@@ -519,7 +519,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2002-07-01 16:23:53  peter
+  Revision 1.12  2002-07-01 18:46:22  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.11  2002/07/01 16:23:53  peter
     * cg64 patch
     * basics for currency
     * asnode updates for class and interface (not finished)

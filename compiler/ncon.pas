@@ -29,7 +29,7 @@ interface
     uses
       globtype,widestr,
       node,
-      aasm,cpuinfo,globals,
+      aasmbase,aasmtai,cpuinfo,globals,
       symconst,symtype,symdef,symsym;
 
     type
@@ -721,7 +721,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  2002-05-18 13:34:09  peter
+  Revision 1.33  2002-07-01 18:46:23  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.32  2002/05/18 13:34:09  peter
     * readded missing revisions
 
   Revision 1.31  2002/05/16 19:46:37  carl

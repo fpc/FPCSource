@@ -52,7 +52,7 @@ implementation
     uses
       globtype,systems,
       cutils,verbose,globals,
-      symconst,symdef,aasm,types,
+      symconst,symdef,aasmbase,aasmtai,aasmcpu,types,
       cginfo,cgbase,pass_1,pass_2,
       ncon,
       cpubase,
@@ -830,7 +830,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.31  2002-05-18 13:34:25  peter
+  Revision 1.32  2002-07-01 18:46:33  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.31  2002/05/18 13:34:25  peter
     * readded missing revisions
 
   Revision 1.30  2002/05/16 19:46:51  carl

@@ -54,10 +54,10 @@ interface
             ,MC68000,MC68100,MC68020
        );
 
-       tsection=(sec_none,
+       TSection=(sec_none,
          sec_code,sec_data,sec_bss,
          sec_idata2,sec_idata4,sec_idata5,sec_idata6,sec_idata7,sec_edata,
-         sec_stab,sec_stabstr
+         sec_stab,sec_stabstr,sec_common
        );
 
        tasmmode= (asmmode_none
@@ -120,6 +120,7 @@ interface
             ld_i386_GO32V1,ld_i386_GO32V2,ld_i386_linux,
               ld_i386_OS2,ld_i386_Win32,ld_i386_freebsd,
               ld_i386_Netware,ld_i386_sunos,ld_i386_beos,
+              ld_i386_coff,ld_i386_pecoff,
             ld_m68k_Amiga,ld_m68k_Atari,ld_m68k_Mac,
               ld_m68k_linux,ld_m68k_PalmOS,ld_m68k_freebsd,
             ld_alpha_linux,
@@ -176,7 +177,7 @@ interface
           labelprefix_only_inside_procedure : boolean;
           labelprefix : string[3];
           comment     : string[2];
-          secnames    : array[tsection] of string[20];
+          secnames    : array[TSection] of string[20];
        end;
 
        parinfo = ^tarinfo;
@@ -686,7 +687,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.45  2002-05-18 13:34:21  peter
+  Revision 1.46  2002-07-01 18:46:29  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.45  2002/05/18 13:34:21  peter
     * readded missing revisions
 
   Revision 1.44  2002/05/16 19:46:45  carl

@@ -58,9 +58,11 @@ interface
     function lower(const s : string) : string;
     function trimbspace(const s:string):string;
     function trimspace(const s:string):string;
+    function space (b : longint): string;
+    function PadSpace(const s:string;len:longint):string;
     function GetToken(var s:string;endchar:char):string;
     procedure uppervar(var s : string);
-    function hexstr(val : cardinal;cnt : byte) : string;
+    function hexstr(val : cardinal;cnt : longint) : string;
     function tostru(i:cardinal) : string;
     function tostr(i : longint) : string;
     function int64tostr(i : int64) : string;
@@ -327,64 +329,101 @@ uses
       end;
 
 
-    function hexstr(val : cardinal;cnt : byte) : string;
+    function hexstr(val : cardinal;cnt : longint) : string;
       const
         HexTbl : array[0..15] of char='0123456789ABCDEF';
       var
-        i : longint;
+        i,j : longint;
       begin
-        hexstr[0]:=char(cnt);
-        for i:=cnt downto 1 do
+        { calculate required length }
+        i:=0;
+        j:=val;
+        while (j>0) do
          begin
-           hexstr[i]:=hextbl[val and $f];
+           inc(i);
+           j:=j shr 4;
+         end;
+        { generate fillers }
+        j:=0;
+        while (i+j<cnt) do
+         begin
+           inc(j);
+           hexstr[j]:='0';
+         end;
+        { generate hex }
+        inc(j,i);
+        hexstr[0]:=chr(j);
+        while (val>0) do
+         begin
+           hexstr[j]:=hextbl[val and $f];
+           dec(j);
            val:=val shr 4;
          end;
       end;
 
 
-   function tostru(i:cardinal):string;
-   {
-     return string of value i, but for cardinals
-   }
+    function tostru(i:cardinal):string;
+    {
+      return string of value i, but for cardinals
+    }
+       var
+         hs : string;
+       begin
+         str(i,hs);
+         tostru:=hs;
+       end;
+
+
+    function trimbspace(const s:string):string;
+    {
+      return s with all leading spaces and tabs removed
+    }
       var
-        hs : string;
+        i,j : longint;
       begin
-        str(i,hs);
-        tostru:=hs;
+        j:=1;
+        i:=length(s);
+        while (j<i) and (s[j] in [#9,' ']) do
+         inc(j);
+        trimbspace:=Copy(s,j,i-j+1);
       end;
 
 
-   function trimbspace(const s:string):string;
-   {
-     return s with all leading spaces and tabs removed
-   }
-     var
-       i,j : longint;
-     begin
-       j:=1;
-       i:=length(s);
-       while (j<i) and (s[j] in [#9,' ']) do
-        inc(j);
-       trimbspace:=Copy(s,j,i-j+1);
-     end;
+
+    function trimspace(const s:string):string;
+    {
+      return s with all leading and ending spaces and tabs removed
+    }
+      var
+        i,j : longint;
+      begin
+        i:=length(s);
+        while (i>0) and (s[i] in [#9,' ']) do
+         dec(i);
+        j:=1;
+        while (j<i) and (s[j] in [#9,' ']) do
+         inc(j);
+        trimspace:=Copy(s,j,i-j+1);
+      end;
 
 
+    function space (b : longint): string;
+      begin
+        space[0] := chr(b);
+        FillChar (Space[1],b,' ');
+      end;
 
-   function trimspace(const s:string):string;
-   {
-     return s with all leading and ending spaces and tabs removed
-   }
-     var
-       i,j : longint;
-     begin
-       i:=length(s);
-       while (i>0) and (s[i] in [#9,' ']) do
-        dec(i);
-       j:=1;
-       while (j<i) and (s[j] in [#9,' ']) do
-        inc(j);
-       trimspace:=Copy(s,j,i-j+1);
-     end;
+
+    function PadSpace(const s:string;len:longint):string;
+    {
+      return s with spaces add to the end
+    }
+      begin
+         if length(s)<len then
+          PadSpace:=s+Space(len-length(s))
+         else
+          PadSpace:=s;
+      end;
 
 
     function GetToken(var s:string;endchar:char):string;
@@ -765,7 +804,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.17  2002-05-18 13:34:07  peter
+  Revision 1.18  2002-07-01 18:46:22  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.17  2002/05/18 13:34:07  peter
     * readded missing revisions
 
   Revision 1.16  2002/05/16 19:46:36  carl

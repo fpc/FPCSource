@@ -38,7 +38,9 @@ implementation
     uses
       cutils,cclasses,
       globtype,version,tokens,systems,globals,verbose,
-      symbase,symtable,symdef,symsym,fmodule,fppu,aasm,
+      symbase,symtable,symdef,symsym,
+      fmodule,fppu,
+      aasmbase,aasmtai,
       cgbase,
       script,gendef,
 {$ifdef BrowserLog}
@@ -628,7 +630,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.33  2002-05-18 13:34:11  peter
+  Revision 1.34  2002-07-01 18:46:24  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.33  2002/05/18 13:34:11  peter
     * readded missing revisions
 
   Revision 1.32  2002/05/16 19:46:42  carl

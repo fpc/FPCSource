@@ -35,7 +35,7 @@ interface
        { ppu }
        ppu,symppu,
        { assembler }
-       aasm
+       aasmbase,aasmtai
        ;
 
 
@@ -2060,7 +2060,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.61  2002-05-18 13:34:19  peter
+  Revision 1.62  2002-07-01 18:46:28  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.61  2002/05/18 13:34:19  peter
     * readded missing revisions
 
   Revision 1.60  2002/05/16 19:46:45  carl

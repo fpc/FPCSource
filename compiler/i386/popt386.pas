@@ -26,7 +26,7 @@ Unit POpt386;
 
 Interface
 
-Uses Aasm;
+Uses Aasmbase,aasmtai,aasmcpu;
 
 Procedure PrePeepHoleOpts(AsmL: TAAsmOutput; BlockStart, BlockEnd: Tai);
 Procedure PeepHoleOptPass1(AsmL: TAAsmOutput; BlockStart, BlockEnd: Tai);
@@ -41,7 +41,7 @@ Uses
 {$ifdef finaldestdebug}
   cobjects,
 {$endif finaldestdebug}
-  tainst,cpuinfo,cpubase,cpuasm,DAOpt386,cginfo,rgobj;
+  cpuinfo,cpubase,DAOpt386,cginfo,rgobj;
 
 Function RegUsedAfterInstruction(Reg: TRegister; p: Tai; Var UsedRegs: TRegSet): Boolean;
 Begin
@@ -1176,7 +1176,7 @@ Begin
                                   { allocregbetween doesn't insert this because at }
                                   { this time, no regalloc info is available in    }
                                   { the optinfo field, so do it manually (JM)      }
-                                  hp2 := TaiRegalloc.Alloc(Taicpu(hp1).oper[1].reg);
+                                  hp2 := tai_regalloc.Alloc(Taicpu(hp1).oper[1].reg);
                                   insertllitem(asml,p.previous,p,hp2);
                                   Taicpu(hp1).LoadReg(0,Taicpu(hp1).oper[1].reg);
                                   Taicpu(hp1).LoadRef(1,Taicpu(p).oper[1].ref^);
@@ -2044,7 +2044,11 @@ End.
 
 {
   $Log$
-  Revision 1.28  2002-06-09 12:55:23  jonas
+  Revision 1.29  2002-07-01 18:46:34  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.28  2002/06/09 12:55:23  jonas
     * fixed detection of register usage
 
   Revision 1.27  2002/05/18 13:34:25  peter

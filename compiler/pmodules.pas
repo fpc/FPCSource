@@ -38,11 +38,12 @@ implementation
        globtype,version,systems,tokens,
        cutils,cclasses,comphook,
        globals,verbose,fmodule,finput,fppu,
-       symconst,symbase,symtype,symdef,symsym,symtable,aasm,
+       symconst,symbase,symtype,symdef,symsym,symtable,
+       aasmbase,aasmtai,aasmcpu,
        cgbase,
        ncgutil,
        link,assemble,import,export,gendef,ppu,comprsrc,
-       cresstr,cpubase,cpuasm,
+       cresstr,cpubase,
 {$ifdef GDB}
        gdb,
 {$endif GDB}
@@ -130,7 +131,7 @@ implementation
 
     procedure insertsegment;
 
-        procedure fixseg(p:TAAsmoutput;sec:tsection);
+        procedure fixseg(p:TAAsmoutput;sec:TSection);
         begin
           p.insert(Tai_section.Create(sec));
           if (cs_create_smart in aktmoduleswitches) then
@@ -1383,7 +1384,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.66  2002-05-16 19:46:43  carl
+  Revision 1.67  2002-07-01 18:46:25  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.66  2002/05/16 19:46:43  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls

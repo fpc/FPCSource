@@ -47,7 +47,7 @@ implementation
        globtype,globals,tokens,verbose,comphook,
        systems,
        { aasm }
-       cpubase,cpuinfo,aasm,
+       cpubase,cpuinfo,aasmbase,aasmtai,aasmcpu,
        { symtable }
        symconst,symbase,symdef,symsym,symtype,symtable,types,
        ppu,fmodule,
@@ -819,7 +819,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.53  2002-05-18 13:34:14  peter
+  Revision 1.54  2002-07-01 18:46:25  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.53  2002/05/18 13:34:14  peter
     * readded missing revisions
 
   Revision 1.52  2002/05/16 19:46:44  carl

@@ -55,7 +55,7 @@ implementation
       verbose,globals,
       symconst,symtype,symdef,symsym,symtable,types,
       ncnv,ncon,nmem,
-      aasm,cpuasm,regvars,
+      aasmbase,aasmtai,aasmcpu,regvars,
       cginfo,cgbase,pass_2,
       cpubase,cpuinfo,
       tgobj,ncgutil,cgobj,cg64f32,rgobj,rgcpu;
@@ -921,7 +921,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2002-07-01 16:23:53  peter
+  Revision 1.11  2002-07-01 18:46:23  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.10  2002/07/01 16:23:53  peter
     * cg64 patch
     * basics for currency
     * asnode updates for class and interface (not finished)

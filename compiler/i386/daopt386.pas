@@ -30,8 +30,8 @@ Interface
 
 Uses
   GlobType,
-  CClasses,Aasm,
-  cpubase,cpuasm,optbase;
+  CClasses,Aasmbase,aasmtai,aasmcpu,
+  cpubase,optbase;
 
 {******************************* Constants *******************************}
 
@@ -226,7 +226,7 @@ Var
 Implementation
 
 Uses
-  globals, systems, verbose, cgbase, symconst, symsym, tainst, cginfo, cgobj,
+  globals, systems, verbose, cgbase, symconst, symsym, cginfo, cgobj,
    rgobj;
 
 Type
@@ -294,10 +294,10 @@ Begin
     While Assigned(p) And
           (p.typ=ait_RegAlloc) Do
       Begin
-        if Tairegalloc(p).allocation then
-          UsedRegs := UsedRegs + [TaiRegAlloc(p).Reg]
+        if tai_regalloc(p).allocation then
+          UsedRegs := UsedRegs + [tai_regalloc(p).Reg]
         else
-          UsedRegs := UsedRegs - [TaiRegAlloc(p).Reg];
+          UsedRegs := UsedRegs - [tai_regalloc(p).Reg];
         p := Tai(p.next);
       End;
   Until Not(Assigned(p)) Or
@@ -358,8 +358,8 @@ Begin
     If Assigned(StartTai) and
        (StartTai.typ = ait_regAlloc) then
       begin
-        if (TairegAlloc(StartTai).allocation = alloc) and
-           (TairegAlloc(StartTai).Reg = Reg) then
+        if (tai_regalloc(StartTai).allocation = alloc) and
+           (tai_regalloc(StartTai).Reg = Reg) then
           begin
             FindRegAlloc:=true;
             break;
@@ -382,8 +382,8 @@ Procedure RemoveLastDeallocForFuncRes(asmL: TAAsmOutput; p: Tai);
       hp2 := Tai(hp2.previous);
       if assigned(hp2) and
          (hp2.typ = ait_regalloc) and
-         not(Tairegalloc(hp2).allocation) and
-         (Tairegalloc(hp2).reg = reg) then
+         not(tai_regalloc(hp2).allocation) and
+         (tai_regalloc(hp2).reg = reg) then
         begin
           asml.remove(hp2);
           hp2.free;
@@ -460,7 +460,7 @@ begin
          (Taicpu(hp1).opcode = A_JMP) and
          (tasmlabel(Taicpu(hp1).oper[0].sym) = aktexit2label)) then
     begin
-      p := TaiRegAlloc.deAlloc(reg);
+      p := tai_regalloc.deAlloc(reg);
       insertLLItem(AsmL, hp1.previous, hp1, p);
     end;
 end;
@@ -489,23 +489,23 @@ Begin
             LabelTable^[Tai_Label(p).l.labelnr-LowLabel].TaiObj := p;
         ait_regAlloc:
           { ESI and EDI are (de)allocated manually, don't mess with them }
-          if not(TaiRegAlloc(p).Reg in [R_EDI,R_ESI]) then
+          if not(tai_regalloc(p).Reg in [R_EDI,R_ESI]) then
             begin
-              if TairegAlloc(p).Allocation then
+              if tai_regalloc(p).Allocation then
                 Begin
-                  If Not(TaiRegAlloc(p).Reg in UsedRegs) Then
-                    UsedRegs := UsedRegs + [TaiRegAlloc(p).Reg]
+                  If Not(tai_regalloc(p).Reg in UsedRegs) Then
+                    UsedRegs := UsedRegs + [tai_regalloc(p).Reg]
                   Else
-                    addRegDeallocFor(asmL, TaiRegAlloc(p).reg, p);
+                    addRegDeallocFor(asmL, tai_regalloc(p).reg, p);
                 End
               else
                 begin
-                  UsedRegs := UsedRegs - [TaiRegAlloc(p).Reg];
+                  UsedRegs := UsedRegs - [tai_regalloc(p).Reg];
                   hp1 := p;
                   hp2 := nil;
-                  While Not(FindRegAlloc(TaiRegAlloc(p).Reg, Tai(hp1.Next),true)) And
+                  While Not(FindRegAlloc(tai_regalloc(p).Reg, Tai(hp1.Next),true)) And
                         GetNextInstruction(hp1, hp1) And
-                        RegInInstruction(TaiRegAlloc(p).Reg, hp1) Do
+                        RegInInstruction(tai_regalloc(p).Reg, hp1) Do
                     hp2 := hp1;
                   If hp2 <> nil Then
                     Begin
@@ -1145,10 +1145,10 @@ Begin
     While Assigned(p) And
           (p.typ=ait_RegAlloc) Do
       Begin
-        if Tairegalloc(p).allocation then
-          UsedRegs := UsedRegs + [TaiRegAlloc(p).Reg]
+        if tai_regalloc(p).allocation then
+          UsedRegs := UsedRegs + [tai_regalloc(p).Reg]
         else
-          UsedRegs := UsedRegs - [TaiRegAlloc(p).Reg];
+          UsedRegs := UsedRegs - [tai_regalloc(p).Reg];
         p := Tai(p.next);
       End;
   Until Not(Assigned(p)) Or
@@ -1195,14 +1195,14 @@ Begin
 { remove all allocation/deallocation info about the register in between }
       If assigned(p1) and
          (p1.typ = ait_regalloc) Then
-        If (TaiRegAlloc(p1).Reg = Reg) Then
+        If (tai_regalloc(p1).Reg = Reg) Then
           Begin
             if first then
               begin
-                firstRemovedWasAlloc := TaiRegAlloc(p1).allocation;
+                firstRemovedWasAlloc := tai_regalloc(p1).allocation;
                 first := false;
               end;
-            lastRemovedWasDealloc := not TaiRegAlloc(p1).allocation;
+            lastRemovedWasDealloc := not tai_regalloc(p1).allocation;
             hp := Tai(p1.Next);
             asml.Remove(p1);
             p1.free;
@@ -1219,13 +1219,13 @@ Begin
         include(PTaiProp(p1.OptInfo)^.UsedRegs,Reg);
       if lastRemovedWasDealloc then
         begin
-          hp := TaiRegalloc.DeAlloc(reg);
+          hp := tai_regalloc.DeAlloc(reg);
           insertLLItem(asmL,p1,p1.next,hp);
         end;
     end;
   if firstRemovedWasAlloc then
     begin
-      hp := TaiRegalloc.Alloc(reg);
+      hp := tai_regalloc.Alloc(reg);
       insertLLItem(asmL,start.previous,start,hp);
     end;
 End;
@@ -1245,8 +1245,8 @@ begin
     begin
       p := Tai(p.previous);
       if (p.typ = ait_regalloc) and
-         (Tairegalloc(p).reg = reg) then
-        if not(Tairegalloc(p).allocation) then
+         (tai_regalloc(p).reg = reg) then
+        if not(tai_regalloc(p).allocation) then
           if first then
             begin
               findregdealloc := true;
@@ -2591,7 +2591,11 @@ End.
 
 {
   $Log$
-  Revision 1.40  2002-06-24 12:43:00  jonas
+  Revision 1.41  2002-07-01 18:46:31  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.40  2002/06/24 12:43:00  jonas
     * fixed errors found with new -CR code from Peter when cycling with -O2p3r
 
   Revision 1.39  2002/06/09 12:56:04  jonas

@@ -45,7 +45,7 @@ interface
       procedure generatelib;override;
     end;
 
-    tlinkerlinux=class(tlinker)
+    tlinkerlinux=class(texternallinker)
     private
       Glibc2,
       Glibc21 : boolean;
@@ -66,7 +66,7 @@ implementation
     symconst,script,
     fmodule,symsym
 {$ifdef i386}
-    ,aasm,cpuasm,cpubase
+    ,aasmbase,aasmtai,aasmcpu,cpubase
 {$endif i386}
     ;
 
@@ -849,7 +849,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.26  2002-05-18 13:34:26  peter
+  Revision 1.27  2002-07-01 18:46:35  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.26  2002/05/18 13:34:26  peter
     * readded missing revisions
 
   Revision 1.25  2002/05/16 19:46:53  carl

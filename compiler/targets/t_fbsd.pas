@@ -35,7 +35,7 @@ implementation
     cutils,cclasses,
     verbose,systems,globtype,globals,
     symconst,script,
-    fmodule,aasm,cpuasm,cpubase,symsym,
+    fmodule,aasmbase,aasmtai,aasmcpu,cpubase,symsym,
     import,export,link;
 
   type
@@ -53,7 +53,7 @@ implementation
       procedure generatelib;override;
     end;
 
-    tlinkerfreebsd=class(tlinker)
+    tlinkerfreebsd=class(texternallinker)
     private
       Glibc2,
       Glibc21,
@@ -707,7 +707,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.21  2002-05-18 13:34:26  peter
+  Revision 1.22  2002-07-01 18:46:34  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.21  2002/05/18 13:34:26  peter
     * readded missing revisions
 
   Revision 1.20  2002/05/16 19:46:53  carl

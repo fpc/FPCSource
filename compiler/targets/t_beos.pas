@@ -45,7 +45,7 @@ interface
       procedure generatelib;override;
     end;
 
-    tlinkerbeos=class(tlinker)
+    tlinkerbeos=class(texternallinker)
     private
       Function  WriteResponseFile(isdll:boolean;makelib:boolean) : Boolean;
     public
@@ -63,7 +63,7 @@ implementation
     cutils,cclasses,
     verbose,systems,globtype,globals,
     symconst,script,
-    fmodule,aasm,cpuasm,cpubase,symsym;
+    fmodule,aasmbase,aasmtai,aasmcpu,cpubase,symsym;
 
 {*****************************************************************************
                                TIMPORTLIBBEOS
@@ -532,7 +532,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.18  2002-05-18 13:34:26  peter
+  Revision 1.19  2002-07-01 18:46:34  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.18  2002/05/18 13:34:26  peter
     * readded missing revisions
 
   Revision 1.17  2002/05/16 19:46:53  carl

@@ -31,9 +31,8 @@ unit rgcpu;
     uses
       cpubase,
       cpuinfo,
-      cpuasm,
-      tainst,
-      cclasses,globtype,cgbase,aasm,cginfo,rgobj;
+      aasmbase,aasmtai,aasmcpu,
+      cclasses,globtype,cgbase,cginfo,rgobj;
 
     type
        trgcpu = class(trgobj)
@@ -169,7 +168,7 @@ unit rgcpu;
 {$ifdef TEMPREGDEBUG}
               reg_user[R_EAX]:=curptree^;
 {$endif TEMPREGDEBUG}
-              exprasmlist.concat(tairegalloc.alloc(R_EAX));
+              exprasmlist.concat(tai_regalloc.alloc(R_EAX));
            end
          else if R_EDX in unusedregsint then
            begin
@@ -179,7 +178,7 @@ unit rgcpu;
 {$ifdef TEMPREGDEBUG}
               reg_user[R_EDX]:=curptree^;
 {$endif TEMPREGDEBUG}
-              exprasmlist.concat(tairegalloc.alloc(R_EDX));
+              exprasmlist.concat(tai_regalloc.alloc(R_EDX));
            end
          else if R_EBX in unusedregsint then
            begin
@@ -189,7 +188,7 @@ unit rgcpu;
 {$ifdef TEMPREGDEBUG}
               reg_user[R_EBX]:=curptree^;
 {$endif TEMPREGDEBUG}
-              exprasmlist.concat(tairegalloc.alloc(R_EBX));
+              exprasmlist.concat(tai_regalloc.alloc(R_EBX));
            end
          else if R_ECX in unusedregsint then
            begin
@@ -199,7 +198,7 @@ unit rgcpu;
 {$ifdef TEMPREGDEBUG}
               reg_user[R_ECX]:=curptree^;
 {$endif TEMPREGDEBUG}
-              exprasmlist.concat(tairegalloc.alloc(R_ECX));
+              exprasmlist.concat(tai_regalloc.alloc(R_ECX));
            end
          else internalerror(10);
 {$ifdef TEMPREGDEBUG}
@@ -215,7 +214,7 @@ unit rgcpu;
          if (r = R_EDI) or
             ((not assigned(procinfo^._class)) and (r = R_ESI)) then
            begin
-             list.concat(Tairegalloc.DeAlloc(r));
+             list.concat(tai_regalloc.DeAlloc(r));
              exit;
            end;
          if not(r in [R_EAX,R_EBX,R_ECX,R_EDX]) then
@@ -228,7 +227,7 @@ unit rgcpu;
      begin
        if r in [R_ESI,R_EDI] then
          begin
-           list.concat(Tairegalloc.Alloc(r));
+           list.concat(tai_regalloc.Alloc(r));
            getexplicitregisterint := r;
            exit;
          end;
@@ -430,7 +429,11 @@ end.
 
 {
   $Log$
-  Revision 1.7  2002-05-16 19:46:52  carl
+  Revision 1.8  2002-07-01 18:46:34  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.7  2002/05/16 19:46:52  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls

@@ -121,7 +121,7 @@ function Compile(const cmd:string):longint;
 implementation
 
 uses
-  cpuasm;
+  aasmcpu;
 
 var
   CompilerInitedAfterArgs,
@@ -337,7 +337,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.29  2002-05-18 13:34:06  peter
+  Revision 1.30  2002-07-01 18:46:22  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.29  2002/05/18 13:34:06  peter
     * readded missing revisions
 
   Revision 1.28  2002/05/16 19:46:35  carl

@@ -32,7 +32,7 @@ interface
       { symtable }
       symconst,symbase,
       { aasm }
-      aasm
+      aasmbase
       ;
 
     type
@@ -528,7 +528,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  2002-05-18 13:34:21  peter
+  Revision 1.19  2002-07-01 18:46:29  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.18  2002/05/18 13:34:21  peter
     * readded missing revisions
 
   Revision 1.17  2002/05/16 19:46:45  carl

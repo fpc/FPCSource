@@ -50,7 +50,8 @@ implementation
 {$endif}
       globtype,systems,
       cutils,verbose,globals,
-      symconst,symtype,symdef,symsym,symtable,aasm,types,
+      symconst,symtype,symdef,symsym,symtable,types,
+      aasmbase,aasmtai,aasmcpu,
       cginfo,cgbase,pass_2,
       pass_1,nld,ncon,nadd,
       cpubase,
@@ -519,7 +520,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.34  2002-06-24 12:43:01  jonas
+  Revision 1.35  2002-07-01 18:46:33  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.34  2002/06/24 12:43:01  jonas
     * fixed errors found with new -CR code from Peter when cycling with -O2p3r
 
   Revision 1.33  2002/05/18 13:34:25  peter

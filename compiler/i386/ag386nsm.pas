@@ -27,7 +27,7 @@ unit ag386nsm;
 
 interface
 
-    uses aasm,assemble;
+    uses aasmbase,aasmtai,aasmcpu,assemble;
 
     type
       T386NasmAssembler = class(texternalassembler)
@@ -45,7 +45,7 @@ interface
       sysutils,
 {$endif}
       cutils,globtype,globals,systems,cclasses,
-      fmodule,finput,verbose,cpubase,cpuasm,tainst
+      fmodule,finput,verbose,cpubase
       ;
 
     const
@@ -319,7 +319,7 @@ interface
  ****************************************************************************}
 
     var
-      LastSec : tsection;
+      LasTSec : TSection;
 
     const
       ait_const2str:array[ait_const_32bit..ait_const_8bit] of string[8]=
@@ -350,8 +350,10 @@ interface
       allocstr : array[boolean] of string[10]=(' released',' allocated');
       nolinetai =[ait_label,
                   ait_regalloc,ait_tempalloc,
-                  ait_stabn,ait_stabs,ait_section,
-                  ait_cut,ait_marker,ait_align,ait_stab_function_name];
+{$ifdef GDB}
+                  ait_stabn,ait_stabs,ait_stab_function_name,
+{$endif GDB}
+                  ait_cut,ait_marker,ait_align,ait_section];
     var
       s : string;
       {prefix,
@@ -436,15 +438,15 @@ interface
            ait_regalloc :
              begin
                if (cs_asm_regalloc in aktglobalswitches) then
-                 AsmWriteLn(target_asm.comment+'Register '+std_reg2str[tairegalloc(hp).reg]+
-                   allocstr[tairegalloc(hp).allocation]);
+                 AsmWriteLn(target_asm.comment+'Register '+std_reg2str[tai_regalloc(hp).reg]+
+                   allocstr[tai_regalloc(hp).allocation]);
              end;
 
            ait_tempalloc :
              begin
                if (cs_asm_tempalloc in aktglobalswitches) then
-                 AsmWriteLn(target_asm.comment+'Temp '+tostr(taitempalloc(hp).temppos)+','+
-                   tostr(taitempalloc(hp).tempsize)+allocstr[taitempalloc(hp).allocation]);
+                 AsmWriteLn(target_asm.comment+'Temp '+tostr(tai_tempalloc(hp).temppos)+','+
+                   tostr(tai_tempalloc(hp).tempsize)+allocstr[tai_tempalloc(hp).allocation]);
              end;
 
            ait_section :
@@ -454,7 +456,7 @@ interface
                   AsmLn;
                   AsmWriteLn('SECTION '+target_asm.secnames[tai_section(hp).sec]);
                 end;
-               LastSec:=tai_section(hp).sec;
+               LasTSec:=tai_section(hp).sec;
              end;
 
            ait_align :
@@ -702,11 +704,11 @@ interface
                while assigned(hp.next) and (tai(hp.next).typ in [ait_cut,ait_section,ait_comment]) do
                 begin
                   if tai(hp.next).typ=ait_section then
-                    lastsec:=tai_section(hp.next).sec;
+                    lasTSec:=tai_section(hp.next).sec;
                   hp:=tai(hp.next);
                 end;
-               if lastsec<>sec_none then
-                 AsmWriteLn('SECTION '+target_asm.secnames[lastsec]);
+               if lasTSec<>sec_none then
+                 AsmWriteLn('SECTION '+target_asm.secnames[lasTSec]);
                AsmStartSize:=AsmSize;
              end;
 
@@ -746,11 +748,10 @@ interface
       if assigned(current_module.mainsource) then
        comment(v_info,'Start writing nasm-styled assembler output for '+current_module.mainsource^);
 {$endif}
-      LastSec:=sec_none;
+      LasTSec:=sec_none;
       AsmWriteLn('BITS 32');
       AsmLn;
 
-      countlabelref:=false;
       lastfileinfo.line:=-1;
       lastfileinfo.fileindex:=0;
       lastinfile:=nil;
@@ -772,7 +773,6 @@ interface
       if not UseDeffileForExport and assigned(exportssection) then
         Writetree(exportssection);
       Writetree(resourcesection);
-      countlabelref:=true;
 
       AsmLn;
 {$ifdef EXTDEBUG}
@@ -804,7 +804,7 @@ interface
             secnames : ('',
               '.text','.data','.bss',
               '.idata2','.idata4','.idata5','.idata6','.idata7','.edata',
-              '.stab','.stabstr')
+              '.stab','.stabstr','')
           );
 
        as_i386_nasmwin32_info : tasminfo =
@@ -824,7 +824,7 @@ interface
             secnames : ('',
               '.text','.data','.bss',
               '.idata2','.idata4','.idata5','.idata6','.idata7','.edata',
-              '.stab','.stabstr')
+              '.stab','.stabstr','')
           );
 
        as_i386_nasmobj_info : tasminfo =
@@ -844,7 +844,7 @@ interface
             secnames : ('',
               '.text','.data','.bss',
               '.idata2','.idata4','.idata5','.idata6','.idata7','.edata',
-              '.stab','.stabstr')
+              '.stab','.stabstr','')
           );
 
        as_i386_nasmwdosx_info : tasminfo =
@@ -864,7 +864,7 @@ interface
             secnames : ('',
               '.text','.data','.bss',
               '.idata2','.idata4','.idata5','.idata6','.idata7','.edata',
-              '.stab','.stabstr')
+              '.stab','.stabstr','')
           );
 
 
@@ -885,7 +885,7 @@ interface
             secnames : ('',
               '.text','.data','.bss',
               '.idata2','.idata4','.idata5','.idata6','.idata7','.edata',
-              '.stab','.stabstr')
+              '.stab','.stabstr','')
           );
 
 
@@ -898,7 +898,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.20  2002-05-18 13:34:21  peter
+  Revision 1.21  2002-07-01 18:46:29  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.20  2002/05/18 13:34:21  peter
     * readded missing revisions
 
   Revision 1.19  2002/05/16 19:46:50  carl

@@ -28,7 +28,7 @@ interface
 
     uses
       node,
-      cginfo,cpubase,aasm,
+      cginfo,cpubase,aasmbase,aasmtai,aasmcpu,
       rgobj;
 
     type
@@ -74,7 +74,7 @@ implementation
     cutils,cclasses,globtype,globals,systems,verbose,
     symbase,symconst,symtype,symsym,symdef,symtable,types,
     fmodule,
-    cgbase,regvars,tainst,cpuasm,
+    cgbase,regvars,
 {$ifdef GDB}
     gdb,
 {$endif GDB}
@@ -1165,7 +1165,7 @@ implementation
           we must load it into ESI }
         If (po_containsself in aktprocdef.procoptions) then
           begin
-             list.concat(Tairegalloc.Alloc(self_pointer_reg));
+             list.concat(tai_regalloc.Alloc(self_pointer_reg));
              reference_reset_base(href,procinfo^.framepointer,procinfo^.selfpointer_offset);
              cg.a_load_ref_reg(list,OS_ADDR,href,self_pointer_reg);
           end;
@@ -1611,7 +1611,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  2002-07-01 16:23:53  peter
+  Revision 1.19  2002-07-01 18:46:23  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.18  2002/07/01 16:23:53  peter
     * cg64 patch
     * basics for currency
     * asnode updates for class and interface (not finished)

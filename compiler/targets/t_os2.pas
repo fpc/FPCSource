@@ -57,7 +57,7 @@ implementation
       procedure generatelib;override;
     end;
 
-    tlinkeros2=class(tlinker)
+    tlinkeros2=class(texternallinker)
     private
        Function  WriteResponseFile(isdll:boolean) : Boolean;
     public
@@ -591,7 +591,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.21  2002-05-18 13:34:27  peter
+  Revision 1.22  2002-07-01 18:46:35  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.21  2002/05/18 13:34:27  peter
     * readded missing revisions
 
   Revision 1.20  2002/05/16 19:46:53  carl

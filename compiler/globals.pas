@@ -24,6 +24,9 @@ unit globals;
 
 {$i fpcdefs.inc}
 
+{ Use the internal linker by default }
+{ define INTERNALLINKER}
+
 interface
 
     uses
@@ -1416,7 +1419,7 @@ implementation
         initmodeswitches:=fpcmodeswitches;
         initlocalswitches:=[cs_check_io,cs_typed_const_writable];
         initmoduleswitches:=[cs_extsyntax,cs_browser];
-        initglobalswitches:=[cs_check_unit_name,cs_link_static];
+        initglobalswitches:=[cs_check_unit_name,cs_link_static{$ifdef INTERNALLINKER},cs_link_internal,cs_link_map{$endif}];
         initoutputformat:=target_asm.id;
         fillchar(initalignment,sizeof(talignmentinfo),0);
 {$ifdef i386}
@@ -1466,7 +1469,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.59  2002-07-01 16:23:52  peter
+  Revision 1.60  2002-07-01 18:46:22  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.59  2002/07/01 16:23:52  peter
     * cg64 patch
     * basics for currency
     * asnode updates for class and interface (not finished)

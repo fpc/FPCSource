@@ -28,10 +28,10 @@ interface
 uses
   cutils,cclasses,
   systems,
-  aasm;
+  aasmbase;
 
 type
-   timported_item = class(tlinkedlistitem)
+   timported_item = class(TLinkedListItem)
       ordnr  : word;
       name,
       func   : pstring;
@@ -42,7 +42,7 @@ type
       destructor Destroy;override;
    end;
 
-   timportlist = class(tlinkedlistitem)
+   timportlist = class(TLinkedListItem)
       dllname : pstring;
       imported_items : tlinkedlist;
       constructor Create(const n : string);
@@ -237,7 +237,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.17  2002-05-18 13:34:08  peter
+  Revision 1.18  2002-07-01 18:46:22  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.17  2002/05/18 13:34:08  peter
     * readded missing revisions
 
   Revision 1.16  2002/05/16 19:46:37  carl

@@ -30,7 +30,7 @@ uses
   cutils,cclasses,
   systems,
   symtype,
-  aasm;
+  aasmbase;
 
 const
    { export options }
@@ -39,7 +39,7 @@ const
    eo_name     = $4;
 
 type
-   texported_item = class(tlinkedlistitem)
+   texported_item = class(TLinkedListItem)
       sym : tsym;
       index : longint;
       name : pstring;
@@ -180,7 +180,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.19  2002-05-18 13:34:07  peter
+  Revision 1.20  2002-07-01 18:46:22  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.19  2002/05/18 13:34:07  peter
     * readded missing revisions
 
   Revision 1.18  2002/05/16 19:46:36  carl

@@ -32,10 +32,10 @@ interface
        dos,
 {$endif Delphi}
        cutils,cclasses,
-       aasm,fmodule,globtype,globals,systems,verbose,
+       aasmbase,aasmtai,aasmcpu,fmodule,globtype,globals,systems,verbose,
        symconst,symsym,
        script,gendef,
-       cpubase,cpuasm,
+       cpubase,
 {$ifdef GDB}
        gdb,
 {$endif}
@@ -70,7 +70,7 @@ interface
       procedure generatenasmlib;virtual;
     end;
 
-    tlinkerwin32=class(tlinker)
+    tlinkerwin32=class(texternallinker)
     private
        Function  WriteResponseFile(isdll:boolean) : Boolean;
        Function  PostProcessExecutable(const fn:string;isdll:boolean) : Boolean;
@@ -288,7 +288,7 @@ const
                     getlabel(lcode);
                     reference_reset_symbol(href,lcode,0);
                     { place jump in codesegment, insert a code section in the
-                      importsection to reduce the amount of .s files (PFV) }
+                      imporTSection to reduce the amount of .s files (PFV) }
                     importsSection.concat(Tai_section.Create(sec_code));
 {$IfDef GDB}
                     if (cs_debuginfo in aktmoduleswitches) then
@@ -305,7 +305,7 @@ const
                  getlabel(tasmlabel(hp2.lab));
                  importsSection.concat(Tai_section.Create(sec_idata4));
                  importsSection.concat(Tai_const_symbol.Create_rva(hp2.lab));
-                 { add jump field to importsection }
+                 { add jump field to imporTSection }
                  importsSection.concat(Tai_section.Create(sec_idata5));
                  if hp2.is_var then
                   importsSection.concat(Tai_symbol.Createname_global(hp2.func^,0))
@@ -442,7 +442,7 @@ const
                       importsSection.concat(Tai_symbol.Createname_global(hp2.func^,0));
                       importsSection.concat(Taicpu.Op_ref(A_JMP,S_NO,href));
                       importsSection.concat(Tai_align.Create_op(4,$90));
-                      { add jump field to importsection }
+                      { add jump field to imporTSection }
                       importsSection.concat(Tai_section.Create(sec_idata5));
 {$ifdef GDB}
                       if (cs_debuginfo in aktmoduleswitches) then
@@ -1155,8 +1155,8 @@ type
     lineno2  : word;
     flags    : longint;
   end;
-  psecfill=^tsecfill;
-  tsecfill=record
+  psecfill=^TSecfill;
+  TSecfill=record
     fillpos,
     fillsize : longint;
     next : psecfill;
@@ -1633,7 +1633,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.34  2002-05-18 13:34:27  peter
+  Revision 1.35  2002-07-01 18:46:35  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.34  2002/05/18 13:34:27  peter
     * readded missing revisions
 
   Revision 1.33  2002/05/16 19:46:53  carl

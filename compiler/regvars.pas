@@ -27,7 +27,7 @@ unit regvars;
 interface
 
     uses
-       aasm,
+       aasmbase,aasmtai,aasmcpu,
        node,
        symsym,
        cpubase, cginfo, tgobj, rgobj;
@@ -49,7 +49,7 @@ implementation
       globtype,systems,comphook,
       cutils,cclasses,verbose,globals,
       symconst,symbase,symtype,symdef,types,
-      tainst,cgbase,cpuasm,cgobj,cgcpu,rgcpu;
+      cgbase,cgobj,cgcpu,rgcpu;
 
 
     procedure searchregvars(p : tnamedindexitem;arg:pointer);
@@ -286,7 +286,7 @@ implementation
                     hr.base:=procinfo^.framepointer;
                     cg.a_load_reg_ref(asml,def_cgsize(vsym.vartype.def),vsym.reg,hr);
                   end;
-                asml.concat(Tairegalloc.dealloc(rg.makeregsize(reg,OS_INT)));
+                asml.concat(tai_regalloc.dealloc(rg.makeregsize(reg,OS_INT)));
                 rg.regvar_loaded[rg.makeregsize(reg,OS_INT)] := false;
               end;
             break;
@@ -302,7 +302,7 @@ implementation
       reg:=rg.makeregsize(vsym.reg,OS_INT);
       if not rg.regvar_loaded[reg] then
         begin
-          asml.concat(Tairegalloc.alloc(reg));
+          asml.concat(tai_regalloc.alloc(reg));
           reference_reset(hr);
           if vsym.owner.symtabletype in [inlinelocalsymtable,localsymtable] then
             hr.offset:=-vsym.address+vsym.owner.address_fixup
@@ -454,7 +454,7 @@ implementation
                 begin
                   reg:=rg.makeregsize(regvars[i].reg,OS_INT);
                   if (rg.regvar_loaded[reg]) then
-                   asml.concat(Tairegalloc.dealloc(reg));
+                   asml.concat(tai_regalloc.dealloc(reg));
                 end;
              end;
           end;
@@ -464,7 +464,11 @@ end.
 
 {
   $Log$
-  Revision 1.34  2002-06-24 12:43:00  jonas
+  Revision 1.35  2002-07-01 18:46:25  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.34  2002/06/24 12:43:00  jonas
     * fixed errors found with new -CR code from Peter when cycling with -O2p3r
 
   Revision 1.33  2002/05/18 13:34:17  peter

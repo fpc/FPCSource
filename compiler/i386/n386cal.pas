@@ -61,7 +61,7 @@ implementation
       gdb,
 {$endif GDB}
       cginfo,cgbase,pass_2,
-      cpubase,aasm,tainst,
+      cpubase,aasmbase,aasmtai,aasmcpu,
       nmem,nld,ncnv,
       ncgutil,cga,cgobj,tgobj,regvars,rgobj,rgcpu,cg64f32,cgcpu;
 
@@ -1080,9 +1080,9 @@ implementation
                        rg.getexplicitregisterint(exprasmlist,R_EDI);
                        emit_reg(A_POP,S_L,R_EDI);
                        rg.ungetregisterint(exprasmlist,R_EDI);
-                       exprasmList.concat(Tairegalloc.Alloc(R_ESI));
+                       exprasmList.concat(tai_regalloc.Alloc(R_ESI));
                        emit_reg(A_POP,S_L,R_ESI);
-                       exprasmList.concat(Tairegalloc.DeAlloc(R_ESI));
+                       exprasmList.concat(tai_regalloc.DeAlloc(R_ESI));
                     end
                 else if pushedparasize<>0 then
                   emit_const_reg(A_ADD,S_L,pushedparasize,R_ESP);
@@ -1129,7 +1129,7 @@ implementation
               reference_reset_base(href,tmpreg,68);
               cg.a_call_ref(exprasmlist,href);
               cg.free_scratch_reg(exprasmlist,tmpreg);
-              exprasmList.concat(Tairegalloc.Alloc(accumulator));
+              exprasmList.concat(tai_regalloc.Alloc(accumulator));
               cg.a_label(exprasmlist,constructorfailed);
               cg.a_load_reg_reg(exprasmlist,OS_ADDR,self_pointer_reg,accumulator);
            end;
@@ -1475,7 +1475,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.55  2002-07-01 16:23:56  peter
+  Revision 1.56  2002-07-01 18:46:31  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.55  2002/07/01 16:23:56  peter
     * cg64 patch
     * basics for currency
     * asnode updates for class and interface (not finished)

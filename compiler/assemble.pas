@@ -43,9 +43,12 @@ interface
       strings,
       dos,
 {$endif Delphi}
-      systems,globtype,globals,aasm,ogbase;
+      systems,globtype,globals,aasmbase,aasmtai,ogbase;
 
     const
+       { maximum of aasmoutput lists there will be }
+       maxoutputlists = 10;
+       { buffer size for writing the .s file }
        AsmOutSize=32768;
 
     type
@@ -128,7 +131,7 @@ interface
         procedure MakeObject;override;
       protected
         { object alloc and output }
-        objectalloc  : tobjectalloc;
+        objectalloc  : TAsmObjectAlloc;
         objectoutput : tobjectoutput;
       private
         { the aasmoutput lists that need to be processed }
@@ -187,7 +190,7 @@ Implementation
       finput,
       gdb,
 {$endif GDB}
-      cpubase,cpuasm
+      cpubase,aasmcpu
       ;
 
     var
@@ -590,7 +593,8 @@ Implementation
       begin
         inherited create(smart);
         objectoutput:=nil;
-        objectalloc:=tobjectalloc.create;
+        objectdata:=nil;
+        objectalloc:=TAsmObjectAlloc.create;
         SmartAsm:=smart;
         currpass:=0;
       end;
@@ -605,6 +609,7 @@ Implementation
 {$ifdef MEMDEBUG}
          d := tmemdebug.create('agbin');
 {$endif}
+        objectdata.free;
         objectoutput.free;
         objectalloc.free;
 {$ifdef MEMDEBUG}
@@ -621,7 +626,7 @@ Implementation
         code : integer;
         hp : pchar;
         reloc : boolean;
-        sec : tsection;
+        sec : TSection;
         ps : tasmsymbol;
         s : string;
       begin
@@ -759,7 +764,7 @@ Implementation
 
     procedure TInternalAssembler.emitlineinfostabs(nidx,line : longint);
       var
-         sec : tsection;
+         sec : TSection;
       begin
         if currpass=1 then
           begin
@@ -852,13 +857,13 @@ Implementation
     procedure TInternalAssembler.EndFileLineInfo;
       var
         hp : tasmsymbol;
-        store_sec : tsection;
+        store_sec : TSection;
       begin
           if not ((cs_debuginfo in aktmoduleswitches) or
              (cs_gdb_lineinfo in aktglobalswitches)) then
            exit;
         store_sec:=objectalloc.currsec;
-        objectalloc.setsection(sec_code);
+        objectalloc.seTSection(sec_code);
         hp:=newasmsymboltype('Letext',AB_LOCAL,AT_FUNCTION);
         if currpass=1 then
           begin
@@ -868,7 +873,7 @@ Implementation
         else
           objectdata.writesymbol(hp);
         EmitStabs('"",'+tostr(n_sourcefile)+',0,0,Letext');
-        objectalloc.setsection(store_sec);
+        objectalloc.seTSection(store_sec);
       end;
 {$endif GDB}
 
@@ -950,7 +955,7 @@ Implementation
              ait_const_symbol :
                objectalloc.sectionalloc(4);
              ait_section:
-               objectalloc.setsection(Tai_section(hp).sec);
+               objectalloc.seTSection(Tai_section(hp).sec);
              ait_symbol :
                Tai_symbol(hp).sym.setaddress(currpass,objectalloc.currsec,objectalloc.sectionsize,0);
              ait_label :
@@ -1016,7 +1021,7 @@ Implementation
                        Tai_datablock(hp).sym.setaddress(currpass,sec_none,Tai_datablock(hp).size,Tai_datablock(hp).size);
                        { force to be common/external, must be after setaddress as that would
                          set it to AS_GLOBAL }
-                       Tai_datablock(hp).sym.bind:=AB_COMMON;
+                       Tai_datablock(hp).sym.currbind:=AB_COMMON;
                      end
                     else
                      begin
@@ -1064,7 +1069,7 @@ Implementation
                end;
              ait_section:
                begin
-                 objectalloc.setsection(Tai_section(hp).sec);
+                 objectalloc.seTSection(Tai_section(hp).sec);
 {$ifdef GDB}
                  case Tai_section(hp).sec of
                   sec_code : n_line:=n_textline;
@@ -1186,7 +1191,7 @@ Implementation
                end;
              ait_section :
                begin
-                 objectdata.defaultsection(Tai_section(hp).sec);
+                 objectdata.defaulTSection(Tai_section(hp).sec);
 {$ifdef GDB}
                  case Tai_section(hp).sec of
                   sec_code : n_line:=n_textline;
@@ -1244,10 +1249,10 @@ Implementation
                objectdata.writebytes(Tai_string(hp).str^,Tai_string(hp).len);
              ait_const_rva :
                objectdata.writereloc(Tai_const_symbol(hp).offset,4,
-                 Tai_const_symbol(hp).sym,relative_rva);
+                 Tai_const_symbol(hp).sym,RELOC_RVA);
              ait_const_symbol :
                objectdata.writereloc(Tai_const_symbol(hp).offset,4,
-                 Tai_const_symbol(hp).sym,relative_false);
+                 Tai_const_symbol(hp).sym,RELOC_ABSOLUTE);
              ait_label :
                begin
                  objectdata.writesymbol(Tai_label(hp).l);
@@ -1258,7 +1263,7 @@ Implementation
 {$ifdef i386}
 {$ifndef NOAG386BIN}
              ait_instruction :
-               Taicpu(hp).Pass2;
+               Taicpu(hp).Pass2(objectdata);
 {$endif NOAG386BIN}
 {$endif i386}
 {$ifdef GDB}
@@ -1290,19 +1295,18 @@ Implementation
       label
         doexit;
       begin
-        objectalloc.resetsections;
-        objectalloc.setsection(sec_code);
+        objectalloc.reseTSections;
+        objectalloc.seTSection(sec_code);
 
-        objectoutput.initwriting(ObjFile);
-        objectdata:=objectoutput.data;
-        objectdata.defaultsection(sec_code);
-      { reset the asmsymbol list }
+        objectdata:=objectoutput.newobjectdata(Objfile);
+        objectdata.defaulTSection(sec_code);
+        { reset the asmsymbol list }
         CreateUsedAsmsymbolList;
 
 {$ifdef MULTIPASS}
       { Pass 0 }
         currpass:=0;
-        objectalloc.setsection(sec_code);
+        objectalloc.seTSection(sec_code);
         { start with list 1 }
         currlistidx:=1;
         currlist:=list[currlistidx];
@@ -1319,8 +1323,8 @@ Implementation
 
       { Pass 1 }
         currpass:=1;
-        objectalloc.resetsections;
-        objectalloc.setsection(sec_code);
+        objectalloc.reseTSections;
+        objectalloc.seTSection(sec_code);
 {$ifdef GDB}
         StartFileLineInfo;
 {$endif GDB}
@@ -1340,7 +1344,7 @@ Implementation
         UsedAsmSymbolListCheckUndefined;
 
         { set section sizes }
-        objectdata.setsectionsizes(objectalloc.secsize);
+        objectdata.seTSectionsizes(objectalloc.secsize);
         { leave if errors have occured }
         if errorcount>0 then
          goto doexit;
@@ -1363,13 +1367,15 @@ Implementation
         EndFileLineInfo;
 {$endif GDB}
 
-        { leave if errors have occured }
-        if errorcount>0 then
-         goto doexit;
-
-        { write last objectfile }
-        objectoutput.donewriting;
-        objectdata:=nil;
+        { don't write the .o file if errors have occured }
+        if errorcount=0 then
+         begin
+           { write objectfile }
+           objectoutput.startobjectfile(ObjFile);
+           objectoutput.writeobjectfile(objectdata);
+           objectdata.free;
+           objectdata:=nil;
+         end;
 
       doexit:
         { reset the used symbols back, must be after the .o has been
@@ -1382,17 +1388,16 @@ Implementation
     procedure TInternalAssembler.writetreesmart;
       var
         hp : Tai;
-        startsec : tsection;
+        starTSec : TSection;
         place: tcutplace;
       begin
-        objectalloc.resetsections;
-        objectalloc.setsection(sec_code);
+        objectalloc.reseTSections;
+        objectalloc.seTSection(sec_code);
 
         NextSmartName(cut_normal);
-        objectoutput.initwriting(ObjFile);
-        objectdata:=objectoutput.data;
-        objectdata.defaultsection(sec_code);
-        startsec:=sec_code;
+        objectdata:=objectoutput.newobjectdata(Objfile);
+        objectdata.defaulTSection(sec_code);
+        starTSec:=sec_code;
 
         { start with list 1 }
         currlistidx:=1;
@@ -1406,8 +1411,8 @@ Implementation
 {$ifdef MULTIPASS}
          { Pass 0 }
            currpass:=0;
-           objectalloc.resetsections;
-           objectalloc.setsection(startsec);
+           objectalloc.reseTSections;
+           objectalloc.seTSection(starTSec);
            TreePass0(hp);
            { leave if errors have occured }
            if errorcount>0 then
@@ -1416,8 +1421,8 @@ Implementation
 
          { Pass 1 }
            currpass:=1;
-           objectalloc.resetsections;
-           objectalloc.setsection(startsec);
+           objectalloc.reseTSections;
+           objectalloc.seTSection(starTSec);
 {$ifdef GDB}
            StartFileLineInfo;
 {$endif GDB}
@@ -1429,14 +1434,15 @@ Implementation
            UsedAsmSymbolListCheckUndefined;
 
            { set section sizes }
-           objectdata.setsectionsizes(objectalloc.secsize);
+           objectdata.seTSectionsizes(objectalloc.secsize);
            { leave if errors have occured }
            if errorcount>0 then
             exit;
 
          { Pass 2 }
            currpass:=2;
-           objectdata.defaultsection(startsec);
+           objectoutput.startobjectfile(Objfile);
+           objectdata.defaulTSection(starTSec);
 {$ifdef GDB}
            StartFileLineInfo;
 {$endif GDB}
@@ -1448,8 +1454,9 @@ Implementation
            if errorcount>0 then
             exit;
 
-           { if not end then write the current objectfile }
-           objectoutput.donewriting;
+           { write the current objectfile }
+           objectoutput.writeobjectfile(objectdata);
+           objectdata.free;
            objectdata:=nil;
 
            { reset the used symbols back, must be after the .o has been
@@ -1461,8 +1468,8 @@ Implementation
            if not MaybeNextList(hp) then
             break;
            { save section for next loop }
-           { this leads to a problem if startsec is sec_none !! PM }
-           startsec:=objectalloc.currsec;
+           { this leads to a problem if starTSec is sec_none !! PM }
+           starTSec:=objectalloc.currsec;
 
            { we will start a new objectfile so reset everything }
            { The place can still change in the next while loop, so don't init }
@@ -1477,19 +1484,19 @@ Implementation
                  (Tai(hp).typ in [ait_marker,ait_comment,ait_section,ait_cut]) do
             begin
               if Tai(hp).typ=ait_section then
-               startsec:=Tai_section(hp).sec
+               starTSec:=Tai_section(hp).sec
               else if (Tai(hp).typ=ait_cut) then
                place := Tai_cut(hp).place;
               hp:=Tai(hp.next);
             end;
 
+           { start next objectfile }
            NextSmartName(place);
-           objectoutput.initwriting(ObjFile);
-           objectdata:=objectoutput.data;
+           objectdata:=objectoutput.newobjectdata(Objfile);
 
-           { there is a problem if startsec is sec_none !! PM }
-           if startsec=sec_none then
-             startsec:=sec_code;
+           { there is a problem if starTSec is sec_none !! PM }
+           if starTSec=sec_none then
+             starTSec:=sec_code;
 
            if not MaybeNextList(hp) then
              break;
@@ -1588,7 +1595,11 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.36  2002-05-18 13:34:05  peter
+  Revision 1.37  2002-07-01 18:46:21  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.36  2002/05/18 13:34:05  peter
     * readded missing revisions
 
   Revision 1.35  2002/05/16 19:46:35  carl

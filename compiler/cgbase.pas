@@ -34,7 +34,7 @@ unit cgbase;
       { symtable }
       symconst,symtype,symdef,symsym,
       { aasm }
-      aasm,cpubase,cpuinfo,cginfo
+      cpubase,cpuinfo,cginfo,aasmbase,aasmtai
       ;
 
 
@@ -525,7 +525,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2002-05-20 13:30:40  carl
+  Revision 1.18  2002-07-01 18:46:22  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.17  2002/05/20 13:30:40  carl
   * bugfix of hdisponen (base must be set, not index)
   * more portability fixes
 

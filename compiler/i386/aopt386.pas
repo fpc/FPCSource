@@ -28,7 +28,7 @@ Unit aopt386;
 Interface
 
 Uses
-  aasm;
+  aasmbase,aasmtai,aasmcpu;
 
 Procedure Optimize(AsmL: TAasmOutput);
 
@@ -118,7 +118,11 @@ End;
 End.
 {
   $Log$
-  Revision 1.6  2002-05-18 13:34:21  peter
+  Revision 1.7  2002-07-01 18:46:29  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.6  2002/05/18 13:34:21  peter
     * readded missing revisions
 
   Revision 1.5  2002/05/16 19:46:50  carl

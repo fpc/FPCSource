@@ -32,7 +32,7 @@ unit cg64f32;
   interface
 
     uses
-       aasm,
+       aasmbase,aasmtai,aasmcpu,
        cpuinfo, cpubase,
        cginfo, cgobj,
        node,symtype;
@@ -587,7 +587,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2002-07-01 16:23:52  peter
+  Revision 1.16  2002-07-01 18:46:21  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.15  2002/07/01 16:23:52  peter
     * cg64 patch
     * basics for currency
     * asnode updates for class and interface (not finished)

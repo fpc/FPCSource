@@ -854,6 +854,8 @@ begin
               'X' : begin
                       for j:=1 to length(More) do
                        case More[j] of
+                        'i' : include(initglobalswitches,cs_link_internal);
+                        'm' : include(initglobalswitches,cs_link_map);
                         's' : include(initglobalswitches,cs_link_strip);
                         't' : include(initglobalswitches,cs_link_staticflag);
                         'D' : begin
@@ -886,6 +888,7 @@ begin
                         '-' : begin
                                 exclude(initglobalswitches,cs_link_staticflag);
                                 exclude(initglobalswitches,cs_link_strip);
+                                exclude(initglobalswitches,cs_link_map);
                                 set_default_link_type;
                               end;
                        else
@@ -1665,7 +1668,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.74  2002-07-01 16:23:53  peter
+  Revision 1.75  2002-07-01 18:46:24  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.74  2002/07/01 16:23:53  peter
     * cg64 patch
     * basics for currency
     * asnode updates for class and interface (not finished)

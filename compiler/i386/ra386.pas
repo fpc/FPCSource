@@ -27,7 +27,8 @@ unit Ra386;
 interface
 
 uses
-  aasm,cpubase,rautils,cclasses;
+  aasmbase,aasmtai,aasmcpu,
+  cpubase,rautils,cclasses;
 
 { Parser helpers }
 function is_prefix(t:tasmop):boolean;
@@ -92,7 +93,7 @@ implementation
 
 uses
   globtype,globals,systems,verbose,
-  cpuinfo,cpuasm,ag386att;
+  cpuinfo,ag386att;
 
 {$define ATTOP}
 {$define INTELOP}
@@ -668,7 +669,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.21  2002-05-18 13:34:25  peter
+  Revision 1.22  2002-07-01 18:46:34  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.21  2002/05/18 13:34:25  peter
     * readded missing revisions
 
   Revision 1.20  2002/05/16 19:46:52  carl

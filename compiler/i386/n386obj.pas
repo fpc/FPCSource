@@ -32,7 +32,7 @@ implementation
 uses
   systems,
   verbose,globals,globtype,
-  aasm,
+  aasmbase,aasmtai,aasmcpu,
   symconst,symtype,symdef,symsym,
   fmodule,
   nobj,
@@ -237,7 +237,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.10  2002-05-18 13:34:25  peter
+  Revision 1.11  2002-07-01 18:46:33  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.10  2002/05/18 13:34:25  peter
     * readded missing revisions
 
   Revision 1.9  2002/05/16 19:46:52  carl

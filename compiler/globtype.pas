@@ -126,7 +126,7 @@ interface
          cs_asm_regalloc,cs_asm_tempalloc,cs_asm_nodes,
          { linking }
          cs_link_extern,cs_link_static,cs_link_smart,cs_link_shared,cs_link_deffile,
-         cs_link_strip,cs_link_staticflag,cs_link_on_target
+         cs_link_strip,cs_link_staticflag,cs_link_on_target,cs_link_internal,cs_link_map
        );
        tglobalswitches = set of tglobalswitch;
 
@@ -255,7 +255,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.26  2002-05-18 13:34:08  peter
+  Revision 1.27  2002-07-01 18:46:22  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.26  2002/05/18 13:34:08  peter
     * readded missing revisions
 
   Revision 1.25  2002/05/16 19:46:36  carl

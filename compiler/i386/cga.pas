@@ -28,8 +28,8 @@ unit cga;
 interface
 
     uses
-       cpuinfo,cpubase,cpuasm,cginfo,
-       symconst,symtype,symdef,aasm;
+       cpuinfo,cpubase,cginfo,
+       symconst,symtype,symdef,aasmbase,aasmtai,aasmcpu;
 
 {$define TESTGETTEMP to store const that
  are written into temps for later release PM }
@@ -174,7 +174,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.32  2002-05-18 13:34:21  peter
+  Revision 1.33  2002-07-01 18:46:29  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.32  2002/05/18 13:34:21  peter
     * readded missing revisions
 
   Revision 1.31  2002/05/16 19:46:50  carl

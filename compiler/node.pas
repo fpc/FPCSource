@@ -30,7 +30,7 @@ interface
        cclasses,
        globtype,globals,
        cpubase,
-       aasm,
+       aasmbase,
        symtype;
 
     type
@@ -806,7 +806,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.27  2002-05-18 13:34:10  peter
+  Revision 1.28  2002-07-01 18:46:24  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.27  2002/05/18 13:34:10  peter
     * readded missing revisions
 
   Revision 1.26  2002/05/16 19:46:39  carl

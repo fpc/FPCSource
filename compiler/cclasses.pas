@@ -65,6 +65,7 @@ interface
           FCount : integer;
           FFirst,
           FLast  : TLinkedListItem;
+          FNoClear : boolean;
        public
           constructor Create;
           destructor  Destroy;override;
@@ -93,6 +94,7 @@ interface
           property First:TLinkedListItem read FFirst;
           property Last:TLinkedListItem read FLast;
           property Count:Integer read FCount;
+          property NoClear:boolean write FNoClear;
        end;
 
 {********************************************
@@ -413,12 +415,14 @@ end;
         FFirst:=nil;
         Flast:=nil;
         FCount:=0;
+        FNoClear:=False;
       end;
 
 
     destructor TLinkedList.destroy;
       begin
-        Clear;
+        if not FNoClear then
+         Clear;
       end;
 
 
@@ -1729,7 +1733,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  2002-06-17 13:56:14  jonas
+  Revision 1.15  2002-07-01 18:46:21  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.14  2002/06/17 13:56:14  jonas
     * tdictionary.rename() returns nil if the original object wasn't found
       (reported by Sergey Korshunoff <seyko@comail.ru>)
 

@@ -126,6 +126,7 @@ interface
           ppufilename,              { fullname of the ppufile }
           staticlibfilename,        { fullname of the static libraryfile }
           sharedlibfilename,        { fullname of the shared libraryfile }
+          mapfilename,              { fullname of the mapfile }
           exefilename,              { fullname of the exefile }
           mainsource   : pstring;   { name of the main sourcefile }
           constructor create(const s:string);
@@ -604,6 +605,7 @@ uses
          stringdispose(ppufilename);
          stringdispose(staticlibfilename);
          stringdispose(sharedlibfilename);
+         stringdispose(mapfilename);
          stringdispose(exefilename);
          stringdispose(outputpath);
          stringdispose(path);
@@ -640,6 +642,7 @@ uses
          else
           p:=path^;
          exefilename:=stringdup(p+n+target_info.exeext);
+         mapfilename:=stringdup(p+n+'.map');
       end;
 
 
@@ -654,6 +657,7 @@ uses
         staticlibfilename:=nil;
         sharedlibfilename:=nil;
         exefilename:=nil;
+        mapfilename:=nil;
         outputpath:=nil;
         path:=nil;
         { status }
@@ -682,6 +686,7 @@ uses
         stringdispose(staticlibfilename);
         stringdispose(sharedlibfilename);
         stringdispose(exefilename);
+        stringdispose(mapfilename);
         stringdispose(outputpath);
         stringdispose(path);
         stringdispose(modulename);
@@ -693,7 +698,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.15  2002-05-18 13:34:07  peter
+  Revision 1.16  2002-07-01 18:46:22  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.15  2002/05/18 13:34:07  peter
     * readded missing revisions
 
   Revision 1.14  2002/05/16 19:46:36  carl

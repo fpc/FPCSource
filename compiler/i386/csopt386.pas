@@ -27,7 +27,7 @@ Unit CSOpt386;
 
 Interface
 
-Uses aasm, cpuinfo, cpubase, cpuasm, optbase;
+Uses aasmbase,aasmtai,aasmcpu, cpuinfo, cpubase, optbase;
 
 function CSE(asmL: TAAsmoutput; first, last: Tai; pass: longint): boolean;
 
@@ -1984,7 +1984,11 @@ End.
 
 {
   $Log$
-  Revision 1.35  2002-05-18 13:34:22  peter
+  Revision 1.36  2002-07-01 18:46:31  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.35  2002/05/18 13:34:22  peter
     * readded missing revisions
 
   Revision 1.34  2002/05/16 19:46:51  carl

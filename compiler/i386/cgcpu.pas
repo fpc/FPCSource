@@ -29,7 +29,8 @@ unit cgcpu;
 
     uses
        cginfo,cgbase,cgobj,cg64f32,
-       aasm,cpuasm,cpubase,cpuinfo,
+       aasmbase,aasmtai,aasmcpu,
+       cpubase,cpuinfo,
        node,symconst;
 
     type
@@ -160,7 +161,7 @@ unit cgcpu;
     uses
        globtype,globals,verbose,systems,cutils,
        symdef,symsym,types,
-       rgobj,tgobj,rgcpu,tainst;
+       rgobj,tgobj,rgcpu;
 
 {$ifndef NOTARGETWIN32}
     const
@@ -1279,7 +1280,7 @@ unit cgcpu;
            begin
               rg.getexplicitregisterint(list,R_EDI);
               a_loadaddr_ref_reg(list,dest,R_EDI);
-              list.concat(Tairegalloc.Alloc(R_ESI));
+              list.concat(tai_regalloc.Alloc(R_ESI));
               if loadref then
                 a_load_ref_reg(list,OS_ADDR,source,R_ESI)
               else
@@ -1319,7 +1320,7 @@ unit cgcpu;
                      list.concat(Taicpu.Op_none(A_MOVSB,S_NO));
                 end;
               rg.ungetregisterint(list,R_EDI);
-              list.concat(Tairegalloc.DeAlloc(R_ESI));
+              list.concat(tai_regalloc.DeAlloc(R_ESI));
               if ecxpushed then
                 list.concat(Taicpu.Op_reg(A_POP,S_L,R_ECX))
               else
@@ -1349,9 +1350,9 @@ unit cgcpu;
          a_param_reg(list,OS_ADDR,accumulator,1);
          a_reg_dealloc(list,accumulator);
          a_call_name(list,'FPC_SETJMP');
-         list.concat(Tairegalloc.Alloc(accumulator));
+         list.concat(tai_regalloc.Alloc(accumulator));
          list.concat(Taicpu.op_reg(A_PUSH,S_L,accumulator));
-         list.concat(Tairegalloc.DeAlloc(accumulator));
+         list.concat(tai_regalloc.DeAlloc(accumulator));
          a_cmp_const_reg_label(list,OS_ADDR,OC_NE,0,accumulator,exceptlabel);
       end;
 
@@ -1783,7 +1784,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2002-07-01 16:23:55  peter
+  Revision 1.25  2002-07-01 18:46:30  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.24  2002/07/01 16:23:55  peter
     * cg64 patch
     * basics for currency
     * asnode updates for class and interface (not finished)

@@ -38,7 +38,7 @@ implementation
     cutils,cclasses,
     verbose,systems,globtype,globals,
     symconst,script,
-    fmodule,aasm,cpuasm,cpubase,symsym,
+    fmodule,aasmbase,aasmtai,aasmcpu,cpubase,symsym,
     import,export,link;
 
   type
@@ -56,7 +56,7 @@ implementation
       procedure generatelib;override;
     end;
 
-    tlinkersunos=class(tlinker)
+    tlinkersunos=class(texternallinker)
     private
       Glibc2,
       Glibc21 : boolean;
@@ -552,7 +552,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.23  2002-05-18 13:34:27  peter
+  Revision 1.24  2002-07-01 18:46:35  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.23  2002/05/18 13:34:27  peter
     * readded missing revisions
 
   Revision 1.22  2002/05/16 19:46:53  carl

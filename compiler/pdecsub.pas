@@ -69,7 +69,7 @@ implementation
        globtype,globals,verbose,
        systems,cpubase,
        { aasm }
-       aasm,
+       aasmbase,aasmtai,aasmcpu,
        { symtable }
        symbase,symtable,types,
        { pass 1 }
@@ -1957,7 +1957,11 @@ const
 end.
 {
   $Log$
-  Revision 1.57  2002-05-18 13:34:12  peter
+  Revision 1.58  2002-07-01 18:46:25  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.57  2002/05/18 13:34:12  peter
     * readded missing revisions
 
   Revision 1.56  2002/05/16 19:46:42  carl

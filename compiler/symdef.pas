@@ -37,7 +37,7 @@ interface
        { node }
        node,
        { aasm }
-       aasm,cpubase,cpuinfo
+       aasmbase,aasmtai,cpubase,cpuinfo
        ;
 
 
@@ -93,7 +93,7 @@ interface
           savesize  : longint;
        end;
 
-       tparaitem = class(tlinkedlistitem)
+       tparaitem = class(TLinkedListItem)
           paratype     : ttype;
           parasym      : tsym;
           paratyp      : tvarspez;
@@ -4822,7 +4822,7 @@ implementation
 
 
     type
-       tclasslistitem = class(tlinkedlistitem)
+       tclasslistitem = class(TLinkedListItem)
           index : longint;
           p : tobjectdef;
        end;
@@ -5478,7 +5478,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.80  2002-07-01 16:23:54  peter
+  Revision 1.81  2002-07-01 18:46:26  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.80  2002/07/01 16:23:54  peter
     * cg64 patch
     * basics for currency
     * asnode updates for class and interface (not finished)

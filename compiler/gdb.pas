@@ -33,7 +33,7 @@ uses
   strings,
 {$endif}
   globtype,cpubase,
-  globals,aasm;
+  globals,aasmtai;
 
 {stab constants }
 Const
@@ -304,7 +304,11 @@ end.
 
 {
   $Log$
-  Revision 1.13  2002-05-18 13:34:08  peter
+  Revision 1.14  2002-07-01 18:46:22  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.13  2002/05/18 13:34:08  peter
     * readded missing revisions
 
   Revision 1.12  2002/05/16 19:46:36  carl

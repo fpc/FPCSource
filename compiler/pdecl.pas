@@ -52,7 +52,7 @@ implementation
        globtype,tokens,verbose,
        systems,
        { aasm }
-       aasm,fmodule,
+       aasmbase,aasmtai,aasmcpu,fmodule,
        { symtable }
        symconst,symbase,symtype,symdef,symtable,
        { pass 1 }
@@ -611,7 +611,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.47  2002-06-12 13:20:29  jonas
+  Revision 1.48  2002-07-01 18:46:25  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.47  2002/06/12 13:20:29  jonas
     * fix from Florian for init/final info of forward classes
 
   Revision 1.46  2002/05/18 13:34:12  peter

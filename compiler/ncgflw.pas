@@ -71,9 +71,9 @@ implementation
 
     uses
       verbose,globals,systems,globtype,
-      symconst,symsym,aasm,types,
+      symconst,symsym,aasmbase,aasmtai,aasmcpu,types,
       cginfo,cgbase,pass_2,
-      cpubase,cpuasm,cpuinfo,
+      cpubase,cpuinfo,
       nld,ncon,
       tgobj,rgobj,
       ncgutil,
@@ -628,7 +628,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2002-07-01 16:23:53  peter
+  Revision 1.21  2002-07-01 18:46:22  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.20  2002/07/01 16:23:53  peter
     * cg64 patch
     * basics for currency
     * asnode updates for class and interface (not finished)

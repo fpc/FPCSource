@@ -52,11 +52,11 @@ implementation
 
     uses
       verbose,systems,
-      symsym,aasm,
+      symsym,aasmbase,aasmtai,aasmcpu,
       cgbase,pass_2,
-      cpuinfo,cpubase,cpuasm,
+      cpuinfo,cpubase,
       nld,ncon,
-      tainst,cga,cgobj,tgobj,rgobj;
+      cga,cgobj,tgobj,rgobj;
 
 {*****************************************************************************
                              SecondRaise
@@ -123,10 +123,10 @@ implementation
 
       begin
          cg.a_call_name(exprasmlist,'FPC_POPOBJECTSTACK');
-         exprasmList.concat(Tairegalloc.Alloc(R_EAX));
+         exprasmList.concat(tai_regalloc.Alloc(R_EAX));
          emit_reg(A_PUSH,S_L,R_EAX);
          cg.a_call_name(exprasmlist,'FPC_DESTROYEXCEPTION');
-         exprasmList.concat(Tairegalloc.DeAlloc(R_EAX));
+         exprasmList.concat(tai_regalloc.DeAlloc(R_EAX));
          cg.g_maybe_loadself(exprasmlist);
       end;
 
@@ -137,10 +137,10 @@ implementation
       begin
          cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
          { allocate eax }
-         exprasmList.concat(Tairegalloc.Alloc(R_EAX));
+         exprasmList.concat(tai_regalloc.Alloc(R_EAX));
          emit_reg(A_POP,S_L,R_EAX);
          { deallocate eax }
-         exprasmList.concat(Tairegalloc.DeAlloc(R_EAX));
+         exprasmList.concat(tai_regalloc.DeAlloc(R_EAX));
       end;
 
     procedure ti386tryexceptnode.pass_2;
@@ -209,13 +209,13 @@ implementation
          cg.a_call_name(exprasmlist,'FPC_PUSHEXCEPTADDR');
 
          { allocate eax }
-         exprasmList.concat(Tairegalloc.Alloc(R_EAX));
+         exprasmList.concat(tai_regalloc.Alloc(R_EAX));
          emit_reg(A_PUSH,S_L,R_EAX);
          cg.a_call_name(exprasmlist,'FPC_SETJMP');
          emit_reg(A_PUSH,S_L,R_EAX);
          emit_reg_reg(A_TEST,S_L,R_EAX,R_EAX);
          { deallocate eax }
-         exprasmList.concat(Tairegalloc.DeAlloc(R_EAX));
+         exprasmList.concat(tai_regalloc.DeAlloc(R_EAX));
          emitjmp(C_NE,exceptlabel);
 
          { try block }
@@ -239,10 +239,10 @@ implementation
          tg.ungetpersistanttempreference(exprasmlist,tempaddr);
          tg.ungetpersistanttempreference(exprasmlist,tempbuf);
 
-         exprasmList.concat(Tairegalloc.Alloc(R_EAX));
+         exprasmList.concat(tai_regalloc.Alloc(R_EAX));
          emit_reg(A_POP,S_L,R_EAX);
          emit_reg_reg(A_TEST,S_L,R_EAX,R_EAX);
-         exprasmList.concat(Tairegalloc.DeAlloc(R_EAX));
+         exprasmList.concat(tai_regalloc.DeAlloc(R_EAX));
 
          emitjmp(C_E,endexceptlabel);
          cg.a_label(exprasmlist,doexceptlabel);
@@ -287,13 +287,13 @@ implementation
               cg.a_call_name(exprasmlist,'FPC_PUSHEXCEPTADDR');
 
               { allocate eax }
-              exprasmList.concat(Tairegalloc.Alloc(R_EAX));
+              exprasmList.concat(tai_regalloc.Alloc(R_EAX));
               emit_reg(A_PUSH,S_L,R_EAX);
               cg.a_call_name(exprasmlist,'FPC_SETJMP');
               emit_reg(A_PUSH,S_L,R_EAX);
               emit_reg_reg(A_TEST,S_L,R_EAX,R_EAX);
               { deallocate eax }
-              exprasmList.concat(Tairegalloc.DeAlloc(R_EAX));
+              exprasmList.concat(tai_regalloc.DeAlloc(R_EAX));
               emitjmp(C_NE,exceptlabel);
 
               { here we don't have to reset flowcontrol           }
@@ -306,16 +306,16 @@ implementation
               tg.ungetpersistanttempreference(exprasmlist,tempaddr);
               tg.ungetpersistanttempreference(exprasmlist,tempbuf);
 
-              exprasmList.concat(Tairegalloc.Alloc(R_EAX));
+              exprasmList.concat(tai_regalloc.Alloc(R_EAX));
               exprasmList.concat(Taicpu.op_reg(A_POP,S_L,R_EAX));
               exprasmList.concat(Taicpu.op_reg_reg(A_TEST,S_L,R_EAX,R_EAX));
-              exprasmList.concat(Tairegalloc.DeAlloc(R_EAX));
+              exprasmList.concat(tai_regalloc.DeAlloc(R_EAX));
               emitjmp(C_E,doobjectdestroy);
               cg.a_call_name(exprasmlist,'FPC_POPSECONDOBJECTSTACK');
-              exprasmList.concat(Tairegalloc.Alloc(R_EAX));
+              exprasmList.concat(tai_regalloc.Alloc(R_EAX));
               emit_reg(A_PUSH,S_L,R_EAX);
               cg.a_call_name(exprasmlist,'FPC_DESTROYEXCEPTION');
-              exprasmList.concat(Tairegalloc.DeAlloc(R_EAX));
+              exprasmList.concat(tai_regalloc.DeAlloc(R_EAX));
               { we don't need to restore esi here because reraise never }
               { returns                                                 }
               cg.a_call_name(exprasmlist,'FPC_RERAISE');
@@ -429,7 +429,7 @@ implementation
            newasmsymbol(excepttype.vmt_mangledname));
          cg.a_call_name(exprasmlist,'FPC_CATCHES');
          { allocate eax }
-         exprasmList.concat(Tairegalloc.Alloc(R_EAX));
+         exprasmList.concat(tai_regalloc.Alloc(R_EAX));
          emit_reg_reg(A_TEST,S_L,R_EAX,R_EAX);
          emitjmp(C_E,nextonlabel);
          ref.symbol:=nil;
@@ -441,7 +441,7 @@ implementation
 
          emit_reg_ref(A_MOV,S_L,R_EAX,ref);
          { deallocate eax }
-         exprasmList.concat(Tairegalloc.DeAlloc(R_EAX));
+         exprasmList.concat(tai_regalloc.DeAlloc(R_EAX));
 
          { in the case that another exception is risen }
          { we've to destroy the old one                }
@@ -454,14 +454,14 @@ implementation
          cg.a_param_const(exprasmlist,OS_INT,1,1);
          cg.a_call_name(exprasmlist,'FPC_PUSHEXCEPTADDR');
 
-         exprasmList.concat(Tairegalloc.Alloc(R_EAX));
+         exprasmList.concat(tai_regalloc.Alloc(R_EAX));
          exprasmList.concat(Taicpu.op_reg(A_PUSH,S_L,R_EAX));
-         exprasmList.concat(Tairegalloc.DeAlloc(R_EAX));
+         exprasmList.concat(tai_regalloc.DeAlloc(R_EAX));
          cg.a_call_name(exprasmlist,'FPC_SETJMP');
-         exprasmList.concat(Tairegalloc.Alloc(R_EAX));
+         exprasmList.concat(tai_regalloc.Alloc(R_EAX));
          exprasmList.concat(Taicpu.op_reg(A_PUSH,S_L,R_EAX));
          exprasmList.concat(Taicpu.op_reg_reg(A_TEST,S_L,R_EAX,R_EAX));
-         exprasmList.concat(Tairegalloc.DeAlloc(R_EAX));
+         exprasmList.concat(tai_regalloc.DeAlloc(R_EAX));
          emitjmp(C_NE,doobjectdestroyandreraise);
 
          if assigned(right) then
@@ -491,16 +491,16 @@ implementation
          tg.ungetpersistanttempreference(exprasmlist,tempaddr);
          tg.ungetpersistanttempreference(exprasmlist,tempbuf);
 
-         exprasmList.concat(Tairegalloc.Alloc(R_EAX));
+         exprasmList.concat(tai_regalloc.Alloc(R_EAX));
          exprasmList.concat(Taicpu.op_reg(A_POP,S_L,R_EAX));
          exprasmList.concat(Taicpu.op_reg_reg(A_TEST,S_L,R_EAX,R_EAX));
-         exprasmList.concat(Tairegalloc.DeAlloc(R_EAX));
+         exprasmList.concat(tai_regalloc.DeAlloc(R_EAX));
          emitjmp(C_E,doobjectdestroy);
          cg.a_call_name(exprasmlist,'FPC_POPSECONDOBJECTSTACK');
-         exprasmList.concat(Tairegalloc.Alloc(R_EAX));
+         exprasmList.concat(tai_regalloc.Alloc(R_EAX));
          emit_reg(A_PUSH,S_L,R_EAX);
          cg.a_call_name(exprasmlist,'FPC_DESTROYEXCEPTION');
-         exprasmList.concat(Tairegalloc.DeAlloc(R_EAX));
+         exprasmList.concat(tai_regalloc.DeAlloc(R_EAX));
          { we don't need to restore esi here because reraise never }
          { returns                                                 }
          cg.a_call_name(exprasmlist,'FPC_RERAISE');
@@ -610,13 +610,13 @@ implementation
          cg.a_call_name(exprasmlist,'FPC_PUSHEXCEPTADDR');
 
          { allocate eax }
-         exprasmList.concat(Tairegalloc.Alloc(R_EAX));
+         exprasmList.concat(tai_regalloc.Alloc(R_EAX));
          emit_reg(A_PUSH,S_L,R_EAX);
          cg.a_call_name(exprasmlist,'FPC_SETJMP');
          emit_reg(A_PUSH,S_L,R_EAX);
          emit_reg_reg(A_TEST,S_L,R_EAX,R_EAX);
          { deallocate eax }
-         exprasmList.concat(Tairegalloc.DeAlloc(R_EAX));
+         exprasmList.concat(tai_regalloc.DeAlloc(R_EAX));
          emitjmp(C_NE,finallylabel);
 
          { try code }
@@ -641,7 +641,7 @@ implementation
          if codegenerror then
            exit;
          { allocate eax }
-         exprasmList.concat(Tairegalloc.Alloc(R_EAX));
+         exprasmList.concat(tai_regalloc.Alloc(R_EAX));
          emit_reg(A_POP,S_L,R_EAX);
          emit_reg_reg(A_TEST,S_L,R_EAX,R_EAX);
          emitjmp(C_E,endfinallylabel);
@@ -669,7 +669,7 @@ implementation
               emitjmp(C_Z,oldaktcontinuelabel);
            end;
          { deallocate eax }
-         exprasmList.concat(Tairegalloc.DeAlloc(R_EAX));
+         exprasmList.concat(tai_regalloc.DeAlloc(R_EAX));
          cg.a_label(exprasmlist,reraiselabel);
          cg.a_call_name(exprasmlist,'FPC_RERAISE');
          { do some magic for exit,break,continue in the try block }
@@ -677,9 +677,9 @@ implementation
            begin
               cg.a_label(exprasmlist,exitfinallylabel);
               { allocate eax }
-              exprasmList.concat(Tairegalloc.Alloc(R_EAX));
+              exprasmList.concat(tai_regalloc.Alloc(R_EAX));
               emit_reg(A_POP,S_L,R_EAX);
-              exprasmList.concat(Tairegalloc.Alloc(R_EAX));
+              exprasmList.concat(tai_regalloc.Alloc(R_EAX));
               emit_const(A_PUSH,S_L,2);
               cg.a_jmp_always(exprasmlist,finallylabel);
            end;
@@ -687,19 +687,19 @@ implementation
           begin
              cg.a_label(exprasmlist,breakfinallylabel);
              { allocate eax }
-             exprasmList.concat(Tairegalloc.Alloc(R_EAX));
+             exprasmList.concat(tai_regalloc.Alloc(R_EAX));
              emit_reg(A_POP,S_L,R_EAX);
              { deallocate eax }
-             exprasmList.concat(Tairegalloc.DeAlloc(R_EAX));
+             exprasmList.concat(tai_regalloc.DeAlloc(R_EAX));
              emit_const(A_PUSH,S_L,3);
              cg.a_jmp_always(exprasmlist,finallylabel);
            end;
          if fc_continue in tryflowcontrol then
            begin
               cg.a_label(exprasmlist,continuefinallylabel);
-              exprasmList.concat(Tairegalloc.Alloc(R_EAX));
+              exprasmList.concat(tai_regalloc.Alloc(R_EAX));
               emit_reg(A_POP,S_L,R_EAX);
-              exprasmList.concat(Tairegalloc.Alloc(R_EAX));
+              exprasmList.concat(tai_regalloc.Alloc(R_EAX));
               emit_const(A_PUSH,S_L,4);
               cg.a_jmp_always(exprasmlist,finallylabel);
            end;
@@ -726,7 +726,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2002-05-20 13:30:41  carl
+  Revision 1.28  2002-07-01 18:46:33  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.27  2002/05/20 13:30:41  carl
   * bugfix of hdisponen (base must be set, not index)
   * more portability fixes
 

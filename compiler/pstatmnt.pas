@@ -42,9 +42,9 @@ implementation
        cutils,
        { global }
        globtype,globals,verbose,
-       systems,cpuinfo,cpuasm,
+       systems,cpuinfo,
        { aasm }
-       cpubase,aasm,
+       cpubase,aasmbase,aasmtai,aasmcpu,
        { symtable }
        symconst,symbase,symtype,symdef,symsym,symtable,types,
        { pass 1 }
@@ -1217,7 +1217,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.58  2002-05-18 13:34:13  peter
+  Revision 1.59  2002-07-01 18:46:25  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.58  2002/05/18 13:34:13  peter
     * readded missing revisions
 
   Revision 1.57  2002/05/16 19:46:44  carl

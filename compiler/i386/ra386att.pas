@@ -41,7 +41,7 @@ Implementation
        globtype,globals,verbose,
        systems,
        { aasm }
-       cpubase,aasm,
+       cpubase,aasmbase,aasmtai,aasmcpu,
        { symtable }
        symconst,symbase,symtype,symsym,symtable,
        { pass 1 }
@@ -1880,7 +1880,7 @@ Function Assemble: tnode;
 Var
   hl         : tasmlabel;
   commname   : string;
-  lastsec    : tsection;
+  lasTSec    : TSection;
   l1,l2      : longint;
   instr      : T386ATTInstruction;
 Begin
@@ -1893,7 +1893,7 @@ Begin
      _asmsorted:=TRUE;
    end;
   curlist:=TAAsmoutput.Create;
-  lastsec:=sec_code;
+  lasTSec:=sec_code;
   { setup label linked list }
   LocalLabelList:=TLocalLabelList.Create;
   { start tokenizer }
@@ -1927,14 +1927,14 @@ Begin
       AS_DATA:
         Begin
           curList.Concat(Tai_section.Create(sec_data));
-          lastsec:=sec_data;
+          lasTSec:=sec_data;
           Consume(AS_DATA);
         end;
 
       AS_TEXT:
         Begin
           curList.Concat(Tai_section.Create(sec_code));
-          lastsec:=sec_code;
+          lasTSec:=sec_code;
           Consume(AS_TEXT);
         end;
 
@@ -2095,7 +2095,7 @@ Begin
   LocalLabelList.CheckEmitted;
   LocalLabelList.Free;
   { are we back in the code section? }
-  if lastsec<>sec_code then
+  if lasTSec<>sec_code then
    begin
      Message(asmr_w_assembler_code_not_returned_to_text);
      curList.Concat(Tai_section.Create(sec_code));
@@ -2129,7 +2129,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.24  2002-05-18 13:34:25  peter
+  Revision 1.25  2002-07-01 18:46:34  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.24  2002/05/18 13:34:25  peter
     * readded missing revisions
 
   Revision 1.23  2002/05/16 19:46:52  carl

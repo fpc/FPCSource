@@ -43,7 +43,7 @@ implementation
 {$endif Delphi}
        globtype,systems,tokens,
        cutils,globals,widestr,scanner,
-       symconst,symbase,symdef,aasm,cpuasm,types,verbose,
+       symconst,symbase,symdef,aasmbase,aasmtai,aasmcpu,types,verbose,
        { pass 1 }
        node,
        nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,
@@ -971,7 +971,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.49  2002-05-18 13:34:16  peter
+  Revision 1.50  2002-07-01 18:46:25  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.49  2002/05/18 13:34:16  peter
     * readded missing revisions
 
   Revision 1.48  2002/05/16 19:46:44  carl

@@ -305,10 +305,10 @@ Begin
     While Assigned(p) And
           (p.typ=ait_RegAlloc) Do
       Begin
-        if Tairegalloc(p).allocation then
-          UsedRegs := UsedRegs + [TaiRegAlloc(p).Reg]
+        if tai_regalloc(p).allocation then
+          UsedRegs := UsedRegs + [tai_regalloc(p).Reg]
         else
-          UsedRegs := UsedRegs - [TaiRegAlloc(p).Reg];
+          UsedRegs := UsedRegs - [tai_regalloc(p).Reg];
         p := Tai(p.next);
       End;
   Until Not(Assigned(p)) Or
@@ -769,9 +769,9 @@ Begin
             Not(Tai_Label(StartPai).l.Is_Used))) Do
       StartPai := Tai(StartPai.Next);
     If Assigned(StartPai) And
-       (StartPai.typ = ait_regAlloc) and (TairegAlloc(StartPai).allocation) Then
+       (StartPai.typ = ait_regAlloc) and (tai_regalloc(StartPai).allocation) Then
       Begin
-        if TairegAlloc(StartPai).Reg = Reg then
+        if tai_regalloc(StartPai).Reg = Reg then
          begin
            FindRegAlloc:=true;
            exit;
@@ -787,7 +787,11 @@ End.
 
 {
  $Log$
- Revision 1.4  2002-05-18 13:34:05  peter
+ Revision 1.5  2002-07-01 18:46:21  peter
+   * internal linker
+   * reorganized aasm layer
+
+ Revision 1.4  2002/05/18 13:34:05  peter
    * readded missing revisions
 
  Revision 1.3  2002/05/16 19:46:35  carl

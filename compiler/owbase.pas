@@ -270,6 +270,7 @@ end;
 
 function tobjectreader.readarray(a:TDynamicArray;len:longint):boolean;
 var
+  orglen,
   left,
   idx : longint;
 begin
@@ -277,6 +278,7 @@ begin
   if bufmax=0 then
    if not readbuf then
     exit;
+  orglen:=len;
   idx:=0;
   while len>0 do
    begin
@@ -298,14 +300,18 @@ begin
         break;
       end;
    end;
-  readarray:=(idx=len);
+  readarray:=(idx=orglen);
 end;
 
 
 end.
 {
   $Log$
-  Revision 1.10  2002-05-18 13:34:11  peter
+  Revision 1.11  2002-07-01 18:46:24  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.10  2002/05/18 13:34:11  peter
     * readded missing revisions
 
   Revision 1.9  2002/05/16 19:46:42  carl

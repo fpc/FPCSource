@@ -29,7 +29,7 @@ interface
     uses
       cclasses,cpubase,
       globals,
-      aasm,assemble,aggas;
+      aasmbase,aasmtai,aasmcpu,assemble,aggas;
 
     type
       T386ATTAssembler=class(TGNUassembler)
@@ -67,7 +67,7 @@ interface
 
     uses
       cutils,systems,
-      verbose,cpuasm;
+      verbose;
 
 
 
@@ -249,7 +249,7 @@ interface
     const
        as_i386_as_info : tasminfo =
           (
-            id           : as_i386_as;
+            id     : as_i386_as;
             idtxt  : 'AS';
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM';
@@ -264,7 +264,7 @@ interface
             secnames : ('',
               '.text','.data','.bss',
               '','','','','','',
-              '.stab','.stabstr')
+              '.stab','.stabstr','COMMON')
           );
 
        as_i386_as_aout_info : tasminfo =
@@ -284,7 +284,7 @@ interface
             secnames : ('',
               '.text','.data','.bss',
               '','','','','','',
-              '.stab','.stabstr')
+              '.stab','.stabstr','COMMON')
           );
 
        as_i386_asw_info : tasminfo =
@@ -305,7 +305,7 @@ interface
               '.text','.data','.section .bss',
               '.section .idata$2','.section .idata$4','.section .idata$5',
                 '.section .idata$6','.section .idata$7','.section .edata',
-              '.stab','.stabstr')
+              '.stab','.stabstr','COMMON')
           );
 
        as_i386_aswwdosx_info : tasminfo =
@@ -326,7 +326,7 @@ interface
               '.text','.data','.section .bss',
               '.section .idata$2','.section .idata$4','.section .idata$5',
                 '.section .idata$6','.section .idata$7','.section .edata',
-              '.stab','.stabstr')
+              '.stab','.stabstr','COMMON')
           );
 
 
@@ -338,7 +338,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.22  2002-05-18 13:34:21  peter
+  Revision 1.23  2002-07-01 18:46:29  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.22  2002/05/18 13:34:21  peter
     * readded missing revisions
 
   Revision 1.21  2002/05/16 19:46:49  carl

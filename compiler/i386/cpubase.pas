@@ -35,7 +35,11 @@ unit cpubase;
 interface
 
 uses
-  globals,cutils,cclasses,aasm,cpuinfo,cginfo;
+  cutils,cclasses,
+  globals,
+  cpuinfo,
+  aasmbase,
+  cginfo;
 
 
 {*****************************************************************************
@@ -452,7 +456,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  2002-07-01 16:23:55  peter
+  Revision 1.25  2002-07-01 18:46:30  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.24  2002/07/01 16:23:55  peter
     * cg64 patch
     * basics for currency
     * asnode updates for class and interface (not finished)

@@ -27,7 +27,7 @@ Unit rrOpt386;
 
 Interface
 
-Uses aasm;
+Uses aasmbase,aasmtai,aasmcpu;
 
 procedure doRenaming(asml: TAAsmoutput; first, last: Tai);
 
@@ -35,7 +35,7 @@ Implementation
 
 Uses
   {$ifdef replaceregdebug}cutils,{$endif}
-  verbose,globals,cpubase,cpuasm,daopt386,csopt386,cginfo,rgobj;
+  verbose,globals,cpubase,daopt386,csopt386,cginfo,rgobj;
 
 function canBeFirstSwitch(p: Taicpu; reg: tregister): boolean;
 { checks whether an operation on reg can be switched to another reg without an }
@@ -350,7 +350,11 @@ End.
 
 {
   $Log$
-  Revision 1.17  2002-05-18 13:34:26  peter
+  Revision 1.18  2002-07-01 18:46:34  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.17  2002/05/18 13:34:26  peter
     * readded missing revisions
 
   Revision 1.16  2002/05/16 19:46:52  carl

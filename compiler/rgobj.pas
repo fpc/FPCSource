@@ -30,9 +30,8 @@ unit rgobj;
     uses
       cpubase,
       cpuinfo,
-      cpuasm,
-      tainst,
-      cclasses,globtype,cginfo,cgbase,aasm,node;
+      aasmbase,aasmtai,aasmcpu,
+      cclasses,globtype,cginfo,cgbase,node;
 
     type
        regvar_longintarray = array[firstreg..lastreg] of longint;
@@ -232,7 +231,7 @@ unit rgobj;
                    exclude(unusedregs,i);
                    include(usedinproc,i);
                    dec(countunusedregs);
-                   list.concat(tairegalloc.alloc(i));
+                   list.concat(tai_regalloc.alloc(i));
                    result := i;
                    exit;
                 end;
@@ -262,7 +261,7 @@ unit rgobj;
 {$endif TEMPREGDEBUG}
           inc(countunusedregs);
         include(unusedregs,r);
-        list.concat(tairegalloc.dealloc(r));
+        list.concat(tai_regalloc.dealloc(r));
       end;
 
 
@@ -314,7 +313,7 @@ unit rgobj;
 {$endif TEMPREGDEBUG}
               exclude(unusedregsint,r);
               include(usedinproc,r);
-              list.concat(tairegalloc.alloc(r));
+              list.concat(tai_regalloc.alloc(r));
               getexplicitregisterint:=r;
 {$ifdef TEMPREGDEBUG}
               testregisters32;
@@ -855,7 +854,11 @@ end.
 
 {
   $Log$
-  Revision 1.11  2002-05-18 13:34:17  peter
+  Revision 1.12  2002-07-01 18:46:26  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.11  2002/05/18 13:34:17  peter
     * readded missing revisions
 
   Revision 1.10  2002/05/16 19:46:44  carl

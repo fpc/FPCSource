@@ -52,7 +52,8 @@ implementation
 {$endif}
      globtype,systems,verbose,
      cclasses,globals,
-     symconst,symbase,symtype,symsym,aasm,
+     symconst,symbase,symtype,symsym,
+     aasmbase,aasmtai,
      pass_1,cpubase,cgbase,regvars,nflw,rgobj;
 
 {*****************************************************************************
@@ -321,7 +322,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.30  2002-05-18 13:34:11  peter
+  Revision 1.31  2002-07-01 18:46:25  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.30  2002/05/18 13:34:11  peter
     * readded missing revisions
 
   Revision 1.29  2002/05/16 19:46:42  carl

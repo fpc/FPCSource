@@ -63,8 +63,8 @@ interface
     uses
       globtype,systems,
       cutils,verbose,globals,
-      aasm,symsym,
-      cpubase,cpuasm,
+      aasmbase,aasmtai,aasmcpu,symsym,
+      cpubase,
       nflw,pass_2,
       cgbase,cgobj,tgobj,rgobj
       ;
@@ -294,7 +294,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2002-05-18 13:34:09  peter
+  Revision 1.20  2002-07-01 18:46:22  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.19  2002/05/18 13:34:09  peter
     * readded missing revisions
 
   Revision 1.18  2002/05/16 19:46:37  carl

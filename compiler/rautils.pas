@@ -28,7 +28,7 @@ Interface
 
 Uses
   cutils,cclasses,
-  globtype,aasm,cpubase,
+  globtype,aasmbase,aasmtai,cpubase,
   symconst,symbase,symtype,symdef;
 
 Const
@@ -217,7 +217,8 @@ uses
   strings,
 {$endif}
   types,systems,verbose,globals,
-  symsym,symtable,cpuasm,
+  symsym,symtable,
+  aasmcpu,
   cpuinfo,cgbase;
 
 {*************************************************************************
@@ -1591,7 +1592,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.35  2002-05-18 13:34:17  peter
+  Revision 1.36  2002-07-01 18:46:25  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.35  2002/05/18 13:34:17  peter
     * readded missing revisions
 
   Revision 1.34  2002/05/16 19:46:44  carl

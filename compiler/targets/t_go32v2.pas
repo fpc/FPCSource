@@ -36,7 +36,7 @@ implementation
        globtype,globals,systems,verbose,script,fmodule;
 
   type
-    tlinkergo32v2=class(tlinker)
+    tlinkergo32v2=class(texternallinker)
     private
        Function  WriteResponseFile(isdll:boolean) : Boolean;
        Function  WriteScript(isdll:boolean) : Boolean;
@@ -272,8 +272,8 @@ type
     lineno2  : word;
     flags    : longint;
   end;
-  psecfill=^tsecfill;
-  tsecfill=record
+  psecfill=^TSecfill;
+  TSecfill=record
     fillpos,
     fillsize : longint;
     next : psecfill;
@@ -391,7 +391,7 @@ end;
             files_case_relevent : false;
             assem        : as_i386_coff;
             assemextern  : as_i386_as;
-            link         : ld_i386_go32v2;
+            link         : ld_i386_coff;
             linkextern   : ld_i386_go32v2;
             ar           : ar_gnu_ar;
             res          : res_none;
@@ -427,7 +427,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.22  2002-05-18 13:34:26  peter
+  Revision 1.23  2002-07-01 18:46:35  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.22  2002/05/18 13:34:26  peter
     * readded missing revisions
 
   Revision 1.21  2002/05/16 19:46:53  carl

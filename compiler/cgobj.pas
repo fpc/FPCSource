@@ -32,8 +32,8 @@ unit cgobj;
   interface
 
     uses
-       cclasses,aasm,symtable,
-       cpuasm,cpubase,cpuinfo,
+       cclasses,aasmbase,aasmtai,aasmcpu,symtable,
+       cpubase,cpuinfo,
        cginfo,
        symconst,symbase,symtype,node;
 
@@ -386,7 +386,7 @@ unit cgobj;
 
     uses
        globals,globtype,options,systems,cgbase,
-       verbose,types,tgobj,symdef,tainst,rgobj;
+       verbose,types,tgobj,symdef,rgobj;
 
     const
       max_scratch_regs = high(scratch_regs) - low(scratch_regs) + 1;
@@ -409,13 +409,13 @@ unit cgobj;
     procedure tcg.a_reg_alloc(list : taasmoutput;r : tregister);
 
       begin
-         list.concat(tairegalloc.alloc(r));
+         list.concat(tai_regalloc.alloc(r));
       end;
 
     procedure tcg.a_reg_dealloc(list : taasmoutput;r : tregister);
 
       begin
-         list.concat(tairegalloc.dealloc(r));
+         list.concat(tai_regalloc.dealloc(r));
       end;
 
     procedure tcg.a_label(list : taasmoutput;l : tasmlabel);
@@ -1150,7 +1150,7 @@ unit cgobj;
       begin
          if assigned(procinfo^._class) then
            begin
-              list.concat(Tairegalloc.Alloc(SELF_POINTER_REG));
+              list.concat(tai_regalloc.Alloc(SELF_POINTER_REG));
               if lexlevel>normal_function_level then
                 begin
                    reference_reset_base(hp,procinfo^.framepointer,procinfo^.framepointer_offset);
@@ -1332,7 +1332,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.29  2002-07-01 16:23:52  peter
+  Revision 1.30  2002-07-01 18:46:22  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.29  2002/07/01 16:23:52  peter
     * cg64 patch
     * basics for currency
     * asnode updates for class and interface (not finished)

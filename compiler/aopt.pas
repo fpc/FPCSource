@@ -26,7 +26,7 @@ Unit aopt;
 
 Interface
 
-Uses Aasm, cobjects, aoptobj, aoptcpud, aoptcpub {aoptcs, aoptpeep} ;
+Uses Aasmbase,aasmtai,aasmcpu, cobjects, aoptobj, aoptcpud, aoptcpub {aoptcs, aoptpeep} ;
 
 Type
   PAsmOptimizer = ^TAsmOptimizer;
@@ -51,7 +51,7 @@ procedure Optimize(AsmL:Paasmoutput);
 
 Implementation
 
-uses cpuinfo, globtype, globals, tainst;
+uses cpuinfo, globtype, globals;
 
 Constructor TAsmOptimizer.Init(_AsmL: PAasmOutput);
 Begin
@@ -241,7 +241,11 @@ End.
 
 {
  $Log$
- Revision 1.4  2002-05-18 13:34:05  peter
+ Revision 1.5  2002-07-01 18:46:21  peter
+   * internal linker
+   * reorganized aasm layer
+
+ Revision 1.4  2002/05/18 13:34:05  peter
    * readded missing revisions
 
  Revision 1.3  2002/05/16 19:46:34  carl

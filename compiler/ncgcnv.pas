@@ -62,7 +62,7 @@ interface
 
     uses
       cutils,verbose,
-      aasm,symconst,symdef,
+      aasmbase,aasmtai,aasmcpu,symconst,symdef,
       ncon,ncal,
       cpubase,cpuinfo,
       pass_2,
@@ -490,7 +490,11 @@ end.
 
 {
   $Log$
-  Revision 1.16  2002-07-01 16:23:53  peter
+  Revision 1.17  2002-07-01 18:46:22  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.16  2002/07/01 16:23:53  peter
     * cg64 patch
     * basics for currency
     * asnode updates for class and interface (not finished)

@@ -27,7 +27,7 @@ unit nbas;
 interface
 
     uses
-       aasm,symtype,node,cpubase;
+       aasmbase,aasmtai,aasmcpu,symtype,node,cpubase;
 
     type
        tnothingnode = class(tnode)
@@ -675,7 +675,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2002-06-24 12:43:00  jonas
+  Revision 1.27  2002-07-01 18:46:22  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.26  2002/06/24 12:43:00  jonas
     * fixed errors found with new -CR code from Peter when cycling with -O2p3r
 
   Revision 1.25  2002/05/18 13:34:09  peter

@@ -49,11 +49,9 @@ Type
 
     TLinker = class
     public
-       Info            : TLinkerInfo;
        ObjectFiles,
        SharedLibFiles,
        StaticLibFiles  : TStringList;
-     { Methods }
        Constructor Create;virtual;
        Destructor Destroy;override;
        procedure AddModuleFiles(hp:tmodule);
@@ -62,13 +60,29 @@ Type
        Procedure AddSharedLibrary(S : String);
        Procedure AddStaticCLibrary(const S : String);
        Procedure AddSharedCLibrary(S : String);
-       Function  FindUtil(const s:string):String;
-       Function  DoExec(const command,para:string;showinfo,useshell:boolean):boolean;
-     { Virtuals }
-       procedure SetDefaultInfo;virtual;
        Function  MakeExecutable:boolean;virtual;
        Function  MakeSharedLibrary:boolean;virtual;
        Function  MakeStaticLibrary:boolean;virtual;
+     end;
+
+    TExternalLinker = class(TLinker)
+    public
+       Info : TLinkerInfo;
+       Constructor Create;override;
+       Destructor Destroy;override;
+       Function  FindUtil(const s:string):String;
+       Function  DoExec(const command,para:string;showinfo,useshell:boolean):boolean;
+       procedure SetDefaultInfo;virtual;
+       Function  MakeStaticLibrary:boolean;override;
+     end;
+
+    TInternalLinker = class(TLinker)
+    private
+       procedure readobj(const fn:string);
+    public
+       Constructor Create;override;
+       Destructor Destroy;override;
+       Function  MakeExecutable:boolean;override;
      end;
 
      TLinkerClass = class of TLinker;
@@ -94,7 +108,9 @@ uses
   dos,
 {$endif Delphi}
   cutils,globtype,
-  script,globals,verbose,ppu;
+  script,globals,verbose,ppu,
+  aasmbase,aasmtai,aasmcpu,
+  ogbase,ogmap;
 
 
 {*****************************************************************************
@@ -198,20 +214,6 @@ begin
   ObjectFiles:=TStringList.Create_no_double;
   SharedLibFiles:=TStringList.Create_no_double;
   StaticLibFiles:=TStringList.Create_no_double;
-{ set generic defaults }
-  FillChar(Info,sizeof(Info),0);
-  Info.ResName:='link.res';
-  Info.ScriptName:='script.res';
-{ set the linker specific defaults }
-  SetDefaultInfo;
-{ Allow Parameter overrides for linker info }
-  with Info do
-   begin
-     if ParaLinkOptions<>'' then
-      ExtraOptions:=ParaLinkOptions;
-     if ParaDynamicLinker<>'' then
-      DynamicLinker:=ParaDynamicLinker;
-   end;
 end;
 
 
@@ -220,11 +222,6 @@ begin
   ObjectFiles.Free;
   SharedLibFiles.Free;
   StaticLibFiles.Free;
-end;
-
-
-Procedure TLinker.SetDefaultInfo;
-begin
 end;
 
 
@@ -310,36 +307,6 @@ begin
 end;
 
 
-Function TLinker.FindUtil(const s:string):string;
-var
-  Found    : boolean;
-  FoundBin : string;
-  UtilExe  : string;
-begin
-  if cs_link_on_target in aktglobalswitches then
-    begin
-      { If linking on target, don't add any path PM }
-      FindUtil:=AddExtension(s,target_info.exeext);
-      exit;
-    end;
-  UtilExe:=AddExtension(s,source_info.exeext);
-  FoundBin:='';
-  Found:=false;
-  if utilsdirectory<>'' then
-   Found:=FindFile(utilexe,utilsdirectory,Foundbin);
-  if (not Found) then
-   Found:=FindExe(utilexe,Foundbin);
-  if (not Found) and not(cs_link_extern in aktglobalswitches) then
-   begin
-     Message1(exec_e_util_not_found,utilexe);
-     aktglobalswitches:=aktglobalswitches+[cs_link_extern];
-   end;
-  if (FoundBin<>'') then
-   Message1(exec_t_using_util,FoundBin);
-  FindUtil:=FoundBin;
-end;
-
-
 Procedure TLinker.AddObject(const S,unitpath : String);
 begin
   ObjectFiles.Concat(FindObjectFile(s,unitpath));
@@ -404,7 +371,93 @@ begin
 end;
 
 
-Function TLinker.DoExec(const command,para:string;showinfo,useshell:boolean):boolean;
+function TLinker.MakeExecutable:boolean;
+begin
+  MakeExecutable:=false;
+  Message(exec_e_exe_not_supported);
+end;
+
+
+Function TLinker.MakeSharedLibrary:boolean;
+begin
+  MakeSharedLibrary:=false;
+  Message(exec_e_dll_not_supported);
+end;
+
+
+Function TLinker.MakeStaticLibrary:boolean;
+begin
+  MakeStaticLibrary:=false;
+  Message(exec_e_dll_not_supported);
+end;
+
+
+{*****************************************************************************
+                              TEXTERNALLINKER
+*****************************************************************************}
+
+Constructor TExternalLinker.Create;
+begin
+  inherited Create;
+  { set generic defaults }
+  FillChar(Info,sizeof(Info),0);
+  Info.ResName:='link.res';
+  Info.ScriptName:='script.res';
+  { set the linker specific defaults }
+  SetDefaultInfo;
+  { Allow Parameter overrides for linker info }
+  with Info do
+   begin
+     if ParaLinkOptions<>'' then
+      ExtraOptions:=ParaLinkOptions;
+     if ParaDynamicLinker<>'' then
+      DynamicLinker:=ParaDynamicLinker;
+   end;
+end;
+
+
+Destructor TExternalLinker.Destroy;
+begin
+  inherited destroy;
+end;
+
+
+Procedure TExternalLinker.SetDefaultInfo;
+begin
+end;
+
+
+Function TExternalLinker.FindUtil(const s:string):string;
+var
+  Found    : boolean;
+  FoundBin : string;
+  UtilExe  : string;
+begin
+  if cs_link_on_target in aktglobalswitches then
+    begin
+      { If linking on target, don't add any path PM }
+      FindUtil:=AddExtension(s,target_info.exeext);
+      exit;
+    end;
+  UtilExe:=AddExtension(s,source_info.exeext);
+  FoundBin:='';
+  Found:=false;
+  if utilsdirectory<>'' then
+   Found:=FindFile(utilexe,utilsdirectory,Foundbin);
+  if (not Found) then
+   Found:=FindExe(utilexe,Foundbin);
+  if (not Found) and not(cs_link_extern in aktglobalswitches) then
+   begin
+     Message1(exec_e_util_not_found,utilexe);
+     aktglobalswitches:=aktglobalswitches+[cs_link_extern];
+   end;
+  if (FoundBin<>'') then
+   Message1(exec_t_using_util,FoundBin);
+  FindUtil:=FoundBin;
+end;
+
+
+Function TExternalLinker.DoExec(const command,para:string;showinfo,useshell:boolean):boolean;
 begin
   DoExec:=true;
   if not(cs_link_extern in aktglobalswitches) then
@@ -449,21 +502,7 @@ begin
 end;
 
 
-function TLinker.MakeExecutable:boolean;
-begin
-  MakeExecutable:=false;
-  Message(exec_e_exe_not_supported);
-end;
-
-
-Function TLinker.MakeSharedLibrary:boolean;
-begin
-  MakeSharedLibrary:=false;
-  Message(exec_e_dll_not_supported);
-end;
-
-
-Function TLinker.MakeStaticLibrary:boolean;
+Function TExternalLinker.MakeStaticLibrary:boolean;
 var
   smartpath,
   cmdstr,
@@ -497,6 +536,78 @@ end;
 
 
 {*****************************************************************************
+                              TINTERNALLINKER
+*****************************************************************************}
+
+Constructor TInternalLinker.Create;
+begin
+  inherited Create;
+  exemap:=nil;
+  exeoutput:=nil;
+end;
+
+
+Destructor TInternalLinker.Destroy;
+begin
+  exeoutput.free;
+  exeoutput:=nil;
+  inherited destroy;
+end;
+
+
+procedure TInternalLinker.readobj(const fn:string);
+var
+  objdata  : TAsmObjectData;
+  objinput : tobjectinput;
+begin
+  Comment(V_Info,'Reading object '+fn);
+  objinput:=exeoutput.newobjectinput;
+  objdata:=objinput.newobjectdata(fn);
+  if objinput.readobjectfile(fn,objdata) then
+    exeoutput.addobjdata(objdata);
+  { release input object }
+  objinput.free;
+end;
+
+
+function TInternalLinker.MakeExecutable:boolean;
+var
+  s : string;
+begin
+  MakeExecutable:=false;
+
+  { no support yet for libraries }
+  if (not StaticLibFiles.Empty) or
+     (not SharedLibFiles.Empty) then
+   internalerror(123456789);
+
+  if (cs_link_map in aktglobalswitches) then
+   exemap:=texemap.create(current_module.mapfilename^);
+
+  { read objects }
+  readobj(FindObjectFile('prt0',''));
+  while not ObjectFiles.Empty do
+   begin
+     s:=ObjectFiles.GetFirst;
+     if s<>'' then
+      readobj(s);
+   end;
+
+  { generate executable }
+  exeoutput.GenerateExecutable(current_module.exefilename^);
+
+  { close map }
+  if assigned(exemap) then
+   begin
+     exemap.free;
+     exemap:=nil;
+   end;
+
+  MakeExecutable:=true;
+end;
+
+
+{*****************************************************************************
                                  Init/Done
 *****************************************************************************}
 
@@ -508,8 +619,11 @@ end;
 
 procedure InitLinker;
 begin
-  if assigned(CLinker[target_info.link]) then
+  if (cs_link_internal in aktglobalswitches) and
+     assigned(CLinker[target_info.link]) then
    linker:=CLinker[target_info.link].Create
+  else if assigned(CLinker[target_info.linkextern]) then
+   linker:=CLinker[target_info.linkextern].Create
   else
    linker:=Tlinker.Create;
 end;
@@ -539,7 +653,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.28  2002-05-18 13:34:08  peter
+  Revision 1.29  2002-07-01 18:46:22  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.28  2002/05/18 13:34:08  peter
     * readded missing revisions
 
   Revision 1.27  2002/05/16 19:46:37  carl

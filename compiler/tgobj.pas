@@ -36,9 +36,7 @@ unit tgobj;
       globals,
       cpubase,
       cpuinfo,
-      cpuasm,
-      tainst,
-      cclasses,globtype,cgbase,aasm;
+      cclasses,globtype,cgbase,aasmbase,aasmtai,aasmcpu;
 
     type
       ttemptype = (tt_none,tt_free,tt_normal,tt_persistant,
@@ -339,7 +337,7 @@ unit tgobj;
 {$ifdef EXTDEBUG}
          tl^.posinfo:=aktfilepos;
 {$endif}
-         list.concat(Taitempalloc.alloc(ofs,size));
+         list.concat(tai_tempalloc.alloc(ofs,size));
          gettempofsize:=ofs;
       end;
 
@@ -430,7 +428,7 @@ unit tgobj;
 {$endif}
             templist^.temptype:=usedtype;
           end;
-         list.concat(Taitempalloc.alloc(ref.offset,pointer_size));
+         list.concat(tai_tempalloc.alloc(ref.offset,pointer_size));
       end;
 
     function ttgobj.ungettemppointeriftype(list: taasmoutput; const ref : treference; const usedtype, freetype: ttemptype) : boolean;
@@ -447,7 +445,7 @@ unit tgobj;
                begin
                  tl^.temptype:=freetype;
                  ungettemppointeriftype:=true;
-                 list.concat(Taitempalloc.dealloc(tl^.pos,tl^.size));
+                 list.concat(tai_tempalloc.dealloc(tl^.pos,tl^.size));
                  exit;
 {$ifdef EXTDEBUG}
                end
@@ -573,7 +571,7 @@ unit tgobj;
                 begin
                   exit;
                 end;
-               list.concat(Taitempalloc.dealloc(hp^.pos,hp^.size));
+               list.concat(tai_tempalloc.dealloc(hp^.pos,hp^.size));
                { set this block to free }
                hp^.temptype:=tt_free;
                { Update tempfreelist }
@@ -681,7 +679,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.9  2002-05-18 13:34:21  peter
+  Revision 1.10  2002-07-01 18:46:29  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.9  2002/05/18 13:34:21  peter
     * readded missing revisions
 
   Revision 1.8  2002/05/16 19:46:45  carl

@@ -39,7 +39,8 @@ implementation
     uses
       globtype,systems,
       cutils,verbose,globals,fmodule,
-      symconst,symdef,aasm,types,
+      symconst,symdef,types,
+      aasmbase,aasmtai,aasmcpu,
       cginfo,cgbase,pass_1,pass_2,
       cpubase,
       nbas,ncon,ncal,ncnv,nld,
@@ -460,7 +461,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.45  2002-07-01 16:23:56  peter
+  Revision 1.46  2002-07-01 18:46:33  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.45  2002/07/01 16:23:56  peter
     * cg64 patch
     * basics for currency
     * asnode updates for class and interface (not finished)

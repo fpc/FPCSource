@@ -31,7 +31,8 @@ interface
     uses
       cclasses,
       globals,
-      aasm,assemble;
+      aasmbase,aasmtai,aasmcpu,
+      assemble;
 
 
 
@@ -64,7 +65,7 @@ implementation
       dos,
 {$endif Delphi}
       cutils,globtype,systems,
-      fmodule,finput,verbose,cpubase,cpuasm, tainst
+      fmodule,finput,verbose,cpubase
 {$ifdef GDB}
   {$ifdef delphi}
       ,sysutils
@@ -87,7 +88,7 @@ var
       funcname     : pchar;
       stabslastfileinfo : tfileposinfo;
 {$endif}
-      lastsec      : tsection; { last section type written }
+      lasTSec      : TSection; { last section type written }
       lastfileinfo : tfileposinfo;
       infile,
       lastinfile   : tinputfile;
@@ -204,7 +205,7 @@ var
        (#9'.long'#9,#9'.short'#9,#9'.byte'#9);
 
 
-    function ait_section2str(s:tsection):string;
+    function ait_section2str(s:TSection):string;
     begin
        ait_section2str:=target_asm.secnames[s];
 {$ifdef GDB}
@@ -217,7 +218,7 @@ var
          else       n_line:=n_dataline;
       end;
 {$endif GDB}
-      LastSec:=s;
+      LasTSec:=s;
     end;
 
 {****************************************************************************}
@@ -293,8 +294,10 @@ var
       allocstr : array[boolean] of string[10]=(' released',' allocated');
       nolinetai =[ait_label,
                   ait_regalloc,ait_tempalloc,
-                  ait_stabn,ait_stabs,ait_section,
-                  ait_cut,ait_marker,ait_align,ait_stab_function_name];
+{$ifdef GDB}
+                  ait_stabn,ait_stabs,ait_stab_function_name,
+{$endif GDB}
+                  ait_cut,ait_marker,ait_align,ait_section];
     type
       t80bitarray = array[0..9] of byte;
       t64bitarray = array[0..7] of byte;
@@ -392,15 +395,15 @@ var
            ait_regalloc :
              begin
                if (cs_asm_regalloc in aktglobalswitches) then
-                 AsmWriteLn(target_asm.comment+'Register '+std_reg2str[tairegalloc(hp).reg]+
-                   allocstr[tairegalloc(hp).allocation]);
+                 AsmWriteLn(target_asm.comment+'Register '+std_reg2str[tai_regalloc(hp).reg]+
+                   allocstr[tai_regalloc(hp).allocation]);
              end;
 
            ait_tempalloc :
              begin
                if (cs_asm_tempalloc in aktglobalswitches) then
-                 AsmWriteLn(target_asm.comment+'Temp '+tostr(taitempalloc(hp).temppos)+','+
-                   tostr(taitempalloc(hp).tempsize)+allocstr[taitempalloc(hp).allocation]);
+                 AsmWriteLn(target_asm.comment+'Temp '+tostr(tai_tempalloc(hp).temppos)+','+
+                   tostr(tai_tempalloc(hp).tempsize)+allocstr[tai_tempalloc(hp).allocation]);
              end;
 
            ait_align :
@@ -687,7 +690,7 @@ var
                   while assigned(hp.next) and (tai(hp.next).typ in [ait_cut,ait_section,ait_comment]) do
                    begin
                      if tai(hp.next).typ=ait_section then
-                       lastsec:=tai_section(hp.next).sec;
+                       lasTSec:=tai_section(hp.next).sec;
                      hp:=tai(hp.next);
                    end;
 {$ifdef GDB}
@@ -697,8 +700,8 @@ var
                   funcname:=nil;
                   WriteFileLineInfo(hp.fileinfo);
 {$endif GDB}
-                  if lastsec<>sec_none then
-                    AsmWriteLn(ait_section2str(lastsec));
+                  if lasTSec<>sec_none then
+                    AsmWriteLn(ait_section2str(lasTSec));
                   AsmStartSize:=AsmSize;
                 end;
              end;
@@ -734,7 +737,7 @@ var
        Comment(v_info,'Start writing gas-styled assembler output for '+current_module.mainsource^);
 {$endif}
 
-      LastSec:=sec_none;
+      LasTSec:=sec_none;
 {$ifdef GDB}
       FillChar(stabslastfileinfo,sizeof(stabslastfileinfo),0);
 {$endif GDB}
@@ -765,7 +768,6 @@ var
       AsmStartSize:=AsmSize;
       symendcount:=0;
 
-      countlabelref:=false;
       If (cs_debuginfo in aktmoduleswitches) then
         WriteTree(debuglist);
       WriteTree(codesegment);
@@ -783,7 +785,6 @@ var
       {$ifdef GDB}
       WriteFileEndInfo;
       {$ENDIF}
-      countlabelref:=true;
 
       AsmLn;
 {$ifdef EXTDEBUG}
@@ -795,7 +796,11 @@ var
 end.
 {
   $Log$
-  Revision 1.5  2002-05-18 13:34:05  peter
+  Revision 1.6  2002-07-01 18:46:20  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.5  2002/05/18 13:34:05  peter
     * readded missing revisions
 
   Revision 1.4  2002/05/16 19:46:34  carl

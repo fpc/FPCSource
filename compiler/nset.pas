@@ -27,7 +27,7 @@ unit nset;
 interface
 
     uses
-       node,globals,aasm;
+       node,globals,aasmbase,aasmtai;
 
     type
       pcaserecord = ^tcaserecord;
@@ -574,7 +574,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2002-05-18 13:34:10  peter
+  Revision 1.25  2002-07-01 18:46:24  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.24  2002/05/18 13:34:10  peter
     * readded missing revisions
 
   Revision 1.23  2002/05/16 19:46:39  carl

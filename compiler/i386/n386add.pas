@@ -56,11 +56,10 @@ interface
     uses
       globtype,systems,
       cutils,verbose,globals,
-      symconst,symdef,aasm,types,htypechk,
+      symconst,symdef,aasmbase,aasmtai,aasmcpu,types,htypechk,
       cgbase,pass_2,regvars,
-      cpuasm,
       ncon,nset,
-      tainst,cga,ncgutil,tgobj,rgobj,rgcpu,cgobj,cg64f32;
+      cga,ncgutil,tgobj,rgobj,rgcpu,cgobj,cg64f32;
 
 {*****************************************************************************
                                   Helpers
@@ -1487,23 +1486,23 @@ interface
                   location_release(exprasmlist,left.location);
                   { allocate EAX }
                   if R_EAX in rg.unusedregsint then
-                    exprasmList.concat(Tairegalloc.Alloc(R_EAX));
+                    exprasmList.concat(tai_regalloc.Alloc(R_EAX));
                   { load he right value }
                   cg.a_load_loc_reg(exprasmlist,right.location,R_EAX);
                   location_release(exprasmlist,right.location);
                   { allocate EAX if it isn't yet allocated (JM) }
                   if (R_EAX in rg.unusedregsint) then
-                    exprasmList.concat(Tairegalloc.Alloc(R_EAX));
+                    exprasmList.concat(tai_regalloc.Alloc(R_EAX));
                   { also allocate EDX, since it is also modified by }
                   { a mul (JM)                                      }
                   if R_EDX in rg.unusedregsint then
-                    exprasmList.concat(Tairegalloc.Alloc(R_EDX));
+                    exprasmList.concat(tai_regalloc.Alloc(R_EDX));
                   emit_reg(A_MUL,S_L,R_EDI);
                   rg.ungetregisterint(exprasmlist,R_EDI);
                   if R_EDX in rg.unusedregsint then
-                    exprasmList.concat(Tairegalloc.DeAlloc(R_EDX));
+                    exprasmList.concat(tai_regalloc.DeAlloc(R_EDX));
                   if R_EAX in rg.unusedregsint then
-                    exprasmList.concat(Tairegalloc.DeAlloc(R_EAX));
+                    exprasmList.concat(tai_regalloc.DeAlloc(R_EAX));
                   location.register:=rg.getregisterint(exprasmlist);
                   emit_reg_reg(A_MOV,S_L,R_EAX,location.register);
                   if popedx then
@@ -1572,7 +1571,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.40  2002-07-01 16:23:55  peter
+  Revision 1.41  2002-07-01 18:46:31  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.40  2002/07/01 16:23:55  peter
     * cg64 patch
     * basics for currency
     * asnode updates for class and interface (not finished)

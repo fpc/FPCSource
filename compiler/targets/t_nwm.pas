@@ -95,7 +95,7 @@ implementation
     cutils,
     verbose,systems,globtype,globals,
     symconst,script,
-    fmodule,aasm,cpuasm,cpubase,symsym,
+    fmodule,aasmbase,aasmtai,aasmcpu,cpubase,symsym,
     import,export,link;
 
   type
@@ -113,7 +113,7 @@ implementation
       procedure generatelib;override;
     end;
 
-    tlinkernetware=class(tlinker)
+    tlinkernetware=class(texternallinker)
     private
       Function  WriteResponseFile(isdll:boolean) : Boolean;
     public
@@ -549,7 +549,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.24  2002-05-18 13:34:27  peter
+  Revision 1.25  2002-07-01 18:46:35  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.24  2002/05/18 13:34:27  peter
     * readded missing revisions
 
   Revision 1.23  2002/05/16 19:46:53  carl

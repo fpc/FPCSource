@@ -44,7 +44,7 @@ implementation
 uses
   pass_1, types, htypechk,
   symdef,
-  aasm,
+  aasmbase,aasmtai,aasmcpu,
   ncnv, ncon, pass_2,
   cginfo, cgbase, cpubase,
   tgobj, rgobj, cgobj, ncgutil;
@@ -248,7 +248,11 @@ end.
 
 {
   $Log$
-  Revision 1.17  2002-05-18 13:34:25  peter
+  Revision 1.18  2002-07-01 18:46:33  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.17  2002/05/18 13:34:25  peter
     * readded missing revisions
 
   Revision 1.16  2002/05/16 19:46:52  carl
