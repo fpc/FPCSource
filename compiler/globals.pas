@@ -70,7 +70,7 @@ interface
        gpcmodeswitches    : tmodeswitches=
          [m_gpc,m_all];
        macmodeswitches : tmodeswitches=
-         [m_mac,m_all,m_class,m_result,m_repeat_forward];
+         [m_mac,m_all,m_result,m_repeat_forward,m_cvar_support];
 
 
        { maximum number of locals in bytes before warning is emitted }
@@ -1475,7 +1475,7 @@ implementation
          if s='GPC' then
           aktmodeswitches:=gpcmodeswitches
         else
-         if s='MAC' then
+         if s='MACPAS' then
           aktmodeswitches:=macmodeswitches
         else
          b:=false;
@@ -1903,7 +1903,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.128  2004-04-29 19:56:36  daniel
+  Revision 1.129  2004-05-11 18:20:52  olle
+    * changed $mode mac to $mode macpas
+    * changed macmodeswitches to be more faithful to the mac dialect
+
+  Revision 1.128  2004/04/29 19:56:36  daniel
     * Prepare compiler infrastructure for multiple ansistring types
 
   Revision 1.127  2004/04/28 15:19:03  florian
