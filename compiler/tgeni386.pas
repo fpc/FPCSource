@@ -279,24 +279,36 @@ implementation
               unused:=unused-[R_EAX];
               usedinproc:=usedinproc or ($80 shr byte(R_EAX));
               getregister32:=R_EAX;
+{$IfDef RegAlloc}
+              exprasmlist^.concat(new(pairegalloc,init(R_EAX)));
+{$EndIf RegAlloc}
            end
          else if R_EDX in unused then
            begin
               unused:=unused-[R_EDX];
               usedinproc:=usedinproc or ($80 shr byte(R_EDX));
               getregister32:=R_EDX;
+{$IfDef RegAlloc}
+              exprasmlist^.concat(new(pairegalloc,init(R_EDX)));
+{$EndIf RegAlloc}
            end
          else if R_EBX in unused then
            begin
               unused:=unused-[R_EBX];
               usedinproc:=usedinproc or ($80 shr byte(R_EBX));
               getregister32:=R_EBX;
+{$IfDef RegAlloc}
+              exprasmlist^.concat(new(pairegalloc,init(R_EBX)));
+{$EndIf RegAlloc}
            end
          else if R_ECX in unused then
            begin
               unused:=unused-[R_ECX];
               usedinproc:=usedinproc or ($80 shr byte(R_ECX));
               getregister32:=R_ECX;
+{$IfDef RegAlloc}
+              exprasmlist^.concat(new(pairegalloc,init(R_ECX)));
+{$EndIf RegAlloc}
            end
          else internalerror(10);
       end;
@@ -336,7 +348,7 @@ implementation
         usableregs:=[R_EAX,R_EBX,R_ECX,R_EDX,R_MM0..R_MM6];
         c_usableregs:=4;
         usableregmmx:=8;
-{$else} 
+{$else}
         usableregs:=[R_EAX,R_EBX,R_ECX,R_EDX];
         c_usableregs:=4;
 {$endif SUPPORT_MMX}
@@ -347,7 +359,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  1998-09-01 09:03:47  peter
+  Revision 1.11  1998-09-16 17:58:33  jonas
+    * fixed -dRegAlloc and -dDRegalloc problems
+
+  Revision 1.10  1998/09/01 09:03:47  peter
     + resetregistercount, resetusableregisters
 
   Revision 1.9  1998/08/19 16:07:56  jonas
