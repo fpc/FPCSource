@@ -89,7 +89,12 @@ implementation
            but it cannot be more !! }
        else if (lexlevel=(tprocdef(procdefinition).parast.symtablelevel)-1) then
          begin
-            // cg.a_param_reg(exprasmlist,OS_ADDR,procinfo.framepointer,paramanager.getframepointerloc(procinfo.procdef));
+            { pass the same framepointer as the current procedure got }
+            hregister1.enum:=R_INTREGISTER;
+            hregister1.number:=NR_R1;
+            hregister2.enum:=R_INTREGISTER;
+            hregister2.number:=NR_R11;
+            exprasmlist.concat(taicpu.op_reg_reg_const(A_ADDI,hregister2,hregister1,procinfo.framepointer_offset));
          end
        else if (lexlevel>(tprocdef(procdefinition).parast.symtablelevel)) then
          begin
@@ -116,7 +121,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2003-04-23 12:35:35  florian
+  Revision 1.7  2003-04-24 11:24:00  florian
+    * fixed several issues with nested procedures
+
+  Revision 1.6  2003/04/23 12:35:35  florian
     * fixed several issues with powerpc
     + applied a patch from Jonas for nested function calls (PowerPC only)
     * ...

@@ -963,6 +963,13 @@ const
         r.enum:=R_INTREGISTER;
         r.number:=NR_R0;
         a_reg_alloc(list,r);
+
+        if aktprocdef.parast.symtablelevel>1 then
+          begin
+             r.enum:=R_INTREGISTER;
+             r.number:=NR_R11;
+             a_reg_alloc(list,r);
+          end;
         { allocate registers containing reg parameters }
         r.enum := R_INTREGISTER;
         for regcounter2 := RS_R3 to RS_R10 do
@@ -1011,7 +1018,7 @@ const
         if usesfpr or usesgpr then
           begin
              r.enum:=R_INTREGISTER;
-             r.number:=NR_R11;
+             r.number:=NR_R12;
              a_reg_alloc(list,r);
              { save end of fpr save area }
              list.concat(taicpu.op_reg_reg(A_MR,r,rsp));
@@ -1063,7 +1070,7 @@ const
 
              { compute end of gpr save area }
              r.enum:=R_INTREGISTER;
-             r.number:=NR_R11;
+             r.number:=NR_R12;
              list.concat(taicpu.op_reg_reg_const(A_ADDI,r,r,-(ord(R_F31)-ord(firstregfpu.enum)+1)*8));
           end;
 
@@ -1080,13 +1087,13 @@ const
                a_call_name(objectlibrary.newasmsymbol('_savegpr_'+tostr(ord(firstreggpr)-ord(R_14)+14))
              }
              r.enum:=R_INTREGISTER;
-             r.number:=NR_R11;
+             r.number:=NR_R12;
              reference_reset_base(href,r,-((NR_R31-firstreggpr.number) shr 8+1)*4);
              list.concat(taicpu.op_reg_ref(A_STMW,firstreggpr,href));
           end;
 
         r.enum:=R_INTREGISTER;
-        r.number:=NR_R11;
+        r.number:=NR_R12;
         if usesfpr or usesgpr then
           a_reg_dealloc(list,r);
 
@@ -1113,6 +1120,15 @@ const
           new_reference(STACK_POINTER_REG,LA_CR)));
         a_reg_dealloc(list,R_0); }
         { now comes the AltiVec context save, not yet implemented !!! }
+
+        { if we're in a nested procedure, we've to save R11 }
+        if aktprocdef.parast.symtablelevel>2 then
+          begin
+             r.enum:=R_INTREGISTER;
+             r.number:=NR_R11;
+             reference_reset_base(href,rsp,procinfo.framepointer_offset);
+             list.concat(taicpu.op_reg_ref(A_STW,r,href));
+          end;
       end;
 
     procedure tcgppc.g_return_from_proc_sysv(list : taasmoutput;parasize : aword);
@@ -1165,7 +1181,7 @@ const
              r.enum:=R_INTREGISTER;
              r.number:=NR_STACK_POINTER_REG;
              r2.enum:=R_INTREGISTER;
-             r2.number:=NR_R11;
+             r2.number:=NR_R12;
              if usesfpr then
                list.concat(taicpu.op_reg_reg_const(A_ADDI,r2,r,tppcprocinfo(procinfo).localsize-(ord(R_F31)-ord(firstregfpu.enum)+1)*8))
              else
@@ -1185,7 +1201,7 @@ const
           begin
              { address of fpr save area to r11 }
              r.enum:=R_INTREGISTER;
-             r.number:=NR_R11;
+             r.number:=NR_R12;
              list.concat(taicpu.op_reg_reg_const(A_ADDI,r,r,(ord(R_F31)-ord(firstregfpu.enum)+1)*8));
              {
              if (procinfo.flags and pi_do_call)<>0 then
@@ -2337,7 +2353,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.80  2003-04-23 22:18:01  peter
+  Revision 1.81  2003-04-24 11:24:00  florian
+    * fixed several issues with nested procedures
+
+  Revision 1.80  2003/04/23 22:18:01  peter
     * fixes to get rtl compiled
 
   Revision 1.79  2003/04/23 12:35:35  florian

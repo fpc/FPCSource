@@ -66,7 +66,7 @@ unit cpupi;
     procedure tppcprocinfo.after_header;
       begin
          procdef.parast.address_fixup:=0;
-         if assigned(procdef.localst) and (procdef.localst.symtablelevel>1) then
+         if assigned(procdef.parast) and (procdef.parast.symtablelevel>1) then
            begin
               procinfo.framepointer_offset:=procdef.parast.address_fixup;
               inc(procdef.parast.address_fixup,4);
@@ -111,7 +111,7 @@ unit cpupi;
 //             Already done with an "inc" above now, not sure if it's correct (JM)
              procdef.localst.address_fixup:=procdef.parast.address_fixup+procdef.parast.datasize;
 
-{ 
+{
              Already done with an "inc" above, should be correct (JM)
              if assigned(procdef.funcretsym) and
                not(paramanager.ret_in_param(procdef.rettype.def,procdef.proccalloption)) then
@@ -136,7 +136,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2003-04-06 16:39:11  jonas
+  Revision 1.9  2003-04-24 11:24:00  florian
+    * fixed several issues with nested procedures
+
+  Revision 1.8  2003/04/06 16:39:11  jonas
     * don't generate entry/exit code for assembler procedures
 
   Revision 1.7  2003/04/05 21:09:32  jonas

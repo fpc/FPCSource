@@ -30,7 +30,7 @@ unit cpunode;
 
     uses
        { generic nodes }
-       ncgbas,ncgld,ncgflw,ncgcnv,ncgmem,ncgcon,ncgcal,ncgset,ncginl,
+       ncgbas,ncgld,ncgflw,ncgcnv,ncgmem,ncgcon,ncgcal,ncgset,ncginl,ncgopt,
        { to be able to only parts of the generic code,
          the processor specific nodes must be included
          after the generic one (FK)
@@ -52,7 +52,10 @@ unit cpunode;
 end.
 {
   $Log$
-  Revision 1.15  2002-08-13 21:40:58  florian
+  Revision 1.16  2003-04-24 11:24:00  florian
+    * fixed several issues with nested procedures
+
+  Revision 1.15  2002/08/13 21:40:58  florian
     * more fixes for ppc calling conventions
 
   Revision 1.14  2002/08/11 11:39:12  jonas
