@@ -725,75 +725,75 @@ begin
                   exclude(initglobalswitches,cs_gdb_lineinfo);
                   exclude(initglobalswitches,cs_checkpointer);
                 end
+{$ifdef GDB}
                else
                 begin
-{$ifdef GDB}
                   include(initmoduleswitches,cs_debuginfo);
-                  if not RelocSectionSetExplicitly then
-                    RelocSection:=false;
-                  j:=1;
-                  while j<=length(more) do
-                    begin
-                      case more[j] of
-                        'd' :
-                          begin
-                            if UnsetBool(More, j) then
-                              exclude(initglobalswitches,cs_gdb_dbx)
-                            else
-                              include(initglobalswitches,cs_gdb_dbx);
-                          end;
-                       'g' :
-                          begin
-                            if UnsetBool(More, j) then
-                              exclude(initglobalswitches,cs_gdb_gsym)
-                            else
-                              include(initglobalswitches,cs_gdb_gsym);
-                          end;
-                        'h' :
-                          begin
-                            if UnsetBool(More, j) then
-                              exclude(initglobalswitches,cs_gdb_heaptrc)
-                            else
-                              include(initglobalswitches,cs_gdb_heaptrc);
-                          end;
-                        'l' :
-                          begin
-                            if UnsetBool(More, j) then
-                              exclude(initglobalswitches,cs_gdb_lineinfo)
-                            else
-                              include(initglobalswitches,cs_gdb_lineinfo);
-                          end;
-                        'c' :
-                          begin
-                            if UnsetBool(More, j) then
-                              exclude(initglobalswitches,cs_checkpointer)
-                            else
-                              include(initglobalswitches,cs_checkpointer);
-                          end;
-                        'v' :
-                          begin
-                            if UnsetBool(More, j) then
-                              exclude(initglobalswitches,cs_gdb_valgrind)
-                            else
-                              include(initglobalswitches,cs_gdb_valgrind);
-                          end;
-                        'w' :
-                          begin
-                            if UnsetBool(More, j) then
-                              exclude(initglobalswitches,cs_gdb_dwarf)
-                            else
-                              include(initglobalswitches,cs_gdb_dwarf);
-                          end;
-                        else
-                          IllegalPara(opt);
-                      end;
-                      inc(j);
-                    end;
-{$else GDB}
-                  Message(option_no_debug_support);
-                  Message(option_no_debug_support_recompile_fpc);
-{$endif GDB}
                 end;
+               if not RelocSectionSetExplicitly then
+                 RelocSection:=false;
+               j:=1;
+               while j<=length(more) do
+                 begin
+                   case more[j] of
+                     'd' :
+                       begin
+                         if UnsetBool(More, j) then
+                           exclude(initglobalswitches,cs_gdb_dbx)
+                         else
+                           include(initglobalswitches,cs_gdb_dbx);
+                       end;
+                    'g' :
+                       begin
+                         if UnsetBool(More, j) then
+                           exclude(initglobalswitches,cs_gdb_gsym)
+                         else
+                           include(initglobalswitches,cs_gdb_gsym);
+                       end;
+                     'h' :
+                       begin
+                         if UnsetBool(More, j) then
+                           exclude(initglobalswitches,cs_gdb_heaptrc)
+                         else
+                           include(initglobalswitches,cs_gdb_heaptrc);
+                       end;
+                     'l' :
+                       begin
+                         if UnsetBool(More, j) then
+                           exclude(initglobalswitches,cs_gdb_lineinfo)
+                         else
+                           include(initglobalswitches,cs_gdb_lineinfo);
+                       end;
+                     'c' :
+                       begin
+                         if UnsetBool(More, j) then
+                           exclude(initglobalswitches,cs_checkpointer)
+                        else
+                            include(initglobalswitches,cs_checkpointer);
+                       end;
+                     'v' :
+                       begin
+                         if UnsetBool(More, j) then
+                           exclude(initglobalswitches,cs_gdb_valgrind)
+                         else
+                           include(initglobalswitches,cs_gdb_valgrind);
+                       end;
+                     'w' :
+                       begin
+                         if UnsetBool(More, j) then
+                           exclude(initglobalswitches,cs_gdb_dwarf)
+                         else
+                           include(initglobalswitches,cs_gdb_dwarf);
+                       end;
+                     else
+                       IllegalPara(opt);
+                   end;
+                   inc(j);
+                 end;
+{$else GDB}
+                 Message(option_no_debug_support);
+                 Message(option_no_debug_support_recompile_fpc);
+{$endif GDB}
              end;
 
            'h' :
@@ -2076,7 +2076,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.136  2004-06-20 08:55:30  florian
+  Revision 1.137  2004-07-04 12:24:04  jonas
+    * fixed "-g-l" (and other "-g-*" combinations)
+
+  Revision 1.136  2004/06/20 08:55:30  florian
     * logs truncated
 
   Revision 1.135  2004/06/16 20:07:09  florian
