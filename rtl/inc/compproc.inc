@@ -42,7 +42,9 @@ procedure fpc_Shortstr_SetLength(var s:shortstring;len:StrLenInt); compilerproc;
 function fpc_shortstr_to_shortstr(len:longint; const sstr: shortstring): shortstring; compilerproc;
 function fpc_shortstr_concat(const s1,s2:shortstring): shortstring; compilerproc;
 function fpc_shortstr_compare(const dstr,sstr:shortstring) : longint; compilerproc;
+
 function fpc_pchar_to_shortstr(p:pchar):shortstring; compilerproc;
+function fpc_pchar_length(p:pchar):longint; compilerproc;
 
 function fpc_chararray_to_shortstr(const arr: array of char):shortstring; compilerproc;
 function fpc_shortstr_to_chararray(arraysize: longint; const src: ShortString): fpc_big_chararray; compilerproc;
@@ -265,7 +267,10 @@ function fpc_qword_to_double(q: qword): double; compilerproc;
 
 {
   $Log$
-  Revision 1.24  2002-10-02 18:21:51  peter
+  Revision 1.25  2002-10-05 14:20:16  peter
+    * fpc_pchar_length compilerproc and strlen alias
+
+  Revision 1.24  2002/10/02 18:21:51  peter
     * Copy() changed to internal function calling compilerprocs
     * FPC_SHORTSTR_COPY renamed to FPC_SHORTSTR_ASSIGN because of the
       new copy functions

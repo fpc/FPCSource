@@ -642,6 +642,9 @@ end;
 { also add a strpas alias for internal use in the system unit (JM) }
 function strpas(p:pchar):shortstring; [external name 'FPC_PCHAR_TO_SHORTSTR'];
 
+{ also add a strlen alias for internal use in the system unit (JM) }
+function strlen(p:pchar):longint; [external name 'FPC_PCHAR_LENGTH'];
+
 {$ifndef FPC_SYSTEM_HAS_FPC_CHARARRAY_TO_SHORTSTR}
 
 {$ifdef hascompilerproc}
@@ -733,9 +736,9 @@ end;
 
 {$endif hascompilerproc}
 
-{$ifndef FPC_SYSTEM_HAS_STRLEN}
+{$ifndef FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
 
-function strlen(p:pchar):longint;
+function fpc_pchar_length(p:pchar):longint;assembler;[public,alias:'FPC_PCHAR_LENGTH']; {$ifdef hascompilerproc} compilerproc; {$endif}
 var i : longint;
 begin
   i:=0;
@@ -743,7 +746,7 @@ begin
   exit(i);
 end;
 
-{$endif ndef FPC_SYSTEM_HAS_STRLEN}
+{$endif ndef FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
 
 {****************************************************************************
                        Caller/StackFrame Helpers
@@ -924,7 +927,10 @@ end;
 {$endif ndef FPC_SYSTEM_HAS_INT_STR_LONGWORD}
 {
   $Log$
-  Revision 1.38  2002-10-02 18:21:51  peter
+  Revision 1.39  2002-10-05 14:20:16  peter
+    * fpc_pchar_length compilerproc and strlen alias
+
+  Revision 1.38  2002/10/02 18:21:51  peter
     * Copy() changed to internal function calling compilerprocs
     * FPC_SHORTSTR_COPY renamed to FPC_SHORTSTR_ASSIGN because of the
       new copy functions

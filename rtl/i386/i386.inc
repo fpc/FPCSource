@@ -918,8 +918,8 @@ end;
 function fpc_pchar_to_shortstr(p:pchar):shortstring;[public,alias:'FPC_PCHAR_TO_SHORTSTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {$include strpas.inc}
 
-{$define FPC_SYSTEM_HAS_STRLEN}
-function strlen(p:pchar):longint;assembler;
+{$define FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
+function fpc_pchar_length(p:pchar):longint;assembler;[public,alias:'FPC_PCHAR_LENGTH']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {$include strlen.inc}
 
 {$define FPC_SYSTEM_HAS_FPC_CHARARRAY_TO_SHORTSTR}
@@ -1174,7 +1174,10 @@ procedure inclocked(var l : longint);assembler;
 
 {
   $Log$
-  Revision 1.31  2002-10-02 18:21:51  peter
+  Revision 1.32  2002-10-05 14:20:16  peter
+    * fpc_pchar_length compilerproc and strlen alias
+
+  Revision 1.31  2002/10/02 18:21:51  peter
     * Copy() changed to internal function calling compilerprocs
     * FPC_SHORTSTR_COPY renamed to FPC_SHORTSTR_ASSIGN because of the
       new copy functions
