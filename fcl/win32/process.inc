@@ -15,7 +15,8 @@ Var PName,PDir : PChar;
     FProcessAttributes,
     FTHreadAttributes : TSecurityAttributes;    
     FProcessInformation : TProcessInformation;
-
+    status : longbool;
+    
 begin
   FillChar(FProcessAttributes,SizeOf(FProcessAttributes),#0);
   FillChar(FThreadAttributes,SizeOf(FThreadAttributes),#0);
@@ -39,10 +40,13 @@ begin
     end;
   With FStartupInfo do
     begin
-    dwFlags:=FStartupInfo.dwFlags or Startf_UseStdHandles;
-    hStdInput:=FChildInputStream.Handle;
-    hStdOutput:=FChildOutPutStream.Handle;
-    hStdError:=FChildErrorStream.Handle;
+    if poUsePipes in FCreateOptions then
+      begin
+      dwFlags:=dwFlags or Startf_UseStdHandles;
+      hStdInput:=FChildInputStream.Handle;
+      hStdOutput:=FChildOutPutStream.Handle;
+      hStdError:=FChildErrorStream.Handle;
+      end;
     If (FFillAttribute<>-1) then
       begin
       dwFlags:=dwFlags or Startf_UseFillAttribute;
@@ -84,14 +88,19 @@ begin
       dwy:=FWindowTop;
       end;
     end;
+  Writeln ('About to start');  
   If FApplicationName<>'' then PName:=Pchar(FApplicationName) else PName:=Nil;
   If FCurrentDirectory<>'' then PName:=Pchar(FCurrentDirectory) else PDir:=Nil;
-  CreateProcess (Pname,PChar(FCommandLine),@FProcessAttributes,@FThreadAttributes,
+  Status:=CreateProcess (Pname,PChar(FCommandLine),@FProcessAttributes,@FThreadAttributes,
                  FInheritHandles,FCreationFlags,FEnvironment,PDir,@FStartupInfo,
                  @fProcessInformation);
+  Writeln ('Created ',Status);               
   FTHreadHandle:=fProcessInformation.hthread;
+  Writeln ('ThreadHandle :',FThreadHandle);
   FHandle:=fProcessInformation.hProcess;
+  Writeln ('Process Handle :',FHandle);
   FPID:=fProcessInformation.dwProcessID;
+  Writeln ('Process Handle :',FPID);
   FRunning:=True;
   if (poWaitOnExit in FCreateOptions) and
       not (poRunSuspended in FCreateOptions) then
