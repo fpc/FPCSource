@@ -50,6 +50,9 @@ unit temp_gen;
 
 
   implementation
+{$ifdef EXTDEBUG}
+    uses scanner;
+{$endif}
 
     type
        pfreerecord = ^tfreerecord;
@@ -180,7 +183,7 @@ unit temp_gen;
          tl^.persistant:=false;
          templist:=tl;
 {$ifdef EXTDEBUG}
-         tl^.line:=current_module^.current_inputfile^.line_no;
+         tl^.line:=current_scanner^.line_no;
 {$endif}
          gettempofsize:=ofs;
       end;
@@ -448,7 +451,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  1998-07-10 10:51:05  peter
+  Revision 1.3  1998-07-16 08:01:42  pierre
+    * small bug correction due to newinput
+      (only with tempdebug conditionnal)
+
+  Revision 1.2  1998/07/10 10:51:05  peter
     * m68k updates
 
   Revision 1.1  1998/06/08 16:07:41  pierre
