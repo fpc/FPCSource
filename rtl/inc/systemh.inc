@@ -105,6 +105,10 @@ const
 {$ifdef i386}
   Test8086 : byte = 2;       { Always i386 or newer }
   Test8087 : byte = 3;       { Always 387 or newer. Emulated if needed. }
+  FPUInt64 : boolean = true; { set this to false if you don't want that }
+                             { the fpu does int64*int64 and             }
+                             { int64 div int64, if the * is overflow    }
+                             { checked, it is done in software          }
 {$endif i386}
 {$ifdef m68k}
   Test68000 : byte = 0;      { Must be determined at startup for both }
@@ -466,7 +470,11 @@ const
 
 {
   $Log$
-  Revision 1.57  1999-05-17 21:52:40  florian
+  Revision 1.58  1999-06-30 22:17:22  florian
+    + fpuint64 to system unit interface added: if it is true, the rtl
+      uses the fpu to do int64 operations, if possible
+
+  Revision 1.57  1999/05/17 21:52:40  florian
     * most of the Object Pascal stuff moved to the system unit
 
   Revision 1.56  1999/05/06 09:05:14  peter

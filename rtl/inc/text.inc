@@ -364,6 +364,8 @@ End;
 
 {*****************************************************************************
                                Write(Ln)
+  Remarks:
+     The routines for the int64/qword are in int64.inc
 *****************************************************************************}
 
 Procedure WriteBuffer(var f:TextRec;var b;len:longint);
@@ -639,6 +641,9 @@ End;
 
 {*****************************************************************************
                                 Read(Ln)
+
+  Remarks:
+     The routines for the int64/qword are in int64.inc
 *****************************************************************************}
 
 Function NextChar(var f:TextRec;var s:string):Boolean;
@@ -1225,7 +1230,11 @@ end;
 
 {
   $Log$
-  Revision 1.46  1999-05-06 09:05:16  peter
+  Revision 1.47  1999-06-30 22:17:24  florian
+    + fpuint64 to system unit interface added: if it is true, the rtl
+      uses the fpu to do int64 operations, if possible
+
+  Revision 1.46  1999/05/06 09:05:16  peter
     * generic write_float str_float
 
   Revision 1.45  1999/04/26 18:27:26  peter
