@@ -84,8 +84,7 @@ uses
          function is_move:boolean; override;
 
          { register spilling code }
-         function spilling_decode_loadstore(op: tasmop; var counterpart: tasmop; var wasload: boolean): boolean;override;
-         function spilling_create_loadstore(op: tasmop; r:tregister; const ref:treference): tai;override;
+         function spilling_get_operation_type(opnr: longint): topertype;override;
          function spilling_create_load(const ref:treference;r:tregister): tai;override;
          function spilling_create_store(r:tregister; const ref:treference): tai;override;
       end;
@@ -367,78 +366,19 @@ uses cutils,rgobj;
       end;
 
 
-    function taicpu.spilling_decode_loadstore(op: tasmop; var counterpart: tasmop; var wasload: boolean): boolean;
+    function taicpu.spilling_get_operation_type(opnr: longint): topertype;
       begin
-        result := true;
-        wasload := true;
-        case op of
-          A_LBZ:
+        result := operand_read;
+        case opcode of
+          A_STB,A_STBX,A_STH,A_STHX,A_STW,A_STWX,A_STBU,A_STBUX,A_STHU,A_STHUX,A_STWU,A_STWUX:
             begin
-              counterpart := A_STB;
+              if opnr = 1 then
+                result := operand_write;
             end;
-          A_LBZX:
-            begin
-              counterpart := A_STBX;
-            end;
-          A_LHZ,A_LHA:
-            begin
-              counterpart := A_STH;
-            end;
-          A_LHZX,A_LHAX:
-            begin
-              counterpart := A_STHX;
-            end;
-          A_LWZ:
-            begin
-              counterpart := A_STW;
-            end;
-          A_LWZX:
-            begin
-              counterpart := A_STWX;
-            end;
-          A_STB:
-            begin
-              counterpart := A_LBZ;
-              wasload := false;
-            end;
-          A_STBX:
-            begin
-              counterpart := A_LBZX;
-              wasload := false;
-            end;
-          A_STH:
-            begin
-              counterpart := A_LHZ;
-              wasload := false;
-            end;
-          A_STHX:
-            begin
-              counterpart := A_LHZX;
-              wasload := false;
-            end;
-          A_STW:
-            begin
-              counterpart := A_LWZ;
-              wasload := false;
-            end;
-          A_STWX:
-            begin
-              counterpart := A_LWZX;
-              wasload := false;
-            end;
-          A_LBZU,A_LBZUX,A_LHZU,A_LHZUX,A_LHAU,A_LHAUX,
-          A_LWZU,A_LWZUX,A_STBU,A_STBUX,A_STHU,A_STHUX,
-          A_STWU,A_STWUX:
-            internalerror(2003070602);
           else
-            result := false;
-        end;
-      end;
-
-
-    function taicpu.spilling_create_loadstore(op: tasmop; r:tregister; const ref:treference): tai;
-      begin
-        result:=taicpu.op_reg_ref(opcode,r,ref);
+            if opnr = 0 then
+              result := operand_write;
+          end;
       end;
 
 
@@ -466,7 +406,13 @@ uses cutils,rgobj;
 end.
 {
   $Log$
-  Revision 1.19  2003-10-25 10:37:26  florian
+  Revision 1.20  2003-12-06 22:16:13  jonas
+    * completely overhauled and fixed generic spilling code. New method:
+      spilling_get_operation_type(operand_number): returns the operation
+      performed by the instruction on the operand: read/write/read+write.
+      See powerpc/aasmcpu.pas for an example
+
+  Revision 1.19  2003/10/25 10:37:26  florian
     * fixed compilation of ppc compiler
 
   Revision 1.18  2003/10/01 20:34:49  peter
