@@ -43,25 +43,26 @@ unit systems;
               I386_ATT,I386_INTEL,I386_DIRECT
        {$endif}
        {$ifdef m68k}
-              M68K_MOT
-       {$endif}
-       );
+			  M68K_MOT
+	   {$endif}
+	   );
 
 
-       ttarget = (
-       {$ifdef i386}
-              target_GO32V1,target_GO32V2,target_LINUX,target_OS2,target_WIN32
-       {$endif i386}
-       {$ifdef m68k}
-              target_Amiga,target_Atari,target_Mac68k,target_Linux
-       {$endif}
-       );
+	   ttarget = (
+	   {$ifdef i386}
+			  target_GO32V1,target_GO32V2,target_LINUX,target_OS2,target_WIN32
+	   {$endif i386}
+	   {$ifdef m68k}
+			  target_Amiga,target_Atari,target_Mac68k,target_Linux
+	   {$endif}
+	   );
 
 
-       tasm = (
-       {$ifdef i386}
-              as_o,as_asw,as_nasmcoff, as_nasmelf, as_nasmobj, as_tasm, as_masm
-       {$endif}
+	   tasm = (
+	   {$ifdef i386}
+			  as_o,as_o_aout,as_asw,as_nasmcoff, as_nasmelf, as_nasmobj,
+			  as_tasm, as_masm
+	   {$endif}
        {$ifdef m68k}
               as_o,as_gas,as_mit,as_mot
        {$endif}
@@ -106,7 +107,7 @@ unit systems;
           exeext,
           scriptext : string[4];
           Cprefix   : string[2];
-          newline   : string[2];
+		  newline   : string[2];
           endian    : tendian;
           use_function_relative_addresses : boolean;
        end;
@@ -151,7 +152,7 @@ unit systems;
           unitlibext,
           asmext,
           objext,
-          exeext      : string[4];
+		  exeext      : string[4];
           os          : tos;
           link        : tlink;
           assem       : tasm;
@@ -196,7 +197,7 @@ implementation
             newline      : #13#10;
             endian       : endian_little;
             use_function_relative_addresses : true
-          ),
+		  ),
           (
             name         : 'GO32 V2 DOS extender';
             sharedlibext : '.DLL';
@@ -224,162 +225,171 @@ implementation
             use_function_relative_addresses : true
           ),
           (
-            name         : 'OS/2 (32bit)';
-            sharedlibext : '.ao2';
-            staticlibext : '.a';
-            sourceext    : '.pp';
-            pasext       : '.pas';
-            exeext       : '.exe';
-            scriptext    : '.cmd';
-            Cprefix      : '_';
-            newline      : #13#10;
-            endian       : endian_little;
-            use_function_relative_addresses : false
-          ),
-          (
-            name         : 'Win32';
-            sharedlibext : '.dll';
-            staticlibext : '.a';
-            sourceext    : '.pp';
-            pasext       : '.pas';
-            exeext       : '.exe';
-            scriptext    : '.bat';
-            Cprefix      : '_';
-            newline      : #13#10;
-            endian       : endian_little;
-            use_function_relative_addresses : true
-          )
+			name         : 'OS/2 via EMX';
+			sharedlibext : '.ao2';
+			staticlibext : '.ao2';
+			sourceext    : '.pas';
+			pasext       : '.pp';
+			exeext       : '.exe';
+			scriptext    : '.cmd';
+			Cprefix      : '_';
+			newline      : #13#10;
+			endian       : endian_little;
+			use_function_relative_addresses : false
+		  ),
+		  (
+			name         : 'Win32';
+			sharedlibext : '.dll';
+			staticlibext : '.a';
+			sourceext    : '.pp';
+			pasext       : '.pas';
+			exeext       : '.exe';
+			scriptext    : '.bat';
+			Cprefix      : '_';
+			newline      : #13#10;
+			endian       : endian_little;
+			use_function_relative_addresses : true
+		  )
 {$endif i386}
 {$ifdef m68k}
-          (
-            name         : 'Commodore Amiga';
-            sharedlibext : '.library';
-            staticlibext : '.a';
-            sourceext    : '.pp';
-            pasext       : '.pas';
-            exeext       : '';
-            scriptext    : '';
-            Cprefix      : '';
-            newline      : #10;
-            endian       : en_big_endian;
-            use_function_relative_addresses : false
-          ),
-          (
-            name         : 'Atari ST/STE';
-            sharedlibext : '.dll';
-            staticlibext : '.a';
-            sourceext    : '.pp';
-            pasext       : '.pas';
-            exeext       : '.tpp';
-            scriptext    : '';
-            Cprefix      : '';
-            newline      : #10;
-            endian       : en_big_endian;
-            use_function_relative_addresses : false
-          ),
-          (
-            name         : 'Macintosh m68k';
-            sharedlibext : '.dll';
-            staticlibext : '.a';
-            sourceext    : '.pp';
-            pasext       : '.pas';
-            exeext       : '.tpp';
-            scriptext    : '';
-            Cprefix      : '';
-            newline      : #13;
-            endian       : en_big_endian;
-            use_function_relative_addresses : false
-          ),
-          (
-            name         : 'Linux-m68k';
-            sharedlibext : '.so';
-            staticlibext : '.a';
-            sourceext    : '.pp';
-            pasext       : '.pas';
-            exeext       : '';
-            scriptext    : '.sh';
-            Cprefix      : '';
-            newline      : #10;
-            endian       : en_big_endian;
-            use_function_relative_addresses : true
-          )
+		  (
+			name         : 'Commodore Amiga';
+			sharedlibext : '.library';
+			staticlibext : '.a';
+			sourceext    : '.pp';
+			pasext       : '.pas';
+			exeext       : '';
+			scriptext    : '';
+			Cprefix      : '';
+			newline      : #10;
+			endian       : en_big_endian;
+			use_function_relative_addresses : false
+		  ),
+		  (
+			name         : 'Atari ST/STE';
+			sharedlibext : '.dll';
+			staticlibext : '.a';
+			sourceext    : '.pp';
+			pasext       : '.pas';
+			exeext       : '.tpp';
+			scriptext    : '';
+			Cprefix      : '';
+			newline      : #10;
+			endian       : en_big_endian;
+			use_function_relative_addresses : false
+		  ),
+		  (
+			name         : 'Macintosh m68k';
+			sharedlibext : '.dll';
+			staticlibext : '.a';
+			sourceext    : '.pp';
+			pasext       : '.pas';
+			exeext       : '.tpp';
+			scriptext    : '';
+			Cprefix      : '';
+			newline      : #13;
+			endian       : en_big_endian;
+			use_function_relative_addresses : false
+		  ),
+		  (
+			name         : 'Linux-m68k';
+			sharedlibext : '.so';
+			staticlibext : '.a';
+			sourceext    : '.pp';
+			pasext       : '.pas';
+			exeext       : '';
+			scriptext    : '.sh';
+			Cprefix      : '';
+			newline      : #10;
+			endian       : en_big_endian;
+			use_function_relative_addresses : true
+		  )
 {$endif m68k}
-          );
+		  );
 
 
 {****************************************************************************
-                             Assembler Info
+							 Assembler Info
 ****************************************************************************}
-       as_infos : array[tasm] of tasminfo = (
+	   as_infos : array[tasm] of tasminfo = (
 {$ifdef i386}
-          (
-            id     : as_o;
-            idtxt  : 'O';
-            asmbin : 'as';
-            asmcmd : '-D -o $OBJ $ASM';
-            externals : false;
-            labelprefix : '.L';
-            comment : '# '
-          )
-          ,(
-            id     : as_asw;
-            idtxt  : 'ASW';
-            asmbin : 'asw';
-            asmcmd : '-D -o $OBJ $ASM';
-            externals : false;
-            labelprefix : '.L';
-            comment : '# '
-          )
-          ,(
-            id     : as_nasmcoff;
-            idtxt  : 'NASMCOFF';
-            asmbin : 'nasm';
-            asmcmd : '-f coff -o $OBJ $ASM';
-            externals : true;
-            labelprefix : 'L';
-            comment : '; '
-          )
-          ,(
-            id     : as_nasmelf;
-            idtxt  : 'NASMELF';
-            asmbin : 'nasm';
-            asmcmd : '-f elf -o $OBJ $ASM';
-            externals : true;
-            labelprefix : 'L';
-            comment : '; '
-          )
-          ,(
-            id     : as_nasmobj;
-            idtxt  : 'NASMOBJ';
-            asmbin : 'nasm';
-            asmcmd : '-f obj -o $OBJ $ASM';
-            externals : true;
-            labelprefix : 'L';
-            comment : '; '
-          )
-          ,(
-            id     : as_tasm;
-            idtxt  : 'TASM';
-            asmbin : 'tasm';
-            asmcmd : '/m2 $ASM $OBJ';
-            externals : true;
-            labelprefix : '.L';
-            comment : '; '
-          )
-          ,(
-            id     : as_tasm;
-            idtxt  : 'MASM';
-            asmbin : 'masm';
-            asmcmd : '$ASM $OBJ';
-            externals : true;
-            labelprefix : '.L';
-            comment : '; '
-          )
+		  (
+			id     : as_o;
+			idtxt  : 'O';
+			asmbin : 'as';
+			asmcmd : '-D -o $OBJ $ASM';
+			externals : false;
+			labelprefix : '.L';
+			comment : '# '
+		  )
+		  ,(
+			id     : as_o_aout;
+			idtxt  : 'O';
+			asmbin : 'as';
+			asmcmd : '-D -o $OBJ $ASM';
+			externals : false;
+			labelprefix : 'L';
+			comment : '# '
+		  )
+		  ,(
+			id     : as_asw;
+			idtxt  : 'ASW';
+			asmbin : 'asw';
+			asmcmd : '-D -o $OBJ $ASM';
+			externals : false;
+			labelprefix : '.L';
+			comment : '# '
+		  )
+		  ,(
+			id     : as_nasmcoff;
+			idtxt  : 'NASMCOFF';
+			asmbin : 'nasm';
+			asmcmd : '-f coff -o $OBJ $ASM';
+			externals : true;
+			labelprefix : 'L';
+			comment : '; '
+		  )
+		  ,(
+			id     : as_nasmelf;
+			idtxt  : 'NASMELF';
+			asmbin : 'nasm';
+			asmcmd : '-f elf -o $OBJ $ASM';
+			externals : true;
+			labelprefix : 'L';
+			comment : '; '
+		  )
+		  ,(
+			id     : as_nasmobj;
+			idtxt  : 'NASMOBJ';
+			asmbin : 'nasm';
+			asmcmd : '-f obj -o $OBJ $ASM';
+			externals : true;
+			labelprefix : 'L';
+			comment : '; '
+		  )
+		  ,(
+			id     : as_tasm;
+			idtxt  : 'TASM';
+			asmbin : 'tasm';
+			asmcmd : '/m2 $ASM $OBJ';
+			externals : true;
+			labelprefix : '.L';
+			comment : '; '
+		  )
+		  ,(
+			id     : as_tasm;
+			idtxt  : 'MASM';
+			asmbin : 'masm';
+			asmcmd : '$ASM $OBJ';
+			externals : true;
+			labelprefix : '.L';
+			comment : '; '
+		  )
 {$endif i386}
 {$ifdef m68k}
-          (
-            id     : as_o;
-            idtxt  : 'O';
+		  (
+			id     : as_o;
+			idtxt  : 'O';
             asmbin : 'as';
             asmcmd : '-D -o $OBJ $ASM';
             externals : false;
@@ -397,7 +407,7 @@ implementation
           )
           ,(
             id     : as_mit;
-            idtxt  : 'MIT';
+			idtxt  : 'MIT';
             asmbin : '';
             asmcmd : '-o $OBJ $ASM';
             externals : false;
@@ -409,7 +419,7 @@ implementation
             idtxt  : 'MOT';
             asmbin : '';
             asmcmd : '-o $OBJ $ASM';
-            externals : false;
+			externals : false;
             labelprefix : '__L';
             comment : '| '
           )
@@ -417,89 +427,89 @@ implementation
           );
 
 {****************************************************************************
-                                Linker Info
+								Linker Info
 ****************************************************************************}
-       link_infos : array[tlink] of tlinkinfo = (
+	   link_infos : array[tlink] of tlinkinfo = (
 {$ifdef i386}
-          (
-            linkbin : 'ld';
-            linkcmd : '$OPT -o $EXE $RES';
-            bindbin : '';
+		  (
+			linkbin : 'ld';
+			linkcmd : '$OPT -o $EXE $RES';
+			bindbin : '';
+			bindcmd : '';
+			stripopt   : '-s';
+			libpathprefix : 'SEARCH_DIR(';
+			libpathsuffix : ')';
+			groupstart : 'GROUP(';
+			groupend   : ')';
+			inputstart : 'INPUT(';
+			inputend   : ')';
+			libprefix  : '-l'
+		  )
+		  ,(
+			linkbin : 'ld';
+			linkcmd : '-oformat coff-go32 $OPT -o $EXE @$RES';
+			bindbin : 'aout2exe';
+			bindcmd : '$EXE';
+			stripopt   : '-s';
+			libpathprefix : '-L';
+			libpathsuffix : '';
+			groupstart : '-(';
+			groupend   : '-)';
+			inputstart : '';
+			inputend   : '';
+			libprefix  : '-l'
+		  )
+		  ,(
+			linkbin : 'ld';
+			linkcmd : '-oformat coff-go32-exe $OPT -o $EXE @$RES';
+			bindbin : '';
             bindcmd : '';
-            stripopt   : '-s';
+			stripopt   : '-s';
+            libpathprefix : '-L';
+            libpathsuffix : '';
+            groupstart : '-(';
+            groupend   : '-)';
+            inputstart : '';
+            inputend   : '';
+            libprefix  : '-l'
+          )
+		  ,(
+			linkbin : 'ldw';
+			linkcmd : '$OPT -o $EXE $RES';
+			bindbin : '';
+			bindcmd : '';
+			stripopt   : '-s';
             libpathprefix : 'SEARCH_DIR(';
             libpathsuffix : ')';
             groupstart : 'GROUP(';
-            groupend   : ')';
-            inputstart : 'INPUT(';
-            inputend   : ')';
-            libprefix  : '-l'
-          )
-          ,(
-            linkbin : 'ld';
-            linkcmd : '-oformat coff-go32 $OPT -o $EXE @$RES';
-            bindbin : 'aout2exe';
-            bindcmd : '$EXE';
-            stripopt   : '-s';
-            libpathprefix : '-L';
-            libpathsuffix : '';
-            groupstart : '-(';
-            groupend   : '-)';
-            inputstart : '';
-            inputend   : '';
-            libprefix  : '-l'
-          )
-          ,(
-            linkbin : 'ld';
-            linkcmd : '-oformat coff-go32-exe $OPT -o $EXE @$RES';
-            bindbin : '';
-            bindcmd : '';
-            stripopt   : '-s';
-            libpathprefix : '-L';
-            libpathsuffix : '';
-            groupstart : '-(';
-            groupend   : '-)';
-            inputstart : '';
-            inputend   : '';
-            libprefix  : '-l'
-          )
-          ,(
-            linkbin : 'ldw';
-            linkcmd : '$OPT -o $EXE $RES';
-            bindbin : '';
-            bindcmd : '';
-            stripopt   : '-s';
-            libpathprefix : 'SEARCH_DIR(';
-            libpathsuffix : ')';
-            groupstart : 'GROUP(';
-            groupend   : ')';
-            inputstart : 'INPUT(';
-            inputend   : ')';
-            libprefix  : '-l'
-          )
-          ,(
-            linkbin : 'ld';
-            linkcmd : '-o $EXE @$RES';
-            bindbin : 'emxbind';
-            bindcmd : '-o $EXE.exe $EXE -k$STACKKB -aim -s$HEAPKB';
-            stripopt   : '-s';
-            libpathprefix : '-L';
-            libpathsuffix : '';
-            groupstart : '-(';
-            groupend   : '-)';
-            inputstart : '';
-            inputend   : '';
-            libprefix  : ''
-          )
+			groupend   : ')';
+			inputstart : 'INPUT(';
+			inputend   : ')';
+			libprefix  : '-l'
+		  )
+		  ,(
+			linkbin : 'ld';
+			linkcmd : '-o $EXE @$RES';
+			bindbin : 'emxbind';
+			bindcmd : '-o $EXE.exe $EXE -k$STACKKB -aim -s$HEAPKB';
+			stripopt   : '-s';
+			libpathprefix : '';
+			libpathsuffix : '';
+			groupstart : '-(';
+			groupend   : '-)';
+			inputstart : '';
+			inputend   : '';
+			libprefix  : ''
+		  )
 {$endif i386}
 {$ifdef m68k}
-          (
-            linkbin : 'ld';
-            linkcmd : '$OPT -o $EXE $RES';
-            bindbin : '';
-            bindcmd : '';
+		  (
+			linkbin : 'ld';
+			linkcmd : '$OPT -o $EXE $RES';
+			bindbin : '';
+			bindcmd : '';
             stripopt   : '-s';
-            libpathprefix : 'SEARCH_DIR(';
+			libpathprefix : 'SEARCH_DIR(';
             libpathsuffix : ')';
             groupstart : 'GROUP(';
             groupend   : ')';
@@ -513,72 +523,72 @@ implementation
 {****************************************************************************
                                  Ar Info
 ****************************************************************************}
-       ar_infos : array[tar] of tarinfo = (
+	   ar_infos : array[tar] of tarinfo = (
 {$ifdef i386}
           (
             arbin : 'ar';
-            arcmd : 'rs $LIB $FILES'
-          ),
+			arcmd : 'rs $LIB $FILES'
+		  ),
           (
-            arbin : 'arw';
+			arbin : 'arw';
             arcmd : 'rs $LIB $FILES'
           )
 {$endif i386}
 {$ifdef m68k}
           (
-            arbin : 'ar';
+			arbin : 'ar';
             arcmd : 'rs $LIB $FILES'
-          )
+		  )
 {$endif m68k}
           );
 
 {****************************************************************************
-                             Targets Info
+							 Targets Info
 ****************************************************************************}
-       target_infos : array[ttarget] of ttargetinfo = (
+	   target_infos : array[ttarget] of ttargetinfo = (
 {$ifdef i386}
-          (
-            target      : target_GO32V1;
-            short_name  : 'GO32V1';
-            unit_env    : 'GO32V1UNITS';
-            system_unit : 'SYSTEM';
-            smartext    : '.SL';
-            unitext     : '.PP1';
-            unitlibext  : '.PPL';
-            asmext      : '.S1';
-            objext      : '.O1';
-            exeext      : ''; { The linker procedures a.out }
-            os          : os_GO32V1;
-            link        : link_ldgo32v1;
-            assem       : as_o;
-            ar          : ar_ar
-          ),
-          (
+		  (
+			target      : target_GO32V1;
+			short_name  : 'GO32V1';
+			unit_env    : 'GO32V1UNITS';
+			system_unit : 'SYSTEM';
+			smartext    : '.SL';
+			unitext     : '.PP1';
+			unitlibext  : '.PPL';
+			asmext      : '.S1';
+			objext      : '.O1';
+			exeext      : ''; { The linker produces a.out }
+			os          : os_GO32V1;
+			link        : link_ldgo32v1;
+			assem       : as_o;
+			ar          : ar_ar
+		  ),
+		  (
             target      : target_GO32V2;
             short_name  : 'GO32V2';
             unit_env    : 'GO32V2UNITS';
             system_unit : 'SYSTEM';
-      {$ifndef UseAnsiString}
-            smartext    : '.SL';
-            unitext     : '.PPU';
-            unitlibext  : '.PPL';
-            asmext      : '.S';
+	  {$ifndef UseAnsiString}
+			smartext    : '.SL';
+			unitext     : '.PPU';
+			unitlibext  : '.PPL';
+			asmext      : '.S';
             objext      : '.O';
             exeext      : '.EXE';
-      {$else UseAnsiString}
-            smartext    : '.SL';
-            unitext     : '.PAU';
-            unitlibext  : '.PPL';
-            asmext      : '.SA';
-            objext      : '.OA';
-            exeext      : '.EXE';
-      {$endif UseAnsiString}
-            os          : os_GO32V2;
-            link        : link_ldgo32v2;
-            assem       : as_o;
-            ar          : ar_ar
-          ),
-          (
+	  {$else UseAnsiString}
+			smartext    : '.SL';
+			unitext     : '.PAU';
+			unitlibext  : '.PPL';
+			asmext      : '.SA';
+			objext      : '.OA';
+			exeext      : '.EXE';
+	  {$endif UseAnsiString}
+			os          : os_GO32V2;
+			link        : link_ldgo32v2;
+			assem       : as_o;
+			ar          : ar_ar
+		  ),
+		  (
             target      : target_LINUX;
             short_name  : 'LINUX';
             unit_env    : 'LINUXUNITS';
@@ -589,34 +599,34 @@ implementation
             asmext      : '.s';
             objext      : '.o';
             exeext      : '';
-            os          : os_Linux;
-            link        : link_ld;
-            assem       : as_o;
-            ar          : ar_ar
-          ),
-          (
-            target      : target_OS2;
-            short_name  : 'OS2';
-            unit_env    : 'OS2UNITS';
-            system_unit : 'SYSOS2';
-            smartext    : '.sl';
-            unitext     : '.ppo';
-            unitlibext  : '.ppl';
-            asmext      : '.so2';
-            objext      : '.oo2';
-            exeext      : ''; { The linker procedures a.out }
-            os          : os_OS2;
-            link        : link_ldos2;
-            assem       : as_o;
-            ar          : ar_ar
-          ),
-          (
-            target      : target_WIN32;
-            short_name  : 'WIN32';
-            unit_env    : 'WIN32UNITS';
-            system_unit : 'SYSWIN32';
-            smartext    : '.sl';
-            unitext     : '.ppw';
+			os          : os_Linux;
+			link        : link_ld;
+			assem       : as_o;
+			ar          : ar_ar
+		  ),
+		  (
+			target      : target_OS2;
+			short_name  : 'OS2';
+			unit_env    : 'OS2UNITS';
+			system_unit : 'SYSOS2';
+			smartext    : '.sl';
+			unitext     : '.ppo';
+			unitlibext  : '.ppl';
+			asmext      : '.so2';
+			objext      : '.oo2';
+			exeext      : ''; { The linker produces a.out }
+			os          : os_OS2;
+			link        : link_ldos2;
+			assem       : as_o_aout;
+			ar          : ar_ar
+		  ),
+		  (
+			target      : target_WIN32;
+			short_name  : 'WIN32';
+			unit_env    : 'WIN32UNITS';
+			system_unit : 'SYSWIN32';
+			smartext    : '.sl';
+			unitext     : '.ppw';
             unitlibext  : '.ppl';
             asmext      : '.s';
             objext      : '.o';
@@ -634,7 +644,7 @@ implementation
             unit_env    : '';
             system_unit : 'sysamiga';
             smartext    : '.sl';
-            unitext     : '.ppa';
+			unitext     : '.ppa';
             unitlibext  : '.ppl';
             asmext      : '.asm';
             objext      : '.o';
@@ -643,12 +653,12 @@ implementation
             link        : link_ld;
             assem       : as_o;
             ar          : ar_ar
-          ),
+		  ),
           (
             target      : target_Atari;
             short_name  : 'ATARI';
             unit_env    : '';
-            system_unit : 'SYSATARI';
+			system_unit : 'SYSATARI';
             smartext    : '.sl';
             unitext     : '.ppt';
             unitlibext  : '.ppl';
@@ -661,7 +671,7 @@ implementation
             ar          : ar_ar
           ),
           (
-            target      : target_Mac68k;
+			target      : target_Mac68k;
             short_name  : 'MACOS';
             unit_env    : '';
             system_unit : 'sysmac';
@@ -679,7 +689,7 @@ implementation
           (
             target      : target_Linux;
             short_name  : 'LINUX';
-            unit_env    : 'LINUXUNITS';
+			unit_env    : 'LINUXUNITS';
             system_unit : 'syslinux';
             smartext    : '.sl';
             unitext     : '.ppu';
@@ -693,7 +703,7 @@ implementation
             ar          : ar_ar
           )
 {$endif m68k}
-          );
+		  );
 
 {****************************************************************************
                              AsmModeInfo
@@ -706,7 +716,7 @@ implementation
           ),
           (
             id    : I386_INTEL;
-            idtxt : 'INTEL'
+			idtxt : 'INTEL'
           ),
           (
             id    : I386_ATT;
@@ -834,7 +844,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  1998-06-08 22:59:54  peter
+  Revision 1.19  1998-06-15 13:34:24  daniel
+
+
+  * Fixed spelling mistakes in comments.
+  * Fixed some OS/2 parameters.
+
+  Revision 1.18  1998/06/08 22:59:54  peter
     * smartlinking works for win32
     * some defines to exclude some compiler parts
 
@@ -859,7 +875,7 @@ end.
     * fixed dynamiclinker option which was added at the wrong place
 
   Revision 1.12  1998/05/23 01:21:32  peter
-    + aktasmmode, aktoptprocessor, aktoutputformat
+	+ aktasmmode, aktoptprocessor, aktoutputformat
     + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
     + $LIBNAME to set the library name where the unit will be put in
     * splitted cgi386 a bit (codeseg to large for bp7)
@@ -904,7 +920,7 @@ end.
 
   Revision 1.4  1998/04/27 15:45:20  peter
     + -Xl for smartlink
-    + target_info.arext = .a
+	+ target_info.arext = .a
 
   Revision 1.3  1998/04/16 10:50:45  daniel
   * Fixed some things that were broken for OS/2.
