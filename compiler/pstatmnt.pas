@@ -808,12 +808,18 @@ unit pstatmnt;
                 tt:=hdisposen;
             end;
           consume(LKLAMMER);
+
+          { displaced here to avoid warnings in BP mode (PM) }
+          Store_valid := Must_be_valid;
+          if tt=hnewn then
+            Must_be_valid := False
+          else
+            Must_be_valid:=true;
+
           p:=comp_expr(true);
 
           { calc return type }
           cleartempgen;
-          Store_valid := Must_be_valid;
-          Must_be_valid := False;
           do_firstpass(p);
           Must_be_valid := Store_valid;
 
@@ -1265,7 +1271,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.87  1999-05-27 19:44:50  peter
+  Revision 1.88  1999-06-15 13:19:46  pierre
+   * better uninitialized var tests for TP mode
+
+  Revision 1.87  1999/05/27 19:44:50  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly
