@@ -35,7 +35,7 @@ unit cpunode;
          the processor specific nodes must be included
          after the generic one (FK)
        }
-//       nppcadd,
+       nppcadd,
 //       nppccal,
 //       nppccon,
 //       nppcflw,
@@ -52,7 +52,11 @@ unit cpunode;
 end.
 {
   $Log$
-  Revision 1.8  2002-07-21 16:58:59  jonas
+  Revision 1.9  2002-07-26 12:31:56  jonas
+    + intial implementation of add nodes, only integer/enumeration/pointer/...
+      handling is finished
+
+  Revision 1.8  2002/07/21 16:58:59  jonas
     + include ncgset unit
 
   Revision 1.7  2002/07/11 14:41:34  florian
