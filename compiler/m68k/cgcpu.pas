@@ -78,20 +78,27 @@ unit cgcpu;
           procedure g_restore_standard_registers(list : taasmoutput);override;
           procedure g_save_all_registers(list : taasmoutput);override;
           procedure g_restore_all_registers(list : taasmoutput;selfused,accused,acchiused:boolean);override;
+     protected
+         function fixref(list: taasmoutput; var ref: treference): boolean;
      private
           { # Sign or zero extend the register to a full 32-bit value.
               The new value is left in the same register.
           }
           procedure sign_extend(list: taasmoutput;_oldsize : tcgsize; reg: tregister);
           procedure a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: tasmlabel);
+     
      end;
 
-Implementation
 
-    uses
-       globtype,globals,verbose,systems,cutils,
-       symdef,symsym,defbase,paramgr,
-       rgobj,tgobj,rgcpu;
+     { This function returns true if the reference+offset is valid.
+       Otherwise extra code must be generated to solve the reference.
+       
+       On the m68k, this verifies that the reference is valid
+       (e.g : if index register is used, then the max displacement
+        is 256 bytes, if only base is used, then max displacement
+        is 32K
+     }
+     function isvalidrefoffset(const ref: treference): boolean;
 
 const
       TCGSize2OpSize: Array[tcgsize] of topsize =
@@ -100,6 +107,17 @@ const
          S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO);
          
          
+         
+
+Implementation
+
+    uses
+       globtype,globals,verbose,systems,cutils,
+       symdef,symsym,defbase,paramgr,
+       rgobj,tgobj,rgcpu;
+
+         
+    const     
       { opcode table lookup }
       topcg2tasmop: Array[topcg] of tasmop =
       (
@@ -137,6 +155,58 @@ const
       );
        
 
+     function isvalidrefoffset(const ref: treference): boolean;
+      begin
+         isvalidrefoffset := true;
+         if ref.index <> R_NO then
+           begin
+             if ref.base <> R_NO then
+                internalerror(20020814);
+             if (ref.offset < low(shortint)) or (ref.offset > high(shortint)) then
+                isvalidrefoffset := false
+           end
+         else
+           begin
+             if (ref.offset < low(smallint)) or (ref.offset > high(smallint)) then
+                isvalidrefoffset := false;
+           end;
+      end;
+      
+      
+    function tcg68k.fixref(list: taasmoutput; var ref: treference): boolean;
+
+       var
+         tmpreg: tregister;
+       begin
+         result := false;
+         if (ref.base <> R_NO) then
+           begin
+             if (ref.index <> R_NO) and assigned(ref.symbol) then
+                internalerror(20020814);
+             { base + reg }   
+             if ref.index <> R_NO then
+                begin
+                   { base + reg + offset }
+                   if (ref.offset < low(shortint)) or (ref.offset > high(shortint)) then
+                     begin
+                        list.concat(taicpu.op_const_reg(A_ADD,S_L,ref.offset,ref.base));
+                        fixref := true;
+                        ref.offset := 0;
+                        exit;
+                     end;
+                end
+             else
+             { base + offset }
+             if (ref.offset < low(smallint)) or (ref.offset > high(smallint)) then
+               begin
+                 list.concat(taicpu.op_const_reg(A_ADD,S_L,ref.offset,ref.base));
+                 fixref := true;
+                 ref.offset := 0;
+                 exit;
+               end;
+           end;
+       end;
+      
 
 
     procedure tcg68k.a_call_name(list : taasmoutput;const s : string);
@@ -147,9 +217,12 @@ const
 
 
     procedure tcg68k.a_call_ref(list : taasmoutput;const ref : treference);
-
+      var
+       href : treference;
       begin
-        list.concat(taicpu.op_ref(A_JSR,S_NO,ref));
+        href := ref;
+        fixref(list,href); 
+        list.concat(taicpu.op_ref(A_JSR,S_NO,href));
       end;
 
 
@@ -164,7 +237,7 @@ const
            list.concat(taicpu.op_reg(A_CLR,S_L,register))
         else
          begin
-           if (longint(a) >= -128) and (longint(a) <= 127) then
+           if (longint(a) >= low(shortint)) and (longint(a) <= high(shortint)) then
               list.concat(taicpu.op_const_reg(A_MOVEQ,S_L,a,register))
            else   
               list.concat(taicpu.op_const_reg(A_MOVE,S_L,a,register))
@@ -172,9 +245,13 @@ const
       end;
       
     procedure tcg68k.a_load_reg_ref(list : taasmoutput;size : tcgsize;register : tregister;const ref : treference);
+      var
+       href : treference;
       begin
+         href := ref;
+         fixref(list,href); 
          { move to destination reference }
-         list.concat(taicpu.op_reg_ref(A_MOVE,TCGSize2OpSize[size],register,ref));
+         list.concat(taicpu.op_reg_ref(A_MOVE,TCGSize2OpSize[size],register,href));
       end;
       
     procedure tcg68k.a_load_reg_reg(list : taasmoutput;size : tcgsize;reg1,reg2 : tregister);
@@ -186,8 +263,12 @@ const
       end;
       
     procedure tcg68k.a_load_ref_reg(list : taasmoutput;size : tcgsize;const ref : treference;register : tregister);
+      var
+       href : treference;
       begin
-         list.concat(taicpu.op_ref_reg(A_MOVE,TCGSize2OpSize[size],ref,register));
+         href := ref;
+         fixref(list,href); 
+         list.concat(taicpu.op_ref_reg(A_MOVE,TCGSize2OpSize[size],href,register));
          { extend the value in the register }
          sign_extend(list, size, register);
       end;
@@ -198,12 +279,16 @@ const
       end;
       
     procedure tcg68k.a_loadaddr_ref_reg(list : taasmoutput;const ref : treference;r : tregister);
+     var
+       href : treference;
       begin
         if (not rg.isaddressregister(r)) then
           begin
             internalerror(2002072901);
           end;
-        list.concat(taicpu.op_ref_reg(A_LEA,S_L,ref,r));
+        href:=ref;  
+        fixref(list, href);
+        list.concat(taicpu.op_ref_reg(A_LEA,S_L,href,r));
       end;
       
     procedure tcg68k.a_loadfpu_reg_reg(list: taasmoutput; reg1, reg2: tregister); 
@@ -215,12 +300,14 @@ const
     procedure tcg68k.a_loadfpu_ref_reg(list: taasmoutput; size: tcgsize; const ref: treference; reg: tregister); 
      var
       opsize : topsize;
+      href : treference;
       begin
         opsize := tcgsize2opsize[size];   
         { extended is not supported, since it is not available on Coldfire }
         if opsize = S_FX then
           internalerror(20020729);
-        list.concat(taicpu.op_ref_reg(A_FMOVE,opsize,ref,reg));
+        fixref(list,href);    
+        list.concat(taicpu.op_ref_reg(A_FMOVE,opsize,href,reg));
       end;
       
     procedure tcg68k.a_loadfpu_reg_ref(list: taasmoutput; size: tcgsize; reg: tregister; const ref: treference); 
@@ -261,6 +348,9 @@ const
        scratch_reg2: tregister;
        opcode : tasmop;
       begin
+        { need to emit opcode? }
+        if not optimize_const_reg(op, a) then
+           exit;
         opcode := topcg2tasmop[op];
         case op of
           OP_ADD : 
@@ -288,7 +378,7 @@ const
               end;
           OP_IMUL :
               Begin
-                 if aktoptprocessor = MC68000 then
+             if aktoptprocessor = MC68000 then
                    begin
                      rg.getexplicitregisterint(list,R_D0);
                      rg.getexplicitregisterint(list,R_D1);
@@ -751,8 +841,8 @@ const
               { move a dword x times }
               for i:=1 to helpsize do
                 begin
-                   list.concat(taicpu.op_ref_reg(A_MOVE,S_L,srcref,hregister));
-                   list.concat(taicpu.op_reg_ref(A_MOVE,S_L,hregister,dstref));
+                   a_load_ref_reg(list,OS_INT,srcref,hregister);
+                   a_load_reg_ref(list,OS_INT,hregister,dstref);
                    inc(srcref.offset,4);
                    inc(dstref.offset,4);
                    dec(len,4);
@@ -760,8 +850,8 @@ const
               { move a word }
               if len>1 then
                 begin
-                   list.concat(taicpu.op_ref_reg(A_MOVE,S_W,srcref,hregister));
-                   list.concat(taicpu.op_reg_ref(A_MOVE,S_W,hregister,dstref));
+                   a_load_ref_reg(list,OS_16,srcref,hregister);
+                   a_load_reg_ref(list,OS_16,hregister,dstref);
                    inc(srcref.offset,2);
                    inc(dstref.offset,2);
                    dec(len,2);
@@ -769,8 +859,8 @@ const
               { move a single byte }
               if len>0 then
                 begin
-                   list.concat(taicpu.op_ref_reg(A_MOVE,S_B,srcref,hregister));
-                   list.concat(taicpu.op_reg_ref(A_MOVE,S_B,hregister,dstref));
+                   a_load_ref_reg(list,OS_8,srcref,hregister);
+                   a_load_reg_ref(list,OS_8,hregister,dstref);
                 end
 
            end
@@ -789,11 +879,11 @@ const
               { jregister = destination }
 
               if loadref then
-                 list.concat(taicpu.op_ref_reg(A_MOVE,S_L,source,iregister))
+                 a_load_ref_reg(list,OS_INT,source,iregister)
               else
-                 list.concat(taicpu.op_ref_reg(A_LEA,S_L,source,iregister));
+                 a_loadaddr_ref_reg(list,source,iregister);
 
-              list.concat(taicpu.op_ref_reg(A_LEA,S_L,dest,jregister));
+              a_loadaddr_ref_reg(list,dest,jregister);
 
               { double word move only on 68020+ machines }
               { because of possible alignment problems   }
@@ -865,7 +955,7 @@ const
              { Not to complicate the code generator too much, and since some  }
              { of the systems only support this format, the localsize cannot }
              { exceed 32K in size.                                            }
-             if (localsize < -32767) or (localsize > 32768) then
+             if (localsize < low(smallint)) or (localsize > high(smallint)) then
                 CGMessage(cg_e_stacklimit_in_local_routine);
              list.concat(taicpu.op_reg_const(A_LINK,S_W,frame_pointer_reg,-localsize));
            end { endif localsize <> 0 }
@@ -1012,7 +1102,12 @@ end.
 
 { 
   $Log$
-  Revision 1.1  2002-08-13 18:30:22  carl
+  Revision 1.2  2002-08-14 19:16:34  carl
+    + m68k type conversion nodes
+    + started some mathematical nodes
+    * out of bound references should now be handled correctly
+
+  Revision 1.1  2002/08/13 18:30:22  carl
     * rename swatoperands to swapoperands
     + m68k first compilable version (still needs a lot of testing):
         assembler generator, system information , inline

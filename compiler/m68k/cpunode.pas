@@ -30,7 +30,7 @@ unit cpunode;
 
     uses
        { generic nodes }
-       ncgbas,ncgld,ncgflw,ncgcnv,ncgmem,ncgcon,ncgcal,ncgset,ncginl
+       ncgbas,ncgld,ncgflw,ncgcnv,ncgmem,ncgcon,ncgcal,ncgset,ncginl,ncgmat
        { to be able to only parts of the generic code,
          the processor specific nodes must be included
          after the generic one (FK)
@@ -46,13 +46,18 @@ unit cpunode;
        { this not really a node }
 //       nppcobj,
 //       nppcmat,
-//       nppccnv
+         ,n68kcnv
        ;
 
 end.
 {
   $Log$
-  Revision 1.1  2002-08-13 18:01:52  carl
+  Revision 1.2  2002-08-14 19:16:34  carl
+    + m68k type conversion nodes
+    + started some mathematical nodes
+    * out of bound references should now be handled correctly
+
+  Revision 1.1  2002/08/13 18:01:52  carl
     * rename swatoperands to swapoperands
     + m68k first compilable version (still needs a lot of testing):
         assembler generator, system information , inline
