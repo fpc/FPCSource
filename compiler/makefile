@@ -412,7 +412,10 @@ rtlclean :
 # Test of log at the end
 # does CVS add # at start of each line ??
 # $Log$
-# Revision 1.8  1998-04-06 12:28:23  pierre
+# Revision 1.9  1998-04-15 14:16:48  michael
+# + Removed CR characters
+#
+# Revision 1.8  1998/04/06 12:28:23  pierre
 #   Test of makefile log !
 #
 # End of log
