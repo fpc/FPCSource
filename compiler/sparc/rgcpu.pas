@@ -58,7 +58,8 @@ implementation
            not((reg shr 8) in is_reg_var_int) then
           begin
             if (reg shr 8) in UsedParaRegs then
-              InternalError(2003060701);
+              InternalError(2003060701)
+              ;
             include(UsedParaRegs,reg shr 8);
             result.enum:=R_INTREGISTER;
             result.number:=reg;
@@ -77,7 +78,8 @@ implementation
            not((reg.number shr 8) in is_reg_var_int) then
           begin
             if not((reg.number shr 8) in usedpararegs) then
-              internalerror(2003060702);
+              internalerror(2003060702)
+              ;
             exclude(usedpararegs,reg.number shr 8);
             cg.a_reg_dealloc(list,reg);
           end
@@ -152,7 +154,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2003-06-12 22:47:52  mazen
+  Revision 1.14  2003-06-17 16:36:11  peter
+    * freeintparaloc added
+
+  Revision 1.13  2003/06/12 22:47:52  mazen
   - unused temp var r removed in GetExplicitRegisterInt function
   * some case added for var and fauncions naming
 

@@ -45,6 +45,7 @@ unit cpupara;
           function ret_in_param(def : tdef;calloption : tproccalloption) : boolean;override;
           function push_addr_param(def : tdef;calloption : tproccalloption) : boolean;override;
           function getintparaloc(list: taasmoutput; nr : longint) : tparalocation;override;
+          procedure freeintparaloc(list: taasmoutput; nr : longint); override;
           function getparaloc(p : tdef) : tcgloc;
           procedure create_param_loc_info(p : tabstractprocdef);override;
           function getselflocation(p : tabstractprocdef) : tparalocation;override;
@@ -119,6 +120,12 @@ unit cpupara;
       end;
 
 
+    procedure ti386paramanager.freeintparaloc(list: taasmoutput; nr : longint);
+      begin
+        { nothing to release }
+      end;
+
+
     function ti386paramanager.getparaloc(p : tdef) : tcgloc;
       begin
         result:=LOC_REFERENCE;
@@ -169,7 +176,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2003-06-07 18:57:04  jonas
+  Revision 1.19  2003-06-17 16:34:19  peter
+    * freeintparaloc added
+
+  Revision 1.18  2003/06/07 18:57:04  jonas
     + added freeintparaloc
     * ppc get/freeintparaloc now check whether the parameter regs are
       properly allocated/deallocated (and get an extra list para)
