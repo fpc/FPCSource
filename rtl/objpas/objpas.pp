@@ -75,9 +75,14 @@ unit objpas;
           function safecallexception(exceptobject : tobject;
             exceptaddr : pointer) : integer;virtual;
        end;
-
+       
+       TExceptProc = Procedure (Obj : TObject; Addr: Pointer);
+       
        var
           abstracterrorproc : pointer;
+       Const
+          ExceptProc : Pointer {TExceptProc} = Nil;
+          
 
   implementation
 
@@ -279,7 +284,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  1998-07-29 15:44:33  michael
+  Revision 1.5  1998-07-30 16:10:11  michael
+  + Added support for ExceptProc+
+
+  Revision 1.4  1998/07/29 15:44:33  michael
    included sysutils and math.pp as target. They compile now.
 
   Revision 1.3  1998/07/29 10:09:28  michael

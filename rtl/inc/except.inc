@@ -117,7 +117,6 @@ begin
 {$ifdef excdebug}
   writeln ('In Popaddrstack');
 {$endif}
-
   If ExceptAddrStack=nil then
     begin
     writeln ('At end of ExceptionAddresStack');
@@ -133,7 +132,6 @@ begin
 {$ifdef excdebug}
   writeln ('In PopObjectstack');
 {$endif}
-
   If ExceptObjectStack=nil then
     begin
     writeln ('At end of ExceptionObjectStack');
@@ -149,12 +147,14 @@ begin
 {$ifdef excdebug}
   writeln ('In reraise');
 {$endif}
-
   PopAddrStack;
   If ExceptAddrStack=Nil then
     begin
-    writeln ('Re-Raise : At end of address chain.');
-    halt (1);
+    If ExceptProc<>Nil then
+      If ExceptObjectStack<>Nil then
+        TExceptPRoc(ExceptProc)(ExceptObjectStack^.FObject,
+                                ExceptObjectStack^.Addr);
+    RunError(217);
     end;
   longjmp(ExceptAddrStack^.Buf^,FPC_Exception);
 end;
