@@ -376,7 +376,7 @@ endif
 # set the directory where to install the binaries
 ifndef BININSTALLDIR
 ifdef inlinux
-BININSTALLDIR=$(BASEINSTALLDIR)/bin
+BININSTALLDIR=$(PREFIXINSTALLDIR)/bin
 else
 BININSTALLDIR=$(BASEINSTALLDIR)/bin/$(OS_TARGET)
 endif
@@ -662,10 +662,17 @@ endif
 # Export commandline values, so nesting use the same values
 #####################################################################
 
-export FPCDIR FPCMAKE FPC_VERSION
-export RELEASEVER OS_SOURCE OS_TARGET OPT OPTDEF CPU PP RELEASE VERBOSE
-export SMARTLINK LIBTYPE LIBNAME
-export BASEINSTALLDIR PACKAGESUFFIX
+# Makefile
+export FPCDIR FPCMAKE
+
+# Compiler info
+export RELEASEVER FPC_VERSION OS_SOURCE OS_TARGET CPU
+export OPT OPTDEF PP RELEASE VERBOSE SMARTLINK LIBTYPE LIBNAME
+
+# Installation
+export PREFIXINSTALLDIR PACKAGESUFFIX
+
+# Directories
 export GCCLIBDIR OTHERLIBDIR
 
 
@@ -827,7 +834,7 @@ ifndef ZIPNAME
 	@$(ECHO) Please specify ZIPNAME!
 	@exit
 else
-	$(MAKE) $(ZIPTARGET) BASEINSTALLDIR=$(PACKDIR)
+	$(MAKE) $(ZIPTARGET) PREFIXINSTALLDIR=$(PACKDIR)
 ifdef inlinux
 	gzip -d $(PACKAGEDIR)/$(ZIPNAME).tar.gz
 	cd $(PACKDIR) ; tar rv --file $(PACKAGEDIR)/$(ZIPNAME).tar * ; cd $(BASEDIR)
@@ -845,7 +852,7 @@ ifndef ZIPNAME
 	@exit
 else
 	$(DEL) $(PACKAGEDIR)/$(ZIPNAME)
-	$(MAKE) $(ZIPTARGET) BASEINSTALLDIR=$(PACKDIR)
+	$(MAKE) $(ZIPTARGET) PREFIXINSTALLDIR=$(PACKDIR)
 ifdef inlinux
 	cd $(PACKDIR) ; tar cvz --file $(PACKAGEDIR)/$(ZIPNAME).tar.gz * ; cd $(BASEDIR)
 else
@@ -1012,7 +1019,11 @@ endif
 
 #
 # $Log$
-# Revision 1.24  1999-05-11 00:48:12  peter
+# Revision 1.25  1999-05-12 16:17:07  peter
+#   + utils_X targets
+#   * missing export of prefixinstalldir
+#
+# Revision 1.24  1999/05/11 00:48:12  peter
 #   * fixed some typos
 #
 # Revision 1.23  1999/05/10 15:18:43  peter

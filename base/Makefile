@@ -16,10 +16,18 @@
 # Config
 #####################################################################
 
-MODULES=compiler rtl api fv gdb ide
+MODULES=rtl compiler utils api fv gdb ide
 
 ifndef RTLDIR
 RTLDIR=rtl
+endif
+
+ifndef COMPILERDIR
+COMPILERDIR=utils
+endif
+
+ifndef UTILSDIR
+UTILSDIR=utils
 endif
 
 ifndef FCLDIR
@@ -145,27 +153,6 @@ endif
 #####################################################################
 
 #######################################
-# Compiler
-#######################################
-
-compiler_all:
-	$(MAKE) -C compiler cycle
-
-compiler_clean:
-	$(MAKE) -C compiler clean
-
-compiler_install:
-	$(MAKE) -C compiler install
-
-compiler_installlib:
-	$(MAKE) -C compiler installlib
-
-compiler_staticinstall:
-
-compiler_sharedinstall:
-
-
-#######################################
 # RTL
 #######################################
 
@@ -185,6 +172,48 @@ rtl_staticinstall:
 
 rtl_sharedinstall:
 	$(MAKE) -C $(RTLDIR) sharedlibinstall
+
+
+#######################################
+# Compiler
+#######################################
+
+compiler_all: rtl_all
+	$(MAKE) -C $(COMPILERDIR) all
+
+compiler_clean:
+	$(MAKE) -C $(COMPILERDIR) clean
+
+compiler_install:
+	$(MAKE) -C $(COMPILERDIR) install
+
+compiler_installlib:
+	$(MAKE) -C $(COMPILERDIR) installlib
+
+compiler_staticinstall:
+
+compiler_sharedinstall:
+
+
+#######################################
+# Utils
+#######################################
+
+utils_all: rtl_all
+	$(MAKE) -C $(UTILSDIR) all
+
+utils_clean:
+	$(MAKE) -C $(UTILSDIR) clean
+
+utils_install:
+	$(MAKE) -C $(UTILSDIR) install
+
+utils_installlib:
+	$(MAKE) -C $(UTILSDIR) installlib
+
+utils_staticinstall:
+
+utils_sharedinstall:
 
 
 #######################################
@@ -385,12 +414,20 @@ gtkzip: rtl_clean gtk_clean
 
 compilerzip: compiler_clean rtl_clean
 	$(MAKE) compiler_all
-	$(MAKE) -C compiler fpc_zipinstall ZIPTARGET=quickinstall ZIPNAME=compiler-$(PACKAGESUFFIX)
+	$(MAKE) -C $(COMPILERDIR) fpc_zipinstall ZIPTARGET=quickinstall ZIPNAME=compiler-$(PACKAGESUFFIX)
 	$(MAKE) -C $(RTLDIR) fpc_zipinstalladd ZIPNAME=compiler-$(PACKAGESUFFIX)
+
+utilszip: utils_clean rtl_clean
+	$(MAKE) utils_all
+	$(MAKE) -C $(UTILSDIR) fpc_zipinstall ZIPNAME=utils-$(PACKAGESUFFIX)
 
 #
 # $Log$
-# Revision 1.14  1999-04-21 10:25:39  michael
+# Revision 1.15  1999-05-12 16:17:06  peter
+#   + utils_X targets
+#   * missing export of prefixinstalldir
+#
+# Revision 1.14  1999/04/21 10:25:39  michael
 # + Split idezips target
 #
 # Revision 1.13  1999/04/19 12:53:02  peter
