@@ -43,7 +43,7 @@ unit cpupara;
   implementation
 
     uses
-       verbose,
+       verbose,systems,
        cpuinfo,cginfo,cgbase,
        defutil;
 
@@ -162,6 +162,8 @@ unit cpupara;
                 hp.paraloc.loc:=LOC_REGISTER;
                 hp.paraloc.register:=nextintreg;
                 inc(nextintreg.number,NR_R1-NR_R0);
+                if target_info.abi=abi_powerpc_aix then
+                  inc(stack_offset,4);
              end
            else
               begin
@@ -178,7 +180,14 @@ unit cpupara;
          nextintreg.number:=NR_R3;
          nextfloatreg.enum:=R_F1;
          nextmmreg.enum:=R_M1;
-         stack_offset:=0;
+         case target_info.abi of
+           abi_powerpc_aix:
+             stack_offset:=24;
+           abi_powerpc_sysv:
+             stack_offset:=8;
+           else
+             internalerror(2003051901);
+         end;
 
          { frame pointer for nested procedures? }
          { inc(nextintreg);                     }
@@ -206,10 +215,14 @@ unit cpupara;
                            hp.paraloc.loc:=LOC_REGISTER;
                            hp.paraloc.registerlow:=nextintreg;
                            inc(nextintreg.number,NR_R1-NR_R0);
+                           if target_info.abi=abi_powerpc_aix then
+                             inc(stack_offset,4);
                            if is_64bit then
                              begin
                                hp.paraloc.registerhigh:=nextintreg;
                                inc(nextintreg.number,NR_R1-NR_R0);
+                               if target_info.abi=abi_powerpc_aix then
+                                 inc(stack_offset,4);
                              end;
                         end
                       else
@@ -233,6 +246,8 @@ unit cpupara;
                            hp.paraloc.loc:=LOC_FPUREGISTER;
                            hp.paraloc.register:=nextfloatreg;
                            inc(nextfloatreg.enum);
+                           if target_info.abi=abi_powerpc_aix then
+                             inc(stack_offset,8);
                         end
                       else
                          begin
@@ -317,7 +332,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  2003-05-12 20:14:47  florian
+  Revision 1.30  2003-05-19 12:15:28  florian
+    * fixed calling sequence for subroutines using the aix abi
+
+  Revision 1.29  2003/05/12 20:14:47  florian
     * fixed parameter passing by value of large sets, strings and method pointers
 
   Revision 1.28  2003/05/11 23:19:32  florian

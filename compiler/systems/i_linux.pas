@@ -218,7 +218,8 @@ unit i_linux;
             stacksize    : 32*1024*1024;
             DllScanSupported:false;
             use_function_relative_addresses : true;
-            abi : abi_powerpc_sysv;
+            { abi_powerpc_sysv doesn't work yet }
+            abi : abi_powerpc_aix;
           );
 
        system_alpha_linux_info : tsysteminfo =
@@ -447,7 +448,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.6  2003-05-18 15:15:59  florian
+  Revision 1.7  2003-05-19 12:15:28  florian
+    * fixed calling sequence for subroutines using the aix abi
+
+  Revision 1.6  2003/05/18 15:15:59  florian
     + added abi field to tsysteminfo
 
   Revision 1.5  2003/04/30 15:45:35  florian
