@@ -11,7 +11,7 @@ units=$(SYSTEMUNIT) unixtype baseunix strings systhrds  objpas syscall unixutil 
       heaptrc lineinfo \
       $(LINUXUNIT1) termio unix $(LINUXUNIT2) initc cmem $(CPU_UNITS) \
       dos crt objects printer ggigraph \
-      sysutils typinfo math varutils \
+      sysutils typinfo math matrix varutils \
       charset ucomplex getopts \
       errors sockets gpm ipc serial terminfo dl dynlibs \
       video mouse keyboard variants types dateutils sysconst \

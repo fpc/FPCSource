@@ -13,6 +13,19 @@ unit matrix;
 
  **********************************************************************}
 
+{This unit provides some common matrix and vector operations on vectors and
+ matrixes with dimensions of 2, 3 and 4 which are the most common ones in
+ computer graphics, and all routines provided in variations with single, 
+ double and extended precision.
+
+ The goal of this unit is also to invite some standardisation
+ between libraries, i.e. a vector from library x can be passed to library y
+ without conversion routines in between.
+
+ It would be nice to have some diehard assembler optimized versions of
+ these routines, however the Free Pascal team wishes to concentrate on the
+ compiler. Contributions from the community are very welcome.}
+
 {*****************************************************************************}
 
 interface
@@ -809,3 +822,10 @@ implementation
 {$i mmatimp.inc}
 
 end.
+
+{
+  $Log$
+  Revision 1.2  2004-07-07 21:37:30  daniel
+    * Matrix unit included in build process
+
+}

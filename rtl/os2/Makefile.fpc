@@ -10,7 +10,7 @@ loaders=prt0
 units=$(SYSTEMUNIT) objpas strings \
       ports os2def doscalls moncalls kbdcalls moucalls viocalls \
       pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi \
-      dos crt objects printer \
+      dos crt objects printer matrix \
       sysutils classes math typinfo varutils winsock \
       charset ucomplex cpu mmx getopts heaptrc lineinfo dynlibs \
       video mouse keyboard variants types rtlconst sysconst dateutil

@@ -9,7 +9,7 @@ main=rtl
 loaders=prt0
 units=system exec strings \
       dos crt objects printer \
-      objpas \
+      objpas matrix \
       heaptrc lineinfo getopts graph \
       sysutils math typinfo
 rsts=math
@@ -148,7 +148,10 @@ heaptrc$(PPUEXT) : $(INC)/heaptrc.pp system$(PPUEXT)
 
 #
 # $Log$
-# Revision 1.6  2004-05-06 22:01:17  florian
+# Revision 1.7  2004-07-07 21:37:29  daniel
+#   * Matrix unit included in build process
+#
+# Revision 1.6  2004/05/06 22:01:17  florian
 #   * changed extensions
 #
 # Revision 1.5  2004/05/06 21:12:41  florian

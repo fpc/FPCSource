@@ -12,7 +12,7 @@ fpcpackage=y
 loaders=prt0 cprt0
 units=$(SYSTEMUNIT) objpas strings syscall baseunix \
       $(LINUXUNIT) unix initc systhrds \
-      dos crt objects printer \
+      dos crt objects printer matrix \
       sysutils classes typinfo math varutils \
        charset ucomplex getopts heaptrc lineinfo \
       errors sockets gpm ipc terminfo \

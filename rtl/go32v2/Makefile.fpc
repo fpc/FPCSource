@@ -10,7 +10,7 @@ loaders=prt0 exceptn fpu
 units=system objpas strings \
       go32 dpmiexcp initc ports profile dxeload emu387 \
       dos crt objects printer graph \
-      sysutils classes math typinfo \
+      sysutils classes math typinfo matrix \
       cpu mmx ucomplex getopts heaptrc lineinfo \
       msmouse charset varutils \
       video mouse keyboard variants vesamode types \

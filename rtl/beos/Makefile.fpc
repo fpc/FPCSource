@@ -9,7 +9,7 @@ main=rtl
 loaders=prt0 cprt0 func dllprt
 units=system posix objpas strings \
       beos \
-      dos \
+      dos matrix \
       sysutils classes typinfo math varutils \
       cpu mmx getopts heaptrc lineinfo variants types sysconst
 rsts=math varutils typinfo sysconst

@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=
-units=system strings objpas heaptrc getopts macostp macutils unixutil dos objects
+units=system strings objpas heaptrc getopts macostp macutils unixutil dos objects matrix
 #      exec  \
 #      crt printer \
 #      lineinfo  graph \

@@ -10,7 +10,7 @@ loaders=prt0
 units=$(SYSTEMUNIT) objpas strings \
       dos \
       sysutils classes math typinfo varutils \
-      charset ucomplex getopts \
+      charset ucomplex getopts matrix \
       variants types rtlconst sysconst dateutil
 rsts=math rtlconst varutils typinfo variants classes sysconst dateutil
 

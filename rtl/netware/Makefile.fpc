@@ -9,7 +9,7 @@ main=rtl
 loaders=nwpre prelude
 units=$(SYSTEMUNIT) systhrds objpas strings \
       winsock \
-      dos crt objects \
+      dos crt objects matrix \
       sysutils classes typinfo math \
       cpu mmx getopts heaptrc lineinfo \
       sockets aio varutils \

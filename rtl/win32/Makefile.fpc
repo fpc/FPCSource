@@ -8,7 +8,7 @@ main=rtl
 [target]
 loaders=wprt0 wdllprt0 gprt0
 units=$(SYSTEMUNIT) systhrds objpas strings \
-      lineinfo heaptrc \
+      lineinfo heaptrc matrix \
       windows ole2 activex shellapi shlobj winsock initc cmem \
       dos crt objects graph messages \
       sysutils classes typinfo math varutils variants \
