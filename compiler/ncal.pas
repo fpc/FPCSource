@@ -176,7 +176,7 @@ implementation
             begin
               if (srsym.typ<>procsym) then
                internalerror(200111022);
-              if srsym.check_private then
+              if srsym.is_visible_for_proc(aktprocdef) then
                begin
                  srpdl:=srsym.defs;
                  while assigned(srpdl) do
@@ -540,10 +540,8 @@ implementation
     procedure tcallparanode.gen_high_tree(openstring:boolean);
       var
         temp: tnode;
-        len : longint;
-        st  : tsymtable;
+        len : integer;
         loadconst : boolean;
-        srsym : tsym;
       begin
         if assigned(hightree) then
           exit;
@@ -1755,7 +1753,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.60  2001-12-11 13:21:36  jonas
+  Revision 1.61  2001-12-31 16:59:41  peter
+    * protected/private symbols parsing fixed
+
+  Revision 1.60  2001/12/11 13:21:36  jonas
     * fixed to my previous patch: the hightree must always be converted to a
       longint
 

@@ -102,6 +102,7 @@ type
 {$ifndef NOAG386BIN}
   public
      { the next will reset all instructions that can change in pass 2 }
+     procedure ResetPass1;
      procedure ResetPass2;
      function  CheckIfValid:boolean;
      function  Pass1(offset:longint):longint;virtual;
@@ -769,6 +770,17 @@ begin
 end;
 
 
+procedure taicpu.ResetPass1;
+begin
+  { we need to reset everything here, because the choosen insentry
+    can be invalid for a new situation where the previously optimized
+    insentry is not correct }
+  InsEntry:=nil;
+  InsSize:=0;
+  LastInsOffset:=-1;
+end;
+
+
 procedure taicpu.ResetPass2;
 begin
   { we are here in a second pass, check if the instruction can be optimized }
@@ -1304,6 +1316,12 @@ var
   data,s,opidx : longint;
   ea_data : ea;
 begin
+{$ifdef EXTDEBUG}
+  { safety check }
+  if objectdata.currsectionsize<>insoffset then
+   internalerror(200130121);
+{$endif EXTDEBUG}
+  { load data to write }
   codes:=insentry^.code;
   { Force word push/pop for registers }
   if (opsize=S_W) and ((codes[0]=#4) or (codes[0]=#6) or
@@ -1575,7 +1593,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.16  2001-12-29 15:29:59  jonas
+  Revision 1.17  2001-12-31 16:59:43  peter
+    * protected/private symbols parsing fixed
+
+  Revision 1.16  2001/12/29 15:29:59  jonas
     * powerpc/cgcpu.pas compiles :)
     * several powerpc-related fixes
     * cpuasm unit is now based on common tainst unit

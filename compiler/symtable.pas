@@ -182,7 +182,6 @@ interface
           constructor create(aowner:tdef;asymsearch:TDictionary);
           destructor  destroy;override;
           procedure clear;override;
-          function  speedsearch(const s : stringid;speedvalue : cardinal) : tsymentry;override;
         end;
 
        tstt_exceptsymtable = class(tsymtable)
@@ -213,7 +212,7 @@ interface
 {*** Search ***}
     function  searchsym(const s : stringid;var srsym:tsym;var srsymtable:tsymtable):boolean;
     function  searchsymonlyin(p : tsymtable;const s : stringid):tsym;
-    function searchsystype(const s: stringid; var srsym: ttypesym): boolean;
+    function  searchsystype(const s: stringid; var srsym: ttypesym): boolean;
     function  searchsysvar(const s: stringid; var srsym: tvarsym; var symowner: tsymtable): boolean;
     function  search_class_member(pd : tobjectdef;const s : string):tsym;
 
@@ -831,10 +830,8 @@ implementation
 
     procedure tstoredsymtable.chainoperators;
       var
-        p : tprocsym;
         pd : pprocdeflist;
         t : ttoken;
-        def : tprocdef;
         srsym : tsym;
         srsymtable,
         storesymtablestack : tsymtable;
@@ -844,8 +841,6 @@ implementation
          make_ref:=false;
          for t:=first_overloaded to last_overloaded do
            begin
-              p:=nil;
-              def:=nil;
               overloaded_operators[t]:=nil;
               { each operator has a unique lowercased internal name PM }
               while assigned(symtablestack) do
@@ -1103,7 +1098,7 @@ implementation
               { but private ids can be reused }
               hsym:=search_class_member(tobjectdef(defowner),sym.name);
               if assigned(hsym) and
-                 hsym.check_private then
+                 tstoredsym(hsym).is_visible_for_object(tobjectdef(defowner)) then
                begin
                  DuplicateSym(hsym);
                  exit;
@@ -1270,7 +1265,7 @@ implementation
               hsym:=search_class_member(procinfo^._class,sym.name);
               { private ids can be reused }
               if assigned(hsym) and
-                 hsym.check_private then
+                 tstoredsym(hsym).is_visible_for_object(procinfo^._class) then
                begin
                  { delphi allows to reuse the names in a class, but not
                    in object (tp7 compatible) }
@@ -1643,24 +1638,6 @@ implementation
       end;
 
 
-    function twithsymtable.speedsearch(const s : stringid;speedvalue : cardinal) : tsymentry;
-      var
-        hp : tsym;
-      begin
-        hp:=tsym(inherited speedsearch(s, speedvalue));
-
-        { skip private members that can't be seen }
-        if assigned(hp) and
-           (sp_private in hp.symoptions) and
-           (hp.owner.symtabletype=objectsymtable) and
-           (hp.owner.defowner.owner.symtabletype=globalsymtable) and
-           (hp.owner.defowner.owner.unitid<>0) then
-          hp:=nil;
-
-        speedsearch:=hp;
-      end;
-
-
 {****************************************************************************
                           TSTT_ExceptionSymtable
 ****************************************************************************}
@@ -1731,7 +1708,8 @@ implementation
          while assigned(srsymtable) do
            begin
               srsym:=tsym(srsymtable.speedsearch(s,speedvalue));
-              if assigned(srsym) then
+              if assigned(srsym) and
+                 tstoredsym(srsym).is_visible_for_proc(aktprocdef) then
                begin
                  searchsym:=true;
                  exit;
@@ -2045,7 +2023,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.50  2001-11-18 18:43:17  peter
+  Revision 1.51  2001-12-31 16:59:43  peter
+    * protected/private symbols parsing fixed
+
+  Revision 1.50  2001/11/18 18:43:17  peter
     * overloading supported in child classes
     * fixed parsing of classes with private and virtual and overloaded
       so it is compatible with delphi

@@ -115,6 +115,7 @@ implementation
         inserthigh : boolean;
         tdefaultvalue : tconstsym;
         defaultrequired : boolean;
+        old_object_option : tsymoptions;
       begin
         { reset }
         defaultrequired:=false;
@@ -128,6 +129,9 @@ implementation
         if try_to_consume(_RKLAMMER) and
           not(m_tp7 in aktmodeswitches) then
           exit;
+        { the variables are always public }
+        old_object_option:=current_object_option;
+        current_object_option:=[sp_public];
         inc(testcurobject);
         repeat
           if try_to_consume(_VAR) then
@@ -331,6 +335,7 @@ implementation
         if not is_procvar then
           tprocdef(aktprocdef).setmangledname(hs2);
         dec(testcurobject);
+        current_object_option:=old_object_option;
         consume(_RKLAMMER);
       end;
 
@@ -2009,7 +2014,10 @@ const
 end.
 {
   $Log$
-  Revision 1.42  2001-12-06 17:57:36  florian
+  Revision 1.43  2001-12-31 16:59:42  peter
+    * protected/private symbols parsing fixed
+
+  Revision 1.42  2001/12/06 17:57:36  florian
     + parasym to tparaitem added
 
   Revision 1.41  2001/11/02 22:58:03  peter

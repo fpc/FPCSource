@@ -1080,7 +1080,6 @@ implementation
          static_name : string;
          isclassref : boolean;
          srsymtable : tsymtable;
-         objdef : tobjectdef;
 
       begin
          if sym=nil then
@@ -1103,29 +1102,6 @@ implementation
                end
               else
                isclassref:=false;
-
-              objdef:=tobjectdef(sym.owner.defowner);
-
-              { check protected and private members        }
-              { please leave this code as it is,           }
-              { it has now the same behaviaor as TP/Delphi }
-              if (sp_private in sym.symoptions) and
-                 (objdef.owner.symtabletype=globalsymtable) and
-                 (objdef.owner.unitid<>0) then
-               Message(parser_e_cant_access_private_member);
-
-              if (sp_protected in sym.symoptions) and
-                 (objdef.owner.symtabletype=globalsymtable) and
-                 (objdef.owner.unitid<>0) then
-                begin
-                  if assigned(aktprocdef._class) then
-                    begin
-                       if not aktprocdef._class.is_related(objdef) then
-                         Message(parser_e_cant_access_protected_member);
-                    end
-                  else
-                    Message(parser_e_cant_access_protected_member);
-                end;
 
               { we assume, that only procsyms and varsyms are in an object }
               { symbol table, for classes, properties are allowed          }
@@ -2508,7 +2484,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.52  2001-12-06 17:57:36  florian
+  Revision 1.53  2001-12-31 16:59:42  peter
+    * protected/private symbols parsing fixed
+
+  Revision 1.52  2001/12/06 17:57:36  florian
     + parasym to tparaitem added
 
   Revision 1.51  2001/11/14 01:12:44  florian

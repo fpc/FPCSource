@@ -203,7 +203,7 @@ implementation
       var
          symtable : tsymtable;
          storetypecanbeforward : boolean;
-
+         old_object_option : tsymoptions;
       begin
          { create recdef }
          symtable:=trecordsymtable.create;
@@ -213,6 +213,8 @@ implementation
          symtablestack:=symtable;
          { parse record }
          consume(_RECORD);
+         old_object_option:=current_object_option;
+         current_object_option:=[sp_public];
          storetypecanbeforward:=typecanbeforward;
          { for tp mode don't allow forward types }
          if m_tp in aktmodeswitches then
@@ -220,6 +222,7 @@ implementation
          read_var_decs(true,false,false);
          consume(_END);
          typecanbeforward:=storetypecanbeforward;
+         current_object_option:=old_object_option;
          { may be scale record size to a size of n*4 ? }
          symtablestack.datasize:=align(symtablestack.datasize,symtablestack.dataalignment);
          { restore symtable stack }
@@ -604,7 +607,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.30  2001-08-30 20:13:53  peter
+  Revision 1.31  2001-12-31 16:59:43  peter
+    * protected/private symbols parsing fixed
+
+  Revision 1.30  2001/08/30 20:13:53  peter
     * rtti/init table updates
     * rttisym for reusable global rtti/init info
     * support published for interfaces

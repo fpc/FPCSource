@@ -66,6 +66,8 @@ interface
 {$endif GDB}
           procedure load_references(ppufile:tcompilerppufile;locals:boolean);virtual;
           function  write_references(ppufile:tcompilerppufile;locals:boolean):boolean;virtual;
+          function  is_visible_for_proc(currprocdef:tprocdef):boolean;
+          function  is_visible_for_object(currobjdef:tobjectdef):boolean;
        end;
 
        tlabelsym = class(tstoredsym)
@@ -538,6 +540,67 @@ implementation
 {$endif GDB}
 
 
+    function tstoredsym.is_visible_for_proc(currprocdef:tprocdef):boolean;
+      begin
+        is_visible_for_proc:=false;
+
+        { private symbols are allowed when we are in the same
+          module as they are defined }
+        if (sp_private in symoptions) and
+           (owner.defowner.owner.symtabletype=globalsymtable) and
+           (owner.defowner.owner.unitid<>0) then
+          exit;
+
+        { protected symbols are vissible in the module that defines them and
+          also visible to related objects }
+        if (sp_protected in symoptions) and
+           (
+            (
+             (owner.defowner.owner.symtabletype=globalsymtable) and
+             (owner.defowner.owner.unitid<>0)
+            ) and
+            not(
+                assigned(currprocdef) and
+                assigned(currprocdef._class) and
+                currprocdef._class.is_related(tobjectdef(owner.defowner))
+               )
+           ) then
+          exit;
+
+        is_visible_for_proc:=true;
+      end;
+
+
+    function tstoredsym.is_visible_for_object(currobjdef:tobjectdef):boolean;
+      begin
+        is_visible_for_object:=false;
+
+        { private symbols are allowed when we are in the same
+          module as they are defined }
+        if (sp_private in symoptions) and
+           (owner.defowner.owner.symtabletype=globalsymtable) and
+           (owner.defowner.owner.unitid<>0) then
+          exit;
+
+        { protected symbols are vissible in the module that defines them and
+          also visible to related objects }
+        if (sp_protected in symoptions) and
+           (
+            (
+             (owner.defowner.owner.symtabletype=globalsymtable) and
+             (owner.defowner.owner.unitid<>0)
+            ) and
+            not(
+                assigned(currobjdef) and
+                currobjdef.is_related(tobjectdef(owner.defowner))
+               )
+           ) then
+          exit;
+
+        is_visible_for_object:=true;
+      end;
+
+
 {****************************************************************************
                                  TLABELSYM
 ****************************************************************************}
@@ -703,7 +766,16 @@ implementation
 
 
     destructor tprocsym.destroy;
+      var
+         hp,p : pprocdeflist;
       begin
+         p:=defs;
+         while assigned(p) do
+           begin
+              hp:=p^.next;
+              dispose(p);
+              p:=hp;
+           end;
          inherited destroy;
       end;
 
@@ -844,6 +916,7 @@ implementation
     function tprocsym.stabstring : pchar;
       begin
         internalerror(200111171);
+        stabstring:=nil;
       end;
 
     procedure tprocsym.concatstabto(asmlist : taasmoutput);
@@ -2440,7 +2513,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.29  2001-12-03 21:48:42  peter
+  Revision 1.30  2001-12-31 16:59:43  peter
+    * protected/private symbols parsing fixed
+
+  Revision 1.29  2001/12/03 21:48:42  peter
     * freemem change to value parameter
     * torddef low/high range changed to int64
 

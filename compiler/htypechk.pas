@@ -94,8 +94,6 @@ interface
     procedure calcregisters(p : tbinarynode;r32,fpu,mmx : word);
 
     { subroutine handling }
-    procedure test_protected_sym(sym : tsym);
-    procedure test_protected(p : tnode);
     function  is_procsym_load(p:tnode):boolean;
     function  is_procsym_call(p:tnode):boolean;
     procedure test_local_to_procvar(from_def:tprocvardef;to_def:tdef);
@@ -465,50 +463,10 @@ implementation
           CGMessage(cg_e_too_complex_expr); now pushed if needed PM }
       end;
 
+
 {****************************************************************************
                           Subroutine Handling
 ****************************************************************************}
-
-{ protected field handling
-  protected field can not appear in
-  var parameters of function !!
-  this can only be done after we have determined the
-  overloaded function
-  this is the reason why it is not in the parser, PM }
-
-    procedure test_protected_sym(sym : tsym);
-      begin
-         if (sp_protected in sym.symoptions) and
-            (
-             (
-              (sym.owner.symtabletype=globalsymtable) and
-              (sym.owner.unitid<>0)
-             ) or
-             (
-              (sym.owner.symtabletype=objectsymtable) and
-              (tobjectdef(sym.owner.defowner).owner.symtabletype=globalsymtable) and
-              (tobjectdef(sym.owner.defowner).owner.unitid<>0)
-             )
-            ) then
-          CGMessage(parser_e_cant_access_protected_member);
-      end;
-
-
-    procedure test_protected(p : tnode);
-      begin
-        case p.nodetype of
-         loadn : test_protected_sym(tloadnode(p).symtableentry);
-     typeconvn : test_protected(ttypeconvnode(p).left);
-        derefn : test_protected(tderefnode(p).left);
-    subscriptn : begin
-                 { test_protected(p.left);
-                   Is a field of a protected var
-                   also protected ???  PM }
-                   test_protected_sym(tsubscriptnode(p).vs);
-                 end;
-        end;
-      end;
-
 
     function is_procsym_load(p:tnode):boolean;
       begin
@@ -979,7 +937,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.39  2001-11-08 21:55:36  marco
+  Revision 1.40  2001-12-31 16:59:41  peter
+    * protected/private symbols parsing fixed
+
+  Revision 1.39  2001/11/08 21:55:36  marco
    * Fix from Peter. Fixes a hang when ptop's upperstr procedure is converted
      to ansistrings
 

@@ -561,7 +561,7 @@ implementation
          if tsym(sym).typ=procsym then
            begin
               { skip private symbols that can not been seen }
-              if not tsym(sym).check_private then
+              if not tstoredsym(sym).is_visible_for_object(_class) then
                exit;
 
               { check the current list of symbols }
@@ -1275,7 +1275,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.11  2001-11-20 18:49:43  peter
+  Revision 1.12  2001-12-31 16:59:41  peter
+    * protected/private symbols parsing fixed
+
+  Revision 1.11  2001/11/20 18:49:43  peter
     * require overload for cross object overloading
 
   Revision 1.10  2001/11/18 20:18:54  peter

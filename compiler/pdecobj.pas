@@ -46,7 +46,6 @@ implementation
     function object_dec(const n : stringid;fd : tobjectdef) : tdef;
     { this function parses an object or class declaration }
       var
-         actmembertype : tsymoptions;
          there_is_a_destructor : boolean;
          classtype : tobjectdeftype;
          childof : tobjectdef;
@@ -586,6 +585,7 @@ implementation
          hs      : string;
          pcrd       : tclassrefdef;
          tt     : ttype;
+         old_object_option : tsymoptions;
          oldprocinfo : pprocinfo;
          oldprocsym : tprocsym;
          oldprocdef : tprocdef;
@@ -605,8 +605,6 @@ implementation
                   begin
                      include(aktclass.objectoptions,oo_can_have_published);
                      { in "publishable" classes the default access type is published }
-                     actmembertype:=[sp_published];
-                     { don't know if this is necessary (FK) }
                      current_object_option:=[sp_published];
                   end;
              end;
@@ -894,12 +892,11 @@ implementation
           it.}
          oldprocdef:=aktprocdef;
          oldprocsym:=aktprocsym;
+         old_object_option:=current_object_option;
+
          { forward is resolved }
          if assigned(fd) then
            exclude(fd.objectoptions,oo_is_forward);
-
-         there_is_a_destructor:=false;
-         actmembertype:=[sp_public];
 
          { objects and class types can't be declared local }
          if not(symtablestack.symtabletype in [globalsymtable,staticsymtable]) then
@@ -918,12 +915,14 @@ implementation
          if n='' then
            Message(parser_f_no_anonym_objects);
 
+         { read list of parent classes }
          readparentclasses;
 
          { default access is public }
-         actmembertype:=[sp_public];
+         there_is_a_destructor:=false;
+         current_object_option:=[sp_public];
 
-         { set class flags and inherits published, if necessary? }
+         { set class flags and inherits published }
          setclassattributes;
 
          aktobjectdef:=aktclass;
@@ -937,16 +936,11 @@ implementation
          new(procinfo,init);
          procinfo^._class:=aktclass;
 
-
          { short class declaration ? }
          if (classtype<>odt_class) or (token<>_SEMICOLON) then
           begin
           { Parse componenten }
             repeat
-              if (sp_private in actmembertype) then
-                include(aktclass.objectoptions,oo_has_private);
-              if (sp_protected in actmembertype) then
-                include(aktclass.objectoptions,oo_has_protected);
               case token of
                 _ID :
                   begin
@@ -956,8 +950,8 @@ implementation
                           if is_interface(aktclass) then
                              Message(parser_e_no_access_specifier_in_interfaces);
                            consume(_PRIVATE);
-                           actmembertype:=[sp_private];
                            current_object_option:=[sp_private];
+                           include(aktclass.objectoptions,oo_has_private);
                          end;
                        _PROTECTED :
                          begin
@@ -965,7 +959,7 @@ implementation
                              Message(parser_e_no_access_specifier_in_interfaces);
                            consume(_PROTECTED);
                            current_object_option:=[sp_protected];
-                           actmembertype:=[sp_protected];
+                           include(aktclass.objectoptions,oo_has_protected);
                          end;
                        _PUBLIC :
                          begin
@@ -973,7 +967,6 @@ implementation
                              Message(parser_e_no_access_specifier_in_interfaces);
                            consume(_PUBLIC);
                            current_object_option:=[sp_public];
-                           actmembertype:=[sp_public];
                          end;
                        _PUBLISHED :
                          begin
@@ -984,7 +977,6 @@ implementation
                                Message(parser_e_cant_have_published);
                            consume(_PUBLISHED);
                            current_object_option:=[sp_published];
-                           actmembertype:=[sp_published];
                          end;
                        else
                          begin
@@ -1030,7 +1022,7 @@ implementation
                   end;
                 _CONSTRUCTOR :
                   begin
-                    if not(sp_public in actmembertype) then
+                    if not(sp_public in current_object_option) then
                       Message(parser_w_constructor_should_be_public);
                     if is_interface(aktclass) then
                       Message(parser_e_no_con_des_in_interfaces);
@@ -1057,7 +1049,7 @@ implementation
                     if is_interface(aktclass) then
                       Message(parser_e_no_con_des_in_interfaces);
                     there_is_a_destructor:=true;
-                    if not(sp_public in actmembertype) then
+                    if not(sp_public in current_object_option) then
                       Message(parser_w_destructor_should_be_public);
                     oldparse_only:=parse_only;
                     parse_only:=true;
@@ -1084,7 +1076,6 @@ implementation
                   consume(_ID); { Give a ident expected message, like tp7 }
               end;
             until false;
-            current_object_option:=[sp_public];
           end;
 
          { generate vmt space if needed }
@@ -1110,6 +1101,7 @@ implementation
          {Restore the aktprocsym.}
          aktprocsym:=oldprocsym;
          aktprocdef:=oldprocdef;
+         current_object_option:=old_object_option;
 
          object_dec:=aktclass;
       end;
@@ -1117,7 +1109,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.34  2001-12-06 17:57:35  florian
+  Revision 1.35  2001-12-31 16:59:41  peter
+    * protected/private symbols parsing fixed
+
+  Revision 1.34  2001/12/06 17:57:35  florian
     + parasym to tparaitem added
 
   Revision 1.33  2001/11/02 22:58:02  peter
