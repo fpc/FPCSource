@@ -1345,8 +1345,7 @@ implementation
 
       begin
          first_string_to_chararray:=nil;
-         registers32:=1;
-         expectloc:=LOC_REGISTER;
+         expectloc:=left.expectloc;
       end;
 
 
@@ -1517,12 +1516,20 @@ implementation
     function ttypeconvnode.first_proc_to_procvar : tnode;
       begin
          first_proc_to_procvar:=nil;
-         if (left.expectloc<>LOC_REFERENCE) then
-           CGMessage(cg_e_illegal_expression);
-         registers32:=left.registers32;
-         if registers32<1 then
-           registers32:=1;
-         expectloc:=LOC_REGISTER;
+         if assigned(tunarynode(left).left) then
+          begin
+            if (left.expectloc<>LOC_CREFERENCE) then
+              CGMessage(cg_e_illegal_expression);
+            registers32:=left.registers32;
+            expectloc:=left.expectloc
+          end
+         else
+          begin
+            registers32:=left.registers32;
+            if registers32<1 then
+              registers32:=1;
+            expectloc:=LOC_REGISTER;
+          end
       end;
 
 
@@ -2027,7 +2034,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.105  2003-04-22 23:50:23  peter
+  Revision 1.106  2003-04-23 10:10:07  peter
+    * expectloc fixes
+
+  Revision 1.105  2003/04/22 23:50:23  peter
     * firstpass uses expectloc
     * checks if there are differences between the expectloc and
       location.loc from secondpass in EXTDEBUG

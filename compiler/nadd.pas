@@ -1687,7 +1687,10 @@ implementation
            begin
              if tsetdef(ld).settype=smallset then
               begin
-                 expectloc:=LOC_REGISTER;
+                 if nodetype in [ltn,lten,gtn,gten,equaln,unequaln] then
+                  expectloc:=LOC_FLAGS
+                 else
+                  expectloc:=LOC_REGISTER;
                  { are we adding set elements ? }
                  if right.nodetype=setelementn then
                    calcregisters(self,2,0,0)
@@ -1914,7 +1917,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.82  2003-04-22 23:50:22  peter
+  Revision 1.83  2003-04-23 10:10:07  peter
+    * expectloc fixes
+
+  Revision 1.82  2003/04/22 23:50:22  peter
     * firstpass uses expectloc
     * checks if there are differences between the expectloc and
       location.loc from secondpass in EXTDEBUG
