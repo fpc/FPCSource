@@ -567,7 +567,7 @@ begin
  Val(SS,SI,Code);
 end;
 
-{
+(*
 Procedure Str (Const R : Real;Len,fr : Longint; Const S : AnsiString);
 
 Var SS : ShortString;
@@ -644,7 +644,7 @@ Procedure Str (Var SI : ShortInt; Len : Longint; Var S : AnsiString);
 
 begin
 end;
-}
+*)
 
 
 Procedure Delete (Var S : AnsiString; Index,Size: Longint);
@@ -693,7 +693,10 @@ end;
 
 {
   $Log$
-  Revision 1.29  1998-11-04 20:34:04  michael
+  Revision 1.30  1998-11-05 14:20:36  peter
+    * removed warnings
+
+  Revision 1.29  1998/11/04 20:34:04  michael
   + Removed ifdef useansistrings
 
   Revision 1.28  1998/11/04 15:39:44  michael
