@@ -558,6 +558,35 @@ implementation
            exit;
          end;
 
+         if is_ansistring(left.resulttype.def) then
+           begin
+              { fold <ansistring>:=<ansistring>+<char|shortstring|ansistring> }
+              if (right.nodetype=addn) and
+                left.isequal(tbinarynode(right).left) and
+                { don't fold multiple concatenations else we could get trouble
+                  with multiple uses of s
+                }
+                (tbinarynode(right).left.nodetype<>addn) and
+                (tbinarynode(right).right.nodetype<>addn) and
+                (is_char(tbinarynode(right).right.resulttype.def) or
+                 is_shortstring(tbinarynode(right).right.resulttype.def) or
+                 is_ansistring(tbinarynode(right).right.resulttype.def)
+                ) then
+                begin
+                   hp:=ccallparanode.create(tbinarynode(right).right,
+                     ccallparanode.create(left,nil));
+                   if is_char(tbinarynode(right).right.resulttype.def) then
+                     result:=ccallnode.createintern('fpc_ansistr_append_char',hp)
+                   else if is_shortstring(tbinarynode(right).right.resulttype.def) then
+                     result:=ccallnode.createintern('fpc_ansistr_append_shortstring',hp)
+                   else if is_ansistring(tbinarynode(right).right.resulttype.def) then
+                     result:=ccallnode.createintern('fpc_ansistr_append_ansistring',hp);
+                   tbinarynode(right).right:=nil;
+                   left:=nil;
+                   exit;
+                end;
+           end;
+
         { shortstring helpers can do the conversion directly,
           so treat them separatly }
         if (is_shortstring(left.resulttype.def)) then
@@ -575,8 +604,7 @@ implementation
                 hp := right;
                 while hp.treetype=addn do
                   hp:=hp.left;
-                if equal_trees(left,hp) and
-                   not multiple_uses(left,right) then
+                if left.docompare(hp) then
                   begin
                     concat_string:=true;
                     hp:=right;
@@ -1154,7 +1182,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.62  2002-10-05 12:43:25  carl
+  Revision 1.63  2002-10-17 12:44:09  florian
+    + s:=s+<string type> where s is an ansistring is done via calls to append_ansistring_*
+
+  Revision 1.62  2002/10/05 12:43:25  carl
     * fixes for Delphi 6 compilation
      (warning : Some features do not work under Delphi)
 
