@@ -24,8 +24,8 @@ begin
   compare(45,2);
   if not greater then
     error;
-  compare(-5,26)
-  if greater then 
-    error; 
+  compare(-5,26);
+  if greater then
+    error;
 end.
 

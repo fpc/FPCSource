@@ -6,5 +6,9 @@ type
        function GetCaps : Longint;virtual;stdcall;abstract;
    end;
 
+function to1.GetCaps2 : Longint;
+begin
+end;
+
 begin
 end.

@@ -1,4 +1,4 @@
-{ $OPT=-S2 -al -s }
+{ $OPT=-S2 }
 
 {
     $Id$
@@ -24,14 +24,14 @@ Unit ts010002;
 
 {$M+}
 
-Interface 
+Interface
 
 Type
 
-{ --------------------------------------------------------------------- 
+{ ---------------------------------------------------------------------
     Forward Declarations.
   ---------------------------------------------------------------------}
-  
+
   TComponent = Class;
   TFiler = Class;
   TPersistent = Class;
@@ -76,14 +76,14 @@ Type
     end;
 
 { ---------------------------------------------------------------------
-    TComponent 
+    TComponent
   ---------------------------------------------------------------------}
 
-  TComponentState = Set of ( csLoading, csReading, CsWriting, csDestroying, 
-                             csDesigning, csAncestor, csUpdating, csFixups ); 
+  TComponentState = Set of ( csLoading, csReading, CsWriting, csDestroying,
+                             csDesigning, csAncestor, csUpdating, csFixups );
   TComponentStyle = set of ( csInheritable,csCheckPropAvail );
   TComponentName = String;
-    
+
   TComponent = Class (TPersistent)
     Protected
       FComponentState : TComponentState;
@@ -116,7 +116,7 @@ Type
 Implementation
 
 { ---------------------------------------------------------------------
-    TComponent 
+    TComponent
   ---------------------------------------------------------------------}
 
 Function TComponent.GetComponent (Index : Longint) : TComponent;
@@ -208,7 +208,7 @@ end;
 
 
 Procedure TPersistent.Assign (Source : TPersistent);
-    
+
 begin
 end;
 
