@@ -134,7 +134,7 @@ implementation
              akttokenpos:=tprocdef(pd).fileinfo;
 
             { Generate result variable accessing function result }
-            vs:=tvarsym.create('$parentfp',vs_var,pd.rettype);
+            vs:=tvarsym.create('$parentfp',vs_var,voidpointertype);
             include(vs.varoptions,vo_is_parentfp);
             pd.parast.insert(vs);
             pd.insertpara(vs.vartype,vs,nil,true);
@@ -2132,7 +2132,10 @@ const
 end.
 {
   $Log$
-  Revision 1.150  2003-10-30 16:23:13  peter
+  Revision 1.151  2003-11-03 17:47:30  peter
+    * insert framepointer as voidpointer instead of returntype
+
+  Revision 1.150  2003/10/30 16:23:13  peter
     * don't search for overloads in parents for constructors
 
   Revision 1.149  2003/10/28 15:36:01  peter
