@@ -270,7 +270,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.47  2000-06-16 08:50:40  pierre
+  Revision 1.1  2000-07-13 09:48:34  michael
+  + Initial import
+
+  Revision 1.47  2000/06/16 08:50:40  pierre
    + new bunch of Gabor's changes
 
   Revision 1.46  2000/05/29 10:44:56  pierre

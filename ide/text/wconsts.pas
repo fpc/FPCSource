@@ -32,7 +32,10 @@ unit wconsts;
 end.
 {
   $Log$
-  Revision 1.1  2000-06-16 09:30:01  pierre
+  Revision 1.1  2000-07-13 09:48:37  michael
+  + Initial import
+
+  Revision 1.1  2000/06/16 09:30:01  pierre
    * new files from Gabor
 
 }

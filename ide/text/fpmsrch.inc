@@ -137,7 +137,10 @@ end;
 
 {
   $Log$
-  Revision 1.13  2000-05-02 08:42:28  pierre
+  Revision 1.1  2000-07-13 09:48:35  michael
+  + Initial import
+
+  Revision 1.13  2000/05/02 08:42:28  pierre
    * new set of Gabor changes: see fixes.txt
 
   Revision 1.12  2000/03/07 21:57:01  pierre

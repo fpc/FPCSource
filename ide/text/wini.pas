@@ -478,7 +478,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.10  2000-06-22 09:07:15  pierre
+  Revision 1.1  2000-07-13 09:48:37  michael
+  + Initial import
+
+  Revision 1.10  2000/06/22 09:07:15  pierre
    * Gabor changes: see fixes.txt
 
   Revision 1.9  2000/04/18 11:42:39  pierre

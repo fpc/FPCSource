@@ -141,7 +141,10 @@ end;
 
 {
   $Log$
-  Revision 1.13  2000-05-17 10:17:49  pierre
+  Revision 1.1  2000-07-13 09:48:35  michael
+  + Initial import
+
+  Revision 1.13  2000/05/17 10:17:49  pierre
    * Reinit the keyboard in ShowUserScreen
 
   Revision 1.12  2000/05/02 08:42:28  pierre

@@ -1695,7 +1695,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.30  2000-07-05 10:19:07  pierre
+  Revision 1.1  2000-07-13 09:48:36  michael
+  + Initial import
+
+  Revision 1.30  2000/07/05 10:19:07  pierre
    + display 'variable' for open array size
 
   Revision 1.29  2000/06/22 09:07:12  pierre

@@ -102,7 +102,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.33  2000-06-16 08:50:42  pierre
+  Revision 1.1  2000-07-13 09:48:36  michael
+  + Initial import
+
+  Revision 1.33  2000/06/16 08:50:42  pierre
    + new bunch of Gabor's changes
 
   Revision 1.32  2000/04/25 08:42:33  pierre

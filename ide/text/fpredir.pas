@@ -718,7 +718,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.25  2000-05-17 10:19:53  pierre
+  Revision 1.1  2000-07-13 09:48:35  michael
+  + Initial import
+
+  Revision 1.25  2000/05/17 10:19:53  pierre
    * Reset DosError to zero !
 
   Revision 1.24  1999/11/10 17:10:59  pierre

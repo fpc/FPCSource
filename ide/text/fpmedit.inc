@@ -22,7 +22,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  1998-12-22 14:27:54  peter
+  Revision 1.1  2000-07-13 09:48:35  michael
+  + Initial import
+
+  Revision 1.1  1998/12/22 14:27:54  peter
     * moved
 
   Revision 1.2  1998/12/22 10:39:45  peter

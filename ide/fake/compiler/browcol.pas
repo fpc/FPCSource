@@ -501,7 +501,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2000-01-27 23:42:33  peter
+  Revision 1.1  2000-07-13 09:48:33  michael
+  + Initial import
+
+  Revision 1.5  2000/01/27 23:42:33  peter
     * storebrowsercol returns boolean now
 
   Revision 1.4  1999/08/17 13:25:16  peter

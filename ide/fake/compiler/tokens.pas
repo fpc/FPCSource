@@ -511,7 +511,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2000-02-12 23:55:26  carl
+  Revision 1.1  2000-07-13 09:48:33  michael
+  + Initial import
+
+  Revision 1.5  2000/02/12 23:55:26  carl
     * bugfix of reading file with TP conditional
 
   Revision 1.20  2000/02/09 13:23:08  peter

@@ -274,7 +274,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.1  1999-03-16 12:38:18  peter
+  Revision 1.1  2000-07-13 09:48:37  michael
+  + Initial import
+
+  Revision 1.1  1999/03/16 12:38:18  peter
     * tools macro fixes
     + tph writer
     + first things for resource files

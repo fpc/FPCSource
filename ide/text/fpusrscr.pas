@@ -715,7 +715,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  2000-06-16 15:00:20  pierre
+  Revision 1.1  2000-07-13 09:48:36  michael
+  + Initial import
+
+  Revision 1.13  2000/06/16 15:00:20  pierre
    * accord to new WriteConsoleOuput declarations
 
   Revision 1.12  2000/04/25 08:42:33  pierre

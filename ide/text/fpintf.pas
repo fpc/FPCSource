@@ -212,7 +212,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  2000-06-22 09:07:12  pierre
+  Revision 1.1  2000-07-13 09:48:35  michael
+  + Initial import
+
+  Revision 1.12  2000/06/22 09:07:12  pierre
    * Gabor changes: see fixes.txt
 
   Revision 1.11  2000/05/29 10:44:56  pierre

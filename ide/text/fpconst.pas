@@ -407,7 +407,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.42  2000-06-26 07:29:22  pierre
+  Revision 1.1  2000-07-13 09:48:34  michael
+  + Initial import
+
+  Revision 1.42  2000/06/26 07:29:22  pierre
    * new bunch of Gabor's changes
 
   Revision 1.41  2000/06/22 09:07:11  pierre

@@ -179,7 +179,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  1999-09-17 09:16:12  peter
+  Revision 1.1  2000-07-13 09:48:33  michael
+  + Initial import
+
+  Revision 1.2  1999/09/17 09:16:12  peter
     * updated with compiler versions
 
 }

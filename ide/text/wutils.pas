@@ -1041,7 +1041,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.27  2000-07-03 08:54:54  pierre
+  Revision 1.1  2000-07-13 09:48:37  michael
+  + Initial import
+
+  Revision 1.27  2000/07/03 08:54:54  pierre
    * Some enhancements for WinHelp support by G	abor
 
   Revision 1.26  2000/06/26 07:29:23  pierre
