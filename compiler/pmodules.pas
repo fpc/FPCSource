@@ -355,32 +355,16 @@ implementation
           On OS/2 the heap is also intialized by the RTL. We do
           not output a pointer }
          case target_info.system of
-{$ifdef x86_64}
-            system_x86_64_linux:
-              ;
-{$endif x86_64}
-{$ifdef i386}
             system_i386_OS2,system_i386_EMX:
               ;
-{$endif i386}
-{$ifdef powerpc}
             system_powerpc_macos:
               ;
-{$endif powerpc}
-{$ifdef alpha}
             system_alpha_linux:
               ;
-{$endif alpha}
-{$ifdef m68k}
             system_m68k_Mac:
               bssSegment.concat(Tai_datablock.Create_global('HEAP',4));
             system_m68k_PalmOS:
               ;
-{$endif m68k}
-{$IFDEF SPARC}
-            system_SPARC_Linux:
-              ;
-{$ENDIF SPARC}
          else
             begin
               bssSegment.concat(Tai_align.Create(var_align(heapsize)));
@@ -1475,7 +1459,11 @@ So, all parameters are passerd into registers in sparc architecture.}
 end.
 {
   $Log$
-  Revision 1.110  2003-06-03 13:01:59  daniel
+  Revision 1.111  2003-06-03 20:21:45  mazen
+  - removed unneeded ifdefs
+  - removed unneeded cases for sparc and x86_64
+
+  Revision 1.110  2003/06/03 13:01:59  daniel
     * Register allocator finished
 
   Revision 1.109  2003/05/26 21:17:17  peter
