@@ -346,31 +346,6 @@ end;
   change them completely.
 }
 
-
-var
-  { event that happens when gui thread is done executing the method}
-  ExecuteEvent: PRtlEvent;
-  { guard for synchronization variables }
-  SynchronizeCritSect: TRtlCriticalSection;
-  { method to execute }
-  SynchronizeMethod: TThreadMethod;
-  { caught exception in gui thread, to be raised in calling thread }
-  SynchronizeException: Exception;
-
-procedure CheckSynchronize;
-  { assumes being called from GUI thread }
-begin
-  if SynchronizeMethod = nil then
-    exit;
-
-  try
-    SynchronizeMethod;
-  except
-    SynchronizeException := Exception(AcquireExceptionObject);
-  end;
-  RtlEventSetEvent(ExecuteEvent);
-end;
-
 function SemaphoreInit: Pointer;
 begin
   SemaphoreInit := GetMem(SizeOf(TFilDes));
@@ -625,7 +600,8 @@ begin
   if SynchronizeMethodProc = nil then
     { raise some error? }
     exit;
-
+  rtleventsync(systhrds.trtlmethod(method),synchronizemethodproc);
+{
   EnterCriticalSection(SynchronizeCritSect);
   SynchronizeMethod := Method;
   SynchronizeException := nil;
@@ -637,6 +613,7 @@ begin
   LeaveCriticalSection(SynchronizeCritSect);
   if LocalSyncException <> nil then
     raise LocalSyncException;
+}
 end;
 
 procedure TThread.SetPriority(Value: TThreadPriority);
@@ -647,7 +624,11 @@ end;
 
 {
   $Log$
-  Revision 1.10  2004-12-23 09:42:42  marco
+  Revision 1.11  2004-12-23 15:08:58  marco
+   * 2nd synchronize attempt. cthreads<->systhrds difference was not ok, but
+     only showed on make install should be fixed now.
+
+  Revision 1.10  2004/12/23 09:42:42  marco
    * first tthread.synchronize support (merged neli's patches)
 
   Revision 1.9  2004/03/06 01:27:40  marco

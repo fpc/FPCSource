@@ -43,23 +43,20 @@ uses
 
 initialization
   CommonInit;
-  {$ifndef ver1_0}
-    InitCriticalSection(SynchronizeCritSect);
-    ExecuteEvent := RtlEventCreate;
-    SynchronizeMethod := nil;
-  {$endif}
 finalization
   CommonCleanup;
-{$ifndef ver1_0}
+  {$ifndef ver1_0}
   if ThreadsInited then
      DoneThreads;
-  DoneCriticalSection(SynchronizeCritSect);
-  RtlEventDestroy(ExecuteEvent);
-{$endif}
+  {$endif}
 end.
 {
   $Log$
-  Revision 1.8  2004-12-23 09:42:42  marco
+  Revision 1.9  2004-12-23 15:08:58  marco
+   * 2nd synchronize attempt. cthreads<->systhrds difference was not ok, but
+     only showed on make install should be fixed now.
+
+  Revision 1.8  2004/12/23 09:42:42  marco
    * first tthread.synchronize support (merged neli's patches)
 
   Revision 1.7  2004/01/22 17:11:23  peter

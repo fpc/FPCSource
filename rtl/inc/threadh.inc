@@ -23,6 +23,7 @@ type
   PEventState = pointer;
   PRTLEvent   = pointer;   // Windows=thandle, other=pointer to record.
   TThreadFunc = function(parameter : pointer) : ptrint;
+  trtlmethod     = procedure of object;
 
   // Function prototypes for TThreadManager Record.
   TBeginThreadHandler = Function (sa : Pointer;stacksize : dword; ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword; var ThreadId : THandle) : DWord;
@@ -44,7 +45,7 @@ type
   TBasicEventCreateHandler  = function (EventAttributes :Pointer;  AManualReset,InitialState : Boolean;const Name:ansistring):pEventState;
   TRTLEventHandler	    = procedure(AEvent:PRTLEvent);
   TRTLCreateEventHandler    = function:PRTLEvent;	
-
+  TRTLEventSyncHandler	    = procedure (m:trtlmethod;p:tprocedure);
   // TThreadManager interface.
   TThreadManager = Record
     InitManager            : Function : Boolean;
@@ -76,6 +77,7 @@ type
     RTLEventDestroy	   : TRTLEventHandler;
     RTLEventSetEvent       : TRTLEventHandler;
     RTLeventWaitFOr	   : TRTLEventHandler;
+    RTLEventSync	   : TRTLEventSyncHandler;
   end;
 
 {*****************************************************************************
@@ -154,10 +156,14 @@ function  RTLEventCreate :PRTLEvent;
 procedure RTLeventdestroy(state:pRTLEvent);
 procedure RTLeventSetEvent(state:pRTLEvent);
 procedure RTLeventWaitFor(state:pRTLEvent);
-
+procedure RTLeventsync(m:trtlmethod;p:tprocedure);
 {
   $Log$
-  Revision 1.21  2004-12-22 21:29:24  marco
+  Revision 1.22  2004-12-23 15:08:58  marco
+   * 2nd synchronize attempt. cthreads<->systhrds difference was not ok, but
+     only showed on make install should be fixed now.
+
+  Revision 1.21  2004/12/22 21:29:24  marco
    * rtlevent kraam. Checked (compile): Linux, FreeBSD, Darwin, Windows
   	Check work: ask Neli.
 

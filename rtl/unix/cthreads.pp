@@ -564,6 +564,52 @@ begin
   pthread_mutex_unlock(@p^.mutex);
 end;
 
+type tthreadmethod = procedure of object;
+
+
+
+var
+  { event that happens when gui thread is done executing the method}
+  ExecuteEvent: PRtlEvent;
+  { guard for synchronization variables }
+  SynchronizeCritSect: TRtlCriticalSection;
+  { method to execute }
+  SynchronizeMethod: TThreadMethod;
+  { caught exception in gui thread, to be raised in calling thread }
+  SynchronizeException: Exception;
+
+procedure CheckSynchronize;
+  { assumes being called from GUI thread }
+begin
+  if SynchronizeMethod = nil then
+    exit;
+
+  try
+    SynchronizeMethod;
+  except
+    SynchronizeException := Exception(AcquireExceptionObject);
+  end;
+  RtlEventSetEvent(ExecuteEvent);
+end;
+
+procedure intRTLEventsync(thrdmethd: tmethod;synchronizemethodproc:TProcedure);
+
+var LocalSyncException : Exception;
+
+begin
+  EnterCriticalSection(SynchronizeCritSect);
+  SynchronizeMethod := tthreadmethod(thrdmethd);
+  SynchronizeException := nil;
+  SynchronizeMethodProc;
+  // wait infinitely
+  RtlEventWaitFor(ExecuteEvent);
+  SynchronizeMethod := nil;
+  LocalSyncException  := SynchronizeException;
+  LeaveCriticalSection(SynchronizeCritSect);
+  if LocalSyncException <> nil then
+    raise LocalSyncException;
+end;
+
 Var
   CThreadManager : TThreadManager;
 
@@ -603,17 +649,33 @@ begin
     rtlEventDestroy        :=@intrtlEventDestroy;
     rtlEventSetEvent       :=@intrtlEventSetEvent;
     rtleventWaitFor        :=@intrtleventWaitFor;
+    rtleventsync           :=trtleventsynchandler(@intrtleventsync);
     end;
   SetThreadManager(CThreadManager);
   InitHeapMutexes;
 end;
 
+
 initialization
   SetCThreadManager;
+ {$ifndef ver1_0}
+    InitCriticalSection(SynchronizeCritSect);
+    ExecuteEvent := RtlEventCreate;
+    SynchronizeMethod := nil;
+  {$endif}
+finalization
+  {$ifndef ver1_0}
+    DoneCriticalSection(SynchronizeCritSect);  
+    RtlEventDestroy(ExecuteEvent);
+  {$endif}
 end.
 {
   $Log$
-  Revision 1.15  2004-12-22 21:29:24  marco
+  Revision 1.16  2004-12-23 15:08:59  marco
+   * 2nd synchronize attempt. cthreads<->systhrds difference was not ok, but
+     only showed on make install should be fixed now.
+
+  Revision 1.15  2004/12/22 21:29:24  marco
    * rtlevent kraam. Checked (compile): Linux, FreeBSD, Darwin, Windows
   	Check work: ask Neli.
 

@@ -254,6 +254,12 @@ begin
   currenttm.rtleventWaitFor(state);
 end;
 
+procedure RTLeventsync(m:trtlmethod;p:tprocedure);
+
+begin
+  currenttm.rtleventsync(m,p);
+end;
+
 
 { ---------------------------------------------------------------------
     ThreadManager which gives run-time error. Use if no thread support.
@@ -403,6 +409,12 @@ begin
   NoThreadError;
 end;
 
+procedure NORTLeventsync(m:trtlmethod;p:tprocedure);
+
+begin
+  NoThreadError;
+end;
+
 
 Var
   NoThreadManager : TThreadManager;
@@ -441,7 +453,7 @@ begin
     rtleventdestroy        :=@Nortleventdestroy;
     rtleventSetEvent       :=@NortleventSetEvent;
     rtleventWaitFor        :=@NortleventWaitFor;
-
+    rtleventsync	   :=@Nortleventsync;
     end;
   SetThreadManager(NoThreadManager);
 end;
@@ -449,7 +461,11 @@ end;
 
 {
   $Log$
-  Revision 1.13  2004-12-22 21:29:24  marco
+  Revision 1.14  2004-12-23 15:08:58  marco
+   * 2nd synchronize attempt. cthreads<->systhrds difference was not ok, but
+     only showed on make install should be fixed now.
+
+  Revision 1.13  2004/12/22 21:29:24  marco
    * rtlevent kraam. Checked (compile): Linux, FreeBSD, Darwin, Windows
   	Check work: ask Neli.
 
