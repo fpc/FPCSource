@@ -10,7 +10,7 @@ Const
   P = '.:/bin:/usr/bin';  
 {$else}
   FN = 'find.exe';
-  P = 'c:\dos;c:\windows;c:\windows\system;c:\windows\system32');
+  P = 'c:\dos;c:\windows;c:\windows\system;c:\windows\system32';
 {$endif}
 
 begin
