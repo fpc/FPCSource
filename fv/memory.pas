@@ -535,7 +535,7 @@ BEGIN
    End;
    CachePtr := HeapEnd;                               { Cache starts at end }
    {$ELSE}                                            { DPMI/WIN/NT/OS2 CODE }
-   {$IFNDEF PPC_DELPHI3}
+   {$IFNDEF PPC_FPC}
    HeapError := @HeapNotify;                          { Set heap error proc }
    {$ENDIF}
    SafetyPoolSize := LowMemSize * 16;                 { Fix safety pool size }
@@ -828,7 +828,10 @@ END.
 
 {
  $Log$
- Revision 1.3  2001-08-04 19:14:33  peter
+ Revision 1.4  2001-08-05 23:27:54  pierre
+  * don't use HeapNotify for FPC
+
+ Revision 1.3  2001/08/04 19:14:33  peter
    * Added Makefiles
    * added FV specific units and objects from old FV
 
