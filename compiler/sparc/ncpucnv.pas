@@ -199,7 +199,7 @@ implementation
                 begin
                   cg.ungetregister(exprasmlist,hreg2);
                   hreg1:=cg.getintregister(exprasmlist,OS_32);
-                  cg.a_op_reg_reg_reg(exprasmlist,OP_OR,OS_32,hreg2,succ(hreg2),hreg1);
+                  cg.a_op_reg_reg_reg(exprasmlist,OP_OR,OS_32,hreg2,tregister(succ(longint(hreg2))),hreg1);
                   hreg2:=hreg1;
                   opsize:=OS_32;
                 end;
@@ -244,7 +244,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  2004-08-24 21:02:33  florian
+  Revision 1.31  2004-08-25 20:40:04  florian
+    * fixed absolute on sparc
+
+  Revision 1.30  2004/08/24 21:02:33  florian
     * fixed longbool(<int64>) on sparc
 
   Revision 1.29  2004/08/23 20:45:52  florian
