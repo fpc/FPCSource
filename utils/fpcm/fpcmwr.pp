@@ -454,7 +454,11 @@ implementation
               Add(varname+':=$(strip $(wildcard $(addsuffix /'+altexename+'$(SRCEXEEXT),$(SEARCHPATH))))');
             end;
            Add('ifeq ($('+varname+'),)');
-           Add(varname+'=');
+           Add(varname+'= __missing_command__'); {This is to be shure make stops,
+              if the command is not found. Otherwise if the command was set to the
+              empty string, options to the command would be interpreted as command,
+              and because options is preceeded by a "-", make will ignore the error
+              that the command is not found.}
            Add('else');
            Add(varname+':=$(firstword $('+varname+'))');
            Add('endif');
@@ -927,7 +931,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  2003-04-25 20:53:33  peter
+  Revision 1.29  2004-04-01 12:26:56  olle
+    + a tool not found is replaced by the fake command __missing_command__, so that make stops, if it tries to run the command.
+
+  Revision 1.28  2003/04/25 20:53:33  peter
     * target_dir variable generation was not cpu dependent yet
 
   Revision 1.27  2003/04/24 23:21:01  peter
