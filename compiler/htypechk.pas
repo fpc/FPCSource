@@ -747,10 +747,10 @@ implementation
                begin
                  if hp^.resulttype^.deftype=pointerdef then
                   gotpointer:=true;
-                 { pchar -> array conversion is done then we need to see it
+                 { pointer -> array conversion is done then we need to see it
                    as a deref, because a ^ is then not required anymore }
-                 if is_chararray(hp^.resulttype) and
-                    is_pchar(hp^.left^.resulttype) then
+                 if (hp^.resulttype^.deftype=arraydef) and
+                    (hp^.left^.resulttype^.deftype=pointerdef) then
                   gotderef:=true;
                  hp:=hp^.left;
                end;
@@ -840,7 +840,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.47  1999-11-09 13:29:33  peter
+  Revision 1.48  1999-11-09 14:47:03  peter
+    * pointer->array is allowed for all pointer types in FPC, fixed assign
+      check for it.
+
+  Revision 1.47  1999/11/09 13:29:33  peter
     * valid_for_assign allow properties with calln
 
   Revision 1.46  1999/11/08 22:45:33  peter
