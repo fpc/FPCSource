@@ -258,7 +258,7 @@ const
 {Start the new session independent or as a child.}
  ssf_Related_Independent = 0;    {Start new session independent
                                   of the calling session.}
- ssf_Related_Child       = 1;    {Start new session as a child 
+ ssf_Related_Child       = 1;    {Start new session as a child
                                   session to the calling session.}
 
 {Start the new session in the foreground or in the background.}
@@ -270,9 +270,9 @@ const
  ssf_TraceOpt_None       = 0;    {No trace.}
  ssf_TraceOpt_Trace      = 1;    {Trace with no notification
                                   of descendants.}
- ssf_TraceOpt_TraceAll   = 2;    {Trace all descendant sessions.  
-                                  A termination queue must be 
-                                  supplied and Related must be 
+ ssf_TraceOpt_TraceAll   = 2;    {Trace all descendant sessions.
+                                  A termination queue must be
+                                  supplied and Related must be
                                   ssf_Related_Child (=1).}
 
 {Will the new session inherit open file handles
@@ -944,6 +944,19 @@ begin
  raise E;
 end;
 
+function ExecuteProcess(Const Path: AnsiString; Const ComLine: Array of AnsiString):integer;
+
+Var
+  CommandLine : AnsiString;
+  i : Integer;
+
+Begin
+  Commandline:='';
+  For i:=0 to high(ComLine) Do
+   Commandline:=CommandLine+' '+Comline[i];
+  ExecuteProcess:=ExecuteProcess(Path,CommandLine);
+End;
+
 {****************************************************************************
                               Initialization code
 ****************************************************************************}
@@ -957,7 +970,12 @@ end.
 
 {
   $Log$
-  Revision 1.40  2004-01-20 23:11:20  hajny
+  Revision 1.41  2004-02-15 08:02:44  yuri
+  * fixes for dosh.inc
+  * Executeprocess iverloaded function
+  * updated todo
+
+  Revision 1.40  2004/01/20 23:11:20  hajny
     * ExecuteProcess fixes, ProcessID and ThreadID added
 
   Revision 1.39  2003/11/26 20:00:19  florian

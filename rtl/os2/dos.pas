@@ -94,7 +94,16 @@ const
     ExecFlags: cardinal = ord (efwait);
 
 var
-    dosexitcode:word;
+    dosexitcodevar:word;
+
+{$I dosh.inc}
+
+{OS/2 specific functions}
+
+function exec(path:pathstr;runflags:execrunflags;winflags:execwinflags;
+              const comline:comstr):longint;
+
+function GetEnvPChar (EnvVar: string): PChar;
 
 implementation
 
@@ -154,7 +163,7 @@ end;
 procedure exec(const path:pathstr;const comline:comstr);
 {Execute a program.}
 begin
-  dosexitcode:=word(exec(path,execrunflags(ExecFlags),efdefault,comline));
+  dosexitcodevar:=word(exec(path,execrunflags(ExecFlags),efdefault,comline));
 end;
 
 function exec(path:pathstr;runflags:execrunflags;winflags:execwinflags;
@@ -258,15 +267,15 @@ begin
   DosVersion:=Major or Minor shl 8;
 end;
 
-procedure GetDate (var Year, Month, Day, DayOfWeek: word);
+procedure GetDate (var Year, Month, MDay, WDay: word);
 Var
   dt: TDateTime;
 begin
   DosGetDateTime(dt);
   Year:=dt.year;
   Month:=dt.month;
-  Day:=dt.Day;
-  DayofWeek:=dt.Weekday;
+  MDay:=dt.Day;
+  WDay:=dt.Weekday;
 end;
 
 procedure SetDate (Year, Month, Day: word);
@@ -416,7 +425,7 @@ begin
   envcount:=envc;
 end;
 
-function envstr(index : longint) : string;
+function envstr(index : integer) : string;
 
 var hp:Pchar;
 
@@ -489,7 +498,7 @@ begin
 end;
 {$ASMMODE ATT}
 
-function GetEnv (const EnvVar: string): string;
+Function GetEnv(envvar: string): string;
 (* The assembler version is more than three times as fast as Pascal. *)
 begin
  GetEnv := StrPas (GetEnvPChar (EnvVar));
@@ -554,40 +563,40 @@ function FExpand (const Path: PathStr): PathStr;
 {$UNDEF FPC_FEXPAND_DRIVES}
 {$UNDEF FPC_FEXPAND_UNC}
 
-procedure packtime(var d:datetime;var time:longint);
+procedure packtime(var t:datetime;var p:longint);
 
 var zs:longint;
 
 begin
-    time:=-1980;
-    time:=time+d.year and 127;
-    time:=time shl 4;
-    time:=time+d.month;
-    time:=time shl 5;
-    time:=time+d.day;
-    time:=time shl 16;
-    zs:=d.hour;
+    p:=-1980;
+    p:=p+t.year and 127;
+    p:=p shl 4;
+    p:=p+t.month;
+    p:=p shl 5;
+    p:=p+t.day;
+    p:=p shl 16;
+    zs:=t.hour;
     zs:=zs shl 6;
-    zs:=zs+d.min;
+    zs:=zs+t.min;
     zs:=zs shl 5;
-    zs:=zs+d.sec div 2;
-    time:=time+(zs and $ffff);
+    zs:=zs+t.sec div 2;
+    p:=p+(zs and $ffff);
 end;
 
-procedure unpacktime (time:longint;var d:datetime);
+procedure unpacktime (p:longint;var t:datetime);
 
 begin
-    d.sec:=(time and 31) * 2;
-    time:=time shr 5;
-    d.min:=time and 63;
-    time:=time shr 6;
-    d.hour:=time and 31;
-    time:=time shr 5;
-    d.day:=time and 31;
-    time:=time shr 5;
-    d.month:=time and 15;
-    time:=time shr 4;
-    d.year:=time+1980;
+    t.sec:=(p and 31) * 2;
+    p:=p shr 5;
+    t.min:=p and 63;
+    p:=p shr 6;
+    t.hour:=p and 31;
+    p:=p shr 5;
+    t.day:=p and 31;
+    p:=p shr 5;
+    t.month:=p and 15;
+    p:=p shr 4;
+    t.year:=p+1980;
 end;
 
 procedure GetFAttr (var F; var Attr: word);
@@ -619,10 +628,50 @@ begin
   DosError := integer (RC);
 end;
 
+function DosExitCode: word;
+begin
+  DosExitCode:=dosexitcodevar;
+end;
+
+Procedure Intr(intno: byte; var regs: registers);
+begin
+end;
+
+Procedure MSDos(var regs: registers);
+begin
+end;
+
+Procedure GetIntVec(intno: byte; var vector: pointer);
+begin
+end;
+
+Procedure SetIntVec(intno: byte; vector: pointer);
+begin
+end;
+
+Procedure Keep(exitcode: word);
+begin
+end;
+
+function  GetShortName(var p : String) : boolean;
+begin
+  GetShortName:=true;
+end;
+
+function  GetLongName(var p : String) : boolean;
+begin
+  GetLongName:=true;
+end;
+
 end.
 {
   $Log$
-  Revision 1.34  2004-02-09 12:03:16  michael
+  Revision 1.35  2004-02-15 08:02:44  yuri
+  * fixes for dosh.inc
+  * Executeprocess iverloaded function
+  * updated todo
+
+  Revision 1.34  2004/02/09 12:03:16  michael
   + Switched to single interface in dosh.inc
 
   Revision 1.33  2003/11/05 09:13:59  yuri

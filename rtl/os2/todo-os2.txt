@@ -6,7 +6,7 @@ Persons:
 DM - Daniel Mantione (as daniel)
 TH - Tomas Hajny (as hajny)
 RB - Ramon Bosque
-KB - Karoly Balogh
+KB - Karoly Balogh (as karoly)
 YP - Yuri Prokushev (as yuri)
 AS - Andry Svirgunov
 
@@ -28,10 +28,10 @@ RTL                                           high
 libgdb                                        medium
 
 OS/2 native rtl                               high
-  - system.pas
+          - system.pas..............................................YP/TH
           - crt.pas.................................................YP
           - dos.pas.................................................YP
-  - sysutils.pp
+          - sysutils.pp.............................................YP/TH
   - ports.pas
           - thread.inc..............................................YP
   - linker (LINK386, Internal, ...)
@@ -80,17 +80,20 @@ native packages                               medium
           Anyway, interface must be compatible with libc package)
   - SOM (SOM2, not SOM3, because all current OS/2 implementations based on SOM2)
     - Base API
+      - SOM
+      - DSOM
+      - SOMIR
     - Base classes
     - WPS
       - Base classes
         - CW BubblePad class
-      - IBM MM classes (seems to be obsolete in eCS 1.1+)
-        - CW MM classes (seems to be replacement for IBM MM classes in eCS 1.1+)
+      - IBM MM classes (obsolete since eCS 1.2)
+      - CW MM classes (new since eCS 1.2)
       - eWorkplace/XWorkplace classes (new since eCS 1.1)
     - OpenDoc classes (obsolete since OS/2 4.5)
-  - DSOM
   - Security/2 (os2.kiev.ua)
   - UniAud/2 (os2.kiev.ua)
+  - WPS Toolkit (wpstk.netlabs.org)
 
 cross-platform packages                       low
   - SVGAlib (?)
