@@ -94,7 +94,7 @@ end;
 { gets the next key from the queue, does wait for new keys }
 function getKeyEventFromQueueWait (VAR t : TKeyEventRecord) : boolean;
 begin
-  WaitForSingleObject (newKeyEvent, INFINITE);
+  WaitForSingleObject (newKeyEvent, dword(INFINITE));
   getKeyEventFromQueueWait := getKeyEventFromQueue (t, false);
 end;
 
@@ -820,7 +820,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2002-05-09 08:28:23  carl
+  Revision 1.8  2002-07-17 07:28:21  pierre
+   * avoid constant evaluation problems if cycling with -Cr
+
+  Revision 1.7  2002/05/09 08:28:23  carl
   * Merges from Fixes branch
 
   Revision 1.2.2.5  2002/01/25 23:12:38  pierre

@@ -194,8 +194,8 @@ end;
 { mimic the linux fdWrite/fdRead calls for the file/text socket wrapper }
 function fdWrite(handle : longint;Const bufptr;size : dword) : dword;
 begin
-  fdWrite := WinSock.send(handle, bufptr, size, 0);
-  if fdWrite = SOCKET_ERROR then
+  fdWrite := dword(WinSock.send(handle, bufptr, size, 0));
+  if fdWrite = dword(SOCKET_ERROR) then
   begin
     SocketError := WSAGetLastError;
     fdWrite := 0;
@@ -219,8 +219,8 @@ function fdRead(handle : longint;var bufptr;size : dword) : dword;
        begin
          if size>d then
            size:=d;
-         fdRead := WinSock.recv(handle, bufptr, size, 0);
-         if fdRead = SOCKET_ERROR then
+         fdRead := dword(WinSock.recv(handle, bufptr, size, 0));
+         if fdRead = dword(SOCKET_ERROR) then
          begin
            SocketError:= WSAGetLastError;
            fdRead := 0;
@@ -245,7 +245,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.7  2002-02-04 21:41:15  michael
+  Revision 1.8  2002-07-17 07:28:21  pierre
+   * avoid constant evaluation problems if cycling with -Cr
+
+  Revision 1.7  2002/02/04 21:41:15  michael
   + merged ixed syntax
 
   Revision 1.6  2002/02/04 21:29:34  michael
