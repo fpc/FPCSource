@@ -361,7 +361,7 @@ implementation
                begin
                  location.registerlow := rg.getregisterint(exprasmlist,OS_INT);
                  location.registerhigh := rg.getregisterint(exprasmlist,OS_INT);
-                 location.loc := LOC_CREGISTER;
+                 location.loc := LOC_REGISTER;
                end;
              exprasmlist.concat(taicpu.op_reg_reg_const(A_SUBFIC,
                location.registerlow,left.location.registerlow,0));
@@ -520,7 +520,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  2003-06-04 11:58:58  jonas
+  Revision 1.30  2003-06-08 18:20:02  jonas
+    * fixed small bug where a location was set to LOC_CREGISTER instead of
+      LOC_REGISTER
+
+  Revision 1.29  2003/06/04 11:58:58  jonas
     * calculate localsize also in g_return_from_proc since it's now called
       before g_stackframe_entry (still have to fix macos)
     * compilation fixes (cycle doesn't work yet though)
