@@ -281,11 +281,14 @@ begin
   prtobj:='prt0';
   case target_info.target of
    target_m68k_Palmos,
-   target_i386_Win32 :
-     begin
-       prtobj:='';
-     end;
-
+{* Changes made by Ozerski 27.10.1998}
+   target_i386_Win32 :begin
+                       if DLLsource then
+                        prtobj:='wdllprt0'
+                       else
+                        prtobj:='wprt0';
+                      end;
+{* End changes}
    target_m68k_linux,
    target_i386_linux :
      begin
@@ -388,6 +391,9 @@ var
   bindfound  : boolean;
   s          : string;
   success    : boolean;
+{* Changes made by Ozerski 27.10.1998}
+  ii:longint;
+{* end changes}
 begin
 {$ifdef linux}
   if LinkToC then
@@ -406,15 +412,28 @@ begin
   if not(cs_link_extern in aktglobalswitches) then
    Message1(exec_i_linking,current_module^.exefilename^);
   s:=target_link.linkcmd;
-  Replace(s,'$EXE',current_module^.exefilename^);
+{* Changes made by Ozerski 27.10.1998}
+  if DLLsource then
+   Replace(s,'$EXE',current_module^.sharedlibfilename^)
+  else
+   Replace(s,'$EXE',current_module^.exefilename^);
+{* end changes}
   Replace(s,'$OPT',LinkOptions);
   Replace(s,'$RES',inputdir+LinkResName);
   success:=DoExec(FindLinker,s,true,false);
 {Bind}
-  if target_link.bindbin<>'' then
+{* Changes made by Ozerski 27.10.1998}
+  if target_link.bindbin[1]<>'' then
+   for ii:=1 to target_link.binders do
    begin
-     s:=target_link.bindcmd;
-     Replace(s,'$EXE',current_module^.exefilename^);
+     s:=target_link.bindcmd[ii];
+     Replace(s,'$OPT',LinkOptions);
+     Replace(s,'$RES',inputdir+LinkResName);
+     if DLLsource then
+      Replace(s,'$EXE',current_module^.sharedlibfilename^)
+     else
+      Replace(s,'$EXE',current_module^.exefilename^);
+{* end changes}
      {Size of the heap when an EMX program runs in OS/2.}
      Replace(s,'$HEAPMB',tostr((maxheapsize+1048575) shr 20));
      {Size of the stack when an EMX program runs in OS/2.}
@@ -422,13 +441,15 @@ begin
      {When an EMX program runs in DOS, the heap and stack share the
       same memory pool. The heap grows upwards, the stack grows downwards.}
      Replace(s,'$DOSHEAPKB',tostr((stacksize+maxheapsize+1023) shr 10));
+{* Changes made by Ozerski 27.10.1998}
      if utilsdirectory<>'' then
        begin
-          bindbin:=Search(target_link.bindbin+source_os.exeext,
-            utilsdirectory,bindfound)+target_link.bindbin+source_os.exeext;
+          bindbin:=Search(target_link.bindbin[ii]+source_os.exeext,
+            utilsdirectory,bindfound)+target_link.bindbin[ii]+source_os.exeext;
        end
      else
-       bindbin:=FindExe(target_link.bindbin,bindfound);
+       bindbin:=FindExe(target_link.bindbin[ii],bindfound);
+{* end changes}
      if (not bindfound) and not (cs_link_extern in aktglobalswitches) then
       begin
         Message1(exec_w_binder_not_found,bindbin);
@@ -514,7 +535,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.37  1998-10-26 22:23:31  peter
+  Revision 1.38  1998-11-30 09:43:13  pierre
+    * some range check bugs fixed (still not working !)
+    + added DLL writing support for win32 (also accepts variables)
+    + TempAnsi for code that could be used for Temporary ansi strings
+      handling
+
+  Revision 1.37  1998/10/26 22:23:31  peter
     + fixpath() has an extra option to allow a ./ as path
 
   Revision 1.36  1998/10/22 15:18:44  florian

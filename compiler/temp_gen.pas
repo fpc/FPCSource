@@ -45,14 +45,22 @@ unit temp_gen;
     procedure ungettemp(pos : longint;size : longint);
     procedure ungetpersistanttemp(pos : longint;size : longint);
     procedure gettempofsizereference(l : longint;var ref : treference);
+    procedure gettempansistringreference(var ref : treference);
     function istemp(const ref : treference) : boolean;
     procedure ungetiftemp(const ref : treference);
 
 
   implementation
-{$ifdef EXTDEBUG}
-    uses scanner;
-{$endif}
+
+    uses
+       scanner
+{$ifdef i386}
+       ,cgai386
+{$endif i386}
+{$ifdef m68k}
+       ,cga68k
+{$endif m68k}
+       ;
 
     type
        pfreerecord = ^tfreerecord;
@@ -62,6 +70,7 @@ unit temp_gen;
           pos : longint;
           size : longint;
           persistant : boolean; { used for inlined procedures }
+          istempansistring : boolean;
 {$ifdef EXTDEBUG}
           line : longint;
 {$endif}
@@ -179,6 +188,7 @@ unit temp_gen;
          tl^.size:=size;
          tl^.next:=templist;
          tl^.persistant:=false;
+         tl^.istempansistring:=false;
          templist:=tl;
 {$ifdef EXTDEBUG}
          tl^.line:=aktfilepos.line;
@@ -230,6 +240,16 @@ unit temp_gen;
          ref.offset:=gettempofsize(l);
          ref.base:=procinfo.framepointer;
       end;
+
+    procedure gettempansistringreference(var ref : treference);
+      begin
+         { do a reset, because the reference isn't used }
+         reset_reference(ref);
+         ref.offset:=gettempofsize(4);
+         templist^.istempansistring:=true;
+         ref.base:=procinfo.framepointer;
+      end;
+
 
     function istemp(const ref : treference) : boolean;
 
@@ -418,6 +438,8 @@ unit temp_gen;
                        end;
                    if (ref.offset=tl^.pos) then
                      begin
+                        if tl^.istempansistring then
+                          decransiref(ref);
                         ungettemp(ref.offset,tl^.size);
 {$ifdef TEMPDEBUG}
                    Comment(V_Debug,'temp managment  : ungettemp()'+
@@ -449,7 +471,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  1998-10-09 08:56:32  pierre
+  Revision 1.5  1998-11-30 09:43:24  pierre
+    * some range check bugs fixed (still not working !)
+    + added DLL writing support for win32 (also accepts variables)
+    + TempAnsi for code that could be used for Temporary ansi strings
+      handling
+
+  Revision 1.4  1998/10/09 08:56:32  pierre
     * several memory leaks fixed
 
   Revision 1.3  1998/07/16 08:01:42  pierre

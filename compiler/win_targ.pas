@@ -39,7 +39,10 @@ unit win_targ;
 
     pexportlibwin32=^texportlibwin32;
     texportlibwin32=object(texportlib)
+      st : string;
       procedure preparelib(const s:string);virtual;
+      procedure exportprocedure(hp : pexported_item);virtual;
+      procedure exportvar(hp : pexported_item);virtual;
       procedure generatelib;virtual;
     end;
 
@@ -401,18 +404,132 @@ unit win_targ;
            exportssection:=new(paasmoutput,init);
       end;
 
+    
+    
+    procedure texportlibwin32.exportvar(hp : pexported_item);
+      begin
+         { same code used !! PM }
+         exportprocedure(hp);
+      end;
+      
+    
+    procedure texportlibwin32.exportprocedure(hp : pexported_item);
+    
+      { must be ordered at least for win32 !! }
+      var hp2 : pexported_item;
+    
+    begin
+        hp2:=pexported_item(current_module^._exports^.first);
+        { first test the index value }
+        if (hp^.options and eo_index)<>0 then
+          begin
+             if (hp^.index<=0) or (hp^.index>$ffff) then
+               message1(parser_e_export_invalid_index,tostr(hp^.index))
+             else while assigned(hp2) do
+               begin
+                  if hp^.index=hp2^.index then
+                    message1(parser_e_export_ordinal_double,tostr(hp^.index));
+                  hp2:=pexported_item(hp2^.next);
+               end;
+          end;
+        { use pascal name is none specified }
+        if (hp^.options and eo_name)=0 then
+          begin
+             hp^.name:=stringdup(hp^.sym^.name);
+             hp^.options:=hp^.options or eo_name;
+          end;
+          
+        { now place in correct order }
+        hp2:=pexported_item(current_module^._exports^.first);
+        if not assigned(hp2) or not assigned(hp^.name) then
+          current_module^._exports^.concat(hp)
+        else
+          begin
+             while assigned(hp2) and assigned(hp2^.name) and
+                (hp2^.name^<hp^.name^) do
+               hp2:=pexported_item(hp2^.next);
+             { insert hp there !! }
+             if assigned(hp2) and assigned(hp2^.name) and (hp2^.name^=hp^.name^) then
+               begin
+                  { this is not allowed !! }
+                  message1(parser_e_export_name_double,hp^.name^);
+               end;
+             if assigned(hp2) then
+               begin
+                  hp^.next:=hp2^.next;
+                  hp2^.next:=hp;
+                  hp^.previous:=hp2;
+                  if assigned(hp^.next) then
+                    hp^.next^.previous:=hp;
+               end
+             else
+               current_module^._exports^.concat(hp);
+          end;
+    end;
+    
+    
     procedure texportlibwin32.generatelib;
 
       var
-         ordinal_base,entries,named_entries : longint;
-         l1,l2,l3,l4 : plabel;
-
+         ordinal_base,ordinal_max,ordinal_min : longint;
+         current_index : longint;
+         entries,named_entries : longint;
+         name_label,dll_name_label,export_address_table : plabel;
+         export_name_table_pointers,export_ordinal_table : plabel;
+         hp,hp2,hp3 : pexported_item;
+         address_table,name_table_pointers,
+         name_table,ordinal_table : paasmoutput;
+         
       begin
-         ordinal_base:=0;
-         getlabel(l1);
-         getlabel(l2);
-         getlabel(l3);
-         getlabel(l4);
+         ordinal_max:=0;
+         ordinal_min:=$7FFFFFFF;
+         entries:=0;
+         named_entries:=0;
+         getlabel(dll_name_label);
+         getlabel(export_address_table);
+         getlabel(export_name_table_pointers);
+         getlabel(export_ordinal_table);
+
+         hp:=pexported_item(current_module^._exports^.first);
+
+         { count entries }
+         while assigned(hp) do
+           begin
+              inc(entries);
+              if (hp^.index>ordinal_max) then
+                ordinal_max:=hp^.index;
+              if (hp^.index>0) and (hp^.index<ordinal_min) then
+                ordinal_min:=hp^.index;
+              if assigned(hp^.name) then
+                inc(named_entries);
+              hp:=pexported_item(hp^.next);
+           end;
+
+         { no support for higher ordinal base yet !! }
+         ordinal_base:=1;
+         current_index:=ordinal_base;
+         { number all entries }
+         hp:=pexported_item(current_module^._exports^.first);
+         while assigned(hp) do
+           begin
+              if hp^.index=-1 then
+                hp^.index:=current_index
+              else if hp^.index<current_index then
+                begin
+                   { change the index value of the export
+                     that was given this reserved value }
+                   hp2:=pexported_item(current_module^._exports^.first);
+                   while assigned(hp2) and (hp2^.index<>hp^.index) do
+                     hp2:=pexported_item(hp2^.next);
+                   if assigned(hp2) then
+                     hp2^.index:=current_index;
+                end;
+              inc(current_index);
+              hp:=pexported_item(hp^.next);
+           end;
+
+         
+         exportssection^.concat(new(pai_section,init(sec_edata)));
          { export flags }
          exportssection^.concat(new(pai_const,init_32bit(0)));
          { date/time stamp }
@@ -422,23 +539,105 @@ unit win_targ;
          { minor version }
          exportssection^.concat(new(pai_const,init_16bit(0)));
          { pointer to dll name }
-         importssection^.concat(new(pai_const,init_rva(strpnew(lab2str(l1)))));
-         { ordinal base }
-         exportssection^.concat(new(pai_const,init_32bit(0)));
+         exportssection^.concat(new(pai_const,init_rva(strpnew(lab2str(dll_name_label)))));
+         { ordinal base normally set to 1 }
+         exportssection^.concat(new(pai_const,init_32bit(ordinal_base)));
          { number of entries }
          exportssection^.concat(new(pai_const,init_32bit(entries)));
          { number of named entries }
          exportssection^.concat(new(pai_const,init_32bit(named_entries)));
          { address of export address table }
-         importssection^.concat(new(pai_const,init_rva(strpnew(lab2str(l2)))));
+         exportssection^.concat(new(pai_const,init_rva(strpnew(lab2str(export_address_table)))));
          { address of name pointer pointers }
-         importssection^.concat(new(pai_const,init_rva(strpnew(lab2str(l3)))));
+         exportssection^.concat(new(pai_const,init_rva(strpnew(lab2str(export_name_table_pointers)))));
          { address of ordinal number pointers }
-         importssection^.concat(new(pai_const,init_rva(strpnew(lab2str(l4)))));
+         exportssection^.concat(new(pai_const,init_rva(strpnew(lab2str(export_ordinal_table)))));
          { the name }
-         importssection^.concat(new(pai_label,init(l1)));
-         importssection^.concat(new(pai_string,init(current_module^.modulename^+target_os.sharedlibext+#0)));
+         exportssection^.concat(new(pai_label,init(dll_name_label)));
+         if st='' then
+           exportssection^.concat(new(pai_string,init(current_module^.modulename^+target_os.sharedlibext+#0)))
+         else
+           exportssection^.concat(new(pai_string,init(st+target_os.sharedlibext+#0)));
 
+         {  export address table }
+         address_table:=new(paasmoutput,init);
+         address_table^.concat(new(pai_label,init(export_address_table)));
+         name_table_pointers:=new(paasmoutput,init);
+         name_table_pointers^.concat(new(pai_label,init(export_name_table_pointers)));
+         ordinal_table:=new(paasmoutput,init);
+         ordinal_table^.concat(new(pai_label,init(export_ordinal_table)));
+         name_table:=new(paasmoutput,init);
+         { write each address }
+         hp:=pexported_item(current_module^._exports^.first);
+         while assigned(hp) do
+           begin
+              if (hp^.options and eo_name)<>0 then
+                begin
+                   getlabel(name_label);
+                   name_table_pointers^.concat(new(pai_const,init_rva(strpnew(lab2str(name_label)))));
+                   ordinal_table^.concat(new(pai_const,init_16bit(hp^.index)));
+                   name_table^.concat(new(pai_align,init(2)));
+                   name_table^.concat(new(pai_label,init(name_label)));
+                   name_table^.concat(new(pai_string,init(hp^.name^+#0)));
+                end;
+              address_table^.concat(new(pai_const,init_rva(
+                strpnew(hp^.sym^.mangledname))));
+              hp:=pexported_item(hp^.next);
+           end;
+         { order in increasing ordinal values }
+         hp:=pexported_item(current_module^._exports^.first);
+         while assigned(hp) do
+           begin
+              hp3:=pexported_item(hp^.next);
+              hp2:=pexported_item(hp^.next);
+              
+              { fill missing values }
+              while assigned(hp2) and hp^.index>hp^.index do
+                begin
+                   hp2:=pexported_item(hp2^.next);
+                end;
+              if hp2<>hp3 then
+                begin
+                   current_module^._exports^.remove(hp);
+                   if assigned(hp2) then
+                     begin
+                        hp^.next:=hp2^.next;
+                        hp2^.next:=hp;
+                        hp^.previous:=hp2;
+                        if assigned(hp^.next) then
+                          hp^.next^.previous:=hp;
+                      end
+                    else
+                      current_module^._exports^.concat(hp);
+                end;
+              hp:=hp3;
+           end;
+         
+
+
+         { write the export adress table }
+         current_index:=ordinal_base;
+         hp:=pexported_item(current_module^._exports^.first);
+         while assigned(hp) do
+           begin
+              { fill missing values }
+              while current_index<hp^.index do
+                begin
+                   address_table^.concat(new(pai_const,init_32bit(0)));
+                   inc(current_index);
+                end;
+              inc(current_index);
+              hp:=pexported_item(hp^.next);
+           end;
+         
+         exportssection^.concatlist(address_table);
+         exportssection^.concatlist(name_table_pointers);
+         exportssection^.concatlist(ordinal_table);
+         exportssection^.concatlist(name_table);
+         dispose(address_table,done);
+         dispose(name_table_pointers,done);
+         dispose(ordinal_table,done);
+         dispose(name_table,done);
       end;
 
     procedure postprocessexecutable(n : string);
@@ -489,7 +688,13 @@ unit win_targ;
 end.
 {
   $Log$
-  Revision 1.14  1998-11-28 16:21:00  peter
+  Revision 1.15  1998-11-30 09:43:25  pierre
+    * some range check bugs fixed (still not working !)
+    + added DLL writing support for win32 (also accepts variables)
+    + TempAnsi for code that could be used for Temporary ansi strings
+      handling
+
+  Revision 1.14  1998/11/28 16:21:00  peter
     + support for dll variables
 
   Revision 1.13  1998/10/29 11:35:54  florian

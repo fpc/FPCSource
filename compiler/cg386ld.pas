@@ -360,7 +360,7 @@ implementation
                   if is_ansistring(p^.right^.resulttype) then
                     begin
                       if (p^.right^.treetype=stringconstn) and
-                         (p^.length=0) then
+                         (p^.right^.length=0) then
                         exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_B,
                           0,newreference(p^.left^.location.reference))))
                       else
@@ -692,7 +692,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.34  1998-11-28 16:20:48  peter
+  Revision 1.35  1998-11-30 09:43:04  pierre
+    * some range check bugs fixed (still not working !)
+    + added DLL writing support for win32 (also accepts variables)
+    + TempAnsi for code that could be used for Temporary ansi strings
+      handling
+
+  Revision 1.34  1998/11/28 16:20:48  peter
     + support for dll variables
 
   Revision 1.33  1998/11/27 14:50:33  peter

@@ -163,7 +163,31 @@ unit pmodules;
               { Generate an external entry to be sure that _mainCRTStarup will be
                 linked, can't use concat_external because those aren't written for
                 asw (PFV) }
-              datasegment^.concat(new(pai_const,init_symbol(strpnew('_mainCRTStartup'))));
+{* Changed by Ozerski, 23.10.98}
+             if deffile.fname='DEF.$$$'then
+              target_link.bindcmd[1]:=target_link.bindcmd[1]+' -d DEF.$$$';
+             if DLLsource then
+              target_link.binders:=2;
+             if RelocSection then
+              begin
+               target_link.linkcmd:=target_link.linkcmd+' --base-file base.$$$';
+               target_link.bindcmd[1]:=target_link.bindcmd[1]+' --base-file base.$$$';
+               target_link.binders:=2;
+              end;
+             if apptype=at_cui then
+              datasegment^.concat(new(pai_const,init_symbol('_mainCRTStartup')))
+             else
+              begin
+               datasegment^.concat(new(pai_const,init_symbol('_WinMainCRTStartup')));
+               target_link.linkcmd:='--subsystem windows '+target_link.linkcmd;
+               target_link.bindcmd[2]:='--subsystem windows '+target_link.bindcmd[2];
+              end;
+             if DLLsource then
+              begin
+               target_link.linkcmd:='--dll '+target_link.linkcmd;
+               target_link.bindcmd[2]:='--dll '+target_link.bindcmd[2];
+              end;
+{* End changes}
             end;
 {$endif i386}
 {$ifdef m68k}
@@ -992,6 +1016,9 @@ unit pmodules;
          st    : psymtable;
          names : Tstringcontainer;
       begin
+{* Changes made by Ozerski 23.10.1998}
+         DLLsource:=islibrary;
+{* End changes}
          parse_only:=false;
          if islibrary then
            begin
@@ -999,6 +1026,7 @@ unit pmodules;
               stringdispose(current_module^.modulename);
               current_module^.modulename:=stringdup(pattern);
               current_module^.islibrary:=true;
+              exportlib^.preparelib(pattern);
               consume(ID);
               consume(SEMICOLON);
            end
@@ -1132,7 +1160,13 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.85  1998-11-28 16:20:54  peter
+  Revision 1.86  1998-11-30 09:43:22  pierre
+    * some range check bugs fixed (still not working !)
+    + added DLL writing support for win32 (also accepts variables)
+    + TempAnsi for code that could be used for Temporary ansi strings
+      handling
+
+  Revision 1.85  1998/11/28 16:20:54  peter
     + support for dll variables
 
   Revision 1.84  1998/11/18 09:18:03  pierre

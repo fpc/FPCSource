@@ -167,8 +167,8 @@ implementation
                         ungetiftemp(p^.left^.location.reference);
                         ungetiftemp(p^.right^.location.reference);
                         reset_reference(hr);
-                        gettempofsizereference(4,hr);
-                        temptoremove^.concat(new(ptemptodestroy,init(hr,p^.resulttype)));
+                        gettempansistringreference(hr);
+                        {temptoremove^.concat(new(ptemptodestroy,init(hr,p^.resulttype)));}
                         exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,p^.location.register,
                           newreference(hr))));
                      end;
@@ -1387,7 +1387,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.30  1998-11-24 12:52:40  peter
+  Revision 1.31  1998-11-30 09:42:59  pierre
+    * some range check bugs fixed (still not working !)
+    + added DLL writing support for win32 (also accepts variables)
+    + TempAnsi for code that could be used for Temporary ansi strings
+      handling
+
+  Revision 1.30  1998/11/24 12:52:40  peter
     * sets are not written twice anymore
     * optimize for emptyset+single element which uses a new routine from
       set.inc FPC_SET_CREATE_ELEMENT

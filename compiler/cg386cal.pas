@@ -1421,8 +1421,8 @@ implementation
                        if is_ansistring(p^.resulttype) or
                          is_widestring(p^.resulttype) then
                          begin
-                            gettempofsizereference(4,hr);
-                            temptoremove^.concat(new(ptemptodestroy,init(hr,p^.resulttype)));
+                            gettempansistringreference(hr);
+                            {temptoremove^.concat(new(ptemptodestroy,init(hr,p^.resulttype)));}
                             exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,p^.location.register,
                               newreference(hr))));
                          end;
@@ -1590,7 +1590,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.48  1998-11-27 14:50:30  peter
+  Revision 1.49  1998-11-30 09:43:00  pierre
+    * some range check bugs fixed (still not working !)
+    + added DLL writing support for win32 (also accepts variables)
+    + TempAnsi for code that could be used for Temporary ansi strings
+      handling
+
+  Revision 1.48  1998/11/27 14:50:30  peter
     + open strings, $P switch support
 
   Revision 1.47  1998/11/26 21:30:03  peter

@@ -139,9 +139,12 @@ unit systems;
        tlinkinfo = packed record
           id            : tlink;
           linkbin       : string[8];
-          linkcmd       : string[50];
-          bindbin       : string[8];
-          bindcmd       : string[50];
+{* Changes made by Ozerski 23.10.1998}
+          linkcmd       : string[127];
+          binders:word;
+          bindbin:array[1..2]of string[8];
+          bindcmd:array[1..2]of string[127];
+{* End changes}
           stripopt      : string[2];
           libpathprefix : string[13];
           libpathsuffix : string[2];
@@ -537,8 +540,11 @@ implementation
             id      : link_i386_ld;
             linkbin : 'ld';
             linkcmd : '$OPT -o $EXE $RES';
-            bindbin : '';
-            bindcmd : '';
+{* Changes made by Ozerski 23.10.1998}
+            binders:0;
+            bindbin : ('','');
+            bindcmd : ('','');
+{* End changes}
             stripopt   : '-s';
             libpathprefix : 'SEARCH_DIR(';
             libpathsuffix : ')';
@@ -552,8 +558,11 @@ implementation
             id      : link_i386_ldgo32v1;
             linkbin : 'ld';
             linkcmd : '-oformat coff-go32 $OPT -o $EXE @$RES';
-            bindbin : 'aout2exe';
-            bindcmd : '$EXE';
+{* Changes made by Ozerski 23.10.1998}
+            binders:1;
+            bindbin : ('aout2exe','');
+            bindcmd : ('$EXE','');
+{* End changes}
             stripopt   : '-s';
             libpathprefix : '-L';
             libpathsuffix : '';
@@ -567,8 +576,11 @@ implementation
             id      : link_i386_ldgo32v2;
             linkbin : 'ld';
             linkcmd : '-oformat coff-go32-exe $OPT -o $EXE @$RES';
-            bindbin : '';
-            bindcmd : '';
+{* Changes made by Ozerski 23.10.1998}
+            binders:0;
+            bindbin : ('','');
+            bindcmd : ('','');
+{* End changes}
             stripopt   : '-s';
             libpathprefix : '-L';
             libpathsuffix : '';
@@ -582,8 +594,12 @@ implementation
             id      : link_i386_ldw;
             linkbin : 'ldw';
             linkcmd : '$OPT -o $EXE $RES';
-            bindbin : '';
-            bindcmd : '';
+{* Changes made by Ozerski 23.10.1998}
+            binders:0;
+            bindbin : ('dlltool','ldw');
+            bindcmd : ('--as asw.exe --dllname $EXE --output-exp exp.$$$',
+                       '-s $OPT -o $EXE $RES exp.$$$');
+{* End changes}
             stripopt   : '-s';
             libpathprefix : 'SEARCH_DIR(';
             libpathsuffix : ')';
@@ -597,8 +613,11 @@ implementation
             id      : link_i386_ldos2;
             linkbin : 'ld';  { Os/2 }
             linkcmd : '-o $EXE @$RES';
-            bindbin : 'emxbind';
-            bindcmd : '-b -k$STACKKB -h$HEAPMB -o $EXE.exe $EXE -aim -s$DOSHEAPKB';
+{* Changes made by Ozerski 23.10.1998}
+            binders:1;
+            bindbin : ('emxbind','');
+            bindcmd : ('-b -k$STACKKB -h$HEAPMB -o $EXE.exe $EXE -aim -s$DOSHEAPKB','');
+{* End changes}
             stripopt   : '-s';
             libpathprefix : '-L';
             libpathsuffix : '';
@@ -614,8 +633,11 @@ implementation
             id      : link_m68k_ld;
             linkbin : 'ld';
             linkcmd : '$OPT -o $EXE $RES';
-            bindbin : '';
-            bindcmd : '';
+{* Changes made by Ozerski 23.10.1998}
+            binders:0;
+            bindbin : ('','');
+            bindcmd : ('','');
+{* End changes}
             stripopt   : '-s';
             libpathprefix : 'SEARCH_DIR(';
             libpathsuffix : ')';
@@ -1182,7 +1204,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.50  1998-11-16 15:41:45  peter
+  Revision 1.51  1998-11-30 09:43:23  pierre
+    * some range check bugs fixed (still not working !)
+    + added DLL writing support for win32 (also accepts variables)
+    + TempAnsi for code that could be used for Temporary ansi strings
+      handling
+
+  Revision 1.50  1998/11/16 15:41:45  peter
     * tp7 didn't like my ifopt H+ :(
 
   Revision 1.49  1998/11/16 10:17:09  peter

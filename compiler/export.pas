@@ -26,9 +26,15 @@ interface
 uses
   cobjects,symtable;
 
+const
+       { export options }
+       eo_resident = $1;
+       eo_index    = $2;
+       eo_name     = $4;
+   
 type
-   pexported_procedure = ^texported_procedure;
-   texported_procedure = object(tlinkedlist_item)
+   pexported_item = ^texported_item;
+   texported_item = object(tlinkedlist_item)
       sym : psym;
       index : longint;
       name : pstring;
@@ -42,7 +48,8 @@ type
       constructor Init;
       destructor Done;
       procedure preparelib(const s : string);virtual;
-      procedure exportprocedure(hp : pexported_procedure);virtual;
+      procedure exportprocedure(hp : pexported_item);virtual;
+      procedure exportvar(hp : pexported_item);virtual;
       procedure generatelib;virtual;
    end;
 
@@ -67,7 +74,7 @@ uses
                            TImported_procedure
 ****************************************************************************}
 
-constructor texported_procedure.init;
+constructor texported_item.init;
 begin
   inherited init;
   sym:=nil;
@@ -77,7 +84,7 @@ begin
 end;
 
 
-destructor texported_procedure.done;
+destructor texported_item.done;
 begin
   stringdispose(name);
   inherited done;
@@ -103,12 +110,15 @@ begin
   Message(exec_e_dll_not_supported);
 end;
 
-
-procedure texportlib.exportprocedure(hp : pexported_procedure);
+procedure texportlib.exportprocedure(hp : pexported_item);
 begin
-    current_module^._exports^.concat(hp);
+  Message(exec_e_dll_not_supported);
 end;
 
+procedure texportlib.exportvar(hp : pexported_item);
+begin
+  Message(exec_e_dll_not_supported);
+end;
 
 procedure texportlib.generatelib;
 begin
@@ -150,7 +160,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  1998-11-16 11:28:57  pierre
+  Revision 1.4  1998-11-30 09:43:09  pierre
+    * some range check bugs fixed (still not working !)
+    + added DLL writing support for win32 (also accepts variables)
+    + TempAnsi for code that could be used for Temporary ansi strings
+      handling
+
+  Revision 1.3  1998/11/16 11:28:57  pierre
     * stackcheck removed for i386_win32
     * exportlist does not crash at least !!
       (was need for tests dir !)z

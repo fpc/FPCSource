@@ -244,7 +244,7 @@ unit ag386int;
         (#9'DD'#9,#9'DW'#9,#9'DB'#9);
 
       ait_section2masmstr : array[tsection] of string[6]=
-       ('','CODE','DATA','BSS','');
+       ('','CODE','DATA','BSS','','');
 
 
     Function PadTabs(p:pchar;addch:char):string;
@@ -592,7 +592,13 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.20  1998-11-17 00:26:09  peter
+  Revision 1.21  1998-11-30 09:42:55  pierre
+    * some range check bugs fixed (still not working !)
+    + added DLL writing support for win32 (also accepts variables)
+    + TempAnsi for code that could be used for Temporary ansi strings
+      handling
+
+  Revision 1.20  1998/11/17 00:26:09  peter
     * fixed for $H+
 
   Revision 1.19  1998/11/16 12:38:05  jonas

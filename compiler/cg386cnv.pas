@@ -222,6 +222,8 @@ implementation
                 begin
                    hp:=new_reference(R_NO,0);
                    hp^.symbol:=stringdup(porddef(p1)^.getrangecheckstring);
+                   { second part here !! }
+                   hp^.offset:=8;
                    emitl(A_JMP,poslabel);
                    emitl(A_LABEL,neglabel);
                    exprasmlist^.concat(new(pai386,op_reg_ref(A_BOUND,S_L,hregister,hp)));
@@ -475,7 +477,7 @@ implementation
            clear_location(pto^.location);
            pto^.location.loc:=LOC_REGISTER;
            pto^.location.register:=hregister;
-           maybe_rangechecking(pto,pfrom^.resulttype,pto^.resulttype);
+           maybe_rangechecking(pfrom,pfrom^.resulttype,pto^.resulttype);
        end;
 
 {$endif}
@@ -493,7 +495,11 @@ implementation
                  st_shortstring:
                    begin
                       stringdispose(pto^.location.reference.symbol);
+{$ifdef TempAnsi}
+                      gettempansistringreference(pto^.location.reference);
+{$else : not TempAnsi}
                       gettempofsizereference(pto^.resulttype^.size,pto^.location.reference);
+{$endif : not TempAnsi}
                       del_reference(pfrom^.location.reference);
                       copyshortstring(pto^.location.reference,pfrom^.location.reference,
                         pstringdef(pto^.resulttype)^.len,false);
@@ -506,8 +512,14 @@ implementation
                    end;
                  st_ansistring:
                    begin
+{$ifdef TempAnsi}
+                      clear_reference(pto^.location.reference);
+                      gettempansistringreference(pto^.location.reference);
+                      loadansi2short(pfrom,pto);
+{$else : not TempAnsi}
                       gettempofsizereference(pto^.resulttype^.size,pto^.location.reference);
                       loadansi2short(pfrom,pto);
+{$endif : not TempAnsi}
                    end;
                  st_widestring:
                    begin
@@ -539,7 +551,14 @@ implementation
               case pstringdef(pfrom^.resulttype)^.string_typ of
                  st_shortstring:
                    begin
+                      clear_location(pto^.location);
+                      pto^.location.loc:=LOC_REFERENCE;
+                      clear_reference(pto^.location.reference);
+{$ifdef TempAnsi}
+                      gettempansistringreference(pto^.location.reference);
+{$else : not TempAnsi}
                       gettempofsizereference(pto^.resulttype^.size,pto^.location.reference);
+{$endif : not TempAnsi}
                       exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_L,0,newreference(pto^.location.reference))));
                       pushusedregisters(pushed,$ff);
                       emit_push_lea_loc(pfrom^.location);
@@ -547,6 +566,7 @@ implementation
                       emitcall('FPC_SHORTSTR_TO_ANSISTR',true);
                       maybe_loadesi;
                       popusedregisters(pushed);
+                      ungetiftemp(pfrom^.location.reference);
                    end;
                  st_longstring:
                    begin
@@ -736,7 +756,11 @@ implementation
              end;
            st_ansistring :
              begin
+{$ifdef TempAnsi}
+               gettempansistringreference(p^.location.reference);
+{$else not TempAnsi}
                gettempofsizereference(4,pto^.location.reference);
+{$endif not TempAnsi}
                {temptoremove^.concat(new(ptemptodestroy,init(pto^.location.reference,pto^.resulttype)));}
                exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_L,0,newreference(pto^.location.reference))));
                pushusedregisters(pushed,$ff);
@@ -914,7 +938,7 @@ implementation
          exprasmlist^.concat(new(pai386,op_const_reg(A_ADD,S_W,1007,R_DX)));
          exprasmlist^.concat(new(pai386,op_const_reg(A_SHL,S_W,5,R_DX)));
          exprasmlist^.concat(new(pai386,op_const_reg_reg(A_SHLD,S_W,11,R_DX,R_BX)));
-         exprasmlist^.concat(new(pai386,op_const_reg_reg(A_SHLD,S_W,20,R_EAX,R_EBX)));
+         exprasmlist^.concat(new(pai386,op_const_reg_reg(A_SHLD,S_L,20,R_EAX,R_EBX)));
 
          exprasmlist^.concat(new(pai386,op_const_reg(A_SHL,S_L,20,R_EAX)));
          emitl(A_LABEL,hl);
@@ -1449,7 +1473,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.39  1998-11-29 22:37:30  peter
+  Revision 1.40  1998-11-30 09:43:02  pierre
+    * some range check bugs fixed (still not working !)
+    + added DLL writing support for win32 (also accepts variables)
+    + TempAnsi for code that could be used for Temporary ansi strings
+      handling
+
+  Revision 1.39  1998/11/29 22:37:30  peter
     * fixed constant ansistring -> pchar
 
   Revision 1.38  1998/11/29 12:40:19  peter

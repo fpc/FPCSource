@@ -203,14 +203,45 @@ implementation
          { only calculate reference }
          cleartempgen;
          secondpass(p^.t2);
+{$ifdef TEST_FORBUG}
+         hs:=p^.t2^.resulttype^.size;
+         (*
+{$endif TEST_FORBUG}
          if not(simple_loadn) then
           CGMessage(cg_e_illegal_count_var);
+{$ifdef TEST_FORBUG}
+         already done in firstfor !! *)
+         
+         { first set the to value
+           because the count var can be in the expression !! }
+         cleartempgen;
+         secondpass(p^.right);
+         { calculate pointer value and check if changeable and if so }
+         { load into temporary variable                              }
+         if p^.right^.treetype<>ordconstn then
+           begin
+              temp1.symbol:=nil;
+              gettempofsizereference(hs,temp1);
+              temptovalue:=true;
+              if (p^.right^.location.loc=LOC_REGISTER) or
+                 (p^.right^.location.loc=LOC_CREGISTER) then
+                begin
+                   exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,opsize,p^.right^.location.register,
+                      newreference(temp1))));
+                 end
+              else
+                 concatcopy(p^.right^.location.reference,temp1,hs,false,false);
+           end
+         else temptovalue:=false;
+{$endif TEST_FORBUG}
 
          { produce start assignment }
          cleartempgen;
          secondpass(p^.left);
          count_var_is_signed:=is_signed(porddef(p^.t2^.resulttype));
+{$ifndef TEST_FORBUG}
              hs:=p^.t2^.resulttype^.size;
+{$endif not TEST_FORBUG}
          cmp32:=getregister32;
              case hs of
             1 : begin
@@ -226,6 +257,7 @@ implementation
                    cmpreg:=cmp32;
                 end;
          end;
+{$ifndef TEST_FORBUG}
          cleartempgen;
              secondpass(p^.right);
          { calculate pointer value and check if changeable and if so }
@@ -246,6 +278,7 @@ implementation
            end
          else temptovalue:=false;
 
+{$endif not TEST_FORBUG}
          if temptovalue then
              begin
               if p^.t2^.location.loc=LOC_CREGISTER then
@@ -754,7 +787,13 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.24  1998-11-18 15:44:09  peter
+  Revision 1.25  1998-11-30 09:43:03  pierre
+    * some range check bugs fixed (still not working !)
+    + added DLL writing support for win32 (also accepts variables)
+    + TempAnsi for code that could be used for Temporary ansi strings
+      handling
+
+  Revision 1.24  1998/11/18 15:44:09  peter
     * VALUEPARA for tp7 compatible value parameters
 
   Revision 1.23  1998/11/12 16:43:32  florian

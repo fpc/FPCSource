@@ -167,7 +167,7 @@ unit aasm;
        end;
 
 
-       tsection=(sec_none,sec_code,sec_data,sec_bss,sec_idata);
+       tsection=(sec_none,sec_code,sec_data,sec_bss,sec_idata,sec_edata);
 
        { Insert a section/segment directive }
        pai_section = ^tai_section;
@@ -913,7 +913,13 @@ uses
 end.
 {
   $Log$
-  Revision 1.24  1998-11-12 11:19:30  pierre
+  Revision 1.25  1998-11-30 09:42:52  pierre
+    * some range check bugs fixed (still not working !)
+    + added DLL writing support for win32 (also accepts variables)
+    + TempAnsi for code that could be used for Temporary ansi strings
+      handling
+
+  Revision 1.24  1998/11/12 11:19:30  pierre
    * fix for first line of function break
 
   Revision 1.23  1998/10/14 15:56:37  pierre

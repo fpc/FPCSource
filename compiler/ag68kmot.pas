@@ -246,7 +246,7 @@ unit ag68kmot;
 
     const
       section2str : array[tsection] of string[6]=
-       ('','CODE','DATA','BSS','');
+       ('','CODE','DATA','BSS','','');
 
     procedure tm68kmotasmlist.WriteTree(p:paasmoutput);
     var
@@ -541,7 +541,13 @@ ait_labeled_instruction :
 end.
 {
   $Log$
-  Revision 1.14  1998-11-12 11:19:38  pierre
+  Revision 1.15  1998-11-30 09:42:58  pierre
+    * some range check bugs fixed (still not working !)
+    + added DLL writing support for win32 (also accepts variables)
+    + TempAnsi for code that could be used for Temporary ansi strings
+      handling
+
+  Revision 1.14  1998/11/12 11:19:38  pierre
    * fix for first line of function break
 
   Revision 1.13  1998/10/29 11:35:38  florian

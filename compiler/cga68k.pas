@@ -129,6 +129,12 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
       end;
 
 
+    procedure decransiref(const ref : treference);
+      begin
+         emitpushreferenceaddr(exprasmlist,ref);
+         emitcall('FPC_ANSISTR_DECR_REF',true);
+      end;
+      
     procedure loadstring(p:ptree);
       begin
         case p^.right^.resulttype^.deftype of
@@ -1351,7 +1357,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.29  1998-11-13 15:40:16  pierre
+  Revision 1.30  1998-11-30 09:43:05  pierre
+    * some range check bugs fixed (still not working !)
+    + added DLL writing support for win32 (also accepts variables)
+    + TempAnsi for code that could be used for Temporary ansi strings
+      handling
+
+  Revision 1.29  1998/11/13 15:40:16  pierre
     + added -Se in Makefile cvstest target
     + lexlevel cleanup
       normal_function_level main_program_level and unit_init_level defined

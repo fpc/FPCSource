@@ -2086,7 +2086,8 @@ unit pdecl;
                 begin
                    Not_supported_for_inline(token);
                    { here we should be at lexlevel 1, no ? PM }
-                   if (lexlevel<>main_program_level) or not islibrary then
+                   if (lexlevel<>main_program_level) or
+                      (not islibrary and not DLLsource) then
                      begin
                         Message(parser_e_syntax_error);
                         consume_all_until(SEMICOLON);
@@ -2123,7 +2124,13 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.87  1998-11-29 12:42:24  peter
+  Revision 1.88  1998-11-30 09:43:20  pierre
+    * some range check bugs fixed (still not working !)
+    + added DLL writing support for win32 (also accepts variables)
+    + TempAnsi for code that could be used for Temporary ansi strings
+      handling
+
+  Revision 1.87  1998/11/29 12:42:24  peter
     * check for constants with array decl
 
   Revision 1.86  1998/11/28 16:20:52  peter

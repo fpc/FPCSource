@@ -255,7 +255,7 @@ unit ag68kmit;
         (#9'.long'#9,#9'.short'#9,#9'.byte'#9);
 
       ait_section2str : array[tsection] of string[6]=
-       ('','.text','.data','.bss','.idata');
+       ('','.text','.data','.bss','.idata','.edata');
 
     procedure tm68kmitasmlist.WriteTree(p:paasmoutput);
     var
@@ -661,7 +661,13 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
 end.
 {
   $Log$
-  Revision 1.16  1998-11-12 11:19:36  pierre
+  Revision 1.17  1998-11-30 09:42:57  pierre
+    * some range check bugs fixed (still not working !)
+    + added DLL writing support for win32 (also accepts variables)
+    + TempAnsi for code that could be used for Temporary ansi strings
+      handling
+
+  Revision 1.16  1998/11/12 11:19:36  pierre
    * fix for first line of function break
 
   Revision 1.15  1998/10/29 11:35:37  florian
