@@ -12,6 +12,10 @@ Const
   RTLD_LAZY         = $001;
   RTLD_NOW          = $002;
   RTLD_BINDING_MASK = $003;
+  RTLD_GLOBAL	    = $100;
+  {$ifdef BSD}
+  RTLD_MODEMASK     = RTLD_BINDING_MASK;
+  {$endif}
 
 Function dlopen(Name : PChar; Flags : longint) : Pointer; cdecl; external libdl;
 FUnction dlsym(Lib : Pointer; Name : Pchar) : Pointer; cdecl; external Libdl;
