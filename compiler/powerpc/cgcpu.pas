@@ -1782,6 +1782,14 @@ const
 
 { ************* concatcopy ************ }
 
+{$ifndef ppc603}
+  const
+    maxmoveunit = 8;
+{$else ppc603}
+  const
+    maxmoveunit = 4;
+{$endif ppc603}
+
     procedure tcgppc.g_concatcopy(list : taasmoutput;const source,dest : treference;len : aword; delsource,loadref : boolean);
 
       var
@@ -1800,7 +1808,7 @@ const
 
         { make sure short loads are handled as optimally as possible }
         if not loadref then
-          if (len <= 8) and
+          if (len <= maxmoveunit) and
              (byte(len) in [1,2,4,8]) then
             begin
               if len < 8 then
@@ -1828,7 +1836,8 @@ const
               exit;
             end;
 
-        count := len div 8;
+        count := len div maxmoveunit;
+
         reference_reset(src);
         reference_reset(dst);
         { load the address of source into src.base }
@@ -1870,6 +1879,7 @@ const
             orgdst := true;
           end;
 
+{$ifndef ppc603}
         if count > 4 then
           { generate a loop }
           begin
@@ -1927,6 +1937,54 @@ const
             inc(dst.offset,4);
             a_reg_dealloc(list,r);
           end;
+{$else not ppc603}
+        if count > 4 then
+          { generate a loop }
+          begin
+            { the offsets are zero after the a_loadaddress_ref_reg and just }
+            { have to be set to 4. I put an Inc there so debugging may be   }
+            { easier (should offset be different from zero here, it will be }
+            { easy to notice in the generated assembler                     }
+            inc(dst.offset,4);
+            inc(src.offset,4);
+            list.concat(taicpu.op_reg_reg_const(A_SUBI,src.base,src.base,4));
+            list.concat(taicpu.op_reg_reg_const(A_SUBI,dst.base,dst.base,4));
+            countreg := get_scratch_reg_int(list,OS_INT);
+            a_load_const_reg(list,OS_32,count,countreg);
+            { explicitely allocate R_0 since it can be used safely here }
+            { (for holding date that's being copied)                    }
+            r.enum:=R_INTREGISTER;
+            r.number:=NR_R0;
+            a_reg_alloc(list,r);
+            objectlibrary.getlabel(lab);
+            a_label(list, lab);
+            list.concat(taicpu.op_reg_reg_const(A_SUBIC_,countreg,countreg,1));
+            list.concat(taicpu.op_reg_ref(A_LWZU,r,src));
+            list.concat(taicpu.op_reg_ref(A_STWU,r,dst));
+            a_jmp(list,A_BC,C_NE,0,lab);
+            free_scratch_reg(list,countreg);
+            a_reg_dealloc(list,r);
+            len := len mod 4;
+          end;
+
+        count := len div 4;
+        if count > 0 then
+          { unrolled loop }
+          begin
+            r.enum:=R_INTREGISTER;
+            r.number:=NR_R0;
+            a_reg_alloc(list,r);
+            for count2 := 1 to count do
+              begin
+                a_load_ref_reg(list,OS_32,src,r);
+                a_load_reg_ref(list,OS_32,r,dst);
+                inc(src.offset,4);
+                inc(dst.offset,4);
+              end;
+            a_reg_dealloc(list,r);
+            len := len mod 4;
+          end;
+{$endif not ppc603}
        { copy the leftovers }
        if (len and 2) <> 0 then
          begin
@@ -2484,7 +2542,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.99  2003-05-29 10:06:09  jonas
+  Revision 1.100  2003-05-29 21:17:27  jonas
+    * compile with -dppc603 to not use unaligned float loads in move() and
+      g_concatcopy, because the 603 and 604 take an exception for those
+      (and netbsd doesn't even handle those in the kernel). There are
+      still some of those left that could cause problems though (e.g.
+      in the set helpers)
+
+  Revision 1.99  2003/05/29 10:06:09  jonas
     * also free temps in g_concatcopy if delsource is true
 
   Revision 1.98  2003/05/28 23:58:18  jonas

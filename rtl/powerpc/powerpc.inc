@@ -178,8 +178,10 @@ LMove4ByteAlignLoop:
           {  while not aligned, continue  }
           bne     cr0,LMove4ByteAlignLoop
 
+{$ifndef ppc603}
           { check for 32 byte alignment }
           andi.   r7,r4,31
+{$endif non ppc603}
           { we are going to copy one byte again (the one at the newly }
           { aligned address), so increase count byte 1                }
           addi    r5,r5,1
@@ -188,6 +190,7 @@ LMove4ByteAlignLoop:
           {  if 11 <= count < 63, copy using dwords }
           blt     cr7,LMoveDWords
 
+{$ifndef ppc603}
           { # of dwords to copy to reach 32 byte alignment (*4) }
           { (depends on forward/backward copy)                  }
 
@@ -202,6 +205,8 @@ LMove4ByteAlignLoop:
           not     r8, r6
           add     r7, r7, r8
           xor     r7, r7, r8
+{$endif not ppc603}
+
           { multiply the update count with 4 }
           slwi    r10,r10,2
           slwi    r6,r6,2
@@ -209,6 +214,7 @@ LMove4ByteAlignLoop:
           add     r3,r3,r6
           add     r4,r4,r6
 
+{$ifndef ppc603}
           beq     cr0,LMove32BytesAligned
 L32BytesAlignMoveLoop:
           {  count >= 39 -> align to 8 byte boundary and then use the FPU  }
@@ -226,12 +232,17 @@ LMove32BytesAligned:
           andi.   r5,r5,31
           { to decide if we will do some dword stores (instead of only }
           { byte stores) afterwards or not                             }
+{$else not ppc603}
+          srwi    r0,r5,4
+          andi.   r5,r5,15
+{$endif not ppc603}
           cmpwi   cr1,r5,11
           mtctr   r0
 
           {  r0 := count div 4, will be moved to ctr when copying dwords  }
           srwi    r0,r5,2
 
+{$ifndef ppc603}
           {  adjust the update count: it will now be 8 or -8 depending on overlap  }
           slwi    r10,r10,1
 
@@ -271,6 +282,18 @@ LMove32ByteDcbz:
           stfdux  f3,r4,r10
           bdnz    LMove32ByteDcbz
 LMove32ByteLoopDone:
+{$else not ppc603}
+LMove16ByteLoop:
+          lwzux   r11,r3,r10
+          lwzux   r7,r3,r10
+          lwzux   r8,r3,r10
+          lwzux   r9,r3,r10
+          stwux   r11,r4,r10
+          stwux   r7,r4,r10
+          stwux   r8,r4,r10
+          stwux   r9,r4,r10
+          bdnz    LMove16ByteLoop
+{$endif not ppc603}
 
           { cr0*4+eq is true if "count and 31" = 0 }
           beq     cr0,LMoveDone
@@ -278,8 +301,13 @@ LMove32ByteLoopDone:
           {  make r10 again -1 or 1, but first adjust source/dest pointers }
           sub     r3,r3,r6
           sub     r4,r4,r6
+{$ifndef ppc603}
           srawi   r10,r10,3
           srawi   r6,r6,3
+{$else not ppc603}
+          srawi   r10,r10,2
+          srawi   r6,r6,2
+{$endif not ppc603}
 
           { cr1 contains whether count <= 11 }
           ble     cr1,LMoveBytes
@@ -932,7 +960,14 @@ end ['R3','R10'];
 
 {
   $Log$
-  Revision 1.48  2003-05-29 14:32:54  jonas
+  Revision 1.49  2003-05-29 21:17:27  jonas
+    * compile with -dppc603 to not use unaligned float loads in move() and
+      g_concatcopy, because the 603 and 604 take an exception for those
+      (and netbsd doesn't even handle those in the kernel). There are
+      still some of those left that could cause problems though (e.g.
+      in the set helpers)
+
+  Revision 1.48  2003/05/29 14:32:54  jonas
     * changed dcbst to dcbtst (former means "flush cache block to memory,
       the latter means "I will soon store something to that cache block")
 
