@@ -1303,6 +1303,9 @@ unit_f_circular_unit_reference=F_Circular unit reference between $1 and $2
 unit_f_cant_compile_unit=F_Can't compile unit $1, no sources available
 % A unit was found that needs to be recompiled, but no sources are
 % available.
+unit_f_cant_find_ppu=F_Can't find unit $1
+% You tried to use a unit of which the PPU file isn't found by the
+% compiler. Check your config files for the unit pathes
 unit_w_switch_us_missed=W_Compiling the system unit requires the -Us switch
 % When recompiling the system unit (it needs special treatment), the
 % \var{-Us} must be specified.

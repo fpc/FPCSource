@@ -62,6 +62,8 @@ unit files;
 {$endif}
 
     type
+       trecompile_reason = (rr_unknown,rr_noppu,rr_sourcenewer,
+         rr_build,rr_libolder,rr_objolder,rr_asmolder,rr_crcchanged);
 {$ifdef FPC}
        tlongintarr = array[0..1000000] of longint;
 {$else}
@@ -169,6 +171,8 @@ unit files;
           in_second_compile,        { is this unit being compiled for the 2nd time? }
           in_implementation,        { processing the implementation part? }
           in_global     : boolean;  { allow global settings }
+          recompile_reason : trecompile_reason;  { the reason why the unit should be recompiled }
+
           islibrary     : boolean;  { if it is a library (win32 dll) }
           map           : punitmap; { mapping of all used units }
           unitcount     : word;     { local unit counter }
@@ -900,6 +904,7 @@ end;
               Message2(unit_u_check_time,staticlibfilename^,filetimestring(objfiletime));
               if (ppufiletime<0) or (objfiletime<0) or (ppufiletime>objfiletime) then
                 begin
+                  recompile_reason:=rr_libolder;
                   Message(unit_u_recompile_staticlib_is_older);
                   do_compile:=true;
                   exit;
@@ -918,6 +923,7 @@ end;
                  if (asmfiletime<0) or (ppufiletime>asmfiletime) then
                   begin
                     Message(unit_u_recompile_obj_and_asm_older);
+                    recompile_reason:=rr_objolder;
                     do_compile:=true;
                     exit;
                   end
@@ -927,6 +933,7 @@ end;
                     if not(cs_asm_extern in aktglobalswitches) then
                      begin
                        do_compile:=true;
+                       recompile_reason:=rr_asmolder;
                        exit;
                      end;
                   end;
@@ -991,6 +998,7 @@ end;
               begin
                 ppufile:=nil;
                 do_compile:=true;
+                recompile_reason:=rr_noppu;
               {Check for .pp file}
                 Found:=UnitExists(target_os.sourceext);
                 if Found then
@@ -1123,6 +1131,7 @@ end;
         crc:=0;
         interface_crc:=0;
         unitcount:=1;
+        recompile_reason:=rr_unknown;
       end;
 
 
@@ -1185,6 +1194,7 @@ end;
         do_compile:=false;
         sources_avail:=true;
         compiled:=false;
+        recompile_reason:=rr_unknown;
         in_second_compile:=false;
         in_implementation:=false;
         in_global:=true;
@@ -1302,7 +1312,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.96  1999-07-03 00:29:47  peter
+  Revision 1.97  1999-07-14 21:19:03  florian
+    + implemented a better error message if a PPU file isn't found as suggested
+      by Lee John
+
+  Revision 1.96  1999/07/03 00:29:47  peter
     * new link writing to the ppu, one .ppu is needed for all link types,
       static (.o) is now always created also when smartlinking is used
 

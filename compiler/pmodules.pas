@@ -282,6 +282,7 @@ unit pmodules;
               if loaded_unit^.crc<>pu^.checksum then
                begin
                  Message2(unit_u_recompile_crc_change,current_module^.modulename^,pu^.name^);
+                 current_module^.recompile_reason:=rr_crcchanged;
                  current_module^.do_compile:=true;
                  dispose(current_module^.map);
                  current_module^.map:=nil;
@@ -320,6 +321,7 @@ unit pmodules;
                  not(current_module^.in_second_compile) then
                 begin
                   Message2(unit_u_recompile_crc_change,current_module^.modulename^,pu^.name^+' {impl}');
+                  current_module^.recompile_reason:=rr_crcchanged;
                   current_module^.do_compile:=true;
                   dispose(current_module^.map);
                   current_module^.map:=nil;
@@ -381,7 +383,12 @@ unit pmodules;
                   and (length(current_module^.modulename^)>8) then
                  current_module^.search_unit(copy(current_module^.modulename^,1,8),true);
              if not(current_module^.sources_avail) then
-              Message1(unit_f_cant_compile_unit,current_module^.modulename^)
+               begin
+                  if current_module^.recompile_reason=rr_noppu then
+                    Message1(unit_f_cant_find_ppu,current_module^.modulename^)
+                  else
+                    Message1(unit_f_cant_compile_unit,current_module^.modulename^);
+               end
              else
               begin
                 if current_module^.in_second_compile then
@@ -1332,7 +1339,11 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.129  1999-07-06 21:48:24  florian
+  Revision 1.130  1999-07-14 21:19:11  florian
+    + implemented a better error message if a PPU file isn't found as suggested
+      by Lee John
+
+  Revision 1.129  1999/07/06 21:48:24  florian
     * a lot bug fixes:
        - po_external isn't any longer necessary for procedure compatibility
        - m_tp_procvar is in -Sd now available

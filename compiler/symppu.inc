@@ -516,6 +516,7 @@
                     if (source_time>ppufiletime) then
                      begin
                        current_module^.do_compile:=true;
+                       current_module^.recompile_reason:=rr_sourcenewer;
                        temp:=temp+' *'
                      end;
                   end;
@@ -535,7 +536,10 @@
       { check if we want to rebuild every unit, only if the sources are
         available }
         if do_build and current_module^.sources_avail then
-         current_module^.do_compile:=true;
+          begin
+             current_module^.do_compile:=true;
+             current_module^.recompile_reason:=rr_build;
+          end;
       end;
 
 
@@ -610,7 +614,11 @@
 
 {
   $Log$
-  Revision 1.43  1999-07-03 00:30:00  peter
+  Revision 1.44  1999-07-14 21:19:12  florian
+    + implemented a better error message if a PPU file isn't found as suggested
+      by Lee John
+
+  Revision 1.43  1999/07/03 00:30:00  peter
     * new link writing to the ppu, one .ppu is needed for all link types,
       static (.o) is now always created also when smartlinking is used
 
