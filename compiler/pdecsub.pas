@@ -1649,6 +1649,12 @@ const
            end;
          end;
 
+        { C directive is MAC only, because it breaks too much existing code
+          on other platforms (PFV) }
+        if (idtoken=_C) and
+           not(m_mac in aktmodeswitches) then
+          exit;
+
       { retrieve data for directive if found }
         for p:=1 to num_proc_directives do
          if proc_direcdata[p].idtok=idtoken then
@@ -2233,7 +2239,10 @@ const
 end.
 {
   $Log$
-  Revision 1.173  2004-05-03 20:02:42  jonas
+  Revision 1.174  2004-05-09 12:49:14  peter
+  C directive is mac only
+
+  Revision 1.173  2004/05/03 20:02:42  jonas
     - removed change_forward_to_external() declaration
 
   Revision 1.172  2004/05/03 10:06:38  olle
