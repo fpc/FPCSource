@@ -1,4 +1,0 @@
-..\user\*.html
-..\prog\*.html
-..\ref\*.html
-..\units\*.html
