@@ -1,3 +1,5 @@
+{ $OPT=-OG2p3}
+
 procedure t;
 var
   a: array[1..10,1..10] of string[31];
@@ -13,7 +15,11 @@ begin
   asm
   end;
   a[i,j] := a[i,j] + c;
-  writeln(a[i,j]);
+  if a[i,j] <> '1234567890' then
+    begin
+      writeln('error!');
+      halt(1)
+    end;
 end;
 
 begin
