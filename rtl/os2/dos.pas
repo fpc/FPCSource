@@ -704,7 +704,7 @@ begin
     if (os_mode = osDOS) or (os_mode = osDPMI) then
     {Function 36 is not supported in OS/2.}
         asm
-            Drive,%dl
+            movb Drive,%dl
             movb $0x36,%ah
             call syscall
             cmpw $-1,%ax
@@ -1178,7 +1178,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2001-05-20 18:55:48  hajny
+  Revision 1.12  2001-05-21 20:50:19  hajny
+    * silly mistyping corrected
+
+  Revision 1.11  2001/05/20 18:55:48  hajny
     * merging Carl's fixes from the fixes branch
 
   Revision 1.10  2001/04/10 18:49:40  hajny
