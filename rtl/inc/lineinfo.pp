@@ -445,16 +445,104 @@ begin
 end;
 {$endif linux}
 
+{$ifdef sunos}
+function LoadElf32:boolean;
+type
+  telf32header=packed record
+      magic0123         : longint;
+      file_class        : byte;
+      data_encoding     : byte;
+      file_version      : byte;
+      padding           : array[$07..$0f] of byte;
+      e_type            : word;
+      e_machine         : word;
+      e_version         : longword;
+      e_entry           : longword;                  // entrypoint
+      e_phoff           : longword;                  // program header offset
+      e_shoff           : longword;                  // sections header offset
+      e_flags           : longword;
+      e_ehsize          : word;             // elf header size in bytes
+      e_phentsize       : word;             // size of an entry in the program header array
+      e_phnum           : word;             // 0..e_phnum-1 of entrys
+      e_shentsize       : word;             // size of an entry in sections header array
+      e_shnum           : word;             // 0..e_shnum-1 of entrys
+      e_shstrndx        : word;             // index of string section header
+  end;
+  telf32sechdr=packed record
+      sh_name           : longword;
+      sh_type           : longword;
+      sh_flags          : longword;
+      sh_addr           : longword;
+      sh_offset         : longword;
+      sh_size           : longword;
+      sh_link           : longword;
+      sh_info           : longword;
+      sh_addralign      : longword;
+      sh_entsize        : longword;
+    end;
+var
+  elfheader : telf32header;
+  elfsec    : telf32sechdr;
+  secnames  : array[0..255] of char;
+  pname     : pchar;
+  i : longint;
+begin
+  processaddress := 0;
+  LoadElf32:=false;
+  stabofs:=-1;
+  stabstrofs:=-1;
+  { read and check header }
+  if filesize(f)<sizeof(telf32header) then
+   exit;
+  blockread(f,elfheader,sizeof(telf32header));
+{$ifdef ENDIAN_LITTLE}
+ if elfheader.magic0123<>$464c457f then
+   exit;
+{$endif ENDIAN_LITTLE}
+{$ifdef ENDIAN_BIG}
+ if elfheader.magic0123<>$7f454c46 then
+   exit;
+ { this seems to be at least the case for m68k cpu PM }
+{$endif ENDIAN_BIG}
+  if elfheader.e_shentsize<>sizeof(telf32sechdr) then
+   exit;
+  { read section names }
+  seek(f,elfheader.e_shoff+elfheader.e_shstrndx*cardinal(sizeof(telf32sechdr)));
+  blockread(f,elfsec,sizeof(telf32sechdr));
+  seek(f,elfsec.sh_offset);
+  blockread(f,secnames,sizeof(secnames));
+  { read section info }
+  seek(f,elfheader.e_shoff);
+  for i:=1to elfheader.e_shnum do
+   begin
+     blockread(f,elfsec,sizeof(telf32sechdr));
+     pname:=@secnames[elfsec.sh_name];
+     if (pname[4]='b') and
+        (pname[1]='s') and
+        (pname[2]='t') then
+      begin
+        if (pname[5]='s') and
+           (pname[6]='t') then
+         stabstrofs:=elfsec.sh_offset
+        else
+         begin
+           stabofs:=elfsec.sh_offset;
+           stabcnt:=elfsec.sh_size div sizeof(tstab);
+         end;
+      end;
+   end;
+  LoadElf32:=(stabofs<>-1) and (stabstrofs<>-1);
+end;
+{$endif sunos}
+
+
 
 {$ifdef beos}
-
-{$linklib root}
-
 
 {$i osposixh.inc}
 {$i syscall.inc}
 {$i beos.inc}
-function get_next_image_info(team: team_id; var cookie:longint; var info:image_info; size: size_t) : status_t;cdecl; external 'root'; external name '_get_next_image_info';
+function get_next_image_info(team: team_id; var cookie:longint; var info:image_info; size: size_t) : status_t;cdecl; external 'root' name '_get_next_image_info';
 
 function LoadElf32:boolean;
 type
@@ -602,6 +690,13 @@ begin
    end;
 {$endif}
 {$ifdef linux}
+  if LoadElf32 then
+   begin
+     OpenStabs:=true;
+     exit;
+   end;
+{$endif}
+{$ifdef sunos}
   if LoadElf32 then
    begin
      OpenStabs:=true;
@@ -784,11 +879,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.7  2001-11-19 02:45:10  carl
-  + same version as fixed branches :
-      + BeOS line information
-      * correct prototype with shortstring result type
-      + relocation of frame according to processaddress
+  Revision 1.8  2001-12-13 03:50:00  carl
+  + SunOS target
+
+  Revision 1.1  2000/07/13 06:30:47  michael
+  + Initial import
 
 
 }
