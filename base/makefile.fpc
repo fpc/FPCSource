@@ -44,6 +44,15 @@ inWinNT=1
 endif
 endif
 
+# Detect OS/2 - OS/2 has OS2_SHELL defined
+ifndef inlinux
+ifndef inWinNT
+ifdef OS2_SHELL
+inOS2=1
+endif
+endif
+endif
+
 # The extension of executables
 ifdef inlinux
 EXEEXT=
@@ -71,7 +80,11 @@ endif
 
 # What compiler to use ?
 ifndef PP
+ifdef inOS2
+PP=ppos2$(EXEEXT)
+else
 PP=ppc386$(EXEEXT)
+endif
 endif
 
 # Target OS
@@ -182,7 +195,11 @@ endif
 ifdef inlinux
 PPAS=ppas.sh
 else
+ifdef inOS2
+PPAS=ppas.cmd
+else
 PPAS=ppas.bat
+endif
 endif
 
 # The path which is search separated by spaces
@@ -1012,7 +1029,10 @@ endif
 
 #
 # $Log$
-# Revision 1.31  1999-06-10 15:02:08  peter
+# Revision 1.32  1999-06-11 13:31:14  hajny
+#   * fixes for OS/2
+#
+# Revision 1.31  1999/06/10 15:02:08  peter
 #   * last fixes for 0.99.12 release
 #
 # Revision 1.30  1999/06/03 09:36:31  peter
