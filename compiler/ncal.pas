@@ -539,6 +539,7 @@ implementation
 
     procedure tcallparanode.gen_high_tree(openstring:boolean);
       var
+        temp: tnode;
         len : longint;
         st  : tsymtable;
         loadconst : boolean;
@@ -551,34 +552,25 @@ implementation
         case left.resulttype.def.deftype of
           arraydef :
             begin
-              if is_open_array(left.resulttype.def) or
-                 is_array_of_const(left.resulttype.def) then
-               begin
-                 st:=tloadnode(left).symtable;
-                 srsym:=searchsymonlyin(st,'high'+tvarsym(tloadnode(left).symtableentry).name);
-                 hightree:=cloadnode.create(tvarsym(srsym),st);
-                 loadconst:=false;
-               end
+              { handle via a normal inline in_high_x node }
+              loadconst := false;
+              hightree := geninlinenode(in_high_x,false,left.getcopy);
+              { only substract low(array) if it's <> 0 }
+              temp := geninlinenode(in_low_x,false,left.getcopy);
+              firstpass(temp);
+              if (temp.nodetype <> ordconstn) or
+                 (tordconstnode(temp).value <> 0) then
+                hightree := caddnode.create(subn,hightree,temp)
               else
-                begin
-                  { this is an empty constructor }
-                  len:=tarraydef(left.resulttype.def).highrange-
-                       tarraydef(left.resulttype.def).lowrange;
-                end;
+                temp.free;
             end;
           stringdef :
             begin
               if openstring then
                begin
-                 if is_open_string(left.resulttype.def) then
-                  begin
-                    st:=tloadnode(left).symtable;
-                    srsym:=searchsymonlyin(st,'high'+tvarsym(tloadnode(left).symtableentry).name);
-                    hightree:=cloadnode.create(tvarsym(srsym),st);
-                    loadconst:=false;
-                  end
-                 else
-                  len:=tstringdef(left.resulttype.def).len;
+                 { handle via a normal inline in_high_x node }
+                 loadconst := false;
+                 hightree := geninlinenode(in_high_x,false,left.getcopy);
                end
               else
              { passing a string to an array of char }
@@ -593,7 +585,10 @@ implementation
                    begin
                      hightree:=caddnode.create(subn,geninlinenode(in_length_x,false,left.getcopy),
                                                cordconstnode.create(1,s32bittype));
+{
+                     not necessary (JM) 
                      firstpass(hightree);
+}
                      hightree:=ctypeconvnode.create(hightree,s32bittype);
                      loadconst:=false;
                    end;
@@ -1763,7 +1758,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.58  2001-11-20 18:49:43  peter
+  Revision 1.59  2001-12-10 14:28:47  jonas
+    * gen_high_tree now uses an inline node of type in_high_x in most cases
+      so that it doesn't duplicate any code anymore from ninl.pas (and
+      dynamic array support was still missing)
+
+  Revision 1.58  2001/11/20 18:49:43  peter
     * require overload for cross object overloading
 
   Revision 1.57  2001/11/18 20:18:54  peter
