@@ -1,3 +1,5 @@
+{ $OPT=-S2
+}
 { tests assignements and compare }
 
 var

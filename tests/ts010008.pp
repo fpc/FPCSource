@@ -1,3 +1,5 @@
+{ $OPT=-S2 }
+
 type
    tobject2 = class
       constructor create;

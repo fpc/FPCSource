@@ -1,3 +1,4 @@
+{ $OPT=-S2 }
 library test;
 
   procedure exporttest;export;

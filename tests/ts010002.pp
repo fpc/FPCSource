@@ -1,4 +1,4 @@
-
+{ $OPT=-S2 }
 
 {
     $Id$
@@ -21,6 +21,8 @@
 }
 
 Unit Classes;
+
+{$M+}
 
 Interface 
 

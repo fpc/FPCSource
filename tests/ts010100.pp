@@ -1,3 +1,5 @@
+{ $OPT= -S2
+}
 var
    o : tobject;
 

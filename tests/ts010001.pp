@@ -1,3 +1,5 @@
+{ $OPT=-S2
+}
 type
    tclass = class of tobject;
 
