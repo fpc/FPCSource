@@ -31,7 +31,7 @@ unit typinfo;
        TTypeKind = (tkUnknown,tkInteger,tkChar,tkEnumeration,
                    tkFloat,tkSet,tkMethod,tkSString,tkLString,tkAString,
                    tkWString,tkVariant,tkArray,tkRecord,tkInterface,
-                   tkClass,tkObject,tkWChar);
+                   tkClass,tkObject,tkWChar,tkBool);
 
        TTOrdType = (otSByte,otUByte,otSWord,otUWord,otSLong,otULong);
 
@@ -67,7 +67,18 @@ unit typinfo;
             tkUnKnown,tkLString,tkWString,tkAString,tkVariant:
               ();
             tkInteger,tkChar,tkEnumeration,tkWChar:
-              ( //!!!!! To be added );
+              (OrdType : TOrdType;
+               case TTypeKind of
+                  tkInteger,tkChar,tkEnumeration,tkBool,tkWChar : (
+                    MinValue,MaxValue : Longint;
+                    case TTypeKind of
+                      tkEnumeration:
+                        BaseType : PTypeInfo;
+                        NameList : ShortString)
+                    );
+                  tkSet:
+                    (CompType : PTypeInfo)
+              );
             tkFloat:
               (FloatType : TFloatType);
             tkSString:
@@ -76,7 +87,14 @@ unit typinfo;
               (ClassType : TClass;
                ParentInfo : PTypeInfo;
                PropCount : SmallInt;
-               UnitName : ShortString;
+               UnitName : ShortString
+              );
+            tkMethod:
+              ({!!!!!!!}
+              );
+            tkInterface:
+              ({!!!!!!!}
+              );
       end;
 
       PPropInfo = ^TPropInfo;
@@ -197,7 +215,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  1998-09-07 19:34:47  florian
+  Revision 1.5  1998-09-07 23:11:43  florian
+    + more fields to TTypeInfo added
+
+  Revision 1.4  1998/09/07 19:34:47  florian
     * constant value is now supported as stored condition
 
   Revision 1.3  1998/09/07 08:32:59  florian
