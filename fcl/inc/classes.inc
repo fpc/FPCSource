@@ -783,8 +783,10 @@ procedure ObjectBinaryToText(Input, Output: TStream);
             end;
             OutLn(']');
           end;
-        vaLString: Stop('!!LString!!');
-        vaNil: Stop('nil');
+        vaLString:
+          Stop('!!LString!!');
+        vaNil:
+          OutLn('nil');
         vaCollection: begin
             OutStr('<');
             while Input.ReadByte <> 0 do begin
@@ -1181,7 +1183,10 @@ end;
 
 {
   $Log$
-  Revision 1.1.2.2  2000-10-13 10:48:10  sg
+  Revision 1.1.2.3  2000-12-11 09:29:59  michael
+  + Fix from Mattias Gaertner
+
+  Revision 1.1.2.2  2000/10/13 10:48:10  sg
   * Some small cosmetic changes and minor fixes
 
   Revision 1.1.2.1  2000/07/22 14:54:11  sg
