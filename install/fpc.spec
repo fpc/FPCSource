@@ -63,7 +63,9 @@ NEWFPDOC=`pwd`/utils/fpdoc/fpdoc
 	make rtl_clean rtl_smart FPC=${NEWPP}
 	make packages_base_smart FPC=${NEWPP}
 	make fcl_smart FPC=${NEWPP}
+	make fv_smart FPC=${NEWPP}
 	make packages_extra_smart FPC=${NEWPP}
+	make ide_all FPC=${NEWPP}
 	make utils_all FPC=${NEWPP}
 if [ -z ${NODOCS} ]; then
 	make -C docs pdf FPDOC=${NEWFPDOC}
@@ -82,6 +84,8 @@ INSTALLOPTS="FPC=${NEWPP} INSTALL_PREFIX=%{buildroot}/usr INSTALL_LIBDIR=%{build
 	make rtl_distinstall ${INSTALLOPTS}
 	make packages_distinstall ${INSTALLOPTS}
 	make fcl_distinstall ${INSTALLOPTS}
+	make fv_distinstall ${INSTALLOPTS}
+	make ide_distinstall ${INSTALLOPTS}
 	make utils_distinstall ${INSTALLOPTS}
 
 	make demo_install ${INSTALLOPTS} INSTALL_SOURCEDIR=%{buildexampledir}
@@ -106,6 +110,8 @@ fi
 	make rtl_clean
 	make packages_clean
 	make fcl_clean
+	make fv_clean
+	make ide_clean
 	make utils_clean
 if [ -z ${NODOCS} ]; then
 	make -C docs clean
