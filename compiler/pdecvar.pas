@@ -1061,6 +1061,7 @@ implementation
                            is_cdecl:=true;
                            C_name:=target_info.Cprefix+sorg;
                          end;
+                       vs.varregable := vr_none;
                      end;
                    { export }
                    if idtoken in [_EXPORT,_PUBLIC] then
@@ -1313,7 +1314,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.91  2005-01-06 13:30:41  florian
+  Revision 1.92  2005-01-30 17:17:19  florian
+    * variables exported by $J/$Z in macpas mode are never regable
+
+  Revision 1.91  2005/01/06 13:30:41  florian
     * widechararray patch from Peter
 
   Revision 1.90  2005/01/04 16:52:07  peter
