@@ -498,7 +498,11 @@ begin
   for i:=0 to strlen(path) do
     if path[i]='/' then path[i]:='\';
   dosregs.si:=1; { use ms-dos time }
-  dosregs.ecx:=attr;
+  { don't include the label if not asked for it, needed for network drives }
+  if attr=$8 then
+   dosregs.ecx:=8
+  else
+   dosregs.ecx:=attr and (not 8);
   dosregs.edx:=tb_offset+Sizeof(LFNSearchrec)+1;
   dosmemput(tb_segment,tb_offset+Sizeof(LFNSearchrec)+1,path^,strlen(path)+1);
   dosregs.ds:=tb_segment;
@@ -990,7 +994,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.4  1999-03-01 15:40:48  peter
+  Revision 1.5  1999-04-02 00:01:29  peter
+    * fixed LFNFindfirst on network drives
+
+  Revision 1.4  1999/03/01 15:40:48  peter
     * use external names
     * removed all direct assembler modes
 
