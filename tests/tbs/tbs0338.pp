@@ -1,6 +1,7 @@
+{$mode delphi}
+
 {$define skip}
 
-program test;
 begin
  writeln('Hello world!');
 {$ifndef skip}
