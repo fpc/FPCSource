@@ -274,17 +274,23 @@ implementation
               s:=s+s+s;
               this is broken here !! }
 {$ifdef newoptimizations}
-            hp := p^.right;
-            while hp^.treetype=addn do hp:=hp^.left;
-            if equal_trees(p^.left,hp) and
-               not multiple_uses(p^.left,p^.right) then
+            { the above is fixed now, but still problem with s := s + f(); if }
+            { f modifies s (bad programming, so only enable if uncertain      }
+            { optimizations are on) (JM)                                      }
+            if (cs_UncertainOpts in aktglobalswitches) then
               begin
-                p^.concat_string:=true;
-                hp:=p^.right;
-                while hp^.treetype=addn do
+                hp := p^.right;
+                while hp^.treetype=addn do hp:=hp^.left;
+                if equal_trees(p^.left,hp) and
+                   not multiple_uses(p^.left,p^.right) then
                   begin
-                    hp^.use_strconcat:=true;
-                    hp:=hp^.left;
+                    p^.concat_string:=true;
+                    hp:=p^.right;
+                    while hp^.treetype=addn do
+                      begin
+                        hp^.use_strconcat:=true;
+                        hp:=hp^.left;
+                      end;
                   end;
               end;
 {$endif newoptimizations}
@@ -490,7 +496,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.62  2000-04-08 16:22:11  jonas
+  Revision 1.63  2000-04-23 21:04:09  jonas
+    * only enable string_concat optimization with uncertain optimizations,
+      because it gives wrong results with "s := s + f()" where s is a
+      string and f() is a call to a function that modifies s
+
+  Revision 1.62  2000/04/08 16:22:11  jonas
     * fixed concat_string optimization and enabled it when
       -dnewoptimizations is used
 
