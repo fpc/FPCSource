@@ -356,16 +356,9 @@ begin
   CtrlKey := ((CtrlKeyState AND
             (RIGHT_CTRL_PRESSED OR LEFT_CTRL_PRESSED)) > 0);
   ShiftKey := ((CtrlKeyState AND SHIFT_PRESSED) > 0);
-  if AltKey then begin
-    Case KeyCode of
-      VK_NUMPAD0 ..
-      VK_NUMPAD9    : begin
-                       DoingNumChars := true;
-                       DoingNumCode := Byte((DoingNumCode * 10) + (KeyCode - VK_NUMPAD0));
-                      end;
-    end; { case }
 
-
+  if AltKey then
+   begin
     case ScanCode of
     // Digits, -, =
     $02..$0D: inc(ScanCode, $76);
@@ -412,6 +405,7 @@ var
   nevents,nread : dword;
   buf : TINPUTRECORD;
   AltKey: Boolean;
+  c : longint;
 begin
   KeyPressed := FALSE;
   if ScanCode <> #0 then
@@ -436,8 +430,8 @@ begin
                    begin
                       keypressed:=true;
 
-                      if (ord(buf.Event.KeyEvent.AsciiChar) = 0) or                         (buf.Event.KeyEvent.dwControlKeyState and
-                         (LEFT_ALT_PRESSED or ENHANCED_KEY) > 0) then
+                      if (ord(buf.Event.KeyEvent.AsciiChar) = 0) or
+                         (buf.Event.KeyEvent.dwControlKeyState and (LEFT_ALT_PRESSED or ENHANCED_KEY) > 0) then
                         begin
                            SpecialKey := TRUE;
                            ScanCode := Chr(RemapScanCode(Buf.Event.KeyEvent.wVirtualScanCode, Buf.Event.KeyEvent.dwControlKeyState,
@@ -445,21 +439,49 @@ begin
                         end
                       else
                         begin
-                           SpecialKey := FALSE;
-                           ScanCode := Chr(Ord(buf.Event.KeyEvent.AsciiChar));
+                           { Map shift-tab }
+                           if (buf.Event.KeyEvent.AsciiChar=#9) and
+                              (buf.Event.KeyEvent.dwControlKeyState and SHIFT_PRESSED > 0) then
+                            begin
+                              SpecialKey := TRUE;
+                              ScanCode := #15;
+                            end
+                           else
+                            begin
+                              SpecialKey := FALSE;
+                              ScanCode := Chr(Ord(buf.Event.KeyEvent.AsciiChar));
+                            end;
                         end;
 
-                      if Buf.Event.KeyEvent.wVirtualKeyCode in [VK_NUMPAD0..VK_NUMPAD9] then
-                        if AltKey then
-                          begin
-                             Keypressed := false;
-                             Specialkey := false;
-                             ScanCode := #0;
-                          end
-                        else break;
+                      if AltKey then
+                        begin
+                           case Buf.Event.KeyEvent.wVirtualScanCode of
+                             71 : c:=7;
+                             72 : c:=8;
+                             73 : c:=9;
+                             75 : c:=4;
+                             76 : c:=5;
+                             77 : c:=6;
+                             79 : c:=1;
+                             80 : c:=2;
+                             81 : c:=3;
+                             82 : c:=0;
+                           else
+                             break;
+                           end;
+                           DoingNumChars := true;
+                           DoingNumCode := Byte((DoingNumCode * 10) + c);
+                           Keypressed := false;
+                           Specialkey := false;
+                           ScanCode := #0;
+                        end
+                      else
+                        break;
                    end;
               end
-             else if (Buf.Event.KeyEvent.wVirtualKeyCode in [VK_MENU]) then
+             else
+              begin
+                if (Buf.Event.KeyEvent.wVirtualKeyCode in [VK_MENU]) then
                if DoingNumChars then
                  if DoingNumCode > 0 then
                    begin
@@ -470,6 +492,7 @@ begin
                       DoingNumCode := 0;
                       break
                    end; { if }
+              end;
           { if we got a key then we can exit }
           if keypressed then
             exit;
@@ -724,7 +747,10 @@ Begin
       #8 : BackSpace;
       ^Y,
       #27 : begin
-        f.bufpos:=f.bufend;
+        while f.bufpos<f.bufend do begin
+         WriteChar(f.bufptr^[f.bufpos]);
+         inc(f.bufpos);
+        end;
         while f.bufend>0 do
           BackSpace;
       end;
@@ -835,7 +861,11 @@ end. { unit Crt }
 
 {
   $Log$
-  Revision 1.18  2002-10-06 20:00:22  peter
+  Revision 1.19  2002-12-15 20:23:30  peter
+    * fix empty string in readln when not at end of string
+    * fix alt-xyz in readkey
+
+  Revision 1.18  2002/10/06 20:00:22  peter
     * Use Widechar in the Windows unit
 
   Revision 1.17  2002/09/07 16:01:28  peter
