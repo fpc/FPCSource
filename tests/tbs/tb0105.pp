@@ -1,3 +1,4 @@
+{ %TARGET=linux,go32v2 }
 { %CPU=i386 }
 { %OPT= -Aas }
 
