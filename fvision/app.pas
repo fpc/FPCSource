@@ -661,7 +661,6 @@ BEGIN
      -(GetMaxY(TextModeGFV)+1));                      { Full screen area }
    Inherited Init(R);                                 { Call ancestor }
    Application := @Self;                              { Set application ptr }
-   Drivers.InitVideo;
    InitScreen;                                        { Initialize screen }
    State := sfVisible + sfSelected + sfFocused +
       sfModal + sfExposed;                            { Deafult states }
@@ -798,6 +797,7 @@ BEGIN
   { the orginal code can't be used here because of the limited
     video unit capabilities, the mono modus can't be handled
   }
+  Drivers.InitVideo;
 {$ifdef USE_VIDEO_API}
   if (ScreenMode.Col div ScreenMode.Row<2) then
 {$else not USE_VIDEO_API}
@@ -825,7 +825,7 @@ END;
 
 procedure TProgram.DoneScreen;
 begin
-  DoneVideo;
+  Drivers.DoneVideo;
   Buffer:=nil;
 end;
 
@@ -1183,7 +1183,10 @@ END;
 END.
 {
  $Log$
- Revision 1.14  2001-10-02 16:35:50  pierre
+ Revision 1.15  2002-05-23 07:30:33  pierre
+  * fix problem in InitScreen
+
+ Revision 1.14  2001/10/02 16:35:50  pierre
   * fix several problems, try to get the graph version to compile
 
  Revision 1.13  2001/08/05 02:03:13  peter
