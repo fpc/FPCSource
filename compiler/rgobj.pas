@@ -1963,6 +1963,12 @@ unit rgobj;
           if n in used_in_proc_int then
             include(used_in_proc_int,colour[k]);
         end;
+      { registers which aren't available to the register allocator must }
+      { retain their value                                              }
+      for i := 1 to first_supreg-1 do
+        colour[i] := i;
+      for i := last_supreg+1 to high(colour) do
+        colour[i] := i;
     {$ifdef ra_debug}
       for i:=first_imreg to maxintreg do
         writeln(i:4,'   ',colour[i]:4)
@@ -2455,7 +2461,12 @@ end.
 
 {
   $Log$
-  Revision 1.57  2003-07-02 22:18:04  peter
+  Revision 1.58  2003-07-06 14:45:05  jonas
+    * support integer registers that are not managed by newra (ie. don't
+      translate register numbers that fall outside the range
+      first_supreg..last_supreg)
+
+  Revision 1.57  2003/07/02 22:18:04  peter
     * paraloc splitted in callerparaloc,calleeparaloc
     * sparc calling convention updates
 
