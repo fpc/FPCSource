@@ -1,0 +1,93 @@
+#!/bin/sh
+
+CROSSTOOLSROOT=~/cross
+FPCCVS=~/cvs/devel/fpc
+DESTDIR=~/fpcsnap
+MYINTEL=i686
+EXTRAOPT=-gl
+TARGETS_OS="freebsd linux netbsd openbsd solaris win32 darwin"
+TARGETS_CPU="i386 powerpc sparc"
+
+###########################################################################
+# don't edit below
+#
+#
+#
+#
+
+#
+#
+# force slash
+#
+
+CROSSTOOLSROOT=${CROSSTOOLSROOT%/}/
+FPCCVS=${FPCCVS%/}/
+DESTDIR=${DESTDIR%/}/
+
+MAKE=make
+
+#
+# BSD? -> ${MAKE}
+#
+
+SYSTEM=`uname -s`
+
+case "$SYSTEM" in
+ *BSD*) MAKE=gmake
+  ;;
+ *bsd*) MAKE=gmake  
+  ;;
+esac
+
+#
+# Setup dirs
+#
+
+mkdir -p ${DESTDIR}
+
+cd ${FPCCVS}
+
+FAILURES=""
+
+for CPU in $TARGETS_CPU; do
+
+# CPU xlat. translate from FPC cpu designation to binutil's;
+
+MCPU=${CPU}
+if [ "${CPU}" = "i386" ]; then
+MCPU=${MYINTEL}
+fi
+
+for OS in $TARGETS_OS; do
+
+# xlat for OS
+
+MOS=${OS}
+if [ "${OS}" = "sunos" ]; then
+MOS=solaris
+fi
+
+if [ "${OS}" = "win32" ]; then
+MOS=cygwin
+fi
+
+echo Building ${CPU}-${OS}
+if [  -f ${CROSSTOOLSROOT}bin/${MCPU}-${MOS}-as ]; then
+${MAKE} clean all CROSSBINDIR=${CROSSTOOLSROOT}bin OS_TARGET=${OS} CPU_TARGET=${CPU} BINUTILSPREFIX=${MCPU}-${MOS}- OPT=${EXTRAOPT} > ${FPCCVS}log-${CPU}-${OS} 2>&1
+else
+echo can''t find binutils-${MCPU}-${OS} for FPC-${CPU}-${OS}
+fi
+
+if [ ! $? = 0 ]; then
+echo ${CPU}-${OS} FAILES!
+FAILURES="${FAILURES} ${CPU}-${OS}"
+else
+mkdir -p ${DESTDIR}${CPU}-${OS}
+${MAKE} install INSTALL_PREFIX=${DESTDIR}${CPU}-${OS} CROSSBINDIR=${CROSSTOOLSROOT}bin OS_TARGET=${OS} CPU_TARGET=${CPU} BINUTILSPREFIX=${MCPU}-${MOS}- OPT=${EXTRAOPT} > ${FPCCVS}log-${CPU}-${OS} 2>&1
+fi
+
+done;
+done;
+
+echo platforms failed: ${FAILURES}
+
