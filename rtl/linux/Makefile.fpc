@@ -7,11 +7,10 @@ loaders=prt0 cprt0 gprt0 cprt21 gprt21
 units=$(SYSTEMUNIT) objpas strings \
       linux ports initc \
       dos crt objects printer graph ggigraph \
-      sysutils typinfo math \
+      sysutils typinfo math varutils \
       cpu mmx getopts heaptrc lineinfo \
-      errors sockets gpm ipc serial dl dynlibs 
-
-rst=math
+      errors sockets gpm ipc serial dl dynlibs
+rst=math varutils
 
 [require]
 rtl=0
