@@ -1,7 +1,37 @@
+%
+%   $Id$
+%   This file is part of the FPC documentation.
+%   Copyright (C) 1997, by Michael Van Canneyt
+%
+%   The FPC documentation is free text; you can redistribute it and/or
+%   modify it under the terms of the GNU Library General Public License as
+%   published by the Free Software Foundation; either version 2 of the
+%   License, or (at your option) any later version.
+%
+%   The FPC Documentation is distributed in the hope that it will be useful,
+%   but WITHOUT ANY WARRANTY; without even the implied warranty of
+%   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+%   Library General Public License for more details.
+%
+%   You should have received a copy of the GNU Library General Public
+%   License along with the FPC documentation; see the file COPYING.LIB.  If not,
+%   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+%   Boston, MA 02111-1307, USA.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% The MSMouse unit
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{The MsMouse unit}
+\FPCexampledir{mmouseex}
+
 The msmouse unit provides basic mouse handling under \dos (Go32v1 and Go32v2)
 Some general remarks about the msmouse unit:
 \begin{itemize}
+\item For maximum portability, it is advisable to use the \file{mouse} unit;
+that unit is portable across platforms, and offers a similar interface.
+Under no circumstances should the two units be used together.
 \item The mouse driver does not know when the text screen scrolls. This results
 in unerased mouse cursors on the screen when the screen scrolls while the
 mouse cursor is visible. The solution is to hide the mouse cursor (using
@@ -61,8 +91,9 @@ None.
 \SeeAlso
 \seef{GetLastButtonRelease}
 \end{function}
-\latex{\lstinputlisting{mouseex/mouse5.pp}}
-\html{\input{mouseex/mouse5.tex}}
+
+\FPCexample{mouse5}
+
 \begin{function}{GetLastButtonRelease}
 \Declaration
 Function GetLastButtonRelease (Button: Longint; Var x,y:Longint) : Longint;
@@ -84,7 +115,9 @@ None.
 \SeeAlso
 \seef{GetLastButtonPress}
 \end{function}
+
 For an example, see \seef{GetLastButtonPress}.
+
 \begin{procedure}{GetMouseState}
 \Declaration
 Procedure GetMouseState (Var x, y, buttons: Longint);
@@ -103,8 +136,9 @@ None.
 \seef{LPressed}, \seef{MPressed}, \seef{RPressed},
 \seep{SetMousePos}
 \end{procedure}
-\latex{\lstinputlisting{mouseex/mouse3.pp}}
-\html{\input{mouseex/mouse3.tex}}
+
+\FPCexample{mouse3}
+
 \begin{procedure}{HideMouse}
 \Declaration
 Procedure HideMouse ;
@@ -139,8 +173,9 @@ None.
 \SeeAlso
 \var{MouseFound} variable.
 \end{procedure}
-\latex{\lstinputlisting{mouseex/mouse1.pp}}
-\html{\input{mouseex/mouse1.tex}}
+
+\FPCexample{mouse1}
+
 \begin{function}{LPressed}
 \Declaration
 Function LPressed  : Boolean;
@@ -155,7 +190,9 @@ None.
 \SeeAlso
 \seep{GetMouseState}, \seef{MPressed}, \seef{RPressed}
 \end{function}
+
 For an example, see \seep{GetMouseState}.
+
 \begin{function}{MPressed}
 \Declaration
 Function MPressed  : Boolean;
@@ -170,7 +207,9 @@ None.
 \SeeAlso
 \seep{GetMouseState}, \seef{LPressed}, \seef{RPressed}
 \end{function}
+
 For an example, see \seep{GetMouseState}.
+
 \begin{function}{RPressed}
 \Declaration
 Function RPressed  : Boolean;
@@ -185,7 +224,9 @@ None.
 \SeeAlso
 \seep{GetMouseState}, \seef{LPressed}, \seef{MPressed}
 \end{function}
+
 For an example, see \seep{GetMouseState}.
+
 \begin{procedure}{SetMouseAscii}
 \Declaration
 Procedure SetMouseAscii (Ascii: Byte);
@@ -204,8 +245,9 @@ None
 \SeeAlso
 \seep{SetMouseShape}
 \end{procedure}
-\latex{\lstinputlisting{mouseex/mouse8.pp}}
-\html{\input{mouseex/mouse8.tex}}
+
+\FPCexample{mouse8}
+
 \begin{procedure}{SetMouseHideWindow}
 \Declaration
 Procedure SetMouseHideWindow (xmin,ymin,xmax,ymax: Longint);
@@ -231,8 +273,9 @@ None.
 \SeeAlso
 \seep{ShowMouse}, \seep{HideMouse}
 \end{procedure}
-\latex{nputlisting{mouseex/mouse9.pp}}
-\html{\input{mouseex/mouse9.tex}}
+
+\FPCexample{mouse9}
+
 \begin{procedure}{SetMousePos}
 \Declaration
 Procedure SetMousePos (x,y:Longint);
@@ -249,8 +292,9 @@ None.
 \SeeAlso
 \seep{GetMouseState}
 \end{procedure}
-\latex{\lstinputlisting{mouseex/mouse4.pp}}
-\html{\input{mouseex/mouse4.tex}}
+
+\FPCexample{mouse4}
+
 \begin{procedure}{SetMouseShape}
 \Declaration
 Procedure SetMouseShape (ForeColor,BackColor,Ascii: Byte);
@@ -268,8 +312,9 @@ None.
 \SeeAlso
 \seep{SetMouseAscii}
 \end{procedure}
-\latex{\lstinputlisting{mouseex/mouse7.pp}}
-\html{\input{mouseex/mouse7.tex}}
+
+\FPCexample{mouse7}
+
 \begin{procedure}{SetMouseSpeed}
 \Declaration
 Procedure SetMouseSpeed (Horizontal, Vertical: Longint);
@@ -289,8 +334,9 @@ None.
 \SeeAlso
 
 \end{procedure}
-\latex{\lstinputlisting{mouseex/mouse10.pp}}
-\html{\input{mouseex/mouse10.tex}}
+
+\FPCexample{mouse10}
+
 \begin{procedure}{SetMouseWindow}
 \Declaration
 Procedure SetMouseWindow (xmin,ymin,xmax,ymax: Longint);
@@ -311,7 +357,9 @@ None.
 \SeeAlso
 \seep{SetMouseXRange}, \seep{SetMouseYRange}
 \end{procedure}
+
 For an example, see \seep{SetMouseXRange}.
+
 \begin{procedure}{SetMouseXRange}
 \Declaration
 Procedure SetMouseXRange (Min, Max: Longint);
@@ -329,8 +377,9 @@ None.
 \SeeAlso
 \seep{SetMouseYRange}, \seep{SetMouseWindow}
 \end{procedure}
-\latex{\lstinputlisting{mouseex/mouse6.pp}}
-\html{\input{mouseex/mouse6.tex}}
+
+\FPCexample{mouse6}
+
 \begin{procedure}{SetMouseYRange}
 \Declaration
 Procedure SetMouseYRange (Min, Max: Longint);
@@ -348,7 +397,9 @@ None.
 \SeeAlso
 \seep{SetMouseXRange}, \seep{SetMouseWindow}
 \end{procedure}
+
 For an example, see \seep{SetMouseXRange}.
+
 \begin{procedure}{ShowMouse}
 \Declaration
 Procedure ShowMouse ;
@@ -363,6 +414,6 @@ None.
 \SeeAlso
 \seep{HideMouse},\seep{SetMouseHideWindow}
 \end{procedure}
-\latex{\lstinputlisting{mouseex/mouse2.pp}}
-\html{\input{mouseex/mouse2.tex}}
+
+\FPCexample{mouse2}
 
