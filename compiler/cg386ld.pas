@@ -921,7 +921,10 @@ implementation
                         end
                        else
                         if is_ansistring(lt) then
-                         vtype:=vtAnsiString;
+                         begin
+                           vtype:=vtAnsiString;
+                           freetemp:=false;
+                         end;
                      end;
                  end;
                  if vtype=$ff then
@@ -949,7 +952,9 @@ implementation
                        emit_lea_loc_ref(hp^.left^.location,href,freetemp);
                      end
                     else
-                     emit_mov_loc_ref(hp^.left^.location,href,S_L);
+                     begin
+                       emit_mov_loc_ref(hp^.left^.location,href,S_L,freetemp);
+                     end;
                     { update href to the vtype field and write it }
                     dec(href.offset,4);
                     emit_const_ref(A_MOV,S_L,vtype,newreference(href));
@@ -962,11 +967,11 @@ implementation
                begin
                  case elesize of
                    1 :
-                     emit_mov_loc_ref(hp^.left^.location,href,S_B);
+                     emit_mov_loc_ref(hp^.left^.location,href,S_B,freetemp);
                    2 :
-                     emit_mov_loc_ref(hp^.left^.location,href,S_W);
+                     emit_mov_loc_ref(hp^.left^.location,href,S_W,freetemp);
                    4 :
-                     emit_mov_loc_ref(hp^.left^.location,href,S_L);
+                     emit_mov_loc_ref(hp^.left^.location,href,S_L,freetemp);
                    else
                      internalerror(87656781);
                  end;
@@ -982,7 +987,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.104  2000-03-19 08:14:17  peter
+  Revision 1.105  2000-03-19 11:55:08  peter
+    * fixed temp ansi handling within array constructor
+
+  Revision 1.104  2000/03/19 08:14:17  peter
     * small order change for array of const which allows better optimization
 
   Revision 1.103  2000/03/01 15:36:11  florian

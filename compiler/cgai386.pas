@@ -66,7 +66,7 @@ unit cgai386;
 
     procedure emitcall(const routine:string);
 
-    procedure emit_mov_loc_ref(const t:tlocation;const ref:treference;siz:topsize);
+    procedure emit_mov_loc_ref(const t:tlocation;const ref:treference;siz:topsize;freetemp:boolean);
     procedure emit_mov_loc_reg(const t:tlocation;reg:tregister);
     procedure emit_mov_ref_reg64(r : treference;rl,rh : tregister);
     procedure emit_lea_loc_ref(const t:tlocation;const ref:treference;freetemp:boolean);
@@ -416,7 +416,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
       end;
 
 
-    procedure emit_mov_loc_ref(const t:tlocation;const ref:treference;siz:topsize);
+    procedure emit_mov_loc_ref(const t:tlocation;const ref:treference;siz:topsize;freetemp:boolean);
       var
         hreg : tregister;
         pushedeax : boolean;
@@ -478,7 +478,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                  (JM)}
                                del_reference(ref);
                              end;
-                           ungetiftemp(t.reference);
+                           if freetemp then
+                            ungetiftemp(t.reference);
                          end;
         else
          internalerror(330);
@@ -3833,7 +3834,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.87  2000-03-19 08:17:36  peter
+  Revision 1.88  2000-03-19 11:55:08  peter
+    * fixed temp ansi handling within array constructor
+
+  Revision 1.87  2000/03/19 08:17:36  peter
     * tp7 fix
 
   Revision 1.86  2000/03/01 15:36:11  florian

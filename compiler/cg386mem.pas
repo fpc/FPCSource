@@ -638,7 +638,7 @@ implementation
                         hightree:=genloadnode(pvarsym(srsym),p^.left^.symtable);
                         firstpass(hightree);
                         secondpass(hightree);
-                        emit_mov_loc_ref(hightree^.location,href,S_L);
+                        emit_mov_loc_ref(hightree^.location,href,S_L,true);
                         disposetree(hightree);
                       end;
                      emitrangecheck(p^.right,p^.left^.resulttype);
@@ -942,7 +942,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.72  2000-02-18 20:53:14  pierre
+  Revision 1.73  2000-03-19 11:55:08  peter
+    * fixed temp ansi handling within array constructor
+
+  Revision 1.72  2000/02/18 20:53:14  pierre
     * fixes a stabs problem for functions
     + includes a stabs local var for with statements
       the name is with in lowercase followed by an index
