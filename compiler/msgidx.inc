@@ -186,6 +186,7 @@ type tmsgconst=(
   parser_e_division_by_zero,
   parser_e_invalid_float_operation,
   parser_e_array_lower_less_than_upper_bound,
+  parser_e_string_larger_array,
   type_e_mismatch,
   type_e_integer_expr_expected,
   type_e_ordinal_expr_expected,

@@ -202,7 +202,7 @@ unit ptconst;
               else
                 if (ppointerdef(def)^.definition^.deftype=orddef) and
                    (porddef(ppointerdef(def)^.definition)^.typ=uchar) and
-		   (p^.treetype<>addrn) then
+                   (p^.treetype<>addrn) then
                   begin
                     getdatalabel(ll);
                     datasegment^.concat(new(pai_const,init_symbol(strpnew(lab2str(ll)))));
@@ -258,7 +258,7 @@ unit ptconst;
                                       Message(cg_e_illegal_expression);
                                       {internalerror(9779);}
                                  end;
-                                 
+
                                subscriptn : inc(offset,hp^.vs^.address)
                              else
                                Message(cg_e_illegal_expression);
@@ -483,6 +483,8 @@ unit ptconst;
                     consume(RKLAMMER);
                  end
               else
+              { if array of char then we allow also a string }
+               if is_char(parraydef(def)^.definition) then
                 begin
                    p:=comp_expr(true);
                    do_firstpass(p);
@@ -507,7 +509,10 @@ unit ptconst;
                      if is_constcharnode(p) then
                        s:=char(byte(p^.value))
                    else
-                     Message(cg_e_illegal_expression);
+                     begin
+                       Message(cg_e_illegal_expression);
+                       s:='';
+                     end;
                    disposetree(p);
                    l:=length(s);
                    for i:=Parraydef(def)^.lowrange to Parraydef(def)^.highrange do
@@ -522,8 +527,13 @@ unit ptconst;
                           datasegment^.concat(new(pai_const,init_8bit(0)));
                      end;
                    if length(s)>0 then
-                     Message(parser_e_invalid_string_size);
-                 end;
+                     Message(parser_e_string_larger_array);
+                end
+              else
+                begin
+                  { we want the ( }
+                  consume(LKLAMMER);
+                end;
            end;
          procvardef:
            begin
@@ -692,7 +702,10 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.35  1999-01-20 14:09:28  pierre
+  Revision 1.36  1999-02-17 10:15:26  peter
+    * fixed error messages when parsing typed const array
+
+  Revision 1.35  1999/01/20 14:09:28  pierre
    * fix to bug0191
 
   Revision 1.34  1999/01/05 08:20:08  florian
