@@ -1044,6 +1044,15 @@ Begin
                 { check if we can move the old base to the index register }
                 if (opr.ref.index<>R_NO) then
                  Message(asmr_e_wrong_base_index)
+                else if assigned(procinfo^._class) and
+                  (oldbase=self_pointer) and
+                  (opr.ref.base=self_pointer) then
+                  begin
+                    Message(asmr_w_possible_object_field_bug);
+                    { warn but accept... who knows what people
+                      caninvent in assembler ! }
+                    opr.ref.index:=oldbase;
+                  end
                 else
                  opr.ref.index:=oldbase;
               end
@@ -1805,7 +1814,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.62  2000-03-27 21:18:55  pierre
+  Revision 1.63  2000-03-28 22:11:48  pierre
+   + add a warning if esi is base and index in object assembler code
+
+  Revision 1.62  2000/03/27 21:18:55  pierre
     * "segss" prefix in Intel is converted into "ss" in ATT
       and vice-versa. Fixes web bug 892.
 

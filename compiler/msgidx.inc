@@ -354,6 +354,7 @@ type tmsgconst=(
   asmr_e_local_para_unreachable,
   asmr_e_local_label_not_allowed_as_ref,
   asmr_e_wrong_base_index,
+  asmr_w_possible_object_field_bug,
   asmr_e_wrong_scale_factor,
   asmr_e_multiple_index,
   asmr_e_invalid_operand_type,

@@ -1306,6 +1306,9 @@ asmr_e_local_label_not_allowed_as_ref=E_Local symbols/labels aren't allowed as r
 % You can't use local symbols/labels as references
 asmr_e_wrong_base_index=E_Invalid base and index register usage
 % There is an error with the base and index register
+asmr_w_possible_object_field_bug=W_Possible error in object field handling
+% Fields of objects or classes can be reached directly in normal or objfpc
+% modes but TP and Delphi modes treat the field name as a simple offset.
 asmr_e_wrong_scale_factor=E_Wrong scale factor specified
 % The scale factor given is wrong, only 1,2,4 and 8 are allowed
 asmr_e_multiple_index=E_Multiple index register usage
