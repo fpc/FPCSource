@@ -1026,7 +1026,7 @@
                   savesize:=1;
 
                 u16bit,s16bit,
-                bool16bit:
+                bool16bit,uwidechar:
                   savesize:=2;
 
                 s32bit,u32bit,
@@ -1130,6 +1130,8 @@
             bool8bit:
               rttilist^.concat(new(pai_const,init_8bit(tkBool)));
             uchar:
+              rttilist^.concat(new(pai_const,init_8bit(tkWChar)));
+            uwidechar:
               rttilist^.concat(new(pai_const,init_8bit(tkChar)));
             else
               rttilist^.concat(new(pai_const,init_8bit(tkInteger)));
@@ -1152,7 +1154,7 @@
         names : array[tbasetype] of string[20] = ('<unknown type>',
           'untyped','Char','Byte','Word','DWord','ShortInt',
           'SmallInt','LongInt','Boolean','WordBool',
-          'LongBool','QWord','Int64');
+          'LongBool','QWord','Int64','WideChar');
 
       begin
          gettypename:=names[typ];
@@ -3841,7 +3843,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.180  1999-12-06 18:21:03  peter
+  Revision 1.181  1999-12-18 14:55:21  florian
+    * very basic widestring support
+
+  Revision 1.180  1999/12/06 18:21:03  peter
     * support !ENVVAR for long commandlines
     * win32/go32v2 write short pathnames to link.res so c:\Program Files\ is
       finally supported as installdir.

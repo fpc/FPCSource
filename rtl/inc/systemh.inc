@@ -81,6 +81,9 @@ Type
 { Zero - terminated strings }
   PChar       = ^Char;
   PPChar      = ^PChar;
+{$ifdef HASWIDECHAR}
+  PWideChar = ^WideChar;
+{$endif HASWIDECHAR}
 
 { procedure type }
   TProcedure  = Procedure;
@@ -402,7 +405,10 @@ const
 
 {
   $Log$
-  Revision 1.70  1999-12-12 13:29:34  jonas
+  Revision 1.71  1999-12-18 14:55:05  florian
+    * very basic widestring support
+
+  Revision 1.70  1999/12/12 13:29:34  jonas
     * remove "random(longint): longint" if cardinalmulfixed is defined
 
   Revision 1.69  1999/12/01 12:37:13  jonas

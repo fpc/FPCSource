@@ -1131,6 +1131,7 @@ begin
   def_symbol('SYSTEMTVARREC');
   def_symbol('INCLUDEOK');
   def_symbol('NEWMM');
+  def_symbol('HASWIDECHAR');
 {$ifdef FPC_USE_CPREFIX}
   { default on next round }
   def_symbol('FPC_USE_CPREFIX');
@@ -1338,7 +1339,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.42  1999-12-11 18:53:31  jonas
+  Revision 1.43  1999-12-18 14:55:21  florian
+    * very basic widestring support
+
+  Revision 1.42  1999/12/11 18:53:31  jonas
     * fixed type conversions of results of operations with cardinals
       (between -dcardinalmulfix)
 

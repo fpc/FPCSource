@@ -50,7 +50,7 @@ type
     u8bit,u16bit,u32bit,
     s8bit,s16bit,s32bit,
     bool8bit,bool16bit,bool32bit,
-    u64bit,s64bit
+    u64bit,s64bit,uwidechar
   );
 
   { float types }
@@ -212,7 +212,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  1999-11-30 10:40:54  peter
+  Revision 1.8  1999-12-18 14:55:21  florian
+    * very basic widestring support
+
+  Revision 1.7  1999/11/30 10:40:54  peter
     + ttype, tsymlist
 
   Revision 1.6  1999/11/17 17:05:04  pierre

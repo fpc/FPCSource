@@ -116,6 +116,9 @@ Procedure Rewrite(var f : TypedFile); [INTERNPROC: In_Rewrite_TypedFile];
 
 {$i astrings.inc}
 
+{$ifdef haswidechar}
+{$i wstrings.inc}
+{$endif haswidechar}
 
 {****************************************************************************
                          Run-Time Type Information (RTTI)
@@ -590,7 +593,10 @@ end;
 
 {
   $Log$
-  Revision 1.75  1999-12-12 13:29:34  jonas
+  Revision 1.76  1999-12-18 14:54:34  florian
+    * very basic widestring support
+
+  Revision 1.75  1999/12/12 13:29:34  jonas
     * remove "random(longint): longint" if cardinalmulfixed is defined
 
   Revision 1.74  1999/12/01 12:37:13  jonas

@@ -300,6 +300,7 @@ unit symtable;
        cformaldef : pformaldef;    { unique formal definition     }
        voiddef   : porddef;     { Pointer to Void (procedure)       }
        cchardef  : porddef;     { Pointer to Char                  }
+       cwidechardef : porddef;  { Pointer to WideChar }
        booldef   : porddef;     { pointer to boolean type          }
        u8bitdef  : porddef;     { Pointer to 8-Bit unsigned      }
        u16bitdef : porddef;     { Pointer to 16-Bit unsigned    }
@@ -2791,7 +2792,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.70  1999-12-02 11:28:27  peter
+  Revision 1.71  1999-12-18 14:55:21  florian
+    * very basic widestring support
+
+  Revision 1.70  1999/12/02 11:28:27  peter
     * moved verbose to implementation uses
 
   Revision 1.69  1999/12/01 22:32:35  pierre

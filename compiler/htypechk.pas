@@ -95,7 +95,7 @@ implementation
           (bvoid,bvoid,bchar,
            bint,bint,bint,
            bint,bint,bint,
-           bbool,bbool,bbool,bint,bint);
+           bbool,bbool,bbool,bint,bint,bchar);
 
         basedefconverts : array[tbasedef,tbasedef] of tconverttype =
          ((tc_not_possible,tc_not_possible,tc_not_possible,tc_not_possible),
@@ -847,7 +847,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.52  1999-12-16 19:12:04  peter
+  Revision 1.53  1999-12-18 14:55:21  florian
+    * very basic widestring support
+
+  Revision 1.52  1999/12/16 19:12:04  peter
     * allow constant pointer^ also for assignment
 
   Revision 1.51  1999/12/09 09:35:54  peter

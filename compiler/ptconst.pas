@@ -148,6 +148,11 @@ unit ptconst;
                                   Message(cg_e_illegal_expression);
                                 curconstsegment^.concat(new(pai_const,init_8bit(p^.value)));
                             end;
+                    uwidechar : begin
+                                if not is_constcharnode(p) then
+                                  Message(cg_e_illegal_expression);
+                                curconstsegment^.concat(new(pai_const,init_16bit(p^.value)));
+                            end;
                     u16bit,
                     s16bit : begin
                                 if not is_constintnode(p) then
@@ -764,7 +769,10 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.59  1999-11-30 10:40:51  peter
+  Revision 1.60  1999-12-18 14:55:21  florian
+    * very basic widestring support
+
+  Revision 1.59  1999/11/30 10:40:51  peter
     + ttype, tsymlist
 
   Revision 1.58  1999/11/08 18:50:11  florian

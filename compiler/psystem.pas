@@ -88,6 +88,7 @@ begin
   p^.insert(new(ptypesym,initdef('qword',cu64bitdef)));
   p^.insert(new(ptypesym,initdef('int64',cs64bitdef)));
   p^.insert(new(ptypesym,initdef('char',cchardef)));
+  p^.insert(new(ptypesym,initdef('widechar',cwidechardef)));
   p^.insert(new(ptypesym,initdef('shortstring',cshortstringdef)));
   p^.insert(new(ptypesym,initdef('longstring',clongstringdef)));
   p^.insert(new(ptypesym,initdef('ansistring',cansistringdef)));
@@ -139,6 +140,7 @@ begin
   p^.insert(new(ptypesym,initdef('WORDBOOL',new(porddef,init(bool16bit,0,1)))));
   p^.insert(new(ptypesym,initdef('LONGBOOL',new(porddef,init(bool32bit,0,1)))));
   p^.insert(new(ptypesym,initdef('CHAR',cchardef)));
+  p^.insert(new(ptypesym,initdef('WIDECHAR',cwidechardef)));
   p^.insert(new(ptypesym,initdef('TEXT',new(pfiledef,inittext))));
   p^.insert(new(ptypesym,initdef('CARDINAL',u32bitdef)));
   p^.insert(new(ptypesym,initdef('FIXED',new(pfloatdef,init(f32bit)))));
@@ -163,6 +165,7 @@ begin
   cformaldef:=pformaldef(globaldef('formal'));
   voiddef:=porddef(globaldef('void'));
   cchardef:=porddef(globaldef('char'));
+  cwidechardef:=porddef(globaldef('char'));
   cshortstringdef:=pstringdef(globaldef('shortstring'));
   clongstringdef:=pstringdef(globaldef('longstring'));
   cansistringdef:=pstringdef(globaldef('ansistring'));
@@ -202,6 +205,7 @@ begin
   cs64bitdef:=new(porddef,init(s64bit,0,0));
   booldef:=new(porddef,init(bool8bit,0,1));
   cchardef:=new(porddef,init(uchar,0,255));
+  cwidechardef:=new(porddef,init(uwidechar,0,65535));
   cshortstringdef:=new(pstringdef,shortinit(255));
   { should we give a length to the default long and ansi string definition ?? }
   clongstringdef:=new(pstringdef,longinit(-1));
@@ -237,7 +241,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.30  1999-11-30 10:40:51  peter
+  Revision 1.31  1999-12-18 14:55:21  florian
+    * very basic widestring support
+
+  Revision 1.30  1999/11/30 10:40:51  peter
     + ttype, tsymlist
 
   Revision 1.29  1999/11/06 14:34:23  peter
