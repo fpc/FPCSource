@@ -39,7 +39,8 @@ function NULLQUARK : TXrmQuark;
 type
 
    PXrmString = ^TXrmString;
-   TXrmString = char;
+   TXrmString = ^char;
+   
 function NULLSTRING : TXrmString;
 
 function XrmStringToQuark(para1:Pchar):TXrmQuark;cdecl;external libX11;
@@ -115,7 +116,7 @@ type
    PXrmHashBucket = ^TXrmHashBucket;
 
    PXrmHashTable = ^TXrmHashTable;
-   TXrmHashTable = TXrmHashBucket;
+   TXrmHashTable = ^TXrmHashBucket;
 
    TXrmDatabase = PXrmHashBucketRec;
    PXrmDatabase = ^TXrmDatabase;
