@@ -22,6 +22,10 @@
   *********************************************************************
 }
 Unit catch;
+
+{ go32v2 stack check goes nuts if ss is not the data selector (PM) }
+{$S-}
+
 interface
 uses
 {$ifdef linux}
@@ -33,6 +37,7 @@ uses
   dpmiexcp,
 {$endif}
   verbose;
+
 
 {$ifdef has_signal}
 Var
@@ -93,7 +98,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  1999-07-05 12:13:22  florian
+  Revision 1.8  1999-08-10 12:27:15  pierre
+   * not stack check inside catch !!
+
+  Revision 1.7  1999/07/05 12:13:22  florian
     * property reading from PPU fixed (new PPU format), it uses now writesym...
 
   Revision 1.6  1999/06/02 22:44:05  pierre
