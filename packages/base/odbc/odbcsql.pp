@@ -1056,7 +1056,7 @@ var    odbcversion:word;
 
 {$else}
 
-{$ifdef linux}
+{$ifdef unix}
 Const
   LibName = 'odbc';
 {$else}
@@ -1314,7 +1314,7 @@ type   TSQLConfigDataSource=function (
                lpszErrorMsg:    PCHAR;
                cbErrorMsgMax:   SQLUSMALLINT;
                pcbErrorMsg:     PSQLUSMALLINT): SQLRETURN;stdcall;
-{$ifndef linux}
+{$ifndef unix}
 function SQLConfigDataSource(
                hwndParent:       Integer;
                fRequest:         Integer;
@@ -1338,7 +1338,7 @@ procedure UnLoadOdbc;
 
 implementation
 
-{$ifndef linux}
+{$ifndef unix}
 uses Windows;
 {$endif}
 
@@ -1346,7 +1346,7 @@ uses Windows;
 {$HPPEMIT '#pragma comment(lib,"odbc32.lib")'}
 {$ENDIF}
 
-{$ifndef linux}
+{$ifndef unix}
 Var
 {$IFDEF DYNLOADINGODBC}
    OdbcHMODULE:  HMODULE;
@@ -1532,7 +1532,7 @@ begin
 
   OdbcHMODULE := 0;
 {$endif}
-{$ifndef linux}
+{$ifndef unix}
   if  OdbccpHMODULE <> 0 then
   begin
     if not FreeLibrary(OdbccpHMODULE) then
@@ -1551,7 +1551,7 @@ end;
 //               lpszDriverString: String;
 //               lpszAttributes:   String): Integer;stdcall;external 'ODBCCP32.DLL';
 
-{$ifndef linux}
+{$ifndef unix}
 function SQLConfigDataSource(
                              hwndParent:       Integer;
                              fRequest:         Integer;
