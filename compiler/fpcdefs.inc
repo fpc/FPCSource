@@ -8,6 +8,9 @@
     {$goto on}
     {$inline on}
 
+    { 1Mb stack }
+    {$M 1000000}
+
     { This reduces the memory requirements a lot }
     {$PACKENUM 1}
 
@@ -90,7 +93,10 @@
 
 {
   $Log$
-  Revision 1.30  2003-12-14 22:41:46  peter
+  Revision 1.31  2004-01-28 16:47:45  peter
+  Stacksize force to 1mb
+
+  Revision 1.30  2003/12/14 22:41:46  peter
     * USEOPT to override NOOPT for 1.0.x
 
   Revision 1.29  2003/12/14 20:20:14  peter
