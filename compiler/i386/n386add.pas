@@ -27,7 +27,7 @@ unit n386add;
 interface
 
     uses
-       node,nadd,cpubase;
+       node,nadd,cpubase,nx86add;
 
     type
        ti386addnode = class(tx86addnode)
@@ -1494,7 +1494,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.84  2003-10-13 01:58:03  florian
+  Revision 1.85  2003-10-13 09:38:22  florian
+    * fixed forgotten commit
+
+  Revision 1.84  2003/10/13 01:58:03  florian
     * some ideas for mm support implemented
 
   Revision 1.83  2003/10/10 17:48:14  peter
