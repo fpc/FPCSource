@@ -53,7 +53,7 @@ Implementation
 Function FreeLibrary(Lib : TLibHandle) : Boolean;
 
 begin
-  result:=FreeLibrary(lib);
+  Result:=UnloadLibrary(lib);
 end;
 
 Function GetProcAddress(Lib : TlibHandle; ProcName : AnsiString) : Pointer;
@@ -66,7 +66,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2004-05-04 17:14:52  marco
+  Revision 1.4  2004-06-12 13:30:33  michael
+  Fixed bug 3156, as suggested by Michalis Kamburelis
+
+  Revision 1.3  2004/05/04 17:14:52  marco
    * some delphi compat aliases added.
 
   Revision 1.2  2002/09/07 15:07:45  peter
