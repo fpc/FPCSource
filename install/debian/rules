@@ -171,6 +171,7 @@ fp-rtl fp-fcl fp-gtk fp-fv fp-api fp-extra: installbin
 	@echo "--- Building: $@"
 	dh_installdocs		-p$@ -P$(BUILD_DIR)/$@
 	dh_installchangelogs	-p$@ -P$(BUILD_DIR)/$@
+	dh_installexamples	-p$@ -P$(BUILD_DIR)/$@
 	dh_movefiles		-p$@ -P$(BUILD_DIR)/$@
 	dh_compress		-p$@ -P$(BUILD_DIR)/$@
 	dh_fixperms		-p$@ -P$(BUILD_DIR)/$@
