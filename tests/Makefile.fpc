@@ -61,6 +61,16 @@ units/$(FPCMADE):
 DOTEST=./dotest$(EXEEXT)
 $(DOTEST) : units utils/dotest.pp utils/redir.pp utils/teststr.pp
         $(FPC) -n -Fuunits -FE. utils/dotest.pp
+        $(FPC) -n -Fuunits -FE. utils/fail.pp
+        $(FPC) -n -Fuunits -FE. utils/testfail.pp
+
+ifneq ($(wildcard ./testfail$(SRCEXEEXT)),)
+TESTCOMSPECRES:=$(shell ./testfail$(SRCEXEEXT))
+endif
+
+ifneq ($(TESTCOMSPECRES),)
+NOCOMSPEC=1
+endif
 
 DIGEST=./digest$(EXEEXT)
 $(DIGEST) : units utils/digest.pp utils/teststr.pp
@@ -87,7 +97,11 @@ override DOTESTOPT+=-i
 endif
 
 ifdef DOALL
-override DOTESTOPT=-a
+override DOTESTOPT+=-a
+endif
+
+ifdef NOCOMSPEC
+override DOTESTOPT+=-x
 endif
 
 
@@ -180,7 +194,7 @@ endif
         $(MAKE) -C units clean
 
 distclean: clean
-        -rm -f dotest$(EXEEXT) digest$(EXEEXT) 
+        -rm -f dotest$(EXEEXT) digest$(EXEEXT)
 
 #
 # Main rules
@@ -215,7 +229,10 @@ info :
         @echo "  onlyknown - run only known bugs"
         @echo "  onlygraph - run only graph tests"
         @echo "  onlyinteractive - run only interactive tests"
-        @echo Done using FPC=$(FPC)
+	@echo Done using FPC=$(FPC)
+ifdef COMSPEC
+	@echo And using COMSPEC=$(COMSPEC)
+endif
 
 override DATESUFFIX:=$(shell $(DATE) +%Y.%m.%d)
 
