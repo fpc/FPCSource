@@ -55,7 +55,7 @@ interface
        ttarget = (target_none,
             target_i386_GO32V1,target_i386_GO32V2,target_i386_linux,
               target_i386_OS2,target_i386_Win32,target_i386_freebsd,
-              target_i386_Netware,target_i386_sunos,
+              target_i386_Netware,target_i386_sunos,target_i386_beos,
             target_m68k_Amiga,target_m68k_Atari,target_m68k_Mac,
               target_m68k_linux,target_m68k_PalmOS,
             target_alpha_linux,
@@ -76,7 +76,7 @@ interface
        tld = (ld_none,
             ld_i386_GO32V1,ld_i386_GO32V2,ld_i386_linux,
               ld_i386_OS2,ld_i386_Win32,ld_i386_freebsd,
-              ld_i386_Netware,ld_i386_sunos,
+              ld_i386_Netware,ld_i386_sunos,ld_i386_beos,
             ld_m68k_Amiga,ld_m68k_Atari,ld_m68k_Mac,
               ld_m68k_linux,ld_m68k_PalmOS,
             ld_alpha_linux,
@@ -139,6 +139,7 @@ interface
           flags        : set of ttargetflags;
           cpu          : ttargetcpu;
           unit_env     : string[12];
+          extradefines : string[40];
           sharedlibext : string[10];
           staticlibext,
           sourceext,
@@ -572,7 +573,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.16  2001-04-18 22:02:00  peter
+  Revision 1.17  2001-06-02 19:21:45  peter
+    * extradefines field added to target_info, so that targets don't
+      need to put code in options.pas for it
+
+  Revision 1.16  2001/04/18 22:02:00  peter
     * registration of targets and assemblers
 
   Revision 1.15  2001/03/06 18:28:02  peter

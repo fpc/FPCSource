@@ -707,19 +707,6 @@ begin
                       more:=Upper(More);
                       if not target_is_set then
                        begin
-                         {Remove non core targetname extra defines}
-                         case target_info.target of
-                          target_i386_freebsd :
-                            begin
-                              undef_symbol('LINUX');
-                              undef_symbol('BSD');
-                              undef_symbol('UNIX');
-                            end;
-                          target_i386_linux :
-                            begin
-                              undef_symbol('UNIX');
-                            end;
-                         end;
                          { remove old target define }
                          undef_symbol(upper(target_info.shortname));
                          { Save assembler if set }
@@ -1254,6 +1241,8 @@ end;
 procedure read_arguments(cmd:string);
 var
   configpath : pathstr;
+  s : string;
+  i : integer;
 begin
   option:=coption.create;
   disable_configfile:=false;
@@ -1417,25 +1406,15 @@ begin
    StopOptions;
 
   { Non-core target defines }
-  case target_info.target of
-    target_i386_freebsd :
-      begin
-        def_symbol('LINUX'); { Hack: Linux define is also needed for freebsd (MvdV) }
-        def_symbol('BSD');
-        def_symbol('UNIX');
-      end;
-    target_i386_linux :
-      begin
-        def_symbol('UNIX');
-      end;
-    target_i386_sunos :
-      begin
-        def_symbol('UNIX');
-        def_symbol('SOLARIS');
-        def_symbol('LIBC');
-        def_symbol('SUNOS');
-      end;
-  end;
+  s:=target_info.extradefines;
+  while (s<>'') do
+   begin
+     i:=pos(';',s);
+     if i=0 then
+      i:=length(s)+1;
+     def_symbol(Copy(s,1,i-1));
+     delete(s,1,i);
+   end;
 
   { endian define }
   case target_info.endian of
@@ -1561,7 +1540,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.42  2001-05-18 22:28:59  peter
+  Revision 1.43  2001-06-02 19:21:45  peter
+    * extradefines field added to target_info, so that targets don't
+      need to put code in options.pas for it
+
+  Revision 1.42  2001/05/18 22:28:59  peter
     * endian define
 
   Revision 1.41  2001/05/12 12:11:31  peter
