@@ -912,7 +912,7 @@ implementation
             linkcmd : '-o $EXE @$RES';
             binders : 1;
             bindbin : ('emxbind','');
-            bindcmd : ('-b $STRIP -k$STACKKB -h$HEAPMB -o $EXE.exe $EXE -aim -s$DOSHEAPKB',
+            bindcmd : ('-b $STRIP$PM -k$STACKKB -h$HEAPMB -o $EXE.exe $EXE -aim -s$DOSHEAPKB',
                        '');
             stripopt   : '-s';
             stripbind  : true;
@@ -1734,7 +1734,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.92  1999-09-07 15:02:41  pierre
+  Revision 1.93  1999-09-15 20:24:56  daniel
+  + Dw switch now does something.
+
+  Revision 1.92  1999/09/07 15:02:41  pierre
    * powerpc default was alpha !!
 
   Revision 1.91  1999/08/16 15:35:29  pierre

@@ -638,6 +638,12 @@ begin
        Replace (S, '$STRIP', Target_Link.StripOpt)
      else
        Replace (S, '$STRIP', '');
+     {This is a hack. But I don't think other platforms have a presenation
+      manager, so it should work. (DM)}
+     if usewindowapi then
+       replace (s, '$PM',' -p')
+     else
+       replace (s, '$PM','');
      if utilsdirectory<>'' then
        begin
           bindbin:=Search(target_link.bindbin[ii]+source_os.exeext,
@@ -779,7 +785,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.68  1999-08-18 17:05:53  florian
+  Revision 1.69  1999-09-15 20:24:56  daniel
+  + Dw switch now does something.
+
+  Revision 1.68  1999/08/18 17:05:53  florian
     + implemented initilizing of data for the new code generator
       so it should compile now simple programs
 
