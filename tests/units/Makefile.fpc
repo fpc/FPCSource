@@ -13,13 +13,19 @@ fpcdir=../..
 [rules]
 .PHONY: rtl fcl clean
 
+ifneq ($(findstring 1.0.,$(FPC_VERSION)),)
+INSTALLOPT=UNITINSTALLDIR=$(BASEDIR)
+else
+INSTALLOPT=INSTALL_UNITDIR=$(BASEDIR)
+endif
+
 rtl:
-        $(MAKE) -C ../../rtl/$(OS_TARGET) all
-        $(MAKE) -C ../../rtl/$(OS_TARGET) install INSTALL_UNITDIR=$(BASEDIR)
+        $(MAKE) -C ../../rtl all
+        $(MAKE) -C ../../rtl install $(INSTALLOPT)
 
 fcl:
-        $(MAKE) -C ../../fcl/$(OS_TARGET) all
-        $(MAKE) -C ../../fcl/$(OS_TARGET) install INSTALL_UNITDIR=$(BASEDIR)
+        $(MAKE) -C ../../fcl all
+        $(MAKE) -C ../../fcl install $(INSTALLOPT)
 
 clean : cleanall
 
