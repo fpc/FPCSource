@@ -833,8 +833,17 @@ begin
     end
   else if NewCapacity<FCapacity then
     begin
-    NewList:=Flist+NewCapacity*SizeOf(TStringItem);
-    FreeMem (NewList, (FCapacity-NewCapacity)*SizeOf(TStringItem));
+    if NewCapacity = 0 then
+    begin
+      FreeMem(FList);
+      FList := nil;
+    end else
+    begin
+      GetMem(NewList, NewCapacity * SizeOf(TStringItem));
+      System.Move(FList^, NewList^, NewCapacity * SizeOf(TStringItem));
+      FreeMem(FList);
+      FList := NewList;
+    end;
     FCapacity:=NewCapacity;
     end;
 end;
@@ -1010,7 +1019,11 @@ end;
 
 {
   $Log$
-  Revision 1.1.2.4  2001-02-23 22:22:28  michael
+  Revision 1.1.2.5  2001-04-08 11:17:57  sg
+  * Fixed TStringList.SetCapacity for NewCapacity<OldCapacity. The old
+    implementation was horribly wrong...
+
+  Revision 1.1.2.4  2001/02/23 22:22:28  michael
   + Fixed sorting of stringslist
 
   Revision 1.1.2.3  2001/01/10 16:58:25  sg
