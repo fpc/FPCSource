@@ -123,6 +123,7 @@ unit aasm;
        plabel = ^tlabel;
        tlabel = record
                   nb       : longint;
+                  is_data  : boolean;
                   is_used  : boolean;
                   is_set   : boolean;
                   refcount : word;
@@ -285,6 +286,8 @@ type
     function lab2str(l : plabel) : string;
     { make l as a new label }
     procedure getlabel(var l : plabel);
+    { make l as a new label and flag is_data }
+    procedure getdatalabel(var l : plabel);
     { frees the label if unused }
     procedure freelabel(var l : plabel);
     { make a new zero label }
@@ -585,18 +588,15 @@ uses
           typ:=ait_label;
           l:=_l;
           l^.is_set:=true;
-          { suggestion of JM:
-            inc(l^.refcount); }
        end;
 
     destructor tai_label.done;
 
       begin
-         { suggestion of JM:
-         dec(l^.refcount);  }
          if (l^.is_used) then
            l^.is_set:=false
-         else dispose(l);
+         else
+           dispose(l);
          inherited done;
       end;
 
@@ -751,15 +751,20 @@ uses
     function lab2str(l : plabel) : string;
       begin
          if (l=nil) or (l^.nb=0) then
+           begin
 {$ifdef EXTDEBUG}
-           lab2str:='ILLEGAL'
-         else
-           lab2str:=target_asm.labelprefix+tostr(l^.nb);
+             lab2str:='ILLEGAL'
 {$else EXTDEBUG}
-         internalerror(2000);
-         lab2str:=target_asm.labelprefix+tostr(l^.nb);
+             internalerror(2000);
 {$endif EXTDEBUG}
-         { was missed: }
+           end
+         else
+           begin
+             if (l^.is_data) and (cs_smartlink in aktswitches) then
+              lab2str:='_$'+current_module^.modulename^+'$_L'+tostr(l^.nb)
+             else
+              lab2str:=target_asm.labelprefix+tostr(l^.nb);
+           end;
          inc(l^.refcount);
          l^.is_used:=true;
       end;
@@ -771,6 +776,19 @@ uses
          l^.nb:=nextlabelnr;
          l^.is_used:=false;
          l^.is_set:=false;
+         l^.is_data:=false;
+         l^.refcount:=0;
+         inc(nextlabelnr);
+      end;
+
+
+    procedure getdatalabel(var l : plabel);
+      begin
+         new(l);
+         l^.nb:=nextlabelnr;
+         l^.is_used:=false;
+         l^.is_set:=false;
+         l^.is_data:=true;
          l^.refcount:=0;
          inc(nextlabelnr);
       end;
@@ -791,6 +809,7 @@ uses
            nb:=0;
            is_used:=false;
            is_set:=false;
+           is_data:=false;
            refcount:=0;
          end;
       end;
@@ -802,6 +821,7 @@ uses
          l^.nb:=0;
          l^.is_used:=false;
          l^.is_set:=false;
+         l^.is_data:=false;
          l^.refcount:=0;
       end;
 
@@ -817,7 +837,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.9  1998-06-04 23:51:26  peter
+  Revision 1.10  1998-06-08 22:59:41  peter
+    * smartlinking works for win32
+    * some defines to exclude some compiler parts
+
+  Revision 1.9  1998/06/04 23:51:26  peter
     * m68k compiles
     + .def file creation moved to gendef.pas so it could also be used
       for win32

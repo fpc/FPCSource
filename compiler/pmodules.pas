@@ -39,7 +39,7 @@ unit pmodules;
     uses
        cobjects,verbose,systems,globals,
        symtable,aasm,hcodegen,
-       link,assemble
+       link,assemble,import
 {$ifdef i386}
        ,i386
 {$endif}
@@ -63,6 +63,15 @@ unit pmodules;
       end;
 
     procedure insertsegment;
+
+        procedure fixseg(p:paasmoutput;sec:tsection);
+        begin
+          p^.insert(new(pai_section,init(sec)));
+          if (cs_smartlink in aktswitches) then
+           p^.insert(new(pai_cut,init));
+          p^.concat(new(pai_section,init(sec_none)));
+        end;
+
       begin
       {Insert Ident of the compiler}
         if (not (cs_smartlink in aktswitches))
@@ -75,15 +84,10 @@ unit pmodules;
            datasegment^.insert(new(pai_string,init('FPC '+version_string+' for '+target_string+' - '+target_info.short_name)));
          end;
       { Insert start and end of sections }
-        codesegment^.insert(new(pai_section,init(sec_code)));
-        codesegment^.concat(new(pai_section,init(sec_none)));
-        datasegment^.insert(new(pai_section,init(sec_data)));
-        datasegment^.concat(new(pai_section,init(sec_none)));
-        bsssegment^.insert(new(pai_section,init(sec_bss)));
-        bsssegment^.concat(new(pai_section,init(sec_none)));
-        consts^.insert(new(pai_asm_comment,init('Constants')));
-        consts^.insert(new(pai_section,init(sec_data)));
-        consts^.concat(new(pai_section,init(sec_none)));
+        fixseg(codesegment,sec_code);
+        fixseg(datasegment,sec_data);
+        fixseg(bsssegment,sec_bss);
+        fixseg(consts,sec_data);
       end;
 
     procedure insertheap;
@@ -101,14 +105,11 @@ unit pmodules;
           not output a pointer }
          case target_info.target of
 {$ifdef i386}
-
           target_OS2 : ;
 {$endif i386}
 {$ifdef m68k}
-
        target_Mac68K : bsssegment^.concat(new(pai_datablock,init_global('HEAP',4)));
 {$endif m68k}
-
          else
            bsssegment^.concat(new(pai_datablock,init_global('HEAP',heapsize)));
          end;
@@ -122,7 +123,6 @@ unit pmodules;
         i : longint;
       begin
 {$ifdef i386}
-
         case target_info.target of
        target_GO32V2 : begin
                        { stacksize can be specified }
@@ -130,14 +130,17 @@ unit pmodules;
                          datasegment^.concat(new(pai_const,init_32bit(stacksize)));
                        end;
         target_WIN32 : begin
-                       { generate the last entry for the imports directory }
-                         if not(assigned(importssection)) then
+                       { Generate an external entry to be sure that _mainCRTStarup will be
+                         linked, can't use concat_external because those aren't written for
+                         asw (PFV) }
+                         datasegment^.concat(new(pai_const,init_symbol('_mainCRTStartup')));
+                       { generate the last entry for the imports directory, is done
+                         in the ld script }
+                       {  if not(assigned(importssection)) then
                            importssection:=new(paasmoutput,init);
-                       { $3 ensure that it is the last entry, all other entries }
-                       { are written to $2                                      }
                          importssection^.concat(new(pai_section,init_idata(3)));
                          for i:=1 to 5 do
-                           importssection^.concat(new(pai_const,init_32bit(0)));
+                           importssection^.concat(new(pai_const,init_32bit(0))); }
                        end;
         end;
 {$endif i386}
@@ -845,6 +848,11 @@ unit pmodules;
               pu:=pused_unit(pu^.next);
            end;
          inc(datasize,symtablestack^.datasize);
+
+         { generate imports }
+         if current_module^.uses_imports then
+          importlib^.generatelib;
+
          { finish asmlist by adding segment starts }
          insertsegment;
       end;
@@ -967,7 +975,13 @@ unit pmodules;
          else
           current_module^.linkofiles.insert(current_module^.objfilename^);
 
+         { insert heap }
          insertheap;
+
+         { generate imports }
+         if current_module^.uses_imports then
+          importlib^.generatelib;
+
          inserttargetspecific;
 
          datasize:=symtablestack^.datasize;
@@ -979,7 +993,11 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.24  1998-06-08 13:13:44  pierre
+  Revision 1.25  1998-06-08 22:59:49  peter
+    * smartlinking works for win32
+    * some defines to exclude some compiler parts
+
+  Revision 1.24  1998/06/08 13:13:44  pierre
     + temporary variables now in temp_gen.pas unit
       because it is processor independent
     * mppc68k.bat modified to undefine i386 and support_mmx
@@ -999,8 +1017,6 @@ end.
 
   Revision 1.20  1998/06/04 09:55:42  pierre
     * demangled name of procsym reworked to become independant of the mangling scheme
-
-  Come test_funcret improvements (not yet working)S: ----------------------------------------------------------------------
 
   Revision 1.19  1998/06/03 23:40:38  peter
     + unlimited file support, release tempclose

@@ -39,42 +39,42 @@ unit pstatmnt;
   implementation
 
     uses
-       cobjects,scanner,globals,symtable,aasm,pass_1,
-       types,hcodegen,files,verbose,systems
+       cobjects,globals,files,verbose,systems,
+       symtable,aasm,pass_1,types,scanner,hcodegen
 {$ifdef NEWPPU}
        ,ppu
 {$endif}
-       { processor specific stuff }
+       ,pbase,pexpr,pdecl
 {$ifdef i386}
-       ,i386
+       ,i386,tgeni386
+  {$ifndef NoRa386Int}
        ,rai386
+  {$endif NoRa386Int}
+  {$ifndef NoRa386Att}
        ,ratti386
+  {$endif NoRa386Att}
+  {$ifndef NoRa386Dir}
        ,radi386
-       ,tgeni386
-{$endif}
+  {$endif NoRa386Dir}
+{$endif i386}
 {$ifdef m68k}
-       ,m68k
-       ,tgen68k
-       ,ag68kmit
+       ,m68k,tgen68k
+  {$ifndef NoRa68kMot}
        ,ra68k
-       ,ag68kgas
-       ,ag68kmot
-{$endif}
-       { parser specific stuff, be careful consume is also defined to }
-       { read assembler tokens                                        }
-       ,pbase,pexpr,pdecl;
+  {$endif NoRa68kMot}
+{$endif m68k}
+       ;
+
 
     const
-
       statement_level : longint = 0;
 
     function statement : ptree;forward;
 
-    function if_statement : ptree;
 
+    function if_statement : ptree;
       var
          ex,if_a,else_a : ptree;
-
       begin
          consume(_IF);
          ex:=comp_expr(true);
@@ -257,6 +257,7 @@ unit pstatmnt;
          case_statement:=code;
       end;
 
+
     function repeat_statement : ptree;
 
       var
@@ -293,6 +294,7 @@ unit pstatmnt;
          repeat_statement:=genloopnode(repeatn,p_e,first,nil,false);
       end;
 
+
     function while_statement : ptree;
 
       var
@@ -305,6 +307,7 @@ unit pstatmnt;
          p_a:=statement;
          while_statement:=genloopnode(whilen,p_e,p_a,nil,false);
       end;
+
 
     function for_statement : ptree;
 
@@ -333,6 +336,7 @@ unit pstatmnt;
          p_a:=statement;
          for_statement:=genloopnode(forn,p_e,tovalue,p_a,backward);
       end;
+
 
     function _with_statement : ptree;
 
@@ -434,12 +438,14 @@ unit pstatmnt;
          _with_statement:=genwithnode(withsymtable,p,right,levelcount);
       end;
 
+
     function with_statement : ptree;
 
       begin
          consume(_WITH);
          with_statement:=_with_statement;
       end;
+
 
     function raise_statement : ptree;
 
@@ -466,6 +472,7 @@ unit pstatmnt;
            end;
          raise_statement:=gennode(raisen,p1,p2);
       end;
+
 
     function try_statement : ptree;
 
@@ -558,6 +565,7 @@ unit pstatmnt;
            end;
       end;
 
+
     function exit_statement : ptree;
 
       var
@@ -581,11 +589,9 @@ unit pstatmnt;
       end;
 
 
-{$ifdef i386}
     function _asm_statement : ptree;
-
-      var asm_stat : ptree;
-      
+      var
+        asmstat : ptree;
       begin
          if (aktprocsym^.definition^.options and poinline)<>0 then
            Begin
@@ -594,25 +600,38 @@ unit pstatmnt;
               aktprocsym^.definition^.options:= aktprocsym^.definition^.options and not poinline;
            End;
          case aktasmmode of
-            I386_ATT : asm_stat:=ratti386.assemble;
-            I386_INTEL : asm_stat:=rai386.assemble;
-            I386_DIRECT : asm_stat:=radi386.assemble;
-            else internalerror(30004);
+{$ifdef i386}
+  {$ifndef NoRA386Att}
+            I386_ATT : asmstat:=ratti386.assemble;
+  {$endif NoRA386Att}
+  {$ifndef NoRA386Int}
+          I386_INTEL : asmstat:=rai386.assemble;
+  {$endif NoRA386Int}
+  {$ifndef NoRA386Dir}
+         I386_DIRECT : asmstat:=radi386.assemble;
+  {$endif NoRA386Dir}
+{$endif}
+{$ifdef m68k}
+  {$ifndef NoRA68kMot}
+            M68K_MOT : asmstat:=ra68k.assemble;
+  {$endif NoRA68kMot}
+{$endif}
+         else
+           Comment(V_Fatal,'Selected assembler reader not supported');
          end;
 
-         { Erst am Ende _ASM konsumieren, da der Scanner sonst die }
-         { erste Assemblerstatement zu lesen versucht! }
+         { Read first the _ASM statement }
          consume(_ASM);
 
-         { (END is read) }
+         { END is read }
          if token=LECKKLAMMER then
            begin
               { it's possible to specify the modified registers }
               consume(LECKKLAMMER);
-              asm_stat^.object_preserved:=true;
+              asmstat^.object_preserved:=true;
               if token<>RECKKLAMMER then
                 repeat
-                  pattern:=upper(pattern);
+{$ifdef i386}
                   if pattern='EAX' then
                     usedinproc:=usedinproc or ($80 shr byte(R_EAX))
                   else if pattern='EBX' then
@@ -624,41 +643,12 @@ unit pstatmnt;
                   else if pattern='ESI' then
                     begin
                        usedinproc:=usedinproc or ($80 shr byte(R_ESI));
-                       asm_stat^.object_preserved:=false;
+                       asmstat^.object_preserved:=false;
                     end
                   else if pattern='EDI' then
                     usedinproc:=usedinproc or ($80 shr byte(R_EDI))
-                  else consume(RECKKLAMMER);
-                  consume(CSTRING);
-                  if token=COMMA then consume(COMMA)
-                    else break;
-                until false;
-              consume(RECKKLAMMER);
-           end
-         else usedinproc:=$ff;
-         _asm_statement:=asm_stat;
-      end;
-{$endif}
-
+{$endif i386}
 {$ifdef m68k}
-    function _asm_statement : ptree;
-    begin
-         _asm_statement:= ra68k.assemble;
-         { Erst am Ende _ASM konsumieren, da der Scanner sonst die }
-         { erste Assemblerstatement zu lesen versucht! }
-         consume(_ASM);
-
-         { (END is read) }
-         if token=LECKKLAMMER then
-           begin
-              { it's possible to specify the modified registers }
-              { we only check the registers which are not reserved }
-              { and which can be used. This is done for future     }
-              { optimizations.                                     }
-              consume(LECKKLAMMER);
-              if token<>RECKKLAMMER then
-                repeat
-                  pattern:=upper(pattern);
                   if pattern='D0' then
                     usedinproc:=usedinproc or ($800 shr word(R_D0))
                   else if pattern='D1' then
@@ -669,6 +659,7 @@ unit pstatmnt;
                     usedinproc:=usedinproc or ($800 shr word(R_A0))
                   else if pattern='A1' then
                     usedinproc:=usedinproc or ($800 shr word(R_A1))
+{$endif m68k}
                   else consume(RECKKLAMMER);
                   consume(CSTRING);
                   if token=COMMA then consume(COMMA)
@@ -676,155 +667,153 @@ unit pstatmnt;
                 until false;
               consume(RECKKLAMMER);
            end
-         else usedinproc:=$ffff;
-    end;
-{$endif}
+         else usedinproc:=$ff;
+         _asm_statement:=asmstat;
+      end;
 
 
         function new_dispose_statement : ptree;
+        var
+          p,p2 : ptree;
+          ht : ttoken;
+          again : boolean; { dummy for do_proc_call }
+          destrukname : stringid;
+          sym : psym;
+          classh : pobjectdef;
+          pd,pd2 : pdef;
+          store_valid : boolean;
+          tt : ttreetyp;
+        begin
+          ht:=token;
+          if token=_NEW then consume(_NEW)
+            else consume(_DISPOSE);
+          if ht=_NEW then
+            tt:=hnewn
+          else
+            tt:=hdisposen;
+          consume(LKLAMMER);
+          p:=comp_expr(true);
 
-          var
-                 p,p2 : ptree;
-                 ht : ttoken;
-         again : boolean; { dummy for do_proc_call }
-                 destrukname : stringid;
-                 sym : psym;
-                 classh : pobjectdef;
-                 pd,pd2 : pdef;
-                 store_valid : boolean;
-                 tt : ttreetyp;
+          { calc return type }
+          cleartempgen;
+          Store_valid := Must_be_valid;
+          Must_be_valid := False;
+          do_firstpass(p);
+          Must_be_valid := Store_valid;
 
-          begin
-                 ht:=token;
-                 if token=_NEW then consume(_NEW)
-                   else consume(_DISPOSE);
-                 if ht=_NEW then
-                   tt:=hnewn
-                 else
-                   tt:=hdisposen;
-                 consume(LKLAMMER);
-                 p:=comp_expr(true);
+  {var o:Pobject;
+           begin
+               new(o,init);        (*Also a valid new statement*)
+           end;}
 
-                 { calc return type }
-                 cleartempgen;
-                 Store_valid := Must_be_valid;
-                 Must_be_valid := False;
-                 do_firstpass(p);
-                 Must_be_valid := Store_valid;
+          if token=COMMA then
+            begin
+                   { extended syntax of new and dispose }
+                   { function styled new is handled in factor }
+                   consume(COMMA);
+                   { destructors have no parameters }
+                   destrukname:=pattern;
+                   consume(ID);
 
-         {var o:Pobject;
+                   pd:=p^.resulttype;
+                   pd2:=pd;
+                   if (p^.resulttype = nil) or (pd^.deftype<>pointerdef) then
+                     begin
+                        Message(parser_e_pointer_type_expected);
+                        p:=factor(false);
+                        consume(RKLAMMER);
+                        new_dispose_statement:=genzeronode(errorn);
+                        exit;
+                     end;
+                   { first parameter must be an object or class }
+                   if ppointerdef(pd)^.definition^.deftype<>objectdef then
+                     begin
+                        Message(parser_e_pointer_to_class_expected);
+                        new_dispose_statement:=factor(false);
+                        consume_all_until(RKLAMMER);
+                        consume(RKLAMMER);
+                        exit;
+                     end;
+                   { check, if the first parameter is a pointer to a _class_ }
+                   classh:=pobjectdef(ppointerdef(pd)^.definition);
+                   if (classh^.options and oois_class)<>0 then
+                         begin
+                            Message(parser_e_no_new_or_dispose_for_classes);
+                            new_dispose_statement:=factor(false);
+                            { while token<>RKLAMMER do
+                                  consume(token); }
+                            consume_all_until(RKLAMMER);
+                            consume(RKLAMMER);
+                            exit;
+                         end;
+                   { search cons-/destructor, also in parent classes }
+                   sym:=nil;
+                   while assigned(classh) do
+                         begin
+                            sym:=classh^.publicsyms^.search(pattern);
+                            srsymtable:=classh^.publicsyms;
+                            if assigned(sym) then
+                                  break;
+                            classh:=classh^.childof;
+                         end;
+                   { the second parameter of new/dispose must be a call }
+                   { to a cons-/destructor                                }
+                   if (sym^.typ<>procsym) then
+                         begin
+                            Message(parser_e_expr_have_to_be_destructor_call);
+                            new_dispose_statement:=genzeronode(errorn);
+                         end
+                   else
+                         begin
+                           p2:=gensinglenode(tt,p);
+                           if ht=_NEW then
+                                 begin
+                                    { Constructors can take parameters.}
+                                    p2^.resulttype:=ppointerdef(pd)^.definition;
+                                    do_member_read(sym,p2,pd,again);
+                                 end
+                           else
+                             { destructors can't.}
+                             p2:=genmethodcallnode(pprocsym(sym),srsymtable,p2);
 
-                  begin
-                      new(o,init);        (*Also a valid new statement*)
-                  end;}
+                           { we need the real called method }
+                           cleartempgen;
+                           do_firstpass(p2);
 
-                 if token=COMMA then
-                   begin
-                          { extended syntax of new and dispose }
-                          { function styled new is handled in factor }
-                          consume(COMMA);
-                          { destructors have no parameters }
-                          destrukname:=pattern;
-                          consume(ID);
+                           if (ht=_NEW) and ((p2^.procdefinition^.options and poconstructor)=0) then
+                                  Message(parser_e_expr_have_to_be_constructor_call);
+                           if (ht=_DISPOSE) and ((p2^.procdefinition^.options and podestructor)=0) then
+                                  Message(parser_e_expr_have_to_be_destructor_call);
 
-                          pd:=p^.resulttype;
-                          pd2:=pd;
-                          if (p^.resulttype = nil) or (pd^.deftype<>pointerdef) then
-                            begin
-                               Message(parser_e_pointer_type_expected);
-                               p:=factor(false);
-                               consume(RKLAMMER);
-                               new_dispose_statement:=genzeronode(errorn);
-                               exit;
-                            end;
-                          { first parameter must be an object or class }
-                          if ppointerdef(pd)^.definition^.deftype<>objectdef then
-                            begin
-                               Message(parser_e_pointer_to_class_expected);
-                               new_dispose_statement:=factor(false);
-                               consume_all_until(RKLAMMER);
-                               consume(RKLAMMER);
-                               exit;
-                            end;
-                          { check, if the first parameter is a pointer to a _class_ }
-                          classh:=pobjectdef(ppointerdef(pd)^.definition);
-                          if (classh^.options and oois_class)<>0 then
-                                begin
-                                   Message(parser_e_no_new_or_dispose_for_classes);
-                                   new_dispose_statement:=factor(false);
-                                   { while token<>RKLAMMER do
-                                         consume(token); }
-                                   consume_all_until(RKLAMMER);
-                                   consume(RKLAMMER);
-                                   exit;
-                                end;
-                          { search cons-/destructor, also in parent classes }
-                          sym:=nil;
-                          while assigned(classh) do
-                                begin
-                                   sym:=classh^.publicsyms^.search(pattern);
-                                   srsymtable:=classh^.publicsyms;
-                                   if assigned(sym) then
-                                         break;
-                                   classh:=classh^.childof;
-                                end;
-                          { the second parameter of new/dispose must be a call }
-                          { to a cons-/destructor                                }
-                          if (sym^.typ<>procsym) then
-                                begin
-                                   Message(parser_e_expr_have_to_be_destructor_call);
-                                   new_dispose_statement:=genzeronode(errorn);
-                                end
-                          else
-                                begin
-                                  p2:=gensinglenode(tt,p);
-                                  if ht=_NEW then
-                                        begin
-                                           { Constructors can take parameters.}
-                                           p2^.resulttype:=ppointerdef(pd)^.definition;
-                                           do_member_read(sym,p2,pd,again);
-                                        end
-                                  else
-                                    { destructors can't.}
-                                    p2:=genmethodcallnode(pprocsym(sym),srsymtable,p2);
+                           if ht=_NEW then
+                                 begin
+                                         p2:=gennode(assignn,getcopy(p),gensinglenode(newn,p2));
+                                         p2^.right^.resulttype:=pd2;
+                                 end;
+                           new_dispose_statement:=p2;
+                         end;
+            end
+          else
+            begin
+               if (p^.resulttype=nil) or (p^.resulttype^.deftype<>pointerdef) then
+                 Begin
+                    Message(parser_e_pointer_type_expected);
+                    new_dispose_statement:=genzeronode(errorn);
+                 end
+               else
+                 begin
+                    if (ppointerdef(p^.resulttype)^.definition^.deftype=objectdef) then
+                     Message(parser_w_use_extended_syntax_for_objects);
 
-                                  { we need the real called method }
-                                  cleartempgen;
-                                  do_firstpass(p2);
+                     case ht of
+                        _NEW : new_dispose_statement:=gensinglenode(simplenewn,p);
+                        _DISPOSE : new_dispose_statement:=gensinglenode(simpledisposen,p);
+                     end;
+                 end;
+            end;
+          consume(RKLAMMER);
+      end;
 
-                                  if (ht=_NEW) and ((p2^.procdefinition^.options and poconstructor)=0) then
-                                         Message(parser_e_expr_have_to_be_constructor_call);
-                                  if (ht=_DISPOSE) and ((p2^.procdefinition^.options and podestructor)=0) then
-                                         Message(parser_e_expr_have_to_be_destructor_call);
-
-                                  if ht=_NEW then
-                                        begin
-                                                p2:=gennode(assignn,getcopy(p),gensinglenode(newn,p2));
-                                                p2^.right^.resulttype:=pd2;
-                                        end;
-                                  new_dispose_statement:=p2;
-                                end;
-                   end
-                 else
-                   begin
-                      if (p^.resulttype=nil) or (p^.resulttype^.deftype<>pointerdef) then
-                        Begin
-                           Message(parser_e_pointer_type_expected);
-                           new_dispose_statement:=genzeronode(errorn);
-                        end
-                      else
-                        begin
-                           if (ppointerdef(p^.resulttype)^.definition^.deftype=objectdef) then
-                            Message(parser_w_use_extended_syntax_for_objects);
-
-                            case ht of
-                               _NEW : new_dispose_statement:=gensinglenode(simplenewn,p);
-                               _DISPOSE : new_dispose_statement:=gensinglenode(simpledisposen,p);
-                            end;
-                        end;
-                   end;
-                 consume(RKLAMMER);
-          end;
 
     function statement_block : ptree;
 
@@ -873,6 +862,7 @@ unit pstatmnt;
          set_tree_filepos(last,filepos);
          statement_block:=last;
       end;
+
 
     function statement : ptree;
 
@@ -1146,14 +1136,16 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.18  1998-06-05 14:37:35  pierre
+  Revision 1.19  1998-06-08 22:59:50  peter
+    * smartlinking works for win32
+    * some defines to exclude some compiler parts
+
+  Revision 1.18  1998/06/05 14:37:35  pierre
     * fixes for inline for operators
     * inline procedure more correctly restricted
 
   Revision 1.17  1998/06/04 09:55:43  pierre
     * demangled name of procsym reworked to become independant of the mangling scheme
-
-  Come test_funcret improvements (not yet working)S: ----------------------------------------------------------------------
 
   Revision 1.16  1998/06/02 17:03:04  pierre
     *  with node corrected for objects

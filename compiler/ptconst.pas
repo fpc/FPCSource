@@ -156,52 +156,56 @@ unit ptconst;
               if p^.treetype=niln then
                 datasegment^.concat(new(pai_const,init_32bit(0)))
               { maybe pchar ? }
-              else if (ppointerdef(def)^.definition^.deftype=orddef) and
+              else
+                if (ppointerdef(def)^.definition^.deftype=orddef) and
                    (porddef(ppointerdef(def)^.definition)^.typ=uchar) then
-                begin
-                   getlabel(ll);
-                   { insert string at the begin }
-                   if p^.treetype=stringconstn then
-                     generate_ascii_insert((p^.values^)+#0)
-                   else if is_constcharnode(p) then
-                     datasegment^.insert(new(pai_string,init(char(byte(p^.value))+#0)))
-                   else Message(cg_e_illegal_expression);
-                   datasegment^.insert(new(pai_label,init(ll)));
-                   { insert label }
-                   datasegment^.concat(new(pai_const,init_symbol(strpnew(lab2str(ll)))));
+                  begin
+                    getlabel(ll);
+                    datasegment^.concat(new(pai_const,init_symbol(strpnew(lab2str(ll)))));
+                    datasegment^.concat(new(pai_label,init(ll)));
+                    { insert string at the begin }
+                    if p^.treetype=stringconstn then
+                      datasegment^.concat(new(pai_string,init(p^.values^+#0)))
+                    else
+                      if is_constcharnode(p) then
+                        datasegment^.concat(new(pai_string,init(char(byte(p^.value))+#0)))
+                    else
+                      Message(cg_e_illegal_expression);
+                    { insert label }
                 end
-              else if p^.treetype=addrn then
-                begin
-                   if (is_equal(ppointerdef(p^.resulttype)^.definition,ppointerdef(def)^.definition) or
-                      (is_equal(ppointerdef(p^.resulttype)^.definition,voiddef)) or
-                      (is_equal(ppointerdef(def)^.definition,voiddef))) and
-                      (p^.left^.treetype = loadn) then
-                     begin
+              else
+                if p^.treetype=addrn then
+                  begin
+                    if (is_equal(ppointerdef(p^.resulttype)^.definition,ppointerdef(def)^.definition) or
+                       (is_equal(ppointerdef(p^.resulttype)^.definition,voiddef)) or
+                       (is_equal(ppointerdef(def)^.definition,voiddef))) and
+                       (p^.left^.treetype = loadn) then
+                      begin
                         datasegment^.concat(new(pai_const,init_symbol(
                           strpnew(p^.left^.symtableentry^.mangledname))));
                         maybe_concat_external(p^.left^.symtableentry^.owner,
                           p^.left^.symtableentry^.mangledname);
-                     end
-                   else
-                     Message(cg_e_illegal_expression);
-                end
+                      end
+                    else
+                      Message(cg_e_illegal_expression);
+                  end
               else
               { allow typeof(Object type)}
                 if (p^.treetype=inlinen) and
                    (p^.inlinenumber=in_typeof_x) then
-                  if (p^.left^.treetype=typen) then
-                    begin
-                       datasegment^.concat(new(pai_const,init_symbol(
-                         strpnew(pobjectdef(p^.left^.resulttype)^.vmt_mangledname))));
-                       if pobjectdef(p^.left^.resulttype)^.owner^.symtabletype=unitsymtable then
+                  begin
+                    if (p^.left^.treetype=typen) then
+                      begin
+                        datasegment^.concat(new(pai_const,init_symbol(
+                          strpnew(pobjectdef(p^.left^.resulttype)^.vmt_mangledname))));
+                        if pobjectdef(p^.left^.resulttype)^.owner^.symtabletype=unitsymtable then
                           concat_external(pobjectdef(p^.left^.resulttype)^.vmt_mangledname,EXT_NEAR);
-                    end
-                  else
-                    begin
-                       Message(cg_e_illegal_expression);
-                    end
-                else
-                  Message(cg_e_illegal_expression);
+                      end
+                    else
+                      Message(cg_e_illegal_expression);
+                  end
+              else
+                Message(cg_e_illegal_expression);
               disposetree(p);
            end;
          setdef:
@@ -215,9 +219,8 @@ unit ptconst;
                      Message(cg_e_illegal_expression)
                    else
                      begin
-                        for l:=0 to def^.savesize-1 do
-                          datasegment^.concat(
-                        new(pai_const,init_8bit(p^.constset^[l])));
+                       for l:=0 to def^.savesize-1 do
+                         datasegment^.concat(new(pai_const,init_8bit(p^.constset^[l])));
                      end;
                 end
               else
@@ -225,15 +228,13 @@ unit ptconst;
               disposetree(p);
            end;
          enumdef:
-       begin
+           begin
               p:=comp_expr(true);
               do_firstpass(p);
               if p^.treetype=ordconstn then
                 begin
                    if is_equal(p^.resulttype,def) then
-                     begin
-                        datasegment^.concat(new(pai_const,init_32bit(p^.value)));
-                     end
+                     datasegment^.concat(new(pai_const,init_32bit(p^.value)))
                    else
                      Message(cg_e_illegal_expression);
                 end
@@ -450,7 +451,11 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.5  1998-06-03 22:49:01  peter
+  Revision 1.6  1998-06-08 22:59:52  peter
+    * smartlinking works for win32
+    * some defines to exclude some compiler parts
+
+  Revision 1.5  1998/06/03 22:49:01  peter
     + wordbool,longbool
     * rename bis,von -> high,low
     * moved some systemunit loading/creating to psystem.pas
@@ -467,77 +472,4 @@ end.
     + started inline procedures
     + added starstarn : use ** for exponentiation (^ gave problems)
     + started UseTokenInfo cond to get accurate positions
-
-  Revision 1.2  1998/04/07 13:19:48  pierre
-    * bugfixes for reset_gdb_info
-      in MEM parsing for go32v2
-      better external symbol creation
-      support for rhgdb.exe (lowercase file names)
-
-  Revision 1.1.1.1  1998/03/25 11:18:15  root
-  * Restored version
-
-  Revision 1.13  1998/03/20 23:31:35  florian
-    * bug0113 fixed
-    * problem with interdepened units fixed ("options.pas problem")
-    * two small extensions for future AMD 3D support
-
-  Revision 1.12  1998/03/18 22:50:11  florian
-    + fstp/fld optimization
-    * routines which contains asm aren't longer optimzed
-    * wrong ifdef TEST_FUNCRET corrected
-    * wrong data generation for array[0..n] of char = '01234'; fixed
-    * bug0097 is fixed partial
-    * bug0116 fixed (-Og doesn't use enter of the stack frame is greater than
-      65535)
-
-  Revision 1.11  1998/03/13 22:45:59  florian
-    * small bug fixes applied
-
-  Revision 1.10  1998/03/11 11:23:57  florian
-    * bug0081 and bug0109 fixed
-
-  Revision 1.9  1998/03/10 01:17:25  peter
-    * all files have the same header
-    * messages are fully implemented, EXTDEBUG uses Comment()
-    + AG... files for the Assembler generation
-
-  Revision 1.8  1998/03/06 00:52:50  peter
-    * replaced all old messages from errore.msg, only ExtDebug and some
-      Comment() calls are left
-    * fixed options.pas
-
-  Revision 1.7  1998/03/02 01:49:10  peter
-    * renamed target_DOS to target_GO32V1
-    + new verbose system, merged old errors and verbose units into one new
-      verbose.pas, so errors.pas is obsolete
-
-  Revision 1.6  1998/02/13 10:35:33  daniel
-  * Made Motorola version compilable.
-  * Fixed optimizer
-
-  Revision 1.5  1998/02/12 11:50:32  daniel
-  Yes! Finally! After three retries, my patch!
-
-  Changes:
-
-  Complete rewrite of psub.pas.
-  Added support for DLL's.
-  Compiler requires less memory.
-  Platform units for each platform.
-
-  Revision 1.4  1998/01/24 23:08:19  carl
-    + compile time range checking should logically always be on!
-
-  Revision 1.3  1998/01/23 17:12:20  pierre
-    * added some improvements for as and ld :
-      - doserror and dosexitcode treated separately
-      - PATH searched if doserror=2
-    + start of long and ansi string (far from complete)
-      in conditionnal UseLongString and UseAnsiString
-    * options.pas cleaned (some variables shifted to globals)gl
-
-  Revision 1.2  1998/01/09 09:10:03  michael
-  + Initial implementation, second try
-
 }

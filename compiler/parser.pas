@@ -34,7 +34,7 @@ unit parser;
 
     uses
       systems,cobjects,globals,verbose,
-      symtable,files,aasm,hcodegen,import,
+      symtable,files,aasm,hcodegen,
       assemble,link,script,gendef,
       scanner,pbase,pdecl,psystem,pmodules;
 
@@ -312,9 +312,6 @@ unit parser;
 
          if status.errorcount=0 then
            begin
-             if current_module^.uses_imports then
-              importlib^.generatelib;
-
              GenerateAsm(filename);
 
              if (cs_smartlink in aktswitches) then
@@ -442,7 +439,11 @@ done:
 end.
 {
   $Log$
-  Revision 1.22  1998-06-05 17:47:28  peter
+  Revision 1.23  1998-06-08 22:59:48  peter
+    * smartlinking works for win32
+    * some defines to exclude some compiler parts
+
+  Revision 1.22  1998/06/05 17:47:28  peter
     * some better uses clauses
 
   Revision 1.21  1998/06/04 23:51:49  peter

@@ -304,7 +304,7 @@ begin
                        AddSharedLibrary('c');
                      end;
                   end;
-{$endif}                
+{$endif}
 
   end;
 
@@ -434,19 +434,23 @@ end;
 
 Procedure TLinker.MakeStaticLibrary(const path:string;filescnt:longint);
 var
+  s,
   arbin   : string;
   arfound : boolean;
   cnt     : longint;
   i       : word;
   f       : file;
 begin
-  arbin:=FindExe('ar',arfound);
+  arbin:=FindExe(target_ar.arbin,arfound);
   if (not arfound) and (not externlink) then
    begin
      Message(exec_w_ar_not_found);
      externlink:=true;
    end;
-  DoExec(arbin,'rs '+staticlibname+' '+FixPath(path)+'*'+target_info.objext,false,true);
+  s:=target_ar.arcmd;
+  Replace(s,'$LIB',staticlibname);
+  Replace(s,'$FILES',FixPath(path)+'*'+target_info.objext);
+  DoExec(arbin,s,false,true);
 { Clean up }
   if (not writeasmfile) and (not externlink) then
    begin
@@ -475,7 +479,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  1998-06-04 23:51:44  peter
+  Revision 1.13  1998-06-08 22:59:46  peter
+    * smartlinking works for win32
+    * some defines to exclude some compiler parts
+
+  Revision 1.12  1998/06/04 23:51:44  peter
     * m68k compiles
     + .def file creation moved to gendef.pas so it could also be used
       for win32

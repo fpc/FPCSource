@@ -45,6 +45,7 @@ type
     srcfile,
     as_bin   : string;
   {outfile}
+    AsmSize,
     outcnt   : longint;
     outbuf   : array[0..AsmOutSize-1] of char;
     outfile  : file;
@@ -82,10 +83,26 @@ uses
 {$endif}
   ,strings
 {$ifdef i386}
-  ,ag386att,ag386int,ag386nsm
+  {$ifndef NoAg386Att}
+    ,ag386att
+  {$endif NoAg386Att}
+  {$ifndef NoAg386Nsm}
+    ,ag386nsm
+  {$endif NoAg386Nsm}
+  {$ifndef NoAg386Int}
+    ,ag386int
+  {$endif NoAg386Int}
 {$endif}
 {$ifdef m68k}
-  ,ag68kmot,ag68kgas,ag68kmit
+  {$ifndef NoAg68kGas}
+    ,ag68kgas
+  {$endif NoAg68kGas}
+  {$ifndef NoAg68kMot}
+    ,ag68kmot
+  {$endif NoAg68kMot}
+  {$ifndef NoAg68kMit}
+    ,ag68kmit
+  {$endif NoAg68kMit}
 {$endif}
   ;
 
@@ -231,6 +248,7 @@ begin
    AsmFlush;
   Move(s[1],OutBuf[OutCnt],length(s));
   inc(OutCnt,length(s));
+  inc(AsmSize,length(s));
 end;
 
 
@@ -254,6 +272,7 @@ begin
       AsmFlush;
      Move(p[0],OutBuf[OutCnt],i);
      inc(OutCnt,i);
+     inc(AsmSize,i);
      dec(j,i);
      p:=pchar(@p[i]);
    end;
@@ -266,10 +285,12 @@ begin
    AsmFlush;
   OutBuf[OutCnt]:=target_os.newline[1];
   inc(OutCnt);
+  inc(AsmSize);
   if length(target_os.newline)>1 then
    begin
      OutBuf[OutCnt]:=target_os.newline[2];
      inc(OutCnt);
+     inc(AsmSize);
    end;
 end;
 
@@ -295,6 +316,7 @@ begin
       Message1(exec_d_cant_create_asmfile,asmfile);
    end;
   outcnt:=0;
+  AsmSize:=0;
 end;
 
 
@@ -380,20 +402,32 @@ var
 begin
   case aktoutputformat of
 {$ifdef i386}
+  {$ifndef NoAg386Att}
         as_o : a:=new(pi386attasmlist,Init(fn));
+  {$endif NoAg386Att}
+  {$ifndef NoAg386Nsm}
  as_nasmcoff,
   as_nasmelf,
   as_nasmobj : a:=new(pi386nasmasmlist,Init(fn));
+  {$endif NoAg386Nsm}
+  {$ifndef NoAg386Int}
      as_tasm : a:=new(pi386intasmlist,Init(fn));
+  {$endif NoAg386Int}
 {$endif}
 {$ifdef m68k}
+  {$ifndef NoAg68kGas}
      as_o,
    as_gas : a:=new(pm68kgasasmlist,Init(fn));
+  {$endif NoAg86KGas}
+  {$ifndef NoAg68kMot}
    as_mot : a:=new(pm68kmotasmlist,Init(fn));
+  {$endif NoAg86kMot}
+  {$ifndef NoAg68kMit}
    as_mit : a:=new(pm68kmitasmlist,Init(fn));
+  {$endif NoAg86KMot}
 {$endif}
   else
-   internalerror(30000);
+   Comment(V_Fatal,'Selected assembler output not supported!');
   end;
   a^.AsmCreate;
   a^.WriteAsmList;
@@ -416,7 +450,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  1998-06-04 23:51:33  peter
+  Revision 1.11  1998-06-08 22:59:43  peter
+    * smartlinking works for win32
+    * some defines to exclude some compiler parts
+
+  Revision 1.10  1998/06/04 23:51:33  peter
     * m68k compiles
     + .def file creation moved to gendef.pas so it could also be used
       for win32

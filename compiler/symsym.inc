@@ -1269,10 +1269,10 @@
 
       procedure ttypedconstsym.really_insert_in_data;
         begin
-           if (cs_smartlink in aktswitches) then
-             datasegment^.concat(new(pai_cut,init));
            if owner^.symtabletype=globalsymtable then
              begin
+                if (cs_smartlink in aktswitches) then
+                  datasegment^.concat(new(pai_cut,init));
 {$ifdef GDB}
                 if cs_debuginfo in aktswitches then
                   concatstabto(datasegment);
@@ -1282,6 +1282,8 @@
            else
              if owner^.symtabletype<>unitsymtable then
                begin
+                 if (cs_smartlink in aktswitches) then
+                   datasegment^.concat(new(pai_cut,init));
 {$ifdef GDB}
                  if cs_debuginfo in aktswitches then
                    concatstabto(datasegment);
@@ -1692,15 +1694,17 @@
 
 {
   $Log$
-  Revision 1.5  1998-06-04 23:52:02  peter
+  Revision 1.6  1998-06-08 22:59:53  peter
+    * smartlinking works for win32
+    * some defines to exclude some compiler parts
+
+  Revision 1.5  1998/06/04 23:52:02  peter
     * m68k compiles
     + .def file creation moved to gendef.pas so it could also be used
       for win32
 
   Revision 1.4  1998/06/04 09:55:46  pierre
     * demangled name of procsym reworked to become independant of the mangling scheme
-
-  Come test_funcret improvements (not yet working)S: ----------------------------------------------------------------------
 
   Revision 1.3  1998/06/03 22:14:20  florian
     * problem with sizes of classes fixed (if the anchestor was declared

@@ -39,6 +39,9 @@ unit win_targ;
 
     uses
        aasm,files,strings,globals,cobjects
+{$ifdef GDB}
+       ,gdb
+{$endif}
 {$ifdef i386}
        ,i386
 {$endif}
@@ -83,42 +86,48 @@ unit win_targ;
          hp2 : pimported_procedure;
          l1,l2,l3,l4 : plabel;
          r : preference;
-
       begin
          hp1:=pimportlist(current_module^.imports^.first);
          while assigned(hp1) do
            begin
+              { Insert cuts for smartlinking }
+              if (cs_smartlink in aktswitches) then
+                begin
+                  importssection^.concat(new(pai_cut,init));
+                  codesegment^.concat(new(pai_cut,init));
+                end;
+{$IfDef GDB}
+              if (cs_debuginfo in aktswitches) then
+                codesegment^.concat(new(pai_stab_function_name,init(nil)));
+{$EndIf GDB}
+
+              { Get labels for the sections }
               getlabel(l1);
               getlabel(l2);
               getlabel(l3);
-              { create import directory entry }
               importssection^.concat(new(pai_section,init_idata(2)));
               { pointer to procedure names }
-              importssection^.concat(new(pai_const,init_rva(strpnew(lab2str
-                (l2)))));
+              importssection^.concat(new(pai_const,init_rva(strpnew(lab2str(l2)))));
               { two empty entries follow }
               importssection^.concat(new(pai_const,init_32bit(0)));
               importssection^.concat(new(pai_const,init_32bit(0)));
               { pointer to dll name }
-              importssection^.concat(new(pai_const,init_rva(strpnew(lab2str
-                (l1)))));
+              importssection^.concat(new(pai_const,init_rva(strpnew(lab2str(l1)))));
               { pointer to fixups }
-              importssection^.concat(new(pai_const,init_rva(strpnew(lab2str
-                (l3)))));
+              importssection^.concat(new(pai_const,init_rva(strpnew(lab2str(l3)))));
 
-              { now walk through all imported procedures }
-              { we could that do in one while loop, but  }
-              { this would give too much idata* entries  }
+              { only create one section for each else it will
+                create a lot of idata* }
 
               { first write the name references }
               importssection^.concat(new(pai_section,init_idata(4)));
               importssection^.concat(new(pai_label,init(l2)));
+
               hp2:=pimported_procedure(hp1^.imported_procedures^.first);
               while assigned(hp2) do
                 begin
                    getlabel(plabel(hp2^.lab));
-                   importssection^.concat(new(pai_const,init_rva(strpnew(lab2str
-                     (hp2^.lab)))));
+                   importssection^.concat(new(pai_const,init_rva(strpnew(lab2str(hp2^.lab)))));
                    hp2:=pimported_procedure(hp2^.next);
                 end;
               { finalize the names ... }
@@ -130,20 +139,18 @@ unit win_targ;
               hp2:=pimported_procedure(hp1^.imported_procedures^.first);
               while assigned(hp2) do
                 begin
-                   getlabel(l4);
-                   { text segment should be aligned }
-                   codesegment^.concat(new(pai_align,init_op(4,$90)));
-                   codesegment^.concat(new(pai_symbol,init_global(hp2^.func^)));
-                   { the indirect jump }
+                   getdatalabel(l4);
+                   { create indirect jump }
                    new(r);
                    reset_reference(r^);
                    r^.symbol:=stringdup(lab2str(l4));
-{$ifdef i386}
+                   { place jump in codesegment }
+                   codesegment^.concat(new(pai_align,init_op(4,$90)));
+                   codesegment^.concat(new(pai_symbol,init_global(hp2^.func^)));
                    codesegment^.concat(new(pai386,op_ref(A_JMP,S_NO,r)));
-{$endif}
+                   { add jump field to importsection }
                    importssection^.concat(new(pai_label,init(l4)));
-                   importssection^.concat(new(pai_const,init_rva(strpnew(lab2str
-                      (hp2^.lab)))));
+                   importssection^.concat(new(pai_const,init_rva(strpnew(lab2str(hp2^.lab)))));
                    hp2:=pimported_procedure(hp2^.next);
                 end;
               { finalize the addresses }
@@ -172,7 +179,11 @@ unit win_targ;
 end.
 {
   $Log$
-  Revision 1.3  1998-06-04 23:52:06  peter
+  Revision 1.4  1998-06-08 22:59:56  peter
+    * smartlinking works for win32
+    * some defines to exclude some compiler parts
+
+  Revision 1.3  1998/06/04 23:52:06  peter
     * m68k compiles
     + .def file creation moved to gendef.pas so it could also be used
       for win32

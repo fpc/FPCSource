@@ -76,6 +76,15 @@ unit systems;
        {$endif}
        );
 
+       tar = (
+       {$ifdef i386}
+              ar_ar,ar_arw
+       {$endif}
+       {$ifdef m68k}
+              ar_ar
+       {$endif}
+       );
+
 
        tos = (
        {$ifdef i386}
@@ -127,6 +136,11 @@ unit systems;
           libprefix     : string[2];
        end;
 
+       tarinfo = record
+          arbin   : string[8];
+          arcmd   : string[50];
+       end;
+
        ttargetinfo = record
           target      : ttarget;
           short_name  : string[8];
@@ -141,6 +155,7 @@ unit systems;
           os          : tos;
           link        : tlink;
           assem       : tasm;
+          ar          : tar;
        end;
 
        tasmmodeinfo=record
@@ -153,6 +168,7 @@ unit systems;
        target_os   : tosinfo;
        target_asm  : tasminfo;
        target_link : tlinkinfo;
+       target_ar   : tarinfo;
        source_os   : tosinfo;
 
     function set_string_target(const s : string) : boolean;
@@ -168,7 +184,6 @@ implementation
 ****************************************************************************}
        os_infos : array[tos] of tosinfo = (
 {$ifdef i386}
-
           (
             name         : 'GO32 V1 DOS extender';
             sharedlibext : '.DLL';
@@ -234,8 +249,7 @@ implementation
             endian       : endian_little;
             use_function_relative_addresses : true
           )
-{$endif i386}   
-
+{$endif i386}
 {$ifdef m68k}
           (
             name         : 'Commodore Amiga';
@@ -291,7 +305,7 @@ implementation
           )
 {$endif m68k}
           );
-        
+
 
 {****************************************************************************
                              Assembler Info
@@ -493,8 +507,29 @@ implementation
             inputend   : ')';
             libprefix  : '-l'
           )
-{$endif m68k}   
+{$endif m68k}
+          );
 
+{****************************************************************************
+                                 Ar Info
+****************************************************************************}
+       ar_infos : array[tar] of tarinfo = (
+{$ifdef i386}
+          (
+            arbin : 'ar';
+            arcmd : 'rs $LIB $FILES'
+          ),
+          (
+            arbin : 'arw';
+            arcmd : 'rs $LIB $FILES'
+          )
+{$endif i386}
+{$ifdef m68k}
+          (
+            arbin : 'ar';
+            arcmd : 'rs $LIB $FILES'
+          )
+{$endif m68k}
           );
 
 {****************************************************************************
@@ -502,7 +537,6 @@ implementation
 ****************************************************************************}
        target_infos : array[ttarget] of ttargetinfo = (
 {$ifdef i386}
-
           (
             target      : target_GO32V1;
             short_name  : 'GO32V1';
@@ -516,7 +550,8 @@ implementation
             exeext      : ''; { The linker procedures a.out }
             os          : os_GO32V1;
             link        : link_ldgo32v1;
-            assem       : as_o
+            assem       : as_o;
+            ar          : ar_ar
           ),
           (
             target      : target_GO32V2;
@@ -540,7 +575,8 @@ implementation
       {$endif UseAnsiString}
             os          : os_GO32V2;
             link        : link_ldgo32v2;
-            assem       : as_o
+            assem       : as_o;
+            ar          : ar_ar
           ),
           (
             target      : target_LINUX;
@@ -555,7 +591,8 @@ implementation
             exeext      : '';
             os          : os_Linux;
             link        : link_ld;
-            assem       : as_o
+            assem       : as_o;
+            ar          : ar_ar
           ),
           (
             target      : target_OS2;
@@ -570,7 +607,8 @@ implementation
             exeext      : ''; { The linker procedures a.out }
             os          : os_OS2;
             link        : link_ldos2;
-            assem       : as_o
+            assem       : as_o;
+            ar          : ar_ar
           ),
           (
             target      : target_WIN32;
@@ -585,10 +623,10 @@ implementation
             exeext      : '.exe';
             os          : os_Win32;
             link        : link_ldw;
-            assem       : as_asw
+            assem       : as_asw;
+            ar          : ar_arw
           )
 {$endif i386}
-
 {$ifdef m68k}
           (
             target      : target_Amiga;
@@ -603,7 +641,8 @@ implementation
             exeext      : '';
             os          : os_Amiga;
             link        : link_ld;
-            assem       : as_o
+            assem       : as_o;
+            ar          : ar_ar
           ),
           (
             target      : target_Atari;
@@ -618,7 +657,8 @@ implementation
             exeext      : '';
             os          : os_Atari;
             link        : link_ld;
-            assem       : as_o
+            assem       : as_o;
+            ar          : ar_ar
           ),
           (
             target      : target_Mac68k;
@@ -633,7 +673,8 @@ implementation
             exeext      : '';
             os          : os_Mac68k;
             link        : link_ld;
-            assem       : as_o
+            assem       : as_o;
+            ar          : ar_ar
           ),
           (
             target      : target_Linux;
@@ -648,7 +689,8 @@ implementation
             exeext      : '';
             os          : os_Linux;
             link        : link_ld;
-            assem       : as_o
+            assem       : as_o;
+            ar          : ar_ar
           )
 {$endif m68k}
           );
@@ -689,6 +731,7 @@ begin
   target_os:=os_infos[target_info.os];
   target_asm:=as_infos[target_info.assem];
   target_link:=link_infos[target_info.link];
+  target_ar:=ar_infos[target_info.ar];
 end;
 
 
@@ -757,19 +800,15 @@ begin
     {$ifdef GO32V2}
       default_os(target_GO32V2);
     {$else}
-
       {$ifdef OS2}
         default_os(target_OS2);
       {$else}
-
         {$ifdef LINUX}
           default_os(target_LINUX);
         {$else}
-
            {$ifdef WIN32}
              default_os(target_WIN32);
            {$else}
-
               default_os(target_GO32V2);
            {$endif win32}
         {$endif linux}
@@ -781,14 +820,12 @@ begin
   {$ifdef AMIGA}
     default_os(target_Amiga);
   {$else}
-
     {$ifdef ATARI}
       default_os(target_Atari);
     {$else}
       {$ifdef MACOS}
         default_os(target_MAC68k);
       {$else}
-
         default_os(target_Amiga);
       {$endif macos}
     {$endif atari}
@@ -797,7 +834,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  1998-06-04 23:52:04  peter
+  Revision 1.18  1998-06-08 22:59:54  peter
+    * smartlinking works for win32
+    * some defines to exclude some compiler parts
+
+  Revision 1.17  1998/06/04 23:52:04  peter
     * m68k compiles
     + .def file creation moved to gendef.pas so it could also be used
       for win32
