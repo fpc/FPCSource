@@ -140,6 +140,7 @@ BASEPACKDIR=$(BASEDIR)/basepack
 FPCMAKENEW=$(BASEDIR)/utils/fpcm/fpcmake$(EXEEXT)
 
 # Build/install options
+CLEANOPTS=FPC=$(PPNEW)
 BUILDOPTS=FPC=$(PPNEW) RELEASE=1
 INSTALLOPTS=FPC=$(PPNEW) ZIPDESTDIR=$(BASEDIR) FPCMAKE=$(FPCMAKENEW)
 
@@ -277,13 +278,13 @@ build-stamp.$(OS_TARGET):
 # create new compiler
         $(MAKE) compiler_cycle
 # clean
-        $(MAKE) rtl_clean
-        $(MAKE) packages_clean
-        $(MAKE) fcl_clean
-        $(MAKE) utils_clean
+        $(MAKE) rtl_clean $(CLEANOPTS)
+        $(MAKE) packages_clean $(CLEANOPTS)
+        $(MAKE) fcl_clean $(CLEANOPTS)
+        $(MAKE) utils_clean $(CLEANOPTS)
 ifdef IDE
-        $(MAKE) fv_clean
-        $(MAKE) ide_clean
+        $(MAKE) fv_clean $(CLEANOPTS)
+        $(MAKE) ide_clean $(CLEANOPTS)
 endif
 # build everything
         $(MAKE) rtl_$(ALLTARGET) $(BUILDOPTS)
@@ -571,7 +572,7 @@ ifneq ($(wildcard $(CVSINSTALL)/fpc.spec),)
 
 .PHONY: rpmcopy rpm
 
-RPMFPCVERSION:=$(shell grep 'define fpcversion' $(CVSINSTALL)/fpc.spec | awk '{ print $$3 }')
+RPMFPCVERSION:=$(shell grep '^Version:' $(CVSINSTALL)/fpc.spec | awk '{ print $$2 }')
 
 REDHATDIR=/usr/src/redhat
 RPMSOURCESDIR:=$(REDHATDIR)/SOURCES
@@ -599,16 +600,20 @@ rpmcopy: distclean
         find $(RPMSRCDIR) -name 'CVS*' | xargs -n1 rm -rf
         cd $(RPMSRCDIR) ; tar cvz * > $(RPMSOURCESDIR)/fpc-$(RPMFPCVERSION)-src.tar.gz
 # fpc-docs.rpm
+ifndef NODOCS
         rm -rf $(DOCSRCDIR)
         cp $(CVSINSTALL)/fpc-docs.spec $(RPMSPECDIR)/fpc-docs-$(RPMFPCVERSION).spec
         install -d $(DOCSRCDIR)
         $(COPYTREE) docs $(DOCSRCDIR)
         find $(DOCSRCDIR) -name 'CVS*' | xargs -n1 rm -rf
         cd $(DOCSRCDIR) ; tar cvz * > $(RPMSOURCESDIR)/fpc-docs-$(RPMFPCVERSION)-src.tar.gz
+endif
 
 rpm: checkfpcdir rpmcopy
         cd $(RPMSPECDIR) ; rpm --nodeps -ba fpc-$(RPMFPCVERSION).spec
+ifndef NODOCS
         cd $(RPMSPECDIR) ; rpm --nodeps -ba fpc-docs-$(RPMFPCVERSION).spec
+endif
 
 endif   # spec found
 
