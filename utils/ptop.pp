@@ -144,7 +144,7 @@ end;
 
 
 begin
-  StreamError:={$ifndef tp}@{$endif}StreamErrorProcedure;
+  StreamError:=@StreamErrorProcedure;
   ProcessOpts;
   if BeVerbose then
     begin
@@ -195,7 +195,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2002-02-27 16:33:45  carl
+  Revision 1.3  2002-02-27 17:20:44  carl
+  + fix for BP
+
+  Revision 1.2  2002/02/27 16:33:45  carl
   - truncated log
   * bugfix of -l parameter (was never valid)
   + added version information
