@@ -22,7 +22,7 @@
 
 {$ifndef windows_include_files}
 
-unit unifun;
+unit unidef;
 
 {  Automatically converted by H2PAS.EXE from unicfun.h
    Utility made by Florian Klaempfl 25th-28th september 96
@@ -1908,13 +1908,16 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.6  1999-01-07 15:52:25  peter
+  Revision 1.7  1999-01-29 09:24:46  pierre
+  win32.inc
+
+  Revision 1.6  1999/01/07 15:52:27  peter
     * removed winspool requirement
 
-  Revision 1.5  1998/10/27 11:17:18  peter
+  Revision 1.5  1998/10/27 11:17:20  peter
     * type HINSTANCE -> HINST
 
-  Revision 1.4  1998/09/04 17:17:37  pierre
+  Revision 1.4  1998/09/04 17:17:40  pierre
     + all unknown function ifdef with
       conditionnal unknown_functions
       testwin works now, but windowcreate still fails !!

@@ -48,8 +48,10 @@ const
    FILE_END = 2;
 
 type
-   UINT  = longint;
-   BOOL  = longint;
+   {UINT  = longint;
+   BOOL  = longint; obsolete }
+   UINT  = cardinal;
+   BOOL  = longbool;
    WCHAR = word;
 {$ifdef UNICODE}
    LPTCH   = ^word;
@@ -104,7 +106,10 @@ type
 
 {
   $Log$
-  Revision 1.7  1998-06-10 10:39:18  peter
+  Revision 1.8  1999-01-29 09:24:48  pierre
+  win32.inc
+
+  Revision 1.7  1998/06/10 10:39:18  peter
     * working w32 rtl
 
 }
