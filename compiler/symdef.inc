@@ -204,7 +204,13 @@
       if assigned(sym) then
         begin
            name := sym^.name;
+{$ifdef NEWINPUT}       
+
+           sym_line_no:=sym^.fileinfo.line;
+{$else}
            sym_line_no:=sym^.line_no;
+{$endif}        
+
         end
       else
         begin
@@ -1045,7 +1051,13 @@
                 if assigned(sym) then
                   begin
                      st := sym^.name;
+{$ifdef NEWINPUT}       
+
+                     sym_line_no:=sym^.fileinfo.line;
+{$else}
                      sym_line_no:=sym^.line_no;
+{$endif}        
+
                   end
                 else
                   begin
@@ -2646,7 +2658,11 @@
 
 {
   $Log$
-  Revision 1.16  1998-07-07 11:20:13  peter
+  Revision 1.17  1998-07-10 00:00:03  peter
+    * fixed ttypesym bug finally
+    * fileinfo in the symtable and better using for unused vars
+
+  Revision 1.16  1998/07/07 11:20:13  peter
     + NEWINPUT for a better inputfile and scanner object
 
   Revision 1.15  1998/06/24 14:48:37  peter

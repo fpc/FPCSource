@@ -33,10 +33,10 @@ unit scanner;
     const
 {$ifdef TP}
        maxmacrolen=1024;
-       InputFileBufSize=75;
+       InputFileBufSize=1024;
 {$else}
        maxmacrolen=16*1024;
-       InputFileBufSize=1024;
+       InputFileBufSize=32*1024;
 {$endif}
 
        id_len = 14;
@@ -1753,8 +1753,12 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.31  1998-07-07 17:39:38  peter
-    * fixed {$I } with following eof
+  Revision 1.32  1998-07-10 00:00:02  peter
+    * fixed ttypesym bug finally
+    * fileinfo in the symtable and better using for unused vars
+
+  Revision 1.31  1998/07/07 17:39:38  peter
+    * fixed $I  with following eof
 
   Revision 1.30  1998/07/07 12:32:55  peter
     * status.currentsource is now calculated in verbose (more accurated)

@@ -188,7 +188,8 @@ unit pdecl;
          symdone : boolean;
          { to handle absolute }
          abssym : pabsolutesym;
-{$ifdef i386}	 
+{$ifdef i386}   
+
          l    : longint;
          code : word;
 {$endif i386}
@@ -196,7 +197,7 @@ unit pdecl;
          Csym : pvarsym;
          is_cdecl,extern_Csym,export_Csym : boolean;
          C_name : string;
-	 { case }
+         { case }
          p,casedef : pdef;
          { maxsize contains the max. size of a variant }
          { startvarrec contains the start of the variant part of a record }
@@ -240,7 +241,13 @@ unit pdecl;
                    abssym^.typ:=absolutesym;
                    abssym^.abstyp:=tovar;
                    abssym^.ref:=srsym;
+{$ifdef NEWINPUT}
+                   abssym^.fileinfo:=filepos;
+{$else}         
+
                    abssym^.line_no:=filepos.line;
+{$endif}                
+
                    symtablestack^.insert(abssym);
                  end
                 else
@@ -252,7 +259,13 @@ unit pdecl;
                     abssym^.typ:=absolutesym;
                     abssym^.abstyp:=toasm;
                     abssym^.asmname:=stringdup(s);
+{$ifdef NEWINPUT}
+                    abssym^.fileinfo:=filepos;
+{$else}         
+
                     abssym^.line_no:=filepos.line;
+{$endif}                
+
                     symtablestack^.insert(abssym);
                   end
                 else
@@ -266,7 +279,13 @@ unit pdecl;
                        abssym^.typ:=absolutesym;
                        abssym^.abstyp:=toaddr;
                        abssym^.absseg:=false;
+{$ifdef NEWINPUT}
+                       abssym^.fileinfo:=filepos;
+{$else}         
+
                        abssym^.line_no:=filepos.line;
+{$endif}                
+
                        s:=pattern;
                        consume(INTCONST);
                        val(s,abssym^.address,code);
@@ -1754,7 +1773,10 @@ unit pdecl;
                 else
                   begin
                      newtype:=new(ptypesym,init(typename,read_type(typename)));
-                     symtablestack^.insert(newtype);
+                     { load newtype with the new pointer to the inserted type
+
+                       because it can be an already defined forwarded type !! }
+                     newtype:=ptypesym(symtablestack^.insert(newtype));
                   end;
              end;
            consume(SEMICOLON);
@@ -1860,7 +1882,11 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.29  1998-06-25 14:04:21  peter
+  Revision 1.30  1998-07-10 00:00:00  peter
+    * fixed ttypesym bug finally
+    * fileinfo in the symtable and better using for unused vars
+
+  Revision 1.29  1998/06/25 14:04:21  peter
     + internal inc/dec
 
   Revision 1.28  1998/06/24 12:26:45  peter

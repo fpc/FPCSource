@@ -207,11 +207,17 @@ unit pbase;
 
 
       begin
-        s:=sc^.get_with_tokeninfo(filepos);
-         while s<>'' do
+         while not sc^.empty do
            begin
+              s:=sc^.get_with_tokeninfo(filepos);
               ss:=new(pvarsym,init(s,def));
+{$ifdef NEWINPUT}       
+
+              ss^.fileinfo:=filepos;
+{$else}
               ss^.line_no:=filepos.line;
+{$endif}        
+
               st^.insert(ss);
               { static data fields are inserted in the globalsymtable }
               if (st^.symtabletype=objectsymtable) and
@@ -220,7 +226,6 @@ unit pbase;
                    s:=lower(st^.name^)+'_'+s;
                    st^.defowner^.owner^.insert(new(pvarsym,init(s,def)));
                 end;
-              s:=sc^.get_with_tokeninfo(filepos);
            end;
          dispose(sc,done);
       end;
@@ -229,7 +234,11 @@ end.
 
 {
   $Log$
-  Revision 1.11  1998-07-07 11:20:02  peter
+  Revision 1.12  1998-07-09 23:59:59  peter
+    * fixed ttypesym bug finally
+    * fileinfo in the symtable and better using for unused vars
+
+  Revision 1.11  1998/07/07 11:20:02  peter
     + NEWINPUT for a better inputfile and scanner object
 
   Revision 1.10  1998/06/05 14:37:31  pierre
