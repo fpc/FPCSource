@@ -153,6 +153,7 @@ const
     _LVODupLock           =  -96;
     _LVOExamine           = -102;
     _LVOParentDir         = -210;
+    _LVOSetFileSize       = -456;
 
       { Errors from IoErr(), etc. }
       ERROR_NO_FREE_STORE              = 103;
@@ -941,7 +942,32 @@ end;
 
 procedure do_truncate (handle,pos:longint);
 begin
-  {!!!!!!!!!!!!}
+      { Point to the end of the file }
+      { with the new size            }
+      asm
+      @noerr_one:                          { Seek a second time            }
+             move.l  a6,d6                 { Save base pointer             }
+
+             move.l  handle,d1
+             move.l  d2,-(sp)
+             move.l  d3,-(sp)              { save registers                }
+
+             move.l  pos,d2
+             move.l  #-1,d3                { Setup correct move type     }
+             move.l  _DOSBase,a6           { from beginning of file      }
+             jsr    _LVOSetFileSize(a6)
+
+             move.l  (sp)+,d3              { restore registers }
+             move.l  (sp)+,d2
+             cmp.l   #-1,d0                { is there a file access error? }
+             bne     @noerr
+             jsr     _LVOIoErr(a6)
+             move.w  d0,errno              { Global variable, so no need    }
+      @noerr:                              { to restore base pointer now    }
+             move.l  d6,a6                 { Restore base pointer           }
+      end;
+  If Errno <> 0 then
+    Error2InOut;
 end;
 
 
@@ -1114,6 +1140,9 @@ var
   FIB :pFileInfoBlock;
 begin
   If InOutRes <> 0 then exit;
+  if s = '..' then
+   Begin
+   end;
   alock := 0;
   fib:=nil;
   new(fib);
@@ -1362,7 +1391,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  1998-07-02 12:37:52  carl
+  Revision 1.7  1998-07-09 11:54:57  carl
+    + implemented do_truncate
+
+  Revision 1.6  1998/07/02 12:37:52  carl
     * IOCheck for chdir,rmdir and mkdir as in TP
 
   Revision 1.5  1998/07/01 14:30:56  carl
