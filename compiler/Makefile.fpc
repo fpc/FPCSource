@@ -172,6 +172,8 @@ endif
 
 clean : execlean fpc_cleanall
 
+ppuclean: fpc_cleanall
+
 execlean :
         -$(DEL) $(EXENAME)
 
