@@ -2440,7 +2440,10 @@ unit pass_1;
            end;
          if defcoll=nil then
            begin
-              firstpass(p^.left);
+              if not(assigned(p^.resulttype)) then
+                firstpass(p^.left)
+              else
+                exit;
 
               if codegenerror then
                 begin
@@ -2991,7 +2994,8 @@ unit pass_1;
                         p^.methodpointer:=nil;
                      end;
 {$endif CHAINPROCSYMS}
-                end; { end of procedure to call determination }
+               end;{ end of procedure to call determination }
+
               { work trough all parameters to insert the type conversions }
               if assigned(p^.left) then
                 begin
@@ -3000,7 +3004,6 @@ unit pass_1;
                    firstcallparan(p^.left,p^.procdefinition^.para1);
                    count_ref:=old_count_ref;
                 end;
-
               { handle predefined procedures }
               if (p^.procdefinition^.options and pointernproc)<>0 then
                 begin
@@ -3045,7 +3048,7 @@ unit pass_1;
                     inc(reg_pushes[regi],t_times*2);
                end;
 {$endif}
-           end; { not assigned(p^.procdefinition) }
+           end;
          { ensure that the result type is set }
          p^.resulttype:=p^.procdefinition^.retdef;
          { get a register for the return value }
@@ -4597,7 +4600,11 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.11  1998-04-21 10:16:48  peter
+  Revision 1.12  1998-04-22 21:06:50  florian
+    * last fixes before the release:
+      - veryyyy slow firstcall fixed
+
+  Revision 1.11  1998/04/21 10:16:48  peter
     * patches from strasbourg
     * objects is not used anymore in the fpc compiled version
 

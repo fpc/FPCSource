@@ -3749,6 +3749,8 @@ implementation
       var
          r : preference;
          l : longint;
+         ispushed : boolean;
+         hregister : tregister;
 
       begin
          case p^.inlinenumber of
@@ -4005,16 +4007,45 @@ implementation
                            del_reference(p^.left^.left^.location.reference);
                         end
                       else
+                        { LOC_CREGISTER }
                         exprasmlist^.concat(new(pai386,op_const_reg(asmop,S_L,
                           l,p^.left^.left^.location.register)));
                    end
                  else
-                   if psetdef(p^.left^.resulttype)^.settype=smallset then
-                     begin
-                     end
-                   else
-                     begin
-                     end;
+                   begin
+                      { generate code for the element to set }
+                      ispushed:=maybe_push(p^.left^.right^.left^.registers32,p^.left^.left);
+                      secondpass(p^.left^.right^.left);
+                      if ispushed then
+                        restore(p^.left^.left);
+                      { determine asm operator }
+                      if p^.inlinenumber=in_include_x_y then
+                        asmop:=A_BTS
+                      else
+                        asmop:=A_BTR;
+                      if psetdef(p^.left^.resulttype)^.settype=smallset then
+                        begin
+                           if p^.left^.right^.left^.location.loc in
+                             [LOC_CREGISTER,LOC_REGISTER] then
+                             hregister:=p^.left^.right^.left^.location.register
+                           else
+                             begin
+                                hregister:=R_EDI;
+                                exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
+                                  newreference(p^.left^.right^.left^.location.reference),
+                                  R_EDI)));
+                             end;
+                          if (p^.left^.left^.location.loc=LOC_REFERENCE) then
+                            exprasmlist^.concat(new(pai386,op_reg_ref(asmop,S_L,R_EDI,
+                              newreference(p^.left^.right^.left^.location.reference))))
+                          else
+                            exprasmlist^.concat(new(pai386,op_reg_reg(asmop,S_L,R_EDI,
+                              p^.left^.right^.left^.location.register)));
+                        end
+                      else
+                        begin
+                        end;
+                   end;
               end;
             else internalerror(9);
          end;
@@ -5844,7 +5875,11 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.14  1998-04-21 10:16:47  peter
+  Revision 1.15  1998-04-22 21:06:49  florian
+    * last fixes before the release:
+      - veryyyy slow firstcall fixed
+
+  Revision 1.14  1998/04/21 10:16:47  peter
     * patches from strasbourg
     * objects is not used anymore in the fpc compiled version
 

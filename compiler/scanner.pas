@@ -44,9 +44,10 @@ unit scanner;
           'struct','switch','typedef','union','unsigned','void','volatile',
           'while');
 {$else}
-       anz_keywords = 71;
+       max_keywords = 71;
+       anz_keywords : longint = max_keywords;
 
-       keyword : array[1..anz_keywords] of ident = (
+       keyword : array[1..max_keywords] of ident = (
 {                'ABSOLUTE',}
                  'AND',
                  'ARRAY','AS','ASM',
@@ -83,7 +84,7 @@ unit scanner;
                  'WHILE','WITH','XOR');
 {***}
 
-       keyword_token : array[1..anz_keywords] of ttoken = (
+       keyword_token : array[1..max_keywords] of ttoken = (
 {                _ABSOLUTE,}
                  _AND,
                  _ARRAY,_AS,_ASM,
@@ -180,6 +181,27 @@ for the last instruction of an include file !}
 
     uses
        pbase;
+
+    procedure remove_keyword(const s : string);
+
+      var
+         i,j : longint;
+
+      begin
+         for i:=1 to anz_keywords do
+           begin
+              if keyword[i]=s then
+                begin
+                   for j:=i to anz_keywords-1 do
+                     begin
+                        keyword[j]:=keyword[j+1];
+                        keyword_token[j]:=keyword_token[j+1];
+                     end;
+                   dec(anz_keywords);
+                   break;
+                end;
+           end;
+      end;
 
     const
        newline = #10;
@@ -2104,7 +2126,11 @@ for the last instruction of an include file !}
 end.
 {
   $Log$
-  Revision 1.9  1998-04-16 12:14:58  peter
+  Revision 1.10  1998-04-22 21:06:50  florian
+    * last fixes before the release:
+      - veryyyy slow firstcall fixed
+
+  Revision 1.9  1998/04/16 12:14:58  peter
     * quick hack for ^[ in strings
 
   Revision 1.8  1998/04/16 12:07:55  peter
