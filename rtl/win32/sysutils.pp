@@ -673,14 +673,16 @@ Initialization
     end;
 
 Finalization
-  OutOfMemory.Free;
-  InValidPointer.Free;
+  DoneExceptions;
   if kernel32dll<>0 then
    FreeLibrary(kernel32dll);
 end.
 {
   $Log$
-  Revision 1.8  2001-05-20 12:08:36  peter
+  Revision 1.9  2001-06-03 15:18:01  peter
+    * eoutofmemory and einvalidpointer fix
+
+  Revision 1.8  2001/05/20 12:08:36  peter
     * fixed filesearch
 
   Revision 1.7  2001/04/16 10:57:05  peter

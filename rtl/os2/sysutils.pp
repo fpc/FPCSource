@@ -769,13 +769,15 @@ Initialization
   InitExceptions;       { Initialize exceptions. OS independent }
   InitInternational;    { Initialize internationalization settings }
 Finalization
-  OutOfMemory.Free;
-  InValidPointer.Free;
+  DoneExceptions;
 end.
 
 {
   $Log$
-  Revision 1.11  2001-05-21 20:50:19  hajny
+  Revision 1.12  2001-06-03 15:18:01  peter
+    * eoutofmemory and einvalidpointer fix
+
+  Revision 1.11  2001/05/21 20:50:19  hajny
     * silly mistyping corrected
 
   Revision 1.10  2001/05/20 18:40:33  hajny

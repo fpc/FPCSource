@@ -254,12 +254,14 @@ Initialization
   InitExceptions;       { Initialize exceptions. OS independent }
   InitInternational;    { Initialize internationalization settings }
 Finalization
-  OutOfMemory.Free;
-  InValidPointer.Free;
+  DoneExceptions;
 end.
 {
   $Log$
-  Revision 1.1  2001-06-02 19:26:03  peter
+  Revision 1.2  2001-06-03 15:18:01  peter
+    * eoutofmemory and einvalidpointer fix
+
+  Revision 1.1  2001/06/02 19:26:03  peter
     * BeOS target!
 
 }

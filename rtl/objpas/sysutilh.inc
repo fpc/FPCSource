@@ -87,11 +87,16 @@ type
      public
      ErrorCode : Longint;
      end;
-   EInvalidPointer  = Class(Exception);
-   EOutOfMemory     = Class(Exception);
+   EHeapMemoryError = class(Exception)
+     protected
+     AllowFree : boolean;
+     procedure FreeInstance;override;
+     end;
+
+   EInvalidPointer  = Class(EHeapMemoryError);
+   EOutOfMemory     = Class(EHeapMemoryError);
    EAccessViolation = Class(Exception);
    EInvalidCast = Class(Exception);
-
 
    { String conversion errors }
    EConvertError = class(Exception);
@@ -136,13 +141,16 @@ Type
   {$i filutilh.inc}
 
   { Read disk function declarations }
-  
+
 
   {$i diskh.inc}
 
 {
   $Log$
-  Revision 1.8  2001-02-20 22:14:19  peter
+  Revision 1.9  2001-06-03 15:18:01  peter
+    * eoutofmemory and einvalidpointer fix
+
+  Revision 1.8  2001/02/20 22:14:19  peter
     * merged getenvironmentvariable
 
   Revision 1.7  2001/01/18 22:09:09  michael

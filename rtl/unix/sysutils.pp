@@ -460,13 +460,15 @@ Initialization
   InitExceptions;       { Initialize exceptions. OS independent }
   InitInternational;    { Initialize internationalization settings }
 Finalization
-  OutOfMemory.Free;
-  InValidPointer.Free;
+  DoneExceptions;
 end.
 {
 
   $Log$
-  Revision 1.8  2001-02-20 22:19:38  peter
+  Revision 1.9  2001-06-03 15:18:01  peter
+    * eoutofmemory and einvalidpointer fix
+
+  Revision 1.8  2001/02/20 22:19:38  peter
     * always test before commiting after merging, linux -> unix change
 
   Revision 1.7  2001/02/20 22:14:19  peter

@@ -34,7 +34,7 @@ TYPE
     EntryP: PNWDirEnt;               { and readdir }
     Magic : WORD;                    { to avoid abends with uninitialized TSearchRec }
   END;
-  
+
 
 
 { Include platform independent interface part }
@@ -475,13 +475,15 @@ Initialization
   InitExceptions;       { Initialize exceptions. OS independent }
   InitInternational;    { Initialize internationalization settings }
 Finalization
-  OutOfMemory.Free;
-  InValidPointer.Free;
+  DoneExceptions;
 end.
 {
 
   $Log$
-  Revision 1.3  2001-04-16 18:39:50  florian
+  Revision 1.4  2001-06-03 15:18:01  peter
+    * eoutofmemory and einvalidpointer fix
+
+  Revision 1.3  2001/04/16 18:39:50  florian
     * updates from Armin commited
 
   Revision 1.2  2001/04/11 14:17:00  florian

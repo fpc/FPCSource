@@ -108,6 +108,12 @@
     end;
 
 
+    procedure EHeapMemoryError.FreeInstance;
+    begin
+       if AllowFree then
+        inherited FreeInstance;
+    end;
+
 
 {$ifopt S+}
 {$define STACKCHECK_WAS_ON}
@@ -210,11 +216,23 @@ begin
   ExceptProc:=@CatchUnhandledException;
   // Create objects that may have problems when there is no memory.
   OutOfMemory:=EOutOfMemory.Create(SOutOfMemory);
+  OutOfMemory.AllowFree:=false;
   InvalidPointer:=EInvalidPointer.Create(SInvalidPointer);
+  InvalidPointer.AllowFree:=false;
   AssertErrorProc:=@AssertErrorHandler;
   ErrorProc:=@RunErrorToExcept;
   OnShowException:=Nil;
 end;
+
+
+Procedure DoneExceptions;
+begin
+  OutOfMemory.AllowFree:=true;
+  OutOfMemory.Free;
+  InValidPointer.AllowFree:=true;
+  InValidPointer.Free;
+end;
+
 
 { Exception handling routines }
 
@@ -290,7 +308,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2000-11-23 11:04:26  sg
+  Revision 1.4  2001-06-03 15:18:01  peter
+    * eoutofmemory and einvalidpointer fix
+
+  Revision 1.3  2000/11/23 11:04:26  sg
   * Protected some Move()'s by 'if' clauses so that the Move won't be
     executed when the length would be 0. Otherwise, the corresponding
     routines might get an RTE when compiled with $R+.
