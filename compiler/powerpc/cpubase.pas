@@ -29,7 +29,8 @@ unit cpubase;
 interface
 
 uses
-  strings,cutils,cclasses,aasmbase,cpuinfo,cgbase;
+  strings,globtype,
+  cutils,cclasses,aasmbase,cpuinfo,cgbase;
 
 
 {*****************************************************************************
@@ -135,6 +136,10 @@ uses
 
       regstabs_table : array[tregisterindex] of shortint = (
         {$i rppcstab.inc}
+      );
+
+      regdwarf_table : array[tregisterindex] of shortint = (
+        {$i rppcdwrf.inc}
       );
 
       { registers which may be destroyed by calls }
@@ -333,19 +338,13 @@ uses
 {$else FPC_BIG_ENDIAN}
                 1 : (value : AWord);
 {$endif FPC_BIG_ENDIAN}
-                { can't do this, this layout depends on the host cpu. Use }
-                { lo(valueqword)/hi(valueqword) instead (JM)              }
-                { 2 : (valuelow, valuehigh:AWord);                        }
-                { overlay a complete 64 Bit value }
-                3 : (valueqword : qword);
+                2 : (value64 : int64);
               );
             LOC_FPUREGISTER, LOC_CFPUREGISTER, LOC_MMREGISTER, LOC_CMMREGISTER,
               LOC_REGISTER,LOC_CREGISTER : (
                 case longint of
                   1 : (registerlow,registerhigh : tregister);
                   2 : (register : tregister);
-                  { overlay a 64 Bit register type }
-                  3 : (reg64 : tregister64);
                   4 : (register64 : tregister64);
                 );
             LOC_FLAGS : (resflags : tresflags);
@@ -409,6 +408,8 @@ uses
       }
 {$warning As indicated in rs6000.h, but can't find it anywhere else!}
       NR_PIC_OFFSET_REG = NR_R30;
+      { Return address of a function }
+      NR_RETURN_ADDRESS_REG = NR_R0;
       { Results are returned in this register (32-bit values) }
       NR_FUNCTION_RETURN_REG = NR_R3;
       RS_FUNCTION_RETURN_REG = RS_R3;
@@ -487,7 +488,7 @@ uses
 
     function cgsize2subreg(s:Tcgsize):Tsubregister;
     { Returns the tcgsize corresponding with the size of reg.}
-    function reg_cgsize(const reg: tregister) : tcgsize; virtual;
+    function reg_cgsize(const reg: tregister) : tcgsize;
 
     function findreg_by_number(r:Tregister):tregisterindex;
     function std_regnum_search(const s:string):Tregister;
@@ -594,6 +595,19 @@ implementation
       end;
 
 
+    function reg_cgsize(const reg: tregister): tcgsize;
+      begin
+        case getregtype(reg) of
+          R_MMREGISTER,
+          R_FPUREGISTER,
+          R_INTREGISTER :
+            result:=OS_32;
+          else
+            internalerror(200303181);
+        end;
+      end;
+
+
     function cgsize2subreg(s:Tcgsize):Tsubregister;
       begin
         cgsize2subreg:=R_SUBWHOLE;
@@ -627,7 +641,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.87  2004-06-16 20:07:10  florian
+  Revision 1.88  2004-06-17 16:55:46  peter
+    * powerpc compiles again
+
+  Revision 1.87  2004/06/16 20:07:10  florian
     * dwarf branch merged
 
   Revision 1.86.2.1  2004/05/01 11:12:24  florian

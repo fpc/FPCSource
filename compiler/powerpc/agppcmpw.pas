@@ -72,7 +72,10 @@ interface
 
       const_storage_class = '[RW]';
 
-
+      secnames : array[TAsmSectionType] of string[10] = ('',
+        'csect','csect [TC]','csect [TC]',  {TODO: Perhaps use other section types.}
+        '','','','','','','','','','','','',''
+      );
 
 {$ifdef GDB}
 var
@@ -624,7 +627,7 @@ var
     end;
 
     var
-      LasTSec : TSection;
+      LasTSec : TAsmSectionType;
       lastfileinfo : tfileposinfo;
       infile,
       lastinfile   : tinputfile;
@@ -834,15 +837,15 @@ var
               begin
                  {if LasTSec<>sec_none then
                   AsmWriteLn('_'+target_asm.secnames[LasTSec]+#9#9'ENDS');}
-                 if tai_section(hp).sec<>sec_none then
+                 if tai_section(hp).sectype<>sec_none then
                   begin
                     AsmLn;
-                    AsmWriteLn(#9+target_asm.secnames[tai_section(hp).sec]);
+                    AsmWriteLn(#9+secnames[tai_section(hp).sectype]);
 {$ifdef GDB}
                   lastfileinfo.line:=-1;
 {$endif GDB}
                   end;
-                 LasTSec:=tai_section(hp).sec;
+                 LasTSec:=tai_section(hp).sectype;
                end;
             ait_align:
               begin
@@ -869,64 +872,49 @@ var
                      {TODO: ? PadTabs(s,#0) }
                    end;
               end;
-            ait_const_32bit,
-            ait_const_8bit,
-            ait_const_16bit :
-              begin
-                 AsmWrite(ait_const2str[hp.typ]+tostr(tai_const(hp).value));
-                 consttyp:=hp.typ;
-                 l:=0;
-                 repeat
-                   found:=(not (tai(hp.next)=nil)) and (tai(hp.next).typ=consttyp);
-                   if found then
-                    begin
-                      hp:=tai(hp.next);
-                      s:=','+tostr(tai_const(hp).value);
-                      AsmWrite(s);
-                      inc(l,length(s));
-                    end;
-                 until (not found) or (l>line_length);
-                 AsmLn;
-               end;
-            ait_const_symbol:
-              begin
-                s:= tai_const_symbol(hp).sym.name;
-                ReplaceForbiddenChars(s);
+           ait_const_uleb128bit,
+           ait_const_sleb128bit,
+           ait_const_128bit,
+           ait_const_64bit,
+           ait_const_32bit,
+           ait_const_16bit,
+           ait_const_8bit,
+           ait_const_rva_symbol,
+           ait_const_indirect_symbol :
+             begin
+               AsmWrite(ait_const2str[hp.typ]);
+               consttyp:=hp.typ;
+               l:=0;
+               repeat
+                 if assigned(tai_const(hp).sym) then
+                   begin
+                     if use_PR then
+                       AsmWrite('.');
+                     if assigned(tai_const(hp).endsym) then
+                       s:=tai_const(hp).endsym.name+'-'+tai_const(hp).sym.name
+                     else
+                       s:=tai_const(hp).sym.name;
+                     ReplaceForbiddenChars(s);
+                     if tai_const(hp).value<>0 then
+                       InternalError(2002110101);
+                     if use_PR then
+                       AsmWriteLn('[PR]')
+                     else
+                       AsmWriteLn('[DS]');
+                   end
+                 else
+                   s:=tostr(tai_const(hp).value);
+                 AsmWrite(s);
+                 if (l>line_length) or
+                    (hp.next=nil) or
+                    (tai(hp.next).typ<>consttyp) then
+                   break;
+                 hp:=tai(hp.next);
+                 AsmWrite(',');
+               until false;
+               AsmLn;
+             end;
 
-                AsmWrite(#9'dc.l'#9);
-                if tai_const_symbol(hp).sym.typ = AT_FUNCTION then
-                  begin
-                    if use_PR then
-                      AsmWrite('.');
-
-                    AsmWrite(s);
-
-                    if use_PR then
-                      AsmWriteLn('[PR]')
-                    else
-                      AsmWriteLn('[DS]')
-                  end
-                else
-                  begin
-                    AsmWrite(s);
-                    if not macos_direct_globals then
-                      AsmWriteLn(const_storage_class);
-                  end;
-
-                (* TODO: the following might need to be included. Temporaily we
-                generate an error
-
-                if tai_const_symbol(hp).offset>0 then
-                  AsmWrite('+'+tostr(tai_const_symbol(hp).offset))
-                else if tai_const_symbol(hp).offset<0 then
-                  AsmWrite(tostr(tai_const_symbol(hp).offset));
-                *)
-
-                if tai_const_symbol(hp).offset <> 0 then
-                  InternalError(2002110101);
-
-                AsmLn;
-              end;
             ait_real_32bit:
               AsmWriteLn(#9'dc.l'#9'"'+single2str(tai_real_32bit(hp).value)+'"');
             ait_real_64bit:
@@ -1094,7 +1082,7 @@ var
 
               ait_stab_function_name: ;
 {$endif GDB}
-              ait_cut :
+              ait_cutobject :
                 begin
                      { only reset buffer if nothing has changed }
                        if AsmSize=AsmStartSize then
@@ -1109,21 +1097,21 @@ var
                           AsmWriteLn(#9'end');
                           AsmClose;
                           DoAssemble;
-                          AsmCreate(tai_cut(hp).place);
+                          AsmCreate(tai_cutobject(hp).place);
                         end;
                      { avoid empty files }
-                       while assigned(hp.next) and (tai(hp.next).typ in [ait_cut,ait_section,ait_comment]) do
+                       while assigned(hp.next) and (tai(hp.next).typ in [ait_cutobject,ait_section,ait_comment]) do
                         begin
                           if tai(hp.next).typ=ait_section then
                            begin
-                             lasTSec:=tai_section(hp.next).sec;
+                             lasTSec:=tai_section(hp.next).sectype;
                            end;
                           hp:=tai(hp.next);
                         end;
                        WriteAsmFileHeader;
 
                        if lasTSec<>sec_none then
-                         AsmWriteLn(#9+target_asm.secnames[lasTSec]);
+                         AsmWriteLn(#9+secnames[lasTSec]);
                        {   AsmWriteLn('_'+target_asm.secnames[lasTSec]+#9#9+
                                      'SEGMENT'#9'PARA PUBLIC USE32 '''+
                                      target_asm.secnames[lasTSec]+'''');
@@ -1345,16 +1333,9 @@ var
             asmbin : 'PPCAsm';
             asmcmd : '-case on $ASM -o $OBJ';
             supported_target : system_any; { what should I write here ?? }
-            outputbinary: false;
-            allowdirect : true;
-            needar : true;
-            labelprefix_only_inside_procedure : true;
+            flags : [af_allowdirect,af_needar,af_smartlink_sections,af_labelprefix_only_inside_procedure];
             labelprefix : '@';
             comment : '; ';
-            secnames : ('',
-              'csect','csect [TC]','csect [TC]',  {TODO: Perhaps use other section types.}
-              '','','','','','',
-              '','','')
           );
 
 initialization
@@ -1362,7 +1343,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.34  2004-03-17 12:03:31  olle
+  Revision 1.35  2004-06-17 16:55:46  peter
+    * powerpc compiles again
+
+  Revision 1.34  2004/03/17 12:03:31  olle
     * bugfix for multiline string constants
 
   Revision 1.33  2004/03/02 00:57:01  olle

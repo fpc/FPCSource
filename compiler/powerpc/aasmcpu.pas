@@ -27,8 +27,9 @@ unit aasmcpu;
 interface
 
 uses
-  cclasses,aasmtai,
-  aasmbase,globals,verbose,
+  cclasses,
+  globtype,globals,verbose,
+  aasmbase,aasmtai,
   cpubase,cpuinfo,cgbase;
 
     const
@@ -39,54 +40,52 @@ uses
 
 
     type
-      taicpu = class(taicpu_abstract)
+      taicpu = class(tai_cpu_abstract)
          constructor op_none(op : tasmop);
 
          constructor op_reg(op : tasmop;_op1 : tregister);
-         constructor op_const(op : tasmop;_op1 : longint);
+         constructor op_const(op : tasmop;_op1 : aint);
 
          constructor op_reg_reg(op : tasmop;_op1,_op2 : tregister);
          constructor op_reg_ref(op : tasmop;_op1 : tregister;const _op2 : treference);
-         constructor op_reg_const(op:tasmop; _op1: tregister; _op2: longint);
-         constructor op_const_reg(op:tasmop; _op1: longint; _op2: tregister);
+         constructor op_reg_const(op:tasmop; _op1: tregister; _op2: aint);
+         constructor op_const_reg(op:tasmop; _op1: aint; _op2: tregister);
 
-         constructor op_const_const(op : tasmop;_op1,_op2 : longint);
+         constructor op_const_const(op : tasmop;_op1,_op2 : aint);
 
          constructor op_reg_reg_reg(op : tasmop;_op1,_op2,_op3 : tregister);
-         constructor op_reg_reg_const(op : tasmop;_op1,_op2 : tregister; _op3: Longint);
-         constructor op_reg_reg_sym_ofs(op : tasmop;_op1,_op2 : tregister; _op3: tasmsymbol;_op3ofs: longint);
+         constructor op_reg_reg_const(op : tasmop;_op1,_op2 : tregister; _op3: aint);
+         constructor op_reg_reg_sym_ofs(op : tasmop;_op1,_op2 : tregister; _op3: tasmsymbol;_op3ofs: aint);
          constructor op_reg_reg_ref(op : tasmop;_op1,_op2 : tregister; const _op3: treference);
-         constructor op_const_reg_reg(op : tasmop;_op1 : longint;_op2, _op3 : tregister);
-         constructor op_const_reg_const(op : tasmop;_op1 : longint;_op2 : tregister;_op3 : longint);
-         constructor op_const_const_const(op : tasmop;_op1 : longint;_op2 : longint;_op3 : longint);
+         constructor op_const_reg_reg(op : tasmop;_op1 : aint;_op2, _op3 : tregister);
+         constructor op_const_reg_const(op : tasmop;_op1 : aint;_op2 : tregister;_op3 : aint);
+         constructor op_const_const_const(op : tasmop;_op1 : aint;_op2 : aint;_op3 : aint);
 
          constructor op_reg_reg_reg_reg(op : tasmop;_op1,_op2,_op3,_op4 : tregister);
          constructor op_reg_bool_reg_reg(op : tasmop;_op1: tregister;_op2:boolean;_op3,_op4:tregister);
-         constructor op_reg_bool_reg_const(op : tasmop;_op1: tregister;_op2:boolean;_op3:tregister;_op4: longint);
+         constructor op_reg_bool_reg_const(op : tasmop;_op1: tregister;_op2:boolean;_op3:tregister;_op4: aint);
 
-         constructor op_reg_reg_reg_const_const(op : tasmop;_op1,_op2,_op3 : tregister;_op4,_op5 : Longint);
-         constructor op_reg_reg_const_const_const(op : tasmop;_op1,_op2 : tregister;_op3,_op4,_op5 : Longint);
+         constructor op_reg_reg_reg_const_const(op : tasmop;_op1,_op2,_op3 : tregister;_op4,_op5 : aint);
+         constructor op_reg_reg_const_const_const(op : tasmop;_op1,_op2 : tregister;_op3,_op4,_op5 : aint);
 
 
          { this is for Jmp instructions }
          constructor op_cond_sym(op : tasmop;cond:TAsmCond;_op1 : tasmsymbol);
-         constructor op_const_const_sym(op : tasmop;_op1,_op2 : longint;_op3: tasmsymbol);
+         constructor op_const_const_sym(op : tasmop;_op1,_op2 : aint;_op3: tasmsymbol);
 
 
          constructor op_sym(op : tasmop;_op1 : tasmsymbol);
-         constructor op_sym_ofs(op : tasmop;_op1 : tasmsymbol;_op1ofs:longint);
-         constructor op_reg_sym_ofs(op : tasmop;_op1 : tregister;_op2:tasmsymbol;_op2ofs : longint);
-         constructor op_sym_ofs_ref(op : tasmop;_op1 : tasmsymbol;_op1ofs:longint;const _op2 : treference);
+         constructor op_sym_ofs(op : tasmop;_op1 : tasmsymbol;_op1ofs:aint);
+         constructor op_reg_sym_ofs(op : tasmop;_op1 : tregister;_op2:tasmsymbol;_op2ofs : aint);
+         constructor op_sym_ofs_ref(op : tasmop;_op1 : tasmsymbol;_op1ofs:aint;const _op2 : treference);
 
-         procedure loadbool(opidx:longint;_b:boolean);
+         procedure loadbool(opidx:aint;_b:boolean);
 
 
          function is_same_reg_move(regtype: Tregistertype):boolean; override;
 
          { register spilling code }
-         function spilling_get_operation_type(opnr: longint): topertype;override;
-         function spilling_create_load(const ref:treference;r:tregister): tai;override;
-         function spilling_create_store(r:tregister; const ref:treference): tai;override;
+         function spilling_get_operation_type(opnr: aint): topertype;override;
       end;
 
       tai_align = class(tai_align_abstract)
@@ -97,6 +96,9 @@ uses
     procedure DoneAsm;
 
 
+    function spilling_create_load(const ref:treference;r:tregister): tai;
+    function spilling_create_store(r:tregister; const ref:treference): tai;
+
 implementation
 
 uses cutils,rgobj;
@@ -105,7 +107,7 @@ uses cutils,rgobj;
                                  taicpu Constructors
 *****************************************************************************}
 
-    procedure taicpu.loadbool(opidx:longint;_b:boolean);
+    procedure taicpu.loadbool(opidx:aint;_b:boolean);
       begin
         if opidx>=ops then
          ops:=opidx+1;
@@ -133,11 +135,11 @@ uses cutils,rgobj;
       end;
 
 
-    constructor taicpu.op_const(op : tasmop;_op1 : longint);
+    constructor taicpu.op_const(op : tasmop;_op1 : aint);
       begin
          inherited create(op);
          ops:=1;
-         loadconst(0,aword(_op1));
+         loadconst(0,_op1);
       end;
 
 
@@ -149,19 +151,19 @@ uses cutils,rgobj;
          loadreg(1,_op2);
       end;
 
-    constructor taicpu.op_reg_const(op:tasmop; _op1: tregister; _op2: longint);
+    constructor taicpu.op_reg_const(op:tasmop; _op1: tregister; _op2: aint);
       begin
          inherited create(op);
          ops:=2;
          loadreg(0,_op1);
-         loadconst(1,aword(_op2));
+         loadconst(1,_op2);
       end;
 
-     constructor taicpu.op_const_reg(op:tasmop; _op1: longint; _op2: tregister);
+     constructor taicpu.op_const_reg(op:tasmop; _op1: aint; _op2: tregister);
       begin
          inherited create(op);
          ops:=2;
-         loadconst(0,aword(_op1));
+         loadconst(0,_op1);
          loadreg(1,_op2);
       end;
 
@@ -175,12 +177,12 @@ uses cutils,rgobj;
       end;
 
 
-    constructor taicpu.op_const_const(op : tasmop;_op1,_op2 : longint);
+    constructor taicpu.op_const_const(op : tasmop;_op1,_op2 : aint);
       begin
          inherited create(op);
          ops:=2;
-         loadconst(0,aword(_op1));
-         loadconst(1,aword(_op2));
+         loadconst(0,_op1);
+         loadconst(1,_op2);
       end;
 
 
@@ -193,16 +195,16 @@ uses cutils,rgobj;
          loadreg(2,_op3);
       end;
 
-     constructor taicpu.op_reg_reg_const(op : tasmop;_op1,_op2 : tregister; _op3: Longint);
+     constructor taicpu.op_reg_reg_const(op : tasmop;_op1,_op2 : tregister; _op3: aint);
        begin
          inherited create(op);
          ops:=3;
          loadreg(0,_op1);
          loadreg(1,_op2);
-         loadconst(2,aword(_op3));
+         loadconst(2,_op3);
       end;
 
-     constructor taicpu.op_reg_reg_sym_ofs(op : tasmop;_op1,_op2 : tregister; _op3: tasmsymbol;_op3ofs: longint);
+     constructor taicpu.op_reg_reg_sym_ofs(op : tasmop;_op1,_op2 : tregister; _op3: tasmsymbol;_op3ofs: aint);
        begin
          inherited create(op);
          ops:=3;
@@ -220,32 +222,32 @@ uses cutils,rgobj;
          loadref(2,_op3);
       end;
 
-    constructor taicpu.op_const_reg_reg(op : tasmop;_op1 : longint;_op2, _op3 : tregister);
+    constructor taicpu.op_const_reg_reg(op : tasmop;_op1 : aint;_op2, _op3 : tregister);
       begin
          inherited create(op);
          ops:=3;
-         loadconst(0,aword(_op1));
+         loadconst(0,_op1);
          loadreg(1,_op2);
          loadreg(2,_op3);
       end;
 
-     constructor taicpu.op_const_reg_const(op : tasmop;_op1 : longint;_op2 : tregister;_op3 : longint);
+     constructor taicpu.op_const_reg_const(op : tasmop;_op1 : aint;_op2 : tregister;_op3 : aint);
       begin
          inherited create(op);
          ops:=3;
-         loadconst(0,aword(_op1));
+         loadconst(0,_op1);
          loadreg(1,_op2);
-         loadconst(2,aword(_op3));
+         loadconst(2,_op3);
       end;
 
 
-     constructor taicpu.op_const_const_const(op : tasmop;_op1 : longint;_op2 : longint;_op3 : longint);
+     constructor taicpu.op_const_const_const(op : tasmop;_op1 : aint;_op2 : aint;_op3 : aint);
       begin
          inherited create(op);
          ops:=3;
-         loadconst(0,aword(_op1));
-         loadconst(1,aword(_op2));
-         loadconst(2,aword(_op3));
+         loadconst(0,_op1);
+         loadconst(1,_op2);
+         loadconst(2,_op3);
       end;
 
 
@@ -269,7 +271,7 @@ uses cutils,rgobj;
          loadreg(3,_op4);
       end;
 
-     constructor taicpu.op_reg_bool_reg_const(op : tasmop;_op1: tregister;_op2:boolean;_op3:tregister;_op4: longint);
+     constructor taicpu.op_reg_bool_reg_const(op : tasmop;_op1: tregister;_op2:boolean;_op3:tregister;_op4: aint);
       begin
          inherited create(op);
          ops:=4;
@@ -280,7 +282,7 @@ uses cutils,rgobj;
       end;
 
 
-     constructor taicpu.op_reg_reg_reg_const_const(op : tasmop;_op1,_op2,_op3 : tregister;_op4,_op5 : Longint);
+     constructor taicpu.op_reg_reg_reg_const_const(op : tasmop;_op1,_op2,_op3 : tregister;_op4,_op5 : aint);
       begin
          inherited create(op);
          ops:=5;
@@ -291,15 +293,15 @@ uses cutils,rgobj;
          loadconst(4,cardinal(_op5));
       end;
 
-     constructor taicpu.op_reg_reg_const_const_const(op : tasmop;_op1,_op2 : tregister;_op3,_op4,_op5 : Longint);
+     constructor taicpu.op_reg_reg_const_const_const(op : tasmop;_op1,_op2 : tregister;_op3,_op4,_op5 : aint);
       begin
          inherited create(op);
          ops:=5;
          loadreg(0,_op1);
          loadreg(1,_op2);
-         loadconst(2,aword(_op3));
-         loadconst(3,cardinal(_op4));
-         loadconst(4,cardinal(_op5));
+         loadconst(2,_op3);
+         loadconst(3,_op4);
+         loadconst(4,_op5);
       end;
 
     constructor taicpu.op_cond_sym(op : tasmop;cond:TAsmCond;_op1 : tasmsymbol);
@@ -310,12 +312,12 @@ uses cutils,rgobj;
          loadsymbol(0,_op1,0);
       end;
 
-     constructor taicpu.op_const_const_sym(op : tasmop;_op1,_op2 : longint; _op3: tasmsymbol);
+     constructor taicpu.op_const_const_sym(op : tasmop;_op1,_op2 : aint; _op3: tasmsymbol);
       begin
          inherited create(op);
          ops:=3;
-         loadconst(0,aword(_op1));
-         loadconst(1,aword(_op2));
+         loadconst(0,_op1);
+         loadconst(1,_op2);
          loadsymbol(2,_op3,0);
       end;
 
@@ -328,7 +330,7 @@ uses cutils,rgobj;
       end;
 
 
-    constructor taicpu.op_sym_ofs(op : tasmop;_op1 : tasmsymbol;_op1ofs:longint);
+    constructor taicpu.op_sym_ofs(op : tasmop;_op1 : tasmsymbol;_op1ofs:aint);
       begin
          inherited create(op);
          ops:=1;
@@ -336,7 +338,7 @@ uses cutils,rgobj;
       end;
 
 
-     constructor taicpu.op_reg_sym_ofs(op : tasmop;_op1 : tregister;_op2:tasmsymbol;_op2ofs : longint);
+     constructor taicpu.op_reg_sym_ofs(op : tasmop;_op1 : tregister;_op2:tasmsymbol;_op2ofs : aint);
       begin
          inherited create(op);
          ops:=2;
@@ -345,7 +347,7 @@ uses cutils,rgobj;
       end;
 
 
-    constructor taicpu.op_sym_ofs_ref(op : tasmop;_op1 : tasmsymbol;_op1ofs:longint;const _op2 : treference);
+    constructor taicpu.op_sym_ofs_ref(op : tasmop;_op1 : tasmsymbol;_op1ofs:aint;const _op2 : treference);
       begin
          inherited create(op);
          ops:=2;
@@ -368,7 +370,7 @@ uses cutils,rgobj;
       end;
 
 
-    function taicpu.spilling_get_operation_type(opnr: longint): topertype;
+    function taicpu.spilling_get_operation_type(opnr: aint): topertype;
       begin
         result := operand_read;
         case opcode of
@@ -384,13 +386,13 @@ uses cutils,rgobj;
       end;
 
 
-    function taicpu.spilling_create_load(const ref:treference;r:tregister): tai;
+    function spilling_create_load(const ref:treference;r:tregister): tai;
       begin
         result:=taicpu.op_reg_ref(A_LWZ,r,ref);
       end;
 
 
-    function taicpu.spilling_create_store(r:tregister; const ref:treference): tai;
+    function spilling_create_store(r:tregister; const ref:treference): tai;
       begin
         result:=taicpu.op_reg_ref(A_STW,r,ref);
       end;
@@ -408,7 +410,10 @@ uses cutils,rgobj;
 end.
 {
   $Log$
-  Revision 1.25  2004-02-08 23:10:21  jonas
+  Revision 1.26  2004-06-17 16:55:46  peter
+    * powerpc compiles again
+
+  Revision 1.25  2004/02/08 23:10:21  jonas
     * taicpu.is_same_reg_move() now gets a regtype parameter so it only
       removes moves of that particular register type. This is necessary so
       we don't remove the live_start instruction of a register before it

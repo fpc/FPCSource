@@ -205,7 +205,7 @@ interface
         if (right.location.loc = LOC_CONSTANT) then
           begin
 {$ifdef dummy}
-            if (right.location.size in [OS_64,OS_S64]) and (hi(right.location.valueqword)<>0) and ((hi(right.location.valueqword)<>$ffffffff) or unsigned) then
+            if (right.location.size in [OS_64,OS_S64]) and (hi(right.location.value64)<>0) and ((hi(right.location.value64)<>$ffffffff) or unsigned) then
               internalerror(2002080301);
 {$endif extdebug}
             if (nodetype in [equaln,unequaln]) then
@@ -688,11 +688,11 @@ interface
           location_copy(oldleft,left.location);
           location_copy(oldright,right.location);
           if left.location.loc = LOC_CONSTANT then
-            left.location.valueqword := left.location.valueqword shr 32
+            left.location.value64 := left.location.value64 shr 32
           else
             left.location.registerlow := left.location.registerhigh;
           if right.location.loc = LOC_CONSTANT then
-            right.location.valueqword := right.location.valueqword shr 32
+            right.location.value64 := right.location.value64 shr 32
           else
             right.location.registerlow := right.location.registerhigh;
 
@@ -865,38 +865,38 @@ interface
                         end
                       else
                         begin
-                          if (aword(right.location.valueqword) <> 0) then
+                          if (aword(right.location.value64) <> 0) then
                             tempreg64.reglo := cg.getintregister(exprasmlist,OS_32)
                           else
                             tempreg64.reglo := left.location.registerlow;
-                          if ((right.location.valueqword shr 32) <> 0) then
+                          if ((right.location.value64 shr 32) <> 0) then
                             tempreg64.reghi := cg.getintregister(exprasmlist,OS_32)
                           else
                             tempreg64.reghi := left.location.registerhigh;
                         end;
 
-                      if (aword(right.location.valueqword) <> 0) then
+                      if (aword(right.location.value64) <> 0) then
                         { negative values can be handled using SUB, }
                         { positive values < 65535 using XOR.        }
-                        if (longint(right.location.valueqword) >= -32767) and
-                           (longint(right.location.valueqword) < 0) then
+                        if (longint(right.location.value64) >= -32767) and
+                           (longint(right.location.value64) < 0) then
                           cg.a_op_const_reg_reg(exprasmlist,OP_SUB,OS_INT,
-                            aword(right.location.valueqword),
+                            aword(right.location.value64),
                             left.location.registerlow,tempreg64.reglo)
                         else
                           cg.a_op_const_reg_reg(exprasmlist,OP_XOR,OS_INT,
-                            aword(right.location.valueqword),
+                            aword(right.location.value64),
                             left.location.registerlow,tempreg64.reglo);
 
-                      if ((right.location.valueqword shr 32) <> 0) then
-                        if (longint(right.location.valueqword shr 32) >= -32767) and
-                           (longint(right.location.valueqword shr 32) < 0) then
+                      if ((right.location.value64 shr 32) <> 0) then
+                        if (longint(right.location.value64 shr 32) >= -32767) and
+                           (longint(right.location.value64 shr 32) < 0) then
                           cg.a_op_const_reg_reg(exprasmlist,OP_SUB,OS_INT,
-                            aword(right.location.valueqword shr 32),
+                            aword(right.location.value64 shr 32),
                             left.location.registerhigh,tempreg64.reghi)
                         else
                           cg.a_op_const_reg_reg(exprasmlist,OP_XOR,OS_INT,
-                            aword(right.location.valueqword shr 32),
+                            aword(right.location.value64 shr 32),
                             left.location.registerhigh,tempreg64.reghi);
                     end
                   else
@@ -931,7 +931,7 @@ interface
                   if (left.location.loc = LOC_CONSTANT) then
                     swapleftright;
                   if (right.location.loc = LOC_CONSTANT) then
-                    cg64.a_op64_const_reg_reg(exprasmlist,op,right.location.valueqword,
+                    cg64.a_op64_const_reg_reg(exprasmlist,op,right.location.value64,
                       left.location.register64,location.register64)
                   else
                     cg64.a_op64_reg_reg_reg(exprasmlist,op,right.location.register64,
@@ -957,18 +957,18 @@ interface
                       else
                         // reg64 - const64
                         cg64.a_op64_const_reg_reg(exprasmlist,OP_SUB,
-                          right.location.valueqword,left.location.register64,
+                          right.location.value64,left.location.register64,
                           location.register64)
                     end
-                  else if ((left.location.valueqword shr 32) = 0) then
+                  else if ((left.location.value64 shr 32) = 0) then
                     begin
                       if (location.registerlow = NR_NO) then
                         begin
                          location.registerlow := cg.getintregister(exprasmlist,OS_INT);
                          location.registerhigh := cg.getintregister(exprasmlist,OS_INT);
                       end;
-                      if (int64(left.location.valueqword) >= low(smallint)) and
-                         (int64(left.location.valueqword) <= high(smallint)) then
+                      if (int64(left.location.value64) >= low(smallint)) and
+                         (int64(left.location.value64) <= high(smallint)) then
                         begin
                           // consts16 - reg64
                           exprasmlist.concat(taicpu.op_reg_reg_const(A_SUBFIC,
@@ -987,7 +987,7 @@ interface
                       exprasmlist.concat(taicpu.op_reg_reg(A_SUBFZE,
                         location.registerhigh,right.location.registerhigh));
                     end
-                  else if (aword(left.location.valueqword) = 0) then
+                  else if (aword(left.location.value64) = 0) then
                     begin
                       // (const32 shl 32) - reg64
                       if (location.registerlow = NR_NO) then
@@ -997,7 +997,7 @@ interface
                       end;
                       exprasmlist.concat(taicpu.op_reg_reg_const(A_SUBFIC,
                         location.registerlow,right.location.registerlow,0));
-                      left.location.valueqword := left.location.valueqword shr 32;
+                      left.location.value64 := left.location.value64 shr 32;
                       location_force_reg(exprasmlist,left.location,OS_32,true);
                       exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUBFE,
                         location.registerhigh,right.location.registerhigh,
@@ -1494,7 +1494,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.43  2004-03-18 16:19:03  peter
+  Revision 1.44  2004-06-17 16:55:46  peter
+    * powerpc compiles again
+
+  Revision 1.43  2004/03/18 16:19:03  peter
     * fixed operator overload allowing for pointer-string
     * replaced some type_e_mismatch with more informational messages
 
@@ -1617,8 +1620,8 @@ end.
   Revision 1.12  2002/08/14 18:41:48  jonas
     - remove valuelow/valuehigh fields from tlocation, because they depend
       on the endianess of the host operating system -> difficult to get
-      right. Use lo/hi(location.valueqword) instead (remember to use
-      valueqword and not value!!)
+      right. Use lo/hi(location.value64) instead (remember to use
+      value64 and not value!!)
 
   Revision 1.11  2002/08/11 14:32:32  peter
     * renamed current_library to objectlibrary

@@ -31,6 +31,7 @@ var s : string;
     gasnames,
     gssnames,
     motnames,
+    dwarfs,
     stabs : array[0..max_regcount-1] of string[63];
     regnumber_index,
     std_regname_index,
@@ -277,6 +278,8 @@ begin
         motnames[regcount]:=readstr;
         readcomma;
         stabs[regcount]:=readstr;
+        readcomma;
+        dwarfs[regcount]:=readstr;
         { Create register number }
         if supregs[regcount][1]<>'$' then
           begin
@@ -305,7 +308,7 @@ procedure write_inc_files;
 
 var
     norfile,stdfile,motfile,supfile,
-    numfile,stabfile,confile,gasfile,gssfile,
+    numfile,stabfile,confile,gasfile,gssfile,dwarffile,
     rnifile,srifile,mrifile,grifile : text;
     first:boolean;
 
@@ -319,6 +322,7 @@ begin
   openinc(gssfile,'rppcgss.inc');
   openinc(motfile,'rppcmot.inc');
   openinc(stabfile,'rppcstab.inc');
+  openinc(dwarffile,'rppcdwrf.inc');
   openinc(norfile,'rppcnor.inc');
   openinc(rnifile,'rppcrni.inc');
   openinc(srifile,'rppcsri.inc');
@@ -335,6 +339,7 @@ begin
           writeln(gssfile,',');
           writeln(motfile,',');
           writeln(stabfile,',');
+          writeln(dwarffile,',');
           writeln(rnifile,',');
           writeln(srifile,',');
           writeln(grifile,',');
@@ -350,6 +355,7 @@ begin
       write(gssfile,'''',gssnames[i],'''');
       write(motfile,'''',motnames[i],'''');
       write(stabfile,stabs[i]);
+      write(dwarffile,dwarfs[i]);
       write(rnifile,regnumber_index[i]);
       write(srifile,std_regname_index[i]);
       write(grifile,gas_regname_index[i]);
@@ -364,6 +370,7 @@ begin
   closeinc(gssfile);
   closeinc(motfile);
   closeinc(stabfile);
+  closeinc(dwarffile);
   closeinc(norfile);
   closeinc(rnifile);
   closeinc(srifile);
@@ -390,7 +397,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2003-12-16 21:49:47  florian
+  Revision 1.8  2004-06-17 16:55:46  peter
+    * powerpc compiles again
+
+  Revision 1.7  2003/12/16 21:49:47  florian
     * fixed ppc compilation
 
   Revision 1.6  2003/12/10 22:19:28  florian

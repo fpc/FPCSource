@@ -63,7 +63,7 @@ unit nppcld;
                     begin
                       l:=objectlibrary.newasmsymbol('L'+tvarsym(symtableentry).mangledname+'$non_lazy_ptr',AB_COMMON,AT_DATA);
                       picdata.concat(tai_symbol.create(l,0));
-                      picdata.concat(tai_const_symbol.create_indirect(objectlibrary.newasmsymbol(tvarsym(symtableentry).mangledname,AB_EXTERNAL,AT_DATA)));
+                      picdata.concat(tai_const.create_indirect_sym(objectlibrary.newasmsymbol(tvarsym(symtableentry).mangledname,AB_EXTERNAL,AT_DATA)));
                       picdata.concat(tai_const.create_32bit(0));
                     end;
 
@@ -87,7 +87,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2004-03-05 22:17:11  jonas
+  Revision 1.3  2004-06-17 16:55:46  peter
+    * powerpc compiles again
+
+  Revision 1.2  2004/03/05 22:17:11  jonas
     * fixed importing of variables from shared libraries, but disabled
       PIC support for now. You have to save/restore r31 when you us it! :)
       Also, it's not necessary to support the imported variables

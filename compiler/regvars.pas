@@ -655,7 +655,7 @@ implementation
               if assigned(fpuregvars[i]) then
                 begin
                   reg:=tvarsym(fpuregvars[i]).localloc.register;
-                  size:=cg.reg_cgsize(reg);
+                  size:=reg_cgsize(reg);
                   cg.a_loadfpu_reg_reg(list,size,reg,reg);
                   cg.ungetregister(list,reg);
                 end;
@@ -670,7 +670,10 @@ end.
 
 {
   $Log$
-  Revision 1.75  2004-05-30 15:36:55  jonas
+  Revision 1.76  2004-06-17 16:55:46  peter
+    * powerpc compiles again
+
+  Revision 1.75  2004/05/30 15:36:55  jonas
     * fixed regvars compilation
 
   Revision 1.74  2004/02/08 20:15:42  jonas

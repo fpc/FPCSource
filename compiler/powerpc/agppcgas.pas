@@ -73,16 +73,9 @@ unit agppcgas;
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM';
             supported_target : system_any;
-            outputbinary: false;
-            allowdirect : true;
-            needar : true;
-            labelprefix_only_inside_procedure : false;
+            flags : [af_allowdirect,af_needar,af_smartlink_sections];
             labelprefix : '.L';
             comment : '# ';
-            secnames : ('',
-              '.text','.data','.text',
-              '','','','','','',
-              '.stab','.stabstr','COMMON')
           );
 
 
@@ -94,16 +87,9 @@ unit agppcgas;
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM';
             supported_target : system_any;
-            outputbinary: false;
-            allowdirect : true;
-            needar : true;
-            labelprefix_only_inside_procedure : false;
+            flags : [af_allowdirect,af_needar,af_smartlink_sections];
             labelprefix : 'L';
             comment : '# ';
-            secnames : ('',
-              '.text','.data','.text',
-              '','','','','','',
-              '.stab','.stabstr','COMMON')
           );
 
 
@@ -379,7 +365,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.42  2004-03-02 17:32:12  florian
+  Revision 1.43  2004-06-17 16:55:46  peter
+    * powerpc compiles again
+
+  Revision 1.42  2004/03/02 17:32:12  florian
     * make cycle fixed
     + pic support for darwin
     + support of importing vars from shared libs on darwin implemented

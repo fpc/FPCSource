@@ -27,7 +27,7 @@ unit cgcpu;
   interface
 
     uses
-       symtype,
+       globtype,symtype,
        cgbase,cgobj,
        aasmbase,aasmcpu,aasmtai,
        cpubase,cpuinfo,node,cg64f32,rgcpu;
@@ -44,7 +44,7 @@ unit cgcpu;
         { left to right), this allows to move the parameter to    }
         { register, if the cpu supports register calling          }
         { conventions                                             }
-        procedure a_param_const(list : taasmoutput;size : tcgsize;a : aword;const locpara : tparalocation);override;
+        procedure a_param_const(list : taasmoutput;size : tcgsize;a : aint;const locpara : tparalocation);override;
         procedure a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;const locpara : tparalocation);override;
         procedure a_paramaddr_ref(list : taasmoutput;const r : treference;const locpara : tparalocation);override;
 
@@ -52,16 +52,16 @@ unit cgcpu;
         procedure a_call_name(list : taasmoutput;const s : string);override;
         procedure a_call_reg(list : taasmoutput;reg: tregister); override;
 
-        procedure a_op_const_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; a: AWord; reg: TRegister); override;
+        procedure a_op_const_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; a: aint; reg: TRegister); override;
         procedure a_op_reg_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; src, dst: TRegister); override;
 
         procedure a_op_const_reg_reg(list: taasmoutput; op: TOpCg;
-          size: tcgsize; a: aword; src, dst: tregister); override;
+          size: tcgsize; a: aint; src, dst: tregister); override;
         procedure a_op_reg_reg_reg(list: taasmoutput; op: TOpCg;
           size: tcgsize; src1, src2, dst: tregister); override;
 
         { move instructions }
-        procedure a_load_const_reg(list : taasmoutput; size: tcgsize; a : aword;reg : tregister);override;
+        procedure a_load_const_reg(list : taasmoutput; size: tcgsize; a : aint;reg : tregister);override;
         procedure a_load_reg_ref(list : taasmoutput; fromsize, tosize: tcgsize; reg : tregister;const ref : treference);override;
         procedure a_load_ref_reg(list : taasmoutput; fromsize, tosize : tcgsize;const Ref : treference;reg : tregister);override;
         procedure a_load_reg_reg(list : taasmoutput; fromsize, tosize : tcgsize;reg1,reg2 : tregister);override;
@@ -72,7 +72,7 @@ unit cgcpu;
         procedure a_loadfpu_reg_ref(list: taasmoutput; size: tcgsize; reg: tregister; const ref: treference); override;
 
         {  comparison operations }
-        procedure a_cmp_const_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
+        procedure a_cmp_const_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aint;reg : tregister;
           l : tasmlabel);override;
         procedure a_cmp_reg_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel); override;
 
@@ -82,18 +82,17 @@ unit cgcpu;
 
         procedure g_flags2reg(list: taasmoutput; size: TCgSize; const f: TResFlags; reg: TRegister); override;
 
-        procedure g_stackframe_entry(list : taasmoutput;localsize : longint);override;
-        procedure g_return_from_proc(list : taasmoutput;parasize : aword); override;
-        procedure g_restore_frame_pointer(list : taasmoutput);override;
+        procedure g_proc_entry(list : taasmoutput;localsize : longint;nostackframe:boolean);override;
+        procedure g_proc_exit(list : taasmoutput;parasize : longint;nostackframe:boolean); override;
 
         procedure a_loadaddr_ref_reg(list : taasmoutput;const ref : treference;r : tregister);override;
 
-        procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aword; delsource,loadref : boolean);override;
+        procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aint; delsource,loadref : boolean);override;
 
         procedure g_overflowcheck(list: taasmoutput; const l: tlocation; def: tdef); override;
         { find out whether a is of the form 11..00..11b or 00..11...00. If }
         { that's the case, we can use rlwinm to do an AND operation        }
-        function get_rlwi_const(a: aword; var l1, l2: longint): boolean;
+        function get_rlwi_const(a: aint; var l1, l2: longint): boolean;
 
         procedure g_save_standard_registers(list:Taasmoutput);override;
         procedure g_restore_standard_registers(list:Taasmoutput);override;
@@ -107,7 +106,7 @@ unit cgcpu;
         (* NOT IN USE: *)
         procedure g_stackframe_entry_mac(list : taasmoutput;localsize : longint);
         (* NOT IN USE: *)
-        procedure g_return_from_proc_mac(list : taasmoutput;parasize : aword);
+        procedure g_return_from_proc_mac(list : taasmoutput;parasize : aint);
 
 
         { Make sure ref is a valid reference for the PowerPC and sets the }
@@ -133,14 +132,14 @@ unit cgcpu;
 
         function save_regs(list : taasmoutput):longint;
         procedure restore_regs(list : taasmoutput);
-        
+
         function get_darwin_call_stub(const s: string): tasmsymbol;
      end;
 
      tcg64fppc = class(tcg64f32)
        procedure a_op64_reg_reg(list : taasmoutput;op:TOpCG;regsrc,regdst : tregister64);override;
-       procedure a_op64_const_reg(list : taasmoutput;op:TOpCG;value : qword;reg : tregister64);override;
-       procedure a_op64_const_reg_reg(list: taasmoutput;op:TOpCG;value : qword;regsrc,regdst : tregister64);override;
+       procedure a_op64_const_reg(list : taasmoutput;op:TOpCG;value : int64;reg : tregister64);override;
+       procedure a_op64_const_reg_reg(list: taasmoutput;op:TOpCG;value : int64;regsrc,regdst : tregister64);override;
        procedure a_op64_reg_reg_reg(list: taasmoutput;op:TOpCG;regsrc1,regsrc2,regdst : tregister64);override;
      end;
 
@@ -159,7 +158,7 @@ const
   implementation
 
     uses
-       globtype,globals,verbose,systems,cutils,
+       globals,verbose,systems,cutils,
        symconst,symdef,symsym,
        rgobj,tgobj,cpupi,procinfo,paramgr,
        cgutils;
@@ -235,7 +234,7 @@ const
       end;
 
 
-    procedure tcgppc.a_param_const(list : taasmoutput;size : tcgsize;a : aword;const locpara : tparalocation);
+    procedure tcgppc.a_param_const(list : taasmoutput;size : tcgsize;a : aint;const locpara : tparalocation);
       var
         ref: treference;
       begin
@@ -332,7 +331,7 @@ const
         if not(assigned(importssection)) then
           importssection:=TAAsmoutput.create;
 
-        importsSection.concat(Tai_section.Create(sec_data));
+        importsSection.concat(Tai_section.Create(sec_data,'',0));
         importsSection.concat(Tai_direct.create(strpnew('.section __TEXT,__symbol_stub1,symbol_stubs,pure_instructions,16')));
         importsSection.concat(Tai_align.Create(4));
         result := objectlibrary.newasmsymbol(stubname,AB_EXTERNAL,AT_FUNCTION);
@@ -351,11 +350,11 @@ const
 {$else powerpc}
         internalerror(2004010502);
 {$endif powerpc}
-        importsSection.concat(Tai_section.Create(sec_data));
+        importsSection.concat(Tai_section.Create(sec_data,'',0));
         importsSection.concat(Tai_direct.create(strpnew('.lazy_symbol_pointer')));
         importsSection.concat(Tai_symbol.Create(l1,0));
         importsSection.concat(Tai_direct.create(strpnew((#9+'.indirect_symbol ')+s)));
-        importsSection.concat(tai_const_symbol.createname(strpnew('dyld_stub_binding_helper'),AT_FUNCTION,0));
+        importsSection.concat(tai_const.createname(strpnew('dyld_stub_binding_helper'),AT_FUNCTION,0));
       end;
 
 
@@ -417,7 +416,7 @@ const
 
 {********************** load instructions ********************}
 
-     procedure tcgppc.a_load_const_reg(list : taasmoutput; size: TCGSize; a : aword; reg : TRegister);
+     procedure tcgppc.a_load_const_reg(list : taasmoutput; size: TCGSize; a : aint; reg : TRegister);
 
        begin
           if not(size in [OS_8,OS_S8,OS_16,OS_S16,OS_32,OS_S32]) then
@@ -602,7 +601,7 @@ const
        end;
 
 
-     procedure tcgppc.a_op_const_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; a: AWord; reg: TRegister);
+     procedure tcgppc.a_op_const_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; a: aint; reg: TRegister);
 
        begin
          a_op_const_reg_reg(list,op,size,a,reg,reg);
@@ -617,7 +616,7 @@ const
 
 
     procedure tcgppc.a_op_const_reg_reg(list: taasmoutput; op: TOpCg;
-                       size: tcgsize; a: aword; src, dst: tregister);
+                       size: tcgsize; a: aint; src, dst: tregister);
       var
         l1,l2: longint;
         oplo, ophi: tasmop;
@@ -634,15 +633,7 @@ const
       begin
         if op = OP_SUB then
           begin
-{$ifopt q+}
-{$q-}
-{$define overflowon}
-{$endif}
-            a_op_const_reg_reg(list,OP_ADD,size,aword(-longint(a)),src,dst);
-{$ifdef overflowon}
-{$q+}
-{$undef overflowon}
-{$endif}
+            a_op_const_reg_reg(list,OP_ADD,size,-a,src,dst);
             exit;
           end;
         ophi := TOpCG2AsmOpConstHi[op];
@@ -658,7 +649,7 @@ const
                   a_load_reg_reg(list,size,size,src,dst);
                 exit;
               end
-            else if (a = high(aword)) then
+            else if (a = high(aint)) then
               begin
                 case op of
                   OP_OR:
@@ -822,7 +813,7 @@ const
 
 {*************** compare instructructions ****************}
 
-      procedure tcgppc.a_cmp_const_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
+      procedure tcgppc.a_cmp_const_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aint;reg : tregister;
         l : tasmlabel);
 
         var
@@ -1025,7 +1016,7 @@ const
 
 { *********** entry/exit code and address loading ************ }
 
-    procedure tcgppc.g_stackframe_entry(list : taasmoutput;localsize : longint);
+    procedure tcgppc.g_proc_entry(list : taasmoutput;localsize : longint;nostackframe:boolean);
      { generated the entry code of a procedure/function. Note: localsize is the }
      { sum of the size necessary for local variables and the maximum possible   }
      { combined size of ALL the parameters of a procedure called by the current }
@@ -1038,7 +1029,7 @@ const
      var regcounter,firstregfpu,firstreggpr: TSuperRegister;
          href,href2 : treference;
          usesfpr,usesgpr,gotgot : boolean;
-         parastart : aword;
+         parastart : aint;
 //         r,r2,rsp:Tregister;
          l : tasmlabel;
          regcounter2, firstfpureg: Tsuperregister;
@@ -1173,7 +1164,7 @@ const
                end;
 
              { compute end of gpr save area }
-             a_op_const_reg(list,OP_ADD,OS_ADDR,aword(href.offset+8),NR_R12);
+             a_op_const_reg(list,OP_ADD,OS_ADDR,href.offset+8,NR_R12);
           end;
 
         { save gprs and fetch GOT pointer }
@@ -1284,7 +1275,7 @@ const
 
       end;
 
-    procedure tcgppc.g_return_from_proc(list : taasmoutput;parasize : aword);
+    procedure tcgppc.g_proc_exit(list : taasmoutput;parasize : longint;nostackframe:boolean);
      { This procedure may be called before, as well as after g_stackframe_entry }
      { is called. NOTE registers are not to be allocated through the register   }
      { allocator here, because the register colouring has already occured !!    }
@@ -1294,7 +1285,7 @@ const
          href : treference;
          usesfpr,usesgpr,genret : boolean;
          regcounter2, firstfpureg:Tsuperregister;
-         localsize: aword;
+         localsize: aint;
       begin
         { AltiVec context restore, not yet implemented !!! }
 
@@ -1677,7 +1668,7 @@ const
           end;
       end;
 
-    procedure tcgppc.g_return_from_proc_mac(list : taasmoutput;parasize : aword);
+    procedure tcgppc.g_return_from_proc_mac(list : taasmoutput;parasize : aint);
  (* NOT IN USE *)
 
       var
@@ -1721,13 +1712,6 @@ const
         { return to caller }
         list.concat(taicpu.op_reg_reg(A_MTSPR,NR_R0,NR_LR));
         list.concat(taicpu.op_none(A_BLR));
-      end;
-
-
-    procedure tcgppc.g_restore_frame_pointer(list : taasmoutput);
-
-      begin
-         { no frame pointer on the PowerPC (maybe there is one in the SystemV ABI?)}
       end;
 
 
@@ -1806,7 +1790,7 @@ const
            end
          else if ref2.offset <> 0 Then
            if ref2.base <> NR_NO then
-             a_op_const_reg_reg(list,OP_ADD,OS_32,aword(ref2.offset),ref2.base,r)
+             a_op_const_reg_reg(list,OP_ADD,OS_32,ref2.offset,ref2.base,r)
            { FixRef makes sure that "(ref.index <> R_NO) and (ref.offset <> 0)" never}
            { occurs, so now only ref.offset has to be loaded                         }
            else
@@ -1832,13 +1816,13 @@ const
     maxmoveunit = 4;
 {$endif ppc603}
 
-    procedure tcgppc.g_concatcopy(list : taasmoutput;const source,dest : treference;len : aword; delsource,loadref : boolean);
+    procedure tcgppc.g_concatcopy(list : taasmoutput;const source,dest : treference;len : aint; delsource,loadref : boolean);
 
       var
         countreg: TRegister;
         src, dst: TReference;
         lab: tasmlabel;
-        count, count2: aword;
+        count, count2: aint;
         orgsrc, orgdst: boolean;
         size: tcgsize;
 
@@ -2122,11 +2106,11 @@ const
 
     { find out whether a is of the form 11..00..11b or 00..11...00. If }
     { that's the case, we can use rlwinm to do an AND operation        }
-    function tcgppc.get_rlwi_const(a: aword; var l1, l2: longint): boolean;
+    function tcgppc.get_rlwi_const(a: aint; var l1, l2: longint): boolean;
 
       var
         temp : longint;
-        testbit : aword;
+        testbit : aint;
         compare: boolean;
 
       begin
@@ -2224,7 +2208,7 @@ const
 
                 if Smallint(Lo(ref.offset)) < 0 then
                   tmpref.offset := Hi(ref.offset) + 1 {Compensate when lo part is negative}
-                else 
+                else
                   tmpref.offset := Hi(ref.offset);
 
                 if (tmpreg <> NR_NO) then
@@ -2305,7 +2289,7 @@ const
       end;
 
 
-    procedure tcg64fppc.a_op64_const_reg(list : taasmoutput;op:TOpCG;value : qword;reg : tregister64);
+    procedure tcg64fppc.a_op64_const_reg(list : taasmoutput;op:TOpCG;value : int64;reg : tregister64);
       begin
         a_op64_const_reg_reg(list,op,value,reg,reg);
       end;
@@ -2335,7 +2319,7 @@ const
       end;
 
 
-    procedure tcg64fppc.a_op64_const_reg_reg(list: taasmoutput;op:TOpCG;value : qword;regsrc,regdst : tregister64);
+    procedure tcg64fppc.a_op64_const_reg_reg(list: taasmoutput;op:TOpCG;value : int64;regsrc,regdst : tregister64);
 
       const
         ops: array[boolean,1..3] of tasmop = ((A_ADDIC,A_ADDC,A_ADDZE),
@@ -2348,25 +2332,25 @@ const
         case op of
           OP_AND,OP_OR,OP_XOR:
             begin
-              cg.a_op_const_reg_reg(list,op,OS_32,aword(value),regsrc.reglo,regdst.reglo);
-              cg.a_op_const_reg_reg(list,op,OS_32,aword(value shr 32),regsrc.reghi,
+              cg.a_op_const_reg_reg(list,op,OS_32,aint(value),regsrc.reglo,regdst.reglo);
+              cg.a_op_const_reg_reg(list,op,OS_32,aint(value shr 32),regsrc.reghi,
                 regdst.reghi);
             end;
           OP_ADD, OP_SUB:
             begin
-              if (int64(value) < 0) then
+              if (value < 0) then
                 begin
                   if op = OP_ADD then
                     op := OP_SUB
                   else
                     op := OP_ADD;
-                  int64(value) := -int64(value);
+                  value := -value;
                 end;
               if (longint(value) <> 0) then
                 begin
                   issub := op = OP_SUB;
-                  if (int64(value) > 0) and
-                     (int64(value)-ord(issub) <= 32767) then
+                  if (value > 0) and
+                     (value-ord(issub) <= 32767) then
                     begin
                       list.concat(taicpu.op_reg_reg_const(ops[issub,1],
                         regdst.reglo,regsrc.reglo,longint(value)));
@@ -2396,7 +2380,7 @@ const
               else
                 begin
                   cg.a_load_reg_reg(list,OS_INT,OS_INT,regsrc.reglo,regdst.reglo);
-                  cg.a_op_const_reg_reg(list,op,OS_32,aword(value shr 32),regsrc.reghi,
+                  cg.a_op_const_reg_reg(list,op,OS_32,aint(value shr 32),regsrc.reghi,
                     regdst.reghi);
                 end;
             end;
@@ -2412,7 +2396,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.171  2004-06-02 17:18:10  jonas
+  Revision 1.172  2004-06-17 16:55:46  peter
+    * powerpc compiles again
+
+  Revision 1.171  2004/06/02 17:18:10  jonas
     * parameters passed on the stack now also work as register variables
 
   Revision 1.170  2004/05/31 18:08:41  jonas

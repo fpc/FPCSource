@@ -239,7 +239,7 @@ unit cg64f32;
       begin
         case l.loc of
           LOC_REGISTER,LOC_CREGISTER:
-            a_load64_reg_ref(list,l.reg64,ref);
+            a_load64_reg_ref(list,l.register64,ref);
           LOC_CONSTANT :
             a_load64_const_ref(list,l.value64,ref);
           else
@@ -255,7 +255,7 @@ unit cg64f32;
           LOC_REFERENCE, LOC_CREFERENCE:
             a_load64_const_ref(list,value,l.reference);
           LOC_REGISTER,LOC_CREGISTER:
-            a_load64_const_reg(list,value,l.reg64);
+            a_load64_const_reg(list,value,l.register64);
           else
             internalerror(200112293);
         end;
@@ -753,7 +753,10 @@ unit cg64f32;
 end.
 {
   $Log$
-  Revision 1.58  2004-06-16 20:07:07  florian
+  Revision 1.59  2004-06-17 16:55:46  peter
+    * powerpc compiles again
+
+  Revision 1.58  2004/06/16 20:07:07  florian
     * dwarf branch merged
 
   Revision 1.57.2.5  2004/06/13 10:51:16  florian
