@@ -1,4 +1,4 @@
-Unit bug0244;
+Unit tbs0244;
 
 {test also with -So !!!}
 
