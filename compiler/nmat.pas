@@ -85,12 +85,12 @@ interface
 implementation
 
     uses
-      systems,tokens,
+      systems,
       verbose,globals,cutils,
       globtype,
-      symconst,symtype,symtable,symdef,symsym,defutil,
-      htypechk,pass_1,cpubase,
-      cgbase,procinfo,
+      symconst,symtype,symdef,defutil,
+      htypechk,pass_1,
+      cgbase,
       ncon,ncnv,ncal,nadd;
 
 {****************************************************************************
@@ -171,11 +171,17 @@ implementation
          if (rd.typ in [u32bit,u64bit]) and
             is_constintnode(left) and
             (tordconstnode(left).value >= 0) then
-           inserttypeconv(left,right.resulttype);
+           begin
+             inserttypeconv(left,right.resulttype);
+             ld:=torddef(left.resulttype.def);
+           end;
          if (ld.typ in [u32bit,u64bit]) and
             is_constintnode(right) and
             (tordconstnode(right).value >= 0) then
-           inserttypeconv(right,left.resulttype);
+          begin
+            inserttypeconv(right,left.resulttype);
+            rd:=torddef(right.resulttype.def);
+          end;
 
          { when there is one currency value, everything is done
            using currency }
@@ -197,16 +203,16 @@ implementation
            begin
              if is_signed(rd) or is_signed(ld) then
                begin
-                  if (torddef(ld).typ<>s64bit) then
+                  if (ld.typ<>s64bit) then
                     inserttypeconv(left,s64inttype);
-                  if (torddef(rd).typ<>s64bit) then
+                  if (rd.typ<>s64bit) then
                     inserttypeconv(right,s64inttype);
                end
              else
                begin
-                  if (torddef(ld).typ<>u64bit) then
+                  if (ld.typ<>u64bit) then
                     inserttypeconv(left,u64inttype);
-                  if (torddef(rd).typ<>u64bit) then
+                  if (rd.typ<>u64bit) then
                     inserttypeconv(right,u64inttype);
                end;
              resulttype:=left.resulttype;
@@ -214,14 +220,14 @@ implementation
          else
           { when mixing cardinals and signed numbers, convert everythign to 64bit (JM) }
           if ((rd.typ = u32bit) and
-              is_signed(left.resulttype.def)) or
+              is_signed(ld)) or
              ((ld.typ = u32bit) and
-              is_signed(right.resulttype.def)) then
+              is_signed(rd)) then
            begin
               CGMessage(type_w_mixed_signed_unsigned);
-              if (torddef(ld).typ<>s64bit) then
+              if (ld.typ<>s64bit) then
                 inserttypeconv(left,s64inttype);
-              if (torddef(rd).typ<>s64bit) then
+              if (rd.typ<>s64bit) then
                 inserttypeconv(right,s64inttype);
               resulttype:=left.resulttype;
            end
@@ -229,9 +235,9 @@ implementation
 {$endif cpu64bit}
            begin
               { Make everything always default singed int }
-              if not(torddef(right.resulttype.def).typ in [torddef(sinttype.def).typ,torddef(uinttype.def).typ]) then
+              if not(rd.typ in [torddef(sinttype.def).typ,torddef(uinttype.def).typ]) then
                 inserttypeconv(right,sinttype);
-              if not(torddef(left.resulttype.def).typ in [torddef(sinttype.def).typ,torddef(uinttype.def).typ]) then
+              if not(ld.typ in [torddef(sinttype.def).typ,torddef(uinttype.def).typ]) then
                 inserttypeconv(left,sinttype);
               resulttype:=right.resulttype;
            end;
@@ -459,6 +465,7 @@ implementation
          if not is_64bit(left.resulttype.def) then
 {$endif}
            begin
+             { constants generate signed integers }
              if is_signed(left.resulttype.def) then
                inserttypeconv(left,sinttype)
              else
@@ -854,7 +861,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.62  2004-05-19 23:29:25  peter
+  Revision 1.63  2004-05-28 21:14:34  peter
+    * fixed div qword
+
+  Revision 1.62  2004/05/19 23:29:25  peter
     * don't change sign for unsigned shl/shr operations
     * cleanup for u32bit
 
