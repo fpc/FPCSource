@@ -106,16 +106,74 @@ procedure TLinkerMPW.SetDefaultInfo;
 begin
   with Info do
    begin
-     ExeCmd[1]:='PPCLink $OPT $DYNLINK $STATIC $STRIP -tocdataref off -dead on -o $EXE -@filelist $RES';
-     DllCmd[1]:='PPCLink $OPT $INIT $FINI $SONAME -shared -o $EXE -@filelist $RES';
+     ExeCmd[1]:='Execute $RES'; {The link.res file contains the whole link command.}
+     //ExeCmd[1]:='PPCLink $OPT $DYNLINK $STATIC $STRIP -tocdataref off -dead on -o $EXE -@filelist $RES';
+     //DllCmd[1]:='PPCLink $OPT $INIT $FINI $SONAME -shared -o $EXE -@filelist $RES';
    end;
 end;
 
 
 Function TLinkerMPW.WriteResponseFile(isdll:boolean) : Boolean;
+Var
+  linkres      : TLinkRes;
+  s: string;
 
 begin
   WriteResponseFile:=False;
+  { Open link.res file }
+  linkRes:=TLinkRes.Create(outputexedir+Info.ResName);
+
+  with linkRes do
+    begin
+      {#182 is escape char in MPW (analog to backslash in unix). The space}
+      {ensures there is whitespace separating items.}
+      Add('PPCLink '#182);
+
+      { Add MPW standard libraries}
+      if apptype = app_cui then
+          Add('"{PPCLibraries}PPCSIOW.o" '#182);
+
+      if (apptype = app_tool) or (apptype = app_cui) then
+          Add('"{PPCLibraries}PPCToolLibs.o" '#182);
+
+      Add('"{SharedLibraries}InterfaceLib" '#182);
+      Add('"{SharedLibraries}StdCLib" '#182);
+      Add('"{SharedLibraries}MathLib" '#182);
+      Add('"{PPCLibraries}StdCRuntime.o" '#182);
+      Add('"{PPCLibraries}PPCCRuntime.o" '#182);
+
+      {Add main objectfiles}
+      while not ObjectFiles.Empty do
+        begin
+          s:=ObjectFiles.GetFirst;
+          if s<>'' then
+            Add(s+' '#182);
+        end;
+    
+      {Add last lines of the link command}
+      if apptype = app_tool then
+        Add('-t "MPST" -c "MPS " '#182);
+
+      if apptype = app_cui then {If SIOW, to avoid some warnings.}
+        Add('-ignoredups __start -ignoredups .__start -ignoredups main -ignoredups .main '#182); 
+
+      Add('-tocdataref off -sym on -dead on -o '+ ScriptFixFileName(current_module.exefilename^)); 
+
+      Add('Exit If "{Status}" != 0');
+
+      {Add mac resources}
+      if apptype = app_cui then
+        begin
+          Add('Rez -append "{RIncludes}"SIOW.r -o ' + ScriptFixFileName(current_module.exefilename^));
+          Add('Exit If "{Status}" != 0');
+        end;
+    end;
+
+  { Write and Close response }
+  linkres.writetodisk;
+  linkres.Free;
+
+  WriteResponseFile:=True;
 end;
 
 
@@ -161,49 +219,8 @@ begin
 
   with AsmRes do
     begin
-      {#182 is escape char in MPW (analog to backslash in unix). The space}
-      {ensures there is whitespace separating items.}
-      Add('PPCLink '#182);
-
-      { Add MPW standard libraries}
-      if apptype = app_cui then
-        begin
-          Add('"{PPCLibraries}PPCSIOW.o" '#182);
-          Add('"{PPCLibraries}PPCToolLibs.o" '#182);
-        end;
-
-      Add('"{SharedLibraries}InterfaceLib" '#182);
-      Add('"{SharedLibraries}StdCLib" '#182);
-      Add('"{SharedLibraries}MathLib" '#182);
-      Add('"{PPCLibraries}StdCRuntime.o" '#182);
-      Add('"{PPCLibraries}PPCCRuntime.o" '#182);
-
-      {Add main objectfiles}
-      while not ObjectFiles.Empty do
-        begin
-          s:=ObjectFiles.GetFirst;
-          if s<>'' then
-            Add(s+' '#182);
-        end;
-		
-	  {Add last lines of the link command}
-      if apptype = app_tool then
-        Add('-t "MPST" -c "MPS " '#182);
-
-      if apptype = app_cui then {If SIOW, to avoid some warnings.}
-        Add('-ignoredups __start -ignoredups .__start -ignoredups main -ignoredups .main '#182); 
-
-      Add('-tocdataref off -sym on -dead on -o '+ ScriptFixFileName(current_module.exefilename^)); 
-
-      Add('Exit If "{Status}" != 0');
-
-      {Add mac resources}
-      if apptype = app_cui then
-        begin
-          Add('Rez -append "{RIncludes}"SIOW.r -o ' + ScriptFixFileName(current_module.exefilename^));
-          Add('Exit If "{Status}" != 0');
-        end;
-      success:= true;
+      WriteResponseFile(false);
+      success:=DoExec('Execute',CmdStr,true,false);
     end;
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }
@@ -228,7 +245,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.10  2004-06-20 08:55:32  florian
+  Revision 1.11  2004-08-20 10:30:00  olle
+    + made fpc work as an MPW tool, by itself calling asm and link.
+
+  Revision 1.10  2004/06/20 08:55:32  florian
     * logs truncated
 
   Revision 1.9  2004/05/11 18:24:39  olle
