@@ -248,10 +248,8 @@ Function  fdSeek (fd,pos,seektype :longint): longint;
 Function  fdFlush (fd : Longint) : Boolean;
 Function  Link(OldPath,NewPath:pathstr):boolean;
 Function  SymLink(OldPath,NewPath:pathstr):boolean;
-{$ifndef bsd}
 Function  ReadLink(name,linkname:pchar;maxlen:longint):longint;
 Function  ReadLink(name:pathstr):pathstr;
-{$endif}
 Function  UnLink(Path:pathstr):boolean;
 Function  UnLink(Path:pchar):Boolean;
 Function  FReName (OldName,NewName : Pchar) : Boolean;
@@ -2841,7 +2839,10 @@ End.
 
 {
   $Log$
-  Revision 1.6  2001-04-13 22:37:21  peter
+  Revision 1.7  2001-04-19 12:57:33  marco
+   * Readlink uncommented for FreeBSD.
+
+  Revision 1.6  2001/04/13 22:37:21  peter
     * remove warning
 
   Revision 1.5  2001/03/27 11:47:25  michael
