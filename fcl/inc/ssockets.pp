@@ -21,6 +21,10 @@
   {$define notUnix}
 {$endif}
 
+{$ifdef netwlibc}
+  {$define notUnix}
+{$endif}
+
 unit ssockets;
 
 
@@ -593,7 +597,10 @@ end.
 
 {
   $Log$
-  Revision 1.21  2003-11-22 11:51:28  sg
+  Revision 1.22  2004-09-17 19:03:32  armin
+  * added ssockets for target netwlibc
+
+  Revision 1.21  2003/11/22 11:51:28  sg
   * Added TSocketStream.LocalAddress and .RemoteAddress
   * TInetSocket now also accepts IP addresses as host parameter
 
