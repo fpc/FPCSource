@@ -616,7 +616,7 @@ begin
         movb    $0x2d,1(%edi)   // put '-' in String
         incl    %ecx
 .LM2:
-        cdq
+        cltd
         idivl   %esi,%eax
         addb    $0x30,%dl       // convert Rest to ASCII.
         movb    %dl,-12(%ebp,%ebx)
@@ -718,7 +718,10 @@ end;
 
 {
   $Log$
-  Revision 1.31  1998-11-26 21:33:58  peter
+  Revision 1.32  1998-11-26 23:15:08  jonas
+    * changed cdq to cltd in AT&T assembler block
+
+  Revision 1.31  1998/11/26 21:33:58  peter
     + FPC_BOUNDCHECK
 
   Revision 1.30  1998/11/17 00:41:08  peter

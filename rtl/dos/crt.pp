@@ -618,7 +618,7 @@ begin
   asm
         movzwl  hz,%ecx
         movl    $1193046,%eax
-        cdq
+        cltd
         divl    %ecx
         movl    %eax,%ecx
         movb    $0xb6,%al
@@ -983,7 +983,10 @@ end.
 
 {
   $Log$
-  Revision 1.13  1998-08-26 10:01:54  peter
+  Revision 1.14  1998-11-26 23:14:52  jonas
+    * changed cdq to cltd in AT&T assembler block
+
+  Revision 1.13  1998/08/26 10:01:54  peter
     * fixed readln cursor position
 
   Revision 1.12  1998/08/19 17:57:55  peter
