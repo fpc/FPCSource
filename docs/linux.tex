@@ -20,6 +20,7 @@
 %
 \chapter{The LINUX unit.}
 \label{ch:linux}
+
 \FPCexampledir{linuxex}
 This chapter describes the LINUX unit for Free Pascal. The unit was written
 by Micha\"el van Canneyt. It works only on the Linux operating system.
@@ -30,7 +31,12 @@ in the interface section of the LINUX unit.
 \item The second section describes all procedures and functions in the LINUX
 unit.
 \end{itemize}
+
+% Type, Variable and Constant declarations
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Type, Variable and Constant declarations}
+
+%
 \subsection{Types}
 \label{sec:types}
 PGlob and TGlob are 2 types used in the \seef{Glob} function:
@@ -170,6 +176,8 @@ end;
 \end{verbatim}
 Its elements are null-terminated C style strings, you cannot access them
 directly !
+
+%
 \subsection{Variables}
 \var{Linuxerror} is the variable in which the procedures in the linux unit
 report errors.
@@ -182,6 +190,8 @@ used, and will be closed on exit.
 \begin{verbatim}
 StdErr : Text;
 \end{verbatim}
+
+%
 \subsection{Constants}
 Constants for setting/getting process priorities :
 \begin{verbatim}
@@ -370,13 +380,14 @@ the following constants:
   fs_proc     = $9fa0;
   fs_xia      = $012FD16D;
 \end{verbatim}
-the \seep{FLock} call uses the following mode constants :
+the \seef{FLock} call uses the following mode constants :
 \begin{verbatim}
   LOCK_SH = 1;
   LOCK_EX = 2;
   LOCK_UN = 8;
   LOCK_NB = 4;
 \end{verbatim}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Functions and procedures
 \section{Functions and procedures}
@@ -412,7 +423,9 @@ dangling symbolic link.
 \seef{Chown}, \seef{Chmod}, \seem{Access}{2} 
 \end{function}
 
+
 \FPCexample{ex26}
+
 
 \begin{function}{Alarm}
 \Declaration
@@ -428,41 +441,63 @@ alarm was due to be delivered, or zero if there was none.
 \Errors{None}
 \end{function}
 
+
 \FPCexample{ex59}
 
-\begin{procedure}{AssignPipe}
-\Declaration
-Procedure AssignPipe (Pipe\_in, Pipe\_out : Text);
 
+\begin{function}{AssignPipe}
+\Declaration
+Function  AssignPipe(var pipe\_in,pipe\_out:longint):boolean;
+Function  AssignPipe(var pipe\_in,pipe\_out:text):boolean;
+Function  AssignPipe(var pipe\_in,pipe\_out:file):boolean;
 \Description
-\var{AssignePipe} creates a pipe, i.e. two file objects, one for input, one for output.
-What is written to \var{Pipe\_out}, can be read from \var{Pipe\_in}.
-Reading and writing happens through the usual \var{Readln(Pipe\_in,...)} and
+\var{AssignePipe} creates a pipe, i.e. two file objects, one for input, 
+one for output. What is written to \var{Pipe\_out}, can be read from 
+\var{Pipe\_in}. 
+
+This call is overloaded. The in and out pipe can take three forms:
+an typed or untyped file, a text file or a file descriptor.
+
+If a text file is passed then reading and writing from/to the pipe 
+can be done through the usual \var{Readln(Pipe\_in,...)} and
 \var{Writeln (Pipe\_out,...)} procedures.
 
+The function returns \var{True} if everything went succesfully,
+\var{False} otherwise.
 \Errors
- \var{LinuxError} is used to report errors:
+In case the function fails and returns \var{False}, \var{LinuxError} 
+is used to report errors:
 \begin{description}
 \item[sys\_emfile] Too many file descriptors for this process.
 \item[sys\_enfile] The system file table is full.
 \end{description}
-
 \SeeAlso
 \seep{POpen}, \seef{MkFifo}, \seem{pipe}{2}
-\end{procedure}
-\FPCexample{ex36}
-\begin{procedure}{AssignStream}
-\Declaration
-Procedure AssignStream (StreamIn,StreamOut : Text; Const prog : String);
+\end{function}
 
+
+\FPCexample{ex36}
+
+
+\begin{function}{AssignStream}
+\Declaration
+Function AssignStream(Var StreamIn,Streamout:text;
+                      Const Prog:String) : longint;
+Function AssignStream(var StreamIn, StreamOut, StreamErr: Text; 
+                      const prog: String): LongInt;
 \Description
-\var{AssignStream} creates a 2 pipes, i.e. two file objects, one for input, one for
-output, the other ends of these pipes are connected to standard input and and
-output of \var{Prog}. \var{Prog} is the name of a program (including path)
-with options, which will be executed.
+\var{AssignStream} creates a 2 or 3 pipes, i.e. two (or three) file objects, one for 
+input, one for output,(and one for standard error) the other ends of these 
+pipes are connected to standard input and output (and standard error) of 
+\var{Prog}. \var{Prog} is the name of a program (including path) with options,
+ which will be executed.
+
 What is written to \var{StreamOut}, will go to the standard input of
-\var{Prog}. Whatever is written by \var{Prog} to it's standard output be read from
-\var{StreamIn}.
+\var{Prog}. Whatever is written by \var{Prog} to it's standard output 
+can be read from \var{StreamIn}. 
+Whatever is written by \var{Prog} to it's standard error read from 
+\var{StreamErr}, if present. 
+
 Reading and writing happens through the usual \var{Readln(StreamIn,...)} and
 \var{Writeln (StreamOut,...)} procedures.
 
@@ -470,8 +505,12 @@ Reading and writing happens through the usual \var{Readln(StreamIn,...)} and
 file opened with \var{POpen}. This will close the file before re-opening 
 it again, thereby closing the connection with the program.
 
+The function returns the process ID of the spawned process, or -1 in case of
+error.
+
 \Errors
- \var{LinuxError} is used to report errors:
+In case of error (return value -1) \var{LinuxError} is used to report 
+errors:
 \begin{description}
 \item[sys\_emfile] Too many file descriptors for this process.
 \item[sys\_enfile] The system file table is full.
@@ -479,13 +518,16 @@ it again, thereby closing the connection with the program.
 Other errors include the ones by the fork and exec programs
 
 \SeeAlso
-\seep{AssignPipe}, \seep{POpen},\seem{pipe}{2}
-\end{procedure}
+\seef{AssignPipe}, \seep{POpen},\seem{pipe}{2}
+\end{function}
+
+
 \FPCexample{ex38}
+
+
 \begin{function}{BaseName}
 \Declaration
-Function BaseName (Const Path;Suf : Pathstr) : Pathstr;
-
+Function BaseName (Const Path;Const Suf : Pathstr) : Pathstr;
 \Description
 Returns the filename part of \var{Path}, stripping off \var{Suf} if it
 exists.
@@ -499,11 +541,12 @@ None.
 \SeeAlso
 \seef{DirName}, \seef{FExpand}, \seem{Basename}{1}
 \end{function}
+
 \FPCexample{ex48}
+
 \begin{procedure}{CFMakeRaw}
 \Declaration
 Procedure CFMakeRaw (var Tios:TermIOS);
-
 \Description
  \var{CFMakeRaw}
   Sets the flags in the \var{Termios} structure \var{Tios} to a state so that 
@@ -515,10 +558,10 @@ None.
  \seep{CFSetOSpeed}, \seep{CFSetISpeed}, \seem{termios}{2}
 \end{procedure}
 For an example, see \seef{TCGetAttr}.
+
 \begin{procedure}{CFSetISpeed}
 \Declaration
 Procedure CFSetISpeed (var Tios:TermIOS;Speed:Longint);
-
 \Description
  \var{CFSetISpeed}
   Sets the input baudrate in the \var{TermIOS} structure \var{Tios} to 
@@ -529,10 +572,10 @@ None.
 \SeeAlso
 \seep{CFSetOSpeed}, \seep{CFMakeRaw}, \seem{termios}{2}
 \end{procedure}
+
 \begin{procedure}{CFSetOSpeed}
 \Declaration
 Procedure CFSetOSpeed (var Tios:TermIOS;Speed:Longint);
-
 \Description
  \var{CFSetOSpeed}
   Sets the output baudrate in the \var{Termios} structure \var{Tios} to
@@ -543,18 +586,16 @@ None.
 \SeeAlso
 \seep{CFSetISpeed}, \seep{CFMakeRaw}, \seem{termios}{2}
 \end{procedure}
+
 \begin{function}{Chown}
 \Declaration
 Function Chown (Path : Pathstr;NewUid,NewGid : Longint) : Boolean;
-
 \Description
  \var{Chown} sets the User ID and Group ID of the file in \var{Path} to \var{NewUid,
 NewGid}.
 The function returns \var{True} if the call was succesfull, \var{False} if the call
 failed.
-
 \Errors
-
 Errors are returned in \var{LinuxError}.
 \begin{description}
 \item[sys\_eperm] The effective UID doesn't match the ownership of the file,
@@ -570,15 +611,15 @@ nor a directory.
 \item[sys\_eloop] \var{Path} has a reference to a circular
 symbolic link, i.e. a symbolic link, whose expansion points to itself.
 \end{description}
-
 \SeeAlso
 \seef{Chmod}, \seef{Access}, \seem{Chown}(2)
 \end{function}
+
 \FPCexample{ex24}
+
 \begin{function}{Chmod}
 \Declaration
 Function Chmod (Path : Pathstr;NewMode : Longint) : Boolean;
-
 \Description
  \var{Chmod}
 Sets the Mode bits of the file in \var{Path} to \var{NewMode}. Newmode can be
@@ -602,7 +643,6 @@ specified by 'or'-ing the following:
 \end{description}
 
 \Errors
-
 Errors are returned in \var{LinuxError}.
 \begin{description}
 \item[sys\_eperm] The effective UID doesn't match the ownership of the file,
@@ -622,11 +662,12 @@ symbolic link, i.e. a symbolic link, whose expansion points to itself.
 \SeeAlso
 \seef{Chown}, \seef{Access}, \seem{Chmod}(2)
 \end{function}
+
 \FPCexample{ex23}
+
 \begin{function}{CloseDir}
 \Declaration
 Function CloseDir (p:pdir) : integer;
-
 \Description
  \var{CloseDir} closes the directory pointed to by \var{p}.
 It returns zero if the directory was closed succesfully, -1 otherwise.
@@ -637,10 +678,29 @@ Errors are returned in LinuxError.
 \seem{closedir}{3}
 \end{function}
 For an example, see \seef{OpenDir}.
+
+\begin{function}{}
+\Declaration
+function  CreateShellArgV(const prog:string):ppchar;
+function  CreateShellArgV(const prog:Ansistring):ppchar;
+\Description
+\var{CreateShellArgV} creates an array of 3 \var{PChar} pointers that can
+be used as arguments to \var{ExecVE} the first elements in the array 
+will contain  \var{/bin/sh}, the second will contain \var{-c}, and the third
+will contain \var{prog}.
+
+The function returns a pointer to this array, of type \var{PPChar}.
+\Errors
+None.
+\SeeAlso
+\seef{Shell}
+\end{function}
+
+\FPCexample{ex61}
+
 \begin{function}{DirName}
 \Declaration
 Function DirName (Const Path : Pathstr) : Pathstr;
-
 \Description
 Returns the directory part of \var{Path}.
 The directory is the part of \var{Path} before the last slash,
@@ -653,80 +713,93 @@ None.
 \SeeAlso
 \seef{BaseName}, \seef{FExpand}, \seem{Dirname}{1}
 \end{function}
+
 \FPCexample{ex47}
-\begin{procedure}{Dup}
+
+
+\begin{function}{Dup}
 \Declaration
-Procedure Dup (Var OldFile, NewFile : Text);
-
+Function  Dup(oldfile:longint;var newfile:longint):Boolean;
+Function  Dup(var oldfile,newfile:text):Boolean;
+Function  Dup(var oldfile,newfile:file):Boolean;
 \Description
-
 Makes \var{NewFile} an exact copy of \var{OldFile}, after having flushed the
-buffer of \var{OldFile}. Due to the buffering mechanism of Pascal, this has not
-the same functionality as the \seem{dup}{2} call in C. The internal Pascal
-buffers are not the same after this call, but when the buffers are flushed
-(e.g. after output), the output is sent to the same file.
-Doing an lseek will, however, work as in C, i.e. doing a lseek will change the
-fileposition in both files.
+buffer of \var{OldFile} in case it is a Text file or untyped file. 
+Due to the buffering mechanism of Pascal, this has not the same functionality
+as the \seem{dup}{2} call in C. The internal Pascal buffers are not the same 
+after this call, but when the buffers are flushed (e.g. after output), 
+the output is sent to the same file.
+Doing an lseek will, however, work as in C, i.e. doing a lseek will change 
+the fileposition in both files.
 
+The function returns \var{False} in case of an error, \var{True} if
+successful.
 \Errors
- \var{Linuxerror} is used to report errors.
+In case of errors, \var{Linuxerror} is used to report errors.
 \begin{description}
 \item[sys\_ebadf] \var{OldFile} hasn't been assigned.
 \item[sys\_emfile] Maximum number of open files for the process is reached.
 \end{description}
-
 \SeeAlso
-\seep{Dup2}, \seem{Dup}{2} 
-\end{procedure}
+\seef{Dup2}, \seem{Dup}{2} 
+\end{function}
+
+
 \FPCexample{ex31}
-\begin{procedure}{Dup2}
+
+
+\begin{function}{Dup2}
 \Declaration
-Procedure Dup2 (Var OldFile, NewFile : Text);
-
+Function  Dup2(oldfile,newfile:longint):Boolean;
+Function  Dup2(var oldfile,newfile:text):Boolean;
+Function  Dup2(var oldfile,newfile:file):Boolean;
 \Description
-
 Makes \var{NewFile} an exact copy of \var{OldFile}, after having flushed the
-buffer of \var{OldFile}. \var{NewFile} can be an assigned file.
-If \var{newfile} was open, it is closed first.
-Due to the buffering mechanism of Pascal, this has not
+buffer of \var{OldFile} in the case of text or untyped files. 
+
+\var{NewFile} can be an assigned file. If \var{newfile} was open, it is 
+closed first. Due to the buffering mechanism of Pascal, this has not
 the same functionality as the \seem{dup2}{2} call in C. The internal Pascal
 buffers are not the same after this call, but when the buffers are flushed
 (e.g. after output), the output is sent to the same file.
 Doing an lseek will, however, work as in C, i.e. doing a lseek will change the
 fileposition in both files.
 
+The function returns \var{True} if succesful, false otherwise.
 \Errors
- \var{Linuxerror} is used to report errors.
+In case of error, \var{Linuxerror} is used to report errors.
 \begin{description}
 \item[sys\_ebadf] \var{OldFile} hasn't been assigned.
 \item[sys\_emfile] Maximum number of open files for the process is reached.
 \end{description}
-
 \SeeAlso
- \seep{Dup}, \seem{Dup2}{2} 
-\end{procedure}
+ \seef{Dup}, \seem{Dup2}{2} 
+\end{function}
+
+
 \FPCexample{ex32}
+
+
 \begin{procedure}{EpochToLocal}
 \Declaration
 Procedure EpochToLocal (Epoch : Longint; var Year,Month,Day,Hour,Minute,Second : Word);
-
 \Description
-
 Converts the epoch time (=Number of seconds since 00:00:00 , January 1,
 1970, corrected for your time zone ) to local date and time.
 
+This function takes into account the timzeone settings of your system.
 \Errors
 None
 \SeeAlso
 \seef{GetEpochTime}, \seef{LocalToEpoch}, \seep{GetTime},\seep{GetDate} 
 \end{procedure}
+
 \FPCexample{ex3}
+
 \begin{procedure}{Execl}
 \Declaration
 Procedure Execl (Path : pathstr);
-
 \Description
-
 Replaces the currently running program with the program, specified in
 \var{path}. Path is split into a command and it's options.
 The executable in \var{path} is NOT searched in the path.
@@ -750,13 +823,13 @@ A compononent of the path has no search permission.
 \seep{Execve}, \seep{Execv}, \seep{Execvp}, \seep{Execle},
  \seep{Execlp}, \seef {Fork}, \seem{execvp}{3} 
 \end{procedure}
+
 \FPCexample{ex10}
+
 \begin{procedure}{Execle}
 \Declaration
 Procedure Execle (Path : pathstr, Ep : ppchar);
-
 \Description
-
 Replaces the currently running program with the program, specified in
 \var{path}. Path is split into a command and it's options.
 The executable in \var{path} is searched in the path, if it isn't
@@ -781,13 +854,13 @@ A compononent of the path has no search permission.
 \seep{Execve}, \seep{Execv}, \seep{Execvp},
 \seep{Execl}, \seep{Execlp}, \seef {Fork}, \seem{execvp}{3} 
 \end{procedure}
+
 \FPCexample{ex11}
+
 \begin{procedure}{Execlp}
 \Declaration
 Procedure Execlp (Path : pathstr);
-
 \Description
-
 Replaces the currently running program with the program, specified in
 \var{path}. Path is split into a command and it's options.
 The executable in \var{path} is searched in the path, if it isn't
@@ -812,13 +885,13 @@ A compononent of the path has no search permission.
 \seep{Execve}, \seep{Execv}, \seep{Execvp}, \seep{Execle},
 \seep{Execl}, \seef {Fork}, \seem{execvp}{3} 
 \end{procedure}
+
 \FPCexample{ex12}
+
 \begin{procedure}{Execv}
 \Declaration
 Procedure Execv (Path : pathstr; args : ppchar);
-
 \Description
-
 Replaces the currently running program with the program, specified in
 \var{path}.
 It gives the program the options in \var{args}.
@@ -844,20 +917,21 @@ A compononent of the path has no search permission.
 \seep{Execve}, \seep{Execvp}, \seep{Execle},
 \seep{Execl}, \seep{Execlp}, \seef {Fork}, \seem{execv}{3} 
 \end{procedure}
+
 \FPCexample{ex8}
+
+
 \begin{procedure}{Execve}
 \Declaration
+Procedure Execve(Path:pchar;args:ppchar;ep:ppchar);
 Procedure Execve (Path : pathstr; args,ep : ppchar);
-
 \Description
-
 Replaces the currently running program with the program, specified in
 \var{path}.
 It gives the program the options in \var{args}, and the environment in
 \var{ep}. They are pointers to an array of pointers to null-terminated
 strings. The last pointer in this array should be nil.
 On success, \var{execve} does not return.
-
 \Errors
 Errors are reported in \var{LinuxError}:
 \begin{description}
@@ -875,13 +949,13 @@ A compononent of the path has no search permission.
 \seep{Execve}, \seep{Execv}, \seep{Execvp} \seep{Execle},
 \seep{Execl}, \seep{Execlp}, \seef {Fork}, \seem{execve}{2} 
 \end{procedure}
+
 \FPCexample{ex7}
+
 \begin{procedure}{Execvp}
 \Declaration
 Procedure Execvp (Path : pathstr; args : ppchar);
-
 \Description
-
 Replaces the currently running program with the program, specified in
 \var{path}. The executable in \var{path} is searched in the path, if it isn't
 an absolute filename.
@@ -907,12 +981,13 @@ A compononent of the path has no search permission.
 \seep{Execve}, \seep{Execv}, \seep{Execle},
 \seep{Execl}, \seep{Execlp}, \seef {Fork}, \seem{execvp}{3} 
 \end{procedure}
+
 \FPCexample{ex9}
+
 
 \begin{procedurel}{FD\_ZERO}{FDZero}
 \Declaration
 Procedure FD\_ZERO (var fds:fdSet);
-
 \Description
 \var{FD\_ZERO} clears all the filedescriptors in the file descriptor 
 set \var{fds}.
@@ -928,10 +1003,10 @@ None.
 
 \end{procedurel}
 For an example, see \seef{Select}.
+
 \begin{procedurel}{FD\_Clr}{FDClr}
 \Declaration
 Procedure FD\_Clr (fd:longint;var fds:fdSet);
-
 \Description
  \var{FD\_Clr} clears file descriptor \var{fd} in filedescriptor s
   et \var{fds}.
@@ -945,11 +1020,12 @@ None.
 \seepl{FD\_Set}{FDSet}, 
 \seefl{FD\_IsSet}{FDIsSet}
 \end{procedurel}
+
 For an example, see \seef{Select}.
+
 \begin{functionl}{FD\_IsSet}{FDIsSet}
 \Declaration
 Function FD\_IsSet (fd:longint;var fds:fdSet) : boolean;
-
 \Description
 \var{FD\_Set} Checks whether file descriptor \var{fd} in filedescriptor set \var{fds}
 is set.
@@ -961,11 +1037,12 @@ None.
 \seepl{FD\_Clr}{FDClr},
 \seepl{FD\_Set}{FDSet}
 \end{functionl}
+
 For an example, see \seef{Select}.
+
 \begin{procedurel}{FD\_Set}{FDSet}
 \Declaration
 Procedure FD\_Set (fd:longint;var fds:fdSet);
-
 \Description
 \var{FD\_Set} sets file descriptor \var{fd} in filedescriptor set \var{fds}.
 \Errors
@@ -974,13 +1051,13 @@ None.
 \seef{Select}, \seef{SelectText}, \seef{GetFS},\seepl{FD\_ZERO}{FDZero}, 
 \seepl{FD\_Clr}{FDClr}, \seefl{FD\_IsSet}{FDIsSet}
 \end{procedurel}
+
 For an example, see \seef{Select}.
+
 \begin{function}{fdClose}
 \Declaration
 Function fdClose (fd:longint) : boolean;
-
 \Description
-
 \var{fdClose} closes a file with file descriptor \var{Fd}. The function
 returns \var{True} if the file was closed successfully, \var{False}
 otherwise. 
@@ -992,10 +1069,10 @@ Errors are returned in LinuxError
 \seef{fdFlush}, seef{FdSeek}
 \end{function}
 For an example, see \seef{fdOpen}.
+
 \begin{function}{fdFlush}
 \Declaration
 Function fdFlush (fd:Longint) : boolean;
-
 \Description
 \var{fdflush} flushes the Linux kernel file buffer, so the file is actually
 written to disk. This is NOT the same as the internal buffer, maintained by
@@ -1009,21 +1086,49 @@ Errors are returned in LinuxError.
 \seef{fdTruncate}, \seef{fdSeek}
 \end{function}
 For an example, see \seef{fdRead}.
+
 \begin{function}{fdOpen}
 \Declaration
-Function fdOpen (Var PathName;flags:longint[; Mode: longint]) : longint;
-
+Function fdOpen(PathName:String;flags:longint):longint;
+Function fdOpen(PathName:Pchar ;flags:longint):longint;
+Function fdOpen(PathName:String;flags,mode:longint):longint; 
+Function fdOpen(PathName:Pchar ;flags,mode:longint):longint;
 \Description
- \var{fdOpen} opens a file in \var{pathname} with flags \var{flags} a ORed combination of
-  \var{Open\_Accmode, Open\_RdOnly, Open\_WrOnly, Open\_RdWr, Open\_Creat,
-  Open\_Excl, Open\_NoCtty, Open\_Trunc, Open\_Append, Open\_NonBlock,
-  Open\_NDelay, Open\_Sync} \var{PathName} can be of type \var{PChar} or
-\var{String}
-  The optional \var{mode} argument specifies the permissions to set when opening
-  the file. This is modified by the umask setting. The real permissions are
-  \var{Mode and not umask}.
-  The return value of the function is the filedescriptor, or a negative 
-  value if there was an error.
+\var{fdOpen} opens a file in \var{PathName} with flags \var{flags} 
+One of the following:
+\begin{description}
+\item [Open\_RdOnly] File is opened Read-only.
+\item [Open\_WrOnly] File is opened Write-only.
+\item [Open\_RdWr] File is opened Read-Write.
+\end{description}
+The flags may be\var{OR}-ed with one of the following constants:
+\begin{description}
+\item [Open\_Accmode] File is opened
+\item [Open\_Creat] File is created if it doesn't exist.
+\item [Open\_Excl] If the file is opened with \var{Open\_Creat} and it 
+already exists, the call wil fail.
+\item [Open\_NoCtty] If the file is a terminal device, it will NOT become
+the process' controlling terminal.
+\item [Open\_Trunc] If the file exists, it will be truncated.
+\item [Open\_Append] the file is opened in append mode. {\em Before each
+write}, the file pointer is positioned at the end of the file.
+\item [Open\_NonBlock] The file is opened in non-blocking mode. No operation
+on the file descriptor will cause the calling process to wait till.
+\item [Open\_NDelay] Idem as \var{Open\_NonBlock}
+\item [Open\_Sync] The file is opened for synchronous IO. Any write
+operation on the file will not return untill the data is physically written
+to disk.
+\item [Open\_NoFollow] if the file is a symbolic link, the open fails.
+(\linux 2.1.126 and higher only)
+\item [Open\_Directory] if the file is not a directory, the open fails.
+(\linux 2.1.126 and higher only)
+\end{description}
+\var{PathName} can be of type \var{PChar} or \var{String}.
+The optional \var{mode} argument specifies the permissions to set when opening
+the file. This is modified by the umask setting. The real permissions are
+\var{Mode and not umask}.
+The return value of the function is the filedescriptor, or a negative 
+value if there was an error.
 
 \Errors
 Errors are returned in LinuxError
@@ -1031,11 +1136,12 @@ Errors are returned in LinuxError
 \seef{fdClose}, \seef{fdRead}, \seef{fdWrite},\seef{fdTruncate},
 \seef{fdFlush}, \seef{fdSeek}
 \end{function}
+
 \FPCexample{ex19}
+
 \begin{function}{fdRead}
 \Declaration
-Function fdRead (fd:longint;var buf;size:longint : longint;
-
+Function fdRead (fd:longint;var buf;size:longint) : longint;
 \Description
  \var{fdRead} reads at most \var{size} bytes from the file descriptor
 \var{fd}, and stores them in \var{buf}. 
@@ -1049,11 +1155,12 @@ Errors are returned in LinuxError.
 \seef{fdOpen}, \seef{fdClose}, \seef{fdWrite},\seef{fdTruncate},
 \seef{fdFlush}, \seef{fdSeek}
 \end{function}
+
 \FPCexample{ex20}
+
 \begin{function}{fdSeek}
 \Declaration
-Function fdSeek (fd,Pos,SeekType:longint : longint;
-
+Function fdSeek (fd,Pos,SeekType:longint) : longint;
 \Description
 \var{fdSeek} sets the current fileposition of file \var{fd} to
 \var{Pos}, starting from \var{SeekType}, which can be one of the following:
@@ -1072,10 +1179,10 @@ Errors are returned in LinuxError.
  \seef{fdFlush}
 \end{function}
 For an example, see \seef{fdOpen}.
+
 \begin{function}{fdTruncate}
 \Declaration
 Function fdTruncate (fd,size:longint) : boolean;
-
 \Description
 \var{fdTruncate} sets the length of a file in \var{fd} on \var{size}
 bytes, where \var{size} must be less than or equal to the current length of
@@ -1088,10 +1195,10 @@ Errors are returned in LinuxError.
 \seef{fdOpen}, \seef{fdClose}, \seef{fdRead},\seef{fdWrite},\seef{fdFlush},
 \seef{fdSeek}
 \end{function}
+
 \begin{function}{fdWrite}
 \Declaration
-Function fdWrite (fd:longint;var buf;size:longint : longint;
-
+Function fdWrite (fd:longint;var buf;size:longint) : longint;
 \Description
 \var{fdWrite} writes at most \var{size} bytes from \var{buf} to
 file descriptor \var{fd}.
@@ -1104,10 +1211,10 @@ Errors are returned in LinuxError.
 \seef{fdOpen}, \seef{fdClose}, \seef{fdRead},\seef{fdTruncate},
 \seef{fdSeek}, \seef{fdFlush}
 \end{function}
+
 \begin{function}{FExpand}
 \Declaration
 Function FExpand (Const Path: Pathstr) : pathstr;
-
 \Description
  Expands \var {Path} to a full path, starting from root,
 eliminating directory references such as . and .. from the result.
@@ -1117,11 +1224,14 @@ None
 \SeeAlso
 \seef{BaseName},\seef{DirName} 
 \end{function}
-\FPCexample{ex45}
-\begin{procedure}{FLock}
-\Declaration
-Procedure FLock (Var F; Mode : longint);
 
+\FPCexample{ex45}
+
+\begin{function}{FLock}
+\Declaration
+Function  Flock (fd,mode : longint) : boolean;
+Function  Flock (var T : text;mode : longint) : boolean;
+Function  Flock (var F : File;mode : longint) : boolean;
 \Description
 \var{FLock} implements file locking. it sets or removes a lock on the file
 \var{F}. F can be of type \var{Text} or \var{File}, or it can be a \linux
@@ -1135,21 +1245,23 @@ filedescriptor (a longint)
 the application doesn't block when locking.
 \end{description}
 
+The function returns \var{True} if successful, \var{False} otherwise.
 \Errors
-Errors are reported in \var{LinuxError}.
+If an error occurs, it is reported in \var{LinuxError}.
 \SeeAlso
 \seef{Fcntl}, \seem{flock}{2}
-\end{procedure}
+\end{function}
+
 \begin{function}{FSStat}
 \Declaration
 Function FSStat (Path : Pathstr; Var Info : statfs) : Boolean;
-
+Function FSStat (Fd:longint;Var Info:stat) : Boolean;
 \Description
  Return in \var{Info} information about the filesystem on which the file
-\var{Path} resides. Info is of type \var{statfs}.
-The function returns \var{True} if the call was succesfull, \var{False} if the call
-failed.
-
+\var{Path} resides, or on which the file with file descriptor \var{fd}
+resides. 
+Info is of type \var{statfs}. The function returns \var{True} if the call 
+was succesfull, \var{False} if the call failed.
 \Errors
  \var{LinuxError} is used to report errors.
 \begin{description}
@@ -1165,11 +1277,12 @@ failed.
 \SeeAlso
 \seef{FStat}, \seef{LStat}, \seem{statfs}{2}
 \end{function}
+
 \FPCexample{ex30}
+
 \begin{function}{FSearch}
 \Declaration
 Function FSearch (Path : pathstr;DirList : string) : Pathstr;
-
 \Description
  Searches in \var{DirList}, a colon separated list of directories,
 for a file named \var{Path}. It then returns a path to the found file.
@@ -1178,35 +1291,45 @@ An empty string if no such file was found.
 \SeeAlso
 \seef{BaseName}, \seef{DirName}, \seef{FExpand} 
 \end{function}
+
 \FPCexample{ex46}
+
 \begin{function}{FStat}
 \Declaration
-Function FStat (Path : Pathstr; Var Info : stat) : Boolean;
-
+Function FStat(Path:Pathstr;Var Info:stat):Boolean;
+Function FStat(Fd:longint;Var Info:stat):Boolean;  
+Function FStat(var F:Text;Var Info:stat):Boolean;  
+Function FStat(var F:File;Var Info:stat):Boolean;  
 \Description
-
-\var{FStat} gets information about the file specified in \var{Path}, and stores it in 
-\var{Info}, which is of type \var{stat}.
-The function returns \var{True} if the call was succesfull, \var{False} if the call
-failed.
+\var{FStat} gets information about the file specified in one of the
+following:
+\begin{description}
+\item [Path] a file on the filesystem.
+\item [Fd] a valid file descriptor.
+\item [F] an opened text file or untyped file.
+\end{description}
+and stores it in  \var{Info}, which is of type \var{stat}.
+The function returns \var{True} if the call was succesfull, 
+\var{False} if the call failed.
 
 \Errors
  \var{LinuxError} is used to report errors.
 \begin{description}
 \item[sys\_enoent] \var{Path} does not exist.
 \end{description}
-
 \SeeAlso
 \seef{FSStat}, \seef{LStat}, \seem{stat}{2}
 \end{function}
+
 \FPCexample{ex28}
+
 \begin{function}{Fcntl}
 \Declaration
-Function Fcntl (Fd :  text, Cmd : Integer) : Integer;
-
+Function  Fcntl(Fd:longint;Cmd:Integer):integer;
+Function  Fcntl(var Fd:Text;Cmd:Integer):integer;   
 \Description
-
-Read a file's attributes. \var{Fd} is an assigned file.
+Read a file's attributes. \var{Fd} is an assigned file, or a valid file
+descriptor.
 \var{Cmd} speciefies what to do, and is one of the following:
 \begin{description}
 \item[F\_GetFd] Read the close\_on\_exec flag. If the low-order bit is 0, then
@@ -1216,7 +1339,6 @@ the file will remain open across execve calls.
 \end{description}
 
 \Errors
-
 \var{LinuxError} is used to report errors.
 \begin{description}
 \item[sys\_ebadf] \var{Fd} has a bad file descriptor.
@@ -1225,13 +1347,14 @@ the file will remain open across execve calls.
 \SeeAlso
 \seep{Fcntl}, \seem{Fcntl}{2} 
 \end{function}
+
 \begin{procedure}{Fcntl}
 \Declaration
 Procedure Fcntl (Fd :  text, Cmd : Integer; Arg : longint);
-
+Procedure Fcntl (Fd:longint;Cmd:longint;Arg:Longint);
 \Description
-
-Read or Set a file's attributes. \var{Fd} is an assigned file.
+Read or Set a file's attributes. \var{Fd} is an assigned file or a
+valid file descriptor.
 \var{Cmd} speciefies what to do, and is one of the following:
 \begin{description}
 \item[F\_SetFd] Set the close\_on\_exec flag of \var{Fd}. (only the least
@@ -1257,14 +1380,13 @@ held by another process.
 \end{description}
 
 \SeeAlso
-\seef{Fcntl}, \seem{Fcntl}{2} 
+\seef{Fcntl}, \seem{Fcntl}{2}, seef{FLock}
 \end{procedure}
+
 \begin{function}{Fork}
 \Declaration
 Function Fork  : Longint;
-
 \Description
-
 Fork creates a child process which is a copy of the parent process.
 Fork returns the process ID in the parent process, and zero in the child's
 process. (you can get the parent's PID with \seef{GetPPid}).
@@ -1278,27 +1400,41 @@ On error, -1 is returned to the parent, and no child is created.
 \SeeAlso
 \seep{Execve}, \seem{fork}{2}
 \end{function}
+
 \FPCexample{ex14}
+
 \begin{procedure}{GetDate}
 \Declaration
 Procedure GetDate  (Var Year, Month, Day : Word) ;
-
 \Description
-
-Returns the current day.
-
+Returns the current date.
 \Errors
 None
 \SeeAlso
-\seef{GetEpochTime}, \seep{GetTime}, \seep{EpochToLocal} 
+\seef{GetEpochTime}, \seep{GetTime},  \seep{GetDateTime}, \seep{EpochToLocal} 
 \end{procedure}
+
 \FPCexample{ex6}
+
+\begin{procedure}{GetDateTime}
+\Declaration
+Procedure GetDateTime(Var Year,Month,Day,hour,minute,second:Word);
+\Description
+Returns the current date and time. The time is corrected for the local time
+zone. This procedure is equivalent to the \seep{GetDate} and \var{GetTime}
+calls.
+\Errors
+None
+\SeeAlso
+\seef{GetEpochTime}, \seep{GetTime}, \seep{EpochToLocal}, \seep{GetDate} 
+\end{procedure}
+
+\FPCexample{ex60}
+
 \begin{function}{GetDomainName}
 \Declaration
 Function GetDomainName  : String;
-
 \Description
-
 Get the domain name of the machine on which the process is running.
 An empty string is returned if the domain is not set.
 
@@ -1307,11 +1443,12 @@ None.
 \SeeAlso
  \seef{GetHostName},seem{Getdomainname}{2} 
 \end{function}
+
 \FPCexample{ex39}
+
 \begin{function}{GetEGid}
 \Declaration
 Function GetEGid  : Longint;
-
 \Description
  Get the effective group ID of the currently running process.
 \Errors
@@ -1319,11 +1456,12 @@ None.
 \SeeAlso
 \seef{GetGid}, \seem{getegid}{2} 
 \end{function}
+
 \FPCexample{ex18}
+
 \begin{function}{GetEUid}
 \Declaration
 Function GetEUid  : Longint;
-
 \Description
  Get the effective user ID of the currently running process.
 \Errors
@@ -1331,11 +1469,12 @@ None.
 \SeeAlso
 \seef{GetEUid}, \seem{geteuid}{2} 
 \end{function}
+
 \FPCexample{ex17}
+
 \begin{function}{GetEnv}
 \Declaration
 Function GetEnv (P : String) : PChar;
-
 \Description
 Returns the value of the environment variable in \var{P}. If the variable is
 not defined, nil is returned. The value of the environment variable may be
@@ -1348,13 +1487,13 @@ None.
 \SeeAlso
 \seem{sh}{1}, \seem{csh}{1} 
 \end{function}
+
 \FPCexample{ex41}
+
 \begin{function}{GetEpochTime}
 \Declaration
 Function GetEpochTime  : longint;
-
 \Description
-
 returns the number of seconds since 00:00:00 gmt, january 1, 1970.
 it is adjusted to the local time zone, but not to DST.
 
@@ -1363,11 +1502,12 @@ no errors
 \SeeAlso
 \seep{EpochToLocal}, \seep{GetTime}, \seem{time}{2}
 \end{function}
+
 \FPCexample{ex1}
+
 \begin{function}{GetFS}
 \Declaration
 Function GetFS (Var F : Any File Type) : Longint;
-
 \Description
 \var{GetFS} returns the file selector that the kernel provided for your
 file. In principle you don' need this file selector. Only for some calls
@@ -1377,11 +1517,12 @@ In case the file was not opened, then -1 is returned.
 \SeeAlso
 \seef{Select}
 \end{function}
+
 \FPCexample{ex34}
+
 \begin{function}{GetGid}
 \Declaration
 Function GetGid  : Longint;
-
 \Description
  Get the real group ID of the currently running process.
 \Errors
@@ -1389,13 +1530,13 @@ None.
 \SeeAlso
 \seef{GetEGid}, \seem{getgid}{2} 
 \end{function}
+
 \FPCexample{ex18}
+
 \begin{function}{GetHostName}
 \Declaration
 Function GetHostName  : String;
-
 \Description
-
 Get the hostname of the machine on which the process is running.
 An empty string is returned if hostname is not set.
 
@@ -1404,11 +1545,27 @@ None.
 \SeeAlso
  \seef{GetDomainName},seem{Gethostname}{2} 
 \end{function}
+
 \FPCexample{ex40}
+
+\begin{procedure}{GetLocalTimezone}
+\Declaration
+procedure GetLocalTimezone(timer:longint;var leap\_correct,leap\_hit:longint);
+procedure GetLocalTimezone(timer:longint);
+\Description
+\var{GetLocalTimeZone} returns the local timezone information. It also
+initializes the \var{TZSeconds} variable, which is used to correct the epoch time
+to local time. 
+
+You should never call this function directly. It is called by the
+initialization routines of the Linux unit.
+\SeeAlso
+\seef{GetTimezoneFile}, \seep{ReadTimezoneFile}
+\end{procedure}
+
 \begin{function}{GetPid}
 \Declaration
 Function GetPid  : Longint;
-
 \Description
  Get the Process ID of the currently running process.
 \Errors
@@ -1416,11 +1573,12 @@ None.
 \SeeAlso
 \seef{GetPPid}, \seem{getpid}{2}
 \end{function}
+
 \FPCexample{ex16}
+
 \begin{function}{GetPPid}
 \Declaration
 Function GetPPid  : Longint;
-
 \Description
  Get the Process ID of the parent process.
 \Errors
@@ -1428,13 +1586,13 @@ None.
 \SeeAlso
 \seef{GetPid}, \seem{getppid}{2}
 \end{function}
+
 \FPCexample{ex16}
+
 \begin{function}{GetPriority}
 \Declaration
 Function GetPriority (Which,Who : Integer) : Integer;
-
 \Description
-
 GetPriority returns the priority with which a process is running.
 Which process(es) is determined by the \var{Which} and \var{Who} variables.
 \var{Which} can be one of the pre-defined \var{Prio\_Process, Prio\_PGrp,
@@ -1454,24 +1612,86 @@ or Prio\_User}.
 \seef{SetPriority}, \seep{Nice}, \seem{Getpriority}{2}
 \end{function}
 For an example, see \seep{Nice}.
+
 \begin{procedure}{GetTime}
 \Declaration
-Procedure GetTime  (Var Hour,Minute, Second : Word) ;
-
+procedure GetTime(var hour,min,sec,msec,usec:word);
+procedure GetTime(var hour,min,sec,sec100:word);
+procedure GetTime(var hour,min,sec:word);
 \Description
-
-Returns the current time of the day.
-
+Returns the current time of the day, adjusted to local time.
+Upon return, the parameters are filled with
+\begin{description}
+\item[hour] Hours since 00:00 today.
+\item[min] minutes in current hour.
+\item[sec] seconds in current minute.
+\item[sec100] hundreds of seconds in current second.
+\item[msec] milliseconds in current second.
+\item[usec] microseconds in current second.
+\end{description}
 \Errors
 None
 \SeeAlso
-\seef{GetEpochTime}, \seep{GetDate}, \seep{EpochToLocal} 
+\seef{GetEpochTime}, \seep{GetDate}, \seep{GetDateTime}, \seep{EpochToLocal} 
 \end{procedure}
+
 \FPCexample{ex5}
+
+\begin{procedure}{GetTimeOfDay}
+\Declaration
+Procedure GetTimeOfDay(var tv:timeval);
+\Description
+\var{GetTimeOfDay} returns the number of seconds since 00:00, January 1 
+1970, GMT in a \var{timeval} record. This time NOT corrected any way, 
+not taking into account timezones, daylight savings time and so on.
+
+It is simply a wrapper to the kernel system call. To get the local time,
+\seep{GetTime}.
+\Errors
+None.
+\SeeAlso
+\seep{GetTime}, \seef{GetTimeOfDay}
+\end{procedure}
+
+\begin{function}{GetTimeOfDay}
+\Declaration
+Function GetTimeOfDay:longint;
+\Description
+\var{GetTimeOfDay} returns the number of seconds since 00:00, January 1
+1970, GMT. This time NOT corrected any way, not taking into account
+timezones, daylight savings time and so on.
+
+It is simply a wrapper to the kernel system call. To get the local time,
+\seep{GetTime}.
+\Errors
+None.
+\SeeAlso
+\seep{GetTimeOfDay}, \seep{GetTime}
+\end{function}
+
+\begin{function}{GetTimezoneFile}
+\Declaration
+function GetTimezoneFile:string;
+\Description
+\var{GetTimezoneFile} returns the location of the current timezone file.
+The location of file is determined as follows:
+\begin{enumerate}
+\item If \file{/etc/timezone} exists, it is read, and the contents of this
+file is returned. This should work on Debian systems.
+\item If \file{/usr/lib/zoneinfo/localtime} exists, then it is returned.
+(this file is a symlink to the timezone file on SuSE systems)
+\item If \file{/etc/localtime} exists, then it is returned. 
+(this file is a symlink to the timezone file on RedHat systems)
+\end{enumerate}
+\Errors
+If no file was found, an empty string is returned.
+\SeeAlso
+\seep{ReadTimezoneFile}
+\end{function}
+
 \begin{function}{GetUid}
 \Declaration
 Function GetUid  : Longint;
-
 \Description
  Get the real user ID of the currently running process.
 \Errors
@@ -1479,13 +1699,13 @@ None.
 \SeeAlso
 \seef{GetEUid}, \seem{getuid}{2} 
 \end{function}
+
 \FPCexample{ex17}
+
 \begin{function}{Glob}
 \Declaration
 Function Glob (Const Path : Pathstr) : PGlob;
-
 \Description
-
 Glob returns a pointer to a glob structure which contains all filenames which
 exist and match the pattern in \var{Path}.
 The pattern can contain wildcard characters, which have their
@@ -1501,11 +1721,12 @@ usual meaning.
 \SeeAlso
 \seep{GlobFree}, \seem{Glob}{3} 
 \end{function}
+
 \FPCexample{ex49}
+
 \begin{procedure}{GlobFree}
 \Declaration
 Procedure GlobFree (Var P : Pglob);
-
 \Description
 Releases the memory, occupied by a pglob structure. \var{P} is set to nil.
 \Errors
@@ -1514,12 +1735,11 @@ None
  \seef{Glob} 
 \end{procedure}
 For an example, see \seef{Glob}.
+
 \begin{procedure}{IOCtl}
 \Declaration
 Procedure IOCtl (Handle,Ndx: Longint; Data: Pointer);
-
 \Description
-
 This is a general interface to the Unix/ \linux ioctl call.
 It performs various operations on the filedescriptor \var{Handle}.
 \var{Ndx} describes the operation to perform.
@@ -1536,11 +1756,12 @@ function, that's why we don't list them here
 \SeeAlso
 \seem{ioctl}{2}
 \end{procedure}
+
 \FPCexample{ex54}
+
 \begin{function}{IOperm}
 \Declaration
 Function IOperm (From,Num : Cadinal; Value : Longint) : boolean;
-
 \Description
 \var{IOperm}
   sets permissions on \var{Num} ports starting with port \var{From} to 
@@ -1559,12 +1780,11 @@ Errors are returned in \var{LinuxError}
 \SeeAlso
 \seem{ioperm}{2}
 \end{function}
+
 \begin{function}{IsATTY}
 \Declaration
 Function IsATTY (var f) : Boolean;
-
 \Description
-
 Check if the filehandle described by \var{f} is a terminal.
 f can be of type
 \begin{enumerate}
@@ -1581,7 +1801,6 @@ No errors are reported
 \begin{functionl}{S\_ISBLK}{ISBLK}
 \Declaration
 Function S\_ISBLK (m:integer) : boolean;
-
 \Description
  \var{S\_ISBLK} checks the file mode \var{m} to see whether the file is a
 block device file. If so it returns \var{True}.
@@ -1601,7 +1820,6 @@ ISLNK.
 \begin{functionl}{S\_ISCHR}{ISCHR}
 \Declaration
 Function S\_ISCHR (m:integer) : boolean;
-
 \Description
  \var{S\_ISCHR} checks the file mode \var{m} to see whether the file is a
 character device file. If so it returns \var{True}.
@@ -1621,7 +1839,6 @@ ISLNK.
 \begin{functionl}{S\_ISDIR}{ISDIR}
 \Declaration
 Function S\_ISDIR (m:integer) : boolean;
-
 \Description
  \var{S\_ISDIR} checks the file mode \var{m} to see whether the file is a
 directory. If so it returns \var{True}
@@ -1641,7 +1858,6 @@ ISLNK.
 \begin{functionl}{S\_ISFIFO}{ISFIFO}
 \Declaration
 Function S\_ISFIFO (m:integer) : boolean;
-
 \Description
  \var{S\_ISFIFO} checks the file mode \var{m} to see whether the file is a
 fifo (a named pipe). If so it returns \var{True}.
@@ -1662,7 +1878,6 @@ ISLNK.
 \begin{functionl}{S\_ISLNK}{ISLNK}
 \Declaration
 Function S\_ISLNK (m:integer) : boolean;
-
 \Description
  \var{S\_ISLNK} checks the file mode \var{m} to see whether the file is a
 symbolic link. If so it returns \var{True}
@@ -1679,12 +1894,12 @@ symbolic link. If so it returns \var{True}
 \SeeAlso
 \end{functionl}
 
+
 \FPCexample{ex53}
 
 \begin{functionl}{S\_ISREG}{ISREG}
 \Declaration
 Function S\_ISREG (m:integer) : boolean;
-
 \Description
  \var{S\_ISREG} checks the file mode \var{m} to see whether the file is a
 regular file. If so it returns \var{True}
@@ -1704,7 +1919,6 @@ ISLNK.
 \begin{functionl}{S\_ISSOCK}{ISSOCK}
 \Declaration
 Function S\_ISSOCK (m:integer) : boolean;
-
 \Description
  \var{S\_ISSOCK} checks the file mode \var{m} to see whether the file is a
 socket. If so it returns \var{True}.
@@ -1721,10 +1935,10 @@ socket. If so it returns \var{True}.
 \SeeAlso
 ISLNK.
 \end{functionl}
+
 \begin{function}{Kill}
 \Declaration
-Function Kill Pid : Longint; Sig : Integer) : Integer;
-
+Function Kill (Pid : Longint; Sig : Integer) : Integer;
 \Description
  Send a signal \var{Sig} to a process or process group. If \var{Pid}>0 then
 the signal is sent to \var{Pid}, if it equals -1, then the signal is sent to
@@ -1745,12 +1959,11 @@ the one of process \var{Pid}.
 \SeeAlso
 \seep{SigAction}, \seef{Signal}, \seem{Kill}{2} 
 \end{function}
+
 \begin{function}{LStat}
 \Declaration
 Function LStat (Path : Pathstr; Var Info : stat) : Boolean;
-
 \Description
-
 \var{LStat} gets information about the link specified in \var{Path}, and stores it in 
 \var{Info}, which is of type \var{stat}. Contrary to \var{FStat}, it stores
 information about the link, not about the file the link points to.
@@ -1766,11 +1979,12 @@ failed.
 \SeeAlso
 \seef{FStat}, \seef{FSStat}, \seem{stat}{2}
 \end{function}
+
 \FPCexample{ex29}
+
 \begin{function}{Link}
 \Declaration
 Function Link (OldPath,NewPath : pathstr) : Boolean;
-
 \Description
 \var{Link} makes \var{NewPath} point to the same file als \var{OldPath}. The two files
 then have the same inode number. This is known as a 'hard' link.
@@ -1805,13 +2019,13 @@ entry.
 \SeeAlso
 \seef{SymLink}, \seef{UnLink}, \seem{Link}{2} 
 \end{function}
+
 \FPCexample{ex21}
+
 \begin{function}{LocalToEpoch}
 \Declaration
 Function LocalToEpoch (Year,Month,Day,Hour,Minute,Second : Word) : longint;
-
 \Description
-
 Converts the Local time to epoch time (=Number of seconds since 00:00:00 , January 1,
 1970 ).
 
@@ -1820,11 +2034,12 @@ None
 \SeeAlso
 \seef{GetEpochTime}, \seep{EpochToLocal}, \seep{GetTime},\seep{GetDate} 
 \end{function}
+
 \FPCexample{ex4}
+
 \begin{function}{MkFifo}
 \Declaration
 Function MkFifo (PathName: String; Mode : Longint) : Boolean;
-
 \Description
 \var{MkFifo} creates named a named pipe in the filesystem, with name
 \var{PathName} and mode {Mode}. 
@@ -1839,10 +2054,10 @@ Function MkFifo (PathName: String; Mode : Longint) : Boolean;
 \SeeAlso
 \seep{POpen}, \seef{MkFifo}, \seem{mkfifo}{4}
 \end{function}
+
 \begin{procedure}{Nice}
 \Declaration
 Procedure Nice ( N : Integer);
-
 \Description
 Nice adds \var{-N} to the priority of the running process. The lower the
 priority numerically, the less the process is favored.
@@ -1859,11 +2074,13 @@ do a priority increase.
 \SeeAlso
 \seef{GetPriority}, \seef{SetPriority}, \seem{Nice}{2}
 \end{procedure}
+
 \FPCexample{ex15}
+
 \begin{function}{OpenDir}
 \Declaration
 Function OpenDir (f:pchar) : pdir;
-
+Function OpenDir (f:string) : pdir;
 \Description
  \var{OpenDir} opens the directory  \var{f}, and returns a \var{pdir}
 pointer to a \var{Dir} record, which can be used to read the directory 
@@ -1875,26 +2092,28 @@ Errors are returned in LinuxError.
 \seem{opendir}{3}
 \end{function}
 
+
 \FPCexample{ex35}
+
 
 \begin{procedure}{pause}
 \Declaration
-Procedure Pause
+Procedure Pause;
 \Description
-\var{Pause} pus the processto sleep and waits until the application receives 
-a signal. If a signal handler is installed for the received sigal, the
-handler will be called and after that pause will return control to the
-process.
+\var{Pause} puts the process to sleep and waits until the application 
+receives  a signal. If a signal handler is installed for the received 
+sigal, the handler will be called and after that pause will return 
+control to the process.
 \Errors
 None.
 \end{procedure}
 
 For an example, see \seef{Alarm}.
 
+
 \begin{function}{PClose}
 \Declaration
 Function PClose (Var F : FileType) : longint;
-
 \Description
  \var{PClose} closes a file opened with \var{POpen}. It waits for the
 command to complete, and then returns the exit status of the command. 
@@ -1906,10 +2125,10 @@ the exit status is not valid.
 \seep{POpen}
 \end{function}
 For an example, see \seep{POpen}
+
 \begin{procedure}{POpen}
 \Declaration
 Procedure POpen (Var F : FileType; Cmd : pathstr; rw : char);
-
 \Description
  Popen runs the command specified in \var{Cmd},
  and redirects the standard in or output of the
@@ -1927,13 +2146,14 @@ Errors are reported in \var{LinuxError} and are essentially those of the
 Execve, Dup and AssignPipe commands.
 
 \SeeAlso
-\seep{AssignPipe}, \seem{popen}{3}, \seef{PClose}
+\seef{AssignPipe}, \seem{popen}{3}, \seef{PClose}
 \end{procedure}
+
 \FPCexample{ex37}
+
 \begin{function}{ReadDir}
 \Declaration
 Function ReadDir (p:pdir) : pdirent;
-
 \Description
 \var{ReadDir} reads the next entry in the directory pointed to by \var{p}.
 It returns a \var{pdirent} pointer to a structure describing the entry.
@@ -1945,11 +2165,28 @@ Errors are returned in LinuxError.
 \seef{CloseDir}, \seef{OpenDir}, \seep{SeekDir}, \seef{TellDir},
 \seem{readdir}{3}
 \end{function}
+
 For an example, see \seef{OpenDir}.
+
+\begin{procedure}{ReadTimezoneFile}
+\Declaration
+procedure ReadTimezoneFile(fn:string);
+\Description
+\var{ReadTimeZoneFile} reads the timezone file \var{fn} and initializes
+the local time routines based on the information found there.
+
+There should be no need to call this function. The initialization routines
+of the \file{linux} unit call this routine at unit startup.
+\Errors 
+None.
+\SeeAlso
+\seef{GetTimezoneFile}, \seep{GetLocalTimezone}
+\end{procedure}
+
+
 \begin{procedure}{SeekDir}
 \Declaration
 Procedure SeekDir (p:pdir;off:longint);
-
 \Description
  \var{SeekDir} sets the directory pointer to the \var{off}-th entry in the
 directory structure pointed to by \var{p}.
@@ -1960,11 +2197,11 @@ Errors are returned in LinuxError.
 \seem{seekdir}{3}
 \end{procedure}
 For an example, see \seef{OpenDir}.
+
 \begin{function}{Select}
 \Declaration
 Function Select (N : Longint; \\ var readfds,writefds,exceptfds : PFDset;
 Var Timeout) : Longint;
-
 \Description
 \var{Select} checks one of the file descriptors in the \var{FDSets} to see if its
 status changed.
@@ -2014,11 +2251,12 @@ On error, the function returns -1, and Errors are reported in LinuxError :
 \seepl{FD\_Set}{FDSet}, 
 \seefl{FD\_IsSet}{FDIsSet}
 \end{function}
+
 \FPCexample{ex33}
+
 \begin{function}{SelectText}
 \Declaration
 Function SelectText ( var T : Text; TimeOut :PTime) : Longint;
-
 \Description
 \var{SelectText} executes the \seef{Select} call on a file of type
 \var{Text}. You can specify a timeout in \var{TimeOut}. The SelectText call
@@ -2031,12 +2269,11 @@ opened.
 \SeeAlso
 \seef{Select}, \seef{GetFS}
 \end{function}
+
 \begin{function}{SetPriority}
 \Declaration
 Function SetPriority (Which,Who,Prio : Integer) : Integer;
-
 \Description
-
 SetPriority sets the priority with which a process is running.
 Which process(es) is determined by the \var{Which} and \var{Who} variables.
 \var{Which} can be one of the pre-defined \var{Prio\_Process, Prio\_PGrp,
@@ -2060,10 +2297,10 @@ or Prio\_User}.
 \seef{GetPriority}, \seep{Nice}, \seem{Setpriority}{2}
 \end{function}
 For an example, see \seep{Nice}.
+
 \begin{function}{Shell}
 \Declaration
 Function Shell (Command : String) : Longint;
-
 \Description
 \var{Shell} invokes the bash shell (\file{/bin/sh}), and feeds it the
 command \var{Command} (using the \var{-c} option). The function then waits
@@ -2076,11 +2313,12 @@ Errors are reported in LinuxError.
 \SeeAlso
 \seep{POpen}, \seef{Fork}, \seep{Execve}, \seem{system}{3}
 \end{function}
+
 \FPCexample{ex56}
+
 \begin{procedure}{SigAction}
 \Declaration
 Procedure SigAction (Signum : Integer; Var Act,OldAct : PSigActionRec);
-
 \Description
  Changes the action to take upon receipt of a signal. \var{Act} and
 \var{Oldact} are pointers to a \var{SigActionRec} record.
@@ -2119,13 +2357,13 @@ from within its own signal handler.
 \seem{Sigaction}{2}
 
 \end{procedure}
+
 \FPCexample{ex57}
+
 \begin{function}{SigPending}
 \Declaration
 Function SigPending  : SigSet;
-
 \Description
-
 Sigpending allows the examination of pending signals (which have been raised
 while blocked.) The signal mask of pending signals is returned.
 
@@ -2135,12 +2373,11 @@ None
 \seep{SigAction}, \seep{SigProcMask}, \seep{SigSuspend}, \seef{Signal},
 \seef{Kill}, \seem{Sigpending}{2} 
 \end{function}
+
 \begin{procedure}{SigProcMask}
 \Declaration
 Procedure SigProcMask (How : Integer; SSet,OldSSet : PSigSet);
-
 \Description
-
 Changes the list of currently blocked signals. The behaviour of the call
 depends on \var{How} :
 \begin{description}
@@ -2164,10 +2401,10 @@ the range of the process.
 \seep{SigAction}, \seef{SigPending}, \seep{SigSuspend}, \seef{Kill},
 \seem{Sigprocmask}{2} 
 \end{procedure}
+
 \begin{procedure}{SigSuspend}
 \Declaration
 Procedure SigSuspend (Mask : SigSet);
-
 \Description
 SigSuspend temporarily replaces the signal mask for the process with the one
 given in \var{Mask}, and then suspends the process until a signal is received.
@@ -2178,12 +2415,11 @@ None
 \seep{SigAction}, \seep{SigProcMask}, \seef{SigPending}, \seef{Signal},
 \seef{Kill}, \seem{SigSuspend}{2} 
 \end{procedure}
+
 \begin{function}{Signal}
 \Declaration
 Function Signal (SigNum : Integer; Handler : SignalHandler) : SignalHandler;
-
 \Description
-
 Signal installs a new signal handler for signal \var{SigNum}. This call has
 the same functionality as the \textbf{SigAction} call.
 The return value for Signal is the old signal handler, or nil on error.
@@ -2197,11 +2433,12 @@ The return value for Signal is the old signal handler, or nil on error.
 \SeeAlso
 \seep{SigAction},\seef{Kill}, \seem{Signal}{2} 
 \end{function}
+
 \FPCexample{ex58}
+
 \begin{function}{SymLink}
 \Declaration
 Function SymLink (OldPath,NewPath : pathstr) : Boolean;
-
 \Description
 \var{SymLink} makes \var{Newpath} point to the file in \var{OldPath}, which doesn't
 necessarily exist. The two files DO NOT have the same inode number.
@@ -2236,11 +2473,12 @@ entry.
 \SeeAlso
 \seef{Link}, \seef{UnLink}, \seem{Symlink}{2} 
 \end{function}
+
 \FPCexample{ex22}
+
 \begin{function}{TCDrain}
 \Declaration
 Function TCDrain (Fd:longint) : Boolean;
-
 \Description
  \var{TCDrain}
   waits until all data to file descriptor \var{Fd} is transmitted.
@@ -2253,10 +2491,10 @@ Errors are reported in LinuxError
 \SeeAlso
 \seem{termios}{2}
 \end{function}
+
 \begin{function}{TCFlow}
 \Declaration
 Function TCFlow (Fd,Act:longint) : Boolean;
-
 \Description
  \var{TCFlow}
   suspends/resumes transmission or reception of data to or from the file
@@ -2277,10 +2515,10 @@ Errors are reported in LinuxError.
 \SeeAlso
 \seem{termios}{2}
 \end{function}
+
 \begin{function}{TCFlush}
 \Declaration
 Function TCFlush (Fd,QSel:longint) : Boolean;
-
 \Description
  \var{TCFlush}
   discards all data sent or received to/from file descriptor \var{fd}. 
@@ -2299,10 +2537,10 @@ Errors are reported in LinuxError.
 \SeeAlso
 \seem{termios}{2}
 \end{function}
+
 \begin{function}{TCGetAttr}
 \Declaration
 Function TCGetAttr (fd:longint;var tios:TermIOS) : Boolean;
-
 \Description
  \var{TCGetAttr}
   gets the terminal parameters from the terminal referred to by the file
@@ -2315,11 +2553,12 @@ Errors are reported in LinuxError
 \SeeAlso
 \seef{TCSetAttr}, \seem{termios}{2} 
 \end{function}
+
 \FPCexample{ex55}
+
 \begin{function}{TCGetPGrp}
 \Declaration
 Function TCGetPGrp (Fd:longint;var Id:longint) : boolean;
-
 \Description
  \var{TCGetPGrp}
   returns the process group ID of a foreground process group in \var{Id} 
@@ -2331,10 +2570,10 @@ Errors are reported in LinuxError
 \SeeAlso
 \seem{termios}{2}
 \end{function}
+
 \begin{function}{TCSendBreak}
 \Declaration
 Function TCSendBreak (Fd,Duration:longint) : Boolean;
-
 \Description
  \var{TCSendBreak} 
   Sends zero-valued bits on an asynchrone serial connection decsribed by
@@ -2347,10 +2586,10 @@ Errors are reported in LinuxError.
 \SeeAlso
 \seem{termios}{2}
 \end{function}
+
 \begin{function}{TCSetAttr}
 \Declaration
 Function TCSetAttr (Fd:longint;OptAct:longint;var Tios:TermIOS) : Boolean;
-
 \Description
  \var{TCSetAttr}
   Sets the terminal parameters you specify in a \var{TermIOS} structure
@@ -2372,10 +2611,10 @@ Errors are reported in LinuxError.
 \seef{TCGetAttr}, \seem{termios}{2}
 \end{function}
 For an example, see \seef{TCGetAttr}.
+
 \begin{function}{TCSetPGrp}
 \Declaration
 Function TCSetPGrp (Fd,Id:longint) : boolean;
-
 \Description
  \var{TCSetPGrp} Sets the Process Group Id to \var{Id}. 
 The function returns \var{True} if the call was successful, \var{False}
@@ -2387,12 +2626,11 @@ Errors are returned in LinuxError.
 \seef{TCGetPGrp}, \seem{termios}{2}
 \end{function}
 For an example, see \seef{TCGetPGrp}.
+
 \begin{function}{TTYName}
 \Declaration
 Function TTYName (var f) : String;
-
 \Description
-
 Returns the name of the terminal pointed to by \var{f}. \var{f}
 must be a terminal. \var{f} can be of type:
 \begin{enumerate}
@@ -2406,10 +2644,10 @@ must be a terminal. \var{f} can be of type:
 \SeeAlso
 \seef{IsATTY},\seep{IOCtl}
 \end{function}
+
 \begin{function}{TellDir}
 \Declaration
 Function TellDir (p:pdir) : longint;
-
 \Description
  \var{TellDir} returns the current location in the directory structure
 pointed to by \var{p}. It returns -1 on failure.
@@ -2420,12 +2658,11 @@ Errors are returned in LinuxError.
 \seem{telldir}{3}
 \end{function}
 For an example, see \seef{OpenDir}.
+
 \begin{function}{Umask}
 \Declaration
 Function Umask (Mask : Integer) : Integer;
-
 \Description
-
 Change the file creation mask for the current user to \var{Mask}. The
 current mask is returned.
 
@@ -2434,11 +2671,12 @@ None
 \SeeAlso
 \seef{Chmod}, \seem{Umask}{2}
 \end{function}
+
 \FPCexample{ex27}
+
 \begin{procedure}{Uname}
 \Declaration
 Procedure Uname (var unamerec:utsname);
-
 \Description
 \var{Uname} gets the name and configuration of the current \linux kernel,
 and returns it in \var{unamerec}.
@@ -2448,12 +2686,11 @@ and returns it in \var{unamerec}.
 \SeeAlso
 \seef{GetHostName}, \seef{GetDomainName}, \seem{uname}{2}
 \end{procedure}
+
 \begin{function}{UnLink}
 \Declaration
 Function UnLink (Var Path) : Boolean;
-
 \Description
-
 \var{UnLink} decreases the link count on file \var{Path}. \var{Path} can be
 of type \var{PathStr} or \var{PChar}. If the link count is zero, the
 file is removed from the disk.
@@ -2480,12 +2717,11 @@ file to be deleted nor that of the directory containing it.
 \seef{Link}, \seef{SymLink}, \seem{Unlink}{2} 
 \end{function}
 For an example, see \seef{Link}.
+
 \begin{function}{Utime}
 \Declaration
 Function Utime (path : pathstr; utim : utimbuf) : Boolean;
-
 \Description
-
 \var{Utime} sets the access and modification times of a file.
 the \var{utimbuf} record contains 2 fields, \var{actime}, and \var{modtime},
 both of type Longint. They should be filled with an epoch-like time,
@@ -2506,11 +2742,12 @@ Other errors may occur, but aren't documented.
 \SeeAlso
 \seef{GetEpochTime}, \seef{Chown}, \seef{Access}, \seem{utime}(2)
 \end{function}
+
 \FPCexample{ex25}
+
 \begin{function}{WaitPid}
 \Declaration
 Function WaitPid (Pid : longint; Status : pointer; Options : Integer) : Longint;
-
 \Description
  \var{WaitPid} waits for a child process with process ID \var{Pid} to exit. The
 value of \var{Pid} can be one of the following:
