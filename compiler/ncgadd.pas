@@ -196,18 +196,19 @@ interface
         if (left.location.loc<>LOC_REGISTER) and
            not(
                allow_constant and
-               (left.location.loc=LOC_CONSTANT)
+               (left.location.loc in [LOC_CONSTANT,LOC_CREGISTER])
               ) then
           location_force_reg(exprasmlist,left.location,left.location.size,false);
         if (right.location.loc<>LOC_REGISTER) and
            not(
                allow_constant and
-               (right.location.loc=LOC_CONSTANT) and
+               (right.location.loc in [LOC_CONSTANT,LOC_CREGISTER]) and
                (left.location.loc<>LOC_CONSTANT)
               ) then
           location_force_reg(exprasmlist,right.location,right.location.size,false);
+
         { Left is always a register, right can be register or constant }
-        if left.location.loc<>LOC_REGISTER then
+        if left.location.loc=LOC_CONSTANT then
           begin
             { when it is not allowed to swap we have a constant on
               left, that will give problems }
@@ -773,7 +774,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.36  2004-11-01 17:41:28  florian
+  Revision 1.37  2005-01-01 14:32:53  florian
+    * maybe_constant means also that a loc can be CREGISTER
+
+  Revision 1.36  2004/11/01 17:41:28  florian
     * fixed arm compilation with cgutils
     * ...
 
