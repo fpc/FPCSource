@@ -67,8 +67,11 @@ var
   s: String;
   j: Integer;
 begin
+  WriteLn('File Generator for OpenGL related Units');
 
   // Load definition files
+
+  WriteLn('Loading definition files...');
 
   DefGL    := TDefReader.Create('gl.def');
   DefGLExt := TDefReader.Create('glext.def');
@@ -78,6 +81,8 @@ begin
 
 
   // Build GL unit
+
+  WriteLn('Generating GL unit for Linux...');
 
   Assign(f, 'linuxd/gl.pp');
   Rewrite(f);
@@ -121,6 +126,8 @@ begin
 
   // Build GLUT unit
 
+  WriteLn('Generating GLut unit for Linux...');
+
   Assign(f, 'linuxd/glut.pp');
   Rewrite(f);
   Assign(tpl, 'glut_linux.tpl');
@@ -146,12 +153,17 @@ begin
   end;
   PrintCVSLogSection;
   Close(f);
+
+  WriteLn('Done...');
 end.
 
 
 {
   $Log$
-  Revision 1.1  1999-11-28 17:55:22  sg
+  Revision 1.2  1999-12-01 00:55:44  alex
+  Added info prints so that we know how far the program worked.
+
+  Revision 1.1  1999/11/28 17:55:22  sg
   * Added new unit generation tools and auto-generated GL units for Linux
 
 }
