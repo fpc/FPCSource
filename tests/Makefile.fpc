@@ -138,10 +138,10 @@ endif
         -rm -f *.tmp core
         -rm -f $(LOG) $(LONGLOG) $(FAILLIST)
         -rm -f ppas.sh ppas.bat gmon.out
+        $(MAKE) -C units clean
 
 distclean: clean
         -rm -f dotest$(EXEEXT) dotest$(OEXT) redir$(PPUEXT) redir$(OEXT)
-        $(MAKE) -C units clean
 
 #
 # Main rules
