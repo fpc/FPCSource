@@ -420,7 +420,7 @@ begin
      (operands[2].opr.typ=OPR_REGISTER) and
      { if the first is ST and the second is also a register
        it is necessarily ST1 .. ST7 }
-     (operands[1].opr.reg in [R_ST..R_ST7])) or
+     (operands[1].opr.reg in [R_ST..R_ST0])) or
       (ops=0)  then
       if opcode=A_FSUBR then
         opcode:=A_FSUB
@@ -669,7 +669,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.24  2002-10-30 17:10:00  pierre
+  Revision 1.25  2002-10-31 13:28:32  pierre
+   * correct last wrong fix for tw2158
+
+  Revision 1.24  2002/10/30 17:10:00  pierre
    * merge of fix for tw2158 bug
 
   Revision 1.23  2002/07/26 21:15:44  florian

@@ -769,7 +769,7 @@ implementation
            (oper[1].typ=top_reg) and
            { if the first is ST and the second is also a register
              it is necessarily ST1 .. ST7 }
-           (oper[0].reg in [R_ST..R_ST7])) or
+           (oper[0].reg in [R_ST..R_ST0])) or
            { ((ops=1) and
             (oper[0].typ=top_reg) and
             (oper[0].reg in [R_ST1..R_ST7]))  or}
@@ -1874,7 +1874,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2002-10-30 17:10:00  pierre
+  Revision 1.6  2002-10-31 13:28:32  pierre
+   * correct last wrong fix for tw2158
+
+  Revision 1.5  2002/10/30 17:10:00  pierre
    * merge of fix for tw2158 bug
 
   Revision 1.4  2002/08/15 19:10:36  peter
