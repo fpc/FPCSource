@@ -9,8 +9,8 @@ units=$(SYSTEMUNIT) objpas strings \
       pmbitmap pmwin pmgpi dive pmerr \
       dos crt objects printer \
       sysutils math typinfo varutils \
-      ucomplex cpu mmx getopts heaptrc lineinfo
-rst=math varutils
+      ucomplex cpu mmx getopts heaptrc lineinfo dynlibs
+rst=math
 
 [require]
 rtl=0
@@ -113,6 +113,8 @@ pmerr$(PPUEXT) : pmerr.pas $(SYSTEMPPU)
 pmgpi$(PPUEXT) : pmgpi.pas pmbitmap$(PPUEXT) $(SYSTEMPPU)
 
 dive$(PPUEXT) : dive.pas os2def$(PPUEXT) pmwin$(PPUEXT) $(SYSTEMPPU)
+
+dynlibs$(PPUEXT) : $(INC)/dynlibs.pp doscalls$(PPUEXT) $(SYSTEMPPU)
 
 #
 # TP7 Compatible RTL Units
