@@ -1212,6 +1212,10 @@ end;
 
 
     destructor tmodule.done;
+{$ifdef MEMDEBUG}
+      var
+        d : tmemdebug;
+{$endif}
       begin
         if assigned(map) then
          dispose(map);
@@ -1253,12 +1257,18 @@ end;
         stringdispose(localobjectsearchpath);
         stringdispose(localincludesearchpath);
         stringdispose(locallibrarysearchpath);
+{$ifdef MEMDEBUG}
+        d.init('symtable');
+{$endif}
         if assigned(globalsymtable) then
           dispose(punitsymtable(globalsymtable),done);
         globalsymtable:=nil;
         if assigned(localsymtable) then
           dispose(punitsymtable(localsymtable),done);
         localsymtable:=nil;
+{$ifdef MEMDEBUG}
+        d.done;
+{$endif}
         inherited done;
       end;
 
@@ -1314,7 +1324,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.99  1999-07-18 14:47:26  florian
+  Revision 1.100  1999-08-24 13:14:01  peter
+    * MEMDEBUG to see the sizes of asmlist,asmsymbols,symtables
+
+  Revision 1.99  1999/07/18 14:47:26  florian
     * bug 487 fixed, (inc(<property>) isn't allowed)
     * more fixes to compile with Delphi
 

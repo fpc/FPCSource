@@ -259,7 +259,14 @@ implementation
 
 
     procedure codegen_donemodule;
+{$ifdef MEMDEBUG}
+      var
+        d : tmemdebug;
+{$endif}
       begin
+{$ifdef MEMDEBUG}
+         d.init('asmlist');
+{$endif}
          dispose(exprasmlist,done);
          dispose(codesegment,done);
          dispose(bsssegment,done);
@@ -273,8 +280,17 @@ implementation
           dispose(exportssection,done);
          if assigned(resourcesection) then
           dispose(resourcesection,done);
+{$ifdef MEMDEBUG}
+         d.done;
+{$endif}
          { assembler symbols }
+{$ifdef MEMDEBUG}
+         d.init('asmsymbol');
+{$endif}
          dispose(asmsymbollist,done);
+{$ifdef MEMDEBUG}
+         d.done;
+{$endif}
          { resource strings }
          { if assigned(resourcestringlist) then
           dispose(resourcestringlist,done); }
@@ -296,7 +312,10 @@ end.
 
 {
   $Log$
-  Revision 1.40  1999-08-24 12:01:32  michael
+  Revision 1.41  1999-08-24 13:14:03  peter
+    * MEMDEBUG to see the sizes of asmlist,asmsymbols,symtables
+
+  Revision 1.40  1999/08/24 12:01:32  michael
   + changes for resourcestrings
 
   Revision 1.39  1999/08/19 13:10:18  pierre

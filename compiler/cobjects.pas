@@ -72,6 +72,15 @@ unit cobjects;
          fileindex : word;
        end;
 
+       pmemdebug = ^tmemdebug;
+       tmemdebug = object
+          constructor init(const s:string);
+          destructor  done;
+          procedure show;
+       private
+          startmem : longint;
+          infostr  : string[40];
+       end;
 
        plinkedlist_item = ^tlinkedlist_item;
        tlinkedlist_item = object
@@ -402,6 +411,34 @@ unit cobjects;
     function pstring2pchar(p : pstring) : pchar;
 
   implementation
+
+{*****************************************************************************
+                                    Memory debug
+*****************************************************************************}
+
+    constructor tmemdebug.init(const s:string);
+      begin
+        infostr:=s;
+        startmem:=memavail;
+      end;
+
+    procedure tmemdebug.show;
+      var
+        l : longint;
+      begin
+        write('memory [',infostr,'] ');
+        l:=memavail;
+        if l>startmem then
+         writeln(l-startmem,' released')
+        else
+         writeln(startmem-l,' allocated');
+      end;
+
+    destructor tmemdebug.done;
+      begin
+        show;
+      end;
+
 
 {$ifndef OLDSPEEDVALUE}
 
@@ -2217,7 +2254,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.40  1999-08-12 23:19:05  pierre
+  Revision 1.41  1999-08-24 13:13:57  peter
+    * MEMDEBUG to see the sizes of asmlist,asmsymbols,symtables
+
+  Revision 1.40  1999/08/12 23:19:05  pierre
    * added inherited init call to tstringcontainer.init_no_double for Peter
 
   Revision 1.39  1999/08/05 14:58:07  florian
