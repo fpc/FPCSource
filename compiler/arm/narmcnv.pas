@@ -114,7 +114,7 @@ implementation
         location_force_reg(exprasmlist,left.location,OS_32,true);
         location.register:=rg.getregisterfpu(exprasmlist,location.size);
         instr:=taicpu.op_reg_reg(A_FLT,location.register,left.location.register);
-        { set precision? }
+        instr.oppostfix:=cgsize2fpuoppostfix[def_cgsize(resulttype.def)];
         exprasmlist.concat(instr);
       end;
 
@@ -184,7 +184,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2003-09-01 09:54:57  florian
+  Revision 1.4  2003-09-01 15:11:16  florian
+    * fixed reference handling
+    * fixed operand postfix for floating point instructions
+    * fixed wrong shifter constant handling
+
+  Revision 1.3  2003/09/01 09:54:57  florian
     *  results of work on arm port last weekend
 
   Revision 1.2  2003/08/25 23:20:38  florian

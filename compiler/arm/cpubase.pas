@@ -207,6 +207,11 @@ uses
       TRoundingMode = (RM_None,RM_P,RM_M,RM_Z);
 
     const
+      cgsize2fpuoppostfix : array[OS_NO..OS_F128] of toppostfix = (
+        PF_E,
+        PF_None,PF_None,PF_None,PF_None,PF_None,PF_None,PF_None,PF_None,
+        PF_S,PF_D,PF_E,PF_None,PF_None);
+
       oppostfix2str : array[TOpPostfix] of string[2] = ('',
         's',
         'd','e','p','ep',
@@ -612,6 +617,7 @@ uses
     function supreg_name(r:Tsuperregister):string;
 
     procedure shifterop_reset(var so : tshifterop);
+    function is_pc(const r : tregister) : boolean;
 
   implementation
 
@@ -688,10 +694,21 @@ uses
       end;
 
 
+    function is_pc(const r : tregister) : boolean;
+      begin
+        is_pc:=((r.enum=R_INTREGISTER) and (r.number=NR_R15))
+          or (r.enum=R_PC);
+      end;
+
 end.
 {
   $Log$
-  Revision 1.9  2003-08-29 21:36:28  florian
+  Revision 1.10  2003-09-01 15:11:16  florian
+    * fixed reference handling
+    * fixed operand postfix for floating point instructions
+    * fixed wrong shifter constant handling
+
+  Revision 1.9  2003/08/29 21:36:28  florian
     * fixed procedure entry/exit code
     * started to fix reference handling
 

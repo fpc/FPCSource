@@ -312,7 +312,7 @@ interface
                          s:=s+hs;
                       end;
                 end;
-              '{',';',#10,#13:
+              ';',#10,#13:
                 begin
                    if pos(retstr,s) > 0 then
                      tvarsym(current_procinfo.procdef.funcretsym).varstate:=vs_assigned;
@@ -350,7 +350,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.2  2003-08-16 13:23:01  florian
+  Revision 1.3  2003-09-01 15:11:17  florian
+    * fixed reference handling
+    * fixed operand postfix for floating point instructions
+    * fixed wrong shifter constant handling
+
+  Revision 1.2  2003/08/16 13:23:01  florian
     * several arm related stuff fixed
 
   Revision 1.1  2003/07/21 16:35:30  florian

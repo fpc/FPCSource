@@ -92,28 +92,14 @@ unit cgcpu;
         procedure g_restore_all_registers(list : taasmoutput;accused,acchiused:boolean);override;
 
         procedure a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: tasmlabel);
+      end;
 
-        procedure a_load_store(list:taasmoutput;op: tasmop;reg:tregister;
-                    ref: treference);
-     end;
-
-     tcg64farm = class(tcg64f32)
-       procedure a_op64_reg_reg(list : taasmoutput;op:TOpCG;regsrc,regdst : tregister64);override;
-       procedure a_op64_const_reg(list : taasmoutput;op:TOpCG;value : qword;reg : tregister64);override;
-       procedure a_op64_const_reg_reg(list: taasmoutput;op:TOpCG;value : qword;regsrc,regdst : tregister64);override;
-       procedure a_op64_reg_reg_reg(list: taasmoutput;op:TOpCG;regsrc1,regsrc2,regdst : tregister64);override;
-     end;
-
-    {!!!!
-    const
-      TOpCG2AsmOpConstLo: Array[topcg] of TAsmOp = (A_NONE,A_ADDI,A_ANDI_,A_DIVWU,
-                            A_DIVW,A_MULLW, A_MULLW, A_NONE,A_NONE,A_ORI,
-                            A_SRAWI,A_SLWI,A_SRWI,A_SUBI,A_XORI);
-      TOpCG2AsmOpConstHi: Array[topcg] of TAsmOp = (A_NONE,A_ADDIS,A_ANDIS_,
-                            A_DIVWU,A_DIVW, A_MULLW,A_MULLW,A_NONE,A_NONE,
-                            A_ORIS,A_NONE, A_NONE,A_NONE,A_SUBIS,A_XORIS);
-
-    }
+      tcg64farm = class(tcg64f32)
+        procedure a_op64_reg_reg(list : taasmoutput;op:TOpCG;regsrc,regdst : tregister64);override;
+        procedure a_op64_const_reg(list : taasmoutput;op:TOpCG;value : qword;reg : tregister64);override;
+        procedure a_op64_const_reg_reg(list: taasmoutput;op:TOpCG;value : qword;regsrc,regdst : tregister64);override;
+        procedure a_op64_reg_reg_reg(list: taasmoutput;op:TOpCG;regsrc1,regsrc2,regdst : tregister64);override;
+      end;
 
     const
       OpCmp2AsmCond : Array[topcmp] of TAsmCond = (C_NONE,C_EQ,C_GT,
@@ -392,9 +378,9 @@ unit cgcpu;
        begin
           for i:=0 to 15 do
             begin
-               if (d and not(rotl($ff,i)))=0 then
+               if (d and not(rotl($ff,i*2)))=0 then
                  begin
-                    imm_shift:=i;
+                    imm_shift:=i*2;
                     result:=true;
                     exit;
                  end;
@@ -418,8 +404,8 @@ unit cgcpu;
           else
             begin
                objectlibrary.getdatalabel(l);
-               current_procinfo.aktlocaldata.concat(Tai_const_symbol.Create(l));
-               current_procinfo.aktlocaldata.concat(Tai_const.Create_32bit(a));
+               current_procinfo.aktlocaldata.concat(tai_symbol.Create(l,0));
+               current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(a));
                reference_reset(hr);
                hr.symbol:=l;
                list.concat(taicpu.op_reg_ref(A_LDR,reg,hr));
@@ -432,6 +418,7 @@ unit cgcpu;
         tmpreg : tregister;
         tmpref : treference;
         instr : taicpu;
+        l : tasmlabel;
       begin
         tmpreg.enum:=R_INTREGISTER;
         tmpreg.number:=NR_NO;
@@ -445,59 +432,62 @@ unit cgcpu;
             ref.index.number:=NR_NO;
           end;
 
-        { When need to use SETHI, do it first }
-        if assigned(ref.symbol) or
+        { absolute symbols can't be handled directly, we've to store the symbol reference
+          in the text segment and access it pc relative
+
+          For now, we assume that references where base or index equals to PC are already
+          relative, all other references are assumed to be absolute and thus they need
+          to be handled extra.
+
+          A proper solution would be to change refoptions to a set and store the information
+          if the symbol is absolute or relative there.
+        }
+
+        if (assigned(ref.symbol) and
+            not(is_pc(ref.base)) and
+            not(is_pc(ref.index))
+           ) or
            (ref.offset<-4095) or
            (ref.offset>4095) then
           begin
-{
+            { check consts distance }
+
+            { create consts entry }
+            objectlibrary.getdatalabel(l);
+            current_procinfo.aktlocaldata.concat(Tai_symbol.Create(l,0));
+            if assigned(ref.symbol) then
+              current_procinfo.aktlocaldata.concat(tai_const_symbol.Create_offset(ref.symbol,ref.offset))
+            else
+              current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(ref.offset));
+
+            { load consts entry }
             tmpreg:=rg.getregisterint(list,OS_INT);
             reference_reset(tmpref);
-            tmpref.symbol:=ref.symbol;
-            tmpref.offset:=ref.offset;
-            tmpref.symaddr:=refs_hi;
-            list.concat(taicpu.op_ref_reg(A_SETHI,tmpref,tmpreg));
-            { Load the low part is left }
-{$warning TODO Maybe not needed to load symbol}
-            tmpref.symaddr:=refs_lo;
-            list.concat(taicpu.op_reg_ref_reg(A_OR,tmpreg,tmpref,tmpreg));
-            { The offset and symbol are loaded, reset in reference }
-            ref.offset:=0;
-            ref.symbol:=nil;
-            { Only an index register or offset is allowed }
-            if tmpreg.number<>NR_NO then
+            tmpref.symbol:=l;
+            tmpref.base.enum:=R_INTREGISTER;
+            tmpref.base.number:=NR_R15;
+            list.concat(taicpu.op_reg_ref(A_LDR,tmpreg,tmpref));
+
+            if (ref.base.number<>NR_NO) then
               begin
-                if (ref.index.number<>NR_NO) then
+                if ref.index.number<>NR_NO then
                   begin
-                    list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,ref.index,tmpreg));
-                    ref.index:=tmpreg;
+                    list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,ref.base,tmpreg));
+                    ref.base:=tmpreg;
                   end
                 else
                   begin
-                    if ref.base.number<>NR_NO then
-                      ref.index:=tmpreg
-                    else
-                      ref.base:=tmpreg;
+                    ref.index:=tmpreg;
+                    ref.shiftimm:=0;
+                    ref.signindex:=1;
+                    ref.shiftmode:=SM_None;
                   end;
-              end;
-}
+              end
+            else
+              ref.base:=tmpreg;
+            ref.offset:=0;
+            ref.symbol:=nil;
           end;
-{
-        if (ref.base.number<>NR_NO) then
-          begin
-            if (ref.index.number<>NR_NO) and
-               ((ref.offset<>0) or assigned(ref.symbol)) then
-              begin
-                if tmpreg.number=NR_NO then
-                  tmpreg:=rg.getregisterint(list,OS_INT);
-                if (ref.index.number<>NR_NO) then
-                  begin
-                    list.concat(taicpu.op_reg_reg_reg(A_ADD,ref.base,ref.index,tmpreg));
-                    ref.index.number:=NR_NO;
-                  end;
-              end;
-          end;
-}
         instr:=taicpu.op_reg_ref(op,reg,ref);
         instr.oppostfix:=oppostfix;
         list.concat(instr);
@@ -612,8 +602,12 @@ unit cgcpu;
 
 
      procedure tcgarm.a_loadfpu_reg_reg(list: taasmoutput; size: tcgsize; reg1, reg2: tregister);
+       var
+         instr : taicpu;
        begin
-         list.concat(taicpu.op_reg_reg(A_MVF,reg2,reg1));
+         instr:=taicpu.op_reg_reg(A_MVF,reg2,reg1);
+         instr.oppostfix:=cgsize2fpuoppostfix[size];
+         list.concat(instr);
        end;
 
 
@@ -813,13 +807,6 @@ unit cgcpu;
       end;
 
 
-    { contains the common code of a_load_reg_ref and a_load_ref_reg }
-    procedure tcgarm.a_load_store(list:taasmoutput;op: tasmop;reg:tregister;
-                ref: treference);
-      begin
-      end;
-
-
     procedure tcg64farm.a_op64_reg_reg(list : taasmoutput;op:TOpCG;regsrc,regdst : tregister64);
       var
         tmpreg : tregister;
@@ -886,7 +873,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2003-09-01 09:54:57  florian
+  Revision 1.10  2003-09-01 15:11:16  florian
+    * fixed reference handling
+    * fixed operand postfix for floating point instructions
+    * fixed wrong shifter constant handling
+
+  Revision 1.9  2003/09/01 09:54:57  florian
     *  results of work on arm port last weekend
 
   Revision 1.8  2003/08/29 21:36:28  florian

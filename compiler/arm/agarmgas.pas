@@ -98,42 +98,48 @@ unit agarmgas;
             // !!! if (not(noindex) or (shiftmode<>SM_None)) and ((offset<>0) or (symbol<>nil)) then
             // !!!   internalerror(200308293);
 {$endif extdebug}
-            if base.enum=R_INTREGISTER then
-              s:='['+gas_regname(base.number)
-            else
-              s:='['+gas_reg2str[base.enum];
-            if addressmode=AM_POSTINDEXED then
-              s:=s+']';
 
-            if not(noindex) then
+            if assigned(symbol) then
               begin
-                 if signindex<0 then
-                   s:=s+', -'
-                 else
-                   s:=s+', ';
-
-                 if index.enum=R_INTREGISTER then
-                   s:=s+gas_regname(index.number)
-                 else
-                   s:=s+gas_reg2str[index.enum];
-
-                 if shiftmode<>SM_None then
-                   s:=s+' ,'+gas_shiftmode2str[shiftmode]+' #'+tostr(shiftimm);
+                // if (base.enum<>R_NO) and not(is_pc(base)) then
+                //   internalerror(200309011);
+                s:=symbol.name;
+                if offset<0 then
+                  s:=s+tostr(offset)
+                else if offset>0 then
+                  s:=s+'+'+tostr(offset);
               end
             else
               begin
-                { handle symbol and index }
-                if offset<>0 then
-                  s:=s+', #'+tostr(offset);
-                { !!!!!}
+                if base.enum=R_INTREGISTER then
+                  s:='['+gas_regname(base.number)
+                else
+                  s:='['+gas_reg2str[base.enum];
+                if addressmode=AM_POSTINDEXED then
+                  s:=s+']';
+                if not(noindex) then
+                  begin
+                     if signindex<0 then
+                       s:=s+', -'
+                     else
+                       s:=s+', ';
+
+                     if index.enum=R_INTREGISTER then
+                       s:=s+gas_regname(index.number)
+                     else
+                       s:=s+gas_reg2str[index.enum];
+
+                     if shiftmode<>SM_None then
+                       s:=s+' ,'+gas_shiftmode2str[shiftmode]+' #'+tostr(shiftimm);
+                  end;
+                case addressmode of
+                  AM_OFFSET:
+                    s:=s+']';
+                  AM_PREINDEXED:
+                    s:=s+']!';
+                end;
               end;
 
-             case addressmode of
-               AM_OFFSET:
-                 s:=s+']';
-               AM_PREINDEXED:
-                 s:=s+']!';
-             end;
           end;
         getreferencestring:=s;
       end;
@@ -324,7 +330,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2003-08-29 21:36:28  florian
+  Revision 1.7  2003-09-01 15:11:16  florian
+    * fixed reference handling
+    * fixed operand postfix for floating point instructions
+    * fixed wrong shifter constant handling
+
+  Revision 1.6  2003/08/29 21:36:28  florian
     * fixed procedure entry/exit code
     * started to fix reference handling
 
