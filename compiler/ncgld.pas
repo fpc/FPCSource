@@ -193,6 +193,7 @@ implementation
                                location_reset(location,LOC_CREGISTER,def_cgsize(resulttype.def));
                                location.register:=tvarsym(symtableentry).reg;
                                exclude(rg.unusedregsint,supreg);
+                               hregister := location.register;
                              end
                            else
                              internalerror(200301172);
@@ -952,7 +953,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.68  2003-06-08 18:27:15  jonas
+  Revision 1.69  2003-06-09 16:41:52  jonas
+    * fixed regvar optimization for call_by_reference parameters (no need
+      to load address in another register)
+
+  Revision 1.68  2003/06/08 18:27:15  jonas
     + ability to change the location of a ttempref node with changelocation()
       method. Useful to use instead of copying the contents from one temp to
       another
