@@ -53,9 +53,11 @@ uses
 ****************************************************************************}
 
 constructor TDebugController.Init(const exefn:string);
+  var f: string;
 begin
   inherited Init;
-  LoadFile(exefn);
+  f := exefn;
+  LoadFile(f);
 end;
 
 
@@ -84,15 +86,15 @@ end;
 
 procedure TDebugController.DoDebuggerScreen;
 begin
-  if assigned(UserScreen) then
-    UserScreen^.SwitchBack;
+  if assigned(FPUsrScr.UserScreen) then
+    FPUsrScr.UserScreen^.SwitchBack;
 end;
 
 
 procedure TDebugController.DoUserScreen;
 begin
-  if assigned(UserScreen) then
-    UserScreen^.SwitchTo;
+  if assigned(FPUsrScr.UserScreen) then
+    FPUsrScr.UserScreen^.SwitchTo;
 end;
 
 
@@ -129,7 +131,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  1999-01-22 10:24:03  peter
+  Revision 1.2  1999-01-22 18:14:09  pierre
+   * adaptd to changes in gdbint and gdbcon for  to /
+
+  Revision 1.1  1999/01/22 10:24:03  peter
     * first debugger things
 
 }
