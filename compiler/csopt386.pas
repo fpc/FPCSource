@@ -1126,6 +1126,8 @@ Begin
                     top_Reg:
                       { try to replace the new reg with the old reg }
                       if not(PPaiProp(p^.optInfo)^.canBeRemoved) and
+                         { only remove if we're not storing something in a regvar }
+                         (paicpu(p)^.oper[1].reg in usableregs) and
                          (paicpu(p)^.opcode = A_MOV) and
                          getLastInstruction(p,hp4) then
                         begin
@@ -1137,8 +1139,8 @@ Begin
                                    paicpu(p)^.oper[1].reg,p,
                                    PPaiProp(hp4^.optInfo)^.Regs[paicpu(p)^.oper[1].reg],false,hp1) then
                                 begin
-                                  PPaiProp(p^.optInfo)^.canBeRemoved := true;
-                                  allocRegBetween(asmL,paicpu(p)^.oper[0].reg,
+                                    PPaiProp(p^.optInfo)^.canBeRemoved := true;
+                                    allocRegBetween(asmL,paicpu(p)^.oper[0].reg,
                                     PPaiProp(p^.optInfo)^.regs[paicpu(p)^.oper[0].reg].startMod,
                                     hp1);
                                 end;
@@ -1241,7 +1243,11 @@ End.
 
 {
  $Log$
- Revision 1.54  2000-02-24 18:41:38  peter
+ Revision 1.55  2000-03-24 15:54:49  jonas
+   * fix for -dnewoptimizations and -Or (never remove stores to regvars)
+     but make cycle with -OG2p3r still fails :(
+
+ Revision 1.54  2000/02/24 18:41:38  peter
    * removed warnings/notes
 
  Revision 1.53  2000/02/19 13:50:29  jonas
