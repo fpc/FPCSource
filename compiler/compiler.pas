@@ -143,6 +143,10 @@ begin
 {$ifdef BrowserCol}
   DoneBrowserCol;
 {$endif BrowserCol}
+{$ifdef USEEXCEPT}
+  recoverpospointer:=nil;
+  longjump_used:=false;
+{$endif USEEXCEPT}
 end;
 
 
@@ -262,7 +266,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.18  1999-02-26 00:48:16  peter
+  Revision 1.19  1999-03-09 11:52:06  pierre
+   * compilation after a failure longjumped directly to end
+
+  Revision 1.18  1999/02/26 00:48:16  peter
     * assembler writers fixed for ag386bin
 
   Revision 1.17  1999/01/12 14:25:25  peter
