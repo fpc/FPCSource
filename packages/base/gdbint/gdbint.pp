@@ -53,18 +53,17 @@ interface
 {$ifdef linux}
  {$ifndef bsd}
   {$undef NotImplemented}
-  {$LINKLIB gdb}
+  {$LINKLIB libgdb.a}
  {$ifdef GDB_HAS_SIM}
-  {$LINKLIB sim}
+  {$LINKLIB libsim.a}
  {$endif GDB_HAS_SIM}
-  {$LINKLIB bfd}
-  {$LINKLIB readline}
-  {$LINKLIB opcodes}
-  {$LINKLIB history}
-  {$LINKLIB iberty}
+  {$LINKLIB libbfd.a}
+  {$LINKLIB libreadline.a}
+  {$LINKLIB libopcodes.a}
+  {$LINKLIB libhistory.a}
+  {$LINKLIB libiberty.a}
   {$LINKLIB ncurses}
   {$LINKLIB m}
-  {$LINKLIB iberty}
   {$LINKLIB dl}
   {$LINKLIB c}
   {$LINKLIB gcc}
@@ -133,17 +132,18 @@ interface
 
 {$ifdef win32}
   {$undef NotImplemented}
-  {$LINKLIB gdb}
-  {$ifdef GDB_HAS_SIM}
-    {$LINKLIB sim}
-  {$endif GDB_HAS_SIM}
-  {$LINKLIB bfd}
-  {$LINKLIB readline}
-  {$LINKLIB opcodes}
-  {$LINKLIB intl}
-  {$LINKLIB iconv}
-  {$LINKLIB iberty}
-  {$LINKLIB ncurses}
+  {$LINKLIB libgdb.a}
+ {$ifdef GDB_HAS_SIM}
+  {$LINKLIB libsim.a}
+ {$endif GDB_HAS_SIM}
+  {$LINKLIB libbfd.a}
+  {$LINKLIB libreadline.a}
+  {$LINKLIB libopcodes.a}
+  {$LINKLIB libhistory.a}
+  {$LINKLIB libiberty.a}
+  {$LINKLIB libintl.a}
+  {$LINKLIB libiconv.a}
+  {$LINKLIB libncurses.a}
   {$LINKLIB gcc}
   {$LINKLIB cygwin} { alias of libm.a and libc.a }
   {$LINKLIB imagehlp}
@@ -196,7 +196,9 @@ type
 { needed for handles }
 {not anymore I textrec.inc}
 
-
+const
+ k=1;
+ 
 type
   CORE_ADDR = cardinal; { might be target dependent PM }
   streamtype = (afile,astring);
@@ -2454,7 +2456,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2004-11-05 17:57:04  peter
+  Revision 1.23  2004-11-06 17:58:35  peter
+    * use full static libnames for linux
+
+  Revision 1.22  2004/11/05 17:57:04  peter
     * inferior ptid enabled by default
 
   Revision 1.21  2004/11/05 12:30:27  peter
