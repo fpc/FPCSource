@@ -29,6 +29,13 @@ type
   FileFunc = Procedure(var t : TextRec);
 
 const
+{ Random / Randomize constants }
+  OldRandSeed : Longint = 0;
+  InitialSeed : Boolean = TRUE;
+  Seed1 : Longint = 0;
+  Seed2 : Longint = 0;
+  Seed3 : Longint = 0;
+
 { For Error Handling.}
   DoError   : Boolean = FALSE;
   ErrorBase : Longint = 0;
@@ -250,31 +257,77 @@ End;
 
 
 {$endif RTLLITE}
+{****************************************************************************
+                              Random function routines
+
+	This implements a very long cycle random number generator by combining
+   three independant generators.  The technique was described in the March
+   1987 issue of Byte.
+   Taken and modified with permission from the PCQ Pascal rtl code.
+****************************************************************************}
 
 {$R-}
+{$Q-}
+
+{ PLEASE DO NOT OPTIMIZE BECAUSE THEY ACTUALLY WORK CORRECTLY - unless }
+{ you want me to go violent :) (CEC)                                   }
+
+Procedure UseSeed(seed : Longint);Forward;
+
+
+Function Random : Real;
+var
+    ReturnValue : Real;
+begin
+    if (InitialSeed) OR ((RandSeed <> OldRandSeed) AND NOT InitialSeed) then
+    Begin
+       OldRandSeed:=RandSeed;
+    { This is a pretty complicated affair                             }
+    {  Initially we must call UseSeed when RandSeed is initalized     }
+    {  We must also call UseSeed each time RandSeed is reinitialized  }
+    {  DO NOT CHANGE THE ORDER OF DECLARATIONS IN THIS BLOCK          }
+    {  UNLESS YOU WANT RANDON TO CRASH OF COURSE (CEC)                }
+      InitialSeed:=FALSE;
+      UseSeed(Randseed);
+    end;
+    Inc(Seed1);
+    Seed1 := (Seed1 * 706) mod 500009;
+    INC(Seed2);
+    Seed2 := (Seed2 * 774) MOD 600011;
+    INC(Seed3);
+    Seed3 := (Seed3 * 871) MOD 765241;
+    ReturnValue := Seed1/500009.0 +
+            Seed2/600011.0 +
+           Seed3/765241.0;
+    Random := frac(ReturnValue);
+end;
+
 
 Function Random(l : Longint) : Longint;
-{
-  the problem Wwth this Function is if l is maxLongint*3/4 then the
-  probability to obtain a number in the range maxlongint*1/4 to maxlongint*1/2
-  is two times smaller than the probability for other numbers !
-}
-Begin
-  Randseed:=Randseed*134775813+1;
-  Random:=abs(Randseed mod l);
-End;
+begin
+    if (InitialSeed) OR ((RandSeed <> OldRandSeed) AND NOT InitialSeed) then
+    Begin
+       OldRandSeed:=RandSeed;
+    { This is a pretty complicated affair                             }
+    {  Initially we must call UseSeed when RandSeed is initalized     }
+    {  We must also call UseSeed each time RandSeed is reinitialized  }
+    {  DO NOT CHANGE THE ORDER OF DECLARATIONS IN THIS BLOCK          }
+    {  UNLESS YOU WANT RANDON TO CRASH OF COURSE (CEC)                }
+      InitialSeed:=FALSE;
+      UseSeed(Randseed);
+    end;
+    Inc(Seed1);
+    Seed1 := (Seed1 * 998) mod 1000003;
+    Random := Seed1 mod Succ(l);
+end;
 
 
-Function Random : real;
-{
-  I am not sure about the accuracy of such a value (PM)
-}
-Begin
-  Random:=abs(Randseed);
-  Random:=Random/(maxLongint+1.0);
-  Randseed:=Randseed*134775813+1;
-  Random:=(abs(Randseed)+Random)/(maxLongint+2.0);
-End;
+Procedure UseSeed(seed : Longint);
+begin
+    Seed1 := seed mod 1000003;
+    Seed2 := (Random(65000) * Random(65000)) mod 600011;
+    Seed3 := (Random(65000) * Random(65000)) mod 765241;
+end;
 
 
 
@@ -440,7 +493,10 @@ End;
 
 {
   $Log$
-  Revision 1.18  1998-07-02 13:01:55  carl
+  Revision 1.19  1998-07-08 11:56:55  carl
+    * randon and Random(l) now work correctly - don't touch it works!
+
+  Revision 1.18  1998/07/02 13:01:55  carl
     * hmmm... it is luck (BSS zeroed with GAS) that DoError and ErrorBase work.
       Now they are initilized instead.
 
