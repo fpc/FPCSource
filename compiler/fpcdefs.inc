@@ -19,7 +19,9 @@
       {$define USEINLINE}
     {$else}
       { Optimizer is broken when compiling with optimizations using 1.0.x }
-      {$define NOOPT}  
+      {$ifndef USEOPT}
+        {$define NOOPT}
+      {$endif}
     {$endif VER1_0}
 
     {$define FPCPROCVAR}
@@ -88,7 +90,10 @@
 
 {
   $Log$
-  Revision 1.29  2003-12-14 20:20:14  peter
+  Revision 1.30  2003-12-14 22:41:46  peter
+    * USEOPT to override NOOPT for 1.0.x
+
+  Revision 1.29  2003/12/14 20:20:14  peter
     * disable optimizer again for 1.0.x
 
   Revision 1.28  2003/12/14 14:18:59  peter
