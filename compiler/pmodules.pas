@@ -22,8 +22,6 @@
 }
 unit pmodules;
 
-{$define STORENUMBER}
-
 { define TEST_IMPL does not work well }
 { replaced by $define  Double_checksum}
 { other way to get correct type info, in test (PM) }
@@ -153,11 +151,17 @@ unit pmodules;
            if (hp^.u^.flags and (uf_init or uf_finalize))<>0 then
             begin
               if (hp^.u^.flags and uf_init)<>0 then
-               unitinits.concat(new(pai_const_symbol,init('INIT$$'+hp^.u^.modulename^)))
+               begin
+                 unitinits.concat(new(pai_const_symbol,init('INIT$$'+hp^.u^.modulename^)));
+                 concat_external('INIT$$'+hp^.u^.modulename^,EXT_NEAR);
+               end
               else
                unitinits.concat(new(pai_const,init_32bit(0)));
               if (hp^.u^.flags and uf_finalize)<>0 then
-               unitinits.concat(new(pai_const_symbol,init('FINALIZE$$'+hp^.u^.modulename^)))
+               begin
+                 unitinits.concat(new(pai_const_symbol,init('FINALIZE$$'+hp^.u^.modulename^)));
+                 concat_external('FINALIZE$$'+hp^.u^.modulename^,EXT_NEAR);
+               end
               else
                unitinits.concat(new(pai_const,init_32bit(0)));
               inc(count);
@@ -329,12 +333,14 @@ unit pmodules;
       { ok, now load the unit }
         current_module^.globalsymtable:=new(punitsymtable,loadasunit);
       { if this is the system unit insert the intern symbols }
+{$ifndef STORENUMBER}
         if compile_system then
          begin
            make_ref:=false;
            insertinternsyms(psymtable(current_module^.globalsymtable));
            make_ref:=true;
          end;
+{$endif}
       { now only read the implementation part }
         current_module^.in_implementation:=true;
       { load the used units from implementation }
@@ -1225,9 +1231,7 @@ unit pmodules;
          st    : psymtable;
          names : Tstringcontainer;
       begin
-{* Changes made by Ozerski 23.10.1998}
          DLLsource:=islibrary;
-{* End changes}
          parse_only:=false;
          if islibrary then
            begin
@@ -1382,7 +1386,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.109  1999-04-15 12:19:59  peter
+  Revision 1.110  1999-04-17 13:14:52  peter
+    * concat_external added for new init/final
+
+  Revision 1.109  1999/04/15 12:19:59  peter
     + finalization support
 
   Revision 1.108  1999/04/14 09:14:52  peter
