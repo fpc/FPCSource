@@ -207,7 +207,8 @@ implementation
          i,mylength  : longint;
       begin
          { for empty ansistrings we could return a constant 0 }
-         if is_ansistring(resulttype.def) and
+         if (is_ansistring(resulttype.def) or
+             is_widestring(resulttype.def)) and
             (len=0) then
           begin
             location.loc:=LOC_MEM;
@@ -516,7 +517,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2001-10-20 19:28:37  peter
+  Revision 1.3  2001-12-31 09:52:02  jonas
+    * empty widestrings can also be optimized to the constant '0'
+
+  Revision 1.2  2001/10/20 19:28:37  peter
     * interface 2 guid support
     * guid constants support
 
