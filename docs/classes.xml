@@ -5276,7 +5276,7 @@ i.e. it is not possible to read beyond the end of the datastring.
 <short>Reads a string of length <var>Count</var></short>
 <descr>
 <p>
-<var>ReadString<var> reads <var>Count</var> bytes from the stream and
+<var>ReadString</var> reads <var>Count</var> bytes from the stream and
 returns the read bytes as a string. If less than <var>Count</var> bytes 
 were available, the string has as many characters as bytes could be read.
 </p>
@@ -5284,6 +5284,7 @@ were available, the string has as many characters as bytes could be read.
 id="TStringStream.Read">Read</link> method. It does not do the same stringas
 the <link id="TStream.ReadAnsiString"/> method, which first reads a length
 integer to determine the length of the string to be read.
+</p>
 </descr>
 <seealso>
 <link id="TStringStream.Read"/>
