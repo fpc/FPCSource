@@ -1438,9 +1438,6 @@ begin
   if option.DoWriteLogo then
    option.WriteLogo;
 
- if (target_info.target=target_m68k_linux) then
-   def_symbol('USE_FPU_IN_RTL');
-
 { Check file to compile }
   if param_file='' then
    begin
@@ -1566,7 +1563,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.50  2001-07-30 21:39:26  peter
+  Revision 1.51  2001-07-31 19:38:46  peter
+    * removed fpu_in_rtl define (merged)
+
+  Revision 1.50  2001/07/30 21:39:26  peter
     * declare fpu in rtl for m68k linux
 
   Revision 1.49  2001/07/09 21:15:40  peter
