@@ -801,7 +801,7 @@ begin
   J:=I;
   While (J<=Length(Line)) and Not (Line[J] in WhiteSpace) do
     inc(j);
-  Result:=Copy(Line,I,J-1);  
+  Result:=Copy(Line,I,J-I);  
   Delete(Line,1,J);  
 end;
   
@@ -854,7 +854,7 @@ begin
     If (S<>'') then
       begin
       H.Addr:=StrTonetAddr(S);		// endianness problem here. (fixed)
-      if (H.Addr.s_bytes[4]<>0) then
+      if (H.Addr.s_bytes[1]<>0) then
         begin
         S:=NextWord(Line);
         If (S<>'') then
@@ -929,6 +929,30 @@ end;
     /etc/networks handling
   ---------------------------------------------------------------------}
 
+function StrTonetpartial( IP : AnsiString) : in_addr ;
+
+Var
+    Dummy : AnsiString;
+    I,j,k     : Longint;
+    Temp : in_addr;
+
+begin
+  strtonetpartial.s_addr:=0;              //:=NoAddress;
+  i:=0; j:=0;
+  while (i<4) and (j=0) do
+   begin
+     J:=Pos('.',IP);
+     if j=0 then j:=length(ip)+1;
+     Dummy:=Copy(IP,1,J-1);
+     Delete (IP,1,J);
+     Val (Dummy,k,J);
+     if j=0 then
+      strtonetpartial.s_bytes[i+1]:=k;
+     inc(i);
+   end;
+   if (i=0) then strtonetpartial.s_addr:=0;
+end;
+
 Function GetNextNetworkEntry(var F : Text; Var N : TNetworkEntry): boolean;
 
 Var
@@ -944,11 +968,11 @@ begin
     If (S<>'') then
       begin
       NN:=S;
-      A:=StrToHostAddr(NextWord(Line));	// endianness?
+      A:=StrTonetpartial(NextWord(Line));
       Result:=(NN<>'') and (A.s_bytes[1]<>0); // Valid addr.
       If result then
         begin
-        N.Addr:=A;
+        N.Addr.s_addr:=A.s_addr; // keep it host.
         N.Name:=NN;
         N.Aliases:='';
         end;      
@@ -983,7 +1007,7 @@ begin
       If Result then
         begin
         N.Name:=NE.Name;
-        N.Addr:=NE.Addr;
+        N.Addr:=nettohost(NE.Addr);
         N.Aliases:=NE.Aliases;
         end;
       end;  
@@ -1122,7 +1146,10 @@ end.
 
 {
   $Log$
-  Revision 1.14  2005-03-18 10:58:16  marco
+  Revision 1.15  2005-03-22 13:39:11  marco
+   * support for BSD style network files
+
+  Revision 1.14  2005/03/18 10:58:16  marco
    * lots of endian fixes
 
   Revision 1.12  2005/02/07 14:12:31  marco
