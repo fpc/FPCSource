@@ -833,7 +833,9 @@ implementation
                  pt:=cfuncretnode.create(aktprocdef.funcretsym);
                  left:=cassignmentnode.create(pt,left);
                  onlyassign:=true;
-               end;
+               end
+              else
+               tfuncretsym(aktprocdef.funcretsym).funcretstate:=vs_assigned;
             end;
          end;
         if assigned(left) then
@@ -1410,7 +1412,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.53  2002-10-05 12:43:25  carl
+  Revision 1.54  2002-10-20 15:31:49  peter
+    * set funcret state for exit(0)
+
+  Revision 1.53  2002/10/05 12:43:25  carl
     * fixes for Delphi 6 compilation
      (warning : Some features do not work under Delphi)
 
