@@ -255,7 +255,11 @@ begin
 { Find the first DirectorySeparator or DriveSeparator from the end. }
   DirEnd := Length (Path);
   while (DirEnd > 0) and not (Path [DirEnd] in
+{$IFNDEF MACOS}
                                        [DirectorySeparator, DriveSeparator]) do
+{$ELSE}
+                                       [DirectorySeparator]) do
+{$ENDIF}
     Dec (DirEnd);
 
 { The first "extension" should be returned if LFN }
@@ -298,7 +302,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2004-12-15 17:03:01  peter
+  Revision 1.4  2004-12-28 21:50:14  olle
+    * hack to make macos compile
+
+  Revision 1.3  2004/12/15 17:03:01  peter
     * fixed overflow
 
   Revision 1.2  2004/12/05 16:44:43  hajny
