@@ -599,14 +599,14 @@ begin
   if S_ISDIR(st.st_mode) then
    fmode:=directory
   else
-   { contrary to DOS - all normal files have the archive bits set }
-   { under POSIX.                                                 }
-   fmode:=archive;
+   fmode:=0;
   if (st.st_mode and S_IWUSR)=0 then
    fmode:=fmode or readonly;
-  If ((FMode and f.searchattr)<>0) or ((Fmode and Archive)<>0) Then
+  FSplit(s,Dir,Name,Ext);
+  if Name[1]='.' then
+   fmode:=fmode or hidden;   
+  If ((FMode and Not(f.searchattr))=0) Then
    Begin
-     FSplit(s,Dir,Name,Ext);
      if Ext <> '' then
        res := Name + Ext
      else
@@ -692,7 +692,8 @@ Begin
      DosError:=3;
      exit;
    end;
-  f.SearchAttr := Attr;
+  {We always also search for readonly and archive, regardless of Attr:}
+  f.SearchAttr := Attr or archive or readonly; 	
 {Wildcards?}
   if (Pos('?',Path)=0)  and (Pos('*',Path)=0) then
    begin
@@ -851,10 +852,10 @@ Begin
   if S_ISDIR(LinAttr) then
    Attr:=directory
   else
-   Attr:=archive;
+   Attr:=0;
   if sys_Access(@textrec(f).name,W_OK)<>0 then
    Attr:=Attr or readonly;
-  if (not S_ISDIR(LinAttr)) and (filerec(f).name[0]='.')  then
+  if (filerec(f).name[0]='.')  then
    Attr:=Attr or hidden;
 end;
 
@@ -1059,7 +1060,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.4  2003-01-08 22:32:28  marco
+  Revision 1.5  2003-12-03 20:53:22  olle
+    * files are not pretended to have attr ARCHIVE anymore
+    * files with attr READONLY and ARCHIVE are always returned by FindFirst etc
+    * made code more conformant with unix/dos.pp
+
+  Revision 1.4  2003/01/08 22:32:28  marco
    * Small fixes and quick merge with 1.0.x. At least the compiler builds now,
       but it could crash hard, since there are lots of unimplemented funcs.
 
