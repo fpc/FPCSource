@@ -326,7 +326,7 @@ unit temp_gen;
 {$endif}
             templist^.temptype:=tt_ansistring;
             { set result to false, we don't need an decr_ansistr }
-            gettempansistringreference:=false;
+            gettempansistringreference:=true;
           end;
          exprasmlist^.concat(new(paitempalloc,alloc(ref.offset,target_os.size_of_pointer)));
       end;
@@ -524,7 +524,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.31  1999-06-01 22:46:26  pierre
+  Revision 1.32  1999-06-09 23:00:13  peter
+    * small ansistring fixes
+    * val_ansistr_sint destsize changed to longint
+    * don't write low/hi ascii with -al
+
+  Revision 1.31  1999/06/01 22:46:26  pierre
    * extdebug wrong warning removed
 
   Revision 1.30  1999/05/31 20:35:47  peter

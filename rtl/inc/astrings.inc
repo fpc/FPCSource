@@ -392,36 +392,34 @@ Procedure SetLength (Var S : AnsiString; l : Longint);
 Var
   Temp : Pointer;
 begin
-   If (Pointer(S)=Nil) and (l>0) then
+   if (l>0) then
     begin
-    { Need a complete new string...}
-    Pointer(s):=NewAnsiString(l);
-    PAnsiRec(Pointer(S)-FirstOff)^.Len:=l;
-    PAnsiRec(Pointer(S)-FirstOff)^.MaxLen:=l;
-    PByte (Pointer(S)+l)^:=0;
-    end
-  else if l>0 then
-    begin
-    If (PAnsiRec(Pointer(S)-FirstOff)^.Maxlen < L) or
-       (PAnsiRec(Pointer(S)-FirstOff)^.Ref <> 1) then
-      begin
-      { Reallocation is needed... }
-      Temp:=Pointer(NewAnsiString(L));
-      if Length(S)>0 then
-        Move (Pointer(S)^,Temp^,Length(S)+1);
-      ansistr_decr_ref (Pointer(S));
-      Pointer(S):=Temp;
-      end
-    else
-      //!! Force nil termination in case it gets shorter
+      if Pointer(S)=nil then
+       begin
+         { Need a complete new string...}
+         Pointer(s):=NewAnsiString(l);
+       end
+      else
+       If (PAnsiRec(Pointer(S)-FirstOff)^.Maxlen < L) or
+          (PAnsiRec(Pointer(S)-FirstOff)^.Ref <> 1) then
+        begin
+          { Reallocation is needed... }
+          Temp:=Pointer(NewAnsiString(L));
+          if Length(S)>0 then
+            Move (Pointer(S)^,Temp^,Length(S)+1);
+          ansistr_decr_ref (Pointer(S));
+          Pointer(S):=Temp;
+       end;
+      { Force nil termination in case it gets shorter }
       PByte(Pointer(S)+l)^:=0;
-    PAnsiRec(Pointer(S)-FirstOff)^.Len:=l;
+      PAnsiRec(Pointer(S)-FirstOff)^.Len:=l;
     end
   else
-    { Length=0 }
     begin
-    ansistr_decr_ref (Pointer(S));
-    Pointer(S):=Nil;
+      { Length=0 }
+      if Pointer(S)<>nil then
+       ansistr_decr_ref (Pointer(S));
+      Pointer(S):=Nil;
     end;
 end;
 
@@ -458,7 +456,7 @@ begin
     Size:=Length(S)-Index;
   If Size>0 then
     begin
-    If Index<0 Then 
+    If Index<0 Then
       Index:=0;
     ResultAddress:=Pointer(NewAnsiString (Size));
     if ResultAddress<>Nil then
@@ -498,40 +496,43 @@ begin
   pos := j;
 end;
 
+
 {$IfDef ValInternCompiled}
 
 Function ValAnsiFloat(Const S : AnsiString; Var Code : ValSInt): ValReal; [public, alias:'FPC_VAL_REAL_ANSISTR'];
-Var SS : String;
+Var
+  SS : String;
 begin
- AnsiStr_To_ShortStr(SS,Pointer(S));
- ValAnsiFloat := ValFloat(SS,Code);
+  AnsiStr_To_ShortStr(SS,Pointer(S));
+  ValAnsiFloat := ValFloat(SS,Code);
 end;
 
 
 Function ValAnsiUnsigendInt (Const S : AnsiString; Code : ValSInt): ValUInt; [public, alias:'FPC_VAL_UINT_ANSISTR'];
-Var SS : ShortString;
-
+Var
+  SS : ShortString;
 begin
- AnsiStr_To_ShortStr(SS,Pointer(S));
- ValAnsiUnsigendInt := ValUnsignedInt(SS,Code);
+  AnsiStr_To_ShortStr(SS,Pointer(S));
+  ValAnsiUnsigendInt := ValUnsignedInt(SS,Code);
 end;
 
 
-Function ValAnsiSignedInt (DestSize: Byte; Const S : AnsiString; Var Code : ValSInt): ValSInt; [public, alias:'FPC_VAL_SINT_ANSISTR'];
-
-Var SS : ShortString;
-
+Function ValAnsiSignedInt (DestSize: longint; Const S : AnsiString; Var Code : ValSInt): ValSInt; [public, alias:'FPC_VAL_SINT_ANSISTR'];
+Var
+  SS : ShortString;
 begin
- AnsiStr_To_ShortStr (SS,Pointer(S));
- ValAnsiSignedInt := ValSignedInt(DestSize,SS,Code);
+  AnsiStr_To_ShortStr (SS,Pointer(S));
+  ValAnsiSignedInt := ValSignedInt(DestSize,SS,Code);
 end;
+
 
 {$IfDef SUPPORT_FIXED}
 Function ValAnsiFixed(Const S : AnsiString; Var Code : ValSint): ValReal; [public, alias:'FPC_VAL_FIXED_ANSISTR'];
-Var SS : String;
+Var
+  SS : String;
 begin
- AnsiStr_To_ShortStr (SS,Pointer(S));
- ValAnsiFixed := Fixed(ValFloat(SS,Code));
+  AnsiStr_To_ShortStr (SS,Pointer(S));
+  ValAnsiFixed := Fixed(ValFloat(SS,Code));
 end;
 {$EndIf SUPPORT_FIXED}
 
@@ -784,7 +785,12 @@ end;
 
 {
   $Log$
-  Revision 1.27  1999-06-05 20:48:56  michael
+  Revision 1.28  1999-06-09 23:00:16  peter
+    * small ansistring fixes
+    * val_ansistr_sint destsize changed to longint
+    * don't write low/hi ascii with -al
+
+  Revision 1.27  1999/06/05 20:48:56  michael
   Copy checks index now for negative values.
 
   Revision 1.26  1999/05/31 20:37:39  peter

@@ -230,9 +230,8 @@ implementation
                         emit_reg_reg(A_OR,S_L,R_EAX,R_EAX);
                         popusedregisters(pushedregs);
                         maybe_loadesi;
-                        { done in temptoremove (PM)
-                        ungetiftemp(p^.left^.location.reference);
-                        ungetiftemp(p^.right^.location.reference); }
+                        ungetiftempansi(p^.left^.location.reference);
+                        ungetiftempansi(p^.right^.location.reference);
                      end;
                 end;
                { the result of ansicompare is signed }
@@ -2111,7 +2110,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.64  1999-06-02 10:11:39  florian
+  Revision 1.65  1999-06-09 23:00:11  peter
+    * small ansistring fixes
+    * val_ansistr_sint destsize changed to longint
+    * don't write low/hi ascii with -al
+
+  Revision 1.64  1999/06/02 10:11:39  florian
     * make cycle fixed i.e. compilation with 0.99.10
     * some fixes for qword
     * start of register calling conventions
