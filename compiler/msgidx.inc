@@ -476,6 +476,7 @@ type tmsgconst=(
   unit_f_errors_in_unit,
   unit_u_load_unit,
   unit_u_recompile_crc_change,
+  unit_u_recompile_source_found_alone,
   unit_u_recompile_staticlib_is_older,
   unit_u_recompile_sharedlib_is_older,
   unit_u_recompile_obj_and_asm_older,
