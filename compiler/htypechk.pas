@@ -351,6 +351,8 @@ implementation
                begin
                   CGMessage(parser_e_operator_not_overloaded);
                   ht.free;
+                  { the original t t will be released by firstpass! (JM) }
+                  t := t.getcopy;
                end
              else
                begin
@@ -898,7 +900,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  2000-11-28 14:04:03  jonas
+  Revision 1.18  2000-11-28 17:14:33  jonas
+    * fixed crash when trying to use an overloaded operator which is nowhere
+      defined
+
+  Revision 1.17  2000/11/28 14:04:03  jonas
     * fixed operator overloading problems
 
   Revision 1.16  2000/11/13 11:30:54  florian
