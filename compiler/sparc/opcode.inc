@@ -8,7 +8,7 @@ A_AND,A_ANDcc,A_ANDN,A_ADDNcc,
 {Branching instructions}
 A_JMPL,
 A_CALL,
-A_BN,A_BNE,A_BE,A_BG,A_BLE,A_BGE,A_BI,A_BGU,A_BLEU,A_BCC,
+A_BN,A_BNE,A_BE,A_BG,A_BLE,A_BGE,A_BL,A_BGU,A_BLEU,A_BCC,
 A_BCS,A_BPOS,A_NEG,A_BVC,A_BVS,A_BA,
 A_FBN,A_FBU,A_FBG,A_FBUG,A_FBL,A_FBUL,A_FBLG,A_FBNE,
 A_FBE,A_FBUE,A_FBGE,A_FBUGE,A_FBLE,A_FBULE,A_FBO,A_FBA,
@@ -68,9 +68,12 @@ A_skipz,A_skipnz,
 A_tst
 {
 	$Log$
-	Revision 1.5  2003-01-20 20:15:44  mazen
-	* A_CMPrs --> A_FCMPs and A_CMPd --> A_FCMPd
+	Revision 1.6  2003-05-06 20:23:44  mazen
+	* A_BI ==> A_BL (bi ==> bl) instructions renamed
 
+	Revision 1.5  2003/01/20 20:15:44  mazen
+	* A_CMPrs --> A_FCMPs and A_CMPd --> A_FCMPd
+	
 	Revision 1.4  2002/11/10 17:49:14  mazen
 	* A_RET --> A_RETT (RET from Trap)
 	

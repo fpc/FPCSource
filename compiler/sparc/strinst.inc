@@ -7,7 +7,7 @@
           'and','andcc','andn','addncc',
           'jmpl',
           'call',
-          'bn','bne','be','bg','ble','bge','bi','bgu','bleu','bcc',
+          'bn','bne','be','bg','ble','bge','bl','bgu','bleu','bcc',
           'bcs','bpos','neg','bvc','bvs','ba',
           'fbn','fbu','fbg','fbug','fbl','fbul','fblg','fbne',
           'fbe','fbue','fbge','fbuge','fble','fbule','fbo','fba',
@@ -66,9 +66,12 @@
           'tst'
 {
 	$Log$
-	Revision 1.4  2003-04-29 10:00:31  mazen
-	* instruction are moved lowercase to allow using old assmeblers
+	Revision 1.5  2003-05-06 20:23:44  mazen
+	* A_BI ==> A_BL (bi ==> bl) instructions renamed
 
+	Revision 1.4  2003/04/29 10:00:31  mazen
+	* instruction are moved lowercase to allow using old assmeblers
+	
 	Revision 1.3  2002/10/17 14:48:34  mazen
 	* branch instructions are now contigous
 	
