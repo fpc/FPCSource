@@ -122,7 +122,7 @@ endif
 
 # Release ? Then force OPT and don't use extra opts via commandline
 ifdef RELEASE
-override OPT:=-Xs -OG2p2 -n
+override OPT:=-Xs -OG2p3 -n
 endif
 
 # Verbose settings (warning,note,info)
@@ -1024,7 +1024,10 @@ endif
 
 #
 # $Log$
-# Revision 1.35  1999-06-18 11:03:08  peter
+# Revision 1.36  1999-07-01 18:20:01  jonas
+#   * changed RELEASE=1 processor option from -Op2 to -Op3
+#
+# Revision 1.35  1999/06/18 11:03:08  peter
 #   * merged
 #
 # Revision 1.34  1999/06/18 10:11:18  peter
