@@ -16,7 +16,7 @@ type
 
 constructor a.create;
 begin
-    c := @e;
+    c := e;
 end;
 
 destructor a.destroy;
@@ -26,13 +26,13 @@ end;
 procedure a.e;
 begin
     Writeln('E');
-    c := @f;
+    c := f;
 end;
 
 procedure a.f;
 begin
     Writeln('F');
-    c := @e;
+    c := e;
 end;
 
 var
