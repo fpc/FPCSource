@@ -15,3 +15,7 @@ installdoc:
 	cp readme.txt $(DOCINSTALLDIR)/README
 	cp whatsnew.txt $(DOCINSTALLDIR)/NEWS
 	cp faq.txt faq.html $(DOCINSTALLDIR)
+
+faq.txt: faq.html
+	lynx -dump faq.html > faq.txt
+
