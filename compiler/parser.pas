@@ -402,10 +402,11 @@ implementation
            loaded_units.insert(current_module);
 
          { Set the module to use for verbose }
-         SetCompileModule(current_module);
          compiled_module:=current_module;
+         SetCompileModule(current_module);
+         Fillchar(aktfilepos,0,sizeof(aktfilepos));
 
-       { Load current state from the init values }
+         { Load current state from the init values }
          aktlocalswitches:=initlocalswitches;
          aktmoduleswitches:=initmoduleswitches;
          aktmodeswitches:=initmodeswitches;
@@ -625,7 +626,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.49  2003-04-25 20:59:33  peter
+  Revision 1.50  2003-04-26 00:30:52  peter
+    * reset aktfilepos when setting new module for compile
+
+  Revision 1.49  2003/04/25 20:59:33  peter
     * removed funcretn,funcretsym, function result is now in varsym
       and aliases for result and function name are added using absolutesym
     * vs_hidden parameter for funcret passed in parameter

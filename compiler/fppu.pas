@@ -1133,6 +1133,7 @@ uses
         second_time:=false;
         current_module:=self;
         SetCompileModule(current_module);
+        Fillchar(aktfilepos,0,sizeof(aktfilepos));
 
         { we are loading a new module, save the state of the scanner
           and reset scanner+module }
@@ -1258,7 +1259,12 @@ uses
         current_module:=old_current_module;
         current_scanner:=tscannerfile(current_module.scanner);
         if assigned(current_scanner) then
-          current_scanner.tempopeninputfile;
+         begin
+           current_scanner.tempopeninputfile;
+           current_scanner.gettokenpos;
+         end
+        else
+         fillchar(aktfilepos,sizeof(aktfilepos),0);
         SetCompileModule(current_module);
       end;
 
@@ -1332,7 +1338,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.30  2003-03-27 17:44:13  peter
+  Revision 1.31  2003-04-26 00:30:52  peter
+    * reset aktfilepos when setting new module for compile
+
+  Revision 1.30  2003/03/27 17:44:13  peter
     * fixed small mem leaks
 
   Revision 1.29  2002/12/29 14:57:50  peter
