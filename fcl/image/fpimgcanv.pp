@@ -39,6 +39,8 @@ type
 
 implementation
 
+uses clipping;
+
 constructor TFPImageCanvas.create (AnImage : TFPCustomImage);
 begin
   inherited Create;
@@ -53,7 +55,8 @@ end;
 procedure TFPImageCanvas.SetColor (x,y:integer; AValue:TFPColor);
 begin
   if (x >= 0) and (x < width) and (y >= 0) and (y < height) then
-    FImage.Colors[x,y] := AValue;
+    if not clipping or PointInside (x,y, ClipRect) then
+      FImage.Colors[x,y] := AValue;
 end;
 
 function  TFPImageCanvas.GetColor (x,y:integer) : TFPColor;
