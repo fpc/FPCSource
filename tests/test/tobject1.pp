@@ -68,6 +68,8 @@ program test_fail;
   var
     mem : sizeint;
   begin
+     require_error(210);
+     
 	 mem:=0;
 	 DoMem(mem);
      new(pa1,init(false));
