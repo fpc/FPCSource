@@ -2,13 +2,11 @@
     $Id$
     This file is part of the Free Pascal run time library.
 
-    POSIX Interface to the system unit
+    Main OS dependant body of the system unit, loosely modelled
+    after POSIX.  *BSD version (Linux version is near identical)
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
-
-    This is the core of the system unit *nix systems (now FreeBSD
-     and Unix).
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -16,11 +14,18 @@
 
  **********************************************************************}
 
+
 {*****************************************************************************
                            Directory Handling
 *****************************************************************************}
 
 Procedure MkDir(Const s: String);[IOCheck];
+const
+  { read/write search permission for everyone }
+  MODE_MKDIR = S_IWUSR OR S_IRUSR OR
+               S_IWGRP OR S_IRGRP OR
+               S_IWOTH OR S_IROTH OR
+               S_IXUSR OR S_IXGRP OR S_IXOTH;
 Var
   Buffer: Array[0..255] of Char;
 Begin
@@ -33,6 +38,7 @@ Begin
   Else
    InOutRes:=0;
 End;
+
 
 Procedure RmDir(Const s: String);[IOCheck];
 Var
@@ -68,6 +74,8 @@ Begin
    InOutRes:=3;
 End;
 
+{ // $define usegetcwd}
+
 procedure getdir(drivenr : byte;var dir : shortstring);
 var
 {$ifndef usegetcwd}
@@ -78,20 +86,13 @@ var
   d            : pdirent;
   name         : string[255];
   thisdir      : stat;
-  tmp          : string[255];
-{$else}
-  tmp          : array[0..4095] of char;
 {$endif}
+  tmp          : string[255];
 
 begin
 {$ifdef usegetcwd}
- if Fpgetcwd(@tmp,10240+512)<>NIL then
-  dir:=pchar(@tmp)
- else
-  begin
-    dir:='';
-    writeln(geterrno);
-  end;
+ Fpgetcwd(@tmp[1],4096);
+ dir:=tmp;
 {$else}
   dir:='';
   thedir:='';
@@ -111,7 +112,7 @@ begin
     { try to find the current inode number of the cwd }
     dirstream:=Fpopendir(@tmp[1]);
     if dirstream=nil then
-      exit;
+       exit;
     repeat
       name:='';
       d:=Fpreaddir(dirstream);
@@ -132,7 +133,7 @@ begin
           end;
        end;
     until (name<>'');
-    If Fpclosedir(dirstream)<0 THen
+    if Fpclosedir(dirstream)<0 then
       Exit;
     thedir:=name+thedir;
     dummy:=dummy+'../';
@@ -150,7 +151,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2005-02-06 13:06:20  peter
+  Revision 1.1  2005-02-07 22:04:55  peter
+    * moved to unix
+
+  Revision 1.1  2005/02/06 13:06:20  peter
     * moved file and dir functions to sysfile/sysdir
     * win32 thread in systemunit
 

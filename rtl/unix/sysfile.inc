@@ -14,7 +14,6 @@
 
  **********************************************************************}
 
-
 Procedure Do_Close(Handle:thandle);
 Begin
   Fpclose(cint(Handle));
@@ -151,6 +150,11 @@ Procedure Do_Open(var f;p:pchar;flags:longint);
   when (flags and $1000)  the file will be truncate/rewritten
   when (flags and $10000) there is no check for close (needed for textfiles)
 }
+const
+  { read/write permission for everyone }
+  MODE_OPEN = S_IWUSR OR S_IRUSR OR
+              S_IWGRP OR S_IRGRP OR
+              S_IWOTH OR S_IROTH;
 var
   oflags : cint;
 Begin
@@ -223,7 +227,10 @@ End;
 
 {
   $Log$
-  Revision 1.1  2005-02-06 13:06:20  peter
+  Revision 1.1  2005-02-07 22:04:55  peter
+    * moved to unix
+
+  Revision 1.1  2005/02/06 13:06:20  peter
     * moved file and dir functions to sysfile/sysdir
     * win32 thread in systemunit
 

@@ -16,11 +16,6 @@
 
  **********************************************************************}
 
-
-{*****************************************************************************
-      OS Memory allocation / deallocation
- ****************************************************************************}
-
 function SysOSAlloc(size: ptrint): pointer;
 begin
   result:=Fpmmap(nil,Size,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0);
@@ -39,15 +34,17 @@ end;
 
 
 
-
 {
    $Log$
-   Revision 1.2  2005-02-06 12:16:52  peter
-     * bsd thread updates
+   Revision 1.1  2005-02-07 22:04:55  peter
+     * moved to unix
 
-   Revision 1.1  2005/02/06 11:20:52  peter
-     * threading in system unit
-     * removed systhrds unit
+   Revision 1.1  2005/02/06 16:57:18  peter
+     * threads for go32v2,os,emx,netware
+
+   Revision 1.1  2005/02/06 13:06:20  peter
+     * moved file and dir functions to sysfile/sysdir
+     * win32 thread in systemunit
 
 }
 
