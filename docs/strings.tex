@@ -19,16 +19,21 @@
 %   Boston, MA 02111-1307, USA. 
 %
 \chapter{The STRINGS unit.}
+\label{ch:strings}
+\FPCexampledir{stringex}
+
 This chapter describes the \var{STRINGS} unit for \fpc. This unit is system
 independent, and therefore works on all supported platforms.
 
 Since the unit only provides some procedures and functions, there is
 only one section, which gives the declarations of these functions, together
 with an explanation. 
+
 \section{Functions and procedures.}
+
 \begin{function}{StrAlloc}
 \Declaration
-Function StrAlloc (Len : Longint);PChar
+Function StrAlloc (Len : Longint) : PChar;
 \Description
 \var{StrAlloc} reserves memory on the heap for a string with length \var{Len},
 terminating \var{\#0} included, and returns a pointer to it.
@@ -37,26 +42,25 @@ If there is not enough memory, a run-time error occurs.
 \SeeAlso
 \seef{StrNew}, \seef{StrPCopy}.
 \end{function}
+
+
 \begin{function}{StrCat}
 \Declaration
 Function StrCat (Dest,Source : PChar) : PChar;
 \Description
-
 Attaches \var{Source} to \var{Dest} and returns \var{Dest}.
-
 \Errors
 No length checking is performed.
 \SeeAlso
 \seem{Concat}{}
 \end{function}
-\latex{\lstinputlisting{stringex/ex11.pp}}
-\html{\input{stringex/ex11.tex}}
+
+\FPCexample{ex11}
+
 \begin{function}{StrComp}
 \Declaration
 Function StrComp (S1,S2 : PChar) : Longint;
-
 \Description
-
 Compares the null-terminated strings \var{S1} and \var{S2}.
 The result is 
 \begin{itemize}
@@ -64,84 +68,75 @@ The result is
 \item 0 when \var{S1=S2}.
 \item A positive \var{Longint} when \var{S1>S2}.
 \end{itemize}
-
 \Errors
 None.
 \SeeAlso
 \seef{StrLComp}, \seef{StrIComp}, \seef{StrLIComp}
 \end{function}
+
 For an example, see \seef{StrLComp}.
+
 \begin{function}{StrCopy}
 \Declaration
 Function StrCopy (Dest,Source : PChar) : PChar;
-
 \Description
- 
 Copy the null terminated string in \var{Source} to \var{Dest}, and
 returns a pointer to \var{Dest}. \var{Dest} needs enough room to contain
 \var{Source}, i.e. \var{StrLen(Source)+1} bytes.
-
 \Errors
 No length checking is performed.
 \SeeAlso
  \seef{StrPCopy}, \seef{StrLCopy}, \seef{StrECopy}
 \end{function}
-\latex{\lstinputlisting{stringex/ex4.pp}}
-\html{\input{stringex/ex4.tex}}
+
+\FPCexample{ex4}
+
 \begin{procedure}{StrDispose}
 \Declaration
 Procedure StrDispose (P : PChar);
-
 \Description
-
 Removes the string in \var{P} from the heap and releases the memory.
-
 \Errors
 None.
 \SeeAlso
 \seem{Dispose}{}, \seef{StrNew}
 \end{procedure}
-\latex{\lstinputlisting{stringex/ex17.pp}}
-\html{\input{stringex/ex17.tex}}
+
+\FPCexample{ex17}
+
 \begin{function}{StrECopy}
 \Declaration
 Function StrECopy (Dest,Source : PChar) : PChar;
-
 \Description
-
 Copies the Null-terminated string in \var{Source} to \var{Dest}, and
 returns a pointer to the end (i.e. the terminating Null-character) of the
 copied string.
-
 \Errors
 No length checking is performed.
 \SeeAlso
 \seef{StrLCopy}, \seef{StrCopy}
 \end{function}
-\latex{\lstinputlisting{stringex/ex6.pp}}
-\html{\input{stringex/ex6.tex}}
+
+\FPCexample{ex6}
+
 \begin{function}{StrEnd}
 \Declaration
 Function StrEnd (P : PChar) : PChar;
-
 \Description
-
 Returns a pointer to the end of \var{P}. (i.e. to the terminating
 null-character.
-
 \Errors
 None.
 \SeeAlso
 \seef{StrLen}
 \end{function}
-\latex{\lstinputlisting{stringex/ex7.pp}}
-\html{\input{stringex/ex7.tex}}
+
+\FPCexample{ex7}
+
 \begin{function}{StrIComp}
 \Declaration
 Function StrIComp (S1,S2 : PChar) : Longint;
-
 \Description
-
 Compares the null-terminated strings \var{S1} and \var{S2}, ignoring case.
 The result is 
 \begin{itemize}
@@ -149,36 +144,32 @@ The result is
 \item 0 when \var{S1=S2}.
 \item A positive \var{Longint} when \var{S1>S2}.
 \end{itemize}
-
 \Errors
 None.
 \SeeAlso
 \seef{StrLComp}, \seef{StrComp}, \seef{StrLIComp}
 \end{function}
-\latex{\lstinputlisting{stringex/ex8.pp}}
-\html{\input{stringex/ex8.tex}}
+
+\FPCexample{ex8}
+
 \begin{function}{StrLCat}
 \Declaration
 Function StrLCat (Dest,Source : PChar; MaxLen : Longint) : PChar;
-
 \Description
-
 Adds \var{MaxLen} characters from \var{Source} to \var{Dest}, and adds a
 terminating null-character. Returns \var{Dest}.
-
 \Errors
 None.
 \SeeAlso
 \seef{StrCat}
 \end{function}
-\latex{\lstinputlisting{stringex/ex12.pp}}
-\html{\input{stringex/ex12.tex}}
+
+\FPCexample{ex12}
+
 \begin{function}{StrLComp}
 \Declaration
 Function StrLComp (S1,S2 : PChar; L : Longint) : Longint;
-
 \Description
-
 Compares maximum \var{L} characters of the null-terminated strings 
 \var{S1} and \var{S2}. 
 The result is 
@@ -187,52 +178,45 @@ The result is
 \item 0 when \var{S1=S2}.
 \item A positive \var{Longint} when \var{S1>S2}.
 \end{itemize}
-
 \Errors
 None.
 \SeeAlso
 \seef{StrComp}, \seef{StrIComp}, \seef{StrLIComp}
 \end{function}
-\latex{\lstinputlisting{stringex/ex8.pp}}
-\html{\input{stringex/ex8.tex}}
+
+\FPCexample{ex8}
+
 \begin{function}{StrLCopy}
 \Declaration
 Function StrLCopy (Dest,Source : PChar; MaxLen : Longint) : PChar;
-
 \Description
-
 Copies \var{MaxLen} characters from \var{Source} to \var{Dest}, and makes
 \var{Dest} a null terminated string. 
-
 \Errors
 No length checking is performed.
 \SeeAlso
 \seef{StrCopy}, \seef{StrECopy}
 \end{function}
- 
-\latex{\lstinputlisting{stringex/ex5.pp}}
-\html{\input{stringex/ex5.tex}}
+
+\FPCexample{ex5}
+
 \begin{function}{StrLen}
 \Declaration
 Function StrLen (p : PChar) : Longint;
-
 \Description
-
 Returns the length of the null-terminated string \var{P}.
-
 \Errors
 None.
 \SeeAlso
 \seem{Length}{}
 \end{function}
-\latex{\lstinputlisting{stringex/ex1.pp}}
-\html{\input{stringex/ex1.tex}}
+
+\FPCexample{ex1}
+
 \begin{function}{StrLIComp}
 \Declaration
 Function StrLIComp (S1,S2 : PChar; L : Longint) : Longint;
-
 \Description
-
 Compares maximum \var{L} characters of the null-terminated strings \var{S1} 
 and \var{S2}, ignoring case.
 The result is 
@@ -241,131 +225,119 @@ The result is
 \item 0 when \var{S1=S2}.
 \item A positive \var{Longint} when \var{S1>S2}.
 \end{itemize}
-
 \Errors
 None.
 \SeeAlso
 \seef{StrLComp}, \seef{StrComp}, \seef{StrIComp}
 \end{function}
+
 For an example, see \seef{StrIComp}
+
 \begin{function}{StrLower}
 \Declaration
 Function StrLower (P : PChar) : PChar;
-
 \Description
-
 Converts \var{P} to an all-lowercase string. Returns \var{P}.
-
 \Errors
 None.
 \SeeAlso
 \seem{Upcase}{}, \seef{StrUpper}
 \end{function}
-\latex{\lstinputlisting{stringex/ex14.pp}}
-\html{\input{stringex/ex14.tex}}
+
+\FPCexample{ex14}
+
 \begin{function}{StrMove}
 \Declaration
 Function StrMove (Dest,Source : PChar; MaxLen : Longint) : PChar;
-
 \Description
-
 Copies \var{MaxLen} characters from \var{Source} to \var{Dest}. No
 terminating null-character is copied.
 Returns \var {Dest}.
-
 \Errors
 None.
 \SeeAlso
 \seef{StrLCopy}, \seef{StrCopy}
 \end{function}
-\latex{\lstinputlisting{stringex/ex10.pp}}
-\html{\input{stringex/ex10.tex}}
+
+\FPCexample{ex10}
+
 \begin{function}{StrNew}
 \Declaration
 Function StrNew (P : PChar) : PChar;
-
 \Description
-
 Copies \var{P} to the Heap, and returns a pointer to the copy.
-
 \Errors
 Returns \var{Nil} if no memory was available for the copy.
 \SeeAlso
 \seem{New}{}, \seef{StrCopy}, \seep{StrDispose}
 \end{function}
-\latex{\lstinputlisting{stringex/ex16.pp}}
-\html{\input{stringex/ex16.tex}}
+
+\FPCexample{ex16}
+
 \begin{function}{StrPas}
 \Declaration
 Function StrPas (P : PChar) : String;
-
 \Description
-
 Converts a null terminated string in \var{P} to a Pascal string, and returns
 this string. The string is truncated at 255 characters.
-
 \Errors
 None.
 \SeeAlso
  \seef{StrPCopy}
 \end{function}
-\latex{\lstinputlisting{stringex/ex3.pp}}
-\html{\input{stringex/ex3.tex}}
+
+\FPCexample{ex3}
+
 \begin{function}{StrPCopy}
 \Declaration
 Function StrPCopy (Dest : PChar; Const Source : String) : PChar;
-
 \Description
-
 Converts the Pascal string in \var{Source} to a Null-terminated 
 string, and copies it to \var{Dest}. \var{Dest} needs enough room to contain
 the string \var{Source}, i.e. \var{Length(Source)+1} bytes.
-
 \Errors
 No length checking is performed.
 \SeeAlso
  \seef{StrPas}
 \end{function}
-\latex{\lstinputlisting{stringex/ex2.pp}}
-\html{\input{stringex/ex2.tex}}
+
+\FPCexample{ex2}
+
 \begin{function}{StrPos}
 \Declaration
 Function StrPos (S1,S2 : PChar) : PChar;
-
 \Description
-
 Returns a pointer to the first occurrence of \var{S2} in \var{S1}.
 If \var{S2} does not occur in \var{S1}, returns \var{Nil}.
-
 \Errors
 None.
 \SeeAlso
 \seem{Pos}{}, \seef{StrScan}, \seef{StrRScan}
 \end{function}
-\latex{\lstinputlisting{stringex/ex15.pp}}
-\html{\input{stringex/ex15.tex}}
+
+\FPCexample{ex15}
+
 \begin{function}{StrRScan}
 \Declaration
 Function StrRScan (P : PChar; C : Char) : PChar;
-
 \Description
-
 Returns a pointer to the last occurrence of the character \var{C} in the
 null-terminated string \var{P}. If \var{C} does not occur, returns
 \var{Nil}.
-
 \Errors
 None.
 \SeeAlso
 \seem{Pos}{}, \seef{StrScan}, \seef{StrPos}
 \end{function}
+
+
 For an example, see \seef{StrScan}.
+
+
 \begin{function}{StrScan}
 \Declaration
 Function StrScan (P : PChar; C : Char) : PChar;
-
 \Description
-
 Returns a pointer to the first occurrence of the character \var{C} in the
 null-terminated string \var{P}. If \var{C} does not occur, returns
 \var{Nil}.
@@ -375,19 +347,18 @@ None.
 \SeeAlso
 \seem{Pos}{}, \seef{StrRScan}, \seef{StrPos}
 \end{function}
-\latex{\lstinputlisting{stringex/ex13.pp}}
-\html{\input{stringex/ex13.tex}}
+
+\FPCexample{ex13}
+
 \begin{function}{StrUpper}
 \Declaration
 Function StrUpper (P : PChar) : PChar;
-
 \Description
-
 Converts \var{P} to an all-uppercase string. Returns \var{P}.
-
 \Errors
 None.
 \SeeAlso
 \seem{Upcase}{}, \seef{StrLower}
 \end{function}
+
 For an example, see \seef{StrLower}
