@@ -43,6 +43,10 @@ interface
   {$define GDB_V5}
 {$endif GDB_V501}
 
+{$ifdef GDB_V500}
+  {$define GDB_V5}
+{$endif GDB_V500}
+
 { V4.18 is default for now }
 { set when starting v5 support PM }
 {$ifndef GDB_V5}
@@ -2516,7 +2520,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2002-01-24 12:31:51  pierre
+  Revision 1.13  2002-01-25 22:39:29  pierre
+   * fix problem with 5.0 lib version
+
+  Revision 1.12  2002/01/24 12:31:51  pierre
    * fix go32v2 compilation for gdb 5.1
 
   Revision 1.11  2002/01/24 09:14:39  pierre
