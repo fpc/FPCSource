@@ -63,6 +63,15 @@ function http_referer: pchar;
 
 { FUNCTION
 
+  This function returns the IP address of the client.
+
+  Input         - Nothing
+  Output        - an internet IP address.
+}
+function http_remote: pchar;
+
+{ FUNCTION
+
   This function returns the users's USER AGENT, the browser name etc.
 
   Input         - Nothing
@@ -78,6 +87,8 @@ function http_useragent: pchar;
   Output        - If the identifier was found, the resulting value is
                   the output, otherwise the output is NIL
 }
+
+
 function get_value(id: pchar): pchar;
 
 { FUNCTION
@@ -404,7 +415,8 @@ begin
     begin
     clen:=strpas (getenv('CONTENT_LENGTH'));
     val(clen,qslen);
-    if upcase(strpas(getenv('CONTENT_TYPE')))='APPLICATION/X-WWW-FORM-URLENCODED'
+    if (upcase(strpas(getenv('CONTENT_TYPE')))='APPLICATION/X-WWW-FORM-URLENCODED')
+       or (upcase(strpas(getenv('CONTENT_TYPE')))='TEXT/PLAIN') 
       then
       begin
       getmem(querystring,qslen+1);
@@ -452,6 +464,10 @@ begin
   http_url:=getenv('REQUEST_URI');
 end;
   
+function http_remote: pchar;
+begin
+  http_remote :=getenv('REMOTE_ADDR');
+end;
   
 begin
   {$ifdef win32}
@@ -462,10 +478,14 @@ begin
   fillchar(query_array,sizeof(query_array),0);
 end.
 
+  
 {
   HISTORY
   $Log$
-  Revision 1.6  2002-09-12 16:24:59  michael
+  Revision 1.7  2002-10-10 05:48:20  michael
+  Added http_remote and fixed determining of input method. Fix courtesy of Antal <antal@carmelcomputer.com>
+
+  Revision 1.6  2002/09/12 16:24:59  michael
   + Added http_url function from Michael Weinert
 
   Revision 1.5  2002/09/07 15:43:06  peter
