@@ -858,7 +858,8 @@ begin
 {$endif SYSTEMDEBUG}
     end;
 { append mode }
-  if (flags and $100)<>0 then
+  if ((flags and $100) <> 0) and
+   (FileRec (F).Handle <> UnusedHandle) then
    begin
      do_seekend(filerec(f).handle);
      filerec(f).mode:=fmoutput; {fool fmappend}
@@ -1120,7 +1121,10 @@ END.
 
 {
   $Log$
-  Revision 1.3  2003-09-27 11:52:36  peter
+  Revision 1.4  2003-09-29 18:52:36  hajny
+    * append fix applied to Amiga, Atari, EMX, GO32v2, OS/2 and Watcom
+
+  Revision 1.3  2003/09/27 11:52:36  peter
     * sbrk returns pointer
 
   Revision 1.2  2003/09/07 22:29:26  hajny

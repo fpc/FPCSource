@@ -1443,7 +1443,8 @@ begin
        Error2InOut;
 
     filerec(f).handle:=i;
-    if (flags and $100)<>0 then
+    if ((Flags and $100) <> 0) and
+       (FileRec (F).Handle <> UnusedHandle) then
        do_seekend(filerec(f).handle);
 
 end;
@@ -1826,7 +1827,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2003-09-27 11:52:35  peter
+  Revision 1.8  2003-09-29 18:52:36  hajny
+    * append fix applied to Amiga, Atari, EMX, GO32v2, OS/2 and Watcom
+
+  Revision 1.7  2003/09/27 11:52:35  peter
     * sbrk returns pointer
 
   Revision 1.6  2002/10/20 12:00:52  carl
