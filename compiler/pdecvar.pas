@@ -297,9 +297,11 @@ implementation
                - in parasymtable
                - in record or object
                - ... (PM) }
-             if (m_delphi in aktmodeswitches) and (token=_EQUAL) and
-                not (symtablestack.symtabletype in [parasymtable]) and
-                not is_record and not is_object then
+             if (token=_EQUAL) and
+                not(m_tp7 in aktmodeswitches) and
+                not(symtablestack.symtabletype in [parasymtable]) and
+                not is_record and
+                not is_object then
                begin
                   storetokenpos:=akttokenpos;
                   s:=sc.get(akttokenpos);
@@ -309,7 +311,7 @@ implementation
                   symtablestack.insert(tconstsym);
                   akttokenpos:=storetokenpos;
                   consume(_EQUAL);
-                  readtypedconst(tt,tconstsym,false);
+                  readtypedconst(tt,tconstsym,true);
                   symdone:=true;
                end;
              { hint directive }
@@ -573,7 +575,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  2001-09-30 21:15:48  peter
+  Revision 1.21  2001-10-23 21:49:42  peter
+    * $calling directive and -Cc commandline patch added
+      from Pavel Ozerski
+
+  Revision 1.20  2001/09/30 21:15:48  peter
     * merged absolute support for constants
 
   Revision 1.19  2001/08/30 20:13:53  peter

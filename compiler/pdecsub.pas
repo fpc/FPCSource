@@ -1017,6 +1017,13 @@ begin
 end;
 
 
+procedure pd_far16;
+begin
+  { Temporary stub, must be rewritten to support OS/2 far16 }
+  Message1(parser_w_proc_directive_ignored,'FAR16');
+end;
+
+
 procedure pd_reintroduce;
 begin
   Message1(parser_w_proc_directive_ignored,'REINTRODUCE');
@@ -1138,7 +1145,7 @@ type
    end;
 const
   {Should contain the number of procedure directives we support.}
-  num_proc_directives=34;
+  num_proc_directives=36;
   proc_direcdata:array[1..num_proc_directives] of proc_dir_rec=
    (
     (
@@ -1184,7 +1191,7 @@ const
       pocall   : [pocall_cdecl,pocall_clearstack];
       pooption : [po_savestdregs];
       mutexclpocall : [pocall_cppdecl,pocall_internproc,
-        pocall_leftright,pocall_inline];
+        pocall_leftright,pocall_inline,pocall_far16,pocall_fpccall];
       mutexclpotype : [];
       mutexclpo     : [po_assembler,po_external]
     ),(
@@ -1224,6 +1231,17 @@ const
       mutexclpotype : [];
       mutexclpo     : []
     ),(
+      idtok:_FAR16;
+      pd_flags : pd_interface+pd_implemen+pd_body+pd_procvar;
+      handler  : {$ifdef FPCPROCVAR}@{$endif}pd_far16;
+      pocall   : [pocall_far16];
+      pooption : [];
+      mutexclpocall : [pocall_internproc,pocall_cdecl,pocall_cppdecl,
+                       pocall_clearstack,pocall_inline,
+                       pocall_safecall,pocall_leftright,pocall_fpccall];
+      mutexclpotype : [];
+      mutexclpo     : [po_external]
+    ),(
       idtok:_FORWARD;
       pd_flags : pd_implemen+pd_notobjintf;
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_forward;
@@ -1232,6 +1250,17 @@ const
       mutexclpocall : [pocall_internproc,pocall_inline];
       mutexclpotype : [];
       mutexclpo     : [po_external]
+    ),(
+      idtok:_FPCCALL;
+      pd_flags : pd_interface+pd_implemen+pd_body+pd_procvar;
+      handler  : nil;
+      pocall   : [pocall_fpccall];
+      pooption : [];
+      mutexclpocall : [pocall_cdecl,pocall_cppdecl,
+                       pocall_clearstack,pocall_inline,
+                       pocall_safecall,pocall_leftright,pocall_far16];
+      mutexclpotype : [];
+      mutexclpo     : []
     ),(
       idtok:_INLINE;
       pd_flags : pd_implemen+pd_body+pd_notobjintf;
@@ -1256,7 +1285,8 @@ const
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_intern;
       pocall   : [pocall_internproc];
       pooption : [];
-      mutexclpocall : [pocall_inline,pocall_clearstack,pocall_leftright,pocall_cdecl,pocall_cppdecl];
+      mutexclpocall : [pocall_inline,pocall_clearstack,pocall_leftright,pocall_cdecl,pocall_cppdecl,
+                      pocall_far16,pocall_fpccall];
       mutexclpotype : [potype_constructor,potype_destructor,potype_operator];
       mutexclpo     : [po_exports,po_external,po_interrupt,po_assembler,po_iocheck]
     ),(
@@ -1266,7 +1296,8 @@ const
       pocall   : [];
       pooption : [po_interrupt];
       mutexclpocall : [pocall_internproc,pocall_cdecl,pocall_cppdecl,
-                       pocall_clearstack,pocall_leftright,pocall_inline];
+                       pocall_clearstack,pocall_leftright,pocall_inline,
+                       pocall_far16,pocall_fpccall];
       mutexclpotype : [potype_constructor,potype_destructor,potype_operator];
       mutexclpo     : [po_external]
     ),(
@@ -1322,7 +1353,7 @@ const
       pooption : [];
       mutexclpocall : [pocall_internproc,pocall_cdecl,pocall_cppdecl,
                        pocall_clearstack,pocall_leftright,pocall_inline,
-                       pocall_safecall];
+                       pocall_safecall,pocall_far16,pocall_fpccall];
       mutexclpotype : [];
       mutexclpo     : [po_external]
     ),(
@@ -1349,7 +1380,8 @@ const
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_register;
       pocall   : [pocall_register];
       pooption : [];
-      mutexclpocall : [pocall_leftright,pocall_cdecl,pocall_internproc,pocall_cppdecl];
+      mutexclpocall : [pocall_leftright,pocall_cdecl,pocall_internproc,pocall_cppdecl,
+                       pocall_far16,pocall_fpccall];
       mutexclpotype : [];
       mutexclpo     : [po_external]
     ),(
@@ -1368,7 +1400,7 @@ const
       pocall   : [pocall_safecall];
       pooption : [po_savestdregs];
       mutexclpocall : [pocall_leftright,pocall_cdecl,pocall_cppdecl,
-        pocall_internproc,pocall_inline];
+        pocall_internproc,pocall_inline,pocall_far16,pocall_fpccall];
       mutexclpotype : [];
       mutexclpo     : [po_external]
     ),(
@@ -1396,7 +1428,7 @@ const
       pocall   : [pocall_stdcall];
       pooption : [po_savestdregs];
       mutexclpocall : [pocall_leftright,pocall_cdecl,pocall_cppdecl,
-        pocall_inline,pocall_internproc,pocall_safecall];
+        pocall_inline,pocall_internproc,pocall_safecall,pocall_far16,pocall_fpccall];
       mutexclpotype : [];
       mutexclpo     : [po_external]
     ),(
@@ -1406,7 +1438,7 @@ const
       pocall   : [pocall_palmossyscall,pocall_cdecl,pocall_clearstack];
       pooption : [];
       mutexclpocall : [pocall_cdecl,pocall_cppdecl,pocall_inline,
-        pocall_internproc,pocall_leftright];
+        pocall_internproc,pocall_leftright,pocall_far16,pocall_fpccall];
       mutexclpotype : [];
       mutexclpo     : [po_external,po_assembler,po_interrupt,po_exports]
     ),(
@@ -1416,7 +1448,7 @@ const
       pocall   : [pocall_clearstack];
       pooption : [];
       mutexclpocall : [pocall_leftright,pocall_inline,pocall_cdecl,
-        pocall_internproc,pocall_cppdecl];
+        pocall_internproc,pocall_cppdecl,pocall_far16,pocall_fpccall];
       mutexclpotype : [];
       mutexclpo     : [po_external,po_assembler,po_interrupt]
     ),(
@@ -1434,7 +1466,8 @@ const
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_cppdecl;
       pocall   : [pocall_cppdecl,pocall_clearstack];
       pooption : [po_savestdregs];
-      mutexclpocall : [pocall_cdecl,pocall_internproc,pocall_leftright,pocall_inline];
+      mutexclpocall : [pocall_cdecl,pocall_internproc,pocall_leftright,pocall_inline,
+                      pocall_far16,pocall_fpccall];
       mutexclpotype : [];
       mutexclpo     : [po_assembler,po_external]
     ),(
@@ -1444,7 +1477,7 @@ const
       pocall   : [];
       pooption : [po_varargs];
       mutexclpocall : [pocall_internproc,pocall_stdcall,pocall_register,
-                       pocall_leftright,pocall_inline];
+                       pocall_leftright,pocall_inline,pocall_far16,pocall_fpccall];
       mutexclpotype : [];
       mutexclpo     : [po_assembler,po_interrupt]
     ),(
@@ -1474,17 +1507,17 @@ const
       end;
 
 
-    function parse_proc_direc(var pdflags:word):boolean;
+    function parse_proc_direc(idtoken:ttoken; var pdflags:word; do_consume:boolean):boolean;//Ozerski 08.10.01
       {
         Parse the procedure directive, returns true if a correct directive is found
       }
       var
         p     : longint;
         found : boolean;
-        name  : string;
+        name  : stringid;
       begin
         parse_proc_direc:=false;
-        name:=pattern;
+        name:=tokeninfo^[idtoken].str;
         found:=false;
 
       { Hint directive? Then exit immediatly }
@@ -1548,7 +1581,8 @@ const
          end;
 
       { consume directive, and turn flag on }
-        consume(token);
+        if do_consume then
+         consume(token);
         parse_proc_direc:=true;
 
       { Check the pd_flags if the directive should be allowed }
@@ -1592,6 +1626,35 @@ const
       end;
 
 
+    const
+      CallModeTokens : set of TToken = [
+         _CDECL,
+         _CPPDECL,
+         _FAR16,
+         _FPCCALL,
+         _INLINE,
+         _PASCAL,
+         _POPSTACK,
+         _REGISTER,
+         _SAFECALL,
+         _STDCALL,
+         _SYSTEM
+      ];
+      CallModeToken : array[TDefProcCall] of TToken = (
+         _CDECL,
+         _CPPDECL,
+         _FAR16,
+         _FPCCALL,
+         _INLINE,
+         _PASCAL,
+         _POPSTACK,
+         _REGISTER,
+         _SAFECALL,
+         _STDCALL,
+         _SYSTEM
+      );
+
+
     procedure parse_proc_directives(var pdflags:word);
       {
         Parse the procedure directives. It does not matter if procedure directives
@@ -1599,20 +1662,28 @@ const
       }
       var
         res : boolean;
+        CallModeIsChangedLocally : boolean;
       begin
+        CallModeIsChangedLocally:=false;
         while token in [_ID,_LECKKLAMMER] do
          begin
            if try_to_consume(_LECKKLAMMER) then
             begin
               repeat
-                parse_proc_direc(pdflags);
+                if not CallModeIsChangedLocally then
+                  CallModeIsChangedLocally:=idtoken in CallModeTokens;
+                parse_proc_direc(idtoken,pdflags,true);
               until not try_to_consume(_COMMA);
               consume(_RECKKLAMMER);
               { we always expect at least '[];' }
               res:=true;
             end
            else
-            res:=parse_proc_direc(pdflags);
+            begin
+              if not CallModeIsChangedLocally then
+                CallModeIsChangedLocally:=idtoken in CallModeTokens;
+              res:=parse_proc_direc(idtoken,pdflags,true);
+            end;
          { A procedure directive normally followed by a semicolon, but in
            a const section we should stop when _EQUAL is found }
            if res then
@@ -1628,6 +1699,9 @@ const
            else
             break;
          end;
+        { add default calling convention if none is specified }
+        if (not CallModeIsChangedLocally) then
+          parse_proc_direc(CallModeToken[aktdefproccall],pdflags,false);
       end;
 
 
@@ -1803,8 +1877,12 @@ const
                                 begin
                                   if ad.name<>fd.name then
                                    begin
-                                     MessagePos3(aktprocsym.definition.fileinfo,parser_e_header_different_var_names,
-                                                 aktprocsym.name,ad.name,fd.name);
+                                     { don't give an error if the default parameter is not
+                                       specified in the implementation }
+                                     if ((copy(fd.name,1,3)='def') and
+                                         (copy(ad.name,1,3)<>'def')) then
+                                       MessagePos3(aktprocsym.definition.fileinfo,parser_e_header_different_var_names,
+                                                   aktprocsym.name,ad.name,fd.name);
                                      break;
                                    end;
                                   ad:=tsym(ad.indexnext);
@@ -1924,11 +2002,14 @@ const
           end;
       end;
 
-
 end.
 {
   $Log$
-  Revision 1.38  2001-10-01 13:38:44  jonas
+  Revision 1.39  2001-10-23 21:49:42  peter
+    * $calling directive and -Cc commandline patch added
+      from Pavel Ozerski
+
+  Revision 1.38  2001/10/01 13:38:44  jonas
     * allow self parameter for normal procedures again (because Kylix allows
       it too) ("merged")
 

@@ -159,6 +159,8 @@ interface
        initasmmode        : tasmmode;
        initinterfacetype  : tinterfacetypes;
        initoutputformat   : tasm;
+       initdefproccall    : TDefProcCall;
+
      { current state values }
        aktglobalswitches  : tglobalswitches;
        aktmoduleswitches  : tmoduleswitches;
@@ -177,6 +179,7 @@ interface
        aktasmmode         : tasmmode;
        aktinterfacetype   : tinterfacetypes;
        aktoutputformat    : tasm;
+       aktdefproccall     : TDefProcCall;
 
      { Memory sizes }
        heapsize,
@@ -263,6 +266,7 @@ interface
     procedure FreeEnvPChar(p:pchar);
 
     Function SetCompileMode(const s:string; changeInit: boolean):boolean;
+    function SetAktProcCall(const s:string; changeInit: boolean):boolean;
 
     procedure InitGlobals;
     procedure DoneGlobals;
@@ -1142,6 +1146,38 @@ implementation
       end;
 
 
+    function SetAktProcCall(const s:string; changeInit:boolean):boolean;
+      const
+        DefProcCallName : array[TDefProcCall] of string[12] = (
+         'CDECL',
+         'CPPDECL',
+         'FAR16',
+         'FPCCALL',
+         'INLINE',
+         'PASCAL',
+         'POPSTACK',
+         'REGISTER',
+         'SAFECALL',
+         'STDCALL',
+         'SYSTEM'
+        );
+      var
+        t : TDefProcCall;
+      begin
+        SetAktProcCall:=false;
+        for t:=low(TDefProcCall) to high(TDefProcCall) do
+         if DefProcCallName[t]=s then
+          begin
+            AktDefProcCall:=t;
+            SetAktProcCall:=true;
+            break;
+          end;
+        if changeinit then
+         InitDefProcCall:=AktDefProcCall;
+      end;
+
+
+
     { '('D1:'00000000-'D2:'0000-'D3:'0000-'D4:'0000-000000000000)' }
     function string2guid(const s: string; var GUID: TGUID): boolean;
         function ishexstr(const hs: string): boolean;
@@ -1387,6 +1423,7 @@ implementation
   {$endif m68k}
 {$endif i386}
         initinterfacetype:=it_interfacecom;
+        initdefproccall:=dpc_fpccall;
         initdefines:=TStringList.Create;
 
       { memory sizes, will be overriden by parameter or default for target
@@ -1412,7 +1449,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.47  2001-10-21 12:33:05  peter
+  Revision 1.48  2001-10-23 21:49:42  peter
+    * $calling directive and -Cc commandline patch added
+      from Pavel Ozerski
+
+  Revision 1.47  2001/10/21 12:33:05  peter
     * array access for properties added
 
   Revision 1.46  2001/10/20 20:30:20  peter

@@ -337,7 +337,6 @@ interface
     const
        current_object_option : tsymoptions = [sp_public];
 
-
     { rtti and init/final }
     procedure generate_rtti(p:tsym);
     procedure generate_inittable(p:tsym);
@@ -368,6 +367,10 @@ implementation
        { codegen }
        cgbase,cresstr
        ;
+
+{****************************************************************************
+                               Helpers
+****************************************************************************}
 
 {****************************************************************************
                           TSYM (base for all symtypes)
@@ -2487,7 +2490,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  2001-10-20 20:30:21  peter
+  Revision 1.24  2001-10-23 21:49:43  peter
+    * $calling directive and -Cc commandline patch added
+      from Pavel Ozerski
+
+  Revision 1.23  2001/10/20 20:30:21  peter
     * read only typed const support, switch $J-
 
   Revision 1.22  2001/09/19 11:04:42  michael

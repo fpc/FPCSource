@@ -163,6 +163,21 @@ interface
          bt_general,bt_type,bt_const,bt_except
        );
 
+       { Default calling convention }
+       TDefProcCall = (
+         dpc_cdecl,
+         dpc_cppdecl,
+         dpc_far16,
+         dpc_fpccall,
+         dpc_inline,
+         dpc_pascal,
+         dpc_popstack,
+         dpc_register,
+         dpc_safecall,
+         dpc_stdcall,
+         dpc_system
+       );
+
     type
        stringid = string[maxidlen];
 
@@ -208,7 +223,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  2001-10-20 20:30:21  peter
+  Revision 1.17  2001-10-23 21:49:42  peter
+    * $calling directive and -Cc commandline patch added
+      from Pavel Ozerski
+
+  Revision 1.16  2001/10/20 20:30:21  peter
     * read only typed const support, switch $J-
 
   Revision 1.15  2001/09/17 21:29:11  peter

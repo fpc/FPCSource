@@ -141,6 +141,7 @@ type
     _CLASS,
     _CONST,
     _FALSE,
+    _FAR16,
     _INDEX,
     _LABEL,
     _RAISE,
@@ -171,6 +172,7 @@ type
     _EXPORTS,
     _FINALLY,
     _FORWARD,
+    _FPCCALL,
     _IOCHECK,
     _LIBRARY,
     _MESSAGE,
@@ -364,6 +366,7 @@ const
       (str:'CLASS'         ;special:false;keyword:m_class;op:NOTOKEN),
       (str:'CONST'         ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'FALSE'         ;special:false;keyword:m_all;op:NOTOKEN),
+      (str:'FAR16'         ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'INDEX'         ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'LABEL'         ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'RAISE'         ;special:false;keyword:m_class;op:NOTOKEN),
@@ -394,6 +397,7 @@ const
       (str:'EXPORTS'       ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'FINALLY'       ;special:false;keyword:m_class;op:NOTOKEN),
       (str:'FORWARD'       ;special:false;keyword:m_none;op:NOTOKEN),
+      (str:'FPCCALL'       ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'IOCHECK'       ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'LIBRARY'       ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'MESSAGE'       ;special:false;keyword:m_none;op:NOTOKEN),
@@ -497,7 +501,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  2001-08-01 15:07:29  jonas
+  Revision 1.14  2001-10-23 21:49:43  peter
+    * $calling directive and -Cc commandline patch added
+      from Pavel Ozerski
+
+  Revision 1.13  2001/08/01 15:07:29  jonas
     + "compilerproc" directive support, which turns both the public and mangled
       name to lowercase(declaration_name). This prevents a normal user from
       accessing the routine, but they can still be easily looked up within

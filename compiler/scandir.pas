@@ -206,6 +206,18 @@ implementation
           end;
       end;
 
+
+    procedure dir_calling;
+      var
+         hs : string;
+      begin
+        current_scanner.skipspace;
+        hs:=current_scanner.readid;
+        if not SetAktProcCall(hs,false) then
+          Message1(parser_w_unknown_proc_directive_ignored,hs);
+      end;
+
+
     procedure dir_assertions;
       begin
         do_delphiswitch('C');
@@ -844,6 +856,7 @@ implementation
         AddDirective('ASMMODE',{$ifdef FPCPROCVAR}@{$endif}dir_asmmode);
         AddDirective('ASSERTIONS',{$ifdef FPCPROCVAR}@{$endif}dir_assertions);
         AddDirective('BOOLEVAL',{$ifdef FPCPROCVAR}@{$endif}dir_booleval);
+        AddDirective('CALLING',{$ifdef FPCPROCVAR}@{$endif}dir_calling);//Ozerski 08.10.2001
         AddDirective('COPYRIGHT',{$ifdef FPCPROCVAR}@{$endif}dir_copyright);
         AddDirective('D',{$ifdef FPCPROCVAR}@{$endif}dir_description);
         AddDirective('DEBUGINFO',{$ifdef FPCPROCVAR}@{$endif}dir_debuginfo);
@@ -917,7 +930,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  2001-09-02 21:18:28  peter
+  Revision 1.9  2001-10-23 21:49:42  peter
+    * $calling directive and -Cc commandline patch added
+      from Pavel Ozerski
+
+  Revision 1.8  2001/09/02 21:18:28  peter
     * split constsym.value in valueord,valueordptr,valueptr. The valueordptr
       is used for holding target platform pointer values. As those can be
       bigger than the source platform.

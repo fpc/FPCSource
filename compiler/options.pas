@@ -75,7 +75,7 @@ uses
   dos,
 {$endif Delphi}
   version,
-  cutils,cmsgs
+  cutils,cmsgs,symsym
 {$ifdef BrowserLog}
   ,browlog
 {$endif BrowserLog}
@@ -429,6 +429,12 @@ begin
                         Begin
                           case more[j] of
                             'a' : Message2(option_obsolete_switch_use_new,'-Ca','-Or');
+                            'c' :
+                               begin
+                                 if not SetAktProcCall(upper(copy(more,j+1,length(more)-j)),true) then
+                                  IllegalPara(opt);
+                                 break;
+                               end;
                             'h' :
                                begin
                                  val(copy(more,j+1,length(more)-j),heapsize,code);
@@ -1620,7 +1626,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.60  2001-09-17 21:29:12  peter
+  Revision 1.61  2001-10-23 21:49:42  peter
+    * $calling directive and -Cc commandline patch added
+      from Pavel Ozerski
+
+  Revision 1.60  2001/09/17 21:29:12  peter
     * merged netbsd, fpu-overflow from fixes branch
 
   Revision 1.59  2001/09/12 12:46:54  marco

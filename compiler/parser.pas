@@ -65,7 +65,7 @@ implementation
          { and no function header                        }
          testcurobject:=0;
 
-         { a long time, this was forgotten }
+         { Symtable }
          aktprocsym:=nil;
 
          current_module:=nil;
@@ -275,6 +275,7 @@ implementation
          oldaktinterfacetype: tinterfacetypes;
          oldaktmodeswitches : tmodeswitches;
          old_compiled_module : tmodule;
+         oldaktdefproccall : tdefproccall;
 {        will only be increased once we start parsing blocks in the }
 {         implementation, so doesn't need to be saved/restored (JM) }
 {          oldexceptblockcounter  : integer;                        }
@@ -304,6 +305,7 @@ implementation
          oldrefsymtable:=refsymtable;
          oldprocprefix:=procprefix;
          oldaktprocsym:=aktprocsym;
+         oldaktdefproccall:=aktdefproccall;
          move(overloaded_operators,oldoverloaded_operators,sizeof(toverloaded_operators));
        { save scanner state }
          oldc:=c;
@@ -355,7 +357,7 @@ implementation
 {         oldexceptblockcounter:=exceptblockcounter; }
 {$ifdef newcg}
          oldcg:=cg;
-{$endif newcg} 
+{$endif newcg}
 {$ifdef GDB}
          store_dbx:=dbx_counter;
          dbx_counter:=nil;
@@ -369,6 +371,7 @@ implementation
          systemunit:=nil;
          refsymtable:=nil;
          aktprocsym:=nil;
+         aktdefproccall:=initdefproccall;
          procprefix:='';
          registerdef:=true;
          statement_level:=0;
@@ -534,6 +537,7 @@ implementation
               refsymtable:=oldrefsymtable;
               symtablestack:=oldsymtablestack;
               defaultsymtablestack:=olddefaultsymtablestack;
+              aktdefproccall:=oldaktdefproccall;
               aktprocsym:=oldaktprocsym;
               procprefix:=oldprocprefix;
               move(oldoverloaded_operators,overloaded_operators,sizeof(toverloaded_operators));
@@ -621,7 +625,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  2001-10-16 15:10:35  jonas
+  Revision 1.24  2001-10-23 21:49:42  peter
+    * $calling directive and -Cc commandline patch added
+      from Pavel Ozerski
+
+  Revision 1.23  2001/10/16 15:10:35  jonas
     * fixed goto/label/try bugs
 
   Revision 1.22  2001/08/26 13:36:43  florian
