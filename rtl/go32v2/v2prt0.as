@@ -455,7 +455,7 @@ interrupts_already_disabled:
         movw    ___djgpp_base_address+2, %cx
         int     $0x31
 
-        movl    %eax,___sbrk_interrupt_state                /* restore interrupts */
+        movl    ___sbrk_interrupt_state,%eax                /* restore interrupts */
         testb   %al,%al
         je      do_not_enable
         movw    $0x0901,%eax
@@ -916,7 +916,10 @@ ___PROXY_LEN:
 
 /*
   $Log$
-  Revision 1.10  2000-02-23 12:46:11  jonas
+  Revision 1.11  2000-02-27 11:21:17  pierre
+   * Enormous bug in mouse fix fixed
+
+  Revision 1.10  2000/02/23 12:46:11  jonas
     * restored my fix (CVS screwed up the previous versinos because of wrong line
        breaks)
 
