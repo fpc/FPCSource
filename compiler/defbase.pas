@@ -1328,6 +1328,7 @@ implementation
          b : byte;
          hd1,hd2 : tdef;
          hct : tconverttype;
+         hd3 : tobjectdef;
       begin
        { safety check }
          if not(assigned(def_from) and assigned(def_to)) then
@@ -1764,11 +1765,20 @@ implementation
                    { classes can be assigned to interfaces }
                    else if is_interface(def_to) and
                      is_class(def_from) and
-                     assigned(tobjectdef(def_from).implementedinterfaces) and
-                     (tobjectdef(def_from).implementedinterfaces.searchintf(def_to)<>-1) then
+                     assigned(tobjectdef(def_from).implementedinterfaces) then
                      begin
-                        doconv:=tc_class_2_intf;
-                        b:=1;
+                        { we've to search in parent classes as well }
+                        hd3:=tobjectdef(def_from);
+                        while assigned(hd3) do
+                          begin
+                             if hd3.implementedinterfaces.searchintf(def_to)<>-1 then
+                               begin
+                                  doconv:=tc_class_2_intf;
+                                  b:=1;
+                                  break;
+                               end;
+                             hd3:=hd3.childof;
+                          end;
                      end
                    { Interface 2 GUID handling }
                    else if (def_to=tdef(rec_tguid)) and
@@ -1893,7 +1903,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2002-08-12 14:17:56  florian
+  Revision 1.5  2002-08-12 20:39:17  florian
+    * casting of classes to interface fixed when the interface was
+      implemented by a parent class
+
+  Revision 1.4  2002/08/12 14:17:56  florian
     * nil is now recognized as being compatible with a dynamic array
 
   Revision 1.3  2002/08/05 18:27:48  carl

@@ -326,6 +326,7 @@ interface
       var
          l1 : tasmlabel;
          hr : treference;
+         hd : tobjectdef;
       begin
          location_reset(location,LOC_REGISTER,OS_ADDR);
          objectlibrary.getlabel(l1);
@@ -352,6 +353,7 @@ interface
     procedure tcgtypeconvnode.second_class_to_intf;
       var
          l1 : tasmlabel;
+         hd : tobjectdef;
       begin
          location_reset(location,LOC_REGISTER,OS_ADDR);
          case left.location.loc of
@@ -374,10 +376,21 @@ interface
          end;
          objectlibrary.getlabel(l1);
          cg.a_cmp_const_reg_label(exprasmlist,OS_ADDR,OC_EQ,0,location.register,l1);
-         cg.a_op_const_reg(exprasmlist,OP_ADD,aword(
-           tobjectdef(left.resulttype.def).implementedinterfaces.ioffsets(
-           tobjectdef(left.resulttype.def).implementedinterfaces.searchintf(
-           resulttype.def))^),location.register);
+         hd:=tobjectdef(left.resulttype.def);
+         while assigned(hd) do
+           begin
+              if hd.implementedinterfaces.searchintf(resulttype.def)<>-1 then
+                begin
+                   cg.a_op_const_reg(exprasmlist,OP_ADD,aword(
+                     hd.implementedinterfaces.ioffsets(
+                     hd.implementedinterfaces.searchintf(
+                     resulttype.def))^),location.register);
+                   break;
+                end;
+              hd:=hd.childof;
+           end;
+         if hd=nil then
+           internalerror(2002081301);
          cg.a_label(exprasmlist,l1);
       end;
 
@@ -490,7 +503,11 @@ end.
 
 {
   $Log$
-  Revision 1.23  2002-08-11 14:32:26  peter
+  Revision 1.24  2002-08-12 20:39:17  florian
+    * casting of classes to interface fixed when the interface was
+      implemented by a parent class
+
+  Revision 1.23  2002/08/11 14:32:26  peter
     * renamed current_library to objectlibrary
 
   Revision 1.22  2002/08/11 13:24:11  peter
