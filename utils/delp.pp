@@ -214,7 +214,8 @@ begin
   AddMask('*.ppw *.ow *.aw *.sw');
   AddMask('ppas.bat ppas.sh link.res fpcmaked fpcmade fpcmade.*');
   AddMask('*.tpu *.tpp *.tpw *.tr');
-  AddMask('*.log *.bak');
+  AddMask('*.dcu *.dcp *.bpl');
+  AddMask('*.log *.bak *.~pas *.~pp');
   AddMask('*.ppu *.o *.a *.s');
   AddMask('*.pp1 *.o1 *.a1 *.s1');
   AddMask('*.ppo *.oo *.ao *.so');
@@ -265,7 +266,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-12-27 22:13:44  peter
+  Revision 1.3  2001-06-03 20:30:23  peter
+    * delphi units added
+    * ~ backup files added
+
+  Revision 1.2  2000/12/27 22:13:44  peter
     * .rst added
 
   Revision 1.1  2000/07/13 10:16:21  michael
