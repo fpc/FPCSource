@@ -221,8 +221,16 @@ begin
   DoAssemble:=true;
   if DoPipe then
    exit;
-  if (SmartLinkFilesCnt<=1) and not(cs_asm_extern in aktglobalswitches) then
-   Message1(exec_i_assembling,name);
+  if not(cs_asm_extern in aktglobalswitches) then
+   begin
+     if SmartAsm then
+      begin
+        if (SmartLinkFilesCnt<=1) then
+         Message1(exec_i_assembling_smart,name);
+      end
+     else
+     Message1(exec_i_assembling,name);
+   end;
   s:=target_asm.asmcmd;
   Replace(s,'$ASM',AsmFile);
   Replace(s,'$OBJ',ObjFile);
@@ -547,7 +555,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.50  1999-07-03 00:27:05  peter
+  Revision 1.51  1999-07-10 10:12:03  peter
+    * assembler smartlink message
+
+  Revision 1.50  1999/07/03 00:27:05  peter
     * better smartlinking support
 
   Revision 1.49  1999/06/28 16:02:29  peter

@@ -389,6 +389,7 @@ type tmsgconst=(
   exec_w_error_while_assembling,
   exec_w_cant_call_assembler,
   exec_i_assembling,
+  exec_i_assembling_smart,
   exec_w_linker_not_found,
   exec_t_using_linker,
   exec_w_objfile_not_found,
