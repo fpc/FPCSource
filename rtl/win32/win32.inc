@@ -105,6 +105,7 @@ type
     dwHighDateTime : DWORD;
   end;
 
+  LPSystemTime= ^PSystemTime;
   PSystemTime = ^TSystemTime;
   TSystemTime = record
     wYear,
@@ -119,7 +120,10 @@ type
 
 {
   $Log$
-  Revision 1.4  2001-05-02 10:18:04  marco
+  Revision 1.5  2001-05-02 10:25:23  marco
+   * LPSystemTime added.
+
+  Revision 1.4  2001/05/02 10:18:04  marco
    * Added plpwstr, plpstr. Moved lpwstr to the system unit (though the win32
   part). Delphi has it that way.
 
