@@ -4,6 +4,10 @@ This directory contains tests for several parts of the compiler and RTL
 --------------------------------------------------------------------
                       Code generator
 --------------------------------------------------------------------
+These tests should be considered unitary, as they only verify
+simple cases of the code generator. Used for porting to other
+architectures. Tries to validate all possible Location types
+valid for that node.
 
 secondadd() ........... /cg/taddbool.pp      Boolean arithmetic operations     
 secondadd() ........... /cg/taddcard.pp      Cardinal arithmetic operations
@@ -12,6 +16,7 @@ secondadd() ........... /cg/taddlong.pp      Longint arithmetic operations
 secondload()........... /cg/tldparam.pp      Load subroutine parameters
 secondload()........... /cg/tldlocal.pp      Load subroutine local variables
 secondshlshr()......... /cg/tshlshr.pp       Shift routines on natural compiler types
+secondunaryminus()..... /cg/tneg.pp          Negate 
 
 --------------------------------------------------------------------
                         Compiler
