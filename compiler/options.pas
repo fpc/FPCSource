@@ -87,6 +87,7 @@ var
   read_configfile,        { read config file, set when a cfgfile is found }
   target_is_set : boolean;  { do not allow contradictory target settings }
   asm_is_set  : boolean; { -T also change initoutputformat if not set idrectly }
+  fpcdir,
   ppccfg,
   msgfilename,
   param_file    : string;   { file to compile specified on the commandline }
@@ -1367,12 +1368,32 @@ begin
   UnitSearchPath.AddPath(dos.getenv(target_info.unit_env),false);
 {$endif Delphi}
 {$ifdef linux}
-  UnitSearchPath.AddPath('/usr/lib/fpc/'+version_string+'/units/'+lower(target_info.short_name),false);
-  UnitSearchPath.AddPath('/usr/lib/fpc/'+version_string+'/units/'+lower(target_info.short_name)+'/rtl',false);
+  fpcdir:=FixPath(getenv('FPCDIR'),false);
+  if fpcdir='' then
+   begin
+     if PathExists('/usr/local/lib/fpc/'+version_string) then
+      fpcidr:='/usr/local/lib/fpc/'+version_string
+     else
+      fpcdir:='/usr/lib/fpc/'+version_string;
+   end;
 {$else}
-  UnitSearchPath.AddPath(ExePath+'../units/'+lower(target_info.short_name),false);
-  UnitSearchPath.AddPath(ExePath+'../units/'+lower(target_info.short_name)+'/rtl',false);
+  fpcdir:=FixPath(getenv('FPCDIR'),false);
+  if fpcdir='' then
+   begin
+     fpcdir:=ExePath+'../';
+     if not(PathExists(fpcdir+'/units')) and
+        not(PathExists(fpcdir+'/rtl')) then
+      fpcdir:=fpcdir+'../';
+   end;
 {$endif}
+  { first try development RTL, else use the default installation path }
+  if PathExists(FpcDir+'rtl/'+lower(target_info.short_name)) then
+   UnitSearchPath.AddPath(FpcDir+'rtl/'+lower(target_info.short_name),false)
+  else
+   begin
+     UnitSearchPath.AddPath(FpcDir+'units/'+lower(target_info.short_name),false);
+     UnitSearchPath.AddPath(FpcDir+'units/'+lower(target_info.short_name)+'/rtl',false);
+   end;
   UnitSearchPath.AddPath(ExePath,false);
   { Add unit dir to the object and library path }
   objectsearchpath.AddList(unitsearchpath,false);
@@ -1406,7 +1427,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.53  2000-01-20 10:36:44  daniel
+  Revision 1.54  2000-01-23 16:36:37  peter
+    * better auto RTL dir detection
+
+  Revision 1.53  2000/01/20 10:36:44  daniel
     * also support ; comments in cfg file
 
   Revision 1.52  2000/01/17 22:50:28  peter

@@ -243,6 +243,7 @@ unit globals;
     procedure DefaultReplacements(var s:string);
 
     function  path_absolute(const s : string) : boolean;
+    Function  PathExists ( F : String) : Boolean;
     Function  FileExists ( Const F : String) : Boolean;
     Function  RemoveFile(const f:string):boolean;
     Function  RemoveDir(d:string):boolean;
@@ -822,6 +823,17 @@ implementation
         FileExists:=(doserror=0);
         findclose(Info);
       {$endif}
+      end;
+
+    Function PathExists ( F : String) : Boolean;
+      Var
+        Info : SearchRec;
+      begin
+        if F[Length(f)] in ['/','\'] then
+         Delete(f,length(f),1);
+        findfirst(F,readonly+archive+hidden+directory,info);
+        PathExists:=(doserror=0) and ((info.attr and directory)=directory);
+        findclose(Info);
       end;
 {$endif}
 
@@ -1476,7 +1488,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.47  2000-01-20 00:23:03  pierre
+  Revision 1.48  2000-01-23 16:36:37  peter
+    * better auto RTL dir detection
+
+  Revision 1.47  2000/01/20 00:23:03  pierre
    * fix for GetShortName, now checks results from Win32
 
   Revision 1.46  2000/01/07 01:14:27  peter
