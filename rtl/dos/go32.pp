@@ -216,7 +216,7 @@ var
 
 implementation
 
-{$ASMMODE ATT}
+{$I386_ATT}
 
 {$ifndef go32v2}
 
@@ -484,7 +484,7 @@ implementation
          end;
       end;
 
-{$ASMMODE DIRECT}
+{$I386_DIRECT}
     procedure test_int31(flag : longint);[alias : 'test_int31'];
       begin
          asm
@@ -502,7 +502,7 @@ implementation
             popl  %ebx
          end;
       end;
-{$ASMMODE ATT}
+{$I386_ATT}
 
     function set_pm_interrupt(vector : byte;const intaddr : tseginfo) : boolean;
 
@@ -651,7 +651,7 @@ implementation
     because the exception processor sets the ds limit to $fff
     at hardware exceptions }
 
-{$ASMMODE DIRECT}
+{$I386_DIRECT}
     function get_rm_callback(pm_func : pointer;const reg : trealregs;var rmcb : tseginfo) : boolean;
       begin
          asm
@@ -680,7 +680,7 @@ implementation
             movw  %cx,4(%eax)
          end;
       end;
-{$ASMMODE ATT}
+{$I386_ATT}
 
     function allocate_ldt_descriptors(count : word) : word;
 
@@ -1026,7 +1026,7 @@ implementation
          sti
       end;
 
-{$ASMMODE DIRECT}
+{$I386_DIRECT}
     function get_run_mode : word;
       begin
          asm
@@ -1034,7 +1034,7 @@ implementation
             movw %ax,__RESULT
          end ['EAX'];
       end;
-{$ASMMODE ATT}
+{$I386_ATT}
 
     function map_device_in_memory_block(handle,offset,pagecount,device:longint):boolean;
       begin
@@ -1052,7 +1052,7 @@ implementation
          end;
       end;
 
-{$ASMMODE DIRECT}
+{$I386_DIRECT}
     function get_core_selector : word;
 
       begin
@@ -1061,7 +1061,7 @@ implementation
             movw %ax,__RESULT
          end;
       end;
-{$ASMMODE ATT}
+{$I386_ATT}
 
 
     function transfer_buffer : longint;
@@ -1220,7 +1220,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  1998-07-04 10:04:41  peter
+  Revision 1.7  1998-07-07 12:25:20  carl
+    * compiles under fpc v0995, don't modify now now! :)
+
+  Revision 1.6  1998/07/04 10:04:41  peter
     + ifdef has_property for 0.99.5 backward support
 
   Revision 1.5  1998/05/31 14:16:49  peter
