@@ -14,8 +14,6 @@
 
  **********************************************************************}
 
-Procedure int_finalize (Data,TypeInfo: Pointer);forward;
-
 {****************************************************************************
                   Internal Routines called from the Compiler
 ****************************************************************************}
@@ -128,6 +126,24 @@ Procedure int_finalize (Data,TypeInfo: Pointer);forward;
            InstanceSize:=plongint(self)^;
         end;
 
+      procedure InitInterfacePointers(objclass: tclass;instance : pointer);
+
+        var
+           intftable : pinterfacetable;
+           i : longint;
+
+        begin
+{$ifdef HASINTF}
+          if assigned(objclass.classparent) then
+            InitInterfacePointers(objclass.classparent,instance);
+          intftable:=objclass.getinterfacetable;
+          if assigned(intftable) then
+            for i:=0 to intftable^.EntryCount-1 do
+              ppointer(@(PChar(instance)[intftable^.Entries[i].IOffset]))^:=
+                pointer(intftable^.Entries[i].VTable);
+{$endif HASINTF}
+        end;
+
       class function TObject.InitInstance(instance : pointer) : tobject;
 
         begin
@@ -135,6 +151,9 @@ Procedure int_finalize (Data,TypeInfo: Pointer);forward;
            { insert VMT pointer into the new created memory area }
            { (in class methods self contains the VMT!)           }
            ppointer(instance)^:=pointer(self);
+{$ifdef HASINTF}
+           InitInterfacePointers(self,instance);
+{$endif HASINTF}
            InitInstance:=TObject(Instance);
         end;
 
@@ -217,13 +236,12 @@ Procedure int_finalize (Data,TypeInfo: Pointer);forward;
            MethodAddress:=nil;
         end;
 
-      class function TObject.MethodName(address : pointer) : shortstring;
 
+      class function TObject.MethodName(address : pointer) : shortstring;
         var
            methodtable : pmethodnametable;
            i : dword;
            c : tclass;
-
         begin
            c:=self;
            while assigned(c) do
@@ -244,10 +262,7 @@ Procedure int_finalize (Data,TypeInfo: Pointer);forward;
         end;
 
 
-
-
       function TObject.FieldAddress(const name : shortstring) : pointer;
-
         type
            PFieldInfo = ^TFieldInfo;
            TFieldInfo = packed record
@@ -595,6 +610,7 @@ Procedure int_finalize (Data,TypeInfo: Pointer);forward;
         begin
           getinterfacetable:=pinterfacetable((pointer(Self)+vmtIntfTable)^);
         end;
+
 {****************************************************************************
                                TINTERFACEDOBJECT
 ****************************************************************************}
@@ -661,7 +677,10 @@ Procedure int_finalize (Data,TypeInfo: Pointer);forward;
 
 {
   $Log$
-  Revision 1.11  2000-11-09 17:50:12  florian
+  Revision 1.12  2000-11-12 23:23:34  florian
+    * interfaces basically running
+
+  Revision 1.11  2000/11/09 17:50:12  florian
     * Finalize to int_finalize renamed
 
   Revision 1.10  2000/11/07 23:42:21  florian

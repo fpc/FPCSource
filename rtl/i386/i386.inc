@@ -1117,7 +1117,6 @@ end;
 {$ifdef SYSTEMDEBUG}
 end;
 {$endif def SYSTEMDEBUG}
-{$ifdef HASINTF}
 { do a thread save inc/dec }
 
 procedure declocked(var l : longint);assembler;
@@ -1158,11 +1157,12 @@ procedure inclocked(var l : longint);assembler;
 .Linclockedend:
   end ['EDI'];
 
-{$endif HASINTF}
-
 {
   $Log$
-  Revision 1.4  2000-11-07 23:42:21  florian
+  Revision 1.5  2000-11-12 23:23:34  florian
+    * interfaces basically running
+
+  Revision 1.4  2000/11/07 23:42:21  florian
     + AfterConstruction and BeforeDestruction implemented
     + TInterfacedObject implemented
 
