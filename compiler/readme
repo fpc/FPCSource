@@ -17,7 +17,7 @@ Changes in the syntax or semantic of FPC:
              anymore (solved several bugs) but this could lead to errors
              on previously accepted code (PM)
   01/02/99:  c styled comments are supported (/* ... */), mainly
-             for the Sibyl sources of Medigo (FK) 
+             for the Sibyl sources of Medigo (FK)
   02/02/99:  class destructors take now two parameters: flag
              if the helper routine should free the instance and
              self pointer (FK)
@@ -27,4 +27,6 @@ Changes in the syntax or semantic of FPC:
              into a 4 bytes parameter (needed for C and DLL calls) (PM)
   11/03/99   the makefile.fpc is now also needed for the compiler and RTL, you can
              find it in the base.zip package (PFV)
+  24/03/99   new directives UNITPATH,INCLUDEPATH,OBJECTPATH,LIBRARYPATH to
+             set the searchpaths where to find the files for that module (PFV)
 

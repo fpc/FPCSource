@@ -155,6 +155,10 @@ unit files;
           linkofiles    : tstringcontainer;
           used_units    : tlinkedlist;
 
+          localunitsearchpath,           { local searchpaths }
+          localobjectsearchpath,
+          localincludesearchpath,
+          locallibrarysearchpath : pstring;
 
           path,                     { path where the module is find/created }
           outpath,
@@ -799,12 +803,8 @@ uses
 
     function tmodule.search_unit(const n : string;onlysource:boolean):boolean;
       var
-         ext       : string[8];
          singlepathstring,
-         unitPath,
-         filename  : string;
-         found     : boolean;
-         start,i   : longint;
+         filename : string;
 
          Function UnitExists(const ext:string):boolean;
          begin
@@ -812,70 +812,89 @@ uses
            UnitExists:=FileExists(Singlepathstring+FileName+ext);
          end;
 
+         Function SearchPath(unitpath:string):boolean;
+         var
+           found   : boolean;
+           start,i : longint;
+           ext     : string[8];
+         begin
+           start:=1;
+           Found:=false;
+           repeat
+           { Create current path to check }
+             i:=pos(';',unitpath);
+             if i=0 then
+              i:=length(unitpath)+1;
+             singlepathstring:=FixPath(copy(unitpath,start,i-start),false);
+             delete(unitpath,start,i-start+1);
+             if not onlysource then
+              begin
+              { Check for PPL file }
+                if not Found then
+                 begin
+                   Found:=UnitExists(target_info.unitlibext);
+                   if Found then
+                    Begin
+                      SetFileName(SinglePathString+FileName,false);
+                      Found:=OpenPPU;
+                    End;
+                  end;
+              { Check for PPU file }
+                if not Found then
+                 begin
+                   Found:=UnitExists(target_info.unitext);
+                   if Found then
+                    Begin
+                      SetFileName(SinglePathString+FileName,false);
+                      Found:=OpenPPU;
+                    End;
+                 end;
+              end;
+           { Check for Sources }
+             if not Found then
+              begin
+                ppufile:=nil;
+                do_compile:=true;
+              {Check for .pp file}
+                Found:=UnitExists(target_os.sourceext);
+                if Found then
+                 Ext:=target_os.sourceext
+                else
+                 begin
+                 {Check for .pas}
+                   Found:=UnitExists(target_os.pasext);
+                   if Found then
+                    Ext:=target_os.pasext;
+                 end;
+                stringdispose(mainsource);
+                if Found then
+                 begin
+                   sources_avail:=true;
+                 {Load Filenames when found}
+                   mainsource:=StringDup(SinglePathString+FileName+Ext);
+                   SetFileName(SinglePathString+FileName,false);
+                 end
+                else
+                 sources_avail:=false;
+              end;
+           until Found or (unitpath='');
+           SearchPath:=Found;
+         end;
+
+       var
+         fnd : boolean;
        begin
-         start:=1;
          filename:=FixFileName(n);
-         unitpath:=UnitSearchPath;
-         Found:=false;
-         repeat
-         { Create current path to check }
-           i:=pos(';',unitpath);
-           if i=0 then
-            i:=length(unitpath)+1;
-           singlepathstring:=FixPath(copy(unitpath,start,i-start),false);
-           delete(unitpath,start,i-start+1);
-           if not onlysource then
-            begin
-            { Check for PPL file }
-              if not Found then
-               begin
-                 Found:=UnitExists(target_info.unitlibext);
-                 if Found then
-                  Begin
-                    SetFileName(SinglePathString+FileName,false);
-                    Found:=OpenPPU;
-                  End;
-                end;
-            { Check for PPU file }
-              if not Found then
-               begin
-                 Found:=UnitExists(target_info.unitext);
-                 if Found then
-                  Begin
-                    SetFileName(SinglePathString+FileName,false);
-                    Found:=OpenPPU;
-                  End;
-               end;
-            end;
-         { Check for Sources }
-           if not Found then
-            begin
-              ppufile:=nil;
-              do_compile:=true;
-            {Check for .pp file}
-              Found:=UnitExists(target_os.sourceext);
-              if Found then
-               Ext:=target_os.sourceext
-              else
-               begin
-               {Check for .pas}
-                 Found:=UnitExists(target_os.pasext);
-                 if Found then
-                  Ext:=target_os.pasext;
-               end;
-              stringdispose(mainsource);
-              if Found then
-               begin
-                 sources_avail:=true;
-               {Load Filenames when found}
-                 mainsource:=StringDup(SinglePathString+FileName+Ext);
-                 SetFileName(SinglePathString+FileName,false);
-               end
-              else
-               sources_avail:=false;
-            end;
-         until Found or (unitpath='');
-         search_unit:=Found;
+         { try to find unit
+            1. cwd
+            2. local unit path
+            3. global unit path }
+         fnd:=SearchPath('.');
+         if (not fnd) and assigned(current_module^.LocalUnitSearchPath) then
+          fnd:=SearchPath(current_module^.LocalUnitSearchPath^);
+         if not fnd then
+          fnd:=SearchPath(UnitSearchPath);
+         search_unit:=fnd;
       end;
 
     procedure tmodule.reset;
@@ -974,6 +993,10 @@ uses
 {$endif tp}
          path:=nil;
          setfilename(p+n,true);
+         localunitsearchpath:=nil;
+         localobjectsearchpath:=nil;
+         localincludesearchpath:=nil;
+         locallibrarysearchpath:=nil;
          used_units.init;
          new(sourcefiles,init);
          resourcefiles.init_no_double;
@@ -1048,6 +1071,10 @@ uses
         stringdispose(modulename);
         stringdispose(mainsource);
         stringdispose(asmprefix);
+        stringdispose(localunitsearchpath);
+        stringdispose(localobjectsearchpath);
+        stringdispose(localincludesearchpath);
+        stringdispose(locallibrarysearchpath);
         if assigned(globalsymtable) then
           dispose(punitsymtable(globalsymtable),done);
         globalsymtable:=nil;
@@ -1097,7 +1124,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.87  1999-02-16 00:48:23  peter
+  Revision 1.88  1999-03-25 16:55:29  peter
+    + unitpath,librarypath,includepath,objectpath directives
+
+  Revision 1.87  1999/02/16 00:48:23  peter
     * save in the ppu if linked with obj file instead of using the
       library flag, so the .inc files are also checked
 

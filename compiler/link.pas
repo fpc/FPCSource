@@ -105,7 +105,7 @@ begin
    Glibc2:=true
   else
    DynamicLinker:='/lib/ld-linux.so.1';
-  LibrarySearchPath:='/lib;/usr/lib';
+  LibrarySearchPath:='/lib;/usr/lib;/usr/lib/X11';
 {$else}
   DynamicLinker:='';
   LibrarySearchPath:='';
@@ -178,10 +178,22 @@ begin
      Findobjectfile:=s;
      exit;
    end;
-  findobjectfile:=search(s,'.;'+unitsearchpath+';'+exepath,found)+s;
-  { if not found then check the object searchpath also }
-  if not found then
+  { find object file
+     1. cwd
+     2. unit search path
+     3. local object path
+     4. global object path
+     5. exepath }
+  found:=false;
+  findobjectfile:=search(s,'.',found)+s;
+  if (not found) then
+   findobjectfile:=search(s,unitsearchpath,found)+s;
+  if (not found) and assigned(current_module^.localobjectsearchpath) then
+   findobjectfile:=search(s,current_module^.localobjectsearchpath^,found)+s;
+  if (not found) then
    findobjectfile:=search(s,objectsearchpath,found)+s;
+  if (not found) then
+   findobjectfile:=search(s,exepath,found)+s;
   if not(cs_link_extern in aktglobalswitches) and (not found) then
    Message1(exec_w_objfile_not_found,s);
 end;
@@ -199,7 +211,19 @@ begin
      FindLibraryFile:=s;
      exit;
    end;
-  findlibraryfile:=search(s,'.;'+librarysearchpath+';'+exepath,found)+s;
+  { find libary
+     1. cwd
+     2. local libary dir
+     3. global libary dir
+     4. exe path of the compiler }
+  found:=false;
+  findlibraryfile:=search(s,'.',found)+s;
+  if (not found) and assigned(current_module^.locallibrarysearchpath) then
+   findlibraryfile:=search(s,current_module^.locallibrarysearchpath^,found)+s;
+  if (not found) then
+   findlibraryfile:=search(s,librarysearchpath,found)+s;
+  if (not found) then
+   findlibraryfile:=search(s,exepath,found)+s;
   if not(cs_link_extern in aktglobalswitches) and (not found) then
    Message1(exec_w_libfile_not_found,s);
 end;
@@ -280,6 +304,17 @@ Var
      WriteLn(Linkresponse,s);
   end;
 
+  procedure WriteResFileName(const s:string);
+  begin
+    if s<>'' then
+     begin
+       if (pos('\',s)=0) and (pos('/',s)=0) then
+         WriteLn(Linkresponse,'.'+DirSep+s)
+       else
+         WriteLn(Linkresponse,s);
+     end;
+  end;
+
 begin
   WriteResponseFile:=False;
   linux_link_c:=false;
@@ -331,6 +366,19 @@ begin
    exit;
 
   { Write library searchpath }
+  if assigned(current_module^.locallibrarysearchpath) then
+   begin
+     S2:=current_module^.locallibrarysearchpath^;
+     Repeat
+       i:=Pos(';',S2);
+       If i=0 then
+        i:=255;
+       S:=Copy(S2,1,i-1);
+       If S<>'' then
+         WriteRes(target_link.libpathprefix+s+target_link.libpathsuffix);
+       Delete (S2,1,i);
+     until S2='';
+   end;
   S2:=LibrarySearchPath;
   Repeat
     i:=Pos(';',S2);
@@ -345,32 +393,32 @@ begin
   WriteRes(target_link.inputstart);
   { add objectfiles, start with prt0 always }
   if prtobj<>'' then
-   WriteRes(FindObjectFile(prtobj));
+   WriteResFileName(FindObjectFile(prtobj));
   { try to add crti and crtbegin, they are normally not required, but
     adding can sometimes be usefull }
   if linux_link_c then
    begin
      s:=search('crtbegin.o',librarysearchpath,found)+'crtbegin.o';
      if found then
-      WriteRes(s);
+      WriteResFileName(s);
      s:=search('crti.o',librarysearchpath,found)+'crti.o';
      if found then
-      WriteRes(s);
+      WriteResFileName(s);
    end;
   while not ObjectFiles.Empty do
    begin
      s:=ObjectFiles.Get;
      if s<>'' then
-      WriteRes(s);
+      WriteResFileName(s);
    end;
   if linux_link_c then
    begin
      s:=search('crtend.o',librarysearchpath,found)+'crtend.o';
      if found then
-      WriteRes(s);
+      WriteResFileName(s);
      s:=search('crtn.o',librarysearchpath,found)+'crtn.o';
      if found then
-      WriteRes(s);
+      WriteResFileName(s);
    end;
 
   { Write sharedlibraries like -l<lib> }
@@ -404,7 +452,7 @@ begin
      While not StaticLibFiles.Empty do
       begin
         S:=StaticLibFiles.Get;
-        WriteRes(s)
+        WriteResFileName(s)
       end;
      WriteRes(target_link.GroupEnd);
    end;
@@ -562,7 +610,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.48  1999-03-23 16:22:43  peter
+  Revision 1.49  1999-03-25 16:55:30  peter
+    + unitpath,librarypath,includepath,objectpath directives
+
+  Revision 1.48  1999/03/23 16:22:43  peter
     * crtbegin/crtend only added if found
 
   Revision 1.47  1999/02/05 16:45:47  michael

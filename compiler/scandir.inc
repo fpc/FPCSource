@@ -33,16 +33,18 @@ type
      _DIR_FATAL,
      _DIR_HINT,_DIR_HINTS,
      _DIR_I,_DIR_I386_ATT,_DIR_I386_DIRECT,_DIR_I386_INTEL,_DIR_IOCHECKS,
-       _DIR_IF,_DIR_IFDEF,_DIR_IFNDEF,_DIR_IFOPT,_DIR_INCLUDE,_DIR_INFO,
-     _DIR_L,_DIR_LINK,_DIR_LINKLIB,_DIR_LOCALSYMBOLS,_DIR_LONGSTRINGS,
+       _DIR_IF,_DIR_IFDEF,_DIR_IFNDEF,_DIR_IFOPT,_DIR_INCLUDE,_DIR_INCLUDEPATH,
+       _DIR_INFO,
+     _DIR_L,_DIR_LIBRARYPATH,_DIR_LINK,_DIR_LINKLIB,_DIR_LOCALSYMBOLS,
+       _DIR_LONGSTRINGS,
      _DIR_M,_DIR_MEMORY,_DIR_MESSAGE,_DIR_MINENUMSIZE,_DIR_MMX,_DIR_MODE,
      _DIR_NOTE,_DIR_NOTES,
-     _DIR_OPENSTRINGS,_DIR_OUTPUT_FORMAT,_DIR_OVERFLOWCHECKS,
+     _DIR_OBJECTPATH,_DIR_OPENSTRINGS,_DIR_OUTPUT_FORMAT,_DIR_OVERFLOWCHECKS,
      _DIR_PACKENUM,_DIR_PACKRECORDS,
      _DIR_R,_DIR_RANGECHECKS,_DIR_REFERENCEINFO,
      _DIR_SATURATION,_DIR_SMARTLINK,_DIR_STACKFRAMES,_DIR_STOP,
      _DIR_TYPEDADDRESS,_DIR_TYPEINFO,
-     _DIR_UNDEF,
+     _DIR_UNDEF,_DIR_UNITPATH,
      _DIR_VARSTRINGCHECKS,
      _DIR_WAIT,_DIR_WARNING,_DIR_WARNINGS,
      _DIR_Z1,_DIR_Z2,_DIR_Z4
@@ -59,16 +61,18 @@ const
      'FATAL',
      'HINT','HINTS',
      'I','I386_ATT','I386_DIRECT','I386_INTEL','IOCHECKS',
-       'IF','IFDEF','IFNDEF','IFOPT','INCLUDE','INFO',
-     'L','LINK','LINKLIB','LOCALSYMBOLS','LONGSTRINGS',
+       'IF','IFDEF','IFNDEF','IFOPT','INCLUDE','INCLUDEPATH',
+       'INFO',
+     'L','LIBRARYPATH','LINK','LINKLIB','LOCALSYMBOLS',
+       'LONGSTRINGS',
      'M','MEMORY','MESSAGE','MINENUMSIZE','MMX','MODE',
      'NOTE','NOTES',
-     'OPENSTRINGS','OUTPUT_FORMAT','OVERFLOWCHECKS',
+     'OBJECTPATH','OPENSTRINGS','OUTPUT_FORMAT','OVERFLOWCHECKS',
      'PACKENUM','PACKRECORDS',
      'R','RANGECHECKS','REFERENCEINFO',
      'SATURATION','SMARTLINK','STACKFRAMES','STOP',
      'TYPEDADDRESS','TYPEINFO',
-     'UNDEF',
+     'UNDEF','UNITPATH',
      'VARSTRINGCHECKS',
      'WAIT','WARNING','WARNINGS',
      'Z1','Z2','Z4'
@@ -570,8 +574,16 @@ const
          begin
            hs:=FixFileName(hs);
            fsplit(hs,path,name,ext);
-         { first look in the path of _d then currentmodule }
-           path:=search(name+ext,path+';'+current_scanner^.inputfile^.path^+';'+includesearchpath,found);
+         { look for the include file
+            1. specified path,path of current inputfile,current dir
+            2. local includepath
+            3. global includepath }
+           found:=false;
+           path:=search(name+ext,path+';'+current_scanner^.inputfile^.path^+';.',found);
+           if (not found) and assigned(current_module^.localincludesearchpath) then
+            path:=search(name+ext,current_module^.localincludesearchpath^,found);
+           if (not found) then
+            path:=search(name+ext,includesearchpath,found);
          { shutdown current file }
            current_scanner^.tempcloseinputfile;
          { load new file }
@@ -634,6 +646,62 @@ const
              aktoutputformat:=target_asm.id
             else
              Message(scan_w_illegal_switch);
+          end;
+      end;
+
+
+    procedure dir_unitpath(t:tdirectivetoken);
+      begin
+        if not current_module^.in_global then
+         Message(scan_w_switch_is_global)
+        else
+          begin
+            current_scanner^.skipspace;
+            if assigned(current_module^.localunitsearchpath) then
+             stringdispose(current_module^.localunitsearchpath);
+            current_module^.localunitsearchpath:=stringdup(current_scanner^.readcomment);
+          end;
+      end;
+
+
+    procedure dir_includepath(t:tdirectivetoken);
+      begin
+        if not current_module^.in_global then
+         Message(scan_w_switch_is_global)
+        else
+          begin
+            current_scanner^.skipspace;
+            if assigned(current_module^.localincludesearchpath) then
+             stringdispose(current_module^.localincludesearchpath);
+            current_module^.localincludesearchpath:=stringdup(current_scanner^.readcomment);
+          end;
+      end;
+
+
+    procedure dir_librarypath(t:tdirectivetoken);
+      begin
+        if not current_module^.in_global then
+         Message(scan_w_switch_is_global)
+        else
+          begin
+            current_scanner^.skipspace;
+            if assigned(current_module^.locallibrarysearchpath) then
+             stringdispose(current_module^.locallibrarysearchpath);
+            current_module^.locallibrarysearchpath:=stringdup(current_scanner^.readcomment);
+          end;
+      end;
+
+
+    procedure dir_objectpath(t:tdirectivetoken);
+      begin
+        if not current_module^.in_global then
+         Message(scan_w_switch_is_global)
+        else
+          begin
+            current_scanner^.skipspace;
+            if assigned(current_module^.localobjectsearchpath) then
+             stringdispose(current_module^.localobjectsearchpath);
+            current_module^.localobjectsearchpath:=stringdup(current_scanner^.readcomment);
           end;
       end;
 
@@ -901,8 +969,10 @@ const
          {_DIR_IFNDEF} dir_conditional,
          {_DIR_IFOPT} dir_conditional,
          {_DIR_INCLUDE} dir_include,
+         {_DIR_INCLUDEPATH} dir_includepath,
          {_DIR_INFO} dir_message,
          {_DIR_L} dir_linkobject,
+         {_DIR_LIBRARYPATH} dir_librarypath,
          {_DIR_LINK} dir_linkobject,
          {_DIR_LINKLIB} dir_linklib,
          {_DIR_LOCALSYMBOLS} dir_delphiswitch,
@@ -915,6 +985,7 @@ const
          {_DIR_MODE} dir_mode,
          {_DIR_NOTE} dir_message,
          {_DIR_NOTES} dir_setverbose,
+         {_DIR_OBJECTPATH} dir_objectpath,
          {_DIR_OPENSTRINGS} dir_delphiswitch,
          {_DIR_OUTPUT_FORMAT} dir_outputformat,
          {_DIR_OVERFLOWCHECKS} dir_delphiswitch,
@@ -930,6 +1001,7 @@ const
          {_DIR_TYPEDADDRESS} dir_delphiswitch,
          {_DIR_TYPEINFO} dir_delphiswitch,
          {_DIR_UNDEF} dir_undef,
+         {_DIR_UNITPATH} dir_unitpath,
          {_DIR_VARSTRINGCHECKS} dir_delphiswitch,
          {_DIR_WAIT} dir_wait,
          {_DIR_WARNING} dir_message,
@@ -1005,7 +1077,10 @@ const
 
 {
   $Log$
-  Revision 1.47  1999-02-22 13:07:05  pierre
+  Revision 1.48  1999-03-25 16:55:34  peter
+    + unitpath,librarypath,includepath,objectpath directives
+
+  Revision 1.47  1999/02/22 13:07:05  pierre
     + -b and -bl options work !
     + cs_local_browser ($L+) is disabled if cs_browser ($Y+)
       is not enabled when quitting global section
