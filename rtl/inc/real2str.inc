@@ -60,7 +60,7 @@ type
   TIntPartStack = array[1..maxDigits+1] of valReal;
 
 var
-  roundCorr, corrVal: valReal;
+  roundCorr, corrVal, factor, orgd: valReal;
   spos, endpos, fracCount: longint;
   correct, currprec: longint;
   temp : string;
@@ -68,6 +68,16 @@ var
   sign : boolean;
   dot : byte;
   mantZero, expMaximal: boolean;
+
+
+  maxlen : longint;   { Maximal length of string for float }
+  minlen : longint;   { Minimal length of string for float }
+  explen : longint;   { Length of exponent, including E and sign.
+                           Must be strictly larger than 2 }
+const
+  maxexp = 1e+35;   { Maximum value for decimal expressions }
+  minexp = 1e-35;   { Minimum value for decimal expressions }
+  zero   = '0000000000000000000000000000000000000000';
 
   procedure RoundStr(var s: string; lastPos: byte);
   var carry: longint;
@@ -162,15 +172,6 @@ var
     writeln(stderr,'temp at getintpart exit is = ',temp);
 {$endif DEBUG_NASM}
   end;
-
-var  maxlen : longint;   { Maximal length of string for float }
-     minlen : longint;   { Minimal length of string for float }
-     explen : longint;   { Length of exponent, including E and sign.
-                           Must be strictly larger than 2 }
-const
-      maxexp = 1e+35;   { Maximum value for decimal expressions }
-      minexp = 1e-35;   { Minimum value for decimal expressions }
-      zero   = '0000000000000000000000000000000000000000';
 
 begin
   case real_type of
@@ -355,8 +356,10 @@ begin
       if (currPrec >= 0) then
         begin
           corrVal := 0.5;
+          factor := 1;
           for fracCount := 1 to currPrec do
-            corrVal := corrVal / 10.0;
+            factor := factor * 10.0;
+          corrval := corrval / factor;
           if d >= corrVal then
             d := d + corrVal;
           if int(d) = 1 then
@@ -439,7 +442,11 @@ end;
 
 {
   $Log$
-  Revision 1.7  2002-10-04 16:41:17  jonas
+  Revision 1.8  2003-05-16 23:22:31  jonas
+    * moved all loal variables to one block (necessary for ppc until nested
+      procedures are properly supported)
+
+  Revision 1.7  2002/10/04 16:41:17  jonas
     * fixed web bug 2131
 
   Revision 1.6  2002/09/07 15:07:46  peter
