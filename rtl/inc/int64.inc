@@ -154,21 +154,20 @@
     function mulqword(f1,f2 : qword;checkoverflow : longbool) : qword;[public,alias: 'FPC_MUL_QWORD'];
 
       var
-         zero,bitpos64,bitpos : qword;
+         _f1,bitpos : qword;
          l : longint;
 
 
       begin
-         zero:=0;
          mulqword:=0;
-         { we can't write currently qword constants directly :( }
-         tqwordrec(bitpos64).high:=$80000000;
-         tqwordrec(bitpos64).low:=0;
          bitpos:=1;
+
+         // store f1 for overflow checking
+         _f1:=f1;
 
          for l:=0 to 63 do
            begin
-              if (f2 and bitpos)<>zero then
+              if (f2 and bitpos)<>0 then
                 mulqword:=mulqword+f1;
 
               f1:=f1 shl 1;
@@ -177,7 +176,7 @@
 
          { if one of the operands is greater than the result an }
          { overflow occurs                                      }
-         if checkoverflow and ((f1>mulqword) or (f2>mulqword)) then
+         if checkoverflow and ((_f1>mulqword) or (f2>mulqword)) then
            HandleErrorFrame(215,get_frame);
       end;
 
@@ -266,7 +265,10 @@
 
 {
   $Log$
-  Revision 1.10  1999-07-01 15:39:50  florian
+  Revision 1.11  1999-07-02 17:01:29  florian
+    * multiplication overflow checking fixed
+
+  Revision 1.10  1999/07/01 15:39:50  florian
     + qword/int64 type released
 
   Revision 1.9  1999/06/30 22:12:40  florian
