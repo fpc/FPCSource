@@ -42,7 +42,8 @@ procedure set_fsr(fsr : dword);assembler;
 procedure fpc_cpuinit;
   begin
     { enable div by 0 and invalid operation fpu exceptions }
-    set_fsr(get_fsr or $09000000);
+    { round towards zero; ieee compliant arithmetics }
+    set_fsr((get_fsr and $3fbfffff) or $09000000);
   end;
 
 
@@ -352,7 +353,10 @@ end;
 
 {
   $Log$
-  Revision 1.16  2004-11-21 19:11:33  peter
+  Revision 1.17  2005-01-18 20:37:26  florian
+    * set floating point precision and ieee compliance
+
+  Revision 1.16  2004/11/21 19:11:33  peter
     * fix bootstrapping
 
   Revision 1.15  2004/11/21 15:35:23  peter
