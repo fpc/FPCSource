@@ -938,6 +938,7 @@ begin
 	  FPropName := DotPos;
 	  break;
 	end;
+	DotPos := NextPos + 1;
 
         PropInfo := GetPropInfo(Instance.ClassInfo, FPropName);
         if not Assigned(PropInfo) then
@@ -1277,7 +1278,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2000-12-21 09:08:09  sg
+  Revision 1.4  2001-03-08 19:32:22  michael
+  Fixes merged
+
+  Revision 1.3  2000/12/21 09:08:09  sg
   * Applied bugfixes by Mattias Gaertner for TBinaryObjectReader.ReadSet
     (uninitialized result and missing bit shifting) and
     TReader.ReadRootComponent (finding an unique component name)
