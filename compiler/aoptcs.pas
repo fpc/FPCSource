@@ -288,7 +288,7 @@ Begin
                     Begin
                       RegsLoadedForRef := RegsLoadedForRef + [Base];
 {$ifdef csdebug}
-                      Writeln(att_reg2str[base], ' added');
+                      Writeln(gas_reg2str[base], ' added');
 {$endif csdebug}
                     end;
 {$Ifdef RefsHaveIndexReg}
@@ -299,7 +299,7 @@ Begin
                     Begin
                       RegsLoadedForRef := RegsLoadedForRef + [Index];
 {$ifdef csdebug}
-                      Writeln(att_reg2str[index], ' added');
+                      Writeln(gas_reg2str[index], ' added');
 {$endif csdebug}
                     end;
 {$endif RefsHaveIndexReg}
@@ -315,7 +315,7 @@ Begin
                   RegsLoadedForRef := RegsLoadedForRef -
                     [RegMaxSize(PInstr(NewP)^.oper[LoadDst].reg)];
 {$ifdef csdebug}
-                  Writeln(att_reg2str[RegMaxSize(PInstr(NewP)^.oper[1].reg)], ' removed');
+                  Writeln(gas_reg2str[RegMaxSize(PInstr(NewP)^.oper[1].reg)], ' removed');
 {$endif csdebug}
                 end;
             InstructionsEquivalent :=
@@ -554,7 +554,7 @@ Begin
           TmpState := PPaiProp(hp3^.OptInfo)^.Regs[reg].WState;
 {$ifdef csdebug}
           hp5 := new(pai_asm_comment,init(strpnew('WState for '+
-            att_reg2str[reg]+': '+tostr(tmpstate))));
+            gas_reg2str[reg]+': '+tostr(tmpstate))));
           InsertLLItem(hp3, pai(hp3^.next), hp5);
 {$endif csdebug}
           PPaiProp(hp3^.OptInfo)^.Regs[reg] :=
@@ -570,7 +570,7 @@ Begin
             (PPaiProp(hp3^.OptInfo)^.GetWState(Reg) = TmpState) Do
 {$ifdef csdebug}
         begin
-          hp5 := new(pai_asm_comment,init(strpnew('WState for '+att_reg2str[reg]+': '+
+          hp5 := new(pai_asm_comment,init(strpnew('WState for '+gas_reg2str[reg]+': '+
                  tostr(PPaiProp(hp3^.OptInfo)^.GetWState(reg)))));
              InsertLLItem(hp3, pai(hp3^.next), hp5);
 {$endif csdebug}
@@ -585,7 +585,7 @@ Begin
 { instructions in the sequence that modify reg                   }
     Begin
 {$ifdef csdebug}
-      Writeln('Got there for ',att_Reg2Str[reg]);
+      Writeln('Got there for ',gas_reg2str[reg]);
 {$endif csdebug}
       hp3 := Current;
       For Cnt := 1 to Cnt2 Do
@@ -695,8 +695,8 @@ Begin
                           If (RegCounter in RegInfo.RegsLoadedForRef) Then
                             Begin
                               hp5 := new(pai_asm_comment,init(strpnew(
-                                'New: '+att_reg2str[RegCounter]+', Old: '+
-                                att_reg2str[RegInfo.New2OldReg[RegCounter]])));
+                                'New: '+gas_reg2str[RegCounter]+', Old: '+
+                                gas_reg2str[RegInfo.New2OldReg[RegCounter]])));
                               InsertLLItem(AsmL, Pai(Current^.previous), Current, hp5);
                             End;
 {$EndIf CSDebug}
@@ -850,7 +850,10 @@ End.
 
 {
   $Log$
-  Revision 1.1  2001-08-26 13:36:35  florian
+  Revision 1.2  2002-04-14 16:49:30  carl
+  + att_reg2str -> gas_reg2str
+
+  Revision 1.1  2001/08/26 13:36:35  florian
     * some cg reorganisation
     * some PPC updates
 
