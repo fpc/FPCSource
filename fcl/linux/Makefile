@@ -1,5 +1,5 @@
 #
-# Makefile generated from Makefile.fpc on 1999-11-04 11:51
+# Makefile generated from Makefile.fpc on 1999-11-06 18:16
 #
 
 defaultrule: Makefile all
@@ -67,7 +67,7 @@ endif
 # Default target
 #####################################################################
 
-override OS_TARGET:=go32v2
+override OS_TARGET:=linux
 override CPU_TARGET:=i386
 
 #####################################################################
