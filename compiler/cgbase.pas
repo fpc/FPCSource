@@ -110,8 +110,6 @@ unit cgbase;
 
           procedure allocate_parent_framepointer_parameter;virtual;
 
-          procedure allocate_interrupt_parameter;virtual;
-
           { Allocate framepointer so it can not be used by the
             register allocator }
           procedure allocate_framepointer_reg;virtual;
@@ -339,13 +337,15 @@ implementation
       end;
 
 
-    procedure tprocinfo.allocate_interrupt_parameter;
-      begin
-      end;
-
-
     procedure tprocinfo.allocate_framepointer_reg;
       begin
+        if framepointer=NR_FRAME_POINTER_REG then
+          begin
+            { Make sure the register allocator won't allocate registers
+              into ebp }
+            include(rg.used_in_proc_int,RS_FRAME_POINTER_REG);
+            exclude(rg.unusedregsint,RS_FRAME_POINTER_REG);
+          end;
       end;
 
 
@@ -546,7 +546,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.64  2003-09-23 17:56:05  peter
+  Revision 1.65  2003-09-25 21:25:13  peter
+    * remove allocate_intterupt_parameter, allocation is platform
+      dependent and needs to be done in create_paraloc_info
+
+  Revision 1.64  2003/09/23 17:56:05  peter
     * locals and paras are allocated in the code generation
     * tvarsym.localloc contains the location of para/local when
       generating code for the current procedure

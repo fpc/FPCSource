@@ -1128,10 +1128,6 @@ implementation
              if (current_procinfo.procdef.parast.symtablelevel>normal_function_level) then
                current_procinfo.allocate_parent_framepointer_parameter;
 
-             { add implicit pushes for interrupt routines }
-             if (po_interrupt in pd.procoptions) then
-               current_procinfo.allocate_interrupt_parameter;
-
              { set _FAIL as keyword if constructor }
              if (pd.proctypeoption=potype_constructor) then
               begin
@@ -1301,7 +1297,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.150  2003-09-25 16:19:32  peter
+  Revision 1.151  2003-09-25 21:25:13  peter
+    * remove allocate_intterupt_parameter, allocation is platform
+      dependent and needs to be done in create_paraloc_info
+
+  Revision 1.150  2003/09/25 16:19:32  peter
     * fix filepositions
     * insert spill temp allocations at the start of the proc
 
