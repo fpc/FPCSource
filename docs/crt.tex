@@ -318,7 +318,7 @@ Procedure NoSound ;
 \Description
 
 Stops the speaker sound.
-This is not supported in \linux
+This call is not supported on all operating systems.
 \Errors
 None.
 \SeeAlso
@@ -353,8 +353,9 @@ None.
 \Declaration
 Procedure Sound (hz : word);
 \Description
- Sounds the speaker at a frequency of \var{hz}.
-This is not supported in \linux
+ Sounds the speaker at a frequency of \var{hz}. Under \windows,
+ a system sound is played and the frequency parameter is ignored.
+ On other operating systems, this routine may not be implemented.
 \Errors
 None.
 \SeeAlso
