@@ -12,3 +12,5 @@ Exceptions ............ testexc.pp
                         testexc2.pp
                         testexc3.pp
 Libraries ............. testlib.pp     a very primitive test
+Parameter passing
+via out ............... testout.pp
