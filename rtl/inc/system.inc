@@ -325,7 +325,7 @@ begin
     end;
     Inc(Seed1);
     Seed1 := (Seed1 * 998) mod 1000003;
-    Random := Seed1 mod Succ(l);
+    Random := Seed1 mod l;
 end;
 
 
@@ -530,7 +530,10 @@ end;
 
 {
   $Log$
-  Revision 1.26  1998-08-11 00:05:26  peter
+  Revision 1.27  1998-08-13 16:22:11  jonas
+  * random now returns a value between 0 and max-1 instead of between 0 and max
+
+  Revision 1.26  1998/08/11 00:05:26  peter
     * $ifdef ver0_99_5 updates
 
   Revision 1.25  1998/07/30 13:26:18  michael
