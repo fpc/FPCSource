@@ -536,6 +536,7 @@ end;
 
 function SysReAllocMem(var p:pointer;size : longint):pointer;
 var
+  orgsize,
   currsize,
   foundsize,
   sizeleft,
@@ -554,6 +555,7 @@ begin
      exit;
    end;
 { fix needed size }
+  orgsize:=size;
   size:=(size+sizeof(theaprecord)+(blocksize-1)) and (not (blocksize-1));
 { fix p to point to the heaprecord }
   pcurr:=pfreerecord(pointer(p)-sizeof(theaprecord));
@@ -630,9 +632,9 @@ begin
      else
       begin
         { we need to call getmem/move/freemem }
-        p2:=MemoryManager.GetMem(size);
+        p2:=MemoryManager.GetMem(orgsize);
         if p2<>nil then
-         Move(p^,p2^,size);
+         Move(p^,p2^,orgsize);
         MemoryManager.Freemem(p);
         p:=p2;
         SysReAllocMem:=p;
@@ -781,7 +783,10 @@ end;
 
 {
   $Log$
-  Revision 1.25  1999-12-01 22:57:31  peter
+  Revision 1.26  1999-12-13 21:04:46  peter
+    * fixed getmem call with wrong size from reallocmem
+
+  Revision 1.25  1999/12/01 22:57:31  peter
     * cmdline support
 
   Revision 1.24  1999/11/14 21:34:21  peter
