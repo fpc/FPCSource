@@ -2927,7 +2927,7 @@ one copy of the string constant.
 
 Evaluation of boolean expression stops as soon as the result is
 known, which makes code execute faster then if all boolean operands
-were evaluted.
+were evaluated.
 
 \subsection{ Constant set inlining }
 
@@ -3010,15 +3010,15 @@ implemented until version 0.99.6 of \fpc.
 
 \subsection{ Case optimization }
 
-When using the \var{-O1} switch, case statements in certain cases will
-be decoded using a jump table, which in certain cases will make the
-case statement execute faster.
+When using the \var{-O1} (or higher) switch, case statements will be
+generated using a jump table if appropriate, to make them execute
+faster.
 
 \subsection{ Stack frame omission }
 
-Under certain specific conditions, the stack frame (entry and exit code 
-for the routine, see section \ref{se:Calling}) will be omitted, and
-the variable will directly be accessed via the stack pointer.
+Under specific conditions, the stack frame (entry and exit code for
+the routine, see section \ref{se:Calling}) will be omitted, and the
+variable will directly be accessed via the stack pointer.
 
 Conditions for omission of the stack frame :
 
@@ -3049,31 +3049,29 @@ the following is done:
 \begin{itemize}
 \item In \var{case} statements, a check is done whether a jump table
 or a sequence of conditional jumps should be used for optimal performance.
-\item Determines a number of strategies when doing peephole optimization:
-\var{movzbl (\%ebp), \%eax} on PentiumPro and PII systems will be changed
-into \var{xorl \%eax,\%eax; movb (\%ebp),\%al } for lesser systems.
+\item Determines a number of strategies when doing peephole optimization, e.g.:
+\var{movzbl (\%ebp), \%eax} will be changed into
+\var{xorl \%eax,\%eax; movb (\%ebp),\%al } for Pentium and PentiumMMX.
 \end{itemize}
-Cyrix \var{6x86} processor owners should optimize with \var{-Op3} instead of
-\var{-Op2}, because \var{-Op2} leads to larger code, and thus to smaller
-speed, according to the Cyrix developers FAQ.
-  \item When optimizing for speed (\var{-OG}, the default) or size (\var{-Og}), a choice is
+\item When optimizing for speed (\var{-OG}, the default) or size (\var{-Og}), a choice is
 made between using shorter instructions (for size) such as \var{enter \$4},
 or longer instructions \var{subl \$4,\%esp} for speed. When smaller size is
 requested, things aren't aligned on 4-byte boundaries.  When speed is
 requested, things are aligned on 4-byte boundaries as much as possible.
-\item Simple optimization (\var{-O1}) makes sure the peephole optimizer is
-used, as well as the reloading optimizer.
-\item Uncertain optimizations (\var{-Ou}): With this switch, the reloading
-optimizer can be forced into making uncertain
-optimizations.
+\item Fast optimizations (\var{-O1}): activate the peephole optimizer
+\item Slower optimizations (\var{-O2}): also activate the common subexpression
+elimination (formaerly called the "reloading optimizer)
+\item Uncertain optimizations (\var{-Ou}): With this switch, the common subexpression
+elimination algorithm can be forced into making uncertain optimizations.
 
-You can enable uncertain optimizations only in certain cases,
-otherwise you will produce a bug; the following technical description
-tells you when to use them:
+Although you can enable uncertain optimizations in most cases, for people who
+do not understand the follwong technical explanation, it might be the safes to
+leave them off.
+
 \begin{quote}
 % Jonas's own words..
 \em
-If uncertain optimizations are enabled, the reloading optimizer assumes
+If uncertain optimizations are enabled, the CSE algortihm assumes
 that
 \begin{itemize}
 \item If something is written to a local/global register or a
@@ -3086,10 +3084,8 @@ procedure/function parameter.
 % end of quote
 \end{quote}
 The practical upshot of this is that you cannot use the uncertain
-optimizations if you access any local or global variables through pointers. In
-theory, this includes \var{Var} parameters, but it is all right
-if you don't both read the variable once through its \var{Var} reference
-and then read it using it's name.
+optimizations if you both write and read local or global variables directly and
+through pointers (this includes \var{Var} parameters, as those are pointers too).
 
 The following example will produce bad code when you switch on
 uncertain optimizations:
@@ -3147,7 +3143,7 @@ Begin
 End.
 \end{verbatim}
 Will produce correct code, because the global variable \var{MyRecArrayPtr}
-is not accessed directly, but through a pointer (\var{MyRecPtr} in this
+is not accessed directly, but only through a pointer (\var{MyRecPtr} in this
 case).
 
 In conclusion, one could say that you can use uncertain optimizations {\em
