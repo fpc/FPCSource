@@ -42,6 +42,8 @@ type
     procedure Reset;virtual;
     procedure Run;virtual;
     procedure Continue;virtual;
+    procedure CommandBegin(const s:string);virtual;
+    procedure CommandEnd(const s:string);virtual;
   end;
 
   BreakpointType = (bt_function,bt_file_line,bt_watch,bt_awatch,bt_rwatch,bt_invalid);
@@ -173,6 +175,31 @@ begin
     Run;
   inherited Continue;
 end;
+
+procedure TDebugController.CommandBegin(const s:string);
+begin
+  if assigned(GDBWindow) and (in_command>1) then
+    begin
+      { We should do something special for errors !! }
+      If StrLen(GetError)>0 then
+        GDBWindow^.WriteErrorText(GetError);
+      GDBWindow^.WriteOutputText(GetOutput);
+    end;
+  if assigned(GDBWindow) then
+    GDBWindow^.WriteString(S);
+end;
+
+procedure TDebugController.CommandEnd(const s:string);
+begin
+  if assigned(GDBWindow) and (in_command=0) then
+    begin
+      { We should do somethnig special for errors !! }
+      If StrLen(GetError)>0 then
+        GDBWindow^.WriteErrorText(GetError);
+      GDBWindow^.WriteOutputText(GetOutput);
+    end;
+end;
+
 
 procedure TDebugController.Reset;
 var
@@ -568,6 +595,10 @@ end;
 ****************************************************************************}
 
 procedure InitDebugger;
+
+var
+  R : TRect;
+
 begin
   Assign(gdb_file,'gdb$$$.out');
   Rewrite(gdb_file);
@@ -585,6 +616,14 @@ begin
   if assigned(Debugger) then
    dispose(Debugger,Done);
   new(Debugger,Init(ExeFile));
+{$ifdef GDBWINDOW}
+  if GDBWindow=nil then
+    begin
+      DeskTop^.GetExtent(R);
+      new(GDBWindow,init(R));
+      DeskTop^.Insert(GDBWindow);
+    end;
+{$endif def GDBWINDOW}
 end;
 
 
@@ -596,6 +635,11 @@ begin
   If Use_gdb_file then
     Close(GDB_file);
   Use_gdb_file:=false;
+  if assigned(GDBWindow) then
+    begin
+      DeskTop^.Delete(GDBWindow);
+      GDBWindow:=nil;
+    end;
 end;
 
 procedure InitBreakpoints;
@@ -613,7 +657,10 @@ end.
 
 {
   $Log$
-  Revision 1.10  1999-02-10 09:55:07  pierre
+  Revision 1.11  1999-02-11 13:10:03  pierre
+   + GDBWindow only with -dGDBWindow for now : still buggy !!
+
+  Revision 1.10  1999/02/10 09:55:07  pierre
     + added OldValue and CurrentValue field for watchpoints
     + InitBreakpoints and DoneBreakpoints
     + MessageBox if GDB stops bacause of a watchpoint !

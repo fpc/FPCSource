@@ -35,11 +35,13 @@ const ClipboardWindow  : PClipboardWindow = nil;
       TabsPattern      : string = 'make*;make*.*';
       SourceDirs       : string = '';
       PrimaryFile      : string = '';
+      GDBOutputFile    : string = 'gdb$$$.txt';
       IsEXECompiled    : boolean = false;
       MainFile         : string = '';
       EXEFile          : string = '';
       CompilationPhase : TCompPhase = cpNothing;
       ProgramInfoWindow: PProgramInfoWindow = nil;
+      GDBWindow        : PGDBWindow = nil;
       UserScreenWindow : PScreenWindow = nil;
       HelpFiles        : FPViews.PUnsortedStringCollection = nil;
       ShowStatusOnError: boolean = true;
@@ -64,7 +66,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.7  1999-02-05 12:07:55  pierre
+  Revision 1.8  1999-02-11 13:10:04  pierre
+   + GDBWindow only with -dGDBWindow for now : still buggy !!
+
+  Revision 1.7  1999/02/05 12:07:55  pierre
     + SourceDirs added
 
   Revision 1.6  1999/02/04 13:15:40  pierre
