@@ -41,6 +41,12 @@ GetEnv      | Func | Returns the value of a specified environment variable.
 {$IFDEF MSDOS}
         {$DEFINE EXTATTR}
 {$ENDIF}
+{$IFDEF GO32V1}
+        {$DEFINE EXTATTR}
+{$ENDIF}
+{$IFDEF GO32V2}
+        {$DEFINE EXTATTR}
+{$ENDIF}
 {$IFDEF OS2}
         {$DEFINE EXTATTR}
 {$ENDIF}
@@ -977,7 +983,10 @@ GetEnv      | Func | Returns the value of a specified environment variable.
 
 {
   $Log$
-  Revision 1.1  2001-05-19 12:10:02  peter
+  Revision 1.2  2001-05-20 18:30:46  hajny
+    + support for GO32v1 and GO32v2 added
+
+  Revision 1.1  2001/05/19 12:10:02  peter
     * renamed to .pp
 
   Revision 1.1  2001/04/02 02:34:13  carl
