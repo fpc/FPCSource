@@ -255,7 +255,7 @@ Var
   gprtobj,
   prtobj       : string[80];
   HPath        : TStringListItem;
-  s            : string;
+  s,s1,s2      : string;
   linkdynamic,
   linklibc     : boolean;
 begin
@@ -325,14 +325,6 @@ begin
      if s<>'' then
       LinkRes.AddFileName(s);
    end;
-  { objects which must be at the end }
-  if linklibc then { Needed in sunos? }
-   begin
-     if librarysearchpath.FindFile('crtend.o',s) then
-      LinkRes.AddFileName(s);
-     if librarysearchpath.FindFile('crtn.o',s) then
-      LinkRes.AddFileName(s);
-   end;
   LinkRes.Add(')');
 
   { Write staticlibraries }
@@ -378,6 +370,18 @@ begin
      if linkdynamic and (Info.DynamicLinker<>'') then { gld has a default, DynamicLinker is not set in sunos }
        LinkRes.AddFileName(Info.DynamicLinker);
      LinkRes.Add(')');
+   end;
+  { objects which must be at the end }
+  if linklibc then {needed in sunos ? }
+   begin
+     if librarysearchpath.FindFile('crtend.o',s1) or
+        librarysearchpath.FindFile('crtn.o',s2) then
+      begin
+        LinkRes.Add('INPUT(');
+        LinkRes.AddFileName(s1);
+        LinkRes.AddFileName(s2);
+        LinkRes.Add(')');
+      end;
    end;
 { Write and Close response }
   linkres.writetodisk;
@@ -528,7 +532,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.3  2001-04-18 22:02:04  peter
+  Revision 1.4  2001-04-21 15:34:01  peter
+    * fixed writing of end objects to not output an empty INPUT()
+
+  Revision 1.3  2001/04/18 22:02:04  peter
     * registration of targets and assemblers
 
   Revision 1.2  2001/04/13 01:22:22  peter
