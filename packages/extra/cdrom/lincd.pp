@@ -22,6 +22,7 @@ uses
 {$ifdef ver1_0}
   linux
 {$else}
+  baseunix,
   unix
 {$endif}
   ;
@@ -1155,14 +1156,23 @@ begin
   Writeln('Testing device : ',Device);
 {$endif}
   Result:=False;
+{$ifdef ver1_0}
   If not fstat(device,info) then
+{$else}
+  If fpstat(device,info)<>0 then
+{$endif}
     exit;
-  if not (S_ISCHR(info.mode) or S_ISBLK(info.mode)) then
+  if not ({$ifdef ver1_0}S_ISCHR{$else}fpS_ISCHR{$endif}(info.mode) or
+     {$Ifdef ver1_0}S_ISBLK{$else}fpS_ISBLK{$endif}(info.mode)) then
     exit;
-  S:=ReadLink(Device);
+  S:={$ifdef ver1_0}ReadLink{$else}fpReadLink{$endif}(Device);
   If (S<>'') then
     Device:=S;
+{$ifdef ver1_0}
   If Not FStat(Device,info) then
+{$else}
+  If fpStat(Device,info)<>0 then
+{$endif}
     exit;
   DeviceMajor:=info.rdev shr 8;
   If DeviceMajor in [IDE0_MAJOR,IDE1_MAJOR,IDE2_MAJOR,IDE3_MAJOR] then
@@ -1176,10 +1186,10 @@ begin
       end
     else
       begin
-      F:=fdOpen(Device,OPEN_RDONLY or OPEN_NONBLOCK);
+      F:={$ifdef ver1_0}fdOpen{$else}fpOpen{$endif}(Device,OPEN_RDONLY or OPEN_NONBLOCK);
       Result:=(F>=0);
       If Result then
-        fdClose(F);
+        {$ifdef ver1_0}fdClose{$else}fpClose{$endif}(F);
       end;
     end;
 end;
@@ -1195,11 +1205,15 @@ begin
   Writeln('Testing for ATAPI');
 {$endif}
   Result:=False;
-  f:=fdOpen(device,OPEN_RDONLY or OPEN_NONBLOCK);
+  f:={$ifdef ver1_0}fdOpen{$else}fpOpen{$endif}(device,OPEN_RDONLY or OPEN_NONBLOCK);
   If (f<0) then
     exit;
+{$ifdef ver1_0}
   Result:=ioctl(f,CDROMVOLREAD,@info);
-  fdClose(f);
+{$else}
+  Result:=(fpIOCtl(f,CDROMVOLREAD,@info)=0);
+{$endif}
+  {$ifdef ver1_0}fdClose{$else}fpClose{$endif}(f);
 end;
 
 end.
