@@ -1232,7 +1232,7 @@ Begin
                      (Paicpu(hp1)^.opsize = S_W) Then
                     Begin
                       Paicpu(p)^.changeopsize(S_L);
-                      Paicpu(p)^.LoadConst(0,Paicpu(p)^.oper[0].val shl 16 + Paicpu(hp1)^.oper[0].val);
+                      Paicpu(p)^.LoadConst(0,Paicpu(p)^.oper[0].val shl 16 + word(Paicpu(hp1)^.oper[0].val));
                       AsmL^.Remove(hp1);
                       Dispose(hp1, Done)
                     End;
@@ -1717,7 +1717,10 @@ End.
 
 {
  $Log$
- Revision 1.78  2000-01-11 17:14:49  jonas
+ Revision 1.79  2000-01-21 11:26:19  pierre
+  * bug fix for bug 802
+
+ Revision 1.78  2000/01/11 17:14:49  jonas
    * fixed a serious memory leak
 
  Revision 1.77  2000/01/09 12:35:02  jonas
