@@ -158,9 +158,11 @@ uses
 
     const
       { these are in the XER, but when moved to CR_x they correspond with the }
-      { bits below (still needs to be verified!!!)                            }
-      C_OV = C_EQ;
-      C_CA = C_GT;
+      { bits below                                                            }
+      C_OV = C_GT;
+      C_CA = C_EQ;
+      C_NO = C_NG;
+      C_NC = C_NE;
 
     type
       TAsmCond = packed record
@@ -692,7 +694,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.79  2003-11-29 16:27:19  jonas
+  Revision 1.80  2003-12-09 20:39:43  jonas
+    * forgot call to cg.g_overflowcheck() in nppcadd
+    * fixed overflow flag definition
+    * fixed cg.g_overflowcheck() for signed numbers (jump over call to
+      FPC_OVERFLOW if *no* overflow instead of if overflow :)
+
+  Revision 1.79  2003/11/29 16:27:19  jonas
     * fixed several ppc assembler reader related problems
     * local vars in assembler procedures now start at offset 4
     * fixed second_int_to_bool (apparently an integer can be in  LOC_JUMP??)

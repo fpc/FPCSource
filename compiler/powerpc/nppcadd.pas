@@ -1445,8 +1445,9 @@ interface
                  end;
                  exprasmlist.concat(taicpu.op_reg_reg_reg(op,location.register,
                    left.location.register,right.location.register));
+                 cg.g_overflowcheck(exprasmlist,location,resulttype.def);
               end
-            else
+             else
               begin
                 case nodetype of
                   addn:
@@ -1489,7 +1490,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.39  2003-12-08 21:18:44  jonas
+  Revision 1.40  2003-12-09 20:39:43  jonas
+    * forgot call to cg.g_overflowcheck() in nppcadd
+    * fixed overflow flag definition
+    * fixed cg.g_overflowcheck() for signed numbers (jump over call to
+      FPC_OVERFLOW if *no* overflow instead of if overflow :)
+
+  Revision 1.39  2003/12/08 21:18:44  jonas
     * fixed usigned overflow checking
 
   Revision 1.38  2003/10/17 14:52:07  peter

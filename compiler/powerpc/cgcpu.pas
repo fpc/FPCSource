@@ -2102,7 +2102,7 @@ const
                                                   bool8bit,bool16bit,bool32bit]))) then
            begin
              list.concat(taicpu.op_reg(A_MCRXR,NR_CR7));
-             a_jmp(list,A_BC,C_OV,7,hl)
+             a_jmp(list,A_BC,C_NO,7,hl)
            end
          else
            a_jmp_cond(list,OC_AE,hl);
@@ -2471,7 +2471,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.143  2003-12-07 21:59:21  florian
+  Revision 1.144  2003-12-09 20:39:43  jonas
+    * forgot call to cg.g_overflowcheck() in nppcadd
+    * fixed overflow flag definition
+    * fixed cg.g_overflowcheck() for signed numbers (jump over call to
+      FPC_OVERFLOW if *no* overflow instead of if overflow :)
+
+  Revision 1.143  2003/12/07 21:59:21  florian
     * a_load_ref_ref isn't allowed to be used in g_stackframe_entry
 
   Revision 1.142  2003/12/06 22:13:53  jonas
