@@ -792,6 +792,31 @@ begin
   result := mc;
 end;
 
+
+function check_concat_free_chunk_forward(mc: pmemchunk_var;reqsize:ptrint):boolean;
+var
+  mc_tmp : pmemchunk_var;
+  freesize : ptrint;
+begin
+  check_concat_free_chunk_forward:=false;
+  freesize:=0;
+  mc_tmp:=mc;
+  repeat
+     inc(freesize,mc_tmp^.size and sizemask);
+     if freesize>=reqsize then
+       begin
+         check_concat_free_chunk_forward:=true;
+         exit;
+       end;
+     if (mc_tmp^.size and lastblockflag) <> 0 then
+       break;
+     mc_tmp := pmemchunk_var(pointer(mc_tmp)+(mc_tmp^.size and sizemask));
+     if (mc_tmp^.size and usedflag) <> 0 then
+       break;
+  until false;
+end;
+
+
 {*****************************************************************************
                                 Grow Heap
 *****************************************************************************}
@@ -1204,6 +1229,8 @@ var
   currsize : ptrint;
   pcurr : pmemchunk_var;
 begin
+  SysTryResizeMem := false;
+
   { fix p to point to the heaprecord }
   pcurrsize := pmemchunk_fixed(p-sizeof(tmemchunk_fixed_hdr))^.size;
   if (pcurrsize and fixedsizeflag) = 0 then
@@ -1230,10 +1257,7 @@ begin
 
   { don't do resizes on fixed-size blocks }
   if (pcurrsize and fixedsizeflag) <> 0 then
-   begin
-     SysTryResizeMem := false;
-     exit;
-   end;
+    exit;
 
   { get pointer to block }
   pcurr := pmemchunk_var(pointer(p)-sizeof(tmemchunk_var_hdr));
@@ -1245,19 +1269,25 @@ begin
      { the size is bigger than the previous size, we need to allocated more mem.
        We first check if the blocks after the current block are free. If not we
        simply call getmem/freemem to get the new block }
-     try_concat_free_chunk_forward(pcurr);
-     currsize := (pcurr^.size and sizemask);
-     SysTryResizeMem := currsize>=size;
+     if check_concat_free_chunk_forward(pcurr,size) then
+       begin
+         try_concat_free_chunk_forward(pcurr);
+         currsize := (pcurr^.size and sizemask);
+       end;
    end;
+
+  { not enough space? }
+  if size>currsize then
+    exit;
+
+  { is the size smaller then we can adjust the block to that size and insert
+    the other part into the freelist }
   if currsize>size then
-   begin
-     { is the size smaller then we can adjust the block to that size and insert
-      the other part into the freelist }
-     { create the left over freelist block, if at least 16 bytes are free }
-     split_block(pcurr, size);
-     SysTryResizeMem := true;
-   end;
+    split_block(pcurr, size);
+
   inc(internal_status.currheapused,size-oldsize);
+  SysTryResizeMem := true;
+
 {$ifdef TestFreeLists}
   if test_each then
     TestFreeLists;
@@ -1352,7 +1382,11 @@ end;
 
 {
   $Log$
-  Revision 1.50  2005-03-25 22:53:39  jonas
+  Revision 1.51  2005-04-04 15:40:30  peter
+    * check if there is enough room before concatting blocks in
+      systryresizemem()
+
+  Revision 1.50  2005/03/25 22:53:39  jonas
     * fixed several warnings and notes about unused variables (mainly) or
       uninitialised use of variables/function results (a few)
 
