@@ -28,55 +28,6 @@ Type    TwoWords = Record
             Word1, Word2: Word
         End;
 
-Function Reg32(Reg: TRegister): TRegister;
-{Returns the 32 bit component of Reg if it exists, otherwise Reg is returned}
-Begin
-  Reg32 := Reg;
-  If (Reg >= R_AX)
-    Then
-      If (Reg <= R_DI)
-        Then Reg32 := Reg16ToReg32(Reg)
-        Else
-          If (Reg <= R_BL)
-            Then Reg32 := Reg8toReg32(Reg);
-End;
-
-Function RegInRef(Reg: TRegister; Const Ref: TReference): Boolean;
-Begin {checks whether Ref contains a reference to Reg}
-  Reg := Reg32(Reg);
-  RegInRef := (Ref.Base = Reg) Or (Ref.Index = Reg)
-End;
-
-Function RegInInstruction(Reg: TRegister; p1: Pai): Boolean;
-{checks if Reg is used by the instruction p1}
-Var TmpResult: Boolean;
-Begin
-  TmpResult := False;
-  If (Pai(p1)^.typ = ait_instruction) Then
-    Begin
-      Case Pai386(p1)^.op1t Of
-        Top_Reg: TmpResult := Reg = TRegister(Pai386(p1)^.op1);
-        Top_Ref: TmpResult := RegInRef(Reg, TReference(Pai386(p1)^.op1^))
-      End;
-      If Not(TmpResult) Then
-        Case Pai386(p1)^.op2t Of
-          Top_Reg:
-              if Pai386(p1)^.op3t<>Top_reg
-                then TmpResult := Reg = TRegister(Pai386(p1)^.op2)
-                else TmpResult := longint(Reg) = twowords(Pai386(p1)^.op2).word1;
-          Top_Ref: TmpResult := RegInRef(Reg, TReference(Pai386(p1)^.op2^))
-        End;
-      If Not(TmpResult) Then
-        Case Pai386(p1)^.op3t Of
-          Top_Reg: TmpResult := longint(Reg) =twowords(Pai386(p1)^.op2).word2;
-          Top_none:;
-          else
-             internalerror($Da);
-       End
-    End;
-  RegInInstruction := TmpResult
-End;
-
 Procedure ReloadOpt(AsmL: PaasmOutput);
 
 Const MaxCh = 3;
@@ -638,13 +589,18 @@ Function InstructionsEqual(p1, p2: Pai): Boolean;
 Begin {checks whether two Pai386 instructions are equal}
   InstructionsEqual :=
     Assigned(p1) And Assigned(p2) And
-    (Pai(p1)^.typ = ait_instruction) And
-    (Pai(p1)^.typ = ait_instruction) And
-    (Pai386(p1)^._operator = Pai386(p2)^._operator) And
-    (Pai386(p1)^.op1t = Pai386(p2)^.op1t) And
-    (Pai386(p1)^.op2t = Pai386(p2)^.op2t) And
-    OpsEqual(Pai386(p1)^.op1t, Pai386(p1)^.op1, Pai386(p2)^.op1) And
-    OpsEqual(Pai386(p1)^.op2t, Pai386(p1)^.op2, Pai386(p2)^.op2)
+    ((((Pai(p1)^.typ = ait_regalloc) And
+       (Pai(p2)^.typ = ait_regalloc)) Or
+      ((Pai(p1)^.typ = ait_regdealloc) And
+       (Pai(p2)^.typ = ait_regdealloc))) And
+     (PaiRegAlloc(p1)^.reg = PaiRegAlloc(p2)^.reg)) Or
+    ((Pai(p1)^.typ = ait_instruction) And
+     (Pai(p1)^.typ = ait_instruction) And
+     (Pai386(p1)^._operator = Pai386(p2)^._operator) And
+     (Pai386(p1)^.op1t = Pai386(p2)^.op1t) And
+     (Pai386(p1)^.op2t = Pai386(p2)^.op2t) And
+     OpsEqual(Pai386(p1)^.op1t, Pai386(p1)^.op1, Pai386(p2)^.op1) And
+     OpsEqual(Pai386(p1)^.op2t, Pai386(p1)^.op2, Pai386(p2)^.op2))
 End;
 
 Function CheckSequence(p: Pai; Reg: TRegister; Var Found: Longint): Boolean;
@@ -739,15 +695,15 @@ End;
 Begin {CheckSequence}
   Reg := Reg32(Reg);
   Found := 0;
-  hp2 := p;
-  hp3 := PPaiProp(Pai(p^.last)^.line)^.Regs[Reg].StartMod;
+  hp2 := PPaiProp(Pai(p^.last)^.line)^.Regs[Reg].StartMod;
+  hp3 := p;
   EndMod := PPaiProp(Pai(p^.last)^.line)^.Regs[Reg].StartMod;
   RegsNotYetChecked := [R_EAX..R_EDI];
   For Counter := 2 to PPaiProp(Pai(p^.last)^.line)^.Regs[Reg].NrOfMods Do
     EndMod := Pai(EndMod^.Next);
   While (Found <> PPaiProp(Pai(p^.last)^.line)^.Regs[Reg].NrOfMods) And
          InstructionsEqual(hp2, hp3) And
-         NoChangedRegInRef(EndMod, hp2) Do
+         NoChangedRegInRef(EndMod, hp3) Do
     Begin
       hp2 := Pai(hp2^.next);
       hp3 := Pai(hp3^.next);
@@ -756,8 +712,63 @@ Begin {CheckSequence}
   If (Found <> PPaiProp(Pai(p^.last)^.line)^.Regs[Reg].NrOfMods)
      Then
        Begin
-         CheckSequence := False;
-         If (found > 0) then
+         If ((Found+1) = PPaiProp(Pai(p^.last)^.line)^.Regs[Reg].NrOfMods) And
+           Assigned(hp2) And
+           (Pai(hp2)^.typ = ait_instruction) And
+           (Pai386(hp2)^._operator In [A_MOV, A_MOVZX]) And
+           (Pai386(hp2)^.op1t = top_ref) And
+           (Pai386(hp2)^.op2t = top_reg) And
+           Assigned(hp3) And
+           (Pai(hp3)^.typ = ait_instruction) And
+           (Pai386(hp3)^._operator In [A_MOV, A_MOVZX]) And
+           (Pai386(hp3)^.op1t = top_ref) And
+           (Pai386(hp3)^.op2t = top_reg) And
+           (Pai386(hp2)^._operator <> Pai386(hp3)^._operator) And
+           RefsEqual(TReference(Pai386(hp2)^.op1^),TReference(Pai386(hp3)^.op1^)) And
+           NoChangedRegInRef(EndMod, hp3)
+          Then
+            If (Pai386(hp2)^._operator = A_MOV)
+              Then
+                Begin
+                 If (Pai386(hp2)^.Size = S_B) And
+                     (Reg8toReg32(TRegister(Pai386(hp2)^.op2)) =
+                      TRegister(Pai386(hp3)^.op2))
+                    Then
+                      Begin
+                        Pai386(hp2)^._operator := A_MOVZX;
+                        Pai386(hp2)^.op2 := Pai386(hp3)^.op2;
+                        Pai386(hp2)^.Size := S_BL;
+                        Inc(Found);
+                        CheckSequence := True;
+                      End
+                    Else
+                      Begin
+                        CheckSequence := False;
+                        If (Found > 0) Then
+                          Found := PPaiProp(Pai(p)^.line)^.Regs[Reg].NrOfMods
+                      End
+                End
+              Else
+                Begin
+                  If (Pai386(hp3)^.Size = S_B) And
+                     (Reg8toReg32(TRegister(Pai386(hp3)^.op2)) =
+                      TRegister(Pai386(hp2)^.op2))
+                    Then
+                      Begin
+                        CheckSequence := True;
+                        Inc(Found)
+                      End
+                    Else
+                      Begin
+                        CheckSequence := False;
+                        If (Found > 0) Then
+                          Found := PPaiProp(Pai(p)^.line)^.Regs[Reg].NrOfMods
+                      End
+                End
+          Else
+            Begin
+              CheckSequence := False;
+              If (found > 0) then
  {this is correct because we only need to turn off the CanBeRemoved flag
   when an instruction has already been processed by CheckSequence
   (otherwise CanBeRemoved can't be true, or can't have to be turned off).
@@ -766,7 +777,8 @@ Begin {CheckSequence}
   and that it was equal (otherwise CheckSequence would have returned false
   and the instruction wouldn't have been removed). If this "If found > 0"
   check is left out, incorrect optimizations are performed.}
-           Found := PPaiProp(Pai(p)^.line)^.Regs[Reg].NrOfMods
+                Found := PPaiProp(Pai(p)^.line)^.Regs[Reg].NrOfMods
+            End
        End
      Else CheckSequence := True;
 End; {CheckSequence}
@@ -821,6 +833,7 @@ Begin
         ait_label: DestroyAllRegs(p);
         ait_labeled_instruction, ait_stabs, ait_stabn,
         ait_stab_function_name:; {nothing changes}
+        ait_regalloc, ait_regdealloc:;
         ait_instruction:
           Begin
             InstrProp := AsmInstr[Pai386(p)^._operator];
@@ -984,7 +997,7 @@ Begin
                         (PPaiProp(Pai(p^.last)^.line)^.DirFlag = F_NotSet) Then
                           PPaiProp(Pai(p)^.line)^.CanBeRemoved := True;
 {$IfDef OptimizeMovs}
-              A_MOV{, A_MOVZX, A_MOVSX}:
+              A_MOV, A_MOVZX, A_MOVSX:
                 Begin
                   Case Pai386(p)^.op1t Of
 {                    Top_Reg:
@@ -1178,7 +1191,10 @@ End;
 
 {
  $Log$
- Revision 1.2  1998-04-06 22:42:32  jonas
+ Revision 1.3  1998-04-16 16:53:56  jonas
+ *** empty log message ***
+
+ Revision 1.2  1998/04/06 22:42:32  jonas
    + removal of superflouos cld/std instructions
 
  Revision 1.1.1.1  1998/03/25 11:18:12  root
