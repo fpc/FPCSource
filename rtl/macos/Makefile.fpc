@@ -8,7 +8,7 @@ main=rtl
 [target]
 loaders=
 units=system strings objpas macpas heaptrc getopts macostp macutils \
-      unixutil dos objects matrix cmem charset
+      unixutil dos objects matrix cmem charset ctypes
 #      exec  \
 #      crt printer \
 #      lineinfo  graph \
@@ -152,3 +152,4 @@ charset$(PPUEXT) : $(INC)/charset.pp system$(PPUEXT)
 
 cmem$(PPUEXT) : $(INC)/cmem.pp system$(PPUEXT)
 				
+ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
