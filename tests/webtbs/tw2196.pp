@@ -4,7 +4,6 @@
 Program bugtest;
 
 {$Mode ObjFPC}
-{ $Define bug_workaround}
 uses classes;
 
 type
@@ -19,11 +18,12 @@ var
   TestClass : TSomeClass;
 begin
   TestClass := TSomeClass.Create;
-  {$IfDef bug_workaround}
-  TestClass.TestString := '' + TestClass.TestString + 'Whatever';
-  {$Else}
   TestClass.TestString :=  TestClass.TestString + 'Whatever';
-  {$EndIF}
   writeln(TestClass.TestString);
+  if TestClass.TestString<>'Whatever' then
+   begin
+     writeln('Error!');
+     halt(1);
+   end;
   TestClass.Free;
 end.
