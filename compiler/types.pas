@@ -794,6 +794,10 @@ implementation
       end;
 
     function CheckTypes(def1,def2 : pdef) : boolean;
+
+      var
+         s1,s2 : string;
+
       begin
         if not is_equal(def1,def2) then
          begin
@@ -801,7 +805,14 @@ implementation
            if (not assigned(def1)) or (not assigned(def2)) then
              Message(type_e_mismatch)
            else
-             Message2(type_e_not_equal_types,def1^.typename,def2^.typename);
+             begin
+                s1:=def1^.typename;
+                s2:=def2^.typename;
+                if (s1<>'<unknown type>') and (s2<>'<unknown type>') then
+                  Message2(type_e_not_equal_types,def1^.typename,def2^.typename)
+                else
+                  Message(type_e_mismatch);
+             end;
            CheckTypes:=false;
          end
         else
@@ -811,7 +822,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.61  1999-05-19 10:31:56  florian
+  Revision 1.62  1999-05-19 16:48:29  florian
+    * tdef.typename: returns a now a proper type name for the most types
+
+  Revision 1.61  1999/05/19 10:31:56  florian
     * two bugs reported by Romio (bugs 13) are fixed:
         - empty array constructors are now handled correctly (e.g. for sysutils.format)
         - comparsion of ansistrings was sometimes coded wrong

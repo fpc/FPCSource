@@ -174,9 +174,14 @@
         if assigned(sym) then
          typename:=Upper(sym^.name)
         else
-         typename:='unknown';
+         typename:=gettypename;
       end;
 
+    function tdef.gettypename : string;
+
+      begin
+         gettypename:='<unknown type>'
+      end;
 
     function tdef.is_in_current : boolean;
       var
@@ -633,6 +638,15 @@
          needs_inittable:=string_typ in [st_ansistring,st_widestring];
       end;
 
+    function tstringdef.gettypename : string;
+
+      const
+         names : array[tstringtype] of string[20] =
+           ('ShortString','LongString','AnsiString','WideString');
+
+      begin
+         gettypename:=names[string_typ];
+      end;
 
     procedure tstringdef.write_rtti_data;
       begin
@@ -882,6 +896,11 @@
          is_publishable:=true;
       end;
 
+    function tenumdef.gettypename : string;
+
+      begin
+         gettypename:='<enumeration type>';
+      end;
 
 {****************************************************************************
                                  TORDDEF
@@ -1069,6 +1088,17 @@
          is_publishable:=typ in [uchar..bool8bit];
       end;
 
+    function torddef.gettypename : string;
+
+      const
+        names : array[tbasetype] of string[20] = ('<unknown type>',
+          'untyped','Char','Byte','Word','DWord','ShortInt',
+          'SmallInt','LongInt','Boolean','WordBool',
+          'LongBool','QWord','Int64');
+
+      begin
+         gettypename:=names[typ];
+      end;
 
 {****************************************************************************
                                 TFLOATDEF
@@ -1161,6 +1191,15 @@
          is_publishable:=true;
       end;
 
+    function tfloatdef.gettypename : string;
+
+      const
+        names : array[tfloattype] of string[20] = (
+          'Single','Double','Extended','Comp','Fixed','Fixed16');
+
+      begin
+         gettypename:=names[typ];
+      end;
 
 {****************************************************************************
                                 TFILEDEF
@@ -1262,6 +1301,20 @@
         end;
       end;
 {$endif GDB}
+
+    function tfiledef.gettypename : string;
+
+      begin
+         case filetype of
+           ft_untyped:
+             gettypename:='File';
+           ft_typed:
+             gettypename:='File Of '+typed_as^.typename;
+           ft_text:
+             gettypename:='Text'
+         end;
+      end;
+
 
 
 {****************************************************************************
@@ -1368,6 +1421,11 @@
       end;
 {$endif GDB}
 
+    function tpointerdef.gettypename : string;
+
+      begin
+         gettypename:='^'+definition^.typename;
+      end;
 
 {****************************************************************************
                               TCLASSREFDEF
@@ -1413,6 +1471,12 @@
       begin
       end;
 {$endif GDB}
+
+    function tclassrefdef.gettypename : string;
+
+      begin
+         gettypename:='Class Of '+definition^.typename;
+      end;
 
 
 {***************************************************************************
@@ -1529,6 +1593,12 @@
          is_publishable:=settype=smallset;
       end;
 
+    function tsetdef.gettypename : string;
+
+      begin
+         gettypename:='Set Of '+setof^.typename;
+      end;
+
 
 {***************************************************************************
                                  TFORMALDEF
@@ -1581,6 +1651,11 @@
       end;
 {$endif GDB}
 
+    function tformaldef.gettypename : string;
+
+      begin
+         gettypename:='Var';
+      end;
 
 {***************************************************************************
                            TARRAYDEF
@@ -1722,6 +1797,22 @@
          rttilist^.concat(new(pai_const_symbol,init(definition^.get_rtti_label)));
       end;
 
+    function tarraydef.gettypename : string;
+
+      begin
+         if isarrayofconst or isConstructor then
+           gettypename:='Array Of Const'
+         else if is_open_array(@self) then
+           gettypename:='Array Of '+definition^.typename
+         else
+           begin
+              if rangedef^.deftype=enumdef then
+                gettypename:='Array['+rangedef^.typename+'] Of '+definition^.typename
+              else
+                gettypename:='Array['+tostr(lowrange)+'..'+
+                  tostr(highrange)+'] Of '+definition^.typename
+           end;
+      end;
 
 {***************************************************************************
                                   TRECDEF
@@ -1971,6 +2062,12 @@
          symtable^.foreach(count_inittable_fields);
          rttilist^.concat(new(pai_const,init_32bit(count)));
          symtable^.foreach(write_field_inittable);
+      end;
+
+    function trecdef.gettypename : string;
+
+      begin
+         gettypename:='<record type>'
       end;
 
 
@@ -2753,6 +2850,12 @@ Const local_symtable_index : longint = $8001;
          is_publishable:=(options and pomethodpointer)<>0;
       end;
 
+    function tprocvardef.gettypename : string;
+
+      begin
+         gettypename:='<procedure variable type>'
+      end;
+
 
 {***************************************************************************
                               TOBJECTDEF
@@ -3380,7 +3483,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.118  1999-05-19 12:08:11  florian
+  Revision 1.119  1999-05-19 16:48:26  florian
+    * tdef.typename: returns a now a proper type name for the most types
+
+  Revision 1.118  1999/05/19 12:08:11  florian
     * tobject wasn't set as default anchestor, was a problem with the new ppu
       handling
 

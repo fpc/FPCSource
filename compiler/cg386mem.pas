@@ -769,36 +769,6 @@ implementation
               if p^.memseg then
                 p^.location.reference.segment:=R_FS;
            end;
-
-         { have we to remove a temp. wide/ansistring ?
-           c:=(s1+s2)[i]
-           for example
-         }
-         if (p^.location.loc=LOC_MEM) and
-            (rl^.deftype=stringdef) then
-           begin
-              case pstringdef(rl)^.string_typ of
-                 st_ansistring:
-                   begin
-                      del_reference(p^.location.reference);
-                      hr:=reg32toreg8(getregister32);
-                      exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_B,
-                        newreference(p^.location.reference),hr)));
-                      reset_reference(p^.location.reference);
-                      p^.location.loc:=LOC_REGISTER;
-                      p^.location.register:=hr;
-                   end;
-                 st_widestring:
-                   begin
-                      del_reference(p^.location.reference);
-                      hr:=reg32toreg16(getregister32);
-                      exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_W,
-                        newreference(p^.location.reference),hr)));                      reset_reference(p^.location.reference);
-                      p^.location.loc:=LOC_REGISTER;
-                      p^.location.register:=hr;
-                   end;
-              end;
-           end;
       end;
 
 {*****************************************************************************
@@ -884,7 +854,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.42  1999-05-18 22:11:52  pierre
+  Revision 1.43  1999-05-19 16:48:21  florian
+    * tdef.typename: returns a now a proper type name for the most types
+
+  Revision 1.42  1999/05/18 22:11:52  pierre
    * checkpointer code was wrong!
 
   Revision 1.41  1999/05/18 21:58:29  florian

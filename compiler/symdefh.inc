@@ -90,6 +90,7 @@
           { returns true, if the definition can be published }
           function is_publishable : boolean;virtual;
           function is_in_current : boolean;
+          function gettypename:string;virtual;
        end;
 
        targconvtyp = (act_convertable,act_equal,act_exact);
@@ -120,6 +121,7 @@
           function stabstring : pchar;virtual;
           procedure concatstabto(asmlist : paasmoutput);virtual;
 {$endif GDB}
+          function gettypename:string;virtual;
        end;
 
        pformaldef = ^tformaldef;
@@ -131,6 +133,7 @@
           function stabstring : pchar;virtual;
           procedure concatstabto(asmlist : paasmoutput);virtual;
 {$endif GDB}
+          function gettypename:string;virtual;
        end;
 
        perrordef = ^terrordef;
@@ -160,6 +163,7 @@
           procedure concatstabto(asmlist : paasmoutput);virtual;
 {$endif GDB}
           procedure deref;virtual;
+          function gettypename:string;virtual;
        end;
 
 
@@ -214,6 +218,7 @@
           function stabstring : pchar;virtual;
           procedure concatstabto(asmlist : paasmoutput);virtual;
 {$endif GDB}
+          function gettypename:string;virtual;
        end;
 
        parraydef = ^tarraydef;
@@ -228,6 +233,7 @@
           IsVariant,
           IsConstructor,
           IsArrayOfConst : boolean;
+          function gettypename:string;virtual;
           function elesize : longint;
           constructor init(l,h : longint;rd : pdef);
           constructor load;
@@ -266,6 +272,7 @@
           procedure write_init_data;virtual;
           procedure write_child_rtti_data;virtual;
           procedure write_child_init_data;virtual;
+          function gettypename:string;virtual;
        end;
 
        { base types }
@@ -298,6 +305,7 @@
           function getrangecheckstring : string;
           procedure write_rtti_data;virtual;
           function is_publishable : boolean;virtual;
+          function gettypename:string;virtual;
        end;
 
        { sextreal is dependant on the cpu, s64bit is also }
@@ -323,6 +331,7 @@
           procedure setsize;
           function is_publishable : boolean;virtual;
           procedure write_rtti_data;virtual;
+          function gettypename:string;virtual;
        end;
 
        pabstractprocdef = ^tabstractprocdef;
@@ -360,6 +369,7 @@
           procedure write_child_rtti_data;virtual;
           function is_publishable : boolean;virtual;
           procedure write_rtti_data;virtual;
+          function gettypename:string;virtual;
        end;
 
        tmessageinf = record
@@ -451,6 +461,7 @@
           function needs_inittable : boolean;virtual;
           procedure write_rtti_data;virtual;
           function is_publishable : boolean;virtual;
+          function gettypename:string;virtual;
        end;
 
        penumdef = ^tenumdef;
@@ -480,6 +491,7 @@
           procedure write_child_rtti_data;virtual;
           procedure write_rtti_data;virtual;
           function is_publishable : boolean;virtual;
+          function  gettypename:string;virtual;
        end;
 
        tsettype = (normset,smallset,varset);
@@ -499,11 +511,15 @@
           function is_publishable : boolean;virtual;
           procedure write_rtti_data;virtual;
           procedure write_child_rtti_data;virtual;
+          function gettypename:string;virtual;
        end;
 
 {
   $Log$
-  Revision 1.27  1999-05-13 21:59:42  peter
+  Revision 1.28  1999-05-19 16:48:28  florian
+    * tdef.typename: returns a now a proper type name for the most types
+
+  Revision 1.27  1999/05/13 21:59:42  peter
     * removed oldppu code
     * warning if objpas is loaded from uses
     * first things for new deref writing
