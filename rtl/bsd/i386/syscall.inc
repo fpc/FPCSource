@@ -37,11 +37,11 @@ procedure actualsyscall; assembler; {inline requires a dummy push IIRC}
          ret
 .LErrorcode:
 	 {$ifdef ErrnoWord}
-          movw  %bx,Errno
+          movw  %ax,Errno
 	 {$else}
-          movl %ebx,Errno
+          movl %eax,Errno
 	 {$endif}
-//       mov $-1,%eax
+       mov $-1,%eax
    end;
 
 function Do_SysCall(sysnr:LONGINT):longint; assembler; [public,alias:'FPC_DOSYS0'];
