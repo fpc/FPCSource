@@ -112,6 +112,9 @@ procedure InitializeCriticalSection(var CriticalSection : TRTLCriticalSection); 
 procedure EnterCriticalSection(var CriticalSection : TRTLCriticalSection); external 'kernel32' name 'EnterCriticalSection';
 procedure LeaveCriticalSection(var CriticalSection : TRTLCriticalSection); external 'kernel32' name 'LeaveCriticalSection';
 procedure DeleteCriticalSection(var CriticalSection : TRTLCriticalSection); external 'kernel32' name 'DeleteCriticalSection';
+function InitializeCriticalSectionAndSpinCount(var CriticalSection : TRTLCriticalSection;dwSpinCount : DWORD) : BOOL; external 'kernel32' name 'InitializeCriticalSectionAndSpinCount';
+function SetCriticalSectionSpinCount(var CriticalSection : TRTLCriticalSection;dwSpinCount : DWORD ): DWORD; external 'kernel32' name 'SetCriticalSectionSpinCount';
+function TryEnterCriticalSection(var CriticalSection : TRTLCriticalSection) : BOOL; external 'kernel32' name 'TryEnterCriticalSection';
 
 function _lcreat(const lpPathName: LPCSTR; iAttribute: Integer): HFILE; external 'kernel32' name '_lcreat';
 function _lopen(const lpPathName: LPCSTR; iReadWrite: Integer): HFILE; external 'kernel32' name '_lopen';
@@ -912,7 +915,10 @@ function HResultFromNT(x : Longint) : HRESULT;
 
 {
   $Log$
-  Revision 1.8  2002-09-07 16:01:31  peter
+  Revision 1.9  2002-10-14 17:18:44  florian
+    + some critical section related stuff added
+
+  Revision 1.8  2002/09/07 16:01:31  peter
     * old logs removed and tabs fixed
 
   Revision 1.7  2002/03/23 20:13:53  marco
