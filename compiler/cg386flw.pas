@@ -424,26 +424,6 @@ implementation
                 internalerror(2001);
               end;
               case procinfo^.retdef^.deftype of
-               orddef,
-              enumdef : begin
-                          case procinfo^.retdef^.size of
-                           4 : if is_mem then
-                                 emit_ref_reg(A_MOV,S_L,
-                                   newreference(p^.left^.location.reference),R_EAX)
-                               else
-                                 emit_reg_reg(A_MOV,S_L,p^.left^.location.register,R_EAX);
-                           2 : if is_mem then
-                                 emit_ref_reg(A_MOV,S_W,
-                                   newreference(p^.left^.location.reference),R_AX)
-                               else
-                                 emit_reg_reg(A_MOV,S_W,makereg16(p^.left^.location.register),R_AX);
-                           1 : if is_mem then
-                                 emit_ref_reg(A_MOV,S_B,
-                                   newreference(p^.left^.location.reference),R_AL)
-                               else
-                                 emit_reg_reg(A_MOV,S_B,makereg8(p^.left^.location.register),R_AL);
-                          end;
-                        end;
            pointerdef,
            procvardef : begin
                           if is_mem then
@@ -465,6 +445,32 @@ implementation
                           else
                            if is_mem then
                             floatload(pfloatdef(procinfo^.retdef)^.typ,p^.left^.location.reference);
+                        end;
+              { orddef,
+              enumdef : }
+              else
+              { it can be anything shorter than 4 bytes PM
+              this caused form bug 711 }
+                       begin
+                          case procinfo^.retdef^.size of
+                          { if its 3 bytes only we can still
+                            copy one of garbage ! PM }
+                           4,3 : if is_mem then
+                                 emit_ref_reg(A_MOV,S_L,
+                                   newreference(p^.left^.location.reference),R_EAX)
+                               else
+                                 emit_reg_reg(A_MOV,S_L,p^.left^.location.register,R_EAX);
+                           2 : if is_mem then
+                                 emit_ref_reg(A_MOV,S_W,
+                                   newreference(p^.left^.location.reference),R_AX)
+                               else
+                                 emit_reg_reg(A_MOV,S_W,makereg16(p^.left^.location.register),R_AX);
+                           1 : if is_mem then
+                                 emit_ref_reg(A_MOV,S_B,
+                                   newreference(p^.left^.location.reference),R_AL)
+                               else
+                                 emit_reg_reg(A_MOV,S_B,makereg8(p^.left^.location.register),R_AL);
+                          end;
                         end;
               end;
 do_jmp:
@@ -770,7 +776,10 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.57  1999-11-15 21:49:09  peter
+  Revision 1.58  1999-11-28 23:15:23  pierre
+   * fix for form bug 721
+
+  Revision 1.57  1999/11/15 21:49:09  peter
     * push address also for raise at
 
   Revision 1.56  1999/11/06 14:34:17  peter
