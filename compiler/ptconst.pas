@@ -193,8 +193,10 @@ implementation
                                  (torddef(t.def).typ=scurrency)
                            { allow bootstrapping }
 {$ifdef VER1_0}
-                                 and (trealconstnode(p).value_real*10000 >= low(int64)) and
-                                 (trealconstnode(p).value_real*10000 <= high(int64))
+{                             I get IE 10 here. I guess it's no problem if a 1.0 bootstrapped
+                              compiler doesn't display the error here.
+                                 and (trealconstnode(p).value_real*10000 >= real(low(int64))) and
+                                 (trealconstnode(p).value_real*10000 <= real(high(int64)))}
 {$endif VER1_0}
                            then
                              begin
@@ -1097,7 +1099,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.89  2004-06-20 20:41:47  florian
+  Revision 1.90  2004-07-03 14:06:35  daniel
+    * Compile fix
+
+  Revision 1.89  2004/06/20 20:41:47  florian
     * fixed bootstrapping problems
 
   Revision 1.88  2004/06/20 08:55:30  florian
