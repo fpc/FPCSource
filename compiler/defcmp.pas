@@ -563,9 +563,10 @@ implementation
                       end;
                     pointerdef :
                       begin
-                        { nil is compatible with dyn. arrays }
+                        { nil and voidpointers are compatible with dyn. arrays }
                         if is_dynamic_array(def_to) and
-                           (fromtreetype=niln) then
+                           ((fromtreetype=niln) or
+                            is_voidpointer(def_from)) then
                          begin
                            doconv:=tc_equal;
                            eq:=te_convert_l1;
@@ -1274,7 +1275,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.49  2004-03-04 17:22:32  peter
+  Revision 1.50  2004-04-12 11:26:10  peter
+    * voidpointer can be converted to dynarray
+
+  Revision 1.49  2004/03/04 17:22:32  peter
     * use defs_equal when comparing pointer types
 
   Revision 1.48  2004/03/03 22:02:16  peter
