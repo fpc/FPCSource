@@ -40,7 +40,7 @@ uses
 {$ifdef ver1_0}
   linux
 {$else}
-  unix
+  BaseUnix,unix
 {$endif}
   ;
 
@@ -60,7 +60,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.6  2002-10-14 19:45:54  peter
+  Revision 1.7  2003-09-20 15:10:30  marco
+   * small fixes. fcl now compiles
+
+  Revision 1.6  2002/10/14 19:45:54  peter
     * threading switch
 
   Revision 1.5  2002/09/07 15:15:27  peter

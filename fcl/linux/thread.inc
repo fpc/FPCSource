@@ -53,7 +53,7 @@ end;
 //function SIGCHLDHandler(Sig: longint): longint; cdecl;//this is std linux C declaration as function
 procedure SIGCHLDHandler(Sig: longint); cdecl;
 begin
-  waitpid(-1, nil, WNOHANG);
+  {$ifdef ver1_0}waitpid{$else}fpwaitpid{$endif}(-1, nil, WNOHANG);
 end;
 
 procedure InitThreads;
@@ -74,8 +74,11 @@ begin
   Act^.handler.sh := @SIGCHLDHandler;
   Act^.sa_flags := SA_NOCLDSTOP {or SA_NOMASK or SA_RESTART};
   Fillchar(Act^.sa_mask,sizeof(Act^.sa_mask),0); //Do not block all signals ??. Don't need if SA_NOMASK in flags
-
+  {$ifdef ver1_0}
   SigAction(SIGCHLD, Act, OldAct);
+  {$else}
+  FpSigAction(SIGCHLD, @Act, @OldAct);
+  {$endif}
 
   FreeMem(Act, SizeOf(SigActionRec));
   FreeMem(OldAct, SizeOf(SigActionRec));
@@ -154,7 +157,7 @@ begin
   Thread.DoTerminate;
   if FreeThread then
     Thread.Free;
-  ExitProcess(Result);
+  {$ifdef ver1_0}ExitProcess{$else}fpexit{$endif}(Result);
 end;
 
 
@@ -187,7 +190,7 @@ begin
      WaitFor;
    end;
   if FHandle <> -1 then
-    Kill(FHandle, SIGKILL);
+    {$ifdef ver1_0}Kill{$else}fpkill{$endif}(FHandle, SIGKILL);
   dec(FStackPointer,FStackSize);
   Freemem(pointer(FStackPointer),FStackSize);
   inherited Destroy;
@@ -218,7 +221,11 @@ var
   P: Integer;
   I: TThreadPriority;
 begin
-  P := {$ifdef ver1_0}Linux{$else}Unix{$endif}.GetPriority(Prio_Process,FHandle);
+  P := {$ifdef ver1_0}
+	 Linux.GetPriority(Prio_Process,FHandle);
+       {$else}
+         Unix.fpGetPriority(Prio_Process,FHandle);
+       {$endif}
   Result := tpNormal;
   for I := Low(TThreadPriority) to High(TThreadPriority) do
     if Priorities[I] = P then
@@ -228,7 +235,11 @@ end;
 
 procedure TThread.SetPriority(Value: TThreadPriority);
 begin
-  {$ifdef ver1_0}Linux{$else}Unix{$endif}.SetPriority(Prio_Process,FHandle, Priorities[Value]);
+       {$ifdef ver1_0}
+	 Linux.SetPriority(Prio_Process,FHandle,Priorities[Value]);
+       {$else}
+         Unix.fpSetPriority(Prio_Process,FHandle,Priorities[Value]);
+       {$endif}
 end;
 
 
@@ -254,14 +265,14 @@ end;
 
 procedure TThread.Suspend;
 begin
-  Kill(FHandle, SIGSTOP);
+  {$ifdef ver1_0}Kill{$else}fpkill{$endif}(FHandle, SIGSTOP);
   FSuspended := true;
 end;
 
 
 procedure TThread.Resume;
 begin
-  Kill(FHandle, SIGCONT);
+  {$ifdef ver1_0}Kill{$else}fpkill{$endif}(FHandle, SIGCONT);
   FSuspended := False;
 end;
 
@@ -276,15 +287,18 @@ var
   status : longint;
 begin
   if FThreadID = MainThreadID then
-   WaitPid(0,@status,0)
+   {$ifdef ver1_0}waitpid{$else}fpwaitpid{$endif}(0,@status,0)
   else
-   WaitPid(FHandle,@status,0);
+   {$ifdef ver1_0}waitpid{$else}fpwaitpid{$endif}(FHandle,@status,0);
   Result:=status;
 end;
 
 {
   $Log$
-  Revision 1.7  2002-12-18 20:44:36  peter
+  Revision 1.8  2003-09-20 15:10:30  marco
+   * small fixes. fcl now compiles
+
+  Revision 1.7  2002/12/18 20:44:36  peter
     * use fillchar to clear sigset
 
   Revision 1.6  2002/09/07 15:15:27  peter

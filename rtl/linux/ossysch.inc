@@ -21,11 +21,14 @@ Function FpIOCtl(handle:cint;ndx:culong;Data: Pointer):cint;  external name 'FPC
 Function FpGetPid:pid_t;   external name 'FPC_SYSC_GETPID';
 Function FpReadLink(name,linkname:pchar;maxlen:size_t):cint;  external name 'FPC_SYSC_READLINK';
 Function FpNanoSleep(const req : timespec;rem : ptimespec) : longint; external name 'FPC_SYSC_NANOSLEEP';
-function fpgettimeofday(tp: ptimeval;tzp:ptimezone):cint; external name 'FPC_SYSC_GETTIMEOFDAY';
+//function fpgettimeofday(tp: ptimeval;tzp:ptimezone):cint; external name 'FPC_SYSC_GETTIMEOFDAY';
 
 {
  $Log$
- Revision 1.3  2003-09-15 20:29:50  marco
+ Revision 1.4  2003-09-20 15:10:30  marco
+  * small fixes. fcl now compiles
+
+ Revision 1.3  2003/09/15 20:29:50  marco
   * small fix
 
  Revision 1.2  2003/09/14 20:15:01  marco

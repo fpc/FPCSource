@@ -1,4 +1,5 @@
 
+function fpgettimeofday(tp: ptimeval;tzp:ptimezone):cint; external name 'FPC_SYSC_GETTIMEOFDAY';
 function fpNice(N:cint):cint;
 Function fpGetPriority(Which,Who:cint):cint;
 Function fpSetPriority(Which,Who,What:cint):cint;
