@@ -764,6 +764,7 @@ implementation
        begin
          { Replace some macro's }
          Replace(s,'$FPCVER',full_version_string);
+         Replace(s,'$VERSION',full_version_string);
          Replace(s,'$FPCDATE',date_string);
          Replace(s,'$FPCTARGET',target_cpu_string);
          Replace(s,'$FPCCPU',target_cpu_string);
@@ -1491,7 +1492,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.49  2000-01-23 21:29:14  florian
+  Revision 1.50  2000-01-26 14:31:03  marco
+   * $VERSION is now also substituted in -F paths (that have subst active)
+
+  Revision 1.49  2000/01/23 21:29:14  florian
     * CMOV support in optimizer (in define USECMOV)
     + start of support of exceptions in constructors
 
