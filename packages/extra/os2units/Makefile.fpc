@@ -3,7 +3,7 @@
 #
 
 [target]
-dirs=ftpapi
+dirs=ftpapi mmtk
 
 [install]
 fpcpackage=y
