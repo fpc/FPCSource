@@ -267,6 +267,11 @@ asm
     move.l a6, d0
 end['D0'];
 {$endif CPU68K}
+{$ifdef CPUPOWERPC}
+asm
+    mr  r3,r1
+end;
+{$endif CPUPOWERPC}
 
 
 function PreviousFramePointer: FramePointer;assembler;
@@ -280,6 +285,11 @@ asm
     move.l (a6), d0
 end['D0'];
 {$endif CPU68K}
+{$ifdef CPUPOWERPC}
+asm
+    lwz  r3,0(r1)
+end;
+{$endif CPUPOWERPC}
 
 {$endif PPC_FPC}
 
@@ -392,7 +402,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2004-02-06 20:08:58  jonas
+  Revision 1.4  2004-02-06 20:56:38  jonas
+    + powerpc support
+
+  Revision 1.3  2004/02/06 20:08:58  jonas
     * version from FV
 
   Revision 1.4  2003/11/12 15:49:59  peter
