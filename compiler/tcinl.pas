@@ -911,8 +911,12 @@ implementation
 
                   while assigned(hp^.right) do
                     hp:=hp^.right;
+                    
+                  if not assigned(hp^.resulttype) then 
+                    exit;
                   { check and convert the first param }
-                  if hp^.is_colon_para then
+                  if (hp^.is_colon_para) or
+                     not assigned(hp^.resulttype) then
                     CGMessage(cg_e_illegal_expression);
 
                   isreal:=false;
@@ -1324,7 +1328,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2000-07-22 11:53:26  sg
+  Revision 1.4  2000-08-01 14:07:49  jonas
+    * fixed crash when passing undeclared identifiers to str() (merged from
+      fixes branch)
+
+  Revision 1.3  2000/07/22 11:53:26  sg
   * Added WideChar support to inlined 'ord' function
 
   Revision 1.2  2000/07/13 11:32:52  michael
