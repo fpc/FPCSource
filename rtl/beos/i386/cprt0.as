@@ -41,9 +41,9 @@ _start:
         call _init_c_library_
         call _call_init_routines_
         movl 8(%ebp),%eax
-        movl %eax,U_SYSBEOS_ARGC
-        movl %edi,U_SYSBEOS_ARGV
-        movl %esi,U_SYSBEOS_ENVP
+        movl %eax,U_SYSTEM_ARGC
+        movl %edi,U_SYSTEM_ARGV
+        movl %esi,U_SYSTEM_ENVP
         xorl %ebp,%ebp
         call PASCALMAIN
 
@@ -52,7 +52,7 @@ _start:
 _haltproc:
         call _thread_do_exit_notification
         xorl %ebx,%ebx
-    movw U_SYSBEOS_EXITCODE,%bx
+    movw U_SYSTEM_EXITCODE,%bx
         pushl %ebx
         call exit
 

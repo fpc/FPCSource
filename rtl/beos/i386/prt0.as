@@ -8,9 +8,9 @@ start:
         movl 16(%ebp),%ecx
         movl 12(%ebp),%ebx
         movl 8(%ebp),%eax
-        movl %eax,U_SYSBEOS_ARGC
-        movl %ebx,U_SYSBEOS_ARGV
-        movl %ecx,U_SYSBEOS_ENVP
+        movl %eax,U_SYSTEM_ARGC
+        movl %ebx,U_SYSTEM_ARGV
+        movl %ecx,U_SYSTEM_ENVP
         xorl %ebp,%ebp
         call PASCALMAIN
 
@@ -18,7 +18,7 @@ start:
 .type   _haltproc,@function
 _haltproc:
         xorl %ebx,%ebx
-    movw U_SYSBEOS_EXITCODE,%bx
+        movw U_SYSTEM_EXITCODE,%bx
         pushl %ebx
         call sys_exit
 
