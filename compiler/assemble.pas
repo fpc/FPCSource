@@ -365,52 +365,47 @@ begin
    end;
 end;
 
-   {Touch Assembler and object time to ppu time is there is a ppufilename}
+
+{Touch Assembler and object time to ppu time is there is a ppufilename}
 procedure TAsmList.Synchronize;
 var
   f : file;
   l : longint;
 begin
-{$ifdef linux}
-  if not DoPipe then
-{$endif linux}
-    begin
-   {Touch Assembler time to ppu time is there is a ppufilename}
-     if Assigned(current_module^.ppufilename) then
+{Touch Assembler time to ppu time is there is a ppufilename}
+  if Assigned(current_module^.ppufilename) then
+   begin
+     Assign(f,current_module^.ppufilename^);
+     {$I-}
+      reset(f,1);
+     {$I+}
+     if ioresult=0 then
       begin
-        Assign(f,current_module^.ppufilename^);
+        getftime(f,l);
+        close(f);
+        assign(f,asmfile);
         {$I-}
          reset(f,1);
         {$I+}
         if ioresult=0 then
          begin
-           getftime(f,l);
+           setftime(f,l);
            close(f);
-           assign(f,asmfile);
-        {$I-}
-           reset(f,1);
-        {$I+}
+         end;
+        if not(cs_asm_extern in aktglobalswitches) then
+         begin
+           assign(f,objfile);
+           {$I-}
+            reset(f,1);
+           {$I+}
            if ioresult=0 then
             begin
               setftime(f,l);
               close(f);
             end;
-           if not(cs_asm_extern in aktglobalswitches) then
-             begin
-               assign(f,objfile);
-            {$I-}
-               reset(f,1);
-            {$I+}
-               if ioresult=0 then
-                begin
-                  setftime(f,l);
-                  close(f);
-                end;
-              end;
          end;
       end;
-     close(outfile);
-    end;
+   end;
 end;
 
 
@@ -526,7 +521,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.28  1998-10-14 15:56:43  pierre
+  Revision 1.29  1998-10-15 16:19:42  peter
+    * fixed asmsynchronize
+
+  Revision 1.28  1998/10/14 15:56:43  pierre
     * all references to comp suppressed for m68k
 
   Revision 1.27  1998/10/13 16:50:01  pierre
