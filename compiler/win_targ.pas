@@ -25,7 +25,7 @@ unit win_targ;
 
   interface
 
-  uses import;
+  uses import,export;
 
   type
     pimportlibwin32=^timportlibwin32;
@@ -34,6 +34,14 @@ unit win_targ;
       procedure importprocedure(const func,module:string;index:longint;const name:string);virtual;
       procedure generatelib;virtual;
       procedure generatesmartlib;
+    end;
+
+    pexportlibwin32=^texportlibwin32;
+    texportlibwin32=object(texportlib)
+      procedure preparelib(const s:string);virtual;
+      procedure exportprocedure(const func : string;
+        index : longint;const name : string);virtual;
+      procedure generatelib;virtual;
     end;
 
     { sets some flags of the executable }
@@ -349,6 +357,58 @@ unit win_targ;
            end;
       end;
 
+    procedure texportlibwin32.preparelib(const s:string);
+
+      begin
+         if not(assigned(exportssection)) then
+           exportssection:=new(paasmoutput,init);
+      end;
+
+    procedure texportlibwin32.exportprocedure(const func : string;
+      index : longint;const name : string);
+
+      begin
+      end;
+
+    procedure texportlibwin32.generatelib;
+
+      var
+         ordinal_base,entries,named_entries : longint;
+         l1,l2,l3,l4 : plabel;
+
+      begin
+         ordinal_base:=0;
+         getlabel(l1);
+         getlabel(l2);
+         getlabel(l3);
+         getlabel(l4);
+         { export flags }
+         exportssection^.concat(new(pai_const,init_32bit(0)));
+         { date/time stamp }
+         exportssection^.concat(new(pai_const,init_32bit(0)));
+         { major version }
+         exportssection^.concat(new(pai_const,init_16bit(0)));
+         { minor version }
+         exportssection^.concat(new(pai_const,init_16bit(0)));
+         { pointer to dll name }
+         importssection^.concat(new(pai_const,init_rva(strpnew(lab2str(l1)))));
+         { ordinal base }
+         exportssection^.concat(new(pai_const,init_32bit(0)));
+         { number of entries }
+         exportssection^.concat(new(pai_const,init_32bit(entries)));
+         { number of named entries }
+         exportssection^.concat(new(pai_const,init_32bit(named_entries)));
+         { address of export address table }
+         importssection^.concat(new(pai_const,init_rva(strpnew(lab2str(l2)))));
+         { address of name pointer pointers }
+         importssection^.concat(new(pai_const,init_rva(strpnew(lab2str(l3)))));
+         { address of ordinal number pointers }
+         importssection^.concat(new(pai_const,init_rva(strpnew(lab2str(l4)))));
+
+         { the name }
+         importssection^.concat(new(pai_label,init(l1)));
+         importssection^.concat(new(pai_string,init(current_module^.modulename^+target_os.sharedlibext+#0)));
+      end;
 
     procedure postprocessexecutable(n : string);
 
@@ -390,7 +450,10 @@ unit win_targ;
 end.
 {
   $Log$
-  Revision 1.11  1998-10-22 17:54:09  florian
+  Revision 1.12  1998-10-27 10:22:35  florian
+    + First things for win32 export sections
+
+  Revision 1.11  1998/10/22 17:54:09  florian
     + switch $APPTYPE for win32 added
 
   Revision 1.10  1998/10/22 15:18:51  florian

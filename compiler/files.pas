@@ -142,6 +142,7 @@ unit files;
           loaded_from   : pmodule;
           uses_imports  : boolean;  { Set if the module imports from DLL's.}
           imports       : plinkedlist;
+          _exports      : plinkedlist;
 
           sourcefiles   : pfilemanager;
           linksharedlibs,
@@ -1022,7 +1023,10 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.67  1998-10-26 22:23:29  peter
+  Revision 1.68  1998-10-27 10:22:34  florian
+    + First things for win32 export sections
+
+  Revision 1.67  1998/10/26 22:23:29  peter
     + fixpath() has an extra option to allow a ./ as path
 
   Revision 1.66  1998/10/19 18:07:11  peter
