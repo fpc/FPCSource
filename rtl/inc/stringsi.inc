@@ -29,7 +29,8 @@
       begin
          destend:=strend(dest);
          dec(l,destend-dest);
-         strlcopy(destend,source,l);
+         if l>0 then
+          strlcopy(destend,source,l);
          strlcat:=dest;
       end;
 
@@ -81,7 +82,10 @@
       end;
 {
   $Log$
-  Revision 1.3  1999-09-01 09:25:10  peter
+  Revision 1.4  1999-09-13 11:42:42  peter
+    * fixed strlcat
+
+  Revision 1.3  1999/09/01 09:25:10  peter
     * fixed return of strcat,strlcat
 
   Revision 1.2  1999/02/25 10:05:07  michael
