@@ -688,7 +688,15 @@ implementation
                  set_location(p^.location,p^.left^.location);
                  { length in ansi strings is at offset -8 }
                  if is_ansistring(p^.left^.resulttype) then
-                   dec(p^.location.reference.offset,8);
+                   dec(p^.location.reference.offset,8)
+                 { char is always 1, so make it a constant value }
+                 else if is_char(p^.left^.resulttype) then
+                   begin
+                     clear_location(p^.location);
+                     p^.location.loc:=LOC_MEM;
+                     p^.location.reference.isintvalue:=true;
+                     p^.location.reference.offset:=1;
+                   end;
               end;
             in_pred_x,
             in_succ_x:
@@ -962,7 +970,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  1998-11-05 12:02:33  peter
+  Revision 1.18  1998-11-24 17:04:27  peter
+    * fixed length(char) when char is a variable
+
+  Revision 1.17  1998/11/05 12:02:33  peter
     * released useansistring
     * removed -Sv, its now available in fpc modes
 

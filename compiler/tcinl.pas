@@ -370,7 +370,7 @@ implementation
                     p^.resulttype:=s32bitdef
                   else
                     p^.resulttype:=u8bitdef;
-                  { wer don't need string conversations here }
+                  { we don't need string conversations here }
                   if (p^.left^.treetype=typeconvn) and
                      (p^.left^.left^.resulttype^.deftype=stringdef) then
                     begin
@@ -378,6 +378,11 @@ implementation
                        putnode(p^.left);
                        p^.left:=hp;
                     end;
+
+                  { check the type, must be string or char }
+                  if (p^.left^.resulttype^.deftype<>stringdef) and
+                     (not is_char(p^.left^.resulttype)) then
+                    CGMessage(type_e_mismatch);
 
                   { evaluates length of constant strings direct }
                   if (p^.left^.treetype=stringconstn) then
@@ -388,17 +393,13 @@ implementation
                        p:=hp;
                     end
                   { length of char is one allways }
-                  else if (p^.left^.treetype=ordconstn) then
-                    if (porddef(p^.left^.resulttype)^.typ=uchar) then
-                      begin
+                  else if is_constcharnode(p^.left) then
+                    begin
                        hp:=genordinalconstnode(1,s32bitdef);
                        disposetree(p);
                        firstpass(hp);
                        p:=hp;
-                      end
-                    else
-                      CGMessage(type_e_mismatch);
-                    ;
+                    end;
                end;
              in_assigned_x:
                begin
@@ -862,7 +863,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  1998-11-14 10:51:33  peter
+  Revision 1.9  1998-11-24 17:04:28  peter
+    * fixed length(char) when char is a variable
+
+  Revision 1.8  1998/11/14 10:51:33  peter
     * fixed low/high for record.field
 
   Revision 1.7  1998/11/13 10:15:52  peter
