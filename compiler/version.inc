@@ -3,6 +3,10 @@
 
 ------------------------------------------------------------------------------}
 
+{$IFDEF VER0_99_5}
+  {$DEFINE VER_ABOVE0_99_5}
+{$ENDIF VER0_99_5}
+
 {$IFDEF VER0_99_0}
   {$DEFINE VER_ABOVE0_99_0}
 {$ENDIF VER0_99_0}
@@ -79,6 +83,10 @@
        Higher versions always include lower versions, so define them also
 
 ------------------------------------------------------------------------------}
+
+{$IFDEF VER_ABOVE0_99_5}
+  {$DEFINE VER_ABOVE0_99_0}
+{$ENDIF VER_ABOVE0_99_5}
 
 {$IFDEF VER_ABOVE0_99_0}
   {$DEFINE VER_ABOVE0_99}
