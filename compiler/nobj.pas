@@ -62,15 +62,14 @@ interface
       tclassheader=class
       private
         _Class : tobjectdef;
-        count  : integer;
       private
         { message tables }
         root : pprocdeftree;
         procedure disposeprocdeftree(p : pprocdeftree);
         procedure insertmsgint(p : tnamedindexitem;arg:pointer);
         procedure insertmsgstr(p : tnamedindexitem;arg:pointer);
-        procedure insertint(p : pprocdeftree;var at : pprocdeftree);
-        procedure insertstr(p : pprocdeftree;var at : pprocdeftree);
+        procedure insertint(p : pprocdeftree;var at : pprocdeftree;var count:longint);
+        procedure insertstr(p : pprocdeftree;var at : pprocdeftree;var count:longint);
         procedure writenames(p : pprocdeftree);
         procedure writeintentry(p : pprocdeftree);
         procedure writestrentry(p : pprocdeftree);
@@ -83,8 +82,8 @@ interface
 {$endif}
       private
         { published methods }
-        procedure do_count(p : tnamedindexitem;arg:pointer);
-        procedure genpubmethodtableentry(p : tnamedindexitem;arg:pointer);
+        procedure do_count_published_methods(p : tnamedindexitem;arg:pointer);
+        procedure do_gen_published_methods(p : tnamedindexitem;arg:pointer);
       private
         { vmt }
         firstvmtentry      : pvmtentry;
@@ -185,7 +184,7 @@ implementation
       end;
 
 
-    procedure tclassheader.insertint(p : pprocdeftree;var at : pprocdeftree);
+    procedure tclassheader.insertint(p : pprocdeftree;var at : pprocdeftree;var count:longint);
 
       begin
          if at=nil then
@@ -196,15 +195,15 @@ implementation
          else
            begin
               if p^.data.messageinf.i<at^.data.messageinf.i then
-                insertint(p,at^.l)
+                insertint(p,at^.l,count)
               else if p^.data.messageinf.i>at^.data.messageinf.i then
-                insertint(p,at^.r)
+                insertint(p,at^.r,count)
               else
                 Message1(parser_e_duplicate_message_label,tostr(p^.data.messageinf.i));
            end;
       end;
 
-    procedure tclassheader.insertstr(p : pprocdeftree;var at : pprocdeftree);
+    procedure tclassheader.insertstr(p : pprocdeftree;var at : pprocdeftree;var count:longint);
 
       var
          i : integer;
@@ -219,9 +218,9 @@ implementation
            begin
               i:=strcomp(p^.data.messageinf.str,at^.data.messageinf.str);
               if i<0 then
-                insertstr(p,at^.l)
+                insertstr(p,at^.l,count)
               else if i>0 then
-                insertstr(p,at^.r)
+                insertstr(p,at^.r,count)
               else
                 Message1(parser_e_duplicate_message_label,strpas(p^.data.messageinf.str));
            end;
@@ -245,7 +244,7 @@ implementation
                     pt^.data:=def;
                     pt^.l:=nil;
                     pt^.r:=nil;
-                    insertint(pt,root);
+                    insertint(pt,root,plongint(arg)^);
                   end;
               end;
       end;
@@ -268,7 +267,7 @@ implementation
                     pt^.data:=def;
                     pt^.l:=nil;
                     pt^.r:=nil;
-                    insertstr(pt,root);
+                    insertstr(pt,root,plongint(arg)^);
                   end;
               end;
       end;
@@ -310,11 +309,12 @@ implementation
     function tclassheader.genstrmsgtab : tasmlabel;
       var
          r : tasmlabel;
+         count : longint;
       begin
          root:=nil;
          count:=0;
          { insert all message handlers into a tree, sorted by name }
-         _class.symtable.foreach(@insertmsgstr,nil);
+         _class.symtable.foreach(@insertmsgstr,@count);
 
          { write all names }
          if assigned(root) then
@@ -351,11 +351,12 @@ implementation
     function tclassheader.genintmsgtab : tasmlabel;
       var
          r : tasmlabel;
+         count : longint;
       begin
          root:=nil;
          count:=0;
          { insert all message handlers into a tree, sorted by name }
-         _class.symtable.foreach(@insertmsgint,nil);
+         _class.symtable.foreach(@insertmsgint,@count);
 
          { now start writing of the message string table }
          objectlibrary.getdatalabel(r);
@@ -459,52 +460,69 @@ implementation
         Published Methods
 **************************************}
 
-    procedure tclassheader.do_count(p : tnamedindexitem;arg:pointer);
-
-      begin
-         if (tsym(p).typ=procsym) and (sp_published in tsym(p).symoptions) then
-           inc(count);
-      end;
-
-    procedure tclassheader.genpubmethodtableentry(p : tnamedindexitem;arg:pointer);
-
+    procedure tclassheader.do_count_published_methods(p : tnamedindexitem;arg:pointer);
       var
-         hp : tprocdef;
-         l : tasmlabel;
-
+        i : longint;
+        pd : tprocdef;
       begin
-         if (tsym(p).typ=procsym) and (sp_published in tsym(p).symoptions) then
+         if (tsym(p).typ=procsym) then
            begin
-              if Tprocsym(p).procdef_count>1 then
-                internalerror(1209992);
-              hp:=tprocsym(p).first_procdef;
-              objectlibrary.getdatalabel(l);
-
-              consts.concat(tai_align.create(const_align(sizeof(aint))));
-              Consts.concat(Tai_label.Create(l));
-              Consts.concat(Tai_const.Create_8bit(length(p.name)));
-              Consts.concat(Tai_string.Create(p.name));
-
-              dataSegment.concat(Tai_const.Create_sym(l));
-              dataSegment.concat(Tai_const.Createname(hp.mangledname,AT_FUNCTION,0));
+             for i:=1 to tprocsym(p).procdef_count do
+               begin
+                 pd:=tprocsym(p).procdef[i];
+                 if (pd.procsym=tsym(p)) and
+                    (sp_published in pd.symoptions) then
+                   inc(plongint(arg)^);
+                end;
            end;
       end;
+
+
+    procedure tclassheader.do_gen_published_methods(p : tnamedindexitem;arg:pointer);
+      var
+        i  : longint;
+        l  : tasmlabel;
+        pd : tprocdef;
+      begin
+         if (tsym(p).typ=procsym) then
+           begin
+             for i:=1 to tprocsym(p).procdef_count do
+               begin
+                 pd:=tprocsym(p).procdef[i];
+                 if (pd.procsym=tsym(p)) and
+                    (sp_published in pd.symoptions) then
+                   begin
+                     objectlibrary.getdatalabel(l);
+
+                     consts.concat(tai_align.create(const_align(sizeof(aint))));
+                     Consts.concat(Tai_label.Create(l));
+                     Consts.concat(Tai_const.Create_8bit(length(p.name)));
+                     Consts.concat(Tai_string.Create(p.name));
+
+                     dataSegment.concat(Tai_const.Create_sym(l));
+                     dataSegment.concat(Tai_const.Createname(pd.mangledname,AT_FUNCTION,0));
+                   end;
+                end;
+           end;
+      end;
+
 
     function tclassheader.genpublishedmethodstable : tasmlabel;
 
       var
          l : tasmlabel;
+         count : longint;
 
       begin
          count:=0;
-         _class.symtable.foreach(@do_count,nil);
+         _class.symtable.foreach(@do_count_published_methods,@count);
          if count>0 then
            begin
               objectlibrary.getdatalabel(l);
               datasegment.concat(tai_align.create(const_align(sizeof(aint))));
               dataSegment.concat(Tai_label.Create(l));
               dataSegment.concat(Tai_const.Create_32bit(count));
-              _class.symtable.foreach(@genpubmethodtableentry,nil);
+              _class.symtable.foreach(@do_gen_published_methods,nil);
               genpublishedmethodstable:=l;
            end
          else
@@ -1382,7 +1400,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.78  2004-10-15 09:14:17  mazen
+  Revision 1.79  2004-10-24 13:35:39  peter
+    * fixed writing of methodtable
+
+  Revision 1.78  2004/10/15 09:14:17  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 
