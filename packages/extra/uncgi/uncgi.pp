@@ -5,7 +5,7 @@ unit uncgi;
   UNCGI UNIT 2.0.11
   ----------------
 }
-
+{$ASSERTIONS ON}
 interface
 uses
   strings
@@ -39,10 +39,10 @@ Type
     Value:PPChar
   end;
 var
-  EnvC:LongInt;
-  EnvP:PCgiVar;
+  cgiEnvC:LongInt;
+  cgiEnvP:PCgiVar;
   get_nodata    : boolean;
-  query_read    : word;
+  query_read    : Cardinal;
   uncgi_error   : cgi_error_proc;
 
 {***********************************************************************}
@@ -121,7 +121,7 @@ function get_next_value:PChar;
   Example       - set_content('text/plain');
                   set_content('text/html');
 }
-procedure set_content(ctype: string);
+procedure set_content(const ctype: string);
 
 { Function to get the requested URL }
 
@@ -239,7 +239,7 @@ end;
 var
   done_init     : boolean;
 
-procedure set_content(ctype: string);
+procedure set_content(const ctype: string);
 begin
   writeln('Content-Type: ',ctype);
   writeln;
@@ -295,10 +295,11 @@ var
   gv_cnt,gv_cnt_n:LongInt;
 function get_next_value:PChar;
 begin
-  if gv_cnt>=EnvC
+  Assert(done_init,'Please call cgi_init() first');
+  if gv_cnt>=cgiEnvC
   then
     Exit(Nil);
-  with EnvP[gv_cnt] do
+  with cgiEnvP[gv_cnt] do
     begin
       if gv_cnt_n>=NbrValues
       then
@@ -310,9 +311,10 @@ end;
 
 function get_value(id: pchar): pchar;
  begin
+  Assert(done_init,'Please call cgi_init() first');
   gv_cnt:=0;
   gv_cnt_n:=0;
-  while(gv_cnt<EnvC)and(StrComp(id,EnvP[gv_cnt].Name)<>0)do
+  while(gv_cnt<cgiEnvC)and(StrComp(id,cgiEnvP[gv_cnt].Name)<>0)do
     Inc(gv_cnt);
   get_value:=get_next_value;
  end;
@@ -323,35 +325,32 @@ var
    sptr          : longint;
    cnt           : word;
    qslen         : longint;
-
 begin
    qslen:=strlen(QueryString);
    if qslen=0 then
      begin
-     Unescape:=#0;
+     Unescape:=Nil;
      get_nodata:=true;
      exit;
      end
    else
      get_nodata :=false;
 { skelet fix }
-   getmem(qunescaped,qslen+1);
-   if qunescaped=nil then
-     begin
-     writeln ('Oh-oh');
-     halt;
-     end;
+{Escaped chain is usually longer than the unescaped chain}
+   GetMem(qunescaped,qslen+1);
+   if qunescaped=nil
+   then
+    uncgi_error('UnEscape()','Could not allocate memory');
    sptr :=0;
 
 {  for cnt := 0 to qslen do  +++++ use while instead of for }
    cnt:=0;
-   while cnt<=qslen do
+   while cnt<qslen do
    begin
      case querystring[cnt] of
-       '+': qunescaped[sptr] := ' ';
+       '+': qunescaped[sptr]:=' ';
        '%': begin
-            qunescaped[sptr] :=
-                hexconv(querystring[cnt+1], querystring[cnt+2]);
+            qunescaped[sptr]:=hexconv(querystring[cnt+1], querystring[cnt+2]);
             inc(cnt,2); { <--- not allowed in for loops in pascal }
             end;
      else
@@ -362,16 +361,17 @@ begin
      qunescaped[sptr]:=#0;
      inc(cnt);               { <-- don't forget to increment }
    end;
-   UnEscape:=qunescaped;
+   UnEscape:=StrNew(qunescaped);
+   FreeMem(qunescaped,qsLen+1);
 end;
 
-Function Chop(QueryString:PChar):Longint;
+Function Chop(QueryString:PChar):Cardinal;
   var
     VarName,VarValue,name_pos,value_pos:PChar;
     sz,EnvCC:LongInt;
     p:Pointer;
   begin
-    GetMem(EnvP,MaxQuery*SizeOf(TCgiVar));
+    GetMem(cgiEnvP,MaxQuery*SizeOf(TCgiVar));
     name_pos:=QueryString;
     value_pos:=QueryString;
     repeat
@@ -397,19 +397,20 @@ Function Chop(QueryString:PChar):Longint;
       StrLCopy(VarValue,value_pos,sz);
       EnvCC:=0;
       repeat
-        with EnvP[EnvCC] do
+        with cgiEnvP[EnvCC] do
           begin
-            if EnvCC=EnvC
+            if EnvCC=cgiEnvC
             then
               begin
-                if EnvC>=MaxQuery
+                if cgiEnvC>=MaxQuery
                 then
                   uncgi_error('cgi_read_get_query()','Your are trying to use more than max varaibles allowed! Please change value of "MaxQuery" and recompile your program')
                 else
                   begin
                     Name:=UnEscape(VarName);
                     GetMem(Value,MaxQuery*SizeOf(PChar));
-                    Inc(EnvC);
+                    NbrValues:=0;
+                    Inc(cgiEnvC);
                   end;
               end;
             if StrComp(VarName,Name)=0
@@ -431,8 +432,8 @@ Function Chop(QueryString:PChar):Longint;
         Inc(EnvCC);
       until false;
     until name_pos=Nil;
-    for EnvCC:=0 to EnvC-1 do
-      with EnvP[EnvCC] do
+    for EnvCC:=0 to cgiEnvC-1 do
+      with cgiEnvP[EnvCC] do
         begin
           p:=Value;
           sz:=NbrValues*SizeOf(PChar);
@@ -440,12 +441,12 @@ Function Chop(QueryString:PChar):Longint;
           Move(p^,Value^,sz);
           FreeMem(p,MaxQuery*SizeOf(PChar));
         end;
-    p:=EnvP;
-    sz:=EnvC*SizeOf(TCgiVar);
-    GetMem(EnvP,sz);
-    Move(p^,EnvP^,sz);
+    p:=cgiEnvP;
+    sz:=cgiEnvC*SizeOf(TCgiVar);
+    GetMem(cgiEnvP,sz);
+    Move(p^,cgiEnvP^,sz);
     FreeMem(p,MaxQuery*SizeOf(TCgiVar));
-    Chop:=EnvC;
+    Chop:=Abs(cgiEnvC);
   end;
 
 procedure cgi_read_get_query;
@@ -468,7 +469,7 @@ begin
         get_nodata :=false;
       query_read:=Chop(QueryString);
     end;
-  done_init :=true;
+  StrDispose(QueryString);
 end;
 
 procedure cgi_read_post_query;
@@ -493,21 +494,21 @@ begin
       while sptr<>qslen do
         begin
         read(ch);
-        pchar(longint(querystring)+sptr)^ :=ch;
+        QueryString[sptr]:=ch;
         inc(sptr);
         end;
       { !!! force null-termination }
-      pchar(longint(querystring)+sptr)^ :=#0;
+      QueryString[sptr]:=#0;
       query_read:=Chop(QueryString);
       end;
     end;
-  done_init :=true;
 end;
 
 procedure cgi_init;
 var
   rmeth : pchar;
 begin
+  Assert(NOT done_init,'cgi_init() was already called');
   query_read:=0;
   rmeth :=http_request_method;
   if rmeth=nil then
@@ -518,23 +519,27 @@ begin
   if strcomp('POST',rmeth)=0 then cgi_read_post_query else
   if strcomp('GET',rmeth)=0 then cgi_read_get_query else
   uncgi_error('cgi_init()','No REQUEST_METHOD passed from server!');
+  done_init :=true;
 end;
 
 procedure cgi_deinit;
 var
   i,j:LongInt;
 begin
-  done_init :=false;
-  query_read :=0;
-  for i:=0 to EnvC-1 do
-    with EnvP[i] do
+  Assert(done_init,'Please call cgi_init() first');
+  if cgiEnvC=0
+  then
+    Exit;
+  for i:=0 to cgiEnvC-1 do
+    with cgiEnvP[i] do
       begin
+        StrDispose(Name);
         for j:=0 to NbrValues-1 do
           StrDispose(Value[j]);
         FreeMem(Value,NbrValues*SizeOf(PChar));
       end;
-  FreeMem(EnvP,EnvC*SizeOf(TCgiVar));
-  EnvC:=0;
+  FreeMem(cgiEnvP,cgiEnvC*SizeOf(TCgiVar));
+  cgiEnvC:=0;
 end;
 
 
@@ -553,14 +558,22 @@ begin
   InitWin32CGI;
   {$endif}
   uncgi_error:=@def_uncgi_error;
-  cgi_deinit;
+  done_init :=false;
 end.
 
   
 {
   HISTORY
   $Log$
-  Revision 1.11  2003-05-29 08:58:45  michael
+  Revision 1.12  2003-07-16 12:56:03  mazen
+  + using Assert to monitor done_init and get state of
+    un_cgi initailization
+  * renaming EnvP and EnvC to cgiEnvP and cgiEnvP
+    to avoid confusion with regular EnvP and EnvC
+    varaibles especially under win32 target
+  * set_contents get parameter by address (const)
+
+  Revision 1.11  2003/05/29 08:58:45  michael
   + Fixed inline error when building
 
   Revision 1.10  2003/05/27 20:50:18  mazen
