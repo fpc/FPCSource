@@ -2,18 +2,21 @@ FPC demo package
 ================
 This packages contains the following subdirs:
 
-- text   text mode demos (should run everywhere)
-- graph  demos those use the graph unit (runs nearly everywhere)
-         includes gameunit (text&graph), outputs to another subdir level
-- modex  demos those make extensive use of modeX (runs with go32v2 only)
-- win32  demos those are win32 specific
-- linux  demos those are linux specific
-- os2    demos those are OS/2 specific
-- palmos demos those are palmos specific (dragonball)
+- text    text mode demos (should run everywhere)
+- graph   demos those use the graph unit (runs nearly everywhere)
+          includes gameunit (text&graph), outputs to another subdir level
+- modex   demos those make extensive use of modeX (runs with go32v2 only)
+- win32   demos those are win32 specific
+- linux   demos those are linux specific
+- os2     demos those are OS/2 specific
+- palmos  demos those are palmos specific (dragonball)
+- netware demos those are netware(clib) specific
 
-To build the programs simply type 'make' in the base dir.
+To build the programs simply type 'make' in the base dir. Do do
+a cross build, type make OS_TARGET=crosstarget, i.e.
+make OS_TARGET=win32
 
 If you want to add further samples, edit Makefile.fpc
-and rebuild the real Makefile by entering 'fpcmake'.
+and rebuild the real Makefile by entering 'fpcmake -T all'.
 This is a special fpc generic utility to simplify
 platform independent makefile generation for the user.
