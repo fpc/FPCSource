@@ -1025,7 +1025,7 @@ implementation
             exeext      : '.exe';
             os          : os_i386_Win32;
             link        : link_i386_ldw;
-            assem       : as_i386_pecoff;
+            assem       : {as_i386_pecoff}as_i386_asw;
             assemsrc    : as_i386_asw;
             ar          : ar_i386_arw;
             res         : res_i386_windres;
@@ -1500,7 +1500,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.82  1999-06-08 11:50:28  peter
+  Revision 1.82.2.1  1999-07-02 12:52:58  pierre
+   * pecoff still buggy, as_I386_asw again default
+
+  Revision 1.82  1999/06/08 11:50:28  peter
     * 2mb again for go32v2/v1
 
   Revision 1.81  1999/06/02 20:46:39  peter
