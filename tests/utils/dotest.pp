@@ -59,7 +59,7 @@ const
   RemotePath : string = '/tmp';
   rshprog : string = 'rsh';
   rcpprog : string = 'rcp';
-  
+
 Function FileExists (Const F : String) : Boolean;
 {
   Returns True if the file exists, False if not.
@@ -514,19 +514,49 @@ begin
 end;
 
 
+function CheckTestExitCode(const OutName:string):boolean;
+var
+  t : text;
+  s : string;
+  i,code : integer;
+begin
+  CheckTestExitCode:=false;
+  { open logfile }
+  assign(t,Outname);
+  {$I-}
+   reset(t);
+  {$I+}
+  if ioresult<>0 then
+   exit;
+  while not eof(t) do
+   begin
+     readln(t,s);
+     i:=pos('TestExitCode: ',s);
+     if i>0 then
+      begin
+        delete(s,1,i+14-1);
+        val(s,ExecuteResult,code);
+        CheckTestExitCode:=true;
+        break;
+      end;
+   end;
+  close(t);
+end;
+
+
 function RunExecutable:boolean;
 var
   outname,
   TestRemoteExe,
   TestExe  : string;
   execres  : boolean;
-  
+
   function ExecuteRemote(const prog,args:string):boolean;
   begin
     Verbose(V_Debug,'RemoteExecuting '+Prog+' '+args);
     ExecuteRemote:=ExecuteRedir(prog,args,'',OutName,'stdout');
   end;
-  
+
 begin
   RunExecutable:=false;
   execres:=true;
@@ -538,7 +568,11 @@ begin
       TestRemoteExe:=RemotePath+'/'+SplitFileName(TestExe);
       ExecuteRemote(rshprog,RemoteAddr+' rm -f '+TestRemoteExe);
       ExecuteRemote(rcpprog,TestExe+' '+RemoteAddr+':'+TestRemoteExe);
-      execres:=ExecuteRemote(rshprog,RemoteAddr+' '+TestRemoteExe);
+      { rsh doesn't pass the exitcode, use a second command to print the exitcode
+        on the remoteshell to stdout }
+      execres:=ExecuteRemote(rshprog,RemoteAddr+' '''+TestRemoteExe+' ; echo "TestExitCode: $?"''');
+      { Check for TestExitCode error in output, sets ExecuteResult }
+      CheckTestExitCode(OutName);
     end
   else
     begin
@@ -593,7 +627,7 @@ begin
      AddLog(ResLogFile,successfully_run+PPFileInfo);
      RunExecutable:=true;
    end;
-   
+
   if DelExecutable then
     begin
       Verbose(V_Debug,'Deleting executable '+TestExe);
@@ -602,7 +636,7 @@ begin
       RemoveFile(TestExe);
       RemoveFile(ForceExtension(TestExe,ObjExt));
       RemoveFile(ForceExtension(TestExe,PPUExt));
-    end;  	
+    end;
 end;
 
 
@@ -682,13 +716,13 @@ begin
          'R' : RemoteAddr:=Para;
 
          'T' :
-	   DelExecutable:=true;
-	   
-	 'S' : 
-	   begin
-	     rshprog:='ssh';
-	     rcpprog:='scp';
-	   end;
+           DelExecutable:=true;
+
+         'S' :
+           begin
+             rshprog:='ssh';
+             rcpprog:='scp';
+           end;
         end;
      end
     else
@@ -700,7 +734,7 @@ begin
     end;
   if (PPFile='') then
    HelpScreen;
-  { disable graph,interactive when running remote } 
+  { disable graph,interactive when running remote }
   if RemoteAddr<>'' then
     begin
       DoGraph:=false;
@@ -912,7 +946,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.35  2004-05-16 20:13:04  peter
+  Revision 1.36  2004-05-17 20:51:29  peter
+    * print exitcode of remote test to stdout and parse the output file.
+      this is the most reliable passing of the exitcode
+
+  Revision 1.35  2004/05/16 20:13:04  peter
     * remote execute updates, see readme.txt
 
   Revision 1.34  2004/05/03 14:48:51  peter
