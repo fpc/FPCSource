@@ -204,30 +204,27 @@ implementation
               separately instead of using the SET_IN_BYTE procedure.
               To do: Build in support for LOC_JUMP }
 
+            opsize := def_opsize(left.resulttype.def);
             { If register is used, use only lower 8 bits }
             if left.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
              begin
                pleftreg:=left.location.register;
-               if pleftreg in [R_AX..R_DI] then
-                begin
-                  emit_const_reg(A_AND,S_L,255,reg16toreg32(pleftreg));
-                end
-               else
-                if pleftreg in [R_EAX..R_EDI] then
-                 begin
-                   emit_const_reg(A_AND,S_L,255,pleftreg);
-                 end
-               else
-                begin
-                  if ranges then
-                    emit_const_reg(A_AND,S_L,255,reg8toreg32(pleftreg));
-                end;
-               opsize := S_L;
+               { for ranges we always need a 32bit register, because then we }
+               { use the register as base in a reference (JM)                }
                if ranges then
                  begin
                    pleftreg := makereg32(pleftreg);
+                   if opsize <> S_L then
+                     emit_const_reg(A_AND,S_L,255,pleftreg);
                    opsize := S_L;
                  end
+               else
+                 { otherwise simply use the lower 8 bits (no "and" }
+                 { necessary this way) (JM)                        }
+                 begin
+                   pleftreg := makereg8(pleftreg);
+                   opsize := S_B;
+                 end;
              end
             else
              begin
@@ -270,6 +267,7 @@ implementation
                       if (pleftreg <> R_EDI) and
                          (left.location.loc = LOC_CREGISTER) then
                         begin
+                          ungetregister(pleftreg);
                           getexplicitregister32(R_EDI);
                           emit_ref_reg(A_LEA,S_L,
                             new_reference(pleftreg,-setparts[i].start),R_EDI);
@@ -1067,7 +1065,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2001-04-02 21:20:38  peter
+  Revision 1.13  2001-04-06 14:09:34  jonas
+    * fixed bug in ti386innode.pass_2 code and made it simpler/faster
+
+  Revision 1.12  2001/04/02 21:20:38  peter
     * resulttype rewrite
 
   Revision 1.11  2001/02/11 12:14:56  jonas
