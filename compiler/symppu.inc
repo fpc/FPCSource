@@ -138,6 +138,7 @@
         hp    : pinputfile;
       begin
       { second write the used source files }
+        current_ppu^.do_crc:=false;
         hp:=current_module^.sourcefiles^.files;
         while assigned(hp) do
          begin
@@ -146,6 +147,7 @@
            hp:=hp^.ref_next;
          end;
         current_ppu^.writeentry(ibsourcefiles);
+        current_ppu^.do_crc:=true;
       end;
 
 
@@ -442,7 +444,10 @@
 
 {
   $Log$
-  Revision 1.28  1999-01-12 14:25:35  peter
+  Revision 1.29  1999-01-20 10:16:46  peter
+    * don't update crc when writing objs,libs and sources
+
+  Revision 1.28  1999/01/12 14:25:35  peter
     + BrowserLog for browser.log generation
     + BrowserCol for browser info in TCollections
     * released all other UseBrowser
