@@ -1,4 +1,5 @@
 { %OPT=-vn }
+{ %KNOWNCOMPILEERROR= Typecasting assignment values with types of different sizes is refused even in TP mode for big endian cpus }
 {$ifdef ENDIAN_BIG}
 {$note This test should fail on big endian machines. }
 {$endif}
