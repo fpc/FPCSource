@@ -19,15 +19,6 @@
 const
   ParseBufSize     = 4096;
 
-procedure BinToHex(Buffer, Text: PChar; BufSize: Integer);
-begin
-end;
-
-function HexToBin(Text, Buffer: PChar; BufSize: Integer) : Integer;
-begin
-  HexToBin:=0;
-end;
-
 procedure TParser.ReadBuffer;
 var
   Count            : Integer;
@@ -139,18 +130,33 @@ begin
 end;
 
 
-Procedure TParser.HexToBinary(Stream: TStream);
+procedure TParser.HexToBinary(Stream: TStream);
+
+  function HexDigitToInt(c: Char): Integer;
+  begin
+    if (c >= '0') and (c <= '9') then Result := Ord(c) - Ord('0')
+    else if (c >= 'A') and (c <= 'F') then Result := Ord(c) - Ord('A') + 10
+    else if (c >= 'a') and (c <= 'f') then Result := Ord(c) - Ord('a') + 10
+    else Result := -1;
+  end;
+
 var
-  Count            : Integer;
-  Buffer           : array[0..255] of Char;
+  buf: array[0..255] of Byte;
+  digit1: Integer;
+  bytes: Integer;
 begin
   SkipBlanks;
-  while FSourcePtr^ <> '}' do
-  begin
-    Count := HexToBin(FSourcePtr, Buffer, SizeOf(Buffer));
-    if Count = 0 then Error(SInvalidBinary);
-    Stream.Write(Buffer, Count);
-    Inc(FSourcePtr, Count * 2);
+  while FSourcePtr^ <> '}' do begin
+    bytes := 0;
+    while True do begin
+      digit1 := HexDigitToInt(FSourcePtr[0]);
+      if digit1 < 0 then break;
+      buf[bytes] := digit1 shl 4 or HexDigitToInt(FSourcePtr[1]);
+      Inc(FSourcePtr, 2);
+      Inc(bytes);
+    end;
+    if bytes = 0 then Error(SInvalidBinary);
+    Stream.Write(buf, bytes);
     SkipBlanks;
   end;
   NextToken;
@@ -301,7 +307,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.7  1999-09-28 10:28:21  fcl
+  Revision 1.8  1999-09-30 19:32:08  fcl
+  * Implemented TParser.HexToBinary  (sg)
+
+  Revision 1.7  1999/09/28 10:28:21  fcl
   * Fixed some severe bugs  (sg)
 
   Revision 1.6  1999/04/08 10:18:53  peter
