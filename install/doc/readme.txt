@@ -81,11 +81,9 @@ OS/2 and DOS (extender EMX):
 
 
 ****************************************************************************
-The current version is only an evaluation version.
+* Quick start
 ****************************************************************************
 
-Quick start
------------
 Download dos100.zip (version for DOS) or w32100.zip (version for
 Win9x/NT) or os2100.zip (EMX version - for OS/2 and DOS) and unzip it
 into a temporary directory.
