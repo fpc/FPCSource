@@ -303,17 +303,27 @@
       function TObject.FieldAddress(const name : shortstring) : pointer;
         type
            PFieldInfo = ^TFieldInfo;
-           TFieldInfo = packed record
-             FieldOffset: LongWord;
+           TFieldInfo =
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+           packed
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+           record
+             FieldOffset: PtrUInt;
              ClassTypeIndex: Word;
              Name: ShortString;
            end;
 
            PFieldTable = ^TFieldTable;
-           TFieldTable = packed record
+           TFieldTable =
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+           packed
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+           record
              FieldCount: Word;
              ClassTable: Pointer;
-             { Fields: array[Word] of TFieldInfo;  Elements have variant size! }
+             { should be array[Word] of TFieldInfo;  but
+               Elements have variant size! force at least proper alignment }
+             Fields: array[0..0] of TFieldInfo
            end;
 
         var
@@ -333,7 +343,7 @@
                FieldTable := PFieldTable((Pointer(CurClassType) + vmtFieldTable)^);
                if FieldTable <> nil then
                begin
-                 FieldInfo := PFieldInfo(Pointer(FieldTable) + 6);
+                 FieldInfo := @FieldTable^.Fields;
                  for i := 0 to FieldTable^.FieldCount - 1 do
                  begin
                    if UpCase(FieldInfo^.Name) = UName then
@@ -341,7 +351,11 @@
                      fieldaddress := Pointer(Self) + FieldInfo^.FieldOffset;
                      exit;
                    end;
-                   Inc(Pointer(FieldInfo), 7 + Length(FieldInfo^.Name));
+                   FieldInfo := @FieldInfo^.Name + 1 + Length(FieldInfo^.Name);
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+                   { align to largest field of TFieldInfo }
+                   FieldInfo := Align(FieldInfo, SizeOf(PtrUInt));
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
                  end;
                end;
                { Try again with the parent class type }
@@ -747,7 +761,13 @@
 
 {
   $Log$
-  Revision 1.46  2005-02-14 17:13:26  peter
+  Revision 1.47  2005-03-13 08:34:58  florian
+    * fixed FieldAddress for 64 bit and CPUs requiring proper alignment
+
+  Revision 1.46  2005/02/14 17:13:26  peter
     * truncate log
 
 }
+
+
+

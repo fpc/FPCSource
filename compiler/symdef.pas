@@ -5794,9 +5794,9 @@ implementation
           (tsym(sym).typ=fieldvarsym) then
           begin
 {$ifdef cpurequiresproperalignment}
-             rttilist.concat(Tai_align.Create(sizeof(TConstPtrUInt)));
+             rttilist.concat(Tai_align.Create(sizeof(AInt)));
 {$endif cpurequiresproperalignment}
-             rttiList.concat(Tai_const.Create_32bit(tfieldvarsym(sym).fieldoffset));
+             rttiList.concat(Tai_const.Create_aint(tfieldvarsym(sym).fieldoffset));
              hp:=searchclasstablelist(tobjectdef(tfieldvarsym(sym).vartype.def));
              if not(assigned(hp)) then
                internalerror(0206002);
@@ -6394,7 +6394,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.299  2005-03-07 17:58:27  peter
+  Revision 1.300  2005-03-13 08:35:09  florian
+    * fixed FieldAddress for 64 bit and CPUs requiring proper alignment
+
+  Revision 1.299  2005/03/07 17:58:27  peter
     * fix protected checking
 
   Revision 1.298  2005/02/26 15:43:09  florian
