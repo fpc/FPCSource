@@ -189,7 +189,7 @@ Procedure CatchUnhandledException (Obj : TObject; Addr: Pointer);
 Var
   Message : String;
 begin
-  Writeln(stdout,'An unhandled exception occurred at ',HexStr(Longint(Addr),8),' :');
+  Writeln(stdout,'An unhandled exception occurred at 0x',HexStr(Longint(Addr),8),' :');
   if Obj is exception then
    begin
      Message:=Exception(Obj).Message;
@@ -250,7 +250,7 @@ begin
   else
    E:=Exception.CreateFmt (SUnKnownRunTimeError,[Errno]);
   end;
-  Raise E {at Address};
+  Raise E at longint(Address);
 end;
 
 
@@ -293,7 +293,10 @@ Finalization
 end.
 {
     $Log$
-    Revision 1.35  1999-11-06 14:41:31  peter
+    Revision 1.36  1999-11-15 21:49:47  peter
+      * exception address fixes
+
+    Revision 1.35  1999/11/06 14:41:31  peter
       * truncated log
 
     Revision 1.34  1999/10/30 17:39:05  peter

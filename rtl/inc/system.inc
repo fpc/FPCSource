@@ -569,7 +569,7 @@ procedure AbstractError;[public,alias : 'FPC_ABSTRACTERROR'];
 begin
   If AbstractErrorProc<>nil then
     AbstractErrorProc();
-  HandleError(211);
+  HandleErrorFrame(211,get_frame);
 end;
 
 
@@ -578,7 +578,7 @@ begin
   if AssertErrorProc<>nil then
     AssertErrorProc(Msg,FName,LineNo,ErrorAddr)
   else
-    HandleError(227);
+    HandleErrorFrame(227,get_frame);
 end;
 
 
@@ -608,7 +608,10 @@ end;
 
 {
   $Log$
-  Revision 1.71  1999-11-09 22:40:12  pierre
+  Revision 1.72  1999-11-15 21:49:47  peter
+    * exception address fixes
+
+  Revision 1.71  1999/11/09 22:40:12  pierre
    + get also first BackTrace address with '  0x' prefix
 
   Revision 1.70  1999/11/09 20:14:12  daniel
