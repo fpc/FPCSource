@@ -414,6 +414,7 @@ implementation
                             floatdef :
                               begin
                                 emitcall(rdwrprefix[doread]+'FLOAT');
+                                inc(fpuvaroffset);
                                 if doread then
                                   StoreDirectFuncResult(hp^.left);
                               end;
@@ -699,7 +700,10 @@ implementation
 
            Case dest_para^.resulttype^.deftype of
              floatdef:
-               procedureprefix := 'FPC_VAL_REAL_';
+               begin
+                  procedureprefix := 'FPC_VAL_REAL_';
+                  inc(fpuvaroffset);
+               end;
              orddef:
                if is_64bitint(dest_para^.resulttype) then
                  begin
@@ -1313,7 +1317,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.65  1999-08-04 00:22:47  florian
+  Revision 1.66  1999-08-10 12:47:53  pierre
+   * fpuvaroffset problems solved
+
+  Revision 1.65  1999/08/04 00:22:47  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.64  1999/08/03 22:02:42  peter

@@ -433,7 +433,9 @@ implementation
       begin
          unused:=usableregs;
          usablereg32:=c_usableregs;
-         fpuvaroffset:=0;
+         {fpuvaroffset:=0;
+          this must only be resetted at each procedure
+          compilation start PM }
       end;
 
 
@@ -480,7 +482,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  1999-08-04 13:45:32  florian
+  Revision 1.31  1999-08-10 12:47:55  pierre
+   * fpuvaroffset problems solved
+
+  Revision 1.30  1999/08/04 13:45:32  florian
     + floating point register variables !!
     * pairegalloc is now generated for register variables
 
