@@ -714,9 +714,12 @@ unit ag386att;
                calljmp:=is_calljmp(op);
              { call maybe not translated to call }
                s:=#9+att_op2str[op]+cond2str[paicpu(hp)^.condition];
+               { suffix needed ?  fnstsw,fldcw don't support suffixes
+                 with binutils 2.9.5 under linux }
                if (not calljmp) and
                   (att_needsuffix[op]<>AttSufNONE) and
                   (op<>A_FNSTSW) and
+                  (op<>A_FLDCW) and
                   not(
                    (paicpu(hp)^.oper[0].typ=top_reg) and
                    (paicpu(hp)^.oper[0].reg in [R_ST..R_ST7])
@@ -894,7 +897,10 @@ unit ag386att;
 end.
 {
   $Log$
-  Revision 1.30  2000-02-29 23:56:49  pierre
+  Revision 1.31  2000-04-01 14:18:03  peter
+    * don't write suffix for fldcw
+
+  Revision 1.30  2000/02/29 23:56:49  pierre
    * write source line again for inline procs
 
   Revision 1.29  2000/02/20 21:20:28  marco
