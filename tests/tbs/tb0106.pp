@@ -15,7 +15,7 @@ begin
   l[i]:=35;
  asm
         mov     eax,3
-        mov     l[eax*4],55
+        mov     byte ptr l[eax*4],55
  end;
  if l[3]<>55 then
    begin
