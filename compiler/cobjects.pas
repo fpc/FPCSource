@@ -50,6 +50,7 @@ unit cobjects;
          fileindex : word;
        end;
 
+
        { some help data types }
        pstringitem = ^tstringitem;
        tstringitem = record
@@ -72,6 +73,7 @@ unit cobjects;
           constructor init(const s : string);
           destructor done;virtual;
        end;
+
 
        { this implements a double linked list }
        plinkedlist = ^tlinkedlist;
@@ -103,6 +105,7 @@ unit cobjects;
           function  empty:boolean;
        end;
 
+
        { String Queue}
        PStringQueue=^TStringQueue;
        TStringQueue=object
@@ -116,18 +119,18 @@ unit cobjects;
          procedure Clear;
        end;
 
+
        { string container }
        pstringcontainer = ^tstringcontainer;
        tstringcontainer = object
-          root,last : pstringitem;
-
-          { if this is set to true, doubles are allowed }
-          { true is default                             }
-          doubles : boolean;
+          root,
+          last    : pstringitem;
+          doubles : boolean;  { if this is set to true, doubles are allowed }
           constructor init;
+          constructor init_no_double;
           destructor done;
 
-          { true is the container empty }
+          { true when the container is empty }
           function empty:boolean;
 
           { inserts a string }
@@ -138,10 +141,13 @@ unit cobjects;
           function get : string;
           function get_with_tokeninfo(var file_info : tfileposinfo) : string;
 
+          { true if string is in the container }
           function find(const s:string):boolean;
+
           { deletes all strings }
           procedure clear;
        end;
+
 
 {$ifdef BUFFEREDFILE}
        { this is implemented to allow buffered binary I/O }
@@ -429,32 +435,36 @@ end;
  ****************************************************************************}
 
     constructor tstringcontainer.init;
-
       begin
          root:=nil;
          last:=nil;
          doubles:=true;
       end;
 
-    destructor tstringcontainer.done;
 
+    constructor tstringcontainer.init_no_double;
+      begin
+         root:=nil;
+         last:=nil;
+         doubles:=false;
+      end;
+
+
+    destructor tstringcontainer.done;
       begin
          clear;
       end;
 
+
     function tstringcontainer.empty:boolean;
-
-
       begin
         empty:=(root=nil);
       end;
 
 
     procedure tstringcontainer.insert(const s : string);
-
       var
-         hp : pstringitem;
-
+        hp : pstringitem;
       begin
          if not(doubles) then
            begin
@@ -473,12 +483,10 @@ end;
          last:=hp;
       end;
 
-          procedure tstringcontainer.insert_with_tokeninfo
-            (const s : string; const file_info : tfileposinfo);
 
+    procedure tstringcontainer.insert_with_tokeninfo(const s : string; const file_info : tfileposinfo);
       var
          hp : pstringitem;
-
       begin
          if not(doubles) then
            begin
@@ -498,11 +506,10 @@ end;
          last:=hp;
       end;
 
-    procedure tstringcontainer.clear;
 
+    procedure tstringcontainer.clear;
       var
          hp : pstringitem;
-
       begin
          hp:=root;
          while assigned(hp) do
@@ -516,11 +523,10 @@ end;
          root:=nil;
       end;
 
-    function tstringcontainer.get : string;
 
+    function tstringcontainer.get : string;
       var
          hp : pstringitem;
-
       begin
          if root=nil then
           get:=''
@@ -534,11 +540,10 @@ end;
           end;
       end;
 
-    function tstringcontainer.get_with_tokeninfo(var file_info : tfileposinfo) : string;
 
+    function tstringcontainer.get_with_tokeninfo(var file_info : tfileposinfo) : string;
       var
          hp : pstringitem;
-
       begin
          if root=nil then
           begin
@@ -558,6 +563,7 @@ end;
           end;
       end;
 
+
     function tstringcontainer.find(const s:string):boolean;
       var
          hp : pstringitem;
@@ -572,7 +578,6 @@ end;
               exit;
             end;
            hp:=hp^.next;
-
          end;
       end;
 
@@ -582,56 +587,53 @@ end;
  ****************************************************************************}
 
     constructor tlinkedlist_item.init;
-
       begin
          previous:=nil;
          next:=nil;
       end;
 
     destructor tlinkedlist_item.done;
-
       begin
       end;
+
 
 {****************************************************************************
                             TSTRING_ITEM
  ****************************************************************************}
 
     constructor tstring_item.init(const s : string);
-
       begin
          str:=stringdup(s);
       end;
 
-    destructor tstring_item.done;
 
+    destructor tstring_item.done;
       begin
          stringdispose(str);
          inherited done;
       end;
+
 
 {****************************************************************************
                                TLINKEDLIST
  ****************************************************************************}
 
     constructor tlinkedlist.init;
-
       begin
          first:=nil;
          last:=nil;
       end;
 
-    destructor tlinkedlist.done;
 
+    destructor tlinkedlist.done;
       begin
          clear;
       end;
 
-    procedure tlinkedlist.clear;
 
+    procedure tlinkedlist.clear;
       var
          hp : plinkedlist_item;
-
       begin
          hp:=first;
          while assigned(hp) do
@@ -642,8 +644,8 @@ end;
            end;
       end;
 
-    procedure tlinkedlist.insertlist(p : plinkedlist);
 
+    procedure tlinkedlist.insertlist(p : plinkedlist);
       begin
          { empty list ? }
          if not(assigned(p^.first)) then
@@ -665,8 +667,8 @@ end;
          p^.last:=nil;
       end;
 
-    procedure tlinkedlist.concat(p : plinkedlist_item);
 
+    procedure tlinkedlist.concat(p : plinkedlist_item);
       begin
          p^.previous:=nil;
          p^.next:=nil;
@@ -680,8 +682,8 @@ end;
          last:=p;
       end;
 
-    procedure tlinkedlist.insert(p : plinkedlist_item);
 
+    procedure tlinkedlist.insert(p : plinkedlist_item);
       begin
          p^.previous:=nil;
          p^.next:=nil;
@@ -696,8 +698,8 @@ end;
          first:=p;
       end;
 
-    procedure tlinkedlist.remove(p : plinkedlist_item);
 
+    procedure tlinkedlist.remove(p : plinkedlist_item);
       begin
          if not(assigned(p)) then
            exit;
@@ -727,8 +729,8 @@ end;
          p^.previous:=nil;
       end;
 
-    procedure tlinkedlist.concatlist(p : plinkedlist);
 
+    procedure tlinkedlist.concatlist(p : plinkedlist);
      begin
          if not(assigned(p^.first)) then
            exit;
@@ -747,6 +749,7 @@ end;
          p^.last:=nil;
          p^.first:=nil;
       end;
+
 
     function tlinkedlist.empty:boolean;
       begin
@@ -1142,7 +1145,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  1998-09-18 16:03:37  florian
+  Revision 1.15  1998-10-19 18:04:40  peter
+    + tstringcontainer.init_no_doubles
+
+  Revision 1.14  1998/09/18 16:03:37  florian
     * some changes to compile with Delphi
 
   Revision 1.13  1998/08/12 19:28:16  peter
