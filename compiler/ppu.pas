@@ -169,7 +169,10 @@ type
 {$ifdef Test_Double_checksum}
     crcindex : longint;
     crc_index : longint;
-    crc_test : pcrc_array;
+    crcindex2 : longint;
+    crc_index2 : longint;
+    crc_test,crc_test2 : pcrc_array;
+
 {$endif def Test_Double_checksum}
     interface_crc : longint;
     do_interface_crc : boolean;
@@ -186,7 +189,8 @@ type
     entryidx : longint;
     entry    : tppuentry;
     entrytyp : byte;
-
+    closed   : boolean;
+    closepos : longint;
     constructor init(fn:string);
     destructor  done;
     procedure flush;
@@ -226,6 +230,8 @@ type
     procedure putstring(s:string);
     procedure putnormalset(var b);
     procedure putsmallset(var b);
+    procedure tempclose;
+    function  tempopen:boolean;
   end;
 
 implementation
@@ -331,6 +337,7 @@ begin
   Mode:=0;
   NewHeader;
   Error:=false;
+  closed:=true;
   getmem(buf,ppubufsize);
 end;
 
@@ -361,6 +368,7 @@ begin
      {$I+}
      i:=ioresult;
      Mode:=0;
+     closed:=true;
    end;
 end;
 
@@ -424,6 +432,7 @@ begin
   filemode:=ofmode;
   if ioresult<>0 then
    exit;
+  closed:=false;
 {read ppuheader}
   fsize:=filesize(f);
   if fsize<sizeof(tppuheader) then
@@ -691,15 +700,18 @@ end;
 function tppufile.create:boolean;
 begin
   create:=false;
-  assign(f,fname);
-  {$I-}
-   rewrite(f,1);
-  {$I+}
-  if ioresult<>0 then
-   exit;
-  Mode:=2;
-{write header for sure}
-  blockwrite(f,header,sizeof(tppuheader));
+  if not crc_only then
+    begin
+      assign(f,fname);
+      {$I-}
+       rewrite(f,1);
+      {$I+}
+      if ioresult<>0 then
+       exit;
+      Mode:=2;
+    {write header for sure}
+      blockwrite(f,header,sizeof(tppuheader));
+    end;
   bufsize:=ppubufsize;
   bufstart:=sizeof(tppuheader);
   bufidx:=0;
@@ -735,7 +747,8 @@ end;
 
 procedure tppufile.writebuf;
 begin
-  blockwrite(f,buf^,bufidx);
+  if not crc_only then
+    blockwrite(f,buf^,bufidx);
   inc(bufstart,bufidx);
   bufidx:=0;
 end;
@@ -747,6 +760,8 @@ var
   left,
   idx : longint;
 begin
+  if crc_only then
+    exit;
   p:=pchar(@b);
   idx:=0;
   while len>0 do
@@ -798,13 +813,16 @@ begin
 {it's already been sent to disk ?}
   if entrybufstart<>bufstart then
    begin
-   {flush to be sure}
-     WriteBuf;
-   {write entry}
-     opos:=filepos(f);
-     seek(f,entrystart);
-     blockwrite(f,entry,sizeof(tppuentry));
-     seek(f,opos);
+    if not crc_only then
+      begin
+      {flush to be sure}
+        WriteBuf;
+      {write entry}
+        opos:=filepos(f);
+        seek(f,entrystart);
+        blockwrite(f,entry,sizeof(tppuentry));
+        seek(f,opos);
+      end;
      entrybufstart:=bufstart;
    end
   else
@@ -820,6 +838,27 @@ begin
   if do_crc then
    begin
      crc:=UpdateCrc32(crc,b,len);
+{$ifdef Test_Double_checksum}
+     if crc_only then
+       begin
+         crc_test2^[crc_index2]:=crc;
+{$ifdef Test_Double_checksum_write}
+         Writeln(CRCFile,crc);
+{$endif Test_Double_checksum_write}
+         if crc_index2<crc_array_size then
+          inc(crc_index2);
+       end
+     else
+       begin
+         if (crcindex2<crc_array_size) and (crcindex2<crc_index2) and
+            (crc_test2^[crcindex2]<>crc) then
+           Def_comment(V_Warning,'impl CRC changed');
+{$ifdef Test_Double_checksum_write}
+         Writeln(CRCFile,crc);
+{$endif Test_Double_checksum_write}
+         inc(crcindex2);
+       end;
+{$endif def Test_Double_checksum}
      if do_interface_crc then
        begin
          interface_crc:=UpdateCrc32(interface_crc,b,len);
@@ -901,10 +940,52 @@ begin
 end;
 
 
+    procedure tppufile.tempclose;
+      var
+        i : word;
+      begin
+        if not closed then
+         begin
+            closepos:=filepos(f);
+           {$I-}
+            system.close(f);
+           {$I+}
+           i:=ioresult;
+           closed:=true;
+         end;
+      end;
+
+
+    function tppufile.tempopen:boolean;
+      var
+        ofm : byte;
+      begin
+        tempopen:=false;
+        if not closed then
+         exit;
+        ofm:=filemode;
+        filemode:=0;
+        {$I-}
+         reset(f,1);
+        {$I+}
+        filemode:=ofm;
+        if ioresult<>0 then
+         exit;
+        closed:=false;
+      { restore state }
+        seek(f,closepos);
+        tempopen:=true;
+      end;
+
 end.
 {
   $Log$
-  Revision 1.39  1999-08-24 12:01:36  michael
+  Revision 1.40  1999-08-27 10:48:40  pierre
+    + tppufile.tempclose and tempopen added
+    * some changes so that nothing is writtedn to disk while
+      calculating CRC only
+
+  Revision 1.39  1999/08/24 12:01:36  michael
   + changes for resourcestrings
 
   Revision 1.38  1999/08/15 10:47:48  peter
