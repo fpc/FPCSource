@@ -45,6 +45,8 @@ type
       procedure   Restore; virtual;
       { move up or down if supported by OS }
       function    Scroll(i : integer) : integer; virtual;
+      { is moving supported by OS }
+      function    CanScroll : boolean; virtual;
       { saves the current IDE screen }
       procedure   SaveIDEScreen; virtual;
       { saves the current console screen }
@@ -55,7 +57,7 @@ type
       procedure   SwitchBackToIDEScreen; virtual;
     end;
 
-{$IFDEF OS2}    
+{$IFDEF OS2}
     POS2Screen = ^TOS2Screen;
     TOS2Screen = object(TScreen)
       constructor Init;
@@ -80,7 +82,7 @@ type
       { restores the saved IDE screen }
       procedure   SwitchBackToIDEScreen; virtual;
     end;
-{$ENDIF}    
+{$ENDIF}
 
 {$ifdef DOS}
     TDOSVideoInfo = record
@@ -180,6 +182,7 @@ type
       function    GetHeight: integer; virtual;
       procedure   GetLine(Line: integer; var Text, Attr: string); virtual;
       procedure   GetCursorPos(var P: TPoint); virtual;
+      function    CanScroll : boolean; virtual;
       function    Scroll(i : integer) : integer; virtual;
       procedure   Capture; virtual;
       procedure   Restore; virtual;
@@ -279,6 +282,11 @@ end;
 function TScreen.Scroll(i : integer) : integer;
 begin
   Scroll:=0;
+end;
+
+function TScreen.CanScroll : boolean;
+begin
+  CanScroll:=false;
 end;
 
 procedure TScreen.SaveConsoleScreen;
@@ -1038,6 +1046,20 @@ begin
   GetHeight:=ConsoleScreenBufferInfo.dwSize.Y;
 end;
 
+function TWin32Screen.CanScroll : boolean;
+var
+  ConsoleScreenBufferInfo : Console_screen_buffer_info;
+  BufferLines : longint;
+  WindowLines : longint;
+begin
+  GetConsoleScreenBufferInfo(DosScreenBufferHandle,
+    @ConsoleScreenBufferInfo);
+  WindowLines:=ConsoleScreenBufferInfo.srWindow.Bottom-
+    ConsoleScreenBufferInfo.srWindow.Top;
+  BufferLines:= ConsoleScreenBufferInfo.dwSize.Y-1;
+  CanScroll:=(BufferLines>WindowLines);
+end;
+
 function TWin32Screen.Scroll(i : integer) : integer;
 var
   ConsoleScreenBufferInfo : Console_screen_buffer_info;
@@ -1305,7 +1327,7 @@ end;
 ****************************************************************************}
 
 
-{$ifdef OS2}    
+{$ifdef OS2}
 function TOS2Screen.GetWidth: integer;
 begin
   GetWidth:=80;
@@ -1322,19 +1344,19 @@ begin
   Attr:='                                                                               ';
 end;
 
-procedure TOS2Screen.GetCursorPos(var P: TPoint); 
+procedure TOS2Screen.GetCursorPos(var P: TPoint);
 begin
   P.X:=1;
   P.Y:=1;
 end;
 
 { remember the initial video screen }
-procedure TOS2Screen.Capture; 
+procedure TOS2Screen.Capture;
 begin
 end;
 
 { restore the initial video mode }
-procedure TOS2Screen.Restore; 
+procedure TOS2Screen.Restore;
 begin
 end;
 
@@ -1413,7 +1435,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.25  2002-10-12 19:41:30  hajny
+  Revision 1.26  2002-10-30 22:07:11  pierre
+   * only handle direction keys specially if buffer is bigger than window
+
+  Revision 1.25  2002/10/12 19:41:30  hajny
     * dummy OS/2 implementation to enable compilation
 
   Revision 1.24  2002/10/07 15:43:15  pierre

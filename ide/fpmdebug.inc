@@ -50,16 +50,19 @@ begin
         GiveUpTimeSlice;
     until Event.What=evKeyboard;
     Clear:=true;
-    case Event.keycode of
-      kbPgUp : UserScreen^.Scroll(-20);
-      kbPgDn : UserScreen^.Scroll(20);
-      kbUp : UserScreen^.Scroll(-1);
-      kbDown : UserScreen^.Scroll(1);
-      kbHome : UserScreen^.Scroll(-1024);
-      kbEnd : UserScreen^.Scroll(+1024);
+    if not UserScreen^.CanScroll then
+      Clear:=false
+    else
+      case Event.keycode of
+        kbPgUp : UserScreen^.Scroll(-20);
+        kbPgDn : UserScreen^.Scroll(20);
+        kbUp : UserScreen^.Scroll(-1);
+        kbDown : UserScreen^.Scroll(1);
+        kbHome : UserScreen^.Scroll(-1024);
+        kbEnd : UserScreen^.Scroll(+1024);
       else
-        Clear:=false;
-    end;
+         Clear:=false;
+      end;
     if Clear then
       ClearEvent(Event);
   until Event.what=evKeyboard;
@@ -179,7 +182,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2002-09-07 15:40:43  peter
+  Revision 1.5  2002-10-30 22:07:11  pierre
+   * only handle direction keys specially if buffer is bigger than window
+
+  Revision 1.4  2002/09/07 15:40:43  peter
     * old logs removed and tabs fixed
 
   Revision 1.3  2002/09/03 13:59:09  pierre
