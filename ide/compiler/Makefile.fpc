@@ -6,6 +6,7 @@
 units=compunit
 
 [compiler]
+options=-Ur
 targetdir=.
 unitdir=$(COMPILERDIR) $(COMPILERDIR)/$(CPU_TARGET) $(COMPILERDIR)/targets $(COMPILERDIR)/systems
 includedir=$(COMPILERDIR) $(COMPILERDIR)/$(CPU_TARGET)
