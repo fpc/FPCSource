@@ -1300,6 +1300,10 @@ type
                      abs(bestreal(torddef(def_from).low)-bestreal(torddef(def_to).low));
                    hp^.ordinal_distance:=hp^.ordinal_distance+
                      abs(bestreal(torddef(def_to).high)-bestreal(torddef(def_from).high));
+                   { Give wrong sign a small penalty, this is need to get a diffrence
+                     from word->[longword,longint] }
+                   if is_signed(def_from)<>is_signed(def_to) then
+                     hp^.ordinal_distance:=hp^.ordinal_distance+1.0;
                  end
               else
               { generic type comparision }
@@ -2194,7 +2198,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.120  2002-12-15 21:30:12  florian
+  Revision 1.121  2002-12-15 21:34:15  peter
+    * give sign difference between ordinals a small penalty. This is
+      needed to get word->[longword|longint] working
+
+  Revision 1.120  2002/12/15 21:30:12  florian
     * tcallnode.paraitem introduced, all references to defcoll removed
 
   Revision 1.119  2002/12/15 20:59:58  peter
