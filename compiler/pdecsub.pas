@@ -1157,7 +1157,7 @@ const
       pocall   : pocall_none;
       pooption : [po_exports];
       mutexclpocall : [pocall_internproc,pocall_inline];
-      mutexclpotype : [];
+      mutexclpotype : [potype_constructor,potype_destructor];
       mutexclpo     : [po_external,po_interrupt]
     ),(
       idtok:_EXTERNAL;
@@ -1166,7 +1166,7 @@ const
       pocall   : pocall_none;
       pooption : [po_external];
       mutexclpocall : [pocall_internproc,pocall_inline,pocall_palmossyscall];
-      mutexclpotype : [];
+      mutexclpotype : [potype_constructor,potype_destructor];
       mutexclpo     : [po_exports,po_interrupt,po_assembler]
     ),(
       idtok:_FAR;
@@ -1320,7 +1320,7 @@ const
       pocall   : pocall_register;
       pooption : [];
       mutexclpocall : [];
-      mutexclpotype : [];
+      mutexclpotype : [potype_constructor,potype_destructor];
       mutexclpo     : [po_external]
     ),(
       idtok:_REINTRODUCE;
@@ -1420,7 +1420,7 @@ const
       pocall   : pocall_compilerproc;
       pooption : [];
       mutexclpocall : [];
-      mutexclpotype : [];
+      mutexclpotype : [potype_constructor,potype_destructor];
       mutexclpo     : [po_interrupt]
     )
    );
@@ -2120,8 +2120,8 @@ const
 end.
 {
   $Log$
-  Revision 1.101  2003-01-05 18:09:36  peter
-    * pascal directive also conflicts with constructor
+  Revision 1.102  2003-01-05 18:17:45  peter
+    * more conflicts for constructor/destructor types
 
   Revision 1.100  2003/01/02 19:49:00  peter
     * update self parameter only for methodpointer and methods
