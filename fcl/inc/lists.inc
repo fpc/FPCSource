@@ -61,29 +61,10 @@ Var NewList,ToFree : PPointerList;
 begin
   If (NewCapacity<0) or (NewCapacity>MaxListSize) then
      Error (SListCapacityError,NewCapacity);
-  If NewCapacity>FCapacity then
-    begin
-    GetMem (NewList,NewCapacity*SizeOf(Pointer));
-    If NewList=Nil then
-      //!! Find another one here !!
-      Error (SListCapacityError,NewCapacity);
-    If Assigned(FList) then
-      begin
-      System.Move (FList^,NewList^,FCapacity*Sizeof(Pointer));
-      FillWord (NewList^[FCapacity],(NewCapacity-FCapacity)*WordRatio, 0);
-      FreeMem (Flist,FCapacity*SizeOf(Pointer));
-      end;
-    Flist:=NewList;
-    FCapacity:=NewCapacity;
-    end
-  else if NewCapacity<FCapacity then
-    begin
-    If NewCapacity<0 then
-      Error (SListCapacityError,NEwCapacity);
-    ToFree:=Flist+NewCapacity*SizeOf(Pointer);
-    FreeMem (ToFree, (FCapacity-NewCapacity)*SizeOf(Pointer));
-    FCapacity:=NewCapacity;
-    end;
+  if NewCapacity=FCapacity then
+    exit;
+  ReallocMem(FList,SizeOf(Pointer)*NewCapacity);
+  FCapacity:=NewCapacity;
 end;
 
 
@@ -419,7 +400,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:59  michael
+  Revision 1.3  2000-09-14 18:39:31  michael
+  + Fixed setcapacity
+
+  Revision 1.2  2000/07/13 11:32:59  michael
   + removed logs
  
 }
