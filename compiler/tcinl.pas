@@ -58,7 +58,7 @@ implementation
       var
          vl,vl2  : longint;
          vr      : bestreal;
-         hp,hpp  : ptree;
+         p1,hp,hpp  : ptree;
 {$ifndef NOCOLONCHECK}
          frac_para,length_para : ptree;
 {$endif ndef NOCOLONCHECK}
@@ -596,6 +596,15 @@ implementation
                                 if assigned(hp^.left^.resulttype) then
                                   begin
                                     isreal:=false;
+                                    { support writeln(procvar) for tp7 }
+                                    if (m_tp_procvar in aktmodeswitches) and (hp^.left^.resulttype^.deftype=procvardef) then
+                                     begin
+                                       p1:=gencallnode(nil,nil);
+                                       p1^.right:=hp^.left;
+                                       p1^.resulttype:=pprocvardef(hp^.left^.resulttype)^.retdef;
+                                       firstpass(p1);
+                                       hp^.left:=p1;
+                                     end;
                                     case hp^.left^.resulttype^.deftype of
                                       filedef :
                                         begin
@@ -1064,7 +1073,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  1999-04-14 09:15:07  peter
+  Revision 1.25  1999-04-15 10:00:35  peter
+    * writeln(procvar) support for tp7 mode
+
+  Revision 1.24  1999/04/14 09:15:07  peter
     * first things to store the symbol/def number in the ppu
 
   Revision 1.23  1999/04/08 10:16:48  peter
