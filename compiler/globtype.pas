@@ -182,7 +182,7 @@ interface
 
        { Default calling convention }
 {$ifdef x86}
-       pocall_default = pocall_register;
+       pocall_default = pocall_stdcall;
 {$else}
        pocall_default = pocall_stdcall;
 {$endif}
@@ -234,7 +234,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.46  2003-12-14 20:24:28  daniel
+  Revision 1.47  2003-12-14 20:51:17  daniel
+    * Register calling disabled again
+
+  Revision 1.46  2003/12/14 20:24:28  daniel
     * Register allocator speed optimizations
       - Worklist no longer a ringbuffer
       - No find operations are left
