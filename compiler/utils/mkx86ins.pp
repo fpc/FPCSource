@@ -222,7 +222,7 @@ begin
    insns:=0;
    maxinfolen:=0;
    { open dat file }
-   assign(infile,'..\x86\x86ins.dat');
+   assign(infile,'../x86/x86ins.dat');
    if x86_64 then
      begin
        { create inc files }
@@ -448,7 +448,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2004-01-15 14:01:32  florian
+  Revision 1.5  2004-02-03 16:50:51  peter
+    * linux path separators
+
+  Revision 1.4  2004/01/15 14:01:32  florian
     + x86 instruction tables for x86-64 extended
 
   Revision 1.3  2003/09/09 12:54:45  florian
