@@ -1043,9 +1043,6 @@ implementation
              code:=while_statement;
            _FOR :
              code:=for_statement;
-           _NEW,
-           _DISPOSE :
-             code:=new_dispose_statement;
            _WITH :
              code:=with_statement;
            _TRY :
@@ -1073,28 +1070,33 @@ implementation
              Message(scan_f_end_of_file);
          else
            begin
-              p:=expr;
+              if (idtoken=_NEW) or (idtoken=_DISPOSE) then
+                code:=new_dispose_statement
+              else
+                begin
+                   p:=expr;
 
-              if p.nodetype=labeln then
-               begin
-                 { the pointer to the following instruction }
-                 { isn't a very clean way                   }
-                 tlabelnode(p).left:=statement{$ifdef FPCPROCVAR}(){$endif};
-                 { be sure to have left also resulttypepass }
-                 resulttypepass(tlabelnode(p).left);
-               end;
+                   if p.nodetype=labeln then
+                    begin
+                      { the pointer to the following instruction }
+                      { isn't a very clean way                   }
+                      tlabelnode(p).left:=statement{$ifdef FPCPROCVAR}(){$endif};
+                      { be sure to have left also resulttypepass }
+                      resulttypepass(tlabelnode(p).left);
+                    end;
 
-              if not(p.nodetype in [calln,assignn,breakn,inlinen,continuen,labeln]) then
-                Message(cg_e_illegal_expression);
-              { specify that we don't use the value returned by the call }
-              { Question : can this be also improtant
-                for inlinen ??
-                it is used for :
-                 - dispose of temp stack space
-                 - dispose on FPU stack }
-              if p.nodetype=calln then
-                exclude(p.flags,nf_return_value_used);
-              code:=p;
+                   if not(p.nodetype in [calln,assignn,breakn,inlinen,continuen,labeln]) then
+                     Message(cg_e_illegal_expression);
+                   { specify that we don't use the value returned by the call }
+                   { Question : can this be also improtant
+                     for inlinen ??
+                     it is used for :
+                      - dispose of temp stack space
+                      - dispose on FPU stack }
+                   if p.nodetype=calln then
+                     exclude(p.flags,nf_return_value_used);
+                   code:=p;
+                end;
            end;
          end;
          if assigned(code) then
@@ -1220,7 +1222,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  2001-04-21 12:03:11  peter
+  Revision 1.29  2001-05-04 15:52:04  florian
+    * some Delphi incompatibilities fixed:
+       - out, dispose and new can be used as idenfiers now
+       - const p = apointerype(nil); is supported now
+    + support for const p = apointertype(pointer(1234)); added
+
+  Revision 1.28  2001/04/21 12:03:11  peter
     * m68k updates merged from fixes branch
 
   Revision 1.27  2001/04/18 22:01:57  peter

@@ -319,10 +319,10 @@ const
       (str:'FAR'           ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'FOR'           ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'MOD'           ;special:false;keyword:m_all;op:_OP_MOD),
-      (str:'NEW'           ;special:false;keyword:m_all;op:NOTOKEN),
+      (str:'NEW'           ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'NIL'           ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'NOT'           ;special:false;keyword:m_all;op:_OP_NOT),
-      (str:'OUT'           ;special:false;keyword:m_out;op:NOTOKEN),
+      (str:'OUT'           ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'SET'           ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'SHL'           ;special:false;keyword:m_all;op:_OP_SHL),
       (str:'SHR'           ;special:false;keyword:m_all;op:_OP_SHR),
@@ -478,7 +478,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  2001-03-22 22:35:43  florian
+  Revision 1.9  2001-05-04 15:52:04  florian
+    * some Delphi incompatibilities fixed:
+       - out, dispose and new can be used as idenfiers now
+       - const p = apointerype(nil); is supported now
+    + support for const p = apointertype(pointer(1234)); added
+
+  Revision 1.8  2001/03/22 22:35:43  florian
     + support for type a = (a=1); in Delphi mode added
     + procedure p(); in Delphi mode supported
     + on isn't keyword anymore, it can be used as

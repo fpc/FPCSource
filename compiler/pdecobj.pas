@@ -152,7 +152,7 @@ implementation
                             consume(_CONST);
                             varspez:=vs_const;
                          end
-                       else if token=_OUT then
+                       else if (idtoken=_OUT) and (m_out in aktmodeswitches) then
                          begin
                             consume(_OUT);
                             varspez:=vs_out;
@@ -1039,7 +1039,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  2001-04-21 15:36:00  peter
+  Revision 1.25  2001-05-04 15:52:03  florian
+    * some Delphi incompatibilities fixed:
+       - out, dispose and new can be used as idenfiers now
+       - const p = apointerype(nil); is supported now
+    + support for const p = apointertype(pointer(1234)); added
+
+  Revision 1.24  2001/04/21 15:36:00  peter
     * check for type block when parsing class of
 
   Revision 1.23  2001/04/21 13:37:16  peter

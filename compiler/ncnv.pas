@@ -712,15 +712,15 @@ implementation
                    end;
                 end
 
-              { nil to ordinal node }
-              else if is_ordinal(resulttype.def) and
-                (left.nodetype=niln) then
-                begin
-                   hp:=cordconstnode.create(0,resulttype);
-                   resulttypepass(hp);
-                   result:=hp;
-                   exit;
-                end
+               { nil to ordinal node }
+               else if (left.nodetype=niln) and is_ordinal(resulttype.def) then
+                  begin
+                     hp:=cordconstnode.create(0,resulttype);
+                     resulttypepass(hp);
+                     result:=hp;
+                     exit;
+                  end
+
               { constant pointer to ordinal }
               else if is_ordinal(resulttype.def) and
                 (left.nodetype=pointerconstn) then
@@ -750,7 +750,7 @@ implementation
                     end;
                  end
 
-              { Are we char to ordinal }
+              { char to ordinal }
               else
                 if is_char(left.resulttype.def) and
                    is_ordinal(resulttype.def) then
@@ -822,6 +822,25 @@ implementation
              { replace the resulttype and recheck the range }
              left.resulttype:=resulttype;
              testrange(left.resulttype.def,tordconstnode(left).value,(nf_explizit in flags));
+             result:=left;
+             left:=nil;
+             exit;
+          end;
+
+        { fold nil to any pointer type }
+        if (left.nodetype=niln) and (resulttype.def.deftype=pointerdef) then
+          begin
+             hp:=cnilnode.create;
+             hp.resulttype:=resulttype;
+             resulttypepass(hp);
+             result:=hp;
+             exit;
+          end;
+
+        { further, pointerconstn to any pointer is folded too }
+        if (left.nodetype=pointerconstn) and (resulttype.def.deftype=pointerdef) then
+          begin
+             left.resulttype:=resulttype;
              result:=left;
              left:=nil;
              exit;
@@ -1272,7 +1291,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2001-04-13 22:20:58  peter
+  Revision 1.26  2001-05-04 15:52:03  florian
+    * some Delphi incompatibilities fixed:
+       - out, dispose and new can be used as idenfiers now
+       - const p = apointerype(nil); is supported now
+    + support for const p = apointertype(pointer(1234)); added
+
+  Revision 1.25  2001/04/13 22:20:58  peter
     * remove wrongly placed first_call_helper
 
   Revision 1.24  2001/04/13 01:22:08  peter

@@ -1676,19 +1676,7 @@ implementation
         again:=false;
         if token=_ID then
          begin
-           factor_read_id(p1,again);
-
-           if again then
-            begin
-              check_tokenpos;
-
-              { handle post fix operators }
-              postfixoperators(p1,again);
-            end;
-         end
-        else
-         case token of
-           _NEW :
+           if idtoken=_NEW then
              begin
                consume(_NEW);
                consume(_LKLAMMER);
@@ -1761,8 +1749,22 @@ implementation
                    consume(_RKLAMMER);
                  end;
                postfixoperators(p1,again);
-             end;
+             end
+           else
+             begin
+                factor_read_id(p1,again);
 
+                if again then
+                  begin
+                     check_tokenpos;
+
+                     { handle post fix operators }
+                     postfixoperators(p1,again);
+                  end;
+             end;
+         end
+        else
+         case token of
            _SELF :
              begin
                again:=true;
@@ -2320,7 +2322,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.30  2001-04-14 14:07:10  peter
+  Revision 1.31  2001-05-04 15:52:03  florian
+    * some Delphi incompatibilities fixed:
+       - out, dispose and new can be used as idenfiers now
+       - const p = apointerype(nil); is supported now
+    + support for const p = apointertype(pointer(1234)); added
+
+  Revision 1.30  2001/04/14 14:07:10  peter
     * moved more code from pass_1 to det_resulttype
 
   Revision 1.29  2001/04/13 23:50:24  peter
