@@ -61,7 +61,7 @@ BEGIN
    Write('Escape to quit');
    GotoXY(40,15);
    Write('"S" to show the highscores');
-   {$IFDEF Linux}
+   {$IFDEF Unix}
    GotoXY(40,16);
    Write('"i" try to switch to IBM character set');
    {$ENDIF}
@@ -239,7 +239,10 @@ END;
 
 {
   $Log$
-  Revision 1.2  2001-11-11 21:09:49  marco
+  Revision 1.3  2002-06-02 09:49:17  marco
+   * Renamefest
+
+  Revision 1.2  2001/11/11 21:09:49  marco
    * Gameunit, Fpctris and samegame  fixed for win32 GUI
 
   Revision 1.1  2001/05/03 21:39:33  peter

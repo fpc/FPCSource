@@ -44,10 +44,6 @@ TheHeight-1
 
 }
 
-{$ifdef Linux}
- {$define Unix}
-{$endif}
-
 {$ifdef UseGraphics}
  {$ifdef Win32}
    {$define Win32Graph}
@@ -857,7 +853,10 @@ END.
 
 {
   $Log$
-  Revision 1.3  2001-12-11 11:24:52  marco
+  Revision 1.4  2002-06-02 09:49:17  marco
+   * Renamefest
+
+  Revision 1.3  2001/12/11 11:24:52  marco
    * some linux <-> unix fixes.
 
   Revision 1.2  2001/11/11 21:09:49  marco

@@ -26,10 +26,6 @@ INTERFACE
                     Linux }
 
 
-{$ifdef Linux}
- {$define Unix}
-{$endif}
-
 {$ifdef Unix}
   {$define MouseAPI}
 {$endif}
@@ -915,7 +911,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.5  2002-02-25 12:23:05  marco
+  Revision 1.6  2002-06-02 09:49:17  marco
+   * Renamefest
+
+  Revision 1.5  2002/02/25 12:23:05  marco
    * Fixes for Quad Win32 GUI mode
 
   Revision 1.4  2002/02/22 21:40:09  carl

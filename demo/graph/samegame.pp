@@ -201,7 +201,7 @@ BEGIN
  GotoXY(60,5);   Write('NEW game');
  GotoXY(60,6);   Write('HELP');
  GotoXY(60,7);   Write('END game');
- {$IFDEF Linux}
+ {$IFDEF Unix}
   GotoXY(60,8);   Write('Force IBM charset');
  {$ENDIF}
   SetDefaultColor;
@@ -455,7 +455,7 @@ BEGIN
              ShowHelp;
              BuildScreen;
             END;
-           {$IFDEF Linux}
+           {$IFDEF Unix}
            IF Y=7 THEN
             BEGIN
              write(#27+'(K');
@@ -594,7 +594,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.3  2002-02-22 21:41:22  carl
+  Revision 1.4  2002-06-02 09:49:17  marco
+   * Renamefest
+
+  Revision 1.3  2002/02/22 21:41:22  carl
   * range check error fix
 
   Revision 1.2  2001/11/11 21:09:50  marco

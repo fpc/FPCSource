@@ -22,9 +22,6 @@ Inspired by: Jos Dickman''s triple memory!
 Old version requires egavga.bgi. FPC doesn't require BGI's (VGA and VESA
 support are built in the Graph, others are ignored).}
 
-{$ifdef Linux}
- {$define Unix}
-{$endif}
 {$Define UseGraphics}
 
 {$ifdef UseGraphics}
@@ -816,7 +813,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.3  2002-02-27 16:29:54  carl
+  Revision 1.4  2002-06-02 09:49:17  marco
+   * Renamefest
+
+  Revision 1.3  2002/02/27 16:29:54  carl
   * We should initialize the mouse!
 
   Revision 1.2  2002/02/25 12:23:05  marco
