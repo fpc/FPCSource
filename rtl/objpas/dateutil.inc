@@ -1848,17 +1848,28 @@ begin
 end;
 
 
+Function InternalNthDayOfWeek(DoM : Word) : Word;
+
+begin
+  Result:=(Dom-1) div 7 +1;
+end;
+
 Function NthDayOfWeek(const AValue: TDateTime): Word;
 
 begin
-  Result:=(DayOfTheMonth(AValue)-1) div 7 + 1;
+  Result:=InternalNthDayOfWeek(DayOfTheMonth(AValue));
 end;
 
 
 Procedure DecodeDayOfWeekInMonth(const AValue: TDateTime; var AYear, AMonth, ANthDayOfWeek, ADayOfWeek: Word);
 
+var
+  D: Word;
+  
 begin
-  NotYetImplemented('DecodeDayOfWeekInMonth');
+  DecodeDate(AValue,AYear,AMonth,D);
+  ADayOfWeek:=DayOfTheWeek(AValue);
+  ANthDayOfWeek:=InternalNthDayOfWeek(D);
 end;
 
 
@@ -2011,7 +2022,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  2004-12-30 11:57:25  michael
+  Revision 1.10  2004-12-30 13:06:53  michael
+  + Fixed DecodeDayOfWeekInMonth
+
+  Revision 1.9  2004/12/30 11:57:25  michael
   + Fixed tryencodedatemonthweek, fixed recodedatetime milliseconds
 
   Revision 1.8  2004/12/29 18:31:04  michael
