@@ -874,16 +874,19 @@ unit pstatmnt;
                            cleartempgen;
                            do_firstpass(p2);
 
-                           if (ht=_NEW) and ((p2^.procdefinition^.options and poconstructor)=0) then
-                                  Message(parser_e_expr_have_to_be_constructor_call);
-                           if (ht=_DISPOSE) and ((p2^.procdefinition^.options and podestructor)=0) then
-                                  Message(parser_e_expr_have_to_be_destructor_call);
+                           if not codegenerror then
+                            begin
+                              if (ht=_NEW) and ((p2^.procdefinition^.options and poconstructor)=0) then
+                                Message(parser_e_expr_have_to_be_constructor_call);
+                              if (ht=_DISPOSE) and ((p2^.procdefinition^.options and podestructor)=0) then
+                                Message(parser_e_expr_have_to_be_destructor_call);
 
-                           if ht=_NEW then
-                                 begin
-                                         p2:=gennode(assignn,getcopy(p),gensinglenode(newn,p2));
-                                         p2^.right^.resulttype:=pd2;
-                                 end;
+                              if ht=_NEW then
+                               begin
+                                 p2:=gennode(assignn,getcopy(p),gensinglenode(newn,p2));
+                                 p2^.right^.resulttype:=pd2;
+                               end;
+                            end;
                            new_dispose_statement:=p2;
                          end;
             end
@@ -1242,7 +1245,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.55  1998-12-16 12:30:59  jonas
+  Revision 1.56  1998-12-23 22:52:56  peter
+    * fixed new(x) crash if x contains an error
+
+  Revision 1.55  1998/12/16 12:30:59  jonas
     * released CaseRange
 
   Revision 1.54  1998/12/15 22:32:24  jonas
