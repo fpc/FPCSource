@@ -35,7 +35,7 @@ uses
 
 Procedure AddDisk(const path:string);
 
-var
+const
   Tzseconds : Longint = 0;
 
 implementation
@@ -1092,7 +1092,10 @@ end.
 {
 
   $Log$
-  Revision 1.50  2004-10-31 22:25:31  olle
+  Revision 1.51  2004-11-01 07:10:56  peter
+    * 1.0.x bootstrap fix
+
+  Revision 1.50  2004/10/31 22:25:31  olle
     * Fix for FPC_USE_LIBC
 
   Revision 1.49  2004/10/30 20:55:54  marco
