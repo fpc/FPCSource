@@ -1,0 +1,18 @@
+#
+#   Makefile.fpc for OpenGL for FPC
+#
+
+[package]
+name=rexx
+version=1.0.7
+
+[target]
+units=rexxsaa
+
+exampledirs=test
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
