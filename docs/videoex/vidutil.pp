@@ -5,6 +5,11 @@ Interface
 uses
   video;
 
+{$ifndef cpu86}
+{$error This example only works on intel 80x86 machines}
+{$endif}
+  
+
 Procedure TextOut(X,Y : Word;Const S : String);
 
 Implementation
@@ -20,7 +25,7 @@ begin
   If P+M>ScreenWidth*ScreenHeight then
     M:=ScreenWidth*ScreenHeight-P;
   For I:=1 to M do
-    VideoBuf^[P+I-1]:=Ord(S[i])+($07 shr 8);
+    VideoBuf^[P+I-1]:=Ord(S[i])+($07 shl 8);
 end;
   
 end.  

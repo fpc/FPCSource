@@ -2,6 +2,10 @@ program testvideo;
 
 uses video,keyboard,vidutil;
 
+{$ifndef cpu86}
+{$error This example only works on intel 80x86 machines}
+{$endif}
+
 Var 
   i : longint;
   k : TkeyEvent;

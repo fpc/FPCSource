@@ -2,6 +2,10 @@ program example2;
 
 uses video,keyboard;
 
+{$ifndef cpu86}
+{$error This example only works on intel 80x86 machines}
+{$endif}
+
 Var
   P,PP,D : Integer;
   K: TKeyEvent;
@@ -9,10 +13,10 @@ Var
   Procedure PutSquare (P : INteger; C : Char);
   
   begin
-    VideoBuf^[P]:=Ord(C)+($07 shr 8);
-    VideoBuf^[P+ScreenWidth]:=Ord(c)+($07 shr 8);
-    VideoBuf^[P+1]:=Ord(c)+($07 shr 8);
-    VideoBuf^[P+ScreenWidth+1]:=Ord(c)+($07 shr 8);
+    VideoBuf^[P]:=Ord(C)+($07 shl 8);
+    VideoBuf^[P+ScreenWidth]:=Ord(c)+($07 shl 8);
+    VideoBuf^[P+1]:=Ord(c)+($07 shl 8);
+    VideoBuf^[P+ScreenWidth+1]:=Ord(c)+($07 shl 8);
   end;
 
 begin
