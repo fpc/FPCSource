@@ -33,8 +33,6 @@ interface
 
   type
     TSparcProcInfo=class(tcgprocinfo)
-    private
-      maxpushedparasize : longint;
     public
       constructor create(aparent:tprocinfo);override;
       procedure allocate_push_parasize(size:longint);override;
@@ -89,7 +87,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  2004-01-12 22:11:39  peter
+  Revision 1.24  2004-02-25 14:25:47  mazen
+  * fix compile problem for sparc
+
+  Revision 1.23  2004/01/12 22:11:39  peter
     * use localalign info for alignment for locals and temps
     * sparc fpu flags branching added
     * moved powerpc copy_valye_openarray to generic

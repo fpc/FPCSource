@@ -227,11 +227,12 @@ type
         TLocation isn't used, because contains a lot of unnessary fields.
       }
       tparalocation = packed record
-         size : TCGSize;
+         Size : TCGSize;
          { The location type where the parameter is passed, usually
            LOC_REFERENCE,LOC_REGISTER or LOC_FPUREGISTER
          }
-         loc  : TCGLoc;
+         Loc  : TCGLoc;
+         LocHigh : TCGLoc;
          {Word alignment on stack 4 --> 32 bit}
          Alignment:Byte;
          case TCGLoc of
@@ -551,7 +552,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.60  2004-01-12 22:11:39  peter
+  Revision 1.61  2004-02-25 14:25:47  mazen
+  * fix compile problem for sparc
+
+  Revision 1.60  2004/01/12 22:11:39  peter
     * use localalign info for alignment for locals and temps
     * sparc fpu flags branching added
     * moved powerpc copy_valye_openarray to generic

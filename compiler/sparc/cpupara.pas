@@ -103,6 +103,7 @@ implementation
         if nr<1 then
           InternalError(2002100806);
         FillChar(GetIntParaLoc,SizeOf(TParaLocation),0);
+        result.lochigh:=LOC_INVALID;
         Dec(nr);
         with GetIntParaLoc do
          begin
@@ -239,6 +240,7 @@ implementation
 {$ifndef cpu64bit}
             if paraloc.size in [OS_64,OS_S64] then
              begin
+               paraloc.lochigh:=LOC_REGISTER;
                if side=callerside then
                  paraloc.register64.reglo:=NR_FUNCTION_RESULT64_LOW_REG
                else
@@ -294,7 +296,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.35  2003-11-10 19:05:50  peter
+  Revision 1.36  2004-02-25 14:25:47  mazen
+  * fix compile problem for sparc
+
+  Revision 1.35  2003/11/10 19:05:50  peter
     * fixed alias/colouring > 255
 
   Revision 1.34  2003/10/24 11:25:32  mazen
