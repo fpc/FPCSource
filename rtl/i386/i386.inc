@@ -612,7 +612,7 @@ end;
 
 {$define FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
 
-function strpas(p:pchar):string;[public,alias:'FPC_PCHAR_TO_SHORTSTR'];
+function strpas(p:pchar):shortstring;[public,alias:'FPC_PCHAR_TO_SHORTSTR'];
 begin
   asm
         cld
@@ -632,6 +632,41 @@ begin
         movl    __RESULT,%edi
         notb    %al
         decl    %eax
+        stosb
+        cmpl    $7,%eax
+        jl      .LStrPas2
+        movl    %edi,%ecx       { Align on 32bits }
+        negl    %ecx
+        andl    $3,%ecx
+        subl    %ecx,%eax
+        rep
+        movsb
+        movl    %eax,%ecx
+        andl    $3,%eax
+        shrl    $2,%ecx
+        rep
+        movsl
+.LStrPas2:
+        movl    %eax,%ecx
+        rep
+        movsb
+  end ['ECX','EAX','ESI','EDI'];
+end;
+
+{$define FPC_SYSTEM_HAS_FPC_CHARARRAY_TO_SHORTSTR}
+
+function strchararray(p:pchar; l : longint):shortstring;[public,alias:'FPC_CHARARRAY_TO_SHORTSTR'];
+begin
+  asm
+        cld
+        movl    p,%edi
+        movl    l,%ecx
+        orl     %edi,%edi
+        jnz     .LStrPasNotNil
+        movl    $0,%ecx
+.LStrPasNotNil:
+        movl    %ecx,%eax
+        movl    __RESULT,%edi
         stosb
         cmpl    $7,%eax
         jl      .LStrPas2
@@ -883,7 +918,10 @@ end;
 
 {
   $Log$
-  Revision 1.61  1999-12-11 18:59:44  jonas
+  Revision 1.62  1999-12-21 11:13:34  pierre
+   + FPC_CHARARRAY_TO_SHORTSTRING added
+
+  Revision 1.61  1999/12/11 18:59:44  jonas
     * faster abs() function (no jump anymore)
 
   Revision 1.60  1999/11/20 12:48:09  jonas
