@@ -212,29 +212,12 @@ const
          real2double:=double(res);
       end;
 
-
-{****************************************************************************
-                         Int to real helpers
- ****************************************************************************}
-
-function fpc_int64_to_double(i: int64): double; compilerproc;
-begin
-{$warning FIXME}
-  runerror(207);
-end;
-
-
-
-function fpc_qword_to_double(q: qword): double; compilerproc;
-begin
-{$warning FIXME}
-  runerror(207);
-end;
-
-
 {
   $Log$
-  Revision 1.6  2003-09-02 17:41:49  peter
+  Revision 1.7  2003-09-14 15:02:24  peter
+    * remove int64 to double helpers
+
+  Revision 1.6  2003/09/02 17:41:49  peter
     * updated for int64 to double
 
   Revision 1.5  2003/09/01 20:46:32  peter
