@@ -79,7 +79,7 @@ var
 Implementation
 
 uses
-  script,files,systems,verbose
+  script,files,systems,verbose,comphook
 {$ifdef linux}
   ,linux
 {$endif}
@@ -180,8 +180,8 @@ begin
         Message1(exec_w_error_while_assembling,tostr(dosexitcode));
         callassembler:=false;
        end;
-   end;
-  if cs_asm_extern in aktglobalswitches then
+   end
+  else
    AsmRes.AddAsmCommand(command,para,name);
 end;
 
@@ -219,7 +219,12 @@ begin
   Replace(s,'$ASM',AsmFile);
   Replace(s,'$OBJ',ObjFile);
   if CallAssembler(FindAssembler,s) then
-   RemoveAsm;
+   RemoveAsm
+  else
+   begin
+      DoAssemble:=false;
+      inc(status.errorcount);
+   end;
 end;
 
 
@@ -528,7 +533,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.31  1998-10-26 22:23:28  peter
+  Revision 1.32  1998-11-06 09:46:46  pierre
+   * assemble failure increments status errorcount again !!
+
+  Revision 1.31  1998/10/26 22:23:28  peter
     + fixpath() has an extra option to allow a ./ as path
 
   Revision 1.30  1998/10/16 13:37:14  florian
