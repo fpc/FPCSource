@@ -12,7 +12,7 @@ Type tObject=Object
 
 Function tObject.GetVMT:Pointer;
 Begin
-   Exit(TypeOf(Self));
+   Exit(Self);
 End;
 
 Constructor tObject.Init;
