@@ -261,13 +261,21 @@ implementation
          oldcodegenerror  : boolean;
          oldlocalswitches : tlocalswitches;
          oldpos    : tfileposinfo;
+{$ifdef TEMPREGDEBUG}
+         prevp : pptree;
+{$endif TEMPREGDEBUG}
       begin
          if not(p^.error) then
           begin
             oldcodegenerror:=codegenerror;
             oldlocalswitches:=aktlocalswitches;
             oldpos:=aktfilepos;
-
+            testregisters32;
+{$ifdef TEMPREGDEBUG}
+            prevp:=curptree;
+            curptree:=@p;
+            p^.usableregs:=usablereg32;
+{$endif TEMPREGDEBUG}
             aktfilepos:=p^.fileinfo;
             aktlocalswitches:=p^.localswitches;
             codegenerror:=false;
@@ -277,6 +285,9 @@ implementation
             codegenerror:=codegenerror or oldcodegenerror;
             aktlocalswitches:=oldlocalswitches;
             aktfilepos:=oldpos;
+{$ifdef TEMPREGDEBUG}
+            curptree:=prevp;
+{$endif TEMPREGDEBUG}
           end
          else
            codegenerror:=true;
@@ -653,7 +664,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.31  1999-08-07 14:20:59  florian
+  Revision 1.32  1999-08-23 23:25:59  pierre
+    + TEMPREGDEBUG code, test of register allocation
+      if a tree uses more than registers32 regs then
+      internalerror(10) is issued
+    + EXTTEMPREGDEBUG will also give internalerror(10) if
+      a same register is freed twice (happens in several part
+      of current compiler like addn for strings and sets)
+
+  Revision 1.31  1999/08/07 14:20:59  florian
     * some small problems fixed
 
   Revision 1.30  1999/08/04 14:21:07  florian

@@ -198,6 +198,9 @@ unit tree;
 {$ifdef extdebug}
           firstpasscount : longint;
 {$endif extdebug}
+{$ifdef TEMPREGDEBUG}
+          usableregs : longint;
+{$endif TEMPREGDEBUG}
 {$ifdef TEMPS_NOT_PUSH}
           temp_offset : longint;
 {$endif TEMPS_NOT_PUSH}
@@ -312,6 +315,14 @@ unit tree;
     { searches the lowest label }
     function case_get_min(root : pcaserecord) : longint;
 
+    type
+      pptree = ^ptree;
+      
+{$ifdef TEMPREGDEBUG}
+    const
+      curptree : pptree = nil;
+{$endif TEMPREGDEBUG}
+      
 {$I innr.inc}
 
   implementation
@@ -1739,7 +1750,15 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.90  1999-08-17 13:26:09  peter
+  Revision 1.91  1999-08-23 23:26:00  pierre
+    + TEMPREGDEBUG code, test of register allocation
+      if a tree uses more than registers32 regs then
+      internalerror(10) is issued
+    + EXTTEMPREGDEBUG will also give internalerror(10) if
+      a same register is freed twice (happens in several part
+      of current compiler like addn for strings and sets)
+
+  Revision 1.90  1999/08/17 13:26:09  peter
     * arrayconstructor -> arrayofconst fixed when arraycosntructor was not
       variant.
 

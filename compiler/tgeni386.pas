@@ -44,6 +44,9 @@ unit tgeni386;
        usableregmmx : byte = 8;
 {$endif SUPPORT_MMX}
 
+{$ifdef TEMPREGDEBUG}
+    procedure testregisters32;
+{$endif TEMPREGDEBUG}
     function getregister32 : tregister;
     procedure ungetregister32(r : tregister);
     { tries to allocate the passed register, if possible }
@@ -88,9 +91,17 @@ unit tgeni386;
 {$ifdef SUPPORT_MMX}
        reg_pushes : array[R_EAX..R_MM6] of longint;
        is_reg_var : array[R_EAX..R_MM6] of boolean;
+{$ifdef TEMPREGDEBUG}
+       reg_user   : array[R_EAX..R_MM6] of ptree;
+       reg_releaser : array[R_EAX..R_MM6] of ptree;
+{$endif TEMPREGDEBUG}
 {$else SUPPORT_MMX}
        reg_pushes : array[R_EAX..R_EDI] of longint;
        is_reg_var : array[R_EAX..R_EDI] of boolean;
+{$ifdef TEMPREGDEBUG}
+       reg_user   : array[R_EAX..R_EDI] of ptree;
+       reg_releaser : array[R_EAX..R_EDI] of ptree;
+{$endif TEMPREGDEBUG}
 {$endif SUPPORT_MMX}
 
 
@@ -126,7 +137,12 @@ implementation
                         often, but there must be a better way
                         maybe by putting the value back to the stack !! }
                         if not(is_reg_var[r]) then
-                          unused:=unused+[r];
+                          begin
+                            unused:=unused+[r];
+{$ifdef TEMPREGDEBUG}
+                            inc(usablereg32);
+{$endif TEMPREGDEBUG}
+                          end;
                         pushed[r]:=true;
                      end;
                 end;
@@ -146,11 +162,19 @@ implementation
                    exprasmlist^.concat(new(pai386,op_reg_ref(
                      A_MOVQ,S_NO,r,hr)));
                    if not(is_reg_var[r]) then
-                     unused:=unused+[r];
+                     begin
+                       unused:=unused+[r];
+{$ifdef TEMPREGDEBUG}
+                       inc(usableregmmx);
+{$endif TEMPREGDEBUG}
+                     end;
                    pushed[r]:=true;
                 end;
            end;
 {$endif SUPPORT_MMX}
+{$ifdef TEMPREGDEBUG}
+        testregisters32;
+{$endif TEMPREGDEBUG}
       end;
 
     procedure saveusedregisters(var saved : tsaved;b : byte);
@@ -181,7 +205,12 @@ implementation
                         often, but there must be a better way
                         maybe by putting the value back to the stack !! }
                         if not(is_reg_var[r]) then
-                          unused:=unused+[r];
+                          begin
+                            unused:=unused+[r];
+{$ifdef TEMPREGDEBUG}
+                            inc(usablereg32);
+{$endif TEMPREGDEBUG}
+                          end;
                      end;
                 end;
            end;
@@ -196,11 +225,19 @@ implementation
                    exprasmlist^.concat(new(pai386,op_reg_ref(
                      A_MOVQ,S_NO,r,newreference(hr))));
                    if not(is_reg_var[r]) then
-                     unused:=unused+[r];
+                     begin
+                       unused:=unused+[r];
+{$ifdef TEMPREGDEBUG}
+                       inc(usableregmmx);
+{$endif TEMPREGDEBUG}
+                     end;
                    saved[r]:=hr.offset;
                 end;
            end;
 {$endif SUPPORT_MMX}
+{$ifdef TEMPREGDEBUG}
+        testregisters32;
+{$endif TEMPREGDEBUG}
       end;
 
     procedure popusedregisters(const pushed : tpushed);
@@ -225,6 +262,9 @@ implementation
                    exprasmlist^.concat(new(pai386,op_const_reg(
                      A_ADD,S_L,8,R_ESP)));
                    unused:=unused-[r];
+{$ifdef TEMPREGDEBUG}
+                   dec(usableregmmx);
+{$endif TEMPREGDEBUG}
                 end;
            end;
 {$endif SUPPORT_MMX}
@@ -232,8 +272,20 @@ implementation
            if pushed[r] then
              begin
                 exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,r)));
+{$ifdef TEMPREGDEBUG}
+                if not (r in unused) then
+                  { internalerror(10)
+                    in cg386cal we always restore regs
+                    that appear as used
+                    due to a unused tmep storage PM }
+                else
+                  dec(usablereg32);
+{$endif TEMPREGDEBUG}
                 unused:=unused-[r];
              end;
+{$ifdef TEMPREGDEBUG}
+        testregisters32;
+{$endif TEMPREGDEBUG}
       end;
 
     procedure restoreusedregisters(const saved : tsaved);
@@ -254,6 +306,9 @@ implementation
                    exprasmlist^.concat(new(pai386,op_ref_reg(
                      A_MOVQ,S_NO,newreference(hr),r)));
                    unused:=unused-[r];
+{$ifdef TEMPREGDEBUG}
+                   dec(usableregmmx);
+{$endif TEMPREGDEBUG}
                    ungetiftemp(hr);
                 end;
            end;
@@ -265,9 +320,18 @@ implementation
                 hr.base:=frame_pointer;
                 hr.offset:=saved[r];
                 exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(hr),r)));
+{$ifdef TEMPREGDEBUG}
+                if not (r in unused) then
+                  internalerror(10)
+                else
+                  dec(usablereg32);
+{$endif TEMPREGDEBUG}
                 unused:=unused-[r];
                 ungetiftemp(hr);
              end;
+{$ifdef TEMPREGDEBUG}
+        testregisters32;
+{$endif TEMPREGDEBUG}
       end;
 
     procedure ungetregister(r : tregister);
@@ -301,10 +365,25 @@ implementation
            begin
               if not(r in [R_EAX,R_EBX,R_ECX,R_EDX]) then
                 exit;
+{$ifdef TEMPREGDEBUG}
+                if (r in unused) then
+{$ifdef EXTTEMPREGDEBUG}
+                  internalerror(10)
+{$else EXTTEMPREGDEBUG}
+                  exit
+{$endif EXTTEMPREGDEBUG}
+                else
+{$endif TEMPREGDEBUG}
+                  inc(usablereg32);
               unused:=unused+[r];
-              inc(usablereg32);
+{$ifdef TEMPREGDEBUG}
+              reg_releaser[r]:=curptree^;
+{$endif TEMPREGDEBUG}
            end;
          exprasmlist^.concat(new(pairegalloc,dealloc(r)));
+{$ifdef TEMPREGDEBUG}
+        testregisters32;
+{$endif TEMPREGDEBUG}
       end;
 
 {$ifdef SUPPORT_MMX}
@@ -377,16 +456,41 @@ implementation
       end;
 
 
+{$ifdef TEMPREGDEBUG}
+    procedure testregisters32;
+     var test : byte;
+       begin
+         test:=0;
+         if R_EAX in unused then
+           inc(test);
+         if R_EBX in unused then
+           inc(test);
+         if R_ECX in unused then
+           inc(test);
+         if R_EDX in unused then
+           inc(test);
+         if test<>usablereg32 then
+           internalerror(10);
+       end;
+{$endif TEMPREGDEBUG}
+
     function getregister32 : tregister;
       begin
          if usablereg32=0 then
            internalerror(10);
          dec(usablereg32);
+{$ifdef TEMPREGDEBUG}
+         if curptree^^.usableregs-usablereg32>curptree^^.registers32 then
+           internalerror(10);
+{$endif TEMPREGDEBUG}
          if R_EAX in unused then
            begin
               unused:=unused-[R_EAX];
               usedinproc:=usedinproc or ($80 shr byte(R_EAX));
               getregister32:=R_EAX;
+{$ifdef TEMPREGDEBUG}
+              reg_user[R_EAX]:=curptree^;
+{$endif TEMPREGDEBUG}
               exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
            end
          else if R_EDX in unused then
@@ -394,6 +498,9 @@ implementation
               unused:=unused-[R_EDX];
               usedinproc:=usedinproc or ($80 shr byte(R_EDX));
               getregister32:=R_EDX;
+{$ifdef TEMPREGDEBUG}
+              reg_user[R_EDX]:=curptree^;
+{$endif TEMPREGDEBUG}
               exprasmlist^.concat(new(pairegalloc,alloc(R_EDX)));
            end
          else if R_EBX in unused then
@@ -401,6 +508,9 @@ implementation
               unused:=unused-[R_EBX];
               usedinproc:=usedinproc or ($80 shr byte(R_EBX));
               getregister32:=R_EBX;
+{$ifdef TEMPREGDEBUG}
+              reg_user[R_EBX]:=curptree^;
+{$endif TEMPREGDEBUG}
               exprasmlist^.concat(new(pairegalloc,alloc(R_EBX)));
            end
          else if R_ECX in unused then
@@ -408,9 +518,15 @@ implementation
               unused:=unused-[R_ECX];
               usedinproc:=usedinproc or ($80 shr byte(R_ECX));
               getregister32:=R_ECX;
+{$ifdef TEMPREGDEBUG}
+              reg_user[R_ECX]:=curptree^;
+{$endif TEMPREGDEBUG}
               exprasmlist^.concat(new(pairegalloc,alloc(R_ECX)));
            end
          else internalerror(10);
+{$ifdef TEMPREGDEBUG}
+         testregisters32;
+{$endif TEMPREGDEBUG}
       end;
 
     function getexplicitregister32(r : tregister) : tregister;
@@ -419,10 +535,18 @@ implementation
          if r in unused then
            begin
               dec(usablereg32);
+{$ifdef TEMPREGDEBUG}
+              if curptree^^.usableregs-usablereg32>curptree^^.registers32 then
+                internalerror(10);
+              reg_user[r]:=curptree^;
+{$endif TEMPREGDEBUG}
               unused:=unused-[r];
               usedinproc:=usedinproc or ($80 shr byte(r));
               exprasmlist^.concat(new(pairegalloc,alloc(r)));
               getexplicitregister32:=r;
+{$ifdef TEMPREGDEBUG}
+         testregisters32;
+{$endif TEMPREGDEBUG}
            end
          else
            getexplicitregister32:=getregister32;
@@ -482,7 +606,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.31  1999-08-10 12:47:55  pierre
+  Revision 1.32  1999-08-23 23:25:58  pierre
+    + TEMPREGDEBUG code, test of register allocation
+      if a tree uses more than registers32 regs then
+      internalerror(10) is issued
+    + EXTTEMPREGDEBUG will also give internalerror(10) if
+      a same register is freed twice (happens in several part
+      of current compiler like addn for strings and sets)
+
+  Revision 1.31  1999/08/10 12:47:55  pierre
    * fpuvaroffset problems solved
 
   Revision 1.30  1999/08/04 13:45:32  florian
