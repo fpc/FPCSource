@@ -30,15 +30,15 @@ unit cpupi;
 
     uses
        cutils,
-       cgbase,cpuinfo,psub;
+       procinfo,cpuinfo,psub;
 
     type
        tarmprocinfo = class(tcgprocinfo)
           { max. of space need for parameters, currently used by the PowerPC port only }
           maxpushedparasize : aword;
           constructor create(aparent:tprocinfo);override;
-          procedure handle_body_start;override;
-          procedure after_pass1;override;
+          // procedure handle_body_start;override;
+          // procedure after_pass1;override;
           procedure allocate_push_parasize(size: longint);override;
           function calc_stackframe_size:longint;override;
        end;
@@ -60,7 +60,7 @@ unit cpupi;
          maxpushedparasize:=0;
       end;
 
-
+(*
     procedure tarmprocinfo.handle_body_start;
       var
          ofs : aword;
@@ -80,7 +80,6 @@ unit cpupi;
           end;
         inherited handle_body_start;
       end;
-
 
     procedure tarmprocinfo.after_pass1;
       begin
@@ -102,6 +101,7 @@ unit cpupi;
              inherited after_pass1;
            end;
       end;
+*)
 
 
     procedure tarmprocinfo.allocate_push_parasize(size:longint);
@@ -126,7 +126,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2003-08-20 15:50:13  florian
+  Revision 1.2  2003-11-02 14:30:03  florian
+    * fixed ARM for new reg. allocation scheme
+
+  Revision 1.1  2003/08/20 15:50:13  florian
     * more arm stuff
 }
 

@@ -32,13 +32,26 @@ unit cgcpu;
        symtype,
        cgbase,cgobj,
        aasmbase,aasmcpu,aasmtai,
-       cpubase,cpuinfo,node,cg64f32,cginfo;
+       cpubase,cpuinfo,node,cg64f32,rgcpu;
 
 
     type
       tcgarm = class(tcg)
+        rgint,
+        rgmm,
+        rgfpu : trgcpu;
         procedure init_register_allocators;override;
         procedure done_register_allocators;override;
+
+        function  getintregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
+        function  getfpuregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
+        function  getmmregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
+        procedure getexplicitregister(list:Taasmoutput;r:Tregister);override;
+        procedure ungetregister(list:Taasmoutput;r:Tregister);override;
+        procedure add_move_instruction(instr:Taicpu);override;
+        procedure do_register_allocation(list:Taasmoutput;headertai:tai);override;
+        procedure allocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);override;
+        procedure deallocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);override;
 
         procedure a_param_const(list : taasmoutput;size : tcgsize;a : aword;const locpara : tparalocation);override;
         procedure a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;const locpara : tparalocation);override;
@@ -46,7 +59,6 @@ unit cgcpu;
 
         procedure a_call_name(list : taasmoutput;const s : string);override;
         procedure a_call_reg(list : taasmoutput;reg: tregister); override;
-        procedure a_call_ref(list : taasmoutput;const ref : treference);override;
 
         procedure a_op_const_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; a: AWord; reg: TRegister); override;
         procedure a_op_reg_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; src, dst: TRegister); override;
@@ -88,8 +100,8 @@ unit cgcpu;
 
         procedure g_overflowcheck(list: taasmoutput; const l: tlocation; def: tdef); override;
 
-        procedure g_save_standard_registers(list : taasmoutput; usedinproc : tsuperregisterset);override;
-        procedure g_restore_standard_registers(list : taasmoutput; usedinproc : tsuperregisterset);override;
+        procedure g_save_standard_registers(list : taasmoutput);override;
+        procedure g_restore_standard_registers(list : taasmoutput);override;
         procedure g_save_all_registers(list : taasmoutput);override;
         procedure g_restore_all_registers(list : taasmoutput;accused,acchiused:boolean);override;
 
@@ -115,18 +127,130 @@ unit cgcpu;
 
 
     uses
-       globtype,globals,verbose,systems,cutils,symconst,symdef,symsym,rgobj,rgcpu,tgobj,cpupi;
+       globtype,globals,verbose,systems,cutils,
+       symconst,symdef,symsym,
+       tgobj,
+       procinfo,cpupi;
 
 
     procedure tcgarm.init_register_allocators;
       begin
-        rg:=trgcpu.create(11,#0#1#2#3#4#5#6#7#8#9#10);
+        rgint:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,
+            [RS_R0,RS_R1,RS_R2,RS_R3,RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,
+             RS_R9,RS_R10,RS_R12],first_int_imreg,[]);
+        rgfpu:=trgcpu.create(R_FPUREGISTER,R_SUBNONE,
+            [RS_F0,RS_F1,RS_F2,RS_F3,RS_F4,RS_F5,RS_F6,RS_F7],first_fpu_imreg,[]);
+        rgmm:=trgcpu.create(R_MMREGISTER,R_SUBNONE,
+            [RS_S0..RS_S31],first_mm_imreg,[]);
       end;
 
 
     procedure tcgarm.done_register_allocators;
       begin
-        rg.free;
+        rgint.free;
+        rgfpu.free;
+        rgmm.free;
+      end;
+
+
+    function tcgarm.getintregister(list:Taasmoutput;size:Tcgsize):Tregister;
+      begin
+        result:=rgint.getregister(list,cgsize2subreg(size));
+      end;
+
+
+    function tcgarm.getfpuregister(list:Taasmoutput;size:Tcgsize):Tregister;
+      begin
+        result:=rgfpu.getregister(list,R_SUBWHOLE);
+      end;
+
+
+    function tcgarm.getmmregister(list:Taasmoutput;size:Tcgsize):Tregister;
+      begin
+        result:=rgmm.getregister(list,R_SUBNONE);
+      end;
+
+
+    procedure tcgarm.getexplicitregister(list:Taasmoutput;r:Tregister);
+      begin
+        case getregtype(r) of
+          R_INTREGISTER :
+            rgint.getexplicitregister(list,r);
+          R_MMREGISTER :
+            rgmm.getexplicitregister(list,r);
+          R_FPUREGISTER :
+            rgfpu.getexplicitregister(list,r);
+          else
+            internalerror(200310091);
+        end;
+      end;
+
+
+    procedure tcgarm.ungetregister(list:Taasmoutput;r:Tregister);
+      begin
+        case getregtype(r) of
+          R_INTREGISTER :
+            rgint.ungetregister(list,r);
+          R_FPUREGISTER :
+            rgfpu.ungetregister(list,r);
+          R_MMREGISTER :
+            rgmm.ungetregister(list,r);
+          else
+            internalerror(200310091);
+        end;
+      end;
+
+
+    procedure tcgarm.allocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);
+      begin
+        case rt of
+          R_INTREGISTER :
+            rgint.allocexplicitregisters(list,r);
+          R_FPUREGISTER :
+            rgfpu.allocexplicitregisters(list,r);
+          R_MMREGISTER :
+            rgmm.allocexplicitregisters(list,r);
+          else
+            internalerror(200310092);
+        end;
+      end;
+
+
+    procedure tcgarm.deallocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);
+      begin
+        case rt of
+          R_INTREGISTER :
+            rgint.deallocexplicitregisters(list,r);
+          R_FPUREGISTER :
+            rgfpu.deallocexplicitregisters(list,r);
+          R_MMREGISTER :
+            rgmm.deallocexplicitregisters(list,r);
+          else
+            internalerror(200310093);
+        end;
+      end;
+
+
+    procedure tcgarm.add_move_instruction(instr:Taicpu);
+      begin
+        rgint.add_move_instruction(instr);
+      end;
+
+
+    procedure tcgarm.do_register_allocation(list:Taasmoutput;headertai:tai);
+      begin
+        { Int }
+        rgint.check_unreleasedregs;
+        rgint.do_register_allocation(list,headertai);
+        rgint.translate_registers(list);
+        { FPU }
+        rgfpu.check_unreleasedregs;
+        rgfpu.do_register_allocation(list,headertai);
+        rgfpu.translate_registers(list);
+        { MM }
+        rgmm.check_unreleasedregs;
+        rgmm.do_register_allocation(list,headertai);
+        rgmm.translate_registers(list);
       end;
 
 
@@ -147,7 +271,7 @@ unit cgcpu;
           else
             internalerror(2002081101);
         end;
-        if locpara.sp_fixup<>0 then
+        if locpara.alignment<>0 then
           internalerror(2002081102);
       end;
 
@@ -165,10 +289,10 @@ unit cgcpu;
                reference_reset(ref);
                ref.base:=locpara.reference.index;
                ref.offset:=locpara.reference.offset;
-               tmpreg := rg.getregisterint(list,size);
+               tmpreg := getintregister(list,size);
                a_load_ref_reg(list,size,size,r,tmpreg);
                a_load_reg_ref(list,size,size,tmpreg,ref);
-               rg.ungetregisterint(list,tmpreg);
+               ungetregister(list,tmpreg);
             end;
           LOC_FPUREGISTER,LOC_CFPUREGISTER:
             case size of
@@ -180,7 +304,7 @@ unit cgcpu;
           else
             internalerror(2002081103);
         end;
-        if locpara.sp_fixup<>0 then
+        if locpara.alignment<>0 then
           internalerror(2002081104);
       end;
 
@@ -198,10 +322,10 @@ unit cgcpu;
                 reference_reset(ref);
                 ref.base := locpara.reference.index;
                 ref.offset := locpara.reference.offset;
-                tmpreg := rg.getregisterint(list,OS_ADDR);
+                tmpreg := getintregister(list,OS_ADDR);
                 a_loadaddr_ref_reg(list,r,tmpreg);
                 a_load_reg_ref(list,OS_ADDR,OS_ADDR,tmpreg,ref);
-                rg.ungetregisterint(list,tmpreg);
+                ungetregister(list,tmpreg);
               end;
             else
               internalerror(2002080701);
@@ -224,16 +348,6 @@ unit cgcpu;
         list.concat(taicpu.op_reg_reg(A_MOV,NR_PC,reg));
         if not(pi_do_call in current_procinfo.flags) then
           internalerror(2003060704);
-      end;
-
-
-    procedure tcgarm.a_call_ref(list : taasmoutput;const ref : treference);
-      var
-         r : tregister;
-      begin
-        a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,NR_PC);
-        if not(pi_do_call in current_procinfo.flags) then
-          internalerror(2003060705);
       end;
 
 
@@ -315,10 +429,10 @@ unit cgcpu;
                 a_op_reg_reg(list,OP_NEG,size,src,dst)
               else
                 begin
-                  tmpreg:=rg.getregisterint(list,size);
+                  tmpreg:=getintregister(list,size);
                   a_load_const_reg(list,size,a,tmpreg);
                   a_op_reg_reg_reg(list,op,size,tmpreg,src,dst);
-                  rg.ungetregisterint(list,tmpreg);
+                  ungetregister(list,tmpreg);
                 end;
             end;
        end;
@@ -363,21 +477,21 @@ unit cgcpu;
                  begin
                    if dst<>src1 then
                      begin
-                       rg.add_edge(dst,src1);
+                       rgint.add_edge(dst,src1);
                        list.concat(taicpu.op_reg_reg_reg(A_MUL,dst,src1,src2));
                      end
                    else
                      begin
-                       tmpreg:=rg.getregisterint(list,size);
+                       tmpreg:=getintregister(list,size);
                        a_load_reg_reg(list,size,size,src2,dst);
-                       rg.add_edge(dst,tmpreg);
-                       rg.ungetregister(list,tmpreg);
+                       rgint.add_edge(dst,tmpreg);
+                       ungetregister(list,tmpreg);
                        list.concat(taicpu.op_reg_reg_reg(A_MUL,dst,tmpreg,src1));
                      end;
                  end
                else
                  begin
-                   rg.add_edge(dst,src2);
+                   rgint.add_edge(dst,src2);
                    list.concat(taicpu.op_reg_reg_reg(A_MUL,dst,src2,src1));
                  end;
              end;
@@ -486,7 +600,7 @@ unit cgcpu;
               current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(ref.offset));
 
             { load consts entry }
-            tmpreg:=rg.getregisterint(list,OS_INT);
+            tmpreg:=getintregister(list,OS_INT);
             reference_reset(tmpref);
             tmpref.symbol:=l;
             tmpref.base:=NR_R15;
@@ -541,7 +655,7 @@ unit cgcpu;
               end
             else
               begin
-                tmpreg:=rg.getregisterint(list,OS_INT);
+                tmpreg:=getintregister(list,OS_INT);
                 list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,ref.base,ref.index));
                 ref.base:=tmpreg;
                 ref.index:=NR_NO;
@@ -549,7 +663,7 @@ unit cgcpu;
           end;
         list.concat(setoppostfix(taicpu.op_reg_ref(op,reg,ref),oppostfix));
         if (tmpreg<>NR_NO) then
-          rg.ungetregisterint(list,tmpreg);
+          ungetregister(list,tmpreg);
       end;
 
 
@@ -645,7 +759,7 @@ unit cgcpu;
                OS_32,OS_S32:
                  begin
                    instr:=taicpu.op_reg_reg(A_MOV,reg2,reg1);
-                   rg.add_move_instruction(instr);
+                   add_move_instruction(instr);
                    list.concat(instr);
                  end;
                else internalerror(2002090901);
@@ -711,10 +825,10 @@ unit cgcpu;
           list.concat(taicpu.op_reg_const(A_CMN,reg,not(a)))
         else
           begin
-            tmpreg:=rg.getregisterint(list,size);
+            tmpreg:=getintregister(list,size);
             a_load_const_reg(list,size,a,tmpreg);
             list.concat(taicpu.op_reg_reg(A_CMP,reg,tmpreg));
-            rg.ungetregisterint(list,tmpreg);
+            ungetregister(list,tmpreg);
           end;
         a_jmp_cond(list,cmp_op,l);
       end;
@@ -772,10 +886,10 @@ unit cgcpu;
         reference_reset(ref);
         ref.index:=NR_STACK_POINTER_REG;
         ref.addressmode:=AM_PREINDEXED;
-        list.concat(setoppostfix(taicpu.op_ref_regset(A_STM,ref,rg.used_in_proc_int-[RS_R0..RS_R3]+[RS_R11,RS_R12,RS_R15]),PF_FD));
+        list.concat(setoppostfix(taicpu.op_ref_regset(A_STM,ref,rgint.used_in_proc-[RS_R0..RS_R3]+[RS_R11,RS_R12,RS_R15]),PF_FD));
 
         list.concat(taicpu.op_reg_reg_const(A_SUB,NR_FRAME_POINTER_REG,NR_R12,4));
-        a_reg_alloc(list,NR_R12);
+        a_reg_dealloc(list,NR_R12);
 
         { allocate necessary stack size }
         list.concat(taicpu.op_reg_reg_const(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,LocalSize));
@@ -793,7 +907,7 @@ unit cgcpu;
             { restore int registers and return }
             reference_reset(ref);
             ref.index:=NR_FRAME_POINTER_REG;
-            list.concat(setoppostfix(taicpu.op_ref_regset(A_LDM,ref,rg.used_in_proc_int-[RS_R0..RS_R3]+[RS_R11,RS_R13,RS_R15]),PF_EA));
+            list.concat(setoppostfix(taicpu.op_ref_regset(A_LDM,ref,rgint.used_in_proc-[RS_R0..RS_R3]+[RS_R11,RS_R13,RS_R15]),PF_EA));
           end;
       end;
 
@@ -840,7 +954,7 @@ unit cgcpu;
             else
               begin
                 instr:=taicpu.op_reg_reg(A_MOV,r,tmpref.base);
-                rg.add_move_instruction(instr);
+                add_move_instruction(instr);
                 list.concat(instr);
               end;
           end;
@@ -878,7 +992,7 @@ unit cgcpu;
 
         { load consts entry }
         reference_reset(tmpref);
-        tmpreg:=rg.getregisterint(list,OS_INT);
+        tmpreg:=getintregister(list,OS_INT);
         tmpref.symbol:=l;
         tmpref.base:=NR_PC;
         list.concat(taicpu.op_reg_ref(A_LDR,tmpreg,tmpref));
@@ -927,10 +1041,10 @@ unit cgcpu;
           dstref.addressmode:=AM_POSTINDEXED;
           srcref.offset:=size;
           dstref.offset:=size;
-          r:=rg.getregisterint(list,size2opsize[size]);
+          r:=getintregister(list,size2opsize[size]);
           a_load_ref_reg(list,size2opsize[size],size2opsize[size],srcref,r);
           a_load_reg_ref(list,size2opsize[size],size2opsize[size],r,dstref);
-          rg.ungetregisterint(list,r);
+          ungetregister(list,r);
           list.concat(setoppostfix(taicpu.op_reg_reg_const(A_SUB,countreg,countreg,1),PF_S));
           list.concat(setcondition(taicpu.op_sym(A_B,l),C_NE));
         end;
@@ -958,30 +1072,30 @@ unit cgcpu;
                     cgsize:=OS_16;
                   end;
                 dec(len,copysize);
-                r:=rg.getregisterint(list,cgsize);
+                r:=getintregister(list,cgsize);
                 a_load_ref_reg(list,cgsize,cgsize,srcref,r);
                 if (len=0) and delsource then
                   reference_release(list,source);
                 a_load_reg_ref(list,cgsize,cgsize,r,dstref);
                 inc(srcref.offset,copysize);
                 inc(dstref.offset,copysize);
-                rg.ungetregisterint(list,r);
+                ungetregister(list,r);
               end;
           end
         else
           begin
-            destreg:=rg.getregisterint(list,OS_ADDR);
+            destreg:=getintregister(list,OS_ADDR);
             a_loadaddr_ref_reg(list,dest,destreg);
             if delsource then
               reference_release(list,srcref);
-            srcreg:=rg.getregisterint(list,OS_ADDR);
+            srcreg:=getintregister(list,OS_ADDR);
             if loadref then
               a_load_ref_reg(list,OS_ADDR,OS_ADDR,source,srcreg)
             else
               a_loadaddr_ref_reg(list,source,srcreg);
-            srcref.
+            // srcref.
 
-            countreg:=rg.getregisterint(list,OS_32);
+            countreg:=getintregister(list,OS_32);
 
 //            if cs_littlesize in aktglobalswitches  then
               genloop(len,1);
@@ -1006,9 +1120,9 @@ unit cgcpu;
                   list.concat(Taicpu.op_none(A_MOVSB,S_NO));
                 end;
 }
-            rg.ungetregisterint(list,countreg);
-            rg.ungetregisterint(list,srcreg);
-            rg.ungetregisterint(list,destreg);
+            ungetregister(list,countreg);
+            ungetregister(list,srcreg);
+            ungetregister(list,destreg);
           end;
         if delsource then
           tg.ungetiftemp(list,source);
@@ -1020,13 +1134,13 @@ unit cgcpu;
       end;
 
 
-    procedure tcgarm.g_save_standard_registers(list : taasmoutput; usedinproc : tsuperregisterset);
+    procedure tcgarm.g_save_standard_registers(list : taasmoutput);
       begin
         { we support only ARM standard calling conventions so this procedure has no use on the ARM }
       end;
 
 
-    procedure tcgarm.g_restore_standard_registers(list : taasmoutput; usedinproc : tsuperregisterset);
+    procedure tcgarm.g_restore_standard_registers(list : taasmoutput);
       begin
         { we support only ARM standard calling conventions so this procedure has no use on the ARM }
       end;
@@ -1094,20 +1208,20 @@ unit cgcpu;
                 list.concat(setoppostfix(taicpu.op_reg_reg_const(A_ADD,regdst.reglo,regsrc.reglo,lo(value)),PF_S))
               else
                 begin
-                  tmpreg:=rg.getregisterint(list,OS_32);
+                  tmpreg:=cg.getintregister(list,OS_32);
                   cg.a_load_const_reg(list,OS_32,lo(value),tmpreg);
                   list.concat(setoppostfix(taicpu.op_reg_reg_reg(A_ADD,regdst.reglo,regsrc.reglo,tmpreg),PF_S));
-                  rg.ungetregisterint(list,tmpreg);
+                  cg.ungetregister(list,tmpreg);
                 end;
 
               if is_shifter_const(hi(value),b) then
                 list.concat(taicpu.op_reg_reg_const(A_ADC,regdst.reghi,regsrc.reghi,hi(value)))
               else
                 begin
-                  tmpreg:=rg.getregisterint(list,OS_32);
+                  tmpreg:=cg.getintregister(list,OS_32);
                   cg.a_load_const_reg(list,OS_32,hi(value),tmpreg);
                   list.concat(taicpu.op_reg_reg_reg(A_ADC,regdst.reghi,regsrc.reghi,tmpreg));
-                  rg.ungetregisterint(list,tmpreg);
+                  cg.ungetregister(list,tmpreg);
                 end;
             end;
           OP_SUB:
@@ -1116,20 +1230,20 @@ unit cgcpu;
                 list.concat(setoppostfix(taicpu.op_reg_reg_const(A_SUB,regdst.reglo,regsrc.reglo,lo(value)),PF_S))
               else
                 begin
-                  tmpreg:=rg.getregisterint(list,OS_32);
+                  tmpreg:=cg.getintregister(list,OS_32);
                   cg.a_load_const_reg(list,OS_32,lo(value),tmpreg);
                   list.concat(setoppostfix(taicpu.op_reg_reg_reg(A_SUB,regdst.reglo,regsrc.reglo,tmpreg),PF_S));
-                  rg.ungetregisterint(list,tmpreg);
+                  cg.ungetregister(list,tmpreg);
                 end;
 
               if is_shifter_const(hi(value),b) then
                 list.concat(taicpu.op_reg_reg_const(A_SBC,regdst.reghi,regsrc.reghi,hi(value)))
               else
                 begin
-                  tmpreg:=rg.getregisterint(list,OS_32);
+                  tmpreg:=cg.getintregister(list,OS_32);
                   cg.a_load_const_reg(list,OS_32,hi(value),tmpreg);
                   list.concat(taicpu.op_reg_reg_reg(A_SBC,regdst.reghi,regsrc.reghi,tmpreg));
-                  rg.ungetregisterint(list,tmpreg);
+                  cg.ungetregister(list,tmpreg);
                 end;
             end;
           else
@@ -1168,7 +1282,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2003-10-11 16:06:42  florian
+  Revision 1.21  2003-11-02 14:30:03  florian
+    * fixed ARM for new reg. allocation scheme
+
+  Revision 1.20  2003/10/11 16:06:42  florian
     * fixed some MMX<->SSE
     * started to fix ppc, needs an overhaul
     + stabs info improve for spilling, not sure if it works correctly/completly

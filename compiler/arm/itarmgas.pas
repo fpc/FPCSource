@@ -27,7 +27,7 @@ unit itarmgas;
 interface
 
   uses
-    cginfo,cpubase;
+    cpubase,cgbase;
 
 
   const
@@ -113,6 +113,9 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2003-09-04 00:15:29  florian
+  Revision 1.2  2003-11-02 14:30:03  florian
+    * fixed ARM for new reg. allocation scheme
+
+  Revision 1.1  2003/09/04 00:15:29  florian
     * first bunch of adaptions of arm compiler for new register type
 }

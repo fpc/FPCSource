@@ -29,7 +29,7 @@ interface
 uses
   cclasses,aasmtai,
   aasmbase,globals,verbose,
-  cpubase,cpuinfo,cginfo;
+  cpubase,cpuinfo,cgbase;
 
     const
       { "mov reg,reg" source operand number }
@@ -42,7 +42,7 @@ uses
          oppostfix : TOpPostfix;
          roundingmode : troundingmode;
          procedure loadshifterop(opidx:longint;const so:tshifterop);
-         procedure loadregset(opidx:longint;const s:tsuperregisterset);
+         procedure loadregset(opidx:longint;const s:tcpuregisterset);
          constructor op_none(op : tasmop);
 
          constructor op_reg(op : tasmop;_op1 : tregister);
@@ -52,7 +52,7 @@ uses
          constructor op_reg_ref(op : tasmop;_op1 : tregister;const _op2 : treference);
          constructor op_reg_const(op:tasmop; _op1: tregister; _op2: longint);
 
-         constructor op_ref_regset(op:tasmop; _op1: treference; _op2: tsuperregisterset);
+         constructor op_ref_regset(op:tasmop; _op1: treference; _op2: tcpuregisterset);
 
          constructor op_reg_reg_reg(op : tasmop;_op1,_op2,_op3 : tregister);
          constructor op_reg_reg_const(op : tasmop;_op1,_op2 : tregister; _op3: Longint);
@@ -98,9 +98,8 @@ implementation
 
     procedure taicpu.loadshifterop(opidx:longint;const so:tshifterop);
       begin
-        if opidx>=ops then
-         ops:=opidx+1;
-        with oper[opidx] do
+        allocate_oper(opidx+1);
+        with oper[opidx]^ do
           begin
             if typ<>top_shifterop then
               begin
@@ -113,15 +112,15 @@ implementation
       end;
 
 
-    procedure taicpu.loadregset(opidx:longint;const s:tsuperregisterset);
+    procedure taicpu.loadregset(opidx:longint;const s:tcpuregisterset);
       begin
-        if opidx>=ops then
-         ops:=opidx+1;
-        with oper[opidx] do
+        allocate_oper(opidx+1);
+        with oper[opidx]^ do
          begin
            if typ<>top_regset then
              clearop(opidx);
-           regset:=s;
+           new(regset);
+           regset^:=s;
            typ:=top_regset;
          end;
       end;
@@ -171,7 +170,7 @@ implementation
       end;
 
 
-    constructor taicpu.op_ref_regset(op:tasmop; _op1: treference; _op2: tsuperregisterset);
+    constructor taicpu.op_ref_regset(op:tasmop; _op1: treference; _op2: tcpuregisterset);
       begin
          inherited create(op);
          ops:=2;
@@ -366,7 +365,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  2003-09-11 11:54:59  florian
+  Revision 1.13  2003-11-02 14:30:03  florian
+    * fixed ARM for new reg. allocation scheme
+
+  Revision 1.12  2003/09/11 11:54:59  florian
     * improved arm code generation
     * move some protected and private field around
     * the temp. register for register parameters/arguments are now released

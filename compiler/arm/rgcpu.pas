@@ -30,7 +30,7 @@ unit rgcpu;
 
      uses
        aasmbase,aasmtai,
-       cginfo,
+       cgbase,
        cpubase,
        rgobj;
 
@@ -97,7 +97,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2003-09-11 11:55:00  florian
+  Revision 1.5  2003-11-02 14:30:03  florian
+    * fixed ARM for new reg. allocation scheme
+
+  Revision 1.4  2003/09/11 11:55:00  florian
     * improved arm code generation
     * move some protected and private field around
     * the temp. register for register parameters/arguments are now released

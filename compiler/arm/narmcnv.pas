@@ -66,7 +66,7 @@ implementation
       ncon,ncal,
       ncgutil,
       cpubase,aasmcpu,
-      rgobj,tgobj,cgobj,cginfo;
+      rgobj,tgobj,cgobj;
 
 
 {*****************************************************************************
@@ -112,7 +112,7 @@ implementation
       begin
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
         location_force_reg(exprasmlist,left.location,OS_32,true);
-        location.register:=rg.getregisterfpu(exprasmlist,location.size);
+        location.register:=cg.getfpuregister(exprasmlist,location.size);
         instr:=taicpu.op_reg_reg(A_FLT,location.register,left.location.register);
         instr.oppostfix:=cgsize2fpuoppostfix[def_cgsize(resulttype.def)];
         exprasmlist.concat(instr);
@@ -184,7 +184,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2003-09-01 15:11:16  florian
+  Revision 1.5  2003-11-02 14:30:03  florian
+    * fixed ARM for new reg. allocation scheme
+
+  Revision 1.4  2003/09/01 15:11:16  florian
     * fixed reference handling
     * fixed operand postfix for floating point instructions
     * fixed wrong shifter constant handling

@@ -35,7 +35,7 @@ unit cpubase;
       globtype,globals,
       cpuinfo,
       aasmbase,
-      cginfo
+      cgbase
     {$ifdef delphi}
       ,dmisc
     {$endif}
@@ -99,25 +99,16 @@ unit cpubase;
       NR_PC = NR_R15;
 
       { Integer Super registers first and last }
-{$warning Supreg shall be $00-$1f}
       first_int_supreg = RS_R0;
-      last_int_supreg = RS_R15;
-
-      first_int_imreg = $20;
-      last_int_imreg = $fe;
+      first_int_imreg = $10;
 
       { Float Super register first and last }
-      first_fpu_supreg    = $00;
-      last_fpu_supreg     = $07;
-
-      first_fpu_imreg     = $20;
-      last_fpu_imreg      = $fe;
+      first_fpu_supreg    = RS_F0;
+      first_fpu_imreg     = $08;
 
       { MM Super register first and last }
-      first_mmx_supreg    = RS_INVALID;
-      last_mmx_supreg     = RS_INVALID;
-      first_mmx_imreg     = RS_INVALID;
-      last_mmx_imreg      = RS_INVALID;
+      first_mm_supreg    = RS_S0;
+      first_mm_imreg     = $20;
 
 {$warning TODO Calculate bsstart}
       regnumber_count_bsstart = 64;
@@ -239,9 +230,6 @@ unit cpubase;
                                 Operands
 *****************************************************************************}
 
-      { Types of operand }
-      toptype=(top_none,top_reg,top_ref,top_const,top_symbol,top_regset,top_shifterop);
-
       tupdatereg = (UR_None,UR_Update);
 
       pshifterop = ^tshifterop;
@@ -250,17 +238,6 @@ unit cpubase;
         shiftmode : tshiftmode;
         rs : tregister;
         shiftimm : byte;
-      end;
-
-      toper = record
-        case typ : toptype of
-         top_none   : ();
-         top_reg    : (reg:tregister;update:tupdatereg);
-         top_ref    : (ref:preference);
-         top_const  : (val:aword);
-         top_symbol : (sym:tasmsymbol;symofs:longint);
-         top_regset : (regset:tsuperregisterset);
-         top_shifterop : (shifterop : pshifterop);
       end;
 
 {*****************************************************************************
@@ -275,10 +252,12 @@ unit cpubase;
       tparalocation = packed record
          size : TCGSize;
          loc  : TCGLoc;
-         sp_fixup : longint;
+         alignment : byte;
          case TCGLoc of
             LOC_REFERENCE : (reference : tparareference);
             { segment in reference at the same place as in loc_register }
+            LOC_MMREGISTER,LOC_CMMREGISTER,
+            LOC_FPUREGISTER,LOC_CFPUREGISTER,
             LOC_REGISTER,LOC_CREGISTER : (
               case longint of
                 1 : (register,registerhigh : tregister);
@@ -288,8 +267,6 @@ unit cpubase;
                 3 : (reg64 : tregister64);
                 4 : (register64 : tregister64);
               );
-            { it's only for better handling }
-            LOC_MMXREGISTER,LOC_CMMXREGISTER : (mmxreg : tregister);
       end;
 
       tlocation = packed record
@@ -587,7 +564,10 @@ unit cpubase;
 end.
 {
   $Log$
-  Revision 1.16  2003-10-31 08:40:51  mazen
+  Revision 1.17  2003-11-02 14:30:03  florian
+    * fixed ARM for new reg. allocation scheme
+
+  Revision 1.16  2003/10/31 08:40:51  mazen
   * rgHelper renamed to rgBase
   * using findreg_by_<name|number>_table directly to decrease heap overheading
 

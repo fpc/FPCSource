@@ -31,7 +31,7 @@ interface
 
     type
        tarmcallnode = class(tcgcallnode)
-          procedure push_framepointer;override;
+          // procedure push_framepointer;override;
        end;
 
 implementation
@@ -39,19 +39,22 @@ implementation
   uses
     paramgr;
 
-
+(*
   procedure tarmcallnode.push_framepointer;
     begin
       framepointer_paraloc:=paramanager.getintparaloc(procdefinition.proccalloption,1);
     end;
-
+*)
 
 begin
    ccallnode:=tarmcallnode;
 end.
 {
   $Log$
-  Revision 1.2  2003-09-11 11:55:00  florian
+  Revision 1.3  2003-11-02 14:30:03  florian
+    * fixed ARM for new reg. allocation scheme
+
+  Revision 1.2  2003/09/11 11:55:00  florian
     * improved arm code generation
     * move some protected and private field around
     * the temp. register for register parameters/arguments are now released

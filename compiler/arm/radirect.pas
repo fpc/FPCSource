@@ -51,8 +51,7 @@ interface
        { parser }
        scanner,
        { codegen }
-       cginfo,
-       cgbase,
+       cgbase,procinfo,
        { constants }
        itarmgas,
        cpubase
@@ -181,11 +180,10 @@ interface
                                                  hs:=tvarsym(sym).mangledname
                                                else
                                                  begin
-                                                    if (tvarsym(sym).reg<>NR_NO) then
-                                                      hs:=std_regname(framereg)
+                                                    if (tvarsym(sym).localloc.loc=LOC_REGISTER) then
+                                                      hs:=gas_regname(tvarsym(sym).localloc.register)
                                                     else
-                                                      hs:=tostr(tvarsym(sym).address)+
-                                                        '('+std_regname(framereg)+')';
+                                                      hs:='%%'+tvarsym(sym).name;
                                                  end;
                                             end
                                           else
@@ -203,11 +201,7 @@ interface
                                             begin
                                                if sym.typ=varsym then
                                                  begin
-                                                    l:=tvarsym(sym).address;
-                                                    { set offset }
-                                                    inc(l,current_procinfo.procdef.parast.address_fixup);
-//                                                    hs:=tostr(l)+'('+gas_reg2str[procinfo.framepointer.enum]+')';
-                                                    hs:=tostr(l)+'('+std_regname(framereg)+')';
+                                                    hs:='%%'+tvarsym(sym).name;
                                                     if pos(',',s) > 0 then
                                                       tvarsym(sym).varstate:=vs_used;
                                                  end;
@@ -336,7 +330,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.4  2003-09-04 00:15:29  florian
+  Revision 1.5  2003-11-02 14:30:03  florian
+    * fixed ARM for new reg. allocation scheme
+
+  Revision 1.4  2003/09/04 00:15:29  florian
     * first bunch of adaptions of arm compiler for new register type
 
   Revision 1.3  2003/09/01 15:11:17  florian

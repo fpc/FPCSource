@@ -32,8 +32,7 @@ unit agarmgas;
     uses
        aasmtai,
        aggas,
-       cpubase,
-       cginfo;
+       cpubase;
 
     type
       PARMGNUAssembler=^TARMGNUAssembler;
@@ -161,7 +160,7 @@ unit agarmgas;
               getopstr:='{';
               first:=true;
               for r:=RS_R0 to RS_R15 do
-                if r in o.regset then
+                if r in o.regset^ then
                   begin
                     if not(first) then
                       getopstr:=getopstr+',';
@@ -226,7 +225,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2003-09-06 11:21:49  florian
+  Revision 1.12  2003-11-02 14:30:03  florian
+    * fixed ARM for new reg. allocation scheme
+
+  Revision 1.11  2003/09/06 11:21:49  florian
     * fixed stm and ldm to be usable with preindex operand
 
   Revision 1.10  2003/09/05 23:57:01  florian

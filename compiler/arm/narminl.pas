@@ -49,7 +49,7 @@ implementation
       cutils,verbose,globals,fmodule,
       symconst,symdef,
       aasmbase,aasmtai,aasmcpu,
-      cginfo,cgbase,pass_1,pass_2,
+      cgbase,pass_1,pass_2,
       cpubase,paramgr,
       nbas,ncon,ncal,ncnv,nld,
       tgobj,ncgutil,cgobj,cg64f32,rgobj,rgcpu;
@@ -65,7 +65,7 @@ implementation
         location_copy(location,left.location);
         if left.location.loc=LOC_CFPUREGISTER then
           begin
-           location.register:=rg.getregisterfpu(exprasmlist,location.size);
+           location.register:=cg.getfpuregister(exprasmlist,location.size);
            location.loc := LOC_FPUREGISTER;
          end;
       end;
@@ -123,6 +123,9 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2003-08-28 00:05:29  florian
+  Revision 1.2  2003-11-02 14:30:03  florian
+    * fixed ARM for new reg. allocation scheme
+
+  Revision 1.1  2003/08/28 00:05:29  florian
     * today's arm patches
 }

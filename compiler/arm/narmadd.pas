@@ -27,7 +27,7 @@ unit narmadd;
 interface
 
     uses
-       node,ncgadd,cpubase,cginfo;
+       node,ncgadd,cpubase;
 
     type
        tarmaddnode = class(tcgaddnode)
@@ -260,11 +260,11 @@ interface
                exprasmlist.concat(taicpu.op_reg_const(A_CMP,left.location.register,right.location.value))
              else
                begin
-                 tmpreg:=rg.getregisterint(exprasmlist,location.size);
+                 tmpreg:=cg.getintregister(exprasmlist,location.size);
                  cg.a_load_const_reg(exprasmlist,OS_INT,
                    aword(right.location.value),tmpreg);
                  exprasmlist.concat(taicpu.op_reg_reg(A_CMP,left.location.register,tmpreg));
-                 rg.ungetregisterint(exprasmlist,tmpreg);
+                 cg.ungetregister(exprasmlist,tmpreg);
                end;
           end
         else
@@ -281,7 +281,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2003-09-01 15:11:16  florian
+  Revision 1.5  2003-11-02 14:30:03  florian
+    * fixed ARM for new reg. allocation scheme
+
+  Revision 1.4  2003/09/01 15:11:16  florian
     * fixed reference handling
     * fixed operand postfix for floating point instructions
     * fixed wrong shifter constant handling
