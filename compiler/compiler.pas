@@ -212,6 +212,9 @@ uses
 {$ifdef arm}
   ,raarmgas
 {$endif arm}
+{$ifdef SPARC}
+  ,racpugas
+{$endif SPARC}
   ;
 
 function Compile(const cmd:string):longint;
@@ -420,7 +423,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.42  2003-11-17 23:23:47  florian
+  Revision 1.43  2003-12-04 10:46:19  mazen
+  + added support for spac assembler reader
+
+  Revision 1.42  2003/11/17 23:23:47  florian
     + first part of arm assembler reader
 
   Revision 1.41  2003/11/12 16:05:39  florian
