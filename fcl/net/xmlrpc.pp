@@ -136,14 +136,18 @@ type
     property OnEndRPC: TNotifyEvent read FOnEndRPC write FOnEndRPC;
   end;
 
+  TExceptionEvent = procedure(e: Exception) of object;
 
   TXMLRPCServlet = class(THttpServlet)
+  private
+    FOnException: TExceptionEvent;
   protected
     procedure DoPost(Req: THttpServletRequest; Resp: THttpServletResponse);
       override;
   public
     procedure Dispatch(AParser: TXMLRPCParser; AWriter: TXMLRPCWriter;
       APath: TStrings); virtual; abstract;
+    property OnException: TExceptionEvent read FOnException write FOnException;
   end;
 
 
@@ -901,8 +905,12 @@ begin
         end;
       except
         on e: Exception do
+	begin
+	  if Assigned(OnException) then
+	    OnException(e);
 	  Writer.WriteFaultResponse(2,
 	    'Execution error: ' + e.ClassName + ': ' + e.Message);
+	end;
       end;
 
       AnswerStream := Writer.MakeStream;
@@ -926,7 +934,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-04-25 19:30:29  sg
+  Revision 1.2  2003-06-25 08:49:21  sg
+  * Added OnException event to TXMLRPCServlet
+
+  Revision 1.1  2002/04/25 19:30:29  sg
   * First version (with exception of the HTTP unit: This is an improved version
     of the old asyncio HTTP unit, now adapted to fpAsync)
 
