@@ -879,15 +879,20 @@ implementation
         href1,href2 : treference;
         list : taasmoutput;
         hsym : tvarsym;
+        loadref : boolean;
       begin
         list:=taasmoutput(arg);
         if (tsym(p).typ=varsym) and
            (tvarsym(p).varspez=vs_value) and
            (paramanager.push_addr_param(tvarsym(p).varspez,tvarsym(p).vartype.def,current_procinfo.procdef.proccalloption)) then
          begin
+           loadref:=true;
            case tvarsym(p).paraitem.paraloc[calleeside].loc of
              LOC_REGISTER :
-               reference_reset_base(href1,tvarsym(p).paraitem.paraloc[calleeside].register,0);
+               begin
+                 reference_reset_base(href1,tvarsym(p).paraitem.paraloc[calleeside].register,0);
+                 loadref:=false;
+               end;
              LOC_REFERENCE :
                reference_reset_base(href1,tvarsym(p).paraitem.paraloc[calleeside].reference.index,
                    tvarsym(p).paraitem.paraloc[calleeside].reference.offset);
@@ -921,9 +926,9 @@ implementation
                 internalerror(200309183);
               reference_reset_base(href2,tvarsym(p).localloc.reference.index,tvarsym(p).localloc.reference.offset);
               if is_shortstring(tvarsym(p).vartype.def) then
-                cg.g_copyshortstring(list,href1,href2,tstringdef(tvarsym(p).vartype.def).len,false,true)
+                cg.g_copyshortstring(list,href1,href2,tstringdef(tvarsym(p).vartype.def).len,false,loadref)
               else
-                cg.g_concatcopy(list,href1,href2,tvarsym(p).vartype.def.size,true,true);
+                cg.g_concatcopy(list,href1,href2,tvarsym(p).vartype.def.size,true,loadref);
             end;
          end;
       end;
@@ -1271,9 +1276,73 @@ implementation
 
     procedure gen_initialize_code(list:TAAsmoutput;inlined:boolean);
       var
+        hp : tparaitem;
         href : treference;
-        paraloc1,paraloc2 : tparalocation;
+        paraloc1,
+        paraloc2 : tparalocation;
+        hregister : tregister;
+        gotregvarparas : boolean;
       begin
+        { Save register parameters }
+        if assigned(current_procinfo.procdef.parast) and
+           not (po_assembler in current_procinfo.procdef.procoptions) then
+          begin
+            { move register parameters which aren't regable into memory                               }
+            { we do this before init_paras because that one calls routines which may overwrite these  }
+            { registers and it also expects the values to be in memory                                }
+            hp:=tparaitem(current_procinfo.procdef.para.first);
+            gotregvarparas := false;
+            while assigned(hp) do
+              begin
+                if hp.paraloc[calleeside].loc=LOC_REGISTER then
+                  begin
+                    hregister:=rg.getregisterint(list,hp.paraloc[calleeside].size);
+                    rg.ungetregisterint(list,hregister);
+                    cg.a_load_param_reg(list,hp.paraloc[calleeside],hregister);
+                    rg.makeregvarint(getsupreg(hregister));
+                    { Update register }
+                    hp.paraloc[calleeside].register:=hregister;
+                    { Update localloc when there is no local copy }
+                    if not(vo_has_local_copy in tvarsym(hp.parasym).varoptions) then
+                      tvarsym(hp.parasym).localloc:=hp.paraloc[calleeside];
+                    gotregvarparas:=true;
+                  end;
+(*
+                case tvarsym(hp.parasym).localloc.loc of
+                  LOC_REGISTER :
+                    begin
+                      gotregvarparas := true;
+                      { cg.a_load_param_reg will first allocate and then deallocate paraloc }
+                      { register (if the parameter resides in a register) and then allocate }
+                      { the regvar (which is currently not allocated)                       }
+                      cg.a_load_param_reg(list,hp.paraloc[calleeside],tvarsym(hp.parasym).localloc.register);
+                    end;
+                  LOC_REFERENCE :
+                    begin
+                      if hp.paraloc[calleeside].loc<>LOC_REFERENCE then
+                        begin
+                          reference_reset_base(href,tvarsym(hp.parasym).localloc.reference.index,tvarsym(hp.parasym).localloc.reference.offset);
+                          cg.a_load_param_ref(list,hp.paraloc[calleeside],href);
+                        end;
+                    end;
+                  else
+                    internalerror(200309185);
+                end;
+*)
+                hp:=tparaitem(hp.next);
+              end;
+            if gotregvarparas then
+              begin
+                { deallocate all register variables again }
+                hp:=tparaitem(current_procinfo.procdef.para.first);
+                while assigned(hp) do
+                  begin
+                    if (tvarsym(hp.parasym).localloc.loc=LOC_REGISTER) then
+                      rg.ungetregisterint(list,tvarsym(hp.parasym).localloc.register);
+                    hp:=tparaitem(hp.next);
+                  end;
+              end;
+          end;
         { the actual profile code can clobber some registers,
           therefore if the context must be saved, do it before
           the actual call to the profile code
@@ -1517,54 +1586,6 @@ implementation
         hp : tparaitem;
         gotregvarparas: boolean;
       begin
-        { the actual stack allocation code, symbol entry point and
-          gdb stabs information is generated AFTER the rest of this
-          code, since temp. allocation might occur before - carl
-        }
-        if assigned(current_procinfo.procdef.parast) and
-           not (po_assembler in current_procinfo.procdef.procoptions) then
-          begin
-            { move register parameters which aren't regable into memory                               }
-            { we do this before init_paras because that one calls routines which may overwrite these  }
-            { registers and it also expects the values to be in memory                                }
-            hp:=tparaitem(current_procinfo.procdef.para.first);
-            gotregvarparas := false;
-            while assigned(hp) do
-              begin
-                case tvarsym(hp.parasym).localloc.loc of
-                  LOC_REGISTER :
-                    begin
-                      gotregvarparas := true;
-                      { cg.a_load_param_reg will first allocate and then deallocate paraloc }
-                      { register (if the parameter resides in a register) and then allocate }
-                      { the regvar (which is currently not allocated)                       }
-                      cg.a_load_param_reg(list,hp.paraloc[calleeside],tvarsym(hp.parasym).localloc.register);
-                    end;
-                  LOC_REFERENCE :
-                    begin
-                      if hp.paraloc[calleeside].loc<>LOC_REFERENCE then
-                        begin
-                          reference_reset_base(href,tvarsym(hp.parasym).localloc.reference.index,tvarsym(hp.parasym).localloc.reference.offset);
-                          cg.a_load_param_ref(list,hp.paraloc[calleeside],href);
-                        end;
-                    end;
-                  else
-                    internalerror(200309185);
-                end;
-                hp:=tparaitem(hp.next);
-              end;
-            if gotregvarparas then
-              begin
-                { deallocate all register variables again }
-                hp:=tparaitem(current_procinfo.procdef.para.first);
-                while assigned(hp) do
-                  begin
-                    if (tvarsym(hp.parasym).localloc.loc=LOC_REGISTER) then
-                      rg.ungetregisterint(list,tvarsym(hp.parasym).localloc.register);
-                    hp:=tparaitem(hp.next);
-                  end;
-              end;
-          end;
       end;
 
 
@@ -1999,8 +2020,8 @@ implementation
                         { Allocate imaginary register for register parameters }
                         if paraitem.paraloc[calleeside].loc=LOC_REGISTER then
                           begin
+                            (*
 {$warning TODO Allocate register paras}
-(*
                             localloc.loc:=LOC_REGISTER;
                             localloc.size:=paraitem.paraloc[calleeside].size;
 {$ifndef cpu64bit}
@@ -2012,10 +2033,10 @@ implementation
                             else
 {$endif cpu64bit}
                               localloc.register:=rg.getregisterint(list,localloc.size);
-*)
-                            localloc.loc:=LOC_REFERENCE;
+                              *)
+                            {localloc.loc:=LOC_REFERENCE;
                             localloc.size:=paraitem.paraloc[calleeside].size;
-                            tg.GetLocal(list,tcgsize2size[localloc.size],localloc.reference);
+                            tg.GetLocal(list,tcgsize2size[localloc.size],localloc.reference);}
                           end
                         else
                           localloc:=paraitem.paraloc[calleeside];
@@ -2067,7 +2088,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.150  2003-09-28 17:55:03  peter
+  Revision 1.151  2003-09-28 21:47:18  peter
+    * register paras and local copies updates
+
+  Revision 1.150  2003/09/28 17:55:03  peter
     * parent framepointer changed to hidden parameter
     * tloadparentfpnode added
 
