@@ -565,7 +565,35 @@ implementation
               end;
           end
         else
-          location_reset(location,LOC_VOID,OS_NO);
+          begin
+{$ifdef newra}
+            cgsize:=def_cgsize(resulttype.def);
+
+            { an object constructor is a function with pointer result }
+            if (procdefinition.proctypeoption=potype_constructor) then
+              cgsize:=OS_ADDR;
+
+            if cgsize<>OS_NO then
+{$ifndef cpu64bit}
+              if cgsize in [OS_64,OS_S64] then
+                begin 
+                  r.enum:=R_INTREGISTER;
+                  r.number:=NR_FUNCTION_RESULT64_LOW_REG;
+                  hregister.enum:=R_INTREGISTER;
+                  hregister.number:=NR_FUNCTION_RESULT64_HIGH_REG;
+                  rg.ungetregisterint(exprasmlist,r);
+                  rg.ungetregisterint(exprasmlist,hregister);
+                end
+              else
+{$endif cpu64bit}  
+                begin
+                  r.enum:=R_INTREGISTER;      
+                  r.number:=NR_FUNCTION_RESULT_REG;
+                  rg.ungetregisterint(exprasmlist,r);
+                end;
+{$endif newra}
+            location_reset(location,LOC_VOID,OS_NO);
+          end;
       end;
 
 
@@ -692,6 +720,8 @@ implementation
                 end
               else
 {$endif cpu64bit}
+              if (not is_void(resulttype.def)) and
+                 (not paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption)) then
                 include(regs_to_alloc,RS_FUNCTION_RESULT_REG);
 {$else}
               { save all used registers and possible registers
@@ -713,7 +743,11 @@ implementation
               rg.saveusedintregisters(exprasmlist,pushedint,regs_to_push_int);
 {$endif}
 
+{$ifdef i386}
               regs_to_push_other := tprocdef(procdefinition).usedotherregisters;
+{$else i386}
+              regs_to_push_other := [];
+{$endif i386}
               rg.saveusedotherregisters(exprasmlist,pushedother,regs_to_push_other);
 
               { on the ppc, ever procedure saves the non-volatile registers it uses itself }
@@ -737,14 +771,22 @@ implementation
                 end
               else
 {$endif cpu64bit}
+              if (not is_void(resulttype.def)) and
+                 (not paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption)) then
                 include(regs_to_alloc,RS_FUNCTION_RESULT_REG);
 {$else}
               regs_to_push_int := all_intregisters-[RS_FRAME_POINTER_REG];
               rg.saveusedintregisters(exprasmlist,pushedint,regs_to_push_int);
 {$endif}
+{$ifdef i386}
               regs_to_push_other := all_registers;
+{$else i386}
+              regs_to_push_other := [];                
+{$endif i386}
               rg.saveusedotherregisters(exprasmlist,pushedother,regs_to_push_other);
+{$ifdef i386}
               rg.used_in_proc_other:=all_registers;
+{$endif i386}
 
               { no IO check for methods and procedure variables }
               iolabel:=nil;
@@ -1452,7 +1494,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.93  2003-06-13 21:19:30  peter
+  Revision 1.94  2003-06-15 16:52:02  jonas
+    * release function result registers if the functino result isn't used
+    * don't allocate function result register with -dnewra if there is none
+    * some optimizations for non-x86 processor (don't save any registers
+      before a call)
+
+  Revision 1.93  2003/06/13 21:19:30  peter
     * current_procdef removed, use current_procinfo.procdef instead
 
   Revision 1.92  2003/06/12 21:10:50  peter
