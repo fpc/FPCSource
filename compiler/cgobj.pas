@@ -203,6 +203,7 @@ unit cgobj;
           procedure a_loadfpu_reg_ref(list: taasmoutput; size: tcgsize; reg: tregister; const ref: treference); virtual; abstract;
           procedure a_loadfpu_loc_reg(list: taasmoutput; const loc: tlocation; const reg: tregister);
           procedure a_loadfpu_reg_loc(list: taasmoutput; size: tcgsize; const reg: tregister; const loc: tlocation);
+          procedure a_paramfpu_reg(list : taasmoutput;size : tcgsize;const r : tregister;const locpara : tparalocation);virtual;
 
           { vector register move instructions }
           procedure a_loadmm_reg_reg(list: taasmoutput; reg1, reg2: tregister); virtual; abstract;
@@ -882,6 +883,34 @@ unit cgobj;
             a_loadfpu_reg_reg(list,reg,loc.register);
           else
             internalerror(48991);
+         end;
+      end;
+
+
+    procedure tcg.a_paramfpu_reg(list : taasmoutput;size : tcgsize;const r : tregister;const locpara : tparalocation);
+
+      var
+         ref : treference;
+         t : Tregister;
+
+      begin
+         case locpara.loc of
+            LOC_FPUREGISTER,LOC_CFPUREGISTER:
+              a_loadfpu_reg_reg(list,r,locpara.register);
+            LOC_REFERENCE,LOC_CREFERENCE:
+              begin
+                 if locpara.sp_fixup<>0 then
+                   begin
+                      t.enum:=stack_pointer_reg;
+                      a_op_const_reg(list,OP_ADD,locpara.sp_fixup,t);
+                   end;
+                 reference_reset(ref);
+                 ref.base:=locpara.reference.index;
+                 ref.offset:=locpara.reference.offset;
+                 a_loadfpu_reg_ref(list,size,r,ref);
+              end
+            else
+              internalerror(2002071004);
          end;
       end;
 
@@ -1652,7 +1681,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.70  2003-01-08 18:43:56  daniel
+  Revision 1.71  2003-01-09 20:41:10  florian
+    * fixed broken PowerPC compiler
+
+  Revision 1.70  2003/01/08 18:43:56  daniel
    * Tregister changed into a record
 
   Revision 1.69  2002/12/24 15:56:50  peter

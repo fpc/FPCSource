@@ -738,8 +738,10 @@ implementation
              LOC_FPUREGISTER,
              LOC_CFPUREGISTER:
                begin
+{$ifdef i386}
                   size:=align(tfloatdef(p.resulttype.def).size,alignment);
                   inc(pushedparasize,size);
+
                   if calloption<>pocall_inline then
                    cg.g_stackpointer_alloc(exprasmlist,size);
 {$ifdef GDB}
@@ -757,6 +759,10 @@ implementation
 
                   cg.a_loadfpu_reg_ref(exprasmlist,
                     def_cgsize(p.resulttype.def),p.location.register,href);
+{$else i386}
+                  cg.a_paramfpu_reg(exprasmlist,def_cgsize(p.resulttype.def),p.location.register,locpara);
+{$endif i386}
+
                end;
              LOC_REFERENCE,
              LOC_CREFERENCE :
@@ -1954,7 +1960,10 @@ function returns in a register and the caller receives it in an other one}
 end.
 {
   $Log$
-  Revision 1.73  2003-01-08 18:43:56  daniel
+  Revision 1.74  2003-01-09 20:41:10  florian
+    * fixed broken PowerPC compiler
+
+  Revision 1.73  2003/01/08 18:43:56  daniel
    * Tregister changed into a record
 
   Revision 1.72  2002/12/29 23:51:43  florian

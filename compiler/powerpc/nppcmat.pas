@@ -456,6 +456,7 @@ implementation
                   hl:=truelabel;
                   truelabel:=falselabel;
                   falselabel:=hl;
+                  location.loc:=LOC_JUMP;
                 end;
               LOC_FLAGS :
                 begin
@@ -505,7 +506,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2003-01-08 18:43:58  daniel
+  Revision 1.22  2003-01-09 20:41:10  florian
+    * fixed broken PowerPC compiler
+
+  Revision 1.21  2003/01/08 18:43:58  daniel
    * Tregister changed into a record
 
   Revision 1.20  2002/11/25 17:43:28  peter

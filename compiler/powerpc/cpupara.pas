@@ -227,7 +227,7 @@ unit cpupara;
                       else
                          begin
                             {!!!!!!!}
-                             hp.paraloc.size:=def_cgsize(hp.paratype.def);
+                            hp.paraloc.size:=def_cgsize(hp.paratype.def);
                             internalerror(2002071004);
                         end;
                    end;
@@ -299,7 +299,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2003-01-09 11:22:14  olle
+  Revision 1.21  2003-01-09 20:41:10  florian
+    * fixed broken PowerPC compiler
+
+  Revision 1.20  2003/01/09 11:22:14  olle
     * made powerpc compiler compile after Daniels Tregister modification
 
   Revision 1.19  2003/01/08 18:43:58  daniel
