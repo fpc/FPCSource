@@ -149,17 +149,16 @@ end; { proc. TurnMouseOff }
 
 
 function GetScreenHeight : longint;
-var ConsoleInfo: TConsoleScreenBufferinfo;
-    res : longint;
+var
+  ConsoleInfo: TConsoleScreenBufferinfo;
 begin
   if not GetConsoleScreenBufferInfo(OutHandle, ConsoleInfo) then
     begin
-      res:=GetLastError;
-      Result:=25;
 {$ifdef SYSTEMDEBUG}
-      Writeln(stderr,'GetScreenHeight failed GetLastError returns ',res);
+      Writeln(stderr,'GetScreenHeight failed GetLastError returns ',GetLastError);
       Halt(1);
 {$endif SYSTEMDEBUG}
+      Result:=25;
     end
   else
     Result := ConsoleInfo.dwSize.Y;
@@ -167,17 +166,16 @@ end; { func. GetScreenHeight }
 
 
 function GetScreenWidth : longint;
-var ConsoleInfo: TConsoleScreenBufferInfo;
-    res : longint;
+var
+  ConsoleInfo: TConsoleScreenBufferInfo;
 begin
-  if not GetConsoleScreenBufferInfo(OutHandle, ConsoleInfo)then
+  if not GetConsoleScreenBufferInfo(OutHandle, ConsoleInfo) then
     begin
-      res:=GetLastError;
-      Result:=80;
 {$ifdef SYSTEMDEBUG}
-      Writeln(stderr,'GetScreenWidth failed GetLastError returns ',res);
+      Writeln(stderr,'GetScreenWidth failed GetLastError returns ',GetLastError);
       Halt(1);
 {$endif SYSTEMDEBUG}
+      Result:=80;
     end
   else
     Result := ConsoleInfo.dwSize.X;
@@ -185,7 +183,8 @@ end; { func. GetScreenWidth }
 
 
 procedure SetScreenCursor(x,y : longint);
-var CurInfo: TCoord;
+var
+  CurInfo: TCoord;
 begin
   FillChar(Curinfo, SizeOf(Curinfo), 0);
   CurInfo.X := X - 1;
@@ -574,11 +573,12 @@ begin
                 else begin
             KeyPressed := TRUE;
 
-            if ord(buf.KeyEvent.AsciiChar) = 0 then
+            if (ord(buf.KeyEvent.AsciiChar) = 0) or
+               (buf.keyevent.dwControlKeyState=2) then
              begin
                SpecialKey := TRUE;
-                          ScanCode := Chr(RemapScanCode(Buf.KeyEvent.wVirtualScanCode, Buf.KeyEvent.dwControlKeyState,
-                                                        Buf.KeyEvent.wVirtualKeyCode));
+               ScanCode := Chr(RemapScanCode(Buf.KeyEvent.wVirtualScanCode, Buf.KeyEvent.dwControlKeyState,
+                                             Buf.KeyEvent.wVirtualKeyCode));
              end
             else
              begin
@@ -1007,7 +1007,10 @@ end. { unit Crt }
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:56  michael
+  Revision 1.3  2000-09-10 20:17:56  peter
+    * fixed alt-<key>
+
+  Revision 1.2  2000/07/13 11:33:56  michael
   + removed logs
- 
+
 }
