@@ -143,6 +143,21 @@ unit agppcgas;
 
      symaddr2str: array[trefsymaddr] of string[3] = ('','@ha','@l');
 
+    function regname(r:Tnewregister):string;
+
+    var s:Tsuperregister;
+
+    begin
+      s:=r shr 8;
+      if s in [RS_0..RS_31] then
+        s:='r'+tostr(s-RS_0)
+      else
+        begin
+          {Generate a systematic name.}
+          s:='reg'+tostr(s)+'d';
+        end;
+    end;
+
     function getreferencestring(var ref : treference) : string;
     var
       s : string;
@@ -186,13 +201,13 @@ unit agppcgas;
                        s:=s+'0';
                   end;
                 if base.enum=R_INTREGISTER then
-                  s:=s+'(reg'+tostr(byte(base.number shr 8))+')'
+                  s:=s+'(reg'+regname(base.number)+')'
                 else
                   s:=s+'('+gas_reg2str[base.enum]+')';
              end
            else if (not i) and (not b) and (offset=0) then
              if base.enum=R_INTREGISTER then
-               s:=s+'r'+tostr(byte(base.number shr 8))+',r'+tostr(byte(index.number shr 8))
+               s:=s+'r'+regname(base.number)+',r'+regname(index.number))
              else
                s:=s+gas_reg2str[base.enum]+','+gas_reg2str[index.enum]
            else if (not i) or (not b) then
@@ -211,7 +226,10 @@ unit agppcgas;
           begin
             if (o.reg.enum < R_0) or (o.reg.enum > lastreg) then
               internalerror(200303121);
-            getopstr_jmp:=gas_reg2str[o.reg.enum];
+            if o.reg=R_INTREGISTER then
+              getopstr_jmp:=regname(o.reg.number)
+            else
+              getopstr_jmp:=gas_reg2str[o.reg.enum];
           end;
         { no top_ref jumping for powerpc }
         top_const :
@@ -371,7 +389,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2003-08-17 21:11:00  daniel
+  Revision 1.27  2003-08-18 11:58:14  daniel
+    * Improved -sr on PowerPC ATT asm writer
+
+  Revision 1.26  2003/08/17 21:11:00  daniel
     * Now -sr works...
 
   Revision 1.25  2003/08/17 20:47:47  daniel
