@@ -429,6 +429,7 @@ var
    NextColor,NextBkColor : longint;
 
 begin
+{$IFDEF GRAPH_API}
 {$ifdef USE_VIDEO_API}
   if force then
    smallforce:=true
@@ -489,13 +490,17 @@ begin
 {$else not USE_VIDEO_API}
   RunError(219);
 {$endif USE_VIDEO_API}
+{$ENDIF GRAPH_API}
 end;
 
 
 END.
 {
  $Log$
- Revision 1.11  2002-05-28 19:13:44  pierre
+ Revision 1.12  2002-05-28 19:42:32  pierre
+  * fix non graphic mode compilation
+
+ Revision 1.11  2002/05/28 19:13:44  pierre
   + GraphUpdateScreen function
 
  Revision 1.10  2001/10/02 16:35:51  pierre
