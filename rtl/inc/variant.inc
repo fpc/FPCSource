@@ -51,7 +51,7 @@ procedure variant_init(var v : tvardata);[Public,Alias:'FPC_VARIANT_INIT'];
 procedure variant_clear(var v : tvardata);[Public,Alias:'FPC_VARIANT_CLEAR'];
   begin
     if assigned(VarClearProc) then
-      VarClearProc(v)
+      VarClearProc(v);
   end;
 
 
@@ -594,7 +594,10 @@ procedure initvariantmanager;
 
 {
   $Log$
-  Revision 1.25  2005-02-24 22:36:36  florian
+  Revision 1.26  2005-03-25 19:02:59  florian
+    + more vararray stuff
+
+  Revision 1.25  2005/02/24 22:36:36  florian
     + some variant stuff fixed and added
 
   Revision 1.24  2005/02/14 17:13:29  peter

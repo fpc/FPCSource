@@ -66,7 +66,7 @@ type
    end;
 
    tvararrayboundarray = array[0..0] of tvararraybound;
-   tvararraycoorarray = array[0..0] of longint;
+   tvararraycoorarray = array[0..0] of SizeInt;
 
    tvarop = (opadd,opsubtract,opmultiply,opdivide,opintdivide,opmodulus,
              opshiftleft,opshiftright,opand,opor,opxor,opcompare,opnegate,
@@ -318,7 +318,10 @@ operator <=(const op1,op2 : variant) dest : boolean;
 
 {
   $Log$
-  Revision 1.19  2005-03-25 18:03:50  florian
+  Revision 1.20  2005-03-25 19:02:59  florian
+    + more vararray stuff
+
+  Revision 1.19  2005/03/25 18:03:50  florian
     + some vararray stuff added
 
   Revision 1.18  2005/02/14 17:13:29  peter
