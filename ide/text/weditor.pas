@@ -53,6 +53,7 @@ const
       efHighlightColumn     = $00000200;
       efHighlightRow        = $00000400;
       efAutoBrackets        = $00000800;
+      efExpandAllTabs       = $00001000;
       efStoreContent        = $80000000;
 
       attrAsm       = 1;
@@ -364,7 +365,8 @@ function DefUseTabsPattern(Editor: PFileEditor): boolean;
 const
      DefaultCodeEditorFlags : longint =
        efBackupFiles+efInsertMode+efAutoIndent+efPersistentBlocks+
-       {efUseTabCharacters+}efBackSpaceUnindents+efSyntaxHighlight;
+       {efUseTabCharacters+}efBackSpaceUnindents+efSyntaxHighlight+ 
+       efExpandAllTabs;
      DefaultTabSize     : integer = 8;
 
      { used for ShiftDel and ShiftIns to avoid
@@ -1265,8 +1267,10 @@ var DontClear : boolean;
 var
   StartP,P: TPoint;
   E: TEvent;
+  OldEvent : PEvent;
 begin
   E:=Event;
+  OldEvent:=CurEvent;
   CurEvent:=@E;
   if (InASCIIMode=false) or (Event.What<>evKeyDown) then
     ConvertEvent(Event);
@@ -1402,7 +1406,7 @@ begin
       end;
   end;
   inherited HandleEvent(Event);
-  CurEvent:=nil;
+  CurEvent:=OldEvent;
 end;
 
 procedure TCodeEditor.Update;
@@ -3748,7 +3752,7 @@ begin
    begin
      readln(f,S);
      OK:=OK and (IOResult=0);
-     if OK then AddLine(S);
+     if OK AddLine(S);
    end;
   FileMode:=FM;
   Close(F);
@@ -4225,7 +4229,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.41  1999-08-16 18:25:28  peter
+  Revision 1.42  1999-08-22 22:20:30  pierre
+   * selection extension bug removed, via oldEvent pointer in TCodeEditor.HandleEvent
+
+  Revision 1.41  1999/08/16 18:25:28  peter
     * Adjusting the selection when the editor didn't contain any line.
     * Reserved word recognition redesigned, but this didn't affect the overall
       syntax highlight speed remarkably (at least not on my Amd-K6/350).
