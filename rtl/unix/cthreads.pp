@@ -23,18 +23,11 @@ unit cthreads;
 interface
 {$S-}
 
-{$ifndef dynpthreads}
-{$ifndef BSD}
- {$linklib c}
- {$linklib pthread}
-{$else}
- // Link reentrant libc with pthreads
-{$ifndef darwin}
- {$linklib c_r}
-{$else darwin}
- {$linklib c}
-{$endif darwin}
-{$endif}
+{$ifndef dynpthreads}	// If you have problems compiling this on FreeBSD 5.x
+ {$linklib c}		// try adding -Xf
+ {$ifndef Darwin}
+   {$linklib pthread}
+ {$endif darwin}
 {$endif}
 
 Procedure SetCThreadManager;
@@ -421,7 +414,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.7  2004-01-20 23:13:53  hajny
+  Revision 1.8  2004-02-15 16:33:32  marco
+   * linklibs fixed for new pthread mechanism on FreeBSD
+
+  Revision 1.7  2004/01/20 23:13:53  hajny
     * ExecuteProcess fixes, ProcessID and ThreadID added
 
   Revision 1.6  2004/01/07 17:40:56  jonas
