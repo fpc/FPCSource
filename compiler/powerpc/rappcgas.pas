@@ -704,7 +704,7 @@ Unit rappcgas;
             instr.Operands[1].opr.ref.refaddr:=addr_full;
             if (instr.Operands[1].opr.ref.base<>NR_NO) or
               (instr.Operands[1].opr.ref.index<>NR_NO) or
-              (instr.Operands[1].opr.ref.symaddr<>refs_full) then
+              (instr.Operands[1].opr.ref.refaddr<>addr_no) then
               Message(asmr_e_syn_operand);
           end;
       end;
@@ -754,7 +754,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.11  2004-02-28 13:24:36  florian
+  Revision 1.12  2004-02-28 14:14:44  florian
+    * fixed syntax error in previous commit
+
+  Revision 1.11  2004/02/28 13:24:36  florian
     * jmps in inline assembler fixed
 
   Revision 1.10  2004/02/27 10:21:05  florian
