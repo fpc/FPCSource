@@ -151,8 +151,7 @@ var
                               Go32 Helpers
 *****************************************************************************}
 
-function far_strlen(selector : word;linear_address : longint) : longint;
-begin
+function far_strlen(selector : word;linear_address : longint) : longint;assembler;
 asm
         movl linear_address,%edx
         movl %edx,%ecx
@@ -166,8 +165,6 @@ asm
 .Larg20:
         movl %edx,%eax
         subl %ecx,%eax
-        movl %eax,__RESULT
-end;
 end;
 
 
@@ -281,46 +278,52 @@ begin
 end;
 
 
-function atohex(s : pchar) : longint;
-var
-  rv : longint;
-  v  : byte;
-begin
-  rv:=0;
-  while (s^ <>#0) do
-   begin
-     v:=byte(s^)-byte('0');
-     if (v > 9) then
-       dec(v,7);
-     v:=v and 15; { in case it's lower case }
-     rv:=(rv shl 4) or v;
-     inc(longint(s));
-   end;
-  atohex:=rv;
-end;
 
 var
   _args : ppchar;external name '_args';
 
+
 procedure setup_arguments;
-type  arrayword = array [0..0] of word;
-var psp : word;
-    i,j : byte;
-    quote : char;
-    proxy_s : string[7];
-    al,proxy_argc,proxy_seg,proxy_ofs,lin : longint;
-    largs : array[0..127] of pchar;
-    rm_argv : ^arrayword;
-    argv0len : longint;
+
+  function atohex(s : pchar) : longint;
+  var
+    rv : longint;
+    v  : byte;
+  begin
+    rv:=0;
+    while (s^<>#0) do
+     begin
+       v:=byte(s^)-byte('0');
+       if (v > 9) then
+         dec(v,7);
+       v:=v and 15; { in case it's lower case }
+       rv:=(rv shl 4) or v;
+       inc(longint(s));
+     end;
+    atohex:=rv;
+  end;
+
+type
+  arrayword = array [0..255] of word;
+var
+  psp : word;
+  i,j : longint;
+  quote : char;
+  proxy_s : string[50];
+  al,proxy_argc,proxy_seg,proxy_ofs,lin : longint;
+  largs : array[0..127] of pchar;
+  rm_argv : ^arrayword;
+  argv0len : longint;
+  useproxy : boolean;
+  hp : ppchar;
 begin
-for i := 1 to 127  do
-   largs[i] := nil;
-psp:=stub_info^.psp_selector;
-largs[0]:=dos_argv0;
-argc := 1;
-sysseg_move(psp, 128, get_ds, longint(@doscmd), 128);
+  fillchar(largs,sizeof(largs),0);
+  psp:=stub_info^.psp_selector;
+  largs[0]:=dos_argv0;
+  argc := 1;
+  sysseg_move(psp, 128, get_ds, longint(@doscmd), 128);
 {$IfDef SYSTEM_DEBUG_STARTUP}
-Writeln(stderr,'Dos command line is #',doscmd,'# size = ',length(doscmd));
+  Writeln(stderr,'Dos command line is #',doscmd,'# size = ',length(doscmd));
 {$EndIf }
 
 { setup cmdline variable }
@@ -330,79 +333,110 @@ Writeln(stderr,'Dos command line is #',doscmd,'# size = ',length(doscmd));
   move(doscmd[1],cmdline[argv0len],length(doscmd));
   cmdline[argv0len+length(doscmd)]:=#0;
 
-j := 1;
-quote := #0;
-for i:=1 to length(doscmd) do
-  Begin
-  if doscmd[i] = quote then
-    begin
-    quote := #0;
-    if (i>1) and ((doscmd[i-1]='''') or (doscmd[i-1]='"')) then
+  j := 1;
+  quote := #0;
+  for i:=1 to length(doscmd) do
+   Begin
+     if doscmd[i] = quote then
       begin
-      j := i+1;
-      doscmd[i] := #0;
-      continue;
-      end;
-    doscmd[i] := #0;
-    largs[argc]:=@doscmd[j];
-    inc(argc);
-    j := i+1;
-    end else
-  if (quote = #0) and ((doscmd[i] = '''') or (doscmd[i]='"')) then
-    begin
-    quote := doscmd[i];
-    j := i + 1;
-    end else
-  if (quote = #0) and ((doscmd[i] = ' ')
-    or (doscmd[i] = #9) or (doscmd[i] = #10) or
-    (doscmd[i] = #12) or (doscmd[i] = #9)) then
-    begin
-    doscmd[i]:=#0;
-    if j<i then
-      begin
-      largs[argc]:=@doscmd[j];
-      inc(argc);
-      j := i+1;
-      end else inc(j);
-    end else
-  if (i = length(doscmd)) then
-    begin
-    doscmd[i+1]:=#0;
-    largs[argc]:=@doscmd[j];
-    inc(argc);
-    end;
+        quote := #0;
+        if (i>1) and ((doscmd[i-1]='''') or (doscmd[i-1]='"')) then
+          begin
+          j := i+1;
+          doscmd[i] := #0;
+          continue;
+          end;
+        doscmd[i] := #0;
+        largs[argc]:=@doscmd[j];
+        inc(argc);
+        j := i+1;
+      end
+     else
+      if (quote = #0) and ((doscmd[i] = '''') or (doscmd[i]='"')) then
+       begin
+         quote := doscmd[i];
+         j := i + 1;
+       end else
+     if (quote = #0) and ((doscmd[i] = ' ')
+       or (doscmd[i] = #9) or (doscmd[i] = #10) or
+       (doscmd[i] = #12) or (doscmd[i] = #9)) then
+       begin
+       doscmd[i]:=#0;
+       if j<i then
+         begin
+         largs[argc]:=@doscmd[j];
+         inc(argc);
+         j := i+1;
+         end else inc(j);
+       end else
+     if (i = length(doscmd)) then
+       begin
+       doscmd[i+1]:=#0;
+       largs[argc]:=@doscmd[j];
+       inc(argc);
+       end;
   end;
 
-if (argc > 1) and (far_strlen(get_ds,longint(largs[1])) = 6)  then
-  begin
-  move(largs[1]^,proxy_s[1],6);
-  proxy_s[0] := #6;
-  if (proxy_s = '!proxy') then
-    begin
-{$IfDef SYSTEM_DEBUG_STARTUP}
-    Writeln(stderr,'proxy command line ');
-{$EndIf SYSTEM_DEBUG_STARTUP}
-    proxy_argc := atohex(largs[2]);
-    proxy_seg  := atohex(largs[3]);
-    proxy_ofs := atohex(largs[4]);
-    rm_argv := sysgetmem(proxy_argc*sizeof(word));
-    sysseg_move(dos_selector,proxy_seg*16+proxy_ofs, get_ds,longint(rm_argv),proxy_argc*sizeof(word));
-    for i:=0 to proxy_argc - 1 do
+  hp:=envp;
+  useproxy:=false;
+  while assigned(hp^) do
+   begin
+     if (hp^[0]=' ') then
       begin
-      lin := proxy_seg*16 + rm_argv^[i];
-      al :=far_strlen(dos_selector, lin);
-      largs[i] := sysgetmem(al+1);
-      sysseg_move(dos_selector, lin, get_ds,longint(largs[i]), al+1);
+        proxy_s:=strpas(hp^);
+        if Copy(proxy_s,1,7)=' !proxy' then
+         begin
+           proxy_s[13]:=#0;
+           proxy_s[18]:=#0;
+           proxy_s[23]:=#0;
+           largs[2]:=@proxy_s[9];
+           largs[3]:=@proxy_s[14];
+           largs[4]:=@proxy_s[19];
+           useproxy:=true;
+           break;
+         end;
+      end;
+     inc(hp);
+   end;
+
+  if (not useproxy) and
+     (argc > 1) and (far_strlen(get_ds,longint(largs[1])) = 6)  then
+   begin
+     move(largs[1]^,proxy_s[1],6);
+     proxy_s[0] := #6;
+     if (proxy_s = '!proxy') then
+      useproxy:=true;
+   end;
+
+  if useproxy then
+   begin
+     proxy_argc := atohex(largs[2]);
+     proxy_seg  := atohex(largs[3]);
+     proxy_ofs := atohex(largs[4]);
 {$IfDef SYSTEM_DEBUG_STARTUP}
-      Writeln(stderr,'arg ',i,' #',largs[i],'#');
+     Writeln(stderr,'proxy command line found');
+     writeln(stderr,'argc: ',proxy_argc,' seg: ',proxy_seg,' ofs: ',proxy_ofs);
+{$EndIf SYSTEM_DEBUG_STARTUP}
+     if proxy_argc>128 then
+      proxy_argc:=128;
+     rm_argv := sysgetmem(proxy_argc*sizeof(word));
+     sysseg_move(dos_selector,proxy_seg*16+proxy_ofs, get_ds,longint(rm_argv),proxy_argc*sizeof(word));
+     for i:=0 to proxy_argc - 1 do
+      begin
+        lin := proxy_seg*16 + rm_argv^[i];
+        al :=far_strlen(dos_selector, lin);
+        largs[i] := sysgetmem(al+1);
+        sysseg_move(dos_selector, lin, get_ds,longint(largs[i]), al+1);
+{$IfDef SYSTEM_DEBUG_STARTUP}
+        Writeln(stderr,'arg ',i,' #',rm_argv^[i],'#',al,'#',largs[i],'#');
 {$EndIf SYSTEM_DEBUG_STARTUP}
       end;
-    argc := proxy_argc;
-    end;
-  end;
-argv := sysgetmem(argc shl 2);
-for i := 0 to argc-1  do
-   argv[i] := largs[i];
+     sysfreemem(rm_argv);
+     argc := proxy_argc;
+   end;
+  argv := sysgetmem(argc shl 2);
+  for i := 0 to argc-1  do
+   argv[i]:=largs[i];
   _args:=argv;
 end;
 
@@ -1343,7 +1377,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.30  2000-01-20 23:38:02  peter
+  Revision 1.31  2000-01-24 11:57:18  daniel
+    * !proxy support in environment added (Peter)
+
+  Revision 1.30  2000/01/20 23:38:02  peter
     * support fm_inout as stdoutput for assign(f,'');rewrite(f,1); becuase
       rewrite opens always with filemode 2
 
