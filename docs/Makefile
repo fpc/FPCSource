@@ -183,6 +183,9 @@ clean:
 	-$(MAKE) -C sockex clean
 	-$(MAKE) -C stringex clean
 	-$(MAKE) -C sysutex clean
+	-$(MAKE) -C mathex clean
+	-$(MAKE) -C graphex clean
+	-$(MAKE) -C gpmex clean
 # Reference
 	-$(MAKE) -C refex clean
 
@@ -207,6 +210,9 @@ ifndef INSTALLDEBUG
 	$(MAKE) -C sockex tex
 	$(MAKE) -C stringex tex
 	$(MAKE) -C sysutex tex
+	$(MAKE) -C mathex tex
+	$(MAKE) -C graphex tex
+	$(MAKE) -C gpmex tex
 endif
 	touch unitex.chk
 
@@ -290,8 +296,10 @@ else
 	-t "Unit reference for Free Pascal" units.htex
 	-sed -f foot.sed <units/footnode.html >units/footnote.html
 	-mv units/footnote.html units/footnode.html
+ifndef LOG
 	-rm -f units/labels.pl units/internals.pl units/.*.pag units/.*.dir
 	-rm -f units/images.* units/*.log units/WARNINGS
+endif
 endif
 	touch units.chk
 
@@ -305,8 +313,10 @@ else
 	-t "Free Pascal reference guide" ref.htex
 	-sed -f foot.sed <ref/footnode.html >ref/footnote.html
 	-mv ref/footnote.html ref/footnode.html
+ifndef LOG
 	-rm -f ref/labels.pl ref/internals.pl ref/.*.pag ref/.*.dir
 	-rm -f ref/images.* ref/*.log ref/WARNINGS
+endif
 endif
 	touch ref.chk	
 
@@ -320,8 +330,10 @@ else
 	-t "Free Pascal programmers guide" prog.htex
 	-sed -f foot.sed <prog/footnode.html >prog/footnote.html
 	-mv prog/footnote.html prog/footnode.html
+ifndef LOG
 	-rm -f prog/labels.pl prog/internals.pl prog/.*.pag prog/.*.dir
 	-rm -f prog/images.* prog/*.log prog/WARNINGS
+endif
 endif
 	touch prog.chk
 
@@ -335,8 +347,10 @@ else
 	-t "Free Pascal Compiler Documentation" internal.htex
 	-sed -f foot.sed <internal/footnode.html >internal/footnote.html
 	-mv internal/footnote.html internal/footnode.html
+ifndef LOG
 	-rm -f internal/labels.pl internal/internals.pl internal/.*.pag internal/.*.dir
 	-rm -f internal/images.* internal/*.log internal/WARNINGS
+endif
 endif
 	touch internal.chk	
 
@@ -350,8 +364,10 @@ else
 	-t "Free Pascal reference guide" onechap.htex
 	-sed -f foot.sed <onechap/footnode.html >onechap/footnote.html
 	-mv onechap/footnote.html onechap/footnode.html
+ifndef LOG
 	-rm -f onechap/labels.pl onechap/internals.pl onechap/.*.pag onechap/.*.dir
 	-rm -f onechap/images.* onechap/*.log onechap/WARNINGS
+endif
 endif
 	touch onechap.chk	
 
@@ -470,106 +486,12 @@ linuxexamples: examples
 
 #
 # $Log$
-# Revision 1.3  2000-09-02 21:51:36  peter
-#   * fixed pdf creating (merged)
+# Revision 1.4  2000-10-12 10:41:58  peter
+#   * more examples
 #
-# Revision 1.1.2.1  2000/09/02 17:29:51  peter
-#   * example including for html docs
+# Revision 1.3  2000/09/02 21:51:36  peter
+#   * fixed pdf creating (merged)
 #
 # Revision 1.1  2000/07/13 09:10:03  michael
 # + Initial import
-#
-# Revision 1.40  2000/07/11 18:07:26  peter
-#   * fixes for latex2html 0.99b2
-#
-# Revision 1.39  2000/07/09 15:44:15  peter
-#   * image_type gif added
-#
-# Revision 1.38  2000/07/04 21:23:04  michael
-# + Added math unit
-#
-# Revision 1.37  2000/07/04 19:55:48  michael
-# + Added ports unit
-#
-# Revision 1.36  2000/06/14 19:38:43  michael
-# + Added gpm units, and corrected L2H options
-#
-# Revision 1.35  2000/02/20 16:27:38  peter
-#   * htmlinstall fixes
-#
-# Revision 1.33  2000/01/23 20:15:16  peter
-#   * rpm/deb target in install dir
-#   * install also faq,readme,news for rpm/deb
-#
-# Revision 1.32  2000/01/14 12:16:40  peter
-#   * package generation fixes
-#
-# Revision 1.31  2000/01/11 09:55:36  peter
-#   * docinstalldir is now calculated by asking ppc386 -iV
-#
-# Revision 1.30  1999/07/29 21:03:41  peter
-#   * html 3.2, because 3.1 is buggy !!
-#
-# Revision 1.29  1999/07/16 10:15:31  peter
-#   * install targets renamed
-#
-# Revision 1.28  1999/06/25 22:12:10  michael
-# + Update to version 0.19 of listings package
-#
-# Revision 1.27  1999/06/15 13:53:16  peter
-#   * htmlzip,htmzip,htmltar updates
-#   * include search/ in distro
-#   * fix paths under linux automaticly
-#
-# Revision 1.26  1999/06/08 22:11:28  peter
-#   * debian updates
-#
-# Revision 1.25  1999/06/08 18:28:13  peter
-#   * fixes for 0.99.12 release
-#
-# Revision 1.24  1999/06/03 00:06:42  peter
-#   * html creation works again
-#
-# Revision 1.23  1999/06/02 17:41:33  peter
-#   * fixes for html creation
-#
-# Revision 1.22  1999/05/31 16:37:08  peter
-#   * fixes for html creation
-#
-# Revision 1.21  1999/05/28 19:59:37  michael
-# Additional changes
-#
-# Revision 1.20  1999/04/10 14:57:43  michael
-# + Added sysutils
-#
-# Revision 1.19  1999/02/12 14:15:00  michael
-# * Last-minute changes so it can be texed
-#
-# Revision 1.18  1999/02/02 22:47:04  michael
-# + Better clean
-#
-# Revision 1.17  1999/01/17 15:12:50  michael
-# Added examples 27-40
-#
-# Revision 1.16  1998/12/15 23:50:53  michael
-# * Some updates
-#
-# Revision 1.15  1998/11/17 23:42:02  michael
-# + too many changes to enumerate
-#
-# Revision 1.14  1998/10/01 12:57:22  michael
-# + Correction in dependencies
-#
-# Revision 1.13  1998/09/13 19:26:13  michael
-# + Added messages target
-#
-# Revision 1.12  1998/09/13 12:42:05  michael
-# Added error messages and used listings package for program examples
-#
-# Revision 1.11  1998/09/11 12:08:07  michael
-# Additional cleans
-#
-# Revision 1.10  1998/09/11 11:01:10  peter
-#   * export a TMP=/tmp for dvips which don't like '.' in the directory
-#
 #
