@@ -193,8 +193,8 @@ begin
   if FileExists('fpcmake.ini') then
    fn:='fpcmake.ini'
   else
-   if (FileExists(GetEnv('FPCMAKEINI'))) then
-    fn:=GetEnv('FPCMAKEINI')
+   if (FileExists(GetEnv(envvar))) then
+    fn:=GetEnv(envvar)
   else
 {$ifdef linux}
    if FileExists('/usr/lib/fpc/fpcmake.ini') then
@@ -527,7 +527,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  1999-11-03 23:39:53  peter
+  Revision 1.3  1999-11-04 12:07:13  michael
+  + Now envvar is used
+
+  Revision 1.2  1999/11/03 23:39:53  peter
     * lot of updates
 
   Revision 1.1  1999/11/02 23:57:40  peter
