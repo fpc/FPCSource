@@ -1,3 +1,5 @@
+{ %fail }
+
 {$ifdef fpc}{$mode delphi}{$endif}
 
 type
