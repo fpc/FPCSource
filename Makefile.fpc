@@ -23,8 +23,18 @@ override FPCDIR:=$(BASEDIR)
 export FPCDIR
 endif
 
-# New ppc386
-PPNEW=$(BASEDIR)/compiler/ppc386$(SRCEXEEXT)
+# New ppc386 (or ppc68k if on m68k machine !)
+ifeq ($(findstring /,$(FPC)),)
+ifdef FPC
+PPNEWBASE=$(FPC)
+else
+PPNEWBASE=ppc386
+endif
+else
+FPNEWBASE=ppc386
+endif
+
+PPNEW=$(BASEDIR)/compiler/$(PPNEWBASE)$(SRCEXEEXT)
 
 # Check if there is already a ppc386 binary in compiler, then
 # we will use that version for target and version info
