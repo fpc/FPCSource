@@ -20,7 +20,7 @@
 
     const
        vmtInstanceSize         = 0;
-       vmtParent               = sizeof(longint)*2;
+       vmtParent               = sizeof(ptrint)*2;
        { These were negative value's, but are now positive, else classes
          couldn't be used with shared linking which copies only all data from
          the .global directive and not the data before the directive (PFV) }
@@ -299,7 +299,10 @@
 
 {
   $Log$
-  Revision 1.22  2004-04-25 16:32:31  florian
+  Revision 1.23  2004-04-26 21:06:00  peter
+    * class size changed to aint
+
+  Revision 1.22  2004/04/25 16:32:31  florian
     * fixed vmt issues on 64 bit systems
 
   Revision 1.21  2003/12/06 00:02:34  florian
