@@ -260,10 +260,10 @@ implementation
 
          { Check count var }
          if (p^.t2^.treetype<>loadn) then
-          CGMessage(cg_e_illegal_count_var);
-
-         if (not(is_ordinal(p^.t2^.resulttype))) then
-          CGMessage(type_e_ordinal_expr_expected);
+          CGMessage(cg_e_illegal_count_var)
+         else
+          if (not(is_ordinal(p^.t2^.resulttype))) then
+           CGMessage(type_e_ordinal_expr_expected);
 
          cleartempgen;
          must_be_valid:=false;
@@ -483,7 +483,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  1998-12-11 00:03:55  peter
+  Revision 1.5  1999-01-13 12:01:43  peter
+    * fixed crash with counter var
+
+  Revision 1.4  1998/12/11 00:03:55  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.3  1998/10/19 08:55:10  pierre
