@@ -41,7 +41,7 @@ var
   enumsize,
   msgsize    : longint;
 
-  msgidxmax  : array[0..msgparts] of longint;
+  msgidxmax  : array[1..msgparts] of longint;
   msgs       : array[0..msgparts,0..999] of boolean;
 
 procedure LoadMsgFile(const fn:string);
@@ -266,7 +266,7 @@ begin
   { max msg idx table }
   writeln(t,'  MsgIdxMax : array[1..20] of longint=(');
   write(t,'    ');
-  for i:=1to 20 do
+  for i:=1 to 20 do
    begin
      write(t,msgidxmax[i]+1);
      if i<20 then
@@ -805,7 +805,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2000-09-30 13:13:22  peter
+  Revision 1.6  2000-10-09 14:54:27  jonas
+    * fixed another range check error (merged from fixes branch)
+
+  Revision 1.5  2000/09/30 13:13:22  peter
     * range check fix
 
   Revision 1.3  2000/09/27 20:59:55  peter
