@@ -87,7 +87,7 @@
     end;
 
 
-   procedure cleanmode;far;
+   procedure cleanmode; {$ifndef fpc}far;{$endif fpc}
   {********************************************************}
   { Procedure CleanMode()                                  }
   {--------------------------------------------------------}
@@ -317,7 +317,12 @@
 
 {
 $Log$
-Revision 1.7  1999-07-12 13:27:14  jonas
+Revision 1.8  1999-09-18 22:21:11  jonas
+  + hlinevesa256 and vlinevesa256
+  + support for not/xor/or/andput in vesamodes with 32k/64k colors
+  * lots of changes to avoid warnings under FPC
+
+Revision 1.7  1999/07/12 13:27:14  jonas
   + added Log and Id tags
   * added first FPC support, only VGA works to some extend for now
   * use -dasmgraph to use assembler routines, otherwise Pascal

@@ -114,13 +114,13 @@ type
 var
         ptable : ppointarray; { pointer to points list }
 
-function compare_ind(u, v : pointer) : graph_int; far;
+function compare_ind(u, v : pointer) : graph_int; {$ifndef fpc} far; {$endif fpc}
 begin
         if (ptable^[pint(u)^].y <= ptable^[pint(v)^].y) then compare_ind := -1
         else compare_ind := 1;
 end;
 
-function compare_active(u, v : pointer) : graph_int; far;
+function compare_active(u, v : pointer) : graph_int; {$ifndef fpc} far; {$endif fpc}
 begin
         if (pedge(u)^.x <= pedge(v)^.x) then compare_active := -1
         else compare_active := 1;
@@ -492,7 +492,12 @@ var
 
 {
 $Log$
-Revision 1.7  1999-09-17 13:58:31  jonas
+Revision 1.8  1999-09-18 22:21:09  jonas
+  + hlinevesa256 and vlinevesa256
+  + support for not/xor/or/andput in vesamodes with 32k/64k colors
+  * lots of changes to avoid warnings under FPC
+
+Revision 1.7  1999/09/17 13:58:31  jonas
 * another fix for a case where internalellipsedefault went haywire
 * sector() and pieslice() fully implemented!
 * small change to prevent buffer overflow with floodfill

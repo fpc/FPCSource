@@ -37,8 +37,6 @@ Unit Graph;
 {    returns an error.                                  }
 { - DrawPoly XORPut mode is not exactly the same as in  }
 {   the TP graph unit.                                  }
-{ - FillEllipse does not support XORPut mode with a     }
-{   bounded FloodFill. Mode is always CopyPut mode.     }
 { - Imagesize returns a longint instead of a word       }
 { - ImageSize cannot return an error value              }
 {-------------------------------------------------------}
@@ -48,7 +46,9 @@ Unit Graph;
 {   Pierre Mueller      - major bugfixes                }
 {   Carl Eric Codere    - complete rewrite              }
 {   Thomas Schatzl      - optimizations,routines and    }
-{ Credits (external):       suggestions.                }
+{                           suggestions.                }
+{   Jonas Maebe         - bugfixes and optimizations    }
+{ Credits (external):                                   }
 {   - Original FloodFill code by                        }
 {        Menno Victor van der star                      }
 {     (the code has been heavily modified)              }
@@ -810,7 +810,7 @@ var
 
   {$i clip.inc}
 
-  procedure HLineDefault(x,x2,y: integer); far;
+  procedure HLineDefault(x,x2,y: integer); {$ifndef fpc}far;{$endif fpc}
 
    var
     xtmp: integer;
@@ -838,7 +838,7 @@ var
    end;
 
 
-  procedure VLineDefault(x,y,y2: integer); far;
+  procedure VLineDefault(x,y,y2: integer); {$ifndef fpc}far;{$endif fpc}
 
    var
     Col: word;
@@ -865,7 +865,7 @@ var
   End;
 
 
-  procedure LineDefault(X1, Y1, X2, Y2: Integer); far;
+  procedure LineDefault(X1, Y1, X2, Y2: Integer); {$ifndef fpc}far;{$endif fpc}
 
   var X, Y :           Integer;
       deltax, deltay : Integer;
@@ -1305,7 +1305,7 @@ var
   {********************************************************}
 
   Procedure InternalEllipseDefault(X,Y: Integer;XRadius: word;
-    YRadius:word; stAngle,EndAngle: word; pl: PatternLineProc); far;
+    YRadius:word; stAngle,EndAngle: word; pl: PatternLineProc); {$ifndef fpc}far;{$endif fpc}
    var
     j, Delta, DeltaEnd: graph_float;
     NumOfPixels: longint;
@@ -1371,7 +1371,7 @@ var
    { quadrant, so divide the circumference value by 4 (JM)       }
    NumOfPixels:=(8 div 4)*Round(2*sqrt((sqr(XRadius)+sqr(YRadius)) div 2));
    { Calculate the angle precision required }
-   Delta := 90 / (NumOfPixels);
+   Delta := 90.0 / (NumOfPixels);
    { Adjust for screen aspect ratio }
    XRadius:=(longint(XRadius)*10000) div XAspect;
    YRadius:=(longint(YRadius)*10000) div YAspect;
@@ -1576,7 +1576,7 @@ Begin
   End;
 End;
   *)
-  procedure PatternLineDefault(x1,x2,y: integer); far;
+  procedure PatternLineDefault(x1,x2,y: integer); {$ifndef fpc}far;{$endif fpc}
   {********************************************************}
   { Draws a horizontal patterned line according to the     }
   { current Fill Settings.                                 }
@@ -1745,7 +1745,7 @@ End;
 {--------------------------------------------------------------------------}
 
 
-Procedure ClearViewPortDefault; far;
+Procedure ClearViewPortDefault; {$ifndef fpc}far;{$endif fpc}
 var
  j: integer;
  OldWriteMode, OldCurColor: word;
@@ -1843,7 +1843,7 @@ end;
 {--------------------------------------------------------------------------}
 
 
-  Procedure GetScanlineDefault (Y : Integer; Var Data); far;
+  Procedure GetScanlineDefault (Y : Integer; Var Data); {$ifndef fpc}far;{$endif fpc}
   {**********************************************************}
   { Procedure GetScanLine()                                  }
   {----------------------------------------------------------}
@@ -1863,14 +1863,14 @@ end;
 
 
 
-Function DefaultImageSize(X1,Y1,X2,Y2: Integer): longint; far;
+Function DefaultImageSize(X1,Y1,X2,Y2: Integer): longint; {$ifndef fpc}far;{$endif fpc}
 Begin
   { each pixel uses two bytes, to enable modes with colors up to 64K }
   { to work.                                                         }
   DefaultImageSize := 12 + (((X2-X1)*(Y2-Y1))*2);
 end;
 
-Procedure DefaultPutImage(X,Y: Integer; var Bitmap; BitBlt: Word); far;
+Procedure DefaultPutImage(X,Y: Integer; var Bitmap; BitBlt: Word); {$ifndef fpc}far;{$endif fpc}
 type
   pt = array[0..32000] of word;
   ptw = array[0..3] of longint;
@@ -1905,7 +1905,7 @@ Begin
 end;
 
 
-Procedure DefaultGetImage(X1,Y1,X2,Y2: Integer; Var Bitmap); far;
+Procedure DefaultGetImage(X1,Y1,X2,Y2: Integer; Var Bitmap); {$ifndef fpc}far;{$endif fpc}
 type
   pt = array[0..32000] of word;
   ptw = array[0..3] of longint;
@@ -1947,12 +1947,12 @@ end;
    end;
 
 
-  procedure SetVisualPageDefault(page : word); far;
+  procedure SetVisualPageDefault(page : word); {$ifndef fpc}far;{$endif fpc}
    begin
    end;
 
 
-  procedure SetActivePageDefault(page : word); far;
+  procedure SetActivePageDefault(page : word); {$ifndef fpc}far;{$endif fpc}
    begin
    end;
 
@@ -2160,7 +2160,6 @@ end;
 
  procedure SectorPL(x1,x2,y: Integer); {$ifndef fpc}far;{$endif fpc}
  var plx1, plx2: integer;
-{!!!!!!!!!!!!!!!}
 {$ifdef sectorpldebug}
      t : text;
 {$endif sectorpldebug}
@@ -2187,24 +2186,24 @@ end;
            If (ArcCall.YStart-ArcCall.Y) = 0 then
              begin
                append(t);
-               writeln('bug1');
+               writeln(t,'bug1');
                close(t);
                runerror(202);
              end;
 {$endif sectorpldebug}
-           plx1 := Round((y-ArcCall.Y)/(ArcCall.YStart-ArcCall.Y)*
-                   (ArcCall.XStart-ArcCall.X))+ArcCall.X;
+           plx1 := (y-ArcCall.Y)*(ArcCall.XStart-ArcCall.X)
+                   div (ArcCall.YStart-ArcCall.Y)+ArcCall.X;
 {$ifdef sectorpldebug}
            If (ArcCall.YEnd-ArcCall.Y) = 0 then
              begin
                append(t);
-               writeln('bug2');
+               writeln(t,'bug2');
                close(t);
                runerror(202);
              end;
 {$endif sectorpldebug}
-           plx2 := Round((y-ArcCall.Y)/(ArcCall.YEnd-ArcCall.Y)*
-                   (ArcCall.XEnd-ArcCall.X))+ArcCall.X;
+           plx2 := (y-ArcCall.Y)*(ArcCall.XEnd-ArcCall.X)
+                   div (ArcCall.YEnd-ArcCall.Y)+ArcCall.X;
            If plx1 > plx2 then
              begin
                plx1 := plx1 xor plx2;
@@ -2230,13 +2229,13 @@ end;
              If (ArcCall.YEnd-ArcCall.Y) = 0 then
                begin
                  append(t);
-                 writeln('bug3');
+                 writeln(t,'bug3');
                  close(t);
                  runerror(202);
                end;
 {$endif sectorpldebug}
-             plx1 := Round((y-ArcCall.Y)/(ArcCall.YEnd-ArcCall.Y)*
-                     (ArcCall.XEnd-ArcCall.X))+ArcCall.X
+             plx1 := (y-ArcCall.Y)*(ArcCall.XEnd-ArcCall.X)
+                     div (ArcCall.YEnd-ArcCall.Y)+ArcCall.X
            end
          else if (y > ArcCall.Y) then
            begin
@@ -2244,13 +2243,13 @@ end;
              If (ArcCall.YStart-ArcCall.Y) = 0 then
                begin
                  append(t);
-                 writeln('bug4');
+                 writeln(t,'bug4');
                  close(t);
                  runerror(202);
                end;
 {$endif sectorpldebug}
-             plx1 := Round((y-ArcCall.Y)/(ArcCall.YStart-ArcCall.Y)*
-                     (ArcCall.XStart-ArcCall.X))+ArcCall.X
+             plx1 := (y-ArcCall.Y)*(ArcCall.XStart-ArcCall.X)
+                     div (ArcCall.YStart-ArcCall.Y)+ArcCall.X
              end
          else plx1 := ArcCall.X;
          plx2 := x2;
@@ -2272,13 +2271,13 @@ end;
              If (ArcCall.YStart-ArcCall.Y) = 0 then
                begin
                  append(t);
-                 writeln('bug5');
+                 writeln(t,'bug5');
                  close(t);
                  runerror(202);
                end;
 {$endif sectorpldebug}
-             plx2 := Round((y-ArcCall.Y)/(ArcCall.YStart-ArcCall.Y)*
-                     (ArcCall.XStart-ArcCall.X))+ArcCall.X
+             plx2 := (y-ArcCall.Y)*(ArcCall.XStart-ArcCall.X)
+                     div (ArcCall.YStart-ArcCall.Y)+ArcCall.X
            end
          else if (y > ArcCall.Y) then
            begin
@@ -2286,13 +2285,13 @@ end;
              If (ArcCall.YEnd-ArcCall.Y) = 0 then
                begin
                  append(t);
-                 writeln('bug6');
+                 writeln(t,'bug6');
                  close(t);
                  runerror(202);
                end;
 {$endif sectorpldebug}
-             plx2 := Round((y-ArcCall.Y)/(ArcCall.YEnd-ArcCall.Y)*
-                     (ArcCall.XEnd-ArcCall.X))+ArcCall.X
+             plx2 := (y-ArcCall.Y)*(ArcCall.XEnd-ArcCall.X)
+                     div (ArcCall.YEnd-ArcCall.Y)+ArcCall.X
            end
          else plx2 := ArcCall.X;
          plx1 := x1;
@@ -2877,7 +2876,12 @@ DetectGraph
 
 {
   $Log$
-  Revision 1.24  1999-09-18 16:03:37  jonas
+  Revision 1.25  1999-09-18 22:21:10  jonas
+    + hlinevesa256 and vlinevesa256
+    + support for not/xor/or/andput in vesamodes with 32k/64k colors
+    * lots of changes to avoid warnings under FPC
+
+  Revision 1.24  1999/09/18 16:03:37  jonas
     * graph.pp: removed pieslice and sector from ToDo list
     * closegraph: exits now immidiately if isgraphmode = false (caused
       RTE 204 with VESA enabled if you set exitproc to call closegraph

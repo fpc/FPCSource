@@ -145,7 +145,7 @@ CONST
  {*                     4-bit planar VGA mode routines                   *}
  {************************************************************************}
 
-  Procedure Init640x200x16; far; assembler;
+  Procedure Init640x200x16; {$ifndef fpc}far;{$endif fpc} assembler;
   { must also clear the screen...}
    asm
      mov ax,000Eh
@@ -159,7 +159,7 @@ CONST
    end;
 
 
-   Procedure Init640x350x16; far; assembler;
+   Procedure Init640x350x16; {$ifndef fpc}far;{$endif fpc} assembler;
   { must also clear the screen...}
     asm
       mov ax,0010h
@@ -172,7 +172,7 @@ CONST
 {$endif fpc}
     end;
 
-  procedure Init640x480x16; far; assembler;
+  procedure Init640x480x16; {$ifndef fpc}far;{$endif fpc} assembler;
   { must also clear the screen...}
     asm
       mov  ax,0012h
@@ -185,7 +185,7 @@ CONST
 {$endif fpc}
     end;
 
- Procedure PutPixel16(X,Y : Integer; Pixel: Word); far;
+ Procedure PutPixel16(X,Y : Integer; Pixel: Word); {$ifndef fpc}far;{$endif fpc}
 {$ifndef asmgraph}
  var offset: word;
      dummy: byte;
@@ -290,7 +290,7 @@ CONST
    end;
 
 
- Function GetPixel16(X,Y: Integer):word; far;
+ Function GetPixel16(X,Y: Integer):word; {$ifndef fpc}far;{$endif fpc}
 {$ifndef asmgraph}
  Var dummy, offset: Word;
      shift: byte;
@@ -448,7 +448,7 @@ CONST
   end;
 
 
- Procedure DirectPutPixel16(X,Y : Integer); far;
+ Procedure DirectPutPixel16(X,Y : Integer); {$ifndef fpc}far;{$endif fpc}
  { x,y -> must be in global coordinates. No clipping. }
   var
    color: word;
@@ -589,7 +589,7 @@ CONST
  end;
 
 {$ifndef tp}
-  procedure HLine16(x,x2,y: integer); far;
+  procedure HLine16(x,x2,y: integer); {$ifndef fpc}far;{$endif fpc}
 
    var
       xtmp: integer;
@@ -716,7 +716,7 @@ CONST
     port[$3cf]:=0;
    end;
 
-  procedure VLine16(x,y,y2: integer); far;
+  procedure VLine16(x,y,y2: integer); {$ifndef fpc}far;{$endif fpc}
 
    var
      ytmp: integer;
@@ -797,20 +797,20 @@ CONST
 {$endif tp}
 
 
- procedure SetVisual480(page: word); far;
+ procedure SetVisual480(page: word); {$ifndef fpc}far;{$endif fpc}
  { no page flipping support in 640x480 mode }
   begin
     VideoOfs := 0;
   end;
 
- procedure SetActive480(page: word); far;
+ procedure SetActive480(page: word); {$ifndef fpc}far;{$endif fpc}
  { no page flipping support in 640x480 mode }
   begin
     VideoOfs := 0;
   end;
 
 
- procedure SetVisual200(page: word); far;
+ procedure SetVisual200(page: word); {$ifndef fpc}far;{$endif fpc}
   { two page support... }
   begin
     if page > HardwarePages then exit;
@@ -839,7 +839,7 @@ CONST
     end;
   end;
 
- procedure SetActive200(page: word); far;
+ procedure SetActive200(page: word); {$ifndef fpc}far;{$endif fpc}
   { two page support... }
   begin
     case page of
@@ -851,7 +851,7 @@ CONST
     end;
   end;
 
- procedure SetVisual350(page: word); far;
+ procedure SetVisual350(page: word); {$ifndef fpc}far;{$endif fpc}
   { one page support... }
   begin
     if page > HardwarePages then exit;
@@ -868,7 +868,7 @@ CONST
     end;
   end;
 
- procedure SetActive350(page: word); far;
+ procedure SetActive350(page: word); {$ifndef fpc}far;{$endif fpc}
   { one page support... }
   begin
     case page of
@@ -887,7 +887,7 @@ CONST
  {*                     320x200x256c Routines                            *}
  {************************************************************************}
 
- Procedure Init320; far; assembler;
+ Procedure Init320; {$ifndef fpc}far;{$endif fpc} assembler;
   asm
     mov ax,0013h
 {$ifdef fpc}
@@ -899,7 +899,7 @@ CONST
 {$endif fpc}
   end;
 
- Procedure PutPixel320(X,Y : Integer; Pixel: Word); far;
+ Procedure PutPixel320(X,Y : Integer; Pixel: Word); {$ifndef fpc}far;{$endif fpc}
  { x,y -> must be in local coordinates. Clipping if required. }
   Begin
     X:= X + StartXViewPort;
@@ -941,7 +941,7 @@ CONST
   end;
 
 
- Function GetPixel320(X,Y: Integer):word; far;
+ Function GetPixel320(X,Y: Integer):word; {$ifndef fpc}far;{$endif fpc}
   Begin
    X:= X + StartXViewPort;
    Y:= Y + StartYViewPort;
@@ -975,7 +975,7 @@ CONST
   end;
 
 
- Procedure DirectPutPixel320(X,Y : Integer); far;
+ Procedure DirectPutPixel320(X,Y : Integer); {$ifndef fpc}far;{$endif fpc}
  { x,y -> must be in global coordinates. No clipping. }
 {$ifndef asmgraph}
  var offset: word;
@@ -1027,12 +1027,12 @@ CONST
 {$endif asmgraph}
 
 
- procedure SetVisual320(page: word); far;
+ procedure SetVisual320(page: word); {$ifndef fpc}far;{$endif fpc}
   { no page support... }
   begin
   end;
 
- procedure SetActive320(page: word); far;
+ procedure SetActive320(page: word); {$ifndef fpc}far;{$endif fpc}
   { no page support... }
   begin
    VideoOfs := 0;
@@ -1043,7 +1043,7 @@ CONST
  {************************************************************************}
 const CrtAddress: word = 0;
 
- procedure InitModeX; far;
+ procedure InitModeX; {$ifndef fpc}far;{$endif fpc}
   begin
    asm
      {see if we are using color-/monochorme display}
@@ -1115,7 +1115,7 @@ const CrtAddress: word = 0;
  end;
 
 
- Function GetPixelX(X,Y: Integer): word; far;
+ Function GetPixelX(X,Y: Integer): word; {$ifndef fpc}far;{$endif fpc}
 {$ifndef asmgraph}
  var offset: word;
 {$endif asmgraph}
@@ -1182,7 +1182,7 @@ const CrtAddress: word = 0;
 {$endif asmgraph}
  end;
 
- procedure SetVisualX(page: word); far;
+ procedure SetVisualX(page: word); {$ifndef fpc}far;{$endif fpc}
   { 4 page support... }
 
    Procedure SetVisibleStart(AOffset: word); Assembler;
@@ -1238,7 +1238,7 @@ const CrtAddress: word = 0;
     end;
   end;
 
- procedure SetActiveX(page: word); far;
+ procedure SetActiveX(page: word); {$ifndef fpc}far;{$endif fpc}
   { 4 page support... }
   begin
    case page of
@@ -1251,7 +1251,7 @@ const CrtAddress: word = 0;
    end;
   end;
 
- Procedure PutPixelX(X,Y: Integer; color:word); far;
+ Procedure PutPixelX(X,Y: Integer; color:word); {$ifndef fpc}far;{$endif fpc}
 {$ifndef asmgraph}
  var offset: word;
      dummy: byte;
@@ -1309,7 +1309,7 @@ const CrtAddress: word = 0;
   end;
 
 
- Procedure DirectPutPixelX(X,Y: Integer); far;
+ Procedure DirectPutPixelX(X,Y: Integer); {$ifndef fpc}far;{$endif fpc}
  { x,y -> must be in global coordinates. No clipping. }
 {$ifndef asmgraph}
  Var offset: Word;
@@ -1375,7 +1375,7 @@ const CrtAddress: word = 0;
 {$IFDEF DPMI}
   RealStateSeg: word;    { Real segment of saved video state }
 
- Procedure SaveStateVGA;
+ Procedure SaveStateVGA; {$ifndef fpc}far;{$endif fpc}
  var
   PtrLong: longint;
   regs: TDPMIRegisters;
@@ -1442,7 +1442,7 @@ const CrtAddress: word = 0;
       end;
   end;
 
- procedure RestoreStateVGA;
+ procedure RestoreStateVGA; {$ifndef fpc}far;{$endif fpc}
   var
    regs:TDPMIRegisters;
   begin
@@ -1493,7 +1493,7 @@ const CrtAddress: word = 0;
       {**************************************************************}
 
 
- Procedure SaveStateVGA; far;
+ Procedure SaveStateVGA; far; 
   begin
     SavePtr := nil;
     SaveSupported := FALSE;
@@ -1568,7 +1568,7 @@ const CrtAddress: word = 0;
 
    { VGA is never a direct color mode, so no need to check ... }
    Procedure SetVGARGBPalette(ColorNum, RedValue, GreenValue,
-      BlueValue : Integer); far; assembler;
+      BlueValue : Integer); {$ifndef fpc}far;{$endif fpc} assembler;
     asm
       { on some hardware - there is a snow like effect       }
       { when changing the palette register directly          }
@@ -1609,7 +1609,7 @@ const CrtAddress: word = 0;
 
    { VGA is never a direct color mode, so no need to check ... }
   Procedure GetVGARGBPalette(ColorNum: integer; Var
-      RedValue, GreenValue, BlueValue : integer); far;
+      RedValue, GreenValue, BlueValue : integer); {$ifndef fpc}far;{$endif fpc}
    begin
      Port[$03C7] := ColorNum;
      { we must convert to lsb values... because the vga uses the 6 msb bits }
@@ -2015,6 +2015,8 @@ const CrtAddress: word = 0;
              mode.InitMode := Init640x400x256;
              mode.SetVisualPage := SetVisualVESA;
              mode.SetActivePage := SetActiveVESA;
+             mode.hline := HLineVESA256;
+             mode.vline := VLineVESA256;
 {$else fpc}
              mode.DirectPutPixel:=@DirectPutPixVESA256;
              mode.PutPixel:=@PutPixVESA256;
@@ -2024,6 +2026,8 @@ const CrtAddress: word = 0;
              mode.InitMode := @Init640x400x256;
              mode.SetVisualPage := @SetVisualVESA;
              mode.SetActivePage := @SetActiveVESA;
+             mode.hline := @HLineVESA256;
+             mode.vline := @VLineVESA256;
 {$endif fpc}
              mode.XAspect := 10000;
              mode.YAspect := 10000;
@@ -2051,6 +2055,8 @@ const CrtAddress: word = 0;
              mode.InitMode := Init640x480x256;
              mode.SetVisualPage := SetVisualVESA;
              mode.SetActivePage := SetActiveVESA;
+             mode.hline := HLineVESA256;
+             mode.vline := VLineVESA256;
 {$else fpc}
              mode.DirectPutPixel:=@DirectPutPixVESA256;
              mode.PutPixel:=@PutPixVESA256;
@@ -2060,6 +2066,8 @@ const CrtAddress: word = 0;
              mode.InitMode := @Init640x480x256;
              mode.SetVisualPage := @SetVisualVESA;
              mode.SetActivePage := @SetActiveVESA;
+             mode.hline := @HLineVESA256;
+             mode.hline := @HLineVESA256;
 {$endif fpc}
              mode.XAspect := 10000;
              mode.YAspect := 10000;
@@ -2199,6 +2207,8 @@ const CrtAddress: word = 0;
              mode.InitMode := Init800x600x256;
              mode.SetVisualPage := SetVisualVESA;
              mode.SetActivePage := SetActiveVESA;
+             mode.hline := HLineVESA256;
+             mode.vline := VLineVESA256;
 {$else fpc}
              mode.DirectPutPixel:=@DirectPutPixVESA256;
              mode.PutPixel:=@PutPixVESA256;
@@ -2208,6 +2218,8 @@ const CrtAddress: word = 0;
              mode.InitMode := @Init800x600x256;
              mode.SetVisualPage := @SetVisualVESA;
              mode.SetActivePage := @SetActiveVESA;
+             mode.hline := @HLineVESA256;
+             mode.vline := @VLineVESA256;
 {$endif fpc}
              mode.XAspect := 10000;
              mode.YAspect := 10000;
@@ -2347,6 +2359,8 @@ const CrtAddress: word = 0;
              mode.InitMode := Init1024x768x256;
              mode.SetVisualPage := SetVisualVESA;
              mode.SetActivePage := SetActiveVESA;
+             mode.hline := HLineVESA256;
+             mode.vline := VLineVESA256;
 {$else fpc}
              mode.DirectPutPixel:=@DirectPutPixVESA256;
              mode.PutPixel:=@PutPixVESA256;
@@ -2356,6 +2370,8 @@ const CrtAddress: word = 0;
              mode.InitMode := @Init1024x768x256;
              mode.SetVisualPage := @SetVisualVESA;
              mode.SetActivePage := @SetActiveVESA;
+             mode.vline := @VLineVESA256;
+             mode.hline := @HLineVESA256;
 {$endif fpc}
              mode.XAspect := 10000;
              mode.YAspect := 10000;
@@ -2495,6 +2511,8 @@ const CrtAddress: word = 0;
              mode.GetRGBPalette := GetVESARGBPalette;
              mode.SetVisualPage := SetVisualVESA;
              mode.SetActivePage := SetActiveVESA;
+             mode.hline := HLineVESA256;
+             mode.vline := VLineVESA256;
 {$else fpc}
              mode.DirectPutPixel:=@DirectPutPixVESA256;
              mode.PutPixel:=@PutPixVESA256;
@@ -2504,6 +2522,8 @@ const CrtAddress: word = 0;
              mode.GetRGBPalette := @GetVESARGBPalette;
              mode.SetVisualPage := @SetVisualVESA;
              mode.SetActivePage := @SetActiveVESA;
+             mode.vline := @VLineVESA256;
+             mode.hline := @HLineVESA256;
 {$endif fpc}
              mode.XAspect := 10000;
              mode.YAspect := 10000;
@@ -2588,7 +2608,12 @@ const CrtAddress: word = 0;
 
 {
 $Log$
-Revision 1.13  1999-09-18 16:03:36  jonas
+Revision 1.14  1999-09-18 22:21:09  jonas
+  + hlinevesa256 and vlinevesa256
+  + support for not/xor/or/andput in vesamodes with 32k/64k colors
+  * lots of changes to avoid warnings under FPC
+
+Revision 1.13  1999/09/18 16:03:36  jonas
   * graph.pp: removed pieslice and sector from ToDo list
   * closegraph: exits now immidiately if isgraphmode = false (caused
     RTE 204 with VESA enabled if you set exitproc to call closegraph
@@ -2622,7 +2647,7 @@ Revision 1.9  1999/08/01 14:50:51  jonas
 
 Revision 1.8  1999/07/18 15:07:19  jonas
   + xor-, and and- orput support for VESA256 modes
-  * compile with -dlogging if you wnt some info to be logged to grlog.txt
+  * compile with -dlogging if you want some info to be logged to grlog.txt
 
 Revision 1.7  1999/07/14 18:18:02  florian
   * cosmetic changes
@@ -2642,7 +2667,7 @@ Revision 1.4  1999/07/12 13:27:08  jonas
   * only dispose vesainfo at closegrph if a vesa card was detected
   * changed int32 to longint (int32 is not declared under FPC)
   * changed the declaration of almost every procedure in graph.inc to
-    "far;" becquse otherwise you can't assign them to procvars under TP
+    "far;" because otherwise you can't assign them to procvars under TP
     real mode (but unexplainable "data segnment too large" errors prevent
     it from working under real mode anyway)
 
