@@ -87,7 +87,8 @@ type
              target_i386_netbsd,        { 17 }
              target_m68k_netbsd,        { 18 }
              target_i386_Netware,       { 19 }
-             target_i386_qnx            { 20 }
+             target_i386_qnx,           { 20 }
+             target_i386_wdosx          { 21 }
        );
 const
   Targets : array[ttarget] of string[12]=(
@@ -111,7 +112,8 @@ const
   { 17 }  'NetBSD-i386',
   { 18 }  'NetBSD-m68k',
   { 19 }  'Netware',
-  { 20 }  'Qnx-i386'
+  { 20 }  'Qnx-i386',
+  { 21 }  'WDOSX-i386'
   );
 begin
   if w<=ord(high(ttarget)) then
@@ -1688,7 +1690,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2002-03-31 20:26:42  jonas
+  Revision 1.16  2002-04-04 18:50:27  carl
+  + added wdosx support (patch from Pavel)
+
+  Revision 1.15  2002/03/31 20:26:42  jonas
     + a_loadfpu_* and a_loadmm_* methods in tcg
     * register allocation is now handled by a class and is mostly processor
       independent (+rgobj.pas and i386/rgcpu.pas)
