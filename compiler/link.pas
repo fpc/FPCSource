@@ -278,6 +278,13 @@ Var
   LinkResponse : Text;
   i            : longint;
   prtobj,s,s2  : string;
+
+  procedure WriteRes(const s:string);
+  begin
+    if s<>'' then
+     WriteLn(Linkresponse,s);
+  end;
+
 begin
   WriteResponseFile:=False;
 { set special options for some targets }
@@ -330,19 +337,19 @@ begin
      i:=255;
     S:=Copy(S2,1,i-1);
     If S<>'' then
-      WriteLn(linkresponse,target_link.libpathprefix+s+target_link.libpathsuffix);
+      WriteRes(target_link.libpathprefix+s+target_link.libpathsuffix);
     Delete (S2,1,i);
   until S2='';
 
-  writeln(linkresponse,target_link.inputstart);
+  WriteRes(target_link.inputstart);
   { add objectfiles, start with prt0 always }
   if prtobj<>'' then
-   Writeln(linkresponse,FindObjectFile(prtobj));
+   WriteRes(FindObjectFile(prtobj));
   while not ObjectFiles.Empty do
    begin
      s:=ObjectFiles.Get;
      if s<>'' then
-      Writeln(linkresponse,s);
+      WriteRes(s);
    end;
 
   { Write sharedlibraries like -l<lib> }
@@ -352,20 +359,20 @@ begin
      i:=Pos(target_os.sharedlibext,S);
      if i>0 then
       Delete(S,i,255);
-     writeln(linkresponse,target_link.libprefix+s);
+     WriteRes(target_link.libprefix+s);
    end;
-  writeln(linkresponse,target_link.inputend);
+  WriteRes(target_link.inputend);
 
   { Write staticlibraries }
   if not StaticLibFiles.Empty then
    begin
-     Writeln(LinkResponse,target_link.GroupStart);
+     WriteRes(target_link.GroupStart);
      While not StaticLibFiles.Empty do
       begin
         S:=StaticLibFiles.Get;
-        writeln(linkresponse,s)
+        WriteRes(s)
       end;
-     Writeln(LinkResponse,target_link.GroupEnd);
+     WriteRes(target_link.GroupEnd);
    end;
 
 { Close response }
@@ -479,7 +486,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  1998-06-08 22:59:46  peter
+  Revision 1.14  1998-06-17 14:10:13  peter
+    * small os2 fixes
+    * fixed interdependent units with newppu (remake3 under linux works now)
+
+  Revision 1.13  1998/06/08 22:59:46  peter
     * smartlinking works for win32
     * some defines to exclude some compiler parts
 

@@ -1642,45 +1642,14 @@
          inherited done;
       end;
 
-{$ifdef GDB}
-    function typeglobalnumber(const s : string) : string;
-
-      var st : string;
-          symt : psymtable;
-          old_make_ref : boolean;
-      begin
-         old_make_ref:=make_ref;
-         make_ref:=false;
-         typeglobalnumber := '0';
-         srsym := nil;
-         if pos('.',s) > 0 then
-           begin
-           st := copy(s,1,pos('.',s)-1);
-           getsym(st,false);
-           st := copy(s,pos('.',s)+1,255);
-           if assigned(srsym) then
-             begin
-             if srsym^.typ = unitsym then
-               begin
-               symt := punitsym(srsym)^.unitsymtable;
-               srsym := symt^.search(st);
-               end else srsym := nil;
-             end;
-           end else st := s;
-         if srsym = nil then getsym(st,true);
-         if srsym^.typ<>typesym then
-           begin
-             Message(sym_e_type_id_expected);
-             exit;
-           end;
-         typeglobalnumber := ptypesym(srsym)^.definition^.numberstring;
-         make_ref:=old_make_ref;
-      end;
-{$endif GDB}
 
 {
   $Log$
-  Revision 1.14  1998-06-16 08:56:34  peter
+  Revision 1.15  1998-06-17 14:10:18  peter
+    * small os2 fixes
+    * fixed interdependent units with newppu (remake3 under linux works now)
+
+  Revision 1.14  1998/06/16 08:56:34  peter
     + targetcpu
     * cleaner pmodules for newppu
 

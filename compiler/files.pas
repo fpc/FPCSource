@@ -136,6 +136,7 @@ unit files;
           procedure setfilename(const _path,name:string);
 {$ifdef NEWPPU}
           function  openppu:boolean;
+          destructor done;virtual;
 {$else}
           function  load_ppu(const unit_path,n,ext:string):boolean;
 {$endif}
@@ -234,13 +235,14 @@ unit files;
 {$endif}
 
     var
-       main_module    : pmodule;
-       current_module : pmodule;
+       main_module    : pmodule;     { Main module of the program }
+       current_module : pmodule;     { Current module which is compiled }
 {$ifdef NEWPPU}
-       current_ppu    : pppufile;
+       current_ppu    : pppufile;    { Current ppufile which is read }
 {$endif}
        global_unit_count : word;
-       loaded_units   : tlinkedlist;
+       usedunits      : tlinkedlist; { Used units for this program }
+       loaded_units   : tlinkedlist; { All loaded units }
 
 
   implementation
@@ -254,7 +256,6 @@ unit files;
  ****************************************************************************}
 
     constructor textfile.init(const p,n,e : string);
-
       begin
          inherited init(p+n+e,extbufsize);
          path:=stringdup(p);
@@ -263,17 +264,16 @@ unit files;
       end;
 
     destructor textfile.done;
-
       begin
          inherited done;
       end;
+
 
 {****************************************************************************
                                   TINPUTFILE
  ****************************************************************************}
 
     constructor tinputfile.init(const p,n,e : string);
-
       begin
          inherited init(p,n,e);
          filenotatend:=true;
@@ -284,13 +284,12 @@ unit files;
       end;
 
     procedure tinputfile.write_file_line(var t : text);
-
       begin
          write(t,get_file_line);
       end;
 
-    function tinputfile.get_file_line : string;
 
+    function tinputfile.get_file_line : string;
       begin
         if Use_Rhide then
           get_file_line:=lower(bstoslash(path^)+name^+ext^)+':'+tostr(line_no)+':'
@@ -298,22 +297,21 @@ unit files;
           get_file_line:=name^+ext^+'('+tostr(line_no)+')'
       end;
 
+
 {****************************************************************************
                                 TFILEMANAGER
  ****************************************************************************}
 
     constructor tfilemanager.init;
-
       begin
          files:=nil;
          last_ref_index:=0;
       end;
 
-    destructor tfilemanager.done;
 
+    destructor tfilemanager.done;
       var
          hp : pextfile;
-
       begin
          hp:=files;
          while assigned(hp) do
@@ -325,11 +323,10 @@ unit files;
          last_ref_index:=0;
       end;
 
-    procedure tfilemanager.close_all;
 
+    procedure tfilemanager.close_all;
       var
          hp : pextfile;
-
       begin
          hp:=files;
          while assigned(hp) do
@@ -339,8 +336,8 @@ unit files;
            end;
       end;
 
-    procedure tfilemanager.register_file(f : pextfile);
 
+    procedure tfilemanager.register_file(f : pextfile);
       begin
          inc(last_ref_index);
          f^._next:=files;
@@ -348,8 +345,8 @@ unit files;
          files:=f;
       end;
 
-   function tfilemanager.get_file(w : word) : pextfile;
 
+   function tfilemanager.get_file(w : word) : pextfile;
      var
         ff : pextfile;
      begin
@@ -358,6 +355,7 @@ unit files;
           ff:=ff^._next;
         get_file:=ff;
      end;
+
 
 {****************************************************************************
                                   TMODULE
@@ -387,91 +385,91 @@ unit files;
          objfiletime,
          ppufiletime,
          asmfiletime : longint;
-    begin
-      openppu:=false;
-    { Get ppufile time (also check if the file exists) }
-      ppufiletime:=getnamedfiletime(ppufilename^);
-      if ppufiletime=-1 then
-       exit;
-    { Open the ppufile }
-      Message1(unit_u_ppu_loading,ppufilename^);
-      ppufile:=new(pppufile,init(ppufilename^));
-      if not ppufile^.open then
-       begin
-         dispose(ppufile,done);
-         Message(unit_d_ppu_file_too_short);
+      begin
+        openppu:=false;
+      { Get ppufile time (also check if the file exists) }
+        ppufiletime:=getnamedfiletime(ppufilename^);
+        if ppufiletime=-1 then
          exit;
-       end;
-    { check for a valid PPU file }
-      if not ppufile^.CheckPPUId then
-       begin
-         dispose(ppufile,done);
-         Message(unit_d_ppu_invalid_header);
-         exit;
-       end;
-    { check for allowed PPU versions }
-      if not (ppufile^.GetPPUVersion in [15]) then
-       begin
-         dispose(ppufile,done);
-         Message1(unit_d_ppu_invalid_version,tostr(ppufile^.GetPPUVersion));
-         exit;
-       end;
-    { check the target processor }
-      if ttargetcpu(ppufile^.header.cpu)<>target_cpu then
-       begin
-         dispose(ppufile,done);
-         Comment(V_Debug,'unit is compiled for an other processor');
-         exit;
-       end;
-    { check target }
-      if ttarget(ppufile^.header.target)<>target_info.target then
-       begin
-         dispose(ppufile,done);
-         Comment(V_Debug,'unit is compiled for an other target');
-         exit;
-       end;
-{!!!!!!!!!!!!!!!!!!! }
-    { Load values to be access easier }
-      flags:=ppufile^.header.flags;
-      crc:=ppufile^.header.checksum;
-    { Show Debug info }
-      Message1(unit_d_ppu_time,filetimestring(ppufiletime));
-      Message1(unit_d_ppu_flags,tostr(flags));
-      Message1(unit_d_ppu_crc,tostr(ppufile^.header.checksum));
-    { check the object and assembler file to see if we need only to
-      assemble, only if it's not in a library }
-      do_compile:=false;
-      if (flags and uf_in_library)=0 then
-       begin
-         if (flags and uf_smartlink)<>0 then
-          begin
-            objfiletime:=getnamedfiletime(libfilename^);
-            if (ppufiletime<0) or (objfiletime<0) or (ppufiletime>objfiletime) then
-              do_compile:=true;
-          end
-         else
-          begin
-          { the objectfile should be newer than the ppu file }
-            objfiletime:=getnamedfiletime(objfilename^);
-            if (ppufiletime<0) or (objfiletime<0) or (ppufiletime>objfiletime) then
-             begin
-             { check if assembler file is older than ppu file }
-               asmfileTime:=GetNamedFileTime(asmfilename^);
-               if (asmfiletime<0) or (ppufiletime>asmfiletime) then
-                begin
-                  Message(unit_d_obj_and_asm_are_older_than_ppu);
-                  do_compile:=true;
-                end
-               else
-                begin
-                  Message(unit_d_obj_is_older_than_asm);
-                  do_assemble:=true;
-                end;
-             end;
-          end;
-       end;
-      openppu:=true;
-    end;
+      { Open the ppufile }
+        Message1(unit_u_ppu_loading,ppufilename^);
+        ppufile:=new(pppufile,init(ppufilename^));
+        if not ppufile^.open then
+         begin
+           dispose(ppufile,done);
+           Message(unit_d_ppu_file_too_short);
+           exit;
+         end;
+      { check for a valid PPU file }
+        if not ppufile^.CheckPPUId then
+         begin
+           dispose(ppufile,done);
+           Message(unit_d_ppu_invalid_header);
+           exit;
+         end;
+      { check for allowed PPU versions }
+        if not (ppufile^.GetPPUVersion in [15]) then
+         begin
+           dispose(ppufile,done);
+           Message1(unit_d_ppu_invalid_version,tostr(ppufile^.GetPPUVersion));
+           exit;
+         end;
+      { check the target processor }
+        if ttargetcpu(ppufile^.header.cpu)<>target_cpu then
+         begin
+           dispose(ppufile,done);
+           Comment(V_Debug,'unit is compiled for an other processor');
+           exit;
+         end;
+      { check target }
+        if ttarget(ppufile^.header.target)<>target_info.target then
+         begin
+           dispose(ppufile,done);
+           Comment(V_Debug,'unit is compiled for an other target');
+           exit;
+         end;
+  {!!!!!!!!!!!!!!!!!!! }
+      { Load values to be access easier }
+        flags:=ppufile^.header.flags;
+        crc:=ppufile^.header.checksum;
+      { Show Debug info }
+        Message1(unit_d_ppu_time,filetimestring(ppufiletime));
+        Message1(unit_d_ppu_flags,tostr(flags));
+        Message1(unit_d_ppu_crc,tostr(ppufile^.header.checksum));
+      { check the object and assembler file to see if we need only to
+        assemble, only if it's not in a library }
+        do_compile:=false;
+        if (flags and uf_in_library)=0 then
+         begin
+           if (flags and uf_smartlink)<>0 then
+            begin
+              objfiletime:=getnamedfiletime(libfilename^);
+              if (ppufiletime<0) or (objfiletime<0) or (ppufiletime>objfiletime) then
+                do_compile:=true;
+            end
+           else
+            begin
+            { the objectfile should be newer than the ppu file }
+              objfiletime:=getnamedfiletime(objfilename^);
+              if (ppufiletime<0) or (objfiletime<0) or (ppufiletime>objfiletime) then
+               begin
+               { check if assembler file is older than ppu file }
+                 asmfileTime:=GetNamedFileTime(asmfilename^);
+                 if (asmfiletime<0) or (ppufiletime>asmfiletime) then
+                  begin
+                    Message(unit_d_obj_and_asm_are_older_than_ppu);
+                    do_compile:=true;
+                  end
+                 else
+                  begin
+                    Message(unit_d_obj_is_older_than_asm);
+                    do_assemble:=true;
+                  end;
+               end;
+            end;
+         end;
+        openppu:=true;
+      end;
 
 
     function tmodule.search_unit(const n : string):boolean;
@@ -554,6 +552,12 @@ unit files;
 
 {$else NEWPPU}
 
+{*****************************************************************************
+
+                               Old PPU
+
+*****************************************************************************}
+
     function tmodule.load_ppu(const unit_path,n,ext : string):boolean;
       var
          header  : tunitheader;
@@ -573,153 +577,152 @@ unit files;
          _n : namestr;
          _e : extstr;
 {$endif UseBrowser}
-
-    begin
-      load_ppu:=false;
-    { Get ppufile time (also check if the file exists) }
-      ppufiletime:=getnamedfiletime(ppufilename^);
-      if ppufiletime=-1 then
-       exit;
-
-      Message1(unit_u_ppu_loading,ppufilename^);
-      ppufile:=new(pextfile,init(unit_path,n,ext));
-      ppufile^.reset;
-      ppufile^.flush;
-      { load the header }
-      ppufile^.read_data(header,sizeof(header),count);
-      if count<>sizeof(header) then
-       begin
-         ppufile^.done;
-         Message(unit_d_ppu_file_too_short);
+      begin
+        load_ppu:=false;
+      { Get ppufile time (also check if the file exists) }
+        ppufiletime:=getnamedfiletime(ppufilename^);
+        if ppufiletime=-1 then
          exit;
-       end;
-      { check for a valid PPU file }
-      if (header[0]<>'P') or (header[1]<>'P') or (header[2]<>'U') then
-       begin
-         ppufile^.done;
-         Message(unit_d_ppu_invalid_header);
-         exit;
-       end;
-      { load ppu version }
-      val(header[3]+header[4]+header[5],ppuversion,code);
-      if not(ppuversion in [13..14]) then
-       begin
-         ppufile^.done;
-         Message1(unit_d_ppu_invalid_version,tostr(ppuversion));
-         exit;
-       end;
-      flags:=byte(header[9]);
-      crc:=plongint(@header[10])^;
-      {Get ppufile time}
-      ppufiletime:=getnamedfiletime(ppufilename^);
-      {Show Debug info}
-      Message1(unit_d_ppu_time,filetimestring(ppufiletime));
-      Message1(unit_d_ppu_flags,tostr(flags));
-      Message1(unit_d_ppu_crc,tostr(crc));
 
-    { read name if its there }
-      ppufile^.read_data(b,1,count);
-      if b=ibunitname then
-       begin
-         ppufile^.read_data(hs[0],1,count);
-         ppufile^.read_data(hs[1],ord(hs[0]),count);
-         stringdispose(modulename);
-         modulename:=stringdup(hs);
-         ppufile^.read_data(b,1,count);
-       end;
+        Message1(unit_u_ppu_loading,ppufilename^);
+        ppufile:=new(pextfile,init(unit_path,n,ext));
+        ppufile^.reset;
+        ppufile^.flush;
+        { load the header }
+        ppufile^.read_data(header,sizeof(header),count);
+        if count<>sizeof(header) then
+         begin
+           ppufile^.done;
+           Message(unit_d_ppu_file_too_short);
+           exit;
+         end;
+        { check for a valid PPU file }
+        if (header[0]<>'P') or (header[1]<>'P') or (header[2]<>'U') then
+         begin
+           ppufile^.done;
+           Message(unit_d_ppu_invalid_header);
+           exit;
+         end;
+        { load ppu version }
+        val(header[3]+header[4]+header[5],ppuversion,code);
+        if not(ppuversion in [13..14]) then
+         begin
+           ppufile^.done;
+           Message1(unit_d_ppu_invalid_version,tostr(ppuversion));
+           exit;
+         end;
+        flags:=byte(header[9]);
+        crc:=plongint(@header[10])^;
+        {Get ppufile time}
+        ppufiletime:=getnamedfiletime(ppufilename^);
+        {Show Debug info}
+        Message1(unit_d_ppu_time,filetimestring(ppufiletime));
+        Message1(unit_d_ppu_flags,tostr(flags));
+        Message1(unit_d_ppu_crc,tostr(crc));
 
-    { search source files there is at least one source file }
-      do_compile:=false;
-      sources_avail:=true;
-      while b<>ibend do
-       begin
-         ppufile^.read_data(hs[0],1,count);
-         ppufile^.read_data(hs[1],ord(hs[0]),count);
-         ppufile^.read_data(b,1,count);
-         temp:='';
-         if (flags and uf_in_library)<>0 then
-          begin
-            sources_avail:=false;
-            temp:=' library';
-          end
-         else
-          begin
-            { check the date of the source files }
-            Source_Time:=GetNamedFileTime(unit_path+hs);
-            if Source_Time=-1 then
-              begin
-                 { search for include files in the includepathlist }
-                 if b<>ibend then
-                   begin
-                      temp:=search(hs,includesearchpath,incfile_found);
-                      if incfile_found then
-                        begin
-                           hs:=temp+hs;
-                           Source_Time:=GetNamedFileTime(hs);
-                        end;
-                   end;
-              end
-            else
-              hs:=unit_path+hs;
-            if Source_Time=-1 then
-             begin
-               sources_avail:=false;
-               temp:=' not found';
-             end
-            else
-             begin
-               temp:=' time '+filetimestring(source_time);
-               if (source_time>ppufiletime) then
+      { read name if its there }
+        ppufile^.read_data(b,1,count);
+        if b=ibunitname then
+         begin
+           ppufile^.read_data(hs[0],1,count);
+           ppufile^.read_data(hs[1],ord(hs[0]),count);
+           stringdispose(modulename);
+           modulename:=stringdup(hs);
+           ppufile^.read_data(b,1,count);
+         end;
+
+      { search source files there is at least one source file }
+        do_compile:=false;
+        sources_avail:=true;
+        while b<>ibend do
+         begin
+           ppufile^.read_data(hs[0],1,count);
+           ppufile^.read_data(hs[1],ord(hs[0]),count);
+           ppufile^.read_data(b,1,count);
+           temp:='';
+           if (flags and uf_in_library)<>0 then
+            begin
+              sources_avail:=false;
+              temp:=' library';
+            end
+           else
+            begin
+              { check the date of the source files }
+              Source_Time:=GetNamedFileTime(unit_path+hs);
+              if Source_Time=-1 then
                 begin
-                  do_compile:=true;
-                  temp:=temp+' *'
-                end;
-             end;
-          end;
-         Message1(unit_t_ppu_source,hs+temp);
-{$ifdef UseBrowser}
-         fsplit(hs,_d,_n,_e);
-         new(hp,init(_d,_n,_e));
-         { the indexing should match what is done in writeasunit }
-         sourcefiles.register_file(hp);
-{$endif UseBrowser}
-       end;
-    { main source is always the last }
-      stringdispose(mainsource);
-      mainsource:=stringdup(hs);
-
-    { check the object and assembler file if not a library }
-      if (flags and uf_smartlink)<>0 then
-       begin
-         objfiletime:=getnamedfiletime(libfilename^);
-         if (ppufiletime<0) or (objfiletime<0) or (ppufiletime>objfiletime) then
-           do_compile:=true;
-       end
-      else
-       begin
-         if (flags and uf_in_library)=0 then
-          begin
-          { the objectfile should be newer than the ppu file }
-            objfiletime:=getnamedfiletime(objfilename^);
-            if (ppufiletime<0) or (objfiletime<0) or (ppufiletime>objfiletime) then
-             begin
-             { check if assembler file is older than ppu file }
-               asmfileTime:=GetNamedFileTime(asmfilename^);
-               if (asmfiletime<0) or (ppufiletime>asmfiletime) then
-                begin
-                  Message(unit_d_obj_and_asm_are_older_than_ppu);
-                  do_compile:=true;
+                   { search for include files in the includepathlist }
+                   if b<>ibend then
+                     begin
+                        temp:=search(hs,includesearchpath,incfile_found);
+                        if incfile_found then
+                          begin
+                             hs:=temp+hs;
+                             Source_Time:=GetNamedFileTime(hs);
+                          end;
+                     end;
                 end
-               else
-                begin
-                  Message(unit_d_obj_is_older_than_asm);
-                  do_assemble:=true;
-                end;
-             end;
-          end;
-       end;
-      load_ppu:=true;
-    end;
+              else
+                hs:=unit_path+hs;
+              if Source_Time=-1 then
+               begin
+                 sources_avail:=false;
+                 temp:=' not found';
+               end
+              else
+               begin
+                 temp:=' time '+filetimestring(source_time);
+                 if (source_time>ppufiletime) then
+                  begin
+                    do_compile:=true;
+                    temp:=temp+' *'
+                  end;
+               end;
+            end;
+           Message1(unit_t_ppu_source,hs+temp);
+  {$ifdef UseBrowser}
+           fsplit(hs,_d,_n,_e);
+           new(hp,init(_d,_n,_e));
+           { the indexing should match what is done in writeasunit }
+           sourcefiles.register_file(hp);
+  {$endif UseBrowser}
+         end;
+      { main source is always the last }
+        stringdispose(mainsource);
+        mainsource:=stringdup(hs);
+
+      { check the object and assembler file if not a library }
+        if (flags and uf_smartlink)<>0 then
+         begin
+           objfiletime:=getnamedfiletime(libfilename^);
+           if (ppufiletime<0) or (objfiletime<0) or (ppufiletime>objfiletime) then
+             do_compile:=true;
+         end
+        else
+         begin
+           if (flags and uf_in_library)=0 then
+            begin
+            { the objectfile should be newer than the ppu file }
+              objfiletime:=getnamedfiletime(objfilename^);
+              if (ppufiletime<0) or (objfiletime<0) or (ppufiletime>objfiletime) then
+               begin
+               { check if assembler file is older than ppu file }
+                 asmfileTime:=GetNamedFileTime(asmfilename^);
+                 if (asmfiletime<0) or (ppufiletime>asmfiletime) then
+                  begin
+                    Message(unit_d_obj_and_asm_are_older_than_ppu);
+                    do_compile:=true;
+                  end
+                 else
+                  begin
+                    Message(unit_d_obj_is_older_than_asm);
+                    do_assemble:=true;
+                  end;
+               end;
+            end;
+         end;
+        load_ppu:=true;
+      end;
 
     function tmodule.search_unit(const n : string):boolean;
       var
@@ -802,7 +805,6 @@ unit files;
 {$endif NEWPPU}
 
 
-
     constructor tmodule.init(const s:string;_is_unit:boolean);
       var
         p : dirstr;
@@ -856,8 +858,32 @@ unit files;
           end;
       end;
 
-    destructor tmodule.special_done;
 
+    destructor tmodule.done;
+      begin
+        if assigned(map) then
+         dispose(map);
+        if assigned(ppufile) then
+         dispose(ppufile,done);
+        if assigned(imports) then
+         dispose(imports,done);
+        used_units.done;
+        sourcefiles.done;
+        linkofiles.done;
+        linkstaticlibs.done;
+        linksharedlibs.done;
+        stringdispose(objfilename);
+        stringdispose(asmfilename);
+        stringdispose(ppufilename);
+        stringdispose(libfilename);
+        stringdispose(path);
+        stringdispose(modulename);
+        stringdispose(mainsource);
+        inherited done;
+      end;
+
+
+    destructor tmodule.special_done;
       begin
          if assigned(map) then
            dispose(map);
@@ -893,6 +919,7 @@ unit files;
         unitid:=0;
       end;
 
+
     constructor tused_unit.init_to_load(const n:string;c:longint;intface:boolean);
       begin
         u:=nil;
@@ -904,6 +931,7 @@ unit files;
         checksum:=c;
         unitid:=0;
       end;
+
 
     destructor tused_unit.done;
       begin
@@ -933,7 +961,11 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.24  1998-06-16 08:56:20  peter
+  Revision 1.25  1998-06-17 14:10:11  peter
+    * small os2 fixes
+    * fixed interdependent units with newppu (remake3 under linux works now)
+
+  Revision 1.24  1998/06/16 08:56:20  peter
     + targetcpu
     * cleaner pmodules for newppu
 

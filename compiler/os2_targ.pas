@@ -259,8 +259,7 @@ const   ar_magic:array[1..8] of char='!<arch>'#10;
 
 begin
     seq_no:=1;
-    Linker.AddSharedLibrary(s+'.dll');
-    current_module^.linkofiles.insert(s+'.dll');
+    current_module^.linksharedlibs.insert(s);
     assign(out_file,s+'.ao2');
     rewrite(out_file,1);
     blockwrite(out_file,ar_magic,sizeof(ar_magic));
@@ -329,7 +328,11 @@ end.
 
 {
   $Log$
-  Revision 1.3  1998-06-04 23:51:48  peter
+  Revision 1.4  1998-06-17 14:10:14  peter
+    * small os2 fixes
+    * fixed interdependent units with newppu (remake3 under linux works now)
+
+  Revision 1.3  1998/06/04 23:51:48  peter
     * m68k compiles
     + .def file creation moved to gendef.pas so it could also be used
       for win32

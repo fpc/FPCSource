@@ -161,10 +161,12 @@ unit pmodules;
            if (not pu^.loaded) and (pu^.in_interface) then
             begin
               loaded_unit:=loadunit(pu^.name^,false);
-              pu^.u:=loaded_unit;
-              pu^.loaded:=true;
               if current_module^.compiled then
                exit;
+            { register unit in used units }
+              pu^.u:=loaded_unit;
+              pu^.loaded:=true;
+            { need to recompile the current unit ? }
               if loaded_unit^.crc<>pu^.checksum then
                begin
                  current_module^.do_compile:=true;
@@ -198,16 +200,22 @@ unit pmodules;
               loaded_unit:=loadunit(pu^.name^,false);
               if current_module^.compiled then
                exit;
+            { register unit in used units }
+              pu^.u:=loaded_unit;
+              pu^.loaded:=true;
+{$ifdef TEST_IMPL}
+            { need to recompile the current unit ? }
               if loaded_unit^.crc<>pu^.checksum then
                begin
                  current_module^.do_compile:=true;
                  exit;
                end;
             { setup the map entry for deref }
-{              current_module^.map^[nextmapentry]:=loaded_unit^.symtable;
+              current_module^.map^[nextmapentry]:=loaded_unit^.symtable;
               inc(nextmapentry);
               if nextmapentry>maxunits then
-               Message(unit_f_too_much_units); }
+               Message(unit_f_too_much_units);
+{$endif TEST_IMPL}
             end;
            pu:=pused_unit(pu^.next);
          end;
@@ -219,10 +227,49 @@ unit pmodules;
 
     function loadunit(const s : string;compile_system:boolean) : pmodule;
       var
-         st : punitsymtable;
-         old_current_ppu : pppufile;
-         old_current_module,hp,nextmodule : pmodule;
-         hs : pstring;
+        st : punitsymtable;
+        old_current_ppu : pppufile;
+        old_current_module,hp : pmodule;
+
+        procedure loadppufile;
+        begin
+        { load interface section }
+          if not current_module^.do_compile then
+           load_interface;
+        { only load units when we don't recompile }
+          if not current_module^.do_compile then
+           load_usedunits(compile_system);
+        { recompile if set }
+          if current_module^.do_compile then
+           begin
+           { we needn't the ppufile }
+             if assigned(current_module^.ppufile) then
+              begin
+                dispose(current_module^.ppufile,done);
+                current_module^.ppufile:=nil;
+              end;
+           { recompile the unit or give a fatal error if sources not available }
+             if not(current_module^.sources_avail) then
+              Message1(unit_f_cant_compile_unit,current_module^.modulename^)
+             else
+              begin
+                if assigned(old_current_module^.current_inputfile) then
+                 old_current_module^.current_inputfile^.tempclose;
+                compile(current_module^.mainsource^,compile_system);
+                if (not old_current_module^.compiled) and assigned(old_current_module^.current_inputfile) then
+                 old_current_module^.current_inputfile^.tempreopen;
+              end;
+           end
+          else
+           begin
+           { only reassemble ? }
+             if (current_module^.do_assemble) then
+              OnlyAsm(current_module^.asmfilename^);
+           { add the files for the linker }
+             addlinkerfiles(current_module);
+           end;
+        end;
+
       begin
          old_current_module:=current_module;
          old_current_ppu:=current_ppu;
@@ -255,90 +302,26 @@ unit pmodules;
            end;
        { the unit is not in the symtable stack }
          if (not assigned(st)) then
-{           ((not current_module^.in_implementation) and (hp^.in_implementation)) then }
           begin
-          { load the unit, it's not loaded yet }
-            if not assigned(hp) then
+          { if the unit is loaded remove it first }
+            if assigned(hp) then
              begin
-               { generates a new unit info record }
-               current_module:=new(pmodule,init(s,true));
-               current_ppu:=current_module^.ppufile;
-               { now we can register the unit }
-               loaded_units.insert(current_module);
-               { load interface section }
-               if not current_module^.do_compile then
-                load_interface;
-               { only load units when we don't recompile }
-               if not current_module^.do_compile then
-                load_usedunits(compile_system);
-               { recompile if set }
-               if current_module^.do_compile then
-                begin
-                { we needn't the ppufile }
-                  if assigned(current_module^.ppufile) then
-                   begin
-                     dispose(current_module^.ppufile,done);
-                     current_module^.ppufile:=nil;
-                   end;
-                  if not(current_module^.sources_avail) then
-                   Message1(unit_f_cant_compile_unit,current_module^.modulename^)
-                  else
-                   begin
-                     if assigned(old_current_module^.current_inputfile) then
-                      old_current_module^.current_inputfile^.tempclose;
-                     compile(current_module^.mainsource^,compile_system);
-                     if (not old_current_module^.compiled) and assigned(old_current_module^.current_inputfile) then
-                      old_current_module^.current_inputfile^.tempreopen;
-                    end;
-                 end
-                else
-                 begin
-                 { only reassemble ? }
-                   if (current_module^.do_assemble) then
-                    OnlyAsm(current_module^.asmfilename^);
-                  { add the files for the linker }
-                   addlinkerfiles(current_module);
-                 end;
-               { register the unit _once_ }
-               usedunits.concat(new(pused_unit,init(current_module,true)));
-             end
-            else
-            { we have to compile the unit again, but it is already inserted !!}
-            { we may have problem with the lost symtable !! }
-             begin
-               current_module:=hp;
-               { we must preserve the unit chain }
-               nextmodule:=pmodule(current_module^.next);
-               { we have to cleanup a little }
-               current_module^.special_done;
-               new(hs);
-               hs^:=current_module^.mainsource^;
-               current_module^.init(hs^,true);
-               dispose(hs);
-               { we must preserve the unit chain }
-               current_module^.next:=nextmodule;
-               if assigned(current_module^.ppufile) then
-                begin
-                  current_ppu:=current_module^.ppufile;
-                  load_interface;
-                  load_usedunits(compile_system)
-                end
-               else
-                begin
-{$ifdef UseBrowser}
-                { here we need to remove the names ! }
-                  current_module^.sourcefiles.done;
-                  current_module^.sourcefiles.init;
-{$endif UseBrowser}
-                  if assigned(old_current_module^.current_inputfile) then
-                   old_current_module^.current_inputfile^.tempclose;
-                  Message1(parser_d_compiling_second_time,current_module^.mainsource^);
-                  compile(current_module^.mainsource^,compile_system);
-                  if (not old_current_module^.compiled) and assigned(old_current_module^.current_inputfile) then
-                   old_current_module^.current_inputfile^.tempreopen;
-                end;
-               current_module^.compiled:=true;
+               { remove the old unit }
+               loaded_units.remove(hp);
+               dispose(hp,done);
              end;
+          { generates a new unit info record }
+            current_module:=new(pmodule,init(s,true));
+            current_ppu:=current_module^.ppufile;
+          { now we can register the unit }
+            loaded_units.insert(current_module);
+          { now realy load the ppu }
+            loadppufile;
+          { set compiled flag }
+            current_module^.compiled:=true;
+          { register the unit _once_ }
+            usedunits.concat(new(pused_unit,init(current_module,true)));
+          { load return pointer }
             hp:=current_module;
           end;
          { set the old module }
@@ -908,11 +891,13 @@ unit pmodules;
          symtablestack:=unitst^.next;
 
          { number the definitions, so a deref from other units works }
-	 numberunits;
          refsymtable^.number_defs;
 
          { Read the implementation units }
          parse_implementation_uses(unitst);
+
+         numberunits;
+
 
          { now we can change refsymtable }
          refsymtable:=p;
@@ -1146,7 +1131,11 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.29  1998-06-16 08:56:25  peter
+  Revision 1.30  1998-06-17 14:10:16  peter
+    * small os2 fixes
+    * fixed interdependent units with newppu (remake3 under linux works now)
+
+  Revision 1.29  1998/06/16 08:56:25  peter
     + targetcpu
     * cleaner pmodules for newppu
 

@@ -74,7 +74,7 @@
 
 {$ifdef TP}
   {$IFNDEF DPMI}
-    {$M 24576,0,655360}
+    {$M 24000,0,655360}
   {$ELSE}
     {$M 65000}
   {$ENDIF DPMI}
@@ -178,36 +178,36 @@ uses
   {$O os2_targ}
   {$O win_targ}
   {$ifdef gdb}
-	{$O gdb}
+        {$O gdb}
   {$endif gdb}
   {$ifdef i386}
-	{$O opts386}
-	{$O cgi386}
-	{$O cg386add}
-	{$O cg386cal}
-	{$O cg386cnv}
-	{$O cg386con}
-	{$O cg386flw}
-	{$O cg386ld}
-	{$O cg386mat}
-	{$O cg386set}
-	{$O aopt386}
-	{$O cgai386}
-	{$O i386}
-	{$O radi386}
-	{$O rai386}
-	{$O ratti386}
-	{$O tgeni386}
-	{$O ag386int}
-	{$O ag386att}
-	{$O ag386nsm}
-	{$O asmutils}
+        {$O opts386}
+        {$O cgi386}
+        {$O cg386add}
+        {$O cg386cal}
+        {$O cg386cnv}
+        {$O cg386con}
+        {$O cg386flw}
+        {$O cg386ld}
+        {$O cg386mat}
+        {$O cg386set}
+        {$O aopt386}
+        {$O cgai386}
+        {$O i386}
+        {$O radi386}
+        {$O rai386}
+        {$O ratti386}
+        {$O tgeni386}
+        {$O ag386int}
+        {$O ag386att}
+        {$O ag386nsm}
+        {$O asmutils}
   {$endif}
   {$ifdef m68k}
-	{$O opts68k}
-	{$O cg68k}
-	{$O ra68k}
-	{$O ag68kgas}
+        {$O opts68k}
+        {$O cg68k}
+        {$O ra68k}
+        {$O ag68kgas}
   {$endif}
 {$endif useoverlay}
 
@@ -227,13 +227,6 @@ var
 procedure myexit;{$ifndef FPC}far;{$endif}
 begin
   exitproc:=oldexit;
-{$ifdef UseBrowser}
-  if browser_file_open then
-    begin
-       close(browserfile);
-       browser_file_open:=false;
-    end;
-{$endif UseBrowser}
 {$ifdef tp}
   if use_big then
    symbolstream.done;
@@ -398,7 +391,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  1998-06-16 11:32:18  peter
+  Revision 1.16  1998-06-17 14:10:17  peter
+    * small os2 fixes
+    * fixed interdependent units with newppu (remake3 under linux works now)
+
+  Revision 1.15  1998/06/16 11:32:18  peter
     * small cosmetic fixes
 
   Revision 1.14  1998/06/15 13:43:45  daniel

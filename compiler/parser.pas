@@ -67,11 +67,32 @@ unit parser;
          loaded_units.init;
 
          usedunits.init;
+
+         { memory sizes }
+         if heapsize=0 then
+          heapsize:=target_info.heapsize;
+         if stacksize=0 then
+          stacksize:=target_info.stacksize;
       end;
 
-    { moved out to save stack }
-    var
-       addparam : string;
+
+    procedure default_macros;
+      var
+        hp : pstring_item;
+      begin
+      { commandline }
+        hp:=pstring_item(initdefines.first);
+        while assigned(hp) do
+         begin
+           def_macro(hp^.str^);
+           hp:=pstring_item(hp^.next);
+         end;
+      { set macros for version checking }
+        set_macro('FPC_VERSION',version_nr);
+        set_macro('FPC_RELEASE',release_nr);
+        set_macro('FPC_PATCH',patch_nr);
+      end;
+
 
     procedure compile(const filename:string;compile_system:boolean);
       var
@@ -104,65 +125,6 @@ unit parser;
          oldoptprocessor : tprocessors;
          oldasmmode      : tasmmode;
 
-      procedure def_macro(const s : string);
-
-        var
-          mac : pmacrosym;
-
-        begin
-           mac:=pmacrosym(macros^.search(s));
-           if mac=nil then
-             begin
-               mac:=new(pmacrosym,init(s));
-               Message1(parser_m_macro_defined,mac^.name);
-               macros^.insert(mac);
-             end;
-           mac^.defined:=true;
-        end;
-
-      procedure set_macro(const s : string;value : string);
-
-        var
-          mac : pmacrosym;
-
-        begin
-           mac:=pmacrosym(macros^.search(s));
-           if mac=nil then
-             begin
-               mac:=new(pmacrosym,init(s));
-               macros^.insert(mac);
-             end
-           else
-             begin
-                if assigned(mac^.buftext) then
-                  freemem(mac^.buftext,mac^.buflen);
-             end;
-           Message2(parser_m_macro_set_to,mac^.name,value);
-           mac^.buflen:=length(value);
-           getmem(mac^.buftext,mac^.buflen);
-           move(value[1],mac^.buftext^,mac^.buflen);
-           mac^.defined:=true;
-        end;
-
-      procedure define_macros;
-
-        var
-           hp : pstring_item;
-
-        begin
-           hp:=pstring_item(initdefines.first);
-           while assigned(hp) do
-             begin
-               def_macro(hp^.str^);
-               hp:=pstring_item(hp^.next);
-             end;
-
-           { set macros for version checking }
-           set_macro('FPC_VERSION',version_nr);
-           set_macro('FPC_RELEASE',release_nr);
-           set_macro('FPC_PATCH',patch_nr);
-        end;
-
       label
          done;
 
@@ -181,12 +143,19 @@ unit parser;
            but it should be reset to zero for each module }
          aktprocsym:=nil;
 
-         { first, we assume a program }
-         if not(assigned(current_module)) then
-           begin
-              current_module:=new(pmodule,init(filename,false));
-              main_module:=current_module;
-           end;
+       { reset the unit or create a new program }
+         if assigned(current_module) then
+          begin
+            current_module^.sourcefiles.done;
+            current_module^.sourcefiles.init;
+            current_module^.used_units.done;
+            current_module^.used_units.init;
+          end
+         else
+          begin
+            current_module:=new(pmodule,init(filename,false));
+            main_module:=current_module;
+          end;
 
          { save scanner state }
          oldmacros:=macros;
@@ -244,11 +213,10 @@ unit parser;
          if compile_system then
           aktswitches:=aktswitches+[cs_compilesystem];
 
-
        { macros }
          macros:=new(psymtable,init(macrosymtable));
          macros^.name:=stringdup('Conditionals for '+filename);
-         define_macros;
+         default_macros;
 
        { startup scanner }
          token:=yylex;
@@ -266,13 +234,9 @@ unit parser;
           begin
           { open assembler response }
             AsmRes.Init('ppas');
-{$ifdef UseBrowser}
-          { open browser if set }
-            if cs_browser in initswitches then
-             Browse.CreateLog;
-{$endif UseBrowser}
           end;
 
+         { load system unit always }
          loadsystemunit;
 
          registerdef:=true;
@@ -433,7 +397,9 @@ done:
             if cs_browser in initswitches then
              begin
                Comment(V_Info,'Writing Browser '+Browse.Fname);
+               Browse.CreateLog;
                write_browser_log;
+               Browse.CloseLog;
              end;
 {$endif UseBrowser}
           end;
@@ -443,7 +409,11 @@ done:
 end.
 {
   $Log$
-  Revision 1.26  1998-06-16 08:56:23  peter
+  Revision 1.27  1998-06-17 14:10:15  peter
+    * small os2 fixes
+    * fixed interdependent units with newppu (remake3 under linux works now)
+
+  Revision 1.26  1998/06/16 08:56:23  peter
     + targetcpu
     * cleaner pmodules for newppu
 
