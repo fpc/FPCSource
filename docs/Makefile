@@ -369,7 +369,8 @@ ifndef CURRENTXMLONLY
 XMLUNITS=sysutils strutils dateutils systhrds strings mouse keyboard \
          crt video dos sockets objects heaptrc mmx ipc printer typinfo \
          ports getopts emu387 dxeload go32 gpm graph oldlinux baseunix \
-         unixtype unix classes unixutil x86 dynlibs linux math system
+         unixtype unix classes unixutil x86 dynlibs linux math system\
+         objpas dateutils
 RTLXML=$(addsuffix .xml,$(XMLUNITS))
 RTLOPTS+= --descr=strutils.xml --input="../rtl/objpas/strutils.pp" 
 RTLOPTS+= --descr=systhrds.xml --input="../rtl/unix/systhrds.pp -Fi../rtl/inc" 
@@ -405,9 +406,11 @@ RTLOPTS+= --descr=dynlibs.xml --input="../rtl/inc/dynlibs.pp -Fi../rtl/unix"
 RTLOPTS+= --descr=linux.xml --input="../rtl/unix/linux.pp -Fi../rtl/linux -Fi../rtl/unix"
 RTLOPTS+= --descr=math.xml --input="../rtl/objpas/math.pp -Fi../rtl/i386 -dFPC_HAS_TYPE_EXTENDED"
 RTLOPTS+= --descr=system.xml --input="-dfpdocsystem -dHASGETHEAPSTATUS -dSUPPORT_DOUBLE ../rtl/$(HOSTOS)/system.pp -Fi../rtl/unix -Fi../rtl/inc -Fi../rtl/i386 -dCPU32 -dHASVARIANT -dFPC_HAS_TYPE_EXTENDED -dHASWIDECHAR"
+RTLOPTS+=--descr=objpas.xml --input="-dHASINTF ../rtl/objpas/objpas.pp"
+RTLOPTS+=--descr=dateutils.xml --input="../rtl/objpas/dateutils.pp -Fi../rtl/objpas"
 else
-RTLXML=system.xml
-RTLOPTS+=--descr=system.xml --input="-dfpdocsystem -dHASGETHEAPSTATUS -dSUPPORT_DOUBLE ../rtl/$(HOSTOS)/system.pp -Fi../rtl/unix -Fi../rtl/inc -Fi../rtl/i386 -dCPU32 -dHASVARIANT -dFPC_HAS_TYPE_EXTENDED -dHASWIDECHAR"
+RTLXML=dateutils.xml
+RTLOPTS+=--descr=dateutils.xml --input="../rtl/objpas/dateutils.pp -Fi../rtl/objpas"
 endif
 
 rtl.inc: $(RTLXML)
@@ -664,7 +667,10 @@ execute:
 
 #
 # $Log$
-# Revision 1.35  2004-12-19 20:20:16  peter
+# Revision 1.36  2004-12-21 22:58:24  michael
+# + Added dateutils functions
+#
+# Revision 1.35  2004/12/19 20:20:16  peter
 #   * includes variable instead of target to prevent always rebuilding
 #   * also build fcl.pdf
 #
