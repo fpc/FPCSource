@@ -90,7 +90,7 @@ Const
   MAP_ANONYMOUS =$1000;
 
   {Constansts Termios/Ioctl (used in Do_IsDevice) }
-  IOCtl_TCGETS=$5401; // TCGETS is also in termios.inc, but the sysunix needs only this
+  IOCtl_TCGETS= $40000000+$2C7400+ 19; // TCGETS is also in termios.inc, but the sysunix needs only this
 
   {Checked for BSD using Linuxthreads port}
   { cloning flags }
@@ -111,7 +111,10 @@ type
 
 {
   $Log$
-  Revision 1.7  2002-09-07 16:01:17  peter
+  Revision 1.8  2003-11-17 16:56:20  marco
+   * tiocgeta fixed
+
+  Revision 1.7  2002/09/07 16:01:17  peter
     * old logs removed and tabs fixed
 
   Revision 1.6  2002/05/06 09:35:09  marco
