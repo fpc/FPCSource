@@ -3,7 +3,8 @@
 #
 
 [targets]
-units=classes $(INCUNITS) $(XMLUNITS) $(SHEDITUNITS)
+dirs=../xml ../shedit
+units=classes $(INCUNITS)
 rst=ssockets cachecls
 
 [defaults]
@@ -24,20 +25,16 @@ libname=fpfcl
 fpcdir=../..
 targetdir=.
 incdir=$(INC)
-sourcesdir=$(INC) $(XML) $(SHEDIT)
+sourcesdir=$(INC)
 
 
 [presettings]
 # Include files
 INC=../inc
-XML=../xml
-SHEDIT=../shedit
 
-# INCUNITS,XMLUNITS is defined in makefile.inc
+# INCUNITS is defined in makefile.inc
 # They are default units for all platforms.
 include $(INC)/Makefile.inc
-include $(XML)/Makefile.inc
-include $(SHEDIT)/Makefile.inc
 
 
 [rules]
@@ -46,6 +43,3 @@ classes$(PPUEXT): $(addprefix $(INC)/,$(INCNAMES)) classes$(PASEXT)
 inifiles$(PPUEXT): classes$(PPUEXT) $(INC)/inifiles$(PASEXT)
 
 ezcgi$(PPUEXT): $(INC)/ezcgi$(PASEXT)
-
-shedit$(PPUEXT): $(SHEDIT)/shedit$(PASEXT)
-        $(COMPILER) $(SHEDIT)/shedit$(PASEXT) -I$(SHEDIT) $(REDIR)

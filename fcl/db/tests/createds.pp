@@ -1,11 +1,11 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2000 by Michael Van Canneyt, member of the 
+    Copyright (c) 1999-2000 by Michael Van Canneyt, member of the
     Free Pascal development team
 
     Creates a flat datafile for use with testds.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -29,7 +29,7 @@ Var F : TDDGDataFile;
     TableName : String;
     IndexName : String;
     ARec : TDDGData;
-    
+
 begin
   If ParamCount<>1 then
     begin
@@ -43,9 +43,9 @@ begin
   For I:=1 to 100 do
     begin
     S:=Format('This is person %d.',[i]);
-    With Arec Do 
+    With Arec Do
       begin
-      Name:=S; 
+      Name:=S;
       height:=I*0.001;
       LongField:=i*4;
       ShoeSize:=I;
@@ -62,11 +62,30 @@ begin
   Rewrite(L);
   For I:=0 to 100-1 do
     Write(L,I);
-  Close(L);  
+  Close(L);
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:56  michael
-  + removed logs
- 
+  Revision 1.1  2000-09-01 22:02:10  peter
+    * build also db
+
+  Revision 1.1  2000/07/13 06:31:27  michael
+  + Initial import
+
+  Revision 1.6  2000/01/07 01:24:32  peter
+    * updated copyright to 2000
+
+  Revision 1.5  2000/01/06 01:20:32  peter
+    * moved out of packages/ back to topdir
+
+  Revision 1.1  2000/01/03 19:33:05  peter
+    * moved to packages dir
+
+  Revision 1.3  1999/11/11 17:31:09  michael
+  + Added Checks for all simple field types.
+  + Initial implementation of Insert/Append
+
+  Revision 1.2  1999/10/24 17:07:54  michael
+  + Added copyright header
+
 }

@@ -1,0 +1,21 @@
+#
+#   Makefile.fpc for XML for FCL
+#
+
+[targets]
+units=doc_text shedit sh_xml sh_pas
+
+[require]
+options=-S2
+packages=fcl
+
+[install]
+unitsubdir=fcl
+packagename=fcl
+
+[dirs]
+fpcdir=../..
+targetdir=../$(OS_TARGET)
+
+[rules]
+vpath %$(PPUEXT) $(UNITTARGETDIR)

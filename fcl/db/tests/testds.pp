@@ -1,11 +1,11 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2000 by Michael Van Canneyt, member of the 
+    Copyright (c) 1999-2000 by Michael Van Canneyt, member of the
     Free Pascal development team
 
     Tests the TDDGDataset component.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -28,12 +28,12 @@ Procedure DumpFieldDef(F : TfieldDef);
 begin
   With F do
     begin
-    Writeln ('Name              : ',Name); 
+    Writeln ('Name              : ',Name);
     Writeln ('FieldNo           : ',FieldNo);
     Writeln ('Size              : ',Size);
-    Writeln ('FieldClass        : ',FieldClass.ClassName); 
+    Writeln ('FieldClass        : ',FieldClass.ClassName);
     Writeln ('Required          : ',required);
-    Writeln ('Precision         : ',Precision); 
+    Writeln ('Precision         : ',Precision);
     Writeln ('DataType          : ',FieldTypeNames[DataType]);
     Writeln ('InternalCalcField : ',Internalcalcfield);
     end;
@@ -45,13 +45,13 @@ begin
   With F do
     begin
     writeln ('-------------------------------------');
-    Writeln ('FieldName : ',FieldName); 
+    Writeln ('FieldName : ',FieldName);
     Writeln ('FieldNo   : ',FieldNo);
     Writeln ('Index     : ',Index);
     Writeln ('DataSize  : ',DataSize);
     Writeln ('Size      : ',Size);
     Writeln ('DataType  : ',FieldTypeNames[DataType]);
-    Writeln ('Class     : ',ClassName); 
+    Writeln ('Class     : ',ClassName);
     Writeln ('Required  : ',required);
     Writeln ('ReadOnly  : ',ReadOnly);
     Writeln ('Visible   : ',Visible);
@@ -61,7 +61,7 @@ end;
 Procedure DumpFieldData (F : TField);
 
 begin
-  With F Do 
+  With F Do
     begin
     Writeln ('Field     : ',FieldName);
     Writeln ('Data type : ',FieldTypeNames[DataType]);
@@ -69,17 +69,17 @@ begin
     Case Datatype of
       ftSmallint, ftInteger, ftWord : Writeln ('As longint : ',AsLongint);
       ftBoolean : Writeln ('As Boolean : ',AsBoolean);
-      ftFloat : Writeln ('As Float : ',AsFloat); 
+      ftFloat : Writeln ('As Float : ',AsFloat);
       ftDate, ftTime, ftDateTime : Writeln ('As DateTime : ',DateTimeToStr(AsDateTime));
     end;
     end;
 end;
 
-Var 
+Var
   Data : TDDGdataset;
   I,Count : longint;
   Bookie : TBookMarkStr;
-  
+
 Procedure ScrollForward;
 
 begin
@@ -91,8 +91,8 @@ begin
       Writeln ('================================================');
       For I:=0 to FieldCount-1 do
         DumpFieldData(Fields[I]);
-      Next;  
-      end;  
+      Next;
+      end;
 end;
 
 Procedure ScrollBackWard;
@@ -116,7 +116,7 @@ begin
     Halt(1);
     end;
   Log ('Creating Dataset');
-  Data:=TDDGDataset.Create(Nil);  
+  Data:=TDDGDataset.Create(Nil);
   With Data do
     begin
     Log('Setting Tablename');
@@ -146,7 +146,7 @@ begin
       While NOT EOF do
         begin
         Inc(Count);
-        If Count=50 then 
+        If Count=50 then
           begin
           Writeln ('Setting bookmark on record');
           Bookie:=Bookmark;
@@ -154,7 +154,7 @@ begin
           end;
         For I:=0 to FieldCount-1 do
           DumpFieldData(Fields[I]);
-        Next;  
+        Next;
         end;
     Writeln ('Jumping to bookmark',Bookie);
     BookMark:=Bookie;
@@ -174,11 +174,30 @@ begin
     Close;
     Log('End.');
     Free;
-    end;    
+    end;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:56  michael
-  + removed logs
- 
+  Revision 1.1  2000-09-01 22:02:10  peter
+    * build also db
+
+  Revision 1.1  2000/07/13 06:31:28  michael
+  + Initial import
+
+  Revision 1.6  2000/01/07 01:24:32  peter
+    * updated copyright to 2000
+
+  Revision 1.5  2000/01/06 01:20:32  peter
+    * moved out of packages/ back to topdir
+
+  Revision 1.1  2000/01/03 19:33:06  peter
+    * moved to packages dir
+
+  Revision 1.3  1999/11/11 17:31:09  michael
+  + Added Checks for all simple field types.
+  + Initial implementation of Insert/Append
+
+  Revision 1.2  1999/10/24 17:07:54  michael
+  + Added copyright header
+
 }
