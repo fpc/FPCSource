@@ -549,6 +549,9 @@ begin
    getdir(0,startpath);
    successfull:=false;
 
+   fillchar(cfg, SizeOf(cfg), 0);
+   fillchar(data, SizeOf(data), 0);
+
    readcfg(cfgfile);
 
    installapp.init;
@@ -565,7 +568,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  1998-09-16 16:46:37  peter
+  Revision 1.8  1998-09-22 21:10:31  jonas
+    * initialize cfg and data with 0 at startup
+
+  Revision 1.7  1998/09/16 16:46:37  peter
     + updates
 
   Revision 1.6  1998/09/15 13:11:14  pierre
