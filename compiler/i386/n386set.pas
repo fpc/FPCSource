@@ -247,7 +247,11 @@ implementation
             else
              begin
                { load the value in a register }
+             {$ifdef newra}
+               pleftreg:=rg.getregisterint(exprasmlist,OS_INT);
+             {$else}
                pleftreg := rg.getexplicitregisterint(exprasmlist,NR_EDI);
+             {$endif}
                opsize := S_L;
                emit_ref_reg(A_MOVZX,S_BL,left.location.reference,pleftreg);
              end;
@@ -527,7 +531,11 @@ implementation
                       pleftreg.number:=(left.location.register.number and not $ff) or R_SUBWHOLE;
                     end
                   else
+                  {$ifdef newra}
+                    pleftreg:=rg.getregisterint(exprasmlist,OS_INT);
+                  {$else}
                     pleftreg:=rg.getexplicitregisterint(exprasmlist,NR_EDI);
+                  {$endif}
                   cg.a_load_loc_reg(exprasmlist,left.location,pleftreg);
                   location_freetemp(exprasmlist,left.location);
                   location_release(exprasmlist,left.location);
@@ -718,7 +726,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.54  2003-04-22 23:50:23  peter
+  Revision 1.55  2003-04-23 09:51:16  daniel
+    * Removed usage of edi in a lot of places when new register allocator used
+    + Added newra versions of g_concatcopy and secondadd_float
+
+  Revision 1.54  2003/04/22 23:50:23  peter
     * firstpass uses expectloc
     * checks if there are differences between the expectloc and
       location.loc from secondpass in EXTDEBUG

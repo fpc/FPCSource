@@ -1158,6 +1158,110 @@ unit cgx86;
 
 { ************* concatcopy ************ }
 
+{$ifdef newra}
+
+    procedure Tcgx86.g_concatcopy(list:Taasmoutput;const source,dest:Treference;
+                                  len:aword;delsource,loadref:boolean);
+    var srcref,dstref:Treference;
+        srcreg,destreg,countreg,r:Tregister;
+        helpsize:aword;
+        copysize:byte;
+        cgsize:Tcgsize;
+
+    begin
+      helpsize:=12;
+      if cs_littlesize in aktglobalswitches then
+        helpsize:=8;
+      if not loadref and (len<=helpsize) then
+        begin
+          dstref:=dest;
+          srcref:=source;
+          copysize:=4;
+          cgsize:=OS_32;
+          while len<>0 do
+            begin
+              dec(len,copysize);
+              r:=rg.getregisterint(list,cgsize);
+              a_load_ref_reg(list,cgsize,srcref,r);
+              if (len=0) and delsource then
+                reference_release(list,source);
+              a_load_reg_ref(list,cgsize,r,dstref);
+              inc(srcref.offset,copysize);
+              inc(dstref.offset,copysize);
+              rg.ungetregisterint(list,r);
+              if copysize<2 then
+                begin
+                  copysize:=1;
+                  cgsize:=OS_8;
+                end
+              else if copysize<4 then
+                begin
+                  copysize:=2;
+                  cgsize:=OS_16;
+                end;
+            end;
+        end
+      else
+        begin
+          destreg:=rg.getexplicitregisterint(list,NR_EDI);
+          a_loadaddr_ref_reg(list,dest,destreg);
+          srcreg:=rg.getexplicitregisterint(list,NR_ESI);
+          if loadref then
+            a_load_ref_reg(list,OS_ADDR,source,srcreg)
+          else
+            begin
+              a_loadaddr_ref_reg(list,source,srcreg);
+              if delsource then
+                begin
+                  srcref:=source;
+                  { Don't release ESI register yet, it's needed
+                    by the movsl }
+                  if (srcref.base.number=NR_ESI) then
+                    srcref.base.number:=NR_NO
+                  else if (srcref.index.number=NR_ESI) then
+                    srcref.index.number:=NR_NO;
+                  reference_release(list,srcref);
+                end;
+            end;
+
+          countreg:=rg.getexplicitregisterint(list,NR_ECX);
+
+          list.concat(Taicpu.op_none(A_CLD,S_NO));
+          if cs_littlesize in aktglobalswitches  then
+            begin
+              a_load_const_reg(list,OS_INT,len,countreg);
+              list.concat(Taicpu.op_none(A_REP,S_NO));
+              list.concat(Taicpu.op_none(A_MOVSB,S_NO));
+            end
+          else
+            begin
+              helpsize:=len shr 2;
+              len:=len and 3;
+              if helpsize>1 then
+                begin
+                  a_load_const_reg(list,OS_INT,helpsize,countreg);
+                  list.concat(Taicpu.op_none(A_REP,S_NO));
+                end;
+              if helpsize>0 then
+                list.concat(Taicpu.op_none(A_MOVSD,S_NO));
+              if len>1 then
+                begin
+                  dec(len,2);
+                  list.concat(Taicpu.op_none(A_MOVSW,S_NO));
+                end;
+              if len=1 then
+                list.concat(Taicpu.op_none(A_MOVSB,S_NO));
+              end;
+          rg.ungetregisterint(list,countreg);
+          rg.ungetregisterint(list,srcreg);
+          rg.ungetregisterint(list,destreg);
+        end;
+      if delsource then
+        tg.ungetiftemp(list,source);
+    end;
+
+{$else newra}
+
     procedure tcgx86.g_concatcopy(list : taasmoutput;const source,dest : treference;len : aword; delsource,loadref : boolean);
       var
          ecxpushed,esipushed : boolean;
@@ -1360,7 +1464,7 @@ unit cgx86;
           tg.ungetiftemp(list,source);
       end;
 
-
+{$endif newra}
 
     procedure tcgx86.g_exception_reason_save(list : taasmoutput; const href : treference);
 
@@ -1834,7 +1938,11 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.40  2003-04-22 13:47:08  peter
+  Revision 1.41  2003-04-23 09:51:16  daniel
+    * Removed usage of edi in a lot of places when new register allocator used
+    + Added newra versions of g_concatcopy and secondadd_float
+
+  Revision 1.40  2003/04/22 13:47:08  peter
     * fixed C style array of const
     * fixed C array passing
     * fixed left to right with high parameters

@@ -229,9 +229,13 @@ interface
             begin
               if extra_not then
                 emit_reg(A_NOT,opsize,left.location.register);
+            {$ifdef newra}
+              r:=rg.getregisterint(exprasmlist,OS_INT);
+            {$else}
               r.enum:=R_INTREGISTER;
               r.number:=NR_EDI;
               rg.getexplicitregisterint(exprasmlist,NR_EDI);
+            {$endif}
               cg.a_load_loc_reg(exprasmlist,right.location,r);
               emit_reg_reg(op,opsize,left.location.register,r);
               emit_reg_reg(A_MOV,opsize,r,left.location.register);
@@ -275,9 +279,13 @@ interface
                  begin
                    if extra_not then
                      begin
+                     {$ifdef newra}
+                        r:=rg.getregisterint(exprasmlist,OS_INT);
+                     {$else}
                         rg.getexplicitregisterint(exprasmlist,NR_EDI);
                         r.enum:=R_INTREGISTER;
                         r.number:=NR_EDI;
+                     {$endif}
                         cg.a_load_loc_reg(exprasmlist,right.location,r);
                         emit_reg(A_NOT,S_L,r);
                         emit_reg_reg(A_AND,S_L,r,left.location.register);
@@ -680,6 +688,9 @@ interface
         { on comparison load flags }
         if cmpop then
          begin
+         {$ifdef newra}
+           r:=rg.getexplicitregisterint(exprasmlist,NR_AX);
+         {$else}
            if not(RS_EAX in rg.unusedregsint) then
              begin
                rg.getexplicitregisterint(exprasmlist,NR_EDI);
@@ -691,8 +702,12 @@ interface
              end;
            r.enum:=R_INTREGISTER;
            r.number:=NR_AX;
+         {$endif}
            emit_reg(A_FNSTSW,S_NO,r);
            emit_none(A_SAHF,S_NO);
+         {$ifdef newra}
+           rg.ungetregisterint(exprasmlist,r);
+         {$else}
            if not(RS_EAX in rg.unusedregsint) then
              begin
                r.enum:=R_INTREGISTER;
@@ -702,6 +717,7 @@ interface
                emit_reg_reg(A_MOV,S_L,r2,r);
                rg.ungetregisterint(exprasmlist,r2);
              end;
+         {$endif}
            if nf_swaped in flags then
             begin
               case nodetype of
@@ -1653,7 +1669,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.63  2003-04-22 23:50:23  peter
+  Revision 1.64  2003-04-23 09:51:16  daniel
+    * Removed usage of edi in a lot of places when new register allocator used
+    + Added newra versions of g_concatcopy and secondadd_float
+
+  Revision 1.63  2003/04/22 23:50:23  peter
     * firstpass uses expectloc
     * checks if there are differences between the expectloc and
       location.loc from secondpass in EXTDEBUG
