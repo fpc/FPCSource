@@ -412,6 +412,9 @@ unit cobjects;
 
   implementation
 
+    uses
+      comphook;
+      
 {*****************************************************************************
                                     Memory debug
 *****************************************************************************}
@@ -1290,7 +1293,7 @@ end;
                         end;
                 end;
             if (oldroot=nil) or (root=nil) then
-                runerror(218); {Internalerror is not available...}
+                do_internalerror(218); {Internalerror is not available...}
             if root^.left<>nil then
                 begin
                     {Now the node pointing to root must point to the left
@@ -2139,7 +2142,7 @@ end;
       begin
         l:=strlen(p);
         if l>=bufsize then
-          runerror(222);
+          do_internalerror(222);
         { why is there not CRC here ???}
         if bufpos+l>bufsize then
           flush;
@@ -2254,7 +2257,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.41  1999-08-24 13:13:57  peter
+  Revision 1.42  1999-09-07 15:08:51  pierre
+   * runerror => do_internalerror
+
+  Revision 1.41  1999/08/24 13:13:57  peter
     * MEMDEBUG to see the sizes of asmlist,asmsymbols,symtables
 
   Revision 1.40  1999/08/12 23:19:05  pierre
