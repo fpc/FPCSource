@@ -595,7 +595,8 @@ var
 begin
   res:=0;
   case sig of
-    8 : begin
+    SIGFPE :
+      begin
     { this is not allways necessary but I don't know yet
       how to tell if it is or not PM }
 {$ifdef I386}
@@ -634,7 +635,10 @@ begin
 {$endif I386}
           ResetFPU;
         end;
-   11 : res:=216;
+   SIGILL,
+   SIGBUS,
+   SIGSEGV :
+        res:=216;
   end;
 { give runtime error at the position where the signal was raised }
   if res<>0 then
@@ -666,8 +670,10 @@ const
                                          VAR is removed}
 begin
   ResetFPU;
-  SigAction(8,@act,oldact);
-  SigAction(11,@act,oldact);
+  SigAction(SIGFPE,@act,oldact);
+  SigAction(SIGSEGV,@act,oldact);
+  SigAction(SIGBUS,@act,oldact);
+  SigAction(SIGILL,@act,oldact);
 end;
 
 
@@ -747,7 +753,10 @@ End.
 
 {
   $Log$
-  Revision 1.9  2001-04-13 22:39:05  peter
+  Revision 1.10  2001-04-23 20:33:31  peter
+    * also install sig handlers for sigill,sigbus
+
+  Revision 1.9  2001/04/13 22:39:05  peter
     * removed warning
 
   Revision 1.8  2001/04/12 17:53:43  peter
