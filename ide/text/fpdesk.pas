@@ -199,8 +199,8 @@ begin
       New(S, Init(30*1024,4096));
       BreakpointsCollection^.Store(S^);
       S^.Seek(0);
-      F^.CreateResource(resWatches,rcBinary,0);
-      WriteBreakPoints:=F^.AddResourceEntryFromStream(resWatches,langDefault,0,S^,S^.GetSize);
+      F^.CreateResource(resBreakpoints,rcBinary,0);
+      WriteBreakPoints:=F^.AddResourceEntryFromStream(resBreakpoints,langDefault,0,S^,S^.GetSize);
       Dispose(S, Done);
       PopStatus;
     end;
@@ -403,7 +403,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.10  1999-09-16 14:34:58  pierre
+  Revision 1.11  1999-09-17 16:28:58  pierre
+   * ResWatches in WriteBreakpoints typo !
+
+  Revision 1.10  1999/09/16 14:34:58  pierre
     + TBreakpoint and TWatch registering
     + WatchesCollection and BreakpointsCollection stored in desk file
     * Syntax highlighting was broken
