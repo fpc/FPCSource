@@ -196,19 +196,19 @@ interface
 {$endif extdebug}
             if (nodetype in [equaln,unequaln]) then
               if (unsigned and
-                  (right.location.value > high(word))) or
+                  (aword(right.location.value) > high(word))) or
                  (not unsigned and
-                  (longint(right.location.value) < low(smallint)) or
-                   (longint(right.location.value) > high(smallint))) then
+                  (aint(right.location.value) < low(smallint)) or
+                   (aint(right.location.value) > high(smallint))) then
                 { we can then maybe use a constant in the 'othersigned' case
                  (the sign doesn't matter for // equal/unequal)}
                 unsigned := not unsigned;
 
             if (unsigned and
-                ((right.location.value) <= high(word))) or
+                (aword(right.location.value) <= high(word))) or
                (not(unsigned) and
-                (longint(right.location.value) >= low(smallint)) and
-                (longint(right.location.value) <= high(smallint))) then
+                (aint(right.location.value) >= low(smallint)) and
+                (aint(right.location.value) <= high(smallint))) then
                useconst := true
             else
               begin
@@ -524,7 +524,7 @@ interface
                    internalerror(43244);
                   if (right.location.loc = LOC_CONSTANT) then
                     cg.a_op_const_reg_reg(exprasmlist,OP_OR,OS_INT,
-                      1 shl right.location.value,
+                      aint(aword(1) shl aword(right.location.value)),
                       left.location.register,location.register)
                   else
                     begin
@@ -1458,7 +1458,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.50  2004-10-25 15:36:47  peter
+  Revision 1.51  2004-10-26 18:22:31  jonas
+    * fixed bugs due to change of the value field of tlocation from aword to
+      aint
+
+  Revision 1.50  2004/10/25 15:36:47  peter
     * save standard registers moved to tcgobj
 
   Revision 1.49  2004/09/25 14:23:54  peter
