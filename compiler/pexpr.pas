@@ -48,7 +48,7 @@ unit pexpr;
     uses
        globtype,systems,tokens,
        cobjects,globals,scanner,
-       symconst,aasm,
+       symconst,aasm,htypechk,
 {$ifdef newcg}
        cgbase,
 {$else}
@@ -1932,40 +1932,7 @@ _LECKKLAMMER : begin
 {****************************************************************************
                              Sub_Expr
 ****************************************************************************}
-
-    type
-      Ttok2nodeRec=record
-        tok : ttoken;
-        nod : ttreetyp;
-      end;
-
-    const
-      tok2nodes=23;
-      tok2node:array[1..tok2nodes] of ttok2noderec=(
-        (tok:_PLUS    ;nod:addn),
-        (tok:_MINUS   ;nod:subn),
-        (tok:_STAR    ;nod:muln),
-        (tok:_SLASH   ;nod:slashn),
-        (tok:_EQUAL   ;nod:equaln),
-        (tok:_GT      ;nod:gtn),
-        (tok:_LT      ;nod:ltn),
-        (tok:_GTE     ;nod:gten),
-        (tok:_LTE     ;nod:lten),
-        (tok:_SYMDIF  ;nod:symdifn),
-        (tok:_STARSTAR;nod:starstarn),
-        (tok:_OP_AS     ;nod:asn),
-        (tok:_OP_IN     ;nod:inn),
-        (tok:_OP_IS     ;nod:isn),
-        (tok:_OP_OR     ;nod:orn),
-        (tok:_OP_AND    ;nod:andn),
-        (tok:_OP_DIV    ;nod:divn),
-        (tok:_OP_MOD    ;nod:modn),
-        (tok:_OP_SHL    ;nod:shln),
-        (tok:_OP_SHR    ;nod:shrn),
-        (tok:_OP_XOR    ;nod:xorn),
-        (tok:_CARET   ;nod:caretn),
-        (tok:_UNEQUAL ;nod:unequaln)
-      );
+   const
       { Warning these stay be ordered !! }
       operator_levels:array[Toperator_precedence] of set of Ttoken=
          ([_LT,_LTE,_GT,_GTE,_EQUAL,_UNEQUAL,_OP_IN,_OP_IS],
@@ -2154,7 +2121,10 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.173  2000-03-23 15:56:59  peter
+  Revision 1.174  2000-06-02 21:22:56  pierre
+   tok2node moved to htypechk unit
+
+  Revision 1.173  2000/03/23 15:56:59  peter
     * fixed crash with inherited with varsym/propsym
 
   Revision 1.172  2000/03/19 11:22:21  peter
