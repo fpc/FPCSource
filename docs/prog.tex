@@ -5633,7 +5633,7 @@ can be changed by changing the \var{maxnesting} constant.
 You can change this by redefining the \var{maxunits} constant in the compiler 
 source file.
 \item The maximum nesting level of pre-processor macros is 16. This can be
-changed by changing the value of \var{max_macro_nesting}.
+changed by changing the value of \var{max\_macro\_nesting}.
 \item Arrays are limited to 2 GBytes in size in the default processor mode.
 \end{enumerate}
 
@@ -6792,8 +6792,8 @@ CPUPOWERPC & \fpc target is a 32-bit PowerPC or compatible.\\
 \begin{FPCltable}{ll}{Possible defines when compiling using target OS}{FPCOSdefines}
 Target operating system & Defines \\ \hline
 linux & LINUX, UNIX\\
-freebsd & FREEBSD, BSD, LINUX, UNIX\\
-netbsd & NETBSD, BSD, LINUX, UNIX\\
+freebsd & FREEBSD, BSD, UNIX\\
+netbsd & NETBSD, BSD, UNIX\\
 sunos & SUNOS, SOLARIS, UNIX\\
 go32v2 & GO32V2, DPMI\\
 os2 & OS2\\
@@ -6807,7 +6807,8 @@ QNX RTP & QNX, UNIX
 \end{FPCltable}
 
 \begin{remark}
-The \unix define was added starting from \fpc version 1.0.5.
+The \unix define was added starting from \fpc version 1.0.5. The BSD
+operating systems no longer define LINUX starting with version 1.0.7.
 \end{remark}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
