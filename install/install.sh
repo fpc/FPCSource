@@ -8,7 +8,7 @@
 #
 
 # Release Version 1.9.8 will be replaced by makepack
-VERSION=1.9.8
+VERSION=%version%
 
 # some useful functions
 # ask displays 1st parameter, and ask new value for variable, whose name is
@@ -143,9 +143,13 @@ installbinary ()
   
   echo "Installing utilities..."
   unztarfromtar $BINARYTAR ${CROSSPREFIX}utils.$1.tar.gz $PREFIX
-  if [ -f ${CROSSPREFIX}ide.$1.tar.gz ]; then
+
+  ide=`tar -tf $BINARYTAR | grep "${CROSSPREFIX}ide.$1.tar.gz"`
+  if [ "$ide" == "${CROSSPREFIX}ide.$1.tar.gz" ]; then
     if yesno "Install Textmode IDE"; then
       unztarfromtar $BINARYTAR ${CROSSPREFIX}ide.$1.tar.gz $PREFIX
+      rm -f $EXECDIR/fp
+      ln -sf $LIBDIR/fp $EXECDIR/fp
     fi
   fi
 
