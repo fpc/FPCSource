@@ -482,6 +482,10 @@ begin
     target_i386_Go32v2 :
       linker:=new(plinkergo32v2,Init);
   {$endif}
+  {$ifndef NOTARGETOS2}
+    target_i386_os2 :
+      linker:=new(plinkeros2,Init);
+  {$endif}
 {$endif i386}
 {$ifdef m68k}
   {$ifndef NOTARGETPALMOS}
@@ -521,7 +525,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.74  1999-10-21 14:29:34  peter
+  Revision 1.75  1999-10-26 12:25:04  peter
+    * fixed os2 linker
+
+  Revision 1.74  1999/10/21 14:29:34  peter
     * redesigned linker object
     + library support for linux (only procedures can be exported)
 
