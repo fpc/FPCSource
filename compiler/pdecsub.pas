@@ -1748,9 +1748,14 @@ const
              internalerror(200304232);
            { connect parasym to paraitem }
            tvarsym(currpara.parasym).paraitem:=currpara;
-           { Need a local copy? }
+           { We need a local copy for a value parameter when only the
+             address is pushed. Open arrays and Array of Const are
+             an exception because they are allocated at runtime and the
+             address that is pushed is patched }
            if (currpara.paratyp=vs_value) and
-              paramanager.push_addr_param(currpara.paratyp,currpara.paratype.def,pd.proccalloption) then
+              paramanager.push_addr_param(currpara.paratyp,currpara.paratype.def,pd.proccalloption) and
+              not(is_open_array(currpara.paratype.def) or
+                  is_array_of_const(currpara.paratype.def)) then
              include(tvarsym(currpara.parasym).varoptions,vo_has_local_copy);
            currpara:=tparaitem(currpara.next);
          end;
@@ -2112,7 +2117,10 @@ const
 end.
 {
   $Log$
-  Revision 1.136  2003-09-23 20:36:47  peter
+  Revision 1.137  2003-09-25 21:24:09  peter
+    * don't include vo_has_local_copy for open array/array of const
+
+  Revision 1.136  2003/09/23 20:36:47  peter
     * remove obsolete code
 
   Revision 1.135  2003/09/23 17:56:05  peter
