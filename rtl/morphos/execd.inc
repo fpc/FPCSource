@@ -18,9 +18,7 @@
  **********************************************************************}
 
 {$include emuld.inc}
-
-const
-  TAG_USER  = (1 Shl 31);
+{$include utild1.inc}
 
 
 { * exec node definitions (V50)
@@ -1731,9 +1729,15 @@ const
   SAL_Name     = (SAL_Dummy + 3);
 
 
+{$include utild2.inc}
+
+
 {
   $Log$
-  Revision 1.1  2004-06-13 20:52:20  karoly
+  Revision 1.2  2004-08-03 14:31:29  karoly
+    * changed to use new utility includes
+
+  Revision 1.1  2004/06/13 20:52:20  karoly
     * initial revision
 
 }
