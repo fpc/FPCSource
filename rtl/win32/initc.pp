@@ -30,7 +30,7 @@ uses
 
 const clib = 'crtdll'; 
 
-function geterrnolocation: Plibcint; cdecl;external clib name '__error';
+function geterrnolocation: Plibcint; cdecl;external clib name '_errno';
 
 function fpgetCerrno:libcint; 
 begin
@@ -126,7 +126,10 @@ if setjmp(exitjmpbuf)=0 then
 end.
 {
   $Log$
-  Revision 1.10  2003-12-11 09:21:52  marco
+  Revision 1.11  2004-09-12 17:41:40  hajny
+    * hopefully fixed the problem with missing __error symbol
+
+  Revision 1.10  2003/12/11 09:21:52  marco
    * patch from peter
 
   Revision 1.9  2003/11/03 09:42:28  marco
