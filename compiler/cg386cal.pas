@@ -287,14 +287,14 @@ implementation
                 iolabel:=nil;
 
               { save all used registers }
-              pushusedregisters(pushed,pprocdef(p^.procdefinition)^.usedregisters);
+              pushusedregisters(exprasmlist,pushed,pprocdef(p^.procdefinition)^.usedregisters);
 
               { give used registers through }
               usedinproc:=usedinproc or pprocdef(p^.procdefinition)^.usedregisters;
            end
          else
            begin
-              pushusedregisters(pushed,$ff);
+              pushusedregisters(exprasmlist,pushed,$ff);
               usedinproc:=$ff;
               { no IO check for methods and procedure variables }
               iolabel:=nil;
@@ -1008,32 +1008,15 @@ implementation
                 is_widestring(p^.resulttype) then
                 begin
                    gettempansistringreference(hr);
+                   { cleanup the temp slot }
+                   exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EAX)));
+                   decrstringref(exprasmlist,p^.resulttype,hr);
+                   exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EAX)));
+
                    exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,R_EAX,
                      newreference(hr))));
-                   p^.location.loc:=LOC_REFERENCE;
+                   p^.location.loc:=LOC_MEM;
                    p^.location.reference:=hr;
-                   { unnessary ansi/wide strings are imm. disposed }
-                   if not(p^.return_value_used) then
-                     begin
-                        pushusedregisters(pushedregs,$ff);
-                        emitpushreferenceaddr(exprasmlist,hr);
-                        if is_ansistring(p^.resulttype) then
-                          begin
-                             exprasmlist^.concat(new(pai386,
-                               op_sym(A_CALL,S_NO,newasmsymbol('FPC_ANSISTR_DECR_REF'))));
-                             if not (cs_compilesystem in aktmoduleswitches) then
-                               concat_external('FPC_ANSISTR_DECR_REF',EXT_NEAR);
-                          end
-                        else
-                          begin
-                             exprasmlist^.concat(new(pai386,
-                               op_sym(A_CALL,S_NO,newasmsymbol('FPC_WIDESTR_DECR_REF'))));
-                             if not (cs_compilesystem in aktmoduleswitches) then
-                               concat_external('FPC_WIDESTR_DECR_REF',EXT_NEAR);
-                          end;
-                        ungetiftemp(hr);
-                        popusedregisters(pushedregs);
-                     end;
                 end
               else
                 begin
@@ -1062,7 +1045,7 @@ implementation
            exprasmlist^.concat(new(pai386,op_const_reg(A_ADD,S_L,pop_size,R_ESP)));
 
          { restore registers }
-         popusedregisters(pushed);
+         popusedregisters(exprasmlist,pushed);
 
          { at last, restore instance pointer (SELF) }
          if loadesi then
@@ -1106,8 +1089,15 @@ implementation
          if (not p^.return_value_used) and (p^.resulttype<>pdef(voiddef)) then
            begin
               if p^.location.loc in [LOC_MEM,LOC_REFERENCE] then
-                { release unused temp }
-                ungetiftemp(p^.location.reference)
+                begin
+                   { data which must be finalized ? }
+                   if (p^.resulttype^.needs_inittable) and
+                     ( (p^.resulttype^.deftype<>objectdef) or
+                       not(pobjectdef(p^.resulttype)^.isclass)) then
+                      finalize(exprasmlist,p^.resulttype,p^.location.reference);
+                   { release unused temp }
+                   ungetiftemp(p^.location.reference)
+                end
               else if p^.location.loc=LOC_FPU then
                 { release FPU stack }
                 exprasmlist^.concat(new(pai386,op_reg(A_FSTP,S_NO,R_ST0)));
@@ -1192,7 +1182,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.82  1999-05-18 14:15:23  peter
+  Revision 1.83  1999-05-18 21:58:24  florian
+    * fixed some bugs related to temp. ansistrings and functions results
+      which return records/objects/arrays which need init/final.
+
+  Revision 1.82  1999/05/18 14:15:23  peter
     * containsself fixes
     * checktypes()
 

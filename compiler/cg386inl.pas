@@ -275,7 +275,7 @@ implementation
 
                 while assigned(node) do
                   begin
-                     pushusedregisters(pushed,$ff);
+                     pushusedregisters(exprasmlist,pushed,$ff);
                      hp:=node;
                      node:=node^.right;
                      hp^.right:=nil;
@@ -429,14 +429,14 @@ implementation
                           end;
                        end;
                    { load ESI in methods again }
-                     popusedregisters(pushed);
+                     popusedregisters(exprasmlist,pushed);
                      maybe_loadesi;
                   end;
              end;
          { Insert end of writing for textfiles }
            if ft=ft_text then
              begin
-               pushusedregisters(pushed,$ff);
+               pushusedregisters(exprasmlist,pushed,$ff);
                emit_push_mem(aktfile);
                if doread then
                 begin
@@ -452,7 +452,7 @@ implementation
                   else
                     emitcall('FPC_WRITE_END',true);
                 end;
-               popusedregisters(pushed);
+               popusedregisters(exprasmlist,pushed);
                maybe_loadesi;
              end;
          { Insert IOCheck if set }
@@ -490,7 +490,7 @@ implementation
            procedureprefix : string;
 
           begin
-           pushusedregisters(pushed,$ff);
+           pushusedregisters(exprasmlist,pushed,$ff);
            node:=p^.left;
            is_real:=false;
            has_length:=false;
@@ -604,7 +604,7 @@ implementation
              end;
            disposetree(hp);
 
-           popusedregisters(pushed);
+           popusedregisters(exprasmlist,pushed);
         end;
 
 {$IfnDef OLDVAL}
@@ -656,7 +656,7 @@ implementation
              exit;
 
           {save the regvars}
-           pushusedregisters(pushed,$ff);
+           pushusedregisters(exprasmlist,pushed,$ff);
 
           {now that we've already pushed the addres of dest_para^.left on the
            stack, we can put the real parameters on the stack}
@@ -721,7 +721,7 @@ implementation
 
            { restore the register vars}
 
-           popusedregisters(pushed);
+           popusedregisters(exprasmlist,pushed);
 
            If has_code and Not(has_32bit_code) Then
              {only 16bit code is possible}
@@ -1123,7 +1123,7 @@ implementation
               end;
              in_reset_typedfile,in_rewrite_typedfile :
                begin
-                  pushusedregisters(pushed,$ff);
+                  pushusedregisters(exprasmlist,pushed,$ff);
                   exprasmlist^.concat(new(pai386,op_const(A_PUSH,S_L,pfiledef(p^.left^.resulttype)^.typed_as^.size)));
                   secondpass(p^.left);
                   emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
@@ -1131,7 +1131,7 @@ implementation
                     emitcall('FPC_RESET_TYPED',true)
                   else
                     emitcall('FPC_REWRITE_TYPED',true);
-                  popusedregisters(pushed);
+                  popusedregisters(exprasmlist,pushed);
                end;
             in_write_x :
               handlereadwrite(false,false);
@@ -1238,7 +1238,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.50  1999-05-17 21:57:03  florian
+  Revision 1.51  1999-05-18 21:58:27  florian
+    * fixed some bugs related to temp. ansistrings and functions results
+      which return records/objects/arrays which need init/final.
+
+  Revision 1.50  1999/05/17 21:57:03  florian
     * new temporary ansistring handling
 
   Revision 1.49  1999/05/12 15:46:26  pierre

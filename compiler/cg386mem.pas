@@ -94,7 +94,7 @@ implementation
            end
          else
            begin
-              pushusedregisters(pushed,$ff);
+              pushusedregisters(exprasmlist,pushed,$ff);
 
               { code copied from simplenewdispose PM }
               { determines the size of the mem block }
@@ -115,7 +115,7 @@ implementation
                    dispose(r);
                    emitcall('FPC_INITIALIZE',true);
                 end;
-              popusedregisters(pushed);
+              popusedregisters(exprasmlist,pushed);
               { may be load ESI }
               maybe_loadesi;
            end;
@@ -169,7 +169,7 @@ implementation
          if codegenerror then
            exit;
 
-         pushusedregisters(pushed,$ff);
+         pushusedregisters(exprasmlist,pushed,$ff);
          { determines the size of the mem block }
          push_int(ppointerdef(p^.left^.resulttype)^.definition^.size);
 
@@ -224,7 +224,7 @@ implementation
                   end;
              end;
          end;
-         popusedregisters(pushed);
+         popusedregisters(exprasmlist,pushed);
          { may be load ESI }
          maybe_loadesi;
       end;
@@ -438,14 +438,14 @@ implementation
                         CGMessage(cg_e_illegal_expression);
                         exit;
                      end;
-                   pushusedregisters(pushed,$ff);
+                   pushusedregisters(exprasmlist,pushed,$ff);
                    emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
                    if is_ansistring(p^.left^.resulttype) then
                      emitcall('FPC_ANSISTR_UNIQUE',true)
                    else
                      emitcall('FPC_WIDESTR_UNIQUE',true);
                    maybe_loadesi;
-                   popusedregisters(pushed);
+                   popusedregisters(exprasmlist,pushed);
                 end;
 
               if p^.left^.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
@@ -465,11 +465,11 @@ implementation
                 we can use the ansistring routine here }
               if (cs_check_range in aktlocalswitches) then
                 begin
-                   pushusedregisters(pushed,$ff);
+                   pushusedregisters(exprasmlist,pushed,$ff);
                    exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,p^.location.reference.base)));
                    emitcall('FPC_ANSISTR_CHECKZERO',true);
                    maybe_loadesi;
-                   popusedregisters(pushed);
+                   popusedregisters(exprasmlist,pushed);
                 end;
 
               if is_ansistring(p^.left^.resulttype) then
@@ -529,13 +529,13 @@ implementation
                         st_widestring,
                         st_ansistring:
                           begin
-                             pushusedregisters(pushed,$ff);
+                             pushusedregisters(exprasmlist,pushed,$ff);
                              push_int(p^.right^.value);
                              hp:=newreference(p^.location.reference);
                              dec(hp^.offset,7);
                              exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_L,hp)));
                              emitcall('FPC_ANSISTR_RANGECHECK',true);
-                             popusedregisters(pushed);
+                             popusedregisters(exprasmlist,pushed);
                              maybe_loadesi;
                           end;
 
@@ -710,13 +710,13 @@ implementation
                          st_widestring,
                          st_ansistring:
                            begin
-                              pushusedregisters(pushed,$ff);
+                              pushusedregisters(exprasmlist,pushed,$ff);
                               exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,ind)));
                               hp:=newreference(p^.location.reference);
                               dec(hp^.offset,7);
                               exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_L,hp)));
                               emitcall('FPC_ANSISTR_RANGECHECK',true);
-                              popusedregisters(pushed);
+                              popusedregisters(exprasmlist,pushed);
                               maybe_loadesi;
                            end;
                          st_shortstring:
@@ -884,7 +884,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.40  1999-05-18 14:15:26  peter
+  Revision 1.41  1999-05-18 21:58:29  florian
+    * fixed some bugs related to temp. ansistrings and functions results
+      which return records/objects/arrays which need init/final.
+
+  Revision 1.40  1999/05/18 14:15:26  peter
     * containsself fixes
     * checktypes()
 

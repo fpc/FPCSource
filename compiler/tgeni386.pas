@@ -63,8 +63,8 @@ unit tgeni386;
 
 
     { pushs and restores registers }
-    procedure pushusedregisters(var pushed : tpushed;b : byte);
-    procedure popusedregisters(const pushed : tpushed);
+    procedure pushusedregisters(list : paasmoutput;var pushed : tpushed;b : byte);
+    procedure popusedregisters(list : paasmoutput;const pushed : tpushed);
 
     procedure clearregistercount;
     procedure resetusableregisters;
@@ -92,7 +92,7 @@ implementation
     uses
       globtype;
 
-    procedure pushusedregisters(var pushed : tpushed;b : byte);
+    procedure pushusedregisters(list : paasmoutput;var pushed : tpushed;b : byte);
 
       var
          r : tregister;
@@ -112,7 +112,7 @@ implementation
                    if not(r in unused) then
                      begin
                         { then save it }
-                        exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,r)));
+                        list^.concat(new(pai386,op_reg(A_PUSH,S_L,r)));
                         { here was a big problem  !!!!!}
                         { you cannot do that for a register that is
                         globally assigned to a var
@@ -132,12 +132,12 @@ implementation
               { if the mmx register is in use, save it }
               if not(r in unused) then
                 begin
-                   exprasmlist^.concat(new(pai386,op_const_reg(
+                   list^.concat(new(pai386,op_const_reg(
                      A_SUB,S_L,8,R_ESP)));
                    new(hr);
                    reset_reference(hr^);
                    hr^.base:=R_ESP;
-                   exprasmlist^.concat(new(pai386,op_reg_ref(
+                   list^.concat(new(pai386,op_reg_ref(
                      A_MOVQ,S_NO,r,hr)));
                    if not(is_reg_var[r]) then
                      unused:=unused+[r];
@@ -147,7 +147,7 @@ implementation
 {$endif SUPPORT_MMX}
       end;
 
-    procedure popusedregisters(const pushed : tpushed);
+    procedure popusedregisters(list : paasmoutput;const pushed : tpushed);
 
       var
          r : tregister;
@@ -164,9 +164,9 @@ implementation
                    new(hr);
                    reset_reference(hr^);
                    hr^.base:=R_ESP;
-                   exprasmlist^.concat(new(pai386,op_ref_reg(
+                   list^.concat(new(pai386,op_ref_reg(
                      A_MOVQ,S_NO,hr,r)));
-                   exprasmlist^.concat(new(pai386,op_const_reg(
+                   list^.concat(new(pai386,op_const_reg(
                      A_ADD,S_L,8,R_ESP)));
                    unused:=unused-[r];
                 end;
@@ -175,7 +175,7 @@ implementation
          for r:=R_EBX downto R_EAX do
            if pushed[r] then
              begin
-                exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,r)));
+                list^.concat(new(pai386,op_reg(A_POP,S_L,r)));
                 unused:=unused-[r];
              end;
       end;
@@ -373,7 +373,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  1999-05-01 13:25:01  peter
+  Revision 1.24  1999-05-18 21:58:34  florian
+    * fixed some bugs related to temp. ansistrings and functions results
+      which return records/objects/arrays which need init/final.
+
+  Revision 1.23  1999/05/01 13:25:01  peter
     * merged nasm compiler
     * old asm moved to oldasm/
 

@@ -179,7 +179,7 @@ implementation
                         end;
 
                         { push the still used registers }
-                        pushusedregisters(pushedregs,$ff);
+                        pushusedregisters(exprasmlist,pushedregs,$ff);
                         { push data }
                         clear_location(p^.location);
                         p^.location.loc:=LOC_MEM;
@@ -188,7 +188,7 @@ implementation
                         emit_push_loc(p^.right^.location);
                         emit_push_loc(p^.left^.location);
                         emitcall('FPC_ANSISTR_CONCAT',true);
-                        popusedregisters(pushedregs);
+                        popusedregisters(exprasmlist,pushedregs);
                         maybe_loadesi;
                         ungetiftempansi(p^.left^.location.reference);
                         ungetiftempansi(p^.right^.location.reference);
@@ -214,7 +214,7 @@ implementation
                             ungetregister32(p^.left^.location.register);
                         end;
                         { push the still used registers }
-                        pushusedregisters(pushedregs,$ff);
+                        pushusedregisters(exprasmlist,pushedregs,$ff);
                         { push data }
                         case p^.right^.location.loc of
                           LOC_REFERENCE,LOC_MEM:
@@ -230,7 +230,7 @@ implementation
                         end;
                         emitcall('FPC_ANSISTR_COMPARE',true);
                         emit_reg_reg(A_OR,S_L,R_EAX,R_EAX);
-                        popusedregisters(pushedregs);
+                        popusedregisters(exprasmlist,pushedregs);
                         maybe_loadesi;
                         { done in temptoremove (PM)
                         ungetiftemp(p^.left^.location.reference);
@@ -274,7 +274,7 @@ implementation
                         { on the right we do not need the register anymore too }
 {$IfNDef regallocfix}
                         del_reference(p^.right^.location.reference);
-                        pushusedregisters(pushedregs,$ff);
+                        pushusedregisters(exprasmlist,pushedregs,$ff);
 {$Else regallocfix}
                         pushusedregisters(pushedregs,$ff
                           xor ($80 shr byte(p^.right^.location.reference.base))
@@ -287,7 +287,7 @@ implementation
 {$EndIf regallocfix}
                         emitcall('FPC_SHORTSTR_CONCAT',true);
                         maybe_loadesi;
-                        popusedregisters(pushedregs);
+                        popusedregisters(exprasmlist,pushedregs);
 
                         set_location(p^.location,p^.left^.location);
                         ungetiftemp(p^.right^.location.reference);
@@ -320,7 +320,7 @@ implementation
                           end
                         else
                           begin
-                             pushusedregisters(pushedregs,$ff);
+                             pushusedregisters(exprasmlist,pushedregs,$ff);
                              secondpass(p^.left);
                              emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
                              del_reference(p^.left^.location.reference);
@@ -329,7 +329,7 @@ implementation
                              del_reference(p^.right^.location.reference);
                              emitcall('FPC_SHORTSTR_COMPARE',true);
                              maybe_loadesi;
-                             popusedregisters(pushedregs);
+                             popusedregisters(exprasmlist,pushedregs);
                           end;
                         ungetiftemp(p^.left^.location.reference);
                         ungetiftemp(p^.right^.location.reference);
@@ -403,7 +403,7 @@ implementation
 {$IfNDef regallocfix}
                      del_reference(p^.left^.location.reference);
                      del_reference(p^.right^.location.reference);
-                     pushusedregisters(pushedregs,$ff);
+                     pushusedregisters(exprasmlist,pushedregs,$ff);
 {$EndIf regallocfix}
 {$IfNDef NoSetInclusion}
                      If (p^.treetype in [equaln, unequaln, lten]) Then
@@ -439,7 +439,7 @@ implementation
                      End;
 {$EndIf NoSetInclusion}
                      maybe_loadesi;
-                     popusedregisters(pushedregs);
+                     popusedregisters(exprasmlist,pushedregs);
                      ungetiftemp(p^.left^.location.reference);
                      ungetiftemp(p^.right^.location.reference);
                    end;
@@ -448,7 +448,7 @@ implementation
 {$IfNDef regallocfix}
                      del_reference(p^.left^.location.reference);
                      del_reference(p^.right^.location.reference);
-                     pushusedregisters(pushedregs,$ff);
+                     pushusedregisters(exprasmlist,pushedregs,$ff);
 {$EndIf regallocfix}
                      href.symbol:=nil;
                      gettempofsizereference(32,href);
@@ -502,7 +502,7 @@ implementation
                          end;
                       end;
                      maybe_loadesi;
-                     popusedregisters(pushedregs);
+                     popusedregisters(exprasmlist,pushedregs);
                      ungetiftemp(p^.left^.location.reference);
                      ungetiftemp(p^.right^.location.reference);
                      p^.location.loc:=LOC_MEM;
@@ -514,7 +514,7 @@ implementation
 {$IfNDef regallocfix}
                      del_reference(p^.left^.location.reference);
                      del_reference(p^.right^.location.reference);
-                     pushusedregisters(pushedregs,$ff);
+                     pushusedregisters(exprasmlist,pushedregs,$ff);
 {$EndIf regallocfix}
                      href.symbol:=nil;
                      gettempofsizereference(32,href);
@@ -533,7 +533,7 @@ implementation
                       muln : emitcall('FPC_SET_MUL_SETS',true);
                      end;
                      maybe_loadesi;
-                     popusedregisters(pushedregs);
+                     popusedregisters(exprasmlist,pushedregs);
                      ungetiftemp(p^.left^.location.reference);
                      ungetiftemp(p^.right^.location.reference);
                      p^.location.loc:=LOC_MEM;
@@ -1454,7 +1454,7 @@ implementation
                         release_qword_loc(p^.right^.location);
                         p^.location.registerlow:=getexplicitregister32(R_EAX);
                         p^.location.registerhigh:=getexplicitregister32(R_EDX);
-                        pushusedregisters(pushedreg,$ff
+                        pushusedregisters(exprasmlist,pushedreg,$ff
                           and not($80 shr byte(p^.location.registerlow))
                           and not($80 shr byte(p^.location.registerhigh)));
                         if cs_check_overflow in aktlocalswitches then
@@ -1469,7 +1469,7 @@ implementation
                           emitcall('FPC_MUL_INT64',true);
                         emit_reg_reg(A_MOV,S_L,R_EAX,p^.location.registerlow);
                         emit_reg_reg(A_MOV,S_L,R_EDX,p^.location.registerhigh);
-                        popusedregisters(pushedreg);
+                        popusedregisters(exprasmlist,pushedreg);
                         p^.location.loc:=LOC_REGISTER;
                      end
                    else
@@ -2028,7 +2028,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.57  1999-05-18 14:15:18  peter
+  Revision 1.58  1999-05-18 21:58:22  florian
+    * fixed some bugs related to temp. ansistrings and functions results
+      which return records/objects/arrays which need init/final.
+
+  Revision 1.57  1999/05/18 14:15:18  peter
     * containsself fixes
     * checktypes()
 

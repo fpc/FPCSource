@@ -1054,6 +1054,15 @@ implementation
                           p^.registers32:=2
                         else
                           p^.registers32:=1;
+
+                        { wide- and ansistrings are returned in EAX    }
+                        { but they are imm. moved to a memory location }
+                        if is_widestring(p^.resulttype) or
+                          is_ansistring(p^.resulttype) then
+                          begin
+                             p^.location.loc:=LOC_MEM;
+                             p^.registers32:=0;
+                          end;
                      end
                    else if (p^.resulttype^.deftype=floatdef) then
                      begin
@@ -1147,7 +1156,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.43  1999-05-18 14:15:58  peter
+  Revision 1.44  1999-05-18 21:58:33  florian
+    * fixed some bugs related to temp. ansistrings and functions results
+      which return records/objects/arrays which need init/final.
+
+  Revision 1.43  1999/05/18 14:15:58  peter
     * containsself fixes
     * checktypes()
 

@@ -136,7 +136,7 @@ implementation
                 ungetiftemp(source^.location.reference);
 {$IfNDef regallocfix}
                 del_reference(source^.location.reference);
-                pushusedregisters(pushed,$ff);
+                pushusedregisters(exprasmlist,pushed,$ff);
                 emit_push_mem(source^.location.reference);
 {$Else regallocfix}
                  pushusedregisters(pushed,$ff
@@ -150,7 +150,7 @@ implementation
              begin
 {$IfNDef regallocfix}
                 ungetregister32(source^.location.register);
-                pushusedregisters(pushed,$ff);
+                pushusedregisters(exprasmlist,pushed,$ff);
                 exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,source^.location.register)));
 {$Else regallocfix}
                  pushusedregisters(pushed, $ff xor ($80 shr byte(source^.location.register)));
@@ -162,7 +162,7 @@ implementation
          push_shortstring_length(dest);
          emitpushreferenceaddr(exprasmlist,dest^.location.reference);
          emitcall('FPC_ANSISTR_TO_SHORTSTR',true);
-         popusedregisters(pushed);
+         popusedregisters(exprasmlist,pushed);
          maybe_loadesi;
       end;
 
@@ -317,12 +317,12 @@ implementation
                       clear_location(pto^.location);
                       pto^.location.loc:=LOC_REFERENCE;
                       gettempansistringreference(pto^.location.reference);
-                      pushusedregisters(pushed,$ff);
+                      pushusedregisters(exprasmlist,pushed,$ff);
                       emit_push_lea_loc(pfrom^.location);
                       emit_push_lea_loc(pto^.location);
                       emitcall('FPC_SHORTSTR_TO_ANSISTR',true);
                       maybe_loadesi;
-                      popusedregisters(pushed);
+                      popusedregisters(exprasmlist,pushed);
 
                       ungetiftemp(pfrom^.location.reference);
                    end;
@@ -495,12 +495,12 @@ implementation
              begin
                gettempansistringreference(pto^.location.reference);
                release_loc(pfrom^.location);
-               pushusedregisters(pushed,$ff);
+               pushusedregisters(exprasmlist,pushed,$ff);
                push_int(l);
                emitpushreferenceaddr(exprasmlist,pfrom^.location.reference);
                emitpushreferenceaddr(exprasmlist,pto^.location.reference);
                emitcall('FPC_CHARARRAY_TO_ANSISTR',true);
-               popusedregisters(pushed);
+               popusedregisters(exprasmlist,pushed);
                maybe_loadesi;
              end;
            st_longstring:
@@ -540,11 +540,11 @@ implementation
              begin
                gettempansistringreference(pto^.location.reference);
                release_loc(pfrom^.location);
-               pushusedregisters(pushed,$ff);
+               pushusedregisters(exprasmlist,pushed,$ff);
                emit_pushw_loc(pfrom^.location);
                emitpushreferenceaddr(exprasmlist,pto^.location.reference);
                emitcall('FPC_CHAR_TO_ANSISTR',true);
-               popusedregisters(pushed);
+               popusedregisters(exprasmlist,pushed);
                maybe_loadesi;
              end;
            else
@@ -976,13 +976,13 @@ implementation
         pushedregs : tpushed;
       begin
         href.symbol:=nil;
-        pushusedregisters(pushedregs,$ff);
+        pushusedregisters(exprasmlist,pushedregs,$ff);
         gettempofsizereference(32,href);
         emitpushreferenceaddr(exprasmlist,pfrom^.location.reference);
         emitpushreferenceaddr(exprasmlist,href);
         emitcall('FPC_SET_LOAD_SMALL',true);
         maybe_loadesi;
-        popusedregisters(pushedregs);
+        popusedregisters(exprasmlist,pushedregs);
         clear_location(pto^.location);
         pto^.location.loc:=LOC_MEM;
         pto^.location.reference:=href;
@@ -1035,7 +1035,7 @@ implementation
              begin
                 pto^.location.loc:=LOC_REFERENCE;
                 gettempofsizereference(pto^.resulttype^.size,pto^.location.reference);
-                pushusedregisters(pushed,$ff);
+                pushusedregisters(exprasmlist,pushed,$ff);
                 case pfrom^.location.loc of
                    LOC_REGISTER,LOC_CREGISTER:
                      begin
@@ -1051,7 +1051,7 @@ implementation
                 emitpushreferenceaddr(exprasmlist,pto^.location.reference);
                 emitcall('FPC_PCHAR_TO_SHORTSTR',true);
                 maybe_loadesi;
-                popusedregisters(pushed);
+                popusedregisters(exprasmlist,pushed);
              end;
            st_ansistring:
              begin
@@ -1062,7 +1062,7 @@ implementation
                     begin
 {$IfNDef regallocfix}
                       del_reference(pfrom^.location.reference);
-                      pushusedregisters(pushed,$ff);
+                      pushusedregisters(exprasmlist,pushed,$ff);
                       emit_push_mem(pfrom^.location.reference);
 {$Else regallocfix}
                       pushusedregisters(pushed,$ff
@@ -1076,7 +1076,7 @@ implementation
                     begin
 {$IfNDef regallocfix}
                       ungetregister32(pfrom^.location.register);
-                      pushusedregisters(pushed,$ff);
+                      pushusedregisters(exprasmlist,pushed,$ff);
                       exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,pfrom^.location.register)));
 {$Else regallocfix}
                       pushusedregisters(pushed, $ff xor ($80 shr byte(pfrom^.location.register)));
@@ -1088,7 +1088,7 @@ implementation
                 emitpushreferenceaddr(exprasmlist,pto^.location.reference);
                 emitcall('FPC_PCHAR_TO_ANSISTR',true);
                 maybe_loadesi;
-                popusedregisters(pushed);
+                popusedregisters(exprasmlist,pushed);
              end;
          else
           begin
@@ -1205,7 +1205,7 @@ implementation
 
       begin
          { save all used registers }
-         pushusedregisters(pushed,$ff);
+         pushusedregisters(exprasmlist,pushed,$ff);
          secondpass(p^.left);
          clear_location(p^.location);
          p^.location.loc:=LOC_FLAGS;
@@ -1247,7 +1247,7 @@ implementation
          end;
          emitcall('FPC_DO_IS',true);
          exprasmlist^.concat(new(pai386,op_reg_reg(A_OR,S_B,R_AL,R_AL)));
-         popusedregisters(pushed);
+         popusedregisters(exprasmlist,pushed);
          maybe_loadesi;
       end;
 
@@ -1262,7 +1262,7 @@ implementation
       begin
          secondpass(p^.left);
          { save all used registers }
-         pushusedregisters(pushed,$ff);
+         pushusedregisters(exprasmlist,pushed,$ff);
 
          { push instance to check: }
          case p^.left^.location.loc of
@@ -1298,14 +1298,18 @@ implementation
          emitcall('FPC_DO_AS',true);
          { restore register, this restores automatically the }
          { result                                            }
-         popusedregisters(pushed);
+         popusedregisters(exprasmlist,pushed);
       end;
 
 
 end.
 {
   $Log$
-  Revision 1.72  1999-05-17 21:57:00  florian
+  Revision 1.73  1999-05-18 21:58:26  florian
+    * fixed some bugs related to temp. ansistrings and functions results
+      which return records/objects/arrays which need init/final.
+
+  Revision 1.72  1999/05/17 21:57:00  florian
     * new temporary ansistring handling
 
   Revision 1.71  1999/05/12 00:19:40  peter
