@@ -9,7 +9,7 @@ program testsync;
 
 uses Classes, SysUtils
 {$ifdef unix}
-,cthreads, Libc
+,cthreads
 {$endif unix}
 ;
 
