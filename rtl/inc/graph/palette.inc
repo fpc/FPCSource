@@ -333,11 +333,12 @@ CONST
         end
       else
       { Check if the max. default color is reached...}
-      if Color > EGAWhite then
+      { no, this disables palette setting for 256 color modes! (JM) }
+{      if Color > EGAWhite then
         begin
           _GraphResult := grError;
           exit;
-        end;
+        end;}
       SetRGBPalette(ColorNum,
           DefaultColors[Color].Red,
           DefaultColors[Color].Green,
@@ -382,7 +383,10 @@ CONST
 
 {
 $Log$
-Revision 1.5  1999-12-20 11:22:36  peter
+Revision 1.6  1999-12-25 22:22:56  jonas
+  * setpallette only worked for colors 0-63, fixed
+
+Revision 1.5  1999/12/20 11:22:36  peter
   * integer -> smallint to overcome -S2 switch needed for ggi version
 
 Revision 1.4  1999/07/12 13:27:15  jonas
