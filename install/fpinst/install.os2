@@ -137,10 +137,6 @@ defaultcfg=
 # path to the gcclib
 #-Fg$1/lib
 
-# Standard unit paths
--Fu$1/rtl/inc
--Fu$1/rtl/i386
-
 # searchpath for includefiles
 -Fi$1/inc;$1/rtl/inc;$1/rtl/i386
 
@@ -192,17 +188,17 @@ defaultcfg=
 #IFDEF Linux
   # For statically, smartlinked units
   #IFDEF FPC_LINK_STATIC
-    -Fu$1/rtl/static
-    -Fu$1/units/static
+    -Fu$1/rtl/linux/static
+    -Fu$1/units/linux/static
   #ENDIF
   # For Dynamically linked units
   #IFDEF FPC_LINK_DYNAMIC
-    -Fu$1/rtl/shared
-    -Fu$1/units/shared
+    -Fu$1/rtl/linux/shared
+    -Fu$1/units/linux/shared
   #ENDIF
 # For normal units
--Fu$1/rtl
--Fu$1/units
+-Fu$1/rtl/linux
+-Fu$1/units/linux
 #-Fu~/pp/units;~/pp/rtl/linux
 #-Fu/usr/lib/ppc/units;/usr/lib/ppc/linuxunits
 #ENDIF
