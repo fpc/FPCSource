@@ -1,8 +1,8 @@
 {
     $Id$
-    Copyright (c) 2000-2003 by Florian Klaempfl
+    Copyright (c) 2001-2002 by Peter Vreman
 
-    This unit includes the ARM code generator into the compiler
+    Includes the arm dependent target units
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,34 +20,38 @@
 
  ****************************************************************************
 }
-unit cpunode;
+unit cputarg;
 
 {$i fpcdefs.inc}
 
-  interface
+interface
 
-  implementation
+
+implementation
 
     uses
-       { generic nodes }
-       ncgbas,ncgld,ncgflw,ncgcnv,ncgmem,ncgcon,ncgcal,ncgset,ncginl,ncgopt,
-       { to be able to only parts of the generic code,
-         the processor specific nodes must be included
-         after the generic one (FK)
-       }
-       narmadd
-//!!!       narminl,
-       { this not really a node }
-//!!!       narmmat,
-//!!!       narmcnv
-       ;
+      systems { prevent a syntax error when nothing is included }
+
+{**************************************
+             Targets
+**************************************}
+
+    {$ifndef NOTARGETLINUX}
+      ,t_linux
+    {$endif}
+
+{**************************************
+             Assemblers
+**************************************}
+
+    {$ifndef NOAGARMGAS}
+      ,agarmgas
+    {$endif}
+      ;
 
 end.
 {
   $Log$
-  Revision 1.2  2003-08-21 03:14:00  florian
+  Revision 1.1  2003-08-21 03:14:00  florian
     * arm compiler can be compiled; far from being working
-
-  Revision 1.1  2003/07/21 16:35:30  florian
-    * very basic stuff for the arm
 }

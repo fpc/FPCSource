@@ -123,6 +123,7 @@ uses
       RS_R9 = $0A;  RS_R10 = $0B; RS_R11 = $0C;
       RS_R12 = $0D; RS_R13 = $0E; RS_R14 = $0F;
       RS_R15 = $10;
+      RS_PC = RS_R15;
 
       first_supreg = RS_R0;
       last_supreg = RS_R15;
@@ -364,6 +365,9 @@ uses
 
       {# Constant defining possibly all registers which might require saving }
       ALL_REGISTERS = [firstreg..lastreg];
+
+      general_registers = [R_R0..R_PC];
+      general_superregisters = [RS_R0..RS_PC];
 
       {# low and high of the available maximum width integer general purpose }
       { registers                                                            }
@@ -631,7 +635,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2003-08-20 15:50:13  florian
+  Revision 1.5  2003-08-21 03:14:00  florian
+    * arm compiler can be compiled; far from being working
+
+  Revision 1.4  2003/08/20 15:50:13  florian
     * more arm stuff
 
   Revision 1.3  2003/08/16 13:23:01  florian

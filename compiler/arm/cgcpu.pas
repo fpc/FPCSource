@@ -84,9 +84,6 @@ unit cgcpu;
         procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aword; delsource,loadref : boolean);override;
 
         procedure g_overflowcheck(list: taasmoutput; const l: tlocation; def: tdef); override;
-        { find out whether a is of the form 11..00..11b or 00..11...00. If }
-        { that's the case, we can use rlwinm to do an AND operation        }
-        function get_rlwi_const(a: aword; var l1, l2: longint): boolean;
 
         procedure g_save_standard_registers(list : taasmoutput; usedinproc : Tsupregset);override;
         procedure g_restore_standard_registers(list : taasmoutput; usedinproc : Tsupregset);override;
@@ -105,19 +102,6 @@ unit cgcpu;
         procedure g_return_from_proc_mac(list : taasmoutput;parasize : aword);
 
 
-        { Make sure ref is a valid reference for the PowerPC and sets the }
-        { base to the value of the index if (base = R_NO).                }
-        { Returns true if the reference contained a base, index and an    }
-        { offset or symbol, in which case the base will have been changed }
-        { to a tempreg (which has to be freed by the caller) containing   }
-        { the sum of part of the original reference                       }
-        function fixref(list: taasmoutput; var ref: treference): boolean;
-
-        { returns whether a reference can be used immediately in a powerpc }
-        { instruction                                                      }
-        function issimpleref(const ref: treference): boolean;
-
-        { contains the common code of a_load_reg_ref and a_load_ref_reg }
         procedure a_load_store(list:taasmoutput;op: tasmop;reg:tregister;
                     ref: treference);
 
@@ -290,7 +274,7 @@ unit cgcpu;
 
      function rotl(d : dword;b : byte) : dword;
        begin
-          result=(d shr (32-b)) or (d shl b);
+          result:=(d shr (32-b)) or (d shl b);
        end;
 
 
@@ -311,7 +295,7 @@ unit cgcpu;
        end;
 
 
-     procedure a_load_const_reg(list : taasmoutput; size: tcgsize; a : aword;reg : tregister);override;
+     procedure tcgarm.a_load_const_reg(list : taasmoutput; size: tcgsize; a : aword;reg : tregister);
        var
           imm_shift : byte;
           l : tasmlabel;
@@ -326,8 +310,8 @@ unit cgcpu;
           else
             begin
                objectlibrary.getdatalabel(l);
-               aktlocaldata.concat(Tai_const_symbol.Create(l));
-               aktlocaldata.concat(Tai_const.Create_32bit(a));
+               current_procinfo.aktlocaldata.concat(Tai_const_symbol.Create(l));
+               current_procinfo.aktlocaldata.concat(Tai_const.Create_32bit(a));
                reference_reset(hr);
                hr.symbol:=l;
                list.concat(taicpu.op_reg_ref(A_LDR,reg,hr));
@@ -497,13 +481,36 @@ unit cgcpu;
        end;
 
 
+     procedure tcg64farm.a_op64_reg_reg(list : taasmoutput;op:TOpCG;regsrc,regdst : tregister64);
+       begin
+       end;
+
+
+     procedure tcg64farm.a_op64_const_reg(list : taasmoutput;op:TOpCG;value : qword;reg : tregister64);
+       begin
+       end;
+
+
+     procedure tcg64farm.a_op64_const_reg_reg(list: taasmoutput;op:TOpCG;value : qword;regsrc,regdst : tregister64);
+       begin
+       end;
+
+
+     procedure tcg64farm.a_op64_reg_reg_reg(list: taasmoutput;op:TOpCG;regsrc1,regsrc2,regdst : tregister64);
+       begin
+       end;
+
+
 begin
-  cg := tcgarm.create;
-  cg64 :=tcg64farm.create;
+  cg:=tcgarm.create;
+  cg64:=tcg64farm.create;
 end.
 {
   $Log$
-  Revision 1.2  2003-08-20 15:50:12  florian
+  Revision 1.3  2003-08-21 03:14:00  florian
+    * arm compiler can be compiled; far from being working
+
+  Revision 1.2  2003/08/20 15:50:12  florian
     * more arm stuff
 
   Revision 1.1  2003/07/21 16:35:30  florian
