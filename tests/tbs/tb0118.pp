@@ -1,3 +1,5 @@
+{ %maxversion=1.0.99 }
+
 { Old file: tbs0138.pp }
 { with problem, %esi can be crushed and is not restored OK 0.99.6 (PM) }
 

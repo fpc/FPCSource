@@ -1,4 +1,3 @@
-
 { Old file: tbs0079.pp }
 {  Shows problems with stackframe with assembler keyword OK 0.99.1 (CEC) }
 { This test does not really
@@ -35,6 +34,12 @@ asm
   mov r3,y
 end;
 {$endif CPUARM}
+{$ifdef CPUX86_64}
+asm
+  movl x,%eax
+  movl y,%ecx
+end;
+{$endif CPUX86_64}
 
 {procedure nothing(x,y: longint);
 begin
