@@ -321,19 +321,19 @@ fv_sharedinstall:
 # GDB
 #######################################
 
-gdb_all: rtl_all
+gdbint_all: rtl_all
 	$(MAKE) -C $(GDBDIR) all
 
-gdb_clean:
+gdbint_clean:
 	$(MAKE) -C $(GDBDIR) clean
 
-gdb_install:
+gdbint_install:
 	$(MAKE) -C $(GDBDIR) install
 
-gdb_staticinstall:
+gdbint_staticinstall:
 	$(MAKE) -C $(GDBDIR) staticlibinstall
 
-gdb_sharedinstall:
+gdbint_sharedinstall:
 	$(MAKE) -C $(GDBDIR) sharedlibinstall
 
 
@@ -364,13 +364,13 @@ fpinst_sharedinstall:
 ide_all: rtl_all api_all fv_all
 	$(MAKE) -C $(IDEDIR) all
 
-ide_gdb: rtl_all api_all fv_all gdb_all
+ide_gdb: rtl_all api_all fv_all gdbnt_all
 	$(MAKE) -C $(IDEDIR) gdb
 
 ide_full: rtl_all api_all fv_all
 	$(MAKE) -C $(IDEDIR) full
 
-ide_fullgdb: rtl_all api_all fv_all gdb_all
+ide_fullgdb: rtl_all api_all fv_all gdbint_all
 	$(MAKE) -C $(IDEDIR) fullgdb
 
 ide_clean:
@@ -456,7 +456,10 @@ utilszip: utils_clean rtl_clean
 
 #
 # $Log$
-# Revision 1.20  1999-07-29 11:40:01  peter
+# Revision 1.21  1999-11-10 08:54:22  pierre
+#  * gdb_??? target renamed gdbint_???
+#
+# Revision 1.20  1999/07/29 11:40:01  peter
 #   * utils need fcl
 #
 # Revision 1.19  1999/07/05 17:48:58  peter
