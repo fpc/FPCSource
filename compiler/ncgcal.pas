@@ -877,7 +877,7 @@ implementation
            end;
 
          { restore registers }
-         {$warnig fixme restoreusedotherregisters}
+         {$warning fixme restoreusedotherregisters}
 {         rg.restoreusedotherregisters(exprasmlist,pushedother);}
 
          { release temps of paras }
@@ -1102,7 +1102,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.127  2003-10-09 21:31:37  daniel
+  Revision 1.128  2003-10-10 09:21:53  marco
+   * typo fix from Wiktor
+
+  Revision 1.127  2003/10/09 21:31:37  daniel
     * Register allocator splitted, ans abstract now
 
   Revision 1.126  2003/10/07 15:17:07  peter
