@@ -15,7 +15,9 @@
 
 unit go32;
 
+{$ifdef SUPPORT_PORTS}
 {$Mode ObjFpc}
+{$endif SUPPORT_PORTS}
 {$S-,R-,I-,Q-} {no stack check, used by DPMIEXCP !! }
 
 interface
@@ -173,6 +175,7 @@ interface
     procedure dpmi_dosmemfillword(seg,ofs : word;count : longint;w : word);
 
 
+{$ifdef SUPPORT_PORTS}
 type
    tport = class
       procedure writeport(p : word;data : byte);
@@ -198,6 +201,7 @@ var
    portb : tport;
    portw : tportw;
    portl : tportl;
+{$endif SUPPORT_PORTS}
 
     const
        { this procedures are assigned to the procedure which are needed }
@@ -245,6 +249,25 @@ var
          seg_fillword(dosmemselector,seg*16+ofs,count,w);
       end;
 
+
+    procedure test_int31(flag : longint);
+      begin                                                                                                                                                                                                                                                    
+         asm                                                                                                                                                                                                                                                   
+            pushl %ebx                                                                                                                                                                                                                                         
+            movw  $0,INT31ERROR                                                                                                                                                                                                                                
+            movl  flag,%ebx                                                                                                                                                                                                                                    
+            testb $1,%bl                                                                                                                                                                                                                                       
+            jz    .Lti31_1
+            movw  %ax,INT31ERROR                                                                                                                                                                                                                               
+            xorl  %eax,%eax
+            jmp   .Lti31_2                                                                                                                                                                                                                                     
+            .Lti31_1:                                                                                                                                                                                                                                          
+            movl  $1,%eax                                                                                                                                                                                                                                      
+            .Lti31_2:                                                                                                                                                                                                                                          
+            popl  %ebx                                                                                                                                                                                                                                         
+         end;
+      end;                                                                                                                                                                                                                                                     
+                                                                                                                                                                                                                                                               
     function global_dos_alloc(bytes : longint) : longint;
 
       begin
@@ -254,8 +277,14 @@ var
             shrl $0x4,%ebx              // convert to Paragraphs
             movl $0x100,%eax            // function 0x100
             int  $0x31
+            jnc  .LDos_OK
+            movw %ax,INT31ERROR
+            xorl %eax,%eax
+            jmp  .LDos_end
+          .LDos_OK:
             shll $0x10,%eax             // return Segment in hi(Result)
             movw %dx,%ax                // return Selector in lo(Result)
+          .LDos_end:
             movl %eax,__result
          end;
       end;
@@ -476,6 +505,7 @@ var
       end;
 
 
+{$ifdef SUPPORT_PORTS}
 { to give easy port access like tp with port[] }
 
 procedure tport.writeport(p : word;data : byte);assembler;
@@ -522,6 +552,7 @@ asm
         inl     %dx,%eax
 end ['EAX','EDX'];
 
+{$endif SUPPORT_PORTS}
 
     function get_cs : word;assembler;
       asm
@@ -540,24 +571,6 @@ end ['EAX','EDX'];
             movw %ds,%ax
       end;
 
-
-    procedure test_int31(flag : longint);
-      begin
-         asm
-            pushl %ebx
-            movw  $0,INT31ERROR
-            movl  flag,%ebx
-            testb $1,%bl
-            jz    .Lti31_1
-            movw  %ax,INT31ERROR
-            xorl  %eax,%eax
-            jmp   .Lti31_2
-            .Lti31_1:
-            movl  $1,%eax
-            .Lti31_2:
-            popl  %ebx
-         end;
-      end;
 
     function set_pm_interrupt(vector : byte;const intaddr : tseginfo) : boolean;
 
@@ -705,9 +718,10 @@ end ['EAX','EDX'];
     { here we must use ___v2prt0_ds_alias instead of from v2prt0.s
     because the exception processor sets the ds limit to $fff
     at hardware exceptions }
-    var
-       ___v2prt0_ds_alias : word;external name '___v2prt0_ds_alias';
 
+    var
+       ___v2prt0_ds_alias : word; external name '___v2prt0_ds_alias';
+        
     function get_rm_callback(pm_func : pointer;const reg : trealregs;var rmcb : tseginfo) : boolean;
       begin
          asm
@@ -890,7 +904,7 @@ end ['EAX','EDX'];
          linearaddr : longint;
 
       begin
-         if get_run_mode <> 4 then
+         if get_run_mode<>rm_dpmi then
            exit;
          linearaddr:=longint(@data)+get_segment_base_address(get_ds);
          lock_data:=lock_linear_region(linearaddr,size);
@@ -942,7 +956,7 @@ end ['EAX','EDX'];
       var
          linearaddr : longint;
       begin
-         if get_run_mode <>rm_dpmi then
+         if get_run_mode<>rm_dpmi then
            exit;
          linearaddr:=longint(functionaddr)+get_segment_base_address(get_cs);
          unlock_code:=unlock_linear_region(linearaddr,size);
@@ -1084,10 +1098,7 @@ end ['EAX','EDX'];
     function get_run_mode : word;
 
       begin
-         asm
-            movw _run_mode,%ax
-            movw %ax,__RESULT
-         end ['EAX'];
+         get_run_mode:=_run_mode;
       end;
 
     function map_device_in_memory_block(handle,offset,pagecount,device:longint):boolean;
@@ -1105,19 +1116,6 @@ end ['EAX','EDX'];
            call test_int31
          end;
       end;
-
-    var
-      _core_selector : word;external name '_core_selector';
-
-    function get_core_selector : word;
-
-      begin
-         asm
-            movw _core_selector,%ax
-            movw %ax,__RESULT
-         end;
-      end;
-
 
 {*****************************************************************************
                               Transfer Buffer
@@ -1163,15 +1161,22 @@ end ['EAX','EDX'];
        end;
 
 
+    var
+      _core_selector : word;external name '_core_selector';
 
 begin
    int31error:=0;
-   dosmemselector:=get_core_selector;
+   dosmemselector:=_core_selector;
 end.
 
 {
   $Log$
-  Revision 1.4  1999-05-13 21:54:27  peter
+  Revision 1.5  1999-09-09 07:13:29  pierre
+    - Port[] moved to ports.pp unit
+    * global_dos_alloc returns zero and set int31error
+      if DPMI call fails
+
+  Revision 1.4  1999/05/13 21:54:27  peter
     * objpas fixes
 
   Revision 1.3  1999/03/26 00:01:52  peter
