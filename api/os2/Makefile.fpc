@@ -1,5 +1,5 @@
 #
-#   Makefile.fpc for Free Pascal API (used by Free Vision) for win32
+#   Makefile.fpc for Free Pascal API (used by Free Vision) for os2
 #
 
 [defaults]
@@ -31,10 +31,10 @@ include $(INC)/Makefile.api
 
 
 [rules]
-video$(PPUEXT): $(INC)/video.pas video.inc event$(PPUEXT)
+video$(PPUEXT): $(INC)/video.pas video.inc
 
-keyboard$(PPUEXT): $(INC)/keyboard.pas keyboard.inc event$(PPUEXT)
+keyboard$(PPUEXT): $(INC)/keyboard.pas keyboard.inc
 
-mouse$(PPUEXT): $(INC)/mouse.pas mouse.inc event$(PPUEXT)
+mouse$(PPUEXT): $(INC)/mouse.pas mouse.inc
 
 filectrl$(PPUEXT): $(INC)/filectrl.pas filectrl.inc
