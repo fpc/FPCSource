@@ -2962,6 +2962,8 @@ end;
   begin
    { restore old exitproc! }
    exitproc := exitsave;
+   if IsGraphMode and ((errorcode<>0) or (erroraddr<>nil)) then
+     CloseGraph;
 {$ifdef testsave}
    restorevideostate;
 {$endif testsave}
@@ -3034,7 +3036,10 @@ SetGraphBufSize
 
 {
   $Log$
-  Revision 1.48  1999-12-20 11:22:36  peter
+  Revision 1.49  1999-12-21 09:16:48  pierre
+   + CloseGraph if errors
+
+  Revision 1.48  1999/12/20 11:22:36  peter
     * integer -> smallint to overcome -S2 switch needed for ggi version
 
   Revision 1.47  1999/12/12 13:34:20  jonas
