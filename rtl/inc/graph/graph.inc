@@ -1,5 +1,5 @@
 {
-$Id$
+     $Id$
 }
 { How this works:                                                        }
 {    QueryAdapter - Va chercher tout les modes videos et drivers         }
@@ -2490,7 +2490,10 @@ const CrtAddress: word = 0;
 
 {
 $Log$
-Revision 1.6  1999-07-14 18:16:23  florian
+Revision 1.7  1999-07-14 18:18:02  florian
+  * cosmetic changes
+
+Revision 1.6  1999/07/14 18:16:23  florian
   * HLine16 and VLine16 implemented
 
 Revision 1.5  1999/07/14 14:32:12  florian

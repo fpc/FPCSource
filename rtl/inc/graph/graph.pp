@@ -2643,5 +2643,8 @@ DetectGraph
 {   SetBkColor()                                        }
 
 { 
-$log$
+  $Log$
+  Revision 1.16  1999-07-14 18:18:04  florian
+    * cosmetic changes
+
 }
