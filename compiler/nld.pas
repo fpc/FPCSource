@@ -678,6 +678,7 @@ implementation
         hp        : tarrayconstructornode;
         dovariant : boolean;
         htype     : ttype;
+        orgflags  : tnodeflagset;
       begin
         dovariant:=(nf_forcevaria in flags) or tarraydef(resulttype.def).isvariant;
         result:=nil;
@@ -742,6 +743,9 @@ implementation
               { we need a copy here, because self is destroyed }
               { by firstpass later                             }
               hp:=tarrayconstructornode(getcopy);
+              { we also need a copy of the flags to restore later (e.g. for }
+              { forcevaria) (JM)                                            }
+              orgflags := flags;
               while assigned(hp) do
                begin
                  thp:=tarrayconstructornode(hp.right);
@@ -749,7 +753,7 @@ implementation
                  chp:=hp;
                  hp:=thp;
                end;
-              include(chp.flags,nf_cargs);
+              chp.flags := orgflags;
               include(chp.flags,nf_cargswap);
               chp.location.loc:=LOC_MEM;
               calcregisters(chp,0,0,0);
@@ -817,7 +821,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2001-10-28 17:22:25  peter
+  Revision 1.28  2001-10-31 17:34:20  jonas
+    * fixed web bug 1651
+
+  Revision 1.27  2001/10/28 17:22:25  peter
     * allow assignment of overloaded procedures to procvars when we know
       which procedure to take
 
