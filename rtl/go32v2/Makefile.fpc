@@ -10,7 +10,7 @@ units=$(SYSTEMUNIT) objpas strings \
       sysutils math typinfo \
       cpu mmx getopts heaptrc lineinfo \
       msmouse varutils
-rst=math
+rst=math varutils
 
 [require]
 rtl=0

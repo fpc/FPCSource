@@ -7,11 +7,10 @@ loaders=wprt0 wdllprt0
 units=$(SYSTEMUNIT) objpas strings \
       windows ole2 opengl32 os_types winsock initc \
       dos crt objects graph \
-      sysutils typinfo math \
+      sysutils typinfo math varutils \
       cpu mmx getopts heaptrc lineinfo \
-      wincrt winmouse sockets printer dynlibs varutils
-
-rst=math
+      wincrt winmouse sockets printer dynlibs
+rst=math varutils
 
 [require]
 rtl=0
