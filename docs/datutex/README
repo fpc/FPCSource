@@ -1,0 +1,23 @@
+This directory contains the examples for the Sysutils unit.
+
+ex1.pp contains an example of the DateOf function.
+ex2.pp contains an example of the TimeOf function.
+ex3.pp contains an example of the IsInLeapYear function.
+ex4.pp contains an example of the IsPM function.
+ex5.pp contains an example of the IsValidDate function.
+ex6.pp contains an example of the IsValidTime function.
+ex6.pp contains an example of the IsValidDateTime function.
+ex9.pp contains an example of the IsValidDateDay function.
+ex10.pp contains an example of the IsValidDateWeek function.
+ex11.pp contains an example of the IsValidMonthWeek function.
+ex12.pp contains an example of the WeeksInYear function.
+ex13.pp contains an example of the WeeksInAYear function.
+ex14.pp contains an example of the DaysInYear function.
+ex15.pp contains an example of the DaysInAYear function.
+ex16.pp contains an example of the DaysInMonth function.
+ex18.pp contains an example of the Yesterday function.
+ex20.pp contains an example of the IsToday function.
+ex21.pp contains an example of the IsSameDay function.
+ex22.pp contains an example of the PreviousDayOfWeek function.
+ex23.pp contains an example of the YearOf function.
+ex24.pp contains an example of the StartOfTheYear function.
