@@ -34,7 +34,7 @@
           'ta','t',
           'udiv','udivcc',
           'umul','umulcc',
-          'unmp',
+          'unimp',
           'wrasr','wry','wrpsr','wrwim','wrtbr',
           'xnor','xnorcc',
           'xor','xorcc',
@@ -70,7 +70,10 @@
           'fabsd','fabsq'
 {
         $Log$
-        Revision 1.14  2004-10-03 12:42:22  florian
+        Revision 1.15  2005-01-07 16:22:54  florian
+          + implemented abi compliant handling of strucutured functions results on sparc platform
+
+        Revision 1.14  2004/10/03 12:42:22  florian
           * made sqrt, sqr and abs internal for the sparc
 
         Revision 1.13  2004/06/20 08:55:32  florian

@@ -121,7 +121,7 @@ implementation
   uses
     globals,verbose,systems,cutils,
     symdef,paramgr,
-    tgobj,cpupi;
+    tgobj,procinfo,cpupi;
 
 
 {****************************************************************************
@@ -952,19 +952,44 @@ implementation
 
 
     procedure TCgSparc.g_proc_exit(list : taasmoutput;parasize:longint;nostackframe:boolean);
+      var
+        hr : treference;
       begin
-        if nostackframe then
+        if paramanager.ret_in_param(current_procinfo.procdef.rettype.def,current_procinfo.procdef.proccalloption) then
           begin
-            { Here we need to use RETL instead of RET so it uses %o7 }
-            list.concat(Taicpu.op_none(A_RETL));
-            list.concat(Taicpu.op_none(A_NOP))
+            reference_reset(hr);
+            hr.offset:=12;
+            hr.refaddr:=addr_full;
+            if nostackframe then
+              begin
+                hr.base:=NR_O7;
+                list.concat(taicpu.op_ref_reg(A_JMPL,hr,NR_G0));
+                list.concat(Taicpu.op_none(A_NOP))
+              end
+            else
+              begin
+                { We use trivial restore in the delay slot of the JMPL instruction, as we
+                  already set result onto %i0 }
+                hr.base:=NR_I7;
+                list.concat(taicpu.op_ref_reg(A_JMPL,hr,NR_G0));
+                list.concat(Taicpu.op_none(A_RESTORE));
+              end;
           end
         else
           begin
-            { We use trivial restore in the delay slot of the JMPL instruction, as we
-              already set result onto %i0 }
-            list.concat(Taicpu.op_none(A_RET));
-            list.concat(Taicpu.op_none(A_RESTORE));
+            if nostackframe then
+              begin
+                { Here we need to use RETL instead of RET so it uses %o7 }
+                list.concat(Taicpu.op_none(A_RETL));
+                list.concat(Taicpu.op_none(A_NOP))
+              end
+            else
+              begin
+                { We use trivial restore in the delay slot of the JMPL instruction, as we
+                  already set result onto %i0 }
+                list.concat(Taicpu.op_none(A_RET));
+                list.concat(Taicpu.op_none(A_RESTORE));
+              end;
           end;
       end;
 
@@ -1316,7 +1341,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.100  2005-01-01 13:19:09  florian
+  Revision 1.101  2005-01-07 16:22:54  florian
+    + implemented abi compliant handling of strucutured functions results on sparc platform
+
+  Revision 1.100  2005/01/01 13:19:09  florian
     * improved code generation for OP_MUL/OP_IMUL
 
   Revision 1.99  2004/12/18 15:48:06  florian

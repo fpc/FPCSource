@@ -36,7 +36,7 @@ A_SWAP,A_SWAPA,A_Ticc,A_TADDcc,A_TSUBcc,A_TADDccTV,A_TSUBccTV,
 A_TA,A_Txx,
 A_UDIV,A_UDIVcc,
 A_UMUL,A_UMULcc,
-A_UNMP,
+A_UNIMP,
 A_WRASR,A_WRY,A_WRPSR,A_WRWIM,A_WRTBR,
 A_XNOR,A_XNORcc,
 A_XOR,A_XORcc,
@@ -74,7 +74,10 @@ A_FABSq
 
 {
         $Log$
-        Revision 1.15  2004-10-03 12:42:22  florian
+        Revision 1.16  2005-01-07 16:22:54  florian
+          + implemented abi compliant handling of strucutured functions results on sparc platform
+
+        Revision 1.15  2004/10/03 12:42:22  florian
           * made sqrt, sqr and abs internal for the sparc
 
         Revision 1.14  2004/06/20 08:55:32  florian

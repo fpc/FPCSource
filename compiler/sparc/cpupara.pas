@@ -258,7 +258,17 @@ implementation
                   paraloc^.size:=OS_32
                 else
                   paraloc^.size:=paracgsize;
-                if (intparareg<=high(tparasupregs)) then
+                { ret in param? }
+                if vo_is_funcret in hp.varoptions then
+                  begin
+                    paraloc^.loc:=LOC_REFERENCE;
+                    if side=callerside then
+                      paraloc^.reference.index:=NR_STACK_POINTER_REG
+                    else
+                      paraloc^.reference.index:=NR_FRAME_POINTER_REG;
+                    paraloc^.reference.offset:=64;
+                  end
+                else if (intparareg<=high(tparasupregs)) then
                   begin
                     paraloc^.loc:=LOC_REGISTER;
                     paraloc^.register:=newreg(R_INTREGISTER,hparasupregs^[intparareg],R_SUBWHOLE);
@@ -317,7 +327,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.51  2004-11-22 22:01:19  peter
+  Revision 1.52  2005-01-07 16:22:54  florian
+    + implemented abi compliant handling of strucutured functions results on sparc platform
+
+  Revision 1.51  2004/11/22 22:01:19  peter
     * fixed varargs
     * replaced dynarray with tlist
 

@@ -69,6 +69,7 @@ interface
           procedure pop_parasize(pop_size:longint);virtual;
           procedure extra_interrupt_code;virtual;
           procedure extra_call_code;virtual;
+          procedure extra_post_call_code;virtual;
           procedure do_syscall;virtual;abstract;
        public
           procedure pass_2;override;
@@ -472,6 +473,11 @@ implementation
 
 
     procedure tcgcallnode.extra_call_code;
+      begin
+      end;
+
+
+    procedure tcgcallnode.extra_post_call_code;
       begin
       end;
 
@@ -896,6 +902,7 @@ implementation
                  { call method }
                  extra_call_code;
                  cg.a_call_reg(exprasmlist,pvreg);
+                 extra_post_call_code;
                end
              else
                begin
@@ -924,6 +931,7 @@ implementation
                         extra_interrupt_code;
                       extra_call_code;
                       cg.a_call_name(exprasmlist,tprocdef(procdefinition).mangledname);
+                      extra_post_call_code;
                     end;
                end;
            end
@@ -961,6 +969,7 @@ implementation
                 extra_interrupt_code;
               extra_call_code;
               cg.a_call_reg(exprasmlist,pvreg);
+              extra_post_call_code;
            end;
 
          { Need to remove the parameters from the stack? }
@@ -1247,7 +1256,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.192  2005-01-04 16:36:51  peter
+  Revision 1.193  2005-01-07 16:22:54  florian
+    + implemented abi compliant handling of strucutured functions results on sparc platform
+
+  Revision 1.192  2005/01/04 16:36:51  peter
     * release temps in array constructor
 
   Revision 1.191  2005/01/02 16:58:48  peter

@@ -51,9 +51,9 @@ unit parabase;
        end;
 
        TCGPara = object
+          Location  : PCGParalocation;
           Alignment : ShortInt;
           Size      : TCGSize;  { Size of the parameter included in all locations }
-          Location  : PCGParalocation;
           constructor init;
           destructor  done;
           procedure   reset;
@@ -251,7 +251,10 @@ end.
 
 {
    $Log$
-   Revision 1.6  2004-11-22 22:01:19  peter
+   Revision 1.7  2005-01-07 16:22:54  florian
+     + implemented abi compliant handling of strucutured functions results on sparc platform
+
+   Revision 1.6  2004/11/22 22:01:19  peter
      * fixed varargs
      * replaced dynarray with tlist
 
