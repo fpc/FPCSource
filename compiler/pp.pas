@@ -107,6 +107,9 @@ uses
 {$ifdef profile}
   profile,
 {$endif profile}
+{$ifdef heaptrc}
+  heaptrc,
+{$endif heaptrc}
   globals,compiler;
 
 {$ifdef useoverlay}
@@ -256,7 +259,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.31  1998-09-28 16:57:23  pierre
+  Revision 1.32  1998-10-02 17:03:51  peter
+    * ifdef heaptrc for heaptrc
+
+  Revision 1.31  1998/09/28 16:57:23  pierre
     * changed all length(p^.value_str^) into str_length(p)
       to get it work with and without ansistrings
     * changed sourcefiles field of tmodule to a pointer
