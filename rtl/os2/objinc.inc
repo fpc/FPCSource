@@ -54,7 +54,7 @@ begin
         xorl %eax, %eax
         movw %ax, DosStreamError
         movl FileName, %edx
-        movl $0x7f0b, %eax
+        movl $0x7f2b, %eax
         movl AMode, %ecx
         call syscall
         cmpl $0xffffffff, %eax
@@ -148,7 +148,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  2002-09-22 16:04:19  hajny
+  Revision 1.6  2002-09-26 18:54:55  hajny
+    * FileOpen fixed
+
+  Revision 1.5  2002/09/22 16:04:19  hajny
     * correction for THandle length change
 
   Revision 1.4  2002/09/07 16:01:24  peter
