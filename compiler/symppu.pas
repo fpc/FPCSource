@@ -109,7 +109,7 @@ implementation
       var
         l1,l2 : longint;
       begin
-        if sizeof(tconstexprint)=8 then
+        if sizeof(TConstPtrUInt)=8 then
           begin
             l1:=getlongint;
             l2:=getlongint;
@@ -400,7 +400,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  2003-10-28 15:36:01  peter
+  Revision 1.24  2003-12-22 22:15:13  peter
+    * fix write pointerconst
+
+  Revision 1.23  2003/10/28 15:36:01  peter
     * absolute to object field supported, fixes tb0458
 
   Revision 1.22  2003/10/23 14:44:07  peter
