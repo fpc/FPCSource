@@ -199,31 +199,27 @@ procedure TCgSparc.a_param_ref(list:TAasmOutput;sz:TCgSize;const r:TReference;co
         end;
   end;
 procedure TCgSparc.a_paramaddr_ref(list:TAasmOutput;CONST r:TReference;CONST LocPara:TParaLocation);
-  VAR
-    tmpreg:TRegister;
-  BEGIN
-    IF r.segment.enum<>R_NO
-    THEN
-      CGMessage(cg_e_cant_use_far_pointer_there);
-    IF(r.base.enum=R_NO)AND(r.index.enum=R_NO)
-    THEN
-      list.concat(Taicpu.Op_sym_ofs(A_LD,S_SW,r.symbol,r.offset))
-    ELSE IF(r.base.enum=R_NO)AND(r.index.enum<>R_NO)AND
-           (r.offset=0)AND(r.scalefactor=0)AND(r.symbol=nil)
-    THEN
-      list.concat(Taicpu.Op_reg(A_LD,r.index))
-    ELSE IF(r.base.enum<>R_NO)AND(r.index.enum=R_NO)AND
-           (r.offset=0)AND(r.symbol=nil)
-    THEN
-      list.concat(Taicpu.Op_reg(A_LD,r.base))
-    ELSE
-      BEGIN
-        tmpreg:=get_scratch_reg_address(list);
-        a_loadaddr_ref_reg(list,r,tmpreg);
-        list.concat(taicpu.op_reg(A_LD,tmpreg));
-        free_scratch_reg(list,tmpreg);
-      END;
-  END;
+  var
+    Ref:TReference;
+    TmpReg:TRegister;
+  begin
+    case locpara.loc of
+      LOC_REGISTER,LOC_CREGISTER:
+        a_loadaddr_ref_reg(list,r,locpara.register);
+      LOC_REFERENCE:
+        begin
+          reference_reset(ref);
+          ref.base := locpara.reference.index;
+          ref.offset := locpara.reference.offset;
+          tmpreg := get_scratch_reg_address(list);
+          a_loadaddr_ref_reg(list,r,tmpreg);
+          a_load_reg_ref(list,OS_ADDR,tmpreg,ref);
+          free_scratch_reg(list,tmpreg);
+        end;
+    else
+      internalerror(2002080701);
+    end;
+  end;
 procedure TCgSparc.a_call_name(list:TAasmOutput;CONST s:string);
   BEGIN
     WITH List,objectlibrary DO
@@ -238,8 +234,15 @@ procedure TCgSparc.a_call_ref(list:TAasmOutput;CONST ref:TReference);
     list.concat(taicpu.op_none(A_NOP));
   end;
 procedure TCgSparc.a_call_reg(list:TAasmOutput;Reg:TRegister);
+  var
+    RetAddrReg:TRegister;
   begin
-    list.concat(taicpu.op_reg(A_JMPL,reg));
+    with RetAddrReg do
+      begin
+        enum:=R_INTREGISTER;
+        Number:=NR_O7;
+      end;
+    list.concat(taicpu.op_reg_reg(A_JMPL,reg,RetAddrReg));
     if target_info.system=system_sparc_linux
     then
       list.concat(taicpu.op_none(A_NOP));
@@ -1425,7 +1428,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.41  2003-03-10 21:59:54  mazen
+  Revision 1.42  2003-03-16 20:45:45  mazen
+  * fixing an LD operation without refernce in loading address parameters
+
+  Revision 1.41  2003/03/10 21:59:54  mazen
   * fixing index overflow in handling new registers arrays.
 
   Revision 1.40  2003/02/25 21:41:44  mazen
