@@ -1,0 +1,11 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Preamble for report output
+%
+\documentclass{report}
+\usepackage[html,4,png,sections+]{tex4ht}
+%
+% FPC package
+\usepackage{fpc}
+%
+% End.
+%
