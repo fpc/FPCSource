@@ -47,7 +47,7 @@ Procedure PeepHoleOptPass1(Asml: PAasmOutput; BlockStart, BlockEnd: Pai);
 
 Var
   l : longint;
-  p ,hp1, hp2: pai;
+  p ,hp1, hp2, hp3, hp4: pai;
   TmpBool1, TmpBool2: Boolean;
 
   TmpRef: PReference;
@@ -97,6 +97,51 @@ Var
       End;
   End;
 
+  Function DoSubAddOpt(var p: Pai): Boolean;
+  Begin
+    DoSubAddOpt := False;
+    If GetLastInstruction(p, hp1) And
+       (hp1^.typ = ait_instruction) And
+       (Pai386(hp1)^.opsize = Pai386(p)^.opsize) then
+      Case Pai386(hp1)^.opcode Of
+        A_DEC:
+          If (Pai386(hp1)^.oper[0].typ = top_reg) And
+             (Pai386(hp1)^.oper[0].reg = Pai386(p)^.oper[1].reg) Then
+            Begin
+              Pai386(p)^.LoadConst(0,Pai386(p)^.oper[0].val+1);
+              AsmL^.Remove(hp1);
+              Dispose(hp1, Done)
+            End;
+         A_SUB:
+           If (Pai386(hp1)^.oper[0].typ = top_const) And
+              (Pai386(hp1)^.oper[1].typ = top_reg) And
+              (Pai386(hp1)^.oper[1].reg = Pai386(p)^.oper[1].reg) Then
+             Begin
+               Pai386(p)^.LoadConst(0,Pai386(p)^.oper[0].val+Pai386(hp1)^.oper[0].val);
+               AsmL^.Remove(hp1);
+               Dispose(hp1, Done)
+             End;
+         A_ADD:
+           If (Pai386(hp1)^.oper[0].typ = top_const) And
+              (Pai386(hp1)^.oper[1].typ = top_reg) And
+              (Pai386(hp1)^.oper[1].reg = Pai386(p)^.oper[1].reg) Then
+             Begin
+               Pai386(p)^.LoadConst(0,Pai386(p)^.oper[0].val-Pai386(hp1)^.oper[0].val);
+               AsmL^.Remove(hp1);
+               Dispose(hp1, Done);
+               If (Pai386(p)^.oper[0].val = 0) Then
+                 Begin
+                   hp1 := Pai(p^.next);
+                   AsmL^.Remove(p);
+                   Dispose(p, Done);
+                   If Not GetLastInstruction(hp1, p) Then
+                     p := hp1;
+                   DoSubAddOpt := True;
+                 End
+             End;
+       End;
+  End;
+
 Begin
   P := BlockStart;
   UsedRegs := [];
@@ -113,7 +158,6 @@ Begin
       because it can never be executed}
                If (pai386(p)^.opcode = A_JMP) Then
                  Begin
-                   hp1 := pai(p^.next);
                    While GetNextInstruction(p, hp1) and
                          ((hp1^.typ <> ait_label) or
                    { skip unused labels, they're not referenced anywhere }
@@ -210,13 +254,50 @@ Begin
               A_CMP:
                 Begin
                   If (Pai386(p)^.oper[0].typ = top_const) And
-                     (Pai386(p)^.oper[1].typ = top_reg) And
+                     (Pai386(p)^.oper[1].typ in [top_reg,top_ref]) And
                      (Pai386(p)^.oper[0].val = 0) Then
+{$ifdef foropt}
+                    If GetNextInstruction(p, hp1) And
+                       (hp1^.typ = ait_instruction) And
+                       (Pai386(hp1)^.is_jmp) and
+                       (pai386(hp1)^.opcode=A_Jcc) and
+                       (pai386(hp1)^.condition in [C_LE,C_BE]) and
+                       GetNextInstruction(hp1,hp2) and
+                       (hp2^.typ = ait_instruction) and
+                       (Pai386(hp2)^.opcode = A_DEC) And
+                       OpsEqual(Pai386(hp2)^.oper[0],Pai386(p)^.oper[1]) And
+                       GetNextInstruction(hp2, hp3) And
+                       (hp3^.typ = ait_instruction) and
+                       (Pai386(hp3)^.is_jmp) and
+                       (Pai386(hp3)^.opcode = A_JMP) And
+                       GetNextInstruction(hp3, hp4) And
+                       FindLabel(PAsmLabel(pai386(hp1)^.oper[0].sym),hp4)
+                      Then
+                        Begin
+                          Pai386(hp2)^.Opcode := A_SUB;
+                          Pai386(hp2)^.Loadoper(1,Pai386(hp2)^.oper[0]);
+                          Pai386(hp2)^.LoadConst(0,1);
+                          Pai386(hp2)^.ops:=2;
+                          Pai386(hp3)^.Opcode := A_Jcc;
+                          Case pai386(hp1)^.condition of
+                            C_LE: Pai386(hp3)^.condition := C_GE;
+                            C_BE: Pai386(hp3)^.condition := C_AE;
+                          End;
+                          AsmL^.Remove(p);
+                          AsmL^.Remove(hp1);
+                          Dispose(p, Done);
+                          Dispose(hp1, Done);
+                          p := hp2;
+                          continue;
+                        End
+                      Else
+{$endif foropt}
                  {change "cmp $0, %reg" to "test %reg, %reg"}
-                    Begin
-                      Pai386(p)^.opcode := A_TEST;
-                      Pai386(p)^.loadreg(0,Pai386(p)^.oper[1].reg);
-                    End;
+                  If (Pai386(p)^.oper[1].typ = top_reg) Then
+                      Begin
+                        Pai386(p)^.opcode := A_TEST;
+                        Pai386(p)^.loadreg(0,Pai386(p)^.oper[1].reg);
+                      End;
                 End;
               A_FLD:
                 Begin
@@ -362,7 +443,8 @@ Begin
                      (Not(GetNextInstruction(p, hp1)) Or
                        {GetNextInstruction(p, hp1) And}
                        Not((Pai(hp1)^.typ = ait_instruction) And
-                           ((pai386(hp1)^.opcode=A_Jcc) and (pai386(hp1)^.condition in [C_O,C_NO]))))
+                           ((pai386(hp1)^.opcode=A_Jcc) and
+                            (pai386(hp1)^.condition in [C_O,C_NO]))))
                     Then
                       Begin
                         New(TmpRef);
@@ -1284,9 +1366,9 @@ Begin
                                      (Pai386(hp1)^.oper[1].ref^.base = R_ESP)))) do
                           hp1 := Pai(hp1^.next);
                         If Assigned(hp1) And
-                            (Pai(hp1)^.typ = ait_instruction) And
-                            (Pai386(hp1)^.opcode = A_PUSH) And
-                            (Pai386(hp1)^.opsize = S_W)
+                           (Pai(hp1)^.typ = ait_instruction) And
+                           (Pai386(hp1)^.opcode = A_PUSH) And
+                           (Pai386(hp1)^.opsize = S_W)
                           Then
                             Begin
                               Pai386(hp1)^.changeopsize(S_L);
@@ -1297,53 +1379,10 @@ Begin
                               Dispose(p, Done);
                               p := hp1;
                               Continue
-                            End
-                          Else
-                            If GetLastInstruction(p, hp1) And
-                               (Pai(hp1)^.typ = ait_instruction) And
-                               (Pai386(hp1)^.opcode = A_SUB) And
-                               (Pai386(hp1)^.oper[0].typ = top_const) And
-                               (Pai386(hp1)^.oper[1].typ = top_reg) And
-                               (Pai386(hp1)^.oper[1].reg = R_ESP)
-                              Then
-                                Begin
-                                  Pai386(p)^.LoadConst(0,Pai386(p)^.oper[0].val+Pai386(hp1)^.oper[0].val);
-                                  AsmL^.Remove(hp1);
-                                  Dispose(hp1, Done);
-                                End;
+                            End;
+                        If DoSubAddOpt(p) Then continue;
                       End
-                    Else
-                      If GetLastInstruction(p, hp1) And
-                         (hp1^.typ = ait_instruction) And
-                         (Pai386(hp1)^.opsize = Pai386(p)^.opsize) then
-                        Case Pai386(hp1)^.opcode Of
-                          A_DEC:
-                            If (Pai386(hp1)^.oper[0].typ = top_reg) And
-                               (Pai386(hp1)^.oper[0].reg = Pai386(p)^.oper[1].reg) Then
-                              Begin
-                                Pai386(p)^.LoadConst(0,Pai386(p)^.oper[0].val+1);
-                                AsmL^.Remove(hp1);
-                                Dispose(hp1, Done)
-                              End;
-                          A_SUB:
-                            If (Pai386(hp1)^.oper[0].typ = top_const) And
-                               (Pai386(hp1)^.oper[1].typ = top_reg) And
-                               (Pai386(hp1)^.oper[1].reg = Pai386(p)^.oper[1].reg) Then
-                              Begin
-                                Pai386(p)^.LoadConst(0,Pai386(p)^.oper[0].val+Pai386(hp1)^.oper[0].val);
-                                AsmL^.Remove(hp1);
-                                Dispose(hp1, Done)
-                              End;
-                          A_ADD:
-                            If (Pai386(hp1)^.oper[0].typ = top_const) And
-                               (Pai386(hp1)^.oper[1].typ = top_reg) And
-                               (Pai386(hp1)^.oper[1].reg = Pai386(p)^.oper[1].reg) Then
-                              Begin
-                                Pai386(p)^.LoadConst(0,Pai386(p)^.oper[0].val-Pai386(hp1)^.oper[0].val);
-                                AsmL^.Remove(hp1);
-                                Dispose(hp1, Done)
-                              End;
-                        End
+                    Else If DoSubAddOpt(p) Then Continue
                 End;
               A_TEST, A_OR:
                 {removes the line marked with (x) from the sequence
@@ -1352,8 +1391,8 @@ Begin
                  j(n)z _Label
                     as the first instruction already adjusts the ZF}
                  Begin
-                   If OpsEqual(Pai386(p)^.oper[0],Pai386(p)^.oper[1]) And
-                      GetLastInstruction(p, hp1) And
+                   If OpsEqual(Pai386(p)^.oper[0],Pai386(p)^.oper[1]) Then
+                    If GetLastInstruction(p, hp1) And
                       (pai(hp1)^.typ = ait_instruction) Then
                      Case Pai386(hp1)^.opcode Of
                        A_ADD, A_SUB, A_OR, A_XOR, A_AND, A_SHL, A_SHR:
@@ -1391,7 +1430,10 @@ Begin
                                continue
                              End;
                          End
-                     End;
+                     End
+                    Else
+
+
                  End;
             End;
             end; { if is_jmp }
@@ -1524,7 +1566,10 @@ End.
 
 {
  $Log$
- Revision 1.60  1999-08-04 00:23:16  florian
+ Revision 1.61  1999-08-05 15:02:48  jonas
+   * "add/sub const,%esp;sub $2,%esp" wasn't always optimized
+
+ Revision 1.60  1999/08/04 00:23:16  florian
    * renamed i386asm and i386base to cpuasm and cpubase
 
  Revision 1.59  1999/08/03 17:13:28  jonas
