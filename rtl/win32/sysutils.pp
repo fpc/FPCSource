@@ -702,9 +702,9 @@ begin
   hp:=p;
   If (Hp<>Nil) then
     begin
-    while hp^<>#0 and (Index>1) do
+    while (hp^<>#0) and (Index>1) do
       begin
-      Dex(Index);
+      Dec(Index);
       hp:=hp+strlen(hp)+1;
       end;
     If (hp^<>#0) then
@@ -1005,7 +1005,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.38  2004-12-11 11:32:44  michael
+  Revision 1.39  2004-12-11 11:48:38  michael
+  + Some fixes in new envvar function
+
+  Revision 1.38  2004/12/11 11:32:44  michael
   + Added GetEnvironmentVariableCount and GetEnvironmentString calls
 
   Revision 1.37  2004/08/06 13:23:21  michael
