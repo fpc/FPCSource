@@ -220,8 +220,9 @@ implementation
                       cg.a_op_const_reg_reg(exprasmlist,OP_SHR,OS_32,shiftval and 31,hregisterhigh,hregisterlow);
                     cg.a_load_const_reg(exprasmlist,OS_32,0,hregisterhigh);
                   end;
-                location.registerhigh:=hregisterlow;
-                location.registerlow:=hregisterhigh;
+                { registers are already swapped }
+                location.registerlow:=hregisterlow;
+                location.registerhigh:=hregisterhigh;
               end
             else
               begin
@@ -332,7 +333,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2004-06-20 08:55:32  florian
+  Revision 1.19  2004-08-01 08:46:31  florian
+    * qword/int64 shifting fixed
+
+  Revision 1.18  2004/06/20 08:55:32  florian
     * logs truncated
 
   Revision 1.17  2004/06/16 20:07:11  florian
