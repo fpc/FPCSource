@@ -958,10 +958,10 @@ procedure SysInitMorphOS;
 var self: PProcess;
 begin
  self:=PProcess(exec_FindTask(nil));
- if self^.pr_CLI<>0 then begin
-   { if we're running from Ambient, we catch its message }
+ if self^.pr_CLI=0 then begin
+   { if we're running from Ambient/Workbench, we catch its message }
    exec_WaitPort(@self^.pr_MsgPort);
-   MOS_ambMsg:=exec_GetMsg(@self^.pr_MsgPort);   
+   MOS_ambMsg:=exec_GetMsg(@self^.pr_MsgPort);
  end;
 
  MOS_DOSBase:=exec_OpenLibrary('dos.library',50);
@@ -1039,7 +1039,10 @@ End.
 
 {
   $Log$
-  Revision 1.6  2004-05-09 14:42:59  karoly
+  Revision 1.7  2004-05-12 15:34:16  karoly
+    * fixed startup code from endless wait when not started from Ambient
+
+  Revision 1.6  2004/05/09 14:42:59  karoly
     * again, few more new things added
 
   Revision 1.5  2004/05/09 02:02:42  karoly
