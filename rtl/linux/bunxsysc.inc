@@ -337,11 +337,15 @@ begin
  fputime:=do_syscall(syscall_nr_utime,TSysParam(path),TSysParam(times));
 end;
 
+
+{$ifndef FPC_SYSTEM_HAS_FPPIPE}
 Function fppipe(var fildes : tfildes):cint;
 
 begin
  fppipe:=do_syscall(syscall_nr_pipe,TSysParam(@fildes));
 end;
+{$endif FPC_SYSTEM_HAS_FPPIPE}
+
 
 function fpfcntl(fildes:cint;Cmd:cint;Arg:cint):cint;
 
@@ -530,7 +534,10 @@ end;
 
 {
  $Log$
- Revision 1.2  2005-02-14 17:13:30  peter
+ Revision 1.3  2005-03-03 20:13:44  florian
+   + sparc specific pipe implementation
+
+ Revision 1.2  2005/02/14 17:13:30  peter
    * truncate log
 
  Revision 1.1  2005/02/13 20:01:38  peter
