@@ -217,7 +217,7 @@ implementation
 
     function taicpu.is_reg_move:boolean;
       begin
-        result:=(opcode=A_MOV) and
+        result:=((opcode=A_MOV) or (opcode=A_FMOVS)) and
                 (ops=2) and
                 (oper[0]^.typ=top_reg) and
                 (oper[1]^.typ=top_reg);
@@ -226,9 +226,7 @@ implementation
 
     function taicpu.is_same_reg_move:boolean;
       begin
-        { Note: This should not check for A_NOP, because that is
-          used for the delay slots }
-        result:=(opcode=A_MOV) and
+        result:=((opcode=A_MOV) or (opcode=A_FMOVS)) and
                 (ops=2) and
                 (oper[0]^.typ=top_reg) and
                 (oper[1]^.typ=top_reg) and
@@ -254,13 +252,45 @@ implementation
 
     function taicpu.spilling_create_load(const ref:treference;r:tregister): tai;
       begin
-        result:=taicpu.op_ref_reg(A_LD,ref,r);
+        case getregtype(r) of
+          R_INTREGISTER :
+            result:=taicpu.op_ref_reg(A_LD,ref,r);
+          R_FPUREGISTER :
+            begin
+              case getsubreg(r) of
+                R_SUBFS :
+                  result:=taicpu.op_ref_reg(A_LDF,ref,r);
+                R_SUBFD :
+                  result:=taicpu.op_ref_reg(A_LDD,ref,r);
+                else
+                  internalerror(200401042);
+              end;
+            end
+          else
+            internalerror(200401041);
+        end;
       end;
 
 
     function taicpu.spilling_create_store(r:tregister; const ref:treference): tai;
       begin
-        result:=taicpu.op_reg_ref(A_ST,r,ref);
+        case getregtype(r) of
+          R_INTREGISTER :
+            result:=taicpu.op_reg_ref(A_ST,r,ref);
+          R_FPUREGISTER :
+            begin
+              case getsubreg(r) of
+                R_SUBFS :
+                  result:=taicpu.op_reg_ref(A_STF,r,ref);
+                R_SUBFD :
+                  result:=taicpu.op_reg_ref(A_STD,r,ref);
+                else
+                  internalerror(200401042);
+              end;
+            end
+          else
+            internalerror(200401041);
+        end;
       end;
 
 
@@ -276,7 +306,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.40  2003-12-28 16:20:09  jonas
+  Revision 1.41  2004-01-12 16:39:40  peter
+    * sparc updates, mostly float related
+
+  Revision 1.40  2003/12/28 16:20:09  jonas
     - removed unused methods from old generic spilling code
 
   Revision 1.39  2003/12/26 14:02:30  peter

@@ -133,7 +133,7 @@ implementation
                   lab_real:=lastlabel;
                   if (cs_create_smart in aktmoduleswitches) then
                    Consts.concat(Tai_cut.Create);
-                  consts.concat(tai_align.create(const_align(4)));
+                  consts.concat(tai_align.create(const_align(resulttype.def.size)));
                   Consts.concat(Tai_label.Create(lastlabel));
                   case realait of
                     ait_real_32bit :
@@ -273,7 +273,7 @@ implementation
                                        hp2:=tai(lastlabelhp.previous);
                                        if assigned(hp2) and
                                           (hp2.typ=ait_const_32bit) and
-                                          (tai_const(hp2).value=-1) and
+                                          (tai_const(hp2).value=aword(-1)) and
                                           assigned(hp2.previous) and
                                           (tai(hp2.previous).typ=ait_const_32bit) and
                                           (tai_const(hp2.previous).value=len) and
@@ -475,7 +475,7 @@ implementation
                           else
                            begin
                              { compare small set }
-                             if plongint(value_set)^=tai_const(hp1).value then
+                             if paword(value_set)^=tai_const(hp1).value then
                               begin
                                 { found! }
                                 lab_set:=lastlabel;
@@ -559,7 +559,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.34  2003-12-08 22:34:24  peter
+  Revision 1.35  2004-01-12 16:39:40  peter
+    * sparc updates, mostly float related
+
+  Revision 1.34  2003/12/08 22:34:24  peter
     * tai_const.create_32bit changed to cardinal
 
   Revision 1.33  2003/10/26 13:37:22  florian

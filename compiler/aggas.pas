@@ -69,7 +69,8 @@ implementation
       dos,
 {$endif Delphi}
       cutils,globtype,systems,
-      fmodule,finput,verbose,cpubase
+      fmodule,finput,verbose,cpubase,
+      itcpugas
 {$ifdef GDB}
   {$ifdef delphi}
       ,sysutils
@@ -78,15 +79,6 @@ implementation
   {$endif}
       ,gdb
 {$endif GDB}
-{$ifdef x86}
-      ,itcpugas
-{$endif}
-{$ifdef powerpc}
-      ,itcpugas
-{$endif}
-{$ifdef arm}
-      ,itcpugas
-{$endif}
       ;
 
     const
@@ -505,11 +497,12 @@ var
                AsmWrite(#9'.rva'#9);
                AsmWriteLn(tai_const_symbol(hp).sym.name);
              end;
+
 {$ifdef cpuextended}
            ait_real_80bit :
              begin
                if do_line then
-                AsmWriteLn(target_asm.comment+target_asm.comment+extended2str(tai_real_80bit(hp).value));
+                AsmWriteLn(target_asm.comment+'value: '+extended2str(tai_real_80bit(hp).value));
              { Make sure e is a extended type, bestreal could be
                a different type (bestreal) !! (PFV) }
                e:=tai_real_80bit(hp).value;
@@ -527,13 +520,11 @@ var
            ait_real_64bit :
              begin
                if do_line then
-                AsmWriteLn(target_asm.comment+target_asm.comment+double2str(tai_real_64bit(hp).value));
+                AsmWriteLn(target_asm.comment+'value: '+double2str(tai_real_64bit(hp).value));
                d:=tai_real_64bit(hp).value;
                { swap the values to correct endian if required }
-{$ifdef fpc}
                if source_info.endian <> target_info.endian then
                  swap64bitarray(t64bitarray(d));
-{$endif}
                AsmWrite(#9'.byte'#9);
                for i:=0 to 7 do
                 begin
@@ -547,13 +538,11 @@ var
            ait_real_32bit :
              begin
                if do_line then
-                AsmWriteLn(target_asm.comment+target_asm.comment+single2str(tai_real_32bit(hp).value));
+                AsmWriteLn(target_asm.comment+'value: '+single2str(tai_real_32bit(hp).value));
                sin:=tai_real_32bit(hp).value;
-{$ifdef fpc}
                { swap the values to correct endian if required }
                if source_info.endian <> target_info.endian then
                  swap32bitarray(t32bitarray(sin));
-{$endif}
                AsmWrite(#9'.byte'#9);
                for i:=0 to 3 do
                 begin
@@ -567,18 +556,16 @@ var
            ait_comp_64bit :
              begin
                if do_line then
-                AsmWriteLn(target_asm.comment+target_asm.comment+extended2str(tai_comp_64bit(hp).value));
+                AsmWriteLn(target_asm.comment+'value: '+extended2str(tai_comp_64bit(hp).value));
                AsmWrite(#9'.byte'#9);
 {$ifdef FPC}
                co:=comp(tai_comp_64bit(hp).value);
 {$else}
                co:=tai_comp_64bit(hp).value;
 {$endif}
-{$ifdef fpc}
                { swap the values to correct endian if required }
                if source_info.endian <> target_info.endian then
                  swap64bitarray(t64bitarray(co));
-{$endif}
                for i:=0 to 7 do
                 begin
                   if i<>0 then
@@ -852,7 +839,10 @@ var
 end.
 {
   $Log$
-  Revision 1.42  2004-01-07 17:40:06  jonas
+  Revision 1.43  2004-01-12 16:39:40  peter
+    * sparc updates, mostly float related
+
+  Revision 1.42  2004/01/07 17:40:06  jonas
     * darwin requires the alginment of .lcomm symbols to be specified
       together with the symbol itself, instead of in a .align directive
 

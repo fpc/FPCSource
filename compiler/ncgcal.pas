@@ -486,7 +486,14 @@ implementation
                   location.register:=NR_FUNCTION_RESULT_REG
                 else
 {$endif cpufpemu}
-                  location.register:=NR_FPU_RESULT_REG;
+                  begin
+                    location.register:=NR_FPU_RESULT_REG;
+{$ifdef sparc}
+                    { Double are returned in F0:F1 }
+                    if location.size=OS_F64 then
+                      setsubreg(location.register,R_SUBFD);
+{$endif sparc}
+                  end;
 {$ifdef x86}
                 tcgx86(cg).inc_fpu_stack;
 {$else x86}
@@ -1154,7 +1161,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.149  2003-12-28 22:09:12  florian
+  Revision 1.150  2004-01-12 16:39:40  peter
+    * sparc updates, mostly float related
+
+  Revision 1.149  2003/12/28 22:09:12  florian
     + setting of bit 6 of cr for c var args on ppc implemented
 
   Revision 1.148  2003/12/26 13:19:16  florian

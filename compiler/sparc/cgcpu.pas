@@ -182,11 +182,9 @@ implementation
               begin
                 if tmpreg=NR_NO then
                   tmpreg:=GetIntRegister(list,OS_INT);
-                if (ref.index<>NR_NO) then
-                  begin
-                    list.concat(taicpu.op_reg_reg_reg(A_ADD,ref.base,ref.index,tmpreg));
-                    ref.index:=NR_NO;
-                  end;
+                list.concat(taicpu.op_reg_reg_reg(A_ADD,ref.base,ref.index,tmpreg));
+                ref.base:=tmpreg;
+                ref.index:=NR_NO;
               end;
           end;
         if isstore then
@@ -227,7 +225,7 @@ implementation
             [RS_O0,RS_O1,RS_O2,RS_O3,RS_O4,RS_O5,RS_O7,
              RS_L0,RS_L1,RS_L2,RS_L3,RS_L4,RS_L5,RS_L6,RS_L7],
             first_int_imreg,[]);
-        rg[R_FPUREGISTER]:=trgcpu.create(R_FPUREGISTER,R_SUBNONE,
+        rg[R_FPUREGISTER]:=trgcpu.create(R_FPUREGISTER,R_SUBFS,
             [RS_F0,RS_F1,RS_F2,RS_F3,RS_F4,RS_F5,RS_F6,RS_F7,
              RS_F8,RS_F9,RS_F10,RS_F11,RS_F12,RS_F13,RS_F14,RS_F15,
              RS_F16,RS_F17,RS_F18,RS_F19,RS_F20,RS_F21,RS_F22,RS_F23,
@@ -249,7 +247,7 @@ implementation
         if size=OS_F64 then
           result:=rg[R_FPUREGISTER].getregister(list,R_SUBFD)
         else
-          result:=rg[R_FPUREGISTER].getregister(list,R_SUBWHOLE);
+          result:=rg[R_FPUREGISTER].getregister(list,R_SUBFS);
       end;
 
 
@@ -604,17 +602,12 @@ implementation
 
 
     procedure TCgSparc.a_loadfpu_reg_reg(list:TAasmOutput;size:tcgsize;reg1, reg2:tregister);
+      const
+         FpuMovInstr : Array[OS_F32..OS_F64] of TAsmOp =
+           (A_FMOVS,A_FMOVD);
       begin
         if reg1<>reg2 then
-          begin
-            list.concat(taicpu.op_reg_reg(A_FMOVs,reg1,reg2));
-            if size=OS_F64 then
-              begin
-                setsupreg(reg1,getsupreg(reg1)+1);
-                setsupreg(reg2,getsupreg(reg2)+1);
-                list.concat(taicpu.op_reg_reg(A_FMOVs,reg1,reg2));
-              end;
-          end;
+          list.concat(taicpu.op_reg_reg(fpumovinstr[size],reg1,reg2));
       end;
 
 
@@ -1109,7 +1102,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.75  2003-12-26 14:02:30  peter
+  Revision 1.76  2004-01-12 16:39:40  peter
+    * sparc updates, mostly float related
+
+  Revision 1.75  2003/12/26 14:02:30  peter
     * sparc updates
     * use registertype in spill_register
 

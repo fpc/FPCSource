@@ -391,14 +391,14 @@ unit i_linux;
                 loopalign       : 4;
                 jumpalign       : 0;
                 constalignmin   : 0;
-                constalignmax   : 4;
+                constalignmax   : 8;
                 varalignmin     : 0;
-                varalignmax     : 4;
+                varalignmax     : 8;
                 localalignmin   : 0;
-                localalignmax   : 4;
+                localalignmax   : 8;
                 recordalignmin  : 0;
-                recordalignmax  : 4;
-                maxCrecordalign : 4
+                recordalignmax  : 8;
+                maxCrecordalign : 8
               );
             first_parm_offset : (16+1)*4;
             heapsize     : 256*1024;
@@ -514,7 +514,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.18  2003-12-31 17:28:19  jonas
+  Revision 1.19  2004-01-12 16:39:41  peter
+    * sparc updates, mostly float related
+
+  Revision 1.18  2003/12/31 17:28:19  jonas
     * fixed C record max alignment
 
   Revision 1.17  2003/12/21 21:20:58  florian

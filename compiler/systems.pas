@@ -62,8 +62,6 @@ interface
        );
 
        tasmmode= (asmmode_none
-            { direct output with minimal parsing }
-            ,asmmode_direct
             { standard assembler (cpu dependant) with full parsing }
             ,asmmode_standard
             ,asmmode_i386_att
@@ -208,7 +206,7 @@ interface
           needar,
           labelprefix_only_inside_procedure : boolean;
           labelprefix : string[3];
-          comment     : string[2];
+          comment     : string[3];
           secnames    : array[TSection] of string[20];
        end;
 
@@ -651,7 +649,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.77  2004-01-04 21:17:51  jonas
+  Revision 1.78  2004-01-12 16:39:40  peter
+    * sparc updates, mostly float related
+
+  Revision 1.77  2004/01/04 21:17:51  jonas
     + added log message for last commit
 
   Revision 1.76  2004/01/04 21:12:47  jonas

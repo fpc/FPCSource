@@ -113,9 +113,6 @@ begin
             if More='INTEL' then
              initasmmode:=asmmode_i386_intel
            else
-            if More='DIRECT' then
-             initasmmode:=asmmode_direct
-           else
             IllegalPara(opt);
          end;
   else
@@ -129,7 +126,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.4  2003-08-09 18:56:54  daniel
+  Revision 1.5  2004-01-12 16:39:41  peter
+    * sparc updates, mostly float related
+
+  Revision 1.4  2003/08/09 18:56:54  daniel
     * cs_regalloc renamed to cs_regvars to avoid confusion with register
       allocator
     * Some preventive changes to i386 spillinh code

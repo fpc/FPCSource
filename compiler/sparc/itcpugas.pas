@@ -80,6 +80,9 @@ implementation
       var
         p : longint;
       begin
+        { Double uses the same table as single }
+        if getsubreg(r)=R_SUBFD then
+          setsubreg(r,R_SUBFS);
         p:=findreg_by_number(r);
         if p<>0 then
           result:=gas_regname_table[p]
@@ -90,7 +93,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2003-12-08 13:03:06  mazen
+  Revision 1.2  2004-01-12 16:39:41  peter
+    * sparc updates, mostly float related
+
+  Revision 1.1  2003/12/08 13:03:06  mazen
   + support for native sparc assembler reader
 
   Revision 1.2  2003/11/15 19:00:10  florian

@@ -65,10 +65,15 @@
           'not',
           'set',
           'skipz','skipnz',
-          'tst'
+          'tst',
+	  { internal instructions }
+	  'fmovd'
 {
         $Log$
-        Revision 1.9  2003-12-08 13:02:21  mazen
+        Revision 1.10  2004-01-12 16:39:41  peter
+          * sparc updates, mostly float related
+
+        Revision 1.9  2003/12/08 13:02:21  mazen
         + support for native sparc assembler reader
 
         Revision 1.8  2003/07/02 22:18:04  peter

@@ -128,19 +128,6 @@ interface
         if (nf_swaped in flags) then
           swapleftright;
 
-        case nodetype of
-          addn :
-            op:=A_FADDs;
-          muln :
-            op:=A_FMULs;
-          subn :
-            op:=A_FSUBs;
-          slashn :
-            op:=A_FDIVs;
-          else
-            internalerror(200306014);
-        end;
-
         { force fpureg as location, left right doesn't matter
           as both will be in a fpureg }
         location_force_fpureg(exprasmlist,left.location,true);
@@ -151,6 +138,39 @@ interface
           location.register:=left.location.register
         else
           location.register:=right.location.register;
+
+        case nodetype of
+          addn :
+            begin
+              if location.size=OS_F64 then
+                op:=A_FADDd
+              else
+                op:=A_FADDs;
+            end;
+          muln :
+            begin
+              if location.size=OS_F64 then
+                op:=A_FMULd
+              else
+                op:=A_FMULs;
+            end;
+          subn :
+            begin
+              if location.size=OS_F64 then
+                op:=A_FSUBd
+              else
+                op:=A_FSUBs;
+            end;
+          slashn :
+            begin
+              if location.size=OS_F64 then
+                op:=A_FDIVd
+              else
+                op:=A_FDIVs;
+            end;
+          else
+            internalerror(200306014);
+        end;
 
         exprasmlist.concat(taicpu.op_reg_reg_reg(op,
            left.location.register,right.location.register,location.register));
@@ -257,7 +277,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2003-10-24 11:28:35  mazen
+  Revision 1.22  2004-01-12 16:39:41  peter
+    * sparc updates, mostly float related
+
+  Revision 1.21  2003/10/24 11:28:35  mazen
   -unused units removed from uses clause
 
   Revision 1.20  2003/10/01 20:34:50  peter

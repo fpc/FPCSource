@@ -452,7 +452,6 @@ type
     function  flags_to_cond(const f: TResFlags) : TAsmCond;
     function cgsize2subreg(s:Tcgsize):Tsubregister;
     function std_regname(r:Tregister):string;
-    function gas_regname(r:Tregister):string;
     function std_regnum_search(const s:string):Tregister;
     function findreg_by_number(r:Tregister):tregisterindex;
 
@@ -536,21 +535,13 @@ implementation
       end;
 
 
-    function gas_regname(r:Tregister):string;
-      var
-        p : tregisterindex;
-      begin
-        p:=findreg_by_number_table(r,regnumber_index);
-        if p<>0 then
-          result:=std_regname_table[p]
-        else
-          result:=generic_regname(r);
-      end;
-
 end.
 {
   $Log$
-  Revision 1.58  2003-12-19 14:38:03  mazen
+  Revision 1.59  2004-01-12 16:39:40  peter
+    * sparc updates, mostly float related
+
+  Revision 1.58  2003/12/19 14:38:03  mazen
   * new TRegister definition applied
 
   Revision 1.57  2003/11/10 19:05:50  peter

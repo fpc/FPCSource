@@ -63,7 +63,7 @@ unit cgcpu;
     class function tcg386.reg_cgsize(const reg: tregister): tcgsize;
 
     const subreg2cgsize:array[Tsubregister] of Tcgsize =
-          (OS_NO,OS_8,OS_8,OS_16,OS_32,OS_64,OS_NO);
+          (OS_NO,OS_8,OS_8,OS_16,OS_32,OS_64,OS_NO,OS_NO);
 
     begin
       case getregtype(reg) of
@@ -232,7 +232,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.42  2003-12-24 00:10:02  florian
+  Revision 1.43  2004-01-12 16:39:40  peter
+    * sparc updates, mostly float related
+
+  Revision 1.42  2003/12/24 00:10:02  florian
     - delete parameter in cg64 methods removed
 
   Revision 1.41  2003/12/19 22:08:44  daniel

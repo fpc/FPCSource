@@ -114,9 +114,7 @@ interface
           begin
             truelabel:=otl;
             falselabel:=ofl;
-          end
-        else
-          internalerror(2003122901);
+          end;
 
         { are too few registers free? }
         if left.location.loc=LOC_FPUREGISTER then
@@ -138,9 +136,7 @@ interface
           begin
             truelabel:=otl;
             falselabel:=ofl;
-          end
-        else
-          internalerror(2003122902);
+          end;
         if pushedfpu then
           begin
             tmpreg := cg.getfpuregister(exprasmlist,left.location.size);
@@ -753,7 +749,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2003-12-29 11:37:52  jonas
+  Revision 1.26  2004-01-12 16:39:40  peter
+    * sparc updates, mostly float related
+
+  Revision 1.25  2003/12/29 11:37:52  jonas
     * hopefully fixed bug tb0454 (merged from nppcadd)
 
   Revision 1.24  2003/12/23 14:38:07  florian

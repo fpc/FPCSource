@@ -67,10 +67,16 @@ A_NEG,
 A_not,
 A_set,
 A_skipz,A_skipnz,
-A_tst
+A_tst,
+{ Internal instructions }
+A_FMOVD
+
 {
         $Log$
-        Revision 1.10  2003-12-08 13:02:21  mazen
+        Revision 1.11  2004-01-12 16:39:41  peter
+          * sparc updates, mostly float related
+
+        Revision 1.10  2003/12/08 13:02:21  mazen
         + support for native sparc assembler reader
 
         Revision 1.9  2003/07/02 22:18:04  peter

@@ -24,6 +24,7 @@ var s : string;
     regcount:byte;
     regcount_bsstart:byte;
     supregs,
+    subregs,
     names,
     regtypes,
     numbers,
@@ -175,9 +176,8 @@ end;
 
 
 procedure read_spreg_file;
-
-var infile:text;
-
+var
+  infile:text;
 begin
    { open dat file }
    assign(infile,'spreg.dat');
@@ -197,6 +197,8 @@ begin
         readcomma;
         regtypes[regcount]:=readstr;
         readcomma;
+        subregs[regcount]:=readstr;
+        readcomma;
         supregs[regcount]:=readstr;
         readcomma;
         stdnames[regcount]:=readstr;
@@ -209,7 +211,7 @@ begin
             writeln('Line: "',s,'"');
             halt(1);
           end;
-        numbers[regcount]:=regtypes[regcount]+'0000'+copy(supregs[regcount],2,255);
+        numbers[regcount]:=regtypes[regcount]+copy(subregs[regcount],2,255)+'00'+copy(supregs[regcount],2,255);
         if i<length(s) then
           begin
             writeln('Extra chars at end of line, at line ',line);
@@ -257,7 +259,7 @@ begin
         end
       else
         first:=false;
-      writeln(confile,'NR_',names[i],' = ',numbers[i],';');
+      writeln(confile,'NR_',names[i],' = tregister(',numbers[i],');');
       writeln(supfile,'RS_',names[i],' = ',supregs[i],';');
       write(numfile,'NR_',names[i]);
       write(stdfile,'''',stdnames[i],'''');
@@ -293,7 +295,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2003-09-03 20:33:28  peter
+  Revision 1.5  2004-01-12 16:39:41  peter
+    * sparc updates, mostly float related
+
+  Revision 1.4  2003/09/03 20:33:28  peter
     * fixed sorting of register number
 
   Revision 1.3  2003/09/03 16:28:16  peter

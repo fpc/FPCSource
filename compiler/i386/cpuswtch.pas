@@ -100,8 +100,8 @@ begin
             if More='INTEL' then
              initasmmode:=asmmode_i386_intel
            else
-            if More='DIRECT' then
-             initasmmode:=asmmode_direct
+            if (More='STANDARD') or (More='DEFAULT') then
+             initasmmode:=asmmode_standard
            else
             IllegalPara(opt);
          end;
@@ -116,7 +116,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.11  2003-11-07 15:58:32  florian
+  Revision 1.12  2004-01-12 16:39:40  peter
+    * sparc updates, mostly float related
+
+  Revision 1.11  2003/11/07 15:58:32  florian
     * Florian's culmutative nr. 1; contains:
       - invalid calling conventions for a certain cpu are rejected
       - arm softfloat calling conventions

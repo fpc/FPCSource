@@ -35,7 +35,7 @@ unit rgcpu;
       cclasses,globtype,cgbase,rgobj,rgx86;
 
     type
-       trgcpu = class(trgobj)
+       trgcpu = class(trgx86)
           procedure add_constraints(reg:Tregister);override;
        end;
 
@@ -72,7 +72,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.41  2003-12-24 00:10:02  florian
+  Revision 1.42  2004-01-12 16:39:40  peter
+    * sparc updates, mostly float related
+
+  Revision 1.41  2003/12/24 00:10:02  florian
     - delete parameter in cg64 methods removed
 
   Revision 1.40  2003/10/17 15:08:34  peter

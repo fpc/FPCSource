@@ -1,6 +1,8 @@
-{******************************************************************************
-   $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl
+{
+    $Id$
+    Copyright (c) 1999-2003 by Florian Klaempfl
+
+    This unit implements an asmoutput class for SPARC AT&T syntax
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,15 +18,13 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
- ****************************************************************************}
-{
-  This unit implements an asmoutput class for SPARC AT&T syntax
+ ****************************************************************************
 }
 unit cpugas;
 
 {$i fpcdefs.inc}
 
-  interface
+interface
 
     uses
       cpubase,
@@ -35,11 +35,12 @@ unit cpugas;
         procedure WriteInstruction(hp:Tai);override;
       end;
 
-  implementation
+implementation
 
     uses
       cutils,systems,
-      verbose;
+      verbose,itcpugas;
+
 
     function GetReferenceString(var ref:TReference):string;
       begin
@@ -160,15 +161,36 @@ unit cpugas;
         if hp.typ<>ait_instruction then
           exit;
         op:=taicpu(hp).opcode;
-        { call maybe not translated to call }
-        s:=#9+std_op2str[op]+cond2str[taicpu(hp).condition];
-        if taicpu(hp).ops>0 then
+        { FMOVd does not exist, rewrite it using 2 FMOVs }
+        if op=A_FMOVD then
           begin
-            s:=s+#9+getopstr(taicpu(hp).oper[0]^);
-            for i:=1 to taicpu(hp).ops-1 do
-              s:=s+','+getopstr(taicpu(hp).oper[i]^);
+            if (taicpu(hp).ops<>2) or
+               (taicpu(hp).oper[0]^.typ<>top_reg) or
+               (taicpu(hp).oper[1]^.typ<>top_reg) then
+              internalerror(200401045);
+            { FMOVs %f<even>,%f<even> }
+            s:=#9+std_op2str[A_FMOVs]+#9+getopstr(taicpu(hp).oper[0]^)+','+getopstr(taicpu(hp).oper[1]^);
+            AsmWriteLn(s);
+            { FMOVs %f<odd>,%f<odd> }
+            inc(taicpu(hp).oper[0]^.reg);
+            inc(taicpu(hp).oper[1]^.reg);
+            s:=#9+std_op2str[A_FMOVs]+#9+getopstr(taicpu(hp).oper[0]^)+','+getopstr(taicpu(hp).oper[1]^);
+            dec(taicpu(hp).oper[0]^.reg);
+            dec(taicpu(hp).oper[1]^.reg);
+            AsmWriteLn(s);
+          end
+        else
+          begin
+            { call maybe not translated to call }
+            s:=#9+std_op2str[op]+cond2str[taicpu(hp).condition];
+            if taicpu(hp).ops>0 then
+              begin
+                s:=s+#9+getopstr(taicpu(hp).oper[0]^);
+                for i:=1 to taicpu(hp).ops-1 do
+                  s:=s+','+getopstr(taicpu(hp).oper[i]^);
+              end;
+            AsmWriteLn(s);
           end;
-        AsmWriteLn(s);
       end;
 
 
@@ -184,7 +206,7 @@ unit cpugas;
         needar:true;
         labelprefix_only_inside_procedure:false;
         labelprefix:'.L';
-        comment:';#';
+        comment:';# ';
         secnames:({sec_none}'',           {no section}
                   {sec_code}'.text',      {executable code}
                   {sec_data}'.data',      {initialized R/W data}
@@ -205,7 +227,10 @@ begin
 end.
 {
     $Log$
-    Revision 1.23  2003-10-24 11:22:50  mazen
+    Revision 1.24  2004-01-12 16:39:41  peter
+      * sparc updates, mostly float related
+
+    Revision 1.23  2003/10/24 11:22:50  mazen
     *fix related to toper==>poper
 
     Revision 1.22  2003/09/03 15:55:01  peter

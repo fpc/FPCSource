@@ -612,7 +612,7 @@ const
   asmmode_Sparc_standard_info : tasmmodeinfo =
           (
             id    : asmmode_standard;
-            idtxt : 'DIRECT';
+            idtxt : 'STANDARD';
             casmreader : tSparcReader;
           );
 
@@ -622,7 +622,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.4  2003-12-26 14:02:30  peter
+  Revision 1.5  2004-01-12 16:39:41  peter
+    * sparc updates, mostly float related
+
+  Revision 1.4  2003/12/26 14:02:30  peter
     * sparc updates
     * use registertype in spill_register
 
