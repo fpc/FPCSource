@@ -530,14 +530,37 @@ begin
 end;
 
 
+{$ifdef SYSTEMDEBUG}
+
+   { Keep Track of open files }
+   const
+      max_files = 50;
+      free_closed_names : boolean = true;
+   var
+      opennames : array [0..max_files-1] of pchar;
+      openfiles : array [0..max_files-1] of boolean;
+
+{$endif SYSTEMDEBUG}
+
 {*****************************************************************************
                               ParamStr/Randomize
 *****************************************************************************}
 
 {$ASMMODE DIRECT}
 procedure halt(errnum : byte);
+{$ifdef SYSTEMDEBUG}
+  var h : byte;
+{$endif SYSTEMDEBUG}
+
 begin
   do_exit;
+{$ifdef SYSTEMDEBUG}
+  for h:=0 to max_files do
+    if openfiles[h] then
+      writeln(stderr,'file ',opennames[h],' not closed at exit');
+{$endif SYSTEMDEBUG}
+  { halt is not allways called !! }
+  { not on normal exit !! PM }
   set_pm_interrupt($00,old_int00);
   set_pm_interrupt($75,old_int75);
   asm
@@ -680,17 +703,6 @@ begin
    if p[i]='/' then p[i]:='\';
 end;
 
-{$ifdef SYSTEMDEBUG}
-
-   { Keep Track of open files }
-   const
-      max_files = 50;
-   var
-      opennames : array [0..max_files-1] of pchar;
-      openfiles : array [0..max_files-1] of boolean;
-
-{$endif SYSTEMDEBUG}
-
 procedure do_close(handle : longint);
 var
   regs : trealregs;
@@ -698,7 +710,14 @@ begin
   regs.realebx:=handle;
 {$ifdef SYSTEMDEBUG}
   if handle<max_files then
-    openfiles[handle]:=false;
+    begin
+       openfiles[handle]:=false;
+       if assigned(opennames[handle]) and free_closed_names then
+         begin
+            freemem(opennames[handle],strlen(opennames[handle])+1);
+            opennames[handle]:=nil;
+         end;
+    end;
 {$endif SYSTEMDEBUG}
   regs.realeax:=$3e00;
   sysrealintr($21,regs);
@@ -985,7 +1004,7 @@ begin
     begin
        openfiles[regs.realeax]:=true;
        getmem(opennames[regs.realeax],strlen(p)+1);
-       opennames[regs.realeax]:=p;
+       move(p^,opennames[regs.realeax]^,strlen(p)+1);
     end;
 {$endif SYSTEMDEBUG}
 { append mode }
@@ -1206,7 +1225,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.20  1998-10-13 21:41:06  peter
+  Revision 1.21  1998-10-20 07:34:07  pierre
+   + systemdebug reports about unclosed files at exit
+
+  Revision 1.20  1998/10/13 21:41:06  peter
     + int 0 for divide by zero
 
   Revision 1.19  1998/09/14 10:48:05  peter
