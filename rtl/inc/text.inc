@@ -773,7 +773,7 @@ Begin
     Move(startp^,s[sPos+1],Len);
     inc(sPos,Len);
   { was it a LF? then leave }
-    if p^=#10 then
+    if (p<maxp) and (p^=#10) then
      begin
        if (spos>0) and (s[spos]=#13) then
         dec(sPos);
@@ -1208,7 +1208,10 @@ end;
 
 {
   $Log$
-  Revision 1.42  1999-03-16 17:49:39  jonas
+  Revision 1.43  1999-04-07 22:05:18  peter
+    * fixed bug with readln where it sometime didn't read until eol
+
+  Revision 1.42  1999/03/16 17:49:39  jonas
     * changes for internal Val code (do a "make cycle OPT=-dvalintern" to test)
     * in text.inc: changed RTE 106 when read integer values are out of bounds to RTE 201
     * in systemh.inc: disabled "support_fixed" for the i386 because it gave internal errors,
