@@ -125,12 +125,6 @@ procedure ParseUserScreen;
 
 procedure RegisterFPCompile;
 
-{$ifndef GABOR}
-var
-  StopJmp : Jmp_Buf;
-const
-  StopJmpValid : boolean = false;
-{$endif}
 
 
 implementation
@@ -149,6 +143,9 @@ uses
 {$ifdef win32}
   signals,
 {$endif}
+{$ifdef HasSignal}
+  fpcatch,
+{$endif HasSignal}
   Dos,Video,
   StdDlg,App,tokens,
 {$ifdef FVISION}
@@ -824,7 +821,9 @@ procedure DoCompile(Mode: TCompileMode);
 var
   s,FileName: string;
   ErrFile : Text;
-  MustRestartDebugger : boolean;
+  MustRestartDebugger,
+  StoreStopJumpValid : boolean;
+  StoreStopJmp : Jmp_buf;
   JmpRet,Error,LinkErrorCount : longint;
   E : TEvent;
   DummyView: PView;
@@ -920,6 +919,8 @@ begin
   WUtils.DeleteFile(GetExePath+PpasFile);
   SetStatus('Compiling...');
 {$ifndef GABOR}
+  StoreStopJumpValid:=StopJmpValid;
+  StoreStopJmp:=StopJmp;
   StopJmpValid:=true;
   JmpRet:=SetJmp(StopJmp);
   if JmpRet=0 then
@@ -956,7 +957,8 @@ begin
       CompilerMessageWindow^.AddMessage(V_error,'Long jumped out of compilation...','',0,0);
       SetStatus('Long jumped out of compilation...');
     end;
-  StopJmpValid:=false;
+  StopJmpValid:=StoreStopJumpValid;
+  StopJmp:=StoreStopJmp;
 {$endif}
   { tokens are created and distroyed by compiler.compile !! PM }
   InitTokens;
@@ -1238,6 +1240,7 @@ begin
   begin
     S^.Reset;
     Dispose(S, Done);
+    S:=nil;
     OK:=true;
   end;
   fileclose:=OK;
@@ -1255,7 +1258,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2001-11-13 01:58:34  carl
+  Revision 1.7  2002-03-20 14:48:27  pierre
+   * moved StopJmp buffer to fpcatch unit
+
+  Revision 1.6  2001/11/13 01:58:34  carl
   * Range check error fix
 
   Revision 1.5  2001/10/03 10:21:43  pierre

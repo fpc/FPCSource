@@ -47,6 +47,18 @@ Const
 Procedure EnableCatchSignals;
 Procedure DisableCatchSignals;
 
+{$ifdef DEBUG}
+procedure Generate_SIGSEGV;
+procedure Generate_SIGFPE;
+{$endif DEBUG}
+
+{$ifndef GABOR}
+var
+  StopJmp : Jmp_Buf;
+const
+  StopJmpValid : boolean = false;
+{$endif}
+
 Implementation
 
 uses
@@ -64,6 +76,28 @@ uses
 
 Const
   LastCtrlC : longint = 0;
+
+{$ifdef DEBUG}
+
+procedure Generate_SIGSEGV;
+var
+  l : plongint;
+begin
+  { Force a SIGSEGV }
+  l:=$ffffffff;
+  l^:=1;
+end;
+
+procedure Generate_SIGFPE;
+var
+  x,y : real;
+begin
+  { Force a SIGFPE }
+  y:=-5;
+  x:=sqrt(y);
+end;
+
+{$endif DEBUG}
 
 {$ifdef HasSignal}
 {$ifdef Unix}
@@ -195,7 +229,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2001-10-24 14:17:27  pierre
+  Revision 1.4  2002-03-20 14:48:27  pierre
+   * moved StopJmp buffer to fpcatch unit
+
+  Revision 1.3  2001/10/24 14:17:27  pierre
    * try to fix the Win2000 mouse problem
 
   Revision 1.2  2001/08/05 02:01:47  peter
