@@ -114,10 +114,7 @@ override FPC:=$(subst $(SRCEXEEXT),,$(FPC))
 override FPC:=$(subst \,/,$(FPC))$(SRCEXEEXT)
 FOUNDFPC:=$(strip $(wildcard $(FPC)))
 ifeq ($(FOUNDFPC),)
-FOUNDFPC=$(strip $(wildcard $(addsuffix /$(FPC),$(SEARCHPATH))))
-ifeq ($(FOUNDFPC),)
 $(error Compiler $(FPC) not found)
-endif
 endif
 ifndef FPC_COMPILERINFO
 FPC_COMPILERINFO:=$(shell $(FPC) -iVSPTPSOTO)
@@ -311,7 +308,7 @@ ifeq ($(FULL_TARGET),powerpc-darwin)
 override TARGET_DIRS+=text
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_DIRS+=text
+override TARGET_DIRS+=text  morphos
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
 override TARGET_DIRS+=text  linux graph
@@ -1608,6 +1605,7 @@ TARGET_DIRS_TEXT=1
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
 TARGET_DIRS_TEXT=1
+TARGET_DIRS_MORPHOS=1
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
 TARGET_DIRS_TEXT=1
@@ -1992,6 +1990,51 @@ netwlibc_makefiles:
 netwlibc:
 	$(MAKE) -C netwlibc all
 .PHONY: netwlibc_all netwlibc_debug netwlibc_smart netwlibc_release netwlibc_units netwlibc_examples netwlibc_shared netwlibc_install netwlibc_sourceinstall netwlibc_exampleinstall netwlibc_distinstall netwlibc_zipinstall netwlibc_zipsourceinstall netwlibc_zipexampleinstall netwlibc_zipdistinstall netwlibc_clean netwlibc_distclean netwlibc_cleanall netwlibc_info netwlibc_makefiles netwlibc
+endif
+ifdef TARGET_DIRS_MORPHOS
+morphos_all:
+	$(MAKE) -C morphos all
+morphos_debug:
+	$(MAKE) -C morphos debug
+morphos_smart:
+	$(MAKE) -C morphos smart
+morphos_release:
+	$(MAKE) -C morphos release
+morphos_units:
+	$(MAKE) -C morphos units
+morphos_examples:
+	$(MAKE) -C morphos examples
+morphos_shared:
+	$(MAKE) -C morphos shared
+morphos_install:
+	$(MAKE) -C morphos install
+morphos_sourceinstall:
+	$(MAKE) -C morphos sourceinstall
+morphos_exampleinstall:
+	$(MAKE) -C morphos exampleinstall
+morphos_distinstall:
+	$(MAKE) -C morphos distinstall
+morphos_zipinstall:
+	$(MAKE) -C morphos zipinstall
+morphos_zipsourceinstall:
+	$(MAKE) -C morphos zipsourceinstall
+morphos_zipexampleinstall:
+	$(MAKE) -C morphos zipexampleinstall
+morphos_zipdistinstall:
+	$(MAKE) -C morphos zipdistinstall
+morphos_clean:
+	$(MAKE) -C morphos clean
+morphos_distclean:
+	$(MAKE) -C morphos distclean
+morphos_cleanall:
+	$(MAKE) -C morphos cleanall
+morphos_info:
+	$(MAKE) -C morphos info
+morphos_makefiles:
+	$(MAKE) -C morphos makefiles
+morphos:
+	$(MAKE) -C morphos all
+.PHONY: morphos_all morphos_debug morphos_smart morphos_release morphos_units morphos_examples morphos_shared morphos_install morphos_sourceinstall morphos_exampleinstall morphos_distinstall morphos_zipinstall morphos_zipsourceinstall morphos_zipexampleinstall morphos_zipdistinstall morphos_clean morphos_distclean morphos_cleanall morphos_info morphos_makefiles morphos
 endif
 all: $(addsuffix _all,$(TARGET_DIRS))
 debug: $(addsuffix _debug,$(TARGET_DIRS))
