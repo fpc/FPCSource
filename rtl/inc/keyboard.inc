@@ -105,9 +105,8 @@ begin
    exit(PendingKeyEvent);
   If Assigned(CurrentKeyBoardDriver.PollKeyEvent) Then
     begin
-    PollKeyEvent:=CurrentKeyBoardDriver.PollKeyEvent();
-    // PollKeyEvent:=PendingKeyEvent;
-    // this was wrong ... PM
+    PendingKeyEvent:=CurrentKeyBoardDriver.PollKeyEvent();
+    PollKeyEvent:=PendingKeyEvent;
     end
   else
     PollKeyEvent:=0;
@@ -293,11 +292,19 @@ end;
 
 {
   $Log$
-  Revision 1.4  2001-10-03 20:08:36  michael
+  Revision 1.5  2001-10-10 20:19:00  michael
+  + Merge of Fixed PollKeyEvent - Pierres fix was not complete
+
+  Revision 1.4  2001/10/03 20:08:36  michael
   * SetKeyBoardDriver now returns true if driver set - merged
 
   Revision 1.3  2001/09/30 21:08:58  peter
     * merged fixes
+  Revision 1.1.2.5  2001/10/10 20:17:11  michael
+  + Fixed PollKeyEvent - Pierres fix was not complete
+
+  Revision 1.1.2.4  2001/10/03 20:06:58  michael
+  * SetKeyBoardDriver now returns true if driver set
 
   Revision 1.2  2001/09/21 21:33:36  michael
   + Merged driver support from fixbranch
