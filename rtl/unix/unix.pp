@@ -142,19 +142,20 @@ function  CreateShellArgV(const prog:Ansistring):ppchar;
 //Procedure Execve(Path: pathstr;args:ppchar;ep:ppchar);
 //Procedure Execve(Path: AnsiString;args:ppchar;ep:ppchar);
 //Procedure Execve(path: pchar;args:ppchar;ep:ppchar);
-Procedure Execv(const path:pathstr;args:ppchar);
-Procedure Execv(const path: AnsiString;args:ppchar);
-Procedure Execvp(Path: Pathstr;Args:ppchar;Ep:ppchar);
-Procedure Execvp(Path: AnsiString; Args:ppchar;Ep:ppchar);
-Procedure Execl(const Todo: String);
-Procedure Execl(const Todo: Ansistring);
-Procedure Execle(Todo: String;Ep:ppchar);
-Procedure Execle(Todo: AnsiString;Ep:ppchar);
-Procedure Execlp(Todo: string;Ep:ppchar);
-Procedure Execlp(Todo: Ansistring;Ep:ppchar);
+Function Execv(const path:pathstr;args:ppchar):cint;
+Function Execv(const path: AnsiString;args:ppchar):cint;
+Function Execvp(Path: Pathstr;Args:ppchar;Ep:ppchar):cint;
+Function Execvp(Path: AnsiString; Args:ppchar;Ep:ppchar):cint;
+Function Execl(const Todo: String):cint;
+Function Execl(const Todo: Ansistring):cint;
+Function Execle(Todo: String;Ep:ppchar):cint;
+Function Execle(Todo: AnsiString;Ep:ppchar):cint;
+Function Execlp(Todo: string;Ep:ppchar):cint;
+Function Execlp(Todo: Ansistring;Ep:ppchar):cint;
 
 Function  Shell(const Command:String):Longint;
 Function  Shell(const Command:AnsiString):Longint;
+
 {Clone for FreeBSD is copied from the LinuxThread port, and rfork based}
 function  Clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint;
 Function  WaitProcess(Pid:longint):Longint; { like WaitPid(PID,@result,0) Handling of Signal interrupts (errno=EINTR), returning the Exitcode of Process (>=0) or -Status if terminated}
@@ -366,15 +367,15 @@ begin
    end;
 end;
 
-Procedure Execv(const path: AnsiString;args:ppchar);
+Function Execv(const path: AnsiString;args:ppchar):cint;
 {
   Overloaded ansistring version.
 }
 begin
-  fpExecVe(Path,Args,envp)
+  Execv:=fpExecVe(Path,Args,envp);
 end;
 
-Procedure Execvp(Path: AnsiString; Args:ppchar;Ep:ppchar);
+Function Execvp(Path: AnsiString; Args:ppchar;Ep:ppchar):cint;
 {
   Overloaded ansistring version
 }
@@ -391,22 +392,25 @@ begin
   else
    Path:='';
   if Path='' then
-   linuxerror:=ESysEnoent
+   Begin
+     fpsetErrno(ESysEnoEnt);
+     Exit(-1);
+   end
   else
-   fpExecve(Path,args,ep);{On error linuxerror will get set there}
+   Execvp:=fpExecve(Path,args,ep);
 end;
 
-Procedure Execv(const path:pathstr;args:ppchar);
+Function Execv(const path:pathstr;args:ppchar):cint;
 {
   Replaces the current program by the program specified in path,
   arguments in args are passed to Execve.
   the current environment is passed on.
 }
 begin
-  fpExecve(path,args,envp); {On error linuxerror will get set there}
+  Execv:=fpExecve(path,args,envp); 
 end;
 
-Procedure Execvp(Path:Pathstr;Args:ppchar;Ep:ppchar);
+Function Execvp(Path:Pathstr;Args:ppchar;Ep:ppchar):cint;
 {
   This does the same as Execve, only it searches the PATH environment
   for the place of the Executable, except when Path starts with a slash.
@@ -425,12 +429,15 @@ begin
   else
    Path:='';
   if Path='' then
-   linuxerror:=ESysEnoent
+   Begin
+     fpsetErrno(ESysEnoEnt);
+     Exit(-1);
+   end
   else
-   fpExecve(Path,args,ep);{On error linuxerror will get set there}
+   execvp:=fpExecve(Path,args,ep);
 end;
 
-Procedure Execle(Todo:string;Ep:ppchar);
+Function Execle(Todo:string;Ep:ppchar):cint;
 {
   This procedure takes the string 'Todo', parses it for command and
   command options, and Executes the command with the given options.
@@ -444,11 +451,15 @@ var
 begin
   p:=StringToPPChar(ToDo);
   if (p=nil) or (p^=nil) then
-   exit;
-  fpExecVE(p^,p,EP);
+   Begin
+     fpsetErrno(ESysEnoEnt);
+     Exit(-1);
+   end
+  else
+    execle:=fpExecVE(p^,p,EP);
 end;
 
-Procedure Execle(Todo:AnsiString;Ep:ppchar);
+function Execle(Todo:AnsiString;Ep:ppchar):cint;
 {
   This procedure takes the string 'Todo', parses it for command and
   command options, and Executes the command with the given options.
@@ -462,11 +473,14 @@ var
 begin
   p:=StringToPPChar(ToDo);
   if (p=nil) or (p^=nil) then
-   exit;
-  fpExecVE(p^,p,EP);
+   Begin
+     fpsetErrno(ESysEnoEnt);
+     Exit(-1);
+   end;
+  ExecLe:=fpExecVE(p^,p,EP);
 end;
 
-Procedure Execl(const Todo:string);
+Function Execl(const Todo:string):cint;
 {
   This procedure takes the string 'Todo', parses it for command and
   command options, and Executes the command with the given options.
@@ -476,10 +490,10 @@ Procedure Execl(const Todo:string);
   The current environment is passed on to command
 }
 begin
-  ExecLE(ToDo,EnvP);
+  Execl:=ExecLE(ToDo,EnvP);
 end;
 
-Procedure Execlp(Todo:string;Ep:ppchar);
+Function Execlp(Todo:string;Ep:ppchar):cint;
 {
   This procedure takes the string 'Todo', parses it for command and
   command options, and Executes the command with the given options.
@@ -493,11 +507,14 @@ var
 begin
   p:=StringToPPchar(todo);
   if (p=nil) or (p^=nil) then
-   exit;
-  ExecVP(StrPas(p^),p,EP);
+   Begin
+     fpsetErrno(ESysEnoEnt);
+     Exit(-1);
+   end;
+  Execlp:=ExecVP(StrPas(p^),p,EP);
 end;
 
-Procedure Execlp(Todo: Ansistring;Ep:ppchar);
+Function Execlp(Todo: Ansistring;Ep:ppchar):cint;
 {
   Overloaded ansistring version.
 }
@@ -506,11 +523,14 @@ var
 begin
   p:=StringToPPchar(todo);
   if (p=nil) or (p^=nil) then
-   exit;
-  ExecVP(StrPas(p^),p,EP);
+   Begin
+     fpsetErrno(ESysEnoEnt);
+     Exit(-1);
+   end;
+  execlp:=ExecVP(StrPas(p^),p,EP);
 end;
 
-Function Shell(const Command:String):Longint;
+Function Shell(const Command:String):cint;
 {
   Executes the shell, and passes it the string Command. (Through /bin/sh -c)
   The current environment is passed to the shell.
@@ -537,13 +557,13 @@ begin
      fpExit(127);  // was Exit(127)
    end
   else if (pid<>-1) then // Successfull started
-   Shell:=WaitProcess(pid) {Linuxerror is set there}
+   Shell:=WaitProcess(pid) 
   else // no success
    Shell:=-1; // indicate an error
   FreeShellArgV(p);
 end;
 
-Function Shell(const Command:AnsiString):Longint;
+Function Shell(const Command:AnsiString):cint;
 {
   AnsiString version of Shell
 }
@@ -559,7 +579,7 @@ begin { Changes as above }
      fpExit(127); // was exit(127)!! We must exit the Process, not the function
    end
   else if (pid<>-1) then // Successfull started
-   Shell:=WaitProcess(pid) {Linuxerror is set there}
+   Shell:=WaitProcess(pid) 
   else // no success
    Shell:=-1;
   FreeShellArgV(p);
@@ -652,9 +672,7 @@ End;
 {$ifdef linux}
 Function stime (t : longint) : Boolean;
 begin
-  do_SysCall(Syscall_nr_stime,longint(@t));
-  linuxerror:=fpgeterrno;;
-  stime:=linuxerror=0;
+  stime:=do_SysCall(Syscall_nr_stime,longint(@t))=0;
 end;
 {$endif}
 {$endif}
@@ -694,14 +712,14 @@ end;
                            FileSystem calls
 ******************************************************************************}
 
-Procedure Execl(const Todo:Ansistring);
+Function Execl(const Todo:Ansistring):cint;
 
 {
   Overloaded AnsiString Version of ExecL.
 }
 
 begin
-  ExecLE(ToDo,EnvP);
+  Execl:=ExecLE(ToDo,EnvP);
 end;
 
 Function Flock (var T : text;mode : longint) : boolean;
@@ -721,7 +739,7 @@ Var
 begin
   if textrec(t).mode=fmclosed then
    begin
-     LinuxError:=ESysEBADF;
+     fpseterrno(ESysEBADF);
      exit(-1);
    end;
   FpFD_ZERO(f);
@@ -800,33 +818,37 @@ begin
   end;
 end;
 
-Procedure IOPipe(var F:text);
+Function IOPipe(var F:text):cint;
 begin
+  IOPipe:=0;
   case textrec(f).mode of
     fmoutput :
       begin
         { first check if we need something to write, else we may
           get a SigPipe when Close() is called (PFV) }
         if textrec(f).bufpos>0 then
-          fpwrite(textrec(f).handle,pchar(textrec(f).bufptr),textrec(f).bufpos);
+          IOPipe:=fpwrite(textrec(f).handle,pchar(textrec(f).bufptr),textrec(f).bufpos);
       end;
-    fminput :
-      textrec(f).bufend:=fpread(textrec(f).handle,pchar(textrec(f).bufptr),textrec(f).bufsize);
+    fminput : Begin
+                textrec(f).bufend:=fpread(textrec(f).handle,pchar(textrec(f).bufptr),textrec(f).bufsize);
+		IOPipe:=textrec(f).bufend;
+	      End;
   end;
   textrec(f).bufpos:=0;
 end;
 
-Procedure FlushPipe(var F:Text);
+Function FlushPipe(var F:Text):cint;
 begin
+  FlushPipe:=0;
   if (textrec(f).mode=fmoutput) and (textrec(f).bufpos<>0) then
-   IOPipe(f);
+   FlushPipe:=IOPipe(f);
   textrec(f).bufpos:=0;
 end;
 
-Procedure ClosePipe(var F:text);
+Function ClosePipe(var F:text):cint;
 begin
   textrec(f).mode:=fmclosed;
-  fpclose(textrec(f).handle);
+  ClosePipe:=fpclose(textrec(f).handle);
 end;
 
 Function AssignPipe(var pipe_in,pipe_out:text):boolean;
@@ -868,7 +890,7 @@ Function AssignPipe(var pipe_in,pipe_out:file):boolean;
 {
   Sets up a pair of file variables, which act as a pipe. The first one can
   be read from, the second one can be written to.
-  If the operation was unsuccesful, linuxerror is set.
+  If the operation was unsuccesful, 
 }
 var
   f_in,f_out : longint;
@@ -1715,7 +1737,10 @@ End.
 
 {
   $Log$
-  Revision 1.43  2003-11-03 09:42:28  marco
+  Revision 1.44  2003-11-12 22:19:45  marco
+   * more linuxeror fixes
+
+  Revision 1.43  2003/11/03 09:42:28  marco
    * Peter's Cardinal<->Longint fixes patch
 
   Revision 1.42  2003/10/30 16:42:58  marco
