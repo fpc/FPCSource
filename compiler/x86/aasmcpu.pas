@@ -1293,8 +1293,17 @@ implementation
           {$i r386op.inc}
         );
     {$endif x86_64}
+      var
+        regidx : tregisterindex;
       begin
-        result:=opcode_table[findreg_by_number(r)];
+        regidx:=findreg_by_number(r);
+        if regidx<>0 then
+          result:=opcode_table[regidx]
+        else
+          begin
+            Message1(asmw_e_invalid_register,generic_regname(r));
+            result:=0;
+          end;
       end;
 
 
@@ -2262,7 +2271,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.26  2003-09-24 21:15:49  florian
+  Revision 1.27  2003-09-28 13:37:07  peter
+    * give error for wrong register number
+
+  Revision 1.26  2003/09/24 21:15:49  florian
     * fixed make cycle
 
   Revision 1.25  2003/09/24 17:12:36  florian
