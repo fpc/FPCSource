@@ -467,7 +467,7 @@ begin
     if not IgnoreChildren then
       try
         // Set up the ancestor list if we have an ancestor
-        if Assigned(FAncestor) and FAncestor.InheritsFrom(TComponent) then
+        if FAncestor is TComponent then
         begin
           if csInline in TComponent(FAncestor).ComponentState then
             FRootAncestor := TComponent(FAncestor);
@@ -708,11 +708,14 @@ begin
 	end else
           AncestorObj := nil;
 
-	if (not Assigned(ObjValue)) and (ObjValue <> AncestorObj) then
+	if not Assigned(ObjValue) then
 	begin
-          Driver.BeginProperty(FPropPath + PPropInfo(PropInfo)^.Name);
-	  Driver.WriteIdent('NIL');
-	  Driver.EndProperty;
+	  if ObjValue <> AncestorObj then
+	  begin
+	    Driver.BeginProperty(FPropPath + PPropInfo(PropInfo)^.Name);
+	    Driver.WriteIdent('NIL');
+	    Driver.EndProperty;
+	  end
 	end else if ObjValue.InheritsFrom(TPersistent) then
           if ObjValue.InheritsFrom(TComponent) then
           begin
@@ -805,7 +808,13 @@ end;}
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:01  michael
+  Revision 1.3  2000-12-21 09:10:16  sg
+  Merged from fixbranch:
+  * Applied bugfix by Mattias Gaertner for TWriter.WriteProperty
+    (writing of NIL object instanced caused an invalid access)
+  * Optimized some 'is'/InheritsFrom occurencies
+
+  Revision 1.2  2000/07/13 11:33:01  michael
   + removed logs
  
 }
