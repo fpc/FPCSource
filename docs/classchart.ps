@@ -12,8 +12,12 @@
 % Print head classes on separate pages ?
 % 1=yes 0=no 
 /SeparatePages {
-0 % 1
+0 %
 } def 
+% Draw Lazarus classes ? 
+% 1 = Yes, 0 = No;
+/lcl { 1  % set this to zero if you don't want to include the lcl classes
+} def
 
 % sets the line width of the class graph to 0.5 points
 /SetLineWidth { 0.5 setlinewidth} def
@@ -417,6 +421,14 @@ setfont
 0 0 0 setrgbcolor
 (Object Chart) show
 } def
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% See if we will include Lazarus stuff.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+/lclonly
+{
+  /param exch def
+  lcl 1 eq { param } if
+} def
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % here the class tree follows
@@ -484,6 +496,7 @@ setfont
       (EWriteError) Ready newclass
       onelevelback
     (EFOpenError) Ready newclass
+    (EIOStreamError) Ready newclass
     (EPipeError) Ready newclass
       (ENoReadPipe) Ready newchildclass
       (ENoWritePipe) Ready newclass
@@ -577,7 +590,8 @@ newcolumn
     onelevelback
   (THandleStream) Ready newclass
     (TFileStream) Ready newchildclass
-    (TPipeStream) Untested newclass
+    (TPipeStream) Ready newclass
+    (TIOStream) Ready newclass
     onelevelback
   (TIDEAEncryptStream) Ready newclass
   (TIDEADecryptStream) Ready newclass
@@ -618,7 +632,7 @@ newcolumn
 % TComponent classes
 %%%%%%%%%%%%%%%%%%%%%%%
 newcolumn
-(TComponent) Untested newlargeheadclass
+(TComponent) Ready newlargeheadclass
 (TDatabase) Untested newchildclass
 (TDataset) Ready newclass
   (TDBdatset) Untested newchildclass
@@ -652,14 +666,20 @@ newcolumn
 (TFieldDef) Ready newclass
 (TFieldDefs) Ready newclass
 (TFields) Ready newclass
-
+{
+newcolumn
+(TControl) Ready newlargeheadclass
+} lclonly
 % Print footer and eject (last) page
 printfooter
 showpage
 
 %
 %   $Log$
-%   Revision 1.15  1999-10-28 20:22:03  michael
+%   Revision 1.16  1999-11-18 21:16:42  michael
+%   + Added /lclonly command and iostreams
+%
+%   Revision 1.15  1999/10/28 20:22:03  michael
 %   + TField etc were in wrong part of the tree, they descend from TComponent
 %
 %   Revision 1.14  1999/10/28 19:53:01  michael
