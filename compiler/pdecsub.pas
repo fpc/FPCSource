@@ -169,9 +169,6 @@ implementation
             end
           else
             begin
-             { necessary to be able to catch this error later on in psub.pas }
-             if (idtoken = _SELF) then
-               include(aktprocdef.procoptions,po_containsself);
              { read identifiers }
                sc:=consume_idlist;
 {$ifdef fixLeaksOnError}
@@ -1931,7 +1928,11 @@ const
 end.
 {
   $Log$
-  Revision 1.37  2001-09-10 10:26:26  jonas
+  Revision 1.38  2001-10-01 13:38:44  jonas
+    * allow self parameter for normal procedures again (because Kylix allows
+      it too) ("merged")
+
+  Revision 1.37  2001/09/10 10:26:26  jonas
     * fixed web bug 1593
     * writing of procvar headers is more complete (mention var/const/out for
       paras, add "of object" if applicable)

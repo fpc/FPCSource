@@ -603,10 +603,6 @@ implementation
          parse_proc_directives(pdflags);
          dec(lexlevel);
 
-      { explicit "self" parameters are not allowed for normal procedures (JM) }
-         if (po_containsself in aktprocsym.definition.procoptions) then
-           Message(parser_e_self_in_non_message_handler);
-
       { hint directives, these can be separated by semicolons here,
         that need to be handled here with a loop (PFV) }
          while try_consume_hintdirective(aktprocsym.symoptions) do
@@ -845,7 +841,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.37  2001-09-10 10:26:26  jonas
+  Revision 1.38  2001-10-01 13:38:45  jonas
+    * allow self parameter for normal procedures again (because Kylix allows
+      it too) ("merged")
+
+  Revision 1.37  2001/09/10 10:26:26  jonas
     * fixed web bug 1593
     * writing of procvar headers is more complete (mention var/const/out for
       paras, add "of object" if applicable)
