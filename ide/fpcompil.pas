@@ -133,6 +133,7 @@ uses
 {$ifdef fpc}
   Video,
 {$endif fpc}
+  globals,
   StdDlg,App,tokens,
   FVConsts,
   CompHook, Compiler, systems, browcol,
@@ -966,6 +967,7 @@ begin
     EXEFile:=FixFileName(GetEXEPath+NameOf(MainFile)+GetTargetExeExt)
   else
     EXEFile:=DirOf(MainFile)+NameOf(MainFile)+GetTargetExeExt;
+  DefaultReplacements(ExeFile);
   { tokens are created and distroyed by compiler.compile !! PM }
   InitTokens;
   if LinkAfter and
@@ -1147,9 +1149,9 @@ begin
         for I:=0 to SourceFiles^.Count-1 do
           begin
             SF:=SourceFiles^.At(I);
-            SourceTime:=GetFileTime(SF^.GetSourceFileName);
-            PPUTime:=GetFileTime(SF^.GetPPUFileName);
-            ObjTime:=GetFileTime(SF^.GetObjFileName);
+            SourceTime:=wutils.GetFileTime(SF^.GetSourceFileName);
+            PPUTime:=wutils.GetFileTime(SF^.GetPPUFileName);
+            ObjTime:=wutils.GetFileTime(SF^.GetObjFileName);
 {            writeln('S: ',SF^.GetSourceFileName,' - ',SourceTime);
             writeln('P: ',SF^.GetPPUFileName,' - ',PPUTime);
             writeln('O: ',SF^.GetObjFileName,' - ',ObjTime);
@@ -1277,7 +1279,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.37  2005-02-28 15:38:38  marco
+  Revision 1.38  2005-03-06 13:48:59  florian
+    + Units & Exe dir may now contain $fpc... valus
+    * version to 1.0.4 increased
+
+  Revision 1.37  2005/02/28 15:38:38  marco
    * getFPCheapstatus  (no, FPC HEAP, not FP CHEAP!)
 
   Revision 1.36  2005/02/14 17:13:18  peter

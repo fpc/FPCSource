@@ -22,7 +22,7 @@ uses Views,App,
      WViews,WEditor,WHTMLHlp;
 
 const
-     VersionStr           = '1.0.2';
+     VersionStr           = '1.0.4';
 
      MaxRecentFileCount   = 9;
      MaxToolCount         = 16;
@@ -474,7 +474,11 @@ implementation
 END.
 {
   $Log$
-  Revision 1.21  2005-02-14 17:13:18  peter
+  Revision 1.22  2005-03-06 13:48:59  florian
+    + Units & Exe dir may now contain $fpc... valus
+    * version to 1.0.4 increased
+
+  Revision 1.21  2005/02/14 17:13:18  peter
     * truncate log
 
   Revision 1.20  2005/01/08 13:43:44  florian
