@@ -1,3 +1,9 @@
+fpc (1.9.7-0) unstable; urgency=low
+
+  * Snapshot
+
+ -- Peter Vreman <peter@freepascal.org>  Thu, 31 Dec 2004 12:00:00 +0100
+
 fpc (1.9.6-1) unstable; urgency=low
 
   * New release
