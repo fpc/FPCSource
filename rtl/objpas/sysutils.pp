@@ -32,6 +32,9 @@ interface
     {$ifdef go32v2}
        go32,dos
     {$endif}
+    {$ifdef os2}
+       doscalls
+    {$endif}
        ;
 
 
@@ -293,7 +296,10 @@ Finalization
 end.
 {
     $Log$
-    Revision 1.36  1999-11-15 21:49:47  peter
+    Revision 1.37  1999-12-26 19:25:22  hajny
+      * OS/2 target added to the uses clause
+
+    Revision 1.36  1999/11/15 21:49:47  peter
       * exception address fixes
 
     Revision 1.35  1999/11/06 14:41:31  peter
