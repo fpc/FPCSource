@@ -309,7 +309,7 @@ interface
 
         if right.location.loc = LOC_CONSTANT then
           begin
-             if is_shifter_const(dword(right.location.value),b) then
+             if is_shifter_const(right.location.value,b) then
                exprasmlist.concat(taicpu.op_reg_const(A_CMP,left.location.register,right.location.value))
              else
                begin
@@ -331,7 +331,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2004-10-24 17:32:53  florian
+  Revision 1.18  2004-10-31 16:04:30  florian
+    * fixed compilation of system unit on arm
+
+  Revision 1.17  2004/10/24 17:32:53  florian
     * fixed several arm compiler bugs
 
   Revision 1.16  2004/10/24 07:54:25  florian

@@ -942,8 +942,8 @@ unit cgcpu;
           end;
 
         if assigned(tmpref.symbol) or
-           not((is_shifter_const(dword(tmpref.offset),b)) or
-               (is_shifter_const(dword(-tmpref.offset),b))
+           not((is_shifter_const(tmpref.offset,b)) or
+               (is_shifter_const(-tmpref.offset,b))
               ) then
           fixref(list,tmpref);
 
@@ -1277,7 +1277,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.59  2004-10-31 12:37:11  florian
+  Revision 1.60  2004-10-31 16:04:30  florian
+    * fixed compilation of system unit on arm
+
+  Revision 1.59  2004/10/31 12:37:11  florian
     * another couple of arm fixed
 
   Revision 1.58  2004/10/24 17:32:53  florian

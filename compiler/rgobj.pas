@@ -1590,9 +1590,12 @@ unit rgobj;
 {$ifdef arm}
                           Top_shifterop:
                             begin
-                              so:=shifterop;
-                              if so^.rs<>NR_NO then
-                                setsupreg(so^.rs,reginfo[getsupreg(so^.rs)].colour);
+                              if regtype=R_INTREGISTER then
+                                begin
+                                  so:=shifterop;
+                                  if so^.rs<>NR_NO then
+                                    setsupreg(so^.rs,reginfo[getsupreg(so^.rs)].colour);
+                                end;
                             end;
 {$endif arm}
                         end;
@@ -1829,8 +1832,9 @@ unit rgobj;
 {$ifdef ARM}
               top_shifterop:
                 begin
-                  if shifterop^.rs<>NR_NO then
-                    addreginfo(shifterop^.rs,operand_read);
+                  if regtype in [R_INTREGISTER,R_ADDRESSREGISTER] then
+                    if shifterop^.rs<>NR_NO then
+                      addreginfo(shifterop^.rs,operand_read);
                 end;
 {$endif ARM}
             end;
@@ -1981,7 +1985,8 @@ unit rgobj;
 {$ifdef ARM}
               top_shifterop:
                 begin
-                  tryreplacereg(shifterop^.rs);
+                  if regtype in [R_INTREGISTER,R_ADDRESSREGISTER] then
+                    tryreplacereg(shifterop^.rs);
                 end;
 {$endif ARM}
             end;
@@ -1989,12 +1994,13 @@ unit rgobj;
       end;
 
 
-
-
 end.
 {
   $Log$
-  Revision 1.145  2004-10-30 15:21:37  florian
+  Revision 1.146  2004-10-31 16:04:30  florian
+    * fixed compilation of system unit on arm
+
+  Revision 1.145  2004/10/30 15:21:37  florian
     * fixed generic optimizer
     * enabled generic optimizer for sparc
 
