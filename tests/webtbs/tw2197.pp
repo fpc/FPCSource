@@ -2,7 +2,13 @@
 { Source provided for Free Pascal Bug Report 2197 }
 { Submitted by "Pavel V.Ozerski" on  2002-10-23 }
 { e-mail: pavel@insect.mail.iephb.ru }
+
+{$ifndef MACOS}
 {$APPTYPE CONSOLE}
+{$else}
+{$APPTYPE TOOL}
+{$endif}
+
 {modified sample of Vlad Smaglyuk}
  procedure Average ({const} Row : Array of byte);
   begin
