@@ -145,7 +145,7 @@
          fpc_mod_qword:=0;
          if n=0 then
            HandleErrorFrame(200,get_frame);
-{$ifdef i386}
+{$ifdef i386_not_working_correct}
          { the following piece of code is taken from the     }
          { AMD Athlon Processor x86 Code Optimization manual }
          asm
@@ -627,7 +627,11 @@
 
 {
   $Log$
-  Revision 1.14  2002-07-01 16:29:05  peter
+  Revision 1.15  2002-09-01 14:44:01  peter
+    * renamed conditional to insert optimized mod_qword for i386. The
+      code is broken
+
+  Revision 1.14  2002/07/01 16:29:05  peter
     * sLineBreak changed to normal constant like Kylix
 
   Revision 1.13  2001/11/15 00:07:42  florian
