@@ -109,7 +109,10 @@ implementation
          { overloaded operator ? }
          if (p^.treetype=starstarn) or
             (ld^.deftype=recorddef) or
-            (ld^.deftype=arraydef) or
+            ((ld^.deftype=arraydef) and
+             (rd^.deftype<>orddef) and
+             ((parraydef(ld)^.definition^.deftype<>orddef) or
+              (porddef(parraydef(ld)^.definition)^.typ<>uchar))) or
             { <> and = are defined for classes }
             ((ld^.deftype=objectdef) and
              (not(pobjectdef(ld)^.isclass) or
@@ -117,7 +120,10 @@ implementation
              )
             ) or
             (rd^.deftype=recorddef) or
-            (rd^.deftype=arraydef) or
+            ((rd^.deftype=arraydef) and
+             (ld^.deftype<>orddef) and
+             ((parraydef(rd)^.definition^.deftype<>orddef) or
+              (porddef(parraydef(rd)^.definition)^.typ<>uchar))) or
             { <> and = are defined for classes }
             ((rd^.deftype=objectdef) and
              (not(pobjectdef(rd)^.isclass) or
@@ -1096,7 +1102,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.34.2.1  1999-06-17 12:35:23  pierre
+  Revision 1.34.2.2  1999-06-17 15:25:07  pierre
+   * for arrays of char operators can not be overloaded
+
+  Revision 1.34.2.1  1999/06/17 12:35:23  pierre
    * allow array binary operator overloading if not with orddef
 
   Revision 1.34  1999/06/02 10:11:52  florian
