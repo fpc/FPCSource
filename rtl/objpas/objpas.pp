@@ -22,13 +22,11 @@ unit objpas;
 
   interface
 
+    { first, in object pascal, the integer type must be redefined }
     const
-       MaxInt = MaxLongint;
-
+       MaxInt  = MaxLongint;
     type
-       { first, in object pascal, the types must be redefined }
-       smallint = system.integer;
-       integer  = system.longint;
+       integer = longint;
 
 { Old compilers search for these variables in objpas unit }
 {$ifndef SYSTEMTVARREC}
@@ -362,7 +360,10 @@ end.
 
 {
   $Log$
-  Revision 1.44  1999-11-06 14:41:30  peter
+  Revision 1.45  1999-12-20 11:20:35  peter
+    * integer is defined as longint, removed smallint which is now in system
+
+  Revision 1.44  1999/11/06 14:41:30  peter
     * truncated log
 
   Revision 1.43  1999/10/30 17:39:05  peter
