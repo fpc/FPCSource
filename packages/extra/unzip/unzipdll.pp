@@ -210,6 +210,11 @@ begin
 end;
 
 begin
+{$IFDEF EMX}
+ if os_Mode <> osOS2 then
+  FileUnzipEx := TFileUnzipEx (@Unzip.FileUnzipEx)
+ else
+{$ENDIF EMX}
  if DLLInit then
  begin
   OldExit := ExitProc;
@@ -242,7 +247,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2003-08-03 22:25:55  hajny
+  Revision 1.6  2004-02-22 16:09:38  hajny
+    + unzipdll enabled for emx target
+
+  Revision 1.5  2003/08/03 22:25:55  hajny
     * integer type inconsistency resolved
 
   Revision 1.4  2002/09/07 15:43:06  peter

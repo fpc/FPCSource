@@ -8,6 +8,7 @@ version=1.9.2
 
 [target]
 units=ziptypes unzip
+units_emx=unzipdll
 units_os2=unzipdll
 
 [install]

@@ -213,6 +213,9 @@ override TARGET_UNITS+=ziptypes unzip
 ifeq ($(OS_TARGET),os2)
 override TARGET_UNITS+=unzipdll
 endif
+ifeq ($(OS_TARGET),emx)
+override TARGET_UNITS+=unzipdll
+endif
 override INSTALL_FPCPACKAGE=y
 ifdef REQUIRE_UNITSDIR
 override UNITSDIR+=$(REQUIRE_UNITSDIR)
