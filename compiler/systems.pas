@@ -103,14 +103,15 @@ interface
              target_m68k_netbsd,        { 18 }
              target_i386_Netware,       { 19 }
              target_i386_qnx            { 20 }
+            ,target_i386_wdosx          { 21 } 
        );
 
        tasm = (as_none
-            ,as_i386_as,as_i386_as_aout,as_i386_asw,
-              as_i386_nasmcoff,as_i386_nasmwin32,
+            ,as_i386_as,as_i386_as_aout,as_i386_asw,as_i386_aswdosx, 
+              as_i386_nasmcoff,as_i386_nasmwin32,as_i386_nasmwdosx, 
               as_i386_nasmelf,as_i386_nasmobj,
               as_i386_tasm,as_i386_masm,
-              as_i386_dbg,as_i386_coff,as_i386_pecoff,as_i386_elf32
+              as_i386_dbg,as_i386_coff,as_i386_pecoff,as_i386_elf32,as_i386_pecoffwdosx 
             ,as_m68k_as,as_m68k_gas,as_m68k_mit,as_m68k_mot,
               as_m68k_mpw,as_m68k_palm
             ,as_alpha_as
@@ -124,7 +125,7 @@ interface
             ld_m68k_Amiga,ld_m68k_Atari,ld_m68k_Mac,
               ld_m68k_linux,ld_m68k_PalmOS,ld_m68k_freebsd,
             ld_alpha_linux,
-            ld_powerpc_linux,ld_powerpc_macos
+            ld_powerpc_linux,ld_powerpc_macos,ld_i386_Wdosx
        );
 
        tar = (ar_none
@@ -590,8 +591,12 @@ begin
           source_info.scriptext := '.bat';
         { OS/2 via EMX can be run under DOS as well }
       {$else}
-        {$ifdef WIN32}
-          set_source(target_i386_WIN32);
+        {$ifdef WIN32} 
+          {$ifdef WDOSX}
+           set_source(target_i386_wdosx);
+          {$else}
+           set_source(target_i386_WIN32);
+          {$endif} 
         {$else}
            {$ifdef FreeBSD}
               set_source(target_i386_FreeBSD);
@@ -678,122 +683,7 @@ finalization
 end.
 {
   $Log$
-  Revision 1.35  2002-03-28 20:47:45  carl
-  - remove go32v1 support
-
-  Revision 1.34  2002/01/29 19:44:50  peter
-    * fixed updatealignment to not override settings with undefined
-      values
-
-  Revision 1.33  2002/01/06 20:34:34  hajny
-    * source_os changed to source_info in OS/2 define
-
-  Revision 1.32  2001/12/15 05:43:20  carl
-  + QNX target
-
-  Revision 1.31  2001/11/15 20:48:43  hajny
-    * Target_Mode corrected back to OS_Mode
-
-  Revision 1.30  2001/09/30 21:27:59  peter
-    * much cleaner default source and target setting
-
-  Revision 1.29  2001/09/24 10:57:22  jonas
-    * fixed typo in Carl's patch
-
-  Revision 1.28  2001/09/22 00:03:53  carl
-  + added warning for targets - use same target values as fixes branch
-
-  Revision 1.27  2001/09/18 11:30:48  michael
-  * Fixes win32 linking problems with import libraries
-  * LINKLIB Libraries are now looked for using C file extensions
-  * get_exepath fix
-
-  Revision 1.26  2001/09/17 21:29:13  peter
-    * merged netbsd, fpu-overflow from fixes branch
-
-  Revision 1.25  2001/08/30 20:57:10  peter
-    * asbsd merged
-
-  Revision 1.24  2001/08/19 11:22:24  peter
-    * palmos support from v10 merged
-
-  Revision 1.23  2001/08/12 17:57:07  peter
-    * under development flag for targets
-
-  Revision 1.22  2001/08/07 18:47:13  peter
-    * merged netbsd start
-    * profile for win32
-
-  Revision 1.21  2001/07/01 20:16:18  peter
-    * alignmentinfo record added
-    * -Oa argument supports more alignment settings that can be specified
-      per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN
-      RECORDMAX,LOCALMIN,LOCALMAX. It is possible to set the mimimum
-      required alignment and the maximum usefull alignment. The final
-      alignment will be choosen per variable size dependent on these
-      settings
-
-  Revision 1.20  2001/06/19 14:43:31  marco
-   * Fixed ifdef linux bug
-
-  Revision 1.19  2001/06/03 20:21:08  peter
-    * Kylix fixes, mostly case names of units
-
-  Revision 1.18  2001/06/03 15:15:31  peter
-    * dllprt0 stub for linux shared libs
-    * pass -init and -fini for linux shared libs
-    * libprefix splitted into staticlibprefix and sharedlibprefix
-
-  Revision 1.17  2001/06/02 19:21:45  peter
-    * extradefines field added to target_info, so that targets don't
-      need to put code in options.pas for it
-
-  Revision 1.16  2001/04/18 22:02:00  peter
-    * registration of targets and assemblers
-
-  Revision 1.15  2001/03/06 18:28:02  peter
-    * patch from Pavel with a new and much faster DLL Scanner for
-      automatic importing so $linklib works for DLLs. Thanks Pavel!
-
-  Revision 1.14  2001/02/26 19:44:55  peter
-    * merged generic m68k updates from fixes branch
-
-  Revision 1.13  2001/02/20 21:36:40  peter
-    * tasm/masm fixes merged
-
-  Revision 1.12  2001/01/06 20:15:43  peter
-    * merged libp library prefix
-
-  Revision 1.11  2000/10/15 09:08:58  peter
-    * use System for the systemunit instead of target dependent
-
-  Revision 1.10  2000/09/24 21:12:41  hajny
-    * OS/2 stack alignment corrected + default stack increased
-
-  Revision 1.9  2000/09/24 15:06:30  peter
-    * use defines.inc
-
-  Revision 1.8  2000/09/20 10:49:39  marco
-   * Set writer to elf. (Only a prob for smart with -OG3p3r)
-
-  Revision 1.7  2000/09/16 12:22:52  peter
-    * freebsd support merged
-
-  Revision 1.6  2000/09/11 17:00:23  florian
-    + first implementation of Netware Module support, thanks to
-      Armin Diehl (diehl@nordrhein.de) for providing the patches
-
-  Revision 1.5  2000/08/12 19:14:59  peter
-    * ELF writer works now also with -g
-    * ELF writer is default again for linux
-
-  Revision 1.4  2000/07/14 21:29:38  michael
-  * Back to external assembler till peter fixes gdb
-
-  Revision 1.3  2000/07/13 12:08:28  michael
-  + patched to 1.1.0 with former 1.09patch from peter
-
-  Revision 1.2  2000/07/13 11:32:50  michael
-  + removed logs
+  Revision 1.36  2002-04-04 19:18:06  carl
+  - removed cmnts
 
 }
