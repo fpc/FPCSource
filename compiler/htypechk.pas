@@ -776,7 +776,9 @@ implementation
                  todef:=hp.resulttype.def;
                  if not((fromdef.deftype=formaldef) or
                         is_void(fromdef) or
-                        ((fromdef.deftype=pointerdef) and (todef.deftype=arraydef))) and
+                        ((fromdef.deftype=pointerdef) and (todef.deftype=arraydef)) or
+                        ((fromdef.deftype = objectdef) and (todef.deftype = objectdef) and
+                         (tobjectdef(fromdef).is_related(tobjectdef(todef))))) and
                     (fromdef.size<>todef.size) then
                   begin
                     { in TP it is allowed to typecast to smaller types }
@@ -956,7 +958,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.33  2001-09-02 21:13:31  peter
+  Revision 1.34  2001-09-07 07:46:17  jonas
+    * allow typecasting from child object types to parent object types (with
+      different sizes)
+
+  Revision 1.33  2001/09/02 21:13:31  peter
     * check for size differences in typecasts when assigning
 
   Revision 1.32  2001/08/26 13:36:37  florian
