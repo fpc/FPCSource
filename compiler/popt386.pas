@@ -1243,54 +1243,63 @@ Begin
                 End;
               A_SAR, A_SHR:
                   {changes the code sequence
-                   shr/sar const1, %reg
-                   shl     const2, %reg
+                   shr/sar const1, x
+                   shl     const2, x
                    to either "sar/and", "shl/and" or just "and" depending on const1 and const2}
                 Begin
                   If GetNextInstruction(p, hp1) And
                      (pai(hp1)^.typ = ait_instruction) and
                      (Pai386(hp1)^._operator = A_SHL) and
                      (Pai386(p)^.op1t = top_const) and
-                     (Pai386(hp1)^.op1t = top_const)
+                     (Pai386(hp1)^.op1t = top_const) and
+                     (Pai386(hp1)^.Size = Pai386(p)^.Size) And
+                     (Pai386(hp1)^.op2t = Pai386(p)^.op2t) And
+                     OpsEqual(Pai386(hp1)^.op2t, Pai386(hp1)^.Op2, Pai386(p)^.Op2)
                     Then
                       If (Longint(Pai386(p)^.op1) > Longint(Pai386(hp1)^.op1)) And
-                         (Pai386(p)^.op2t = Top_reg) And
-                         Not(CS_LittleSize In aktglobalswitches) And
-                         ((Pai386(p)^.Size = S_B) Or
-                          (Pai386(p)^.Size = S_L))
+                         Not(CS_LittleSize In aktglobalswitches)
                         Then
+                   { shr/sar const1, %reg
+                     shl     const2, %reg
+                      with const1 > const2 }
                           Begin
                             Dec(Longint(Pai386(p)^.op1), Longint(Pai386(hp1)^.op1));
                             Pai386(hp1)^._operator := A_And;
                             Pai386(hp1)^.op1 := Pointer(1 shl Longint(Pai386(hp1)^.op1)-1);
-                            If (Pai386(p)^.Size = S_L)
-                              Then Pai386(hp1)^.op1 := Pointer(Longint(Pai386(hp1)^.op1) Xor $ffffffff)
-                              Else Pai386(hp1)^.op1 := Pointer(Longint(Pai386(hp1)^.op1) Xor $ff);
+                            Case Pai386(p)^.Size Of
+                              S_L: Pai386(hp1)^.op1 := Pointer(Longint(Pai386(hp1)^.op1) Xor $ffffffff);
+                              S_B: Pai386(hp1)^.op1 := Pointer(Longint(Pai386(hp1)^.op1) Xor $ff);
+                              S_W: Pai386(hp1)^.op1 := Pointer(Longint(Pai386(hp1)^.op1) Xor $ffff);
+                            End;
                           End
                         Else
                           If (Longint(Pai386(p)^.op1) < Longint(Pai386(hp1)^.op1)) And
-                             (Pai386(p)^.op2t = Top_reg) And
-                             Not(CS_LittleSize In aktglobalswitches) And
-                             ((Pai386(p)^.Size = S_B) Or
-                              (Pai386(p)^.Size = S_L))
+                             Not(CS_LittleSize In aktglobalswitches)
                             Then
+                   { shr/sar const1, %reg
+                     shl     const2, %reg
+                      with const1 < const2 }
                               Begin
                                 Dec(Longint(Pai386(hp1)^.op1), Longint(Pai386(p)^.op1));
                                 Pai386(p)^._operator := A_And;
                                 Pai386(p)^.op1 := Pointer(1 shl Longint(Pai386(p)^.op1)-1);
-                                If (Pai386(p)^.Size = S_L)
-                                  Then Pai386(hp1)^.op1 := Pointer(Longint(Pai386(hp1)^.op1) Xor $ffffffff)
-                                  Else Pai386(hp1)^.op1 := Pointer(Longint(Pai386(hp1)^.op1) Xor $ff);
+                                Case Pai386(p)^.Size Of
+                                  S_L: Pai386(p)^.op1 := Pointer(Longint(Pai386(p)^.op1) Xor $ffffffff);
+                                  S_B: Pai386(p)^.op1 := Pointer(Longint(Pai386(p)^.op1) Xor $ff);
+                                  S_W: Pai386(p)^.op1 := Pointer(Longint(Pai386(p)^.op1) Xor $ffff);
+                                End;
                               End
                             Else
+                   { shr/sar const1, %reg
+                     shl     const2, %reg
+                      with const1 = const2 }
                               Begin
                                 Pai386(p)^._operator := A_And;
                                 Pai386(p)^.op1 := Pointer(1 shl Longint(Pai386(p)^.op1)-1);
                                 Case Pai386(p)^.Size Of
-                                  S_B: Pai386(hp1)^.op1 := Pointer(Longint(Pai386(hp1)^.op1) Xor $ff);
-                                  S_W: Pai386(hp1)^.op1 := Pointer(Longint(Pai386(hp1)^.op1) Xor $ffff);
-                                  S_L: Pai386(hp1)^.op1 := Pointer(Longint(Pai386(hp1)^.op1) Xor
-                                         $ffffffff);
+                                  S_B: Pai386(p)^.op1 := Pointer(Longint(Pai386(p)^.op1) Xor $ff);
+                                  S_W: Pai386(p)^.op1 := Pointer(Longint(Pai386(p)^.op1) Xor $ffff);
+                                  S_L: Pai386(p)^.op1 := Pointer(Longint(Pai386(p)^.op1) Xor $ffffffff);
                                 End;
                                 AsmL^.remove(hp1);
                                 dispose(hp1, done);
@@ -1537,7 +1546,10 @@ End.
 
 {
  $Log$
- Revision 1.29  1998-12-15 11:53:54  peter
+ Revision 1.30  1998-12-15 15:43:20  jonas
+   * fixed bug in shr/shl optimization
+
+ Revision 1.29  1998/12/15 11:53:54  peter
    * removed commentlevel
 
  Revision 1.28  1998/12/14 22:01:45  jonas
