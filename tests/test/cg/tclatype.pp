@@ -82,7 +82,7 @@ end;
 class procedure tbaseclass.call_virtual_class_method;
 begin
   virtual_class_method;
-  if getsize<>sizeof(self) then
+  if get_type<>typeof(self) then
     begin
       Writeln('Compiler creates garbage');
       has_error:=true;
@@ -111,11 +111,18 @@ var
   c1,cb : tbaseclass;
   cd : tderivedclass;
   cc : class of tbaseclass;
+  pb,pd : pointer;
 
 begin
  cb:=tbaseclass.create;
  cd:=tderivedclass.create;
  c1:=tbaseclass.create;
+ pb:=typeof(tbaseclass);
+ pd:=typeof(tderivedclass);
+ if pb<>typeof(cb) then
+   has_error:=true;
+ if pd<>typeof(cd) then
+   has_error:=true;
 
  basesize:=sizeof(cb);
  Writeln('Sizeof(cb)=',basesize);
@@ -194,6 +201,7 @@ begin
  reset_booleans;
 
  cc:=tderivedclass;
+
 
  cc.class_check_type;
 

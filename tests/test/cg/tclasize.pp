@@ -180,6 +180,8 @@ begin
    has_error:=true;
  reset_booleans;
 
+ Writeln('Szeof(cc)=',sizeof(cc));
+
  if has_error then
    begin
      Writeln('Error with class methods');
