@@ -10,8 +10,18 @@
 {$MODE objfpc}
 {$H+}
 
+{$MACRO ON}
+
+{$ifdef win32}
+  {$define extdecl := stdcall;}
+{$endif}
+{$ifdef linux}
+  {$define extdecl := cdecl;}
+{$endif}
+
 program GLUTDemo;
-uses GL, GLUT;
+uses
+  GL, GLU,GLUT;
 
 const
 
@@ -59,14 +69,14 @@ begin
 end;
 
 
-procedure DisplayWindow; cdecl;
+procedure DisplayWindow; extdecl
 var
   x, y: Integer;
 begin
   Inc(counter);
 
   glClearColor(0, 0, 0.2, 1);
-  glClear([GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT]);
+  glClear(GL_COLOR_BUFFER_BIT+GL_DEPTH_BUFFER_BIT);
 
   glPushMatrix;
   glTranslatef(0, 0, Sin(Single(counter) / 20.0) * 5.0 - 5.0);
@@ -93,7 +103,7 @@ begin
   glutSwapBuffers;
 end;
 
-procedure OnTimer(value: Integer); cdecl;
+procedure OnTimer(value: Integer); extdecl
 begin
   glutPostRedisplay;
   glutTimerFunc(20, @OnTimer, 0);
@@ -108,6 +118,7 @@ begin
   WriteLn;
 
   GLDumpUnresolvedFunctions := True;
+  GLUDumpUnresolvedFunctions := True;
   GLUTDumpUnresolvedFunctions := True;
 
   if not InitGl then begin
@@ -120,21 +131,15 @@ begin
     Halt(3);
   end;
 
-  if not InitGLX then begin
-    WriteLn('Couldn''t load GLX module');
-    Halt(4);
-  end;
-
   if not InitGLUT then begin
     WriteLn('Couldn''t load GLUT module');
     Halt(5);
   end;
 
   glutInitDisplayMode(GLUT_RGB or GLUT_DOUBLE or GLUT_DEPTH);
-  glutCreateWindow('Free Pascal  GLUT demo');
+  glutCreateWindow('Free Pascal GLUT demo');
   glutDisplayFunc(@DisplayWindow);
   glutTimerFunc(20, @OnTimer, 0);
-
 
   WriteLn;
   WriteLn('GL info:');
@@ -158,12 +163,6 @@ begin
   glLoadIdentity;
   glTranslatef(0, 0, -5.5);
 
-
   glutMainLoop;
 
 end.
-  $Log$
-  Revision 1.2  2000-07-13 11:33:28  michael
-  + removed logs
- 
-}
