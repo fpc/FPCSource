@@ -896,10 +896,9 @@ unit types;
          do_genvmt(_class);
 
          if has_virtual_method and not(has_constructor) then
-           begin
-              exterror:=strpnew(_class^.name^);
-              Message(parser_w_virtual_without_constructor);
-           end;
+            Message1(parser_w_virtual_without_constructor,_class^.name^);
+        
+
          { generates the VMT }
 
          { walk trough all numbers for virtual methods and search }
@@ -965,7 +964,15 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.11  1998-05-01 16:38:46  florian
+  Revision 1.12  1998-05-12 10:47:00  peter
+    * moved printstatus to verb_def
+    + V_Normal which is between V_Error and V_Warning and doesn't have a
+      prefix like error: warning: and is included in V_Default
+    * fixed some messages
+    * first time parameter scan is only for -v and -T
+    - removed old style messages
+
+  Revision 1.11  1998/05/01 16:38:46  florian
     * handling of private and protected fixed
     + change_keywords_to_tp implemented to remove
       keywords which aren't supported by tp
@@ -1009,151 +1016,4 @@ end.
 
   Revision 1.3  1998/04/08 11:34:22  peter
     * nasm works (linux only tested)
-
-  Revision 1.2  1998/03/28 23:09:57  florian
-    * secondin bugfix (m68k and i386)
-    * overflow checking bugfix (m68k and i386) -- pretty useless in
-      secondadd, since everything is done using 32-bit
-    * loading pointer to routines hopefully fixed (m68k)
-    * flags problem with calls to RTL internal routines fixed (still strcmp
-      to fix) (m68k)
-    * #ELSE was still incorrect (didn't take care of the previous level)
-    * problem with filenames in the command line solved
-    * problem with mangledname solved
-    * linking name problem solved (was case insensitive)
-    * double id problem and potential crash solved
-    * stop after first error
-    * and=>test problem removed
-    * correct read for all float types
-    * 2 sigsegv fixes and a cosmetic fix for Internal Error
-    * push/pop is now correct optimized (=> mov (%esp),reg)
-
-  Revision 1.1.1.1  1998/03/25 11:18:15  root
-  * Restored version
-
-  Revision 1.24  1998/03/21 23:59:40  florian
-    * indexed properties fixed
-    * ppu i/o of properties fixed
-    * field can be also used for write access
-    * overriding of properties
-
-  Revision 1.23  1998/03/20 23:31:35  florian
-    * bug0113 fixed
-    * problem with interdepened units fixed ("options.pas problem")
-    * two small extensions for future AMD 3D support
-
-  Revision 1.22  1998/03/10 01:17:30  peter
-    * all files have the same header
-    * messages are fully implemented, EXTDEBUG uses Comment()
-    + AG... files for the Assembler generation
-
-  Revision 1.21  1998/03/06 01:09:01  peter
-    * removed the conflicts that had occured
-
-  Revision 1.20  1998/03/06 00:53:01  peter
-    * replaced all old messages from errore.msg, only ExtDebug and some
-      Comment() calls are left
-    * fixed options.pas
-
-  Revision 1.19  1998/03/05 22:40:56  florian
-    + warning about missing constructor added
-
-  Revision 1.18  1998/03/04 17:34:14  michael
-  + Changed ifdef FPK to ifdef FPC
-
-  Revision 1.17  1998/03/02 01:49:38  peter
-    * renamed target_DOS to target_GO32V1
-    + new verbose system, merged old errors and verbose units into one new
-      verbose.pas, so errors.pas is obsolete
-
-  Revision 1.16  1998/02/13 10:35:55  daniel
-  * Made Motorola version compilable.
-  * Fixed optimizer
-
-  Revision 1.15  1998/02/12 17:19:33  florian
-    * fixed to get remake3 work, but needs additional fixes (output, I don't like
-      also that aktswitches isn't a pointer)
-
-  Revision 1.14  1998/02/12 11:50:52  daniel
-  Yes! Finally! After three retries, my patch!
-
-  Changes:
-
-  Complete rewrite of psub.pas.
-  Added support for DLL's.
-  Compiler requires less memory.
-  Platform units for each platform.
-
-  Revision 1.13  1998/02/11 21:56:41  florian
-    * bugfixes: bug0093, bug0053, bug0088, bug0087, bug0089
-
-  Revision 1.12  1998/02/07 23:05:08  florian
-    * once more MMX
-
-  Revision 1.11  1998/02/06 10:34:35  florian
-    * bug0082 and bug0084 fixed
-
-  Revision 1.10  1998/02/05 22:27:07  florian
-    * small problems fixed: remake3 should now work
-
-  Revision 1.9  1998/02/05 21:54:36  florian
-    + more MMX
-
-  Revision 1.8  1998/01/31 00:43:37  carl
-    - removed in in is_subequal, because the code generator is buggy!
-      (instead uses if...)
-
-  Revision 1.7  1998/01/16 18:03:21  florian
-    * small bug fixes, some stuff of delphi styled constructores added
-
-  Revision 1.6  1998/01/11 19:24:35  carl
-    + type checking routine (is_subequal) for case statements
-
-  Revision 1.5  1998/01/09 23:08:38  florian
-    + C++/Delphi styled //-comments
-    * some bugs in Delphi object model fixed
-    + override directive
-
-  Revision 1.4  1998/01/09 16:08:24  florian
-    * abstract methods call now abstracterrorproc if they are called
-      a class with an abstract method can be create with a class reference else
-      the compiler forbides this
-
-  Revision 1.3  1998/01/07 00:17:12  michael
-  Restored released version (plus fixes) as current
-
-  Revision 1.2  1997/11/28 18:14:51  pierre
-   working version with several bug fixes
-
-  Revision 1.1.1.1  1997/11/27 08:33:03  michael
-  FPC Compiler CVS start
-
-
-  Pre-CVS log:
-
-  CEC   Carl-Eric Codere
-  FK    Florian Klaempfl
-  PM    Pierre Muller
-  +     feature added
-  -     removed
-  *     bug fixed or changed
-
-  History:
-      22th september 1997
-         + function dont_copy_const_param added (FK)
-      25th september 1997
-         + is_open_array added (FK)
-         + is_equal handles now also open arrays (FK)
-      2nd october 1997
-         + added then boolean never_copy_const_param for use in typed write
-           where we must push the reference anyway (PM)
-      3rd october 1997:
-         + renamed ret_in_eax to ret_in_acc (for accumulator for port.) (CEC)
-         - removed reference to i386 unit (CEC)
-     25th october 1997:
-         * poassembler isn't important for compatiblity of proc vars (FK)
-      3rd november 1997:
-         + added formaldef type to types where we dont_copy_const_param (PM)
-      20rd november 1997:
-         + added is_fpu function (PM)
 }

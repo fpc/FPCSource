@@ -24,29 +24,21 @@ unit verb_def;
 interface
 uses verbose;
 
-{$define allow_oldstyle}
-
 procedure SetRedirectFile(const fn:string);
 
 procedure _stop;
 procedure _comment(Level:Longint;const s:string);
-{$ifdef allow_oldstyle}
-function _warning(w : tmsgconst) : boolean;
-function _note(w : tmsgconst) : boolean;
-function _error(w : tmsgconst) : boolean;
-function _fatalerror(w : tmsgconst) : boolean;
-function _internalerror(i : longint) : boolean;
-{$endif}
+function  _internalerror(i : longint) : boolean;
 
 implementation
 uses
-  strings,dos,cobjects,systems,globals,files;
+  strings,dos,globals,files;
 
 const
   { RHIDE expect gcc like error output }
   rh_errorstr='error: ';
   rh_warningstr='warning: ';
-  fatalstr='Fatal Error: ';
+  fatalstr='Fatal: ';
   errorstr='Error: ';
   warningstr='Warning: ';
   notestr='Note: ';
@@ -102,54 +94,65 @@ var
 begin
   if (verbosity and Level)=Level then
    begin
-   {Create hs}
-     hs:='';
-     if not(use_rhide) then
-       begin
-          if (verbosity and Level)=V_Hint then
-           hs:=hintstr;
-          if (verbosity and Level)=V_Note then
-           hs:=notestr;
-          if (verbosity and Level)=V_Warning then
-           hs:=warningstr;
-          if (verbosity and Level)=V_Error then
-           hs:=errorstr;
-          if (verbosity and Level)=V_Fatal then
-           hs:=fatalstr;
-       end
-     else
-       begin
-          if (verbosity and Level)=V_Hint then
-           hs:=rh_warningstr;
-          if (verbosity and Level)=V_Note then
-           hs:=rh_warningstr;
-          if (verbosity and Level)=V_Warning then
-           hs:=rh_warningstr;
-          if (verbosity and Level)=V_Error then
-           hs:=rh_errorstr;
-          if (verbosity and Level)=V_Fatal then
-           hs:=rh_errorstr;
-       end;
-     if (Level<$100) and Assigned(current_module) and Assigned(current_module^.current_inputfile) then
-       hs:=current_module^.current_inputfile^.get_file_line+' '+hs;
-   { add the message to the text }
-
-     hs:=hs+s;
-
-{$ifdef FPC}
-     if UseStdErr and (Level<$100) then
+   { Status info?, Called every line }
+     if ((Level and V_Status)<>0) and (s='') then
       begin
-        writeln(stderr,hs);
-        flush(stderr);
+        if (abslines=1) then
+          WriteLn(memavail shr 10,' Kb Free');
+        if (status.currentline mod 100=0) then
+          Write(status.currentline,' ',memavail shr 10,' Kb Free'#13);
       end
      else
-{$ENDIF}
+   { Message }
       begin
-        if redirtext then
-         writeln(redirfile,hs)
+
+        hs:='';
+        if not(use_rhide) then
+          begin
+            if (verbosity and Level)=V_Hint then
+              hs:=hintstr;
+            if (verbosity and Level)=V_Note then
+              hs:=notestr;
+            if (verbosity and Level)=V_Warning then
+              hs:=warningstr;
+            if (verbosity and Level)=V_Error then
+              hs:=errorstr;
+            if (verbosity and Level)=V_Fatal then
+              hs:=fatalstr;
+          end
         else
-         writeln(hs);
-      end;
+          begin
+            if (verbosity and Level)=V_Hint then
+              hs:=rh_warningstr;
+            if (verbosity and Level)=V_Note then
+              hs:=rh_warningstr;
+            if (verbosity and Level)=V_Warning then
+              hs:=rh_warningstr;
+            if (verbosity and Level)=V_Error then
+              hs:=rh_errorstr;
+            if (verbosity and Level)=V_Fatal then
+              hs:=rh_errorstr;
+          end;
+        if (Level<$100) and Assigned(current_module) and Assigned(current_module^.current_inputfile) then
+          hs:=current_module^.current_inputfile^.get_file_line+' '+hs;
+      { add the message to the text }
+        hs:=hs+s;
+{$ifdef FPC}
+        if UseStdErr and (Level<$100) then
+         begin
+           writeln(stderr,hs);
+           flush(stderr);
+         end
+        else
+{$endif}
+         begin
+           if redirtext then
+            writeln(redirfile,hs)
+           else
+            writeln(hs);
+         end;
+      end;      
+
    end;
 end;
 
@@ -160,88 +163,29 @@ begin
   _internalerror:=true;
 end;
 
-{****************************************************************************
-                                 Old Style
-****************************************************************************}
-
-
-{$ifdef allow_oldstyle}
-
-procedure ShowExtError(l:longint;w:tmsgconst);
-var
-  s : string;
-begin
-{fix the string to be written }
-  s:=msg^.get(ord(w));
-  if assigned(exterror) then
-   begin
-     s:=s+strpas(exterror);
-     strdispose(exterror);
-     exterror:=nil;
-   end;
-  _comment(l,s);
-end;
-
-
-{ predefined handler for warnings }
-function _warning(w : tmsgconst) : boolean;
-begin
-  ShowExtError(V_Warning,w);
-  _warning:=false;
-end;
-
-
-function _note(w : tmsgconst) : boolean;
-begin
-  ShowExtError(V_Note,w);
-  _note:=false;
-end;
-
-
-function _error(w : tmsgconst) : boolean;
-begin
-  ShowExtError(V_Error,w);
-  _error:=(errorcount>50);
-end;
-
-
-function _fatalerror(w : tmsgconst) : boolean;
-begin
-  ShowExtError(V_Error,w);
-  _fatalerror:=true;
-end;
-
-{$endif}
 
 begin
-(* {$ifdef USE_RHIDE}
-  UseStdErr:=true;
-{$endif USE_RHIDE} *)
 {$ifdef FPC}
   do_stop:=@_stop;
   do_comment:=@_comment;
-  {$ifdef allow_oldstyle}
-     do_note:=@_note;
-     do_warning:=@_warning;
-     do_error:=@_error;
-     do_fatalerror:=@_fatalerror;
-     do_internalerror:=@_internalerror;
-  {$endif}
+  do_internalerror:=@_internalerror;
 {$else}
   do_stop:=_stop;
   do_comment:=_comment;
-  {$ifdef allow_oldstyle}
-     do_note:=_note;
-     do_warning:=_warning;
-     do_error:=_error;
-     do_fatalerror:=_fatalerror;
-     do_internalerror:=_internalerror;
-  {$endif}
+  do_internalerror:=_internalerror;
 {$endif}
 end.
 {
   $Log$
-  Revision 1.6  1998-05-11 13:07:58  peter
+  Revision 1.7  1998-05-12 10:47:01  peter
+    * moved printstatus to verb_def
+    + V_Normal which is between V_Error and V_Warning and doesn't have a
+      prefix like error: warning: and is included in V_Default
+    * fixed some messages
+    * first time parameter scan is only for -v and -T
+    - removed old style messages
+
+  Revision 1.6  1998/05/11 13:07:58  peter
     + $ifdef NEWPPU for the new ppuformat
     + $define GDB not longer required
     * removed all warnings and stripped some log comments

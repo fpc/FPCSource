@@ -25,7 +25,7 @@ unit pbase;
   interface
 
     uses
-       files,cobjects,globals,scanner,symtable,systems,verbose;
+       cobjects,globals,symtable;
 
     const
        { forward types should only be possible inside  }
@@ -92,6 +92,9 @@ unit pbase;
 
   implementation
 
+    uses
+
+       files,scanner,symtable,systems,verbose;
 
     { consumes token i, if the current token is unequal i }
     { a syntax error is written                           }
@@ -250,7 +253,15 @@ end.
 
 {
   $Log$
-  Revision 1.5  1998-05-06 08:38:44  pierre
+  Revision 1.6  1998-05-12 10:47:00  peter
+    * moved printstatus to verb_def
+    + V_Normal which is between V_Error and V_Warning and doesn't have a
+      prefix like error: warning: and is included in V_Default
+    * fixed some messages
+    * first time parameter scan is only for -v and -T
+    - removed old style messages
+
+  Revision 1.5  1998/05/06 08:38:44  pierre
     * better position info with UseTokenInfo
       UseTokenInfo greatly simplified
     + added check for changed tree after first time firstpass
@@ -276,47 +287,4 @@ end.
   Revision 1.2  1998/04/07 22:45:05  florian
     * bug0092, bug0115 and bug0121 fixed
     + packed object/class/array
-
-  Revision 1.1.1.1  1998/03/25 11:18:14  root
-  * Restored version
-
-  Revision 1.9  1998/03/10 01:17:23  peter
-    * all files have the same header
-    * messages are fully implemented, EXTDEBUG uses Comment()
-    + AG... files for the Assembler generation
-
-  Revision 1.8  1998/03/06 00:52:40  peter
-    * replaced all old messages from errore.msg, only ExtDebug and some
-      Comment() calls are left
-    * fixed options.pas
-
-  Revision 1.7  1998/03/02 01:48:59  peter
-    * renamed target_DOS to target_GO32V1
-    + new verbose system, merged old errors and verbose units into one new
-      verbose.pas, so errors.pas is obsolete
-
-  Revision 1.6  1998/02/16 12:51:38  michael
-  + Implemented linker object
-
-  Revision 1.5  1998/02/13 10:35:22  daniel
-  * Made Motorola version compilable.
-  * Fixed optimizer
-
-  Revision 1.4  1998/02/12 11:50:24  daniel
-  Yes! Finally! After three retries, my patch!
-
-  Changes:
-
-  Complete rewrite of psub.pas.
-  Added support for DLL's.
-  Compiler requires less memory.
-  Platform units for each platform.
-
-  Revision 1.3  1998/01/13 17:13:08  michael
-  * File time handling and file searching is now done in an OS-independent way,
-    using the new file treating functions in globals.pas.
-
-  Revision 1.2  1998/01/09 09:09:58  michael
-  + Initial implementation, second try
-
 }

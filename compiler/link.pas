@@ -187,7 +187,6 @@ var
 begin
   if pos('.',s)=0 then
    s:=s+ext;
-//  s:=FixFileName(s);
   if FileExists(s) then
    begin
      FindLibraryFile:=s;
@@ -343,21 +342,20 @@ begin
   if Strip then
    LinkOptions:=LinkOptions+target_link.stripopt;
 
+{ Add library searchpath to the commandline }
+
   S2:=LibrarySearchPath;
-  Writeln ('Librarysearchpath : ',S2);
   Repeat
-    I:=Pos(';',S2);
-    If I<>0 then
-      begin
-      S:=Copy(S2,1,I-1);
-      Delete (S2,1,I);
-      end
-    else
-      S:=S2;
+    i:=Pos(';',S2);
+    If i=0 then
+     i:=255;
+    S:=Copy(S2,1,i-1);
     If S<>'' then
       LinkOptions:=LinkOptions+' -L'+s;
-  until S='';
-   
+    Delete (S2,1,i);
+  until S2='';
+
+
 { Write used files and libraries }
   WriteResponseFile;
 
@@ -368,7 +366,6 @@ begin
   Replace(s,'$EXE',exename);
   Replace(s,'$OPT',LinkOptions);
   Replace(s,'$RES',inputdir+LinkResName);
-  Writeln ('Linker options : ',s);
   success:=DoExec(FindLinker,s,true,false);
 
 {Bind}
@@ -446,7 +443,15 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  1998-05-11 13:07:54  peter
+  Revision 1.9  1998-05-12 10:46:59  peter
+    * moved printstatus to verb_def
+    + V_Normal which is between V_Error and V_Warning and doesn't have a
+      prefix like error: warning: and is included in V_Default
+    * fixed some messages
+    * first time parameter scan is only for -v and -T
+    - removed old style messages
+
+  Revision 1.8  1998/05/11 13:07:54  peter
     + $ifdef NEWPPU for the new ppuformat
     + $define GDB not longer required
     * removed all warnings and stripped some log comments

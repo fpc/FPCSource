@@ -12,15 +12,17 @@ Shared libs not supported on DOS platform, reverting to static
 too many IF(N)DEFs
 too many ENDIFs
 open conditional at the end of the file
+Debug information generation is not supported by this executable
+Try recompiling with -dGDB
 ;
 ; Logo
 ;
-Free Pascal Compiler version 0.99.6 for $1
+Free Pascal Compiler version $VER for $TARGET
 Copyright (c) 1993-98 by Florian Klaempfl
 ;
 ; Info
 ;
-Free Pascal Compiler version 0.99.6
+Free Pascal Compiler version $VER
 <lf>
 This program comes under the GNU General Public Licence
 For more information read COPYING
@@ -60,7 +62,6 @@ Report bugs,suggestions etc to:
 *L1e<x>_set path to executables
 **1E_same as -Cn
 **1g_generate debugger information
-**2gp_generate also profile code for gprof
 **1F_set file names and paths
 **2Fe<x>_redirect error output to <x>
 *L2Fg<x>_<x> search path for the GNU C lib
@@ -82,7 +83,7 @@ Report bugs,suggestions etc to:
 **1S_syntax options
 **2S2_switch some Delphi 2 extension on
 **2Sc_supports operators like C (*=,+=,/= and -=)
-**2Sd_compiler disposes asm lists (uses less memory but much slower)
+**2Sd_compiler disposes asm lists (uses less memory but slower)
 **2Se_compiler stops after the first error
 **2Sg_allows LABEL and GOTO
 **2Si_support C++ stlyed INLINE

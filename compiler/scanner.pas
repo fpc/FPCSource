@@ -190,13 +190,6 @@ unit scanner;
        dos,verbose,pbase,
        symtable,switches;
 
-     var
-    { this is usefull to get the write filename
-      for the last instruction of an include file !}
-       FileHasChanged : Boolean;
-         status : tcompilestatus;
-
-
 {*****************************************************************************
                               TPreProcStack
 *****************************************************************************}
@@ -375,31 +368,30 @@ unit scanner;
       var
          cur : char;
       begin
-        cur:=c;
         if (byte(inputpointer^)=0) and
            current_module^.current_inputfile^.filenotatend then
           begin
+             cur:=c;
              reload;
              if byte(cur)+byte(c)<>23 then
                dec(longint(inputpointer));
           end
         else
-        { Fix linebreak to be only newline (=#10) for all types of linebreaks }
-        if (byte(inputpointer^)+byte(c)=23) then
-          inc(longint(inputpointer));
+          begin
+          { Fix linebreak to be only newline (=#10) for all types of linebreaks }
+            if (byte(inputpointer^)+byte(c)=23) then
+              inc(longint(inputpointer));
+          end;
         c:=newline;
       { Update Status and show status }
         with status do
          begin
            totalcompiledlines:=abslines;
-           currentline:=current_module^.current_inputfile^.line_no
-               +current_module^.current_inputfile^.line_count;
-           { you call strcopy here at each line !!! }
-           {currentsource:=current_module^.current_inputfile^.name^+current_module^.current_inputfile^.ext^;}
-           totallines:=0;
+           currentline:=current_module^.current_inputfile^.line_no;
          end;
-        if compilestatusproc(status) then
-         stop;
+        Comment(V_Status,'');
+
+      { increase line counters }        
         inc(current_module^.current_inputfile^.line_no);
         inc(abslines);
         lastlinepos:=longint(inputpointer);
@@ -1397,7 +1389,15 @@ unit scanner;
 end.
 {
   $Log$
-  Revision 1.17  1998-05-06 08:38:47  pierre
+  Revision 1.18  1998-05-12 10:47:00  peter
+    * moved printstatus to verb_def
+    + V_Normal which is between V_Error and V_Warning and doesn't have a
+      prefix like error: warning: and is included in V_Default
+    * fixed some messages
+    * first time parameter scan is only for -v and -T
+    - removed old style messages
+
+  Revision 1.17  1998/05/06 08:38:47  pierre
     * better position info with UseTokenInfo
       UseTokenInfo greatly simplified
     + added check for changed tree after first time firstpass

@@ -25,8 +25,6 @@ interface
 
 uses messages;
 
-{$define allow_oldstyle}
-
 {$IFNDEF EXTERN_MSG}
   {$i msgtxt.inc}
 {$ENDIF}
@@ -38,11 +36,12 @@ Const
 { <$100 can include file and linenr info }
   V_Fatal       = $0;
   V_Error       = $1;
-  V_Warning     = $2;
-  V_Note        = $4;
-  V_Hint        = $8;
+  V_Normal      = $2;
+  V_Warning     = $4;
+  V_Note        = $8;
+  V_Hint        = $10;
   V_Info        = $100;
-  V_Linenrs     = $200;
+  V_Status      = $200;
   V_Used        = $400;
   V_Tried       = $800;
   V_Macro       = $1000;
@@ -51,15 +50,25 @@ Const
   V_Debug       = $8000;
 
   V_All         = $ffffffff;
-  V_Default     = V_Fatal + V_Error;
+  V_Default     = V_Fatal + V_Error + V_Normal;
 
   Verbosity     : longint=V_Default;
 
+type
+  TCompileStatus = record
+    currentsource : string;       { filename }
+    currentline   : longint;      { current line number }
+    totalcompiledlines : longint; { the number of lines which are compiled  }
+    totallines         : longint; { total lines to compile, can be 0 }
+  end;
+
+
 var
-  errorcount    : longint;  { number of generated errors }
-  msg           : pmessage;
-  UseStdErr : boolean;
-  Use_Rhide : boolean;
+  status      : tcompilestatus;
+  errorcount  : longint;  { number of generated errors }
+  msg         : pmessage;
+  UseStdErr,
+  Use_Rhide   : boolean;
 
 
 procedure LoadMsgFile(const fn:string);
@@ -72,16 +81,6 @@ procedure Message(w:tmsgconst);
 procedure Message1(w:tmsgconst;const s1:string);
 procedure Message2(w:tmsgconst;const s1,s2:string);
 procedure Message3(w:tmsgconst;const s1,s2,s3:string);
-
-{ old calling style }
-{$ifdef allow_oldstyle}
-var
-  exterror      : pchar;
-procedure note(w:tmsgconst);
-procedure warning(w:tmsgconst);
-procedure error(w:tmsgconst);
-procedure fatalerror(w:tmsgconst);
-{$endif}
 
 { Function redirecting for IDE support }
 type
@@ -177,9 +176,9 @@ begin
                  else
                    Verbosity:=Verbosity or V_Hint;
            'L' : if inverse then
-                   Verbosity:=Verbosity and (not V_Linenrs)
+                   Verbosity:=Verbosity and (not V_Status)
                  else
-                   Verbosity:=Verbosity or V_Linenrs;
+                   Verbosity:=Verbosity or V_Status;
            'U' : if inverse then
                    Verbosity:=Verbosity and (not V_Used)
                  else
@@ -212,6 +211,7 @@ begin
   setverbosity:=true;
 end;
 
+
 procedure stop;
 begin
 {$ifndef TP}
@@ -230,8 +230,13 @@ end;
 
 
 procedure Comment(l:longint;const s:string);
+var
+  msg : string;
 begin
-  do_comment(l,s);
+  msg:=s;
+  Replace(msg,'$VER',version_string);
+  Replace(msg,'$TARGET',target_string);
+  do_comment(l,msg);
 end;
 
 
@@ -262,11 +267,12 @@ begin
                   inc(errorcount);
                   dostop:=(errorcount>=maxerrorcount);
                 end;
+          'O' : v:=v or V_Normal;
           'W' : v:=v or V_Warning;
           'N' : v:=v or V_Note;
           'H' : v:=v or V_Hint;
           'I' : v:=v or V_Info;
-          'L' : v:=v or V_Linenrs;
+          'L' : v:=v or V_Status;
           'U' : v:=v or V_Used;
           'T' : v:=v or V_Tried;
           'M' : v:=v or V_Macro;
@@ -309,42 +315,6 @@ begin
 end;
 
 
-{*****************************************************************************
-                                   Old Style
-*****************************************************************************}
-
-{$ifdef allow_oldstyle}
-
-  procedure warning(w:tmsgconst);
-  begin
-    if do_warning(w) then
-     stop;
-  end;
-
-
-  procedure note(w:tmsgconst);
-  begin
-    if do_note(w) then
-     stop;
-  end;
-
-
-  procedure error(w:tmsgconst);
-  begin
-    inc(errorcount);
-    if do_error(w) then
-     stop;
-  end;
-
-
-  procedure fatalerror(w:tmsgconst);
-  begin
-    do_fatalerror(w);
-    stop;
-  end;
-
-{$endif}
-
 begin
 {$IFNDEF EXTERN_MSG}
   msg:=new(pmessage,Init(@msgtxt,ord(endmsgconst)));
@@ -353,7 +323,15 @@ end.
 
 {
   $Log$
-  Revision 1.5  1998-04-30 15:59:43  pierre
+  Revision 1.6  1998-05-12 10:47:01  peter
+    * moved printstatus to verb_def
+    + V_Normal which is between V_Error and V_Warning and doesn't have a
+      prefix like error: warning: and is included in V_Default
+    * fixed some messages
+    * first time parameter scan is only for -v and -T
+    - removed old style messages
+
+  Revision 1.5  1998/04/30 15:59:43  pierre
     * GDB works again better :
       correct type info in one pass
     + UseTokenInfo for better source position
@@ -367,56 +345,4 @@ end.
     * error handling of pass_1 and cgi386 fixed
     * the following bugs fixed: 0117, 0118, 0119 and 0129, 0122 was already
       fixed, verified
-
-  Revision 1.2  1998/03/28 23:09:57  florian
-    * secondin bugfix (m68k and i386)
-    * overflow checking bugfix (m68k and i386) -- pretty useless in
-      secondadd, since everything is done using 32-bit
-    * loading pointer to routines hopefully fixed (m68k)
-    * flags problem with calls to RTL internal routines fixed (still strcmp
-      to fix) (m68k)
-    * #ELSE was still incorrect (didn't take care of the previous level)
-    * problem with filenames in the command line solved
-    * problem with mangledname solved
-    * linking name problem solved (was case insensitive)
-    * double id problem and potential crash solved
-    * stop after first error
-    * and=>test problem removed
-    * correct read for all float types
-    * 2 sigsegv fixes and a cosmetic fix for Internal Error
-    * push/pop is now correct optimized (=> mov (%esp),reg)
-
-  Revision 1.1.1.1  1998/03/25 11:18:15  root
-  * Restored version
-
-  Revision 1.17  1998/03/10 16:43:34  peter
-    * fixed Fatal error writting
-
-  Revision 1.16  1998/03/10 01:17:30  peter
-    * all files have the same header
-    * messages are fully implemented, EXTDEBUG uses Comment()
-    + AG... files for the Assembler generation
-
-  Revision 1.15  1998/03/06 00:53:02  peter
-    * replaced all old messages from errore.msg, only ExtDebug and some
-      Comment() calls are left
-    * fixed options.pas
-
-  Revision 1.14  1998/03/04 01:35:15  peter
-    * messages for unit-handling and assembler/linker
-    * the compiler compiles without -dGDB, but doesn't work yet
-    + -vh for Hint
-
-  Revision 1.13  1998/03/03 16:45:25  peter
-    + message support for assembler parsers
-
-  Revision 1.12  1998/03/02 16:02:05  peter
-    * new style messages for pp.pas
-    * cleanup of pp.pas
-
-  Revision 1.11  1998/03/02 01:49:40  peter
-    * renamed target_DOS to target_GO32V1
-    + new verbose system, merged old errors and verbose units into one new
-      verbose.pas, so errors.pas is obsolete
-
 }

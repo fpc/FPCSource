@@ -2844,7 +2844,7 @@ implementation
                                     { direct call to inherited method }
                                     if (p^.procdefinition^.options and poabstractmethod)<>0 then
                                       begin
-                                         error(cg_e_cant_call_abstract_method);
+                                         Message(cg_e_cant_call_abstract_method);
                                          goto dont_call;
                                       end;
                                     { generate no virtual call }
@@ -5982,7 +5982,15 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.22  1998-05-07 00:17:00  peter
+  Revision 1.23  1998-05-12 10:46:58  peter
+    * moved printstatus to verb_def
+    + V_Normal which is between V_Error and V_Warning and doesn't have a
+      prefix like error: warning: and is included in V_Default
+    * fixed some messages
+    * first time parameter scan is only for -v and -T
+    - removed old style messages
+
+  Revision 1.22  1998/05/07 00:17:00  peter
     * smartlinking for sets
     + consts labels are now concated/generated in hcodegen
     * moved some cpu code to cga and some none cpu depended code from cga

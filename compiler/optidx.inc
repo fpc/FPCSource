@@ -39,6 +39,8 @@ no_shared_lib_under_dos,
 too_many_ifdef,
 too_many_endif,
 too_less_endif,
+no_debug_support,
+no_debug_support_recompile_fpc,
 {logo}
 logo_start,
 logo_end,

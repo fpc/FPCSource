@@ -51,10 +51,6 @@
 }
 type
   tmsgconst = (
-general_i_kb_free,
-general_l_lines_and_free,
-general_i_stream_kb_free,
-general_i_ems_kb_free,
 general_i_compilername,
 general_i_unitsearchpath,
 general_d_sourceos,
@@ -457,7 +453,6 @@ unit_f_too_much_units,
 unit_f_circular_unit_reference,
 unit_f_cant_compile_unit,
 unit_w_switch_us_missed,
-unit_e_total_errors,
 unit_f_errors_in_unit,
 {This should be the last}
 endmsgconst

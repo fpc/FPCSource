@@ -120,7 +120,6 @@ unit parser;
     procedure compile(const filename:string;compile_system:boolean);
       var
          hp : pmodule;
-         old_comp_unit : boolean;
 
          { some variables to save the compiler state }
          oldtoken : ttoken;
@@ -222,7 +221,6 @@ unit parser;
          oldrefsymtable:=refsymtable;
          refsymtable:=nil;
          oldprocprefix:=procprefix;
-         old_comp_unit:=comp_unit;
 
          { a long time, this was only in init_parser
            but it should be reset to zero for each module }
@@ -374,26 +372,19 @@ unit parser;
          lexlevel:=0;
 
          { parse source }
-{***BUGFIX}
          if (token=_UNIT) or (compile_level>1) then
-            begin
-                {If the compile level > 1 we get a nice "unit expected" error
-                 message if we are trying to use a program as unit.}
-                proc_unit;
-                if current_module^.compiled then
-                    goto done;
-                comp_unit:=true;
-            end
+           begin
+             current_module^.is_unit:=true;
+           { If the compile level > 1 we get a nice "unit expected" error
+             message if we are trying to use a program as unit.}
+             proc_unit;
+             if current_module^.compiled then
+               goto done;
+           end
          else
            begin
-              proc_program(token=_LIBRARY);
-              comp_unit:=false;
+             proc_program(token=_LIBRARY);
            end;
-
-         { Why? The definition of Pascal requires that everything
-           after 'end.' is ignored!
-         if not(cs_tp_compatible in aktswitches) then
-            consume(_EOF); }
 
          if errorcount=0 then
            begin
@@ -413,50 +404,34 @@ unit parser;
              name (PFV) }
              addlinkerfiles(current_module);
 
-             { Check linking  => we are at first level in compile }
-             if (compile_level=1) then
-              begin
-                if not comp_unit then
-                 begin
-                   if (cs_no_linking in initswitches) then
-                    externlink:=true;
-                   if Linker.ExeName='' then
-                    Linker.SetExeName(FileName);
-                   Linker.MakeExecutable;
-                 end;
-              end;
-
+           { Check linking  => we are at first level in compile }
+             if (compile_level=1) and (not current_module^.is_unit) then
+               begin
+                 if (cs_no_linking in initswitches) then
+                   externlink:=true;
+                 if Linker.ExeName='' then
+                   Linker.SetExeName(FileName);
+                 Linker.MakeExecutable;
+               end;
            end
          else
-           begin
-              Message1(unit_e_total_errors,tostr(errorcount));
-              Message(unit_f_errors_in_unit);
-           end;
+           Message1(unit_f_errors_in_unit,tostr(errorcount));
+        
+
+done:
          { clear memory }
 {$ifdef Splitheap}
          if testsplit then
            begin
            { temp heap should be empty after that !!!}
-           codegen_donemodule;
-           Releasetempheap;
+             codegen_donemodule;
+             Releasetempheap;
            end;
-         {else
-           codegen_donemodule;}
 {$endif Splitheap}
-         { restore old state }
-         { if already compiled jumps directly here }
-done:
-         { close trees }
+
+         { restore old state, close trees }
          if dispose_asm_lists then
-           begin
-              dispose(datasegment,Done);
-              dispose(codesegment,Done);
-              dispose(bsssegment,Done);
-              dispose(debuglist,Done);
-              dispose(externals,Done);
-              dispose(internals,Done);
-              dispose(consts,Done);
-           end;
+           codegen_donemodule;
 
          reset_gdb_info;
          { restore symtable state }
@@ -484,7 +459,6 @@ done:
 {$endif UseTokenInfo}
          orgpattern:=oldorgpattern;
          block_type:=old_block_type;
-         comp_unit:=old_comp_unit;
 
          { call donescanner before restoring preprocstack, because }
          { donescanner tests for a empty preprocstack              }
@@ -509,6 +483,7 @@ done:
          datasegment:=olddatasegment;
          bsssegment:=oldbsssegment;
          codesegment:=oldcodesegment;
+         consts:=oldconsts;
          debuglist:=olddebuglist;
          externals:=oldexternals;
          internals:=oldinternals;
@@ -518,9 +493,6 @@ done:
 
          nextlabelnr:=oldnextlabelnr;
          exprasmlist:=oldexprasmlist;
-         consts:=oldconsts;
-
-         nextlabelnr:=oldnextlabelnr;
 
          if (compile_level=1) then
           begin
@@ -536,7 +508,15 @@ done:
 end.
 {
   $Log$
-  Revision 1.15  1998-05-11 13:07:54  peter
+  Revision 1.16  1998-05-12 10:47:00  peter
+    * moved printstatus to verb_def
+    + V_Normal which is between V_Error and V_Warning and doesn't have a
+      prefix like error: warning: and is included in V_Default
+    * fixed some messages
+    * first time parameter scan is only for -v and -T
+    - removed old style messages
+
+  Revision 1.15  1998/05/11 13:07:54  peter
     + $ifdef NEWPPU for the new ppuformat
     + $define GDB not longer required
     * removed all warnings and stripped some log comments

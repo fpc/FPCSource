@@ -96,6 +96,7 @@ unit files;
           do_assemble,              { only assemble the object, don't recompile }
           do_compile,               { need to compile the sources }
           sources_avail,            { if all sources are reachable }
+          is_unit,
           in_implementation,        { processing the implementation part? }
           in_main       : boolean;  { global, after uses else false }
 
@@ -123,7 +124,7 @@ unit files;
           arfilename,               { fullname of the archivefile }
           mainsource    : pstring;  { name of the main sourcefile }
 
-          constructor init(const s:string;is_unit:boolean);
+          constructor init(const s:string;_is_unit:boolean);
           destructor special_done;virtual; { this is to be called only when compiling again }
 
           procedure setfilename(const path,name:string);
@@ -822,7 +823,7 @@ unit files;
 
 
 
-    constructor tmodule.init(const s:string;is_unit:boolean);
+    constructor tmodule.init(const s:string;_is_unit:boolean);
       var
         p : dirstr;
         n : namestr;
@@ -854,6 +855,7 @@ unit files;
          compiled:=false;
          in_implementation:=false;
          in_main:=false;
+         is_unit:=_is_unit;
          uses_imports:=false;
          imports:=new(plinkedlist,init);
          output_format:=commandline_output_format;
@@ -907,7 +909,15 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.10  1998-05-11 13:07:53  peter
+  Revision 1.11  1998-05-12 10:46:59  peter
+    * moved printstatus to verb_def
+    + V_Normal which is between V_Error and V_Warning and doesn't have a
+      prefix like error: warning: and is included in V_Default
+    * fixed some messages
+    * first time parameter scan is only for -v and -T
+    - removed old style messages
+
+  Revision 1.10  1998/05/11 13:07:53  peter
     + $ifdef NEWPPU for the new ppuformat
     + $define GDB not longer required
     * removed all warnings and stripped some log comments

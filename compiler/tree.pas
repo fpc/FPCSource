@@ -29,7 +29,7 @@ unit tree;
   interface
 
     uses
-       globals,scanner,symtable,cobjects,verbose,aasm,files
+       cobjects,globals,symtable,aasm
 {$ifdef i386}
        ,i386
 {$endif}
@@ -42,10 +42,8 @@ unit tree;
        ;
 
     type
-       tconstset = array[0..31] of byte;
-
        pconstset = ^tconstset;
-
+       tconstset = array[0..31] of byte;
 
        ttreetyp = (addn,            {Represents the + operator.}
                    muln,            {Represents the * operator.}
@@ -160,7 +158,6 @@ unit tree;
       tassigntyp = (at_normal,at_plus,at_minus,at_star,at_slash);
 
       pcaserecord = ^tcaserecord;
-
       tcaserecord = record
 
           { range }
@@ -177,7 +174,6 @@ unit tree;
        end;
 
        ptree = ^ttree;
-
        ttree = record
           error : boolean;
           disposetyp : tdisposetyp;
@@ -190,7 +186,7 @@ unit tree;
           { the number of registers needed to evalute the node }
           registers32,registersfpu : longint;  { must be longint !!!! }
 {$ifdef SUPPORT_MMX}
-                  registersmmx : longint;
+          registersmmx : longint;
 {$endif SUPPORT_MMX}
           left,right : ptree;
           resulttype : pdef;
@@ -296,13 +292,8 @@ unit tree;
 
   implementation
 
-{$ifdef extdebug}
-    uses
-       types,pbase;
-{$else extdebug}
-    uses
-       pbase;
-{$endif extdebug}
+    uses    
+       scanner,verbose,files,types,pbase;
 
 {****************************************************************************
         this is a pool for the tree nodes to get more performance
@@ -1536,7 +1527,15 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.8  1998-05-07 00:17:01  peter
+  Revision 1.9  1998-05-12 10:47:00  peter
+    * moved printstatus to verb_def
+    + V_Normal which is between V_Error and V_Warning and doesn't have a
+      prefix like error: warning: and is included in V_Default
+    * fixed some messages
+    * first time parameter scan is only for -v and -T
+    - removed old style messages
+
+  Revision 1.8  1998/05/07 00:17:01  peter
     * smartlinking for sets
     + consts labels are now concated/generated in hcodegen
     * moved some cpu code to cga and some none cpu depended code from cga

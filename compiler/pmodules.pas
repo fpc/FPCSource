@@ -80,15 +80,22 @@ unit pmodules;
     procedure insertsegment;
       begin
       {Insert Ident of the compiler}
-        if not smartlink then
+        if (not smartlink)
+{$ifndef EXTDEBUG}      
+           and (not current_module^.is_unit)
+{$endif}        
+
+           then
          begin
            datasegment^.insert(new(pai_align,init(4)));
-           datasegment^.insert(new(pai_string,init('FPC '+version_string+' - '+target_info.short_name)));
+           datasegment^.insert(new(pai_string,init('FPC '+version_string+' for '+target_string+' - '+target_info.short_name)));
          end;
 
-        bsssegment^.insert(new(pai_section,init(sec_bss)));
         codesegment^.insert(new(pai_section,init(sec_code)));
         datasegment^.insert(new(pai_section,init(sec_data)));
+        bsssegment^.insert(new(pai_section,init(sec_bss)));
+        consts^.insert(new(pai_section,init(sec_data)));
+        consts^.insert(new(pai_asm_comment,init('Constants')));
       end;
 
     procedure insertheap;
@@ -275,7 +282,8 @@ unit pmodules;
          checksum,
 {$ifndef NEWPPU}
          count,
-{$endif NEWPPU} 
+{$endif NEWPPU}
+
 
          nextmapentry : longint;
          hs           : string;
@@ -1090,7 +1098,15 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.12  1998-05-11 13:07:56  peter
+  Revision 1.13  1998-05-12 10:47:00  peter
+    * moved printstatus to verb_def
+    + V_Normal which is between V_Error and V_Warning and doesn't have a
+      prefix like error: warning: and is included in V_Default
+    * fixed some messages
+    * first time parameter scan is only for -v and -T
+    - removed old style messages
+
+  Revision 1.12  1998/05/11 13:07:56  peter
     + $ifdef NEWPPU for the new ppuformat
     + $define GDB not longer required
     * removed all warnings and stripped some log comments

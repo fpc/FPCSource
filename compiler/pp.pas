@@ -180,26 +180,6 @@ uses
 {$endif useoverlay}
 
 
-function print_status(const status : tcompilestatus) : boolean;
-begin
-  print_status:=false;
-  if (abslines=1) then
-   Message1(general_i_kb_free,tostr(memavail shr 10));
-  if (status.currentline mod 100=0) then
-   Message2(general_l_lines_and_free,tostr(status.currentline),tostr(memavail shr 10));
-{$ifdef tp}
-  if (use_big) then
-   begin
-   {$ifdef dpmi}
-     Message1(general_i_stream_kb_free,tostr(symbolstream.getsize shr 10));
-   {$else}
-     Message1(general_i_ems_kb_free,tostr(symbolstream.getsize shr 10));
-   {$endif}
-   end;
-{$endif}
-end;
-
-
 function getrealtime : real;
 var
   h,m,s,s100 : word;
@@ -328,12 +308,6 @@ begin
     end;
 {$endif tp}
 
-{$ifndef TP}
-   compilestatusproc:=@print_status;
-{$else}
-   compilestatusproc:=print_status;
-{$endif}
-
    { inits which need to be done  before the arguments are parsed }
    get_exepath;
    init_tree;
@@ -379,7 +353,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  1998-05-11 13:07:56  peter
+  Revision 1.10  1998-05-12 10:47:00  peter
+    * moved printstatus to verb_def
+    + V_Normal which is between V_Error and V_Warning and doesn't have a
+      prefix like error: warning: and is included in V_Default
+    * fixed some messages
+    * first time parameter scan is only for -v and -T
+    - removed old style messages
+
+  Revision 1.9  1998/05/11 13:07:56  peter
     + $ifdef NEWPPU for the new ppuformat
     + $define GDB not longer required
     * removed all warnings and stripped some log comments
