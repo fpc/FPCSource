@@ -120,10 +120,11 @@ begin
   if s='' then
    exit;
 
-  {When linking on target, there is no object files to look for at
+  {When linking on target, the units has not been assembled yet,
+   so there is no object files to look for at
    the host. Look for the corresponding assembler file instead,
    because it will be assembled to object file on the target.}
-  if cs_link_on_target in aktglobalswitches then
+  if isunit and (cs_link_on_target in aktglobalswitches) then
 	s:= ForceExtension(s,target_info.asmext);
 
   { when it does not belong to the unit then check if
@@ -149,7 +150,7 @@ begin
   if unitpath<>'' then
    found:=FindFile(s,unitpath,foundfile);
   if (not found) then
-   found:=FindFile(s,'.'+source_info.DirSep,foundfile);
+   found:=FindFile(s, CurDirRelPath(source_info), foundfile);
   if (not found) then
    found:=UnitSearchPath.FindFile(s,foundfile);
   if (not found) then
@@ -162,7 +163,7 @@ begin
    Message1(exec_w_objfile_not_found,s);
 
   {Restore file extension}
-  if cs_link_on_target in aktglobalswitches then
+  if isunit and (cs_link_on_target in aktglobalswitches) then
 	foundfile:= ForceExtension(foundfile,target_info.objext);
 
   findobjectfile:=ScriptFixFileName(foundfile);
@@ -201,7 +202,7 @@ begin
      2. local libary dir
      3. global libary dir
      4. exe path of the compiler (not when linking on target) }
-  found:=FindFile(s,'.'+source_info.DirSep,foundfile);
+  found:=FindFile(s, CurDirRelPath(source_info), foundfile);
   if (not found) and (current_module.outputpath^<>'') then
    found:=FindFile(s,current_module.outputpath^,foundfile);
   if (not found) then
@@ -679,7 +680,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.43  2004-07-17 15:51:57  jonas
+  Revision 1.44  2004-10-09 11:37:09  olle
+    * Exchanged hardcoded "./" to CurDirRelPath
+    * In FindObjectFile, when link on target, special handling is now
+      only done for units.
+
+  Revision 1.43  2004/07/17 15:51:57  jonas
     * shell now returns an exitcode
     * print an error if linking failed when linking was done using a script
 
