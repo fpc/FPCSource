@@ -1,3 +1,4 @@
+Todo list for OS/2 version of FPC (Free Pascal Compiler).
 Please indent tasks which are done with 8 spaces.
 
 Item                                          Priority        Implemented by
@@ -26,7 +27,9 @@ OS/2 only rtl                                 medium
   - autothunking for 16-bit calls
   - ? linker (ALINK)
 
-FCL
+FCL                                           medium
+  - disk.inc implementation
+  - filutil.inc implementation
   - thread.inc
   - pipes.inc
   - ? unit SyncObjs
@@ -43,3 +46,7 @@ other OS/2 APIs                               low
   - OpenGL
   - MMOS2
   - SOM
+
+documentation                                 low
+
+sample programs                               low
