@@ -462,100 +462,107 @@ implementation
       label
          do_jmp;
       begin
-{         load_all_regvars(exprasmlist); }
          include(flowcontrol,fc_exit);
          if assigned(left) then
-         if left.nodetype=assignn then
            begin
-              { just do a normal assignment followed by exit }
-              secondpass(left);
-              cg.a_jmp_always(exprasmlist,aktexitlabel);
-           end
-         else
-           begin
-              allocated_acc := false;
-              allocated_acchigh := false;
-              otlabel:=truelabel;
-              oflabel:=falselabel;
-              objectlibrary.getlabel(truelabel);
-              objectlibrary.getlabel(falselabel);
-              secondpass(left);
-              { the result of left is not needed anymore after this
-                node }
-              location_freetemp(exprasmlist,left.location);
-              location_release(exprasmlist,left.location);
-              case left.location.loc of
-                LOC_FPUREGISTER :
-                  goto do_jmp;
-                LOC_FLAGS :
-                  begin
-                    cg.a_reg_alloc(exprasmlist,accumulator);
-                    allocated_acc := true;
-                    cg.g_flags2reg(exprasmlist,OS_INT,left.location.resflags,accumulator);
-                    goto do_jmp;
+             if left.nodetype=assignn then
+               begin
+                  { just do a normal assignment followed by exit }
+                  secondpass(left);
+                  cg.a_jmp_always(exprasmlist,aktexitlabel);
+               end
+             else
+               begin
+                  allocated_acc := false;
+                  allocated_acchigh := false;
+                  otlabel:=truelabel;
+                  oflabel:=falselabel;
+                  objectlibrary.getlabel(truelabel);
+                  objectlibrary.getlabel(falselabel);
+                  secondpass(left);
+                  { increment reference counter, this is
+                    useless for string constants }
+                  if (left.resulttype.def.needs_inittable) and
+                     (left.nodetype<>stringconstn) then
+                    cg.g_incrrefcount(exprasmlist,left.resulttype.def,left.location.reference);
+                  { the result of left is not needed anymore after this
+                    node }
+                  location_freetemp(exprasmlist,left.location);
+                  location_release(exprasmlist,left.location);
+                  case left.location.loc of
+                    LOC_FPUREGISTER :
+                      goto do_jmp;
+                    LOC_FLAGS :
+                      begin
+                        cg.a_reg_alloc(exprasmlist,accumulator);
+                        allocated_acc := true;
+                        cg.g_flags2reg(exprasmlist,OS_INT,left.location.resflags,accumulator);
+                        goto do_jmp;
+                      end;
+                    LOC_JUMP :
+                      begin
+                        cg.a_reg_alloc(exprasmlist,accumulator);
+                        { get an 8-bit register }
+                        hreg:=rg.makeregsize(accumulator,OS_8);
+                        allocated_acc := true;
+                        cg.a_label(exprasmlist,truelabel);
+                        cg.a_load_const_reg(exprasmlist,OS_8,1,hreg);
+                        cg.a_jmp_always(exprasmlist,aktexit2label);
+                        cg.a_label(exprasmlist,falselabel);
+                        cg.a_load_const_reg(exprasmlist,OS_8,0,hreg);
+                        goto do_jmp;
+                      end;
                   end;
-                LOC_JUMP :
-                  begin
-                    cg.a_reg_alloc(exprasmlist,accumulator);
-                    { get an 8-bit register }
-                    hreg:=rg.makeregsize(accumulator,OS_8);
-                    allocated_acc := true;
-                    cg.a_label(exprasmlist,truelabel);
-                    cg.a_load_const_reg(exprasmlist,OS_8,1,hreg);
-                    cg.a_jmp_always(exprasmlist,aktexit2label);
-                    cg.a_label(exprasmlist,falselabel);
-                    cg.a_load_const_reg(exprasmlist,OS_8,0,hreg);
-                    goto do_jmp;
-                  end;
-              end;
-              case aktprocdef.rettype.def.deftype of
-                pointerdef,
-                procvardef :
-                  begin
-                    cg.a_reg_alloc(exprasmlist,accumulator);
-                    allocated_acc := true;
-                    cg.a_load_loc_reg(exprasmlist,left.location,accumulator);
-                  end;
-                floatdef :
-                  begin
+                  case aktprocdef.rettype.def.deftype of
+                    pointerdef,
+                    procvardef :
+                      begin
+                        cg.a_reg_alloc(exprasmlist,accumulator);
+                        allocated_acc := true;
+                        cg.a_load_loc_reg(exprasmlist,left.location,accumulator);
+                      end;
+                    floatdef :
+                      begin
 {$ifndef i386}
-                    cg.a_reg_alloc(exprasmlist,FPU_RESULT_REG);
+                        cg.a_reg_alloc(exprasmlist,FPU_RESULT_REG);
 {$endif not i386}
-                    cg.a_loadfpu_loc_reg(exprasmlist,left.location,FPU_RESULT_REG);
-                  end;
-                else
-                  begin
-                    cgsize:=def_cgsize(aktprocdef.rettype.def);
-                    cg.a_reg_alloc(exprasmlist,accumulator);
-                    allocated_acc := true;
-                    case cgsize of
-                      OS_64,OS_S64 :
-                        begin
-                          cg.a_reg_alloc(exprasmlist,accumulatorhigh);
-                          allocated_acchigh := true;
-                          cg64.a_load64_loc_reg(exprasmlist,left.location,
-                              joinreg64(accumulator,accumulatorhigh));
-                        end
-                      else
-                        begin
-                          hreg:=rg.makeregsize(accumulator,cgsize);
-                          cg.a_load_loc_reg(exprasmlist,left.location,hreg);
+                        cg.a_loadfpu_loc_reg(exprasmlist,left.location,FPU_RESULT_REG);
+                      end;
+                    else
+                      begin
+                        cgsize:=def_cgsize(aktprocdef.rettype.def);
+                        cg.a_reg_alloc(exprasmlist,accumulator);
+                        allocated_acc := true;
+                        case cgsize of
+                          OS_64,OS_S64 :
+                            begin
+                              cg.a_reg_alloc(exprasmlist,accumulatorhigh);
+                              allocated_acchigh := true;
+                              cg64.a_load64_loc_reg(exprasmlist,left.location,
+                                  joinreg64(accumulator,accumulatorhigh));
+                            end
+                          else
+                            begin
+                              hreg:=rg.makeregsize(accumulator,cgsize);
+                              cg.a_load_loc_reg(exprasmlist,left.location,hreg);
+                            end;
                         end;
-                    end;
-                 end;
-              end;
-do_jmp:
-              truelabel:=otlabel;
-              falselabel:=oflabel;
-              cg.a_jmp_always(exprasmlist,aktexit2label);
-              if allocated_acc then
-                cg.a_reg_dealloc(exprasmlist,accumulator);
-              if allocated_acchigh then
-                cg.a_reg_dealloc(exprasmlist,accumulatorhigh);
+                     end;
+                  end;
+
+               do_jmp:
+                  truelabel:=otlabel;
+                  falselabel:=oflabel;
+                  cg.a_jmp_always(exprasmlist,aktexit2label);
+                  if allocated_acc then
+                    cg.a_reg_dealloc(exprasmlist,accumulator);
+                  if allocated_acchigh then
+                    cg.a_reg_dealloc(exprasmlist,accumulatorhigh);
 {$ifndef i386}
-              if (aktprocdef.rettype.def.deftype = floatdef) then
-                cg.a_reg_dealloc(exprasmlist,FPU_RESULT_REG);
+                  if (aktprocdef.rettype.def.deftype = floatdef) then
+                    cg.a_reg_dealloc(exprasmlist,FPU_RESULT_REG);
 {$endif not i386}
+               end;
            end
          else
            cg.a_jmp_always(exprasmlist,aktexitlabel);
@@ -1231,7 +1238,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.39  2002-08-24 18:41:52  peter
+  Revision 1.40  2002-09-01 14:41:47  peter
+    * increase refcount in exit(arg) for arg
+
+  Revision 1.39  2002/08/24 18:41:52  peter
     * fixed wrong label in jump of except block (was also in n386flw wrong)
     * fixed wrong pushing of raise parameters
     * fixed wrong compare in finally
