@@ -155,6 +155,7 @@ type
 
   TShortcutEvent = procedure of object;
 
+  TEditLineEvent = procedure(Sender: TSHTextEdit; Line: Integer) of object;
 
   TSHTextEdit = class
   protected
@@ -184,14 +185,17 @@ type
     FDoc: TTextDoc;                     // Document object for text
     FCursorX, FCursorY: Integer;        // 0/0 = upper left corner
     FOnModifiedChange: TNotifyEvent;
+    FOnLineInsert, FOnLineRemove: TEditLineEvent;
     FWidget: ISHWidget;
 
     procedure SetCursorX(NewCursorX: Integer);
     procedure SetCursorY(NewCursorY: Integer);
 
+    procedure DocumentCleared(Sender: TObject);
     procedure ModifiedChanged(Sender: TObject);
     procedure LineInserted(Sender: TTextDoc; Line: Integer); virtual;
     procedure LineRemoved(Sender: TTextDoc; Line: Integer); virtual;
+    procedure LineChanged(Sender: TTextDoc; Line: Integer); virtual;
 
     function  ExecKey(Key: Char; BlockMode: Boolean): Boolean;
     procedure ExecKeys(Keys: String; BlockMode: Boolean);
@@ -256,8 +260,9 @@ type
     property CursorX: Integer read FCursorX write SetCursorX;
     property CursorY: Integer read FCursorY write SetCursorY;
     property Selection: TSelection read FSel write FSel;
-    property OnModifiedChange: TNotifyEvent
-      read FOnModifiedChange write FOnModifiedChange;
+    property OnModifiedChange: TNotifyEvent read FOnModifiedChange write FOnModifiedChange;
+    property OnLineInsert: TEditLineEvent read FOnLineInsert write FOnLineInsert;
+    property OnLineRemove: TEditLineEvent read FOnLineRemove write FOnLineRemove;
     property Widget: ISHWidget read FWidget;
   end;
 
@@ -266,7 +271,7 @@ type
 implementation
 
 uses
-  Sysutils;
+  SysUtils;
 
 
 {$INCLUDE undo.inc}
@@ -344,7 +349,9 @@ begin
   ViewInfo := TViewInfo(FDoc.ViewInfos.Add);
   ViewInfo.OnLineInsert := @LineInserted;
   ViewInfo.OnLineRemove := @LineRemoved;
+  ViewInfo.OnLineChange := @LineChanged;
   ViewInfo.OnModifiedChange := @ModifiedChanged;
+  ViewInfo.OnClearDocument := @DocumentCleared;
 
   FWidget := AWidget;
 
@@ -386,6 +393,15 @@ begin
   inherited Destroy;
 end;
 
+procedure TSHTextEdit.DocumentCleared(Sender: TObject);
+begin
+  FCursorX := 0;
+  FCursorY := 0;
+  FSel.Clear;
+  AdjustRangeToCursor;
+  Widget.ClearRect(0, 0, Widget.PageWidth, Widget.PageHeight);
+end;
+
 procedure TSHTextEdit.ModifiedChanged(Sender: TObject);
 begin
   if Assigned(OnModifiedChange) then
@@ -411,7 +427,12 @@ begin
     FCursorX := NewCursorX
   else
     FCursorX := 0;
+  if FCursorX > FDoc.LineWidth then
+    Widget.LineWidth := FCursorX + 4
+  else
+    Widget.LineWidth := FDoc.LineWidth + 4;
   ShowCursor;
+  AdjustRangeToCursor;
 end;
 
 procedure TSHTextEdit.SetCursorY(NewCursorY: Integer);
@@ -422,18 +443,40 @@ begin
   else
     FCursorY := 0;
   ShowCursor;
+  AdjustRangeToCursor;
 end;
 
 procedure TSHTextEdit.LineInserted(Sender: TTextDoc; Line: Integer);
 begin
   Widget.LineCount := FDoc.LineCount;
-  Widget.LineWidth := FDoc.LineWidth;
+  if FCursorX > FDoc.LineWidth then
+    Widget.LineWidth := FCursorX + 4
+  else
+    Widget.LineWidth := FDoc.LineWidth + 4;
+  if Assigned(FOnLineInsert) then
+    FOnLineInsert(Self, Line);
   ChangeInLine(Line);
 end;
 
 procedure TSHTextEdit.LineRemoved(Sender: TTextDoc; Line: Integer);
 begin
-  LineInserted(Sender, Line);
+  Widget.LineCount := FDoc.LineCount;
+  if FCursorX > FDoc.LineWidth then
+    Widget.LineWidth := FCursorX + 4
+  else
+    Widget.LineWidth := FDoc.LineWidth + 4;
+  if Assigned(FOnLineRemove) then
+    FOnLineRemove(Self, Line);
+  ChangeInLine(Line);
+end;
+
+procedure TSHTextEdit.LineChanged(Sender: TTextDoc; Line: Integer);
+begin
+  if FCursorX > FDoc.LineWidth then
+    Widget.LineWidth := FCursorX + 4
+  else
+    Widget.LineWidth := FDoc.LineWidth + 4;
+  ChangeInLine(Line);
 end;
 
 procedure TSHTextEdit.StartSelectionChange;
@@ -459,9 +502,9 @@ procedure TSHTextEdit.EndSelectionChange;
     if y1 = y2 then
       FWidget.InvalidateRect(x1, y1, (x2 - x1) + 1, (y2 - y1) + 1)
     else begin
-      FWidget.InvalidateRect(x1, y1, FWidget.PageWidth, 1);
+      FWidget.InvalidateRect(x1, y1, FWidget.PageWidth + FWidget.HorzPos, 1);
       if y1 < y2 - 1 then
-        FWidget.InvalidateRect(0, y1 + 1, FWidget.PageWidth, (y2 - y1) - 1);
+        FWidget.InvalidateRect(0, y1 + 1, FWidget.PageWidth + FWidget.HorzPos, (y2 - y1) - 1);
       FWidget.InvalidateRect(0, y2, x2, 1);
     end;
   end;
@@ -513,7 +556,10 @@ end.
 
 {
   $Log$
-  Revision 1.17  2000-02-19 19:06:17  sg
+  Revision 1.18  2000-02-22 14:30:10  sg
+  * Some redrawing and cursor fixes
+
+  Revision 1.17  2000/02/19 19:06:17  sg
   * HideCursor and ShowCursor are now public methods
 
   Revision 1.16  2000/01/31 19:28:12  sg
