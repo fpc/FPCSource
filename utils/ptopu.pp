@@ -508,9 +508,10 @@ Var C : Char;
 
 begin
   repeat
-    S^.Read(C,1);
-    If S^.Status=stReadError then
-      C:=#0;
+    if S^.GetPos = S^.GetSize then
+      C:=#0
+    else
+      S^.Read(C,1);
   Until C<>#13;
   ReadChar:=C;
 end;
@@ -523,12 +524,12 @@ Var C : Char;
 
 begin
   Repeat
-    S^.Read(C,1);
-  Until (Not (C in WhiteSpace)) or ((C=#10) or (S^.Status=stReadError));
-  If S^.Status=stReadError then
-    EoSln:=#0
-  else
-    EoSln:=C;
+    if S^.GetPos = S^.GetSize then
+      C:=#0
+    else
+      S^.Read(C,1);
+  Until (Not (C in WhiteSpace)) or ((C=#10));
+  EoSln:=C;
 end;
 
 Function ReadString (S: PStream): String;
@@ -1222,7 +1223,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-07-13 10:16:22  michael
+  Revision 1.2  2002-02-27 16:35:31  carl
+  * bugfix of stream errors - would always give error!
+
+  Revision 1.1  2000/07/13 10:16:22  michael
   + Initial import
 
   Revision 1.8  2000/06/01 10:59:22  peter
