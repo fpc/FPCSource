@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
 
     A file in Amiga system run time library.
-    Copyright (c) 1998 by Nils Sjoholm
+    Copyright (c) 1998-2002 by Nils Sjoholm
     member of the Amiga RTL development team.
 
     See the file COPYING.FPC, included in this distribution,
@@ -35,7 +35,7 @@ Type
        pIFFHandle = ^tIFFHandle;
        tIFFHandle = record
         iff_Stream,
-        iff_Flags   : ULONG
+        iff_Flags   : ULONG;
         iff_Depth   : LONGINT;      {  Depth of context stack.  }
         {  There are private fields hiding here.  }
        END;
@@ -787,5 +787,12 @@ END;
 END. (* UNIT IFFPARSE *)
 
 
+{
+  $Log$
+  Revision 1.2  2002-11-18 20:54:56  nils
+    * missing semicolon
 
+}
+
+  
 
