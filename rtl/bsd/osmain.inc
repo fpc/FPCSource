@@ -67,11 +67,11 @@ function paramstr(l: longint) : string;
  begin
    { stricly conforming POSIX applications  }
    { have the executing filename as argv[0] }
-   if l=0 then
-     begin
-       paramstr := execpathstr;
-     end
-   else
+//   if l=0 then
+//     begin
+//       paramstr := execpathstr;
+//     end
+//   else
      paramstr:=strpas(argv[l]);
  end;
 
@@ -613,7 +613,10 @@ End.
 
 {
    $Log$
-   Revision 1.1  2003-01-05 19:01:28  marco
+   Revision 1.2  2003-05-29 20:54:09  marco
+    * progname fix.
+
+   Revision 1.1  2003/01/05 19:01:28  marco
     * FreeBSD compiles now with baseunix mods.
 
 
