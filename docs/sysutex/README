@@ -87,3 +87,5 @@ ex84.pp contains an example of the Trim function.
 ex85.pp contains an example of the TrimLeft function.
 ex86.pp contains an example of the TrimRight function.
 ex87.pp contains an example of the UpperCase function.
+ex88.pp contains an example of the LastDelimiter function.
+
