@@ -5,9 +5,8 @@
    BSD parts (c) 2000 by Marco van de Voort
    members of the Free Pascal development team.
 
-   This unit contains only fully linux specific code and calls under 1.1.x
-   When compiled with the 1.0.x series it contains a somewhat 1.0.x 
-     compatible linux code to allow bootstrap.
+   New linux unit. Linux only calls only. Will be renamed to linux.pp
+   when 1.0.x support is killed off.
 
    See the file COPYING.FPC, included in this distribution,
    for details about the copyright.
@@ -17,16 +16,18 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 **********************************************************************}
+unit Linux;
 
-{$ifdef VER1_0}
-{$i linuxold.inc}
-{$else}
-{$i linuxnew.inc}
-{$endif}
+interface
+
+implementation
+
+end.
 
 {
    $Log$
-   Revision 1.32  2003-09-15 14:12:17  marco
+   Revision 1.1  2003-09-15 14:12:17  marco
     * moved linux.pp contents to linuxold etc
+
 
 }
