@@ -100,6 +100,9 @@ program install;
 
      tpack=record
        name     : string[12];
+       binsub   : string[40];
+       ppc386   : string[20];
+       defcfgfile : string[12];
        include  : boolean;
        filechk  : string[40];
        packages : longint;
@@ -110,11 +113,8 @@ program install;
        title    : string[80];
        version  : string[20];
        basepath : DirStr;
-       binsub   : string[12];
-       ppc386   : string[12];
        packs    : word;
        pack     : array[1..maxpacks] of tpack;
-       defcfgfile : string[12];
        defcfgs  : longint;
        defcfg   : array[1..maxdefcfgs] of pstring;
      end;
@@ -467,6 +467,7 @@ program install;
       Control : PButton;
       YB: word;
 {$IFNDEF LINUX}
+      i : longint;
       S: string;
       WPath: boolean;
 {$ENDIF}
@@ -481,23 +482,33 @@ program install;
       YB := 14;
 
 {$IFNDEF LINUX}
-      S := Data.BasePath + Cfg.BinSub;
+      s:='';
+      for i:=1 to cfg.packs do
+       if cfg.pack[i].binsub<>'' then
+        begin
+          if s<>'' then
+           s:=s+';';
+          S := s+Data.BasePath + Cfg.pack[i].BinSub;
+        end;
       if Pos (Upper (S), Upper (GetEnv ('PATH'))) = 0 then
-      begin
-       WPath := true;
-       Inc (YB, 2);
-      end else WPath := false;
- {$IFDEF OS2}
+       begin
+         WPath := true;
+         Inc (YB, 2);
+       end
+      else
+       WPath := false;
+  {$IFDEF OS2}
       if DosLoadModule (@ErrPath, SizeOf (ErrPath), @EMXName, Handle) = 0 then
-      begin
-       WLibPath := false;
-       DosFreeModule (Handle);
-      end else
-      begin
-       WLibPath := true;
-       Inc (YB, 2);
-      end;
- {$ENDIF}
+       begin
+         WLibPath := false;
+         DosFreeModule (Handle);
+       end
+      else
+       begin
+         WLibPath := true;
+         Inc (YB, 2);
+       end;
+  {$ENDIF}
 {$ENDIF}
 
       R.Assign(6, 6, 74, YB);
@@ -505,26 +516,28 @@ program install;
 
 {$IFNDEF LINUX}
       if WPath then
-      begin
-       R.Assign(2, 3, 64, 5);
-       P:=new(pstatictext,init(r,'Extend your PATH variable with '''+S+''''));
-       insert(P);
-      end;
+       begin
+         R.Assign(2, 3, 64, 5);
+         P:=new(pstatictext,init(r,'Extend your PATH variable with '''+S+''''));
+         insert(P);
+       end;
 
- {$IFDEF OS2}
+  {$IFDEF OS2}
       if WLibPath then
-      begin
-       if WPath then S := 'and your LIBPATH with ''' + S + '\dll''' else
-                             S := 'Extend your LIBPATH with ''' + S + '\dll''';
-       R.Assign (2, YB - 13, 64, YB - 11);
-       P := New (PStaticText, Init (R, S));
-       Insert (P);
-      end;
- {$ENDIF}
+       begin
+         if WPath then
+          S := 'and your LIBPATH with ''' + S + '\dll'''
+         else
+          S := 'Extend your LIBPATH with ''' + S + '\dll''';
+         R.Assign (2, YB - 13, 64, YB - 11);
+         P := New (PStaticText, Init (R, S));
+         Insert (P);
+       end;
+  {$ENDIF}
 {$ENDIF}
 
       R.Assign(2, YB - 11, 64, YB - 10);
-      P:=new(pstatictext,init(r,'To compile files enter '''+cfg.ppc386+' [file]'''));
+      P:=new(pstatictext,init(r,'To compile files enter '''+cfg.pack[1].ppc386+' [file]'''));
       insert(P);
 
       R.Assign (29, YB - 9, 39, YB - 7);
@@ -756,7 +769,11 @@ program install;
                      result:=messagebox('No components selected.'#13#13'Create a configfile ?',nil,
                                                 mfinformation+mfyesbutton+mfnobutton);
                      if (result=cmYes) and createinstalldir(data.basepath) then
-                      writedefcfg(data.basepath+cfg.binsub+DirSep+cfg.defcfgfile);
+                      begin
+                        for i:=1to cfg.packs do
+                         if cfg.pack[i].defcfgfile<>'' then
+                          writedefcfg(data.basepath+cfg.pack[i].binsub+DirSep+cfg.pack[i].defcfgfile);
+                      end;
                      exit;
                    end
                   else
@@ -791,7 +808,11 @@ program install;
 
     { write config }
       if (data.cfgval and 1)<>0 then
-       writedefcfg(data.basepath+cfg.binsub+DirSep+cfg.defcfgfile);
+       begin
+         for i:=1to cfg.packs do
+          if cfg.pack[i].defcfgfile<>'' then
+           writedefcfg(data.basepath+cfg.pack[i].binsub+DirSep+cfg.pack[i].defcfgfile);
+       end;
 
     { show end message }
       p3:=new(penddialog,init);
@@ -871,15 +892,6 @@ program install;
                 if item='BASEPATH' then
                  cfg.basepath:=s
                else
-                if item='PPC386' then
-                 cfg.ppc386:=s
-               else
-                if item='BINSUB' then
-                 cfg.binsub:=s
-               else
-                if item='CFGFILE' then
-                 cfg.defcfgfile:=s
-               else
                 if item='DEFAULTCFG' then
                  begin
                    repeat
@@ -903,6 +915,36 @@ program install;
                       halt(1);
                     end;
                    cfg.pack[cfg.packs].name:=s;
+                 end
+               else
+                if item='CFGFILE' then
+                 begin
+                   if cfg.packs=0 then
+                    begin
+                      writeln('No pack set');
+                      halt(1);
+                    end;
+                   cfg.pack[cfg.packs].defcfgfile:=s
+                 end
+               else
+                if item='PPC386' then
+                 begin
+                   if cfg.packs=0 then
+                    begin
+                      writeln('No pack set');
+                      halt(1);
+                    end;
+                   cfg.pack[cfg.packs].ppc386:=s;
+                 end
+               else
+                if item='BINSUB' then
+                 begin
+                   if cfg.packs=0 then
+                    begin
+                      writeln('No pack set');
+                      halt(1);
+                    end;
+                   cfg.pack[cfg.packs].binsub:=s;
                  end
                else
                 if item='FILECHECK' then
@@ -1112,7 +1154,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2000-02-06 12:59:39  peter
+  Revision 1.17  2000-02-23 17:17:56  peter
+    * write ppc386.cfg for all found targets
+
+  Revision 1.16  2000/02/06 12:59:39  peter
     * change upper -> upcase
     * fixed stupid debugging leftover with diskspace check
 

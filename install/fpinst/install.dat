@@ -6,15 +6,18 @@
 title=Free Pascal Compiler 0.99.14
 version=0.99.14
 
+#
+# General
+#
 basepath=c:\pp
-binsub=\bin\go32v2
-ppc386=ppc386
-
 
 #
 # Go32v2 packages
 #
 pack=Dos/Go~3~2v2
+binsub=\bin\go32v2
+ppc386=ppc386
+cfgfile=ppc386.cfg
 filecheck=*go32.zip
 package=basego32.zip,~B~asic system for Go32v2 (required)
 package=asldgo32.zip,GNU ~L~inker and GNU Assembler for Go32v2 (required)
@@ -32,6 +35,9 @@ package=umisgo32.zip,~M~iscellaneous units
 # Win32 packages
 #
 pack=~W~in32
+binsub=\bin\win32
+ppc386=ppc386
+cfgfile=ppc386.cfg
 filecheck=*w32.zip
 package=basew32.zip,~B~asic system for Win32 (required)
 package=asldw32.zip,GNU ~L~inker and GNU Assembler for Win32 (required)
@@ -51,6 +57,9 @@ package=umisw32.zip,~M~iscellaneous units
 # Emx packages
 #
 pack=OS/2 ~E~MX
+binsub=\bin\os2
+ppc386=ppc386
+cfgfile=ppc386.cfg
 filecheck=*emx.zip
 package=baseemx.zip,~B~asic system for EMX (required)
 package=asldemx.zip,GNU ~L~inker and assembler for EMX (required)
@@ -81,8 +90,6 @@ package=utilssrc.zip,~U~tils sources
 package=instsrc.zip,~I~nstaller sources
 package=docsrc.zip,~D~ocumentation sources (LaTeX)
 
-
-cfgfile=ppc386.cfg
 defaultcfg=
 #
 # Example ppc386.cfg for Free Pascal Compiler Version 0.99.14
