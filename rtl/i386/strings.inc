@@ -134,6 +134,7 @@ end;
 {$define FPC_UNIT_HAS_STRLCOPY}
 function strlcopy(dest,source : pchar;maxlen : sizeint) : pchar;assembler;
 var
+  savedest,
   saveesi,saveedi : longint;
 asm
         movl    %edi,saveedi
@@ -141,6 +142,7 @@ asm
         movl    source,%esi
         movl    maxlen,%ecx
         movl    dest,%edi
+        movl    %edi,savedest
         orl     %ecx,%ecx
         jz      .LSTRLCOPY2
         cld
@@ -156,7 +158,7 @@ asm
         xorb    %al,%al         // If cutted
         stosb                   // add a #0
 .LSTRLCOPY3:
-        movl    dest,%eax
+        movl    savedest,%eax
         movl    saveedi,%edi
         movl    saveesi,%esi
 end;
@@ -633,7 +635,10 @@ end;
 
 {
   $Log$
-  Revision 1.15  2004-06-13 10:49:50  florian
+  Revision 1.16  2004-11-04 20:57:33  peter
+  fixed result of strlcopy
+
+  Revision 1.15  2004/06/13 10:49:50  florian
     * fixed some bootstrapping problems as well as some 64 bit stuff
 
   Revision 1.14  2004/05/01 15:26:33  jonas
