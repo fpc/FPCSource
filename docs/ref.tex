@@ -5080,6 +5080,115 @@ None.
 
 \FPCexample{ex9}
 
+\begin{function}{CompareByte}
+\Declaration
+function CompareByte(var buf1,buf2;len:longint):longint;
+\Description
+\var{CompareByte} compares two memory regions \var{buf1},\var{buf2} on a 
+byte-per-byte basis for a total of \var{len} bytes. 
+
+The function returns one of the following values:
+\begin{description}
+\item[-1] if \var{buf1} and \var{buf2} contain different bytes
+in the first \var{len} bytes, and the first such byte is smaller in \var{buf1}
+than the byte at the same position in \var{buf2}.
+\item[0]  if the first \var{len} bytes in \var{buf1} and \var{buf2} are
+equal.
+\item [1] if \var{buf1} and \var{buf2} contain different bytes
+in the first \var{len} bytes, and the first such byte is larger in \var{buf1}
+than the byte at the same position in \var{buf2}.
+\end{description}
+\Errors
+None.
+\SeeAlso
+\seef{CompareChar},\seef{CompareWord},\seef{CompareDWord}
+\end{function}
+
+\FPCexample{ex99}
+
+\begin{function}{CompareChar}
+\Declaration
+function  CompareChar(var buf1,buf2;len:longint):longint;
+function  CompareChar0(var buf1,buf2;len:longint):longint;
+\Description
+\var{CompareChar} compares two memory regions \var{buf1},\var{buf2} on a 
+character-per-character basis for a total of \var{len} characters. 
+
+The \var{CompareChar0} variant compares \var{len} bytes, or until
+a zero character is found.
+
+The function returns one of the following values:
+\begin{description}
+\item[-1] if \var{buf1} and \var{buf2} contain different characters
+in the first \var{len} positions, and the first such character is smaller in \var{buf1}
+than the character at the same position in \var{buf2}.
+\item[0]  if the first \var{len} characters in \var{buf1} and \var{buf2} are
+equal.
+\item [1] if \var{buf1} and \var{buf2} contain different characters
+in the first \var{len} positions, and the first such character is larger in 
+\var{buf1} than the character at the same position in \var{buf2}.
+\end{description}
+
+\Errors
+None.
+\SeeAlso
+\seef{CompareByte},\seef{CompareWord},\seef{CompareDWord}
+\end{function}
+
+\FPCexample{ex100}
+
+\begin{function}{CompareDWord}
+\Declaration
+function  CompareDWord(var buf1,buf2;len:longint):longint;
+\Description
+\var{CompareDWord} compares two memory regions \var{buf1},\var{buf2} on a 
+DWord-per-DWord basis for a total of \var{len} DWords. (A DWord is 4 bytes).
+
+The function returns one of the following values:
+\begin{description}
+\item[-1] if \var{buf1} and \var{buf2} contain different DWords
+in the first \var{len} DWords, and the first such DWord is smaller in \var{buf1}
+than the DWord at the same position in \var{buf2}.
+\item[0]  if the first \var{len} DWords in \var{buf1} and \var{buf2} are
+equal.
+\item [1] if \var{buf1} and \var{buf2} contain different DWords
+in the first \var{len} DWords, and the first such DWord is larger in \var{buf1}
+than the DWord at the same position in \var{buf2}.
+\end{description}
+\Errors
+None.
+\SeeAlso
+\seef{CompareChar},\seef{CompareByte},\seef{CompareWord},
+\end{function}
+
+\FPCexample{ex101}
+
+\begin{function}{CompareWord}
+\Declaration
+function  CompareWord(var buf1,buf2;len:longint):longint;
+\Description
+\var{CompareWord} compares two memory regions \var{buf1},\var{buf2} on a 
+Word-per-Word basis for a total of \var{len} Words. (A Word is 2 bytes).
+
+The function returns one of the following values:
+\begin{description}
+\item[-1] if \var{buf1} and \var{buf2} contain different Words
+in the first \var{len} Words, and the first such Word is smaller in \var{buf1}
+than the Word at the same position in \var{buf2}.
+\item[0]  if the first \var{len} Words in \var{buf1} and \var{buf2} are
+equal.
+\item [1] if \var{buf1} and \var{buf2} contain different Words
+in the first \var{len} Words, and the first such Word is larger in \var{buf1}
+than the Word at the same position in \var{buf2}.
+\end{description}
+\Errors
+None.
+\SeeAlso
+\seef{CompareChar},\seef{CompareByte},\seef{CompareWord},
+\end{function}
+
+\FPCexample{ex102}
+
 \begin{function}{Concat}
 \Declaration
 Function Concat (S1,S2 [,S3, ... ,Sn]) : String;
