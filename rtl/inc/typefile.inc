@@ -46,7 +46,7 @@ begin
 end;
 
 
-Procedure Int_Typed_Reset(var f : TypedFile;Size : Longint);[Public,IOCheck, Alias:'FPC_RESET_TYPED'];
+Procedure fpc_reset_typed(var f : TypedFile;Size : Longint);[Public,IOCheck, Alias:'FPC_RESET_TYPED']; {$ifdef hascompilerproc} compilerproc; {$endif}
 Begin
   If InOutRes <> 0 then
    exit;
@@ -54,7 +54,7 @@ Begin
 End;
 
 
-Procedure Int_Typed_Rewrite(var f : TypedFile;Size : Longint);[Public,IOCheck, Alias:'FPC_REWRITE_TYPED'];
+Procedure fpc_rewrite_typed(var f : TypedFile;Size : Longint);[Public,IOCheck, Alias:'FPC_REWRITE_TYPED']; {$ifdef hascompilerproc} compilerproc; {$endif}
 Begin
   If InOutRes <> 0 then
    exit;
@@ -62,7 +62,7 @@ Begin
 End;
 
 
-Procedure Int_Typed_Write(TypeSize : Longint;var f : TypedFile;var Buf);[IOCheck, Public, Alias :'FPC_TYPED_WRITE'];
+Procedure fpc_typed_write(TypeSize : Longint;var f : TypedFile;const Buf);[IOCheck, Public, Alias :'FPC_TYPED_WRITE']; {$ifdef hascompilerproc} compilerproc; {$endif}
 Begin
   If InOutRes <> 0 then
    exit;
@@ -74,7 +74,7 @@ Begin
   end;
 End;
 
-Procedure Int_Typed_Read(TypeSize : Longint;var f : TypedFile;var Buf);[IOCheck, Public, Alias :'FPC_TYPED_READ'];
+Procedure fpc_typed_read(TypeSize : Longint;var f : TypedFile;var Buf);[IOCheck, Public, Alias :'FPC_TYPED_READ']; {$ifdef hascompilerproc} compilerproc; {$endif}
 var
   Result : Longint;
 Begin
@@ -94,7 +94,11 @@ End;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:46  michael
+  Revision 1.3  2001-08-06 14:13:55  jonas
+    * changed buf parameter of fpc_type_write from var to const
+    + added names of helpers in typefile.inc to compproc.inc
+
+  Revision 1.2  2000/07/13 11:33:46  michael
   + removed logs
  
 }

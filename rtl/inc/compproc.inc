@@ -177,11 +177,20 @@ Procedure fpc_HandleError (Errno : longint); compilerproc;
 procedure fpc_AbstractErrorIntern;compilerproc;
 procedure fpc_assert(Const Msg,FName:Shortstring;LineNo,ErrorAddr:Longint); compilerproc;
 
+Procedure fpc_reset_typed(var f : TypedFile;Size : Longint); compilerproc;
+Procedure fpc_rewrite_typed(var f : TypedFile;Size : Longint); compilerproc;
+Procedure fpc_typed_write(TypeSize : Longint;var f : TypedFile;const Buf); compilerproc;
+Procedure fpc_typed_read(TypeSize : Longint;var f : TypedFile;var Buf); compilerproc;
+
 {$endif hascompilerproc}
 
 {
   $Log$
-  Revision 1.1  2001-08-01 15:00:10  jonas
+  Revision 1.2  2001-08-06 14:13:55  jonas
+    * changed buf parameter of fpc_type_write from var to const
+    + added names of helpers in typefile.inc to compproc.inc
+
+  Revision 1.1  2001/08/01 15:00:10  jonas
     + "compproc" helpers
     * renamed several helpers so that their name is the same as their
       "public alias", which should facilitate the conversion of processor
