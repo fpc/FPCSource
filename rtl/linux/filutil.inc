@@ -233,10 +233,21 @@ begin
   FileSearch:=Linux.FSearch(Name,Dirlist);
 end;
 
+Procedure GetLocalTime(var SystemTime: TSystemTime);
+
+begin
+linux.GetTime(SystemTime.Hour, SystemTime.Minute, SystemTime.Second);
+linux.GetDate(SystemTime.Year, SystemTime.Month, SystemTime.Day);
+SystemTime.MilliSecond := 0;
+end ;
+
 
 {
   $Log$
-  Revision 1.6  1999-02-04 21:43:08  michael
+  Revision 1.7  1999-02-24 15:57:29  michael
+  + Moved getlocaltime to system-dependent files
+
+  Revision 1.6  1999/02/04 21:43:08  michael
   FileCreate must truncate the file
 
   Revision 1.5  1999/02/02 21:20:34  michael

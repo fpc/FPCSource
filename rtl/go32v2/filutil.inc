@@ -331,10 +331,30 @@ begin
   result := DOS.FSearch(Name, DirList);
 end;
 
+Procedure GetLocalTime(var SystemTime: TSystemTime);
+
+var Regs: Registers;
+
+begin
+Regs.ah := $2C;
+RealIntr($21, Regs);
+SystemTime.Hour := Regs.Ch;
+SystemTime.Minute := Regs.Cl;
+SystemTime.Second := Regs.Dh;
+SystemTime.MilliSecond := Regs.Dl;
+Regs.ah := $2A;
+RealIntr($21, Regs);
+SystemTime.Year := Regs.Cx;
+SystemTime.Month := Regs.Dh;
+SystemTime.Day := Regs.Dl;
+end ;
 
 {
   $Log$
-  Revision 1.3  1999-02-09 17:16:59  florian
+  Revision 1.4  1999-02-24 15:57:28  michael
+  + Moved getlocaltime to system-dependent files
+
+  Revision 1.3  1999/02/09 17:16:59  florian
     + typinfo is now also in the makefile for go32v2
     + sysutils.filetruncate for go32v2
 
