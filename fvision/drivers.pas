@@ -1329,8 +1329,10 @@ if Not TextmodeGFV then
     if assigned(Video.OldVideoBuf) then
       FreeMem(Video.OldVideoBuf);
     GetMem(Video.OldVideoBuf,sizeof(word)*ScreenWidth*ScreenHeight);
+    GetMem(GFVGraph.SpVideoBuf,sizeof(pextrainfo)*(ScreenWidth+1)*(ScreenHeight+1));
     FillChar(Video.VideoBuf^,sizeof(word)*ScreenWidth*ScreenHeight,#0);
     FillChar(Video.OldVideoBuf^,sizeof(word)*ScreenWidth*ScreenHeight,#0);
+    FillChar(GFVGraph.SpVideoBuf^,sizeof(pextrainfo)*(ScreenWidth+1)*(ScreenHeight+1),#0);
     ScreenMode.color:=true;
     ScreenMode.col:=ScreenWidth;
     ScreenMode.row:=ScreenHeight;
@@ -1380,6 +1382,7 @@ BEGIN
       Video.VideoBuf:=nil;
       FreeMem(Video.OldVideoBuf,sizeof(word)*ScreenWidth*ScreenHeight);
       Video.OldVideoBuf:=nil;
+      FreeExtraInfo;
 {$endif USE_VIDEO_API}
       CloseGraph;
 {$ifdef win32}
@@ -1626,7 +1629,10 @@ BEGIN
 END.
 {
  $Log$
- Revision 1.22  2002-05-29 21:21:54  pierre
+ Revision 1.23  2002-05-31 12:38:37  pierre
+  * try to enhance graph mode
+
+ Revision 1.22  2002/05/29 21:21:54  pierre
   * Use VGAHi for go32v2 graph version for now
 
  Revision 1.21  2002/05/29 19:36:12  pierre

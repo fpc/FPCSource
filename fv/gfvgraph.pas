@@ -133,6 +133,17 @@ CONST
    SolidFill = Graph.SolidFill;
    LowAscii : boolean = true;
 
+type
+
+  textrainfo = array[0..0] of byte;
+  pextrainfo = ^textrainfo;
+
+  TSpVideoBuf = array [0..0] of pextrainfo;
+  PSpVideoBuf = ^TSpVideoBuf;
+
+const
+  SpVideoBuf : PSpVideoBuf = nil;
+
 {$ELSE not GRAPH_API }
 CONST
    SolidFill = 0;
@@ -209,7 +220,11 @@ PROCEDURE Line(X1, Y1, X2, Y2: Integer);
 PROCEDURE Rectangle(X1, Y1, X2, Y2: Integer);
 PROCEDURE OutTextXY(X,Y: Integer; TextString: String);
 
+{$IFDEF GRAPH_API}
 procedure GraphUpdateScreen(Force: Boolean);
+procedure SetExtraInfo(x,y,xi,yi : longint; shouldskip : boolean);
+procedure FreeExtraInfo;
+{$ENDIF GRAPH_API}
 
 {***************************************************************************}
 {                        INITIALIZED PUBLIC VARIABLES                       }
@@ -435,30 +450,88 @@ BEGIN
 END;
 
 PROCEDURE OutTextXY(X,Y: Integer; TextString: string);
+{$IFDEF GRAPH_API}
+var
+  i,j,xi,yj : longint;
+  Ts: Graph.ViewPortType;
+{$ENDIF GRAPH_API}
+
 BEGIN
 {$IFDEF GRAPH_API}
    Graph.OutTextXY(X, Y, TextString);                 { Call graph proc }
+   if true then
+     begin
+       Graph.GetViewSettings(Ts);
+       For j:=0 to TextWidth(TextString) -1 do
+         For i:=0 to TextHeight(TextString)-1 do
+           begin
+             xi:=x+i+Ts.x1;
+             yj:=y+j+Ts.y1;
+             SetExtraInfo(xi div SysFontWidth,yj div SysFontHeight,
+               xi mod SysFontWidth,yj mod SysFontHeight, true);
+           end;
+     end;
 {$ENDIF GRAPH_API}
 END;
 
+{$IFDEF GRAPH_API}
 
+const
+  SetExtraInfoCalled : boolean = false;
+
+procedure SetExtraInfo(x,y,xi,yi : longint; shouldskip : boolean);
+var
+  i,k,l : longint;
+  extrainfo : pextrainfo;
+
+begin
+  i:=y*TextScreenWidth+x;
+  if not assigned(SpVideoBuf^[i]) then
+    begin
+      GetMem(SpVideoBuf^[i],SysFontHeight*((SysFontWidth +7) div 8));
+      FillChar(SpVideoBuf^[i]^,SysFontHeight*((SysFontWidth +7) div 8),#0);
+    end;
+  extrainfo:=SpVideoBuf^[i];
+  k:=xi mod 8;
+  l:=yi*((SysFontWidth +7) div 8) + xi div 8;
+  if l>=SysFontHeight*((SysFontWidth +7) div 8) then
+    RunError(219);
+  if shouldskip then
+    extrainfo^[l]:=extrainfo^[l] or (1 shl k)
+  else
+    extrainfo^[l]:=extrainfo^[l] and not (1 shl k);
+  SetExtraInfoCalled:=true;
+end;
+
+procedure FreeExtraInfo;
+var
+  i : longint;
+begin
+  if assigned(SpVideoBuf) then
+    begin
+      for i:=0 to (TextScreenWidth+1)*(TextScreenHeight+1) - 1 do
+        if assigned(SpVideoBuf^[i]) then
+          FreeMem(SpVideoBuf^[i],SysFontHeight*((SysFontWidth +7) div 8));
+      FreeMem(SpVideoBuf,sizeof(pextrainfo)*(TextScreenWidth+1)*(TextScreenHeight+1));
+      SpVideoBuf:=nil;
+    end;
+end;
 
 procedure GraphUpdateScreen(Force: Boolean);
-{$IFDEF GRAPH_API}
 var
    smallforce  : boolean;
    i,x,y : longint;
+   xi,yi,k,l : longint;
    ch : char;
    attr : byte;
    SavedColor,SavedBkColor : longint;
    CurColor,CurBkColor : longint;
    NextColor,NextBkColor : longint;
    StoreFillSettings: FillSettingsType;
-{$ENDIF GRAPH_API}
+   Ts: Graph.ViewPortType;
 begin
-{$IFDEF GRAPH_API}
 {$ifdef USE_VIDEO_API}
-  if force then
+  if force or SetExtraInfoCalled then
    smallforce:=true
   else
    begin
@@ -477,10 +550,13 @@ begin
    end;
   if SmallForce then
     begin
+      SetExtraInfoCalled:=false;
       SavedColor:=Graph.GetColor;
       SavedBkColor:=Graph.GetBkColor;
       CurColor:=SavedColor;
       CurBkColor:=SavedBkColor;
+      Graph.GetViewSettings(Ts);
+      Graph.SetViewPort(0,0,Graph.GetMaxX,Graph.GetMaxY,false);
       Graph.GetFillSettings(StoreFillSettings);
       Graph.SetFillStyle(EmptyFill,0);
       for y := 0 to TextScreenHeight - 1 do
@@ -488,7 +564,7 @@ begin
            for x := 0  to TextScreenWidth - 1 do
              begin
                i:=y*TextScreenWidth+x;
-               if OldVideoBuf^[i]<>VideoBuf^[i] then
+               if (OldVideoBuf^[i]<>VideoBuf^[i]) or assigned(SpVideoBuf^[i]) then
                  begin
                    ch:=chr(VideoBuf^[i] and $ff);
                    if ch<>#0 then
@@ -502,7 +578,19 @@ begin
                            CurBkColor:=NextBkColor;
                          end;
 
-                       Graph.Bar(x*SysFontWidth,y*SysFontHeight,(x+1)*SysFontWidth,(y+1)*SysFontHeight);
+                       if not assigned(SpVideoBuf^[i]) then
+                         Graph.Bar(x*SysFontWidth,y*SysFontHeight,(x+1)*SysFontWidth-1,(y+1)*SysFontHeight-1)
+                       else
+                         begin
+                           For yi:=0 to SysFontHeight-1 do
+                             For xi:=0 to SysFontWidth-1 do
+                               begin
+                                 k:=xi mod 8;
+                                 l:=yi*((SysFontWidth +7) div 8) + xi div 8;
+                                 if SpVideoBuf^[i]^[l] and (1 shl k) = 0 then
+                                   Graph.PutPixel(x*SysfontWidth+xi,y*SysFontHeight+yi,CurBkColor);
+                               end;
+                         end;
                        if NextColor<>CurColor then
                          begin
                            Graph.SetColor(NextColor);
@@ -518,24 +606,33 @@ begin
                        Graph.OutTextXY(x*SysFontWidth,y*SysFontHeight,ch);
                      end;
                    OldVideoBuf^[i]:=VideoBuf^[i];
+                   if assigned(SpVideoBuf^[i]) then
+                     begin
+                       FreeMem(SpVideoBuf^[i],SysFontHeight*((SysFontWidth +7) div 8));
+                       SpVideoBuf^[i]:=nil;
+                     end;
                  end;
              end;
         end;
       Graph.SetFillStyle(StoreFillSettings.pattern,StoreFillSettings.color);
       Graph.SetColor(SavedColor);
       Graph.SetBkColor(SavedBkColor);
+      Graph.SetViewPort(TS.X1,Ts.Y1,ts.X2,ts.Y2,ts.Clip);
     end;
 {$else not USE_VIDEO_API}
   RunError(219);
 {$endif USE_VIDEO_API}
-{$ENDIF GRAPH_API}
 end;
+{$ENDIF GRAPH_API}
 
 
 END.
 {
  $Log$
- Revision 1.14  2002-05-29 22:15:57  pierre
+ Revision 1.15  2002-05-31 12:37:47  pierre
+  * try to enhance graph mode
+
+ Revision 1.14  2002/05/29 22:15:57  pierre
   * fix build failure in non graph mode
 
  Revision 1.13  2002/05/29 19:35:31  pierre
