@@ -393,13 +393,6 @@ begin
            exit;
          end;
 
-       '&' : { override operator... not supported }
-         begin
-           Message(asmr_w_override_op_not_supported);
-           c:=current_scanner.asmgetchar;
-           actasmtoken:=AS_NONE;
-         end;
-
        '''' : { string or character }
          begin
            actasmpattern:='';
@@ -1963,7 +1956,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.36  2002-11-15 01:58:59  peter
+  Revision 1.37  2002-12-01 22:08:34  carl
+    * some small cleanup (remove some specific operators which are not supported)
+
+  Revision 1.36  2002/11/15 01:58:59  peter
     * merged changes from 1.0.7 up to 04-11
       - -V option for generating bug report tracing
       - more tracing for option parsing

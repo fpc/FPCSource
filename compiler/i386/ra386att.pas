@@ -693,13 +693,6 @@ begin
            exit;
          end;
 
-       '!' :
-         begin
-           Message(asmr_e_nor_not_supported);
-           c:=current_scanner.asmgetchar;
-           actasmtoken:=AS_NONE;
-           exit;
-         end;
 
        '(' :
          begin
@@ -2129,7 +2122,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.33  2002-11-30 23:16:39  carl
+  Revision 1.34  2002-12-01 22:08:34  carl
+    * some small cleanup (remove some specific operators which are not supported)
+
+  Revision 1.33  2002/11/30 23:16:39  carl
     - removed unused message
 
   Revision 1.32  2002/11/15 01:58:58  peter
