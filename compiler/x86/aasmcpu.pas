@@ -200,7 +200,7 @@ interface
          function  Pass1(offset:longint):longint;virtual;
          procedure Pass2(sec:TAsmObjectdata);virtual;
          procedure SetOperandOrder(order:TOperandOrder);
-         function is_same_reg_move:boolean;override;
+         function is_same_reg_move(regtype: Tregistertype):boolean;override;
       protected
          procedure ppuloadoper(ppufile:tcompilerppufile;var o:toper);override;
          procedure ppuwriteoper(ppufile:tcompilerppufile;const o:toper);override;
@@ -1895,9 +1895,10 @@ implementation
 {$endif NOAG386BIN}
 
 
-    function Taicpu.is_same_reg_move:boolean;
+    function taicpu.is_same_reg_move(regtype: Tregistertype):boolean;
       begin
-        result:=(ops=2) and
+        result:=(regtype = R_INTREGISTER) and
+                (ops=2) and
                 (oper[0]^.typ=top_reg) and
                 (oper[1]^.typ=top_reg) and
                 (oper[0]^.reg=oper[1]^.reg) and
@@ -1954,7 +1955,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.49  2004-02-08 20:15:43  jonas
+  Revision 1.50  2004-02-08 23:10:21  jonas
+    * taicpu.is_same_reg_move() now gets a regtype parameter so it only
+      removes moves of that particular register type. This is necessary so
+      we don't remove the live_start instruction of a register before it
+      has been processed
+
+  Revision 1.49  2004/02/08 20:15:43  jonas
     - removed taicpu.is_reg_move because it's not used anymore
     + support tracking fpu register moves by rgobj for the ppc
 

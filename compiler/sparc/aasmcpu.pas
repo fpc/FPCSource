@@ -61,7 +61,7 @@ uses
          constructor op_sym_ofs(op : tasmop;_op1 : tasmsymbol;_op1ofs:longint);
 
          { register allocation }
-         function is_same_reg_move:boolean;override;
+         function is_same_reg_move(regtype: Tregistertype):boolean;override;
 
          { register spilling code }
          function spilling_get_operation_type(opnr: longint): topertype;override;
@@ -214,9 +214,10 @@ implementation
       end;
 
 
-    function taicpu.is_same_reg_move:boolean;
+    function taicpu.is_same_reg_move(regtype: Tregistertype):boolean;
       begin
-        result:=((opcode=A_MOV) or (opcode=A_FMOVS)) and
+        result:=((opcode=A_MOV) and (regtype = R_INTREGISTER)) or
+                ((opcode=A_FMOVS) and (regtype = R_FPUREGISTER)) and
                 (ops=2) and
                 (oper[0]^.typ=top_reg) and
                 (oper[1]^.typ=top_reg) and
@@ -296,7 +297,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.42  2004-02-08 20:15:43  jonas
+  Revision 1.43  2004-02-08 23:10:21  jonas
+    * taicpu.is_same_reg_move() now gets a regtype parameter so it only
+      removes moves of that particular register type. This is necessary so
+      we don't remove the live_start instruction of a register before it
+      has been processed
+
+  Revision 1.42  2004/02/08 20:15:43  jonas
     - removed taicpu.is_reg_move because it's not used anymore
     + support tracking fpu register moves by rgobj for the ppc
 

@@ -495,7 +495,7 @@ interface
           procedure loadreg(opidx:longint;r:tregister);
           procedure loadoper(opidx:longint;o:toper);
           procedure clearop(opidx:longint);
-          function is_same_reg_move:boolean;virtual;abstract;
+          function is_same_reg_move(regtype: Tregistertype):boolean;virtual;abstract;
           { register allocator }
           function spilling_create_load(const ref:treference;r:tregister): tai;virtual;abstract;
           function spilling_create_store(r:tregister; const ref:treference): tai;virtual;abstract;
@@ -1974,7 +1974,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.70  2004-02-08 20:15:42  jonas
+  Revision 1.71  2004-02-08 23:10:21  jonas
+    * taicpu.is_same_reg_move() now gets a regtype parameter so it only
+      removes moves of that particular register type. This is necessary so
+      we don't remove the live_start instruction of a register before it
+      has been processed
+
+  Revision 1.70  2004/02/08 20:15:42  jonas
     - removed taicpu.is_reg_move because it's not used anymore
     + support tracking fpu register moves by rgobj for the ppc
 

@@ -81,7 +81,7 @@ uses
          procedure loadbool(opidx:longint;_b:boolean);
 
 
-         function is_same_reg_move: boolean; override;
+         function is_same_reg_move(regtype: Tregistertype):boolean; override;
 
          { register spilling code }
          function spilling_get_operation_type(opnr: longint): topertype;override;
@@ -356,10 +356,13 @@ uses cutils,rgobj;
 
 { ****************************** newra stuff *************************** }
 
-    function taicpu.is_same_reg_move: boolean;
+    function taicpu.is_same_reg_move(regtype: Tregistertype):boolean;
       begin
         result :=
-          ((opcode=A_MR) or (opcode = A_FMR)) and
+          (((opcode=A_MR) and
+            (regtype = R_INTREGISTER)) or
+           ((opcode = A_FMR) and
+            (regtype = R_FPUREGISTER))) and
           { these opcodes can only have registers as operands }
           (oper[0]^.reg=oper[1]^.reg);
       end;
@@ -405,7 +408,13 @@ uses cutils,rgobj;
 end.
 {
   $Log$
-  Revision 1.24  2004-02-08 20:15:42  jonas
+  Revision 1.25  2004-02-08 23:10:21  jonas
+    * taicpu.is_same_reg_move() now gets a regtype parameter so it only
+      removes moves of that particular register type. This is necessary so
+      we don't remove the live_start instruction of a register before it
+      has been processed
+
+  Revision 1.24  2004/02/08 20:15:42  jonas
     - removed taicpu.is_reg_move because it's not used anymore
     + support tracking fpu register moves by rgobj for the ppc
 

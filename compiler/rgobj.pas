@@ -1626,7 +1626,7 @@ implementation
   
                     { Maybe the operation can be removed when
                       it is a move and both arguments are the same }
-                    if is_same_reg_move then
+                    if is_same_reg_move(regtype) then
                       begin
                         q:=Tai(p.next);
                         list.remove(p);
@@ -2001,7 +2001,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.119  2004-02-08 14:26:28  daniel
+  Revision 1.120  2004-02-08 23:10:21  jonas
+    * taicpu.is_same_reg_move() now gets a regtype parameter so it only
+      removes moves of that particular register type. This is necessary so
+      we don't remove the live_start instruction of a register before it
+      has been processed
+
+  Revision 1.119  2004/02/08 14:26:28  daniel
     * Register allocator speed boost
 
   Revision 1.118  2004/02/07 23:28:34  daniel
