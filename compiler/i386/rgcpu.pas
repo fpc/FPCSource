@@ -24,7 +24,7 @@
 
 unit rgcpu;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
   interface
 
@@ -430,7 +430,13 @@ end.
 
 {
   $Log$
-  Revision 1.6  2002-05-12 16:53:18  peter
+  Revision 1.7  2002-05-16 19:46:52  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
+
+  Revision 1.6  2002/05/12 16:53:18  peter
     * moved entry and exitcode to ncgutil and cgobj
     * foreach gets extra argument for passing local data to the
       iterator function

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2002 by Florian Klaempfl
+    Copyright (c) 1998-2001 by Florian Klaempfl
 
     Does parsing of expression for Free Pascal
 
@@ -22,7 +22,7 @@
 }
 unit pexpr;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 interface
 
@@ -2224,8 +2224,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.66  2002-05-14 19:34:49  peter
-    * removed old logs and updated copyright year
+  Revision 1.67  2002-05-16 19:46:43  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
 
   Revision 1.65  2002/05/12 16:53:09  peter
     * moved entry and exitcode to ncgutil and cgobj
@@ -2302,4 +2305,198 @@ end.
   Revision 1.54  2002/01/06 21:47:32  peter
     * removed getprocvar, use only getprocvardef
 
+  Revision 1.53  2001/12/31 16:59:42  peter
+    * protected/private symbols parsing fixed
+
+  Revision 1.52  2001/12/06 17:57:36  florian
+    + parasym to tparaitem added
+
+  Revision 1.51  2001/11/14 01:12:44  florian
+    * variant paramter passing and functions results fixed
+
+  Revision 1.50  2001/11/02 23:16:51  peter
+    * removed obsolete chainprocsym and test_procsym code
+
+  Revision 1.49  2001/11/02 22:58:05  peter
+    * procsym definition rewrite
+
+  Revision 1.48  2001/10/28 17:22:25  peter
+    * allow assignment of overloaded procedures to procvars when we know
+      which procedure to take
+
+  Revision 1.47  2001/10/24 11:51:39  marco
+   * Make new/dispose system functions instead of keywords
+
+  Revision 1.46  2001/10/21 13:10:51  peter
+    * better support for indexed properties
+
+  Revision 1.45  2001/10/21 12:33:07  peter
+    * array access for properties added
+
+  Revision 1.44  2001/10/20 19:28:39  peter
+    * interface 2 guid support
+    * guid constants support
+
+  Revision 1.43  2001/10/18 16:30:38  jonas
+    * property parameters are now fully parsed by the firstcall code to
+      check for the correct amount and types (merged)
+
+  Revision 1.42  2001/09/02 21:18:28  peter
+    * split constsym.value in valueord,valueordptr,valueptr. The valueordptr
+      is used for holding target platform pointer values. As those can be
+      bigger than the source platform.
+
+  Revision 1.41  2001/08/26 13:36:45  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.40  2001/08/22 21:16:21  florian
+    * some interfaces related problems regarding
+      mapping of interface implementions fixed
+
+  Revision 1.39  2001/08/06 21:40:47  peter
+    * funcret moved from tprocinfo to tprocdef
+
+  Revision 1.38  2001/07/09 21:15:41  peter
+    * Length made internal
+    * Add array support for Length
+
+  Revision 1.37  2001/06/29 14:16:57  jonas
+    * fixed inconsistent handling of procvars in FPC mode (sometimes @ was
+      required to assign the address of a procedure to a procvar, sometimes
+      not. Now it is always required) (merged)
+
+  Revision 1.36  2001/06/04 18:16:42  peter
+    * fixed tp procvar support in parameters of a called procvar
+    * typenode cleanup, no special handling needed anymore for bt_type
+
+  Revision 1.35  2001/06/04 11:45:35  peter
+    * parse const after .. using bt_const block to allow expressions, this
+      is Delphi compatible
+
+  Revision 1.34  2001/05/19 21:15:53  peter
+    * allow typenodes for typeinfo and typeof
+    * tp procvar fixes for properties
+
+  Revision 1.33  2001/05/19 12:23:59  peter
+    * fixed crash with auto dereferencing
+
+  Revision 1.32  2001/05/09 19:52:51  peter
+    * removed unused allow_type
+
+  Revision 1.31  2001/05/04 15:52:03  florian
+    * some Delphi incompatibilities fixed:
+       - out, dispose and new can be used as idenfiers now
+       - const p = apointerype(nil); is supported now
+    + support for const p = apointertype(pointer(1234)); added
+
+  Revision 1.30  2001/04/14 14:07:10  peter
+    * moved more code from pass_1 to det_resulttype
+
+  Revision 1.29  2001/04/13 23:50:24  peter
+    * fpc mode now requires @ also when left of assignment is an procvardef
+
+  Revision 1.28  2001/04/13 01:22:12  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.27  2001/04/04 22:43:52  peter
+    * remove unnecessary calls to firstpass
+
+  Revision 1.26  2001/04/02 21:20:33  peter
+    * resulttype rewrite
+
+  Revision 1.25  2001/03/11 22:58:50  peter
+    * getsym redesign, removed the globals srsym,srsymtable
+
+  Revision 1.24  2000/12/25 00:07:27  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.23  2000/12/19 20:36:03  peter
+    * cardinal const expr fix from jonas
+
+  Revision 1.22  2000/12/17 14:00:18  peter
+    * fixed static variables
+
+  Revision 1.21  2000/12/15 13:26:01  jonas
+    * only return int64's from functions if it int64funcresok is defined
+    + added int64funcresok define to options.pas
+
+  Revision 1.20  2000/12/15 12:13:52  michael
+  + Fix from Peter
+
+  Revision 1.19  2000/12/07 17:19:42  jonas
+    * new constant handling: from now on, hex constants >$7fffffff are
+      parsed as unsigned constants (otherwise, $80000000 got sign extended
+      and became $ffffffff80000000), all constants in the longint range
+      become longints, all constants >$7fffffff and <=cardinal($ffffffff)
+      are cardinals and the rest are int64's.
+    * added lots of longint typecast to prevent range check errors in the
+      compiler and rtl
+    * type casts of symbolic ordinal constants are now preserved
+    * fixed bug where the original resulttype.def wasn't restored correctly
+      after doing a 64bit rangecheck
+
+  Revision 1.18  2000/11/29 00:30:36  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.17  2000/11/09 17:46:55  florian
+    * System.TypeInfo fixed
+    + System.Finalize implemented
+    + some new keywords for interface support added
+
+  Revision 1.16  2000/11/06 20:30:55  peter
+    * more fixes to get make cycle working
+
+  Revision 1.15  2000/11/04 14:25:20  florian
+    + merged Attila's changes for interfaces, not tested yet
+
+  Revision 1.14  2000/10/31 22:02:49  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.13  2000/10/26 23:40:54  peter
+    * fixed crash with call from type decl which is not allowed (merged)
+
+  Revision 1.12  2000/10/21 18:16:12  florian
+    * a lot of changes:
+       - basic dyn. array support
+       - basic C++ support
+       - some work for interfaces done
+       ....
+
+  Revision 1.11  2000/10/14 10:14:51  peter
+    * moehrendorf oct 2000 rewrite
+
+  Revision 1.10  2000/10/01 19:48:25  peter
+    * lot of compile updates for cg11
+
+  Revision 1.9  2000/09/24 21:19:50  peter
+    * delphi compile fixes
+
+  Revision 1.8  2000/09/24 15:06:22  peter
+    * use defines.inc
+
+  Revision 1.7  2000/08/27 16:11:51  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.6  2000/08/20 15:12:49  peter
+    * auto derefence mode for array pointer (merged)
+
+  Revision 1.5  2000/08/16 18:33:53  peter
+    * splitted namedobjectitem.next into indexnext and listnext so it
+      can be used in both lists
+    * don't allow "word = word" type definitions (merged)
+
+  Revision 1.4  2000/08/16 13:06:06  florian
+    + support of 64 bit integer constants
+
+  Revision 1.3  2000/08/04 22:00:52  peter
+    * merges from fixes
+
+  Revision 1.2  2000/07/13 11:32:44  michael
+  + removed logs
 }

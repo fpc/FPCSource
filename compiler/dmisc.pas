@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2002 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Dos unit for BP7 compatible RTL for Delphi
 
@@ -22,7 +22,7 @@
 }
 unit dmisc;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 interface
 
@@ -836,7 +836,25 @@ End;
 end.
 {
   $Log$
-  Revision 1.7  2002-05-14 19:34:41  peter
-    * removed old logs and updated copyright year
+  Revision 1.8  2002-05-16 19:46:36  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
+
+  Revision 1.6  2001/09/02 21:16:25  peter
+    * delphi fixes
+
+  Revision 1.5  2001/06/03 20:21:08  peter
+    * Kylix fixes, mostly case names of units
+
+  Revision 1.4  2000/09/24 21:19:50  peter
+    * delphi compile fixes
+
+  Revision 1.3  2000/09/24 15:06:15  peter
+    * use defines.inc
+
+  Revision 1.2  2000/07/13 11:32:40  michael
+  + removed logs
 
 }

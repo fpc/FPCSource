@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2002 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Type checking and register allocation for nodes that influence
     the flow
@@ -23,7 +23,7 @@
 }
 unit nflw;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 interface
 
@@ -1113,8 +1113,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  2002-05-14 19:34:42  peter
-    * removed old logs and updated copyright year
+  Revision 1.31  2002-05-16 19:46:38  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
 
   Revision 1.29  2002/05/12 16:53:07  peter
     * moved entry and exitcode to ncgutil and cgobj
@@ -1149,5 +1152,100 @@ end.
       R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
     - list field removed of the tnode class because it's not used currently
       and can cause hard-to-find bugs
+
+  Revision 1.27  2001/11/19 14:21:30  jonas
+    * upper constant limits for "for" loops are now also converted to the
+      type of the counter var ('merged')
+
+  Revision 1.26  2001/11/02 22:58:02  peter
+    * procsym definition rewrite
+
+  Revision 1.25  2001/10/16 15:10:35  jonas
+    * fixed goto/label/try bugs
+
+  Revision 1.24  2001/09/02 21:12:07  peter
+    * move class of definitions into type section for delphi
+
+  Revision 1.23  2001/08/30 20:56:38  peter
+    * exit() with exceptions fix
+
+  Revision 1.22  2001/08/26 13:36:40  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.21  2001/08/06 21:40:47  peter
+    * funcret moved from tprocinfo to tprocdef
+
+  Revision 1.20  2001/04/26 21:56:08  peter
+    * moved some code from exitnode.create to det_resulttype
+
+  Revision 1.19  2001/04/21 15:36:29  peter
+    * fixed crash with for counter
+
+  Revision 1.18  2001/04/15 09:48:30  peter
+    * fixed crash in labelnode
+    * easier detection of goto and label in try blocks
+
+  Revision 1.17  2001/04/14 14:07:10  peter
+    * moved more code from pass_1 to det_resulttype
+
+  Revision 1.16  2001/04/13 01:22:09  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.15  2001/04/02 21:20:30  peter
+    * resulttype rewrite
+
+  Revision 1.14  2001/03/25 12:27:59  peter
+    * set funcret to assigned (merged)
+
+  Revision 1.13  2001/02/26 19:44:53  peter
+    * merged generic m68k updates from fixes branch
+
+  Revision 1.12  2000/12/31 11:14:10  jonas
+    + implemented/fixed docompare() mathods for all nodes (not tested)
+    + nopt.pas, nadd.pas, i386/n386opt.pas: optimized nodes for adding strings
+      and constant strings/chars together
+    * n386add.pas: don't copy temp strings (of size 256) to another temp string
+      when adding
+
+  Revision 1.11  2000/11/29 00:30:33  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.10  2000/11/04 14:25:20  florian
+    + merged Attila's changes for interfaces, not tested yet
+
+  Revision 1.9  2000/10/31 22:02:48  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.8  2000/10/21 18:16:11  florian
+    * a lot of changes:
+       - basic dyn. array support
+       - basic C++ support
+       - some work for interfaces done
+       ....
+
+  Revision 1.7  2000/10/14 21:52:55  peter
+    * fixed memory leaks
+
+  Revision 1.6  2000/10/14 10:14:50  peter
+    * moehrendorf oct 2000 rewrite
+
+  Revision 1.5  2000/10/01 19:48:24  peter
+    * lot of compile updates for cg11
+
+  Revision 1.4  2000/09/28 19:49:52  florian
+  *** empty log message ***
+
+  Revision 1.3  2000/09/24 21:15:34  florian
+    * some errors fix to get more stuff compilable
+
+  Revision 1.2  2000/09/24 15:06:19  peter
+    * use defines.inc
+
+  Revision 1.1  2000/09/22 22:46:03  florian
+    + initial revision
 
 }

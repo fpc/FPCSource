@@ -22,7 +22,7 @@
 }
 unit ncon;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 interface
 
@@ -721,8 +721,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  2002-05-14 19:34:42  peter
-    * removed old logs and updated copyright year
+  Revision 1.31  2002-05-16 19:46:37  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
 
   Revision 1.29  2002/05/12 16:53:07  peter
     * moved entry and exitcode to ncgutil and cgobj
@@ -761,5 +764,98 @@ end.
 
   Revision 1.25  2002/03/04 19:10:11  peter
     * removed compiler warnings
+
+  Revision 1.24  2001/10/20 19:28:38  peter
+    * interface 2 guid support
+    * guid constants support
+
+  Revision 1.23  2001/09/17 21:29:12  peter
+    * merged netbsd, fpu-overflow from fixes branch
+
+  Revision 1.22  2001/09/02 21:12:06  peter
+    * move class of definitions into type section for delphi
+
+  Revision 1.21  2001/08/26 13:36:40  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.20  2001/08/06 10:18:39  jonas
+    * restype wasn't copied for some constant nodetypes in getcopy
+
+  Revision 1.19  2001/07/08 21:00:15  peter
+    * various widestring updates, it works now mostly without charset
+      mapping supported
+
+  Revision 1.18  2001/05/08 21:06:30  florian
+    * some more support for widechars commited especially
+      regarding type casting and constants
+
+  Revision 1.17  2001/04/13 01:22:09  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.16  2001/04/02 21:20:30  peter
+    * resulttype rewrite
+
+  Revision 1.15  2000/12/31 11:14:10  jonas
+    + implemented/fixed docompare() mathods for all nodes (not tested)
+    + nopt.pas, nadd.pas, i386/n386opt.pas: optimized nodes for adding strings
+      and constant strings/chars together
+    * n386add.pas: don't copy temp strings (of size 256) to another temp string
+      when adding
+
+  Revision 1.14  2000/12/16 15:58:48  jonas
+    * genintconstnode now returns cardinals instead of int64 constants if possible
+
+  Revision 1.13  2000/12/15 13:26:01  jonas
+    * only return int64's from functions if it int64funcresok is defined
+    + added int64funcresok define to options.pas
+
+  Revision 1.12  2000/12/07 17:19:42  jonas
+    * new constant handling: from now on, hex constants >$7fffffff are
+      parsed as unsigned constants (otherwise, $80000000 got sign extended
+      and became $ffffffff80000000), all constants in the longint range
+      become longints, all constants >$7fffffff and <=cardinal($ffffffff)
+      are cardinals and the rest are int64's.
+    * added lots of longint typecast to prevent range check errors in the
+      compiler and rtl
+    * type casts of symbolic ordinal constants are now preserved
+    * fixed bug where the original resulttype.def wasn't restored correctly
+      after doing a 64bit rangecheck
+
+  Revision 1.11  2000/11/29 00:30:32  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.10  2000/10/31 22:02:48  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.9  2000/10/14 21:52:55  peter
+    * fixed memory leaks
+
+  Revision 1.8  2000/10/14 10:14:50  peter
+    * moehrendorf oct 2000 rewrite
+
+  Revision 1.7  2000/09/28 19:49:52  florian
+  *** empty log message ***
+
+  Revision 1.6  2000/09/27 20:25:44  florian
+    * more stuff fixed
+
+  Revision 1.5  2000/09/27 18:14:31  florian
+    * fixed a lot of syntax errors in the n*.pas stuff
+
+  Revision 1.4  2000/09/26 14:59:34  florian
+    * more conversion work done
+
+  Revision 1.3  2000/09/24 21:15:34  florian
+    * some errors fix to get more stuff compilable
+
+  Revision 1.2  2000/09/24 15:06:19  peter
+    * use defines.inc
+
+  Revision 1.1  2000/09/22 21:44:48  florian
+    + initial revision
 
 }

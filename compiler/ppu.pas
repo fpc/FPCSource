@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2002 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Routines to read/write ppu files
 
@@ -22,7 +22,7 @@
 }
 unit ppu;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 interface
 
@@ -981,8 +981,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.18  2002-05-14 19:34:49  peter
-    * removed old logs and updated copyright year
+  Revision 1.19  2002-05-16 19:46:44  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
 
   Revision 1.17  2002/04/04 19:06:03  peter
     * removed unused units
@@ -1007,5 +1010,58 @@ end.
 
   Revision 1.15  2002/03/28 16:07:52  armin
   + initialize threadvars defined local in units
+
+  Revision 1.14  2001/12/06 17:57:37  florian
+    + parasym to tparaitem added
+
+  Revision 1.13  2001/09/22 04:51:58  carl
+  * updated record size
+
+  Revision 1.12  2001/08/30 20:13:53  peter
+    * rtti/init table updates
+    * rttisym for reusable global rtti/init info
+    * support published for interfaces
+
+  Revision 1.11  2001/06/27 21:37:36  peter
+    * v10 merges
+
+  Revision 1.10  2001/06/18 20:36:25  peter
+    * -Ur switch (merged)
+    * masm fixes (merged)
+    * quoted filenames for go32v2 and win32
+
+  Revision 1.9  2001/05/18 22:28:59  peter
+    * endian define
+
+  Revision 1.8  2001/05/06 14:49:17  peter
+    * ppu object to class rewrite
+    * move ppu read and write stuff to fppu
+
+  Revision 1.7  2001/03/22 00:10:58  florian
+    + basic variant type support in the compiler
+
+  Revision 1.6  2000/12/07 17:19:43  jonas
+    * new constant handling: from now on, hex constants >$7fffffff are
+      parsed as unsigned constants (otherwise, $80000000 got sign extended
+      and became $ffffffff80000000), all constants in the longint range
+      become longints, all constants >$7fffffff and <=cardinal($ffffffff)
+      are cardinals and the rest are int64's.
+    * added lots of longint typecast to prevent range check errors in the
+      compiler and rtl
+    * type casts of symbolic ordinal constants are now preserved
+    * fixed bug where the original resulttype wasn't restored correctly
+      after doing a 64bit rangecheck
+
+  Revision 1.5  2000/10/31 22:02:50  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.4  2000/09/24 15:06:24  peter
+    * use defines.inc
+
+  Revision 1.3  2000/08/13 13:04:38  peter
+    * new ppu version
+
+  Revision 1.2  2000/07/13 11:32:45  michael
+  + removed logs
 
 }

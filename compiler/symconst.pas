@@ -21,7 +21,7 @@
 }
 unit symconst;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 interface
 
@@ -83,6 +83,10 @@ const
   pfReference= 16;
   pfOut      = 32;
 
+  {# These are the different possible base values that can
+     be taken from the lexlevel variable when parsing. The 
+     lexlevel can be bigger if parsding recursive routines.
+  }
   main_program_level = 1;
   unit_init_level = 1;
   normal_function_level = 2;
@@ -330,7 +334,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.30  2002-05-14 19:34:50  peter
+  Revision 1.31  2002-05-16 19:46:44  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
+
+  Revision 1.30  2002/05/14 19:34:50  peter
     * removed old logs and updated copyright year
 
   Revision 1.29  2002/05/12 16:53:10  peter

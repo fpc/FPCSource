@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2002 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Generate i386 assembler for in set/case nodes
 
@@ -22,7 +22,7 @@
 }
 unit n386set;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 interface
 
@@ -1016,8 +1016,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  2002-05-14 19:35:00  peter
-    * removed old logs and updated copyright year
+  Revision 1.30  2002-05-16 19:46:52  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
 
   Revision 1.28  2002/05/13 19:54:38  peter
     * removed n386ld and n386util units
@@ -1093,5 +1096,94 @@ end.
       R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
     - list field removed of the tnode class because it's not used currently
       and can cause hard-to-find bugs
+
+  Revision 1.19  2001/12/31 09:53:15  jonas
+    * changed remaining "getregister32" calls to "getregisterint"
+
+  Revision 1.18  2001/12/03 21:48:43  peter
+    * freemem change to value parameter
+    * torddef low/high range changed to int64
+
+  Revision 1.17  2001/09/04 11:38:55  jonas
+    + searchsystype() and searchsystype() functions in symtable
+    * changed ninl and nadd to use these functions
+    * i386 set comparison functions now return their results in al instead
+      of in the flags so that they can be sued as compilerprocs
+    - removed all processor specific code from n386add.pas that has to do
+      with set handling, it's now all done in nadd.pas
+    * fixed fpc_set_contains_sets in genset.inc
+    * fpc_set_in_byte is now coded inline in n386set.pas and doesn't use a
+      helper anymore
+    * some small fixes in compproc.inc/set.inc regarding the declaration of
+      internal helper types (fpc_small_set and fpc_normal_set)
+
+  Revision 1.16  2001/08/26 13:37:00  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.15  2001/05/06 17:12:14  jonas
+    * fixed an IE10 and another bug with [var1..var2] construct
+
+  Revision 1.14  2001/04/13 01:22:19  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.13  2001/04/06 14:09:34  jonas
+    * fixed bug in ti386innode.pass_2 code and made it simpler/faster
+
+  Revision 1.12  2001/04/02 21:20:38  peter
+    * resulttype rewrite
+
+  Revision 1.11  2001/02/11 12:14:56  jonas
+    * simplified and optimized code generated for in-statements
+
+  Revision 1.10  2000/12/25 00:07:33  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.9  2000/12/18 17:45:32  jonas
+    * int64 case fixes
+    * explicit longint type casts for constants used in assembler code
+      generation s,ice they can be cardinals too (or even int64's in case of
+      range check errors)
+
+  Revision 1.8  2000/12/16 15:58:18  jonas
+    * removed warnings about possible range check errors
+
+  Revision 1.7  2000/12/05 11:44:34  jonas
+    + new integer regvar handling, should be much more efficient
+
+  Revision 1.6  2000/11/29 00:30:49  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.5  2000/11/17 14:09:00  jonas
+    * fixed webbug 1222 ("merged")
+
+  Revision 1.4  2000/11/13 14:44:36  jonas
+    * fixes so no more range errors with improved range checking code
+
+  Revision 1.3  2000/10/31 22:02:57  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.2  2000/10/26 15:53:27  jonas
+    * fixed web bug1192 (changed an ungetregister32 to ungetregister)
+      ("merged" from fixes)
+
+  Revision 1.1  2000/10/15 09:33:32  peter
+    * moved n386*.pas to i386/ cpu_target dir
+
+  Revision 1.4  2000/10/14 10:14:49  peter
+    * moehrendorf oct 2000 rewrite
+
+  Revision 1.3  2000/09/30 16:08:45  peter
+    * more cg11 updates
+
+  Revision 1.2  2000/09/24 20:17:44  florian
+    * more conversion work done
+
+  Revision 1.1  2000/09/24 19:38:39  florian
+    * initial implementation
 
 }

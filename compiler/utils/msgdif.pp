@@ -1,7 +1,7 @@
 {
     $Id$
     This program is part of the Free Pascal run time library.
-    Copyright (c) 1998-2002 by Peter Vreman
+    Copyright (c) 1998-2000 by Peter Vreman
 
     Show the differences between two .msg files
 
@@ -511,7 +511,22 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2002-05-14 19:35:02  peter
-    * removed old logs and updated copyright year
+  Revision 1.7  2002-05-16 19:46:53  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
+
+  Revision 1.5  2001/03/10 12:58:08  peter
+    * test arguments patch from Sergey applied.
+
+  Revision 1.4  2001/03/05 21:44:16  peter
+    * small diffs from Sergey applied
+
+  Revision 1.3  2001/02/09 23:04:56  peter
+    * updated for new message file by Sergey Korshunoff
+
+  Revision 1.2  2000/07/13 11:32:55  michael
+  + removed logs
 
 }

@@ -1,7 +1,7 @@
 {
     $Id$
-    Copyright (c) 1998-2002 by Berczi Gabor
-    Modifications Copyright (c) 1999-2002 Florian Klaempfl and Pierre Muller
+    Copyright (c) 1998-2000 by Berczi Gabor
+    Modifications Copyright (c) 1999-2000 Florian Klaempfl and Pierre Muller
 
     Support routines for getting browser info in collections
 
@@ -2125,7 +2125,127 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  2002-05-14 19:34:40  peter
-    * removed old logs and updated copyright year
+  Revision 1.24  2002-05-16 19:46:35  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
+
+  Revision 1.22  2001/11/02 22:58:00  peter
+    * procsym definition rewrite
+
+  Revision 1.21  2001/09/04 11:53:48  jonas
+    * fixed compiling errors
+
+  Revision 1.20  2001/08/07 17:08:49  peter
+    * fixed rettype->returntype renaming
+
+  Revision 1.19  2001/08/04 11:06:29  peter
+    * browcol has no depends on ide/fv
+
+  Revision 1.18  2001/08/04 10:23:54  peter
+    * updates so it works with the ide
+
+  Revision 1.1.2.6  2001/03/22 17:30:11  pierre
+   * fix an error introduced in last change
+
+  Revision 1.1.2.5  2001/03/17 23:13:01  pierre
+   * fix several memory leaks
+
+  Revision 1.1.2.4  2001/03/16 17:48:19  pierre
+   * try to remove memory leaks
+
+  Revision 1.1.2.3  2000/11/06 16:56:46  pierre
+   * fix source file list
+
+  Revision 1.1.2.2  2000/08/18 13:18:52  pierre
+   * restore next instead of indexnext field for dc local var in GetAbsProcParmDefStr
+
+  Revision 1.1.2.1  2000/08/16 18:25:59  peter
+    * splitted namedobjectitem.next into indexnext and listnext so it
+      can be used in both lists
+    * don't allow "word = word" type definitions
+
+  Revision 1.1  2000/07/13 06:29:44  michael
+  + Initial import
+
+  Revision 1.43  2000/07/05 21:20:48  pierre
+   + Register TModuleSymbol
+
+  Revision 1.42  2000/07/05 10:17:38  pierre
+   * avoid internalerror on open arrays
+
+  Revision 1.41  2000/06/19 19:56:43  pierre
+   * small error fix
+
+  Revision 1.40  2000/06/16 06:08:44  pierre
+   *Gabor's changes
+
+  Revision 1.39  2000/05/29 10:04:40  pierre
+    * New bunch of Gabor changes
+
+  Revision 1.38  2000/04/20 08:52:01  pierre
+   * allow to view objects having the same name
+
+  Revision 1.37  2000/03/14 15:04:19  pierre
+   * DebuggerValue moved to fpsymbol unit
+
+  Revision 1.36  2000/03/13 20:28:12  pierre
+   * X was not found in TSortedSymbolCollection.LookUp
+
+  Revision 1.35  2000/03/08 12:25:29  pierre
+   * more fixes for TSymbol
+
+  Revision 1.34  2000/03/07 21:55:59  pierre
+    * Tsymbol and Ancestor fixes
+
+  Revision 1.33  2000/02/09 13:22:45  peter
+    * log truncated
+
+  Revision 1.32  2000/01/20 00:24:06  pierre
+   * StoreBrowserCol changed to boolean function
+
+  Revision 1.31  2000/01/07 01:14:19  peter
+    * updated copyright to 2000
+
+  Revision 1.30  1999/12/01 11:11:19  pierre
+   * don't redefine sw_integer for FPC : corrected version
+
+  Revision 1.29  1999/12/01 11:05:47  pierre
+   * don't redefine sw_integer for FPC
+
+  Revision 1.28  1999/11/30 10:40:42  peter
+    + ttype, tsymlist
+
+  Revision 1.27  1999/11/10 00:42:42  pierre
+    * LookUp function now returns the complete name in browcol
+      and fpsymbol only yakes a part of LoopUpStr
+
+  Revision 1.26  1999/11/06 14:34:17  peter
+    * truncated log to 20 revs
+
+  Revision 1.25  1999/10/26 12:30:40  peter
+    * const parameter is now checked
+    * better and generic check if a node can be used for assigning
+    * export fixes
+    * procvar equal works now (it never had worked at least from 0.99.8)
+    * defcoll changed to linkedlist with tparaitem so it can easily be
+      walked both directions
+
+  Revision 1.24  1999/09/16 07:54:48  pierre
+   * BuildSourceList allways called for dependency in FP
+
+  Revision 1.23  1999/09/07 15:07:49  pierre
+   * avoid some infinite recursions
+
+  Revision 1.22  1999/08/16 18:25:49  peter
+    * fixes from gabor
+
+  Revision 1.21  1999/08/09 14:09:04  peter
+    * updated for symtable updates
+
+  Revision 1.20  1999/08/03 22:02:29  peter
+    * moved bitmask constants to sets
+    * some other type/const renamings
 
 }

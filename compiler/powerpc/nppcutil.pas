@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2002 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Helper routines for the PowerPC code generator
 
@@ -22,7 +22,7 @@
 }
 unit nppcutil;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 interface
 
@@ -66,10 +66,17 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2002-05-14 19:35:01  peter
-    * removed old logs and updated copyright year
+  Revision 1.4  2002-05-16 19:46:53  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
 
   Revision 1.2  2002/04/06 18:13:02  jonas
     * several powerpc-related additions and fixes
+
+  Revision 1.1  2001/09/29 21:33:12  jonas
+    + implemented bool_to_int and int_to_int (+ helper in nppcutil)
+
 
 }

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (C) 1998-2002 by Florian Klaempfl
+    Copyright (C) 1998-2000 by Florian Klaempfl
 
     This unit provides some help routines for type handling
 
@@ -22,7 +22,7 @@
 }
 unit types;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 interface
 
@@ -1970,8 +1970,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.71  2002-05-14 19:34:52  peter
-    * removed old logs and updated copyright year
+  Revision 1.72  2002-05-16 19:46:47  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
 
   Revision 1.70  2002/05/12 16:53:16  peter
     * moved entry and exitcode to ncgutil and cgobj
@@ -2043,4 +2046,217 @@ end.
     * removed uauto from orddef, use new range_to_basetype generating
       the correct ordinal type for a range
 
+  Revision 1.60  2001/12/17 12:49:08  jonas
+    * added type conversion from procvar to procvar (if their arguments are
+      convertable, two procvars are convertable too) ("merged")
+
+  Revision 1.59  2001/12/10 14:34:04  jonas
+    * fixed type conversions from dynamic arrays to open arrays
+
+  Revision 1.58  2001/12/03 21:48:43  peter
+    * freemem change to value parameter
+    * torddef low/high range changed to int64
+
+  Revision 1.57  2001/11/14 01:12:45  florian
+    * variant paramter passing and functions results fixed
+
+  Revision 1.56  2001/11/02 23:24:12  jonas
+    * fixed web bug 1665 (allow char to chararray type conversion) ("merged")
+
+  Revision 1.55  2001/11/02 22:58:09  peter
+    * procsym definition rewrite
+
+  Revision 1.54  2001/10/28 17:22:25  peter
+    * allow assignment of overloaded procedures to procvars when we know
+      which procedure to take
+
+  Revision 1.52  2001/10/22 21:21:09  peter
+    * allow enum(enum)
+
+  Revision 1.51  2001/10/22 15:13:49  jonas
+    * allow typeconversion of open array-of-char to string
+
+  Revision 1.50  2001/10/20 19:28:39  peter
+    * interface 2 guid support
+    * guid constants support
+
+  Revision 1.49  2001/10/17 22:41:05  florian
+    * several widechar fixes, case works now
+
+  Revision 1.48  2001/10/16 17:15:44  jonas
+    * auto-converting from int64 to real is again allowed for all modes
+      (it's allowed in Delphi too)
+
+  Revision 1.47  2001/09/03 13:27:41  jonas
+    * compilerproc implementation of set addition/substraction/...
+    * changed the declaration of some set helpers somewhat to accomodate the
+      above change
+    * i386 still uses the old code for comparisons of sets, because its
+      helpers return the results in the flags
+    * dummy tc_normal_2_small_set type conversion because I need the original
+      resulttype of the set add nodes
+    NOTE: you have to start a cycle with 1.0.5!
+
+  Revision 1.46  2001/09/02 21:15:34  peter
+    * don't allow int64->real for delphi mode
+
+  Revision 1.45  2001/08/19 21:11:21  florian
+    * some bugs fix:
+      - overload; with external procedures fixed
+      - better selection of routine to do an overloaded
+        type case
+      - ... some more
+
+  Revision 1.44  2001/07/08 21:00:16  peter
+    * various widestring updates, it works now mostly without charset
+      mapping supported
+
+  Revision 1.43  2001/06/29 14:16:57  jonas
+    * fixed inconsistent handling of procvars in FPC mode (sometimes @ was
+      required to assign the address of a procedure to a procvar, sometimes
+      not. Now it is always required) (merged)
+
+  Revision 1.42  2001/05/08 21:06:33  florian
+    * some more support for widechars commited especially
+      regarding type casting and constants
+
+  Revision 1.41  2001/04/22 22:46:49  florian
+    * more variant support
+
+  Revision 1.40  2001/04/18 22:02:00  peter
+    * registration of targets and assemblers
+
+  Revision 1.39  2001/04/13 01:22:17  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.38  2001/04/04 21:30:47  florian
+    * applied several fixes to get the DD8 Delphi Unit compiled
+     e.g. "forward"-interfaces are working now
+
+  Revision 1.37  2001/04/02 21:20:35  peter
+    * resulttype rewrite
+
+  Revision 1.36  2001/03/23 00:16:07  florian
+    + some stuff to compile FreeCLX added
+
+  Revision 1.35  2001/03/03 12:38:33  jonas
+    + support for arraydefs in is_signed (for their rangetype, used in rangechecks)
+
+  Revision 1.34  2001/02/26 19:44:55  peter
+    * merged generic m68k updates from fixes branch
+
+  Revision 1.33  2001/02/26 12:47:46  jonas
+    * fixed bug in type checking for compatibility of set elements (merged)
+    * released fix in options.pas from Carl also for FPC (merged)
+
+  Revision 1.32  2001/02/20 21:44:25  peter
+    * tvarrec -> array of const fixed
+
+  Revision 1.31  2001/01/22 11:20:15  jonas
+    * fixed web bug 1363 (merged)
+
+  Revision 1.30  2001/01/08 21:43:38  peter
+    * string isn't compatible with array of char
+
+  Revision 1.29  2000/12/25 00:07:30  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.28  2000/12/22 22:38:12  peter
+    * fixed bug #1286
+
+  Revision 1.27  2000/12/20 15:59:40  jonas
+    - removed obsolete special case for range checking of cardinal constants
+      at compile time
+
+  Revision 1.26  2000/12/11 19:13:54  jonas
+    * fixed range checking of cardinal constants
+    * fixed range checking of "qword constants" (they don't really exist,
+      but values > high(int64) were set to zero if assigned to qword)
+
+  Revision 1.25  2000/12/08 14:06:11  jonas
+    * fix for web bug 1245: arrays of char with size >255 are now passed to
+      overloaded procedures which expect ansistrings instead of shortstrings
+      if possible
+    * pointer to array of chars (when using $t+) are now also considered
+      pchars
+
+  Revision 1.24  2000/11/20 15:52:47  jonas
+    * testrange now always cuts a constant to the size of the destination
+      if a rangeerror occurred
+    * changed an "and $ffffffff" to "and (int64($fffffff) shl 4 + $f" to
+      work around the constant evaluation problem we currently have
+
+  Revision 1.23  2000/11/13 14:42:41  jonas
+    * fix in testrange so that 64bit constants are properly truncated when
+      assigned to 32bit vars
+
+  Revision 1.22  2000/11/13 11:30:55  florian
+    * some bugs with interfaces and NIL fixed
+
+  Revision 1.21  2000/11/12 23:24:12  florian
+    * interfaces are basically running
+
+  Revision 1.20  2000/11/11 16:13:31  peter
+    * farpointer and normal pointer aren't compatible
+
+  Revision 1.19  2000/11/06 22:30:30  peter
+    * more fixes
+
+  Revision 1.18  2000/11/04 14:25:22  florian
+    + merged Attila's changes for interfaces, not tested yet
+
+  Revision 1.17  2000/10/31 22:30:13  peter
+    * merged asm result patch part 2
+
+  Revision 1.16  2000/10/31 22:02:55  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.15  2000/10/21 18:16:12  florian
+    * a lot of changes:
+       - basic dyn. array support
+       - basic C++ support
+       - some work for interfaces done
+       ....
+
+  Revision 1.14  2000/10/14 10:14:56  peter
+    * moehrendorf oct 2000 rewrite
+
+  Revision 1.13  2000/10/01 19:48:26  peter
+    * lot of compile updates for cg11
+
+  Revision 1.12  2000/09/30 16:08:46  peter
+    * more cg11 updates
+
+  Revision 1.11  2000/09/24 15:06:32  peter
+    * use defines.inc
+
+  Revision 1.10  2000/09/18 12:31:15  jonas
+    * fixed bug in push_addr_param for arrays (merged from fixes branch)
+
+  Revision 1.9  2000/09/10 20:16:21  peter
+    * array of const isn't equal with array of <type> (merged)
+
+  Revision 1.8  2000/08/19 19:51:03  peter
+    * fixed bug with comparing constsym strings
+
+  Revision 1.7  2000/08/16 13:06:07  florian
+    + support of 64 bit integer constants
+
+  Revision 1.6  2000/08/13 13:07:18  peter
+    * equal_paras now also checks default parameter value
+
+  Revision 1.5  2000/08/12 06:49:22  florian
+    + case statement for int64/qword implemented
+
+  Revision 1.4  2000/08/08 19:26:41  peter
+    * equal_constsym() needed for default para
+
+  Revision 1.3  2000/07/13 12:08:28  michael
+  + patched to 1.1.0 with former 1.09patch from peter
+
+  Revision 1.2  2000/07/13 11:32:53  michael
+  + removed logs
 }

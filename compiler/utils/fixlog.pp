@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2002 by Peter Vreman
+    Copyright (c) 1998-2000 by Peter Vreman
 
     Remove all revision logs from source files after X revisions or
     older than date X
@@ -154,7 +154,7 @@ var
   dir : tsearchrec;
   i   : integer;
 begin
-  writeln('fixlog v1.00 (C) 1999-2002 Peter Vreman');
+  writeln('fixlog v1.00 (C) 1999-2000 Peter Vreman');
   if paramcount<3 then
    begin
      writeln('usage: fixlog <revisions> <yyyy-mm-dd> <files> [files]');
@@ -173,7 +173,28 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2002-05-14 19:35:01  peter
-    * removed old logs and updated copyright year
+  Revision 1.5  2002-05-16 19:46:53  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
+
+  Revision 1.3  2001/03/05 21:44:16  peter
+    * small diffs from Sergey applied
+
+  Revision 1.1  2000/07/13 06:30:14  michael
+  + Initial import
+
+  Revision 1.4  2000/02/09 13:08:27  peter
+    * usage shows yyyy-mm-dd
+
+  Revision 1.3  2000/01/08 13:52:02  peter
+    * max date added
+
+  Revision 1.2  2000/01/07 01:15:00  peter
+    * updated copyright to 2000
+
+  Revision 1.1  1999/10/06 06:29:03  peter
+    * new tool
 
 }

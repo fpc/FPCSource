@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2002 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Helper routines for all code generators
 
@@ -22,7 +22,7 @@
 }
 unit ncgutil;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 interface
 
@@ -1607,8 +1607,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  2002-05-14 19:34:42  peter
-    * removed old logs and updated copyright year
+  Revision 1.15  2002-05-16 19:46:37  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
 
   Revision 1.13  2002/05/13 19:54:37  peter
     * removed n386ld and n386util units
@@ -1691,4 +1694,11 @@ end.
   Revision 1.2  2002/03/04 19:10:11  peter
     * removed compiler warnings
 
+  Revision 1.1  2001/12/30 17:24:48  jonas
+    * range checking is now processor independent (part in cgobj,
+      part in cg64f32) and should work correctly again (it needed
+      some changes after the changes of the low and high of
+      tordef's to int64)
+    * maketojumpbool() is now processor independent (in ncgutil)
+    * getregister32 is now called getregisterint
 }

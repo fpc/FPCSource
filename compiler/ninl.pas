@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2002 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Type checking and register allocation for inline nodes
 
@@ -22,7 +22,7 @@
 }
 unit ninl;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 interface
 
@@ -2267,8 +2267,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.74  2002-05-14 19:34:42  peter
-    * removed old logs and updated copyright year
+  Revision 1.75  2002-05-16 19:46:38  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
 
   Revision 1.73  2002/05/12 16:53:07  peter
     * moved entry and exitcode to ncgutil and cgobj
@@ -2326,5 +2329,269 @@ end.
 
   Revision 1.68  2002/01/19 11:53:56  peter
     * constant evaluation for assinged added
+
+  Revision 1.67  2001/12/28 14:09:21  jonas
+    * fixed web bug 1735 (argument of inc/dec must be made unique) ("merged")
+
+  Revision 1.66  2001/12/10 14:26:22  jonas
+    - removed unnecessary resulttypepass call
+
+  Revision 1.65  2001/12/04 15:59:03  jonas
+    * converted lo/hi to processor independent code, generated code is the
+      same as before (when turning on the optimizer)
+
+  Revision 1.64  2001/12/03 14:21:34  jonas
+    * fixed web bug 1693 (dynarray support for length)
+
+  Revision 1.63  2001/10/24 16:17:36  jonas
+    * fixed web bug 1621 (write(typed_file,function_call) works again)
+    * allow write(typed_file,procvar_call) too (it was already allowed for
+      text file writes)
+
+  Revision 1.62  2001/09/30 16:16:28  jonas
+    - removed unused units form uses-clause and unused local vars
+
+  Revision 1.61  2001/09/24 16:09:55  jonas
+    * check if amount of dimensions passed to setlength for dynamic arrays
+      is correct
+
+  Revision 1.60  2001/09/24 11:35:55  jonas
+    * fix from Pavel V. Ozersk to accept multiple dimensions for setlength
+      and dynamical arrays
+
+  Revision 1.59  2001/09/17 21:29:12  peter
+    * merged netbsd, fpu-overflow from fixes branch
+
+  Revision 1.58  2001/09/05 15:19:43  jonas
+    * the result of high/low nodes wasn't always resulttypepassed
+
+  Revision 1.57  2001/09/04 14:32:45  jonas
+    * simplified det_resulttype code for include/exclude
+    * include/exclude doesn't use any helpers anymore in the i386 secondpass
+
+  Revision 1.56  2001/09/04 11:38:55  jonas
+    + searchsystype() and searchsystype() functions in symtable
+    * changed ninl and nadd to use these functions
+    * i386 set comparison functions now return their results in al instead
+      of in the flags so that they can be sued as compilerprocs
+    - removed all processor specific code from n386add.pas that has to do
+      with set handling, it's now all done in nadd.pas
+    * fixed fpc_set_contains_sets in genset.inc
+    * fpc_set_in_byte is now coded inline in n386set.pas and doesn't use a
+      helper anymore
+    * some small fixes in compproc.inc/set.inc regarding the declaration of
+      internal helper types (fpc_small_set and fpc_normal_set)
+
+  Revision 1.55  2001/09/02 21:12:07  peter
+    * move class of definitions into type section for delphi
+
+  Revision 1.54  2001/08/28 13:24:46  jonas
+    + compilerproc implementation of most string-related type conversions
+    - removed all code from the compiler which has been replaced by
+      compilerproc implementations (using $ifdef hascompilerproc is not
+      necessary in the compiler)
+
+  Revision 1.53  2001/08/27 11:04:41  jonas
+    * avoid nonsense range error when using cardinal with value
+      > high(longint) as code para with val()
+
+  Revision 1.52  2001/08/26 13:36:40  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.51  2001/08/24 13:47:27  jonas
+    * moved "reverseparameters" from ninl.pas to ncal.pas
+    + support for non-persistent temps in ttempcreatenode.create, for use
+      with typeconversion nodes
+
+  Revision 1.50  2001/08/24 12:33:54  jonas
+    * fixed big bug in handle_str that caused it to (almost) always call
+      fpc_<stringtype>_longint
+    * fixed small bug in handle_read_write that caused wrong warnigns about
+      uninitialized vars with read(ln)
+    + handle_val (processor independent val() handling)
+
+  Revision 1.49  2001/08/23 14:28:35  jonas
+    + tempcreate/ref/delete nodes (allows the use of temps in the
+      resulttype and first pass)
+    * made handling of read(ln)/write(ln) processor independent
+    * moved processor independent handling for str and reset/rewrite-typed
+      from firstpass to resulttype pass
+    * changed names of helpers in text.inc to be generic for use as
+      compilerprocs + added "iocheck" directive for most of them
+    * reading of ordinals is done by procedures instead of functions
+      because otherwise FPC_IOCHECK overwrote the result before it could
+      be stored elsewhere (range checking still works)
+    * compilerprocs can now be used in the system unit before they are
+      implemented
+    * added note to errore.msg that booleans can't be read using read/readln
+
+  Revision 1.48  2001/08/13 15:39:52  jonas
+    * made in_reset_typedfile/in_rewrite_typedfile handling processor
+      independent
+
+  Revision 1.47  2001/08/13 12:41:57  jonas
+    * made code for str(x,y) completely processor independent
+
+  Revision 1.46  2001/08/06 12:47:31  jonas
+    * parameters to FPC_TYPED_WRITE can't be regvars (merged)
+
+  Revision 1.45  2001/08/06 09:44:10  jonas
+    + support for high(dynarray) using compilerproc (forgot to commit
+      previously)
+
+  Revision 1.44  2001/07/09 21:15:40  peter
+    * Length made internal
+    * Add array support for Length
+
+  Revision 1.43  2001/07/08 21:00:15  peter
+    * various widestring updates, it works now mostly without charset
+      mapping supported
+
+  Revision 1.42  2001/06/04 11:48:01  peter
+    * better const to var checking
+
+  Revision 1.41  2001/06/03 20:12:53  peter
+    * changed int64($ffffffff) that is buggy under 1.0.x to expression
+      with a shl
+
+  Revision 1.40  2001/05/06 17:16:43  jonas
+    + added warning about missing implementation for high(dynamic_array)
+
+  Revision 1.39  2001/04/26 21:57:05  peter
+    * moved code from firstpass to det_resulttype and remove extraneous
+      calls to firstcallparan for in_str,in_write,in_val
+
+  Revision 1.38  2001/04/21 12:03:11  peter
+    * m68k updates merged from fixes branch
+
+  Revision 1.37  2001/04/13 22:22:30  peter
+    * call set_varstate for setlength
+    * ptr returns pointerconstnode instead of ordconstnode
+
+  Revision 1.36  2001/04/13 01:22:09  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.35  2001/04/05 21:02:13  peter
+    * fixed fpu inline functions typeconvs
+
+  Revision 1.34  2001/04/04 22:42:40  peter
+    * move constant folding into det_resulttype
+
+  Revision 1.33  2001/04/04 21:30:43  florian
+    * applied several fixes to get the DD8 Delphi Unit compiled
+     e.g. "forward"-interfaces are working now
+
+  Revision 1.32  2001/04/02 21:20:31  peter
+    * resulttype rewrite
+
+  Revision 1.31  2001/03/23 00:16:07  florian
+    + some stuff to compile FreeCLX added
+
+  Revision 1.30  2001/03/12 12:47:46  michael
+  + Patches from peter
+
+  Revision 1.29  2001/03/03 12:38:08  jonas
+    * fixed low() for signed types < 64bit
+
+  Revision 1.28  2001/02/26 19:44:53  peter
+    * merged generic m68k updates from fixes branch
+
+  Revision 1.27  2001/02/22 11:24:40  jonas
+    * fixed bug in previous fix (hopped over revision 1.26 because that one
+      also removed the fix for high(cardinal))
+
+  Revision 1.26  2001/02/21 20:50:59  peter
+    * fix to compile again, but high(cardinal) with $R+ still fails!
+
+  Revision 1.25  2001/02/21 12:57:46  jonas
+    * fixed high/low for cardinal, int64 and qword
+
+  Revision 1.24  2001/01/06 19:54:11  peter
+    * merged fix for 1310
+
+  Revision 1.23  2001/01/06 18:28:39  peter
+    * fixed wrong notes about locals
+
+  Revision 1.22  2000/12/31 11:14:10  jonas
+    + implemented/fixed docompare() mathods for all nodes (not tested)
+    + nopt.pas, nadd.pas, i386/n386opt.pas: optimized nodes for adding strings
+      and constant strings/chars together
+    * n386add.pas: don't copy temp strings (of size 256) to another temp string
+      when adding
+
+  Revision 1.21  2000/12/25 00:07:26  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.20  2000/12/17 14:35:41  peter
+    * fixed crash with val()
+
+  Revision 1.19  2000/11/29 00:30:33  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.18  2000/11/12 15:27:22  jonas
+    * also don't do conversion for chars/booleans (hopefully final change :/)
+
+  Revision 1.17  2000/11/11 21:08:13  jonas
+    * don't do inc/dec to add/sub conversion for enums
+
+  Revision 1.16  2000/11/11 16:18:35  peter
+    * ptr returns farpointer
+
+  Revision 1.15  2000/11/11 15:59:07  jonas
+    * convert inc/dec to add/sub when range/overflow checking is on
+
+  Revision 1.14  2000/11/09 17:46:54  florian
+    * System.TypeInfo fixed
+    + System.Finalize implemented
+    + some new keywords for interface support added
+
+  Revision 1.13  2000/11/04 16:48:32  florian
+    * innr.inc renamed to make compiler compilation easier because the rtl contains
+      a file of the same name
+
+  Revision 1.12  2000/10/31 22:02:48  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.11  2000/10/26 14:15:06  jonas
+    * fixed setlength for shortstrings
+
+  Revision 1.10  2000/10/21 18:16:11  florian
+    * a lot of changes:
+       - basic dyn. array support
+       - basic C++ support
+       - some work for interfaces done
+       ....
+
+  Revision 1.9  2000/10/15 08:38:46  jonas
+    * added missing getcopy for previous addition
+
+  Revision 1.8  2000/10/14 18:27:53  jonas
+    * merged fix for inc/dec on 64bit types from tcinl
+
+  Revision 1.7  2000/10/14 10:14:50  peter
+    * moehrendorf oct 2000 rewrite
+
+  Revision 1.6  2000/10/01 19:48:24  peter
+    * lot of compile updates for cg11
+
+  Revision 1.5  2000/09/28 19:49:52  florian
+  *** empty log message ***
+
+  Revision 1.4  2000/09/28 16:34:47  florian
+  *** empty log message ***
+
+  Revision 1.3  2000/09/27 21:33:22  florian
+    * finally nadd.pas compiles
+
+  Revision 1.2  2000/09/27 20:25:44  florian
+    * more stuff fixed
+
+  Revision 1.1  2000/09/26 14:59:34  florian
+    * more conversion work done
 
 }

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2002 by Peter Vreman
+    Copyright (c) 1998-2000 by Peter Vreman
 
     This unit implements the parsing of the switches like $I-
 
@@ -22,7 +22,7 @@
 }
 unit switches;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 interface
 
@@ -159,8 +159,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  2002-05-14 19:34:50  peter
-    * removed old logs and updated copyright year
+  Revision 1.11  2002-05-16 19:46:44  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
 
   Revision 1.9  2002/04/15 19:44:20  peter
     * fixed stackcheck that would be called recursively when a stack
@@ -169,5 +172,29 @@ end.
     * removed some more routines from cga unit
     * fixed returnvalue handling
     * fixed default stacksize of linux and go32v2, 8kb was a bit small :-)
+
+  Revision 1.8  2001/10/20 20:30:21  peter
+    * read only typed const support, switch $J-
+
+  Revision 1.7  2001/05/18 22:56:05  peter
+    * $E is moduleswitch (merged)
+
+  Revision 1.6  2000/12/25 00:07:29  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.5  2000/09/24 15:06:28  peter
+    * use defines.inc
+
+  Revision 1.4  2000/09/21 11:30:49  jonas
+    + support for full boolean evaluation (b+/b-), default remains short
+      circuit boolean evaluation
+
+  Revision 1.3  2000/08/27 16:11:53  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.2  2000/07/13 11:32:49  michael
+  + removed logs
 
 }

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2002 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Routines for the code generation of data structures
     like VMT, Messages, VTables, Interfaces descs
@@ -23,7 +23,7 @@
 }
 unit nobj;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 interface
 
@@ -1269,8 +1269,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.18  2002-05-14 19:34:43  peter
-    * removed old logs and updated copyright year
+  Revision 1.19  2002-05-16 19:46:39  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
 
   Revision 1.17  2002/05/12 16:53:08  peter
     * moved entry and exitcode to ncgutil and cgobj
@@ -1312,5 +1315,112 @@ end.
   Revision 1.13  2002/02/11 18:51:35  peter
     * fixed vmt generation for private procedures that were skipped after
       my previous changes
+
+  Revision 1.12  2001/12/31 16:59:41  peter
+    * protected/private symbols parsing fixed
+
+  Revision 1.11  2001/11/20 18:49:43  peter
+    * require overload for cross object overloading
+
+  Revision 1.10  2001/11/18 20:18:54  peter
+    * use cp_value_equal_const instead of cp_all
+
+  Revision 1.9  2001/11/18 18:43:14  peter
+    * overloading supported in child classes
+    * fixed parsing of classes with private and virtual and overloaded
+      so it is compatible with delphi
+
+  Revision 1.8  2001/11/02 22:58:02  peter
+    * procsym definition rewrite
+
+  Revision 1.7  2001/10/25 21:22:35  peter
+    * calling convention rewrite
+
+  Revision 1.6  2001/10/20 19:28:38  peter
+    * interface 2 guid support
+    * guid constants support
+
+  Revision 1.5  2001/10/20 17:20:14  peter
+    * fixed generation of rtti for virtualmethods
+
+  Revision 1.4  2001/09/19 11:04:42  michael
+  * Smartlinking with interfaces fixed
+  * Better smartlinking for rtti and init tables
+
+  Revision 1.3  2001/08/30 20:13:53  peter
+    * rtti/init table updates
+    * rttisym for reusable global rtti/init info
+    * support published for interfaces
+
+  Revision 1.2  2001/08/22 21:16:20  florian
+    * some interfaces related problems regarding
+      mapping of interface implementions fixed
+
+  Revision 1.1  2001/04/21 13:37:16  peter
+    * made tclassheader using class of to implement cpu dependent code
+
+  Revision 1.20  2001/04/18 22:01:54  peter
+    * registration of targets and assemblers
+
+  Revision 1.19  2001/04/13 01:22:07  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.18  2001/04/04 21:30:43  florian
+    * applied several fixes to get the DD8 Delphi Unit compiled
+     e.g. "forward"-interfaces are working now
+
+  Revision 1.17  2000/12/25 00:07:26  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.16  2000/11/29 00:30:30  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.15  2000/11/19 16:23:35  florian
+  *** empty log message ***
+
+  Revision 1.14  2000/11/12 23:24:10  florian
+    * interfaces are basically running
+
+  Revision 1.13  2000/11/08 00:07:40  florian
+     * potential range check error fixed
+
+  Revision 1.12  2000/11/06 23:13:53  peter
+    * uppercase manglednames
+
+  Revision 1.11  2000/11/04 17:31:00  florian
+    * fixed some problems of previous commit
+
+  Revision 1.10  2000/11/04 14:25:19  florian
+    + merged Attila's changes for interfaces, not tested yet
+
+  Revision 1.9  2000/11/01 23:04:37  peter
+    * tprocdef.fullprocname added for better casesensitve writing of
+      procedures
+
+  Revision 1.8  2000/10/31 22:02:47  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.7  2000/10/14 10:14:47  peter
+    * moehrendorf oct 2000 rewrite
+
+  Revision 1.6  2000/09/24 21:19:50  peter
+    * delphi compile fixes
+
+  Revision 1.5  2000/09/24 15:06:17  peter
+    * use defines.inc
+
+  Revision 1.4  2000/08/27 16:11:51  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.3  2000/07/13 12:08:26  michael
+  + patched to 1.1.0 with former 1.09patch from peter
+
+  Revision 1.2  2000/07/13 11:32:41  michael
+  + removed logs
 
 }

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2002 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Generate PowerPC assembler for math nodes
 
@@ -22,7 +22,7 @@
 }
 unit nppcmat;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 interface
 
@@ -80,7 +80,7 @@ implementation
          maybe_save(exprasmlist,right.registers32,left.location,saved);
          secondpass(right);
          maybe_restore(exprasmlist,left.location,saved);
-         location_copy(location,left.location);
+         set_location(location,left.location);
 
          resultreg := R_NO;
          { put numerator in register }
@@ -386,8 +386,36 @@ implementation
          secondpass(left);
          if is_64bitint(left.resulttype.def) then
            begin
-             location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),false);
-             location_copy(location,left.location);
+              clear_location(location);
+              location.loc:=LOC_REGISTER;
+              case left.location.loc of
+                LOC_REGISTER, LOC_CREGISTER :
+                  begin
+                    src1 := left.location.registerlow;
+                    src2 := left.location.registerhigh;
+                    if left.location.loc = LOC_REGISTER then
+                      begin
+                        location.registerlow:=src1;
+                        location.registerhigh:=src2;
+                      end
+                    else
+                      begin
+                        location.registerlow := rg.getregisterint(exprasmlist);
+                        location.registerhigh := rg.getregisterint(exprasmlist);
+                      end;
+                  end;
+                LOC_REFERENCE,LOC_CREFERENCE :
+                  begin
+                    reference_release(exprasmlist,left.location.reference);
+                    location.registerlow:=rg.getregisterint(exprasmlist);
+                    src1 := location.registerlow;
+                    location.registerhigh:=rg.getregisterint(exprasmlist);
+                    src2 := location.registerhigh;
+                    tcg64f32(cg).a_load64_ref_reg(exprasmlist,left.location.reference,
+                      location.registerlow,
+                      location.registerhigh);
+                  end;
+              end;
              exprasmlist.concat(taicpu.op_reg_reg(A_NEG,location.registerlow,
                src1));
              cg.a_op_reg_reg(exprasmlist,OP_NOT,OS_32,src2,location.registerhigh);
@@ -518,8 +546,36 @@ implementation
          else if is_64bitint(left.resulttype.def) then
            begin
              secondpass(left);
-             location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),false);
-             location_copy(location,left.location);
+             clear_location(location);
+             location.loc:=LOC_REGISTER;
+             { make sure left is in a register and set the dest register }
+             case left.location.loc of
+               LOC_REFERENCE, LOC_CREFERENCE, LOC_CREGISTER:
+                 begin
+                   location.registerlow := rg.getregisterint(exprasmlist);
+                   location.registerhigh := rg.getregisterint(exprasmlist);
+                   if left.location.loc <> LOC_CREGISTER then
+                     begin
+                       tcg64f32(cg).a_load64_ref_reg(exprasmlist,
+                         left.location.reference,location.registerlow,
+                         location.registerhigh);
+                       regl := location.registerlow;
+                       regh := location.registerhigh;
+                     end
+                   else
+                     begin
+                       regl := left.location.registerlow;
+                       regh := left.location.registerhigh;
+                     end;
+                 end;
+               LOC_REGISTER:
+                 begin
+                   regl := left.location.registerlow;
+                   location.registerlow := regl;
+                   regh := left.location.registerhigh;
+                   location.registerhigh := regh;
+                 end;
+             end;
              { perform the NOT operation }
              exprasmlist.concat(taicpu.op_reg_reg(A_NOT,location.registerhigh,
                regh));
@@ -529,13 +585,32 @@ implementation
          else
            begin
              secondpass(left);
-             location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),false);
-             location_copy(location,left.location);
-             if location.loc=LOC_CREGISTER then
-              location.register := rg.getregisterint(exprasmlist);
+             clear_location(location);
+             location.loc:=LOC_REGISTER;
+             { make sure left is in a register and set the dest register }
+             case left.location.loc of
+               LOC_REFERENCE, LOC_CREFERENCE, LOC_CREGISTER:
+                 begin
+                   location.register := rg.getregisterint(exprasmlist);
+                   if left.location.loc <> LOC_CREGISTER then
+                     begin
+                       cg.a_load_ref_reg(exprasmlist,
+                         def_cgsize(left.resulttype.def),
+                         left.location.reference,location.register);
+                       regl := location.register;
+                     end
+                   else
+                     regl := left.location.register;
+                 end;
+               LOC_REGISTER:
+                 regl := left.location.register;
+             end;
              { perform the NOT operation }
              exprasmlist.concat(taicpu.op_reg_reg(A_NOT,location.register,
-               left.location.register));
+               regl));
+             { release the source reg if it wasn't reused }
+             if regl <> location.register then
+               rg.ungetregisterint(exprasmlist,regl);
           end;
       end;
 
@@ -547,14 +622,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2002-05-14 19:35:01  peter
-    * removed old logs and updated copyright year
-
-  Revision 1.6  2002/05/14 17:28:10  peter
-    * synchronized cpubase between powerpc and i386
-    * moved more tables from cpubase to cpuasm
-    * tai_align_abstract moved to tainst, cpuasm must define
-      the tai_align class now, which may be empty
+  Revision 1.8  2002-05-16 19:46:53  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
 
   Revision 1.5  2002/05/13 19:52:46  peter
     * a ppcppc can be build again
@@ -567,5 +639,12 @@ end.
 
   Revision 1.2  2002/01/03 14:57:52  jonas
     * completed (not compilale yet though)
+
+  Revision 1.1  2001/12/29 15:28:58  jonas
+    * powerpc/cgcpu.pas compiles :)
+    * several powerpc-related fixes
+    * cpuasm unit is now based on common tainst unit
+    + nppcmat unit for powerpc (almost complete)
+
 
 }

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2002 by Peter Vreman
+    Copyright (c) 1998-2000 by Peter Vreman
 
     This unit implements an binary assembler output class
 
@@ -22,7 +22,7 @@
 }
 unit ag386bin;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 {$define MULTIPASS}
 
@@ -1034,8 +1034,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  2002-05-14 19:34:52  peter
-    * removed old logs and updated copyright year
+  Revision 1.10  2002-05-16 19:46:50  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
 
   Revision 1.8  2002/04/15 19:12:10  carl
   + target_info.size_of_pointer -> pointer_size
@@ -1044,5 +1047,56 @@ end.
     (where they are used)
   + att_Reg2str -> gas_reg2str
   + int_reg2str -> std_reg2str
+
+  Revision 1.7  2001/04/13 01:22:17  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.6  2001/03/11 22:58:51  peter
+    * getsym redesign, removed the globals srsym,srsymtable
+
+  Revision 1.5  2001/03/05 21:39:11  peter
+    * changed to class with common TAssembler also for internal assembler
+
+  Revision 1.4  2000/12/25 00:07:31  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.3  2000/12/23 19:59:35  peter
+    * object to class for ow/og objects
+    * split objectdata from objectoutput
+
+  Revision 1.2  2000/12/12 19:50:21  peter
+    * clear usedasmsymbol at exit of writetree
+
+  Revision 1.1  2000/11/30 22:18:48  florian
+    * moved to i386
+
+  Revision 1.9  2000/11/12 22:20:37  peter
+    * create generic toutputsection for binary writers
+
+  Revision 1.8  2000/09/24 15:06:10  peter
+    * use defines.inc
+
+  Revision 1.7  2000/08/27 16:11:49  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.6  2000/08/12 15:34:22  peter
+    + usedasmsymbollist to check and reset only the used symbols (merged)
+
+  Revision 1.5  2000/08/08 19:28:57  peter
+    * memdebug/memory patches (merged)
+    * only once illegal directive (merged)
+
+  Revision 1.4  2000/08/04 22:00:50  peter
+    * merges from fixes
+
+  Revision 1.3  2000/07/13 12:08:24  michael
+  + patched to 1.1.0 with former 1.09patch from peter
+
+  Revision 1.2  2000/07/13 11:32:29  michael
+  + removed logs
 
 }

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2002 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Generate i386 assembler for type converting nodes
 
@@ -22,7 +22,7 @@
 }
 unit n386cnv;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 interface
 
@@ -365,8 +365,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.39  2002-05-14 19:34:59  peter
-    * removed old logs and updated copyright year
+  Revision 1.40  2002-05-16 19:46:51  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
 
   Revision 1.38  2002/05/12 16:53:17  peter
     * moved entry and exitcode to ncgutil and cgobj
@@ -442,5 +445,133 @@ end.
 
   Revision 1.30  2002/03/04 19:10:13  peter
     * removed compiler warnings
+
+  Revision 1.29  2001/12/30 17:24:46  jonas
+    * range checking is now processor independent (part in cgobj,
+      part in cg64f32) and should work correctly again (it needed
+      some changes after the changes of the low and high of
+      tordef's to int64)
+    * maketojumpbool() is now processor independent (in ncgutil)
+    * getregister32 is now called getregisterint
+
+  Revision 1.28  2001/12/11 08:14:17  jonas
+    * part of my fix for dynarray -> open array conversion, forgot to
+      commit yesterday :(
+
+  Revision 1.27  2001/11/02 23:24:12  jonas
+    * fixed web bug 1665 (allow char to chararray type conversion) ("merged")
+
+  Revision 1.26  2001/09/30 21:28:34  peter
+    * int64->boolean fixed
+
+  Revision 1.25  2001/09/30 16:12:47  jonas
+    - removed unnecessary i386 pass_2 of as- and isnode and added dummy generic ones
+
+  Revision 1.24  2001/09/29 21:32:47  jonas
+    * almost all second pass typeconvnode helpers are now processor independent
+    * fixed converting boolean to int64/qword
+    * fixed register allocation bugs which could cause internalerror 10
+    * isnode and asnode are completely processor indepent now as well
+    * fpc_do_as now returns its class argument (necessary to be able to use it
+      properly with compilerproc)
+
+  Revision 1.23  2001/09/03 13:27:42  jonas
+    * compilerproc implementation of set addition/substraction/...
+    * changed the declaration of some set helpers somewhat to accomodate the
+      above change
+    * i386 still uses the old code for comparisons of sets, because its
+      helpers return the results in the flags
+    * dummy tc_normal_2_small_set type conversion because I need the original
+      resulttype of the set add nodes
+    NOTE: you have to start a cycle with 1.0.5!
+
+  Revision 1.22  2001/08/29 19:49:03  jonas
+    * some fixes in compilerprocs for chararray to string conversions
+    * conversion from string to chararray is now also done via compilerprocs
+
+  Revision 1.21  2001/08/28 13:24:47  jonas
+    + compilerproc implementation of most string-related type conversions
+    - removed all code from the compiler which has been replaced by
+      compilerproc implementations (using $ifdef hascompilerproc is not
+      necessary in the compiler)
+
+  Revision 1.20  2001/08/26 13:36:57  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.19  2001/08/01 21:44:59  peter
+    * fixed empty pwidechar register allocation
+
+  Revision 1.18  2001/07/30 20:59:29  peter
+    * m68k updates from v10 merged
+
+  Revision 1.17  2001/07/16 13:19:08  jonas
+    * fixed allocation of register before release in second_cstring_to_pchar
+
+  Revision 1.16  2001/07/08 21:00:17  peter
+    * various widestring updates, it works now mostly without charset
+      mapping supported
+
+  Revision 1.15  2001/05/08 21:06:33  florian
+    * some more support for widechars commited especially
+      regarding type casting and constants
+
+  Revision 1.14  2001/04/13 01:22:18  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.13  2001/04/02 21:20:36  peter
+    * resulttype rewrite
+
+  Revision 1.12  2001/01/08 21:45:11  peter
+    * internalerror for string to chararray
+
+  Revision 1.11  2000/12/25 00:07:32  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.10  2000/12/07 17:19:46  jonas
+    * new constant handling: from now on, hex constants >$7fffffff are
+      parsed as unsigned constants (otherwise, $80000000 got sign extended
+      and became $ffffffff80000000), all constants in the longint range
+      become longints, all constants >$7fffffff and <=cardinal($ffffffff)
+      are cardinals and the rest are int64's.
+    * added lots of longint typecast to prevent range check errors in the
+      compiler and rtl
+    * type casts of symbolic ordinal constants are now preserved
+    * fixed bug where the original resulttype.def wasn't restored correctly
+      after doing a 64bit rangecheck
+
+  Revision 1.9  2000/12/05 11:44:33  jonas
+    + new integer regvar handling, should be much more efficient
+
+  Revision 1.8  2000/11/29 00:30:46  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.7  2000/11/16 15:27:48  jonas
+    * fixed web bug 1242
+
+  Revision 1.6  2000/11/13 11:30:56  florian
+    * some bugs with interfaces and NIL fixed
+
+  Revision 1.5  2000/11/12 23:24:14  florian
+    * interfaces are basically running
+
+  Revision 1.4  2000/11/11 16:00:10  jonas
+    * optimize converting of 8/16/32 bit constants to 64bit ones
+
+  Revision 1.3  2000/11/04 14:25:23  florian
+    + merged Attila's changes for interfaces, not tested yet
+
+  Revision 1.2  2000/10/31 22:02:56  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.1  2000/10/15 09:33:31  peter
+    * moved n386*.pas to i386/ cpu_target dir
+
+  Revision 1.1  2000/10/14 10:14:48  peter
+    * moehrendorf oct 2000 rewrite
 
 }

@@ -22,7 +22,7 @@
 }
 unit pmodules;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 {$define New_GDB}
 
@@ -1383,7 +1383,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.65  2002-05-14 19:34:49  peter
+  Revision 1.66  2002-05-16 19:46:43  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
+
+  Revision 1.65  2002/05/14 19:34:49  peter
     * removed old logs and updated copyright year
 
   Revision 1.64  2002/05/12 16:53:09  peter

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2002 by Jonas Maebe, member of the Free Pascal
+    Copyright (c) 1998-2000 by Jonas Maebe, member of the Free Pascal
     Development Team
 
     This unit contains the interface routines between the code generator
@@ -241,7 +241,42 @@ End.
 
 {
  $Log$
- Revision 1.2  2002-05-14 19:34:38  peter
-   * removed old logs and updated copyright year
+ Revision 1.3  2002-05-16 19:46:34  carl
+ + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+ + try to fix temp allocation (still in ifdef)
+ + generic constructor calls
+ + start of tassembler / tmodulebase class cleanup
+
+ Revision 1.1  2001/08/26 13:36:35  florian
+   * some cg reorganisation
+   * some PPC updates
+
+ Revision 1.1  2000/07/13 06:30:07  michael
+ + Initial import
+
+ Revision 1.5  2000/01/07 01:14:51  peter
+   * updated copyright to 2000
+
+ Revision 1.4  1999/11/09 22:57:08  peter
+   * compiles again both i386,alpha both with optimizer
+
+ Revision 1.3  1999/08/18 14:32:20  jonas
+   + compilable!
+   + dataflow analyzer finished
+   + start of CSE units
+   + aoptbase which contains a base object for all optimizer objects
+   * some constants and type definitions moved around to avoid circular
+     dependencies
+   * moved some methods from base objects to specialized objects because
+     they're not used anywhere else
+
+ Revision 1.2  1999/08/09 14:07:22  jonas
+ commit.msg
+
+ Revision 1.1  1999/08/08 13:24:50  jonas
+   + added copyright header/GNU license info
+   * made the assembler optimizer almost completely OOP
+   * some code style clean up and extra comments
+   * moved from the new/aopt to the /new and /new/i386 dirs
 
 }

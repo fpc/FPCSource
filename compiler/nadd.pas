@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2002 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Type checking and register allocation for add nodes
 
@@ -22,7 +22,7 @@
 }
 unit nadd;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 interface
 
@@ -1617,8 +1617,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.49  2002-05-14 19:34:41  peter
-    * removed old logs and updated copyright year
+  Revision 1.50  2002-05-16 19:46:37  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
 
   Revision 1.48  2002/05/13 19:54:36  peter
     * removed n386ld and n386util units
@@ -1664,4 +1667,178 @@ end.
   Revision 1.43  2002/03/30 23:12:09  carl
   * avoid crash with procinfo ('merged')
 
+  Revision 1.42  2001/12/27 15:33:58  jonas
+    * fixed fpuregister counting errors ("merged")
+
+  Revision 1.41  2001/10/20 19:28:37  peter
+    * interface 2 guid support
+    * guid constants support
+
+  Revision 1.40  2001/10/12 13:51:51  jonas
+    * fixed internalerror(10) due to previous fpu overflow fixes ("merged")
+    * fixed bug in n386add (introduced after compilerproc changes for string
+      operations) where calcregisters wasn't called for shortstring addnodes
+    * NOTE: from now on, the location of a binary node must now always be set
+       before you call calcregisters() for it
+
+  Revision 1.39  2001/09/05 15:22:09  jonas
+    * made multiplying, dividing and mod'ing of int64 and qword processor
+      independent with compilerprocs (+ small optimizations by using shift/and
+      where possible)
+
+  Revision 1.38  2001/09/04 11:38:54  jonas
+    + searchsystype() and searchsystype() functions in symtable
+    * changed ninl and nadd to use these functions
+    * i386 set comparison functions now return their results in al instead
+      of in the flags so that they can be sued as compilerprocs
+    - removed all processor specific code from n386add.pas that has to do
+      with set handling, it's now all done in nadd.pas
+    * fixed fpc_set_contains_sets in genset.inc
+    * fpc_set_in_byte is now coded inline in n386set.pas and doesn't use a
+      helper anymore
+    * some small fixes in compproc.inc/set.inc regarding the declaration of
+      internal helper types (fpc_small_set and fpc_normal_set)
+
+  Revision 1.37  2001/09/03 13:27:42  jonas
+    * compilerproc implementation of set addition/substraction/...
+    * changed the declaration of some set helpers somewhat to accomodate the
+      above change
+    * i386 still uses the old code for comparisons of sets, because its
+      helpers return the results in the flags
+    * dummy tc_normal_2_small_set type conversion because I need the original
+      resulttype of the set add nodes
+    NOTE: you have to start a cycle with 1.0.5!
+
+  Revision 1.36  2001/09/02 21:12:06  peter
+    * move class of definitions into type section for delphi
+
+  Revision 1.35  2001/08/31 15:42:15  jonas
+    * added missing type conversion from small to normal sets
+
+  Revision 1.34  2001/08/30 15:43:14  jonas
+    * converted adding/comparing of strings to compileproc. Note that due
+      to the way the shortstring helpers for i386 are written, they are
+      still handled by the old code (reason: fpc_shortstr_compare returns
+      results in the flags instead of in eax and fpc_shortstr_concat
+      has wierd parameter conventions). The compilerproc stuff should work
+      fine with the generic implementations though.
+    * removed some nested comments warnings
+
+  Revision 1.33  2001/08/26 13:36:38  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.32  2001/08/06 21:40:46  peter
+    * funcret moved from tprocinfo to tprocdef
+
+  Revision 1.31  2001/07/08 21:00:14  peter
+    * various widestring updates, it works now mostly without charset
+      mapping supported
+
+  Revision 1.30  2001/06/04 21:41:26  peter
+    * readded generic conversion to s32bit that i removed yesterday. It
+      is still used for error recovery, added a small note about that
+
+  Revision 1.29  2001/06/04 18:13:53  peter
+    * Support kylix hack of having enum+integer in a enum declaration.
+
+  Revision 1.28  2001/05/27 14:30:55  florian
+    + some widestring stuff added
+
+  Revision 1.27  2001/05/19 21:11:50  peter
+    * first check for overloaded operator before doing inserting any
+      typeconvs
+
+  Revision 1.26  2001/05/19 12:53:52  peter
+    * check set types when doing constant set evaluation
+
+  Revision 1.25  2001/04/13 01:22:08  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.24  2001/04/04 22:42:39  peter
+    * move constant folding into det_resulttype
+
+  Revision 1.23  2001/04/02 21:20:30  peter
+    * resulttype rewrite
+
+  Revision 1.22  2001/02/04 11:12:17  jonas
+    * fixed web bug 1377 & const pointer arithmtic
+
+  Revision 1.21  2001/01/14 22:13:13  peter
+    * constant calculation fixed. The type of the new constant is now
+      defined after the calculation is done. This should remove a lot
+      of wrong warnings (and errors with -Cr).
+
+  Revision 1.20  2000/12/31 11:14:10  jonas
+    + implemented/fixed docompare() mathods for all nodes (not tested)
+    + nopt.pas, nadd.pas, i386/n386opt.pas: optimized nodes for adding strings
+      and constant strings/chars together
+    * n386add.pas: don't copy temp strings (of size 256) to another temp string
+      when adding
+
+  Revision 1.19  2000/12/16 15:55:32  jonas
+    + warning when there is a chance to get a range check error because of
+      automatic type conversion to u32bit
+    * arithmetic operations with a cardinal and a signed operand are carried
+      out in 64bit when range checking is on ("merged" from fixes branch)
+
+  Revision 1.18  2000/11/29 00:30:31  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.17  2000/11/20 15:30:42  jonas
+    * changed types of values used for constant expression evaluation to
+      tconstexprint
+
+  Revision 1.16  2000/11/13 11:30:55  florian
+    * some bugs with interfaces and NIL fixed
+
+  Revision 1.15  2000/11/04 14:25:20  florian
+    + merged Attila's changes for interfaces, not tested yet
+
+  Revision 1.14  2000/10/31 22:02:47  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.13  2000/10/14 10:14:50  peter
+    * moehrendorf oct 2000 rewrite
+
+  Revision 1.12  2000/10/01 19:48:23  peter
+    * lot of compile updates for cg11
+
+  Revision 1.11  2000/09/30 16:08:45  peter
+    * more cg11 updates
+
+  Revision 1.10  2000/09/28 19:49:52  florian
+  *** empty log message ***
+
+  Revision 1.9  2000/09/27 21:33:22  florian
+    * finally nadd.pas compiles
+
+  Revision 1.8  2000/09/27 20:25:44  florian
+    * more stuff fixed
+
+  Revision 1.7  2000/09/27 18:14:31  florian
+    * fixed a lot of syntax errors in the n*.pas stuff
+
+  Revision 1.6  2000/09/24 15:06:19  peter
+    * use defines.inc
+
+  Revision 1.5  2000/09/22 22:42:52  florian
+    * more fixes
+
+  Revision 1.4  2000/09/21 12:22:42  jonas
+    * put piece of code between -dnewoptimizations2 since it wasn't
+      necessary otherwise
+    + support for full boolean evaluation (from tcadd)
+
+  Revision 1.3  2000/09/20 21:50:59  florian
+    * updated
+
+  Revision 1.2  2000/08/29 08:24:45  jonas
+    * some modifications to -dcardinalmulfix code
+
+  Revision 1.1  2000/08/26 12:24:20  florian
+    * initial release
 }

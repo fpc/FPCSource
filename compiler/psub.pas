@@ -22,7 +22,7 @@
 }
 unit psub;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 {$ifdef powerpc}
   {$define newcg}
 {$endif powerpc}
@@ -323,8 +323,22 @@ implementation
               begin
                 generatecode(code);
                 aktprocdef.code:=code;
+{$ifdef testtemp}                
+                if assigned(aktprocdef) and assigned(aktprocdef.localst) then
+                begin
+                  stackframe:=align(tg.gettempsize+aktprocdef.localst.datasize,4);
+                end
+                else
+                begin
+                  stackframe:=tg.gettempsize;
+                end;
+                if lexlevel = 1 then
+                  WriteLn(stackframe);
+{$else}                
                 stackframe:=tg.gettempsize;
-
+{                if lexlevel = 1 then
+                  WriteLn(stackframe);}
+{$endif}
                 { first generate entry code with the correct position and switches }
                 aktfilepos:=entrypos;
                 aktlocalswitches:=entryswitches;
@@ -805,7 +819,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.51  2002-05-14 19:34:49  peter
+  Revision 1.52  2002-05-16 19:46:44  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
+
+  Revision 1.51  2002/05/14 19:34:49  peter
     * removed old logs and updated copyright year
 
   Revision 1.50  2002/05/12 16:53:09  peter

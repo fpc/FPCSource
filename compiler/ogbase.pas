@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2002 by Peter Vreman
+    Copyright (c) 1998-2000 by Peter Vreman
 
     Contains the base stuff for binary object file writers
 
@@ -22,7 +22,7 @@
 }
 unit ogbase;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 interface
     uses
@@ -578,7 +578,40 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  2002-05-14 19:34:43  peter
-    * removed old logs and updated copyright year
+  Revision 1.10  2002-05-16 19:46:39  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
+
+  Revision 1.8  2001/12/31 16:54:14  peter
+    * fixed inline crash with assembler routines
+
+  Revision 1.7  2001/04/13 01:22:10  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.6  2001/03/05 21:40:38  peter
+    * more things for tcoffobjectinput
+
+  Revision 1.5  2000/12/25 00:07:26  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.4  2000/12/24 12:25:31  peter
+    + cstreams unit
+    * dynamicarray object to class
+
+  Revision 1.3  2000/12/23 19:59:35  peter
+    * object to class for ow/og objects
+    * split objectdata from objectoutput
+
+  Revision 1.2  2000/11/13 21:56:07  peter
+    * removed some virtual from methods
+    * sectionsize method implemented (fixes lineinfo stabs)
+
+  Revision 1.1  2000/11/12 22:20:37  peter
+    * create generic tobjectsection for binary writers
 
 }

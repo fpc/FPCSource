@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2002 by Pierre Muller
+    Copyright (c) 1998-2000 by Pierre Muller
 
     Simple unit to add source line and column to each
     memory allocation made with heaptrc unit
@@ -22,7 +22,7 @@
  ****************************************************************************}
 unit ppheap;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 interface
 
@@ -90,7 +90,27 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2002-05-14 19:34:49  peter
-    * removed old logs and updated copyright year
+  Revision 1.9  2002-05-16 19:46:43  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
+
+  Revision 1.7  2001/04/13 01:22:13  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.5  2001/03/13 18:43:17  peter
+    * made memdebug and heaptrc compilable again
+
+  Revision 1.4  2000/10/14 21:52:56  peter
+    * fixed memory leaks
+
+  Revision 1.3  2000/09/24 15:06:24  peter
+    * use defines.inc
+
+  Revision 1.2  2000/07/13 11:32:45  michael
+  + removed logs
 
 }

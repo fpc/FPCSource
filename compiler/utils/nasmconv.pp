@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2002 by Peter Vreman and Florian Klaempfl
+    Copyright (c) 1998-2000 by Peter Vreman and Florian Klaempfl
 
     Convert i386ins.dat from Nasm to a .inc file for usage with
     the Free pascal compiler
@@ -429,7 +429,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2002-05-14 19:35:02  peter
-    * removed old logs and updated copyright year
+  Revision 1.4  2002-05-16 19:46:54  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
 
+  Revision 1.2  2000/07/13 11:32:55  michael
+  + removed logs
+ 
 }

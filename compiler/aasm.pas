@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2002 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     This unit implements an abstract asmoutput class for all processor types
 
@@ -24,11 +24,11 @@
   This unit implements an abstract assembler output class for all processors, these
   are then overriden for each assembler writer to actually write the data in these
   classes to an assembler file.
-}
-
+}  
+   
 unit aasm;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 interface
 
@@ -68,11 +68,10 @@ interface
           ait_regalloc, { for register,temp allocation debugging }
           ait_tempalloc,
           ait_marker,
-{$ifdef alpha}
+
           { the follow is for the DEC Alpha }
           ait_frame,
           ait_ent,
-{$endif alpha}
 {$ifdef m68k}
           ait_labeled_instruction,
 {$endif m68k}
@@ -205,6 +204,22 @@ interface
           destructor Destroy; override;
        end;
 
+
+       { alignment for operator }
+{$ifdef i386}
+       tai_align_abstract = class(tai)
+{$else i386}
+       tai_align = class(tai)
+{$endif i386}
+          buf       : array[0..63] of char; { buf used for fill }
+          aligntype : byte;   { 1 = no align, 2 = word align, 4 = dword align }
+          fillsize  : byte;   { real size to fill }
+          fillop    : byte;   { value to fill with - optional }
+          use_op    : boolean;
+          constructor Create(b:byte);
+          constructor Create_op(b: byte; _op: byte);
+          function getfillbuf:pchar;
+       end;
 
        { Insert a section/segment directive }
        tai_section = class(tai)
@@ -728,6 +743,56 @@ uses
       end;
 
 {****************************************************************************
+                              TAI_ALIGN
+ ****************************************************************************}
+
+{$ifdef i386}
+     constructor tai_align_abstract.Create(b: byte);
+{$else i386}
+     constructor tai_align.Create(b: byte);
+{$endif i386}
+       begin
+          inherited Create;
+          typ:=ait_align;
+          if b in [1,2,4,8,16,32] then
+            aligntype := b
+          else
+            aligntype := 1;
+          fillsize:=0;
+          fillop:=0;
+          use_op:=false;
+       end;
+
+
+{$ifdef i386}
+     constructor tai_align_abstract.Create_op(b: byte; _op: byte);
+{$else i386}
+     constructor tai_align.Create_op(b: byte; _op: byte);
+{$endif i386}
+       begin
+          inherited Create;
+          typ:=ait_align;
+          if b in [1,2,4,8,16,32] then
+            aligntype := b
+          else
+            aligntype := 1;
+          fillsize:=0;
+          fillop:=_op;
+          use_op:=true;
+          fillchar(buf,sizeof(buf),_op)
+       end;
+
+
+{$ifdef i386}
+     function tai_align_abstract.getfillbuf:pchar;
+{$else i386}
+     function tai_align.getfillbuf:pchar;
+{$endif i386}
+       begin
+         getfillbuf:=@buf;
+       end;
+
+{****************************************************************************
                               TAI_CUT
  ****************************************************************************}
 
@@ -1070,14 +1135,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.25  2002-05-14 19:34:38  peter
-    * removed old logs and updated copyright year
-
-  Revision 1.24  2002/05/14 17:28:08  peter
-    * synchronized cpubase between powerpc and i386
-    * moved more tables from cpubase to cpuasm
-    * tai_align_abstract moved to tainst, cpuasm must define
-      the tai_align class now, which may be empty
+  Revision 1.26  2002-05-16 19:46:34  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
 
   Revision 1.23  2002/04/15 18:54:34  carl
   - removed tcpuflags
@@ -1091,5 +1153,69 @@ end.
 
   Revision 1.20  2002/03/24 19:04:31  carl
   + patch for SPARC from Mazen NEIFER
+
+  Revision 1.19  2001/12/31 16:54:14  peter
+    * fixed inline crash with assembler routines
+
+  Revision 1.18  2001/08/30 19:43:50  peter
+    * detect duplicate labels
+
+  Revision 1.17  2001/04/13 01:22:06  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.16  2001/02/20 21:36:39  peter
+    * tasm/masm fixes merged
+
+  Revision 1.15  2000/12/25 00:07:25  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.14  2000/11/29 00:30:30  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.13  2000/09/24 15:06:10  peter
+    * use defines.inc
+
+  Revision 1.12  2000/08/27 20:19:38  peter
+    * store strings with case in ppu, when an internal symbol is created
+      a '$' is prefixed so it's not automatic uppercased
+
+  Revision 1.11  2000/08/27 16:11:48  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.10  2000/08/20 17:38:21  peter
+    * smartlinking fixed for linux (merged)
+
+  Revision 1.9  2000/08/16 18:33:53  peter
+    * splitted namedobjectitem.next into indexnext and listnext so it
+      can be used in both lists
+    * don't allow "word = word" type definitions (merged)
+
+  Revision 1.8  2000/08/12 19:14:58  peter
+    * ELF writer works now also with -g
+    * ELF writer is default again for linux
+
+  Revision 1.7  2000/08/12 15:34:21  peter
+    + usedasmsymbollist to check and reset only the used symbols (merged)
+
+  Revision 1.6  2000/08/09 19:49:44  peter
+    * packenumfixed things so it compiles with 1.0.0 again
+
+  Revision 1.5  2000/08/05 13:25:06  peter
+    * packenum 1 fixes (merged)
+
+  Revision 1.4  2000/07/21 15:14:01  jonas
+    + added is_addr field for labels, if they are only used for getting the address
+       (e.g. for io checks) and corresponding getaddrlabel() procedure
+
+  Revision 1.3  2000/07/13 12:08:24  michael
+  + patched to 1.1.0 with former 1.09patch from peter
+
+  Revision 1.2  2000/07/13 11:32:28  michael
+  + removed logs
 
 }

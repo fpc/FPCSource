@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2002 by Peter Vreman
+    Copyright (c) 1998-2000 by Peter Vreman
 
     Contains the stuff for writing .a files directly
 
@@ -22,7 +22,7 @@
 }
 unit owar;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 interface
 
@@ -278,11 +278,35 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  2002-05-14 19:34:43  peter
-    * removed old logs and updated copyright year
+  Revision 1.11  2002-05-16 19:46:42  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
 
   Revision 1.9  2002/04/04 19:06:00  peter
     * removed unused units
     * use tlocation.size in cg.a_*loc*() routines
+
+  Revision 1.8  2001/03/05 21:40:39  peter
+    * more things for tcoffobjectinput
+
+  Revision 1.7  2000/12/24 12:25:32  peter
+    + cstreams unit
+    * dynamicarray object to class
+
+  Revision 1.5  2000/09/24 15:06:20  peter
+    * use defines.inc
+
+  Revision 1.4  2000/08/19 18:44:27  peter
+    * new tdynamicarray implementation using blocks instead of
+      reallocmem (merged)
+
+  Revision 1.3  2000/08/08 19:28:57  peter
+    * memdebug/memory patches (merged)
+    * only once illegal directive (merged)
+
+  Revision 1.2  2000/07/13 11:32:44  michael
+  + removed logs
 
 }

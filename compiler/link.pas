@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2002 by Peter Vreman
+    Copyright (c) 1998-2000 by Peter Vreman
 
     This unit handles the linker and binder calls for programs and
     libraries
@@ -23,7 +23,7 @@
 }
 unit link;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 { Needed for LFN support in path to the executable }
 {$ifdef GO32V2}
@@ -539,10 +539,96 @@ initialization
 end.
 {
   $Log$
-  Revision 1.26  2002-05-14 19:34:41  peter
-    * removed old logs and updated copyright year
+  Revision 1.27  2002-05-16 19:46:37  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
 
   Revision 1.25  2002/01/19 11:57:05  peter
     * fixed path appending for lib
 
+  Revision 1.24  2001/09/18 11:30:48  michael
+  * Fixes win32 linking problems with import libraries
+  * LINKLIB Libraries are now looked for using C file extensions
+  * get_exepath fix
+
+  Revision 1.23  2001/09/17 21:29:11  peter
+    * merged netbsd, fpu-overflow from fixes branch
+
+  Revision 1.22  2001/08/30 20:13:53  peter
+    * rtti/init table updates
+    * rttisym for reusable global rtti/init info
+    * support published for interfaces
+
+  Revision 1.21  2001/08/19 11:22:22  peter
+    * palmos support from v10 merged
+
+  Revision 1.20  2001/08/13 19:26:03  peter
+    * fixed ordering of object and libraries
+
+  Revision 1.19  2001/08/07 18:47:12  peter
+    * merged netbsd start
+    * profile for win32
+
+  Revision 1.18  2001/06/28 19:46:25  peter
+    * added override and virtual for constructors
+
+  Revision 1.17  2001/06/03 15:15:31  peter
+    * dllprt0 stub for linux shared libs
+    * pass -init and -fini for linux shared libs
+    * libprefix splitted into staticlibprefix and sharedlibprefix
+
+  Revision 1.16  2001/04/18 22:01:54  peter
+    * registration of targets and assemblers
+
+  Revision 1.15  2001/04/13 01:22:08  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.14  2001/02/26 19:44:52  peter
+    * merged generic m68k updates from fixes branch
+
+  Revision 1.13  2001/02/20 21:41:17  peter
+    * new fixfilename, findfile for unix. Look first for lowercase, then
+      NormalCase and last for UPPERCASE names.
+
+  Revision 1.12  2001/01/12 19:19:44  peter
+    * fixed searching for utils
+
+  Revision 1.11  2000/12/25 00:07:26  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.10  2000/11/29 00:30:31  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.9  2000/09/24 21:33:46  peter
+    * message updates merges
+
+  Revision 1.8  2000/09/24 15:06:18  peter
+    * use defines.inc
+
+  Revision 1.7  2000/09/16 12:22:52  peter
+    * freebsd support merged
+
+  Revision 1.6  2000/09/11 17:00:23  florian
+    + first implementation of Netware Module support, thanks to
+      Armin Diehl (diehl@nordrhein.de) for providing the patches
+
+  Revision 1.5  2000/09/04 09:40:23  michael
+  + merged Patch from peter
+
+  Revision 1.4  2000/08/27 16:11:51  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.3  2000/07/26 13:08:19  jonas
+    * merged from fixes branch (v_hint to v_tried changed when attempting
+      to smart/static/shared link)
+
+  Revision 1.2  2000/07/13 11:32:43  michael
+  + removed logs
 }

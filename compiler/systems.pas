@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (C) 1998-2002 by Florian Klaempfl
+    Copyright (C) 1998-2000 by Florian Klaempfl
 
     This unit contains information about the target systems supported
     (these are not processor specific)
@@ -23,7 +23,7 @@
 }
 unit systems;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 interface
 
@@ -98,17 +98,17 @@ interface
              target_m68k_netbsd,        { 18 }
              target_i386_Netware,       { 19 }
              target_i386_qnx,           { 20 }
-             target_i386_wdosx,         { 21 }
+             target_i386_wdosx,         { 21 } 
              target_sparc_sunos,        { 22 }
              target_sparc_linux         { 23 }
        );
 
        tasm = (as_none
-             ,as_i386_as,as_i386_as_aout,as_i386_asw,as_i386_aswdosx,
-              as_i386_nasmcoff,as_i386_nasmwin32,as_i386_nasmwdosx,
+             ,as_i386_as,as_i386_as_aout,as_i386_asw,as_i386_aswdosx, 
+              as_i386_nasmcoff,as_i386_nasmwin32,as_i386_nasmwdosx, 
               as_i386_nasmelf,as_i386_nasmobj,
               as_i386_tasm,as_i386_masm,
-              as_i386_dbg,as_i386_coff,as_i386_pecoff,as_i386_elf32,as_i386_pecoffwdosx
+              as_i386_dbg,as_i386_coff,as_i386_pecoff,as_i386_elf32,as_i386_pecoffwdosx 
             ,as_m68k_as,as_m68k_gas,as_m68k_mit,as_m68k_mot,
               as_m68k_mpw,as_m68k_palm
             ,as_alpha_as
@@ -192,7 +192,7 @@ interface
           rescmd  : string[50];
        end;
 
-       {# }
+       {# } 
        ttargetflags = (tf_none,
             tf_under_development,
             tf_need_export,tf_needs_isconsole
@@ -241,10 +241,10 @@ interface
           script       : tscripttype;
           endian       : tendian;
           alignment    : talignmentinfo;
-          {
-            Offset from the argument pointer register to the first
-            argument's address. On some machines it may depend on
-            the data type of the function.
+          { 
+            Offset from the argument pointer register to the first 
+            argument's address. On some machines it may depend on 
+            the data type of the function. 
             (see also FIRST_PARM_OFFSET in GCC source)
           }
           first_parm_offset : longint;
@@ -592,12 +592,12 @@ begin
           source_info.scriptext := '.bat';
         { OS/2 via EMX can be run under DOS as well }
       {$else}
-        {$ifdef WIN32}
+        {$ifdef WIN32} 
           {$ifdef WDOSX}
            set_source(target_i386_wdosx);
           {$else}
            set_source(target_i386_WIN32);
-          {$endif}
+          {$endif} 
         {$else}
            {$ifdef FreeBSD}
               set_source(target_i386_FreeBSD);
@@ -686,8 +686,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.43  2002-05-14 19:34:51  peter
-    * removed old logs and updated copyright year
+  Revision 1.44  2002-05-16 19:46:45  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
 
   Revision 1.42  2002/05/06 19:52:04  carl
   + added more patches from Mazen for SPARC port

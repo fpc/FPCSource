@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2002 by Peter Vreman
+    Copyright (c) 1998-2000 by Peter Vreman
 
     This unit implements directive parsing for the scanner
 
@@ -22,7 +22,7 @@
 }
 unit scandir;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 interface
 
@@ -925,8 +925,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  2002-05-14 19:34:50  peter
-    * removed old logs and updated copyright year
+  Revision 1.14  2002-05-16 19:46:44  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
 
   Revision 1.12  2002/04/07 13:34:20  carl
   + wdosx target
@@ -934,5 +937,113 @@ end.
   Revision 1.11  2002/04/04 19:06:05  peter
     * removed unused units
     * use tlocation.size in cg.a_*loc*() routines
+
+  Revision 1.10  2001/11/02 23:16:52  peter
+    * removed obsolete chainprocsym and test_procsym code
+
+  Revision 1.9  2001/10/23 21:49:42  peter
+    * $calling directive and -Cc commandline patch added
+      from Pavel Ozerski
+
+  Revision 1.8  2001/09/02 21:18:28  peter
+    * split constsym.value in valueord,valueordptr,valueptr. The valueordptr
+      is used for holding target platform pointer values. As those can be
+      bigger than the source platform.
+
+  Revision 1.7  2001/08/19 11:22:24  peter
+    * palmos support from v10 merged
+
+  Revision 1.6  2001/08/07 18:47:13  peter
+    * merged netbsd start
+    * profile for win32
+
+  Revision 1.5  2001/07/01 20:16:16  peter
+    * alignmentinfo record added
+    * -Oa argument supports more alignment settings that can be specified
+      per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN
+      RECORDMAX,LOCALMIN,LOCALMAX. It is possible to set the mimimum
+      required alignment and the maximum usefull alignment. The final
+      alignment will be choosen per variable size dependent on these
+      settings
+
+  Revision 1.4  2001/06/03 20:20:27  peter
+    * Align directive supports also values to be Kylix compatible. It's
+      strange because the help of kylix still shows only On and Off as
+      possible values, so still support those. On means 4 bytes and Off
+      means 1 byte alignment.
+
+  Revision 1.3  2001/05/30 21:35:49  peter
+    * netware patches for copyright, screenname, threadname directives
+
+  Revision 1.2  2001/04/18 22:01:58  peter
+    * registration of targets and assemblers
+
+  Revision 1.1  2001/04/13 18:00:36  peter
+    * easier registration of directives
+
+  Revision 1.20  2001/04/13 01:22:13  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.19  2001/03/13 18:45:07  peter
+    * fixed some memory leaks
+
+  Revision 1.18  2001/02/20 21:41:18  peter
+    * new fixfilename, findfile for unix. Look first for lowercase, then
+      NormalCase and last for UPPERCASE names.
+
+  Revision 1.17  2001/01/20 18:32:52  hajny
+    + APPTYPE support under OS/2, app_fs, GetEnvPChar for OS/2
+
+  Revision 1.16  2001/01/13 00:09:21  peter
+    * made Pavel O. happy ;)
+
+  Revision 1.15  2000/12/25 00:07:28  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.14  2000/12/24 12:24:38  peter
+    * moved preprocessfile into a conditional
+
+  Revision 1.13  2000/12/12 19:48:52  peter
+    * fixed lost char after $I directive (merged)
+
+  Revision 1.12  2000/11/12 22:17:47  peter
+    * some realname updates for messages
+
+  Revision 1.11  2000/11/04 14:25:21  florian
+    + merged Attila's changes for interfaces, not tested yet
+
+  Revision 1.10  2000/10/31 22:02:51  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.9  2000/09/26 10:50:41  jonas
+    * initmodeswitches is changed is you change the compiler mode from the
+      command line (the -S<x> switches didn't work anymore for changing the
+      compiler mode) (merged from fixes branch)
+
+  Revision 1.8  2000/09/24 21:33:47  peter
+    * message updates merges
+
+  Revision 1.7  2000/09/24 15:06:27  peter
+    * use defines.inc
+
+  Revision 1.6  2000/09/11 17:00:23  florian
+    + first implementation of Netware Module support, thanks to
+      Armin Diehl (diehl@nordrhein.de) for providing the patches
+
+  Revision 1.5  2000/09/10 21:18:15  peter
+    * macro warning (merged)
+
+  Revision 1.4  2000/08/12 15:30:44  peter
+    * IDE patch for stream reading (merged)
+
+  Revision 1.3  2000/08/08 19:28:57  peter
+    * memdebug/memory patches (merged)
+    * only once illegal directive (merged)
+
+  Revision 1.2  2000/07/13 11:32:49  michael
+  + removed logs
 
 }

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2002 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Does parsing types for Free Pascal
 
@@ -22,7 +22,7 @@
 }
 unit ptype;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 interface
 
@@ -631,8 +631,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.39  2002-05-14 19:34:50  peter
-    * removed old logs and updated copyright year
+  Revision 1.40  2002-05-16 19:46:44  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
 
   Revision 1.38  2002/05/12 16:53:10  peter
     * moved entry and exitcode to ncgutil and cgobj
@@ -677,5 +680,125 @@ end.
   Revision 1.32  2002/01/06 12:08:15  peter
     * removed uauto from orddef, use new range_to_basetype generating
       the correct ordinal type for a range
+
+  Revision 1.30  2001/08/30 20:13:53  peter
+    * rtti/init table updates
+    * rttisym for reusable global rtti/init info
+    * support published for interfaces
+
+  Revision 1.29  2001/08/12 22:10:16  peter
+    * write name in original case when type not found
+
+  Revision 1.28  2001/07/09 21:15:41  peter
+    * Length made internal
+    * Add array support for Length
+
+  Revision 1.27  2001/07/01 20:16:16  peter
+    * alignmentinfo record added
+    * -Oa argument supports more alignment settings that can be specified
+      per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN
+      RECORDMAX,LOCALMIN,LOCALMAX. It is possible to set the mimimum
+      required alignment and the maximum usefull alignment. The final
+      alignment will be choosen per variable size dependent on these
+      settings
+
+  Revision 1.26  2001/06/04 18:06:38  peter
+    * fix for enum with assignment
+
+  Revision 1.25  2001/06/04 11:51:59  peter
+    * enum type declarations assignments can also be of the same enum
+      type
+
+  Revision 1.24  2001/06/03 20:16:19  peter
+    * allow int64 in range declaration for new types
+
+  Revision 1.23  2001/04/13 01:22:13  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.22  2001/04/04 22:43:53  peter
+    * remove unnecessary calls to firstpass
+
+  Revision 1.21  2001/04/02 21:20:34  peter
+    * resulttype rewrite
+
+  Revision 1.20  2001/03/22 22:35:42  florian
+    + support for type a = (a=1); in Delphi mode added
+    + procedure p(); in Delphi mode supported
+    + on isn't keyword anymore, it can be used as
+      id etc. now
+
+  Revision 1.19  2001/03/12 12:49:01  michael
+  + Patches from peter
+
+  Revision 1.18  2001/03/11 22:58:50  peter
+    * getsym redesign, removed the globals srsym,srsymtable
+
+  Revision 1.17  2000/12/07 17:19:43  jonas
+    * new constant handling: from now on, hex constants >$7fffffff are
+      parsed as unsigned constants (otherwise, $80000000 got sign extended
+      and became $ffffffff80000000), all constants in the longint range
+      become longints, all constants >$7fffffff and <=cardinal($ffffffff)
+      are cardinals and the rest are int64's.
+    * added lots of longint typecast to prevent range check errors in the
+      compiler and rtl
+    * type casts of symbolic ordinal constants are now preserved
+    * fixed bug where the original resulttype.def wasn't restored correctly
+      after doing a 64bit rangecheck
+
+  Revision 1.16  2000/11/29 00:30:38  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.15  2000/11/14 23:43:38  florian
+    * fixed 1238
+
+  Revision 1.14  2000/11/04 14:25:21  florian
+    + merged Attila's changes for interfaces, not tested yet
+
+  Revision 1.13  2000/10/31 22:02:51  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.12  2000/10/26 21:54:03  peter
+    * fixed crash with error in child definition (merged)
+
+  Revision 1.11  2000/10/21 18:16:12  florian
+    * a lot of changes:
+       - basic dyn. array support
+       - basic C++ support
+       - some work for interfaces done
+       ....
+
+  Revision 1.10  2000/10/14 10:14:52  peter
+    * moehrendorf oct 2000 rewrite
+
+  Revision 1.9  2000/09/24 15:06:25  peter
+    * use defines.inc
+
+  Revision 1.8  2000/08/27 20:19:39  peter
+    * store strings with case in ppu, when an internal symbol is created
+      a '$' is prefixed so it's not automatic uppercased
+
+  Revision 1.7  2000/08/27 16:11:52  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.6  2000/08/16 18:33:54  peter
+    * splitted namedobjectitem.next into indexnext and listnext so it
+      can be used in both lists
+    * don't allow "word = word" type definitions (merged)
+
+  Revision 1.5  2000/08/06 14:17:15  peter
+    * overload fixes (merged)
+
+  Revision 1.4  2000/07/30 17:04:43  peter
+    * merged fixes
+
+  Revision 1.3  2000/07/13 12:08:27  michael
+  + patched to 1.1.0 with former 1.09patch from peter
+
+  Revision 1.2  2000/07/13 11:32:47  michael
+  + removed logs
 
 }

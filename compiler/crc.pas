@@ -22,7 +22,7 @@
 }
 Unit crc;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 Interface
 
@@ -101,7 +101,24 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  2002-05-14 19:34:40  peter
-    * removed old logs and updated copyright year
+  Revision 1.8  2002-05-16 19:46:35  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
 
+  Revision 1.6  2001/06/03 20:21:08  peter
+    * Kylix fixes, mostly case names of units
+
+  Revision 1.5  2001/05/09 14:11:10  jonas
+    * range check error fixes from Peter
+
+  Revision 1.4  2000/09/24 15:06:14  peter
+    * use defines.inc
+
+  Revision 1.3  2000/08/13 13:04:38  peter
+    * new ppu version
+
+  Revision 1.2  2000/07/13 11:32:39  michael
+  + removed logs
 }

@@ -22,7 +22,7 @@
 }
 unit fmodule;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 {$ifdef go32v2}
   {$define shortasmprefix}
@@ -443,7 +443,7 @@ uses
         linkotherstaticlibs.Free;
         linkothersharedlibs.Free;
         stringdispose(objfilename);
-        stringdispose(asmfilename);
+        stringdispose(newfilename);
         stringdispose(ppufilename);
         stringdispose(staticlibfilename);
         stringdispose(sharedlibfilename);
@@ -584,7 +584,13 @@ uses
 end.
 {
   $Log$
-  Revision 1.22  2002-05-14 19:34:41  peter
+  Revision 1.23  2002-05-16 19:46:36  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
+
+  Revision 1.22  2002/05/14 19:34:41  peter
     * removed old logs and updated copyright year
 
   Revision 1.21  2002/04/04 19:05:55  peter

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2002 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     This unit implements an asm for the PowerPC
 
@@ -273,13 +273,42 @@ unit agas;
 end.
 {
   $Log$
-  Revision 1.4  2002-05-14 19:35:00  peter
-    * removed old logs and updated copyright year
+  Revision 1.5  2002-05-16 19:46:52  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
 
   Revision 1.3  2002/04/20 21:41:51  carl
   * renamed some constants
 
   Revision 1.2  2002/04/06 18:13:01  jonas
     * several powerpc-related additions and fixes
+
+  Revision 1.1  2001/08/26 13:31:04  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.1  2000/07/13 06:30:12  michael
+  + Initial import
+
+  Revision 1.6  2000/05/01 11:03:32  jonas
+    * some fixes, does not yet compile
+
+  Revision 1.5  2000/03/26 16:37:36  jonas
+    + use cpubase unit
+    - removed use of alpha unit
+
+  Revision 1.4  2000/01/07 01:14:57  peter
+    * updated copyright to 2000
+
+  Revision 1.3  1999/09/03 13:15:47  jonas
+    + implemented most necessary methods
+
+  Revision 1.2  1999/08/25 12:00:22  jonas
+    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
+
+  Revision 1.1  1999/08/03 23:37:52  jonas
+    + initial implementation for PowerPC based on the Alpha stuff
 
 }

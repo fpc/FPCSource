@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2002 by Michael Van Canneyt
+    Copyright (c) 1998-2000 by Michael Van Canneyt
 
     Contains a generic assembler instruction object;
 
@@ -22,53 +22,40 @@
 }
 Unit tainst;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 interface
 
-    Uses
-      cpuinfo,cpubase,aasm,cclasses;
+  Uses aasm,cpubase,cpuinfo,cclasses;
 
-    Type
-      tairegalloc = class(tai)
-         allocation : boolean;
-         reg        : tregister;
-         constructor alloc(r : tregister);
-         constructor dealloc(r : tregister);
-      end;
+Type
 
-      taicpu_abstract = class(tai)
-        condition : TAsmCond;
-        ops       : longint;
-        oper      : array[0..max_operands-1] of toper;
-        opcode    : tasmop;
+  tairegalloc = class(tai)
+     allocation : boolean;
+     reg        : tregister;
+     constructor alloc(r : tregister);
+     constructor dealloc(r : tregister);
+  end;
+
+  tainstruction = class(tai)
+    condition : TAsmCond;
+    ops       : longint;
+    oper      : array[0..max_operands-1] of toper;
+    opcode    : tasmop;
 {$ifdef i386}
-        segprefix : tregister;
+    segprefix : tregister;
 {$endif i386}
-        is_jmp    : boolean; { is this instruction a jump? (needed for optimizer) }
-        Constructor Create(op : tasmop);
-        Destructor Destroy;override;
-        function getcopy:tlinkedlistitem;override;
-        procedure loadconst(opidx:longint;l:aword);
-        procedure loadsymbol(opidx:longint;s:tasmsymbol;sofs:longint);
-        procedure loadref(opidx:longint;const r:treference);
-        procedure loadreg(opidx:longint;r:tregister);
-        procedure loadoper(opidx:longint;o:toper);
-        procedure SetCondition(const c:TAsmCond);
-      end;
-
-      { alignment for operator }
-      tai_align_abstract = class(tai)
-         buf       : array[0..63] of char; { buf used for fill }
-         aligntype : byte;   { 1 = no align, 2 = word align, 4 = dword align }
-         fillsize  : byte;   { real size to fill }
-         fillop    : byte;   { value to fill with - optional }
-         use_op    : boolean;
-         constructor Create(b:byte);
-         constructor Create_op(b: byte; _op: byte);
-         function getfillbuf:pchar;virtual;
-      end;
-
+    is_jmp    : boolean; { is this instruction a jump? (needed for optimizer) }
+    Constructor Create(op : tasmop);
+    Destructor Destroy;override;
+    function getcopy:tlinkedlistitem;override;
+    procedure loadconst(opidx:longint;l:aword);
+    procedure loadsymbol(opidx:longint;s:tasmsymbol;sofs:longint);
+    procedure loadref(opidx:longint;const r:treference);
+    procedure loadreg(opidx:longint;r:tregister);
+    procedure loadoper(opidx:longint;o:toper);
+    procedure SetCondition(const c:TAsmCond);
+  end;
 
 implementation
 
@@ -97,12 +84,13 @@ implementation
         reg:=r;
       end;
 
+{ ---------------------------------------------------------------------
+    TaInstruction Constructor/Destructor
+  ---------------------------------------------------------------------}
 
-{*****************************************************************************
-                               TaiInstruction
-*****************************************************************************}
 
-    constructor taicpu_abstract.Create(op : tasmop);
+
+    constructor Tainstruction.Create(op : tasmop);
 
       begin
          inherited create;
@@ -116,7 +104,7 @@ implementation
 
 
 
-    destructor taicpu_abstract.Destroy;
+    destructor Tainstruction.Destroy;
 
       var
         i : longint;
@@ -139,7 +127,7 @@ implementation
 
 
 
-    procedure taicpu_abstract.loadconst(opidx:longint;l:aword);
+    procedure tainstruction.loadconst(opidx:longint;l:aword);
       begin
         if opidx>=ops then
          ops:=opidx+1;
@@ -154,7 +142,7 @@ implementation
 
 
 
-    procedure taicpu_abstract.loadsymbol(opidx:longint;s:tasmsymbol;sofs:longint);
+    procedure tainstruction.loadsymbol(opidx:longint;s:tasmsymbol;sofs:longint);
       begin
         if not assigned(s) then
          internalerror(200204251);
@@ -173,7 +161,7 @@ implementation
 
 
 
-    procedure taicpu_abstract.loadref(opidx:longint;const r:treference);
+    procedure tainstruction.loadref(opidx:longint;const r:treference);
       begin
         if opidx>=ops then
          ops:=opidx+1;
@@ -197,7 +185,7 @@ implementation
 
 
 
-    procedure taicpu_abstract.loadreg(opidx:longint;r:tregister);
+    procedure tainstruction.loadreg(opidx:longint;r:tregister);
       begin
         if opidx>=ops then
          ops:=opidx+1;
@@ -212,7 +200,7 @@ implementation
 
 
 
-    procedure taicpu_abstract.loadoper(opidx:longint;o:toper);
+    procedure tainstruction.loadoper(opidx:longint;o:toper);
       begin
         if opidx>=ops then
          ops:=opidx+1;
@@ -232,13 +220,13 @@ implementation
     Miscellaneous methods.
   ---------------------------------------------------------------------}
 
-    procedure taicpu_abstract.SetCondition(const c:TAsmCond);
+    procedure tainstruction.SetCondition(const c:TAsmCond);
       begin
          condition:=c;
       end;
 
 
-    Function taicpu_abstract.getcopy:tlinkedlistitem;
+    Function tainstruction.getcopy:tlinkedlistitem;
       var
         i : longint;
         p : tlinkedlistitem;
@@ -246,64 +234,23 @@ implementation
         p:=inherited getcopy;
         { make a copy of the references }
         for i:=1 to ops do
-         if (taicpu_abstract(p).oper[i-1].typ=top_ref) then
+         if (tainstruction(p).oper[i-1].typ=top_ref) then
           begin
-            new(taicpu_abstract(p).oper[i-1].ref);
-            taicpu_abstract(p).oper[i-1].ref^:=oper[i-1].ref^;
+            new(tainstruction(p).oper[i-1].ref);
+            tainstruction(p).oper[i-1].ref^:=oper[i-1].ref^;
           end;
         getcopy:=p;
       end;
-
-{****************************************************************************
-                              tai_align_abstract
- ****************************************************************************}
-
-     constructor tai_align_abstract.Create(b: byte);
-       begin
-          inherited Create;
-          typ:=ait_align;
-          if b in [1,2,4,8,16,32] then
-            aligntype := b
-          else
-            aligntype := 1;
-          fillsize:=0;
-          fillop:=0;
-          use_op:=false;
-       end;
-
-
-     constructor tai_align_abstract.Create_op(b: byte; _op: byte);
-       begin
-          inherited Create;
-          typ:=ait_align;
-          if b in [1,2,4,8,16,32] then
-            aligntype := b
-          else
-            aligntype := 1;
-          fillsize:=0;
-          fillop:=_op;
-          use_op:=true;
-          fillchar(buf,sizeof(buf),_op)
-       end;
-
-
-     function tai_align_abstract.getfillbuf:pchar;
-       begin
-         getfillbuf:=@buf;
-       end;
 
 end.
 
 {
   $Log$
-  Revision 1.7  2002-05-14 19:34:52  peter
-    * removed old logs and updated copyright year
-
-  Revision 1.6  2002/05/14 17:28:09  peter
-    * synchronized cpubase between powerpc and i386
-    * moved more tables from cpubase to cpuasm
-    * tai_align_abstract moved to tainst, cpuasm must define
-      the tai_align class now, which may be empty
+  Revision 1.8  2002-05-16 19:46:45  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
 
   Revision 1.5  2002/04/25 20:16:39  peter
     * moved more routines from cga/n386util
@@ -318,5 +265,42 @@ end.
       (this is compatible with Kylix). This saves a lot of push/pop especially
       with string operations
     * adapted some routines to use the new cg methods
+
+  Revision 1.3  2001/12/29 16:29:08  jonas
+    * fixed stupid copy-paste bug
+
+  Revision 1.2  2001/12/29 15:28:57  jonas
+    * powerpc/cgcpu.pas compiles :)
+    * several powerpc-related fixes
+    * cpuasm unit is now based on common tainst unit
+    + nppcmat unit for powerpc (almost complete)
+
+  Revision 1.1  2001/08/26 13:36:52  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.1  2000/07/13 06:30:08  michael
+  + Initial import
+
+  Revision 1.6  2000/01/07 01:14:54  peter
+    * updated copyright to 2000
+
+  Revision 1.5  1999/09/10 18:48:11  florian
+    * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
+    * most things for stored properties fixed
+
+  Revision 1.4  1999/09/03 13:10:11  jonas
+    * condition is now zeroed using fillchar
+      because on powerpc it's a record now
+
+  Revision 1.3  1999/08/26 14:52:59  jonas
+    * added segprefix field for i386 in tainstruction object
+
+  Revision 1.2  1999/08/06 16:38:37  jonas
+    * declared getcopy virtual, since it's already declared as such
+      in cobjects.pas (FPC doesn't error on that, TP does)
+
+  Revision 1.1  1999/08/06 16:04:05  michael
+  + introduced tainstruction
 
 }

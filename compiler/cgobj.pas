@@ -27,7 +27,7 @@
 }
 unit cgobj;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
   interface
 
@@ -318,8 +318,8 @@ unit cgobj;
           { restores the frame pointer at procedure exit }
           procedure g_restore_frame_pointer(list : taasmoutput);virtual; abstract;
           procedure g_return_from_proc(list : taasmoutput;parasize : aword);virtual; abstract;
-          procedure g_call_constructor_helper(list : taasmoutput);virtual;abstract;
-          procedure g_call_destructor_helper(list : taasmoutput);virtual;abstract;
+          procedure g_call_constructor_helper(list : taasmoutput);virtual;
+          procedure g_call_destructor_helper(list : taasmoutput);virtual;
           procedure g_call_fail_helper(list : taasmoutput);virtual;abstract;
           procedure g_save_standard_registers(list : taasmoutput);virtual;abstract;
           procedure g_restore_standard_registers(list : taasmoutput);virtual;abstract;
@@ -1092,6 +1092,54 @@ unit cgobj;
 {*****************************************************************************
                             Entry/Exit Code Functions
 *****************************************************************************}
+    procedure tcg.g_call_constructor_helper(list : taasmoutput);
+     var
+      href : treference;
+      hregister : tregister;
+     begin
+        if is_class(procinfo^._class) then
+          begin
+            procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
+            { parameter 2 : self pointer  }
+            a_param_reg(list, OS_ADDR, SELF_POINTER_REG, 2);
+            { parameter 1 : vmt pointer (stored at the selfpointer address on stack)  }
+            reference_reset_base(href, procinfo^.framepointer,procinfo^.selfpointer_offset); 
+            a_param_ref(list, OS_ADDR,href,1);
+            a_call_name(list,'FPC_NEW_CLASS');
+            a_load_reg_reg(list,OS_INT,accumulator,SELF_POINTER_REG); 
+            { save the self pointer result }
+            a_load_reg_ref(list,OS_ADDR,SELF_POINTER_REG,href);
+            a_cmp_const_reg_label(list,OS_INT,OC_EQ,0,accumulator,faillabel); 
+          end
+        else if is_object(procinfo^._class) then
+          begin
+            { parameter 3 :vmt_offset     }
+            a_param_const(list, OS_32, procinfo^._class.vmt_offset, 3);
+            { parameter 2 : address of pointer to vmt }
+            {  this is the first(?) parameter which was pushed to the constructor }
+            reference_reset_base(href, procinfo^.framepointer,procinfo^.selfpointer_offset-POINTER_SIZE); 
+            hregister:=get_scratch_reg(list);
+            a_loadaddr_ref_reg(list, href, hregister);
+            a_param_reg(list, OS_INT,hregister,1);
+            free_scratch_reg(list, hregister);
+            { parameter 1 : address of self pointer   }
+            reference_reset_base(href, procinfo^.framepointer,procinfo^.selfpointer_offset); 
+            hregister:=get_scratch_reg(list);
+            a_loadaddr_ref_reg(list, href, hregister);
+            a_param_reg(list, OS_INT,hregister,1);
+            free_scratch_reg(list, hregister);
+            a_call_name(list,'FPC_HELP_CONSTRUCTOR');
+            a_load_reg_reg(list,OS_INT,accumulator,SELF_POINTER_REG); 
+            a_cmp_const_reg_label(list,OS_INT,OC_EQ,0,accumulator,faillabel); 
+          end
+        else
+          internalerror(200006161);
+     end;
+     
+     
+    procedure tcg.g_call_destructor_helper(list : taasmoutput);
+     begin
+     end;
 
     procedure tcg.g_interrupt_stackframe_entry(list : taasmoutput);
       begin
@@ -1106,6 +1154,9 @@ unit cgobj;
     procedure tcg.g_profilecode(list : taasmoutput);
       begin
       end;
+      
+      
+      
 
 
 finalization
@@ -1113,7 +1164,13 @@ finalization
 end.
 {
   $Log$
-  Revision 1.23  2002-05-14 19:34:40  peter
+  Revision 1.24  2002-05-16 19:46:35  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
+
+  Revision 1.23  2002/05/14 19:34:40  peter
     * removed old logs and updated copyright year
 
   Revision 1.22  2002/05/13 19:54:36  peter

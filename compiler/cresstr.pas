@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2002 by Michael van Canneyt
+    Copyright (c) 1998-2000 by Michael van Canneyt
 
     Handles resourcestrings
 
@@ -22,7 +22,7 @@
 }
 unit cresstr;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 interface
 
@@ -292,7 +292,41 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  2002-05-14 19:34:40  peter
-    * removed old logs and updated copyright year
+  Revision 1.12  2002-05-16 19:46:35  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
+
+  Revision 1.10  2001/04/13 01:22:07  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.9  2001/02/24 10:44:55  peter
+    * generate .rst from ppufilename instead of modulename
+
+  Revision 1.8  2000/12/25 00:07:25  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.7  2000/11/13 14:44:35  jonas
+    * fixes so no more range errors with improved range checking code
+
+  Revision 1.6  2000/09/24 15:06:14  peter
+    * use defines.inc
+
+  Revision 1.5  2000/08/27 16:11:50  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.4  2000/08/15 09:45:29  michael
+  + Merged changes in fixbranch
+
+  Revision 1.1.2.1  2000/08/15 09:41:56  michael
+  + Fix to write rst file in output directory of module
+
+  Revision 1.1  2000/07/13 06:29:48  michael
+  + Initial import
 
 }

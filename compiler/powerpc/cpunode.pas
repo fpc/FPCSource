@@ -22,7 +22,7 @@
 }
 unit cpunode;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
   interface
 
@@ -47,13 +47,55 @@ unit cpunode;
 end.
 {
   $Log$
-  Revision 1.3  2002-05-14 19:35:01  peter
-    * removed old logs and updated copyright year
+  Revision 1.4  2002-05-16 19:46:53  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
 
   Revision 1.2  2002/05/13 19:52:46  peter
     * a ppcppc can be build again
 
   Revision 1.1  2002/04/06 18:13:02  jonas
     * several powerpc-related additions and fixes
+
+  Revision 1.6  2001/09/29 21:32:47  jonas
+    * almost all second pass typeconvnode helpers are now processor independent
+    * fixed converting boolean to int64/qword
+    * fixed register allocation bugs which could cause internalerror 10
+    * isnode and asnode are completely processor indepent now as well
+    * fpc_do_as now returns its class argument (necessary to be able to use it
+      properly with compilerproc)
+
+  Revision 1.5  2001/09/28 20:39:33  jonas
+    * changed all flow control structures (except for exception handling
+      related things) to processor independent code (in new ncgflw unit)
+    + generic cgobj unit which contains lots of code generator helpers with
+      global "cg" class instance variable
+    + cgcpu unit for i386 (implements processor specific routines of the above
+      unit)
+    * updated cgbase and cpubase for the new code generator units
+    * include ncgflw unit in cpunode unit
+
+  Revision 1.4  2001/05/18 22:31:06  peter
+    * tasmnode.pass_2 is independent of cpu, moved to ncgbas
+    * include ncgbas for independent nodes
+
+  Revision 1.3  2001/04/21 13:37:17  peter
+    * made tclassheader using class of to implement cpu dependent code
+
+  Revision 1.2  2000/12/31 11:14:11  jonas
+    + implemented/fixed docompare() mathods for all nodes (not tested)
+    + nopt.pas, nadd.pas, i386/n386opt.pas: optimized nodes for adding strings
+      and constant strings/chars together
+    * n386add.pas: don't copy temp strings (of size 256) to another temp string
+      when adding
+
+  Revision 1.1  2000/10/15 09:39:37  peter
+    * moved cpu*.pas to i386/
+    * renamed n386 to common cpunode
+
+  Revision 1.1  2000/10/14 10:14:47  peter
+    * moehrendorf oct 2000 rewrite
 
 }

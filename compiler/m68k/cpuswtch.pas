@@ -21,7 +21,7 @@
 
 unit cpuswtch;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 interface
 
@@ -74,7 +74,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-11-30 22:41:55  florian
+  Revision 1.2  2002-05-16 19:46:52  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
+
+  Revision 1.1  2000/11/30 22:41:55  florian
   * renamed
 
   Revision 1.1  2000/11/30 22:22:50  florian

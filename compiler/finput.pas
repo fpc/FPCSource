@@ -22,7 +22,7 @@
 }
 unit finput;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 interface
 
@@ -122,7 +122,7 @@ interface
           modulename,               { name of the module in uppercase }
           realmodulename,           { name of the module in the orignal case }
           objfilename,              { fullname of the objectfile }
-          asmfilename,              { fullname of the assemblerfile }
+          newfilename,              { fullname of the assemblerfile }
           ppufilename,              { fullname of the ppufile }
           staticlibfilename,        { fullname of the static libraryfile }
           sharedlibfilename,        { fullname of the shared libraryfile }
@@ -131,6 +131,7 @@ interface
           constructor create(const s:string);
           destructor destroy;override;
           procedure setfilename(const fn:string;allowoutput:boolean);
+          function get_asmfilename : string;
        end;
 
 
@@ -599,7 +600,7 @@ uses
         e : ExtStr;
       begin
          stringdispose(objfilename);
-         stringdispose(asmfilename);
+         stringdispose(newfilename);
          stringdispose(ppufilename);
          stringdispose(staticlibfilename);
          stringdispose(sharedlibfilename);
@@ -622,8 +623,8 @@ uses
               p:=OutputExeDir;
           end;
          outputpath:=stringdup(p);
+         newfilename := stringdup(n);
          objfilename:=stringdup(p+n+target_info.objext);
-         asmfilename:=stringdup(p+n+target_info.asmext);
          ppufilename:=stringdup(p+n+target_info.unitext);
          { lib and exe could be loaded with a file specified with -o }
          if AllowOutput and (OutputFile<>'') and (compile_level=1) then
@@ -649,7 +650,7 @@ uses
         mainsource:=nil;
         ppufilename:=nil;
         objfilename:=nil;
-        asmfilename:=nil;
+        newfilename:=nil;
         staticlibfilename:=nil;
         sharedlibfilename:=nil;
         exefilename:=nil;
@@ -665,13 +666,18 @@ uses
       end;
 
 
+    function tmodulebase.get_asmfilename : string;
+     begin
+         get_asmfilename:=outputpath^+newfilename^+target_info.asmext;
+     end;    
+
     destructor tmodulebase.destroy;
       begin
         if assigned(sourcefiles) then
          sourcefiles.free;
         sourcefiles:=nil;
         stringdispose(objfilename);
-        stringdispose(asmfilename);
+        stringdispose(newfilename);
         stringdispose(ppufilename);
         stringdispose(staticlibfilename);
         stringdispose(sharedlibfilename);
@@ -687,7 +693,13 @@ uses
 end.
 {
   $Log$
-  Revision 1.13  2002-05-14 19:34:41  peter
+  Revision 1.14  2002-05-16 19:46:36  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
+
+  Revision 1.13  2002/05/14 19:34:41  peter
     * removed old logs and updated copyright year
 
   Revision 1.12  2002/04/04 18:34:00  carl

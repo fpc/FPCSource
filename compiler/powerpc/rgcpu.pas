@@ -24,7 +24,7 @@
 
 unit rgcpu;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
   interface
 
@@ -71,7 +71,13 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-04-06 18:13:02  jonas
+  Revision 1.2  2002-05-16 19:46:53  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
+
+  Revision 1.1  2002/04/06 18:13:02  jonas
     * several powerpc-related additions and fixes
 
 }

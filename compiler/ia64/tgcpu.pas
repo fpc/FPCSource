@@ -21,7 +21,7 @@
 }
 unit tgcpu;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 interface
 
@@ -393,7 +393,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2002-04-20 21:38:45  carl
+  Revision 1.3  2002-05-16 19:46:52  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
+
+  Revision 1.2  2002/04/20 21:38:45  carl
   * renamed some constants
 
   Revision 1.1  2000/12/31 16:54:19  florian

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2002 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Parses variable declarations. Used for var statement and record
     definitions
@@ -23,7 +23,7 @@
 }
 unit pdecvar;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 interface
 
@@ -577,10 +577,91 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  2002-05-14 19:34:49  peter
-    * removed old logs and updated copyright year
+  Revision 1.25  2002-05-16 19:46:43  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
 
   Revision 1.23  2002/04/21 18:57:24  peter
     * fixed memleaks when file can't be opened
+
+  Revision 1.22  2001/11/20 18:48:26  peter
+    * fixed initialized variables
+
+  Revision 1.21  2001/10/23 21:49:42  peter
+    * $calling directive and -Cc commandline patch added
+      from Pavel Ozerski
+
+  Revision 1.20  2001/09/30 21:15:48  peter
+    * merged absolute support for constants
+
+  Revision 1.19  2001/08/30 20:13:53  peter
+    * rtti/init table updates
+    * rttisym for reusable global rtti/init info
+    * support published for interfaces
+
+  Revision 1.18  2001/07/01 20:16:16  peter
+    * alignmentinfo record added
+    * -Oa argument supports more alignment settings that can be specified
+      per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN
+      RECORDMAX,LOCALMIN,LOCALMAX. It is possible to set the mimimum
+      required alignment and the maximum usefull alignment. The final
+      alignment will be choosen per variable size dependent on these
+      settings
+
+  Revision 1.17  2001/06/03 21:57:36  peter
+    + hint directive parsing support
+
+  Revision 1.16  2001/04/18 22:01:57  peter
+    * registration of targets and assemblers
+
+  Revision 1.15  2001/04/13 01:22:12  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.14  2001/04/04 22:43:52  peter
+    * remove unnecessary calls to firstpass
+
+  Revision 1.13  2001/04/04 21:30:45  florian
+    * applied several fixes to get the DD8 Delphi Unit compiled
+     e.g. "forward"-interfaces are working now
+
+  Revision 1.12  2001/04/02 21:20:33  peter
+    * resulttype rewrite
+
+  Revision 1.11  2001/03/11 22:58:50  peter
+    * getsym redesign, removed the globals srsym,srsymtable
+
+  Revision 1.10  2001/03/06 18:28:02  peter
+    * patch from Pavel with a new and much faster DLL Scanner for
+      automatic importing so $linklib works for DLLs. Thanks Pavel!
+
+  Revision 1.9  2001/02/20 21:42:54  peter
+    * record and object declaration with same field as type fixed
+
+  Revision 1.7  2001/02/20 11:19:45  marco
+   * Fix passing tvarrec to array of const
+
+  Revision 1.6  2000/12/25 00:07:27  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.5  2000/12/17 14:00:18  peter
+    * fixed static variables
+
+  Revision 1.4  2000/11/29 00:30:36  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.3  2000/11/04 14:25:20  florian
+    + merged Attila's changes for interfaces, not tested yet
+
+  Revision 1.2  2000/10/31 22:02:49  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.1  2000/10/14 10:14:51  peter
+    * moehrendorf oct 2000 rewrite
 
 }

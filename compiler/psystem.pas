@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2002 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Load the system unit, create required defs for systemunit
 
@@ -22,7 +22,7 @@
 }
 unit psystem;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 interface
 uses
@@ -276,8 +276,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.24  2002-05-14 19:34:49  peter
-    * removed old logs and updated copyright year
+  Revision 1.25  2002-05-16 19:46:44  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
 
   Revision 1.23  2002/05/12 16:53:09  peter
     * moved entry and exitcode to ncgutil and cgobj
@@ -310,5 +313,89 @@ end.
     * is_in_limit() moved from ncal to types unit, should always be used
       instead of direct comparisons of low/high values of orddefs because
       qword is a special case
+
+  Revision 1.21  2001/11/18 18:43:14  peter
+    * overloading supported in child classes
+    * fixed parsing of classes with private and virtual and overloaded
+      so it is compatible with delphi
+
+  Revision 1.20  2001/10/24 11:51:39  marco
+   * Make new/dispose system functions instead of keywords
+
+  Revision 1.19  2001/08/30 20:13:53  peter
+    * rtti/init table updates
+    * rttisym for reusable global rtti/init info
+    * support published for interfaces
+
+  Revision 1.18  2001/07/30 20:59:27  peter
+    * m68k updates from v10 merged
+
+  Revision 1.17  2001/07/09 21:15:41  peter
+    * Length made internal
+    * Add array support for Length
+
+  Revision 1.16  2001/05/09 19:58:45  peter
+    * m68k doesn't support double (merged)
+
+  Revision 1.15  2001/04/13 01:22:13  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.14  2001/04/02 21:20:34  peter
+    * resulttype rewrite
+
+  Revision 1.13  2001/03/25 12:40:00  florian
+    * cwidechar was loaded with a chardef, fixed
+
+  Revision 1.12  2001/03/22 00:10:58  florian
+    + basic variant type support in the compiler
+
+  Revision 1.11  2000/12/07 17:19:43  jonas
+    * new constant handling: from now on, hex constants >$7fffffff are
+      parsed as unsigned constants (otherwise, $80000000 got sign extended
+      and became $ffffffff80000000), all constants in the longint range
+      become longints, all constants >$7fffffff and <=cardinal($ffffffff)
+      are cardinals and the rest are int64's.
+    * added lots of longint typecast to prevent range check errors in the
+      compiler and rtl
+    * type casts of symbolic ordinal constants are now preserved
+    * fixed bug where the original resulttype.def wasn't restored correctly
+      after doing a 64bit rangecheck
+
+  Revision 1.10  2000/11/29 00:30:38  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.9  2000/11/09 17:46:56  florian
+    * System.TypeInfo fixed
+    + System.Finalize implemented
+    + some new keywords for interface support added
+
+  Revision 1.8  2000/10/31 22:02:51  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.7  2000/10/21 18:16:12  florian
+    * a lot of changes:
+       - basic dyn. array support
+       - basic C++ support
+       - some work for interfaces done
+       ....
+
+  Revision 1.6  2000/10/14 10:14:52  peter
+    * moehrendorf oct 2000 rewrite
+
+  Revision 1.5  2000/09/24 15:06:24  peter
+    * use defines.inc
+
+  Revision 1.4  2000/08/27 20:19:39  peter
+    * store strings with case in ppu, when an internal symbol is created
+      a '$' is prefixed so it's not automatic uppercased
+
+  Revision 1.3  2000/08/16 13:06:06  florian
+    + support of 64 bit integer constants
+
+  Revision 1.2  2000/07/13 11:32:47  michael
+  + removed logs
 
 }

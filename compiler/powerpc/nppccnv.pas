@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2002 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Generate PowerPC assembler for type converting nodes
 
@@ -22,7 +22,7 @@
 }
 unit nppccnv;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 interface
 
@@ -456,10 +456,30 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2002-05-14 19:35:01  peter
-    * removed old logs and updated copyright year
+  Revision 1.7  2002-05-16 19:46:53  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
 
   Revision 1.5  2002/04/06 18:13:02  jonas
     * several powerpc-related additions and fixes
+
+  Revision 1.4  2001/12/29 15:28:58  jonas
+    * powerpc/cgcpu.pas compiles :)
+    * several powerpc-related fixes
+    * cpuasm unit is now based on common tainst unit
+    + nppcmat unit for powerpc (almost complete)
+
+  Revision 1.3  2001/10/28 14:17:10  jonas
+    + second_int_to_real for cardinal, int64 and qword
+
+  Revision 1.2  2001/10/01 12:17:26  jonas
+    + implemented second_int_to_real
+    * fixed small bug in second_int_to_int
+
+  Revision 1.1  2001/09/29 21:33:12  jonas
+    + implemented in_to_bool and int_to_int (+ helper in nppcutil)
+
 
 }

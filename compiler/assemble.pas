@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2002 by Peter Vreman
+    Copyright (c) 1998-2000 by Peter Vreman
 
     This unit handles the assemblerfile write and assembler calls of FPC
 
@@ -27,7 +27,7 @@
 }
 unit assemble;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 interface
 
@@ -56,6 +56,8 @@ interface
         name     : namestr;
         asmfile,         { current .s and .o file }
         objfile  : string;
+        ppufilename : string;
+        asmprefix : string;
         SmartAsm : boolean;
         SmartFilesCount,
         SmartHeaderCount : longint;
@@ -199,10 +201,15 @@ Implementation
     Constructor TAssembler.Create(smart:boolean);
       begin
       { load start values }
-        asmfile:=current_module.asmfilename^;
+        asmfile:=current_module.get_asmfilename;
         objfile:=current_module.objfilename^;
         name:=Lower(current_module.modulename^);
         path:=current_module.outputpath^;
+        asmprefix := current_module.asmprefix^;
+        if not assigned(current_module.outputpath) then
+          ppufilename := ''
+        else  
+          ppufilename := current_module.ppufilename^;
         SmartAsm:=smart;
         SmartFilesCount:=0;
         SmartHeaderCount:=0;
@@ -226,12 +233,12 @@ Implementation
           cut_begin :
             begin
               inc(SmartHeaderCount);
-              s:=current_module.asmprefix^+tostr(SmartHeaderCount)+'h';
+              s:=asmprefix+tostr(SmartHeaderCount)+'h';
             end;
           cut_normal :
-            s:=current_module.asmprefix^+tostr(SmartHeaderCount)+'s';
+            s:=asmprefix+tostr(SmartHeaderCount)+'s';
           cut_end :
-            s:=current_module.asmprefix^+tostr(SmartHeaderCount)+'t';
+            s:=asmprefix+tostr(SmartHeaderCount)+'t';
         end;
         AsmFile:=Path+FixFileName(s+tostr(SmartFilesCount)+target_info.asmext);
         ObjFile:=Path+FixFileName(s+tostr(SmartFilesCount)+target_info.objext);
@@ -263,7 +270,7 @@ Implementation
         inherited Create(smart);
         if SmartAsm then
          begin
-           path:=FixPath(current_module.outputpath^+FixFileName(current_module.modulename^)+target_info.smartext,false);
+           path:=FixPath(path+FixFileName(name)+target_info.smartext,false);
            CreateSmartLinkPath(path);
          end;
         Outcnt:=0;
@@ -537,9 +544,9 @@ Implementation
       {$endif}
          begin
          {Touch Assembler time to ppu time is there is a ppufilename}
-           if Assigned(current_module.ppufilename) then
+           if ppufilename<>'' then
             begin
-              Assign(f,current_module.ppufilename^);
+              Assign(f,ppufilename);
               {$I-}
                reset(f,1);
               {$I+}
@@ -1581,8 +1588,11 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.34  2002-05-14 19:34:40  peter
-    * removed old logs and updated copyright year
+  Revision 1.35  2002-05-16 19:46:35  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
 
   Revision 1.33  2002/04/10 08:07:55  jonas
     * fix for the ie9999 under Linux (patch from Peter)
@@ -1604,5 +1614,110 @@ end.
       (this is compatible with Kylix). This saves a lot of push/pop especially
       with string operations
     * adapted some routines to use the new cg methods
+
+  Revision 1.29  2001/11/06 14:53:48  jonas
+    * compiles again with -dmemdebug
+
+  Revision 1.28  2001/09/18 11:30:47  michael
+  * Fixes win32 linking problems with import libraries
+  * LINKLIB Libraries are now looked for using C file extensions
+  * get_exepath fix
+
+  Revision 1.27  2001/09/17 21:29:10  peter
+    * merged netbsd, fpu-overflow from fixes branch
+
+  Revision 1.26  2001/08/30 20:57:09  peter
+    * asbsd merged
+
+  Revision 1.25  2001/08/30 19:43:50  peter
+    * detect duplicate labels
+
+  Revision 1.24  2001/08/26 13:36:35  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.23  2001/08/07 18:47:12  peter
+    * merged netbsd start
+    * profile for win32
+
+  Revision 1.22  2001/07/01 20:16:15  peter
+    * alignmentinfo record added
+    * -Oa argument supports more alignment settings that can be specified
+      per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN
+      RECORDMAX,LOCALMIN,LOCALMAX. It is possible to set the mimimum
+      required alignment and the maximum usefull alignment. The final
+      alignment will be choosen per variable size dependent on these
+      settings
+
+  Revision 1.21  2001/06/18 20:36:23  peter
+    * -Ur switch (merged)
+    * masm fixes (merged)
+    * quoted filenames for go32v2 and win32
+
+  Revision 1.20  2001/06/13 18:31:57  peter
+    * smartlink with dll fixed (merged)
+
+  Revision 1.19  2001/04/21 15:34:49  peter
+    * used target_asm.id instead of target_info.assem
+
+  Revision 1.18  2001/04/18 22:01:53  peter
+    * registration of targets and assemblers
+
+  Revision 1.17  2001/04/13 01:22:06  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.16  2001/03/13 18:42:39  peter
+    * don't create temporary smartlink dir for internalassembler
+
+  Revision 1.15  2001/03/05 21:39:11  peter
+    * changed to class with common TAssembler also for internal assembler
+
+  Revision 1.14  2001/02/26 08:08:16  michael
+  * bug correction: pipes must be closed by pclose (not close);
+    There was too many not closed processes under Linux before patch.
+    Test this by making a compiler under Linux with command
+      OPT="-P" make
+    and check a list of processes in another shell with
+      ps -xa
+
+  Revision 1.13  2001/02/20 21:36:39  peter
+    * tasm/masm fixes merged
+
+  Revision 1.12  2001/02/09 23:06:17  peter
+    * fixed uninited var
+
+  Revision 1.11  2001/02/05 20:46:59  peter
+    * support linux unit for ver1_0 compilers
+
+  Revision 1.10  2001/01/21 20:32:45  marco
+   * Renamefest. Compiler part. Not that hard.
+
+  Revision 1.9  2001/01/12 19:19:44  peter
+    * fixed searching for utils
+
+  Revision 1.8  2000/12/25 00:07:25  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.7  2000/11/13 15:26:12  marco
+   * Renamefest
+
+  Revision 1.6  2000/10/01 19:48:23  peter
+    * lot of compile updates for cg11
+
+  Revision 1.5  2000/09/24 15:06:11  peter
+    * use defines.inc
+
+  Revision 1.4  2000/08/27 16:11:49  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.3  2000/07/13 12:08:24  michael
+  + patched to 1.1.0 with former 1.09patch from peter
+
+  Revision 1.2  2000/07/13 11:32:32  michael
+  + removed logs
 
 }

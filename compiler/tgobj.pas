@@ -28,7 +28,7 @@
 
 unit tgobj;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
   interface
 
@@ -211,16 +211,13 @@ unit tgobj;
     procedure ttgobj.setfirsttemp(l : longint);
       begin
          { this is a negative value normally }
-         if l < 0 then
+         if l <= 0 then
           Begin
             if odd(l) then
              Dec(l);
           end
          else
-          Begin
-            if odd(l) then
-             Inc(l);
-          end;
+           internalerror(20020422);
          firsttemp:=l;
          lasttemp:=l;
       end;
@@ -370,7 +367,14 @@ unit tgobj;
         _align:=target_info.alignment.localalignmin;
         if _align<4 then
           _align:=4;
+{$ifdef testtemp}   
+        if firsttemp <> lasttemp then
+           gettempsize:=Align(-(lasttemp-firsttemp),_align)
+        else
+           gettempsize := 0;
+{$else}
         gettempsize:=Align(-lasttemp,_align);
+{$endif}
       end;
 
 
@@ -677,7 +681,13 @@ finalization
 end.
 {
   $Log$
-  Revision 1.7  2002-05-14 19:34:52  peter
+  Revision 1.8  2002-05-16 19:46:45  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
+
+  Revision 1.7  2002/05/14 19:34:52  peter
     * removed old logs and updated copyright year
 
   Revision 1.6  2002/04/15 19:08:22  carl

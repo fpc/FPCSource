@@ -22,7 +22,7 @@
 }
 unit n386add;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 interface
 
@@ -1572,8 +1572,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.37  2002-05-14 19:34:59  peter
-    * removed old logs and updated copyright year
+  Revision 1.38  2002-05-16 19:46:51  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
 
   Revision 1.36  2002/05/13 19:54:37  peter
     * removed n386ld and n386util units
@@ -1620,4 +1623,155 @@ end.
   Revision 1.29  2002/03/04 19:10:13  peter
     * removed compiler warnings
 
+  Revision 1.28  2001/12/30 17:24:46  jonas
+    * range checking is now processor independent (part in cgobj,
+      part in cg64f32) and should work correctly again (it needed
+      some changes after the changes of the low and high of
+      tordef's to int64)
+    * maketojumpbool() is now processor independent (in ncgutil)
+    * getregister32 is now called :=rg.getregisterint(exprasmlist);
+
+  Revision 1.27  2001/12/29 15:29:58  jonas
+    * powerpc/cgcpu.pas compiles :)
+    * several powerpc-related fixes
+    * cpuasm unit is now based on common tainst unit
+    + nppcmat unit for powerpc (almost complete)
+
+  Revision 1.25  2001/10/12 13:51:51  jonas
+    * fixed internalerror(10) due to previous fpu overflow fixes ("merged")
+    * fixed bug in n386add (introduced after compilerproc changes for string
+      operations) where calcregisters wasn't called for shortstring addnodes
+    * NOTE: from now on, the location of a binary node must now always be set
+       before you call calcregisters() for it
+
+  Revision 1.24  2001/09/17 21:29:13  peter
+    * merged netbsd, fpu-overflow from fixes branch
+
+  Revision 1.23  2001/09/05 15:22:09  jonas
+    * made multiplying, dividing and mod'ing of int64 and qword processor
+      independent with compilerprocs (+ small optimizations by using shift/and
+      where possible)
+
+  Revision 1.22  2001/09/04 11:38:55  jonas
+    + searchsystype() and searchsystype() functions in symtable
+    * changed ninl and nadd to use these functions
+    * i386 set comparison functions now return their results in al instead
+      of in the flags so that they can be sued as compilerprocs
+    - removed all processor specific code from n386add.pas that has to do
+      with set handling, it's now all done in nadd.pas
+    * fixed fpc_set_contains_sets in genset.inc
+    * fpc_set_in_byte is now coded inline in n386set.pas and doesn't use a
+      helper anymore
+    * some small fixes in compproc.inc/set.inc regarding the declaration of
+      internal helper types (fpc_small_set and fpc_normal_set)
+
+  Revision 1.21  2001/09/03 13:27:42  jonas
+    * compilerproc implementation of set addition/substraction/...
+    * changed the declaration of some set helpers somewhat to accomodate the
+      above change
+    * i386 still uses the old code for comparisons of sets, because its
+      helpers return the results in the flags
+    * dummy tc_normal_2_small_set type conversion because I need the original
+      resulttype of the set add nodes
+    NOTE: you have to start a cycle with 1.0.5!
+
+  Revision 1.20  2001/08/30 15:43:14  jonas
+    * converted adding/comparing of strings to compileproc. Note that due
+      to the way the shortstring helpers for i386 are written, they are
+      still handled by the old code (reason: fpc_shortstr_compare returns
+      results in the flags instead of in eax and fpc_shortstr_concat
+      has wierd parameter conventions). The compilerproc stuff should work
+      fine with the generic implementations though.
+    * removed some nested comments warnings
+
+  Revision 1.19  2001/08/29 17:50:45  jonas
+    * removed unused var
+
+  Revision 1.18  2001/08/29 12:03:23  jonas
+    * fixed wrong regalloc info around FPC_MUL/DIV/MOD_INT64/QWORD calls
+    * fixed partial result overwriting with the above calls too
+
+  Revision 1.17  2001/08/26 13:36:55  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.16  2001/07/08 21:00:16  peter
+    * various widestring updates, it works now mostly without charset
+      mapping supported
+
+  Revision 1.15  2001/06/25 14:11:37  jonas
+    * fixed set bug discovered by Carl (merged)
+
+  Revision 1.14  2001/06/18 20:36:25  peter
+    * -Ur switch (merged)
+    * masm fixes (merged)
+    * quoted filenames for go32v2 and win32
+
+  Revision 1.13  2001/05/27 14:30:56  florian
+    + some widestring stuff added
+
+  Revision 1.12  2001/05/06 17:12:14  jonas
+    * fixed an IE10 and another bug with [var1..var2] construct
+
+  Revision 1.11  2001/04/13 01:22:18  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.10  2001/04/02 21:20:36  peter
+    * resulttype rewrite
+
+  Revision 1.9  2000/12/31 11:14:11  jonas
+    + implemented/fixed docompare() mathods for all nodes (not tested)
+    + nopt.pas, nadd.pas, i386/n386opt.pas: optimized nodes for adding strings
+      and constant strings/chars together
+    * n386add.pas: don't copy temp strings (of size 256) to another temp string
+      when adding
+
+  Revision 1.8  2000/12/25 00:07:32  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.7  2000/12/16 15:56:18  jonas
+    - removed all ifdef cardinalmulfix code
+
+  Revision 1.6  2000/12/05 11:44:32  jonas
+    + new integer regvar handling, should be much more efficient
+
+  Revision 1.5  2000/11/29 00:30:45  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.4  2000/11/13 11:30:56  florian
+    * some bugs with interfaces and NIL fixed
+
+  Revision 1.3  2000/11/04 14:25:23  florian
+    + merged Attila's changes for interfaces, not tested yet
+
+  Revision 1.2  2000/10/31 22:02:56  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.1  2000/10/15 09:33:31  peter
+    * moved n386*.pas to i386/ cpu_target dir
+
+  Revision 1.6  2000/10/14 10:14:47  peter
+    * moehrendorf oct 2000 rewrite
+
+  Revision 1.5  2000/09/30 16:08:45  peter
+    * more cg11 updates
+
+  Revision 1.4  2000/09/24 15:06:18  peter
+    * use defines.inc
+
+  Revision 1.3  2000/09/22 22:42:52  florian
+    * more fixes
+
+  Revision 1.2  2000/09/21 12:24:22  jonas
+    * small fix to my changes for full boolean evaluation support (moved
+      opsize determination for boolean operations back in boolean
+      processing block)
+    + full boolean evaluation support (from cg386add)
+
+  Revision 1.1  2000/09/20 21:23:32  florian
+    * initial revision
 }

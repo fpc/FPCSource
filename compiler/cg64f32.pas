@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2002 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
     Member of the Free Pascal development team
 
     This unit implements the code generation for 64 bit int
@@ -28,7 +28,7 @@
 }
 unit cg64f32;
 
-  {$i defines.inc}
+  {$i fpcdefs.inc}
 
   interface
 
@@ -591,8 +591,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2002-05-14 19:34:40  peter
-    * removed old logs and updated copyright year
+  Revision 1.12  2002-05-16 19:46:35  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
 
   Revision 1.10  2002/05/12 16:53:04  peter
     * moved entry and exitcode to ncgutil and cgobj
@@ -651,5 +654,25 @@ end.
     * is_in_limit() moved from ncal to types unit, should always be used
       instead of direct comparisons of low/high values of orddefs because
       qword is a special case
+
+  Revision 1.2  2001/12/30 17:24:48  jonas
+    * range checking is now processor independent (part in cgobj,
+      part in cg64f32) and should work correctly again (it needed
+      some changes after the changes of the low and high of
+      tordef's to int64)
+    * maketojumpbool() is now processor independent (in ncgutil)
+    * getregister32 is now called getregisterint
+
+  Revision 1.1  2001/12/29 15:29:58  jonas
+    * powerpc/cgcpu.pas compiles :)
+    * several powerpc-related fixes
+    * cpuasm unit is now based on common tainst unit
+    + nppcmat unit for powerpc (almost complete)
+
+  Revision 1.1  2000/07/13 06:30:07  michael
+  + Initial import
+
+  Revision 1.1  2000/03/01 15:36:13  florian
+    * some new stuff for the new cg
 
 }

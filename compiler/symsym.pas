@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2002 by Florian Klaempfl, Pierre Muller
+    Copyright (c) 1998-2000 by Florian Klaempfl, Pierre Muller
 
     Implementation for the symbols types of the symtable
 
@@ -21,7 +21,7 @@
 }
 unit symsym;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 interface
 
@@ -2517,8 +2517,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.37  2002-05-14 19:34:51  peter
-    * removed old logs and updated copyright year
+  Revision 1.38  2002-05-16 19:46:45  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
 
   Revision 1.36  2002/05/12 16:53:15  peter
     * moved entry and exitcode to ncgutil and cgobj
@@ -2558,5 +2561,117 @@ end.
 
   Revision 1.31  2002/02/03 09:30:04  peter
     * more fixes for protected handling
+
+  Revision 1.30  2001/12/31 16:59:43  peter
+    * protected/private symbols parsing fixed
+
+  Revision 1.29  2001/12/03 21:48:42  peter
+    * freemem change to value parameter
+    * torddef low/high range changed to int64
+
+  Revision 1.28  2001/11/30 16:25:35  jonas
+    * fixed web bug 1707:
+       * tvarsym.getvaluesize doesn't return 0 anymore for dynarrays (found
+         by Florian)
+       * in genrtti, some more ppointer(data)^ tricks were necessary
+
+  Revision 1.27  2001/11/18 18:43:16  peter
+    * overloading supported in child classes
+    * fixed parsing of classes with private and virtual and overloaded
+      so it is compatible with delphi
+
+  Revision 1.26  2001/11/02 22:58:08  peter
+    * procsym definition rewrite
+
+  Revision 1.25  2001/10/25 21:22:40  peter
+    * calling convention rewrite
+
+  Revision 1.24  2001/10/23 21:49:43  peter
+    * $calling directive and -Cc commandline patch added
+      from Pavel Ozerski
+
+  Revision 1.23  2001/10/20 20:30:21  peter
+    * read only typed const support, switch $J-
+
+  Revision 1.22  2001/09/19 11:04:42  michael
+  * Smartlinking with interfaces fixed
+  * Better smartlinking for rtti and init tables
+
+  Revision 1.21  2001/09/02 21:18:29  peter
+    * split constsym.value in valueord,valueordptr,valueptr. The valueordptr
+      is used for holding target platform pointer values. As those can be
+      bigger than the source platform.
+
+  Revision 1.20  2001/08/30 20:13:54  peter
+    * rtti/init table updates
+    * rttisym for reusable global rtti/init info
+    * support published for interfaces
+
+  Revision 1.19  2001/08/26 13:36:50  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.18  2001/08/19 09:39:28  peter
+    * local browser support fixed
+
+  Revision 1.16  2001/08/12 20:00:26  peter
+    * don't write fpuregable for varoptions
+
+  Revision 1.15  2001/08/06 21:40:48  peter
+    * funcret moved from tprocinfo to tprocdef
+
+  Revision 1.14  2001/07/01 20:16:17  peter
+    * alignmentinfo record added
+    * -Oa argument supports more alignment settings that can be specified
+      per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN
+      RECORDMAX,LOCALMIN,LOCALMAX. It is possible to set the mimimum
+      required alignment and the maximum usefull alignment. The final
+      alignment will be choosen per variable size dependent on these
+      settings
+
+  Revision 1.13  2001/05/08 21:06:32  florian
+    * some more support for widechars commited especially
+      regarding type casting and constants
+
+  Revision 1.12  2001/05/06 14:49:17  peter
+    * ppu object to class rewrite
+    * move ppu read and write stuff to fppu
+
+  Revision 1.11  2001/04/18 22:01:59  peter
+    * registration of targets and assemblers
+
+  Revision 1.10  2001/04/13 01:22:16  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.9  2001/04/02 21:20:35  peter
+    * resulttype rewrite
+
+  Revision 1.8  2001/03/11 22:58:51  peter
+    * getsym redesign, removed the globals srsym,srsymtable
+
+  Revision 1.7  2000/12/25 00:07:30  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.6  2000/11/28 00:25:17  pierre
+   + use int64tostr function for integer consts
+
+  Revision 1.5  2000/11/13 14:44:35  jonas
+    * fixes so no more range errors with improved range checking code
+
+  Revision 1.4  2000/11/08 23:15:17  florian
+    * tprocdef.procsym must be set also when a tprocdef is loaded from a PPU
+
+  Revision 1.3  2000/11/06 23:13:53  peter
+    * uppercase manglednames
+
+  Revision 1.2  2000/11/01 23:04:38  peter
+    * tprocdef.fullprocname added for better casesensitve writing of
+      procedures
+
+  Revision 1.1  2000/10/31 22:02:52  peter
+    * symtable splitted, no real code changes
 
 }

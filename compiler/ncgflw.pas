@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2002 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Generate assembler for nodes that influence the flow which are
     the same for all (most?) processors
@@ -23,7 +23,7 @@
 }
 unit ncgflw;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 interface
 
@@ -611,8 +611,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2002-05-14 19:34:42  peter
-    * removed old logs and updated copyright year
+  Revision 1.17  2002-05-16 19:46:37  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
 
   Revision 1.15  2002/05/13 19:54:37  peter
     * removed n386ld and n386util units
@@ -681,6 +684,57 @@ end.
 
   Revision 1.8  2002/03/04 19:10:11  peter
     * removed compiler warnings
+
+  Revision 1.7  2001/12/30 17:24:48  jonas
+    * range checking is now processor independent (part in cgobj,
+      part in cg64f32) and should work correctly again (it needed
+      some changes after the changes of the low and high of
+      tordef's to int64)
+    * maketojumpbool() is now processor independent (in ncgutil)
+    * getregister32 is now called getregisterint
+
+  Revision 1.6  2001/12/29 15:28:57  jonas
+    * powerpc/cgcpu.pas compiles :)
+    * several powerpc-related fixes
+    * cpuasm unit is now based on common tainst unit
+    + nppcmat unit for powerpc (almost complete)
+
+  Revision 1.4  2001/11/02 22:58:01  peter
+    * procsym definition rewrite
+
+  Revision 1.3  2001/10/04 14:33:28  jonas
+    * fixed range check errors
+
+  Revision 1.2  2001/09/30 16:19:58  jonas
+    - removed unused units
+
+  Revision 1.1  2001/09/28 20:39:33  jonas
+    * changed all flow control structures (except for exception handling
+      related things) to processor independent code (in new ncgflw unit)
+    + generic cgobj unit which contains lots of code generator helpers with
+      global "cg" class instance variable
+    + cgcpu unit for i386 (implements processor specific routines of the above
+      unit)
+    * updated cgbase and cpubase for the new code generator units
+    * include ncgflw unit in cpunode unit
+
+  Revision 1.4  2001/09/09 17:10:25  jonas
+    * some more things implemented
+
+  Revision 1.3  2001/09/06 15:25:55  jonas
+    * changed type of tcg from object to class ->  abstract methods are now
+      a lot cleaner :)
+    + more updates: load_*_loc methods, op_*_* methods, g_flags2reg method
+      (if possible with geenric implementation and necessary ppc
+       implementations)
+    * worked a bit further on cgflw, now working on exitnode
+
+  Revision 1.2  2001/09/05 20:21:03  jonas
+    * new cgflow based on n386flw with all nodes until forn "translated"
+    + a_cmp_*_loc_label methods for tcg
+    + base implementatino for a_cmp_ref_*_label methods
+    * small bugfixes to powerpc cg
+
 
 }
 

@@ -911,7 +911,7 @@ end;
 
 {***************************************************************************
                              TGLOBALVMTENTRY
-***************************************************************************}
+******************************************************* *******************}
 
 constructor Tglobalvmtentry.init(Aowner:Pobjectdef;proc:Pprocdef);
 
@@ -3132,7 +3132,13 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:13  michael
+  Revision 1.2  2002-05-16 19:46:52  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
+
+  Revision 1.1  2000/07/13 06:30:13  michael
   + Initial import
 
   Revision 1.6  2000/03/16 12:52:47  daniel

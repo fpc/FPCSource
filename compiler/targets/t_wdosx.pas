@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 2001-2002 Pavel
+    Copyright (c) 2002 Pavel ??????
 
     This unit implements support import,export,link routines
     for the (i386) WDOSX target
@@ -22,7 +22,7 @@
 }
 unit t_wdosx;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 interface
 
@@ -165,8 +165,11 @@ end.
 
 {
   $Log$
-  Revision 1.6  2002-05-14 19:35:01  peter
-    * removed old logs and updated copyright year
+  Revision 1.7  2002-05-16 19:46:53  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
 
   Revision 1.5  2002/05/12 16:53:18  peter
     * moved entry and exitcode to ncgutil and cgobj

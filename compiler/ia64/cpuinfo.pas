@@ -22,7 +22,7 @@
 }
 Unit CPUInfo;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 Interface
 
@@ -49,7 +49,13 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.3  2002-04-07 13:42:40  carl
+  Revision 1.4  2002-05-16 19:46:52  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
+
+  Revision 1.3  2002/04/07 13:42:40  carl
   - moved type constant
 
   Revision 1.2  2001/01/05 17:36:58  florian

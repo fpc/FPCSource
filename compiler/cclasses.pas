@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2002 by Florian Klaempfl and Peter Vreman
+    Copyright (c) 1998-2000 by Florian Klaempfl and Peter Vreman
 
     This module provides some basic classes
 
@@ -22,7 +22,7 @@
 }
 unit cclasses;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 interface
 
@@ -1728,8 +1728,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  2002-05-14 19:34:40  peter
-    * removed old logs and updated copyright year
+  Revision 1.12  2002-05-16 19:46:35  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
 
   Revision 1.10  2002/05/12 16:53:04  peter
     * moved entry and exitcode to ncgutil and cgobj
@@ -1747,5 +1750,38 @@ end.
       a rangecheck warning/error.
     * fixed pascal calling method with reversing also the high tree in
       the parast, detected by tcalcst3 test
+
+  Revision 1.9  2001/11/18 18:43:13  peter
+    * overloading supported in child classes
+    * fixed parsing of classes with private and virtual and overloaded
+      so it is compatible with delphi
+
+  Revision 1.8  2001/11/05 14:16:25  jonas
+    * reduced memory usage by about 10% and increased speed by about 15%
+
+  Revision 1.7  2001/05/04 19:50:04  peter
+    * fixed dynamicarray.seek() with pos equals multiple of $10000
+
+  Revision 1.6  2001/04/13 01:22:06  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.5  2001/03/13 18:45:06  peter
+    * fixed some memory leaks
+
+  Revision 1.4  2001/03/05 21:40:01  peter
+    * fixed tdynamicarray.readstream
+
+  Revision 1.3  2000/12/29 21:57:27  peter
+    * 'classified' tdictionary, but leave it within an define
+
+  Revision 1.2  2000/12/25 00:07:25  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.1  2000/12/24 12:25:31  peter
+    + cstreams unit
+    * dynamicarray object to class
 
 }

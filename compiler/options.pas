@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2002 by Florian Klaempfl and Peter Vreman
+    Copyright (c) 1998-2000 by Florian Klaempfl and Peter Vreman
 
     Reads command line options and config files
 
@@ -22,7 +22,7 @@
 }
 unit options;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 interface
 
@@ -1664,8 +1664,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.71  2002-05-14 19:34:43  peter
-    * removed old logs and updated copyright year
+  Revision 1.72  2002-05-16 19:46:41  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
 
   Revision 1.70  2002/05/12 16:53:08  peter
     * moved entry and exitcode to ncgutil and cgobj
@@ -1709,5 +1712,250 @@ end.
 
   Revision 1.65  2002/04/04 18:39:45  carl
   + added wdosx support (patch from Pavel)
+
+  Revision 1.64  2001/12/03 21:48:42  peter
+    * freemem change to value parameter
+    * torddef low/high range changed to int64
+
+  Revision 1.63  2001/11/24 02:09:54  carl
+  * Renamed ppc.cfg -> fpc.cfg
+
+  Revision 1.62  2001/11/23 02:48:46  carl
+  + ppc.cfg is now configuration file for compiler.
+    (first tries loading ppc386.cfg for backward compatibility)
+
+  Revision 1.61  2001/10/23 21:49:42  peter
+    * $calling directive and -Cc commandline patch added
+      from Pavel Ozerski
+
+  Revision 1.60  2001/09/17 21:29:12  peter
+    * merged netbsd, fpu-overflow from fixes branch
+
+  Revision 1.59  2001/09/12 12:46:54  marco
+   * fix from peter
+
+  Revision 1.58  2001/08/30 20:57:09  peter
+    * asbsd merged
+
+  Revision 1.57  2001/08/30 20:13:53  peter
+    * rtti/init table updates
+    * rttisym for reusable global rtti/init info
+    * support published for interfaces
+
+  Revision 1.56  2001/08/20 10:58:48  florian
+    * renamed messages unit to cmsgs to avoid conflicts with the
+      win32 messages unit
+
+  Revision 1.55  2001/08/19 11:22:23  peter
+    * palmos support from v10 merged
+
+  Revision 1.54  2001/08/12 17:57:06  peter
+    * under development flag for targets
+
+  Revision 1.53  2001/08/07 18:42:46  peter
+    * list targets with -i
+
+  Revision 1.52  2001/08/01 15:07:29  jonas
+    + "compilerproc" directive support, which turns both the public and mangled
+      name to lowercase(declaration_name). This prevents a normal user from
+      accessing the routine, but they can still be easily looked up within
+      the compiler. This is used for helper procedures and should facilitate
+      the writing of more processor independent code in the code generator
+      itself (mostly written by Peter)
+    + new "createintern" constructor for tcal nodes to create a call to
+      helper exported using the "compilerproc" directive
+    + support for high(dynamic_array) using the the above new things
+    + definition of 'HASCOMPILERPROC' symbol (to be able to check in the
+      compiler and rtl whether the "compilerproc" directive is supported)
+
+  Revision 1.51  2001/07/31 19:38:46  peter
+    * removed fpu_in_rtl define (merged)
+
+  Revision 1.50  2001/07/30 21:39:26  peter
+    * declare fpu in rtl for m68k linux
+
+  Revision 1.49  2001/07/09 21:15:40  peter
+    * Length made internal
+    * Add array support for Length
+
+  Revision 1.48  2001/07/08 21:00:15  peter
+    * various widestring updates, it works now mostly without charset
+      mapping supported
+
+  Revision 1.47  2001/07/01 20:16:16  peter
+    * alignmentinfo record added
+    * -Oa argument supports more alignment settings that can be specified
+      per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN
+      RECORDMAX,LOCALMIN,LOCALMAX. It is possible to set the mimimum
+      required alignment and the maximum usefull alignment. The final
+      alignment will be choosen per variable size dependent on these
+      settings
+
+  Revision 1.46  2001/06/29 19:41:54  peter
+    * patch from Pavel Ozerski to support +/- better
+
+  Revision 1.45  2001/06/19 14:55:45  jonas
+    * fixed typo in NOBOUNDCHECK define
+
+  Revision 1.44  2001/06/18 20:36:24  peter
+    * -Ur switch (merged)
+    * masm fixes (merged)
+    * quoted filenames for go32v2 and win32
+
+  Revision 1.43  2001/06/02 19:21:45  peter
+    * extradefines field added to target_info, so that targets don't
+      need to put code in options.pas for it
+
+  Revision 1.42  2001/05/18 22:28:59  peter
+    * endian define
+
+  Revision 1.41  2001/05/12 12:11:31  peter
+    * simplify_ppu is now the default, a recompile of the compiler now
+      only compiles pp.pas
+
+  Revision 1.40  2001/04/18 22:01:54  peter
+    * registration of targets and assemblers
+
+  Revision 1.39  2001/04/13 01:22:10  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.38  2001/03/25 12:27:31  peter
+    * fixed -Se (merged)
+
+  Revision 1.37  2001/03/23 00:16:07  florian
+    + some stuff to compile FreeCLX added
+
+  Revision 1.36  2001/03/13 20:59:56  peter
+    * message loading fixes from Sergey (merged)
+
+  Revision 1.35  2001/03/10 13:19:10  peter
+    * don't check messagefile for numbers, this allows the usage of
+      1.1 msgfiles with a 1.0.x compiler
+
+  Revision 1.34  2001/03/05 21:50:29  peter
+    * press enter moved to errore.msg
+
+  Revision 1.33  2001/03/03 12:41:22  jonas
+    * simplified and optimized range checking code, FPC_BOUNDCHECK is no longer necessary
+
+  Revision 1.32  2001/02/26 19:44:53  peter
+    * merged generic m68k updates from fixes branch
+
+  Revision 1.31  2001/02/26 12:47:46  jonas
+    * fixed bug in type checking for compatibility of set elements (merged)
+    * released fix in options.pas from Carl also for FPC (merged)
+
+  Revision 1.30  2001/02/26 08:08:39  michael
+  * option_help_pages:
+     allow to omit an option (use one space char insteed an option)
+     but to indent a continuation line as if option is present. For lines:
+       3*2CX_first line
+       3*2 _second line
+       3*2*_third line
+     we could get:
+       -CX        first line
+                  second line
+       third line
+
+  Revision 1.29  2001/02/26 07:49:50  michael
+  Support replacements for all -F<x> options
+
+  Revision 1.28  2001/02/05 21:26:36  peter
+    * applied patches from Sergey Korshunoff
+
+  Revision 1.27  2001/01/20 18:36:51  hajny
+    + APPTYPE support under OS/2, app_fs, GetEnvPChar for OS/2
+
+  Revision 1.26  2001/01/12 19:21:09  peter
+    * fixed writing of quickinfo when no ppc386.cfg is available
+
+  Revision 1.25  2001/01/05 17:36:57  florian
+  * the info about exception frames is stored now on the stack
+  instead on the heap
+
+  Revision 1.24  2000/12/25 00:07:26  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.23  2000/12/24 12:21:41  peter
+    * use system.paramstr()
+
+  Revision 1.22  2000/12/23 19:46:49  peter
+    * object to class conversion
+    * more verbosity for -vt and -vd
+    * -i options can be put after eachother so the Makefiles only need
+      to call fpc once for all info (will be twice as the first one will
+      be to check the version if fpc supports multiple info)
+
+  Revision 1.21  2000/12/16 15:56:19  jonas
+    - removed all ifdef cardinalmulfix code
+
+  Revision 1.20  2000/12/15 13:26:01  jonas
+    * only return int64's from functions if it int64funcresok is defined
+    + added int64funcresok define to options.pas
+
+  Revision 1.19  2000/11/30 22:48:23  florian
+  * opts386 renamed
+
+  Revision 1.18  2000/11/29 00:30:34  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.17  2000/11/13 15:26:12  marco
+   * Renamefest
+
+  Revision 1.16  2000/11/12 22:20:37  peter
+    * create generic toutputsection for binary writers
+
+  Revision 1.15  2000/11/07 15:09:27  marco
+   * Define UNIX for FreeBSD and Linux. Checked crosscompile thingy.
+
+  Revision 1.14  2000/11/07 14:25:08  marco
+   * FreeBSD defines (FreeBSD,Linux,BSD,Unix) Linux defines (Linux,Unix)
+
+  Revision 1.13  2000/11/06 20:30:54  peter
+    * more fixes to get make cycle working
+
+  Revision 1.12  2000/11/04 14:25:20  florian
+    + merged Attila's changes for interfaces, not tested yet
+
+  Revision 1.11  2000/09/26 10:50:41  jonas
+    * initmodeswitches is changed is you change the compiler mode from the
+      command line (the -S<x> switches didn't work anymore for changing the
+      compiler mode) (merged from fixes branch)
+
+  Revision 1.10  2000/09/24 21:33:47  peter
+    * message updates merges
+
+  Revision 1.9  2000/09/24 15:06:20  peter
+    * use defines.inc
+
+  Revision 1.8  2000/09/18 12:28:41  marco
+   * Definition of multiple FreeBSD target defines moved to after error check
+      commandline parsing
+
+  Revision 1.7  2000/09/16 12:22:52  peter
+    * freebsd support merged
+
+  Revision 1.6  2000/08/27 16:11:51  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.5  2000/08/07 11:31:04  jonas
+    * fixed bug in type conversions between enum subranges (it didn't take
+      the packenum directive into account)
+    + define PACKENUMFIXED symbol in options.pas
+     (merged from fixes branch)
+
+  Revision 1.4  2000/07/14 05:11:48  michael
+  + Patch to 1.1
+
+  Revision 1.3  2000/07/13 12:08:26  michael
+  + patched to 1.1.0 with former 1.09patch from peter
+
+  Revision 1.2  2000/07/13 11:32:44  michael
+  + removed logs
 
 }

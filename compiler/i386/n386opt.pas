@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2002 by Jonas Maebe
+    Copyright (c) 1998-2000 by Jonas Maebe
 
     This unit implements the 80x86 implementation of optimized nodes
 
@@ -22,7 +22,7 @@
 }
 unit n386opt;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 interface
 uses node, nopt;
@@ -248,8 +248,11 @@ end.
 
 {
   $Log$
-  Revision 1.15  2002-05-14 19:35:00  peter
-    * removed old logs and updated copyright year
+  Revision 1.16  2002-05-16 19:46:52  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
 
   Revision 1.14  2002/05/13 19:54:38  peter
     * removed n386ld and n386util units
@@ -317,5 +320,26 @@ end.
       R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
     - list field removed of the tnode class because it's not used currently
       and can cause hard-to-find bugs
+
+  Revision 1.6  2001/12/31 09:53:15  jonas
+    * changed remaining "getregister32" calls to ":=rg.getregisterint(exprasmlist);"
+
+  Revision 1.5  2001/08/26 13:37:00  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.4  2001/04/13 01:22:19  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.3  2001/04/02 21:20:38  peter
+    * resulttype rewrite
+
+  Revision 1.2  2001/01/06 19:12:31  jonas
+    * fixed IE 10 (but code is less efficient now :( )
+
+  Revision 1.1  2001/01/04 11:24:19  jonas
+    + initial implementation (still needs to be made more modular)
 
 }

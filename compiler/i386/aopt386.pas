@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2002 by Jonas Maebe
+    Copyright (c) 1998-2000 by Jonas Maebe
 
     This unit calls the optimization procedures to optimize the assembler
     code for i386+
@@ -23,7 +23,7 @@
 }
 Unit aopt386;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 Interface
 
@@ -118,7 +118,43 @@ End;
 End.
 {
   $Log$
-  Revision 1.4  2002-05-14 19:34:55  peter
-    * removed old logs and updated copyright year
+  Revision 1.5  2002-05-16 19:46:50  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
+
+  Revision 1.3  2000/12/25 00:07:31  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.2  2000/10/24 10:40:53  jonas
+    + register renaming ("fixes" bug1088)
+    * changed command line options meanings for optimizer:
+        O2 now means peepholopts, CSE and register renaming in 1 pass
+        O3 is the same, but repeated until no further optimizations are
+          possible or until 5 passes have been done (to avoid endless loops)
+    * changed aopt386 so it does this looping
+    * added some procedures from csopt386 to the interface because they're
+      used by rropt386 as well
+    * some changes to csopt386 and daopt386 so that newly added instructions
+      by the CSE get optimizer info (they were simply skipped previously),
+      this fixes some bugs
+
+  Revision 1.1  2000/10/15 09:47:42  peter
+    * moved to i386/
+
+  Revision 1.5  2000/09/24 15:06:11  peter
+    * use defines.inc
+
+  Revision 1.4  2000/08/19 09:10:08  jonas
+    * for all optimization levels > 1, all passes are done twice (the
+      result improves the most if -Or is used as well)
+
+  Revision 1.3  2000/07/14 05:11:48  michael
+  + Patch to 1.1
+
+  Revision 1.2  2000/07/13 11:32:31  michael
+  + removed logs
 
 }

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2002 by Florian Klaempfl and Peter Vreman
+    Copyright (c) 1998-2000 by Florian Klaempfl and Peter Vreman
 
     This module provides stream classes
 
@@ -22,7 +22,7 @@
 }
 unit cstreams;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 interface
 
@@ -610,7 +610,18 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2002-05-14 19:34:40  peter
-    * removed old logs and updated copyright year
+  Revision 1.4  2002-05-16 19:46:36  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
+
+  Revision 1.2  2000/12/25 00:07:25  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.1  2000/12/24 12:25:31  peter
+    + cstreams unit
+    * dynamicarray object to class
 
 }

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2002 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     This unit exports some types and constants for the code generation
 
@@ -23,7 +23,7 @@
 {# This unit exports some types which are used across the code generator }
 unit cginfo;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 interface
 
@@ -101,8 +101,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  2002-05-14 19:34:40  peter
-    * removed old logs and updated copyright year
+  Revision 1.9  2002-05-16 19:46:35  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
 
   Revision 1.7  2002/05/13 19:54:36  peter
     * removed n386ld and n386util units

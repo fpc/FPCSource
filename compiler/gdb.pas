@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2002 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     This units contains special support for the GDB
 
@@ -22,7 +22,7 @@
 }
 unit gdb;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 interface
 
@@ -304,10 +304,41 @@ end.
 
 {
   $Log$
-  Revision 1.11  2002-05-14 19:34:41  peter
-    * removed old logs and updated copyright year
+  Revision 1.12  2002-05-16 19:46:36  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
 
   Revision 1.10  2002/05/06 19:49:26  carl
   + added more patches from Mazen for SPARC port
+
+  Revision 1.9  2001/12/02 17:20:58  peter
+    * merged register fixes
+
+  Revision 1.8  2001/10/12 16:05:36  peter
+    * more registers (merged)
+
+  Revision 1.7  2001/04/21 12:03:11  peter
+    * m68k updates merged from fixes branch
+
+  Revision 1.6  2001/04/13 01:22:07  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.5  2000/12/25 00:07:26  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.4  2000/11/29 00:30:30  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.3  2000/09/24 15:06:16  peter
+    * use defines.inc
+
+  Revision 1.2  2000/07/13 11:32:41  michael
+  + removed logs
 
 }

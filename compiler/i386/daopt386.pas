@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2002 by Jonas Maebe, member of the Freepascal
+    Copyright (c) 1998-2000 by Jonas Maebe, member of the Freepascal
       development team
 
     This unit contains the data flow analyzer and several helper procedures
@@ -24,7 +24,7 @@
 }
 Unit DAOpt386;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 Interface
 
@@ -1616,7 +1616,7 @@ Begin
 End;
 
 
-Procedure ReadRef(p: PTaiProp; Const Ref: PReference);
+Procedure ReadRef(p: PTaiProp; Const Ref: POperReference);
 Begin
   If Ref^.Base <> R_NO Then
     ReadReg(p, Ref^.Base);
@@ -2591,14 +2591,11 @@ End.
 
 {
   $Log$
-  Revision 1.36  2002-05-14 19:34:59  peter
-    * removed old logs and updated copyright year
-
-  Revision 1.35  2002/05/14 17:28:09  peter
-    * synchronized cpubase between powerpc and i386
-    * moved more tables from cpubase to cpuasm
-    * tai_align_abstract moved to tainst, cpuasm must define
-      the tai_align class now, which may be empty
+  Revision 1.37  2002-05-16 19:46:51  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
 
   Revision 1.34  2002/05/12 16:53:16  peter
     * moved entry and exitcode to ncgutil and cgobj
@@ -2679,5 +2676,180 @@ End.
 
   Revision 1.26  2002/03/04 19:10:13  peter
     * removed compiler warnings
+
+  Revision 1.25  2001/12/29 15:29:59  jonas
+    * powerpc/cgcpu.pas compiles :)
+    * several powerpc-related fixes
+    * cpuasm unit is now based on common tainst unit
+    + nppcmat unit for powerpc (almost complete)
+
+  Revision 1.24  2001/11/02 22:58:09  peter
+    * procsym definition rewrite
+
+  Revision 1.23  2001/10/27 10:20:43  jonas
+    + replace mem accesses to locations to which a reg was stored recently with that reg
+
+  Revision 1.22  2001/10/12 13:58:05  jonas
+    + memory references are now replaced by register reads in "regular"
+      instructions (e.g. "addl ref1,%eax" will be replaced by "addl %ebx,%eax"
+      if %ebx contains ref1). Previously only complete load sequences were
+      optimized away, but not such small accesses in other instructions than
+      mov/movzx/movsx
+
+  Revision 1.21  2001/09/04 14:01:04  jonas
+    * commented out some inactive code in csopt386
+    + small improvement: lea is now handled the same as mov/zx/sx
+
+  Revision 1.20  2001/08/29 14:07:43  jonas
+    * the optimizer now keeps track of flags register usage. This fixes some
+      optimizer bugs with int64 calculations (because of the carry flag usage)
+    * fixed another bug which caused wrong optimizations with complex
+      array expressions
+
+  Revision 1.19  2001/08/26 13:36:55  florian
+    * some cg reorganisation
+    * some PPC updates
+
+  Revision 1.18  2001/08/06 21:40:50  peter
+    * funcret moved from tprocinfo to tprocdef
+
+  Revision 1.17  2001/04/13 01:22:18  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.16  2001/04/02 21:20:36  peter
+    * resulttype rewrite
+
+  Revision 1.15  2000/12/31 11:00:31  jonas
+    * fixed potential bug in writeToMemDestroysContents
+
+  Revision 1.14  2000/12/25 00:07:32  peter
+    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
+      tlinkedlist objects)
+
+  Revision 1.13  2000/12/21 12:22:53  jonas
+    * fixed range error
+
+  Revision 1.12  2000/12/04 17:00:09  jonas
+    * invalidate regs that depend on a modified register
+
+  Revision 1.11  2000/11/29 00:30:44  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.10  2000/11/28 16:32:11  jonas
+    + support for optimizing simple sequences with div/idiv/mul opcodes
+
+  Revision 1.9  2000/11/23 14:20:18  jonas
+    * fixed stupid bug in previous commit
+
+  Revision 1.8  2000/11/23 13:26:33  jonas
+    * fix for webbug 1066/1126
+
+  Revision 1.7  2000/11/17 15:22:04  jonas
+    * fixed another bug in allocregbetween (introduced by the previous fix)
+      ("merged")
+
+  Revision 1.6  2000/11/14 13:26:10  jonas
+    * fixed bug in allocregbetween
+
+  Revision 1.5  2000/11/08 16:04:34  sg
+  * Fix for containsPointerRef: Loop now runs in the correct range
+
+  Revision 1.4  2000/11/03 18:06:26  jonas
+    * fixed bug in arrayRefsEq
+    * object/class fields are now handled the same as local/global vars and
+      parameters (ie. a write to a local var can now never destroy a class
+      field)
+
+  Revision 1.3  2000/10/24 10:40:53  jonas
+    + register renaming ("fixes" bug1088)
+    * changed command line options meanings for optimizer:
+        O2 now means peepholopts, CSE and register renaming in 1 pass
+        O3 is the same, but repeated until no further optimizations are
+          possible or until 5 passes have been done (to avoid endless loops)
+    * changed aopt386 so it does this looping
+    * added some procedures from csopt386 to the interface because they're
+      used by rropt386 as well
+    * some changes to csopt386 and daopt386 so that newly added instructions
+      by the CSE get optimizer info (they were simply skipped previously),
+      this fixes some bugs
+
+  Revision 1.2  2000/10/19 15:59:40  jonas
+    * fixed bug in allocregbetween (the register wasn't added to the
+      usedregs set of the last instruction of the chain) ("merged")
+
+  Revision 1.1  2000/10/15 09:47:43  peter
+    * moved to i386/
+
+  Revision 1.16  2000/10/14 10:14:47  peter
+    * moehrendorf oct 2000 rewrite
+
+  Revision 1.15  2000/09/30 13:07:23  jonas
+    * fixed support for -Or with new features of CSE
+
+  Revision 1.14  2000/09/29 23:14:11  jonas
+    + writeToMemDestroysContents() and writeDestroysContents() to support the
+      new features of the CSE
+
+  Revision 1.13  2000/09/25 09:50:30  jonas
+    - removed TP conditional code
+
+  Revision 1.12  2000/09/24 21:19:50  peter
+    * delphi compile fixes
+
+  Revision 1.11  2000/09/24 15:06:15  peter
+    * use defines.inc
+
+  Revision 1.10  2000/09/22 15:00:20  jonas
+    * fixed bug in regsEquivalent (in some rare cases, registers with
+      completely unrelated content were considered equivalent) (merged
+      from fixes branch)
+
+  Revision 1.9  2000/09/20 15:00:58  jonas
+    + much improved CSE: the CSE now searches further back for sequences it
+      can reuse. After I've also implemented register renaming, the effect
+      should be even better (afaik web bug 1088 will then even be optimized
+      properly). I don't know about the slow down factor this adds. Maybe
+      a new optimization level should be introduced?
+
+  Revision 1.8  2000/08/25 19:39:18  jonas
+    * bugfix to FindRegAlloc function (caused wrong regalloc info in
+      some cases) (merged from fixes branch)
+
+  Revision 1.7  2000/08/23 12:55:10  jonas
+    * fix for web bug 1112 and a bit of clean up in csopt386 (merged from
+      fixes branch)
+
+  Revision 1.6  2000/08/19 17:53:29  jonas
+    * fixed a potential bug in destroyregs regarding the removal of
+      unused loads
+    * added destroyDependingRegs() procedure and use it for the fix in
+      the previous commit (safer/more complete than what was done before)
+
+  Revision 1.5  2000/08/19 09:08:59  jonas
+    * fixed bug where the contents of a register would not be destroyed
+      if another register on which these contents depend is modified
+      (not really merged, but same idea as fix in fixes branch,
+      LAST_MERGE tag is updated)
+
+  Revision 1.4  2000/07/21 15:19:54  jonas
+    * daopt386: changes to getnextinstruction/getlastinstruction so they
+      ignore labels who have is_addr set
+    + daopt386/csopt386: remove loads of registers which are overwritten
+       before their contents are used (especially usefull for removing superfluous
+      maybe_loadself outputs and push/pops transformed by below optimization
+    + popt386: transform pop/pop/pop/.../push/push/push to sequences of
+      'movl x(%esp),%reg' (only active when compiling a go32v2 compiler
+      currently because I don't know whether it's safe to do this under Win32/
+      Linux (because of problems we had when using esp as frame pointer on
+      those os'es)
+
+  Revision 1.3  2000/07/14 05:11:48  michael
+  + Patch to 1.1
+
+  Revision 1.2  2000/07/13 11:32:40  michael
+  + removed logs
 
 }
