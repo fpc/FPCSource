@@ -2158,6 +2158,14 @@ ifeq ($(OS_TARGET),win32)
 	$(COPY) $(CVSINSTALL)/binw32/*.ico $(INSTALL_BINDIR)
 	$(COPY) $(CVSINSTALL)/binw32/*.dll $(INSTALL_BINDIR)
 endif
+ifeq ($(OS_TARGET),os2)
+	$(COPY) $(CVSINSTALL)/binos2/*.ico $(INSTALL_BINDIR)
+	$(COPY) $(CVSINSTALL)/binos2/*.dll $(INSTALL_BINDIR)
+endif
+ifeq ($(OS_TARGET),emx)
+	$(COPY) $(CVSINSTALL)/binos2/*.ico $(INSTALL_BINDIR)
+	$(COPY) $(CVSINSTALL)/binos2/*.dll $(INSTALL_BINDIR)
+endif
 ifeq ($(OS_TARGET),linux)
 	$(MAKE) -C $(CVSINSTALL)/man installman
 endif
