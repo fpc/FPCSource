@@ -1,0 +1,20 @@
+#
+#   Makefile.fpc for FCL FPCUnit test framework.
+#
+
+[package]
+main=fcl
+
+[target]
+units=fpcunit  testregistry  testreport testutils
+exampledirs=exampletests
+
+[compiler]
+options=-S2h
+targetdir=../$(OS_TARGET)
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
