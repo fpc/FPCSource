@@ -29,7 +29,7 @@ unit cpunode;
   implementation
 
     uses
-       ncgbas,ncgflw,ncgcnv,ncgld,ncgmem,ncgcon,ncgset,
+       ncgbas,ncgflw,ncgcnv,ncgld,ncgmem,ncgcon,ncgset,ncginl,
        n386add,n386cal,n386con,n386cnv,n386flw,n386mat,n386mem,
        n386set,n386inl,n386opt,
        { this not really a node }
@@ -38,7 +38,10 @@ unit cpunode;
 end.
 {
   $Log$
-  Revision 1.14  2002-07-06 20:27:26  carl
+  Revision 1.15  2002-07-25 18:01:58  carl
+   + added generic inline nodes
+
+  Revision 1.14  2002/07/06 20:27:26  carl
   + generic set handling
 
   Revision 1.13  2002/05/18 13:34:22  peter
