@@ -1762,7 +1762,6 @@ implementation
                                 { make sure the left node doesn't get disposed, since it's }
                                 { reused in the new node (JM)                              }
                                 left:=nil;
-                                resulttypepass(result);
                               end
                            else
                             begin
@@ -2322,7 +2321,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.65  2001-12-04 15:59:03  jonas
+  Revision 1.66  2001-12-10 14:26:22  jonas
+    - removed unnecessary resulttypepass call
+
+  Revision 1.65  2001/12/04 15:59:03  jonas
     * converted lo/hi to processor independent code, generated code is the
       same as before (when turning on the optimizer)
 
