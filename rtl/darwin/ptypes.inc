@@ -104,7 +104,8 @@ CONST
     SYS_NMLN = 32;              {BSD utsname struct limit}
 
     SIG_MAXSIG      = 32;	// highest signal version
-    wordsinsigset   = 1;		// words in sigset_t
+    wordsinsigset   = 1;	// words in sigset_t
+    wordsinfdset    = 1024 div 32;	// words in fdset_t
 
 
     MFSNAMELEN = 15;
@@ -141,7 +142,10 @@ CONST
 
 {
   $Log$
-  Revision 1.3  2004-01-04 20:05:38  jonas
+  Revision 1.4  2004-02-22 23:18:24  jonas
+    + added wordsinfdset constant
+
+  Revision 1.3  2004/01/04 20:05:38  jonas
     * first working version of the Darwin/Mac OS X (for PowerPC) RTL
       Several non-essential units are still missing, but make cycle works
 
