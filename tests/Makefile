@@ -1438,6 +1438,9 @@ DIGESTDEP+=$(DIGEST)
 $(DIGEST) : units utils/digest.pp utils/teststr.pp utils/testu.pp
 	$(FPC) -n -Fuunits -FE. utils/digest.pp
 endif
+ifndef DIGESTVER
+DIGESTVER=$(FPC_VERSION)
+endif
 testcheck: units allpreps $(DOTESTDEP)
 ifneq ($(FPC),ppc386$(EXEEXT))
 ifeq ($(findstring -c$(FPC),$(DOTESTOPT)),)
@@ -1509,7 +1512,7 @@ distclean: clean
 rundigest : $(DIGESTDEP)
 	-$(DIGEST)
 ifeq ($(USESQL),YES)
-	-$(DBDIGEST) -v $(FPC_VERSION)
+	-$(DBDIGEST) -v $(DIGESTVER)
 endif
 all : allexectests
 full : clean allexectests rundigest
