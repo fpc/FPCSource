@@ -344,7 +344,8 @@ function CreateProcess(lpApplicationName:LPCWSTR; lpCommandLine:LPWSTR; lpProces
 procedure GetStartupInfo(lpStartupInfo:LPSTARTUPINFO); external 'kernel32' name 'GetStartupInfoW';
 function FindFirstFile(lpFileName:LPCWSTR; lpFindFileData:LPWIN32_FIND_DATA):HANDLE; external 'kernel32' name 'FindFirstFileW';
 function FindNextFile(hFindFile:HANDLE; lpFindFileData:LPWIN32_FIND_DATA):WINBOOL; external 'kernel32' name 'FindNextFileW';
-function GetVersionEx(VersionInformation:LPOSVERSIONINFO):WINBOOL; external 'kernel32' name 'GetVersionExW';
+function GetVersionEx(VersionInformation:LPOSVERSIONINFOW):WINBOOL; external 'kernel32' name 'GetVersionExW';
+function GetVersionExW(VersionInformation:LPOSVERSIONINFOW):WINBOOL; external 'kernel32' name 'GetVersionExW';
 function CreateWindow(lpClassName:LPCWSTR; lpWindowName:LPCWSTR; dwStyle:DWORD; X:longint;Y:longint; nWidth:longint; nHeight:longint; hWndParent:HWND; hMenu:HMENU;hInstance:HINST; lpParam:LPVOID):HWND;
 function CreateDialog(hInstance:HINST; lpName:LPCWSTR; hWndParent:HWND; lpDialogFunc:DLGPROC):HWND;
 function CreateDialogIndirect(hInstance:HINST; lpTemplate:LPCDLGTEMPLATE; hWndParent:HWND; lpDialogFunc:DLGPROC):HWND;
@@ -492,7 +493,10 @@ end;
 
 {
   $Log$
-  Revision 1.11  2004-11-07 20:46:27  marco
+  Revision 1.12  2004-12-18 20:00:59  michael
+  Fixed widestring version of getversionex as per bug 3440 (Alexey Barkovoy)
+
+  Revision 1.11  2004/11/07 20:46:27  marco
    * fix for 3299
 
   Revision 1.10  2004/11/07 20:25:02  marco

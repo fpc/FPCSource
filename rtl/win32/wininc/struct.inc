@@ -4577,6 +4577,23 @@
      TOSVERSIONINFO = OSVERSIONINFO;
      POSVERSIONINFO = ^OSVERSIONINFO;
 
+     OSVERSIONINFOW = record
+       dwOSVersionInfoSize : DWORD;
+       dwMajorVersion : DWORD;
+       dwMinorVersion : DWORD;
+       dwBuildNumber : DWORD;
+       dwPlatformId : DWORD;
+       szCSDVersion : array[0..127] of WCHAR;
+     end;
+     LPOSVERSIONINFOW = ^OSVERSIONINFOW;
+     _OSVERSIONINFOW = OSVERSIONINFOW;
+     TOSVERSIONINFOW = OSVERSIONINFOW;
+     POSVERSIONINFOW = ^OSVERSIONINFOW;
+        
+                   
+
+
+
      TEXTMETRIC = record
           tmHeight : LONG;
           tmAscent : LONG;
@@ -7119,7 +7136,10 @@ type
 
 {
   $Log$
-  Revision 1.28  2004-11-07 20:46:27  marco
+  Revision 1.29  2004-12-18 20:00:59  michael
+  Fixed widestring version of getversionex as per bug 3440 (Alexey Barkovoy)
+
+  Revision 1.28  2004/11/07 20:46:27  marco
    * fix for 3299
 
   Revision 1.27  2004/11/07 20:25:02  marco

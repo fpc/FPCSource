@@ -586,7 +586,7 @@ function GetUserObjectInformationW(hObj: THandle; nIndex: Integer; pvInfo: Point
 function GetUserObjectSecurity(hObj: THandle; var pSIRequested: DWORD; pSID: PSecurityDescriptor; nLength: DWORD; var lpnLengthNeeded: DWORD): BOOL; external 'user32' name 'GetUserObjectSecurity';
 function GetVersionEx(var lpVersionInformation: TOSVersionInfo): BOOL;external 'kernel32' name 'GetVersionExA';
 function GetVersionExA(var lpVersionInformation: TOSVersionInfo): BOOL; external 'kernel32' name 'GetVersionExA';
-function GetVersionExW(var lpVersionInformation: TOSVersionInfo): BOOL; external 'kernel32' name 'GetVersionExW';
+function GetVersionExW(var lpVersionInformation: TOSVersionInfoW): BOOL; external 'kernel32' name 'GetVersionExW';
 function GetViewportExtEx(DC: HDC; var Size: TSize): BOOL; external 'gdi32' name 'GetViewportExtEx';
 function GetViewportOrgEx(DC: HDC; var Point: TPoint): BOOL; external 'gdi32' name 'GetViewportOrgEx';
 function GetVolumeInformation(lpRootPathName: PChar; lpVolumeNameBuffer: PChar; nVolumeNameSize: DWORD; lpVolumeSerialNumber: PDWORD; var lpMaximumComponentLength, lpFileSystemFlags: DWORD;
@@ -1059,7 +1059,10 @@ end;
 
 {
   $Log$
-  Revision 1.27  2004-11-07 20:46:27  marco
+  Revision 1.28  2004-12-18 20:00:59  michael
+  Fixed widestring version of getversionex as per bug 3440 (Alexey Barkovoy)
+
+  Revision 1.27  2004/11/07 20:46:27  marco
    * fix for 3299
 
   Revision 1.26  2004/11/07 20:25:02  marco
