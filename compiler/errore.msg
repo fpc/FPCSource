@@ -890,7 +890,8 @@ parser_e_interface_id_expected=03169_E_interface identifier expected
 %     ....
 % \end{verbatim}
 % and the \var{interface} before the dot not listed in the inheritance list.
-% \end{description}
+parser_e_type_cant_be_used_in_array_index=03170_E_Type "$1" can't be used as array index type
+% Types like DWord or Int64 aren't allowed as array index type% \end{description}
 #
 # Type Checking
 #

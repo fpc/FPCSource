@@ -337,9 +337,18 @@ implementation
                 end;
               orddef :
                 begin
-                  lowval:=porddef(p)^.low;
-                  highval:=porddef(p)^.high;
-                  arraytype:=p;
+                  if porddef(p)^.typ in [uchar,
+                    u8bit,u16bit,
+                    s8bit,s16bit,s32bit,
+                    bool8bit,bool16bit,bool32bit,
+                    uwidechar] then
+                    begin
+                       lowval:=porddef(p)^.low;
+                       highval:=porddef(p)^.high;
+                       arraytype:=p;
+                    end
+                  else
+                    Message1(parser_e_type_cant_be_used_in_array_index,p^.gettypename);
                 end;
               else
                 Message(sym_e_error_in_type_def);
@@ -581,7 +590,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  2000-11-04 14:25:21  florian
+  Revision 1.15  2000-11-14 23:43:38  florian
+    * fixed 1238
+
+  Revision 1.14  2000/11/04 14:25:21  florian
     + merged Attila's changes for interfaces, not tested yet
 
   Revision 1.13  2000/10/31 22:02:51  peter
