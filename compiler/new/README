@@ -1,15 +1,16 @@
 $Id$
 
-History
--------
+Module CPUBASE
+--------------
 
-13th oct 1999              remark about alignment added (FK)
+   CONSTANTS used throughout the code generator
+   --------------------------------------------
 
-CVS Log see at the end of that file
-
-frame_pointer              contains the register used as frame pointer
-stack_pointer              contains the register used as stack pointer
-self_pointer               contains the register used as self pointer
+frame_pointer              equals the register used as frame pointer
+stack_pointer              equals the register used as stack pointer
+self_pointer               equals the register used as self pointer
+accumulator                equals the register which will be used
+                           as function return values
 
 
 unusedregsint              set of Currently available integer registers
@@ -33,6 +34,30 @@ fpuregs                    all!! available fpu register
 mmregs                     all!! available multimedia register
 
 lvaluelocations            a set of all locations which can be an l-value
+
+  Locations
+  ---------
+The first pass assigns these location types which are then
+used by the code generator to write out the correct instructions:
+
+ LOC_INVALID    = This is an error and should never occur
+ LOC_REGISTER   = Location is in a register
+ LOC_MEM        = Memory reference (symbolic or register address?)
+ LOC_REFERENCE  = Memory reference (symbolic or register address?)
+ LOC_JUMP       = ????
+ LOC_FLAGS      = Value is in the flags (Florian, this will give problems!)
+ LOC_CREGISTER  = Value is in a constant register (across calls -
+                   used for optimizations) - Constant registers
+                  should not be directly modified????
+ LOC_CONST      = Value is a numeric constant
+
+   Operand Sizes
+   -------------
+ OS_NO       = No operand size.
+ OS_8        = 8-bit signed or unsigned value
+ OS_16       = 16-bit signed or unsigned value
+ OS_32       = 32-bit signed or unsigned value
+ OS_64       = 64-bit signed or unsigned value
 
 Intel specific
 --------------
@@ -78,12 +103,13 @@ The code generation can be seperated into 3 layers:
 3. the code generator object
 
 1.: This procedure does very high level stuff, if the code generation
-is processor independed, it calls the appropriate procedures of the
+is processor independent, it calls the appropriate procedures of the
 code generator object to generate the code, but in most cases, it
 calls procedure variables of the second layer
 
-2. This procedure variables must be initialized to match to the match the
-current processor
+2. This procedure variables must be initialized to match the
+current processor, these variables are used to optimize
+existing processor instructions(? CEC).
 
 The following procedure variables are currently used
 
@@ -94,7 +120,8 @@ p2_assignment_int64_reg   Do an assignment of a int64
 
 
 3. The code generator object does very basic operations like generating
-move code etc.
+move code etc, which is called by the p2_ functions and by the
+secondpass procedures.
 
 Alignment
 ---------
@@ -105,12 +132,196 @@ values: 1,2,4,8,16 (1 means unligned). The code generator must update
 that field at the appropriate places and take care of it when
 generating the code
 
+MODULE CGOBJ (The code generator object)
+------------
+This is the basis of the code generator, it includes several
+template instructions which are used to create a processor
+independant code generator.
+
+Fields:
+    scratch_register_array_pointer : aword;
+     ?????????????????????
+       Indicates the free scratch registers?
+
+    unusedscratchregisters : tregisterset;
+       This holds the currently unused registers which can
+       be used as temporary placeholders.
+
+    alignment : talignment; ?? Why is this in cg object, should not
+    this be a constant instead?
+
+     Template instructions
+     ---------------------
+          procedure a_call_name
+
+          Call a routine by symbolic name with a possible
+          numeric offset value.
+
+
+
+???? WE ASSUME UNSIGNED???
+
+          { move instructions }
+          procedure a_load_const_reg
+          --------------------------
+          Move a constant value to a register
+
+          procedure a_load_reg_ref
+          ------------------------
+          Move a register value to a memory reference
+
+          procedure a_load_ref_reg
+          ------------------------
+          Move the value at a specified address into a register
+
+          procedure a_load_reg_reg
+          ------------------------
+          Move from register to register
+
+WE NEED !!!!MOVE WITH SIGN EXTENSION??????????????????????
+
+
+          {  comparison operations }
+????????????? WHAT DOES THE LABELS MEAN????????
+
+          procedure a_cmp_reg_const_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
+            l : pasmlabel);virtual;
+          procedure a_cmp_reg_reg_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : pasmlabel);
+          procedure a_cmp_reg_ref_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;reg : tregister;l : pasmlabel);
+          procedure a_cmp_ref_const_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
+            l : pasmlabel);
+
+          procedure a_jmp_cond(list : paasmoutput;cond : TOpCmp;l: pasmlabel);
+
+          procedure a_loadaddress_ref_reg(list : paasmoutput;const ref : treference;r : tregister);virtual;
+
+
+    ??????????????
+          { allocates register r by inserting a pai_realloc record }
+          procedure a_reg_alloc(list : paasmoutput;r : tregister);
+          { deallocates register r by inserting a pa_regdealloc record}
+          procedure a_reg_dealloc(list : paasmoutput;r : tregister);
+
+
+    { returns a register for use as scratch register }
+    function get_scratch_reg(list : paasmoutput) : tregister;
+    { releases a scratch register }
+    procedure free_scratch_reg(list : paasmoutput;r : tregister);
+
+          {************************************************}
+          { code generation for subroutine entry/exit code }
+
+          { initilizes data of type t                           }
+          { if is_already_ref is true then the routines assumes }
+          { that r points to the data to initialize   ????      }
+          procedure g_initialize(list : paasmoutput;t : pdef;const ref : treference;is_already_ref : boolean);
+
+          { finalizes data of type t                            }
+          { if is_already_ref is true then the routines assumes }
+          { that r points to the data to finalizes    ????      }
+          procedure g_finalize(list : paasmoutput;t : pdef;const ref : treference;is_already_ref : boolean);
+
+          { helper routines }
+          procedure g_initialize_data(list : paasmoutput;p : psym);
+          procedure g_incr_data(list : paasmoutput;p : psym);
+          procedure g_finalize_data(list : paasmoutput;p : pnamedindexobject);
+          procedure g_copyvalueparas(list : paasmoutput;p : pnamedindexobject);
+          procedure g_finalizetempansistrings(list : paasmoutput);
+
+          procedure g_entrycode(list : paasmoutput;
+            const proc_names : tstringcontainer;make_global : boolean;
+            stackframe : longint;var parasize : longint;
+            var nostackframe : boolean;inlined : boolean);
+
+          procedure g_exitcode(list : paasmoutput;parasize : longint;
+            nostackframe,inlined : boolean);
+
+          { string helper routines }
+          procedure g_decrstrref(list : paasmoutput;const ref : treference;t : pdef);
+
+          procedure g_removetemps(list : paasmoutput;p : plinkedlist);
+
+          { passing parameters, per default the parameter is pushed }
+          { nr gives the number of the parameter (enumerated from   }
+          { left to right), this allows to move the parameter to    }
+          { register, if the cpu supports register calling          }
+          { conventions                                             }
+          procedure a_param_reg(list : paasmoutput;size : tcgsize;r : tregister;nr : longint);virtual;
+          procedure a_param_const(list : paasmoutput;size : tcgsize;a : aword;nr : longint);virtual;
+          procedure a_param_ref(list : paasmoutput;size : tcgsize;const r : treference;nr : longint);virtual;
+          procedure a_paramaddr_ref(list : paasmoutput;const r : treference;nr : longint);virtual;
+
+          {**********************************}
+          { these methods must be overriden: }
+
+          { Remarks:
+            * If a method specifies a size you have only to take care
+              of that number of bits, i.e. load_const_reg with OP_8 must
+              only load the lower 8 bit of the specified register
+              the rest of the register can be undefined
+              if  necessary the compiler will call a method
+              to zero or sign extend the register
+            * The a_load_XX_XX with OP_64 needn't to be
+              implemented for 32 bit
+              processors, the code generator takes care of that
+            * the addr size is for work with the natural pointer
+              size
+            * the procedures without fpu/mm are only for integer usage
+            * normally the first location is the source and the
+              second the destination
+          }
+Virtual instruction templates:
+
+
+
+
+          procedure g_stackframe_entry(list : paasmoutput;localsize : longint);virtual;
+          { restores the frame pointer at procedure exit, for the }
+          { i386 it generates a simple leave                      }
+          procedure g_restore_frame_pointer(list : paasmoutput);virtual;
+
+          { some processors like the PPC doesn't allow to change the stack in }
+          { a procedure, so we need to maintain an extra stack for the        }
+          { result values of setjmp in exception code                         }
+          { this two procedures are for pushing an exception value,           }
+          { they can use the scratch registers                                }
+          procedure g_push_exception_value_reg(list : paasmoutput;reg : tregister);virtual;
+          procedure g_push_exception_value_const(list : paasmoutput;reg : tregister);virtual;
+          { that procedure pops a exception value                             }
+          procedure g_pop_exception_value_reg(list : paasmoutput;reg : tregister);virtual;
+          procedure g_return_from_proc(list : paasmoutput;parasize : aword);virtual;
+          {********************************************************}
+          { these methods can be overriden for extra functionality }
+
+          { the following methods do nothing: }
+          procedure g_interrupt_stackframe_entry(list : paasmoutput);virtual;
+          procedure g_interrupt_stackframe_exit(list : paasmoutput);virtual;
+
+          procedure g_profilecode(list : paasmoutput);virtual;
+          procedure g_stackcheck(list : paasmoutput;stackframesize : longint);virtual;
+
+          procedure a_load_const_ref(list : paasmoutput;size : tcgsize;a : aword;const ref : treference);virtual;
+          procedure g_maybe_loadself(list : paasmoutput);virtual;
+          { copies len bytes from the source to destination, if }
+          { loadref is true, it assumes that it first must load }
+          { the source address from the memory location where   }
+          { source points to                                    }
+          procedure g_concatcopy(list : paasmoutput;const source,dest : treference;len : aword;loadref : boolean);virtual;
+
+          { uses the addr of ref as param, was emitpushreferenceaddr }
+          procedure a_param_ref_addr(list : paasmoutput;r : treference;nr : longint);virtual;
+
+
+
 
 CVS Log
 -------
 
 $Log$
-Revision 1.5  2000-03-01 15:36:12  florian
+Revision 1.6  2000-03-02 03:22:16  carl
+  + More information and suggestions
+
+Revision 1.5  2000/03/01 15:36:12  florian
   * some new stuff for the new cg
 
 Revision 1.4  1999/10/14 14:57:54  florian
