@@ -433,7 +433,6 @@ end;
 
 
 procedure do_open(var f;p : pchar;flags:longint);
-
 {
   filerec and textrec have both handle and mode as the first items so
   they could use the same routine for opening/creating.
@@ -441,8 +440,16 @@ procedure do_open(var f;p : pchar;flags:longint);
   when (flags and $100)  the file will be truncate/rewritten
   when (flags and $1000) there is no check for close (needed for textfiles)
 }
-
-var
+Const
+  file_Share_Read  = $00000001;
+  file_Share_Write = $00000002;
+  fmShareCompat    = $00000000;
+  fmShareExclusive = $10;
+  fmShareDenyWrite = $20;
+  fmShareDenyRead  = $30;
+  fmShareDenyNone  = $40;
+Var
+  shflags,
   oflags,cd : longint;
 begin
   AllowSlash(p);
@@ -462,6 +469,19 @@ begin
    end;
 { reset file handle }
   filerec(f).handle:=UnusedHandle;
+{ convert filesharing }
+  shflags:=0;
+  if ((filemode and fmshareExclusive) = fmshareExclusive) then
+    { no sharing }
+  else
+    if (filemode = fmShareCompat) or ((filemode and fmshareDenyWrite) = fmshareDenyWrite) then
+      shflags := file_Share_Read
+  else
+    if ((filemode and fmshareDenyRead) = fmshareDenyRead) then
+      shflags := file_Share_Write
+  else
+    if ((filemode and fmshareDenyNone) = fmshareDenyNone) then
+      shflags := file_Share_Read + file_Share_Write;
 { convert filemode to filerec modes }
   case (flags and 3) of
    0 : begin
@@ -499,7 +519,7 @@ begin
      end;
      exit;
    end;
-  filerec(f).handle:=CreateFile(p,oflags,0,nil,cd,FILE_ATTRIBUTE_NORMAL,0);
+  filerec(f).handle:=CreateFile(p,oflags,shflags,nil,cd,FILE_ATTRIBUTE_NORMAL,0);
 { append mode }
   if (flags and $10)<>0 then
    begin
@@ -507,8 +527,8 @@ begin
      filerec(f).mode:=fmoutput; {fool fmappend}
    end;
 { get errors }
+  { handle -1 is returned sometimes !! (PM) }
   if (filerec(f).handle=0) or (filerec(f).handle=-1) then
-{ handle -1 is returned sometimes !! (PM) }
     begin
       errno:=GetLastError;
       Errno2InoutRes;
@@ -994,7 +1014,10 @@ end.
 
 {
   $Log$
-  Revision 1.35  1999-03-12 00:07:48  pierre
+  Revision 1.36  1999-03-24 23:25:59  peter
+    * fixed file sharing
+
+  Revision 1.35  1999/03/12 00:07:48  pierre
    + code for coff writer
 
   Revision 1.34  1999/03/10 22:15:31  florian
