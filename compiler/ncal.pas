@@ -221,28 +221,35 @@ type
 
 
     procedure maybe_load_para_in_temp(var p:tnode);
+
+        function is_simple_node(hp:tnode):boolean;
+        begin
+          is_simple_node:=(hp.nodetype in [typen,loadvmtaddrn,loadn,arrayconstructorn]);
+        end;
+
       var
-        hp    : tnode;
+        hp,
+        loadp,
+        refp  : tnode;
+        htype : ttype;
         ptemp : ttempcreatenode;
+        usederef : boolean;
         newinitstatement,
         newdonestatement : tstatementnode;
       begin
         if not assigned(aktcallnode) then
           internalerror(200410121);
 
+        { Load all complex loads into a temp to prevent
+          double calls to a function. We can't simply check for a hp.nodetype=calln
+           }
         hp:=p;
         while assigned(hp) and
-              (hp.nodetype=typeconvn) do
+              (hp.nodetype=typeconvn) and
+              (ttypeconvnode(hp).convtype=tc_equal) do
           hp:=tunarynode(hp).left;
         if assigned(hp) and
-           (
-            { call result must always be loaded in temp to prevent
-              double creation }
-            (hp.nodetype=calln)
-            { Also optimize also complex loads }
-{$warning Complex loads can also be optimized}
-//            or not(hp.nodetype in [typen,loadvmtaddrn,loadn])
-           )  then
+           not is_simple_node(hp) then
           begin
             if not assigned(aktcallnode.methodpointerinit) then
               begin
@@ -255,17 +262,35 @@ type
                 newdonestatement:=laststatement(aktcallnode.methodpointerdone);
               end;
             { temp create }
-            ptemp:=ctempcreatenode.create(p.resulttype,p.resulttype.def.size,tt_persistent,true);
+            usederef:=(p.resulttype.def.deftype in [arraydef,recorddef]) or
+                      is_shortstring(p.resulttype.def) or
+                      is_object(p.resulttype.def);
+            if usederef then
+              htype.setdef(tpointerdef.create(p.resulttype))
+            else
+              htype:=p.resulttype;
+            ptemp:=ctempcreatenode.create(htype,htype.def.size,tt_persistent,true);
+            if usederef then
+              begin
+                loadp:=caddrnode.create_internal(p);
+                refp:=cderefnode.create(ctemprefnode.create(ptemp));
+              end
+            else
+              begin
+                loadp:=p;
+                refp:=ctemprefnode.create(ptemp);
+              end;
             addstatement(newinitstatement,ptemp);
             addstatement(newinitstatement,cassignmentnode.create(
                 ctemprefnode.create(ptemp),
-                p));
-            resulttypepass(aktcallnode.methodpointerinit);
+                loadp));
             { new tree is only a temp reference }
-            p:=ctemprefnode.create(ptemp);
-            resulttypepass(p);
+            p:=refp;
             { temp release }
             addstatement(newdonestatement,ctempdeletenode.create(ptemp));
+            { call resulttypepass for new nodes }
+            resulttypepass(p);
+            resulttypepass(aktcallnode.methodpointerinit);
             resulttypepass(aktcallnode.methodpointerdone);
           end;
       end;
@@ -504,6 +529,8 @@ type
                  { set some settings needed for arrayconstructor }
                  if is_array_constructor(left.resulttype.def) then
                   begin
+                    if left.nodetype<>arrayconstructorn then
+                      internalerror(200504041);
                     if is_array_of_const(parasym.vartype.def) then
                      begin
                        { force variant array }
@@ -2520,7 +2547,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.282  2005-03-28 15:05:17  peter
+  Revision 1.283  2005-04-05 21:07:43  peter
+    * load all complex loads of parameters that are needed multiple times
+      to a temp to prevent calling functions twice
+
+  Revision 1.282  2005/03/28 15:05:17  peter
   fix type of temps generated for parameters during inlining
 
   Revision 1.281  2005/03/25 22:20:18  peter
