@@ -1191,6 +1191,9 @@ begin
 end;
 {$endif RTLLITE}
 
+{$ifdef MT}
+{$I thread.inc}
+{$endif MT}
 
 var
   temp_int : tseginfo;
@@ -1207,6 +1210,14 @@ Begin
   loweststack:=maxlongint;
 { Setup heap }
   InitHeap;
+
+{$ifdef MT}
+  { before this, you can't use thread vars !!!! }
+  { threadvarblocksize is calculate before the initialization }
+  { of the system unit                                        }
+  getmem(mainprogramthreadblock,threadvarblocksize);
+{$endif MT}
+
 { Setup stdin, stdout and stderr }
   OpenStdIO(Input,fmInput,StdInputHandle);
   OpenStdIO(Output,fmOutput,StdOutputHandle);
@@ -1222,7 +1233,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.8  1999-04-08 12:23:02  peter
+  Revision 1.9  1999-04-28 06:01:25  florian
+    * define MT for multithreading introduced
+
+  Revision 1.8  1999/04/08 12:23:02  peter
     * removed os.inc
 
   Revision 1.7  1999/03/10 22:15:28  florian

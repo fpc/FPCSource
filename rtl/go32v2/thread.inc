@@ -36,9 +36,12 @@ function relocate_threadvar(offset : dword) : pointer;[public,alias: 'FPC_RELOCA
      movl mainprogramthreadblock,%eax
      addl offset,%eax
   end;
+
 {
   $Log$
-  Revision 1.1  1999-04-27 19:41:06  florian
-    + first implementation for DOS, only a dummy
+  Revision 1.2  1999-04-28 06:01:26  florian
+    * define MT for multithreading introduced
 
+  Revision 1.1  1999/04/27 19:41:06  florian
+    + first implementation for DOS, only a dummy
 }
