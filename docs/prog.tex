@@ -5699,6 +5699,7 @@ compile the units or programs, then this version should be specified here.
 
 The following keys can be used to control the location of the various
 directories used by the compiler:
+\begin{description}
 \item[unitdir]
 A colon-separated list of directories that must be added to the unit
 search path of the compiler.
@@ -5757,8 +5758,6 @@ The following keys can be placed in this section:
 be placed.
 \item[zipname] Name of the archive file to be created. If no zipname is
 specified, this defaults to the package name.
-# Target rule to use for installation of files to be added
-# to the zip file
 \item[ziptarget] This is the target that should be executed before the
 archive file is made. This defaults to \var{install}.
 \end{description}
@@ -5813,7 +5812,6 @@ should not be used in this section.
 This section is used to indicate dependency on external packages (i.e units)
 or tools. The following keywords can be used:
 \begin{description}
-[require]
 \item[fpcmake] Minimal version of fpcmake that this \file{makefile.fpc} needs.
 \item[packages] Other packages that should be compiled before this package
 can be compiled. Note that this will also add all packages these packages
