@@ -387,6 +387,7 @@ implementation
          hp : tnode;
          newblock : tblocknode;
          newstatement : tstatementnode;
+         calltempp,
          loadp : ttempcreatenode;
          refp : tnode;
          htype : ttype;
@@ -426,8 +427,20 @@ implementation
              end
             else
              begin
+               calltempp:=nil;
                { complex load, load in temp first }
                newblock:=internalstatements(newstatement,false);
+               { when right is a call then load it first in a temp }
+               if p.nodetype=calln then
+                 begin
+                   calltempp:=ctempcreatenode.create(p.resulttype,p.resulttype.def.size,tt_persistent);
+                   addstatement(newstatement,calltempp);
+                   addstatement(newstatement,cassignmentnode.create(
+                       ctemprefnode.create(calltempp),
+                       p));
+                   p:=ctemprefnode.create(calltempp);
+                   resulttypepass(p);
+                 end;
                { classes and interfaces have implicit dereferencing }
                hasimplicitderef:=is_class_or_interface(p.resulttype.def);
                if hasimplicitderef then
@@ -500,6 +513,8 @@ implementation
              begin
                addstatement(newstatement,p);
                addstatement(newstatement,ctempdeletenode.create(loadp));
+               if assigned(calltempp) then
+                 addstatement(newstatement,ctempdeletenode.create(calltempp));
                p:=newblock;
              end;
             _with_statement:=p;
@@ -1174,7 +1189,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.102  2003-05-23 22:33:48  florian
+  Revision 1.103  2003-06-09 18:27:14  peter
+    * load calln in temprefn in with statement
+
+  Revision 1.102  2003/05/23 22:33:48  florian
     * fix some small flaws which prevent sparc linux system unit from compiling
     * some reformatting done
 
