@@ -485,7 +485,8 @@ implementation
                 end;
               if assigned(pt) or assigned(pdc) then
                 begin
-                   aktfilepos:=pt^.fileinfo;
+                   if assigned(pt) then
+                     aktfilepos:=pt^.fileinfo;
                    CGMessage(parser_e_illegal_parameter_list);
                 end;
               { insert type conversions }
@@ -587,15 +588,28 @@ implementation
 
                    { no procedures found? then there is something wrong
                      with the parameter size }
-                   if not assigned(procs) and
-                      ((parsing_para_level=0) or assigned(p^.left)) and
-                      (nextprocsym=nil) then
+                   if not assigned(procs) then
                     begin
-                       if assigned(p^.left) then
-                         aktfilepos:=p^.left^.fileinfo;
-                       CGMessage(parser_e_wrong_parameter_size);
-                       aktcallprocsym^.write_parameter_lists;
-                       goto errorexit;
+                      { in tp mode we can try to convert to procvar if
+                        there are no parameters specified }
+                      if not(assigned(p^.left)) and
+                         (m_tp_procvar in aktmodeswitches) then
+                        begin
+                          p^.treetype:=loadn;
+                          p^.resulttype:=pprocsym(p^.symtableprocentry)^.definition;
+                          p^.symtableentry:=p^.symtableprocentry;
+                          p^.is_first:=false;
+                          p^.disposetyp:=dt_nothing;
+                          firstpass(p);
+                        end
+                      else
+                        begin
+                          if assigned(p^.left) then
+                           aktfilepos:=p^.left^.fileinfo;
+                          CGMessage(parser_e_wrong_parameter_size);
+                          aktcallprocsym^.write_parameter_lists;
+                        end;
+                      goto errorexit;
                     end;
 
                 { now we can compare parameter after parameter }
@@ -707,33 +721,18 @@ implementation
                     begin
                       { there is an error, must be wrong type, because
                         wrong size is already checked (PFV) }
-                      {if ((parsing_para_level=0) or (p^.left<>nil)) and
-                         (nextprocsym=nil) then }
-                      if (parsing_para_level>0) and
-                         (m_tp_procvar in aktmodeswitches) then
-                        begin
-                          { try to convert to procvar }
-                          p^.treetype:=loadn;
-                          p^.resulttype:=pprocsym(p^.symtableprocentry)^.definition;
-                          p^.symtableentry:=p^.symtableprocentry;
-                          p^.is_first:=false;
-                          p^.disposetyp:=dt_nothing;
-                          firstpass(p);
-                        end
+                      if (not assigned(lastparatype)) or
+                         (not assigned(pt)) or
+                         (not assigned(pt^.resulttype)) then
+                        internalerror(39393)
                       else
                         begin
-                          if (not assigned(lastparatype)) or (not assigned(pt)) or
-                             (not assigned(pt^.resulttype)) then
-                            internalerror(39393)
-                          else
-                            begin
-                               aktfilepos:=pt^.fileinfo;
-                               CGMessage3(type_e_wrong_parameter_type,tostr(lastpara),
-                                 pt^.resulttype^.typename,lastparatype^.typename);
-                            end;
-                          aktcallprocsym^.write_parameter_lists;
+                          aktfilepos:=pt^.fileinfo;
+                          CGMessage3(type_e_wrong_parameter_type,tostr(lastpara),
+                            pt^.resulttype^.typename,lastparatype^.typename);
                         end;
-                       goto errorexit;
+                      aktcallprocsym^.write_parameter_lists;
+                      goto errorexit;
                     end;
 
                    { if there are several choices left then for orddef }
@@ -1184,11 +1183,17 @@ implementation
 end.
 {
   $Log$
-  Revision 1.53  1999-06-29 14:02:33  peter
+  Revision 1.54  1999-07-01 21:33:58  peter
+    * merged
+
+  Revision 1.53  1999/06/29 14:02:33  peter
     * merged file pos fixes
 
   Revision 1.52  1999/06/29 12:16:22  pierre
    * mereg from fixes-0_99_12
+
+  Revision 1.51.2.3  1999/07/01 21:32:01  peter
+    * procvar fixes again
 
   Revision 1.51.2.2  1999/06/29 12:12:13  pierre
    * fix for bug0272

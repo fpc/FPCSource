@@ -113,7 +113,7 @@ unit pexpr;
       var
          p1 : ptree;
          Store_valid : boolean;
-         
+
       begin
          if (m_tp_procvar in aktmodeswitches) and
 {            (not afterassignment) and }
@@ -1803,9 +1803,11 @@ unit pexpr;
         { generate error node if no node is created }
         if not assigned(p1) then
           p1:=genzeronode(errorn);
-         { tp7 procvar handling }
-         if (m_tp_procvar in aktmodeswitches) then
-           check_tp_procvar(p1);
+        { tp7 procvar handling, but not if the next token
+          will be a := }
+        if (m_tp_procvar in aktmodeswitches) and
+           (token<>ASSIGNMENT) then
+          check_tp_procvar(p1);
         factor:=p1;
         check_tokenpos;
       end;
@@ -2042,7 +2044,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.117  1999-06-30 15:43:20  florian
+  Revision 1.118  1999-07-01 21:33:57  peter
+    * merged
+
+  Revision 1.117  1999/06/30 15:43:20  florian
     * two bugs regarding method variables fixed
       - if you take in a method the address of another method
         don't need self anymore
@@ -2051,6 +2056,12 @@ end.
 
   Revision 1.116  1999/06/26 00:24:53  pierre
    * mereg from fixes-0_99_12 branch
+
+  Revision 1.112.2.6  1999/07/01 21:31:59  peter
+    * procvar fixes again
+
+  Revision 1.112.2.5  1999/07/01 15:17:17  peter
+    * methoidpointer fixes from florian
 
   Revision 1.112.2.4  1999/06/26 00:22:30  pierre
    * wrong warnings in -So mode suppressed
