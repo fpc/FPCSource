@@ -265,7 +265,7 @@ Function  fdSeek (fd,pos,seektype :longint): longint;
 Function  fdFlush (fd : Longint) : Boolean;
 Function  Link(OldPath,NewPath:pathstr):boolean;
 Function  SymLink(OldPath,NewPath:pathstr):boolean;
-{$ifndef bsd}
+{$ifdef bsd}
 Function  ReadLink(name,linkname:pchar;maxlen:longint):longint;
 Function  ReadLink(name:pathstr):pathstr;
 {$endif}
@@ -2889,7 +2889,10 @@ End.
 
 {
   $Log$
-  Revision 1.10  2001-06-13 22:20:11  hajny
+  Revision 1.11  2001-06-19 17:19:50  marco
+   * Again uncommented readlink. Merges or typo, I dunno
+
+  Revision 1.10  2001/06/13 22:20:11  hajny
     + platform specific information
 
   Revision 1.9  2001/06/03 20:19:09  peter
