@@ -1053,7 +1053,7 @@ type
         { Finally give out a warning for each abstract method still in the list }
         stritem := tstringlistitem(AbstractMethodsList.first);
         if assigned(stritem) then
-          Message1(type_w_instance_with_abstract,objectdf.objname^);
+          Message1(type_w_instance_with_abstract,objectdf.objrealname^);
         while assigned(stritem) do
          begin
            if assigned(stritem.fpstr) then
@@ -2393,7 +2393,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.245  2004-08-22 10:17:13  peter
+  Revision 1.246  2004-08-28 20:00:50  peter
+    * use objrealname in Message1
+
+  Revision 1.245  2004/08/22 10:17:13  peter
     * fixed crash when passing array constructor to formal parameter
 
   Revision 1.244  2004/08/14 14:50:42  florian
