@@ -289,6 +289,7 @@ end;
 
 procedure internalerror(i : longint);
 begin
+  UpdateStatus;
   do_internalerror(i);
   inc(status.errorcount);
   stop;
@@ -428,7 +429,10 @@ end.
 
 {
   $Log$
-  Revision 1.28  1998-11-06 09:45:41  pierre
+  Revision 1.29  1998-11-26 13:08:19  peter
+    * update status also for internalerrors
+
+  Revision 1.28  1998/11/06 09:45:41  pierre
     * bug on errors (file used after dispose !) fixed
 
   Revision 1.27  1998/10/28 18:26:24  pierre
