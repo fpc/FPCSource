@@ -2567,7 +2567,7 @@ register & Left-to-right & Caller & default & None \\ \hline
 
 More about this can be found in \seec{Linking} on linking. Information
 on GCC registers saved, GCC stack alignment and general stack alignment
-on an operating system basis can be found in Appendix \ref{ch:AppI}. The \var{register}
+on an operating system basis can be found in Appendix \ref{ch:AppH}. The \var{register}
 modifier is currently not supported, and maps to the default calling
 convention.
 
@@ -2706,7 +2706,7 @@ from one operating system to another. For example, passing a
 byte as a value parameter to a routine could either decrement the
 stack pointer by 1, 2, 4 or even 8 bytes depending on the target
 operating system and processor. The minimal default stack pointer decrement
-value is given in Appendix \ref{ch:AppI}.
+value is given in Appendix \ref{ch:AppH}.
 
 For example, on \freebsd, all parameters passed to a routine guarantee
 a minimal stack decrease of four bytes per parameter, even if the
@@ -6725,76 +6725,11 @@ The \unix define was added starting from \fpc version 1.0.5.
 \end{remark}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Appendix H : Stack configuration
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\chapter{Stack configuration}
-\label{ch:AppH}
-
-This gives some important information on stack settings under
-the different operating systems. It might be important when
-porting applications to other operating systems.
-
-\section{DOS}
-
-Under the DOS targets, the default stack is set to 256 kB.
-This can be modified with the GO32V2 target using a special
-DJGPP utility \file{stubedit}. It is to note that the stack
-size may be changed with some compiler switches, this stack
-size, if \emph{greater} then the default stack size will be
-used instead, otherwise the default stack size is used.
-
-\section{Linux}
-
-Under \linux, stack size is only limited by the available memory of
-the system.
-
-\section{Netbsd}
-
-Under \netbsd, stack size is only limited by the available memory of
-the system.
-
-\section{Freebsd}
-
-Under \freebsd, stack size is only limited by the available memory of
-the system.
-
-\section{BeOS}
-
-Under \beos, stack size is fixed at 256Kb. It currently
-cannot be changed, it is recommended to turn on stack
-checking when compiling for this target platform.
-
-\section{Windows}
-
-Under \windows, stack size is only limited by the available memory of
-the system.
-
-\section{OS/2}
-
-Under \ostwo, stack size is specified at a default
-value of 8 Mbytes. This currently cannot be changed
-directly.
-
-\section{Amiga}
-
-Under AmigaOS, stack size is determined by the user, which sets this
-value using the stack program. Typical sizes range from 4 kB to 40 kB.
-The stack size currently cannot be changed, it is recommended to turn
-on stack checking when compiling for this target platform.
-
-\section{Atari}
-
-Under Atari TOS, stack size is currently limited to 8 kB.
-The stack size currently cannot be changed, it is recommended to turn
-on stack checking when compiling for this target platform.
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Appendix I : Operating system specific behavior
+% Appendix H : Operating system specific behavior
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \chapter{Operating system specific behavior}
-\label{ch:AppI}
+\label{ch:AppH}
 
 This appendix describes some special behaviors which vary
 from operating system to operating system. This is described
