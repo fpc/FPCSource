@@ -197,9 +197,6 @@ unit systems;
 
 implementation
 
-  uses
-    globals,verbose;
-
     const
 
 {****************************************************************************
@@ -875,6 +872,19 @@ implementation
                                 Helpers
 ****************************************************************************}
 
+function upper(const s : string) : string;
+var
+  i  : longint;
+begin
+  for i:=1 to length(s) do
+   if s[i] in ['a'..'z'] then
+    upper[i]:=char(byte(s[i])-32)
+   else
+    upper[i]:=s[i];
+  upper[0]:=s[0];
+end;
+
+
 function set_target_os(t:tos):boolean;
 var
   i : longint;
@@ -1030,8 +1040,9 @@ procedure set_source_os(t:tos);
 var
   i : longint;
 begin
+{ can't use message() here (PFV) }
   if source_os.name<>'' then
-    Message(exec_w_source_os_redefined);
+    Writeln('Warning: Source OS Redefined!');
   for i:=1 to oscnt do
    if os_infos[i].id=t then
     begin
@@ -1130,7 +1141,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.44  1998-10-14 11:28:25  florian
+  Revision 1.45  1998-10-15 16:20:41  peter
+    * removed uses verbose which is not possible! this unit may not use
+      any other unit !
+
+  Revision 1.44  1998/10/14 11:28:25  florian
     * emitpushreferenceaddress gets now the asmlist as parameter
     * m68k version compiles with -duseansistrings
 
