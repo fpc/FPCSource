@@ -25,7 +25,7 @@ Unit tainst;
 interface
 
   Uses aasm,cpubase,cpuinfo,cobjects;
-  
+
 Type
 
 pairegalloc = ^tairegalloc;
@@ -43,6 +43,9 @@ tainstruction = object(tai)
   condition : TAsmCond;
   ops       : longint;
   oper      : array[0..max_operands-1] of toper;
+{$ifdef i386}
+  segprefix: tregister;
+{$endif i386}
   Constructor init(op : tasmop);
   Destructor Done;virtual;
   function getcopy:plinkedlist_item;virtual;
@@ -53,7 +56,7 @@ tainstruction = object(tai)
   procedure loadoper(opidx:longint;o:toper);
   procedure SetCondition(c:TAsmCond);
   end;
-     
+
 implementation
 
 {*****************************************************************************
@@ -82,7 +85,7 @@ constructor tairegalloc.dealloc(r : tregister);
   ---------------------------------------------------------------------}
 
 
-  
+
 Constructor tainstruction.init(op : tasmop);
 
 begin
@@ -106,7 +109,7 @@ begin
   if (oper[i-1].typ=top_ref) then
     dispose(oper[i-1].ref);
   inherited done;
-end;  
+end;
 
 
 
@@ -115,7 +118,7 @@ end;
   ---------------------------------------------------------------------}
 
 
-  
+
 procedure tainstruction.loadconst(opidx:longint;l:longint);
 
 begin
@@ -169,11 +172,11 @@ begin
        begin
          ref:=p;
 { We allow this exception for i386, since overloading this would be
-  too much of a a speed penalty}         
+  too much of a a speed penalty}
 {$ifdef i386}
          if not(ref^.segment in [R_DS,R_NO]) then
            segprefix:=ref^.segment;
-{$endif}           
+{$endif}
          typ:=top_ref;
          { mark symbol as used }
          if assigned(ref^.symbol) then
@@ -243,7 +246,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  1999-08-06 16:38:37  jonas
+  Revision 1.3  1999-08-26 14:52:59  jonas
+    * added segprefix field for i386 in tainstruction object
+
+  Revision 1.2  1999/08/06 16:38:37  jonas
     * declared getcopy virtual, since it's already declared as such
       in cobjects.pas (FPC doesn't error on that, TP does)
 
