@@ -123,7 +123,7 @@ dos09912.zip specific:
       GInstall 3.16
       Date 3.16
       Echo 3.16
-      UPX 0.71
+      UPX 0.72
   gdbgo32.zip     contains the GNU Debugger 4.16 for Go32V2
 
 w3209912.zip specific:
@@ -146,7 +146,7 @@ w3209912.zip specific:
       GInstall 3.16
       Date 3.16
       Echo 3.16
-      UPX 0.71
+      UPX 0.72
   gdbw32.zip      contains the GNU Debugger 4.16.1 for Win32
 
 os209912.zip specific:
