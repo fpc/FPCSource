@@ -93,7 +93,7 @@ implementation
     procedure insert_funcret_para(pd:tabstractprocdef);
       var
         storepos : tfileposinfo;
-        vs       : tvarsym;
+        vs       : tparavarsym;
       begin
         if not(pd.proctypeoption in [potype_constructor,potype_destructor]) and
            not is_void(pd.rettype.def) and
@@ -104,7 +104,7 @@ implementation
             akttokenpos:=tprocdef(pd).fileinfo;
 
            { Generate result variable accessing function result }
-           vs:=tvarsym.create('$result',vs_var,pd.rettype);
+           vs:=tparavarsym.create('$result',vs_var,pd.rettype);
            include(vs.varoptions,vo_is_funcret);
            pd.parast.insert(vs);
            { For left to right add it at the end to be delphi compatible }
@@ -124,7 +124,7 @@ implementation
     procedure insert_parentfp_para(pd:tabstractprocdef);
       var
         storepos : tfileposinfo;
-        vs       : tvarsym;
+        vs       : tparavarsym;
       begin
         if pd.parast.symtablelevel>normal_function_level then
           begin
@@ -135,7 +135,7 @@ implementation
             { Generate result variable accessing function result, it
               can't be put in a register since it must be accessable
               from the framepointer }
-            vs:=tvarsym.create('$parentfp',vs_var,voidpointertype);
+            vs:=tparavarsym.create('$parentfp',vs_var,voidpointertype);
             include(vs.varoptions,vo_is_parentfp);
             vs.varregable:=vr_none;
             pd.parast.insert(vs);
@@ -149,7 +149,7 @@ implementation
     procedure insert_self_and_vmt_para(pd:tabstractprocdef);
       var
         storepos : tfileposinfo;
-        vs       : tvarsym;
+        vs       : tparavarsym;
         tt       : ttype;
         vsp      : tvarspez;
       begin
@@ -158,7 +158,7 @@ implementation
           begin
             { Generate self variable }
             tt:=voidpointertype;
-            vs:=tvarsym.create('$self',vs_value,tt);
+            vs:=tparavarsym.create('$self',vs_value,tt);
             include(vs.varoptions,vo_is_self);
             { Insert as hidden parameter }
             pd.parast.insert(vs);
@@ -179,7 +179,7 @@ implementation
                    { can't use classrefdef as type because inheriting
                      will then always file because of a type mismatch }
                    tt:=voidpointertype;
-                   vs:=tvarsym.create('$vmt',vs_value,tt);
+                   vs:=tparavarsym.create('$vmt',vs_value,tt);
                    include(vs.varoptions,vo_is_vmt);
                    { Insert as hidden parameter }
                    pd.parast.insert(vs);
@@ -202,7 +202,7 @@ implementation
                       vsp:=vs_var;
                     tt.setdef(tprocdef(pd)._class);
                   end;
-                vs:=tvarsym.create('$self',vsp,tt);
+                vs:=tparavarsym.create('$self',vsp,tt);
                 include(vs.varoptions,vo_is_self);
                 { Insert as hidden parameter }
                 pd.parast.insert(vs);
@@ -217,7 +217,8 @@ implementation
     procedure insert_funcret_local(pd:tprocdef);
       var
         storepos : tfileposinfo;
-        vs       : tvarsym;
+        vs       : tlocalvarsym;
+        aliasvs  : tabsolutevarsym;
         sl       : tsymlist;
       begin
         { The result from constructors and destructors can't be accessed directly }
@@ -235,7 +236,7 @@ implementation
              when it is returning in a register }
            if not paramanager.ret_in_param(pd.rettype.def,pd.proccalloption) then
             begin
-              vs:=tvarsym.create('$result',vs_value,pd.rettype);
+              vs:=tlocalvarsym.create('$result',vs_value,pd.rettype);
               include(vs.varoptions,vo_is_funcret);
               pd.localst.insert(vs);
               pd.funcretsym:=vs;
@@ -248,19 +249,19 @@ implementation
             pd.resultname:=pd.procsym.name;
            sl:=tsymlist.create;
            sl.addsym(sl_load,pd.funcretsym);
-           vs:=tabsolutesym.create_ref(pd.resultname,pd.rettype,sl);
-           include(vs.varoptions,vo_is_funcret);
-           pd.localst.insert(vs);
+           aliasvs:=tabsolutevarsym.create_ref(pd.resultname,pd.rettype,sl);
+           include(aliasvs.varoptions,vo_is_funcret);
+           pd.localst.insert(aliasvs);
 
            { insert result also if support is on }
            if (m_result in aktmodeswitches) then
             begin
               sl:=tsymlist.create;
               sl.addsym(sl_load,pd.funcretsym);
-              vs:=tabsolutesym.create_ref('RESULT',pd.rettype,sl);
-              include(vs.varoptions,vo_is_funcret);
-              include(vs.varoptions,vo_is_result);
-              pd.localst.insert(vs);
+              aliasvs:=tabsolutevarsym.create_ref('RESULT',pd.rettype,sl);
+              include(aliasvs.varoptions,vo_is_funcret);
+              include(aliasvs.varoptions,vo_is_result);
+              pd.localst.insert(aliasvs);
             end;
 
            akttokenpos:=storepos;
@@ -271,7 +272,7 @@ implementation
     procedure insert_hidden_para(pd:tabstractprocdef);
       var
         currpara : tparaitem;
-        hvs : tvarsym;
+        hvs : tparavarsym;
       begin
         { walk from right to left, so we can insert the
           high parameters after the current parameter }
@@ -283,9 +284,9 @@ implementation
             begin
               if assigned(currpara.parasym) then
                begin
-                 hvs:=tvarsym.create('$high'+tvarsym(currpara.parasym).name,vs_const,sinttype);
+                 hvs:=tparavarsym.create('$high'+tparavarsym(currpara.parasym).name,vs_const,sinttype);
                  include(hvs.varoptions,vo_is_high_value);
-                 tvarsym(currpara.parasym).owner.insert(hvs);
+                 tparavarsym(currpara.parasym).owner.insert(hvs);
                end
               else
                hvs:=nil;
@@ -311,9 +312,9 @@ implementation
 
     procedure check_c_para(p:tnamedindexitem;arg:pointer);
       begin
-        if (tsym(p).typ<>varsym) then
+        if (tsym(p).typ<>paravarsym) then
          exit;
-        with tvarsym(p) do
+        with tparavarsym(p) do
          begin
            case vartype.def.deftype of
              arraydef :
@@ -326,8 +327,8 @@ implementation
                   end;
                  if is_array_of_const(vartype.def) and
                     assigned(indexnext) and
-                    (tsym(indexnext).typ=varsym) and
-                    not(vo_is_high_value in tvarsym(indexnext).varoptions) then
+                    (tsym(indexnext).typ=paravarsym) and
+                    not(vo_is_high_value in tparavarsym(indexnext).varoptions) then
                    Message(parser_e_C_array_of_const_must_be_last);
                end;
             end;
@@ -337,9 +338,9 @@ implementation
 
     procedure set_addr_param_regable(p:tnamedindexitem;arg:pointer);
       begin
-        if (tsym(p).typ<>varsym) then
+        if (tsym(p).typ<>paravarsym) then
          exit;
-        with tvarsym(p) do
+        with tparavarsym(p) do
          begin
            if not vartype.def.needs_inittable and
               paramanager.push_addr_param(varspez,vartype.def,tprocdef(arg).proccalloption) then
@@ -356,7 +357,7 @@ implementation
         sc      : tsinglelist;
         tt      : ttype;
         arrayelementtype : ttype;
-        vs      : tvarsym;
+        vs      : tparavarsym;
         srsym   : tsym;
         hs1 : string;
         varspez : Tvarspez;
@@ -409,7 +410,7 @@ implementation
           { read identifiers and insert with error type }
           sc.reset;
           repeat
-            vs:=tvarsym.create(orgpattern,varspez,generrortype);
+            vs:=tparavarsym.create(orgpattern,varspez,generrortype);
             currparast.insert(vs);
             if assigned(vs.owner) then
              sc.insert(vs)
@@ -493,7 +494,7 @@ implementation
                  begin
                    if try_to_consume(_EQUAL) then
                     begin
-                      vs:=tvarsym(sc.first);
+                      vs:=tparavarsym(sc.first);
                       if assigned(vs.listnext) then
                         Message(parser_e_default_value_only_one_para);
                       { prefix 'def' to the parameter name }
@@ -528,7 +529,7 @@ implementation
              (varspez<>vs_var) then
             CGMessage(cg_e_file_must_call_by_reference);
 
-          vs:=tvarsym(sc.first);
+          vs:=tparavarsym(sc.first);
           while assigned(vs) do
            begin
              { update varsym }
@@ -551,7 +552,7 @@ implementation
                    if explicit_paraloc then
                      Message(parser_e_paraloc_all_paras);
                end;
-             vs:=tvarsym(vs.listnext);
+             vs:=tparavarsym(vs.listnext);
            end;
         until not try_to_consume(_SEMICOLON);
 
@@ -931,7 +932,7 @@ implementation
                         Message(parser_e_comparative_operator_return_boolean);
                      if (optoken=_ASSIGNMENT) and
                         equal_defs(pd.rettype.def,
-                           tvarsym(pd.parast.symindex.first).vartype.def) then
+                           tparavarsym(pd.parast.symindex.first).vartype.def) then
                        message(parser_e_no_such_assignment)
                      else if not isoperatoracceptable(pd,optoken) then
                        Message(parser_e_overload_impossible);
@@ -1887,10 +1888,10 @@ const
         currpara:=tparaitem(pd.para.first);
         while assigned(currpara) do
          begin
-           if not(assigned(currpara.parasym) and (currpara.parasym.typ=varsym)) then
+           if not(assigned(currpara.parasym) and (currpara.parasym.typ=paravarsym)) then
              internalerror(200304232);
            { connect parasym to paraitem }
-           tvarsym(currpara.parasym).paraitem:=currpara;
+           tparavarsym(currpara.parasym).paraitem:=currpara;
            { We need a local copy for a value parameter when only the
              address is pushed. Open arrays and Array of Const are
              an exception because they are allocated at runtime and the
@@ -1899,7 +1900,7 @@ const
               paramanager.push_addr_param(currpara.paratyp,currpara.paratype.def,pd.proccalloption) and
               not(is_open_array(currpara.paratype.def) or
                   is_array_of_const(currpara.paratype.def)) then
-             include(tvarsym(currpara.parasym).varoptions,vo_has_local_copy);
+             include(tparavarsym(currpara.parasym).varoptions,vo_has_local_copy);
            currpara:=tparaitem(currpara.next);
          end;
       end;
@@ -1961,8 +1962,11 @@ const
         pdflags:=[pd_procvar];
         pd:=nil;
         case sym.typ of
-          varsym :
-            pd:=tabstractprocdef(tvarsym(sym).vartype.def);
+          fieldvarsym,
+          globalvarsym,
+          localvarsym,
+          paravarsym :
+            pd:=tabstractprocdef(tabstractvarsym(sym).vartype.def);
           typedconstsym :
             pd:=tabstractprocdef(ttypedconstsym(sym).typedconsttype.def);
           typesym :
@@ -2132,9 +2136,9 @@ const
                       fd:=tsym(pd.parast.symindex.first);
                       repeat
                         { skip default parameter constsyms }
-                        while assigned(ad) and (ad.typ<>varsym) do
+                        while assigned(ad) and (ad.typ<>paravarsym) do
                          ad:=tsym(ad.indexnext);
-                        while assigned(fd) and (fd.typ<>varsym) do
+                        while assigned(fd) and (fd.typ<>paravarsym) do
                          fd:=tsym(fd.indexnext);
                         { stop when one of the two lists is at the end }
                         if not assigned(ad) or not assigned(fd) then
@@ -2259,7 +2263,10 @@ const
 end.
 {
   $Log$
-  Revision 1.199  2004-11-05 21:16:55  peter
+  Revision 1.200  2004-11-08 22:09:59  peter
+    * tvarsym splitted
+
+  Revision 1.199  2004/11/05 21:16:55  peter
     * rename duplicate symbols and insert with unique name in the
       symtable
 

@@ -312,7 +312,7 @@ Implementation
                     will generate buggy code. Allow it only for explicit typecasting }
                   if hasdot and
                      (not oper.hastype) and
-                     (tvarsym(oper.opr.localsym).owner.symtabletype=parasymtable) and
+                     (oper.opr.localsym.owner.symtabletype=parasymtable) and
                      (current_procinfo.procdef.proccalloption<>pocall_register) then
                     Message(asmr_e_cannot_access_field_directly_for_parameters);
                   inc(oper.opr.localsymofs,l)
@@ -788,7 +788,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.6  2004-10-31 21:45:04  peter
+  Revision 1.7  2004-11-08 22:09:59  peter
+    * tvarsym splitted
+
+  Revision 1.6  2004/10/31 21:45:04  peter
     * generic tlocation
     * move tlocation to cgutils
 

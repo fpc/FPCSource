@@ -79,7 +79,7 @@ interface
          function  typename:string;
          function  gettypename:string;virtual;
          function  mangledparaname:string;
-         function  getmangledparaname:string;virtual;abstract;
+         function  getmangledparaname:string;virtual;
          function  size:aint;virtual;abstract;
          function  alignment:longint;virtual;abstract;
          function  getparentdef:tdef;virtual;
@@ -111,10 +111,7 @@ interface
          function  stabstring : pchar;virtual;
 {$endif GDB}
          constructor create(const n : string);
-         constructor loadsym(ppufile:tcompilerppufile);
          destructor destroy;override;
-         procedure ppuwrite(ppufile:tcompilerppufile);virtual;abstract;
-         procedure writesym(ppufile:tcompilerppufile);
          function  realname:string;
          procedure buildderef;virtual;
 {         procedure buildderefimpl;virtual;abstract;}
@@ -276,6 +273,12 @@ implementation
       end;
 
 
+    function tdef.getmangledparaname:string;
+      begin
+         result:='<unknown type>';
+      end;
+
+
     function tdef.getparentdef:tdef;
       begin
         result:=nil;
@@ -318,32 +321,6 @@ implementation
          symoptions:=current_object_option;
       end;
 
-    constructor tsym.loadsym(ppufile:tcompilerppufile);
-      var
-        s  : string;
-        nr : word;
-      begin
-         nr:=ppufile.getword;
-         s:=ppufile.getstring;
-         if s[1]='$' then
-          inherited createname(copy(s,2,255))
-         else
-          inherited createname(upper(s));
-         _realname:=stringdup(s);
-         typ:=abstractsym;
-         { force the correct indexnr. must be after create! }
-         indexnr:=nr;
-         ppufile.getposinfo(fileinfo);
-         ppufile.getsmallset(symoptions);
-         lastref:=nil;
-         defref:=nil;
-         refs:=0;
-         lastwritten:=nil;
-         refcount:=0;
-{$ifdef GDB}
-         isstabwritten := false;
-{$endif GDB}
-      end;
 
     destructor tsym.destroy;
       begin
@@ -357,23 +334,15 @@ implementation
         inherited destroy;
       end;
 
-    procedure Tsym.writesym(ppufile:tcompilerppufile);
-      begin
-         ppufile.putword(indexnr);
-         ppufile.putstring(_realname^);
-         ppufile.putposinfo(fileinfo);
-         ppufile.putsmallset(symoptions);
-      end;
 
     procedure Tsym.buildderef;
+      begin
+      end;
 
-    begin
-    end;
 
     procedure Tsym.deref;
-
-    begin
-    end;
+      begin
+      end;
 
 {$ifdef GDB}
     function Tsym.get_var_value(const s:string):string;
@@ -1048,8 +1017,8 @@ implementation
         data   : array[0..255] of byte;
       begin
         result:=nil;
-        { not initialized }
-        if dataidx=-1 then
+        { not initialized or error }
+        if dataidx<0 then
           internalerror(200306067);
         { read data }
         current_module.derefdata.seek(dataidx);
@@ -1487,7 +1456,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.46  2004-11-01 23:30:11  peter
+  Revision 1.47  2004-11-08 22:09:59  peter
+    * tvarsym splitted
+
+  Revision 1.46  2004/11/01 23:30:11  peter
     * support > 32bit accesses for x86_64
     * rewrote array size checking to support 64bit
 

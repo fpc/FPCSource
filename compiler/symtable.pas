@@ -98,7 +98,7 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure load_references(ppufile:tcompilerppufile;locals:boolean);override;
           procedure write_references(ppufile:tcompilerppufile;locals:boolean);override;
-          procedure insertfield(sym:tvarsym;addsym:boolean);
+          procedure insertfield(sym:tfieldvarsym;addsym:boolean);
           procedure addalignmentpadding;
        end;
 
@@ -203,7 +203,7 @@ interface
     function  searchsym_in_class_by_msgint(classh:tobjectdef;i:longint):tsym;
     function  searchsym_in_class_by_msgstr(classh:tobjectdef;const s:string):tsym;
     function  searchsystype(const s: stringid; var srsym: ttypesym): boolean;
-    function  searchsysvar(const s: stringid; var srsym: tvarsym; var symowner: tsymtable): boolean;
+    function  searchsysvar(const s: stringid; var srsym: tsym; var symowner: tsymtable): boolean;
     function  search_class_member(pd : tobjectdef;const s : string):tsym;
     function  search_assignment_operator(from_def,to_def:Tdef):Tprocdef;
 
@@ -360,8 +360,11 @@ implementation
                 ibtypesym : sym:=ttypesym.ppuload(ppufile);
                 ibprocsym : sym:=tprocsym.ppuload(ppufile);
                ibconstsym : sym:=tconstsym.ppuload(ppufile);
-                 ibvarsym : sym:=tvarsym.ppuload(ppufile);
-            ibabsolutesym : sym:=tabsolutesym.ppuload(ppufile);
+           ibglobalvarsym : sym:=tglobalvarsym.ppuload(ppufile);
+            iblocalvarsym : sym:=tlocalvarsym.ppuload(ppufile);
+             ibparavarsym : sym:=tparavarsym.ppuload(ppufile);
+            ibfieldvarsym : sym:=tfieldvarsym.ppuload(ppufile);
+         ibabsolutevarsym : sym:=tabsolutevarsym.ppuload(ppufile);
                 ibenumsym : sym:=tenumsym.ppuload(ppufile);
           ibtypedconstsym : sym:=ttypedconstsym.ppuload(ppufile);
             ibpropertysym : sym:=tpropertysym.ppuload(ppufile);
@@ -403,18 +406,18 @@ implementation
 
     procedure tstoredsymtable.writesyms(ppufile:tcompilerppufile);
       var
-        pd : Tsym;
+        pd : Tstoredsym;
       begin
          { each definition get a number, write then the amount of syms and the
            datasize to the ibsymdef entry }
          ppufile.putlongint(symindex.count);
          ppufile.writeentry(ibstartsyms);
          { foreach is used to write all symbols }
-         pd:=Tsym(symindex.first);
+         pd:=Tstoredsym(symindex.first);
          while assigned(pd) do
            begin
               pd.ppuwrite(ppufile);
-              pd:=Tsym(pd.indexnext);
+              pd:=Tstoredsym(pd.indexnext);
            end;
          { end of symbols }
          ppufile.writeentry(ibendsyms);
@@ -600,10 +603,10 @@ implementation
               the user. (Under delphi it can still be accessed using result),
               but don't allow hiding of RESULT }
             if (m_duplicate_names in aktmodeswitches) and
-               (sym.typ in [varsym,absolutesym]) and
-               (vo_is_funcret in tvarsym(sym).varoptions) and
+               (sym.typ in [localvarsym,paravarsym,absolutevarsym]) and
+               (vo_is_funcret in tabstractvarsym(sym).varoptions) and
                not((m_result in aktmodeswitches) and
-                   (vo_is_result in tvarsym(sym).varoptions)) then
+                   (vo_is_result in tabstractvarsym(sym).varoptions)) then
              sym.name:='hidden'+sym.name
             else
              DuplicateSym(sym,hsym);
@@ -714,7 +717,7 @@ implementation
 
     procedure TStoredSymtable.varsymbolused(p : TNamedIndexItem;arg:pointer);
       begin
-         if (tsym(p).typ=varsym) and
+         if (tsym(p).typ in [globalvarsym,localvarsym,paravarsym,fieldvarsym]) and
             ((tsym(p).owner.symtabletype in
              [parasymtable,localsymtable,objectsymtable,staticsymtable])) then
           begin
@@ -724,12 +727,11 @@ implementation
            { also don't count the value parameters which have local copies }
            { also don't claim for high param of open parameters (PM) }
            if (Errorcount<>0) or
-              (assigned(tvarsym(p).paraitem) and
-               tvarsym(p).paraitem.is_hidden) then
+              (vo_is_hidden in tabstractvarsym(p).varoptions) then
              exit;
-           if (tvarsym(p).refs=0) then
+           if (tstoredsym(p).refs=0) then
              begin
-                if (vo_is_funcret in tvarsym(p).varoptions) then
+                if (vo_is_funcret in tabstractvarsym(p).varoptions) then
                   begin
                     { don't warn about the result of constructors }
                     if (tsym(p).owner.symtabletype<>localsymtable) or
@@ -743,18 +745,18 @@ implementation
                 else
                   MessagePos1(tsym(p).fileinfo,sym_n_local_identifier_not_used,tsym(p).realname);
              end
-           else if tvarsym(p).varstate=vs_assigned then
+           else if tabstractvarsym(p).varstate=vs_assigned then
              begin
                 if (tsym(p).owner.symtabletype=parasymtable) then
                   begin
-                    if not(tvarsym(p).varspez in [vs_var,vs_out]) and
-                       not(vo_is_funcret in tvarsym(p).varoptions) then
+                    if not(tabstractvarsym(p).varspez in [vs_var,vs_out]) and
+                       not(vo_is_funcret in tabstractvarsym(p).varoptions) then
                       MessagePos1(tsym(p).fileinfo,sym_h_para_identifier_only_set,tsym(p).realname)
                   end
                 else if (tsym(p).owner.symtabletype=objectsymtable) then
                   MessagePos2(tsym(p).fileinfo,sym_n_private_identifier_only_set,tsym(p).owner.realname^,tsym(p).realname)
-                else if not(vo_is_exported in tvarsym(p).varoptions) and
-                        not(vo_is_funcret in tvarsym(p).varoptions) then
+                else if not(vo_is_exported in tabstractvarsym(p).varoptions) and
+                        not(vo_is_funcret in tabstractvarsym(p).varoptions) then
                   MessagePos1(tsym(p).fileinfo,sym_n_local_identifier_only_set,tsym(p).realname);
              end;
          end
@@ -897,10 +899,13 @@ implementation
          if b_needs_init_final then
           exit;
          case tsym(p).typ of
-           varsym :
+           fieldvarsym,
+           globalvarsym,
+           localvarsym,
+           paravarsym :
              begin
-               if not(is_class(tvarsym(p).vartype.def)) and
-                  tstoreddef(tvarsym(p).vartype.def).needs_inittable then
+               if not(is_class(tabstractvarsym(p).vartype.def)) and
+                  tstoreddef(tabstractvarsym(p).vartype.def).needs_inittable then
                  b_needs_init_final:=true;
              end;
            typedconstsym :
@@ -998,7 +1003,7 @@ implementation
       end;
 
 
-    procedure tabstractrecordsymtable.insertfield(sym : tvarsym;addsym:boolean);
+    procedure tabstractrecordsymtable.insertfield(sym : tfieldvarsym;addsym:boolean);
       var
         l      : aint;
         varalignrecord,
@@ -1009,10 +1014,10 @@ implementation
         if addsym then
           insert(sym);
         { this symbol can't be loaded to a register }
-        tvarsym(sym).varregable:=vr_none;
+        sym.varregable:=vr_none;
         { Calculate field offset }
-        l:=tvarsym(sym).getsize;
-        vardef:=tvarsym(sym).vartype.def;
+        l:=sym.getsize;
+        vardef:=sym.vartype.def;
         varalign:=vardef.alignment;
         { Calc the alignment size for C style records }
         if (usefieldalignment=-1) then
@@ -1044,14 +1049,14 @@ implementation
         if varalign=0 then
           varalign:=size_2_align(l);
         varalignfield:=used_align(varalign,aktalignment.recordalignmin,fieldalignment);
-        tvarsym(sym).fieldoffset:=align(datasize,varalignfield);
-        if (aword(l)+tvarsym(sym).fieldoffset)>high(aint) then
+        sym.fieldoffset:=align(datasize,varalignfield);
+        if (aword(l)+sym.fieldoffset)>high(aint) then
           begin
             Message(sym_e_segment_too_large);
             datasize:=high(aint);
           end
         else
-          datasize:=tvarsym(sym).fieldoffset+l;
+          datasize:=sym.fieldoffset+l;
         { Calc alignment needed for this record }
         if (usefieldalignment=-1) then
           varalignrecord:=used_align(varalign,aktalignment.recordalignmin,aktalignment.maxCrecordalign)
@@ -1100,7 +1105,7 @@ implementation
       the complete size (see code in pdecl unit) PM }
     procedure trecordsymtable.insertunionst(unionst : trecordsymtable;offset : longint);
       var
-        ps,nps : tvarsym;
+        ps,nps : tfieldvarsym;
         pd,npd : tdef;
         varalignrecord,varalign,
         storesize,storealign : longint;
@@ -1108,10 +1113,10 @@ implementation
         storesize:=datasize;
         storealign:=fieldalignment;
         datasize:=offset;
-        ps:=tvarsym(unionst.symindex.first);
+        ps:=tfieldvarsym(unionst.symindex.first);
         while assigned(ps) do
           begin
-            nps:=tvarsym(ps.indexnext);
+            nps:=tfieldvarsym(ps.indexnext);
             { remove from current symtable }
             unionst.symindex.deleteindex(ps);
             ps.left:=nil;
@@ -1165,7 +1170,7 @@ implementation
          hsym : tsym;
       begin
          { check for duplicate field id in inherited classes }
-         if (sym.typ=varsym) and
+         if (sym.typ=fieldvarsym) and
             assigned(defowner) and
             (
              not(m_delphi in aktmodeswitches) or
@@ -1225,10 +1230,10 @@ implementation
             { a local and the function can have the same
               name in TP and Delphi, but RESULT not }
             if (m_duplicate_names in aktmodeswitches) and
-               (hsym.typ in [absolutesym,varsym]) and
-               (vo_is_funcret in tvarsym(hsym).varoptions) and
+               (hsym.typ in [absolutevarsym,localvarsym]) and
+               (vo_is_funcret in tabstractvarsym(hsym).varoptions) and
                not((m_result in aktmodeswitches) and
-                   (vo_is_result in tvarsym(hsym).varoptions)) then
+                   (vo_is_result in tabstractvarsym(hsym).varoptions)) then
               hsym.owner.rename(hsym.name,'hidden'+hsym.name)
             else
               DuplicateSym(sym,hsym);
@@ -1244,10 +1249,10 @@ implementation
                 { a local and the function can have the same
                   name in TP and Delphi, but RESULT not }
                 if (m_duplicate_names in aktmodeswitches) and
-                   (sym.typ in [absolutesym,varsym]) and
-                   (vo_is_funcret in tvarsym(sym).varoptions) and
+                   (sym.typ in [absolutevarsym,paravarsym]) and
+                   (vo_is_funcret in tabstractvarsym(sym).varoptions) and
                    not((m_result in aktmodeswitches) and
-                       (vo_is_result in tvarsym(sym).varoptions)) then
+                       (vo_is_result in tabstractvarsym(sym).varoptions)) then
                   sym.name:='hidden'+sym.name
                 else
                   DuplicateSym(sym,hsym);
@@ -2031,18 +2036,18 @@ implementation
       end;
 
 
-    function searchsysvar(const s: stringid; var srsym: tvarsym; var symowner: tsymtable): boolean;
+    function searchsysvar(const s: stringid; var srsym: tsym; var symowner: tsymtable): boolean;
       begin
         if not(cs_compilesystem in aktmoduleswitches) then
           begin
-            srsym := tvarsym(searchsymonlyin(systemunit,s));
+            srsym := searchsymonlyin(systemunit,s);
             symowner := systemunit;
           end
         else
           searchsym(s,tsym(srsym),symowner);
         searchsysvar :=
           assigned(srsym) and
-          (srsym.typ = varsym);
+          (srsym.typ = globalvarsym);
       end;
 
 
@@ -2298,7 +2303,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.161  2004-11-05 21:16:55  peter
+  Revision 1.162  2004-11-08 22:09:59  peter
+    * tvarsym splitted
+
+  Revision 1.161  2004/11/05 21:16:55  peter
     * rename duplicate symbols and insert with unique name in the
       symtable
 

@@ -1375,10 +1375,10 @@ implementation
         end;
       hsym:=tsym(procdef.parast.search('self'));
       if not(assigned(hsym) and
-             (hsym.typ=varsym) and
-             assigned(tvarsym(hsym).paraitem)) then
+             (hsym.typ=paravarsym) and
+             assigned(tparavarsym(hsym).paraitem)) then
         internalerror(200305251);
-      paraloc:=tvarsym(hsym).paraitem.paraloc[callerside].location^;
+      paraloc:=tparavarsym(hsym).paraitem.paraloc[callerside].location^;
       case paraloc.loc of
         LOC_REGISTER:
           cg.a_op_const_reg(exprasmlist,OP_SUB,paraloc.size,ioffset,paraloc.register);
@@ -1400,7 +1400,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.79  2004-10-24 13:35:39  peter
+  Revision 1.80  2004-11-08 22:09:59  peter
+    * tvarsym splitted
+
+  Revision 1.79  2004/10/24 13:35:39  peter
     * fixed writing of methodtable
 
   Revision 1.78  2004/10/15 09:14:17  mazen

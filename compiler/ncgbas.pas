@@ -134,7 +134,7 @@ interface
 
       procedure ResolveRef(var op:toper);
         var
-          sym : tvarsym;
+          sym : tlocalvarsym;
 {$ifdef x86}
           scale : byte;
 {$endif x86}
@@ -150,7 +150,7 @@ interface
               scale:=op.localoper^.localscale;
 {$endif x86}
               getoffset:=op.localoper^.localgetoffset;
-              sym:=tvarsym(pointer(op.localoper^.localsym));
+              sym:=tlocalvarsym(pointer(op.localoper^.localsym));
               dispose(op.localoper);
               case sym.localloc.loc of
                 LOC_REFERENCE :
@@ -491,7 +491,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.69  2004-10-31 21:45:03  peter
+  Revision 1.70  2004-11-08 22:09:59  peter
+    * tvarsym splitted
+
+  Revision 1.69  2004/10/31 21:45:03  peter
     * generic tlocation
     * move tlocation to cgutils
 

@@ -50,7 +50,7 @@ implementation
     timportlibdarwin=class(timportlib)
       procedure preparelib(const s:string);override;
       procedure importprocedure(aprocdef:tprocdef;const module:string;index:longint;const name:string);override;
-      procedure importvariable(vs:tvarsym;const name,module:string);override;
+      procedure importvariable(vs:tglobalvarsym;const name,module:string);override;
       procedure generatelib;override;
       procedure generatesmartlib;override;
     end;
@@ -58,7 +58,7 @@ implementation
     timportlibbsd=class(timportlib)
       procedure preparelib(const s:string);override;
       procedure importprocedure(aprocdef:tprocdef;const module:string;index:longint;const name:string);override;
-      procedure importvariable(vs:tvarsym;const name,module:string);override;
+      procedure importvariable(vs:tglobalvarsym;const name,module:string);override;
       procedure generatelib;override;
     end;
 
@@ -109,7 +109,7 @@ implementation
       end;
 
 
-    procedure timportlibdarwin.importvariable(vs:tvarsym;const name,module:string);
+    procedure timportlibdarwin.importvariable(vs:tglobalvarsym;const name,module:string);
       begin
         { insert sharedlibrary }
 {        current_module.linkothersharedlibs.add(SplitName(module),link_allways); }
@@ -152,7 +152,7 @@ begin
 end;
 
 
-procedure timportlibbsd.importvariable(vs:tvarsym;const name,module:string);
+procedure timportlibbsd.importvariable(vs:tglobalvarsym;const name,module:string);
 begin
   { insert sharedlibrary }
   current_module.linkothersharedlibs.add(SplitName(module),link_allways);
@@ -627,7 +627,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.23  2004-10-25 15:38:41  peter
+  Revision 1.24  2004-11-08 22:09:59  peter
+    * tvarsym splitted
+
+  Revision 1.23  2004/10/25 15:38:41  peter
     * heap and heapsize removed
     * checkpointer fixes
 

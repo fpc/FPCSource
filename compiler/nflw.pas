@@ -677,7 +677,7 @@ implementation
           exclude(loopflags,lnf_dont_mind_loopvar_on_exit);
           writeln('Loopvar does matter on exit');
         end;
-      Tvarsym(symbol).unregister_notification(loopvar_notid);
+      Tabstractvarsym(symbol).unregister_notification(loopvar_notid);
     end;
 
     function tfornode.det_resulttype:tnode;
@@ -729,7 +729,7 @@ implementation
 
     function tfornode.pass_1 : tnode;
       var
-         old_t_times : longint; 
+         old_t_times : longint;
      begin
          result:=nil;
          expectloc:=LOC_VOID;
@@ -746,7 +746,7 @@ implementation
             if codegenerror then
              exit;
           end;
-           
+
          registersint:=t1.registersint;
          registersfpu:=t1.registersfpu;
 {$ifdef SUPPORT_MMX}
@@ -1424,7 +1424,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.101  2004-10-15 09:14:17  mazen
+  Revision 1.102  2004-11-08 22:09:59  peter
+    * tvarsym splitted
+
+  Revision 1.101  2004/10/15 09:14:17  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 

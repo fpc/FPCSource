@@ -45,7 +45,7 @@ implementation
     timportlibsunos=class(timportlib)
       procedure preparelib(const s:string);override;
       procedure importprocedure(aprocdef:tprocdef;const module:string;index:longint;const name:string);override;
-      procedure importvariable(vs:tvarsym;const name,module:string);override;
+      procedure importvariable(vs:tglobalvarsym;const name,module:string);override;
       procedure generatelib;override;
     end;
 
@@ -98,7 +98,7 @@ begin
 end;
 
 
-procedure timportlibsunos.importvariable(vs:tvarsym;const name,module:string);
+procedure timportlibsunos.importvariable(vs:tglobalvarsym;const name,module:string);
 begin
   { insert sharedlibrary }
   current_module.linkothersharedlibs.add(SplitName(module),link_allways);
@@ -498,7 +498,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.13  2004-11-03 12:04:03  florian
+  Revision 1.14  2004-11-08 22:09:59  peter
+    * tvarsym splitted
+
+  Revision 1.13  2004/11/03 12:04:03  florian
     * fixed sparc <-> i386 mixture
 
   Revision 1.12  2004/10/14 18:16:17  mazen

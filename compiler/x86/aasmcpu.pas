@@ -881,7 +881,7 @@ implementation
       begin
         case o.typ of
           top_local :
-            o.localoper^.localsymderef.build(tvarsym(o.localoper^.localsym));
+            o.localoper^.localsymderef.build(tlocalvarsym(o.localoper^.localsym));
         end;
       end;
 
@@ -897,7 +897,7 @@ implementation
                 objectlibrary.derefasmsymbol(o.ref^.relsymbol);
             end;
           top_local :
-            o.localoper^.localsym:=tvarsym(o.localoper^.localsymderef.resolve);
+            o.localoper^.localsym:=tlocalvarsym(o.localoper^.localsymderef.resolve);
         end;
       end;
 
@@ -2111,7 +2111,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.62  2004-10-31 21:45:04  peter
+  Revision 1.63  2004-11-08 22:09:59  peter
+    * tvarsym splitted
+
+  Revision 1.62  2004/10/31 21:45:04  peter
     * generic tlocation
     * move tlocation to cgutils
 

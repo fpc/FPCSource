@@ -846,8 +846,8 @@ Unit Ra386int;
                       if assigned(sym) then
                        begin
                          case sym.typ of
-                           varsym :
-                             l:=tvarsym(sym).getsize;
+                           fieldvarsym :
+                             l:=tfieldvarsym(sym).getsize;
                            typedconstsym :
                              l:=ttypedconstsym(sym).getsize;
                            typesym :
@@ -914,12 +914,15 @@ Unit Ra386int;
                       if assigned(sym) then
                        begin
                          case sym.typ of
-                           varsym :
+                           globalvarsym :
                              begin
-                               if sym.owner.symtabletype in [localsymtable,parasymtable] then
-                                Message(asmr_e_no_local_or_para_allowed);
-                               hs:=tvarsym(sym).mangledname;
-                               def:=tvarsym(sym).vartype.def;
+                               hs:=tglobalvarsym(sym).mangledname;
+                               def:=tglobalvarsym(sym).vartype.def;
+                             end;
+                           localvarsym,
+                           paravarsym :
+                             begin
+                               Message(asmr_e_no_local_or_para_allowed);
                              end;
                            typedconstsym :
                              begin
@@ -1458,7 +1461,7 @@ Unit Ra386int;
                           will generate buggy code. Allow it only for explicit typecasting
                           and when the parameter is in a register (delphi compatible) }
                         if (not oper.hastype) and
-                           (tvarsym(oper.opr.localsym).owner.symtabletype=parasymtable) and
+                           (oper.opr.localsym.owner.symtabletype=parasymtable) and
                            (current_procinfo.procdef.proccalloption<>pocall_register) then
                           Message(asmr_e_cannot_access_field_directly_for_parameters);
                         inc(oper.opr.localsymofs,toffset)
@@ -2014,7 +2017,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.78  2004-10-31 21:45:03  peter
+  Revision 1.79  2004-11-08 22:09:59  peter
+    * tvarsym splitted
+
+  Revision 1.78  2004/10/31 21:45:03  peter
     * generic tlocation
     * move tlocation to cgutils
 

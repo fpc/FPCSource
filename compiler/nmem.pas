@@ -77,7 +77,7 @@ interface
        tderefnodeclass = class of tderefnode;
 
        tsubscriptnode = class(tunarynode)
-          vs : tvarsym;
+          vs : tfieldvarsym;
           vsderef : tderef;
           constructor create(varsym : tsym;l : tnode);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
@@ -433,8 +433,8 @@ implementation
 {$ifdef i386}
             if assigned(hp) and
                (hp.nodetype=loadn) and
-               ((tloadnode(hp).symtableentry.typ=absolutesym) and
-                tabsolutesym(tloadnode(hp).symtableentry).absseg) then
+               ((tloadnode(hp).symtableentry.typ=absolutevarsym) and
+                tabsolutevarsym(tloadnode(hp).symtableentry).absseg) then
              begin
                if not(nf_typedaddr in flags) then
                  resulttype:=voidfarpointertype
@@ -558,7 +558,7 @@ implementation
       begin
          inherited create(subscriptn,l);
          { vs should be changed to tsym! }
-         vs:=tvarsym(varsym);
+         vs:=tfieldvarsym(varsym);
       end;
 
     constructor tsubscriptnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
@@ -585,7 +585,7 @@ implementation
     procedure tsubscriptnode.derefimpl;
       begin
         inherited derefimpl;
-        vs:=tvarsym(vsderef.resolve);
+        vs:=tfieldvarsym(vsderef.resolve);
       end;
 
 
@@ -982,7 +982,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.87  2004-11-02 12:55:16  peter
+  Revision 1.88  2004-11-08 22:09:59  peter
+    * tvarsym splitted
+
+  Revision 1.87  2004/11/02 12:55:16  peter
     * nf_internal flag for internal inserted typeconvs. This will
       supress the generation of warning/hints
 

@@ -58,16 +58,20 @@ type
   tprocinfoflags=set of tprocinfoflag;
 
   { Copied from systems.pas }
-  ttargetcpu=
-  (
-        no_cpu,                   { 0 }
-        i386,                     { 1 }
-        m68k,                     { 2 }
-        alpha,                    { 3 }
-        powerpc,                  { 4 }
-        sparc,                    { 5 }
-        vm                        { 6 }
-  );
+       tsystemcpu=
+       (
+             cpu_no,                       { 0 }
+             cpu_i386,                     { 1 }
+             cpu_m68k,                     { 2 }
+             cpu_alpha,                    { 3 }
+             cpu_powerpc,                  { 4 }
+             cpu_sparc,                    { 5 }
+             cpu_vm,                       { 6 }
+             cpu_iA64,                     { 7 }
+             cpu_x86_64,                   { 8 }
+             cpu_mips,                     { 9 }
+             cpu_arm                       { 10 }
+       );
 
 var
   ppufile     : tppufile;
@@ -88,6 +92,12 @@ Begin
    Writeln(S);
    has_errors:=true;
 End;
+
+
+function ToStr(w:longint):String;
+begin
+  Str(w,ToStr);
+end;
 
 Function Target2Str(w:longint):string;
 type
@@ -123,13 +133,13 @@ type
              system_x86_64_linux,       { 26 }
              system_powerpc_macosx,     { 27 }
              target_i386_emx,           { 28 }
-	     target_powerpc_netbsd,     { 29 }
+             target_powerpc_netbsd,     { 29 }
              target_powerpc_openbsd,    { 30 }
-	     target_arm_linux,          { 31 }
-	     target_i386_watcom,        { 32 }
-	     target_powerpc_MorphOS,    { 33 }
-	     target_x86_64_freebsd,     { 34 }
-	     target_i386_netwlibc       { 35 }
+             target_arm_linux,          { 31 }
+             target_i386_watcom,        { 32 }
+             target_powerpc_MorphOS,    { 33 }
+             target_x86_64_freebsd,     { 34 }
+             target_i386_netwlibc       { 35 }
        );
 const
   Targets : array[ttarget] of string[17]=(
@@ -174,19 +184,19 @@ begin
   if w<=ord(high(ttarget)) then
     Target2Str:=Targets[ttarget(w)]
   else
-    Target2Str:='<Unknown>';
+    Target2Str:='<!! Unknown target value '+tostr(w)+'>';
 end;
 
 
 Function Cpu2Str(w:longint):string;
 const
-  CpuTxt : array[ttargetcpu] of string[7]=
-    ('none','i386','m68k','alpha','powerpc','sparc','vis');
+  CpuTxt : array[tsystemcpu] of string[8]=
+    ('none','i386','m68k','alpha','powerpc','sparc','vis','ia64','x86_64','mips','arm');
 begin
-  if w<=ord(high(ttargetcpu)) then
-    Cpu2Str:=CpuTxt[ttargetcpu(w)]
+  if w<=ord(high(tsystemcpu)) then
+    Cpu2Str:=CpuTxt[tsystemcpu(w)]
   else
-    Cpu2Str:='<Unknown>';
+    Cpu2Str:='<!! Unknown cpu value '+tostr(w)+'>';
 end;
 
 
@@ -197,7 +207,17 @@ begin
   if w<=ord(high(varspezstr)) then
     Varspez2Str:=varspezstr[w]
   else
-    Varspez2Str:='<Unknown>';
+    Varspez2Str:='<!! Unknown varspez value '+tostr(w)+'>';
+end;
+
+Function VarRegable2Str(w:longint):string;
+const
+  varregableStr : array[0..3] of string[6]=('None','IntReg','FPUReg','MMReg');
+begin
+  if w<=ord(high(varregablestr)) then
+    Varregable2Str:=varregablestr[w]
+  else
+    Varregable2Str:='<!! Unknown regable value '+tostr(w)+'>';
 end;
 
 
@@ -636,9 +656,13 @@ type
     sp_private,
     sp_published,
     sp_protected,
-    sp_forwarddef,
     sp_static,
-    sp_primary_typesym    { this is for typesym, to know who is the primary symbol of a def }
+    sp_hint_deprecated,
+    sp_hint_platform,
+    sp_hint_library,
+    sp_hint_unimplemented,
+    sp_has_overloaded,
+    sp_internal  { internal symbol, not reported as unused }
   );
   tsymoptions=set of tsymoption;
   tsymopt=record
@@ -646,15 +670,19 @@ type
     str  : string[30];
   end;
 const
-  symopts=7;
+  symopts=11;
   symopt : array[1..symopts] of tsymopt=(
      (mask:sp_public;         str:'Public'),
      (mask:sp_private;        str:'Private'),
      (mask:sp_published;      str:'Published'),
      (mask:sp_protected;      str:'Protected'),
-     (mask:sp_forwarddef;     str:'ForwardDef'),
      (mask:sp_static;         str:'Static'),
-     (mask:sp_primary_typesym;str:'PrimaryTypeSym')
+     (mask:sp_hint_deprecated;str:'Hint Deprecated'),
+     (mask:sp_hint_deprecated;str:'Hint Platform'),
+     (mask:sp_hint_deprecated;str:'Hint Library'),
+     (mask:sp_hint_deprecated;str:'Hint Unimplemented'),
+     (mask:sp_has_overloaded; str:'Has overloaded'),
+     (mask:sp_internal;       str:'Internal')
   );
 var
   symoptions : tsymoptions;
@@ -676,6 +704,50 @@ begin
        end;
    end;
   writeln;
+end;
+
+
+procedure readcommonsym(const s:string);
+begin
+  writeln(space,'** Symbol Nr. ',ppufile.getword,' **');
+  writeln(space,s,ppufile.getstring);
+  write(space,'     File Pos : ');
+  readposinfo;
+  write(space,'   SymOptions : ');
+  readsymoptions;
+end;
+
+
+procedure readcommondef(const s:string);
+type
+  tdefoption=(df_none,
+    df_has_inittable,           { init data has been generated }
+    df_has_rttitable,           { rtti data has been generated }
+    df_unique
+  );
+  tdefoptions=set of tdefoption;
+var
+  defopts : tdefoptions;
+begin
+  writeln(space,'** Definition Nr. ',ppufile.getword,' **');
+  writeln(space,s);
+  write  (space,'      Type symbol : ');
+  readderef;
+  ppufile.getsmallset(defopts);
+
+  if df_unique in defopts then
+    writeln  (space,'      Unique type symbol');
+
+  if df_has_rttitable in defopts then
+   begin
+     write  (space,'      RTTI symbol : ');
+     readderef;
+   end;
+  if df_has_inittable in defopts then
+   begin
+     write  (space,'      Init symbol : ');
+     readderef;
+   end;
 end;
 
 
@@ -884,46 +956,81 @@ begin
 end;
 
 
-procedure readcommonsym(const s:string);
-begin
-  writeln(space,'** Symbol Nr. ',ppufile.getword,' **');
-  writeln(space,s,ppufile.getstring);
-  write(space,'    File Pos: ');
-  readposinfo;
-  write(space,'  SymOptions: ');
-  readsymoptions;
-end;
-
-
-procedure readcommondef(const s:string);
 type
-  tdefoption=(df_none,
-    df_has_inittable,           { init data has been generated }
-    df_has_rttitable,           { rtti data has been generated }
-    df_unique
+  { options for variables }
+  tvaroption=(vo_none,
+    vo_is_C_var,
+    vo_is_external,
+    vo_is_dll_var,
+    vo_is_thread_var,
+    vo_has_local_copy,
+    vo_is_const,  { variable is declared as const (parameter) and can't be written to }
+    vo_is_exported,
+    vo_is_high_value,
+    vo_is_funcret,
+    vo_is_self,
+    vo_is_vmt,
+    vo_is_result,  { special result variable }
+    vo_is_parentfp,
+    vo_is_loop_counter, { used to detect assignments to loop counter }
+    vo_is_hidden
   );
-  tdefoptions=set of tdefoption;
+  tvaroptions=set of tvaroption;
+  { register variable }
+  tvarregable=(vr_none,
+    vr_intreg,
+    vr_fpureg,
+    vr_mmreg
+  );
+procedure readabstractvarsym(const s:string;var varoptions:tvaroptions);
+type
+  tvaropt=record
+    mask : tvaroption;
+    str  : string[30];
+  end;
+const
+  varopts=15;
+  varopt : array[1..varopts] of tvaropt=(
+     (mask:vo_is_C_var;        str:'CVar'),
+     (mask:vo_is_external;     str:'External'),
+     (mask:vo_is_dll_var;      str:'DLLVar'),
+     (mask:vo_is_thread_var;   str:'ThreadVar'),
+     (mask:vo_has_local_copy;  str:'HasLocalCopy'),
+     (mask:vo_is_const;        str:'Constant'),
+     (mask:vo_is_exported;     str:'Exported'),
+     (mask:vo_is_high_value;   str:'HighValue'),
+     (mask:vo_is_funcret;      str:'Funcret'),
+     (mask:vo_is_self;         str:'Self'),
+     (mask:vo_is_vmt;          str:'VMT'),
+     (mask:vo_is_result;       str:'Result'),
+     (mask:vo_is_parentfp;     str:'ParentFP'),
+     (mask:vo_is_loop_counter; str:'LoopCounter'),
+     (mask:vo_is_hidden;       str:'Hidden')
+  );
 var
-  defopts : tdefoptions;
+  i : longint;
+  first : boolean;
 begin
-  writeln(space,'** Definition Nr. ',ppufile.getword,' **');
-  writeln(space,s);
-  write  (space,'      Type symbol : ');
-  readderef;
-  ppufile.getsmallset(defopts);
-
-  if df_unique in defopts then
-    writeln  (space,'      Unique type symbol');
-
-  if df_has_rttitable in defopts then
+  readcommonsym(s);
+  writeln(space,'         Spez : ',Varspez2Str(ppufile.getbyte));
+  writeln(space,'      Regable : ',Varregable2Str(ppufile.getbyte));
+  write  (space,'     Var Type : ');
+  readtype;
+  ppufile.getsmallset(varoptions);
+  if varoptions<>[] then
    begin
-     write  (space,'      RTTI symbol : ');
-     readderef;
-   end;
-  if df_has_inittable in defopts then
-   begin
-     write  (space,'      Init symbol : ');
-     readderef;
+     write(space,'      Options : ');
+     first:=true;
+     for i:=1to varopts do
+      if (varopt[i].mask in varoptions) then
+       begin
+         if first then
+           first:=false
+         else
+           write(', ');
+         write(varopt[i].str);
+       end;
+     writeln;
    end;
 end;
 
@@ -960,21 +1067,6 @@ end;
 
 procedure readsymbols(const s:string);
 type
-  { options for variables }
-  tvaroption=(vo_none,
-    vo_regable,
-    vo_is_C_var,
-    vo_is_external,
-    vo_is_dll_var,
-    vo_is_thread_var,
-    vo_fpuregable,
-    vo_is_local_copy,
-    vo_is_const,  { variable is declared as const (parameter) and can't be written to }
-    vo_is_exported,
-    vo_is_high_value
-  );
-  tvaroptions=set of tvaroption;
-
   pguid = ^tguid;
   tguid = packed record
     D1: LongWord;
@@ -996,7 +1088,7 @@ var
   symcnt,
   i,j,len : longint;
   guid : tguid;
-
+  varoptions : tvaroptions;
 begin
   symcnt:=1;
   with ppufile do
@@ -1030,7 +1122,7 @@ begin
          ibtypesym :
            begin
              readcommonsym('Type symbol ');
-             write(space,' Result Type: ');
+             write(space,'  Result Type : ');
              readtype;
            end;
 
@@ -1040,7 +1132,7 @@ begin
              len:=ppufile.getword;
              for i:=1 to len do
               begin
-                write(space,'  Definition: ');
+                write(space,'   Definition : ');
                 readderef;
               end;
            end;
@@ -1052,15 +1144,15 @@ begin
              case tconsttyp(b) of
                constord :
                  begin
-                   write  (space,' OrdinalType: ');
+                   write  (space,'  OrdinalType : ');
                    readtype;
-                   writeln(space,'       Value: ',getint64);
+                   writeln(space,'        Value : ',getint64);
                  end;
                constpointer :
                  begin
-                   write  (space,' PointerType: ');
+                   write  (space,'  PointerType : ');
                    readtype;
-                   writeln(space,'       Value: ',getlongint)
+                   writeln(space,'        Value : ',getlongint)
                  end;
                conststring,
                constresourcestring :
@@ -1069,21 +1161,21 @@ begin
                    getmem(pc,len+1);
                    getdata(pc^,len);
                    (pc+len)^:= #0;
-                   writeln(space,'      Length: ',len);
-                   writeln(space,'       Value: "',pc,'"');
+                   writeln(space,'       Length : ',len);
+                   writeln(space,'        Value : "',pc,'"');
                    freemem(pc,len+1);
                    if tconsttyp(b)=constresourcestring then
-                    writeln(space,'       Index: ',getlongint);
+                    writeln(space,'        Index : ',getlongint);
                  end;
                constreal :
-                 writeln(space,'       Value: ',getreal);
+                 writeln(space,'        Value : ',getreal);
                constset :
                  begin
-                   write (space,'     Set Type: ');
+                   write (space,'      Set Type : ');
                    readtype;
                    for i:=1to 4 do
                     begin
-                      write (space,'       Value: ');
+                      write (space,'        Value : ');
                       for j:=1to 8 do
                        begin
                          if j>1 then
@@ -1112,66 +1204,20 @@ begin
              end;
            end;
 
-         ibvarsym :
+         ibabsolutevarsym :
            begin
-             readcommonsym('Variable symbol ');
-             writeln(space,'        Spez: ',Varspez2Str(getbyte));
-             writeln(space,'     Address: ',getlongint);
-             write  (space,'    Var Type: ');
-             readtype;
-             i:=getlongint;
-             writeln(space,'     Options: ',i);
-             if (vo_is_C_var in tvaroptions(i)) then
-               writeln(space,' Mangledname: ',getstring);
-           end;
-
-         ibenumsym :
-           begin
-             readcommonsym('Enumeration symbol ');
-             write  (space,'  Definition: ');
-             readderef;
-             writeln(space,'       Value: ',getlongint);
-           end;
-
-         ibsyssym :
-           begin
-             readcommonsym('Internal system symbol ');
-             writeln(space,' Internal Nr: ',getlongint);
-           end;
-
-         ibrttisym :
-           begin
-             readcommonsym('RTTI symbol ');
-             writeln(space,'   RTTI Type: ',getbyte);
-           end;
-
-         ibtypedconstsym :
-           begin
-             readcommonsym('Typed constant ');
-             write  (space,' Constant Type: ');
-             readtype;
-             writeln(space,'   ReallyConst: ',(getbyte<>0));
-           end;
-
-         ibabsolutesym :
-           begin
-             readcommonsym('Absolute variable symbol ');
-             writeln(space,'          Type: ',getbyte);
-             writeln(space,'       Address: ',getlongint);
-             write  (space,'      Var Type: ');
-             readtype;
-             writeln(space,'       Options: ',getlongint);
+             readabstractvarsym('Absolute variable symbol ',varoptions);
              Write (space,' Relocated to ');
              b:=getbyte;
              case absolutetyp(b) of
                tovar :
-                 readsymlist(space+'         Sym: ');
+                 readsymlist(space+'          Sym : ');
                toasm :
                  Writeln('Assembler name : ',getstring);
                toaddr :
                  begin
                    Write('Address : ',getlongint);
-                   if ttargetcpu(ppufile.header.cpu)=i386 then
+                   if tsystemcpu(ppufile.header.cpu)=cpu_i386 then
                      WriteLn(' (Far: ',getbyte<>0,')');
                  end;
                else
@@ -1179,29 +1225,86 @@ begin
              end;
            end;
 
+         ibfieldvarsym :
+           begin
+             readabstractvarsym('Field Variable symbol ',varoptions);
+             writeln(space,'      Address : ',getlongint);
+           end;
+
+         ibglobalvarsym :
+           begin
+             readabstractvarsym('Global Variable symbol ',varoptions);
+             write  (space,' DefaultConst : ');
+             readderef;
+             if (vo_is_C_var in varoptions) then
+               writeln(space,' Mangledname : ',getstring);
+           end;
+
+         iblocalvarsym :
+           begin
+             readabstractvarsym('Local Variable symbol ',varoptions);
+             write  (space,' DefaultConst : ');
+             readderef;
+           end;
+
+         ibparavarsym :
+           begin
+             readabstractvarsym('Parameter Variable symbol ',varoptions);
+             write  (space,' DefaultConst : ');
+             readderef;
+           end;
+
+         ibenumsym :
+           begin
+             readcommonsym('Enumeration symbol ');
+             write  (space,'   Definition : ');
+             readderef;
+             writeln(space,'        Value : ',getlongint);
+           end;
+
+         ibsyssym :
+           begin
+             readcommonsym('Internal system symbol ');
+             writeln(space,'  Internal Nr : ',getlongint);
+           end;
+
+         ibrttisym :
+           begin
+             readcommonsym('RTTI symbol ');
+             writeln(space,'    RTTI Type : ',getbyte);
+           end;
+
+         ibtypedconstsym :
+           begin
+             readcommonsym('Typed constant ');
+             write  (space,'  Constant Type : ');
+             readtype;
+             writeln(space,'    ReallyConst : ',(getbyte<>0));
+           end;
+
          ibpropertysym :
            begin
              readcommonsym('Property ');
              i:=getlongint;
-             writeln(space,' PropOptions: ',i);
+             writeln(space,'  PropOptions : ',i);
              if (i and 32)>0 then
               begin
-                write  (space,'OverrideProp: ');
+                write  (space,' OverrideProp : ');
                 readderef;
               end
              else
               begin
-                write  (space,'   Prop Type: ');
+                write  (space,'    Prop Type : ');
                 readtype;
-                writeln(space,'       Index: ',getlongint);
-                writeln(space,'     Default: ',getlongint);
-                write  (space,'  Index Type: ');
+                writeln(space,'        Index : ',getlongint);
+                writeln(space,'      Default : ',getlongint);
+                write  (space,'   Index Type : ');
                 readtype;
-                write  (space,'  Readaccess: ');
+                write  (space,'   Readaccess : ');
                 readsymlist(space+'         Sym: ');
-                write  (space,' Writeaccess: ');
+                write  (space,'  Writeaccess : ');
                 readsymlist(space+'         Sym: ');
-                write  (space,'Storedaccess: ');
+                write  (space,' Storedaccess : ');
                 readsymlist(space+'         Sym: ');
               end;
            end;
@@ -1425,6 +1528,7 @@ begin
              writeln(space,'         DataSize : ',getlongint);
              writeln(space,'       FieldAlign : ',getbyte);
              writeln(space,'      RecordAlign : ',getbyte);
+             writeln(space,'         PadAlign : ',getbyte);
              if not EndOfEntry then
               Writeln('!! Entry has more information stored');
              {read the record definitions and symbols}
@@ -1984,7 +2088,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.57  2004-11-02 22:17:25  olle
+  Revision 1.58  2004-11-08 22:09:59  peter
+    * tvarsym splitted
+
+  Revision 1.57  2004/11/02 22:17:25  olle
     * fixed possible problem with null termination
 
   Revision 1.56  2004/09/27 18:04:11  olle

@@ -386,7 +386,7 @@ implementation
                begin
                  { don't push a node that already generated a pointer type
                    by address for implicit hidden parameters }
-                 if (vo_is_funcret in tvarsym(paraitem.parasym).varoptions) or
+                 if (vo_is_funcret in tparavarsym(paraitem.parasym).varoptions) or
                     (not(left.resulttype.def.deftype in [pointerdef,classrefdef]) and
                      paramanager.push_addr_param(paraitem.paratyp,paraitem.paratype.def,
                          aktcallnode.procdefinition.proccalloption)) then
@@ -398,7 +398,7 @@ implementation
              else if (paraitem.paratype.def.deftype=formaldef) then
                begin
                   { allow passing of a constant to a const formaldef }
-                  if (tvarsym(paraitem.parasym).varspez=vs_const) and
+                  if (tparavarsym(paraitem.parasym).varspez=vs_const) and
                      (left.location.loc=LOC_CONSTANT) then
                     location_force_mem(exprasmlist,left.location);
 
@@ -461,7 +461,7 @@ implementation
              { update return location in callnode when this is the function
                result }
              if assigned(paraitem.parasym) and
-                (vo_is_funcret in tvarsym(paraitem.parasym).varoptions) then
+                (vo_is_funcret in tparavarsym(paraitem.parasym).varoptions) then
                location_copy(aktcallnode.location,left.location);
            end;
 
@@ -663,7 +663,7 @@ implementation
                begin
                  { don't release the funcret temp }
                  if not(assigned(ppn.paraitem.parasym)) or
-                    not(vo_is_funcret in tvarsym(ppn.paraitem.parasym).varoptions) then
+                    not(vo_is_funcret in tparavarsym(ppn.paraitem.parasym).varoptions) then
                    location_freetemp(exprasmlist,ppn.left.location);
                  { process also all nodes of an array of const }
                  if ppn.left.nodetype=arrayconstructorn then
@@ -1253,7 +1253,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.183  2004-11-01 17:41:28  florian
+  Revision 1.184  2004-11-08 22:09:59  peter
+    * tvarsym splitted
+
+  Revision 1.183  2004/11/01 17:41:28  florian
     * fixed arm compilation with cgutils
     * ...
 

@@ -74,7 +74,7 @@ type
       OPR_CONSTANT  : (val:aint);
       OPR_SYMBOL    : (symbol:tasmsymbol;symofs:aint);
       OPR_REFERENCE : (ref:treference);
-      OPR_LOCAL     : (localsym:tvarsym;localsymofs:aint;localindexreg:tregister;localscale:byte;localgetoffset:boolean);
+      OPR_LOCAL     : (localsym:tabstractnormalvarsym;localsymofs:aint;localindexreg:tregister;localscale:byte;localgetoffset:boolean);
       OPR_REGISTER  : (reg:tregister);
 {$ifdef m68k}
       OPR_REGLIST   : (regset : tcpuregisterset);
@@ -772,7 +772,7 @@ end;
 
 Function TOperand.SetupVar(const s:string;GetOffset : boolean): Boolean;
 
-  function symtable_has_varsyms(st:tsymtable):boolean;
+  function symtable_has_localvarsyms(st:tsymtable):boolean;
   var
     sym : tsym;
   begin
@@ -780,7 +780,7 @@ Function TOperand.SetupVar(const s:string;GetOffset : boolean): Boolean;
     sym:=tsym(st.symindex.first);
     while assigned(sym) do
       begin
-        if sym.typ=varsym then
+        if sym.typ=localvarsym then
           begin
             result:=true;
             exit;
@@ -825,12 +825,12 @@ Begin
   asmsearchsym(s,sym,srsymtable);
   if sym = nil then
    exit;
-  if sym.typ=absolutesym then
+  if sym.typ=absolutevarsym then
     begin
-      if (tabsolutesym(sym).abstyp=tovar) then
+      if (tabsolutevarsym(sym).abstyp=tovar) then
         begin
           { Only support simple loads }
-          plist:=tabsolutesym(sym).ref.firstsym;
+          plist:=tabsolutevarsym(sym).ref.firstsym;
           if assigned(plist) and
              (plist^.sltype=sl_load) then
             sym:=plist^.sym
@@ -847,80 +847,73 @@ Begin
         end;
     end;
   case sym.typ of
-    varsym :
+    fieldvarsym :
+      begin
+        setconst(tfieldvarsym(sym).fieldoffset);
+        hasvar:=true;
+        SetupVar:=true;
+      end;
+    globalvarsym,
+    localvarsym,
+    paravarsym :
       begin
         { we always assume in asm statements that     }
         { that the variable is valid.                 }
-        tvarsym(sym).varstate:=vs_used;
-        inc(tvarsym(sym).refs);
+        tabstractvarsym(sym).varstate:=vs_used;
+        inc(tabstractvarsym(sym).refs);
         { variable can't be placed in a register }
-        tvarsym(sym).varregable:=vr_none;
-        case tvarsym(sym).owner.symtabletype of
-          objectsymtable :
-            begin
-              setconst(tvarsym(sym).fieldoffset);
-              hasvar:=true;
-              SetupVar:=true;
-              Exit;
-            end;
+        tabstractvarsym(sym).varregable:=vr_none;
+        case sym.owner.symtabletype of
           globalsymtable,
           staticsymtable :
             begin
               initref;
-              opr.ref.symbol:=objectlibrary.newasmsymbol(tvarsym(sym).mangledname,AB_EXTERNAL,AT_DATA);
+              opr.ref.symbol:=objectlibrary.newasmsymbol(tglobalvarsym(sym).mangledname,AB_EXTERNAL,AT_DATA);
             end;
           parasymtable,
           localsymtable :
             begin
-              if (vo_is_external in tvarsym(sym).varoptions) then
+              if opr.typ=OPR_REFERENCE then
                 begin
-                  initref;
-                  opr.ref.symbol:=objectlibrary.newasmsymbol(tvarsym(sym).mangledname,AB_EXTERNAL,AT_DATA)
+                  indexreg:=opr.ref.base;
+                  if opr.ref.index<>NR_NO then
+                    begin
+                      if indexreg=NR_NO then
+                        indexreg:=opr.ref.index
+                      else
+                        Message(asmr_e_multiple_index);
+                    end;
                 end
               else
-                begin
-                  if opr.typ=OPR_REFERENCE then
-                    begin
-                      indexreg:=opr.ref.base;
-                      if opr.ref.index<>NR_NO then
-                        begin
-                          if indexreg=NR_NO then
-                            indexreg:=opr.ref.index
-                          else
-                            Message(asmr_e_multiple_index);
-                        end;
-                    end
-                  else
-                    indexreg:=NR_NO;
-                  opr.typ:=OPR_LOCAL;
-                  if assigned(current_procinfo.parent) and
-                     (current_procinfo.procdef.proccalloption<>pocall_inline) and
-                     (tvarsym(sym).owner<>current_procinfo.procdef.localst) and
-                     (tvarsym(sym).owner<>current_procinfo.procdef.parast) and
-                     (current_procinfo.procdef.localst.symtablelevel>normal_function_level) and
-                     symtable_has_varsyms(current_procinfo.procdef.localst) then
-                    message1(asmr_e_local_para_unreachable,s);
-                  opr.localsym:=tvarsym(sym);
-                  opr.localsymofs:=0;
-                  opr.localindexreg:=indexreg;
-                  opr.localscale:=0;
-                  opr.localgetoffset:=GetOffset;
-                end;
-              if paramanager.push_addr_param(tvarsym(sym).varspez,tvarsym(sym).vartype.def,current_procinfo.procdef.proccalloption) then
+                indexreg:=NR_NO;
+              opr.typ:=OPR_LOCAL;
+              if assigned(current_procinfo.parent) and
+                 (current_procinfo.procdef.proccalloption<>pocall_inline) and
+                 (sym.owner<>current_procinfo.procdef.localst) and
+                 (sym.owner<>current_procinfo.procdef.parast) and
+                 (current_procinfo.procdef.localst.symtablelevel>normal_function_level) and
+                 symtable_has_localvarsyms(current_procinfo.procdef.localst) then
+                message1(asmr_e_local_para_unreachable,s);
+              opr.localsym:=tabstractnormalvarsym(sym);
+              opr.localsymofs:=0;
+              opr.localindexreg:=indexreg;
+              opr.localscale:=0;
+              opr.localgetoffset:=GetOffset;
+              if paramanager.push_addr_param(tabstractvarsym(sym).varspez,tabstractvarsym(sym).vartype.def,current_procinfo.procdef.proccalloption) then
                 SetSize(sizeof(aint),false);
             end;
         end;
-        case tvarsym(sym).vartype.def.deftype of
+        case tabstractvarsym(sym).vartype.def.deftype of
           orddef,
           enumdef,
           pointerdef,
           floatdef :
-            SetSize(tvarsym(sym).getsize,false);
+            SetSize(tabstractvarsym(sym).getsize,false);
           arraydef :
             begin
               { for arrays try to get the element size, take care of
                 multiple indexes }
-              harrdef:=tarraydef(tvarsym(sym).vartype.def);
+              harrdef:=tarraydef(tabstractvarsym(sym).vartype.def);
               while assigned(harrdef.elementtype.def) and
                     (harrdef.elementtype.def.deftype=arraydef) do
                harrdef:=tarraydef(harrdef.elementtype.def);
@@ -1364,30 +1357,14 @@ Begin
      { we can start with a var,type,typedconst }
      if assigned(sym) then
        case sym.typ of
-         varsym :
-           with Tvarsym(sym).vartype do
-             case def.deftype of
-               recorddef :
-                 st:=trecorddef(def).symtable;
-               objectdef :
-                 st:=tobjectdef(def).symtable;
-             end;
+         globalvarsym,
+         localvarsym,
+         paravarsym :
+           st:=Tabstractvarsym(sym).vartype.def.getsymtable(gs_record);
          typesym :
-           with Ttypesym(sym).restype do
-             case def.deftype of
-               recorddef :
-                 st:=trecorddef(def).symtable;
-               objectdef :
-                 st:=tobjectdef(def).symtable;
-             end;
+           st:=Ttypesym(sym).restype.def.getsymtable(gs_record);
          typedconstsym :
-           with Ttypedconstsym(sym).typedconsttype do
-             case def.deftype of
-               recorddef :
-                 st:=trecorddef(def).symtable;
-               objectdef :
-                 st:=tobjectdef(def).symtable;
-             end;
+           st:=Ttypedconstsym(sym).typedconsttype.def.getsymtable(gs_record);
        end
      else
        s:='';
@@ -1412,8 +1389,8 @@ Begin
       end;
      st:=nil;
      case sym.typ of
-       varsym :
-         with Tvarsym(sym) do
+       fieldvarsym :
+         with Tfieldvarsym(sym) do
            begin
              inc(Offset,fieldoffset);
              size:=getsize;
@@ -1659,7 +1636,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.93  2004-10-31 21:45:03  peter
+  Revision 1.94  2004-11-08 22:09:59  peter
+    * tvarsym splitted
+
+  Revision 1.93  2004/10/31 21:45:03  peter
     * generic tlocation
     * move tlocation to cgutils
 

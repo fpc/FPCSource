@@ -59,7 +59,7 @@ type
       destructor Destroy;override;
       procedure preparelib(const s:string);virtual;
       procedure importprocedure(aprocdef:tprocdef;const module:string;index:longint;const name:string);virtual;
-      procedure importvariable(vs:tvarsym;const name,module:string);virtual;
+      procedure importvariable(vs:tglobalvarsym;const name,module:string);virtual;
       procedure generatelib;virtual;
       procedure generatesmartlib;virtual;
    end;
@@ -186,7 +186,7 @@ begin
 end;
 
 
-procedure timportlib.importvariable(vs:tvarsym;const name,module:string);
+procedure timportlib.importvariable(vs:tglobalvarsym;const name,module:string);
 begin
   NotSupported;
 end;
@@ -238,7 +238,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.24  2004-06-20 08:55:29  florian
+  Revision 1.25  2004-11-08 22:09:58  peter
+    * tvarsym splitted
+
+  Revision 1.24  2004/06/20 08:55:29  florian
     * logs truncated
 
 }

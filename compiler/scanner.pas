@@ -31,7 +31,7 @@ interface
        globtype,globals,version,tokens,
        verbose,comphook,
        finput,
-       widestr,cpuinfo;
+       widestr;
 
     const
        max_include_nesting=32;
@@ -532,8 +532,10 @@ implementation
                       begin
                         l:=0;
                         case srsym.typ of
-                          varsym :
-                            l:=tvarsym(srsym).getsize;
+                          globalvarsym,
+                          localvarsym,
+                          paravarsym :
+                            l:=tabstractvarsym(srsym).getsize;
                           typedconstsym :
                             l:=ttypedconstsym(srsym).getsize;
                           typesym:
@@ -3290,7 +3292,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.95  2004-10-31 21:45:03  peter
+  Revision 1.96  2004-11-08 22:09:59  peter
+    * tvarsym splitted
+
+  Revision 1.95  2004/10/31 21:45:03  peter
     * generic tlocation
     * move tlocation to cgutils
 

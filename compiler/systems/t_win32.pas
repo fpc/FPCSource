@@ -57,7 +57,7 @@ interface
     public
       procedure preparelib(const s:string);override;
       procedure importprocedure(aprocdef:tprocdef;const module:string;index:longint;const name:string);override;
-      procedure importvariable(vs:tvarsym;const name,module:string);override;
+      procedure importvariable(vs:tglobalvarsym;const name,module:string);override;
       procedure generatelib;override;
       procedure generatenasmlib;virtual;
       procedure generatesmartlib;override;
@@ -169,7 +169,7 @@ implementation
       end;
 
 
-    procedure timportlibwin32.importvariable(vs:tvarsym;const name,module:string);
+    procedure timportlibwin32.importvariable(vs:tglobalvarsym;const name,module:string);
       begin
         importvariable_str(vs.mangledname,name,module);
       end;
@@ -787,8 +787,8 @@ implementation
                    inc(current_index);
                 end;
               case hp.sym.typ of
-                varsym :
-                  address_table.concat(Tai_const.Createname_rva(tvarsym(hp.sym).mangledname));
+                globalvarsym :
+                  address_table.concat(Tai_const.Createname_rva(tglobalvarsym(hp.sym).mangledname));
                 typedconstsym :
                   address_table.concat(Tai_const.Createname_rva(ttypedconstsym(hp.sym).mangledname));
                 procsym :
@@ -820,8 +820,8 @@ implementation
          while assigned(hp) do
            begin
              case hp.sym.typ of
-               varsym :
-                 s:=tvarsym(hp.sym).mangledname;
+               globalvarsym :
+                 s:=tglobalvarsym(hp.sym).mangledname;
                typedconstsym :
                  s:=ttypedconstsym(hp.sym).mangledname;
                procsym :
@@ -1612,7 +1612,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.41  2004-11-04 17:12:52  peter
+  Revision 1.42  2004-11-08 22:09:59  peter
+    * tvarsym splitted
+
+  Revision 1.41  2004/11/04 17:12:52  peter
   linking with cygwin fixed
 
   Revision 1.40  2004/10/25 15:38:41  peter

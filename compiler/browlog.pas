@@ -355,14 +355,14 @@ implementation
                             sym:=tstoredsym(symt.search(upper(ss)));
                        end;
                   end;
-                varsym :
+                globalvarsym,
+                localvarsym,
+                paravarsym,
+                fieldvarsym :
                   begin
-                     if tvarsym(sym).vartype.def.deftype in [recorddef,objectdef] then
+                     if tabstractvarsym(sym).vartype.def.deftype in [recorddef,objectdef] then
                        begin
-                          if tvarsym(sym).vartype.def.deftype=recorddef then
-                            symt:=trecorddef(tvarsym(sym).vartype.def).symtable
-                          else
-                            symt:=tobjectdef(tvarsym(sym).vartype.def).symtable;
+                          symt:=tabstractvarsym(sym).vartype.def.getsymtable(gs_record);
                           sym:=tstoredsym(symt.search(ss));
                           if sym=nil then
                             sym:=tstoredsym(symt.search(upper(ss)));
@@ -516,7 +516,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  2004-10-15 09:14:16  mazen
+  Revision 1.20  2004-11-08 22:09:58  peter
+    * tvarsym splitted
+
+  Revision 1.19  2004/10/15 09:14:16  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 

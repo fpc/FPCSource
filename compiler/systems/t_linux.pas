@@ -35,7 +35,7 @@ interface
     timportliblinux=class(timportlib)
       procedure preparelib(const s:string);override;
       procedure importprocedure(aprocdef:tprocdef;const module:string;index:longint;const name:string);override;
-      procedure importvariable(vs:tvarsym;const name,module:string);override;
+      procedure importvariable(vs:tglobalvarsym;const name,module:string);override;
       procedure generatelib;override;
     end;
 
@@ -92,7 +92,7 @@ begin
 end;
 
 
-procedure timportliblinux.importvariable(vs:tvarsym;const name,module:string);
+procedure timportliblinux.importvariable(vs:tglobalvarsym;const name,module:string);
 begin
   { insert sharedlibrary }
   current_module.linkothersharedlibs.add(SplitName(module),link_allways);
@@ -592,7 +592,10 @@ end.
 
 {
   $Log$
-  Revision 1.28  2004-11-05 12:27:27  florian
+  Revision 1.29  2004-11-08 22:09:59  peter
+    * tvarsym splitted
+
+  Revision 1.28  2004/11/05 12:27:27  florian
     * fixed dyn. linker handling
 
   Revision 1.27  2004/11/05 11:04:23  florian

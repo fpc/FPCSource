@@ -60,9 +60,6 @@ implementation
        nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,nobj,
        { codegen }
        ncgutil,
-{$ifdef GDB}
-       gdb,
-{$endif GDB}
        { parser }
        scanner,
        pbase,pexpr,ptype,ptconst,pdecsub,pdecvar,pdecobj,
@@ -279,11 +276,8 @@ implementation
          case tsym(p).typ of
            typesym :
              pd:=ttypesym(p).restype.def;
-           varsym :
-             if (tsym(p).owner.symtabletype in [objectsymtable,recordsymtable]) then
-               pd:=tvarsym(p).vartype.def
-             else
-               exit;
+           fieldvarsym :
+             pd:=tfieldvarsym(p).vartype.def
            else
              exit;
          end;
@@ -659,7 +653,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.89  2004-10-15 09:14:17  mazen
+  Revision 1.90  2004-11-08 22:09:59  peter
+    * tvarsym splitted
+
+  Revision 1.89  2004/10/15 09:14:17  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 

@@ -230,10 +230,10 @@ implementation
     function tloadnode.is_addr_param_load:boolean;
       begin
         result:=(symtable.symtabletype=parasymtable) and
-                (symtableentry.typ=varsym) and
-                not(vo_has_local_copy in tvarsym(symtableentry).varoptions) and
+                (symtableentry.typ=paravarsym) and
+                not(vo_has_local_copy in tparavarsym(symtableentry).varoptions) and
                 not(nf_load_self_pointer in flags) and
-                paramanager.push_addr_param(tvarsym(symtableentry).varspez,tvarsym(symtableentry).vartype.def,tprocdef(symtable.defowner).proccalloption);
+                paramanager.push_addr_param(tparavarsym(symtableentry).varspez,tparavarsym(symtableentry).vartype.def,tprocdef(symtable.defowner).proccalloption);
       end;
 
 
@@ -241,8 +241,8 @@ implementation
       begin
          result:=nil;
          case symtableentry.typ of
-           absolutesym :
-             resulttype:=tabsolutesym(symtableentry).vartype;
+           absolutevarsym :
+             resulttype:=tabsolutevarsym(symtableentry).vartype;
            constsym:
              begin
                if tconstsym(symtableentry).consttyp=constresourcestring then
@@ -263,9 +263,11 @@ implementation
                else
                  internalerror(22799);
              end;
-           varsym :
+           globalvarsym,
+           paravarsym,
+           localvarsym :
              begin
-               inc(tvarsym(symtableentry).refs);
+               inc(tabstractvarsym(symtableentry).refs);
                { Nested variable? The we need to load the framepointer of
                  the parent procedure }
                if assigned(current_procinfo) then
@@ -292,7 +294,7 @@ implementation
                  end;
                { fix self type which is declared as voidpointer in the
                  definition }
-               if vo_is_self in tvarsym(symtableentry).varoptions then
+               if vo_is_self in tabstractvarsym(symtableentry).varoptions then
                  begin
                    resulttype.setdef(tprocdef(symtableentry.owner.defowner)._class);
                    if (po_classmethod in tprocdef(symtableentry.owner.defowner).procoptions) or
@@ -302,13 +304,13 @@ implementation
                            (nf_load_self_pointer in flags) then
                      resulttype.setdef(tpointerdef.create(resulttype));
                  end
-               else if vo_is_vmt in tvarsym(symtableentry).varoptions then
+               else if vo_is_vmt in tabstractvarsym(symtableentry).varoptions then
                  begin
                    resulttype.setdef(tprocdef(symtableentry.owner.defowner)._class);
                    resulttype.setdef(tclassrefdef.create(resulttype));
                  end
                else
-                 resulttype:=tvarsym(symtableentry).vartype;
+                 resulttype:=tabstractvarsym(symtableentry).vartype;
              end;
            typedconstsym :
              resulttype:=ttypedconstsym(symtableentry).typedconsttype;
@@ -353,7 +355,7 @@ implementation
          registersmmx:=0;
 {$endif SUPPORT_MMX}
          case symtableentry.typ of
-            absolutesym :
+            absolutevarsym :
               ;
             constsym:
               begin
@@ -363,14 +365,16 @@ implementation
                       expectloc:=LOC_CREFERENCE;
                    end;
               end;
-            varsym :
+            globalvarsym,
+            localvarsym,
+            paravarsym :
               begin
                 if assigned(left) then
                   firstpass(left);
                 if not is_addr_param_load and
-                   tvarsym(symtableentry).is_regvar then
+                   tabstractvarsym(symtableentry).is_regvar then
                   begin
-                    case tvarsym(symtableentry).varregable of
+                    case tabstractvarsym(symtableentry).varregable of
                       vr_intreg :
                         expectloc:=LOC_CREGISTER;
                       vr_fpureg :
@@ -380,25 +384,25 @@ implementation
                     end
                   end
                 else
-                  if (tvarsym(symtableentry).varspez=vs_const) then
+                  if (tabstractvarsym(symtableentry).varspez=vs_const) then
                     expectloc:=LOC_CREFERENCE;
                 { we need a register for call by reference parameters }
-                if paramanager.push_addr_param(tvarsym(symtableentry).varspez,tvarsym(symtableentry).vartype.def,pocall_default) then
+                if paramanager.push_addr_param(tabstractvarsym(symtableentry).varspez,tabstractvarsym(symtableentry).vartype.def,pocall_default) then
                   registersint:=1;
-                if ([vo_is_thread_var,vo_is_dll_var]*tvarsym(symtableentry).varoptions)<>[] then
+                if ([vo_is_thread_var,vo_is_dll_var]*tabstractvarsym(symtableentry).varoptions)<>[] then
                   registersint:=1;
-                if (target_info.system=system_powerpc_darwin) and (vo_is_dll_var in tvarsym(symtableentry).varoptions) then
+                if (target_info.system=system_powerpc_darwin) and (vo_is_dll_var in tabstractvarsym(symtableentry).varoptions) then
                   include(current_procinfo.flags,pi_needs_got);
                 { call to get address of threadvar }
-                if (vo_is_thread_var in tvarsym(symtableentry).varoptions) then
+                if (vo_is_thread_var in tabstractvarsym(symtableentry).varoptions) then
                   include(current_procinfo.flags,pi_do_call);
                 if nf_write in flags then
-                  Tvarsym(symtableentry).trigger_notifications(vn_onwrite)
+                  Tabstractvarsym(symtableentry).trigger_notifications(vn_onwrite)
                 else
-                  Tvarsym(symtableentry).trigger_notifications(vn_onread);
+                  Tabstractvarsym(symtableentry).trigger_notifications(vn_onread);
                 { count variable references }
                 if cg.t_times>1 then
-                  inc(tvarsym(symtableentry).refs,cg.t_times-1);
+                  inc(tabstractvarsym(symtableentry).refs,cg.t_times-1);
               end;
             typedconstsym :
                 ;
@@ -1168,7 +1172,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.138  2004-11-02 12:55:16  peter
+  Revision 1.139  2004-11-08 22:09:59  peter
+    * tvarsym splitted
+
+  Revision 1.138  2004/11/02 12:55:16  peter
     * nf_internal flag for internal inserted typeconvs. This will
       supress the generation of warning/hints
 

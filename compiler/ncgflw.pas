@@ -1158,11 +1158,11 @@ implementation
          { what a hack ! }
          if assigned(exceptsymtable) then
            begin
-             tvarsym(exceptsymtable.symindex.first).localloc.loc:=LOC_REFERENCE;
-             tvarsym(exceptsymtable.symindex.first).localloc.size:=OS_ADDR;
+             tlocalvarsym(exceptsymtable.symindex.first).localloc.loc:=LOC_REFERENCE;
+             tlocalvarsym(exceptsymtable.symindex.first).localloc.size:=OS_ADDR;
              tg.GetLocal(exprasmlist,sizeof(aint),voidpointertype.def,
-                tvarsym(exceptsymtable.symindex.first).localloc.reference);
-             cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,NR_FUNCTION_RESULT_REG,tvarsym(exceptsymtable.symindex.first).localloc.reference);
+                tlocalvarsym(exceptsymtable.symindex.first).localloc.reference);
+             cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,NR_FUNCTION_RESULT_REG,tlocalvarsym(exceptsymtable.symindex.first).localloc.reference);
            end
          else
            begin
@@ -1221,8 +1221,8 @@ implementation
          { clear some stuff }
          if assigned(exceptsymtable) then
            begin
-             tg.UngetLocal(exprasmlist,tvarsym(exceptsymtable.symindex.first).localloc.reference);
-             tvarsym(exceptsymtable.symindex.first).localloc.loc:=LOC_INVALID;
+             tg.UngetLocal(exprasmlist,tlocalvarsym(exceptsymtable.symindex.first).localloc.reference);
+             tlocalvarsym(exceptsymtable.symindex.first).localloc.loc:=LOC_INVALID;
            end
          else
            tg.Ungettemp(exprasmlist,exceptref);
@@ -1443,7 +1443,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.101  2004-10-24 11:44:28  peter
+  Revision 1.102  2004-11-08 22:09:59  peter
+    * tvarsym splitted
+
+  Revision 1.101  2004/10/24 11:44:28  peter
     * small regvar fixes
     * loadref parameter removed from concatcopy,incrrefcount,etc
 

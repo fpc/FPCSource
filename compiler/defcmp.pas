@@ -28,9 +28,9 @@ interface
 
     uses
        cclasses,
-       globtype,globals,tokens,
+       globtype,globals,
        node,
-       symconst,symbase,symtype,symdef;
+       symconst,symtype,symdef;
 
      type
        { if acp is cp_all the var const or nothing are considered equal }
@@ -1179,8 +1179,8 @@ implementation
                 if currpara1.is_hidden<>currpara2.is_hidden then
                   exit;
                 eq:=te_equal;
-                if not(vo_is_self in tvarsym(currpara1.parasym).varoptions) and
-                   not(vo_is_self in tvarsym(currpara2.parasym).varoptions) then
+                if not(vo_is_self in tabstractvarsym(currpara1.parasym).varoptions) and
+                   not(vo_is_self in tabstractvarsym(currpara2.parasym).varoptions) then
                  begin
                    if (currpara1.paratyp<>currpara2.paratyp) then
                     exit;
@@ -1296,7 +1296,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.57  2004-11-01 10:31:48  peter
+  Revision 1.58  2004-11-08 22:09:58  peter
+    * tvarsym splitted
+
+  Revision 1.57  2004/11/01 10:31:48  peter
     * procvar arguments need to be at least equal
 
   Revision 1.56  2004/11/01 08:02:26  peter

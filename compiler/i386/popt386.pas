@@ -79,7 +79,7 @@ begin
           (taicpu(hp2).opcode = A_RET)) and
          (taicpu(p).oper[0]^.ref^.base = current_procinfo.FramePointer) and
          not(assigned(current_procinfo.procdef.funcretsym) and
-             (taicpu(p).oper[0]^.ref^.offset < tvarsym(current_procinfo.procdef.funcretsym).localloc.reference.offset)) and
+             (taicpu(p).oper[0]^.ref^.offset < tabstractnormalvarsym(current_procinfo.procdef.funcretsym).localloc.reference.offset)) and
          (taicpu(p).oper[0]^.ref^.index = NR_NO) then
         begin
           asml.remove(p);
@@ -980,7 +980,7 @@ begin
                                (taicpu(p).oper[1]^.typ = top_ref) and
                                (taicpu(p).oper[1]^.ref^.base = current_procinfo.FramePointer) and
                                not(assigned(current_procinfo.procdef.funcretsym) and
-                                   (taicpu(p).oper[1]^.ref^.offset < tvarsym(current_procinfo.procdef.funcretsym).localloc.reference.offset)) and
+                                   (taicpu(p).oper[1]^.ref^.offset < tabstractnormalvarsym(current_procinfo.procdef.funcretsym).localloc.reference.offset)) and
                                (taicpu(p).oper[1]^.ref^.index = NR_NO) and
                                (taicpu(p).oper[0]^.typ = top_reg) then
                               begin
@@ -1526,7 +1526,7 @@ begin
                          (taicpu(p).oper[0]^.ref^.base = current_procinfo.FramePointer) and
                          (taicpu(p).oper[0]^.ref^.index = NR_NO) and
                          not(assigned(current_procinfo.procdef.funcretsym) and
-                             (taicpu(p).oper[0]^.ref^.offset < tvarsym(current_procinfo.procdef.funcretsym).localloc.reference.offset)) and
+                             (taicpu(p).oper[0]^.ref^.offset < tabstractnormalvarsym(current_procinfo.procdef.funcretsym).localloc.reference.offset)) and
                          (hp1.typ = ait_instruction) and
                          (taicpu(hp1).opcode = A_MOV) and
                          (taicpu(hp1).opsize = S_B) and
@@ -1999,7 +1999,10 @@ end.
 
 {
   $Log$
-  Revision 1.64  2004-10-10 15:01:19  jonas
+  Revision 1.65  2004-11-08 22:09:59  peter
+    * tvarsym splitted
+
+  Revision 1.64  2004/10/10 15:01:19  jonas
     * several fixes to allocregbetween()
 
   Revision 1.63  2004/10/05 20:41:02  peter

@@ -440,8 +440,8 @@ implementation
                               else
                                 curconstSegment.concat(Tai_const.Createname(tprocsym(srsym).first_procdef.mangledname,AT_FUNCTION,offset));
                             end;
-                          varsym :
-                            curconstSegment.concat(Tai_const.Createname(tvarsym(srsym).mangledname,AT_DATA,offset));
+                          globalvarsym :
+                            curconstSegment.concat(Tai_const.Createname(tglobalvarsym(srsym).mangledname,AT_DATA,offset));
                           typedconstsym :
                             curconstSegment.concat(Tai_const.Createname(ttypedconstsym(srsym).mangledname,AT_DATA,offset));
                           labelsym :
@@ -898,7 +898,7 @@ implementation
                             { Also allow jumping from one variant part to another, }
                             { as long as the offsets match                         }
                             if (assigned(srsym) and
-                                (tvarsym(recsym).fieldoffset = tvarsym(srsym).fieldoffset)) or
+                                (tfieldvarsym(recsym).fieldoffset = tfieldvarsym(srsym).fieldoffset)) or
                                { srsym is not assigned after parsing w2 in the      }
                                { typed const in the next example:                   }
                                {   type tr = record case byte of                    }
@@ -906,10 +906,10 @@ implementation
                                {          2: (w1,w2: word);                         }
                                {        end;                                        }
                                {   const r: tr = (w1:1;w2:1;l2:5);                  }
-                               (tvarsym(recsym).fieldoffset = aktpos) then
+                               (tfieldvarsym(recsym).fieldoffset = aktpos) then
                               srsym := recsym
                             { going backwards isn't allowed in any mode }
-                            else if (tvarsym(recsym).fieldoffset<aktpos) then
+                            else if (tfieldvarsym(recsym).fieldoffset<aktpos) then
                               begin
                                 Message(parser_e_invalid_record_const);
                                 error := true;
@@ -933,15 +933,15 @@ implementation
                           begin
 
                             { if needed fill (alignment) }
-                            if tvarsym(srsym).fieldoffset>aktpos then
-                               for i:=1 to tvarsym(srsym).fieldoffset-aktpos do
+                            if tfieldvarsym(srsym).fieldoffset>aktpos then
+                               for i:=1 to tfieldvarsym(srsym).fieldoffset-aktpos do
                                  curconstSegment.concat(Tai_const.Create_8bit(0));
 
                              { new position }
-                             aktpos:=tvarsym(srsym).fieldoffset+tvarsym(srsym).vartype.def.size;
+                             aktpos:=tfieldvarsym(srsym).fieldoffset+tfieldvarsym(srsym).vartype.def.size;
 
                              { read the data }
-                             readtypedconst(tvarsym(srsym).vartype,nil,writable);
+                             readtypedconst(tfieldvarsym(srsym).vartype,nil,writable);
 
                              { keep previous field for checking whether whole }
                              { record was initialized (JM)                    }
@@ -960,7 +960,7 @@ implementation
                     { don't complain if there only come other variant parts }
                     { after the last initialized field                      }
                     ((recsym=nil) or
-                     (tvarsym(srsym).fieldoffset > tvarsym(recsym).fieldoffset)) then
+                     (tfieldvarsym(srsym).fieldoffset > tfieldvarsym(recsym).fieldoffset)) then
                    Message1(parser_w_skipped_fields_after,sorg);
 
                  for i:=1 to t.def.size-aktpos do
@@ -1020,7 +1020,7 @@ implementation
                              consume_all_until(_SEMICOLON);
                           end
                         else
-                          with Tvarsym(srsym) do
+                          with tfieldvarsym(srsym) do
                             begin
                                { check position }
                                if fieldoffset<aktpos then
@@ -1089,7 +1089,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.94  2004-11-01 23:30:11  peter
+  Revision 1.95  2004-11-08 22:09:59  peter
+    * tvarsym splitted
+
+  Revision 1.94  2004/11/01 23:30:11  peter
     * support > 32bit accesses for x86_64
     * rewrote array size checking to support 64bit
 

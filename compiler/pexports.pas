@@ -90,8 +90,8 @@ implementation
                 hp.sym:=srsym;
                 InternalProcName:='';
                 case srsym.typ of
-                  varsym :
-                    InternalProcName:=tvarsym(srsym).mangledname;
+                  globalvarsym :
+                    InternalProcName:=tglobalvarsym(srsym).mangledname;
                   typedconstsym :
                     InternalProcName:=ttypedconstsym(srsym).mangledname;
                   procsym :
@@ -182,7 +182,10 @@ end.
 
 {
   $Log$
-  Revision 1.29  2004-10-15 09:14:17  mazen
+  Revision 1.30  2004-11-08 22:09:59  peter
+    * tvarsym splitted
+
+  Revision 1.29  2004/10/15 09:14:17  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 

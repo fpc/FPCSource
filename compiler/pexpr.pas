@@ -815,7 +815,6 @@ implementation
       var
          membercall,
          prevafterassn : boolean;
-         vs : tvarsym;
          para,p2 : tnode;
          currpara : tparaitem;
          aprocdef : tprocdef;
@@ -883,10 +882,7 @@ implementation
                 while assigned(currpara) do
                  begin
                    if not currpara.is_hidden then
-                    begin
-                      vs:=tvarsym(currpara.parasym);
-                      para:=ccallparanode.create(cloadnode.create(vs,vs.owner),para);
-                    end;
+                     para:=ccallparanode.create(cloadnode.create(currpara.parasym,currpara.parasym.owner),para);
                    currpara:=tparaitem(currpara.next);
                  end;
               end
@@ -1008,7 +1004,7 @@ implementation
                          include(p1.flags,nf_isproperty);
                          getprocvardef:=nil;
                        end;
-                     varsym :
+                     fieldvarsym :
                        begin
                          { generate access code }
                          symlist_to_node(p1,st,tpropertysym(sym).writeaccess);
@@ -1037,7 +1033,7 @@ implementation
               if not tpropertysym(sym).readaccess.empty then
                 begin
                    case tpropertysym(sym).readaccess.firstsym^.sym.typ of
-                     varsym :
+                     fieldvarsym :
                        begin
                           { generate access code }
                           symlist_to_node(p1,st,tpropertysym(sym).readaccess);
@@ -1121,7 +1117,7 @@ implementation
                          not(tcallnode(p1).procdefinition.proctypeoption=potype_constructor) then
                         Message(parser_e_only_class_methods_via_class_ref);
                    end;
-                 varsym:
+                 fieldvarsym:
                    begin
                       if (sp_static in sym.symoptions) then
                         begin
@@ -1179,13 +1175,13 @@ implementation
            consume_sym(srsym,srsymtable);
 
            { Access to funcret or need to call the function? }
-           if (srsym.typ in [absolutesym,varsym]) and
-              (vo_is_funcret in tvarsym(srsym).varoptions) and
+           if (srsym.typ in [absolutevarsym,localvarsym,paravarsym]) and
+              (vo_is_funcret in tabstractvarsym(srsym).varoptions) and
               (
                (token=_LKLAMMER) or
                (not(m_fpc in aktmodeswitches) and
                 (afterassignment or in_args) and
-                not(vo_is_result in tvarsym(srsym).varoptions))
+                not(vo_is_result in tabstractvarsym(srsym).varoptions))
               ) then
             begin
               storesymtablestack:=symtablestack;
@@ -1200,20 +1196,23 @@ implementation
 
             begin
               case srsym.typ of
-                absolutesym :
+                absolutevarsym :
                   begin
-                    if (tabsolutesym(srsym).abstyp=tovar) then
+                    if (tabsolutevarsym(srsym).abstyp=tovar) then
                       begin
                         p1:=nil;
-                        symlist_to_node(p1,nil,tabsolutesym(srsym).ref);
-                        p1:=ctypeconvnode.create(p1,tabsolutesym(srsym).vartype);
+                        symlist_to_node(p1,nil,tabsolutevarsym(srsym).ref);
+                        p1:=ctypeconvnode.create(p1,tabsolutevarsym(srsym).vartype);
                         include(p1.flags,nf_absolute);
                       end
                     else
                       p1:=cloadnode.create(srsym,srsymtable);
                   end;
 
-                varsym :
+                globalvarsym,
+                localvarsym,
+                paravarsym,
+                fieldvarsym :
                   begin
                     if (sp_static in srsym.symoptions) then
                      begin
@@ -1684,7 +1683,7 @@ implementation
                               hsym:=tsym(trecorddef(p1.resulttype.def).symtable.search(pattern));
                               check_hints(hsym);
                               if assigned(hsym) and
-                                 (hsym.typ=varsym) then
+                                 (hsym.typ=fieldvarsym) then
                                 p1:=csubscriptnode.create(hsym,p1)
                               else
                                 begin
@@ -2503,7 +2502,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.170  2004-11-04 17:57:58  peter
+  Revision 1.171  2004-11-08 22:09:59  peter
+    * tvarsym splitted
+
+  Revision 1.170  2004/11/04 17:57:58  peter
   added checking for token=_ID after _POINT is parsed
 
   Revision 1.169  2004/11/01 15:32:12  peter

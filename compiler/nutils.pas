@@ -54,7 +54,7 @@ interface
 
     procedure load_procvar_from_calln(var p1:tnode);
     function maybe_call_procvar(var p1:tnode;tponly:boolean):boolean;
-    function load_high_value_node(vs:tvarsym):tnode;
+    function load_high_value_node(vs:tparavarsym):tnode;
     function load_self_node:tnode;
     function load_result_node:tnode;
     function load_self_pointer_node:tnode;
@@ -236,7 +236,7 @@ implementation
       end;
 
 
-    function load_high_value_node(vs:tvarsym):tnode;
+    function load_high_value_node(vs:tparavarsym):tnode;
       var
         srsym : tsym;
         srsymtable : tsymtable;
@@ -326,8 +326,8 @@ implementation
     function is_self_node(p:tnode):boolean;
       begin
         is_self_node:=(p.nodetype=loadn) and
-                      (tloadnode(p).symtableentry.typ=varsym) and
-                      (vo_is_self in tvarsym(tloadnode(p).symtableentry).varoptions);
+                      (tloadnode(p).symtableentry.typ=paravarsym) and
+                      (vo_is_self in tparavarsym(tloadnode(p).symtableentry).varoptions);
       end;
 
 
@@ -456,8 +456,8 @@ implementation
               loadn:
                 begin
 		  { threadvars need a helper call }
-                  if (tloadnode(p).symtableentry.typ=varsym) and
-		     (vo_is_thread_var in tvarsym(tloadnode(p).symtableentry).varoptions) then
+                  if (tloadnode(p).symtableentry.typ=globalvarsym) and
+		     (vo_is_thread_var in tglobalvarsym(tloadnode(p).symtableentry).varoptions) then
                     inc(result,5)
                   else
                     inc(result);
@@ -519,7 +519,10 @@ end.
 
 {
   $Log$
-  Revision 1.20  2004-11-02 12:55:16  peter
+  Revision 1.21  2004-11-08 22:09:59  peter
+    * tvarsym splitted
+
+  Revision 1.20  2004/11/02 12:55:16  peter
     * nf_internal flag for internal inserted typeconvs. This will
       supress the generation of warning/hints
 

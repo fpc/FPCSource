@@ -44,11 +44,7 @@ type
 {$endif Test_Double_checksum}
 
 const
-{$ifdef ansistring_bits}
-  CurrentPPUVersion=44;
-{$else}
-  CurrentPPUVersion=44;
-{$endif}
+  CurrentPPUVersion=45;
 
 { buffer sizes }
   maxentrysize = 1024;
@@ -86,19 +82,21 @@ const
   ibusedmacros           = 16;
   ibderefdata            = 17;
   {syms}
-  ibtypesym       = 20;
-  ibprocsym       = 21;
-  ibvarsym        = 22;
-  ibconstsym      = 23;
-  ibenumsym       = 24;
-  ibtypedconstsym = 25;
-  ibabsolutesym   = 26;
-  ibpropertysym   = 27;
-  ibvarsym_C      = 28;
-  ibunitsym       = 29;  { needed for browser }
-  iblabelsym      = 30;
-  ibsyssym        = 31;
-  ibrttisym       = 32;
+  ibtypesym        = 20;
+  ibprocsym        = 21;
+  ibglobalvarsym   = 22;
+  ibconstsym       = 23;
+  ibenumsym        = 24;
+  ibtypedconstsym  = 25;
+  ibabsolutevarsym = 26;
+  ibpropertysym    = 27;
+  ibfieldvarsym    = 28;
+  ibunitsym        = 29;  { needed for browser }
+  iblabelsym       = 30;
+  ibsyssym         = 31;
+  ibrttisym        = 32;
+  iblocalvarsym    = 33;
+  ibparavarsym     = 34;
   {definitions}
   iborddef         = 40;
   ibpointerdef     = 41;
@@ -1056,7 +1054,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.57  2004-09-21 17:25:12  peter
+  Revision 1.58  2004-11-08 22:09:59  peter
+    * tvarsym splitted
+
+  Revision 1.57  2004/09/21 17:25:12  peter
     * paraloc branch merged
 
   Revision 1.56.4.1  2004/09/12 14:01:23  peter

@@ -1334,8 +1334,10 @@ unit raatt;
                       if assigned(sym) then
                        begin
                          case sym.typ of
-                           varsym :
-                             l:=tvarsym(sym).getsize;
+                           globalvarsym,
+                           localvarsym,
+                           paravarsym :
+                             l:=tabstractvarsym(sym).getsize;
                            typedconstsym :
                              l:=ttypedconstsym(sym).getsize;
                            typesym :
@@ -1378,13 +1380,11 @@ unit raatt;
                       if assigned(sym) then
                        begin
                          case sym.typ of
-                           varsym :
-                             with Tvarsym(sym) do
-                               begin
-                                 if owner.symtabletype in [localsymtable,parasymtable] then
-                                  Message(asmr_e_no_local_or_para_allowed);
-                                 hs:=mangledname;
-                               end;
+                           globalvarsym :
+                             hs:=tglobalvarsym(sym).mangledname;
+                           localvarsym,
+                           paravarsym :
+                             Message(asmr_e_no_local_or_para_allowed);
                            typedconstsym :
                              hs:=ttypedconstsym(sym).mangledname;
                            procsym :
@@ -1500,7 +1500,10 @@ end.
 
 {
   $Log$
-  Revision 1.12  2004-06-20 08:55:30  florian
+  Revision 1.13  2004-11-08 22:09:59  peter
+    * tvarsym splitted
+
+  Revision 1.12  2004/06/20 08:55:30  florian
     * logs truncated
 
   Revision 1.11  2004/06/16 20:07:09  florian

@@ -215,12 +215,12 @@ implementation
         hrecst:=trecordsymtable.create(aktpackrecords);
         vmttype.setdef(trecorddef.create(hrecst));
         pvmttype.setdef(tpointerdef.create(vmttype));
-        hrecst.insertfield(tvarsym.create('$parent',vs_value,pvmttype),true);
-        hrecst.insertfield(tvarsym.create('$length',vs_value,s32inttype),true);
-        hrecst.insertfield(tvarsym.create('$mlength',vs_value,s32inttype),true);
+        hrecst.insertfield(tfieldvarsym.create('$parent',vs_value,pvmttype),true);
+        hrecst.insertfield(tfieldvarsym.create('$length',vs_value,s32inttype),true);
+        hrecst.insertfield(tfieldvarsym.create('$mlength',vs_value,s32inttype),true);
         vmtarraytype.setdef(tarraydef.create(0,1,s32inttype));
         tarraydef(vmtarraytype.def).setelementtype(voidpointertype);
-        hrecst.insertfield(tvarsym.create('$__pfn',vs_value,vmtarraytype),true);
+        hrecst.insertfield(tfieldvarsym.create('$__pfn',vs_value,vmtarraytype),true);
         addtype('$__vtbl_ptr_type',vmttype);
         addtype('$pvmt',pvmttype);
         vmtarraytype.setdef(tarraydef.create(0,1,s32inttype));
@@ -228,8 +228,8 @@ implementation
         addtype('$vtblarray',vmtarraytype);
         { Add a type for methodpointers }
         hrecst:=trecordsymtable.create(1);
-        hrecst.insertfield(tvarsym.create('$proc',vs_value,voidpointertype),true);
-        hrecst.insertfield(tvarsym.create('$self',vs_value,voidpointertype),true);
+        hrecst.insertfield(tfieldvarsym.create('$proc',vs_value,voidpointertype),true);
+        hrecst.insertfield(tfieldvarsym.create('$self',vs_value,voidpointertype),true);
         methodpointertype.setdef(trecorddef.create(hrecst));
         addtype('$methodpointer',methodpointertype);
       { Add functions that require compiler magic }
@@ -534,7 +534,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.72  2004-10-15 09:14:17  mazen
+  Revision 1.73  2004-11-08 22:09:59  peter
+    * tvarsym splitted
+
+  Revision 1.72  2004/10/15 09:14:17  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 

@@ -179,6 +179,7 @@ interface
 
        terrordef = class(tstoreddef)
           constructor create;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
           function  gettypename:string;override;
           function  getmangledparaname : string;override;
           { debug }
@@ -1685,7 +1686,7 @@ implementation
 
     procedure tenumdef.calcsavesize;
       begin
-        if (aktpackenum=8) or (min<low(longint)) or (max>high(cardinal)) then
+        if (aktpackenum=8) or (min<low(longint)) or (int64(max)>high(cardinal)) then
          savesize:=8
         else
          if (aktpackenum=4) or (min<low(smallint)) or (max>high(word)) then
@@ -3067,7 +3068,7 @@ implementation
       begin
         state:=arg;
         { static variables from objects are like global objects }
-        if (Tsym(p).typ=varsym) and not (sp_static in Tsym(p).symoptions) then
+        if (Tsym(p).typ=fieldvarsym) and not (sp_static in Tsym(p).symoptions) then
           begin
             if (sp_protected in tsym(p).symoptions) then
               spec:='/1'
@@ -3075,13 +3076,13 @@ implementation
               spec:='/0'
             else
               spec:='';
-            varsize:=tvarsym(p).vartype.def.size;
+            varsize:=tfieldvarsym(p).vartype.def.size;
             { open arrays made overflows !! }
             if varsize>$fffffff then
               varsize:=$fffffff;
             newrec:=stabstr_evaluate('$1:$2,$3,$4;',[p.name,
-                                     spec+tstoreddef(tvarsym(p).vartype.def).numberstring,
-                                     tostr(tvarsym(p).fieldoffset*8),tostr(varsize*8)]);
+                                     spec+tstoreddef(tfieldvarsym(p).vartype.def).numberstring,
+                                     tostr(tfieldvarsym(p).fieldoffset*8),tostr(varsize*8)]);
             if state^.stabsize+strlen(newrec)>=state^.staballoc-256 then
               begin
                 inc(state^.staballoc,memsizeinc);
@@ -3091,15 +3092,15 @@ implementation
             inc(state^.stabsize,strlen(newrec));
             strdispose(newrec);
             {This should be used for case !!}
-            inc(state^.recoffset,Tvarsym(p).vartype.def.size);
+            inc(state^.recoffset,Tfieldvarsym(p).vartype.def.size);
           end;
       end;
 
 
     procedure tabstractrecorddef.field_concatstabto(p:Tnamedindexitem;arg:pointer);
       begin
-        if (Tsym(p).typ=varsym) and not (sp_static in Tsym(p).symoptions) then
-          tstoreddef(tvarsym(p).vartype.def).concatstabto(taasmoutput(arg));
+        if (Tsym(p).typ=fieldvarsym) and not (sp_static in Tsym(p).symoptions) then
+          tstoreddef(tfieldvarsym(p).vartype.def).concatstabto(taasmoutput(arg));
       end;
 
 
@@ -3109,8 +3110,8 @@ implementation
     procedure tabstractrecorddef.count_field_rtti(sym : tnamedindexitem;arg:pointer);
       begin
          if (FRTTIType=fullrtti) or
-            ((tsym(sym).typ=varsym) and
-             tvarsym(sym).vartype.def.needs_inittable) then
+            ((tsym(sym).typ=fieldvarsym) and
+             tfieldvarsym(sym).vartype.def.needs_inittable) then
            inc(Count);
       end;
 
@@ -3118,20 +3119,20 @@ implementation
     procedure tabstractrecorddef.generate_field_rtti(sym:tnamedindexitem;arg:pointer);
       begin
          if (FRTTIType=fullrtti) or
-            ((tsym(sym).typ=varsym) and
-             tvarsym(sym).vartype.def.needs_inittable) then
-           tstoreddef(tvarsym(sym).vartype.def).get_rtti_label(FRTTIType);
+            ((tsym(sym).typ=fieldvarsym) and
+             tfieldvarsym(sym).vartype.def.needs_inittable) then
+           tstoreddef(tfieldvarsym(sym).vartype.def).get_rtti_label(FRTTIType);
       end;
 
 
     procedure tabstractrecorddef.write_field_rtti(sym : tnamedindexitem;arg:pointer);
       begin
          if (FRTTIType=fullrtti) or
-            ((tsym(sym).typ=varsym) and
-             tvarsym(sym).vartype.def.needs_inittable) then
+            ((tsym(sym).typ=fieldvarsym) and
+             tfieldvarsym(sym).vartype.def.needs_inittable) then
           begin
-            rttiList.concat(Tai_const.Create_sym(tstoreddef(tvarsym(sym).vartype.def).get_rtti_label(FRTTIType)));
-            rttiList.concat(Tai_const.Create_32bit(tvarsym(sym).fieldoffset));
+            rttiList.concat(Tai_const.Create_sym(tstoreddef(tfieldvarsym(sym).vartype.def).get_rtti_label(FRTTIType)));
+            rttiList.concat(Tai_const.Create_32bit(tfieldvarsym(sym).fieldoffset));
           end;
       end;
 
@@ -3369,7 +3370,7 @@ implementation
         hp : TParaItem;
       begin
         hp:=TParaItem.Create;
-        hp.paratyp:=tvarsym(sym).varspez;
+        hp.paratyp:=tparavarsym(sym).varspez;
         hp.parasym:=sym;
         hp.paratype:=tt;
         hp.is_hidden:=vhidden;
@@ -3395,7 +3396,7 @@ implementation
         hp : TParaItem;
       begin
         hp:=TParaItem.Create;
-        hp.paratyp:=tvarsym(sym).varspez;
+        hp.paratyp:=tparavarsym(sym).varspez;
         hp.parasym:=sym;
         hp.paratype:=tt;
         hp.is_hidden:=vhidden;
@@ -3480,9 +3481,9 @@ implementation
           begin
             hp.paratype.resolve;
             hp.defaultvalue:=tsym(hp.defaultvaluederef.resolve);
-            hp.parasym:=tvarsym(hp.parasymderef.resolve);
+            hp.parasym:=tparavarsym(hp.parasymderef.resolve);
             { connect parasym to paraitem }
-            tvarsym(hp.parasym).paraitem:=hp;
+            tparavarsym(hp.parasym).paraitem:=hp;
             { Don't count hidden parameters }
             if (not hp.is_hidden) then
              begin
@@ -5435,7 +5436,7 @@ implementation
     procedure tobjectdef.count_published_properties(sym:tnamedindexitem;arg:pointer);
       begin
          if needs_prop_entry(tsym(sym)) and
-          (tsym(sym).typ<>varsym) then
+            (tsym(sym).typ<>fieldvarsym) then
            inc(count);
       end;
 
@@ -5457,7 +5458,7 @@ implementation
                 rttiList.concat(Tai_const.create(ait_const_ptr,1));
                 typvalue:=3;
              end
-           else if proc.firstsym^.sym.typ=varsym then
+           else if proc.firstsym^.sym.typ=fieldvarsym then
              begin
                 address:=0;
                 hp:=proc.firstsym;
@@ -5467,15 +5468,15 @@ implementation
                      case hp^.sltype of
                        sl_load :
                          begin
-                           def:=tvarsym(hp^.sym).vartype.def;
-                           inc(address,tvarsym(hp^.sym).fieldoffset);
+                           def:=tfieldvarsym(hp^.sym).vartype.def;
+                           inc(address,tfieldvarsym(hp^.sym).fieldoffset);
                          end;
                        sl_subscript :
                          begin
                            if not(assigned(def) and (def.deftype=recorddef)) then
                              internalerror(200402171);
-                           inc(address,tvarsym(hp^.sym).fieldoffset);
-                           def:=tvarsym(hp^.sym).vartype.def;
+                           inc(address,tfieldvarsym(hp^.sym).fieldoffset);
+                           def:=tfieldvarsym(hp^.sym).vartype.def;
                          end;
                        sl_vec :
                          begin
@@ -5514,7 +5515,7 @@ implementation
       begin
          if needs_prop_entry(tsym(sym)) then
            case tsym(sym).typ of
-              varsym:
+              fieldvarsym:
                 begin
 {$ifdef dummy}
                    if not(tvarsym(sym).vartype.def.deftype=objectdef) or
@@ -5578,8 +5579,8 @@ implementation
             case tsym(sym).typ of
               propertysym:
                 tstoreddef(tpropertysym(sym).proptype.def).get_rtti_label(fullrtti);
-              varsym:
-                tstoreddef(tvarsym(sym).vartype.def).get_rtti_label(fullrtti);
+              fieldvarsym:
+                tstoreddef(tfieldvarsym(sym).vartype.def).get_rtti_label(fullrtti);
               else
                 internalerror(1509991);
             end;
@@ -5635,15 +5636,15 @@ implementation
          hp : tclasslistitem;
       begin
          if needs_prop_entry(tsym(sym)) and
-          (tsym(sym).typ=varsym) then
+          (tsym(sym).typ=fieldvarsym) then
           begin
-             if tvarsym(sym).vartype.def.deftype<>objectdef then
+             if tfieldvarsym(sym).vartype.def.deftype<>objectdef then
                internalerror(0206001);
-             hp:=searchclasstablelist(tobjectdef(tvarsym(sym).vartype.def));
+             hp:=searchclasstablelist(tobjectdef(tfieldvarsym(sym).vartype.def));
              if not(assigned(hp)) then
                begin
                   hp:=tclasslistitem.create;
-                  hp.p:=tobjectdef(tvarsym(sym).vartype.def);
+                  hp.p:=tobjectdef(tfieldvarsym(sym).vartype.def);
                   hp.index:=tablecount;
                   classtablelist.concat(hp);
                   inc(tablecount);
@@ -5658,15 +5659,15 @@ implementation
          hp : tclasslistitem;
       begin
          if needs_prop_entry(tsym(sym)) and
-          (tsym(sym).typ=varsym) then
+          (tsym(sym).typ=fieldvarsym) then
           begin
-             rttiList.concat(Tai_const.Create_32bit(tvarsym(sym).fieldoffset));
-             hp:=searchclasstablelist(tobjectdef(tvarsym(sym).vartype.def));
+             rttiList.concat(Tai_const.Create_32bit(tfieldvarsym(sym).fieldoffset));
+             hp:=searchclasstablelist(tobjectdef(tfieldvarsym(sym).vartype.def));
              if not(assigned(hp)) then
                internalerror(0206002);
              rttiList.concat(Tai_const.Create_16bit(hp.index));
-             rttiList.concat(Tai_const.Create_8bit(length(tvarsym(sym).realname)));
-             rttiList.concat(Tai_string.Create(tvarsym(sym).realname));
+             rttiList.concat(Tai_const.Create_8bit(length(tfieldvarsym(sym).realname)));
+             rttiList.concat(Tai_string.Create(tfieldvarsym(sym).realname));
           end;
       end;
 
@@ -6146,6 +6147,13 @@ implementation
      end;
 
 
+    procedure terrordef.ppuwrite(ppufile:tcompilerppufile);
+      begin
+        { Can't write errordefs to ppu }
+        internalerror(200411063);
+      end;
+
+
 {$ifdef GDB}
     function terrordef.stabstring : pchar;
       begin
@@ -6236,7 +6244,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.268  2004-11-06 17:44:47  florian
+  Revision 1.269  2004-11-08 22:09:59  peter
+    * tvarsym splitted
+
+  Revision 1.268  2004/11/06 17:44:47  florian
     + additional extdebug check for wrong add_reg_instructions added
     * too long manglednames are cut off at 200 chars using a crc
 

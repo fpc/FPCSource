@@ -105,7 +105,7 @@ implementation
     timportlibnetware=class(timportlib)
       procedure preparelib(const s:string);override;
       procedure importprocedure(aprocdef:tprocdef;const module:string;index:longint;const name:string);override;
-      procedure importvariable(vs:tvarsym;const name,module:string);override;
+      procedure importvariable(vs:tglobalvarsym;const name,module:string);override;
       procedure generatelib;override;
     end;
 
@@ -152,7 +152,7 @@ begin
 end;
 
 
-procedure timportlibnetware.importvariable(vs:tvarsym;const name,module:string);
+procedure timportlibnetware.importvariable(vs:tglobalvarsym;const name,module:string);
 begin
   { insert sharedlibrary }
   current_module.linkothersharedlibs.add(SplitName(module),link_allways);
@@ -571,7 +571,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.19  2004-10-25 15:38:41  peter
+  Revision 1.20  2004-11-08 22:09:59  peter
+    * tvarsym splitted
+
+  Revision 1.19  2004/10/25 15:38:41  peter
     * heap and heapsize removed
     * checkpointer fixes
 

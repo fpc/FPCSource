@@ -804,7 +804,7 @@ type
             while assigned(para) do
               begin
                 if para.paraitem.is_hidden and
-                   (vo_is_funcret in tvarsym(para.paraitem.parasym).varoptions) then
+                   (vo_is_funcret in tparavarsym(para.paraitem.parasym).varoptions) then
                  begin
                    para.left.free;
                    para.left := _funcretnode.getcopy;
@@ -1119,10 +1119,10 @@ type
 
     function tcallnode.gen_self_tree_methodpointer:tnode;
       var
-        hsym : tvarsym;
+        hsym : tfieldvarsym;
       begin
         { find self field in methodpointer record }
-        hsym:=tvarsym(trecorddef(methodpointertype.def).symtable.search('self'));
+        hsym:=tfieldvarsym(trecorddef(methodpointertype.def).symtable.search('self'));
         if not assigned(hsym) then
           internalerror(200305251);
         { Load tmehodpointer(right).self }
@@ -1300,7 +1300,7 @@ type
               { generate hidden tree }
               used_by_callnode:=false;
               hiddentree:=nil;
-              if (vo_is_funcret in tvarsym(currpara.parasym).varoptions) then
+              if (vo_is_funcret in tparavarsym(currpara.parasym).varoptions) then
                begin
                  { Generate funcretnode if not specified }
                  if assigned(funcretnode) then
@@ -1319,7 +1319,7 @@ type
                   end;
                end
               else
-               if vo_is_high_value in tvarsym(currpara.parasym).varoptions then
+               if vo_is_high_value in tparavarsym(currpara.parasym).varoptions then
                 begin
                   if not assigned(pt) then
                     internalerror(200304082);
@@ -1327,7 +1327,7 @@ type
                   hiddentree:=gen_high_tree(pt.left,tparaitem(currpara.previous).paratype.def);
                 end
               else
-               if vo_is_self in tvarsym(currpara.parasym).varoptions then
+               if vo_is_self in tparavarsym(currpara.parasym).varoptions then
                  begin
                    if assigned(right) then
                      hiddentree:=gen_self_tree_methodpointer
@@ -1335,12 +1335,12 @@ type
                      hiddentree:=gen_self_tree;
                  end
               else
-               if vo_is_vmt in tvarsym(currpara.parasym).varoptions then
+               if vo_is_vmt in tparavarsym(currpara.parasym).varoptions then
                  begin
                    hiddentree:=gen_vmt_tree;
                  end
               else
-               if vo_is_parentfp in tvarsym(currpara.parasym).varoptions then
+               if vo_is_parentfp in tparavarsym(currpara.parasym).varoptions then
                  begin
                    if not(assigned(procdefinition.owner.defowner)) then
                      internalerror(200309287);
@@ -1742,8 +1742,8 @@ type
 
                { The object is already used if it is called once }
                if (hpt.nodetype=loadn) and
-                  (tloadnode(hpt).symtableentry.typ=varsym) then
-                 tvarsym(tloadnode(hpt).symtableentry).varstate:=vs_used;
+                  (tloadnode(hpt).symtableentry.typ in [localvarsym,paravarsym,globalvarsym]) then
+                 tabstractvarsym(tloadnode(hpt).symtableentry).varstate:=vs_used;
              end;
 
             { if we are calling the constructor check for abstract
@@ -1898,8 +1898,7 @@ type
             else
               begin
                 { local? }
-                if (tloadnode(n).symtableentry.typ <> varsym) or
-                   (tloadnode(n).symtableentry.owner <> tprocdef(procdefinition).localst) then
+                if (tloadnode(n).symtableentry.typ <> localvarsym) then
                   exit;
                 if (tloadnode(n).symtableentry.indexnr > high(inlinelocals)) or
                    not assigned(inlinelocals[tloadnode(n).symtableentry.indexnr]) then
@@ -1927,12 +1926,12 @@ type
         tempinfo: ptempnodes absolute ptempnodes(arg);
         tempnode: ttempcreatenode;
       begin
-        if (tsymentry(p).typ <> varsym) then
+        if (tsymentry(p).typ <> localvarsym) then
           exit;
         if (p.indexnr > high(inlinelocals)) then
           setlength(inlinelocals,p.indexnr+10);
 {$ifndef VER1_0}
-        if (vo_is_funcret in tvarsym(p).varoptions) and
+        if (vo_is_funcret in tabstractvarsym(p).varoptions) and
            assigned(funcretnode) then
           begin
             if node_complexity(funcretnode) > 1 then
@@ -1943,26 +1942,26 @@ type
                 { a global variable that gets changed inside the function                }
                 internalerror(2004072101);
               end;
-            inlinelocals[tvarsym(p).indexnr] := funcretnode.getcopy
+            inlinelocals[tabstractvarsym(p).indexnr] := funcretnode.getcopy
           end
         else
 {$endif ndef VER1_0}
           begin
             if (cs_regvars in aktglobalswitches) and
-               (tvarsym(p).varregable<>vr_none) and
-               (not tvarsym(p).vartype.def.needs_inittable) then
-              tempnode := ctempcreatenode.create_reg(tvarsym(p).vartype,tvarsym(p).vartype.def.size,tt_persistent)
+               (tabstractvarsym(p).varregable<>vr_none) and
+               (not tabstractvarsym(p).vartype.def.needs_inittable) then
+              tempnode := ctempcreatenode.create_reg(tabstractvarsym(p).vartype,tabstractvarsym(p).vartype.def.size,tt_persistent)
             else
-              tempnode := ctempcreatenode.create(tvarsym(p).vartype,tvarsym(p).vartype.def.size,tt_persistent);
+              tempnode := ctempcreatenode.create(tabstractvarsym(p).vartype,tabstractvarsym(p).vartype.def.size,tt_persistent);
             addstatement(tempinfo^.createstatement,tempnode);
-            if assigned(tvarsym(p).defaultconstsym) then
+            if assigned(tlocalvarsym(p).defaultconstsym) then
               begin
                 { warning: duplicate from psub.pas:initializevars() -> must refactor }
                 addstatement(tempinfo^.createstatement,cassignmentnode.create(
                                   ctemprefnode.create(tempnode),
-                                  cloadnode.create(tvarsym(p).defaultconstsym,tvarsym(p).defaultconstsym.owner)));
+                                  cloadnode.create(tlocalvarsym(p).defaultconstsym,tlocalvarsym(p).defaultconstsym.owner)));
               end;
-            if (vo_is_funcret in tvarsym(p).varoptions) then
+            if (vo_is_funcret in tlocalvarsym(p).varoptions) then
               begin
                 funcretnode := ctemprefnode.create(tempnode);
                 addstatement(tempinfo^.deletestatement,ctempdeletenode.create_normal_temp(tempnode));
@@ -1988,14 +1987,14 @@ type
         para := tcallparanode(left);
         while assigned(para) do
           begin
-            if (para.paraitem.parasym.typ = varsym) and
+            if (para.paraitem.parasym.typ = paravarsym) and
                { para.left will already be the same as funcretnode in the following case, so don't change }
-               (not(vo_is_funcret in tvarsym(para.paraitem.parasym).varoptions) or
+               (not(vo_is_funcret in tparavarsym(para.paraitem.parasym).varoptions) or
                 (not assigned(funcretnode))) then
               begin
                 { create temps for value parameters, function result and also for    }
                 { const parameters which are passed by value instead of by reference }
-                if (vo_is_funcret in tvarsym(para.paraitem.parasym).varoptions) or
+                if (vo_is_funcret in tparavarsym(para.paraitem.parasym).varoptions) or
                    (para.paraitem.paratyp = vs_value) or
                    ((para.paraitem.paratyp = vs_const) and
                     (not paramanager.push_addr_param(vs_const,para.left.resulttype.def,procdefinition.proccalloption) or
@@ -2003,8 +2002,8 @@ type
                      (node_complexity(para.left) >= NODE_COMPLEXITY_INF))) then
                   begin
                     if (cs_regvars in aktglobalswitches) and
-                       (tvarsym(para.paraitem.parasym).varregable<>vr_none) and
-                       (not tvarsym(para.paraitem.parasym).vartype.def.needs_inittable) then
+                       (tparavarsym(para.paraitem.parasym).varregable<>vr_none) and
+                       (not tparavarsym(para.paraitem.parasym).vartype.def.needs_inittable) then
                       tempnode := ctempcreatenode.create_reg(para.left.resulttype,para.left.resulttype.def.size,tt_persistent)
                     else
                       tempnode := ctempcreatenode.create(para.left.resulttype,para.left.resulttype.def.size,tt_persistent);
@@ -2012,7 +2011,7 @@ type
                     { assign the value of the parameter to the temp, except in case of the function result }
                     { (in that case, para.left is a block containing the creation of a new temp, while we  }
                     {  only need a temprefnode, so delete the old stuff)                                   }
-                    if not(vo_is_funcret in tvarsym(para.paraitem.parasym).varoptions) then
+                    if not(vo_is_funcret in tparavarsym(para.paraitem.parasym).varoptions) then
                       begin
                         addstatement(createstatement,cassignmentnode.create(ctemprefnode.create(tempnode),
                           para.left));
@@ -2031,7 +2030,7 @@ type
                 else if node_complexity(para.left) > 1 then
                   begin
                     if (cs_regvars in aktglobalswitches) and
-                       not tvarsym(para.paraitem.parasym).vartype.def.needs_inittable then
+                       not tparavarsym(para.paraitem.parasym).vartype.def.needs_inittable then
                       tempnode := ctempcreatenode.create_reg(voidpointertype,voidpointertype.def.size,tt_persistent)
                     else
                       tempnode := ctempcreatenode.create(voidpointertype,voidpointertype.def.size,tt_persistent);
@@ -2414,7 +2413,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.257  2004-11-02 12:55:16  peter
+  Revision 1.258  2004-11-08 22:09:58  peter
+    * tvarsym splitted
+
+  Revision 1.257  2004/11/02 12:55:16  peter
     * nf_internal flag for internal inserted typeconvs. This will
       supress the generation of warning/hints
 

@@ -72,7 +72,7 @@ implementation
     procedure tcgloadnode.generate_picvaraccess;
       begin
         location.reference.base:=current_procinfo.got;
-        location.reference.symbol:=objectlibrary.newasmsymbol(tvarsym(symtableentry).mangledname+'@GOT',AB_EXTERNAL,AT_DATA);
+        location.reference.symbol:=objectlibrary.newasmsymbol(tglobalvarsym(symtableentry).mangledname+'@GOT',AB_EXTERNAL,AT_DATA);
       end;
 
 
@@ -90,20 +90,20 @@ implementation
          newsize:=def_cgsize(resulttype.def);
          location_reset(location,LOC_REFERENCE,newsize);
          case symtableentry.typ of
-            absolutesym :
+            absolutevarsym :
                begin
                   { this is only for toasm and toaddr }
-                  case tabsolutesym(symtableentry).abstyp of
+                  case tabsolutevarsym(symtableentry).abstyp of
                     toaddr :
                       begin
 {$ifdef i386}
-                        if tabsolutesym(symtableentry).absseg then
+                        if tabsolutevarsym(symtableentry).absseg then
                           location.reference.segment:=NR_FS;
 {$endif i386}
-                        location.reference.offset:=tabsolutesym(symtableentry).fieldoffset;
+                        location.reference.offset:=tabsolutevarsym(symtableentry).addroffset;
                       end;
                     toasm :
-                      location.reference.symbol:=objectlibrary.newasmsymbol(tabsolutesym(symtableentry).mangledname,AB_EXTERNAL,AT_DATA);
+                      location.reference.symbol:=objectlibrary.newasmsymbol(tabsolutevarsym(symtableentry).mangledname,AB_EXTERNAL,AT_DATA);
                     else
                       internalerror(200310283);
                   end;
@@ -119,12 +119,14 @@ implementation
                  else
                    internalerror(22798);
               end;
-            varsym :
+            globalvarsym,
+            localvarsym,
+            paravarsym :
                begin
                   symtabletype:=symtable.symtabletype;
                   hregister:=NR_NO;
                   { DLL variable }
-                  if (vo_is_dll_var in tvarsym(symtableentry).varoptions) then
+                  if (vo_is_dll_var in tabstractvarsym(symtableentry).varoptions) then
                     begin
                       if target_info.system=system_powerpc_darwin then
                         begin
@@ -135,13 +137,13 @@ implementation
                       else
                         begin
                           hregister:=cg.getaddressregister(exprasmlist);
-                          location.reference.symbol:=objectlibrary.newasmsymbol(tvarsym(symtableentry).mangledname,AB_EXTERNAL,AT_DATA);
+                          location.reference.symbol:=objectlibrary.newasmsymbol(tglobalvarsym(symtableentry).mangledname,AB_EXTERNAL,AT_DATA);
                           cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,location.reference,hregister);
                           reference_reset_base(location.reference,hregister,0);
                         end;
                     end
                   { Thread variable }
-                  else if (vo_is_thread_var in tvarsym(symtableentry).varoptions) then
+                  else if (vo_is_thread_var in tabstractvarsym(symtableentry).varoptions) then
                     begin
                        {
                          Thread var loading is optimized to first check if
@@ -163,7 +165,7 @@ implementation
                        cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,hregister);
                        cg.a_cmp_const_reg_label(exprasmlist,OS_ADDR,OC_EQ,0,hregister,norelocatelab);
                        { don't save the allocated register else the result will be destroyed later }
-                       reference_reset_symbol(href,objectlibrary.newasmsymbol(tvarsym(symtableentry).mangledname,AB_EXTERNAL,AT_DATA),0);
+                       reference_reset_symbol(href,objectlibrary.newasmsymbol(tglobalvarsym(symtableentry).mangledname,AB_EXTERNAL,AT_DATA),0);
                        paramanager.allocparaloc(exprasmlist,paraloc1);
                        cg.a_param_ref(exprasmlist,OS_ADDR,href,paraloc1);
                        paramanager.freeparaloc(exprasmlist,paraloc1);
@@ -181,7 +183,7 @@ implementation
                          layout of a threadvar is (4 bytes pointer):
                            0 - Threadvar index
                            4 - Threadvar value in single threading }
-                       reference_reset_symbol(href,objectlibrary.newasmsymbol(tvarsym(symtableentry).mangledname,AB_EXTERNAL,AT_DATA),sizeof(aint));
+                       reference_reset_symbol(href,objectlibrary.newasmsymbol(tglobalvarsym(symtableentry).mangledname,AB_EXTERNAL,AT_DATA),sizeof(aint));
                        cg.a_loadaddr_ref_reg(exprasmlist,href,hregister);
                        cg.a_label(exprasmlist,endrelocatelab);
                        location.reference.base:=hregister;
@@ -194,10 +196,10 @@ implementation
                       secondpass(left);
                       if left.location.loc<>LOC_REGISTER then
                         internalerror(200309286);
-                      if tvarsym(symtableentry).localloc.loc<>LOC_REFERENCE then
+                      if tabstractnormalvarsym(symtableentry).localloc.loc<>LOC_REFERENCE then
                         internalerror(200409241);
                       hregister:=left.location.register;
-                      reference_reset_base(location.reference,hregister,tvarsym(symtableentry).localloc.reference.offset);
+                      reference_reset_base(location.reference,hregister,tabstractnormalvarsym(symtableentry).localloc.reference.offset);
                     end
                   { Normal (or external) variable }
                   else
@@ -229,7 +231,7 @@ implementation
                               stt_exceptsymtable,
                               localsymtable,
                               parasymtable :
-                                location:=tvarsym(symtableentry).localloc;
+                                location:=tabstractnormalvarsym(symtableentry).localloc;
                               globalsymtable,
                               staticsymtable :
                                 begin
@@ -241,10 +243,10 @@ implementation
                                     end
                                   else
                                     begin
-                                      if tvarsym(symtableentry).localloc.loc=LOC_INVALID then
-                                        reference_reset_symbol(location.reference,objectlibrary.newasmsymbol(tvarsym(symtableentry).mangledname,AB_EXTERNAL,AT_DATA),0)
+                                      if tabstractnormalvarsym(symtableentry).localloc.loc=LOC_INVALID then
+                                        reference_reset_symbol(location.reference,objectlibrary.newasmsymbol(tglobalvarsym(symtableentry).mangledname,AB_EXTERNAL,AT_DATA),0)
                                       else
-                                        location:=tvarsym(symtableentry).localloc;
+                                        location:=tglobalvarsym(symtableentry).localloc;
                                     end;
                                 end;
                               else
@@ -272,7 +274,7 @@ implementation
                     end;
 
                   { make const a LOC_CREFERENCE }
-                  if (tvarsym(symtableentry).varspez=vs_const) and
+                  if (tabstractvarsym(symtableentry).varspez=vs_const) and
                      (location.loc=LOC_REFERENCE) then
                     location.loc:=LOC_CREFERENCE;
                end;
@@ -955,7 +957,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.130  2004-11-01 15:32:12  peter
+  Revision 1.131  2004-11-08 22:09:59  peter
+    * tvarsym splitted
+
+  Revision 1.130  2004/11/01 15:32:12  peter
     * support @labelsym
 
   Revision 1.129  2004/10/31 21:45:03  peter

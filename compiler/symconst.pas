@@ -290,7 +290,8 @@ type
     vo_is_vmt,
     vo_is_result,  { special result variable }
     vo_is_parentfp,
-    vo_is_loop_counter { used to detect assignments to loop counter }
+    vo_is_loop_counter, { used to detect assignments to loop counter }
+    vo_is_hidden
   );
   tvaroptions=set of tvaroption;
 
@@ -317,9 +318,10 @@ type
               classrefdef,forwarddef,variantdef);
 
   { possible types for symtable entries }
-  tsymtyp = (abstractsym,varsym,typesym,procsym,unitsym,
-             constsym,enumsym,typedconstsym,errorsym,syssym,
-             labelsym,absolutesym,propertysym,macrosym,rttisym);
+  tsymtyp = (abstractsym,globalvarsym,localvarsym,paravarsym,fieldvarsym,
+             typesym,procsym,unitsym,constsym,enumsym,typedconstsym,
+             errorsym,syssym,labelsym,absolutevarsym,propertysym,
+             macrosym,rttisym);
 
   { State of the variable, if it's declared, assigned or used }
   tvarstate=(vs_none,
@@ -383,9 +385,10 @@ const
    pushleftright_pocalls : tproccalloptions = [pocall_register,pocall_pascal];
 
      SymTypeName : array[tsymtyp] of string[12] = (
-       'abstractsym','variable','type','proc','unit',
-       'const','enum','typed const','errorsym','system sym',
-       'label','absolute','property','macrosym','rttisym'
+       'abstractsym','globalvar','localvar','paravar','fieldvar',
+       'type','proc','unit','const','enum','typed const',
+       'errorsym','system sym','label','absolutevar','property',
+       'macrosym','rttisym'
      );
 
      DefTypeName : array[tdeftype] of string[12] = (
@@ -409,7 +412,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.91  2004-11-01 10:33:01  peter
+  Revision 1.92  2004-11-08 22:09:59  peter
+    * tvarsym splitted
+
+  Revision 1.91  2004/11/01 10:33:01  peter
     * symlist typeconv for absolute fixed
 
   Revision 1.90  2004/10/24 20:01:08  peter

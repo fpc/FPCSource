@@ -233,13 +233,13 @@ implementation
         ltvTable : taasmoutput;
       begin
         ltvTable:=taasmoutput(arg);
-        if (tsym(p).typ=varsym) and
-           (vo_is_thread_var in tvarsym(p).varoptions) then
+        if (tsym(p).typ=globalvarsym) and
+           (vo_is_thread_var in tglobalvarsym(p).varoptions) then
          begin
            { address of threadvar }
-           ltvTable.concat(tai_const.Createname(tvarsym(p).mangledname,AT_DATA,0));
+           ltvTable.concat(tai_const.Createname(tglobalvarsym(p).mangledname,AT_DATA,0));
            { size of threadvar }
-           ltvTable.concat(tai_const.create_32bit(tvarsym(p).getsize));
+           ltvTable.concat(tai_const.create_32bit(tglobalvarsym(p).getsize));
          end;
       end;
 
@@ -257,7 +257,7 @@ implementation
           begin
             s:=make_mangledname('THREADVARLIST',current_module.localsymtable,'');
             { add begin and end of the list }
-            ltvTable.insert(tai_symbol.Createname_global(s,AT_DATA,0));            
+            ltvTable.insert(tai_symbol.Createname_global(s,AT_DATA,0));
             ltvTable.insert(Tai_align.Create(const_align(32)));
             ltvTable.concat(tai_const.create_sym(nil));  { end of list marker }
             ltvTable.concat(tai_symbol_end.createname(s));
@@ -1520,7 +1520,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.172  2004-11-05 20:04:49  florian
+  Revision 1.173  2004-11-08 22:09:59  peter
+    * tvarsym splitted
+
+  Revision 1.172  2004/11/05 20:04:49  florian
     * THREADVARLIST is now aligned
 
   Revision 1.171  2004/11/04 23:59:13  peter

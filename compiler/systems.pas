@@ -239,7 +239,7 @@ interface
           shortname    : string[9];
           flags        : set of tsystemflags;
           cpu          : tsystemcpu;
-          unit_env     : string[12];
+          unit_env     : string[16];
           extradefines : string[40];
           sourceext,
           pasext,
@@ -715,7 +715,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.95  2004-11-01 15:42:00  florian
+  Revision 1.96  2004-11-08 22:09:59  peter
+    * tvarsym splitted
+
+  Revision 1.95  2004/11/01 15:42:00  florian
     * default target for x86_64 is linux
 
   Revision 1.94  2004/10/31 19:09:54  peter

@@ -347,7 +347,7 @@ implementation
         result:=false;
         case pf.parast.symindex.count of
           1 : begin
-                ld:=tvarsym(pf.parast.symindex.first).vartype.def;
+                ld:=tparavarsym(pf.parast.symindex.first).vartype.def;
                 { assignment is a special case }
                 if optoken=_ASSIGNMENT then
                   begin
@@ -370,8 +370,8 @@ implementation
                 for i:=1 to tok2nodes do
                   if tok2node[i].tok=optoken then
                     begin
-                      ld:=tvarsym(pf.parast.symindex.first).vartype.def;
-                      rd:=tvarsym(pf.parast.symindex.first.indexnext).vartype.def;
+                      ld:=tparavarsym(pf.parast.symindex.first).vartype.def;
+                      rd:=tparavarsym(pf.parast.symindex.first.indexnext).vartype.def;
                       result:=
                         tok2node[i].op_overloading_supported and
                         isbinaryoperatoroverloadable(tok2node[i].nod,ld,nothingn,rd,nothingn);
@@ -635,8 +635,8 @@ implementation
             typeconvn :
               make_not_regable(ttypeconvnode(p).left);
             loadn :
-              if tloadnode(p).symtableentry.typ=varsym then
-                tvarsym(tloadnode(p).symtableentry).varregable:=vr_none;
+              if tloadnode(p).symtableentry.typ in [globalvarsym,localvarsym,paravarsym] then
+                tabstractvarsym(tloadnode(p).symtableentry).varregable:=vr_none;
          end;
       end;
 
@@ -733,7 +733,7 @@ implementation
 
     procedure set_varstate(p:tnode;newstate:tvarstate;must_be_valid:boolean);
       var
-        hsym : tvarsym;
+        hsym : tabstractvarsym;
       begin
         while assigned(p) do
          begin
@@ -765,9 +765,9 @@ implementation
                break;
              loadn :
                begin
-                 if (tloadnode(p).symtableentry.typ=varsym) then
+                 if (tloadnode(p).symtableentry.typ in [localvarsym,paravarsym,globalvarsym]) then
                   begin
-                    hsym:=tvarsym(tloadnode(p).symtableentry);
+                    hsym:=tabstractvarsym(tloadnode(p).symtableentry);
                     if must_be_valid and (hsym.varstate=vs_declared) then
                       begin
                         { Give warning/note for uninitialized locals }
@@ -1030,15 +1030,17 @@ implementation
              loadn :
                begin
                  case tloadnode(hp).symtableentry.typ of
-                   absolutesym,
-                   varsym :
+                   absolutevarsym,
+                   globalvarsym,
+                   localvarsym,
+                   paravarsym :
                      begin
                        { loop counter? }
                        if not(Valid_Const in opts) and
-                          (vo_is_loop_counter in tvarsym(tloadnode(hp).symtableentry).varoptions) then
+                          (vo_is_loop_counter in tabstractvarsym(tloadnode(hp).symtableentry).varoptions) then
                          CGMessage1(parser_e_illegal_assignment_to_count_var,tloadnode(hp).symtableentry.realname);
                        { derefed pointer }
-                       if (tvarsym(tloadnode(hp).symtableentry).varspez=vs_const) then
+                       if (tabstractvarsym(tloadnode(hp).symtableentry).varspez=vs_const) then
                         begin
                           { allow p^:= constructions with p is const parameter }
                           if gotderef or (Valid_Const in opts) then
@@ -1931,7 +1933,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.102  2004-11-01 16:58:57  peter
+  Revision 1.103  2004-11-08 22:09:58  peter
+    * tvarsym splitted
+
+  Revision 1.102  2004/11/01 16:58:57  peter
     * give IE instead of crash when no procsym is passed for calln
 
   Revision 1.101  2004/10/24 11:44:28  peter

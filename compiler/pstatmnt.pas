@@ -342,7 +342,7 @@ implementation
       var
          p_e,tovalue,p_a : tnode;
          backward : boolean;
-         loopvarsym : tvarsym;
+         loopvarsym : tabstractvarsym;
          hp : tnode;
       begin
          { parse loop header }
@@ -395,7 +395,9 @@ implementation
                 (hp.nodetype=loadn) then
                begin
                  case tloadnode(hp).symtableentry.typ of
-                   varsym :
+                   globalvarsym,
+                   localvarsym,
+                   paravarsym :
                      begin
                        { we need a simple loadn and the load must be in a global symtable or
                          in the same level as the para of the current proc }
@@ -404,18 +406,17 @@ implementation
                            (tloadnode(hp).symtable.symtablelevel=current_procinfo.procdef.parast.symtablelevel)
                           ) and
                           not(
-                              (tloadnode(hp).symtableentry.typ=varsym) and
-                              ((tvarsym(tloadnode(hp).symtableentry).varspez in [vs_var,vs_out]) or
-                               (vo_is_thread_var in tvarsym(tloadnode(hp).symtableentry).varoptions))
+                              ((tabstractvarsym(tloadnode(hp).symtableentry).varspez in [vs_var,vs_out]) or
+                               (vo_is_thread_var in tabstractvarsym(tloadnode(hp).symtableentry).varoptions))
                              ) then
                          begin
-                           tvarsym(tloadnode(hp).symtableentry).varstate:=vs_used;
+                           tabstractvarsym(tloadnode(hp).symtableentry).varstate:=vs_used;
 
                            { Assigning for-loop variable is only allowed in tp7 }
                            if not(m_tp7 in aktmodeswitches) then
                              begin
                                if not assigned(loopvarsym) then
-                                 loopvarsym:=tvarsym(tloadnode(hp).symtableentry);
+                                 loopvarsym:=tabstractvarsym(tloadnode(hp).symtableentry);
                                include(loopvarsym.varoptions,vo_is_loop_counter);
                              end;
                          end
@@ -679,7 +680,7 @@ implementation
          p_try_block,p_finally_block,first,last,
          p_default,p_specific,hp : tnode;
          ot : ttype;
-         sym : tvarsym;
+         sym : tlocalvarsym;
          old_block_type : tblock_type;
          exceptsymtable : tsymtable;
          objname,objrealname : stringid;
@@ -755,11 +756,11 @@ implementation
                                   is_class(ttypesym(srsym).restype.def) then
                                  begin
                                     ot:=ttypesym(srsym).restype;
-                                    sym:=tvarsym.create(objrealname,vs_value,ot);
+                                    sym:=tlocalvarsym.create(objrealname,vs_value,ot);
                                  end
                                else
                                  begin
-                                    sym:=tvarsym.create(objrealname,vs_value,generrortype);
+                                    sym:=tlocalvarsym.create(objrealname,vs_value,generrortype);
                                     if (srsym.typ=typesym) then
                                       Message1(type_e_class_type_expected,ttypesym(srsym).restype.def.typename)
                                     else
@@ -1178,7 +1179,7 @@ implementation
              if (locals=0) and
                 (current_procinfo.procdef.owner.symtabletype<>objectsymtable) and
                 (not assigned(current_procinfo.procdef.funcretsym) or
-                 (tvarsym(current_procinfo.procdef.funcretsym).refcount<=1)) and
+                 (tabstractvarsym(current_procinfo.procdef.funcretsym).refcount<=1)) and
                 not(paramanager.ret_in_param(current_procinfo.procdef.rettype.def,current_procinfo.procdef.proccalloption)) then
                begin
                  { Only need to set the framepointer, the locals will
@@ -1194,7 +1195,7 @@ implementation
         }
         if assigned(current_procinfo.procdef.funcretsym) and
            (not paramanager.ret_in_param(current_procinfo.procdef.rettype.def,current_procinfo.procdef.proccalloption)) then
-          tvarsym(current_procinfo.procdef.funcretsym).varstate:=vs_assigned;
+          tabstractvarsym(current_procinfo.procdef.funcretsym).varstate:=vs_assigned;
 
         { because the END is already read we need to get the
           last_endtoken_filepos here (PFV) }
@@ -1206,7 +1207,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.143  2004-10-15 10:35:23  mazen
+  Revision 1.144  2004-11-08 22:09:59  peter
+    * tvarsym splitted
+
+  Revision 1.143  2004/10/15 10:35:23  mazen
   * remove non needed parathesys as  in 1.140
 
   Revision 1.141  2004/09/27 15:15:52  peter

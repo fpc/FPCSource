@@ -117,9 +117,9 @@ implementation
       var
         b : tblocknode;
       begin
-        if tsym(p).typ<>varsym then
+        if not (tsym(p).typ in [localvarsym,globalvarsym]) then
          exit;
-        with tvarsym(p) do
+        with tabstractnormalvarsym(p) do
          begin
            if assigned(defaultconstsym) then
             begin
@@ -136,21 +136,21 @@ implementation
 
     procedure check_finalize_paras(p : tnamedindexitem;arg:pointer);
       begin
-        if (tsym(p).typ=varsym) and
-           (tvarsym(p).varspez=vs_value) and
-           not is_class(tvarsym(p).vartype.def) and
-           tvarsym(p).vartype.def.needs_inittable then
+        if (tsym(p).typ=paravarsym) and
+           (tparavarsym(p).varspez=vs_value) and
+           not is_class(tparavarsym(p).vartype.def) and
+           tparavarsym(p).vartype.def.needs_inittable then
           include(current_procinfo.flags,pi_needs_implicit_finally);
       end;
 
 
     procedure check_finalize_locals(p : tnamedindexitem;arg:pointer);
       begin
-        if (tsym(p).typ=varsym) and
-           (tvarsym(p).refs>0) and
-           not(vo_is_funcret in tvarsym(p).varoptions) and
-           not(is_class(tvarsym(p).vartype.def)) and
-           tvarsym(p).vartype.def.needs_inittable then
+        if (tsym(p).typ=localvarsym) and
+           (tlocalvarsym(p).refs>0) and
+           not(vo_is_funcret in tlocalvarsym(p).varoptions) and
+           not(is_class(tlocalvarsym(p).vartype.def)) and
+           tlocalvarsym(p).vartype.def.needs_inittable then
           include(current_procinfo.flags,pi_needs_implicit_finally);
       end;
 
@@ -595,9 +595,9 @@ implementation
 
     procedure clearrefs(p : tnamedindexitem;arg:pointer);
       begin
-         if (tsym(p).typ=varsym) then
-           if tvarsym(p).refs>1 then
-             tvarsym(p).refs:=1;
+         if (tsym(p).typ in [localvarsym,paravarsym,globalvarsym]) then
+           if tabstractvarsym(p).refs>1 then
+             tabstractvarsym(p).refs:=1;
       end;
 
 
@@ -1088,9 +1088,9 @@ implementation
 
     procedure check_init_paras(p:tnamedindexitem;arg:pointer);
       begin
-        if tsym(p).typ<>varsym then
+        if tsym(p).typ<>paravarsym then
          exit;
-        with tvarsym(p) do
+        with tparavarsym(p) do
           if (not is_class(vartype.def) and
              vartype.def.needs_inittable and
              (varspez in [vs_value,vs_out])) then
@@ -1403,7 +1403,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.213  2004-11-02 12:55:17  peter
+  Revision 1.214  2004-11-08 22:09:59  peter
+    * tvarsym splitted
+
+  Revision 1.213  2004/11/02 12:55:17  peter
     * nf_internal flag for internal inserted typeconvs. This will
       supress the generation of warning/hints
 

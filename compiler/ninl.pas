@@ -305,7 +305,7 @@ implementation
         temp          : ttempcreatenode;
         procprefix,
         name          : string[31];
-        srsym         : tvarsym;
+        srsym         : tglobalvarsym;
         tempowner     : tsymtable;
         readfunctype  : ttype;
         is_typed,
@@ -1448,7 +1448,7 @@ implementation
                   set_varstate(left,vs_used,false);
                   if paramanager.push_high_param(vs_value,left.resulttype.def,current_procinfo.procdef.proccalloption) then
                    begin
-                     hightree:=load_high_value_node(tvarsym(tloadnode(left).symtableentry));
+                     hightree:=load_high_value_node(tparavarsym(tloadnode(left).symtableentry));
                      if assigned(hightree) then
                       begin
                         hp:=caddnode.create(addn,hightree,
@@ -1616,7 +1616,7 @@ implementation
                         if is_open_array(left.resulttype.def) or
                            is_array_of_const(left.resulttype.def) then
                          begin
-                           hightree:=load_high_value_node(tvarsym(tloadnode(left).symtableentry));
+                           hightree:=load_high_value_node(tparavarsym(tloadnode(left).symtableentry));
                            if assigned(hightree) then
                             begin
                               hp:=caddnode.create(addn,hightree,
@@ -1853,7 +1853,7 @@ implementation
                            if is_open_array(left.resulttype.def) or
                               is_array_of_const(left.resulttype.def) then
                             begin
-                              result:=load_high_value_node(tvarsym(tloadnode(left).symtableentry));
+                              result:=load_high_value_node(tparavarsym(tloadnode(left).symtableentry));
                             end
                            else
                             if is_dynamic_array(left.resulttype.def) then
@@ -1882,7 +1882,7 @@ implementation
                         else
                          begin
                            if is_open_string(left.resulttype.def) then
-                            result:=load_high_value_node(tvarsym(tloadnode(left).symtableentry))
+                            result:=load_high_value_node(tparavarsym(tloadnode(left).symtableentry))
                            else
                             result:=cordconstnode.create(tstringdef(left.resulttype.def).len,u8inttype,true);
                          end;
@@ -2442,7 +2442,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.149  2004-11-02 12:55:16  peter
+  Revision 1.150  2004-11-08 22:09:59  peter
+    * tvarsym splitted
+
+  Revision 1.149  2004/11/02 12:55:16  peter
     * nf_internal flag for internal inserted typeconvs. This will
       supress the generation of warning/hints
 

@@ -35,7 +35,7 @@ interface
     timportlibbeos=class(timportlib)
       procedure preparelib(const s:string);override;
       procedure importprocedure(aprocdef:tprocdef;const module:string;index:longint;const name:string);override;
-      procedure importvariable(vs:tvarsym;const name,module:string);override;
+      procedure importvariable(vs:tglobalvarsym;const name,module:string);override;
       procedure generatelib;override;
     end;
 
@@ -87,7 +87,7 @@ begin
 end;
 
 
-procedure timportlibbeos.importvariable(vs:tvarsym;const name,module:string);
+procedure timportlibbeos.importvariable(vs:tglobalvarsym;const name,module:string);
 begin
   { insert sharedlibrary }
   current_module.linkothersharedlibs.add(SplitName(module),link_allways);
@@ -501,7 +501,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.14  2004-10-15 09:24:38  mazen
+  Revision 1.15  2004-11-08 22:09:59  peter
+    * tvarsym splitted
+
+  Revision 1.14  2004/10/15 09:24:38  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 

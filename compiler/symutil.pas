@@ -47,8 +47,8 @@ implementation
 
     function is_funcret_sym(p:tsymentry):boolean;
       begin
-        is_funcret_sym:=(p.typ in [absolutesym,varsym]) and
-                        (vo_is_funcret in tvarsym(p).varoptions);
+        is_funcret_sym:=(p.typ in [absolutevarsym,localvarsym,paravarsym]) and
+                        (vo_is_funcret in tabstractvarsym(p).varoptions);
       end;
 
 
@@ -56,7 +56,7 @@ implementation
 
       begin
          needs_prop_entry:=(sp_published in tsym(sym).symoptions) and
-         (sym.typ in [propertysym,varsym]);
+         (sym.typ in [propertysym,fieldvarsym]);
       end;
 
 
@@ -103,10 +103,10 @@ implementation
     procedure count_locals(p:tnamedindexitem;arg:pointer);
       begin
         { Count only varsyms, but ignore the funcretsym }
-        if (tsym(p).typ=varsym) and
+        if (tsym(p).typ in [localvarsym,paravarsym]) and
            (tsym(p)<>current_procinfo.procdef.funcretsym) and
-           (not(vo_is_parentfp in tvarsym(p).varoptions) or
-            (tvarsym(p).refs>0)) then
+           (not(vo_is_parentfp in tabstractvarsym(p).varoptions) or
+            (tstoredsym(p).refs>0)) then
           inc(plongint(arg)^);
       end;
 
@@ -114,7 +114,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2004-10-31 21:45:03  peter
+  Revision 1.7  2004-11-08 22:09:59  peter
+    * tvarsym splitted
+
+  Revision 1.6  2004/10/31 21:45:03  peter
     * generic tlocation
     * move tlocation to cgutils
 

@@ -37,7 +37,7 @@ interface
        cclasses,symnot,
        { aasm }
        aasmbase,aasmtai,
-       cpuinfo,cpubase,cgbase,cgutils,parabase
+       cpuinfo,cpubase,cgbase,cgutils
        ;
 
     type
@@ -47,15 +47,16 @@ interface
           _mangledname : pstring;
        public
           constructor create(const n : string);
-          constructor loadsym(ppufile:tcompilerppufile);
+          constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy;override;
+          procedure ppuwrite(ppufile:tcompilerppufile);virtual;
 {$ifdef GDB}
           function  get_var_value(const s:string):string;
           function  stabstr_evaluate(const s:string;vars:array of string):Pchar;
           procedure concatstabto(asmlist : taasmoutput);
 {$endif GDB}
           function  mangledname : string;
-          procedure generate_mangledname;virtual;abstract;
+          procedure generate_mangledname;virtual;
        end;
 
        tlabelsym = class(tstoredsym)
@@ -72,7 +73,7 @@ interface
 {$endif GDB}
        end;
 
-       tunitsym = class(Tsym)
+       tunitsym = class(Tstoredsym)
           unitsymtable : tsymtable;
           constructor create(const n : string;ref : tsymtable);
           constructor ppuload(ppufile:tcompilerppufile);
@@ -132,7 +133,7 @@ interface
 {$endif GDB}
        end;
 
-       ttypesym = class(Tsym)
+       ttypesym = class(Tstoredsym)
           restype    : ttype;
           constructor create(const n : string;const tt : ttype);
           constructor ppuload(ppufile:tcompilerppufile);
@@ -147,35 +148,24 @@ interface
 {$endif GDB}
        end;
 
-       tvarsym = class(tstoredsym)
-          defaultconstsym : tsym;
+       tabstractvarsym = class(tstoredsym)
           varoptions    : tvaroptions;
           varspez       : tvarspez;  { sets the type of access }
           varregable    : tvarregable;
           varstate      : tvarstate;
-          localloc      : TLocation; { register/reference for local var }
-          fieldoffset   : longint;   { offset in record/object }
-          paraitem      : tparaitem;
           notifications : Tlinkedlist;
           constructor create(const n : string;vsp:tvarspez;const tt : ttype);
-          constructor create_dll(const n : string;vsp:tvarspez;const tt : ttype);
-          constructor create_C(const n,mangled : string;vsp:tvarspez;const tt : ttype);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderef;override;
           procedure deref;override;
-          procedure generate_mangledname;override;
-          procedure set_mangledname(const s:string);
           function  getsize : longint;
           function  is_regvar:boolean;
           procedure trigger_notifications(what:Tnotification_flag);
           function register_notification(flags:Tnotification_flags;
                                          callback:Tnotification_callback):cardinal;
           procedure unregister_notification(id:cardinal);
-{$ifdef GDB}
-          function  stabstring : pchar;override;
-{$endif GDB}
          private
           procedure setvartype(const newtype: ttype);
           _vartype       : ttype;
@@ -183,7 +173,84 @@ interface
           property vartype: ttype read _vartype write setvartype;
       end;
 
-       tpropertysym = class(Tsym)
+      tvarsymclass = class of tabstractvarsym;
+
+      tfieldvarsym = class(tabstractvarsym)
+          fieldoffset   : aint;   { offset in record/object }
+          constructor create(const n : string;vsp:tvarspez;const tt : ttype);
+          constructor ppuload(ppufile:tcompilerppufile);
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
+{$ifdef GDB}
+          function stabstring : pchar;override;
+{$endif GDB}
+      end;
+
+      tabstractnormalvarsym = class(tabstractvarsym)
+          defaultconstsym : tsym;
+          defaultconstsymderef : tderef;
+          localloc      : TLocation; { register/reference for local var }
+          constructor create(const n : string;vsp:tvarspez;const tt : ttype);
+          constructor ppuload(ppufile:tcompilerppufile);
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure buildderef;override;
+          procedure deref;override;
+      end;
+
+      tlocalvarsym = class(tabstractnormalvarsym)
+          constructor create(const n : string;vsp:tvarspez;const tt : ttype);
+          constructor ppuload(ppufile:tcompilerppufile);
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
+{$ifdef GDB}
+          function stabstring : pchar;override;
+{$endif GDB}
+      end;
+
+      tparavarsym = class(tabstractnormalvarsym)
+          paraitem : tparaitem;
+          constructor create(const n : string;vsp:tvarspez;const tt : ttype);
+          constructor ppuload(ppufile:tcompilerppufile);
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
+{$ifdef GDB}
+          function stabstring : pchar;override;
+{$endif GDB}
+      end;
+
+      tglobalvarsym = class(tabstractnormalvarsym)
+          constructor create(const n : string;vsp:tvarspez;const tt : ttype);
+          constructor create_dll(const n : string;vsp:tvarspez;const tt : ttype);
+          constructor create_C(const n,mangled : string;vsp:tvarspez;const tt : ttype);
+          constructor ppuload(ppufile:tcompilerppufile);
+          destructor destroy;override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure generate_mangledname;override;
+          procedure set_mangledname(const s:string);
+{$ifdef GDB}
+          function stabstring : pchar;override;
+{$endif GDB}
+      end;
+
+      tabsolutevarsym = class(tabstractvarsym)
+         abstyp  : absolutetyp;
+{$ifdef i386}
+         absseg  : boolean;
+{$endif i386}
+         asmname : pstring;
+         addroffset : aint;
+         ref     : tsymlist;
+         constructor create(const n : string;const tt : ttype);
+         constructor create_ref(const n : string;const tt : ttype;_ref:tsymlist);
+         destructor  destroy;override;
+         constructor ppuload(ppufile:tcompilerppufile);
+         procedure buildderef;override;
+         procedure deref;override;
+         function  mangledname : string;
+         procedure ppuwrite(ppufile:tcompilerppufile);override;
+{$ifdef gdb}
+         function stabstring:Pchar;override;
+{$endif gdb}
+      end;
+
+       tpropertysym = class(Tstoredsym)
           propoptions   : tpropertyoptions;
           propoverriden : tpropertysym;
           propoverridenderef : tderef;
@@ -203,26 +270,6 @@ interface
           procedure buildderef;override;
           procedure deref;override;
           procedure dooverride(overriden:tpropertysym);
-       end;
-
-       tabsolutesym = class(Tvarsym)
-          abstyp  : absolutetyp;
-{$ifdef i386}
-          absseg  : boolean;
-{$endif i386}
-          asmname : pstring;
-          ref     : tsymlist;
-          constructor create(const n : string;const tt : ttype);
-          constructor create_ref(const n : string;const tt : ttype;_ref:tsymlist);
-          destructor  destroy;override;
-          constructor ppuload(ppufile:tcompilerppufile);
-          procedure buildderef;override;
-          procedure deref;override;
-          function  mangledname : string;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
-       {$ifdef gdb}
-          function stabstring:Pchar;override;
-       {$endif}
        end;
 
        ttypedconstsym = class(tstoredsym)
@@ -268,7 +315,7 @@ interface
 {$endif GDB}
        end;
 
-       tenumsym = class(Tsym)
+       tenumsym = class(Tstoredsym)
           value      : longint;
           definition : tenumdef;
           definitionderef : tderef;
@@ -281,7 +328,7 @@ interface
           procedure order;
        end;
 
-       tsyssym = class(Tsym)
+       tsyssym = class(Tstoredsym)
           number : longint;
           constructor create(const n : string;l : longint);
           constructor ppuload(ppufile:tcompilerppufile);
@@ -338,20 +385,42 @@ implementation
       end;
 
 
-    constructor tstoredsym.loadsym(ppufile:tcompilerppufile);
+    constructor tstoredsym.ppuload(ppufile:tcompilerppufile);
+      var
+        nr : word;
+        s  : string;
       begin
-         inherited loadsym(ppufile);
          _mangledname:=nil;
+         nr:=ppufile.getword;
+         s:=ppufile.getstring;
+         if s[1]='$' then
+          inherited createname(copy(s,2,255))
+         else
+          inherited createname(upper(s));
+         _realname:=stringdup(s);
+         typ:=abstractsym;
+         { force the correct indexnr. must be after create! }
+         indexnr:=nr;
+         ppufile.getposinfo(fileinfo);
+         ppufile.getsmallset(symoptions);
+         lastref:=nil;
+         defref:=nil;
+         refs:=0;
+         lastwritten:=nil;
+         refcount:=0;
+{$ifdef GDB}
+         isstabwritten := false;
+{$endif GDB}
       end;
 
-{    procedure tstoredsym.buildderef;
+
+    procedure tstoredsym.ppuwrite(ppufile:tcompilerppufile);
       begin
+         ppufile.putword(indexnr);
+         ppufile.putstring(_realname^);
+         ppufile.putposinfo(fileinfo);
+         ppufile.putsmallset(symoptions);
       end;
-
-
-    procedure tstoredsym.deref;
-      begin
-      end;}
 
 
     destructor tstoredsym.destroy;
@@ -408,21 +477,26 @@ implementation
 {$endif GDB}
 
 
-    function tstoredsym.mangledname : string;
+    procedure tstoredsym.generate_mangledname;
+      begin
+        internalerror(200411062);
+      end;
 
-    begin
-      if not assigned(_mangledname) then
-        begin
-          generate_mangledname;
-          if not assigned(_mangledname) then
-            internalerror(200204171);
-        end;
-   {$ifdef compress}
-      mangledname:=minilzw_decode(_mangledname^);
-   {$else}
-      mangledname:=_mangledname^;
-   {$endif}
-    end;
+
+    function tstoredsym.mangledname : string;
+      begin
+        if not assigned(_mangledname) then
+          begin
+            generate_mangledname;
+            if not assigned(_mangledname) then
+              internalerror(200204171);
+          end;
+     {$ifdef compress}
+        mangledname:=minilzw_decode(_mangledname^);
+     {$else}
+        mangledname:=_mangledname^;
+     {$endif}
+      end;
 
 
 {****************************************************************************
@@ -443,7 +517,7 @@ implementation
     constructor tlabelsym.ppuload(ppufile:tcompilerppufile);
 
       begin
-         inherited loadsym(ppufile);
+         inherited ppuload(ppufile);
          typ:=labelsym;
          { this is all dummy
            it is only used for local browsing }
@@ -470,7 +544,7 @@ implementation
            Message(sym_e_ill_label_decl)
          else
            begin
-              inherited writesym(ppufile);
+              inherited ppuwrite(ppufile);
               ppufile.writeentry(iblabelsym);
            end;
       end;
@@ -503,10 +577,9 @@ implementation
     constructor tunitsym.ppuload(ppufile:tcompilerppufile);
 
       begin
-         inherited loadsym(ppufile);
+         inherited ppuload(ppufile);
          typ:=unitsym;
          unitsymtable:=nil;
-         refs:=0;
       end;
 
     destructor tunitsym.destroy;
@@ -516,7 +589,7 @@ implementation
 
     procedure tunitsym.ppuwrite(ppufile:tcompilerppufile);
       begin
-         inherited writesym(ppufile);
+         inherited ppuwrite(ppufile);
          ppufile.writeentry(ibunitsym);
       end;
 
@@ -549,7 +622,7 @@ implementation
          pdderef : tderef;
          i,n : longint;
       begin
-         inherited loadsym(ppufile);
+         inherited ppuload(ppufile);
          typ:=procsym;
          pdlistfirst:=nil;
          pdlistlast:=nil;
@@ -588,7 +661,7 @@ implementation
          p : pprocdeflist;
          n : word;
       begin
-         inherited writesym(ppufile);
+         inherited ppuwrite(ppufile);
          { count procdefs }
          n:=0;
          p:=pdlistfirst;
@@ -1088,7 +1161,7 @@ implementation
 
     constructor tpropertysym.ppuload(ppufile:tcompilerppufile);
       begin
-         inherited loadsym(ppufile);
+         inherited ppuload(ppufile);
          typ:=propertysym;
          ppufile.getsmallset(propoptions);
          if (ppo_is_override in propoptions) then
@@ -1170,7 +1243,7 @@ implementation
 
     procedure tpropertysym.ppuwrite(ppufile:tcompilerppufile);
       begin
-        inherited writesym(ppufile);
+        inherited ppuwrite(ppufile);
         ppufile.putsmallset(propoptions);
         if (ppo_is_override in propoptions) then
          ppufile.putderef(propoverridenderef)
@@ -1206,194 +1279,32 @@ implementation
 
 
 {****************************************************************************
-                                  TABSOLUTESYM
+                            TABSTRACTVARSYM
 ****************************************************************************}
 
-    constructor tabsolutesym.create(const n : string;const tt : ttype);
-      begin
-        inherited create(n,vs_value,tt);
-        typ:=absolutesym;
-        ref:=nil;
-      end;
-
-
-    constructor tabsolutesym.create_ref(const n : string;const tt : ttype;_ref:tsymlist);
-      begin
-        inherited create(n,vs_value,tt);
-        typ:=absolutesym;
-        ref:=_ref;
-      end;
-
-
-    destructor tabsolutesym.destroy;
-      begin
-        if assigned(ref) then
-          ref.free;
-        inherited destroy;
-      end;
-
-
-    constructor tabsolutesym.ppuload(ppufile:tcompilerppufile);
-      begin
-         { Note: This needs to load everything of tvarsym.write }
-         inherited ppuload(ppufile);
-         { load absolute }
-         typ:=absolutesym;
-         ref:=nil;
-         fieldoffset:=0;
-         asmname:=nil;
-         abstyp:=absolutetyp(ppufile.getbyte);
-{$ifdef i386}
-         absseg:=false;
-{$endif i386}
-         case abstyp of
-           tovar :
-             ref:=ppufile.getsymlist;
-           toasm :
-             asmname:=stringdup(ppufile.getstring);
-           toaddr :
-             begin
-               fieldoffset:=ppufile.getlongint;
-{$ifdef i386}
-               absseg:=boolean(ppufile.getbyte);
-{$endif i386}
-             end;
-         end;
-      end;
-
-
-    procedure tabsolutesym.ppuwrite(ppufile:tcompilerppufile);
-      var
-        oldintfcrc : boolean;
-      begin
-         { Note: This needs to write everything of tvarsym.write }
-         inherited writesym(ppufile);
-         ppufile.putbyte(byte(varspez));
-         oldintfcrc:=ppufile.do_crc;
-         ppufile.do_crc:=false;
-         ppufile.putbyte(byte(varregable));
-         ppufile.do_crc:=oldintfcrc;
-         ppufile.putlongint(fieldoffset);
-         { write only definition or definitionsym }
-         ppufile.puttype(vartype);
-         ppufile.putsmallset(varoptions);
-         ppufile.putbyte(byte(abstyp));
-         case abstyp of
-           tovar :
-             ppufile.putsymlist(ref);
-           toasm :
-             ppufile.putstring(asmname^);
-           toaddr :
-             begin
-               ppufile.putlongint(fieldoffset);
-{$ifdef i386}
-               ppufile.putbyte(byte(absseg));
-{$endif i386}
-             end;
-         end;
-        ppufile.writeentry(ibabsolutesym);
-      end;
-
-
-    procedure tabsolutesym.buildderef;
-      begin
-        { inheritance of varsym.deref ! }
-        vartype.buildderef;
-        if (abstyp=tovar) then
-          ref.buildderef;
-      end;
-
-
-    procedure tabsolutesym.deref;
-      begin
-         { inheritance of varsym.deref ! }
-         vartype.resolve;
-         { own absolute deref }
-         if (abstyp=tovar) then
-           ref.resolve;
-      end;
-
-
-    function tabsolutesym.mangledname : string;
-      begin
-         case abstyp of
-           toasm :
-             mangledname:=asmname^;
-           toaddr :
-             mangledname:='$'+tostr(fieldoffset);
-         else
-           internalerror(10002);
-         end;
-      end;
-
-
-{$ifdef GDB}
-    function Tabsolutesym.stabstring:Pchar;
-
-    begin
-      stabstring:=nil;
-    end;
-{$endif GDB}
-
-
-{****************************************************************************
-                                  TVARSYM
-****************************************************************************}
-
-    constructor tvarsym.create(const n : string;vsp:tvarspez;const tt : ttype);
+    constructor tabstractvarsym.create(const n : string;vsp:tvarspez;const tt : ttype);
       begin
          inherited create(n);
-         typ:=varsym;
          vartype:=tt;
          _mangledname:=nil;
          varspez:=vsp;
-         fieldoffset:=0;
-         fillchar(localloc,sizeof(localloc),0);
-         defaultconstsym:=nil;
-         refs:=0;
          varstate:=vs_declared;
          varoptions:=[];
       end;
 
 
-    constructor tvarsym.create_dll(const n : string;vsp:tvarspez;const tt : ttype);
+    constructor tabstractvarsym.ppuload(ppufile:tcompilerppufile);
       begin
-         tvarsym(self).create(n,vsp,tt);
-         include(varoptions,vo_is_dll_var);
-      end;
-
-
-    constructor tvarsym.create_C(const n,mangled : string;vsp:tvarspez;const tt : ttype);
-      begin
-         tvarsym(self).create(n,vsp,tt);
-         stringdispose(_mangledname);
-       {$ifdef compress}
-         _mangledname:=stringdup(minilzw_encode(mangled));
-       {$else}
-         _mangledname:=stringdup(mangled);
-       {$endif}
-      end;
-
-
-    constructor tvarsym.ppuload(ppufile:tcompilerppufile);
-      begin
-         inherited loadsym(ppufile);
-         typ:=varsym;
-         fillchar(localloc,sizeof(localloc),0);
-         refs := 0;
+         inherited ppuload(ppufile);
          varstate:=vs_used;
          varspez:=tvarspez(ppufile.getbyte);
          varregable:=tvarregable(ppufile.getbyte);
-         fieldoffset:=ppufile.getlongint;
-         defaultconstsym:=nil;
          ppufile.gettype(_vartype);
          ppufile.getsmallset(varoptions);
-         if [vo_is_C_var,vo_is_dll_var]*varoptions<>[] then
-           _mangledname:=stringdup(ppufile.getstring);
       end;
 
 
-    destructor tvarsym.destroy;
+    destructor tabstractvarsym.destroy;
       begin
         if assigned(notifications) then
           notifications.destroy;
@@ -1401,59 +1312,34 @@ implementation
       end;
 
 
-    procedure tvarsym.buildderef;
+    procedure tabstractvarsym.buildderef;
       begin
         vartype.buildderef;
       end;
 
 
-    procedure tvarsym.deref;
+    procedure tabstractvarsym.deref;
       begin
         vartype.resolve;
       end;
 
 
-    procedure tvarsym.ppuwrite(ppufile:tcompilerppufile);
+    procedure tabstractvarsym.ppuwrite(ppufile:tcompilerppufile);
       var
         oldintfcrc : boolean;
       begin
-         inherited writesym(ppufile);
+         inherited ppuwrite(ppufile);
          ppufile.putbyte(byte(varspez));
          oldintfcrc:=ppufile.do_crc;
          ppufile.do_crc:=false;
          ppufile.putbyte(byte(varregable));
          ppufile.do_crc:=oldintfcrc;
-         ppufile.putlongint(fieldoffset);
          ppufile.puttype(vartype);
          ppufile.putsmallset(varoptions);
-         if [vo_is_C_var,vo_is_dll_var]*varoptions<>[] then
-           ppufile.putstring(_mangledname^);
-         ppufile.writeentry(ibvarsym);
       end;
 
 
-    procedure tvarsym.generate_mangledname;
-      begin
-      {$ifdef compress}
-        _mangledname:=stringdup(minilzw_encode(make_mangledname('U',owner,name)));
-      {$else}
-        _mangledname:=stringdup(make_mangledname('U',owner,name));
-      {$endif}
-      end;
-
-
-    procedure tvarsym.set_mangledname(const s:string);
-      begin
-        stringdispose(_mangledname);
-      {$ifdef compress}
-        _mangledname:=stringdup(minilzw_encode(s));
-      {$else}
-        _mangledname:=stringdup(s);
-      {$endif}
-      end;
-
-
-    function tvarsym.getsize : longint;
+    function tabstractvarsym.getsize : longint;
       begin
         if assigned(vartype.def) and
            ((vartype.def.deftype<>arraydef) or
@@ -1465,7 +1351,7 @@ implementation
       end;
 
 
-    function tvarsym.is_regvar:boolean;
+    function tabstractvarsym.is_regvar:boolean;
       begin
         result:=(cs_regvars in aktglobalswitches) and
                 not(pi_has_assembler_block in current_procinfo.flags) and
@@ -1475,7 +1361,7 @@ implementation
       end;
 
 
-    procedure Tvarsym.trigger_notifications(what:Tnotification_flag);
+    procedure tabstractvarsym.trigger_notifications(what:Tnotification_flag);
 
     var n:Tnotification;
 
@@ -1492,7 +1378,7 @@ implementation
           end;
     end;
 
-    function Tvarsym.register_notification(flags:Tnotification_flags;callback:
+    function Tabstractvarsym.register_notification(flags:Tnotification_flags;callback:
                                            Tnotification_callback):cardinal;
 
     var n:Tnotification;
@@ -1505,7 +1391,7 @@ implementation
       notifications.concat(n);
     end;
 
-    procedure Tvarsym.unregister_notification(id:cardinal);
+    procedure Tabstractvarsym.unregister_notification(id:cardinal);
 
     var n:Tnotification;
 
@@ -1529,137 +1415,7 @@ implementation
         end;
     end;
 
-{$ifdef GDB}
-    function Tvarsym.stabstring:Pchar;
-
-    var st:string;
-        threadvaroffset:string;
-        regidx:Tregisterindex;
-        c:char;
-        loc: tcgloc;
-
-    begin
-      { set loc to LOC_REFERENCE to get somewhat usable debugging info for -Or }
-      { while stabs aren't adapted for regvars yet                             }
-      stabstring:=nil;
-      loc := localloc.loc;
-      if (vo_is_self in varoptions) then
-        begin
-          case loc of
-            LOC_REGISTER,
-            LOC_CREGISTER:
-              regidx:=findreg_by_number(localloc.register);
-            LOC_REFERENCE: ;
-            else
-              internalerror(2003091815);
-          end;
-          if (po_classmethod in current_procinfo.procdef.procoptions) or
-             (po_staticmethod in current_procinfo.procdef.procoptions) then
-            begin
-              if (loc=LOC_REFERENCE) then
-                stabstring:=stabstr_evaluate('"pvmt:p$1",${N_TSYM},0,0,$2',
-                  [Tstoreddef(pvmttype.def).numberstring,tostr(localloc.reference.offset)]);
-(*            else
-                stabstring:=stabstr_evaluate('"pvmt:r$1",${N_RSYM},0,0,$2',
-                  [Tstoreddef(pvmttype.def).numberstring,tostr(regstabs_table[regidx])]) *)
-              end
-          else
-            begin
-              if not(is_class(current_procinfo.procdef._class)) then
-                c:='v'
-              else
-                c:='p';
-              if (loc=LOC_REFERENCE) then
-                stabstring:=stabstr_evaluate('"$$t:$1",${N_TSYM},0,0,$2',
-                      [c+current_procinfo.procdef._class.numberstring,tostr(localloc.reference.offset)]);
-(*            else
-                stabstring:=stabstr_evaluate('"$$t:r$1",${N_RSYM},0,0,$2',
-                      [c+current_procinfo.procdef._class.numberstring,tostr(regstabs_table[regidx])]); *)
-            end;
-        end
-      else
-        begin
-          st:=tstoreddef(vartype.def).numberstring;
-          if (vo_is_thread_var in varoptions) then
-            threadvaroffset:='+'+tostr(sizeof(aint))
-          else
-            threadvaroffset:='';
-
-          case owner.symtabletype of
-            objectsymtable:
-              if (sp_static in symoptions) then
-                begin
-                  if (cs_gdb_gsym in aktglobalswitches) then
-                    st:='G'+st
-                  else
-                    st:='S'+st;
-                  stabstring:=stabstr_evaluate('"${ownername}__${name}:$1",${N_LCSYM},0,${line},${mangledname}$2',
-                                               [st,threadvaroffset]);
-                end;
-            globalsymtable:
-              begin
-                { Here we used S instead of
-                  because with G GDB doesn't look at the address field
-                  but searches the same name or with a leading underscore
-                  but these names don't exist in pascal !}
-                if (cs_gdb_gsym in aktglobalswitches) then
-                  st:='G'+st
-                else
-                  st:='S'+st;
-                stabstring:=stabstr_evaluate('"${name}:$1",${N_LCSYM},0,${line},${mangledname}$2',[st,threadvaroffset]);
-              end;
-            staticsymtable :
-              stabstring:=stabstr_evaluate('"${name}:S$1",${N_LCSYM},0,${line},${mangledname}$2',[st,threadvaroffset]);
-            parasymtable,localsymtable:
-              begin
-                { There is no space allocated for not referenced locals }
-                if (owner.symtabletype=localsymtable) and (refs=0) then
-                  exit;
-
-                if (vo_is_C_var in varoptions) then
-                  begin
-                    stabstring:=stabstr_evaluate('"${name}:S$1",${N_LCSYM},0,${line},${mangledname}',[st]);
-                    exit;
-                  end;
-                if (owner.symtabletype=parasymtable) then
-                  begin
-                    if paramanager.push_addr_param(varspez,vartype.def,tprocdef(owner.defowner).proccalloption) and
-                       not(vo_has_local_copy in varoptions) and
-                       not is_open_string(vartype.def) then
-                      st := 'v'+st { should be 'i' but 'i' doesn't work }
-                    else
-                      st := 'p'+st;
-                  end;
-                case loc of
-                  LOC_REGISTER,
-                  LOC_CREGISTER,
-                  LOC_MMREGISTER,
-                  LOC_CMMREGISTER,
-                  LOC_FPUREGISTER,
-                  LOC_CFPUREGISTER :
-                    begin
-                      regidx:=findreg_by_number(localloc.register);
-                      { "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi", "eip", "ps", "cs", "ss", "ds", "es", "fs", "gs", }
-                      { this is the register order for GDB}
-                      if regidx<>0 then
-                        stabstring:=stabstr_evaluate('"${name}:r$1",${N_RSYM},0,${line},$2',[st,tostr(regstabs_table[regidx])]);
-                    end;
-                  LOC_REFERENCE :
-                    { offset to ebp => will not work if the framepointer is esp
-                      so some optimizing will make things harder to debug }
-                    stabstring:=stabstr_evaluate('"${name}:$1",${N_TSYM},0,${line},$2',[st,tostr(localloc.reference.offset)])
-                  else
-                    internalerror(2003091814);
-                end;
-              end;
-            else
-              stabstring := inherited stabstring;
-          end;
-        end;
-    end;
-{$endif GDB}
-
-    procedure tvarsym.setvartype(const newtype: ttype);
+    procedure tabstractvarsym.setvartype(const newtype: ttype);
       begin
         _vartype := newtype;
          { can we load the value into a register ? }
@@ -1682,6 +1438,495 @@ implementation
                 varregable:=vr_fpureg;
           end;
       end;
+
+
+{****************************************************************************
+                               TFIELDVARSYM
+****************************************************************************}
+
+    constructor tfieldvarsym.create(const n : string;vsp:tvarspez;const tt : ttype);
+      begin
+         inherited create(n,vsp,tt);
+         typ:=fieldvarsym;
+         fieldoffset:=0;
+      end;
+
+
+    constructor tfieldvarsym.ppuload(ppufile:tcompilerppufile);
+      begin
+         inherited ppuload(ppufile);
+         typ:=fieldvarsym;
+         fieldoffset:=ppufile.getaint;
+      end;
+
+
+    procedure tfieldvarsym.ppuwrite(ppufile:tcompilerppufile);
+      begin
+         inherited ppuwrite(ppufile);
+         ppufile.putaint(fieldoffset);
+         ppufile.writeentry(ibfieldvarsym);
+      end;
+
+{$ifdef GDB}
+    function tfieldvarsym.stabstring:Pchar;
+    var
+      st : string;
+    begin
+      stabstring:=nil;
+      case owner.symtabletype of
+        objectsymtable :
+          begin
+            if (sp_static in symoptions) then
+              begin
+                st:=tstoreddef(vartype.def).numberstring;
+                if (cs_gdb_gsym in aktglobalswitches) then
+                  st:='G'+st
+                else
+                  st:='S'+st;
+                stabstring:=stabstr_evaluate('"${ownername}__${name}:$1",${N_LCSYM},0,${line},${mangledname}',[st]);
+              end;
+          end;
+      end;
+    end;
+{$endif GDB}
+
+
+{****************************************************************************
+                        TABSTRACTNORMALVARSYM
+****************************************************************************}
+
+    constructor tabstractnormalvarsym.create(const n : string;vsp:tvarspez;const tt : ttype);
+      begin
+         inherited create(n,vsp,tt);
+         fillchar(localloc,sizeof(localloc),0);
+         defaultconstsym:=nil;
+      end;
+
+
+    constructor tabstractnormalvarsym.ppuload(ppufile:tcompilerppufile);
+      begin
+         inherited ppuload(ppufile);
+         fillchar(localloc,sizeof(localloc),0);
+         ppufile.getderef(defaultconstsymderef);
+      end;
+
+
+    procedure tabstractnormalvarsym.buildderef;
+      begin
+        inherited buildderef;
+        defaultconstsymderef.build(defaultconstsym);
+      end;
+
+
+    procedure tabstractnormalvarsym.deref;
+      begin
+        inherited deref;
+        defaultconstsym:=tsym(defaultconstsymderef.resolve);
+      end;
+
+
+    procedure tabstractnormalvarsym.ppuwrite(ppufile:tcompilerppufile);
+      begin
+         inherited ppuwrite(ppufile);
+         ppufile.putderef(defaultconstsymderef);
+      end;
+
+
+{****************************************************************************
+                             TGLOBALVARSYM
+****************************************************************************}
+
+    constructor tglobalvarsym.create(const n : string;vsp:tvarspez;const tt : ttype);
+      begin
+         inherited create(n,vsp,tt);
+         typ:=globalvarsym;
+         _mangledname:=nil;
+      end;
+
+
+    constructor tglobalvarsym.create_dll(const n : string;vsp:tvarspez;const tt : ttype);
+      begin
+         tglobalvarsym(self).create(n,vsp,tt);
+         include(varoptions,vo_is_dll_var);
+      end;
+
+
+    constructor tglobalvarsym.create_C(const n,mangled : string;vsp:tvarspez;const tt : ttype);
+      begin
+         tglobalvarsym(self).create(n,vsp,tt);
+         stringdispose(_mangledname);
+       {$ifdef compress}
+         _mangledname:=stringdup(minilzw_encode(mangled));
+       {$else}
+         _mangledname:=stringdup(mangled);
+       {$endif}
+      end;
+
+
+    constructor tglobalvarsym.ppuload(ppufile:tcompilerppufile);
+      begin
+         inherited ppuload(ppufile);
+         typ:=globalvarsym;
+         if [vo_is_C_var,vo_is_dll_var]*varoptions<>[] then
+           _mangledname:=stringdup(ppufile.getstring);
+      end;
+
+
+    destructor tglobalvarsym.destroy;
+      begin
+        stringdispose(_mangledname);
+        inherited destroy;
+      end;
+
+
+    procedure tglobalvarsym.ppuwrite(ppufile:tcompilerppufile);
+      begin
+         inherited ppuwrite(ppufile);
+         if [vo_is_C_var,vo_is_dll_var]*varoptions<>[] then
+           ppufile.putstring(_mangledname^);
+         ppufile.writeentry(ibglobalvarsym);
+      end;
+
+
+    procedure tglobalvarsym.generate_mangledname;
+      begin
+      {$ifdef compress}
+        _mangledname:=stringdup(minilzw_encode(make_mangledname('U',owner,name)));
+      {$else}
+        _mangledname:=stringdup(make_mangledname('U',owner,name));
+      {$endif}
+      end;
+
+
+    procedure tglobalvarsym.set_mangledname(const s:string);
+      begin
+        stringdispose(_mangledname);
+      {$ifdef compress}
+        _mangledname:=stringdup(minilzw_encode(s));
+      {$else}
+        _mangledname:=stringdup(s);
+      {$endif}
+      end;
+
+
+{$ifdef GDB}
+    function Tglobalvarsym.stabstring:Pchar;
+
+    var st:string;
+        threadvaroffset:string;
+        regidx:Tregisterindex;
+    begin
+      st:=tstoreddef(vartype.def).numberstring;
+      case localloc.loc of
+        LOC_REGISTER,
+        LOC_CREGISTER,
+        LOC_MMREGISTER,
+        LOC_CMMREGISTER,
+        LOC_FPUREGISTER,
+        LOC_CFPUREGISTER :
+          begin
+            regidx:=findreg_by_number(localloc.register);
+            { "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi", "eip", "ps", "cs", "ss", "ds", "es", "fs", "gs", }
+            { this is the register order for GDB}
+            if regidx<>0 then
+              stabstring:=stabstr_evaluate('"${name}:r$1",${N_RSYM},0,${line},$2',[st,tostr(regstabs_table[regidx])]);
+          end;
+        else
+          begin
+            if (vo_is_thread_var in varoptions) then
+              threadvaroffset:='+'+tostr(sizeof(aint))
+            else
+              threadvaroffset:='';
+            { Here we used S instead of
+              because with G GDB doesn't look at the address field
+              but searches the same name or with a leading underscore
+              but these names don't exist in pascal !}
+            if (cs_gdb_gsym in aktglobalswitches) then
+              st:='G'+st
+            else
+              st:='S'+st;
+            stabstring:=stabstr_evaluate('"${name}:$1",${N_LCSYM},0,${line},${mangledname}$2',[st,threadvaroffset]);
+          end;
+      end;
+    end;
+{$endif GDB}
+
+
+{****************************************************************************
+                               TLOCALVARSYM
+****************************************************************************}
+
+    constructor tlocalvarsym.create(const n : string;vsp:tvarspez;const tt : ttype);
+      begin
+         inherited create(n,vsp,tt);
+         typ:=localvarsym;
+      end;
+
+
+    constructor tlocalvarsym.ppuload(ppufile:tcompilerppufile);
+      begin
+         inherited ppuload(ppufile);
+         typ:=localvarsym;
+      end;
+
+
+    procedure tlocalvarsym.ppuwrite(ppufile:tcompilerppufile);
+      begin
+         inherited ppuwrite(ppufile);
+         ppufile.writeentry(iblocalvarsym);
+      end;
+
+
+{$ifdef GDB}
+    function tlocalvarsym.stabstring:Pchar;
+    var st:string;
+        regidx:Tregisterindex;
+    begin
+      stabstring:=nil;
+      { There is no space allocated for not referenced locals }
+      if (owner.symtabletype=localsymtable) and (refs=0) then
+        exit;
+
+      st:=tstoreddef(vartype.def).numberstring;
+      case localloc.loc of
+        LOC_REGISTER,
+        LOC_CREGISTER,
+        LOC_MMREGISTER,
+        LOC_CMMREGISTER,
+        LOC_FPUREGISTER,
+        LOC_CFPUREGISTER :
+          begin
+            regidx:=findreg_by_number(localloc.register);
+            { "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi", "eip", "ps", "cs", "ss", "ds", "es", "fs", "gs", }
+            { this is the register order for GDB}
+            if regidx<>0 then
+              stabstring:=stabstr_evaluate('"${name}:r$1",${N_RSYM},0,${line},$2',[st,tostr(regstabs_table[regidx])]);
+          end;
+        LOC_REFERENCE :
+          { offset to ebp => will not work if the framepointer is esp
+            so some optimizing will make things harder to debug }
+          stabstring:=stabstr_evaluate('"${name}:$1",${N_TSYM},0,${line},$2',[st,tostr(localloc.reference.offset)])
+        else
+          internalerror(2003091814);
+      end;
+    end;
+{$endif GDB}
+
+
+{****************************************************************************
+                              TPARAVARSYM
+****************************************************************************}
+
+    constructor tparavarsym.create(const n : string;vsp:tvarspez;const tt : ttype);
+      begin
+         inherited create(n,vsp,tt);
+         typ:=paravarsym;
+         paraitem:=nil;
+      end;
+
+
+    constructor tparavarsym.ppuload(ppufile:tcompilerppufile);
+      begin
+         inherited ppuload(ppufile);
+         typ:=paravarsym;
+      end;
+
+
+    procedure tparavarsym.ppuwrite(ppufile:tcompilerppufile);
+      begin
+         inherited ppuwrite(ppufile);
+         ppufile.writeentry(ibparavarsym);
+      end;
+
+{$ifdef GDB}
+    function tparavarsym.stabstring:Pchar;
+    var st:string;
+        regidx:Tregisterindex;
+        c:char;
+
+    begin
+      { set loc to LOC_REFERENCE to get somewhat usable debugging info for -Or }
+      { while stabs aren't adapted for regvars yet                             }
+      if (vo_is_self in varoptions) then
+        begin
+          case localloc.loc of
+            LOC_REGISTER,
+            LOC_CREGISTER:
+              regidx:=findreg_by_number(localloc.register);
+            LOC_REFERENCE: ;
+            else
+              internalerror(2003091815);
+          end;
+          if (po_classmethod in current_procinfo.procdef.procoptions) or
+             (po_staticmethod in current_procinfo.procdef.procoptions) then
+            begin
+              if (localloc.loc=LOC_REFERENCE) then
+                stabstring:=stabstr_evaluate('"pvmt:p$1",${N_TSYM},0,0,$2',
+                  [Tstoreddef(pvmttype.def).numberstring,tostr(localloc.reference.offset)]);
+(*            else
+                stabstring:=stabstr_evaluate('"pvmt:r$1",${N_RSYM},0,0,$2',
+                  [Tstoreddef(pvmttype.def).numberstring,tostr(regstabs_table[regidx])]) *)
+              end
+          else
+            begin
+              if not(is_class(current_procinfo.procdef._class)) then
+                c:='v'
+              else
+                c:='p';
+              if (localloc.loc=LOC_REFERENCE) then
+                stabstring:=stabstr_evaluate('"$$t:$1",${N_TSYM},0,0,$2',
+                      [c+current_procinfo.procdef._class.numberstring,tostr(localloc.reference.offset)]);
+(*            else
+                stabstring:=stabstr_evaluate('"$$t:r$1",${N_RSYM},0,0,$2',
+                      [c+current_procinfo.procdef._class.numberstring,tostr(regstabs_table[regidx])]); *)
+            end;
+        end
+      else
+        begin
+          st:=tstoreddef(vartype.def).numberstring;
+
+          if paramanager.push_addr_param(varspez,vartype.def,tprocdef(owner.defowner).proccalloption) and
+             not(vo_has_local_copy in varoptions) and
+             not is_open_string(vartype.def) then
+            st := 'v'+st { should be 'i' but 'i' doesn't work }
+          else
+            st := 'p'+st;
+          case localloc.loc of
+            LOC_REGISTER,
+            LOC_CREGISTER,
+            LOC_MMREGISTER,
+            LOC_CMMREGISTER,
+            LOC_FPUREGISTER,
+            LOC_CFPUREGISTER :
+              begin
+                regidx:=findreg_by_number(localloc.register);
+                { "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi", "eip", "ps", "cs", "ss", "ds", "es", "fs", "gs", }
+                { this is the register order for GDB}
+                if regidx<>0 then
+                  stabstring:=stabstr_evaluate('"${name}:r$1",${N_RSYM},0,${line},$2',[st,tostr(regstabs_table[regidx])]);
+              end;
+            LOC_REFERENCE :
+              { offset to ebp => will not work if the framepointer is esp
+                so some optimizing will make things harder to debug }
+              stabstring:=stabstr_evaluate('"${name}:$1",${N_TSYM},0,${line},$2',[st,tostr(localloc.reference.offset)])
+            else
+              internalerror(2003091814);
+          end;
+        end;
+    end;
+{$endif GDB}
+
+
+{****************************************************************************
+                               TABSOLUTEVARSYM
+****************************************************************************}
+
+    constructor tabsolutevarsym.create(const n : string;const tt : ttype);
+      begin
+        inherited create(n,vs_value,tt);
+        typ:=absolutevarsym;
+        ref:=nil;
+      end;
+
+
+    constructor tabsolutevarsym.create_ref(const n : string;const tt : ttype;_ref:tsymlist);
+      begin
+        inherited create(n,vs_value,tt);
+        typ:=absolutevarsym;
+        ref:=_ref;
+      end;
+
+
+    destructor tabsolutevarsym.destroy;
+      begin
+        if assigned(ref) then
+          ref.free;
+        inherited destroy;
+      end;
+
+
+    constructor tabsolutevarsym.ppuload(ppufile:tcompilerppufile);
+      begin
+         inherited ppuload(ppufile);
+         typ:=absolutevarsym;
+         ref:=nil;
+         asmname:=nil;
+         abstyp:=absolutetyp(ppufile.getbyte);
+{$ifdef i386}
+         absseg:=false;
+{$endif i386}
+         case abstyp of
+           tovar :
+             ref:=ppufile.getsymlist;
+           toasm :
+             asmname:=stringdup(ppufile.getstring);
+           toaddr :
+             begin
+               addroffset:=ppufile.getaint;
+{$ifdef i386}
+               absseg:=boolean(ppufile.getbyte);
+{$endif i386}
+             end;
+         end;
+      end;
+
+
+    procedure tabsolutevarsym.ppuwrite(ppufile:tcompilerppufile);
+      begin
+         inherited ppuwrite(ppufile);
+         case abstyp of
+           tovar :
+             ppufile.putsymlist(ref);
+           toasm :
+             ppufile.putstring(asmname^);
+           toaddr :
+             begin
+               ppufile.putaint(addroffset);
+{$ifdef i386}
+               ppufile.putbyte(byte(absseg));
+{$endif i386}
+             end;
+         end;
+        ppufile.writeentry(ibabsolutevarsym);
+      end;
+
+
+    procedure tabsolutevarsym.buildderef;
+      begin
+        inherited buildderef;
+        if (abstyp=tovar) then
+          ref.buildderef;
+      end;
+
+
+    procedure tabsolutevarsym.deref;
+      begin
+         inherited deref;
+         { own absolute deref }
+         if (abstyp=tovar) then
+           ref.resolve;
+      end;
+
+
+    function tabsolutevarsym.mangledname : string;
+      begin
+         case abstyp of
+           toasm :
+             mangledname:=asmname^;
+           toaddr :
+             mangledname:='$'+tostr(addroffset);
+           else
+             internalerror(200411061);
+         end;
+      end;
+
+
+{$ifdef GDB}
+    function tabsolutevarsym.stabstring:Pchar;
+      begin
+        stabstring:=nil;
+      end;
+{$endif GDB}
 
 
 {****************************************************************************
@@ -1708,7 +1953,7 @@ implementation
 
     constructor ttypedconstsym.ppuload(ppufile:tcompilerppufile);
       begin
-         inherited loadsym(ppufile);
+         inherited ppuload(ppufile);
          typ:=typedconstsym;
          ppufile.gettype(typedconsttype);
          is_writable:=boolean(ppufile.getbyte);
@@ -1754,7 +1999,7 @@ implementation
 
     procedure ttypedconstsym.ppuwrite(ppufile:tcompilerppufile);
       begin
-         inherited writesym(ppufile);
+         inherited ppuwrite(ppufile);
          ppufile.puttype(typedconsttype);
          ppufile.putbyte(byte(is_writable));
          ppufile.writeentry(ibtypedconstsym);
@@ -1837,7 +2082,7 @@ implementation
          ps : pnormalset;
          pc : pchar;
       begin
-         inherited loadsym(ppufile);
+         inherited ppuload(ppufile);
          typ:=constsym;
          consttype.reset;
          consttyp:=tconsttyp(ppufile.getbyte);
@@ -1921,7 +2166,7 @@ implementation
 
     procedure tconstsym.ppuwrite(ppufile:tcompilerppufile);
       begin
-         inherited writesym(ppufile);
+         inherited ppuwrite(ppufile);
          ppufile.putbyte(byte(consttyp));
          case consttyp of
            constnil : ;
@@ -2019,7 +2264,7 @@ implementation
 
     constructor tenumsym.ppuload(ppufile:tcompilerppufile);
       begin
-         inherited loadsym(ppufile);
+         inherited ppuload(ppufile);
          typ:=enumsym;
          ppufile.getderef(definitionderef);
          value:=ppufile.getlongint;
@@ -2067,7 +2312,7 @@ implementation
 
     procedure tenumsym.ppuwrite(ppufile:tcompilerppufile);
       begin
-         inherited writesym(ppufile);
+         inherited ppuwrite(ppufile);
          ppufile.putderef(definitionderef);
          ppufile.putlongint(value);
          ppufile.writeentry(ibenumsym);
@@ -2094,7 +2339,7 @@ implementation
 
     constructor ttypesym.ppuload(ppufile:tcompilerppufile);
       begin
-         inherited loadsym(ppufile);
+         inherited ppuload(ppufile);
          typ:=typesym;
          ppufile.gettype(restype);
       end;
@@ -2120,7 +2365,7 @@ implementation
 
     procedure ttypesym.ppuwrite(ppufile:tcompilerppufile);
       begin
-         inherited writesym(ppufile);
+         inherited ppuwrite(ppufile);
          ppufile.puttype(restype);
          ppufile.writeentry(ibtypesym);
       end;
@@ -2193,7 +2438,7 @@ implementation
 
     constructor tsyssym.ppuload(ppufile:tcompilerppufile);
       begin
-         inherited loadsym(ppufile);
+         inherited ppuload(ppufile);
          typ:=syssym;
          number:=ppufile.getlongint;
       end;
@@ -2205,7 +2450,7 @@ implementation
 
     procedure tsyssym.ppuwrite(ppufile:tcompilerppufile);
       begin
-         inherited writesym(ppufile);
+         inherited ppuwrite(ppufile);
          ppufile.putlongint(number);
          ppufile.writeentry(ibsyssym);
       end;
@@ -2229,7 +2474,7 @@ implementation
 
     constructor trttisym.ppuload(ppufile:tcompilerppufile);
       begin
-        inherited loadsym(ppufile);
+        inherited ppuload(ppufile);
         typ:=rttisym;
         lab:=nil;
         rttityp:=trttitype(ppufile.getbyte);
@@ -2238,7 +2483,7 @@ implementation
 
     procedure trttisym.ppuwrite(ppufile:tcompilerppufile);
       begin
-         inherited writesym(ppufile);
+         inherited ppuwrite(ppufile);
          ppufile.putbyte(byte(rttityp));
          ppufile.writeentry(ibrttisym);
       end;
@@ -2264,7 +2509,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.190  2004-11-04 17:09:54  peter
+  Revision 1.191  2004-11-08 22:09:59  peter
+    * tvarsym splitted
+
+  Revision 1.190  2004/11/04 17:09:54  peter
   fixed debuginfo for variables in staticsymtable
 
   Revision 1.189  2004/10/31 21:45:03  peter

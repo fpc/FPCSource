@@ -82,10 +82,10 @@ implementation
                if assigned(sym) then
                 begin
                   case sym.typ of
-                    varsym :
+                    fieldvarsym :
                       begin
                         pl.addsym(sl_load,sym);
-                        def:=tvarsym(sym).vartype.def;
+                        def:=tfieldvarsym(sym).vartype.def;
                       end;
                     procsym :
                       begin
@@ -119,8 +119,8 @@ implementation
                               begin
                                 pl.addsym(sl_subscript,sym);
                                 case sym.typ of
-                                  varsym :
-                                    def:=tvarsym(sym).vartype.def;
+                                  fieldvarsym :
+                                    def:=tfieldvarsym(sym).vartype.def;
                                   else
                                     begin
                                       Message1(sym_e_illegal_field,pattern);
@@ -209,8 +209,8 @@ implementation
          propname : stringid;
          sc : tsinglelist;
          oldregisterdef : boolean;
-         readvs,
-         hvs      : tvarsym;
+         hreadparavs,
+         hparavs      : tparavarsym;
          readprocdef,
          writeprocdef : tprocvardef;
          oldsymtablestack : tsymtable;
@@ -275,9 +275,9 @@ implementation
                   varspez:=vs_value;
                 sc.reset;
                 repeat
-                  readvs:=tvarsym.create(orgpattern,varspez,generrortype);
-                  readprocdef.parast.insert(readvs);
-                  sc.insert(readvs);
+                  hreadparavs:=tparavarsym.create(orgpattern,varspez,generrortype);
+                  readprocdef.parast.insert(hreadparavs);
+                  sc.insert(hreadparavs);
                   consume(_ID);
                 until not try_to_consume(_COMMA);
                 if try_to_consume(_COLON) then
@@ -301,15 +301,15 @@ implementation
                   end
                 else
                   tt:=cformaltype;
-                readvs:=tvarsym(sc.first);
-                while assigned(readvs) do
+                hreadparavs:=tparavarsym(sc.first);
+                while assigned(hreadparavs) do
                  begin
-                   readprocdef.concatpara(nil,tt,readvs,nil,false);
+                   readprocdef.concatpara(nil,tt,hreadparavs,nil,false);
                    { also update the writeprocdef }
-                   hvs:=tvarsym.create(readvs.realname,vs_value,generrortype);
-                   writeprocdef.parast.insert(hvs);
-                   writeprocdef.concatpara(nil,tt,hvs,nil,false);
-                   readvs:=tvarsym(readvs.listnext);
+                   hparavs:=tparavarsym.create(hreadparavs.realname,vs_value,generrortype);
+                   writeprocdef.parast.insert(hparavs);
+                   writeprocdef.concatpara(nil,tt,hparavs,nil,false);
+                   hreadparavs:=tparavarsym(hreadparavs.listnext);
                  end;
               until not try_to_consume(_SEMICOLON);
               sc.free;
@@ -354,12 +354,12 @@ implementation
                    p.indextype.setdef(pt.resulttype.def);
                    include(p.propoptions,ppo_indexed);
                    { concat a longint to the para templates }
-                   hvs:=tvarsym.create('$index',vs_value,p.indextype);
-                   readprocdef.parast.insert(hvs);
-                   readprocdef.concatpara(nil,p.indextype,hvs,nil,false);
-                   hvs:=tvarsym.create('$index',vs_value,p.indextype);
-                   writeprocdef.parast.insert(hvs);
-                   writeprocdef.concatpara(nil,p.indextype,hvs,nil,false);
+                   hparavs:=tparavarsym.create('$index',vs_value,p.indextype);
+                   readprocdef.parast.insert(hparavs);
+                   readprocdef.concatpara(nil,p.indextype,hparavs,nil,false);
+                   hparavs:=tparavarsym.create('$index',vs_value,p.indextype);
+                   writeprocdef.parast.insert(hparavs);
+                   writeprocdef.concatpara(nil,p.indextype,hparavs,nil,false);
                    pt.free;
                 end;
            end
@@ -403,7 +403,7 @@ implementation
                      if not assigned(p.readaccess.procdef) then
                        Message(parser_e_ill_property_access_sym);
                    end;
-                 varsym :
+                 fieldvarsym :
                    begin
                      if not assigned(def) then
                        internalerror(200310071);
@@ -437,9 +437,9 @@ implementation
                      { write is a procedure with an extra value parameter
                        of the of the property }
                      writeprocdef.rettype:=voidtype;
-                     hvs:=tvarsym.create('$value',vs_value,p.proptype);
-                     writeprocdef.parast.insert(hvs);
-                     writeprocdef.concatpara(nil,p.proptype,hvs,nil,false);
+                     hparavs:=tparavarsym.create('$value',vs_value,p.proptype);
+                     writeprocdef.parast.insert(hparavs);
+                     writeprocdef.concatpara(nil,p.proptype,hparavs,nil,false);
                      { Insert hidden parameters }
                      handle_calling_convention(writeprocdef);
                      calc_parast(writeprocdef);
@@ -448,7 +448,7 @@ implementation
                      if not assigned(p.writeaccess.procdef) then
                        Message(parser_e_ill_property_access_sym);
                    end;
-                 varsym :
+                 fieldvarsym :
                    begin
                      if not assigned(def) then
                        internalerror(200310072);
@@ -495,7 +495,7 @@ implementation
                                    if not assigned(p.storedaccess.procdef) then
                                      message(parser_e_ill_property_storage_sym);
                                 end;
-                              varsym :
+                              fieldvarsym :
                                 begin
                                   if not assigned(def) then
                                     internalerror(200310073);
@@ -595,9 +595,10 @@ implementation
       procedure insert_syms(sc : tsinglelist;tt : ttype;is_threadvar : boolean; addsymopts : tsymoptions);
       { inserts the symbols of sc in st with def as definition or sym as ttypesym, sc is disposed }
         var
-          vs,vs2 : tvarsym;
+          vs : tabstractvarsym;
+          hstaticvs : tglobalvarsym;
         begin
-           vs:=tvarsym(sc.first);
+           vs:=tabstractvarsym(sc.first);
            while assigned(vs) do
              begin
                 vs.vartype:=tt;
@@ -611,9 +612,9 @@ implementation
                 if (symtablestack.symtabletype=objectsymtable) and
                    (sp_static in current_object_option) then
                   begin
-                     vs2:=tvarsym.create('$'+lower(symtablestack.name^)+'_'+vs.name,vs_value,tt);
-                     symtablestack.defowner.owner.insert(vs2);
-                     insertbssdata(vs2);
+                     hstaticvs:=tglobalvarsym.create('$'+lower(symtablestack.name^)+'_'+vs.name,vs_value,tt);
+                     symtablestack.defowner.owner.insert(hstaticvs);
+                     insertbssdata(hstaticvs);
                   end
                 else
                   begin
@@ -621,23 +622,23 @@ implementation
                     case symtablestack.symtabletype of
                       globalsymtable,
                       staticsymtable :
-                        insertbssdata(vs);
+                        insertbssdata(tglobalvarsym(vs));
                       recordsymtable,
                       objectsymtable :
-                        tabstractrecordsymtable(symtablestack).insertfield(vs,false);
+                        tabstractrecordsymtable(symtablestack).insertfield(tfieldvarsym(vs),false);
                     end;
                   end;
-                vs:=tvarsym(vs.listnext);
+                vs:=tabstractvarsym(vs.listnext);
              end;
         end;
 
 
       procedure read_default_value(sc : tsinglelist;tt : ttype;is_threadvar : boolean);
         var
-          vs : tvarsym;
+          vs : tabstractnormalvarsym;
           tcsym : ttypedconstsym;
         begin
-          vs:=tvarsym(sc.first);
+          vs:=tabstractnormalvarsym(sc.first);
           if assigned(vs.listnext) then
              Message(parser_e_initialized_only_one_var);
           if is_threadvar then
@@ -668,7 +669,7 @@ implementation
          old_block_type : tblock_type;
          symdone : boolean;
          { to handle absolute }
-         abssym : tabsolutesym;
+         abssym : tabsolutevarsym;
          { c var }
          newtype : ttypesym;
          is_dll,
@@ -685,14 +686,15 @@ implementation
          maxalignment,startvarrecalign,
          maxpadalign, startpadalign: shortint;
          hp,pt : tnode;
-         vs,vs2    : tvarsym;
+         fieldvs   : tfieldvarsym;
+         vs,vs2    : tabstractvarsym;
          srsym : tsym;
          oldsymtablestack,
          srsymtable : tsymtable;
          unionsymtable : trecordsymtable;
          offset : longint;
          uniondef : trecorddef;
-         unionsym : tvarsym;
+         unionsym : tfieldvarsym;
          uniontype : ttype;
          dummysymoptions : tsymoptions;
          semicolonatend: boolean;
@@ -722,7 +724,18 @@ implementation
              sorg:=orgpattern;
              sc.reset;
              repeat
-               vs:=tvarsym.create(orgpattern,vs_value,generrortype);
+               case symtablestack.symtabletype of
+                 localsymtable :
+                   vs:=tlocalvarsym.create(orgpattern,vs_value,generrortype);
+                 staticsymtable,
+                 globalsymtable :
+                   vs:=tglobalvarsym.create(orgpattern,vs_value,generrortype);
+                 recordsymtable,
+                 objectsymtable :
+                   vs:=tfieldvarsym.create(orgpattern,vs_value,generrortype);
+                 else
+                   internalerror(200411064);
+               end;
                symtablestack.insert(vs);
                if assigned(vs.owner) then
                 sc.insert(vs)
@@ -805,13 +818,18 @@ implementation
 
              if is_gpc_name then
                begin
-                  vs:=tvarsym(sc.first);
+                  vs:=tabstractvarsym(sc.first);
                   if assigned(vs.listnext) then
                     Message(parser_e_absolute_only_one_var);
                   vs.vartype:=tt;
-                  include(vs.varoptions,vo_is_C_var);
-                  vs.set_mangledname(target_info.Cprefix+sorg);
-                  include(vs.varoptions,vo_is_external);
+                  if vs.typ=globalvarsym then
+                    begin
+                      tglobalvarsym(vs).set_mangledname(target_info.Cprefix+sorg);
+                      include(vs.varoptions,vo_is_C_var);
+                      include(vs.varoptions,vo_is_external);
+                    end
+                  else
+                    Message(parser_e_not_external_and_export);
                   symdone:=true;
                end;
 
@@ -822,7 +840,7 @@ implementation
                 consume(_ABSOLUTE);
                 abssym:=nil;
                 { only allowed for one var }
-                vs:=tvarsym(sc.first);
+                vs:=tabstractvarsym(sc.first);
                 if assigned(vs.listnext) then
                   Message(parser_e_absolute_only_one_var);
                 { parse the rest }
@@ -831,7 +849,7 @@ implementation
                 if (pt.nodetype=stringconstn) or
                    (is_constcharnode(pt)) then
                  begin
-                   abssym:=tabsolutesym.create(vs.realname,tt);
+                   abssym:=tabsolutevarsym.create(vs.realname,tt);
                    abssym.fileinfo:=vs.fileinfo;
                    if pt.nodetype=stringconstn then
                      hs:=strpas(tstringconstnode(pt).value_str)
@@ -851,10 +869,10 @@ implementation
                          (m_objfpc in aktmodeswitches) or
                          (m_delphi in aktmodeswitches)) then
                  begin
-                   abssym:=tabsolutesym.create(vs.realname,tt);
+                   abssym:=tabsolutevarsym.create(vs.realname,tt);
                    abssym.fileinfo:=vs.fileinfo;
                    abssym.abstyp:=toaddr;
-                   abssym.fieldoffset:=tordconstnode(pt).value;
+                   abssym.addroffset:=tordconstnode(pt).value;
 {$ifdef i386}
                    abssym.absseg:=false;
                    if (target_info.system in [system_i386_go32v2,system_i386_watcom]) and
@@ -864,7 +882,7 @@ implementation
                       pt:=expr;
                       if is_constintnode(pt) then
                         begin
-                          abssym.fieldoffset:=abssym.fieldoffset shl 4+tordconstnode(pt).value;
+                          abssym.addroffset:=abssym.addroffset shl 4+tordconstnode(pt).value;
                           abssym.absseg:=true;
                         end
                       else
@@ -884,9 +902,10 @@ implementation
                     if (hp.nodetype=loadn) then
                      begin
                        { we should check the result type of loadn }
-                       if not (tloadnode(hp).symtableentry.typ in [varsym,typedconstsym]) then
+                       if not (tloadnode(hp).symtableentry.typ in [fieldvarsym,globalvarsym,localvarsym,
+                                                                   paravarsym,typedconstsym]) then
                          Message(parser_e_absolute_only_to_var_or_const);
-                       abssym:=tabsolutesym.create(vs.realname,tt);
+                       abssym:=tabsolutevarsym.create(vs.realname,tt);
                        abssym.fileinfo:=vs.fileinfo;
                        abssym.abstyp:=tovar;
                        abssym.ref:=node_to_symlist(pt);
@@ -997,7 +1016,7 @@ implementation
                    ) then
                  begin
                    { only allowed for one var }
-                   vs:=tvarsym(sc.first);
+                   vs:=tabstractvarsym(sc.first);
                    if assigned(vs.listnext) then
                      Message(parser_e_absolute_only_one_var);
                    { set type of the var }
@@ -1044,8 +1063,7 @@ implementation
                    if idtoken in [_EXPORT,_PUBLIC] then
                     begin
                       consume(_ID);
-                      if extern_var or
-                         (symtablestack.symtabletype in [parasymtable,localsymtable]) then
+                      if extern_var then
                        Message(parser_e_not_external_and_export)
                       else
                        begin
@@ -1078,35 +1096,42 @@ implementation
                    if (is_dll) and
                       (target_info.system = system_powerpc_darwin) then
                      C_Name := target_info.Cprefix+C_Name;
-                   vs.set_mangledname(C_Name);
 
                    if export_var then
                     begin
                       inc(vs.refs);
                       include(vs.varoptions,vo_is_exported);
                     end;
+
                    if extern_var then
                     include(vs.varoptions,vo_is_external);
-                   { insert in the datasegment when it is not external }
-                   if (not extern_var) then
-                     insertbssdata(vs);
-                   { now we can insert it in the import lib if its a dll, or
-                     add it to the externals }
-                   if extern_var then
-                    begin
-                      if is_dll then
-                       begin
-                         if not(current_module.uses_imports) then
-                          begin
-                            current_module.uses_imports:=true;
-                            importlib.preparelib(current_module.modulename^);
-                          end;
-                         importlib.importvariable(vs,C_name,dll_name);
-                       end
-                      else
-                       if target_info.DllScanSupported then
-                        current_module.Externals.insert(tExternalsItem.create(vs.mangledname));
-                    end;
+
+                   if vs.typ=globalvarsym then
+                     begin
+                       tglobalvarsym(vs).set_mangledname(C_Name);
+                       { insert in the datasegment when it is not external }
+                       if (not extern_var) then
+                         insertbssdata(tglobalvarsym(vs));
+                       { now we can insert it in the import lib if its a dll, or
+                         add it to the externals }
+                       if extern_var then
+                        begin
+                          if is_dll then
+                           begin
+                             if not(current_module.uses_imports) then
+                              begin
+                                current_module.uses_imports:=true;
+                                importlib.preparelib(current_module.modulename^);
+                              end;
+                             importlib.importvariable(tglobalvarsym(vs),C_name,dll_name);
+                           end
+                          else
+                           if target_info.DllScanSupported then
+                            current_module.Externals.insert(tExternalsItem.create(vs.mangledname));
+                        end;
+                     end
+                   else
+                     Message(parser_e_not_external_and_export);
                    symdone:=true;
                  end;
               end;
@@ -1133,12 +1158,12 @@ implementation
                      Message(parser_e_cant_publish_that);
                      exclude(current_object_option,sp_published);
                      { recover by changing access type to public }
-                     vs2:=tvarsym(sc.first);
+                     vs2:=tabstractvarsym(sc.first);
                      while assigned (vs2) do
                        begin
                          exclude(vs2.symoptions,sp_published);
                          include(vs2.symoptions,sp_public);
-                         vs2:=tvarsym(vs2.listnext);
+                         vs2:=tabstractvarsym(vs2.listnext);
                        end;
                    end
                   else
@@ -1184,8 +1209,8 @@ implementation
                   symtablestack:=symtablestack.next;
                   read_type(casetype,'',true);
                   symtablestack:=oldsymtablestack;
-                  vs:=tvarsym.create(sorg,vs_value,casetype);
-                  tabstractrecordsymtable(symtablestack).insertfield(vs,true);
+                  fieldvs:=tfieldvarsym.create(sorg,vs_value,casetype);
+                  tabstractrecordsymtable(symtablestack).insertfield(fieldvs,true);
                 end;
               if not(is_ordinal(casetype.def))
 {$ifndef cpu64bit}
@@ -1243,7 +1268,7 @@ implementation
               unionsymtable.fieldalignment:=maxalignment;
               uniontype.def:=uniondef;
               uniontype.sym:=nil;
-              UnionSym:=tvarsym.create('$case',vs_value,uniontype);
+              UnionSym:=tfieldvarsym.create('$case',vs_value,uniontype);
               symtablestack:=symtablestack.next;
               unionsymtable.addalignmentpadding;
 {$ifdef powerpc}
@@ -1284,7 +1309,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.81  2004-10-15 09:14:17  mazen
+  Revision 1.82  2004-11-08 22:09:59  peter
+    * tvarsym splitted
+
+  Revision 1.81  2004/10/15 09:14:17  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 

@@ -101,7 +101,7 @@ interface
     procedure free_exception(list:TAAsmoutput;const t:texceptiontemps;a:aint;endexceptlabel:tasmlabel;onlyfree:boolean);
 
     procedure insertconstdata(sym : ttypedconstsym);
-    procedure insertbssdata(sym : tvarsym);
+    procedure insertbssdata(sym : tglobalvarsym);
 
     procedure gen_alloc_symtable(list:TAAsmoutput;st:tsymtable);
     procedure gen_free_symtable(list:TAAsmoutput;st:tsymtable);
@@ -721,52 +721,52 @@ implementation
         href : treference;
         hreg : tregister;
         list : TAAsmoutput;
-        hsym : tvarsym;
+        hsym : tparavarsym;
         l    : longint;
         localcopyloc : tlocation;
       begin
         list:=taasmoutput(arg);
-        if (tsym(p).typ=varsym) and
-           (tvarsym(p).varspez=vs_value) and
-           (paramanager.push_addr_param(tvarsym(p).varspez,tvarsym(p).vartype.def,current_procinfo.procdef.proccalloption)) then
+        if (tsym(p).typ=paravarsym) and
+           (tparavarsym(p).varspez=vs_value) and
+           (paramanager.push_addr_param(tparavarsym(p).varspez,tparavarsym(p).vartype.def,current_procinfo.procdef.proccalloption)) then
          begin
-           location_get_data_ref(list,tvarsym(p).localloc,href,true);
-           if is_open_array(tvarsym(p).vartype.def) or
-              is_array_of_const(tvarsym(p).vartype.def) then
+           location_get_data_ref(list,tparavarsym(p).localloc,href,true);
+           if is_open_array(tparavarsym(p).vartype.def) or
+              is_array_of_const(tparavarsym(p).vartype.def) then
             begin
               { cdecl functions don't have a high pointer so it is not possible to generate
                 a local copy }
               if not(current_procinfo.procdef.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
                 begin
-                  hsym:=tvarsym(tsym(p).owner.search('high'+p.name));
+                  hsym:=tparavarsym(tsym(p).owner.search('high'+p.name));
                   if not assigned(hsym) then
                     internalerror(200306061);
                   hreg:=cg.getaddressregister(list);
-                  cg.g_copyvaluepara_openarray(list,href,hsym.localloc,tarraydef(tvarsym(p).vartype.def).elesize,hreg);
-                  cg.a_load_reg_loc(list,OS_ADDR,hreg,tvarsym(p).localloc);
+                  cg.g_copyvaluepara_openarray(list,href,hsym.localloc,tarraydef(tparavarsym(p).vartype.def).elesize,hreg);
+                  cg.a_load_reg_loc(list,OS_ADDR,hreg,tparavarsym(p).localloc);
                 end;
             end
            else
             begin
               { Allocate space for the local copy }
-              l:=tvarsym(p).getsize;
+              l:=tparavarsym(p).getsize;
               localcopyloc.loc:=LOC_REFERENCE;
               localcopyloc.size:=int_cgsize(l);
-              tg.GetLocal(list,l,tvarsym(p).vartype.def,localcopyloc.reference);
+              tg.GetLocal(list,l,tparavarsym(p).vartype.def,localcopyloc.reference);
               { Copy data }
-              if is_shortstring(tvarsym(p).vartype.def) then
+              if is_shortstring(tparavarsym(p).vartype.def) then
                 begin
                   { this code is only executed before the code for the body and the entry/exit code is generated
                     so we're allowed to include pi_do_call here; after pass1 is run, this isn't allowed anymore
                   }
                   include(current_procinfo.flags,pi_do_call);
-                  cg.g_copyshortstring(list,href,localcopyloc.reference,tstringdef(tvarsym(p).vartype.def).len)
+                  cg.g_copyshortstring(list,href,localcopyloc.reference,tstringdef(tparavarsym(p).vartype.def).len)
                 end
               else
-                cg.g_concatcopy(list,href,localcopyloc.reference,tvarsym(p).vartype.def.size);
+                cg.g_concatcopy(list,href,localcopyloc.reference,tparavarsym(p).vartype.def.size);
               { update localloc of varsym }
-              tg.Ungetlocal(list,tvarsym(p).localloc.reference);
-              tvarsym(p).localloc:=localcopyloc;
+              tg.Ungetlocal(list,tparavarsym(p).localloc.reference);
+              tparavarsym(p).localloc:=localcopyloc;
             end;
          end;
       end;
@@ -775,11 +775,12 @@ implementation
     { initializes the regvars from staticsymtable with 0 }
     procedure initialize_regvars(p : tnamedindexitem;arg:pointer);
       begin
-        if (tsym(p).typ=varsym) then
+        if (tsym(p).typ=globalvarsym) then
          begin
-           case tvarsym(p).localloc.loc of
+           case tglobalvarsym(p).localloc.loc of
              LOC_CREGISTER :
-               cg.a_load_const_reg(taasmoutput(arg),reg_cgsize(tvarsym(p).localloc.register),0,tvarsym(p).localloc.register);
+               cg.a_load_const_reg(taasmoutput(arg),reg_cgsize(tglobalvarsym(p).localloc.register),0,
+                   tglobalvarsym(p).localloc.register);
              LOC_REFERENCE : ;
              else
                internalerror(200410124);
@@ -794,10 +795,10 @@ implementation
         oldexprasmlist : TAAsmoutput;
         hp : tnode;
       begin
-        if (tsym(p).typ=varsym) and
-           (tvarsym(p).refs>0) and
-           not(is_class(tvarsym(p).vartype.def)) and
-           tvarsym(p).vartype.def.needs_inittable then
+        if (tsym(p).typ in [globalvarsym,localvarsym]) and
+           (tabstractvarsym(p).refs>0) and
+           not(is_class(tabstractvarsym(p).vartype.def)) and
+           tabstractvarsym(p).vartype.def.needs_inittable then
          begin
            oldexprasmlist:=exprasmlist;
            exprasmlist:=taasmoutput(arg);
@@ -829,16 +830,12 @@ implementation
     { generates the code for finalisation of local variables }
     procedure finalize_local_vars(p : tnamedindexitem;arg:pointer);
       begin
-        case tsym(p).typ of
-          varsym :
-            begin
-              if (tvarsym(p).refs>0) and
-                 not(vo_is_funcret in tvarsym(p).varoptions) and
-                 not(is_class(tvarsym(p).vartype.def)) and
-                 tvarsym(p).vartype.def.needs_inittable then
-                finalize_sym(taasmoutput(arg),tsym(p));
-            end;
-        end;
+        if (tsym(p).typ=localvarsym) and
+           (tlocalvarsym(p).refs>0) and
+           not(vo_is_funcret in tlocalvarsym(p).varoptions) and
+           not(is_class(tlocalvarsym(p).vartype.def)) and
+           tlocalvarsym(p).vartype.def.needs_inittable then
+          finalize_sym(taasmoutput(arg),tsym(p));
       end;
 
 
@@ -878,12 +875,12 @@ implementation
         pd : tprocdef;
       begin
         case tsym(p).typ of
-          varsym :
+          globalvarsym :
             begin
-              if (tvarsym(p).refs>0) and
-                 not(vo_is_funcret in tvarsym(p).varoptions) and
-                 not(is_class(tvarsym(p).vartype.def)) and
-                 tvarsym(p).vartype.def.needs_inittable then
+              if (tglobalvarsym(p).refs>0) and
+                 not(vo_is_funcret in tglobalvarsym(p).varoptions) and
+                 not(is_class(tglobalvarsym(p).vartype.def)) and
+                 tglobalvarsym(p).vartype.def.needs_inittable then
                 finalize_sym(taasmoutput(arg),tsym(p));
             end;
           typedconstsym :
@@ -916,22 +913,22 @@ implementation
         list : TAAsmoutput;
       begin
         list:=taasmoutput(arg);
-        if (tsym(p).typ=varsym) and
-           not is_class_or_interface(tvarsym(p).vartype.def) and
-           tvarsym(p).vartype.def.needs_inittable then
+        if (tsym(p).typ=paravarsym) and
+           not is_class_or_interface(tparavarsym(p).vartype.def) and
+           tparavarsym(p).vartype.def.needs_inittable then
          begin
-           case tvarsym(p).varspez of
+           case tparavarsym(p).varspez of
              vs_value :
                begin
-                 location_get_data_ref(list,tvarsym(p).localloc,href,is_open_array(tvarsym(p).vartype.def));
-                 cg.g_incrrefcount(list,tvarsym(p).vartype.def,href);
+                 location_get_data_ref(list,tparavarsym(p).localloc,href,is_open_array(tparavarsym(p).vartype.def));
+                 cg.g_incrrefcount(list,tparavarsym(p).vartype.def,href);
                end;
              vs_out :
                begin
                  tmpreg:=cg.getaddressregister(list);
-                 cg.a_load_loc_reg(list,OS_ADDR,tvarsym(p).localloc,tmpreg);
+                 cg.a_load_loc_reg(list,OS_ADDR,tparavarsym(p).localloc,tmpreg);
                  reference_reset_base(href,tmpreg,0);
-                 cg.g_initialize(list,tvarsym(p).vartype.def,href);
+                 cg.g_initialize(list,tparavarsym(p).vartype.def,href);
                end;
            end;
          end;
@@ -945,29 +942,30 @@ implementation
         href : treference;
         l : tlocation;
       begin
+        if not(tsym(p).typ=paravarsym) then
+          exit;
         list:=taasmoutput(arg);
-        if (tsym(p).typ=varsym) and
-           not is_class_or_interface(tvarsym(p).vartype.def) and
-           tvarsym(p).vartype.def.needs_inittable then
+        if not is_class_or_interface(tparavarsym(p).vartype.def) and
+           tparavarsym(p).vartype.def.needs_inittable then
          begin
-           location_get_data_ref(list,tvarsym(p).localloc,href,is_open_array(tvarsym(p).vartype.def));
-           if (tvarsym(p).varspez=vs_value) then
+           location_get_data_ref(list,tparavarsym(p).localloc,href,is_open_array(tparavarsym(p).vartype.def));
+           if (tparavarsym(p).varspez=vs_value) then
             begin
               include(current_procinfo.flags,pi_needs_implicit_finally);
-              location_get_data_ref(list,tvarsym(p).localloc,href,is_open_array(tvarsym(p).vartype.def));
-              cg.g_decrrefcount(list,tvarsym(p).vartype.def,href);
+              location_get_data_ref(list,tparavarsym(p).localloc,href,is_open_array(tparavarsym(p).vartype.def));
+              cg.g_decrrefcount(list,tparavarsym(p).vartype.def,href);
             end;
          end
-        else if (tsym(p).typ=varsym) and
-          (tvarsym(p).varspez=vs_value) and
-          (is_open_array(tvarsym(p).vartype.def) or
-           is_array_of_const(tvarsym(p).vartype.def)) then
-          begin
-            { cdecl functions don't have a high pointer so it is not possible to generate
-              a local copy }
-            if not(current_procinfo.procdef.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
-              cg.g_releasevaluepara_openarray(list,tvarsym(p).localloc);
-          end;
+        else
+         if (tparavarsym(p).varspez=vs_value) and
+            (is_open_array(tparavarsym(p).vartype.def) or
+             is_array_of_const(tparavarsym(p).vartype.def)) then
+           begin
+             { cdecl functions don't have a high pointer so it is not possible to generate
+               a local copy }
+             if not(current_procinfo.procdef.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
+               cg.g_releasevaluepara_openarray(list,tparavarsym(p).localloc);
+           end;
       end;
 
 
@@ -1016,7 +1014,7 @@ implementation
 {$ifndef cpu64bit}
         href   : treference;
 {$endif cpu64bit}
-        ressym : tvarsym;
+        ressym : tabstractnormalvarsym;
         resloc,
         restmploc : tlocation;
         hreg   : tregister;
@@ -1027,7 +1025,7 @@ implementation
            (
             (po_assembler in current_procinfo.procdef.procoptions) and
             (not(assigned(current_procinfo.procdef.funcretsym)) or
-             (tvarsym(current_procinfo.procdef.funcretsym).refs=0))
+             (tabstractvarsym(current_procinfo.procdef.funcretsym).refs=0))
            ) then
            exit;
 
@@ -1037,9 +1035,9 @@ implementation
 
         { constructors return self }
         if (current_procinfo.procdef.proctypeoption=potype_constructor) then
-          ressym:=tvarsym(current_procinfo.procdef.parast.search('self'))
+          ressym:=tabstractnormalvarsym(current_procinfo.procdef.parast.search('self'))
         else
-          ressym:=tvarsym(current_procinfo.procdef.funcretsym);
+          ressym:=tabstractnormalvarsym(current_procinfo.procdef.funcretsym);
         if (ressym.refs>0) then
           begin
 {$ifdef OLDREGVARS}
@@ -1304,10 +1302,10 @@ implementation
             paraloc:=hp.paraloc[calleeside].location;
             if not assigned(paraloc) then
               internalerror(200408203);
-            case tvarsym(hp.parasym).localloc.loc of
+            case tabstractnormalvarsym(hp.parasym).localloc.loc of
               LOC_REFERENCE :
                 begin
-                  href:=tvarsym(hp.parasym).localloc.reference;
+                  href:=tparavarsym(hp.parasym).localloc.reference;
                   while assigned(paraloc) do
                     begin
                       unget_para(paraloc^);
@@ -1319,28 +1317,28 @@ implementation
               LOC_CREGISTER :
                 begin
 {$ifndef cpu64bit}
-                  if tvarsym(hp.parasym).localloc.size in [OS_64,OS_S64] then
+                  if tparavarsym(hp.parasym).localloc.size in [OS_64,OS_S64] then
                     begin
                       { First 32bits }
                       unget_para(paraloc^);
                       if (target_info.endian=ENDIAN_BIG) then
-                        gen_load_reg(paraloc^,tvarsym(hp.parasym).localloc.register64.reghi)
+                        gen_load_reg(paraloc^,tparavarsym(hp.parasym).localloc.register64.reghi)
                       else
-                        gen_load_reg(paraloc^,tvarsym(hp.parasym).localloc.register64.reglo);
+                        gen_load_reg(paraloc^,tparavarsym(hp.parasym).localloc.register64.reglo);
                       { Second 32bits }
                       if not assigned(paraloc^.next) then
                         internalerror(200410104);
                       unget_para(paraloc^);
                       if (target_info.endian=ENDIAN_BIG) then
-                        gen_load_reg(paraloc^,tvarsym(hp.parasym).localloc.register64.reglo)
+                        gen_load_reg(paraloc^,tparavarsym(hp.parasym).localloc.register64.reglo)
                       else
-                        gen_load_reg(paraloc^,tvarsym(hp.parasym).localloc.register64.reghi);
+                        gen_load_reg(paraloc^,tparavarsym(hp.parasym).localloc.register64.reghi);
                     end
                   else
 {$endif cpu64bit}
                     begin
                       unget_para(paraloc^);
-                      gen_load_reg(paraloc^,tvarsym(hp.parasym).localloc.register);
+                      gen_load_reg(paraloc^,tparavarsym(hp.parasym).localloc.register);
                       if assigned(paraloc^.next) then
                         internalerror(200410105);
                     end;
@@ -1363,7 +1361,7 @@ implementation
                   tg.UnGetTemp(list,tempref);
 {$else sparc}
                   unget_para(paraloc^);
-                  gen_load_reg(paraloc^,tvarsym(hp.parasym).localloc.register);
+                  gen_load_reg(paraloc^,tparavarsym(hp.parasym).localloc.register);
                   if assigned(paraloc^.next) then
                     internalerror(200410109);
 {$endif sparc}
@@ -1371,7 +1369,7 @@ implementation
               LOC_CMMREGISTER :
                 begin
                   unget_para(paraloc^);
-                  gen_load_reg(paraloc^,tvarsym(hp.parasym).localloc.register);
+                  gen_load_reg(paraloc^,tparavarsym(hp.parasym).localloc.register);
                   if assigned(paraloc^.next) then
                     internalerror(200410108);
                 end;
@@ -1619,30 +1617,30 @@ implementation
                tostr(N_LSYM)+',0,0,'+tostr(current_procinfo.parent_framepointer_offset)))); }
 
             if assigned(current_procinfo.procdef.funcretsym) and
-               (tvarsym(current_procinfo.procdef.funcretsym).refs>0) then
+               (tabstractnormalvarsym(current_procinfo.procdef.funcretsym).refs>0) then
               begin
-                if tvarsym(current_procinfo.procdef.funcretsym).localloc.loc=LOC_REFERENCE then
+                if tabstractnormalvarsym(current_procinfo.procdef.funcretsym).localloc.loc=LOC_REFERENCE then
                   begin
 {$warning Need to add gdb support for ret in param register calling}
                     if paramanager.ret_in_param(current_procinfo.procdef.rettype.def,current_procinfo.procdef.proccalloption) then
                       begin
                         list.concat(Tai_stabs.Create(strpnew(
                            '"'+current_procinfo.procdef.procsym.name+':X*'+tstoreddef(current_procinfo.procdef.rettype.def).numberstring+'",'+
-                           tostr(N_tsym)+',0,0,'+tostr(tvarsym(current_procinfo.procdef.funcretsym).localloc.reference.offset))));
+                           tostr(N_tsym)+',0,0,'+tostr(tabstractnormalvarsym(current_procinfo.procdef.funcretsym).localloc.reference.offset))));
                         if (m_result in aktmodeswitches) then
                           list.concat(Tai_stabs.Create(strpnew(
                              '"RESULT:X*'+tstoreddef(current_procinfo.procdef.rettype.def).numberstring+'",'+
-                             tostr(N_tsym)+',0,0,'+tostr(tvarsym(current_procinfo.procdef.funcretsym).localloc.reference.offset))))
+                             tostr(N_tsym)+',0,0,'+tostr(tabstractnormalvarsym(current_procinfo.procdef.funcretsym).localloc.reference.offset))))
                       end
                     else
                       begin
                         list.concat(Tai_stabs.Create(strpnew(
                            '"'+current_procinfo.procdef.procsym.name+':X'+tstoreddef(current_procinfo.procdef.rettype.def).numberstring+'",'+
-                           tostr(N_tsym)+',0,0,'+tostr(tvarsym(current_procinfo.procdef.funcretsym).localloc.reference.offset))));
+                           tostr(N_tsym)+',0,0,'+tostr(tabstractnormalvarsym(current_procinfo.procdef.funcretsym).localloc.reference.offset))));
                         if (m_result in aktmodeswitches) then
                           list.concat(Tai_stabs.Create(strpnew(
                              '"RESULT:X'+tstoreddef(current_procinfo.procdef.rettype.def).numberstring+'",'+
-                             tostr(N_tsym)+',0,0,'+tostr(tvarsym(current_procinfo.procdef.funcretsym).localloc.reference.offset))));
+                             tostr(N_tsym)+',0,0,'+tostr(tabstractnormalvarsym(current_procinfo.procdef.funcretsym).localloc.reference.offset))));
                        end;
                   end;
               end;
@@ -1812,7 +1810,7 @@ implementation
       end;
 
 
-    procedure insertbssdata(sym : tvarsym);
+    procedure insertbssdata(sym : tglobalvarsym);
       var
         l,varalign : longint;
         storefilepos : tfileposinfo;
@@ -1852,16 +1850,16 @@ implementation
         sym:=tsym(st.symindex.first);
         while assigned(sym) do
           begin
-            if (sym.typ=varsym) then
+            if (sym.typ in [globalvarsym,localvarsym,paravarsym]) then
               begin
-                with tvarsym(sym) do
+                with tabstractnormalvarsym(sym) do
                   begin
                     { Parameters passed to assembler procedures need to be kept
                       in the original location }
-                    if (st.symtabletype=parasymtable) and
+                    if (sym.typ=paravarsym) and
                        (po_assembler in current_procinfo.procdef.procoptions) then
                       begin
-                        paraitem.paraloc[calleeside].get_location(localloc);
+                        tparavarsym(sym).paraitem.paraloc[calleeside].get_location(localloc);
                       end
                     else
                       begin
@@ -1916,10 +1914,10 @@ implementation
                               parasymtable :
                                 begin
                                   { Reuse the parameter location for values to are at a single location on the stack }
-                                  if (paraitem.paraloc[calleeside].is_simple_reference) then
+                                  if (tparavarsym(sym).paraitem.paraloc[calleeside].is_simple_reference) then
                                     begin
-                                      reference_reset_base(localloc.reference,paraitem.paraloc[calleeside].location^.reference.index,
-                                          paraitem.paraloc[calleeside].location^.reference.offset);
+                                      reference_reset_base(localloc.reference,tparavarsym(sym).paraitem.paraloc[calleeside].location^.reference.index,
+                                          tparavarsym(sym).paraitem.paraloc[calleeside].location^.reference.offset);
                                     end
                                   else
                                     begin
@@ -1981,9 +1979,9 @@ implementation
         sym:=tsym(st.symindex.first);
         while assigned(sym) do
           begin
-            if (sym.typ=varsym) then
+            if (sym.typ in [globalvarsym,localvarsym,paravarsym]) then
               begin
-                with tvarsym(sym) do
+                with tabstractnormalvarsym(sym) do
                   begin
                     { Note: We need to keep the data available in memory
                       for the sub procedures that can access local data
@@ -2019,9 +2017,9 @@ implementation
         sym:=tsym(pd.parast.symindex.first);
         while assigned(sym) do
           begin
-            if sym.typ=varsym then
+            if sym.typ=paravarsym then
               begin
-                with tvarsym(sym) do
+                with tparavarsym(sym) do
                   begin
                     { for localloc <> LOC_REFERENCE, we need regvar support inside inlined procedures }
                     localloc.loc:=LOC_REFERENCE;
@@ -2086,7 +2084,7 @@ implementation
            (po_assembler in pd.procoptions) then
           exit;
         { for localloc <> LOC_REFERENCE, we need regvar support inside inlined procedures }
-        with tvarsym(pd.funcretsym) do
+        with tlocalvarsym(pd.funcretsym) do
           begin
             localloc.loc:=LOC_REFERENCE;
             localloc.size:=int_cgsize(paramanager.push_size(varspez,vartype.def,pocall_inline));
@@ -2182,8 +2180,10 @@ implementation
         case p.typ of
           typesym :
             def:=tstoreddef(ttypesym(p).restype.def);
-          varsym :
-            def:=tstoreddef(tvarsym(p).vartype.def);
+          globalvarsym,
+          localvarsym,
+          paravarsym :
+            def:=tstoreddef(tabstractvarsym(p).vartype.def);
           else
             internalerror(200108263);
         end;
@@ -2212,7 +2212,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.237  2004-11-08 20:23:29  florian
+  Revision 1.238  2004-11-08 22:09:59  peter
+    * tvarsym splitted
+
+  Revision 1.237  2004/11/08 20:23:29  florian
     * fixed open arrays when using register variables
 
   Revision 1.236  2004/11/04 17:12:24  peter

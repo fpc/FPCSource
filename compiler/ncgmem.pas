@@ -163,7 +163,7 @@ implementation
     procedure tcgloadparentfpnode.pass_2;
       var
         currpi : tprocinfo;
-        hsym   : tvarsym;
+        hsym   : tparavarsym;
         href   : treference;
       begin
         if (current_procinfo.procdef.parast.symtablelevel=parentpd.parast.symtablelevel) then
@@ -177,7 +177,7 @@ implementation
             location_reset(location,LOC_REGISTER,OS_ADDR);
             location.register:=cg.getaddressregister(exprasmlist);
             { load framepointer of current proc }
-            hsym:=tvarsym(currpi.procdef.parast.search('parentfp'));
+            hsym:=tparavarsym(currpi.procdef.parast.search('parentfp'));
             if not assigned(hsym) then
               internalerror(200309281);
             cg.a_load_loc_reg(exprasmlist,OS_ADDR,hsym.localloc,location.register);
@@ -187,7 +187,7 @@ implementation
                 currpi:=currpi.parent;
                 if not assigned(currpi) then
                   internalerror(200311201);
-                hsym:=tvarsym(currpi.procdef.parast.search('parentfp'));
+                hsym:=tparavarsym(currpi.procdef.parast.search('parentfp'));
                 if not assigned(hsym) then
                   internalerror(200309282);
                 if hsym.localloc.loc<>LOC_REFERENCE then
@@ -223,7 +223,7 @@ implementation
             (left.nodetype=loadn) and
             (tloadnode(left).resulttype.def.deftype=procvardef) and
             assigned(tloadnode(left).symtableentry) and
-            (tloadnode(left).symtableentry.typ=varsym) then
+            (tloadnode(left).symtableentry.typ in [globalvarsym,localvarsym,paravarsym]) then
            cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,left.location.reference,location.register)
          else
            cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,location.register);
@@ -506,7 +506,7 @@ implementation
             if not(current_procinfo.procdef.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
              begin
                { Get high value }
-               hightree:=load_high_value_node(tvarsym(tloadnode(left).symtableentry));
+               hightree:=load_high_value_node(tparavarsym(tloadnode(left).symtableentry));
                { it must be available }
                if not assigned(hightree) then
                  internalerror(200212201);
@@ -878,7 +878,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.101  2004-11-01 23:30:11  peter
+  Revision 1.102  2004-11-08 22:09:59  peter
+    * tvarsym splitted
+
+  Revision 1.101  2004/11/01 23:30:11  peter
     * support > 32bit accesses for x86_64
     * rewrote array size checking to support 64bit
 
