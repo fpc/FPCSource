@@ -189,7 +189,7 @@ procedure InitBrowserCol;
 procedure DoneBrowserCol;
 
 function  LoadBrowserCol(S: PStream): boolean;
-procedure StoreBrowserCol(S: PStream);
+function  StoreBrowserCol(S: PStream) : boolean;
 
 procedure BuildObjectInfo;
 
@@ -1664,7 +1664,7 @@ begin
   end;
 end;
 
-procedure StoreBrowserCol(S: PStream);
+function StoreBrowserCol(S: PStream) : boolean;
 procedure WriteSymbolPointers(P: PSymbol); {$ifndef FPC}far;{$endif}
 var I: sw_integer;
 begin
@@ -1684,6 +1684,7 @@ begin
   StorePointers(S,TypeNames);
   StorePointers(S,Modules);
   Modules^.ForEach(@WriteSymbolPointers);
+  StoreBrowserCol:=(S^.Status=stOK);
 end;
 
 procedure RegisterSymbols;
@@ -1706,7 +1707,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.31  2000-01-07 01:14:19  peter
+  Revision 1.32  2000-01-20 00:24:06  pierre
+   * StoreBrowserCol changed to boolean function
+
+  Revision 1.31  2000/01/07 01:14:19  peter
     * updated copyright to 2000
 
   Revision 1.30  1999/12/01 11:11:19  pierre
