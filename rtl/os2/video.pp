@@ -370,7 +370,6 @@ begin
     if LockUpdateScreen = 0 then
         begin
             if not (Force) then
-            if not (Force) then
                 asm
                     cld
                     mov esi, VideoBuf
@@ -432,7 +431,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2001-02-01 21:35:36  hajny
+  Revision 1.4  2001-02-04 01:55:05  hajny
+    * one more correction (not crucial)
+
+  Revision 1.3  2001/02/01 21:35:36  hajny
     * correction of a previously introduced bug
 
   Revision 1.2  2001/01/23 20:23:56  hajny
