@@ -403,7 +403,7 @@ end['EAX','EBX','ECX','EDX','ESI'];
 {****************************************************************************
                               Object Helpers
 ****************************************************************************}
-
+{$ifndef TEST_GENERIC}
 {$define FPC_SYSTEM_HAS_FPC_HELP_CONSTRUCTOR}
 procedure fpc_help_constructor; assembler; [public,alias:'FPC_HELP_CONSTRUCTOR']; {$ifdef hascompilerproc} compilerproc; {$endif}
 asm
@@ -720,7 +720,7 @@ asm
         popl    %ebp
         ret     $8
 end;
-
+{$endif TEST_GENERIC}
 
 {****************************************************************************
                                  String
@@ -1175,7 +1175,10 @@ procedure inclocked(var l : longint);assembler;
 
 {
   $Log$
-  Revision 1.23  2002-06-09 12:54:37  jonas
+  Revision 1.24  2002-06-16 08:21:26  carl
+  + TEST_GENERIC to test generic versions of code
+
+  Revision 1.23  2002/06/09 12:54:37  jonas
     * fixed memory corruption bug in fpc_help_constructor
 
   Revision 1.22  2002/04/21 18:56:59  peter
