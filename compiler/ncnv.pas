@@ -791,10 +791,14 @@ implementation
          result:=nil;
          if is_currency(left.resulttype.def) and not(is_currency(resulttype.def)) then
            begin
+             left:=caddnode.create(slashn,left,crealconstnode.create(10000.0,left.resulttype));
+             resulttypepass(left);
            end
          else
-           if is_currency(resulttype.def) then
+           if is_currency(resulttype.def) and not(is_currency(left.resulttype.def)) then
              begin
+               left:=caddnode.create(muln,left,crealconstnode.create(10000.0,left.resulttype));
+               resulttypepass(left);
              end;
          if left.nodetype=realconstn then
            begin
@@ -1971,7 +1975,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.89  2002-11-25 17:43:18  peter
+  Revision 1.90  2002-11-27 11:29:21  peter
+    * when converting from and to currency divide or multiple the
+      result by 10000
+
+  Revision 1.89  2002/11/25 17:43:18  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once
