@@ -230,14 +230,15 @@ begin
 {$ifdef RTSIGACTION}
   {$ifdef cpusparc}
     { Sparc has an extra stub parameter }
-    do_syscall(syscall_nr_rt_sigaction,TSysParam(sig),TSysParam(act),TSysParam(oact),TSysParam(PtrInt(@Fprt_sigreturn_stub)-8),TSysParam(8));
+    Fpsigaction:=do_syscall(syscall_nr_rt_sigaction,TSysParam(sig),TSysParam(act),TSysParam(oact),TSysParam(PtrInt(@Fprt_sigreturn_stub)-8),TSysParam(8));
   {$else cpusparc}
-    do_syscall(syscall_nr_rt_sigaction,TSysParam(sig),TSysParam(act),TSysParam(oact),TSysParam(8));
+    Fpsigaction:=do_syscall(syscall_nr_rt_sigaction,TSysParam(sig),TSysParam(act),TSysParam(oact),TSysParam(8));
   {$endif cpusparc}
 {$else RTSIGACTION}
-  do_syscall(syscall_nr_sigaction,TSysParam(sig),TSysParam(act),TSysParam(oact));
+  Fpsigaction:=do_syscall(syscall_nr_sigaction,TSysParam(sig),TSysParam(act),TSysParam(oact));
 {$endif RTSIGACTION}
 end;
+
 
 function Fpftruncate(fd : cint; flength : off_t): cint; [public, alias : 'FPC_SYSC_FTRUNCATE'];
 { See notes lseek. This one is completely similar for the parameter (but
@@ -538,7 +539,10 @@ end;
 
 {
  $Log$
- Revision 1.27  2004-05-31 14:31:57  peter
+ Revision 1.28  2004-05-31 20:25:04  peter
+   * removed warnings
+
+ Revision 1.27  2004/05/31 14:31:57  peter
    * remove comment warnings
 
  Revision 1.26  2004/05/31 09:22:42  peter

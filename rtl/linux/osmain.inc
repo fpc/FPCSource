@@ -65,9 +65,6 @@ var
  execpathstr : shortstring;
 
 function paramstr(l: longint) : string;
- var
-  s: string;
-  s1: string;
  begin
    { stricly conforming POSIX applications  }
    { have the executing filename as argv[0] }
@@ -592,7 +589,10 @@ end;
 
 {
  $Log$
- Revision 1.18  2004-05-16 18:51:20  peter
+ Revision 1.19  2004-05-31 20:25:04  peter
+   * removed warnings
+
+ Revision 1.18  2004/05/16 18:51:20  peter
    * use thandle in do_*
 
  Revision 1.17  2004/05/01 15:59:17  florian

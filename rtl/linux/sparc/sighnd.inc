@@ -20,7 +20,7 @@
 procedure SignalToRunerror(Sig: longint; SigContext: SigContextRec); cdecl;
 
 var
-  res,fpustate : word;
+  res : word;
 begin
   res:=0;
   case sig of
@@ -42,7 +42,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2003-11-06 16:28:52  peter
+  Revision 1.3  2004-05-31 20:25:04  peter
+    * removed warnings
+
+  Revision 1.2  2003/11/06 16:28:52  peter
     * compile fix
 
   Revision 1.1  2003/11/06 16:22:01  peter

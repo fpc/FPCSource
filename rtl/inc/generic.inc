@@ -176,14 +176,15 @@ end;
 {$ifndef FPC_SYSTEM_HAS_INDEXDWORD}
 function IndexDWord(Const buf;len:longint;b:DWord):longint;
 type
-  longintarray = array [0..maxlongint div 4] of longint;
+  dwordarray = array [0..maxlongint div 4] of dword;
 var
   I : longint;
 begin
   I:=0;
   if (len < 0) then
     len := high(longint);
-  while (I<Len) and (longintarray(buf)[I]<>b) do inc(I);
+  while (I<Len) and (dwordarray(buf)[I]<>b) do
+    inc(I);
   if (i=Len) then
    i:=-1;           {Can't use 0, since it is a possible value for index}
   IndexDWord:=I;
@@ -202,7 +203,7 @@ end;
 {$ifndef FPC_SYSTEM_HAS_COMPAREBYTE}
 function CompareByte(Const buf1,buf2;len:longint):longint;
 type
-  bytearray    = array [0..maxlongint-1] of byte;
+  bytearray = array [0..maxlongint-1] of byte;
 var
   I : longint;
 begin
@@ -231,7 +232,7 @@ end;
 {$ifndef FPC_SYSTEM_HAS_COMPAREWORD}
 function CompareWord(Const buf1,buf2;len:longint):longint;
 type
-  wordarray    = array [0..maxlongint div 2] of word;
+  wordarray = array [0..maxlongint div 2] of word;
 var
   I : longint;
 begin
@@ -260,7 +261,7 @@ end;
 {$ifndef FPC_SYSTEM_HAS_COMPAREDWORD}
 function CompareDWord(Const buf1,buf2;len:longint):longint;
 type
-  longintarray    = array [0..maxlongint div 4] of longint;
+  longintarray = array [0..maxlongint div 4] of longint;
 var
   I : longint;
 begin
@@ -320,10 +321,9 @@ end;
 {$ifndef FPC_SYSTEM_HAS_COMPARECHAR0}
 function CompareChar0(Const buf1,buf2;len:longint):longint;
 type
-  bytearray    = array [0..maxlongint-1] of byte;
-
-Var i : longint;
-
+  bytearray = array [0..maxlongint-1] of byte;
+var
+  i : longint;
 begin
   I:=0;
   if (Len<>0) and (@Buf1<>@Buf2) then
@@ -1165,11 +1165,11 @@ var
      if (l shr 32=$80000000) and ((l and $ffffffff)=0) then
 {$else}
      if l=int64($8000000000000000) then
-{$endif}     
+{$endif}
        begin
          s:='-9223372036854775808';
          exit;
-       end; 
+       end;
      { handle case where l = 0 }
      if l = 0 then
        begin
@@ -1225,7 +1225,10 @@ end;
 
 {
   $Log$
-  Revision 1.78  2004-05-02 15:15:45  peter
+  Revision 1.79  2004-05-31 20:25:04  peter
+    * removed warnings
+
+  Revision 1.78  2004/05/02 15:15:45  peter
     * fix arguments for shortstr_compare
 
   Revision 1.77  2004/05/02 00:31:03  peter

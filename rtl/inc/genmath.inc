@@ -197,7 +197,7 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
     shiftCount := aExp - $9E;
     if ( 0 <= shiftCount ) then
       Begin
-        if ( a <> $CF000000 ) then
+        if ( a <> Float32($CF000000) ) then
           Begin
             if ( (aSign=0) or ( ( aExp = $FF ) and (aSig<>0) ) ) then
               Begin
@@ -223,7 +223,9 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
 
   function trunc(d : real) : int64;[internconst:in_const_trunc];
     var
+{$ifdef cpuarm}
      l: longint;
+{$endif cpuarm}
      f32 : float32;
      f64 : float64;
     Begin
@@ -629,25 +631,25 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
 {$endif hascompilerproc}
      var
       fr: Real;
-      tr: Real;
+      tr: Int64;
     Begin
        fr := abs(Frac(d));
        tr := Trunc(d);
        if fr > 0.5 then
          if d >= 0 then
-           result:=Trunc(d)+1
+           result:=tr+1
          else
-           result:=Trunc(d)-1
+           result:=tr-1
        else
        if fr < 0.5 then
-          result:=Trunc(d)
+          result:=tr
        else { fr = 0.5 }
           { check sign to decide ... }
           { as in Turbo Pascal...    }
           if d >= 0.0 then
-            result:=Trunc(d)+1
+            result:=tr+1
           else
-            result:=Trunc(d);
+            result:=tr;
     end;
 {$endif}
 
@@ -1186,7 +1188,10 @@ function fpc_int64_to_double(i : int64): double; compilerproc;
 
 {
   $Log$
-  Revision 1.23  2004-03-13 18:33:52  florian
+  Revision 1.24  2004-05-31 20:25:04  peter
+    * removed warnings
+
+  Revision 1.23  2004/03/13 18:33:52  florian
     * fixed some arm related real stuff
 
   Revision 1.22  2004/03/11 22:39:53  florian

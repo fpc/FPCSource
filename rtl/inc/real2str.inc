@@ -63,7 +63,7 @@ type
   TIntPartStack = array[1..maxDigits+1] of valReal;
 
 var
-  roundCorr, corrVal, factor, orgd: valReal;
+  roundCorr, corrVal, factor : valReal;
   spos, endpos, fracCount: longint;
   correct, currprec: longint;
   temp : string;
@@ -461,7 +461,10 @@ end;
 
 {
   $Log$
-  Revision 1.15  2004-03-13 18:47:57  florian
+  Revision 1.16  2004-05-31 20:25:04  peter
+    * removed warnings
+
+  Revision 1.15  2004/03/13 18:47:57  florian
     * "improved" behavior of real2str for arm, still needs fixing
 
   Revision 1.14  2004/03/13 18:33:52  florian

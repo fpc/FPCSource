@@ -30,12 +30,12 @@ type
       kind : byte;
       namelen : byte;
       { here the chars follow, we've to skip them }
-      elesize : t_size;
+      elesize : sizeint;
       eletype : pdynarraytypeinfo;
    end;
 
 
-function fpc_dynarray_rangecheck(p : pointer;i : tdynarrayindex) : tdynarrayindex;[Public,Alias:'FPC_DYNARRAY_RANGECHECK']; {$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_dynarray_rangecheck(p : pointer;i : tdynarrayindex);[Public,Alias:'FPC_DYNARRAY_RANGECHECK']; {$ifdef hascompilerproc} compilerproc; {$endif}
   begin
      if not(assigned(p)) or (i<0) or (i>pdynarray(p-sizeof(tdynarray))^.high) then
        HandleErrorFrame(201,get_frame);
@@ -63,7 +63,7 @@ function fpc_dynarray_high(p : pointer) : tdynarrayindex;[Public,Alias:'FPC_DYNA
 { releases and finalizes the data of a dyn. array and sets p to nil }
 procedure fpc_dynarray_clear_internal(p : pointer;ti : pointer);
   var
-    elesize : t_size;
+    elesize : sizeint;
     eletype : pdynarraytypeinfo;
   begin
      if p=nil then
@@ -153,15 +153,15 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
   dimcount : dword;dims : pdynarrayindex);[Public,Alias:'FPC_DYNARR_SETLENGTH']; {$ifdef hascompilerproc} compilerproc; {$endif}
 
   var
-     movelen: cardinal;
      i : tdynarrayindex;
-     size : t_size;
+     movelen,
+     size : sizeint;
      { contains the "fixed" pointers where the refcount }
      { and high are at positive offsets                 }
      realp,newp : pdynarray;
      ti : pdynarraytypeinfo;
      updatep: boolean;
-     elesize : t_size;
+     elesize : sizeint;
      eletype : pdynarraytypeinfo;
 
   begin
@@ -297,7 +297,7 @@ procedure fpc_dynarray_copy(var pdest : pointer;psrc : pointer;ti : pointer;
     cnt,
     i,size : longint;
     highidx : tdynarrayindex;
-    elesize : t_size;
+    elesize : sizeint;
     eletype : pdynarraytypeinfo;
   begin
      highidx:=lowidx+count-1;
@@ -344,7 +344,10 @@ procedure fpc_dynarray_copy(var pdest : pointer;psrc : pointer;ti : pointer;
 
 {
   $Log$
-  Revision 1.27  2004-05-31 14:31:57  peter
+  Revision 1.28  2004-05-31 20:25:04  peter
+    * removed warnings
+
+  Revision 1.27  2004/05/31 14:31:57  peter
     * remove comment warnings
 
   Revision 1.26  2004/05/24 07:18:17  michael

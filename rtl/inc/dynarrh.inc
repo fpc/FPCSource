@@ -17,13 +17,15 @@
 **********************************************************************}
 
 type
-   tdynarrayindex = longint;
+   tdynarrayindex = sizeint;
    pdynarrayindex = ^tdynarrayindex;
-   t_size = dword;
 
 {
   $Log$
-  Revision 1.2  2002-09-07 15:07:45  peter
+  Revision 1.3  2004-05-31 20:25:04  peter
+    * removed warnings
+
+  Revision 1.2  2002/09/07 15:07:45  peter
     * old logs removed and tabs fixed
 
 }

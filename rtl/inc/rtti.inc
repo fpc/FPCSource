@@ -87,13 +87,14 @@ Procedure fpc_Initialize (Data,TypeInfo : pointer);saveregisters;[Public,Alias :
 
 { this definition is sometimes (depending on switches)
   already defined or not so define it locally to avoid problems PM }
-Var Temp       : PByte;
-    I          : longint;
-    Size,Count : longint;
-    TInfo : Pointer;
+Var Temp    : PByte;
+    I,Count : longint;
 {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
     ArrayRec : TArrayRec;
-    RecElem : TRecElem;
+    RecElem  : TRecElem;
+{$else FPC_REQUIRES_PROPER_ALIGNMENT}
+    Size  : longint;
+    TInfo : Pointer;
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
 begin
   Temp:=PByte(TypeInfo);
@@ -148,13 +149,14 @@ end;
 Procedure fpc_finalize (Data,TypeInfo: Pointer);saveregisters;[Public,Alias : 'FPC_FINALIZE'];  {$ifdef hascompilerproc} compilerproc; {$endif}
 { this definition is sometimes (depending on switches)
   already defined or not so define it locally to avoid problems PM }
-Var Temp       : PByte;
-    I          : longint;
-    Size,Count : longint;
-    TInfo : Pointer;
+Var Temp    : PByte;
+    I,Count : longint;
 {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
     ArrayRec : TArrayRec;
     RecElem : TRecElem;
+{$else FPC_REQUIRES_PROPER_ALIGNMENT}
+    Size  : longint;
+    TInfo : Pointer;
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
 begin
   Temp:=PByte(TypeInfo);
@@ -220,13 +222,14 @@ Procedure fpc_Addref (Data,TypeInfo : Pointer);saveregisters; [Public,alias : 'F
 
 { this definition is sometimes (depending on switches)
   already defined or not so define it locally to avoid problems PM }
-Var Temp       : PByte;
-    I          : longint;
-    Size,Count : longint;
-    TInfo : Pointer;
+Var Temp    : PByte;
+    I,Count : longint;
 {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
     ArrayRec : TArrayRec;
     RecElem : TRecElem;
+{$else FPC_REQUIRES_PROPER_ALIGNMENT}
+    Size  : longint;
+    TInfo : Pointer;
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
 begin
   Temp:=PByte(TypeInfo);
@@ -291,13 +294,14 @@ procedure fpc_systemDecRef (Data, TypeInfo : Pointer);saveregisters;[external na
 Procedure fpc_DecRef (Data, TypeInfo : Pointer);saveregisters;[Public,alias : 'FPC_DECREF'];  {$ifdef hascompilerproc} compilerproc; {$endif}
 { this definition is sometimes (depending on switches)
   already defined or not so define it locally to avoid problems PM }
-Var Temp       : PByte;
-    I          : longint;
-    Size,Count : longint;
-    TInfo : Pointer;
+Var Temp    : PByte;
+    I,Count : longint;
 {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
     ArrayRec : TArrayRec;
     RecElem : TRecElem;
+{$else FPC_REQUIRES_PROPER_ALIGNMENT}
+    Size  : longint;
+    TInfo : Pointer;
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
 begin
   Temp:=PByte(TypeInfo);
@@ -368,7 +372,10 @@ procedure fpc_finalize_array(data,typeinfo : pointer;count,size : longint); [Pub
 
 {
   $Log$
-  Revision 1.11  2004-03-27 23:22:38  florian
+  Revision 1.12  2004-05-31 20:25:04  peter
+    * removed warnings
+
+  Revision 1.11  2004/03/27 23:22:38  florian
     * fixed alignment issues
 
   Revision 1.10  2004/02/26 16:19:01  peter
