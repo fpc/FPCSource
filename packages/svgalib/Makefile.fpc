@@ -6,5 +6,8 @@
 units=svgalib vgamouse
 examples=testvga vgatest
 
+[install]
+examplesubdir=svgalib
+
 [dirs]
 fpcdir=../..

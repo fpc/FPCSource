@@ -192,6 +192,7 @@ override EXAMPLEOBJECTS+=testcmem
 
 # Install
 
+EXAMPLESUBDIR=cmem
 ZIPTARGET=install
 
 # Defaults

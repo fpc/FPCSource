@@ -6,5 +6,8 @@
 units=gii ggi ggi2d
 examples=ggi1
 
+[install]
+examplesubdir=ggi
+
 [dirs]
 fpcdir=../..

@@ -192,6 +192,7 @@ override EXAMPLEOBJECTS+=firework testn ocrt_demo edit_demo db_demo
 
 # Install
 
+EXAMPLESUBDIR=ncurses
 ZIPTARGET=install
 
 # Defaults

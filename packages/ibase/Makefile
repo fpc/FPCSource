@@ -192,6 +192,7 @@ override EXAMPLEOBJECTS+=testib40 testib60
 
 # Install
 
+EXAMPLESUBDIR=ibase
 ZIPTARGET=install
 
 # Defaults

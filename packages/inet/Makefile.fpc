@@ -6,6 +6,9 @@
 units=inet
 examples=testinet pfinger
 
+[install]
+examplesubdir=inet
+
 [dirs]
 fpcdir=../..
 

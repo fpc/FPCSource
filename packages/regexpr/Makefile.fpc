@@ -6,5 +6,8 @@
 units=regexpr
 examples=testreg1
 
+[install]
+examplesubdir=regexpr
+
 [dirs]
 fpcdir=../..

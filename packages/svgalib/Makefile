@@ -192,6 +192,7 @@ override EXAMPLEOBJECTS+=testvga vgatest
 
 # Install
 
+EXAMPLESUBDIR=svgalib
 ZIPTARGET=install
 
 # Defaults

@@ -192,6 +192,7 @@ override EXAMPLEOBJECTS+=testdb
 
 # Install
 
+EXAMPLESUBDIR=mysql
 ZIPTARGET=install
 
 # Defaults

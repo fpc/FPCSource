@@ -192,6 +192,7 @@ override EXAMPLEOBJECTS+=testreg1
 
 # Install
 
+EXAMPLESUBDIR=regexpr
 ZIPTARGET=install
 
 # Defaults

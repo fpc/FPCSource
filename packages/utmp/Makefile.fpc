@@ -6,6 +6,9 @@
 units=utmp
 examples=testutmp
 
+[install]
+examplesubdir=utmp
+
 [dirs]
 fpcdir=../..
 

@@ -6,5 +6,12 @@
 units=uncgi
 examples=testcgi
 
+[install]
+examplesubdir=uncgi
+
 [dirs]
 fpcdir=../..
+
+[rules]
+exampleinstall: fpc_exampleinstall
+        $(COPY) testcgi.sh testcgi.bat $(EXAMPLEINSTALLDIR)

@@ -6,5 +6,8 @@
 units=dllist postgres
 examples=testpg1 testpg2
 
+[install]
+examplesubdir=postgres
+
 [dirs]
 fpcdir=../..

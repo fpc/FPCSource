@@ -192,6 +192,7 @@ override EXAMPLEOBJECTS+=testlog
 
 # Install
 
+EXAMPLESUBDIR=syslog
 ZIPTARGET=install
 
 # Defaults

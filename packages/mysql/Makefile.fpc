@@ -6,6 +6,9 @@
 units=mysql_com mysql_version mysql
 examples=testdb
 
+[install]
+examplesubdir=mysql
+
 [dirs]
 fpcdir=../..
 

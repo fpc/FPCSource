@@ -6,6 +6,9 @@
 units=cmem
 examples=testcmem
 
+[install]
+examplesubdir=cmem
+
 [dirs]
 fpcdir=../..
 

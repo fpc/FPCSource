@@ -6,5 +6,8 @@
 units=systemlog
 examples=testlog
 
+[install]
+examplesubdir=syslog
+
 [dirs]
 fpcdir=../..

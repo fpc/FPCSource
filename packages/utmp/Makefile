@@ -192,6 +192,7 @@ override EXAMPLEOBJECTS+=testutmp
 
 # Install
 
+EXAMPLESUBDIR=utmp
 ZIPTARGET=install
 
 # Defaults

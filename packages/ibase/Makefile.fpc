@@ -6,6 +6,9 @@
 units=ibase40 ibase60
 examples=testib40 testib60
 
+[install]
+examplesubdir=ibase
+
 [dirs]
 fpcdir=../..
 

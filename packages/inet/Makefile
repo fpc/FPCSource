@@ -192,6 +192,7 @@ override EXAMPLEOBJECTS+=testinet pfinger
 
 # Install
 
+EXAMPLESUBDIR=inet
 ZIPTARGET=install
 
 # Defaults

@@ -192,6 +192,7 @@ override EXAMPLEOBJECTS+=ggi1
 
 # Install
 
+EXAMPLESUBDIR=ggi
 ZIPTARGET=install
 
 # Defaults

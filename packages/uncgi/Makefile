@@ -192,6 +192,7 @@ override EXAMPLEOBJECTS+=testcgi
 
 # Install
 
+EXAMPLESUBDIR=uncgi
 ZIPTARGET=install
 
 # Defaults
@@ -778,8 +779,6 @@ install: fpc_install
 
 sourceinstall: fpc_sourceinstall
 
-exampleinstall: fpc_exampleinstall
-
 zipinstall: fpc_zipinstall
 
 zipsourceinstall: fpc_zipsourceinstall
@@ -794,7 +793,7 @@ cleanall: fpc_cleanall
 
 info: fpc_info
 
-.PHONY:  all debug examples test smart shared showinstall install sourceinstall exampleinstall zipinstall zipsourceinstall zipexampleinstall clean distclean cleanall info
+.PHONY:  all debug examples test smart shared showinstall install sourceinstall zipinstall zipsourceinstall zipexampleinstall clean distclean cleanall info
 
 #####################################################################
 # Units
@@ -1179,3 +1178,9 @@ ifneq ($(wildcard fpcmake.loc),)
 include fpcmake.loc
 endif
 
+#####################################################################
+# Users rules
+#####################################################################
+
+exampleinstall: fpc_exampleinstall
+	$(COPY) testcgi.sh testcgi.bat $(EXAMPLEINSTALLDIR)

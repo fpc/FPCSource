@@ -192,6 +192,7 @@ override EXAMPLEOBJECTS+=testpg1 testpg2
 
 # Install
 
+EXAMPLESUBDIR=postgres
 ZIPTARGET=install
 
 # Defaults
