@@ -36,7 +36,8 @@ uses
   GL;
 
 {$IFDEF Win32}
-// Not declared in Windows.pas.
+{ Declared in Windows unit as well in FPC; but declared here as well, to be
+  fully compatible to upstream version  - sg }
 function wglGetProcAddress(proc: PChar): Pointer; extdecl; external 'OpenGL32.dll';
 {$ELSE}
 function wglGetProcAddress(proc: PChar): Pointer;
