@@ -3,7 +3,7 @@
 #
 
 [targets]
-units=classes $(INCUNITS) $(XMLUNITS) $(SHEDITUNITS) process asyncio
+units=classes $(INCUNITS) $(XMLUNITS) $(SHEDITUNITS) process asyncio ssockets
 
 [defaults]
 defaulttarget=linux

@@ -204,7 +204,7 @@ endif
 
 # Targets
 
-override UNITOBJECTS+=classes $(INCUNITS) $(XMLUNITS) $(SHEDITUNITS) process asyncio
+override UNITOBJECTS+=classes $(INCUNITS) $(XMLUNITS) $(SHEDITUNITS) process asyncio ssockets
 
 # Clean
 
