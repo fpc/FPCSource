@@ -612,7 +612,7 @@ Procedure InitInternational;
 begin
   InitInternationalGeneric;
   SysLocale.MBCS:=GetSystemMetrics(SM_DBCSENABLED)<>0;
-  SysLocale.RightToLeft:=GetSystemMetrics(SM_MIDEASTENABLED)<>0;  
+  SysLocale.RightToLeft:=GetSystemMetrics(SM_MIDEASTENABLED)<>0;
   InitAnsi;
   GetFormatSettings;
 end;
@@ -994,6 +994,8 @@ end;
                     Target Dependent WideString stuff
 ****************************************************************************}
 
+{$ifdef HASWIDESTRING}
+
 function Win32CompareWideString(const s1, s2 : WideString) : PtrInt;
   begin
     SetLastError(0);
@@ -1002,8 +1004,8 @@ function Win32CompareWideString(const s1, s2 : WideString) : PtrInt;
     if GetLastError<>0 then
       RaiseLastOSError;
   end;
-  
-  
+
+
 function Win32CompareTextWideString(const s1, s2 : WideString) : PtrInt;
   begin
     SetLastError(0);
@@ -1012,8 +1014,8 @@ function Win32CompareTextWideString(const s1, s2 : WideString) : PtrInt;
     if GetLastError<>0 then
       RaiseLastOSError;
   end;
-  
-  
+
+
 { there is a similiar procedure in the system unit which inits the fields which
   are relevant already for the system unit }
 procedure InitWin32Widestrings;
@@ -1022,14 +1024,18 @@ procedure InitWin32Widestrings;
     widestringmanager.CompareTextWideStringProc:=@Win32CompareTextWideString;
   end;
 
+{$endif HASWIDESTRING}
+
 
 Initialization
+{$ifdef HASWIDESTRING}
   InitWin32Widestrings;
+{$endif HASWIDESTRING}
   InitExceptions;       { Initialize exceptions. OS independent }
-  InitInternational;    { Initialize internationalization settings }  
+  InitInternational;    { Initialize internationalization settings }
   LoadVersionInfo;
   InitSysConfigDir;
-  
+
 Finalization
   DoneExceptions;
   if kernel32dll<>0 then
@@ -1039,7 +1045,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.42  2005-02-26 20:43:52  florian
+  Revision 1.43  2005-03-02 21:10:08  florian
+    * fixed compilation with 1.0.10
+
+  Revision 1.42  2005/02/26 20:43:52  florian
     + WideCompareString and WideCompareText for win32 implemented
 
   Revision 1.41  2005/02/26 14:38:14  florian
