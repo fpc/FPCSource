@@ -1448,7 +1448,7 @@ convutils$(PPUEXT) : $(OBJPASDIR)/convutils.pp
 	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/convutils.pp
 strutils$(PPUEXT) : $(OBJPASDIR)/strutils.pp
 	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/strutils.pp
-macpas$(PPUEXT) : $(INC)/macpas.pp system$(PPUEXT)
+macpas$(PPUEXT) : $(INC)/macpas.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(INC)/macpas.pp $(REDIR)
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT)
 mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
