@@ -52,6 +52,9 @@ install Ä
   NewFolder "{FPCDIR}units:"
   NewFolder "{FPCDIR}units:rtl:"
   Duplicate -y ::units:powerpc-macos:Å.ppu ::units:powerpc-macos:Å.o "{FPCDIR}units:rtl:"
+  Set Exit 0
+  Duplicate -y ::units:powerpc-macos:Å.xcoff "{FPCDIR}units:rtl:" ³ Dev:Null
+  Set Exit 1
 
 
 #system.ppu Ä system.pp macostp.inc macutils.inc {SYSDEPS}
