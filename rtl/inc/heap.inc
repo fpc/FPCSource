@@ -1104,7 +1104,7 @@ function SysAllocMem(size: ptrint): pointer;
 begin
   sysallocmem := MemoryManager.GetMem(size);
   if sysallocmem<>nil then
-   FillChar(sysallocmem^,size,0);
+    FillChar(sysallocmem^,MemoryManager.MemSize(sysallocmem),0);
 end;
 
 
@@ -1286,7 +1286,10 @@ end;
 
 {
   $Log$
-  Revision 1.32  2004-06-18 14:40:55  peter
+  Revision 1.33  2004-06-27 11:57:18  florian
+    * finally (hopefully) fixed sysalloc trouble
+
+  Revision 1.32  2004/06/18 14:40:55  peter
     * moved padding for sparc
 
   Revision 1.31  2004/06/17 16:16:13  peter
