@@ -971,6 +971,15 @@ implementation
                    pass_1:=hp;
                    exit;
                 end
+              { constant pointer to ordinal }
+              else if is_ordinal(resulttype) and
+                (left.nodetype=pointerconstn) then
+                begin
+                   hp:=genordinalconstnode(tpointerconstnode(left).value,resulttype);
+                   firstpass(hp);
+                   pass_1:=hp;
+                   exit;
+                end
 
               {Are we typecasting an ordconst to a char?}
               else
@@ -1191,7 +1200,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2001-02-20 18:37:10  peter
+  Revision 1.20  2001-02-21 11:49:50  jonas
+    * evaluate typecasts of const pointers to ordinals inline ('merged')
+
+  Revision 1.19  2001/02/20 18:37:10  peter
     * removed unused code
 
   Revision 1.18  2001/02/20 13:14:18  marco
