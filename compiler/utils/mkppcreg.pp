@@ -27,10 +27,12 @@ var s : string;
     regtypes,
     numbers,
     stdnames,
+    gasnames,
     motnames,
     stabs : array[0..max_regcount-1] of string[63];
     regnumber_index,
     std_regname_index,
+    gas_regname_index,
     mot_regname_index : array[0..max_regcount-1] of byte;
 
 {$ifndef FPC}
@@ -175,6 +177,38 @@ begin
 end;
 
 
+procedure build_gas_regname_index;
+
+var h,i,j,p,t:byte;
+
+begin
+  {Build the registernumber2regindex index.
+   Step 1: Fill.}
+  for i:=0 to regcount-1 do
+    gas_regname_index[i]:=i;
+  {Step 2: Sort. We use a Shell-Metzner sort.}
+  p:=regcount_bsstart;
+  repeat
+    for h:=0 to regcount-p-1 do
+      begin
+        i:=h;
+        repeat
+          j:=i+p;
+          if gasnames[gas_regname_index[j]]>=gasnames[gas_regname_index[i]] then
+            break;
+          t:=gas_regname_index[i];
+          gas_regname_index[i]:=gas_regname_index[j];
+          gas_regname_index[j]:=t;
+          if i<p then
+            break;
+          dec(i,p);
+        until false;
+      end;
+    p:=p shr 1;
+  until p=0;
+end;
+
+
 procedure build_mot_regname_index;
 
 var h,i,j,p,t:byte;
@@ -234,6 +268,8 @@ begin
         readcomma;
         stdnames[regcount]:=readstr;
         readcomma;
+        gasnames[regcount]:=readstr;
+        readcomma;
         motnames[regcount]:=readstr;
         readcomma;
         stabs[regcount]:=readstr;
@@ -257,8 +293,8 @@ procedure write_inc_files;
 
 var
     norfile,stdfile,motfile,supfile,
-    numfile,stabfile,confile,
-    rnifile,srifile,mrifile:text;
+    numfile,stabfile,confile,gasfile,
+    rnifile,srifile,mrifile,grifile : text;
     first:boolean;
 
 begin
@@ -267,11 +303,13 @@ begin
   openinc(supfile,'rppcsup.inc');
   openinc(numfile,'rppcnum.inc');
   openinc(stdfile,'rppcstd.inc');
+  openinc(gasfile,'rppcgas.inc');
   openinc(motfile,'rppcmot.inc');
   openinc(stabfile,'rppcstab.inc');
   openinc(norfile,'rppcnor.inc');
   openinc(rnifile,'rppcrni.inc');
   openinc(srifile,'rppcsri.inc');
+  openinc(grifile,'rppcgri.inc');
   openinc(mrifile,'rppcmri.inc');
   first:=true;
   for i:=0 to regcount-1 do
@@ -280,10 +318,12 @@ begin
         begin
           writeln(numfile,',');
           writeln(stdfile,',');
+          writeln(gasfile,',');
           writeln(motfile,',');
           writeln(stabfile,',');
           writeln(rnifile,',');
           writeln(srifile,',');
+          writeln(grifile,',');
           writeln(mrifile,',');
         end
       else
@@ -292,10 +332,12 @@ begin
       writeln(supfile,'RS_',names[i],' = ',numbers[i],';');
       write(numfile,'NR_',names[i]);
       write(stdfile,'''',stdnames[i],'''');
+      write(gasfile,'''',gasnames[i],'''');
       write(motfile,'''',motnames[i],'''');
       write(stabfile,stabs[i]);
       write(rnifile,regnumber_index[i]);
       write(srifile,std_regname_index[i]);
+      write(grifile,gas_regname_index[i]);
       write(mrifile,mot_regname_index[i]);
     end;
   write(norfile,regcount);
@@ -303,11 +345,13 @@ begin
   close(supfile);
   closeinc(numfile);
   closeinc(stdfile);
+  closeinc(gasfile);
   closeinc(motfile);
   closeinc(stabfile);
   closeinc(norfile);
   closeinc(rnifile);
   closeinc(srifile);
+  closeinc(grifile);
   closeinc(mrifile);
   writeln('Done!');
   writeln(regcount,' registers procesed');
@@ -324,13 +368,14 @@ begin
      regcount_bsstart:=regcount_bsstart*2;
    build_regnum_index;
    build_std_regname_index;
+   build_gas_regname_index;
    build_mot_regname_index;
    write_inc_files;
 end.
 {
   $Log$
-  Revision 1.3  2003-09-03 19:35:24  peter
-    * powerpc compiles again
+  Revision 1.4  2003-09-03 19:37:07  peter
+    * powerpc reg update
 
   Revision 1.2  2003/09/03 15:55:01  peter
     * NEWRA branch merged
