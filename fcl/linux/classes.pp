@@ -14,9 +14,6 @@
 
 {$MODE OBJFPC}
 
-{ exceptions aren't implemented yet in the compiler }
-{$define NoExceptions}
-
 { determine the type of the resource/form file }
 {$define Win16Res}
 unit Classes;
@@ -40,7 +37,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  1998-11-04 10:15:13  peter
+  Revision 1.8  1998-11-04 10:46:43  peter
+    * exceptions work
+
+  Revision 1.7  1998/11/04 10:15:13  peter
     * fixes to compile
 
   Revision 1.6  1998/10/02 09:17:57  michael

@@ -21,7 +21,7 @@
 {$ifdef NoExceptions}
          ;
 {$else}
-         Raise(EBitsError);
+         Raise EBitsError.Create('');
 {$endif}
     end;
 
@@ -131,7 +131,10 @@
 
 {
   $Log$
-  Revision 1.1  1998-05-04 14:30:11  michael
+  Revision 1.2  1998-11-04 10:46:42  peter
+    * exceptions work
+
+  Revision 1.1  1998/05/04 14:30:11  michael
   * Split file according to Class; implemented dummys for all methods, so unit compiles.
 
 }
