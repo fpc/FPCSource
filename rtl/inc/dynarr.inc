@@ -139,6 +139,9 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
      { not assigned yet? }
      if not(assigned(p)) then
        begin
+          { do we have to allocate memory? }
+          if size = 0 then
+            exit;
           getmem(newp,size);
           fillchar(newp^,size,0);
           updatep := true;
@@ -249,7 +252,11 @@ function fpc_dynarray_copy(var p : pointer;ti : pointer;
 
 {
   $Log$
-  Revision 1.12  2001-11-17 16:56:08  florian
+  Revision 1.13  2001-12-28 14:19:07  jonas
+    * don't allocate memory when doing a setlength(dynarr,0) when dynarr is
+      already nil
+
+  Revision 1.12  2001/11/17 16:56:08  florian
     * init and final code in genrtti.inc updated
 
   Revision 1.11  2001/09/27 08:59:13  jonas
