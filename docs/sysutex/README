@@ -6,3 +6,9 @@ ex3.pp contains an example of the DateTimeToStr function.
 ex4.pp contains an example of the DateTimeToString function.
 ex5.pp contains an example of the DateTimeToSystemTime function.
 ex6.pp contains an example of the DateTimeToTimeStamp function.
+ex7.pp contains an example of the DateToStr function.
+exex8.pp contains an example of the DayOfWeek function.
+ex9.pp contains an example of the DecodeDate function.
+ex10.pp contains an example of the DecodeTime function.
+ex11.pp contains an example of the EncodeDate function.
+ex12.pp contains an example of the EncodeTime function.
