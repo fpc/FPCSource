@@ -343,7 +343,8 @@ begin
     end;
   vmtcopy:=_vmt;
 
-  if _self=nil then
+  if (_self=nil) and
+     (pvmt(_vmt)^.size>0) then
     begin
       getmem(_self,pvmt(_vmt)^.size);
       { reset vmt needed for fail }
@@ -372,13 +373,12 @@ type
 begin
    { already released? }
    if (_self=nil) or
+      (_vmt=nil) or
       (ppointer(_self+vmt_pos)^=nil) then
      exit;
    if (pvmt(ppointer(_self+vmt_pos)^)^.size=0) or
       (pvmt(ppointer(_self+vmt_pos)^)^.size+pvmt(ppointer(_self+vmt_pos)^)^.msize<>0) then
      RunError(210);
-   if (_vmt = nil) then
-     exit;
    { reset vmt to nil for protection }
    ppointer(_self+vmt_pos)^:=nil;
    freemem(_self);
@@ -397,7 +397,7 @@ type
     parent : pointer;
   end;
 begin
-   if _vmt=nil then
+   if (_self=nil) or (_vmt=nil) then
      exit;
    { vmt=-1 when memory was allocated }
    if longint(_vmt)=-1 then
@@ -965,7 +965,10 @@ end;
 
 {
   $Log$
-  Revision 1.55  2003-05-13 19:18:08  peter
+  Revision 1.56  2003-05-13 20:52:50  peter
+    * extra check for self and empty objects
+
+  Revision 1.55  2003/05/13 19:18:08  peter
     * fpc_help_fail compilerproc
     * fpc_new_class, fpc_dispose_class not needed by latest compiler
 
