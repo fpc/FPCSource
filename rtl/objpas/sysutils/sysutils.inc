@@ -364,7 +364,7 @@ Var
   Len : Integer;
 
 begin
-  S:=Format(SExceptionErrorMessage,[ExceptObject.ClassName,ExceptAddr]);
+  S:=Format(SExceptionErrorMessage,[ExceptAddr,ExceptObject.ClassName]);
   If ExceptObject is Exception then
     S:=Format('%s:'#10'%s',[S,Exception(ExceptObject).Message]);
   Len:=Length(S);

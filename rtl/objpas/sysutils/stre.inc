@@ -36,7 +36,7 @@ Const
    SDispatchError = 'No variant method call dispatch';
    SDivByZero = 'Division by zero';
    SEndOfFile = 'Read past end of file';
-   SExceptionErrorMessage = 'exception at %p';
+   SExceptionErrorMessage = 'exception at %p: %s';
    SExternalException = 'External exception %x';   
    SFileNotAssigned = 'File not assigned';
    SFileNotFound = 'File not found';
@@ -77,7 +77,10 @@ Const
 
 {
   $Log$
-  Revision 1.2  2003-11-26 20:12:08  michael
+  Revision 1.3  2004-09-14 01:13:43  sg
+  * Fixed ExceptionErrorMessage (string const didn't match Format() call)
+
+  Revision 1.2  2003/11/26 20:12:08  michael
   + New runerror 231 (exception stack error) and 232 (nothread support)
 
   Revision 1.1  2003/10/06 21:01:06  peter
