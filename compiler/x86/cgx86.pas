@@ -624,7 +624,11 @@ unit cgx86;
           if (base=NR_NO) and (index=NR_NO) then
             begin
               if assigned(ref.symbol) then
-                list.concat(Taicpu.op_sym_ofs_reg(A_MOV,tcgsize2opsize[OS_ADDR],symbol,offset,r))
+                begin
+                  tmpref:=ref;
+                  tmpref.refaddr:=ADDR_FULL;
+                  list.concat(Taicpu.op_ref_reg(A_MOV,tcgsize2opsize[OS_ADDR],tmpref,r));
+                end
               else
                 a_load_const_reg(list,OS_ADDR,offset,r);
             end
@@ -1735,7 +1739,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.140  2004-12-12 10:50:35  florian
+  Revision 1.141  2005-01-08 16:00:55  florian
+    * fixed loadaddr; I wonder how it ever worked
+
+  Revision 1.140  2004/12/12 10:50:35  florian
     * fixed operand size calculation for sse operands
     + all nasm assembler targets to help page output added
 
