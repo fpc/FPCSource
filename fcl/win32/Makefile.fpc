@@ -3,7 +3,7 @@
 #
 
 [targets]
-units=classes $(INCUNITS) $(XMLUNITS) $(SHEDITUNITS)
+units=classes $(INCUNITS) $(XMLUNITS) $(SHEDITUNITS) process
 
 [defaults]
 defaulttarget=win32

@@ -1,0 +1,280 @@
+This file describes the TProcess object.
+
+The TProcess object provides an easy way to start and manipulate
+the running of other programs (processes) by your application.
+On top of that, it allows you to redirect the program's input, output
+and standard error to streams that are readable/writeable by your
+program.
+
+It is a descendent class of TObject, but this is easily changeable to
+TComponent, should you desire to do so. None of the properties will
+conflict with the existing properties of TComponent.
+
+Furthermore it is written in such a way that it is easily extensible,
+although most of the properties that a Process has, are accessible and
+can be controlled with this object.
+
+In what follows, is a description of the object's methods and properties.
+
+The following two types control the creation of the TProcess Object.
+See The constructor description for a description on what they do.
+
+TProcessOptions = (poExecuteOnCreate,poRunSuspended,poUsePipes,
+                     poNoConsole,poStderrToOutPut,poWaitOnExit);
+TCreateOptions = Set of TPRocessOptions;
+
+
+
+Constructor Create (Const ACommandline : String;
+                          Options : TCreateOptions);
+
+This creates an TPRocess object.
+
+ACommandline is the commandline to execute, including any options
+you wish to pass to the program. If you don't specify an explicit path
+Windows will look for your program in the Windows directory and in the
+path.
+
+Options control the behaviour of the object. It can be a set of the
+following constants:
+
+poExecuteOnCreate
+  If you include this option, the constructor will immediatly
+  call the Execute method, using default settings for all parameters.
+  This has the effect that the program is run at once.
+  
+poRunSuspended
+  If you include this option, the Execute method will start the
+  program in a suspended state, and the program will start running
+  only after you have called the Resume method.
+
+poUsePipes
+  If you include this option, the Execute method will redirect the
+  standard input,output and error descriptors to 3 pipes, which you
+  can read from or write to.
+  (see Input,OutPut and Error properties)
+  It makes little sense to use ths for GUI applications (i.e. non-
+  console applications)
+  
+poNoConsole
+  If you include this option, the application will not display a
+  console, untill it explicitly needs one or requests one using the
+  AllocConsole method. This is very convenient in combination with the
+  poUsePipes option, allowing you to run an application without getting
+  the Console window, and being able to read it's output at once.
+  
+poStderrToOutPut
+  If This option is included, then the error desciptor is redirected to
+  the standard output director, i.e. all output goes to the standard
+  output.
+  
+poWaitOnExit
+  If you specify this option, then the Execute method will wait for the
+  executed program to finish, before returning.
+  This option will be ignored if you also specified ExecuteOnCreate and
+  CreateSuspended.
+
+     
+Destructor Destroy; virtual;
+
+  Destroys the TProcess Object. Be careful NOT to close a TProcess
+  object when you use pipes, and the application is still running.
+  you may kill it.
+  
+Procedure Execute; virtual;
+  This actually runs the application. It will return immediatly, unless
+  you specified the poWaitOnExit option when creating the object.
+
+Function Resume : Integer; virtual;
+  Resume lowers the suspend count of the application.
+  it returns the new suspend count of the application. As long as the
+  suspend count is larger than 0, the application will not run.
+  If the suspend count reaches 0, the application will continue
+  running.
+  
+Function Suspend : Integer; virtual;
+  Increases the suspend count of the application, and returns the
+  new suspend count of the application.
+  
+Function Terminate (AExitCode : Integer): Boolean; virtual;
+  Terminate terminates the main thread of the application, giving it
+  exitcode 'AExitCode'
+  It returns True on succes, False on failure.
+
+Function WaitOnExit : Integer;
+  This function returns immediatly if the application is not running,
+  and waits for the application to finish if it was still running.
+  
+Property ApplicationName : String;
+  Sets the name of the application.
+  
+Property CommandLine : String;
+  Read-Only
+  contains the commandline of the application, as set by the create
+  method of TProcess.
+  
+Property ConsoleTitle : String;
+  For console applications only :
+  Sets the title that appears in the title bar of the Console window.
+  
+Property CreateOptions : TCreateOptions;
+  Read-Only
+  Contains the options as set by the Create method of TProcess.
+  
+Property CreationFlags : Cardinal;
+  This contains the creation flags that are passed to the CreateProcess
+  call. These flags are modified by the Execute call to reflect any
+  settings tat you may have made.
+  
+Property CurrentDirectory : String;
+  When set, the process wil start in the directory that you have set
+  for it.
+
+Property DeskTop : String;
+  NT only:
+  Contains the name of the desktop or window station that the process
+  will be run on. See STARTUPINFO in the win32 programmers manual.
+  
+Property Environment : Pointer;
+  A pointer to a null-terminated list of environment variable pointers.
+  Each pair is of the form 'Name=Value'.
+  If this is nil, the environment of your application is used.
+  
+Property ExitStatus : Integer;  
+  Read-Only
+  This returns the exit status of the application, or STILL_ACTIVE
+  (defined in Windows.pas) if the application is still running.
+  
+Property FillAttribute : Integer;
+  For console processes only.
+  Sets the fill color for the console window.
+
+Property Handle : THandle;
+  Read-Only;
+  Returns the handle of the process, which can be used to pass on to
+  calls that require a handle of a process.
+  Onl valid if the process is running.
+  
+  
+Property Input : TOutPutPipeStream;
+  Read-Only
+  Returns the Input handle of the process.
+  Anything you write to this stream, will appear on the applications
+  input file descriptor.
+  Only valid if you used poUsePipes when you created the TProcess
+  object.
+  
+Property InheritHandles : LongBool;
+  If you set this to true, each inheritable handle of your application
+  is inherited by the new application.
+  
+Property OutPut : TInputPipeStream;
+  Read-Only
+  Returns the Output handle of the process. Anything the process writes
+  to its standard output can be read from this stream.
+  Only valid if you used poUsePipes when you created the TProcess
+  object.
+  
+Property ProcessAttributes : TSecurityAttributes;
+  
+Property ProcessInformation : TProcessInformation;
+  Read-Only
+  Gives access to the ProcessInformation returned by Windows
+  upon executing the program. This contains
+    hProcess : Process Handle (See Handle property)
+    hThread  : Process' main thread handle (See ThreadHandle property)
+    dwProcessId : Process ID. (as seen in the task manager) 
+    dwThreadId : Process' main thread ID
+
+Property Running : Boolean;
+  Read-Only
+  Retruns True if the application is still running, False otherwise.
+  If the application is suspended or not doesn't affect the result.
+  
+Property ShowWindow : Word;
+  You can set the applications ShowWindow attribute here.
+
+Property StartupInfo : TStartupInfo;
+  Read-Only
+  Gives access to the TStartupInfo that will be passed to the
+  application in the CreateProcess Call. You can manipulate its various
+  members through the properties of the TProcess object.
+  
+Property StdErr : TinputPipeStream;
+  Read-Only
+  Returns the Output handle of the process. Anything the process writes
+  to its error output can be read from this stream.
+  Only valid if you used poUsePipes when you created the TProcess
+  object.
+  If you specified poStderrToOutput then this is the same as the
+  'Output' stream.
+
+Property ThreadAttributes : TSecurityAttributes;
+  Contains the security attributes that will be passed to the process'
+  main thread. By default, no security attributes are passed.
+  
+Property ThreadHandle : THandle;
+  Read-Only
+  Returns the Handle of the process' main thread.
+  
+Property WindowColumns : Integer;
+  For console applications:
+  This will set the number of screen columns that the console window
+  will have.
+  If you don't set this property nor the WindowRows property, Windows will
+  choose default values.
+  You can only set this PRIOR to calling the execute method, after
+  the application was executed, or while it is running, the setting
+  will be ignored until you run it again.
+  
+Property WindowHeight : Integer;
+  Set the height of the application's main window.
+  If you don't specify this, nor WindowWidth, Windows will choose
+  the height and Width of the applications window.
+  You can only set this PRIOR to calling the execute method, after
+  the application was executed, or while it is running, the setting
+  will be ignored until you run it again.
+
+Property WindowLeft : Integer;
+  Set the applications main window position, in pixels from the left
+  side of the screen.
+  If you don't specify this, nor WindowTop, Windows will choose
+  the Left and Top of the applications window.
+  You can only set this PRIOR to calling the execute method, after
+  the application was executed, or while it is running, the setting
+  will be ignored until you run it again.
+  
+Property WindowRows : Integer;
+  For console applications:
+  This will set the number of screen rows (lines) that the console window
+  will have.
+  If you don't set this property nor the WindowColumns property, Windows will
+  choose default values.
+  You can only set this PRIOR to calling the execute method, after
+  the application was executed, or while it is running, the setting
+  will be ignored until you run it again.
+
+Property WindowTop : Integer;
+  Set the applications main window position, in pixels from the Top
+  side of the screen.
+  If you don't specify this, nor WindowLeft, Windows will choose
+  the Left and Top of the applications window.
+  You can only set this PRIOR to calling the execute method, after
+  the application was executed, or while it is running, the setting
+  will be ignored until you run it again.
+
+Property WindowWidth : Integer;
+  Set the Width of the application's main window.
+  If you don't specify this, nor WindowWidth, Windows will choose
+  the height and Width of the applications window.
+  You can only set this PRIOR to calling the execute method, after
+  the application was executed, or while it is running, the setting
+  will be ignored until you run it again.
+
+Property WindowRect : Trect;
+  This sets the bounding rectangle of the application's main window.
+  It allows to set the WindowTop, WindowLeft, WindowHeight, WindowWidth
+  properties in 1 call.
+
+ 
+
