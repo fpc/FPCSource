@@ -1,5 +1,5 @@
 \begin{psyntax}{Identifiers}{identifiers}
-\synt{identifier} \[ \synt{letter} \\ \lit*{\_} \] 
+\synt{identifier} \( \synt{letter} \\ \lit*{\_} \) 
 \begin{rep}[b] \\
 \(
 \synt{letter} \\

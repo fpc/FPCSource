@@ -117,12 +117,13 @@ you must get from the left side to the right side, following the arrows.
 When you are at the right of a syntax diagram, and it ends with a single
 arrow, this means the syntax diagram is continued on the next line. If
 the line ends on 2 arrows pointing to each other, then the diagram is
-continued on the next line.
-syntactical elements are written like this
+ended.
+
+Syntactical elements are written like this
 \begin{mysyntdiag}
 \synt{syntactical\ elements\ are\ like\ this}
 \end{mysyntdiag}
-keywords you must type exactly as in the diagram:
+Keywords you must type exactly as in the diagram:
 \begin{mysyntdiag}
 \lit*{keywords\ are\ like\ this}
 \end{mysyntdiag}
@@ -152,7 +153,7 @@ Of course, all these elements can be combined and nested.
 %
 \chapter{Pascal Tokens}
 In this chapter we describe all the pascal reserved words, as well as the
-various ways to denote strings, numbers identifiers etc.
+various ways to denote strings, numbers, identifiers etc.
 \section{Symbols}
 Free Pascal allows all characters, digits and some special ASCII symbols
 in a Pascal source file.
@@ -176,15 +177,10 @@ These character pairs retain their normal meaning in string expressions.
 \fpc supports the use of nested comments. The following constructs are valid
 comments:
 \begin{verbatim}
-  (* This is an old style comment *)
-  {  This is a Trubo Pascal comment }
-  // This is a Delphi comment. All is ignored till the end of the line.
+(* This is an old style comment *)
+{  This is a Turbo Pascal comment }
+// This is a Delphi comment. All is ignored till the end of the line.
 \end{verbatim}
-The last line would cause problems when attempting to compile with Delphi or
-Turbo Pascal. These compiler would consider the first matching brace
-\var{\}} as the end of the comment delimiter. If you wish to have this
-behaviour, you can use the \var{-So} switch, and the \fpc compiler will
-act the same way.
 The following are valid ways of nesting comments:
 \begin{verbatim}
 { Comment 1 (* comment 2 *) }
@@ -231,14 +227,11 @@ const
 constructor
 continue
 destructor
-dispose
 div
 do
 downto
 else
 end
-exit
-false
 file
 for
 function
@@ -251,7 +244,6 @@ inline
 interface
 label
 mod
-new
 nil
 not
 object
@@ -271,8 +263,6 @@ shr
 string
 then
 to
-true
-try
 type
 unit
 until
@@ -310,10 +300,8 @@ the following as reserved words:
 \begin{verbatim}
 dispose
 exit
-export
 false
 new
-popstack
 true
 \end{verbatim}
 \end{multicols}
@@ -395,26 +383,28 @@ The compiler must be able to evaluate the expression in a constant
 declaration at compile time.  This means that most of the functions
 in the Run-Time library cannot be used in a constant declaration.
 Operators such as \var{+, -, *, /, not, and, or, div(), mod(), ord(), chr(),
-sizeof} can be used, however. For more information on expressions,
+sizeof} can be used, however. For more information on expressions, see
+\seec{Expressions}.
 You can only declare constants of the following types: \var{Ordinal types},
 \var{Real types}, \var{Char}, and \var{String}.
 The following are all valid constant declarations:
 \begin{verbatim}
 Const
   e = 2.7182818;  { Real type constant. }
-  a = 2;          { Integer type constant. }
+  a = 2;          { Ordinal (Integer) type constant. }
   c = '4';        { Character type constant. }
   s = 'This is a constant string'; {String type constant.}
   s = chr(32)
   ls = SizeOf(Longint);
 \end{verbatim}
-Assigning a value to a constant is not permitted. Thus, given the previous
-declaration, the following will result in a compiler error:
+Assigning a value to an ordinary constant is not permitted. 
+Thus, given the previous declaration, the following will result 
+in a compiler error:
 \begin{verbatim}
   s := 'some other string';
 \end{verbatim}
 \section{Typed constants}
-Typed constants serve to provide a program with initialized variables.
+Typed constants serve to provide a program with initialised variables.
 Contrary to ordinary constants, they may be assigned to at run-time.
 The difference with normal variables is that their value is initialised
 when the program starts, whereas normal variables must be initialised
@@ -433,7 +423,7 @@ Where \var{Func} is a function that returns a \var{String}.
 Typed constants also allow you to initialize arrays and records. For arrays,
 the initial elements must be specified, surrounded by round brackets, and
 separated by commas. The number of elements must be exactly the same as
-number of elements in the declaration of the type.
+the number of elements in the declaration of the type.
 As an example:
 \begin{verbatim}
 Const
@@ -485,10 +475,10 @@ This property allows the operation of functions as \seep{Inc}, \seef{Ord},
 on ordinal types to be defined.
 \item Ordinal values have a smallest possible value. Trying to apply the
 \seef{Pred} function on the smallest possible value will generate a range
-check error.
+check error if range checking is enabled.
 \item Ordinal values have a largest possible value. Trying to apply the
-\seef{Succ} function on the larglest possible value will generate a range
-check error.
+\seef{Succ} function on the largest possible value will generate a range
+check error if range checking is enabled.
 \end{enumerate}
 \subsubsection{Integers}
 A list of pre-defined ordinal types is presented in \seet{ordinals}
@@ -516,14 +506,14 @@ Integer & -32768 .. 32767 & 2\footnote{The integer type is redefined as
 longint if you are in Delphi or ObjFPC mode, and has then size 4} \\
 Word & 0 .. 65535 & 2 \\
 Longint & -2147483648 .. 2147483648 & 4\\
-Cardinal\footnote{The cardinal type support is buggy until version 0.99.6} & 0..4294967296 & 4 \\ \hline
+Cardinal & 0..4294967296 & 4 \\ \hline
 \end{FPCltable}
 \fpc does automatic type conversion in expressions where different kinds of
 integer types are used.
 \subsubsection{Boolean types}
 \fpc supports the \var{Boolean} type, with its two pre-defined possible
-values \var{True} and \var{False}, as well as the \var{ByteBool},
-\var{WordBool} and \var{LongBool}. These are the only two values that can be
+values \var{True} and \var{False}. It also supports the \var{ByteBool},
+\var{WordBool} and \var{LongBool} types. These are the only two values that can be
 assigned to a \var{Boolean} type. Of course, any expression that resolves
 to a \var{boolean} value, can also be assigned to a boolean type.
 \begin{FPCltable}{lll}{Boolean types}{booleantypes}
@@ -541,6 +531,7 @@ assignments:
  B := 1<>2;  { Results in B := True }
 \end{verbatim}
 Boolean expressions are also used in conditions.
+
 {\em Remark:} In \fpc, boolean expressions are always evaluated in such a
 way that when the result is known, the rest of the expression will no longer
 be evaluated (Called short-cut evaluation). In the following example, the function \var{Func} will never
@@ -551,8 +542,9 @@ be called, which may have strange side-effects.
  A := B and Func;
 \end{verbatim}
 Here \var{Func} is a function which returns a \var{Boolean} type.
-{\em Remark:} The wordbool, longbool and bytebool were not supported
-by \fpc until version 0.99.6.
+
+{\em Remark:} The \var{WordBool}, \var{LongBool} and \var{ByteBool} types 
+were not supported by \fpc until version 0.99.6.
 \subsubsection{Enumeration types}
 Enumeration types are supported in \fpc. On top of the Turbo Pascal
 implementation, \fpc allows also a C-style extension of the
@@ -636,7 +628,7 @@ Type
 But you can also define subrange types of enumeration types:
 \begin{verbatim}
 Type
-  Days = (monday,tuesday,wednesday, thursday,friday,
+  Days = (monday,tuesday,wednesday,thursday,friday,
           saturday,sunday);
   WorkDays = monday .. friday;
   WeekEnd = Saturday .. Sunday;
@@ -654,9 +646,9 @@ Single & 1.5E-45 .. 3.4E38 & 7-8 & 4 \\
 Real & 5.0E-324 .. 1.7E308 & 15-16 & 8 \\
 Double & 5.0E-324 .. 1.7E308 & 15-16 & 8 \\
 Extended & 1.9E-4951 .. 1.1E4932 & 19-20 & 10\\
-Comp\footnote{\var{Comp} only holds integer values.} & -2E64+1 .. 2E63-1 & 19-20 & 8  \\
+Comp & -2E64+1 .. 2E63-1 & 19-20 & 8  \\
 \end{FPCltable}
-Until version 0.9.1 of the compiler, all the \var{Real} types are mapped to
+Until version 0.9.1 of the compiler, all the \var{Real} types were mapped to
 type \var{Double}, meaning that they all have size 8. The \seef{SizeOf} function
 is your friend here. The \var{Real} type of turbo pascal is automatically
 mapped to Double. The \var{Comp} type is, in effect, a 64-bit integer.
@@ -686,9 +678,9 @@ depending on the \var{\{\$H\}} switch. The above declaration can declare an
 ansistrng or a short string.
 
 Whatever the actual type, ansistrings and short strings can be used
-interchangeably. The compile always takes care of the necessary type
+interchangeably. The compiler always takes care of the necessary type
 coversions. Note, however, that the result of an expression that contains
-ansstrings snd short strings will always be an ansistring.
+ansistrings and short strings will always be an ansistring.
 
 \subsection{Short strings}
 
@@ -733,7 +725,7 @@ counted. Internally, an ansistring is treated as a pointer.
 
 If the string is empty (\var{''}), then the pointer is nil.
 If the string is not empty, then the pointer points to a structure in
-heap memory that looks as in seet{ansistrings}.
+heap memory that looks as in \seet{ansistrings}.
 
 \begin{FPCltable}{rl}{AnsiString memory structure}{ansistrings}
 Offset & Contains \\ \hline
@@ -806,7 +798,7 @@ function.
 Constant ansistrings have a reference count of -1 and are treated specially.
 
 Ansistrings are converted to short strings by the compiler if needed,
-this means that you can mix the use of ansistrings ans short strings
+this means that you can mix the use of ansistrings and short strings
 without problems.
 
 You can typecast ansistrings to \var{PChar} or \var{Pointer} types:
@@ -821,19 +813,19 @@ begin
   P :=Pointer(S);
 \end{verbatim}
 There is a difference between the two typecasts. If you typecast an empty
-string to a pointer, the pointer wil be \var{Nil}. If you typecast an empty
-ansistring to a \var{PChar}, then the result will be a pointer to a zero
-byte (an empty string).
+ansistring to a pointer, the pointer wil be \var{Nil}. If you typecast an 
+empty ansistring to a \var{PChar}, then the result will be a pointer to a 
+zero byte (an empty string).
 
-The result of such a typecast must be use with care. In general, it is best
+The result of such a typecast must be used with care. In general, it is best
 to consider the result of such a typecast as read-only, i.e. suitable for
 passing to a procedure that needs a constant pchar argument.
 
 It is therefore NOT advisable to typecast one of the following:
 \begin{enumerate}
 \item expressions.
-\item strings that have reference count>0.  (call uniquestring if you want to
-ensure a string has reference count 1)
+\item strings that have reference count larger than 0.  
+(call uniquestring if you want to ensure a string has reference count 1)
 \end{enumerate}
 \subsection{Constant strings}
 
@@ -1187,8 +1179,8 @@ Type
      end;
    PointFile = File of Point;
 \end{verbatim}
-Internally, files are represented by the \var{FileRec} record.
-See \seec{refchapter} for it's declaration.
+Internally, files are represented by the \var{FileRec} record, which is
+declared in the DOS unit.
 
 A special file type is the \var{Text} file type, represented by the
 \var{TextRec} record. A file of type \var{Text} uses special input-output
