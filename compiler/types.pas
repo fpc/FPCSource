@@ -688,7 +688,7 @@ implementation
              recorddef :
                push_addr_param:=(def^.size>4);
              arraydef :
-               push_addr_param:=((Parraydef(def)^.highrange>Parraydef(def)^.lowrange) and (def^.size>4)) or
+               push_addr_param:=((Parraydef(def)^.highrange>=Parraydef(def)^.lowrange) and (def^.size>4)) or
                                 is_open_array(def) or
                                 is_array_of_const(def) or
                                 is_array_constructor(def);
@@ -1143,7 +1143,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  2000-09-10 20:16:21  peter
+  Revision 1.10  2000-09-18 12:31:15  jonas
+    * fixed bug in push_addr_param for arrays (merged from fixes branch)
+
+  Revision 1.9  2000/09/10 20:16:21  peter
     * array of const isn't equal with array of <type> (merged)
 
   Revision 1.8  2000/08/19 19:51:03  peter
