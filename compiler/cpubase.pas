@@ -736,6 +736,10 @@ implementation
           A_JECXZ,
           A_JMP,
           A_LOOP,
+          A_LOOPE,
+          A_LOOPNE,
+          A_LOOPNZ,
+          A_LOOPZ,
           A_Jcc :
             is_calljmp:=true;
           else
@@ -895,7 +899,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.18  1999-12-02 11:26:41  peter
+  Revision 1.19  1999-12-02 19:28:29  peter
+    * more A_LOOP<Cond> to is_calljmp
+
+  Revision 1.18  1999/12/02 11:26:41  peter
     * newoptimizations define added
 
   Revision 1.17  1999/11/09 23:06:45  peter
