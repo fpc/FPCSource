@@ -486,10 +486,18 @@ initialization
   RegisterImport(system_i386_sunos,TImportLibSunos);
   RegisterExport(system_i386_sunos,TExportLibSunos);
   RegisterTarget(system_i386_sunos_info);
+
+  RegisterExternalLinker(system_sparc_sunos_info,TLinkerSunos);
+  RegisterImport(system_sparc_sunos,TImportLibSunos);
+  RegisterExport(system_sparc_sunos,TExportLibSunos);
+  RegisterTarget(system_sparc_sunos_info);
 end.
 {
   $Log$
-  Revision 1.10  2004-09-22 15:25:14  mazen
+  Revision 1.11  2004-10-01 17:41:21  marco
+   * small updates to make playing with sparc/sunos easier
+
+  Revision 1.10  2004/09/22 15:25:14  mazen
   * Fix error committing : previous version must be in branch USE_SYSUTILS
 
   Revision 1.8  2004/06/20 08:55:32  florian
