@@ -70,7 +70,7 @@ package=baseemx.zip,~B~asic system for EMX (required)
 package=asldemx.zip,GNU ~L~inker and assembler for EMX (required)
 package=gdbemx.zip,GNU ~D~ebugger for EMX and PMGDB front-end
 package=utilemx.zip,GNU ~U~tilities (for makefiles)
-
+package=uapiemx.zip,~A~PI units
 
 #
 # Common packages
