@@ -52,11 +52,11 @@ begin
    'O' : begin
            for j:=3 to length(opt) do
             case opt[j] of
-             '-' : initglobalswitches:=initglobalswitches-[cs_optimize,cs_maxoptimize,cs_littlesize];
+             '-' : initglobalswitches:=initglobalswitches-[cs_optimize,cs_regalloc,cs_littlesize];
              'a' : initglobalswitches:=initglobalswitches+[cs_optimize];
              'g' : initglobalswitches:=initglobalswitches+[cs_littlesize];
              'G' : initglobalswitches:=initglobalswitches-[cs_littlesize];
-             'x' : initglobalswitches:=initglobalswitches+[cs_optimize,cs_maxoptimize];
+             'x' : initglobalswitches:=initglobalswitches+[cs_optimize,cs_regalloc];
              '2' : initoptprocessor:=MC68020;
              else
               IllegalPara(opt);
@@ -75,7 +75,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  1998-08-10 14:50:06  peter
+  Revision 1.4  1998-08-19 16:07:50  jonas
+    * changed optimizer switches + cleanup of DestroyRefs in daopt386.pas
+
+  Revision 1.3  1998/08/10 14:50:06  peter
     + localswitches, moduleswitches, globalswitches splitting
 
   Revision 1.2  1998/06/04 23:51:47  peter

@@ -732,11 +732,11 @@ implementation
                    else
                      max_linear_list:=2;
                    { a jump table crashes the pipeline! }
-                   if aktoptprocessor=int486 then
+                   if aktoptprocessor=Class386 then
                      inc(max_linear_list,3);
-                       if aktoptprocessor=pentium then
+                       if aktoptprocessor=ClassP5 then
                      inc(max_linear_list,6);
-                   if aktoptprocessor>=pentiumpro then
+                   if aktoptprocessor>=ClassP6 then
                      inc(max_linear_list,9);
 
                    if (labels<=max_linear_list) then
@@ -782,7 +782,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  1998-08-18 09:24:39  pierre
+  Revision 1.7  1998-08-19 16:07:38  jonas
+    * changed optimizer switches + cleanup of DestroyRefs in daopt386.pas
+
+  Revision 1.6  1998/08/18 09:24:39  pierre
     * small warning position bug fixed
     * support_mmx switches splitting was missing
     * rhide error and warning output corrected

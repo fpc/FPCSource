@@ -33,7 +33,7 @@ unit systems;
 
        tprocessors = (
        {$ifdef i386}
-              int386,int486,pentium,pentiumpro,cx6x86,pentium2,amdk6
+              Class386,ClassP5,ClassP6
        {$endif}
        {$ifdef m68k}
               MC68000,MC68020
@@ -876,7 +876,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  1998-08-18 09:24:45  pierre
+  Revision 1.26  1998-08-19 16:07:55  jonas
+    * changed optimizer switches + cleanup of DestroyRefs in daopt386.pas
+
+  Revision 1.25  1998/08/18 09:24:45  pierre
     * small warning position bug fixed
     * support_mmx switches splitting was missing
     * rhide error and warning output corrected

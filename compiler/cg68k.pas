@@ -1259,7 +1259,7 @@ implementation
          else
            begin
               { quick hack, to overcome Delphi 2 }
-              if (cs_maxoptimize in aktglobalswitches) and
+              if ( cs_regalloc in aktglobalswitches) and
                 (p^.left^.resulttype^.deftype=arraydef) then
                 begin
                    extraoffset:=0;
@@ -5327,7 +5327,7 @@ end;
            begin
               { max. optimizations     }
               { only if no asm is used }
-              if (cs_maxoptimize in aktglobalswitches) and
+              if (cs_regalloc in aktglobalswitches) and
                 ((procinfo.flags and pi_uses_asm)=0) then
                 begin
                    { can we omit the stack frame ? }
@@ -5475,7 +5475,10 @@ end.
 
 {
   $Log$
-  Revision 1.13  1998-08-10 14:43:14  peter
+  Revision 1.14  1998-08-19 16:07:39  jonas
+    * changed optimizer switches + cleanup of DestroyRefs in daopt386.pas
+
+  Revision 1.13  1998/08/10 14:43:14  peter
     * string type st_ fixed
 
   Revision 1.12  1998/07/15 16:41:01  jonas

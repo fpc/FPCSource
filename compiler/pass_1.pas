@@ -4422,7 +4422,7 @@ unit pass_1;
          hp:=p^.left;
          while assigned(hp) do
            begin
-              if cs_maxoptimize in aktglobalswitches then
+              if cs_regalloc in aktglobalswitches then
                 begin
                    { Codeumstellungen }
 
@@ -5258,7 +5258,10 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.57  1998-08-19 00:42:39  peter
+  Revision 1.58  1998-08-19 16:07:51  jonas
+    * changed optimizer switches + cleanup of DestroyRefs in daopt386.pas
+
+  Revision 1.57  1998/08/19 00:42:39  peter
     + subrange types for enums
     + checking for bounds type with ranges
 

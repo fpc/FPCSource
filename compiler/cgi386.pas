@@ -357,7 +357,7 @@ implementation
               { max. optimizations     }
               { only if no asm is used }
               { and no try statement   }
-              if (cs_maxoptimize in aktglobalswitches) and
+              if (cs_regalloc in aktglobalswitches) and
                 ((procinfo.flags and (pi_uses_asm or pi_uses_exceptions))=0) then
                 begin
                    { can we omit the stack frame ? }
@@ -506,7 +506,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.48  1998-08-14 18:18:43  peter
+  Revision 1.49  1998-08-19 16:07:42  jonas
+    * changed optimizer switches + cleanup of DestroyRefs in daopt386.pas
+
+  Revision 1.48  1998/08/14 18:18:43  peter
     + dynamic set contruction
     * smallsets are now working (always longint size)
 

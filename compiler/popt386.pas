@@ -292,7 +292,7 @@ Begin
                      (Pai386(p)^.Size = S_L) And
                      ((Pai386(p)^.op3t = Top_Reg) or
                       (Pai386(p)^.op3t = Top_None)) And
-                     (aktoptprocessor < PentiumPro) And
+                     (aktoptprocessor < ClassP6) And
                      (Longint(Pai386(p)^.op1) <= 12) And
                      Not(CS_LittleSize in aktglobalswitches) And
                      (Not(GetNextInstruction(p, hp1)) Or
@@ -349,7 +349,7 @@ Begin
                              imul 6, reg1 to
                                lea (reg1,reg1,2), reg1
                                add reg1, reg1}
-                              If (aktoptprocessor <= int486)
+                              If (aktoptprocessor <= Class386)
                                 Then
                                   Begin
                                     TmpRef^.Index := TRegister(Pai386(p)^.op2);
@@ -419,7 +419,7 @@ Begin
                              imul 10, reg1 to
                                lea (reg1,reg1,4), reg1
                                add reg1, reg1}
-                               If (aktoptprocessor <= int486) Then
+                               If (aktoptprocessor <= Class386) Then
                                  Begin
                                    If (Pai386(p)^.op3t = Top_Reg)
                                      Then
@@ -454,7 +454,7 @@ Begin
                              imul 12, reg1 to
                                lea (reg1,reg1,2), reg1
                                lea (,reg1,4), reg1}
-                               If (aktoptprocessor <= int486)
+                               If (aktoptprocessor <= Class386)
                                  Then
                                    Begin
                                      TmpRef^.Index := TRegister(Pai386(p)^.op2);
@@ -967,7 +967,7 @@ Begin
                       (Pai386(hp1)^._operator=A_PUSH) and
                       (Pai386(hp1)^.op1t = top_reg) And
                       (Pai386(hp1)^.op1=Pai386(p)^.op1) then
-                     If (Not(cs_maxoptimize in aktglobalswitches)) Then
+                     If (Not(cs_regalloc in aktglobalswitches)) Then
                        Begin
                          hp2:=pai(hp1^.next);
                          asml^.remove(p);
@@ -1065,7 +1065,7 @@ Begin
                                   End;
                           End;
                         If TmpBool2 Or
-                           ((aktoptprocessor < PentiumPro) And
+                           ((aktoptprocessor < ClassP6) And
                             (Longint(Pai386(p)^.op1) <= 3) And
                             Not(CS_LittleSize in aktglobalswitches))
                           Then
@@ -1087,7 +1087,7 @@ Begin
                             End;
                       End
                     Else
-                      If (aktoptprocessor < PentiumPro) And
+                      If (aktoptprocessor < ClassP6) And
                          (Pai386(p)^.op1t = top_const) And
                          (Pai386(p)^.op2t = top_reg) Then
                         If (Longint(Pai386(p)^.op1) = 1)
@@ -1313,8 +1313,7 @@ Begin
                             Begin
                               If IsGP32Reg(TRegister(Pai386(p)^.op2)) And
                                  Not(CS_LittleSize in aktglobalswitches) And
-                                 (aktoptprocessor >= Pentium) And
-                                 (aktoptprocessor < PentiumPro)
+                                 (aktoptprocessor = ClassP5)
                                 Then
                                   {Change "movzbl %reg1, %reg2" to
                                    "xorl %reg2, %reg2; movb %reg1, %reg2" for Pentium and
@@ -1338,8 +1337,7 @@ Begin
                            (PReference(Pai386(p)^.op1)^.index <> TRegister(Pai386(p)^.op2)) And
                            Not(CS_LittleSize in aktglobalswitches) And
                            IsGP32Reg(TRegister(Pai386(p)^.op2)) And
-                           (aktoptprocessor >= Pentium) And
-                           (aktoptprocessor < PentiumPro) And
+                           (aktoptprocessor = ClassP5) And
                            (Pai386(p)^.Size = S_BL)
                           Then
                             {changes "movzbl mem, %reg" to "xorl %reg, %reg; movb mem, %reg8" for
@@ -1365,7 +1363,10 @@ End.
 
 {
  $Log$
- Revision 1.6  1998-08-10 14:50:14  peter
+ Revision 1.7  1998-08-19 16:07:53  jonas
+   * changed optimizer switches + cleanup of DestroyRefs in daopt386.pas
+
+ Revision 1.6  1998/08/10 14:50:14  peter
    + localswitches, moduleswitches, globalswitches splitting
 
  Revision 1.5  1998/08/06 19:40:28  jonas

@@ -185,7 +185,7 @@ unit tgeni386;
     procedure ungetregister32(r : tregister);
 
       begin
-         if cs_maxoptimize in aktglobalswitches then
+         if cs_regalloc in aktglobalswitches then
            begin
               { takes much time }
               if not(r in usableregs) then
@@ -227,7 +227,7 @@ unit tgeni386;
     procedure ungetregistermmx(r : tregister);
 
       begin
-         if cs_maxoptimize in aktglobalswitches then
+         if cs_regalloc in aktglobalswitches then
            begin
               { takes much time }
               if not(r in usableregs) then
@@ -313,7 +313,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  1998-08-10 14:50:34  peter
+  Revision 1.9  1998-08-19 16:07:56  jonas
+    * changed optimizer switches + cleanup of DestroyRefs in daopt386.pas
+
+  Revision 1.8  1998/08/10 14:50:34  peter
     + localswitches, moduleswitches, globalswitches splitting
 
   Revision 1.7  1998/06/08 13:13:47  pierre

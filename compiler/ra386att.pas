@@ -1523,7 +1523,7 @@ const
     { the att version only if the processor > i386 or we are compiling  }
     { the system unit then this will be allowed...                      }
     if (instruc >= lastop_in_table) and
-       ((cs_compilesystem in aktmoduleswitches) or (aktoptprocessor>int386)) then
+       ((cs_compilesystem in aktmoduleswitches) or (aktoptprocessor=Class386)) then
       begin
          Message1(assem_w_opcode_not_in_table,att_op2str[instruc]);
          fits:=true;
@@ -3675,7 +3675,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  1998-08-10 23:57:23  peter
+  Revision 1.8  1998-08-19 16:07:54  jonas
+    * changed optimizer switches + cleanup of DestroyRefs in daopt386.pas
+
+  Revision 1.7  1998/08/10 23:57:23  peter
     * use bestreal instead of extended
 
   Revision 1.6  1998/08/10 14:50:21  peter

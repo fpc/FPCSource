@@ -72,9 +72,9 @@ Report bugs,suggestions etc to:
 **2Fu<x>_adds <x> to unit path
 **1k<x>_Pass <x> to the linker
 **1L_set language
-**2LD_german
-**2LE_english
-**2LN_dutch
+**2LD_German
+**2LE_English
+**2LN_Dutch
 **1l_write logo
 **1i_information
 **1n_don't read the default config file
@@ -133,28 +133,27 @@ Report bugs,suggestions etc to:
 3*2Ratt_read AT&T style assembler
 3*2Rintel_read Intel style assembler
 3*2Rdirect_copy assembler text directly to assembler file
-3*1O_optimizations
-3*2Oa_turn on the optimizer
+3*1O<x>_optimizations
 3*2Og_generate smaller code
 3*2OG_generate faster code (default)
-3*2Ox_optimize maximum (still BUGGY!!!)
-3*2Oz_uncertain optimizations (see docs)
-3*2O2_set target processor to Pentium II (tm)
-3*2O3_set target processor to i386
-3*2O4_set target processor to i486
-3*2O5_set target processor to Pentium (tm)
-3*2O6_set target processor to PentiumPro (tm)
-3*2O7_set target processor to Cyrix 6x86
-3*2O8_set target processor to AMD K6
+3*2Or_keep certain variables in registers (still BUGGY!!!)
+3*2Ou_enable uncertain optimizations (see docs)
+3*2O1_level 1 optimizations (quick optimizations)
+3*2O2_level 2 optimizations (-O1 + slower optimizations)
+3*2O3_level 3 optimizations (same as -O2u)
+3*2Op_target processor
+3*3Op1_set target processor to 386/486
+3*3Op2_set target processor to Pentium/PentiumMMX (tm)
+3*3Op3_set target processor to PPro/PII/c6x86/K6 (tm)
 6*1A_output format
 6*2Ao_Unix o-file using GNU AS
 6*2Agas_GNU Motorola assembler
 6*2Amit_MIT Syntax (old GAS)
 6*2Amot_Standard Motorola assembler
 6*1O_optimizations
-6*2Oa_ turn on the optimizer
-6*2Og_ generate smaller code
-6*2OG_ generate faster code (default)
+6*2Oa_turn on the optimizer
+6*2Og_generate smaller code
+6*2OG_generate faster code (default)
 6*2Ox_optimize maximum (still BUGGY!!!)
 6*2O2_set target processor to a MC68020+
 **1*_

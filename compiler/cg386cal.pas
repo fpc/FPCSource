@@ -1126,7 +1126,7 @@ implementation
                 { but the registers must be different!              }
                 else if (pushedparasize=8) and
                   not(cs_littlesize in aktglobalswitches) and
-                  (aktoptprocessor=pentium) and
+                  (aktoptprocessor=ClassP5) and
                   (procinfo._class=nil) then
                     begin
                        exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EDI)));
@@ -2314,7 +2314,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  1998-08-18 09:24:36  pierre
+  Revision 1.17  1998-08-19 16:07:36  jonas
+    * changed optimizer switches + cleanup of DestroyRefs in daopt386.pas
+
+  Revision 1.16  1998/08/18 09:24:36  pierre
     * small warning position bug fixed
     * support_mmx switches splitting was missing
     * rhide error and warning output corrected

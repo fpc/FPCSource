@@ -50,37 +50,47 @@ begin
            else
             IllegalPara(opt);
          end;
-   'O' : begin
-           for j:=3 to length(opt) do
-           case opt[j] of
-            '-' : initglobalswitches:=initglobalswitches-[cs_optimize,cs_maxoptimize,cs_littlesize];
-            'a' : initglobalswitches:=initglobalswitches+[cs_optimize];
-            'g' : initglobalswitches:=initglobalswitches+[cs_littlesize];
-            'G' : initglobalswitches:=initglobalswitches-[cs_littlesize];
-            'x' : initglobalswitches:=initglobalswitches+[cs_optimize,cs_maxoptimize];
-            'z' : initglobalswitches:=initglobalswitches+[cs_optimize,cs_uncertainopts];
-            '2' : initoptprocessor:=pentium2;
-            '3' : initoptprocessor:=int386;
-            '4' : initoptprocessor:=int486;
-            '5' : initoptprocessor:=pentium;
-            '6' : initoptprocessor:=pentiumpro;
-            '7' : initoptprocessor:=cx6x86;
-            '8' : initoptprocessor:=amdk6
-            else IllegalPara(opt);
-            end;
-          end;
-    'R' : begin
-            if More='ATT' then
-             initasmmode:=I386_ATT
-            else
-             if More='INTEL' then
-              initasmmode:=I386_INTEL
-            else
-             if More='DIRECT' then
-              initasmmode:=I386_DIRECT
-            else
-             IllegalPara(opt);
-          end;
+   'O' : Begin
+           j := 3;
+           While (j <= Length(Opt)) Do
+             Begin
+               case opt[j] of
+                 '-' : initglobalswitches:=initglobalswitches-[cs_optimize,cs_fastoptimize,cs_slowoptimize,cs_littlesize,
+                           cs_regalloc,cs_uncertainopts];
+                 'g' : initglobalswitches:=initglobalswitches+[cs_littlesize];
+                 'G' : initglobalswitches:=initglobalswitches-[cs_littlesize];
+                 'r' : initglobalswitches:=initglobalswitches+[cs_optimize,cs_regalloc];
+                 'u' : initglobalswitches:=initglobalswitches+[cs_optimize,cs_uncertainopts];
+                 '1' : initglobalswitches:=initglobalswitches+[cs_optimize,cs_fastoptimize];
+                 '2' : initglobalswitches:=initglobalswitches+[cs_optimize,cs_fastoptimize,cs_slowoptimize];
+                 '3' : initglobalswitches:=initglobalswitches+[cs_optimize,cs_fastoptimize,cs_slowoptimize,cs_uncertainopts];
+                 'p' :
+                   Begin
+                     Case opt[j+1] Of
+                       '1': initoptprocessor := Class386;
+                       '2': initoptprocessor := ClassP5;
+                       '3': initoptprocessor := ClassP6
+                       Else IllegalPara(Opt)
+                     End;
+                     Inc(j);
+                   End
+                 else IllegalPara(opt);
+               End;
+               Inc(j)
+             end;
+         end;
+   'R' : begin
+           if More='ATT' then
+            initasmmode:=I386_ATT
+           else
+            if More='INTEL' then
+             initasmmode:=I386_INTEL
+           else
+            if More='DIRECT' then
+             initasmmode:=I386_DIRECT
+           else
+            IllegalPara(opt);
+         end;
   else
    IllegalPara(opt);
   end;
@@ -89,7 +99,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  1998-08-10 14:50:04  peter
+  Revision 1.10  1998-08-19 16:07:49  jonas
+    * changed optimizer switches + cleanup of DestroyRefs in daopt386.pas
+
+  Revision 1.9  1998/08/10 14:50:04  peter
     + localswitches, moduleswitches, globalswitches splitting
 
   Revision 1.8  1998/06/16 08:56:22  peter

@@ -908,57 +908,59 @@ Begin {checks whether two Pai386 instructions are equal}
 End;
 
 
-Procedure DestroyRefs(p: pai; Const Ref: TReference; WhichRegNot: TRegister);
-{destroys all registers which possibly contain a reference to Ref}
+Procedure DestroyRefs(p: pai; Const Ref: TReference; WhichReg: TRegister);
+{destroys all registers which possibly contain a reference to Ref, WhichReg
+ is the register whose contents are being written to memory (if this proc
+ is called because of a "mov?? %reg, (mem)" instruction)}
 Var Counter: TRegister;
 Begin
-WhichRegNot := Reg32(WhichRegNot);
-If Not(Assigned(Ref.Symbol))
-  Then
-    Begin
-      If (Ref.base = ProcInfo.FramePointer) And
-         (Ref.Index = R_NO)
-        Then
-{write something to a parameter or a local variable}
-          For Counter := R_EAX to R_EDI Do
-            With PPaiProp(p^.fileinfo.line)^.Regs[Counter] Do
-              Begin
-                If (typ = Con_Ref) And
- {StarMod is always of the type ait_instruction}
-                   (Pai386(StartMod)^.op1t = top_ref) And
-                   ((RefsEqual(TReference(Pai386(StartMod)^.op1^), Ref) And
-                    ((Counter <> WhichRegNot) Or (NrOfMods <> 1))) Or
-                    (Not(cs_UncertainOpts in aktglobalswitches) And
-                     (NrOfMods <> 1)))
-                  Then DestroyReg(PPaiProp(p^.fileinfo.line), Counter)
-              End
-        Else
-          {writing something to a pointer location}
-          For Counter := R_EAX to R_EDI Do
-            With PPaiProp(p^.fileinfo.line)^.Regs[Counter] Do
-            If (typ = Con_Ref) And
-               (Not(cs_UncertainOpts in aktglobalswitches) Or
-              {for movsl}
-                (Ref.Base = R_EDI) Or
-              {don't destroy if reg contains a parameter or local variable}
-                (Not((NrOfMods = 1) And
-                    (Pai386(StartMod)^.op1t = top_ref) And
-                    (PReference(Pai386(StartMod)^.op1)^.base = ProcInfo.FramePointer))))
-              Then
-{we don't know what memory location the reference points to, so we just
- destroy every register which contains a memory reference}
-                DestroyReg(PPaiProp(p^.FileInfo.Line), Counter)
-    End
-  Else {the ref is a var name or we just have a reference an absolute offset}
-    Begin
+  WhichReg := Reg32(WhichReg);
+  If ((Ref.base = ProcInfo.FramePointer) And
+      (Ref.Index = R_NO)) Or
+     Assigned(Ref.Symbol)
+    Then
+{write something to a parameter, a local or global variable, so
+   * with uncertzain optimizations on:
+      - destroy the contents of registers <> WhichReg whose StartMod is of
+        the form "mov?? (Ref), %reg". WhichReg is destroyed if it's StartMod
+        is of that form and NrOfMods > 1 (so if it is a pointer based on Ref)
+    * with uncertzain optimizations off:
+       - also destroy registers that contain any pointer}
       For Counter := R_EAX to R_EDI Do
-        If (Counter <> WhichRegNot) And
-           (PPaiProp(p^.fileinfo.line)^.Regs[Counter].typ = Con_Ref) And
+        With PPaiProp(p^.fileinfo.line)^.Regs[Counter] Do
+          Begin
+            If (typ = Con_Ref) And
+ {StarMod is always of the type ait_instruction}
+               (Pai386(StartMod)^.op1t = top_ref) And
+               ((RefsEqual(TReference(Pai386(StartMod)^.op1^), Ref) And
+                ((Counter <> WhichReg) Or (NrOfMods <> 1))) Or
+                (Not(cs_UncertainOpts in aktglobalswitches) And
+                 (NrOfMods <> 1)))
+              Then DestroyReg(PPaiProp(p^.fileinfo.line), Counter)
+          End
+    Else
+{write something to a pointer location, so
+   * with uncertain optimzations on:
+      - do not destroy registers which contain a local/global variable or a
+        parameter, except if DestroyRefs is called because of a "movsl"
+   * with uncertain optimzations off:
+      - destroy every register which contains a memory location
+      }
+      For Counter := R_EAX to R_EDI Do
+        With PPaiProp(p^.fileinfo.line)^.Regs[Counter] Do
+        If (typ = Con_Ref) And
            (Not(cs_UncertainOpts in aktglobalswitches) Or
-            RefsEqual(Ref,
-                     TReference(Pai386(PPaiProp(p^.fileinfo.line)^.Regs[Counter].StartMod)^.op1^))) Then
-          DestroyReg(PPaiProp(p^.fileinfo.line), Counter)
-    End;
+        {for movsl}
+            (Ref.Base = R_EDI) Or
+        {don't destroy if reg contains a parameter, local or global variable}
+            Not((NrOfMods = 1) And
+                (Pai386(StartMod)^.op1t = top_ref) And
+                ((PReference(Pai386(StartMod)^.op1)^.base = ProcInfo.FramePointer) Or
+                  Assigned(PReference(Pai386(StartMod)^.op1)^.Symbol)
+                )
+               )
+           )
+          Then DestroyReg(PPaiProp(p^.FileInfo.Line), Counter)
 End;
 
 Procedure DestroyAllRegs(p: PPaiProp);
@@ -1443,7 +1445,10 @@ End.
 
 {
  $Log$
- Revision 1.6  1998-08-10 14:49:57  peter
+ Revision 1.7  1998-08-19 16:07:44  jonas
+   * changed optimizer switches + cleanup of DestroyRefs in daopt386.pas
+
+ Revision 1.6  1998/08/10 14:49:57  peter
    + localswitches, moduleswitches, globalswitches splitting
 
  Revision 1.5  1998/08/09 13:56:24  jonas

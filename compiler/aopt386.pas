@@ -31,18 +31,27 @@ Procedure Optimize(AsmL: PAasmOutput);
 
 Implementation
 
-Uses i386, DAOpt386, POpt386, CSOpt386;
+Uses globals, i386, DAOpt386, POpt386, CSOpt386;
 
 Procedure Optimize(AsmL: PAasmOutput);
 Var BlockEnd: Pai;
 Begin
+{setup labeltable, always necessary}
   DFAPass1(AsmL);
+{peephole optimizations}
   PeepHoleOptPass1(AsmL);
   PeepHoleOptPass1(AsmL);
-  BlockEnd := DFAPass2(AsmL);
-  If BlockEnd <> Nil Then
-    CSE(AsmL, Pai(AsmL^.First), BlockEnd);
+{data flow analyzer}
+  If (cs_slowoptimize in aktglobalswitches) Then
+    Begin
+      BlockEnd := DFAPass2(AsmL);
+      If BlockEnd <> Nil Then
+{common subexpression elimination}
+        CSE(AsmL, Pai(AsmL^.First), BlockEnd);
+    End;
+{more peephole optimizations}
   PeepHoleOptPass2(AsmL);
+{dispose labeltabel}
   ShutDownDFA;
 End;
 
@@ -50,7 +59,10 @@ End.
 
 {
  $Log$
- Revision 1.21  1998-08-06 19:40:29  jonas
+ Revision 1.22  1998-08-19 16:07:57  jonas
+   * changed optimizer switches + cleanup of DestroyRefs in daopt386.pas
+
+ Revision 1.21  1998/08/06 19:40:29  jonas
    * removed $ before and after Log in comment
 
  Revision 1.20  1998/08/05 16:00:08  florian
