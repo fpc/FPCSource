@@ -201,6 +201,9 @@ unit tree;
 {$ifdef TEMPREGDEBUG}
           usableregs : longint;
 {$endif TEMPREGDEBUG}
+{$ifdef EXTTEMPREGDEBUG}
+          reallyusedregs : longint;
+{$endif EXTTEMPREGDEBUG}
 {$ifdef TEMPS_NOT_PUSH}
           temp_offset : longint;
 {$endif TEMPS_NOT_PUSH}
@@ -1753,7 +1756,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.92  1999-08-26 21:10:08  peter
+  Revision 1.93  1999-08-27 10:38:31  pierre
+   + EXTTEMPREGDEBUG code added
+
+  Revision 1.92  1999/08/26 21:10:08  peter
     * better error recovery for case
 
   Revision 1.91  1999/08/23 23:26:00  pierre

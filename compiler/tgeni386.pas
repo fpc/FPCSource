@@ -368,7 +368,11 @@ implementation
 {$ifdef TEMPREGDEBUG}
                 if (r in unused) then
 {$ifdef EXTTEMPREGDEBUG}
-                  internalerror(10)
+                  begin
+                    Comment(V_Debug,'register freed twice '+reg2str(r));
+                    testregisters32;
+                    exit;
+                  end
 {$else EXTTEMPREGDEBUG}
                   exit
 {$endif EXTTEMPREGDEBUG}
@@ -483,6 +487,10 @@ implementation
          if curptree^^.usableregs-usablereg32>curptree^^.registers32 then
            internalerror(10);
 {$endif TEMPREGDEBUG}
+{$ifdef EXTTEMPREGDEBUG}
+         if curptree^^.usableregs-usablereg32>curptree^^.reallyusedregs then
+           curptree^^.reallyusedregs:=curptree^^.usableregs-usablereg32;
+{$endif EXTTEMPREGDEBUG}
          if R_EAX in unused then
            begin
               unused:=unused-[R_EAX];
@@ -606,7 +614,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  1999-08-25 12:00:06  jonas
+  Revision 1.34  1999-08-27 10:38:32  pierre
+   + EXTTEMPREGDEBUG code added
+
+  Revision 1.33  1999/08/25 12:00:06  jonas
     * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
 
   Revision 1.32  1999/08/23 23:25:58  pierre
