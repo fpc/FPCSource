@@ -1,11 +1,4 @@
 /usr/share/doc/fp-units-net
 
-/usr/lib/fpc/%{fpcversion}/units/linux/inet.ppu
-
-/usr/lib/fpc/%{fpcversion}/units/linux/libinet.a 
-/usr/lib/fpc/%{fpcversion}/units/linux/inet.o
-
-/usr/lib/fpc/%{fpcversion}/units/linux/uncgi.ppu
-
-/usr/lib/fpc/%{fpcversion}/units/linux/libuncgi.a 
-/usr/lib/fpc/%{fpcversion}/units/linux/uncgi.o
+/usr/lib/fpc/%{fpcversion}/units/linux/inet
+/usr/lib/fpc/%{fpcversion}/units/linux/uncgi

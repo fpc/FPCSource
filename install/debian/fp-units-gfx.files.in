@@ -1,29 +1,10 @@
 /usr/share/doc/fp-units-gfx
 
-/usr/lib/fpc/%{fpcversion}/units/linux/gl.ppu 
-/usr/lib/fpc/%{fpcversion}/units/linux/glut.ppu
-
-/usr/lib/fpc/%{fpcversion}/units/linux/libglut.a 
-/usr/lib/fpc/%{fpcversion}/units/linux/glut.o 
-/usr/lib/fpc/%{fpcversion}/units/linux/libgl.a 
-/usr/lib/fpc/%{fpcversion}/units/linux/gl.o
+/usr/lib/fpc/%{fpcversion}/units/linux/opengl
+/usr/lib/fpc/%{fpcversion}/units/linux/forms
+/usr/lib/fpc/%{fpcversion}/units/linux/svgalib
+/usr/lib/fpc/%{fpcversion}/units/linux/ggi
+/usr/lib/fpc/%{fpcversion}/units/linux/libgd
+/usr/lib/fpc/%{fpcversion}/units/linux/libpng
 
 /usr/bin/fd2pascal
-
-/usr/lib/fpc/%{fpcversion}/units/linux/forms.ppu
-
-/usr/lib/fpc/%{fpcversion}/units/linux/libforms.a 
-/usr/lib/fpc/%{fpcversion}/units/linux/forms.o
-
-/usr/lib/fpc/%{fpcversion}/units/linux/svgalib.ppu 
-/usr/lib/fpc/%{fpcversion}/units/linux/vgamouse.ppu
-
-/usr/lib/fpc/%{fpcversion}/units/linux/libsvgalib.a 
-/usr/lib/fpc/%{fpcversion}/units/linux/svgalib.o
-
-/usr/lib/fpc/%{fpcversion}/units/linux/gii.ppu 
-/usr/lib/fpc/%{fpcversion}/units/linux/ggi.ppu 
-/usr/lib/fpc/%{fpcversion}/units/linux/ggi2d.ppu
-
-/usr/lib/fpc/%{fpcversion}/units/linux/libggi.a 
-/usr/lib/fpc/%{fpcversion}/units/linux/ggi.o
