@@ -3046,13 +3046,17 @@ BEGIN
    Case Event.What Of
      evNothing: Exit;                                 { Speed up exit }
      evMouseDown: FocusLink;                          { Focus link view }
-     evKeyDown: Begin
-       C := HotKey(Text^);                            { Check for hotkey }
-       If (GetAltCode(C) = Event.KeyCode) OR          { Alt plus char }
-       ((C <> #0) AND (Owner^.Phase = phPostProcess)  { Post process phase }
-       AND (UpCase(Event.CharCode) = C)) Then         { Upper case match }
-         FocusLink;                                   { Focus link view }
-     End;
+     evKeyDown:
+       Begin
+         if assigned(text) then
+           begin
+             C := HotKey(Text^);                            { Check for hotkey }
+             If (GetAltCode(C) = Event.KeyCode) OR          { Alt plus char }
+               ((C <> #0) AND (Owner^.Phase = phPostProcess)  { Post process phase }
+                AND (UpCase(Event.CharCode) = C)) Then         { Upper case match }
+               FocusLink;                                   { Focus link view }
+           end;
+       end;
      evBroadcast: If ((Event.Command = cmReceivedFocus)
        OR (Event.Command = cmReleasedFocus)) AND      { Focus state change }
        (Link <> Nil) Then Begin
@@ -4141,7 +4145,10 @@ END;
 END.
 {
  $Log$
- Revision 1.33  2005-02-14 17:13:18  peter
+ Revision 1.34  2005-03-06 21:31:15  florian
+   * fixed crash with empty labels
+
+ Revision 1.33  2005/02/14 17:13:18  peter
    * truncate log
 
 }
