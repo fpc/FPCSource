@@ -238,6 +238,7 @@ implementation
            @second_bool_to_int,
            @second_real_to_real,
            @second_int_to_real,
+           @second_nothing, { currency_to_real, handled in resulttype pass }
            @second_proc_to_procvar,
            @second_nothing, { arrayconstructor_to_set }
            @second_nothing, { second_load_smallset, handled in first pass }
@@ -296,7 +297,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2003-04-23 13:40:33  peter
+  Revision 1.10  2003-04-23 21:10:54  peter
+    * fix compile for ppc,sparc,m68k
+
+  Revision 1.9  2003/04/23 13:40:33  peter
     * fix m68k compile
 
   Revision 1.8  2003/02/19 22:00:16  daniel

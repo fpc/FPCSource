@@ -311,7 +311,6 @@ implementation
         s32floattype.setdef(tfloatdef.create(s32real));
         s64floattype.setdef(tfloatdef.create(s64real));
         s80floattype.setdef(tfloatdef.create(s80real));
-        s64currencytype.setdef(torddef.create(s64currency));
         s64currencytype.setdef(torddef.create(scurrency,low(int64),high(int64)));
 {$endif powerpc}
 {$ifdef sparc}
@@ -483,7 +482,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.45  2003-04-23 20:16:04  peter
+  Revision 1.46  2003-04-23 21:10:54  peter
+    * fix compile for ppc,sparc,m68k
+
+  Revision 1.45  2003/04/23 20:16:04  peter
     + added currency support based on int64
     + is_64bit for use in cg units instead of is_64bitint
     * removed cgmessage from n386add, replace with internalerrors

@@ -336,6 +336,7 @@ implementation
            @second_bool_to_int,
            @second_real_to_real,
            @second_int_to_real,
+           @second_nothing, { real_to_currency, handled in resulttype pass }
            @second_proc_to_procvar,
            @second_nothing, { arrayconstructor_to_set }
            @second_nothing, { second_load_smallset, handled in first pass }
@@ -394,7 +395,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.31  2003-04-23 12:35:35  florian
+  Revision 1.32  2003-04-23 21:10:54  peter
+    * fix compile for ppc,sparc,m68k
+
+  Revision 1.31  2003/04/23 12:35:35  florian
     * fixed several issues with powerpc
     + applied a patch from Jonas for nested function calls (PowerPC only)
     * ...

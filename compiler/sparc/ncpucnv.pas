@@ -307,6 +307,7 @@ procedure TSparctypeconvnode.second_call_helper(c : tconverttype);
       @second_bool_to_int,
       @second_real_to_real,
       @second_int_to_real,
+      @second_nothing, { currency_to_real, handled in resulttype pass }
       @second_proc_to_procvar,
       @second_nothing, { arrayconstructor_to_set }
       @second_nothing, { second_load_smallset, handled in first pass }
@@ -360,7 +361,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2003-04-23 13:35:39  peter
+  Revision 1.15  2003-04-23 21:10:54  peter
+    * fix compile for ppc,sparc,m68k
+
+  Revision 1.14  2003/04/23 13:35:39  peter
     * fix sparc compile
 
   Revision 1.13  2003/03/10 21:59:54  mazen
