@@ -246,7 +246,7 @@ interface
          constructor ppuload(ppufile:tcompilerppufile);
          procedure buildderef;override;
          procedure deref;override;
-         function  mangledname : string;
+         function  mangledname : string;override;
          procedure ppuwrite(ppufile:tcompilerppufile);override;
 {$ifdef gdb}
          function stabstring:Pchar;override;
@@ -353,7 +353,7 @@ interface
           constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          function  mangledname:string;
+          function  mangledname:string;override;
           function  get_label:tasmsymbol;
        end;
 
@@ -1599,6 +1599,7 @@ implementation
         threadvaroffset:string;
         regidx:Tregisterindex;
     begin
+      result:=nil;
       st:=tstoreddef(vartype.def).numberstring;
       case localloc.loc of
         LOC_REGISTER,
@@ -1758,6 +1759,7 @@ implementation
         c:char;
 
     begin
+      result:=nil;
       { set loc to LOC_REFERENCE to get somewhat usable debugging info for -Or }
       { while stabs aren't adapted for regvars yet                             }
       if (vo_is_self in varoptions) then
@@ -2555,7 +2557,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.194  2004-11-17 22:21:35  peter
+  Revision 1.195  2004-11-29 20:50:37  peter
+    * uninited results
+
+  Revision 1.194  2004/11/17 22:21:35  peter
   mangledname setting moved to place after the complete proc declaration is read
   import generation moved to place where body is also parsed (still gives problems with win32)
 
