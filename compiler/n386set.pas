@@ -21,6 +21,9 @@
  ****************************************************************************
 }
 unit n386set;
+
+{$i defines.inc}
+
 interface
 
     uses
@@ -1063,7 +1066,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-09-24 19:38:39  florian
+  Revision 1.2  2000-09-24 20:17:44  florian
+    * more conversion work done
+
+  Revision 1.1  2000/09/24 19:38:39  florian
     * initial implementation
 
 }

@@ -21,6 +21,9 @@
  ****************************************************************************
 }
 unit nset;
+
+{$i defines.inc}
+
 interface
 
     uses
@@ -228,7 +231,7 @@ implementation
              pst:=createsetconst(psetdef(right.typenodetype));
              t:=gensetconstnode(pst,psetdef(right.typenodetype));
              dispose(pst);
-             putnode(right);
+             right.free;
              right:=t;
            end;
 
@@ -241,9 +244,8 @@ implementation
          if not assigned(psetdef(right.resulttype)^.elementtype.def) then
           begin
             t:=genordinalconstnode(0,booldef);
-            disposetree(p);
             firstpass(t);
-            p:=t;
+            pass_1:=t;
             exit;
           end;
 
@@ -257,9 +259,8 @@ implementation
          if (left.treetype=ordconstn) and (right.treetype=setconstn) then
           begin
             t:=genordinalconstnode(byte(left.value in byteset(right.value_set^)),booldef);
-            disposetree(p);
             firstpass(t);
-            p:=t;
+            pass_1:=t;
             exit;
           end;
 
@@ -514,7 +515,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-09-24 19:38:39  florian
+  Revision 1.2  2000-09-24 20:17:44  florian
+    * more conversion work done
+
+  Revision 1.1  2000/09/24 19:38:39  florian
     * initial implementation
 
 }
