@@ -1498,7 +1498,7 @@
 
 
     procedure tpointerdef.concatstabto(asmlist : paasmoutput);
-      var st : string;
+      var st,nb : string;
           sym_line_no : longint;
       begin
       if assigned(pointertype.def) and
@@ -1512,6 +1512,7 @@
           if pointertype.def^.deftype in [recorddef,objectdef] then
             begin
             is_def_stab_written := true;
+            nb:=pointertype.def^.numberstring;
             {to avoid infinite recursion in record with next-like fields }
             is_def_stab_written := false;
             if not pointertype.def^.is_def_stab_written then
@@ -1528,7 +1529,7 @@
                      st := ' ';
                      sym_line_no:=0;
                   end;
-                st := '"'+st+':t'+numberstring+'=*'+pointertype.def^.numberstring
+                st := '"'+st+':t'+numberstring+'=*'+nb
                       +'=xs'+pointertype.def^.typesym^.name+':",'+tostr(N_LSYM)+',0,'+tostr(sym_line_no)+',0';
                 asmlist^.concat(new(pai_stabs,init(strpnew(st))));
                 end;
@@ -3840,7 +3841,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.177  1999-11-30 10:40:54  peter
+  Revision 1.178  1999-12-01 10:26:38  pierre
+   * restore the correct way for stabs of forward defs
+
+  Revision 1.177  1999/11/30 10:40:54  peter
     + ttype, tsymlist
 
   Revision 1.176  1999/11/09 23:35:49  pierre
