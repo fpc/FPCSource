@@ -1351,6 +1351,15 @@ implementation
                calcregisters(self,1,1,0)
              else
                calcregisters(self,0,1,0);
+              { an add node always first loads both the left and the    }
+              { right in the fpu before doing the calculation. However, }
+              { calcregisters(0,2,0) will overestimate the number of    }
+              { necessary registers (it will make it 3 in case one of   }
+              { the operands is already in the fpu) (JM)                }
+              if ((left.location.loc <> LOC_FPU) or
+                  (right.location.loc <> LOC_FPU)) and
+                 (registersfpu < 2) then
+                inc(registersfpu);  
            end
 
          { if both are orddefs then check sub types }
@@ -1509,6 +1518,15 @@ implementation
             begin
               location.loc:=LOC_FPU;
               calcregisters(self,0,1,0);
+              { an add node always first loads both the left and the    }
+              { right in the fpu before doing the calculation. However, }
+              { calcregisters(0,2,0) will overestimate the number of    }
+              { necessary registers (it will make it 3 in case one of   }
+              { the operands is already in the fpu) (JM)                }
+              if ((left.location.loc <> LOC_FPU) or
+                  (right.location.loc <> LOC_FPU)) and
+                 (registersfpu < 2) then
+                inc(registersfpu);  
             end
 
          { pointer comperation and subtraction }
@@ -1590,7 +1608,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.41  2001-10-20 19:28:37  peter
+  Revision 1.42  2001-12-27 15:33:58  jonas
+    * fixed fpuregister counting errors ("merged")
+
+  Revision 1.41  2001/10/20 19:28:37  peter
     * interface 2 guid support
     * guid constants support
 

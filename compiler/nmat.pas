@@ -443,8 +443,8 @@ implementation
          if (left.resulttype.def.deftype=floatdef) then
            begin
               if (left.location.loc<>LOC_REGISTER) and
-                 (registers32<1) then
-                registers32:=1;
+                 (registersfpu<1) then
+                registersfpu:=1;
               location.loc:=LOC_REGISTER;
            end
 {$ifdef SUPPORT_MMX}
@@ -640,7 +640,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2001-11-02 22:58:02  peter
+  Revision 1.26  2001-12-27 15:33:58  jonas
+    * fixed fpuregister counting errors ("merged")
+
+  Revision 1.25  2001/11/02 22:58:02  peter
     * procsym definition rewrite
 
   Revision 1.24  2001/10/12 13:51:51  jonas

@@ -647,6 +647,8 @@ implementation
 
          if (left.resulttype.def.deftype=floatdef) then
            begin
+             if (registersfpu < 1) then
+               registersfpu := 1;
              location.loc:=LOC_FPU;
            end
 {$ifdef SUPPORT_MMX}
@@ -1018,7 +1020,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2001-12-07 13:03:49  jonas
+  Revision 1.20  2001-12-27 15:33:58  jonas
+    * fixed fpuregister counting errors ("merged")
+
+  Revision 1.19  2001/12/07 13:03:49  jonas
     * fixed web bug 1716
 
   Revision 1.18  2001/12/04 15:57:28  jonas
