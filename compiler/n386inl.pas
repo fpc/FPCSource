@@ -201,17 +201,15 @@ implementation
 
         procedure loadstream;
           const
-            io:array[boolean] of string[7]=('_OUTPUT','_INPUT');
+            io:array[boolean] of string[6]=('OUTPUT','INPUT');
           var
             r : preference;
           begin
             new(r);
             reset_reference(r^);
             r^.symbol:=newasmsymbol(
-            'U_'+upper(target_info.system_unit)+io[doread]);
-{$ifndef noAllocEdi}
+            'U_SYSTEM_'+io[doread]);
             getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
             emit_ref_reg(A_LEA,S_L,r,R_EDI)
           end;
 
@@ -1549,7 +1547,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-10-14 10:14:49  peter
+  Revision 1.2  2000-10-15 09:08:58  peter
+    * use System for the systemunit instead of target dependent
+
+  Revision 1.1  2000/10/14 10:14:49  peter
     * moehrendorf oct 2000 rewrite
 
 }

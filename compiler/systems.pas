@@ -196,7 +196,6 @@ interface
           cpu         : ttargetcpu;
           short_name  : string[8];
           unit_env    : string[12];
-          system_unit : string[8];
           smartext,
           unitext,
           unitlibext,
@@ -1041,7 +1040,6 @@ implementation
             cpu         : i386;
             short_name  : 'GO32V1';
             unit_env    : 'GO32V1UNITS';
-            system_unit : 'SYSTEM';
             smartext    : '.sl';
             unitext     : '.pp1';
             unitlibext  : '.ppl';
@@ -1065,7 +1063,6 @@ implementation
             cpu         : i386;
             short_name  : 'GO32V2';
             unit_env    : 'GO32V2UNITS';
-            system_unit : 'SYSTEM';
             smartext    : '.sl';
             unitext     : '.ppu';
             unitlibext  : '.ppl';
@@ -1089,7 +1086,6 @@ implementation
             cpu         : i386;
             short_name  : 'LINUX';
             unit_env    : 'LINUXUNITS';
-            system_unit : 'syslinux';
             smartext    : '.sl';
             unitext     : '.ppu';
             unitlibext  : '.ppl';
@@ -1113,7 +1109,6 @@ implementation
             cpu         : i386;
             short_name  : 'FREEBSD';
             unit_env    : 'BSDUNITS';
-            system_unit : 'sysbsd';
             smartext    : '.sl';
             unitext     : '.ppu';
             unitlibext  : '.ppl';
@@ -1137,7 +1132,6 @@ implementation
             cpu  : i386;
             short_name  : 'OS2';
             unit_env    : 'OS2UNITS';
-            system_unit : 'SYSOS2';
             smartext    : '.sl';
             unitext     : '.ppo';
             unitlibext  : '.ppl';
@@ -1161,7 +1155,6 @@ implementation
             cpu         : i386;
             short_name  : 'WIN32';
             unit_env    : 'WIN32UNITS';
-            system_unit : 'SYSWIN32';
             smartext    : '.slw';
             unitext     : '.ppw';
             unitlibext  : '.ppl';
@@ -1185,7 +1178,6 @@ implementation
             cpu         : i386;
             short_name  : 'NETWARE';
             unit_env    : 'NETWAREUNITS';
-            system_unit : 'sysnetwa';
             smartext    : '.sl';
             unitext     : '.ppn';
             unitlibext  : '.ppl';
@@ -1211,7 +1203,6 @@ implementation
             cpu         : m68k;
             short_name  : 'AMIGA';
             unit_env    : '';
-            system_unit : 'sysamiga';
             smartext    : '.sl';
             unitext     : '.ppa';
             unitlibext  : '.ppl';
@@ -1235,7 +1226,6 @@ implementation
             cpu         : m68k;
             short_name  : 'ATARI';
             unit_env    : '';
-            system_unit : 'SYSATARI';
             smartext    : '.sl';
             unitext     : '.ppt';
             unitlibext  : '.ppl';
@@ -1259,7 +1249,6 @@ implementation
             cpu         : m68k;
             short_name  : 'MACOS';
             unit_env    : '';
-            system_unit : 'sysmac';
             smartext    : '.sl';
             unitext     : '.ppt';
             unitlibext  : '.ppl';
@@ -1283,7 +1272,6 @@ implementation
             cpu         : m68k;
             short_name  : 'LINUX';
             unit_env    : 'LINUXUNITS';
-            system_unit : 'syslinux';
             smartext    : '.sl';
             unitext     : '.ppu';
             unitlibext  : '.ppl';
@@ -1307,7 +1295,6 @@ implementation
             cpu         : m68k;
             short_name  : 'PALMOS';
             unit_env    : 'PALMUNITS';
-            system_unit : 'syspalm';
             smartext    : '.sl';
             unitext     : '.ppu';
             unitlibext  : '.ppl';
@@ -1333,7 +1320,6 @@ implementation
             cpu         : alpha;
             short_name  : 'LINUX';
             unit_env    : 'LINUXUNITS';
-            system_unit : 'syslinux';
             smartext    : '.sl';
             unitext     : '.ppu';
             unitlibext  : '.ppl';
@@ -1359,7 +1345,6 @@ implementation
             cpu         : powerpc;
             short_name  : 'LINUX';
             unit_env    : '';
-            system_unit : 'syslinux';
             smartext    : '.sl';
             unitext     : '.ppu';
             unitlibext  : '.ppl';
@@ -1383,7 +1368,6 @@ implementation
             cpu         : powerpc;
             short_name  : 'MACOS';
             unit_env    : '';
-            system_unit : 'sysmac';
             smartext    : '.sl';
             unitext     : '.ppt';
             unitlibext  : '.ppl';
@@ -1725,7 +1709,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2000-09-24 21:12:41  hajny
+  Revision 1.11  2000-10-15 09:08:58  peter
+    * use System for the systemunit instead of target dependent
+
+  Revision 1.10  2000/09/24 21:12:41  hajny
     * OS/2 stack alignment corrected + default stack increased
 
   Revision 1.9  2000/09/24 15:06:30  peter

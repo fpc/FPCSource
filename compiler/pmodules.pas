@@ -634,7 +634,7 @@ implementation
            exit;
          end;
      { insert the system unit, it is allways the first }
-        hp:=loadunit(upper(target_info.system_unit),true);
+        hp:=loadunit('SYSTEM',true);
         systemunit:=hp^.globalsymtable;
         { it's always the first unit }
         systemunit^.next:=nil;
@@ -985,7 +985,7 @@ implementation
          pu     : pused_unit;
 {$endif GDB}
          store_crc,store_interface_crc : longint;
-         s1,s2  : ^string; {Saves stack space}
+         s2  : ^string; {Saves stack space}
          force_init_final : boolean;
 
       begin
@@ -1005,14 +1005,12 @@ implementation
              current_module^.modulename:=stringdup(pattern);
              current_module^.realmodulename:=stringdup(orgpattern);
           { check for system unit }
-             new(s1);
              new(s2);
-             s1^:=upper(target_info.system_unit);
              s2^:=upper(SplitName(main_file^.name^));
              if (cs_compilesystem in aktmoduleswitches) then
               begin
                 if ((length(current_module^.modulename^)>8) or
-                   (current_module^.modulename^<>s1^) or
+                   (current_module^.modulename^<>'SYSTEM') or
                    (current_module^.modulename^<>s2^)) then
                   Message1(unit_e_illegal_unit_name,current_module^.realmodulename^);
               end
@@ -1023,11 +1021,10 @@ implementation
                        ((length(current_module^.modulename^)>8) and
                         (copy(current_module^.modulename^,1,8)=s2^))) then
                  Message1(unit_e_illegal_unit_name,current_module^.realmodulename^);
-                if (current_module^.modulename^=s1^) then
+                if (current_module^.modulename^='SYSTEM') then
                  Message(unit_w_switch_us_missed);
               end;
              dispose(s2);
-             dispose(s1);
           end;
 
          consume(_ID);
@@ -1708,7 +1705,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  2000-10-15 07:47:51  peter
+  Revision 1.15  2000-10-15 09:08:58  peter
+    * use System for the systemunit instead of target dependent
+
+  Revision 1.14  2000/10/15 07:47:51  peter
     * unit names and procedure names are stored mixed case
 
   Revision 1.13  2000/10/04 14:51:08  pierre
