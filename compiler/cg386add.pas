@@ -1802,8 +1802,10 @@ implementation
                if (p^.left^.resulttype^.deftype=floatdef) and
                   (pfloatdef(p^.left^.resulttype)^.typ<>f32bit) then
                  begin
-                    { real constants to the left }
-                    if p^.left^.treetype=realconstn then
+                    { real constants to the right, but only if it
+                      isn't on the FPU stack, i.e. 1.0 or 0.0! }
+                    if (p^.left^.treetype=realconstn) and
+                      (p^.left^.location.loc<>LOC_FPU) then
                       swaptree(p);
                     cmpop:=false;
                     case p^.treetype of
@@ -2140,7 +2142,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.78  1999-09-07 07:52:19  peter
+  Revision 1.79  1999-09-21 20:53:21  florian
+    * fixed 1/s problem from mailing list
+
+  Revision 1.78  1999/09/07 07:52:19  peter
     * > < >= <= support for boolean
     * boolean constants are now calculated like integer constants
 

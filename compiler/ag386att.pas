@@ -710,7 +710,7 @@ unit ag386att;
                     end
                   else
                    begin
-                     for i:=0to paicpu(hp)^.ops-1 do
+                     for i:=0 to paicpu(hp)^.ops-1 do
                       begin
                         if i=0 then
                          sep:=#9
@@ -865,7 +865,10 @@ unit ag386att;
 end.
 {
   $Log$
-  Revision 1.15  1999-09-19 20:55:11  florian
+  Revision 1.16  1999-09-21 20:53:21  florian
+    * fixed 1/s problem from mailing list
+
+  Revision 1.15  1999/09/19 20:55:11  florian
     * fixed calls to procedures with manglednames=255 chars
       (taking the address of such a procedure would still cause a problem!)
 

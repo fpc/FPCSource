@@ -438,8 +438,12 @@ var
 {$endif TP}
 begin
 {$ifdef TP}
-    fsplit(paramstr(0),n,d,e);
-    assign(f,d+'\tokens.dat');
+    fsplit(paramstr(0),d,n,e);
+    { when debugging d=''!!!! FK }
+    if d='' then
+      assign(f,'tokens.dat')
+    else
+      assign(f,d+'\tokens.dat');
     {$I-}
     reset(f,1);
     {We are not sure that the msg file is loaded!}
@@ -492,7 +496,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.16  1999-09-17 09:17:49  peter
+  Revision 1.17  1999-09-21 20:53:23  florian
+    * fixed 1/s problem from mailing list
+
+  Revision 1.16  1999/09/17 09:17:49  peter
     * removed uses globals
 
   Revision 1.15  1999/09/16 13:41:37  peter
