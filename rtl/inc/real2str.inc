@@ -101,7 +101,7 @@ begin
   { this is also the maximal number of decimals !!}
   if f>currprec then f:=currprec;
   { when doing a fixed-point, we need less characters.}
-  if (f<0) or ((d>maxexp) or (d<minexp)) then
+  if (f<0) or ( (d<>0) and ((d>maxexp) or (d<minexp))) then
     begin
     { determine maximal number of decimals }
     if (len>=0) and (len<minlen) then len:=minlen;
@@ -165,11 +165,11 @@ begin
   else
     begin
     if not sign then
-         begin
+      begin
       delete (temp,1,1);
       dot:=2;
-         end
-       else
+      end
+    else
       dot:=3;
     { set zeroes and dot }
     if correct>=0 then
@@ -198,7 +198,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  1998-05-12 10:42:45  peter
+  Revision 1.4  1998-06-18 08:15:33  michael
+  + Fixed error when printing zero. len was calculated wron.
+
+  Revision 1.3  1998/05/12 10:42:45  peter
     * moved getopts to inc/, all supported OS's need argc,argv exported
     + strpas, strlen are now exported in the systemunit
     * removed logs
