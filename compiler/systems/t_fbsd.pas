@@ -314,7 +314,7 @@ begin
     LinkRes.Add('INPUT(');
   { add objectfiles, start with prt0 always }
   if prtobj<>'' then
-   LinkRes.AddFileName(FindObjectFile(prtobj,''));
+   LinkRes.AddFileName(FindObjectFile(prtobj,'',false));
   { try to add crti and crtbegin if linking to C }
   if linklibc then
    begin
@@ -516,7 +516,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.3  2003-01-18 16:16:13  marco
+  Revision 1.4  2003-04-26 09:16:08  peter
+    * .o files belonging to the unit are first searched in the same dir
+      as the .ppu
+
+  Revision 1.3  2003/01/18 16:16:13  marco
    * Small fix for netbsd
 
   Revision 1.2  2002/09/09 17:34:17  peter

@@ -397,7 +397,7 @@ begin
    end;
 
   { add objectfiles, start with prt0 always }
-  LinkRes.AddFileName(FindObjectFile('prt0',''));
+  LinkRes.AddFileName(FindObjectFile('prt0','',false));
   while not ObjectFiles.Empty do
    begin
      s:=ObjectFiles.GetFirst;
@@ -516,7 +516,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.5  2003-03-23 23:31:54  hajny
+  Revision 1.6  2003-04-26 09:16:08  peter
+    * .o files belonging to the unit are first searched in the same dir
+      as the .ppu
+
+  Revision 1.5  2003/03/23 23:31:54  hajny
     + platform extensions unified
 
   Revision 1.4  2003/03/17 13:36:39  peter

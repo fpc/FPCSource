@@ -344,7 +344,7 @@ begin
 
   { add objectfiles, start with nwpre always }
   LinkRes.Add ('INPUT (');
-  s2 := FindObjectFile('nwpre','');
+  s2 := FindObjectFile('nwpre','',false);
   Comment (V_Debug,'adding Object File '+s2);
   LinkRes.Add (s2);
 
@@ -354,10 +354,10 @@ begin
     s:=ObjectFiles.GetFirst;
     if s<>'' then
     begin
-      s2 := FindObjectFile (s,'');
+      s2 := FindObjectFile (s,'',false);
       Comment (V_Debug,'adding Object File '+s2);
       LinkRes.Add (s2);
-    end;  
+    end;
   end;
 
   { output file (nlm), add to nlmconv }
@@ -382,14 +382,14 @@ begin
         S:=lower (StaticLibFiles.GetFirst);
         if s<>'' then
         begin
-    	  {ad: that's a hack !
+          {ad: that's a hack !
            whith -XX we get the .a files as static libs (in addition to the
            imported libraries}
          if (pos ('.a',s) <> 0) OR (pos ('.A', s) <> 0) then
          begin
-	   S2 := FindObjectFile(s,'');
+           S2 := FindObjectFile(s,'',false);
            LinkRes.Add (S2);
-	   Comment(V_Debug,'adding Object File (StaticLibFiles) '+S2);
+           Comment(V_Debug,'adding Object File (StaticLibFiles) '+S2);
          end else
          begin
            i:=Pos(target_info.staticlibext,S);
@@ -398,7 +398,7 @@ begin
            S := S + '.imp'; S2 := '';
            librarysearchpath.FindFile(S,S2);
            NLMConvLinkFile.Add('IMPORT @'+S2);
-	   Comment(V_Debug,'IMPORT @'+s2);
+           Comment(V_Debug,'IMPORT @'+s2);
          end;
         end
       end;
@@ -425,8 +425,8 @@ begin
            librarysearchpath.FindFile(S,S3);
            NLMConvLinkFile.Add('IMPORT @'+S3);
            NLMConvLinkFile.Add('MODULE '+s2);
-	   Comment(V_Debug,'MODULE '+S2);
-	   Comment(V_Debug,'IMPORT @'+S3);
+           Comment(V_Debug,'MODULE '+S2);
+           Comment(V_Debug,'IMPORT @'+S3);
          end
       end;
    end;
@@ -548,7 +548,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.6  2003-03-22 14:51:27  armin
+  Revision 1.7  2003-04-26 09:16:08  peter
+    * .o files belonging to the unit are first searched in the same dir
+      as the .ppu
+
+  Revision 1.6  2003/03/22 14:51:27  armin
   * support -k for additional nlmvonv headeroptions, -m i386nw for win32, support -sh
 
   Revision 1.5  2003/03/21 22:36:42  armin

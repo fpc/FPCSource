@@ -145,7 +145,7 @@ begin
   ScriptRes.Add('  .text  0x1000+SIZEOF_HEADERS : {');
   ScriptRes.Add('  . = ALIGN(16);');
   { add objectfiles, start with prt0 always }
-  ScriptRes.Add('  '+GetShortName(FindObjectFile('prt0',''))+'(.text)');
+  ScriptRes.Add('  '+GetShortName(FindObjectFile('prt0','',false))+'(.text)');
   while not ObjectFiles.Empty do
    begin
      s:=ObjectFiles.GetFirst;
@@ -362,7 +362,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.1  2002-09-06 15:03:51  carl
+  Revision 1.2  2003-04-26 09:16:08  peter
+    * .o files belonging to the unit are first searched in the same dir
+      as the .ppu
+
+  Revision 1.1  2002/09/06 15:03:51  carl
     * moved files to systems directory
 
   Revision 1.25  2002/08/12 15:08:44  carl

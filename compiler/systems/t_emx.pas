@@ -397,7 +397,7 @@ begin
    end;
 
   { add objectfiles, start with prt0 always }
-  LinkRes.AddFileName(FindObjectFile('prt0',''));
+  LinkRes.AddFileName(FindObjectFile('prt0','',false));
   while not ObjectFiles.Empty do
    begin
      s:=ObjectFiles.GetFirst;
@@ -516,7 +516,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.1  2003-03-23 23:28:33  hajny
+  Revision 1.2  2003-04-26 09:16:08  peter
+    * .o files belonging to the unit are first searched in the same dir
+      as the .ppu
+
+  Revision 1.1  2003/03/23 23:28:33  hajny
     + emx target added
 
 

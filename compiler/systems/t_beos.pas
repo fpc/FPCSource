@@ -294,10 +294,10 @@ begin
      if found then LinkRes.AddFileName(s+' \');}
 
      if prtobj<>'' then
-      LinkRes.AddFileName(FindObjectFile(prtobj,'')+' \');
+      LinkRes.AddFileName(FindObjectFile(prtobj,'',false)+' \');
 
      if isdll then
-      LinkRes.AddFileName(FindObjectFile('func.o','')+' \');
+      LinkRes.AddFileName(FindObjectFile('func.o','',false)+' \');
 
      if librarysearchpath.FindFile('init_term_dyn.o',s) then
       LinkRes.AddFileName(s+' \');
@@ -305,7 +305,7 @@ begin
   else
    begin
      if prtobj<>'' then
-      LinkRes.AddFileName(FindObjectFile(prtobj,'')+' \');
+      LinkRes.AddFileName(FindObjectFile(prtobj,'',false)+' \');
    end;
 
   { main objectfiles }
@@ -470,7 +470,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.3  2002-10-05 12:43:29  carl
+  Revision 1.4  2003-04-26 09:16:08  peter
+    * .o files belonging to the unit are first searched in the same dir
+      as the .ppu
+
+  Revision 1.3  2002/10/05 12:43:29  carl
     * fixes for Delphi 6 compilation
      (warning : Some features do not work under Delphi)
 

@@ -49,7 +49,7 @@ Type
        Constructor Create;virtual;
        Destructor Destroy;override;
        procedure AddModuleFiles(hp:tmodule);
-       Procedure AddObject(const S,unitpath : String);
+       Procedure AddObject(const S,unitpath : String;isunit:boolean);
        Procedure AddStaticLibrary(const S : String);
        Procedure AddSharedLibrary(S : String);
        Procedure AddStaticCLibrary(const S : String);
@@ -83,7 +83,7 @@ Type
 var
   Linker  : TLinker;
 
-function FindObjectFile(s : string;const unitpath:string) : string;
+function FindObjectFile(s : string;const unitpath:string;isunit:boolean) : string;
 function FindLibraryFile(s:string;const prefix,ext:string;var foundfile : string) : boolean;
 
 procedure InitLinker;
@@ -111,23 +111,26 @@ type
 *****************************************************************************}
 
 { searches an object file }
-function FindObjectFile(s:string;const unitpath:string) : string;
+function FindObjectFile(s:string;const unitpath:string;isunit:boolean) : string;
 var
   found : boolean;
   foundfile : string;
-  s1 : string;
 begin
   findobjectfile:='';
   if s='' then
    exit;
+  { when it does not belong to the unit then check if
+    the specified file exists without searching any paths }
+  if not isunit then
+   begin
+     if FileExists(FixFileName(s)) then
+      begin
+        foundfile:=ScriptFixFileName(s);
+        found:=true;
+      end;
+   end;
   if pos('.',s)=0 then
    s:=s+target_info.objext;
-  s1:=FixFileName(s);
-  if FileExists(s1) then
-   begin
-     Findobjectfile:=ScriptFixFileName(s);
-     exit;
-   end;
   { find object file
      1. specified unit path (if specified)
      2. cwd
@@ -284,7 +287,7 @@ begin
         { unit files }
         while not linkunitofiles.empty do
         begin
-          AddObject(linkunitofiles.getusemask(mask),path^);
+          AddObject(linkunitofiles.getusemask(mask),path^,true);
         end;
         while not linkunitstaticlibs.empty do
          AddStaticLibrary(linkunitstaticlibs.getusemask(mask));
@@ -294,7 +297,7 @@ begin
    { Other needed .o and libs, specified using $L,$LINKLIB,external }
      mask:=link_allways;
      while not linkotherofiles.empty do
-      AddObject(linkotherofiles.Getusemask(mask),path^);
+      AddObject(linkotherofiles.Getusemask(mask),path^,false);
      while not linkotherstaticlibs.empty do
       AddStaticCLibrary(linkotherstaticlibs.Getusemask(mask));
      while not linkothersharedlibs.empty do
@@ -303,9 +306,9 @@ begin
 end;
 
 
-Procedure TLinker.AddObject(const S,unitpath : String);
+Procedure TLinker.AddObject(const S,unitpath : String;isunit:boolean);
 begin
-  ObjectFiles.Concat(FindObjectFile(s,unitpath));
+  ObjectFiles.Concat(FindObjectFile(s,unitpath,isunit));
 end;
 
 
@@ -579,7 +582,7 @@ begin
    exemap:=texemap.create(current_module.mapfilename^);
 
   { read objects }
-  readobj(FindObjectFile('prt0',''));
+  readobj(FindObjectFile('prt0','',false));
   while not ObjectFiles.Empty do
    begin
      s:=ObjectFiles.GetFirst;
@@ -651,7 +654,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.34  2003-02-12 22:04:59  carl
+  Revision 1.35  2003-04-26 09:16:07  peter
+    * .o files belonging to the unit are first searched in the same dir
+      as the .ppu
+
+  Revision 1.34  2003/02/12 22:04:59  carl
     - removed my stupid hello debug code
 
   Revision 1.33  2002/11/15 01:58:48  peter

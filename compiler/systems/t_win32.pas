@@ -912,12 +912,12 @@ begin
   { profiling of shared libraries is currently not supported }
   LinkRes.Add('INPUT(');
   if isdll then
-   LinkRes.AddFileName(MaybeQuoted(FindObjectFile('wdllprt0','')))
+   LinkRes.AddFileName(MaybeQuoted(FindObjectFile('wdllprt0','',false)))
   else
   if (cs_profile in aktmoduleswitches) then
-   LinkRes.AddFileName(MaybeQuoted(FindObjectFile('gprt0','')))
+   LinkRes.AddFileName(MaybeQuoted(FindObjectFile('gprt0','',false)))
   else
-   LinkRes.AddFileName(MaybeQuoted(FindObjectFile('wprt0','')));
+   LinkRes.AddFileName(MaybeQuoted(FindObjectFile('wprt0','',false)));
   while not ObjectFiles.Empty do
    begin
      s:=ObjectFiles.GetFirst;
@@ -1628,7 +1628,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.12  2003-04-12 15:43:40  peter
+  Revision 1.13  2003-04-26 09:16:08  peter
+    * .o files belonging to the unit are first searched in the same dir
+      as the .ppu
+
+  Revision 1.12  2003/04/12 15:43:40  peter
     * convert registers for importssection
 
   Revision 1.11  2003/01/06 20:19:52  peter
