@@ -128,7 +128,7 @@ var
 {$endif}
 begin
   is_fpuopcode:=false;
-{$ifndef NOAG386BIN}
+{$ifdef NOAG386BIN}
   i:=InsTabCache^[ActOpcode];
   if i<>-1 then
    is_fpuopcode:=((instab[i].flags and IF_FPU)=IF_FPU);
@@ -2000,7 +2000,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.67  2000-01-20 23:35:01  peter
+  Revision 1.68  2000-01-21 00:46:47  peter
+    * ifdef'd my previous fix as it broken a make cycle sometimes
+
+  Revision 1.67  2000/01/20 23:35:01  peter
     * fixed fldl where suffix would get S_L instead of S_FL
 
   Revision 1.66  2000/01/07 01:14:34  peter
