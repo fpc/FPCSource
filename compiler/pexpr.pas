@@ -376,10 +376,20 @@ implementation
                     p1:=comp_expr(true);
                     consume(_RKLAMMER);
                     if (block_type=bt_except) then
-                      Message(parser_e_exit_with_argument_not__possible);
-                    if (not assigned(current_procinfo) or
+                      begin
+                        Message(parser_e_exit_with_argument_not__possible);
+                        { recovery }
+                        p1.free;
+                        p1:=nil;
+                      end
+                    else if (not assigned(current_procinfo) or
                         is_void(current_procinfo.procdef.rettype.def)) then
-                      Message(parser_e_void_function);
+                      begin
+                        Message(parser_e_void_function);
+                        { recovery }
+                        p1.free;
+                        p1:=nil;
+                      end;
                  end
                else
                  p1:=nil;
@@ -2482,7 +2492,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.141  2003-11-29 14:33:13  peter
+  Revision 1.142  2003-11-29 14:49:46  peter
+    * fix crash with exit() in a procedure
+
+  Revision 1.141  2003/11/29 14:33:13  peter
     * typed address only used for @ and addr() that are parsed
 
   Revision 1.140  2003/11/10 19:11:39  peter
