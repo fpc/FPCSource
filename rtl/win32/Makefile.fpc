@@ -3,7 +3,7 @@
 #
 
 [targets]
-loaders=$(PRT0) wdllprt0
+loaders=wprt0 wdllprt0
 units=$(SYSTEMUNIT) objpas strings \
       windows ole2 opengl32 os_types winsock initc \
       dos crt objects graph \
@@ -82,8 +82,8 @@ vpath %$(PASEXT) $(INC) $(PROCINC)
 
 override AS=asw
 
-wprt0$(OEXT) : wprt0.as
-        $(AS) -o wprt0$(OEXT) wprt0.as
+wprt0$(OEXT) : $(PRT0).as
+        $(AS) -o wprt0$(OEXT) $(PRT0).as
 
 wdllprt0$(OEXT) : wdllprt0.as
         $(AS) -o wdllprt0$(OEXT) wdllprt0.as
