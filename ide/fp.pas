@@ -53,8 +53,8 @@ uses
   {$ifdef EDITORS}Editors{$else}WEditor,WCEdit{$endif},
 {$ifndef FVISION}
   ColorSel,
-  ASCIITab,
 {$endif FVISION}
+  ASCIITab,
   WUtils,WViews,WHTMLScn,WHelp,
   FPIDE,FPCalc,FPCompil,FPString,
   FPIni,FPViews,FPConst,FPVars,FPUtils,FPHelp,FPSwitch,FPUsrScr,
@@ -198,8 +198,8 @@ begin
   RegisterCodeTemplates;
 {$ifndef FVISION}
   RegisterColorSel;
-  RegisterAsciiTab;
 {$endif FVISION}
+  RegisterAsciiTab;
   RegisterDialogs;
 {$ifdef EDITORS}
   RegisterEditors;
@@ -416,6 +416,9 @@ BEGIN
   Video.DoneVideo;
   Keyboard.DoneKeyboard;
 {$endif fpc}
+{$ifdef VESA}
+  DoneVESAScreenModes;
+{$endif}
 {$ifdef unix}
   Keyboard.RestoreStartMode;
 {$endif unix}
@@ -423,7 +426,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.8  2002-04-12 11:28:55  pierre
+  Revision 1.9  2002-05-29 22:29:42  pierre
+   Asciitab now in fvision
+
+  Revision 1.8  2002/04/12 11:28:55  pierre
    + use fpcygwin unit for win32 debug IDE
 
   Revision 1.7  2002/04/12 09:00:01  pierre
