@@ -49,42 +49,45 @@ procedure fpc_cpuinit;
 {$define FPC_SYSTEM_HAS_GET_FRAME}
 function get_frame:pointer;assembler;nostackframe;
   asm
-     mov %sp,%o0
+    mov %sp,%o0
   end;
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
 function get_caller_addr(framebp:pointer):pointer;assembler;nostackframe;
   asm
-	{ framebp = %o0 }
-	{ flush register windows, so they are stored in the stack }
-        ta      3
-	ld [%o0+60],%o0
-	{ add 8 to skip jmpl and delay slot }
-	add %o0,8,%o0
+    { framebp = %o0 }
+    { flush register windows, so they are stored in the stack }
+    ta      3
+    ld [%o0+60],%o0
+    { add 8 to skip jmpl and delay slot }
+    add %o0,8,%o0
   end;
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
 function get_caller_frame(framebp:pointer):pointer;assembler;nostackframe;
   asm
-	{ flush register windows, so they are stored in the stack }
-        ta      3
-	{ framebp = %o0 }
-	ld [%o0+56],%o0
+    { flush register windows, so they are stored in the stack }
+    ta      3
+    { framebp = %o0 }
+    ld [%o0+56],%o0
   end;
 
 
 {$define FPC_SYSTEM_HAS_SPTR}
 function Sptr:Pointer;assembler;nostackframe;
   asm
-	mov %sp,%o0
+    mov %sp,%o0
   end;
 
 
 {
   $Log$
-  Revision 1.9  2004-09-12 12:04:23  peter
+  Revision 1.10  2004-09-23 11:30:41  florian
+    * fixed indention
+
+  Revision 1.9  2004/09/12 12:04:23  peter
     * restore traps when returning with longjmp
 
   Revision 1.8  2004/08/04 19:27:10  florian
