@@ -133,6 +133,12 @@ interface
        akttokenpos,                  { position of the last token }
        aktfilepos : tfileposinfo;    { current position }
 
+       { ad 18.05.2001: Screen and Threadname for Netware }
+       nwscreenname : string;
+       nwthreadname : string;
+       nwcopyright  : string;
+
+
        { type of currently parsed block }
        { isn't full implemented (FK)    }
        block_type : tblock_type;
@@ -1217,6 +1223,9 @@ implementation
         usewindowapi:=false;
         description:='Compiled by FPC '+version_string+' - '+target_cpu_string;
         dllversion:='';
+        nwscreenname := '';
+        nwthreadname := '';
+        nwcopyright  := '';
 
       { Init values }
         initmodeswitches:=fpcmodeswitches;
@@ -1273,7 +1282,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.34  2001-05-12 12:11:31  peter
+  Revision 1.35  2001-05-30 21:35:48  peter
+    * netware patches for copyright, screenname, threadname directives
+
+  Revision 1.34  2001/05/12 12:11:31  peter
     * simplify_ppu is now the default, a recompile of the compiler now
       only compiles pp.pas
 

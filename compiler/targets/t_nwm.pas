@@ -266,6 +266,7 @@ Var
   ProgNam      : string [80];
   NlmNam       : string [80];
   hp2          : texported_item;  { for exports }
+  p            : byte;
 begin
   WriteResponseFile:=False;
 
@@ -278,11 +279,43 @@ begin
   { Open link.res file }
   LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);
 
+  p := Pos ('"', Description);
+  while (p > 0) do
+  begin
+    delete (Description,p,1);
+    p := Pos ('"', Description);
+  end;
   if Description <> '' then
     LinkRes.Add('DESCRIPTION "' + Description + '"');
   LinkRes.Add('VERSION '+tostr(dllmajor)+','+tostr(dllminor)+','+tostr(dllrevision));
-  LinkRes.Add('SCREENNAME "' + ProgNam + '"');  { for that, we have }
-  LinkRes.Add('THREADNAME "' + ProgNam + '"');  { to add comiler directives }
+  {if nwscreenname = '' then nwscreenname := ProgNam;
+  if nwthreadname = '' then nwthreadname := ProgNam;}
+  p := Pos ('"', nwscreenname);
+  while (p > 0) do
+  begin
+    delete (nwscreenname,p,1);
+    p := Pos ('"', nwscreenname);
+  end;
+  p := Pos ('"', nwthreadname);
+  while (p > 0) do
+  begin
+    delete (nwthreadname,p,1);
+    p := Pos ('"', nwthreadname);
+  end;
+  p := Pos ('"', nwcopyright);
+  while (p > 0) do
+  begin
+    delete (nwcopyright,p,1);
+    p := Pos ('"', nwcopyright);
+  end;
+
+  if nwscreenname <> '' then
+    LinkRes.Add('SCREENNAME "' + nwscreenname + '"');
+  if nwthreadname <> '' then
+    LinkRes.Add('THREADNAME "' + nwthreadname + '"');
+  if nwcopyright <> '' then
+    LinkRes.Add('COPYRIGHT "' + nwcopyright + '"');
+
   if stacksize > 1024 then
   begin
     str (stacksize, s);
@@ -476,7 +509,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.3  2001-04-18 22:02:04  peter
+  Revision 1.4  2001-05-30 21:35:49  peter
+    * netware patches for copyright, screenname, threadname directives
+
+  Revision 1.3  2001/04/18 22:02:04  peter
     * registration of targets and assemblers
 
   Revision 1.2  2001/04/13 01:22:21  peter

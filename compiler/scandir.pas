@@ -178,6 +178,33 @@ implementation
         description:=current_scanner.readcomment;
       end;
 
+    procedure dir_screenname; {ad}
+      begin
+        if target_info.target <> target_i386_netware then
+          {Message(scan_w_decription_not_support);}
+          comment (V_Warning,'Screenname only supported for target netware');
+        current_scanner.skipspace;
+        nwscreenname:=current_scanner.readcomment;
+      end;
+
+      procedure dir_threadname; {ad}
+      begin
+        if target_info.target <> target_i386_netware then
+          {Message(scan_w_decription_not_support);}
+          comment (V_Warning,'Threadname only supported for target netware');
+        current_scanner.skipspace;
+        nwthreadname:=current_scanner.readcomment;
+      end;
+
+      procedure dir_copyright; {ad}
+      begin
+        if target_info.target <> target_i386_netware then
+          {Message(scan_w_decription_not_support);}
+          comment (V_Warning,'Copyright only supported for target netware');
+        current_scanner.skipspace;
+        nwcopyright:=current_scanner.readcomment;
+      end;
+
     procedure dir_error;
       begin
         do_message(scan_e_user_defined);
@@ -744,6 +771,7 @@ implementation
         AddDirective('ASMMODE',{$ifdef FPCPROCVAR}@{$endif}dir_asmmode);
         AddDirective('ASSERTIONS',{$ifdef FPCPROCVAR}@{$endif}dir_assertions);
         AddDirective('BOOLEVAL',{$ifdef FPCPROCVAR}@{$endif}dir_booleval);
+        AddDirective('COPYRIGHT',{$ifdef FPCPROCVAR}@{$endif}dir_copyright);
         AddDirective('D',{$ifdef FPCPROCVAR}@{$endif}dir_description);
         AddDirective('DEBUGINFO',{$ifdef FPCPROCVAR}@{$endif}dir_debuginfo);
         AddDirective('DESCRIPTION',{$ifdef FPCPROCVAR}@{$endif}dir_description);
@@ -787,10 +815,16 @@ implementation
         AddDirective('RANGECHECKS',{$ifdef FPCPROCVAR}@{$endif}dir_rangechecks);
         AddDirective('REFERENCEINFO',{$ifdef FPCPROCVAR}@{$endif}dir_referenceinfo);
         AddDirective('SATURATION',{$ifdef FPCPROCVAR}@{$endif}dir_saturation);
+        {ad 18.05.2001: Screen and Threadname for Netware}
+        AddDirective('SCREENNAME',{$ifdef FPCPROCVAR}@{$endif}dir_screenname);
+
         AddDirective('SMARTLINK',{$ifdef FPCPROCVAR}@{$endif}dir_smartlink);
         AddDirective('STACKFRAMES',{$ifdef FPCPROCVAR}@{$endif}dir_stackframes);
         AddDirective('STATIC',{$ifdef FPCPROCVAR}@{$endif}dir_static);
         AddDirective('STOP',{$ifdef FPCPROCVAR}@{$endif}dir_stop);
+        {ad 18.05.2001: Screen and Threadname for Netware}
+        AddDirective('THREADNAME',{$ifdef FPCPROCVAR}@{$endif}dir_threadname);
+
         AddDirective('TYPEDADDRESS',{$ifdef FPCPROCVAR}@{$endif}dir_typedaddress);
         AddDirective('TYPEINFO',{$ifdef FPCPROCVAR}@{$endif}dir_typeinfo);
         AddDirective('UNITPATH',{$ifdef FPCPROCVAR}@{$endif}dir_unitpath);
@@ -809,7 +843,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2001-04-18 22:01:58  peter
+  Revision 1.3  2001-05-30 21:35:49  peter
+    * netware patches for copyright, screenname, threadname directives
+
+  Revision 1.2  2001/04/18 22:01:58  peter
     * registration of targets and assemblers
 
   Revision 1.1  2001/04/13 18:00:36  peter
