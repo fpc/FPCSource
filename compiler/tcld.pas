@@ -98,6 +98,8 @@ implementation
                  if pconstsym(p^.symtableentry)^.consttyp=constresourcestring then
                    begin
                       p^.resulttype:=cansistringdef;
+                      { we use ansistrings so no fast exit here }
+                      procinfo^.no_fast_exit:=true;
                       p^.location.loc:=LOC_MEM;
                    end
                  else
@@ -472,7 +474,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.53  1999-12-02 17:28:53  peter
+  Revision 1.54  1999-12-09 23:18:05  pierre
+   * no_fast_exit if procedure contains implicit termination code
+
+  Revision 1.53  1999/12/02 17:28:53  peter
     * fixed procvar -> pointer for array of const
 
   Revision 1.52  1999/11/30 10:40:58  peter

@@ -285,6 +285,9 @@ implementation
            end;
          { for simplicity lets first keep all ansistrings
            as LOC_MEM, could also become LOC_REGISTER }
+         if pstringdef(p^.resulttype)^.string_typ in [st_ansistring,st_widestring] then
+           { we may use ansistrings so no fast exit here }
+           procinfo^.no_fast_exit:=true;
          p^.location.loc:=LOC_MEM;
       end;
 
@@ -961,7 +964,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.54  1999-11-30 10:40:57  peter
+  Revision 1.55  1999-12-09 23:18:04  pierre
+   * no_fast_exit if procedure contains implicit termination code
+
+  Revision 1.54  1999/11/30 10:40:57  peter
     + ttype, tsymlist
 
   Revision 1.53  1999/11/18 15:34:49  pierre

@@ -759,6 +759,8 @@ implementation
                      p^.right:=gentypeconvnode(p^.right,cansistringdef);
                    if not(is_ansistring(ld)) then
                      p^.left:=gentypeconvnode(p^.left,cansistringdef);
+                   { we use ansistrings so no fast exit here }
+                   procinfo^.no_fast_exit:=true;
                    p^.resulttype:=cansistringdef;
                    { this is only for add, the comparisaion is handled later }
                    p^.location.loc:=LOC_REGISTER;
@@ -1188,7 +1190,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.59  1999-12-01 12:42:33  peter
+  Revision 1.60  1999-12-09 23:18:04  pierre
+   * no_fast_exit if procedure contains implicit termination code
+
+  Revision 1.59  1999/12/01 12:42:33  peter
     * fixed bug 698
     * removed some notes about unused vars
 

@@ -88,6 +88,9 @@ implementation
           { true, if the procedure should be exported (only OS/2) }
           exported : boolean;
 
+          { true, if we can not use fast exit code }
+          no_fast_exit : boolean;
+
           { code for the current procedure }
           aktproccode,aktentrycode,
           aktexitcode,aktlocaldata : paasmoutput;
@@ -288,6 +291,8 @@ implementation
         framepointer:=R_NO;
         globalsymbol:=false;
         exported:=false;
+        no_fast_exit:=false;
+
         aktentrycode:=new(paasmoutput,init);
         aktexitcode:=new(paasmoutput,init);
         aktproccode:=new(paasmoutput,init);
@@ -400,7 +405,10 @@ end.
 
 {
   $Log$
-  Revision 1.51  1999-12-01 12:42:32  peter
+  Revision 1.52  1999-12-09 23:18:04  pierre
+   * no_fast_exit if procedure contains implicit termination code
+
+  Revision 1.51  1999/12/01 12:42:32  peter
     * fixed bug 698
     * removed some notes about unused vars
 

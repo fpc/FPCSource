@@ -344,7 +344,7 @@ implementation
               { Check the 2 types }
               p^.left:=gentypeconvnode(p^.left,p^.resulttype);
               firstpass(p^.left);
-              if ret_in_param(p^.resulttype) then
+              if ret_in_param(p^.resulttype) or procinfo^.no_fast_exit then
                 begin
                   pt:=genzeronode(funcretn);
                   pt^.rettype.setdef(p^.resulttype);
@@ -517,7 +517,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  1999-12-02 17:27:56  peter
+  Revision 1.29  1999-12-09 23:18:05  pierre
+   * no_fast_exit if procedure contains implicit termination code
+
+  Revision 1.28  1999/12/02 17:27:56  peter
     * give error when for counter is in other lexlevel
 
   Revision 1.27  1999/11/30 10:40:58  peter

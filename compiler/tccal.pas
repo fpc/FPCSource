@@ -1113,6 +1113,8 @@ implementation
                              p^.location.loc:=LOC_MEM;
                              { this is wrong we still need one register  PM
                              p^.registers32:=0; }
+                             { we use ansistrings so no fast exit here }
+                             procinfo^.no_fast_exit:=true;
                              p^.registers32:=1;
                           end;
                      end
@@ -1221,7 +1223,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.74  1999-11-30 10:40:57  peter
+  Revision 1.75  1999-12-09 23:18:04  pierre
+   * no_fast_exit if procedure contains implicit termination code
+
+  Revision 1.74  1999/11/30 10:40:57  peter
     + ttype, tsymlist
 
   Revision 1.73  1999/11/18 15:34:49  pierre
