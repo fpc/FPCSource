@@ -599,10 +599,8 @@ CONST
    MouseMoveProc: DrawProc = Nil;                     { Mouse moved procedure }
 {$ENDIF}
 
-{$IFDEF NO_WINDOW}
 PROCEDURE HideMouseCursor;
 PROCEDURE ShowMouseCursor;
-{$ENDIF}
 
 {---------------------------------------------------------------------------}
 {                      INITIALIZED WIN/NT VARIABLES                         }
@@ -3041,7 +3039,10 @@ BEGIN
 END.
 {
  $Log$
- Revision 1.8  2001-05-04 15:43:45  pierre
+ Revision 1.9  2001-05-07 22:22:03  pierre
+  * removed NO_WINDOW cond, added GRAPH_API
+
+ Revision 1.8  2001/05/04 15:43:45  pierre
   * several more fixes
 
  Revision 1.7  2001/05/04 10:46:02  pierre

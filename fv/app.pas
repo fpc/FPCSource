@@ -280,12 +280,6 @@ TYPE
       PROCEDURE PutEvent (Var Event: TEvent); Virtual;
       PROCEDURE GetEvent (Var Event: TEvent); Virtual;
       PROCEDURE HandleEvent (Var Event: TEvent); Virtual;
-      {$IFNDEF NO_WINDOW}                                { WIN/NT/OS2 CODE }
-      FUNCTION GetClassName: String; Virtual;
-      FUNCTION GetClassText: String; Virtual;
-      FUNCTION GetClassAttr: LongInt; Virtual;
-      FUNCTION GetMsgHandler: Pointer; Virtual;
-      {$ENDIF}
    END;
    PProgram = ^TProgram;
 
@@ -628,15 +622,7 @@ END;
 {  InitBackGround -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 12Sep97 LdB    }
 {---------------------------------------------------------------------------}
 PROCEDURE TDesktop.InitBackground;
-{$IFNDEF OS_WINDOWS}
 CONST Ch: Char = #176;
-{$ELSE}
-{$IFDEF NO_WINDOW}
-CONST Ch: Char = #176;
-{$ELSE not NO_WINDOW}
-CONST Ch: Char = #167;
-{$ENDIF}
-{$ENDIF}
 VAR R: TRect;
 BEGIN
    GetExtent(R);                                      { Get desktop extents }
@@ -796,7 +782,7 @@ CONST TvProgramClassName = 'TVPROGRAM'+#0;            { TV program class }
 {  Init -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 22Oct99 LdB              }
 {---------------------------------------------------------------------------}
 CONSTRUCTOR TProgram.Init;
-VAR I: Integer; R: TRect; {$IFDEF OS_WINDOWS} ODc: HDc; {$ENDIF}
+VAR I: Integer; R: TRect;
 BEGIN
    Application := @Self;                              { Set application ptr }
    InitScreen;                                        { Initialize screen }
@@ -806,29 +792,10 @@ BEGIN
    State := sfVisible + sfSelected + sfFocused +
       sfModal + sfExposed;                            { Deafult states }
    Options := 0;                                      { No options set }
-   {$IFNDEF NO_WINDOW}
-   {$IFDEF OS_WINDOWS}                                { WIN/NT CODE }
-   ODc := GetDc(GetDeskTopWindow);                    { Get desktop context }
-   For I := 0 To 15 Do Begin
-     ColBrush[I] := CreateSolidBrush(GetNearestColor(
-       ODc, ColRef[I]));                              { Create brushes }
-     ColPen[I] := CreatePen(ps_Solid, 1,
-       GetNearestColor(ODc, ColRef[I]));              { Create pens }
-   End;
-   ReleaseDC(GetDeskTopWindow, ODc);                  { Release context }
-   CreateWindowNow(sw_ShowNormal);                    { Create app window }
-   {$ENDIF}
-   {$IFDEF OS_OS2}
-   CreateWindowNow(swp_Show);                         { Create app window }
-   {$ENDIF}
-   {$ENDIF}
-   {$IFNDEF NO_WINDOW}                                { WIN/NT/OS2 CODE }
-   AppWindow := HWindow;                              { Set app window handle }
    Size.X := ScreenWidth;                             { Set x size value }
    Size.Y := ScreenHeight;                            { Set y size value }
    RawSize.X := ScreenWidth * SysFontWidth;           { Set rawsize x }
    RawSize.Y := ScreenHeight * SysFontHeight - 1;     { Set rawsize y }
-   {$ENDIF}
    InitStatusLine;                                    { Init status line }
    If (StatusLine <> Nil) Then Insert(StatusLine);    { Insert status line }
    InitMenuBar;                                       { Create a bar menu }
@@ -849,13 +816,6 @@ BEGIN
      Dispose(StatusLine, Done);                       { Destroy status line }
    Application := Nil;                                { Clear application }
    Inherited Done;                                    { Call ancestor }
-  {$IFDEF OS_WINDOWS}                                 { WIN/NT CODE }
-   For I := 0 To 15 Do DeleteObject(ColBrush[I]);     { Delete brushes }
-   For I := 0 To 15 Do DeleteObject(ColPen[I]);       { Delete pens }
-  {$ENDIF}
-  {$IFNDEF NO_WINDOW}                                 { WIN/NT/OS2 CODE }
-   AppWindow := 0;                                    { Zero app window handle }
-  {$ENDIF}
 END;
 
 {--TProgram-----------------------------------------------------------------}
@@ -1093,72 +1053,6 @@ BEGIN
    End;
 END;
 
-{$IFNDEF NO_WINDOW}
-{***************************************************************************}
-{                  TProgram OBJECT WIN/NT/OS2 ONLY METHODS                  }
-{***************************************************************************}
-
-{--TProgram-----------------------------------------------------------------}
-{  GetClassText -> Platforms WIN/NT/OS2 - Checked 18Mar98 LdB               }
-{---------------------------------------------------------------------------}
-FUNCTION TProgram.GetClassText: String;
-VAR S: String; {$IFDEF OS_OS2} I: Integer; {$ENDIF}
-BEGIN
-   {$IFDEF OS_WINDOWS}                                { WIN/NT CODE }
-     {$IFDEF PPC_DELPHI3}                             { DELPHI3+ CODE }
-     SetLength(S, 255);                               { Make string not empty }
-     SetLength(S, GetModuleFilename( 0, PChar(S),
-       Length(S) ) );                                 { Fetch module name }
-     {$ELSE}                                          { OTHER COMPILERS }
-     S[0] := Chr(GetModuleFileName(HInstance, @S[1],
-       255));                                         { Fetch module name }
-     {$ENDIF}
-   {$ENDIF}
-   {$IFDEF OS_OS2}                                    { OS2 CODE }
-   WinQuerySessionTitle(Anchor, 0, @S[1], 255);       { Fetch session name }
-   I := 1;                                            { Start on first }
-   While (S[I] <> #0) AND (I<255) Do Inc(I);          { Find pchar end }
-   S[0] := Chr(I);                                    { Set string length }
-   {$ENDIF}
-   GetClassText := S;                                 { Return the string }
-END;
-
-{--TProgram-----------------------------------------------------------------}
-{  GetClassName -> Platforms WIN/NT/OS2 - Updated 13May98 LdB               }
-{---------------------------------------------------------------------------}
-FUNCTION TProgram.GetClassName: String;
-BEGIN
-   GetClassName := TvProgramClassName;                { Program class name }
-END;
-
-{--TProgram-----------------------------------------------------------------}
-{  GetClassAttr -> Platforms WIN/NT/OS2 - Checked 17Mar98 LdB               }
-{---------------------------------------------------------------------------}
-FUNCTION TProgram.GetClassAttr: LongInt;
-VAr Li: LongInt;
-BEGIN
-   {$IFDEF OS_WINDOWS}                                { WIN/NT CODE }
-   Li := Inherited GetClassAttr;                      { Call ancestor }
-   Li := Li AND NOT ws_Child;                         { Not child view }
-   GetClassAttr := Li OR ws_OverlappedWindow;         { Overlapping window }
-   {$ENDIF}
-   {$IFDEF OS_OS2}                                    { OS2 CODE }
-   GetClassAttr := fcf_TitleBar OR fcf_SysMenu OR
-     fcf_SizeBorder OR fcf_MinMax OR fcf_TaskList OR
-     fcf_NoByteAlign;                                 { Window defaults }
-   {$ENDIF}
-END;
-
-{--TProgram-----------------------------------------------------------------}
-{  GetMsghandler -> Platforms WIN/NT/OS2 - Updated 13May98 LdB              }
-{---------------------------------------------------------------------------}
-FUNCTION TProgram.GetMsgHandler: Pointer;
-BEGIN
-   GetMsgHandler := @TvAppMsgHandler;                 { Application handler }
-END;
-
-{$ENDIF}
-
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                        TApplication OBJECT METHODS                        }
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
@@ -1333,7 +1227,10 @@ END;
 END.
 {
  $Log$
- Revision 1.7  2001-05-04 15:43:45  pierre
+ Revision 1.8  2001-05-07 22:22:03  pierre
+  * removed NO_WINDOW cond, added GRAPH_API
+
+ Revision 1.7  2001/05/04 15:43:45  pierre
   * several more fixes
 
  Revision 1.6  2001/05/04 08:42:54  pierre

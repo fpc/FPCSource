@@ -262,20 +262,12 @@ TYPE
 {                 TCluster OBJECT - CLUSTER ANCESTOR OBJECT                 }
 {---------------------------------------------------------------------------}
 TYPE
-   {$IFNDEF NO_WINDOW}                                { WIN/NT/OS2 CODE }
-   TWndArray = Array [0..32000] Of HWnd;              { Window handle array }
-   PWndArray = ^TWndArray;                            { Ptr to handle array }
-   {$ENDIF}
-
    TCluster = OBJECT (TView)
          Id        : Integer;                         { New communicate id }
          Sel       : Integer;                         { Selected item }
          Value     : LongInt;                         { Bit value }
          EnableMask: LongInt;                         { Mask enable bits }
          Strings   : TStringCollection;               { String collection }
-         {$IFNDEF NO_WINDOW}                          { WIN/NT/OS2 DATA }
-         WndHandles: PWndArray;                       { Window handle array }
-         {$ENDIF}
       CONSTRUCTOR Init (Var Bounds: TRect; AStrings: PSItem);
       CONSTRUCTOR Load (Var S: TStream);
       DESTRUCTOR Done; Virtual;
@@ -296,12 +288,6 @@ TYPE
       PROCEDURE SetData (Var Rec); Virtual;
       PROCEDURE Store (Var S: TStream);
       PROCEDURE HandleEvent (Var Event: TEvent);                     Virtual;
-      {$IFNDEF NO_WINDOW}                                { WIN/NT/OS2 CODE }
-      FUNCTION GetClassName: String; Virtual;
-      FUNCTION SubClassAttr: LongInt; Virtual;
-      FUNCTION GetMsgHandler: Pointer; Virtual;
-      PROCEDURE CreateWindowNow (CmdShow: Integer);                  Virtual;
-      {$ENDIF}
       PRIVATE
       FUNCTION FindSel (P: TPoint): Integer;
       FUNCTION Row (Item: Integer): Integer;
@@ -319,9 +305,6 @@ TYPE
       PROCEDURE Press (Item: Integer); Virtual;
       PROCEDURE MovedTo(Item: Integer); Virtual;
       PROCEDURE SetData (Var Rec); Virtual;
-      {$IFNDEF NO_WINDOW}                                { WIN/NT CODE }
-      FUNCTION SubClassAttr: LongInt; Virtual;
-      {$ENDIF}
    END;
    PRadioButtons = ^TRadioButtons;
 
@@ -333,9 +316,6 @@ TYPE
       FUNCTION Mark (Item: Integer): Boolean; Virtual;
       PROCEDURE DrawFocus; Virtual;
       PROCEDURE Press (Item: Integer); Virtual;
-      {$IFNDEF NO_WINDOW}                                { WIN/NT CODE }
-      FUNCTION SubClassAttr: LongInt; Virtual;
-      {$ENDIF}
    END;
    PCheckBoxes = ^TCheckBoxes;
 
@@ -358,9 +338,6 @@ TYPE
       PROCEDURE GetData (Var Rec); Virtual;
       PROCEDURE SetData (Var Rec); Virtual;
       PROCEDURE Store (Var S: TStream);
-      {$IFNDEF NO_WINDOW}                                { WIN/NT CODE }
-      FUNCTION SubClassAttr: LongInt; Virtual;
-      {$ENDIF}
    END;
    PMultiCheckBoxes = ^TMultiCheckBoxes;
 
@@ -714,81 +691,6 @@ CONST
    cmGrabDefault    = 61;                             { Grab default }
    cmReleaseDefault = 62;                             { Release default }
 
-{***************************************************************************}
-{                          PRIVATE INTERNAL ROUTINES                        }
-{***************************************************************************}
-
-{$IFNDEF NO_WINDOW}
-{$IFDEF OS_WINDOWS}                                   { WIN/NT CODE }
-{---------------------------------------------------------------------------}
-{  TvClusterMsgHandler -> Platforms WIN/NT - Checked 08Jun98 LdB            }
-{---------------------------------------------------------------------------}
-FUNCTION TvClusterMsgHandler (Wnd: hWnd; iMessage, wParam: sw_Word;
-lParam: LongInt): LongInt; {$IFDEF BIT_32} STDCALL; {$ELSE} EXPORT; {$ENDIF}
-VAR Sel: Integer; W: sw_Word; P: PCluster;
-BEGIN
-   TvClusterMsgHandler := 0;                          { Reset return of zero }
-   Case iMessage Of
-     WM_KeyDown:;                                     { Ignore keypresses }
-     WM_Command: Begin
-       If (wParam AND $FFFF = cmTvClusterButton)      { Command message }
-       Then Begin
-         {$IFDEF BIT_16}                              { 16 BIT CODE }
-         PtrRec(P).Seg := GetProp(Wnd, ViewSeg);      { Fetch cluster seg }
-         PtrRec(P).Ofs := GetProp(Wnd, ViewOfs);      { Fetch cluster ofs }
-         {$ENDIF}
-         {$IFDEF BIT_32}                              { 32 BIT CODE }
-         LongInt(P) := GetProp(Wnd, ViewPtr);         { Fetch cluster ptr }
-         {$ENDIF}
-         {$ifndef NO_WINDOW}
-         If (P <> Nil) AND (P^.WndHandles <> Nil)     { Cluster/handles valid }
-         Then Begin
-           If (P^.State AND sfFocused = 0) Then       { We have not focus }
-             P^.FocusFromTop;                         { Focus up to us }
-           Sel := 0;                                  { Start on first }
-           {$IFDEF BIT_16}                            { 16 BIT CODE }
-           W := LoWord(lParam);                       { Use only low part }
-           {$ENDIF}
-           {$IFDEF BIT_32}                            { 32 BIT CODE }
-           W := lParam;                               { Use full param }
-           {$ENDIF}
-           While (Sel < P^.Strings.Count) AND         { Valid item }
-           (W <> P^.WndHandles^[Sel]) Do Inc(Sel);    { Find handle }
-           If (Sel < P^.Strings.Count) Then Begin     { Handle was found }
-             P^.Press(Sel);                           { Call press }
-             P^.Sel := Sel;                           { Set selection }
-             If (P^.GetState(sfSelected)=False)       { Check not selected }
-             Then P^.Select Else Begin                { Select us then }
-               P^.SetDrawMask(vdFocus OR vdInner);    { Redraw inner }
-               P^.DrawView;                           { Redraw partial view }
-             End;
-           End;
-           {$endif NO_WINDOW}
-         End;
-       End Else
-         TvClusterMsgHandler := TvViewMsgHandler(Wnd,
-           iMessage, wParam, lParam);                 { Call TV view handler }
-     End;
-     Else TvClusterMsgHandler := TvViewMsgHandler(Wnd,
-      iMessage, wParam, lParam);                      { Call TV view handler }
-   End;
-END;
-{$ENDIF}
-{$IFDEF OS_OS2}                                       { OS2 CODE }
-{---------------------------------------------------------------------------}
-{  TvClusterMsgHandler -> Platforms OS2 - Checked ??Sep99 LdB               }
-{---------------------------------------------------------------------------}
-FUNCTION TvClusterMsgHandler (Wnd: hWnd; iMessage, wParam: sw_Word;
-lParam: LongInt): LongInt; STDCALL;
-VAR Sel: Integer; W: sw_Word; P: PCluster;
-BEGIN
-   TvClusterMsgHandler := 0;                          { Reset return of zero }
-   TvClusterMsgHandler := TvViewMsgHandler(Wnd,
-    iMessage, wParam, lParam);                        { Call TV view handler }
-END;
-{$ENDIF}
-{$ENDIF not NO_WINDOW}
-
 {---------------------------------------------------------------------------}
 {  IsBlank -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 08Jun98 LdB           }
 {---------------------------------------------------------------------------}
@@ -1066,14 +968,6 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TInputLine.DrawBackGround;
 BEGIN
-   {$IFNDEF NO_WINDOW}
-   {$IFDEF OS_WINDOWS}                                { WIN/NT CODE }
-   If (HWindow <> 0) Then DestroyCaret;               { Destroy any caret }
-   {$ENDIF}
-   {$IFDEF OS_OS2}                                    { OS2 CODE }
-   If (HWindow <> 0) Then WinDestroyCursor(HWindow);  { Destroy any caret }
-   {$ENDIF}
-   {$ENDIF not NO_WINDOW}
    Inherited DrawBackGround;                          { Call ancestor }
 END;
 
@@ -1094,30 +988,11 @@ BEGIN
            I := TextWidth(Data^[CurPos+1])            { Insert caret width }
            Else I := FontWidth;                       { At end use fontwidth }
      End;
-     {$IFDEF NO_WINDOW}
      If (State AND sfCursorIns <> 0) Then Begin       { Insert mode }
        If ((CurPos+1) <= Length(Data^)) Then          { Not beyond end }
          WriteStr(-X, 0, Data^[CurPos+1], 5)          { Create block cursor }
          Else ClearArea(X, 0, X+I, FontHeight, Green);{ Line cursor }
      End Else ClearArea(X, 0, X+I, FontHeight, Green);{ Line cursor }
-     {$ELSE not NO_WINDOW}
-     {$IFDEF OS_WINDOWS}                              { WIN/NT CODE }
-     If (HWindow <> 0) Then Begin
-       CreateCaret(HWindow, 0, I, FontHeight);        { Create a craet }
-       SetCaretPos(X, 0);                             { Set caret position }
-       If (State AND sfCursorVis <> 0) Then
-         ShowCaret(HWindow);                          { Show the caret }
-     End;
-     {$ENDIF}
-     {$IFDEF OS_OS2}                                  { OS2 CODE }
-     If (HWindow <> 0) Then Begin
-       WinCreateCursor(HWindow, X, 0, 0, FontHeight,
-         CURSOR_FLASH, Nil);                          { Create a craet }
-       If (State AND sfCursorVis <> 0) Then
-         WinShowCursor(HWindow, True);                { Show the caret }
-     End;
-     {$ENDIF}
-     {$ENDIF not NO_WINDOW}
    End;
 END;
 
@@ -1580,10 +1455,15 @@ BEGIN
        I := (RawSize.X - I) DIV 2;                    { Centre in button }
      End Else I := FontWidth;                         { Left edge of button }
      MoveCStr(Db, Title^, Bc);                        { Move title to buffer }
+{$ifndef USE_API}
      GOptions := GOptions OR goGraphView;             { Graphics co-ords mode }
      WriteLine(I, FontHeight DIV 2, CStrLen(Title^),
        1, Db);                                        { Write the title }
      GOptions := GOptions AND NOT goGraphView;        { Return to normal mode }
+{$else USE_API}
+     WriteLine(I div SysFontWidth, 0, CStrLen(Title^),
+       1, Db);                                        { Write the title }
+{$endif USE_API}
    End;
 END;
 
@@ -1765,17 +1645,6 @@ END;
 DESTRUCTOR TCluster.Done;
 VAR I: Integer;
 BEGIN
-   {$IFNDEF NO_WINDOW}                                   { WIN/NT/OS2 CODE }
-   If (WndHandles <> Nil) Then Begin                  { Handles valid }
-     For I := 1 To Strings.Count Do                   { For each entry }
-       {$IFDEF OS_WINDOWS}                            { WIN/NT CODE }
-       DestroyWindow(WndHandles^[I-1]);               { Destroy button views }
-       {$ELSE}                                        { OS2 CODE }
-       WinDestroyWindow(WndHandles^[I-1]);            { Destroy button views }
-       {$ENDIF}
-     FreeMem(WndHandles, Strings.Count*SizeOf(HWnd)); { Release memory }
-   End;
-   {$ENDIF}
    Strings.Done;                                      { Dispose of strings }
    Inherited Done;                                    { Call ancestor }
 END;
@@ -1841,24 +1710,6 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TCluster.DrawFocus;
 BEGIN
-   {$IFNDEF NO_WINDOW}                                { WIN/NT/OS2 CODE }
-   If (WndHandles <> Nil) Then                        { Valid window handles }
-     If (State AND sfFocused <> 0) Then Begin         { View is focused }
-       If (Sel >= 0) AND (Sel < Strings.Count) Then
-         {$IFDEF OS_WINDOWS}                          { WIN/NT CODE }
-         SetFocus(WndHandles^[Sel])                   { Focus selected view }
-           Else SetFocus(AppWindow);                  { Focus owner }
-         {$ELSE}                                      { OS2 CODE }
-         WinSetFocus(HWND_DESKTOP, WndHandles^[Sel])  { Focus selected view }
-           Else WinSetFocus(HWND_DESKTOP, HWindow);   { Focus owner }
-         {$ENDIF}
-     End Else
-       {$IFDEF OS_WINDOWS}                            { WIN/NT CODE }
-       SetFocus(AppWindow);                           { Focus owner }
-       {$ELSE}                                        { OS2 CODE }
-       WinSetFocus(HWND_DESKTOP, AppWindow);          { Focus owner }
-       {$ENDIF}
-   {$ENDIF}
 END;
 
 {--TCluster-----------------------------------------------------------------}
@@ -1897,9 +1748,7 @@ END;
 PROCEDURE TCluster.DrawMultiBox (Const Icon, Marker: String);
 VAR I, J, K, Cur, Col: Integer; CNorm, CSel, CDis, Color: Word; B: TDrawBuffer;
     Tb, SCOff: Byte;
-{$IFNDEF OS_DOS} S: String; P: PString; Q: PChar; {$ENDIF}
 BEGIN
-   {$IFDEF NO_WINDOW}                                 { DOS/DPMI CODE }
    CNorm := GetColor($0301);                          { Normal colour }
    CSel := GetColor($0402);                           { Selected colour }
    CDis := GetColor($0505);                           { Disabled colour }
@@ -1939,45 +1788,6 @@ BEGIN
      End;
      WriteBuf(K, K+I, Size.X-K-K, 1, B);              { Write buffer }
    End;
-   {$ELSE}                                            { WIN/NT/OS2 CODE }
-   If (WndHandles <> Nil) Then Begin                  { Valid window handles }
-     For I := 1 To Strings.Count Do Begin             { For each window }
-       {$IFDEF OS_WINDOWS}                            { WIN/NT CODE }
-       Tb := GetWindowText(WndHandles^[I-1], @S[1],
-         255);                                        { Get window text }
-       {$ELSE}                                        { OS2 CODE }
-       Tb := WinQueryWindowText(WndHandles^[I-1], 255,
-         @S[1]);                                      { Get window text }
-       {$ENDIF}
-       {$IFDEF PPC_DELPHI3}                           { DELPHI3+ COMPILER }
-       SetLength(S, Tb);                              { Set string length }
-       {$ELSE}                                        { OTHER COMPILERS }
-       S[0] := Chr(Tb);                               { Set string length }
-       {$ENDIF}
-       P := Strings.At(I-1);                          { Cluster strings }
-       If (P <> Nil) AND (P^ <> S) Then Begin         { Something changed }
-         S := P^ + #0;                                { Transfer string }
-         {$IFDEF OS_WINDOWS}                          { WIN/NT CODE }
-         SetWindowText(WndHandles^[I-1], @S[1]);      { Set new window text }
-         {$ELSE}                                      { OS2 CODE }
-         WinSetWindowText(WndHandles^[I-1], @S[1]);   { Set new window text }
-         {$ENDIF}
-       End;
-       If Mark(I-1) Then                              { If item marked }
-         {$IFDEF OS_WINDOWS}                          { WIN/NT CODE }
-         SendMessage(WndHandles^[I-1], bm_SetCheck,
-           1, 0) Else                                 { Check the box }
-         SendMessage(WndHandles^[I-1], bm_SetCheck,
-           0, 0);                                     { Uncheck the box }
-         {$ELSE}                                      { OS2 CODE }
-         WinSendMsg(WndHandles^[I-1], bm_SetCheck,
-           1, 0) Else                                 { Check the box }
-         WinSendMsg(WndHandles^[I-1], bm_SetCheck,
-           0, 0);                                     { Uncheck the box }
-         {$ENDIF}
-     End;
-   End;
-   {$ENDIF}
 END;
 
 {--TCluster-----------------------------------------------------------------}
@@ -2155,114 +1965,6 @@ BEGIN
    End;
 END;
 
-{$IFNDEF NO_WINDOW}                                      { WIN/NT/OS2 CODE }
-{***************************************************************************}
-{                  TCLuster OBJECT WIN/NT/OS2 ONLY METHODS                  }
-{***************************************************************************}
-
-{--TCluster-----------------------------------------------------------------}
-{  GetClassName -> Platforms WIN/NT/OS2 - Updated 03Jun98 LdB               }
-{---------------------------------------------------------------------------}
-FUNCTION TCluster.GetClassName: String;
-BEGIN
-   GetClassName := TvClusterClassName;                { Cluster class name }
-END;
-
-{--TCluster-----------------------------------------------------------------}
-{  SubClassAttr -> Platforms WIN/NT/OS2 - Updated 02Jun98 LdB               }
-{---------------------------------------------------------------------------}
-FUNCTION TCluster.SubClassAttr: LongInt;
-VAR Li: LongInt;
-BEGIN
-   If (State AND sfVisible = 0) Then Li := 0          { View not visible }
-     Else Li := ws_Visible;                           { View is visible }
-   If (State AND sfDisabled <> 0) Then                { Check disabled flag }
-     Li := Li OR ws_Disabled;                         { Set disabled flag }
-   Li := Li OR ws_ClipChildren OR ws_ClipSiblings;    { Must have these }
-   SubClassAttr := Li;                                { Return attributes }
-END;
-
-{--TCluster-----------------------------------------------------------------}
-{  GetMsgHandler -> Platforms WIN/NT/OS2 - Updated 02Jun98 LdB              }
-{---------------------------------------------------------------------------}
-FUNCTION TCluster.GetMsgHandler: Pointer;
-BEGIN
-   GetMsgHandler := @TvClusterMsgHandler;             { Cluster msg handler }
-END;
-
-{--TCluster-----------------------------------------------------------------}
-{  CreateWindowNow -> Platforms WIN/NT - Updated 28May98 LdB                }
-{---------------------------------------------------------------------------}
-PROCEDURE TCluster.CreateWindowNow (CmdShow: Integer);
-VAR I, J, L: Integer; Li: LongInt; Ct: String; Ts: PString; P: PChar; Wnd: HWnd;
-BEGIN
-   If (HWindow = 0) Then Begin                        { Window not created }
-     Inherited CreateWindowNow (CmdShow);             { Call ancestor }
-     If (HWindow <> 0) Then Begin                     { Window now created }
-       GetMem(WndHandles, Strings.Count*SizeOf(HWnd));{ Allocate memory }
-       For I := 1 To Strings.Count Do Begin
-         L := (I-1) * FontHeight;                     { Height of each line }
-         Ts := Strings.At(I-1);                       { Fetch string pointer }
-         If (Ts <> Nil) Then Ct := Ts^ Else Ct := ''; { Get string text }
-         Ct := Ct + #0;                               { Make asciiz }
-         J := Pos('~', Ct);                           { Check for tilde }
-         If (J <> 0) Then Ct[J] := '&';               { Sub 1st tilde }
-         Repeat
-           J := Pos('~', Ct);                         { Check for tilde }
-           If (J <> 0) Then System.Delete(Ct, J, 1);  { Remove the tilde }
-         Until (J = 0);                               { Remove all tildes }
-         If (Ct <> #0) Then Begin                     { Check for empty }
-           GetMem(P, Length(Ct));                     { Allocate memory }
-           Move(Ct[1], P^, Length(Ct));               { Move string data }
-         End Else P := Nil;                           { Return nil ptr }
-         {$IFDEF OS_WINDOWS}
-         If (Options AND ofFramed <> 0) OR            { Normal frame }
-         (GOptions AND goThickFramed <> 0) Then       { Thick frame }
-           Wnd := CreateWindowEx(0, 'BUTTON', P,
-             SubClassAttr OR ws_Child OR ws_Visible, FontWidth,
-             L+FontHeight, RawSize.X-2*FontWidth+1,
-             FontHeight, HWindow, cmTvClusterButton,
-             HInstance, Nil) Else                     { Create window }
-           Wnd := CreateWindowEx(0, 'BUTTON', P,
-             SubClassAttr OR ws_Child OR ws_Visible, 0, L,
-             RawSize.X+1, FontHeight, HWindow,
-             cmTvClusterButton, HInstance, Nil);      { Create window }
-         If (Wnd <> 0) Then Begin                     { Window created ok }
-           {$IFDEF PPC_FPC}
-           Windows.SendMessage(Wnd, WM_SetFont,
-             DefGFVFont, 1);                          { Set font style }
-           {$ELSE}
-           WinProcs.SendMessage(Wnd, WM_SetFont,
-             DefGFVFont, 1);                          { Set font style }
-           {$ENDIF}
-           Li := LongInt(@Self);                      { Address of  self }
-           {$IFDEF BIT_16}                            { 16 BIT CODE }
-           SetProp(Wnd, ViewSeg,
-             Li AND $FFFF0000 SHR 16);                { Set seg property }
-           SetProp(Wnd, ViewOfs,
-             Li AND $0000FFFF);                       { Set ofs propertry }
-           {$ENDIF}
-           {$IFDEF BIT_32}                            { 32 BIT CODE }
-           SetProp(Wnd, ViewPtr, Li);                 { Set view property }
-           {$ENDIF}
-           If (CmdShow <> 0) Then
-             ShowWindow(Wnd, cmdShow);                { Execute show cmd }
-           UpdateWindow(Wnd);                         { Update the window }
-           BringWindowToTop(Wnd);                     { Bring window to top }
-         End;
-         WndHandles^[I-1] := Wnd;                     { Hold the handle }
-         If  Mark(I-1) Then                           { If item marked }
-           SendMessage(WndHandles^[I-1], bm_SetCheck,
-             1, 0) Else                               { Check the item }
-           SendMessage(WndHandles^[I-1], bm_SetCheck,
-             0, 0);                                   { Uncheck the item }
-         {$ENDIF}
-       End;
-     End;
-   End;
-END;
-{$ENDIF}
-
 {***************************************************************************}
 {                      TCluster OBJECT PRIVATE METHODS                      }
 {***************************************************************************}
@@ -2377,21 +2079,6 @@ BEGIN
    Inherited SetData(Rec);                            { Call ancestor }
 END;
 
-{$IFNDEF NO_WINDOW}                                      { WIN/NT CODE }
-{***************************************************************************}
-{             TRadioButtons OBJECT WIN/NT/OS2 ONLY METHODS                  }
-{***************************************************************************}
-
-{--TRadioButtons------------------------------------------------------------}
-{  SubClassAttr -> Platforms WIN/NT/OS2 - Updated 20May98 LdB               }
-{---------------------------------------------------------------------------}
-FUNCTION TRadioButtons.SubClassAttr: LongInt;
-BEGIN
-   SubClassAttr := Inherited SubClassAttr OR
-     bs_RadioButton;                                  { Radio button }
-END;
-{$ENDIF}
-
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                        TCheckBoxes OBJECT METHODS                         }
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
@@ -2423,21 +2110,6 @@ BEGIN
    Value := Value XOR (1 SHL Item);                   { Flip the item mask }
    Inherited Press(Item);                             { Call ancestor }
 END;
-
-{$IFNDEF NO_WINDOW}                                      { WIN/NT/OS2 CODE }
-{***************************************************************************}
-{               TCheckBoxes OBJECT WIN/NT/OS2 ONLY METHODS                  }
-{***************************************************************************}
-
-{--TCheckBoxes--------------------------------------------------------------}
-{  SubClassAttr -> Platforms WIN/NT/OS2 - Updated 20May98 LdB               }
-{---------------------------------------------------------------------------}
-FUNCTION TCheckBoxes.SubClassAttr: LongInt;
-BEGIN
-   SubClassAttr := Inherited SubClassAttr OR
-     bs_CheckBox;                                     { Check box buttons }
-END;
-{$ENDIF}
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                      TMultiCheckBoxes OBJECT METHODS                      }
@@ -2548,21 +2220,6 @@ BEGIN
    S.Write(Flags, SizeOf(Flags));                     { Write select flags }
    S.WriteStr(States);                                { Write strings }
 END;
-
-{$IFNDEF NO_WINDOW}                                      { WIN/NT/OS2 CODE }
-{***************************************************************************}
-{             TMultiCheckBoxes OBJECT WIN/NT/OS2 ONLY METHODS               }
-{***************************************************************************}
-
-{--TMultiCheckBoxes---------------------------------------------------------}
-{  SubClassAttr -> Platforms WIN/NT/OS2 - Updated 06Jun98 LdB               }
-{---------------------------------------------------------------------------}
-FUNCTION TMultiCheckBoxes.SubClassAttr: LongInt;
-BEGIN
-   SubClassAttr := Inherited SubClassAttr OR
-     bs_CheckBox;                                     { Check box buttons }
-END;
-{$ENDIF}
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                          TListBox OBJECT METHODS                          }
@@ -3224,7 +2881,10 @@ END;
 END.
 {
  $Log$
- Revision 1.6  2001-05-04 10:46:01  pierre
+ Revision 1.7  2001-05-07 22:22:03  pierre
+  * removed NO_WINDOW cond, added GRAPH_API
+
+ Revision 1.6  2001/05/04 10:46:01  pierre
   * various fixes  for win32 api mode
 
  Revision 1.5  2001/05/04 08:42:54  pierre
