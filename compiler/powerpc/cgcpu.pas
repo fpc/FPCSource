@@ -957,11 +957,11 @@ const
              { save floating-point registers
              if (cs_create_pic in aktmoduleswitches) and not(usesgpr) then
                begin
-                  list.concat(taicpu.op_sym_ofs(A_BL,objectlibrary.newasmsymbol('_savefpr_'+tostr(ord(firstregfpu)-ord(R_F14)+14)+'_g'),0));
+                  a_call_name(objectlibrary.newasmsymbol('_savefpr_'+tostr(ord(firstregfpu)-ord(R_F14)+14)+'_g');
                   gotgot:=true;
                end
              else
-               list.concat(taicpu.op_sym_ofs(A_BL,objectlibrary.newasmsymbol('_savefpr_'+tostr(ord(firstregfpu)-ord(R_F14)+14)),0));
+               a_call_name(objectlibrary.newasmsymbol('_savefpr_'+tostr(ord(firstregfpu)-ord(R_F14)+14));
              }
              for regcounter:=firstregfpu to R_F31 do
                if regcounter in rg.usedbyproc then
@@ -981,11 +981,11 @@ const
              {
              if cs_create_pic in aktmoduleswitches then
                begin
-                  list.concat(taicpu.op_sym_ofs(A_BL,objectlibrary.newasmsymbol('_savegpr_'+tostr(ord(firstreggpr)-ord(R_14)+14)+'_g'),0));
+                  a_call_name(objectlibrary.newasmsymbol('_savegpr_'+tostr(ord(firstreggpr)-ord(R_14)+14)+'_g');
                   gotgot:=true;
                end
              else
-               list.concat(taicpu.op_sym_ofs(A_BL,objectlibrary.newasmsymbol('_savegpr_'+tostr(ord(firstreggpr)-ord(R_14)+14)),0))
+               a_call_name(objectlibrary.newasmsymbol('_savegpr_'+tostr(ord(firstreggpr)-ord(R_14)+14))
              }
              reference_reset_base(href,R_11,-(ord(R_31)-ord(firstreggpr)+1)*4);
              list.concat(taicpu.op_reg_ref(A_STMW,firstreggpr,href));
@@ -1060,7 +1060,7 @@ const
              { restore gprs }
              { at least for now we use LMW }
              {
-             list.concat(taicpu.op_sym_ofs(A_BL,objectlibrary.newasmsymbol('_restgpr_14'),0));
+             a_call_name(objectlibrary.newasmsymbol('_restgpr_14');
              }
              reference_reset_base(href,R_11,-(ord(R_31)-ord(firstreggpr)+1)*4);
              list.concat(taicpu.op_reg_ref(A_LMW,firstreggpr,href));
@@ -1073,12 +1073,12 @@ const
              list.concat(taicpu.op_reg_reg_const(A_ADDI,R_11,R_11,(ord(R_F31)-ord(firstregfpu)+1)*8));
              {
              if (procinfo.flags and pi_do_call)<>0 then
-               list.concat(taicpu.op_sym_ofs(A_BL,objectlibrary.newasmsymbol('_restfpr_'+tostr(ord(firstregfpu)-ord(R_F14)+14)+
-                 '_x'),0))
+               a_call_name(objectlibrary.newasmsymbol('_restfpr_'+tostr(ord(firstregfpu)-ord(R_F14)+14)+
+                 '_x')
              else
                { leaf node => lr haven't to be restored }
-               list.concat(taicpu.op_sym_ofs(A_BL,objectlibrary.newasmsymbol('_restfpr_'+tostr(ord(firstregfpu)-ord(R_F14)+14)+
-                 '_l'),0));
+               a_call_name('_restfpr_'+tostr(ord(firstregfpu)-ord(R_F14)+14)+
+                 '_l');
              genret:=false;
              }
           end;
@@ -1125,7 +1125,7 @@ const
         a_reg_dealloc(list,R_0);
         { save floating-point registers }
         { !!! has to be optimized: only save registers that are used }
-        list.concat(taicpu.op_sym_ofs(A_BL,objectlibrary.newasmsymbol('_savef14'),0));
+        a_call_name(list,'_savef14');
         { save gprs in gpr save area }
         { !!! has to be optimized: only save registers that are used }
         reference_reset_base(href,STACK_POINTER_REG,-220);
@@ -1704,7 +1704,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.59  2002-10-02 13:24:58  jonas
+  Revision 1.60  2002-10-02 21:49:51  florian
+    * all A_BL instructions replaced by calls to a_call_name
+
+  Revision 1.59  2002/10/02 13:24:58  jonas
     * changed a_call_* so that no superfluous code is generated anymore
 
   Revision 1.58  2002/09/17 18:54:06  jonas
