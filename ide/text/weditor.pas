@@ -3032,6 +3032,7 @@ begin
             end;
           SetCurPtr(StorePos.X,StorePos.Y);
           SetModified(true);
+          UpdateAttrs(StorePos.Y,attrAll);
           CloseGroupedAction(eaPasteWin);
           Update;
           { we must free the allocated memory }
@@ -3729,7 +3730,7 @@ type
 var
   SymbolIndex: Sw_integer;
   CurrentCommentType : Byte;
-  LastCC: TCharClass;
+  FirstCC,LastCC: TCharClass;
   InAsm,InComment,InSingleLineComment,InDirective,InString: boolean;
   X,ClassStart: Sw_integer;
   SymbolConcat: string;
@@ -3840,7 +3841,18 @@ var
     if C in HashChars then CC:=ccHash else
     if C in AlphaChars then CC:=ccAlpha else
     if C in NumberChars then CC:=ccNumber else
-    if (LastCC=ccNumber) and (C in RealNumberChars) then CC:=ccRealNumber else
+    if (LastCC=ccNumber) and (C in RealNumberChars) then
+      begin
+        if (C='.') then
+          begin
+            if (LineText[X+1]='.') then
+              cc:=ccSymbol
+            else
+              CC:=ccRealNumber
+          end
+        else
+          cc:=ccrealnumber;
+      end else
     CC:=ccSymbol;
     GetCharClass:=CC;
   end;
@@ -3890,12 +3902,17 @@ var
       EX: Sw_integer;
   begin
     CC:=GetCharClass(C);
+    if ClassStart=X then
+      FirstCC:=CC;
     if ( (CC<>LastCC) and
-         ( (CC<>ccAlpha) or (LastCC<>ccNumber) ) and
-         ( (CC<>ccNumber) or (LastCC<>ccAlpha) ) and
-         ( (CC<>ccNumber) or (LastCC<>ccHash) ) and
-         ( (CC<>ccRealNumber) or (LastCC<>ccNumber) )
-       ) or
+        (
+         ((FirstCC=ccNumber) and (CC<>ccRealNumber)) or
+        (((CC<>ccAlpha) or (LastCC<>ccNumber) ) and
+          ( (CC<>ccNumber) or (LastCC<>ccAlpha) ) and
+          ( (CC<>ccNumber) or (LastCC<>ccHash) ) and
+          ( (CC<>ccRealNumber) or (LastCC<>ccNumber))
+         ))) or
+
        (X>length(LineText)) or (CC=ccSymbol) then
     begin
       MatchedSymbol:=false;
@@ -5080,7 +5097,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.62  1999-11-18 13:42:06  pierre
+  Revision 1.63  1999-11-22 17:34:08  pierre
+   * fix for form bug 634
+
+  Revision 1.62  1999/11/18 13:42:06  pierre
    * Some more Undo stuff
 
   Revision 1.61  1999/11/10 00:45:30  pierre
