@@ -903,12 +903,12 @@ interface
               addn:
                 begin
                   op1 := A_ADDC;
-                  op2 := A_ADDZEO;
+                  op2 := A_ADDZEO_;
                 end;
               subn:
                 begin
                   op1 := A_SUBC;
-                  op2 := A_SUBFEO;
+                  op2 := A_SUBFEO_;
                 end;
               else
                 internalerror(2002072806);
@@ -1302,7 +1302,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2002-08-11 06:14:40  florian
+  Revision 1.9  2002-08-11 11:40:16  jonas
+    * some overflow checking fixes
+
+  Revision 1.8  2002/08/11 06:14:40  florian
     * fixed powerpc compilation problems
 
   Revision 1.7  2002/08/10 17:15:31  jonas
