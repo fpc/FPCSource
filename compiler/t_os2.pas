@@ -275,17 +275,13 @@ procedure timportlibos2.preparelib(const s:string);
 const   armag='!<arch>'#10;
         ar_magic:array[1..length(armag)] of char=armag;}
 const   ar_magic:array[1..8] of char='!<arch>'#10;
-
+var
+  libname : string;
 begin
+    libname:=FixFileName(s+'.ao2');
     seq_no:=1;
-    if not (cs_create_smart in aktmoduleswitches) then
-{$IFDEF NEWST}
-      current_module^.linkotherstaticlibs.
-       insert(new(Plinkitem,init(s,link_allways)));
-{$ELSE}
-      current_module^.linkotherstaticlibs.insert(s,link_allways);
-{$ENDIF NEWST}
-    assign(out_file,current_module^.outputpath^+s+'.ao2');
+    current_module^.linkunitstaticlibs.insert(libname,link_allways);
+    assign(out_file,current_module^.outputpath^+libname);
     rewrite(out_file,1);
     blockwrite(out_file,ar_magic,sizeof(ar_magic));
 end;
@@ -507,7 +503,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2000-08-27 16:11:54  peter
+  Revision 1.4  2000-09-20 19:38:34  peter
+    * fixed staticlib filename and unitlink instead of otherlinky
+
+  Revision 1.3  2000/08/27 16:11:54  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 
