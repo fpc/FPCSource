@@ -1,3 +1,5 @@
+{ %KNOWNRUNERROR=201 v1.0 computes cardinal > longint as cardinal values }
+
 {$R+}
 var
   a : cardinal;
