@@ -675,16 +675,16 @@ unit cgobj;
          if (aktprocsym^.definition^.options and poassembler=0) then
            begin
   {$ifndef VALUEPARA}
-              aktprocsym^.definition^.parast^.foreach(_copyopenarrays);
+              aktprocsym^.definition^.parast^.foreach({$ifdef FPC}@{$endif FPC}_copyopenarrays);
   {$else}
-              aktprocsym^.definition^.parast^.foreach(_copyvalueparas);
+              aktprocsym^.definition^.parast^.foreach({$ifdef FPC}@{$endif FPC}_copyvalueparas);
   {$endif}
            end;
 
          { initialisizes local data }
-         aktprocsym^.definition^.localst^.foreach(_initialize_data);
+         aktprocsym^.definition^.localst^.foreach({$ifdef FPC}@{$endif FPC}_initialize_data);
          { add a reference to all call by value/const parameters }
-         aktprocsym^.definition^.parast^.foreach(_incr_data);
+         aktprocsym^.definition^.parast^.foreach({$ifdef FPC}@{$endif FPC}_incr_data);
 
          if (cs_profile in aktmoduleswitches) or
            (aktprocsym^.definition^.owner^.symtabletype=globalsymtable) or
@@ -764,11 +764,11 @@ unit cgobj;
         end;
 
       { finalize local data }
-      aktprocsym^.definition^.localst^.foreach(finalize_data);
+      aktprocsym^.definition^.localst^.foreach({$ifdef FPC}@{$endif FPC}finalize_data);
 
       { finalize paras data }
       if assigned(aktprocsym^.definition^.parast) then
-        aktprocsym^.definition^.parast^.foreach(finalize_data);
+        aktprocsym^.definition^.parast^.foreach({$ifdef FPC}@{$endif FPC}finalize_data);
 
       { call __EXIT for main program }
       if (not DLLsource) and (not inlined) and ((aktprocsym^.definition^.options and poproginit)<>0) then
@@ -931,7 +931,10 @@ unit cgobj;
 end.
 {
   $Log$
-  Revision 1.6  1999-08-01 18:22:33  florian
+  Revision 1.7  1999-08-01 23:05:55  florian
+    * changes to compile with FPC
+
+  Revision 1.6  1999/08/01 18:22:33  florian
    * made it again compilable
 
   Revision 1.5  1999/01/23 23:29:46  florian
