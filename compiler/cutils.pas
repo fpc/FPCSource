@@ -89,7 +89,7 @@ uses
     function pstring2pchar(p : pstring) : pchar;
 
 { Speed/Hash value }
-function getspeedvalue(const s : string) : longint;
+    Function GetSpeedValue(Const s:String):cardinal;
 
 { Ansistring (pchar+length) support }
 procedure ansistringdispose(var p : pchar;length : longint);
@@ -633,49 +633,43 @@ uses
                                GetSpeedValue
 *****************************************************************************}
 
-var
-  Crc32Tbl : array[0..255] of longint;
+{$ifdef ver1_0}
+  {$R-}
+{$endif}
 
-procedure MakeCRC32Tbl;
-var
-  crc : longint;
-  i,n : byte;
-begin
-  for i:=0 to 255 do
-   begin
-     crc:=i;
-     for n:=1 to 8 do
-      if odd(crc) then
-       crc:=(crc shr 1) xor longint($edb88320)
-      else
-       crc:=crc shr 1;
-     Crc32Tbl[i]:=crc;
-   end;
-end;
+    var
+      Crc32Tbl : array[0..255] of cardinal;
+
+    procedure MakeCRC32Tbl;
+      var
+        crc : cardinal;
+        i,n : integer;
+      begin
+        for i:=0 to 255 do
+         begin
+           crc:=i;
+           for n:=1 to 8 do
+            if odd(longint(crc)) then
+             crc:=cardinal(crc shr 1) xor cardinal($edb88320)
+            else
+             crc:=cardinal(crc shr 1);
+           Crc32Tbl[i]:=crc;
+         end;
+      end;
 
 
-{$ifopt R+}
-  {$define Range_check_on}
-{$endif opt R+}
-
-{$R- needed here }
-{CRC 32}
-Function GetSpeedValue(Const s:String):longint;
-var
-  i,InitCrc : longint;
-begin
-  if Crc32Tbl[1]=0 then
-   MakeCrc32Tbl;
-  InitCrc:=-1;
-  for i:=1 to Length(s) do
-   InitCrc:=Crc32Tbl[byte(InitCrc) xor ord(s[i])] xor (InitCrc shr 8);
-  GetSpeedValue:=InitCrc;
-end;
-
-{$ifdef Range_check_on}
-  {$R+}
-  {$undef Range_check_on}
-{$endif Range_check_on}
+    Function GetSpeedValue(Const s:String):cardinal;
+      var
+        i : integer;
+        InitCrc : cardinal;
+      begin
+        if Crc32Tbl[1]=0 then
+         MakeCrc32Tbl;
+        InitCrc:=cardinal($ffffffff);
+        for i:=1 to Length(s) do
+         InitCrc:=Crc32Tbl[byte(InitCrc) xor ord(s[i])] xor (InitCrc shr 8);
+        GetSpeedValue:=InitCrc;
+      end;
 
 
 {*****************************************************************************
@@ -756,7 +750,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.11  2001-09-05 15:20:26  jonas
+  Revision 1.12  2001-11-18 18:43:13  peter
+    * overloading supported in child classes
+    * fixed parsing of classes with private and virtual and overloaded
+      so it is compatible with delphi
+
+  Revision 1.11  2001/09/05 15:20:26  jonas
     * ispowerf2 now works with 64bit ints and should be faster
 
   Revision 1.10  2001/08/04 11:06:30  peter

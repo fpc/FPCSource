@@ -458,6 +458,9 @@ interface
        tprocdef = class(tabstractprocdef)
        private
           _mangledname : pstring;
+{$ifdef GDB}
+          isstabwritten : boolean;
+{$endif GDB}
        public
           extnumber  : longint;
           messageinf : tmessageinf;
@@ -3269,6 +3272,9 @@ implementation
          regvarinfo := nil;
          count:=false;
          is_used:=false;
+{$ifdef GDB}
+         isstabwritten := false;
+{$endif GDB}
       end;
 
 
@@ -3334,6 +3340,9 @@ implementation
          refcount:=0;
          count:=true;
          is_used:=false;
+{$ifdef GDB}
+         isstabwritten := false;
+{$endif GDB}
       end;
 
 
@@ -3587,6 +3596,8 @@ implementation
 
 
 {$ifdef GDB}
+
+{$ifdef unused}
 {    procedure addparaname(p : tsym);
       var vs : char;
       begin
@@ -3630,11 +3641,62 @@ implementation
       stabstring := strnew(stabrecstring);
       freemem(stabrecstring,1024);
       end;
+{$endif unused}
 
+    function tprocdef.stabstring: pchar;
+     Var RType : Char;
+         Obj,Info : String;
+         stabsstr : string;
+         p : pchar;
+    begin
+      obj := procsym.name;
+      info := '';
+      if tprocsym(procsym).is_global then
+       RType := 'F'
+      else
+       RType := 'f';
+     if assigned(owner) then
+      begin
+        if (owner.symtabletype = objectsymtable) then
+         obj := upper(owner.name^)+'__'+procsym.name;
+        { this code was correct only as long as the local symboltable
+          of the parent had the same name as the function
+          but this is no true anymore !! PM
+        if (owner.symtabletype=localsymtable) and assigned(owner.name) then
+         info := ','+name+','+owner.name^;  }
+        if (owner.symtabletype=localsymtable) and
+           assigned(owner.defowner) and
+           assigned(tprocdef(owner.defowner).procsym) then
+          info := ','+procsym.name+','+tprocdef(owner.defowner).procsym.name;
+      end;
+     stabsstr:=mangledname;
+     getmem(p,length(stabsstr)+255);
+     strpcopy(p,'"'+obj+':'+RType
+           +tstoreddef(rettype.def).numberstring+info+'",'+tostr(n_function)
+           +',0,'+
+           tostr(fileinfo.line)
+           +',');
+     strpcopy(strend(p),stabsstr);
+     stabstring:=strnew(p);
+     freemem(p,length(stabsstr)+255);
+    end;
 
     procedure tprocdef.concatstabto(asmlist : taasmoutput);
-      begin
-      end;
+    begin
+      if (proccalloption=pocall_internproc) then
+        exit;
+      if not isstabwritten then
+        asmList.concat(Tai_stabs.Create(stabstring));
+      isstabwritten := true;
+      if assigned(parast) then
+        tstoredsymtable(parast).concatstabto(asmlist);
+      { local type defs and vars should not be written
+        inside the main proc stab }
+      if assigned(localst) and
+         (lexlevel>main_program_level) then
+        tstoredsymtable(localst).concatstabto(asmlist);
+      is_def_stab_written := written;
+    end;
 {$endif GDB}
 
 
@@ -5396,7 +5458,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.56  2001-11-18 18:27:57  florian
+  Revision 1.57  2001-11-18 18:43:14  peter
+    * overloading supported in child classes
+    * fixed parsing of classes with private and virtual and overloaded
+      so it is compatible with delphi
+
+  Revision 1.56  2001/11/18 18:27:57  florian
     * publishing of qword, int64 and widechar properties is now possible
 
   Revision 1.55  2001/11/02 22:58:06  peter

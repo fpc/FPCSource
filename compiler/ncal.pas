@@ -147,6 +147,66 @@ implementation
       end;
 
 
+    procedure search_class_overloads(aprocsym : tprocsym);
+    { searches n in symtable of pd and all anchestors }
+      var
+        speedvalue : cardinal;
+        srsym      : tprocsym;
+        s          : string;
+        found      : boolean;
+        srpdl,pdl  : pprocdeflist;
+        objdef     : tobjectdef;
+      begin
+        if aprocsym.overloadchecked then
+         exit;
+        aprocsym.overloadchecked:=true;
+        if (aprocsym.owner.symtabletype<>objectsymtable) then
+         internalerror(200111021);
+        objdef:=tobjectdef(aprocsym.owner.defowner);
+        { we start in the parent }
+        if not assigned(objdef.childof) then
+         exit;
+        objdef:=objdef.childof;
+        s:=aprocsym.name;
+        speedvalue:=getspeedvalue(s);
+        while assigned(objdef) do
+         begin
+           srsym:=tprocsym(objdef.symtable.speedsearch(s,speedvalue));
+           if assigned(srsym) then
+            begin
+              if (srsym.typ<>procsym) then
+               internalerror(200111022);
+              if srsym.check_private then
+               begin
+                 srpdl:=srsym.defs;
+                 while assigned(srpdl) do
+                  begin
+                    found:=false;
+                    pdl:=aprocsym.defs;
+                    while assigned(pdl) do
+                     begin
+                       if equal_paras(pdl^.def.para,srpdl^.def.para,cp_all) then
+                        begin
+                          found:=true;
+                          break;
+                        end;
+                       pdl:=pdl^.next;
+                     end;
+                    if not found then
+                     aprocsym.addprocdef(srpdl^.def);
+                    srpdl:=srpdl^.next;
+                  end;
+                 { we can stop if the overloads were already added
+                  for the found symbol }
+                 if srsym.overloadchecked then
+                  break;
+               end;
+            end;
+           { next parent }
+           objdef:=objdef.childof;
+         end;
+      end;
+
 
 {****************************************************************************
                              TCALLPARANODE
@@ -801,6 +861,20 @@ implementation
               { do we know the procedure to call ? }
               if not(assigned(procdefinition)) then
                 begin
+                   { when the definition has overload directive set, we search for
+                      overloaded definitions }
+                   if (not symtableprocentry.overloadchecked) and
+                      (
+                       (m_fpc in aktmodeswitches) or
+                       ((po_overload in symtableprocentry.defs^.def.procoptions) and
+                        (m_delphi in aktmodeswitches))
+                      ) then
+                    begin
+                      { for methods search in the class tree }
+                      if (symtableprocentry.owner.symtabletype=objectsymtable) then
+                        search_class_overloads(symtableprocentry);
+                    end;
+
                    { link all procedures which have the same # of parameters }
                    pd:=symtableprocentry.defs;
                    while assigned(pd) do
@@ -1693,7 +1767,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.55  2001-11-02 23:16:50  peter
+  Revision 1.56  2001-11-18 18:43:13  peter
+    * overloading supported in child classes
+    * fixed parsing of classes with private and virtual and overloaded
+      so it is compatible with delphi
+
+  Revision 1.55  2001/11/02 23:16:50  peter
     * removed obsolete chainprocsym and test_procsym code
 
   Revision 1.54  2001/11/02 22:58:01  peter

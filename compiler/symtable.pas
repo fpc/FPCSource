@@ -1103,8 +1103,7 @@ implementation
               { but private ids can be reused }
               hsym:=search_class_member(tobjectdef(defowner),sym.name);
               if assigned(hsym) and
-                (not(sp_private in hsym.symoptions) or
-                 (hsym.owner.defowner.owner.unitid=0)) then
+                 hsym.check_private then
                begin
                  DuplicateSym(hsym);
                  exit;
@@ -1269,20 +1268,19 @@ implementation
            (sym.typ <> funcretsym) then
            begin
               hsym:=search_class_member(procinfo^._class,sym.name);
+              { private ids can be reused }
               if assigned(hsym) and
-                { private ids can be reused }
-                (not(sp_private in hsym.symoptions) or
-                 (hsym.owner.defowner.owner.unitid=0)) then
-                begin
-                   { delphi allows to reuse the names in a class, but not
-                     in object (tp7 compatible) }
-                   if not((m_delphi in aktmodeswitches) and
-                          is_class(procinfo^._class)) then
-                    begin
-                      DuplicateSym(hsym);
-                      exit;
-                    end;
-                end;
+                 hsym.check_private then
+               begin
+                 { delphi allows to reuse the names in a class, but not
+                   in object (tp7 compatible) }
+                 if not((m_delphi in aktmodeswitches) and
+                        is_class(procinfo^._class)) then
+                  begin
+                    DuplicateSym(hsym);
+                    exit;
+                  end;
+               end;
            end;
 
          inherited insert(sym);
@@ -2047,7 +2045,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.49  2001-11-02 23:16:52  peter
+  Revision 1.50  2001-11-18 18:43:17  peter
+    * overloading supported in child classes
+    * fixed parsing of classes with private and virtual and overloaded
+      so it is compatible with delphi
+
+  Revision 1.49  2001/11/02 23:16:52  peter
     * removed obsolete chainprocsym and test_procsym code
 
   Revision 1.48  2001/11/02 22:58:08  peter

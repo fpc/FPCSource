@@ -279,54 +279,7 @@ interface
        end;
 
 
-    { Speed/Hash value }
-    Function GetSpeedValue(Const s:String):cardinal;
-
-
 implementation
-
-
-{*****************************************************************************
-                               GetSpeedValue
-*****************************************************************************}
-
-{$ifdef ver1_0}
-  {$R-}
-{$endif}
-
-    var
-      Crc32Tbl : array[0..255] of cardinal;
-
-    procedure MakeCRC32Tbl;
-      var
-        crc : cardinal;
-        i,n : integer;
-      begin
-        for i:=0 to 255 do
-         begin
-           crc:=i;
-           for n:=1 to 8 do
-            if odd(longint(crc)) then
-             crc:=cardinal(crc shr 1) xor cardinal($edb88320)
-            else
-             crc:=cardinal(crc shr 1);
-           Crc32Tbl[i]:=crc;
-         end;
-      end;
-
-
-    Function GetSpeedValue(Const s:String):cardinal;
-      var
-        i : integer;
-        InitCrc : cardinal;
-      begin
-        if Crc32Tbl[1]=0 then
-         MakeCrc32Tbl;
-        InitCrc:=cardinal($ffffffff);
-        for i:=1 to Length(s) do
-         InitCrc:=Crc32Tbl[byte(InitCrc) xor ord(s[i])] xor (InitCrc shr 8);
-        GetSpeedValue:=InitCrc;
-      end;
 
 
 {*****************************************************************************
@@ -1775,7 +1728,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  2001-11-05 14:16:25  jonas
+  Revision 1.9  2001-11-18 18:43:13  peter
+    * overloading supported in child classes
+    * fixed parsing of classes with private and virtual and overloaded
+      so it is compatible with delphi
+
+  Revision 1.8  2001/11/05 14:16:25  jonas
     * reduced memory usage by about 10% and increased speed by about 15%
 
   Revision 1.7  2001/05/04 19:50:04  peter

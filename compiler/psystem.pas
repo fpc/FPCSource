@@ -109,50 +109,6 @@ var
   vmtarraytype : ttype;
   vmtsymtable  : tsymtable;
 begin
-{ Internal types }
-  addtype('$formal',cformaltype);
-  addtype('$void',voidtype);
-  addtype('$byte',u8bittype);
-  addtype('$word',u16bittype);
-  addtype('$ulong',u32bittype);
-  addtype('$longint',s32bittype);
-  addtype('$qword',cu64bittype);
-  addtype('$int64',cs64bittype);
-  addtype('$char',cchartype);
-  addtype('$widechar',cwidechartype);
-  addtype('$shortstring',cshortstringtype);
-  addtype('$longstring',clongstringtype);
-  addtype('$ansistring',cansistringtype);
-  addtype('$widestring',cwidestringtype);
-  addtype('$openshortstring',openshortstringtype);
-  addtype('$boolean',booltype);
-  addtype('$void_pointer',voidpointertype);
-  addtype('$char_pointer',charpointertype);
-  addtype('$void_farpointer',voidfarpointertype);
-  addtype('$openchararray',openchararraytype);
-  addtype('$file',cfiletype);
-  addtype('$variant',cvarianttype);
-  addtype('$s32real',s32floattype);
-  addtype('$s64real',s64floattype);
-  addtype('$s80real',s80floattype);
-  { Add a type for virtual method tables in lowercase }
-  { so it isn't reachable!                            }
-  vmtsymtable:=trecordsymtable.create;
-  vmttype.setdef(trecorddef.create(vmtsymtable));
-  pvmttype.setdef(tpointerdef.create(vmttype));
-  vmtsymtable.insert(tvarsym.create('$parent',pvmttype));
-  vmtsymtable.insert(tvarsym.create('$length',s32bittype));
-  vmtsymtable.insert(tvarsym.create('$mlength',s32bittype));
-  vmtarraytype.setdef(tarraydef.create(0,1,s32bittype));
-  tarraydef(vmtarraytype.def).elementtype:=voidpointertype;
-  vmtsymtable.insert(tvarsym.create('$__pfn',vmtarraytype));
-  addtype('$__vtbl_ptr_type',vmttype);
-  addtype('$pvmt',pvmttype);
-  vmtarraytype.setdef(tarraydef.create(0,1,s32bittype));
-  tarraydef(vmtarraytype.def).elementtype:=pvmttype;
-  addtype('$vtblarray',vmtarraytype);
-{ Add functions that require compiler magic }
-  insertinternsyms(p);
 { Normal types }
   addtype('Single',s32floattype);
   addtype('Double',s64floattype);
@@ -179,6 +135,49 @@ begin
   addtype('Int64',cs64bittype);
   adddef('TypedFile',tfiledef.createtyped(voidtype));
   addtype('Variant',cvarianttype);
+{ Internal types }
+  addtype('$formal',cformaltype);
+  addtype('$void',voidtype);
+  addtype('$byte',u8bittype);
+  addtype('$word',u16bittype);
+  addtype('$ulong',u32bittype);
+  addtype('$longint',s32bittype);
+  addtype('$qword',cu64bittype);
+  addtype('$int64',cs64bittype);
+  addtype('$char',cchartype);
+  addtype('$widechar',cwidechartype);
+  addtype('$shortstring',cshortstringtype);
+  addtype('$longstring',clongstringtype);
+  addtype('$ansistring',cansistringtype);
+  addtype('$widestring',cwidestringtype);
+  addtype('$openshortstring',openshortstringtype);
+  addtype('$boolean',booltype);
+  addtype('$void_pointer',voidpointertype);
+  addtype('$char_pointer',charpointertype);
+  addtype('$void_farpointer',voidfarpointertype);
+  addtype('$openchararray',openchararraytype);
+  addtype('$file',cfiletype);
+  addtype('$variant',cvarianttype);
+  addtype('$s32real',s32floattype);
+  addtype('$s64real',s64floattype);
+  addtype('$s80real',s80floattype);
+{ Add a type for virtual method tables }
+  vmtsymtable:=trecordsymtable.create;
+  vmttype.setdef(trecorddef.create(vmtsymtable));
+  pvmttype.setdef(tpointerdef.create(vmttype));
+  vmtsymtable.insert(tvarsym.create('$parent',pvmttype));
+  vmtsymtable.insert(tvarsym.create('$length',s32bittype));
+  vmtsymtable.insert(tvarsym.create('$mlength',s32bittype));
+  vmtarraytype.setdef(tarraydef.create(0,1,s32bittype));
+  tarraydef(vmtarraytype.def).elementtype:=voidpointertype;
+  vmtsymtable.insert(tvarsym.create('$__pfn',vmtarraytype));
+  addtype('$__vtbl_ptr_type',vmttype);
+  addtype('$pvmt',pvmttype);
+  vmtarraytype.setdef(tarraydef.create(0,1,s32bittype));
+  tarraydef(vmtarraytype.def).elementtype:=pvmttype;
+  addtype('$vtblarray',vmtarraytype);
+{ Add functions that require compiler magic }
+  insertinternsyms(p);
 end;
 
 
@@ -277,7 +276,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.20  2001-10-24 11:51:39  marco
+  Revision 1.21  2001-11-18 18:43:14  peter
+    * overloading supported in child classes
+    * fixed parsing of classes with private and virtual and overloaded
+      so it is compatible with delphi
+
+  Revision 1.20  2001/10/24 11:51:39  marco
    * Make new/dispose system functions instead of keywords
 
   Revision 1.19  2001/08/30 20:13:53  peter

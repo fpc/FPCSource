@@ -100,6 +100,7 @@ interface
        tprocsym = class(tstoredsym)
           defs      : pprocdeflist; { linked list of overloaded procdefs }
           is_global : boolean;
+          overloadchecked : boolean;
           constructor create(const n : string);
           constructor load(ppufile:tcompilerppufile);
           destructor destroy;override;
@@ -678,7 +679,8 @@ implementation
          typ:=procsym;
          defs:=nil;
          owner:=nil;
-         is_global := false;
+         is_global:=false;
+         overloadchecked:=false;
       end;
 
 
@@ -695,7 +697,8 @@ implementation
             break;
            addprocdef(pd);
          until false;
-         is_global := false;
+         is_global:=false;
+         overloadchecked:=false;
       end;
 
 
@@ -770,7 +773,10 @@ implementation
          p:=defs;
          while assigned(p) do
            begin
-             ppufile.putderef(p^.def);
+             { only write the proc definitions that belong
+               to this procsym }
+             if (p^.def.procsym=self) then
+              ppufile.putderef(p^.def);
              p:=p^.next;
            end;
          ppufile.putderef(nil);
@@ -836,57 +842,13 @@ implementation
 
 {$ifdef GDB}
     function tprocsym.stabstring : pchar;
-     Var RetType : Char;
-         Obj,Info : String;
-         stabsstr : string;
-         p : pchar;
-    begin
-      obj := name;
-      info := '';
-      if is_global then
-       RetType := 'F'
-      else
-       RetType := 'f';
-     if assigned(owner) then
       begin
-        if (owner.symtabletype = objectsymtable) then
-         obj := upper(owner.name^)+'__'+name;
-        { this code was correct only as long as the local symboltable
-          of the parent had the same name as the function
-          but this is no true anymore !! PM
-        if (owner.symtabletype=localsymtable) and assigned(owner.name) then
-         info := ','+name+','+owner.name^;  }
-        if (owner.symtabletype=localsymtable) and
-           assigned(owner.defowner) and
-           assigned(tprocdef(owner.defowner).procsym) then
-          info := ','+name+','+tprocdef(owner.defowner).procsym.name;
+        internalerror(200111171);
       end;
-     stabsstr:=defs^.def.mangledname;
-     getmem(p,length(stabsstr)+255);
-     strpcopy(p,'"'+obj+':'+RetType
-           +tstoreddef(defs^.def.rettype.def).numberstring+info+'",'+tostr(n_function)
-           +',0,'+
-           tostr(aktfilepos.line)
-           +',');
-     strpcopy(strend(p),stabsstr);
-     stabstring:=strnew(p);
-     freemem(p,length(stabsstr)+255);
-    end;
 
     procedure tprocsym.concatstabto(asmlist : taasmoutput);
     begin
-      if (defs^.def.proccalloption=pocall_internproc) then exit;
-      if not isstabwritten then
-        asmList.concat(Tai_stabs.Create(stabstring));
-      isstabwritten := true;
-      if assigned(defs^.def.parast) then
-        tstoredsymtable(defs^.def.parast).concatstabto(asmlist);
-      { local type defs and vars should not be written
-        inside the main proc stab }
-      if assigned(defs^.def.localst) and
-         (lexlevel>main_program_level) then
-        tstoredsymtable(defs^.def.localst).concatstabto(asmlist);
-      defs^.def.is_def_stab_written := written;
+      internalerror(200111172);
     end;
 {$endif GDB}
 
@@ -2477,7 +2439,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.26  2001-11-02 22:58:08  peter
+  Revision 1.27  2001-11-18 18:43:16  peter
+    * overloading supported in child classes
+    * fixed parsing of classes with private and virtual and overloaded
+      so it is compatible with delphi
+
+  Revision 1.26  2001/11/02 22:58:08  peter
     * procsym definition rewrite
 
   Revision 1.25  2001/10/25 21:22:40  peter

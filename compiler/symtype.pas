@@ -91,6 +91,7 @@ interface
          function  realname:string;
          procedure deref;virtual;abstract;
          function  gettypedef:tdef;virtual;
+         function  check_private:boolean;
       end;
 
 {************************************************
@@ -218,6 +219,15 @@ implementation
     function tsym.gettypedef:tdef;
       begin
         gettypedef:=nil;
+      end;
+
+
+    function tsym.check_private:boolean;
+      begin
+        { private symbols are allowed when we are in the same
+          module as they are defined }
+        check_private:=not(sp_private in symoptions) or
+                       (owner.defowner.owner.unitid=0);
       end;
 
 
@@ -517,7 +527,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  2001-11-02 22:58:08  peter
+  Revision 1.12  2001-11-18 18:43:18  peter
+    * overloading supported in child classes
+    * fixed parsing of classes with private and virtual and overloaded
+      so it is compatible with delphi
+
+  Revision 1.11  2001/11/02 22:58:08  peter
     * procsym definition rewrite
 
   Revision 1.10  2001/10/21 12:33:07  peter
