@@ -1225,6 +1225,7 @@ begin
 { for the RTL }
   def_symbol('CARDINALMULFIXED');
 {$endif cardinalmulfix}
+  def_symbol('CORRECTFLDCW');
 
 { some stuff for TP compatibility }
 {$ifdef i386}
@@ -1449,7 +1450,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.63  2000-04-05 21:57:34  pierre
+  Revision 1.64  2000-04-07 14:56:18  peter
+    * correctfldcw define added
+
+  Revision 1.63  2000/04/05 21:57:34  pierre
    * no unitdir automatically added if -n option present
 
   Revision 1.62  2000/03/13 20:06:59  michael
