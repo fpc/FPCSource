@@ -121,6 +121,7 @@ unit aasm;
        plabel = ^tlabel;
        tlabel = record
                   nb       : longint;
+                  address  : longint;
                   is_data  : boolean;
                   is_used  : boolean;
                   is_set   : boolean;
@@ -132,6 +133,7 @@ unit aasm;
           l : plabel;
           constructor init(_l : plabel);
           destructor done; virtual;
+          procedure setaddress(offset:longint);
        end;
 
 
@@ -155,9 +157,10 @@ unit aasm;
        { alignment for operator }
        pai_align = ^tai_align;
        tai_align = object(tai)
-          aligntype: byte;   { 1 = no align, 2 = word align, 4 = dword align }
-          op: byte;          { value to fill with - optional                 }
-          use_op : boolean;
+          aligntype : byte;   { 1 = no align, 2 = word align, 4 = dword align }
+          fillsize  : byte;   { real size to fill }
+          fillop    : byte;   { value to fill with - optional }
+          use_op    : boolean;
           constructor init(b:byte);
           constructor init_op(b: byte; _op: byte);
           destructor done;virtual;
@@ -622,25 +625,31 @@ uses
                                TAI_LABEL
  ****************************************************************************}
 
-     constructor tai_label.init(_l : plabel);
+    constructor tai_label.init(_l : plabel);
+      begin
+        inherited init;
+        typ:=ait_label;
+        l:=_l;
+        l^.is_set:=true;
+      end;
 
-       begin
-          inherited init;
-          typ:=ait_label;
-          l:=_l;
-          l^.is_set:=true;
-       end;
 
     destructor tai_label.done;
-
       begin
-         if (l^.refcount>0) then
-         { can now be disposed by a tai_labeled instruction !! }
-           l^.is_set:=false
-         else
-           dispose(l);
-         inherited done;
+        if (l^.refcount>0) then
+        { can now be disposed by a tai_labeled instruction !! }
+          l^.is_set:=false
+        else
+          dispose(l);
+        inherited done;
       end;
+
+
+   procedure tai_label.setaddress(offset:longint);
+      begin
+        l^.address:=offset;
+      end;
+
 
 {****************************************************************************
                               TAI_DIRECT
@@ -693,7 +702,8 @@ uses
             aligntype := b
           else
             aligntype := 1;
-          op:=0;
+          fillsize:=0;
+          fillop:=0;
           use_op:=false;
        end;
 
@@ -707,7 +717,8 @@ uses
             aligntype := b
           else
             aligntype := 1;
-          op:=_op;
+          fillsize:=0;
+          fillop:=_op;
           use_op:=true;
        end;
 
@@ -912,7 +923,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.29  1998-12-29 18:48:24  jonas
+  Revision 1.30  1999-02-17 10:16:24  peter
+    * small fixes for the binary writer
+
+  Revision 1.29  1998/12/29 18:48:24  jonas
     + optimize pascal code surrounding assembler blocks
 
   Revision 1.28  1998/12/16 00:27:16  peter

@@ -472,13 +472,31 @@ end;
 Procedure GenerateAsm;
 var
   a : PAsmList;
+{$ifdef i386}
+  {$ifdef Ag386Bin}
+    b : Pi386binasmlist
+  {$endif}
+{$endif}
 begin
   case aktoutputformat of
 {$ifdef i386}
-  {$ifdef Ag386Cof}
-     as_i386_coff :
-       a:=new(pi386coffasmlist,Init);
-  {$endif Ag386Cof}
+  {$ifdef Ag386Bin}
+     as_i386_dbg,
+     as_i386_coff,
+     as_i386_pecoff :
+       begin
+         case aktoutputformat of
+           as_i386_dbg :
+             b:=new(pi386binasmlist,Init(og_dbg));
+           as_i386_coff :
+             b:=new(pi386binasmlist,Init(og_coff));
+           as_i386_pecoff :
+             b:=new(pi386binasmlist,Init(og_pecoff));
+         end;
+         b^.WriteBin;
+         dispose(b,done);
+       end;
+  {$endif Ag386Bin}
   {$ifndef NoAg386Att}
      as_i386_o,
      as_i386_o_aout,
@@ -540,7 +558,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.34  1999-01-10 15:37:52  peter
+  Revision 1.35  1999-02-17 10:16:26  peter
+    * small fixes for the binary writer
+
+  Revision 1.34  1999/01/10 15:37:52  peter
     * moved some tables from ra386*.pas -> i386.pas
     + start of coff writer
     * renamed asmutils unit to rautils
