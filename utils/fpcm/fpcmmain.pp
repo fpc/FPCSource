@@ -918,6 +918,7 @@ implementation
           LoadRequires(t,c,ReqFPCMake);
           { Add the current requirements to our parents requirements }
           s:=Trim(ReqFPCMake.GetVariable('require_packages',true)+' '+
+                  ReqFPCMake.GetVariable('require_packages'+cpusuffix[c],true)+' '+
                   ReqFPCMake.GetVariable('require_packages'+targetsuffix[t],true)+' '+
                   ReqFPCMake.GetVariable('require_packages'+targetsuffix[t]+cpusuffix[c],true));
           SetVariable('require_packages'+targetsuffix[t]+cpusuffix[c],s,true);
@@ -939,6 +940,7 @@ implementation
       begin
         { packages }
         s:=Trim(FromFPCMake.GetVariable('require_packages',true)+' '+
+                FromFPCMake.GetVariable('require_packages'+CpuSuffix[c],true)+' '+
                 FromFPCMake.GetVariable('require_packages'+TargetSuffix[t],true)+' '+
                 FromFPCMake.GetVariable('require_packages'+TargetSuffix[t]+CpuSuffix[c],true));
         Verbose(FPCMakeDebug,'Required packages for '+TargetStr[t]+'-'+CpuStr[c]+': '+s);
@@ -968,6 +970,7 @@ implementation
         until false;
         { sub dirs }
         s:=Trim(FromFPCMake.GetVariable('target_dirs',true)+' '+
+                FromFPCMake.GetVariable('target_dirs'+CpuSuffix[c],true)+' '+
                 FromFPCMake.GetVariable('target_dirs'+TargetSuffix[t],true)+' '+
                 FromFPCMake.GetVariable('target_dirs'+TargetSuffix[t]+CpuSuffix[c],true));
         Verbose(FPCMakeDebug,'Required dirs for '+TargetStr[t]+'-'+CpuStr[c]+': '+s);
@@ -1055,6 +1058,7 @@ implementation
           i : integer;
         begin
           s:=Sec['packages']+' '+
+             Sec['packages'+CpuSuffix[c]]+' '+
              Sec['packages'+TargetSuffix[t]]+' '+
              Sec['packages'+TargetSuffix[t]+CpuSuffix[c]];
           repeat
@@ -1557,7 +1561,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.41  2004-06-29 19:20:49  marco
+  Revision 1.42  2004-07-11 18:58:19  peter
+    * support varaiable_cpu
+
+  Revision 1.41  2004/06/29 19:20:49  marco
    * rtl only autoadded if name<>rtl (+/- line 1030)
 
   Revision 1.40  2004/06/06 14:11:54  karoly

@@ -351,6 +351,17 @@ implementation
             if not firsttarget then
              FOutput.Add('endif');
           end;
+         for c:=low(TCpu) to high(TCpu) do
+          if (c in FInput.IncludeCpus) then
+           begin
+             s:=FInput.GetVariable(IniVar+CpuSuffix[c],false);
+             if s<>'' then
+              begin
+                FOutput.Add('ifeq ($(CPU_TARGET),'+CpuStr[c]+')');
+                FOutput.Add('override '+FixVariable(IniVar)+'+='+s);
+                FOutput.Add('endif');
+              end;
+           end;
       end;
 
 
@@ -439,6 +450,17 @@ implementation
             if not firsttarget then
              FOutput.Add('endif');
           end;
+         for c:=low(TCpu) to high(TCpu) do
+          if (c in FInput.IncludeCpus) then
+           begin
+             s:=FInput.GetVariable(IniVar+TargetSuffix[t]+CpuSuffix[c],false);
+             if s<>'' then
+              begin
+                FOutput.Add('ifeq ($(CPU_TARGET),'+CpuStr[c]+')');
+                addtokens(s);
+                FOutput.Add('endif');
+              end;
+	   end;   
       end;
 
 
@@ -933,7 +955,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.30  2004-04-20 22:59:31  olle
+  Revision 1.31  2004-07-11 18:58:19  peter
+    * support varaiable_cpu
+
+  Revision 1.30  2004/04/20 22:59:31  olle
     * support for new fpcini section [defines]
 
   Revision 1.29  2004/04/01 12:26:56  olle
