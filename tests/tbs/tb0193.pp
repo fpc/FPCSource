@@ -1,10 +1,10 @@
 { Old file: tbs0227.pp }
 { external var does strange things when declared in localsymtable OK 0.99.11 (PFV) }
 
-function getstacksize:longint;assembler;
 var
   stacksize : ptrint;external name '__stklen';
-//  sbrk : longint;external name '___sbrk';
+
+function getstacksize:longint;assembler;
 asm
 {$ifdef CPUI386}
         movl    stacksize,%eax

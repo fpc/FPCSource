@@ -10,7 +10,14 @@ var
  L:longint;
  S:string;
 begin
- assign(F,'tbs/tb0084.pp');           { Assign F to itself }
+ { Create temp }
+ assign(F,'tb0084.tmp');           { Assign F to itself }
+ rewrite(f);
+ for l:=1 to 100 do
+   writeln('Hello world');
+ close(f);
+   
+ assign(F,'tb0084.tmp');           { Assign F to itself }
  reset(F);                             { Open it (as a textfile) }
  ReadLn(F);                            { Just read some lines }
  ReadLn(F);

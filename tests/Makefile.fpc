@@ -142,8 +142,8 @@ units:
 
 copyfiles: $(TEST_OUTPUTDIR)
         $(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)/ctest.o test/cg
-        -$(MKDIRTREE) $(TEST_OUTPUTDIR)/tests/units/system
-        $(COPY) test/units/system/test*.txt $(TEST_OUTPUTDIR)/tests/units/system
+        -$(MKDIRTREE) $(TEST_OUTPUTDIR)/test/units/system
+        $(COPY) test/units/system/test*.txt $(TEST_OUTPUTDIR)/test/units/system
 
 ################################
 # Preparation for tests

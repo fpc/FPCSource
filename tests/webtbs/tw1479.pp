@@ -4,12 +4,18 @@ uses
   sysutils;
 
 const
-  fname = 'Makefile';
+  fname = 'tw1479.tmp';
 
  ThisDir = '.'+DirectorySeparator;
 var
   fn : string;
+  f : text;
 begin
+  assign(f,fname);
+  rewrite(f);
+  writeln(f,'hello');
+  close(f);
+  
   fn:=FileSearch(fname,PathSeparator);
   writeln('found: ',fn);
   if fn<>fname then

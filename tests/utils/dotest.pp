@@ -473,7 +473,7 @@ begin
 {$ifdef unix}
   { Add runtime library path to current dir to find .so files }
   if Config.NeedLibrary then
-   args:=args+' ''-k-rpath .''';
+   args:=args+' -Fl'+TestOutputDir+' ''-k-rpath .''';
 {$endif unix}
   if Config.NeedOptions<>'' then
    args:=args+' '+Config.NeedOptions;
@@ -1081,7 +1081,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.40  2004-11-09 21:26:29  peter
+  Revision 1.41  2004-11-09 23:13:50  peter
+    * fixed library tests
+    * fix test cases to generate their own temporary files
+
+  Revision 1.40  2004/11/09 21:26:29  peter
     * use ./ before executable under unix
 
   Revision 1.39  2004/11/09 17:26:28  peter
