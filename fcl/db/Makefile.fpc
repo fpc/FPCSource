@@ -8,7 +8,7 @@ examples=testds createds mtest tested
 
 [require]
 options=-S2
-packages=fcl mysql
+packages=mysql
 
 [install]
 unitsubdir=fcl

@@ -7,7 +7,6 @@ units=doc_text shedit sh_xml sh_pas
 
 [require]
 options=-S2
-packages=fcl
 
 [install]
 unitsubdir=fcl
