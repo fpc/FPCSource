@@ -20,7 +20,7 @@ unit sysatari;
 {--------------------------------------------------------------------}
 { o SBrk                                                             }
 { o Implement truncate                                               }
-{ o Implement paramcount and paramstr                                }
+{ o Implement paramstr(0)                                            }
 {--------------------------------------------------------------------}
 
 
@@ -41,13 +41,22 @@ const
   StdOutputHandle = 1;
   StdErrorHandle  = $ffff;
 
+
+
   implementation
 
     {$I system.inc}
     {$I lowmath.inc}
 
+
+    const
+      argc : longint = 0;
+
+
     var
       errno : integer;
+    type
+       plongint = ^longint;
 
 {$S-}
     procedure Stack_Check; assembler;
@@ -107,31 +116,103 @@ const
          end;
       end;
 
-    function paramcount : longint; assembler;
-    asm
-            clr.l   d0
-            move.w  __ARGC,d0
-            sub.w   #1,d0
-    end;
-
-    function paramstr(l : longint) : string;
 
       function args : pointer; assembler;
       asm
          move.l __ARGS,d0
       end;
 
-      var
-         p : ^pchar;
 
+
+
+   Function GetParamCount(const p: pchar): longint;
+   var
+    i: word;
+    count: word;
+   Begin
+    i:=0;
+    count:=0;
+    while p[count] <> #0 do
+     Begin
+       if (p[count] <> ' ') and (p[count] <> #9) and (p[count] <> #0) then
+       Begin
+          i:=i+1;
+          while (p[count] <> ' ') and (p[count] <> #9) and (p[count] <> #0) do
+           count:=count+1;
+       end;
+       if p[count] = #0 then break;
+       count:=count+1;
+     end;
+     GetParamCount:=longint(i);
+   end;
+
+
+   Function GetParam(index: word; const p : pchar): string;
+   { On Entry: index = string index to correct parameter  }
+   { On exit:  = correct character index into pchar array }
+   { Returns correct index to command line argument }
+   var
+    count: word;
+    localindex: word;
+    l: byte;
+    temp: string;
+   Begin
+     temp:='';
+     count := 0;
+     { first index is one }
+     localindex := 1;
+     l:=0;
+     While p[count] <> #0 do
+       Begin
+         if (p[count] <> ' ') and (p[count] <> #9) then
+           Begin
+             if localindex = index then
+              Begin
+               while (p[count] <> #0) and (p[count] <> ' ') and (p[count] <> #9) and (l < 256) do
+                Begin
+                  temp:=temp+p[count];
+                  l:=l+1;
+                  count:=count+1;
+                end;
+                temp[0]:=char(l);
+                GetParam:=temp;
+                exit;
+              end;
+             { Point to next argument in list }
+             while (p[count] <> #0) and (p[count] <> ' ') and (p[count] <> #9) do
+               Begin
+                 count:=count+1;
+               end;
+             localindex:=localindex+1;
+           end;
+         if p[count] = #0 then break;
+         count:=count+1;
+       end;
+     GetParam:=temp;
+   end;
+
+
+    function paramstr(l : longint) : string;
+      var
+       p : pchar;
+       s1 : string;
       begin
-         if (l>=0) and (l<=paramcount) then
+         if l = 0 then
+         Begin
+           s1 := '';
+         end
+         else
+         if (l>0) and (l<=paramcount) then
            begin
-              p:=args;
-              paramstr:=strpas(p[l]);
+             p:=args;
+             paramstr:=GetParam(word(l),p);
            end
          else paramstr:='';
       end;
+
+
+
+
 
     procedure randomize;
 
@@ -629,12 +710,14 @@ begin
 { Reset IO Error }
   InOutRes:=0;
   errno := 0;
+{ Setup command line arguments }
+ argc:=GetParamCount(args);
 end.
 
 {
   $Log$
-  Revision 1.6  1998-07-13 21:19:07  florian
-    * some problems with ansi string support fixed
+  Revision 1.7  1998-07-14 12:12:05  carl
+    + paramstr and paramcount implemented
 
   Revision 1.5  1998/07/13 12:34:13  carl
     + Error2InoutRes implemented
