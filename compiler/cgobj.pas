@@ -742,6 +742,7 @@ unit cgobj;
         pushed_reg.enum:=R_INTREGISTER;
         pushed_reg.number:=NR_NO;
         if size in [OS_8,OS_S8] then
+        {$ifndef newra}
           if (rg.countunusedregsint = 0) then
             begin
               if (dref.base.enum<>R_NO) and (dref.base.enum<>R_INTREGISTER) then
@@ -762,6 +763,7 @@ unit cgobj;
               list.concat(taicpu.op_reg(A_PUSH,S_L,pushed_reg));
             end
           else
+        {$endif}
             tmpreg := rg.getregisterint(list,size)
         else
 {$endif i386}
@@ -773,6 +775,7 @@ unit cgobj;
         a_load_ref_reg(list,size,sref,tmpreg);
         a_load_reg_ref(list,size,tmpreg,dref);
 {$ifdef i386}
+{$ifndef newra}
         if size in [OS_8,OS_S8] then
           begin
             if (pushed_reg.number<>NR_NO) then
@@ -781,6 +784,7 @@ unit cgobj;
               rg.ungetregisterint(list,tmpreg)
           end
         else
+{$endif}
 {$endif i386}
 {$ifdef newra}
         rg.ungetregisterint(list,tmpreg);
@@ -1838,7 +1842,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.86  2003-04-23 13:20:34  peter
+  Revision 1.87  2003-04-23 14:42:07  daniel
+    * Further register allocator work. Compiler now smaller with new
+      allocator than without.
+    * Somebody forgot to adjust ppu version number
+
+  Revision 1.86  2003/04/23 13:20:34  peter
     * fix self passing to fpc_help_fail
 
   Revision 1.85  2003/04/23 12:35:34  florian

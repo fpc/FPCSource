@@ -65,6 +65,10 @@ the div instruction modifies edx, so variables that are in use at that time
 cannot be stored into edx. This can be modelled by making edx interfere
 with those variables.
 
+Graph colouring is an NP complete problem. Therefore we use an approximation
+that pushes registers to colour on to a stack. This is done in the "simplify"
+procedure.
+
 *******************************************************************************}
 
 
@@ -148,8 +152,10 @@ unit rgobj;
           unusedregsmm,usableregsmm : tregisterset;
           { these counters contain the number of elements in the }
           { unusedregsxxx/usableregsxxx sets                     }
+{$ifndef newra}
           countunusedregsint,
           countunusedregsaddr,
+{$endif}
           countunusedregsfpu,
           countunusedregsmm : byte;
           countusableregsint,
@@ -343,17 +349,17 @@ unit rgobj;
           { the following two contain the common (generic) code for all }
           { get- and ungetregisterxxx functions/procedures              }
           function getregistergen(list: taasmoutput; const lowreg, highreg: Toldregister;
-              var unusedregs:Tregisterset; var countunusedregs: byte): tregister;
+              var unusedregs:Tregisterset;var countunusedregs:byte): tregister;
           function getregistergenint(list:Taasmoutput;subreg:Tsubregister;
                                      const lowreg,highreg:Tsuperregister;
-                                     var fusedinproc,fusedbyproc,unusedregs:Tsupregset;
-                                     var countunusedregs:byte):Tregister;
+                                     var fusedinproc,fusedbyproc,unusedregs:Tsupregset
+                                     {$ifndef newra};var countunusedregs:byte{$endif}):Tregister;
           procedure ungetregistergen(list: taasmoutput; const r: tregister;
-              const usableregs: tregisterset; var unusedregs: tregisterset; var countunusedregs: byte);
+              const usableregs:tregisterset;var unusedregs: tregisterset; var countunusedregs: byte);
           procedure ungetregistergenint(list:taasmoutput;const r:Tregister;
                                         const usableregs:Tsupregset;
-                                        var unusedregs:Tsupregset;
-                                        var countunusedregs:byte);
+                                        var unusedregs:Tsupregset
+                                        {$ifndef newra};var countunusedregs:byte{$endif});
 {$ifdef TEMPREGDEBUG}
          reg_user   : regvar_ptreearray;
          reg_releaser : regvar_ptreearray;
@@ -425,8 +431,10 @@ unit rgobj;
         unusedregsaddr,usableregsaddr : Tsupregset;
         unusedregsfpu,usableregsfpu : tregisterset;
         unusedregsmm,usableregsmm : tregisterset;
+{$ifndef newra}
         countunusedregsint,
         countunusedregsaddr,
+{$endif}
         countunusedregsfpu,
         countunusedregsmm : byte;
         countusableregsint,
@@ -452,8 +460,10 @@ unit rgobj;
         unusedregsaddr : Tsupregset;
         unusedregsfpu : tregisterset;
         unusedregsmm : tregisterset;
+{$ifndef newra}
         countunusedregsint,
         countunusedregsaddr,
+{$endif}
         countunusedregsfpu,
         countunusedregsmm : byte;
       end;
@@ -514,8 +524,8 @@ unit rgobj;
     function Trgobj.getregistergenint(list:Taasmoutput;
                                       subreg:Tsubregister;
                                       const lowreg,highreg:Tsuperregister;
-                                      var fusedinproc,fusedbyproc,unusedregs:Tsupregset;
-                                      var countunusedregs:byte):Tregister;
+                                      var fusedinproc,fusedbyproc,unusedregs:Tsupregset
+                                      {$ifndef newra};var countunusedregs:byte{$endif}):Tregister;
 
     var i:Tsuperregister;
         r:Tregister;
@@ -534,7 +544,9 @@ unit rgobj;
             exclude(unusedregs,i);
             include(fusedinproc,i);
             include(fusedbyproc,i);
+          {$ifndef newra}
             dec(countunusedregs);
+          {$endif}
             r.enum:=R_INTREGISTER;
             r.number:=i shl 8 or subreg;
             list.concat(Tai_regalloc.alloc(r));
@@ -542,9 +554,9 @@ unit rgobj;
             lastintreg:=i;
             if i>maxintreg then
               maxintreg:=i;
-{$ifdef newra}
+          {$ifdef newra}
             add_edges_used(i);
-{$endif}
+          {$endif}
             exit;
           end;
       until i=lastintreg;
@@ -580,8 +592,8 @@ unit rgobj;
 
     procedure trgobj.ungetregistergenint(list:taasmoutput;const r:Tregister;
                                          const usableregs:Tsupregset;
-                                         var unusedregs:Tsupregset;
-                                         var countunusedregs:byte);
+                                         var unusedregs:Tsupregset
+                                         {$ifndef newra}var countunusedregs:byte{$endif});
 
     var supreg:Tsuperregister;
 
@@ -607,7 +619,7 @@ unit rgobj;
 {$endif EXTTEMPREGDEBUG}
          else
 {$endif TEMPREGDEBUG}
-          inc(countunusedregs);
+          {$ifndef newra}inc(countunusedregs){$endif};
         include(unusedregs,supreg);
         list.concat(tai_regalloc.dealloc(r));
 {$ifdef newra}
@@ -621,16 +633,18 @@ unit rgobj;
     var subreg:Tsubregister;
 
     begin
+{$ifndef newra}
       if countunusedregsint=0 then
         internalerror(10);
-{$ifdef TEMPREGDEBUG}
+  {$ifdef TEMPREGDEBUG}
       if curptree^^.usableregs-countunusedregsint>curptree^^.registers32 then
         internalerror(10);
-{$endif TEMPREGDEBUG}
-{$ifdef EXTTEMPREGDEBUG}
+  {$endif TEMPREGDEBUG}
+  {$ifdef EXTTEMPREGDEBUG}
       if curptree^^.usableregs-countunusedregsint>curptree^^.reallyusedregs then
         curptree^^.reallyusedregs:=curptree^^.usableregs-countunusedregsint;
-{$endif EXTTEMPREGDEBUG}
+  {$endif EXTTEMPREGDEBUG}
+{$endif}
       subreg:=cgsize2subreg(size);
       result:=getregistergenint(list,
                                 subreg,
@@ -643,8 +657,8 @@ unit rgobj;
 {$endif}
                                 usedintbyproc,
                                 usedintinproc,
-                                unusedregsint,
-                                countunusedregsint);
+                                unusedregsint{$ifndef newra},
+                                countunusedregsint{$endif});
 {$ifdef TEMPREGDEBUG}
       reg_user[result]:=curptree^;
       testregisters32;
@@ -655,8 +669,8 @@ unit rgobj;
     procedure trgobj.ungetregisterint(list : taasmoutput; r : tregister);
 
       begin
-         ungetregistergenint(list,r,usableregsint,unusedregsint,
-           countunusedregsint);
+         ungetregistergenint(list,r,usableregsint,unusedregsint{$ifndef newra},
+           countunusedregsint{$endif});
 {$ifdef TEMPREGDEBUG}
         reg_releaser[r]:=curptree^;
         testregisters32;
@@ -672,12 +686,14 @@ unit rgobj;
     begin
       if (r shr 8) in unusedregsint then
         begin
+{$ifndef newra}
           dec(countunusedregsint);
 {$ifdef TEMPREGDEBUG}
           if curptree^^.usableregs-countunusedregsint>curptree^^.registers32 then
             internalerror(10);
           reg_user[r shr 8]:=curptree^;
 {$endif TEMPREGDEBUG}
+{$endif newra}
           exclude(unusedregsint,r shr 8);
           include(usedintinproc,r shr 8);
           include(usedintbyproc,r shr 8);
@@ -801,7 +817,9 @@ unit rgobj;
    {$endif newra}
 
     begin
+    {$ifndef newra}
       countunusedregsint:=countusableregsint;
+    {$endif}
       countunusedregsfpu:=countusableregsfpu;
       countunusedregsmm:=countusableregsmm;
       lastintreg:=0;
@@ -899,7 +917,9 @@ unit rgobj;
               cg.a_load_reg_ref(list,OS_INT,r2,hr);
               cg.a_reg_dealloc(list,r2);
               include(unusedregsint,r);
+            {$ifndef newra}
               inc(countunusedregsint);
+            {$endif}
             end;
         end;
 {$ifdef TEMPREGDEBUG}
@@ -993,7 +1013,9 @@ unit rgobj;
                     may not be real (JM) }
                 else
                   begin
+                  {$ifndef newra}
                     dec(countunusedregsint);
+                  {$endif}
                     exclude(unusedregsint,r);
                   end;
                 tg.UnGetTemp(list,hr);
@@ -1130,7 +1152,9 @@ unit rgobj;
     begin
       supreg:=reg shr 8;
       dec(countusableregsint);
+    {$ifndef newra}
       dec(countunusedregsint);
+    {$endif}
       exclude(usableregsint,reg);
       exclude(unusedregsint,reg);
       include(is_reg_var_int,supreg);
@@ -1184,7 +1208,9 @@ unit rgobj;
         psavedstate(state)^.usableregsfpu := usableregsfpu;
         psavedstate(state)^.unusedregsmm := unusedregsmm;
         psavedstate(state)^.usableregsmm := usableregsmm;
+      {$ifndef newra}
         psavedstate(state)^.countunusedregsint := countunusedregsint;
+      {$endif}
         psavedstate(state)^.countunusedregsfpu := countunusedregsfpu;
         psavedstate(state)^.countunusedregsmm := countunusedregsmm;
         psavedstate(state)^.countusableregsint := countusableregsint;
@@ -1212,7 +1238,9 @@ unit rgobj;
         usableregsfpu := psavedstate(state)^.usableregsfpu;
         unusedregsmm := psavedstate(state)^.unusedregsmm;
         usableregsmm := psavedstate(state)^.usableregsmm;
+      {$ifndef newra}
         countunusedregsint := psavedstate(state)^.countunusedregsint;
+      {$endif}
         countunusedregsfpu := psavedstate(state)^.countunusedregsfpu;
         countunusedregsmm := psavedstate(state)^.countunusedregsmm;
         countusableregsint := psavedstate(state)^.countusableregsint;
@@ -1240,7 +1268,9 @@ unit rgobj;
         punusedstate(state)^.unusedregsint := unusedregsint;
         punusedstate(state)^.unusedregsfpu := unusedregsfpu;
         punusedstate(state)^.unusedregsmm := unusedregsmm;
+      {$ifndef newra}
         punusedstate(state)^.countunusedregsint := countunusedregsint;
+      {$endif}
         punusedstate(state)^.countunusedregsfpu := countunusedregsfpu;
         punusedstate(state)^.countunusedregsmm := countunusedregsmm;
       end;
@@ -1251,7 +1281,9 @@ unit rgobj;
         unusedregsint := punusedstate(state)^.unusedregsint;
         unusedregsfpu := punusedstate(state)^.unusedregsfpu;
         unusedregsmm := punusedstate(state)^.unusedregsmm;
+      {$ifndef newra}
         countunusedregsint := punusedstate(state)^.countunusedregsint;
+      {$endif}
         countunusedregsfpu := punusedstate(state)^.countunusedregsfpu;
         countunusedregsmm := punusedstate(state)^.countunusedregsmm;
         dispose(punusedstate(state));
@@ -1969,7 +2001,12 @@ end.
 
 {
   $Log$
-  Revision 1.37  2003-04-22 23:50:23  peter
+  Revision 1.38  2003-04-23 14:42:07  daniel
+    * Further register allocator work. Compiler now smaller with new
+      allocator than without.
+    * Somebody forgot to adjust ppu version number
+
+  Revision 1.37  2003/04/22 23:50:23  peter
     * firstpass uses expectloc
     * checks if there are differences between the expectloc and
       location.loc from secondpass in EXTDEBUG

@@ -41,7 +41,7 @@ type
 {$endif Test_Double_checksum}
 
 const
-  CurrentPPUVersion=32;
+  CurrentPPUVersion=33;
 
 { buffer sizes }
   maxentrysize = 1024;
@@ -985,7 +985,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.31  2003-04-10 17:57:53  peter
+  Revision 1.32  2003-04-23 14:42:07  daniel
+    * Further register allocator work. Compiler now smaller with new
+      allocator than without.
+    * Somebody forgot to adjust ppu version number
+
+  Revision 1.31  2003/04/10 17:57:53  peter
     * vs_hidden released
 
   Revision 1.30  2003/03/17 15:54:22  peter

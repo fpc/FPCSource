@@ -1180,6 +1180,16 @@ unit cgx86;
           cgsize:=OS_32;
           while len<>0 do
             begin
+              if len<2 then
+                begin
+                  copysize:=1;
+                  cgsize:=OS_8;
+                end
+              else if len<4 then
+                begin
+                  copysize:=2;
+                  cgsize:=OS_16;
+                end;
               dec(len,copysize);
               r:=rg.getregisterint(list,cgsize);
               a_load_ref_reg(list,cgsize,srcref,r);
@@ -1189,16 +1199,6 @@ unit cgx86;
               inc(srcref.offset,copysize);
               inc(dstref.offset,copysize);
               rg.ungetregisterint(list,r);
-              if copysize<2 then
-                begin
-                  copysize:=1;
-                  cgsize:=OS_8;
-                end
-              else if copysize<4 then
-                begin
-                  copysize:=2;
-                  cgsize:=OS_16;
-                end;
             end;
         end
       else
@@ -1938,7 +1938,12 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.41  2003-04-23 09:51:16  daniel
+  Revision 1.42  2003-04-23 14:42:08  daniel
+    * Further register allocator work. Compiler now smaller with new
+      allocator than without.
+    * Somebody forgot to adjust ppu version number
+
+  Revision 1.41  2003/04/23 09:51:16  daniel
     * Removed usage of edi in a lot of places when new register allocator used
     + Added newra versions of g_concatcopy and secondadd_float
 

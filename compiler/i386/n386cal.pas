@@ -163,8 +163,8 @@ implementation
         else
           if (pop_size=8) and
              not(cs_littlesize in aktglobalswitches) and
-             (aktoptprocessor=ClassP5) and
-             (rg.countunusedregsint>0) then
+             (aktoptprocessor=ClassP5)
+             {$ifndef newra} and (rg.countunusedregsint>0){$endif} then
             begin
             {$ifdef newra}
                hreg:=rg.getregisterint(exprasmlist,OS_INT);
@@ -201,7 +201,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.89  2003-04-22 14:33:38  peter
+  Revision 1.90  2003-04-23 14:42:08  daniel
+    * Further register allocator work. Compiler now smaller with new
+      allocator than without.
+    * Somebody forgot to adjust ppu version number
+
+  Revision 1.89  2003/04/22 14:33:38  peter
     * removed some notes/hints
 
   Revision 1.88  2003/04/22 10:09:35  daniel

@@ -358,7 +358,9 @@ unit rgcpu;
               { then save it }
               list.concat(Taicpu.Op_reg(A_PUSH,S_L,r2));
               include(unusedregsint,r);
+            {$ifndef newra}
               inc(countunusedregsint);
+            {$endif}
               pushed[r].pushed:=true;
             end;
         end;
@@ -393,7 +395,9 @@ unit rgcpu;
               r2.enum:=r;
               list.concat(Taicpu.Op_reg_ref(A_MOVQ,S_NO,r2,hr));
               include(unusedregsmm,r);
+            {$ifndef newra}
               inc(countunusedregsmm);
+            {$endif}
               pushed[r].pushed:=true;
             end;
         end;
@@ -422,7 +426,7 @@ unit rgcpu;
                 that appear as used
                 due to a unused tmep storage PM }
             else
-              dec(countunusedregsint);
+              {$ifndef newra}dec(countunusedregsint){$endif};
             exclude(unusedregsint,r);
           end;
 {$ifdef TEMPREGDEBUG}
@@ -454,7 +458,7 @@ unit rgcpu;
                 that appear as used
                 due to a unused tmep storage PM }
             else
-              dec(countunusedregsmm);
+              {$ifndef newra}dec(countunusedregsmm){$endif};
             exclude(unusedregsmm,r);
           end;
 {$ifdef TEMPREGDEBUG}
@@ -562,7 +566,12 @@ end.
 
 {
   $Log$
-  Revision 1.19  2003-04-22 10:09:35  daniel
+  Revision 1.20  2003-04-23 14:42:08  daniel
+    * Further register allocator work. Compiler now smaller with new
+      allocator than without.
+    * Somebody forgot to adjust ppu version number
+
+  Revision 1.19  2003/04/22 10:09:35  daniel
     + Implemented the actual register allocator
     + Scratch registers unavailable when new register allocator used
     + maybe_save/maybe_restore unavailable when new register allocator used
