@@ -40,6 +40,7 @@ unit cpunode;
        ncgcal,
        ncgset,
        ncginl,
+       ncgopt,
        { to be able to only parts of the generic code,
          the processor specific nodes must be included
          after the generic one (FK)
@@ -50,7 +51,6 @@ unit cpunode;
        n386mem,
        n386set,
        n386inl,
-       n386opt,
        { this not really a node }
        n386obj,
        n386mat,
@@ -60,7 +60,10 @@ unit cpunode;
 end.
 {
   $Log$
-  Revision 1.18  2002-08-24 18:35:42  peter
+  Revision 1.19  2003-04-24 11:19:13  florian
+    * ncgopt replaces n386opt
+
+  Revision 1.18  2002/08/24 18:35:42  peter
     * i386 uses now the generic exception management from ncgflw
 
   Revision 1.17  2002/08/23 16:14:49  peter
