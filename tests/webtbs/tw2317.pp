@@ -13,7 +13,15 @@ Begin
    Exit(TypeOf(Self));
 End;
 
+var
+  l : longint;
 Begin
-   WriteLn(Longint(tObject.GetVMT()));
+   l:=Longint(tObject.GetVMT());
+   WriteLn('self in static: ',l);
+   if l<>0 then
+    begin
+      writeln('Error!');
+      halt(1);
+    end;
 End.
 
