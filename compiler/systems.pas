@@ -115,7 +115,8 @@ interface
              system_powerpc_netbsd,     { 29 }
              system_powerpc_openbsd,    { 30 }
              system_arm_linux,          { 31 }
-             system_i386_watcom         { 32 }
+             system_i386_watcom,        { 32 }
+             system_powerpc_MorphOS     { 33 }
        );
 
        tasm = (as_none
@@ -650,7 +651,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.82  2004-01-30 13:42:03  florian
+  Revision 1.83  2004-02-13 05:42:16  karoly
+   * added powerpc-morphos target
+
+  Revision 1.82  2004/01/30 13:42:03  florian
     * fixed more alignment issues
 
   Revision 1.81  2004/01/28 15:36:46  florian
