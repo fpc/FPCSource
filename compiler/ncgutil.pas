@@ -193,14 +193,14 @@ implementation
            end
          else
            if (
-               (p.location.loc=LOC_FPUREGISTER) and
+               (p.expectloc=LOC_FPUREGISTER) and
                (p.right.registersfpu > p.left.registersfpu)
               ) or
               (
                (
                 (
                  ((p.left.registersfpu = 0) and (p.right.registersfpu = 0)) or
-                 (p.location.loc<>LOC_FPUREGISTER)
+                 (p.expectloc<>LOC_FPUREGISTER)
                 ) and
                 (p.left.registersint<p.right.registersint)
                )
@@ -2407,7 +2407,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.262  2005-02-15 21:39:48  peter
+  Revision 1.263  2005-03-02 19:44:11  jonas
+    * use expectloc in firstcomplex()
+
+  Revision 1.262  2005/02/15 21:39:48  peter
     * remove is_single_reference
     * revert loading of ref-to-ref para valu
 
