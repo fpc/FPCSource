@@ -128,11 +128,6 @@
          end ['EAX'];
       end;
 
-    function heapsize : longint;
-
-	  begin
-		 heapsize:=_heapsize;
-      end;
 
 {$IfDef CHECKHEAP}
     procedure call_stack(p : pointer);
@@ -1062,7 +1057,10 @@ end;
 
 {
   $Log$
-  Revision 1.11  1998-06-25 09:26:10  daniel
+  Revision 1.12  1998-07-02 12:18:46  carl
+    - removed function heapsize, CAUSED conflicts with HEAPSIZE var
+
+  Revision 1.11  1998/06/25 09:26:10  daniel
   * Removed some more tabs
 
   Revision 1.10  1998/06/24 11:53:26  daniel
