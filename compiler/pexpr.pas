@@ -484,7 +484,7 @@ implementation
                    arguments }
                  if (m_tp_procvar in aktmodeswitches) and
                     (p1.nodetype=calln) and
-                    (tcallnode(p1).paralength=0) and
+                    (tcallnode(p1).para_count=0) and
                     not(nf_isproperty in tcallnode(p1).flags) then
                    load_procvar_from_calln(p1);
 
@@ -2497,7 +2497,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.143  2003-11-29 16:19:54  peter
+  Revision 1.144  2003-12-08 22:35:28  peter
+    * again procvar fixes
+
+  Revision 1.143  2003/11/29 16:19:54  peter
     * Initialize() added
 
   Revision 1.142  2003/11/29 14:49:46  peter

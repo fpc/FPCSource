@@ -1004,6 +1004,11 @@ implementation
     function ttypeconvnode.resulttype_dynarray_to_variant : tnode;
 
       begin
+        result := ccallnode.createinternres(
+          'fpc_dynarray_to_variant',
+          ccallparanode.create(caddrnode.create(crttinode.create(tstoreddef(resulttype.def),initrtti)),
+            ccallparanode.create(left,nil)
+          ),resulttype);
         result:=nil;
       end;
 
@@ -1227,11 +1232,15 @@ implementation
                    begin
                      if assigned(tcallnode(left).right) then
                       begin
+                        { this is already a procvar, if it is really equal
+                          is checked below }
+                        convtype:=tc_equal;
                         hp:=tcallnode(left).right.getcopy;
                         currprocdef:=tprocdef(hp.resulttype.def);
                       end
                      else
                       begin
+                        convtype:=tc_proc_2_procvar;
                         currprocdef:=Tprocsym(Tcallnode(left).symtableprocentry).search_procdef_byprocvardef(Tprocvardef(resulttype.def));
                         hp:=cloadnode.create_procvar(tprocsym(tcallnode(left).symtableprocentry),
                             currprocdef,tcallnode(left).symtableproc);
@@ -1255,7 +1264,6 @@ implementation
                       end;
                      left.free;
                      left:=hp;
-                     convtype:=tc_proc_2_procvar;
                      { Now check if the procedure we are going to assign to
                        the procvar, is compatible with the procvar's type }
                      if not(nf_explicit in flags) and
@@ -1357,6 +1365,21 @@ implementation
                begin
                  hp:=ccallnode.create_procvar(nil,left);
                  resulttypepass(hp);
+                 left:=hp;
+               end;
+            end;
+
+          calln :
+            begin
+              { See remark for loadn, this is the reverse }
+              if (m_tp_procvar in aktmodeswitches) and
+                 (resulttype.def.deftype in [recorddef,setdef]) and
+                 assigned(tcallnode(left).right) and
+                 (tcallnode(left).para_count=0) then
+               begin
+                 hp:=tcallnode(left).right.getcopy;
+                 resulttypepass(hp);
+                 left.free;
                  left:=hp;
                end;
             end;
@@ -1867,6 +1890,8 @@ implementation
          { and should be quite portable too        }
          r.proc:=firstconvert[c];
          r.obj:=self;
+         if not assigned(r.proc) then
+           internalerror(200312081);
          first_call_helper:=tprocedureofobject(r){$ifdef FPC}(){$endif FPC}
       end;
 
@@ -2388,7 +2413,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.131  2003-11-22 00:31:52  jonas
+  Revision 1.132  2003-12-08 22:35:28  peter
+    * again procvar fixes
+
+  Revision 1.131  2003/11/22 00:31:52  jonas
     * fixed range error
 
   Revision 1.130  2003/11/04 22:30:15  florian
