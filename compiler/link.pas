@@ -30,6 +30,7 @@ uses cobjects,files;
 Type
     TLinker = Object
        Glibc2,
+       Glibc21,
        LinkToC,                           { Should we link to the C libs? }
        Strip             : Boolean;       { Strip symbols ? }
        ObjectFiles,
@@ -96,13 +97,19 @@ begin
   StaticLibFiles.Init_no_double;
   LinkToC:=False;
   Glibc2:=false;
+  Glibc21:=false;
   Strip:=false;
   LinkOptions:='';
 {$ifdef linux}
   { first try glibc2 }
   DynamicLinker:='/lib/ld-linux.so.2';
   if FileExists(DynamicLinker) then
-   Glibc2:=true
+   begin
+     Glibc2:=true;
+     { also glibc 2.1  ?}
+     if FileExists('/lib/ld-2.1.1.so') then
+      Glibc21:=true;
+   end
   else
    DynamicLinker:='/lib/ld-linux.so.1';
   LibrarySearchPath:='/lib;/usr/lib;/usr/lib/X11';
@@ -294,7 +301,10 @@ Function TLinker.WriteResponseFile : Boolean;
 Var
   LinkResponse : Text;
   i            : longint;
-  prtobj,s,s2  : string;
+  cprtobj,
+  gprtobj,
+  prtobj       : string[80];
+  s,s2         : string;
   found,linux_link_c,
   linklibc     : boolean;
 
@@ -308,7 +318,7 @@ Var
   begin
     if s<>'' then
      begin
-       if not(s[1] in ['a'..'z','A'..'Z','/','\']) then
+       if not(s[1] in ['a'..'z','A'..'Z','/','\','.']) then
          Write(Linkresponse,'.',DirSep);
        WriteLn(Linkresponse,s);
      end;
@@ -320,6 +330,13 @@ begin
 { set special options for some targets }
   linklibc:=SharedLibFiles.Find('c');
   prtobj:='prt0';
+  cprtobj:='cprt0';
+  gprtobj:='gprt0';
+  if glibc21 then
+   begin
+     cprtobj:='cprt21';
+     gprtobj:='gprt21';
+   end;
   case target_info.target of
    target_m68k_Palmos,
    target_i386_Win32 :
@@ -334,7 +351,7 @@ begin
      begin
        if cs_profile in aktmoduleswitches then
         begin
-          prtobj:='gprt0';
+          prtobj:=gprtobj;
           if not glibc2 then
            AddSharedLibrary('gmon');
           AddSharedLibrary('c');
@@ -343,7 +360,7 @@ begin
        else
         begin
           if linklibc then
-           prtobj:='cprt0';
+           prtobj:=cprtobj;
         end;
        if linklibc then
          linux_link_c:=true;
@@ -620,7 +637,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.51  1999-04-28 23:42:33  pierre
+  Revision 1.52  1999-05-03 21:30:30  peter
+    + glibc 2.1
+
+  Revision 1.51  1999/04/28 23:42:33  pierre
    * removing of temporary directory with -s option
 
   Revision 1.50  1999/04/25 14:31:48  daniel
