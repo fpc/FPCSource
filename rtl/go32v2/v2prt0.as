@@ -61,6 +61,10 @@ ___djgpp_memory_handle_pointer:
         .long   ___djgpp_memory_handle_list+8      /* Next free, first for stub */
         .comm   ___djgpp_memory_handle_list, 2048       /* Enough for 256 handles */
 
+   /* simply get current state */
+___sbrk_interrupt_state:
+        .long   0x902
+
 sbrk16_first_byte:
 .include "sbrk16.ah"
 sbrk16_last_byte:
@@ -276,18 +280,18 @@ ___exit:
 /* special exit from dpmiexcp.c */
         .global __exit
 __exit:
-        movb    4(%esp), %al
+        movl    4(%esp),%eax
 exit:
-        movb    %al, %cl
+        movl    %eax,%ecx
         xorl    %eax,%eax
         movw    %ax,%fs
         movw    %ax,%gs
-   cmpl $0,_exception_exit
-   jz   no_exception
-   pushl %ecx
-   call *_exception_exit
-   popl %ecx
-   no_exception:
+        cmpl    $0,_exception_exit
+        jz      no_exception
+        pushl   %ecx
+        call    *_exception_exit
+        popl    %ecx
+no_exception:
         cli                          /* Just in case they didn't unhook ints */
         FREESEL U_SYSTEM_GO32_INFO_BLOCK+26     /* selector for linear memory */
         FREESEL ___v2prt0_ds_alias      /* DS alias for rmcb exceptions */
@@ -394,13 +398,13 @@ brk_common:
 
         movw    $0x0900, %ax                                /* disable interrupts */
         int     $0x31
-        pushl   %eax
+        movl    %eax,___sbrk_interrupt_state
 
         lcall   sbrk16_api_ofs
         setc    %dl                                          /* Save carry */
 
-        popl    %eax                                /* restore interrupts */
-        int     $0x31
+        /* popl    %eax                                restore interrupts
+        int     $0x31 postponed after ds alias is set correctly */
 
         test    %dl,%dl
         popl    %edx
@@ -446,6 +450,8 @@ brk_common:
         movw    ___djgpp_base_address+2, %cx
         int     $0x31
 
+        movl    %eax,___sbrk_interrupt_state                /* restore interrupts */
+        int     $0x31
         movl    ___djgpp_selector_limit, %edx
 12:     incl    %edx                                        /* Size not limit */
         testb   $0x60, __crt0_startup_flags     /* include/crt0.h */
@@ -901,7 +907,10 @@ ___PROXY_LEN:
 
 /*
   $Log$
-  Revision 1.6  1999-07-10 23:17:15  pierre
+  Revision 1.7  2000-02-16 13:24:55  pierre
+   * Mouse crash bug fixed !!!
+
+  Revision 1.6  1999/07/10 23:17:15  pierre
    merged from fixes branch
 
   Revision 1.5.2.1  1999/07/10 23:15:02  pierre
@@ -938,4 +947,3 @@ ___PROXY_LEN:
     * remake3 works again with go32v2
     - removed some "optimizes" from daniel which were wrong
 */
-
