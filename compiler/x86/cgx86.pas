@@ -1296,6 +1296,8 @@ unit cgx86;
         else
 {$endif __NOWINPECOFF__}
           list.concat(Taicpu.op_reg_reg(A_SUB,S_L,R_EDI,R_ESP));
+        { align stack on 4 bytes }
+        list.concat(Taicpu.op_const_reg(A_AND,S_L,$fffffff4,R_ESP));
         { load destination }
         list.concat(Taicpu.op_reg_reg(A_MOV,S_L,R_ESP,R_EDI));
 
@@ -1680,7 +1682,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.24  2002-12-24 15:56:50  peter
+  Revision 1.25  2003-01-02 16:17:50  peter
+    * align stack on 4 bytes in copyvalueopenarray
+
+  Revision 1.24  2002/12/24 15:56:50  peter
     * stackpointer_alloc added for adjusting ESP. Win32 needs
       this for the pageprotection
 
