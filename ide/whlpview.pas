@@ -445,7 +445,7 @@ var TextPos,LinePos,LinkNo,NamedMarkNo: sw_word;
     LineAlign : (laLeft,laCenter,laRight);
     FirstLink,LastLink: sw_integer;
     AreaColor: word;
-    NextByte: (nbNormal,nbAreaColor);
+    NextByte: (nbNormal,nbAreaColor,nbDirect);
 procedure ClearLine;
 begin
   Line:='';
@@ -456,14 +456,12 @@ var P: sw_integer;
     I,Delta: sw_integer;
 begin
   Line:=CharStr(' ',Margin)+Line;
-  repeat
-    P:=Pos(#255,Line);
-    if P>0 then
-      if InImage then
-        Delete(Line,p,1)
-      else
+  if not InImage then
+    repeat
+      P:=Pos(#255,Line);
+      if P>0 then
         Line[P]:=#32;
-  until P=0;
+    until P=0;
   if Not InImage then
     while copy(Line,length(Line),1)=' ' do
       Delete(Line,length(Line),1);
@@ -556,6 +554,11 @@ begin
             AreaColor:=ord(C);
             NextByte:=nbNormal;
           end;
+        nbDirect :
+          begin
+            NextByte:=nbNormal;
+            CurWord:=CurWord+C;
+          end;
         nbNormal :
           begin
             case C of
@@ -629,6 +632,8 @@ begin
                      ColorAreaStart:=CurPos;
                      InColorArea:=true;
                    end;
+              hscDirect :
+                   NextByte:=nbDirect;
               hscInImage :
                    begin
                      InImage := not InImage;
@@ -1404,7 +1409,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.7  2002-03-20 17:10:04  pierre
+  Revision 1.8  2002-03-25 14:37:45  pierre
+   +handle hscDirect
+
+  Revision 1.7  2002/03/20 17:10:04  pierre
    * avoid to cut a part of an image
 
   Revision 1.6  2002/03/20 11:15:51  pierre
