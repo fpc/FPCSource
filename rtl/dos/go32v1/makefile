@@ -230,7 +230,7 @@ clean:
 	-$(DEL) *$(PPUEXT)
 	-$(DEL) *.dif
 	-$(DEL) log
-	-$(DEL) *.pp
+	-$(DEL) *.as
 
 diffclean:
 	-$(DEL) *.dif
