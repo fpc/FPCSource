@@ -740,7 +740,11 @@ end;
 {$define FPC_PreviousFramePointer_Implemented}
 {$warning FIX ME !!!! }
 asm
-   mov r0,fp
+   // on the arm, even assembler declared procedure save fp because it's part of the
+   // entry code where e.g. the link register is saved so we've to dereference fp
+   // here twice
+   ldr r0,[fp,#-12]
+   ldr r0,[r0,#-12]
 end;
 {$endif cpuarm}
 {$ifndef FPC_PreviousFramePointer_Implemented}
@@ -2946,7 +2950,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.28  2004-02-18 21:59:23  peter
+  Revision 1.29  2004-03-31 21:49:19  florian
+    * fixed GetParentFrame for ARM
+
+  Revision 1.28  2004/02/18 21:59:23  peter
     * x86_64 added
 
   Revision 1.27  2004/01/01 15:30:04  jonas
