@@ -304,6 +304,7 @@ Fixed bugs:
   bug0247.pp   var with initial value not supprted (Delphi var x : integer = 5;)
                allowed in -Sd mode OK 0.99.11 (PM)
   bug0248.pp   Asm, Wrong assembler code accepted by new assembler reader OK 0.99.11 (PFV)
+  bug0250.pp   error with Ansistrings and loops.                    OK 0.99.11 (PFV)
   
 
 Unproducable bugs:
@@ -327,21 +328,18 @@ bug0193.pp   overflow checking for 8 and 16 bit operations wrong
              you have to use range checks for byte or 16 bit integers
 bug0124.pp   Asm, problem with -Rintel switch and indexing (whatever the order)
              Partial fix only see above
-
-Unfixed bugs:
--------------
-
-bug0232.pp   const. procedure variables need a special syntax
-             if they use calling specification modifiers
-bug0237.pp   Can't have sub procedures with names defined in interface
 bug0243.pp   Arguments of functions are computed from right to left this
              is against pascal convention
              but only BP respects this convention Delphi and GPC also
              use right to left pushing !!
 
+Unfixed bugs:
+-------------
+bug0232.pp   const. procedure variables need a special syntax
+             if they use calling specification modifiers
+bug0237.pp   Can't have sub procedures with names defined in interface
 bug0244.pp   nested procedures can't have same name as global ones
 bug0245.pp   assigning pointers to address of consts is allowed (refused by BP !) 
 bug0246.pp   const para can be changed without error
 bug0249.pp   procedure of object cannot be assigned to property.
-bug0250.PP   error with Ansistrings and loops.
 bug0251.pp   typed const are not aligned correctly 
