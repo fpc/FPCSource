@@ -351,14 +351,14 @@ implementation
            repeat
            { still more to read?, then change the #0 to a space so its seen
              as a seperator }
-             if (bufsize>0) and (inputpointer-inputbuffer<bufsize) then
+             if (c=#0) and (bufsize>0) and (inputpointer-inputbuffer<bufsize) then
               begin
                 c:=' ';
                 inc(longint(inputpointer));
                 exit;
               end;
            { can we read more from this file ? }
-             if not endoffile then
+             if (c<>#26) and (not endoffile) then
               begin
                 readbuf;
                 inputpointer:=buf;
@@ -565,8 +565,11 @@ implementation
          reload
         else
          inc(longint(inputpointer));
-        if c in [#10,#13] then
-         linebreak;
+        case c of
+         #26 : reload;
+         #10,
+         #13 : linebreak;
+        end;
       end;
 
 
@@ -599,7 +602,7 @@ implementation
                          c:=inputpointer^;
                          inc(longint(inputpointer));
                        end;
-                  #0 : reload;
+              #0,#26 : reload;
              #13,#10 : begin
                          linebreak;
                          break;
@@ -664,8 +667,11 @@ implementation
             inc(longint(inputpointer));
          end;
       { was the next char a linebreak ? }
-        if c in [#10,#13] then
-         linebreak;
+        case c of
+         #26 : reload;
+         #10,
+         #13 : linebreak;
+        end;
         {$ifndef TP}
           {$ifopt H+}
             setlength(pattern,i);
@@ -770,8 +776,11 @@ implementation
             reload
            else
             inc(longint(inputpointer));
-           if c in [#10,#13] then
-            linebreak;
+           case c of
+            #26 : reload;
+            #10,
+            #13 : linebreak;
+           end;
          end;
       end;
 
@@ -805,8 +814,11 @@ implementation
             reload
            else
             inc(longint(inputpointer));
-           if c in [#10,#13] then
-            linebreak;
+           case c of
+            #26 : reload;
+            #10,
+            #13 : linebreak;
+           end;
          until (found=2);
       end;
 
@@ -832,8 +844,11 @@ implementation
             reload
            else
             inc(longint(inputpointer));
-           if c in [#10,#13] then
-            linebreak;
+           case c of
+            #26 : reload;
+            #10,
+            #13 : linebreak;
+           end;
          end;
       end;
 
@@ -895,8 +910,11 @@ implementation
               reload
              else
               inc(longint(inputpointer));
-             if c in [#10,#13] then
-              linebreak;
+             case c of
+              #26 : reload;
+              #10,
+              #13 : linebreak;
+             end;
            until (found=2);
          end;
       end;
@@ -1486,7 +1504,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.69  1998-12-11 00:03:46  peter
+  Revision 1.70  1999-01-19 12:14:38  peter
+    * fixed eof bug with includefiles
+
+  Revision 1.69  1998/12/11 00:03:46  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.68  1998/11/16 15:41:44  peter
