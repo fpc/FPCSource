@@ -711,7 +711,8 @@ var R,R2: TRect;
     D: PCenterDialog;
     C: PVideoModeCollection;
     VMLB: PVideoModeListBox;
-    VM: TVideoMode;
+    OldScreenMode,VM: TVideoMode;
+    ScreenModeInfo : array[1..3] of longint;
     CurVP,VP: PVideoMode;
     RB1: PPlainRadioButtons;
     CB1,CB2: PPlainCheckBoxes;
@@ -796,7 +797,19 @@ begin
              VM.Color:=Color;
            end;
          if (VM.Col<>ScreenMode.Col) or (VM.Row<>ScreenMode.Row) or (VM.Color<>ScreenMode.Color) then
-         SetScreenVideoMode(VM);
+           Begin
+             OldScreenMode:=ScreenMode;
+             SetScreenVideoMode(VM);
+             if (VM.Col<>ScreenMode.Col) or (VM.Row<>ScreenMode.Row) or (VM.Color<>ScreenMode.Color) then
+               begin
+                 SetScreenVideoMode(OldScreenMode);
+                 ScreenModeInfo[1]:=VM.col;
+                 ScreenModeInfo[2]:=VM.row;
+                 ScreenModeInfo[3]:=byte(VM.color);
+
+                 ErrorBox(msg_cantsetscreenmode,@ScreenModeInfo);
+               end;
+           End;
        end;
      AutoSaveOptions:=CB1^.Value;
      MiscOptions:=CB2^.Value;
@@ -1273,7 +1286,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2001-10-11 11:35:53  pierre
+  Revision 1.4  2001-10-12 14:21:47  pierre
+   + show error if switch to new screen mode failed
+
+  Revision 1.3  2001/10/11 11:35:53  pierre
    * adapt to new video unit layout
 
   Revision 1.2  2001/08/05 12:23:00  peter

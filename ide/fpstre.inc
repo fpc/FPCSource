@@ -587,7 +587,7 @@ const
       msg_windowlist_hidden = 'hidden';
 
       msg_userscreennotavailable = 'Sorry, user screen not available.';
-
+      msg_cantsetscreenmode = #3'Impossible to set'#13#3'%dx%d mode';
       { Tools $PROMPT() dialog }
       dialog_programarguments = 'Program Arguments';
       label_enterprogramargument = '~E~nter program argument';
@@ -1007,7 +1007,10 @@ const
 
 {
   $Log$
-  Revision 1.2  2001-08-29 23:31:27  pierre
+  Revision 1.3  2001-10-12 14:21:47  pierre
+   + show error if switch to new screen mode failed
+
+  Revision 1.2  2001/08/29 23:31:27  pierre
    * fix some m68k specific options
 
   Revision 1.1  2001/08/04 11:30:23  peter
