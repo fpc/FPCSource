@@ -3253,6 +3253,207 @@ ReleaseTempHeap;
 {All allocated memory is now freed, except for the memory pointed to by 'P' }
 ...
 \end{verbatim}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Debugging the heap
+\subsection{Debugging the heap}
+
+\fpc provides a unit that allows you to trace allocation and deallocation
+of heap memory: \file{heaptrc}. 
+
+If you specify the \var{-gh} switch on the command-line, or if you include 
+\var{heaptrc} as the first unit in your uses clause, the memory manager 
+will trace what is allocated and deallocated, and on exit of your program,
+a summary will be sent to standard output.
+
+More information on using the \var{heaptrc} mechanism can be found in the 
+\userref and \unitsref.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Writing your own memory manager.
+\subsection{Writing your own memory manager}
+
+\fpc allows you to write and use your own memory manager. The standard
+functions \var{GetMem}, \var{FreeMem}, \var{ReallocMem} and \var{Maxavail}
+use a special record in the system unit to do the actual memory management.
+The system unit initializes this record with the system unit's own memory
+manager, but you can read and set this record using the
+\var{GetMemoryManager} and \var{SetMemoryManager} calls:
+\begin{verbatim}
+procedure GetMemoryManager(var MemMgr: TMemoryManager);
+procedure SetMemoryManager(const MemMgr: TMemoryManager);
+\end{verbatim}
+
+the \var{TMemoryManager} record is defined as follows:
+\begin{verbatim}
+  TMemoryManager = record
+    Getmem      : Function(Size:Longint):Pointer;
+    Freemem     : Function(var p:pointer):Longint;
+    FreememSize : Function(var p:pointer;Size:Longint):Longint;
+    AllocMem    : Function(Size:longint):Pointer;
+    ReAllocMem  : Function(var p:pointer;Size:longint):Pointer;
+    MemSize     : function(p:pointer):Longint;
+    MemAvail    : Function:Longint;
+    MaxAvail    : Function:Longint;
+    HeapSize    : Function:Longint;
+  end;
+\end{verbatim}
+
+As you can see, the elements of this record are procedural variables.
+The system unit does nothing but call these various variables when you
+allocate or deallocate memory.
+
+Each of these functions corresponds to the corresponding call in the system 
+unit. We'll describe each one of them:
+\begin{description}
+\item[Getmem] This function allocates a new block on the heap. The block
+should be \var{Size} bytes long. The return value is a pointer to the newly
+allocated block.
+\item[Freemem] should release a previously allocated block. The pointer
+\var{P} points to a previously allocated block. The Memory manager should
+implement a mechanism to determine what the size of the memory block is
+\footnote{By storing it's size at a negative offset for instance.} The
+return value is optional, and can be used to return the size of the freed
+memory.
+\item[FreememSize] This function should release the memory pointed to by
+\var{P}. The argument \var{Size} is the expected size of the memory block
+pointed to by P. This should be disregarded, but can be used to check the
+behaviour of the program.
+\item[AllocMem] Is the same as getmem, only the allocated memory should 
+be filled with zeroes before the call returns.
+\item[ReAllocMem] Should allocate a memory block \var{Size} bytes large,
+and should fill it with the contents of the memory block pointed to by
+\var{P}, truncating this to the new size of needed. After that, the memory
+pointed to by P may be deallocated. The return value is a pointer to the 
+new memory block.
+\item[MemSize] should return the total amount of memory available for
+allocation. This function may return zero if the memory manager does not 
+allow to determine this information.
+\item[MaxAvail] should return the size of the largest block of memory that
+is still available for allocation. This function may return zero if the 
+memory manager does not allow to determine this information.
+\item[HeapSize] should return the total size of the heap. This may be zero
+is the memory manager does not allow to determine this information.
+\end{description}
+To implement your own memory manager, it is sufficient to construct such a
+record and to issue a call to \var{SetMemoryManager}. 
+
+To avoid conflicts with the system memory manager, setting the memory 
+manager should happen as soon as possible in the initialization of your 
+program, i.e. before any call to \var{getmem} is processed. 
+
+This means in practice that the unit implementing the memory manager should
+be the first in the \var{uses} clause of your program or library, since it
+will then be initialized before all other units (except of the system unit)
+
+This also means that it is not possible to use the \file{heaptrc} unit in
+combination with a custom memory manager, since the \file{heaptrc} unit uses
+the system memory manager to do all it's allocation. Putting the 
+\file{heaptrc} unit after the unit implementing the memory manager would 
+overwrite the memory manager record installed by the custom memory manager,
+and vice versa.
+
+The following unit shows a straightforward implementation of a custom
+memory manager using the memory manager of the \var{C} library. It is
+distributed  as a package with \fpc.
+\begin{verbatim}
+unit cmem;
+
+{$mode objfpc}
+
+interface
+
+Function Malloc (Size : Longint) : Pointer;cdecl; 
+  external 'c' name 'malloc';
+Procedure Free (P : pointer); cdecl; external 'c' name 'free';
+Procedure FreeMem (P : Pointer); cdecl; external 'c' name 'free';
+function ReAlloc (P : Pointer; Size : longint) : pointer; cdecl;
+  external 'c' name 'realloc';
+Function CAlloc (unitSize,UnitCount : Longint) : pointer;cdecl;
+  external 'c' name 'calloc';
+
+implementation
+
+Function CGetMem  (Size : Longint) : Pointer;
+
+begin
+  result:=Malloc(Size);
+end;
+
+Function CFreeMem (Var P : pointer) : Longint;
+
+begin
+  Free(P);
+  Result:=0;
+end;
+
+Function CFreeMemSize(var p:pointer;Size:Longint):Longint;
+
+begin
+  Result:=CFreeMem(P);
+end;
+
+Function CAllocMem(Size : Longint) : Pointer;
+
+begin
+  Result:=calloc(Size,1); 
+end;
+
+Function CReAllocMem (var p:pointer;Size:longint):Pointer;
+
+begin
+  Result:=realloc(p,size);
+end;
+
+Function CMemSize (p:pointer): Longint;
+
+begin
+  Result:=0;
+end;
+
+Function CMemAvail : Longint;
+
+begin
+  Result:=0;
+end;
+
+Function CMaxAvail: Longint;
+
+begin
+  Result:=0;
+end;
+
+Function CHeapSize : Longint;
+
+begin
+  Result:=0;
+end;
+                    
+
+Const
+ CMemoryManager : TMemoryManager =
+    (
+      GetMem : CGetmem;
+      FreeMem : CFreeMem;
+      FreememSize : CFreememSize;
+      AllocMem : CAllocMem;
+      ReallocMem : CReAllocMem;
+      MemSize : CMemSize;
+      MemAvail : CMemAvail;
+      MaxAvail : MaxAvail;
+      HeapSize : CHeapSize;
+    );
+  
+Var 
+  OldMemoryManager : TMemoryManager;
+
+Initialization
+  GetMemoryManager (OldMemoryManager);
+  SetMemoryManager (CmemoryManager);
+  
+Finalization
+  SetMemoryManager (OldMemoryManager);
+end.
+\end{verbatim}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Accessing DOS memory under the GO32 extender
@@ -3309,6 +3510,8 @@ After using the selector, you must free it again using the
 
 More information on all this can be found in the \unitsref, the chapter on
 the \file{GO32} unit.
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Resource strings
@@ -4017,7 +4220,7 @@ also possible to use a windows resource compiler like \gnu
 The usage of windres is straightforward; it reads an input file
 describing the resources to create and outputs a resource file.
 
-A typical invocation of windres would be
+A typical invocation of \file{windres} would be
 \begin{verbatim}
 windres -i mystrings.rc -o mystrings.res
 \end{verbatim}
@@ -4039,7 +4242,7 @@ windows API calls.
 \end{description}
 
 Some of these will be described below.
-\begin{Using string tables.}
+\section{Using string tables.}
 String tables can be used to store and retrieve large collections of
 strings in your application. 
 
@@ -4085,8 +4288,8 @@ which can then be used. Both calls are in the windows unit.
 
 \section{Inserting version information}
 
-The win32 API allows to store versioninformation in your binaries.
-This information can be made visible with the windows Explorer, by
+The win32 API allows to store version information in your binaries.
+This information can be made visible with the \windows Explorer, by
 right-clicking on the executable or library, and selecting the
 'Properties' menu. In the tab 'Version' the version information will
 be displayed.
@@ -4126,11 +4329,11 @@ explorer.
 The Free Component Library comes with a unit (\file{fileinfo}) that allows
 to extract and view version information in a straightforward and easy manner;
 the demo program that comes with it (\file{showver}) shows version information
-on an arbitrary executable or DLL.
+for an arbitrary executable or DLL.
 
 \section{Inserting an application icon}
 
-When windows shows an executable in the explorer, it looks for an icon
+When \windows shows an executable in the Explorer, it looks for an icon
 in the executable to show in front of the filename, the application
 icon.
 
