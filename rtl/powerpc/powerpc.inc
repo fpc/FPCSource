@@ -747,42 +747,45 @@ LShortStrCopyDone2:
 end ['R0','R3','R4','R5','R10','CR0','CTR'];
 
 
-(*
-!!! fast version like for the i386, but not called this way currently (JM)
+{$define FPC_SYSTEM_HAS_FPC_SHORTSTR_APPEND_SHORTSTR}
 
-{$define FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
-
-function fpc_shortstr_concat(const s1,s2: shortstring): shortstring; compilerproc;
-{ expects that results (r3) contains a pointer to the current string and s1 }
-{ (r4) a pointer to the one that has to be concatenated                     }
+procedure fpc_shortstr_append_shortstr(var s1: shortstring; const s2: shortstring); compilerproc;
+{ expects that results (r3) contains a pointer to the current string s1, r4 }
+{ high(s1) and (r5) a pointer to the one that has to be concatenated        }
 assembler;
 asm
       { load length s1 }
-      lbz     r9, 0(r4)
-      { load length result }
-      lbz     r10, 0(r3)
+      lbz     r6, 0(r3)
+      { load length s2 }
+      lbz     r10, 0(r5)
       { length 0? }
       cmplwi  r10,0
-      { go to last current character of result }
-      add     r4,r9,r4
 
-      { calculate min(length(s1),255-length(result)) }
-      subfic  r9,r9,255
-      subc    r8,r9,r10    { r8 := r9 - r10                               }
-      subfe   r9,r9,r9     { if r9 >= r10 then r9' := 0 else r9' := -1    }
-      and     r9,r8,r9     { if r9 >= r10 then r9' := 0 else r9' := r9-r8 }
-      add     r9,r9,r10    { if r9 >= r10 then r9' := r10 else r9' := r9  }
+      { calculate min(length(s2),high(result)-length(result)) }
+      sub     r9,r4,r6
+      subc    r8,r9,r10    { r8 := r9 - r10                                }
+      subfe   r9,r9,r9     { if r9 >= r10 then r9' := 0 else r9' := -1     }
+      and     r9,r8,r9     { if r9 >= r10 then r9' := 0 else r9' := r9-r10 }
+      add     r9,r9,r10    { if r9 >= r10 then r9' := r10 else r9' := r9   }
 
-      { and concatenate }
+      { calculate new length }
+      add     r10,r6,r9
+      { load value to copy in ctr }
       mtctr   r9
-      beq     LShortStrConcatDone
-LShortStrConcatLoop:
-      lbzu    r10,1(r4)
+      { store new length }
+      stb     r10,0(r3)
+      { go to last current character of result }
+      add     r3,r6,r3
+      
+      { if nothing to do, exit }
+      beq     LShortStrAppendDone
+      { and concatenate }
+LShortStrAppendLoop:
+      lbzu    r10,1(r5)
       stbu    r10,1(r3)
-      bdnz    LShortStrConcatLoop
-LShortStrConcatDone:
+      bdnz    LShortStrAppendLoop
+LShortStrAppendDone:
 end ['R3','R4','R8','R9','R10','CTR'];
-*)
 
 (*
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE}
@@ -960,7 +963,12 @@ end ['R3','R10'];
 
 {
   $Log$
-  Revision 1.49  2003-05-29 21:17:27  jonas
+  Revision 1.50  2003-06-01 14:50:17  jonas
+    * fpc_shortstr_append_shortstr has to use high(s1) instead of 255 as
+      maxlen
+    + ppc version of fpc_shortstr_append_shortstr
+
+  Revision 1.49  2003/05/29 21:17:27  jonas
     * compile with -dppc603 to not use unaligned float loads in move() and
       g_concatcopy, because the 603 and 604 take an exception for those
       (and netbsd doesn't even handle those in the kernel). There are

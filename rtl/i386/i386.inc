@@ -895,10 +895,11 @@ begin
         movl    s2,%esi
         movl    %edi,%ebx
         movzbl  (%edi),%ecx
-        xor     %eax,%eax
+        movl    s1+4,%eax
         lea     1(%edi,%ecx),%edi
         negl    %ecx
-        addl    $0x0ff,%ecx
+        addl    %eax,%ecx
+        // no need to zero eax, high(s1) <= 255
         lodsb
         cmpl    %ecx,%eax
         jbe     .LStrConcat1
@@ -1256,7 +1257,12 @@ end;
 
 {
   $Log$
-  Revision 1.44  2003-05-26 21:18:13  peter
+  Revision 1.45  2003-06-01 14:50:17  jonas
+    * fpc_shortstr_append_shortstr has to use high(s1) instead of 255 as
+      maxlen
+    + ppc version of fpc_shortstr_append_shortstr
+
+  Revision 1.44  2003/05/26 21:18:13  peter
     * FPC_SHORTSTR_APPEND_SHORTSTR public added
 
   Revision 1.43  2003/05/26 19:36:46  peter

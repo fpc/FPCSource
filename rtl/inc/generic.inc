@@ -580,8 +580,8 @@ var
 begin
   s1l:=length(s1);
   s2l:=length(s2);
-  if s1l+s2l>255 then
-    s2l:=255-s1l;
+  if s1l+s2l>high(s1) then
+    s2l:=high(s1)-s1l;
   move(s2[1],s1[s1l+1],s2l);
   s1[0]:=chr(s1l+s2l);
 end;
@@ -975,7 +975,12 @@ end;
 
 {
   $Log$
-  Revision 1.59  2003-05-26 21:18:13  peter
+  Revision 1.60  2003-06-01 14:50:17  jonas
+    * fpc_shortstr_append_shortstr has to use high(s1) instead of 255 as
+      maxlen
+    + ppc version of fpc_shortstr_append_shortstr
+
+  Revision 1.59  2003/05/26 21:18:13  peter
     * FPC_SHORTSTR_APPEND_SHORTSTR public added
 
   Revision 1.58  2003/05/26 19:36:46  peter
