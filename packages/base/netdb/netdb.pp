@@ -210,7 +210,7 @@ Var
     If Result then
       begin
       Delete(L,1,P+Length(Dir));
-      Trim(L);
+      L:=Trim(L);
       end;
   end;
    
@@ -1074,7 +1074,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  2003-11-22 23:17:50  michael
+  Revision 1.9  2003-12-12 20:50:18  michael
+  + Fixed trimming of nameserver entries
+
+  Revision 1.8  2003/11/22 23:17:50  michael
   Patch for ipv6 and CNAME record support from Johannes Berg
 
   Revision 1.7  2003/09/29 19:21:19  marco
