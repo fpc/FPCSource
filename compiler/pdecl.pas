@@ -471,19 +471,13 @@ unit pdecl;
                    if not is_cdecl then
                     begin
                       { dll name ? }
-                      if (extern_aktvarsym) and (token=CSTRING) then
+                      if (extern_aktvarsym) and (idtoken<>_NAME) then
                        begin
                          is_dll:=true;
-                         dll_name:=pattern;
-                         consume(CSTRING);
+                         dll_name:=get_stringconst;
                        end;
                       consume(_NAME);
-                      C_name:=pattern;
-                      { allow also char }
-                      if token=CCHAR then
-                       consume(CCHAR)
-                      else
-                       consume(CSTRING);
+                      C_name:=get_stringconst;
                     end;
                    { consume the ; when export or external is used }
                    if extern_aktvarsym or export_aktvarsym then
@@ -2272,7 +2266,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.114  1999-05-04 21:44:54  florian
+  Revision 1.115  1999-05-07 10:36:09  peter
+    * fixed crash
+
+  Revision 1.114  1999/05/04 21:44:54  florian
     * changes to compile it with Delphi 4.0
 
   Revision 1.113  1999/05/01 13:24:30  peter
