@@ -1,3 +1,13 @@
+@echo off
+if "%1"=="" goto go32v2test
+if "%1"=="go32v2" goto go32v2test
+if "%1"=="win32" goto win32test
+echo This batch file allows to test all test sources of the entire directory
+echo Use "win95test go32v2" to run the test with ppc386
+echo Use "win95test win32" to run the test with ppwin32 (native win32 version)
+echo or use "win95test" to run the test first with ppc386 and again with ppwin32
+goto end
+:go32v2test
 set LONGLOG=1
 ppc386 -l >longlog
 make alltbf
@@ -15,8 +25,10 @@ make allwebtbsexec
 make alltsexec
 cp log go32v2.log
 cp longlong go32v2.longlog
+if "%1"=="go32v2" goto end
+:win32test
 set LONGLOG=1
-set FPC=/cvs/bin/ppwin32
+set FPC=ppwin32
 make clean
 %FPC% -l > longlog
 make alltbf
@@ -34,7 +46,4 @@ make allwebtbsexec
 make alltsexec
 cp log win32.log
 cp longlong win32.longlog
-
-
-
-  
+:end
