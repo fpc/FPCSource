@@ -605,7 +605,7 @@ end;
      stdcall;external 'kernel32' name 'GetCurrentDirectoryA';
 
 type
- TDirFnType=function(name:pointer):longbool;
+ TDirFnType=function(name:pointer):longbool;stdcall;
 
 procedure dirfn(afunc : TDirFnType;const s:string);
 var
@@ -621,7 +621,7 @@ begin
     end;
 end;
 
-function CreateDirectoryTrunc(name:pointer):longbool;
+function CreateDirectoryTrunc(name:pointer):longbool;stdcall;
 begin
   CreateDirectoryTrunc:=CreateDirectory(name,nil);
 end;
@@ -1258,6 +1258,13 @@ begin
         end;
         { build a fake stack }
         asm
+{$ifdef REGCALL}
+                movl   ebp,%ecx
+                movl   eip,%edx
+                movl   error,%eax
+                pushl  eip
+                movl   ebp,%ebp // Change frame pointer
+{$else}
                 movl   ebp,%eax
                 pushl  %eax
                 movl   eip,%eax
@@ -1267,6 +1274,7 @@ begin
                 movl   eip,%eax
                 pushl  %eax
                 movl   ebp,%ebp // Change frame pointer
+{$endif}
 
 {$ifdef SYSTEMEXCEPTIONDEBUG}
                 jmpl   DebugHandleErrorAddrFrame
@@ -1540,7 +1548,10 @@ end.
 
 {
   $Log$
-  Revision 1.50  2003-12-04 20:52:41  peter
+  Revision 1.51  2003-12-17 21:56:33  peter
+    * win32 regcall patches
+
+  Revision 1.50  2003/12/04 20:52:41  peter
     * stdcall for CreateFile
 
   Revision 1.49  2003/11/24 23:08:37  michael

@@ -188,10 +188,14 @@ end;
 {$define FPC_UNIT_HAS_STRCOMP}
 function strcomp(str1,str2 : pchar) : longint;assembler;
 var
-  saveesi,saveedi : longint;
+  saveeax,saveedx,saveesi,saveedi : longint;
 asm
         movl    %edi,saveedi
         movl    %esi,saveesi
+{$ifdef REGCALL}
+        movl    %eax,saveeax
+        movl    %edx,saveedx
+{$endif}
         movl    str2,%edi
         movl    $0xffffffff,%ecx
         cld
@@ -199,8 +203,13 @@ asm
         repne
         scasb
         not     %ecx
+{$ifdef REGCALL}
+        movl    saveedx,%edi
+        movl    saveeax,%esi
+{$else}
         movl    str2,%edi
         movl    str1,%esi
+{$endif}
         repe
         cmpsb
         movb    -1(%esi),%al
@@ -215,10 +224,15 @@ end;
 {$define FPC_UNIT_HAS_STRLCOMP}
 function strlcomp(str1,str2 : pchar;l : longint) : longint;assembler;
 var
-  saveesi,saveedi : longint;
+  saveeax,saveedx,saveecx,saveesi,saveedi : longint;
 asm
         movl    %edi,saveedi
         movl    %esi,saveesi
+{$ifdef REGCALL}
+        movl    %eax,saveeax
+        movl    %edx,saveedx
+        movl    %ecx,saveecx
+{$endif}
         movl    str2,%edi
         movl    $0xffffffff,%ecx
         cld
@@ -226,12 +240,17 @@ asm
         repne
         scasb
         not     %ecx
-        cmpl    l,%ecx
+        cmpl    saveecx,%ecx
         jl      .LSTRLCOMP1
-        movl    l,%ecx
+        movl    saveecx,%ecx
 .LSTRLCOMP1:
+{$ifdef REGCALL}
+        movl    saveedx,%edi
+        movl    saveeax,%esi
+{$else}
         movl    str2,%edi
         movl    str1,%esi
+{$endif}
         repe
         cmpsb
         movb    -1(%esi),%al
@@ -246,10 +265,14 @@ end;
 {$define FPC_UNIT_HAS_STRICOMP}
 function stricomp(str1,str2 : pchar) : longint;assembler;
 var
-  saveesi,saveedi : longint;
+  saveeax,saveedx,saveesi,saveedi : longint;
 asm
         movl    %edi,saveedi
         movl    %esi,saveesi
+{$ifdef REGCALL}
+        movl    %eax,saveeax
+        movl    %edx,saveedx
+{$endif}
         movl    str2,%edi
         movl    $0xffffffff,%ecx
         cld
@@ -257,8 +280,13 @@ asm
         repne
         scasb
         not     %ecx
+{$ifdef REGCALL}
+        movl    saveedx,%edi
+        movl    saveeax,%esi
+{$else}
         movl    str2,%edi
         movl    str1,%esi
+{$endif}
 .LSTRICOMP2:
         repe
         cmpsb
@@ -289,10 +317,15 @@ end;
 {$define FPC_UNIT_HAS_STRLICOMP}
 function strlicomp(str1,str2 : pchar;l : longint) : longint;assembler;
 var
-  saveesi,saveedi : longint;
+  saveeax,saveedx,saveecx,saveesi,saveedi : longint;
 asm
         movl    %edi,saveedi
         movl    %esi,saveesi
+{$ifdef REGCALL}
+        movl    %eax,saveeax
+        movl    %edx,saveedx
+        movl    %ecx,saveecx
+{$endif}
         movl    str2,%edi
         movl    $0xffffffff,%ecx
         cld
@@ -300,12 +333,17 @@ asm
         repne
         scasb
         not     %ecx
-        cmpl    l,%ecx
+        cmpl    saveecx,%ecx
         jl      .LSTRLICOMP5
-        movl    l,%ecx
+        movl    saveecx,%ecx
 .LSTRLICOMP5:
+{$ifdef REGCALL}
+        movl    saveedx,%edi
+        movl    saveeax,%esi
+{$else}
         movl    str2,%edi
         movl    str1,%esi
+{$endif}
 .LSTRLICOMP2:
         repe
         cmpsb
@@ -561,7 +599,10 @@ end;
 
 {
   $Log$
-  Revision 1.11  2003-11-23 16:50:49  peter
+  Revision 1.12  2003-12-17 21:56:33  peter
+    * win32 regcall patches
+
+  Revision 1.11  2003/11/23 16:50:49  peter
     * register calling updates
 
   Revision 1.10  2003/11/11 21:08:17  peter
