@@ -101,7 +101,7 @@ begin
 end;
 
 
-Procedure TDataLink.DataEvent(Event: TDataEvent; Info: Longint);
+Procedure TDataLink.DataEvent(Event: TDataEvent; Info: Ptrint);
 
 
 begin
@@ -420,7 +420,7 @@ begin
 end;
 
 
-procedure TDatasource.DistributeEvent(Event: TDataEvent; Info: Longint);
+procedure TDatasource.DistributeEvent(Event: TDataEvent; Info: Ptrint);
 
 
 Var
@@ -506,7 +506,7 @@ begin
 end;
 
 
-procedure TDataSource.ProcessEvent(Event : TDataEvent; Info : longint);
+procedure TDataSource.ProcessEvent(Event : TDataEvent; Info : Ptrint);
 
 Const
   OnDataChangeEvents = [deRecordChange, deDataSetChange,

@@ -133,7 +133,7 @@ type
 // TRecInfo
   PRecInfo = ^TRecInfo;
   TRecInfo = packed record
-    RecordNumber: Integer;
+    RecordNumber: PtrInt;
     BookmarkFlag: TBookmarkFlag;
   end;
 //-----------------------------------------------------------------------------
@@ -473,7 +473,7 @@ begin
     with PRecInfo(Buffer + FRecInfoOfs)^ do
     begin
       BookmarkFlag := bfCurrent;
-      RecordNumber := Integer(FData.Objects[FCurRec]);
+      RecordNumber := PtrInt(FData.Objects[FCurRec]);
     end;
   end
   else
@@ -668,7 +668,7 @@ begin
       BufEnd := StrEnd(ActiveBuffer);  // Fill with blanks when necessary
       if BufEnd > RecBuf then
         BufEnd := RecBuf;
-      FillChar(BufEnd[0], Field.Size + LongInt(RecBuf) - LongInt(BufEnd), Ord(' '));
+      FillChar(BufEnd[0], Field.Size + PtrInt(RecBuf) - PtrInt(BufEnd), Ord(' '));
       p := StrLen(Buffer);
       if p > Field.Size then
         p := Field.Size;
@@ -682,7 +682,7 @@ begin
     Move(Buffer^, RecBuf[0], Field.Size);
   end;
   if not (State in [dsCalcFields, dsFilter, dsNewValue]) then
-    DataEvent(deFieldChange, Longint(Field));
+    DataEvent(deFieldChange, Ptrint(Field));
 end;
 
 procedure TFixedFormatDataSet.SetFieldPos(var Buffer : PChar; FieldNo : Integer);
@@ -751,7 +751,7 @@ procedure TFixedFormatDataSet.InternalGotoBookmark(ABookmark: Pointer);
 var
   Index: Integer;
 begin
-  Index := FData.IndexOfObject(TObject(PInteger(ABookmark)^));
+  Index := FData.IndexOfObject(TObject(PPtrInt(ABookmark)^));
   if Index <> -1 then
     FCurRec := Index
   else

@@ -34,6 +34,11 @@ const
   YesNoChars : Array[Boolean] of char = ('Y','N');
 
 type
+{$ifdef ver1_0}
+  PtrInt = Longint;
+  PPtrInt = ^PtrInt;
+{$endif}
+  
 {LargeInt}
   LargeInt = Int64;
 
@@ -842,7 +847,7 @@ type
     procedure CloseBlob(Field: TField); virtual;
     procedure CloseCursor; virtual;
     procedure CreateFields;
-    procedure DataEvent(Event: TDataEvent; Info: Longint); virtual;
+    procedure DataEvent(Event: TDataEvent; Info: Ptrint); virtual;
     procedure DestroyFields; virtual;
     procedure DoAfterCancel; virtual;
     procedure DoAfterClose; virtual;
@@ -1053,7 +1058,7 @@ type
   protected
     procedure ActiveChanged; virtual;
     procedure CheckBrowseMode; virtual;
-    procedure DataEvent(Event: TDataEvent; Info: Longint); virtual;
+    procedure DataEvent(Event: TDataEvent; Info: Ptrint); virtual;
     procedure DataSetChanged; virtual;
     procedure DataSetScrolled(Distance: Integer); virtual;
     procedure EditingChanged; virtual;
@@ -1136,9 +1141,9 @@ type
     FOnStateChange: TNotifyEvent;
     FOnDataChange: TDataChangeEvent;
     FOnUpdateData: TNotifyEvent;
-    procedure DistributeEvent(Event: TDataEvent; Info: Longint);
+    procedure DistributeEvent(Event: TDataEvent; Info: Ptrint);
     procedure RegisterDataLink(DataLink: TDataLink);
-    Procedure ProcessEvent(Event : TDataEvent; Info : longint);
+    Procedure ProcessEvent(Event : TDataEvent; Info : Ptrint);
     procedure SetDataSet(ADataSet: TDataSet);
     procedure SetEnabled(Value: Boolean);
     procedure UnregisterDataLink(DataLink: TDataLink);
@@ -1487,7 +1492,10 @@ end.
 
 {
   $Log$
-  Revision 1.15  2004-03-25 20:43:39  michael
+  Revision 1.16  2004-05-02 21:23:18  peter
+    * use ptrint
+
+  Revision 1.15  2004/03/25 20:43:39  michael
   Some compatibility additions
 
   Revision 1.14  2004/03/19 23:19:51  michael

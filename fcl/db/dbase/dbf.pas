@@ -1877,15 +1877,15 @@ begin
   end else begin    { ***** fkCalculated, fkLookup ***** }
     prec:=pDbfRecord(CalcBuffer);
     dst:=@prec^.DeletedFlag;
-    Inc(integer(dst), GetRecordSize + Field.Offset);
-    Boolean(dst^) := LongBool(Buffer);
+    Inc(pchar(dst), GetRecordSize + Field.Offset);
+    Boolean(dst^) := (Buffer<>nil);
     if Boolean(dst^) then begin
-      Inc(integer(dst), 1);
+      Inc(Pchar(dst), 1);
       Move(Buffer^, dst^, Field.DataSize);
     end;
   end;     { end of ***** fkCalculated, fkLookup ***** }
   if not (State in [dsCalcFields, dsFilter, dsNewValue]) then begin
-    DataEvent(deFieldChange, Longint(Field));
+    DataEvent(deFieldChange, Ptrint(Field));
   end;
 end;
 

@@ -167,7 +167,7 @@ begin
         end;
 end;
 
-Procedure TDataset.DataEvent(Event: TDataEvent; Info: Longint);
+Procedure TDataset.DataEvent(Event: TDataEvent; Info: Ptrint);
 
 Var
   i : longint;
@@ -1719,7 +1719,10 @@ end;
 
 {
   $Log$
-  Revision 1.12  2004-03-25 20:43:39  michael
+  Revision 1.13  2004-05-02 21:23:18  peter
+    * use ptrint
+
+  Revision 1.12  2004/03/25 20:43:39  michael
   Some compatibility additions
 
   Revision 1.11  2004/01/05 21:21:38  michael

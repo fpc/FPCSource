@@ -287,13 +287,13 @@ end;
 procedure TField.DataChanged;
 
 begin
-  FDataset.DataEvent(deFieldChange,longint(Self));
+  FDataset.DataEvent(deFieldChange,ptrint(Self));
 end;
 
 procedure TField.FocusControl;
 
 begin
-  FDataSet.DataEvent(deFocusControl,longint(Self));
+  FDataSet.DataEvent(deFocusControl,ptrint(Self));
 end;
 
 procedure TField.FreeBuffers;
@@ -1806,7 +1806,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  2004-03-25 20:43:39  michael
+  Revision 1.11  2004-05-02 21:23:18  peter
+    * use ptrint
+
+  Revision 1.10  2004/03/25 20:43:39  michael
   Some compatibility additions
 
   Revision 1.9  2004/02/25 16:29:26  michael

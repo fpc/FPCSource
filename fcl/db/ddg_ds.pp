@@ -276,7 +276,7 @@ begin
     7: Move(Buffer^, PDDGData(ActiveBuffer)^.DateField, Field.DataSize);
     8: Move(Buffer^, PDDGData(ActiveBuffer)^.Even, Field.DataSize);
   end;
-  DataEvent(deFieldChange, Longint(Field));
+  DataEvent(deFieldChange, Ptrint(Field));
 end;
 
 procedure TDDGDataSet.GetBookmarkData(Buffer: PChar; Data: Pointer);
@@ -528,7 +528,10 @@ end;
 
 end.
   $Log$
-  Revision 1.3  2002-09-07 15:15:23  peter
+  Revision 1.4  2004-05-02 21:23:18  peter
+    * use ptrint
+
+  Revision 1.3  2002/09/07 15:15:23  peter
     * old logs removed and tabs fixed
 
 }
