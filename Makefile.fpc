@@ -10,6 +10,7 @@ version=1.0.5
 dirs=compiler rtl utils fcl fv packages ide
 
 [default]
+fpcdir=.
 rule=help
 
 [prerules]
