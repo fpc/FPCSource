@@ -309,10 +309,31 @@ Function TCustomApplication.CheckOptions(Const ShortOptions : String; Const Long
 
 Var
   I,J,L,P : Integer;
-  O,OV : String;
+  O,OV,SO : String;
   HaveArg : Boolean;
   
+  Function FindLongOpt(Const S : String) : boolean;
+  
+  Var
+    I : integer;
+  
+  begin
+    If CaseSensitiveOptions then
+      begin
+      I:=LongOpts.Count-1;
+      While (I>=0) and (LongOpts[i]<>S) do
+        Dec(i);
+      end
+    else
+      I:=LongOpts.IndexOf(S);
+    Result:=(I<>-1)  
+  end;
+  
 begin
+  If CaseSensitiveOptions then
+    SO:=Shortoptions
+  else
+    SO:=LowerCase(Shortoptions);
   Result:='';
   I:=1;
   While (I<=ParamCount) and (Result='') do
@@ -344,21 +365,21 @@ begin
             O:=Copy(O,1,J-1);
             end;
           // Switch Option   
-          If Longopts.IndexOf(O)<>-1 then
+          If FindLongopt(O) then
             begin
             If HaveArg then
               Result:=Format(SErrNoOptionAllowed,[I,O])
             end
           else
             begin // Required argument
-            If LongOpts.IndexOf(O+':')<>-1 then
+            If FindLongOpt(O+':') then
               begin
               If Not HaveArg then
                 Result:=Format(SErrOptionNeeded,[I,O]);
               end
             else
               begin // Optional Argument.
-              If LongOpts.IndexOf(O+'::')=-1 then
+              If FindLongOpt(O+'::') then
                 Result:=Format(SErrInvalidOption,[I,O]);
               end;
             end;  
@@ -368,11 +389,13 @@ begin
           HaveArg:=(I<ParamCount) and (Length(ParamStr(I+1))>0) and (ParamStr(I+1)[i]<>FOptionChar);
           If HaveArg then
             OV:=Paramstr(I+1);
+          If Not CaseSensitiveOptions then
+            O:=LowerCase(O);
           L:=Length(O);  
           For J:=2 to L do
             begin
             P:=Pos(O[J],ShortOptions);
-            If P=0 then
+            If (P=0) or (O[j]=':') then
               Result:=Format(SErrInvalidOption,[I,O[J]])
             else
               begin
@@ -420,12 +443,29 @@ end;
 
 Function TCustomApplication.CheckOptions(Const ShortOptions : String; Const LongOpts : String) : String;
 
+Const
+  SepChars = ' '#10#13#9;
+
 Var
   L : TStringList;
-
+  Len,I,J : Integer;
+  
 begin
   L:=TStringList.Create;
   Try
+    I:=1;
+    Len:=Length(LongOpts);
+    While I<=Len do
+      begin
+      While Isdelimiter(SepChars,LongOpts,I) do 
+        Inc(I);
+      J:=I;  
+      While (J<=Len) and Not IsDelimiter(SepChars,LongOpts,J) do
+        Inc(J);
+      If (I<=J) then
+        L.Add(Copy(LongOpts,I,(J-I)));
+      I:=J+1;  
+      end;  
     Result:=CheckOptions(Shortoptions,L);
   Finally
     L.Free;
