@@ -2204,7 +2204,7 @@ function mmioRead(x1: HMMIO; x2: HPSTR; x3: LONG): LONG; stdcall;
 function mmioWrite(x1: HMMIO; x2: pchar; x3: LONG): LONG; stdcall;
  external 'winmm.dll' name 'mmioWrite';
 
-function mmioSeek(x1: HMMIO; x2: LONG; x3: int): LONG; stdcall;
+function mmioSeek(x1: HMMIO; x2: LONG; x3: WINT): LONG; stdcall;
  external 'winmm.dll' name 'mmioSeek';
 
 function mmioGetInfo(x1: HMMIO; x2: LPMMIOINFO; x3: UINT): MMRESULT; stdcall;
