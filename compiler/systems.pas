@@ -66,7 +66,7 @@ unit systems;
               as_tasm, as_masm
        {$endif}
        {$ifdef m68k}
-              as_o,as_gas,as_mit,as_mot
+              as_o,as_gas,as_mit,as_mot,as_mpw
        {$endif}
        );
 
@@ -439,7 +439,7 @@ implementation
             asmbin : 'as68k'; { Gas for the Amiga}
             asmcmd : '--register-prefix-optional -o $OBJ $ASM';
             externals : false;
-            labelprefix : '__L';
+            labelprefix : '.L';
             comment : '| '
           )
           ,(
@@ -448,7 +448,7 @@ implementation
             asmbin : '';
             asmcmd : '-o $OBJ $ASM';
             externals : false;
-            labelprefix : '__L';
+            labelprefix : '.L';
             comment : '| '
           )
           ,(
@@ -456,6 +456,15 @@ implementation
             idtxt  : 'MOT';
             asmbin : '';
             asmcmd : '-o $OBJ $ASM';
+            externals : false;
+            labelprefix : '__L';
+            comment : '| '
+          )
+          ,(
+            id     : as_mpw;
+            idtxt  : 'MPW';
+            asmbin : '';
+            asmcmd : '-model far -o $OBJ $ASM';
             externals : false;
             labelprefix : '__L';
             comment : '| '
@@ -710,7 +719,7 @@ implementation
             unitlibext  : '.ppl';
             asmext      : '.s';
             objext      : '.o';
-            exeext      : '';
+            exeext      : '.ttp';
             os          : os_Atari;
             link        : link_ld;
             assem       : as_o;
@@ -727,12 +736,12 @@ implementation
             smartext    : '.sl';
             unitext     : '.ppt';
             unitlibext  : '.ppl';
-            asmext      : '.s';
+            asmext      : '.a';
             objext      : '.o';
             exeext      : '';
             os          : os_Mac68k;
             link        : link_ld;
-            assem       : as_o;
+            assem       : as_mpw;
             ar          : ar_ar;
             heapsize    : 128*1024;
             maxheapsize : 32768*1024;
@@ -918,7 +927,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.37  1998-10-06 20:40:58  peter
+  Revision 1.38  1998-10-07 04:26:58  carl
+    * bugfixes
+    + added mpw support
+
+  Revision 1.37  1998/10/06 20:40:58  peter
     * remove -D from assemblers
 
   Revision 1.36  1998/09/16 16:41:50  peter
