@@ -427,9 +427,11 @@ for the last instruction of an include file !}
 
     procedure handle_switches;
 
-      function read_string : string;
+      function read_original_string : string;
+
         var
            hs : string;
+
         begin
            hs:='';
            while c in ['A'..'Z','a'..'z','_','0'..'9'] do
@@ -437,9 +439,14 @@ for the last instruction of an include file !}
               hs:=hs+c;
               nextchar;
             end;
-           read_string:=upper(hs);
+           read_original_string:=hs;
         end;
 
+      function read_string : string;
+
+        begin
+           read_string:=upper(read_original_string);
+        end;
 
       function read_number : longint;
 
@@ -1208,7 +1215,7 @@ for the last instruction of an include file !}
          else if hs='LINKLIB' then
            begin
              skipspace;
-             hs:=FixFileName(read_string);
+             hs:=read_original_string;
              Linker.AddLibraryFile(hs);
              current_module^.linklibfiles.insert(hs);
            end
@@ -2066,8 +2073,26 @@ for the last instruction of an include file !}
 end.
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:15  root
-  Initial revision
+  Revision 1.2  1998-03-28 23:09:57  florian
+    * secondin bugfix (m68k and i386)
+    * overflow checking bugfix (m68k and i386) -- pretty useless in
+      secondadd, since everything is done using 32-bit
+    * loading pointer to routines hopefully fixed (m68k)
+    * flags problem with calls to RTL internal routines fixed (still strcmp
+      to fix) (m68k)
+    * #ELSE was still incorrect (didn't take care of the previous level)
+    * problem with filenames in the command line solved
+    * problem with mangledname solved
+    * linking name problem solved (was case insensitive)
+    * double id problem and potential crash solved
+    * stop after first error
+    * and=>test problem removed
+    * correct read for all float types
+    * 2 sigsegv fixes and a cosmetic fix for Internal Error
+    * push/pop is now correct optimized (=> mov (%esp),reg)
+
+  Revision 1.1.1.1  1998/03/25 11:18:15  root
+  * Restored version
 
   Revision 1.43  1998/03/24 21:48:34  florian
     * just a couple of fixes applied:

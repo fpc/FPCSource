@@ -881,54 +881,54 @@ unit pstatmnt;
                        code:=genzeronode(failn);
                     end;
             _BREAK:
+              begin
+                 consume(_BREAK);
+                 code:=genzeronode(breakn);
+              end;
+            _EXIT : code:=exit_statement;
+            _ASM : code:=_asm_statement;
+         else
            begin
-                  consume(_BREAK);
-                  code:=genzeronode(breakn);
-               end;
-                        _EXIT : code:=exit_statement;
-                        _ASM : code:=_asm_statement;
-                        else
-                           begin
-                                  if (token=INTCONST) or
-                    ((token=ID) and
-                      not((cs_delphi2_compatible in aktswitches) and
-                        (pattern='RESULT'))) then
-                                        begin
-                                           getsym(pattern,true);
-                                           if srsym^.typ=labelsym then
-                                                 begin
-                                                        consume(token);
-                                                        consume(COLON);
-                                                        if plabelsym(srsym)^.defined then
-                                                          Message(sym_e_label_already_defined);
-                                                        plabelsym(srsym)^.defined:=true;
+              if (token=INTCONST) or
+                ((token=ID) and
+                not((cs_delphi2_compatible in aktswitches) and
+                (pattern='RESULT'))) then
+                begin
+                   getsym(pattern,false);
+                   if assigned(srsym) and (srsym^.typ=labelsym) then
+                     begin
+                        consume(token);
+                        consume(COLON);
+                        if plabelsym(srsym)^.defined then
+                          Message(sym_e_label_already_defined);
+                        plabelsym(srsym)^.defined:=true;
 
-                                                        { statement modifies srsym }
-                                                        labelnr:=plabelsym(srsym)^.number;
+                        { statement modifies srsym }
+                        labelnr:=plabelsym(srsym)^.number;
 
-                                                        { the pointer to the following instruction }
-                                                        { isn't a very clean way                   }
+                        { the pointer to the following instruction }
+                        { isn't a very clean way                   }
 {$ifdef tp}
-                                                        code:=gensinglenode(labeln,statement);
+                        code:=gensinglenode(labeln,statement);
 {$else}
-                                                        code:=gensinglenode(labeln,statement());
+                        code:=gensinglenode(labeln,statement());
 {$endif}
-                                                        code^.labelnr:=labelnr;
-                                                        { sorry, but there is a jump the easiest way }
-                                                        goto ready;
-                                                 end;
-                                        end;
-                                  p:=expr;
-                                  if (p^.treetype<>calln) and
-                                    (p^.treetype<>assignn) and
-                                    (p^.treetype<>inlinen) then
-                                    Message(cg_e_illegal_expression);
-                                  code:=p;
-                           end;
-                 end;
-          ready:
-                 statement:=code;
-          end;
+                        code^.labelnr:=labelnr;
+                        { sorry, but there is a jump the easiest way }
+                        goto ready;
+                     end;
+                end;
+              p:=expr;
+              if (p^.treetype<>calln) and
+                (p^.treetype<>assignn) and
+                (p^.treetype<>inlinen) then
+                Message(cg_e_illegal_expression);
+              code:=p;
+           end;
+         end;
+         ready:
+         statement:=code;
+      end;
 
     function block(islibrary : boolean) : ptree;
 
@@ -1064,7 +1064,25 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.2  1998-03-26 11:18:31  florian
+  Revision 1.3  1998-03-28 23:09:56  florian
+    * secondin bugfix (m68k and i386)
+    * overflow checking bugfix (m68k and i386) -- pretty useless in
+      secondadd, since everything is done using 32-bit
+    * loading pointer to routines hopefully fixed (m68k)
+    * flags problem with calls to RTL internal routines fixed (still strcmp
+      to fix) (m68k)
+    * #ELSE was still incorrect (didn't take care of the previous level)
+    * problem with filenames in the command line solved
+    * problem with mangledname solved
+    * linking name problem solved (was case insensitive)
+    * double id problem and potential crash solved
+    * stop after first error
+    * and=>test problem removed
+    * correct read for all float types
+    * 2 sigsegv fixes and a cosmetic fix for Internal Error
+    * push/pop is now correct optimized (=> mov (%esp),reg)
+
+  Revision 1.2  1998/03/26 11:18:31  florian
     - switch -Sa removed
     - support of a:=b:=0 removed
 

@@ -35,7 +35,7 @@ unit cga68k;
                               destreg:Tregister;delloc:boolean);
     { produces jumps to true respectively false labels using boolean expressions }
     procedure maketojumpbool(p : ptree);
-    procedure emitoverflowcheck;
+    procedure emitoverflowcheck(p: ptree);
     procedure push_int(l : longint);
     function maybe_push(needed : byte;p : ptree) : boolean;
     procedure restore(p : ptree);
@@ -350,7 +350,7 @@ unit cga68k;
           Message(sym_e_type_mismatch);
       end;
 
-    procedure emitoverflowcheck;
+    procedure emitoverflowcheck(p: ptree);
 
       var
          hl : plabel;
@@ -359,11 +359,17 @@ unit cga68k;
          if cs_check_overflow in aktswitches  then
            begin
               getlabel(hl);
-              emitl(A_BVC,hl);
+              if not ((p^.resulttype^.deftype=pointerdef) or
+                     ((p^.resulttype^.deftype=orddef) and
+                (porddef(p^.resulttype)^.typ in [u16bit,u32bit,u8bit,uchar,bool8bit]))) then
+                emitl(A_BVC,hl)
+              else
+                emitl(A_BCC,hl);
               emitcall('RE_OVERFLOW',true);
               emitl(A_LABEL,hl);
            end;
       end;
+
 
     procedure push_int(l : longint);
 
@@ -1251,8 +1257,26 @@ end;
   end.
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:13  root
-  Initial revision
+  Revision 1.2  1998-03-28 23:09:54  florian
+    * secondin bugfix (m68k and i386)
+    * overflow checking bugfix (m68k and i386) -- pretty useless in
+      secondadd, since everything is done using 32-bit
+    * loading pointer to routines hopefully fixed (m68k)
+    * flags problem with calls to RTL internal routines fixed (still strcmp
+      to fix) (m68k)
+    * #ELSE was still incorrect (didn't take care of the previous level)
+    * problem with filenames in the command line solved
+    * problem with mangledname solved
+    * linking name problem solved (was case insensitive)
+    * double id problem and potential crash solved
+    * stop after first error
+    * and=>test problem removed
+    * correct read for all float types
+    * 2 sigsegv fixes and a cosmetic fix for Internal Error
+    * push/pop is now correct optimized (=> mov (%esp),reg)
+
+  Revision 1.1.1.1  1998/03/25 11:18:13  root
+  * Restored version
 
   Revision 1.15  1998/03/22 12:45:38  florian
     * changes of Carl-Eric to m68k target commit:

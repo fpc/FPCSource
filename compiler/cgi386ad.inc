@@ -351,6 +351,7 @@
          power : longint;
          href : treference;
          opsize : topsize;
+         hl4: plabel;
 
          { true, if unsigned types are compared }
          unsigned : boolean;
@@ -841,7 +842,20 @@
                    { only in case of overflow operations }
                    { produce overflow code }
                    if mboverflow then
-                     emitoverflowcheck;
+                   { we must put it here directly, because sign of operation }
+                   { is in unsigned VAR!!                                    }
+                   begin
+                     if cs_check_overflow in aktswitches  then
+                     begin
+                       getlabel(hl4);
+                       if unsigned then
+                        emitl(A_JNB,hl4)
+                       else
+                        emitl(A_JNO,hl4);
+                       emitcall('RE_OVERFLOW',true);
+                       emitl(A_LABEL,hl4);
+                     end;
+                   end;
                 end
               else if ((p^.left^.resulttype^.deftype=orddef) and
                  (porddef(p^.left^.resulttype)^.typ=uchar)) then
@@ -1220,8 +1234,26 @@
 
 {
      $Log$
-     Revision 1.1  1998-03-25 11:18:12  root
-     Initial revision
+     Revision 1.2  1998-03-28 23:09:55  florian
+       * secondin bugfix (m68k and i386)
+       * overflow checking bugfix (m68k and i386) -- pretty useless in
+         secondadd, since everything is done using 32-bit
+       * loading pointer to routines hopefully fixed (m68k)
+       * flags problem with calls to RTL internal routines fixed (still strcmp
+         to fix) (m68k)
+       * #ELSE was still incorrect (didn't take care of the previous level)
+       * problem with filenames in the command line solved
+       * problem with mangledname solved
+       * linking name problem solved (was case insensitive)
+       * double id problem and potential crash solved
+       * stop after first error
+       * and=>test problem removed
+       * correct read for all float types
+       * 2 sigsegv fixes and a cosmetic fix for Internal Error
+       * push/pop is now correct optimized (=> mov (%esp),reg)
+
+     Revision 1.1.1.1  1998/03/25 11:18:12  root
+     * Restored version
 
      Revision 1.15  1998/03/10 23:48:36  florian
        * a couple of bug fixes to get the compiler with -OGaxz compiler, sadly

@@ -1630,7 +1630,7 @@ unit pass_1;
            exit;
 
        { some string functions don't need conversion, so treat them separatly }
-         if p^.left^.resulttype^.deftype=stringdef then
+         if (p^.left^.resulttype^.deftype=stringdef) and (assigned(p^.right^.resulttype)) then
           begin
             if not (p^.right^.resulttype^.deftype in [stringdef,orddef]) then
              begin
@@ -2130,6 +2130,12 @@ unit pass_1;
 
        if codegenerror then
          exit;
+
+       if not assigned(p^.left^.resulttype) then
+        begin
+          codegenerror:=true;
+          exit;
+        end;
 
        { remove obsolete type conversions }
        if is_equal(p^.left^.resulttype,p^.resulttype) then
@@ -3411,7 +3417,6 @@ unit pass_1;
                               begin
                                 if assigned(hp^.left^.resulttype) then
                                   begin
-
                                    if hp^.left^.resulttype^.deftype=floatdef then
                                      begin
                                         isreal:=true;
@@ -4487,7 +4492,25 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.2  1998-03-26 11:18:31  florian
+  Revision 1.3  1998-03-28 23:09:56  florian
+    * secondin bugfix (m68k and i386)
+    * overflow checking bugfix (m68k and i386) -- pretty useless in
+      secondadd, since everything is done using 32-bit
+    * loading pointer to routines hopefully fixed (m68k)
+    * flags problem with calls to RTL internal routines fixed (still strcmp
+      to fix) (m68k)
+    * #ELSE was still incorrect (didn't take care of the previous level)
+    * problem with filenames in the command line solved
+    * problem with mangledname solved
+    * linking name problem solved (was case insensitive)
+    * double id problem and potential crash solved
+    * stop after first error
+    * and=>test problem removed
+    * correct read for all float types
+    * 2 sigsegv fixes and a cosmetic fix for Internal Error
+    * push/pop is now correct optimized (=> mov (%esp),reg)
+
+  Revision 1.2  1998/03/26 11:18:31  florian
     - switch -Sa removed
     - support of a:=b:=0 removed
 

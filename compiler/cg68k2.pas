@@ -597,7 +597,7 @@ Implementation
                    { only in case of overflow operations }
                    { produce overflow code }
                    if mboverflow then
-                     emitoverflowcheck;
+                     emitoverflowcheck(p);
                end
               else if ((p^.left^.resulttype^.deftype=orddef) and
                  (porddef(p^.left^.resulttype)^.typ=uchar)) then
@@ -1432,6 +1432,7 @@ Implementation
          href,href2:Treference;
          l,l2 : plabel;
        hl,hl1 : plabel;
+       hl2, hl3: plabel;
 
 
             function analizeset(Aset:Pconstset):boolean;
@@ -1636,34 +1637,41 @@ Implementation
                                         getlabel(l2);
                                         href.symbol:=stringdup(lab2str(l2));
                                         if setparts[i].start=setparts[i].stop-1 then
-                                            begin
-                                       case p^.left^.location.loc of
+                                        begin
+
+                                          case p^.left^.location.loc of
                                            LOC_REGISTER,
                                            LOC_CREGISTER :
                                                   exprasmlist^.concat(new(pai68k,op_const_reg(A_CMP,S_B,
                                                     setparts[i].start,p^.left^.location.register)));
-                                    else
+                                          else
                                                   exprasmlist^.concat(new(pai68k,op_const_ref(A_CMP,S_B,
                                                     setparts[i].start,newreference(p^.left^.location.reference))));
-                                    end;
-                                                {Result should be in carry flag when ranges are used.}
-                                                if ranges then
-                                                    exprasmlist^.concat(new(pai68k,op_const_reg(A_OR,S_B,$01,R_CCR)));
-
-                                                {If found, jump to end.}
-                                                emitl(A_BEQ,l);
-                                       case p^.left^.location.loc of
+                                          end;
+                                          {Result should be in carry flag when ranges are used.}
+                                          { Here the m68k does not affect any flag except the  }
+                                          { flag which is OR'ed                                }
+                                          if ranges then
+                                            exprasmlist^.concat(new(pai68k,op_const_reg(A_OR,S_B,$01,R_CCR)));
+                                          {If found, jump to end.}
+                                          emitl(A_BEQ,l);
+                                          case p^.left^.location.loc of
                                            LOC_REGISTER,
                                            LOC_CREGISTER :
                                                 exprasmlist^.concat(new(pai68k,op_const_reg(A_CMP,S_B,
                                                  setparts[i].stop,p^.left^.location.register)));
-                                    else
+                                          else
                                                 exprasmlist^.concat(new(pai68k,op_const_ref(A_CMP,S_B,
                                                  setparts[i].stop,newreference(p^.left^.location.reference))));
-                                    end;
-                                                {If found, jump to end.}
-                                                emitl(A_BEQ,l);
-                                            end
+                                          end;
+                                          {Result should be in carry flag when ranges are used.}
+                                          { Here the m68k does not affect any flag except the  }
+                                          { flag which is OR'ed                                }
+                                          if ranges then
+                                            exprasmlist^.concat(new(pai68k,op_const_reg(A_OR,S_B,$01,R_CCR)));
+                                          {If found, jump to end.}
+                                          emitl(A_BEQ,l);
+                                       end
                                         else
                                             begin
                                                 if setparts[i].start<>0 then
@@ -1748,8 +1756,23 @@ Implementation
                            { registers need not be save. that happens in SET_IN_BYTE }
                            emitcall('SET_IN_BYTE',true);
                      { ungetiftemp(p^.right^.location.reference); }
-                           p^.location.loc:=LOC_FLAGS;
-                           p^.location.resflags:=F_C;
+                          { here we must set the flags manually  }
+                          { on returne from the routine, because }
+                          { flags are corrupt when restoring the }
+                          { stack                                }
+                          exprasmlist^.concat(new(pai68k,op_reg(A_TST,S_B,R_D0)));
+                          getlabel(hl2);
+                          emitl(A_BEQ,hl2);
+                          exprasmlist^.concat(new(pai68k,op_const_reg(A_AND,S_B,
+                            $fe,R_CCR)));
+                          getlabel(hl3);
+                          emitl(A_BRA,hl3);
+                          emitl(A_LABEL,hl2);
+                          exprasmlist^.concat(new(pai68k,op_const_reg(A_OR,S_B,
+                             $01,R_CCR)));
+                          emitl(A_LABEL,hl3);
+                          p^.location.loc:=LOC_FLAGS;
+                          p^.location.resflags:=F_C;
                         end;
                 end;
              end;
@@ -1898,8 +1921,26 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:13  root
-  Initial revision
+  Revision 1.2  1998-03-28 23:09:54  florian
+    * secondin bugfix (m68k and i386)
+    * overflow checking bugfix (m68k and i386) -- pretty useless in
+      secondadd, since everything is done using 32-bit
+    * loading pointer to routines hopefully fixed (m68k)
+    * flags problem with calls to RTL internal routines fixed (still strcmp
+      to fix) (m68k)
+    * #ELSE was still incorrect (didn't take care of the previous level)
+    * problem with filenames in the command line solved
+    * problem with mangledname solved
+    * linking name problem solved (was case insensitive)
+    * double id problem and potential crash solved
+    * stop after first error
+    * and=>test problem removed
+    * correct read for all float types
+    * 2 sigsegv fixes and a cosmetic fix for Internal Error
+    * push/pop is now correct optimized (=> mov (%esp),reg)
+
+  Revision 1.1.1.1  1998/03/25 11:18:13  root
+  * Restored version
 
   Revision 1.18  1998/03/10 01:17:15  peter
     * all files have the same header

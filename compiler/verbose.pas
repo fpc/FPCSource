@@ -34,7 +34,7 @@ uses messages;
 {$i msgidx.inc}
 
 Const
-  MaxErrorCount = 50;
+  MaxErrorCount : longint = 50;
 { <$100 can include file and linenr info }
   V_Fatal       = $0;
   V_Error       = $1;
@@ -197,7 +197,7 @@ begin
           'E' : begin
                   v:=v or V_Error;
                   inc(errorcount);
-                  dostop:=(errorcount>maxerrorcount);
+                  dostop:=(errorcount>=maxerrorcount);
                 end;
           'W' : v:=v or V_Warning;
           'N' : v:=v or V_Note;
@@ -290,8 +290,26 @@ end.
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:15  root
-  Initial revision
+  Revision 1.2  1998-03-28 23:09:57  florian
+    * secondin bugfix (m68k and i386)
+    * overflow checking bugfix (m68k and i386) -- pretty useless in
+      secondadd, since everything is done using 32-bit
+    * loading pointer to routines hopefully fixed (m68k)
+    * flags problem with calls to RTL internal routines fixed (still strcmp
+      to fix) (m68k)
+    * #ELSE was still incorrect (didn't take care of the previous level)
+    * problem with filenames in the command line solved
+    * problem with mangledname solved
+    * linking name problem solved (was case insensitive)
+    * double id problem and potential crash solved
+    * stop after first error
+    * and=>test problem removed
+    * correct read for all float types
+    * 2 sigsegv fixes and a cosmetic fix for Internal Error
+    * push/pop is now correct optimized (=> mov (%esp),reg)
+
+  Revision 1.1.1.1  1998/03/25 11:18:15  root
+  * Restored version
 
   Revision 1.17  1998/03/10 16:43:34  peter
     * fixed Fatal error writting

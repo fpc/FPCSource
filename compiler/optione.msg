@@ -81,6 +81,7 @@ Report bugs,suggestions etc to:
 **1S_syntax options
 **2S2_switch some Delphi 2 extension on
 **2Sc_supports operators like C (*=,+=,/= and -=)
+**2Se_compiler stops after the first error
 **2Sg_allows LABEL and GOTO
 **2Si_support C++ stlyed INLINE
 **2Sm_support macros like C (global)

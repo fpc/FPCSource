@@ -825,7 +825,12 @@ implementation
                  exprasmlist^.concat(new(pai386,op_none(A_FCHS,S_NO)));
               end;
          end;
-         emitoverflowcheck;
+{ Here was a problem...            }
+{ Operand to be negated always     }
+{ seems to be converted to signed  }
+{ 32-bit before doing neg!!        }
+{ So this is useless...            }
+{         emitoverflowcheck(p);}
       end;
 
     procedure secondaddr(var p : ptree);
@@ -3194,7 +3199,8 @@ implementation
                          (S_B,S_W,S_L,S_B,S_W,S_L);
                in2instr:array[in_inc_byte..in_dec_dword] of Tasmop=
                          (A_INC,A_INC,A_INC,A_DEC,A_DEC,A_DEC);
-
+               ad2instr:array[in_inc_byte..in_dec_dword] of Tasmop=
+                         (A_ADD,A_ADD,A_ADD,A_SUB,A_SUB,A_SUB);
             { tfloattype = (f32bit,s32real,s64real,s80real,s64bit); }
             float_name: array[tfloattype] of string[8]=
                 ('FIXED','SINGLE','REAL','EXTENDED','COMP','FIXED16');
@@ -3400,15 +3406,16 @@ implementation
                                 end
                               end;
                           case pararesult^.deftype of
-                                    stringdef : begin
-                                                       if doread then
-                                                         emitcall('READ_TEXT_STRING',true)
-                                                       else
-                                                         begin
-                                                            emitcall('WRITE_TEXT_STRING',true);
+                             stringdef:
+                               begin
+                                  if doread then
+                                    emitcall('READ_TEXT_STRING',true)
+                                  else
+                                    begin
+                                      emitcall('WRITE_TEXT_STRING',true);
                                       {ungetiftemp(hp^.left^.location.reference);}
-                                   end;
-                                                   end;
+                                    end;
+                               end;
                                     pointerdef : begin
                                                         if is_equal(ppointerdef(pararesult)^.definition,cchardef) then
                                                           begin
@@ -3433,12 +3440,13 @@ implementation
                                                       Message(parser_e_illegal_parameter_list);
                                                   end;
 
-                                    floatdef : begin
-                                                  if doread then
-                                                    emitcall('READ_TEXT_REAL',true)
-                                                  else
-                                                    emitcall('WRITE_TEXT_'+float_name[pfloatdef(pararesult)^.typ],true);
-                                               end;
+                             floatdef:
+                               begin
+                                  if doread then
+                                    emitcall('READ_TEXT_'+float_name[pfloatdef(pararesult)^.typ],true)
+                                  else
+                                    emitcall('WRITE_TEXT_'+float_name[pfloatdef(pararesult)^.typ],true);
+                               end;
                                     orddef : begin
                                                      case porddef(pararesult)^.typ of
                                                          u8bit : if doread then
@@ -3773,9 +3781,17 @@ implementation
             in_inc_byte..in_dec_dword:
               begin
                  secondpass(p^.left);
+                 if cs_check_overflow in aktswitches then
+                   begin
+                   { SINCE THE CARRY FLAG IS NEVER SET BY DEC/INC, we must use  }
+                   { ADD and SUB to check for overflow for unsigned operations. }
+                     exprasmlist^.concat(new(pai386,op_const_ref(ad2instr[p^.inlinenumber],
+                       in2size[p^.inlinenumber],1,newreference(p^.left^.location.reference))));
+                     emitoverflowcheck(p^.left);
+                   end
+                 else
                  exprasmlist^.concat(new(pai386,op_ref(in2instr[p^.inlinenumber],
                    in2size[p^.inlinenumber],newreference(p^.left^.location.reference))));
-                 emitoverflowcheck;
               end;
             in_assigned_x :
               begin
@@ -4332,6 +4348,9 @@ implementation
                                              exprasmlist^.concat(new(pai386,op_const_ref(A_CMP,S_B,
                                                setparts[i].stop,newreference(p^.left^.location.reference))));
                                         end;
+                                        {Result should be in carry flag when ranges are used.}
+                                        if ranges then
+                                          exprasmlist^.concat(new(pai386,op_none(A_STC,S_NO)));
                                         {If found, jump to end.}
                                         emitl(A_JE,l);
                                      end
@@ -5654,7 +5673,25 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.2  1998-03-26 11:18:30  florian
+  Revision 1.3  1998-03-28 23:09:55  florian
+    * secondin bugfix (m68k and i386)
+    * overflow checking bugfix (m68k and i386) -- pretty useless in
+      secondadd, since everything is done using 32-bit
+    * loading pointer to routines hopefully fixed (m68k)
+    * flags problem with calls to RTL internal routines fixed (still strcmp
+      to fix) (m68k)
+    * #ELSE was still incorrect (didn't take care of the previous level)
+    * problem with filenames in the command line solved
+    * problem with mangledname solved
+    * linking name problem solved (was case insensitive)
+    * double id problem and potential crash solved
+    * stop after first error
+    * and=>test problem removed
+    * correct read for all float types
+    * 2 sigsegv fixes and a cosmetic fix for Internal Error
+    * push/pop is now correct optimized (=> mov (%esp),reg)
+
+  Revision 1.2  1998/03/26 11:18:30  florian
     - switch -Sa removed
     - support of a:=b:=0 removed
 

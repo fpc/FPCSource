@@ -738,7 +738,7 @@ implementation
                                  exprasmlist^.concat(new(pai68k,op_reg(A_FNEG,S_X,p^.location.fpureg)));
                            end;
          end;
-         emitoverflowcheck;
+{         emitoverflowcheck;}
       end;
 
     { use of A6 is required only temp (ok) }
@@ -907,7 +907,7 @@ implementation
          oflabel:=falselabel;
          getlabel(truelabel);
          getlabel(falselabel);
-         withresult:=not(aktexprlevel<4);
+         withresult:=false;
          { calculate left sides }
          secondpass(p^.left);
          case p^.left^.location.loc of
@@ -3113,7 +3113,20 @@ implementation
                                 end
                  else
                     begin
-                       exprasmlist^.concat(new(pai68k,op_ref(A_JSR,S_NO,newreference(p^.right^.location.reference))));
+                      if assigned(p^.right^.location.reference.symbol) then
+                      { Here we have a symbolic name to the routine, so solve  }
+                      { problem by loading the address first, and then emitting }
+                      { the call.                                              }
+                       begin
+                         exprasmlist^.concat(new(pai68k,op_ref_reg(A_LEA,S_L,
+                           newreference(p^.right^.location.reference),R_A1)));
+                         new(ref);
+                         reset_reference(ref^);
+                         ref^.base := R_A1;
+                         exprasmlist^.concat(new(pai68k,op_ref(A_JSR,S_NO,newreference(ref^))));
+                       end
+                       else
+                         exprasmlist^.concat(new(pai68k,op_ref(A_JSR,S_NO,newreference(p^.right^.location.reference))));
                        del_reference(p^.right^.location.reference);
                     end;
               end;
@@ -3833,7 +3846,7 @@ implementation
                     secondpass(p^.left);
                     exprasmlist^.concat(new(pai68k,op_const_ref(in2instr[p^.inlinenumber],
                      in2size[p^.inlinenumber],1,newreference(p^.left^.location.reference))));
-                    emitoverflowcheck;
+                     emitoverflowcheck(p^.left);
                 end;
             in_pred_x,
             in_succ_x:
@@ -4081,6 +4094,7 @@ implementation
          i,smallsetvalue : longint;
          hp : ptree;
          href,sref : treference;
+         hl1,hl2: plabel;
 
       begin
          { this should be reimplemented for smallsets }
@@ -4139,6 +4153,21 @@ implementation
                    emitpushreferenceaddr(sref);
                    { register is save in subroutine }
                    emitcall('SET_SET_BYTE',true);
+                   { here we must set the flags manually  }
+                   { on returne from the routine, because }
+                   { falgs are corrupt when restoring the }
+                   { stack                                }
+                   exprasmlist^.concat(new(pai68k,op_reg(A_TST,S_B,R_D0)));
+                   getlabel(hl1);
+                   emitl(A_BEQ,hl1);
+                   exprasmlist^.concat(new(pai68k,op_const_reg(A_AND,S_B,
+                       $fe,R_CCR)));
+                   getlabel(hl2);
+                   emitl(A_BRA,hl2);
+                   emitl(A_LABEL,hl1);
+                   exprasmlist^.concat(new(pai68k,op_const_reg(A_OR,S_B,
+                       $01,R_CCR)));
+                   emitl(A_LABEL,hl2);
                    hp:=hp^.right;
                 end;
               p^.location.reference:=sref;
@@ -5067,8 +5096,26 @@ end.
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:16  root
-  Initial revision
+  Revision 1.2  1998-03-28 23:09:54  florian
+    * secondin bugfix (m68k and i386)
+    * overflow checking bugfix (m68k and i386) -- pretty useless in
+      secondadd, since everything is done using 32-bit
+    * loading pointer to routines hopefully fixed (m68k)
+    * flags problem with calls to RTL internal routines fixed (still strcmp
+      to fix) (m68k)
+    * #ELSE was still incorrect (didn't take care of the previous level)
+    * problem with filenames in the command line solved
+    * problem with mangledname solved
+    * linking name problem solved (was case insensitive)
+    * double id problem and potential crash solved
+    * stop after first error
+    * and=>test problem removed
+    * correct read for all float types
+    * 2 sigsegv fixes and a cosmetic fix for Internal Error
+    * push/pop is now correct optimized (=> mov (%esp),reg)
+
+  Revision 1.1.1.1  1998/03/25 11:18:16  root
+  * Restored version
 
   Revision 1.51  1998/03/22 12:45:37  florian
     * changes of Carl-Eric to m68k target commit:

@@ -432,6 +432,13 @@ unit types;
          hp1,hp2 : pdefcoll;
 
       begin
+         { both types must exists }
+         if not (assigned(def1) and assigned(def2)) then
+          begin
+            is_equal:=false;
+            exit;
+          end;
+
          { be sure, that if there is a stringdef, that this is def1 }
          if def2^.deftype=stringdef then
            begin
@@ -861,8 +868,26 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:15  root
-  Initial revision
+  Revision 1.2  1998-03-28 23:09:57  florian
+    * secondin bugfix (m68k and i386)
+    * overflow checking bugfix (m68k and i386) -- pretty useless in
+      secondadd, since everything is done using 32-bit
+    * loading pointer to routines hopefully fixed (m68k)
+    * flags problem with calls to RTL internal routines fixed (still strcmp
+      to fix) (m68k)
+    * #ELSE was still incorrect (didn't take care of the previous level)
+    * problem with filenames in the command line solved
+    * problem with mangledname solved
+    * linking name problem solved (was case insensitive)
+    * double id problem and potential crash solved
+    * stop after first error
+    * and=>test problem removed
+    * correct read for all float types
+    * 2 sigsegv fixes and a cosmetic fix for Internal Error
+    * push/pop is now correct optimized (=> mov (%esp),reg)
+
+  Revision 1.1.1.1  1998/03/25 11:18:15  root
+  * Restored version
 
   Revision 1.24  1998/03/21 23:59:40  florian
     * indexed properties fixed

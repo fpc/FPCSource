@@ -156,14 +156,8 @@ end;
 
 
 function _internalerror(i : longint) : boolean;
-var
-  temp : string;
 begin
-  if assigned(current_module^.current_inputfile) then
-   temp:=current_module^.current_inputfile^.get_file_line+': '
-  else
-   temp:='';
-  comment(V_Error,temp+'Internal error '+tostr(i));
+  comment(V_Fatal,'Internal error '+tostr(i));
   _internalerror:=true;
 end;
 
@@ -245,8 +239,26 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:15  root
-  Initial revision
+  Revision 1.2  1998-03-28 23:09:57  florian
+    * secondin bugfix (m68k and i386)
+    * overflow checking bugfix (m68k and i386) -- pretty useless in
+      secondadd, since everything is done using 32-bit
+    * loading pointer to routines hopefully fixed (m68k)
+    * flags problem with calls to RTL internal routines fixed (still strcmp
+      to fix) (m68k)
+    * #ELSE was still incorrect (didn't take care of the previous level)
+    * problem with filenames in the command line solved
+    * problem with mangledname solved
+    * linking name problem solved (was case insensitive)
+    * double id problem and potential crash solved
+    * stop after first error
+    * and=>test problem removed
+    * correct read for all float types
+    * 2 sigsegv fixes and a cosmetic fix for Internal Error
+    * push/pop is now correct optimized (=> mov (%esp),reg)
+
+  Revision 1.1.1.1  1998/03/25 11:18:15  root
+  * Restored version
 
   Revision 1.6  1998/03/10 16:43:34  peter
     * fixed Fatal error writting
