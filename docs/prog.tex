@@ -4735,6 +4735,14 @@ Here are some tips given to get the smallest code possible.
 
 \item Find a better algorithm.
 
+\item Use the \var{-Og} compiler switch.
+
+\item Regroup global static variables in the same module which have the same
+ size together to minimize the number of alignment directives (which increases
+ the \var{.bss} and \var{.data} sections unecessarily). Internally this is
+ due to the fact that all static data is written to in the assembler file,
+ in the order they are declared in the pascal source code.
+
 \item Do not use the \var{cdecl} modifier, as this generates
 about 1 additional instruction after each subroutine call.
 
