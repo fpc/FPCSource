@@ -26,6 +26,7 @@ program pp;
   possible compiler switches (* marks a currently required switch):
   -----------------------------------------------------------------
   GDB*                support of the GNU Debugger
+  CMEM                use cmem unit for better memory debugging
   I386                generate a compiler for the Intel i386+
   x86_64              generate a compiler for the AMD x86-64 architecture
   M68K                generate a compiler for the M68000
@@ -129,6 +130,9 @@ program pp;
 {$endif}
 
 uses
+{$ifdef cmem}
+  cmem,
+{$endif cmem}
 {$ifdef FPC}
   {$ifdef profile}
     profile,
@@ -203,7 +207,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  2004-01-26 17:39:12  florian
+  Revision 1.30  2004-03-20 20:55:36  florian
+    + implemented cdecl'd varargs on arm
+    + -dCMEM supported by the compiler
+    * label/goto asmsymbol type with -dextdebug fixed
+
+  Revision 1.29  2004/01/26 17:39:12  florian
     * when compiled with -dnocatch, known rtes aren't translated anymore
       and a stack dump is written
 

@@ -258,14 +258,7 @@ implementation
              consume(_ID)
            else
              begin
-                if (cs_create_smart in aktmoduleswitches) then
-                  begin
-                    objectlibrary.getdatalabel(hl);
-                    { we still want a warning if unused }
-                    hl.decrefs;
-                  end
-                else
-                  objectlibrary.getlabel(hl);
+                objectlibrary.getlabel(hl);
                 if token=_ID then
                  symtablestack.insert(tlabelsym.create(orgpattern,hl))
                 else
@@ -675,7 +668,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.83  2004-03-08 22:07:47  peter
+  Revision 1.84  2004-03-20 20:55:36  florian
+    + implemented cdecl'd varargs on arm
+    + -dCMEM supported by the compiler
+    * label/goto asmsymbol type with -dextdebug fixed
+
+  Revision 1.83  2004/03/08 22:07:47  peter
     * stabs updates to write stabs for def for all implictly used
       units
 
