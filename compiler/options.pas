@@ -1323,10 +1323,10 @@ begin
 {$endif Delphi}
 {$ifdef linux}
   UnitSearchPath.AddPath('/usr/lib/fpc/'+version_string+'/units/'+lower(target_info.short_name),false);
-  UnitSearchPath.AddPath('/usr/lib/fpc/'+version_string+'/rtl/'+lower(target_info.short_name),false);
+  UnitSearchPath.AddPath('/usr/lib/fpc/'+version_string+'/units/'+lower(target_info.short_name)+'/rtl',false);
 {$else}
   UnitSearchPath.AddPath(ExePath+'../units/'+lower(target_info.short_name),false);
-  UnitSearchPath.AddPath(ExePath+'../rtl/'+lower(target_info.short_name),false);
+  UnitSearchPath.AddPath(ExePath+'../units/'+lower(target_info.short_name)+'/rtl',false);
 {$endif}
   UnitSearchPath.AddPath(ExePath,false);
   { Add unit dir to the object and library path }
@@ -1360,7 +1360,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.45  1999-12-20 23:23:30  pierre
+  Revision 1.46  2000-01-06 15:48:59  peter
+    * wildcard support for directory adding, this allows the use of units/*
+      in ppc386.cfg
+
+  Revision 1.45  1999/12/20 23:23:30  pierre
    + $description $version
 
   Revision 1.44  1999/12/20 21:42:36  pierre

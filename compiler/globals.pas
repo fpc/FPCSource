@@ -248,6 +248,7 @@ unit globals;
     Function  RemoveDir(d:string):boolean;
     Function  GetFileTime ( Var F : File) : Longint;
     Function  GetNamedFileTime ( Const F : String) : Longint;
+    Function  SplitPath(const s:string):string;
     Function  SplitFileName(const s:string):string;
     Function  SplitName(const s:string):string;
     Function  SplitExtension(Const HStr:String):String;
@@ -848,6 +849,17 @@ implementation
       end;
 
 
+    Function SplitPath(const s:string):string;
+      var
+        i : longint;
+      begin
+        i:=Length(s);
+        while (i>0) and not(s[i] in ['/','\']) do
+         dec(i);
+        SplitPath:=Copy(s,1,i);
+      end;
+
+
     Function SplitFileName(const s:string):string;
       var
         p : dirstr;
@@ -998,9 +1010,28 @@ implementation
    procedure TSearchPathList.AddPath(s:string;addfirst:boolean);
      var
        j        : longint;
+       hs,hsd,
        CurrentDir,
        CurrPath : string;
+       dir      : searchrec;
        hp       : PStringQueueItem;
+
+       procedure addcurrpath;
+       begin
+         if addfirst then
+          begin
+            Delete(currPath);
+            Insert(currPath);
+          end
+         else
+          begin
+            { Check if already in path, then we don't add it }
+            hp:=Find(currPath);
+            if not assigned(hp) then
+             Concat(currPath);
+          end;
+       end;
+
      begin
        if s='' then
         exit;
@@ -1024,18 +1055,35 @@ implementation
              CurrPath:='.'+DirSep+Copy(CurrPath,length(CurrentDir)+1,255);
           end;
          System.Delete(s,1,j);
-         if addfirst then
+         if pos('*',currpath)>0 then
           begin
-            Delete(currPath);
-            Insert(currPath);
+            if currpath[length(currpath)]=dirsep then
+             hs:=Copy(currpath,1,length(CurrPath)-1)
+            else
+             hs:=currpath;
+            hsd:=SplitPath(hs);
+            findfirst(hs,directory,dir);
+            while doserror=0 do
+             begin
+               if (dir.name<>'.') and
+                  (dir.name<>'..') and
+                  ((dir.attr and directory)<>0) then
+                begin
+                  currpath:=hsd+dir.name+dirsep;
+                  if not assigned(Find(currPath)) then
+                   AddCurrPath;
+                end;
+               findnext(dir);
+             end;
+{$ifdef Linux}
+            FindClose(dir);
+{$endif}
+{$ifdef Win32}
+            FindClose(dir);
+{$endif}
           end
          else
-          begin
-            { Check if already in path, then we don't add it }
-            hp:=Find(currPath);
-            if not assigned(hp) then
-             Concat(currPath);
-          end;
+          addcurrpath;
        until (s='');
      end;
 
@@ -1423,7 +1471,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.43  2000-01-04 15:15:50  florian
+  Revision 1.44  2000-01-06 15:48:59  peter
+    * wildcard support for directory adding, this allows the use of units/*
+      in ppc386.cfg
+
+  Revision 1.43  2000/01/04 15:15:50  florian
     + added compiler switch $maxfpuregisters
     + fixed a small problem in secondvecn
 
