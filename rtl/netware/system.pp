@@ -31,15 +31,6 @@ interface
 {$endif i386}
 
 
-{Platform specific information}
-const
- LineEnding = #13#10;
- LFNSupport = false; { ??? - that's how it was declared in dos.pp! }
- DirectorySeparator = '\';
- DriveSeparator = ':';
- PathSeparator = ';';
-{ FileNameCaseSensitive is defined separately below!!! }
-
 { include system-independent routine headers }
 
 {$I systemh.inc}
@@ -50,6 +41,15 @@ const
  puhes the address}
 {$DEFINE NEWMM}
 {$I heaph.inc}
+
+{Platform specific information}
+const
+ LineEnding = #13#10;
+ LFNSupport = false; { ??? - that's how it was declared in dos.pp! }
+ DirectorySeparator = '\';
+ DriveSeparator = ':';
+ PathSeparator = ';';
+{ FileNameCaseSensitive is defined separately below!!! }
 
 CONST
   { Default filehandles }
@@ -570,7 +570,11 @@ Begin
 End.
 {
   $Log$
-  Revision 1.4  2001-06-13 22:20:11  hajny
+  Revision 1.5  2001-06-18 14:26:16  jonas
+    * move platform independent constant declarations after inclusion of
+      systemh.inc
+
+  Revision 1.4  2001/06/13 22:20:11  hajny
     + platform specific information
 
   Revision 1.3  2001/04/16 18:39:50  florian

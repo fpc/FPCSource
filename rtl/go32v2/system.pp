@@ -29,6 +29,15 @@ interface
 {$define EXCEPTIONS_IN_SYSTEM}
 {$endif NO_EXCEPTIONS_IN_SYSTEM}
 
+{ include system-independent routine headers }
+
+{$I systemh.inc}
+
+{ include heap support headers }
+
+{$I heaph.inc}
+
+
 {Platform specific information}
 const
  LineEnding = #13#10;
@@ -38,13 +47,6 @@ const
  PathSeparator = ';';
 { FileNameCaseSensitive is defined separately below!!! }
 
-{ include system-independent routine headers }
-
-{$I systemh.inc}
-
-{ include heap support headers }
-
-{$I heaph.inc}
 
 const
 { Default filehandles }
@@ -1545,7 +1547,11 @@ Begin
 End.
 {
   $Log$
-  Revision 1.10  2001-06-13 22:21:53  hajny
+  Revision 1.11  2001-06-18 14:26:16  jonas
+    * move platform independent constant declarations after inclusion of
+      systemh.inc
+
+  Revision 1.10  2001/06/13 22:21:53  hajny
     + platform specific information
 
   Revision 1.9  2001/06/07 21:16:30  peter

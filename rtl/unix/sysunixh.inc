@@ -15,15 +15,6 @@
 
  **********************************************************************}
 
-{Platform specific information}
-const
- LineEnding = #10;
- LFNSupport = true;
- DirectorySeparator = '/';
- DriveSeparator = ':';
- PathSeparator = ':';
- FileNameCaseSensitive = true;
-
 {$ifdef m68k}
 { used for single computations }
 const
@@ -34,6 +25,16 @@ const
 
 {$I systemh.inc}
 {$I heaph.inc}
+
+{Platform specific information}
+const
+ LineEnding = #10;
+ LFNSupport = true;
+ DirectorySeparator = '/';
+ DriveSeparator = ':';
+ PathSeparator = ':';
+{ FileNameCaseSensitive is defined below! }
+
 
 const
   UnusedHandle    = -1;
@@ -53,7 +54,11 @@ var
 
 {
   $Log$
-  Revision 1.8  2001-06-13 22:20:11  hajny
+  Revision 1.9  2001-06-18 14:26:16  jonas
+    * move platform independent constant declarations after inclusion of
+      systemh.inc
+
+  Revision 1.8  2001/06/13 22:20:11  hajny
     + platform specific information
 
   Revision 1.7  2001/04/13 23:49:49  peter

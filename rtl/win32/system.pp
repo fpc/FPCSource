@@ -17,15 +17,6 @@
 unit {$ifdef VER1_0}SysWin32{$else}System{$endif};
 interface
 
-{Platform specific information}
-const
- LineEnding = #13#10;
- LFNSupport = true;
- DirectorySeparator = '\';
- DriveSeparator = ':';
- PathSeparator = ';';
-{ FileNameCaseSensitive is defined separately below!!! }
-
 {$ifdef SYSTEMDEBUG}
   {$define SYSTEMEXCEPTIONDEBUG}
 {$endif SYSTEMDEBUG}
@@ -36,6 +27,15 @@ const
 
 { include system-independent routine headers }
 {$I systemh.inc}
+
+{Platform specific information}
+const
+ LineEnding = #13#10;
+ LFNSupport = true;
+ DirectorySeparator = '\';
+ DriveSeparator = ':';
+ PathSeparator = ';';
+{ FileNameCaseSensitive is defined separately below!!! }
 
 type
    { the fields of this record are os dependent  }
@@ -1563,7 +1563,11 @@ end.
 
 {
   $Log$
-  Revision 1.13  2001-06-13 22:20:11  hajny
+  Revision 1.14  2001-06-18 14:26:16  jonas
+    * move platform independent constant declarations after inclusion of
+      systemh.inc
+
+  Revision 1.13  2001/06/13 22:20:11  hajny
     + platform specific information
 
   Revision 1.12  2001/06/10 17:56:57  hajny
