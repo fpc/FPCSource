@@ -63,6 +63,7 @@ const
   DoInteractive : boolean = false;
   DoExecute : boolean = false;
   DoKnown : boolean = false;
+  DoUsual : boolean = true;
 
 procedure Verbose(lvl:TVerboseLevel;const s:string);
 begin
@@ -454,7 +455,7 @@ var
 begin
   RunCompiler:=false;
   OutName:=ForceExtension(PPFile,'log');
-  args:='-Fuunits';
+  args:='-n -Fuunits';
   if Config.NeedOptions<>'' then
    args:=args+' '+Config.NeedOptions;
   args:=args+' '+ppfile;
@@ -541,7 +542,11 @@ begin
   TestExe:=ForceExtension(PPFile,ExeExt);
   OutName:=ForceExtension(PPFile,'elg');
   Verbose(V_Debug,'Executing '+TestExe);
-  ExecuteRedir(TestExe,'','',OutName,'');
+  { don't redirect interactive and graph programs .. }
+  if Config.IsInteractive or Config.UsesGraph then
+    ExecuteRedir(TestExe,'','','','')
+  else
+    ExecuteRedir(TestExe,'','',OutName,'');
   Verbose(V_Debug,'Exitcode '+ToStr(ExecuteResult));
   if ExecuteResult<>Config.ResultCode then
    begin
@@ -603,10 +608,22 @@ begin
            end;
          'C' : CompilerBin:=Para;
          'E' : DoExecute:=true;
-         'G' : DoGraph:=true;
-         'I' : DoInteractive:=true;
+         'G' : begin
+                 DoGraph:=true;
+                 if para='-' then
+                   DoUsual:=false;
+               end;
+         'I' : begin
+                 DoInteractive:=true;
+                 if para='-' then
+                   DoUsual:=false;
+               end;
          'V' : DoVerbose:=true;
-         'K' : DoKnown:=true;
+         'K' : begin
+                 DoKnown:=true;
+                 if para='-' then
+                   DoUsual:=false;
+               end;
         end;
      end
     else
@@ -667,6 +684,11 @@ begin
         Res:=false;
       end;
    end;
+
+  if Res and not DoUsual then
+    res:=(Config.IsInteractive and DoInteractive) or
+         (Config.IsKnown and DoKnown) or
+         (Config.UsesGraph and DoGraph);
 
   if Res then
    begin
@@ -744,7 +766,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2002-11-14 10:36:12  pierre
+  Revision 1.19  2002-11-18 01:31:07  pierre
+   + use -n option
+   + use -G- for only graph
+   + use -I- for only interactive
+   + use -K- for only known bugs.
+
+  Revision 1.18  2002/11/14 10:36:12  pierre
    * add internalerror info to log file
 
   Revision 1.17  2002/11/13 15:26:24  pierre
