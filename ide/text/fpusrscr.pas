@@ -26,7 +26,11 @@ interface
   {$endif}
 {$endif}
 
-uses Objects;
+uses
+{$ifdef win32}
+  windows,
+{$endif win32}
+  Objects;
 
 type
 
@@ -92,6 +96,27 @@ type
       procedure   Capture; virtual;
       procedure   SwitchTo; virtual;
       procedure   SwitchBack; virtual;
+    end;
+{$endif}
+
+{$ifdef win32}
+    PWin32Screen = ^TWin32Screen;
+    TWin32Screen = object(TScreen)
+      constructor Init;
+      destructor  Done; virtual;
+    public
+      function    GetWidth: integer; virtual;
+      function    GetHeight: integer; virtual;
+      procedure   GetLine(Line: integer; var Text, Attr: string); virtual;
+      procedure   GetCursorPos(var P: TPoint); virtual;
+      procedure   Capture; virtual;
+      procedure   Restore; virtual;
+      procedure   SwitchTo; virtual;
+      procedure   SwitchBack; virtual;
+    private
+      DosScreenBufferHandle : THandle;
+      IDEActive : boolean;
+      procedure BufferCopy(src,dest : THandle);
     end;
 {$endif}
 
@@ -434,6 +459,160 @@ end;
 
 {$endif}
 
+{****************************************************************************
+                                 TWin32Screen
+****************************************************************************}
+
+{$ifdef win32}
+
+constructor TWin32Screen.Init;
+var
+  SecurityAttr : Security_attributes;
+begin
+  inherited Init;
+  SecurityAttr.nLength:=SizeOf(Security_attributes);
+  SecurityAttr.lpSecurityDescriptor:=nil;
+  SecurityAttr.bInheritHandle:=false;
+  DosScreenBufferHandle:=CreateConsoleScreenBuffer(
+    GENERIC_READ or GENERIC_WRITE,
+    0,SecurityAttr,
+    CONSOLE_TEXTMODE_BUFFER,nil);
+  Capture;
+  { SetConsoleActiveScreenBuffer(DosScreenBufferHandle);}
+  IDEActive:=true;
+end;
+
+
+destructor TWin32Screen.Done;
+begin
+  if IDEActive then
+    SwitchBack;
+  Restore;
+  CloseHandle(DosScreenBufferHandle);
+  inherited Done;
+end;
+
+
+function TWin32Screen.GetWidth: integer;
+begin
+  GetWidth:=ScreenWidth;
+end;
+
+
+function TWin32Screen.GetHeight: integer;
+begin
+  GetHeight:=ScreenHeight;
+end;
+
+
+procedure TWin32Screen.GetLine(Line: integer; var Text, Attr: string);
+type
+  CharInfoArray = Array [0..255] of Char_Info;
+var
+  LineBuf : ^CharInfoArray;
+  BufSize,BufCoord : Coord;
+  i,LineSize : longint;
+  WriteRegion : SMALL_RECT;
+begin
+  GetMem(LineBuf,SizeOf(CharInfoArray));
+  LineSize:=ScreenWidth;
+  If LineSize>256 then
+    LineSize:=256;
+  BufSize.X:=LineSize;
+  BufSize.Y:=1;
+  BufCoord.X:=0;
+  BufCoord.Y:=0;
+  with WriteRegion do
+    begin
+      Top :=Line;
+      Left :=0;
+      Bottom := Line+1;
+      Right := LineSize-1;
+    end;
+  ReadConsoleOutput(DosScreenBufferHandle, PChar_info(LineBuf),
+    BufSize, BufCoord, @WriteRegion);
+  for i:=1 to LineSize do
+    begin
+      Text[i]:=LineBuf^[i-1].AsciiChar;
+      Attr[i]:=char(byte(LineBuf^[i-1].Attributes));
+    end;
+  FreeMem(LineBuf,SizeOf(CharInfoArray));
+  Text[0]:=char(byte(LineSize));
+  Attr[0]:=char(byte(LineSize));
+end;
+
+
+procedure TWin32Screen.GetCursorPos(var P: TPoint);
+var
+  ConsoleScreenBufferInfo : Console_screen_buffer_info;
+begin
+  GetConsoleScreenBufferInfo(DosScreenBufferHandle,
+    @ConsoleScreenBufferInfo);
+  P.X:=ConsoleScreenBufferInfo.dwCursorPosition.X;
+  P.Y:=ConsoleScreenBufferInfo.dwCursorPosition.Y;
+end;
+
+procedure TWin32Screen.BufferCopy(Src, Dest : THandle);
+type
+  CharInfoArray = Array [0..256*255-1] of Char_Info;
+var
+  LineBuf : ^CharInfoArray;
+  BufSize,BufCoord : Coord;
+  LineSize : longint;
+  WriteRegion : SMALL_RECT;
+  ConsoleScreenBufferInfo : Console_screen_buffer_info;
+begin
+  GetMem(LineBuf,SizeOf(CharInfoArray));
+  LineSize:=ScreenWidth;
+  If LineSize>256 then
+    LineSize:=256;
+  BufSize.X:=LineSize;
+  BufSize.Y:=ScreenHeight;
+  BufCoord.X:=0;
+  BufCoord.Y:=0;
+  with WriteRegion do
+    begin
+      Top :=0;
+      Left :=0;
+      Bottom := ScreenHeight-1;
+      Right := LineSize-1;
+    end;
+  ReadConsoleOutput(Src, PChar_info(LineBuf),
+    BufSize, BufCoord, @WriteRegion);
+  WriteConsoleOutput(Dest, PChar_info(LineBuf)^,
+    BufSize, BufCoord, @WriteRegion);
+  FreeMem(LineBuf,SizeOf(CharInfoArray));
+  GetConsoleScreenBufferInfo(Src,
+    @ConsoleScreenBufferInfo);
+  SetConsoleCursorPosition(Dest, ConsoleScreenBufferInfo.dwCursorPosition);
+end;
+
+procedure TWin32Screen.Capture;
+begin
+  BufferCopy(GetStdHandle(STD_OUTPUT_HANDLE),DosScreenBufferHandle);
+end;
+
+procedure TWin32Screen.Restore;
+begin
+  BufferCopy(DosScreenBufferHandle,GetStdHandle(STD_OUTPUT_HANDLE));
+end;
+
+
+procedure TWin32Screen.SwitchTo;
+begin
+  SetConsoleActiveScreenBuffer(DosScreenBufferHandle);
+  IDEActive:=true;
+end;
+
+
+procedure TWin32Screen.SwitchBack;
+begin
+  SetConsoleActiveScreenBuffer(GetStdHandle(STD_OUTPUT_HANDLE));
+  IDEActive:=false;
+end;
+
+{$endif}
+
 
 {****************************************************************************
                                  Initialize
@@ -447,9 +626,14 @@ begin
   {$ifdef LINUX}
     UserScreen:=New(PLinuxScreen, Init);
   {$else}
-    UserScreen:=New(PScreen, Init);
-  {$endif}
-{$endif}
+
+    {$ifdef Win32}
+      UserScreen:=New(PWin32Screen, Init);
+    {$else}
+      UserScreen:=New(PScreen, Init);
+    {$endif Win32}
+  {$endif Linux}
+{$endif Dos}
 end;
 
 
@@ -465,7 +649,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  1999-08-16 18:25:24  peter
+  Revision 1.6  1999-09-22 13:02:00  pierre
+   + Twin32Screen added
+
+  Revision 1.5  1999/08/16 18:25:24  peter
     * Adjusting the selection when the editor didn't contain any line.
     * Reserved word recognition redesigned, but this didn't affect the overall
       syntax highlight speed remarkably (at least not on my Amd-K6/350).
@@ -511,3 +698,4 @@ end.
     Original implementation
 
 }
+   
