@@ -481,13 +481,13 @@ const
   exec_t_unit_not_shared_linkable_switch_to_static=09025;
   exec_e_unit_not_smart_or_static_linkable=09026;
   exec_e_unit_not_shared_or_static_linkable=09027;
-  execinfo_f_cant_process_executable=09023;
-  execinfo_f_cant_open_executable=09024;
-  execinfo_x_codesize=09025;
-  execinfo_x_initdatasize=09026;
-  execinfo_x_uninitdatasize=09027;
-  execinfo_x_stackreserve=09028;
-  execinfo_x_stackcommit=09029;
+  execinfo_f_cant_process_executable=09028;
+  execinfo_f_cant_open_executable=09029;
+  execinfo_x_codesize=09030;
+  execinfo_x_initdatasize=09031;
+  execinfo_x_uninitdatasize=09032;
+  execinfo_x_stackreserve=09033;
+  execinfo_x_stackcommit=09034;
   unit_t_unitsearch=10000;
   unit_t_ppu_loading=10001;
   unit_u_ppu_name=10002;
@@ -558,6 +558,6 @@ const
   MsgTxtSize = 31005;
 
   MsgIdxMax : array[1..20] of longint=(
-    17,58,165,34,41,41,84,14,30,40,
+    17,58,165,34,41,41,84,14,35,40,
     26,1,1,1,1,1,1,1,1,1
   );

@@ -521,13 +521,13 @@ const msgtxt : array[0..000129,1..240] of char=(
   'g'#000+
   '09026','_E_unit $1 can'#039't be smart or static linked'#000+
   '09027_E_unit $1 can'#039't be shared or static linked'#000+
-  '09023_F_Can'#039't post process executable $1'#000+
-  '09024_F_Can'#039't open executable $1'#000+
-  '09025_X_Size of Code: $1 bytes'#000+
-  '09026_X_Size of initialized data: $1 bytes'#000,
-  '09027_X_Size of uninitialized data: $1 bytes'#000+
-  '09028_X_Stack space reserved: $1 bytes'#000+
-  '09029_X_Stack space commited: $1 bytes'#000+
+  '09028_F_Can'#039't post process executable $1'#000+
+  '09029_F_Can'#039't open executable $1'#000+
+  '09030_X_Size of Code: $1 bytes'#000+
+  '09031_X_Size of initialized data: $1 bytes'#000,
+  '09032_X_Size of uninitialized data: $1 bytes'#000+
+  '09033_X_Stack space reserved: $1 bytes'#000+
+  '09034_X_Stack space commited: $1 bytes'#000+
   '10000_T_Unitsearch: $1'#000+
   '10001_T_PPU Loading $1'#000+
   '10002_U_PPU Name: $1'#000+
