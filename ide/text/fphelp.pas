@@ -187,6 +187,8 @@ begin
     hcEnvironmentMenu:S:='Specify environment settins';
     hcPreferences   : S:='Specify desktop settings';
     hcEditor        : S:='Specify default editor settings';
+    hcCodeCompleteOptions:S:='Specify CodeComplete keywords';
+    hcCodeTemplateOptions:S:='Specify CodeCompletes';
     hcMouse         : S:='Specify mouse settings';
     hcDesktopOptions: S:='Specify desktop settings';
     hcStartup       : S:='Permanently change default startup options';
@@ -411,7 +413,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.26  2000-01-08 18:26:20  florian
+  Revision 1.27  2000-02-07 11:58:01  pierre
+   Gabor's code inserted
+
+  Revision 1.26  2000/01/08 18:26:20  florian
     + added a register window, doesn't work yet
 
   Revision 1.25  2000/01/05 17:25:26  pierre
