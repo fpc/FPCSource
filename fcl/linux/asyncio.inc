@@ -97,7 +97,7 @@ begin
   ASSERT((AHandle >= 0) and (AHandle <= MaxHandle) and Assigned(AMethod));
   if (AHandle < 0) or (AHandle > MaxHandle) then
     exit;
-    if AHandle > HighestHandle then
+  if AHandle > HighestHandle then
     HighestHandle := AHandle;
   FD_Set(AHandle, IOdata.ReadMap);
   ReadNotifies[AHandle].Method := AMethod;
@@ -107,11 +107,21 @@ end;
 procedure TAsyncIOManager.ClearReadHandler(AHandle: Integer);
 begin
   ASSERT((AHandle >= 0) and (AHandle <= MaxHandle));
-  if (AHandle >= 0) and (AHandle <= MaxHandle) then begin
+  if (AHandle >= 0) and (AHandle <= MaxHandle) then
+  begin
     FD_Clr(AHandle, IOdata.ReadMap);
     if AHandle = HighestHandle then
       CalcHighestHandle(AHandle);
-    end;  
+  end;  
+end;
+
+function TAsyncIOManager.GetReadHandler(AHandle: Integer): TAsyncIONotify;
+begin
+  ASSERT((AHandle >= 0) and (AHandle <= MaxHandle));
+  if (AHandle < 0) or (AHandle > MaxHandle) then
+    Result := nil
+  else
+    Result := ReadNotifies[AHandle].Method;
 end;
 
 procedure TAsyncIOManager.SetWriteHandler(AHandle: Integer;
@@ -138,9 +148,21 @@ begin
   end;
 end;
 
+function TAsyncIOManager.GetWriteHandler(AHandle: Integer): TAsyncIONotify;
+begin
+  ASSERT((AHandle >= 0) and (AHandle <= MaxHandle));
+  if (AHandle < 0) or (AHandle > MaxHandle) then
+    Result := nil
+  else
+    Result := WriteNotifies[AHandle].Method;
+end;
+
 {
   $Log$
-  Revision 1.1  2000-02-18 23:14:10  michael
+  Revision 1.2  2000-07-09 11:48:24  sg
+  * Implemented methods for reading event handlers
+
+  Revision 1.1  2000/02/18 23:14:10  michael
   + Initial implementation
 
 }
