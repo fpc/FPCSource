@@ -1,44 +1,33 @@
-#!/bin/sh
 #
-#   $Id$
-#   This file is part of the Free Pascal run time library.
-#   Copyright (c) 1996-98 by Michael van Canneyt and Peter Vreman
+#  $Id$
 #
-#   Generate a configuration creationfile which will create /etc/ppc386.cfg
-#
-#   Need 1 Arguments:
-#    $1 = filename to create
+#  Generate Sample Free Pascal configuration file
 #
 if [ $# != 1 ]; then
   echo 'Usage :'
-  echo 'makecfg filename'
-  echo 'filename   = filename to create'
-  exit 1
-fi
-cat <<EOFCREATE >$1
-#!/bin/sh
-#
-#  Generate Free Pascal configuration file
-#
-if [ \$# != 2 ]; then
-  echo 'Usage :'
-  echo 'samplecfg basepath libgccpath'
-  echo 'basepath   = Path where FPC is installed'
-  echo 'libgccpath = Path to the GCC lib'
+  echo 'samplecfg fpcdir'
+  echo 'fpcdir = Path where FPC is installed'
   exit 1
 fi
 if [ -f /etc/ppc386.cfg ] ; then
   mv /etc/ppc386.cfg /etc/ppc386.orig  >/dev/null 2>&1
-  if [ \$? == 0 ]; then
+  if [ $? == 0 ]; then
     echo Saved old config to /etc/ppc386.orig
   else
     echo Could not save old config. Bailing out...
   fi
 fi
+
+# Find path to libgcc.a
+GCCSPEC=`(gcc -v 2>&1)| head -n 1| awk '{ print $4 } '`
+GCCDIR=`dirname $GCCSPEC`
+echo Found libgcc.a in $GCCDIR
+
+# Write the file
 echo Writing sample configuration file to /etc/ppc386.cfg
 cat <<EOFCFG > /etc/ppc386.cfg
 #
-# Example ppc386.cfg for Free Pascal Compiler Version 0.99.11
+# Example ppc386.cfg for Free Pascal Compiler Version 0.99.12
 #
 
 # ----------------------
@@ -143,8 +132,8 @@ cat <<EOFCFG > /etc/ppc386.cfg
 
 # path to the messagefile, not necessary anymore but can be used to override
 # the default language
-#-Fr\$1/msg/errore.msg
-#-Fr\$1/msg/errorn.msg
+#-Fr$1/msg/errore.msg
+#-Fr$1/msg/errorn.msg
 
 # searchpath for includefiles
 #-Fi/pp/inc;/pp/rtl/inc
@@ -152,22 +141,22 @@ cat <<EOFCFG > /etc/ppc386.cfg
 # searchpath for units (does the same as -Up)
 # For statically, smartlinked units
 #IFDEF FPC_LINK_STATIC
--Fu\$1/rtl/static
--Fu\$1/units/static
+-Fu$1/rtl/static
+-Fu$1/units/static
 #ENDIF
 # For Dynamically linked units
 #IFDEF FPC_LINK_DYNAMIC
--Fu\$1/rtl/shared
--Fu\$1/units/shared
+-Fu$1/rtl/shared
+-Fu$1/units/shared
 #ENDIF
 # For normal units
--Fu\$1/rtl
--Fu\$1/units
+-Fu$1/rtl
+-Fu$1/units
 #-Fu/pp/units;/pp/rtl/dos/go32v2
 #-Fu/usr/lib/ppc/units;/usr/lib/ppc/linuxunits
 
 # searchpath for libraries
--Fl\$2
+-Fl$GCCDIR
 #-Fl/pp/lib
 #-Fl/lib;/usr/lib
 
@@ -212,5 +201,3 @@ cat <<EOFCFG > /etc/ppc386.cfg
 # That's all folks
 #
 EOFCFG
-EOFCREATE
-chmod 755 $1
