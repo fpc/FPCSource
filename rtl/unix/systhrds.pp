@@ -14,7 +14,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-unit threads;
+unit systhrds;
 interface
 
 {$S-}
@@ -39,6 +39,13 @@ interface
 
 
 implementation
+
+{*****************************************************************************
+                             Generic overloaded 
+*****************************************************************************}
+
+{ Include generic overloaded routines }
+{$i thread.inc}
 
 
 {*****************************************************************************
@@ -297,7 +304,6 @@ end;
         inc(threadvarblocksize,size);
       end;
 
-
     function SysRelocateThreadvar(offset : dword) : pointer;
       begin
         SysRelocateThreadvar:=pthread_getspecific(tlskey)+Offset;
@@ -327,19 +333,6 @@ end;
 { Include OS independent Threadvar initialization }
 {$i threadvar.inc}
 
-    procedure InitThreadVars;
-      begin
-        { We're still running in single thread mode, setup the TLS }
-        pthread_key_create(@TLSKey,nil);
-        { initialize threadvars }
-        init_all_unit_threadvars;
-        { allocate mem for main thread threadvars }
-        SysAllocateThreadVars;
-        { copy main thread threadvars }
-        copy_all_unit_threadvars;
-        { install threadvar handler }
-        fpc_threadvar_relocate_proc:=@SysRelocateThreadvar;
-      end;
 
 {$endif HASTHREADVAR}
 
@@ -348,9 +341,6 @@ end;
                             Thread starting
 *****************************************************************************}
 
-    const
-      DefaultStackSize = 32768; { including 16384 margin for stackchecking }
-
     type
       pthreadinfo = ^tthreadinfo;
       tthreadinfo = record
@@ -358,22 +348,6 @@ end;
         p : pointer;
         stklen : cardinal;
       end;
-
-    procedure InitThread(stklen:cardinal);
-      begin
-        SysResetFPU;
-        { ExceptAddrStack and ExceptObjectStack are threadvars       }
-        { so every thread has its on exception handling capabilities }
-        SysInitExceptions;
-        { Open all stdio fds again }
-        SysInitStdio;
-        InOutRes:=0;
-        // ErrNo:=0;
-        { Stack checking }
-        StackLength:=stklen;
-        StackBottom:=Sptr - StackLength;
-      end;
-
 
     procedure DoneThread;
       begin
@@ -423,7 +397,9 @@ end;
         if not IsMultiThread then
          begin
 {$ifdef HASTHREADVAR}
-           InitThreadVars;
+          { We're still running in single thread mode, setup the TLS }
+           pthread_key_create(@TLSKey,nil);
+           InitThreadVars(@SysRelocateThreadvar);
 {$endif HASTHREADVAR}
            IsMultiThread:=true;
          end;
@@ -525,19 +501,15 @@ end;
       end;
 
 
-{*****************************************************************************
-                             Generic overloaded 
-*****************************************************************************}
-
-{ Include generic overloaded routines }
-{$i thread.inc}
-
 initialization
   InitHeapMutexes;
 end.
 {
   $Log$
-  Revision 1.1  2002-10-14 19:39:17  peter
+  Revision 1.1  2002-10-16 06:22:56  michael
+  Threads renamed from threads to systhrds
+
+  Revision 1.1  2002/10/14 19:39:17  peter
     * threads unit added for thread support
 
 }
