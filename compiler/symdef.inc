@@ -2629,6 +2629,7 @@
 {$endif newcg}
          forwarddef:=true;
          interfacedef:=false;
+         hasforward:=false;
          _class := nil;
          code:=nil;
          regvarinfo := nil;
@@ -2671,6 +2672,7 @@
          localst:=nil;
          forwarddef:=false;
          interfacedef:=false;
+         hasforward:=false;
          code := nil;
          regvarinfo := nil;
          lastref:=nil;
@@ -4193,7 +4195,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.5  2000-08-03 13:17:26  jonas
+  Revision 1.6  2000-08-06 14:17:15  peter
+    * overload fixes (merged)
+
+  Revision 1.5  2000/08/03 13:17:26  jonas
     + allow regvars to be used inside inlined procs, which required  the
       following changes:
         + load regvars in genentrycode/free them in genexitcode (cgai386)

@@ -44,6 +44,7 @@ function  is_proc_directive(tok:ttoken):boolean;
 procedure parse_var_proc_directives(var sym : psym);
 procedure parse_object_proc_directives(var sym : pprocsym);
 procedure read_proc;
+function check_identical_proc(var p : pprocdef) : boolean;
 
 implementation
 
@@ -1217,7 +1218,7 @@ end;
 
 {***************************************************************************}
 
-function check_identical(var p : pprocdef) : boolean;
+function check_identical_proc(var p : pprocdef) : boolean;
 {
   Search for idendical definitions,
   if there is a forward, then kill this.
@@ -1232,7 +1233,7 @@ var
   ad,fd : psym;
   s : string;
 begin
-  check_identical:=false;
+  check_identical_proc:=false;
   p:=nil;
   pd:=aktprocsym^.definition;
   if assigned(pd) then
@@ -1244,44 +1245,21 @@ begin
         while (assigned(pd)) and (assigned(pd^.nextoverloaded)) do
          begin
            hd:=pd^.nextoverloaded;
-           { check for allowing overloading }
-           if not(m_fpc in aktmodeswitches) then
-            begin
-              { if one of the two has overload directive then
-                we should issue an other error }
-              if (po_overload in pd^.procoptions) or
-                 (po_overload in hd^.procoptions) then
-               begin
-                 { one a forwarddef and the other not then the not may not have
-                   the directive as in D5 (PFV) }
-                 if hd^.forwarddef and (not pd^.forwarddef) then
-                  begin
-                    if (po_overload in pd^.procoptions) then
-                     Message1(parser_e_proc_dir_not_allowed_in_implementation,'OVERLOAD');
-                  end
-                 else
-                  if not((po_overload in pd^.procoptions) and
-                         ((po_overload in hd^.procoptions))) then
-                   Message1(parser_e_no_overload_for_all_procs,aktprocsym^.name);
-               end
-              else
-               begin
-                 if not(hd^.forwarddef) then
-                  Message(parser_e_procedure_overloading_is_off);
-               end;
-            end;
+
            { check the parameters }
            if (not(m_repeat_forward in aktmodeswitches) and
                (aktprocsym^.definition^.para^.count=0)) or
               (equal_paras(aktprocsym^.definition^.para,hd^.para,cp_none) and
               { for operators equal_paras is not enough !! }
               ((aktprocsym^.definition^.proctypeoption<>potype_operator) or (optoken<>_ASSIGNMENT) or
-               is_equal(pd^.nextoverloaded^.rettype.def,aktprocsym^.definition^.rettype.def))) then
+               is_equal(hd^.rettype.def,aktprocsym^.definition^.rettype.def))) then
              begin
                if not equal_paras(aktprocsym^.definition^.para,hd^.para,cp_all) and
-                 ((m_repeat_forward in aktmodeswitches) or (aktprocsym^.definition^.para^.count>0)) then
+                  ((m_repeat_forward in aktmodeswitches) or
+                   (aktprocsym^.definition^.para^.count>0)) then
                  begin
-                    Message1(parser_e_header_dont_match_forward,aktprocsym^.demangledName);
+                    MessagePos1(aktprocsym^.definition^.fileinfo,parser_e_header_dont_match_forward,
+                                aktprocsym^.demangledName);
                     exit;
                  end;
                if hd^.forwarddef then
@@ -1293,38 +1271,36 @@ begin
                       (not(is_equal(hd^.rettype.def,aktprocsym^.definition^.rettype.def)) and
                       (m_repeat_forward in aktmodeswitches)) then
                      begin
-                       Message1(parser_e_header_dont_match_forward,aktprocsym^.demangledName);
+                       MessagePos1(aktprocsym^.definition^.fileinfo,parser_e_header_dont_match_forward,
+                                   aktprocsym^.demangledName);
                        exit;
                      end;
-                 { Check calling convention, no check for internconst,internproc which
-                   are only defined in interface or implementation }
+                   { Check calling convention, no check for internconst,internproc which
+                     are only defined in interface or implementation }
                    if (hd^.proccalloptions-[pocall_internconst,pocall_internproc]<>
                        aktprocsym^.definition^.proccalloptions-[pocall_internconst,pocall_internproc]) then
                     begin
                       { only trigger an error, becuase it doesn't hurt }
-                      Message(parser_e_call_convention_dont_match_forward);
+                      MessagePos(aktprocsym^.definition^.fileinfo,parser_e_call_convention_dont_match_forward);
                       { set the mangledname to the interface name so it doesn't trigger
                         the Note about different manglednames (PFV) }
                       aktprocsym^.definition^.setmangledname(hd^.mangledname);
                     end;
-                 { manglednames are equal? }
+                   { check for overload directive, which is not allowed in implementation
+                     if already declared in forward, D5 compatible (PFV) }
+                   if not(aktprocsym^.definition^.forwarddef) and
+                      (po_overload in aktprocsym^.definition^.procoptions) then
+                     MessagePos1(aktprocsym^.definition^.fileinfo,parser_e_proc_dir_not_allowed_in_implementation,
+                                 'OVERLOAD');
+                   { manglednames are equal? }
                    hd^.count:=false;
                    if (m_repeat_forward in aktmodeswitches) or
                       aktprocsym^.definition^.haspara then
                     begin
                       if (hd^.mangledname<>aktprocsym^.definition^.mangledname) then
                        begin
-                         { When overloading is not possible then we issue an error }
-                         { This is not true, tp7/delphi don't give an error when a renamed
-                           type is used in the other declaration (PFV)
-                           if not(m_repeat_forward in aktmodeswitches) then
-                          begin
-                            Message1(parser_e_header_dont_match_forward,aktprocsym^.demangledName);
-                            exit;
-                          end; }
-
                          if not(po_external in aktprocsym^.definition^.procoptions) then
-                           Message2(parser_n_interface_name_diff_implementation_name,hd^.mangledname,
+                           MessagePos2(aktprocsym^.definition^.fileinfo,parser_n_interface_name_diff_implementation_name,hd^.mangledname,
                              aktprocsym^.definition^.mangledname);
                        { reset the mangledname of the interface part to be sure }
                        { this is wrong because the mangled name might have been used already !! }
@@ -1333,7 +1309,7 @@ begin
                           hd^.setmangledname(aktprocsym^.definition^.mangledname);
                        { so we need to keep the name of interface !!
                          No!!!! The procedure directives can change the mangledname.
-                         I fixed this by first calling check_identical and then doing
+                         I fixed this by first calling check_identical_proc and then doing
                          the proc directives, but this is not a good solution.(DM)}
                          { this is also wrong (PM)
                          aktprocsym^.definition^.setmangledname(hd^.mangledname);}
@@ -1346,8 +1322,9 @@ begin
                        { parameters...                      }
                          if hd^.forwarddef and aktprocsym^.definition^.forwarddef then
                            begin
-                             Message1(parser_e_function_already_declared_public_forward,aktprocsym^.demangledName);
-                             Check_identical:=true;
+                             MessagePos1(aktprocsym^.definition^.fileinfo,
+                                         parser_e_function_already_declared_public_forward,aktprocsym^.demangledName);
+                             check_identical_proc:=true;
                            { Remove other forward from the list to reduce errors }
                              pd^.nextoverloaded:=pd^.nextoverloaded^.nextoverloaded;
                              exit;
@@ -1361,7 +1338,7 @@ begin
                                  s:=ad^.name;
                                  if s<>fd^.name then
                                    begin
-                                     Message3(parser_e_header_different_var_names,
+                                     MessagePos3(aktprocsym^.definition^.fileinfo,parser_e_header_different_var_names,
                                        aktprocsym^.name,s,fd^.name);
                                      break;
                                    end;
@@ -1386,6 +1363,7 @@ begin
                  { Alert! All fields of aktprocsym^.definition that are modified
                    by the procdir handlers must be copied here!.}
                    hd^.forwarddef:=false;
+                   hd^.hasforward:=true;
                    hd^.proccalloptions:=hd^.proccalloptions + aktprocsym^.definition^.proccalloptions;
                    hd^.procoptions:=hd^.procoptions + aktprocsym^.definition^.procoptions;
                    if aktprocsym^.definition^.extnumber=-1 then
@@ -1406,24 +1384,54 @@ begin
                    else
                      p:=pd;
                    aktprocsym^.definition:=hd;
-                   check_identical:=true;
+                   check_identical_proc:=true;
                  end
                else
                { abstract methods aren't forward defined, but this }
                { needs another error message                   }
                  if not(po_abstractmethod in pd^.nextoverloaded^.procoptions) then
-                   Message(parser_e_overloaded_have_same_parameters)
+                   MessagePos(aktprocsym^.definition^.fileinfo,parser_e_overloaded_have_same_parameters)
                  else
-                   Message(parser_e_abstract_no_definition);
+                   MessagePos(aktprocsym^.definition^.fileinfo,parser_e_abstract_no_definition);
                break;
              end;
+
+           { check for allowing overload directive }
+           if not(m_fpc in aktmodeswitches) then
+            begin
+              { overload directive turns on overloading }
+              if ((po_overload in aktprocsym^.definition^.procoptions) or
+                  ((po_overload in hd^.procoptions))) then
+               begin
+                 { check if all procs have overloading, but not if the proc was
+                   already declared forward, then the check is already done }
+                 if not(hd^.hasforward) and
+                    (aktprocsym^.definition^.forwarddef=hd^.forwarddef) and
+                    not((po_overload in aktprocsym^.definition^.procoptions) and
+                        ((po_overload in hd^.procoptions))) then
+                  begin
+                    MessagePos1(aktprocsym^.definition^.fileinfo,parser_e_no_overload_for_all_procs,aktprocsym^.name);
+                    break;
+                  end;
+               end
+              else
+               begin
+                 if not(hd^.forwarddef) then
+                  begin
+                    MessagePos(aktprocsym^.definition^.fileinfo,parser_e_procedure_overloading_is_off);
+                    break;
+                  end;
+               end;
+            end;
+
+           { try next overloaded }
            pd:=pd^.nextoverloaded;
          end;
       end
      else
       begin
       { there is no overloaded, so its always identical with itself }
-        check_identical:=true;
+        check_identical_proc:=true;
       end;
    end;
 { insert opsym only in the right symtable }
@@ -1963,7 +1971,7 @@ begin
    aktfilepos:=aktprocsym^.definition^.fileinfo;
 
 { search for forward declarations }
-   if not check_identical(prevdef) then
+   if not check_identical_proc(prevdef) then
      begin
      { A method must be forward defined (in the object declaration) }
        if assigned(procinfo^._class) and (not assigned(oldprocinfo^._class)) then
@@ -1984,8 +1992,8 @@ begin
         end
      end;
 
-{ set return type here, becuase the aktprocsym^.definition can be
-  changed by check_identical (PFV) }
+   { set return type here, becuase the aktprocsym^.definition can be
+     changed by check_identical_proc (PFV) }
    procinfo^.returntype.def:=aktprocsym^.definition^.rettype.def;
 
 {$ifdef i386}
@@ -2066,7 +2074,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2000-07-30 17:04:43  peter
+  Revision 1.5  2000-08-06 14:17:15  peter
+    * overload fixes (merged)
+
+  Revision 1.4  2000/07/30 17:04:43  peter
     * merged fixes
 
   Revision 1.3  2000/07/13 12:08:27  michael

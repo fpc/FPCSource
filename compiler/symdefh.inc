@@ -422,6 +422,8 @@
           forwarddef,
           { true if the procedure is declared in the interface }
           interfacedef : boolean;
+          { true if the procedure has a forward declaration }
+          hasforward : boolean;
           { check the problems of manglednames }
           count      : boolean;
           is_used    : boolean;
@@ -537,7 +539,10 @@
 
 {
   $Log$
-  Revision 1.5  2000-08-03 13:17:26  jonas
+  Revision 1.6  2000-08-06 14:17:15  peter
+    * overload fixes (merged)
+
+  Revision 1.5  2000/08/03 13:17:26  jonas
     + allow regvars to be used inside inlined procs, which required  the
       following changes:
         + load regvars in genentrycode/free them in genexitcode (cgai386)

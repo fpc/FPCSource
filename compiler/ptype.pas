@@ -958,6 +958,8 @@ uses
              aktclass:=new(pobjectdef,init(n,nil));
         end;
 
+      var
+        temppd : pprocdef;
       begin
          {Nowadays aktprocsym may already have a value, so we need to save
           it.}
@@ -1125,6 +1127,8 @@ uses
 {$ifndef newcg}
                       parse_object_proc_directives(aktprocsym);
 {$endif newcg}
+                      { check if there are duplicates }
+                      check_identical_proc(temppd);
                       if (po_msgint in aktprocsym^.definition^.procoptions) then
                         include(aktclass^.objectoptions,oo_has_msgint);
 
@@ -1593,7 +1597,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.4  2000-07-30 17:04:43  peter
+  Revision 1.5  2000-08-06 14:17:15  peter
+    * overload fixes (merged)
+
+  Revision 1.4  2000/07/30 17:04:43  peter
     * merged fixes
 
   Revision 1.3  2000/07/13 12:08:27  michael
