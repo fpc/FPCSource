@@ -991,6 +991,12 @@ implementation
                   else
                     ot:=OT_IMMEDIATE or opsize_2_type[i,opsize];
                 end;
+              top_none :
+                begin
+                  { generated when there was an error in the
+                    assembler reader. It never happends when generating
+                    assembler }
+                end;
               else
                 internalerror(200402261);
             end;
@@ -1962,7 +1968,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.52  2004-02-27 10:21:05  florian
+  Revision 1.53  2004-03-04 17:25:38  peter
+    * top_none in create_ot, it is used in error situations
+
+  Revision 1.52  2004/02/27 10:21:05  florian
     * top_symbol killed
     + refaddr to treference added
     + refsymbol to treference added
