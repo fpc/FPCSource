@@ -381,7 +381,7 @@ type
     function CreateEntityReference(const name: DOMString): TDOMEntityReference; override;
 
     // Extensions to DOM interface:
-    XMLVersion, Encoding: String;
+    XMLVersion, Encoding, StylesheetType, StylesheetHRef: DOMString;
   end;
 
 
@@ -1499,7 +1499,11 @@ end.
 
 {
   $Log$
-  Revision 1.1.2.2  2000-07-29 14:20:54  sg
+  Revision 1.1.2.3  2001-01-23 17:46:06  sg
+  * Added fields "StylesheetType" and "StylesheetHRef" to TXMLDocument
+    (backport from main branch)
+
+  Revision 1.1.2.2  2000/07/29 14:20:54  sg
   * Modified the copyright notice to remove ambiguities
 
   Revision 1.1.2.1  2000/07/25 09:13:54  sg
@@ -1543,29 +1547,5 @@ end.
   Revision 1.9  2000/01/06 23:55:22  peter
     * childnodes property as that is used instead of getchildnodes
       in the apps
-
-  Revision 1.8  2000/01/06 01:20:36  peter
-    * moved out of packages/ back to topdir
-
-  Revision 1.1  2000/01/03 19:33:11  peter
-    * moved to packages dir
-
-  Revision 1.6  1999/12/05 22:00:10  sg
-  * Bug workaround for problem with "exit(<some string type>)"
-
-  Revision 1.5  1999/07/12 12:19:49  michael
-  + More fixes from Sebastian Guenther
-
-  Revision 1.4  1999/07/11 20:20:11  michael
-  + Fixes from Sebastian Guenther
-
-  Revision 1.3  1999/07/10 21:48:26  michael
-  + Made domelement constructor virtual, needs overriding in thtmlelement
-
-  Revision 1.2  1999/07/09 21:05:49  michael
-  + fixes from Guenther Sebastian
-
-  Revision 1.1  1999/07/09 08:35:09  michael
-  + Initial implementation by Sebastian Guenther
 
 }
