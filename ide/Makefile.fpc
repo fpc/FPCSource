@@ -6,7 +6,7 @@
 
 [package]
 name=ide
-version=1.9.4
+version=1.9.6
 
 [target]
 dirs=compiler
@@ -184,7 +184,10 @@ clean_compiler:
 
 #
 # $Log$
-# Revision 1.28  2004-12-20 18:58:46  peter
+# Revision 1.29  2004-12-30 20:57:39  hajny
+#   * version 1.9.6
+#
+# Revision 1.28  2004/12/20 18:58:46  peter
 #   * UnixHier
 #
 # Revision 1.27  2004/11/11 15:20:52  florian
