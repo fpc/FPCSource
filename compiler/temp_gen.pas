@@ -269,8 +269,15 @@ const
 
 
     function gettempsize : longint;
+      var
+        _align : longint;
       begin
-        gettempsize:=Align(-lasttemp,target_os.stackalignment);
+        { align to 4 bytes at least
+          otherwise all those subl $2,%esp are meaningless PM }
+        _align:=target_os.stackalignment;
+        if _align<4 then
+          _align:=4;
+        gettempsize:=Align(-lasttemp,_align);
       end;
 
 
@@ -532,7 +539,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.42  2000-02-09 13:23:08  peter
+  Revision 1.43  2000-05-23 13:55:27  pierre
+   Use a multiple of 4 to substract from stack pointer for locals and temps
+
+  Revision 1.42  2000/02/09 13:23:08  peter
     * log truncated
 
   Revision 1.41  2000/01/07 01:14:47  peter
@@ -567,4 +577,3 @@ end.
   * alpha has no index
 
 }
-
