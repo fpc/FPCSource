@@ -811,7 +811,7 @@ Function socket(af, typ, protocol: LongInt): TSocket; cdecl;
 Function gethostbyaddr(addr: pchar; len: Longint; t: Longint): PHostEnt; cdecl;
     external 'PMWSock' name 'gethostbyaddr';
 
-Function gethostbyname(name: pchar): PHostEnt;stdcall; cdecl;
+Function gethostbyname(name: pchar): PHostEnt; cdecl;
     external 'PMWSock' name 'gethostbyname';
 
 Function gethostname(name: pchar; namelen: Longint): Longint; cdecl;
@@ -1056,7 +1056,10 @@ end.
 
 {
 $Log$
-Revision 1.2  2003-08-15 10:53:43  yuri
+Revision 1.3  2003-10-05 20:03:58  hajny
+  * two calling conventions specified (stdcall and cdecl)
+
+Revision 1.2  2003/08/15 10:53:43  yuri
 + Winsock unit added
 * PMWSock unit updated (to be less or more compitilbe with win32 winsock)
 
