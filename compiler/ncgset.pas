@@ -277,37 +277,10 @@ implementation
 
             { clear the register value, indicating result is FALSE }
             cg.a_load_const_reg(exprasmlist,location.size,0,location.register);
-            opsize := def_cgsize(left.resulttype.def);
             { If register is used, use only lower 8 bits }
-            if left.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
-             begin
-               { for ranges we always need a 32bit register, because then we }
-               { use the register as base in a reference (JM)                }
-               if ranges then
-                 begin
-                   pleftreg:=cg.makeregsize(left.location.register,OS_INT);
-                   cg.a_load_reg_reg(exprasmlist,left.location.size,OS_INT,left.location.register,pleftreg);
-                   if opsize <> OS_INT then
-                     cg.a_op_const_reg(exprasmlist,OP_AND,OS_INT,255,pleftreg);
-                   opsize := OS_INT;
-                 end
-               else
-                 { otherwise simply use the lower 8 bits (no "and" }
-                 { necessary this way) (JM)                        }
-                 begin
-                   pleftreg:=cg.makeregsize(left.location.register,OS_8);
-                   opsize := OS_8;
-                 end;
-             end
-            else
-             begin
-               { load the value in a register }
-               opsize := OS_INT;
-               pleftreg:=cg.getintregister(exprasmlist,opsize);
-               cg.a_load_ref_reg(exprasmlist,def_cgsize(left.resulttype.def),opsize,left.location.reference,pleftreg);
-             end;
-
-
+            location_force_reg(exprasmlist,left.location,OS_INT,false);
+            pleftreg := left.location.register;
+            opsize := OS_INT;
 
             { how much have we already substracted from the x in the }
             { "x in [y..z]" expression                               }
@@ -1017,7 +990,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.58  2004-02-05 19:35:27  florian
+  Revision 1.59  2004-02-08 14:51:04  jonas
+    * fixed for regvars + simplification
+
+  Revision 1.58  2004/02/05 19:35:27  florian
     * more x86-64 fixes
 
   Revision 1.57  2004/01/31 23:37:07  florian
