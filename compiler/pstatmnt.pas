@@ -1289,7 +1289,10 @@ unit pstatmnt;
            { set the framepointer to esp for assembler functions }
            { but only if the are no local variables           }
            { added no parameter also (PM)                       }
-           if (po_assembler in aktprocsym^.definition^.procoptions) and
+           { disable for methods, because self pointer is expected }
+           { at -8(%ebp) (JM)                                      }
+           if not(assigned(procinfo._class)) and
+              (po_assembler in aktprocsym^.definition^.procoptions) and
               (aktprocsym^.definition^.localst^.datasize=0) and
               (aktprocsym^.definition^.parast^.datasize=0) and
               not(ret_in_param(aktprocsym^.definition^.retdef)) then
@@ -1312,7 +1315,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.99  1999-08-26 21:10:08  peter
+  Revision 1.100  1999-09-07 14:12:36  jonas
+    * framepointer cannot be changed to esp for methods
+
+  Revision 1.99  1999/08/26 21:10:08  peter
     * better error recovery for case
 
   Revision 1.98  1999/08/05 16:53:05  peter

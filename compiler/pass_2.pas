@@ -449,7 +449,8 @@ implementation
                    (*
                    if assigned(aktprocsym) then
                      begin
-                       if not(aktprocsym^.definition^.proctypeoption in [potype_constructor,potype_destructor]) and
+                       if not(assigned(procinfo._class)) and
+                          not(aktprocsym^.definition^.proctypeoption in [potype_constructor,potype_destructor]) and
                           not(po_interrupt in aktprocsym^.definition^.procoptions) and
                           ((procinfo.flags and pi_do_call)=0) and
                           (lexlevel>=normal_function_level) then
@@ -671,7 +672,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35  1999-08-27 10:46:26  pierre
+  Revision 1.36  1999-09-07 14:12:35  jonas
+    * framepointer cannot be changed to esp for methods
+
+  Revision 1.35  1999/08/27 10:46:26  pierre
    + some EXTTEMPREGDEBUG code added
 
   Revision 1.34  1999/08/25 12:00:01  jonas
