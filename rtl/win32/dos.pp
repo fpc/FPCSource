@@ -139,6 +139,8 @@ Procedure GetFTime(var f; var time: longint);
 Function  FSearch(path: pathstr; dirlist: string): pathstr;
 Function  FExpand(const path: pathstr): pathstr;
 Procedure FSplit(path: pathstr; var dir: dirstr; var name: namestr; var ext: extstr);
+function  GetShortName(var p : String) : boolean;
+function  GetLongName(var p : String) : boolean;
 
 {Environment}
 Function  EnvCount: longint;
@@ -676,8 +678,11 @@ end;
 
 { <immobilizer> }
 
-  function GetFullPathName(lpFileName: PChar; nBufferLength: Longint; lpBuffer: PChar; var lpFilePart : PChar):DWORD;
+function GetFullPathName(lpFileName: PChar; nBufferLength: Longint; lpBuffer: PChar; var lpFilePart : PChar):DWORD;
     external 'kernel32' name 'GetFullPathNameA';
+
+function GetShortPathName(lpszLongPath:pchar; lpszShortPath:pchar; cchBuffer:DWORD):DWORD;
+    external 'kernel32' name 'GetShortPathNameA';
 
 function FExpand(const path : pathstr) : pathstr;
 var value      : Array[0..255] of char;
@@ -815,6 +820,51 @@ begin
     doserror:=getlasterror;
 end;
 
+{ change to short filename if successful win32 call PM }
+function GetShortName(var p : String) : boolean;
+var
+  buffer   : array[0..255] of char;
+  ret : longint;
+begin
+  {we can't mess with p, because we have to return it if call is
+      unsuccesfully.}
+
+  if Length(p)>0 then                   {copy p to array of char}
+   move(p[1],buffer[0],length(p));
+  buffer[length(p)]:=chr(0);
+
+  {Should return value load loaddoserror?}
+
+  ret:=GetShortPathName(@buffer,@buffer,255);
+  if ret=0 then
+   p:=strpas(buffer);
+  GetShortName:=ret<>0;
+end;
+
+{ change to long filename if successful DOS call PM }
+function GetLongName(var p : String) : boolean;
+
+var
+  lfn,sfn   : array[0..255] of char;
+  filename  : pchar;
+  ret       : longint;
+begin
+  {contrary to shortname, SDK does not mention input buffer can be equal
+   to output.}
+
+  if Length(p)>0 then                   {copy p to array of char}
+   move(p[1],sfn[0],length(p));
+  sfn[length(p)]:=chr(0);
+  fillchar(lfn,sizeof(lfn),#0);
+  filename:=nil;
+
+  {Should return value load loaddoserror?}
+
+  ret:=GetFullPathName(@sfn,255,@lfn,filename);
+  if ret=0 then
+   p:=strpas(lfn);              {lfn here returns full path, filename only fn}
+  GetLongName:=ret<>0;
+end;
 
 {******************************************************************************
                              --- Environment ---
@@ -954,7 +1004,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.36  2000-05-19 13:20:37  pierre
+  Revision 1.37  2000-05-26 12:03:13  marco
+   * added getlongname and getshortname
+
+  Revision 1.36  2000/05/19 13:20:37  pierre
    * avoid some Range Check errors
 
   Revision 1.35  2000/04/17 20:43:27  pierre
