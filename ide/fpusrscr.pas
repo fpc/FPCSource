@@ -774,7 +774,7 @@ begin
   TTYFd:=-1;
   IsXterm:=getenv('TERM')='xterm';
   ThisTTY:=TTYName(stdinputhandle);
-  if Not IsXterm and (IsATTY(stdinputhandle)<>-1) then
+  if Not IsXterm and {$ifdef ver1_0}IsATTY(stdinputhandle){$else}(IsATTY(stdinputhandle)<>-1){$endif} then
     begin
       Console:=TTyNetwork;  {Default: Network or other vtxxx tty}
       if (Copy(ThisTTY, 1, 8) = '/dev/tty') and (ThisTTY[9]<>'p') Then
@@ -783,7 +783,11 @@ begin
             '0'..'9' :
               begin { running Linux on native console or native-emulation }
                 FName:='/dev/vcsa' + ThisTTY[9];
-                TTYFd:={$ifdef ver1_0}fdOpen{$else}fpOpen{$endif}(FName, &666, O_RdWr); { open console }
+{$ifdef ver1_0}
+                TTYFd:=fdOpen(FName, &666, Open_RdWr); { open console }
+{$else}
+                TTYFd:=fpOpen(FName, &666, O_RdWr); { open console }
+{$endif}
                 If TTYFd <>-1 Then
                   Console:=ttyLinux;
               end;
@@ -910,7 +914,11 @@ begin
       ConsCursorY:=0;
       ConsVideoBuf:=nil;
     end;
+{$ifdef ver1_0}
+  ConsTioValid:=TCGetAttr(1,ConsTio);
+{$else}
   ConsTioValid:=(TCGetAttr(1,ConsTio)<>-1);
+{$endif}
 end;
 
 
@@ -1441,7 +1449,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.31  2003-11-19 17:11:40  marco
+  Revision 1.32  2004-02-20 21:46:06  peter
+    * fix compile with 1.0.x
+
+  Revision 1.31  2003/11/19 17:11:40  marco
    * termio unit
 
   Revision 1.30  2003/11/17 10:05:51  marco
