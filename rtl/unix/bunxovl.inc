@@ -58,7 +58,7 @@ Var
   Buf : Array[0..PATH_MAX+1]  of char;
 Begin 
   Buf[PATH_MAX+1]:=#0; 
-  If FpGetcwd(pchar(Buf[0]),PATH_MAX)=Nil then
+  If FpGetcwd(@Buf[0],PATH_MAX)=Nil then
     FpGetcwd:=''
   else  
     FpGetcwd:=Buf;
@@ -380,7 +380,10 @@ end;
 
 {
  $Log$
- Revision 1.15  2004-11-23 08:40:34  michael
+ Revision 1.16  2004-11-25 12:18:35  jonas
+   * fixed invalid type conversion
+
+ Revision 1.15  2004/11/23 08:40:34  michael
  + Added overloaded functions
 
  Revision 1.14  2004/11/19 13:15:14  marco
