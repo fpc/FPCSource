@@ -339,6 +339,7 @@ unit files;
          count   : longint;
          temp,hs : string;
          b       : byte;
+         incfile_found : boolean;
          code    : word;
          objfiletime,
          ppufiletime,
@@ -413,6 +414,7 @@ unit files;
        begin
          ppufile^.read_data(hs[0],1,count);
          ppufile^.read_data(hs[1],ord(hs[0]),count);
+         ppufile^.read_data(b,1,count);
          if (flags and uf_in_library)<>0 then
           begin
             sources_avail:=false;
@@ -422,6 +424,19 @@ unit files;
           begin
             { check the date of the source files }
             Source_Time:=GetNamedFileTime(unit_path+hs);
+            if Source_Time=-1 then
+              begin
+                 { search for include files in the includepathlist }
+                 if b<>ibend then
+                   temp:=search(hs,includesearchpath,incfile_found);
+                 if incfile_found then
+                   begin
+                      hs:=temp+hs;
+                      Source_Time:=GetNamedFileTime(hs);
+                   end;
+              end
+            else
+              hs:=unit_path+hs;
             if Source_Time=-1 then
              begin
                sources_avail:=false;
@@ -437,18 +452,17 @@ unit files;
                 end;
              end;
           end;
-         Message1(unit_t_ppu_source,unit_path+hs+temp);
+         Message1(unit_t_ppu_source,hs+temp);
 {$ifdef UseBrowser}
-         fsplit(unit_path+hs,_d,_n,_e);
+         fsplit(hs,_d,_n,_e);
          new(hp,init(_d,_n,_e));
          { the indexing should match what is done in writeasunit }
          sourcefiles.register_file(hp);
 {$endif UseBrowser}
-         ppufile^.read_data(b,1,count);
        end;
     { main source is always the last }
       stringdispose(mainsource);
-      mainsource:=stringdup(ppufile^.path^+hs);
+      mainsource:=stringdup(hs);
 
     { check the object and assembler file if not a library }
       if (flags and uf_smartlink)<>0 then
@@ -646,7 +660,12 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.8  1998-05-04 17:54:25  peter
+  Revision 1.9  1998-05-06 15:04:20  pierre
+    + when trying to find source files of a ppufile
+      check the includepathlist for included files
+      the main file must still be in the same directory
+
+  Revision 1.8  1998/05/04 17:54:25  peter
     + smartlinking works (only case jumptable left todo)
     * redesign of systems.pas to support assemblers and linkers
     + Unitname is now also in the PPU-file, increased version to 14

@@ -295,7 +295,6 @@ unit tree;
 
   implementation
 
-{$ifdef UseTokenInfo}
 {$ifdef extdebug}
     uses
        types,pbase;
@@ -303,7 +302,6 @@ unit tree;
     uses
        pbase;
 {$endif extdebug}
-{$endif UseTokenInfo}
 
 {****************************************************************************
         this is a pool for the tree nodes to get more performance
@@ -1524,7 +1522,12 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.6  1998-05-06 08:38:52  pierre
+  Revision 1.7  1998-05-06 15:04:21  pierre
+    + when trying to find source files of a ppufile
+      check the includepathlist for included files
+      the main file must still be in the same directory
+
+  Revision 1.6  1998/05/06 08:38:52  pierre
     * better position info with UseTokenInfo
       UseTokenInfo greatly simplified
     + added check for changed tree after first time firstpass
