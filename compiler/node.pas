@@ -337,7 +337,7 @@ interface
 {$endif}
           { For a t1:=t2 tree, mark the part of the tree t1 that gets
             written to (normally the loadnode) as write access. }
-          procedure mark_write;virtual;
+          procedure mark_write;virtual;abstract;
           procedure det_temp;virtual;abstract;
 
           procedure pass_2;virtual;abstract;
@@ -695,9 +695,9 @@ implementation
          getcopy:=p;
       end;
 
-    procedure tnode.mark_write;
+{    procedure tnode.mark_write;
       begin
-      end;
+      end;}
 
     procedure tnode.insertintolist(l : tnodelist);
 
@@ -976,7 +976,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.48  2003-01-03 21:03:02  peter
+  Revision 1.49  2003-01-04 15:54:03  daniel
+    * Fixed mark_write for @ operator
+      (can happen when compiling @procvar:=nil (Delphi mode construction))
+
+  Revision 1.48  2003/01/03 21:03:02  peter
     * made mark_write dummy instead of abstract
 
   Revision 1.47  2003/01/03 12:15:56  daniel

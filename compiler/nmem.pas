@@ -62,6 +62,7 @@ interface
           constructor create(l : tnode);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure mark_write;override;
           procedure derefimpl;override;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
@@ -298,6 +299,12 @@ implementation
         ppufile.putderef(getprocvardef);
       end;
 
+    procedure Taddrnode.mark_write;
+    
+    begin
+      {@procvar:=nil is legal in Delphi mode.}
+      left.mark_write;
+    end;
 
     procedure taddrnode.derefimpl;
       begin
@@ -1043,7 +1050,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.42  2003-01-03 12:15:56  daniel
+  Revision 1.43  2003-01-04 15:54:03  daniel
+    * Fixed mark_write for @ operator
+      (can happen when compiling @procvar:=nil (Delphi mode construction))
+
+  Revision 1.42  2003/01/03 12:15:56  daniel
     * Removed ifdefs around notifications
       ifdefs around for loop optimizations remain
 
