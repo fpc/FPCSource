@@ -938,7 +938,7 @@ type
 
 
 implementation
-uses SysUtils, Classes;
+uses SysUtils {, Classes};
 
 
 // Macro emulation
