@@ -203,7 +203,7 @@ unit symtable;
           procedure clear;
           function  rename(const olds,news : stringid):psym;
           procedure foreach(proc2call : tnamedindexcallback);
-          function  insert(sym : psym):psym;
+          procedure insert(sym : psym);
           function  search(const s : stringid) : psym;
           function  speedsearch(const s : stringid;speedvalue : longint) : psym;
           procedure registerdef(p : pdef);
@@ -1818,7 +1818,7 @@ implementation
       end;
 
 
-    function tsymtable.insert(sym:psym):psym;
+    procedure tsymtable.insert(sym:psym);
       var
          hp : psymtable;
          hsym : psym;
@@ -1851,7 +1851,19 @@ implementation
          { check the current symtable }
          hsym:=search(sym^.name);
          if assigned(hsym) then
-           DuplicateSym(hsym);
+          begin
+            { in TP and Delphi you can have a local with the
+              same name as the function, the function is then hidden for
+              the user. (Under delphi it can still be accessed using result) (PFV) }
+            if (hsym^.typ=funcretsym) and
+               (m_tp in aktmodeswitches) then
+             hsym^.setname('hidden'+hsym^.name)
+            else
+             begin
+               DuplicateSym(hsym);
+               exit;
+             end;
+          end;
          { check for duplicate id in local and parasymtable symtable }
          if (symtabletype=localsymtable) then
            { to be on the save side: }
@@ -1859,18 +1871,19 @@ implementation
               if assigned(next) and
                 (next^.symtabletype=parasymtable) then
                 begin
-                   hsym:=next^.search(sym^.name);
-                   { a parameter and the function can have the same }
-                   { name in TP and Delphi                          }
-                   if assigned(hsym) then
-                     begin
-                       if (sym^.typ<>funcretsym) then
-                         DuplicateSym(hsym)
-                       else
-                         begin
-                           sym^.setname('hidden'+sym^.name);
-                         end;
-                     end;
+                  hsym:=next^.search(sym^.name);
+                  if assigned(hsym) then
+                   begin
+                     { a parameter and the function can have the same
+                       name in TP and Delphi }
+                     if (sym^.typ=funcretsym) then
+                      sym^.setname('hidden'+sym^.name)
+                     else
+                      begin
+                        DuplicateSym(hsym);
+                        exit;
+                      end;
+                   end;
                 end
               else if (current_module^.flags and uf_local_browser)=0 then
                 internalerror(43789);
@@ -1890,11 +1903,14 @@ implementation
                 (not(sp_private in hsym^.symoptions) or
                  (hsym^.owner^.defowner^.owner^.symtabletype<>unitsymtable)) then
                 begin
-                   { delphi allows to reuse the names of properties }
-                   { in procedures                                  }
-                   if not((hsym^.typ=propertysym) and
-                     (m_delphi in aktmodeswitches)) then
-                     DuplicateSym(hsym);
+                   { delphi allows to reuse the names in a class, but not
+                     in object (tp7 compatible) }
+                   if not((m_delphi in aktmodeswitches) and
+                          (pobjectdef(next^.next^.defowner)^.is_class)) then
+                    begin
+                      DuplicateSym(hsym);
+                      exit;
+                    end;
                 end;
            end;
          { check for duplicate id in para symtable of methods }
@@ -1918,7 +1934,10 @@ implementation
                    { in parameter lists of methods                  }
                    if not((hsym^.typ=propertysym) and
                      (m_delphi in aktmodeswitches)) then
-                     DuplicateSym(hsym);
+                    begin
+                      DuplicateSym(hsym);
+                      exit;
+                    end;
                 end;
            end;
          { check for duplicate field id in inherited classes }
@@ -1931,7 +1950,10 @@ implementation
               if assigned(hsym) and
                 (not(sp_private in hsym^.symoptions) or
                  (hsym^.owner^.defowner^.owner^.symtabletype<>unitsymtable)) then
-                DuplicateSym(hsym);
+               begin
+                 DuplicateSym(hsym);
+                 exit;
+               end;
            end;
          { register definition of typesym }
          if (sym^.typ = typesym) and
@@ -1952,7 +1974,6 @@ implementation
          { insert in index and search hash }
          symindex^.insert(sym);
          symsearch^.insert(sym);
-         insert:=sym;
       end;
 
 
@@ -2904,7 +2925,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.92  2000-05-23 14:15:44  pierre
+  Revision 1.93  2000-06-01 19:07:52  peter
+    * delphi/tp mode fixes for dup id checking (tbs319,tbf320)
+
+  Revision 1.92  2000/05/23 14:15:44  pierre
    * fix for bug 959
 
   Revision 1.91  2000/05/12 05:59:57  pierre
