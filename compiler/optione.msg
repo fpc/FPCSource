@@ -20,7 +20,7 @@ Copyright (c) 1993-98 by Florian Klaempfl
 ;
 ; Info
 ;
-Free Pascal Compiler version 0.99.0
+Free Pascal Compiler version 0.99.5
 <lf>
 This program comes under the GNU General Public Licence
 For more information read COPYING
