@@ -16,8 +16,6 @@
  **********************************************************************}
 unit cmem;
 
-{$mode objfpc}
-
 interface
 
 Const
@@ -44,24 +42,24 @@ type
 Function CGetMem  (Size : ptrint) : Pointer;
 
 begin
-  result:=Malloc(Size+sizeof(ptrint));
-  if (result <> nil) then
+  CGetMem:=Malloc(Size+sizeof(ptrint));
+  if (CGetMem <> nil) then
     begin
-      pptrint(result)^ := size;
-      inc(result,sizeof(ptrint));
+      pptrint(CGetMem)^ := size;
+      inc(CGetMem,sizeof(ptrint));
     end;
 end;
 
-Function CFreeMem ({$ifdef VER1_0}var{$endif} P : pointer) : ptrint;
+Function CFreeMem (P : pointer) : ptrint;
 
 begin
   if (p <> nil) then
     dec(p,sizeof(ptrint));
   Free(P);
-  Result:=0;
+  CFreeMem:=0;
 end;
 
-Function CFreeMemSize({$ifdef VER1_0}var{$endif} p:pointer;Size:ptrint):ptrint;
+Function CFreeMemSize(p:pointer;Size:ptrint):ptrint;
 
 begin
   if (p <> nil) then
@@ -69,17 +67,17 @@ begin
       if (size <> pptrint(p-sizeof(ptrint))^) then
         runerror(204);
     end;
-  Result:=CFreeMem(P);
+  CFreeMemSize:=CFreeMem(P);
 end;
 
 Function CAllocMem(Size : ptrint) : Pointer;
 
 begin
-  Result:=calloc(Size+sizeof(ptrint),1);
-  if (result <> nil) then
+  CAllocMem:=calloc(Size+sizeof(ptrint),1);
+  if (CAllocMem <> nil) then
     begin
-      pptrint(result)^ := size;
-      inc(result,sizeof(ptrint));
+      pptrint(CAllocMem)^ := size;
+      inc(CAllocMem,sizeof(ptrint));
     end;
 end;
 
@@ -92,7 +90,7 @@ begin
         begin
           free(p);
           p:=nil;
-	end;  
+        end;
     end
   else
     begin
@@ -103,56 +101,54 @@ begin
         begin
           dec(p,sizeof(ptrint));
           p:=realloc(p,size);
-	end;  
+        end;
       if (p <> nil) then
         begin
           pptrint(p)^ := size-sizeof(ptrint);
           inc(p,sizeof(ptrint));
         end;
-    end;		
-  Result:=p;
+    end;
+  CReAllocMem:=p;
 end;
 
 Function CMemSize (p:pointer): ptrint;
 
 begin
-  Result:=pptrint(p-sizeof(ptrint))^;
+  CMemSize:=pptrint(p-sizeof(ptrint))^;
 end;
 
 Function CMemAvail : ptrint;
 
 begin
-  Result:=0;
+  CMemAvail:=0;
 end;
 
 Function CMaxAvail: ptrint;
 
 begin
-  Result:=0;
+  CMaxAvail:=0;
 end;
 
 Function CHeapSize : ptrint;
 
 begin
-  Result:=0;
+  CHeapSize:=0;
 end;
 
 
 Const
  CMemoryManager : TMemoryManager =
     (
-{$ifndef VER1_0}
       NeedLock : false;
-{$endif VER1_0}
-      GetMem : {$ifdef fpc}@{$endif}CGetmem;
-      FreeMem : {$ifdef fpc}@{$endif}CFreeMem;
-      FreememSize : {$ifdef fpc}@{$endif}CFreememSize;
-      AllocMem : {$ifdef fpc}@{$endif}CAllocMem;
-      ReallocMem : {$ifdef fpc}@{$endif}CReAllocMem;
-      MemSize : {$ifdef fpc}@{$endif}CMemSize;
-      MemAvail : {$ifdef fpc}@{$endif fpc}CMemAvail;
-      MaxAvail : {$ifdef fpc}@{$endif}MaxAvail;
-      HeapSize : {$ifdef fpc}@{$endif}CHeapSize;
+      GetMem : @CGetmem;
+      FreeMem : @CFreeMem;
+      FreememSize : @CFreememSize;
+      AllocMem : @CAllocMem;
+      ReallocMem : @CReAllocMem;
+      MemSize : @CMemSize;
+      MemAvail : @CMemAvail;
+      MaxAvail : @MaxAvail;
+      HeapSize : @CHeapSize;
     );
 
 Var
@@ -168,7 +164,10 @@ end.
 
 {
  $Log$
- Revision 1.1  2004-03-15 21:48:26  peter
+ Revision 1.2  2004-03-16 15:25:16  peter
+   * adaption to compile with 1.0.x in new rtl
+
+ Revision 1.1  2004/03/15 21:48:26  peter
    * cmem moved to rtl
    * longint replaced with ptrint in heapmanagers
 
