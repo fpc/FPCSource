@@ -741,15 +741,16 @@ begin
         cmpl $0xffffffff, %eax
         jnz .LOPEN1
         movw %cx, InOutRes
-        movw UnusedHandle, %ax
+        movl UnusedHandle, %eax
 .LOPEN1:
         movl f,%edx         { Warning : This assumes Handle is first }
-        movw %ax,(%edx)     { field of FileRec                       }
+        movl %eax,(%edx)    { field of FileRec                       }
         popl %ebx
     end ['eax', 'ecx', 'edx'];
     if (InOutRes = 4) and Increase_File_Handle_Count then
 (* Trying again after increasing amount of file handles *)
         asm
+            pushl %ebx
             movl $0x7f2b, %eax
             movl Action, %ecx
             movl p, %edx
@@ -757,10 +758,11 @@ begin
             cmpl $0xffffffff, %eax
             jnz .LOPEN2
             movw %cx, InOutRes
-            movw UnusedHandle, %ax
+            movl UnusedHandle, %eax
 .LOPEN2:
             movl f,%edx
-            movw %ax,(%edx)
+            movl %eax,(%edx)
+            popl %ebx
         end ['eax', 'ecx', 'edx'];
       { for systems that have more handles }
     if FileRec (F).Handle > FileHandleCount then
@@ -1177,7 +1179,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.48  2003-10-18 16:58:39  hajny
+  Revision 1.49  2003-10-19 09:06:28  hajny
+    * fix for terrible long-time bug in do_open
+
+  Revision 1.48  2003/10/18 16:58:39  hajny
     * stdcall fixes again
 
   Revision 1.47  2003/10/16 15:43:13  peter
