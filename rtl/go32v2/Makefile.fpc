@@ -41,7 +41,10 @@ GRAPHDIR=$(INC)/graph
 # Define Go32v2 Units
 SYSTEMUNIT=system
 
-
+# Insert exception handler in system unit
+ifdef EXCEPTIONS_IN_SYSTEM
+override FPCOPT+=-dEXCEPTIONS_IN_SYSTEM
+endif
 [postsettings]
 SYSTEMPPU=$(addsuffix $(PPUEXT),$(SYSTEMUNIT))
 
@@ -164,5 +167,4 @@ lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMPPU)
 #
 
 msmouse$(PPUEXT) : msmouse.pp $(SYSTEMPPU)
-
 
