@@ -1704,6 +1704,8 @@ implementation
       begin
         inherited deref;
         basedef:=tenumdef(basedefderef.resolve);
+        { restart ordering }
+        firstenum:=nil;
       end;
 
 
@@ -6156,7 +6158,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.253  2004-08-27 21:59:26  peter
+  Revision 1.254  2004-09-14 16:33:17  peter
+    * restart sorting of enums when deref is called, this is needed when
+      a unit is reloaded
+
+  Revision 1.253  2004/08/27 21:59:26  peter
   browser disabled
   uf_local_symtable ppu flag when a localsymtable is stored
 
