@@ -7,15 +7,15 @@ dirs=unzip
 dirs_linux=uncgi fpasync \
            x11 opengl gtk syslog \
            forms svgalib ggi libpng libgd \
-           utmp cmem bfd zlib gdbm
+           utmp cmem bfd zlib gdbm ncurses
 dirs_netbsd=uncgi fpasync \
             x11 opengl gtk syslog \
             forms svgalib ggi libpng libgd \
-            utmp cmem bfd zlib gdbm
+            utmp cmem bfd zlib gdbm ncurses
 dirs_freebsd=uncgi fpasync \
              x11 opengl gtk syslog \
              forms svgalib ggi libpng libgd \
-             utmp cmem bfd zlib gdbm
+             utmp cmem bfd zlib gdbm ncurses
 dirs_win32=uncgi opengl gtk \
            zlib mmsystem
 dirs_os2=uncgi
