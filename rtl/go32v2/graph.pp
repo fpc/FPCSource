@@ -1774,10 +1774,13 @@ const CrtAddress: word = 0;
         out dx, al
         inc dx              { Point to DAC registers            }
         mov ax, [RedValue]  { Get RedValue                      }
+        shr ax, 2
         out dx, al
         mov ax, [GreenValue]{ Get RedValue                      }
+        shr ax, 2
         out dx, al
         mov ax, [BlueValue] { Get RedValue                      }
+        shr ax, 2
         out dx, al
       end
     End;
@@ -2583,7 +2586,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2000-05-09 04:23:11  jonas
+  Revision 1.10  2000-05-12 08:52:09  jonas
+    * fixed bug in setvgargbpalette (now you can again pass values in the
+      range 0..255 instead of 0..63)
+
+  Revision 1.9  2000/05/09 04:23:11  jonas
     * fixed bug in getscanline16 (affects floodfil and getimage under VGA
       640x480x16 (VGA/VGAHI)
 
