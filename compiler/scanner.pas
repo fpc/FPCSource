@@ -967,7 +967,7 @@ implementation
              end
            else
              hpath:=current_scanner.inputfile.path^;
-           found:=FindFile(name+ext,hpath+';.'+source_info.DirSep,foundfile);
+           found:=FindFile(name+ext, hpath+';'+CurDirRelPath(source_info),foundfile);
            if (not found) then
             found:=current_module.localincludesearchpath.FindFile(name+ext,foundfile);
            if (not found) then
@@ -3267,7 +3267,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.90  2004-09-29 06:52:43  mazen
+  Revision 1.91  2004-10-09 11:29:15  olle
+    * Exchanged hardcoded "./" to CurDirRelPath
+
+  Revision 1.90  2004/09/29 06:52:43  mazen
   * revert last change : removal of dos unit
 
   Revision 1.88  2004/09/12 20:46:58  olle
