@@ -5,7 +5,7 @@
 
                            VIOCALLS interface unit
                      Free Pascal Runtime Library for OS/2
-                   Copyright (c) 1999-2000 by Florian Kl„mpfl
+                   Copyright (c) 1999-2000 by Florian Klaempfl
                     Copyright (c) 1999-2000 by Daniel Mantione
                       Copyright (c) 1999-2000 by Tomas Hajny
 
@@ -50,6 +50,8 @@ Changelog:
     Date:           Description of change:              Changed by:
 
      -              First released version 0.50         TH
+    00/09/24        TVioCursorInfo definition extended,
+                    new names for VioScroll* added      TH
 
 Coding style:
 
@@ -357,17 +359,26 @@ type
     end;
     PQWord=^TQWord;
 
-{record type for VioSetCurType/VioGetCurType}
+{Record type for VioSetCurType/VioGetCurType; the second variant makes the use
+ of percentage-based (negative) and hidden cursor type (-1) specification
+ a bit easier}
     TVioCursorInfo=record
-        yStart:word;    {Cursor start scan line (0-based)}
-        cEnd:word;      {Cursor end scan line}
+        case boolean of
+        false:(
+        yStart:word;    {Cursor start (top) scan line (0-based)}
+        cEnd:word;      {Cursor end (bottom) scan line}
         cx:word;        {Cursor width (0=default width)}
-        Attr:word;      {Cursor colour attribute (-1=hidden)}
+        Attr:word);     {Cursor colour attribute (-1=hidden)}
+        true:(
+        yStartInt: integer;
+        cEndInt:integer;
+        cxInt:integer;
+        AttrInt:integer);
     end;
     PVioCursorInfo=^TVioCursorInfo;
     VioCursorInfo=TVioCursorInfo;
 
-{record type for VioSetMode/GetMode}
+{Record type for VioSetMode/GetMode}
     TVioModeInfo=record
         cb:word;                    {Size of the record}
         case boolean of
@@ -656,13 +667,22 @@ function VioWrtCharStr(CharStr:pointer;Len,Row,Column,VioHandle:word):word;
 function VioScrollDn(TopRow,LeftCol,BotRow,RightCol,Lines:word;var Cell:word;
                                                    VioHandle:word):word; cdecl;
 
+function VioScrollDown(TopRow,LeftCol,BotRow,RightCol,Lines:word;var Cell:word;
+                                                   VioHandle:word):word; cdecl;
+
 function VioScrollUp(TopRow,LeftCol,BotRow,RightCol,Lines:word;var Cell:word;
                                                    VioHandle:word):word; cdecl;
 
 function VioScrollLf(TopRow,LeftCol,BotRow,RightCol,Col:word;var Cell:word;
                                                    VioHandle:word):word; cdecl;
 
+function VioScrollLeft(TopRow,LeftCol,BotRow,RightCol,Col:word;var Cell:word;
+                                                   VioHandle:word):word; cdecl;
+
 function VioScrollRt(TopRow,LeftCol,BotRow,RightCol,Col:word;var Cell:word;
+                                                   VioHandle:word):word; cdecl;
+
+function VioScrollRight(TopRow,LeftCol,BotRow,RightCol,Col:word;var Cell:word;
                                                    VioHandle:word):word; cdecl;
 
 function VioWrtNAttr(var Attr:byte;Times,Row,Column,VioHandle:word):word;
@@ -889,6 +909,11 @@ function VioScrollDn(TopRow,LeftCol,BotRow,RightCol,Lines:word;var Cell:word;
 external 'EMXWRAP' index 147;
 {external 'VIOCALLS' index 47;}
 
+function VioScrollDown(TopRow,LeftCol,BotRow,RightCol,Lines:word;var Cell:word;
+                                                   VioHandle:word):word; cdecl;
+external 'EMXWRAP' index 147;
+{external 'VIOCALLS' index 47;}
+
 function VioScrollUp(TopRow,LeftCol,BotRow,RightCol,Lines:word;var Cell:word;
                                                    VioHandle:word):word; cdecl;
 external 'EMXWRAP' index 107;
@@ -899,7 +924,17 @@ function VioScrollLf(TopRow,LeftCol,BotRow,RightCol,Col:word;var Cell:word;
 external 'EMXWRAP' index 144;
 {external 'VIOCALLS' index 44;}
 
+function VioScrollLeft(TopRow,LeftCol,BotRow,RightCol,Col:word;var Cell:word;
+                                                   VioHandle:word):word; cdecl;
+external 'EMXWRAP' index 144;
+{external 'VIOCALLS' index 44;}
+
 function VioScrollRt(TopRow,LeftCol,BotRow,RightCol,Col:word;var Cell:word;
+                                                   VioHandle:word):word; cdecl;
+external 'EMXWRAP' index 112;
+{external 'VIOCALLS' index 12;}
+
+function VioScrollRight(TopRow,LeftCol,BotRow,RightCol,Col:word;var Cell:word;
                                                    VioHandle:word):word; cdecl;
 external 'EMXWRAP' index 112;
 {external 'VIOCALLS' index 12;}
@@ -1115,7 +1150,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:31:07  michael
+  Revision 1.2  2000-09-24 21:21:28  hajny
+    * TVioCursorInfo enhanced, VioScroll* updated
+
+  Revision 1.1  2000/07/13 06:31:07  michael
   + Initial import
 
   Revision 1.7  2000/01/09 21:01:59  hajny
