@@ -1019,7 +1019,7 @@ implementation
                      end
                     else
                      emit_push_loc(hp.left.location);
-                    inc(pushedparasize);
+                    inc(pushedparasize,4);
                   end
                  else
                   begin
@@ -1088,7 +1088,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2001-08-26 13:36:59  florian
+  Revision 1.20  2001-08-30 11:57:20  michael
+  + Patch for wrong paramsize
+
+  Revision 1.19  2001/08/26 13:36:59  florian
     * some cg reorganisation
     * some PPC updates
 
