@@ -54,6 +54,43 @@ var
   argv : ppchar;
   envp : ppchar;
 
+{*********************************}
+{**  MacOS specific functions    **}
+{*********************************}
+
+
+{*********************************}
+{**  Available features on macos **}
+{*********************************}
+
+
+  var
+    macosHasGestalt: Boolean;
+    macosHasWaitNextEvent: Boolean;
+    macosHasColorQD: Boolean;
+    macosHasFPU: Boolean;
+    macosSystemVersion: Integer;
+    macosHasSysDebugger: Boolean = false;
+    macosHasCFM: Boolean;
+
+    macosHasAppleEvents: Boolean;
+    macosHasAliasMgr: Boolean;
+
+
+    macosHasFSSpec: Boolean;
+    macosHasFindFolder: Boolean;
+    
+
+    macosHasScriptMgr: Boolean;
+    macosNrOfScriptsInstalled: Integer;
+    
+    macosHasAppearance: Boolean;
+    macosHasAppearance101: Boolean;
+    macosHasAppearance11: Boolean;
+    
+    macosBootVolumeVRefNum: Integer;
+    macosBootVolumeName: String[31];
+    
 {
  MacOS paths
  ===========
@@ -81,7 +118,8 @@ A MacOS application is assembled and linked by MPW (Macintosh
 Programmers Workshop), which nowadays is free to use. For info
 and download of MPW and MacOS api, see www.apple.com
 
-It can be linked to either a standalone application (using SIOW) or
+It can be linked to either a graphical user interface application,
+a standalone text only application (using SIOW) or
 to an MPW tool, this is entirely controlled by the linking step.
 
 It requires system 7 and CFM, which is always the case for PowerPC.
@@ -91,16 +129,18 @@ of efforts if it also uses CFM. This System.pp should, with
 minor modifications, probably work with m68k.
 
 Initial working directory is the directory of the application,
-or for an MPWTool, the MPW directory.
+or for an MPWTool, the working directory as set by the
+Directory command in MPW.
 
 Note about working directory. There is a facility in MacOS which
 manages a working directory for an application, initially set to
-the applictaions directory, or for an MPWTool, the tool's directory.
+the applications directory, or for an MPWTool, the tool's directory.
 However, this requires the application to have a unique application
 signature (creator code), to distinguish its working directory
 from working directories of other applications. Due to the fact
 that casual applications are anonymous in this sense (without an
-application signature), this facility will not work. Hence we
+application signature), this facility will not work. Also, this
+working directory facility is not present in Carbon. Hence we
 will manage a working directory by our self.
 
 
@@ -114,7 +154,7 @@ Then the path to the wd suddenly changes. This is AFAIK not in
 accordance with other OS's. Although this is a minor caveat,
 it is mentioned here. To overcome this the wd could be stored
 as a path instead, but this imposes translations from fullpath
-to directory id each time the filesystem is accessed.
+to directory ID each time the filesystem is accessed.
 
 The initial working directory for an MPWTool, as considered by
 FPC, is different from the MacOS working directory facility,
@@ -123,14 +163,9 @@ see above.
 
 Possible improvements:
 =====================
-TODO: Add check so that working directory cannot be removed. Alt ensure
-the nothing crashes if wd is removed.
 
-TODO: rmdir and erase does not differentiate between files and directories
-thus removing both of them.
+Perhaps handle readonly filesystems, as in sysunix.inc
 
-TODO: Check of the MacOS version (and prescence of CFM) to
-ensure it is a supported version. only needed for m68k.
 }
 
 {This implementation uses StdCLib, which is included in the MPW.}
@@ -283,11 +318,19 @@ Sys_ERANGE      = 34;   { Math result not representable }
 {$endif}
 
 
-{******************************************************}
+{*********************** Macutils *********************}
+
+{And also include the same utilities as in the macutils.pp unit.}
 
 var
-  {working directory}
-  curDirectorySpec: FSSpec;
+  {emulated working directory}
+  workingDirectorySpec: FSSpec; cvar;
+  {Also declared in macutils.pp as external. Declared here to be available
+   to macutils.inc and below in this file.}
+
+{$I macutils.inc}
+
+{******************************************************}
 
 function GetAppFileLocation (var spec: FSSpec): Boolean;
 {Requires >= System 7}
@@ -314,77 +357,6 @@ begin
     else
       GetAppFileLocation := false;
   end
-end;
-
-{Gives the path for a given file or directory. If parent is true, 
- a path to the directory, where the file or directory is located,
- is returned. Functioning even with System 6}
-function FSpGetFullPath (spec: FSSpec; var fullPathHandle: Mac_Handle;
-  parent: Boolean): OSErr;
-
-  var
-    res: OSErr;
-    pb: CInfoPBRec;
-
-begin
-  fullPathHandle:= NewHandle(0); { Allocate a zero-length handle }
-  if fullPathHandle = nil then
-    begin
-      FSpGetFullPath:= MemError;
-      Exit;
-    end;
-
-  if spec.parID = fsRtParID then { The object is a volume }
-    begin
-      if not parent then
-        begin
-          { Add a colon to make it a full pathname }
-          spec.name := Concat(spec.name, ':');
-
-          { We're done }
-          Munger(fullPathHandle, 0, nil, 0, @spec.name[1], Length(spec.name));
-          res := MemError;
-        end
-      else
-        res := noErr;
-    end
-  else
-    begin
-      { The object isn't a volume }
-
-      { Add the object name }
-      if not parent then
-        Munger(fullPathHandle, 0, nil, 0, @spec.name[1], Length(spec.name));
-
-      { Get the ancestor directory names }
-      pb.ioNamePtr := @spec.name;
-      pb.ioVRefNum := spec.vRefNum;
-      pb.ioDrParID := spec.parID;
-      repeat { loop until we have an error or find the root directory }
-        begin
-          pb.ioFDirIndex := -1;
-          pb.ioDrDirID := pb.ioDrParID;
-          res := PBGetCatInfoSync(@pb);
-          if res = noErr then
-            begin
-              { Append colon to directory name }
-              spec.name := Concat(spec.name, ':');
-
-              { Add directory name to fullPathHandle }
-              Munger(fullPathHandle, 0, nil, 0, @spec.name[1], Length(spec.name));
-              res := MemError;
-            end
-        end
-      until not ((res = noErr) and (pb.ioDrDirID <> fsRtDirID));
-    end;
-
-  if res <> noErr then
-    begin
-      DisposeHandle(fullPathHandle);
-      fullPathHandle:= nil;
-    end;
-
-  FSpGetFullPath := res;
 end;
 
 Procedure Errno2InOutRes;
@@ -424,147 +396,9 @@ begin
   errno:=0;
 end;
 
-Function MacOSErr2RTEerr(err: OSErr): Integer;
-{ Converts MacOS specific error codes to the correct FPC error code.
-  All non zero MacOS errors shall correspond to a nonzero FPC error.}
-var
-  res: Integer;
-begin
-  if err = noErr then { Else it will go through all the cases }
-    res:= 0
-  else case err of
-    dirFulErr, { Directory full }
-    dskFulErr  { disk full }
-      :res:=101;
-    nsvErr     { no such volume }
-      :res:=3;
-    ioErr,     { I/O error (bummers) }
-    bdNamErr   { there may be no bad names in the final system! }
-      :res:=1; //TODO Exchange to something better
-    fnOpnErr   { File not open }
-      :res:=103;
-    eofErr,    { End of file }
-    posErr     { tried to position to before start of file (r/w) }
-      :res:=100;
-    mFulErr    { memory full (open) or file won't fit (load) }
-      :res:=1; //TODO Exchange to something better
-    tmfoErr    { too many files open}
-      :res:=4;
-    fnfErr     { File not found }
-      :res:=2;
-    wPrErr     { diskette is write protected. }
-      :res:=150;
-    fLckdErr   { file is locked }
-      :res:=5;
-    vLckdErr   { volume is locked }
-      :res:=150;
-    fBsyErr    { File is busy (delete) }
-      :res:=5;
-    dupFNErr   { duplicate filename (rename) }
-      :res:=5;
-    opWrErr    { file already open with with write permission }
-      :res:=5;
-    rfNumErr,  { refnum error }
-    gfpErr     { get file position error }
-      :res:=1; //TODO Exchange to something better
-    volOffLinErr   { volume not on line error (was Ejected) }
-      :res:=152;
-    permErr    { permissions error (on file open) }
-      :res:=5;
-    volOnLinErr{ drive volume already on-line at MountVol }
-      :res:=1; //TODO Exchange to something other      
-    nsDrvErr       { no such drive (tried to mount a bad drive num) }
-      :res:=1; //TODO Perhaps exchange to something better
-    noMacDskErr,   { not a mac diskette (sig bytes are wrong) }
-    extFSErr       { volume in question belongs to an external fs }
-      :res:=157; //TODO Perhaps exchange to something better
-    fsRnErr,   { file system internal error:during rename the old 
-                 entry was deleted but could not be restored. }
-    badMDBErr  { bad master directory block }
-      :res:=1; //TODO Exchange to something better
-    wrPermErr  { write permissions error }
-      :res:=5;
-    dirNFErr   { Directory not found }
-      :res:=3;
-    tmwdoErr   { No free WDCB available }
-      :res:=1; //TODO Exchange to something better
-    badMovErr  { Move into offspring error }
-      :res:=5;
-    wrgVolTypErr   { Wrong volume type error [operation not 
-                     supported for MFS] }
-      :res:=1; //TODO Exchange to something better
-    volGoneErr { Server volume has been disconnected. }
-      :res:=152;
-
-    diffVolErr         { files on different volumes }
-      :res:=17;
-    catChangedErr      { the catalog has been modified }
-                       { OR comment: when searching with PBCatSearch }
-      :res:=1; //TODO Exchange to something other      
-    afpAccessDenied,   {  Insufficient access privileges for operation  }
-    afpDenyConflict    {  Specified open/deny modes conflict with current open modes  }
-      :res:=5;
-    afpNoMoreLocks     {  Maximum lock limit reached  }
-      :res:=5;
-    afpRangeNotLocked, {  Tried to unlock range that was not locked by user  }
-    afpRangeOverlap    {  Some or all of range already locked by same user  }
-      :res:=1; //TODO Exchange to something better
-    afpObjectTypeErr   {  File/Directory specified where Directory/File expected  }
-      :res:=3;
-    afpCatalogChanged  { OR comment: when searching with PBCatSearch }
-      :res:=1; //TODO Exchange to something other      
-    afpSameObjectErr  
-      :res:=5; //TODO Exchange to something better
-
-    memFullErr { Not enough room in heap zone }
-      :res:=203;
-  else
-    res := 1; //TODO Exchange to something better
-  end;
-  MacOSErr2RTEerr:= res;
-end;
-
 Procedure OSErr2InOutRes(err: OSErr);
 begin
   InOutRes:= MacOSErr2RTEerr(err);
-end;
-
-function PathArgToFSSpec(s: string; var spec: FSSpec): Integer;
-var
-  err: OSErr;
-begin 
-  err:= FSMakeFSSpec(curDirectorySpec.vRefNum,
-      curDirectorySpec.parID, s, spec);
-
-  if err in [ noErr, fnfErr] then
-    PathArgToFSSpec:= 0
-  else
-    PathArgToFSSpec:= MacOSErr2RTEerr(err);  
-end;
-
-function PathArgToFullPath(s: string; var fullpath: AnsiString): Boolean;
-var
-  err: OSErr;
-  res: Integer;
-  spec: FSSpec;
-  pathHandle: Mac_Handle;
-begin
-  PathArgToFullPath:= false;
-  res:= PathArgToFSSpec(s, spec);
-  if res = 0  then
-    begin
-      err:= FSpGetFullPath(spec, pathHandle, false);
-      if err = noErr then
-        begin 
-          SetString(fullpath, pathHandle^, GetHandleSize(pathHandle));
-          DisposeHandle(pathHandle);
-          PathArgToFullPath:= true;
-        end
-      else
-        OSErr2InOutRes(err);
-    end
-  else
-    InOutRes:=res;
 end;
 
 function FSpLocationFromFullPath(fullPathLength: Integer;
@@ -636,25 +470,22 @@ begin
   getheapsize:= intern_heapsize ;
 end;
 
-{ function to allocate size bytes more for the program }
-{ must return the first address of new data space or nil if failed }
-function Sbrk(logicalSize: Longint): Mac_Ptr ;
-external 'InterfaceLib' name 'NewPtr'; {Directly mapped to NewPtr}
-
 {*****************************************************************************
       OS Memory allocation / deallocation 
  ****************************************************************************}
 
+{ function to allocate size bytes more for the program }
+{ must return the first address of new data space or nil if failed }
 function SysOSAlloc(size: ptrint): pointer;
 begin
-  result := sbrk(size);
+  result := NewPtr(size);
 end;
 
 {$define HAS_SYSOSFREE}
 
 procedure SysOSFree(p: pointer; size: ptrint);
 begin
-  fpmunmap(p, size);
+  DisposePtr(p);
 end;
 
 
@@ -687,18 +518,27 @@ begin
 end;
 
 procedure do_erase(p : pchar);
-{this implementation cannot distinguish between directories and files}
+
 var
-  s: AnsiString;
+  spec: FSSpec;
+  err: OSErr;
+  res: Integer;
+	
 begin
-  {$ifdef MACOS_USE_STDCLIB}
-  if not PathArgToFullPath(p, s) then
-    exit;
-  remove(PChar(s));
-  Errno2InoutRes;
-  {$else}
-  InOutRes:=1;
-  {$endif}
+  res:= PathArgToFSSpec(p, spec);
+
+  if (res = 0) then
+    begin
+      if not IsDirectory(spec) then
+			  begin
+          err:= FSpDelete(spec);
+          OSErr2InOutRes(err);
+			  end
+			else
+			  InOutRes:= 2;
+    end
+  else
+    InOutRes:=res;
 end;
 
 procedure do_rename(p1,p2 : pchar);
@@ -706,9 +546,11 @@ var
   s1,s2: AnsiString;
 begin
   {$ifdef MACOS_USE_STDCLIB}
-  if not PathArgToFullPath(p1, s1) then
+  InOutRes:= PathArgToFullPath(p1, s1);
+  if InOutRes <> 0 then
     exit;
-  if not PathArgToFullPath(p2, s2) then
+  InOutRes:= PathArgToFullPath(p2, s2);
+  if InOutRes <> 0 then
     exit;
   c_rename(PChar(s1),PChar(s2));
   Errno2InoutRes;
@@ -739,11 +581,6 @@ begin
   {$ifdef MACOS_USE_STDCLIB}
   len:= c_read(h, addr, len);
   Errno2InoutRes;
-
-  // TEMP BUGFIX Exchange CR to LF.
-  for i:= 0 to len-1 do
-    if SignedBytePtr(addr + i)^ = 13 then
-      SignedBytePtr(addr + i)^ := 10;
 
   do_read:= len;
 
@@ -788,12 +625,13 @@ end;
 function do_seekend(handle:longint):longint;
 begin
   {$ifdef MACOS_USE_STDCLIB}
-  lseek(handle, 0, SEEK_END);
+  do_seekend:= lseek(handle, 0, SEEK_END);
   Errno2InoutRes;
   {$else}
   InOutRes:=1;
   if SetFPos(handle, fsFromLEOF, 0) = noErr then
     InOutRes:=0;
+  {TODO Resulting file position is to be returned.}
   {$endif}
 end;
 
@@ -919,16 +757,20 @@ begin
    end
   else
     begin
-      if not PathArgToFullPath(p, s) then
+      InOutRes:= PathArgToFullPath(p, s);
+      if InOutRes <> 0 then
         exit;
       p:= PChar(s);
     end;
 
-  //TODO Perhaps handle readonly filesystems, as in sysunix.inc
 
   fh:= c_open(p, oflags);
+	if (fh = -1) and (errno = Sys_EROFS) and ((oflags and O_RDWR)<>0) then
+    begin
+      oflags:=oflags and not(O_RDWR);
+      fh:= c_open(p, oflags);
+    end;
   Errno2InOutRes;
-
   if fh <> -1 then
     filerec(f).handle:= fh
   else
@@ -1001,7 +843,7 @@ begin
     exit;
 
   res:= PathArgToFSSpec(s, spec); 
-  if res = 0 then
+  if (res = 0) or (res = 2) then
     begin
       err:= FSpDirCreate(spec, smSystemScript, createdDirID);
       OSErr2InOutRes(err);
@@ -1011,20 +853,27 @@ begin
 end;
 
 procedure rmdir(const s:string);[IOCheck];
-{this implementation cannot distinguish between directories and files}
+
 var
   spec: FSSpec;
   err: OSErr;
   res: Integer;
+	
 begin
   If (s='') or (InOutRes <> 0) then
     exit;
 
-  res:= PathArgToFSSpec(s, spec); 
-  if res = 0 then
+  res:= PathArgToFSSpec(s, spec);
+
+  if (res = 0) then
     begin
-      err:= FSpDelete(spec);
-      OSErr2InOutRes(err);
+      if IsDirectory(spec) then
+			  begin
+          err:= FSpDelete(spec);
+          OSErr2InOutRes(err);
+			  end
+			else
+			  InOutRes:= 20;
     end
   else
     InOutRes:=res;
@@ -1040,17 +889,17 @@ begin
     exit;
 
   res:= PathArgToFSSpec(s, spec); 
-  if res = 0 then
+  if (res = 0) or (res = 2) then
     begin
       { The fictive file x is appended to the directory name to make 
         FSMakeFSSpec return a FSSpec to a file in the directory.
         Then by clearing the name, the FSSpec then
         points to the directory. It doesn't matter whether x exists or not.}
       err:= FSMakeFSSpec (spec.vRefNum, spec.parID, ':'+spec.name+':x', newDirSpec);
-      if err in [ noErr, fnfErr] then
+      if (err = noErr) or (err = fnfErr) then
         begin
-          curDirectorySpec:= newDirSpec;
-          curDirectorySpec.name:='';
+          workingDirectorySpec:= newDirSpec;
+          workingDirectorySpec.name:='';
           InOutRes:= 0;
         end
       else
@@ -1064,11 +913,13 @@ begin
 end;
 
 procedure getDir (DriveNr: byte; var Dir: ShortString);
+
 var
   pathHandle: Mac_Handle;
   pathHandleSize: Longint;
+
 begin
-  if FSpGetFullPath(curDirectorySpec, pathHandle, false) <> noErr then
+  if FSpGetFullPath(workingDirectorySpec, pathHandle, false) <> noErr then
     Halt(3);  {exit code 3 according to MPW}
 
   pathHandleSize:= GetHandleSize(pathHandle);
@@ -1107,13 +958,215 @@ procedure setup_arguments;
 procedure setup_environment;
          begin
          end;
+         
+     
+{ FindSysFolder returns the (real) vRefNum, and the DirID of the current
+system folder. It uses the Folder Manager if present, otherwise it falls
+back to SysEnvirons. It returns zero on success, otherwise a standard
+system error. }
+
+function FindSysFolder(var foundVRefNum: Integer; var foundDirID: Longint): OSErr;
+
+var
+  gesResponse: Longint;
+  envRec: SysEnvRec;
+  myWDPB: WDPBRec;
+  volName: String[34];
+  err: OSErr;
+
+begin
+  foundVRefNum := 0;
+  foundDirID := 0;
+  if  macosHasGestalt
+      and (Gestalt (FourCharCodeToLongword(gestaltFindFolderAttr), gesResponse) = noErr)
+      and BitIsSet (gesResponse, gestaltFindFolderPresent) then
+    begin { Does Folder Manager exist? }
+       err := FindFolder (kOnSystemDisk, FourCharCodeToLongword(kSystemFolderType),
+        kDontCreateFolder, foundVRefNum, foundDirID);
+    end
+  else
+    begin
+      { Gestalt can't give us the answer, so we resort to SysEnvirons }
+      err := SysEnvirons (curSysEnvVers, envRec);
+      if (err = noErr) then
+        begin
+          myWDPB.ioVRefNum := envRec.sysVRefNum;
+          volName := '';
+          myWDPB.ioNamePtr := @volName;
+          myWDPB.ioWDIndex := 0;
+          myWDPB.ioWDProcID := 0;
+          err := PBGetWDInfoSync (@myWDPB);
+          if (err = noErr) then
+            begin
+              foundVRefNum := myWDPB.ioWDVRefNum;
+              foundDirID := myWDPB.ioWDDirID;
+            end;
+          end;
+        end;
+  FindSysFolder:= err;
+end;
+
+procedure InvestigateSystem;
+
+  {$IFDEF CPUM68K}
+  const
+    _GestaltDispatch = $A0AD;
+    _WaitNextEvent = $A860;
+    _ScriptUtil = $A8B5;
+
+    qdOffscreenTrap = $AB1D;
+  {$ENDIF}
+
+  var
+    err: Integer;
+    response: Longint;
+    {$IFDEF CPUM68K}
+    environs: SysEnvRec;
+    {$ENDIF}
+
+  {Vi räknar med att man kör på minst system 6.0.5.  Då finns både Gestalt och GDevice med.}
+  {Enligt Change Histrory är MacOS 6.0.5 mera konsistent mellan maskinmodellerna än föregående system}
+
+begin
+  {$IFDEF CPUM68K}
+  macosHasGestalt := TrapAvailable(_GestaltDispatch);
+  {$ELSE}
+  macosHasGestalt := true;  {There is always Gestalt on PowerPC}
+  {$ENDIF}
+
+  if not macosHasGestalt then    (* If we don't have Gestalt, then we can't have any System 7 features  *)
+    begin
+      {$IFDEF CPUM68K}
+      {      Detta kan endast gälla på en 68K maskin.}
+      macosHasScriptMgr := TrapAvailable(_ScriptUtil);
+
+      macosNrOfScriptsInstalled := 1; (* assume only Roman script, to start with  *)
+
+      err := SysEnvirons(1, environs);
+      if err = noErr then
+        begin
+          if environs.machineType < 0 then       { gammalt ROM}
+            macosHasWaitNextEvent := FALSE
+          else
+            macosHasWaitNextEvent := TrapAvailable(_WaitNextEvent);
+          macosHasColorQD := environs.hasColorQD;
+          macosHasFPU := environs.hasFPU;
+          macosSystemVersion := environs.systemVersion;
+        end
+      else
+        begin
+          macosHasWaitNextEvent := FALSE;
+          macosHasColorQD := FALSE;
+          macosHasFPU := FALSE;
+          macosSystemVersion := 0;
+        end;
+
+      macosHasSysDebugger := (LongintPtr(MacJmp)^ <> 0);
+
+      macosHasCFM := false;
+      macosHasAppleEvents := false;
+      macosHasAliasMgr := false;
+      
+      macosHasFSSpec := false;
+      macosHasFindFolder := false;
+      
+      macosHasAppearance := false;
+      macosHasAppearance101 := false;
+      macosHasAppearance11 := false;
+      {$IFDEF THINK_PASCAL}
+      if (macosHasScriptMgr) then
+        macosNrOfScriptsInstalled := GetEnvirons(smEnabled);
+      {$ELSE}
+      if (macosHasScriptMgr) then
+        macosNrOfScriptsInstalled := GetScriptManagerVariable(smEnabled);  {Gamla rutinnamnet var GetEnvirons.}
+      {$ENDIF}
+      {$ENDIF}
+    end
+  else
+    begin
+      macosHasScriptMgr := Gestalt(FourCharCodeToLongword(gestaltScriptMgrVersion), response) = noErr;  {För att ta reda på om script mgr finns.}
+      macosNrOfScriptsInstalled := 1; (* assume only Roman script, to start with  *)
+      macosHasWaitNextEvent := true;
+
+      if Gestalt(FourCharCodeToLongword(gestaltSystemVersion), response) = noErr then
+        macosSystemVersion := response
+      else
+        macosSystemVersion := 0;  {Borde inte kunna hända.}
+
+      if Gestalt(FourCharCodeToLongword(gestaltOSAttr), response) = noErr then
+        macosHasSysDebugger := BitIsSet(response, gestaltSysDebuggerSupport)
+      else
+        macosHasSysDebugger := false;
+      
+      if Gestalt(FourCharCodeToLongword(gestaltQuickdrawVersion), response) = noErr then
+        macosHasColorQD := (response >= $0100)
+      else
+        macosHasColorQD := false;
+
+      if Gestalt(FourCharCodeToLongword(gestaltFPUType), response) = noErr then
+        macosHasFPU := (response <> gestaltNoFPU)
+      else
+        macosHasFPU := false;
+
+      if Gestalt(FourCharCodeToLongword(gestaltCFMAttr), response) = noErr then
+        macosHasCFM := BitIsSet(response, gestaltCFMPresent)
+      else
+        macosHasCFM := false;
+      
+      macosHasAppleEvents := Gestalt(FourCharCodeToLongword(gestaltAppleEventsAttr), response) = noErr;
+      macosHasAliasMgr := Gestalt(FourCharCodeToLongword(gestaltAliasMgrAttr), response) = noErr;
+    
+      if Gestalt(FourCharCodeToLongword(gestaltFSAttr), response) = noErr then
+        macosHasFSSpec := BitIsSet(response, gestaltHasFSSpecCalls)
+      else
+        macosHasFSSpec := false;
+      macosHasFindFolder := Gestalt(FourCharCodeToLongword(gestaltFindFolderAttr), response) = noErr;
+      
+      if macosHasScriptMgr then
+        begin
+          err := Gestalt(FourCharCodeToLongword(gestaltScriptCount), response);
+          if (err = noErr) then
+            macosNrOfScriptsInstalled := Integer(response);
+        end;
+
+      if (Gestalt(FourCharCodeToLongword(gestaltAppearanceAttr), response) = noErr) then
+        begin
+          macosHasAppearance := BitIsSet(response, gestaltAppearanceExists);
+          if Gestalt(FourCharCodeToLongword(gestaltAppearanceVersion), response) = noErr then
+            begin
+              macosHasAppearance101 := (response >= $101);
+              macosHasAppearance11 := (response >= $110);
+            end
+        end
+      else
+        begin
+          macosHasAppearance := false;
+          macosHasAppearance101 := false;
+          macosHasAppearance11 := false;
+        end;
+    end;
+end;
 
 {*****************************************************************************
                          System Dependent Exit code
 *****************************************************************************}
 
 Procedure system_exit;
+var
+  s: ShortString;
 begin
+  if StandAlone <> 0 then
+    if exitcode <> 0 then
+        begin
+          Str(exitcode,s);
+          if IsConsole then
+            Writeln( '### Program exited with exit code ' + s)
+          else if macosHasSysDebugger then
+            DebugStr('A possible error occured, exit code: ' + s + '. Type "g" and return to continue.')
+          else
+            {Be quiet}
+        end;
+      
   {$ifndef MACOS_USE_STDCLIB}
   if StandAlone <> 0 then
     ExitToShell;
@@ -1134,17 +1187,35 @@ begin
 end;
 
 var
-  pathHandle: Mac_Handle;
-
+  resHdl: Mac_Handle;
+  isFolder, hadAlias, leafIsAlias: Boolean;
+  dirStr: string[2];
+  err: OSErr;
+  dummySysFolderDirID: Longint;
+  
 begin
-  if false then //To save it from the dead code stripper
-    begin
-      //Included only to make them available for debugging in asm.
-      Debugger;
-      DebugStr('');
-    end;
+  InvestigateSystem; {Must be first}
+	
+	{Check requred features for system.pp to work.}
+	if not macosHasFSSpec then
+	  Halt(3);  //exit code 3 according to MPW
+
+  if FindSysFolder(macosBootVolumeVRefNum, dummySysFolderDirID) <> noErr then
+    Halt(3);  //exit code 3 according to MPW
+
+  if GetVolumeName(macosBootVolumeVRefNum, macosBootVolumeName) <> noErr then
+    Halt(3);  //exit code 3 according to MPW
+
   { To be set if this is a GUI or console application }
-  IsConsole := TRUE;
+  if StandAlone = 0 then
+    IsConsole := true {Its an MPW tool}
+  else
+    begin
+      resHdl:= Get1Resource(FourCharCodeToLongword('siow'),0);
+      IsConsole := (resHdl <> nil); {A SIOW app is also a console}
+      ReleaseResource(resHdl);
+    end;
+    
   { To be set if this is a library and not a program  }
   IsLibrary := FALSE;
 
@@ -1152,14 +1223,30 @@ begin
   StackBottom := SPtr - StackLength;
 
   { Setup working directory }
-  if not GetAppFileLocation(curDirectorySpec) then
-    Halt(3);  //exit code 3 according to MPW
-
+  if StandAlone <> 0 then
+    begin
+      if not GetAppFileLocation(workingDirectorySpec) then
+        Halt(3);  //exit code 3 according to MPW
+    end
+  else
+    begin
+      { The fictive file x is used to make 
+        FSMakeFSSpec return a FSSpec to a file in the directory.
+        Then by clearing the name, the FSSpec then
+        points to the directory. It doesn't matter whether x exists or not.}
+      dirStr:= ':x';
+      err:= ResolveFolderAliases(0, 0, @dirStr, true, 
+           workingDirectorySpec, isFolder, hadAlias, leafIsAlias);
+      if (err <> noErr) and (err <> fnfErr) then
+        Halt(3);  //exit code 3 according to MPW
+    end;
+  
   { Setup heap }
-  MaxApplZone;
+  if StandAlone <> 0 then
+    MaxApplZone;
   if Mac_FreeMem - intern_heapsize < 30000 then
     Halt(3);  //exit code 3 according to MPW
-  theHeap:= Sbrk(intern_heapsize);
+  theHeap:= SysOSAlloc(intern_heapsize);
   if theHeap = nil then
     Halt(3);  //exit code 3 according to MPW
 
@@ -1184,7 +1271,14 @@ end.
 
 {
   $Log$
-  Revision 1.16  2004-06-17 16:16:13  peter
+  Revision 1.17  2004-06-21 19:23:34  olle
+    + Variables describing misc OS features added
+    + Detection of GUI app
+    * Working directory for APPTYPE TOOL correct now
+    + Exit code <> 0 written to, console for console apps, to system debugger (if installed) for GUI apps.
+    * Misc fixes
+
+  Revision 1.16  2004/06/17 16:16:13  peter
     * New heapmanager that releases memory back to the OS, donated
       by Micha Nelissen
 
