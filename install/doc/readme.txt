@@ -1,7 +1,7 @@
 
                             Free Pascal Compiler
 
-                               Version 1.00
+                               Version 1.02
 
 
 ****************************************************************************
@@ -18,6 +18,7 @@ Free Pascal is currently available for the following platforms:
 - Linux (i386), both aout and elf
 - OS/2 & DOS, via the EMX extender
 - Win32 (Win32s, Win95/98 and WinNT)
+- FreeBSD (alpha release)
 
 Older version of the compiler (0.99.5) is also available on:
 - Commodore Amiga
@@ -279,7 +280,8 @@ If you find a bug in the released version, you may want to try a snapshot
 the fpc-devel mailing list.
 
 If you find a fault or 'feature' in a release, please report it
-to the fpc-devel mailing list. PLEASE SEND ALSO A SMALL EXTRACT OF THE SOURCE
+either to the fpc-devel mailing list, or using the bug repository on our WWW
+pages (see the link Bugs). PLEASE SEND ALSO A SMALL EXTRACT OF THE SOURCE
 CODE which caused the problem, and state the version eg Win32, GO32v2,
 and the date of the compiler etc on which you noticed the problem & any other
 useful info so the developers can reproduce the problem, otherwise they may
@@ -290,10 +292,10 @@ not be willing/able to fix it.
 * License
 ****************************************************************************
 
-The programs and sources come under the GPL, for more informations read
-the file COPYING. Additional informations about the runtime library license
-are found in COPYING.FPC. Some utilities and programs come under the license
-described in COPYING.DJ or COPYING.EMX
+The programs and sources come under the GPL, for more information read
+the file COPYING. Additional information about the runtime library license
+can be found in COPYING.FPC. Some utilities and programs come under the
+license described in COPYING.DJ or COPYING.EMX
 
 NOTE: OS/2 version of the installer uses the library UNZIP32.DLL from
       Info-ZIP. Info-ZIP's software (Zip, UnZip and related utilities)
