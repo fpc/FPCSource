@@ -632,7 +632,7 @@ implementation
                         hightree:=genloadnode(pvarsym(srsym),p^.left^.symtable);
                         firstpass(hightree);
                         secondpass(hightree);
-                        emit_mov_loc_ref(hightree^.location,href);
+                        emit_mov_loc_ref(hightree^.location,href,S_L);
                         disposetree(hightree);
                       end;
                      emitrangecheck(p^.right,p^.left^.resulttype);
@@ -849,7 +849,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.49  1999-08-04 00:22:53  florian
+  Revision 1.50  1999-08-14 00:36:05  peter
+    * array constructor support
+
+  Revision 1.49  1999/08/04 00:22:53  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.48  1999/08/03 22:02:47  peter

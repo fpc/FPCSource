@@ -44,7 +44,7 @@ unit cgai386;
     procedure emit_flag2reg(flag:tresflags;hregister:tregister);
     procedure emit_reg_reg(i : tasmop;s : topsize;reg1,reg2 : tregister);
     procedure emitcall(const routine:string);
-    procedure emit_mov_loc_ref(const t:tlocation;const ref:treference);
+    procedure emit_mov_loc_ref(const t:tlocation;const ref:treference;siz:topsize);
     procedure emit_mov_loc_reg(const t:tlocation;reg:tregister);
     procedure emit_push_loc(const t:tlocation);
 
@@ -310,26 +310,35 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
       end;
 
 
-    procedure emit_mov_loc_ref(const t:tlocation;const ref:treference);
+    procedure emit_mov_loc_ref(const t:tlocation;const ref:treference;siz:topsize);
+      var
+        hreg : tregister;
       begin
         case t.loc of
           LOC_REGISTER,
          LOC_CREGISTER : begin
-                           exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
+                           exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,siz,
                              t.register,newreference(ref))));
                            ungetregister32(t.register); { the register is not needed anymore }
                          end;
                LOC_MEM,
          LOC_REFERENCE : begin
                            if t.reference.is_immediate then
-                             exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_L,
+                             exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,siz,
                                t.reference.offset,newreference(ref))))
                            else
                              begin
-                               exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
-                                 newreference(t.reference),R_EDI)));
-                               exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
-                                 R_EDI,newreference(ref))));
+                               case siz of
+                                 S_B : hreg:=reg32toreg8(getregister32);
+                                 S_W : hreg:=reg32toreg16(getregister32);
+                                 S_L : hreg:=R_EDI;
+                               end;
+                               exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,siz,
+                                 newreference(t.reference),hreg)));
+                               exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,siz,
+                                 hreg,newreference(ref))));
+                               if siz<>S_L then
+                                ungetregister(hreg);
                                { we can release the registers }
                                { but only AFTER the MOV! Important for the optimizer!
                                  (JM)}
@@ -3188,7 +3197,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.28  1999-08-07 14:20:57  florian
+  Revision 1.29  1999-08-14 00:36:07  peter
+    * array constructor support
+
+  Revision 1.28  1999/08/07 14:20:57  florian
     * some small problems fixed
 
   Revision 1.27  1999/08/05 23:45:09  peter
