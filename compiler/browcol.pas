@@ -1374,25 +1374,25 @@ end;
     if Name='' then
     case sym.consttyp of
       constord :
-        Name:=sym.consttype.def.typesym.name+'('+IntToStr(sym.value)+')';
+        Name:=sym.consttype.def.typesym.name+'('+IntToStr(sym.valueord)+')';
       constresourcestring,
       conststring :
 {        Name:=''''+GetStr(PString(sym.value))+'''';}
-        Name:=''''+StrPas(pchar(tpointerord(sym.value)))+'''';
+        Name:=''''+StrPas(pchar(sym.valueptr))+'''';
       constreal:
-        Name:=FloatToStr(PBestReal(tpointerord(sym.value))^);
+        Name:=FloatToStr(PBestReal(sym.valueptr)^);
       constbool:
 {        if boolean(sym.value)=true then
           Name:='TRUE'
         else
           Name:='FALSE';}
-        Name:='Longbool('+IntToStr(sym.value)+')';
+        Name:='Longbool('+IntToStr(sym.valueord)+')';
       constint:
-        Name:=IntToStr(sym.value);
+        Name:=IntToStr(sym.valueord);
       constchar:
-        Name:=''''+chr(sym.value)+'''';
+        Name:=''''+chr(sym.valueord)+'''';
       constset:
-{        Name:=SetToStr(pnormalset(sym.value))};
+{        Name:=SetToStr(pnormalset(sym.valueptr)) }; 
       constnil: ;
     end;
     GetConstValueName:=Name;
@@ -2125,7 +2125,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2001-08-07 17:08:49  peter
+  Revision 1.21  2001-09-04 11:53:48  jonas
+    * fixed compiling errors
+
+  Revision 1.20  2001/08/07 17:08:49  peter
     * fixed rettype->returntype renaming
 
   Revision 1.19  2001/08/04 11:06:29  peter
