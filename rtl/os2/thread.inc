@@ -55,7 +55,7 @@ function DosCreateThread (var TID: longint; Address: pointer;
                                                  external 'DOSCALLS' index 311;
 
 procedure DosExit (Action, Result: longint); cdecl;
-                                                 external 'DOSCALLS' index 233;
+                                                 external 'DOSCALLS' index 234;
 
 function DosCreateMutExSem (Name: PChar; var Handle: longint; Attr: longint;
                 State: boolean): longint; cdecl; external 'DOSCALLS' index 331;
@@ -361,7 +361,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  2002-03-28 16:34:29  armin
+  Revision 1.8  2002-07-07 18:04:39  hajny
+    * correction by Yuri Prokushev
+
+  Revision 1.7  2002/03/28 16:34:29  armin
   + initialize threadvars defined local in units
 
   Revision 1.6  2001/10/23 21:51:03  peter
