@@ -261,9 +261,14 @@ implementation
                     consts^.concat(new(pai_label,init(ll)));
                     if p^.treetype=stringconstn then
                       begin
-                        getmem(ca,p^.length+2);
-                        move(p^.value_str^,ca^,p^.length+1);
-                        consts^.concat(new(pai_string,init_length_pchar(ca,p^.length+1)));
+                        len:=p^.length;
+                        { For tp7 the maximum lentgh can be 255 }
+                        if (m_tp in aktmodeswitches) and
+                           (len>255) then
+                         len:=255;
+                        getmem(ca,len+2);
+                        move(p^.value_str^,ca^,len+1);
+                        consts^.concat(new(pai_string,init_length_pchar(ca,len+1)));
                       end
                     else
                       if is_constcharnode(p) then
@@ -539,36 +544,38 @@ implementation
                    do_firstpass(p);
                    if p^.treetype=stringconstn then
                     begin
-                      if p^.length>255 then
-                       len:=255
-                      else
-                       len:=p^.length;
-                      s[0]:=chr(len);
-                      move(p^.value_str^,s[1],len);
+                      len:=p^.length;
+                      { For tp7 the maximum lentgh can be 255 }
+                      if (m_tp in aktmodeswitches) and
+                         (len>255) then
+                       len:=255;
+                      ca:=p^.value_str;
                     end
                    else
                      if is_constcharnode(p) then
-                       s:=char(byte(p^.value))
+                      begin
+                        ca:=pchar(@p^.value);
+                        len:=1;
+                      end
                    else
                      begin
                        Message(cg_e_illegal_expression);
-                       s:='';
+                       len:=0;
                      end;
-                   disposetree(p);
-                   l:=length(s);
+                   if len>(Parraydef(def)^.highrange-Parraydef(def)^.lowrange+1) then
+                     Message(parser_e_string_larger_array);
                    for i:=Parraydef(def)^.lowrange to Parraydef(def)^.highrange do
                      begin
-                        if i+1-Parraydef(def)^.lowrange<=l then
+                        if i+1-Parraydef(def)^.lowrange<=len then
                           begin
-                             curconstsegment^.concat(new(pai_const,init_8bit(byte(s[1]))));
-                             delete(s,1,1);
+                             curconstsegment^.concat(new(pai_const,init_8bit(byte(ca^))));
+                             inc(ca);
                           end
                         else
                           {Fill the remaining positions with #0.}
                           curconstsegment^.concat(new(pai_const,init_8bit(0)));
                      end;
-                   if length(s)>0 then
-                     Message(parser_e_string_larger_array);
+                   disposetree(p);
                 end
               else
                 begin
@@ -803,7 +810,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2000-09-24 15:06:25  peter
+  Revision 1.8  2000-09-30 13:23:04  peter
+    * const array of char and pchar length fixed (merged)
+
+  Revision 1.7  2000/09/24 15:06:25  peter
     * use defines.inc
 
   Revision 1.6  2000/08/27 16:11:52  peter
