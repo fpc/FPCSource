@@ -254,12 +254,12 @@ procedure sincos(theta : float;var sinus,cosinus : float);
   cosinus:=cos(theta);
   {$else}
   asm
-    fldl 8(%ebp)
+    fldl theta
     fsincos
     fwait
-    movl 20(%ebp),%eax
+    movl cosinus,%eax
     fstpl (%eax)
-    movl 16(%ebp),%eax
+    movl sinus,%eax
     fstpl (%eax)
   end;
   {$endif}
@@ -287,8 +287,8 @@ function arctan2( x,y : float) : float;
   ArcTan2:=ArcTan(x/y);
   {$else}
     asm
-    fldt 8(%ebp)
-    fldt 18(%ebp)
+    fldt X
+    fldt Y
     fpatan
     leave
     ret $20
@@ -666,7 +666,10 @@ end;
 end.
 {
     $Log$
-    Revision 1.13  2000-01-07 16:41:43  daniel
+    Revision 1.14  2000-01-11 21:07:33  marco
+     * Changed some (%ebp) to real parameters
+
+    Revision 1.13  2000/01/07 16:41:43  daniel
       * copyright 2000
 
     Revision 1.12  1999/09/21 20:47:05  florian
