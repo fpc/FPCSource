@@ -917,6 +917,13 @@ implementation
                        (todef.size>fromdef.size) then
                      CGMessagePos2(hp.fileinfo,type_e_typecast_wrong_size_for_assignment,tostr(fromdef.size),tostr(todef.size));
                   end;
+                 { don't allow assignments to typeconvs that need special code }
+                 if not(gotsubscript or gotvec or gotderef) and
+                    not(ttypeconvnode(hp).assign_allowed) then
+                   begin
+                     CGMessagePos(hp.fileinfo,type_e_argument_cant_be_assigned);
+                     exit;
+                   end;
                  case hp.resulttype.def.deftype of
                    pointerdef :
                      gotpointer:=true;
@@ -1915,7 +1922,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.86  2004-05-16 13:29:46  peter
+  Revision 1.87  2004-05-23 15:03:40  peter
+    * some typeconvs don't allow assignment or passing to var para
+
+  Revision 1.86  2004/05/16 13:29:46  peter
     * forbid more overloaded operators with orddef/enumdef
 
   Revision 1.85  2004/04/18 07:52:43  florian

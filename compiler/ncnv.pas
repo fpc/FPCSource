@@ -51,6 +51,7 @@ interface
           function det_resulttype:tnode;override;
           procedure mark_write;override;
           function docompare(p: tnode) : boolean; override;
+          function assign_allowed:boolean;
           procedure second_call_helper(c : tconverttype);
        private
           function resulttype_int_to_int : tnode;
@@ -1935,6 +1936,29 @@ implementation
       end;
 
 
+    function ttypeconvnode.assign_allowed:boolean;
+      begin
+        result:=(convtype=tc_equal) or
+                { typecasting from void is always allowed }
+                is_void(left.resulttype.def) or
+                (left.resulttype.def.deftype=formaldef) or
+                { int 2 int with same size reuses same location, or for
+                  tp7 mode also allow size < orignal size }
+                (
+                 (convtype=tc_int_2_int) and
+                 (
+                  (resulttype.def.size=left.resulttype.def.size) or
+                  ((m_tp7 in aktmodeswitches) and
+                   (resulttype.def.size<left.resulttype.def.size))
+                 )
+                ) or
+                { int 2 bool/bool 2 int, explicit typecast, see also nx86cnv }
+                ((convtype in [tc_int_2_bool,tc_bool_2_int]) and
+                 (nf_explicit in flags) and
+                 (resulttype.def.size=left.resulttype.def.size));
+      end;
+
+
     function ttypeconvnode.docompare(p: tnode) : boolean;
       begin
         docompare :=
@@ -2423,7 +2447,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.145  2004-05-23 14:14:18  florian
+  Revision 1.146  2004-05-23 15:03:40  peter
+    * some typeconvs don't allow assignment or passing to var para
+
+  Revision 1.145  2004/05/23 14:14:18  florian
     + added set of widechar support (limited to 256 chars, is delphi compatible)
 
   Revision 1.144  2004/04/29 19:56:37  daniel
