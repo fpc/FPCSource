@@ -899,7 +899,7 @@ begin
    begin
      readln(f,opts);
      RemoveSep(opts);
-     if (opts<>'') then
+     if (opts<>'') and (opts[1]<>';') then
       begin
         if opts[1]='#' then
          begin
@@ -1406,7 +1406,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.52  2000-01-17 22:50:28  peter
+  Revision 1.53  2000-01-20 10:36:44  daniel
+    * also support ; comments in cfg file
+
+  Revision 1.52  2000/01/17 22:50:28  peter
     * fixed interpret_envvar whcih crashed when the envvar was not set
     * also warn if the envvar is empty (=not set)
 
