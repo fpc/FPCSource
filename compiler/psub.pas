@@ -365,7 +365,8 @@ begin
 
           We need to find out if the procedure is global. If it is
           global, it is in the global symtable.}
-         if not assigned(aktprocsym) then
+         if not assigned(aktprocsym) and
+            (symtablestack^.symtabletype=staticsymtable) then
           begin
             {Search the procedure in the global symtable.}
             aktprocsym:=Pprocsym(search_a_symtable(sp,globalsymtable));
@@ -2052,7 +2053,10 @@ end.
 
 {
   $Log$
-  Revision 1.18  1999-09-02 18:47:45  daniel
+  Revision 1.19  1999-09-07 14:59:40  pierre
+   * bugfix for 237 and 244
+
+  Revision 1.18  1999/09/02 18:47:45  daniel
     * Could not compile with TP, some arrays moved to heap
     * NOAG386BIN default for TP
     * AG386* files were not compatible with TP, fixed.
