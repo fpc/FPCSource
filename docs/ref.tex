@@ -3105,7 +3105,8 @@ In addition to variable parameters and value parameters \fpc also supports
 Constant parameters. A constant parameter as can be specified as follows:
 \input{syntax/paramcon.syn}
 A constant argument is passed by reference if it's size is larger than a
-longint. It is passed by value if the size equals 4 or less.
+pointer. It is passed by value if the size is equal or is less then the 
+size of a native pointer.
 This means that the function or procedure receives a pointer to the passed
 argument, but it cannot be assigned to, this will result in a
 compiler error. Furthermore a const parameter cannot be passed on to another
