@@ -10,6 +10,7 @@ interface
 
 {$IFDEF Unix}
   {$LINKLIB c}
+  {$LINKLIB crypt}
   {$DEFINE gdsdecl:=cdecl}
   const
     gdslib = 'gds';
@@ -2224,7 +2225,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2002-09-07 15:42:52  peter
+  Revision 1.3  2003-04-13 10:26:34  michael
+  + Added crypt library
+
+  Revision 1.2  2002/09/07 15:42:52  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/01/29 17:54:51  peter
