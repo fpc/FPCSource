@@ -1,0 +1,59 @@
+%%
+%% Installation file: Listings package for LaTeX2e
+%% (w)(c) 1996-1997 by Carsten Heinz
+%%
+\def\batchfile{listings.ins}
+\input{docstrip}
+\keepsilent
+
+\preamble
+
+(w)(c) 1996-1997 by Carsten Heinz
+
+This file is distributed freely. You are not allowed to take money
+for the distribution or use of this file, except for a nominal charge
+for copying etc.
+
+This file is distributed without any warranty; without even the implied
+warranty of merchantability or fitness for a particular purpose.
+
+You are not allowed to change this file.
+
+\endpreamble
+
+\askforoverwritefalse
+
+\generate{%
+  \file{listings.sty}{\from{listings.dtx}{package}}
+  \file{lstblank.sty}{\from{listings.dtx}{blank}}
+  \file{lstada.sty}{\from{listings.dtx}{ada}}
+  \file{lstalgol.sty}{\from{listings.dtx}{algol}}
+  \file{lstc.sty}{\from{listings.dtx}{c}}
+  \file{lstcpp.sty}{\from{listings.dtx}{cpp}}
+  \file{lstcobol.sty}{\from{listings.dtx}{cobol}}
+  \file{lstcomal.sty}{\from{listings.dtx}{comal}}
+  \file{lsteiffel.sty}{\from{listings.dtx}{eiffel}}
+  \file{lstelan.sty}{\from{listings.dtx}{elan}}
+  \file{lstfortran.sty}{\from{listings.dtx}{fortran}}
+  \file{lstjava.sty}{\from{listings.dtx}{java}}
+  \file{lstlisp.sty}{\from{listings.dtx}{lisp}}
+  \file{lstlogo.sty}{\from{listings.dtx}{logo}}
+  \file{lstmatlab.sty}{\from{listings.dtx}{matlab}}
+  \file{lstmodula.sty}{\from{listings.dtx}{modula}}}
+\generate{%
+  \file{lstoberon.sty}{\from{listings.dtx}{oberon}}
+  \file{lstpascal.sty}{\from{listings.dtx}{pascal}}
+  \file{lstpxsc.sty}{\from{listings.dtx}{pxsc}}
+  \file{lsttp.sty}{\from{listings.dtx}{tp}}
+  \file{lstperl.sty}{\from{listings.dtx}{perl}}
+  \file{lstpli.sty}{\from{listings.dtx}{pli}}
+  \file{lstsimula.sty}{\from{listings.dtx}{simula}}
+  \file{lstsql.sty}{\from{listings.dtx}{sql}}
+  \file{lsttex.sty}{\from{listings.dtx}{tex}}}
+
+
+\Msg{*}
+\Msg{* Move all `.sty' files into a directory searched by TeX.}
+\Msg{*}
+\Msg{* Run the `.dtx' file through LaTeX2e to get the documentation.}
+\Msg{*}

@@ -1,0 +1,4163 @@
+% \iffalse
+%<*driver>
+\documentclass{ltxdoc}
+
+\usepackage{listings}[1997/09/29]
+\selectlisting{cpp}
+\selectlisting{fortran}
+\selectlisting{pascal}
+
+\EnableCrossrefs         
+\CodelineIndex
+\OldMakeindex     % used for MakeIndex pre v2.9
+
+\begin{document}
+    \DocInput{listings.dtx}
+\end{document}
+%</driver>
+%
+% listings package for LaTeX2e
+% (w)(c) 1996-1997 Carsten Heinz, all rights reserved.
+% 
+%<+package>\NeedsTeXFormat{LaTeX2e}
+%<+package>\ProvidesPackage{listings}[1997/09/29 v0.17 by Carsten Heinz]
+% \fi
+%
+% \CheckSum{2784}
+% \DoNotIndex{\@ifundefined,\@tempa,\ ,\@dottedtocline,\@empty,\@ne}
+% \DoNotIndex{\if@twocolumn,\if@restonecol,\@mkboth,\@restonecoltrue}
+% \DoNotIndex{\@restonecolfalse,\@starttoc,\z@}
+% \DoNotIndex{\[,\{,\},\],\1,\2,\3,\4,\5,\6,\7,\8,\9,\0}
+% \DoNotIndex{\`,\,,\!,\#,\$,\&,\',\(,\),\+,\.,\:,\;,\<,\=,\>,\?,\_}
+% \DoNotIndex{\active,\addtocontents,\advance,\begin,\backslash}
+% \DoNotIndex{\baselineskip,\begingroup,\bfseries,\bgroup,\catcode}
+% \DoNotIndex{\chapter,\chardef,\closein,\csname,\def,\divide,\do}
+% \DoNotIndex{\edef,\egroup,\else,\@empty,\end,\endcsname,\endgroup}
+% \DoNotIndex{\expandafter,\fi,\gdef,\global,\hbox,\hskip,\hss,\if}
+% \DoNotIndex{\ifcat,\ifdim,\ifeof,\iffalse,\ifnum,\iftrue,\ifx}
+% \DoNotIndex{\ignorespaces,\input,\itshape,\lccode,\let,\llap,\long}
+% \DoNotIndex{\loop,\lst@,\makeatletter,\makeatother,\MakeUppercase}
+% \DoNotIndex{\message,\multiply,\newcommand,\newenvironment,\newcount}
+% \DoNotIndex{\newdimen,\newif,\newread,\next,\noindent,\onecolumn}
+% \DoNotIndex{\openin,\par,\parshape,\parskip,\protect,\read,\relax}
+% \DoNotIndex{\removelastskip,\repeat,\section,\setbox,\space}
+% \DoNotIndex{\smallbreak,\string,\textwidth,\the,\thepage,\ttfamily}
+% \DoNotIndex{\twocolumn,\undefined,\vskip,\vspace}
+%
+%
+% \title{{LISTINGS.DTX} Version {0.17}}
+% \author{{\copyright} 1996--1997 by Carsten Heinz}
+% \date{}
+%
+% \makeatletter\@twocolumntrue\makeatother
+% \maketitle
+% \tableofcontents
+% \vfill
+% \noindent \textbf{\uppercase{incompatible changes}}
+% have been made from version 0.16 to version 0.17. The commands
+% \cs{blanklisting}, \cs{clisting}, {\ldots} have been removed.
+% Languages are selected with the command \cs{selectlisting}.
+% The command \cs{labelstyle} has a new syntax and semantics.
+% These features are described on page \pageref{ssSelecting} and
+% \pageref{newlabelstyle}, respectively.
+% Sorry, but now it's possible to add languages without changing
+% the kernel \texttt{listings.sty}.
+% \onecolumn
+%
+%
+% \section{User's guide}
+%
+%
+% \subsection{Introduction}
+%
+% You have a problem? You wanna typeset source code of a programming
+% language within \LaTeXe{} like
+%     \selectlisting{cpp}
+% \iffalse
+%<*sample>
+% \fi
+% \begin{listing}
+	switch (direction)
+	{// choose direction
+		case backward     : { ... break; }
+		case backwarddown : { ... break; }
+		case up           : { ... break; }
+	}
+
+	for (int i=0; i<1000; i++)
+	{// do something
+		if (i == i) { i += 1; i--; }
+	}
+% \end{listing}
+% \iffalse
+%</sample>
+% \fi
+% \noindent or
+%     \labelstyle{\small\ttfamily}
+%     \selectlisting{pascal}
+% \iffalse
+%<*sample>
+% \fi
+% \begin{listing}
+	for i:=maxint downto 0 do
+	begin
+		{ do nothing }
+	end;
+
+	WriteLn('Pascal keywords are');
+	writeln('not case sensitive.');
+% \end{listing}
+% \iffalse
+%</sample>
+% \fi
+% Obviously the verbatim environment doesn't fit. You might use the
+% tabbing environment or something like that. But you have to mark all
+% keywords yourself and doing the indention is also a heavy work. But
+% the most striking disadvantage is that you can't run your \LaTeXe-file
+% through your C++, Pascal or whatever else compiler.
+%
+% Fortunately there is another possibility. You might use a cross
+% compiler, e.g.\ you run a special compiler on your Pascal source
+% code to get a \TeX-file with marked keywords, etc. Then \TeX{}
+% produces a pretty output (usage of a well-designed cross compiler
+% granted). If your sources change, you would have to rerun the cross
+% compiler to get your \TeX-file right and have to compile this to get
+% your document. Again and again.
+%
+% By now these days have gone. The listings package goes around this by
+% reading the source code directly. Comments, strings and keywords can
+% be typeset in different styles as shown in the examples above. The
+% indention is taken from the sources. Hence, the programmer is
+% responsible for writing 'readable' code. The package only helps to
+% present it.
+%
+% This package is surely not the final utility for typesetting
+% listings. May be it's a matter of pureness whether to use a cross
+% compiler or the listings package. Hope you join it and help to get
+% this tool more powerful. Please report all errors and offer
+% improvements!
+% 
+%
+% \subsection{Installation}
+%
+% The main files of this package are \texttt{listings.dtx} and
+% \texttt{listings.ins}. Run the latter file through \TeX{}. This
+% will create \texttt{listings.sty} and a couple of driver files
+% with the prefix \texttt{lst}, e.g.\ \texttt{lstfortran.sty},
+% but the exact name is system dependent.
+% Copy all created \texttt{.sty}-files to a directory searched by
+% \TeX{}. This completes the installation. Run \texttt{listings.dtx}
+% through \TeX{} to get the documentation \texttt{listings.dvi}.
+%
+% \textbf{Important note:} All files of the listings package are
+% distributed freely. You are not allowed to take money for the
+% distribution or use of these files, except for a nomial charge for
+% copying etc.
+% The files are distributed without any warranty; without even the
+% implied warranty of merchantability or fitness for a particular
+% purpose.
+% You are not allowed to change one of the files, except using a
+% clearly different filename.
+%
+% \textbf{Trademarks} appear throughout this documentation without any
+% trademark symbol. So you can't assume that a name is not trademarked.
+% There is no intention of infringement. The usage is to the benefit
+% of the trademark owner.
+%
+%
+% \subsection{Selecting a language}
+% \label{ssSelecting}\DescribeMacro\selectlisting
+% You choose a language with \cs{selectlisting}. The argument is (nearly)
+% one of the language names listed below. The driver files are loaded on
+% demand. The command also has an optional argument to select different
+% kinds of the same language, e.g.\ 
+% \begin{verbatim}
+%    \selectlisting[1974]{cobol}\end{verbatim}
+% selects COBOL ANS-1974, whereas the default would be ANS-1985. All
+% languages currently supported are listed together with the available
+% options, where always the first option is default, i.e.\ selected
+% if none is given.
+% I also mention what the listings package is not capable of.
+% '\texttt{???}' in driver files indicate things I don't know.
+% \textbf{To help me}:
+% \emph{Please send me an e-mail with the languages and options you
+% use (i.e.\ are tested in a way), languages and options you want
+% to be corrected or want additionally.}
+% See section \ref{ssItsNotAllFine}.
+% Note: Language selection is local now.
+%
+% \begin{description}
+% \item[Blank] \verb!\selectlisting{blank}!.
+%
+%	This is the default language: no keywords and no comments are
+%	detected (unless additional specified, see section
+%	\ref{sOtherLanguages}).
+% \item[Ada] \verb!\selectlisting{ada}!.
+%
+%	This package can't handle strings where the usual quotation marks
+%	(double quotes) are replaced by percent characters.
+% \item[Algol] \verb!\selectlisting{algol}!,
+%	options: \texttt{68}, \texttt{60}.
+%
+%	Algol 60 seems to be ok. But there are problems concerning the
+%	comments of Algol 68. First, comments enclosed by \rlap{/}c
+%	are not	supported. Second, if you use a sharp $\#$ within
+%	\verb!co!...\verb!co! (and dito within \verb!comment!), there
+%	\emph{must} be a matching second $\#$, or the output is not all
+%	right.\footnote{The problem is the following: The sharp is a special
+%	character, whereas \texttt{co} is a predefined word and consists
+%	of letters. Comments enclosed by special characters are handled
+%	easily, and even comments starting or ending with keywords are
+%	possible (Algol 60). But a mixture of both (without matching sharp)
+%	can only be handled by changing the kernel \texttt{listings.sty}.
+%	Since that would slow down all other languages, I decided to do
+%	it this way (matching sharp). I even don't know, if this way is
+%	standard Algol 68 --- the books are not very detailed, or I haven't
+%	found it.} The other way round, i.e.\ a lonely \texttt{comment}
+%	within $\#$...$\#$ is harmless.
+% \item[C] \verb!\selectlisting{c}!.
+% \item[C++] \verb!\selectlisting{cpp}!,
+%	options: \texttt{ansi}, \texttt{vc} (Visual C++).
+% \item[Cobol] \verb!\selectlisting{cobol}!,
+%	options: \texttt{1985}, \texttt{1974}, \texttt{ibm}.
+%
+%	Keywords are not marked, if their names are broken in two parts,
+%	i.e.\ continued in the following line.
+%	Sometimes portions of a string are not printed as a string.
+%	This happens, if the double quote is not doubled to insert a quote,
+%	e.g.\ \verb!""bad" cobol"! won't be printed correctly.
+% \item[Comal 80] \verb!\selectlisting{comal}!.
+% \item[Eiffel] \verb!\selectlisting{eiffel}!.
+% \item[Elan] \verb!\selectlisting{elan}!.
+% \item[Fortran] \verb!\selectlisting{fortran}!,
+%	options: \texttt{90}, \texttt{77}.
+%
+%	The keywords are assumed to be \emph{not} case sensitive.
+% \item[Java] \verb!\selectlisting{java}!.
+% \item[Lisp] \verb!\selectlisting{lisp}! (Common Lisp).
+% \item[Logo] \verb!\selectlisting{logo}!.
+% \item[Matlab] \verb!\selectlisting{matlab}!.
+%
+%	Matlab uses the quote with two meanings. This package always assumes
+%	the beginning or ending of a string, even if you use the quote as
+%	transpose-conjugate operator.
+% \item[Modula-2] \verb!\selectlisting{modula}!.
+% \item[Oberon-2] \verb!\selectlisting{oberon}!.
+% \item[Pascal] \verb!\selectlisting{pascal}!.
+% \item[Pascal XSC] \verb!\selectlisting{pxsc}!.
+%
+%	Tell me, if you want more words to be keywords.
+% \item[Turbo Pascal] \verb!\selectlisting{tp}!.
+%
+%	Keywords are from version 6.0. Possibly too many keywords present.
+% \item[Perl] \verb!\selectlisting{perl}!.
+% \item[PL/I] \verb!\selectlisting{pli}!.
+% \item[Simula 67] \verb!\selectlisting{simula}!,
+%	options: \texttt{67}, \texttt{cii}, \texttt{dec}, \texttt{ibm}.
+% \item[SQL-92] \verb!\selectlisting{sql}!.
+% \item[\TeX] \verb!\selectlisting{tex}!,
+%	options: \texttt{plain}, \texttt{primitive}, \texttt{latex},
+%		\texttt{allatex}.
+% \end{description}
+%
+%
+% \subsection{Typesetting a listing}
+%
+% \DescribeMacro\inputlisting
+% The main command for this purpose is \cs{inputlisting}. The syntax
+% is
+% \begin{verbatim}
+%    \inputlisting[FIRST,LAST]{WHOLE FILENAME}\end{verbatim}
+% where \verb![FIRST,LAST]! is optional and determines the range of lines
+% to typeset. The default range is $[1,999999]$. If you specify negative
+% lines or an empty range, for example, you won't get any warning.
+% There is no default extension, so you must specify the whole filename.
+% The example
+% \begin{verbatim}
+%    \inputlisting[3,10]{testfile.pas}\end{verbatim}
+% would print lines 3,4,\ldots,10 of \verb!testfile.pas!, if file and
+% lines are present.
+%
+% \DescribeEnv{listing}
+% There is also a listing environment. It typesets the source code
+% enclosed within \verb!\begin{listing}! and \verb!\end{listing}!.
+% If the source code starts right after \verb!\begin{listing}!, it is
+% dropped upto the end of line. Dito the source preceding and following
+% \verb!\end{listing}! directly, i.e.\ in the same line. You may don't
+% like this, but the lines
+% \begin{verbatim}
+%       \selectlisting{fortran}
+%       \begin{listing}DROPPED
+%* This is a test for the listing environment
+%C and not considered to be an example for
+%   ! Fortran!
+%      Program example
+%      ...
+%DROPPED\end{listing}DROPPED\end{verbatim}
+% result in
+%    \normallisting
+%    \selectlisting{fortran}
+% \iffalse
+%<*sample>
+% \fi
+%    \begin{listing}DROPPED
+* This is a test for the listing environment
+C and not considered to be an example for
+   ! Fortran!
+      Program example
+      ...
+%DROPPED\end{listing}DROPPED
+% \iffalse
+%</sample>
+% \fi
+%
+% \DescribeMacro\listingfalse
+% Since typesetting listings with this package is possibly slow,
+% you can suppress the output with \cs{listingfalse}. Afterwards this
+% \DescribeMacro\listingtrue
+% package only prints the name of the source like
+%     \selectlisting{pascal}\listingfalse
+%     \inputlisting{testfile.pas}\listingtrue
+% \cs{listingtrue} reverses the effect.
+% 
+% \DescribeMacro\tablength
+% If you use tabulators in your source codes, you have to tell this
+% package the number of characters between two tabulator stops.
+% Default value is 4. Changes are made by, e.g.,\ 
+% \begin{verbatim}
+%    \tablength{8}\end{verbatim}
+% i.e. tabulator stops are set at the columns 1, 9, 17, 25 {\ldots}
+% Negative values are prohibited. They won't confuse this package,
+% since it gives an error message and proceeds with the old value of
+% tablength.
+%
+% \DescribeMacro\listoflistings
+% Two more commands should be mentioned here. Use \cs{listoflistings}
+% as you do \cs{listoftables} and \cs{listoffigures} and renew
+% \DescribeMacro\listlistingsname\cs{listlistingsname} to change the
+% default header 'Listings'. The list shows either the filename or
+% the optional argument of the listing environment, e.g.\ 
+% \begin{verbatim}
+%    \inputlisting{Quicksort.pas}
+%    \begin{listing}[Heapsort]
+%    ...
+%    \end{listing}\end{verbatim}
+% will show the names 'Quicksort.pas' and 'Heapsort'.
+%
+%
+% \subsection{Figure out the appearance}\label{ssFigureOutTheAppearance}
+% You have some possibilities to change how the output looks like.
+%
+% \DescribeMacro\keywordstyle
+% By default keywords\footnote{Let's talk about keywords: I tried to get
+% all keywords of the languages, but there are so many books with no
+% list of keywords. So I looked at the index, but some books print
+% keywords bold and predefined functions in italics, other books print
+% both in bold. So I had to guess, which words are keywords. Moreover
+% it's a great deal to find out whether the keywords are case sensitive
+% or not. Of course, there are really fine books (e.g.\ \cite{Ada}).
+% And I know that some languages don't have keywords, and so there
+% can't be a list of them. But even these languages have predefined
+% words --- which are not listed. Hence, for our purpose \emph{keywords}
+% are predefined words, fixed words, reserved words, real keywords and
+% all words you or I want to name so.} are typeset bold, comments in
+% italic shape and strings using no special style.
+% \DescribeMacro\commentstyle
+% You can change this with the commands \cs{keywordstyle},
+% \DescribeMacro\stringstyle
+% \cs{commentstyle} and \cs{stringstyle}, e.g.
+% \begin{verbatim}
+%    \keywordstyle{\bfseries\itshape} % bold and italic
+%    \commentstyle{\tt\small}         % LaTeX 2.09 typewriter, small
+%    \stringstyle{\ttfamily}          % typewriter\end{verbatim}
+% will typeset the second example of the introduction as follows
+%     \keywordstyle{\bfseries\itshape} \commentstyle{\tt\small}
+%     \stringstyle{\ttfamily}
+%     \selectlisting{pascal}
+% \iffalse
+%<*sample>
+% \fi
+% \begin{listing}
+	for i:=maxint downto 0 do
+	begin
+		{ do nothing }
+	end;
+
+	WriteLn('Pascal keywords are');
+	writeln('not case sensitive.');
+% \end{listing}
+% \iffalse
+%</sample>
+% \fi
+%    \normallisting
+%
+% \DescribeMacro\blankstringtrue
+% Once again blank spaces of a string have been printed \textvisiblespace.
+% Suppress this by using \cs{blankstringtrue} and switch to default
+% \DescribeMacro\blankstringfalse
+% with \cs{blankstringfalse}.
+%
+% \DescribeMacro\labelstyle\label{newlabelstyle}
+% By default no line numbers are printed. You can change this with the
+% \cs{labelstyle} command. The syntax is
+% \begin{verbatim}
+%    \labelstyle[step]{the style}\end{verbatim}
+% The style determines how the line numbers look like (\cs{ttfamily},
+% \cs{small}, and so on). Line numbers are printed all 'step' lines.
+% More precisely all line numbers are printed, which are divisible by
+% step. If step is zero, no line numbers will be typeset.
+% The step is an optional argument. If no step is specified, it is
+% assumed to be 1. Here some (exotic) examples:
+% \begin{verbatim}
+%   \labelstyle[3]{\ttfamily\small} % line 3,6,9,..., small typewriter
+%   \labelstyle{\small\oldstylenums}% small oldstyle numbers
+%   \makeatletter
+%   \labelstyle{\@roman} % roman numbers(!) each line
+%   \labelstyle{\@Roman} % upper case roman numbers
+%   \makeatother\end{verbatim}
+%
+% The C++ source line
+%     \selectlisting{cpp}
+% \iffalse
+%<*sample>
+% \fi
+% \begin{listing}
+    if (ThereIsALongLine) { ItExceedsASingleLineInTheListing(); }
+% \end{listing}
+% \iffalse
+%</sample>
+% \fi
+% \noindent\DescribeMacro\spreadlisting
+% gives rise to an overfull \verb!\hbox!. To avoid things like that
+% you can first spread the width taken by a listing, and second
+% \DescribeMacro\prelisting
+% change the fontsize. The commands \cs{spreadlisting}, \cs{prelisting}
+% \DescribeMacro\postlisting
+% and \cs{postlisting} have one argument each. For the example above
+% you should use
+% \begin{verbatim}
+%    \spreadlisting{1in} % spread the width by 1in, 0.5in left and right
+%    \prelisting{\small} % select new fontsize
+%    \postlisting{}      % nothing to do (default)\end{verbatim}
+% or something similar and get
+%     \spreadlisting{1in}
+%     \prelisting{\small}
+% \iffalse
+%<*sample>
+% \fi
+% \begin{listing}
+    if (ThereIsALongLine) { ItExceedsASingleLineInTheListing(); }
+% \end{listing}
+% \iffalse
+%</sample>
+% \fi
+%     \normallisting
+% You can use the pre-post-mechanism to add something right before a
+% listing starts or after it ends, e.g.\ \verb!\prelisting{\bigbreak}!
+% will lead to an empty line between a listing and the preceding text
+% (if on the same page).
+%
+% \DescribeMacro\normallisting
+% Changes made by the commands above are reset by \cs{normallisting}
+% (there are no arguments): Keywords are typeset bold, comments in
+% italic shape, stringstyle, labelstyle and pre- and postlisting are
+% empty, blank spaces in strings are printed \textvisiblespace, and
+% spreadlisting is set to 0pt. Nothing other is affected.
+%
+% \DescribeMacro\lstlineskip
+% The one and only argument of this command is a skip. It's the
+% \emph{additional} space between two lines in the output of a listing.
+% The default is 0pt.
+%
+% \DescribeMacro\lstbaseem
+% Here is one more command, which should be used in driver files only,
+% since the one and only parameter is language specific. But you can
+% use it for adjustment in your document. The parameter gives the witdh
+% one character takes in the output in units of 1em. The parameter is a
+% floating number and not a \TeX{} dimension, i.e.\ the unit em is
+% added by the listings package. If you specify \verb!\lstbaseem{1}!,
+% i.e.\ 1em, characters will never overlap. And the output produced
+% after \verb!\lstbaseem{0}! looks quite funny. Better try values near
+% $0.6$.
+%
+%
+% \subsection{Other languages}\label{sOtherLanguages}
+%
+% You have some possibilities to adapt this package to other languages.
+% For our purpose here the main characteristics of a language are
+% keywords, comments and strings.
+%
+% Let's say, we want to produce following output:
+% \selectlisting{blank}
+% \keywords{function,integer,begin,end,if,then,else,return,print}
+% \DeclareCommentLine//\relax
+% \begingroup\catcode`\"=12\stringizer{"}\endgroup
+% \stringstyle{\ttfamily}\blankstringfalse
+% \iffalse
+%<*sample>
+% \fi
+% \begin{listing}
+function Fib(integer n):integer;
+// Function returns the n-th Fibonacci.
+begin
+   if (n<2) then return 1;
+			else return Fib(n-1)+Fib(n-2);
+end;
+
+// Main program.
+begin
+   print("Fib(10) = ",Fib(10), "\n");
+end.
+% \end{listing}
+% \iffalse
+%</sample>
+% \fi
+% You already know about \cs{stringstyle} and \cs{blankstringfalse}.
+% We assume \verb!\selectlisting{blank}!. And now comes all the rest
+% to print such a language mixture.
+% \DescribeMacro\keywords
+% To set the keywords use the \cs{keywords} command. After
+% \begin{verbatim}
+%    \keywords{one,two,three,four,five,six,seven,eight,nine,ten,
+%        eleven,twelve}\end{verbatim}
+% exactly these twelve keywords are present. As you see, each two
+% keywords are separated by a comma.
+% \DescribeMacro\morekeywords
+% If you want to add keywords only use \cs{morekeywords} like
+% \begin{verbatim}
+%    \morekeywords{maxreal,minreal} % add these keywords
+%    \morekeywords{zero,MAXINT}     % add also\end{verbatim}
+%
+% \DescribeMacro\sensitivetrue
+% Some languages are case sensitive, others are not. You can select
+% this with \cs{sensitivetrue} and \cs{sensitivefalse}, respectively.
+% \DescribeMacro\sensitivefalse
+% This package will then use the right keyword test.
+%
+% \DescribeMacro\stringizer
+% The command \cs{stringizer} changes the character, which begins and
+% ends a string. If your parameter consists of several characters,
+% each character can start a string. But the string must be terminated
+% with the same character. Using a letter, a digit or the underbar as
+% stringizer will not work. The Modula-2 option defines the stringizer
+% by
+% \begin{verbatim}
+%    \catcode`\"=12
+%    \stringizer{'"}\end{verbatim}
+% The catcode is changed (locally) for compatibility with
+% \verb!german.sty!. The double quote is defined active there, but
+% when we input a listing the double quote will have catcode 12
+% (=other). The stringizer command has an optional argument to select
+% whether the stringizer is doubled (default, e.g.\ Pascal) or preceded
+% by a backslash (e.g.\ C) to insert the stringizer itself at the current
+% position. The arguments are \verb!d! and \verb!b!, respectively, e.g.\ 
+% \begin{verbatim}
+%    \stringizer[d]{'} % doubled stringizer inserts stringizer
+%    \stringizer[b]{"} % backslashed stringizer inserts\end{verbatim}
+%
+% Let's come to comments. For our purpose a 'comment line' is a comment,
+% which starts with a character sequence and goes upto the end of a
+% line. 'Comments' start and end with given character sequences.
+% Comment lines need not to begin at the first column and comments
+% can start and end wherever you want.
+%
+% \DescribeMacro\DeclareCommentLine
+% \cs{DeclareCommentLine} has one parameter, which is terminated by
+% \cs{relax}, i.e.\ 
+% \begin{verbatim}
+%    \DeclareCommentLine //\relax\end{verbatim}
+% is legal. The parameter is a (nearly) arbitrary character sequence,
+% which separates a comment line. Using a letter, a digit or the
+% underbar will not work. And: When we input a listing, the characters
+% must have the same category codes. Refer section
+% \ref{SpecialCharacters} and \ref{ssSpecialCharacters}.
+% If you don't want any comment lines, let the parameter empty, but
+% don't forget the \cs{relax}!
+%
+% \DescribeMacro\DeclareSingleComment
+% Four types of comments are supported: \textbf{single} for languages
+% with one kind of comment, e.g.\ C or C++; \textbf{double} for
+% \DescribeMacro\DeclareDoubleComment
+% languages with two kinds of comments, e.g.\ Pascal comments enclosed
+% \DescribeMacro\DeclareNestedComment
+% within \verb!(*! and \verb!*)! and within \verb!{! and \verb!}!;
+% \textbf{nested} for languages with one kind of comment, which can be
+% \DescribeMacro\DeclarePairedComment
+% nested, e.g.\ Modula-2. A \textbf{paired} comment is a single comment,
+% but the two comment delimiters are the same and therefore occur paired.
+% The declaration of such comments is similar to comment lines.
+% The character sequences are separated by one blank space, e.g.\ 
+% \begin{verbatim}
+%    \DeclareSingleComment /* */\relax
+%    \DeclareDoubleComment (* *) { }\relax
+%    \DeclareNestedComment (* *)\relax
+%    \DeclarePairedComment #\relax\end{verbatim}
+% But hold on: When we input a listing, the characters must have the
+% same category codes. So the examples won't work without changing
+% them. See section \ref{ssSpecialCharacters}. If you don't want
+% comments, let the second parameter of \cs{DeclareSingleComment}
+% empty, i.e.\ type something like
+% \begin{verbatim*}
+%    \DeclareSingleComment stuff \relax\end{verbatim*}
+% If a supported language already uses your favourite keywords,
+% stringizer and/or comments, you are free to select that language
+% and adjust only the wrong data.
+%
+%
+% \subsection{Troubleshooting}
+% After receiving an e-mail from Andreas Bartelt\footnote{
+% Andreas.Bartelt@Informatik.Uni-Oldenburg.DE} the idea comes up
+% to write this section. It is intend to help you handling unusual
+% situations.
+% \begin{itemize}
+% \item	If you have problems using \cs{inputlisting} within \LaTeX{}
+%		environments or commands, put the listing in a \cs{vbox}.
+% \item	A source line might exceeds the textwidth, as shown in section
+%		\ref{ssFigureOutTheAppearance}. Put the listing in a \cs{hbox}
+%		to decrease the logical width like
+% \begin{verbatim}
+%    \hbox to 3.5in{
+%        \vbox{\inputlisting{testfile.pas}}
+%        \hss}\end{verbatim}
+%		The \cs{hss} avoids an overfull \cs{hbox}. You can use that
+%		construction together with \cs{fbox} to get something like
+% \iffalse
+%<*sample>
+% \fi
+% \setbox0=\vbox{\begin{listing}
+function Fib(integer n):integer;
+// Function returns the n-th Fibonacci.
+begin
+   if (n<2) then return 1;
+			else return Fib(n-1)+Fib(n-2);
+end;
+% \end{listing}
+% }
+% \iffalse
+%</sample>
+% \fi
+%		$$\fbox{\hbox to 3.5in{\box0\hss}}$$
+% \item	The example just presented uses \cs{inputlisting} within an
+%		argument of a command like \cs{fbox}. It's not possible with the
+%		listing environment! To go around this type
+% \begin{verbatim}
+%    \setbox0=\vbox{
+%    \begin{listing}
+%function Fib(integer n):integer;
+%...
+%    \end{listing}
+%    }% not on the same line as \end{listing}!\end{verbatim}
+%		and then \verb!$$\fbox{\hbox to 3.5in{\box0\hss}}$$! to get
+%		the example.
+% \end{itemize}
+%
+%
+% \subsection{It's not all fine}\label{ssItsNotAllFine}
+%
+% Please be patient of my English.
+%
+% Not all languages have been tested fully, since I don't know all
+% languages well. Hope I haven't forgotten any important feature.
+% Tell me, if you want additional languages or more options for a
+% language already present. What's about Delphi, Prolog or Reduce?
+% \begin{itemize}
+% \item	If you use italic cmr fonts (comments), the dollar \${} comes
+%		out as \pounds. Change italic to slanted (\cs{slshape})
+%		or don't use cmr fonts.
+% \item	If you use \cs{DeclarePairedComment}, the first comment delimiter
+%		appears not in commentstyle, e.g.\ \#\textit{ comment \#}.
+% \end{itemize}
+% You're not lucky about the listings package? You found errors?
+% Damn and blast it or contact me:
+% \begin{verbatim}
+%    cheinz@wmpi04.math.uni-wuppertal.de\end{verbatim}
+%
+%
+% \StopEventually{}
+%
+%
+% \section{How the package works}
+%
+% What happens when a user calls \cs{inputlisting}? First we set up a
+% bit (execute prelisting, open input file, do other initialization)
+% and at the end we have to close the input file for example.
+%
+%
+% \subsection{The main idea}\label{TheMainIdea}
+% The interesting part is the loop between: The source file is read,
+% processed and typeset line by line. Before looking closer we have to
+% deal with the alignment of columns, since this influences processing
+% and typesetting. The problem: I don't like listings, which are
+% printed with typewriter fonts. But only in these fonts all characters
+% have the same width. So we have to handle different widths.
+% The Pascal source lines
+% \begin{verbatim}
+%    if x=y then write('alignment')
+%           else print('alignment');\end{verbatim}
+% shouldn't come out as
+% \begin{center}\hfill
+% \begin{tabular}{l}
+%	if\ x=y\ then\ write('alignment')\\
+%	\ \ \ \ \ \ \ else\ print('alignment');
+% \end{tabular}
+% \hfill or \hfill
+% \begin{tabular}{l@{\space}l@{\space}l}
+%    \textbf{if} x=y&\textbf{then}&\textbf{write}('alignment')\\
+%                   &\textbf{else}&print('alignment');
+% \end{tabular}\hfill
+% \end{center}
+% only because blank spaces are not wide enough or because a bold
+% letter is wider than a normal one.
+% There is a simple trick to avoid things like that. We make boxes of
+% the same width and put one character in each box:
+% \begin{center}
+%     \vbox{\def\makeboxes#1{\fbox{\hbox to 1em{\hss\vphantom{fy}#1\ignorespaces%
+%         \hss}}\ifx#1\relax\else\expandafter\makeboxes\fi}
+%     \makeboxes if\ x=y\ then\ write\relax\space\ldots\\
+%     \makeboxes \ \ \ \ \ \ \ else \ print\relax\space\ldots}
+% \end{center}
+% Going this way the alignment of columns can't be disturbed. But if
+% the boxes are not wide enaugh, we get
+% \begin{center}
+%     \def\makeboxes#1{\hbox{\hbox to 0.45em{\hss\vphantom{fy}#1\ignorespaces%
+%         \hss}}\ifx#1\relax\else\expandafter\makeboxes\fi}
+%     \begin{tabular}{l}
+%     \makeboxes if\ x=y\ then\ write\relax\space\ldots
+%     \end{tabular}
+% \end{center}
+% And choosing the width so that the widest character fits in, leads to
+% \begin{center}
+%     \def\makeboxes#1{\hbox to 1em{\hss\vphantom{fy}#1\hss}\ignorespaces%
+%         \ifx#1\relax\else\expandafter\makeboxes\fi}
+%     \begin{tabular}{l}
+%     \makeboxes if\ x=y\ then\ write\relax\space\ldots
+%     \end{tabular}
+% \end{center}
+% Both are not acceptable. So there is more to do. Each input line
+% will be cut up in units. Since we want to scan for keywords, this
+% is no extra work. In the example the units are
+% \begin{center}\begin{tabular}{ccccccc}
+%     if, & x, & =, & y, & then, & write, & \ldots
+% \end{tabular}\end{center}
+% and the blank spaces between. We put each unit in a box, which width
+% is multiplied by the number of characters we put in, of course. The
+% result is
+% \begin{center}
+%     \def\makeboxes#1#2{\fbox{\hbox to #1em{\hss\vphantom{fy}#2\hss}\ignorespaces%
+%         }\ifx#2\relax\else\expandafter\makeboxes\fi}
+%     \begin{tabular}{l}
+%     \makeboxes2{i\hss f}1{\ }1{x}1{=}1{y}1{\ }4{t\hss h\hss e\hss n}%
+%         1{\ }5{w\hss r\hss i\hss t\hss e}1\relax\space\ldots
+%     \end{tabular}
+% \end{center}
+% Now we are ready to choose the base width of a box --- that's
+% \cs{lstbaseem}. Consider the 'write'. The 'w' needs more space than
+% base width, but the 'i' needs less. This will compensate each other,
+% because we put them in the same box. In general: Since wide characters
+% use space actually reserved for thin characters, the base width need
+% not to be the width of the widest character. This would be 1em
+% (a \cs{quad}). At the moment most languages use the empirical value
+% 0.6em. It's a compromise between overlapping characters and the
+% number of boxes exceeding not the textwidth, i.e.\ how many
+% characters fit a line without getting an overfull \verb!\hbox!.
+%
+% 
+% \subsection{Line processing}
+% Let's discuss the line processing. The job is to classify comments,
+% strings and other source code, where we search for keywords. We do
+% that in several steps.
+% \begin{itemize}
+% \item First we pay attention on comments, which started in preceding
+%	lines, e.g.\ 
+%	\begin{verbatim}
+%    comment } for i:=1 to maxint do ...\end{verbatim}
+%	In that case we look for the end of comment and output the comment.
+%	If there is other source code left, we run the line processing on
+%	that code.
+% \item If no comment is in work, we look for one and split the input
+%	into comment and other source code. Since the other code comes
+%	first, we give it to a routine, which cuts it into the units
+%	described above (tokenizing). The output takes place there.
+% \item Afterwards we have to output the comment. But when we look for
+%	a comment, we don't take notice of other things. Consider
+%	\begin{verbatim}
+%    writeln('This is a string { and not a comment }');\end{verbatim}
+%	We cut this line at the left brace into other code and comment.
+%	After typesetting the other code we notice, that a string started,
+%	but hasn't been finished. Our first classification was wrong.
+%	We use the comment as new input and simply run the line processing
+%	again to continue the string.
+% \item If all strings are finished, we can output the comment, since
+%	it's really a comment.
+% \end{itemize}
+% This is a sketch of line processing. For more detailed information
+% see section \ref{ssLineProcessing}, where the implementation is
+% described.
+%
+% One question about the third item is left: Why do we cut off a
+% comment, even if we don't know that it is a comment? It's a matter
+% of modularity and extension. Consider the alternative: The tokenize
+% routine below (where we cut the classified input into the smallest
+% units) would have to look for the start and end of comment.
+% To support different languages we have to write either more than one
+% tokenize routine or one, which handles comments of all languages.
+% Adding another language means extending tokenizing or writing a new
+% routine, which looks only for the particular comment. But finding a
+% comment has nearly nothing to do with looking for delimiters (blank
+% space, comma, plus, bracket, etc.). So we write exactly one tokenize
+% macro and separate this from finding a comment.
+%
+%
+% \subsection{Tokenizing}
+% The next step is breaking up the parts produced by line processing
+% into the units mentioned above. We gather all characters, until
+% reaching a nonletter. Then we output the collected characters using
+% a routine, which selects the right style (comment, keyword, string).
+% Afterwards we handle the nonletter:
+%
+% If it is a stringizer, we switch a string boolean to indicate whether
+% we are in string mode or not. This boolean is also used by the line
+% processing.
+%
+% If we found a tabulator, we go to the next tabulator stop. The output
+% routines are responsible for knowing the number of blanks we need.
+%
+% If it's any other nonletter, we gather all coming nonletter (upto the
+% next letter, of course) and output these nonletter. Then we start
+% with a letter again, \ldots
+%
+%
+% \subsection{Special characters}\label{SpecialCharacters}
+% As you know some characters have a special meaning to \TeX, e.g.\ the
+% subscript \verb!_! or the backslash \verb!\!. \TeX{} realizes this
+% using so called category codes (catcodes). \TeX{} knows sixteen
+% different ones:
+% \begin{center}\begin{tabular}{rll}
+%	 0 & escape delimiter (backslash)& \verb!\catcode`\\=0!\\
+%	 1 & beginning of a group ($\{$)& \verb!\catcode`\{=1!\\
+%	 2 & ending of a group ($\}$)	& \verb!\catcode`\}=2!\\
+%	 3 & mathematics shift ($\$$)	& \verb!\catcode`\$=3!\\
+%	 4 & tabulator ($\&$)		& \verb!\catcode`\&=4!\\
+%	 5 & end of line (carriage return)& \verb!\catcode`\^^M=5!\\
+%	 6 & macro parameter (\verb!#!) & \verb!\catcode`\#=6!\\
+%	 7 & superscript (\verb!^!)	& \verb!\catcode`\^=7!\\
+%	 8 & subscript (\verb!_!)	& \verb!\catcode`\_=8!\\
+%	 9 & ignore			& \verb!\catcode`\^^@=9!\\
+%	10 & blank space		& \verb!\catcode`\ =10!\\
+%	11 & letter			& A..Z,a..z\\
+%	12 & other			& \\
+%	13 & active (e.g.\ \verb!~!)	& \\
+%	14 & comment			& \verb!\catcode`\%=14!\\
+%	15 & invalid characters		&
+% \end{tabular}\end{center}
+% When \TeX{} reads a character, it looks up the associated catcode and
+% treats the character accordingly, e.g.\ an active character stands
+% for a command without a leading backslash (like \verb!~! or the
+% double quote in \verb!german.sty!).
+%
+% We can't change catcodes of characters, which \TeX{} has already
+% read. But we are able to change them before. After
+% \verb!\catcode`\A=10! an upper 'A' has the same effect as a blank
+% space! Consider the \TeX source
+% \begin{verbatim}
+%    \def\uppera{A} % saving upper 'A'; we shouldn't use \upperA. Why?
+%    \catcode`\A=10 % 'A' becomes blank space. That's the reason!
+%    MayAbeAaAcuriousAexample. \upperaAnd it work's.\end{verbatim}
+% The output is
+% \begin{verbatim}
+%    May be a curious example. And it work's.\end{verbatim}
+% First we save the 'A'. Changing the catcode has no effect on the
+% definition in the first line, since \TeX{} has read it before. All
+% coming 'A' are blank spaces.
+%
+% We want to input and typeset characters 'as they are'. But the
+% subscript or the macro parameter character are not printable. So it
+% is necessary to change catcodes. We make these characters active.
+% We also change catcodes of printable characters, e.g.\ a digit
+% (normally other) will be treated as a letter, since indentifiers like
+% \verb!x1!, \verb!y2! are legal. Then it is possible to gather all
+% characters upto a nonletter to cut up a unit!
+%
+% We change catcodes for input and output. That's clear. But we also
+% do it to define some commands. One example: In Pascal we have to look
+% for \verb!{!. Let's say, we compare it with a left brace from a
+% source file. This only works, if both have the same meaning.
+% And when we declare the comment, \TeX{} must know the associated
+% catcode, since it can't be changed later.
+% Hence, we have to change it also at the time of defining the macros.
+%
+% There is at least one more thing to say: Catcodes aren't easy to
+% work with.
+%
+%
+% \section{General \TeX{}niques}
+%
+% \subsection{Macro parameter parsing}
+% A macro has at most nine parameters. They are numbered consecutively
+% and are referenced by $\#1,\ldots,\#9$. In the definition they appear
+% after the macro name, e.g.\ 
+% \begin{verbatim}
+%    \def\macro#1#2#3{\textbf{#1}\texttt{#2}\textit{#3}}\end{verbatim}
+% has three parameters. \verb!\macro the! and \verb!\macro{t}{h}{e}!
+% both lead to the output '\textbf{t}\texttt{h}\textit{e}'.
+% Parameters with more than one character must be enclosed in braces.
+% If you call the macro with less than three parameters, you will get
+% an error message (hopefully most times), since the three parameters
+% are the calling syntax of the macro. That's all well known.
+%
+% But \TeX's macro processor is more powerful. Nearly any character
+% sequence and parameter mixture can be used for the calling syntax,
+% e.g.\ 
+% \begin{verbatim}
+%    \def\macro z=(#1,#2){ ... }\end{verbatim}
+% The call \verb!\macro{10}{0}! is illegal, but \verb!\macro z=(10,0)!
+% is ok. The parameters are '10' and '0', respectively.
+%
+% This mechanism can be used to check whether a character sequence
+% is a substring of another sequence --- which will be used to
+% extract comments and keywords, but this comes later. Consider
+% \begin{verbatim}
+%    \def\macro #1substring#2\relax{ ... }\end{verbatim}
+% If we call this macro, we should always add \verb!substring\relax!
+% at the end, since the sequence belongs to the syntax of the macro:
+% \begin{verbatim}
+%    \macro This is our first call.substring\relax\end{verbatim}
+% Here the second parameter of the macro will be empty, but using
+% \begin{verbatim}
+%    \macro This is a substring example.substring\relax\end{verbatim}
+% the second parameter is not empty, since the first 'substring'
+% terminates the first parameter and lets the second begin after
+% (upto the closing \cs{relax}). The character sequence 'substring'
+% is a substring of the preceding character sequence, if and only if
+% the second parameter is not empty.
+%
+% Later we let the preceding character sequence be a list of keywords
+% to test whether a character sequence is a keyword or not.
+% Or we let the preceding character sequence be the current soure line
+% and replace 'substring' by  '//' to look for a C++ comment line.
+%
+%
+% \subsection{Quick 'if parameter empty'}
+% There are many situations where you have to look whether a macro
+% parameter is empty or not. Let's say, we want to test the first
+% parameter, which is refered by $\#1$. The \emph{natural} way would
+% be something like
+% \begin{verbatim}
+%    \def\test{#1}%
+%    \ifx \test\empty %
+%            % #1 is empty
+%    \else %
+%            % #1 is not empty
+%    \fi %\end{verbatim}
+% where \cs{empty} is defined by \verb!\def\empty{}!, of course.
+% And now the \emph{mad} way:
+% \begin{verbatim}
+%    \ifx \empty#1\empty %
+%            % #1 is empty
+%    \else %
+%            % #1 is not empty
+%    \fi %\end{verbatim}
+% Having an empty parameter the \cs{empty} left from $\#1$ is compared
+% with the \cs{empty} on the right. Since they are the same, it's all ok.
+% If the parameter is not empty, the \cs{empty} on the left is compared
+% with the first token of the parameter. Assuming this token is not
+% equivalent to \cs{empty} the \cs{else} section is executed as desired.
+% The paramater must not be the macro \cs{empty}, e.g.
+%
+% The mad way works, if and only if the first token of the parameter is
+% not equivalent to \cs{empty}. You must check, if this meets your
+% purpose. The two \cs{empty}s might be replaced by any other macro,
+% which is not equivalent to the first token of the parameter.
+% But the definition of that macro shouldn't be too complex, since
+% this slows down the \cs{ifx}. Consider
+% \begin{verbatim}
+%    \def\test{#1}\ifx \test\empty \else \fi % natural\end{verbatim}
+% and
+% \begin{verbatim}
+%    \ifx \empty#1\empty \else \fi % mad\end{verbatim}
+% The mad version needs about $45\%$ of the natural's time.
+%
+%
+% \section{Implementation}
+%
+% Before considering the implementation, here some conventions I used:
+% \begin{itemize}
+% \item The names of all public macros (the user commands) have lower
+%	case letters. (That's not true: \cs{DeclareCommentLine}, \ldots,
+%	but consistent with the third item.)
+% \item The name of all private macros and variables have prefixes:
+%	\verb!lst@! for a general macro or variable, \verb!lstdrv@! when
+%	it is defined in a driver file, and \verb!lstenv@! if it is
+%	defined for the listing environment.
+% \item To distinguish procedure-like macros from macros holding data,
+%	the name of procedure macros use upper case letters with each
+%	beginning word, e.g.\ \verb!\lst@ProcessLine!. (The only exception
+%	is the 'procedure-macro' \verb!\lst@ifoneof!.)
+% \end{itemize}
+%
+%
+% \subsection{Registers and variables}\label{ssRegisters}
+% The current version needs 1 read register, 5 counters, 2 dimensions
+% and 1 token register. The counter \verb!\@tempcnta! and the dimension
+% \verb!\@tempdima! are also used, see the index.
+%
+% \begin{macro}{\lst@inputfile}
+% \begin{macro}{\lst@ifendinput}
+% \begin{macro}{\iflisting}
+% \verb!\iflisting! is described in the user's guide. The input file
+% is \verb!\lst@inputfile!. The output of the file terminates, if and
+% only if the boolean \verb!\lst@ifendinput! is true.
+%    \begin{macrocode}
+%<*package>
+\newif\iflisting
+\newread\lst@inputfile
+\def\lst@endinputtrue{\let\lst@ifendinput\iftrue}
+\def\lst@endinputfalse{\let\lst@ifendinput\iffalse}
+%    \end{macrocode}
+% \end{macro}\end{macro}\end{macro}
+%
+% \begin{macro}{\lst@lastno}
+% \begin{macro}{\lst@lineno}
+% The user specified last line and the current input line are kept
+% in two counters:
+%    \begin{macrocode}
+\newcount\lst@lastno \newcount\lst@lineno
+%    \end{macrocode}
+% \end{macro}\end{macro}
+%
+% \begin{macro}{\lst@ifcomment}
+% \begin{macro}{\lst@ifstring}
+% \begin{macro}{\lst@commentdepth}
+% Comments (not whole comment lines) and strings are indicated by
+% following booleans. The current comment depth uses a counter.
+%    \begin{macrocode}
+\newcount\lst@commentdepth
+\def\lst@commenttrue{\let\lst@ifcomment\iftrue}
+\def\lst@commentfalse{\let\lst@ifcomment\iffalse}
+\def\lst@stringtrue{\let\lst@ifstring\iftrue}
+\def\lst@stringfalse{\let\lst@ifstring\iffalse}
+%    \end{macrocode}
+% \end{macro}\end{macro}\end{macro}
+%
+% \begin{macro}{\lst@width}
+% \begin{macro}{\lst@length}
+% \begin{macro}{\lst@pos}
+% The dimension \verb!\lst@width! holds the width of a single character
+% box and is set to \verb!\lst@baseem em!, when we output a listing.
+% The counter \verb!\lst@length! holds the length of the current
+% character string we want to output.
+% \verb!\lst@pos! holds the current column number to handle tabulators.
+%    \begin{macrocode}
+\newdimen\lst@width \newcount\lst@length \newcount\lst@pos
+%    \end{macrocode}
+% \end{macro}\end{macro}\end{macro}
+%
+% \begin{macro}{\lst@halfspread}
+% That's the half of spreadlisting's argument.
+%    \begin{macrocode}
+\newdimen\lst@halfspread
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\lst@line} \begin{macro}{\lst@comment}
+% \begin{macro}{\lst@commentline}
+% Some variables need no allocation here, since they are macros, e.g.\ 
+% most user commands save their parameter within a macro. The most
+% important 'data' macros are \verb!\lst@line!, \verb!\lst@comment!
+% and \verb!\lst@commentline!. They hold the current line, comment and
+% comment line for line processing.
+% \end{macro}\end{macro}\end{macro}
+%
+% \begin{macro}{\lst@other}
+% This version gather non-alphanumeric characters before their output.
+% Since these characters might expand, we need a token register to
+% gather them, where they surely do not expand.
+%    \begin{macrocode}
+\newtoks\lst@other
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \subsection{Comments}\label{ssComments}
+%
+% First we discuss comment lines (CL). Let's say, we have a C++ source
+% line with a comment, which is separated by '//'. To cut the line into
+% code and comment we use a macro like this:
+% \DescribeMacro\lst@CutCL
+% \begin{verbatim}
+%    \def\lst@CutCL#1//#2\relax{%
+%        \def\lst@line{#1}\def\lst@commentline{//#2}}\end{verbatim}
+% The parameter definition ensures that the first parameter holds the
+% code and our second paramater the comment upto a \cs{relax}, which
+% marks the end of the source. We (re)define the input and comment line,
+% where we must add the separator '//' again. That's easy.
+% \DescribeMacro\lst@CommentLine
+% But if we call this macro using a line without any '//', \TeX{}
+% detects a syntax error, since the line doesn't meet the definition.
+% Hence, we can't use the cut macro to look for a comment line,
+% but this:
+% \begin{verbatim}
+%    \def\lst@CommentLine{%
+%        \expandafter\lst@TestCL\lst@line//\relax}\end{verbatim}
+% Additional '//' and '\cs{relax}' hold up the syntax of the cut macro.
+% That's the point. We use an \cs{expandafter}, because we need the
+% \emph{content} of \verb!\lst@line! and not the macro token itself as
+% parameter. So the test macro is called (or expanded) after the
+% content is written behind.
+%
+% \DescribeMacro\lst@TestCL
+% Why we don't use the cut macro here? Our additional '//' would be
+% added to the comment! Therefore:
+% \begin{verbatim}
+%    \def\lst@TestCL#1//#2\relax{%
+%        \ifx\empty#2\empty %
+%            \let\lst@commentline\empty %
+%        \else %
+%            \expandafter\lst@CutCL\lst@line\relax %
+%        \fi}\end{verbatim}
+% If you compare the definition of \verb!\lst@TestCL! here and the
+% call above, you will see: The second parameter is empty, if and only
+% if there is no comment (no double slash). So we are able to call
+% the cut macro without additional '//' if we've found a comment.
+%
+% \begin{macro}{\DeclareCommentLine}
+% \begin{macro}{\lst@CommentLine}
+% \begin{macro}{\lst@TestCL}
+% \begin{macro}{\lst@CutCL}
+% Now comes the real implementation. It's different from the C++
+% example, but it only seems to. The one and only parameter of
+% \cs{DeclareCommentLine} is the comment line separator.
+% First we test, if comment lines are desired. If not we let the main
+% macro be empty. Otherwise we define three macros similar to the
+% example. But: To distinguish their parameters from the comment line
+% separator $\#1$, we have to double the '$\#$': The $n$th parameter
+% of a macro within a macro is $\#\#n$. If you know this, following
+% is clear: It's the same as the simplified example.
+%    \begin{macrocode}
+\def\DeclareCommentLine#1\relax{%
+  \ifx\@empty#1\@empty \let\lst@CommentLine\@empty %
+  \else
+      \def\lst@CommentLine{\expandafter\lst@TestCL\lst@line#1\relax}%
+      \def\lst@TestCL##1#1##2\relax{%
+          \ifx\@empty##2\@empty \let\lst@commentline\@empty %
+          \else \expandafter\lst@CutCL\lst@line\relax %
+          \fi}%
+      \def\lst@CutCL##1#1##2\relax{%
+          \def\lst@line{##1}\def\lst@commentline{#1##2}}%
+  \fi}
+%    \end{macrocode}
+% \end{macro}\end{macro}\end{macro}\end{macro}
+%
+% \begin{macro}{\lst@DefineSingleComment}
+% \begin{macro}{\lst@SOC}
+% \begin{macro}{\lst@EOC}
+% For single comments we use the same cut mechanism as above, except
+% that we use it for the start of comment (SOC) and for the end of
+% comment (EOC): We define six macros here. Additional the comment
+% boolean is switched by the cut macros. The last two parameters of
+% \verb!lst@DefineSingleComment! are the character sequences for the
+% beginning and ending of a single comment, of course. The first
+% parameter is used as suffix for the macro names.
+%    \begin{macrocode}
+\def\lst@DefineSingleComment[#1]#2 #3\relax{%
+  \ifx\@empty#3\@empty %
+    \expandafter\let\csname lst@SOC#1\endcsname\relax %
+    \expandafter\let\csname lst@EOC#1\endcsname\relax %
+  \else %
+    \expandafter\def\csname lst@SOC#1\endcsname{\expandafter %
+        \expandafter\csname lst@TestSOC#1\endcsname \lst@line#2\relax}%
+    \expandafter\def\csname lst@TestSOC#1\endcsname##1#2##2\relax{%
+        \ifx\@empty##2\@empty\else \expandafter %
+            \expandafter\csname lst@CutSOC#1\endcsname \lst@line\relax %
+        \fi}%
+    \expandafter\def\csname lst@CutSOC#1\endcsname##1#2##2\relax{%
+        \lst@commenttrue \def\lst@line{##1}\def\lst@comment{#2##2}}%
+    \expandafter\def\csname lst@EOC#1\endcsname{\expandafter %
+        \expandafter\csname lst@TestEOC#1\endcsname \lst@line#3\relax}%
+%    \end{macrocode}
+%    \begin{macrocode}
+    \expandafter\def\csname lst@TestEOC#1\endcsname ##1#3##2\relax{%
+          \ifx\@empty##2\@empty %
+%    \end{macrocode}
+% Here we are in the situation that we look for the end of comment but
+% haven't found one. Since we are in comment mode, the whole line is
+% the comment and the line gets empty.
+%    \begin{macrocode}
+              \let\lst@comment\lst@line \let\lst@line\@empty %
+          \else \expandafter %
+              \expandafter\csname lst@CutEOC#1\endcsname\lst@line\relax%
+          \fi}%
+    \expandafter\def\csname lst@CutEOC#1\endcsname##1#3##2\relax{%
+        \lst@commentfalse \def\lst@line{##2}\def\lst@comment{##1#3}}%
+  \fi}
+%    \end{macrocode}
+% \end{macro}\end{macro}\end{macro}
+%
+% \begin{macro}{\DeclareSingleComment}
+% That's an abbreviation of the macro just defined, but where the
+% suffix-parameter is empty.
+%    \begin{macrocode}
+\def\DeclareSingleComment{\lst@DefineSingleComment[]}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\DeclarePairedComment}
+% First we define a single comment. Then we adjust one cut macro:
+% The SOC delimiter is defined to belong to the line and not to the
+% comment.
+%    \begin{macrocode}
+\def\DeclarePairedComment#1\relax{%
+    \lst@DefineSingleComment[]#1 #1\relax %
+    \def\lst@CutSOC##1#1##2\relax{%
+        \lst@commenttrue \def\lst@line{##1#1}\def\lst@comment{##2}}}%
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\DeclareDoubleComment}
+% We define a single comment and another one with slightly different
+% names (additional \verb!@!). Then we compose the two single comments.
+%    \begin{macrocode}
+\def\DeclareDoubleComment#1 #2 #3 #4\relax{%
+    \lst@DefineSingleComment[]#1 #2\relax %
+    \lst@DefineSingleComment[@]#3 #4\relax %
+    \lst@HookComment#1 #3 \lst@TestSOC@\lst@EOC@\lst@SavedEOC}%
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\lst@HookComment}
+% The purpose of this macro is to compose a SOC/EOC pair already
+% defined with another SOC/EOC pair, which need not to be defined yet.
+% The job is to coincide start and end of comment: We have to look
+% whether the first, the second or none comment starts, and must
+% select the right macro to find the corresponding end of comment.
+% The first and second parameter are the SOC delimiters of the first
+% (defined) and second SOC/EOC pair, respectively. Therefor they are
+% separated by blank spaces. The third and fourth parameters are the
+% \verb!TestSOC! and \verb!EOC! macros of the second SOC/EOC pair.
+% Parameter five is a macro name used to save a EOC macro. That's done
+% in the second line:
+%    \begin{macrocode}
+\def\lst@HookComment#1 #2 #3#4#5{%
+    \let#5\lst@EOC %
+    \def\lst@TestSOC##1#1##2\relax{%
+%    \end{macrocode}
+% Now $\#\#1$ holds the code of the line and $\#\#2$ (possibly) the
+% comment. But we have to look whether the other comment type starts
+% before this here or not. So we call the test macro of the other
+% comment first. If we've found one, we let \verb!\lst@EOC! be the
+% macro, which looks for the end of that comment.
+%    \begin{macrocode}
+        #3##1#2\relax %
+        \lst@ifcomment \let\lst@EOC#4%
+%    \end{macrocode}
+% Otherwise we do the test for this comment. If there is a comment,
+% we cut up the line and let \verb!\lst@EOC! be the macro, which
+% looks for the end of this comment.
+%    \begin{macrocode}
+        \else %
+            \ifx\@empty##2\@empty \else %
+                \expandafter\lst@CutSOC\lst@line\relax %
+                \let\lst@EOC#5%
+            \fi %
+        \fi}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\DeclareNestedComment}
+% For nested comments we do it the same way: We declare a single
+% comment and adjust some macros. Testing for an end of comment is
+% nearly the same as for single comments.
+%    \begin{macrocode}
+\def\DeclareNestedComment#1 #2\relax{%
+    \lst@DefineSingleComment[]#1 #2\relax %
+    \def\lst@TestEOC##1#2##2\relax{%
+%    \end{macrocode}
+% The only difference is that we have to count how many (new) comments
+% start in the comment. And this is done here, the rest is the same as
+% above.
+%    \begin{macrocode}
+        \lst@CountSOC##1#1\relax %
+        \ifx\@empty##2\@empty %
+            \let\lst@comment\lst@line \let\lst@line\@empty %
+        \else %
+            \expandafter\lst@CutEOC\lst@line\relax %
+        \fi}%
+%    \end{macrocode}
+% An end of comment lets the comment depth decrease. If we reach 0,
+% we set the comment boolean false. That's not new, since this happens
+% always with not nested comments.
+%    \begin{macrocode}
+    \def\lst@CutEOC##1#2##2\relax{%
+        \advance\lst@commentdepth by -1\relax %
+        \ifnum 0=\lst@commentdepth \lst@commentfalse\fi %
+        \def\lst@line{##2}\def\lst@comment{##1#2}}%
+%    \end{macrocode}
+% Now we have to do something for increasing the comment depth. We
+% count how many new comments start within a comment. To move through
+% a comment we use the same separation mechanism as all the time. The
+% second parameter is empty, if and only if there is no (more) start
+% of comment. While it is not empty we increase the comment depth and
+% call this macro again with the current rest of the comment.
+%    \begin{macrocode}
+    \def\lst@CountSOC##1#1##2\relax{%
+        \ifx\@empty##2\@empty\else %
+            \advance\lst@commentdepth by 1%
+            \def\@tempa{\lst@CountSOC##2\relax}%
+%    \end{macrocode}
+% Note: \verb!\@tempa! is executed after the closing \verb!\fi! to call
+% the macro again.
+%    \begin{macrocode}
+            \expandafter\@tempa %
+        \fi}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\DeclareCLPercent}
+% This command is equivalent to \verb!\DeclareCommentLine %\relax!,
+% where the percent has the catcode we need when we input a listing.
+%    \begin{macrocode}
+{\catcode`\%=12 \gdef\DeclareCLPercent{\DeclareCommentLine %\relax}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\DeclareDoubleCommentPascal}
+% Dito for Pascal comments.
+%    \begin{macrocode}
+\begingroup \catcode`\[=1 \catcode`\]=2
+\catcode`\{=\active \catcode`\}=\active \catcode`\*=\active
+\gdef\DeclareDoubleCommentPascal[\DeclareDoubleComment (* *) { }\relax]
+\endgroup
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \subsection{Keywords}\label{ssKeywords}
+%
+% \begin{macro}{\lst@CaseSensitiveKeywords}
+% We have to decide whether a given character sequence is a reserved
+% word or not. Doing this test is very familiar with the cut mechanism
+% for comments. To test, if \verb!key! is a keyword, we define a macro
+% \begin{verbatim}
+%    \def\lst@test#1,key,#2\relax{...}\end{verbatim}
+% Afterwards we call the macro with the parameters
+% \begin{center}\begin{tabular}{l@{}l}
+%    all current keywords&\verb!,key,\relax!
+% \end{tabular}\end{center}
+% When \TeX{} passes the arguments, the second parameter is empty,
+% if and only if \verb!key! is not a current keyword. So we are able to
+% decide whether to make a normal box, or a box with keywordstyle.
+%    \begin{macrocode}
+\def\lst@CaseSensitiveKeywords#1\relax{%
+    \def\lst@test##1,#1,##2\relax{%
+        \ifx \@empty##2\@empty \lst@MakeBox{}%
+        \else \lst@MakeBox{\lst@keywordstyle}%
+        \fi}%
+%    \end{macrocode}
+% We only need to call the macro defined right before. \verb!,#1,\relax!
+% holds up the syntax of the macro.
+%    \begin{macrocode}
+    \expandafter\lst@test\lst@keywords,#1,\relax}%
+%    \end{macrocode}
+% Since \TeX{} always passes two arguments to the test macro, \TeX{}
+% splits the whole 'input' \verb!\lst@keywords,#1,\relax! in two parts.
+% So there is no need to sort the keywords by probability.\footnote{If
+% you sort the keywords by probability and make a loop for the keyword
+% tests, which terminates right after finding a keyword, you might think
+% that's faster than the \TeX{}nique used here. Well, if your source
+% code uses the three or four most common keywords only, you are right.
+% Most cases it will be slow. In fact the versions 0.1 and 0.11 have
+% used something like loops, even something faster, but which is much
+% slower than this here.}
+% \end{macro}
+%
+% \begin{macro}{\lst@NonCaseSensitiveKeywords}
+% Now we implement the test for keywords, which are not case sensitive.
+% We use two \cs{uppercase} to normalize the test string and the keywords.
+% For the keywords we need some expandafters, so that the keywords are
+% expanded before making the characters upper case.
+%    \begin{macrocode}
+\def\lst@NonCaseSensitiveKeywords#1\relax{%
+    \uppercase{\def\lst@test##1,#1,##2\relax{%
+        \ifx \@empty##2\@empty \lst@MakeBox{}%
+        \else \lst@MakeBox{\lst@keywordstyle}%
+        \fi}}%
+    \expandafter\uppercase\expandafter{%
+        \expandafter\lst@test\lst@keywords,#1,\relax}}%
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\lst@IfOneOf}
+% \begin{macro}{\lst@ifoneof}
+% We define two macros, which are very familiar with the keyword tests.
+% The first macro is a case sensitive version of the second one. The
+% first parameter is terminated by \cs{relax}, the other three are not.
+% If the first parameter is found in the second parameter (a keyword
+% list) the third parameter is executed. Otherwise we perform the forth.
+% The implementation is clear.
+%    \begin{macrocode}
+\def\lst@IfOneOf#1\relax#2{%
+    \def\lst@test##1,#1,##2\relax{%
+        \ifx \@empty##2\@empty \expandafter\@secondoftwo %
+        \else \expandafter\@firstoftwo %
+        \fi}%
+    \lst@test,#2,#1,\relax}%
+\def\lst@ifoneof#1\relax#2{%
+    \uppercase{\def\lst@test##1,#1,##2\relax{%
+        \ifx \@empty##2\@empty \expandafter\@secondoftwo %
+        \else \expandafter\@firstoftwo %
+        \fi}}%
+    \uppercase{\lst@test,#2,#1,\relax}}%
+%    \end{macrocode}
+% \end{macro}\end{macro}
+%
+%
+% \subsection{Commands}\label{ssCommands}
+% \begin{macro}{\selectlisting}
+% This command loads the specified driver file and selects the language.
+% We give an error message, if the driver file doesn't support the
+% necessary macro.
+%    \begin{macrocode}
+\newcommand\selectlisting[2][]{%
+    \@ifundefined{lstdrv@#2@}{\input{lst#2.sty}}{}%
+    \@ifundefined{lstdrv@#2@}{%
+        \PackageError{Listings}{Driver file for `#2' corrupt}{%
+        The driver file doesn't define \string\lstdrv@#2@.}}{%
+    \@ifundefined{lstdrv@#2@#1}{%
+        \PackageError{Listings}{Option `#1' not supported}{%
+        The driver file doesn't define \string\lstdrv@#2@#1.}}{%
+    \csname lstdrv@#2@#1\endcsname \def\lst@curr{#2}\def\lst@opt{#1}}}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\lst@ifselect}
+% \begin{macro}{\lst@ifoption}
+% These two private macros are similar to \LaTeXe{}'s \verb!\@ifundefined!,
+% except that the selected language and option are tested, of course.
+%    \begin{macrocode}
+\def\lst@ifselect#1{\def\lst@test{#1}%
+    \ifx\lst@curr\lst@test \expandafter\@firstoftwo %
+    \else \expandafter\@secondoftwo \fi}
+\def\lst@ifoption#1{\def\lst@test{#1}%
+    \ifx\lst@opt\lst@test \expandafter\@firstoftwo %
+    \else \expandafter\@secondoftwo \fi}
+%    \end{macrocode}
+% \end{macro}\end{macro}
+%
+% \begin{macro}{\keywordstyle}
+% \begin{macro}{\commentstyle}
+% \begin{macro}{\stringstyle}
+% \begin{macro}{\labelstyle}
+% The following user commands save the parameter in (private) macros.
+% The labelstyle command checks for a legal step count for labels.
+%    \begin{macrocode}
+\newcommand\keywordstyle[1]{\def\lst@keywordstyle{#1}}
+\newcommand\commentstyle[1]{\def\lst@commentstyle{#1}}
+\newcommand\stringstyle[1]{\def\lst@stringstyle{#1}}
+\newcommand\labelstyle[2][1]{\def\lst@labelstyle{#2}%
+    \ifnum #1>-1 \def\lst@labelstep{#1}\else %
+    \PackageError{Listings}{Nonnegative integer expected}{%
+    You can't use `#1' as step count for labels.^^J%
+    I'll forget it and proceed.}\fi}
+%    \end{macrocode}
+% \end{macro}\end{macro}\end{macro}\end{macro}
+%
+% \begin{macro}{\tablength}
+% \begin{macro}{\lstbaseem}
+% \begin{macro}{\lstlineskip}
+% \cs{tablength} and \cs{lstbaseem} also look, if the arguments are
+% legal.
+%    \begin{macrocode}
+\newcommand\tablength[1]{\ifnum#1>0 \def\lst@tablength{#1}\else %
+    \PackageError{Listings}{Strict positive integer expected}{%
+    You can't use `#1' as tablength.^^J I'll forget it and proceed.}\fi}
+\newcommand\lstbaseem[1]{\ifdim #1em>0pt \def\lst@baseem{#1}\else %
+    \PackageError{Listings}{Strict positive number expected}{%
+    You can't use `#1' as baseem.^^J I'll forget it and proceed.}\fi}
+\newcommand\lstlineskip[1]{\def\lst@lineskip{#1}}
+%    \end{macrocode}
+% \end{macro}\end{macro}\end{macro}
+%
+% \begin{macro}{\prelisting}
+% \begin{macro}{\postlisting}
+% \begin{macro}{\spreadlisting}
+% \begin{macro}{\keywords}
+% \begin{macro}{\morekeywords}
+% \begin{macro}{\stringizer}
+% More 'parameter-saving' commands:
+%    \begin{macrocode}
+\newcommand\prelisting[1]{\def\lst@prelisting{#1}}
+\newcommand\postlisting[1]{\def\lst@postlisting{#1}}
+\newcommand\spreadlisting[1]{\lst@halfspread#1\relax %
+    \lst@halfspread 0.5\lst@halfspread\relax}
+\newcommand\keywords[1]{%
+    \edef\lst@keywords{,\zap@space#1 \@empty}}
+\newcommand\morekeywords[1]{%
+    \edef\lst@keywords{\lst@keywords,\zap@space#1 \@empty}}
+\newcommand\stringizer[2][d]{%
+    \@ifundefined{lst@#1TestStringizer}{%
+        \PackageError{Listings}{Illegal stringizer option `#1'}{%
+        Available options are 'b' and 'd'.}}{%
+    \expandafter\let\expandafter\lst@TestStringizer %
+    \csname lst@#1TestStringizer\endcsname \def\lst@stringizer{#2}}}
+%    \end{macrocode}
+% \end{macro}\end{macro}\end{macro}\end{macro}
+% \end{macro}\end{macro}
+%
+% \begin{macro}{\blankstringtrue}
+% \begin{macro}{\blankstringfalse}
+% \begin{macro}{\sensitivetrue}
+% \begin{macro}{\sensitivefalse}
+% The user switches assign the right macros.
+%    \begin{macrocode}
+\newcommand\blankstringtrue{%
+    \let\lst@MakeStringBox\lst@MakeBox}
+\newcommand\blankstringfalse{%
+    \let\lst@MakeStringBox\lst@MakeSpecialStringBox}
+\newcommand\sensitivetrue{%
+    \let\lst@KeywordOrNot\lst@CaseSensitiveKeywords}
+\newcommand\sensitivefalse{%
+    \let\lst@KeywordOrNot\lst@NonCaseSensitiveKeywords}
+%    \end{macrocode}
+% \end{macro}\end{macro}\end{macro}\end{macro}
+%
+% \begin{macro}{\normallisting}
+% The default style is set using the previous commands:
+%    \begin{macrocode}
+\newcommand\normallisting{%
+    \keywordstyle{\bfseries}\commentstyle{\itshape}%
+    \stringstyle{}\labelstyle[0]{}%
+    \prelisting{}\postlisting{}%
+    \spreadlisting{0pt}\blankstringfalse}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\listoflistings}
+% At the end of this section we define commands for the list of
+% listings. It's a derivation of \cs{listoffigures}.
+%    \begin{macrocode}
+\newcommand\listoflistings{%
+    \ifx\chapter\undefined %
+        \expandafter\section \else \expandafter\chapter %
+    \fi *{\listlistingsname %
+      \@mkboth{\MakeUppercase\listlistingsname}%
+              {\MakeUppercase\listlistingsname}}%
+    \@starttoc{lol}}
+\newcommand\listlistingsname{Listings}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\lst@ListOfListingsEntry}
+% And at the very end a command to add an entry to the list. The first
+% parameter is the name of the listing, and the second is reserved for
+% the line range, I think, but not used so far.
+%    \begin{macrocode}
+\newcommand\lst@ListOfListingsEntry[2]{%
+    \ifx \@empty#1\@empty \else %
+        \addtocontents{lol}{\protect\ListOfListingsLine{#1}{#2}%
+            {\lst@curr}{\thepage}}%
+    \fi}
+\newcommand\ListOfListingsLine[4]{%
+    \@dottedtocline{1}{1.5em}{2.3em}{#1}{#4}}
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \subsection{Typesetting a listing}
+% \begin{macro}{\inputlisting}
+% Now we define the main command. The first parameter is optional and
+% set to $[1,999999]$, if none is given. The second parameter is the
+% filename. If the file doesn't exist, we give an error message.
+% Otherwise we process the listing. But all this only happens,
+% if listings are desired.
+%    \begin{macrocode}
+\newcommand\inputlisting[2][1,999999]{%
+    \lst@ListOfListingsEntry{#2}{}%
+    \iflisting %
+        \batchmode \openin\lst@inputfile#2 \errorstopmode %
+        \ifeof\lst@inputfile %
+            \PackageError{Listings}{File `#2' not found}{%
+            You must tell me the right name or I can't do the job.}%
+        \else %
+            \message{(#2}\lst@ProcessListing[#1]\message{)}%
+        \fi \closein\lst@inputfile %
+    \else %
+        \begin{center}%
+        --- Listing of #2 has been skipped. ---
+        \end{center}%
+    \fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\lst@ProcessListing}
+% The two parameters of this command are the first and last output
+% line, respectively. First we set up a bit and skip the lines of the
+% listing upto the first printing line.
+%    \begin{macrocode}
+\def\lst@ProcessListing[#1,#2]{%
+    \lst@Begin{#1}%
+    \lst@lastno #2%
+    \@whilenum #1>\lst@lineno \do %
+        {\read\lst@inputfile to\lst@line %
+         \advance\lst@lineno\@ne}%
+%    \end{macrocode}
+% The following loop terminates, if the end of file or the specified
+% last line is reached. In the loop we read and process the listing
+% line by line.
+%    \begin{macrocode}
+    \lst@endinputfalse %
+    \loop %
+        \read\lst@inputfile to\lst@line %
+        \ifeof\lst@inputfile \lst@endinputtrue \fi %
+        \ifnum\lst@lastno<\lst@lineno\lst@endinputtrue\fi %
+    \lst@ifendinput\else %
+        \expandafter\lst@RemovePar\lst@line\par\relax %
+        \lst@AllLineProcessing %
+    \repeat %
+    \lst@End}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\lst@RemovePar}
+% The next macro removes (together with the special call above) a
+% \cs{par} from the input line. So we need only one \cs{long}
+% definition, namely this here.
+%    \begin{macrocode}
+\long\def\lst@RemovePar#1\par#2\relax{\def\lst@line{#1}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\listing}
+% Now we define the environment for typesetting listings. To read the
+% \TeX-file line by line we have to make the end of line character
+% \verb!^^M! active. If no output is desired, we typeset a message and
+% read the listing without doing any output.
+% Ending the environment is very easy.
+%    \begin{macrocode}
+\newenvironment{listing}{%
+    \iflisting\else
+        \begin{center}%
+        --- Listing has been skipped. ---
+        \end{center}%
+    \fi %
+    \lst@Begin{1}\catcode`\^^M=\active %
+    \lstenv@SkipLineAndProcess}{}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\lstenv@SkipLineAndProcess}
+% We will use a mechanism used in the new implementation of \LaTeX's
+% \verb!verbatim! environments. I don't explain it here. It is
+% described in section 3.4 of \cite{verbatim}.
+%    \begin{macrocode}
+\begingroup
+\catcode`\!=\active \catcode`\(=\active \catcode`\)=\active
+\lccode`\!=`\\ \lccode`\(=`\{ \lccode`\)=`\}
+\catcode`\~=\active \lccode`\~=`\^^M
+\lowercase{
+%    \end{macrocode}
+% The effect of \cs{lowercase} is that all \verb+!+, \verb!(!, \verb!)!
+% and \verb!~! of the argument are converted to \verb!\!, \verb!{!,
+% \verb!}! and \verb!^^M!.
+% The macro \verb!\lstenv@SkipLineAndProcess! skips the rest of the
+% line, tests the optional argument and begins the loop of processing.
+%    \begin{macrocode}
+\gdef\lstenv@SkipLineAndProcess#1~{%
+    \lstenv@TestOptional#1[]~\lstenv@ReadAndProcess}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\lstenv@TestOptional}
+% The second parameter is empty, if and only if there is no optional
+% argument.
+%    \begin{macrocode}
+\gdef\lstenv@TestOptional#1[#2]#3~{%
+    \ifx\@empty#2\@empty\else \lst@ListOfListingsEntry{#2}{}\fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\lstenv@ReadAndProcess}
+% The macro \verb!\lstenv@ReadAndProcess! gets the input upto the next
+% end of line character. We append \verb!\end{listing}\relax!
+% to hold up the syntax of \verb!\lstenv@Process!.
+%    \begin{macrocode}
+\gdef\lstenv@ReadAndProcess#1~{\lstenv@Process#1!end(listing)\relax}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\lstenv@Process}
+% The second parameter of this macro is empty, if and only if the end
+% of the environment is not reached. If the listing goes on, we define
+% the current line, do the line processing and define the next macro.
+% If the listing is over, we define the right macro to be done next.
+%    \begin{macrocode}
+\gdef\lstenv@Process#1!end(listing)#2\relax{%
+    \ifx \@empty#2\@empty %
+        \iflisting \def\lst@line{#1}\lst@AllLineProcessing \fi %
+        \let\lst@next\lstenv@ReadAndProcess %
+    \else %
+        \def\lst@next{\lst@End\end{listing}}%
+    \fi \lst@next}
+}\endgroup
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\lst@Begin}
+% \begin{macro}{\lst@End}
+% Let's look what's to do to begin and end a listing, respectively.
+% We insert a small skip, the user defined \verb!\lst@prelisting!
+% and \verb!\lst@postlisting! and initialize some variables.
+% Of course, we use a new group level, so that outer blocks are not
+% affected by the changes made here.
+%    \begin{macrocode}
+\newcommand\lst@Begin[1]{%
+    \smallbreak\bgroup\lst@prelisting %
+    \parskip\lst@lineskip %
+    \lst@stringfalse \lst@commentdepth0 \lst@commentfalse %
+    \let\lst@comment\@empty \let\lst@commentline\@empty %
+    \lst@lineno\@ne %
+%    \end{macrocode}
+% The following two lines ensure, that \TeX{} doesn't read font
+% information from other files when catcodes are changed.
+%    \begin{macrocode}
+    \setbox0\hbox{{\lst@keywordstyle}{\lst@commentstyle}%
+        {\lst@stringstyle}{{\lst@labelstyle0}}}%
+%    \end{macrocode}
+% The textwidth for a listing is spread using a parshape command
+% every paragraph. If \verb!\lst@labelstep! is zero, no labels (=line
+% numbers) are printed.
+%    \begin{macrocode}
+    \@tempdima\textwidth \advance\@tempdima by 2\lst@halfspread %
+    \expandafter\ifnum \lst@labelstep=0 %
+        \everypar{\parshape 1 -\lst@halfspread \@tempdima}%
+    \else %
+%    \end{macrocode}
+% The parameter is the number of the first printing line. We calculate
+% how many lines it will take to set the first label (a line number)
+% and assign it to \verb!\@tempcnta!.
+%    \begin{macrocode}
+        \@tempcnta#1\divide\@tempcnta\lst@labelstep %
+        \multiply\@tempcnta-\lst@labelstep \advance\@tempcnta#1\relax %
+        \ifnum\@tempcnta>0 \advance\@tempcnta-\lst@labelstep \fi %
+%    \end{macrocode}
+% Defining \cs{everypar} is easy now and some other things also.
+%    \begin{macrocode}
+        \everypar{\parshape 1 -\lst@halfspread \@tempdima %
+            \ifnum \@tempcnta=0 %
+                \advance\@tempcnta-\lst@labelstep \llap{%
+                \bgroup\lst@labelstyle\the\lst@lineno\relax\egroup\ }%
+            \fi %
+            \advance\@tempcnta\@ne}%
+    \fi %
+    \expandafter\lst@width\lst@baseem em %
+    \lst@ChangeCatcodes %
+%    \end{macrocode}
+% Finally we call the language's own prepare macro.
+%    \begin{macrocode}
+    \edef\next{lstdrv@\lst@curr @PrepareListing}%
+    \expandafter\csname\next\endcsname}
+%    \end{macrocode}
+% The ending of a listing is not very exciting.
+%    \begin{macrocode}
+\def\lst@End{\lst@postlisting\catcode`\%=\lst@ccPercent %
+    \par\removelastskip\egroup \smallbreak\ignorespaces}
+%    \end{macrocode}
+% \end{macro}\end{macro}
+%
+%
+% \subsection{Line processing}\label{ssLineProcessing}
+%
+% \begin{macro}{\lst@AllLineProcessing}
+% Here comes the single line processing. First we collect the line
+% processing in one macro: Some initialization, pre-processing,
+% processing and post-processing, but only if the line is not empty.
+% We increase the current line number also.
+%    \begin{macrocode}
+\def\lst@AllLineProcessing{%
+    \ifx \lst@line\@empty \par\noindent\hbox{}\else
+        \let\lst@text\@empty \lst@length0 \global\lst@pos0 %
+        \let\lst@lastother\@empty %
+        \par\noindent \lst@PrePL \lst@ProcessLine \lst@PostPL %
+    \fi \advance\lst@lineno\@ne}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\lst@PrePLDefault}
+% \begin{macro}{\lst@PostPLDefault}
+% Before considering the main macro we define the defaults for
+% \verb!\lst@PrePL! and \verb!\lst@PostPL!. The latter gives a
+% warning, if a string exceeds a line.
+%    \begin{macrocode}
+\let\lst@PrePLDefault\relax
+\def\lst@PostPLDefault{%
+    \lst@ifstring %
+        \PackageWarning{Listings}{string constant exceeds line}%
+        \lst@stringfalse %
+    \fi}
+%    \end{macrocode}
+% \end{macro}\end{macro}
+%
+% \begin{macro}{\lst@ProcessLine}
+% Now the main macro for line processing. There is no parameter,
+% because the data is given by \verb!\lst@line!. We construct a loop
+% by defining the macro \cs{next} to call this macro again. But this
+% definition might changes soon to terminate line processing.
+%    \begin{macrocode}
+\def\lst@ProcessLine{\let\next\lst@ProcessLine %
+%    \end{macrocode}
+% Since a comment might exceeds a line, we have to handle this case
+% first. We try to find the end of comment, which saves the comment
+% in \verb!\lst@comment! and might changes the boolean
+% \verb!\lst@ifcomment!.
+%    \begin{macrocode}
+    \lst@ifcomment \lst@EOC %
+%    \end{macrocode}
+% To output the comment we use a little trick (concerning the naming
+% of a macro). The tokenize macro below not only cuts up the input for
+% scanning keywords. In comment mode it will cut the input in the same
+% way, but always uses commentstyle for the output. Therefore we
+% switch to comment mode locally and call the macro.
+%    \begin{macrocode}
+        {\lst@commenttrue \expandafter\lst@Tokenize\lst@comment\relax}%
+%    \end{macrocode}
+% We empty the comment just output. If the comment goes on, i.e.\ the
+% comment was the whole line, line processing is over, i.e.\ there is
+% nothing to do next: We redefine the macro \cs{next}.
+%    \begin{macrocode}
+        \let\lst@comment\@empty \lst@ifcomment \let\next\relax \fi %
+    \else %
+%    \end{macrocode}
+% If no comment is in progress, the macro tries to find one and cuts
+% off a comment line, if possible (or a part of the line as a comment
+% line).
+%    \begin{macrocode}
+        \lst@SOC \lst@CommentLine %
+%    \end{macrocode}
+% Now \verb!\lst@line! has been cut to the noncomment rest.
+% We have to find the keywords. \cs{relax} is used as a brake:
+% It marks the end and will terminate tokenizing.
+%    \begin{macrocode}
+        {\lst@commentfalse \expandafter\lst@Tokenize\lst@line\relax}%
+%    \end{macrocode}
+% If a string has begun in \verb!\lst@Tokenize!, but not finished,
+% the potential comment above belongs to the string. What's to do? The
+% input line gets the comment and the next character is typeset. Then
+% we call this macro without being in danger classifing the comment as
+% a comment again, because the first character is missing now. But
+% hold on: The comment might be empty and so the input line. To handle
+% this we use two \cs{relax} as brake and might redefine \cs{next}.
+% \verb!\lst@PostPL! might gives a warning to the user.
+%    \begin{macrocode}
+        \lst@ifstring %
+            \lst@commentfalse %
+            \expandafter\expandafter\expandafter\lst@TypesetChar %
+                \expandafter\lst@commentline\lst@comment\relax\relax %
+                \let\lst@comment\@empty \let\lst@commentline\@empty %
+            \ifx \lst@line\@empty \let\next\relax \fi %
+        \else %
+%    \end{macrocode}
+% If no string is in work, it's all fine. We output the comment line,
+% if present. In that case there is no other comment.
+%    \begin{macrocode}
+            \ifx\lst@commentline\@empty \else %
+                \lst@commenttrue %
+                \expandafter\expandafter\expandafter\lst@Tokenize %
+                    \expandafter\lst@commentline\lst@comment\relax %
+                \lst@commentfalse %
+            \fi %
+%    \end{macrocode}
+% For comments this macro calls itself to find the end of comment.
+% As this is the default, we only have to assign the comment to
+% \verb!\lst@line! --- the implizit parameter of this macro.
+% If there is no comment, we redefine \cs{next}.
+%    \begin{macrocode}
+            \lst@ifcomment \let\lst@line\lst@comment %
+            \else \let\next\relax %
+            \fi %
+%    \end{macrocode}
+% We have to close some ifs and do the next thing.
+%    \begin{macrocode}
+        \fi %
+    \fi\next}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\lst@TypesetChar}
+% The following macro has been used in the last macro. It typesets the
+% next character and removes it from the input line.
+%    \begin{macrocode}
+\def\lst@TypesetChar#1#2\relax{\def\lst@line{#2}\lst@OutputChar#1}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\lst@ProcessWhitespaces}
+% This macro processes all whitespaces (blank spaces and tabulators here)
+% from the beginning of \verb!\lst@line! upto the first non-whitespace.
+% The macro assumes that \verb!\lst@text! is already output.
+%    \begin{macrocode}
+\def\lst@ProcessWhitespaces{%
+    \expandafter\lst@TestWhitespace\lst@line\relax}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\lst@EndTestWhitespace}
+% To end the whitespace test we get the line upto the closing \cs{relax}
+% and assign it to \verb!\lst@line!.
+%    \begin{macrocode}
+\def\lst@EndTestWhitespace#1\relax{\def\lst@line{#1}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\lst@TestWhitespace}
+% The real work is done here. We test for a whitespace, do the output
+% and decide what's to be done next.
+%    \begin{macrocode}
+\def\lst@TestWhitespace#1{\let\next\lst@TestWhitespace %
+    \ifcat #1&\lst@GotoNextTabStop %
+    \else \if #1\lst@outputblank \lst@OutputChar#1%
+    \else
+        \ifx#1\relax \let\lst@line\@empty \let\next\relax %
+        \else \def\next{\lst@EndTestWhitespace#1}%
+        \fi %
+    \fi \fi \next}
+%    \end{macrocode}
+% \end{macro}
+% The line processing is complete. Now we will try to scan keywords.
+%
+%
+% \subsection{Tokenizing}\label{ssTokenizing}
+% We define two tokenize macros. The first determines potential
+% keywords by collecting characters upto a nonletter. After outputting
+% the potential keyword the second macro is called to gather all
+% characters upto the next letter. Then these characters are output
+% and the first macro is called again. That's how the two macros work
+% together.
+%
+% \begin{macro}{\lst@Tokenize}
+% The tokenize macro gets code upto \cs{relax} and scans for keywords
+% and strings. In fact it only cuts up potential keywords, which are
+% tested right before their output. We define the next operation first:
+%    \begin{macrocode}
+\def\lst@Tokenize#1{\let\lst@next\lst@Tokenize%
+%    \end{macrocode}
+% An incoming letter is gathered. If we found a nonletter, we output
+% the preceding text. The keyword test takes place there.
+%    \begin{macrocode}
+    \ifcat #1a%
+        \edef\lst@text{\lst@text#1}\advance\lst@length\@ne %
+    \else %
+        \lst@Output %
+%    \end{macrocode}
+% If the other character is a tabulator, we go to the next tab stop.
+%    \begin{macrocode}
+        \ifcat #1&\lst@GotoNextTabStop %
+    \else %
+%    \end{macrocode}
+% Getting to the terminator \cs{relax} ends tokenizing by defining
+% next operation empty, here \cs{relax}. Otherwise our next operation
+% is 'tokenizing' nonletter characters.
+%    \begin{macrocode}
+        \ifx#1\relax \let\lst@next\relax %
+        \else \let\lst@next\lst@TokenizeOther %
+%    \end{macrocode}
+% If we are in comment mode, we have not to look for strings and gather
+% the nonletter character. Otherwise we look for stringizer. Then come
+% some closing \cs{fi}s and the next operation.
+%    \begin{macrocode}
+            \lst@ifcomment \lst@length\z@ \lst@AppendOther#1%
+            \else \lst@TestStringizer#1\fi %
+        \fi %
+    \fi \fi \lst@next}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\lst@TokenizeOther}
+% This macro looks like \verb!lst@Tokenize! except that we have to
+% insert some \verb!\lst@OutputOther!.
+%    \begin{macrocode}
+\def\lst@TokenizeOther#1{%
+    \let\lst@next\lst@TokenizeOther %
+    \ifcat #1a%
+        \lst@OutputOther \let\lst@lastother\@empty %
+        \def\lst@text{#1}\lst@length\@ne %
+        \let\lst@next\lst@Tokenize %
+    \else \ifcat #1&%
+        \lst@OutputOther \lst@GotoNextTabStop %
+    \else %
+        \ifx#1\relax \lst@OutputOther \let\lst@next\relax %
+%    \end{macrocode}
+% Now comes something new. If we find two successive blank spaces, we
+% output all preceding other characters first. This avoid alignment
+% problems when too many blanks follow each other.
+% The rest is unchanged.
+%    \begin{macrocode}
+        \else \ifx\lst@lastother\lst@inputblank\if#1\lst@inputblank %
+            \lst@OutputOther \fi\fi %
+        \lst@ifcomment \lst@AppendOther#1%
+        \else \lst@TestStringizer#1%
+        \fi \fi %
+    \fi \fi \lst@next}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\lst@AppendOther}
+% This macro simply appends a character to the token register
+% \verb!\lst@other!.
+%    \begin{macrocode}
+\def\lst@AppendOther#1{\advance\lst@length\@ne %
+    \expandafter\lst@other\expandafter{\the\lst@other#1}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\lst@bTestStringizer}
+% Here we do the stringizer tests. If a string already started, we
+% gather the current character and look for the closing stringizer.
+% If we've found it, we output \verb!\lst@other! and switch the
+% string boolean, but only if the preceding other character is not
+% a backslash (which inserts a stringizer at the current position
+% of the string).
+%    \begin{macrocode}
+\def\lst@bTestStringizer#1{%
+    \lst@ifstring \lst@AppendOther#1%
+        \expandafter\ifx\lst@closing@stringizer#1%
+            \ifx\lst@lastother\lst@inputbackslash \else %
+            \lst@OutputOther \global\lst@stringfalse %
+        \fi \fi %
+        \def\lst@lastother{#1}%
+%    \end{macrocode}
+% If we are not in string mode, we compare the current character with
+% all given stringizers and gather the character afterwards, since
+% the string boolean might changes and we might output the preceding
+% characters with a different style.
+%    \begin{macrocode}
+    \else %
+        \def\lst@lastother{#1}%
+        \expandafter\lst@DoStringizerTest\lst@stringizer\relax %
+        \lst@AppendOther#1%
+    \fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\lst@dTestStringizer}
+% Nearly the same:
+%    \begin{macrocode}
+\def\lst@dTestStringizer#1{\def\lst@lastother{#1}%
+    \lst@ifstring \lst@AppendOther#1%
+        \ifx\lst@closing@stringizer\lst@lastother %
+            \lst@OutputOther \global\lst@stringfalse %
+        \fi %
+    \else %
+        \expandafter\lst@DoStringizerTest\lst@stringizer\relax %
+        \lst@AppendOther#1%
+    \fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\lst@DoStringizerTest}
+% Now we consider a stringizer test. Reaching \cs{relax} results in
+% doing nothing and so terminating the tests.
+%    \begin{macrocode}
+\def\lst@DoStringizerTest#1{%
+    \ifx#1\relax \else %
+%    \end{macrocode}
+% Otherwise we compare the current character and the current stringizer.
+% If they are equal, we output the preceding characters, switch the
+% string boolean and save the stringizer as closing stringizer.
+%    \begin{macrocode}
+        \expandafter\ifx\lst@lastother#1\relax %
+            \lst@OutputOther \global\lst@stringtrue %
+            \gdef\lst@closing@stringizer{#1}%
+        \fi %
+%    \end{macrocode}
+% At the end we call this macro again. The macro terminates reaching
+% the \cs{relax}!
+%    \begin{macrocode}
+        \expandafter\lst@DoStringizerTest %
+    \fi}%
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \subsection{Output}\label{ssOutput}
+% \begin{macro}{\lst@Output}
+% It's time to do text output. First we look, if there is anything to
+% output.
+%    \begin{macrocode}
+\def\lst@Output{%
+    \ifx\lst@text\@empty\else %
+%    \end{macrocode}
+% Then we decide, whether to make a stringbox (using stringstyle) or
+% a box for a comment (using commentstyle as explicit parameter).
+%    \begin{macrocode}
+        \lst@ifstring \lst@MakeStringBox{\lst@stringstyle}\else %
+        \lst@ifcomment\lst@MakeBox{\lst@commentstyle}\else %
+%    \end{macrocode}
+% If we output neither a string nor a comment, we look for a keyword.
+% The output takes place in the macro \verb!\lst@KeywordsOrNot!
+% (see section \ref{sLanguageDriverFiles}). \cs{relax} terminates the
+% text parameter.
+%    \begin{macrocode}
+        \expandafter\lst@KeywordOrNot\lst@text\relax %
+        \fi \fi %
+%    \end{macrocode}
+% Finally we hold up the current column, empty the text and close the
+% starting 'if text not empty'.
+%    \begin{macrocode}
+        \global\advance\lst@pos by -\lst@length %
+        \let\lst@text\@empty \lst@length0 %
+    \fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\lst@OutputOther}
+% To output the characters from the token register \verb!\lst@other!,
+% we assign these characters to a macro. The rest is the same as in
+% \verb!\lst@Output!, except that we need no keyword tests and make
+% a normal box instead.
+%    \begin{macrocode}
+\def\lst@OutputOther{%
+    \expandafter\def\expandafter\lst@text\expandafter{\the\lst@other}%
+    \ifx\lst@text\@empty\else %
+        \lst@ifstring \lst@MakeStringBox{\lst@stringstyle}\else %
+        \lst@ifcomment\lst@MakeBox{\lst@commentstyle}\else %
+            \lst@MakeBox{}%
+        \fi \fi %
+        \global\advance\lst@pos by -\lst@length %
+        \lst@other{}\let\lst@text\@empty \lst@length0 %
+    \fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\lst@MakeBox}
+% Consider the different boxes now. A box must take \verb!\lst@length!
+% characters: the width is \verb!\lst@length!$\cdot$\verb!\lst@width!.
+% The macro parameter possibly selects another style. We insert dynamic
+% space at the beginning (and at the ending) to center the text and we
+% fill the box. Again \cs{relax} is a brake.
+%    \begin{macrocode}
+\def\lst@MakeBox#1{%
+    \hbox to \lst@length\lst@width{#1\hss %
+        \expandafter\lst@FillBox\lst@text\relax \hss}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\lst@FillBox}
+% Filling up a box is easy. If we found the end of the text, we do
+% nothing. Otherwise we output the character and insert dynamic space.
+% Since the underbar is not a printable character in \TeX{}, we have
+% to treat it special. By the way: We make the underbar having the
+% letter catcode here; we don't want subscripts. After all this is
+% done, we call the fillbox macro again.
+% Note: The macro is called after the closing \cs{fi}!
+%    \begin{macrocode}
+\begingroup
+\catcode`\_=11
+\gdef\lst@FillBox#1{%
+    \ifx\relax#1\else %
+        \ifx#1_\textunderscore \else #1\fi \hss %
+        \expandafter\lst@FillBox %
+    \fi}
+\endgroup
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\lst@MakeSpecialStringBox}
+% A stringbox is nearly the same: We only let the 'normal blank' be
+% '\textvisiblespace'.
+%    \begin{macrocode}
+\def\lst@MakeSpecialStringBox#1{%
+    \hbox to\lst@length\lst@width{\let\lst@outputblank\textvisiblespace%
+        #1\hss \expandafter\lst@FillBox\lst@text\relax \hss}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\lst@OutputChar}
+% We define one more macro to save time. It outputs a single character.
+% The implementation should be clear.
+%    \begin{macrocode}
+\def\lst@OutputChar#1{\global\advance\lst@pos by -1%
+    \hbox to \lst@width{\hss %
+        \lst@ifstring \def\lst@text{#1}\lst@length\@ne %
+            \lst@MakeStringBox{\lst@stringstyle}%
+        \else \lst@ifcomment \lst@commentstyle#1\hss %
+        \else #1\hss %
+        \fi \fi}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\lst@GotoNextTabStop}
+% At the end of this section we consider tabulators. As seen, each
+% typeset character decrements the counter \verb!\lst@pos!. To go to
+% the next tabulator stop, we must first determine how many blanks are
+% needed. We simply add \verb!\lst@tablength! until \verb!\lst@pos!
+% is strict positive.
+%    \begin{macrocode}
+\def\lst@GotoNextTabStop{%
+    \@whilenum \lst@pos<1 \do %
+        {\global\advance\lst@pos\lst@tablength}%
+%    \end{macrocode}
+% Now we make a box having the width of \verb!\lst@pos! characters and
+% set \verb!\lst@pos! to zero.
+%    \begin{macrocode}
+    \hbox to \lst@pos\lst@width{\hss}\lst@pos0}%
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \subsection{Special characters}\label{ssSpecialCharacters}
+% Some definitions of special characters:
+%    \begin{macrocode}
+\def\lst@leftbrace{$\{$}
+\def\lst@rightbrace{$\}$}
+\def\lst@less{$<$}
+\def\lst@greater{$>$}
+\def\lst@verticalbar{$|$}
+\def\lst@minus{$-$}
+\def\lst@multiply{$*$}
+%    \end{macrocode}
+%
+% \begin{macro}{\lst@MakeDigitsLetter}
+% This macro is similar to \cs{makeatletter}.
+%    \begin{macrocode}
+\def\lst@MakeDigitsLetter{\catcode`\0=11\catcode`\1=11%
+    \catcode`\2=11\catcode`\3=11\catcode`\4=11\catcode`\5=11%
+    \catcode`\6=11\catcode`\7=11\catcode`\8=11\catcode`\9=11}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\lst@DefineCatcodes}
+% At the moment only the catcode of $-$ is language specific.
+% This macro stores such values.
+%    \begin{macrocode}
+\def\lst@DefineCatcodes#1{%
+    \def\lst@ChangeMoreCatcodes{\catcode`\-=#1}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\lst@ChangeCatcodes}
+% Now begins the horrible part: It is necessary to change many
+% catcodes. Since we need backslash and braces with other meanings,
+% we replace them by the slash $/$, $($ and $)$. Other characters like
+% \$ and \& need not to be replaced, because we don't need them for
+% defining macros, but $\backslash$, $\{$ and $\}$ are essential for
+% doing that.
+%    \begin{macrocode}
+\begingroup
+\catcode `/=0       \catcode `(= 1      \catcode `)=2 % new \, { and }
+\catcode`\<=\active \catcode`\>=\active \catcode`\|=\active
+\catcode`\-=\active \catcode`\*=\active
+\catcode`\{=\active \catcode`\}=\active \catcode`\\=\active
+%    \end{macrocode}
+% From now on we must use the slash and $()$ instead of backslash and
+% braces. Since the blank space will also be an active character, we
+% must terminate each line with a comment character. Otherwise \TeX{}
+% would think, we want to typeset something before beginning the
+% document.
+% \SpecialEscapechar/
+%    \begin{macrocode}
+/gdef/lst@inputbackslash(\)%
+/catcode`/ =/active%
+/gdef/lst@inputblank( )%
+/gdef/lst@outputblank(/ )%
+%    \end{macrocode}
+% The following macro changes catcodes and the definition of active
+% characters at the time we input a listing.
+% \SpecialEscapechar/
+%    \begin{macrocode}
+/gdef/lst@ChangeCatcodes(%
+/catcode`/ =/active/def (/lst@outputblank)%
+/catcode`/\=/active/def\($/backslash$)%
+/catcode`/{=/active/def{(/lst@leftbrace)%
+/catcode`/}=/active/def}(/lst@rightbrace)%
+/catcode`/<=/active/def<(/lst@less)%
+/catcode`/>=/active/def>(/lst@greater)%
+/catcode`/|=/active/def|(/lst@verticalbar)%
+/catcode`/-=/active/def-(/lst@minus)%
+/catcode`/*=/active/def*(/lst@multiply)%
+/chardef~="7E%
+%    \end{macrocode}
+% A tabulator (ASCII code 9=ord(I)$-$64) gets the catcode of a
+% \TeX{}-tabulator.
+% \SpecialEscapechar/
+%    \begin{macrocode}
+/catcode`/^^I=4%
+%    \end{macrocode}
+% Some characters are treated as other characters (12) or as letters
+% (11).
+% \SpecialEscapechar/
+%    \begin{macrocode}
+/catcode`/$=11/catcode`/_=11/lst@MakeDigitsLetter%
+/catcode`/&=12/catcode`/^=12/catcode`/"=12/catcode`/#=12%
+/chardef/lst@ccPercent=/catcode`/%/catcode`/%=12% save catcode
+/lst@ChangeMoreCatcodes/makeatletter)%
+/endgroup
+%    \end{macrocode}
+% All changed catcodes (time of definition) are restored by ending the
+% group.
+% \end{macro}
+%
+%
+% \subsection{Initialization}\label{ssInitialization}
+% Defaults are selected and the options are processed.
+%    \begin{macrocode}
+\normallisting
+\listingtrue
+\tablength{4}
+\lstlineskip{0pt}
+\selectlisting{blank}
+\ProcessOptions
+%</package>
+%    \end{macrocode}
+%
+%
+% \section{Language driver files}\label{sLanguageDriverFiles}
+% Each driver file contains language specific data:
+% \begin{itemize}
+% \item keywords,
+% \item whether the language is case sensitive or not,
+% \item information about comment lines and other comments,
+% \item the stringizer,
+% \item baseem --- the width of a single character box,
+% \item the catcode of the minus $-$,
+% \item \verb!\lst@PrePL! and \verb!\lst@PostPL! are executed before and
+%	after the real line processing takes place: \verb!\lst@PrePL! is
+%	intend to manipulate the input, e.g.\ Fortran uses it to detect
+%	comment lines beginning with '$*$' or 'C' and Eiffel's string
+%	concatenate mechanism is done there, and e.g.\ \verb!\lst@PostPL!
+%	might gives a warning, if a string exceeds a line.
+% \end{itemize}
+% The package selects a language by calling \verb!\lstdrv@#1@!, where
+% \verb!#1! is replaced by the language. Additionally the language option
+% (empty or not) is used as suffix, e.g.\ \verb!\lstdrv@cobol@1974!.
+% That macro must support the described things.
+%
+% Some driver files use own data. To setup things like that the macro
+% \verb!\lstdrv@#1@PrepareListing! is called \emph{after} all init
+% of the kernel is done (changing catcodes, e.g.). Here \verb!#1!
+% is replaced by the language again. If no special setup is needed,
+% a driver file need not to define that macro.
+%
+% The implemented languages follow as examples.
+% '\texttt{???}' in driver files indicate things I don't know.
+%
+%
+% \subsection{Blank listing}
+% \begin{macro}{\lstdrv@blank@}
+% For a blank listing we let all empty. \cs{makeatletter} lets \verb!@!
+% be a letter here. Otherwise we can't access \verb!\lstdrv@blank@!.
+%    \begin{macrocode}
+%<*blank>
+\begingroup \makeatletter %
+\gdef\lstdrv@blank@{%
+    \keywords{}%
+    \sensitivetrue %
+    \DeclareCommentLine\relax %
+    \DeclareSingleComment stuff \relax %
+    \stringizer{}\lstbaseem{0.6}%
+    \lst@DefineCatcodes{\active}%
+    \let\lst@PrePL \lst@PrePLDefault %
+    \let\lst@PostPL\lst@PostPLDefault}%
+\endgroup %
+%</blank>
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \subsection{Ada}
+% \begin{macro}{\lstdrv@ada@}
+% Keywords, comments, \ldots{}
+% The catcode of the double quote is changed for compatibility with
+% \texttt{german.sty}.
+%    \begin{macrocode}
+%<*ada>
+\begingroup \makeatletter %
+\catcode`\"=12 \catcode`\-=\active %
+\gdef\lstdrv@ada@{%
+    \keywords{abort,abs,accept,access,all,and,array,at,begin,body,%
+        case,constant,declare,delay,delta,digits,do,else,elsif,end,%
+        entry,exception,exit,for,function,generic,goto,if,in,is,%
+        limited,loop,mod,new,not,null,of,or,others,out,package,pragma,%
+        private,procedure,raise,range,record,rem,renames,return,%
+        reverse,select,separate,subtype,task,terminate,then,type,%
+        use,when,while,with,xor}%
+    \sensitivefalse %
+    \DeclareCommentLine --\relax %
+    \DeclareSingleComment stuff \relax %
+    \stringizer[d]{"'}\lstbaseem{0.6}% ??? stringizer doubled
+    \lst@DefineCatcodes{\active}%
+    \let\lst@PrePL \lst@PrePLDefault %
+    \let\lst@PostPL\lst@PostPLDefault}%
+\endgroup %
+%</ada>
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \subsection{Algol}
+% \begin{macro}{\lstdrv@algol@}
+% The main driver macro.
+%    \begin{macrocode}
+%<*algol>
+\begingroup \makeatletter %
+\catcode`\#=12 %
+\gdef\lstdrv@algol@{% ??? should 'i' be a keyword
+    \keywords{abs,and,arg,begin,bin,bits,bool,by,bytes,case,channel,%
+        char,co,comment,compl,conj,divab,do,down,elem,elif,else,empty,%
+        end,entier,eq,esac,exit,false,fi,file,flex,for,format,from,%
+        ge,goto,gt,heap,if,im,in,int,is,isnt,le,leng,level,loc,long,%
+        lt,lwb,minusab,mod,modab,mode,ne,nil,not,od,odd,of,op,or,ouse,%
+        out,over,overab,par,plusab,plusto,pr,pragmat,prio,proc,re,real,%
+        ref,repr,round,sema,shl,short,shorten,shr,sign,skip,string,%
+        structthen,timesab,to,true,union,up,upb,void,while}%
+    \sensitivefalse % ???
+    \DeclareCommentLine\relax %
+    \DeclarePairedComment #\relax %
+    \stringizer{}\lstbaseem{0.6}%
+    \lst@DefineCatcodes{\active}%
+    \let\lst@PrePL \lst@PrePLDefault %
+    \let\lst@PostPL\lst@PostPLDefault}%
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\lstdrv@algol@68}
+% \begin{macro}{\lstdrv@algol@60}
+% Macros for the optional argument:
+%    \begin{macrocode}
+\global\@namedef{lstdrv@algol@68}{\lstdrv@algol@}%
+\global\@namedef{lstdrv@algol@60}{\lstdrv@algol@ %
+    \keywords{array,begin,Boolean,code,comment,div,do,else,end,false,%
+        for,goto,if,integer,label,own,power,procedure,real,step,string,%
+        switch,then,true,until,value,while}%
+    \DeclareSingleComment stuff \relax}%
+\endgroup %
+%    \end{macrocode}
+% \end{macro}\end{macro}
+%
+% \begin{macro}{\lstdrv@algol@PrepareListing}
+% To implement comments beginning with \verb!comment! or \verb!co!
+% we must go deep inside this package again. We need an additional
+% 'ifcomment' and define Algol's Prepare\-Listing to override the
+% default output macros.
+%    \begin{macrocode}
+\begingroup \makeatletter %
+\gdef\lstdrv@algol@commenttrue{%
+    \global\let\lstdrv@algol@ifcomment\iftrue}%
+\gdef\lstdrv@algol@commentfalse{%
+    \global\let\lstdrv@algol@ifcomment\iffalse %
+    \global\let\lstdrv@algol@closingcomment\@empty}%
+\gdef\lstdrv@algol@PrepareListing{%
+    \lstdrv@algol@commentfalse %
+    \let\lst@OutputOther\lstdrv@algol@OutputOther %
+    \lst@ifoption{60}{\let\lst@Output\lstdrv@algol@Output@ %
+                      \let\lst@AppendOther\lstdrv@algol@AppendOther}%
+                     {\let\lst@Output\lstdrv@algol@Output}}%
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\lstdrv@algol@OutputOther}
+% This macro is a simple derivation of \verb!\lst@OutputOther!. The only
+% difference is that we test Algol's additional 'ifcomment' (4th line).
+%    \begin{macrocode}
+\gdef\lstdrv@algol@OutputOther{%
+    \expandafter\def\expandafter\lst@text\expandafter{\the\lst@other}%
+    \ifx\lst@text\@empty\else %
+        \lstdrv@algol@ifcomment\lst@MakeBox{\lst@commentstyle}\else %
+        \lst@ifstring \lst@MakeStringBox{\lst@stringstyle}\else %
+        \lst@ifcomment\lst@MakeBox{\lst@commentstyle}\else %
+            \lst@MakeBox{}%
+        \fi \fi \fi %
+        \global\advance\lst@pos by -\lst@length %
+        \lst@other{}\let\lst@text\@empty \lst@length0 %
+    \fi}%
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\lstdrv@algol@Output}
+% Here we also install an additional 'ifcomment'. If we are in comment
+% mode, we look whether the comment is over or not.
+%    \begin{macrocode}
+\gdef\lstdrv@algol@Output{%
+    \ifx\lst@text\@empty\else %
+        \lstdrv@algol@ifcomment %
+            \ifx\lst@text\lstdrv@algol@closingcomment %
+                \lstdrv@algol@commentfalse %
+                \lst@MakeBox{\lst@keywordstyle}%
+            \else \lst@MakeBox{\lst@commentstyle}%
+            \fi \else %
+%    \end{macrocode}
+% The next three lines are unchanged.
+%    \begin{macrocode}
+        \lst@ifstring \lst@MakeStringBox{\lst@stringstyle}\else %
+        \lst@ifcomment\lst@MakeBox{\lst@commentstyle}\else %
+        \expandafter\lst@KeywordOrNot\lst@text\relax %
+%    \end{macrocode}
+% After the keyword (or non-keyword) is output, we look if a comment
+% starts: If the current text equals \verb!co! or \verb!comment!, we
+% enter comment mode and set the closing comment delimiter.
+%    \begin{macrocode}
+        \expandafter\lst@ifoneof\lst@text\relax{comment,co}%
+            {\global\let\lstdrv@algol@closingcomment\lst@text}{}%
+%    \end{macrocode}
+% The rest is unchanged.
+%    \begin{macrocode}
+        \fi \fi \fi %
+        \global\advance\lst@pos by -\lst@length %
+        \let\lst@text\@empty \lst@length0 %
+    \fi}%
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\lstdrv@algol@Output@}
+% Now we come to Algol 60. First comes the same as above. But:
+% An empty 'closingcomment' indicates that no \verb!end! and no
+% \verb!else! closes a comment, i.e.\ we look first whether 'end
+% of comment' tests are legal or not.
+%    \begin{macrocode}
+\gdef\lstdrv@algol@Output@{%
+    \ifx\lst@text\@empty\else %
+        \lstdrv@algol@ifcomment %
+            \ifx\@empty\lstdrv@algol@closingcomment %
+                \lst@MakeBox{\lst@commentstyle}%
+            \else %
+                \expandafter\lst@ifoneof\lst@text\relax{else,end}%
+                    {\lstdrv@algol@commentfalse %
+                     \lst@MakeBox{\lst@keywordstyle}}%
+                    {\lst@MakeBox{\lst@commentstyle}}%
+            \fi \else %
+%    \end{macrocode}
+% The next three lines are unchanged.
+%    \begin{macrocode}
+        \lst@ifstring \lst@MakeStringBox{\lst@stringstyle}\else %
+        \lst@ifcomment\lst@MakeBox{\lst@commentstyle}\else %
+        \expandafter\lst@KeywordOrNot\lst@text\relax %
+%    \end{macrocode}
+% After the keyword (or non-keyword) is output, we look if a comment
+% starts: If the current text equals \verb!comment!, we enter the
+% comment mode and let \verb!\lstdrv@algol@closingcomment! empty;
+% if the text equals \verb!end!, we let 'closingcomment' not empty,
+% i.e.\ the comment may closes with \verb!else! or \verb!end!
+% (see above).
+%    \begin{macrocode}
+        \expandafter\lst@ifoneof\lst@text\relax{comment,end}%
+            {\lstdrv@simula@commenttrue %
+             \expandafter\lst@ifoneof\lst@text\relax{end}%
+                 {\gdef\lstdrv@simula@closingcomment{a}}{}}%
+            {}% empty else from 'ifoneof'
+%    \end{macrocode}
+% The rest is unchanged.
+%    \begin{macrocode}
+        \fi \fi \fi %
+        \global\advance\lst@pos by -\lst@length %
+        \let\lst@text\@empty \lst@length0 %
+    \fi}%
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\lstdrv@algol@AppendOther@}
+% A semicolon also ends a comment. Hence:
+%    \begin{macrocode}
+\gdef\lstdrv@algol@AppendOther#1{%
+    \lstdrv@algol@ifcomment \if;#1%
+        \lst@OutputOther \lstdrv@algol@commentfalse %
+    \fi \fi %
+    \advance\lst@length\@ne %
+    \expandafter\lst@other\expandafter{\the\lst@other#1}}%
+\endgroup %
+%</algol>
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \subsection{C}
+% \begin{macro}{\lstdrv@c@}
+% Since $*$ will be an active character when we input a listing, we
+% have to change the catcode here.
+%    \begin{macrocode}
+%<*c>
+\begingroup \makeatletter %
+\catcode`\"=12 \catcode`\*=\active %
+\gdef\lstdrv@c@{%
+    \keywords{auto,break,case,char,const,continue,default,do,double,%
+        else,enum,extern,float,for,goto,if,int,long,register,return,%
+        short,signed,sizeof,static,struct,switch,typedef,union,%
+        unsigned,void,volatile,while}%
+    \sensitivetrue %
+    \DeclareCommentLine\relax %
+    \DeclareSingleComment /* */\relax %
+    \stringizer[b]{"}\lstbaseem{0.6}%
+    \lst@DefineCatcodes{\active}%
+    \let\lst@PrePL \lstdrv@c@PrePL %
+    \let\lst@PostPL\lst@PostPLDefault}%
+\endgroup %
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\lstdrv@c@PrePL}
+% \begin{macro}{\lstdrv@c@directives}
+% We only test for C compiler directives.
+%    \begin{macrocode}
+\begingroup \makeatletter %
+\gdef\lstdrv@c@PrePL{%
+    \expandafter\lstdrv@c@TestSharp\lst@line\relax\relax}%
+\gdef\lstdrv@c@directives{,define,elif,else,endif,error,if,ifdef,%
+    ifndef,line,include,pragma,undef}%
+%    \end{macrocode}
+% \end{macro}\end{macro}
+%
+% \begin{macro}{\lstdrv@c@TestSharp}
+% To implement C (and C++) directives the catcode of $\#$ must be
+% changed from 'parameter symbol for macros' to 'letter'.
+%    \begin{macrocode}
+\catcode`\&=6 \catcode`\#=12 %
+\gdef\lstdrv@c@TestSharp&1&2\relax{%
+    \if#&1\def\lst@line{&2}%
+%    \end{macrocode}
+% If the first character of a line is a sharp, we first output that
+% sharp using the keywordstyle. All compiler directives become the
+% current keywords and we output the line, which gets empty afterwards.
+%    \begin{macrocode}
+        {\lst@keywordstyle\lst@OutputChar#}%
+        {\let\lst@keywords\lstdrv@c@directives \lst@ProcessLine}%
+        \let\lst@line\@empty %
+    \fi}%
+\endgroup %
+%</c>
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \subsection{C++}
+% \begin{macro}{\lstdrv@cpp@}
+% Since C++ is an extension of C (from the point of view here), we load
+% the C driver file and use the definition there.
+%    \begin{macrocode}
+%<*cpp>
+\selectlisting{c}%
+\begingroup \makeatletter %
+\catcode`\_=11 %
+\gdef\lstdrv@cpp@{\lstdrv@c@ %
+    \morekeywords{asm,bad_cast,bad_typeid,bool,catch,class,const_cast,%
+        delete,dynamic_cast,false,friend,inline,namespace,new,operator,%
+        private,protected,public,reinterpret_cast,static_cast,template,%
+        this,throw,true,try,type_info,typeid,using,virtual,xalloc,%
+        __multiple_inheritance,__single_inheritance,%
+        __virtual_inheritance}%
+    \DeclareCommentLine //\relax}%
+\global\let\lstdrv@cpp@ansi \lstdrv@cpp %
+\gdef\lstdrv@cpp@vc{\lstdrv@cpp %
+    \morekeywords{__asm,__based,__cdecl,__declspec,dllexport,dllimport,%
+        __except,__fastcall,__finally,__inline,__int8,__int16,__int32,%
+        __int64,naked,__stdcall,thread,__try,__leave}}%
+\endgroup %
+%</cpp>
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \subsection{Cobol}
+% \begin{macro}{\lstdrv@cobol@keys}
+% \begin{macro}{\lstdrv@cobol@keys@eightyfive}
+% \begin{macro}{\lstdrv@cobol@keys@ibm}
+% The keywords first:
+%    \begin{macrocode}
+%<*cobol>
+\begingroup \makeatletter %
+\catcode`\-=11 \lst@MakeDigitsLetter %
+\gdef\lstdrv@cobol@keys{ACCEPT,ACCESS,ADD,ADVANCING,AFTER,ALL,%
+    ALPHABETIC,ALSO,ALTER,ALTERNATE,AND,ARE,AREA,AREAS,ASCENDING,%
+    ASSIGN,AT,AUTHOR,BEFORE,BINARY,BLANK,BLOCK,BOTTOM,BY,CALL,CANCEL,%
+    CD,CF,CH,CHARACTER,CHARACTERS,CLOCK-UNITS,CLOSE,COBOL,CODE,%
+    CODE-SET,COLLATING,COLUMN,COMMA,COMMUNICATION,COMP,COMPUTE,%
+    CONFIGURATION,CONTAINS,CONTROL,CONTROLS,CONVERTING,COPY,CORR,%
+    CORRESPONDING,COUNT,CURRENCY,DATA,DATE,DATE-COMPILED,DATE-WRITTEN,%
+    DAY,DE,DEBUG-CONTENTS,DEGUB-ITEM,DEBUG-LINE,DEBUG-NAME,DEBUG-SUB1,%
+    DEBUG-SUB2,DEBUG-SUB3,DEBUGGING,DECIMAL-POINT,DECLARATIVES,DELETE,%
+    DELIMITED,DELIMITER,DEPENDING,DESCENDING,DESTINATION,DETAIL,%
+    DISABLE,DISPLAY,DIVIDE,DIVISION,DOWN,DUPLICATES,DYNAMIC,EGI,ELSE,%
+    EMI,ENABLE,END,END-OF-PAGE,ENTER,ENVIRONMENT,EOP,EQUAL,ERROR,ESI,%
+    EVERY,EXCEPTION,EXIT,EXTEND,FD,FILE,FILE-CONTROL,FILLER,FINAL,%
+    FIRST,FOOTING,FOR,FROM,GENERATE,GIVING,GO,GREATER,GROUP,HEADING,%
+    HIGH-VALUE,HIGH-VALUES,I-O,I-O-CONTROL,IDENTIFICATION,IF,IN,INDEX,%
+    INDEXED,INDICATE,INITIAL,INITIATE,INPUT,INPUT-OUTPUT,INSPECT,%
+    INSTALLATION,INTO,INVALID,IS,JUST,JUSTIFIED,KEY,LABEL,LAST,LEADING,%
+    LEFT,LENGTH,LESS,LIMIT,LIMITS,LINAGE,LINAGE-COUNTER,LINE,%
+    LINE-COUNTER,LINES,LINKAGE,LOCK,LOW-VALUE,LOW-VALUES,MEMORY,MERGE,%
+    MESSAGE,MODE,MODULES,MOVE,MULTIPLE,MULTIPLY,NATIVE,NEGATIVE,NEXT,%
+    NO,NOT,NUMBER,NUMERIC,OBJECT-COMPUTER,OCCURS,OF,OFF,OMITTED,ON,%
+    OPEN,OPTIONAL,OR,ORGANIZATION,OUTPUT,OVERFLOW,PAGE,PAGE-COUNTER,%
+    PERFORM,PF,PH,PIC,PICTURE,PLUS,POINTER,POSITION,PRINTING,POSITIVE,%
+    PRINTING,PROCEDURE,PROCEDURES,PROCEED,PROGRAM,PROGRAM-ID,QUEUE,%
+    QUOTE,QUOTES,RANDOM,RD,READ,RECEIVE,RECORD,RECORDING,RECORDS,%
+    REDEFINES,REEL,REFERENCES,RELATIVE,RELEASE,REMAINDER,REMOVAL,%
+    RENAMES,REPLACING,REPORT,REPORTING,REPORTS,RERUN,RESERVE,RESET,%
+    RETURN,REVERSED,REWIND,REWRITE,RF,RH,RIGHT,ROUNDED,RUN,SAME,SD,%
+    SEARCH,SECTION,SECURITY,SEGMENT,SEGMENT-LIMIT,SELECT,SEND,SENTENCE,%
+    SEPARATE,SEQUENCE,SEQUENTIAL,SET,SIGN,SIZE,SORT,SORT-MERGE,SOURCE,%
+    SOURCE-COMPUTER,SPACE,SPACES,SPECIAL-NAMES,STANDARD,START,STATUS,%
+    STOP,STRING,SUB-QUEUE-1,SUB-QUEUE-2,SUB-QUEUE-3,SUBTRACT,SUM,%
+    SYMBOLIC,SYNC,SYNCHRONIZED,TABLE,TALLYING,TAPE,TERMINAL,TERMINATE,%
+    TEXT,THAN,THROUGH,THRU,TIME,TIMES,TO,TOP,TRAILING,TYPE,UNIT,%
+    UNSTRING,UNTIL,UP,UPON,USAGE,USE,USING,VALUE,VALUES,VARYING,WHEN,%
+    WITH,WORDS,WORKING-STORAGE,WRITE,ZERO,ZEROES,ZEROS}%
+\gdef\lstdrv@cobol@keys@eightyfive{ALPHABET,ALPHABETIC-LOWER,%
+    ALPHABETIC-UPPER,ALPHANUMERIC,ALPHANUMERIC-EDITED,ANY,CLASS,COMMON,%
+    CONTENT,CONTINUE,DAY-OF-WEEK,END-ADD,END-CALL,END-COMPUTE,%
+    END-DELETE,END-DIVIDE,END-EVALUATE,END-IF,END-MULTIPLY,END-PERFORM,%
+    END-READ,END-RECEIVE,END-RETURN,END-REWRITE,END-SEARCH,END-START,%
+    END-STRING,END-SUBTRACT,END-UNSTRING,END-WRITE,EVALUATE,EXTERNAL,%
+    FALSE,GLOBAL,INITIALIZE,NUMERIC-EDITED,ORDER,OTHER,PACKED-DECIMAL,%
+    PADDING,PURGE,REFERENCE,RELOAD,REPLACE,STANDARD-1,STANDARD-2,TEST,%
+    THEN,TRUE}%
+\gdef\lstdrv@cobol@keys@ibm{ADDRESS,BEGINNING,COMP-3,COMP-4,%
+    COMPUTATIONAL,COMPUTATIONAL-3,COMPUTATIONAL-4,DISPLAY-1,EGCS,EJECT,%
+    ENDING,ENTRY,GOBACK,ID,MORE-LABELS,NULL,NULLS,PASSWORD,RECORDING,%
+    RETURN-CODE,SERVICE,SKIP1,SKIP2,SKIP3,SORT-CONTROL,SORT-RETURN,%
+    SUPPRESS,TITLE,WHEN-COMPILED}%
+\endgroup %
+%    \end{macrocode}
+% \end{macro}\end{macro}\end{macro}
+%
+% \begin{macro}{\lstdrv@cobol@}
+% Now the main driver macro:
+%    \begin{macrocode}
+\begingroup \makeatletter %
+\catcode`\"=12%
+\gdef\lstdrv@cobol@{%
+    \keywords{\lstdrv@cobol@keys,\lstdrv@cobol@keys@eightyfive}%
+    \sensitivefalse % ???
+    \DeclareCommentLine\relax %
+    \DeclareSingleComment stuff \relax %
+    \stringizer[d]{"}\lstbaseem{0.65}%
+    \lst@DefineCatcodes{11}%
+    \let\lst@PrePL\lstdrv@cobol@PrePL %
+    \let\lst@PostPL\relax}%
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\lstdrv@cobol@1985}
+% \begin{macro}{\lstdrv@cobol@1974}
+% \begin{macro}{\lstdrv@cobol@ibm}
+% And macros for the optional argument:
+%    \begin{macrocode}
+\global\@namedef{lstdrv@cobol@1985}{\lstdrv@cobol@}%
+\global\@namedef{lstdrv@cobol@1974}{\lstdrv@cobol@ %
+    \keywords{\lstdrv@cobol@keys}}%
+\gdef\lstdrv@cobol@ibm{\lstdrv@cobol@ %
+    \morekeywords{\lstdrv@cobol@keys@ibm}}%
+\endgroup %
+%    \end{macrocode}
+% \end{macro}\end{macro}\end{macro}
+%
+% \begin{macro}{\lstdrv@cobol@PrePL}
+% \begin{macro}{\lstdrv@cobol@TestComment}
+% Comments are handled with the \verb!\lst@PrePL! mechanism. We simply
+% look, if the seventh character is an asterix (and output the comment
+% if necessary).
+%    \begin{macrocode}
+\begingroup \makeatletter %
+\gdef\lstdrv@cobol@PrePL{\expandafter\lstdrv@cobol@TestComment %
+    \lst@line\relax\relax\relax\relax\relax\relax\relax\relax}%
+\catcode`\*=\active %
+\gdef\lstdrv@cobol@TestComment#1#2#3#4#5#6#7#8\relax{%
+    \ifx #7*%
+        \lst@commenttrue \expandafter\lst@Tokenize\lst@line\relax %
+        \let\lst@line\@empty \lst@commentfalse %
+    \fi}%
+\endgroup %
+%</cobol>
+%    \end{macrocode}
+% \end{macro}\end{macro}
+%
+%
+% \subsection{Comal 80}
+% \begin{macro}{\lstdrv@comal@}
+% Only the lonely driver macro.
+%    \begin{macrocode}
+%<*comal>
+\begingroup \makeatletter %
+\catcode`\"=12 %
+\gdef\lstdrv@comal@{%
+    \keywords{AND,AUTO,CASE,DATA,DEL,DIM,DIV,DO,ELSE,ENDCASE,ENDIF,%
+        ENDPROC,ENDWHILE,EOD,EXEC,FALSE,FOR,GOTO,IF,INPUT,INT,LIST,%
+        LOAD,MOD,NEW,NEXT,NOT,OF,OR,PRINT,PROC,RANDOM,RENUM,REPEAT,%
+        RND,RUN,SAVE,SELECT,STOP,TAB,THEN,TRUE,UNTIL,WHILE,ZONE}%
+    \sensitivefalse % ???
+    \DeclareCommentLine //\relax %
+    \DeclareSingleComment stuff \relax %
+    \stringizer{"}\lstbaseem{0.65}%
+    \lst@DefineCatcodes{\active}%
+    \let\lst@PrePL \lst@PrePLDefault %
+    \let\lst@PostPL\lst@PostPLDefault}%
+\endgroup %
+%</comal>
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \subsection{Eiffel}
+% \begin{macro}{\lstdrv@eiffel@}
+% The same procedure \ldots
+%    \begin{macrocode}
+%<*eiffel>
+\begingroup \makeatletter %
+\catcode`\"=12 \catcode`\-=\active %
+\gdef\lstdrv@eiffel@{%
+    \keywords{alias,all,and,as,BIT,BOOLEAN,CHARACTER,check,class,%
+        creation,Current,debug,deferred,do,DOUBLE,else,elseif,end,%
+        ensure,expanded,export,external,false,feature,from,frozen,if,%
+        implies,indexing,infix,inherit,inspect,INTEGER,invariant,is,%
+        like,local,loop,NONE,not,obsolete,old,once,or,POINTER,prefix,%
+        REAL,redefine,rename,require,rescue,Result,retry,select,%
+        separate,STRING,strip,then,true,undefine,unique,until,variant,%
+        when,xor}%
+    \sensitivetrue %
+    \DeclareCommentLine --\relax %
+    \DeclareSingleComment stuff \relax %
+    \stringizer{"}\lstbaseem{0.6}%
+    \lst@DefineCatcodes{\active}%
+    \let\lst@PrePL \lstdrv@eiffel@PrePL %
+    \let\lst@PostPL\relax}%
+\endgroup %
+%    \end{macrocode}
+% \end{macro}
+%
+% Not the same procedure: Since '$\%$' continues a string, we need a
+% different comment character and let the percent be other (catcode)
+% to look for it.
+%    \begin{macrocode}
+\begingroup \makeatletter %
+\catcode`\&=14 \catcode`\%=12 &
+%    \end{macrocode}
+% \begin{macro}{\lstdrv@eiffel@PrePL}
+% \begin{macro}{\lstdrv@eiffel@TestPercent}
+% If a string started on a preceding line, we test for the percent.
+% Refer how we cut a line into a comment and other source code.
+%    \begin{macrocode}
+\gdef\lstdrv@eiffel@PrePL{&
+  \lst@ifstring &
+      \expandafter\lstdrv@eiffel@TestPercent\lst@line%\relax &
+  \fi}&
+\gdef\lstdrv@eiffel@TestPercent#1%#2\relax{&
+    \ifx\@empty#2\@empty \lst@PostPLDefault &
+        \else \expandafter\lstdrv@eiffel@CutPercent\lst@line\relax&
+    \fi}&
+%    \end{macrocode}
+% \end{macro}\end{macro}
+%
+% \begin{macro}{\lstdrv@eiffel@CutPercent}
+% To output the characters in front of the percent we temporary switch
+% the string boolean. Atferwards we redefine the input line, so that
+% the normal line processing continues the string.
+%    \begin{macrocode}
+\gdef\lstdrv@eiffel@CutPercent#1%#2\relax{&
+    \lst@stringfalse \lst@Tokenize#1\relax &
+    \lst@stringtrue \def\lst@line{%#2}}&
+\endgroup %
+%</eiffel>
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \subsection{Elan}
+% \begin{macro}{\lstdrv@elan@keys}
+% Since we need digits as letters, the keywords first:
+%    \begin{macrocode}
+%<*elan>
+\begingroup \makeatletter %
+\lst@MakeDigitsLetter %
+\gdef\lstdrv@elan@keys{ABS,AND,BOOL,CAND,CASE,CAT,COLUMNS,CONCR,CONJ,%
+    CONST,COR,DECR,DEFINES,DET,DIV,DOWNTO,ELIF,ELSE,END,ENDIF,ENDOP,%
+    ENDPACKET,ENDPROC,ENDREP,ENDSELECT,FALSE,FI,FILE,FOR,FROM,IF,INCR,%
+    INT,INV,LEAVE,LENGTH,LET,MOD,NOT,OF,OP,OR,OTHERWISE,PACKET,PROC,%
+    REAL,REP,REPEAT,ROW,ROWS,SELECT,SIGN,STRUCT,SUB,TEXT,THEN,TRANSP,%
+    TRUE,TYPE,UNTIL,UPTO,VAR,WHILE,WITH,XOR,%
+    maxint,sign,abs,min,max,random,initializerandom,subtext,code,%
+    replace,text,laenge,pos,compress,change,maxreal,smallreal,floor,pi,%
+    e,ln,log2,log10,sqrt,exp,tan,tand,sin,sind,cos,cosd,arctan,arctand,%
+    int,real,lastconversionok,put,putline,line,page,get,getline,input,%
+    output,sequentialfile,maxlinelaenge,reset,eof,close,complexzero,%
+    complexone,complexi,complex,realpart,imagpart,dphi,phi,vector,norm,%
+    replace,matrix,idn,row,column,sub,replacerow,replacecolumn,%
+    replaceelement,transp,errorsstop,stop}%
+\endgroup %
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\lstdrv@elan@}
+% Now we define the main driver macro:
+%    \begin{macrocode}
+\begingroup \makeatletter %
+\catcode`\"=12 %
+\gdef\lstdrv@elan@{%
+    \keywords{\lstdrv@elan@keys}%
+    \sensitivetrue %
+    \DeclareCommentLine\relax %
+    \DeclareSingleComment stuff \relax %
+    \stringizer[d]{"}\lstbaseem{0.65}%
+    \lst@DefineCatcodes{\active}%
+    \let\lst@PrePL \lst@PrePLDefault %
+    \let\lst@PostPL\lst@PostPLDefault}%
+\endgroup %
+%</elan>
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \subsection{Fortran}
+% \begin{macro}{\lstdrv@fortran@keys}
+% Common 'keywords' of Fortran 90 and Fortran 77:
+%    \begin{macrocode}
+%<*fortran>
+\begingroup \makeatletter %
+\gdef\lstdrv@fortan@keys{ACCESS,ASSIGN,BACKSPACE,BLANK,BLOCK,CALL,%
+    CHARACTER,CLOSE,COMMON,COMPLEX,CONTINUE,DATA,DIMENSION,DIRECT,DO,%
+    DOUBLE,ELSE,END,ENTRY,EOF,EQUIVALENCE,ERR,EXIST,EXTERNAL,FILE,%
+    FMT,FORM,FORMAT,FORMATTED,FUNCTION,GO,TO,IF,IMPLICIT,INQUIRE,%
+    INTEGER,INTRINSIC,IOSTAT,LOGICAL,NAMED,NEXTREC,NUMBER,OPEN,OPENED,%
+    PARAMETER,PAUSE,PRECISION,PRINT,PROGRAM,READ,REAL,REC,RECL,%
+    RETURN,REWIND,SEQUENTIAL,STATUS,STOP,SUBROUTINE,THEN,TYPE,%
+    UNFORMATTED,UNIT,WRITE}%
+\endgroup %
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\lstdrv@fortran@}
+% The driver macro:
+%    \begin{macrocode}
+\begingroup \makeatletter %
+\catcode`\"=12 %
+\gdef\lstdrv@fortran@{%
+    \keywords{\lstdrv@fortan@keys,ACTION,ADVANCE,ALLOCATE,ALLOCATABLE,%
+        ASSIGNMENT,CASE,CONTAINS,CYCLE,DEALLOCATE,DEFAULT,DELIM,EXIT,%
+        IN,NONE,IN,OUT,INTENT,INTERFACE,IOLENGTH,KIND,LEN,MODULE,NAME,%
+        NAMELIST,NMT,NULLIFY,ONLY,OPERATOR,OPTIONAL,OUT,PAD,POINTER,%
+        POSITION,PRIVATE,PUBLIC,READWRITE,RECURSIVE,RESULT,SELECT,%
+        SEQUENCE,SIZE,STAT,TARGET,USE,WHERE,WHILE,%
+        BLOCKDATA,DOUBLEPRECISION,ELSEIF,ENDBLOCKDATA,ENDDO,ENDFILE,%
+        ENDFUNCTION,ENDIF,ENDINTERFACE,ENDMODULE,ENDPROGRAM,ENDSELECT,%
+        ENDSUBROUTINE,ENDTYPE,ENDWHERE,GOTO,INOUT,SELECTCASE}%
+    \sensitivefalse %% not Fortran standard %%
+    \DeclareCommentLine !\relax %
+    \DeclareSingleComment stuff \relax %
+    \stringizer{"}\lstbaseem{0.6}%
+    \lst@DefineCatcodes{\active}%
+    \let\lst@PrePL \lstdrv@fortran@PrePL %
+    \let\lst@PostPL\lst@PostPLDefault}%
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\lstdrv@fortran@90}
+% \begin{macro}{\lstdrv@fortran@77}
+% Macros for the optional argument:
+%    \begin{macrocode}
+\global\@namedef{lstdrv@fortran@90}{\lstdrv@fortran@}%
+\global\@namedef{lstdrv@fortran@77}{\lstdrv@fortran@ %
+    \keywords{\lstdrv@fortan@keys,SAVE}%
+    \DeclareCommentLine\relax}%
+\endgroup %
+%    \end{macrocode}
+% \end{macro}\end{macro}
+%
+% \begin{macro}{\lstdrv@fortran@PrePL}
+% \begin{macro}{\lstdrv@fortran@TestComment}
+% Again something different: We use the \verb!\lst@PrePL! mechanism to
+% handle '$*$' and 'C' comments. The defined test macro tests, if the
+% first character of the input line is a star or an upper or lower case
+% c. We output the line as comment and empty the input,
+% if necessary. That's all.
+%    \begin{macrocode}
+\begingroup \makeatletter %
+\gdef\lstdrv@fortran@PrePL{%
+    \expandafter\lstdrv@fortran@TestComment\lst@line\relax}%
+\catcode`\*=\active %
+\gdef\lstdrv@fortran@TestComment#1#2\relax{\lst@commentfalse %
+    \ifx #1*\lst@commenttrue %
+    \else\if #1c\lst@commenttrue %% not Fortran standard %%
+    \else\if #1C\lst@commenttrue %
+    \fi \fi \fi %
+    \lst@ifcomment %
+        \expandafter\lst@Tokenize\lst@line\relax %
+        \let\lst@line\@empty \lst@commentfalse %
+    \fi}%
+\endgroup %
+%</fortran>
+%    \end{macrocode}
+% \end{macro}\end{macro}
+%
+%
+% \subsection{Java}
+% \begin{macro}{\lstdrv@java@}
+% Nothing new.
+%    \begin{macrocode}
+%<*java>
+\begingroup \makeatletter %
+\catcode`\"=12 \catcode`\*=\active %
+\gdef\lstdrv@java@{%
+    \keywords{abstract,boolean,break,byte,case,catch,char,class,const,%
+        continue,default,do,double,else,extends,final,finally,float,%
+        for,goto,if,implements,import,instanceof,int,interface,long,%
+        native,new,null,package,private,protected,public,return,short,%
+        static,super,switch,synchronized,this,throw,throws,transient,%
+        try,void,volatile,while,true,false}%
+    \sensitivetrue %
+    \DeclareCommentLine //\relax %
+    \DeclareSingleComment /* */\relax %
+    \stringizer{"}\lstbaseem{0.6}%
+    \lst@DefineCatcodes{\active}%
+    \let\lst@PrePL \lst@PrePLDefault %
+    \let\lst@PostPL\lst@PostPLDefault}%
+\endgroup %
+%</java>
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \subsection{Lisp}
+% \begin{macro}{\lstdrv@lisp@}
+% The keywords are the 'one-word' functions and macros of Common Lisp,
+% i.e.\ words not containing a minus. And I left out the \texttt{caaaar},
+% \ldots{} functions.
+%    \begin{macrocode}
+%<*lisp>
+\begingroup \makeatletter %
+\catcode`\"=12 \catcode`\-=11 %
+\gdef\lstdrv@lisp@{%
+    \keywords{abort,abs,acons,acos,acosh,adjoin,alphanumericp,alter,%
+        append,apply,apropos,aref,arrayp,ash,asin,asinh,assoc,atan,%
+        atanh,atom,bit,boole,boundp,break,butlast,byte,catenate,%
+        ceiling,cerror,char,character,characterp,choose,chunk,cis,%
+        close,clrhash,coerce,collect,commonp,compile,complement,%
+        complex,complexp,concatenate,conjugate,cons,consp,constantp,%
+        continue,cos,cosh,cotruncate,count,delete,denominator,%
+        describe,directory,disassemble,documentation,dpb,dribble,%
+        ed,eighth,elt,enclose,endp,eq,eql,equal,equalp,error,eval,%
+        evalhook,evenp,every,exp,expand,export,expt,fboundp,fceiling,%
+        fdefinition,ffloor,fifth,fill,find,first,float,floatp,floor,%
+        fmakunbound,format,fourth,fround,ftruncate,funcall,functionp,%
+        gatherer,gcd,generator,gensym,gentemp,get,getf,gethash,%
+        identity,imagpart,import,inspect,integerp,intern,intersection,%
+        tively,isqrt,keywordp,last,latch,lcm,ldb,ldiff,length,list,%
+        listen,listp,load,log,logand,logbitp,logcount,logeqv,logior,%
+        lognand,lognor,lognot,logtest,logxor,macroexpand,makunbound,%
+        map,mapc,mapcan,mapcar,mapcon,maphash,mapl,maplist,mask,max,%
+        member,merge,min,mingle,minusp,mismatch,mod,namestring,%
+        nbutlast,nconc,nintersection,ninth,not,notany,notevery,%
+        nreconc,nreverse,nsublis,nsubst,nth,nthcdr,null,numberp,%
+        numerator,nunion,oddp,open,packagep,pairlis,pathname,pathnamep,%
+        phase,plusp,position,positions,pprint,previous,princ,print,%
+        proclaim,provide,random,rassoc,rational,rationalize,rationalp,%
+        read,readtablep,realp,realpart,reduce,rem,remhash,remove,%
+        remprop,replace,require,rest,revappend,reverse,room,round,%
+        rplaca,rplacd,sbit,scan,schar,search,second,series,set,seventh,%
+        shadow,signal,signum,sin,sinh,sixth,sleep,some,sort,split,%
+        sqrt,streamp,string,stringp,sublis,subseq,subseries,subsetp,%
+        subst,substitute,subtypep,svref,sxhash,symbolp,tailp,tan,tanh,%
+        tenth,terpri,third,truename,truncate,typep,unexport,unintern,%
+        union,until,values,vector,vectorp,warn,write,zerop,%
+        and,assert,case,ccase,cond,ctypecase,decf,declaim,defclass,%
+        defconstant,defgeneric,defmacro,defmethod,defpackage,%
+        defparameter,defsetf,defstruct,deftype,defun,defvar,do,dolist,%
+        dotimes,ecase,encapsulated,etypecase,flet,formatter,gathering,%
+        incf,iterate,labels,let,locally,loop,macrolet,mapping,or,pop,%
+        producing,prog,psetf,psetq,push,pushnew,remf,return,rotatef,%
+        setf,shiftf,step,time,trace,typecase,unless,untrace,when}%
+    \sensitivetrue % ???
+    \DeclareCommentLine;\relax %
+    \DeclareSingleComment stuff \relax %
+    \stringizer[b]{"}\lstbaseem{0.6}%
+    \lst@DefineCatcodes{11}%
+    \let\lst@PrePL \lst@PrePLDefault %
+    \let\lst@PostPL\lst@PostPLDefault}%
+\endgroup %
+%</lisp>
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \subsection{Logo}
+% \begin{macro}{\lstdrv@logo@}
+% I don't know where I have the keywords from and what kind of Logo
+% it is. Help me!
+%    \begin{macrocode}
+%<*logo>
+\begingroup \makeatletter %
+\gdef\lstdrv@logo@{% ??? end,unix
+    \keywords{and,atan,arctan,both,break,bf,bl,butfirst,butlast,cbreak,%
+        close,co,continue,cos,count,clearscreen,cs,debquit,describe,%
+        diff,difference,ed,edit,either,emptyp,equalp,er,erase,errpause,%
+        errquit,fifp,filefprint,fifty,fileftype,fip,fileprint,fird,%
+        fileread,fity,filetype,fiwd,fileword,f,first,or,fp,fprint,fput,%
+        fty,ftype,full,fullscreen,go,bye,goodbye,gprop,greaterp,help,%
+        if,iff,iffalse,ift,iftrue,nth,item,keyp,llast,lessp,list,local,%
+        lput,make,max,maximum,memberp,memtrace,min,minimum,namep,not,%
+        numberp,oflush,openr,openread,openw,openwrite,op,output,pause,%
+        plist,pots,pow,pprop,pps,pr,print,product,quotient,random,rc,%
+        readchar,rl,readlist,remprop,repcount,repeat,request,rnd,run,%
+        se,sentence,sentencep,setc,setcolor,setipause,setqpause,po,%
+        show,sin,split,splitscreen,sqrt,stop,sum,test,text,textscreen,%
+        thing,to,tone,top,toplevel,type,untrace,wait,word,wordp,%
+        yaccdebug,is,mod,remainder,trace,zerop,%
+        back,bk,bto,btouch,fd,forward,fto,ftouch,getpen,heading,hit,%
+        hitoot,ht,hideturtle,loff,lampoff,lon,lampon,lt,left,lot,%
+        lotoot,lto,ltouch,penc,pencolor,pd,pendown,pe,penerase,penmode,%
+        pu,penup,px,penreverse,rt,right,rto,rtouch,scrunch,seth,%
+        setheading,setscrun,setscrunch,setxy,shownp,st,showturtle,%
+        towardsxy,clean,wipeclean,xcor,ycor,tur,turtle,display,dpy}%
+    \sensitivefalse % ???
+    \DeclareCommentLine\relax %
+    \DeclareSingleComment stuff \relax %
+    \stringizer{}\lstbaseem{0.6}%
+    \lst@DefineCatcodes{\active}%
+    \let\lst@PrePL \lst@PrePLDefault %
+    \let\lst@PostPL\lst@PostPLDefault}%
+\endgroup %
+%</logo>
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \subsection{Matlab}
+% \begin{macro}{\lstdrv@matlab@keys}
+% \begin{macro}{\lstdrv@matlab@}
+% Once more \ldots
+%    \begin{macrocode}
+%<*matlab>
+\begingroup \makeatletter %
+\lst@MakeDigitsLetter %
+\gdef\lstdrv@matlab@keys{gt,lt,gt,lt,amp,%
+    abs,acos,acosh,acot,acoth,acsc,acsch,all,angle,ans,any,asec,asech,%
+    asin,asinh,atan,atan2,atanh,auread,auwrite,axes,axis,balance,bar,%
+    bessel,besselk,bessely,beta,betainc,betaln,blanks,bone,break,%
+    brighten,capture,cart2pol,cart2sph,caxis,cd,cdf2rdf,cedit,ceil,%
+    chol,cla,clabel,clc,clear,clf,clock,close,colmmd,Colon,colorbar,%
+    colormap,ColorSpec,colperm,comet,comet3,compan,compass,computer,%
+    cond,condest,conj,contour,contour3,contourc,contrast,conv,conv2,%
+    cool,copper,corrcoef,cos,cosh,cot,coth,cov,cplxpair,cputime,cross,%
+    csc,csch,csvread,csvwrite,cumprod,cumsum,cylinder,date,dbclear,%
+    dbcont,dbdown,dbquit,dbstack,dbstatus,dbstep,dbstop,dbtype,dbup,%
+    ddeadv,ddeexec,ddeinit,ddepoke,ddereq,ddeterm,ddeunadv,deblank,%
+    dec2hex,deconv,del2,delete,demo,det,diag,diary,diff,diffuse,dir,%
+    disp,dlmread,dlmwrite,dmperm,dot,drawnow,echo,eig,ellipj,ellipke,%
+    else,elseif,end,engClose,engEvalString,engGetFull,engGetMatrix,%
+    engOpen,engOutputBuffer,engPutFull,engPutMatrix,engSetEvalCallback,%
+    engSetEvalTimeout,engWinInit,eps,erf,erfc,erfcx,erfinv,error,%
+    errorbar,etime,etree,eval,exist,exp,expint,expm,expo,eye,fclose,%
+    feather,feof,ferror,feval,fft,fft2,fftshift,fgetl,fgets,figure,%
+    fill,fill3,filter,filter2,find,findstr,finite,fix,flag,fliplr,%
+    flipud,floor,flops,fmin,fmins,fopen,for,format,fplot,fprintf,fread,%
+    frewind,fscanf,fseek,ftell,full,function,funm,fwrite,fzero,gallery,%
+    gamma,gammainc,gammaln,gca,gcd,gcf,gco,get,getenv,getframe,ginput,%
+    global,gplot,gradient,gray,graymon,grid,griddata,gtext,hadamard,%
+    hankel,help,hess,hex2dec,hex2num,hidden,hilb,hist,hold,home,hostid,%
+    hot,hsv,hsv2rgb,i,if,ifft,ifft2,imag,image,imagesc,Inf,info,input,%
+    int2str,interp1,interp2,interpft,inv,invhilb,isempty,isglobal,%
+    ishold,isieee,isinf,isletter,isnan,isreal,isspace,issparse,isstr,j,%
+    jet,keyboard,kron,lasterr,lcm,legend,legendre,length,lin2mu,line,%
+    linspace,load,log,log10,log2,loglog,logm,logspace,lookfor,lower,ls,%
+    lscov,lu,magic,matClose,matDeleteMatrix,matGetDir,matGetFp,%
+    matGetFull,matGetMatrix,matGetNextMatrix,matGetString,matlabrc,%
+    matlabroot,matOpen,matPutFull,matPutMatrix,matPutString,max,mean,%
+    median,menu,mesh,meshc,meshgrid,meshz,mexAtExit,mexCallMATLAB,%
+    mexdebug,mexErrMsgTxt,mexEvalString,mexFunction,mexGetFull,%
+    mexGetMatrix,mexGetMatrixPtr,mexPrintf,mexPutFull,mexPutMatrix,%
+    mexSetTrapFlag,min,more,movie,moviein,mu2lin,mxCalloc,%
+    mxCopyCharacterToPtr,mxCopyComplex16ToPtr,mxCopyInteger4ToPtr,%
+    mxCopyPtrToCharacter,mxCopyPtrToComplex16,mxCopyPtrToInteger4,%
+    mxCopyPtrToReal8,mxCopyReal8ToPtr,mxCreateFull,mxCreateSparse,%
+    mxCreateString,mxFree,mxFreeMatrix,mxGetIr,mxGetJc,mxGetM,mxGetN,%
+    mxGetName,mxGetNzmax,mxGetPi,mxGetPr,mxGetScalar,mxGetString,%
+    mxIsComplex,mxIsFull,mxIsNumeric,mxIsSparse,mxIsString,%
+    mxIsTypeDouble,mxSetIr,mxSetJc,mxSetM,mxSetN,mxSetName,mxSetNzmax,%
+    mxSetPi,mxSetPr,NaN,nargchk,nargin,nargout,newplot,nextpow2,nnls,%
+    nnz,nonzeros,norm,normest,null,num2str,nzmax,ode23,ode45,orient,%
+    orth,pack,pascal,patch,path,pause,pcolor,pi,pink,pinv,plot,plot3,%
+    pol2cart,polar,poly,polyder,polyeig,polyfit,polyval,polyvalm,pow2,%
+    print,printopt,prism,prod,pwd,qr,qrdelete,qrinsert,quad,quad8,quit,%
+    quiver,qz,rand,randn,randperm,rank,rat,rats,rbbox,rcond,real,%
+    realmax,realmin,refresh,rem,reset,reshape,residue,return,rgb2hsv,%
+    rgbplot,rootobject,roots,rose,rosser,rot90,rotate,round,rref,%
+    rrefmovie,rsf2csf,save,saxis,schur,sec,sech,semilogx,semilogy,set,%
+    setstr,shading,sign,sin,sinh,size,slice,sort,sound,spalloc,sparse,%
+    spaugment,spconvert,spdiags,specular,speye,spfun,sph2cart,sphere,%
+    spinmap,spline,spones,spparms,sprandn,sprandsym,sprank,sprintf,spy,%
+    sqrt,sqrtm,sscanf,stairs,startup,std,stem,str2mat,str2num,strcmp,%
+    strings,strrep,strtok,subplot,subscribe,subspace,sum,surf,surface,%
+    surfc,surfl,surfnorm,svd,symbfact,symmmd,symrcm,tan,tanh,tempdir,%
+    tempname,terminal,text,tic,title,tmp,toc,toeplitz,trace,trapz,tril,%
+    triu,type,uicontrol,uigetfile,uimenu,uiputfile,unix,unwrap,upper,%
+    vander,ver,version,view,viewmtx,waitforbuttonpress,waterfall,%
+    wavread,wavwrite,what,whatsnew,which,while,white,whitebg,who,whos,%
+    wilkinson,wk1read,wk1write,xlabel,xor,ylabel,zeros,zlabel,zoom}%
+\endgroup %
+%    \end{macrocode}
+%    \begin{macrocode}
+\begingroup \makeatletter %
+\catcode`\"=12 %
+\gdef\lstdrv@matlab@{%
+    \keywords{\lstdrv@matlab@keys}%
+    \sensitivetrue %
+    \DeclareCLPercent %
+    \DeclareSingleComment stuff \relax %
+    \stringizer{'}\lstbaseem{0.6}%
+    \lst@DefineCatcodes{\active}%
+    \let\lst@PrePL \lst@PrePLDefault %
+    \let\lst@PostPL\lst@PostPLDefault}%
+\endgroup %
+%</matlab>
+%    \end{macrocode}
+% \end{macro}\end{macro}
+%
+%
+% \subsection{Modula-2}
+% \begin{macro}{\lstdrv@modula@}
+% And once again \ldots
+%    \begin{macrocode}
+%<*modula>
+\begingroup \makeatletter %
+\catcode`\"=12 \catcode`\*=\active %
+\gdef\lstdrv@modula@{%
+    \keywords{AND,ARRAY,BEGIN,BY,CASE,CONST,DIV,DO,ELSE,ELSIF,END,EXIT,%
+        EXPORT,FOR,FROM,IF,IMPLEMENTATION,IMPORT,IN,MOD,MODULE,NOT,OF,%
+        OR,POINTER,PROCEDURE,QUALIFIED,RECORD,REPEAT,RETURN,SET,THEN,%
+        TYPE,UNTIL,VAR,WHILE,WITH,ABS,BITSET,BOOLEAN,CAP,CARDINAL,CHAR,%
+        CHR,DEC,EXCL,FALSE,FLOAT,HALT,HIGH,INC,INCL,INTEGER,LONGCARD,%
+        LONGINT,LONGREAL,MAX,MIN,NIL,ODD,ORD,PROC,REAL,SIZE,TRUE,TRUNC,%
+        VAL}%
+    \sensitivetrue %
+    \DeclareCommentLine\relax %
+    \DeclareNestedComment (* *)\relax %
+    \stringizer[d]{'"}\lstbaseem{0.65}%
+    \lst@DefineCatcodes{\active}%
+    \let\lst@PrePL \lst@PrePLDefault %
+    \let\lst@PostPL\lst@PostPLDefault}%
+\endgroup %
+%</modula>
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \subsection{Oberon-2}
+% \begin{macro}{\lstdrv@oberon@}
+% 'Nearly' Modula-2:
+%    \begin{macrocode}
+%<*oberon>
+\begingroup \makeatletter %
+\catcode`\"=12 \catcode`\*=\active %
+\gdef\lstdrv@oberon@{%
+    \keywords{ARRAY,BEGIN,BOOLEAN,BY,CASE,CHAR,CONST,DIV,DO,ELSE,ELSIF,%
+        END,EXIT,FALSE,FOR,IF,IMPORT,IN,INTEGER,IS,LONGINT,LONGREAL,%
+        LOOP,MOD,MODULE,NIL,OF,OR,POINTER,PROCEDURE,REAL,RECORD,REPEAT,%
+        RETURN,SET,SHORTINT,THEN,TO,TRUE,TYPE,UNTIL,VAR,WHILE,WITH,%
+        ABS,ASH,CAP,CHR,COPY,DEC,ENTIER,EXCL,HALT,INC,INCL,LEN,LONG,%
+        MAX,MIN,NEW,ODD,ORD,SHORT,SIZE}
+    \sensitivetrue %
+    \DeclareCommentLine\relax %
+    \DeclareNestedComment (* *)\relax %
+    \stringizer[d]{'"}\lstbaseem{0.65}%
+    \lst@DefineCatcodes{\active}%
+    \let\lst@PrePL \lst@PrePLDefault %
+    \let\lst@PostPL\lst@PostPLDefault}%
+\endgroup %
+%</oberon>
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \subsection{Pascal}
+% \begin{macro}{\lstdrv@pascal@}
+% Since we already defined pascal comments in section \ref{ssComments},
+% no catcodes must be changed here.
+%    \begin{macrocode}
+%<*pascal>
+\begingroup \makeatletter %
+\gdef\lstdrv@pascal@{%
+    \keywords{alfa,and,array,begin,boolean,byte,case,char,const,div,do,%
+        downto,else,end,false,file,for,function,get,goto,if,in,integer,%
+        label,maxint,mod,new,not,of,or,pack,packed,page,program,%
+        procedure,put,read,readln,real,record,repeat,reset,rewrite,set,%
+        text,then,to,true,type,unpack,until,var,while,with,write,%
+        writeln}%
+    \sensitivefalse %
+    \DeclareCommentLine\relax %
+    \DeclareDoubleCommentPascal %
+    \stringizer[d]{'}\lstbaseem{0.6}%
+    \lst@DefineCatcodes{\active}%
+    \let\lst@PrePL \lst@PrePLDefault %
+    \let\lst@PostPL\lst@PostPLDefault}%
+\endgroup %
+%</pascal>
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \subsection{Pascal XSC}
+% \begin{macro}{\lstdrv@pxsc@}
+% Tell me, if you want more words to be keywords.
+%    \begin{macrocode}
+%<*pxsc>
+\selectlisting{pascal}%
+\begingroup \makeatletter %
+\gdef\lstdrv@pxsc@{\lstdrv@pascal@ %
+    \morekeywords{dynamic,external,forward,global,module,nil,operator,%
+        priority,sum,type,use,dispose,mark,page,release,cimatrix,%
+        cinterval,civector,cmatrix,complex,cvector,dotprecision,%
+        imatrix,interval,ivector,rmatrix,rvector,string,im,inf,re,sup,%
+        chr,comp,eof,eoln,expo,image,ival,lb,lbound,length,loc,mant,%
+        maxlength,odd,ord,pos,pred,round,rval,sign,substring,succ,%
+        trunc,ub,ubound}}%
+\endgroup %
+%</pxsc>
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \subsection{Turbo Pascal}
+% \begin{macro}{\lstdrv@tp@}
+% The keywords are the reserved words and predefined functions and
+% procedures of Turbo Pascal 6.0, I think. It's a long list \ldots
+%    \begin{macrocode}
+%<*tp>
+\selectlisting{pascal}%
+\begingroup \makeatletter %
+\gdef\lstdrv@tp@{\lstdrv@pascal@ %
+    \morekeywords{asm,constructor,destructor,implementation,inline,%
+        interface,nil,object,shl,shr,string,unit,uses,xor,%
+        Abs,Addr,ArcTan,Chr,Concat,Copy,Cos,CSeg,DiskFree,DiskSize,%
+        DosExitCode,DosVersion,DSeg,EnvCount,EnvStr,Eof,Eoln,Exp,%
+        FExpand,FilePos,FileSize,Frac,FSearch,GetBkColor,GetColor,%
+        GetDefaultPalette,GetDriverName,GetEnv,GetGraphMode,GetMaxMode,%
+        GetMaxX,GetMaxY,GetModeName,GetPaletteSize,GetPixel,GetX,GetY,%
+        GraphErrorMsg,GraphResult,Hi,ImageSize,InstallUserDriver,%
+        InstallUserFont,Int,IOResult,KeyPressed,Length,Lo,MaxAvail,%
+        MemAvail,MsDos,Odd,Ofs,Ord,OvrGetBuf,OvrGetRetry,ParamCount,%
+        ParamStr,Pi,Pos,Pred,Ptr,Random,ReadKey,Round,SeekEof,SeekEoln,%
+        Seg,SetAspectRatio,Sin,SizeOf,Sound,SPtr,Sqr,Sqrt,SSeg,Succ,%
+        Swap,TextHeight,TextWidth,Trunc,TypeOf,UpCase,WhereX,WhereY,%
+        Append,Arc,Assign,AssignCrt,Bar,Bar3D,BlockRead,BlockWrite,%
+        ChDir,Circle,ClearDevice,ClearViewPort,Close,CloseGraph,ClrEol,%
+        ClrScr,Dec,Delay,Delete,DelLine,DetectGraph,Dispose,DrawPoly,%
+        Ellipse,Erase,Exec,Exit,FillChar,FillEllipse,FillPoly,%
+        FindFirst,FindNext,FloodFill,Flush,FreeMem,FSplit,GetArcCoords,%
+        GetAspectRatio,GetDate,GetDefaultPalette,GetDir,GetCBreak,%
+        GetFAttr,GetFillSettings,GetFTime,GetImage,GetIntVec,%
+        GetLineSettings,GetMem,GetPalette,GetTextSettings,GetTime,%
+        GetVerify,GetViewSettings,GoToXY,Halt,HighVideo,Inc,InitGraph,%
+        Insert,InsLine,Intr,Keep,Line,LineRel,LineTo,LowVideo,Mark,%
+        MkDir,Move,MoveRel,MoveTo,MsDos,New,NormVideo,NoSound,OutText,%
+        OutTextXY,OvrClearBuf,OvrInit,OvrInitEMS,OvrSetBuf,PackTime,%
+        PieSlice,PutImage,PutPixel,Randomize,Rectangle,Release,Rename,%
+        RestoreCrtMode,RmDir,RunError,Sector,Seek,SetActivePage,%
+        SetAllPalette,SetBkColor,SetCBreak,SetColor,SetDate,SetFAttr,%
+        SetFillPattern,SetFillStyle,SetFTime,SetGraphBufSize,%
+        SetGraphMode,SetIntVec,SetLineStyle,SetPalette,SetRGBPalette,%
+        SetTextBuf,SetTextJustify,SetTextStyle,SetTime,SetUserCharSize,%
+        SetVerify,SetViewPort,SetVisualPage,SetWriteMode,Sound,Str,%
+        SwapVectors,TextBackground,TextColor,TextMode,Truncate,%
+        UnpackTime,Val,Window}}%
+\endgroup %
+%</tp>
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \subsection{Perl}
+% \begin{macro}{\lstdrv@perl@keys}
+% First the keywords, \ldots
+%    \begin{macrocode}
+%<*perl>
+\begingroup \makeatletter %
+\lst@MakeDigitsLetter %
+\gdef\lstdrv@perl@keys{abs,accept,alarm,atan2,bind,binmode,bless,%
+    caller,chdir,chmod,chomp,chop,chown,chr,chroot,close,closedir,%
+    connect,continue,cos,crypt,dbmclose,dbmopen,defined,delete,die,do,%
+    dump,each,else,elsif,endgrent,endhostent,endnetent,endprotoent,%
+    endpwent,endservent,eof,eval,exec,exists,exit,exp,fcntl,fileno,%
+    flock,for,foreach,fork,format,formline,getc,getgrent,getgrgid,%
+    getgrnam,gethostbyaddr,gethostbyname,gethostent,getlogin,%
+    getnetbyaddr,getnetbyname,getnetent,getpeername,getpgrp,getppid,%
+    getpriority,getprotobyname,getprotobynumber,getprotoent,getpwent,%
+    getpwnam,getpwuid,getservbyname,getservbyport,getservent,%
+    getsockname,getsockopt,glob,gmtime,goto,grep,hex,if,import,index,%
+    int,ioctl,join,keys,kill,last,lc,lcfirst,length,link,listen,local,%
+    localtime,log,lstat,m,map,mkdir,msgctl,msgget,msgrcv,msgsnd,my,%
+    next,no,oct,open,opendir,ord,pack,package,pipe,pop,pos,print,%
+    printf,prototype,push,q,qq,quotemeta,qw,qx,rand,read,readdir,%
+    readlink,recv,redo,ref,rename,require,reset,return,reverse,%
+    rewinddir,rindex,rmdir,s,scalar,seek,seekdir,select,semctl,semget,%
+    semop,send,setgrent,sethostent,setnetent,setpgrp,setpriority,%
+    setprotoent,setpwent,setservent,setsockopt,shift,shmctl,shmget,%
+    shmread,shmwrite,shutdown,sin,sleep,socket,socketpair,sort,splice,%
+    split,sprintf,sqrt,srand,stat,study,sub,substr,symlink,syscall,%
+    sysopen,sysread,system,syswrite,tell,telldir,tie,tied,time,times,%
+    tr,truncate,uc,ucfirst,umask,undef,unless,unlink,unpack,unshift,%
+    untie,until,use,utime,values,vec,wait,waitpid,wantarray,warn,while,%
+    write,y}%
+\endgroup %
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\lstdrv@perl@}
+% {\ldots} and now the main driver file macro.
+%    \begin{macrocode}
+\begingroup \makeatletter %
+\catcode`\"=12 \catcode`\#=12 %
+\gdef\lstdrv@perl@{%
+    \keywords{\lstdrv@perl@keys}%
+    \sensitivetrue %
+    \DeclareCommentLine#\relax %
+    \DeclareSingleComment stuff \relax %
+    \stringizer[b]{"'}\lstbaseem{0.6}%
+    \lst@DefineCatcodes{\active}%
+    \let\lst@PrePL \lstdrv@perl@PrePL %
+    \let\lst@PostPL\relax}%
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\lstdrv@perl@ifPOD}
+% \begin{macro}{\lstdrv@perl@PrepareListing}
+% We use a switch to indicate PODs. Every (Perl) listing
+% \verb!\lst@Begin! calls the macro \verb!\lstdrv@perl@PrepareListing!
+% to reset the switch.
+%    \begin{macrocode}
+\gdef\lstdrv@perl@PODtrue{\let\lstdrv@perl@ifPOD\iftrue}%
+\gdef\lstdrv@perl@PODfalse{\let\lstdrv@perl@ifPOD\iffalse}%
+\gdef\lstdrv@perl@PrepareListing{\lstdrv@perl@PODfalse}%
+%    \end{macrocode}
+% \end{macro}\end{macro}
+%
+% \begin{macro}{\lstdrv@perl@PrePL}
+% \begin{macro}{\lstdrv@perl@TestComment}
+% \begin{macro}{\lstdrv@perl@TestCommentCut}
+% \begin{macro}{\lstdrv@perl@TestSharp}
+% Nothing else is really new now.
+%    \begin{macrocode}
+\gdef\lstdrv@perl@PrePL{%
+    \lst@ifstring %
+        \lst@stringfalse \lst@ProcessWhitespaces \lst@stringtrue %
+    \else\lstdrv@perl@ifPOD %
+        \expandafter\lstdrv@perl@TestCommentCut\lst@line=cut\relax %
+    \else \expandafter\lstdrv@perl@TestComment\lst@line\relax\relax %
+    \fi \fi}%
+\gdef\lstdrv@perl@TestCommentCut#1=cut#2\relax{%
+    \lst@commenttrue \expandafter\lst@Tokenize\lst@line\relax %
+    \let\lst@line\@empty \lst@commentfalse %
+    \ifx\@empty#2\@empty\else \lstdrv@perl@PODfalse \fi}%
+%    \end{macrocode}
+% We have to change some catcodes, to look for the sharp. In particular
+% we need a new 'macro parameter symbol' ($\&$).
+%    \begin{macrocode}
+\catcode`\$=11 \catcode`\&=6 \catcode`\#=12 %
+\gdef\lstdrv@perl@TestComment&1&2\relax{%
+    \ifx &1=%
+        \lstdrv@perl@PODtrue \lst@commenttrue %
+        \expandafter\lst@Tokenize\lst@line\relax %
+        \let\lst@line\@empty \lst@commentfalse %
+    \else %
+        \expandafter\lstdrv@perl@TestSharp\lst@line $#\relax %
+    \fi}%
+%    \end{macrocode}
+% The \cs{lowercase} mechanism mentioned some time before to replace
+% each \verb!$#! with \verb!$#!, where the latter \verb!#! has letter
+% catcode. This avoids wrong comment detection.
+%    \begin{macrocode}
+\catcode`\~=11 \lccode`\~=`\#%
+\lowercase{%
+\gdef\lstdrv@perl@TestSharp&1$#&2\relax{%
+    \ifx \@empty&2\@empty \else %
+        \expandafter\lstdrv@perl@ReplaceSharp\lst@line\relax %
+        \expandafter\lstdrv@perl@TestSharp\lst@line $#\relax %
+    \fi}%
+\gdef\lstdrv@perl@ReplaceSharp&1$#&2\relax{\def\lst@line{&1$~&2}}%
+}\endgroup %
+%</perl>
+%    \end{macrocode}
+% \end{macro}\end{macro}\end{macro}\end{macro}
+%
+%
+% \subsection{PL/I}
+% \begin{macro}{\lstdrv@pli@keys}
+% \begin{macro}{\lstdrv@pli@}
+% Same procedure \ldots
+%    \begin{macrocode}
+%<*pli>
+\begingroup \makeatletter %
+\lst@MakeDigitsLetter %
+\gdef\lstdrv@pli@keys{ABS,ATAN,AUTOMATIC,AUTO,ATAND,BEGIN,BINARY,BIN,%
+    BIT,BUILTIN,BY,CALL,CHARACTER,CHAR,CHECK,COLUMN,COL,COMPLEX,CPLX,%
+    COPY,COS,COSD,COSH,DATA,DATE,DECIMAL,DEC,DECLARE,DCL,DO,EDIT,ELSE,%
+    END,ENDFILE,ENDPAGE,ENTRY,EXP,EXTERNAL,EXT,FINISH,FIXED,%
+    FIXEDOVERFLOW,FOFL,FLOAT,FORMAT,GET,GO,GOTO,IF,IMAG,INDEX,INITIAL,%
+    INIT,INTERNAL,INT,LABEL,LENGTH,LIKE,LINE,LIST,LOG,LOG2,LOG10,MAIN,%
+    MAX,MIN,MOD,NOCHECK,NOFIXEDOVERFLOW,NOFOFL,NOOVERFLOW,NOOFL,NOSIZE,%
+    NOUNDERFLOW,NOUFL,NOZERODIVIDE,NOZDIV,ON,OPTIONS,OVERFLOW,OFL,PAGE,%
+    PICTURE,PROCEDURE,PROC,PUT,READ,REPEAT,RETURN,RETURNS,ROUND,SIN,%
+    SIND,SINH,SIZE,SKIP,SQRT,STATIC,STOP,STRING,SUBSTR,SUM,SYSIN,%
+    SYSPRINT,TAN,TAND,TANH,THEN,TO,UNDERFLOW,UFL,VARYING,WHILE,WRITE,%
+    ZERODIVIDE,ZDIV}%
+\endgroup %
+\begingroup \makeatletter %
+\catcode`\*=\active %
+\gdef\lstdrv@pli@{%
+    \keywords{\lstdrv@pli@keys}%
+    \sensitivefalse %
+    \DeclareCommentLine\relax %
+    \DeclareSingleComment /* */\relax %
+    \stringizer{'}\lstbaseem{0.6}%
+    \lst@DefineCatcodes{\active}%
+    \let\lst@PrePL \lst@PrePLDefault %
+    \let\lst@PostPL\lst@PostPLDefault}%
+\endgroup %
+%</pli>
+%    \end{macrocode}
+% \end{macro}\end{macro}
+%
+%
+% \subsection{Simula}
+% \begin{macro}{\lstdrv@simula@}
+% Same as all the time.
+%    \begin{macrocode}
+%<*simula>
+\begingroup \makeatletter %
+\catcode`\"=12 %
+\gdef\lstdrv@simula@{%
+    \keywords{activate,after,array,at,before,begin,boolean,character,%
+        class,comment,delay,detach,do,else,end,external,false,for,go,%
+        goto,if,in,inner,inspect,integer,is,label,name,new,none,notext,%
+        otherwise,prior,procedure,qua,reactivate,real,ref,resume,%
+        simset,simulation,step,switch,text,then,this,to,true,until,%
+        value,virtual,when,while}%
+    \sensitivefalse %
+    \DeclareCommentLine\relax %
+    \DeclareSingleComment stuff \relax %
+    \stringizer{"'}\lstbaseem{0.65}%
+    \lst@DefineCatcodes{\active}%
+    \let\lst@PrePL \lst@PrePLDefault %
+    \let\lst@PostPL\lst@PostPLDefault}%
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\lstdrv@simula@67}
+% \begin{macro}{\lstdrv@simula@cii}
+% \begin{macro}{\lstdrv@simula@dec}
+% \begin{macro}{\lstdrv@simula@ibm}
+% Macros for the options:
+%    \begin{macrocode}
+\global\@namedef{lstdrv@simula@67}{\lstdrv@simula@}%
+\global\@namedef{lstdrv@simula@cii}{\lstdrv@simula@%
+    \morekeywords{and,equiv,exit,impl,not,or,stop}}%
+\global\@namedef{lstdrv@simula@dec}{\lstdrv@simula@%
+    \morekeywords{and,eq,eqv,ge,gt,hidden,imp,le,long,lt,ne,not,%
+        options,or,protected,short}}%
+\global\@namedef{lstdrv@simula@ibm}{\lstdrv@simula@dec}%
+\endgroup %
+%    \end{macrocode}
+% \end{macro}\end{macro}\end{macro}\end{macro}
+%
+% \begin{macro}{\lstdrv@simula@PrepareListing}
+% \begin{macro}{\lstdrv@simula@OutputOther}
+% \begin{macro}{\lstdrv@simula@Output@}
+% \begin{macro}{\lstdrv@simula@AppendOther@}
+% Refer the section about Algol how comments are implemented.
+%    \begin{macrocode}
+\begingroup \makeatletter %
+\gdef\lstdrv@simula@commenttrue{%
+    \global\let\lstdrv@simula@ifcomment\iftrue}%
+\gdef\lstdrv@simula@commentfalse{%
+    \global\let\lstdrv@simula@ifcomment\iffalse %
+    \global\let\lstdrv@simula@closingcomment\@empty}%
+\gdef\lstdrv@simula@PrepareListing{%
+    \lstdrv@simula@commentfalse %
+    \let\lst@OutputOther\lstdrv@simula@OutputOther %
+    \let\lst@Output\lstdrv@simula@Output@ %
+    \let\lst@AppendOther\lstdrv@simula@AppendOther}%
+%    \end{macrocode}
+%    \begin{macrocode}
+\gdef\lstdrv@simula@OutputOther{%
+    \expandafter\def\expandafter\lst@text\expandafter{\the\lst@other}%
+    \ifx\lst@text\@empty\else %
+        \lstdrv@simula@ifcomment\lst@MakeBox{\lst@commentstyle}\else %
+        \lst@ifstring \lst@MakeStringBox{\lst@stringstyle}\else %
+        \lst@ifcomment\lst@MakeBox{\lst@commentstyle}\else %
+            \lst@MakeBox{}%
+        \fi \fi \fi %
+        \global\advance\lst@pos by -\lst@length %
+        \lst@other{}\let\lst@text\@empty \lst@length0 %
+    \fi}%
+%    \end{macrocode}
+%    \begin{macrocode}
+\gdef\lstdrv@simula@Output@{%
+    \ifx\lst@text\@empty\else %
+        \lstdrv@simula@ifcomment %
+            \ifx\@empty\lstdrv@simula@closingcomment %
+                \lst@MakeBox{\lst@commentstyle}%
+            \else %
+                \expandafter\lst@ifoneof\lst@text\relax %
+                {else,end,otherwise,when}%
+                    {\lstdrv@simula@commentfalse %
+                     \lst@MakeBox{\lst@keywordstyle}}%
+                    {\lst@MakeBox{\lst@commentstyle}}%
+            \fi \else %
+        \lst@ifstring \lst@MakeStringBox{\lst@stringstyle}\else %
+        \lst@ifcomment\lst@MakeBox{\lst@commentstyle}\else %
+        \expandafter\lst@KeywordOrNot\lst@text\relax %
+        \expandafter\lst@ifoneof\lst@text\relax{comment,end}%
+            {\lstdrv@simula@commenttrue %
+             \expandafter\lst@ifoneof\lst@text\relax{end}%
+                 {\gdef\lstdrv@simula@closingcomment{a}}{}}%
+            {}% empty else from 'ifoneof'
+        \fi \fi \fi %
+        \global\advance\lst@pos by -\lst@length %
+        \let\lst@text\@empty \lst@length0 %
+    \fi}%
+%    \end{macrocode}
+%    \begin{macrocode}
+\gdef\lstdrv@simula@AppendOther#1{%
+    \lstdrv@simula@ifcomment \if;#1%
+        \lst@OutputOther \lstdrv@simula@commentfalse %
+    \fi \fi %
+    \advance\lst@length\@ne %
+    \expandafter\lst@other\expandafter{\the\lst@other#1}}%
+\endgroup %
+%</simula>
+%    \end{macrocode}
+% \end{macro}\end{macro}\end{macro}\end{macro}
+%
+%
+% \subsection{SQL}
+% \begin{macro}{\lstdrv@sql@}
+% Do you have corrections? Do you want more data base languages?
+%    \begin{macrocode}
+%<*sql>
+\begingroup \makeatletter %
+\catcode`\"=12 \catcode`\*=\active \catcode`\_=11 %
+\gdef\lstdrv@sql@{%
+    \keywords{absolute,action,add,allocate,alter,are,assertion,at,%
+        between,bit,bit_length,both,cascade,cascaded,case,cast,catalog,%
+        char_length,character_length,coalesce,collate,collation,column,%
+        connect,connection,constraint,constraints,convert,%
+        corresponding,cross,current_date,current_time,%
+        current_timestamp,current_user,date,day,deallocate,deferrable,%
+        defered,describe,descriptor,diagnostics,disconnect,domain,drop,%
+        else,end,exec,except,exception,execute,external,extract,false,%
+        first,full,get,global,hour,identity,immediate,initially,inner,%
+        input,insensitive,intersect,interval,isolation,join,last,%
+        leading,left,level,local,lower,match,minute,month,names,%
+        national,natural,nchar,next,no,nullif,octet_length,only,outer,%
+        output,overlaps,pad,partial,position,prepare,preserve,prior,%
+        read,relative,restrict,revoke,right,rows,scroll,second,session,%
+        session_user,size,space,sqlstate,substring,system_user,%
+        temporary,then,time,timestamp,timezone_hour,timezone_minute,%
+        trailing,transaction,translate,translation,trim,true,unknown,%
+        upper,usage,using,value,varchar,varying,when,write,year,zone}%
+    \sensitivefalse %
+    \DeclareCommentLine\relax %
+    \DeclareSingleComment /* */\relax %
+    \stringizer{'"}\lstbaseem{0.6}%
+    \lst@DefineCatcodes{\active}%
+    \let\lst@PrePL \lst@PrePLDefault %
+    \let\lst@PostPL\lst@PostPLDefault}%
+\endgroup %
+%</sql>
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \subsection{\TeX}
+% \begin{macro}{\lstdrv@tex@primitives}
+% \begin{macro}{\lstdrv@tex@commoncs}
+% \begin{macro}{\lstdrv@tex@latexcs}
+% We define the different classes of control sequences. The second macro
+% holds the common control sequences of plain-\TeX{} and \LaTeXe.
+%    \begin{macrocode}
+%<*tex>
+\begingroup \makeatletter %
+\gdef\lstdrv@tex@primitives{above,abovedisplayshortskip,%
+    abovedisplayskip,abovewithdelims,accent,adjdemerits,advance,%
+    afterassignment,aftergroup,atop,atopwithdelims,badness,%
+    baselineskip,batchmode,begingroup,belowdisplayshortskip,%
+    belowdisplayskip,binoppenalty,botmark,box,boxmaxdepth,%
+    brokenpenalty,catcode,char,chardef,cleaders,closein,closeout,%
+    clubpenalty,copy,count,countdef,cr,crcr,csname,day,deadcycles,def,%
+    defaulthyphenchar,defaultskewchar,delcode,delimiter,%
+    delimiterfactor,delimitershortfall,dimen,dimendef,discretionary,%
+    displayindent,displaylimits,displaystyle,displaywidowpenalty,%
+    displaywidth,divide,doublehyphendemerits,dp,else,emergencystretch,%
+    end,endcsname,endgroup,endinput,endlinechar,eqno,errhelp,%
+    errmessage,errorcontextlines,errorstopmode,escapechar,everycr,%
+    everydisplay,everyhbox,everyjob,everymath,everypar,everyvbox,%
+    exhyphenpenalty,expandafter,fam,fi,finalhypendemerits,firstmark,%
+    floatingpenalty,font,fontdimen,fontname,futurelet,gdef,global,%
+    globaldefs,halign,hangafter,hangindent,hbadness,hbox,hfil,hfill,%
+    hfilneg,hfuzz,hoffset,holdinginserts,hrule,hsize,hskip,hss,ht,%
+    hyphenation,hyphenchar,hyphenpenalty,if,ifcase,ifcat,ifdim,ifeof,%
+    iffalse,ifhbox,ifhmode,ifinner,ifmmode,ifnum,ifodd,iftrue,ifvbox,%
+    ifvmode,ifvoid,ifx,ignorespaces,immediate,indent,input,insert,%
+    insertpenalties,interlinepenalty,jobname,kern,language,lastbox,%
+    lastkern,lastpenalty,lastskip,lccode,leaders,left,lefthyphenmin,%
+    leftskip,leqno,let,limits,linepenalty,lineskip,lineskiplimits,long,%
+    looseness,lower,lowercase,mag,mark,,mathaccent,mathbin,mathchar,%
+    mathchardef,mathchoice,mathclose,mathcode,mathinner,mathop,%
+    mathopen,mathord,mathpunct,mathrel,mathsurround,maxdeadcycles,%
+    maxdepth,meaning,medmuskip,message,mkern,month,moveleft,moveright,%
+    mskip,multiply,muskip,muskipdef,newlinechar,noalign,noboundary,%
+    noexpand,noindent,nolimits,nonscript,nonstopmode,%
+    nulldelimiterspace,nullfont,number,omit,openin,openout,or,outer,%
+    output,outputpenalty,over,overfullrule,overline,overwithdelims,%
+    pagedepth,pagefilllstretch,pagefillstretch,pagefilstretch,pagegoal,%
+    pageshrink,pagestretch,pagetotal,par,parfillskip,parindent,%
+    parshape,parskip,patterns,pausing,penalty,postdisplaypenalty,%
+    predisplaypenalty,predisplaysize,pretolerance,prevdepth,prevgraf,%
+    radical,raise,read,relax,relpenalty,right,righthyphenmin,rightskip,%
+    romannumeral,scriptfont,scriptscriptfont,scriptscriptstyle,%
+    scriptspace,scriptstyle,scrollmode,setbox,setlanguage,sfcode,%
+    shipout,show,showbox,showboxbreadth,showboxdepth,showlists,showthe,%
+    skewchar,skip,skipdef,spacefactor,spaceskip,span,special,%
+    splitbotmark,splitfirstmark,splitmaxdepth,splittopskip,string,%
+    tabskip,textfont,textstyle,the,thickmuskip,thinmuskip,time,toks,%
+    toksdef,tolerance,topmark,topskip,tracingcommands,tracinglostchars,%
+    tracingmacros,tracingonline,tracingoutput,tracingpages,%
+    tracingparagraphs,tracingrestores,tracingstats,uccode,uchyph,%
+    underline,unhbox,unhcopy,unkern,unpenalty,unskip,unvbox,unvcopy,%
+    uppercase,vadjust,valign,vbadness,vbox,vcenter,vfil,vfill,vfilneg,%
+    vfuzz,voffset,vrule,vsize,vskip,vsplit,vss,vtop,wd,widowpenalty,%
+    write,xdef,xleaders,xspaceskip,year}%
+\gdef\lstdrv@tex@commoncs{active,acute,ae,AE,aleph,allocationnumber,%
+    allowbreak,alpha,amalg,angle,approx,arccos,arcsin,arctan,arg,%
+    arrowvert,Arrowvert,ast,asymp,b,backslash,bar,beta,bgroup,big,Big,%
+    bigbreak,bigcap,bigcirc,bigcup,bigg,Bigg,biggl,Biggl,biggm,Biggm,%
+    biggr,Biggr,bigl,Bigl,bigm,Bigm,bigodot,bigoplus,bigotimes,bigr,%
+    Bigr,bigskip,bigskipamount,bigsqcup,bigtriangledown,bigtriangleup,%
+    biguplus,bigvee,bigwedge,bmod,bordermatrix,bot,bowtie,brace,%
+    braceld,bracelu,bracerd,braceru,bracevert,brack,break,breve,%
+    buildrel,bullet,c,cap,cases,cdot,cdotp,cdots,centering,centerline,%
+    check,chi,choose,circ,clubsuit,colon,cong,coprod,copyright,cos,%
+    cosh,cot,coth,csc,cup,d,dag,dagger,dashv,ddag,ddagger,ddot,ddots,%
+    deg,delta,Delta,det,diamond,diamondsuit,dim,displaylines,div,do,%
+    dospecials,dot,doteq,dotfill,dots,downarrow,Downarrow,%
+    downbracefill,egroup,eject,ell,empty,emptyset,endgraf,endline,%
+    enskip,enspace,epsilon,equiv,eta,exists,exp,filbreak,flat,fmtname,%
+    fmtversion,footins,footnote,footnoterule,forall,frenchspacing,%
+    frown,gamma,Gamma,gcd,ge,geq,gets,gg,goodbreak,grave,H,hat,hbar,%
+    heartsuit,hglue,hideskip,hidewidth,hom,hookleftarrow,%
+    hookrightarrow,hphantom,hrulefill,i,ialign,iff,Im,imath,in,inf,%
+    infty,int,interdisplaylinepenalty,interfootnotelinepenalty,intop,%
+    iota,item,j,jmath,joinrel,jot,kappa,ker,l,L,lambda,Lambda,land,%
+    langle,lbrace,lbrack,lceil,ldotp,ldots,le,leavevmode,leftarrow,%
+    Leftarrow,leftarrowfill,leftharpoondown,leftharpoonup,leftline,%
+    leftrightarrow,Leftrightarrow,leq,lfloor,lg,lgroup,lhook,lim,%
+    liminf,limsup,line,ll,llap,lmoustache,ln,lnot,log,longleftarrow,%
+    Longleftarrow,longleftrightarrow,Longleftrightarrow,longmapsto,%
+    longrightarrow,Longrightarrow,loop,lor,lq,magstep,magstep,%
+    magstephalf,mapsto,mapstochar,mathhexbox,mathpalette,mathstrut,%
+    matrix,max,maxdimen,medbreak,medskip,medskipamount,mid,min,models,%
+    mp,mu,multispan,nabla,narrower,natural,ne,nearrow,neg,negthinspace,%
+    neq,newbox,newcount,newdimen,newfam,newif,newinsert,newlanguage,%
+    newmuskip,newread,newskip,newtoks,newwrite,next,ni,nobreak,%
+    nointerlineskip,nonfrenchspacing,normalbaselines,%
+    normalbaselineskip,normallineskip,normallineskiplimit,not,notin,nu,%
+    null,nwarrow,o,O,oalign,obeylines,obeyspaces,odot,oe,OE,%
+    offinterlineskip,oint,ointop,omega,Omega,ominus,ooalign,openup,%
+    oplus,oslash,otimes,overbrace,overleftarrow,overrightarrow,owns,P,%
+    parallel,partial,perp,phantom,phi,Phi,pi,Pi,pm,pmatrix,pmod,Pr,%
+    prec,preceq,prime,prod,propto,psi,Psi,qquad,quad,raggedbottom,%
+    raggedright,rangle,rbrace,rbrack,rceil,Re,relbar,Relbar,%
+    removelastskip,repeat,rfloor,rgroup,rho,rhook,rightarrow,%
+    Rightarrow,rightarrowfill,rightharpoondown,rightharpoonup,%
+    rightleftharpoons,rightline,rlap,rmoustache,root,rq,S,sb,searrow,%
+    sec,setminus,sharp,showhyphens,sigma,Sigma,sim,simeq,sin,sinh,skew,%
+    slash,smallbreak,smallint,smallskip,smallskipamount,smash,smile,sp,%
+    space,spadesuit,sqcap,sqcup,sqrt,sqsubseteq,sqsupseteq,ss,star,%
+    strut,strutbox,subset,subseteq,succ,succeq,sum,sup,supset,supseteq,%
+    surd,swarrow,t,tan,tanh,tau,TeX,theta,Theta,thinspace,tilde,times,%
+    to,top,tracingall,triangle,triangleleft,triangleright,u,underbar,%
+    underbrace,uparrow,Uparrow,upbracefill,updownarrow,Updownarrow,%
+    uplus,upsilon,Upsilon,v,varepsilon,varphi,varpi,varrho,varsigma,%
+    vartheta,vdash,vdots,vec,vee,vert,Vert,vglue,vphantom,wedge,%
+    widehat,widetilde,wlog,wp,wr,xi,Xi,zeta}%
+\gdef\lstdrv@tex@latexcs{a,AA,aa,addcontentsline,addpenalty,%
+    addtocontents,addtocounter,addtolength,addtoversion,addvspace,alph,%
+    Alph,and,arabic,array,arraycolsep,arrayrulewidth,arraystretch,%
+    author,baselinestretch,begin,bezier,bfseries,bibcite,bibdata,%
+    bibitem,bibliography,bibliographystyle,bibstyle,boldmath,%
+    botfigrule,bottomfraction,Box,caption,center,CheckCommand,circle,%
+    citation,cite,cleardoublepage,clearpage,cline,columnsep,%
+    columnseprule,columnwidth,contentsline,dashbox,date,dblfigrule,%
+    dblfloatpagefraction,dblfloatsep,dbltextfloatsep,dbltopfraction,%
+    defaultscriptratio,defaultscriptscriptratio,depth,Diamond,%
+    displaymath,document,documentclass,documentstyle,doublerulesep,em,%
+    emph,endarray,endcenter,enddisplaymath,enddocument,endenumerate,%
+    endeqnarray,endequation,endflushleft,endflushright,enditemize,%
+    endlist,endlrbox,endmath,endminipage,endpicture,endsloppypar,%
+    endtabbing,endtabular,endtrivlist,endverbatim,enlargethispage,%
+    ensuremath,enumerate,eqnarray,equation,evensidemargin,extracolsep,%
+    fbox,fboxrule,fboxsep,filecontents,fill,floatpagefraction,floatsep,%
+    flushbottom,flushleft,flushright,fnsymbol,fontencoding,fontfamily,%
+    fontseries,fontshape,fontsize,fontsubfuzz,footnotemark,footnotesep,%
+    footnotetext,footskip,frac,frame,framebox,fussy,glossary,%
+    headheight,headsep,height,hline,hspace,I,include,includeonly,index,%
+    inputlineno,intextsep,itemindent,itemize,itemsep,iterate,itshape,%
+    Join,kill,label,labelsep,labelwidth,LaTeX,LaTeXe,leadsto,lefteqn,%
+    leftmargin,leftmargini,leftmarginii,leftmarginiii,leftmarginiv,%
+    leftmarginv,leftmarginvi,leftmark,lhd,linebreak,linespread,%
+    linethickness,linewidth,list,listfiles,listfiles,listparindent,%
+    lrbox,makeatletter,makeatother,makebox,makeglossary,makeindex,%
+    makelabel,MakeLowercase,MakeUppercase,marginpar,marginparpush,%
+    marginparsep,marginparwidth,markboth,markright,math,mathbf,%
+    mathellipsis,mathgroup,mathit,mathsf,mathsterling,mathtt,%
+    mathunderscore,mathversion,mbox,mdseries,mho,minipage,multicolumn,%
+    multiput,NeedsTeXFormat,newcommand,newcounter,newenvironment,%
+    newfont,newhelp,newlabel,newlength,newline,newmathalphabet,newpage,%
+    newsavebox,newtheorem,nobreakspace,nobreakspace,nocite,nocorr,%
+    nocorrlist,nofiles,nolinebreak,nonumber,nopagebreak,normalcolor,%
+    normalfont,normalmarginpar,numberline,obeycr,oddsidemargin,%
+    oldstylenums,onecolumn,oval,pagebreak,pagenumbering,pageref,%
+    pagestyle,paperheight,paperwidth,paragraphmark,parbox,parsep,%
+    partopsep,picture,poptabs,pounds,protect,pushtabs,put,qbezier,%
+    qbeziermax,r,raggedleft,raisebox,ref,refstepcounter,renewcommand,%
+    renewenvironment,restorecr,reversemarginpar,rhd,rightmargin,%
+    rightmark,rmfamily,roman,Roman,rootbox,rule,samepage,sbox,scshape,%
+    secdef,sectionmark,selectfont,setcounter,settodepth,settoheight,%
+    settowidth,sffamily,shortstack,showoutput,showoverfull,sloppy,%
+    sloppypar,slshape,sqsubset,sqsupset,SS,stackrel,stepcounter,stop,%
+    stretch,subparagraphmark,subsectionmark,subsubsectionmark,%
+    suppressfloats,symbol,tabbing,tabbingsep,tabcolsep,tabular,%
+    tabularnewline,textasciicircum,textasciitilde,textbackslash,%
+    textbar,textbf,textbraceleft,textbraceright,textbullet,textcircled,%
+    textcompwordmark,textdagger,textdaggerdbl,textdollar,textellipsis,%
+    textemdash,textendash,textexclamdown,textfloatsep,textfraction,%
+    textgreater,textheight,textit,textless,textmd,textnormal,%
+    textparagraph,textperiodcentered,textquestiondown,textquotedblleft,%
+    textquotedblright,textquoteleft,textquoteright,textregistered,%
+    textrm,textsc,textsection,textsf,textsl,textsterling,%
+    textsuperscript,texttrademark,texttt,textunderscore,textup,%
+    textvisiblespace,textwidth,thanks,thefootnote,thempfn,thempfn,%
+    thempfootnote,thepage,thepage,thicklines,thinlines,thispagestyle,%
+    title,today,topfigrule,topfraction,topmargin,topsep,totalheight,%
+    tracingfonts,trivlist,ttfamily,twocolumn,typein,typeout,unboldmath,%
+    unitlength,unlhd,unrhd,upshape,usebox,usecounter,usefont,%
+    usepackage,value,vector,verb,verbatim,vline,vspace,width}%
+%    \end{macrocode}
+% \end{macro}\end{macro}\end{macro}
+%
+% \begin{macro}{\texcs}
+% \begin{macro}{\moretexcs}
+% The definitions are similar to \cs{keywords} and \cs{morekeywords}.
+%    \begin{macrocode}
+\gdef\texcs#1{\edef\lst@cs{,\zap@space#1 \@empty}}%
+\gdef\moretexcs#1{\edef\lst@cs{\lst@cs,\zap@space#1 \@empty}}%
+%    \end{macrocode}
+% \end{macro}\end{macro}
+%
+% \begin{macro}{\lstdrv@tex@}
+% Main driver and option macros:
+%    \begin{macrocode}
+\gdef\lstdrv@tex@{%
+    \keywords{}%
+    \texcs{\lstdrv@tex@primitives,\lstdrv@tex@commoncs,%
+        advancepageno,beginsection,bf,bffam,bye,cal,cleartabs,columns,%
+        dosupereject,endinsert,eqalign,eqalignno,fiverm,fivebf,fivei,%
+        fivesy,folio,footline,hang,headline,it,itemitem,itfam,%
+        leqalignno,magnification,makefootline,makeheadline,midinsert,%
+        mit,mscount,nopagenumbers,normalbottom,of,oldstyle,pagebody,%
+        pagecontents,pageinsert,pageno,plainoutput,preloaded,proclaim,%
+        rm,settabs,sevenbf,seveni,sevensy,sevenrm,sl,slfam,supereject,%
+        tabalign,tabs,tabsdone,tabsyet,tenbf,tenex,teni,tenit,tenrm,%
+        tensl,tensy,tentt,textindent,topglue,topins,topinsert,tt,ttfam,%
+        ttraggedright,vfootnote}%
+    \sensitivetrue %
+    \DeclareCLPercent %
+    \DeclareSingleComment stuff \relax %
+    \stringizer{}\lstbaseem{0.6}%
+    \lst@DefineCatcodes{\active}%
+    \let\lst@PrePL \relax %
+    \let\lst@PostPL\relax}%
+\gdef\lstdrv@tex@plain{\lstdrv@tex@}%
+\gdef\lstdrv@tex@primitive{\lstdrv@tex@ \texcs{\lstdrv@tex@primitives}}%
+\gdef\lstdrv@tex@latex{\lstdrv@tex@ %
+    \texcs{\lstdrv@tex@primitives,\lstdrv@tex@latexcs}}%
+\gdef\lstdrv@tex@allatex{\lstdrv@tex@ %
+    \keywords{array,center,displaymath,document,enumerate,eqnarray,%
+        equation,flushleft,flushright,itemize,list,lrbox,math,minipage,%
+        picture,sloppypar,tabbing,tabular,trivlist,verbatim}%
+    \texcs{\lstdrv@tex@primitives,\lstdrv@tex@latexcs,%
+        AtBeginDocument,AtBeginDocument,AtBeginDvi,AtEndDocument,%
+        AtEndOfClass,AtEndOfPackage,ClassError,ClassInfo,ClassWarning,%
+        ClassWarningNoLine,CurrentOption,DeclareErrorFont,%
+        DeclareFixedFont,DeclareFontEncoding,%
+        DeclareFontEncodingDefaults,DeclareFontFamily,DeclareFontShape,%
+        DeclareFontSubstitution,DeclareMathAccent,DeclareMathAlphabet,%
+        DeclareMathAlphabet,DeclareMathDelimiter,DeclareMathRadical,%
+        DeclareMathSizes,DeclareMathSymbol,DeclareMathVersion,%
+        DeclareOldFontCommand,DeclareOption,DeclarePreloadSizes,%
+        DeclareRobustCommand,DeclareSizeFunction,DeclareSymbolFont,%
+        DeclareSymbolFontAlphabet,DeclareTextAccent,%
+        DeclareTextAccentDefault,DeclareTextCommand,%
+        DeclareTextCommandDefault,DeclareTextComposite,%
+        DeclareTextCompositeCommand,DeclareTextFontCommand,%
+        DeclareTextSymbol,DeclareTextSymbolDefault,ExecuteOptions,%
+        GenericError,GenericInfo,GenericWarning,IfFileExists,%
+        InputIfFileExists,LoadClass,LoadClassWithOptions,MessageBreak,%
+        OptionNotUsed,PackageError,PackageInfo,PackageWarning,%
+        PackageWarningNoLine,PassOptionsToClass,PassOptionsToPackage,%
+        ProcessOptionsProvidesClass,ProvidesFile,ProvidesFile,%
+        ProvidesPackage,ProvideTextCommand,RequirePackage,%
+        RequirePackageWithOptions,SetMathAlphabet,SetSymbolFont,%
+        TextSymbolUnavailable,UseTextAccent,UseTextSymbol}}%
+\endgroup %
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\lstdrv@tex@PrepareListing}
+% Here we assign a different \verb!\lst@Output! macro to detect control
+% sequences. We also (re-) set some catcodes.
+%    \begin{macrocode}
+\begingroup \makeatletter %
+\gdef\lstdrv@tex@PrepareListing{\let\lst@Output\lstdrv@tex@Output %
+    \catcode`\0=12 \catcode`\1=12 \catcode`\2=12 \catcode`\3=12 %
+    \catcode`\4=12 \catcode`\5=12 \catcode`\6=12 \catcode`\7=12 %
+    \catcode`\8=12 \catcode`\9=12}%
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\lstdrv@tex@Output}
+% \begin{macro}{\lstdrv@tex@CSOrNot}
+% These macros are similar to \verb!\lst@Output! and
+% \verb!\lst@CaseSensitiveKeywords!. We only do some adjustments, e.g.\ 
+% we need no 'ifstring' test, since the stringizer is empty for \TeX{}.
+%    \begin{macrocode}
+\gdef\lstdrv@tex@Output{%
+    \ifx\lst@text\@empty\else %
+        \lst@ifcomment\lst@MakeBox{\lst@commentstyle}%
+        \else\ifx\lst@lastother\lst@inputbackslash %
+            \expandafter\lstdrv@tex@CSOrNot\lst@text\relax %
+        \else\expandafter\lst@KeywordOrNot\lst@text\relax %
+        \fi \fi %
+        \global\advance\lst@pos by -\lst@length %
+        \let\lst@text\@empty \lst@length0 %
+    \fi}%
+\gdef\lstdrv@tex@CSOrNot#1\relax{%
+    \def\lst@test##1,#1,##2\relax{%
+        \ifx \@empty##2\@empty \lst@MakeBox{}%
+        \else \lst@MakeBox{\lst@keywordstyle}%
+        \fi}%
+    \expandafter\lst@test\lst@cs,#1,\relax}%
+\endgroup
+%</tex>
+%    \end{macrocode}
+% \end{macro}\end{macro}
+%
+%
+% \begingroup\small
+% \section{Extensions}\label{sExtensions}
+% Define a new driver file for an additional language.
+% Refer the previous section how this is done.
+%
+% If you want comment lines or comments, which are not supported by
+% the declaration commands of this package, you have a problem.
+% Contact me or follow these steps:
+% \begin{enumerate}
+% \item \DescribeMacro\lst@CommentLine
+%	Define the macro, which cuts up the input line into a comment
+%	line and the noncomment rest: The macro gets the input via the
+%	macro \verb!\lst@line!. After the call \verb!\lst@line! must hold
+%	the noncomment rest and \verb!\lst@commentline! the comment line.
+%	The C++ line
+% \begin{verbatim}
+%    if (comments!=appear) // comment stuff\end{verbatim}
+%	must be cut into '\verb|if (comments!=appear) |' and
+%	'\verb!// comment stuff!'.
+% \item \DescribeMacro\lst@SOC
+%	Define the macro, which finds the start of a comment:
+%	The macro gets the input via the macro \verb!\lst@line!. After
+%	the call \verb!\lst@line! must contain the source line upto the
+%	first appearance of a comment (exclusive). The comment and might
+%	the rest of the line must be in the macro \verb!\lst@comment!.
+%	If a comment is separated (not if and only if), you have to call
+%       \verb!\lst@commenttrue!. The Pascal line
+% \begin{verbatim}
+%    if { comment } appears then\end{verbatim}
+%	is cut into '\verb!if !' and '\verb!{ comment } appears then!'.
+% \item \DescribeMacro\lst@EOC
+%	Define the macro, which finds the end of a comment:
+%	The macro gets the input via the macro \verb!\lst@line!. After
+%	the call \verb!\lst@comment! must hold the comment and
+%	\verb!\lst@line! the noncomment rest of the line (which might be
+%	empty, of course). If the end of comment is found, you have to call
+%	\verb!\lst@commentfalse!. The Pascal line
+% \begin{verbatim}
+%    { comment } appears then\end{verbatim}
+%	must be cut into '\verb!{ comment }!' and '\verb! appears then!'.
+% \end{enumerate}
+% Assign these macros to \verb!\lst@CommentLine!, \verb!\lst@SOC! and
+% \verb!\lst@EOC! within your language command.
+%
+%
+% \section{History}\label{sHistory}
+% Only major changes after version 0.15 are listed here.
+% Previous changes are still present in the \texttt{.dtx}-file.
+% \renewcommand\labelitemi{--}
+% \begin{itemize}
+% \iffalse
+% \item[0.1] from 1996/03/09
+%	\item test version to look whether package is possible or not
+% \item[0.11] from 1996/08/19
+%	\item additional blank option
+%	\item	\cs{keywords}, \cs{morekeywords}, \cs{keywordstyle}
+%		and \cs{commentstyle} are new commands
+%	\item implementation guide improved and user's guide updated
+%	\item alignment improved by rewriting some macros
+% \item[0.12] from 1997/01/16
+%	\item nearly perfect alignment now
+%	\item \cs{stringizer}, \cs{stringstyle}, \cs{prelisting}
+%		and \cs{postlisting} are new
+%	\item user selection \cs{listingtrue} and \cs{listingfalse} possible
+%	\item \cs{blankstringtrue} and \cs{blankstringfalse} handle output
+%		of blanks in strings
+%	\item package supports tabulators now; new command \cs{tablength}
+% \item[0.13] from 1997/02/11
+%	\item additional languages: Eiffel, Fortran 90, Modula-2, Pascal XSC
+%	\item load on demand: language specific macros moved to driver files
+%	\item comments are declared now and not implemented for each language
+%		again (this makes the \TeX{} sources easier to read)
+%	\item 'string exceeds line' test moved to
+%		\verb!\lst@PreProcessLineDefault!
+%	\item sample files moved to .dtx-file
+% \item[0.14] from 1997/02/18
+%	\item user's guide rewritten
+%	\item implementation guide uses macro environment from the doc
+%		package
+%	\item (non) case sensitivity implemented, e.g.\ Pascal is not
+%	\item multiple stringizer implemented, i.e.\ Modula-2 handles
+%		both string types: quotes and double quotes
+%	\item comment declaration is user-accessible now
+%	\item package compatible to \verb!german.sty! now
+%	\item changed some identifiers
+% \item[0.15] from 1997/04/18
+%	\item listing environment is new
+%	\item additional languages: Java, Turbo Pascal
+%   \item \verb!\lst@width! changes from 0.65em to 0.8em for Fortran 90
+%   \item corrected some mistakes in the documentation
+%	\item package renamed from listing.dtx to listings.dtx, since there
+%		is already a listing package
+% \fi
+% \item[0.16] from 1997/06/01
+%	\item Thanks to Anders Edenbrandt\footnote{Department of Computer
+%		Science\ \ Lund University, Sweden.
+%       Anders.Edenbrandt@dna.lth.se} for reporting two bugs:
+%		lstmodula.sty corrected (misspelled \verb!\`"!) and
+%		call of \verb!\lst@???style!s in \verb!\lst@Begin! avoid
+%		loading of font files when catcodes are changed.
+%	\item Thanks to Rolf Niepraschk\footnote{Physikalisch--Technische
+%		Bundesanstalt\ \ Berlin, Germany.
+%       Niepraschk@ptb.de} for reporting wrong catcode
+%		of \verb!$!. I've also changed catcode of \verb!@! and took
+%		over the proposal of using \verb!\zap@space!. The catcode of
+%       the percent \verb!%! is restored after typesetting a listing now.
+%	\item Thanks to Knut M\"uller\footnote{knut@physik3.gwdg.de} and
+%       Stefan Meister\footnote{FH--Wolfenb\"uttel, Germany.}
+%		for reporting problem with the command \cs{blankstringtrue}.
+%		The problem is gone.
+% \iffalse
+%	\item changed '$<$' to '$>$' in \verb!\lst@SkipUptoFirst!
+%   \item bug removed: \verb!\lst@Begin! must be placed before
+%       \verb!\lst@SkipUptoFirst!
+% \fi
+%   \item new commands \cs{spreadlisting}, \cs{listoflistings},
+%       \cs{labelstyle}, \cs{thelstline}, \cs{lstbaseem},
+%       \cs{listlistingsname}
+%   \item listing environment rewritten
+% \item[0.17] from 1997/09/29
+%	\item \cs{spreadlisting} works correct now (e.g.\ page numbers
+%		move not right any more), new commands \cs{selectlisting}
+%		and \cs{lstlineskip}, \cs{labelstyle} changed
+%	\item speed up things (quick 'if parameter empty', all \cs{long}
+%		except one removed, faster \verb!\lst@GotoNextTabStop!, etc.)
+%	\item alignment of wide other characters improved (e.g.\ $==$)
+%	\item many new languages: Ada, Algol, Cobol, Comal 80, Elan,
+%		Fortran 77, Lisp, Logo, Matlab, Oberon, Perl, PL/I, Simula,
+%		SQL, \TeX{}
+% \end{itemize}
+%
+%
+% \begin{thebibliography}{99}
+% \bibitem{Ada}
+%		\textsc{Barnes, John Gilbert Presslie}:
+%		\textbf{Programming in Ada plus language reference manual}\\
+%		{\copyright} 1991 Addison-Wesley Publishing Company, Inc.;
+%		ISBN 0-201-56539-0
+% \bibitem{Algol60}
+%		\textsc{Uwe Pape}:
+%		\textbf{Programmieren in ALGOL 60}\\
+%		{\copyright} 1973 Carl Hanser Verlag M\"unchen;
+%		ISBN 3-446-11605-2
+% \bibitem{Algol68}
+%		\textsc{Frank G.\ Pagan}:
+%		\textbf{A practical guide to ALGOL 68}\\
+%		{\copyright} 1976 by John Wiley $\&$ Sohn Ltd.;
+%		ISBN 0-471-65746-8 (Cloth); ISBN 0-471-65747-6 (Pbk)
+% \bibitem{Comal}
+%		\textsc{Borge R. Christensen}:
+%		\textbf{Strukturierte Programmierung mit COMAL 80} [aus dem
+%		D\"anischen \"ubertragen und bearbeitet von Margarete Kragh]\\
+%		2., verb.\ Auflage -- M\"unchen; Wien: Oldenburg, 1985;
+%		ISBN 3-486-26902-X
+% \bibitem{Eiffel}
+%       \textsc{Bertrand Meyer}: \textbf{Eiffel: the language}\\
+%       Prentice Hall International (UK) Ldt, 1992;
+%       ISBN 0-13-247925-7
+% \bibitem{Elan}
+%		\textsc{Leo~H.~Klingen, Jochen Liedtke}:
+%		\textbf{Programmieren mit ELAN}\\
+%		B.G.\ Teubner, Stuttgart 1983; ISBN 3-519-02507-8
+% \bibitem{Fortran77}
+%		\textsc{Karl Hans M\"uller}:
+%		\textbf{Fortran 77: Programmierungsanleitung}\\
+%		3., v\"ollig neu bearb.\ Aufl.\ -- Mannheim; Wien; Z\"urich:
+%		Bibliographisches Institut, 1984;
+%		ISBN 3-411-05804-8
+% \bibitem{Fortran90}
+%       \textsc{Thomas Michel}: \textbf{Fortran 90: Lehr-- und Handbuch}\\
+%       Mannheim; Leipzig; Wien; Z\"urich: BI-Wiss.-Verlag, 1994;
+%       ISBN 3-411-16861-7
+% \bibitem{Matlab} \texttt{http://www.utexas.edu/math/Matlab/Manual}
+% \bibitem{Modula}
+%       \textsc{Niklaus Wirth}: \textbf{Programmieren in Modula-2},
+%       \"Ubers.\ Guido Pfeiffer\\
+%       2.\ Auflage -- Berlin; Heidelberg; New York; London; Paris; Tokyo;
+%               Hong Kong: Springer, 1991;
+%       ISBN 3-540-51689-1
+% \bibitem{java} \texttt{http://java.sun.com}
+% \bibitem{lisp}
+%		\textsc{Guy Steele}:
+%		\textbf{Common Lisp}\\
+%		Copyright 1990 by Digital Equipment Corporation;
+%		ISBN 1-55558-042-4
+% \bibitem{perl} \texttt{http://www.perl.com}
+% \bibitem{pli}
+%		\textsc{Bernhard Fischer, Herman Fischer}:
+%		\textbf{Structured Programming in PL/I and PL/C}\\
+%		Copyright {\copyright} 1976 by Marcel Dekker, Inc.;
+%		ISBN 0-8247-6394-7
+% \bibitem{simula}
+%		\textsc{G\"unther Lamprecht}:
+%		\textbf{Introduction to SIMULA 67}\\
+%		Braunschweig; Wiesbaden: Vieweg, 1981
+% \bibitem{sql}
+%		\textsc{Jim~Melton, Alan~R.~Simon}:
+%		\textbf{Understanding the new SQL: A Complete Guide}\\
+%		{\copyright} 1993 Morgan Kaufmann Publishers, Inc.;
+%		ISBN 1-55860-245-3
+% \bibitem{verbatim}
+%       \textsc{Rainer Sch\"opf, Bernd Raichle, Chris Rowley}:
+%       \textbf{A New Implementation of \LaTeX's \texttt{verbatim}
+%           and \texttt{verbatim*} Environments.}
+% \end{thebibliography}
+% \endgroup
+%
+%
+% \setcounter{IndexColumns}{2}
+% \PrintIndex
+%
+%
+% \Finale
+%
+\endinput

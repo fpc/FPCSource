@@ -1,0 +1,212 @@
+\documentclass{article}
+\usepackage{mdwtab}
+
+\errorcontextlines 999
+
+\showboxbreadth\maxdimen
+\showboxdepth=2
+
+\makeatletter
+
+% --- Switch allocations ---
+
+\newif\if@fleqn
+\newif\if@leqno
+
+% --- Dimen allocations ---
+
+\newdimen\eqa@thiscolwd
+\newdimen\eqa@maxcolwd
+\newdimen\eqa@maxeqwd
+\newdimen\eqa@maxcoleqwd
+
+% --- Main environments ---
+
+\def\equations{%
+  \def\eqa@defnumber{(\theequation)\stepcounter{equation}}%
+  \let\eqa@defmarker\eqa@fullmarker%
+  \eqa@equations%
+}
+
+\def\endequations{%
+    \\%
+    \noalign{\global\dimen@i\prevdepth}%
+    \multispan\tab@columns\hfill\vrule\@depth\dimen@i\cr%
+    \egroup%
+    \eqa@offsetcalc%
+  \egroup%
+  \eqa@restore%
+  {\scrollmode\showbox\z@}%
+}
+
+\def\eqa@equations#1{%
+%
+% Set up restoring of things.
+%
+  \toks@\expandafter{\eqa@number}%
+  \toks\tw@\expandafter{\eqa@marker}%
+  \edef\eqa@restore{%
+    \gdef\noexpand\eqa@number{\the\toks@}%
+    \gdef\noexpand\eqa@marker{\the\toks\tw@}%
+    \eqa@maxcolwd\the\eqa@maxcolwd%
+    \eqa@maxcoleqwd\the\eqa@maxcoleqwd%
+    \eqa@maxeqwd\the\eqa@maxeqwd%
+  }%
+%
+% Initialise numbering things.
+%
+  \global\let\eqa@number\eqa@defnumber%
+  \global\let\eqa@marker\eqa@defmarker%
+  \let\eqa@markpen\@ne%
+%
+% Parse the preamble string.  Put measuring things in the right places.
+%
+  \tab@initread%
+  \def\tab@tabtext{&\tabskip\z@skip}%
+  \if@leqno%
+    \tab@append\tab@preamble{\let\eqa@measure\eqa@domeasure}%
+  \fi%
+  \def\eqa@seteqcol##1{%
+    \def\eqa@eqcol{##1}
+    \if@leqno\let\eqa@seteqcol\relax\fi%
+  }%
+  \colset{equations}%
+  \tab@doreadpream{#1}%
+  \if@leqno\else%
+    \tab@prepend\tab@pretext{\let\eqa@measure\eqa@domeasure}%
+  \fi%
+  \tab@readpreamble{}%
+%
+% Setting the newline command and some other initialisation.
+%
+  \let\\\eqa@cr%
+  \global\eqa@maxcolwd\z@%
+  \global\eqa@maxcoleqwd\z@%
+  \global\eqa@maxeqwd\z@%
+%
+% Start the box.  Hacking to make \prevdepth work properly.
+%
+  \setbox\z@\vbox\expandafter\bgroup%
+    \expandafter\prevdepth\the\prevdepth%
+    \relax%
+%
+% And now the alignment.
+%
+    \tabskip\z@skip%
+    \halign\expandafter\bgroup\the\tab@preamble\cr%
+}
+
+% --- Column building things ---
+
+\def\eqa@aligncol#1#2#3{%
+  \eqa@seteqcol{#1}%
+  \ifx l#1\eqa@aligncol@i{#2#3}{#2\hfil}\else%
+  \ifx c#1\eqa@aligncol@i{\hfil#2#3}{#3#2\hfil}\else%
+  \ifx r#1\eqa@aligncol@i{\hfil#2}{#3#2}%
+  \fi\fi\fi%
+}
+\def\eqa@aligncol@i#1#2{%
+  \tabcoltype%
+    {\setbox\z@\hbox\bgroup#1}%
+    {#2\egroup\eqa@measure}%
+}
+
+\colpush{equations}
+
+\coldef l{\eqa@aligncol l${{}}}
+\coldef c{\eqa@aligncol c${{}}}
+\coldef r{\eqa@aligncol r${{}}}
+
+\coldef M#1{\eqa@aligncol{#1}${{}}}
+\coldef T#1{\eqa@aligncol{#1}{}{}}
+
+\colpop
+
+% --- Equation measuring macros ---
+
+\let\eqa@number\relax
+\let\eqa@marker\relax
+
+\def\eqnumber#1{%
+  \global\let\eqa@marker\eqa@fullmarker%
+  \gdef\eqa@number{#1}%
+}
+
+\def\nonumber{%
+  \global\let\eqa@marker\eqa@nonummarker%
+  \global\let\eqa@number\@empty%
+}
+
+\def\eqa@measure{\unhbox\z@}
+\def\eqa@domeasure{%
+  \global\eqa@thiscolwd\wd\z@%
+  \ifdim\eqa@maxcolwd<\eqa@thiscolwd%
+    \global\eqa@maxcolwd\eqa@thiscolwd%
+  \fi%
+  \unhbox\z@%
+}
+
+% --- The newline command ---
+
+\def\eqa@cr{\tab@cr\eqa@cr@i\z@\@M}
+\def\eqa@cr@i#1#2{%
+  \cr%
+  \noalign{%
+    \eqa@marker{#1}{#2}%
+    \global\let\eqa@number\eqa@defnumber%
+    \global\let\eqa@marker\eqa@defmarker%
+    \penalty\eqa@markpen%
+  }%
+}
+
+\def\eqa@fullmarker#1#2{%
+  \dimen@\prevdepth%
+  \vskip\eqa@thiscolwd%
+  \penalty#2%
+  \skip@#1\advance\skip@\jot%
+  \vskip\skip@%
+  \setbox\z@\hbox{\eqa@number}%
+  \dimen@\eqa@thiscolwd\advance\dimen@\wd\z@%
+  \ifdim\dimen@\eqa@maxcoleqwd<\dimen@%
+    \global\eqa@maxcoleqwd\dimen@%
+    \global\eqa@maxeqwd\wd\z@%
+  \fi%
+  \nointerlineskip\hb@xt@\z@{\hbox{\eqa@number}}%
+  \prevdepth\dimen@%
+}
+
+\def\eqa@nonummarker#1#2{%
+  \penalty#2%
+  \skip@#1\advance\skip@\jot%
+  \vskip\skip@%
+  \penalty\eqa@markpen%
+}
+
+% --- Offset calculation ---
+%
+% This stuff is sort of like the standard offset calculation, only it's
+% different.
+
+\def\eqa@offsetcalc{%
+  \setbox\z@\lastbox%
+  \unskip%
+  \csname eqa@calc:\eqa@eqcol\expandafter\noexpand\if@leqno\endcsname%
+}
+
+\@namedef{eqa@calc:l\noexpand\iffalse}{%
+  
+
+% --- Test document ---
+
+\makeatother
+
+\begin{document}
+
+\setcounter{equation}{23}
+
+\begin{equations}{rrl}
+  x &= y^2 +& z^2 \\
+x-y &= 3y^2 -& 2z^2
+\end{equations}
+
+\end{document}

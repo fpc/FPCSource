@@ -1,0 +1,499 @@
+
+                            ===============
+
+                            M D W T O O L S
+
+                            ===============
+
+
+--- Licence note ---
+
+mdwtools package release note
+Copyright (c) 1996 Mark Wooding, except doafter, which is Copyright (c) 1996
+Peter Schmitt and Mark Wooding.
+
+These programs are free software; you can redistribute them and/or modify
+them under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+These programs are distributed in the hope that they will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with these programs; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+
+--- What it's all about ---
+
+This is a bunch of LaTeX 2e packages which have made my life as a LaTeX user
+easier, so I thought I'd share them.  I'm mainly an ARM assembler hacker
+(which explains why my TeX code looks so horrible), although I have been
+known to write documentation for programs.  This may explain the sort of
+things these packages do, and where I'm coming from.
+
+
+--- Licencing ---
+
+The packages are made available under the GNU General Public Licence (not the
+usual LaTeX agreement).  A copy of this licence is supplied in the file
+COPYING.  You should read this document if you haven't read it already, even
+if it's just for educational value.  I'm not actually sure how good a thing
+the GNU GPL actually is, so I'm sort of testing the water.  The idea that
+this is how all software should be distributed still fills me with a certain
+amount of trepidation.
+
+
+--- What's in the box ---
+
+You should have received the following files in whatever sort of archive
+thing this suite came in:
+
+  README	-- You've got this file for sure, because it's this one
+  COPYING	-- A textual version of the GNU General Public Licence
+  at.dtx	-- Documentation and code for `at.sty' package
+  cmtt.dtx	-- Documentation and code for `cmtt.sty'package and
+		   associated files
+  doafter.dtx	-- Documentation and code for `doafter.sty' package; the
+		   code is also used in `syntax.sty' and `mdwtab.sty'
+  mdwlist.dtx	-- Documentation and code for `mdwlist.sty' package
+  mdwmath.dtx	-- Documentation and code for `mdwmath.sty' package
+  mdwtab.dtx	-- Documentation and code for `mdwtab.sty' and `mathenv.sty'
+		   packages
+  footnote.dtx  -- Documentation and code for `footnote.sty' package; the
+		   code is used in `mdwtab.sty'
+  sverb.dtx	-- Documentation and code for `sverb.stx' package
+  syntax.dtx	-- Documentation and code for `syntax.dtx' package
+  mdwtools.ins	-- Installation script for all the packages
+  gpl.tex	-- LaTeX version of the GNU General Public Licence
+  mdwtools.tex	-- Definitions for typesetting the documentation
+
+If you're missing any of these files, complain at whoever gave the rest of
+them to you, and get them quickly.  However, if you're lucky, you may have
+received some other files:
+
+  at.sty	-- Unpacked `at.sty' package
+  cmtt.sty	-- Unpacked `cmtt.sty' package
+  mTTenc.def	-- Unpacked encoding definition file for `cmtt.sty'
+  mTTcmtt.fd	-- Unpacked font definition file for `cmtt.sty'
+  doafter.sty	-- Unpacked `doafter.sty' package for LaTeX
+  doafter.tex	-- Unpacked `doafter.tex' package for Plain TeX
+  mathenv.sty	-- Unpacked `mathenv.sty' package
+  mdwlist.sty	-- Unpacked `mdwlist.sty' package
+  mdwmath.sty	-- Unpacked `mdwmath.sty' package
+  mdwtab.sty	-- Unpacked `mdwtab.sty' package
+  footnote.sty  -- Unpackad `savenot.dty' package
+  sverb.sty	-- Unpacked `sverb.sty' package
+  syntax.sty	-- Unpacked `syntax.sty' package
+
+  at.dvi	-- Typeset documentation for `at.sty'
+  cmtt.dvi	-- Typeset documentation for `cmtt.sty' and co.
+  doafter.dvi	-- Typeset documentation for `doafter.sty'
+  mdwlist.dtx	-- Typeset documentation for `mdwlist.sty'
+  mdwmath.dvi	-- Typeset documentation for `mdwmath.sty'
+  mdwtab.dvi	-- Typeset documentation for `mdwtab.sty' and `mathenv.sty'
+  footnote.dvi	-- Typeset documentation for `footnote.sty'
+  sverb.dvi	-- Typeset documentation for `sverb.sty'
+  syntax.dvi	-- Typeset documentation for `syntax.sty'
+
+If you've already got these, then great, because you don't have to generate
+them.  If you haven't, it's not a big deal.  You might also have a bunch of
+files with extensions like `.log', `.aux', `.tmp', `.ilg' and so on.  These
+files are really not at all interesting, and you might as well get rid of
+them now.
+
+
+--- What the packages do ---
+
+Before we can get anywhere, you need to know what the packages do, roughly
+speaking.  Here's a quick rundown:
+
+at.sty		-- Allows you to use `@' as a sort of `command-introducing'
+		   character, a bit like `\' is already.  This gives you
+		   a lot more short command names which you can assign to
+		   common constructions.  For example, you can set up
+		   @/<text>/ as a command to put <text> in italics.
+
+cmtt.sty	-- Provides an `mTT' encoding for the Computer Modern
+		   Typewriter font, which solves lots of messy problems.
+
+doafter.sty	-- Provides a TeX programmer's utility
+		     \doafter <token> <group>
+		   which does the <token> after the group is complete,
+		   including any \aftergroup things.  The code was originally
+		   written by Peter Schmitt in answer to a `challenge' I made
+		   on comp.text.tex;I tweaked it a bit to make it work
+		   slightly better.  doafter.tex is a plain TeX version of
+		   the same macro.
+
+mathenv.sty	-- Contains a collection of mathematical environments with
+		   a theme of aligning things in columns.  There's a
+		   rewritten version of `eqnarray' which is much more
+		   powerful than the old one, and it gets the spacing right.
+		   This package requires `mdwtab.sty' in order to work.  It
+		   is extracted from `mdwtab.dtx'.  In general, the AmS
+		   things to a better job, although it seems that the mathenv
+		   matrix and script handling environments give prettier
+		   results than the AmS equivalents (at least to my eyes).
+
+mdwlist.sty	-- Various list related environments.  There's a more
+		   versatile `description' environment, and some stuff for
+		   making `compacted' lists (with no extra space between
+		   items).
+
+mdwmath.sty	-- Contains a few trivial definitions for mathematical
+		   things.  The main thing is that the \sqrt command for
+		   doing square roots has been improved -- there's a \sqrt*
+		   command which stops the line being drawn over the formula
+		   being square-rooted, and the positioning of the root
+		   index (the optional argument) has been improved.
+
+mdwtab.sty	-- A complete ground-up rewrite of LaTeX's `tabular' and
+		   `array' environments.  Has lots of advantages over
+		   the standard version, and over the version in `array.sty'.
+		   It works correctly with all the table-related packages in
+		   the Tools bundle (longtable, delarray, hhline, tabularx
+		   and dcolumn).  This package includes most of the code
+		   from `doafter.sty' and `footnote.sty' (it doesn't load
+		   the packages -- it has its own copies built-in, although
+		   you won't waste memory if you do load these packages).
+		   To generate `mdwtab.sty', you require `mdwtab.dtx',
+		   `doafter.dtx' and `footnote.dtx'; the last two provide
+		   the shared code.
+
+footnote.sty	-- Provides commands for saving executing footnotes; the
+		   author has noticed several packages which attempt to
+		   enable footnotes in tables, all of which eat an extra
+		   token list register.  This is an attempt to offer shared
+		   code to do the job, saving space and effort.  It also
+		   provides a `footnote' environment which allows verbatim
+		   text.
+
+sverb.sty	-- A bunch of macros for doing verbatim things.  Required
+		   for typesetting all the documentation for the other
+		   packages.
+
+syntax.sty	-- A load of commands for describing syntax.  There's an
+		   environment for typesetting BNF grammars.  But best of
+		   all, there's a load of commands and environments for
+		   drawing syntax diagrams.  Required for typesetting all
+		   the documentation for the other packages.  If you're
+		   extracting syntax.sty from syntax.dtx, you also need
+		   doafter.dtx.
+
+With the exception of the dependencies listed above, the packages will all
+work independently of each other.  If you want to typeset the documentation,
+you'll need `sverb.sty' and `syntax.sty'.  Typesetting the documentation
+isn't essential, although it will probably help if you can see what the
+various commands actually do.
+
+
+--- Extracting the packages ---
+
+If you don't have the various .sty files already, you'll need to extract them
+from the .dtx files.  This requires docstrip.tex, which should be part of
+your base LaTeX 2e distribution.  If you have docstrip vsersion 2.3d, which
+is available with the December 1995 release of LaTeX, things will go rather
+faster.  If your LaTeX release is much older than this, you should upgrade,
+because the packages need a fairly new LaTeX anyway.  (I could do something
+about this, but I won't, because I want to encourage everyone to upgrade.)
+
+If everything's set up correctly, all you should need to do is say
+
+  tex mdwtools.ins
+
+or
+
+  latex mdwtools.ins
+
+or whatever incantation is necessary to run TeX or LaTeX on the supplied
+`mdwtools.ins' file on your system.
+
+TeX will grind away at the files for a bit, and then say `Done' at you. (This
+could take a while, so be patient.)  You will then have a mdwtools.log file,
+which you can throw away, and a collection of sparkly new .sty files, which
+you should put somewhere where TeX can find them easily.
+
+
+--- Typesetting the documentation ---
+
+If you want to typeset the documentation for a package, you'll need the
+`mdwtools.tex' file provided, and the `syntax.sty' and `sverb.sty' packages.
+You'll also need the `.dtx' file for the package you want documentation on,
+and any packages it generated.
+
+For example, if you want documentation on `mathenv.sty', you need:
+
+  mdwtools.tex	-- Shared defintions for all the documentation files
+  syntax.sty	-- Syntax typesetting commands
+  sverb.sty	-- Verbatim text handling commands
+  mathenv.sty	-- So the documentation can use it to demonstrate its
+		   features
+  mdwtab.sty	-- Required by `mathenv.sty'
+  mdwtab.dtx	-- The documentation file from which `mathenv.sty' was
+		   extracted, and therefore the file which contains the
+		   documentation you want to read
+
+Make sure you've got all the files, and then run LaTeX on the .dtx file you
+want to read.
+
+TeX will start hammering away for a very short while, and then stop and ask
+you whether you want to build the indexing files.  Generating index files
+takes a lot longer (I'd guess that it doubled the amount of time taken to
+typeset the `.dtx' file) so I don't recommend it unless:
+
+  * you've got a very fast processor, or
+  * you're very interested in how the package works internally, or
+  * you just like everything to be complete, or
+  * you're a masochist.
+
+Even so, there's no point writing indexing information the first time you
+run LaTeX on a file, because the table of contents hasn't been created yet,
+and when you LaTeX the file the second time, all the references will change.
+
+If you want the index files anyway, type `y' when you're asked.  Otherwise,
+type 'n'.  You know you want to type `n' really...
+
+If you want to do the job properly, you need to run LaTeX a second time
+to read in the contents table.  /This/ is the correct time to turn on
+indexing, if you really want it.
+
+If you did build the index files, you should now sort the index by saying
+
+  makeindex -s gind.ist <name>.idx
+
+where <name> is the same as the name of the `.dtx' file.  The `gind.ist' file
+should have come with LaTeX.  Having done this, you should run the `.dtx'
+file though LaTeX one final time, to insert the formatted index.
+
+You can now print or preview the generated `.dvi' file using whatever tools
+you usually use for such things.
+
+
+--- What changed? ---
+
+Here's a list of what changed in the various releases.
+
+Version		Changes
+
+1.00		* First general releases of everything.
+
+
+1.01		* Fixed typos in various bits of documentation.
+
+		* (mdwtab.sty) Added enhanced \cline command.  Added
+		  hhline.sty to list of supported table-related packages.
+		  (I guess it always worked -- I just forgot about it.)
+		  Made some of the section titles a little sillier ;-)
+
+		* (mathenv.sty) Added some new random environments, mainly
+		  because I saw some more interesting examples in /The/
+		  /TeXbook/ and had an idea...  Now support nesting of
+		  various environments, albeit rather imperfectly.
+
+		* (at.sty) Made @-commands really properly robust.  Fixed
+		  some lies in the documentation.  Removed some truly insane
+		  bits of old code here too.  Made package sort of
+		  cooperate with amsmath's use of @-commands -- suggestions
+		  for improvement welcomed.
+
+		* (mdwtools.tex) Fixed /really/ stupid mistake in which made
+		  typesetting the documentation about fifty times slower
+		  than it should have been (bashes self on head several
+		  times).  Changed the structure here a bit too, to handle
+		  document classes as well as packages.  Made TeX much
+		  quieter while it's typesetting the documentation.
+
+		* (sverb.sty) Fixed duff paragraph formatting in listing
+		  environment and \verbinput command (due to the `wrong
+		  sort' of grouping).  (My excuse for missing this one is
+		  that my standard document class sets \parskip=0pt.)
+
+		* (mdwtools.ins) Fixed this in line with the documentation
+		  which hints that it should work with older docstrips.
+		  It's a bit hacky but it works.
+
+
+1.02		* (gpl.tex) Fixed some bugs which made typesetting go wrong
+		  in larger documents.  Restructured preamble so that it
+		  can be typeset on its own.  Put in eplicit item numbers
+		  in the enumerate environments, for more obvious conformance
+		  to the original.
+
+		* (mdwtab.sty) Lots of changes here, many suggested by
+		  David Carlisle (so oodles of thanks to him for taking
+		  an interest in my humble hackings).  Fixed bugs, including
+		  one which put entirely incorrect interline spacing in
+		  `p' type columns.  Redone the handling of [t] and [b]
+		  tables with top and bottom rules, and removed the
+		  `\rulefudge' parameter which is no longer necessary.
+		  Miscellaneous other changes.
+
+		* (mdwtab.dtx) Tidied up some nastinesses in the
+		  documentation, and removed the `\over' commands from the
+		  maths demos, to keep certain people happy.  Floated a few
+		  more of the demonstrations to make page breaking better.
+		  There's a danger that some of the demos are drifting too
+		  far away from their text, but it's not too bad yet.
+
+		* (syntax.sty) Used \doafter here to fix some colour handling
+		  problems.
+
+		* (syntax.sty) Tidied up the `grammar' environment quite a
+		  bit (it now uses `\item', rather than trying to emulate it
+		  internally), and fixed some vicious bugs in it and some
+		  other code.
+
+		* (doafter.sty etc.) A new addition, to make the various
+		  packages handle colour properly.  Mainly written by
+		  Peter Scmitt, actually, I just fiddled with it a little.
+		  Then Peter gave me a better version, and I've tried to
+		  upgrade this one.
+
+		* (footnote.sty) A new addition, to offer some shared things
+		  for handling footnotes.  It also enables footnotes in
+		  parboxes, which used to be difficult, and provides a
+		  `footnote' environment which allows verbatim text.
+
+		* (mdwlist.sty} A new addition, providing miscellanous
+		  list-related macros.  It's a sort of mixed bag of things
+		  I've had lying around various document preambles, combined
+		  with some ideas from the Companion.
+
+		* (at.sty) Rewritten command name parser to be much nicer.
+		  Added support for digits within @-command names (subject
+		  to being enabled by an option).  This is in response to
+		  requests in comp.text.tex for digits in command names.
+
+		* (mathenv.sty) Totally overhauled the matrix spacing rules.
+		  Added `script' environment.  Improved numbering things,
+		  with `\eqnumber'.  
+
+		* (mdwtools.tex) Some minor changes here to fix some buglets.
+		  Played with some more float parameters, to discourage
+		  float pages a bit more.  Then revamped completely, turned
+		  into a docced program (although it isn't docstripped),
+		  rewritten title generation, and made much more
+		  customisable.
+
+
+1.02a		* (mdwtab.sty) Added support for table beautification in
+		  longtable.  Documented how to do this.
+
+
+1.03		* (mdwtab.sty) Completely redone the paragraph-cell handling:
+		  list environments now work properly inside tables (without
+		  funny extra space appearing at the top and bottom).  Also
+		  fixed a bug in the newline handling, which ignored negative
+		  interrow space in the \\ command.
+
+		* (syntax.sty) Changed the underscore handling, and some
+		  other bits, to fit in rather better with LaTeX's output
+		  encoding system.  It's nastier and hackier inside, but it
+		  works better with things like the DC fonts.  Also stopped
+		  re-lowercasing of `~' from escaping and messing everything
+		  up for everyone.  Improved underscore appearance by
+		  lowering it some more.
+
+		* (syntax.sty) Replaced some `2's with `\tw@'s.  Added a
+		  comment about dvips's inaccurate positioning of rules.
+
+		* (sverb.sty) Made non-* environments build end text from
+		  the name of the current environment, rather than having it
+		  hardcoded.  Also stopped `unignore' environments being
+		  a group.
+
+		* (sverb.dtx) Removed some porkies from the documentation.
+
+		* (mdwtab.sty) Fixed some miscellaneous typos.  Removed
+		  `\rulefudge' from the table of tweakables, because it
+		  was withdrawn in release 1.02.
+
+		* (cmtt.dtx) New package, for handling the `cmtt' font
+		  better.  It introduces a special encoding for the font,
+		  and provides a command which allows you to use all the
+		  characters without the disadvantages of verbatim text.
+
+		* (other changes) Improved distribution building and
+		  testing stuff which you can't see because I'm not
+		  releasing it.
+
+
+1.04		* (syntax.sty) Provided some new commands for playing with
+		  interword spacing in `tt' fonts.
+
+		* (doafter.dtx and footnote.dtx) Added some docstrip guards
+		  around the meta-comments, so that the charactertable and
+		  the GPL header aren't put into other packages.
+		  Unfortunately the version of docstrip which understands
+		  this hasn't been released yet...
+
+		* RCSified everything, so I can find old revisions, and I'm
+		  less likely to destroy everything.
+
+		* (footnote.dtx) Added a check for AMS environments doing
+		  measuring passes, to avoid duplicated footnotes.  (Spotted
+		  by Roberto Bagnara.)
+
+
+1.05		* (mdwtab.dtx) Fixed stupid bug in paragraph cells which
+		  left 1000pt high table rows.  (Spotted by Rowland.)
+
+		* (mdwtab.dtx) Fixed horizontal spacing problems with
+		  empty paragraph cells.
+
+		* (mdwlist.dtx) Allowed compact lists and resumed lists
+		  to pass arguments on to the underlying environments.
+
+
+--- Future plans ---
+
+doafter.sty	Add Peter Schmitt's testing for implicit/explicit braces,
+		as a package or docstrip option.  (This extra testing is
+		a significant chunk of code, and I don't think it's worth
+		burdening the standard version with it.  Peter agrees with
+		me.)
+
+mathenv.sty	Do postprocessing on display maths environments to position
+		the equations and equation numbers properly, so they don't
+		overlap (like the AMS environments do, although more
+		robustly).  Once this is done, I think I'll have a reasonable
+		case for saying that this provides an alternative to the
+		AMS environments, although quite what the advantage is I
+		don't know: mdwtab.sty isn't exactly small.
+
+		Work is currently `in progress' on this one.
+
+mdwtab.sty	Consider doing postprocessing on tables (yuk) in a blkarray
+		sort of way.
+
+footnote.sty	Merge with Robin Fairbairn's package of the same name.  Allow
+		different rules for continued notes (suggested by Donald
+		Arseneau, after a news article by Jonathan Wand).
+
+New packages	I'm currently working on a little something for typesetting
+		poetry properly (centring poems horizontally based on the
+		longest line, etc.), handling footnotes properly, doing
+		line numbering etc.  If anyone has any wishes for this,
+		little things a tyro like me ought to know, or knows that
+		it's already done better than I could manage, then let me
+		know.
+
+
+--- Contacting the author ---
+
+The author can be reached by email at mdw@excessus.demon.co.uk.  This is his
+personal dial-up account, paid for privately, so don't expect replies after
+five minutes or anything like that.
+
+If you do have any comments regarding the code, its documentation, or
+anything else to do with these packages, don't leave me guessing -- let me
+know.  While I won't guarantee to do anything about your comments, chances
+are that I'll right any wrongs and rescue any damsels in distress (oh, no,
+wrong spiel).
+
+
+-----------------------------------------------------------------------------
