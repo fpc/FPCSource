@@ -742,10 +742,16 @@ implementation
             in_succ_x:
               begin
                  secondpass(p^.left);
-                 if p^.inlinenumber=in_pred_x then
-                   asmop:=A_DEC
+                 if not (cs_check_overflow in aktlocalswitches) then
+                   if p^.inlinenumber=in_pred_x then
+                     asmop:=A_DEC
+                   else
+                     asmop:=A_INC
                  else
-                   asmop:=A_INC;
+                   if p^.inlinenumber=in_pred_x then
+                     asmop:=A_SUB
+                   else
+                     asmop:=A_ADD;
                  case p^.resulttype^.size of
                    4 : opsize:=S_L;
                    2 : opsize:=S_W;
@@ -776,8 +782,13 @@ implementation
                         end;
                    end
                  else p^.location.register:=p^.left^.location.register;
-                 exprasmlist^.concat(new(pai386,op_reg(asmop,opsize,
-                   p^.location.register)));
+
+                 if not (cs_check_overflow in aktlocalswitches) then
+                   exprasmlist^.concat(new(pai386,op_reg(asmop,opsize,
+                     p^.location.register)))
+                 else
+                   exprasmlist^.concat(new(pai386,op_const_reg(asmop,opsize,1,
+                     p^.location.register)));
                  emitoverflowcheck(p);
                  emitrangecheck(p,p^.resulttype);
               end;
@@ -1013,7 +1024,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  1999-02-05 10:56:19  florian
+  Revision 1.26  1999-02-15 11:40:21  pierre
+   * pred/succ with overflow check must use ADD DEC !!
+
+  Revision 1.25  1999/02/05 10:56:19  florian
     * in some cases a writeln of temp. ansistrings cause a memory leak, fixed
 
   Revision 1.24  1999/01/21 22:10:39  peter
