@@ -11,6 +11,7 @@
 \synt{resourcestring\ declaration\ part}\\
 \synt{type\ declaration\ part}\\
 \synt{variable\ declaration\ part}\\
+\synt{thread variable\ declaration\ part}\\
 \synt{procedure/function\ declaration\ part}
 \end{stack}
 \end{rep}
@@ -51,6 +52,13 @@
 \begin{mysyntdiag}
 \synt{variable\ declaration\ part}
 \lit*{var}
+\begin{rep}[b]
+    \synt{variable\ declaration}\\
+\end{rep}
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{thread variable\ declaration\ part}
+\lit*{threadvar}
 \begin{rep}[b]
     \synt{variable\ declaration}\\
 \end{rep}

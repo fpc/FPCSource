@@ -7,7 +7,7 @@
  \lit*{public} \\
  \lit*{alias} \lit* : \synt{string\ constant}\\
  \lit*{interrupt} \\
- \lit*{call\ modifiers}
+ \synt{call\ modifiers}
 \end{stack}
 \end{rep}
 \end{mysyntdiag}
@@ -21,7 +21,8 @@
 \lit*{popstack}\\
 \lit*{saveregisters}\\
 \lit*{inline}\\
-\lit*{safecall}
+\lit*{safecall}\\
+\lit*{varargs}
 \end{stack}
 \end{mysyntdiag}
 \end{diagram}
