@@ -588,7 +588,7 @@ begin
     begin
     writeln (t,'\documentclass{article}');
     writeln (t,'\usepackage{html}');
-    writeln (t,'\usepackage{fpcman}');
+    writeln (t,'\usepackage{fpc}');
     writeln (t,'\begin{document}');
     end;
 { Parse }
@@ -752,7 +752,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  1999-05-12 16:08:27  peter
+  Revision 1.2  1999-07-13 12:25:07  michael
+  Changed fpcman to fpc
+
+  Revision 1.1  1999/05/12 16:08:27  peter
     + moved compiler utils
 
   Revision 1.18  1999/05/06 09:06:27  peter
