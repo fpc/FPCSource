@@ -1157,6 +1157,10 @@ begin
         Inoutres:=15;
         exit;
       end;
+     { DosDir($3b,'c:') give Path not found error on
+       pure DOS PM }
+     if length(s)=2 then
+       exit;
    end;
 { do the normal dos chdir }
   DosDir($3b,s);
@@ -1285,7 +1289,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.22  1999-11-06 14:38:24  peter
+  Revision 1.23  1999-11-25 16:24:56  pierre
+   * avoid a problem with ChDir('c:') on pure DOS
+
+  Revision 1.22  1999/11/06 14:38:24  peter
     * truncated log
 
   Revision 1.21  1999/10/31 09:34:48  jonas
