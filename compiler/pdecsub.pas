@@ -2069,10 +2069,6 @@ const
             end;
          end;
 
-        { Make var parameters regable, this must be done after the calling
-          convention is set. }
-        pd.parast.foreach_static(@set_addr_param_regable,pd);
-
         { insert hidden high parameters }
         pd.parast.foreach_static(@insert_hidden_para,pd);
 
@@ -2084,6 +2080,10 @@ const
 
         { insert parentfp parameter if required }
         insert_parentfp_para(pd);
+
+        { Make var parameters regable, this must be done after the calling
+          convention is set. }
+        pd.parast.foreach_static(@set_addr_param_regable,pd);
 
         { Calculate parameter tlist }
         pd.calcparas;
@@ -2458,7 +2458,10 @@ const
 end.
 {
   $Log$
-  Revision 1.231  2005-03-27 14:10:52  jonas
+  Revision 1.232  2005-04-06 19:09:39  florian
+    * hidden parameters can be put now in registers as well
+
+  Revision 1.231  2005/03/27 14:10:52  jonas
     * const record parameters > 8 bytes are now passed by reference for non
       cdecl/cppdecl procedures on Mac OS/Mac OS X to fix compatibility with
       GPC (slightly more efficient than Metrowerks behaviour below, but
