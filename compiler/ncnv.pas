@@ -549,9 +549,8 @@ implementation
              stringpara := ccallparanode.create(left,nil);
              left := nil;
 
-             { hen converting to shortstrings, we have to pass high(destination) too }
-             if (tstringdef(resulttype.def).string_typ =
-                  st_shortstring) then
+             { when converting to shortstrings, we have to pass high(destination) too }
+             if (tstringdef(resulttype.def).string_typ = st_shortstring) then
                stringpara.right := ccallparanode.create(cinlinenode.create(
                  in_high_x,false,self.getcopy),nil);
 
@@ -1531,6 +1530,8 @@ implementation
 
 
     function tisnode.det_resulttype:tnode;
+      var
+        paras: tcallparanode;
       begin
          result:=nil;
          resulttypepass(left);
@@ -1556,6 +1557,15 @@ implementation
              end
             else
              CGMessage(type_e_mismatch);
+
+            { call fpc_do_is helper }
+            paras := ccallparanode.create(
+                         left,
+                     ccallparanode.create(
+                         right,nil));
+            result := ccallnode.createintern('fpc_do_is',paras);
+            left := nil;
+            right := nil;
           end
          else if is_interface(right.resulttype.def) then
           begin
@@ -1577,6 +1587,15 @@ implementation
              end
             else
              CGMessage(type_e_mismatch);
+
+            { call fpc_do_is helper }
+            paras := ccallparanode.create(
+                         left,
+                     ccallparanode.create(
+                         right,nil));
+            result := ccallnode.createintern('fpc_do_is',paras);
+            left := nil;
+            right := nil;
           end
          else
           CGMessage(type_e_mismatch);
@@ -1586,27 +1605,14 @@ implementation
 
 
     function tisnode.pass_1 : tnode;
-
-      var
-        paras: tcallparanode;
-
       begin
-         if (right.resulttype.def.deftype=classrefdef) then
-          begin
-            paras := ccallparanode.create(left,ccallparanode.create(right,nil));
-            left := nil;
-            right := nil;
-            result := ccallnode.createintern('fpc_do_is',paras);
-            firstpass(result);
-          end
-         else
-          result:=nil;
+        internalerror(200204254);
+        result:=nil;
       end;
 
     { dummy pass_2, it will never be called, but we need one since }
     { you can't instantiate an abstract class                      }
     procedure tisnode.pass_2;
-
       begin
       end;
 
@@ -1623,6 +1629,8 @@ implementation
 
 
     function tasnode.det_resulttype:tnode;
+      var
+        paras : tcallparanode;
       begin
          result:=nil;
          resulttypepass(right);
@@ -1648,7 +1656,15 @@ implementation
              end
             else
              CGMessage(type_e_mismatch);
-            resulttype:=tclassrefdef(right.resulttype.def).pointertype;
+
+            { call fpc_do_as helper }
+            paras := ccallparanode.create(
+                         left,
+                     ccallparanode.create(
+                         right,nil));
+            result := ccallnode.createinternres('fpc_do_as',paras,tclassrefdef(right.resulttype.def).pointertype);
+            left := nil;
+            right := nil;
           end
          else if is_interface(right.resulttype.def) then
           begin
@@ -1670,7 +1686,15 @@ implementation
              end
             else
              CGMessage(type_e_mismatch);
-            resulttype:=right.resulttype;
+
+            { call fpc_do_as helper }
+            paras := ccallparanode.create(
+                         left,
+                     ccallparanode.create(
+                         right,nil));
+            result := ccallnode.createinternres('fpc_do_as',paras,right.resulttype);
+            left := nil;
+            right := nil;
           end
          else
           CGMessage(type_e_mismatch);
@@ -1678,29 +1702,15 @@ implementation
 
 
     function tasnode.pass_1 : tnode;
-
-      var
-        paras: tcallparanode;
-
       begin
-         if (right.resulttype.def.deftype=classrefdef) then
-          begin
-            paras := ccallparanode.create(left,ccallparanode.create(right,nil));
-            left := nil;
-            right := nil;
-            result := ccallnode.createinternres('fpc_do_as',paras,
-              resulttype);
-            firstpass(result);
-          end
-         else
-          result:=nil;
+        internalerror(200204252);
+        result:=nil;
       end;
 
 
     { dummy pass_2, it will never be called, but we need one since }
     { you can't instantiate an abstract class                      }
     procedure tasnode.pass_2;
-
       begin
       end;
 
@@ -1712,7 +1722,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.53  2002-04-23 19:16:34  peter
+  Revision 1.54  2002-04-25 20:16:38  peter
+    * moved more routines from cga/n386util
+
+  Revision 1.53  2002/04/23 19:16:34  peter
     * add pinline unit that inserts compiler supported functions using
       one or more statements
     * moved finalize and setlength from ninl to pinline

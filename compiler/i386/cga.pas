@@ -35,7 +35,6 @@ interface
  are written into temps for later release PM }
 
     function def_opsize(p1:tdef):topsize;
-    function def2def_opsize(p1,p2:tdef):topsize;
     function def_getreg(p1:tdef):tregister;
 
     procedure emitlab(var l : tasmlabel);
@@ -60,32 +59,16 @@ interface
     procedure emit_sym(i : tasmop;s : topsize;op : tasmsymbol);
     procedure emit_sym_ofs(i : tasmop;s : topsize;op : tasmsymbol;ofs : longint);
     procedure emit_sym_ofs_reg(i : tasmop;s : topsize;op : tasmsymbol;ofs:longint;reg : tregister);
-    procedure emit_sym_ofs_ref(i : tasmop;s : topsize;op : tasmsymbol;ofs:longint;const ref : treference);
 
     procedure emitcall(const routine:string);
-
-    procedure emit_push_mem_size(const t: treference; size: longint);
 
     { remove non regvar registers in loc from regs (in the format }
     { pushusedregisters uses)                                     }
     procedure remove_non_regvars_from_loc(const t: tlocation; var regs: tregisterset);
 
-    procedure emit_pushw_loc(const t:tlocation);
-    procedure emit_push_lea_loc(const t:tlocation;freetemp:boolean);
-
-    procedure copyshortstring(const dref,sref : treference;len : byte;
-                        loadref, del_sref: boolean);
-
-    procedure finalize(t : tdef;const ref : treference;is_already_ref : boolean);
-    procedure incrstringref(t : tdef;const ref : treference);
-    procedure decrstringref(t : tdef;const ref : treference);
-
     procedure push_int(l : longint);
     procedure emit_push_mem(const ref : treference);
     procedure emitpushreferenceaddr(const ref : treference);
-
-    procedure incrcomintfref(t: tdef; const ref: treference);
-    procedure decrcomintfref(t: tdef; const ref: treference);
 
     procedure maybe_loadself;
     procedure emitloadord2reg(const location:Tlocation;orddef:torddef;destreg:Tregister;delloc:boolean);
@@ -166,42 +149,6 @@ implementation
         else
          internalerror(130820001);
         end;
-      end;
-
-
-    function def2def_opsize(p1,p2:tdef):topsize;
-      var
-        o1 : topsize;
-      begin
-        case p1.size of
-         1 : o1:=S_B;
-         2 : o1:=S_W;
-         4 : o1:=S_L;
-         { I don't know if we need it (FK) }
-         8 : o1:=S_L;
-        else
-         internalerror(130820002);
-        end;
-        if assigned(p2) then
-         begin
-           case p2.size of
-            1 : o1:=S_B;
-            2 : begin
-                  if o1=S_B then
-                   o1:=S_BW
-                  else
-                   o1:=S_W;
-                end;
-            4,8:
-              begin
-                 case o1 of
-                    S_B : o1:=S_BL;
-                    S_W : o1:=S_WL;
-                 end;
-              end;
-           end;
-         end;
-        def2def_opsize:=o1;
       end;
 
 
@@ -310,11 +257,6 @@ implementation
         exprasmList.concat(Taicpu.Op_sym_ofs_reg(i,s,op,ofs,reg));
       end;
 
-    procedure emit_sym_ofs_ref(i : tasmop;s : topsize;op : tasmsymbol;ofs:longint;const ref : treference);
-      begin
-        exprasmList.concat(Taicpu.Op_sym_ofs_ref(i,s,op,ofs,ref));
-      end;
-
     procedure emitcall(const routine:string);
       begin
         exprasmList.concat(Taicpu.Op_sym(A_CALL,S_NO,newasmsymbol(routine)));
@@ -349,192 +291,7 @@ implementation
       end;
     end;
 
-    procedure emit_pushw_loc(const t:tlocation);
-      var
-        opsize : topsize;
-      begin
-        case t.loc of
-          LOC_REGISTER,
-         LOC_CREGISTER : begin
-                           if aktalignment.paraalign=4 then
-                             exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_L,rg.makeregsize(t.register,OS_32)))
-                           else
-                             exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_W,rg.makeregsize(t.register,OS_16)));
-                         end;
-         LOC_CONSTANT : begin
-                           if aktalignment.paraalign=4 then
-                            opsize:=S_L
-                           else
-                            opsize:=S_W;
-                           exprasmList.concat(Taicpu.Op_const(A_PUSH,opsize,t.value));
-                         end;
-         LOC_CREFERENCE,
-         LOC_REFERENCE : begin
-                           if aktalignment.paraalign=4 then
-                            opsize:=S_L
-                           else
-                            opsize:=S_W;
-                           exprasmList.concat(Taicpu.Op_ref(A_PUSH,opsize,t.reference));
-                         end;
-        else
-         internalerror(200203213);
-        end;
-        location_release(exprasmlist,t);
-        location_freetemp(exprasmlist,t);
-      end;
 
-
-    procedure emit_push_lea_loc(const t:tlocation;freetemp:boolean);
-      begin
-        case t.loc of
-               LOC_CREFERENCE,
-         LOC_REFERENCE : begin
-                               rg.getexplicitregisterint(exprasmlist,R_EDI);
-                               emit_ref_reg(A_LEA,S_L,t.reference,R_EDI);
-                               exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_L,R_EDI));
-                               rg.ungetregisterint(exprasmlist,R_EDI);
-                         end;
-        else
-         internalerror(200203218);
-        end;
-                   location_release(exprasmlist,t);
-                   if freetemp then
-                    location_freetemp(exprasmlist,t);
-      end;
-
-    procedure emit_push_mem_size(const t: treference; size: longint);
-
-      var
-        s: topsize;
-
-      begin
-          if size < 4 then
-            begin
-              rg.getexplicitregisterint(exprasmlist,R_EDI);
-              case size of
-                1: s := S_BL;
-                2: s := S_WL;
-                else internalerror(200008071);
-              end;
-              exprasmList.concat(Taicpu.Op_ref_reg(A_MOVZX,s,t,R_EDI));
-              if aktalignment.paraalign=4 then
-                exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_L,R_EDI))
-              else
-                exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_W,R_DI));
-              rg.ungetregisterint(exprasmlist,R_EDI);
-            end
-      end;
-
-
-{*****************************************************************************
-                           Emit String Functions
-*****************************************************************************}
-
-    procedure incrcomintfref(t: tdef; const ref: treference);
-      var
-        pushedregs : tpushedsaved;
-      begin
-         rg.saveusedregisters(exprasmlist,pushedregs,all_registers);
-         emit_ref(A_PUSH,S_L,ref);
-         rg.saveregvars(exprasmlist,all_registers);
-         if is_interfacecom(t) then
-           emitcall('FPC_INTF_INCR_REF')
-         else
-           internalerror(1859);
-         rg.restoreusedregisters(exprasmlist,pushedregs);
-      end;
-
-
-    procedure decrcomintfref(t: tdef; const ref: treference);
-      var
-        pushedregs : tpushedsaved;
-      begin
-         rg.saveusedregisters(exprasmlist,pushedregs,all_registers);
-         emitpushreferenceaddr(ref);
-         rg.saveregvars(exprasmlist,all_registers);
-         if is_interfacecom(t) then
-           begin
-              emitcall('FPC_INTF_DECR_REF');
-           end
-         else internalerror(1859);
-         rg.restoreusedregisters(exprasmlist,pushedregs);
-      end;
-
-
-    procedure copyshortstring(const dref,sref : treference;len : byte;
-                loadref, del_sref: boolean);
-      begin
-         emitpushreferenceaddr(dref);
-          { if it's deleted right before it's used, the optimizer can move }
-          { the reg deallocations to the right places (JM)                 }
-         if del_sref then
-           reference_release(exprasmlist,sref);
-         if loadref then
-          emit_push_mem(sref)
-         else
-          emitpushreferenceaddr(sref);
-         push_int(len);
-         emitcall('FPC_SHORTSTR_COPY');
-         maybe_loadself;
-      end;
-
-
-{$ifdef unused}
-    procedure copylongstring(const dref,sref : treference;len : longint;loadref:boolean);
-      begin
-         emitpushreferenceaddr(dref);
-         if loadref then
-          emit_push_mem(sref)
-         else
-          emitpushreferenceaddr(sref);
-         push_int(len);
-         rg.saveregvars(exprasmlist,all_registers);
-         emitcall('FPC_LONGSTR_COPY');
-         maybe_loadself;
-      end;
-{$endif unused}
-
-
-    procedure incrstringref(t : tdef;const ref : treference);
-      var
-         pushedregs : tpushedsaved;
-      begin
-         rg.saveusedregisters(exprasmlist,pushedregs,all_registers);
-         emitpushreferenceaddr(ref);
-         rg.saveregvars(exprasmlist,all_registers);
-         if is_ansistring(t) then
-           begin
-              emitcall('FPC_ANSISTR_INCR_REF');
-           end
-         else if is_widestring(t) then
-           begin
-              emitcall('FPC_WIDESTR_INCR_REF');
-           end
-         else internalerror(1859);
-         rg.restoreusedregisters(exprasmlist,pushedregs);
-      end;
-
-
-    procedure decrstringref(t : tdef;const ref : treference);
-
-      var
-         pushedregs : tpushedsaved;
-
-      begin
-         rg.saveusedregisters(exprasmlist,pushedregs,all_registers);
-         emitpushreferenceaddr(ref);
-         rg.saveregvars(exprasmlist,all_registers);
-         if is_ansistring(t) then
-           begin
-              emitcall('FPC_ANSISTR_DECR_REF');
-           end
-         else if is_widestring(t) then
-           begin
-              emitcall('FPC_WIDESTR_DECR_REF');
-           end
-         else internalerror(1859);
-         rg.restoreusedregisters(exprasmlist,pushedregs);
-      end;
 
 {*****************************************************************************
                            Emit Push Functions
@@ -952,65 +709,6 @@ implementation
          end;
     end;
 
-    { initilizes data of type t                           }
-    { if is_already_ref is true then the routines assumes }
-    { that r points to the data to initialize             }
-    procedure initialize(t : tdef;const ref : treference;is_already_ref : boolean);
-
-      var
-         hr : treference;
-
-      begin
-         if is_ansistring(t) or
-           is_widestring(t) or
-           is_interfacecom(t) then
-           begin
-              emit_const_ref(A_MOV,S_L,0,ref);
-           end
-         else
-           begin
-              reference_reset(hr);
-              hr.symbol:=tstoreddef(t).get_rtti_label(initrtti);
-              emitpushreferenceaddr(hr);
-              if is_already_ref then
-                exprasmList.concat(Taicpu.Op_ref(A_PUSH,S_L,ref))
-              else
-                emitpushreferenceaddr(ref);
-              emitcall('FPC_INITIALIZE');
-           end;
-      end;
-
-    { finalizes data of type t                            }
-    { if is_already_ref is true then the routines assumes }
-    { that r points to the data to finalizes              }
-    procedure finalize(t : tdef;const ref : treference;is_already_ref : boolean);
-
-      var
-         r : treference;
-
-      begin
-         if is_ansistring(t) or
-            is_widestring(t) then
-           begin
-              decrstringref(t,ref);
-           end
-         else if is_interfacecom(t) then
-           begin
-              decrcomintfref(t,ref);
-           end
-         else
-           begin
-              reference_reset(r);
-              r.symbol:=tstoreddef(t).get_rtti_label(initrtti);
-              emitpushreferenceaddr(r);
-              if is_already_ref then
-                exprasmList.concat(Taicpu.Op_ref(A_PUSH,S_L,ref))
-              else
-                emitpushreferenceaddr(ref);
-              emitcall('FPC_FINALIZE');
-           end;
-      end;
-
 
   { generates the code for initialisation of local data }
   procedure initialize_data(p : tnamedindexitem);
@@ -1036,7 +734,7 @@ implementation
               begin
                  hr.symbol:=newasmsymbol(tvarsym(p).mangledname);
               end;
-            initialize(tvarsym(p).vartype.def,hr,false);
+            cg.g_initialize(exprasmlist,tvarsym(p).vartype.def,hr,false);
          end;
     end;
 
@@ -1064,23 +762,7 @@ implementation
                else
                 hrv.offset:=tvarsym(p).address+procinfo^.para_offset;
 
-               if is_ansistring(tvarsym(p).vartype.def) or
-                  is_widestring(tvarsym(p).vartype.def) then
-                 begin
-                   incrstringref(tvarsym(p).vartype.def,hrv)
-                 end
-               else if is_interfacecom(tvarsym(p).vartype.def) then
-                 begin
-                   incrcomintfref(tvarsym(p).vartype.def,hrv)
-                 end
-               else
-                 begin
-                   reference_reset(hr);
-                   hr.symbol:=tstoreddef(tvarsym(p).vartype.def).get_rtti_label(initrtti);
-                   emitpushreferenceaddr(hr);
-                   emitpushreferenceaddr(hrv);
-                   emitcall('FPC_ADDREF');
-                 end;
+               cg.g_incrrefcount(exprasmlist,tvarsym(p).vartype.def,hrv);
              end
            else if (tvarsym(p).varspez=vs_out) then
              begin
@@ -1089,20 +771,16 @@ implementation
                hrv.offset:=tvarsym(p).address+procinfo^.para_offset;
                rg.getexplicitregisterint(exprasmlist,R_EDI);
                exprasmList.concat(Taicpu.Op_ref_reg(A_MOV,S_L,hrv,R_EDI));
-               reference_reset(hr);
-               hr.base:=R_EDI;
-               initialize(tvarsym(p).vartype.def,hr,false);
+               reference_reset_base(hr,R_EDI,0);
+               cg.g_initialize(exprasmlist,tvarsym(p).vartype.def,hr,false);
              end;
          end;
     end;
 
   { generates the code for decrementing the reference count of parameters }
   procedure final_paras(p : tnamedindexitem);
-
     var
        hrv : treference;
-       hr: treference;
-
     begin
        if (tsym(p).typ=varsym) and
           not is_class(tvarsym(p).vartype.def) and
@@ -1119,23 +797,7 @@ implementation
                else
                 hrv.offset:=tvarsym(p).address+procinfo^.para_offset;
 
-               if is_ansistring(tvarsym(p).vartype.def) or
-                  is_widestring(tvarsym(p).vartype.def) then
-                 begin
-                   decrstringref(tvarsym(p).vartype.def,hrv)
-                 end
-               else if is_interfacecom(tvarsym(p).vartype.def) then
-                 begin
-                   decrcomintfref(tvarsym(p).vartype.def,hrv)
-                 end
-               else
-                 begin
-                   reference_reset(hr);
-                   hr.symbol:=tstoreddef(tvarsym(p).vartype.def).get_rtti_label(initrtti);
-                   emitpushreferenceaddr(hr);
-                   emitpushreferenceaddr(hrv);
-                   emitcall('FPC_DECREF');
-                 end;
+               cg.g_decrrefcount(exprasmlist,tvarsym(p).vartype.def,hrv);
              end;
          end;
     end;
@@ -1165,7 +827,7 @@ implementation
                else
                  hr.symbol:=newasmsymbol(tvarsym(p).mangledname);
             end;
-            finalize(tvarsym(p).vartype.def,hr,false);
+            cg.g_finalize(exprasmlist,tvarsym(p).vartype.def,hr,false);
          end;
     end;
 
@@ -1294,7 +956,7 @@ implementation
             begin
               reference_reset_base(href1,procinfo^.framepointer,tvarsym(p).address+procinfo^.para_offset);
               reference_reset_base(href2,procinfo^.framepointer,-tvarsym(p).localvarsym.address+tvarsym(p).localvarsym.owner.address_fixup);
-              copyshortstring(href2,href1,tstringdef(tvarsym(p).vartype.def).len,true,false);
+              cg.g_copyshortstring(exprasmlist,href1,href2,tstringdef(tvarsym(p).vartype.def).len,false,true);
             end
            else
             begin
@@ -1582,10 +1244,8 @@ implementation
          (aktprocdef.rettype.def.needs_inittable) then
         begin
            procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
-           reference_reset(r);
-           r.offset:=procinfo^.return_offset;
-           r.base:=procinfo^.framepointer;
-           initialize(aktprocdef.rettype.def,r,ret_in_param(aktprocdef.rettype.def));
+           reference_reset_base(r,procinfo^.framepointer,procinfo^.return_offset);
+           cg.g_initialize(exprasmlist,aktprocdef.rettype.def,r,ret_in_param(aktprocdef.rettype.def));
         end;
 
       { initialisize local data like ansistrings }
@@ -1956,10 +1616,8 @@ implementation
              ((aktprocdef.rettype.def.deftype<>objectdef) or
               not is_class(aktprocdef.rettype.def)) then
              begin
-                reference_reset(hr);
-                hr.offset:=procinfo^.return_offset;
-                hr.base:=procinfo^.framepointer;
-                finalize(aktprocdef.rettype.def,hr,ret_in_param(aktprocdef.rettype.def));
+                reference_reset_base(hr,procinfo^.framepointer,procinfo^.return_offset);
+                cg.g_finalize(exprasmlist,aktprocdef.rettype.def,hr,ret_in_param(aktprocdef.rettype.def));
              end;
 
            emitcall('FPC_RERAISE');
@@ -2301,7 +1959,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.26  2002-04-21 15:29:53  carl
+  Revision 1.27  2002-04-25 20:16:39  peter
+    * moved more routines from cga/n386util
+
+  Revision 1.26  2002/04/21 15:29:53  carl
   * changeregsize -> rg.makeregsize
 
   Revision 1.25  2002/04/20 21:37:07  carl

@@ -510,30 +510,13 @@ implementation
                 end
                else
                 begin
-                  if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-                    begin
-                      pleftreg := rg.getexplicitregisterint(exprasmlist,R_EDI);
-                      opsize := def2def_opsize(left.resulttype.def,u32bittype.def);
-                      if opsize = S_L then
-                        emit_ref_reg(A_MOV,opsize,left.location.reference,pleftreg)
-                      else
-                        emit_ref_reg(A_MOVZX,opsize,left.location.reference,pleftreg);
-                      location_freetemp(exprasmlist,left.location);
-                      location_release(exprasmlist,left.location);
-                    end
+                  if (left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+                    pleftreg:=rg.makeregsize(left.location.register,OS_INT)
                   else
-                    begin
-                      pleftreg := rg.makeregsize(left.location.register,OS_INT);
-                      opsize := def2def_opsize(left.resulttype.def,u32bittype.def);
-                      if opsize <> S_L then
-                       begin
-                         { this will change left, even if it's a LOC_CREGISTER, but }
-                         { that doesn't matter: if left is an 8 bit def, then the   }
-                         { upper 24 bits are undefined, so we can zero them without }
-                         { any problem (JM)                                         }
-                         cg.a_load_reg_reg(exprasmlist,left.location.size,left.location.register,pleftreg);
-                       end;
-                    end;
+                    pleftreg:=rg.getexplicitregisterint(exprasmlist,R_EDI);
+                  cg.a_load_loc_reg(exprasmlist,left.location,pleftreg);
+                  location_freetemp(exprasmlist,left.location);
+                  location_release(exprasmlist,left.location);
                   emit_reg_ref(A_BT,S_L,pleftreg,right.location.reference);
                   rg.ungetregister(exprasmlist,pleftreg);
                   location_release(exprasmlist,right.location);
@@ -1036,7 +1019,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2002-04-21 19:02:07  peter
+  Revision 1.26  2002-04-25 20:16:40  peter
+    * moved more routines from cga/n386util
+
+  Revision 1.25  2002/04/21 19:02:07  peter
     * removed newn and disposen nodes, the code is now directly
       inlined from pexpr
     * -an option that will write the secondpass nodes to the .s file, this

@@ -356,24 +356,15 @@ interface
                         { the tempstring can also come from a typeconversion }
                         { or a function result, so simply check for a        }
                         { temp of 256 bytes(JM)                                          }
-
                         if not(tg.istemp(left.location.reference) and
                                (tg.getsizeoftemp(left.location.reference) = 256)) and
                            not(nf_use_strconcat in flags) then
                           begin
-
-                             { can only reference be }
-                             { string in register would be funny    }
-                             { therefore produce a temporary string }
-
                              tg.gettempofsizereference(exprasmlist,256,href);
-                             copyshortstring(href,left.location.reference,255,false,true);
-                             { release the registers }
-{                             done by copyshortstring now (JM)           }
-{                             del_reference(left.location.reference); }
-                             tg.ungetiftemp(exprasmlist,left.location.reference);
+                             cg.g_copyshortstring(exprasmlist,left.location.reference,href,255,true,false);
+                             { location is released by copyshortstring }
+                             location_freetemp(exprasmlist,left.location);
 
-                             { does not hurt: }
                              location_reset(left.location,LOC_CREFERENCE,def_cgsize(resulttype.def));
                              left.location.reference:=href;
                           end;
@@ -386,15 +377,14 @@ interface
                         { because emitpushreferenceaddr doesn't need extra }
                         { registers) (JM)                                  }
                         regstopush := all_registers;
-                        remove_non_regvars_from_loc(right.location,
-                          regstopush);
+                        remove_non_regvars_from_loc(right.location,regstopush);
                         rg.saveusedregisters(exprasmlist,pushedregs,regstopush);
-                       { push the maximum possible length of the result }
+                        { push the maximum possible length of the result }
                         emitpushreferenceaddr(left.location.reference);
-                       { the optimizer can more easily put the          }
-                       { deallocations in the right place if it happens }
-                       { too early than when it happens too late (if    }
-                       { the pushref needs a "lea (..),edi; push edi")  }
+                        { the optimizer can more easily put the          }
+                        { deallocations in the right place if it happens }
+                        { too early than when it happens too late (if    }
+                        { the pushref needs a "lea (..),edi; push edi")  }
                         location_release(exprasmlist,right.location);
                         emitpushreferenceaddr(right.location.reference);
                         rg.saveregvars(exprasmlist,regstopush);
@@ -1584,7 +1574,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  2002-04-05 15:09:13  jonas
+  Revision 1.34  2002-04-25 20:16:40  peter
+    * moved more routines from cga/n386util
+
+  Revision 1.33  2002/04/05 15:09:13  jonas
     * fixed web bug 1915
 
   Revision 1.32  2002/04/04 19:06:10  peter

@@ -124,7 +124,7 @@ implementation
       cutils,verbose,globtype,globals,systems,
       symtable,types,
       htypechk,pass_1,
-      ncnv,nmem,ncal,cpubase,rgobj,cginfo,cgbase
+      ncon,ninl,ncnv,nmem,ncal,cpubase,rgobj,cginfo,cgbase
       ;
 
 
@@ -422,6 +422,7 @@ implementation
     function tassignmentnode.det_resulttype:tnode;
       var
         hp : tnode;
+        useshelper : boolean;
       begin
         result:=nil;
         resulttype:=voidtype;
@@ -446,6 +447,9 @@ implementation
         if is_open_array(left.resulttype.def) then
           CGMessage(type_e_mismatch);
 
+        { test if node can be assigned, properties are allowed }
+        valid_for_assignment(left);
+
         { assigning nil to a dynamic array clears the array }
         if is_dynamic_array(left.resulttype.def) and
            (right.nodetype=niln) then
@@ -458,19 +462,84 @@ implementation
            exit;
          end;
 
-        { some string functions don't need conversion, so treat them separatly }
-        if not (
-                is_shortstring(left.resulttype.def) and
-                (
-                 is_shortstring(right.resulttype.def) or
-                 is_ansistring(right.resulttype.def) or
-                 is_char(right.resulttype.def)
-                )
-               ) then
+        { shortstring helpers can do the conversion directly,
+          so treat them separatly }
+        if (is_shortstring(left.resulttype.def)) then
+         begin
+            { test for s:=s+anything ... }
+            { the problem is for
+              s:=s+s+s;
+              this is broken here !! }
+{$ifdef newoptimizations2}
+            { the above is fixed now, but still problem with s := s + f(); if }
+            { f modifies s (bad programming, so only enable if uncertain      }
+            { optimizations are on) (JM)                                      }
+            if (cs_UncertainOpts in aktglobalswitches) then
+              begin
+                hp := right;
+                while hp.treetype=addn do
+                  hp:=hp.left;
+                if equal_trees(left,hp) and
+                   not multiple_uses(left,right) then
+                  begin
+                    concat_string:=true;
+                    hp:=right;
+                    while hp.treetype=addn do
+                      begin
+                        hp.use_strconcat:=true;
+                        hp:=hp.left;
+                      end;
+                  end;
+              end;
+{$endif newoptimizations2}
+
+           { insert typeconv, except for chars that are handled in
+             secondpass and except for ansi/wide string that can
+             be converted immediatly }
+           if not(is_char(right.resulttype.def) or
+                  (right.resulttype.def.deftype=stringdef)) then
+             inserttypeconv(right,left.resulttype);
+           if right.resulttype.def.deftype=stringdef then
+            begin
+              useshelper:=true;
+              { convert constant strings to shortstrings. But
+                skip empty constant strings, that will be handled
+                in secondpass }
+              if (right.nodetype=stringconstn) then
+               begin
+                 inserttypeconv(right,left.resulttype);
+                 if (tstringconstnode(right).len=0) then
+                  useshelper:=false;
+               end;
+              if useshelper then
+               begin
+                 hp:=ccallparanode.create
+                         (right,
+                     ccallparanode.create(cinlinenode.create
+                         (in_high_x,false,left.getcopy),nil));
+                 result:=ccallnode.createinternreturn('fpc_'+tstringdef(right.resulttype.def).stringtypname+'_to_shortstr',hp,left);
+                 left:=nil;
+                 right:=nil;
+                 exit;
+               end;
+            end;
+         end
+        else
          inserttypeconv(right,left.resulttype);
 
-        { test if node can be assigned, properties are allowed }
-        valid_for_assignment(left);
+        { call helpers for interface }
+        if is_interfacecom(left.resulttype.def) then
+         begin
+           hp:=ccallparanode.create
+                   (right,
+               ccallparanode.create(caddrnode.create
+                   (left),nil));
+           hp:=ccallparanode.create(right,nil);
+           result:=ccallnode.createintern('fpc_intf_assign',hp);
+           left:=nil;
+           right:=nil;
+           exit;
+         end;
 
         { check if local proc/func is assigned to procvar }
         if right.resulttype.def.deftype=procvardef then
@@ -486,43 +555,6 @@ implementation
          firstpass(right);
          if codegenerror then
            exit;
-
-         { some string functions don't need conversion, so treat them separatly }
-         if is_shortstring(left.resulttype.def) and
-            (
-             is_shortstring(right.resulttype.def) or
-             is_ansistring(right.resulttype.def) or
-             is_char(right.resulttype.def)
-            ) then
-          begin
-            { we call STRCOPY }
-            procinfo^.flags:=procinfo^.flags or pi_do_call;
-            { test for s:=s+anything ... }
-            { the problem is for
-              s:=s+s+s;
-              this is broken here !! }
-{$ifdef newoptimizations2}
-            { the above is fixed now, but still problem with s := s + f(); if }
-            { f modifies s (bad programming, so only enable if uncertain      }
-            { optimizations are on) (JM)                                      }
-            if (cs_UncertainOpts in aktglobalswitches) then
-              begin
-                hp := right;
-                while hp.treetype=addn do hp:=hp.left;
-                if equal_trees(left,hp) and
-                   not multiple_uses(left,right) then
-                  begin
-                    concat_string:=true;
-                    hp:=right;
-                    while hp.treetype=addn do
-                      begin
-                        hp.use_strconcat:=true;
-                        hp:=hp.left;
-                      end;
-                  end;
-              end;
-{$endif newoptimizations2}
-          end;
 
          registers32:=left.registers32+right.registers32;
          registersfpu:=max(left.registersfpu,right.registersfpu);
@@ -924,7 +956,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.37  2002-04-23 19:16:34  peter
+  Revision 1.38  2002-04-25 20:16:39  peter
+    * moved more routines from cga/n386util
+
+  Revision 1.37  2002/04/23 19:16:34  peter
     * add pinline unit that inserts compiler supported functions using
       one or more statements
     * moved finalize and setlength from ninl to pinline

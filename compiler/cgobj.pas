@@ -85,22 +85,11 @@ unit cgobj;
           {************************************************}
           { code generation for subroutine entry/exit code }
 
-          { initilizes data of type t                           }
-          { if is_already_ref is true then the routines assumes }
-          { that r points to the data to initialize             }
-          procedure g_initialize(list : taasmoutput;t : tdef;const ref : treference;is_already_ref : boolean);
-
-          { finalizes data of type t                            }
-          { if is_already_ref is true then the routines assumes }
-          { that r points to the data to finalizes              }
-          procedure g_finalize(list : taasmoutput;t : tdef;const ref : treference;is_already_ref : boolean);
-
           { helper routines }
           procedure g_initialize_data(list : taasmoutput;p : tsym);
           procedure g_incr_data(list : taasmoutput;p : tsym);
           procedure g_finalize_data(list : taasmoutput;p : tnamedindexitem);
           procedure g_copyvalueparas(list : taasmoutput;p : tnamedindexitem);
-          procedure g_finalizetempansistrings(list : taasmoutput);
 
           procedure g_entrycode(alist : TAAsmoutput;make_global:boolean;
                            stackframe:longint;
@@ -109,11 +98,6 @@ unit cgobj;
 
           procedure g_exitcode(list : taasmoutput;parasize : longint;
             nostackframe,inlined : boolean);
-
-          { string helper routines }
-          procedure g_decrstrref(list : taasmoutput;const ref : treference;t : tdef);
-
-          procedure g_removetemps(list : taasmoutput;p : tlinkedlist);
 
           { passing parameters, per default the parameter is pushed }
           { nr gives the number of the parameter (enumerated from   }
@@ -202,6 +186,7 @@ unit cgobj;
           procedure a_load_reg_reg(list : taasmoutput;size : tcgsize;reg1,reg2 : tregister);virtual; abstract;
           procedure a_load_reg_loc(list : taasmoutput;size : tcgsize;reg : tregister;const loc: tlocation);
           procedure a_load_ref_reg(list : taasmoutput;size : tcgsize;const ref : treference;register : tregister);virtual; abstract;
+          procedure a_load_ref_ref(list : taasmoutput;size : tcgsize;const sref : treference;const dref : treference);virtual;
           procedure a_load_loc_reg(list : taasmoutput;const loc: tlocation; reg : tregister);
           procedure a_load_loc_ref(list : taasmoutput;const loc: tlocation; const ref : treference);
           procedure a_load_sym_ofs_reg(list: taasmoutput; const sym: tasmsymbol; ofs: longint; reg: tregister);virtual; abstract;
@@ -217,6 +202,7 @@ unit cgobj;
           procedure a_loadmm_reg_reg(list: taasmoutput; reg1, reg2: tregister); virtual; abstract;
           procedure a_loadmm_ref_reg(list: taasmoutput; const ref: treference; reg: tregister); virtual; abstract;
           procedure a_loadmm_reg_ref(list: taasmoutput; reg: tregister; const ref: treference); virtual; abstract;
+          procedure a_parammm_reg(list: taasmoutput; reg: tregister); virtual; abstract;
 
           { basic arithmetic operations }
           { note: for operators which require only one argument (not, neg), use }
@@ -295,13 +281,6 @@ unit cgobj;
           }
           procedure g_profilecode(list : taasmoutput);virtual;
 
-          {# Emits the call to the stack checking routine of
-             the runtime library. The default behavior
-             does not need to be modified, as it is generic
-             for all platforms.
-          }
-          procedure g_stackcheck(list : taasmoutput;stackframesize : longint);virtual;
-
           procedure g_maybe_loadself(list : taasmoutput);virtual; abstract;
           {# This should emit the opcode to copy len bytes from the source
              to destination, if loadref is true, it assumes that it first must load
@@ -317,6 +296,30 @@ unit cgobj;
 
           }
           procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aword;delsource,loadref : boolean);virtual; abstract;
+          {# This should emit the opcode to a shortrstring from the source
+             to destination, if loadref is true, it assumes that it first must load
+             the source address from the memory location where
+             source points to.
+
+             @param(source Source reference of copy)
+             @param(dest Destination reference of copy)
+             @param(delsource Indicates if the source reference's resources should be freed)
+             @param(loadref Is the source reference a pointer to the actual source (TRUE), is it the actual source address (FALSE))
+
+          }
+          procedure g_copyshortstring(list : taasmoutput;const source,dest : treference;len:byte;delsource,loadref : boolean);
+
+          procedure g_incrrefcount(list : taasmoutput;t: tdef; const ref: treference);
+          procedure g_decrrefcount(list : taasmoutput;t: tdef; const ref: treference);
+          procedure g_initialize(list : taasmoutput;t : tdef;const ref : treference;loadref : boolean);
+          procedure g_finalize(list : taasmoutput;t : tdef;const ref : treference;loadref : boolean);
+
+          {# Emits the call to the stack checking routine of
+             the runtime library. The default behavior
+             does not need to be modified, as it is generic
+             for all platforms.
+          }
+          procedure g_stackcheck(list : taasmoutput;stackframesize : longint);virtual;
 
           {# Generates range checking code. It is to note
              that this routine does not need to be overriden,
@@ -492,123 +495,9 @@ unit cgobj;
          free_scratch_reg(list,hr);
       end;
 
-
-    procedure tcg.g_stackcheck(list : taasmoutput;stackframesize : longint);
-
-      begin
-         a_param_const(list,OS_32,stackframesize,1);
-         a_call_name(list,'FPC_STACKCHECK',0);
-      end;
-
-{*****************************************************************************
-                         String helper routines
-*****************************************************************************}
-
-    procedure tcg.g_removetemps(list : taasmoutput;p : tlinkedlist);
-
-(*
-      var
-         hp : ptemptodestroy;
-         pushedregs : tpushed;
-*)
-
-      begin
-(*
-         hp:=ptemptodestroy(p^.first);
-         if not(assigned(hp)) then
-           exit;
-         tg.pushusedregisters(pushedregs,$ff);
-         while assigned(hp) do
-           begin
-              if is_ansistring(hp^.typ) then
-                begin
-                   g_decrstrref(list,hp^.address,hp^.typ);
-                   tg.ungetiftemp(hp^.address);
-                end;
-              hp:=ptemptodestroy(hp^.next);
-           end;
-         tg.popusedregisters(pushedregs);
-*)
-        runerror(211);
-      end;
-
-    procedure tcg.g_decrstrref(list : taasmoutput;const ref : treference;t : tdef);
-
-{      var
-         pushedregs : tpushedsaved; }
-
-      begin
-(*
-         tg.pushusedregisters(pushedregs,$ff);
-         a_param_ref_addr(list,ref,1);
-         if is_ansistring(t) then
-           a_call_name(list,'FPC_ANSISTR_DECR_REF',0)
-         else if is_widestring(t) then
-           a_call_name(list,'FPC_WIDESTR_DECR_REF',0)
-         else internalerror(58993);
-         tg.popusedregisters(pushedregs);
-*)
-        runerror(211);
-      end;
-
 {*****************************************************************************
                   Code generation for subroutine entry- and exit code
  *****************************************************************************}
-
-    { initilizes data of type t                           }
-    { if is_already_ref is true then the routines assumes }
-    { that r points to the data to initialize             }
-    procedure tcg.g_initialize(list : taasmoutput;t : tdef;const ref : treference;is_already_ref : boolean);
-
-{      var
-         hr : treference; }
-
-      begin
-(*
-         if is_ansistring(t) or
-           is_widestring(t) then
-           a_load_const_ref(list,OS_8,0,ref)
-         else
-           begin
-              reset_reference(hr);
-              hr.symbol:=t^.get_inittable_label;
-              a_param_ref_addr(list,hr,2);
-              if is_already_ref then
-                a_param_ref(list,OS_ADDR,ref,1)
-              else
-                a_param_ref_addr(list,ref,1);
-              a_call_name(list,'FPC_INITIALIZE',0);
-           end;
-*)
-        runerror(211);
-      end;
-
-    procedure tcg.g_finalize(list : taasmoutput;t : tdef;const ref : treference;is_already_ref : boolean);
-
-{      var
-         r : treference; }
-
-      begin
-(*
-         if is_ansistring(t) or
-           is_widestring(t) then
-           begin
-              g_decrstrref(list,ref,t);
-           end
-         else
-           begin
-              reset_reference(r);
-              r.symbol:=t^.get_inittable_label;
-              a_param_ref_addr(list,r,2);
-              if is_already_ref then
-                a_paramaddr_ref(list,ref,1)
-              else
-                a_param_ref_addr(list,ref,1);
-              a_call_name(list,'FPC_FINALIZE',0);
-           end;
-*)
-        runerror(211);
-      end;
 
     { generates the code for initialisation of local data }
     procedure tcg.g_initialize_data(list : taasmoutput;p : tsym);
@@ -733,37 +622,7 @@ unit cgobj;
       begin
          cg^.g_copyvalueparas(_list,s);
       end;
-*)
 
-    procedure tcg.g_finalizetempansistrings(list : taasmoutput);
-
-(*
-      var
-         hp : ptemprecord;
-         hr : treference;
-*)
-
-      begin
-(*
-         hp:=tg.templist;
-         while assigned(hp) do
-           begin
-              if hp^.temptype in [tt_ansistring,tt_freeansistring] then
-                begin
-                   procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
-                   reset_reference(hr);
-                   hr.base:=procinfo^.framepointer;
-                   hr.offset:=hp^.pos;
-                   a_param_ref_addr(list,hr,1);
-                   a_call_name(list,'FPC_ANSISTR_DECR_REF',0);
-                end;
-              hp:=hp^.next;
-           end;
-*)
-        runerror(211);
-     end;
-
-(*
     procedure _finalize_data(s : tnamedindexitem);{$ifndef FPC}far;{$endif}
 
       begin
@@ -1185,31 +1044,43 @@ unit cgobj;
  ****************************************************************************}
 
 
+    procedure tcg.a_load_ref_ref(list : taasmoutput;size : tcgsize;const sref : treference;const dref : treference);
+
+      var
+        tmpreg: tregister;
+
+      begin
+{$ifdef i386}
+        { the following is done with defines to avoid a speed penalty,  }
+        { since all this is only necessary for the 80x86 (because EDI   }
+        { doesn't have an 8bit component which is directly addressable) }
+        if size in [OS_8,OS_S8] then
+          tmpreg := rg.getregisterint(exprasmlist)
+        else
+{$endif i386}
+        tmpreg := get_scratch_reg(list);
+        tmpreg:=rg.makeregsize(tmpreg,size);
+        a_load_ref_reg(list,size,sref,tmpreg);
+        a_load_reg_ref(list,size,tmpreg,dref);
+{$ifdef i386}
+        if size in [OS_8,OS_S8] then
+          rg.ungetregister(exprasmlist,tmpreg)
+        else
+{$endif i386}
+        free_scratch_reg(list,tmpreg);
+      end;
+
+
     procedure tcg.a_load_const_ref(list : taasmoutput;size : tcgsize;a : aword;const ref : treference);
 
-    var
-      tmpreg: tregister;
+      var
+        tmpreg: tregister;
 
       begin
         tmpreg := get_scratch_reg(list);
         a_load_const_reg(list,size,a,tmpreg);
         a_load_reg_ref(list,size,tmpreg,ref);
         free_scratch_reg(list,tmpreg);
-      end;
-
-    procedure tcg.a_load_loc_reg(list : taasmoutput;const loc: tlocation; reg : tregister);
-
-      begin
-        case loc.loc of
-          LOC_REFERENCE,LOC_CREFERENCE:
-            a_load_ref_reg(list,loc.size,loc.reference,reg);
-          LOC_REGISTER,LOC_CREGISTER:
-            a_load_reg_reg(list,loc.size,loc.register,reg);
-          LOC_CONSTANT:
-            a_load_const_reg(list,loc.size,loc.value,reg);
-          else
-            internalerror(200109092);
-        end;
       end;
 
 
@@ -1239,34 +1110,28 @@ unit cgobj;
       end;
 
 
-    procedure tcg.a_load_loc_ref(list : taasmoutput;const loc: tlocation; const ref : treference);
-
-      var
-        tmpreg: tregister;
+    procedure tcg.a_load_loc_reg(list : taasmoutput;const loc: tlocation; reg : tregister);
 
       begin
         case loc.loc of
           LOC_REFERENCE,LOC_CREFERENCE:
-            begin
-{$ifdef i386}
-              { the following is done with defines to avoid a speed penalty,  }
-              { since all this is only necessary for the 80x86 (because EDI   }
-              { doesn't have an 8bit component which is directly addressable) }
-              if loc.size in [OS_8,OS_S8] then
-                tmpreg := rg.getregisterint(exprasmlist)
-              else
-{$endif i386}
-              tmpreg := get_scratch_reg(list);
-              tmpreg:=rg.makeregsize(tmpreg,loc.size);
-              a_load_ref_reg(list,loc.size,loc.reference,tmpreg);
-              a_load_reg_ref(list,loc.size,tmpreg,ref);
-{$ifdef i386}
-              if loc.size in [OS_8,OS_S8] then
-                rg.ungetregister(exprasmlist,tmpreg)
-              else
-{$endif i386}
-              free_scratch_reg(list,tmpreg);
-            end;
+            a_load_ref_reg(list,loc.size,loc.reference,reg);
+          LOC_REGISTER,LOC_CREGISTER:
+            a_load_reg_reg(list,loc.size,loc.register,reg);
+          LOC_CONSTANT:
+            a_load_const_reg(list,loc.size,loc.value,reg);
+          else
+            internalerror(200109092);
+        end;
+      end;
+
+
+    procedure tcg.a_load_loc_ref(list : taasmoutput;const loc: tlocation; const ref : treference);
+
+      begin
+        case loc.loc of
+          LOC_REFERENCE,LOC_CREFERENCE:
+            a_load_ref_ref(list,loc.size,loc.reference,ref);
           LOC_REGISTER,LOC_CREGISTER:
             a_load_reg_ref(list,loc.size,loc.register,ref);
           LOC_CONSTANT:
@@ -1516,8 +1381,132 @@ unit cgobj;
       end;
 
 
-    procedure tcg.g_rangecheck(list: taasmoutput; const p: tnode;
-        const todef: tdef);
+    function tcg.reg_cgsize(const reg: tregister) : tcgsize;
+      begin
+        reg_cgsize := OS_INT;
+      end;
+
+
+    procedure tcg.g_copyshortstring(list : taasmoutput;const source,dest : treference;len:byte;delsource,loadref : boolean);
+      begin
+        a_paramaddr_ref(list,dest,3);
+        if loadref then
+         a_param_ref(list,OS_ADDR,source,2)
+        else
+         a_paramaddr_ref(list,source,2);
+        if delsource then
+         reference_release(list,source);
+        a_param_const(list,OS_INT,len,1);
+        a_call_name(list,'FPC_SHORTSTR_COPY',0);
+        g_maybe_loadself(list);
+      end;
+
+
+    procedure tcg.g_incrrefcount(list : taasmoutput;t: tdef; const ref: treference);
+      var
+        href : treference;
+        pushedregs : tpushedsaved;
+        decrfunc : string;
+      begin
+         rg.saveusedregisters(list,pushedregs,all_registers);
+         if is_interfacecom(t) then
+          decrfunc:='FPC_INTF_INCR_REF'
+         else if is_ansistring(t) then
+          decrfunc:='FPC_ANSISTR_INCR_REF'
+         else if is_widestring(t) then
+          decrfunc:='FPC_WIDESTR_INCR_REF'
+         else
+          decrfunc:='';
+         { call the special decr function or the generic decref }
+         if decrfunc<>'' then
+          cg.a_param_ref(list,OS_ADDR,ref,1)
+         else
+          begin
+            reference_reset_symbol(href,tstoreddef(t).get_rtti_label(initrtti),0);
+            a_paramaddr_ref(list,href,2);
+            a_paramaddr_ref(list,ref,1);
+            decrfunc:='FPC_ADDREF';
+         end;
+        rg.saveregvars(exprasmlist,all_registers);
+        a_call_name(list,decrfunc,0);
+        rg.restoreusedregisters(list,pushedregs);
+      end;
+
+
+    procedure tcg.g_decrrefcount(list : taasmoutput;t: tdef; const ref: treference);
+      var
+        href : treference;
+        pushedregs : tpushedsaved;
+        decrfunc : string;
+      begin
+         rg.saveusedregisters(list,pushedregs,all_registers);
+         if is_interfacecom(t) then
+          decrfunc:='FPC_INTF_DECR_REF'
+         else if is_ansistring(t) then
+          decrfunc:='FPC_ANSISTR_DECR_REF'
+         else if is_widestring(t) then
+          decrfunc:='FPC_WIDESTR_DECR_REF'
+         else
+          decrfunc:='';
+         { call the special decr function or the generic decref }
+         if decrfunc<>'' then
+          cg.a_paramaddr_ref(list,ref,1)
+         else
+          begin
+            reference_reset_symbol(href,tstoreddef(t).get_rtti_label(initrtti),0);
+            a_paramaddr_ref(list,href,2);
+            a_paramaddr_ref(list,ref,1);
+            decrfunc:='FPC_DECREF';
+         end;
+        rg.saveregvars(exprasmlist,all_registers);
+        a_call_name(list,decrfunc,0);
+        rg.restoreusedregisters(list,pushedregs);
+      end;
+
+
+    procedure tcg.g_initialize(list : taasmoutput;t : tdef;const ref : treference;loadref : boolean);
+      var
+         href : treference;
+      begin
+         if is_ansistring(t) or
+            is_widestring(t) or
+            is_interfacecom(t) then
+           a_load_const_ref(list,OS_ADDR,0,ref)
+         else
+           begin
+              reference_reset_symbol(href,tstoreddef(t).get_rtti_label(initrtti),0);
+              a_paramaddr_ref(list,href,2);
+              if loadref then
+                a_param_ref(list,OS_ADDR,ref,1)
+              else
+                a_paramaddr_ref(list,ref,1);
+              a_call_name(list,'FPC_INITIALIZE',0);
+           end;
+      end;
+
+
+    procedure tcg.g_finalize(list : taasmoutput;t : tdef;const ref : treference;loadref : boolean);
+      var
+         href : treference;
+      begin
+         if is_ansistring(t) or
+            is_widestring(t) or
+            is_interfacecom(t) then
+           g_decrrefcount(list,t,ref)
+         else
+           begin
+              reference_reset_symbol(href,tstoreddef(t).get_rtti_label(initrtti),0);
+              a_paramaddr_ref(list,href,2);
+              if loadref then
+                a_param_ref(list,OS_ADDR,ref,1)
+              else
+                a_paramaddr_ref(list,ref,1);
+              a_call_name(list,'FPC_FINALIZE',0);
+           end;
+      end;
+
+
+    procedure tcg.g_rangecheck(list: taasmoutput; const p: tnode;const todef: tdef);
     { generate range checking code for the value at location p. The type     }
     { type used is checked against todefs ranges. fromdef (p.resulttype.def) }
     { is the original type used at that location. When both defs are equal   }
@@ -1633,9 +1622,11 @@ unit cgobj;
       end;
 
 
-    function tcg.reg_cgsize(const reg: tregister) : tcgsize;
+    procedure tcg.g_stackcheck(list : taasmoutput;stackframesize : longint);
+
       begin
-        reg_cgsize := OS_INT;
+         a_param_const(list,OS_32,stackframesize,1);
+         a_call_name(list,'FPC_STACKCHECK',0);
       end;
 
 
@@ -1645,7 +1636,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.17  2002-04-22 16:30:05  peter
+  Revision 1.18  2002-04-25 20:16:38  peter
+    * moved more routines from cga/n386util
+
+  Revision 1.17  2002/04/22 16:30:05  peter
     * fixed @methodpointer
 
   Revision 1.16  2002/04/21 15:25:30  carl

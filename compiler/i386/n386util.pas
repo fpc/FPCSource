@@ -38,14 +38,8 @@ interface
 {$ifdef TEMPS_NOT_PUSH}
     procedure restorefromtemp(p : tnode;isint64 : boolean);
 {$endif TEMPS_NOT_PUSH}
-    procedure pushsetelement(p : tnode);
     procedure push_value_para(p:tnode;inlined,is_cdecl:boolean;
                               para_offset:longint;alignment : longint);
-    procedure loadshortstring(source,dest : tnode);
-    procedure loadlongstring(p:tbinarynode);
-    procedure loadansi2short(source,dest : tnode);
-    procedure loadwide2short(source,dest : tnode);
-    procedure loadinterfacecom(p: tbinarynode);
 
     procedure emitoverflowcheck(p:tnode);
     procedure firstcomplex(p : tbinarynode);
@@ -302,510 +296,172 @@ implementation
 {$endif TEMPS_NOT_PUSH}
 
 
-    procedure pushsetelement(p : tnode);
-      begin
-      { copy the element on the stack, slightly complicated }
-        if p.nodetype=ordconstn then
-         begin
-           if aktalignment.paraalign=4 then
-             exprasmList.concat(Taicpu.Op_const(A_PUSH,S_L,tordconstnode(p).value))
-           else
-             exprasmList.concat(Taicpu.Op_const(A_PUSH,S_W,tordconstnode(p).value));
-         end
-        else
-         begin
-           case p.location.loc of
-             LOC_REGISTER,
-             LOC_CREGISTER :
-               begin
-                 if aktalignment.paraalign=4 then
-                   exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_L,rg.makeregsize(p.location.register,OS_16)))
-                 else
-                   exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_W,rg.makeregsize(p.location.register,OS_32)));
-                 rg.ungetregisterint(exprasmlist,p.location.register);
-               end;
-           else
-             begin
-               { you can't push more bytes than the size of the element, }
-               { because this may cross a page boundary and you'll get a }
-               { sigsegv (JM)                                            }
-               emit_push_mem_size(p.location.reference,1);
-               reference_release(exprasmlist,p.location.reference);
-             end;
-           end;
-         end;
-      end;
-
     procedure push_value_para(p:tnode;inlined,is_cdecl:boolean;
                                 para_offset:longint;alignment : longint);
       var
         tempreference : treference;
-        r : treference;
-        opsize : topsize;
+        href : treference;
         hreg : tregister;
+        sizetopush,
         size : longint;
-        hlabel : tasmlabel;
         cgsize : tcgsize;
       begin
-        case p.location.loc of
-           LOC_REGISTER,
-           LOC_CREGISTER:
-             begin
-               cgsize:=def_cgsize(p.resulttype.def);
-               if cgsize in [OS_64,OS_S64] then
-                begin
-                  inc(pushedparasize,8);
-                  if inlined then
-                   begin
-                     reference_reset_base(r,procinfo^.framepointer,para_offset-pushedparasize);
-                     tcg64f32(cg).a_load64_loc_ref(exprasmlist,p.location,r);
-                   end
-                  else
-                   tcg64f32(cg).a_param64_loc(exprasmlist,p.location,-1);
-                end
-               else
-                begin
-                  { save old register }
-                  hreg:=p.location.register;
-                  { update register to use to match alignment }
-                  case cgsize of
-                    OS_8,OS_S8 :
-                      begin
-                        if alignment=4 then
-                         cgsize:=OS_32
-                        else
-                         cgsize:=OS_16;
-                      end;
-                    OS_16,OS_S16 :
-                      begin
-                        if alignment=4 then
-                         cgsize:=OS_32;
-                      end;
-                  end;
-                  p.location.register:=rg.makeregsize(p.location.register,cgsize);
-                  inc(pushedparasize,alignment);
-                  if inlined then
-                   begin
-                     reference_reset_base(r,procinfo^.framepointer,para_offset-pushedparasize);
-                     cg.a_load_loc_ref(exprasmlist,p.location,r);
-                   end
-                  else
-                   cg.a_param_loc(exprasmlist,p.location,-1);
-                  { restore old register }
-                  p.location.register:=hreg;
-                end;
-               location_release(exprasmlist,p.location);
-             end;
-           LOC_CONSTANT :
-             begin
-               cgsize:=def_cgsize(p.resulttype.def);
-               if cgsize in [OS_64,OS_S64] then
-                begin
-                  inc(pushedparasize,8);
-                  if inlined then
-                   begin
-                     reference_reset_base(r,procinfo^.framepointer,para_offset-pushedparasize);
-                     tcg64f32(cg).a_load64_loc_ref(exprasmlist,p.location,r);
-                   end
-                  else
-                   tcg64f32(cg).a_param64_loc(exprasmlist,p.location,-1);
-                end
-               else
-                begin
-                  case cgsize of
-                    OS_8,OS_S8 :
-                      begin
-                        if alignment=4 then
-                         cgsize:=OS_32
-                        else
-                         cgsize:=OS_16
-                      end;
-                    OS_16,OS_S16 :
-                      begin
-                        if alignment=4 then
-                         cgsize:=OS_32;
-                      end;
-                  end;
-                  inc(pushedparasize,alignment);
-                  if inlined then
-                   begin
-                     reference_reset_base(r,procinfo^.framepointer,para_offset-pushedparasize);
-                     cg.a_load_loc_ref(exprasmlist,p.location,r);
-                   end
-                  else
-                   cg.a_param_loc(exprasmlist,p.location,-1);
-                end;
-               location_release(exprasmlist,p.location);
-             end;
-           LOC_FPUREGISTER,
-           LOC_CFPUREGISTER:
-             begin
-                size:=align(tfloatdef(p.resulttype.def).size,alignment);
-                inc(pushedparasize,size);
-                if not inlined then
-                 emit_const_reg(A_SUB,S_L,size,R_ESP);
+        { Move flags and jump in register to make it less complex }
+        if p.location.loc in [LOC_FLAGS,LOC_JUMP] then
+         location_force_reg(p.location,def_cgsize(p.resulttype.def),false);
+
+        { Handle Floating point types differently }
+        if p.resulttype.def.deftype=floatdef then
+         begin
+           case p.location.loc of
+             LOC_FPUREGISTER,
+             LOC_CFPUREGISTER:
+               begin
+                  size:=align(tfloatdef(p.resulttype.def).size,alignment);
+                  inc(pushedparasize,size);
+                  if not inlined then
+                   emit_const_reg(A_SUB,S_L,size,R_ESP);
 {$ifdef GDB}
-                if (cs_debuginfo in aktmoduleswitches) and
-                   (exprasmList.first=exprasmList.last) then
-                  exprasmList.concat(Tai_force_line.Create);
+                  if (cs_debuginfo in aktmoduleswitches) and
+                     (exprasmList.first=exprasmList.last) then
+                    exprasmList.concat(Tai_force_line.Create);
 {$endif GDB}
 
-                { this is the easiest case for inlined !! }
-                if inlined then
-                 reference_reset_base(r,procinfo^.framepointer,para_offset-pushedparasize)
-                else
-                 reference_reset_base(r,R_ESP,0);
+                  { this is the easiest case for inlined !! }
+                  if inlined then
+                   reference_reset_base(href,procinfo^.framepointer,para_offset-pushedparasize)
+                  else
+                   reference_reset_base(href,R_ESP,0);
 
-                cg.a_loadfpu_reg_ref(exprasmlist,
-                  def_cgsize(p.resulttype.def),p.location.register,r);
-             end;
-           LOC_REFERENCE,LOC_CREFERENCE:
-             begin
-                tempreference:=p.location.reference;
-                reference_release(exprasmlist,p.location.reference);
-                case p.resulttype.def.deftype of
-                  enumdef,
-                  orddef :
-                    begin
-                      case p.resulttype.def.size of
-                       8 : begin
-                             inc(pushedparasize,8);
-                             if inlined then
-                               begin
-                                 rg.getexplicitregisterint(exprasmlist,R_EDI);
-                                 emit_ref_reg(A_MOV,S_L,tempreference,R_EDI);
-                                 reference_reset_base(r,procinfo^.framepointer,para_offset-pushedparasize);
-                                 exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,S_L,R_EDI,r));
-                                 inc(tempreference.offset,4);
-                                 emit_ref_reg(A_MOV,S_L,tempreference,R_EDI);
-                                 reference_reset_base(r,procinfo^.framepointer,para_offset-pushedparasize+4);
-                                 exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,S_L,R_EDI,r));
-                                 rg.ungetregisterint(exprasmlist,R_EDI);
-                               end
-                             else
-                               begin
-                                 inc(tempreference.offset,4);
-                                 emit_push_mem(tempreference);
-                                 dec(tempreference.offset,4);
-                                 emit_push_mem(tempreference);
-                               end;
-                           end;
-                       4 : begin
-                             inc(pushedparasize,4);
-                             if inlined then
-                               begin
-                                 rg.getexplicitregisterint(exprasmlist,R_EDI);
-                                 emit_ref_reg(A_MOV,S_L,tempreference,R_EDI);
-                                 reference_reset_base(r,procinfo^.framepointer,para_offset-pushedparasize);
-                                 exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,S_L,R_EDI,r));
-                                 rg.ungetregisterint(exprasmlist,R_EDI);
-                               end
-                             else
-                               emit_push_mem(tempreference);
-                           end;
-                     1,2 : begin
-                             if alignment=4 then
-                              begin
-                                opsize:=S_L;
-                                hreg:=R_EDI;
-                                inc(pushedparasize,4);
-                              end
-                             else
-                              begin
-                                opsize:=S_W;
-                                hreg:=R_DI;
-                                inc(pushedparasize,2);
-                              end;
-                             if inlined then
-                              begin
-                                rg.getexplicitregisterint(exprasmlist,R_EDI);
-                                emit_ref_reg(A_MOV,opsize,tempreference,hreg);
-                                reference_reset_base(r,procinfo^.framepointer,para_offset-pushedparasize);
-                                exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,opsize,hreg,r));
-                                rg.ungetregisterint(exprasmlist,R_EDI);
-                              end
-                             else
-                              emit_push_mem_size(tempreference,p.resulttype.def.size);
-                           end;
-                         else
-                           internalerror(234231);
-                      end;
-                    end;
-                  floatdef :
-                    begin
-                      case tfloatdef(p.resulttype.def).typ of
-                        s32real :
-                          begin
-                             inc(pushedparasize,4);
-                             if inlined then
-                               begin
-                                  rg.getexplicitregisterint(exprasmlist,R_EDI);
-                                  emit_ref_reg(A_MOV,S_L,tempreference,R_EDI);
-                                  reference_reset_base(r,procinfo^.framepointer,para_offset-pushedparasize);
-                                  exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,S_L,R_EDI,r));
-                                  rg.ungetregisterint(exprasmlist,R_EDI);
-                               end
-                             else
-                               emit_push_mem(tempreference);
-                          end;
-                        s64real,
-                        s64comp :
-                          begin
-                            inc(pushedparasize,4);
-                            inc(tempreference.offset,4);
-                            if inlined then
-                              begin
-                                 rg.getexplicitregisterint(exprasmlist,R_EDI);
-                                 emit_ref_reg(A_MOV,S_L,tempreference,R_EDI);
-                                 reference_reset_base(r,procinfo^.framepointer,para_offset-pushedparasize);
-                                 exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,S_L,R_EDI,r));
-                                 rg.ungetregisterint(exprasmlist,R_EDI);
-                              end
-                            else
-                              emit_push_mem(tempreference);
-                            inc(pushedparasize,4);
-                            dec(tempreference.offset,4);
-                            if inlined then
-                              begin
-                                 rg.getexplicitregisterint(exprasmlist,R_EDI);
-                                 emit_ref_reg(A_MOV,S_L,tempreference,R_EDI);
-                                 reference_reset_base(r,procinfo^.framepointer,para_offset-pushedparasize);
-                                 exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,S_L,R_EDI,r));
-                                 rg.ungetregisterint(exprasmlist,R_EDI);
-                              end
-                            else
-                              emit_push_mem(tempreference);
-                          end;
-                        s80real :
-                          begin
-                            inc(pushedparasize,4);
-                            if alignment=4 then
-                              inc(tempreference.offset,8)
-                            else
-                              inc(tempreference.offset,6);
-                            if inlined then
-                              begin
-                                 rg.getexplicitregisterint(exprasmlist,R_EDI);
-                                 emit_ref_reg(A_MOV,S_L,tempreference,R_EDI);
-                                 reference_reset_base(r,procinfo^.framepointer,para_offset-pushedparasize);
-                                 exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,S_L,R_EDI,r));
-                                 rg.ungetregisterint(exprasmlist,R_EDI);
-                              end
-                            else
-                              emit_push_mem(tempreference);
-                            dec(tempreference.offset,4);
-                            inc(pushedparasize,4);
-                            if inlined then
-                              begin
-                                 rg.getexplicitregisterint(exprasmlist,R_EDI);
-                                 emit_ref_reg(A_MOV,S_L,tempreference,R_EDI);
-                                 reference_reset_base(r,procinfo^.framepointer,para_offset-pushedparasize);
-                                 exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,S_L,R_EDI,r));
-                                 rg.ungetregisterint(exprasmlist,R_EDI);
-                              end
-                            else
-                              emit_push_mem(tempreference);
-                            if alignment=4 then
-                              begin
-                                opsize:=S_L;
-                                hreg:=R_EDI;
-                                inc(pushedparasize,4);
-                                dec(tempreference.offset,4);
-                              end
-                            else
-                              begin
-                                opsize:=S_W;
-                                hreg:=R_DI;
-                                inc(pushedparasize,2);
-                                dec(tempreference.offset,2);
-                              end;
-                            if inlined then
-                              begin
-                                 rg.getexplicitregisterint(exprasmlist,R_EDI);
-                                 emit_ref_reg(A_MOV,opsize,tempreference,hreg);
-                                 reference_reset_base(r,procinfo^.framepointer,para_offset-pushedparasize);
-                                 exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,opsize,hreg,r));
-                                 rg.ungetregisterint(exprasmlist,R_EDI);
-                              end
-                            else
-                              exprasmList.concat(Taicpu.Op_ref(A_PUSH,opsize,tempreference));
-                        end;
-                      end;
-                    end;
-                  pointerdef,
-                  procvardef,
-                  classrefdef:
-                    begin
+                  cg.a_loadfpu_reg_ref(exprasmlist,
+                    def_cgsize(p.resulttype.def),p.location.register,href);
+               end;
+             LOC_REFERENCE,
+             LOC_CREFERENCE :
+               begin
+                 sizetopush:=align(p.resulttype.def.size,alignment);
+                 tempreference:=p.location.reference;
+                 inc(tempreference.offset,sizetopush);
+                 while (sizetopush>0) do
+                  begin
+                    if sizetopush>=4 then
+                     begin
+                       cgsize:=OS_32;
                        inc(pushedparasize,4);
+                       dec(tempreference.offset,4);
+                       dec(sizetopush,4);
+                     end
+                    else
+                     begin
+                       cgsize:=OS_16;
+                       inc(pushedparasize,2);
+                       dec(tempreference.offset,2);
+                       dec(sizetopush,2);
+                     end;
+                    if inlined then
+                     begin
+                       reference_reset_base(href,procinfo^.framepointer,para_offset-pushedparasize);
+                       cg.a_load_ref_ref(exprasmlist,cgsize,tempreference,href);
+                     end
+                    else
+                     cg.a_param_ref(exprasmlist,cgsize,tempreference,-1);
+                  end;
+               end;
+             else
+               internalerror(200204243);
+           end;
+         end
+        else
+         begin
+           { call by value open array ? }
+           if is_cdecl and
+              push_addr_param(p.resulttype.def) then
+            begin
+              if not (p.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+                internalerror(200204241);
+              { push on stack }
+              size:=align(p.resulttype.def.size,alignment);
+              inc(pushedparasize,size);
+              emit_const_reg(A_SUB,S_L,size,R_ESP);
+              reference_reset_base(href,R_ESP,0);
+              cg.g_concatcopy(exprasmlist,p.location.reference,href,size,false,false);
+            end
+           else
+            begin
+              case p.location.loc of
+                LOC_CONSTANT,
+                LOC_REGISTER,
+                LOC_CREGISTER,
+                LOC_REFERENCE,
+                LOC_CREFERENCE :
+                  begin
+                    cgsize:=def_cgsize(p.resulttype.def);
+                    if cgsize in [OS_64,OS_S64] then
+                     begin
+                       inc(pushedparasize,8);
                        if inlined then
-                         begin
-                            rg.getexplicitregisterint(exprasmlist,R_EDI);
-                            emit_ref_reg(A_MOV,S_L,tempreference,R_EDI);
-                            reference_reset_base(r,procinfo^.framepointer,para_offset-pushedparasize);
-                            exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,S_L,R_EDI,r));
-                            rg.ungetregisterint(exprasmlist,R_EDI);
-                         end
+                        begin
+                          reference_reset_base(href,procinfo^.framepointer,para_offset-pushedparasize);
+                          tcg64f32(cg).a_load64_loc_ref(exprasmlist,p.location,href);
+                        end
                        else
-                         emit_push_mem(tempreference);
-                    end;
-                  arraydef,
-                  recorddef,
-                  stringdef,
-                  setdef,
-                  objectdef :
-                    begin
-                       { even some structured types are 32 bit }
-                       if is_widestring(p.resulttype.def) or
-                          is_ansistring(p.resulttype.def) or
-                          is_smallset(p.resulttype.def) or
-                          ((p.resulttype.def.deftype in [recorddef,arraydef]) and
-                           (
-                            (p.resulttype.def.deftype<>arraydef) or not
-                            (tarraydef(p.resulttype.def).IsConstructor or
-                             tarraydef(p.resulttype.def).isArrayOfConst or
-                             is_open_array(p.resulttype.def))
-                           ) and
-                           (p.resulttype.def.size<=4)
-                          ) or
-                          is_class(p.resulttype.def) or
-                          is_interface(p.resulttype.def) then
-                         begin
-                            if (p.resulttype.def.size>2) or
-                               ((alignment=4) and (p.resulttype.def.size>0)) then
-                              begin
-                                inc(pushedparasize,4);
-                                if inlined then
-                                  begin
-                                    reference_reset_base(r,procinfo^.framepointer,para_offset-pushedparasize);
-                                    concatcopy(tempreference,r,4,false,false);
-                                  end
-                                else
-                                  emit_push_mem(tempreference);
-                              end
-                            else
-                              begin
-                                if p.resulttype.def.size>0 then
-                                  begin
-                                    inc(pushedparasize,2);
-                                    if inlined then
-                                      begin
-                                        reference_reset_base(r,procinfo^.framepointer,para_offset-pushedparasize);
-                                        concatcopy(tempreference,r,2,false,false);
-                                      end
-                                    else
-                                      exprasmList.concat(Taicpu.Op_ref(A_PUSH,S_W,tempreference));
-                                  end;
-                              end;
-                         end
-                       { call by value open array ? }
-                       else if is_cdecl then
-                         begin
-                           { push on stack }
-                           size:=align(p.resulttype.def.size,alignment);
-                           inc(pushedparasize,size);
-                           emit_const_reg(A_SUB,S_L,size,R_ESP);
-                           reference_reset_base(r,R_ESP,0);
-                           concatcopy(tempreference,r,size,false,false);
-                         end
+                        tcg64f32(cg).a_param64_loc(exprasmlist,p.location,-1);
+                     end
+                    else
+                     begin
+                       case cgsize of
+                         OS_8,OS_S8 :
+                           begin
+                             if alignment=4 then
+                              cgsize:=OS_32
+                             else
+                              cgsize:=OS_16;
+                           end;
+                         OS_16,OS_S16 :
+                           begin
+                             if alignment=4 then
+                              cgsize:=OS_32;
+                           end;
+                       end;
+                       { update register to use to match alignment }
+                       if p.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
+                        begin
+                          hreg:=p.location.register;
+                          p.location.register:=rg.makeregsize(p.location.register,cgsize);
+                        end;
+                       inc(pushedparasize,alignment);
+                       if inlined then
+                        begin
+                          reference_reset_base(href,procinfo^.framepointer,para_offset-pushedparasize);
+                          cg.a_load_loc_ref(exprasmlist,p.location,href);
+                        end
                        else
-                         internalerror(8954);
-                    end;
-                  else
-                    CGMessage(cg_e_illegal_expression);
-                end;
-             end;
-           LOC_JUMP:
-             begin
-                getlabel(hlabel);
-                if alignment=4 then
-                 begin
-                   opsize:=S_L;
-                   inc(pushedparasize,4);
-                 end
-                else
-                 begin
-                   opsize:=S_W;
-                   inc(pushedparasize,2);
-                 end;
-                emitlab(truelabel);
-                if inlined then
-                  begin
-                     reference_reset_base(r,procinfo^.framepointer,para_offset-pushedparasize);
-                     emit_const_ref(A_MOV,opsize,1,r);
-                  end
-                else
-                  exprasmList.concat(Taicpu.Op_const(A_PUSH,opsize,1));
-                emitjmp(C_None,hlabel);
-                emitlab(falselabel);
-                if inlined then
-                  begin
-                     reference_reset_base(r,procinfo^.framepointer,para_offset-pushedparasize);
-                     emit_const_ref(A_MOV,opsize,0,r);
-                  end
-                else
-                  exprasmList.concat(Taicpu.Op_const(A_PUSH,opsize,0));
-                emitlab(hlabel);
-             end;
-           LOC_FLAGS:
-             begin
-                if alignment=4 then
-                 begin
-                   opsize:=S_L;
-                   hreg:=R_EAX;
-                   inc(pushedparasize,4);
-                 end
-                else
-                 begin
-                   opsize:=S_W;
-                   hreg:=R_AX;
-                   inc(pushedparasize,2);
-                 end;
-                if not(R_EAX in rg.unusedregsint) then
-                  begin
-                    rg.getexplicitregisterint(exprasmlist,R_EDI);
-                    emit_reg_reg(A_MOV,S_L,R_EAX,R_EDI);
+                        cg.a_param_loc(exprasmlist,p.location,-1);
+                       { restore old register }
+                       if p.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
+                         p.location.register:=hreg;
+                     end;
+                    location_release(exprasmlist,p.location);
                   end;
-                cg.g_flags2reg(exprasmlist,p.location.resflags,hreg);
-                if inlined then
-                  begin
-                     reference_reset_base(r,procinfo^.framepointer,para_offset-pushedparasize);
-                     exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,opsize,hreg,r));
-                  end
-                else
-                  exprasmList.concat(Taicpu.Op_reg(A_PUSH,opsize,hreg));
-                if not(R_EAX in rg.unusedregsint) then
-                  begin
-                    emit_reg_reg(A_MOV,S_L,R_EDI,R_EAX);
-                    rg.ungetregisterint(exprasmlist,R_EDI);
-                  end;
-             end;
 {$ifdef SUPPORT_MMX}
-           LOC_MMXREGISTER,
-           LOC_CMMXREGISTER:
-             begin
-                inc(pushedparasize,8); { was missing !!! (PM) }
-                emit_const_reg(
-                  A_SUB,S_L,8,R_ESP);
-{$ifdef GDB}
-                if (cs_debuginfo in aktmoduleswitches) and
-                   (exprasmList.first=exprasmList.last) then
-                  exprasmList.concat(Tai_force_line.Create);
-{$endif GDB}
-                if inlined then
+                LOC_MMXREGISTER,
+                LOC_CMMXREGISTER:
                   begin
-                     reference_reset_base(r,procinfo^.framepointer,para_offset-pushedparasize);
-                     exprasmList.concat(Taicpu.Op_reg_ref(A_MOVQ,S_NO,
-                       p.location.register,r));
-                  end
-                else
-                   begin
-                      reference_reset_base(r,R_ESP,0);
-                      exprasmList.concat(Taicpu.Op_reg_ref(
-                        A_MOVQ,S_NO,p.location.register,r));
-                   end;
-             end;
+                     inc(pushedparasize,8);
+                     if inlined then
+                       begin
+                          reference_reset_base(href,procinfo^.framepointer,para_offset-pushedparasize);
+                          cg.a_loadmm_reg_ref(exprasmlist,p.location.register,href);
+                       end
+                     else
+                      cg.a_parammm_reg(exprasmlist,p.location.register);
+                  end;
 {$endif SUPPORT_MMX}
-        end;
+                else
+                  internalerror(200204241);
+              end;
+           end;
+         end;
       end;
 
 {*****************************************************************************
@@ -871,246 +527,13 @@ implementation
            p.swaped:=false; do not modify }
       end;
 
-{*****************************************************************************
-                           Emit Functions
-*****************************************************************************}
-
-    procedure push_shortstring_length(p:tnode);
-      var
-        hightree : tnode;
-        srsym    : tsym;
-      begin
-        if is_open_string(p.resulttype.def) then
-         begin
-           srsym:=searchsymonlyin(tloadnode(p).symtable,'high'+tvarsym(tloadnode(p).symtableentry).name);
-           hightree:=cloadnode.create(tvarsym(srsym),tloadnode(p).symtable);
-           firstpass(hightree);
-           secondpass(hightree);
-           push_value_para(hightree,false,false,0,4);
-           hightree.free;
-           hightree:=nil;
-         end
-        else
-         begin
-           push_int(tstringdef(p.resulttype.def).len);
-         end;
-      end;
-
-{*****************************************************************************
-                           String functions
-*****************************************************************************}
-
-    procedure loadshortstring(source,dest : tnode);
-    {
-      Load a string, handles stringdef and orddef (char) types
-    }
-      var
-        href: treference;
-      begin
-         case source.resulttype.def.deftype of
-            stringdef:
-              begin
-                 if (source.nodetype=stringconstn) and
-                   (str_length(source)=0) then
-                   emit_const_ref(A_MOV,S_B,0,dest.location.reference)
-                 else
-                   begin
-                     emitpushreferenceaddr(dest.location.reference);
-                     emitpushreferenceaddr(source.location.reference);
-                     push_shortstring_length(dest);
-                     emitcall('FPC_SHORTSTR_COPY');
-                     maybe_loadself;
-                   end;
-              end;
-            orddef:
-              begin
-                 if source.nodetype=ordconstn then
-                   emit_const_ref(
-                      A_MOV,S_W,tordconstnode(source).value*256+1,dest.location.reference)
-                 else
-                   begin
-                      if (source.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-                        begin
-                           href := dest.location.reference;
-                           emit_const_ref(A_MOV,S_B,1,href);
-                           inc(href.offset,1);
-                           emit_reg_ref(A_MOV,S_B,rg.makeregsize(source.location.register,OS_8),href);
-                        end
-                      else
-                      { not so elegant (goes better with extra register    }
-                        begin
-                           { not "movl", because then we may read past the }
-                           { end of the heap! "movw" would be ok too, but  }
-                           { I don't think that would be faster (JM)       }
-                           rg.getexplicitregisterint(exprasmlist,R_EDI);
-                           emit_ref_reg(A_MOVZX,S_BL,source.location.reference,R_EDI);
-                           emit_const_reg(A_SHL,S_L,8,R_EDI);
-                           emit_const_reg(A_OR,S_L,1,R_EDI);
-                           emit_reg_ref(A_MOV,S_W,R_DI,dest.location.reference);
-                           rg.ungetregisterint(exprasmlist,R_EDI);
-                        end;
-                      location_release(exprasmlist,source.location);
-                   end;
-              end;
-         else
-           CGMessage(type_e_mismatch);
-         end;
-      end;
-
-    procedure loadlongstring(p:tbinarynode);
-    {
-      Load a string, handles stringdef and orddef (char) types
-    }
-      var
-         r : treference;
-
-      begin
-         case p.right.resulttype.def.deftype of
-            stringdef:
-              begin
-                 if (p.right.nodetype=stringconstn) and
-                   (str_length(p.right)=0) then
-                   emit_const_ref(A_MOV,S_L,0,p.left.location.reference)
-                 else
-                   begin
-                     emitpushreferenceaddr(p.left.location.reference);
-                     emitpushreferenceaddr(p.right.location.reference);
-                     push_shortstring_length(p.left);
-                     emitcall('FPC_LONGSTR_COPY');
-                     maybe_loadself;
-                   end;
-              end;
-            orddef:
-              begin
-                 emit_const_ref(A_MOV,S_L,1,p.left.location.reference);
-
-                 r:=p.left.location.reference;
-                 inc(r.offset,4);
-
-                 if p.right.nodetype=ordconstn then
-                   emit_const_ref(A_MOV,S_B,tordconstnode(p.right).value,r)
-                 else
-                   begin
-                      case p.right.location.loc of
-                         LOC_REGISTER,LOC_CREGISTER:
-                           emit_reg_ref(A_MOV,S_B,p.right.location.register,r);
-                         LOC_CREFERENCE,LOC_REFERENCE:
-                           begin
-                              if not(R_EAX in rg.unusedregsint) then
-                                emit_reg(A_PUSH,S_L,R_EAX);
-                              emit_ref_reg(A_MOV,S_B,p.right.location.reference,R_AL);
-                              emit_reg_ref(A_MOV,S_B,R_AL,r);
-                              if not(R_EAX in rg.unusedregsint) then
-                                emit_reg(A_POP,S_L,R_EAX);
-                           end
-                         else
-                           internalerror(20799);
-                        end;
-                        location_release(exprasmlist,p.right.location);
-                   end;
-              end;
-         else
-           CGMessage(type_e_mismatch);
-         end;
-      end;
-
-
-    procedure loadansi2short(source,dest : tnode);
-      var
-         pushed : tpushedsaved;
-         regs_to_push: tregisterset;
-      begin
-         { Find out which registers have to be pushed (JM) }
-         regs_to_push := all_registers;
-         remove_non_regvars_from_loc(source.location,regs_to_push);
-         { Push them (JM) }
-         rg.saveusedregisters(exprasmlist,pushed,regs_to_push);
-         location_freetemp(exprasmlist,source.location);
-         location_release(exprasmlist,source.location);
-         cg.a_param_loc(exprasmlist,source.location,1);
-         push_shortstring_length(dest);
-         emitpushreferenceaddr(dest.location.reference);
-         rg.saveregvars(exprasmlist,all_registers);
-         emitcall('FPC_ANSISTR_TO_SHORTSTR');
-         rg.restoreusedregisters(exprasmlist,pushed);
-         maybe_loadself;
-      end;
-
-
-    procedure loadwide2short(source,dest : tnode);
-      var
-         pushed : tpushedsaved;
-         regs_to_push: tregisterset;
-      begin
-         { Find out which registers have to be pushed (JM) }
-         regs_to_push := all_registers;
-         remove_non_regvars_from_loc(source.location,regs_to_push);
-         { Push them (JM) }
-         rg.saveusedregisters(exprasmlist,pushed,regs_to_push);
-         location_freetemp(exprasmlist,source.location);
-         location_release(exprasmlist,source.location);
-         cg.a_param_loc(exprasmlist,source.location,1);
-         push_shortstring_length(dest);
-         emitpushreferenceaddr(dest.location.reference);
-         rg.saveregvars(exprasmlist,all_registers);
-         emitcall('FPC_WIDESTR_TO_SHORTSTR');
-         rg.restoreusedregisters(exprasmlist,pushed);
-         maybe_loadself;
-      end;
-
-
-    procedure loadinterfacecom(p: tbinarynode);
-    {
-      copies an com interface from n.right to n.left, we
-      assume, that both sides are com interface, firstassignement have
-      to take care of that, an com interface can't be a register variable
-    }
-      var
-         pushed : tpushedsaved;
-         ungettemp : boolean;
-      begin
-         { before pushing any parameter, we have to save all used      }
-         { registers, but before that we have to release the       }
-         { registers of that node to save uneccessary pushed       }
-         { so be careful, if you think you can optimize that code (FK) }
-
-         { nevertheless, this has to be changed, because otherwise the }
-         { register is released before it's contents are pushed ->     }
-         { problems with the optimizer (JM)                         }
-         reference_release(exprasmlist,p.left.location.reference);
-         ungettemp:=false;
-         case p.right.location.loc of
-            LOC_REGISTER,LOC_CREGISTER:
-              begin
-                 rg.saveusedregisters(exprasmlist,pushed, all_registers - [p.right.location.register]);
-                 exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_L,p.right.location.register));
-              end;
-            LOC_REFERENCE,LOC_CREFERENCE:
-              begin
-                 rg.saveusedregisters(exprasmlist,pushed, all_registers
-                   - [p.right.location.reference.base]
-                   - [p.right.location.reference.index]);
-                 emit_push_mem(p.right.location.reference);
-                 ungettemp:=true;
-              end;
-         end;
-         location_release(exprasmlist,p.right.location);
-         emitpushreferenceaddr(p.left.location.reference);
-         location_release(exprasmlist,p.left.location);
-         rg.saveregvars(exprasmlist,all_registers);
-         emitcall('FPC_INTF_ASSIGN');
-         maybe_loadself;
-         rg.restoreusedregisters(exprasmlist,pushed);
-         if ungettemp then
-           location_release(exprasmlist,p.right.location);
-      end;
-
-
-
 end.
 {
   $Log$
-  Revision 1.34  2002-04-21 15:39:41  carl
+  Revision 1.35  2002-04-25 20:16:40  peter
+    * moved more routines from cga/n386util
+
+  Revision 1.34  2002/04/21 15:39:41  carl
   * changeregsize -> rg.makeregsize
 
   Revision 1.33  2002/04/20 21:37:07  carl

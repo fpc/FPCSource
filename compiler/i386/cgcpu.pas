@@ -76,6 +76,7 @@ unit cgcpu;
         procedure a_loadmm_reg_reg(list: taasmoutput; reg1, reg2: tregister); override;
         procedure a_loadmm_ref_reg(list: taasmoutput; const ref: treference; reg: tregister); override;
         procedure a_loadmm_reg_ref(list: taasmoutput; reg: tregister; const ref: treference); override;
+        procedure a_parammm_reg(list: taasmoutput; reg: tregister); override;
 
         {  comparison operations }
         procedure a_cmp_const_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
@@ -106,13 +107,14 @@ unit cgcpu;
         procedure a_op64_const_ref(list : taasmoutput;op:TOpCG;valuelosrc,valuehisrc:AWord;const ref : treference);override;
 
         procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aword; delsource,loadref : boolean);override;
+        procedure g_maybe_loadself(list : taasmoutput); override;
 
 
         class function reg_cgsize(const reg: tregister): tcgsize; override;
 
        private
 
-        procedure a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: tasmlabel); 
+        procedure a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: tasmlabel);
         procedure get_64bit_ops(op:TOpCG;var op1,op2:TAsmOp);
         procedure sizes2load(s1 : tcgsize;s2 : topsize; var op: tasmop; var s3: topsize);
 
@@ -159,9 +161,9 @@ unit cgcpu;
 
 
     { currently does nothing }
-    procedure tcg386.a_jmp_always(list : taasmoutput;l: tasmlabel); 
+    procedure tcg386.a_jmp_always(list : taasmoutput;l: tasmlabel);
      begin
-       a_jmp_cond(list, OC_NONE, l);      
+       a_jmp_cond(list, OC_NONE, l);
      end;
 
     { we implement the following routines because otherwise we can't }
@@ -409,6 +411,16 @@ unit cgcpu;
 
        begin
          list.concat(taicpu.op_reg_ref(A_MOVQ,S_NO,reg,ref));
+       end;
+
+
+    procedure tcg386.a_parammm_reg(list: taasmoutput; reg: tregister);
+       var
+         href : treference;
+       begin
+         list.concat(taicpu.op_const_reg(A_SUB,S_L,8,R_ESP));
+         reference_reset_base(href,R_ESP,0);
+         list.concat(taicpu.op_reg_ref(A_MOVQ,S_NO,reg,href));
        end;
 
 
@@ -1060,6 +1072,22 @@ unit cgcpu;
       end;
 
 
+    procedure tcg386.g_maybe_loadself(list : taasmoutput);
+      var
+        oldlist: taasmoutput;
+
+      begin
+        if list <> exprasmlist then
+          begin
+            oldlist := exprasmlist;
+            exprasmlist := list;
+          end;
+        cga.maybe_loadself;
+        if list <> exprasmlist then
+          list := oldlist;
+      end;
+
+
     function tcg386.reg_cgsize(const reg: tregister): tcgsize;
       const
         regsize_2_cgsize: array[S_B..S_L] of tcgsize = (OS_8,OS_16,OS_32);
@@ -1199,7 +1227,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2002-04-21 15:31:05  carl
+  Revision 1.14  2002-04-25 20:16:40  peter
+    * moved more routines from cga/n386util
+
+  Revision 1.13  2002/04/21 15:31:05  carl
   * changeregsize -> rg.makeregsize
   + a_jmp_always added
 

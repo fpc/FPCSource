@@ -75,7 +75,7 @@ interface
     {# Returns true, if def defines a signed data type (only for ordinal types) }
     function is_signed(def : tdef) : boolean;
 
-    {# Returns true whether def_from's range is comprised in def_to's if both are 
+    {# Returns true whether def_from's range is comprised in def_to's if both are
       orddefs, false otherwise                                              }
     function is_in_limit(def_from,def_to : tdef) : boolean;
 
@@ -85,9 +85,9 @@ interface
 
     {# Returns true, if p points to a zero based (non special like open or
       dynamic array def).
-      
+
       This is mainly used to see if the array
-      is convertable to a pointer 
+      is convertable to a pointer
     }
     function is_zero_based_array(p : tdef) : boolean;
 
@@ -106,10 +106,10 @@ interface
     {# Returns true, if p points to an array of const }
     function is_array_of_const(p : tdef) : boolean;
 
-    {# Returns true, if p points any kind of special array 
-    
+    {# Returns true, if p points any kind of special array
+
        That is if the array is an open array, a variant
-       array, an array constants constructor, or an 
+       array, an array constants constructor, or an
        array of const.
     }
     function is_special_array(p : tdef) : boolean;
@@ -162,16 +162,16 @@ interface
 
     function push_high_param(def : tdef) : boolean;
 
-    {# Returns true if a parameter is too large to copy and only the address is pushed 
+    {# Returns true if a parameter is too large to copy and only the address is pushed
     }
     function push_addr_param(def : tdef) : boolean;
 
     {# Returns true, if def1 and def2 are semantically the same }
     function is_equal(def1,def2 : tdef) : boolean;
 
-    {# Checks for type compatibility (subgroups of type)  
-       used for case statements... probably missing stuff 
-       to use on other types                              
+    {# Checks for type compatibility (subgroups of type)
+       used for case statements... probably missing stuff
+       to use on other types
     }
     function is_subequal(def1, def2: tdef): boolean;
 
@@ -224,11 +224,11 @@ interface
 
     function equal_constsym(sym1,sym2:tconstsym):boolean;
 
-    {# true, if two parameter lists are equal        
-      if acp is cp_none, all have to match exactly  
-      if acp is cp_value_equal_const call by value  
-      and call by const parameter are assumed as    
-      equal                                         
+    {# true, if two parameter lists are equal
+      if acp is cp_none, all have to match exactly
+      if acp is cp_value_equal_const call by value
+      and call by const parameter are assumed as
+      equal
     }
     { if acp is cp_all the var const or nothing are considered equal }
     type
@@ -249,7 +249,7 @@ interface
     function get_proc_2_procvar_def(p:tprocsym;d:tprocvardef):tprocdef;
 
     {# If @var(l) isn't in the range of def a range check error (if not explicit) is generated and
-      the value is placed within the range 
+      the value is placed within the range
     }
     procedure testrange(def : tdef;var l : tconstexprint;explicit:boolean);
 
@@ -1970,7 +1970,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.68  2002-04-15 19:08:22  carl
+  Revision 1.69  2002-04-25 20:16:39  peter
+    * moved more routines from cga/n386util
+
+  Revision 1.68  2002/04/15 19:08:22  carl
   + target_info.size_of_pointer -> pointer_size
   + some cleanup of unused types/variables
 

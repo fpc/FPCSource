@@ -59,6 +59,10 @@ Type
 
 implementation
 
+    uses
+      verbose;
+
+
 {*****************************************************************************
                                  TaiRegAlloc
 *****************************************************************************}
@@ -140,6 +144,8 @@ implementation
 
     procedure tainstruction.loadsymbol(opidx:longint;s:tasmsymbol;sofs:longint);
       begin
+        if not assigned(s) then
+         internalerror(200204251);
         if opidx>=ops then
          ops:=opidx+1;
         with oper[opidx] do
@@ -150,9 +156,7 @@ implementation
            symofs:=sofs;
            typ:=top_symbol;
          end;
-        { Mark the symbol as used }
-        if assigned(s) then
-         inc(s.refs);
+        inc(s.refs);
       end;
 
 
@@ -242,7 +246,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2002-04-02 17:11:32  peter
+  Revision 1.5  2002-04-25 20:16:39  peter
+    * moved more routines from cga/n386util
+
+  Revision 1.4  2002/04/02 17:11:32  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines

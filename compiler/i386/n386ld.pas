@@ -47,7 +47,7 @@ implementation
 
     uses
       systems,
-      verbose,globals,
+      cutils,verbose,globals,
       symconst,symtype,symdef,symsym,symtable,aasm,types,
       cginfo,cgbase,pass_2,
       nmem,ncon,ncnv,
@@ -64,7 +64,6 @@ implementation
          symtabletype : tsymtabletype;
          i : longint;
          href : treference;
-         s : tasmsymbol;
          newsize : tcgsize;
          popeax : boolean;
       begin
@@ -382,15 +381,12 @@ implementation
 
     procedure ti386assignmentnode.pass_2;
       var
-         regs_to_push: tregisterset;
          otlabel,hlabel,oflabel : tasmlabel;
          fputyp : tfloattype;
-         loc : tloc;
          href : treference;
          ai : taicpu;
          releaseright,
          pushed : boolean;
-         regspushed : tpushedsaved;
          cgsize : tcgsize;
 
       begin
@@ -493,82 +489,58 @@ implementation
              exit;
           end;
 
-        loc:=left.location.loc;
+        releaseright:=true;
 
-        if left.resulttype.def.deftype=stringdef then
+        { shortstring assignments are handled separately }
+        if is_shortstring(left.resulttype.def) then
           begin
-             if is_ansistring(left.resulttype.def) or
-                is_widestring(left.resulttype.def) then
-               begin
-                 { before pushing any parameter, we have to save all used      }
-                 { registers, but before that we have to release the       }
-                 { registers of that node to save uneccessary pushed       }
-                 { so be careful, if you think you can optimize that code (FK) }
+            {
+              we can get here only in the following situations
+              for the right node:
+               - empty constant string
+               - char
+            }
 
-                 { nevertheless, this has to be changed, because otherwise the }
-                 { register is released before it's contents are pushed ->     }
-                 { problems with the optimizer (JM)                            }
-                 { Find out which registers have to be pushed (JM) }
-                 regs_to_push := all_registers;
-                 remove_non_regvars_from_loc(right.location,regs_to_push);
-                 remove_non_regvars_from_loc(left.location,regs_to_push);
-                 { And push them (JM) }
-                 rg.saveusedregisters(exprasmlist,regspushed,regs_to_push);
-
-                 location_release(exprasmlist,right.location);
-                 cg.a_param_loc(exprasmlist,right.location,2);
-                 location_release(exprasmlist,left.location);
-                 cg.a_paramaddr_ref(exprasmlist,left.location.reference,1);
-                 rg.saveregvars(exprasmlist,all_registers);
-                 if is_ansistring(left.resulttype.def) then
-                   emitcall('FPC_ANSISTR_ASSIGN')
-                 else
-                   emitcall('FPC_WIDESTR_ASSIGN');
-                 maybe_loadself;
-                 rg.restoreusedregisters(exprasmlist,regspushed);
-                 location_freetemp(exprasmlist,right.location);
-               end
-             else if is_shortstring(left.resulttype.def) and
-                     not (nf_concat_string in flags) then
-               begin
-                 if is_ansistring(right.resulttype.def) then
-                   begin
-                     if (right.nodetype=stringconstn) and
-                        (tstringconstnode(right).len=0) then
+            { empty constant string }
+            if (right.nodetype=stringconstn) and
+               (tstringconstnode(right).len=0) then
+              begin
+                emit_const_ref(A_MOV,S_B,0,left.location.reference);
+              end
+            { char loading }
+            else if is_char(right.resulttype.def) then
+              begin
+                if right.nodetype=ordconstn then
+                  emit_const_ref(A_MOV,S_W,tordconstnode(right).value*256+1,left.location.reference)
+                else
+                  begin
+                     if (right.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
                        begin
-                         emit_const_ref(A_MOV,S_B,0,left.location.reference);
-                         location_release(exprasmlist,left.location);
+                          href := left.location.reference;
+                          emit_const_ref(A_MOV,S_B,1,href);
+                          inc(href.offset,1);
+                          emit_reg_ref(A_MOV,S_B,rg.makeregsize(right.location.register,OS_8),href);
                        end
                      else
-                       loadansi2short(right,left);
-                   end
-                 else
-                   begin
-                      { we do not need destination anymore }
-                      location_release(exprasmlist,left.location);
-                      {del_reference(right.location.reference);
-                       done in loadshortstring }
-                      loadshortstring(right,left);
-                      location_freetemp(exprasmlist,right.location);
-                   end;
-               end
-             else if is_longstring(left.resulttype.def) then
-               begin
-                  internalerror(200105261);
-               end
-             else
-               begin
-                 { its the only thing we have to do }
-                 location_release(exprasmlist,right.location);
-               end
-          end
-        else if is_interfacecom(left.resulttype.def) then
-          begin
-             loadinterfacecom(self);
+                     { not so elegant (goes better with extra register    }
+                       begin
+                          { not "movl", because then we may read past the }
+                          { end of the heap! "movw" would be ok too, but  }
+                          { I don't think that would be faster (JM)       }
+                          rg.getexplicitregisterint(exprasmlist,R_EDI);
+                          emit_ref_reg(A_MOVZX,S_BL,right.location.reference,R_EDI);
+                          emit_const_reg(A_SHL,S_L,8,R_EDI);
+                          emit_const_reg(A_OR,S_L,1,R_EDI);
+                          emit_reg_ref(A_MOV,S_W,R_DI,left.location.reference);
+                          rg.ungetregisterint(exprasmlist,R_EDI);
+                       end;
+                  end;
+              end
+            else
+              internalerror(200204249);
           end
         else
           begin
-            releaseright:=true;
             case right.location.loc of
               LOC_CONSTANT :
                 begin
@@ -581,7 +553,7 @@ implementation
               LOC_REFERENCE,
               LOC_CREFERENCE :
                 begin
-                  case loc of
+                  case left.location.loc of
                     LOC_CREGISTER :
                       begin
                         cgsize:=def_cgsize(left.resulttype.def);
@@ -608,16 +580,12 @@ implementation
                              { this would be a problem }
                              if not(left.resulttype.def.needs_inittable) then
                                internalerror(3457);
-                             { increment source reference counter }
-                             reference_reset_symbol(href,tstoreddef(right.resulttype.def).get_rtti_label(initrtti),0);
-                             cg.a_paramaddr_ref(exprasmlist,href,2);
-                             cg.a_paramaddr_ref(exprasmlist,right.location.reference,1);
-                             emitcall('FPC_ADDREF');
+                             { increment source reference counter, this is
+                               useless for string constants}
+                             if right.nodetype<>stringconstn then
+                              cg.g_incrrefcount(exprasmlist,right.resulttype.def,right.location.reference);
                              { decrement destination reference counter }
-                             reference_reset_symbol(href,tstoreddef(left.resulttype.def).get_rtti_label(initrtti),0);
-                             cg.a_paramaddr_ref(exprasmlist,href,2);
-                             cg.a_paramaddr_ref(exprasmlist,left.location.reference,1);
-                             emitcall('FPC_DECREF');
+                             cg.g_decrrefcount(exprasmlist,left.resulttype.def,left.location.reference);
                           end;
 
                         concatcopy(right.location.reference,
@@ -633,7 +601,7 @@ implementation
               LOC_CMMXREGISTER,
               LOC_MMXREGISTER:
                 begin
-                  if loc=LOC_CMMXREGISTER then
+                  if left.location.loc=LOC_CMMXREGISTER then
                    emit_reg_reg(A_MOVQ,S_NO,right.location.register,left.location.register)
                   else
                    emit_reg_ref(A_MOVQ,S_NO,right.location.register,left.location.reference);
@@ -680,9 +648,8 @@ implementation
                   if codegenerror then
                     exit;
                   cg.a_load_const_loc(exprasmlist,1,left.location);
+                  location_release(exprasmlist,left.location);
                   emitjmp(C_None,hlabel);
-                  if not(left.location.loc in [LOC_CREGISTER{$ifdef SUPPORT_MMX},LOC_CMMXREGISTER{$endif SUPPORT_MMX}]) then
-                   location_release(exprasmlist,left.location);
                   { generate the leftnode for the false case }
                   emitlab(falselabel);
                   pushed:=maybe_push(left.registers32,right,false);
@@ -696,11 +663,11 @@ implementation
                 end;
               LOC_FLAGS :
                 begin
-                  if loc=LOC_CREGISTER then
+                  if left.location.loc=LOC_CREGISTER then
                     cg.g_flags2reg(exprasmlist,right.location.resflags,left.location.register)
                   else
                     begin
-                      if not(loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+                      if not(left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
                        internalerror(200203273);
                       ai:=Taicpu.Op_ref(A_Setcc,S_B,left.location.reference);
                       ai.SetCondition(flags_to_cond(right.location.resflags));
@@ -709,13 +676,11 @@ implementation
                 end;
             end;
 
-           { we don't need the locations anymore. Only for
-             CREGISTER we need to keep the new location available }
-           if releaseright then
-            location_release(exprasmlist,right.location);
-           if not(left.location.loc in [LOC_CREGISTER{$ifdef SUPPORT_MMX},LOC_CMMXREGISTER{$endif SUPPORT_MMX}]) then
-            location_release(exprasmlist,left.location);
          end;
+
+        if releaseright then
+         location_release(exprasmlist,right.location);
+        location_release(exprasmlist,left.location);
 
         truelabel:=otlabel;
         falselabel:=oflabel;
@@ -779,7 +744,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.38  2002-04-22 16:30:06  peter
+  Revision 1.39  2002-04-25 20:16:40  peter
+    * moved more routines from cga/n386util
+
+  Revision 1.38  2002/04/22 16:30:06  peter
     * fixed @methodpointer
 
   Revision 1.37  2002/04/21 15:36:13  carl

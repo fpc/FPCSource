@@ -42,7 +42,7 @@ type
 implementation
 
 uses pass_1, types, htypechk, cginfo, cgbase, cpubase, cga,
-     tgobj, aasm, ncnv, ncon, pass_2, symdef, rgobj;
+     tgobj, aasm, ncnv, ncon, pass_2, symdef, rgobj, cgobj;
 
 
 {*****************************************************************************
@@ -95,10 +95,10 @@ begin
      not(nf_use_strconcat in flags) then
     begin
        tg.gettempofsizereference(exprasmlist,256,href);
-       copyshortstring(href,left.location.reference,255,false,true);
-       { release the registers }
-       tg.ungetiftemp(exprasmlist,left.location.reference);
-       { does not hurt: }
+       cg.g_copyshortstring(exprasmlist,left.location.reference,href,255,true,false);
+       { location is released by copyshortstring }
+       location_freetemp(exprasmlist,left.location);
+       { return temp reference }
        location_reset(left.location,LOC_CREFERENCE,def_cgsize(resulttype.def));
        left.location.reference:=href;
     end;
@@ -203,10 +203,10 @@ begin
      not(nf_use_strconcat in flags) then
     begin
        tg.gettempofsizereference(exprasmlist,256,href);
-       copyshortstring(href,left.location.reference,255,false,true);
+       cg.g_copyshortstring(exprasmlist,left.location.reference,href,255,true,false);
        { release the registers }
-       tg.ungetiftemp(exprasmlist,left.location.reference);
-       { does not hurt: }
+       location_freetemp(exprasmlist,left.location);
+       { return temp reference }
        location_reset(left.location,LOC_CREFERENCE,def_cgsize(resulttype.def));
        left.location.reference:=href;
     end;
@@ -242,7 +242,10 @@ end.
 
 {
   $Log$
-  Revision 1.11  2002-04-21 15:36:40  carl
+  Revision 1.12  2002-04-25 20:16:40  peter
+    * moved more routines from cga/n386util
+
+  Revision 1.11  2002/04/21 15:36:40  carl
   * changeregsize -> rg.makeregsize
 
   Revision 1.10  2002/04/15 19:44:21  peter

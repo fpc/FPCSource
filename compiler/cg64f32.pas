@@ -22,10 +22,10 @@
 
  ****************************************************************************
 }
-{# This unit implements the code generation for 64 bit int arithmethics on 
+{# This unit implements the code generation for 64 bit int arithmethics on
    32 bit processors. All 32-bit processors should use this class as
    the base code generator class instead of tcg.
-}   
+}
 unit cg64f32;
 
   {$i defines.inc}
@@ -39,7 +39,7 @@ unit cg64f32;
        node,symtype;
 
     type
-      {# Defines all the methods required on 32-bit processors 
+      {# Defines all the methods required on 32-bit processors
          to handle 64-bit integers. All 32-bit processors should
          create derive a class of this type instead of @var(tcg).
       }
@@ -384,10 +384,10 @@ unit cg64f32;
       var
         tmpref: treference;
       begin
-        a_param_ref(list,OS_32,r,nr);
         tmpref := r;
         inc(tmpref.offset,4);
-        a_param_ref(list,OS_32,tmpref,nr+1);
+        a_param_ref(list,OS_32,tmpref,nr);
+        a_param_ref(list,OS_32,r,nr+1);
       end;
 
 
@@ -591,7 +591,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2002-04-21 15:28:51  carl
+  Revision 1.9  2002-04-25 20:16:38  peter
+    * moved more routines from cga/n386util
+
+  Revision 1.8  2002/04/21 15:28:51  carl
   * a_jmp_cond -> a_jmp_always
 
   Revision 1.7  2002/04/07 13:21:18  carl

@@ -198,7 +198,7 @@ implementation
                  assigned(defcoll.paratype.def) and
                  not is_class(defcoll.paratype.def) and
                  defcoll.paratype.def.needs_inittable then
-                finalize(defcoll.paratype.def,left.location.reference,false);
+                cg.g_finalize(exprasmlist,defcoll.paratype.def,left.location.reference,false);
               inc(pushedparasize,4);
               if inlined then
                 begin
@@ -325,6 +325,7 @@ implementation
          push_size : longint;
 {$endif OPTALIGN}
          pop_allowed : boolean;
+         release_edi : boolean;
          constructorfailed : tasmlabel;
 
       label
@@ -344,12 +345,12 @@ implementation
          if is_widestring(resulttype.def) then
            begin
              tg.gettempwidestringreference(exprasmlist,refcountedtemp);
-             decrstringref(resulttype.def,refcountedtemp);
+             cg.g_decrrefcount(exprasmlist,resulttype.def,refcountedtemp);
            end
          else if is_ansistring(resulttype.def) then
            begin
              tg.gettempansistringreference(exprasmlist,refcountedtemp);
-             decrstringref(resulttype.def,refcountedtemp);
+             cg.g_decrrefcount(exprasmlist,resulttype.def,refcountedtemp);
            end;
 
          if (procdefinition.proccalloption in [pocall_cdecl,pocall_cppdecl,pocall_stdcall]) then
@@ -482,37 +483,8 @@ implementation
          else
            pop_esp:=false;
 {$endif OPTALIGN}
-         if (not is_void(resulttype.def)) and
-            ret_in_param(resulttype.def) then
-           begin
-              funcretref.symbol:=nil;
-{$ifdef test_dest_loc}
-              if dest_loc_known and (dest_loc_tree=p) and
-                 (dest_loc.loc in [LOC_REFERENCE,LOC_MEM]) then
-                begin
-                   funcretref:=dest_loc.reference;
-                   if assigned(dest_loc.reference.symbol) then
-                     funcretref.symbol:=stringdup(dest_loc.reference.symbol^);
-                   in_dest_loc:=true;
-                end
-              else
-{$endif test_dest_loc}
-                if inlined then
-                  begin
-                     reference_reset(funcretref);
-                     funcretref.offset:=tg.gettempofsizepersistant(exprasmlist,resulttype.def.size);
-                     funcretref.base:=procinfo^.framepointer;
-{$ifdef extdebug}
-                     Comment(V_debug,'function return value is at offset '
-                                     +tostr(funcretref.offset));
-                     exprasmlist.concat(tai_asm_comment.create(
-                                         strpnew('function return value is at offset '
-                                                 +tostr(funcretref.offset))));
-{$endif extdebug}
-                  end
-                else
-                  tg.gettempofsizereference(exprasmlist,resulttype.def.size,funcretref);
-           end;
+
+         { Push parameters }
          if assigned(params) then
            begin
               { be found elsewhere }
@@ -533,31 +505,66 @@ implementation
                   (procdefinition.proccalloption in [pocall_cdecl,pocall_cppdecl]),
                   para_alignment,para_offset);
            end;
+
+         { Allocate return value for inlined routines }
          if inlined then
            inlinecode.retoffset:=tg.gettempofsizepersistant(exprasmlist,Align(resulttype.def.size,aktalignment.paraalign));
+
+         { Allocate return value when returned in argument }
          if ret_in_param(resulttype.def) then
            begin
-              { This must not be counted for C code
-                complex return address is removed from stack
-                by function itself !   }
+             if assigned(funcretrefnode) then
+              begin
+                secondpass(funcretrefnode);
+                if codegenerror then
+                 exit;
+                if (funcretrefnode.location.loc<>LOC_REFERENCE) then
+                 internalerror(200204246);
+                funcretref:=funcretrefnode.location.reference;
+              end
+             else
+              begin
+                if inlined then
+                 begin
+                   reference_reset(funcretref);
+                   funcretref.offset:=tg.gettempofsizepersistant(exprasmlist,resulttype.def.size);
+                   funcretref.base:=procinfo^.framepointer;
+{$ifdef extdebug}
+                   Comment(V_debug,'function return value is at offset '
+                                   +tostr(funcretref.offset));
+                   exprasmlist.concat(tai_asm_comment.create(
+                                       strpnew('function return value is at offset '
+                                               +tostr(funcretref.offset))));
+{$endif extdebug}
+                 end
+                else
+                 tg.gettempofsizereference(exprasmlist,resulttype.def.size,funcretref);
+              end;
+
+             { This must not be counted for C code
+               complex return address is removed from stack
+               by function itself !   }
 {$ifdef OLD_C_STACK}
-              inc(pushedparasize,4); { lets try without it PM }
+             inc(pushedparasize,4); { lets try without it PM }
 {$endif not OLD_C_STACK}
-              if inlined then
-                begin
-                   rg.getexplicitregisterint(exprasmlist,R_EDI);
-                   emit_ref_reg(A_LEA,S_L,funcretref,R_EDI);
-                   reference_reset_base(href,procinfo^.framepointer,inlinecode.retoffset);
-                   emit_reg_ref(A_MOV,S_L,R_EDI,href);
-                   rg.ungetregisterint(exprasmlist,R_EDI);
-                end
-              else
-                emitpushreferenceaddr(funcretref);
+             if inlined then
+               begin
+                  hregister:=cg.get_scratch_reg(exprasmlist);
+                  cg.a_loadaddr_ref_reg(exprasmlist,funcretref,hregister);
+                  reference_reset_base(href,procinfo^.framepointer,inlinecode.retoffset);
+                  cg.a_load_reg_ref(exprasmlist,OS_ADDR,hregister,href);
+                  cg.free_scratch_reg(exprasmlist,hregister);
+               end
+             else
+               cg.a_paramaddr_ref(exprasmlist,funcretref,-1);
            end;
-         { procedure variable ? }
+
+         { procedure variable or normal function call ? }
          if inlined or
-           (right=nil) then
+            (right=nil) then
            begin
+              { Normal function call }
+
               { overloaded operator has no symtable }
               { push self }
               if assigned(symtableproc) and
@@ -912,6 +919,7 @@ implementation
                    { also class methods                       }
                    { Here it is quite tricky because it also depends }
                    { on the methodpointer                        PM }
+                   release_edi:=false;
                    rg.getexplicitregisterint(exprasmlist,R_ESI);
                    if assigned(aktprocdef) then
                      begin
@@ -938,6 +946,7 @@ implementation
                             rg.getexplicitregisterint(exprasmlist,R_EDI);
                             emit_ref_reg(A_MOV,S_L,href,R_EDI);
                             reference_reset_base(href,R_EDI,0);
+                            release_edi:=true;
                          end;
                      end
                    else
@@ -974,7 +983,8 @@ implementation
                           end;
                      end;
                    emit_ref(A_CALL,S_NO,href);
-                   rg.ungetregisterint(exprasmlist,R_EDI);
+                   if release_edi then
+                     rg.ungetregisterint(exprasmlist,R_EDI);
                 end
               else if not inlined then
                 begin
@@ -1290,7 +1300,7 @@ implementation
                 begin
                    { data which must be finalized ? }
                    if (resulttype.def.needs_inittable) then
-                      finalize(resulttype.def,location.reference,false);
+                      cg.g_finalize(exprasmlist,resulttype.def,location.reference,false);
                    { release unused temp }
                    tg.ungetiftemp(exprasmlist,location.reference)
                 end
@@ -1482,7 +1492,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.47  2002-04-21 19:02:07  peter
+  Revision 1.48  2002-04-25 20:16:40  peter
+    * moved more routines from cga/n386util
+
+  Revision 1.47  2002/04/21 19:02:07  peter
     * removed newn and disposen nodes, the code is now directly
       inlined from pexpr
     * -an option that will write the secondpass nodes to the .s file, this

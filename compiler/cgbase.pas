@@ -41,21 +41,21 @@ unit cgbase;
 
     const
        {# bitmask indicating if the procedure uses asm }
-       pi_uses_asm  = $1;       
+       pi_uses_asm  = $1;
        {# bitmask indicating if the procedure is exported by an unit }
-       pi_is_global = $2;       
+       pi_is_global = $2;
        {# bitmask indicating if the procedure does a call }
-       pi_do_call   = $4;       
+       pi_do_call   = $4;
        {# bitmask indicating if the procedure is an operator   }
-       pi_operator  = $8;       
+       pi_operator  = $8;
        {# bitmask indicating if the procedure is an external C function }
-       pi_c_import  = $10;      
+       pi_c_import  = $10;
        {# bitmask indicating if the procedure has a try statement = no register optimization }
        pi_uses_exceptions = $20;
        {# bitmask indicating if the procedure is declared as @var(assembler), don't optimize}
-       pi_is_assembler = $40;   
+       pi_is_assembler = $40;
        {# bitmask indicating if the procedure contains data which needs to be finalized }
-       pi_needs_implicit_finally = $80; 
+       pi_needs_implicit_finally = $80;
 
     type
        pprocinfo = ^tprocinfo;
@@ -77,7 +77,7 @@ unit cgbase;
           {# parameter offset in stack }
           para_offset : longint;
 
-          {# some collected informations about the procedure 
+          {# some collected informations about the procedure
              see pi_xxxx above                               }
           flags : longint;
 
@@ -449,6 +449,13 @@ implementation
             result := tfloat2tcgsize[tfloatdef(def).typ];
           recorddef :
             result:=int_cgsize(def.size);
+          arraydef :
+            begin
+              if not is_special_array(def) then
+                result := int_cgsize(def.size)
+              else
+                result := OS_NO;
+            end;
           else
             begin
               { undefined size }
@@ -464,9 +471,9 @@ implementation
             result := OS_8;
           2 :
             result := OS_16;
-          4 :
+          3,4 :
             result := OS_32;
-          8 :
+          5..8 :
             result := OS_64;
           else
             result:=OS_NO;
@@ -517,7 +524,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2002-04-21 15:28:06  carl
+  Revision 1.13  2002-04-25 20:16:38  peter
+    * moved more routines from cga/n386util
+
+  Revision 1.12  2002/04/21 15:28:06  carl
   - remove duplicate constants
   - move some constants to cginfo
 

@@ -2686,6 +2686,7 @@ implementation
 
     function tarraydef.size : longint;
       var
+        newsize,
         cachedsize: TConstExprInt;
       begin
         if IsDynamicArray then
@@ -2708,7 +2709,15 @@ implementation
             Message(sym_e_segment_too_large);
             size := 4
           End
-        Else size:=longint((highrange-lowrange+1)*cachedsize);
+        Else
+          begin
+            newsize:=(int64(highrange)-int64(lowrange)+1)*cachedsize;
+            { prevent an overflow }
+            if newsize>high(longint) then
+             size:=high(longint)
+            else
+             size:=newsize;
+          end
       end;
 
 
@@ -5470,7 +5479,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.74  2002-04-23 19:16:35  peter
+  Revision 1.75  2002-04-25 20:16:39  peter
+    * moved more routines from cga/n386util
+
+  Revision 1.74  2002/04/23 19:16:35  peter
     * add pinline unit that inserts compiler supported functions using
       one or more statements
     * moved finalize and setlength from ninl to pinline
