@@ -855,7 +855,7 @@ begin
                 begin
                 // determine minimum needed number of hex digits.
                 Index:=1;
-                While (DWord(1 shl (Index*4))<DWord(Args[DoArg].VInteger)) and (index<8) do
+                While (DWord(1 shl (Index*4))<=DWord(Args[DoArg].VInteger)) and (index<8) do
                  inc(Index);
                 If Index>Prec then
                   Prec:=Index;
@@ -1175,7 +1175,10 @@ const
 
 {
   $Log$
-  Revision 1.34  2000-05-08 17:03:02  sg
+  Revision 1.35  2000-07-04 17:12:46  peter
+    * fixed hex printing for $10 with %x
+
+  Revision 1.34  2000/05/08 17:03:02  sg
   * Changed CompareMem to CompareMemRange and added new (Delphi compatible)
     CompareMem. (CompareMem needs a Boolean as result type, not Integer)
 
