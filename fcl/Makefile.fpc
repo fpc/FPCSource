@@ -10,6 +10,7 @@ version=1.9.0
 packages=paszlib
 packages_linux=netdb libasync pthreads
 packages_freebsd=netdb libasync pthreads
+packages_darwin=netdb libasync pthreads
 packages_netbsd=netdb libasync
 packages_openbsd=netdb libasync
 packages_win32=netdb
@@ -24,6 +25,7 @@ units=$(CLASSES10) contnrs inifiles ezcgi pipes rtfpars idea base64 gettext \
       iostream zstream cachecls xmlreg registry eventlog custapp cgiapp \
       wformat whtml wtex
 units_freebsd=process ssockets resolve fpasync syncobjs
+units_darwin=process ssockets resolve fpasync syncobjs
 units_netbsd=process ssockets resolve fpasync
 units_openbsd=process ssockets resolve fpasync
 units_linux=process resolve ssockets fpasync syncobjs
@@ -37,6 +39,7 @@ targetdir=$(OS_TARGET)
 includedir=$(OS_TARGET) inc
 includedir_linux=unix
 includedir_freebsd=unix
+includedir_darwin=unix
 includedir_netbsd=unix
 includedir_openbsd=unix
 includedir_sunos=posix

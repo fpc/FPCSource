@@ -27,6 +27,9 @@ endif
 ifeq ($(OS_TARGET),freebsd)
 INUNIX=1
 endif
+ifeq ($(OS_TARGET),darwin)
+INUNIX=1
+endif
 
 # For linux by default no graph tests
 ifdef INUNIX

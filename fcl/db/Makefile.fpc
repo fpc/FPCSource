@@ -9,6 +9,7 @@ main=fcl
 dirs=dbase
 dirs_linux=mysql interbase sqlite
 dirs_freebsd=mysql interbase sqlite
+dirs_darwin=mysql interbase sqlite
 dirs_netbsd=mysql interbase sqlite
 dirs_openbsd=mysql interbase sqlite
 dirs_win32=mysql interbase sqlite

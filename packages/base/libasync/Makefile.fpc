@@ -15,6 +15,7 @@ fpcpackage=y
 [compiler]
 sourcedir_linux=unix
 sourcedir_freebsd=unix
+sourcedir_darwin=unix
 sourcedir_netbsd=unix
 sourcedir_openbsd=unix
 targetdir=.

@@ -5,9 +5,6 @@
 [package]
 main=rtl
 
-[install]
-fpcpackage=y
-
 # disabled units: termio crt video keyboard serial sockets ipc mouse console
 [target]
 loaders=
