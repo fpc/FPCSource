@@ -573,6 +573,7 @@ implementation
               consume(_EXCEPT);
               old_block_type:=block_type;
               block_type:=bt_except;
+              ot:=pobjectdef(generrordef);
               p_specific:=nil;
               if token=_ON then
                 { catch specific exceptions }
@@ -1256,7 +1257,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  2000-11-04 14:25:21  florian
+  Revision 1.14  2000-11-22 22:43:34  peter
+    * fixed crash with exception without sysutils (merged)
+
+  Revision 1.13  2000/11/04 14:25:21  florian
     + merged Attila's changes for interfaces, not tested yet
 
   Revision 1.12  2000/10/31 22:02:50  peter
