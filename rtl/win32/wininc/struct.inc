@@ -6561,7 +6561,7 @@ type
 
   // TrackMouseEvent. NT or higher only.
   TTrackMouseEvent = Record
-    cbize : DWORD;
+    cbSize : DWORD;
     dwFlags : DWORD;
     hwndTrack : HWND;
     dwHoverTime : DWORD;
@@ -7037,7 +7037,10 @@ type
 
 {
   $Log$
-  Revision 1.25  2004-07-26 06:48:30  michael
+  Revision 1.26  2004-07-27 12:03:15  michael
+  + More TrackMouseEvent
+
+  Revision 1.25  2004/07/26 06:48:30  michael
   + Added trackmouseevent call and structures
 
   Revision 1.24  2004/05/04 10:34:29  marco

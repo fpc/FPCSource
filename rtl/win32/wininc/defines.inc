@@ -5329,6 +5329,14 @@ const
   ICON_SMALL			       = 0;
   ICON_BIG  			       = 1;
 
+  // For the TRackMouseEvent
+  TME_HOVER     = $00000001;
+  TME_LEAVE     = $00000002;
+  TME_QUERY     = $40000000;
+  TME_CANCEL    = DWORD($80000000);
+  HOVER_DEFAULT = DWORD($FFFFFFFF);
+        
+
 {$endif read_interface}
 
 
@@ -5912,7 +5920,10 @@ const
 
 {
   $Log$
-  Revision 1.16  2004-02-06 22:47:19  marco
+  Revision 1.17  2004-07-27 12:03:15  michael
+  + More TrackMouseEvent
+
+  Revision 1.16  2004/02/06 22:47:19  marco
    * Macro changed to constant
 
   Revision 1.15  2003/12/05 09:13:46  marco
