@@ -209,6 +209,8 @@ PROCEDURE Line(X1, Y1, X2, Y2: Integer);
 PROCEDURE Rectangle(X1, Y1, X2, Y2: Integer);
 PROCEDURE OutTextXY(X,Y: Integer; TextString: String);
 
+procedure GraphUpdateScreen(Force: Boolean);
+
 {***************************************************************************}
 {                        INITIALIZED PUBLIC VARIABLES                       }
 {***************************************************************************}
@@ -220,6 +222,10 @@ CONST
    WriteMode      : Byte = 0;                         { Current write mode }
    SysScreenWidth : Integer = 640;                    { Default screen width }
    SysScreenHeight: Integer = 480;                    { Default screen height}
+{$ifdef USE_VIDEO_API}
+   SysFontWidth   : Integer = 8;                      { System font width }
+   SysFontHeight  : Integer = 16;                     { System font height }
+{$endif USE_VIDEO_API}
 
 {$ifdef DEBUG}
 const
@@ -229,6 +235,10 @@ const
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
                                IMPLEMENTATION
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
+
+{$ifdef USE_VIDEO_API}
+USES video;                                           { Standard unit }
+{$ENDIF}
 
 {***************************************************************************}
 {                      PRIVATE INITIALIZED VARIABLES                        }
@@ -406,10 +416,89 @@ BEGIN
 {$ENDIF GRAPH_API}
 END;
 
+
+
+procedure GraphUpdateScreen(Force: Boolean);
+var
+   smallforce  : boolean;
+   i,x,y : longint;
+   ch : char;
+   attr : byte;
+   SavedColor,SavedBkColor : longint;
+   CurColor,CurBkColor : longint;
+   NextColor,NextBkColor : longint;
+
+begin
+{$ifdef USE_VIDEO_API}
+  if force then
+   smallforce:=true
+  else
+   begin
+     asm
+        movl    VideoBuf,%esi
+        movl    OldVideoBuf,%edi
+        movl    VideoBufSize,%ecx
+        shrl    $2,%ecx
+        repe
+        cmpsl
+        orl     %ecx,%ecx
+        jz      .Lno_update
+        movb    $1,smallforce
+.Lno_update:
+     end;
+   end;
+  if SmallForce then
+    begin
+      SavedColor:=Graph.GetColor;
+      SavedBkColor:=Graph.GetBkColor;
+      CurColor:=SavedColor;
+      CurBkColor:=SavedBkColor;
+      for y := 0 to ScreenHeight - 1 do
+        begin
+           for x := 0  to ScreenWidth - 1 do
+             begin
+               i:=y*ScreenWidth+x;
+               if OldVideoBuf^[i]<>VideoBuf^[i] then
+                 begin
+                   ch:=chr(VideoBuf^[i] and $ff);
+                   if ch<>#0 then
+                     begin
+                       Attr:=VideoBuf^[i] shr 16;
+                       NextColor:=Attr and $f;
+                       NextBkColor:=(Attr and $70) shr 8;
+                       if NextColor<>CurColor then
+                         begin
+                           SetColor(NextColor);
+                           CurColor:=NextColor;
+                         end;
+                       if NextBkColor<>CurBkColor then
+                         begin
+                           SetBkColor(NextBkColor);
+                           CurBkColor:=NextBkColor;
+                         end;
+                       Bar(x*SysFontWidth,y*SysFontHeight,(x+1)*SysFontWidth,(y+1)*SysFontHeight);
+                       OutTextXY(x*SysFontWidth,y*SysFontHeight,ch);
+                     end;
+                   OldVideoBuf^[i]:=VideoBuf^[i];
+                 end;
+             end;
+        end;
+      SetColor(SavedColor);
+      SetBkColor(SavedBkColor);
+    end;
+{$else not USE_VIDEO_API}
+  RunError(219);
+{$endif USE_VIDEO_API}
+end;
+
+
 END.
 {
  $Log$
- Revision 1.10  2001-10-02 16:35:51  pierre
+ Revision 1.11  2002-05-28 19:13:44  pierre
+  + GraphUpdateScreen function
+
+ Revision 1.10  2001/10/02 16:35:51  pierre
   * fix several problems, try to get the graph version to compile
 
  Revision 1.9  2001/05/31 21:40:10  pierre
