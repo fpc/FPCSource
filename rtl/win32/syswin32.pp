@@ -210,8 +210,9 @@ end;
 
 procedure halt(errnum : byte);
 begin
+  ExitCode:=errnum;
   do_exit;
-  ExitProcess(errnum);
+  system_exit;
 end;
 
 
@@ -754,6 +755,7 @@ begin
      Close(stdout);
      { what about Input and Output ?? PM }
    end;
+  ExitProcess(ExitCode);
 end;
 
 {$ifdef dummy}
@@ -804,7 +806,7 @@ procedure Exe_entry;[public, alias : '_FPC_EXE_Entry'];
         popl %ebp
      end;
      { if we pass here there was no error ! }
-     ExitProcess(0);
+     system_exit;
   end;
 
 Const
@@ -1157,7 +1159,10 @@ end.
 
 {
   $Log$
-  Revision 1.51  1999-12-01 22:57:31  peter
+  Revision 1.52  2000-01-06 23:40:36  peter
+    * fixed exitprocess call, it's now in system_exit and uses exitcode
+
+  Revision 1.51  1999/12/01 22:57:31  peter
     * cmdline support
 
   Revision 1.50  1999/11/20 00:16:44  pierre
