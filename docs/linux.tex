@@ -904,12 +904,13 @@ A compononent of the path has no search permission.
 \end{procedure}
 \latex{\inputlisting{linuxex/ex9.pp}}
 \html{\input{linuxex/ex9.tex}}
-\begin{procedurel}{FD\_Clear}{FDClear}
+
+\begin{procedurel}{FD\_ZERO}{FDZero}
 \Declaration
-Procedure FD\_Clear (var fds:fdSet);
+Procedure FD\_ZERO (var fds:fdSet);
 
 \Description
-\var{FD\_Clear} clears all the filedescriptors in the file descriptor 
+\var{FD\_ZERO} clears all the filedescriptors in the file descriptor 
 set \var{fds}.
 \Errors
 None.
@@ -936,7 +937,7 @@ None.
 \seef{Select}, 
 \seef{SelectText}, 
 \seef{GetFS},
-\seepl{FD\_Clear}{FDClear}, 
+\seepl{FD\_ZERO}{FDZero}, 
 \seepl{FD\_Set}{FDSet}, 
 \seefl{FD\_IsSet}{FDIsSet}
 \end{procedurel}
@@ -952,7 +953,7 @@ is set.
 None.
 \SeeAlso
 \seef{Select}, \seef{SelectText}, \seef{GetFS},
-\seepl{FD\_Clear}{FDClear}, 
+\seepl{FD\_ZERO}{FDZero}, 
 \seepl{FD\_Clr}{FDClr},
 \seepl{FD\_Set}{FDSet}
 \end{functionl}
@@ -966,7 +967,7 @@ Procedure FD\_Set (fd:longint;var fds:fdSet);
 \Errors
 None.
 \SeeAlso
-\seef{Select}, \seef{SelectText}, \seef{GetFS},\seepl{FD\_Clear}{FDClear}, 
+\seef{Select}, \seef{SelectText}, \seef{GetFS},\seepl{FD\_ZERO}{FDZero}, 
 \seepl{FD\_Clr}{FDClr}, \seefl{FD\_IsSet}{FDIsSet}
 \end{procedurel}
 For an example, see \seef{Select}.
@@ -1981,7 +1982,7 @@ are checked to see if characters become available for reading. The entries
 in \var{writefds} are checked to see if it is OK to write to them, while
 entries in \var{exceptfds} are cheked to see if an exception occorred on
 them.
-You can use the functions \seepl{FD\_Clear}{FDClear}, \seepl{FD\_Clr}{FDClr}, 
+You can use the functions \seepl{FD\_ZERO}{FDZero}, \seepl{FD\_Clr}{FDClr}, 
 \seepl{FD\_Set}{FDSet}, \seefl{FD\_IsSet}{FDIsSet} to manipulate the individual elements of a set.
 The pointers can be nil.
 \var{N} is the largest index of a nonzero entry plus 1. (= the largest
@@ -2014,7 +2015,7 @@ On error, the function returns -1, and Errors are reported in LinuxError :
 \end{description}
 \SeeAlso
 \seef{SelectText}, \seef{GetFS}, 
-\seepl{FD\_Clear}{FDClear},
+\seepl{FD\_ZERO}{FDZero},
 \seepl{FD\_Clr}{FDClr},
 \seepl{FD\_Set}{FDSet}, 
 \seefl{FD\_IsSet}{FDIsSet}
