@@ -981,7 +981,8 @@ begin
     begin
        if exception_level>2 then
          begin
-            errln('FPC triple exception, exiting !!! ');
+            if exception_level=3 then
+              errln('FPC triple exception, exiting !!! ');
             if (exceptions_on) then
               djgpp_exception_toggle;
             ___exit(1);
@@ -1358,10 +1359,22 @@ begin
 end.
 {$else IN_SYSTEM}
 
+const
+  FPU_Invalid = 1;
+  FPU_Denormal = 2;
+  FPU_DivisionByZero = 4;
+  FPU_Overflow = 8;
+  FPU_Underflow = $10;
+  FPU_StackUnderflow = $20;
+  FPU_StackOverflow = $40;
+
+
 function HandleException(sig : longint) : longint;
 var
   truesig : longint;
   ErrorOfSig : longint;
+  FpuStatus : word;
+  eip,ebp : longint;
 begin
   if assigned(djgpp_exception_state_ptr) then
     truesig:=djgpp_exception_state_ptr^.__signum
@@ -1375,11 +1388,26 @@ begin
    12 : ErrorOfSig:=202;   {'Stack Fault'}
    7,                      {'Coprocessor not available'}
    9,                      {'Coprocessor overrun'}
-   SIGFPE,SIGNOFP : ErrorOfSig:=207;
-   16 : begin
+   SIGNOFP : ErrorOfSig:=207;
+   16,SIGFPE,$75 : begin
          { This needs special handling }
          { to discriminate between 205,206 and 207 }
-         ErrorOfSig:=207;  {'Coprocessor Error'}
+         asm
+           fnstsw %ax
+           movw   %ax,fpustatus
+         end;
+         if (FpuStatus and FPU_Invalid)<>0 then
+           ErrorOfSig:=216
+         else if (FpuStatus and FPU_Denormal)<>0 then
+           ErrorOfSig:=216
+         else if (FpuStatus and FPU_DivisionByZero)<>0 then
+           ErrorOfSig:=200
+         else if (FpuStatus and FPU_Overflow)<>0 then
+           ErrorOfSig:=205
+         else if (FpuStatus and FPU_Underflow)<>0 then
+           ErrorOfSig:=206
+         else
+           ErrorOfSig:=207;  {'Coprocessor Error'}
         end;
    4 : ErrorOfSig:=215;    {'Overflow'}
    1,                      {'Debug'}
@@ -1398,9 +1426,12 @@ begin
   end;
   if assigned(djgpp_exception_state_ptr) then
     Begin
-      HandleErrorAddrFrame(ErrorOfSig,
-        djgpp_exception_state_ptr^.__eip,
-        djgpp_exception_state_ptr^.__ebp);
+      if exception_level>0 then
+        dec(exception_level);
+      eip:=djgpp_exception_state_ptr^.__eip;
+      ebp:=djgpp_exception_state_ptr^.__ebp;
+      djgpp_exception_state_ptr:=djgpp_exception_state_ptr^.__exception_ptr;
+      HandleErrorAddrFrame(ErrorOfSig,eip,ebp);
     End
   else
     { probably higher level is required }
@@ -1422,7 +1453,10 @@ end;
 {$endif IN_SYSTEM}
 {
   $Log$
-  Revision 1.14  2000-03-13 19:45:21  pierre
+  Revision 1.15  2000-03-30 13:40:57  pierre
+   * fix FPU and multiple exception problems
+
+  Revision 1.14  2000/03/13 19:45:21  pierre
    + exceptions in system is default now
 
   Revision 1.13  2000/03/10 09:53:17  pierre
