@@ -282,7 +282,7 @@ asm
 end ['EAX'];
 
 {*****************************************************************************
-      OS Memory allocation / deallocation 
+      OS Memory allocation / deallocation
  ****************************************************************************}
 
 function SysOSAlloc(size: ptrint): pointer;
@@ -1603,7 +1603,6 @@ begin
   MainInstance:=HInstance;
   cmdshow:=startupinfo.wshowwindow;
   { Setup heap }
-  HeapOrg:=GetHeapStart;
   InitHeap;
   SysInitExceptions;
   SysInitStdIO;
@@ -1622,7 +1621,10 @@ end.
 
 {
   $Log$
-  Revision 1.57  2004-06-17 16:16:14  peter
+  Revision 1.58  2004-06-20 09:24:40  peter
+  fixed go32v2 compile
+
+  Revision 1.57  2004/06/17 16:16:14  peter
     * New heapmanager that releases memory back to the OS, donated
       by Micha Nelissen
 

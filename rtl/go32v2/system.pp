@@ -932,7 +932,7 @@ asm
 end;
 
 {*****************************************************************************
-      OS Memory allocation / deallocation 
+      OS Memory allocation / deallocation
  ****************************************************************************}
 
 function SysOSAlloc(size: ptrint): pointer;
@@ -940,11 +940,10 @@ begin
   result := sbrk(size);
 end;
 
-{$define HAS_SYSOSFREE}
+{.$define HAS_SYSOSFREE}
 
 procedure SysOSFree(p: pointer; size: ptrint);
 begin
-  fpmunmap(p, size);
 end;
 
 
@@ -1623,7 +1622,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.36  2004-06-17 16:16:13  peter
+  Revision 1.37  2004-06-20 09:24:40  peter
+  fixed go32v2 compile
+
+  Revision 1.36  2004/06/17 16:16:13  peter
     * New heapmanager that releases memory back to the OS, donated
       by Micha Nelissen
 

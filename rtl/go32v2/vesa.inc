@@ -1924,6 +1924,9 @@ end;
 
    end;
 {$ENDIF}
+
+
+(*
 type
   heaperrorproc=function(size:longint):integer;
 
@@ -1963,6 +1966,7 @@ Const
       HeapError:=OldHeapError;
       HeapErrorIsHooked:=false;
     end;
+*)
 
   function SetupLinear(var ModeInfo: TVESAModeInfo;mode : word) : boolean;
    begin
@@ -2023,7 +2027,7 @@ Const
        end;
      if UseNoSelector then
        begin
-         HookHeapError;
+{         HookHeapError; }
          LFBPointer:=pointer(FrameBufferLinearAddress-get_segment_base_address(get_ds));
          if dword(LFBPointer)+dword(VESAInfo.TotalMem shl 16)-1 > dword(get_segment_limit(get_ds)) then
            set_segment_limit(get_ds,dword(LFBPointer)+dword(VESAInfo.TotalMem shl 16)-1);
@@ -2733,7 +2737,10 @@ Const
 
 {
   $Log$
-  Revision 1.9  2002-09-07 16:01:19  peter
+  Revision 1.10  2004-06-20 09:24:40  peter
+  fixed go32v2 compile
+
+  Revision 1.9  2002/09/07 16:01:19  peter
     * old logs removed and tabs fixed
 
 }

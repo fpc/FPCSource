@@ -1798,10 +1798,7 @@ BEGIN
          GetMem(P, Li);                               { Allocate memory }
          FillChar(P^, Li, #0);                        { Clear the memory }
        End Else Begin
-         OldVal:=ReturnNilIfGrowHeapFails;
-         ReturnNilIfGrowHeapFails:=true;
          GetMem(P,Li);
-         ReturnNilIfGrowHeapFails:=OldVal;
          If P = Nil Then Exit;
          FillChar(P^, Li, #0);                        { Clear the memory }
        End;                           { Insufficient memory }
@@ -1816,10 +1813,7 @@ BEGIN
      If (P <> Nil) AND (ALimit > BlkCount) Then Begin { Expand stream size }
        For W := BlkCount To ALimit-1 Do Begin
          If (MaxAvail < BlkSize) Then Begin           { Check enough memory }
-           OldVal:=ReturnNilIfGrowHeapFails;
-           ReturnNilIfGrowHeapFails:=true;
            GetMem(P^[W],BlkSize);
-           ReturnNilIfGrowHeapFails:=OldVal;
            If P = Nil Then Begin
              For I := BlkCount To W-1 Do
                FreeMem(P^[I], BlkSize);                 { Free mem allocated }
@@ -2950,7 +2944,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.31  2004-04-28 20:48:20  peter
+  Revision 1.32  2004-06-20 09:24:40  peter
+  fixed go32v2 compile
+
+  Revision 1.31  2004/04/28 20:48:20  peter
     * ordinal-pointer conversions fixed
 
   Revision 1.30  2004/04/22 20:59:23  peter

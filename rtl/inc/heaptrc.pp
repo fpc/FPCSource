@@ -716,7 +716,6 @@ var
    __stklen : longword;external name '__stklen';
    __stkbottom : longword;external name '__stkbottom';
    edata : longword; external name 'edata';
-   heap_at_init : pointer;
 {$endif go32v2}
 
 {$ifdef win32}
@@ -754,9 +753,6 @@ begin
   { allow all between start of code and end of data }
   if ptruint(p)<=data_end then
     goto _exit;
-  { .bss section }
-  if ptruint(p)<=ptruint(heap_at_init) then
-    goto _exit;
   { stack can be above heap !! }
 
   if (ptruint(p)>=get_ebp) and (ptruint(p)<=stack_top) then
@@ -765,8 +761,6 @@ begin
 
   { I don't know where the stack is in other OS !! }
 {$ifdef win32}
-  if (ptruint(p)>=$40000) and (p<=HeapOrg) then
-    goto _exit;
   { inside stack ? }
   asm
      movl %ebp,get_ebp
@@ -1014,10 +1008,6 @@ begin
   Assign(error_file,'heap.err');
   Rewrite(error_file);
 {$endif EXTRA}
-  { checkpointer init }
-{$ifdef go32v2}
-  Heap_at_init:=HeapPtr;
-{$endif}
 end;
 
 
@@ -1152,7 +1142,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.30  2004-06-17 16:16:13  peter
+  Revision 1.31  2004-06-20 09:24:40  peter
+  fixed go32v2 compile
+
+  Revision 1.30  2004/06/17 16:16:13  peter
     * New heapmanager that releases memory back to the OS, donated
       by Micha Nelissen
 
