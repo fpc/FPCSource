@@ -363,7 +363,7 @@ type
   ppointer = ^pointer;
   pvmt = ^tvmt;
   tvmt=packed record
-    size,msize:longint;
+    size,msize:ptrint;
     parent:pointer;
   end;
 var
@@ -401,7 +401,7 @@ type
   ppointer = ^pointer;
   pvmt = ^tvmt;
   tvmt = packed record
-    size,msize : longint;
+    size,msize : ptrint;
     parent : pointer;
   end;
 begin
@@ -427,7 +427,7 @@ type
   ppointer = ^pointer;
   pvmt = ^tvmt;
   tvmt = packed record
-    size,msize : longint;
+    size,msize : ptrint;
     parent : pointer;
   end;
 begin
@@ -488,7 +488,7 @@ procedure fpc_check_object(_vmt : pointer);saveregisters;[public,alias:'FPC_CHEC
 type
   pvmt = ^tvmt;
   tvmt = packed record
-    size,msize : longint;
+    size,msize : ptrint;
     parent : pointer;
   end;
 begin
@@ -509,7 +509,7 @@ procedure fpc_check_object_ext(vmt, expvmt : pointer);saveregisters;[public,alia
 type
   pvmt = ^tvmt;
   tvmt = packed record
-    size,msize : longint;
+    size,msize : ptrint;
     parent : pointer;
   end;
 begin
@@ -1139,7 +1139,10 @@ end;
 
 {
   $Log$
-  Revision 1.71  2004-04-28 20:48:20  peter
+  Revision 1.72  2004-04-28 21:01:29  florian
+    * tvmt fixed (longint -> ptrint)
+
+  Revision 1.71  2004/04/28 20:48:20  peter
     * ordinal-pointer conversions fixed
 
   Revision 1.70  2004/04/26 15:55:01  peter
