@@ -25,3 +25,6 @@ Changes in the syntax or semantic of FPC:
              as in TP
   09/03/99   small records and arrays passed by value to a function are now directly copied
              into a 4 bytes parameter (needed for C and DLL calls) (PM)
+  11/03/99   the makefile.fpc is now also needed for the compiler and RTL, you can
+             find it in the base.zip package (PFV)
+
