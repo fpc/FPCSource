@@ -305,6 +305,8 @@
                     end;
                end;
            end;
+         prevsym:=nil;
+         unitsymtable:=nil;
          inherited done;
       end;
 
@@ -1958,7 +1960,10 @@
 
 {
   $Log$
-  Revision 1.89  1999-05-13 21:59:45  peter
+  Revision 1.90  1999-05-17 13:11:40  pierre
+   * unitsym security stuff
+
+  Revision 1.89  1999/05/13 21:59:45  peter
     * removed oldppu code
     * warning if objpas is loaded from uses
     * first things for new deref writing
