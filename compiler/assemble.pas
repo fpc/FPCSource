@@ -387,7 +387,7 @@ begin
   AsmFlush;
 {$ifdef unix}
   if DoPipe then
-   Close(outfile)
+   PClose(outfile)
   else
 {$endif}
    begin
@@ -603,7 +603,15 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  2001-02-20 21:36:39  peter
+  Revision 1.14  2001-02-26 08:08:16  michael
+  * bug correction: pipes must be closed by pclose (not close);
+    There was too many not closed processes under Linux before patch.
+    Test this by making a compiler under Linux with command
+      OPT="-P" make
+    and check a list of processes in another shell with
+      ps -xa
+
+  Revision 1.13  2001/02/20 21:36:39  peter
     * tasm/masm fixes merged
 
   Revision 1.12  2001/02/09 23:06:17  peter
