@@ -49,6 +49,15 @@ implementation
 {$endif GDB}
        scanner,pbase,pexpr,psystem,psub;
 
+    procedure fixseg(p:TAAsmoutput;sec:TSection);
+      begin
+        p.insert(Tai_section.Create(sec));
+        if (cs_create_smart in aktmoduleswitches) then
+         p.insert(Tai_cut.Create);
+        p.concat(Tai_section.Create(sec_none));
+      end;
+
+
     procedure create_objectfile;
       var
         DLLScanner      : TDLLScanner;
@@ -130,15 +139,6 @@ implementation
 
 
     procedure insertsegment;
-
-        procedure fixseg(p:TAAsmoutput;sec:TSection);
-        begin
-          p.insert(Tai_section.Create(sec));
-          if (cs_create_smart in aktmoduleswitches) then
-           p.insert(Tai_cut.Create);
-          p.concat(Tai_section.Create(sec_none));
-        end;
-
       begin
       { Insert Ident of the compiler }
         if (not (cs_create_smart in aktmoduleswitches))
@@ -734,8 +734,9 @@ implementation
         symtablestack:=stt;
         { set procdef options }
         pd.proctypeoption:=potype;
-        pd.setmangledname(target_info.cprefix+name);
         pd.forwarddef:=false;
+        pd.setmangledname(target_info.cprefix+name);
+        pd.aliasnames.insert(pd.mangledname);
         { We don't need is a local symtable. Change it into the static
           symtable }
         pd.localst.free;
@@ -776,22 +777,17 @@ implementation
       begin
         { update module flags }
         current_module.flags:=current_module.flags or flag;
-        { now we can insert a cut }
-        if (cs_create_smart in aktmoduleswitches) then
-          codeSegment.concat(Tai_cut.Create);
         { create procdef }
         case flag of
           uf_init :
             begin
               pd:=create_main_proc(current_module.modulename^+'_init_implicit',potype_unitinit,st);
               pd.aliasnames.insert('INIT$$'+current_module.modulename^);
-              pd.aliasnames.insert(target_info.cprefix+current_module.modulename^+'_init');
             end;
           uf_finalize :
             begin
               pd:=create_main_proc(current_module.modulename^+'_finalize_implicit',potype_unitfinalize,st);
               pd.aliasnames.insert('FINALIZE$$'+current_module.modulename^);
-              pd.aliasnames.insert(target_info.cprefix+current_module.modulename^+'_finalize');
             end;
           else
             internalerror(200304253);
@@ -1045,7 +1041,6 @@ implementation
          { Compile the unit }
          pd:=create_main_proc(current_module.modulename^+'_init',potype_unitinit,st);
          pd.aliasnames.insert('INIT$$'+current_module.modulename^);
-         pd.aliasnames.insert(target_info.cprefix+current_module.modulename^+'_init');
          compile_proc_body(pd,true,false);
          release_main_proc(pd);
 
@@ -1070,7 +1065,6 @@ implementation
               { Compile the finalize }
               pd:=create_main_proc(current_module.modulename^+'_finalize',potype_unitfinalize,st);
               pd.aliasnames.insert('FINALIZE$$'+current_module.modulename^);
-              pd.aliasnames.insert(target_info.cprefix+current_module.modulename^+'_finalize');
               compile_proc_body(pd,true,false);
               release_main_proc(pd);
            end
@@ -1341,7 +1335,6 @@ implementation
          if islibrary then
           begin
             pd:=create_main_proc(current_module.modulename^+'_main',potype_proginit,st);
-            pd.aliasnames.insert(target_info.cprefix+current_module.modulename^+'_main');
             { Win32 startup code needs a single name }
 //            if (target_info.system in [system_i386_win32,system_i386_wdosx]) then
             pd.aliasnames.insert('PASCALMAIN');
@@ -1352,9 +1345,7 @@ implementation
          else
           begin
             pd:=create_main_proc('main',potype_proginit,st);
-            pd.aliasnames.insert('program_init');
             pd.aliasnames.insert('PASCALMAIN');
-            pd.aliasnames.insert(target_info.cprefix+'main');
           end;
 {$IFDEF SPARC}
          current_procinfo.After_Header;
@@ -1400,7 +1391,6 @@ So, all parameters are passerd into registers in sparc architecture.}
               { Compile the finalize }
               pd:=create_main_proc(current_module.modulename^+'_finalize',potype_unitfinalize,st);
               pd.aliasnames.insert('FINALIZE$$'+current_module.modulename^);
-              pd.aliasnames.insert(target_info.cprefix+current_module.modulename^+'_finalize');
               compile_proc_body(pd,true,false);
               release_main_proc(pd);
            end;
@@ -1493,7 +1483,10 @@ So, all parameters are passerd into registers in sparc architecture.}
 end.
 {
   $Log$
-  Revision 1.103  2003-04-27 11:21:34  peter
+  Revision 1.104  2003-04-28 21:19:02  peter
+    * fix stabs generation for implicit initfinal
+
+  Revision 1.103  2003/04/27 11:21:34  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be
