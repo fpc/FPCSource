@@ -5,7 +5,7 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2002 by Free Pascal development team
 
-    Free Pascal - OS/2 (EMX) runtime library
+    Free Pascal - EMX runtime library
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -39,28 +39,7 @@ interface
 {Link the startup code.}
 {$l prt1.oo2}
 
-{$I SYSTEMH.INC}
-
-type
-    { FK: The fields of this record are OS dependent and they shouldn't  }
-    { be used in a program; only the type TCriticalSection is important. }
-    (* TH: To make things easier, I copied the record definition *)
-    (* from the Win32 version and just added longint variants,   *)
-    (* because it seemed well suited for OS/2 too.               *)
-    TRTLCriticalSection = packed record
-        DebugInfo: pointer;
-        LockCount: longint;
-        RecursionCount: longint;
-        case boolean of
-        false:
-        (OwningThread: DWord;
-        LockSemaphore: DWord;
-        Reserved: DWord);
-        true:
-        (OwningThread2: longint;
-        LockSemaphore2: longint;
-        Reserved2: longint);
-    end;
+{$I systemh.inc}
 
 {$I heaph.inc}
 
@@ -78,41 +57,40 @@ type    Tos=(osDOS,osOS2,osDPMI);
 var     os_mode:Tos;
         first_meg:pointer;
 
-type    Psysthreadib=^Tsysthreadib;
-        Pthreadinfoblock=^Tthreadinfoblock;
-        PPThreadInfoBlock=^PThreadInfoBlock;
-        Pprocessinfoblock=^Tprocessinfoblock;
-        PPProcessInfoBlock=^PProcessInfoBlock;
+type    TByteArray = array [0..$ffff] of byte;
+        PByteArray = ^TByteArray;
 
-        Tbytearray=array[0..$ffff] of byte;
-        Pbytearray=^Tbytearray;
-
-        Tsysthreadib=record
-            tid,
-            priority,
-            version:longint;
-            MCcount,
-            MCforceflag:word;
+        TSysThreadIB = record
+            TID,
+            Priority,
+            Version: cardinal;
+            MCCount,
+            MCForceFlag: word;
         end;
+        PSysThreadIB = ^TSysThreadIB;
 
-        Tthreadinfoblock=record
-            pexchain,
-            stack,
-            stacklimit:pointer;
-            tib2:Psysthreadib;
-            version,
-            ordinal:longint;
+        TThreadInfoBlock = record
+            PExChain,
+            Stack,
+            StackLimit: pointer;
+            TIB2: PSysThreadIB;
+            Version,
+            Ordinal: cardinal;
         end;
+        PThreadInfoBlock = ^TThreadInfoBlock;
+        PPThreadInfoBlock = ^PThreadInfoBlock;
 
-        Tprocessinfoblock=record
-            pid,
-            parentpid,
-            hmte:longint;
-            cmd,
-            env:Pbytearray;
-            flstatus,
-            ttype:longint;
+        TProcessInfoBlock = record
+            PID,
+            ParentPid,
+            Handle: cardinal;
+            Cmd,
+            Env: PByteArray;
+            Status,
+            ProcType: cardinal;
         end;
+        PProcessInfoBlock = ^TProcessInfoBlock;
+        PPProcessInfoBlock = ^PProcessInfoBlock;
 
 const   UnusedHandle=$ffff;
         StdInputHandle=0;
@@ -133,7 +111,7 @@ var
 
 implementation
 
-{$I SYSTEM.INC}
+{$I system.inc}
 
 var
     heap_base: pointer; external name '__heap_base';
@@ -1006,17 +984,6 @@ begin
     end;
     exitproc:=nil;
 
-{$ifdef MT}
-    if os_mode = osOS2 then
-        begin
-            { allocate one ThreadVar entry from the OS, we use this entry }
-            { for a pointer to our threadvars                             }
-            if DosAllocThreadLocalMemory (1, DataIndex) <> 0 then RunError (8);
-            { the exceptions use threadvars so do this _before_ initexceptions }
-            AllocateThreadVars;
-        end;
-{$endif MT}
-
     {Initialize the heap.}
     initheap;
 
@@ -1042,7 +1009,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2002-11-17 16:22:54  hajny
+  Revision 1.2  2002-11-17 22:32:05  hajny
+    * type corrections (longing x cardinal)
+
+  Revision 1.1  2002/11/17 16:22:54  hajny
     + RTL for emx target
 
   Revision 1.26  2002/10/27 14:29:00  hajny

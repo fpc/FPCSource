@@ -3,7 +3,7 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 2002 by the Free Pascal development team.
 
-    OS/2 threading support implementation
+    EMX threading support implementation
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -13,7 +13,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-unit threads;
+unit systhrds;
 interface
 
 {$S-}
@@ -55,11 +55,41 @@ const
  dtStack_Commited = 2;
 
 type
- TThreadInfo = record
-  F: TThreadFunc;
-  P: pointer;
+ TByteArray = array [0..$ffff] of byte;
+ PByteArray = ^TByteArray;
+
+ TSysThreadIB = record
+  TID,
+  Priority,
+  Version: cardinal;
+  MCCount,
+  MCForceFlag: word;
  end;
- PThreadInfo = ^TThreadInfo;
+ PSysThreadIB = ^TSysThreadIB;
+
+ TThreadInfoBlock = record
+  PExChain,
+  Stack,
+  StackLimit: pointer;
+  TIB2: PSysThreadIB;
+  Version,
+  Ordinal: cardinal;
+ end;
+ PThreadInfoBlock = ^TThreadInfoBlock;
+ PPThreadInfoBlock = ^PThreadInfoBlock;
+
+ TProcessInfoBlock = record
+  PID,
+  ParentPid,
+  Handle: cardinal;
+  Cmd,
+  Env: PByteArray;
+  Status,
+  ProcType: cardinal;
+ end;
+ PProcessInfoBlock = ^TProcessInfoBlock;
+ PPProcessInfoBlock = ^PProcessInfoBlock;
+
 
 { import the necessary stuff from the OS }
 function DosAllocThreadLocalMemory (Count: cardinal; var P: pointer): longint;
@@ -101,6 +131,10 @@ function DosEnterCritSec:longint; cdecl; external 'DOSCALLS' index 232;
 
 function DosExitCritSec:longint; cdecl; external 'DOSCALLS' index 233;
 
+procedure DosGetInfoBlocks (PATIB: PPThreadInfoBlock;
+                                    PAPIB: PPProcessInfoBlock); cdecl;
+                                                 external 'DOSCALLS' index 312;
+
 
 {*****************************************************************************
                              Threadvar support
@@ -134,25 +168,14 @@ begin
  { exceptions which use threadvars but      }
  { these aren't allocated yet ...           }
  { allocate room on the heap for the thread vars }
- if os_mode = osOS2 then
- begin
-  if DosAllocMem (DataIndex^, ThreadVarBlockSize, pag_Read or pag_Write
+ if DosAllocMem (DataIndex^, ThreadVarBlockSize, pag_Read or pag_Write
                                       or pag_Commit) <> 0 then HandleError (8);
- end else
- begin
-  (* Allocate the DOS memory here. *)
-
- end;
 end;
 
 procedure SysReleaseThreadVars;
 begin
  { release thread vars }
- if os_mode = osOS2 then DosFreeMem (DataIndex^) else
- begin
-  (* Deallocate the DOS memory here. *)
-
- end;
+ DosFreeMem (DataIndex^);
 end;
 
 { Include OS independent Threadvar initialization }
@@ -160,8 +183,9 @@ end;
 
     procedure InitThreadVars;
       begin
-        { We're still running in single thread mode, setup the TLS }
-        TLSKey:=TlsAlloc;
+        { allocate one ThreadVar entry from the OS, we use this entry }
+        { for a pointer to our threadvars                             }
+        if DosAllocThreadLocalMemory (1, DataIndex) <> 0 then HandleError (8);
         { initialize threadvars }
         init_all_unit_threadvars;
         { allocate mem for main thread threadvars }
@@ -169,7 +193,7 @@ end;
         { copy main thread threadvars }
         copy_all_unit_threadvars;
         { install threadvar handler }
-        fpc_threadvar_relocate_proc:=@SysRelocateThreadvar;
+        fpc_threadvar_relocate_proc := @SysRelocateThreadvar;
       end;
 
 {$endif HASTHREADVAR}
@@ -305,32 +329,32 @@ procedure LeaveCriticalSection(var cs : TRTLCriticalSection);
     var
       HeapMutex : TRTLCriticalSection;
 
-    procedure Win32HeapMutexInit;
+    procedure OS2HeapMutexInit;
       begin
          InitCriticalSection(heapmutex);
       end;
 
-    procedure Win32HeapMutexDone;
+    procedure OS2HeapMutexDone;
       begin
          DoneCriticalSection(heapmutex);
       end;
 
-    procedure Win32HeapMutexLock;
+    procedure OS2HeapMutexLock;
       begin
          EnterCriticalSection(heapmutex);
       end;
 
-    procedure Win32HeapMutexUnlock;
+    procedure OS2HeapMutexUnlock;
       begin
          LeaveCriticalSection(heapmutex);
       end;
 
     const
-      Win32MemoryMutexManager : TMemoryMutexManager = (
-        MutexInit : @Win32HeapMutexInit;
-        MutexDone : @Win32HeapMutexDone;
-        MutexLock : @Win32HeapMutexLock;
-        MutexUnlock : @Win32HeapMutexUnlock;
+      OS2MemoryMutexManager : TMemoryMutexManager = (
+        MutexInit : @OS2HeapMutexInit;
+        MutexDone : @OS2HeapMutexDone;
+        MutexLock : @OS2HeapMutexLock;
+        MutexUnlock : @OS2HeapMutexUnlock;
       );
 
     procedure InitHeapMutexes;
@@ -346,12 +370,19 @@ procedure LeaveCriticalSection(var cs : TRTLCriticalSection);
 { Include generic overloaded routines }
 {$i thread.inc}
 
+finalization
+ DosFreeThreadLocalMemory (DataIndex);
+end;
+
 initialization
   InitHeapMutexes;
 end.
 {
   $Log$
-  Revision 1.1  2002-11-17 16:45:35  hajny
+  Revision 1.2  2002-11-17 22:32:05  hajny
+    * type corrections (longing x cardinal)
+
+  Revision 1.1  2002/11/17 16:45:35  hajny
     * threads.pp renamed to systhrds.pp
 
   Revision 1.1  2002/11/17 16:22:54  hajny
