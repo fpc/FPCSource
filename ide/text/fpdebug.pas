@@ -410,7 +410,7 @@ begin
   MyApp.SetCmdState([cmResetDebugger],false);
   W:=PSourceWindow(LastSource);
   if assigned(W) then
-     W^.Editor^.SetHighlightRow(-1);
+     W^.Editor^.SetDebuggerRow(-1);
 end;
 
 procedure TDebugController.AnnotateError;
@@ -445,7 +445,7 @@ begin
         begin
           W^.Editor^.SetCurPtr(0,Line);
           W^.Editor^.TrackCursor(true);
-          W^.Editor^.SetHighlightRow(Line);
+          W^.Editor^.SetDebuggerRow(Line);
           ReadWatches;
           if Not assigned(GDBWindow) or not GDBWindow^.GetState(sfActive) then
             W^.Select;
@@ -459,7 +459,7 @@ begin
       W:=TryToOpenFile(nil,fn,0,Line,false);
       if assigned(W) then
         begin
-          W^.Editor^.SetHighlightRow(Line);
+          W^.Editor^.SetDebuggerRow(Line);
           W^.Editor^.TrackCursor(true);
           ReadWatches;
           if Not assigned(GDBWindow) or not GDBWindow^.GetState(sfActive) then
@@ -482,7 +482,7 @@ begin
            begin
              { should now be open }
               W:=TryToOpenFile(nil,fn,0,Line,true);
-              W^.Editor^.SetHighlightRow(Line);
+              W^.Editor^.SetDebuggerRow(Line);
               W^.Editor^.TrackCursor(true);
               ReadWatches;
               if Not assigned(GDBWindow) or not GDBWindow^.GetState(sfActive) then
@@ -535,7 +535,7 @@ begin
    MyApp.SetCmdState([cmResetDebugger],false);
    W:=PSourceWindow(LastSource);
    if assigned(W) then
-     W^.Editor^.SetHighlightRow(-1);
+     W^.Editor^.SetDebuggerRow(-1);
    If HiddenStepsCount=0 then
      InformationBox(#3'Program exited with '#13#3'exitcode = %d',@code)
    else
@@ -2042,7 +2042,13 @@ end.
 
 {
   $Log$
-  Revision 1.26  1999-08-22 22:26:48  pierre
+  Revision 1.27  1999-08-24 22:04:33  pierre
+    + TCodeEditor.SetDebuggerRow
+      works like SetHighlightRow but is only disposed by a SetDebuggerRow(-1)
+      so the current stop point in debugging is not lost if
+      we move the cursor
+
+  Revision 1.26  1999/08/22 22:26:48  pierre
    + Registration of Breakpoint/Watches windows
 
   Revision 1.25  1999/08/16 18:25:15  peter

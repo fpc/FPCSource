@@ -201,6 +201,7 @@ type
       Flags      : longint;
       TabSize    : integer;
       HighlightRow: sw_integer;
+      DebuggerRow: sw_integer;
       constructor Init(var Bounds: TRect; AHScrollBar, AVScrollBar:
           PScrollBar; AIndicator: PIndicator; AbufSize:Sw_Word);
       procedure   SetFlags(AFlags: longint); virtual;
@@ -227,6 +228,7 @@ type
       procedure   SetSelection(A, B: TPoint); virtual;
       procedure   SetHighlight(A, B: TPoint); virtual;
       procedure   SetHighlightRow(Row: sw_integer); virtual;
+      procedure   SetDebuggerRow(Row: sw_integer); virtual;
       procedure   SelectAll(Enable: boolean); virtual;
       function    InsertFrom(Editor: PCodeEditor): Boolean; virtual;
       function    InsertText(const S: string): Boolean; virtual;
@@ -365,7 +367,7 @@ function DefUseTabsPattern(Editor: PFileEditor): boolean;
 const
      DefaultCodeEditorFlags : longint =
        efBackupFiles+efInsertMode+efAutoIndent+efPersistentBlocks+
-       {efUseTabCharacters+}efBackSpaceUnindents+efSyntaxHighlight+ 
+       {efUseTabCharacters+}efBackSpaceUnindents+efSyntaxHighlight+
        efExpandAllTabs;
      DefaultTabSize     : integer = 8;
 
@@ -1071,6 +1073,7 @@ begin
   SetState(sfCursorVis,true);
   SetFlags(DefaultCodeEditorFlags); TabSize:=DefaultTabSize;
   SetHighlightRow(-1);
+  SetDebuggerRow(-1);
   SetCurPtr(0,0);
   Indicator:=AIndicator;
   UpdateIndicator; LimitsChanged;
@@ -1271,7 +1274,8 @@ var
 begin
   E:=Event;
   OldEvent:=CurEvent;
-  CurEvent:=@E;
+  if (E.what and (evMouse or evKeyboard))<>0 then
+    CurEvent:=@E;
   if (InASCIIMode=false) or (Event.What<>evKeyDown) then
     ConvertEvent(Event);
   case Event.What of
@@ -1595,6 +1599,11 @@ begin
         Color:=CombineColors(Color,HighlightRowColor);
         FreeFormat[X]:=false;
       end;
+    if DebuggerRow=AY then
+      begin                                                                                                                                                                                                                                                    
+        Color:=CombineColors(Color,HighlightRowColor);
+        FreeFormat[X]:=false;                                                                                                                                                                                                                                  
+      end;                                                                                                                                                                                                                                                     
     if isbreak then
       begin
         Color:=ColorTab[coBreakColor];
@@ -3499,6 +3508,12 @@ begin
   DrawView;
 end;
 
+procedure TCodeEditor.SetDebuggerRow(Row: sw_integer);
+begin
+  DebuggerRow:=Row;
+  DrawView;
+end;                                                                                                                                                                                                                                                           
+                                                                                                                                                                                                                                                               
 procedure TCodeEditor.SelectAll(Enable: boolean);
 var A,B: TPoint;
 begin
@@ -4229,7 +4244,13 @@ end;
 END.
 {
   $Log$
-  Revision 1.42  1999-08-22 22:20:30  pierre
+  Revision 1.43  1999-08-24 22:04:35  pierre
+    + TCodeEditor.SetDebuggerRow
+      works like SetHighlightRow but is only disposed by a SetDebuggerRow(-1)
+      so the current stop point in debugging is not lost if
+      we move the cursor
+
+  Revision 1.42  1999/08/22 22:20:30  pierre
    * selection extension bug removed, via oldEvent pointer in TCodeEditor.HandleEvent
 
   Revision 1.41  1999/08/16 18:25:28  peter
