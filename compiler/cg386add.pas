@@ -23,6 +23,8 @@
 unit cg386add;
 interface
 
+{$define usecreateset}
+
     uses
       tree;
 
@@ -315,6 +317,7 @@ implementation
 
     procedure addset(var p : ptree);
       var
+        createset,
         cmpop,
         pushed : boolean;
         href   : treference;
@@ -326,7 +329,18 @@ implementation
         if p^.swaped then
          swaptree(p);
 
-        secondpass(p^.left);
+        { optimize first loading of a set }
+{$ifdef usecreateset}
+        if (p^.right^.treetype=setelementn) and
+           is_emptyset(p^.left) then
+         createset:=true
+        else
+{$endif}
+         begin
+           createset:=false;
+           secondpass(p^.left);
+         end;
+
         { are too few registers free? }
         pushed:=maybe_push(p^.right^.registers32,p);
         secondpass(p^.right);
@@ -360,31 +374,40 @@ implementation
                      pushusedregisters(pushedregs,$ff);
                      href.symbol:=nil;
                      gettempofsizereference(32,href);
-                   { add a range or a single element? }
-                     if p^.right^.treetype=setelementn then
+                     if createset then
                       begin
-                        concatcopy(p^.left^.location.reference,href,32,false,false);
-                        if assigned(p^.right^.right) then
-                         begin
-                           pushsetelement(p^.right^.right);
-                           pushsetelement(p^.right^.left);
-                           emitpushreferenceaddr(exprasmlist,href);
-                           emitcall('FPC_SET_SET_RANGE',true);
-                         end
-                        else
-                         begin
-                           pushsetelement(p^.right^.left);
-                           emitpushreferenceaddr(exprasmlist,href);
-                           emitcall('FPC_SET_SET_BYTE',true);
-                         end;
+                        pushsetelement(p^.right^.left);
+                        emitpushreferenceaddr(exprasmlist,href);
+                        emitcall('FPC_SET_CREATE_ELEMENT',true);
                       end
                      else
                       begin
-                      { must be an other set }
-                        emitpushreferenceaddr(exprasmlist,href);
-                        emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
-                        emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
-                        emitcall('FPC_SET_ADD_SETS',true);
+                      { add a range or a single element? }
+                        if p^.right^.treetype=setelementn then
+                         begin
+                           concatcopy(p^.left^.location.reference,href,32,false,false);
+                           if assigned(p^.right^.right) then
+                            begin
+                              pushsetelement(p^.right^.right);
+                              pushsetelement(p^.right^.left);
+                              emitpushreferenceaddr(exprasmlist,href);
+                              emitcall('FPC_SET_SET_RANGE',true);
+                            end
+                           else
+                            begin
+                              pushsetelement(p^.right^.left);
+                              emitpushreferenceaddr(exprasmlist,href);
+                              emitcall('FPC_SET_SET_BYTE',true);
+                            end;
+                         end
+                        else
+                         begin
+                         { must be an other set }
+                           emitpushreferenceaddr(exprasmlist,href);
+                           emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
+                           emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
+                           emitcall('FPC_SET_ADD_SETS',true);
+                         end;
                       end;
                      maybe_loadesi;
                      popusedregisters(pushedregs);
@@ -1364,7 +1387,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.29  1998-11-18 15:44:05  peter
+  Revision 1.30  1998-11-24 12:52:40  peter
+    * sets are not written twice anymore
+    * optimize for emptyset+single element which uses a new routine from
+      set.inc FPC_SET_CREATE_ELEMENT
+
+  Revision 1.29  1998/11/18 15:44:05  peter
     * VALUEPARA for tp7 compatible value parameters
 
   Revision 1.28  1998/11/18 09:18:01  pierre

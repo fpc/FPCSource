@@ -299,6 +299,7 @@ unit tree;
     function is_constrealnode(p : ptree) : boolean;
     function is_constcharnode(p : ptree) : boolean;
     function str_length(p : ptree) : longint;
+    function is_emptyset(p : ptree):boolean;
 
 {$I innr.inc}
 
@@ -1601,10 +1602,32 @@ unit tree;
       end;
 
 
+    function is_emptyset(p : ptree):boolean;
+    {
+      return true if set s is empty
+    }
+      var
+        i : longint;
+      begin
+        i:=0;
+        if p^.treetype=setconstn then
+         begin
+           while (i<32) and (p^.value_set^[i]=0) do
+            inc(i);
+         end;
+        is_emptyset:=(i=32);
+      end;
+
+
 end.
 {
   $Log$
-  Revision 1.52  1998-11-23 17:51:58  pierre
+  Revision 1.53  1998-11-24 12:52:42  peter
+    * sets are not written twice anymore
+    * optimize for emptyset+single element which uses a new routine from
+      set.inc FPC_SET_CREATE_ELEMENT
+
+  Revision 1.52  1998/11/23 17:51:58  pierre
    * added checking before dispose of reference string
 
   Revision 1.51  1998/11/13 10:15:53  peter

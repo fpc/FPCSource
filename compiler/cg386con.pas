@@ -245,8 +245,10 @@ implementation
 
     procedure secondsetconst(var p : ptree);
       var
-         lastlabel : plabel;
-         i : longint;
+         hp1         : pai;
+         lastlabel   : plabel;
+         i           : longint;
+         neededtyp   : tait;
       begin
 {$ifdef SMALLSETORD}
         if psetdef(p^.resulttype)^.settype=smallset then
@@ -269,21 +271,81 @@ implementation
            p^.location.loc:=LOC_MEM;
          end;
 {$else}
-        getdatalabel(lastlabel);
-        p^.lab_set:=lastlabel;
-        if (cs_smartlink in aktmoduleswitches) then
-         consts^.concat(new(pai_cut,init));
-        consts^.concat(new(pai_label,init(lastlabel)));
         if psetdef(p^.resulttype)^.settype=smallset then
-         begin
-           move(p^.value_set^,i,sizeof(longint));
-           consts^.concat(new(pai_const,init_32bit(i)));
-         end
+         neededtyp:=ait_const_32bit
         else
-         begin
-           for i:=0 to 31 do
-             consts^.concat(new(pai_const,init_8bit(p^.value_set^[i])));
-         end;
+         neededtyp:=ait_const_8bit;
+        lastlabel:=nil;
+        { const already used ? }
+        if not assigned(p^.lab_set) then
+          begin
+             { tries to found an old entry }
+             hp1:=pai(consts^.first);
+             while assigned(hp1) do
+               begin
+                  if hp1^.typ=ait_label then
+                    lastlabel:=pai_label(hp1)^.l
+                  else
+                    begin
+                      if (lastlabel<>nil) and (hp1^.typ=neededtyp) then
+                        begin
+                          if (hp1^.typ=ait_const_8bit) then
+                           begin
+                             { compare normal set }
+                             i:=0;
+                             while assigned(hp1) and (i<32) do
+                              begin
+                                if pai_const(hp1)^.value<>p^.value_set^[i] then
+                                 break;
+                                inc(i);
+                                hp1:=pai(hp1^.next);
+                              end;
+                             if i=32 then
+                              begin
+                                { found! }
+                                p^.lab_set:=lastlabel;
+                                break;
+                              end;
+                             { leave when the end of consts is reached, so no
+                               hp1^.next is done }
+                             if not assigned(hp1) then
+                              break;
+                           end
+                          else
+                           begin
+                             { compare small set }
+                             if plongint(p^.value_set)^=pai_const(hp1)^.value then
+                              begin
+                                { found! }
+                                p^.lab_set:=lastlabel;
+                                break;
+                              end;
+                           end;
+                        end;
+                      lastlabel:=nil;
+                    end;
+                  hp1:=pai(hp1^.next);
+               end;
+             { :-(, we must generate a new entry }
+             if not assigned(p^.lab_set) then
+               begin
+                 getdatalabel(lastlabel);
+                 p^.lab_set:=lastlabel;
+                 if (cs_smartlink in aktmoduleswitches) then
+                  consts^.concat(new(pai_cut,init));
+                 consts^.concat(new(pai_label,init(lastlabel)));
+                 if psetdef(p^.resulttype)^.settype=smallset then
+                  begin
+                    move(p^.value_set^,i,sizeof(longint));
+                    consts^.concat(new(pai_const,init_32bit(i)));
+                  end
+                 else
+                  begin
+                    for i:=0 to 31 do
+                      consts^.concat(new(pai_const,init_8bit(p^.value_set^[i])));
+                  end;
+               end;
+          end;
         clear_reference(p^.location.reference);
         p^.location.reference.symbol:=stringdup(lab2str(p^.lab_set));
         p^.location.loc:=LOC_MEM;
@@ -306,7 +368,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  1998-11-16 12:11:29  peter
+  Revision 1.21  1998-11-24 12:52:41  peter
+    * sets are not written twice anymore
+    * optimize for emptyset+single element which uses a new routine from
+      set.inc FPC_SET_CREATE_ELEMENT
+
+  Revision 1.20  1998/11/16 12:11:29  peter
     * fixed ansistring crash
 
   Revision 1.19  1998/11/05 23:40:45  pierre
