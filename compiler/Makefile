@@ -37,7 +37,7 @@ RTLOPTS=
 endif
 
 # Message files
-MSGFILES=errore.msg errord.msg errorn.msg 
+MSGFILES=$(wildcard error*.msg)
 
 
 #####################################################################
@@ -343,9 +343,7 @@ endif
 
 installlib: quickinstall
 ifdef inlinux
-	chmod 755 $(COMPILERUTILS)/makecfg
-	$(COMPILERUTILS)/makecfg $(LIBINSTALLDIR)/samplecfg
-	chmod 644 $(COMPILERUTILS)/makecfg
+	$(INSTALLEXE) $(COMPILERUTILS)/samplecfg $(LIBINSTALLDIR)/samplecfg
 endif
 	$(MKDIR) $(MSGINSTALLDIR)
 	$(INSTALL) $(MSGFILES) $(MSGINSTALLDIR)
@@ -395,7 +393,10 @@ $(M68KEXENAME): $(PASFILES) $(INCFILES)
 
 #
 # $Log$
-# Revision 1.33  1999-06-08 22:11:27  peter
+# Revision 1.34  1999-06-15 15:10:06  peter
+#   * updated for samplecfg
+#
+# Revision 1.33  1999/06/08 22:11:27  peter
 #   * debian updates
 #
 # Revision 1.32  1999/06/08 18:28:12  peter
