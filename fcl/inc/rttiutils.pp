@@ -463,7 +463,7 @@ var
   SectName: string;
 begin
   Result := '';
-  List := TObject(GetOrdProp(Self.FObject, PropInfo));
+  List := TObject(GetObjectProp(Self.FObject, PropInfo));
   SectName := Format('%s.%s', [Section, GetItemName(PropInfo^.Name)]);
   EraseSection(SectName);
   if (List is TStrings) and (TStrings(List).Count > 0) then begin
@@ -478,7 +478,7 @@ var
   Comp: TComponent;
   RootName: string;
 begin
-  Comp := TComponent(GetOrdProp(FObject, PropInfo));
+  Comp := TComponent(GetObjectProp(FObject, PropInfo));
   if Comp <> nil then begin
     Result := Comp.Name;
     if (Comp.Owner <> nil) and (Comp.Owner <> FOwner) then begin
@@ -522,7 +522,7 @@ var
 
 begin
   Result := '';
-  Obj := TObject(GetOrdProp(Self.FObject, PropInfo));
+  Obj := TObject(GetObjectProp(Self.FObject, PropInfo));
   if (Obj <> nil) then begin
     if Obj is TStrings then StoreStringsProperty(PropInfo)
     else if Obj is TCollection then begin
@@ -642,7 +642,7 @@ var
   I, Cnt: Integer;
   SectName: string;
 begin
-  List := TObject(GetOrdProp(Self.FObject, PropInfo));
+  List := TObject(GetObjectProp(Self.FObject, PropInfo));
   if (List is TStrings) then begin
     SectName := Format('%s.%s', [Section, GetItemName(PropInfo^.Name)]);
     Cnt := StrToIntDef(Trim(ReadString(SectName, sCount, '0')), 0);
@@ -682,7 +682,7 @@ begin
   if RootName <> '' then Root := FindGlobalComponent(RootName)
   else Root := FOwner;
   if (Root <> nil) then
-    SetOrdProp(FObject, PropInfo, Longint(Root.FindComponent(Name)));
+    SetObjectProp(FObject, PropInfo, Root.FindComponent(Name));
 end;
 
 procedure TPropsStorage.LoadClassProperty(const S: string; PropInfo: PPropInfo);
@@ -713,7 +713,7 @@ var
   end;
 
 begin
-  Obj := TObject(GetOrdProp(Self.FObject, PropInfo));
+  Obj := TObject(GetObjectProp(Self.FObject, PropInfo));
   if (Obj <> nil) then begin
     if Obj is TStrings then LoadStringsProperty(S, PropInfo)
     else if Obj is TCollection then begin
