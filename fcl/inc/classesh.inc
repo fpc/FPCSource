@@ -193,7 +193,9 @@ type
   TThreadList = class
   private
     FList: TList;
+{$ifdef FPC_THREADING}
     FLock: TRTLCriticalSection;
+{$endif FPC_THREADING}
   public
     constructor Create;
     destructor Destroy; override;
@@ -1448,7 +1450,10 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
 {
   $Log$
-  Revision 1.22  2002-09-07 15:15:24  peter
+  Revision 1.23  2002-10-14 19:46:50  peter
+    * use FPC_THREADING define for removing thread dependent code
+
+  Revision 1.22  2002/09/07 15:15:24  peter
     * old logs removed and tabs fixed
 
   Revision 1.21  2002/07/16 13:32:51  florian
