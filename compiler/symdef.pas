@@ -3158,19 +3158,7 @@ implementation
          pdc:=TParaItem(Para.first);
          while assigned(pdc) do
           begin
-            case pdc.paratyp of
-              vs_out,
-              vs_var :
-                inc(l,POINTER_SIZE);
-              vs_value,
-              vs_const :
-                begin
-                  if paramanager.push_addr_param(pdc.paratype.def,proccalloption) then
-                    inc(l,POINTER_SIZE)
-                  else
-                    inc(l,pdc.paratype.def.size);
-                end;
-            end;
+            inc(l,paramanager.push_size(pdc.paratyp,pdc.paratype.def,proccalloption));
             l:=align(l,alignsize);
             if assigned(pdc.paratype.def) and
                is_special_array(pdc.paratype.def) then
@@ -5529,7 +5517,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.112  2002-11-25 21:05:53  carl
+  Revision 1.113  2002-11-27 20:04:09  peter
+    * tvarsym.get_push_size replaced by paramanager.push_size
+
+  Revision 1.112  2002/11/25 21:05:53  carl
    * several mistakes fixed in message files
 
   Revision 1.111  2002/11/25 18:43:33  carl

@@ -1436,7 +1436,7 @@ implementation
           internalerror(200208256);
         { here we need the size of a push instead of the
           size of the data }
-        l:=tvarsym(sym).getpushsize(tprocdef(defowner).proccalloption);
+        l:=paramanager.push_size(tvarsym(sym).varspez,tvarsym(sym).vartype.def,tprocdef(defowner).proccalloption);
         varalign:=size_2_align(l);
         tvarsym(sym).varstate:=vs_assigned;
         { we need the new datasize already aligned so we can't
@@ -2337,7 +2337,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.80  2002-11-22 22:45:49  carl
+  Revision 1.81  2002-11-27 20:04:09  peter
+    * tvarsym.get_push_size replaced by paramanager.push_size
+
+  Revision 1.80  2002/11/22 22:45:49  carl
   + small optimization for speed
 
   Revision 1.79  2002/11/19 16:26:33  pierre

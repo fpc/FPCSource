@@ -192,7 +192,6 @@ interface
           procedure set_mangledname(const s:string);
           function  getsize : longint;
           function  getvaluesize : longint;
-          function  getpushsize(calloption:tproccalloption): longint;
 {$ifdef var_notification}
           function register_notification(flags:Tnotification_flags;
                                          callback:Tnotification_callback):cardinal;
@@ -1653,27 +1652,6 @@ implementation
       end;
 
 
-    function tvarsym.getpushsize(calloption:tproccalloption) : longint;
-      begin
-         getpushsize:=-1;
-         if assigned(vartype.def) then
-           begin
-              case varspez of
-                vs_out,
-                vs_var :
-                  getpushsize:=pointer_size;
-                vs_value,
-                vs_const :
-                  begin
-                      if paramanager.push_addr_param(vartype.def,calloption) then
-                        getpushsize:=pointer_size
-                      else
-                        getpushsize:=vartype.def.size;
-                  end;
-              end;
-           end;
-      end;
-
 {$ifdef var_notification}
     function Tvarsym.register_notification(flags:Tnotification_flags;callback:
                                            Tnotification_callback):cardinal;
@@ -2479,7 +2457,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.78  2002-11-27 02:34:20  peter
+  Revision 1.79  2002-11-27 20:04:10  peter
+    * tvarsym.get_push_size replaced by paramanager.push_size
+
+  Revision 1.78  2002/11/27 02:34:20  peter
     * only find real equal procvars
 
   Revision 1.77  2002/11/25 18:43:34  carl

@@ -31,7 +31,7 @@ unit paramgr;
     uses
        cpubase,
        globtype,
-       symtype,symdef;
+       symconst,symtype,symdef;
 
     type
        {# This class defines some methods to take care of routine
@@ -58,6 +58,8 @@ unit paramgr;
             the address is pushed
           }
           function push_addr_param(def : tdef;calloption : tproccalloption) : boolean;virtual;
+          { return the size of a push }
+          function push_size(varspez:tvarspez;def : tdef;calloption : tproccalloption) : longint;
           { Returns true if a parameter needs to be copied on the stack, this
             is required for cdecl procedures
           }
@@ -110,7 +112,7 @@ unit paramgr;
 
     uses
        cpuinfo,globals,systems,
-       symconst,symbase,symsym,
+       symbase,symsym,
        rgobj,
        defutil,cgbase,cginfo,verbose;
 
@@ -145,7 +147,8 @@ unit paramgr;
       begin
          push_high_param:=is_open_array(def) or
                           is_open_string(def) or
-                          is_array_of_const(def);
+                          (is_array_of_const(def) and
+                           not(calloption in [pocall_cdecl,pocall_cppdecl]));
       end;
 
 
@@ -173,7 +176,9 @@ unit paramgr;
                                   )
                                 ) or
                                 is_open_array(def) or
-                                is_array_of_const(def) or
+                                { array of const for cdecl are only pushed values }
+                                (is_array_of_const(def) and
+                                 not(calloption in [pocall_cdecl,pocall_cppdecl])) or
                                 is_array_constructor(def);
              objectdef :
                push_addr_param:=is_object(def);
@@ -220,6 +225,34 @@ unit paramgr;
             copy_value_on_stack:=(po_methodpointer in tprocvardef(def).procoptions);
           setdef :
             copy_value_on_stack:=(tsetdef(def).settype<>smallset);
+        end;
+      end;
+
+
+    { return the size of a push }
+    function tparamanager.push_size(varspez:tvarspez;def : tdef;calloption : tproccalloption) : longint;
+      begin
+        push_size:=-1;
+        case varspez of
+          vs_out,
+          vs_var :
+            push_size:=pointer_size;
+          vs_value,
+          vs_const :
+            begin
+                if push_addr_param(def,calloption) then
+                  push_size:=pointer_size
+                else
+                  begin
+                    { special array are normally pushed by addr, only for
+                      cdecl array of const it comes here and the pushsize
+                      is unknown }
+                    if is_array_of_const(def) then
+                      push_size:=0
+                    else
+                      push_size:=def.size;
+                  end;
+            end;
         end;
       end;
 
@@ -379,7 +412,10 @@ end.
 
 {
    $Log$
-   Revision 1.25  2002-11-27 02:33:19  peter
+   Revision 1.26  2002-11-27 20:04:09  peter
+     * tvarsym.get_push_size replaced by paramanager.push_size
+
+   Revision 1.25  2002/11/27 02:33:19  peter
      * copy_value_on_stack method added for cdecl record passing
 
    Revision 1.24  2002/11/25 17:43:21  peter

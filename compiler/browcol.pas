@@ -268,7 +268,7 @@ uses
   CUtils,
   globtype,globals,comphook,
   finput,fmodule,
-  cpuinfo,aasmbase,aasmtai,
+  cpuinfo,aasmbase,aasmtai,paramgr,
   symsym,symdef,symtype,symbase;
 
 const
@@ -1454,7 +1454,7 @@ end;
                else
                  MemInfo.Size:=getsize;
                { this is not completely correct... }
-               MemInfo.PushSize:=getpushsize(pocall_none);
+               MemInfo.PushSize:=paramanager.push_size(varspez,vartype.def,pocall_none);
                Symbol^.SetMemInfo(MemInfo);
              end;
           constsym :
@@ -2118,7 +2118,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  2002-11-24 18:17:29  carl
+  Revision 1.31  2002-11-27 20:04:10  peter
+    * tvarsym.get_push_size replaced by paramanager.push_size
+
+  Revision 1.30  2002/11/24 18:17:29  carl
     * fix compilation problems after my changes to tcontsym
 
   Revision 1.29  2002/11/20 22:48:42  pierre
