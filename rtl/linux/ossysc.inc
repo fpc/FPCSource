@@ -15,13 +15,9 @@
 
  ****************************************************************************
 }
-{$ifdef CPUARM}
-{$define RTSIGACTION}
+{$if defined(CPUARM) or defined(CPUX86_64) or defined(CPUSPARC)}
+  {$define RTSIGACTION}
 {$endif CPUARM}
-
-{$ifdef CPUx86_64}
-{$define RTSIGACTION}
-{$endif CPUx86_64}
 
 {$I syscallh.inc}
 {$I ostypes.inc}
@@ -213,18 +209,31 @@ end;
   If OldAct is non-nil the previous action is saved there.
 }
 
-function Fpsigaction(sig: cint; act : psigactionrec; oact : psigactionrec): cint; [public, alias : 'FPC_SYSC_SIGACTION'];
 
+{$ifdef cpusparc}
+procedure Fprt_sigreturn_stub;assembler;nostackframe;
+asm
+  mov syscall_nr_rt_sigreturn,%g1
+  ta  0x10
+end;
+{$endif cpusparc}
+
+
+function Fpsigaction(sig: cint; act : psigactionrec; oact : psigactionrec): cint; [public, alias : 'FPC_SYSC_SIGACTION'];
 {
   Change action of process upon receipt of a signal.
   Signum specifies the signal (all except SigKill and SigStop).
   If Act is non-nil, it is used to specify the new action.
   If OldAct is non-nil the previous action is saved there.
 }
-
 begin
 {$ifdef RTSIGACTION}
-  do_syscall(syscall_nr_rt_sigaction,TSysParam(sig),TSysParam(act),TSysParam(oact),8);
+  {$ifdef cpusparc}
+    { Sparc has an extra stub parameter }
+    do_syscall(syscall_nr_rt_sigaction,TSysParam(sig),TSysParam(act),TSysParam(oact),TSysParam(PtrInt(@Fprt_sigreturn_stub)-8),TSysParam(8));
+  {$else cpusparc}
+    do_syscall(syscall_nr_rt_sigaction,TSysParam(sig),TSysParam(act),TSysParam(oact),TSysParam(8));
+  {$endif cpusparc}
 {$else RTSIGACTION}
   do_syscall(syscall_nr_sigaction,TSysParam(sig),TSysParam(act),TSysParam(oact));
 {$endif RTSIGACTION}
@@ -529,7 +538,10 @@ end;
 
 {
  $Log$
- Revision 1.25  2004-05-16 18:51:20  peter
+ Revision 1.26  2004-05-31 09:22:42  peter
+   * sigaction fixed for sparc
+
+ Revision 1.25  2004/05/16 18:51:20  peter
    * use thandle in do_*
 
  Revision 1.24  2004/05/01 15:59:17  florian
