@@ -928,7 +928,8 @@ sym_w_function_result_not_set=W_Funktions Ergebnis scheint kein Set zu sein
 % or procedures that contain assembler blocks.
 sym_e_illegal_field=E_Unbekannter Record Feld Bezeichner $1
 % The field doesn't exist in the record definition.
-sym_n_uninitialized_local_variable=W_Locale Variable $1 scheint nicht initialisiert zu sein
+sym_n_uninitialized_local_variable=W_Lokale Variable $1 wird benutzt, bevor ihr ein Wert zugewiesen wurde
+sym_n_uninitialized_local_variable=W_Variable $1 wird benutzt, bevor ihr ein Wert zugewiesen wurde
 % This message is displayed if the compiler thinks that a variable will
 % be used (i.e. appears in the right-hand-side of an expression) when it
 % wasn't initialized first (i.e. appeared in the right-hand side of an
@@ -1506,9 +1507,9 @@ ol098=3*2Rintel_lies Intel Assembler Variante
 ol099=3*2Rdirect_kopiere Assembler-Text direkt in die Assembler-Datei
 ol100=3*1O<x>_Optimierungen:
 ol101=3*2Og_erzeuge kleineren Code
-ol102=3*2OG_erzeuge schnelleren Code (standard)
+ol102=3*2OG_erzeuge schnelleren Code (Standard)
 ol103=3*2Or_behalte bestimmte Variablen in Registern (noch BUGGY!!!)
-ol104=3*2Ou_aktiviere unsichere Optimierungen (siehe Documentation)
+ol104=3*2Ou_aktiviere unsichere Optimierungen (siehe Dokumentation)
 ol105=3*2O1_Stufe 1 Optimierungen (schnelle Optimierungen)
 ol106=3*2O2_Stufe 2 Optimierungen (-O1 + langsamere Optimierungen)
 ol107=3*2O3_Stufe 3 Optimierungen (gleich wie -O2u)

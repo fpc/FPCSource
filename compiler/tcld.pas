@@ -147,7 +147,12 @@ implementation
                      if pvarsym(p^.symtableentry)^.is_valid=2 then
                        if (assigned(pvarsym(p^.symtableentry)^.owner) and assigned(aktprocsym)
                        and (pvarsym(p^.symtableentry)^.owner = aktprocsym^.definition^.localst)) then
-                       CGMessage1(sym_n_uninitialized_local_variable,pvarsym(p^.symtableentry)^.name);
+                       begin
+                          if p^.symtable^.symtabletype=localsymtable then
+                            CGMessage1(sym_n_uninitialized_local_variable,pvarsym(p^.symtableentry)^.name)
+                          else
+                            CGMessage1(sym_n_uninitialized_variable,pvarsym(p^.symtableentry)^.name);
+                       end;
                      end;
                    if count_ref then
                      begin
@@ -452,7 +457,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.30  1999-05-19 10:31:55  florian
+  Revision 1.31  1999-05-19 15:26:41  florian
+    * if a non local variables isn't initialized the compiler doesn't write
+      any longer "local var. seems not to be ..."
+
+  Revision 1.30  1999/05/19 10:31:55  florian
     * two bugs reported by Romio (bugs 13) are fixed:
         - empty array constructors are now handled correctly (e.g. for sysutils.format)
         - comparsion of ansistrings was sometimes coded wrong

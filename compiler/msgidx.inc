@@ -251,6 +251,7 @@ type tmsgconst=(
   sym_w_function_result_not_set,
   sym_e_illegal_field,
   sym_n_uninitialized_local_variable,
+  sym_n_uninitialized_variable,
   sym_e_id_no_member,
   sym_b_param_list,
   cg_e_break_not_allowed,
