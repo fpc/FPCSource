@@ -43,6 +43,8 @@ unit cpupara;
        tm68kparamanager = class(tparamanager)
           function getintparaloc(calloption : tproccalloption;nr : longint) : tparalocation;override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
+         private
+           function parseparaloc(p : tparaitem;const s : string) : boolean;override;
        end;
 
   implementation
@@ -100,13 +102,70 @@ unit cpupara;
       end;
 
 
+    function tm68kparamanager.parseparaloc(p : tparaitem;const s : string) : boolean;
+      begin
+        result:=false;
+        case target_info.system of
+          system_m68k_amiga:
+            begin
+              p.paraloc[callerside].loc:=LOC_REGISTER;
+              p.paraloc[callerside].lochigh:=LOC_INVALID;
+              p.paraloc[callerside].size:=def_cgsize(p.paratype.def);
+              p.paraloc[callerside].alignment:=4;
+              { pattern is always uppercase'd }
+              if s='D0' then
+                p.paraloc[callerside].register:=NR_D0
+              else if s='D1' then
+                p.paraloc[callerside].register:=NR_D1
+              else if s='D2' then
+                p.paraloc[callerside].register:=NR_D2
+              else if s='D3' then
+                p.paraloc[callerside].register:=NR_D3
+              else if s='D4' then
+                p.paraloc[callerside].register:=NR_D4
+              else if s='D5' then
+                p.paraloc[callerside].register:=NR_D5
+              else if s='D6' then
+                p.paraloc[callerside].register:=NR_D6
+              else if s='D7' then
+                p.paraloc[callerside].register:=NR_D7
+              else if s='A0' then
+                p.paraloc[callerside].register:=NR_A0
+              else if s='A1' then
+                p.paraloc[callerside].register:=NR_A1
+              else if s='A2' then
+                p.paraloc[callerside].register:=NR_A2
+              else if s='A3' then
+                p.paraloc[callerside].register:=NR_A3
+              else if s='A4' then
+                p.paraloc[callerside].register:=NR_A4
+              else if s='A5' then
+                p.paraloc[callerside].register:=NR_A5
+              { 'A6' is problematic, since it's the frame pointer in fpc,
+                so it should be saved before a call! }
+              else if s='A6' then
+                p.paraloc[callerside].register:=NR_A6
+              { 'A7' is the stack pointer on 68k, can't be overwritten by API calls }
+              else
+                exit;
+              p.paraloc[calleeside]:=p.paraloc[callerside];
+            end;
+          else
+            internalerror(200405092);
+        end;
+        result:=true;
+      end;
+
 begin
   paramanager:=tm68kparamanager.create;
 end.
 
 {
   $Log$
-  Revision 1.5  2004-01-30 12:17:18  florian
+  Revision 1.6  2004-05-12 13:28:01  karoly
+   * added some basic code for later syscall support on M68k/Amiga
+
+  Revision 1.5  2004/01/30 12:17:18  florian
     * fixed some m68k compilation problems
 
   Revision 1.4  2003/02/02 19:25:54  carl
