@@ -20,7 +20,7 @@ uses
   dpmiexcp,
 {$endif}
   dos,
-  sysutils,classes,inifiles;
+  sysutils,classes,makeini;
 
 const
   Version='v0.99.15';
@@ -1305,7 +1305,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.34  2000-04-11 15:34:58  peter
+  Revision 1.35  2000-05-11 17:59:12  peter
+    * makeini unit added as replacement for old inifiles unit
+
+  Revision 1.34  2000/04/11 15:34:58  peter
     * added extra ifdef to check if there are some objects else some
       targets aren't added anymore
 
