@@ -194,6 +194,7 @@ Fixed bugs:
   bug0166.pp   forward type used in declaration crashes instead of error OK 0.99.9 (PFV)
   bug0167.pp   crash when declaring a procedure with same name as object OK 0.99.9 (PFV)
   bug0168.pp   set:=set+element is allowed (should be: set:=set+[element]) OK 0.99.9 (PFV)
+  bug0169.pp   missing new(type) support for not object/class        OK 0.99.9 (PM)
   bug0170.pp   Asm, {$ifdef} is seen as a separator                  OK 0.99.9 (PFV)
   bug0172.pp   with with absolute seg:ofs should not be possible OK 0.99.9 (PM)
   bug0173.pp   secondbug is parsed as asm, but should be normal pascalcode OK 0.99.9 (PFV)
@@ -244,7 +245,6 @@ bug0175.pp   Asm, mov word,%eax should not be allowed without casting
 bug0152.pp   End value of loop variable must be calculated before loop
              variable is initialized.
 bug0163.pp   missing <= and >= operators for sets.
-bug0169.pp   missing new(type) support for not object/class
 bug0171.pp   missing typecasting in constant expressions
 bug0183.pp   internal error 10
 bug0185.pp   missing range checking for Val and subrange types
