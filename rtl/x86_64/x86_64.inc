@@ -68,9 +68,9 @@ asm
         movq    (%rax),%rax
 .Lgnf_null:
 end ['RAX'];
+
+(*
 {$define FPC_SYSTEM_HAS_MOVE}
-
-
 procedure Move(const source;var dest;count:longint);assembler;
   asm
      { rdi destination
@@ -167,8 +167,9 @@ procedure Move(const source;var dest;count:longint);assembler;
      sfence
      popq %rbx
   end;
+*)
 
-
+(*
 {$define FPC_SYSTEM_HAS_FILLCHAR}
 Procedure FillChar(var x;count:longint;value:byte);assembler;
   asm
@@ -242,6 +243,7 @@ Procedure FillChar(var x;count:longint;value:byte);assembler;
 .Lende:
      movq       %r10,%rax
   end;
+*)
 
 {$define FPC_SYSTEM_HAS_DECLOCKED}
 { does a thread save inc/dec }
@@ -304,7 +306,10 @@ const
 
 {
   $Log$
-  Revision 1.7  2004-02-23 15:52:15  peter
+  Revision 1.8  2004-04-21 21:26:51  florian
+    * commented out broken fillchar and move
+
+  Revision 1.7  2004/02/23 15:52:15  peter
     * don't use ret
 
   Revision 1.6  2004/02/06 15:58:21  florian
