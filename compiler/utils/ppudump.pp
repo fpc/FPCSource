@@ -122,10 +122,17 @@ type
              target_m68k_openbsd,       { 25 }
              system_x86_64_linux,       { 26 }
              system_powerpc_macosx,     { 27 }
-             target_i386_emx            { 28 }
+             target_i386_emx,           { 28 }
+	     target_powerpc_netbsd,     { 29 }
+             target_powerpc_openbsd,    { 30 }
+	     target_arm_linux,          { 31 }
+	     target_i386_watcom,        { 32 }
+	     target_powerpc_MorphOS,    { 33 }
+	     target_x86_64_freebsd,     { 34 }
+	     target_i386_netwlibc       { 35 }
        );
 const
-  Targets : array[ttarget] of string[16]=(
+  Targets : array[ttarget] of string[17]=(
   { 0 }   'none',
   { 1 }   'GO32V1',
   { 2 }   'GO32V2',
@@ -145,7 +152,7 @@ const
   { 16 }  'BeOS-i386',
   { 17 }  'NetBSD-i386',
   { 18 }  'NetBSD-m68k',
-  { 19 }  'Netware',
+  { 19 }  'Netware-i386-clib',
   { 20 }  'Qnx-i386',
   { 21 }  'WDOSX-i386',
   { 22 }  'Solaris-sparc',
@@ -154,7 +161,14 @@ const
   { 25 }  'OpenBSD-m68k',
   { 26 }  'Linux-x86-64',
   { 27 }  'MacOSX-ppc',
-  { 28 }  'OS/2 via EMX'
+  { 28 }  'OS/2 via EMX',
+  { 29 }  'NetBSD-powerpc',
+  { 30 }  'OpenBSD-powerpc',
+  { 31 }  'Linux-arm',
+  { 32 }  'Watcom-i386',
+  { 33 }  'MorphOS-powerpc',
+  { 34 }  'FreeBSD-x86-64',
+  { 35 }  'Netware-i386-libc'
   );
 begin
   if w<=ord(high(ttarget)) then
@@ -1968,7 +1982,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.54  2004-08-27 21:59:27  peter
+  Revision 1.55  2004-09-04 21:11:49  armin
+  * missing targets added
+
+  Revision 1.54  2004/08/27 21:59:27  peter
   browser disabled
   uf_local_symtable ppu flag when a localsymtable is stored
 
