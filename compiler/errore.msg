@@ -341,7 +341,7 @@ parser_e_constructorname_must_be_init=03013_E_Constructor name must be INIT
 % You are declaring a constructor with a name which isn't \var{init}, and the
 % \var{-Ss} switch is in effect. See the \var{-Ss} switch (\seeo{Ss}).
 parser_e_destructorname_must_be_done=03014_E_Destructor name must be DONE
-% You are declaring a constructor with a name which isn't \var{done}, and the
+% You are declaring a destructor with a name which isn't \var{done}, and the
 % \var{-Ss} switch is in effect. See the \var{-Ss} switch (\seeo{Ss}).
 parser_e_illegal_open_parameter=03015_E_Illegal open parameter
 % You are trying to use the wrong type for an open parameter.
