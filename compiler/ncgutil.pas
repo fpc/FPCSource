@@ -605,10 +605,20 @@ implementation
     procedure location_force_fpureg(list:TAAsmoutput;var l: tlocation;maybeconst:boolean);
       var
         reg : tregister;
+        href : treference;
       begin
         if (l.loc<>LOC_FPUREGISTER)  and
            ((l.loc<>LOC_CFPUREGISTER) or (not maybeconst)) then
           begin
+            { if it's in an mm register, store to memory first }
+            if (l.loc in [LOC_MMREGISTER,LOC_CMMREGISTER]) then
+              begin
+                tg.GetTemp(list,tcgsize2size[l.size],tt_normal,href);
+                cg.a_loadmm_reg_ref(list,l.size,l.size,l.register,href,mms_movescalar);
+                location_release(list,l);
+                location_reset(l,LOC_REFERENCE,l.size);
+                l.reference:=href;
+              end;
             reg:=cg.getfpuregister(list,l.size);
             cg.a_loadfpu_loc_reg(list,l,reg);
             location_freetemp(list,l);
@@ -622,10 +632,20 @@ implementation
     procedure location_force_mmregscalar(list:TAAsmoutput;var l: tlocation;maybeconst:boolean);
       var
         reg : tregister;
+        href : treference;
       begin
         if (l.loc<>LOC_MMREGISTER)  and
            ((l.loc<>LOC_CMMREGISTER) or (not maybeconst)) then
           begin
+            { if it's in an fpu register, store to memory first }
+            if (l.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) then
+              begin
+                tg.GetTemp(list,tcgsize2size[l.size],tt_normal,href);
+                cg.a_loadfpu_reg_ref(list,l.size,l.register,href);
+                location_release(list,l);
+                location_reset(l,LOC_REFERENCE,l.size);
+                l.reference:=href;
+              end;
             reg:=cg.getmmregister(list,l.size);
             cg.a_loadmm_loc_reg(list,l.size,l,reg,mms_movescalar);
             location_freetemp(list,l);
@@ -2019,7 +2039,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.177  2003-12-24 00:10:02  florian
+  Revision 1.178  2003-12-26 00:32:21  florian
+    + fpu<->mm register conversion
+
+  Revision 1.177  2003/12/24 00:10:02  florian
     - delete parameter in cg64 methods removed
 
   Revision 1.176  2003/12/23 14:38:07  florian

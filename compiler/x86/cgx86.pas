@@ -146,6 +146,8 @@ unit cgx86;
         procedure floatstoreops(t : tcgsize;var op : tasmop;var s : topsize);
       end;
 
+    function use_sse(def : tdef) : boolean;
+
    const
 {$ifdef x86_64}
       TCGSize2OpSize: Array[tcgsize] of topsize =
@@ -164,7 +166,7 @@ unit cgx86;
 
     uses
        globtype,globals,verbose,systems,cutils,
-       symdef,paramgr,tgobj,procinfo;
+       symdef,defutil,paramgr,tgobj,procinfo;
 
 {$ifndef NOTARGETWIN32}
     const
@@ -177,6 +179,12 @@ unit cgx86;
 
       TOpCmp2AsmCond: Array[topcmp] of TAsmCond = (C_NONE,
           C_E,C_G,C_L,C_GE,C_LE,C_NE,C_BE,C_B,C_AE,C_A);
+
+    function use_sse(def : tdef) : boolean;
+      begin
+        use_sse:=(is_single(def) and (aktfputype in sse_singlescalar)) or
+          (is_double(def) and (aktfputype in sse_doublescalar));
+      end;
 
 
     procedure Tcgx86.init_register_allocators;
@@ -1910,7 +1918,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.97  2003-12-25 12:01:35  florian
+  Revision 1.98  2003-12-26 00:32:22  florian
+    + fpu<->mm register conversion
+
+  Revision 1.97  2003/12/25 12:01:35  florian
     + possible sse2 unit usage for double calculations
     * some sse2 assembler issues fixed
 

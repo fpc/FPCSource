@@ -272,6 +272,14 @@ interface
               begin
                 location_copy(location,left.location);
                 location.size:=def_cgsize(resulttype.def);
+                case expectloc of
+                  LOC_FPUREGISTER:
+                    ;
+                  LOC_MMREGISTER:
+                    location_force_mmregscalar(exprasmlist,location,false);
+                  else
+                    internalerror(2003012262);
+                end;
                 exit
               end;
             LOC_CREFERENCE,
@@ -281,6 +289,22 @@ interface
                  location.register:=cg.getfpuregister(exprasmlist,left.location.size);
                  cg.a_loadfpu_loc_reg(exprasmlist,left.location,location.register);
                  location_freetemp(exprasmlist,left.location);
+              end;
+            LOC_MMREGISTER,
+            LOC_CMMREGISTER:
+              begin
+                location_copy(location,left.location);
+                case expectloc of
+                  LOC_FPUREGISTER:
+                    begin
+                      location_force_fpureg(exprasmlist,location,false);
+                      location.size:=def_cgsize(resulttype.def);
+                    end;
+                  LOC_MMREGISTER:
+                    ;
+                  else
+                    internalerror(2003012261);
+                end;
               end;
             else
               internalerror(2002032215);
@@ -511,7 +535,10 @@ end.
 
 {
   $Log$
-  Revision 1.51  2003-12-22 23:08:59  peter
+  Revision 1.52  2003-12-26 00:32:21  florian
+    + fpu<->mm register conversion
+
+  Revision 1.51  2003/12/22 23:08:59  peter
     * removed unused checkobject method
 
   Revision 1.50  2003/11/04 22:30:15  florian

@@ -81,8 +81,7 @@ unit nx86add;
         pushedfpu,
         cmpop      : boolean;
       begin
-        if (is_single(resulttype.def) and (aktfputype in sse_singlescalar)) or
-          (is_double(resulttype.def) and (aktfputype in sse_doublescalar)) then
+        if use_sse(resulttype.def) then
           begin
             second_addfloatsse;
             exit;
@@ -256,7 +255,10 @@ unit nx86add;
 end.
 {
   $Log$
-  Revision 1.3  2003-12-25 01:07:09  florian
+  Revision 1.4  2003-12-26 00:32:22  florian
+    + fpu<->mm register conversion
+
+  Revision 1.3  2003/12/25 01:07:09  florian
     + $fputype directive support
     + single data type operations with sse unit
     * fixed more x86-64 stuff

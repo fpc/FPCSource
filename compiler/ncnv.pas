@@ -1571,18 +1571,10 @@ implementation
       end;
 
 
-
-
     function ttypeconvnode.first_real_to_real : tnode;
       begin
          first_real_to_real:=nil;
         { comp isn't a floating type }
-{$ifdef i386}
-         if (tfloatdef(resulttype.def).typ=s64comp) and
-            (tfloatdef(left.resulttype.def).typ<>s64comp) and
-            not (nf_explicit in flags) then
-           CGMessage(type_w_convert_real_2_comp);
-{$endif}
          if registersfpu<1 then
            registersfpu:=1;
          expectloc:=LOC_FPUREGISTER;
@@ -2413,7 +2405,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.133  2003-12-22 23:11:15  peter
+  Revision 1.134  2003-12-26 00:32:21  florian
+    + fpu<->mm register conversion
+
+  Revision 1.133  2003/12/22 23:11:15  peter
     * fix rangecheck error
 
   Revision 1.132  2003/12/08 22:35:28  peter

@@ -32,6 +32,7 @@ interface
     type
        tx86typeconvnode = class(tcgtypeconvnode)
          protected
+         function first_real_to_real : tnode;override;
          { procedure second_int_to_int;override; }
          { procedure second_string_to_string;override; }
          { procedure second_cstring_to_pchar;override; }
@@ -60,10 +61,34 @@ implementation
    uses
       verbose,systems,globals,
       aasmbase,aasmtai,
+      symconst,symdef,
       cgbase,pass_2,
       ncon,ncal,ncnv,
       cpubase,
-      cgobj,ncgutil;
+      cgobj,cgx86,ncgutil;
+
+
+    function tx86typeconvnode.first_real_to_real : tnode;
+      begin
+         first_real_to_real:=nil;
+        { comp isn't a floating type }
+         if (tfloatdef(resulttype.def).typ=s64comp) and
+            (tfloatdef(left.resulttype.def).typ<>s64comp) and
+            not (nf_explicit in flags) then
+           CGMessage(type_w_convert_real_2_comp);
+         if use_sse(resulttype.def) then
+           begin
+             if registersmm<1 then
+               registersmm:=1;
+             expectloc:=LOC_MMREGISTER;
+           end
+         else
+           begin
+             if registersfpu<1 then
+               registersfpu:=1;
+             expectloc:=LOC_FPUREGISTER;
+           end;
+      end;
 
 
     procedure tx86typeconvnode.second_int_to_bool;
@@ -166,7 +191,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2003-10-10 17:48:14  peter
+  Revision 1.8  2003-12-26 00:32:22  florian
+    + fpu<->mm register conversion
+
+  Revision 1.7  2003/10/10 17:48:14  peter
     * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
     * tregisteralloctor renamed to trgobj
     * removed rgobj from a lot of units

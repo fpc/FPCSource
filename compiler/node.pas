@@ -274,9 +274,9 @@ interface
           flags : tnodeflags;
           ppuidx : longint;
           { the number of registers needed to evalute the node }
-          registers32,registersfpu : longint;  { must be longint !!!! }
+          registers32,registersfpu,registersmm : longint;  { must be longint !!!! }
 {$ifdef SUPPORT_MMX}
-          registersmmx,registerskni : longint;
+          registersmmx : longint;
 {$endif SUPPORT_MMX}
           resulttype : ttype;
           fileinfo : tfileposinfo;
@@ -1087,7 +1087,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.78  2003-12-01 18:44:15  peter
+  Revision 1.79  2003-12-26 00:32:22  florian
+    + fpu<->mm register conversion
+
+  Revision 1.78  2003/12/01 18:44:15  peter
     * fixed some crashes
     * fixed varargs and register calling probs
 
