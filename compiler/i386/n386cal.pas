@@ -293,7 +293,6 @@ implementation
          unusedstate: pointer;
          pushed : tpushedsaved;
          pushed_int : tpushedsavedint;
-         tmpreg : tregister;
          hregister : tregister;
          oldpushedparasize : longint;
          { true if a virtual method must be called directly }
@@ -326,9 +325,6 @@ implementation
          push_size : longint;
 {$endif OPTALIGN}
          pop_allowed : boolean;
-         pushed_acc : tpushedsavedint;
-         storedunusedregsint : tsupregset;
-         constructorfailed : tasmlabel;
          returnref,
          pararef : treference;
          r,rsp : Tregister;
@@ -829,26 +825,37 @@ implementation
                    else
                      { No methodpointer }
                      begin
-                        if (
-                            (po_classmethod in procdefinition.procoptions) and
-                            not(assigned(aktprocdef) and
-                                (po_classmethod in aktprocdef.procoptions))
-                           ) or
-                           (
-                            (po_staticmethod in procdefinition.procoptions) and
-                             not(assigned(aktprocdef) and
-                                 (po_staticmethod in aktprocdef.procoptions))
-                           ) then
-                          begin
-                            self_is_vmt:=true;
-                            if (oo_has_vmt in tprocdef(procdefinition)._class.objectoptions) then
+                        if (po_staticmethod in procdefinition.procoptions) or
+                           (po_classmethod in procdefinition.procoptions) then
+                         begin
+                           self_is_vmt:=true;
+                           { Load VMT from self? }
+                           if (
+                               (po_classmethod in procdefinition.procoptions) and
+                               not(assigned(aktprocdef) and
+                                   (po_classmethod in aktprocdef.procoptions))
+                              ) or
+                              (
+                               (po_staticmethod in procdefinition.procoptions) and
+                                not(assigned(aktprocdef) and
+                                    (po_staticmethod in aktprocdef.procoptions))
+                              ) then
                              begin
-                               { load vmt from self passed to the current method }
+                               if (oo_has_vmt in tprocdef(procdefinition)._class.objectoptions) then
+                                begin
+                                  { load vmt from self passed to the current method }
+                                  location_reset(vmtloc,LOC_REGISTER,OS_ADDR);
+                                  vmtloc.register:=cg.g_load_self(exprasmlist);
+                                  cg.g_maybe_testself(exprasmlist,vmtloc.register);
+                                  reference_reset_base(href,vmtloc.register,tprocdef(procdefinition)._class.vmt_offset);
+                                  cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,vmtloc.register);
+                                end;
+                             end
+                            else
+                             begin
+                               { self is already VMT }
                                location_reset(vmtloc,LOC_REGISTER,OS_ADDR);
                                vmtloc.register:=cg.g_load_self(exprasmlist);
-                               cg.g_maybe_testself(exprasmlist,vmtloc.register);
-                               reference_reset_base(href,vmtloc.register,tprocdef(procdefinition)._class.vmt_offset);
-                               cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,vmtloc.register);
                              end;
                           end
                         else
@@ -889,27 +896,6 @@ implementation
                      cg.a_paramaddr_ref(exprasmlist,selfloc.reference,paramanager.getintparaloc(1))
                    else
                      cg.a_param_loc(exprasmlist,selfloc,paramanager.getintparaloc(1));
-
-                   { call to BeforeDestruction? }
-                   if (procdefinition.proctypeoption=potype_destructor) and
-                      assigned(methodpointer) and
-                      (methodpointer.nodetype<>typen) and
-                      is_class(tobjectdef(methodpointer.resulttype.def)) and
-                      (inlined or
-                      (right=nil)) then
-                     begin
-                        if self_is_vmt then
-                          internalerror(200203266);
-                        selfloc_to_register;
-                        cg.a_param_loc(exprasmlist,selfloc,paramanager.getintparaloc(1));
-                        reference_reset_base(href,selfloc.register,0);
-                        tmpreg:=cg.get_scratch_reg_address(exprasmlist);
-                        cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,tmpreg);
-                        reference_reset_base(href,tmpreg,72);
-                        cg.a_call_ref(exprasmlist,href);
-                        cg.free_scratch_reg(exprasmlist,tmpreg);
-                     end;
-
                 end;
 
               { push base pointer ?}
@@ -1112,35 +1098,8 @@ implementation
                r.number:=NR_ACCUMULATOR;
                cg.a_reg_alloc(exprasmlist,r);
                cg.a_cmp_const_reg_label(exprasmlist,OS_ADDR,OC_EQ,0,r,faillabel);
-             end
-            else
-             { call to AfterConstruction? }
-             if is_class(resulttype.def) and
-                (methodpointer.nodetype<>typen) then
-              begin
-                objectlibrary.getlabel(constructorfailed);
-                { allocate accumulator so it will be saved }
-                r.enum:=R_INTREGISTER;
-                r.number:=NR_ACCUMULATOR;
-                cg.a_reg_alloc(exprasmlist,r);
-                cg.a_cmp_const_reg_label(exprasmlist,OS_ADDR,OC_EQ,0,r,constructorfailed);
-                cg.a_param_reg(exprasmlist,OS_ADDR,r,paramanager.getintparaloc(1));
-                reference_reset_base(href,r,0);
-                tmpreg:=cg.get_scratch_reg_address(exprasmlist);
-                cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,tmpreg);
-                reference_reset_base(href,tmpreg,68);
-                { Save self }
-                storedunusedregsint:=rg.unusedregsint;
-                exclude(rg.unusedregsint,RS_ACCUMULATOR);
-                rg.saveusedintregisters(exprasmlist,pushed_acc,[RS_ACCUMULATOR]);
-                cg.a_call_ref(exprasmlist,href);
-                cg.free_scratch_reg(exprasmlist,tmpreg);
-                rg.restoreusedintregisters(exprasmlist,pushed_acc);
-                rg.unusedregsint:=storedunusedregsint;
-                cg.a_label(exprasmlist,constructorfailed);
-                { Release Accumulator }
-                cg.a_reg_dealloc(exprasmlist,r);
-              end;
+               cg.a_reg_dealloc(exprasmlist,r);
+             end;
            end;
 
          { handle function results }
@@ -1227,7 +1186,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.85  2003-03-28 19:16:57  peter
+  Revision 1.86  2003-03-30 20:59:07  peter
+    * fix classmethod from classmethod call
+    * move BeforeDestruction/AfterConstruction calls to
+      genentrycode/genexitcode instead of generating them on the fly
+      after a call to a constructor
+
+  Revision 1.85  2003/03/28 19:16:57  peter
     * generic constructor working for i386
     * remove fixed self register
     * esi added as address register for i386

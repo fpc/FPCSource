@@ -1309,6 +1309,8 @@ function returns in a register and the caller receives it in an other one}
         stackalloclist : taasmoutput;
         hp : tparaitem;
         paraloc : tparalocation;
+        tmpreg : tregister;
+        inheriteddesctructorlabel : tasmlabel;
       begin
         if not inlined then
            stackalloclist:=taasmoutput.Create;
@@ -1495,8 +1497,28 @@ function returns in a register and the caller receives it in an other one}
 {$endif GDB}
          end;
 
+        { maybe call BeforeDestruction for classes }
+        if (aktprocdef.proctypeoption=potype_destructor) and
+           is_class(aktprocdef._class) then
+         begin
+           objectlibrary.getlabel(inheriteddesctructorlabel);
+           reference_reset_base(href,procinfo.framepointer,procinfo.inheritedflag_offset);
+           cg.a_cmp_const_ref_label(list,OS_ADDR,OC_EQ,0,href,inheriteddesctructorlabel);
+           reference_reset_base(href,procinfo.framepointer,procinfo.selfpointer_offset);
+           tmpreg:=cg.get_scratch_reg_address(list);
+           cg.a_load_ref_reg(list,OS_ADDR,href,tmpreg);
+           cg.a_param_reg(list,OS_ADDR,tmpreg,paramanager.getintparaloc(1));
+           reference_reset_base(href,tmpreg,0);
+           cg.a_load_ref_reg(list,OS_ADDR,href,tmpreg);
+           reference_reset_base(href,tmpreg,72);
+           cg.a_call_ref(list,href);
+           cg.free_scratch_reg(list,tmpreg);
+           cg.a_label(list,inheriteddesctructorlabel);
+         end;
+
         if inlined then
-         load_regvars(list,nil);
+          load_regvars(list,nil);
+
 
         {************************* Stack allocation **************************}
         { and symbol entry point as well as debug information                 }
@@ -1596,6 +1618,7 @@ function returns in a register and the caller receives it in an other one}
         p : pchar;
         st : string[2];
 {$endif GDB}
+        inheritedconstructorlabel,
         okexitlabel,
         noreraiselabel,nodestroycall : tasmlabel;
         href : treference;
@@ -1603,7 +1626,7 @@ function returns in a register and the caller receives it in an other one}
         usesacchi,
         usesself,usesfpu : boolean;
         pd : tprocdef;
-        r  : Tregister;
+        tmpreg,r  : Tregister;
       begin
         if aktexit2label.is_used and
            ((procinfo.flags and (pi_needs_implicit_finally or pi_uses_exceptions)) <> 0) then
@@ -1741,28 +1764,45 @@ function returns in a register and the caller receives it in an other one}
            (assigned(aktprocdef.funcretsym) and
             (tfuncretsym(aktprocdef.funcretsym).refcount>1)) then
           begin
-            if (aktprocdef.proctypeoption<>potype_constructor) then
-              handle_return_value(list,inlined,usesacc,usesacchi,usesfpu)
-            else
+            if (aktprocdef.proctypeoption=potype_constructor) then
               begin
-                { successful constructor deletes the zero flag }
-                { and returns self in eax                   }
-                { eax must be set to zero if the allocation failed !!! }
+                objectlibrary.getlabel(inheritedconstructorlabel);
                 objectlibrary.getlabel(okexitlabel);
                 cg.a_jmp_always(list,okexitlabel);
-                { fail }
+                { Failure exit }
                 cg.a_label(list,faillabel);
                 cg.g_call_fail_helper(list);
-                { return the self pointer }
+                cg.a_jmp_always(list,inheritedconstructorlabel);
+                { Success exit }
                 cg.a_label(list,okexitlabel);
                 r.enum:=R_INTREGISTER;
                 r.number:=NR_ACCUMULATOR;
                 cg.a_reg_alloc(list,r);
+                { maybe call AfterConstructor for classes }
+                if is_class(aktprocdef._class) then
+                 begin
+                   reference_reset_base(href,procinfo.framepointer,procinfo.vmtpointer_offset);
+                   cg.a_load_ref_reg(list,OS_ADDR,href,r);
+                   cg.a_cmp_const_reg_label(list,OS_ADDR,OC_EQ,0,r,inheritedconstructorlabel);
+                   reference_reset_base(href, procinfo.framepointer,procinfo.selfpointer_offset);
+                   cg.a_load_ref_reg(list,OS_ADDR,href,r);
+                   cg.a_param_reg(list,OS_ADDR,r,paramanager.getintparaloc(1));
+                   reference_reset_base(href,r,0);
+                   tmpreg:=cg.get_scratch_reg_address(list);
+                   cg.a_load_ref_reg(list,OS_ADDR,href,tmpreg);
+                   reference_reset_base(href,tmpreg,68);
+                   cg.a_call_ref(list,href);
+                   cg.free_scratch_reg(list,tmpreg);
+                 end;
+                { return the self pointer }
+                cg.a_label(list,inheritedconstructorlabel);
                 reference_reset_base(href, procinfo.framepointer,procinfo.selfpointer_offset);
                 cg.a_load_ref_reg(list,OS_ADDR,href,r);
-                rg.ungetregisterint(list,r);
+                cg.a_reg_dealloc(list,r);
                 usesacc:=true;
-              end;
+              end
+            else
+              handle_return_value(list,inlined,usesacc,usesacchi,usesfpu)
           end;
 
         if aktexit2label.is_used and not aktexit2label.is_set then
@@ -1965,7 +2005,13 @@ function returns in a register and the caller receives it in an other one}
 end.
 {
   $Log$
-  Revision 1.81  2003-03-28 19:16:56  peter
+  Revision 1.82  2003-03-30 20:59:07  peter
+    * fix classmethod from classmethod call
+    * move BeforeDestruction/AfterConstruction calls to
+      genentrycode/genexitcode instead of generating them on the fly
+      after a call to a constructor
+
+  Revision 1.81  2003/03/28 19:16:56  peter
     * generic constructor working for i386
     * remove fixed self register
     * esi added as address register for i386
