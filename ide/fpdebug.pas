@@ -889,10 +889,13 @@ begin
     if we want to recompile it }
   SetExe('');
   NoSwitch:=false;
-  IDEApp.SetCmdState([cmResetDebugger,cmUntilReturn],false);
   { In case we have something that the compiler touched }
-  AskToReloadAllModifiedFiles;
-  ResetDebuggerRows;
+  If IDEApp.IsRunning then
+    begin
+      IDEApp.SetCmdState([cmResetDebugger,cmUntilReturn],false);
+      AskToReloadAllModifiedFiles;
+      ResetDebuggerRows;
+    end;
 end;
 
 procedure TDebugController.AnnotateError;
@@ -3926,8 +3929,8 @@ end;
 procedure DoneDebugger;
 begin
 {$ifdef DEBUG}
-  { PushStatus('Closing debugger');
-    No its called after App.Done !! }
+  If IDEApp.IsRunning then
+    PushStatus('Closing debugger');
 {$endif}
   if assigned(Debugger) then
    dispose(Debugger,Done);
@@ -3938,9 +3941,9 @@ begin
       Use_gdb_file:=false;
       Close(GDB_file);
     end;
-  {PopStatus;}
+  If IDEApp.IsRunning then
+    PopStatus;
 {$endif DEBUG}
-  {DoneGDBWindow;}
 end;
 
 procedure InitGDBWindow;
@@ -3957,11 +3960,12 @@ end;
 
 procedure DoneGDBWindow;
 begin
-  if assigned(GDBWindow) then
+  If IDEApp.IsRunning and
+     assigned(GDBWindow) then
     begin
       DeskTop^.Delete(GDBWindow);
-      GDBWindow:=nil;
     end;
+  GDBWindow:=nil;
 end;
 
 procedure InitDisassemblyWindow;
@@ -4084,7 +4088,10 @@ end.
 
 {
   $Log$
-  Revision 1.18  2002-04-25 13:33:31  pierre
+  Revision 1.19  2002-06-06 08:16:18  pierre
+   * avoid crashes if quitting while debuggee is running
+
+  Revision 1.18  2002/04/25 13:33:31  pierre
    * fix the problem with dirs containing asterisks
 
   Revision 1.17  2002/04/17 11:11:54  pierre
