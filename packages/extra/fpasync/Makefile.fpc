@@ -20,6 +20,7 @@ createpackagefpc=y
 unitdir=../libasync
 sourcedir_linux=unix
 sourcedir_freebsd=unix
+sourcedir_netbsd=unix
 targetdir=.
 
 [default]
