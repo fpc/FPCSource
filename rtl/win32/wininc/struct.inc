@@ -5853,10 +5853,11 @@
      TTOKENPRIMARYGROUP = TOKEN_PRIMARY_GROUP;
      PTOKENPRIMARYGROUP = ^TOKEN_PRIMARY_GROUP;
 
-     TOKEN_PRIVILEGES = record
+     TOKEN_PRIVILEGES = packed record
           PrivilegeCount : DWORD;
           Privileges : array[0..(ANYSIZE_ARRAY)-1] of LUID_AND_ATTRIBUTES;
        end;
+
      PTOKEN_PRIVILEGES = ^TOKEN_PRIVILEGES;
      LPTOKEN_PRIVILEGES = ^TOKEN_PRIVILEGES;
      _TOKEN_PRIVILEGES = TOKEN_PRIVILEGES;
@@ -7027,7 +7028,10 @@ type
 
 {
   $Log$
-  Revision 1.22  2004-02-06 23:10:20  marco
+  Revision 1.23  2004-03-10 15:08:10  marco
+  wininc/struct.inc
+
+  Revision 1.22  2004/02/06 23:10:20  marco
    * a large_integer -> int64 change.
 
   Revision 1.21  2003/12/04 12:34:09  marco
