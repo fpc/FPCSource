@@ -21,30 +21,35 @@ multiple files is also possible, they will be put in the same archive.
 
 \fBppumove\fP has several options, which are case sensitive:
 
-.IP \fI\-b\fP 
+.TP
+.B \-b
 This option tells \fBppumove\fP to write a shell script (a batch file on
 DOS) that performs the needed calls to \fBar\fP and \fBld\fP. The script
 will be called \fBpmove\fP, with an extension of \fB.sh\fP on Linux,
 and \fB.bat\fP on DOS. You can then call this script manually afterwards.
 
-.IP \fI\-d\ path\fP 
+.TP 
+.BI \-d " path"
 This option tells \fBppumove\fP where to generate the new unit files.
 By default, this is the same directory as where the files are found. 
 If you specify as the output extension the same extension as the units
 you want to move, not specifying the destination directory may cause
 problems.
 
-.IP \fI\-e\ ext\fP
+.TP 
+.BI \-e " ext"
 This option sets the extension of the new unit files to \fBext\fP. By
 default \fB.ppl\fP is used. However, you can specify \fB.ppu\fP as the
 extension. If you do, be sure to use also the \fI\-d\fP switch, or you will
 overwrite the old units. Note however, that the compiler will only look for
 extensions \fB.ppu\fP and \fB.ppl\fP when looking for units.
 
-.IP \fI\-h\fP 
+.TP
+.B -h
 Shows a short help screen.
 
-.IP \fI\-o\ file\fP 
+.TP 
+.BI \-o " file"
 This option allows you to specify the name of the library to be generated.
 You \fBmust\fP use this option if you specify more than one unit on the
 command-line. If you specified only one unit on the command-line, the generated library
@@ -52,14 +57,17 @@ will have the unit name, with \fBlib\fP prepended (on Linux).
 You do not need to specify the \fBlib\fP part, this will be prepended
 automatically if needed.
 
-.IP \fI\-q\fP
+.TP
+.B \-q
 Tells \fBppumove\fP to operate quietly.
 
-.IP \fI\-s\fP
+.TP
+.B \-s
 Tells \fBppumove\fP to generate a static library. By default, a shared
 library is generated (except on DOS). 
 
-.IP \fI\-w\fP
+.TP 
+.B \-w
 Tells \fBppumove\fP it should use the windows linker and archiver. Do not
 use this option on Linux.
 

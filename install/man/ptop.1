@@ -6,37 +6,57 @@ Origin probably Pascal\-TO\-Pascal.
 
 .SH SYNOPSIS
 
-\fIptop\fP "[-v] [-i indent] [-b bufsize ][-c optsfile] infile outfile"
+.BI ptop "[-v] [-i indent] [-b bufsize ][-c optsfile] infile outfile"
 
 .SH Description
 
-\fIptop\fP is a more or less configurable \fIsource beautifier\fP for pascal sources,
-and specially the ones supported by FPC (which are more or less TurboPascal or
-Delphi 2.0 compatible).
+.B ptop
+is a more or less configurable 
+.I "source beautifier"
+for pascal sources, and specially the ones supported by FPC (which are 
+more or less Turbo Pascal or Delphi 2.0 compatible).
 .PP
-ptop belongs to the \fIFPC utils\fP package, which currently also contains ppdep, h2pas, ppudump
-and ppumove.
+ptop belongs to the 
+.I "FPC utils"
+package, which currently also contains 
+.B ppdep
+, 
+.B h2pas
+, 
+.B ppudump
+and 
+.B ppumove
+\.
 
 .SH Usage
 
-ptop basically reformats "infile" and outputs the result to "outfile". ptop uses
-a configuration file explained further below, and can generate a default
+.B ptop 
+basically reformats "infile" and outputs the result to "outfile". 
+ituses a configuration file explained further below, and can generate a default
 configurationfile for you to edit. (not needed if you use the defaults)
 
 .SH Options
-.IP \-h
+.TP
+.B \-h
 Writes a short description of these switches.
-.IP \-c
+.TP
+.B \-c
 read options from configuration file. A configuration file is not needed, ptop
 will revert to internal defaults then. See also \-g
-.IP \-i ident
+.TP
+.BI \-i " ident"
 Sets the number of indent spaces used for BEGIN END; and other blocks.
-.IP \-b bufsize
+.TP
+.BI \-b " bufsize"
 Sets the buffersize to bufsize. Default 255, 0 is considered non\-valid and ignored.
-.IP \-v
+.TP
+.B \-v
 be verbose. Currently only outputs the number of lines read/written and some error messages.
-.IP \-g ptop.cfg
-Writes a default configuration file to be edited to the file "ptop.cfg"
+.TP 
+.BI \-g " ptop.cfg"
+Writes a default configuration file to be edited to the file 
+.I ptop.cfg
+
 .PP
 Try to play with ptop and its configfile until you find the effect you desire. The
 configurability and possibilities of ptop are quite large compared to shareware
