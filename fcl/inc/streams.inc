@@ -221,6 +221,33 @@
        ReadDWord:=d;
     end;
 
+  Function TStream.ReadAnsiString : String;
+
+    Type PByte = ^Byte;
+
+    Var TheSize : Longint;
+        P : PByte ;
+  
+
+  begin
+    ReadBuffer (TheSize,SizeOf(TheSize));
+    //!! SetLength(Result,Size);
+    //!! Illegal typecast if no AnsiStrings defined.
+    //!! ReadBuffer (Pointer (Result^),Size);
+    //!! P:=Pointer(Result^)+Size;
+    //!! p^:=0;
+    end;
+
+  Procedure TStream.WriteAnsiString (S : String);
+  
+  Var L : Longint;
+
+  begin
+    L:=Length(S);
+    WriteBuffer (L,SizeOf(L));
+    //!! WriteBuffer (Pointer(S)^,L);
+  end;
+
   procedure TStream.WriteByte(b : Byte);
 
     begin
@@ -464,7 +491,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  1998-05-05 15:25:04  michael
+  Revision 1.3  1998-05-06 12:58:35  michael
+  + Added WriteAnsiString method to TStream
+
+  Revision 1.2  1998/05/05 15:25:04  michael
   + Fix to be able to compile from florian
 
   Revision 1.1  1998/05/04 14:30:12  michael

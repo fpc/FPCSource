@@ -50,6 +50,7 @@ const
 { TFileStream create mode }
 
   fmCreate = $FFFF;
+  fmOpenRead = fmInput;
 
 { TParser special tokens }
 
@@ -442,9 +443,11 @@ type
     function ReadByte : Byte;
     function ReadWord : Word;
     function ReadDWord : Cardinal;
+    function ReadAnsiString : String;
     procedure WriteByte(b : Byte);
     procedure WriteWord(w : Word);
     procedure WriteDWord(d : Cardinal);
+    Procedure WriteAnsiString (S : String);
     property Position: Longint read GetPosition write SetPosition;
     property Size: Longint read GetSize write SetSize;
   end;
@@ -1043,7 +1046,10 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
 {
   $Log$
-  Revision 1.2  1998-05-04 14:30:11  michael
+  Revision 1.3  1998-05-06 12:58:35  michael
+  + Added WriteAnsiString method to TStream
+
+  Revision 1.2  1998/05/04 14:30:11  michael
   * Split file according to Class; implemented dummys for all methods, so unit compiles.
 
   Revision 1.1  1998/05/04 12:16:01  florian
