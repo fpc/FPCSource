@@ -20,47 +20,9 @@
 {                                                          }
 {*****************[ SUPPORTED PLATFORMS ]******************}
 {     16 and 32 Bit compilers                              }
-{        DOS      - Turbo Pascal 7.0 +      (16 Bit)       }
-{        DPMI     - Turbo Pascal 7.0 +      (16 Bit)       }
-{                 - FPC 0.9912+ (GO32V2)    (32 Bit)       }
-{        WINDOWS  - Turbo Pascal 7.0 +      (16 Bit)       }
-{                 - Delphi 1.0+             (16 Bit)       }
-{        WIN95/NT - Delphi 2.0+             (32 Bit)       }
-{                 - Virtual Pascal 2.0+     (32 Bit)       }
-{                 - Speedsoft Sybil 2.0+    (32 Bit)       }
-{                 - FPC 0.9912+             (32 Bit)       }
-{        OS2      - Virtual Pascal 1.0+     (32 Bit)       }
+{        DPMI     - FPC 0.9912+ (GO32V2)    (32 Bit)       }
+{        WIN95/NT - FPC 0.9912+             (32 Bit)       }
 {                                                          }
-{*******************[ DOCUMENTATION ]**********************}
-{                                                          }
-{   This unit had to be for GFV due to some problems with  }
-{  the original Borland International implementation.      }
-{                                                          }
-{   First it used the DOS unit for it's time calls in the  }
-{  TClockView object. Since this unit can not be compiled  }
-{  under WIN/NT/OS2 we use a new unit TIME.PAS which was   }
-{  created and works under these O/S.                      }
-{                                                          }
-{   Second the HeapView object accessed MemAvail from in   }
-{  the Draw call. As GFV uses heap memory during the Draw  }
-{  call the OldMem value always met the test condition in  }
-{  the update procedure. The consequence was the view      }
-{  would continually redraw. By moving the memavail call   }
-{  the update procedure this eliminates this problem.      }
-{                                                          }
-{   Finally the original object relied on the font char    }
-{  blocks being square to erase it's entire view area as   }
-{  it used a simple writeline call in the Draw method.     }
-{  Under GFV font blocks are not necessarily square and    }
-{  so both objects had their Draw routines rewritten. As   }
-{  the Draw had to be redone it was done in the GFV split  }
-{  drawing method to accelerate the graphical speed.       }
-{                                                          }
-{******************[ REVISION HISTORY ]********************}
-{  Version  Date        Fix                                }
-{  -------  ---------   ---------------------------------  }
-{  1.00     12 Nov 99   First multi platform release       }
-{**********************************************************}
 
 UNIT AsciiTab;
 
@@ -107,8 +69,10 @@ USES FVConsts, Objects, Drivers, Views, App;      { Standard GFV units }
 type
   PTable = ^TTable;
   TTable = object(TView)
-    procedure Draw; virtual;
+    procedure DrawBackground; virtual;
     procedure HandleEvent(var Event:TEvent); virtual;
+  private
+    procedure DrawCurPos(enable : boolean);
   end;
 
 {---------------------------------------------------------------------------}
@@ -134,6 +98,7 @@ type
     constructor Init;
     constructor Load(var S: TStream);
     procedure   Store(var S: TStream);
+    procedure HandleEvent(var Event:TEvent); virtual;
   end;
 
 {---------------------------------------------------------------------------}
@@ -185,24 +150,83 @@ procedure RegisterASCIITab;
 {                          TTable OBJECT METHODS                            }
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 
-procedure TTable.Draw;
+procedure TTable.DrawBackground;
 var
-  Color : byte;
+  NormColor : byte;
   B : TDrawBuffer;
   x,y : sw_integer;
 begin
-  Color:=GetColor(1);
+  NormColor:=GetColor(1);
   For y:=0 to size.Y-1 do
     For x:=0 to size.X-1 do
       begin
-        B[x]:=(Color shl 8) or ((y*Size.X+x) and $ff);
+        B[x]:=(NormColor shl 8) or ((y*Size.X+x) and $ff);
         WriteLine(0,Y,Size.X,1,B);
       end;
-  DrawCursor;
+  DrawCurPos(true);
+end;
+
+procedure TTable.DrawCurPos(enable : boolean);
+var
+  Color : byte;
+begin
+  If enable then
+    Color:=3
+  else
+    Color:=1;
+  WriteChar(Cursor.X,Cursor.Y,chr((Cursor.Y*Size.X+Cursor.X) and $ff),color,1);
 end;
 
 procedure TTable.HandleEvent(var Event:TEvent);
+var
+  xpos,ypos : sw_integer;
+  Handled : boolean;
+
+  procedure SetTo(xpos, ypos : sw_integer);
+  var
+    newchar : longint;
+  begin
+    newchar:=(ypos*size.X+xpos) and $ff;
+    DrawCurPos(false);
+    SetCursor(xpos,ypos);
+    Message(Owner,evCommand,AsciiTableCommandBase,
+      pointer(newchar));
+    DrawCurPos(true);
+    ClearEvent(Event);
+  end;
 begin
+  case Event.What of
+    evMouseDown :
+      begin
+        If MouseInView(Event.Where) then
+          begin
+            xpos:=(Event.Where.X -RawOrigin.X) div SysFontWidth;
+            ypos:=(Event.Where.Y -RawOrigin.Y) div SysFontHeight;
+            SetTo(xpos, ypos);
+            exit;
+          end;
+      end;
+    evKeyDown :
+      begin
+        Handled:=true;
+        case Event.Keycode of
+          kbUp   : if Cursor.Y>0 then
+                   SetTo(Cursor.X,Cursor.Y-1);
+          kbDown : if Cursor.Y<Size.Y-1 then
+                   SetTo(Cursor.X,Cursor.Y+1);
+          kbLeft : if Cursor.X>0 then
+                   SetTo(Cursor.X-1,Cursor.Y);
+          kbRight: if Cursor.X<Size.X-1 then
+                   SetTo(Cursor.X+1,Cursor.Y);
+          kbHome : SetTo(0,0);
+          kbEnd  : SetTo(Size.X-1,Size.Y-1);
+        else
+          Handled:=false;
+        end;
+        if Handled then
+          exit;
+      end;
+  end;
   inherited HandleEvent(Event);
 end;
 
@@ -222,15 +246,24 @@ procedure TReport.Draw;
     s : string;
 begin
   Str(AsciiChar,StDec);
+  while length(stDec)<3 do
+    stDec:=' '+stDec;
   stHex:=hexstr(AsciiChar,2);
   s:='Char "'+chr(AsciiChar)+'" Decimal: '+
-     StDec+' Hex: $'+StHex+'   ';
-  WriteStr(0,0,S,GetColor(1));
+     StDec+' Hex: $'+StHex;
+  WriteStr(0,0,S,1);
 end;
 
 procedure TReport.HandleEvent(var Event:TEvent);
 begin
-  inherited HandleEvent(Event);
+  if (Event.what=evCommand) and
+     (Event.Command =  AsciiTableCommandBase) then
+    begin
+      AsciiChar:=Event.InfoLong;
+      Draw;
+      ClearEvent(Event);
+    end
+  else inherited HandleEvent(Event);
 end;
 
 procedure TReport.Store(var S: TStream);
@@ -249,28 +282,42 @@ var
 begin
   R.Assign(0,0,34,12);
   Inherited Init(R,'Ascii table',wnNoNumber);
-  R.Assign(1,1,33,9);
+  Flags:=Flags and not (wfGrow or wfZoom);
+  Palette:=wpGrayWindow;
+  R.Assign(1,10,33,11);
   New(Report,Init(R));
+  Report^.Options:=Report^.Options or ofFramed;
   Insert(Report);
-  R.Assign(11,1,33,12);
+  R.Assign(1,1,33,9);
   New(Table,Init(R));
+  Table^.Options:=Table^.Options or (ofSelectable+ofTopSelect);
   Insert(Table);
+  Table^.Select;
 end;
 
 constructor TASCIIChart.Load(var S: TStream);
 begin
   Inherited Load(S);
-  Report:=PReport(S.Get);
-  Table:=PTable(S.Get);
+  GetPeerViewPtr(S,Report);
+  GetPeerViewPtr(S,Table);
 end;
 
-procedure   TASCIIChart.Store(var S: TStream);
+procedure TASCIIChart.Store(var S: TStream);
 begin
   Inherited Store(S);
-  S.Put(Report);
-  S.Put(Table);
+  PutPeerViewPtr(S,Report);
+  PutPeerViewPtr(S,Table);
 end;
 
+procedure TASCIIChart.HandleEvent(var Event:TEvent);
+begin
+  if (Event.what=evCommand) and
+     (Event.Command =  AsciiTableCommandBase) then
+    begin
+      Report^.HandleEvent(Event);
+    end
+  else inherited HandleEvent(Event);
+end;
 {---------------------------------------------------------------------------}
 { Registration procedure                                                    }
 {---------------------------------------------------------------------------}
@@ -285,7 +332,10 @@ end;
 END.
 {
  $Log$
- Revision 1.1  2002-05-29 22:14:53  pierre
+ Revision 1.2  2002-05-30 14:52:53  pierre
+  * some more fixes
+
+ Revision 1.1  2002/05/29 22:14:53  pierre
   Newfile
 
 
