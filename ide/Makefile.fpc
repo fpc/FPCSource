@@ -126,10 +126,10 @@ fp$(EXEEXT): $(wildcard *.pas) $(wildcard *.inc)
 
 testgdb:
 ifneq ($(GDBFOUND),0)
-        @$(ECHO) LibGDB found in $(LIBGDB)
+        @$(ECHO) LibGDB found in $(LIBGDBFILE)
 else
         @$(ECHO) LibGDB not found
-        @$(ECHO) LIBGDB=$(LIBGDB)
+        @$(ECHO) LIBGDBFILE=$(LIBGDBFILE)
         @$(ECHO) GDBLIBDIR=$(GDBLIBDIR)
         @$(ECHO) $(wildcard $(addsuffix /libgdb.a,$(GDBLIBDIR)))
 endif
@@ -222,7 +222,10 @@ clean_compiler:
 
 #
 # $Log$
-# Revision 1.25  2004-11-05 13:25:10  peter
+# Revision 1.26  2004-11-05 19:10:18  peter
+#   * report where libgdb.a is found
+#
+# Revision 1.25  2004/11/05 13:25:10  peter
 # libgdb now will be search in fpcdir
 #
 # Revision 1.24  2004/11/05 12:48:45  peter
