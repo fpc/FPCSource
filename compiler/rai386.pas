@@ -1544,6 +1544,14 @@ var
                               else
                                   Message(assem_e_invalid_size_in_ref);
                            end;
+                        OPR_CONSTANT: { const,reg }
+                               Begin  { OUT const,reg }
+                                 if (instruc = A_OUT) and (opsize = S_B) then
+                                   p^.concat(new(pai386,op_reg_const(instruc,
+                                    opsize,operands[1].reg,operands[2].val)))
+                                 else
+                                    Message(assem_e_invalid_size_in_ref);
+                               end;
                        else { else case }
                          Begin
                            Message(assem_f_internal_error_in_concatopcode);
@@ -3350,8 +3358,11 @@ Begin
 end.
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:15  root
-  Initial revision
+  Revision 1.2  1998-03-31 15:21:01  florian
+    * fix of out (intel syntax) applied
+
+  Revision 1.1.1.1  1998/03/25 11:18:15  root
+  * Restored version
 
   Revision 1.19  1998/03/24 21:48:34  florian
     * just a couple of fixes applied:
