@@ -42,19 +42,29 @@ unit convtree;
          node : pnode;
 
       begin
-         case p^.treetype of
-           blockn:
-             node:=new(pblocknode,init);
-           else internalerror(13751);
-         end;
-         disposetree(p);
-         convtree2node:=node;
+         if assigned(p) then
+           begin
+              case p^.treetype of
+                blockn:
+                  node:=new(pblocknode,init(convtree2node(p^.left)));
+                else internalerror(13751);
+              end;
+              disposetree(p);
+              convtree2node:=node;
+           end
+         else
+           convtree2node:=nil;
       end;
 
 end.
 {
   $Log$
-  Revision 1.1  1999-01-13 22:52:37  florian
+  Revision 1.2  1999-01-19 10:19:04  florian
+    * bug with mul. of dwords fixed, reported by Alexander Stohr
+    * some changes to compile with TP
+    + small enhancements for the new code generator
+
+  Revision 1.1  1999/01/13 22:52:37  florian
     + YES, finally the new code generator is compilable, but it doesn't run yet :(
 
 }

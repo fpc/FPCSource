@@ -1328,15 +1328,6 @@ unit i386;
     procedure reset_reference(var ref : treference);
 
       begin
-{$ifdef ver0_6}
-         ref.index:=R_NO;
-         ref.base:=R_NO;
-         ref.segment:=R_DEFAULT_SEG;
-         ref.offset:=0;
-         ref.scalefactor:=1;
-         ref.isintvalue:=false;
-         ref.symbol:=nil;
-{$else}
          with ref do
            begin
               index:=R_NO;
@@ -1347,7 +1338,6 @@ unit i386;
               isintvalue:=false;
               symbol:=nil;
            end;
-{$endif}
       end;
 
       function new_reference(base : tregister;offset : longint) : preference;
@@ -1962,7 +1952,12 @@ Begin
 end.
 {
   $Log$
-  Revision 1.28  1999-01-13 11:34:06  florian
+  Revision 1.29  1999-01-19 10:19:02  florian
+    * bug with mul. of dwords fixed, reported by Alexander Stohr
+    * some changes to compile with TP
+    + small enhancements for the new code generator
+
+  Revision 1.28  1999/01/13 11:34:06  florian
     * unified i386.pas for the old and new code generator
 
   Revision 1.27  1999/01/10 15:37:53  peter

@@ -798,10 +798,10 @@ implementation
                        emitloadord2reg(p^.right^.location,u32bitdef,R_EAX,true);
                        exprasmlist^.concat(new(pai386,op_reg(A_MUL,S_L,R_EDI)));
                        emit_reg_reg(A_MOV,S_L,R_EAX,p^.location.register);
-                       if popeax then
-                        exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EAX)));
                        if popedx then
                         exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EDX)));
+                       if popeax then
+                        exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EAX)));
                        SetResultLocation(false,true,p);
                        exit;
                      end;
@@ -1737,7 +1737,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.38  1999-01-05 17:03:36  jonas
+  Revision 1.39  1999-01-19 10:18:58  florian
+    * bug with mul. of dwords fixed, reported by Alexander Stohr
+    * some changes to compile with TP
+    + small enhancements for the new code generator
+
+  Revision 1.38  1999/01/05 17:03:36  jonas
     * don't output inc/dec if cs_check_overflow is on, because inc/dec don't change
       the carry flag
 

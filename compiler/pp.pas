@@ -159,7 +159,6 @@ uses
   {$O os2_targ}
   {$O win_targ}
 {$endif i386}
-  {$O asmutils}
   {$ifdef gdb}
         {$O gdb}
   {$endif gdb}
@@ -265,7 +264,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.37  1998-12-16 00:27:21  peter
+  Revision 1.38  1999-01-19 10:19:03  florian
+    * bug with mul. of dwords fixed, reported by Alexander Stohr
+    * some changes to compile with TP
+    + small enhancements for the new code generator
+
+  Revision 1.37  1998/12/16 00:27:21  peter
     * removed some obsolete version checks
 
   Revision 1.36  1998/11/27 22:54:52  michael

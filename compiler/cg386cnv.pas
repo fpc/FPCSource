@@ -545,7 +545,6 @@ implementation
                    begin
                       clear_location(pto^.location);
                       pto^.location.loc:=LOC_REFERENCE;
-                      clear_reference(pto^.location.reference);
                       gettempofsizereference(pto^.resulttype^.size,pto^.location.reference);
                       ltemptoremove^.concat(new(ptemptodestroy,init(pto^.location.reference,pto^.resulttype)));
                       exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_L,0,newreference(pto^.location.reference))));
@@ -1345,6 +1344,9 @@ implementation
          { the helper routines need access to the release list }
          ltemptoremove:=oldrl;
 
+         if not(assigned(ltemptoremove)) then
+           internalerror(18011);
+
          { this isn't good coding, I think tc_bool_2_int, shouldn't be }
          { type conversion (FK)                                        }
 
@@ -1476,7 +1478,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.43  1998-12-22 13:10:59  florian
+  Revision 1.44  1999-01-19 10:18:59  florian
+    * bug with mul. of dwords fixed, reported by Alexander Stohr
+    * some changes to compile with TP
+    + small enhancements for the new code generator
+
+  Revision 1.43  1998/12/22 13:10:59  florian
     * memory leaks for ansistring type casts fixed
 
   Revision 1.42  1998/12/19 00:23:42  florian

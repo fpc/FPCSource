@@ -195,7 +195,7 @@ unit tree;
           procedure pass_1;
           { dermines the resulttype of the node }
           procedure det_resulttype;virtual;
-          { dermines the number of necessary temp. locations to evalute
+          { dermines the number of necessary temp. locations to evaluate
             the node }
           procedure det_temp;virtual;
           procedure secondpass;virtual;
@@ -208,7 +208,6 @@ unit tree;
        end;
 
        ploadnode = ^tloadnode;
-
        tloadnode = object(tnode)
           symtableentry : psym;
           symtable : psymtable;
@@ -282,6 +281,7 @@ unit tree;
           tunarynode = object(tnode)
              left : pnode;
              procedure dowrite;virtual;
+            constructor init(l : pnode);
           end;
 
           pbinarynode = ^tbinarynode;
@@ -298,7 +298,7 @@ unit tree;
 
           pblocknode = ^tblocknode;
           tblocknode = object(tunarynode)
-            constructor init;
+            constructor init(l : pnode);
           end;
 
 {$ifdef dummy}
@@ -605,6 +605,13 @@ unit tree;
                                  TUNARYNODE
  ****************************************************************************}
 
+    constructor tunarynode.init(l : pnode);
+
+      begin
+         inherited init;
+         left:=l;
+      end;
+
     procedure tunarynode.dowrite;
 
       begin
@@ -619,10 +626,10 @@ unit tree;
                                  TBLOCKNODE
  ****************************************************************************}
 
-    constructor tblocknode.init;
+    constructor tblocknode.init(l : pnode);
 
       begin
-         inherited init;
+         inherited init(l);
          treetype:=blockn;
       end;
 
@@ -1918,7 +1925,12 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.3  1999-01-13 22:52:40  florian
+  Revision 1.4  1999-01-19 10:19:06  florian
+    * bug with mul. of dwords fixed, reported by Alexander Stohr
+    * some changes to compile with TP
+    + small enhancements for the new code generator
+
+  Revision 1.3  1999/01/13 22:52:40  florian
     + YES, finally the new code generator is compilable, but it doesn't run yet :(
 
   Revision 1.2  1998/12/26 15:20:32  florian
