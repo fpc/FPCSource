@@ -255,18 +255,14 @@ begin
 { Find the first DirectorySeparator or DriveSeparator from the end. }
   DirEnd := Length (Path);
 { Avoid problems with platforms having DriveSeparator = DirectorySeparator. }
-{$IFNDEF MACOS}
   if DirectorySeparator = DriveSeparator then
-   while (DirEnd > 0) and not (Path [DirEnd] in [DirectorySeparator]) do
+   while (DirEnd > 0) and (Path [DirEnd] <> DirectorySeparator) do
     Dec (DirEnd)
   else
-   while (DirEnd > 0) and not (Path [DirEnd] in
-                                       [DirectorySeparator, DriveSeparator]) do
+   while (DirEnd > 0) and
+                 (Path [DirEnd] <> DirectorySeparator) and
+                                           (Path [DirEnd] <> DriveSeparator) do
     Dec (DirEnd);
-{$ELSE}
-  while (DirEnd > 0) and not (Path [DirEnd] in [DirectorySeparator]) do
-    Dec (DirEnd);
-{$ENDIF}
 
 { The first "extension" should be returned if LFN }
 { support not available, the last one otherwise.  }
@@ -308,7 +304,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  2005-01-01 20:31:02  olle
+  Revision 1.7  2005-01-23 09:50:59  hajny
+    * yet another attempt to make Mac OS accept dos.inc without hacks ;-)
+
+  Revision 1.6  2005/01/01 20:31:02  olle
     + hack again to make macos compile
 
   Revision 1.5  2004/12/29 19:10:47  hajny
