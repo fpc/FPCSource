@@ -45,7 +45,7 @@ begin
   StatFS:=(do_SysCall(SysCall_nr_fstatfs,fd,longint(@info))=0);
 end;
 
-Function AssignPipe(var pipe_in,pipe_out:longint):boolean; [public, alias : 'FPC_SYSC_ASSIGNPIPE'];
+Function AssignPipe(var pipe_in,pipe_out:longint):cint; [public, alias : 'FPC_SYSC_ASSIGNPIPE'];
 
 {
   Sets up a pair of file variables, which act as a pipe. The first one can
@@ -55,7 +55,7 @@ Function AssignPipe(var pipe_in,pipe_out:longint):boolean; [public, alias : 'FPC
 var
   pip  : tpipe;
 begin
-  assignPipe:=do_SysCall(SysCall_nr_pipe,longint(@pip))=0;
+  assignPipe:=do_SysCall(SysCall_nr_pipe,longint(@pip));
   pipe_in:=pip[1];
   pipe_out:=pip[2];
 end;
@@ -110,7 +110,10 @@ end;
 
 {
   $Log$
-  Revision 1.17  2003-11-13 13:36:23  marco
+  Revision 1.18  2003-11-13 17:40:12  marco
+   * small fixes
+
+  Revision 1.17  2003/11/13 13:36:23  marco
    * Linuxerror removed
 
   Revision 1.16  2003/11/09 13:48:55  marco
