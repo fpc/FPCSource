@@ -34,6 +34,9 @@ const
   N_IncludeFile = $84;
 
   maxstabs = 40; { size of the stabs buffer }
+  { GDB after 4.18 uses offset to function begin
+    in text section but OS/2 version still uses 4.16 PM }
+  StabsFunctionRelative : boolean = true;
 
 type
   pstab=^tstab;
@@ -316,6 +319,7 @@ begin
 (* but it seems to be correct. :-) - TH              *)
    StabCnt := AoutHeader.SymbSize div SizeOf (TStab);
    StabStrOfs := StabOfs + AoutHeader.SymbSize;
+   StabsFunctionRelative:=false;
    LoadEMXaout := (StabOfs <> -1) and (StabStrOfs <> -1);
   end;
  end;
@@ -502,7 +506,8 @@ begin
          N_DataLine,
          N_TextLine :
            begin
-             inc(stabs[i].nvalue,lastfunc.nvalue);
+             if (stabs[i].ntype=N_TextLine) and StabsFunctionRelative then
+               inc(stabs[i].nvalue,lastfunc.nvalue);
              if (stabs[i].nvalue<=addr) and
                 (stabs[i].nvalue>linestab.nvalue) then
               begin
@@ -611,7 +616,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.6  2000-03-19 18:10:41  hajny
+  Revision 1.7  2000-03-23 22:00:08  pierre
+   * fix for OS/2 hopefully
+
+  Revision 1.6  2000/03/19 18:10:41  hajny
     + added support for EMX
 
   Revision 1.5  2000/02/09 16:59:30  peter
