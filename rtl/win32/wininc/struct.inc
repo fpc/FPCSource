@@ -4401,21 +4401,7 @@
      TSERVICEADDRESSES = SERVICE_ADDRESSES;
      PSERVICEADDRESSES = ^SERVICE_ADDRESSES;
 
-     GUID = record
-          case integer of
-             1 : (
-                  Data1 : cardinal;
-                  Data2 : word;
-                  Data3 : word;
-                  Data4 : array[0..7] of byte;
-                 );
-             2 : (
-                  D1 : cardinal;
-                  D2 : word;
-                  D3 : word;
-                  D4 : array[0..7] of byte;
-                 );
-       end;
+     GUID = system.tguid;
      LPGUID = ^GUID;
      _GUID = GUID;
      TGUID = GUID;
@@ -6961,7 +6947,10 @@ type
 
 {
   $Log$
-  Revision 1.5  2000-12-18 17:28:58  jonas
+  Revision 1.6  2001-04-04 17:58:36  florian
+    * TGUID definition is now imported from the system unit
+
+  Revision 1.5  2000/12/18 17:28:58  jonas
     * fixed range check errors
 
   Revision 1.4  2000/11/21 08:49:14  jonas
