@@ -37,6 +37,8 @@ procedure WriteXML(Element: TDOMElement; var AStream: TStream);
 
 implementation
 
+uses SysUtils;
+
 // -------------------------------------------------------------------
 //   Writers for the different node types
 // -------------------------------------------------------------------
@@ -137,8 +139,8 @@ type
   TSpecialCharCallback = procedure(c: Char);
 
 const
-  AttrSpecialChars = ['"', '&'];
-  TextSpecialChars = ['<', '>', '&'];
+  AttrSpecialChars = [#1..#31, '"', '&'];
+  TextSpecialChars = [#1..#9, #11, #12, #14..#31, '<', '>', '&'];
 
 
 procedure ConvWrite(const s: String; const SpecialChars: TCharacters;
@@ -169,7 +171,7 @@ begin
   else if c = '&' then
     wrt('&amp;')
   else
-    wrt(c);
+    wrt('&#' + IntToStr(Ord(c)) + ';');
 end;
 
 procedure TextnodeSpecialCharCallback(c: Char);
@@ -181,7 +183,7 @@ begin
   else if c = '&' then
     wrt('&amp;')
   else
-    wrt(c);
+    wrt('&#' + IntToStr(Ord(c)) + ';');
 end;
 
 
@@ -398,7 +400,11 @@ end.
 
 {
   $Log$
-  Revision 1.9  2000-07-09 11:40:09  sg
+  Revision 1.10  2000-07-09 18:25:24  sg
+  * Added reading and writing support of character entity references
+    (i.e. characters given by their ASCII/Unicode values)
+
+  Revision 1.9  2000/07/09 11:40:09  sg
   * ">" and "&" in text nodes are now replaced by "&gt;" and "&amp;"
 
   Revision 1.8  2000/06/29 08:45:32  sg
