@@ -79,8 +79,9 @@ var
 Implementation
 
 Uses
-  systems,files,aasm,globals,AsmUtils,strings,hcodegen,scanner,
-  cobjects,verbose,types;
+  strings,cobjects,systems,verbose,globals,
+  files,aasm,types,scanner,hcodegen,
+  rautils;
 
 
 type
@@ -106,11 +107,6 @@ const
    lastoperator   = AS_XOR;
    firstsreg      = R_CS;
    lastsreg       = R_SS;
-   { this is a hack to accept all opcodes }
-   { in the opcode table.                 }
-   { check is done until A_EMMS           }
-   { otherwise no check.                  }
-   lastop_in_table = A_EMMS;
 
        _count_asmdirectives = longint(lastdirective)-longint(firstdirective);
        _count_asmoperators  = longint(lastoperator)-longint(firstoperator);
@@ -151,31 +147,6 @@ const
        A_SCAS,A_SCAS,A_SCAS,A_STOS,A_STOS,A_STOS,A_MOVS,A_MOVS,A_MOVS,
        A_LODS,A_LODS,A_LODS,A_LOCK,A_NONE,A_NONE,A_NONE,A_NONE);
      {------------------------------------------------------------------}
-       { register type definition table for easier searching }
-       _regtypes:array[firstreg..lastreg] of longint =
-       (ao_reg32,ao_reg32,ao_reg32,ao_reg32,ao_reg32,ao_reg32,ao_reg32,ao_reg32,
-       ao_reg16,ao_reg16,ao_reg16,ao_reg16,ao_reg16,ao_reg16,ao_reg16,ao_reg16,
-       ao_reg8,ao_reg8,ao_reg8,ao_reg8,ao_reg8,ao_reg8,ao_reg8,ao_reg8,
-       ao_none,ao_sreg2,ao_sreg2,ao_sreg2,ao_sreg3,ao_sreg3,ao_sreg2,
-       ao_floatacc,ao_floatacc,ao_floatreg,ao_floatreg,ao_floatreg,ao_floatreg,
-       ao_floatreg,ao_floatreg,ao_floatreg);
-
-       _regsizes: array[firstreg..lastreg] of topsize =
-       (S_L,S_L,S_L,S_L,S_L,S_L,S_L,S_L,
-        S_W,S_W,S_W,S_W,S_W,S_W,S_W,S_W,
-        S_B,S_B,S_B,S_B,S_B,S_B,S_B,S_B,
-        { segment register }
-        S_W,S_W,S_W,S_W,S_W,S_W,S_W,
-        { can also be S_S or S_T - must be checked at run-time }
-        S_FL,S_FL,S_FL,S_FL,S_FL,S_FL,S_FL,S_FL,S_FL);
-
-       {topsize = (S_NO,S_B,S_W,S_L,S_BW,S_BL,S_WL,
-                  S_IS,S_IL,S_IQ,S_FS,S_FL,S_FX,S_D);}
-       _constsizes: array[S_NO..S_FS] of longint =
-       (0,ao_imm8,ao_imm16,ao_imm32,0,0,0,ao_imm16,ao_imm32,0,ao_imm32);
-
-
-
 
 const
   newline = #10;
@@ -743,7 +714,7 @@ var
                        { check if there is not already a default size }
                        if opr.size <> S_NO then
                        Begin
-                          findtype := _constsizes[opr.size];
+                          findtype := const_2_type[opr.size];
                          exit;
                        end;
                        if val < $ff then
@@ -763,7 +734,7 @@ var
                        end
                      end;
        OPR_REGISTER: Begin
-                      findtype := _regtypes[reg];
+                      findtype := reg_2_type[reg];
                       exit;
                      end;
          OPR_SYMBOL: Begin
@@ -936,7 +907,7 @@ var
      Begin
        case instr.operands[i].operandtype of
          OPR_REGISTER: instr.operands[i].size :=
-                         _regsizes[instr.operands[i].reg];
+                         reg_2_size[instr.operands[i].reg];
        end; { end case }
      end; { endif }
     { setup specific instructions for first pass }
@@ -1324,14 +1295,15 @@ var
     { after reading the operands }
     { search the instruction     }
     { setup startvalue from cache }
-    if ins_cache[instruc]<>-1 then
-       i:=ins_cache[instruc]
-    else i:=0;
+    if itcache^[instruc]<>-1 then
+       i:=itcache^[instruc]
+    else
+       i:=0;
 
 
     { this makes cpu.pp uncompilable, but i think this code should be }
     { inserted in the system unit anyways.                            }
-    if (instruc > lastop_in_table) then
+    if (instruc > lastop_ittable) then
       begin
          Message1(assem_w_opcode_not_in_table,upper(int_op2str[instruc]));
          fits:=true;
@@ -1340,8 +1312,8 @@ var
       begin
        { set the instruction cache, if the instruction }
        { occurs the first time                         }
-       if (it[i].i=instruc) and (ins_cache[instruc]=-1) then
-           ins_cache[instruc]:=i;
+       if (it[i].i=instruc) and (itcache^[instruc]=-1) then
+           itcache^[instruc]:=i;
 
        if (it[i].i=instruc) and (instr.numops=it[i].ops) then
        begin
@@ -3497,14 +3469,16 @@ end;
 
 begin
    old_exit:=exitproc;
-   { you will get range problems here }
-   if lastop_in_table > last_instruction_in_cache then
-     Internalerror(2111);
    exitproc:=@ra386int_exit;
 end.
 {
   $Log$
-  Revision 1.19  1998-12-23 22:55:57  peter
+  Revision 1.20  1999-01-10 15:37:58  peter
+    * moved some tables from ra386*.pas -> i386.pas
+    + start of coff writer
+    * renamed asmutils unit to rautils
+
+  Revision 1.19  1998/12/23 22:55:57  peter
     + rec.field(%esi) support
     + [esi+rec.field] support
 

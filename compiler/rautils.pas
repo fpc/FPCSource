@@ -3,6 +3,7 @@
     Copyright (c) 1998 Carl Eric Codere
 
     This unit implements some support routines for assembler parsing
+    independent of the processor
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,7 +21,7 @@
 
  **********************************************************************}
 
-Unit AsmUtils;
+Unit RAUtils;
 
 {*************************************************************************}
 {  This unit implements some objects as well as utilities which will be   }
@@ -1802,77 +1803,9 @@ end;
 end.
 {
   $Log$
-  Revision 1.17  1998-12-23 22:55:55  peter
-    + rec.field(%esi) support
-    + [esi+rec.field] support
+  Revision 1.1  1999-01-10 15:38:00  peter
+    * moved some tables from ra386*.pas -> i386.pas
+    + start of coff writer
+    * renamed asmutils unit to rautils
 
-  Revision 1.16  1998/12/11 00:02:44  peter
-    + globtype,tokens,version unit splitted from globals
-
-  Revision 1.15  1998/11/17 00:26:11  peter
-    * fixed for $H+
-
-  Revision 1.14  1998/11/05 23:48:17  peter
-    * recordtype.field support in constant expressions
-    * fixed imul for oa_imm8 which was not allowed
-    * fixed reading of local typed constants
-    * fixed comment reading which is not any longer a separator
-
-  Revision 1.13  1998/10/28 00:08:45  peter
-    + leal procsym,eax is now allowed
-    + constants are now handled also when starting an expression
-    + call *pointer is now allowed
-
-  Revision 1.12  1998/10/14 11:28:13  florian
-    * emitpushreferenceaddress gets now the asmlist as parameter
-    * m68k version compiles with -duseansistrings
-
-  Revision 1.11  1998/10/13 16:49:59  pierre
-    * undid some changes of Peter that made the compiler wrong
-      for m68k (I had to reinsert some ifdefs)
-    * removed several memory leaks under m68k
-    * removed the meory leaks for assembler readers
-    * cross compiling shoud work again better
-      ( crosscompiling sysamiga works
-       but as68k still complain about some code !)
-
-  Revision 1.10  1998/10/13 13:10:10  peter
-    * new style for m68k/i386 infos and enums
-
-  Revision 1.9  1998/09/24 17:54:15  carl
-    * bugfixes from fix branch
-
-  Revision 1.8.2.1  1998/09/24 17:46:25  carl
-   * support for objects in asm statements
-
-  Revision 1.8  1998/08/27 00:43:06  carl
-    +} now record offsets searches set the operand sizes
-
-  Revision 1.7  1998/08/18 20:51:32  peter
-    * fixed bug 42
-
-  Revision 1.6  1998/08/10 14:49:40  peter
-    + localswitches, moduleswitches, globalswitches splitting
-
-  Revision 1.5  1998/07/14 21:46:38  peter
-    * updated messages file
-
-  Revision 1.4  1998/06/04 23:51:31  peter
-    * m68k compiles
-    + .def file creation moved to gendef.pas so it could also be used
-      for win32
-
-  Revision 1.3  1998/05/31 14:13:30  peter
-    * fixed call bugs with assembler readers
-    + OPR_SYMBOL to hold a symbol in the asm parser
-    * fixed staticsymtable vars which were acessed through %ebp instead of
-      name
-
-  Revision 1.2  1998/04/29 10:33:43  pierre
-    + added some code for ansistring (not complete nor working yet)
-    * corrected operator overloading
-    * corrected nasm output
-    + started inline procedures
-    + added starstarn : use ** for exponentiation (^ gave problems)
-    + started UseTokenInfo cond to get accurate positions
 }

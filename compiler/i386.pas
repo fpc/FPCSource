@@ -24,20 +24,34 @@ unit i386;
 
   interface
 
+  { By default we want everything }
+  {$define ATTOP}
+  {$define INTELOP}
+  {$define ITTABLE}
+
   { We Don't need the intel style opcodes if we don't have a intel
     reader or generator (PFV) }
   {$ifdef NORA386INT}
     {$ifdef NOAG386NSM}
       {$ifdef NOAG386INT}
-        {$define NOINTOP}
+        {$undef INTELOP}
       {$endif}
     {$endif}
   {$endif}
 
+  { We Don't need the AT&T style opcodes if we don't have a AT&T
+    reader or generator (PFV) }
+  {$ifdef NORA386ATT}
+    {$ifdef NOAG386ATT}
+      {$undef ATTOP}
+    {$endif}
+  {$endif}
+
   { We Don't need the it table if no assembler parser is selected }
+  {$define ITTABLE}
   {$ifdef NORA386INT}
     {$ifdef NORA386ATT}
-      {$define NOITTABLE}
+      {.$undef ITTABLE}
     {$endif}
   {$endif}
 
@@ -46,6 +60,57 @@ unit i386;
 
     const
       extended_size = 10;
+
+      ao_unknown = $0;
+      ao_none = $ff;
+
+      ao_reg8  = $1;  { 8 bit reg }
+      ao_reg16 = $2;  { 16 bit reg }
+      ao_reg32 = $4;  { 32 bit reg }
+      ao_reg     = (ao_reg8 or ao_reg16 or ao_reg32);
+      ao_wordreg = (ao_reg16 or ao_reg32);
+
+      ao_acc    = $8;  { Accumulat or  %al  or  %ax  or  %eax }
+      ao_sreg2  = $10; { 2 bit segment register }
+      ao_sreg3  = $20; { 3 bit segment register }
+      ao_mmxreg = $40; { mmx register }
+
+      ao_floatacc      = $80;  { Float stack top %st(0) }
+      ao_otherfloatreg = $100; { Float register different from st0 }
+      ao_floatreg = ao_otherfloatreg or ao_floatacc; { all float regs }
+
+      ao_imm8  = $200;       { 8 bit immediate }
+      ao_imm8S = $400;       { 8 bit immediate sign extended }
+      ao_imm16 = $800;       { 16 bit immediate }
+      ao_imm32 = $1000;      { 32 bit immediate }
+      ao_imm1  = $2000;      { 1 bit immediate }
+      ao_imm   = (ao_imm8 or ao_imm8S or ao_imm16 or ao_imm32);
+      ao_immunknown = ao_imm32; { for  unknown expressions }
+
+      ao_disp8   = $4000;     { 8 bit displacement (for  jumps) }
+      ao_disp16  = $8000;     { 16 bit displacement }
+      ao_disp32  = $10000;    { 32 bit displacement }
+      ao_disp    = (ao_disp8 or ao_disp16 or ao_disp32);
+      ao_dispunknown = ao_disp32;
+
+      ao_mem8      = $20000;
+      ao_mem16     = $40000;
+      ao_mem32     = $80000;
+      ao_baseindex = $100000;
+      ao_mem     = (ao_disp or ao_mem8 or ao_mem16 or ao_mem32 or ao_baseindex);
+      ao_wordmem = (ao_mem16 or ao_mem32 or ao_disp or ao_baseindex);
+      ao_bytemem = (ao_mem8 or ao_disp or ao_baseindex);
+
+      ao_inoutportreg = $200000; { register to hold in/out port addr = dx }
+      ao_shiftcount   = $400000; { register to hold shift cound = cl }
+      ao_control = $800000;  { Control register }
+      ao_debug   = $1000000; { Debug register }
+      ao_test    = $2000000; { Test register }
+
+      ao_abs32   = $4000000;
+      ao_jumpabsolute = $8000000;
+
+      ao_implicitregister = (ao_inoutportreg or ao_shiftcount or ao_acc or ao_floatacc);
 
     type
        tasmop = (
@@ -104,42 +169,46 @@ unit i386;
          A_PSUBUSB,A_PSUBUSW,A_PSUBW,A_PUNPCKHBW,A_PUNPCKHDQ,
          A_PUNPCKHWD,A_PUNPCKLBW,A_PUNPCKLDQ,A_PUNPCKLWD,A_PXOR,
          { KNI instructions: (intel katmai) }
-	 A_ADDPS,A_ADDSS,A_ANDNPS,A_ANDNSS,A_ANDPS,A_ANDSS,A_CMPEQPS,A_CMPEQSS,
-	 A_CMPLEPS,A_CMPLESS,A_CMPLTPS,A_CMPLTSS,A_CMPNEQPS,A_CMPNEQSS,
-	 A_CMPNLEPS,A_CMPNLESS,A_CMPNLTPS,A_CMPNLTSS,A_CMPORDPS,A_CMPORDSS,
-	 A_CMPUNORDPS,A_CMPUNORDSS,A_COMISS,A_CVTPI2PS,A_CVTPS2PI,
-	 A_CVTSI2SS,A_CVTTPS2PI,A_CVTTSS2SI,A_DIVPS,A_DIVSS,A_FXRSTOR,A_FXSAVE,
-	 A_LDMXCSR,A_MASKMOVQ,A_MAXPS,A_MAXSS,A_MINPS,A_MINSS,A_MOVAPS,
-	 A_MOVHPS,A_MOVLPS,A_MOVMSKPS,A_MOVNTPS,A_MOVNTQ,A_MOVSS,A_MOVUPS,
-	 A_MULPS,A_MULSS,A_ORPS,A_PAVGB,A_PAVGW,A_PEXTRW,A_PINSRW,A_PMAXSW,
-	 A_PMAXUB,A_PMINSW,A_PMINUB,A_PMOVMSKB,A_PMULHUW,A_PREFETCHNT,
-	 A_PREFETCH0,A_PREFETCH1,A_PREFETCH2,A_PSADBW,A_PSHUFW,A_RCPPS,A_RCPSS,
-	 A_RSQRTPS,A_RSQRTSS,A_SFENCE,A_SHUFPS,A_SQRTPS,A_SQRTSS,A_STMXCSR,
-	 A_SUBPS,A_SUBSS,A_UCOMISS,A_UNPCKHPS,A_UNPCKLPS,A_XORPS,
+         A_ADDPS,A_ADDSS,A_ANDNPS,A_ANDNSS,A_ANDPS,A_ANDSS,A_CMPEQPS,A_CMPEQSS,
+         A_CMPLEPS,A_CMPLESS,A_CMPLTPS,A_CMPLTSS,A_CMPNEQPS,A_CMPNEQSS,
+         A_CMPNLEPS,A_CMPNLESS,A_CMPNLTPS,A_CMPNLTSS,A_CMPORDPS,A_CMPORDSS,
+         A_CMPUNORDPS,A_CMPUNORDSS,A_COMISS,A_CVTPI2PS,A_CVTPS2PI,
+         A_CVTSI2SS,A_CVTTPS2PI,A_CVTTSS2SI,A_DIVPS,A_DIVSS,A_FXRSTOR,A_FXSAVE,
+         A_LDMXCSR,A_MASKMOVQ,A_MAXPS,A_MAXSS,A_MINPS,A_MINSS,A_MOVAPS,
+         A_MOVHPS,A_MOVLPS,A_MOVMSKPS,A_MOVNTPS,A_MOVNTQ,A_MOVSS,A_MOVUPS,
+         A_MULPS,A_MULSS,A_ORPS,A_PAVGB,A_PAVGW,A_PEXTRW,A_PINSRW,A_PMAXSW,
+         A_PMAXUB,A_PMINSW,A_PMINUB,A_PMOVMSKB,A_PMULHUW,A_PREFETCHNT,
+         A_PREFETCH0,A_PREFETCH1,A_PREFETCH2,A_PSADBW,A_PSHUFW,A_RCPPS,A_RCPSS,
+         A_RSQRTPS,A_RSQRTSS,A_SFENCE,A_SHUFPS,A_SQRTPS,A_SQRTSS,A_STMXCSR,
+         A_SUBPS,A_SUBSS,A_UCOMISS,A_UNPCKHPS,A_UNPCKLPS,A_XORPS,
          { 3Dnow instructions: (amd k6-2) }
-	 A_FEMMS,A_PAVGUSB,A_PF2ID,A_PFACC,A_PFADD,A_PFCMPEQ,A_PFCMPGE,
-	 A_PFCMPGT,A_PFMAX,A_PFMIN,A_PFMUL,A_PFRCP,A_PFRCPIT1,A_PFRCPIT2,
-	 A_PFRSQIT1,A_PFRSQRT,A_PFSUB,A_PFSUBR,A_PI2FD,A_PMULHRW,A_PREFETCH,
-	 A_PREFETCHW
+         A_FEMMS,A_PAVGUSB,A_PF2ID,A_PFACC,A_PFADD,A_PFCMPEQ,A_PFCMPGE,
+         A_PFCMPGT,A_PFMAX,A_PFMIN,A_PFMUL,A_PFRCP,A_PFRCPIT1,A_PFRCPIT2,
+         A_PFRSQIT1,A_PFRSQRT,A_PFSUB,A_PFSUBR,A_PI2FD,A_PMULHRW,A_PREFETCH,
+         A_PREFETCHW
          );
     const
-      firstop = A_MOV;
-      lastop  = A_PREFETCHW;
+      firstop = low(tasmop);
+      lastop  = high(tasmop);
+
 
     type
-       { enumeration for registers, don't change order.     }
-       { this enum is used by the register size conversions }
-       tregister = (
-         R_NO,R_EAX,R_ECX,R_EDX,R_EBX,R_ESP,R_EBP,R_ESI,R_EDI,
+       { enumeration for registers, don't change this }
+       { it's used by the register size converstaions }
+       tregister = (R_NO,
+         R_EAX,R_ECX,R_EDX,R_EBX,R_ESP,R_EBP,R_ESI,R_EDI,
          R_AX,R_CX,R_DX,R_BX,R_SP,R_BP,R_SI,R_DI,
          R_AL,R_CL,R_DL,R_BL,R_AH,R_CH,R_BH,R_DH,
          { for an easier assembler generation }
          R_DEFAULT_SEG,R_CS,R_DS,R_ES,R_FS,R_GS,R_SS,
          R_ST,R_ST0,R_ST1,R_ST2,R_ST3,R_ST4,R_ST5,R_ST6,R_ST7,
          R_MM0,R_MM1,R_MM2,R_MM3,R_MM4,R_MM5,R_MM6,R_MM7,
-         R_XMM0,R_XMM1,R_XMM2,R_XMM3,R_XMM4,R_XMM5,R_XMM6,R_XMM7
-         );
+         R_XMM0,R_XMM1,R_XMM2,R_XMM3,R_XMM4,R_XMM5,R_XMM6,R_XMM7);
+    const
+       firstreg = low(tregister);
+       lastreg  = high(tregister);
 
+    type
        { S_NO = No Size of operand }
        { S_B  = Byte size operand  }
        { S_W  = Word size operand  }
@@ -159,17 +228,12 @@ unit i386;
        { S_FV  = floating point vector 4*32 bit = 128 bit (for KNI) }
        topsize = (S_NO,S_B,S_W,S_L,S_BW,S_BL,S_WL,
                   S_IS,S_IL,S_IQ,S_FS,S_FL,S_FX,S_D,S_FV);
-       { S_FS and S_FL added
-         S_X renamed to S_FX
-         S_IL added
-         S_S and S_Q renamed to S_IQ and S_IS
-         S_F? means a real load or store or read
-         added to distinguish between longint l suffix like 'movl'
-         and double l suffix 'fldl'
-         distinction needed for intel output !! }
+    const
+       firstopsize = low(topsize);
+       lastopsize  = high(topsize);
 
-       plocation = ^tlocation;
 
+    type
        { information about the location of an operand }
        { LOC_FPUSTACK    FPU stack }
        { LOC_REGISTER    in a processor register }
@@ -179,7 +243,6 @@ unit i386;
        { LOC_FLAGS       boolean results only, flags are set }
        { LOC_CREGISTER   register which shouldn't be modified }
        { LOC_INVALID     added for tracking problems}
-
        tloc = (LOC_INVALID,LOC_FPU,LOC_REGISTER,LOC_MEM,LOC_REFERENCE,LOC_JUMP,
                LOC_FLAGS,LOC_CREGISTER,LOC_MMXREGISTER,LOC_CMMXREGISTER);
 
@@ -187,7 +250,6 @@ unit i386;
                     F_A,F_AE,F_B,F_BE);
 
        preference = ^treference;
-
        treference = record
           base,segment,index : tregister;
           offset : longint;
@@ -198,6 +260,7 @@ unit i386;
           scalefactor : byte;
        end;
 
+       plocation = ^tlocation;
        tlocation = record
           case loc : tloc of
              LOC_MEM,LOC_REFERENCE : (reference : treference);
@@ -230,20 +293,47 @@ unit i386;
           (A_JE,A_JNE,A_JG,A_JL,A_JGE,A_JLE,A_JC,A_JNC,
            A_JA,A_JAE,A_JB,A_JBE);
 
-       flag_2_set : array[F_E..F_BE] of tasmop =        { v-- the GAS didn't know setc }
+       flag_2_set : array[F_E..F_BE] of tasmop =
           (A_SETE,A_SETNE,A_SETG,A_SETL,A_SETGE,A_SETLE,A_SETB,A_SETAE,
            A_SETA,A_SETAE,A_SETB,A_SETBE);
 
+    const
+       { arrays for size and type determination }
+       reg_2_size: array[firstreg..lastreg] of topsize = (
+         S_NO,S_L,S_L,S_L,S_L,S_L,S_L,S_L,S_L,
+         S_W,S_W,S_W,S_W,S_W,S_W,S_W,S_W,
+         S_B,S_B,S_B,S_B,S_B,S_B,S_B,S_B,
+         { segment register }
+         S_W,S_W,S_W,S_W,S_W,S_W,S_W,
+         { can also be S_S or S_T - must be checked at run-time }
+         S_FL,S_FL,S_FL,S_FL,S_FL,S_FL,S_FL,S_FL,S_FL,
+         S_D,S_D,S_D,S_D,S_D,S_D,S_D,S_D,
+         S_D,S_D,S_D,S_D,S_D,S_D,S_D,S_D
+       );
+
+       { register type definition table for easier searching }
+       reg_2_type:array[firstreg..lastreg] of longint = (
+         ao_none,ao_reg32,ao_reg32,ao_reg32,ao_reg32,ao_reg32,ao_reg32,ao_reg32,ao_reg32,
+         ao_reg16,ao_reg16,ao_reg16,ao_reg16,ao_reg16,ao_reg16,ao_reg16,ao_reg16,
+         ao_reg8,ao_reg8,ao_reg8,ao_reg8,ao_reg8,ao_reg8,ao_reg8,ao_reg8,
+         ao_none,ao_sreg2,ao_sreg2,ao_sreg2,ao_sreg3,ao_sreg3,ao_sreg2,
+         ao_floatacc,ao_floatacc,ao_floatreg,ao_floatreg,ao_floatreg,ao_floatreg,
+         ao_floatreg,ao_floatreg,ao_floatreg,ao_mmxreg,ao_mmxreg,ao_mmxreg,ao_mmxreg,
+         ao_mmxreg,ao_mmxreg,ao_mmxreg,ao_mmxreg,ao_mmxreg,ao_mmxreg,ao_mmxreg,ao_mmxreg,
+         ao_mmxreg,ao_mmxreg,ao_mmxreg,ao_mmxreg
+       );
+
+       const_2_type: array[S_NO..S_FS] of longint =
+       (0,ao_imm8,ao_imm16,ao_imm32,0,0,0,ao_imm16,ao_imm32,0,ao_imm32);
+
+
+    const
        { operand types }
-       top_none = 0;
-       top_reg = 1;
-       top_ref = 2;
-
-       { a constant can be also written as treference }
-       top_const = 3;
-
-       { this is for calls }
-       top_symbol = 4;
+       top_none   = 0;
+       top_reg    = 1;
+       top_ref    = 2;
+       top_const  = 3; { a constant can be also written as treference }
+       top_symbol = 4; { this is for calls }
 
        stack_pointer = R_ESP;
 
@@ -372,96 +462,8 @@ unit i386;
     { generates an help record for constants }
     function newcsymbol(const s : string;l : longint) : pcsymbol;
 
+
     const
-       ao_unknown = $0;
-       { 8 bit reg }
-       ao_reg8 = $1;
-       { 16 bit reg }
-       ao_reg16 = $2;
-       { 32 bit reg }
-       ao_reg32 = $4;
-       { see far below for ao_reg const assignment }
-
-       { for push/pop operands }
-       ao_wordreg = (ao_reg16 or ao_reg32);
-       ao_imm8 = $8;        { 8 bit immediate }
-       ao_imm8S   = $10;        { 8 bit immediate sign extended }
-       ao_imm16   = $20;        { 16 bit immediate }
-       ao_imm32   = $40;        { 32 bit immediate }
-       ao_imm1    = $80;        { 1 bit immediate }
-
-       { for unknown expressions }
-       ao_immunknown = ao_imm32;
-
-       { gen'l immediate }
-       ao_imm = (ao_imm8 or ao_imm8S or ao_imm16 or ao_imm32);
-       ao_disp8   = $200;       { 8 bit displacement (for  jumps) }
-       ao_disp16  = $400;       { 16 bit displacement }
-       ao_disp32  = $800;       { 32 bit displacement }
-
-       { general displacement }
-       ao_disp    = (ao_disp8 or ao_disp16 or ao_disp32);
-
-       { for unknown size displacements }
-       ao_dispunknown = ao_disp32;
-       ao_mem8    = $1000;
-       ao_mem16   = $2000;
-       ao_mem32   = $4000;
-       ao_baseindex = $8000;
-
-       { general mem }
-       ao_mem     = (ao_disp or ao_mem8 or ao_mem16 or ao_mem32 or ao_baseindex);
-       ao_wordmem = (ao_mem16 or ao_mem32 or ao_disp or ao_baseindex);
-       ao_bytemem = (ao_mem8 or ao_disp or ao_baseindex);
-
-       { register to hold in/out port addr = dx }
-       ao_inoutportreg = $10000;
-       { register to hold shift cound = cl }
-       ao_shiftcount = $20000;
-       ao_control = $40000; { Control register }
-       ao_debug   = $80000; { Debug register }
-       ao_test    = $100000;    { Test register }
-
-       { suggestion from PM }
-       { st0 is also a float reg }
-
-       {ao_floatreg = $200000;  }{ Float register }
-       ao_otherfloatreg = $200000;  { Float register different from st0 }
-       ao_floatacc = $400000;   { Float stack top %st(0) }
-       ao_floatreg = ao_otherfloatreg or ao_floatacc; { all float regs }
-
-       { Florian correct this if it is wrong
-         but it seems necessary for ratti386 to accept the code
-         in i386/math.inc !! }
-
-       { 2 bit segment register }
-       ao_sreg2   = $800000;
-
-       { 3 bit segment register }
-       ao_sreg3   = $1000000;
-
-       { Accumulat or  %al  or  %ax  or  %eax }
-       ao_acc  = $2000000;
-       ao_implicitregister = (ao_inoutportreg or ao_shiftcount or ao_acc or ao_floatacc);
-       ao_jumpabsolute = $4000000;
-       ao_abs8 = $08000000;
-       ao_abs16 = $10000000;
-       ao_abs32 = $20000000;
-       ao_abs = (ao_abs8 or ao_abs16 or ao_abs32);
-       
-       { packed int or float number, 8*8 bit = 4*16 bit = 2*32 bit = 64 bit 
-         - for MMX and 3DNow! }
-       ao_reg64 = $40000000;
-       { floating point vector, 4*32 bit = 128 bit 
-         - for KNI }
-       ao_reg128 = $80000000;
-
-       { bitmask for any possible register }
-       ao_reg = (ao_reg8 or ao_reg16 or ao_reg32 or ao_reg64 or ao_reg128);
-       
-       ao_none = $ff;
-
-
        { this is for the code generator }
        { set if operands are words or dwords }
        af_w       = $1;
@@ -497,15 +499,18 @@ unit i386;
           o1,o2,o3 : longint;
        end;
 
-    const
-       last_instruction_in_cache = A_EMMS;
+{$ifdef ITTABLE}
     type
-       tins_cache = array[A_MOV..last_instruction_in_cache] of longint;
+       titcache = array[firstop..lastop] of longint;
+       pitcache = ^titcache;
     var
-       ins_cache : tins_cache;
+       itcache : pitcache;
 
-{$ifndef NOITTABLE}
     const
+       { only tokens up to and including lastop_ittable }
+       { are checked for validity, otherwise...         }
+       lastop_ittable = A_EMMS;
+
        it : array[0..442] of ttemplate = (
          (i : A_MOV;ops : 2;oc : $a0;eb : ao_none;m : af_dw or NoModrm;o1 : ao_disp32;o2 : ao_acc;o3 : 0 ),
          (i : A_MOV;ops : 2;oc : $88;eb : ao_none;m : af_dw or Modrm;o1 : ao_reg;o2 : ao_reg or ao_mem;o3 : 0 ),
@@ -969,9 +974,9 @@ unit i386;
          (i : A_REPE;ops : 0;oc : $f3;eb : ao_none;m : NoModrm;o1 : 0;o2 : 0;o3 : 0),
          (i : A_REPNE;ops : 0;oc : $f2;eb : ao_none;m : NoModrm;o1 : 0;o2 : 0;o3 : 0),
          (i : A_CPUID;ops : 0;oc : $0fa2;eb : ao_none;m : NoModrm;o1 : 0;o2 : 0;o3 : 0),
-         (i : A_EMMS;ops : 0;oc : $0f77;eb : ao_none;m : NoModrm;o1 : 0;o2 : 0;o3 : 0),       
+         (i : A_EMMS;ops : 0;oc : $0f77;eb : ao_none;m : NoModrm;o1 : 0;o2 : 0;o3 : 0),
          { MMX instructions: }
-(* TODO        
+(* TODO
          A_EMMS,A_MOVD,A_MOVQ,A_PACKSSDW,A_PACKSSWB,A_PACKUSWB,
          A_PADDB,A_PADDD,A_PADDSB,A_PADDSW,A_PADDUSB,A_PADDUSW,
          A_PADDW,A_PAND,A_PANDN,A_PCMPEQB,A_PCMPEQD,A_PCMPEQW,
@@ -984,33 +989,34 @@ unit i386;
          { KNI instructions: (intel katmai) }
 (* TODO - add syntax description for these opcodes:
    really required for the first turn??
-	 A_ADDPS,A_ADDSS,A_ANDNPS,A_ANDNSS,A_ANDPS,A_ANDSS,A_CMPEQPS,A_CMPEQSS,
-	 A_CMPLEPS,A_CMPLESS,A_CMPLTPS,A_CMPLTSS,A_CMPNEQPS,A_CMPNEQSS,
-	 A_CMPNLEPS,A_CMPNLESS,A_CMPNLTPS,A_CMPNLTSS,A_CMPORDPS,A_CMPORDSS,
-	 A_CMPUNORDPS,A_CMPUNORDSS,A_COMISS,A_CVTPI2PS,A_CVTPS2PI,
-	 A_CVTSI2SS,A_CVTTPS2PI,A_CVTTSS2SI,A_DIVPS,A_DIVSS,A_FXRSTOR,A_FXSAVE,
-	 A_LDMXCSR,A_MASKMOVQ,A_MAXPS,A_MAXSS,A_MINPS,A_MINSS,A_MOVAPS,
-	 A_MOVHPS,A_MOVLPS,A_MOVMSKPS,A_MOVNTPS,A_MOVNTQ,A_MOVSS,A_MOVUPS,
-	 A_MULPS,A_MULSS,A_ORPS,A_PAVGB,A_PAVGW,A_PEXTRW,A_PINSRW,A_PMAXSW,
-	 A_PMAXUB,A_PMINSW,A_PMINUB,A_PMOVMSKB,A_PMULHUW,A_PREFETCHNT,
-	 A_PREFETCH0,A_PREFETCH1,A_PREFETCH2,A_PSADBW,A_PSHUFW,A_RCPPS,A_RCPSS,
-	 A_RSQRTPS,A_RSQRTSS,A_SFENCE,A_SHUFPS,A_SQRTPS,A_SQRTSS,A_STMXCSR,
-	 A_SUBPS,A_SUBSS,A_UCOMISS,A_UNPCKHPS,A_UNPCKLPS,A_XORPS,
-*)	 
+         A_ADDPS,A_ADDSS,A_ANDNPS,A_ANDNSS,A_ANDPS,A_ANDSS,A_CMPEQPS,A_CMPEQSS,
+         A_CMPLEPS,A_CMPLESS,A_CMPLTPS,A_CMPLTSS,A_CMPNEQPS,A_CMPNEQSS,
+         A_CMPNLEPS,A_CMPNLESS,A_CMPNLTPS,A_CMPNLTSS,A_CMPORDPS,A_CMPORDSS,
+         A_CMPUNORDPS,A_CMPUNORDSS,A_COMISS,A_CVTPI2PS,A_CVTPS2PI,
+         A_CVTSI2SS,A_CVTTPS2PI,A_CVTTSS2SI,A_DIVPS,A_DIVSS,A_FXRSTOR,A_FXSAVE,
+         A_LDMXCSR,A_MASKMOVQ,A_MAXPS,A_MAXSS,A_MINPS,A_MINSS,A_MOVAPS,
+         A_MOVHPS,A_MOVLPS,A_MOVMSKPS,A_MOVNTPS,A_MOVNTQ,A_MOVSS,A_MOVUPS,
+         A_MULPS,A_MULSS,A_ORPS,A_PAVGB,A_PAVGW,A_PEXTRW,A_PINSRW,A_PMAXSW,
+         A_PMAXUB,A_PMINSW,A_PMINUB,A_PMOVMSKB,A_PMULHUW,A_PREFETCHNT,
+         A_PREFETCH0,A_PREFETCH1,A_PREFETCH2,A_PSADBW,A_PSHUFW,A_RCPPS,A_RCPSS,
+         A_RSQRTPS,A_RSQRTSS,A_SFENCE,A_SHUFPS,A_SQRTPS,A_SQRTSS,A_STMXCSR,
+         A_SUBPS,A_SUBSS,A_UCOMISS,A_UNPCKHPS,A_UNPCKLPS,A_XORPS,
+*)
          { 3Dnow instructions: (amd k6-2) }
-(* TODO         
-	 A_FEMMS,A_PAVGUSB,A_PF2ID,A_PFACC,A_PFADD,A_PFCMPEQ,A_PFCMPGE,
-	 A_PFCMPGT,A_PFMAX,A_PFMIN,A_PFMUL,A_PFRCP,A_PFRCPIT1,A_PFRCPIT2,
-	 A_PFRSQIT1,A_PFRSQRT,A_PFSUB,A_PFSUBR,A_PI2FD,A_PMULHRW,A_PREFETCH,
-	 A_PREFETCHW,
-*)	 
+(* TODO
+         A_FEMMS,A_PAVGUSB,A_PF2ID,A_PFACC,A_PFADD,A_PFCMPEQ,A_PFCMPGE,
+         A_PFCMPGT,A_PFMAX,A_PFMIN,A_PFMUL,A_PFRCP,A_PFRCPIT1,A_PFRCPIT2,
+         A_PFRSQIT1,A_PFRSQRT,A_PFSUB,A_PFSUBR,A_PI2FD,A_PMULHRW,A_PREFETCH,
+         A_PREFETCHW,
+*)
          (i : A_NONE));
-{$endif NOITTABLE}
+{$endif ITTABLE}
 
 {****************************************************************************
                             Assembler Mnemoics
 ****************************************************************************}
 
+{$ifdef ATTOP}
     const
       att_op2str : array[firstop..lastop] of string[7] =
        ('mov','movz','movs','','add',
@@ -1066,26 +1072,26 @@ unit i386;
         'psrld','psrlq','psrlw','psubb','psubd','psubsb','psubsw',
         'psubusb','psubusw','psubw','punpckhbw','punpckhdq',
         'punpckhwd','punpcklbw','punpckldq','punpcklwd','pxor',
-        { KNI instructions (intel katmai) 
+        { KNI instructions (intel katmai)
           - sorry, dont know how ATT mnemonics will be called }
-	'addps','addss','andnps','andnss','andps','andss','cmpeqps','cmpeqps',
-	'cmpleps','cmpless','cmpltps','cmpltss','cmpneqps','cmpneqss',
-	'cmpnleps','cmpnless','cmpnltps','cmpnltss','cmpordps','cmpordss',
-	'cmpunordps','cmpunordss','comiss','cvtpi2ps','cvtps2pi','cvtsi2ss',
-	'cvttps2pi','cvttss2si','divps','divss','fxrstor','fxsave','ldmxcsr',
-	'maskmovq','maxps','maxss','minps','minss','movaps','movhps','movlps',
-	'movmskps','movntps','movntq','movss','movups','mulps','mulss','orps',
-	'pavgb','pavgw','pextrw','pinsrw','pmaxsw','pmaxub','pminsw','pminub',
-	'pmovmskb','pmulhuw','prefetchnt','prefetch0','prefetch1','prefetch2',
-	'psadbw','pshufw','rcpps','rcpss','rsqrtps','rsqrtss','sfence',
-	'shufps','sqrtps','sqrtss','stmxcsr','subps','subss','ucomiss',
-	'unpckhps','unpcklps','xorps',
-        { 3Dnow instructions (amd k6-2) 
+        'addps','addss','andnps','andnss','andps','andss','cmpeqps','cmpeqps',
+        'cmpleps','cmpless','cmpltps','cmpltss','cmpneqps','cmpneqss',
+        'cmpnleps','cmpnless','cmpnltps','cmpnltss','cmpordps','cmpordss',
+        'cmpunordps','cmpunordss','comiss','cvtpi2ps','cvtps2pi','cvtsi2ss',
+        'cvttps2pi','cvttss2si','divps','divss','fxrstor','fxsave','ldmxcsr',
+        'maskmovq','maxps','maxss','minps','minss','movaps','movhps','movlps',
+        'movmskps','movntps','movntq','movss','movups','mulps','mulss','orps',
+        'pavgb','pavgw','pextrw','pinsrw','pmaxsw','pmaxub','pminsw','pminub',
+        'pmovmskb','pmulhuw','prefetchnt','prefetch0','prefetch1','prefetch2',
+        'psadbw','pshufw','rcpps','rcpss','rsqrtps','rsqrtss','sfence',
+        'shufps','sqrtps','sqrtss','stmxcsr','subps','subss','ucomiss',
+        'unpckhps','unpcklps','xorps',
+        { 3Dnow instructions (amd k6-2)
           - sorry, dont know how ATT mnemonics are called }
-	 'femms','pavgusb','pf2id','pfacc','pfadd','pfcmpeq','pfcmpge',
-	 'pfcmpgt','pfmax','pfmin','pfmul','pfrcp','pfrcpit1','pfrcpit2',
-	 'pfrsqit1','pfrsqrt','pfsub','pfsubr','pi2fd','pmulhrw','prefetch',
-	 'prefetchw'
+         'femms','pavgusb','pf2id','pfacc','pfadd','pfcmpeq','pfcmpge',
+         'pfcmpgt','pfmax','pfmin','pfmul','pfrcp','pfrcpit1','pfrcpit2',
+         'pfrsqit1','pfrsqrt','pfsub','pfsubr','pi2fd','pmulhrw','prefetch',
+         'prefetchw'
         );
 
      {  topsize = (S_NO,S_B,S_W,S_L,S_BW,S_BL,S_WL,
@@ -1104,10 +1110,10 @@ unit i386;
         '%mm0','%mm1','%mm2','%mm3',
         '%mm4','%mm5','%mm6','%mm7',
         '%xmm0','%xmm1','%xmm2','%xmm3',
-        '%xmm4','%xmm5','%xmm6','%xmm7'
-        );
+        '%xmm4','%xmm5','%xmm6','%xmm7');
+{$endif ATTOP}
 
-{$ifndef NOINTOP}
+{$ifdef INTELOP}
       int_op2str : array[firstop..lastop] of string[9] =
        ('mov','movzx','movsx','','add',
         'call','idiv','imul','jmp','lea','mul','neg','not',
@@ -1163,23 +1169,23 @@ unit i386;
         'psubusb','psubusw','psubw','punpckhbw','punpckhdq',
         'punpckhwd','punpcklbw','punpckldq','punpcklwd','pxor',
         { KNI instructions (intel katmai) }
-	'addps','addss','andnps','andnss','andps','andss','cmpeqps','cmpeqps',
-	'cmpleps','cmpless','cmpltps','cmpltss','cmpneqps','cmpneqss',
-	'cmpnleps','cmpnless','cmpnltps','cmpnltss','cmpordps','cmpordss',
-	'cmpunordps','cmpunordss','comiss','cvtpi2ps','cvtps2pi','cvtsi2ss',
-	'cvttps2pi','cvttss2si','divps','divss','fxrstor','fxsave','ldmxcsr',
-	'maskmovq','maxps','maxss','minps','minss','movaps','movhps','movlps',
-	'movmskps','movntps','movntq','movss','movups','mulps','mulss','orps',
-	'pavgb','pavgw','pextrw','pinsrw','pmaxsw','pmaxub','pminsw','pminub',
-	'pmovmskb','pmulhuw','prefetchnt','prefetch0','prefetch1','prefetch2',
-	'psadbw','pshufw','rcpps','rcpss','rsqrtps','rsqrtss','sfence',
-	'shufps','sqrtps','sqrtss','stmxcsr','subps','subss','ucomiss',
-	'unpckhps','unpcklps','xorps',
+        'addps','addss','andnps','andnss','andps','andss','cmpeqps','cmpeqps',
+        'cmpleps','cmpless','cmpltps','cmpltss','cmpneqps','cmpneqss',
+        'cmpnleps','cmpnless','cmpnltps','cmpnltss','cmpordps','cmpordss',
+        'cmpunordps','cmpunordss','comiss','cvtpi2ps','cvtps2pi','cvtsi2ss',
+        'cvttps2pi','cvttss2si','divps','divss','fxrstor','fxsave','ldmxcsr',
+        'maskmovq','maxps','maxss','minps','minss','movaps','movhps','movlps',
+        'movmskps','movntps','movntq','movss','movups','mulps','mulss','orps',
+        'pavgb','pavgw','pextrw','pinsrw','pmaxsw','pmaxub','pminsw','pminub',
+        'pmovmskb','pmulhuw','prefetchnt','prefetch0','prefetch1','prefetch2',
+        'psadbw','pshufw','rcpps','rcpss','rsqrtps','rsqrtss','sfence',
+        'shufps','sqrtps','sqrtss','stmxcsr','subps','subss','ucomiss',
+        'unpckhps','unpcklps','xorps',
         { 3Dnow instructions (amd k6-2) }
-	 'femms','pavgusb','pf2id','pfacc','pfadd','pfcmpeq','pfcmpge',
-	 'pfcmpgt','pfmax','pfmin','pfmul','pfrcp','pfrcpit1','pfrcpit2',
-	 'pfrsqit1','pfrsqrt','pfsub','pfsubr','pi2fd','pmulhrw','prefetch',
-	 'prefetchw'
+         'femms','pavgusb','pf2id','pfacc','pfadd','pfcmpeq','pfcmpge',
+         'pfcmpgt','pfmax','pfmin','pfmul','pfrcp','pfrcpit1','pfrcpit2',
+         'pfrsqit1','pfrsqrt','pfsub','pfsubr','pi2fd','pmulhrw','prefetch',
+         'prefetchw'
         );
 
      int_reg2str : array[tregister] of string[5] =
@@ -1201,7 +1207,7 @@ unit i386;
         'mm0','mm1','mm2','mm3','mm4','mm5','mm6','mm7',
         'xmm0','xmm1','xmm2','xmm3','xmm4','xmm5','xmm6','xmm7'
         );
-{$endif}
+{$endif INTELOP}
 
 
   implementation
@@ -1886,10 +1892,39 @@ unit i386;
         inherited done;
       end;
 
+
+{****************************************************************************
+                              Initialize
+****************************************************************************}
+
+var
+  old_exit: pointer;
+procedure i386_exit;{$ifndef FPC}far;{$endif}
+begin
+{$ifdef ITTABLE}
+  dispose(itcache);
+{$endif}
+  exitproc:=old_exit;
+end;
+
+
+Begin
+{$ifdef ITTABLE}
+  { create the itcache and reset to -1 }
+  new(itcache);
+  FillChar(ItCache^,sizeof(titcache),$ff);
+{$endif}
+  old_exit := exitproc;
+  exitproc := @i386_exit;
 end.
 {
   $Log$
-  Revision 1.26  1999-01-08 12:39:24  florian
+  Revision 1.27  1999-01-10 15:37:53  peter
+    * moved some tables from ra386*.pas -> i386.pas
+    + start of coff writer
+    * renamed asmutils unit to rautils
+
+  Revision 1.26  1999/01/08 12:39:24  florian
     Changes of Alexander Stohr integrated:
       + added KNI opcodes
       + added KNI registers

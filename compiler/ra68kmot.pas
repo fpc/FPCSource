@@ -73,7 +73,7 @@ var
 Implementation
 
 uses
-  files,globals,systems,AsmUtils,strings,hcodegen,scanner,aasm,
+  files,globals,systems,RAUtils,strings,hcodegen,scanner,aasm,
   cobjects,verbose,symtable;
 
 
@@ -2178,7 +2178,12 @@ Begin
 end.
 {
   $Log$
-  Revision 1.7  1998-12-11 00:03:45  peter
+  Revision 1.8  1999-01-10 15:37:59  peter
+    * moved some tables from ra386*.pas -> i386.pas
+    + start of coff writer
+    * renamed asmutils unit to rautils
+
+  Revision 1.7  1998/12/11 00:03:45  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.6  1998/10/13 16:50:19  pierre

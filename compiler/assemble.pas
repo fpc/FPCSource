@@ -94,6 +94,9 @@ uses
   {$ifndef NoAg386Int}
     ,ag386int
   {$endif NoAg386Int}
+  {$ifdef Ag386Cof}
+    ,ag386cof
+  {$endif Ag386Cof}
 {$endif}
 {$ifdef m68k}
   {$ifndef NoAg68kGas}
@@ -472,6 +475,10 @@ var
 begin
   case aktoutputformat of
 {$ifdef i386}
+  {$ifdef Ag386Cof}
+     as_i386_coff :
+       a:=new(pi386coffasmlist,Init);
+  {$endif Ag386Cof}
   {$ifndef NoAg386Att}
      as_i386_o,
      as_i386_o_aout,
@@ -533,7 +540,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.33  1998-12-11 00:02:45  peter
+  Revision 1.34  1999-01-10 15:37:52  peter
+    * moved some tables from ra386*.pas -> i386.pas
+    + start of coff writer
+    * renamed asmutils unit to rautils
+
+  Revision 1.33  1998/12/11 00:02:45  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.32  1998/11/06 09:46:46  pierre

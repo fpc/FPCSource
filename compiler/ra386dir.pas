@@ -33,7 +33,7 @@ unit Ra386dir;
 
      uses
         comphook,files,i386,hcodegen,globals,scanner,aasm,
-        cobjects,symtable,types,verbose,asmutils;
+        cobjects,symtable,types,verbose,rautils;
 
     function assemble : ptree;
 
@@ -288,7 +288,12 @@ unit Ra386dir;
 end.
 {
   $Log$
-  Revision 1.11  1998-11-17 00:26:12  peter
+  Revision 1.12  1999-01-10 15:37:57  peter
+    * moved some tables from ra386*.pas -> i386.pas
+    + start of coff writer
+    * renamed asmutils unit to rautils
+
+  Revision 1.11  1998/11/17 00:26:12  peter
     * fixed for $H+
 
   Revision 1.10  1998/11/13 15:40:28  pierre
