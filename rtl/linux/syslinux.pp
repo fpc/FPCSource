@@ -16,9 +16,6 @@
 { These things are set in the makefile, }
 { But you can override them here.}
 
-{ If you want to link to the C library, set the conditional crtlib }
-{ $define crtlib}
-
 { If you use an aout system, set the conditional AOUT}
 { $Define AOUT}
 
@@ -51,36 +48,18 @@ Implementation
 
 {$I system.inc}
 
-{$ifdef crtlib}
-  Procedure _rtl_exit(l: longint); cdecl;
-  Function  _rtl_paramcount: longint; cdecl;
-  Procedure _rtl_paramstr(st: pchar; l: longint); cdecl;
-  Function  _rtl_open(f: pchar; flags: longint): longint; cdecl;
-  Procedure _rtl_close(h: longint); cdecl;
-  Procedure _rtl_write(h: longint; addr: longInt; len : longint); cdecl;
-  Procedure _rtl_erase(p: pchar); cdecl;
-  Procedure _rtl_rename(p1: pchar; p2 : pchar); cdecl;
-  Function  _rtl_read(h: longInt; addr: longInt; len : longint) : longint; cdecl;
-  Function  _rtl_filepos(Handle: longint): longint; cdecl;
-  Procedure _rtl_seek(Handle: longint; pos:longint); cdecl;
-  Function  _rtl_filesize(Handle:longint): longInt; cdecl;
-  Procedure _rtl_rmdir(buffer: pchar); cdecl;
-  Procedure _rtl_mkdir(buffer: pchar); cdecl;
-  Procedure _rtl_chdir(buffer: pchar); cdecl;
-{$else}
-  { used in syscall to report errors.}
-  var
-    Errno : longint;
+{ used in syscall to report errors.}
+var
+  Errno : longint;
 
-  { Include constant and type definitions }
-  {$i errno.inc    }  { Error numbers                 }
-  {$i sysnr.inc    }  { System call numbers           }
-  {$i sysconst.inc }  { Miscellaneous constants       }
-  {$i systypes.inc }  { Types needed for system calls }
+{ Include constant and type definitions }
+{$i errno.inc    }  { Error numbers                 }
+{$i sysnr.inc    }  { System call numbers           }
+{$i sysconst.inc }  { Miscellaneous constants       }
+{$i systypes.inc }  { Types needed for system calls }
 
-  { Read actual system call definitions. }
-  {$i syscalls.inc }
-{$endif}
+{ Read actual system call definitions. }
+{$i syscalls.inc }
 
 {*****************************************************************************
                        Misc. System Dependent Functions
@@ -261,45 +240,30 @@ end;
 
 Procedure Do_Close(Handle:Longint);
 Begin
-{$ifdef crtlib}
-  _rtl_close(Handle);
-{$else}
   sys_close(Handle);
-{$endif}
 End;
 
 
 Procedure Do_Erase(p:pchar);
 Begin
-{$ifdef crtlib}
-  _rtl_erase(p);
-{$else}
   sys_unlink(p);
   Errno2Inoutres;
-{$endif}
 End;
 
 
 Procedure Do_Rename(p1,p2:pchar);
 Begin
-{$ifdef crtlib}
-  _rtl_rename(p1,p2);
-{$else }
   sys_rename(p1,p2);
   Errno2Inoutres;
-{$endif}
 End;
 
 
 Function Do_Write(Handle,Addr,Len:Longint):longint;
 Begin
-{$ifdef crtlib}
-  _rtl_write(Handle,addr,len);
-  Do_Write:=Len;
-{$else}
-  Do_Write:=sys_write(Handle,pchar(addr),len);
+  repeat
+    Do_Write:=sys_write(Handle,pchar(addr),len);
+  until ErrNo<>Sys_EINTR;
   Errno2Inoutres;
-{$endif}
   if Do_Write<0 then
    Do_Write:=0;
 End;
@@ -307,12 +271,10 @@ End;
 
 Function Do_Read(Handle,Addr,Len:Longint):Longint;
 Begin
-{$ifdef crtlib}
-  Do_Read:=_rtl_read(Handle,addr,len);
-{$else}
-  Do_Read:=sys_read(Handle,pchar(addr),len);
+  repeat
+    Do_Read:=sys_read(Handle,pchar(addr),len);
+  until ErrNo<>Sys_EINTR;
   Errno2Inoutres;
-{$endif}
   if Do_Read<0 then
    Do_Read:=0;
 End;
@@ -320,62 +282,39 @@ End;
 
 Function Do_FilePos(Handle: Longint): Longint;
 Begin
-{$ifdef crtlib}
-  Do_FilePos:=_rtl_filepos(Handle);
-{$else}
   Do_FilePos:=sys_lseek(Handle, 0, Seek_Cur);
   Errno2Inoutres;
-{$endif}
 End;
 
 
 Procedure Do_Seek(Handle,Pos:Longint);
 Begin
-{$ifdef crtlib}
-  _rtl_seek(Handle, Pos);
-{$else}
   sys_lseek(Handle, pos, Seek_set);
-{$endif}
 End;
 
 
 Function Do_SeekEnd(Handle:Longint): Longint;
 begin
-{$ifdef crtlib}
-  Do_SeekEnd:=_rtl_filesize(Handle);
-{$else}
   Do_SeekEnd:=sys_lseek(Handle,0,Seek_End);
-{$endif}
 end;
 
 {$ifdef BSD}
 Function Do_FileSize(Handle:Longint): Longint;
-{$ifndef crtlib}
 var
   Info : Stat;
-{$endif}
 Begin
-{$ifdef crtlib}
-  Do_FileSize:=_rtl_filesize(Handle);
-{$else}
   if do_SysCall(syscall_nr_fstat,handle,longint(@info))=0 then
    Do_FileSize:=Info.Size
   else
    Do_FileSize:=0;
   Errno2Inoutres;
-{$endif}
 End;
 {$ELSE}
 Function Do_FileSize(Handle:Longint): Longint;
-{$ifndef crtlib}
 var
   regs : Syscallregs;
   Info : Stat;
-{$endif}
 Begin
-{$ifdef crtlib}
-  Do_FileSize:=_rtl_filesize(Handle);
-{$else}
   regs.reg2:=Handle;
   regs.reg3:=longint(@Info);
   if SysCall(SysCall_nr_fstat,regs)=0 then
@@ -383,28 +322,23 @@ Begin
   else
    Do_FileSize:=0;
   Errno2Inoutres;
-{$endif}
 End;
 {$endif}
 
 Procedure Do_Truncate(Handle,Pos:longint);
-{$ifndef crtlib}
 {$ifndef bsd}
 var
   sr : syscallregs;
 {$endif}
-{$endif}
 begin
-{$ifndef crtlib}
- {$ifdef bsd}
+{$ifdef bsd}
   do_syscall(syscall_nr_ftruncate,handle,pos,0);
- {$else}
+{$else}
   sr.reg2:=Handle;
   sr.reg3:=Pos;
   syscall(syscall_nr_ftruncate,sr);
- {$endif}
-  Errno2Inoutres;
 {$endif}
+  Errno2Inoutres;
 end;
 
 
@@ -417,9 +351,7 @@ Procedure Do_Open(var f;p:pchar;flags:longint);
   when (flags and $10000) there is no check for close (needed for textfiles)
 }
 var
-{$ifndef crtlib}
   oflags : longint;
-{$endif}
 Begin
 { close first if opened }
   if ((flags and $10000)=0) then
@@ -474,13 +406,6 @@ Begin
      exit;
    end;
 { real open call }
-{$ifdef crtlib}
-  FileRec(f).Handle:=_rtl_open(p, oflags);
-  if FileRec(f).Handle<0 then
-   InOutRes:=2
-  else
-   InOutRes:=0;
-{$else}
   FileRec(f).Handle:=sys_open(p,oflags,438);
   if (ErrNo=Sys_EROFS) and ((OFlags and Open_RDWR)<>0) then
    begin
@@ -488,7 +413,6 @@ Begin
      FileRec(f).Handle:=sys_open(p,oflags,438);
    end;
   Errno2Inoutres;
-{$endif}
 End;
 
 
@@ -506,14 +430,14 @@ var
 {$endif}
   Data : array[0..255] of byte; {Large enough for termios info}
 begin
- {$ifdef BSD}
-   Do_IsDevice:=(do_SysCall(syscall_nr_ioctl,handle,$5401,longint(@data))=0);
- {$else}
+{$ifdef BSD}
+  Do_IsDevice:=(do_SysCall(syscall_nr_ioctl,handle,$5401,longint(@data))=0);
+{$else}
   sr.reg2:=Handle;
   sr.reg3:=$5401; {=TCGETS}
   sr.reg4:=Longint(@Data);
   Do_IsDevice:=(SysCall(Syscall_nr_ioctl,sr)=0);
- {$endif}
+{$endif}
 end;
 
 
@@ -549,12 +473,8 @@ Begin
   If InOutRes <> 0 then exit;
   Move(s[1], Buffer, Length(s));
   Buffer[Length(s)] := #0;
-{$ifdef crtlib}
-  _rtl_mkdir(@buffer);
-{$else}
   sys_mkdir(@buffer, 511);
   Errno2Inoutres;
-{$endif}
 End;
 
 
@@ -565,12 +485,8 @@ Begin
   If InOutRes <> 0 then exit;
   Move(s[1], Buffer, Length(s));
   Buffer[Length(s)] := #0;
-{$ifdef crtlib}
-  _rtl_rmdir(@buffer);
-{$else}
   sys_rmdir(@buffer);
   Errno2Inoutres;
-{$endif}
 End;
 
 
@@ -581,17 +497,12 @@ Begin
   If InOutRes <> 0 then exit;
   Move(s[1], Buffer, Length(s));
   Buffer[Length(s)] := #0;
-{$ifdef crtlib}
-  _rtl_chdir(@buffer);
-{$else}
   sys_chdir(@buffer);
   Errno2Inoutres;
-{$endif}
 End;
 
 
 procedure getdir(drivenr : byte;var dir : shortstring);
-{$ifndef crtlib}
 var
   thisdir      : stat;
   rootino,
@@ -599,21 +510,15 @@ var
   dotdotino    : longint;
   rootdev,
   thisdev,
-  {$ifdef bsd}
-   dotdotdev    : longint;
-  {$else}
-   dotdotdev    : word;
-  {$endif}
+  dotdotdev    : {$ifdef bsd}longint{$else}word{$endif};
   thedir,dummy : string[255];
   dirstream    : pdir;
   d            : pdirent;
   mountpoint,validdir : boolean;
   predot       : string[255];
-{$endif}
 begin
   drivenr:=0;
   dir:='';
-{$ifndef crtlib}
   thedir:='/'#0;
   if sys_stat(@thedir[1],thisdir)<0 then
    exit;
@@ -665,7 +570,6 @@ begin
    end;
 { Now rootino=thisino and rootdev=thisdev so we've reached / }
   dir:=thedir
-{$endif}
 end;
 
 
@@ -879,7 +783,11 @@ End.
 
 {
   $Log$
-  Revision 1.47  2000-05-11 17:55:13  peter
+  Revision 1.48  2000-06-30 22:14:03  peter
+    * removed obsolete crtlib code
+    * support EINTR for read/write to restart the syscall
+
+  Revision 1.47  2000/05/11 17:55:13  peter
     * changed order of fpustate checking to first check the more
       specific states
 
