@@ -1892,6 +1892,12 @@ implementation
             if (ref^.segment<>NR_NO) and (ref^.segment<>NR_DS) then
               segprefix:=ref^.segment;
 {$endif}
+{$ifdef extdebug}
+            if (cs_create_pic in aktmoduleswitches) and
+              assigned(r.symbol) and
+              (r.refaddr=addr_no) then
+              internalerror(200502052);
+{$endif}
             typ:=top_ref;
             if assigned(add_reg_instruction_hook) then
               begin
@@ -2236,7 +2242,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.93  2005-01-31 17:07:50  peter
+  Revision 1.94  2005-02-06 00:05:56  florian
+    + x86_64 pic draft
+
+  Revision 1.93  2005/01/31 17:07:50  peter
     * fix [regpara] in intel assembler
 
   Revision 1.92  2004/11/01 10:34:08  peter

@@ -255,7 +255,10 @@ unit nx86add;
             exprasmlist.concat(taicpu.op_reg_reg(op,TCGSize2Opsize[opsize],right.location.register,left.location.register));
           LOC_REFERENCE,
           LOC_CREFERENCE :
-            exprasmlist.concat(taicpu.op_ref_reg(op,TCGSize2Opsize[opsize],right.location.reference,left.location.register));
+            begin
+              tcgx86(cg).make_simple_ref(exprasmlist,right.location.reference);
+              exprasmlist.concat(taicpu.op_ref_reg(op,TCGSize2Opsize[opsize],right.location.reference,left.location.register));
+            end;
           LOC_CONSTANT :
             begin
 {$ifdef x86_64}
@@ -512,7 +515,10 @@ unit nx86add;
               location_force_mem(exprasmlist,left.location);
             case left.location.loc of
               LOC_REFERENCE,LOC_CREFERENCE:
-                exprasmlist.concat(taicpu.op_ref_reg(op,S_NO,left.location.reference,right.location.register));
+                begin
+                  tcgx86(cg).make_simple_ref(exprasmlist,left.location.reference);
+                  exprasmlist.concat(taicpu.op_ref_reg(op,S_NO,left.location.reference,right.location.register));
+                end;
               LOC_MMREGISTER,LOC_CMMREGISTER:
                 exprasmlist.concat(taicpu.op_reg_reg(op,S_NO,left.location.register,right.location.register));
               else
@@ -535,7 +541,10 @@ unit nx86add;
               location_force_mem(exprasmlist,right.location);
             case right.location.loc of
               LOC_REFERENCE,LOC_CREFERENCE:
-                exprasmlist.concat(taicpu.op_ref_reg(op,S_NO,right.location.reference,left.location.register));
+                begin
+                  tcgx86(cg).make_simple_ref(exprasmlist,right.location.reference);
+                  exprasmlist.concat(taicpu.op_ref_reg(op,S_NO,right.location.reference,left.location.register));
+                end;
               LOC_MMREGISTER,LOC_CMMREGISTER:
                 exprasmlist.concat(taicpu.op_reg_reg(op,S_NO,right.location.register,left.location.register));
               else
@@ -795,7 +804,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2004-11-01 12:43:29  peter
+  Revision 1.16  2005-02-06 00:05:56  florian
+    + x86_64 pic draft
+
+  Revision 1.15  2004/11/01 12:43:29  peter
     * shortstr compare with empty string fixed
     * removed special i386 code
 

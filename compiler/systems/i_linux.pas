@@ -285,7 +285,8 @@ unit i_linux;
             system       : system_x86_64_LINUX;
             name         : 'Linux for x86-64';
             shortname    : 'Linux';
-            flags        : [tf_needs_symbol_size,tf_needs_dwarf_cfi];
+            flags        : [tf_needs_symbol_size,tf_needs_dwarf_cfi,
+                            tf_library_needs_pic];
             cpu          : cpu_x86_64;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX';
@@ -348,7 +349,7 @@ unit i_linux;
             system       : system_SPARC_Linux;
             name         : 'Linux for SPARC';
             shortname    : 'Linux';
-            flags        : [tf_needs_symbol_size];
+            flags        : [tf_needs_symbol_size,tf_library_needs_pic];
             cpu          : cpu_SPARC;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX';
@@ -513,7 +514,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.34  2005-01-30 17:45:38  florian
+  Revision 1.35  2005-02-06 00:05:56  florian
+    + x86_64 pic draft
+
+  Revision 1.34  2005/01/30 17:45:38  florian
     * better alignment on linux
 
   Revision 1.33  2005/01/25 18:48:15  peter

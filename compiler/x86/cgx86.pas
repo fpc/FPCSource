@@ -112,6 +112,7 @@ unit cgx86;
 
         procedure g_overflowcheck(list: taasmoutput; const l:tlocation;def:tdef);override;
 
+        procedure make_simple_ref(list:taasmoutput;var ref: treference);
       protected
         procedure a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: tasmlabel);
         procedure check_register_size(size:tcgsize;reg:tregister);
@@ -119,7 +120,6 @@ unit cgx86;
         procedure opmm_loc_reg(list: taasmoutput; Op: TOpCG; size : tcgsize;loc : tlocation;dst: tregister; shuffle : pmmshuffle);
       private
         procedure sizes2load(s1,s2 : tcgsize;var op: tasmop; var s3: topsize);
-        procedure make_simple_ref(list:taasmoutput;var ref: treference);
 
         procedure floatload(list: taasmoutput; t : tcgsize;const ref : treference);
         procedure floatstore(list: taasmoutput; t : tcgsize;const ref : treference);
@@ -328,6 +328,7 @@ unit cgx86;
 {$ifdef x86_64}
       var
         hreg : tregister;
+        href : treference;
 {$endif x86_64}
       begin
 {$ifdef x86_64}
@@ -359,6 +360,30 @@ unit cgx86;
                     ref.index:=hreg;
                   end;
                end;
+          end;
+        if (cs_create_pic in aktmoduleswitches) and
+          assigned(ref.symbol) then
+          begin
+            reference_reset_symbol(href,ref.symbol,0);
+            hreg:=getaddressregister(list);
+            href.refaddr:=addr_pic;
+            href.base:=NR_RIP;
+            list.concat(taicpu.op_ref_reg(A_MOV,S_Q,href,hreg));
+            
+            ref.symbol:=nil;
+            
+            if ref.index=NR_NO then
+              begin
+                ref.index:=hreg;
+                ref.scalefactor:=1;
+              end
+            else if ref.base=NR_NO then
+              ref.base:=hreg
+            else
+              begin
+                list.concat(taicpu.op_reg_reg(A_ADD,S_Q,ref.base,hreg));
+                ref.base:=hreg;
+              end;
           end;
 {$endif x86_64}
       end;
@@ -1746,7 +1771,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.144  2005-02-05 18:32:17  florian
+  Revision 1.145  2005-02-06 00:05:56  florian
+    + x86_64 pic draft
+
+  Revision 1.144  2005/02/05 18:32:17  florian
     * fixed previous commit
 
   Revision 1.143  2005/02/05 18:08:48  florian

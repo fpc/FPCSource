@@ -230,7 +230,8 @@ interface
             tf_smartlink_sections,
             tf_needs_dwarf_cfi,
             tf_use_8_3,
-            tf_pic_uses_got
+            tf_pic_uses_got,
+            tf_library_needs_pic
        );
 
        psysteminfo = ^tsysteminfo;
@@ -717,7 +718,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.100  2005-01-25 18:48:15  peter
+  Revision 1.101  2005-02-06 00:05:56  florian
+    + x86_64 pic draft
+
+  Revision 1.100  2005/01/25 18:48:15  peter
     * tf_pic_uses_got added
 
   Revision 1.99  2004/12/28 20:43:00  hajny

@@ -788,6 +788,8 @@ implementation
         if (cs_local_browser in aktmoduleswitches) and
            not(cs_browser in aktmoduleswitches) then
           exclude(aktmoduleswitches,cs_local_browser);
+        if (cs_create_pic in aktmoduleswitches) then
+          def_system_macro('FPC_PIC');
       end;
 
 
@@ -1348,6 +1350,10 @@ implementation
               current_module.realmodulename:=stringdup(orgpattern);
               current_module.islibrary:=true;
               exportlib.preparelib(orgpattern);
+              
+              if tf_library_needs_pic in target_info.flags then
+                include(aktmoduleswitches,cs_create_pic);
+                
               consume(_ID);
               consume(_SEMICOLON);
            end
@@ -1602,7 +1608,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.181  2005-01-24 22:08:32  peter
+  Revision 1.182  2005-02-06 00:05:56  florian
+    + x86_64 pic draft
+
+  Revision 1.181  2005/01/24 22:08:32  peter
     * interface wrapper generation moved to cgobj
     * generate interface wrappers after the module is parsed
 

@@ -68,6 +68,7 @@ NR_R15 = tregister($0105000f);
 NR_R15L = tregister($0101000f);
 NR_R15W = tregister($0103000f);
 NR_R15D = tregister($0104000f);
+NR_RIP = tregister($05000000);
 NR_EIP = tregister($05000000);
 NR_CS = tregister($05000001);
 NR_DS = tregister($05000002);

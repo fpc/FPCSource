@@ -70,6 +70,8 @@ interface
              AsmWrite(gas_regname(segment)+':');
            if assigned(symbol) then
              AsmWrite(symbol.name);
+           if ref.refaddr=addr_pic then
+             AsmWrite('@GOTPCREL');
            if offset<0 then
              AsmWrite(tostr(offset))
            else
@@ -111,7 +113,7 @@ interface
           top_reg :
             AsmWrite(gas_regname(o.reg));
           top_ref :
-            if o.ref^.refaddr=addr_no then
+            if o.ref^.refaddr in [addr_no,addr_pic] then
               WriteReference(o.ref^)
             else
               begin
@@ -279,7 +281,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.17  2004-10-31 21:45:04  peter
+  Revision 1.18  2005-02-06 00:05:56  florian
+    + x86_64 pic draft
+
+  Revision 1.17  2004/10/31 21:45:04  peter
     * generic tlocation
     * move tlocation to cgutils
 
