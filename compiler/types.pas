@@ -107,7 +107,6 @@ unit types;
     uses verbose,aasm;
 
     function equal_paras(def1,def2 : pdefcoll;value_equal_const : boolean) : boolean;
-
       begin
          while (assigned(def1)) and (assigned(def2)) do
            begin
@@ -142,9 +141,9 @@ unit types;
            equal_paras:=false;
       end;
 
+
     { true if a function can be assigned to a procvar }
     function proc_to_procvar_equal(def1,def2 : pabstractprocdef) : boolean;
-
       begin
          if is_equal(def1^.retdef,def2^.retdef) and
             equal_paras(def1^.para1,def2^.para1,false) and
@@ -155,12 +154,15 @@ unit types;
            proc_to_procvar_equal:=false;
       end;
 
+
     { returns true, if def uses FPU }
     function is_fpu(def : pdef) : boolean;
       begin
          is_fpu:=(def^.deftype=floatdef) and (pfloatdef(def)^.typ<>f32bit);
       end;
 
+
+    { true if p is an ordinal }
     function is_ordinal(def : pdef) : boolean;
       var
          dt : tbasetype;
@@ -176,12 +178,16 @@ unit types;
          end;
       end;
 
+
+    { true if p is an integer }
     function is_integer(def : pdef) : boolean;
       begin
         is_integer:=(def^.deftype=orddef) and
-                    (porddef(def)^.typ in [u8bit,u16bit,u32bit,s8bit,s16bit,s32bit]);
+                    (porddef(def)^.typ in [uauto,u8bit,u16bit,u32bit,s8bit,s16bit,s32bit]);
       end;
 
+
+    { true if p is signed (integer) }
     function is_signed(def : pdef) : boolean;
       var
          dt : tbasetype;
@@ -197,42 +203,47 @@ unit types;
          end;
       end;
 
+
     { true, if p points to an open array def }
     function is_open_array(p : pdef) : boolean;
-
       begin
          is_open_array:=(p^.deftype=arraydef) and
                         (parraydef(p)^.lowrange=0) and
                         (parraydef(p)^.highrange=-1);
       end;
 
-    { true if o is an ansi string def }
+
+    { true if p is an ansi string def }
     function is_ansistring(p : pdef) : boolean;
       begin
          is_ansistring:=(p^.deftype=stringdef) and
                         (pstringdef(p)^.string_typ=st_ansistring);
       end;
 
-    { true if o is an long string def }
+
+    { true if p is an long string def }
     function is_longstring(p : pdef) : boolean;
       begin
          is_longstring:=(p^.deftype=stringdef) and
                         (pstringdef(p)^.string_typ=st_longstring);
       end;
 
-    { true if o is an wide string def }
+
+    { true if p is an wide string def }
     function is_widestring(p : pdef) : boolean;
       begin
          is_widestring:=(p^.deftype=stringdef) and
                         (pstringdef(p)^.string_typ=st_widestring);
       end;
 
-    { true if o is an short string def }
+
+    { true if p is an short string def }
     function is_shortstring(p : pdef) : boolean;
       begin
          is_shortstring:=(p^.deftype=stringdef) and
                          (pstringdef(p)^.string_typ=st_shortstring);
       end;
+
 
     { true if the return value is in accumulator (EAX for i386), D0 for 68k }
     function ret_in_acc(def : pdef) : boolean;
@@ -246,9 +257,9 @@ unit types;
                      ((def^.deftype=floatdef) and (pfloatdef(def)^.typ=f32bit));
       end;
 
+
     { true if uses a parameter as return value }
     function ret_in_param(def : pdef) : boolean;
-
       begin
          ret_in_param:=(def^.deftype in [arraydef,recorddef]) or
            ((def^.deftype=stringdef) and (pstringdef(def)^.string_typ in [st_shortstring,st_longstring])) or
@@ -257,9 +268,9 @@ unit types;
            ((def^.deftype=setdef) and (psetdef(def)^.settype<>smallset));
       end;
 
+
     { true if a const parameter is too large to copy }
     function dont_copy_const_param(def : pdef) : boolean;
-
       begin
          dont_copy_const_param:=(def^.deftype in [arraydef,objectdef,formaldef,recorddef]) or
            ((def^.deftype=stringdef) and (pstringdef(def)^.string_typ in [st_shortstring,st_longstring])) or
@@ -267,11 +278,11 @@ unit types;
            ((def^.deftype=setdef) and (psetdef(def)^.settype<>smallset));
       end;
 
-    procedure testrange(def : pdef;l : longint);
 
+    { test if l is in the range of def, outputs error if out of range }
+    procedure testrange(def : pdef;l : longint);
       var
          lv,hv: longint;
-
       begin
          getrange(def,lv,hv);
          if (def^.deftype=orddef) and
@@ -296,8 +307,9 @@ unit types;
            Message(parser_e_range_check_error);
       end;
 
-    procedure getrange(def : pdef;var l : longint;var h : longint);
 
+    { return the range from def in l and h }
+    procedure getrange(def : pdef;var l : longint;var h : longint);
       begin
         case def^.deftype of
          orddef : begin
@@ -887,7 +899,10 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.23  1998-09-01 17:39:55  peter
+  Revision 1.24  1998-09-04 08:36:49  peter
+    * fixed boolean:=integer which is not explicit
+
+  Revision 1.23  1998/09/01 17:39:55  peter
     + internal constant functions
 
   Revision 1.22  1998/09/01 12:53:28  peter
