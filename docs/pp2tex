@@ -1,0 +1,6 @@
+#!/bin/sh
+# Simply paste a header and footer to the program.
+#
+cat head.tex >  $1.tex
+cat $1.pp    >> $1.tex
+cat foot.tex >> $1.tex
