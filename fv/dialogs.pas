@@ -53,14 +53,9 @@ USES
    {$ENDIF}
 
    {$IFDEF OS_OS2}                                    { OS2 CODE }
-     {$IFDEF PPC_FPC}
      OS2Def, DosCalls, PMWIN,                       { Standard units }
-     {$ELSE}
-      OS2Def, OS2Base, OS2PMAPI,                       { Standard units }
-     {$ENDIF}
    {$ENDIF}
 
-   GFVGraph,                                          { GFV standard unit }
    FVCommon, FVConsts, Objects, Drivers, Views, Validate;         { Standard GFV units }
 
 {***************************************************************************}
@@ -1028,7 +1023,7 @@ USES App,HistList;                               { Standard GFV unit }
 {---------------------------------------------------------------------------}
 {                 LEFT AND RIGHT ARROW CHARACTER CONSTANTS                  }
 {---------------------------------------------------------------------------}
-CONST LeftArr = #17; RightArr = #16;
+CONST LeftArr = '<'; RightArr = '>';
 
 {---------------------------------------------------------------------------}
 {                               TButton MESSAGES                            }
@@ -1380,12 +1375,12 @@ BEGIN
    If (State AND sfFocused = 0) Then Color := 1       { Not focused colour }
      Else Color := 2;                                 { Focused colour }
    If CanScroll(-1) Then WriteStr(0, 0, LeftArr, 4);  { Set left scroll mark }
-   If CanScroll(1) Then WriteStr(-(RawSize.X + 1 -
+   If CanScroll(1) Then WriteStr(-(Size.X + 1 -
      TextWidth(RightArr)), 0, RightArr, 4);           { Set right scroll mark }
    If (Data <> Nil) Then S := Copy(Data^, FirstPos+1,
     Length(Data^)-FirstPos) Else S := '';             { Fetch data string }
    X := TextWidth(LeftArr);                           { left arrow width }
-   While (TextWidth(S) > ((RawSize.X+1)-X-TextWidth(
+   While (TextWidth(S) > (Size.X-X-TextWidth(
      RightArr))) Do Delete(S, Length(S), 1);          { Cut to right length }
    If (State AND sfFocused <> 0) Then Begin
      L := SelStart - FirstPos;                        { Selected left end }
@@ -1422,35 +1417,13 @@ END;
 {  DrawCursor -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 05Oct99 LdB        }
 {---------------------------------------------------------------------------}
 PROCEDURE TInputLine.DrawCursor;
-VAR I, X: Sw_Integer; S: String;
 BEGIN
   If (State AND sfFocused <> 0) Then
    Begin           { Focused window }
-    if (TextModeGFV) then
-     begin
-       Cursor.Y:=0;
-       Cursor.X:=CurPos-FirstPos+1;
-       ResetCursor;
-     end
-   else
-    begin
-     X := TextWidth(LeftArr);                         { Preset x position }
-     I := 0;                                          { Preset cursor width }
-     If (Data <> Nil) Then Begin                      { Data pointer valid }
-       S := Copy(Data^, FirstPos+1, CurPos-FirstPos); { Copy the string }
-       X := X + TextWidth(S);                         { Calculate position }
-       If (State AND sfCursorIns <> 0) Then           { Check insert mode }
-         If ((CurPos+1) <= Length(Data^)) Then
-           I := TextWidth(Data^[CurPos+1])            { Insert caret width }
-           Else I := FontWidth;                       { At end use fontwidth }
-     End;
-     If (State AND sfCursorIns <> 0) Then Begin       { Insert mode }
-       If ((CurPos+1) <= Length(Data^)) Then          { Not beyond end }
-         WriteStr(-X, 0, Data^[CurPos+1], 5)          { Create block cursor }
-         Else ClearArea(X, 0, X+I, FontHeight, Green);{ Line cursor }
-     End Else ClearArea(X, 0, X+I, FontHeight, Green);{ Line cursor }
-   End;
-  end; 
+     Cursor.Y:=0;
+     Cursor.X:=CurPos-FirstPos+1;
+     ResetCursor;
+  end;
 END;
 
 {--TInputLine---------------------------------------------------------------}
@@ -1540,9 +1513,9 @@ Delta, Anchor, OldCurPos, OldFirstPos, OldSelStart, OldSelEnd: Sw_Integer;
 
    FUNCTION MouseDelta: Sw_Integer;
    BEGIN
-     If (Event.Where.X <= RawOrigin.X+TextWidth(LeftArr))
+     If (Event.Where.X <= Origin.X+TextWidth(LeftArr))
        Then MouseDelta := -1 Else                     { To left of text area }
-       If ((Event.Where.X-RawOrigin.X) >= RawSize.X -
+       If ((Event.Where.X-Origin.X) >= Size.X -
        TextWidth(RightArr)) Then MouseDelta := 1      { To right of text area }
          Else MouseDelta := 0;                        { In area return 0 }
    END;
@@ -1550,7 +1523,7 @@ Delta, Anchor, OldCurPos, OldFirstPos, OldSelStart, OldSelEnd: Sw_Integer;
    FUNCTION MousePos: Sw_Integer;
    VAR Mp, Tw, Pos: Sw_Integer; S: String;
    BEGIN
-     Mp := Event.Where.X - RawOrigin.X;               { Mouse position }
+     Mp := Event.Where.X - Origin.X;               { Mouse position }
      If (Data <> Nil) Then S := Copy(Data^, FirstPos+1,
        Length(Data^)-FirstPos) Else S := '';          { Text area string }
      Tw := TextWidth(LeftArr);                        { Text width }
@@ -1747,8 +1720,8 @@ BEGIN
          If (Data <> Nil) Then OldData := Copy(Data^,
            FirstPos+1, CurPos-FirstPos)               { Text area string }
            Else OldData := '';                        { Empty string }
-         Delta := FontWidth;                          { Safety = 1 char }
-         While (TextWidth(OldData) > ((RawSize.X+1)-Delta)
+         Delta := 1;                          { Safety = 1 char }
+         While (TextWidth(OldData) > (Size.X-Delta)
          - TextWidth(LeftArr) - TextWidth(RightArr))  { Check text fits }
          Do Begin
            Inc(FirstPos);                             { Advance first pos }
@@ -1776,7 +1749,7 @@ BEGIN
        If (Data = Nil) Then S := '' Else              { Data ptr invalid }
          S := Copy(Data^, FirstPos+1, Length(Data^)
           - FirstPos);                                { Fetch max string }
-       CanScroll := (TextWidth(S)) > (RawSize.X -
+       CanScroll := (TextWidth(S)) > (Size.X -
          TextWidth(LeftArr) - TextWidth(RightArr));   { Check scroll right }
      End Else CanScroll := False;                     { Zero so no scroll }
 END;
@@ -1863,24 +1836,8 @@ END;
 PROCEDURE TButton.DrawFocus;
 VAR B: Byte; I, J, Pos: Sw_Integer;
     Bc: Word; Db: TDrawBuffer;
-    StoreUseFixedFont: boolean;
     C : char;
 BEGIN
-   If not TextModeGFV then Begin
-     If DownFlag Then B := 7 Else B := 0;               { Shadow colour }
-     GraphRectangle(0, 0, RawSize.X, RawSize.Y, B);     { Draw backing shadow }
-     GraphRectangle(1, 1, RawSize.X-1, RawSize.Y-1, B); { Draw backing shadow }
-     If DownFlag Then B := 0 Else B := 15;              { Highlight colour }
-     GraphLine(0, RawSize.Y, 0, 0, B);
-     GraphLine(1, RawSize.Y-1, 1, 1, B);                { Left highlights }
-     GraphLine(0, 0, RawSize.X, 0, B);
-     GraphLine(1, 1, RawSize.X-1, 1, B);                { Top highlights }
-     If DownFlag Then B := 8 Else B := 7;               { Select backing }
-     If (State AND sfFocused <> 0) AND
-       (DownFlag = False) Then B := 14;                 { Show as focused }
-     GraphRectangle(2, 2, RawSize.X-2, RawSize.Y-2, B); { Draw first border }
-     GraphRectangle(3, 3, RawSize.X-3, RawSize.Y-3, B); { Draw next border }
-   End;
    If (State AND sfDisabled <> 0) Then                { Button disabled }
      Bc := GetColor($0404) Else Begin                 { Disabled colour }
        Bc := GetColor($0501);                         { Set normal colour }
@@ -1892,50 +1849,40 @@ BEGIN
    If (Title <> Nil) Then Begin                       { We have a title }
      If (Flags AND bfLeftJust = 0) Then Begin         { Not left set title }
        I := CTextWidth(Title^);                        { Fetch title width }
-       I := (RawSize.X - I) DIV 2;                    { Centre in button }
-     End Else I := FontWidth;                         { Left edge of button }
-     If not TextModeGFV then Begin
-       MoveCStr(Db[0], Title^, Bc);                        { Move title to buffer }
-       GOptions := GOptions OR goGraphView;             { Graphics co-ords mode }
-       StoreUseFixedFont:=UseFixedFont;
-       UseFixedFont:=false;
-       WriteLine(I, FontHeight DIV 2, CStrLen(Title^),
-         1, Db);                                        { Write the title }
-       GOptions := GOptions AND NOT goGraphView;        { Return to normal mode }
-       UseFixedFont:=StoreUseFixedFont;
-     End Else Begin
-       I:=I div SysFontWidth;
-       If DownFlag then
+       I := (Size.X - I) DIV 2;                    { Centre in button }
+     End
+     Else
+       I := 1;                         { Left edge of button }
+     If DownFlag then
+       begin
+         MoveChar(Db[0],' ',GetColor(8),1);
+         Pos:=1;
+       end
+     else
+       pos:=0;
+     For j:=0 to I-1 do
+       MoveChar(Db[pos+j],' ',Bc,1);
+     MoveCStr(Db[I+pos], Title^, Bc);                        { Move title to buffer }
+     For j:=pos+CStrLen(Title^)+I to size.X-2 do
+       MoveChar(Db[j],' ',Bc,1);
+     If not DownFlag then
+       Bc:=GetColor(8);
+     MoveChar(Db[Size.X-1],' ',Bc,1);
+     WriteLine(0, 0, Size.X,
+       1, Db);                  { Write the title }
+     If Size.Y>1 then Begin
+       Bc:=GetColor(8);
+       if not DownFlag then
          begin
-           MoveChar(Db[0],' ',GetColor(8),1);
-           Pos:=1;
-         end
-       else
-         pos:=0;
-       For j:=0 to I-1 do
-         MoveChar(Db[pos+j],' ',Bc,1);
-       MoveCStr(Db[I+pos], Title^, Bc);                        { Move title to buffer }
-       For j:=pos+CStrLen(Title^)+I to size.X-2 do
-         MoveChar(Db[j],' ',Bc,1);
-       If not DownFlag then
-         Bc:=GetColor(8);
-       MoveChar(Db[Size.X-1],' ',Bc,1);
-       WriteLine(0, 0, Size.X,
-         1, Db);                  { Write the title }
-       If Size.Y>1 then Begin
-         Bc:=GetColor(8);
-         if not DownFlag then
-           begin
-             c:='Ü';
-             MoveChar(Db,c,Bc,1);
-             WriteLine(Size.X-1, 0, 1, 1, Db);
-           end;
-         MoveChar(Db,' ',Bc,1);
-         if DownFlag then c:=' '
-         else c:='ß';
-         MoveChar(Db[1],c,Bc,Size.X-1);
-         WriteLine(0, 1, Size.X, 1, Db);
-       End;
+           c:='Ü';
+           MoveChar(Db,c,Bc,1);
+           WriteLine(Size.X-1, 0, 1, 1, Db);
+         end;
+       MoveChar(Db,' ',Bc,1);
+       if DownFlag then c:=' '
+       else c:='ß';
+       MoveChar(Db[1],c,Bc,Size.X-1);
+       WriteLine(0, 1, Size.X, 1, Db);
      End;
    End;
 END;
@@ -1995,9 +1942,9 @@ END;
 PROCEDURE TButton.HandleEvent (Var Event: TEvent);
 VAR Down: Boolean; C: Char; ButRect: TRect;
 BEGIN
-   ButRect.A := RawOrigin;                            { Get origin point }
-   ButRect.B.X := RawOrigin.X + RawSize.X;            { Calc right side }
-   ButRect.B.Y := RawOrigin.Y + RawSize.Y;            { Calc bottom }
+   ButRect.A := Origin;                            { Get origin point }
+   ButRect.B.X := Origin.X + Size.X;            { Calc right side }
+   ButRect.B.Y := Origin.Y + Size.Y;            { Calc bottom }
    If (Event.What = evMouseDown) Then Begin           { Mouse down event }
      If NOT MouseInView(Event.Where) Then Begin       { If point not in view }
        ClearEvent(Event);                             { Clear the event }
@@ -2091,11 +2038,8 @@ BEGIN
      Dispose(P);                                      { Dispose prior item }
    End;
    Sel := 0;
-   if TextModeGFV then
-    begin
-      SetCursor(2,0);
-      ShowCursor;
-    end;
+   SetCursor(2,0);
+   ShowCursor;
    EnableMask := $FFFFFFFF;                           { Enable bit masks }
 END;
 
@@ -2120,8 +2064,6 @@ BEGIN
      EnableMask := $FFFFFFFF;                         { Enable all masks }
      Options := Options OR ofVersion20;               { Set version 2 mask }
    End;
-   If (Options AND ofGFVModeView <> 0) Then           { GFV mode view check }
-     S.Read(Id, Sizeof(Id));                          { Read view id }
    Strings.Load(S);                                   { Load string data }
    SetButtonState(0, True);                           { Set button state }
 END;
@@ -2271,8 +2213,7 @@ BEGIN
      End;
      WriteBuf(K, K+I, Size.X-K-K, 1, B);              { Write buffer }
    End;
-  if TextModeGFV then
-    SetCursor(Column(Sel)+2,Row(Sel));
+  SetCursor(Column(Sel)+2,Row(Sel));
 END;
 
 {--TCluster-----------------------------------------------------------------}
@@ -2340,8 +2281,6 @@ BEGIN
      S.Write(w, SizeOf(Word));                        { Write value }
      S.Write(Sel, SizeOf(Sel));                       { Write select item }
    End;
-   If (Options AND ofGFVModeView <> 0) Then           { GFV mode view check }
-     S.Write(Id, SizeOf(Id));                         { Write new id value }
    Strings.Store(S);                                  { Store strings }
 END;
 
@@ -2952,14 +2891,14 @@ BEGIN
      T := Copy(S, I, P-I);                            { String to write }
      Case Just Of
        0: J := 0;                                     { Left justify }
-       1: J := (RawSize.X - TextWidth(T)) DIV 2;      { Centre justify }
-       2: J := RawSize.X - TextWidth(T);              { Right justify }
+       1: J := (Size.X - TextWidth(T)) DIV 2;      { Centre justify }
+       2: J := Size.X - TextWidth(T);              { Right justify }
      End;
      While (J < 0) Do Begin                           { Text to long }
        J := J + TextWidth(T[1]);                      { Add width to J }
        Delete(T, 1, 1);                               { Delete the char }
      End;
-     WriteStr(-J, -(Y*FontHeight), T, 1);             { Write the text }
+     WriteStr(-J, -Y, T, 1);             { Write the text }
      While (P <= L) AND (P-I <= Size.X) AND ((S[P] = #13) OR (S[P] = #10))
        Do Inc(P);                                     { Remove CR/LF }
      Inc(Y);                                          { Next line }
@@ -4229,7 +4168,10 @@ END;
 END.
 {
  $Log$
- Revision 1.25  2004-11-03 12:09:08  peter
+ Revision 1.26  2004-11-03 20:33:05  peter
+   * removed unnecesasry graphfv stuff
+
+ Revision 1.25  2004/11/03 12:09:08  peter
    * textwidth doesn't support ~ anymore, added CTextWidth with ~ support
 
  Revision 1.24  2004/11/03 10:37:24  peter

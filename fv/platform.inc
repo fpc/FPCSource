@@ -153,14 +153,6 @@ FOR FPC THESE ARE THE TRANSLATIONS
 {$DEFINE CPU86}
 
 {---------------------------------------------------------------------------}
-{  BORLAND 16 BIT DPMI changes protected mode - Updated 27Aug98 LdB         }
-{---------------------------------------------------------------------------}
-{$IFDEF DPMI}
-  {$UNDEF PROC_Real}
-  {$DEFINE PROC_Protected}
-{$ENDIF}
-
-{---------------------------------------------------------------------------}
 {  FPC 32 BIT COMPILER changes ASM, 32 bits etc - Updated 27Aug98 LdB       }
 {---------------------------------------------------------------------------}
 {$IFDEF FPC}
@@ -174,19 +166,8 @@ FOR FPC THESE ARE THE TRANSLATIONS
   {$DEFINE ASM_FPC}
   {$UNDEF BP_VMTLink}
   {$DEFINE Use_API}
-  {$DEFINE Use_Video_API}
   {$DEFINE NO_WINDOW}
 {$ENDIF}
-
-{$IFDEF NoAPI}
-{$UNDEF Use_API}
-{$UNDEF Use_Video_API}
-{$UNDEF NO_WINDOW}
-{$ENDIF UseAPI}
-
-{$ifdef GRAPH_API}
-{undef Use_Video_API}
-{$endif GRAPH_API}
 
 {---------------------------------------------------------------------------}
 {  FPC LINUX COMPILER changes operating system - Updated 27Aug98 LdB        }
@@ -301,7 +282,8 @@ FOR FPC THESE ARE THE TRANSLATIONS
   {$DEFINE PPC_DELPHI3}
   {$DEFINE PPC_DELPHI4}
   {$DEFINE PPC_DELPHI5}
-  {$UNDEF BP_VMTLink}
+  {$UNDEF BP_VMTLink
+  }
 {$ENDIF}
 
 {---------------------------------------------------------------------------}
@@ -410,7 +392,10 @@ FOR FPC THESE ARE THE TRANSLATIONS
 
 {
  $Log$
- Revision 1.11  2004-02-06 20:59:29  jonas
+ Revision 1.12  2004-11-03 20:33:05  peter
+   * removed unnecesasry graphfv stuff
+
+ Revision 1.11  2004/02/06 20:59:29  jonas
    + darwin support
 
  Revision 1.10  2002/09/07 15:06:38  peter

@@ -36,17 +36,6 @@ UNIT AsciiTab;
 
 {==== Compiler directives ===========================================}
 
-{$IFNDEF PPC_FPC}{ FPC doesn't support these switches }
-  {$F-} { Near calls are okay }
-  {$A+} { Word Align Data }
-  {$B-} { Allow short circuit boolean evaluations }
-  {$O+} { This unit may be overlaid }
-  {$G+} { 286 Code optimization - if you're on an 8088 get a real computer }
-  {$P-} { Normal string variables }
-  {$N-} { No 80x87 code generation }
-  {$E+} { Emulation is on }
-{$ENDIF}
-
 {$X+} { Extended syntax is ok }
 {$R-} { Disable range checking }
 {$S-} { Disable Stack Checking }
@@ -202,8 +191,8 @@ begin
       begin
         If MouseInView(Event.Where) then
           begin
-            xpos:=(Event.Where.X -RawOrigin.X) div SysFontWidth;
-            ypos:=(Event.Where.Y -RawOrigin.Y) div SysFontHeight;
+            xpos:=Event.Where.X-Origin.X;
+            ypos:=Event.Where.Y-Origin.Y;
             SetTo(xpos, ypos);
             exit;
           end;
@@ -334,7 +323,10 @@ end;
 END.
 {
  $Log$
- Revision 1.3  2002-05-30 22:23:15  pierre
+ Revision 1.4  2004-11-03 20:33:05  peter
+   * removed unnecesasry graphfv stuff
+
+ Revision 1.3  2002/05/30 22:23:15  pierre
   * current char color changed
 
  Revision 1.2  2002/05/30 14:52:53  pierre

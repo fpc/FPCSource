@@ -214,7 +214,7 @@ begin
   ColourOfs := 2;                                    { Set colour offset }
   Inherited DrawBackGround;                          { Clear the backgound }
   ColourOfs := HOfs;                                 { Reset any offset }
-  WriteStr(-(RawSize.X-TextWidth(S)+1), 0, S, 2);    { Write the string }
+  WriteStr(-(Size.X-TextWidth(S)), 0, S, 2);    { Write the string }
 END;
 
 Function THeapView.Comma ( n : LongInt) : String;
@@ -303,7 +303,10 @@ END;
 END.
 {
  $Log$
- Revision 1.5  2002-09-07 15:06:36  peter
+ Revision 1.6  2004-11-03 20:33:05  peter
+   * removed unnecesasry graphfv stuff
+
+ Revision 1.5  2002/09/07 15:06:36  peter
    * old logs removed and tabs fixed
 
 }

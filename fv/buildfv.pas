@@ -9,10 +9,7 @@ uses
   fvcommon,
   objects,
   drivers,
-  fileio,
   memory,
-  gfvgraph,
-
   fvconsts,
   resource,
   views,
@@ -37,7 +34,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2004-11-02 23:53:19  peter
+  Revision 1.7  2004-11-03 20:33:05  peter
+    * removed unnecesasry graphfv stuff
+
+  Revision 1.6  2004/11/02 23:53:19  peter
     * fixed crashes with ide and 1.9.x
 
   Revision 1.5  2002/09/07 15:06:36  peter

@@ -87,10 +87,6 @@ USES
 {$ifdef HasSysMsgUnit}
    SysMsg,
 {$endif HasSysMsgUnit}
-{$IFDEF GRAPH_API}                                    { GRAPH CODE }
-   Graph,                                             { Standard unit }
-{$ENDIF}
-   GFVGraph,                                          { GFV graphics unit }
    FVCommon, Objects;                                 { GFV standard units }
 
 {***************************************************************************}
@@ -278,11 +274,7 @@ TYPE
    END;
    PEvent = ^TEvent;
 
-{$ifdef USE_VIDEO_API}
    TVideoMode = Video.TVideoMode;                     { Screen mode }
-{$else not USE_VIDEO_API}
-   TVideoMode = Sw_Word;                              { Screen mode }
-{$endif USE_VIDEO_API}
 
 {---------------------------------------------------------------------------}
 {                    ERROR HANDLER FUNCTION DEFINITION                      }
@@ -577,16 +569,6 @@ CONST
    SaveInt09    : Pointer = Nil;                      { Compatability only }
    SysErrorFunc : TSysErrorFunc = {$ifdef FPC}@{$endif}SystemError; { System error ptr }
 
-{---------------------------------------------------------------------------}
-{          >>> NEW INITIALIZED DOS/DPMI/WIN/NT/OS2 VARIABLES <<<            }
-{---------------------------------------------------------------------------}
-CONST
-   TextModeGFV    : Boolean = False;                     { DOS/DPMI textmode op }
-   UseFixedFont   : Boolean = True;
-   DefLineNum     : Sw_Integer = 25;                     { Default line number }
-   DefFontHeight  : Sw_Integer = 0;                      { Default font height }
-   SysFontWidth   : Sw_Integer = 8;                      { System font width }
-   SysFontHeight  : Sw_Integer = 16;                     { System font height }
 
 {***************************************************************************}
 {                      UNINITIALIZED PUBLIC VARIABLES                       }
@@ -600,11 +582,7 @@ VAR
    MouseButtons: Byte;                                { Mouse button state }
    ScreenWidth : Byte;                                { Screen text width }
    ScreenHeight: Byte;                                { Screen text height }
-{$IFNDEF Use_Video_API}
-   ScreenMode  : Sw_Word;                                { Screen mode }
-{$Else Use_Video_API}
    ScreenMode  : TVideoMode;                         { Screen mode }
-{$Endif Use_Video_API}
    MouseWhere  : TPoint;                              { Mouse position }
 
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
@@ -613,11 +591,6 @@ VAR
 { API Units }
   USES
   FVConsts,
-{$IFDEF GRAPH_API}                                    { GRAPH CODE }
-{$ifdef win32}
-  win32gr,
-{$endif}
-{$ENDIF GRAPH_API}                                    { GRAPH CODE }
   Keyboard,Mouse;
 
 {***************************************************************************}
@@ -789,7 +762,6 @@ END;
 {---------------------------------------------------------------------------}
 {  DetectVideo -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 19May98 LdB       }
 {---------------------------------------------------------------------------}
-{$IFDEF Use_Video_API}
 
 procedure DetectVideo;
 VAR
@@ -800,107 +772,6 @@ begin
   GetVideoMode(CurrMode);
   ScreenMode:=CurrMode;
 end;
-{$else not Use_Video_API}
-PROCEDURE DetectVideo;
-{$IFDEF OS_DOS}                                       { DOS/DPMI CODE }
-ASSEMBLER;
-   {$IFDEF ASM_BP}                                    { BP COMPATABLE ASM }
-   ASM
-     MOV AH, $0F;                                     { Set function id }
-     PUSH BP;                                         { Safety!! save reg }
-     INT $10;                                         { Get current crt mode }
-     POP BP;                                          { Restore register }
-     PUSH AX;                                         { Hold result }
-     MOV AX, $1130;                                   { Set function id }
-     MOV BH, 0;                                       { Zero register }
-     MOV DL, 0;                                       { Zero register }
-     PUSH BP;                                         { Safety!! save reg }
-     INT $10;                                         { Get ext-video mode }
-     POP BP;                                          { Restore register }
-     POP AX;                                          { Recover held value }
-     MOV DH, AH;                                      { Transfer high mode }
-     CMP DL, 25;                                      { Check screen ht }
-     SBB AH, AH;                                      { Subtract borrow }
-     INC AH;                                          { Make #1 if in high }
-     MOV CL, 1;                                       { Preset value of 1 }
-     OR DL, DL;                                       { Test for zero }
-     JNZ @@1;                                         { Branch if not zero }
-     MOV CL, 0                                        { Set value to zero }
-     MOV DL, 24;                                      { Zero = 24 lines }
-   @@1:
-     INC DL;                                          { Add one line }
-     MOV ScreenWidth, DH;                             { Hold screen width }
-     MOV ScreenHeight, DL;                            { Hold screen height }
-     MOV HiResScreen, CL;                             { Set hires mask }
-     CMP AL, smMono;                                  { Is screen mono }
-     JZ @@Exit1;                                      { Exit of mono }
-     CMP AL, smBW80;                                  { Is screen B&W }
-     JZ @@Exit1;                                      { Exit if B&W }
-     MOV AX, smCO80;                                  { Else set to colour }
-   @@Exit1:
-     MOV ScreenMode, AX;                              { Hold screen mode }
-   END;
-   {$ENDIF}
-   {$IFDEF ASM_FPC}                                   { FPC COMPATABLE ASM }
-   ASM
-     MOVB $0x0F, %AH;                                 { Set function id }
-     PUSHL %EBP;                                      { Save register }
-     INT $0x10;                                       { Get current crt mode }
-     POPL %EBP;                                       { Restore register }
-     PUSHL %EAX;                                      { Hold result }
-     MOVW $0x1130, %AX;                               { Set function id }
-     MOVB $0, %BH;                                    { Zero register }
-     MOVB $0, %DL;                                    { Zero register }
-     PUSHL %EBP;                                      { Safety!! save reg }
-     INT $0x10;                                       { Get ext-video mode }
-     POPL %EBP;                                       { Restore register }
-     POPL %EAX;                                       { Recover held value }
-     MOVB %AH, %DH;                                   { Transfer high mode }
-     CMPB $25, %DL;                                   { Check screen ht }
-     SBB %AH, %AH;                                    { Subtract borrow }
-     INCB %AH;                                        { Make #1 if in high }
-     MOVB $1, %CL;                                    { Preset value of 1 }
-     ORB %DL, %DL;                                    { Test for zero }
-     JNZ .L_JMP1;                                     { Branch if not zero }
-     MOVB $0, %CL;                                    { Set value to zero }
-     MOVB $24, %DL;                                   { Zero = 24 lines }
-   .L_JMP1:
-     INCB %DL;                                        { Add one line }
-     MOVB %DH, SCREENWIDTH;                           { Hold screen width }
-     MOVB %DL, SCREENHEIGHT;                          { Hold screen height }
-     MOVB %CL, HIRESSCREEN;                           { Set hires mask }
-     CMPB $07, %AL;                                   { Is screen mono }
-     JZ .L_Exit1;                                     { Exit of mono }
-     CMPB $02, %AL;                                   { Is screen B&W }
-     JZ .L_Exit1;                                     { Exit if B&W }
-     MOVW $03, %AX;                                   { Else set to colour }
-   .L_Exit1:
-     MOVW %AX, SCREENMODE;                            { Hold screen mode }
-   END;
-   {$ENDIF}
-{$ENDIF}
-{$IFDEF OS_WINDOWS}                                   { WIN/NT CODE }
-VAR Dc: HDC;
-BEGIN
-   Dc := GetDc(0);                                    { Get screen context }
-   If ((GetDeviceCaps(Dc, BitsPixel) > 1) OR          { Colour capacity }
-   (GetDeviceCaps(Dc, Planes) > 1)) Then              { Colour capacity }
-     ScreenMode := smCO80 Else ScreenMode := smMono;  { Screen mode }
-   ReleaseDc(0, Dc);                                  { Release context }
-END;
-{$ENDIF}
-{$IFDEF OS_OS2}                                       { OS2 CODE }
-VAR Ps: Hps; Dc: Hdc; Colours: LongInt;
-BEGIN
-   Ps := WinGetPS(HWND_Desktop);                      { Get desktop PS }
-   Dc := GpiQueryDevice(Ps);                          { Get gpi context }
-   DevQueryCaps(Dc, Caps_Phys_Colors, 1, Colours);    { Colour capacity }
-   If (Colours> 2) Then ScreenMode := smCO80          { Colour screen }
-     Else ScreenMode := smMono;                       { Mono screen }
-   WinReleasePS(Ps);                                  { Release desktop PS }
-END;
-{$ENDIF}
-{$endif not Use_Video_API}
 
 {---------------------------------------------------------------------------}
 {  DetectMouse -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 19May98 LdB       }
@@ -1176,8 +1047,8 @@ begin
   if Mouse.PollMouseEvent(e) then
    begin
      Mouse.GetMouseEvent(e);
-     MouseWhere.X:=e.x * SysFontWidth;
-     MouseWhere.Y:=e.y * SysFontHeight;
+     MouseWhere.X:=e.x;
+     MouseWhere.Y:=e.y;
      Event.Double:=false;
      case e.Action of
        MouseActionMove :
@@ -1324,124 +1195,33 @@ const
 {---------------------------------------------------------------------------}
 PROCEDURE InitVideo;
 VAR
-{$ifdef GRAPH_API}
-  I, J: Integer;
-  Ts : TextSettingsType;
-{$else not GRAPH_API}
-  I, J: Integer;
-{$IFDEF OS_WINDOWS}
-  Dc, Mem: HDc; TempFont: TLogFont; Tm: TTextmetric;
-{$ENDIF}
-{$IFDEF OS_OS2}
-  Ts, Fs: Sw_Integer; Ps: HPs; Tm: FontMetrics;
-{$ENDIF}
-{$ENDIF}
-{$ifdef USE_VIDEO_API}
-    StoreScreenMode : TVideoMode;
-
-{$endif USE_VIDEO_API}
+  StoreScreenMode : TVideoMode;
 BEGIN
-if VideoInitialized then
-  begin
-{$ifdef USE_VIDEO_API}
-    StoreScreenMode:=ScreenMode;
-{$endif USE_VIDEO_API}
-    DoneVideo;
-{$ifdef USE_VIDEO_API}
-  end
-else
-  begin
+  if VideoInitialized then
+    begin
+      StoreScreenMode:=ScreenMode;
+      DoneVideo;
+    end
+  else
     StoreScreenMode.Col:=0;
-{$endif USE_VIDEO_API}
-  end;
-{$ifdef GRAPH_API}
-if Not TextmodeGFV then
-  begin
-{$ifdef go32v2}
-    I := VGA;
-    J := VGAHi;
-{$else not go32v2}
-{$ifdef win32}
-    I := VESA;
-    J := mLargestWindow16;
-    DefFontHeight:=8;
-{$else not win32}
-    I := Detect;                                   { Detect video card }
-    J := 0;                                        { Zero select mode }
-{$endif win32}
-{$endif go32v2}
-    InitGraph(I, J, '');                           { Initialize graphics }
-    I := Graph.GetMaxX;                            { Fetch max x size }
-    J := Graph.GetMaxY;                            { Fetch max y size }
-    If (DefFontHeight = 0) Then                    { Font height not set }
-      J := (Graph.GetMaxY+1) DIV DefLineNum        { Approx font height }
-      Else J := DefFontHeight;                     { Use set font height }
-    I := J DIV (TextHeight('H')+4);                { Approx magnification }
-    If (I < 1) Then I := 1;                        { Must be 1 or above }
-    GetTextSettings(Ts);                           { Get text style }
-    SetTextStyle(Ts.Font, Ts.Direction, I);        { Set new font settings }
-    SysFontWidth := TextWidth('H');                { Transfer font width }
-    SysFontHeight := TextHeight('H')+4;            { Transfer font height }
-    ScreenWidth := (Graph.GetMaxX+1) DIV
-      SysFontWidth;                                { Calc screen width }
-    if ScreenWidth > MaxViewWidth then
-      ScreenWidth := MaxViewWidth;
-    ScreenHeight := (Graph.GetMaxY+1) DIV
-      SysFontHeight;                               { Calc screen height }
-    UseFixedFont:=true;
-{$ifdef USE_VIDEO_API}
-    if assigned(Video.VideoBuf) then
-      FreeMem(Video.VideoBuf);
-    GetMem(Video.VideoBuf,sizeof(word)*ScreenWidth*ScreenHeight);
-    if assigned(Video.OldVideoBuf) then
-      FreeMem(Video.OldVideoBuf);
-    GetMem(Video.OldVideoBuf,sizeof(word)*ScreenWidth*ScreenHeight);
-    GetMem(GFVGraph.SpVideoBuf,sizeof(pextrainfo)*(ScreenWidth+1)*(ScreenHeight+1));
-    FillChar(Video.VideoBuf^,sizeof(word)*ScreenWidth*ScreenHeight,#0);
-    FillChar(Video.OldVideoBuf^,sizeof(word)*ScreenWidth*ScreenHeight,#0);
-    FillChar(GFVGraph.SpVideoBuf^,sizeof(pextrainfo)*(ScreenWidth+1)*(ScreenHeight+1),#0);
-    ScreenMode.color:=true;
-    ScreenMode.col:=ScreenWidth;
-    ScreenMode.row:=ScreenHeight;
-    GfvGraph.SysFontWidth:=SysFontWidth;
-    GfvGraph.SysFontHeight:=SysFontHeight;
-    GfvGraph.TextScreenWidth:=ScreenWidth;
-    GfvGraph.TextScreenHeight:=ScreenHeight;
-    SetupExtraInfo;
-{$endif USE_VIDEO_API}
-{$ifdef win32}
-    SetGraphHooks;
-{$endif}
-  end
-else
-{$endif GRAPH_API}
-  begin
-    Video.InitVideo;
-{$ifdef USE_VIDEO_API}
-    GetVideoMode(ScreenMode);
 
-    If (StoreScreenMode.Col<>0) and
-       ((StoreScreenMode.color<>ScreenMode.color) or
-       (StoreScreenMode.row<>ScreenMode.row) or
-       (StoreScreenMode.col<>ScreenMode.col)) then
-      begin
-        Video.SetVideoMode(StoreScreenMode);
-        GetVideoMode(ScreenMode);
-      end;
-{$endif USE_VIDEO_API}
-    if ScreenWidth > MaxViewWidth then
-      ScreenWidth := MaxViewWidth;
-    ScreenWidth:=Video.ScreenWidth;
-    ScreenHeight:=Video.ScreenHeight;
-    SetViewPort(0,0,ScreenWidth,ScreenHeight,true,true);
-    I := ScreenWidth*8 -1;                         { Mouse width }
-    J := ScreenHeight*8 -1;                        { Mouse height }
-    SysScreenWidth := I + 1;
-    SysScreenHeight := J + 1;
-    SysFontWidth := 8;                             { Font width }
-    SysFontHeight := 8;                            { Font height }
-  end;
-VideoInitialized:=true;
+  Video.InitVideo;
+  GetVideoMode(ScreenMode);
+
+  If (StoreScreenMode.Col<>0) and
+     ((StoreScreenMode.color<>ScreenMode.color) or
+     (StoreScreenMode.row<>ScreenMode.row) or
+     (StoreScreenMode.col<>ScreenMode.col)) then
+    begin
+      Video.SetVideoMode(StoreScreenMode);
+      GetVideoMode(ScreenMode);
+    end;
+
+  if ScreenWidth > MaxViewWidth then
+    ScreenWidth := MaxViewWidth;
+  ScreenWidth:=Video.ScreenWidth;
+  ScreenHeight:=Video.ScreenHeight;
+  VideoInitialized:=true;
 END;
 
 {---------------------------------------------------------------------------}
@@ -1451,28 +1231,7 @@ PROCEDURE DoneVideo;
 BEGIN
   if not VideoInitialized then
     exit;
-{$ifdef GRAPH_API}
-  if Not TextmodeGFV then
-    begin
-{$ifdef USE_VIDEO_API}
-      FreeMem(Video.VideoBuf,sizeof(word)*ScreenWidth*ScreenHeight);
-      Video.VideoBuf:=nil;
-      FreeMem(Video.OldVideoBuf,sizeof(word)*ScreenWidth*ScreenHeight);
-      Video.OldVideoBuf:=nil;
-      FreeExtraInfo;
-{$endif USE_VIDEO_API}
-      CloseGraph;
-{$ifdef win32}
-    UnsetGraphHooks;
-{$endif}
-    end
-  else
-{$endif GRAPH_API}
-{$ifdef USE_video_api}
-    Video.DoneVideo;
-{$else not USE_video_api}
-   ; { nothing to do }
-{$endif not USE_video_api}
+  Video.DoneVideo;
   VideoInitialized:=false;
 END;
 
@@ -1481,18 +1240,7 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE ClearScreen;
 BEGIN
-{$ifdef GRAPH_API}
-  if Not TextmodeGFV then
-    begin
-      Graph.ClearDevice;
-    end
-  else
-{$endif GRAPH_API}
-{$ifdef USE_video_api}
-    Video.ClearScreen;
-{$else not USE_video_api}
-   ; { nothing to do }
-{$endif not USE_video_api}
+  Video.ClearScreen;
 END;
 
 {---------------------------------------------------------------------------}
@@ -1500,8 +1248,6 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE SetVideoMode (Mode: Sw_Word);
 BEGIN
-   If (Mode > $100) Then DefLineNum := 50             { 50 line mode request }
-     Else DefLineNum := 24;                           { Normal 24 line mode }
 END;
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
@@ -1690,12 +1436,7 @@ END;
 BEGIN
    ButtonCount := DetectMouse;                        { Detect mouse }
    DetectVideo;                                       { Detect video }
-   { text mode is the default mode }
-   TextModeGFV:=True;
    InitKeyboard;
-   {$ifdef Graph_API}
-   TextModeGFV:=false;
-   {$endif Graph_API}
 {$ifdef HasSysMsgUnit}
    InitSystemMsg;
 {$endif HasSysMsgUnit}
@@ -1710,7 +1451,10 @@ BEGIN
 END.
 {
  $Log$
- Revision 1.39  2004-11-02 23:53:19  peter
+ Revision 1.40  2004-11-03 20:33:05  peter
+   * removed unnecesasry graphfv stuff
+
+ Revision 1.39  2004/11/02 23:53:19  peter
    * fixed crashes with ide and 1.9.x
 
  Revision 1.38  2003/10/01 16:20:27  marco

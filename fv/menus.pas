@@ -94,7 +94,6 @@ USES
      {$ENDIF}
    {$ENDIF}
 
-   GFVGraph,                                          { GFV standard unit }
    Objects, Drivers, Views;                           { GFV standard units }
 
 {***************************************************************************}
@@ -408,16 +407,12 @@ CONST
 {---------------------------------------------------------------------------}
 {                       INITIALIZED PUBLIC VARIABLES                        }
 {---------------------------------------------------------------------------}
-CONST
-   AdvancedMenus: Boolean = False;                    { Advanced menus }
 
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
                                 IMPLEMENTATION
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
-{$ifndef GRAPH_API}
 USES
   Video;
-{$endif not GRAPH_API}
 
 CONST
   SubMenuChar : array[boolean] of char = ('>',#16);
@@ -496,8 +491,8 @@ VAR AutoSelect: Boolean; Action: MenuAction; Ch: Char; Res: Word; R: TRect;
    PROCEDURE TrackMouse;
    VAR Mouse: TPoint; R: TRect;
    BEGIN
-     Mouse.X := E.Where.X - RawOrigin.X;              { Local x position }
-     Mouse.Y := E.Where.Y - RawoRigin.Y;              { Local y position }
+     Mouse.X := E.Where.X - Origin.X;              { Local x position }
+     Mouse.Y := E.Where.Y - oRigin.Y;              { Local y position }
      Current := Menu^.Items;                          { Start with current }
      While (Current <> Nil) Do Begin
        GetItemRectX(Current, R);                       { Get item rectangle }
@@ -539,8 +534,8 @@ VAR AutoSelect: Boolean; Action: MenuAction; Ch: Char; Res: Word; R: TRect;
      MouseInOwner := False;                           { Preset false }
      If (ParentMenu <> Nil) AND (ParentMenu^.Size.Y = 1)
      Then Begin                                       { Valid parent menu }
-       Mouse.X := E.Where.X - ParentMenu^.RawOrigin.X;{ Local x position }
-       Mouse.Y := E.Where.Y - ParentMenu^.RawOrigin.Y;{ Local y position }
+       Mouse.X := E.Where.X - ParentMenu^.Origin.X;{ Local x position }
+       Mouse.Y := E.Where.Y - ParentMenu^.Origin.Y;{ Local y position }
        ParentMenu^.GetItemRectX(ParentMenu^.Current,R);{ Get item rect }
        MouseInOwner := R.Contains(Mouse);             { Return result }
      End;
@@ -666,8 +661,8 @@ BEGIN
              If (E.What AND (evMouseDown+evMouseMove) <> 0)
                Then PutEvent(E);                      { Put event on queue }
              GetItemRectX(Current, R);                 { Get area of item }
-             R.A.X := R.A.X DIV FontWidth + Origin.X; { Left start point }
-             R.A.Y := R.B.Y DIV FontHeight + Origin.Y;{ Top start point }
+             R.A.X := R.A.X + Origin.X; { Left start point }
+             R.A.Y := R.B.Y + Origin.Y;{ Top start point }
              R.B.X := Owner^.Size.X;                  { X screen area left }
              R.B.Y := Owner^.Size.Y;                  { Y screen area left }
              Target := TopMenu^.NewSubView(R, SubMenu,
@@ -896,10 +891,6 @@ END;
 PROCEDURE TMenuView.GetItemRect (Item: PMenuItem; Var R: TRect);
 BEGIN
   GetItemRectX(Item,R);
-  R.A.X:=R.A.X div SysFontWidth;
-  R.A.Y:=R.A.Y div SysFontHeight;
-  R.B.X:=R.B.X div SysFontWidth;
-  R.B.Y:=R.B.Y div SysFontHeight;
 END;
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
@@ -954,13 +945,8 @@ BEGIN
            End;
            MoveCStr(B, ' '+P^.Name^+' ', Color);      { Name to buffer }
            WriteBuf(I, 0, J, 1, B);                   { Write the string }
-           K := I*FontWidth;                          { X start position }
+           K := I;                          { X start position }
            L := K + CTextWidth(' '+P^.Name^+' ');      { X end position }
-           If AdvancedMenus Then Begin
-             GraphLine(K, 0, L, 0, White);            { Redraw top line }
-             GraphLine(K, FontHeight-1, L,
-               FontHeight-1, DarkGray);               { Redraw lower line }
-           End;
          End;
          Inc(I, J);                                   { Advance position }
        End;
@@ -1001,8 +987,6 @@ BEGIN
        P := P^.Next;                                  { Next item }
      End;
    End;
-   If AdvancedMenus Then BiColorRectangle(0, 0,
-     RawSize.X, RawSize.Y, White, DarkGray, False);   { Draw 3d effect }
 END;
 
 {--TMenuBar-----------------------------------------------------------------}
@@ -1012,10 +996,10 @@ PROCEDURE TMenuBar.GetItemRectX (Item: PMenuItem; Var R: TRect);
 VAR I: Integer; P: PMenuItem;
 BEGIN
    I := 0;                                            { Preset to zero }
-   R.Assign(0, 0, 0, FontHeight);                     { Initial rect size }
+   R.Assign(0, 0, 0, 1);                     { Initial rect size }
    P := Menu^.Items;                                  { First item }
    While (P <> Nil) Do Begin                          { While valid item }
-     R.A.X := I*FontWidth;                            { Move area along }
+     R.A.X := I;                            { Move area along }
      If (P^.Name <> Nil) Then Begin                   { Valid name }
        R.B.X := R.A.X+CTextWidth(' ' + P^.Name^ + ' ');{ Add text width  }
        I := I + CStrLen(P^.Name^) + 2;                { Add item length }
@@ -1052,7 +1036,7 @@ BEGIN
        P := P^.Next;                                  { Move to next item }
      End;
    End;
-   W := 5 + (W DIV FontWidth);                        { Longest text width }
+   W := 5 + W;                        { Longest text width }
    R.Copy(Bounds);                                    { Copy the bounds }
    If (R.A.X + W < R.B.X) Then R.B.X := R.A.X + W     { Shorten if possible }
      Else R.A.X := R.B.X - W;                         { Insufficent space }
@@ -1061,9 +1045,7 @@ BEGIN
      Else R.A.Y := R.B.Y - H;                         { Insufficent height }
    Inherited Init(R);                                 { Call ancestor }
    State := State OR sfShadow;                        { Set shadow state }
-   Options := Options OR ofPreProcess;                { View pre processes }
-   if TextModeGFV then
-     Options := Options OR ofFramed;
+   Options := Options OR ofFramed or ofPreProcess;                { View pre processes }
    Menu := AMenu;                                     { Hold menu }
    ParentMenu := AParentMenu;                         { Hold parent }
 END;
@@ -1095,12 +1077,9 @@ BEGIN
    CSelect := GetColor($0604);                        { Selected colour }
    CDisabled := GetColor($0202);                      { Disabled colour }
    CSelectDisabled := GetColor($0505);                { Selected, but disabled }
-   If TextModeGFV then
-     Begin
-       Color := CNormal;                              { Normal colour }
-       CreateBorder(UpperLine);
-       WriteBuf(0, 0, Size.X, 1, B);                  { Write the line }
-     End;
+   Color := CNormal;                              { Normal colour }
+   CreateBorder(UpperLine);
+   WriteBuf(0, 0, Size.X, 1, B);                  { Write the line }
    Y := 1;
    If (Menu <> Nil) Then Begin                        { We have a menu }
      P := Menu^.Items;                                { Start on first }
@@ -1116,96 +1095,47 @@ BEGIN
            end
          else
            If (P = Current) Then Color := CSelect;    { Select colour }
-         If TextModeGFV or UseFixedFont then
-           Begin
-             If Not TextModeGFV then
-               MoveChar(B, ' ', Color, Size.X);    { Clear buffer }
-             If TextModeGFV  then
-               CreateBorder(NormalLine);
-             Index:=2;
-           End
-         Else
-           Begin
-             MoveChar(B, ' ', Color, Size.X-4);    { Clear buffer }
-             Index:=0;
-           End;
+         CreateBorder(NormalLine);
+         Index:=2;
          S := ' ' + P^.Name^ + ' ';                   { Menu string }
          MoveCStr(B[Index], S, Color);                { Transfer string }
         if P^.Command = 0 then
           MoveChar(B[Size.X - 4],SubMenuChar[LowAscii],
             Byte(Color), 1) else
-         If (P^.Command <> 0) AND(P^.Param <> Nil)
-         Then Begin
-           if TextModeGFV or UseFixedFont then
-            MoveCStr(B[Size.X - 3 - Length(P^.Param^)], P^.Param^, Color)  { Add param chars }
-           else
+         If (P^.Command <> 0) AND(P^.Param <> Nil) Then
+         Begin
+            MoveCStr(B[Size.X - 3 - Length(P^.Param^)], P^.Param^, Color);  { Add param chars }
             S := S + ' - ' + P^.Param^;                { Add to string }
          End;
          If (OldItem = Nil) OR (OldItem = P) OR
-         (Current = P) Then Begin                     { We need to fix draw }
-           If TextModeGFV or UseFixedFont then
-             Begin
-               if TextModeGFV then
-                 WriteBuf(0, Y, Size.X, 1, B)             { Write the whole line }
-               else
-                 WriteBuf(1, Y, Size.X-2, 1, B[1]);
-             end
-           Else
-             WriteBuf(2, Y, CStrLen(S), 1, B);          { Write the line }
+            (Current = P) Then
+           Begin                     { We need to fix draw }
+             WriteBuf(0, Y, Size.X, 1, B);             { Write the whole line }
            If (P = Current) Then Begin                { Selected item }
-             Tx := 2 * FontWidth;                     { X offset }
-             Ty := Y * FontHeight;                    { Y offset }
-             BicolorRectangle(Tx, Ty, Tx + CTextWidth(S)
-               - 1, Ty + FontHeight - 1, White,
-               DarkGray, False);                      { Draw higlight box }
+             Tx := 2;                     { X offset }
+             Ty := Y;                    { Y offset }
            End;
          End;
        End Else Begin { no text NewLine }
          Color := CNormal;                              { Normal colour }
-         If TextModeGFV then
-           Begin
-             CreateBorder(SeparationLine);
-             WriteBuf(0, Y, Size.X, 1, B);                { Write the line }
-           End;
+         CreateBorder(SeparationLine);
+         WriteBuf(0, Y, Size.X, 1, B);                { Write the line }
        End;
        Inc(Y);                                        { Next line down }
        P := P^.Next;                                  { fetch next item }
      End;
    End;
-   If TextModeGFV then
-     Begin
-       Color := CNormal;                              { Normal colour }
-       CreateBorder(LowerLine);
-       WriteBuf(0, Size.Y-1, Size.X, 1, B);                  { Write the line }
-     End;
+   Color := CNormal;                              { Normal colour }
+   CreateBorder(LowerLine);
+   WriteBuf(0, Size.Y-1, Size.X, 1, B);                  { Write the line }
 END;
 
 {--TMenuBox-----------------------------------------------------------------}
 {  DrawBackGround -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 11May98 LdB    }
 {---------------------------------------------------------------------------}
 PROCEDURE TMenuBox.DrawBackGround;
-VAR X, Y, Y2: Integer; P : PMenuItem;
 BEGIN
-   Y2 := FontHeight DIV 2;                            { Intra offset }
-   Y := FontHeight;                                   { Initial position }
-   X := 3*FontWidth;                                  { 2 offset }
    Inherited DrawBackGround;                          { Call ancestor }
-   If (Menu <> Nil) Then Begin                        { We have a menu }
-     P := Menu^.Items;                                { Start on first }
-     While (P <> Nil) Do Begin
-       If (P^.Name = Nil) Then                        { Item has no string }
-         BiColorRectangle(X, Y+Y2, RawSize.X-X,
-           Y+Y2+1, White, DarkGray, True);            { Draw 3d line effect }
-       Inc(Y, FontHeight);                            { Down one line }
-       P := P^.Next;                                  { Next item now }
-     End;
-   End;
-   BiColorRectangle(3, 3, RawSize.X-3, RawSize.Y-3,
-     White, DarkGray, False);                         { Draw 3d effect }
-   BiColorRectangle(5, 5, RawSize.X-5, RawSize.Y-5,
-    White, DarkGray, True);                           { Draw 3d effect }
-   BiColorRectangle(0, 0, RawSize.X, RawSize.Y,
-     White, DarkGray, False);                         { Draw 3d effect }
 END;
 
 {--TMenuBox-----------------------------------------------------------------}
@@ -1214,14 +1144,14 @@ END;
 PROCEDURE TMenuBox.GetItemRectX (Item: PMenuItem; Var R: TRect);
 VAR X, Y: Integer; P: PMenuItem;
 BEGIN
-   Y := FontHeight;                                   { Initial y position }
+   Y := 1;                                   { Initial y position }
    P := Menu^.Items;                                  { Initial item }
    While (P <> Item) Do Begin                         { Valid item }
-     Inc(Y, FontHeight);                              { Inc position }
+     Inc(Y);                              { Inc position }
      P := P^.Next;                                    { Next item }
    End;
-   X := 2 * FontWidth;                                { Left/Right margin }
-   R.Assign(X, Y, RawSize.X - X, Y + FontHeight);     { Assign area }
+   X := 2;                                { Left/Right margin }
+   R.Assign(X, Y, Size.X - X, Y + 1);     { Assign area }
 END;
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
@@ -1469,7 +1399,7 @@ VAR Mouse: TPoint; T, Tt: PStatusItem;
    VAR X, Xi: Word; T: PStatusItem;
    BEGIN
      ItemMouseIsIn := Nil;                            { Preset fail }
-     If (Mouse.Y < 0) OR (Mouse.Y > FontHeight)       { Outside view height }
+     If (Mouse.Y < 0) OR (Mouse.Y > 1)       { Outside view height }
        Then Exit;                                     { Not in view exit }
      X := 0;                                          { Zero x position }
      T := Items;                                      { Start at first item }
@@ -1493,8 +1423,8 @@ BEGIN
      evMouseDown: Begin
          T := Nil;                                    { Preset ptr to nil }
          Repeat
-           Mouse.X := Event.Where.X - RawOrigin.X;    { Local x position }
-           Mouse.Y := Event.Where.Y - RawOrigin.Y;    { Local y position }
+           Mouse.X := Event.Where.X - Origin.X;    { Local x position }
+           Mouse.Y := Event.Where.Y - Origin.Y;    { Local y position }
            Tt := ItemMouseIsIn;                       { Find selected item }
            If (T <> Tt) Then                          { Item has changed }
              DrawSelect(Tt);                          { Draw new item }
@@ -1587,8 +1517,6 @@ BEGIN
      I := I + Length(HintBuf);                        { Hint length }
    End;
    WriteLine(0, 0, I, 1, B);                          { Write the buffer }
-   If AdvancedMenus Then BicolorRectangle(0, 0,
-     RawSize.X, RawSize.Y, White, DarkGray, False);   { Add 3d effect }
 END;
 
 {***************************************************************************}
@@ -1759,7 +1687,10 @@ END;
 END.
 {
  $Log$
- Revision 1.18  2004-11-03 12:09:08  peter
+ Revision 1.19  2004-11-03 20:33:05  peter
+   * removed unnecesasry graphfv stuff
+
+ Revision 1.18  2004/11/03 12:09:08  peter
    * textwidth doesn't support ~ anymore, added CTextWidth with ~ support
 
  Revision 1.17  2004/11/02 23:53:19  peter

@@ -59,10 +59,7 @@ USES
      {$ENDIF}
    {$ENDIF}
    Dos,
-{$ifdef USE_VIDEO_API}
    Video,
-{$endif USE_VIDEO_API}
-   GFVGraph,                                            { GFV standard unit }
    FVCommon, Memory,                                    { GFV standard units }
    Objects, Drivers, Views, Menus, HistList, Dialogs,
    MsgBox;
@@ -660,8 +657,7 @@ END;
 CONSTRUCTOR TProgram.Init;
 VAR I: Integer; R: TRect;
 BEGIN
-   R.Assign(0, 0, -(GetMaxX(TextModeGFV)+1),
-     -(GetMaxY(TextModeGFV)+1));                      { Full screen area }
+   R.Assign(0, 0, -(ScreenWidth+1), -(ScreenHeight+1)); { Full screen area }
    Inherited Init(R);                                 { Call ancestor }
    Application := @Self;                              { Set application ptr }
    InitScreen;                                        { Initialize screen }
@@ -670,8 +666,6 @@ BEGIN
    Options := 0;                                      { No options set }
    Size.X := ScreenWidth;                             { Set x size value }
    Size.Y := ScreenHeight;                            { Set y size value }
-   RawSize.X := ScreenWidth * SysFontWidth - 1;       { Set rawsize x }
-   RawSize.Y := ScreenHeight * SysFontHeight - 1;     { Set rawsize y }
    InitStatusLine;                                    { Create status line }
    InitMenuBar;                                       { Create a bar menu }
    InitDesktop;                                       { Create desktop }
@@ -686,11 +680,9 @@ END;
 DESTRUCTOR TProgram.Done;
 VAR I: Integer;
 BEGIN
-{$ifdef USE_VIDEO_API}
    { Do not free the Buffer of Video Unit }
    If Buffer = Views.PVideoBuf(VideoBuf) then
      Buffer:=nil;
-{$endif USE_VIDEO_API}
    If (Desktop <> Nil) Then Dispose(Desktop, Done);   { Destroy desktop }
    If (MenuBar <> Nil) Then Dispose(MenuBar, Done);   { Destroy menu bar }
    If (StatusLine <> Nil) Then
@@ -801,28 +793,18 @@ BEGIN
     video unit capabilities, the mono modus can't be handled
   }
   Drivers.InitVideo;
-{$ifdef USE_VIDEO_API}
   if (ScreenMode.Col div ScreenMode.Row<2) then
-{$else not USE_VIDEO_API}
-  if (GetMaxX(true) div GetMaxY(true) <2) then
-{$endif USE_VIDEO_API}
     ShadowSize.X := 1
   else
     ShadowSize.X := 2;
 
   ShadowSize.Y := 1;
   ShowMarkers := False;
-{$ifdef USE_VIDEO_API}
   if ScreenMode.color then
-{$else not USE_VIDEO_API}
-  if ScreenMode<>smMono then
-{$endif USE_VIDEO_API}
     AppPalette := apColor
   else
     AppPalette := apBlackWhite;
-{$ifdef USE_VIDEO_API}
   Buffer := Views.PVideoBuf(VideoBuf);
-{$endif USE_VIDEO_API}
 END;
 
 
@@ -884,19 +866,14 @@ PROCEDURE TProgram.SetScreenMode (Mode: Word);
 var
   R: TRect;
 begin
-  if TextModeGFV then
-   begin
-     HideMouse;
-     DoneMemory;
-     InitMemory;
-     InitScreen;
-{$ifdef USE_VIDEO_API}
-     Buffer := Views.PVideoBuf(VideoBuf);
-{$endif USE_VIDEO_API}
-     R.Assign(0, 0, ScreenWidth, ScreenHeight);
-     ChangeBounds(R);
-     ShowMouse;
-   end;
+  HideMouse;
+  DoneMemory;
+  InitMemory;
+  InitScreen;
+  Buffer := Views.PVideoBuf(VideoBuf);
+  R.Assign(0, 0, ScreenWidth, ScreenHeight);
+  ChangeBounds(R);
+  ShowMouse;
 end;
 
 procedure TProgram.SetScreenVideoMode(const Mode: TVideoMode);
@@ -909,14 +886,8 @@ begin
   InitMouse;
   InitMemory;
   InitScreen;
-{$ifdef USE_VIDEO_API}
   Video.SetVideoMode(Mode);
-{$else USE_VIDEO_API}
-  SetVideoMode(Mode);
-{$endif USE_VIDEO_API}
-{$ifdef USE_VIDEO_API}
   Buffer := Views.PVideoBuf(VideoBuf);
-{$endif USE_VIDEO_API}
   R.Assign(0, 0, ScreenWidth, ScreenHeight);
   ChangeBounds(R);
   ShowMouse;
@@ -1009,14 +980,9 @@ BEGIN
    InitResource;
    InitMsgBox;
    Inherited Init;                                    { Call ancestor }
-   if (TextModeGFV) then
-    begin
-      { init mouse and cursor }
-{$ifdef USE_VIDEO_API}
-      Video.SetCursorType(crHidden);
-{$endif USE_VIDEO_API}
-      Mouse.SetMouseXY(1,1);
-    end;
+   { init mouse and cursor }
+   Video.SetCursorType(crHidden);
+   Mouse.SetMouseXY(1,1);
 END;
 
 {--TApplication-------------------------------------------------------------}
@@ -1196,7 +1162,10 @@ END;
 END.
 {
  $Log$
- Revision 1.22  2002-09-22 19:42:52  hajny
+ Revision 1.23  2004-11-03 20:33:05  peter
+   * removed unnecesasry graphfv stuff
+
+ Revision 1.22  2002/09/22 19:42:52  hajny
    + FPC/2 support added
 
  Revision 1.21  2002/09/09 08:04:05  pierre
