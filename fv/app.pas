@@ -62,7 +62,7 @@ USES
    Video,
    FVCommon, Memory,                                    { GFV standard units }
    Objects, Drivers, Views, Menus, HistList, Dialogs,
-   MsgBox;
+   msgbox, fvconsts;
 
 {***************************************************************************}
 {                              PUBLIC CONSTANTS                             }
@@ -317,7 +317,7 @@ PROCEDURE RegisterApp;
 {---------------------------------------------------------------------------}
 CONST
   RBackGround: TStreamRec = (
-     ObjType: 30;                                     { Register id = 30 }
+     ObjType: idBackground;                           { Register id = 30 }
      VmtLink: TypeOf(TBackGround);
      Load:    @TBackGround.Load;                      { Object load method }
      Store:   @TBackGround.Store                      { Object store method }
@@ -328,7 +328,7 @@ CONST
 {---------------------------------------------------------------------------}
 CONST
   RDeskTop: TStreamRec = (
-     ObjType: 31;                                     { Register id = 31 }
+     ObjType: idDesktop;                              { Register id = 31 }
      VmtLink: TypeOf(TDeskTop);
      Load:    @TDeskTop.Load;                         { Object load method }
      Store:   @TDeskTop.Store                         { Object store method }
@@ -1153,7 +1153,10 @@ END;
 END.
 {
  $Log$
- Revision 1.27  2004-12-18 16:18:47  peter
+ Revision 1.28  2004-12-19 20:20:48  hajny
+   * ObjType references constants from fvconsts
+
+ Revision 1.27  2004/12/18 16:18:47  peter
  win32 fixes
 
  Revision 1.26  2004/11/06 22:03:06  peter

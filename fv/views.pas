@@ -55,7 +55,7 @@ USES
      Os2Def, DosCalls, PmWin,
    {$ENDIF}
 
-   Objects, FVCommon, Drivers;                          { GFV standard units }
+   Objects, FVCommon, Drivers, fvconsts;              { GFV standard units }
 
 {***************************************************************************}
 {                              PUBLIC CONSTANTS                             }
@@ -697,7 +697,7 @@ CONST
 {---------------------------------------------------------------------------}
 CONST
    RView: TStreamRec = (
-     ObjType: 1;                                      { Register id = 1 }
+     ObjType: idView;                                 { Register id = 1 }
      VmtLink: TypeOf(TView);                          { Alt style VMT link }
      Load:    @TView.Load;                            { Object load method }
      Store:   @TView.Store                            { Object store method }
@@ -708,7 +708,7 @@ CONST
 {---------------------------------------------------------------------------}
 CONST
    RFrame: TStreamRec = (
-     ObjType: 2;                                      { Register id = 2 }
+     ObjType: idFrame;                                { Register id = 2 }
      VmtLink: TypeOf(TFrame);                         { Alt style VMT link }
      Load:    @TFrame.Load;                           { Frame load method }
      Store:   @TFrame.Store                           { Frame store method }
@@ -719,7 +719,7 @@ CONST
 {---------------------------------------------------------------------------}
 CONST
    RScrollBar: TStreamRec = (
-     ObjType: 3;                                      { Register id = 3 }
+     ObjType: idScrollBar;                            { Register id = 3 }
      VmtLink: TypeOf(TScrollBar);                     { Alt style VMT link }
      Load:    @TScrollBar.Load;                       { Object load method }
      Store:   @TScrollBar.Store                       { Object store method }
@@ -730,7 +730,7 @@ CONST
 {---------------------------------------------------------------------------}
 CONST
    RScroller: TStreamRec = (
-     ObjType: 4;                                      { Register id = 4 }
+     ObjType: idScroller;                             { Register id = 4 }
      VmtLink: TypeOf(TScroller);                      { Alt style VMT link }
      Load:    @TScroller.Load;                        { Object load method }
      Store:   @TScroller.Store                        { Object store method }
@@ -741,7 +741,7 @@ CONST
 {---------------------------------------------------------------------------}
 CONST
    RListViewer: TStreamRec = (
-     ObjType: 5;                                      { Register id = 5 }
+     ObjType: idListViewer;                           { Register id = 5 }
      VmtLink: TypeOf(TListViewer);                    { Alt style VMT link }
      Load:    @TListViewer.Load;                      { Object load method }
      Store:   @TLIstViewer.Store                      { Object store method }
@@ -752,7 +752,7 @@ CONST
 {---------------------------------------------------------------------------}
 CONST
    RGroup: TStreamRec = (
-     ObjType: 6;                                      { Register id = 6 }
+     ObjType: idGroup;                                { Register id = 6 }
      VmtLink: TypeOf(TGroup);                         { Alt style VMT link }
      Load:    @TGroup.Load;                           { Object load method }
      Store:   @TGroup.Store                           { Object store method }
@@ -763,7 +763,7 @@ CONST
 {---------------------------------------------------------------------------}
 CONST
    RWindow: TStreamRec = (
-     ObjType: 7;                                      { Register id = 7 }
+     ObjType: idWindow;                               { Register id = 7 }
      VmtLink: TypeOf(TWindow);                        { Alt style VMT link }
      Load:    @TWindow.Load;                          { Object load method }
      Store:   @TWindow.Store                          { Object store method }
@@ -917,10 +917,10 @@ BEGIN
      ViewPort.X2 := X2;                               { Set X2 port value }
      ViewPort.Y2 := Y2;                               { Set Y2 port value }
      ViewPort.Clip := Clip;                           { Set port clip value }
-{$ifdef DEBUG}
+{ $ifdef DEBUG
      If WriteDebugInfo then
        Writeln(stderr,'New ViewPort(',X1,',',Y1,',',X2,',',Y2,')');
-{$endif DEBUG}
+ $endif DEBUG}
 END;
 
 {***************************************************************************}
@@ -4620,7 +4620,10 @@ END.
 
 {
  $Log$
- Revision 1.51  2004-12-15 19:14:11  peter
+ Revision 1.52  2004-12-19 20:20:48  hajny
+   * ObjType references constants from fvconsts
+
+ Revision 1.51  2004/12/15 19:14:11  peter
    * goptions removed
    * small patches from antonio talamini
 

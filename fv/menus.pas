@@ -70,7 +70,7 @@ USES
      {$ENDIF}
    {$ENDIF}
 
-   Objects, Drivers, Views;                           { GFV standard units }
+   objects, drivers, views, fvconsts;                 { GFV standard units }
 
 {***************************************************************************}
 {                              PUBLIC CONSTANTS                             }
@@ -335,7 +335,7 @@ PROCEDURE RegisterMenus;
 {---------------------------------------------------------------------------}
 CONST
    RMenuBar: TStreamRec = (
-     ObjType: 40;                                     { Register id = 40 }
+     ObjType: idMenuBar;                              { Register id = 40 }
      {$IFDEF BP_VMTLink}                              { BP style VMT link }
      VmtLink: Ofs(TypeOf(TMenuBar)^);
      {$ELSE}                                          { Alt style VMT link }
@@ -350,7 +350,7 @@ CONST
 {---------------------------------------------------------------------------}
 CONST
    RMenuBox: TStreamRec = (
-     ObjType: 41;                                     { Register id = 41 }
+     ObjType: idMenuBox;                              { Register id = 41 }
      {$IFDEF BP_VMTLink}                              { BP style VMT link }
      VmtLink: Ofs(TypeOf(TMenuBox)^);
      {$ELSE}                                          { Alt style VMT link }
@@ -1629,7 +1629,10 @@ END;
 END.
 {
  $Log$
- Revision 1.22  2004-11-06 22:03:06  peter
+ Revision 1.23  2004-12-19 20:20:48  hajny
+   * ObjType references constants from fvconsts
+
+ Revision 1.22  2004/11/06 22:03:06  peter
    * fixed mouse
 
  Revision 1.21  2004/11/06 17:08:48  peter

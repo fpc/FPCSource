@@ -1,3 +1,4 @@
+{ $Id$  }
 unit ColorTxt;
 
 {
@@ -25,7 +26,7 @@ unit ColorTxt;
 interface
 
 uses
-  Objects, Drivers, Views, Dialogs, App;
+  objects, drivers, views, dialogs, app, fvconsts;
 
 type
   PColoredText = ^TColoredText;
@@ -40,7 +41,7 @@ type
 
 const
   RColoredText: TStreamRec = (
-     ObjType: 611;
+     ObjType: idColoredText;
      VmtLink: Ofs(TypeOf(TColoredText)^);
      Load:    @TColoredText.Load;
      Store:   @TColoredText.Store
@@ -124,3 +125,10 @@ end;
 
 
 end.
+{
+ $Log$
+ Revision 1.3  2004-12-19 20:20:48  hajny
+   * ObjType references constants from fvconsts
+
+
+}

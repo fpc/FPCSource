@@ -839,7 +839,7 @@ PROCEDURE RegisterDialogs;
 {---------------------------------------------------------------------------}
 CONST
    RDialog: TStreamRec = (
-     ObjType: 10;                                     { Register id = 10 }
+     ObjType: idDialog;                               { Register id = 10 }
      VmtLink: TypeOf(TDialog);
      Load:  @TDialog.Load;                            { Object load method }
      Store: @TDialog.Store                            { Object store method }
@@ -850,7 +850,7 @@ CONST
 {---------------------------------------------------------------------------}
 CONST
    RInputLine: TStreamRec = (
-     ObjType: 11;                                     { Register id = 11 }
+     ObjType: idInputLine;                            { Register id = 11 }
      VmtLink: TypeOf(TInputLine);
      Load:  @TInputLine.Load;                         { Object load method }
      Store: @TInputLine.Store                         { Object store method }
@@ -861,7 +861,7 @@ CONST
 {---------------------------------------------------------------------------}
 CONST
    RButton: TStreamRec = (
-     ObjType: 12;                                     { Register id = 12 }
+     ObjType: idButton;                               { Register id = 12 }
      VmtLink: TypeOf(TButton);
      Load:  @TButton.Load;                            { Object load method }
      Store: @TButton.Store                            { Object store method }
@@ -872,7 +872,7 @@ CONST
 {---------------------------------------------------------------------------}
 CONST
    RCluster: TStreamRec = (
-     ObjType: 13;                                     { Register id = 13 }
+     ObjType: idCluster;                              { Register id = 13 }
      VmtLink: TypeOf(TCluster);
      Load:  @TCluster.Load;                           { Object load method }
      Store: @TCluster.Store                           { Objects store method }
@@ -883,7 +883,7 @@ CONST
 {---------------------------------------------------------------------------}
 CONST
    RRadioButtons: TStreamRec = (
-     ObjType: 14;                                     { Register id = 14 }
+     ObjType: idRadioButtons;                         { Register id = 14 }
      VmtLink: TypeOf(TRadioButtons);
      Load:  @TRadioButtons.Load;                      { Object load method }
      Store: @TRadioButtons.Store                      { Object store method }
@@ -894,7 +894,7 @@ CONST
 {---------------------------------------------------------------------------}
 CONST
    RCheckBoxes: TStreamRec = (
-     ObjType: 15;                                     { Register id = 15 }
+     ObjType: idCheckBoxes;                           { Register id = 15 }
      VmtLink: TypeOf(TCheckBoxes);
      Load:  @TCheckBoxes.Load;                        { Object load method }
      Store: @TCheckBoxes.Store                        { Object store method }
@@ -905,7 +905,7 @@ CONST
 {---------------------------------------------------------------------------}
 CONST
    RMultiCheckBoxes: TStreamRec = (
-     ObjType: 27;                                     { Register id = 27 }
+     ObjType: idMultiCheckBoxes;                      { Register id = 27 }
      VmtLink: TypeOf(TMultiCheckBoxes);
      Load:  @TMultiCheckBoxes.Load;                   { Object load method }
      Store: @TMultiCheckBoxes.Store                   { Object store method }
@@ -916,7 +916,7 @@ CONST
 {---------------------------------------------------------------------------}
 CONST
    RListBox: TStreamRec = (
-     ObjType: 16;                                     { Register id = 16 }
+     ObjType: idListBox;                              { Register id = 16 }
      VmtLink: TypeOf(TListBox);
      Load:  @TListBox.Load;                           { Object load method }
      Store: @TListBox.Store                           { Object store method }
@@ -927,7 +927,7 @@ CONST
 {---------------------------------------------------------------------------}
 CONST
    RStaticText: TStreamRec = (
-     ObjType: 17;                                     { Register id = 17 }
+     ObjType: idStaticText;                           { Register id = 17 }
      VmtLink: TypeOf(TStaticText);
      Load:  @TStaticText.Load;                        { Object load method }
      Store: @TStaticText.Store                        { Object store method }
@@ -938,7 +938,7 @@ CONST
 {---------------------------------------------------------------------------}
 CONST
    RLabel: TStreamRec = (
-     ObjType: 18;                                     { Register id = 18 }
+     ObjType: idLabel;                                { Register id = 18 }
      VmtLink: TypeOf(TLabel);
      Load:  @TLabel.Load;                             { Object load method }
      Store: @TLabel.Store                             { Object store method }
@@ -949,7 +949,7 @@ CONST
 {---------------------------------------------------------------------------}
 CONST
    RHistory: TStreamRec = (
-     ObjType: 19;                                     { Register id = 19 }
+     ObjType: idHistory;                              { Register id = 19 }
      VmtLink: TypeOf(THistory);
      Load:  @THistory.Load;                           { Object load method }
      Store: @THistory.Store                           { Object store method }
@@ -960,7 +960,7 @@ CONST
 {---------------------------------------------------------------------------}
 CONST
    RParamText: TStreamRec = (
-     ObjType: 20;                                     { Register id = 20 }
+     ObjType: idParamText;                            { Register id = 20 }
      VmtLink: TypeOf(TParamText);
      Load:  @TParamText.Load;                         { Object load method }
      Store: @TParamText.Store                         { Object store method }
@@ -4151,7 +4151,10 @@ END;
 END.
 {
  $Log$
- Revision 1.29  2004-12-15 19:14:11  peter
+ Revision 1.30  2004-12-19 20:20:48  hajny
+   * ObjType references constants from fvconsts
+
+ Revision 1.29  2004/12/15 19:14:11  peter
    * goptions removed
    * small patches from antonio talamini
 

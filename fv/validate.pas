@@ -74,7 +74,7 @@ UNIT Validate;
 {$V-} { Turn off strict VAR strings }
 {====================================================================}
 
-USES FVCommon, Objects;                                 { GFV standard units }
+USES FVCommon, Objects, fvconsts;                      { GFV standard units }
 
 {***************************************************************************}
 {                              PUBLIC CONSTANTS                             }
@@ -238,7 +238,7 @@ PROCEDURE RegisterValidate;
 {---------------------------------------------------------------------------}
 CONST
    RPXPictureValidator: TStreamRec = (
-     ObjType: 80;                                     { Register id = 80 }
+     ObjType: idPXPictureValidator;                   { Register id = 80 }
      {$IFDEF BP_VMTLink}                              { BP style VMT link }
      VmtLink: Ofs(TypeOf(TPXPictureValidator)^);
      {$ELSE}                                          { Alt style VMT link }
@@ -253,7 +253,7 @@ CONST
 {---------------------------------------------------------------------------}
 CONST
    RFilterValidator: TStreamRec = (
-     ObjType: 81;                                     { Register id = 81 }
+     ObjType: idFilterValidator;                      { Register id = 81 }
      {$IFDEF BP_VMTLink}                              { BP style VMT link }
      VmtLink: Ofs(TypeOf(TFilterValidator)^);
      {$ELSE}                                          { Alt style VMT link }
@@ -268,7 +268,7 @@ CONST
 {---------------------------------------------------------------------------}
 CONST
    RRangeValidator: TStreamRec = (
-     ObjType: 82;                                     { Register id = 82 }
+     ObjType: idRangeValidator;                       { Register id = 82 }
      {$IFDEF BP_VMTLink}                              { BP style VMT link }
      VmtLink: Ofs(TypeOf(TRangeValidator)^);
      {$ELSE}                                          { Alt style VMT link }
@@ -283,7 +283,7 @@ CONST
 {---------------------------------------------------------------------------}
 CONST
    RStringLookupValidator: TStreamRec = (
-     ObjType: 83;                                     { Register id = 83 }
+     ObjType: idStringLookupValidator;                { Register id = 83 }
      {$IFDEF BP_VMTLink}                              { BP style VMT link }
      VmtLink: Ofs(TypeOf(TStringLookupValidator)^);
      {$ELSE}                                          { Alt style VMT link }
@@ -1059,7 +1059,10 @@ END.
 
 {
  $Log$
- Revision 1.9  2004-11-06 17:08:48  peter
+ Revision 1.10  2004-12-19 20:20:48  hajny
+   * ObjType references constants from fvconsts
+
+ Revision 1.9  2004/11/06 17:08:48  peter
    * drawing of tview merged from old fv code
 
 }

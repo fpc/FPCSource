@@ -1,3 +1,4 @@
+{ $Id$  }
 Unit InpLong;
 
 (*--
@@ -76,7 +77,7 @@ Valid returns False.
 {$endif}
 
 Interface
-uses Objects, Drivers, Views, Dialogs, MsgBox;
+uses objects, drivers, views, dialogs, msgbox, fvconsts;
 
 {flags for TInputLong constructor}
 const
@@ -103,15 +104,12 @@ Type
 
 const
   RInputLong : TStreamRec = (
-    ObjType: 711;
+    ObjType: idInputLong;
     VmtLink: Ofs(Typeof(TInputLong)^);
     Load : @TInputLong.Load;
     Store : @TInputLong.Store);
 
 Implementation
-
-uses
-  FVConsts;
 
 {-----------------TInputLong.Init}
 constructor TInputLong.Init(var R : TRect; AMaxLen : Sw_Integer;
@@ -306,3 +304,10 @@ Valid := Rslt;
 end;
 
 end.
+{
+ $Log$
+ Revision 1.4  2004-12-19 20:20:48  hajny
+   * ObjType references constants from fvconsts
+
+
+}

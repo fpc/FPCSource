@@ -29,8 +29,8 @@ unit FVConsts;
 interface
 
 {
-  The ObjTypes unit declares constants for all object type IDs used in the
-  FreeVision library.  They have been moved here for easier management.  No
+  The FVConsts unit declares constants for all object type IDs used in the
+  FreeVision library. They have been moved here for easier management. No
   values for views declared in TV 2.0 have been changed from so that original
   resource files may still be used.
 }
@@ -51,7 +51,6 @@ const
   idCluster = 13;
   idRadioButtons = 14;
   idCheckBoxes = 15;
-  idMultiCheckBoxes = 27;
   idListBox = 16;
   idStaticText = 17;
   idLabel = 18;
@@ -63,6 +62,7 @@ const
   idBrowseButton = 24;
   idEditListBox = 25;
   idModalInputLine = 26;
+  idMultiCheckBoxes = 27;
   idListDlg = 28;
 
   { App Unit }
@@ -91,6 +91,9 @@ const
 
   { Resource Unit }
   idMemStringList = 52;
+
+  { Tabs Unit }
+  idTab = 55;
 
   { StdDlg Unit }
   idFileInputLine = 60;
@@ -137,6 +140,10 @@ const
   idColorItemList = 96;
   idColorDialog = 97;
 
+  { TimedDlg Unit }
+  idTimedDialog = 98;
+  idTimedDialogText = 99;
+
   { Statuses Unit }
   idStatus   = 300;
   idStatusDlg = 301;
@@ -152,10 +159,20 @@ const
 
   { FVList Unit }
 
+  { ColorTxt Unit }
+  idColoredText = 611;
+
+  { InpLong Unit }
+  idInputLong = 711;
+
+  { ASCIITab Unit }
+  idTable = 10030;
+  idReport = 10031;
+  idASCIIChart = 10032;
 
 {
- The Commands unit contains all command constants used in the FreeVision
- library.  They have been extracted from their original units and placed here
+ The FVConsts unit contains all command constants used in the FreeVision
+ library. They have been extracted from their original units and placed here
  for easier maintainence and modification to remove conflicts, such as Borland
  created with the cmChangeDir constant in the StdDlg and App units.
 }
@@ -349,7 +366,7 @@ const
 
 
 {
-  The HelpCtx unit declares standard help contexts used in FreeVision.  By
+  The FVConsts unit declares standard help contexts used in FreeVision. By
   placing all help contexts in one unit, duplicate help contexts are more
   easily prevented
 }
@@ -610,7 +627,7 @@ const
 
 
 {
-  The History unit contains all history list constants used in the FreeVision
+  The FVConsts unit contains all history list constants used in the FreeVision
   Library.
 }
 
@@ -626,7 +643,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2004-11-06 17:08:48  peter
+  Revision 1.7  2004-12-19 20:20:48  hajny
+    * ObjType references constants from fvconsts
+
+  Revision 1.6  2004/11/06 17:08:48  peter
     * drawing of tview merged from old fv code
 
 }

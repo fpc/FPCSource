@@ -102,19 +102,19 @@ const
 {---------------------------------------------------------------------------}
 
   RTable: TStreamRec = (
-     ObjType: 10030;
+     ObjType: idTable;
      VmtLink: Ofs(TypeOf(TTable)^);
      Load:    @TTable.Load;
      Store:   @TTable.Store
   );
   RReport: TStreamRec = (
-     ObjType: 10031;
+     ObjType: idReport;
      VmtLink: Ofs(TypeOf(TReport)^);
      Load:    @TReport.Load;
      Store:   @TReport.Store
   );
   RASCIIChart: TStreamRec = (
-     ObjType: 10032;
+     ObjType: idASCIIChart;
      VmtLink: Ofs(TypeOf(TASCIIChart)^);
      Load:    @TASCIIChart.Load;
      Store:   @TASCIIChart.Store
@@ -323,7 +323,10 @@ end;
 END.
 {
  $Log$
- Revision 1.6  2004-12-19 13:05:56  florian
+ Revision 1.7  2004-12-19 20:20:47  hajny
+   * ObjType references constants from fvconsts
+
+ Revision 1.6  2004/12/19 13:05:56  florian
    * fixed x86_64 compilation
 
  Revision 1.5  2004/11/06 17:08:48  peter
