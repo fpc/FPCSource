@@ -120,7 +120,7 @@ Var DiagS : PMemoryStream;
     i : longint;
 
 
-Procedure StreamErrorProcedure(Var S: TStream); FAR;
+Procedure StreamErrorProcedure(Var S: TStream);{$ifndef fpc}FAR;{$endif}
 Begin
  If S.Status = StError then
     WriteLn('ERROR: General Access failure. Halting');
@@ -138,11 +138,7 @@ end;
 
 
 begin
-{$IFDEF TP}
-  StreamError:= @StreamErrorProcedure;
-{$ELSE}
-  StreamError:= StreamErrorProcedure;
-{$ENDIF}
+  StreamError:={$ifndef tp}@{$endif}StreamErrorProcedure;
   ProcessOpts;
   If (Length(InfileName)=0) or (Length(OutFileName)=0) Then
     Usage;
@@ -187,7 +183,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2000-02-06 19:58:24  carl
+  Revision 1.5  2000-02-07 13:41:51  peter
+    * fix wrong $ifdef tp
+
+  Revision 1.4  2000/02/06 19:58:24  carl
     + Error detection of streams
 
   Revision 1.3  2000/01/07 16:46:04  daniel
