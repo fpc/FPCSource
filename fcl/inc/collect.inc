@@ -230,7 +230,7 @@ end;
 function TCollection.GetItem(Index: Integer): TCollectionItem;
 
 begin
-   Result:=TCollectionItem(FItems[Index]);
+   Result:=TCollectionItem(FItems.Items[Index]);
 end;
 
 
@@ -260,7 +260,7 @@ end;
 constructor TCollection.Create(AItemClass: TCollectionItemClass);
 
 begin
-  FItemClass:=ItemClass;
+  FItemClass:=AItemClass;
   FItems:=TList.Create;
 end;
 
@@ -340,7 +340,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  1998-10-02 22:41:23  michael
+  Revision 1.4  1999-04-05 09:56:04  michael
+  + Fixed bugs reported by Romio in TCollection
+
+  Revision 1.3  1998/10/02 22:41:23  michael
   + Added exceptions for error handling
 
   Revision 1.2  1998/05/27 11:41:41  michael
