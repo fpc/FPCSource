@@ -73,6 +73,8 @@ Type
   ValUInt = Cardinal;
   ValReal = Real;
 
+  { Comp type does not exist on fpu }
+  Comp    = int64;
   {$define SUPPORT_SINGLE}
 {$endif}
 
@@ -515,7 +517,10 @@ const
 
 {
   $Log$
-  Revision 1.27  2001-07-10 18:04:37  peter
+  Revision 1.28  2001-07-15 11:57:16  peter
+    * merged m68k updates
+
+  Revision 1.27  2001/07/10 18:04:37  peter
     * merged textfile, readlink and concat ansistring fixes
 
   Revision 1.26  2001/07/09 21:15:41  peter

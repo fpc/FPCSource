@@ -130,6 +130,11 @@ RTL=..
 INC=$(RTL)/inc
 PROCINC=$(RTL)/$(CPU_TARGET)
 UNIXINC=$(RTL)/unix
+ifeq ($(CPU_TARGET),i386)
+CPU_UNITS=ports cpu mmx graph
+else
+CPU_UNITS=
+endif
 UNITPREFIX=rtl
 ifeq ($(findstring 1.0.,$(FPC_VERSION)),)
 SYSTEMUNIT=system
@@ -149,7 +154,7 @@ GRAPHDIR=$(INC)/graph
 ifndef USELIBGGI
 USELIBGGI=NO
 endif
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings $(LINUXUNIT) unix ports initc dos crt objects printer graph ggigraph sysutils typinfo math varutils cpu mmx getopts heaptrc lineinfo errors sockets gpm ipc serial terminfo dl dynlibs video mouse keyboard
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings $(LINUXUNIT) unix initc $(CPU_UNITS) dos crt objects printer ggigraph sysutils typinfo math varutils getopts heaptrc lineinfo errors sockets gpm ipc serial terminfo dl dynlibs video mouse keyboard
 override TARGET_LOADERS+=prt0 dllprt0 cprt0 gprt0 cprt21 gprt21
 override TARGET_RSTS+=math varutils typinfo
 override CLEAN_UNITS+=syslinux linux

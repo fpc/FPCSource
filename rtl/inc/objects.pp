@@ -755,42 +755,61 @@ type
   PointerMethod = function(Obj: pointer; Param1: pointer): pointer;
 
 function PreviousFramePointer: FramePointer;assembler;
+{$undef FPC_PreviousFramePointer_Implemented}
 asm
 {$ifdef i386}
+{$define FPC_PreviousFramePointer_Implemented}
     movl (%ebp), %eax
+end ['EAX'];
 {$endif}
 {$ifdef m68k}
+{$define FPC_PreviousFramePointer_Implemented}
     move.l a6,d0
+end ['D0'];
 {$endif}
-end ['EAX'];
+{$ifndef FPC_PreviousFramePointer_Implemented}
+{$error PreviousFramePointer function not implemented}
+{$endif not FPC_PreviousFramePointer_Implemented}
 
 
 function CallPointerConstructor(Ctor: pointer; Obj: pointer; VMT: pointer; Param1: pointer): pointer;
+{$undef FPC_CallPointerConstructor_Implemented}
 begin
   asm
 {$ifdef i386}
+{$define FPC_CallPointerConstructor_Implemented}
         movl Obj, %esi
 {$endif}
 {$ifdef m68k}
+{$define FPC_CallPointerConstructor_Implemented}
         move.l Obj, a5
 {$endif}
   end;
   CallPointerConstructor := PointerConstructor(Ctor)(VMT, Obj, Param1)
 end;
+{$ifndef FPC_CallPointerConstructor_Implemented}
+{$error CallPointerConstructor function not implemented}
+{$endif not FPC_CallPointerConstructor_Implemented}
 
 
 function CallPointerMethod(Method: pointer; Obj: pointer; Param1: pointer): pointer;
+{$undef FPC_CallPointerMethod_Implemented}
 begin
   asm
 {$ifdef i386}
+{$define FPC_CallPointerMethod_Implemented}
         movl Obj, %esi
 {$endif}
 {$ifdef m68k}
+{$define FPC_CallPointerMethod_Implemented}
         move.l Obj, a5
 {$endif}
   end;
   CallPointerMethod := PointerMethod(Method)(Obj, Param1)
 end;
+{$ifndef FPC_CallPointerMethod_Implemented}
+{$error CallPointerMethod function not implemented}
+{$endif not FPC_CallPointerMethod_Implemented}
 
 
 function CallPointerLocal(Func: pointer; Frame: FramePointer; Param1: pointer): pointer;
@@ -2814,7 +2833,10 @@ END;
 END.
 {
   $Log$
-  Revision 1.5  2001-05-06 17:13:22  jonas
+  Revision 1.6  2001-07-15 11:57:16  peter
+    * merged m68k updates
+
+  Revision 1.5  2001/05/06 17:13:22  jonas
     * completed incomplete typed constant records
 
   Revision 1.4  2001/04/16 18:36:41  florian

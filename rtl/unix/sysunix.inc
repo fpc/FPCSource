@@ -44,30 +44,15 @@ var
 
 procedure prthaltproc;external name '_haltproc';
 
-procedure System_exit;
-{$undef fpc_system_exit_ok}
-begin
-{$ifdef i386}
-{$define fpc_system_exit_ok}
-  asm
-        jmp     prthaltproc
-  end;
-{$endif i386}
-{$ifdef m68k}
-{$undef fpc_system_exit_ok}
-  asm
-        bra     prthaltproc
-  end;
-{$endif m68k}
-{$ifndef fpc_system_exit_ok}
-{$error System_exit code is not implemented }
-{$endif not fpc_system_exit_ok}
+Procedure System_exit;
+Begin
+  prthaltproc;
 End;
 
 
 Function ParamCount: Longint;
 Begin
-  Paramcount:=argc-1
+  Paramcount:=argc-1;
 End;
 
 
@@ -111,7 +96,7 @@ End;
 *****************************************************************************}
 
 var
-  _HEAP : longint;external name 'HEAP';
+  _HEAP : pointer;external name 'HEAP';
   _HEAPSIZE : longint;external name 'HEAPSIZE';
 
 function getheapstart:pointer;assembler;
@@ -727,7 +712,10 @@ End.
 
 {
   $Log$
-  Revision 1.13  2001-07-13 22:05:09  peter
+  Revision 1.14  2001-07-15 11:57:16  peter
+    * merged m68k updates
+
+  Revision 1.13  2001/07/13 22:05:09  peter
     * cygwin updates
 
   Revision 1.12  2001/06/02 19:24:49  peter
