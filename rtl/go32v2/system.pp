@@ -719,6 +719,7 @@ begin
   case InOutRes of
    19 : InOutRes:=150;
    21 : InOutRes:=152;
+   32 : InOutRes:=5;
   end;
   if InOutRes=0 then
     InOutRes:=Def;
@@ -1548,7 +1549,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.12  2001-06-30 18:55:48  hajny
+  Revision 1.13  2001-08-12 17:57:54  peter
+    * map sharing violation to rte 5
+
+  Revision 1.12  2001/06/30 18:55:48  hajny
     * GetDir fix for inaccessible drives
 
   Revision 1.11  2001/06/18 14:26:16  jonas
