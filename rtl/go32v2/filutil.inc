@@ -96,13 +96,13 @@ result := Do_Write(Handle, longint(@Buffer), Count);
 end;
 
 
-Function FileSeek (Handle, Offset, Origin : Longint) : Longint;
+Function FileSeek (Handle, FOffset, Origin : Longint) : Longint;
 var Regs: registers;
 begin
 Regs.Eax := $4200;
 Regs.Al := Origin;
-Regs.Edx := Lo(Offset);
-Regs.Ecx := Hi(Offset);
+Regs.Edx := Lo(FOffset);
+Regs.Ecx := Hi(FOffset);
 Regs.Ebx := Handle;
 RealIntr($21, Regs);
 if Regs.Flags and CarryFlag <> 0 then
@@ -226,7 +226,7 @@ begin
 Regs.Ebx := Handle;
 Regs.Eax := $5700;
 RealIntr($21, Regs);
-if Regs.Flags and CarryFlag <> 0 then result := -Regs.Ax
+if Regs.Flags and CarryFlag <> 0 then result := -1
 else begin
    LongRec(result).Lo := Regs.cx;
    LongRec(result).Hi := Regs.dx;
@@ -460,7 +460,10 @@ end;
 
 {
   $Log$
-  Revision 1.14  2000-04-10 11:04:45  pierre
+  Revision 1.15  2000-06-04 14:19:04  hajny
+    * FileGetDate returns -1 on error, FileSeek parameter name changed
+
+  Revision 1.14  2000/04/10 11:04:45  pierre
     * use 16 bit regs at return of system interrupts instead of 32
     * call Dos.FindClose because it is not a dummy if LFNSupport is true
 
