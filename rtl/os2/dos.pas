@@ -299,7 +299,7 @@ begin
         asm
             {Load handle}
             movl f,%ebx
-            movw (%ebx),%ebx
+            movl (%ebx),%ebx
             movl time,%ecx
             shldl $16,%ecx,%edx
             {Set date}
@@ -1175,7 +1175,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2001-06-13 22:21:53  hajny
+  Revision 1.14  2001-10-05 01:35:48  carl
+  * corrected assembler syntax error
+
+  Revision 1.13  2001/06/13 22:21:53  hajny
     + platform specific information
 
   Revision 1.12  2001/05/21 20:50:19  hajny
