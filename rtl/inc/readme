@@ -15,5 +15,5 @@ mathh.inc	Declarations of mathematical functions.
 
 The unit files are:
 
-complex.pp	Complex functions using operator overloading
-getops.pp	Pascal implementation of the GNU Getops
+ucomplex.pp	Complex functions using operator overloading
+getopts.pp	Pascal implementation of the GNU Getops
