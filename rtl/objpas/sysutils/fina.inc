@@ -236,9 +236,23 @@ begin
   Result:=(Index>0) and (Index<=Length(Path)) and (Path[Index]=PathDelim);
 end;
 
+Function FileNo(var f : File):Longint;
+
+begin
+  result:=filerec(f).handle;
+end;
+
+Function FileNo(var f : Text):Longint;
+begin
+  result:=textrec(f).handle;
+end;
+
 {
   $Log$
-  Revision 1.1  2003-10-06 21:01:06  peter
+  Revision 1.2  2004-05-01 11:04:34  marco
+   * fileno
+
+  Revision 1.1  2003/10/06 21:01:06  peter
     * moved classes unit to rtl
 
   Revision 1.10  2003/09/06 21:52:24  marco

@@ -84,10 +84,15 @@ Function RenameFile (Const OldName, NewName : String) : Boolean;
 Function FileSearch (Const Name, DirList : String) : String;
 Function FileIsReadOnly(const FileName: String): Boolean; 
 
+Function FileNo(var f : File):Longint;
+Function FileNo(var f : Text):Longint;
 
 {
   $Log$
-  Revision 1.3  2004-04-28 20:48:20  peter
+  Revision 1.4  2004-05-01 11:04:34  marco
+   * fileno
+
+  Revision 1.3  2004/04/28 20:48:20  peter
     * ordinal-pointer conversions fixed
 
   Revision 1.2  2004/02/08 14:50:51  michael
