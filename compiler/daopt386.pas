@@ -361,7 +361,7 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
    {RCL} (Ch: (C_RWOp2, C_ROp1, C_RWFlags)),
    {RCR} (Ch: (C_RWOp2, C_ROp1, C_RWFlags)),
    {SAL} (Ch: (C_RWOp2, C_ROp1, C_RWFlags)),
-  {SHLD} (Ch: (C_RWOp3, C_RWFlags, C_ROp2)),
+  {SHLD} (Ch: (C_RWOp3, C_RWFlags, C_ROp1)),
   {SHRD} (Ch: (C_RWOp3, C_RWFlags, C_ROp1)),
  {LCALL} (Ch: (C_All, C_None, C_None)), {don't know value of any register}
   {LJMP} (Ch: (C_All, C_None, C_None)), {don't know value of any register}
@@ -1521,7 +1521,8 @@ End;
 
 Procedure ReadReg(p: PPaiProp; Reg: TRegister);
 Begin
-  IncState(p^.Regs[Reg32(Reg)].RState)
+//  if Reg in [R_EAX..R_EDI] then
+    IncState(p^.Regs[Reg32(Reg)].RState)
 End;
 
 Procedure ReadRef(p: PPaiProp; Ref: PReference);
@@ -2072,7 +2073,10 @@ End.
 
 {
  $Log$
- Revision 1.25  1998-11-18 17:58:22  jonas
+ Revision 1.26  1998-11-24 12:50:09  peter
+   * fixed crash
+
+ Revision 1.25  1998/11/18 17:58:22  jonas
    + gathering of register reading data, nowhere used yet (necessary for instruction scheduling)
 
  Revision 1.24  1998/11/13 10:13:44  peter
