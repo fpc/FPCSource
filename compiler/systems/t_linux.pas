@@ -184,6 +184,13 @@ begin
            codeSegment.concat(Taicpu.Op_sym(A_JMP,S_NO,objectlibrary.newasmsymbol(tprocsym(hp2.sym).first_procdef.mangledname)));
            codeSegment.concat(Tai_symbol_end.Createname(hp2.name^));
 {$endif i386}
+{$ifdef m68k}
+           { place jump in codesegment }
+           codesegment.concat(tai_align.create(4));
+           codesegment.concat(tai_symbol.createname_global(hp2.name^,0));
+           codesegment.concat(taicpu.op_sym(A_JMP,S_NO,objectlibrary.newasmsymbol(tprocsym(hp2.sym).first_procdef.mangledname)));
+           codesegment.concat(tai_symbol_end.createname(hp2.name^));
+{$endif m68k}
          end;
       end
      else
@@ -544,7 +551,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2002-11-17 16:32:04  carl
+  Revision 1.5  2002-12-06 17:51:43  peter
+    * m68k library support
+
+  Revision 1.4  2002/11/17 16:32:04  carl
     * memory optimization (3-4%) : cleanup of tai fields,
        cleanup of tdef and tsym fields.
     * make it work for m68k
