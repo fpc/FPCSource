@@ -43,6 +43,8 @@ Inline ................ tinline1.pp    tests recursive inlining, inlining
                                        a procedure multiple times and
                                        inlining procedures in other
                                        inline procedures.
+			tinlin64.pp    tests for a problem in pushing 64bit parameters
+				       by value.	
 TypeInfo .............. trtti2.pp      test the function system.typeinfo
                         trtti3.pp      tests the procedure system.finalize
 Resourcestrings ....... tresstr.pp     tests a simple resource string
