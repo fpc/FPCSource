@@ -377,7 +377,7 @@ implementation
 
                 { check, if a method should be overridden }
                 if (po_overridingmethod in hp^.procoptions) then
-                  Message1(parser_e_nothing_to_be_overridden,_c^.objname^+'.'+_name);
+                  Message1(parser_e_nothing_to_be_overridden,_c^.objname^+'.'+_name+hp^.demangled_paras);
                 { next overloaded method }
                 hp:=hp^.nextoverloaded;
              end;
@@ -500,7 +500,7 @@ implementation
                                     end;
                                   { check, if a method should be overridden }
                                   if (po_overridingmethod in hp^.procoptions) then
-                                   Message1(parser_e_nothing_to_be_overridden,_c^.objname^+'.'+_name);
+                                   Message1(parser_e_nothing_to_be_overridden,_c^.objname^+'.'+_name+hp^.demangled_paras);
                                end;
                              hp:=hp^.nextoverloaded;
                           end;
@@ -616,7 +616,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  1999-12-01 12:42:32  peter
+  Revision 1.22  1999-12-02 19:22:16  peter
+    * write also parameters for override info
+
+  Revision 1.21  1999/12/01 12:42:32  peter
     * fixed bug 698
     * removed some notes about unused vars
 
