@@ -90,6 +90,7 @@
 
           { returns true, if the definition can be published }
           function is_publishable : boolean;virtual;
+          function is_in_current : boolean;
        end;
 
        targconvtyp = (act_convertable,act_equal,act_exact);
@@ -503,7 +504,10 @@
 
 {
   $Log$
-  Revision 1.16  1999-02-22 20:13:39  florian
+  Revision 1.17  1999-03-01 13:45:06  pierre
+   + added staticppusymtable symtable type for local browsing
+
+  Revision 1.16  1999/02/22 20:13:39  florian
     + first implementation of message keyword
 
   Revision 1.15  1999/01/20 14:18:40  pierre

@@ -100,8 +100,8 @@
          deftype:=abstractdef;
          indexnb := 0;
          sym := nil;
-         owner := nil;
          next := nil;
+         owner := nil;
          has_rtti:=false;
          has_inittable:=false;
 {$ifdef GDB}
@@ -170,6 +170,34 @@
       end;
 
 
+    function tdef.is_in_current : boolean;
+      var
+        p : psymtable;
+      begin
+         p:=owner;
+         is_in_current:=false;
+         while assigned(p) do
+           begin
+           
+              if (p=current_module^.globalsymtable) or (p=current_module^.localsymtable)
+                 or (p^.symtabletype in [globalsymtable,staticsymtable]) then
+                begin
+                   is_in_current:=true;
+                   exit;
+                end
+              else if p^.symtabletype=objectsymtable then
+                begin
+                  if assigned(p^.defowner) then
+                    p:=pobjectdef(p^.defowner)^.owner
+                  else
+                    exit;
+                end
+              else
+                exit;
+           end;
+
+      end;
+      
     procedure tdef.write;
       begin
 {$ifdef GDB}
@@ -2234,9 +2262,9 @@ Const local_symtable_index : longint = $8001;
     procedure tprocdef.load_references;
       var
         pos : tfileposinfo;
-{$ifdef TESTLOCALBROWSER}
+{$ifndef NOLOCALBROWSER}
         pdo : pobjectdef;
-{$endif def TESTLOCALBROWSER}
+{$endif ndef NOLOCALBROWSER}
         move_last : boolean;
       begin
         move_last:=lastwritten=lastref;
@@ -2251,9 +2279,10 @@ Const local_symtable_index : longint = $8001;
          end;
         if move_last then
           lastwritten:=lastref;
-        if (current_module^.flags and uf_local_browser)<>0 then
+        if ((current_module^.flags and uf_local_browser)<>0)
+           and is_in_current then
           begin
-{$ifdef TESTLOCALBROWSER}
+{$ifndef NOLOCALBROWSER}
              pdo:=_class;
              if assigned(pdo) and (owner^.symtabletype<>localsymtable) then
                localsymtablestack:=pdo^.publicsyms;
@@ -2294,7 +2323,7 @@ Const local_symtable_index : longint = $8001;
                     pdo:=pdo^.childof;
                  end;
 
-{$endif def TESTLOCALBROWSER}
+{$endif ndef NOLOCALBROWSER}
           end;
       end;
 
@@ -2302,13 +2331,14 @@ Const local_symtable_index : longint = $8001;
     function tprocdef.write_references : boolean;
       var
         ref : pref;
-{$ifdef TESTLOCALBROWSER}
+{$ifndef NOLOCALBROWSER}
         pdo : pobjectdef;
-{$endif def TESTLOCALBROWSER}
+{$endif ndef NOLOCALBROWSER}
         move_last : boolean;
       begin
         move_last:=lastwritten=lastref;
-        if move_last and ((current_module^.flags and uf_local_browser)=0) then
+        if move_last and (((current_module^.flags and uf_local_browser)=0)
+           or not is_in_current) then
           exit;
       { write address of this symbol }
         writedefref(@self);
@@ -2334,9 +2364,10 @@ Const local_symtable_index : longint = $8001;
          end;
         current_ppu^.writeentry(ibdefref);
         write_references:=true;
-        if (current_module^.flags and uf_local_browser)<>0 then
+        if ((current_module^.flags and uf_local_browser)<>0)
+           and is_in_current then
           begin
-{$ifdef TESTLOCALBROWSER}
+{$ifndef NOLOCALBROWSER}
              pdo:=_class;
              if (owner^.symtabletype<>localsymtable) then
                while assigned(pdo) do
@@ -2348,7 +2379,7 @@ Const local_symtable_index : longint = $8001;
                       end;
                     pdo:=pdo^.childof;
                  end;
-
+               
              { we need TESTLOCALBROWSER para and local symtables
                PPU files are then easier to read PM }
              if not assigned(parast) then
@@ -2373,7 +2404,7 @@ Const local_symtable_index : longint = $8001;
                       dec(local_symtable_index);
                     pdo:=pdo^.childof;
                  end;
-{$endif def TESTLOCALBROWSER}
+{$endif ndef NOLOCALBROWSER}
           end;
       end;
 
@@ -3378,7 +3409,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.96  1999-02-25 21:02:52  peter
+  Revision 1.97  1999-03-01 13:45:04  pierre
+   + added staticppusymtable symtable type for local browsing
+
+  Revision 1.96  1999/02/25 21:02:52  peter
     * ag386bin updates
     + coff writer
 
