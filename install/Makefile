@@ -13,28 +13,82 @@
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 
-##########################################################################
-# Config
-##########################################################################
+#####################################################################
+# Defaults
+#####################################################################
+
+# Default place of the makefile.fpc
+DEFAULTFPCDIR=..
 
 # Test dir if none specified
 ifndef BASEINSTALLDIR
 BASEINSTALLDIR=/pptest
 endif
 
-# TPC
-TPC=otpc
 
-# Use UPX ?
-UPX=upx
+#####################################################################
+# Real targets
+#####################################################################
 
-# Zip
-ZIP=zip -D9 -r
+UNITOBJECTS=
+EXEOBJECTS=
 
 
-##########################################################################
-# Defaults
-##########################################################################
+#####################################################################
+# Common targets
+#####################################################################
+
+all:
+	@echo
+	@echo Possible targets are:
+	@echo
+	@echo basego32, basego32.zip
+	@echo basew32,	basew32.zip
+	@echo
+	@exit
+
+
+#####################################################################
+# Include default makefile
+#####################################################################
+
+# test if FPCMAKE is still valid
+ifdef FPCMAKE
+ifeq ($(strip $(wildcard $(FPCMAKE))),)
+FPCDIR=
+FPCMAKE=
+endif
+endif
+
+ifndef FPCDIR
+ifdef DEFAULTFPCDIR
+FPCDIR=$(DEFAULTFPCDIR)
+endif
+endif
+
+ifndef FPCMAKE
+ifdef FPCDIR
+FPCMAKE=$(FPCDIR)/makefile.fpc
+else
+FPCMAKE=makefile.fpc
+endif
+endif
+
+override FPCMAKE:=$(strip $(wildcard $(FPCMAKE)))
+ifeq ($(FPCMAKE),)
+testfpcmake:
+	@echo makefile.fpc not found!
+	@echo Check the FPCMAKE and FPCDIR environment variables.
+	@exit
+else
+include $(FPCMAKE)
+testfpcmake:
+endif
+
+
+#####################################################################
+# Dependencies
+#####################################################################
 
 # Directory to the base of the CVS tree
 CVSBASE=..
@@ -46,13 +100,6 @@ PACKDIR=$(subst \,/,$(TMP))/pp_tmp
 # Use new ppc386
 PPNEW=$(BASEDIR)/$(CVSBASE)/compiler/ppc386.exe
 
-
-##########################################################################
-# Include default makefile
-##########################################################################
-
-include $(CFG)/makefile.cfg
-
 # Test dir if none specified
 ifndef PACKAGEDIR
 PACKAGEDIR=$(BASEDIR)
@@ -63,16 +110,7 @@ endif
 # Default target
 ##########################################################################
 
-.PHONY: all basego32 basew32
-
-all:
-	@echo
-	@echo Possible targets are:
-	@echo
-	@echo basego32, basego32.zip
-	@echo basew32,	basew32.zip
-	@echo
-	@exit
+.PHONY: all clean basego32 basew32
 
 clean:
 	-$(DEL) *.tpu install.exe install.dat
@@ -105,36 +143,35 @@ installw32: install.exe
 ##########################################################################
 
 basego32:
-# readme.txt & whatsnew.txt
+# create dirs
 	$(MKDIR) $(BASEINSTALLDIR)
+	$(MKDIR) $(DOCINSTALLDIR)
+	$(MKDIR) $(BININSTALLDIR)
+	$(MKDIR) $(SOURCEINSTALLDIR)
+# readme & whatsnew
 	$(COPY) readme.txt whatsnew.txt $(BASEINSTALLDIR)
 # docs
-	$(MKDIR) $(DOCINSTALLDIR)
 	$(COPY) doc/* $(DOCINSTALLDIR)
 # bingo32 (cwsdpmi,wmemu387.dxe)
-	$(MKDIR) $(BININSTALLDIR)
 	$(COPY) bingo32/* $(BININSTALLDIR)
+# source (base)
+	$(COPY) $(CVSBASE)/base/Makefile $(CVSBASE)/base/makefile.fpc $(SOURCEINSTALLDIR)
 # compiler
 	make -C $(CVSBASE)/compiler cycle OS_TARGET=go32v2 RELEASE=1
 	make -C $(CVSBASE)/compiler install OS_TARGET=go32v2
 # rtl go32v2
-	make -C $(CVSBASE)/rtl/dos/go32v2 clean OS_TARGET=go32v2
-	make -C $(CVSBASE)/rtl/dos/go32v2 install OS_TARGET=go32v2 RELEASE=1 PP=$(PPNEW)
+	make -C $(CVSBASE)/rtl/go32v2 clean OS_TARGET=go32v2
+	make -C $(CVSBASE)/rtl/go32v2 install OS_TARGET=go32v2 RELEASE=1 PP=$(PPNEW)
 # rtl go32v2 libs
-	make -C $(CVSBASE)/rtl/dos/go32v2 clean OS_TARGET=go32v2
-	make -C $(CVSBASE)/rtl/dos/go32v2 libinstall OS_TARGET=go32v2 RELEASE=1 PP=$(PPNEW)
+	make -C $(CVSBASE)/rtl/go32v2 clean OS_TARGET=go32v2
+	make -C $(CVSBASE)/rtl/go32v2 libinstall OS_TARGET=go32v2 RELEASE=1 PP=$(PPNEW)
 # utils
 	make -C $(CVSBASE)/rtl/utils clean OS_TARGET=go32v2
 	make -C $(CVSBASE)/rtl/utils install OS_TARGET=go32v2 RELEASE=1 PP=$(PPNEW)
-ifdef UPX
-	-$(UPX) $(BININSTALLDIR)/*.exe
-endif
 
 basego32.zip:
 	make basego32 BASEINSTALLDIR=$(PACKDIR)
-	cd $(PACKDIR)
-	$(ZIP) $(PACKAGEDIR)/basego32.zip *
-	cd $(BASEDIR)
+	cd $(PACKDIR) ; $(ZIPPROG) $(PACKAGEDIR)/basego32.zip * ; cd $(BASEDIR)
 	$(DELTREE) $(PACKDIR)
 
 
@@ -174,7 +211,10 @@ basew32.zip:
 
 #
 # $Log$
-# Revision 1.1  1998-09-16 16:46:36  peter
+# Revision 1.2  1999-05-03 18:04:37  peter
+#   * updates
+#
+# Revision 1.1	1998/09/16 16:46:36  peter
 #   + updates
 #
 #

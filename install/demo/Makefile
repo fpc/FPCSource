@@ -2,7 +2,7 @@
 #   $Id$
 #   Copyright (c) 1998 by the Free Pascal Development Team
 #
-#   Makefile for demos
+#   Makefile for Free Pascal Demos
 #
 #   See the file COPYING.FPC, included in this distribution,
 #   for details about the copyright.
@@ -12,15 +12,13 @@
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 
+
 #####################################################################
 # Defaults
 #####################################################################
 
-# Where are the files located
-MAKEFILEFPC=makefile.fpc
-
-# Where need we to place the executables/ppu/objects
-TARGETDIR=.
+# Default place of the makefile.fpc
+DEFAULTFPCDIR=..
 
 
 #####################################################################
@@ -31,29 +29,90 @@ UNITOBJECTS=
 EXEOBJECTS=eratos qsort hello blackbox magic
 
 ifeq ($(OS_TARGET),win32)
-override EXEOBJECTS+=win32/winhello
+override EXEOBJECTS+=winhello menu
 else
 override EXEOBJECTS+=mandel lines
 endif
+
+
+#####################################################################
+# Common targets
+#####################################################################
+
+.PHONY: all clean install info \
+	staticlib sharedlib libsclean \
+	staticinstall sharedinstall libinstall \
+
+all: testfpcmake fpc_all
+
+clean: testfpcmake fpc_clean
+
+install: testfpcmake fpc_install
+
+info: testfpcmake fpc_info
+
+staticlib: testfpcmake fpc_staticlib
+
+sharedlib: testfpcmake fpc_sharedlib
+
+libsclean: testfpcmake fpc_libsclean
+
+staticinstall: testfpcmake fpc_staticinstall
+
+sharedinstall: testfpcmake fpc_sharedinstall
+
+libinstall: testfpcmake fpc_libinstall
+
 
 #####################################################################
 # Include default makefile
 #####################################################################
 
-include $(MAKEFILEFPC)
+# test if FPCMAKE is still valid
+ifdef FPCMAKE
+ifeq ($(strip $(wildcard $(FPCMAKE))),)
+FPCDIR=
+FPCMAKE=
+endif
+endif
+
+ifndef FPCDIR
+ifdef DEFAULTFPCDIR
+FPCDIR=$(DEFAULTFPCDIR)
+endif
+endif
+
+ifndef FPCMAKE
+ifdef FPCDIR
+FPCMAKE=$(FPCDIR)/makefile.fpc
+else
+FPCMAKE=makefile.fpc
+endif
+endif
+
+override FPCMAKE:=$(strip $(wildcard $(FPCMAKE)))
+ifeq ($(FPCMAKE),)
+testfpcmake:
+	@echo makefile.fpc not found!
+	@echo Check the FPCMAKE and FPCDIR environment variables.
+	@exit
+else
+include $(FPCMAKE)
+testfpcmake:
+endif
 
 
 #####################################################################
 # Dependencies
 #####################################################################
 
+ifeq ($(OS_TARGET),win32)
+vpath %$(PASEXT) win32
+
 
 #
 # $Log$
-# Revision 1.2  1998-12-20 22:22:09  peter
+# Revision 1.3  1999-05-03 18:04:38  peter
 #   * updates
-#
-# Revision 1.3  1998/12/12 19:14:42  peter
-#   + DEFAULTUNITS to have a make all only compile the units
 #
 #
