@@ -14,7 +14,7 @@
 
 {$IFNDEF ver1_0}
   {$INLINE ON}
-[$ENDIF}
+{$ENDIF}
 
 {$ifdef FreeBSD}
 {$DEFINE SOCK_HAS_SINLEN}		// BSD definition of scoketaddr
@@ -194,7 +194,10 @@ Function NToHs (Net : word):word;         {$ifndef ver1_0} inline; {$endif}
 
 {
   $Log$
-  Revision 1.16  2004-11-01 17:29:47  marco
+  Revision 1.17  2004-11-01 17:35:22  marco
+   * typo fixed, aarght
+
+  Revision 1.16  2004/11/01 17:29:47  marco
    * inline problems fixed
 
   Revision 1.15  2004/11/01 16:23:15  marco
