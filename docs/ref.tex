@@ -2919,7 +2919,8 @@ by the compiler itself)
 
 Take care that using value parameters makes heavy use of the stack,
 especially if you pass large parameters. The total size of all parameters in
-the formal parameter list can only be 64K (on an Intel machine).
+the formal parameter list should be below 32K for portability's sake (the
+Intel version limits this to 64K).
 
 You can pass open arrays as value parameters. See \sees{openarray} for
 more information on using open arrays.
