@@ -129,7 +129,7 @@ uses
     catch,
   {$endif}
 {$endif FPC}
-  globals,compiler,gdb;
+  globals,compiler;
 
 var
   oldexit : pointer;
@@ -177,7 +177,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2002-08-23 13:17:59  mazen
+  Revision 1.17  2002-10-15 18:16:44  peter
+    * GDB switch is not required
+
+  Revision 1.16  2002/08/23 13:17:59  mazen
   *** empty log message ***
 
   Revision 1.15  2002/07/04 20:43:01  florian
