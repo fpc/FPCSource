@@ -137,8 +137,8 @@ type
   TSpecialCharCallback = procedure(c: Char);
 
 const
-  AttrSpecialChars = ['"'];
-  TextSpecialChars = ['<'];
+  AttrSpecialChars = ['"', '&'];
+  TextSpecialChars = ['<', '>', '&'];
 
 
 procedure ConvWrite(const s: String; const SpecialChars: TCharacters;
@@ -166,6 +166,8 @@ procedure AttrSpecialCharCallback(c: Char);
 begin
   if c = '"' then
     wrt('&quot;')
+  else if c = '&' then
+    wrt('&amp;')
   else
     wrt(c);
 end;
@@ -174,6 +176,10 @@ procedure TextnodeSpecialCharCallback(c: Char);
 begin
   if c = '<' then
     wrt('&lt;')
+  else if c = '>' then
+    wrt('&gt;')
+  else if c = '&' then
+    wrt('&amp;')
   else
     wrt(c);
 end;
@@ -392,7 +398,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  2000-06-29 08:45:32  sg
+  Revision 1.9  2000-07-09 11:40:09  sg
+  * ">" and "&" in text nodes are now replaced by "&gt;" and "&amp;"
+
+  Revision 1.8  2000/06/29 08:45:32  sg
   * Now produces _much_ better output...!
 
   Revision 1.7  2000/04/20 14:15:45  sg
