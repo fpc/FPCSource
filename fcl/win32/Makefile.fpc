@@ -3,7 +3,7 @@
 #
 
 [defaults]
-jdefaulttarget=win32
+defaulttarget=win32
 defaultcpu=i386
 defaultoptions=-S2
 
