@@ -74,6 +74,10 @@
 { TComponent implementation }
 {$i compon.inc}
 
+{ Class and component registration routines }
+{$I cregist.inc}
+
+
 {**********************************************************************
  *       Miscellaneous procedures and functions                       *
  **********************************************************************}
@@ -127,81 +131,6 @@ begin
   end;
 end;
 
-
-
-{ Class registration routines }
-
-procedure RegisterClass(AClass: TPersistentClass);
-
-begin
-end;
-
-
-procedure RegisterClasses(AClasses: array of TPersistentClass);
-
-begin
-end;
-
-
-procedure RegisterClassAlias(AClass: TPersistentClass; const Alias: string);
-
-begin
-end;
-
-
-procedure UnRegisterClass(AClass: TPersistentClass);
-
-begin
-end;
-
-
-procedure UnRegisterClasses(AClasses: array of TPersistentClass);
-
-begin
-end;
-
-
-procedure UnRegisterModuleClasses(Module: HMODULE);
-
-begin
-end;
-
-
-function FindClass(const ClassName: string): TPersistentClass;
-
-begin
-  FindClass:=nil;
-end;
-
-
-function GetClass(const ClassName: string): TPersistentClass;
-
-begin
-  GetClass:=nil;
-end;
-
-
-
-{ Component registration routines }
-
-procedure RegisterComponents(const Page: string;
-  ComponentClasses: array of TComponentClass);
-
-begin
-end;
-
-
-procedure RegisterNoIcon(ComponentClasses: array of TComponentClass);
-
-begin
-end;
-
-
-procedure RegisterNonActiveX(ComponentClasses: array of TComponentClass;
-  AxRegType: TActiveXRegType);
-
-begin
-end;
 
 
 
@@ -377,7 +306,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  1999-04-13 08:52:29  michael
+  Revision 1.11  1999-09-11 21:59:31  fcl
+  * Moved class and registration functions to cregist.inc  (sg)
+
+  Revision 1.10  1999/04/13 08:52:29  michael
   + Moved strings.inc to stringl.inc, to avoid conflict with strings unit
 
   Revision 1.9  1999/04/08 10:18:50  peter
