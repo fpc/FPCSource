@@ -60,6 +60,7 @@
   {$define cpu64bit}
   {$define cpuextended}
   {$define cpufloat128}
+  {$define noopt}
 {$endif x86_64}
 
 {$ifdef alpha}
@@ -94,7 +95,12 @@
 
 {
   $Log$
-  Revision 1.32  2004-02-09 22:48:45  florian
+  Revision 1.33  2004-02-17 15:57:49  peter
+  - fix rtti generation for properties containing sl_vec
+  - fix crash when overloaded operator is not available
+  - fix record alignment for C style variant records
+
+  Revision 1.32  2004/02/09 22:48:45  florian
     * several fixes to parameter handling on arm
 
   Revision 1.31  2004/01/28 16:47:45  peter

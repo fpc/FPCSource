@@ -1115,7 +1115,10 @@ implementation
               UnionSym:=tvarsym.create('$case',vs_value,uniontype);
               symtablestack:=symtablestack.next;
               { Align the offset where the union symtable is added }
-              usedalign:=used_align(maxalignment,aktalignment.recordalignmin,aktalignment.maxCrecordalign);
+              if (trecordsymtable(symtablestack).usefieldalignment=-1) then
+                usedalign:=used_align(maxalignment,aktalignment.recordalignmin,aktalignment.maxCrecordalign)
+              else  
+                usedalign:=used_align(maxalignment,aktalignment.recordalignmin,aktalignment.recordalignmax);
               offset:=align(trecordsymtable(symtablestack).datasize,usedalign);
               trecordsymtable(symtablestack).datasize:=offset+unionsymtable.datasize;
               if maxalignment>trecordsymtable(symtablestack).fieldalignment then
@@ -1135,7 +1138,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.65  2004-02-12 15:54:03  peter
+  Revision 1.66  2004-02-17 15:57:49  peter
+  - fix rtti generation for properties containing sl_vec
+  - fix crash when overloaded operator is not available
+  - fix record alignment for C style variant records
+
+  Revision 1.65  2004/02/12 15:54:03  peter
     * make extcycle is working again
 
   Revision 1.64  2004/02/03 22:32:54  peter

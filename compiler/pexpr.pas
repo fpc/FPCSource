@@ -213,7 +213,7 @@ implementation
               end;
             vecn :
               begin
-                addnode(tsubscriptnode(p).left);
+                addnode(tvecnode(p).left);
                 if tvecnode(p).right.nodetype=ordconstn then
                   sl.addconst(sl_vec,tordconstnode(tvecnode(p).right).value)
                 else
@@ -2525,7 +2525,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.146  2004-02-03 22:32:54  peter
+  Revision 1.147  2004-02-17 15:57:49  peter
+  - fix rtti generation for properties containing sl_vec
+  - fix crash when overloaded operator is not available
+  - fix record alignment for C style variant records
+
+  Revision 1.146  2004/02/03 22:32:54  peter
     * renamed xNNbittype to xNNinttype
     * renamed registers32 to registersint
     * replace some s32bit,u32bit with torddef([su]inttype).def.typ

@@ -1043,8 +1043,8 @@ implementation
 
     function tstoreddef.alignment : longint;
       begin
-         { normal alignment by default }
-         alignment:=0;
+         { natural alignment by default }
+         alignment:=size_2_align(savesize);
       end;
 
 
@@ -5299,7 +5299,7 @@ implementation
            typvalue : byte;
            hp : psymlistitem;
            address : longint;
-
+           def : tdef;
         begin
            if not(assigned(proc) and assigned(proc.firstsym))  then
              begin
@@ -5310,9 +5310,30 @@ implementation
              begin
                 address:=0;
                 hp:=proc.firstsym;
+                def:=nil;
                 while assigned(hp) do
                   begin
-                     inc(address,tvarsym(hp^.sym).fieldoffset);
+                     case hp^.sltype of
+                       sl_load :
+                         begin
+                           def:=tvarsym(hp^.sym).vartype.def;
+                           inc(address,tvarsym(hp^.sym).fieldoffset);
+                         end;
+                       sl_subscript :
+                         begin
+                           if not(assigned(def) and (def.deftype=recorddef)) then
+                             internalerror(200402171);
+                           inc(address,tvarsym(hp^.sym).fieldoffset);
+                           def:=tvarsym(hp^.sym).vartype.def;
+                         end;  
+                       sl_vec :
+                         begin
+                           if not(assigned(def) and (def.deftype=arraydef)) then
+                             internalerror(200402172);
+                           def:=tarraydef(def).elementtype.def;
+                           inc(address,def.size*hp^.value);
+                         end;  
+                     end;      
                      hp:=hp^.next;
                   end;
                 rttiList.concat(Tai_const.Create_32bit(address));
@@ -6096,7 +6117,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.218  2004-02-12 15:54:03  peter
+  Revision 1.219  2004-02-17 15:57:49  peter
+  - fix rtti generation for properties containing sl_vec
+  - fix crash when overloaded operator is not available
+  - fix record alignment for C style variant records
+
+  Revision 1.218  2004/02/12 15:54:03  peter
     * make extcycle is working again
 
   Revision 1.217  2004/02/08 18:08:59  jonas

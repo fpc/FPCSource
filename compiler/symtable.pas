@@ -1088,7 +1088,10 @@ implementation
         tvarsym(sym).fieldoffset:=align(datasize,varalignfield);
         datasize:=tvarsym(sym).fieldoffset+l;
         { Calc alignment needed for this record }
-        varalignrecord:=used_align(varalign,aktalignment.recordalignmin,aktalignment.recordalignmax);
+        if (usefieldalignment=-1) then
+          varalignrecord:=used_align(varalign,aktalignment.recordalignmin,aktalignment.maxCrecordalign)
+        else  
+          varalignrecord:=used_align(varalign,aktalignment.recordalignmin,aktalignment.recordalignmax);
         recordalignment:=max(recordalignment,varalignrecord);
       end;
 
@@ -2082,6 +2085,7 @@ implementation
         sv:cardinal;
 
     begin
+      result:=nil;
       st:=symtablestack;
       sv:=getspeedvalue(overloaded_names[op]);
       while st<>nil do
@@ -2091,9 +2095,9 @@ implementation
             begin
               if sym.typ<>procsym then
                 internalerror(200402031);
-              search_unary_operator:=sym.search_procdef_unary_operator(def);
-              if search_unary_operator<>nil then
-                break;
+              result:=sym.search_procdef_unary_operator(def);
+              if result<>nil then
+                exit;
             end;
           st:=st.next;
         end;
@@ -2107,6 +2111,7 @@ implementation
         sv:cardinal;
 
     begin
+      result:=nil;
       st:=symtablestack;
       sv:=getspeedvalue(overloaded_names[op]);
       while st<>nil do
@@ -2116,9 +2121,9 @@ implementation
             begin
               if sym.typ<>procsym then
                 internalerror(200402031);
-              search_binary_operator:=sym.search_procdef_binary_operator(def1,def2);
-              if search_binary_operator<>nil then
-                break;
+              result:=sym.search_procdef_binary_operator(def1,def2);
+              if result<>nil then
+                exit;
             end;
           st:=st.next;
         end;
@@ -2422,7 +2427,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.137  2004-02-13 15:40:58  peter
+  Revision 1.138  2004-02-17 15:57:49  peter
+  - fix rtti generation for properties containing sl_vec
+  - fix crash when overloaded operator is not available
+  - fix record alignment for C style variant records
+
+  Revision 1.137  2004/02/13 15:40:58  peter
     * fixed protected checking in withsymtable
 
   Revision 1.136  2004/02/11 19:59:06  peter
