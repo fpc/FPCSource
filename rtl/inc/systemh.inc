@@ -45,15 +45,15 @@
 ****************************************************************************}
 
 Type
-  shortint = -128..127;
+  ShortInt = -128..127;
   SmallInt = -32768..32767;
   { can't use -2147483648 because of a bug in 1.0.2's val() procedure (JM) }
   Longint  = +(-2147483647-1)..$7fffffff;
-  byte     = 0..255;
+  Byte     = 0..255;
   Word     = 0..65535;
-  dword    = cardinal;
-  longword = cardinal;
-  Integer  = smallint;
+  DWord    = Cardinal;
+  LongWord = Cardinal;
+  Integer  = SmallInt;
 
 { at least declare Turbo Pascal real types }
 {$ifdef i386}
@@ -84,39 +84,62 @@ Type
 {$endif}
 
 { Zero - terminated strings }
-  PChar       = ^Char;
-  PPChar      = ^PChar;
+  PChar               = ^Char;
+  PPChar              = ^PChar;
 
-{ Delphi types }
-  TAnsiChar   = Char;
-  AnsiChar    = TAnsiChar;
-  PAnsiChar   = PChar;
-  PQWord      = ^QWord;
-  PInt64      = ^Int64;
+  TAnsiChar           = Char;
+  AnsiChar            = TAnsiChar;
+  PAnsiChar           = ^TAnsiChar;
+  PPAnsiChar          = ^PAnsiChar;
 
-  currency            = int64;
+  Currency            = Int64;
   HRESULT             = Longint;
   TDateTime           = Double;
   Error               = Longint;
 
-  PSmallInt           = ^Smallint;
-  PInteger            = ^Longint;
   PSingle             = ^Single;
   PDouble             = ^Double;
   PCurrency           = ^Currency;
-  PDate               = ^TDateTime;
-  PPWideChar          = ^PWideChar;
-  PError              = ^Error;
-  PWordBool           = ^WordBool;
+{$ifdef SUPPORT_COMP}
+  PComp               = ^Comp;
+{$endif SUPPORT_COMP}
+{$ifdef SUPPORT_EXTENDED}
+  PExtended           = ^Extended;
+{$endif SUPPORT_EXTENDED}
+
+  PSmallInt           = ^Smallint;
+  PInteger            = ^Longint;
   PByte               = ^Byte;
-  PWord    = ^word;
-  PDWord   = ^DWord;
-  PLongint = ^Longint;
-  TTextLineBreakStyle = (tlbsLF,tlbsCRLF,tlbsCR);
+  PWord               = ^word;
+  PDWord              = ^DWord;
+  PLongWord           = ^LongWord;
+  PLongint            = ^Longint;
+  PQWord              = ^QWord;
+  PInt64              = ^Int64;
+
+  PPointer            = ^Pointer;
+  PPPointer           = ^PPointer;
+
+  PBoolean            = ^Boolean; 
+  PWordBool           = ^WordBool;
+  PLongBool           = ^LongBool;
+
+  PShortString        = ^ShortString;
+  PAnsiString         = ^AnsiString;
+
+  PDate               = ^TDateTime;
+  PError              = ^Error;
+{$ifdef HASVARIANT}
+  PVariant            = ^Variant;
+{$endif HASVARIANT}
 
 {$ifdef HASWIDECHAR}
-  PWideChar   = ^WideChar;
+  PWideChar           = ^WideChar;
+  PPWideChar          = ^PWideChar;
+  PWideString         = ^WideString;
 {$endif HASWIDECHAR}
+
+  TTextLineBreakStyle = (tlbsLF,tlbsCRLF,tlbsCR);
 
 { procedure type }
   TProcedure  = Procedure;
@@ -487,7 +510,10 @@ const
 
 {
   $Log$
-  Revision 1.17  2001-03-21 23:29:40  florian
+  Revision 1.18  2001-03-22 23:26:05  florian
+    * some new types added like PBoolean
+
+  Revision 1.17  2001/03/21 23:29:40  florian
     + sLineBreak and misc. stuff for Kylix compatiblity
 
   Revision 1.16  2001/01/24 21:47:18  florian
