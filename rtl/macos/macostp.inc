@@ -22,6 +22,9 @@
 in MacOS Universal Headers. The prefix is to avoid name clashes
 with FPC types.}
 
+{$PACKRECORDS 2}  {Alignment inherited from the m68k days}
+
+
 {************** from Types.p ***************}
 const
   noErr = 0;
@@ -407,4 +410,5 @@ function Munger (h: Mac_Handle; offset: LONGINT; ptr1: Mac_Ptr;
   len1: LONGINT; ptr2: Mac_Ptr; len2: LONGINT): LONGINT;
 external 'InterfaceLib';
 
+{$PACKRECORDS NORMAL}
 
