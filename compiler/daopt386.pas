@@ -1804,12 +1804,13 @@ Begin
                           Else
                             Begin
                               DestroyReg(CurProp, TmpReg);
-                              With CurProp^.Regs[TmpReg] Do
-                                Begin
-                                  Typ := Con_Ref;
-                                  StartMod := p;
-                                  NrOfMods := 1;
-                                End;
+                              If Not(RegInRef(TmpReg, TReference(Pai386(p)^.op1^))) Then
+                                With CurProp^.Regs[TmpReg] Do
+                                  Begin
+                                    Typ := Con_Ref;
+                                    StartMod := p;
+                                    NrOfMods := 1;
+                                  End
                             End;
 {$ifdef StateDebug}
                   hp := new(pai_asm_comment,init(strpnew(att_reg2str[TmpReg]+': '+tostr(CurProp^.Regs[TmpReg].WState))));
@@ -1999,7 +2000,10 @@ End.
 
 {
  $Log$
- Revision 1.20  1998-10-22 13:24:51  jonas
+ Revision 1.21  1998-11-02 23:17:49  jonas
+   * fixed bug shown in sortbug program from fpc-devel list
+
+ Revision 1.20  1998/10/22 13:24:51  jonas
    * changed TRegSet to a small set
 
  Revision 1.19  1998/10/20 09:29:24  peter
