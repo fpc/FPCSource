@@ -485,6 +485,13 @@ begin
   getmem(dos_argv0,strlen(cp)+1);
   if (dos_argv0 = nil) then halt;
   strcopy(dos_argv0, cp);
+  { update ___dos_argv0 also }
+{$ASMMODE DIRECT}
+  asm
+     movl U_SYSTEM_DOS_ARGV0,%eax
+     movl %eax,___dos_argv0
+  end;
+{$ASMMODE ATT}
 end;
 
      procedure syscopytodos(addr : longint; len : longint);
@@ -1057,7 +1064,11 @@ Begin
 End.
 {
   $Log$
-  Revision 1.14  1998-08-04 14:34:38  pierre
+  Revision 1.15  1998-08-19 10:56:34  pierre
+    + added some special code for C interface
+      to avoid loading of crt1.o or dpmiexcp.o from the libc.a
+
+  Revision 1.14  1998/08/04 14:34:38  pierre
     * small bug fix to get it compiled with bugfix version !!
       (again the asmmode problem !!!
       Peter it was really not the best idea you had !!)

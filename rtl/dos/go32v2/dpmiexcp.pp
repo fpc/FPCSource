@@ -16,6 +16,11 @@
 Unit DPMIExcp;
 
 {$define UseRMcbrk}
+{ If linking to C code we must avoid loading of the dpmiexcp.o
+  in libc.a from the equivalent C code
+  => all global functions from dpmiexcp.c must be aliased PM
+
+    Problem this is only valid for DJGPP v2.01 }
 
 interface
 
@@ -293,6 +298,12 @@ begin
   signal:=temp;
 end;
 
+{ C counter part }
+function c_signal(sig : longint;func : SignalHandler) : SignalHandler;
+            cdecl;[public,alias : '_signal'];
+  begin
+     c_signal:=signal(sig,func);
+  end;
 
 const signames : array [0..14] of string[4] = (
    'ABRT','FPE ','ILL ','SEGV','TERM','ALRM','HUP ',
@@ -336,6 +347,13 @@ traceback_exit:
   temp(sig);
   exit(0);
 end;
+
+function c_raise(sig : longint) : longint;
+           cdecl;[public,alias : '_raise'];
+  begin
+     c_raise:=_raise(sig);
+  end;
+  
 
 {****************************************************************************
                                  Exceptions
@@ -612,7 +630,7 @@ asm
 end;
 end;
 
-procedure djgpp_exception_toggle;
+procedure djgpp_exception_toggle;[alias : '___djgpp_exception_toggle'];
 var
   _except : tseginfo;
   i : longint;
@@ -706,7 +724,7 @@ begin
 end;
 
 
-procedure dpmiexcp_exit{(status : longint)};[alias : 'excep_exit'];
+procedure dpmiexcp_exit{(status : longint)};[public,alias : 'excep_exit'];
 { We need to restore hardware interrupt handlers even if somebody calls
   `_exit' directly, or else we crash the machine in nested programs.
   We only toggle the handlers if the original keyboard handler is intact
@@ -724,23 +742,25 @@ begin
   dpmi_set_coprocessor_emulation(1);
 end;
 
+{ _exit in dpmiexcp.c
+  is already present in v2prt0.as  PM}
 
 { used by dos.pp for swap vectors }
-procedure dpmi_swap_in;[alias : 'swap_in'];
+procedure dpmi_swap_in;[public,alias : 'swap_in'];
 begin
   if not (exceptions_on) then
    djgpp_exception_toggle;
 end;
 
 
-procedure dpmi_swap_out;[alias : 'swap_out'];
+procedure dpmi_swap_out;[public,alias : 'swap_out'];
 begin
   if (exceptions_on) then
    djgpp_exception_toggle;
 end;
 
 
-procedure djgpp_exception_setup;
+procedure djgpp_exception_setup;[alias : '___djgpp_exception_setup'];
 var
   temp_kbd,
   temp_npx    : pointer;
@@ -872,7 +892,20 @@ begin
   djgpp_set_ctrl_c:=oldenable;
 end;
 
+function c_djgpp_set_ctrl_c(enable : longint) : boolean;
+            cdecl;[public,alias : '___djgpp_set_ctrl_c'];
 
+  var
+     e : boolean;
+     
+  begin
+     asm
+        movl enable,%eax
+        movb %al,e
+     end;
+     c_djgpp_set_ctrl_c:=djgpp_set_ctrl_c(e);
+  end;
+  
 procedure InitDPMIExcp;
 var
   tempendtext,
@@ -897,7 +930,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  1998-08-15 17:01:13  peter
+  Revision 1.8  1998-08-19 10:56:33  pierre
+    + added some special code for C interface
+      to avoid loading of crt1.o or dpmiexcp.o from the libc.a
+
+  Revision 1.7  1998/08/15 17:01:13  peter
     * smartlinking the units works now
     * setjmp/longjmp -> dmpi_setjmp/dpmi_longjmp to solve systemunit
       conflict

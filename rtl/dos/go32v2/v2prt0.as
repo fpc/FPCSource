@@ -345,6 +345,9 @@ no_memory:
         .global ___exit
         .align  2
 ___exit:
+/* special exit from dpmiexcp.c */
+        .global __exit
+__exit:
         movb    4(%esp), %al
 exit:
         movb    %al, %cl
@@ -669,7 +672,8 @@ additions made by Pierre Muller*/
         .comm   ___dpmi_error,2
 
 /* from dpmi0000.s */
-        .globl ___dpmi_allocate_ldt_descriptors
+/*        .globl ___dpmi_allocate_ldt_descriptors */
+/* using pascal convention => not usabel by C code */
 ___dpmi_allocate_ldt_descriptors:
    pushl %ebp; movl %esp,%ebp
 
@@ -688,7 +692,7 @@ ___dpmi_allocate_ldt_descriptors:
         ret $4
 
 /* from file dpmi0008.s */
-        .globl ___dpmi_set_segment_limit
+/*        .globl ___dpmi_set_segment_limit */
 ___dpmi_set_segment_limit:
    pushl %ebp; movl %esp,%ebp
 
@@ -709,7 +713,7 @@ ___dpmi_set_segment_limit:
         popl %ebp
         ret $8
 
-        .globl ___dpmi_get_version
+/*        .globl ___dpmi_get_version */
 ___dpmi_get_version:
    pushl %ebp; movl %esp,%ebp
 
@@ -735,7 +739,7 @@ ___dpmi_get_version:
         popl %ebp
         ret $4
 
-        .globl ___dpmi_get_segment_base_address
+/*         .globl ___dpmi_get_segment_base_address*/
 ___dpmi_get_segment_base_address:
    pushl %ebp; movl %esp,%ebp
 
@@ -859,19 +863,32 @@ _setup_go32_info_block:
         movzbw -7(%ebp),%ax
         orw %ax,%dx
         movw %dx,U_SYSTEM_GO32_INFO_BLOCK+38
+        call copy_to_c_go32_info_block
         leave
         ret
-.globl ___PROXY
+        
+copy_to_c_go32_info_block:
+        leal U_SYSTEM_GO32_INFO_BLOCK,%esi
+        leal __go32_info_block,%edi
+        movl $10,%ecx
+        rep
+        movsl
+        ret
 .data
+/* __go32_info_block for C programs */
+        .align 2
+        .globl __go32_info_block
+.comm   __go32_info_block,40
+        .globl ___PROXY
 ___PROXY:
         .ascii " !proxy\0"
-.globl ___PROXY_LEN
+        .globl ___PROXY_LEN
         .align 2
 ___PROXY_LEN:
         .long 7
 .text
         .align 2
-.globl ___prt1_startup
+        .globl ___prt1_startup
 ___prt1_startup:
         pushl %ebp
         movl %esp,%ebp
@@ -914,6 +931,7 @@ ___prt1_startup:
    call exit
         .align 2,0x90
 /* .comm U_SYSTEM_DOS_ARGV0,4 */
+.comm ___dos_argv0,4
 .comm ___crt0_argc,4
 .comm ___crt0_argv,4
         .globl ___environ_changed
@@ -1109,6 +1127,7 @@ _pascal_start:
         movl    %esp,%ebx
         movl    12(%ebx),%eax
         movl    %eax,U_SYSTEM_ENVP
+        movl    %eax,_environ
         movl    8(%ebx),%eax
         movl    %eax,_args
         movl    4(%ebx),%eax
@@ -1140,6 +1159,9 @@ _run_mode:
         .globl  _core_selector
 _core_selector:
         .word   0
+        .globl  _environ
+_environ:
+         .long 0
 
 /* Here Pierre Muller added all what was in crt1.c  */
 /* in assembler                                     */
@@ -1171,7 +1193,11 @@ __dos_ds:
 
 /*
   $Log$
-  Revision 1.2  1998-05-22 00:39:38  peter
+  Revision 1.3  1998-08-19 10:56:35  pierre
+    + added some special code for C interface
+      to avoid loading of crt1.o or dpmiexcp.o from the libc.a
+
+  Revision 1.2  1998/05/22 00:39:38  peter
     * go32v1, go32v2 recompiles with the new objects
     * remake3 works again with go32v2
     - removed some "optimizes" from daniel which were wrong
