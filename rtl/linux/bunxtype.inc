@@ -29,13 +29,15 @@ CONST
     UTSNAME_DOMAIN_LENGTH    = UTSNAME_LENGTH;
     {$endif}
 
-   SIG_MAXSIG      = 128;	// highest signal version
    FD_MAXFDSET	   = 1024;
+   BITSINWORD      = 8*sizeof(longint);
 {$ifdef FPC_USE_LIBC}
-   wordsinsigset   = 128 div 4;	 // words in sigset_t
+   SIG_MAXSIG      = 1024;	// highest signal version
 {$else}
-   wordsinsigset   = 4;		// words in sigset_t
+   SIG_MAXSIG      = 128;	// highest signal version
 {$endif}
+   wordsinsigset   = SIG_MAXSIG DIV BITSINWORD;  	// words in sigset_t
+   wordsinfdset    = FD_MAXFDSET DIV BITSINWORD;  	// words in fdset_t
    ln2bitsinword   = 5;         { 32bit : ln(32)/ln(2)=5 }
    ln2bitmask	   = 1 shl ln2bitsinword - 1;
 
@@ -269,7 +271,10 @@ const
 
 {
   $Log$
-  Revision 1.7  2004-01-31 16:17:38  florian
+  Revision 1.8  2004-02-22 15:00:27  marco
+   * genfdset word count added. Small fix for libc maxsigsetsize
+
+  Revision 1.7  2004/01/31 16:17:38  florian
     * removed packed directive from Dir type because it's not properly aligned
       and it's never passed to the OS
 
