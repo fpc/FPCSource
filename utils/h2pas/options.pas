@@ -35,6 +35,7 @@ var
    Win32headers,              { allows dec_specifier }
    stripcomment,              { strip comments from inputfile }
    PrependTypes,              { Print T in front of type names ?   }
+   createdynlib,              { creates a unit which loads dynamically the imports to proc vars }
    RemoveUnderscore : Boolean;
    usevarparas : boolean;     { generate var parameters, when a pointer }
                               { is passed                               }
@@ -109,6 +110,7 @@ begin
   writeln ('        -o outputfilename  Specify the outputfilename');
   writeln ('        -p                 Use "P" instead of "^" for pointers');
   writeln ('        -pr                Pack all records (1 byte alignment)');
+  writeln ('        -P                 use proc. vars for imports');
   writeln ('        -s                 strip comments from inputfile');
   writeln ('        -S                 strip comments and don''t write info to outputfile.');
   writeln ('        -t                 Prepend typedef type names with T');
@@ -159,6 +161,7 @@ begin
   palmpilot:=false;
   includefile:=false;
   packrecords:=false;
+  createdynlib:=false;
   i:=1;
   while i<=paramcount do
    begin
@@ -176,6 +179,7 @@ begin
          'i' : includefile:=true;
          'l' : LibFileName:=GetNextParam ('l','libname');
          'o' : outputfilename:=GetNextParam('o','outputfilename');
+         'P' : createdynlib:=true;
          'p' : begin
                   if (cp[3] = 'r') then
                      begin
@@ -236,7 +240,11 @@ end;
 end.
 {
    $Log$
-   Revision 1.5  2005-02-14 17:13:39  peter
+   Revision 1.6  2005-02-20 11:09:41  florian
+     + added -P:
+       allows to generate headers which load proc. dyn. from libs
+
+   Revision 1.5  2005/02/14 17:13:39  peter
      * truncate log
 
    Revision 1.4  2004/09/08 22:21:41  carl

@@ -50,6 +50,9 @@ program h2pas;
      No_pop   : boolean;
      s,TN,PN  : String;
      pointerprefix: boolean;
+     freedynlibproc,
+     loaddynlibproc : tstringlist;
+
 
 (* $ define yydebug
  compile with -dYYDEBUG to get debugging info *)
@@ -62,10 +65,10 @@ program h2pas;
 
   var space_array : array [0..255] of byte;
       space_index : byte;
-      
+
       { Used when PPointers is used - pointer type definitions }
       PTypeList : TStringList;
-      
+
 
         procedure shift(space_number : byte);
           var
@@ -136,7 +139,7 @@ program h2pas;
     function FixId(const s:string):string;
     const
      maxtokens = 14;
-     reservedid: array[1..maxtokens] of string[14] = 
+     reservedid: array[1..maxtokens] of string[14] =
        (
          'CLASS',
          'DISPOSE',
@@ -152,7 +155,7 @@ program h2pas;
          'TYPE',
          'TRUE',
          'UNTIL'
-       );  
+       );
       var
         b : boolean;
         up : string;
@@ -171,7 +174,7 @@ program h2pas;
                begin
                   b:=true;
                   break;
-                end;  
+                end;
           end;
         if b then
          FixId:='_'+s
@@ -206,7 +209,7 @@ program h2pas;
         begin
          PointerName:='P'+Copy(s,i,255);
          PTypeList.Add(PointerName);
-        end 
+        end
         else
          PointerName:=Copy(s,i,255);
         if PointerPrefix then
@@ -240,7 +243,7 @@ program h2pas;
                 line:=copy(line,1,ps-1)+ph+'_'+copy(line,ps+1,255);
               writeln(outfile,aktspace,line);
            end;
-         writeln(outfile);  
+         writeln(outfile);
          close(tempfile);
          rewrite(tempfile);
          popshift;
@@ -533,7 +536,7 @@ program h2pas;
        (* if in args *dname is replaced by pdname *)
        in_args : boolean = false;
        typedef_level : longint = 0;
-       
+
     (* writes an argument list, where p is t_arglist *)
 
     procedure write_args(var outfile:text; p : presobject);
@@ -629,7 +632,7 @@ program h2pas;
                          end;
                      end;
                    write(outfile,':');
-                   if varpara then 
+                   if varpara then
                    begin
                      write_p_a_def(outfile,p^.p1^.p2^.p1,p^.p1^.p1^.p1);
                    end
@@ -656,7 +659,7 @@ program h2pas;
          in_args:=old_in_args;
          popshift;
       end;
-       
+
 
 
     procedure write_p_a_def(var outfile:text; p,simple_type : presobject);
@@ -735,7 +738,7 @@ program h2pas;
                                          begin
                                           write(outfile,'P');
                                           pointerprefix:=true;
-                                         end 
+                                         end
                                          else
                                           write(outfile,'^');
                                          write_p_a_def(outfile,p^.p1,simple_type);
@@ -836,7 +839,7 @@ program h2pas;
                     begin
                      write(outfile,'P');
                      pointerprefix:=true;
-                    end 
+                    end
                     else
                      write(outfile,'^');
                     write_type_specifier(outfile,p^.p1);
@@ -1245,10 +1248,25 @@ declaration :
             else
               IsExtern:=assigned($1)and($1^.str='extern');
             no_pop:=assigned($3) and ($3^.str='no_pop');
-            if block_type<>bt_func then
-              writeln(outfile);
 
-            block_type:=bt_func;
+            if (block_type<>bt_func) and not(createdynlib) then
+              begin
+                writeln(outfile);
+                block_type:=bt_func;
+              end;
+
+            (* dyn. procedures must be put into a var block *)
+            if createdynlib then
+              begin
+                if (block_type<>bt_var) then
+                 begin
+                    if not(compactmode) then
+                      writeln(outfile);
+                    writeln(outfile,aktspace,'var');
+                    block_type:=bt_var;
+                 end;
+                shift(2);
+              end;
             if not CompactMode then
              begin
                write(outfile,aktspace);
@@ -1259,11 +1277,23 @@ declaration :
             if assigned($2) then
              if ($2^.typ=t_void) and ($4^.p1^.p1^.p1=nil) then
               begin
-                shift(10);
-                write(outfile,'procedure ',$4^.p1^.p2^.p);
+                if createdynlib then
+                  begin
+                    write(outfile,$4^.p1^.p2^.p,' : procedure');
+                  end
+                else
+                  begin
+                    shift(10);
+                    write(outfile,'procedure ',$4^.p1^.p2^.p);
+                  end;
                 if assigned($4^.p1^.p1^.p2) then
                   write_args(outfile,$4^.p1^.p1^.p2);
-                if not IsExtern then
+                if createdynlib then
+                   begin
+                     loaddynlibproc.add('pointer('+$4^.p1^.p2^.p+'):=GetProcAddress(hlib,'''+$4^.p1^.p2^.p+''');');
+                     freedynlibproc.add($4^.p1^.p2^.p+':=nil;');
+                   end
+                 else if not IsExtern then
                  begin
                    write(implemfile,'procedure ',$4^.p1^.p2^.p);
                    if assigned($4^.p1^.p1^.p2) then
@@ -1272,13 +1302,26 @@ declaration :
               end
             else
               begin
-                 shift(9);
-                 write(outfile,'function ',$4^.p1^.p2^.p);
+                if createdynlib then
+                  begin
+                    write(outfile,$4^.p1^.p2^.p,' : function');
+                  end
+                else
+                  begin
+                    shift(9);
+                    write(outfile,'function ',$4^.p1^.p2^.p);
+                  end;
+
                  if assigned($4^.p1^.p1^.p2) then
                    write_args(outfile,$4^.p1^.p1^.p2);
                  write(outfile,':');
                  write_p_a_def(outfile,$4^.p1^.p1^.p1,$2);
-                 if not IsExtern then
+                 if createdynlib then
+                   begin
+                     loaddynlibproc.add('pointer('+$4^.p1^.p2^.p+'):=GetProcAddress(hlib,'''+$4^.p1^.p2^.p+''');');
+                     freedynlibproc.add($4^.p1^.p2^.p+':=nil;');
+                   end
+                 else if not IsExtern then
                   begin
                     write(implemfile,'function ',$4^.p1^.p2^.p);
                     if assigned($4^.p1^.p1^.p2) then
@@ -1293,7 +1336,11 @@ declaration :
             if IsExtern and (not no_pop) then
               write(outfile,';cdecl');
             popshift;
-            if UseLib then
+            if createdynlib then
+              begin
+                writeln(outfile,';');
+              end
+            else if UseLib then
               begin
                 if IsExtern then
                  begin
@@ -1315,7 +1362,7 @@ declaration :
                  end;
               end;
             IsExtern:=false;
-            if not compactmode then
+            if not(compactmode) and not(createdynlib) then
              writeln(outfile);
            until not NeedEllipsisOverload;
          end
@@ -1373,7 +1420,7 @@ declaration :
             block_type:=bt_type;
          end;
        shift(3);
-       if ( yyv[yysp-1]^.p2  <> nil ) then 
+       if ( yyv[yysp-1]^.p2  <> nil ) then
          begin
          (* write new type name *)
          TN:=TypeName($1^.p2^.p);
@@ -2432,6 +2479,8 @@ begin
 { write unit header }
   if not includefile then
    begin
+     if createdynlib then
+       writeln(headerfile,'{$mode objfpc}');
      writeln(headerfile,'unit ',unitname,';');
      writeln(headerfile,'interface');
      writeln(headerfile);
@@ -2461,7 +2510,7 @@ begin
      Writeln(headerfile,aktspace,'  PDouble   = ^Double;');
      Writeln(headerfile);
    end;
-  if PTypeList.count <> 0 then 
+  if PTypeList.count <> 0 then
    Writeln(headerfile,aktspace,'Type');
   for i:=0 to (PTypeList.Count-1) do
    begin
@@ -2473,7 +2522,7 @@ begin
       writeln(headerfile,'{$IFDEF FPC}');
       writeln(headerfile,'{$PACKRECORDS C}');
       writeln(headerfile,'{$ENDIF}');
-   end;   
+   end;
   writeln(headerfile);
 end;
 
@@ -2489,6 +2538,8 @@ begin
   PTypeList:=TStringList.Create;
   PTypeList.Sorted := true;
   PTypeList.Duplicates := dupIgnore;
+  freedynlibproc:=TStringList.Create;
+  loaddynlibproc:=TStringList.Create;
   yydebug:=true;
   aktspace:='';
   block_type:=bt_no;
@@ -2507,7 +2558,7 @@ begin
      writeln('file ',inputfilename,' not found!');
      halt(1);
    end;
-  { This is the intermediate output file } 
+  { This is the intermediate output file }
   assign(outfile, 'ext3.tmp');
   {$I-}
   rewrite(outfile);
@@ -2540,6 +2591,51 @@ begin
       readln(implemfile,SS);
       writeln(outfile,SS);
     end;
+
+  if createdynlib then
+    begin
+      writeln(outfile,'  uses');
+      writeln(outfile,'    SysUtils,');
+      writeln(outfile,'{$ifdef Win32}');
+      writeln(outfile,'    Windows;');
+      writeln(outfile,'{$else}');
+      writeln(outfile,'    DLLFuncs;');
+      writeln(outfile,'{$endif win32}');
+      writeln(outfile);
+      writeln(outfile,'  var');
+      writeln(outfile,'    hlib : thandle;');
+      writeln(outfile);
+      writeln(outfile);
+      writeln(outfile,'  procedure Free',unitname,';');
+      writeln(outfile,'    begin');
+      writeln(outfile,'      FreeLibrary(hlib);');
+
+      for i:=0 to (freedynlibproc.Count-1) do
+        Writeln(outfile,'      ',freedynlibproc[i]);
+
+      writeln(outfile,'    end;');
+      writeln(outfile);
+      writeln(outfile);
+      writeln(outfile,'  procedure Load',unitname,'(lib : pchar);');
+      writeln(outfile,'    begin');
+      writeln(outfile,'      Free',unitname,';');
+      writeln(outfile,'      hlib:=LoadLibrary(lib);');
+      writeln(outfile,'      if hlib=0 then');
+      writeln(outfile,'        raise Exception.Create(format(''Could not load library: %s'',[lib]));');
+      writeln(outfile);
+      for i:=0 to (loaddynlibproc.Count-1) do
+        Writeln(outfile,'      ',loaddynlibproc[i]);
+      writeln(outfile,'    end;');
+
+      writeln(outfile);
+      writeln(outfile);
+
+      writeln(outfile,'initialization');
+      writeln(outfile,'  Load',unitname,'(''',unitname,''');');
+      writeln(outfile,'finalization');
+      writeln(outfile,'  Free',unitname,';');
+    end;
+
    { write end of file }
    writeln(outfile);
    if not(includefile) then
@@ -2550,7 +2646,7 @@ begin
   close(tempfile);
   erase(tempfile);
   flush(outfile);
-   
+
   {**** generate full file ****}
   assign(headerfile, 'ext4.tmp');
   {$I-}
@@ -2562,8 +2658,8 @@ begin
       halt(1);
   end;
   WriteFileHeader(HeaderFile);
-   
-  { Final output filename } 
+
+  { Final output filename }
   assign(finaloutfile, outputfilename);
   {$I-}
   rewrite(finaloutfile);
@@ -2574,7 +2670,7 @@ begin
      halt(1);
   end;
   writeln(finaloutfile);
-  
+
   { Read unit header file }
   reset(headerfile);
   while not eof(headerfile) do
@@ -2589,19 +2685,25 @@ begin
       readln(outfile,SS);
       writeln(finaloutfile,SS);
     end;
-   
+
   close(HeaderFile);
   close(outfile);
   close(finaloutfile);
   erase(outfile);
   erase(headerfile);
-   
+
   PTypeList.Free;
+  freedynlibproc.free;
+  loaddynlibproc.free;
 end.
 
 {
   $Log$
-  Revision 1.9  2004-09-08 22:21:41  carl
+  Revision 1.10  2005-02-20 11:09:41  florian
+    + added -P:
+      allows to generate headers which load proc. dyn. from libs
+
+  Revision 1.9  2004/09/08 22:21:41  carl
     + support for creating packed records
     * var parameter bugfixes
 
