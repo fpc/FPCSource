@@ -1837,7 +1837,10 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.12  1999-07-06 22:44:15  florian
+  Revision 1.13  1999-07-14 08:46:29  florian
+    * some fixes (KEY_EVENT_STRUCT was wrong)
+
+  Revision 1.10  1999/07/06 22:44:17  florian
     * some fixes to compile ddraw units from the jedi project
 
   Revision 1.9  1999/05/10 19:34:14  florian

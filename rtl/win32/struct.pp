@@ -3452,14 +3452,10 @@ unit struct;
           wRepeatCount : WORD;
           wVirtualKeyCode : WORD;
           wVirtualScanCode : WORD;
-          AsciiChar : char;
-          pad : char;
-          uChar : record
-              case longint of
-                 0 : ( UnicodeChar : WCHAR );
-                 1 : ( AsciiChar : CHAR );
-              end;
-          dwControlKeyState : DWORD;
+          case longint of
+             0 : ( UnicodeChar : WCHAR;
+                   dwControlKeyState : DWORD; );
+             1 : ( AsciiChar : CHAR );
        end;
      _KEY_EVENT_RECORD = KEY_EVENT_RECORD;
      TKEYEVENTRECORD = KEY_EVENT_RECORD;
@@ -6931,7 +6927,10 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.9  1999-05-19 16:22:03  peter
+  Revision 1.10  1999-07-14 08:46:27  florian
+    * some fixes (KEY_EVENT_STRUCT was wrong)
+
+  Revision 1.9  1999/05/19 16:22:03  peter
     * fixed left crt bugs
 
   Revision 1.8  1999/04/20 11:36:17  peter
