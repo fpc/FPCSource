@@ -725,15 +725,17 @@ Begin
       InOutRes:=104;
      exit;
    end;
-   If f.BufPos>=f.BufEnd Then
-    begin
-       FileFunc(f.InOutFunc)(f);
-       if (f.BufPos>=f.BufEnd) and
-          { Flush if set }
-          (f.FlushFunc<>nil) then
-         FileFunc(f.FlushFunc)(f);
-       exit;
-    end;
+  if f.BufPos>=f.BufEnd Then
+   begin
+     FileFunc(f.InOutFunc)(f);
+     if (f.BufPos>=f.BufEnd) then
+       { Flush if set }
+       begin
+         if (f.FlushFunc<>nil) then
+           FileFunc(f.FlushFunc)(f);
+         exit;
+       end;
+   end;
   repeat
     prev := f.BufPtr^[f.BufPos];
     inc(f.BufPos);
@@ -1062,7 +1064,10 @@ end;
 
 {
   $Log$
-  Revision 1.66  2000-01-23 12:22:37  florian
+  Revision 1.67  2000-01-31 10:15:43  pierre
+   * Jonas' fix for bug811
+
+  Revision 1.66  2000/01/23 12:22:37  florian
     * reading of 64 bit type implemented
 
   Revision 1.65  2000/01/20 20:19:37  florian
