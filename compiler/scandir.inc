@@ -828,105 +828,58 @@ const
           Message(scan_e_resourcefiles_not_supported);
       end;
 
-{$ifndef PAVEL_LINKLIB}
+
     procedure dir_linklib(t:tdirectivetoken);
+      type
+        tLinkMode=(lm_shared,lm_static);
       var
         s : string;
         quote : char;
+        libname,
+        linkmodestr : string;
+        p : longint;
+        linkMode : tLinkMode;
       begin
         current_scanner^.skipspace;
-        { This way spaces are also allowed in library names
-          if quoted PM }
-        if (c='''') or (c='"') then
-          begin
-            quote:=c;
-            current_scanner^.readchar;
-            s:=current_scanner^.readcomment;
-            if pos(quote,s)>0 then
-              s:=copy(s,1,pos(quote,s)-1);
-          end
-        else
-          begin
-            current_scanner^.readstring;
-            s:=orgpattern;
-            if c='.' then
-              begin
-                s:=s+'.';
-                current_scanner^.readchar;
-                current_scanner^.readstring;
-                s:=s+orgpattern;
-              end;
-          end;
-        current_module.linkOtherSharedLibs.add(s,link_allways);
-      end;
-{$else PAVEL_LINKLIB}
-    procedure dir_linklib(t:tdirectivetoken);
-      var
-       s:string;
-       libname,linkmodeStr:string;
-       p:longint;
-      type
-       tLinkMode=(lm_dynamic,lm_static);
-      var
-       linkMode:tLinkMode;
-      function ExtractLinkMode:tLinkMode;
-       var
-        p:longint;
-       begin
-        p:=pos(',',linkmodeStr);
-        if p>0 then
-         linkmodeStr:=copy(linkmodeStr,1,pred(p));
-        for p:=1 to length(linkmodeStr)do
-         linkmodeStr[p]:=upcase(linkmodeStr[p]);
-        if linkmodeStr='STATIC' then
-         ExtractLinkMode:=lm_static
-        else
-         ExtractLinkMode:=lm_dynamic
-       end;
-      procedure MangleLibName(mode:tLinkMode);
-       begin
-        if (libname[1]='''')and(libname[length(libname)]='''')then
+        s:=current_scanner^.readcomment;
+        p:=pos(',',s);
+        if p=0 then
          begin
-          delete(libname,1,1);
-          delete(libname,length(libname),1);
+           libname:=TrimSpace(s);
+           linkmodeStr:='';
          end
         else
          begin
-          libname:=target_os.libprefix+libname;
-          case mode of
-           lm_static:
-            libname:=AddExtension(FixFileName(libname),target_os.staticlibext);
-           lm_dynamic:
-            libname:=AddExtension(FixFileName(libname),target_os.sharedlibext);
-          end;
+           libname:=TrimSpace(copy(s,1,p-1));
+           linkmodeStr:=Upper(TrimSpace(copy(s,p+1,255)));
          end;
-       end;
-      begin
-       current_scanner^.skipspace;
-       s:=current_scanner^.readcomment;
-       p:=pos(',',s);
-       if p=0 then
-        begin
-         libname:=s;
-         linkmodeStr:=''
-        end
-       else
-        begin
-         libname:=copy(s,1,pred(p));
-         linkmodeStr:=copy(s,succ(p),255);
-        end;
-       if(libname='')or(libname='''''')then
-        exit;
-       linkMode:=ExtractLinkMode;
-       MangleLibName(linkMode);
-       if linkMode=lm_static then
-        current_module.linkOtherStaticLibs.add(FixFileName(libname),link_allways)
-       else
-        current_module.linkOtherSharedLibs.add(FixFileName(libname),link_allways);
+        if (libname='') or (libname='''''') or (libname='""') then
+         exit;
+        { get linkmode, default is shared linking }
+        if linkModeStr='STATIC' then
+         linkmode:=lm_static
+        else if (LinkModeStr='SHARED') or (LinkModeStr='') then
+         linkmode:=lm_shared
+        else
+         begin
+           Comment(V_Error,'Wrong link mode specified: "'+Linkmodestr+'"');
+           exit;
+         end;
+        { create library name }
+        if libname[1] in ['''','"'] then
+         begin
+           quote:=libname[1];
+           Delete(libname,1,1);
+           p:=pos(quote,libname);
+           if p>0 then
+            Delete(libname,p,1);
+         end;
+        { add to the list of libraries to link }
+        if linkMode=lm_static then
+         current_module.linkOtherStaticLibs.add(FixFileName(libname),link_allways)
+        else
+         current_module.linkOtherSharedLibs.add(FixFileName(libname),link_allways);
       end;
-
-
-{$endif PAVEL_LINKLIB}
 
 
     procedure dir_outputformat(t:tdirectivetoken);
@@ -1437,7 +1390,10 @@ const
 
 {
   $Log$
-  Revision 1.15  2000-12-25 00:07:28  peter
+  Revision 1.16  2001-01-13 00:09:21  peter
+    * made Pavel O. happy ;)
+
+  Revision 1.15  2000/12/25 00:07:28  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

@@ -18,7 +18,6 @@
     You should have received a copy of the GNU General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
  ****************************************************************************
 }
 unit t_win32;
@@ -66,17 +65,14 @@ interface
 implementation
 
     uses
-{$ifdef PAVEL_LINKLIB}
 {$ifdef Delphi}
-      dmisc,
+       dmisc,
 {$else Delphi}
-      dos,
+       dos,
 {$endif Delphi}
-       impdef,
-{$endif PAVEL_LINKLIB}
        cutils,cclasses,
        aasm,fmodule,globtype,globals,systems,verbose,
-       script,gendef,
+       script,gendef,impdef,
        cpubase,cpuasm
 {$ifdef GDB}
        ,gdb
@@ -91,6 +87,34 @@ implementation
            DllName:=Name
          else
            DllName:=Name+target_os.sharedlibext;
+      end;
+
+
+    function FindDLL(const s:string):string;
+      var
+        sysdir : string;
+        FoundDll : string;
+        Found : boolean;
+      begin
+        Found:=false;
+        { Look for DLL in:
+          1. Current dir
+          2. Library Path
+          3. windir,windir/system,windir/system32 }
+        FoundDll:=FindFile(s,'.'+DirSep,found)+s;
+        if (not found) then
+         FoundDll:=includesearchpath.FindFile(s,found)+s;
+        if (not found) then
+         begin
+           sysdir:=FixPath(GetEnv('windir'),false);
+           FoundDll:=FindFile(s,sysdir+';'+sysdir+'system'+DirSep+';'+sysdir+'system32'+DirSep,found)+s;
+         end;
+        if (not found) then
+         begin
+           message1(exec_w_libfile_not_found,s);
+           FoundDll:=s;
+         end;
+        FindDll:=FoundDll;
       end;
 
 
@@ -648,16 +672,66 @@ begin
    end;
 end;
 
-{$ifndef PAVEL_LINKLIB}
+
+
 Function TLinkerWin32.WriteResponseFile(isdll:boolean) : Boolean;
+
+  function do_makedef(const DllName,LibName:string):boolean;
+  var
+    CmdLine : string;
+  begin
+    if (not do_build) and
+       FileExists(LibName) then
+     begin
+       if GetNamedFileTime(LibName)>GetNamedFileTime(DllName) then
+        begin
+          do_makedef:=true;
+          exit;
+        end;
+     end;
+    asw_name:=FindUtil('asw');
+    arw_name:=FindUtil('arw');
+    if cs_link_extern in aktglobalswitches then
+     begin
+       CmdLine:='-l '+LibName+' -i '+DLLName;
+       if asw_name<>'' then
+        CmdLine:=CmdLine+' -a '+asw_name;
+       if arw_name<>'' then
+        CmdLine:=CmdLine+' -r '+arw_name;
+       do_makedef:=DoExec(FindUtil('fpimpdef'),CmdLine,false,false);
+     end
+    else
+     do_makedef:=makedef(DLLName,LIbName);
+  end;
+
 Var
   linkres  : TLinkRes;
   i        : longint;
   HPath    : TStringListItem;
-  s,s2        : string;
-  found,linklibc : boolean;
+  s,s2     : string;
+  found,
+  linklibc : boolean;
 begin
   WriteResponseFile:=False;
+
+  { Create static import libraries for DLL that are
+    included using the $linklib directive }
+  While not SharedLibFiles.Empty do
+   begin
+     s:=SharedLibFiles.GetFirst;
+     s2:=AddExtension(s,target_os.sharedlibext);
+     s:=target_os.libprefix+SplitName(s)+target_os.staticlibext;
+     if Do_makedef(FindDLL(s2),s) then
+      begin
+        if s<>''then
+         StaticLibFiles.insert(s);
+      end
+     else
+      begin
+        Message(exec_w_error_while_linking);
+        aktglobalswitches:=aktglobalswitches+[cs_link_extern];
+      end;
+   end;
 
   { Open link.res file }
   LinkRes.Init(outputexedir+Info.ResName);
@@ -750,183 +824,6 @@ begin
 
   WriteResponseFile:=True;
 end;
-{$else PAVEL_LINKLIB}
-Function TLinkerWin32.WriteResponseFile(isdll:boolean) : Boolean;
-Var
-  linkres  : TLinkRes;
-  HPath    : PStringQueueItem;
-  s,s2     : string;
-  success  : boolean;
-function ExpandName(const s:string):string;
-var
-  sysdir:string;
-procedure GetSysDir;
-  begin
-   sysdir:=GetEnv('windir');
-   if sysdir<>''then
-    begin
-     if not(sysdir[length(sysdir)]in['\','/'])then
-      sysdir:=sysdir+dirsep;
-    end;
-  end;
-function IsFile(d:string;var PathToDll:string):longbool;
-  var
-   f:file;
-   attr:word;
-  begin
-   PathToDll:='';
-   if d<>''then
-    if d[length(d)]<>dirsep then
-     d:=d+dirsep;
-   d:=d+s;
-   assign(f,d);
-   GetFattr(f,Attr);
-   if DOSerror<>0 then
-    IsFile:=false
-   else
-    begin
-     if(attr and directory)=0 then
-      begin
-       IsFile:=true;
-       PathToDll:=GetShortName(d);
-      end
-     else
-      IsFile:=false;
-    end;
-  end;
-var
-  PathToDll:string;
-begin
-  if not isFile('',PathToDll)then
-   begin
-    HPath:=LibrarySearchPath.First;
-     while assigned(HPath) do
-      begin
-       if isFile(GetShortName(HPath^.Data^),PathToDll)then
-        break;
-       HPath:=HPath^.Next;
-      end;
-    if PathToDll='' then
-     begin
-      GetSysDir;
-      if not isFile(sysdir,PathToDll)then
-       if not isFile(sysdir+'system32',PathToDll)then
-        if not isFile(sysdir+'system',PathToDll)then
-         begin
-          message1(exec_w_libfile_not_found,S2);
-          PathToDll:=S2;
-         end;
-     end;
-   end;
-  ExpandName:=PathToDll;
-end;
-function DotPos(const s:string):longint;
-var
-  i:longint;
-begin
-  DotPos:=0;
-  for i:=length(s)downto 1 do
-   begin
-    if s[i]in['/','\',':']then
-     exit
-    else if s[i]='.'then
-     begin
-      DotPos:=i;
-      exit;
-     end;
-   end;
-end;
-procedure strip(var s:string);
-  var
-   d:dirstr;
-   n:namestr;
-   e:extstr;
-  begin
-   fsplit(s,d,n,e);
-   s:=n;
-  end;
-function do_makedef(const s:string):longbool;
-  begin
-   if cs_link_extern in aktglobalswitches then
-    do_makedef:=DoExec(FindUtil('fpimpdef'),'-o deffile.$$$ -i '+s,false,false)
-   else
-    do_makedef:=makedef(s,'deffile.$$$');
-  end;
-begin
-  WriteResponseFile:=False;
-  While not SharedLibFiles.Empty do
-   begin
-     S:=SharedLibFiles.Get;
-     if DotPos(s)=0 then
-      s2:=s+target_os.sharedlibext
-     else
-      s2:=s;
-     strip(s);
-     if not do_makedef(ExpandName(s2))then
-      begin
-       Message(exec_w_error_while_linking);
-       aktglobalswitches:=aktglobalswitches+[cs_link_extern];
-      end
-     else
-      begin
-       s:=target_os.libprefix+s+target_os.staticlibext;
-       success:=DoExec(FindUtil('dlltool'),'-l '+s+' -D '+s2+' -d deffile.$$$',false,false);
-       ObjectFiles.insert(s);
-       if not success then
-        break;
-      end;
-   end;
-
-  { Open link.res file }
-  LinkRes.Init(outputexedir+Info.ResName);
-
-  { Write path to search libraries }
-  HPath:=current_module.locallibrarysearchpath.First;
-  while assigned(HPath) do
-   begin
-     LinkRes.Add('SEARCH_DIR('+GetShortName(HPath^.Data^)+')');
-     HPath:=HPath^.Next;
-   end;
-  HPath:=LibrarySearchPath.First;
-  while assigned(HPath) do
-   begin
-     LinkRes.Add('SEARCH_DIR('+GetShortName(HPath^.Data^)+')');
-     HPath:=HPath^.Next;
-   end;
-
-  { add objectfiles, start with prt0 always }
-  LinkRes.Add('INPUT(');
-  if isdll then
-   LinkRes.AddFileName(GetShortName(FindObjectFile('wdllprt0')))
-  else
-   LinkRes.AddFileName(GetShortName(FindObjectFile('wprt0')));
-  while not ObjectFiles.Empty do
-   begin
-     s:=ObjectFiles.Get;
-     if s<>'' then
-      LinkRes.AddFileName(GetShortName(s));
-   end;
-  LinkRes.Add(')');
-
-  { Write staticlibraries }
-  if not StaticLibFiles.Empty then
-   begin
-     LinkRes.Add('GROUP(');
-     While not StaticLibFiles.Empty do
-      begin
-        S:=StaticLibFiles.Get;
-        LinkRes.AddFileName(GetShortName(s));
-      end;
-     LinkRes.Add(')');
-   end;
-
-{ Write and Close response }
-  linkres.writetodisk;
-  linkres.done;
-
-  WriteResponseFile:=True;
-end;
-{$endif PAVEL_LINKLIB}
 
 
 function TLinkerWin32.MakeExecutable:boolean;
@@ -1297,7 +1194,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  2000-12-30 22:53:25  peter
+  Revision 1.9  2001-01-13 00:09:22  peter
+    * made Pavel O. happy ;)
+
+  Revision 1.8  2000/12/30 22:53:25  peter
     * export with the case provided in the exports section
 
   Revision 1.7  2000/12/25 00:07:30  peter
