@@ -63,7 +63,7 @@ unit pmodules;
           Linker.MakeSharedLibrary
         else
           if (cs_create_staticlib in aktmoduleswitches) or
-	     ((cs_smartlink in aktmoduleswitches) and target_asm.needar) then
+             ((cs_smartlink in aktmoduleswitches) and target_asm.needar) then
             Linker.MakeStaticLibrary(SmartLinkFilesCnt);
       end;
 
@@ -1186,6 +1186,14 @@ unit pmodules;
           { assemble }
             create_objectfile;
           end;
+
+         { leave when we got an error }
+         if (Errorcount>0) and not status.skip_error then
+          begin
+            Message1(unit_f_errors_in_unit,tostr(Errorcount));
+            status.skip_error:=true;
+            exit;
+          end;
       end;
 
 
@@ -1334,6 +1342,14 @@ unit pmodules;
          { assemble and link }
          create_objectfile;
 
+         { leave when we got an error }
+         if (Errorcount>0) and not status.skip_error then
+          begin
+            Message1(unit_f_errors_in_unit,tostr(Errorcount));
+            status.skip_error:=true;
+            exit;
+          end;
+
          { create the executable when we are at level 1 }
          if (compile_level=1) then
           begin
@@ -1356,7 +1372,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.118  1999-05-03 18:03:28  peter
+  Revision 1.119  1999-05-09 11:38:08  peter
+    * don't write .o and link if errors occure during assembling
+
+  Revision 1.118  1999/05/03 18:03:28  peter
     * no ar.exe running field in target_asm
 
   Revision 1.117  1999/05/01 13:24:32  peter

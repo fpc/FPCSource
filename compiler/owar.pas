@@ -64,6 +64,7 @@ type
 implementation
 
 uses
+   verbose,
 {$ifdef Delphi}
    dmisc,
 {$endif Delphi}
@@ -138,7 +139,8 @@ end;
 
 destructor tarobjectwriter.done;
 begin
-  writear;
+  if Errorcount=0 then
+   writear;
   dispose(arData,done);
   dispose(symreloc,done);
   dispose(symstr,done);
@@ -276,7 +278,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  1999-05-04 21:44:53  florian
+  Revision 1.3  1999-05-09 11:38:06  peter
+    * don't write .o and link if errors occure during assembling
+
+  Revision 1.2  1999/05/04 21:44:53  florian
     * changes to compile it with Delphi 4.0
 
   Revision 1.1  1999/05/01 13:24:26  peter

@@ -37,6 +37,7 @@ type
     opened : boolean;
     buf    : pchar;
     bufidx : longint;
+    size   : longint;
     procedure writebuf;
   end;
 
@@ -56,6 +57,7 @@ begin
   getmem(buf,bufsize);
   bufidx:=0;
   opened:=false;
+  size:=0;
 end;
 
 
@@ -76,16 +78,28 @@ begin
   if ioresult<>0 then
    exit;
   bufidx:=0;
+  size:=0;
   opened:=true;
 end;
 
 
 procedure tobjectwriter.close;
+var
+  i : longint;
 begin
   if bufidx>0 then
    writebuf;
   system.close(f);
+{ Remove if size is 0 }
+  if size=0 then
+   begin
+     {$I-}
+      system.erase(f);
+     {$I+}
+     i:=ioresult;
+   end;
   opened:=false;
+  size:=0;
 end;
 
 
@@ -107,6 +121,7 @@ var
   left,
   idx : longint;
 begin
+  inc(size,len);
   p:=pchar(@b);
   idx:=0;
   while len>0 do
@@ -133,7 +148,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  1999-05-01 13:24:26  peter
+  Revision 1.2  1999-05-09 11:38:07  peter
+    * don't write .o and link if errors occure during assembling
+
+  Revision 1.1  1999/05/01 13:24:26  peter
     * merged nasm compiler
     * old asm moved to oldasm/
 

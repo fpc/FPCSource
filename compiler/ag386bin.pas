@@ -699,7 +699,7 @@ unit ag386bin;
 
     procedure ti386binasmlist.writetree(p:paasmoutput);
       var
-        hp : pai;
+        hp,hp1 : pai;
       begin
         if not assigned(p) then
          exit;
@@ -713,7 +713,8 @@ unit ag386bin;
 {$ifdef GDB}
            StartFileLineInfo;
 {$endif GDB}
-           TreePass1(hp);
+           hp1:=TreePass1(hp);
+
          { set section sizes }
            objectoutput^.setsectionsizes(objectalloc^.secsize);
          { Pass 2 }
@@ -721,8 +722,10 @@ unit ag386bin;
 {$ifdef GDB}
            StartFileLineInfo;
 {$endif GDB}
-           hp:=TreePass2(hp);
+           hp1:=TreePass2(hp);
+
          { if assigned then we have a ait_cut }
+           hp:=hp1;
            if assigned(hp) then
             begin
               if hp^.typ<>ait_cut then
@@ -827,10 +830,8 @@ unit ag386bin;
 end.
 {
   $Log$
-  Revision 1.7  1999-05-08 19:52:32  peter
-    + MessagePos() which is enhanced Message() function but also gets the
-      position info
-    * Removed comp warnings
+  Revision 1.8  1999-05-09 11:38:04  peter
+    * don't write .o and link if errors occure during assembling
 
   Revision 1.6  1999/05/07 00:36:58  pierre
     * added alignment code for .bss

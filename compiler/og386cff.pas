@@ -357,7 +357,9 @@ unit og386cff;
       var
         sec : tsection;
       begin
-        writetodisk;
+        { Only write the .o if there are no errors }
+        if errorcount=0 then
+          writetodisk;
         dispose(syms,done);
         dispose(strs,done);
         for sec:=low(tsection) to high(tsection) do
@@ -900,7 +902,10 @@ unit og386cff;
 end.
 {
   $Log$
-  Revision 1.4  1999-05-07 00:36:57  pierre
+  Revision 1.5  1999-05-09 11:38:05  peter
+    * don't write .o and link if errors occure during assembling
+
+  Revision 1.4  1999/05/07 00:36:57  pierre
     * added alignment code for .bss
     * stabs correct but externalbss disabled
       would need a special treatment in writestabs
