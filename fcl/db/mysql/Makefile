@@ -197,8 +197,8 @@ endif
 
 # Targets
 
-override UNITOBJECTS+=dbf
-override EXAMPLEOBJECTS+=testdbf
+override UNITOBJECTS+=mysqldb
+override EXAMPLEOBJECTS+=mtest
 
 # Clean
 
@@ -211,7 +211,7 @@ ZIPTARGET=install
 
 # Defaults
 
-override NEEDOPT=-S2 -Sh
+override NEEDOPT=-S2
 
 # Directories
 
@@ -221,10 +221,11 @@ endif
 
 # Packages
 
-override PACKAGES+=rtl
+override PACKAGES+=rtl mysql
 
 # Libraries
 
+override NEEDGCCLIB=1
 
 # Info
 
@@ -518,6 +519,7 @@ endif
 # PACKAGESDIR packages
 
 PACKAGERTL=1
+PACKAGEMYSQL=1
 
 ifdef PACKAGERTL
 ifneq ($(wildcard $(FPCDIR)/rtl),)
@@ -546,6 +548,35 @@ endif
 endif
 ifdef UNITDIR_RTL
 override NEEDUNITDIR+=$(UNITDIR_RTL)
+endif
+endif
+ifdef PACKAGEMYSQL
+ifneq ($(wildcard $(PACKAGESDIR)/mysql),)
+ifneq ($(wildcard $(PACKAGESDIR)/mysql/$(OS_TARGET)),)
+PACKAGEDIR_MYSQL=$(PACKAGESDIR)/mysql/$(OS_TARGET)
+else
+PACKAGEDIR_MYSQL=$(PACKAGESDIR)/mysql
+endif
+ifeq ($(wildcard $(PACKAGEDIR_MYSQL)/$(FPCMADE)),)
+override COMPILEPACKAGES+=package_mysql
+package_mysql:
+	$(MAKE) -C $(PACKAGEDIR_MYSQL) all
+endif
+UNITDIR_MYSQL=$(PACKAGEDIR_MYSQL)
+else
+PACKAGEDIR_MYSQL=
+ifneq ($(wildcard $(UNITSDIR)/mysql),)
+ifneq ($(wildcard $(UNITSDIR)/mysql/$(OS_TARGET)),)
+UNITDIR_MYSQL=$(UNITSDIR)/mysql/$(OS_TARGET)
+else
+UNITDIR_MYSQL=$(UNITSDIR)/mysql
+endif
+else
+UNITDIR_MYSQL=
+endif
+endif
+ifdef UNITDIR_MYSQL
+override NEEDUNITDIR+=$(UNITDIR_MYSQL)
 endif
 endif
 
@@ -590,6 +621,14 @@ ifndef DESTZIPDIR
 DESTZIPDIR:=$(BASEDIR)
 endif
 export DESTZIPDIR
+
+# On linux, try to find where libgcc.a is.
+ifdef inUnix
+ifndef GCCLIBDIR
+GCCLIBDIR:=$(shell dirname `(gcc -v 2>&1)| head -n 1| awk '{ print $$4 } '`)
+endif
+endif
+export GCCLIBDIR
 
 #####################################################################
 # Install Directories
@@ -763,6 +802,11 @@ endif
 
 ifdef UNITSDIR
 override FPCOPT+=-Fu$(UNITSDIR)
+endif
+
+# Add GCC lib path if asked
+ifdef GCCLIBDIR
+override FPCOPT+=-Fl$(GCCLIBDIR)
 endif
 
 # Target dirs and the prefix to use for clean/install

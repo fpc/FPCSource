@@ -1,0 +1,23 @@
+#
+#   Makefile.fpc for TDataSet for FCL
+#
+
+[targets]
+units=mysqldb
+examples=mtest
+
+[require]
+options=-S2
+packages=mysql
+
+[install]
+unitsubdir=fcl
+packagename=fcl
+
+[dirs]
+fpcdir=../../..
+targetdir=../../$(OS_TARGET)
+
+[libs]
+libgcc=1
+

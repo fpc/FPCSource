@@ -3,14 +3,11 @@
 #
 
 [targets]
-programs=testds createds mtest tested
+programs=testds createds tested
 
 [require]
 options=-S2
-packages=fcl mysql
+packages=fcl
 
 [dirs]
 fpcdir=../../..
-
-[libs]
-libgcc=1
