@@ -1409,8 +1409,9 @@
          lowrange:=l;
          highrange:=h;
          rangedef:=rd;
-         rangenr:=0;
          definition:=nil;
+         IsArrayOfConst:=false;
+         rangenr:=0;
       end;
 
 
@@ -1423,6 +1424,7 @@
          rangedef:=readdefref;
          lowrange:=readlong;
          highrange:=readlong;
+         IsArrayOfConst:=boolean(readbyte);
          rangenr:=0;
       end;
 
@@ -1454,6 +1456,7 @@
          writedefref(rangedef);
          writelong(lowrange);
          writelong(highrange);
+         writebyte(byte(IsArrayOfConst));
          current_ppu^.writeentry(ibarraydef);
       end;
 
@@ -3017,7 +3020,10 @@
 
 {
   $Log$
-  Revision 1.47  1998-09-21 15:46:01  michael
+  Revision 1.48  1998-09-22 15:37:23  peter
+    + array of const start
+
+  Revision 1.47  1998/09/21 15:46:01  michael
   Applied florians fix for check_rec_inittable
 
   Revision 1.46  1998/09/21 08:45:21  pierre
