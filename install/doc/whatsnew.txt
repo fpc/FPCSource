@@ -1,315 +1,53 @@
 
                             Free Pascal Compiler
 
-                               Version 1.0.4
+                        Version 1.9.0 aka 2.0.0-Beta1
 
 ******************************************************************************
-                             Whats New in 1.0.4
+                      Whats New in 1.9.0 aka 2.0.0-Beta1
 ******************************************************************************
 
 Compiler:
-  + Fpc executable
-  + Rangechecking for int64
-  + Better cardinal rangechecking
-  + Debugging support for classes
-  + FreeBSD and Linux define both UNIX
-  * XMM registers in assembler fixed
-  * Optimizer fixes
-  * Fixed some reported bugs
+  + dyn. arrays
+  + interfaces
+  + variants
+  + full widestring support
+  + default parameters
+  + cross name scope overloading
+  + support for the PowerPC, Sparc and ARM processor, installation packages will follow within the
+    next weeks
+  + new and more sophisticated register allocator
+  + inlining across units
+  + register calling conventions
+  + SSE and SSE2 support for inline assembler
+  + PIC code generation
+  + new language mode: "Mac Pascal"
+  + full boolean evaluation is now also available
+  * support of int64 integer constants
+  * improved delphi compatibility in -Sd mode
+  * a lot of bug fixes
+  * large parts of the compiler are rewritten to create a more stable,
+    portable and maintainable compiler
 
 RTL:
-  + keyboard, mouse and video units added (originally in API)
-  + Lot of FreeBSD updates
-  * FindFirst/FindClose fixes
-  * Termios updates for FreeBSD and Linux
-  * FExpand fixes
-  * TypInfo fixes
-  * Val(qword) works
+  + multithreading support
+  * completely rewritten unix runtime library
+  * improved delphi compatiblity
+  * significantly improved speed of exception related code
+  * prepared for big endian and 64 Bit CPUs
+  * a lot of bug fixes
 
 FCL:
-  * sstream example added
-  * fixed some missing .o and .a files
-
-Utils:
-  * fpcmake updates for freebsd
-  * ppufiles fix to allow / in filenames under go32v2/win32
+  + tdataset support
+  + html generator
+  + 64 Bit file handling
+  * a lot of bug fixes
 
 Docs:
-  + IDE documentation
-
-API:
-  - standalone API removed from distribution, units added to RTL
-
-
-******************************************************************************
-                             Whats New in 1.0.2
-******************************************************************************
-
-Compiler:
-  + memory requirements reduced a lot when creating smartlink libraries
-  + identical procedures or functions are now already found in the interface instead
-    of after parsing the implementation also
-  + overload directive parsing is now D5 compatible
-  + stop compiling if -S2 or -Sd is required and give a nicer error message
-  + don't allow wrong assemblers for targets (i.e. refuse as.exe for win32)
-  * fixed smartlinking for win32 imports
-  * some -Or and other optimizer fixes
-  * fixed some crashes with undeclared identifiers and inlined functions
-  * packenum fixes
-  * internal binary writer is now a lot faster when creating smartlink libraries
-    with a lot of files (like the windows unit)
-  * better targetdir support
-  * don't allow word = word like type definitions
-  * integer(char) typecast works now
-  * some other small reported bugs
-
-RTL:
-  + bsd port files
-  + sysutils more delphi compatible
-  + sysutils.syserrormessage added for platforms supporting it
-  * some graph fixes
-  * linux crt handles ctrl-c better
-  * win32 crt returns alt-<key> correct
-  * small int64 fixes
-  * paramstr(0) fix for linux 2.0 kernels
-  * go32v2 getenv made case insensitive
-  * lot of os2 updates
-
-
-******************************************************************************
-                             Whats New in 1.00
-******************************************************************************
-
-Compiler:
-  + -gl switch to automaticly load the lineinfo unit
-  + Lot of Delphi compatibility additions, especially when using -Sd
-  * Optimizer fixes, mainly register allocations needed for -Or
-  * int64/qword fixes
-  * RTTI fixes
-  * Smartlinking fixes for classes
-  * inline fixes (but still Beta)
-  * Exceptions generate more usefull backtraces which also support the
-    new lineinfo unit
-  * {$Packrecords C} fixes to be better C compatible
-  * operator should now work correctly when defined in other units
-    and locally and other fixes
-  * Better glibc 2.1.x support under linux
-  * Lot of other small bugfixes for the reported bugs
-
-RTL:
-  + lineinfo unit to display the file and line when a backtrace is
-    generated, this works for runtime errors, unhandled exceptions and
-    heaptrc unit (hint: use -ghl to easily detect and fix memory leaks)
-  * better precision when converting float to string
-  * Better exception support for Go32v2 without the need to load dpmiexcp
-  * Better Signal handling under linux for exception reporting
-  * Windows unit for win32 has now more delphi compatible declarations
-  * disksize/diskfree return now int64 so drives > 2GB work correctly
-  * lot of graph unit fixes, with generic mode support
-  * paramstr(0) under linux now returns the full executable instead of
-    the commandline
-  * heaptrc fixes for reallocmem
-  * other fixes reported by users
+  * adapted to reflect new language features
 
 IDE:
-  + don't allow wrong assemblers with specific targets
-  + default mode for which assembler to use
-  + Recompiling a program does now also use unsaved files still in the editor
-  * the support files are now placed in the same dir as fp.exe where they were expected
+  * a lot of bug fixes
 
-Utils:
-  + postw32 to postprocess win32 executables to patch the stacksize
-  * h2pas is now better and also has a compact output mode with less
-    spaces and blank lines.
-  * fpcmake supports .so library creation and example installation
-
-Packages:
-  + opengl for win32
-  * fixed win32 gtk interface
-
-FCL:
-  + db support (TDataSet,TDatabase) for mysql
-  * idea fixes
-
-
-
-******************************************************************************
-                            Whats New in 0.99.14
-******************************************************************************
-
-Compiler:
-  + DLL creation fixed, it needs dlltool now
-  + .so creation for linux works also with classes
-  + Library writing works better, also linux library support
-  + better FPU code generation
-  + only one PPU is used per unit also when static, shared and smart linked
-  + assembler understands KNI instructions
-  + fail in class constructors works
-  + resourcestrings support
-  + gettext support for resourcestrings (localization)
-  + > < >= <= support for boolean
-  + checking for unused but assigned variables and private fields
-  * lot of RTTI fixes
-  * lot of property fixes
-  * pointer addition/substraction works like inc()/dec() (with the size
-    of the pointed type)
-  * assembler reader fixes so it works more like BASM
-  * exit in try...finally/except block works
-  * don't allow goto/label with exception blocks
-  * stabs debugging fixed for classes and result variable
-  * array constructor support
-  * initialization/finalization work also in default FPC mode
-  * assert works now also within $H+ mode
-  * lot of other fixes
-
-RTL:
-  + New graph unit for GO32v2, Win32, Linux
-  + Delphi style GetMem/Freemem/ReAllocMem which knows the size of
-    the allocated block itself. Specifying wrong size for freemem gives
-    now also a Runtime Error
-  + ports unit for both GO32v2 and OS/2, which contains the port[] support.
-    It's now compatible with Linux ports unit
-  + timezone support for linux
-  + primitive routines Compare[Byte,Word,Dword], Index[Byte,Word,Dword]
-  * better ioresult setting for GO32v2
-  * some pchar fixes in sysutils unit
-  * lot of RTTI fixes for typinfo
-  * ansistrings speedups
-  * some other small fixes
-
-Utils:
-  + fpcmake util to create a Makefile from Makefile.fpc
-  + delp util to delete all created files after compiling (exe, o, ppu)
-  + fprcp util for preprocessing win32 resource files
-  + data2inc util to convert data into .inc files
-  + binobj for binary to .o/.inc files, also with crypt, compression support
-  + ppufiles show all created files needed by a unit
-  + rstconv util to convert .rst files to gettext files
-  + plex,pyacc Pascal Lex/Yacc
-  * ppudump, ppufiles updated for new ppu version
-
-
-******************************************************************************
-                            Whats New in 0.99.12
-******************************************************************************
-
-Compiler:
-  + lot of ansistring fixes
-  + coff writer for go32v2,win32 with instant .a creation (BETA)
-  + working global browser
-  + new compiler directives (path and other cmdline switches)
-  + val,readln support range checking
-  + initialization/finalization support
-  + methodpointer support
-  + message support
-  * better intel,at&t parsers with mmx,3dnow support
-  * better unit dependency handling and recompiling
-  * static var fixes
-  * better addr() support
-  * lot of other fixes, too many to list here
-
-RTL:
-  + Internationalization suport in sysutils
-  + FileNameCaseSensitive boolean for go32v2,win32
-  * more precise str/val
-  * better val(),readln()
-  * io error handling much more like tp7
-  * small other fixes
-
-Utils:
-  + ptop to pretty print your sources
-  * beter ppudump
-
-
-******************************************************************************
-                            Whats New in 0.99.10
-******************************************************************************
-
-Compiler:
-  + better optimizer
-  + ansistring support
-  + array of const support for FormatStr
-  + automatic heaptrc unit including with the -gh option
-  + open strings ($P+) support
-  + DLL generation for Win32
-  + printf support for cdecl using array of const
-  * exceptions are finally working
-  * fixed some ppu problems
-  * fixed unit interdependency problems
-  * better range checking, also for enums
-  * size of objects without virtuals is now the same as tp7
-  * lot of fixes for the assembler readers
-  * more constant expression evalutations
-  * removed all memoryleaks
-  * almost all reported bugs are fixed
-
-RTL:
-  + heaptrc unit to detect memoryleaks and other problems with the heap
-  + graph unit works and some missing functions are added
-  * objects unit fully works
-  * more functions for the classes,sysutils unit
-
-Utils:
-  * ppudump updated for new ppu entries
-  * h2pas updated to write new cdecl declaration
-
-
-******************************************************************************
-                            Whats New in 0.99.8
-******************************************************************************
-
-Compiler:
-  + smartlinking support (-Cx)
-  + new ppu format which much more portable en extendible
-  + new scanner with better file position info
-  + constant evaluation like tp7 (trunc,round,hi,swap)
-  + rtti support
-  + exception support
-  + longbool,wordbool support
-  + enumerated packing support like delphi
-  + c variable support (-Sv)
-  + Win32 support (no export and resource support yet)
-  * optimizer switches changed to be easier to use
-  * lot of fixes for sets, also supporting dynamic creation
-  * working open array (sizeof,high)
-  * better filename handling for all platforms
-  * ability to list source lines in the assembler file
-  * some error messages changed to for better understanding
-  * better calling convention support, delphi compatible
-  * glibc2 (linux) support
-  * too many other small bugfixes and internal enhancements
-
-RTL:
-  + sysutils unit for objpas
-  + port[] array for go32v2
-  + graph unit for linux
-  + uniform objects unit for all platforms
-  + rtti support
-  + automatic Longfilename (LFN) support for go32v2
-  * go32 crt startup delay has been removed
-  * missing pchar support for some file functions (assign,rename)
-  * heapblocks support, which is much faster when allocating a lot
-    of small blocks (like objects)
-  * filerec/textrec is now uniform for all platforms (but not tp7 compatible)
-  * extended is the default floating point type
-  * lot of other fixes and small enhancements
-
-Utils:
-  + h2pas util to convert .h files to .pas file
-  + ppudump util replaces the old dumpppu
-  * mkdep is now much less strict and (* *) support
-
-
-******************************************************************************
-                            Whats New in 0.99.5
-******************************************************************************
-
-Mainly, bugs are fixed and some improvements are
-made in that release, besides that the following stuff is
-added:
- * compiler
-   - mem[] and absolute works now as expected (go32v2 target only)
-   - basic MMX support by the compiler (see docs for more infos)
- * runtime library
-   - better support of floating point types
-
+Misc:
+  * improved cross compilation

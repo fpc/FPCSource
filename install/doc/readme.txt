@@ -1,33 +1,33 @@
 
                             Free Pascal Compiler
 
-                               Version 1.2.0
+                        Version 1.9.0 aka 2.0.0-Beta1
 
 
 ****************************************************************************
 * Introduction
 ****************************************************************************
 
-This package contains a freeware 32-bit pascal compiler for 386+. The language
-and the runtime library are more or less compatible to TP 7.0. Some Delphi
-additions have also been implemented like classes, exceptions, ansistrings
-and rtti.
+*** WARNING *** WARNING *** WARNING ***
+This a beta release and it still contains some known bugs. However, it would
+be very useful if you could test your projects with it and tell us when
+you find bugs.
+*** WARNING *** WARNING *** WARNING ***
 
-Free Pascal is currently available for the following platforms:
-- DOS, via the DJ Delorie's GO32V2 Dos extenders
+This package contains a freeware 32-bit pascal compiler for 386+. The language
+and the runtime library are almost compatible with TP 7.0 and recent Delphi
+releases.
+
+Free Pascal 1.9.0 is currently available for the following platforms:
 - Linux (i386), both aout and elf
-- OS/2 & DOS, via the EMX extender
 - Win32 (Win32s, Win95/98/Me/XP/2000 and WinNT)
-- Sun Solaris i386
-- BeOS i386
-- QNX i386
 - FreeBSD i386
 
-Older version of the compiler (0.99.5) is also available on:
-- Commodore Amiga
-- Atari ST
-
-More platforms will be supported in the future.
+More platforms will be supported in future 1.9.x beta releases.
+Because release building is quite time intensive, we decide to start the
+2.0 beta series only with the most important targets. If you want to change
+this and create and maintain 2.0 beta releases for other platforms and
+targets, feel free to contact us, E-Mail addresses are listened below.
 
 ****************************************************************************
 * Features
@@ -36,18 +36,21 @@ More platforms will be supported in the future.
 - high speed compiler
 - fully 32-bit code
 - language features:
-  - almost fully compatible with Borland Pascal
-  - partially compatible with Borland Delphi
+  - almost fully compatible with Borland Pascal and Borland Delphi
   - ansi strings
   - exception support
   - RTTI support
   - procedure overloading
   - operator overloading
+  - COM, CORBA and raw interfaces support
+  - dyn. array support
+  - variant support
 - code optimizer:
   - peephole optimizer
   - loading of variables into registers
   - assembler level dataflow analyzer
   - stack frame eliminations
+  - sophisticated register allocator
 - integrated BASM (built-in assembler) parser
   - supports ATT syntax used by GNU C
   - supports Intel syntax used by Turbo Pascal
@@ -58,45 +61,27 @@ More platforms will be supported in the future.
 - can call external C code
 - smartlinking
 - support for the GNU debugger
-- IDE (currently for GO32v2 and Win32 only, in beta testing phase)
+- IDE (currently for GO32v2, Linux and Win32 only, in beta testing phase)
 - can create binaries running natively under both DOS and OS/2 (EMX version)
 
 
 ****************************************************************************
-* Requirements (Intel version)
+* Requirements
 ****************************************************************************
 
 386 processor
-DOS (extender GO32v2):
- - DOS 3.3
- - 4 MB RAM (8+ MB recommended)
- - hard disk with free space of 8 MB
- - DPMI server (CWSDPMI is delivered in the go32v2 distribution)
 Win32:
  - Win95/98/Me/2000/XP or WinNT
  - 8 MB RAM (16+ MB recommended)
-OS/2 and DOS (extender EMX):
- - either DOS 5.0 and above or OS/2 v3.x and above (including eComStation;
-  OS/2 v2.1 might work at least in some cases, but is not officially
-  supported any more, OS/2 v2.0 will not run any FPC application using
-  units Dos or DosCalls - this includes the compiler itself)
- - 3 MB RAM (8+ MB recommended) for DOS
-  or 8 MB (12 or more MB recommended depending on OS version) for OS/2
- - EMX or RSX (for DPMI) runtime package (part of OS/2 distribution)
- - TZ variable in your environment (in your CONFIG.SYS at best);
-  you should normally have it there anyway, it may only be missing
-  on older OS/2 versions (<= 3.0)
-BeOS:
- - GNU Utilities and development tools pre-installed (as and ld)
- - BeOS 4.5 or later
-
+Linux:
+ - system running a 2.0.x kernel
 
 ****************************************************************************
 * Quick start
 ****************************************************************************
 
-Download dos106.zip (version for DOS) or w32106.zip (version for
-Win9x/NT) or os2106.zip (EMX version - for OS/2 and DOS) and unzip it
+Win32:
+Download w32190.zip and unzip it
 into a temporary directory.
 
 Start the install program INSTALL.EXE and follow the instructions.
@@ -105,115 +90,8 @@ Don't forget to set the path as mentioned by the install program.
 
 To test the compiler, change to the demo directory of the compiler
 and type
-        ppc386 hello
+        fpc hello
         hello
-
-
-****************************************************************************
-* The packages of the distribution
-****************************************************************************
-
-All standard packages contain a part that is specific for the target platform
-and a few files which are target independent. All files are also available
-as separate files to reduce file size if the default file is too big.
-
-dos106.zip specific:
-----------------------
-  basego32.zip    contains a DOS (Go32V2) compiler, runtime library and
-                  additional files
-  asldgo32.zip    contains additional GNU utilities which are necessary:
-      AS 2.9.1 for Go32V2
-      LD 2.9.1 for Go32V2
-      AR 2.8.1 for Go32V2
-      Strip 2.8.1 for Go32V2
-  makego32.zip    contains additional GNU utilities which might be useful to
-                  compile the run time library:
-      Make 3.79.1
-      RM 3.16
-      CP 3.16
-      MV 3.16
-      PWD 3.16
-      GInstall 3.16
-      GDate 3.16
-      GEcho 3.16
-      UPX 1.20
-  gdbgo32.zip     contains the GNU Debugger 4.18 with pascal support for Go32V2
-
-w32106.zip specific:
-----------------------
-  basew32.zip     contains a Win32 compiler, runtime library and
-                  additional files
-  asldw32.zip     contains additional GNU utilities from MinGW32 which are
-                  necessary:
-      AS 2.9.5 for Win32
-      LD 2.9.5 for Win32
-      AR 2.9.5 for Win32
-      Strip 2.9.5 for Win32
-      WindRes 2.9.5 for Win32
-      DLLTool 2.9.5 for Win32
-  makew32.zip     contains additional GNU utilities which might be useful to
-                  compile the run time library:
-      Make 3.79.1
-      RM 3.16
-      CP 3.16
-      MV 3.16
-      PWD 3.16
-      GInstall 3.16
-      GDate 3.16
-      GEcho 3.16
-      UPX 1.20
-  gdbw32.zip      contains the GNU Debugger 4.18 with pascal support for Win32
-
-os2106.zip specific:
-----------------------
-  baseemx.zip     contains an EMX (OS/2 and DOS) compiler, runtime library and
-                  additional files
-  asldemx.zip     contains additional GNU utilities which are necessary:
-      AS 2.9.1 for EMX
-      LD for EMX
-      EMXBIND 0.9d
-      AR 2.9.1 for EMX
-      NM 2.9.1 for EMX
-      GASP 1.2 for EMX
-      ObjCopy 2.9.1 for EMX
-      ObjDump 2.9.1 for EMX
-      Strip 2.9.1 for EMX
-      RANLIB 2.9.1 for EMX
-  makeemx.zip     contains additional GNU utilities which might be useful to
-                  compile the run time library:
-      Make 3.76.1
-      RM 3.13
-      CP 3.13
-      MV 3.13
-      ChMod 3.13
-      PWD 1.12
-      Install 3.13
-      Date 1.12
-      Echo 1.12
-      Diff 2.8
-  gdbemx.zip      contains the GNU Debugger 4.16 for EMX,
-                  PMGDB (Presentation Manager add-on for GDB) and GPROF 2.9.1
-
-common files in dos106.zip, w32106.zip and os2106.zip:
-------------------------------------------------------------
-  demo.zip        contains some demo files
-  doc-pdf.zip     contains the documentation in PDF format
-  doc-html.zip    contains the documentation in HTML format
-  install.exe     installation program
-  install.dat     installation data
-  readme.txt      this readme file
-  whatsnew.txt    what's been changed
-
-Optional source package src106.zip:
--------------------------------------
-  basesrc.zip     contains the basic Makefiles needed for the source tree
-  compsrc.zip     contains the compiler sources
-  rtlsrc.zip      contains the runtime library sources
-  fclsrc.zip      contains the Free Component Library sources
-  pkgssrc         contains the packages (various units) sources
-  utilssrc.zip    contains the Utilities sources
-  instsrc.zip     contains the installer sources
-  docsrc.zip      contains the TeX sources of the doc
 
 
 ****************************************************************************
@@ -308,14 +186,14 @@ fall under the GPL, for more information read the file COPYING.
 Some specific utilities and programs come under the license described in
 COPYING.DJ, COPYING.EMX and COPYING.RSX.
 
-The documentation, unless otherwise noted, is distributed as free 
+The documentation, unless otherwise noted, is distributed as free
 text, and is distributed under the GNU Library General Public
 License.
 
-The runtime library, package libraries, free component library, and 
-other libraries which are used to create executables by the compiler 
-come under a modified GNU Library General Public license. Additional 
-information about the library license is found in COPYING.FPC. 
+The runtime library, package libraries, free component library, and
+other libraries which are used to create executables by the compiler
+come under a modified GNU Library General Public license. Additional
+information about the library license is found in COPYING.FPC.
 
 NOTE: OS/2 version of the installer uses the library UNZIP32.DLL from
       Info-ZIP. Info-ZIP's software (Zip, UnZip and related utilities)
