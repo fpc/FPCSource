@@ -36,7 +36,7 @@
     inputfile. A ; will be converted into a newline
 
     Exports will be handled like in win32:
-    procedure bla;
+    procedure bla; cdecl;
     begin
     end;
 
@@ -47,14 +47,16 @@
     to be in unix-format for exe2nlm)
     By default, the most import files are included in freepascal.
 
-    i.e. Procedure ConsolePrintf (p:pchar); cdecl; external 'clib.nlm';
-    sets IMPORT @clib.imp and MODULE clib.
+    e.g. function getgrnam(name:Pchar):Pgroup;cdecl;external 'libc' 'getgrnam';   
+    sets IMPORT @libc.imp and MODULE libc.
+    To avoid setting the autoload, use ! in the name, e.g.
+    procedure EnterDebugger;cdecl;external '!netware' name 'EnterDebugger';   
 
-    Function simply defined as external work without generating autoload but
-    you will get a warnung from nlmconv.
+    Function simply defined as external work without generating autoload and
+    IMPORT but you will get a warning from nlmconv.
 
     If you dont have nlmconv, compile gnu-binutils with
-       ./configure --enable-targets=i386-linux,i386-netware
+       ./configure --enable-targets=i386-netware
        make all
 
     Debugging is possible with gdb and a converter from gdb to ndi available
@@ -72,10 +74,14 @@
     end.
 
     compile with:
-    ppc386 -Tnetware hello
-
-    ToDo:
-      - No duplicate imports and autoloads
+    ppc386 -Tnetwlibc hello
+    
+    Libraries are supported but this needs at least netware 5.1 sp6,
+    6.0 sp3 or netware 6.5
+    
+    In case there is a xdc file with the same name as the nlm name,
+    this file will be used for nlmconv. Otherwise a temp xdc will
+    be created and used.
 
 ****************************************************************************
 }
@@ -128,7 +134,7 @@ implementation
       function  MakeSharedLibrary:boolean;override;
     end;
 
-Const tmpLinkFileName = 'link~tmp._o_';
+Const tmpLinkFileName = '~link~tmp.o';
       minStackSize = 32768;
 
 {*****************************************************************************
@@ -360,6 +366,13 @@ begin
   Comment (V_Debug,'adding Object File '+s2);
   {$ifndef netware} LinkRes.Add (s2); {$else} LinkRes.Add (FExpand(s2)); {$endif}
 
+  if isDll then  {needed to provide main}
+    s2 := FindObjectFile('nwl_dlle','',false)
+  else    
+    s2 := FindObjectFile('nwl_main','',false);
+  Comment (V_Debug,'adding Object File '+s2);
+  {$ifndef netware} LinkRes.Add (s2); {$else} LinkRes.Add (FExpand(s2)); {$endif}
+
   { main objectfiles, add to linker input }
   while not ObjectFiles.Empty do
   begin
@@ -553,7 +566,7 @@ begin
 
 { Write used files and libraries and create Headerfile for
   nlmconv in NLMConvLinkFile }
-  WriteResponseFile(false);
+  WriteResponseFile(isLib);
   if isLib then
     NLMConvLinkFile.Add('FLAG_ON 1024');  {0x400 Specifies whether the NLM is a shared library.}
 
@@ -638,7 +651,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.2  2004-09-19 14:23:43  armin
+  Revision 1.3  2004-09-19 18:10:32  armin
+  * added library support
+
+  Revision 1.2  2004/09/19 14:23:43  armin
   * support library flag
   * automaticly gernerate xdc data
 
