@@ -355,14 +355,16 @@ end ;
 
 {   Trim returns a copy of S with blanks characters on the left and right stripped off   }
 
+Const WhiteSpace = [' ',#10,#13,#9];
+
 function Trim(const S: string): string;
 var Ofs, Len: integer;
 begin
   len := Length(S);
-  while (Len>0) and (S[Len] = ' ') do
+  while (Len>0) and (S[Len] in WhiteSpace) do
    dec(Len);
   Ofs := 1;
-  while (Ofs<=Len) and (S[Ofs] = ' ') do
+  while (Ofs<=Len) and (S[Ofs] in WhiteSpace) do
    Inc(Ofs);
   result := Copy(S, Ofs, 1 + Len - Ofs);
 end ;
@@ -374,7 +376,7 @@ var i,l:integer;
 begin
   l := length(s);
   i := 1;
-  while (i<=l) and (s[i] = ' ') do
+  while (i<=l) and (s[i] in whitespace) do
    inc(i);
   Result := copy(s, i, l);
 end ;
@@ -385,7 +387,7 @@ function TrimRight(const S: string): string;
 var l:integer;
 begin
   l := length(s);
-  while (l>0) and (s[l] = ' ') do
+  while (l>0) and (s[l] in whitespace) do
    dec(l);
   result := copy(s,1,l);
 end ;
@@ -1138,7 +1140,10 @@ const
 
 {
   $Log$
-  Revision 1.31  2000-02-09 16:59:33  peter
+  Revision 1.32  2000-04-03 06:40:37  michael
+  * TRim(right|Left) more Delphi compatible
+
+  Revision 1.31  2000/02/09 16:59:33  peter
     * truncated log
 
   Revision 1.30  2000/02/01 12:53:23  peter
