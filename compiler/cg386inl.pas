@@ -627,68 +627,75 @@ implementation
            hp,node, code_para, dest_para : ptree;
            hreg: TRegister;
            hdef: POrdDef;
-           pushed2: TPushed;
            procedureprefix : string;
            hr: TReference;
            dummycoll : tdefcoll;
            has_code, has_32bit_code, oldregisterdef: boolean;
+           pushed2: TPushed;
+           unusedregs: TRegisterSet;
 
           begin
-          {save the register variables}
-           pushusedregisters(pushed,$ff);
            node:=p^.left;
            hp:=node;
            node:=node^.right;
            hp^.right:=nil;
-           has_32bit_code := false;
           {if we have 3 parameters, we have a code parameter}
            has_code := Assigned(node^.right);
            reset_reference(hr);
            hreg := R_NO;
 
-          {the function result will be in EAX, so we need to reserve it so
-           that secondpass(dest_para^.left) and secondpass(code_para^.left)
-           won't use it}
-           hreg := getexplicitregister32(R_EAX);
-          {if EAX is already in use, it's a register variable (ok, we've saved
-           those with pushusedregisters). Since we don't need another
-           register besides EAX, release it}
-           If hreg <> R_EAX Then ungetregister32(hreg);
-
            If has_code then
              Begin
                {code is an orddef, that's checked in tcinl}
-               If (porddef(hp^.left^.resulttype)^.typ in [u32bit,s32bit]) Then
-                 Begin
-                   has_32bit_code := true;
-                   code_para := hp;
-                   hp:=node;
-                   node:=node^.right;
-                   hp^.right:=nil;
-                 End
-               Else
-                 Begin
-                   secondpass(hp^.left);
-                   code_para := hp;
-                   hp := node;
-                   node:=node^.right;
-                   hp^.right:=nil;
-                 End;
+               code_para := hp;
+               hp := node;
+               node := node^.right;
+               hp^.right := nil;
+               has_32bit_code := (porddef(code_para^.left^.resulttype)^.typ in [u32bit,s32bit]);
              End;
-           {hp = destination now, save for later use}
+
+          {hp = destination now, save for later use}
            dest_para := hp;
+
+          {the function result will be in EAX, so we need to reserve it so
+           that secondpass(dest_para^.left) won't use it}
+           hreg := getexplicitregister32(R_EAX);
+          {if EAX is already in use, it's a register variable. Since we don't
+           need another register besides EAX, release the one we got}
+           If hreg <> R_EAX Then ungetregister32(hreg);
+
+          {load the address of the destination}
            secondpass(dest_para^.left);
 
           {unget EAX (if we got it before), since otherwise pushusedregisters
-           will push it on the stack. No more registers are allocated before
-           the function call that will also have to be accessed afterwards,
-           so if EAX is allocated now before the function call, it doesn't
-           matter.}
-           If (hreg = R_EAX) then Ungetregister32(R_EAX);
+           will push it on the stack.}
+           If (hreg = R_EAX) then Ungetregister32(hreg);
 
-          {(if necessary) save the address loading of code_para and dest_para}
+          {save which registers are (not) used now, we'll need it after the
+           function call}
+           UnusedRegs := Unused;
 
-           pushusedregisters(pushed2,$ff);
+          {(if necessary) save the address loading of dest_para and possibly
+           register variables}
+
+           pushusedregisters(pushed,$ff);
+
+          {only now load the address of the code parameter, since we want
+           to handle it before the destination after the function call}
+
+           If has_code and (not has_32bit_code) Then
+             Begin
+              {make sure this secondpass doesn't use EAX either}
+               hreg := getexplicitregister32(R_EAX);
+               If hreg <> R_EAX Then ungetregister32(hreg);
+               secondpass(code_para^.left);
+               If hreg = R_EAX Then ungetregister32(hreg);
+              {maybe secondpass(code_para^.left) required more registers than
+               secondpass(dest_para^.left). The registers where we can store
+               the result afterwards have to be unused in both cases}
+               UnusedRegs := UnusedRegs * Unused;
+               pushusedregisters(pushed2, $ff)
+             End;
 
           {now that we've already pushed the results from
            secondpass(code_para^.left) and secondpass(dest_para^.left) on the
@@ -749,31 +756,46 @@ implementation
            disposetree(node);
            p^.left := nil;
 
-          {restore the addresses loaded by secondpass}
-           popusedregisters(pushed2);
           {reload esi in case the dest_para/code_para is a class variable or so}
            maybe_loadesi;
+
+           If (dest_para^.resulttype^.deftype = orddef) Then
+             Begin
+              {restore which registers are used by register variables and/or
+               the address loading of the dest/code_para, so we can store the
+               result in a safe place}
+               unused := UnusedRegs;
+              {as of now, hreg now holds the location of the result, if it was
+               integer}
+               hreg := getexplicitregister32(R_EAX);
+               emit_reg_reg(A_MOV,S_L,R_EAX,hreg);
+             End;
 
            If has_code and Not(has_32bit_code) Then
              {only 16bit code is possible}
              Begin
+              {restore the address loaded by secondpass(code_para)}
+               popusedregisters(pushed2);
+              {move the code to its destination}
                exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,NewReference(hr),R_EDI)));
                emit_mov_reg_loc(R_DI,code_para^.left^.location);
                Disposetree(code_para);
              End;
 
-          {save the function result in the destinatin variable}
+          {restore the addresses loaded by secondpass(dest_para)}
+           popusedregisters(pushed);
+          {save the function result in the destination variable}
            Case dest_para^.left^.resulttype^.deftype of
              floatdef: floatstore(PFloatDef(dest_para^.left^.resulttype)^.typ,
                                    dest_para^.left^.location.reference);
              orddef:
                Case PordDef(dest_para^.left^.resulttype)^.typ of
                  u8bit,s8bit:
-                   emit_mov_reg_loc(R_AL,dest_para^.left^.location);
+                   emit_mov_reg_loc(RegToReg8(hreg),dest_para^.left^.location);
                  u16bit,s16bit:
-                   emit_mov_reg_loc(R_AX,dest_para^.left^.location);
+                   emit_mov_reg_loc(RegToReg16(hreg),dest_para^.left^.location);
                  u32bit,s32bit:
-                   emit_mov_reg_loc(R_EAX,dest_para^.left^.location);
+                   emit_mov_reg_loc(hreg,dest_para^.left^.location);
                  {u64bit,s64bitint: ???}
                End;
            End;
@@ -781,7 +803,7 @@ implementation
               (dest_para^.left^.resulttype^.deftype = orddef) and
             {the following has to be changed to 64bit checking, once Val
              returns 64 bit values (unless a special Val function is created
-             for that}
+             for that)}
             {no need to rangecheck longints or cardinals on 32bit processors}
                not((porddef(dest_para^.left^.resulttype)^.typ = s32bit) and
                    (porddef(dest_para^.left^.resulttype)^.low = $80000000) and
@@ -790,19 +812,9 @@ implementation
                    (porddef(dest_para^.left^.resulttype)^.low = 0) and
                    (porddef(dest_para^.left^.resulttype)^.high = $ffffffff)) then
              Begin
-               If has_32bit_code then
-               {we don't have temporary variable space yet}
-                 GetTempOfSizeReference(4,hr);
-              {save the result in a temp variable, because EAX may be
-               overwritten by popusedregs()}
-               exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,R_EAX,NewReference(hr))));
-              {clean up the stack, so a backtrace is possible if range check
-               fails}
-               popusedregisters(pushed);
-              {create a temporary 32bit location for the returned value}
                hp := getcopy(dest_para^.left);
-               hp^.location.loc := LOC_REFERENCE;
-               hp^.location.reference := hr;
+               hp^.location.loc := LOC_REGISTER;
+               hp^.location.register := hreg;
               {do not register this temporary def}
                OldRegisterDef := RegisterDef;
                RegisterDef := False;
@@ -816,14 +828,8 @@ implementation
                Dispose(hp^.resulttype, Done);
                RegisterDef := OldRegisterDef;
                disposetree(hp);
-              {it's possible that the range cheking was handled by a
-               procedure that has destroyed ESI}
-               maybe_loadesi;
-             End
-           Else
-            {clean up the stack}
-             popusedregisters(pushed);
-          {dest_para^right is already nil}
+             End;
+          {dest_para^.right is already nil}
            disposetree(dest_para);
            UnGetIfTemp(hr);
         end;
@@ -1270,7 +1276,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.33  1999-03-26 00:24:15  peter
+  Revision 1.34  1999-03-31 17:13:09  jonas
+    * bugfix for -Ox with internal val code
+    * internal val code now requires less free registers
+    * internal val code no longer needs a temp var for range checking
+
+  Revision 1.33  1999/03/26 00:24:15  peter
     * last para changed to long for easier pushing with 4 byte aligns
 
   Revision 1.32  1999/03/26 00:05:26  peter
