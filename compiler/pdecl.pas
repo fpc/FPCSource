@@ -1575,6 +1575,8 @@ unit pdecl;
          filepos : tfileposinfo;
 
          Csym : pvarsym;
+         is_cdecl,extern_Csym,export_Csym : boolean;
+         C_name : string;
 
       begin
          hs:='';
@@ -1590,32 +1592,11 @@ unit pdecl;
            (pattern<>'PUBLISHED') and
            (pattern<>'PROTECTED') do
            begin
+              C_name:=orgpattern;
               sc:=idlist;
               consume(COLON);
               p:=read_type('');
-              if do_absolute and (token=ID) and (pattern='CALIAS') then
-                begin
-                   s:=sc^.get_with_tokeninfo(filepos);
-                   if sc^.get<>'' then
-                    Message(parser_e_absolute_only_one_var);
-                   dispose(sc,done);
-                   consume(ID);
-                   if (token<>CCHAR) and (token<>CSTRING) then
-                     consume(CSTRING)
-                   else
-                     begin
-                        Csym:=new(pvarsym,init_C(s,pattern,p));
-                        consume(token);
-                        consume(SEMICOLON);
-                        if (token=ID) and (pattern='EXTERNAL') then
-                          begin
-                             Csym^.var_options:=Csym^.var_options or vo_is_external;
-                             Consume(ID);
-                          end;
-                        symtablestack^.insert(Csym);
-                     end;
-                end
-              else if do_absolute and (token=ID) and (pattern='ABSOLUTE') then
+              if do_absolute and (token=ID) and (pattern='ABSOLUTE') then
                 begin
                    s:=sc^.get_with_tokeninfo(filepos);
                    if sc^.get<>'' then
@@ -1685,12 +1666,56 @@ unit pdecl;
                 end
               else
                 begin
-                   if token=SEMICOLON then
+                   if not(is_record) then
+                     consume(token);
+                   if do_absolute and (token=ID) and
+                      ((pattern='EXPORT') or (pattern='EXTERNAL')
+                      or (pattern='CDECL')) then
                      begin
-                        if (symtablestack^.symtabletype=objectsymtable) then
+                        if pattern='CDECL' then
                           begin
+                             consume(ID);
                              consume(SEMICOLON);
-                             if (token=ID) and (pattern='STATIC') and
+                             is_cdecl:=true;
+                          end
+                        else
+                          is_cdecl:=false;
+                          
+                        extern_Csym:=(pattern='EXTERNAL');
+                        if not is_cdecl then
+                          export_Csym:=(pattern='EXPORT')
+                        else
+                          export_Csym:=false;
+                        s:=sc^.get_with_tokeninfo(filepos);
+                        if sc^.get<>'' then
+                          Message(parser_e_absolute_only_one_var);
+                        dispose(sc,done);
+                        if extern_Csym or export_Csym then
+                          consume(ID);
+                        { external and export need a name after }
+                        if not is_cdecl then
+                          begin
+                             if (token<>CCHAR) and (token<>CSTRING) then
+                               consume(CSTRING);
+                             C_name:=pattern;
+                             consume(token);
+                             consume(SEMICOLON);
+                          end;
+                        if is_cdecl and extern_Csym then
+                          consume(SEMICOLON);
+                        Csym:=new(pvarsym,init_C(s,C_name,p));
+                        if extern_Csym then
+                          begin
+                             Csym^.var_options:=Csym^.var_options or vo_is_external;
+                             { correct type ?? }
+                             externals^.concat(new(pai_external,init(Csym^.mangledname,EXT_NEAR)));
+                          end;
+                        symtablestack^.insert(Csym);
+                     end
+                   else
+                     if (symtablestack^.symtabletype=objectsymtable) then
+                       begin
+                         if (token=ID) and (pattern='STATIC') and
                                 (cs_static_keyword in aktswitches) then
                                begin
                                   current_object_option:=current_object_option or sp_static;
@@ -1707,15 +1732,7 @@ unit pdecl;
                           begin
                              { at the right line }
                              insert_syms(symtablestack,sc,p);
-                             consume(SEMICOLON);
-                          end
-                     end
-                   else
-                     begin
-                        insert_syms(symtablestack,sc,p);
-                        if not(is_record) then
-                          consume(SEMICOLON);
-                     end;
+                          end;
                 end;
               while token=SEMICOLON do
                 consume(SEMICOLON);
@@ -1860,7 +1877,11 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.25  1998-06-09 16:01:45  pierre
+  Revision 1.26  1998-06-12 10:32:30  pierre
+    * column problem hopefully solved
+    + C vars declaration changed
+
+  Revision 1.25  1998/06/09 16:01:45  pierre
     + added procedure directive parsing for procvars
       (accepted are popstack cdecl and pascal)
     + added C vars with the following syntax

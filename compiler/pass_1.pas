@@ -4928,8 +4928,7 @@ unit pass_1;
          oldcodegenerror : boolean;
          oldswitches : Tcswitches;
          { there some calls of do_firstpass in the parser }
-         oldis : pinputfile;
-         oldnr : longint;
+         oldpos : tfileposinfo;
 {$ifdef extdebug}
          str1,str2 : string;
          oldp : ptree;
@@ -4943,8 +4942,7 @@ unit pass_1;
 {$endif extdebug}
          { if we save there the whole stuff, }
          { line numbers become more correct  }
-         oldis:=current_module^.current_inputfile;
-         oldnr:=current_module^.current_inputfile^.line_no;
+         get_cur_file_pos(oldpos);
          oldcodegenerror:=codegenerror;
          oldswitches:=aktswitches;
 {$ifdef extdebug}
@@ -4961,9 +4959,7 @@ unit pass_1;
 {$endif extdebug}
 
          codegenerror:=false;
-         current_module^.current_inputfile:=
-           pinputfile(current_module^.sourcefiles.get_file(p^.fileinfo.fileindex));
-         current_module^.current_inputfile^.line_no:=p^.fileinfo.line;
+         set_cur_file_pos(p^.fileinfo);
          aktswitches:=p^.pragmas;
 
          if not(p^.error) then
@@ -4991,8 +4987,7 @@ unit pass_1;
            inc(p^.firstpasscount);
 {$endif extdebug}
          aktswitches:=oldswitches;
-         current_module^.current_inputfile:=oldis;
-         current_module^.current_inputfile^.line_no:=oldnr;
+         set_cur_file_pos(oldpos);
       end;
 
     function do_firstpass(var p : ptree) : boolean;
@@ -5017,7 +5012,11 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.29  1998-06-09 16:01:44  pierre
+  Revision 1.30  1998-06-12 10:32:28  pierre
+    * column problem hopefully solved
+    + C vars declaration changed
+
+  Revision 1.29  1998/06/09 16:01:44  pierre
     + added procedure directive parsing for procvars
       (accepted are popstack cdecl and pascal)
     + added C vars with the following syntax

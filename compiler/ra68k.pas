@@ -250,7 +250,7 @@ var
     { Possiblities for first token in a statement:                }
     {   Local Label, Label, Directive, Prefix or Opcode....       }
     tokenpos.line:=current_module^.current_inputfile^.line_no;
-    tokenpos.column:=get_current_col;
+    tokenpos.column:=get_file_col;
     tokenpos.fileindex:=current_module^.current_index;
     if firsttoken and not (c in [newline,#13,'{',';']) then
     begin
@@ -2172,7 +2172,11 @@ Begin
 end.
 {
   $Log$
-  Revision 1.4  1998-06-04 23:51:56  peter
+  Revision 1.5  1998-06-12 10:32:31  pierre
+    * column problem hopefully solved
+    + C vars declaration changed
+
+  Revision 1.4  1998/06/04 23:51:56  peter
     * m68k compiles
     + .def file creation moved to gendef.pas so it could also be used
       for win32

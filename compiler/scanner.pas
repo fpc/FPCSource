@@ -163,7 +163,10 @@ unit scanner;
         procedure syntaxerror(const s : string);
         function yylex : ttoken;
         function asmgetchar : char;
+        { column position of last token }
         function get_current_col : longint;
+        { column position of file }
+        function get_file_col : longint;
         procedure get_cur_file_pos(var fileinfo : tfileposinfo);
         procedure set_cur_file_pos(const fileinfo : tfileposinfo);
 
@@ -252,16 +255,27 @@ unit scanner;
       end;
 
 
+    const
+       current_column : longint = 1;
+
     function get_current_col : longint;
+
       begin
+         get_current_col:=current_column;
+      end;
+      
+    function get_file_col : longint;
+      begin
+(*  how was expecting files larger than 2Go ???
 {$ifdef TP}
         if lastlinepos<=lasttokenpos then
-          get_current_col:=longint(lasttokenpos)-longint(lastlinepos)
+          get_file_col:=longint(lasttokenpos)-longint(lastlinepos)
         else
-          get_current_col:=longint(lastlinepos)-longint(lasttokenpos);
+          get_file_col:=longint(lastlinepos)-longint(lasttokenpos);
 {$else}
-         get_current_col:=cardinal(lasttokenpos)-cardinal(lastlinepos);
-{$endif}
+         get_file_col:=cardinal(lasttokenpos)-cardinal(lastlinepos);
+{$endif} *)
+          get_file_col:=longint(lasttokenpos)-longint(lastlinepos);
       end;
 
 
@@ -308,7 +322,7 @@ unit scanner;
            if readsize > 0 then
             begin
             { force proper line counting }
-              saveline:=current_module^.current_inputfile^.line_no;
+              saveline:=current_module^.current_inputfile^.true_line;
               i:=0;
               inputpointer:=inputbuffer;
               while i<readsize do
@@ -322,13 +336,13 @@ unit scanner;
                             inc(longint(inputpointer));
                             inc(i);
                           end;
-                         inc(current_module^.current_inputfile^.line_no);
+                         inc(current_module^.current_inputfile^.true_line);
                        end;
                  end;
                  inc(i);
                  inc(longint(inputpointer));
                end;
-              current_module^.current_inputfile^.line_no:=saveline;
+              current_module^.current_inputfile^.true_line:=saveline;
             end;
            inputbuffer[readsize]:=#0;
            inputpointer:=inputbuffer;
@@ -378,8 +392,8 @@ unit scanner;
       { show status }
         Comment(V_Status,'');
       { increase line counters }
-        inc(current_module^.current_inputfile^.line_no);
-        status.currentline:=current_module^.current_inputfile^.line_no;
+        inc(current_module^.current_inputfile^.true_line);
+        status.currentline:=current_module^.current_inputfile^.true_line;
         inc(status.compiledlines);
         lastlinepos:=inputpointer;
       end;
@@ -684,8 +698,8 @@ unit scanner;
         { this is a floating point number or range like 1..3                 }
         if s_point then
           begin
-             tokenpos.line:=current_module^.current_inputfile^.line_no;
-             tokenpos.column:=get_current_col;
+             tokenpos.line:=current_module^.current_inputfile^.true_line;
+             tokenpos.column:=get_file_col;
              tokenpos.fileindex:=current_module^.current_index;
              s_point:=false;
              if c='.' then
@@ -710,8 +724,8 @@ unit scanner;
 
       { Save current token position }
         lasttokenpos:=inputpointer;
-        tokenpos.line:=current_module^.current_inputfile^.line_no;
-        tokenpos.column:=get_current_col;
+        tokenpos.line:=current_module^.current_inputfile^.true_line;
+        tokenpos.column:=get_file_col;
         tokenpos.fileindex:=current_module^.current_index;
 
 
@@ -1088,7 +1102,14 @@ unit scanner;
            end;
         end;
 
-exit_label:
+      exit_label:
+        { don't change the file : too risky !! }
+        if current_module^.current_index=tokenpos.fileindex then
+          begin
+             current_module^.current_inputfile^.line_no:=tokenpos.line;
+             current_module^.current_inputfile^.column:=tokenpos.column;
+             current_column:=tokenpos.column;
+          end;
      end;
 
 
@@ -1101,13 +1122,13 @@ exit_label:
           end
          else
           readchar;
-         with tokenpos do
+         { must be put in the assembler readers }
+         (* with tokenpos do
           begin
-
-            line:=current_module^.current_inputfile^.line_no;
-            column:=get_current_col;
+            line:=current_module^.current_inputfile^.true_line;
+            column:=get_file_col;
             fileindex:=current_module^.current_index;
-          end;
+          end; *)
 
          case c of
           '{' : begin
@@ -1189,14 +1210,18 @@ exit_label:
    procedure set_cur_file_pos(const fileinfo : tfileposinfo);
 
      begin
-        current_module^.current_index:=fileinfo.fileindex;
-        current_module^.current_inputfile:=
-          pinputfile(current_module^.sourcefiles.get_file(fileinfo.fileindex));
+        if current_module^.current_index<>fileinfo.fileindex then
+          begin
+             current_module^.current_index:=fileinfo.fileindex;
+             current_module^.current_inputfile:=
+               pinputfile(current_module^.sourcefiles.get_file(fileinfo.fileindex));
+          end;
         if assigned(current_module^.current_inputfile) then
-          current_module^.current_inputfile^.line_no:=fileinfo.line;
-        {fileinfo.fileindex:=current_module^.current_inputfile^.ref_index;}
-        { should allways be the same !! }
-        { fileinfo.column:=get_current_col; }
+          begin
+             current_module^.current_inputfile^.line_no:=fileinfo.line;
+             current_module^.current_inputfile^.column:=fileinfo.column;
+             current_column:=fileinfo.column;
+          end;
      end;
 
    procedure DoneScanner(testendif:boolean);
@@ -1256,7 +1281,11 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.23  1998-06-03 22:49:02  peter
+  Revision 1.24  1998-06-12 10:32:36  pierre
+    * column problem hopefully solved
+    + C vars declaration changed
+
+  Revision 1.23  1998/06/03 22:49:02  peter
     + wordbool,longbool
     * rename bis,von -> high,low
     * moved some systemunit loading/creating to psystem.pas

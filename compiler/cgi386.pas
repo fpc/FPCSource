@@ -58,7 +58,7 @@ implementation
 
    uses
      verbose,cobjects,systems,globals,files,
-     symtable,types,aasm,
+     symtable,types,aasm,scanner,
      pass_1,hcodegen,temp_gen
 {$ifdef GDB}
      ,gdb
@@ -230,19 +230,15 @@ implementation
       var
          oldcodegenerror : boolean;
          oldswitches : Tcswitches;
-         oldis : pinputfile;
-         oldnr : longint;
+         oldpos : tfileposinfo;
 
       begin
          oldcodegenerror:=codegenerror;
          oldswitches:=aktswitches;
-         oldis:=current_module^.current_inputfile;
-         oldnr:=current_module^.current_inputfile^.line_no;
+         get_cur_file_pos(oldpos);
 
          codegenerror:=false;
-         current_module^.current_inputfile:=
-           pinputfile(current_module^.sourcefiles.get_file(p^.fileinfo.fileindex));
-         current_module^.current_inputfile^.line_no:=p^.fileinfo.line;
+         set_cur_file_pos(p^.fileinfo);
          aktswitches:=p^.pragmas;
          if not(p^.error) then
            begin
@@ -253,8 +249,7 @@ implementation
          else
            codegenerror:=true;
          aktswitches:=oldswitches;
-         current_module^.current_inputfile:=oldis;
-         current_module^.current_inputfile^.line_no:=oldnr;
+         set_cur_file_pos(oldpos);
       end;
 
 
@@ -516,7 +511,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.38  1998-06-09 16:01:37  pierre
+  Revision 1.39  1998-06-12 10:32:23  pierre
+    * column problem hopefully solved
+    + C vars declaration changed
+
+  Revision 1.38  1998/06/09 16:01:37  pierre
     + added procedure directive parsing for procvars
       (accepted are popstack cdecl and pascal)
     + added C vars with the following syntax

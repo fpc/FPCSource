@@ -58,8 +58,9 @@ unit files;
        pinputfile = ^tinputfile;
        tinputfile = object(textfile)
           filenotatend : boolean;
-          line_no      : longint;
-          line_count   : longint;    { second counter for unimportant tokens }
+          line_no      : longint;    { position to give out }
+          true_line    : longint;    { real line counter }
+          column       : longint;
           next         : pinputfile; { next input file in the stack of input files }
           ref_count    : longint;    { to handle the browser refs }
           constructor init(const p,n,e : string);
@@ -259,7 +260,8 @@ unit files;
          inherited init(p,n,e);
          filenotatend:=true;
          line_no:=1;
-         line_count:=0;
+         true_line:=1;
+         column:=1;
          next:=nil;
       end;
 
@@ -938,7 +940,11 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.18  1998-06-11 13:58:07  peter
+  Revision 1.19  1998-06-12 10:32:26  pierre
+    * column problem hopefully solved
+    + C vars declaration changed
+
+  Revision 1.18  1998/06/11 13:58:07  peter
     * small fix to let newppu compile
 
   Revision 1.17  1998/06/09 16:01:40  pierre

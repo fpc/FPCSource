@@ -78,7 +78,7 @@ unit radi386;
          while not(ende) do
            begin
               tokenpos.line:=current_module^.current_inputfile^.line_no;
-              tokenpos.column:=get_current_col;
+              tokenpos.column:=get_file_col;
               tokenpos.fileindex:=current_module^.current_index;
               case c of
                  'A'..'Z','a'..'z','_' : begin
@@ -239,7 +239,11 @@ unit radi386;
 end.
 {
   $Log$
-  Revision 1.4  1998-06-04 23:51:58  peter
+  Revision 1.5  1998-06-12 10:32:32  pierre
+    * column problem hopefully solved
+    + C vars declaration changed
+
+  Revision 1.4  1998/06/04 23:51:58  peter
     * m68k compiles
     + .def file creation moved to gendef.pas so it could also be used
       for win32

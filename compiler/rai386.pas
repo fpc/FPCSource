@@ -351,7 +351,7 @@ var
     { Possiblities for first token in a statement:                }
     {   Local Label, Label, Directive, Prefix or Opcode....       }
     tokenpos.line:=current_module^.current_inputfile^.line_no;
-    tokenpos.column:=get_current_col;
+    tokenpos.column:=get_file_col;
     tokenpos.fileindex:=current_module^.current_index;
     if firsttoken and not (c in [newline,#13,'{',';']) then
     begin
@@ -3376,7 +3376,11 @@ Begin
 end.
 {
   $Log$
-  Revision 1.9  1998-05-31 14:13:32  peter
+  Revision 1.10  1998-06-12 10:32:33  pierre
+    * column problem hopefully solved
+    + C vars declaration changed
+
+  Revision 1.9  1998/05/31 14:13:32  peter
     * fixed call bugs with assembler readers
     + OPR_SYMBOL to hold a symbol in the asm parser
     * fixed staticsymtable vars which were acessed through %ebp instead of
