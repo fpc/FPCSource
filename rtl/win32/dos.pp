@@ -1,6 +1,7 @@
 {
     $Id$
-    This unit mimics the DOS unit for Win32 
+    This unit mimics the DOS unit for Win32
+
     This file is part of the Free Pascal run time library.
     Copyright (c) 1998 by the Free Pascal development team.
 
@@ -12,6 +13,8 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+
+
 
 {$I os.inc}
 
@@ -38,21 +41,22 @@ unit dos;
 
     type
        { some string types }
-       comstr = string[127];        { command line string }
-       pathstr = string[79];        { string for a file path }
-       dirstr = string[67];         { string for a directory }
-       namestr = string[8];         { string for a file name }
-       extstr = string[4];          { string for an extension }
+       comstr = string;          { command line string     }
+       pathstr = string;         { string for a file path  }
+       dirstr = string;          { string for a directory  }
+       namestr = string;         { string for a file name  }
+       extstr = string;          { string for an extension }
 
        { search record which is used by findfirst and findnext }
+       { it is compatible with the DOS version                 }
+       { if the fields are access using there names            }
+       { the fields have another order
 {$PACKRECORDS 1}
        searchrec = record
-          fill : array[1..21] of byte;
-          attr : byte;
           time : longint;
-          reserved : word; { requires the DOS extender (DJ GNU-C) }
           size : longint;
-          name : string[15]; { the same size as declared by (DJ GNU C) }
+          attr : longint;
+          name : string;
        end;
 
 {$PACKRECORDS 2}
@@ -71,7 +75,7 @@ unit dos;
 
     var
        { error variable }
-       doserror : integer;
+       doserror : longint;
 
     procedure getdate(var year,month,day,dayofweek : word);
     procedure gettime(var hour,minute,second,sec100 : word);
@@ -87,7 +91,7 @@ unit dos;
     procedure findfirst(const path : pathstr;attr : word;var f : searchRec);
     procedure findnext(var f : searchRec);
 
-//    { is a dummy in win32 }
+    { is a dummy in win32 }
     procedure swapvectors;
 
 {   not supported:
@@ -102,10 +106,10 @@ unit dos;
     procedure setfattr(var f;attr : word);
 
     function fsearch(const path : pathstr;dirlist : string) : pathstr;
-//    procedure getftime(var f;var time : longint);
+    procedure getftime(var f;var time : longint);
 //    procedure setftime(var f;time : longint);
-//    procedure packtime (var d: datetime; var time: longint);
-//    procedure unpacktime (time: longint; var d: datetime);
+    procedure packtime (var d: datetime; var time: longint);
+    procedure unpacktime (time: longint; var d: datetime);
     function fexpand(const path : pathstr) : pathstr;
     procedure fsplit(path : pathstr;var dir : dirstr;var name : namestr;
       var ext : extstr);
@@ -174,8 +178,22 @@ unit dos;
 
     procedure getftime(var f;var time : longint);
 
+      type
+         lr = record
+            lo,hi : word;
+         end;
+
+      var
+         dostime : longint;
+         ft,lft : FILETIME;
+
       begin
-         {!!!!}
+         if GetFileTime(filerec(f).handle,nil,nil,@ft) and
+           FileTimeToLocalFileTime(ft,lft) and
+           FileTimeToDosDateTime(lft,lr(time).hi,lr(time).lo) then
+           exit
+         else
+           time:=0;
       end;
 
    procedure setftime(var f;time : longint);
@@ -190,13 +208,9 @@ unit dos;
     procedure exec(const path : pathstr;const comline : comstr);
 
       procedure do_system(p : pchar);
+
         begin
-           asm
-              movl 12(%ebp),%ebx
-              movw $0xff07,%ax
-              int $0x21
-              movw %ax,_LASTDOSEXITCODE
-           end;
+           {!!!!!}
         end;
 
       var
@@ -224,7 +238,7 @@ unit dos;
     function dosversion : word;
 
       begin
-         dosversion:=lo(getversion);
+         dosversion:=lo(GetVersion);
       end;
 
     procedure getdate(var year,month,day,dayofweek : word);
@@ -571,13 +585,35 @@ unit dos;
           zs : longint;
 
        begin
-          {!!!!}
+          time:=-1980;
+          time:=time+d.year and 127;
+          time:=time shl 4;
+          time:=time+d.month;
+          time:=time shl 5;
+          time:=time+d.day;
+          time:=time shl 16;
+          zs:=d.hour;
+          zs:=zs shl 6;
+          zs:=zs+d.min;
+          zs:=zs shl 5;
+          zs:=zs+d.sec div 2;
+          time:=time+(zs and $ffff);
        end;
 
-     procedure unpacktime (time: longint; var d: datetime);
+     procedure unpacktime (time: longint;var d : datetime);
 
        begin
-          {!!!!}
+          d.sec:=(time and 31) * 2;
+          time:=time shr 5;
+          d.min:=time and 63;
+          time:=time shr 6;
+          d.hour:=time and 31;
+          time:=time shr 5;
+          d.day:=time and 31;
+          time:=time shr 5;
+          d.month:=time and 15;
+          time:=time shr 4;
+          d.year:=time + 1980;
        end;
 
     procedure getfattr(var f;var attr : word);
@@ -604,7 +640,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  1998-04-26 21:49:09  florian
+  Revision 1.3  1998-04-26 22:37:02  florian
+    + getftime, unpacktime, packtime
+
+  Revision 1.2  1998/04/26 21:49:09  florian
     + first compiling and working version
 
   Revision 1.1.1.1  1998/03/25 11:18:47  root
