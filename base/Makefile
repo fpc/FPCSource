@@ -16,7 +16,20 @@
 # Config
 #####################################################################
 
-MODULES=rtl compiler utils fcl gtk api fv gdb ide
+# Try to determine which modules are installed
+MODULES+=$(wildcard compiler)
+MODULES+=$(wildcard rtl)
+MODULES+=$(wildcard utils)
+MODULES+=$(wildcard fcl)
+MODULES+=$(wildcard gtk)
+MODULES+=$(wildcard api)
+MODULES+=$(wildcard fv)
+MODULES+=$(wildcard gdbint)
+MODULES+=$(wildcard ide)
+
+###############################
+# Default paths
+###############################
 
 ifndef RTLDIR
 RTLDIR=rtl
@@ -443,7 +456,13 @@ utilszip: utils_clean rtl_clean
 
 #
 # $Log$
-# Revision 1.18  1999-06-08 22:11:26  peter
+# Revision 1.19  1999-07-05 17:48:58  peter
+#   * merged
+#
+# Revision 1.18.2.1  1999/07/05 17:03:20  peter
+#   * modules are checked if they exists
+#
+# Revision 1.18  1999/06/08 22:11:26  peter
 #   * debian updates
 #
 # Revision 1.17  1999/06/08 18:28:11  peter
@@ -471,7 +490,7 @@ utilszip: utils_clean rtl_clean
 # Revision 1.10  1999/04/01 22:16:02  peter
 #   * renamed ide zips
 #
-# Revision 1.9  1999/03/18 11:19:31  peter
+# Revision 1.9	1999/03/18 11:19:31  peter
 #   * fixed zipinstall
 #
 # Revision 1.8	1999/03/16 00:46:54  peter
