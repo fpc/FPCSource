@@ -1723,6 +1723,10 @@ implementation
         typ:=ait_regalloc;
         ratype:=ra_alloc;
         reg:=r;
+        { ainstr must be an instruction }
+        if assigned(ainstr) and
+           (ainstr.typ<>ait_instruction) then
+          internalerror(200411011);
         instr:=ainstr;
       end;
 
@@ -1733,6 +1737,10 @@ implementation
         typ:=ait_regalloc;
         ratype:=ra_dealloc;
         reg:=r;
+        { ainstr must be an instruction }
+        if assigned(ainstr) and
+           (ainstr.typ<>ait_instruction) then
+          internalerror(200411012);
         instr:=ainstr;
       end;
 
@@ -2226,7 +2234,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.91  2004-10-15 09:14:16  mazen
+  Revision 1.92  2004-11-01 10:34:08  peter
+    * regalloc bind to instructions need to get real ait_instruction
+
+  Revision 1.91  2004/10/15 09:14:16  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 

@@ -38,13 +38,6 @@ unit rgobj;
       ;
 
     type
-{
-       regvarother_longintarray = array[tregisterindex] of longint;
-       regvarother_booleanarray = array[tregisterindex] of boolean;
-       regvarint_longintarray = array[first_int_supreg..last_int_supreg] of longint;
-       regvarint_ptreearray = array[first_int_supreg..last_int_supreg] of tnode;
-}
-
       {
         The interference bitmap contains of 2 layers:
           layer 1 - 256*256 blocks with pointers to layer 2 blocks
@@ -1371,7 +1364,6 @@ unit rgobj;
     function trgobj.getregisterinline(list:Taasmoutput;subreg:Tsubregister):Tregister;
       var
         p : Tsuperregister;
-        r : Tregister;
       begin
         p:=getnewreg(subreg);
         live_registers.add(p);
@@ -1395,6 +1387,8 @@ unit rgobj;
       var
         p : tai;
         r : tregister;
+        palloc,
+        pdealloc : tai_regalloc;
       begin
         { Insert regallocs for all imaginary registers }
         with reginfo[u] do
@@ -1402,17 +1396,19 @@ unit rgobj;
             r:=newreg(regtype,u,subreg);
             if assigned(live_start) then
               begin
-                { these can be removed by the register allocator and thus }
-                { live_start/end can become invalid in this case! (JM)    }
-                while live_start.typ = ait_regalloc do
-                    begin
-                    if (live_end = live_start) then
-                      live_end := tai(live_end.next);
-                    live_start := tai(live_start.next);
-                  end;
-                if not assigned(live_start) then
-                  internalerror(2004103110);
-                list.insertbefore(Tai_regalloc.alloc(r,live_start),live_start);
+                { Generate regalloc and bind it to an instruction, this
+                  is needed to find all live registers belonging to an
+                  instruction during the spilling }
+                if live_start.typ=ait_instruction then
+                  palloc:=tai_regalloc.alloc(r,live_start)
+                else
+                  palloc:=tai_regalloc.alloc(r,nil);
+                if live_end.typ=ait_instruction then
+                  pdealloc:=tai_regalloc.dealloc(r,live_end)
+                else
+                  pdealloc:=tai_regalloc.dealloc(r,nil);
+                { Insert live start allocation before the instruction/reg_a_sync }
+                list.insertbefore(palloc,live_start);
                 { Insert live end deallocation before reg allocations
                   to reduce conflicts }
                 p:=live_end;
@@ -1422,15 +1418,15 @@ unit rgobj;
                       (tai_regalloc(p.previous).ratype=ra_alloc) and
                       (tai_regalloc(p.previous).reg<>r) do
                   p:=tai(p.previous);
-                { , but add release after sync }
+                { , but add release after a reg_a_sync }
                 if assigned(p) and
                    (p.typ=ait_regalloc) and
                    (tai_regalloc(p).ratype=ra_sync) then
                   p:=tai(p.next);
                 if assigned(p) then
-                  list.insertbefore(Tai_regalloc.dealloc(r,live_end),p)
+                  list.insertbefore(pdealloc,p)
                 else
-                  list.concat(Tai_regalloc.dealloc(r,live_end));
+                  list.concat(pdealloc);
               end
 {$ifdef EXTDEBUG}
             else
@@ -1466,8 +1462,6 @@ unit rgobj;
           start with the headertai, because before the header tai is
           only symbols. }
         live_registers.clear;
-//live_registers.add(RS_STACK_POINTER_REG);
-//live_registers.add(RS_FRAME_POINTER_REG);
         p:=headertai;
         while assigned(p) do
           begin
@@ -2003,7 +1997,10 @@ unit rgobj;
 end.
 {
   $Log$
-  Revision 1.148  2004-10-31 23:18:29  jonas
+  Revision 1.149  2004-11-01 10:34:08  peter
+    * regalloc bind to instructions need to get real ait_instruction
+
+  Revision 1.148  2004/10/31 23:18:29  jonas
     * make sure live_start/end is never a tai_regalloc, as those can be
       removed by the register allocator and thus become invalid. This fixed
       make cycle with -Or for ppc, but I'm not sure what the warning on
