@@ -777,7 +777,7 @@ implementation
                           firstconvert[p^.convtyp](p);
                           exit;
                        end;
-                     { normal tc_equal-Konvertierung durchfhren }
+                     { do common tc_equal cast }
                      p^.convtyp:=tc_equal;
                      { wenn Aufz„hltyp nach Ordinal konvertiert werden soll }
                      { dann Aufz„hltyp=s32bit                               }
@@ -955,7 +955,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  1998-11-29 12:40:24  peter
+  Revision 1.11  1998-12-04 10:18:12  florian
+    * some stuff for procedures of object added
+    * bug with overridden virtual constructors fixed (reported by Italo Gomes)
+
+  Revision 1.10  1998/11/29 12:40:24  peter
     * newcnv -> not oldcnv
 
   Revision 1.9  1998/11/26 13:10:43  peter

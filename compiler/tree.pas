@@ -234,7 +234,7 @@ unit tree;
              callparan : (is_colon_para : boolean;exact_match_found : boolean);
              assignn : (assigntyp : tassigntyp;concat_string : boolean);
              loadn : (symtableentry : psym;symtable : psymtable;
-                      is_absolute,is_first : boolean);
+                      is_absolute,is_first,is_methodpointer : boolean);
              calln : (symtableprocentry : psym;
                       symtableproc : psymtable;procdefinition : pprocdef;
                       methodpointer : ptree;
@@ -919,7 +919,10 @@ unit tree;
          p^.symtableentry:=v;
          p^.symtable:=st;
          p^.is_first := False;
-         p^.disposetyp:=dt_nothing;
+         p^.is_methodpointer:=false;
+         { method pointer load nodes can use the left subtree }
+         p^.disposetyp:=dt_left;
+         p^.left:=nil;
          genloadnode:=p;
       end;
 
@@ -1652,7 +1655,11 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.56  1998-12-02 16:23:32  jonas
+  Revision 1.57  1998-12-04 10:18:13  florian
+    * some stuff for procedures of object added
+    * bug with overridden virtual constructors fixed (reported by Italo Gomes)
+
+  Revision 1.56  1998/12/02 16:23:32  jonas
     * changed "if longintvar in set" to case or "if () or () .." statements
     * tree.pas: changed inlinenumber (and associated constructor/vars) to a byte
 

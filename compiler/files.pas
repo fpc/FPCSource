@@ -911,6 +911,7 @@ unit files;
          staticlibfilename:=nil;
          sharedlibfilename:=nil;
          exefilename:=nil;
+         outpath:=nil;
          { Dos has the famous 8.3 limit :( }
 {$ifdef tp}
          asmprefix:=stringdup(FixFileName('as'));
@@ -1053,7 +1054,11 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.77  1998-12-02 16:23:37  jonas
+  Revision 1.78  1998-12-04 10:18:07  florian
+    * some stuff for procedures of object added
+    * bug with overridden virtual constructors fixed (reported by Italo Gomes)
+
+  Revision 1.77  1998/12/02 16:23:37  jonas
     * changed "if longintvar in set" to case or "if () or () .." statements
     * tree.pas: changed inlinenumber (and associated constructor/vars) to a byte
 

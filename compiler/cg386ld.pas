@@ -233,10 +233,27 @@ implementation
                  end;
               procsym:
                  begin
-                    {!!!!! Be aware, work on virtual methods too }
-                    stringdispose(p^.location.reference.symbol);
-                    p^.location.reference.symbol:=stringdup(pprocsym(p^.symtableentry)^.definition^.mangledname);
-                    maybe_concat_external(p^.symtable,p^.symtableentry^.mangledname);
+                    if p^.is_methodpointer then
+                      begin
+                         secondpass(p^.left);
+                         stringdispose(p^.location.reference.symbol);
+                         { virtual method ? }
+                         if (pprocsym(p^.symtableentry)^.definition^.options and povirtualmethod)<>0 then
+                           begin
+                           end
+                         else
+                           begin
+                              p^.location.reference.symbol:=stringdup(pprocsym(p^.symtableentry)^.definition^.mangledname);
+                              maybe_concat_external(p^.symtable,p^.symtableentry^.mangledname);
+                           end;
+                      end
+                    else
+                      begin
+                         {!!!!! Be aware, work on virtual methods too }
+                         stringdispose(p^.location.reference.symbol);
+                         p^.location.reference.symbol:=stringdup(pprocsym(p^.symtableentry)^.definition^.mangledname);
+                         maybe_concat_external(p^.symtable,p^.symtableentry^.mangledname);
+                      end;
                  end;
               typedconstsym :
                  begin
@@ -692,7 +709,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35  1998-11-30 09:43:04  pierre
+  Revision 1.36  1998-12-04 10:18:06  florian
+    * some stuff for procedures of object added
+    * bug with overridden virtual constructors fixed (reported by Italo Gomes)
+
+  Revision 1.35  1998/11/30 09:43:04  pierre
     * some range check bugs fixed (still not working !)
     + added DLL writing support for win32 (also accepts variables)
     + TempAnsi for code that could be used for Temporary ansi strings

@@ -883,7 +883,12 @@ unit types;
                                          end;
 
                                        { error, if the return types aren't equal }
-                                       if not(is_equal(procdefcoll^.data^.retdef,hp^.retdef)) then
+                                       if not(is_equal(procdefcoll^.data^.retdef,hp^.retdef)) and
+                                         not((procdefcoll^.data^.retdef^.deftype=objectdef) and
+                                           (hp^.retdef^.deftype=objectdef) and
+                                           (pobjectdef(procdefcoll^.data^.retdef)^.isclass) and
+                                           (pobjectdef(hp^.retdef)^.isclass) and
+                                           (pobjectdef(hp^.retdef)^.isrelated(pobjectdef(procdefcoll^.data^.retdef)))) then
                                          Message1(parser_e_overloaded_methodes_not_same_ret,_c^.name^+'.'+_name);
 
 
@@ -1032,7 +1037,11 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.39  1998-11-27 14:50:55  peter
+  Revision 1.40  1998-12-04 10:18:14  florian
+    * some stuff for procedures of object added
+    * bug with overridden virtual constructors fixed (reported by Italo Gomes)
+
+  Revision 1.39  1998/11/27 14:50:55  peter
     + open strings, $P switch support
 
   Revision 1.38  1998/11/18 15:44:24  peter

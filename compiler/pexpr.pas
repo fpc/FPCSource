@@ -1827,12 +1827,25 @@ unit pexpr;
                                  getprocvardef:=pprocvardef(p1^.resulttype);
                               end;
                             p2:=sub_expr(opcompare,true);
-                            if getprocvar and (p2^.treetype=calln) and
-                               (proc_to_procvar_equal(getprocvardef,pprocsym(p2^.symtableentry)^.definition)) then
+                            if getprocvar and (p2^.treetype=calln) then
                               begin
-                                 p2^.treetype:=loadn;
-                                 p2^.resulttype:=pprocsym(p2^.symtableprocentry)^.definition;
-                                 p2^.symtableentry:=p2^.symtableprocentry;
+                                 if ((getprocvardef^.options and pomethodpointer)<>0) then
+                                   begin
+                                      if (p2^.methodpointer^.resulttype^.deftype=objectdef) and
+                                         (proc_to_procvar_equal(getprocvardef,pprocsym(p2^.symtableentry)^.definition)) then
+                                        begin
+                                           p2^.treetype:=loadn;
+                                           p2^.left:=p2^.methodpointer;
+                                           p2^.resulttype:=pprocsym(p2^.symtableprocentry)^.definition;
+                                           p2^.symtableentry:=p2^.symtableprocentry;
+                                        end;
+                                   end
+                                 else if (proc_to_procvar_equal(getprocvardef,pprocsym(p2^.symtableentry)^.definition)) then
+                                   begin
+                                      p2^.treetype:=loadn;
+                                      p2^.resulttype:=pprocsym(p2^.symtableprocentry)^.definition;
+                                      p2^.symtableentry:=p2^.symtableprocentry;
+                                   end;
                               end;
                             getprocvar:=false;
                             p1:=gennode(assignn,p1,p2);
@@ -1914,7 +1927,11 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.76  1998-11-27 14:50:40  peter
+  Revision 1.77  1998-12-04 10:18:09  florian
+    * some stuff for procedures of object added
+    * bug with overridden virtual constructors fixed (reported by Italo Gomes)
+
+  Revision 1.76  1998/11/27 14:50:40  peter
     + open strings, $P switch support
 
   Revision 1.75  1998/11/25 19:12:51  pierre
