@@ -45,16 +45,23 @@ var
 procedure prthaltproc;external name '_haltproc';
 
 procedure System_exit;
+{$undef fpc_system_exit_ok}
 begin
 {$ifdef i386}
+{$define fpc_system_exit_ok}
   asm
         jmp     prthaltproc
   end;
-{$else}
+{$endif i386}
+{$ifdef m68k}
+{$undef fpc_system_exit_ok}
   asm
-        jmp     prthaltproc
+        bra     prthaltproc
   end;
-{$endif}
+{$endif m68k}
+{$ifndef fpc_system_exit_ok}
+{$error System_exit code is not implemented }
+{$endif not fpc_system_exit_ok}
 End;
 
 
@@ -108,28 +115,42 @@ var
   _HEAPSIZE : longint;external name 'HEAPSIZE';
 
 function getheapstart:pointer;assembler;
+{$undef fpc_getheapstart_ok}
 {$ifdef i386}
+{$define fpc_getheapstart_ok}
 asm
         leal    _HEAP,%eax
 end ['EAX'];
-{$else}
+{$endif i386}
+{$ifdef m68k}
+{$define fpc_getheapstart_ok}
 asm
         lea.l   _HEAP,a0
         move.l  a0,d0
-end;
-{$endif}
+end['A0','D0'];
+{$endif m68k}
+{$ifndef fpc_getheapstart_ok}
+{$error Getheapstart code is not implemented }
+{$endif not fpc_getheapstart_ok}
 
 
 function getheapsize:longint;assembler;
+{$undef fpc_getheapsize_ok}
 {$ifdef i386}
+{$define fpc_getheapsize_ok}
 asm
         movl    _HEAPSIZE,%eax
 end ['EAX'];
-{$else}
+{$endif i386}
+{$ifdef m68k}
+{$define fpc_getheapsize_ok}
 asm
        move.l   _HEAPSIZE,d0
 end ['D0'];
-{$endif}
+{$endif m68k}
+{$ifndef fpc_getheapsize_ok}
+{$error Getheapsize code is not implemented }
+{$endif not fpc_getheapsize_ok}
 
 
 Function sbrk(size : longint) : Longint;
@@ -706,7 +727,10 @@ End.
 
 {
   $Log$
-  Revision 1.12  2001-06-02 19:24:49  peter
+  Revision 1.13  2001-07-13 22:05:09  peter
+    * cygwin updates
+
+  Revision 1.12  2001/06/02 19:24:49  peter
     * chdir rte 2 mapped to 3
 
   Revision 1.11  2001/06/02 00:31:31  peter

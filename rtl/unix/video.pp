@@ -710,6 +710,8 @@ end;
 procedure UpdateScreen(Force: Boolean);
 var
   DoUpdate : boolean;
+  i : longint;
+  p1,p2 : plongint;
 begin
   if LockUpdateScreen<>0 then
    exit;
@@ -725,7 +727,22 @@ begin
           cmpsl
           setne   DoUpdate
      end;
-{$endif i386}
+{$else not i386}
+     p1:=plongint(VideoBuf^);
+     p2:=plongint(OldVideoBuf);
+     for i:=0 to VideoBufSize div 2 do
+       if (p1^<>p2^) then
+         begin
+           DoUpdate:=true;
+           break;
+         end
+       else
+         begin
+           { Inc does add sizeof(longint) to both pointer values }
+           inc(p1);
+           inc(p2);
+         end;
+{$endif not i386}
    end
   else
    DoUpdate:=true;
@@ -819,7 +836,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.2  2001-01-21 20:21:41  marco
+  Revision 1.3  2001-07-13 22:05:09  peter
+    * cygwin updates
+
+  Revision 1.2  2001/01/21 20:21:41  marco
    * Rename fest II. Rtl OK
 
   Revision 1.1  2001/01/13 11:03:58  peter

@@ -12,7 +12,7 @@ units=system objpas strings \
       dos \
       sysutils typinfo math varutils \
       cpu mmx getopts heaptrc lineinfo
-rsts=math varutils
+rsts=math varutils typinfo
 
 [require]
 nortl=y

@@ -14,7 +14,7 @@ units=$(SYSTEMUNIT) objpas strings \
       sysutils math typinfo varutils \
       ucomplex cpu mmx getopts heaptrc lineinfo dynlibs \
       video mouse keyboard
-rsts=math varutils
+rsts=math varutils typinfo
 
 [require]
 nortl=y
