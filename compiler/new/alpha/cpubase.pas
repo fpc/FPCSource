@@ -104,8 +104,12 @@ Const
   self_pointer  = R_16;
   accumulator   = R_0;
   global_pointer = R_29;
-  scratch_register = R_1;
   return_pointer = R_26;
+  { it is used to pass the offset to the destructor helper routine }
+  vmt_offset_reg = R_1;
+
+  max_scratch_regs = 2;
+  scratch_regs : array[1..max_scratch_regs] of tregister = (R_1,R_2);
 
   cpuflags = [cf_64bitaddr];
 
@@ -238,7 +242,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  1999-08-06 14:15:55  florian
+  Revision 1.11  1999-08-06 15:53:52  florian
+    * made the alpha version compilable
+
+  Revision 1.10  1999/08/06 14:15:55  florian
     * made the alpha version compilable
 
   Revision 1.9  1999/08/06 13:26:53  florian

@@ -93,6 +93,16 @@ unit nmem;
          { !!!!! dispose(left,done); }
       end;
 
+    procedure tloadnode.det_temp;
+
+      begin
+      end;
+
+    procedure tloadnode.det_resulttype;
+
+      begin
+      end;
+
     procedure tloadnode.secondpass;
 
       var
@@ -312,6 +322,7 @@ unit nmem;
     procedure tassignmentnode.det_temp;
 
       begin
+{$ifdef dummy}
          store_valid:=must_be_valid;
          must_be_valid:=false;
 
@@ -363,6 +374,7 @@ unit nmem;
          p^.registersint:=p^.left^.registersint+p^.right^.registersint;
          p^.registersfpu:=max(p^.left^.registersfpu,p^.right^.registersfpu);
          p^.registersmm:=max(p^.left^.registersmm,p^.right^.registersmm);
+{$endif dummy}
       end;
 
     procedure tassignmentnode.det_resulttype;
@@ -371,15 +383,16 @@ unit nmem;
          inherited det_resulttype;
          resulttype:=voiddef;
          { assignements to open arrays aren't allowed }
-         if is_open_array(p^.left^.resulttype) then
+         if is_open_array(left^.resulttype) then
            CGMessage(type_e_mismatch);
       end;
 
     procedure tassignmentnode.secondpass;
 
       begin
+{$ifdef dummy}
          { calculate left sides }
-         if not(p^.concat_string) then
+         if not(concat_string) then
            secondpass(p^.left);
 
          if codegenerror then
@@ -745,12 +758,16 @@ unit nmem;
 {$EndIf regallocfix}
                            end;
          end;
+{$endif dummy}
       end;
 
 end.
 {
   $Log$
-  Revision 1.7  1999-08-05 17:10:57  florian
+  Revision 1.8  1999-08-06 15:53:51  florian
+    * made the alpha version compilable
+
+  Revision 1.7  1999/08/05 17:10:57  florian
     * some more additions, especially procedure
       exit code generation
 

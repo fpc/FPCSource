@@ -33,11 +33,24 @@ unit cgobj;
 
        pcg = ^tcg;
        tcg = object
+          scratch_register_array_pointer : aword;
+          unusedscratchregisters : tregisterset;
+          {************************************************}
+          {                 basic routines                 }
           constructor init;
           destructor done;virtual;
 
-          procedure a_call_name_ext(list : paasmoutput;const s : string;
-            offset : longint);
+          procedure a_label(list : paasmoutput;l : pasmlabel);virtual;
+
+          { allocates register r by inserting a pai_realloc record }
+          procedure a_reg_alloc(list : paasmoutput;r : tregister);
+          { deallocates register r by inserting a pa_regdealloc record}
+          procedure a_reg_dealloc(list : paasmoutput;r : tregister);
+
+          { returns a register for use as scratch register }
+          function get_scratch_reg(list : paasmoutput) : tregister;
+          { releases a scratch register }
+          procedure free_scratch_reg(list : paasmoutput;r : tregister);
 
           {************************************************}
           { code generation for subroutine entry/exit code }
@@ -66,6 +79,16 @@ unit cgobj;
           procedure g_decrstrref(list : paasmoutput;const ref : treference;t : pdef);
 
           procedure g_removetemps(list : paasmoutput;p : plinkedlist);
+
+          { passing parameters, per default the parameter is pushed }
+          { nr gives the number of the parameter (enumerated from   }
+          { left to right), this allows to move the parameter to    }
+          { register, if the cpu supports register calling          }
+          { conventions                                             }
+          procedure a_param_reg(list : paasmoutput;size : tcgsize;r : tregister;nr : longint);virtual;
+          procedure a_param_const(list : paasmoutput;size : tcgsize;a : aword;nr : longint);virtual;
+          procedure a_param_ref(list : paasmoutput;size : tcgsize;const r : treference;nr : longint);virtual;
+          procedure a_paramaddr_ref(list : paasmoutput;const r : treference;nr : longint);virtual;
 
           {**********************************}
           { these methods must be overriden: }
@@ -106,7 +129,6 @@ unit cgobj;
 
           procedure a_loadaddress_ref_reg(list : paasmoutput;const ref : treference;r : tregister);virtual;
           procedure g_stackframe_entry(list : paasmoutput;localsize : longint);virtual;
-          procedure g_maybe_loadself(list : paasmoutput);virtual;
           { restores the frame pointer at procedure exit, for the }
           { i386 it generates a simple leave                      }
           procedure g_restore_frame_pointer(list : paasmoutput);virtual;
@@ -132,25 +154,10 @@ unit cgobj;
           procedure g_stackcheck(list : paasmoutput;stackframesize : longint);virtual;
 
           procedure a_load_const_ref(list : paasmoutput;size : tcgsize;a : aword;const ref : treference);virtual;
-
-          { passing parameters, per default the parameter is pushed }
-          { nr gives the number of the parameter (enumerated from   }
-          { left to right), this allows to move the parameter to    }
-          { register, if the cpu supports register calling          }
-          { conventions                                             }
-          procedure a_param_reg(list : paasmoutput;size : tcgsize;r : tregister;nr : longint);virtual;
-          procedure a_param_const(list : paasmoutput;size : tcgsize;a : aword;nr : longint);virtual;
-          procedure a_param_ref(list : paasmoutput;size : tcgsize;const r : treference;nr : longint);virtual;
-          procedure a_paramaddr_ref(list : paasmoutput;const r : treference;nr : longint);virtual;
+          procedure g_maybe_loadself(list : paasmoutput);virtual;
 
           { uses the addr of ref as param, was emitpushreferenceaddr }
           procedure a_param_ref_addr(list : paasmoutput;r : treference;nr : longint);virtual;
-          procedure a_label(list : paasmoutput;l : pasmlabel);virtual;
-
-          { allocates register r by inserting a pai_realloc record }
-          procedure a_reg_alloc(list : paasmoutput;r : tregister);
-          { deallocates register r by inserting a pa_regdealloc record}
-          procedure a_reg_dealloc(list : paasmoutput;r : tregister);
        end;
 
     var
@@ -168,7 +175,13 @@ unit cgobj;
 
     constructor tcg.init;
 
+      var
+         i : aword;
+
       begin
+         scratch_register_array_pointer:=1;
+         for i:=1 to max_scratch_regs do
+           include(unusedscratchregisters,scratch_regs[i]);
       end;
 
     destructor tcg.done;
@@ -192,6 +205,37 @@ unit cgobj;
 
       begin
          list^.concat(new(pai_label,init(l)));
+      end;
+
+    function tcg.get_scratch_reg(list : paasmoutput) : tregister;
+
+      var
+         r : tregister;
+         i : aword;
+
+      begin
+         if unusedscratchregisters=[] then
+           internalerror(68996);
+
+         for i:=1 to max_scratch_regs do
+           if scratch_regs[i] in unusedscratchregisters then
+             begin
+                r:=scratch_regs[i];
+                break;
+             end;
+         exclude(unusedscratchregisters,r);
+         inc(scratch_register_array_pointer);
+         if scratch_register_array_pointer>max_scratch_regs then
+           scratch_register_array_pointer:=1;
+         a_reg_alloc(list,r);
+         get_scratch_reg:=r;
+      end;
+
+    procedure tcg.free_scratch_reg(list : paasmoutput;r : tregister);
+
+      begin
+         include(unusedscratchregisters,r);
+         a_reg_dealloc(list,r);
       end;
 
 {*****************************************************************************
@@ -219,52 +263,58 @@ unit cgobj;
 
     procedure tcg.a_param_const(list : paasmoutput;size : tcgsize;a : aword;nr : longint);
 
+      var
+         hr : tregister;
+
       begin
-         a_reg_alloc(list,scratch_register);
-         a_load_const_reg(list,size,a,scratch_register);
-         a_param_reg(list,size,scratch_register,nr);
-         a_reg_dealloc(list,scratch_register);
+         hr:=get_scratch_reg(list);
+         a_load_const_reg(list,size,a,hr);
+         a_param_reg(list,size,hr,nr);
+         free_scratch_reg(list,hr);
       end;
 
     procedure tcg.a_param_ref(list : paasmoutput;size : tcgsize;const r : treference;nr : longint);
 
+      var
+         hr : tregister;
+
       begin
-         a_reg_alloc(list,scratch_register);
-         a_load_ref_reg(list,size,r,scratch_register);
-         a_param_reg(list,size,scratch_register,nr);
-         a_reg_dealloc(list,scratch_register);
+         hr:=get_scratch_reg(list);
+         a_load_ref_reg(list,size,r,hr);
+         a_param_reg(list,size,hr,nr);
+         free_scratch_reg(list,hr);
       end;
 
     procedure tcg.a_param_ref_addr(list : paasmoutput;r : treference;nr : longint);
 
+      var
+         hr : tregister;
+
       begin
-         a_reg_alloc(list,scratch_register);
-         a_loadaddress_ref_reg(list,r,scratch_register);
-         a_param_reg(list,OS_ADDR,scratch_register,nr);
-         a_reg_dealloc(list,scratch_register);
+         hr:=get_scratch_reg(list);
+         a_loadaddress_ref_reg(list,r,hr);
+         a_param_reg(list,OS_ADDR,hr,nr);
+         free_scratch_reg(list,hr);
       end;
 
     procedure tcg.g_stackcheck(list : paasmoutput;stackframesize : longint);
 
       begin
          a_param_const(list,OS_32,stackframesize,1);
-         a_call_name_ext(list,'FPC_STACKCHECK',0);
-      end;
-
-    procedure tcg.a_call_name_ext(list : paasmoutput;const s : string;
-      offset : longint);
-
-      begin
-         a_call_name(list,s,offset);
+         a_call_name(list,'FPC_STACKCHECK',0);
       end;
 
     procedure tcg.a_load_const_ref(list : paasmoutput;size : tcgsize;a : aword;const ref : treference);
 
+      var
+         hr : tregister;
+
       begin
-         a_reg_alloc(list,scratch_register);
-         a_load_const_reg(list,size,a,scratch_register);
-         a_load_reg_ref(list,size,scratch_register,ref);
-         a_reg_dealloc(list,scratch_register);
+         hr:=get_scratch_reg(list);
+         a_load_const_reg(list,size,a,hr);
+         a_load_reg_ref(list,size,hr,ref);
+         a_reg_dealloc(list,hr);
+         free_scratch_reg(list,hr);
       end;
 
 {*****************************************************************************
@@ -530,7 +580,7 @@ unit cgobj;
                 begin
                    { call the unit init code and make it external }
                    if (hp^.u^.flags and uf_init)<>0 then
-                     a_call_name_ext(list,
+                     a_call_name(list,
                        'INIT$$'+hp^.u^.modulename^,0);
                     hp:=Pused_unit(hp^.next);
                 end;
@@ -637,6 +687,7 @@ unit cgobj;
   {$endif GDB}
          noreraiselabel : pasmlabel;
          hr : treference;
+         r : tregister;
 
       begin
          if aktexitlabel^.is_used then
@@ -649,10 +700,12 @@ unit cgobj;
                a_call_name(list,'FPC_DISPOSE_CLASS',0)
              else
                begin
-                  a_reg_alloc(list,scratch_register);
-                  a_load_const_reg(list,OS_32,procinfo._class^.vmt_offset,scratch_register);
+                  { vmt_offset_reg can be a scratch register, }
+                  { but it must be always the same            }
+                  a_reg_alloc(list,vmt_offset_reg);
+                  a_load_const_reg(list,OS_32,procinfo._class^.vmt_offset,vmt_offset_reg);
                   a_call_name(list,'FPC_HELP_DESTRUCTOR',0);
-                  a_reg_dealloc(list,scratch_register);
+                  a_reg_dealloc(list,vmt_offset_reg);
                end;
            end;
 
@@ -924,7 +977,10 @@ unit cgobj;
 end.
 {
   $Log$
-  Revision 1.14  1999-08-06 14:15:51  florian
+  Revision 1.15  1999-08-06 15:53:50  florian
+    * made the alpha version compilable
+
+  Revision 1.14  1999/08/06 14:15:51  florian
     * made the alpha version compilable
 
   Revision 1.13  1999/08/06 13:26:50  florian
