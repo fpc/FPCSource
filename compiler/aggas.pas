@@ -302,7 +302,7 @@ var
     var
       ch       : char;
       hp       : tai;
-      hp1      : tailineinfo; 
+      hp1      : tailineinfo;
       consttyp : taitype;
       s        : string;
       found    : boolean;
@@ -468,7 +468,8 @@ var
 
            ait_const_symbol :
              begin
-               AsmWrite(#9'.long'#9+tai_const_symbol(hp).sym.name);
+               AsmWrite(#9'.long'#9);
+               AsmWrite(tai_const_symbol(hp).sym.name);
                if tai_const_symbol(hp).offset>0 then
                  AsmWrite('+'+tostr(tai_const_symbol(hp).offset))
                else if tai_const_symbol(hp).offset<0 then
@@ -477,7 +478,10 @@ var
              end;
 
            ait_const_rva :
-             AsmWriteLn(#9'.rva'#9+tai_const_symbol(hp).sym.name);
+             begin
+               AsmWrite(#9'.rva'#9);
+               AsmWriteLn(tai_const_symbol(hp).sym.name);
+             end;
 
            ait_real_80bit :
              begin
@@ -815,7 +819,10 @@ var
 end.
 {
   $Log$
-  Revision 1.16  2002-11-17 16:31:55  carl
+  Revision 1.17  2002-12-06 17:50:39  peter
+    * long symbol name fix merged
+
+  Revision 1.16  2002/11/17 16:31:55  carl
     * memory optimization (3-4%) : cleanup of tai fields,
        cleanup of tdef and tsym fields.
     * make it work for m68k
