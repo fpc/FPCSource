@@ -71,6 +71,7 @@ interface
 
     procedure tcgtypeconvnode.second_int_to_int;
       var
+        orgsize,
         newsize : tcgsize;
         ressize,
         leftsize : longint;
@@ -105,8 +106,22 @@ interface
         else
           begin
             { no special loading is required, reuse current location }
+
+            { that's not true, if you go from signed to unsiged or   }
+            { vice versa, you need sign extension/removal if the     }
+            { value is already in a register (at least for archs     }
+            { which don't have 8bit register components etc) (JM)    }
             location_copy(location,left.location);
             location.size:=newsize;
+            orgsize := def_cgsize(left.resulttype.def);
+            if (ressize < tcgsize2size[OS_INT]) and
+               (location.loc in [LOC_REGISTER,LOC_CREGISTER]) and
+               (orgsize <> newsize) then
+              begin
+                location.register := cg.getintregister(exprasmlist,newsize);
+                location.loc := LOC_REGISTER;
+                cg.a_load_reg_reg(exprasmlist,orgsize,newsize,left.location.register,location.register);
+              end;
           end;
       end;
 
@@ -529,7 +544,11 @@ end.
 
 {
   $Log$
-  Revision 1.66  2004-12-05 12:28:11  peter
+  Revision 1.67  2004-12-10 23:38:54  jonas
+    * fixed type conversion between same-size ints with different signs in
+      case the value is already in a register
+
+  Revision 1.66  2004/12/05 12:28:11  peter
     * procvar handling for tp procvar mode fixed
     * proc to procvar moved from addrnode to typeconvnode
     * inlininginfo is now allocated only for inline routines that
