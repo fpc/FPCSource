@@ -17,7 +17,7 @@ packages_win32=netdb
 
 # clean package units
 [clean]
-units=adler gzcrc gzio infblock infcodes inffast inftrees infutil minigzip paszlib trees zbase zcompres zdeflate zinflate zuncompr zutil pthreads
+units=adler gzcrc gzio infblock infcodes inffast inftrees infutil minigzip paszlib trees zbase zcompres zdeflate zinflate zuncompr zutil pthreads streamio
 
 [target]
 dirs=xml image db shedit passrc net fpcunit
