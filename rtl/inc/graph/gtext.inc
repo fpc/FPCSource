@@ -93,6 +93,24 @@
 {                         Internal support routines                         }
 {***************************************************************************}
 
+
+function ConvertString(const OrigString: String): String;
+var
+  i: Integer;
+  ConvResult: String;
+begin
+  if GraphStringTransTable = nil then
+    ConvertString := OrigString
+  else
+  begin
+    SetLength(ConvResult, Length(OrigString));
+    for i := 1 to Length(OrigString) do
+      ConvResult[i] := GraphStringTransTable^[OrigString[i]];
+    ConvertString := ConvResult;
+  end;
+end;
+
+
     function testfont(p : pchar) : boolean;
 
       begin
@@ -332,6 +350,7 @@
     function TextWidth(const TextString : string) : word;
       var i,x : smallint;
           c   : byte;
+	  s   : String;
       begin
          x := 0;
          { if this is the default font ... }
@@ -339,9 +358,10 @@
             TextWidth:=length(TextString)*8*CurrentTextInfo.CharSize
          { This is a stroked font ... }
             else begin
-               for i:=1 to length(TextString) do
+	       s := ConvertString(TextString);
+               for i:=1 to length(s) do
                 begin
-                   c:=byte(textstring[i]);
+                   c:=byte(s[i]);
 {                   dec(c,fonts[Currenttextinfo.font].header.first_char);}
                    if (c-fonts[Currenttextinfo.font].header.first_char>=
                        fonts[Currenttextinfo.font].header.nr_chars) then
@@ -359,6 +379,7 @@
          X,Y: smallint;
        end;
       var
+         ConvString    : String;
          i,j,k,c       : longint;
          xpos,ypos     : longint;
          counter       : longint;
@@ -381,10 +402,11 @@
          X:=X-XPos; Y:=Y+YPos;
          XPos:=X; YPos:=Y;
 
+	 ConvString := ConvertString(TextString);
          CharSize := CurrentTextInfo.Charsize;
          if Currenttextinfo.font=DefaultFont then
          begin
-           c:=length(textstring);
+           c:=length(ConvString);
            if CurrentTextInfo.direction=HorizDir then
            { Horizontal direction }
              begin
@@ -394,7 +416,7 @@
                      { we copy the character bitmap before accessing it }
                      { this improves speed on non optimizing compilers  }
                      { since it is one less address calculation.        }
-                     Fontbitmap:=TBitmapChar(DefaultFontData[TextString[i+1]]);
+                     Fontbitmap:=TBitmapChar(DefaultFontData[ConvString[i+1]]);
                      { no scaling }
                      if CharSize = 1 then
                       Begin
@@ -439,7 +461,7 @@
               for i:=0 to c-1 do
               begin
 
-                chr := TextString[i+1];
+                chr := ConvString[i+1];
                 Fontbitmap:=TBitmapChar(DefaultFontData[chr]);
                 ypos := y-(i shl 3)*CharSize;
 
@@ -489,14 +511,14 @@
               { reset line style to defaults }
               setlinestyle(solidln,oldvalues.pattern,normwidth);
               if Currenttextinfo.direction=vertdir then
-                 xpos:=xpos + Textheight(textstring);
+                 xpos:=xpos + Textheight(ConvString);
               CurX2:=xpos; xpos2 := curX2; x2 := xpos2;
               CurY2:=ypos; ypos2 := curY2; y2 := ypos2;
 {              x:=xpos; y:=ypos;}
 
-              for i:=1 to length(textstring) do
+              for i:=1 to length(ConvString) do
                 begin
-                   c:=byte(textstring[i]);
+                   c:=byte(ConvString[i]);
 {                   Stroke_Count[c] := }
                    unpack( fonts[CurrentTextInfo.font].instr,
                      fonts[CurrentTextInfo.font].Offsets[c], Strokes );
@@ -755,7 +777,12 @@
 
 {
 $Log$
-Revision 1.18  2000-04-16 08:45:48  jonas
+Revision 1.19  2000-06-16 17:06:08  sg
+* The text functions can now convert the character sets of the given
+  strings. By default, for GO32V2 there is no conversion, and for all
+  other platforms the strings are converted from ANSI to DOS-ASCII.
+
+Revision 1.18  2000/04/16 08:45:48  jonas
   * fixed registerbgifont (webbug 847)
 
 Revision 1.17  2000/04/02 12:13:36  florian

@@ -591,6 +591,57 @@ VAR
   RestoreVideoState: RestoreStateProc;
   ExitSave: pointer;
 
+
+type
+  TCharsetTransTable = array[Char] of Char;
+  PCharsetTransTable = ^TCharsetTransTable;
+
+const
+
+  { The following table can be used for translating characters from the
+    Ansi charset (ISO8859-1) to the DOS ASCII charset (CP437) }
+
+  AnsiToASCIITransTable: TCharsetTransTable =
+    (#$00, #$01, #$02, #$03, #$04, #$05, #$06, #$07,   // $00 - $07
+     #$08, #$09, #$0a, #$0b, #$0c, #$0d, #$0e, #$0f,   // $08 - $0f
+     #$10, #$11, #$12, #$13, #$14, #$15, #$16, #$17,   // $10 - $17
+     #$18, #$19, #$1a, #$1b, #$1c, #$1d, #$1e, #$1f,   // $18 - $1f
+     #$20, #$21, #$22, #$23, #$24, #$25, #$26, #$27,   // $20 - $27
+     #$28, #$29, #$2a, #$2b, #$2c, #$2d, #$2e, #$2f,   // $28 - $2f
+     #$30, #$31, #$32, #$33, #$34, #$35, #$36, #$37,   // $30 - $37
+     #$38, #$39, #$3a, #$3b, #$3c, #$3d, #$3e, #$3f,   // $38 - $3f
+     #$40, #$41, #$42, #$43, #$44, #$45, #$46, #$47,   // $40 - $47
+     #$48, #$49, #$4a, #$4b, #$4c, #$4d, #$4e, #$4f,   // $48 - $4f
+     #$50, #$51, #$52, #$53, #$54, #$55, #$56, #$57,   // $50 - $57
+     #$58, #$59, #$5a, #$5b, #$5c, #$5d, #$5e, #$5f,   // $58 - $5f
+     #$60, #$61, #$62, #$63, #$64, #$65, #$66, #$67,   // $60 - $67
+     #$68, #$69, #$6a, #$6b, #$6c, #$6d, #$6e, #$6f,   // $68 - $6f
+     #$70, #$71, #$72, #$73, #$74, #$75, #$76, #$77,   // $70 - $77
+     #$78, #$79, #$7a, #$7b, #$7c, #$7d, #$7e, #$7f,   // $78 - $7f
+     '?' , '?' , '?' , '?' , '?' , '?' , '?' , '?' ,   // $80 - $87
+     '?' , '?' , '?' , '?' , '?' , '?' , '?' , '?' ,   // $88 - $8f
+     '?' , '?' , '?' , '?' , '?' , '?' , '?' , '?' ,   // $90 - $97
+     '?' , '?' , '?' , '?' , '?' , '?' , '?' , '?' ,   // $98 - $9f
+     #$ff, #$ad, #$9b, #$9c, '?' , #$9d, '?' , '?' ,   // $a0 - $a7
+     '?' , '?' , #$a6, #$ae, #$aa, '?' , '?' , '?' ,   // $a8 - $af
+     #$f8, #$f1, #$fd, '?' , '?' , #$e6, '?' , #$fa,   // $b0 - $b7
+     '?' , '?' , #$a7, #$af, #$ac, #$ab, '?' , #$a8,   // $b8 - $bf
+     '?' , '?' , '?' , '?' , #$8e, #$8f, #$92, #$80,   // $c0 - $c7
+     '?' , #$90, '?' , '?' , '?' , '?' , '?' , '?' ,   // $c8 - $cf
+     '?' , #$a5, '?' , '?' , '?' , '?' , #$99, '?' ,   // $d0 - $d7
+     '?' , '?' , '?' , '?' , #$9a, '?' , '?' , #$e1,   // $d8 - $df
+     #$85, #$a0, #$83, '?' , #$84, #$86, #$91, #$87,   // $e0 - $e7
+     #$8a, #$82, #$88, #$89, #$8d, #$a1, #$8c, #$8b,   // $e8 - $ef
+     '?' , #$a4, #$95, #$a2, #$93, '?' , #$94, #$f6,   // $f0 - $f7
+     '?' , #$97, #$a3, #$96, #$81, '?' , '?' , #$98);  // $f8 - $ff
+
+{$IFDEF GO32V2}
+  GraphStringTransTable: PCharsetTransTable = nil;
+{$ELSE}
+  GraphStringTransTable: PCharsetTransTable = @AnsiToASCIITransTable;
+{$ENDIF}
+
+
 function queryadapterinfo : pmodeinfo;
 
 Procedure Closegraph;
@@ -680,7 +731,12 @@ Function GetDriverName: string;
 
 {
   $Log$
-  Revision 1.3  2000-04-02 12:13:36  florian
+  Revision 1.4  2000-06-16 17:06:08  sg
+  * The text functions can now convert the character sets of the given
+    strings. By default, for GO32V2 there is no conversion, and for all
+    other platforms the strings are converted from ANSI to DOS-ASCII.
+
+  Revision 1.3  2000/04/02 12:13:36  florian
     * some more procedures can be now hooked by the OS specific implementation
 
   Revision 1.2  2000/03/24 18:16:33  florian
