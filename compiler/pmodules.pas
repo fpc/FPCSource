@@ -166,11 +166,12 @@ unit pmodules;
           Inc(Count);
           end;
         { TableCount }
-        With ResourceStringTables do
+{ doesn't work because of bug in the compiler !! (JM)
+        With ResourceStringTables do}
           begin
-          insert(new(pai_const,init_32bit(count)));
-          insert(new(pai_symbol,initname_global('FPC_RESOURCESTRINGTABLES',0)));
-          concat(new(pai_symbol_end,initname('FPC_RESOURCESTRINGTABLES')));
+          ResourceStringTables.insert(new(pai_const,init_32bit(count)));
+          ResourceStringTables.insert(new(pai_symbol,initname_global('FPC_RESOURCESTRINGTABLES',0)));
+          ResourceStringTables.concat(new(pai_symbol_end,initname('FPC_RESOURCESTRINGTABLES')));
           end;
         { insert in data segment }
         if (cs_create_smart in aktmoduleswitches) then
@@ -1618,7 +1619,11 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.181  2000-01-12 10:30:15  peter
+  Revision 1.182  2000-01-16 14:15:33  jonas
+    * changed "with object_type" construct because of bug in the
+      compiler
+
+  Revision 1.181  2000/01/12 10:30:15  peter
     * align codesegment at the end after main proc
 
   Revision 1.180  2000/01/11 17:16:05  jonas
