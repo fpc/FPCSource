@@ -936,6 +936,7 @@ implementation
                        hp.left:=ctypeconvnode.create(hp.left,voidpointertype);
                        firstpass(hp.left);
                      end;
+                   variantdef,
                    pointerdef,
                    classrefdef,
                    objectdef : ;
@@ -1143,7 +1144,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.58  2002-09-07 15:25:03  peter
+  Revision 1.59  2002-09-26 15:02:05  florian
+    + support of passing variants to "array of const"
+
+  Revision 1.58  2002/09/07 15:25:03  peter
     * old logs removed and tabs fixed
 
   Revision 1.57  2002/09/03 16:26:26  daniel

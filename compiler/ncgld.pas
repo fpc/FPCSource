@@ -817,8 +817,15 @@ implementation
                          if is_boolean(lt) then
                            vtype:=vtBoolean
                          else
-                           if (lt.deftype=orddef) and (torddef(lt).typ=uchar) then
-                             vtype:=vtChar;
+                           if (lt.deftype=orddef) then
+                             begin
+                               case torddef(lt).typ of
+                                 uchar:
+                                   vtype:=vtChar;
+                                 uwidechar:
+                                   vtype:=vtWideChar;
+                               end;
+                             end;
                      end;
                    floatdef :
                      begin
@@ -834,12 +841,16 @@ implementation
                        else
                          vtype:=vtPointer;
                      end;
+                   variantdef :
+                     begin
+                        vtype:=vtVariant;
+                        vaddr:=true;
+                        freetemp:=false;
+                     end;
                    classrefdef :
                      vtype:=vtClass;
                    objectdef :
-                     begin
-                       vtype:=vtObject;
-                     end;
+                     vtype:=vtObject;
                    stringdef :
                      begin
                        if is_shortstring(lt) then
@@ -873,7 +884,7 @@ implementation
                        cg.a_paramaddr_ref(exprasmlist,hp.left.location.reference,paralocdummy);
                        location_release(exprasmlist,hp.left.location);
                        if freetemp then
-                        location_freetemp(exprasmlist,hp.left.location);
+                         location_freetemp(exprasmlist,hp.left.location);
                      end
                     else
                      cg.a_param_loc(exprasmlist,hp.left.location,paralocdummy);
@@ -892,7 +903,7 @@ implementation
                        cg.free_scratch_reg(exprasmlist,tmpreg);
                        location_release(exprasmlist,hp.left.location);
                        if freetemp then
-                        location_freetemp(exprasmlist,hp.left.location);
+                         location_freetemp(exprasmlist,hp.left.location);
                      end
                     else
                      begin
@@ -946,7 +957,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  2002-09-17 18:54:02  jonas
+  Revision 1.31  2002-09-26 15:02:05  florian
+    + support of passing variants to "array of const"
+
+  Revision 1.30  2002/09/17 18:54:02  jonas
     * a_load_reg_reg() now has two size parameters: source and dest. This
       allows some optimizations on architectures that don't encode the
       register size in the register name.
