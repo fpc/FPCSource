@@ -2,7 +2,9 @@
     $Id$
     Copyright (c) 1998-2000 by Florian Klaempfl
 
-    This unit implements an asmoutput class for Macintosh MPW syntax
+    This unit implements an asmoutput class for MOTOROLA syntax with
+    Motorola 68000 (recognized by the Amiga Assembler and Charlie Gibbs's
+    A68k)
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,15 +22,15 @@
 
  ****************************************************************************
 }
-unit ag68kmpw;
+unit ag68kmot;
 
     interface
 
     uses aasm,assemble;
 
     type
-      pm68kmpwasmlist=^tm68kmpwasmlist;
-      tm68kmpwasmlist = object(tasmlist)
+      pm68kmotasmlist=^tm68kmotasmlist;
+      tm68kmotasmlist = object(tasmlist)
         procedure WriteTree(p:paasmoutput);virtual;
         procedure WriteAsmList;virtual;
       end;
@@ -44,6 +46,8 @@ unit ag68kmpw;
 {$endif GDB}
       ;
 
+    const
+      line_length = 70;
 
     function double2str(d : double) : string;
       var
@@ -71,15 +75,12 @@ unit ag68kmpw;
          comp2str:=double2str(dd^);
       end; *)
 
-    const
-      line_length = 70;
 
-    function getreferencestring(const ref : treference; var importstring: string) : string;
+    function getreferencestring(const ref : treference) : string;
       var
          s : string;
       begin
          s:='';
-         importstring:='';
          if ref.isintvalue then
              s:='#'+tostr(ref.offset)
          else
@@ -90,21 +91,18 @@ unit ag68kmpw;
                      if assigned(symbol) then
                        begin
                          s:=s+symbol^;
-                         importstring:=symbol^;
                          if offset<0 then
                            s:=s+tostr(offset)
                          else
                          if (offset>0) then
                            s:=s+'+'+tostr(offset);
-                           s:='('+s+').L';
                        end
                      else
                        begin
                        { direct memory addressing }
-                         s:=s+'('+tostr(offset)+').L';
+                         s:=s+'('+tostr(offset)+').l';
                        end;
                    end
-                 { index<>R_NO or base<>R_NO }
                  else
                    begin
                      if assigned(symbol) then
@@ -187,7 +185,6 @@ unit ag68kmpw;
      var
       hs : string;
       i: tregister;
-      importstring: string;
     begin
       case t of
        top_reg : getopstr:=mot_reg2str[tregister(o)];
@@ -201,11 +198,14 @@ unit ag68kmpw;
                       delete(hs,length(hs),1);
                       getopstr := hs;
                     end;
-       top_ref : getopstr:=getreferencestring(preference(o)^,importstring);
+       top_ref : getopstr:=getreferencestring(preference(o)^);
        top_const : getopstr:='#'+tostr(longint(o));
        top_symbol : begin
-                     hs[0]:=chr(strlen(pchar(pcsymbol(o)^.symbol)));
+             { compare with i386 version, where this is a constant. }
+             hs[0]:=chr(strlen(pchar(pcsymbol(o)^.symbol)));
                      move(pchar(pcsymbol(o)^.symbol)^,hs[1],byte(hs[0]));
+{                     inc(byte(hs[0]));}
+{                     hs[1]:='#';}
                      if pcsymbol(o)^.offset>0 then
                        hs:=hs+'+'+tostr(pcsymbol(o)^.offset)
                      else if pcsymbol(o)^.offset<0 then
@@ -217,25 +217,22 @@ unit ag68kmpw;
      end;
 
 
-   function getopstr_jmp(t : byte;o : pointer; var importname: string) : string;
+   function getopstr_jmp(t : byte;o : pointer) : string;
      var
        hs : string;
      begin
-       importname:='';
        case t of
          top_reg : getopstr_jmp:=mot_reg2str[tregister(o)];
-         top_ref : getopstr_jmp:=getreferencestring(preference(o)^,importname);
+         top_ref : getopstr_jmp:=getreferencestring(preference(o)^);
          top_const : getopstr_jmp:=tostr(longint(o));
          top_symbol : begin
-                        hs[0]:=chr(strlen(pchar(pcsymbol(o)^.symbol)));
-                        move(pchar(pcsymbol(o)^.symbol)^,hs[1],byte(hs[0]));
-                        if pcsymbol(o)^.offset>0 then
-                           hs:=hs+'+'+tostr(pcsymbol(o)^.offset)
-                        else if pcsymbol(o)^.offset<0 then
-                        hs:=hs+tostr(pcsymbol(o)^.offset);
-                        importname:=hs;
-                        hs:='('+hs+').L';
-                        getopstr_jmp:=hs;
+                     hs[0]:=chr(strlen(pchar(pcsymbol(o)^.symbol)));
+                     move(pchar(pcsymbol(o)^.symbol)^,hs[1],byte(hs[0]));
+                     if pcsymbol(o)^.offset>0 then
+                       hs:=hs+'+'+tostr(pcsymbol(o)^.offset)
+                     else if pcsymbol(o)^.offset<0 then
+                       hs:=hs+tostr(pcsymbol(o)^.offset);
+                     getopstr_jmp:=hs;
                    end;
          else internalerror(10001);
        end;
@@ -244,18 +241,24 @@ unit ag68kmpw;
 {****************************************************************************
                               TM68KMOTASMLIST
  ****************************************************************************}
+
     var
       LastSec : tsection;
 
-    procedure tm68kmpwasmlist.WriteTree(p:paasmoutput);
+    const
+      section2str : array[tsection] of string[6]=
+       ('','CODE','DATA','BSS','','','','','','','','');
+
+    procedure tm68kmotasmlist.WriteTree(p:paasmoutput);
     var
       hp        : pai;
       s         : string;
       counter,
       i,j,lines : longint;
       quoted    : boolean;
-      importname: string;
     begin
+      if not assigned(p) then
+       exit;
       hp:=pai(p^.first);
       while assigned(hp) do
        begin
@@ -268,7 +271,9 @@ unit ag68kmpw;
        ait_section : begin
                        if pai_section(hp)^.sec<>sec_none then
                         begin
+
                           AsmLn;
+                          AsmWriteLn('SECTION _'+section2str[pai_section(hp)^.sec]+','+section2str[pai_section(hp)^.sec]);
                         end;
                        LastSec:=pai_section(hp)^.sec;
                      end;
@@ -276,8 +281,8 @@ unit ag68kmpw;
       ait_regalloc : AsmWriteLn(target_asm.comment+'Register '+att_reg2str[pairegalloc(hp)^.reg]+' allocated');
     ait_regdealloc : AsmWriteLn(target_asm.comment+'Register '+att_reg2str[pairegalloc(hp)^.reg]+' released');
 {$endif DREGALLOC}
-         ait_align : AsmWriteLn(#9'ALIGN '+tostr(pai_align(hp)^.aligntype));
-      ait_external : AsmWriteLn(#9'IMPORT'#9+StrPas(pai_external(hp)^.name));
+         ait_align : AsmWriteLn(#9'CNOP 0,'+tostr(pai_align(hp)^.aligntype));
+      ait_external : AsmWriteLn(#9'XREF'#9+StrPas(pai_external(hp)^.name));
  ait_real_extended : Message(assem_e_extended_not_supported);
           ait_comp : Message(assem_e_comp_not_supported);
      ait_datablock : begin
@@ -288,13 +293,13 @@ unit ag68kmpw;
                        if pai_datablock(hp)^.size <> 1 then
                         begin
                           if not(cs_littlesize in aktglobalswitches) then
-                           AsmWriteLn(#9'ALIGN 4')
+                           AsmWriteLn(#9'CNOP 0,4')
                           else
-                           AsmWriteLn(#9'ALIGN 2');
+                           AsmWriteLn(#9'CNOP 0,2');
                          end;
                        if pai_datablock(hp)^.is_global then
-                        AsmWriteLn(#9'EXPORT'#9+StrPas(pai_datablock(hp)^.name));
-                       AsmWriteLn(#9#9+StrPas(pai_datablock(hp)^.name)+#9#9'DS.B '+tostr(pai_datablock(hp)^.size));
+                        AsmWriteLn(#9'XDEF'#9+StrPas(pai_datablock(hp)^.name));
+                       AsmWriteLn(StrPas(pai_datablock(hp)^.name)+#9#9'DS.B '+tostr(pai_datablock(hp)^.size));
                      end;
    ait_const_32bit : Begin
                        AsmWriteLn(#9#9'DC.L'#9+tostr(pai_const(hp)^.value));
@@ -323,7 +328,7 @@ unit ag68kmpw;
                        AsmWriteLn(#9#9'DC.S'#9+double2str(pai_single(hp)^.value));
                      end;
 { TO SUPPORT SOONER OR LATER!!!
-    ait_comp       : AsmWriteLn(#9#9'DC.D'#9+comp2str(pai_extended(hp)^.value));}
+          ait_comp : AsmWriteLn(#9#9'DC.D'#9+comp2str(pai_extended(hp)^.value));}
         ait_string : begin
                        counter := 0;
                        lines := pai_string(hp)^.len div line_length;
@@ -339,13 +344,13 @@ unit ag68kmpw;
                                    { it is an ascii character. }
                                    if (ord(pai_string(hp)^.str[i])>31) and
                                       (ord(pai_string(hp)^.str[i])<128) and
-                                      (pai_string(hp)^.str[i]<>'''') then
+                                      (pai_string(hp)^.str[i]<>'"') then
                                    begin
                                      if not(quoted) then
                                      begin
                                        if i>counter then
                                          AsmWrite(',');
-                                       AsmWrite('''');
+                                       AsmWrite('"');
                                      end;
                                      AsmWrite(pai_string(hp)^.str[i]);
                                      quoted:=true;
@@ -353,14 +358,14 @@ unit ag68kmpw;
                                    else
                                    begin
                                      if quoted then
-                                       AsmWrite('''');
+                                       AsmWrite('"');
                                      if i>counter then
                                        AsmWrite(',');
                                      quoted:=false;
                                      AsmWrite(tostr(ord(pai_string(hp)^.str[i])));
                                    end;
                                 end; { end for i:=0 to... }
-                                if quoted then AsmWrite('''');
+                                if quoted then AsmWrite('"');
                                 AsmLn;
                                 counter := counter+line_length;
                                end; { end for j:=0 ... }
@@ -372,13 +377,13 @@ unit ag68kmpw;
                                  { it is an ascii character. }
                                  if (ord(pai_string(hp)^.str[i])>31) and
                                     (ord(pai_string(hp)^.str[i])<128) and
-                                    (pai_string(hp)^.str[i]<>'''') then
+                                    (pai_string(hp)^.str[i]<>'"') then
                                  begin
                                    if not(quoted) then
                                    begin
                                      if i>counter then
                                        AsmWrite(',');
-                                     AsmWrite('''');
+                                     AsmWrite('"');
                                    end;
                                  AsmWrite(pai_string(hp)^.str[i]);
                                    quoted:=true;
@@ -386,32 +391,31 @@ unit ag68kmpw;
                                  else
                                  begin
                                    if quoted then
-                                     AsmWrite('''');
+                                     AsmWrite('"');
                                      if i>counter then
                                        AsmWrite(',');
                                      quoted:=false;
                                      AsmWrite(tostr(ord(pai_string(hp)^.str[i])));
                                  end;
                                end; { end for i:=0 to... }
-                             if quoted then AsmWrite('''');
+                             if quoted then AsmWrite('"');
                           end; { endif }
                         AsmLn;
                       end;
           ait_label : begin
                        if assigned(hp^.next) and (pai(hp^.next)^.typ in
                           [ait_const_32bit,ait_const_16bit,ait_const_8bit,
-                           ait_const_symbol,ait_const_symbol_offset,
+                            ait_const_symbol,ait_const_symbol_offset,
                            ait_real_64bit,ait_real_32bit,ait_string]) then
                         begin
                           if not(cs_littlesize in aktglobalswitches) then
-                           AsmWriteLn(#9'ALIGN 4')
+                           AsmWriteLn(#9'CNOP 0,4')
                           else
-                           AsmWriteLn(#9'ALIGN 2');
+                           AsmWriteLn(#9'CNOP 0,2');
                         end;
                         AsmWrite(lab2str(pai_label(hp)^.l));
                         if assigned(hp^.next) and not(pai(hp^.next)^.typ in
-                           [ait_const_32bit,ait_const_16bit,ait_const_8bit,
-                            ait_const_symbol,ait_const_symbol_offset,
+                           [ait_const_32bit,ait_const_16bit,ait_const_8bit,ait_const_symbol,
                             ait_real_64bit,ait_string]) then
                          AsmWriteLn(':');
                       end;
@@ -420,8 +424,6 @@ unit ag68kmpw;
                         AsmLn;
                       end;
 ait_labeled_instruction :
-                      { Labeled instructions are those which don't require an }
-                      { intersegment jump -- jmp/bra/bcc to local labels.     }
                       Begin
                       { labeled operand }
                         if pai_labeled(hp)^._op1 = R_NO then
@@ -437,35 +439,23 @@ ait_labeled_instruction :
                        { ------------- REQUIREMENT FOR 680x0 ------------------- }
                        { ------------------------------------------------------- }
                        if assigned(hp^.next) and (pai(hp^.next)^.typ in
-                          [ait_const_32bit,ait_const_16bit,ait_const_8bit,
-                           ait_const_symbol,ait_const_symbol_offset,
+                          [ait_const_32bit,ait_const_16bit,
+                           ait_const_symbol,ait_const_symbol_offset,ait_const_8bit,
                            ait_real_64bit,ait_real_32bit,ait_string]) then
                         begin
                           if not(cs_littlesize in aktglobalswitches) then
-                           AsmWriteLn(#9'ALIGN 4')
+                           AsmWriteLn(#9'CNOP 0,4')
                           else
-                           AsmWriteLn(#9'ALIGN 2');
+                           AsmWriteLn(#9'CNOP 0,2');
                         end;
+                       if pai_symbol(hp)^.is_global then
+                        AsmWriteLn(#9'XDEF '+StrPas(pai_symbol(hp)^.name));
+                       AsmWritePChar(pai_symbol(hp)^.name);
                        if assigned(hp^.next) and not(pai(hp^.next)^.typ in
                           [ait_const_32bit,ait_const_16bit,ait_const_8bit,
                            ait_const_symbol,ait_const_symbol_offset,
                            ait_real_64bit,ait_string,ait_real_32bit]) then
-                        { this is a subroutine }
-                        Begin
-                          if pai_symbol(hp)^.is_global then
-                            AsmWriteLn(#9+StrPas(pai_symbol(hp)^.name)+' PROC EXPORT')
-                          else
-                            AsmWriteLn(#9+StrPas(pai_symbol(hp)^.name)+' PROC');
-                          AsmWriteLn(#9'WITH _DATA');
-                        end
-                       else
-                       Begin
-                        if pai_symbol(hp)^.is_global then
-                           AsmWriteLn(#9'EXPORT'#9+StrPas(pai_symbol(hp)^.name))
-                        else
-                           AsmWriteLn(#9'ENTRY'#9+StrPas(pai_symbol(hp)^.name));
-                          AsmWritePChar(pai_symbol(hp)^.name);
-                       end;
+                        AsmWriteLn(':');
                      end;
    ait_instruction : begin
                        s:=#9+mot_op2str[pai68k(hp)^._operator]+mot_opsize2str[pai68k(hp)^.size];
@@ -474,11 +464,7 @@ ait_labeled_instruction :
                         { call and jmp need an extra handling                          }
                         { this code is only called if jmp isn't a labeled instruction }
                           if pai68k(hp)^._operator in [A_JSR,A_JMP] then
-                          begin
-                           s:=s+#9+getopstr_jmp(pai68k(hp)^.op1t,pai68k(hp)^.op1,importname);
-                           if importname <> '' then
-                            AsmWriteLn(#9+'IMPORT '+importname);
-                          end
+                           s:=s+#9+getopstr_jmp(pai68k(hp)^.op1t,pai68k(hp)^.op1)
                           else
                            begin
                              if pai68k(hp)^.op1t = top_reglist then
@@ -508,28 +494,6 @@ ait_labeled_instruction :
                            end;
                         end;
                        AsmWriteLn(s);
-                       { if this instruction is the last before     }
-                       { returning it MIGHT be the end of a         }
-                       { pascal subroutine, if this is so, then     }
-                       if (pai68k(hp)^._operator = A_RTS) or
-                          (pai68k(hp)^._operator = A_RTD) then
-                         Begin
-                           { if next is not an instruction nor a label }
-                           { this is the end of a procedure probably   }
-                           { and not an inline assembler instruction   }
-                           if assigned(hp^.next) and (
-                              (pai(hp^.next)^.typ = ait_label) or
-                              (pai(hp^.next)^.typ = ait_instruction) or
-                              (pai(hp^.next)^.typ = ait_labeled_instruction)) then
-                           begin
-                           end
-                           else
-                           begin
-                             AsmWriteLn(#9'ENDWITH');
-                             AsmWriteLn(#9'ENDPROC');
-                             AsmLn;
-                           end;
-                         end;
                      end;
 {$ifdef GDB}
               ait_stabn,
@@ -545,43 +509,43 @@ ait_labeled_instruction :
        end;
     end;
 
-    procedure tm68kmpwasmlist.WriteAsmList;
+    procedure tm68kmotasmlist.WriteAsmList;
     begin
 {$ifdef EXTDEBUG}
       if assigned(current_module^.mainsource) then
-       comment(v_info,'Start writing MPW-styled assembler output for '+current_module^.mainsource^);
+       comment(v_info,'Start writing motorola-styled assembler output for '+current_module^.mainsource^);
 {$endif}
+
+      countlabelref:=false;
       WriteTree(externals);
-      AsmLn;
-      AsmWriteLn(#9'_DATA'#9'RECORD');
-    { write a signature to the file }
-      AsmWriteLn(#9'ALIGN 4');
-(* now in pmodules
-{$ifdef EXTDEBUG}
-      AsmWriteLn(#9'DC.B'#9'''compiled by FPC '+version_string+'\0''');
-      AsmWriteLn(#9'DC.B'#9'''target: '+target_info.short_name+'\0''');
-{$endif EXTDEBUG} *)
+    { WriteTree(debuglist);}
+      WriteTree(codesegment);
       WriteTree(datasegment);
       WriteTree(consts);
+      WriteTree(rttilist);
       WriteTree(bsssegment);
-      AsmWriteLn(#9'ENDR');
-
-      AsmLn;
-      WriteTree(codesegment);
-
+      Writetree(importssection);
+      Writetree(exportssection);
+      Writetree(resourcesection);
+      countlabelref:=true;
 
       AsmLn;
       AsmWriteLn(#9'END');
+      AsmLn;
+
 {$ifdef EXTDEBUG}
       if assigned(current_module^.mainsource) then
-       comment(v_info,'Done writing MPW-styled assembler output for '+current_module^.mainsource^);
+       comment(v_info,'Done writing motorola-styled assembler output for '+current_module^.mainsource^);
 {$endif}
     end;
 
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:31  michael
+  Revision 1.1  2000-11-30 20:30:34  peter
+    * moved into m68k subdir
+
+  Revision 1.2  2000/07/13 11:32:31  michael
   + removed logs
 
 }

@@ -1391,7 +1391,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:37  michael
+  Revision 1.1  2000-11-30 20:30:34  peter
+    * moved into m68k subdir
+
+  Revision 1.2  2000/07/13 11:32:37  michael
   + removed logs
 
 }
