@@ -386,6 +386,7 @@ asm
 end;
 
 
+{$define FPC_SYSTEM_HAS_QWORD_TO_DOUBLE}
 function fpc_qword_to_double(q: qword): double; compilerproc;
 assembler;
 { input: high(q) in r4, low(q) in r3 }
@@ -425,7 +426,10 @@ end;
 
 {
   $Log$
-  Revision 1.28  2003-09-03 14:09:37  florian
+  Revision 1.29  2003-09-04 16:07:31  florian
+    * fixed qword_to_double conversion on powerpc
+
+  Revision 1.28  2003/09/03 14:09:37  florian
     * arm fixes to the common rtl code
     * some generic math code fixed
     * ...

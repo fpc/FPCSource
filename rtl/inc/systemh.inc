@@ -123,6 +123,8 @@ Type
   {$define SUPPORT_SINGLE}
   {$define SUPPORT_DOUBLE}
 
+  {$define FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE}
+
   ValSInt = Longint;
   ValUInt = Cardinal;
   ValReal = Double;
@@ -690,7 +692,10 @@ const
 
 {
   $Log$
-  Revision 1.71  2003-09-03 14:09:37  florian
+  Revision 1.72  2003-09-04 16:07:31  florian
+    * fixed qword_to_double conversion on powerpc
+
+  Revision 1.71  2003/09/03 14:09:37  florian
     * arm fixes to the common rtl code
     * some generic math code fixed
     * ...
