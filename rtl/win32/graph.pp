@@ -1414,7 +1414,7 @@ end;
 
 var
    // here we can force the creation of a maximized window }
-   extrastyle : longint;
+   extrastyle : cardinal;
 
  { Create the Window Class }
 function WinCreate : HWnd;
@@ -1425,7 +1425,7 @@ begin
   if UseChildWindow then
     begin
        ParentWindow:=CreateWindow('FPCGraphWindowMain', windowtitle,
-                  WS_OVERLAPPEDWINDOW or WS_CLIPCHILDREN or extrastyle, CW_USEDEFAULT, 0,
+                  WS_OVERLAPPEDWINDOW or WS_CLIPCHILDREN or extrastyle, longint(CW_USEDEFAULT), 0,
                   maxx+ChildOffset.Left+ChildOffset.Right+1+
                     2*GetSystemMetrics(SM_CXFRAME),
                   maxy+ChildOffset.Top+ChildOffset.Bottom+1+
@@ -1455,7 +1455,7 @@ begin
   else
     begin
        hWindow:=CreateWindow('FPCGraphWindow', windowtitle,
-                  ws_OverlappedWindow or extrastyle, CW_USEDEFAULT, 0,
+                  ws_OverlappedWindow or extrastyle, longint(CW_USEDEFAULT), 0,
                   maxx+1+2*GetSystemMetrics(SM_CXFRAME),
                   maxy+1+2*GetSystemMetrics(SM_CYFRAME)+
                   GetSystemMetrics(SM_CYCAPTION),
@@ -2222,7 +2222,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2000-11-14 19:45:08  florian
+  Revision 1.5  2000-12-19 11:59:12  michael
+  * Fixes from Peter
+
+  Revision 1.4  2000/11/14 19:45:08  florian
     * child window destruction fixed
 
   Revision 1.3  2000/10/21 18:20:17  florian

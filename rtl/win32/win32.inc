@@ -16,13 +16,13 @@
 
 const
    { constants for GetStdHandle }
-   STD_INPUT_HANDLE = $fffffff6;
-   STD_OUTPUT_HANDLE = $fffffff5;
-   STD_ERROR_HANDLE = $fffffff4;
-   INVALID_HANDLE_VALUE = $ffffffff;
+   STD_INPUT_HANDLE = longint($fffffff6);
+   STD_OUTPUT_HANDLE = longint($fffffff5);
+   STD_ERROR_HANDLE = longint($fffffff4);
+   INVALID_HANDLE_VALUE = longint($ffffffff);
 
    IGNORE = 0;               { Ignore signal }
-   INFINITE = $FFFFFFFF;     { Infinite timeout }
+   INFINITE = longint($FFFFFFFF);     { Infinite timeout }
 
    { flags for CreateFile }
    GENERIC_READ=$80000000;
@@ -116,7 +116,10 @@ type
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:58  michael
+  Revision 1.3  2000-12-19 11:59:12  michael
+  * Fixes from Peter
+
+  Revision 1.2  2000/07/13 11:33:58  michael
   + removed logs
  
 }
