@@ -553,11 +553,18 @@ implementation
                                          { it is kind of dirty but that is the simplest    }
                                          { way to accept virtual static functions (PM)     }
                                          loadesi:=true;
-                                         exprasmlist^.concat(new(pai386,op_csymbol_reg(A_MOV,S_L,
-                                           newcsymbol(pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname,0),R_ESI)));
-                                         maybe_concat_external(pobjectdef(p^.methodpointer^.resulttype)^.owner,
-                                           pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname);
-                                         exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_ESI)));
+                                         { if no VMT just use $0 bug0214 PM }
+                                         if (pobjectdef(p^.methodpointer^.resulttype)^.options and oo_hasvmt)=0 then
+                                           exprasmlist^.concat(new(pai386,op_const_reg(A_MOV,S_L,0,R_ESI)))
+                                         else
+                                           begin
+                                             exprasmlist^.concat(new(pai386,op_csymbol_reg(A_MOV,S_L,
+                                               newcsymbol(pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname,0),R_ESI)));
+                                             maybe_concat_external(pobjectdef(p^.methodpointer^.resulttype)^.owner,
+                                               pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname);
+                                           end;
+                                         { exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_ESI)));
+                                           this is done below !! }
                                       end
                                     else
                                       { this is a member call, so ESI isn't modfied }
@@ -1292,7 +1299,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.64  1999-02-04 10:49:39  florian
+  Revision 1.65  1999-02-08 11:29:04  pierre
+   * fix for bug0214
+     several problems where combined
+     search_class_member did not set srsymtable
+     => in do_member_read the call node got a wrong symtable
+     in cg386cal the vmt was pushed twice without chacking if it exists
+     now %esi is set to zero and pushed if not vmt
+     (not very efficient but should work !)
+
+  Revision 1.64  1999/02/04 10:49:39  florian
     + range checking for ansi- and widestrings
     * made it compilable with TP
 
