@@ -409,6 +409,21 @@ unit pass_1;
                 pobjectdef(def_to));
            end
          else
+          { class types and class reference type
+            can be assigned to void pointers      }
+          if (((def_from^.deftype=objectdef) and
+               pobjectdef(def_from)^.isclass) or
+               (def_from^.deftype=classrefdef)
+             ) and
+             (def_to^.deftype=pointerdef) and
+             (ppointerdef(def_to)^.definition^.deftype=orddef) and
+             (porddef(ppointerdef(def_to)^.definition)^.typ=uvoid) then
+
+           begin
+              doconv:=tc_equal;
+              b:=true;
+           end
+         else
 
          { class reference types }
           if (def_from^.deftype=classrefdef) and (def_from^.deftype=classrefdef) then
@@ -2740,8 +2755,9 @@ unit pass_1;
                          Message(cg_e_illegal_type_conversion);
                      { the conversion into a strutured type is only }
                      { possible, if the source is no register         }
-                     if (p^.resulttype^.deftype in [recorddef,stringdef,arraydef,objectdef]) and
-                        (p^.left^.location.loc in [LOC_REGISTER,LOC_CREGISTER]) and
+                     if ((p^.resulttype^.deftype in [recorddef,stringdef,arraydef]) or
+                         ((p^.resulttype^.deftype=objectdef) and not(pobjectdef(p^.resulttype)^.isclass))
+                        ) and (p^.left^.location.loc in [LOC_REGISTER,LOC_CREGISTER]) and
                         {it also works if the assignment is overloaded }
                         not is_assignment_overloaded(p^.left^.resulttype,p^.resulttype) then
                        Message(cg_e_illegal_type_conversion);
@@ -5237,7 +5253,12 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.62  1998-08-23 16:07:22  florian
+  Revision 1.63  1998-08-24 10:05:39  florian
+    + class types and class reference types are now compatible with void
+      pointers
+    + class can be stored now registers, even if a type conversation is applied
+
+  Revision 1.62  1998/08/23 16:07:22  florian
     * internalerror with mod/div fixed
 
   Revision 1.61  1998/08/21 14:08:47  pierre
