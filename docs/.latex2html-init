@@ -2,6 +2,8 @@
 #
 ### Command Line Argument Defaults #######################################
 
+$ICONSERVER = "../buttons";
+
 $MAX_SPLIT_DEPTH = 3;	# Stop making separate files at this depth
 
 $MAX_LINK_DEPTH = 2;    # Stop showing child nodes at this depth   

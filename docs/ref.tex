@@ -28,7 +28,6 @@
   \usepackage{html}
   \usepackage{htmllist}
 \fi
-\usepackage{fpc}
 \latex{%
   \ifpdf
   \pdfinfo{/Author(Michael Van Canneyt)
@@ -39,6 +38,7 @@
   \fi
 }
 %
+\latex{\usepackage{fpc}}
 \html{\input{fpc-html.tex}}
 \makeindex
 %
@@ -46,6 +46,7 @@
 %
 \usepackage{syntax}
 \input{syntax/diagram.tex}
+\usepackage{layout}
 %
 % Start of document.
 %
@@ -69,6 +70,7 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % About this guide
+\layout
 \section*{About this guide}
 This document describes all constants, types, variables, functions and
 procedures as they are declared in the system unit.
@@ -548,9 +550,11 @@ Integer \\
 Shortint \\
 SmallInt \\
 Longint \\
+Int64 \\
 Byte \\
 Word \\
 Cardinal \\
+QWord \\
 Boolean \\
 ByteBool \\
 LongBool \\
@@ -561,12 +565,14 @@ The integer types, and their ranges and sizes, that are predefined in
 \begin{FPCltable}{lcr}{Predefined integer types}{integers}
 Type & Range & Size in bytes \\ \hline
 Byte & 0 .. 255 & 1 \\
-Shortint & -127 .. 127 & 1\\
-Integer\footnote{The integer type is redefined as
-longint if you are in Delphi or ObjFPC mode, and has then size 4} & -32768 .. 32767 & 2 \\
+Shortint & -128 .. 127 & 1\\
+Integer & -32768 .. 32767 & 2\footnote{The integer type is redefined as
+longint if you are in Delphi or ObjFPC mode, and then has size 4} \\
 Word & 0 .. 65535 & 2 \\
-Longint & -2147483648 .. 2147483648 & 4\\
-Cardinal & 0..4294967296 & 4 \\ \hline
+Longint & -2147483648 .. 2147483647 & 4\\
+Cardinal & 0..4294967295 & 4 \\
+Int64 & -9223372036854775808 .. 9223372036854775807 & 8 \\
+QWord & 0 .. 18446744073709551615 & 8 \\ \hline
 \end{FPCltable}
 \fpc does automatic type conversion in expressions where different kinds of
 integer types are used.
@@ -605,6 +611,9 @@ be called, which may have strange side-effects.
 Here \var{Func} is a function which returns a \var{Boolean} type.
 \end{remark}
 
+\begin{remark} The \var{WordBool}, \var{LongBool} and \var{ByteBool} types
+were not supported by \fpc until version 0.99.6.
+\end{remark}
 \subsubsection{Enumeration types}
 Enumeration types are supported in \fpc. On top of the Turbo Pascal
 implementation, \fpc allows also a C-style extension of the
@@ -696,22 +705,20 @@ Type
 \subsection{Real types}
 \fpc uses the math coprocessor (or an emulation) for all its floating-point
 calculations. The Real native type is processor dependant,
-but it is either Single or Double. Only the IEEE\footnote{Until version 
-0.9.1 of the compiler, all the \var{Real} types were mapped to
-type \var{Double}, meaning that they all had size 8. 
-} floating point types are
+but it is either Single or Double. Only the IEEE floating point types are
 supported, and these depend on the target processor and emulation options.
 The true Turbo Pascal compatible types are listed in
 \seet{Reals}.
  \begin{FPCltable}{lccr}{Supported Real types}{Reals}
-Type & Range & Significant digits & Size \\ \hline
+Type & Range & Significant digits & Size\footnote{In Turbo Pascal.} \\ \hline
 Single & 1.5E-45 .. 3.4E38 & 7-8 & 4 \\
 Real & 5.0E-324 .. 1.7E308 & 15-16 & 8 \\
 Double & 5.0E-324 .. 1.7E308 & 15-16 & 8 \\
 Extended & 1.9E-4951 .. 1.1E4932 & 19-20 & 10\\
 Comp & -2E64+1 .. 2E63-1 & 19-20 & 8  \\
 \end{FPCltable}
-The \seef{SizeOf} function
+Until version 0.9.1 of the compiler, all the \var{Real} types were mapped to
+type \var{Double}, meaning that they all have size 8. The \seef{SizeOf} function
 is your friend here. The \var{Real} type of turbo pascal is automatically
 mapped to Double. The \var{Comp} type is, in effect, a 64-bit integer.
 
@@ -1176,7 +1183,7 @@ For \var{Trec7}, \var{B} is aligned on a 4 byte boundary, since it's size --
 7 -- is larger than 4. However, in \var{Trec8}, it is aligned on a 8-byte
 boundary, since 8 is the first power of two that is greater than 7, thus
 making the total size of the record 16.
-\fpc supports also the 'packed record'\footnote{From version 0.9.3}, this is a
+As from version 0.9.3, \fpc supports also the 'packed record', this is a
 record where all the elements are byte-aligned.
 Thus the two following declarations are equivalent:
 \begin{verbatim}
@@ -1225,7 +1232,8 @@ Add element & \var{include} \\
 Delete element & \var{exclude} \\ \hline
 \end{FPCltable}
 You can compare two sets with the \var{<>} and \var{=} operators, but not
-(yet) with the \var{<} and \var{>} operators. The compiler stores small sets (less than 32
+(yet) with the \var{<} and \var{>} operators.
+As of compiler version 0.9.5, the compiler stores small sets (less than 32
 elements) in a Longint, if the type range allows it. This allows for faster
 processing and decreases program size. Otherwise, sets are stored in 32
 bytes.
@@ -1321,7 +1329,7 @@ typed pointer, the instructions
 Inc(P);
 Dec(P);
 \end{verbatim}
-Will increase, respectively decrease the address the pointer points to
+Will increase, respectively descrease the address the pointer points to
 with the size of the type \var{P} is a pointer to. For example
 \begin{verbatim}
 Var P : ^Longint;
@@ -1770,14 +1778,14 @@ around  the concept of 'Classes'.  A class can be seen as a pointer to an
 object, or a pointer to a record.
 
 \begin{remark}
-The \file{system}\footnote{
 In earlier versions of \fpc it was necessary, in order to use classes,
-to put the \file{objpas} unit in the uses clause of your unit or program.} 
-unit contains the basic  definitions of \var{TObject}
+to put the \file{objpas} unit in the uses clause of your unit or program.
+{\em This is no longer needed} as of version 0.99.12. As of version 0.99.12
+the \file{system} unit contains the basic  definitions of \var{TObject}
 and  \var{TClass}, as well as some auxiliary methods for using classes.
-The \file{objpas} unit contains some redefinitions of basic types, so 
-they coincide with Delphi types. The unit will be loaded automatically 
-if you specify the \var{-S2} or \var{-Sd} options.
+The \file{objpas} unit still exists, and contains some redefinitions of
+basic types, so they coincide with Delphi types. The unit will be loaded
+automatically if you specify the \var{-S2} or \var{-Sd} options.
 \end{remark}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1845,7 +1853,7 @@ an object. To get the size of the class instance data, use the
 % Methods
 \section{Methods}
 \subsection{invocation}
-Method invocation for classes is no different than for objects. The
+Method invocaticn for classes is no different than for objects. The
 following is a valid method invocation:
 \begin{verbatim}
 Var  AnObject : TAnObject;
@@ -2192,7 +2200,7 @@ When determining the precedence, the compiler uses the following rules:
 operater with the highest precedence. For example, in \var{5*3+7}, the
 multiplication is higher in precedence than the addition, so it is
 executed first. The result would be 22.
-\item If parentheses are used in an expression, their contents is evaluated
+\item If parentheses are used in an epression, their contents is evaluated
 first. Thus, \var {5*(3+7)} would result in 50.
 \end{enumerate}
 
@@ -2929,7 +2937,7 @@ Showing thus that the \var{X,Y} in the \var{WriteLn} statement match the
 \begin{remark}
 If you use a \var{With} statement with a pointer, or a class, it is not
 permitted to change the pointer or the class in the \var{With} block.
-With the definitions of the previous example, the following illustrates
+With the definitions of the previous example, the following illiustrates
 what it is about:
 \begin{verbatim}
 
@@ -2949,7 +2957,7 @@ the temporary address. The same is true for classes.
 \end{remark}
 
 \subsection{Exception Statements}
-Exceptions\footnote{As of version 0.99.7.} provide a
+As of version 0.99.7, \fpc supports exceptions. Exceptions provide a
 convenient way to program error and error-recovery mechanisms, and are
 closely related to classes.
 Exception support is explained in \seec{Exceptions}
@@ -3050,12 +3058,10 @@ assignment compatible parameters to the procedure. This means that the types
 should not match exactly, but can be converted (conversion code is inserted
 by the compiler itself)
 
-\begin{remark}
 Take care that using value parameters makes heavy use of the stack,
 especially if you pass large parameters. The total size of all parameters in
 the formal parameter list should be below 32K for portability's sake (the
 Intel version limits this to 64K).
-\end{remark}
 
 You can pass open arrays as value parameters. See \sees{openarray} for
 more information on using open arrays.
@@ -3231,7 +3237,7 @@ to this procedure:
 
 If the procedure is declared with the \var{cdecl} modifier, then the
 compiler will pass the array as a C compiler would pass it. This, in effect,
-emulates the C construct of a variable number of arguments, as the following
+emulates the C construct of a varable number of arguments, as the following
 example will show:
 \begin{verbatim}
 program testaocc;
@@ -3430,12 +3436,11 @@ assembly-language level, by using it's mangled name (see the \progref).
 
 \subsection{cdecl}
 \label{se:cdecl}
-The \var{cdecl}\footnote{As of version 0.9.8} modifier can be used to declare 
-a function that uses a C type calling convention. This must be used if 
-you wish to acces functions in an object file generated by a C compiler. 
-It allows you to use the function in your code, and at linking time, you 
-must link the object file containing the \var{C} implementation of the 
-function or procedure.
+The \var{cdecl} modifier can be used to declare a function that uses a C
+type calling convention. This must be used if you wish to acces functions in
+an object file generated by a C compiler. It allows you to use the function in
+your code, and at linking time, you must link the object file containing the
+\var{C} implementation of the function or procedure.
 As an example:
 \begin{verbatim}
 program CmodDemo;
@@ -3483,9 +3488,15 @@ begin
 end;
 \end{verbatim}
 The square brackets around the modifier are not allowed in this case.
+\begin{remark}
+as of version 0.9.8, \fpc supports the Delphi \var{cdecl} modifier.
+This modifier works in the same way as the \var{export} modifier.
+More information about these modifiers can be found in the \progref, in the
+section on the calling mechanism and the chapter on linking.
+\end{remark}
 
 \subsection{StdCall}
-\fpc supports the Delphi \var{stdcall}\footnote{As of version 0.9.8} modifier.
+As of version 0.9.8, \fpc supports the Delphi \var{stdcall} modifier.
 This modifier does actually nothing, since the \fpc compiler by default
 pushes parameters from right to left on the stack, which is what the
 modifier does under Delphi (which pushes parameters on the stack from left to
@@ -3494,9 +3505,9 @@ More information about this modifier can be found in the \progref, in the
 section on the calling mechanism and the chapter on linking.
 
 \subsection{saveregisters}
-\fpc also has the \var{saveregisters}\footnote{As of version 0.99.15} modifier. 
-If this modifier is specified after a procedure or function, then the \fpc 
-compiler will save all registers on procedure entry, and restore them when the
+As of version 0.99.15, \fpc has the \var{saveregisters} modifier. If this
+modifier is specified after a procedure or function, then the \fpc compiler
+will save all registers on procedure entry, and restore them when the
 procedure exits (except for registers where return values are stored).
 
 You should not need this modifier, except maybe when calling assembler code.
@@ -3870,10 +3881,9 @@ order, i.e. when the compiler searches for an identifier, then it looks
 first in the last unit in the uses clause, then the last but one, and so on.
 This is important in case two units declare different types with the same
 identifier.
-When the compiler looks for unit files, it adds the extension \file{.ppx} where
-the character x depends on the platform (.ppl for \linux for example)
-to the name of the unit. On case sensitive file systems (such as \unix and \linux 
-systems), unit names are converted to lowercase when looking for a unit.
+When the compiler looks for unit files, it adds the extension \file{.ppu}
+(\file{.ppw} for Win32 platforms) to the name of the unit. On \linux, unit names
+are converted to all lowercase when looking for a unit.
 
 If a unit name is longer than 8 characters, the compiler will first look for
 a unit name with this length, and then it will truncate the name to 8
@@ -4058,7 +4068,7 @@ This is especially useful if you redeclare the system unit's identifiers.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Libraries
 \section{Libraries}
-\fpc supports making of dynamic libraries trough
+\fpc supports making of dynamic libraries (DLLs under Win32 and \ostwo) trough
 the use of the \var{Library} keyword.
 
 A Library is just like a unit or a program:
@@ -4072,7 +4082,7 @@ you must export them in an export clause:
 
 \input{syntax/exports.syn}
 
-Under \windows, an index clause can be added to an exports entry.
+Under Win32, an index clause can be added to an exports entry.
 an index entry must be a positive number larger or equal than 1.
 It is best to use low index values, although nothing forces you to
 do this.
@@ -4092,7 +4102,7 @@ are exported with the exact names as specified in the exports clause.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Exceptions}
 \label{ch:Exceptions}
-\fpc supports exceptions. Exceptions provide a
+As of version 0.99.7, \fpc supports exceptions. Exceptions provide a
 convenient way to program error and error-recovery mechanisms, and are
 closely related to classes.
 Exception support is based on 3 constructs:
@@ -4322,23 +4332,35 @@ be inserted in the assembler generated by the compiler.
 You can still use conditionals in your assembler, the compiler will
 recognise it, and treat it as any other conditionals.
 
+\begin{remark}
+Before version 0.99.1, \fpc did not support reference to variables by
+their names in the assembler parts of your code.
+\end{remark}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Assembler procedures and functions
 \section{Assembler procedures and functions}
 Assembler procedures and functions are declared using the
-\var{Assembler}\footnote{Supported as of version 0.9.7.} directive. 
-This permits the code generator to make a number of code generation 
-optimizations.
+\var{Assembler} directive. The \var{Assembler} keyword is supported
+as of version 0.9.7. This permits the code generator to make a number
+of code generation optimizations.
 
-The code generator does not generate any stack frame\footnote{It is to 
-note that this behaviour of the stack frame setup was not present in
-versions previous to 0.99.5a of \fpc, therefore routines using the \var{Assembler} keyword
-from earlier versions might not work correctly on current versions of \fpc.}
-code for the routine if it contains no local variables and no
+The code generator does not generate any stack frame (entry and exit
+code for the routine) if it contains no local variables and no
 parameters. In the case of functions, ordinal values must be returned
 in the accumulator. In the case of floating point values, these depend
 on the target processor and emulation options.
+
+\begin{remark} From version 0.99.1 to 0.99.5 (\emph{excluding}
+FPC 0.99.5a), the \var{Assembler} directive did not have the
+same effect as in Turbo Pascal, so beware! The stack frame would be
+omitted if there were no local variables, in this case if the assembly
+routine had any parameters, they would be referenced directly via the stack
+pointer. This was \emph{ NOT} like Turbo Pascal where the stack frame is only
+omitted if there are no parameters \emph{ and } no local variables. As
+stated earlier, starting from version 0.99.5a, \fpc now has the same
+behaviour as Turbo Pascal.
+\end{remark}
 
 %
 % System unit reference guide.
@@ -4745,7 +4767,7 @@ Functions concerning memory issues.
 \funcref{Seg}{Return segment}
 \procref{SetMemoryManager}{Set a memory manager}
 \funcref{Sptr}{Return current stack pointer}
-\funcref{SSeg}{Return stack segment}
+\funcref{SSeg}{Return ESS register value}
 \end{funclist}
 
 \subsection{Mathematical routines}
@@ -5081,7 +5103,7 @@ The code between the \var{Continue} call and the end of the repetitive
 statement is skipped. The condition of the repetitive statement is then
 checked again.
 
-This can be used with \var{For}, \var{repeat} and \var{While} statements.
+This can be used with \var{For}, var{repeat} and \var{While} statements.
 
 Note that while this is a procedure, \var{Continue} is a reserved word
 and hence cannot be redefined.
@@ -5180,7 +5202,7 @@ None.
 \begin{procedure}{Dispose}
 \Declaration
 Procedure Dispose (P : pointer);\\
-Procedure Dispose (P : Typed Pointer; Des : Procedure);
+Procedure Dispiose (P : Typed Pointer; Des : Procedure);
 \Description
 The first form \var{Dispose} releases the memory allocated with a call to
 \seep{New}. The pointer \var{P} must be typed. The released memory is
@@ -5191,7 +5213,7 @@ to an object type, and as a second parameter the name of a destructor
 of this object. The destructor will be called, and the memory allocated
 for the object will be freed.
 \Errors
-A run-time error will occur if the pointer doesn't point to a location in the
+An error will occur if the pointer doesn't point to a location in the
 heap.
 \SeeAlso
 \seep{New}, \seep{Getmem}, \seep{Freemem}
@@ -5320,7 +5342,7 @@ None.
 Function Filesize (Var F : Any file type) : Longint;
 \Description
 \var{Filesize} returns the total number of records in file \var{F}.
-It cannot be invoked with a file of type \var{Text}. (under \linux and \unix, this
+It cannot be invoked with a file of type \var{Text}. (under \linux, this
 also means that it cannot be invoked on pipes.)
 If \var{F} is empty, 0 is returned.
 \Errors
@@ -5401,7 +5423,7 @@ Procedure Freemem (Var P : pointer; Count : Longint);
 \var{Count} (in bytes), and returns it to the heap. \var{P} should point to the memory
 allocated to a dynamical variable.
 \Errors
-A run-time error will occur when \var{P} doesn't point to the heap.
+An error will occur when \var{P} doesn't point to the heap.
 \SeeAlso
 \seep{Getmem}, \seep{New}, \seep{Dispose}
 \end{procedure}
@@ -5416,7 +5438,7 @@ Procedure Getdir (drivenr : byte;var dir : string);
 \var{Getdir} returns in \var{dir} the current directory on the drive
 \var{drivenr}, where {drivenr} is 1 for the first floppy drive, 3 for the
 first hard disk etc. A value of 0 returns the directory on the current disk.
-On \linux and \unix, \var{drivenr} is ignored, as there is only one directory tree.
+On \linux, \var{drivenr} is ignored, as there is only one directory tree.
 \Errors
 An error is returned under \dos, if the drive requested isn't ready.
 \SeeAlso
@@ -5826,7 +5848,8 @@ Procedure Move (var Source,Dest;Count : Longint);
 \var{Move} moves \var{Count} bytes from \var{Source} to \var{Dest}.
 \Errors
 If either \var{Dest} or \var{Source} is outside the accessible memory for
-the process, then a run-time error will be generated. 
+the process, then a run-time error will be generated. With older versions of
+the compiler, a segmentation-fault will occur.
 \SeeAlso
 \seep{Fillword}, \seep{Fillchar}
 \end{procedure}
@@ -5986,7 +6009,7 @@ to it. If it is applied to the first value of the ordinal type, and the
 program was compiled with range checking on (\var{\{\$R+\}}, then a run-time
 error will be generated.
 \Errors
-A Range check Run-time error is generated when the result is out of
+Run-time error 201 is generated when the result is out of
 range.
 \SeeAlso
 \seef{Ord}, \seef{Pred}, \seef{High}, \seef{Low}
@@ -6001,9 +6024,15 @@ Function Ptr (Sel,Off : Longint) : Pointer;
 \var{Ptr} returns a pointer, pointing to the address specified by
 segment \var{Sel} and offset \var{Off}.
 
-\begin{remark}
-In the 32-bit flat-memory model supported by \fpc, this
-function is obsolete. The value will always be the offset.
+ \begin{remark}
+\begin{enumerate}
+\item In the 32-bit flat-memory model supported by \fpc, this
+function is obsolete.
+\item The returned address is simply the offset. If you recompile
+the RTL with \var{-dDoMapping} defined, then the compiler returns the
+following : \var{ptr := pointer(\$e0000000+sel shl 4+off)} under \dos, or
+\var{ptr := pointer(sel shl 4+off)} on other OSes.
+\end{enumerate}
 \end{remark}
 \Errors
 None.
@@ -6457,7 +6486,7 @@ Function SSeg  : Longint;
 \Description
  \var{SSeg} returns the Stack Segment. This function is only
  supported for compatibility reasons, as \var{Sptr} returns the
-correct contents of the stack pointer.
+correct contents of the stackpointer.
 \Errors
 None.
 \SeeAlso
@@ -6514,7 +6543,7 @@ program was compiled with range checking on (\var{\{\$R+\}}), then a run-time
 error will be generated.
 
 \Errors
-A Range check Run-time error is generated when the result is out of
+Run-time error 201 is generated when the result is out of
 range.
 \SeeAlso
 \seef{Ord}, \seef{Pred}, \seef{High}, \seef{Low}
@@ -6653,7 +6682,7 @@ If the parameter \var{F} is omitted, standard output is assumed.
 If no variables are specified, a Carriage Return - LineFeed character pair
 is emitted, resulting in a new line in the file \var{F}.
 \begin{remark}
-Under \linux and \unix, the Carriage Return character is omitted, as
+Under \linux, the Carriage Return character is omitted, as
 customary in Unix environments.
 \end{remark}
 
@@ -6751,7 +6780,7 @@ Procedure FreeMem(Var p:pointer[;Size:Longint]);
 ignored, since the object pascal version of \var{GetMem} stores the amount
 of memory that was requested.
 
-Be sure not to release memory that was not obtained with the \var{Getmem}
+be sure not to release memory that was not obtained with the \var{Getmem}
 call in \file{Objpas}. Normally, this should not happen, since objpas
 changes the default memory manager to it's own memory manager.
 \Errors
@@ -6914,7 +6943,7 @@ AnsiString. The system unit \seef{Paramstr} function limits the result to
 255 characters.
 
 The zeroeth command-line parameter contains the path of the executable,
-except on \linux and \unix, where it is the command as typed on the command-line.
+except on \linux, where it is the command as typed on the command-line.
 \Errors
 In case \var{Param} is an invalid value, an empty string is returned.
 \SeeAlso

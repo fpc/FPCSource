@@ -28,7 +28,6 @@
   \usepackage{html}
   \usepackage{htmllist}
 \fi
-\usepackage{fpc}
 \latex{%
   \usepackage{times}
   \ifpdf
@@ -40,6 +39,7 @@
   \fi
 }
 %
+\latex{\usepackage{fpc}}
 \html{\input{fpc-html.tex}}
 \makeindex
 %

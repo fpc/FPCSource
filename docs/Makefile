@@ -54,6 +54,10 @@ LATEX2HTMLOPTS = -no_reuse -up_url "../fpctoc.html"\
                  -html_version 4.0 -split 3 -image_type gif
 endif
 
+# Icons for latex2html
+ICONSERVER=../buttons
+export ICONSERVER
+
 # Ascii mode ? (i.e. no pics)
 ifndef ASCIIMODE
 ASCIIMODE=NO
@@ -89,16 +93,16 @@ export TMP=/tmp
 # End of configurable section. Do not edit after this line.
 #######################################################################
 
-PS = $(addsuffix .ps, $(HTML))
-DVI = $(addsuffix .dvi, $(HTML))
-TXT = $(addsuffix .txt, $(HTML))
-PDF = $(addsuffix .pdf, $(HTML))
-TOC = $(addsuffix .toc, $(HTML))
-AUX = $(addsuffix .aux, $(HTML))
-LOG = $(addsuffix .log, $(HTML))
-LOT = $(addsuffix .lot, $(HTML))
-OUT = $(addsuffix .out, $(HTML))
-CHK = $(addsuffix .chk, $(HTML) unitex refex)
+PS = $(addsuffix .ps, $(HTML) onechap)
+DVI = $(addsuffix .dvi, $(HTML) onechap)
+TXT = $(addsuffix .txt, $(HTML) onechap)
+PDF = $(addsuffix .pdf, $(HTML) onechap)
+TOC = $(addsuffix .toc, $(HTML) onechap)
+AUX = $(addsuffix .aux, $(HTML) onechap)
+LOG = $(addsuffix .log, $(HTML) onechap)
+LOT = $(addsuffix .lot, $(HTML) onechap)
+OUT = $(addsuffix .out, $(HTML) onechap)
+CHK = $(addsuffix .chk, $(HTML) progex unitex refex htex onechap)
 
 CHAPTERS = $(addsuffix .tex, crt dos getopts go32 graph linux printer\
              strings objects heaptrc sysutils ipc mouse gpm dxeload \
@@ -161,9 +165,9 @@ help:
 	@echo ' pdfdist       : pdf, and archive result.'
 
 clean:
+	-rm -f *.htex
 	-rm -rf $(HTML) onechap
 	-rm -f $(TOC) $(LOG) $(DVI) $(PDF) $(AUX) $(OUT) $(PS) *.i* $(LOT) $(TXT) $(CHK)
-	-rm -f onechap.dvi onechap.aux onechap.log onechap.chk
 
 # Units
 	-$(MAKE) -C crtex clean
@@ -212,6 +216,12 @@ ifndef INSTALLDEBUG
 endif
 	touch refex.chk
 
+progex.chk:
+ifndef INSTALLDEBUG
+	$(MAKE) -C progex tex
+endif
+	touch progex.chk
+
 messages: 
 	msg2inc -TE ../compiler/errore.msg messages.tex
 
@@ -250,15 +260,19 @@ all : dvi ps pdf txt html
 # Html creation
 #####################################################################
 
-user: user.chk
+htex: htex.chk
+htex.chk: $(wildcard *.tex)
+	./tex2htex
+	touch htex.chk
 
-user.chk: user.tex date.inc
+user: user.chk
+user.chk: htex.chk date.inc
 ifdef INSTALLDEBUG
 	mkdir user
 	cp user.tex user/index.html
 else
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 2 -link 2\
-         -t "User's guide for Free Pascal" user.tex
+	-t "User's guide for Free Pascal" user.htex
 	-sed -f foot.sed <user/footnode.html >user/footnote.html
 	-mv user/footnote.html user/footnode.html
 	-rm -f user/labels.pl user/internals.pl user/.*.pag user/.*.dir
@@ -267,14 +281,13 @@ endif
 	touch user.chk
 
 units: units.chk
-
-units.chk: units.tex unitex.chk date.inc
+units.chk: unitex.chk htex.chk date.inc
 ifdef INSTALLDEBUG
 	mkdir units
 	cp units.tex units/index.html
 else
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 3 -link 2\
-        -t "Unit reference for Free Pascal" units.tex
+	-t "Unit reference for Free Pascal" units.htex
 	-sed -f foot.sed <units/footnode.html >units/footnote.html
 	-mv units/footnote.html units/footnode.html
 	-rm -f units/labels.pl units/internals.pl units/.*.pag units/.*.dir
@@ -283,14 +296,13 @@ endif
 	touch units.chk
 
 ref: ref.chk
-
-ref.chk: refex.chk ref.tex date.inc
+ref.chk: refex.chk htex.chk date.inc
 ifdef INSTALLDEBUG
 	mkdir ref
 	cp ref.tex ref/index.html
 else
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 4 -link 2\
-        -t "Free Pascal reference guide" ref.tex
+	-t "Free Pascal reference guide" ref.htex
 	-sed -f foot.sed <ref/footnode.html >ref/footnote.html
 	-mv ref/footnote.html ref/footnode.html
 	-rm -f ref/labels.pl ref/internals.pl ref/.*.pag ref/.*.dir
@@ -299,14 +311,13 @@ endif
 	touch ref.chk	
 
 prog: prog.chk
-
-prog.chk: prog.tex date.inc
+prog.chk: progex.chk htex.chk date.inc
 ifdef INSTALLDEBUG
 	mkdir prog
 	cp prog.tex prog/index.html
 else
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 2 -link 2\
-        -t "Free Pascal programmers guide" prog.tex
+	-t "Free Pascal programmers guide" prog.htex
 	-sed -f foot.sed <prog/footnode.html >prog/footnote.html
 	-mv prog/footnote.html prog/footnode.html
 	-rm -f prog/labels.pl prog/internals.pl prog/.*.pag prog/.*.dir
@@ -315,14 +326,13 @@ endif
 	touch prog.chk
 
 internal: internal.chk
-
-internal.chk: internal.tex date.inc
+internal.chk: htex.chk date.inc
 ifdef INSTALLDEBUG
 	mkdir internal
 	cp internal.tex internal/index.html
 else
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 4 -link 2\
-        -t "Free Pascal Compiler Documentation" internal.tex
+	-t "Free Pascal Compiler Documentation" internal.htex
 	-sed -f foot.sed <internal/footnode.html >internal/footnote.html
 	-mv internal/footnote.html internal/footnode.html
 	-rm -f internal/labels.pl internal/internals.pl internal/.*.pag internal/.*.dir
@@ -331,14 +341,13 @@ endif
 	touch internal.chk	
 
 onechap: onechap.chk
-
-onechap.chk: onechap.tex date.inc
+onechap.chk: unitex.chk htex.chk date.inc
 ifdef INSTALLDEBUG
 	mkdir onechap
 	cp onechap.tex onechap/index.html
 else
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 4 -link 2\
-        -t "Free Pascal reference guide" onechap.tex
+	-t "Free Pascal reference guide" onechap.htex
 	-sed -f foot.sed <onechap/footnode.html >onechap/footnote.html
 	-mv onechap/footnote.html onechap/footnode.html
 	-rm -f onechap/labels.pl onechap/internals.pl onechap/.*.pag onechap/.*.dir
@@ -347,6 +356,7 @@ endif
 	touch onechap.chk	
 
 html: $(HTML)
+
 
 #####################################################################
 # Installation
@@ -460,7 +470,10 @@ linuxexamples: examples
 
 #
 # $Log$
-# Revision 1.1  2000-07-13 09:10:03  michael
+# Revision 1.1.2.1  2000-09-02 17:29:51  peter
+#   * example including for html docs
+#
+# Revision 1.1  2000/07/13 09:10:03  michael
 # + Initial import
 #
 # Revision 1.40  2000/07/11 18:07:26  peter

@@ -28,7 +28,6 @@
   \usepackage{html}
   \usepackage{htmllist}
 \fi
-\usepackage{fpc}
 \latex{%
   \ifpdf
   \pdfinfo{/Author(Michael Van Canneyt)
@@ -39,6 +38,7 @@
   \fi
 }
 %
+\latex{\usepackage{fpc}}
 \html{\input{fpc-html.tex}}
 %
 % Settings

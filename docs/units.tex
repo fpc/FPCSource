@@ -34,7 +34,6 @@
   \usepackage{html}
   \usepackage{htmllist}
 \fi
-\usepackage{fpc}
 \latex{\usepackage{multicol}}
 \latex{%
   \ifpdf
@@ -49,6 +48,7 @@
   \fi
 }
 %
+\latex{\usepackage{fpc}}
 \html{\input{fpc-html.tex}}
 %
 % Settings
@@ -129,7 +129,7 @@ lookup.
 % The graph unit
 \input{graph.tex}
 % The HeapTrc unit
-\input{heaptrc}
+\input{heaptrc.tex}
 % The IPC unit
 \input{ipc.tex}
 % the Linux unit
