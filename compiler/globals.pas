@@ -821,7 +821,7 @@ implementation
             if (CurrentDir<>'') and (Copy(CurrPath,1,length(CurrentDir))=CurrentDir) then
              begin
 {$ifdef AMIGA}
-               CurrPath:=Copy(CurrPath,length(CurrentDir)+1,255);
+               CurrPath:=CurrentDir+Copy(CurrPath,length(CurrentDir)+1,255);
 {$else}
                CurrPath:='.'+source_info.DirSep+Copy(CurrPath,length(CurrentDir)+1,255);
 {$endif}
@@ -1526,7 +1526,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.82  2003-01-12 15:42:23  peter
+  Revision 1.83  2003-01-30 21:45:53  peter
+    * amiga path fix (merged)
+
+  Revision 1.82  2003/01/12 15:42:23  peter
     * m68k pathexist update from 1.0.x
     * palmos res update from 1.0.x
 
