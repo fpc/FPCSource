@@ -3638,6 +3638,7 @@ implementation
     function tprocdef.fullprocname(showhidden:boolean):string;
       var
         s : string;
+        t : ttoken;
       begin
 {$ifdef EXTDEBUG}
         showhidden:=true;
@@ -3649,10 +3650,27 @@ implementation
             s:=s+'class ';
            s:=s+_class.objrealname^+'.';
          end;
-        s:=s+procsym.realname+typename_paras(showhidden);
-        if assigned(rettype.def) and
-          not(is_void(rettype.def)) then
-               s:=s+':'+rettype.def.gettypename;
+        if proctypeoption=potype_operator then
+          begin
+            for t:=NOTOKEN to last_overloaded do
+              if procsym.realname='$'+overloaded_names[t] then
+                begin
+                  s:='operator '+arraytokeninfo[t].str+typename_paras(showhidden);
+                  break;
+                end;
+          end
+        else
+          s:=s+procsym.realname+typename_paras(showhidden);
+        case proctypeoption of
+          potype_constructor:
+            s:='constructor '+s;
+          potype_destructor:
+            s:='destructor '+s;
+          else
+            if assigned(rettype.def) and
+              not(is_void(rettype.def)) then
+              s:=s+':'+rettype.def.gettypename;
+        end;
         fullprocname:=s;
       end;
 
@@ -5858,7 +5876,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.165  2003-10-01 15:00:02  peter
+  Revision 1.166  2003-10-01 15:32:58  florian
+    * fixed FullProcName to handle constructors, destructors and operators correctly
+
+  Revision 1.165  2003/10/01 15:00:02  peter
     * don't write parast,localst debug info for externals
 
   Revision 1.164  2003/09/23 21:03:35  peter
