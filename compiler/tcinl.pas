@@ -456,25 +456,33 @@ implementation
                        if not assigned(p^.left^.resulttype) then
                          exit;
                        if (p^.left^.resulttype^.deftype=orddef) then
-                         if (porddef(p^.left^.resulttype)^.typ in [uchar,bool8bit]) then
-                           begin
-                              if porddef(p^.left^.resulttype)^.typ=bool8bit then
-                                begin
-                                   hp:=gentypeconvnode(p^.left,u8bitdef);
-                                   putnode(p);
-                                   p:=hp;
-                                   p^.convtyp:=tc_bool_2_int;
-                                   p^.explizit:=true;
-                                   firstpass(p);
-                                end
-                              else
-                                begin
-                                   hp:=gentypeconvnode(p^.left,u8bitdef);
-                                   putnode(p);
-                                   p:=hp;
-                                   p^.explizit:=true;
-                                   firstpass(p);
-                                end;
+                         if (porddef(p^.left^.resulttype)^.typ in [uchar,uwidechar,bool8bit]) then
+			   case porddef(p^.left^.resulttype)^.typ of
+			    uchar:
+                               begin
+                                  hp:=gentypeconvnode(p^.left,u8bitdef);
+                                  putnode(p);
+                                  p:=hp;
+                                  p^.explizit:=true;
+                                  firstpass(p);
+                               end;
+			    uwidechar:
+                               begin
+                                  hp:=gentypeconvnode(p^.left,u16bitdef);
+                                  putnode(p);
+                                  p:=hp;
+                                  p^.explizit:=true;
+                                  firstpass(p);
+                               end;
+			    bool8bit:
+                               begin
+                                  hp:=gentypeconvnode(p^.left,u8bitdef);
+                                  putnode(p);
+                                  p:=hp;
+                                  p^.convtyp:=tc_bool_2_int;
+                                  p^.explizit:=true;
+                                  firstpass(p);
+                    	       end
                            end
                          { can this happen ? }
                          else if (porddef(p^.left^.resulttype)^.typ=uvoid) then
@@ -1316,7 +1324,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:52  michael
+  Revision 1.3  2000-07-22 11:53:26  sg
+  * Added WideChar support to inlined 'ord' function
+
+  Revision 1.2  2000/07/13 11:32:52  michael
   + removed logs
 
 }
