@@ -17,23 +17,8 @@
 # Defaults
 #####################################################################
 
-# Where are the include files located
-INC=
-PROCINC=
-OSINC=
-
-# Needed options, without it won't compile
-NEEDOPT=
-
-# Needed unit dir, which is searched as the first path
-NEEDUNITDIR=
-
-# Where need we to place the executables/ppu/objects
-TARGETDIR=
-UNITTARGETDIR=
-
-# As default make only the units
-#DEFAULTUNITS=1
+# Where is makefile.fpc by default
+DEFAULTFPCDIR=../..
 
 
 #####################################################################
@@ -119,10 +104,7 @@ endif
 
 #
 # $Log$
-# Revision 1.1  1999-05-12 00:11:23  michael
-# initial import
-#
-# Revision 1.1  1999/03/16 00:50:29  peter
-#   + init
+# Revision 1.2  1999-06-08 18:28:26  peter
+#   * fixes for 0.99.12 release
 #
 #

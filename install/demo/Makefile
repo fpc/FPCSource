@@ -119,9 +119,22 @@ ifeq ($(OS_TARGET),win32)
 vpath %$(PASEXT) win32
 endif
 
+#################################
+# Demo installation for linux 
+#
+
+DEMOINSTALLDIR=$(DOCINSTALLDIR)/demo
+
+installdemo:
+	$(MKDIR) $(DEMOINSTALLDIR)
+	$(COPY) -rf * $(DEMOINSTALLDIR)
+
 #
 # $Log$
-# Revision 1.4  1999-05-27 21:36:32  peter
+# Revision 1.5  1999-06-08 18:28:21  peter
+#   * fixes for 0.99.12 release
+#
+# Revision 1.4  1999/05/27 21:36:32  peter
 #   * new demo's
 #   * fixed mandel for linux
 #

@@ -374,6 +374,21 @@ ide_sharedinstall:
 
 
 #######################################
+# Install targets
+#######################################
+
+base_install:
+	$(INSTALL) base/Makefile $(LIBINSTALLDIR)
+	$(INSTALL) base/makefile.fpc $(LIBINSTALLDIR)
+
+demo_install:
+	$(MAKE) -C demo installdemo
+
+man_install:
+	$(MAKE) -C man installman
+
+
+#######################################
 # Packaging targets
 #######################################
 
@@ -428,7 +443,10 @@ utilszip: utils_clean rtl_clean
 
 #
 # $Log$
-# Revision 1.16  1999-05-16 02:37:29  peter
+# Revision 1.17  1999-06-08 18:28:11  peter
+#   * fixes for 0.99.12 release
+#
+# Revision 1.16  1999/05/16 02:37:29  peter
 #   + fpc_showinstallfiles to show which files will be added to the system
 #
 # Revision 1.15  1999/05/12 16:17:06  peter

@@ -345,6 +345,7 @@ installlib: quickinstall
 ifdef inlinux
 	chmod 755 $(COMPILERUTILS)/makecfg
 	$(COMPILERUTILS)/makecfg $(LIBINSTALLDIR)/samplecfg
+	chmod 644 $(COMPILERUTILS)/makecfg
 endif
 	$(MKDIR) $(MSGINSTALLDIR)
 	$(INSTALL) $(MSGFILES) $(MSGINSTALLDIR)
@@ -394,7 +395,10 @@ $(M68KEXENAME): $(PASFILES) $(INCFILES)
 
 #
 # $Log$
-# Revision 1.31  1999-05-19 11:44:13  pierre
+# Revision 1.32  1999-06-08 18:28:12  peter
+#   * fixes for 0.99.12 release
+#
+# Revision 1.31  1999/05/19 11:44:13  pierre
 #  * suppress relative paths in cycle target
 #
 # Revision 1.30  1999/05/12 16:11:01  peter

@@ -15,29 +15,9 @@
 # Defaults
 #####################################################################
 
-# Where are the include files located
-INC=
-PROCINC=
-OSINC=
-
-# Needed options, without it won't compile
-NEEDOPT=
-
-# Needed unit dir, which is searched as the first path
-NEEDUNITDIR=
-
-# Define if vga library is not in /usr/lib 
-# SVGALIBDIR=
-
-# Where need we to place the executables/ppu/objects
-TARGETDIR=
-UNITTARGETDIR=
-
-# As default make only the units
-#DEFAULTUNITS=1
-
-# Uncomment this is the makefile.fpc isn't located in ../..
+# Where is makefile.fpc by default
 DEFAULTFPCDIR=../..
+
 
 #####################################################################
 # Real targets
@@ -130,10 +110,7 @@ testdb$(EXEEXT): testdb$(PASEXT) mysql$(PPUEXT)
 
 #
 # $Log$
-# Revision 1.1  1999-05-12 00:11:26  michael
-# initial import
-#
-# Revision 1.1  1999/03/16 00:50:29  peter
-#   + init
+# Revision 1.2  1999-06-08 18:28:25  peter
+#   * fixes for 0.99.12 release
 #
 #

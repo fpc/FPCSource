@@ -15,30 +15,16 @@
 # Defaults
 #####################################################################
 
-# Where are the include files located
-INC=
-PROCINC=
-OSINC=
+# Where is makefile.fpc by default
+DEFAULTFPCDIR=../..
 
 # Needed options, without it won't compile
 NEEDOPT=-S2
-
-# Needed unit dir, which is searched as the first path
-NEEDUNITDIR=
 
 # Linux only
 # Define if libgds.a is not in /usr/lib 
 # GDSLIBDIR=
 
-# Where need we to place the executables/ppu/objects
-TARGETDIR=
-UNITTARGETDIR=
-
-# As default make only the units
-#DEFAULTUNITS=1
-
-# Uncomment this is the makefile.fpc isn't located in ../..
-DEFAULTFPCDIR=../..
 
 #####################################################################
 # Real targets
@@ -131,7 +117,10 @@ testib$(EXEEXT): testib.pp ibase$(PPUEXT)
 
 #
 # $Log$
-# Revision 1.1  1999-05-12 00:11:27  michael
+# Revision 1.2  1999-06-08 18:28:23  peter
+#   * fixes for 0.99.12 release
+#
+# Revision 1.1  1999/05/12 00:11:27  michael
 # initial import
 #
 # Revision 1.1  1999/03/16 00:50:29  peter

@@ -17,6 +17,10 @@
 # Configurable section
 #####################################################################
 
+# Debugging the install, that will only copy the .tex to index.html
+# so a make html and make install goes quickly
+#INSTALLDEBUG=1
+
 # Which docs are made when 'html' is specified
 HTML = user units ref prog
 
@@ -178,6 +182,7 @@ $(DVI) : %.dvi: %.tex
 $(PDF) : %.pdf: %.tex
 
 unitex.chk:
+ifndef INSTALLDEBUG
 	$(MAKE) -C crtex tex
 	$(MAKE) -C dosex tex
 	$(MAKE) -C go32ex tex
@@ -191,10 +196,13 @@ unitex.chk:
 	$(MAKE) -C sockex tex
 	$(MAKE) -C stringex tex
 	$(MAKE) -C sysutex tex
+endif
 	touch unitex.chk
 
 refex.chk:
+ifndef INSTALLDEBUG
 	$(MAKE) -C refex tex
+endif
 	touch refex.chk
 
 messages: 
@@ -236,56 +244,81 @@ all : dvi ps pdf txt html
 user: user.chk
 
 user.chk: user.tex date.inc
+ifdef INSTALLDEBUG
+	mkdir user
+	cp user.tex user/index.html
+else
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 2 -link 2\
          -t "User's guide for Free Pascal" user.tex
 	-sed -f foot.sed <user/footnode.html >user/footnote.html
 	-mv user/footnote.html user/footnode.html
 	-rm -f user/labels.pl user/internals.pl user/.*.pag user/.*.dir
 	-rm -f user/images.* user/*.log user/WARNINGS
+endif
 	touch user.chk
 
 units: units.chk
 
 units.chk: units.tex unitex.chk date.inc
+ifdef INSTALLDEBUG
+	mkdir units
+	cp units.tex units/index.html
+else
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 3 -link 2\
         -t "Unit reference for Free Pascal" units.tex
 	-sed -f foot.sed <units/footnode.html >units/footnote.html
 	-mv units/footnote.html units/footnode.html
 	-rm -f units/labels.pl units/internals.pl units/.*.pag units/.*.dir
 	-rm -f units/images.* units/*.log units/WARNINGS
+endif
 	touch units.chk
 
 ref: ref.chk
 
 ref.chk: refex.chk ref.tex date.inc
+ifdef INSTALLDEBUG
+	mkdir ref
+	cp ref.tex ref/index.html
+else
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 4 -link 2\
         -t "Free Pascal reference guide" ref.tex
 	-sed -f foot.sed <ref/footnode.html >ref/footnote.html
 	-mv ref/footnote.html ref/footnode.html
 	-rm -f ref/labels.pl ref/internals.pl ref/.*.pag ref/.*.dir
 	-rm -f ref/images.* ref/*.log ref/WARNINGS
+endif
 	touch ref.chk	
 
 prog: prog.chk
 
 prog.chk: prog.tex date.inc
+ifdef INSTALLDEBUG
+	mkdir prog
+	cp prog.tex prog/index.html
+else
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 2 -link 2\
         -t "Free Pascal programmers guide" prog.tex
 	-sed -f foot.sed <prog/footnode.html >prog/footnote.html
 	-mv prog/footnote.html prog/footnode.html
 	-rm -f prog/labels.pl prog/internals.pl prog/.*.pag prog/.*.dir
 	-rm -f prog/images.* prog/*.log prog/WARNINGS
+endif
 	touch prog.chk
 
 internal: internal.chk
 
 internal.chk: internal.tex date.inc
+ifdef INSTALLDEBUG
+	mkdir internal
+	cp internal.tex internal/index.html
+else
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 4 -link 2\
         -t "Free Pascal Compiler Documentation" internal.tex
 	-sed -f foot.sed <internal/footnode.html >internal/footnote.html
 	-mv internal/footnote.html internal/footnode.html
 	-rm -f internal/labels.pl internal/internals.pl internal/.*.pag internal/.*.dir
 	-rm -f internal/images.* internal/*.log internal/WARNINGS
+endif
 	touch internal.chk	
 
 html: $(HTML)
@@ -365,7 +398,10 @@ linuxexamples: examples
 
 #
 # $Log$
-# Revision 1.24  1999-06-03 00:06:42  peter
+# Revision 1.25  1999-06-08 18:28:13  peter
+#   * fixes for 0.99.12 release
+#
+# Revision 1.24  1999/06/03 00:06:42  peter
 #   * html creation works again
 #
 # Revision 1.23  1999/06/02 17:41:33  peter
