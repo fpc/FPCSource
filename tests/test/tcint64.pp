@@ -9,8 +9,10 @@ const
    i1 : int64 = $ffffffff;
    u2 : qword = -1;
    i2 : int64 = -1;
-
+var
+  l : longint;   
 begin
+  l:=-1;
   Writeln(' qword($ffffffff) = ',u1);
   Writeln(' int64($ffffffff) = ',i1);
   Writeln(' qword(-1) = ',u2);
@@ -20,5 +22,18 @@ begin
       Writeln('"const i2 : int64 = -1;" code');
       Writeln('generates a wrong int64 constant');
       RunError(1);
+    end;
+    
+  if u2<>qword(int64(l)) then
+    begin
+      Writeln('"const u2 : qword = -1;" code');
+      Writeln('generates a wrong int64 constant');
+      RunError(1);
+    end;
+
+  if qword(l)<>u2 then
+    begin
+      writeln('qword(longint) sign extension generates wrong code');
+      halt(1);
     end;
 end.
