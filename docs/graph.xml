@@ -1,0 +1,1896 @@
+<?xml version="1.0" encoding="ISO8859-1"?>
+<fpdoc-descriptions>
+<!--  
+
+   $Id$ 
+   This file is part of the FPC documentation. 
+   Copyright (C) 1997, by Michael Van Canneyt 
+ 
+   The FPC documentation is free text; you can redistribute it and/or 
+   modify it under the terms of the GNU Library General Public License as 
+   published by the Free Software Foundation; either version 2 of the 
+   License, or (at your option) any later version. 
+ 
+   The FPC Documentation is distributed in the hope that it will be useful, 
+   but WITHOUT ANY WARRANTY; without even the implied warranty of 
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+   Library General Public License for more details. 
+ 
+   You should have received a copy of the GNU Library General Public 
+   License along with the FPC documentation; see the file COPYING.LIB.  If not, 
+   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, 
+   Boston, MA 02111-1307, USA. 
+ -->
+<package name="rtl">
+<module name="graph">
+<short>TP compatible unit to handle screen graphics.</short>
+<!-- \FPCexampledir{graphex} -->
+<descr>
+<p>
+This document describes the <var>GRAPH</var> unit for Free Pascal, for all
+platforms. The unit was first written for dos by Florian kl\"ampfl, but was
+later completely rewritten by Carl-Eric Codere to be completely portable.
+The unit is provided for compatibility only: It is recommended to use more
+modern graphical systems. The graph unit will allow to recompile old
+programs, they will work to some extent, but if the application has 
+heavy graphical needs, it's recommended to use another set of graphical
+routines, suited to the platform the program should work on.
+</p>
+</descr>
+
+<topic name="Requirements">
+<short>Requirements</short>
+<descr>
+<p>
+The unit Graph exports functions and procedures for graphical output.
+It requires at least a VGA-compatible Card or a VGA-Card with software-driver
+(min. <b>512Kb</b> video memory).
+</descr>
+</topic>
+
+<topic name="Modes">
+<short>A word about mode selection</short>
+<descr>
+<p>
+The graph unit was implemented for compatibility with the old Turbo Pascal graph
+unit. For this reason, the mode constants as they were defined in the
+Turbo Pascal graph unit are retained. 
+</p>
+<p>
+However, since
+</p>
+<ol>
+<li> Video cards have evolved very much</li>
+<li> Free Pascal runs on multiple platforms</li>
+</ol>
+<p>
+it was decided to implement new mode and graphic driver constants, 
+which are more independent of the specific platform the program runs on.
+</p>
+<p>
+In this section we give a short explanation of the new mode system. the
+following drivers were defined:
+</p>
+<code>
+D1bit = 11;
+D2bit = 12;
+D4bit = 13;
+D6bit = 14;  { 64 colors Half-brite mode - Amiga }
+D8bit = 15;
+D12bit = 16; { 4096 color modes HAM mode - Amiga }
+D15bit = 17;
+D16bit = 18;
+D24bit = 19; { not yet supported }
+D32bit = 20; { not yet supported }
+D64bit = 21; { not yet supported }
+
+lowNewDriver = 11;
+highNewDriver = 21;
+</code>
+<p>
+Each of these drivers specifies a desired color-depth. 
+</p>
+<p>
+The following modes have been defined:
+</p>
+<code>
+detectMode = 30000;
+m320x200 = 30001;  
+m320x256 = 30002; { amiga resolution (PAL) }
+m320x400 = 30003; { amiga/atari resolution }
+m512x384 = 30004; { mac resolution }
+m640x200 = 30005; { vga resolution }
+m640x256 = 30006; { amiga resolution (PAL) }
+m640x350 = 30007; { vga resolution }
+m640x400 = 30008;
+m640x480 = 30009;
+m800x600 = 30010;
+m832x624 = 30011; { mac resolution }
+m1024x768 = 30012;
+m1280x1024 = 30013;
+m1600x1200 = 30014;
+m2048x1536 = 30015;
+
+lowNewMode = 30001;
+highNewMode = 30015;
+</code>
+<p>
+These modes start at 30000 because Borland specified that the mode number
+should be ascending with increasing X resolution, and the new constants 
+shouldn't interfere with the old ones.
+</p>
+<p>
+The above constants can be used to set a certain color depth and resultion,
+as demonstrated in the below example.
+</p>
+<p>
+If other modes than the ones above are supported by the graphics card,
+you will not be able to select them with this mechanism.
+</p>
+<p>
+For this reason, there is also a 'dynamic' mode number, which is assigned at
+run-time. This number increases with increasing X resolution. It can be
+queried with the <var>getmoderange</var> call. This call will return the range
+of modes which are valid for a certain graphics driver. The numbers are
+guaranteed to be consecutive, and can be used to search for a certain 
+resolution, as in the second example below.
+</p>
+<p>
+Thus, the <var>getmoderange</var> function can be used to detect all available 
+modes and drivers, as in the third example below:
+</p>
+</descr>
+<example file="inigraph1"/>
+<example file="inigraph2"/>
+<example file="modrange"/>
+</topic>
+
+<topic name="TargetIssuesDos">
+<short>Target specific issues: DOS</short>
+<descr>
+<p>
+VESA modes (i.e., anything but 320x200x256 and 640x480x16) do not work 
+under most installations of Windows NT, Windows 2000 and Windows XP. 
+They also do not work for some people under Windows 98 and Windows ME, 
+depending on their graphics drivers. However, the graph unit cannot 
+detect this, because no errors are returned from the system. 
+In such cases, the screen simply turns black, or will show garbage.
+</p>
+<p>
+Nothing can be done about this, the reason is missing or buggy
+support in the graphics drivers of the operating system.
+</p>
+</descr>
+</topic>
+
+<topic name="TargetIssuesWindows">
+<short>Target specific issues: Windows</short>
+<descr>
+<p>
+The windows version of the Graph units is not very performant. It works,
+thus allowing to port old TP programs to Windows, but that is all what can
+be expected from it. Further, it is windowed only: A separate window is
+opened in which the graphics are displayed. This means that the normal 
+keyboard/mouse handling as provided by the crt and/or keyboard/mouse units
+wil not work in the graphical window. If keyboard and mouse input are needed
+the winmouse and the wincrt unit should be used instead. 
+To hide the console window, compile with the
+</p>
+<code>
+{$apptype gui}
+</code>
+<p>
+switch.
+</p>
+<p>
+Further, the following extra modes are available:
+</p>
+<code>
+mLargestWindow16  = $f0;
+mLargestWindow256 = $f1;
+mLargestWindow32k = $f2;
+mLargestWindow64k = $f3;
+mLargestWindow16M = $f4;
+mMaximizedWindow16 = $f5;
+mMaximizedWindow256 = $f6;
+mMaximizedWindow32k = $f7;
+mMaximizedWindow64k = $f8;
+mMaximizedWindow16M = $f9;
+</code>
+</descr>
+</topic>
+
+<topic name="TargetIssuesWindows">
+<short>Target specific issues: Linux</short>
+<descr>
+<p>
+There are several issues on Linux that need to be taken care of:
+</p>
+<p>
+The Linux version of the <file>Graph</file> unit uses the <file>libvga</file> 
+library. This library works on the console, not under X.
+</p>
+<p> 
+If you get an error similar to
+</p>
+<code>
+/usr/bin/ld: cannot find -lvga
+</code>
+<p>
+This can mean one of two things: either libvga and it's development package
+is not installed properly, or the directory where it is installed is not in 
+the linker path.
+</p>
+<p>
+To remedy the former, you should install both the libvga 
+package and libvga-devel package (or compile and install from scratch).
+</p>
+<p>
+To remedy the latter, you should add the path to the compiler command-line
+using the <var>-Fl</var> option.
+</p>
+<p>
+Programs using <file>libvga</file> need root privileges to run. 
+You can make them setuid root with the following command:
+</p>
+<code>
+chown root.root myprogram
+chmod u+s myprogram
+</code>
+<p>
+The libvga library will give up the root privileges after it is initialized.
+</p>
+<p>
+there is an experimental version of the Graphics library available that
+uses GGI to do all the drawing, but it is not well tested. It's called
+<file>ggigraph</file> and is distributed in source form only.
+</p>
+<p> 
+Do not use the CRT unit together with the Graph unit: the console may
+end up in an unusable state. Instead, the <file>ncurses</file> unit may function 
+fine.
+</p>
+</descr>
+</topic>
+
+<topic name="category">
+<short>Function list by category</short>
+<descr>
+What follows is a listing of the available functions, grouped by category.
+For each function there is a reference to the page where you can find the
+function.
+<topic name="FuncInitializion">
+<short>Categorized functions: Initialization</short>
+<descr>
+<p>
+Initialization of the graphics screen.
+</p>
+<table>
+<th><td>Name</td><td>Description</td></th>
+<tr><td><link id="ClearDevice"/></td><td>Empty the graphics screen</td></tr>
+<tr><td><link id="CloseGraph"/></td><td>Finish drawing session, return to text mode</td></tr>
+<tr><td><link id="DetectGraph"/></td><td>Detect graphical modes</td></tr>
+<tr><td><link id="GetAspectRatio"/></td><td>Get aspect ratio of screen</td></tr>
+<tr><td><link id="GetModeRange"/></td><td>Get range of valid modes for current driver</td></tr>
+<tr><td><link id="GraphDefaults"/></td><td>Set defaults</td></tr>
+<tr><td><link id="GetDriverName"/></td><td>Return name of graphical driver</td></tr>
+<tr><td><link id="GetGraphMode"/></td><td>Return current or last used graphics mode</td></tr>
+<tr><td><link id="GetMaxMode"/></td><td>Get maximum mode for current driver</td></tr>
+<tr><td><link id="GetModeName"/></td><td>Get name of current mode</td></tr>
+<tr><td><link id="GraphErrorMsg"/></td><td>String representation of graphical error</td></tr>
+<tr><td><link id="GraphResult"/></td><td>Result of last drawing operation</td></tr>
+<tr><td><link id="InitGraph"/></td><td>Initialize graphics drivers</td></tr>
+<tr><td><link id="InstallUserDriver"/></td><td>Install a new driver</td></tr>
+<tr><td><link id="RegisterBGIDriver"/></td><td>Register a new driver</td></tr>
+<tr><td><link id="RestoreCRTMode"/></td><td>Go back to text mode</td></tr>
+<tr><td><link id="SetGraphBufSize"/></td><td>Set buffer size for graphical operations</td></tr>
+<tr><td><link id="SetGraphMode"/></td><td>Set graphical mode</td></tr>
+</table>
+</descr>
+</topic>
+
+<topic name="FuncScreen">
+<short>Categorized functions: Screen management</short>
+<descr>
+<p>
+General drawing screen management functions.
+</p>
+<table>
+<th><td>Name</td><td>Description</td></th>
+<tr><td><link id="ClearViewPort"/></td><td>Clear the current viewport</td></tr>
+<tr><td><link id="GetImage"/></td><td>Copy image from screen to memory</td></tr>
+<tr><td><link id="GetMaxX"/></td><td>Get maximum X coordinate</td></tr>
+<tr><td><link id="GetMaxY"/></td><td>Get maximum Y coordinate</td></tr>
+<tr><td><link id="GetX"/></td><td>Get current X position</td></tr>
+<tr><td><link id="GetY"/></td><td>Get current Y position</td></tr>
+<tr><td><link id="ImageSize"/></td><td>Get size of selected image</td></tr>
+<tr><td><link id="GetViewSettings"/></td><td>Get current viewport settings</td></tr>
+<tr><td><link id="PutImage"/></td><td>Copy image from memory to screen</td></tr>
+<tr><td><link id="SetActivePage"/></td><td>Set active video page</td></tr>
+<tr><td><link id="SetAspectRatio"/></td><td>Set aspect ratio for drawing routines</td></tr>
+<tr><td><link id="SetViewPort"/></td><td>Set current viewport</td></tr>
+<tr><td><link id="SetVisualPage"/></td><td>Set visual page</td></tr>
+<tr><td><link id="SetWriteMode"/></td><td>Set write mode for screen operations</td></tr>
+</table>
+</descr>
+</topic>
+
+
+<topic name="FuncColorManagement">
+<short>Categorized functions: Color management</short>
+<descr>
+<p>
+All functions related to color management.
+</p<
+<table>
+<th><td>Name</td><td>Description</td></th>
+<tr><td><link id="GetBkColor"/></td><td>Get current background color</td></tr>
+<tr><td><link id="GetColor"/></td><td>Get current foreground color</td></tr>
+<tr><td><link id="GetDefaultPalette"/></td><td>Get default palette entries</td></tr>
+<tr><td><link id="GetMaxColor"/></td><td>Get maximum valid color</td></tr>
+<tr><td><link id="GetPaletteSize"/></td><td>Get size of palette for current mode</td></tr>
+<tr><td><link id="GetPixel"/></td><td>Get color of selected pixel</td></tr>
+<tr><td><link id="GetPalette"/></td><td>Get palette entry</td></tr>
+<tr><td><link id="SetAllPallette"/></td><td>Set all colors in palette</td></tr>
+<tr><td><link id="SetBkColor"/></td><td>Set background color</td></tr>
+<tr><td><link id="SetColor"/></td><td>Set foreground color</td></tr>
+<tr><td><link id="SetPalette"/></td><td>Set palette entry</td></tr>
+<tr><td><link id="SetRGBPalette"/></td><td>Set palette entry with RGB values</td></tr>
+</table>
+</descr>
+</topic>
+
+<topic name="FuncDrawing">
+<short>Categorized functions: Drawing primitives</short>
+<descr>
+<p>
+Functions for simple drawing.
+</p>
+<table>
+<th><td>Name</td><td>Description</td></th>
+<tr><td><link id="Arc"/></td><td>Draw an arc</td></tr>
+<tr><td><link id="Circle"/></td><td>Draw a complete circle</td></tr>
+<tr><td><link id="DrawPoly"/></td><td>Draw a polygone with N points</td></tr>
+<tr><td><link id="Ellipse"/></td><td>Draw an ellipse</td></tr>
+<tr><td><link id="GetArcCoords"/></td><td>Get arc coordinates</td></tr>
+<tr><td><link id="GetLineSettings"/></td><td>Get current line drawing settings</td></tr>
+<tr><td><link id="Line"/></td><td>Draw line between 2 points</td></tr>
+<tr><td><link id="LineRel"/></td><td>Draw line relative to current position</td></tr>
+<tr><td><link id="LineTo"/></td><td>Draw line from current position to absolute position</td></tr>
+<tr><td><link id="MoveRel"/></td><td>Move cursor relative to current position</td></tr>
+<tr><td><link id="MoveTo"/></td><td>Move cursor to absolute position</td></tr>
+<tr><td><link id="PieSlice"/></td><td>Draw a pie slice</td></tr>
+<tr><td><link id="PutPixel"/></td><td>Draw 1 pixel</td></tr>
+<tr><td><link id="Rectangle"/></td><td>Draw a non-filled rectangle</td></tr>
+<tr><td><link id="Sector"/></td><td>Draw a sector</td></tr>
+<tr><td><link id="SetLineStyle"/></td><td>Set current line drawing style</td></tr>
+</table>
+</descr>
+</topic>
+
+<topic name="FuncFilledDrawing">
+<short>Categorized functions: Filled drawings</short>
+<descr>
+<p>
+Functions for drawing filled regions.
+</p>
+<table>
+<th><td>Name</td><td>Description</td></th>
+<tr><td><link id="Bar3D"/></td><td>Draw a filled 3D-style bar</td></tr>
+<tr><td><link id="Bar"/></td><td>Draw a filled rectangle</td></tr>
+<tr><td><link id="FloodFill"/></td><td>Fill starting from coordinate</td></tr>
+<tr><td><link id="FillEllipse"/></td><td>Draw a filled ellipse</td></tr>
+<tr><td><link id="FillPoly"/></td><td>Draw a filled polygone</td></tr>
+<tr><td><link id="GetFillPattern"/></td><td>Get current fill pattern</td></tr>
+<tr><td><link id="GetFillSettings"/></td><td>Get current fill settings</td></tr>
+<tr><td><link id="SetFillPattern"/></td><td>Set current fill pattern</td></tr>
+<tr><td><link id="SetFillStyle"/></td><td>Set current fill settings</td></tr>
+</table>
+</descr>
+</topic>
+
+
+<topic name="FuncTextHandling">
+<short>Categorized functions: Text and font handling</short>
+<descr>
+<p>
+Functions to set texts on the screen.
+</p>
+<table>
+<th><td>Name</td><td>Description</td></th>
+<tr><td><link id="GetTextSettings"/></td><td>Get current text settings</td></tr>
+<tr><td><link id="InstallUserFont"/></td><td>Install a new font</td></tr>
+<tr><td><link id="OutText"/></td><td>Write text at current cursor position</td></tr>
+<tr><td><link id="OutTextXY"/></td><td>Write text at coordinates X,Y</td></tr>
+<tr><td><link id="RegisterBGIFont"/></td><td>Register a new font</td></tr>
+<tr><td><link id="SetTextJustify"/></td><td>Set text justification</td></tr>
+<tr><td><link id="SetTextStyle"/></td><td>Set text style</td></tr>
+<tr><td><link id="SetUserCharSize"/></td><td>Set text size</td></tr>
+<tr><td><link id="TextHeight"/></td><td>Calculate height of text</td></tr>
+<tr><td><link id="TextWidth"/></td><td>Calculate width of text</td></tr>
+</table>
+</descr>
+</topic>
+
+
+<element name="ArcCoordsType">
+<short>Describe the last arc which was drawn on screen</short>
+</element>
+<element name="ArcCoordsType.X">
+<short>Center X coordinate</short>
+</element>
+<element name="ArcCoordsType.Y">
+<short>Center Y coordinate</short>
+</element>
+<element name="ArcCoordsType.XStart">
+<short>Drawing segment start X coordinate</short>
+</element>
+<element name="ArcCoordsType.YStart">
+<short>Drawing segment start Y coordinate</short>
+</element>
+<element name="ArcCoordsType.XEnd">
+<short>Drawing segment end X coordinate</short>
+</element>
+<element name="ArcCoordsType.YEnd">
+<short>Drawing segment end Y coordinate</short>
+</element>
+
+<element name="FillPatternType">
+<short>Bit pattern used when drawing lines. Set bits are drawn.</short>
+</element>
+
+<element name="FillSettingsType">
+<short>Record describing fill mode</short>
+</element>
+<element name="FillSettingsType.Pattern">
+<short>Fill bit pattern. Set bits are drawn..</short>
+</element>
+<element name="FillSettingsType.Color">
+<short>Color used to fill</short>
+</element>
+
+<element name="LineSettingsType">
+<short>Record describing current line drawing mode</short>
+</element>
+<element name="LineSettingsType.LineStyle">
+<short>Line style used when drawing.</short>
+</element>
+<element name="LineSettingsType.Pattern">
+<short>Pattern used when drawing.</short>
+</element>
+<element name="LineSettingsType.Width">
+<short>Line width used when drawing.</short>
+</element>
+
+<element name="RGBRec">
+<short>Record describing palette RGB color</short>
+</element>
+<element name="RGBRec.Red">
+<short>Red component of color</short>
+</element>
+<element name="RGBRec.Green">
+<short>Green component of color</short>
+</element>
+<element name="RGBRec.Blue">
+<short>Blue component of color</short>
+</element>
+
+<element name="PaletteType">
+<short>Record describing palette.</short>
+</element>
+<element name="PaletteType.Size">
+<short>Actual size of palette (number of entries)</short>
+</element>
+<element name="PaletteType.Colors">
+<short>Color entries in palette.</short>
+</element>
+
+<element name="PointType">
+<short>Record describing a point in a 2 dimensional plane</short>
+</element>
+<element name="PointType.X">
+<short>X coordinate</short>
+</element>
+<element name="PointType.Y">
+<short>Y coordinate</short>
+</element>
+
+<element name="TextSettingsType">
+<short>Record describing how texts are drawn.</short>
+</element>
+TextSettingsType = Record
+ Font,Direction, CharSize, Horiz, Vert : Word
+end;
+<element name="TextSettingsType.Font">
+<short>Font used.</short>
+</element>
+<element name="TextSettingsType.Direction">
+<short>Direction in which to write.</short>
+</element>
+<element name="TextSettingsType.CharSize">
+<short>Font size</short>
+</element>
+<element name="TextSettingsType.Horiz">
+<short>Horizontal justification</short>
+</element>
+<element name="TextSettingsType.Vert">
+<short>Vertical justification</short>
+</element>
+
+<element name="ViewPortType">
+<short>Record describing a viewport</short>
+</element>
+<element name="ViewPortType.X1">
+<short>X coordinate of upper-left corner.</short>
+</element>
+<element name="ViewPortType.X2">
+<short>X coordinate of lower-right corner.</short>
+</element>
+<element name="ViewPortType.Y1">
+<short>Y coordinate of upper-left corner.</short>
+</element>
+<element name="ViewPortType.Y2">
+<short>Y coordinate of lower-right corner.</short>
+</element>
+<element name="ViewPortType.Clip">
+<short>Should drawing be clipped to the current rectangle?</short>
+</element>
+
+
+<element name="Arc">
+<short>Draw part of a circle</short>
+<descr>
+<var>Arc</var> draws part of a circle with center at <var>(X,Y)</var>, radius
+<var>radius</var>, starting from angle <var>start</var>, stopping at angle <var>stop</var>.
+These  angles are measured
+counterclockwise.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="Circle"/>
+<link id="Ellipse"/> 
+<link id="GetArcCoords"/>
+<link id="PieSlice"/>
+<link id="Sector"/>
+</seealso>
+</element>
+
+<element name="Bar">
+<short>Draw filled rectangle</short>
+<descr>
+Draws a rectangle with corners at <var>(X1,Y1)</var> and <var>(X2,Y2)</var> 
+and fills it with the current color and fill-style.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="Bar3D"/>,
+<link id="Rectangle"/>
+</seealso>
+</element>
+
+<element name="Bar3D">
+<short>Draw filled 3-dimensional rectangle</short>
+<descr>
+<p>
+<var>Bar3d</var> draws a 3-dimensional Bar  with corners at <var>(X1,Y1)</var> and <var>(X2,Y2)</var> 
+and fills it with the current color and fill-style.
+<var>Depth</var> specifies the number of pixels used to show the depth of the
+bar.
+</p>
+<p>
+If <var>Top</var> is true; then a 3-dimensional top is drawn.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="Bar"/>
+<link id="Rectangle"/>
+</seealso>
+</element>
+
+<element name="Circle">
+<short>Draw a complete circle</short>
+<descr>
+<var>Circle</var> draws a complete circle with center at <var>(X,Y)</var>, radius
+<var>radius</var>.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="Ellipse"/>
+<link id="Arc"/>
+<link id="GetArcCoords"/>
+<link id="PieSlice"/>
+<link id="Sector"/>
+</seealso>
+</element>
+
+<element name="ClearDevice">
+<short>Clear the complete screen</short>
+<descr>
+Clears the graphical screen (with the current
+background color), and sets the pointer at <var>(0,0)</var>.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="ClearViewPort"/>
+<link id="SetBkColor"/>
+</seealso>
+</element>
+
+<element name="ClearViewPort">
+<short>Clear the current viewport</short>
+<descr>
+Clears the current viewport. The current background color is used as filling
+color. The pointer is set at <var>(0,0)</var>.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="ClearDevice"/>
+<link id="SetViewPort"/>
+<link id="SetBkColor"/>
+</seealso>
+</element>
+
+<element name="CloseGraph">
+<short>Close graphical system.</short>
+<descr>
+Closes the graphical system, and restores the
+screen modus which was active before the graphical modus was
+activated.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="InitGraph"/>
+</seealso>
+</element>
+
+<element name="DetectGraph">
+<short>Detect correct graphical driver to use</short>
+<descr>
+<var>DetectGraph</var> checks the hardware in the PC and determines the driver and screen-modus to
+be used. These are returned in <var>Driver</var> and <var>Modus</var>, and can be fed
+to <var>InitGraph</var>. 
+See the <var>InitGraph</var> for a list of drivers and modi.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="InitGraph"/>
+</seealso>
+</element>
+
+<element name="DrawPoly">
+<short>Draw a polygone</short>
+<descr>
+<var>DrawPoly</var> draws a polygone with <var>NumberOfPoints</var> corner points, using the
+current color and line-style. PolyPoints is an array of type <link id="PointType">.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="Bar"/>
+<link id="Bar3D">
+<link id="Rectangle"/>
+</seealso>
+</element>
+
+<element name="Ellipse">
+<short>Draw an ellipse</short>
+<descr>
+<var>Ellipse</var> draws part of an ellipse with center at <var>(X,Y)</var>.
+<var>XRadius</var> and <var>Yradius</var> are the horizontal and vertical radii of the
+ellipse. <var>Start</var> and <var>Stop</var> are the starting and stopping angles of
+the part of the ellipse. They are measured counterclockwise from the X-axis 
+(3 o'clock is equal to 0 degrees). Only positive angles can be specified.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="Arc"/>
+<link id="Circle"/>
+<link id="FillEllipse"/>
+</seealso>
+</element>
+
+<element name="FillEllipse">
+<short></short>
+<descr>
+<var>Ellipse</var> draws an ellipse with center at <var>(X,Y)</var>.
+<var>XRadius</var> and <var>Yradius</var> are the horizontal and vertical radii of the
+ellipse. The ellipse is filled with the current color and fill-style.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="Arc"/>
+<link id="Circle"/>
+<link id="GetArcCoords"/>
+<link id="PieSlice"/>
+<link id="Sector"/>
+</seealso>
+</element>
+
+<element name="FillPoly">
+<short>Draw, close and fill a polygone</short>
+<descr>
+<var>FillPoly</var> draws a polygone with <var>NumberOfPoints</var> corner points and fills it
+using the current color and line-style. 
+PolyPoints is an array of type <var>PointType</var>.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="Bar"/>
+<link id="Bar3D"> 
+<link id="Rectangle"/>
+</seealso>
+</element>
+
+<element name="FloodFill">
+<short>Fill an area with a given color</short>
+<descr>
+Fills the area containing the point <var>(X,Y)</var>, bounded by the color
+<var>BorderColor</var>.
+</descr>
+<errors>
+None
+</errors>
+<seealso>
+<link id="SetColor"/>
+<link id="SetBkColor"/>
+</seealso>
+</element>
+
+<element name="GetArcCoords">
+<short>Return coordinates of last drawn arc or ellipse.</short>
+<descr>
+<var>GetArcCoords</var> returns the coordinates of the latest <var>Arc</var> or
+<var>Ellipse</var> call.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="Arc"/>
+<link id="Ellipse"/>
+</seealso>
+</element>
+
+<element name="GetAspectRatio">
+<short>Return screen resolution</short>
+<descr>
+<var>GetAspectRatio</var> determines the effective resolution of the screen. The aspect ration can
+then be calculated as <var>Xasp/Yasp</var>.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="InitGraph"/>
+<link id="SetAspectRatio"/>
+</seealso>
+</element>
+
+<element name="GetBkColor">
+<short>Return current background color</short>
+<descr>
+<var>GetBkColor</var> returns the current background color (the palette
+entry).
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GetColor"/>
+<link id="SetBkColor"/>
+</seealso>
+</element>
+
+<element name="GetColor">
+<short>Return current drawing color</short>
+<descr>
+<var>GetColor</var> returns the current drawing color (the palette
+entry).
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GetColor"/>
+<link id="SetBkColor"/>
+</seealso>
+</element>
+
+<element name="GetDefaultPalette">
+<short>Return default palette</short>
+<descr>
+<var>GetDefaultPalette</var> returns the current palette in <var>Palette</var>.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GetColor"/>
+<link id="GetBkColor"/>
+</seealso>
+</element>
+
+<element name="GetDriverName">
+<short>Return current driver name</short>
+<descr>
+<var>GetDriverName</var> returns a string containing the name of the
+current driver.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GetModeName"/>
+<link id="InitGraph"/>
+</seealso>
+</element>
+
+<element name="GetFillPattern">
+<short>Return current fill pattern</short>
+<descr>
+<var>GetFillPattern</var> returns an array with the current fill-pattern  in <var>FillPattern</var>
+</descr>
+<errors>
+None
+</errors>
+<seealso>
+<link id="SetFillPattern"/>
+</seealso>
+</element>
+
+<element name="GetFillSettings">
+<short>Return current fill settings</short>
+<descr>
+<var>GetFillSettings</var> returns the current fill-settings in
+<var>FillInfo</var>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="SetFillPattern"/>
+</seealso>
+</element>
+
+<element name="GetGraphMode">
+<short>Get current graphical modus</short>
+<descr>
+<var>GetGraphMode</var> returns the current graphical modus
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="InitGraph"/>
+</seealso>
+</element>
+
+<element name="GetImage">
+<short>Return a copy of a screen area</short>
+<descr>
+<var>GetImage</var>
+Places a copy of the screen area <var>(X1,Y1)</var> to <var>X2,Y2</var> in <var>BitMap</var>
+</descr>
+<errors>
+Bitmap must have enough room to contain the image.
+</errors>
+<seealso>
+<link id="ImageSize"/>,
+<link id="PutImage"/>
+</seealso>
+</element>
+
+<element name="GetLineSettings">
+<short>Get current line drawing settings</short>
+<descr>
+<var>GetLineSettings</var> returns the current Line settings in
+<var>LineInfo</var>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="SetLineStyle"/>
+</seealso>
+</element>
+
+<element name="GetMaxColor">
+<short>return maximum number of colors</short>
+<descr>
+<var>GetMaxColor</var> returns the maximum color-number which can be 
+set with <var>SetColor</var>. Contrary to Turbo Pascal, this color isn't always 
+guaranteed to be white (for instance in 256+ color modes).
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="SetColor"/>,
+<link id="GetPaletteSize"/>
+</seealso>
+</element>
+
+<element name="GetMaxMode">
+<short>Return biggest mode for the current driver</short>
+<descr>
+<var>GetMaxMode</var> returns the highest modus for
+the current driver.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="InitGraph"/>
+</seealso>
+</element>
+
+<element name="GetMaxX">
+<short>Return maximal X coordinate</short>
+<descr>
+<var>GetMaxX</var> returns the maximum horizontal screen
+length
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GetMaxY"/>
+</seealso>
+</element>
+
+<element name="GetMaxY">
+<short>Return maximal Y coordinate</short>
+<descr>
+<var>GetMaxY</var> returns the maximum number of screen
+lines
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GetMaxY"/>
+</seealso>
+</element>
+
+<element name="GetModeName">
+<short>Return description a modus</short>
+<descr>
+<var>GetModeName</var> Returns a string with the name of modus
+<var>Modus</var>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GetDriverName"/>
+<link id="InitGraph"/>
+</seealso>
+</element>
+
+<element name="GetModeRange">
+<short>Return lowest and highest modus of current driver</short>
+<descr>
+<var>GetModeRange</var> returns the Lowest and Highest modus of the currently
+installed driver. If no modes are supported for this driver, HiModus
+will be -1.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="InitGraph"/>
+</seealso>
+</element>
+
+<element name="GetPalette">
+<short>Return current palette</short>
+<descr>
+<var>GetPalette</var> returns in <var>Palette</var> the current palette.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GetPaletteSize"/>
+<link id="SetPalette"/>
+</seealso>
+</element>
+
+<element name="GetPaletteSize">
+<short>Return maximal number of entries in current palette </short>
+<descr>
+<var>GetPaletteSize</var> returns the maximum
+number of entries in the current palette.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GetPalette"/>,
+<link id="SetPalette"/>
+</seealso>
+</element>
+
+<element name="GetPixel">
+<short>Return color of pixel</short>
+<descr>
+<var>GetPixel</var> returns the color of the point at <var>(X,Y)</var> 
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="PutPixel"/>
+</seealso>
+</element>
+
+<element name="GetTextSettings">
+<short>Return current text style</short>
+<descr>
+<var>GetTextSettings</var> returns the current text style settings : The font,
+direction, size and placement as set with <var>SetTextStyle</var> and
+<var>SetTextJustify</var>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="SetTextStyle"/>
+<link id="SetTextJustify"/>
+</seealso>
+</element>
+
+<element name="GetViewSettings">
+<short>Return current viewport</short>
+<descr>
+<var>GetViewSettings</var> returns the current viewport and clipping settings in
+<var>ViewPort</var>.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="SetViewPort"/>
+</seealso>
+</element>
+
+<element name="GetX">
+<short>Return current cursor X position</short>
+<descr>
+<var>GetX</var> returns the X-coordinate of the current position of
+the graphical pointer
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GetY"/>
+</seealso>
+</element>
+
+<element name="GetY">
+<short>Return current cursor Y position</short>
+<descr>
+<var>GetY</var> returns the Y-coordinate of the current position of
+the graphical pointer
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GetX"/>
+</seealso>
+</element>
+
+<element name="GraphDefaults">
+<short>Reset graphical mode to defaults</short>
+<descr>
+<var>GraphDefaults</var> resets all settings for viewport, palette,
+foreground and background pattern, line-style and pattern, filling style,
+filling color and pattern, font, text-placement and
+text size.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="SetViewPort"/>
+<link id="SetFillStyle"/>
+<link id="SetColor"/>,
+<link id="SetBkColor"/>
+<link id="SetLineStyle"/>
+</seealso>
+</element>
+
+<element name="GraphErrorMsg">
+<short>Return a description of an error</short>
+<descr>
+<var>GraphErrorMsg</var>
+returns a string describing the error <var>Errorcode</var>. This string can be
+used to let the user know what went wrong.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GraphResult"/>
+</seealso>
+</element>
+
+<element name="GraphResult">
+<short>Result of last graphical operation</short>
+<descr>
+<p>
+<var>GraphResult</var> returns an error-code for
+the last graphical operation. If the returned value is zero, all went well.
+A value different from zero means an error has occurred.
+besides all operations which draw something on the screen, 
+the following procedures also can produce a <var>GraphResult</var> different from
+zero:
+</p>
+<ul>
+<li><link id="InstallUserFont"/></li>
+<li><link id="SetLineStyle"/></li>
+<li><link id="SetWriteMode"/></li>
+<li><link id="SetFillStyle"/></li>
+<li><link id="SetTextJustify"/></li>
+<li><link id="SetGraphMode"/></li>
+<li><link id="SetTextStyle"/></li>
+</ul>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GraphErrorMsg"/>
+</seealso>
+</element>
+
+<element name="ImageSize">
+<short>Return size to store image</short>
+<descr>
+<var>ImageSize</var> returns
+the number of bytes needed to store the image in the rectangle defined by
+<var>(X1,Y1)</var> and <var>(X2,Y2)</var>.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GetImage"/>
+</seealso>
+</element>
+
+<element name="InitGraph">
+<short>Initialize grpahical system</short>
+<descr>
+<p>
+<var>InitGraph</var> initializes the <var>graph</var> package.
+<var>GraphDriver</var> has two valid values: <var>GraphDriver=0</var> which
+performs an auto detect and initializes the highest possible mode with the most
+colors. 1024x768x64K is the highest possible resolution supported by the
+driver, if you need a higher resolution, you must edit <file>MODES.PPI</file>. 
+If you need another mode, then set <var>GraphDriver</var> to a value different
+from zero
+and <var>graphmode</var> to the mode you wish (VESA modes where 640x480x256
+is <var>101h</var> etc.).
+<var>PathToDriver</var> is only needed, if you use the BGI fonts from
+Borland. Free Pascal does not offer BGI fonts like Borland, these must be
+obtained separately. 
+</p>
+<p>
+Example code:
+</p>
+<code>
+var 
+   gd,gm : integer; 
+   PathToDriver : string; 
+begin 
+   gd:=detect; { highest possible resolution } 
+   gm:=0; { not needed, auto detection } 
+   PathToDriver:='C:\PP\BGI'; { path to BGI fonts, 
+                                drivers aren't needed } 
+   InitGraph(gd,gm,PathToDriver); 
+   if GraphResult&lt;&gt;grok then 
+     halt; ..... { whatever you need } 
+   CloseGraph; { restores the old graphics mode } 
+end.
+</code>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="Modes">
+<link id="DetectGraph"/>
+<link id="CloseGraph"/>
+<link id="GraphResult"/>
+</seealso>
+</element>
+
+<element name="InstallUserDriver">
+<short>Install a user driver</short>
+<descr>
+<var>InstallUserDriver</var> 
+adds the device-driver <var>DriverPath</var> to the list of .BGI
+drivers. <var>AutoDetectPtr</var> is a pointer to a possible auto-detect function.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="InitGraph"/>
+<link id="InstallUserFont"/>
+</seealso>
+</element>
+
+<element name="InstallUserFont">
+<short>Install a user-defined font</short>
+<descr>
+<var>InstallUserFont</var> adds the font in <var>FontPath</var> to the list of fonts
+of the .BGI system.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="InitGraph"/>
+<link id="InstallUserDriver"/>
+</seealso>
+</element>
+
+<element name="Line">
+<short>Draw a line between 2 points</short>
+<descr>
+<var>Line</var> draws a line starting from
+<var>(X1,Y1</var> to <var>(X2,Y2)</var>, in the current line style and color. The
+current position is put to <var>(X2,Y2)</var>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="LineRel"/>
+<link id="LineTo"/>
+</seealso>
+</element>
+
+<element name="LineRel">
+<short>Draw a line starting from current position in given direction</short>
+<descr>
+<var>LineRel</var> draws a line starting from
+the current pointer position to the point<var>(DX,DY)</var>, \textbf{relative} to the
+current position, in the current line style and color. The Current Position
+is set to the endpoint of the line.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="Line"/>
+<link id="LineTo"/>
+</seealso>
+</element>
+
+<element name="LineTo">
+<short>Draw a line starting from current position to a given point</short>
+<descr>
+<var>LineTo</var> draws a line starting from
+the current pointer position to the point<var>(DX,DY</var>, \textbf{relative} to the
+current position, in the current line style and color. The Current position
+is set to the end of the line.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="LineRel"/>
+<link id="Line"/>
+</seealso>
+</element>
+
+<element name="MoveRel">
+<short>Move cursor relative to current position</short>
+<descr>
+<var>MoveRel</var> moves the pointer to the
+point <var>(DX,DY)</var>, relative to the current pointer
+position
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="MoveTo"/>
+</seealso>
+</element>
+
+<element name="MoveTo">
+<short>Move cursor to absolute position.</short>
+<descr>
+<var>MoveTo</var> moves the pointer to the
+point <var>(X,Y)</var>.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="MoveRel"/>
+</seealso>
+</element>
+
+<element name="OutText">
+<short>Write text on the screen at the current location.</short>
+<descr>
+<var>OutText</var> puts <var>TextString</var> on the screen, at the current pointer
+position, using the current font and text settings. The current position is
+moved to the end of the text.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="OutTextXY"/>
+</seealso>
+</element>
+
+<element name="OutTextXY">
+<short>Write text on the screen on given position</short>
+<descr>
+<var>OutText</var> puts <var>TextString</var> on the screen, at position <var>(X,Y)</var>,
+using the current font and text settings. The current position is
+moved to the end of the text.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="OutText"/>
+</seealso>
+</element>
+
+<element name="PieSlice">
+<short>Draw a pie-slice</short>
+<descr>
+<var>PieSlice</var>
+draws and fills a sector of a circle with center <var>(X,Y)</var> and radius 
+<var>Radius</var>, starting at angle <var>Start</var> and ending at angle <var>Stop</var>.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="Arc"/>
+<link id="Circle"/>
+<link id="Sector"/>
+</seealso>
+</element>
+
+<element name="PutImage">
+<short>Draw an in-memory image to the screen</short>
+<descr>
+<p>
+<var>PutImage</var>
+Places the bitmap in <var>Bitmap</var> on the screen at <var>(X1,Y1)</var>. <var>How</var>
+determines how the bitmap will be placed on the screen. Possible values are :
+</p>
+<ul>
+<li>CopyPut</li>
+<li>XORPut</li>
+<li>ORPut</li>
+<li>AndPut</li>
+<li>NotPut</li>
+</ul>
+</descr>
+<errors>
+None
+</errors>
+<seealso>
+<link id="ImageSize"/>
+<link id="GetImage"/>
+</seealso>
+</element>
+
+<element name="PutPixel">
+<short>Draw a pixel on the screen</short>
+<descr>
+Puts a point at
+<var>(X,Y)</var> using color <var>Color</var>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GetPixel"/>
+</seealso>
+</element>
+
+<element name="Rectangle">
+<short>Draw a rectangle on the screen.</short>
+<descr>
+Draws a rectangle with
+corners at <var>(X1,Y1)</var> and <var>(X2,Y2)</var>, using the current color and
+style.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="Bar"/>
+<link id="Bar3D"/>
+</seealso>
+</element>
+
+<element name="RegisterBGIDriver">
+<short>Register a new BGI driver.</short>
+<descr>
+Registers a user-defined BGI driver
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="InstallUserDriver"/>,
+<link id="RegisterBGIFont"/>
+</seealso>
+</element>
+
+<element name="RegisterBGIFont">
+<short>Register a new BGI font</short>
+<descr>
+Registers a user-defined BGI driver
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="InstallUserFont"/>,
+<link id="RegisterBGIDriver"/>
+</seealso>
+</element>
+
+<element name="RestoreCRTMode">
+<short>Restore text screen</short>
+<descr>
+<p>
+Restores the screen modus which was active before
+the graphical modus was started.
+</p>
+<p>
+To get back to the graph mode you were last in, you can use
+<var>SetGraphMode(GetGraphMode)</var>
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="InitGraph"/>
+</seealso>
+</element>
+
+<element name="Sector">
+<short>Draw and fill a sector of an ellipse</short>
+<descr>
+<var>Sector</var>
+draws and fills a sector of an ellipse  with center <var>(X,Y)</var> and radii 
+<var>XRadius</var> and <var>YRadius</var>, starting at angle <var>Start</var> and ending at angle <var>Stop</var>.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="Arc"/>
+<link id="Circle"/>
+<link id="PieSlice"/>
+</seealso>
+</element>
+
+<element name="SetActivePage">
+<short>Set active graphical page</short>
+<descr>
+Sets <var>Page</var> as the active page 
+for all graphical output.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<element name="SetAllPallette">
+<short>Specify a complete new palette</short>
+<descr>
+Sets the current palette to
+<var>Palette</var>. <var>Palette</var> is an untyped variable, usually pointing to a
+record of type <var>PaletteType</var>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GetPalette"/>
+</seealso>
+</element>
+
+<element name="SetAspectRatio">
+<short>Set aspect ration of the screen</short>
+<descr>
+Sets the aspect ratio of the
+current screen to <var>Xasp/Yasp</var>.
+</descr>
+<errors>
+None
+</errors>
+<seealso>
+<link id="InitGraph"/>
+<link id="GetAspectRatio"/>
+</seealso>
+</element>
+
+<element name="SetBkColor">
+<short>Set background drawing color</short>
+<descr>
+Sets the background color to <var>Color</var>.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GetBkColor"/>
+<link id="SetColor"/>
+<link id="SetWriteMode"/>
+</seealso>
+</element>
+
+<element name="SetColor">
+<short>Set foreground drawing color</short>
+<descr>
+Sets the foreground color to <var>Color</var>.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GetColor"/>
+<link id="SetBkColor"/>
+<link id="SetWriteMode"/>
+</seealso>
+</element>
+
+<element name="SetFillPattern">
+<short>Set drawing fill pattern</short>
+<descr>
+<var>SetFillPattern</var> sets the current fill-pattern to <var>FillPattern</var>, and
+the filling color to <var>Color</var>
+The pattern is an 8x8 raster, corresponding to the 64 bits in
+<var>FillPattern</var>.
+</descr>
+<errors>
+None
+</errors>
+<seealso>
+<link id="GetFillPattern"/>
+<link id="SetFillStyle"/>
+<link id="SetWriteMode"/>
+</seealso>
+</element>
+
+<element name="SetFillStyle">
+<short>Set drawing fill style</short>
+<p>
+<descr>
+<var>SetFillStyle</var> sets the filling pattern and color to one of the
+predefined filling patterns. <var>Pattern</var> can be one of the following predefined
+constants :
+</p>
+<dl>
+<dt>EmptyFill</dt><dd>Uses backgroundcolor.</dd>
+<dt>SolidFill</dt> Uses filling color</dd>
+<dt>LineFill</dt><dd> Fills with horizontal lines.</dd>
+<dt>ltSlashFill</dt><dd> Fills with lines from left-under to top-right.</dd>
+<dt>SlashFill</dt><dd> Idem as previous, thick lines.</dd>
+<dt>BkSlashFill</dt><dd> Fills with thick lines from left-Top to bottom-right.</dd>
+<dt>LtBkSlashFill</dt><dd> Idem as previous, normal lines.</dd>
+<dt>HatchFill</dt><dd>  Fills with a hatch-like pattern.</dd>
+<dt>XHatchFill</dt><dd> Fills with a hatch pattern, rotated 45 degrees.</dd>
+<dt>InterLeaveFill</dt><dd> </dd>
+<dt>WideDotFill</dt><dd> Fills with dots, wide spacing.</dd>
+<dt>CloseDotFill</dt><dd> Fills with dots, narrow spacing.</dd>
+<dt>UserFill</dt><dd> Fills with a user-defined pattern.</dd>
+</dl>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="SetFillPattern"/>
+<link id="SetWriteMode"/>
+</seealso>
+</element>
+
+<element name="SetGraphBufSize">
+<short>Set the graphical buffer size (do not use)</short>
+<descr>
+<var>SetGraphBufSize</var> is a dummy function which does not do 
+anything; it is no longer needed.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+
+</seealso>
+</element>
+
+<element name="SetGraphMode">
+<short>Set graphical mode</short>
+<descr>
+<var>SetGraphMode</var> sets the graphical mode and clears the screen.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="InitGraph"/>
+</seealso>
+</element>
+
+<element name="SetLineStyle">
+<short>Set line drawing style</short>
+<descr>
+<p>
+<var>SetLineStyle</var>
+sets the drawing style for lines. You can specify a <var>LineStyle</var> which is
+one of the following pre-defined constants:
+</p>
+<dl>
+<dt>Solidln</dt><dd> draws a solid line.</dd>
+<dt>Dottedln</dt><dd> Draws a dotted line.</dd>
+<dt>Centerln</dt><dd> draws a non-broken centered line.</dd>
+<dt>Dashedln</dt><dd> draws a dashed line.</dd>
+<dt>UserBitln</dt><dd> Draws a User-defined bit pattern.</dd>
+</dl>
+<p>
+If <var>UserBitln</var> is specified then <var>Pattern</var> contains the bit pattern.
+In all another cases, <var>Pattern</var> is ignored. The parameter <var>Width</var> 
+indicates how thick the line should be. You can specify one of the following
+pre-defined constants:
+</p>
+<dl>
+<dt>NormWidth</dt><dd>Normal line width</dd>
+<dt>ThickWidth</dt><dd>Double line width</dd>
+</dl>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GetLineSettings"/>
+<link id="SetWriteMode"/>
+</seealso>
+</element>
+
+<element name="SetPalette">
+<short>Set palette entry using color constant</short>
+<descr>
+<var>SetPalette</var> changes the <var>ColorNr</var>-th entry in the palette to
+<var>NewColor</var>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="SetAllPallette"/>
+<link id="SetRGBPalette"/>
+</seealso>
+</element>
+
+<element name="SetRGBPalette">
+<short>Set palette entry using RGB value</short>
+<descr>
+<var>SetRGBPalette</var> sets the <var>ColorNr</var>-th entry in the palette to the
+color with RGB-values <var>Red, Green Blue</var>.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="SetAllPallette"/>,
+<link id="SetPalette"/>
+</seealso>
+</element>
+
+<element name="SetTextJustify">
+<short>Set text placement style</short>
+<descr>
+<p>
+<var>SetTextJustify</var> controls the placement of new text, relative to the 
+(graphical) cursor position. <var>Horizontal</var> controls horizontal placement, and can be
+one of the following pre-defined constants:
+</p>
+<dl>
+<dt>LeftText</dt><dd>Text is set left of the pointer.</dd>
+<dt>CenterText</dt><dd>Text is set centered horizontally on the pointer.</dd>
+<dt>RightText</dt><dd>Text is set to the right of the pointer.</dd>
+</dl>
+<p>
+<var>Vertical</var> controls the vertical placement of the text, relative to the
+(graphical) cursor position. Its value can be one of the following
+pre-defined constants :
+</p>
+<dl>
+<dt>BottomText</dt><dd>Text is placed under the pointer.</dd>
+<dt>CenterText</dt><dd>Text is placed centered vertically on the pointer.</dd>
+<dt>TopText</dt><dd>Text is placed above the pointer.</dd>
+</dl>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="OutText"/>
+<link id="OutTextXY"/>
+</seealso>
+</element>
+
+<element name="SetTextStyle">
+<short>Set text style</short>
+<descr>
+<p>
+<var>SetTextStyle</var> controls the style of text to be put on the screen.
+pre-defined constants for <var>Font</var> are:
+</p>
+<dl>
+<dt>DefaultFont</dt><dd>The default font</dd>
+<dt>TriplexFont</dt><dd>A special font</dd>
+<dt>SmallFont</dt><dd>A smaller font</dd>
+<dt>SansSerifFont</dt><dd>A sans-serif font (like Arial)</dd>
+<dt>GothicFont</dt><dd>A gothic font</dd>
+<dt>ScriptFont</dt><dd>A script font</dd>
+<dt>SimpleFont</dt><dd>A simple font</dd>
+<dt>TSCRFont</dt><dd>Terminal screen font</dd>
+<dt>LCOMFont</dt><dd>?</dd>
+<dt>EuroFont</dt><dd>?</dd>
+<dt>BoldFont</dt><dd>A bold typeface font</dd>
+</dl>
+<p>
+Pre-defined constants for <var>Direction</var> are :
+</p>
+<dl>
+<dt>HorizDir</dt><dd>Write horizontal</dd>
+<dt>VertDir</dt><dd>Write vertical</dd>
+</dl>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GetTextSettings"/> 
+</seealso>
+</element>
+
+<element name="SetUserCharSize">
+<short>Set user character size for vector font</short>
+<descr>
+Sets the width and height of vector-fonts. The horizontal size is given
+by <var>Xasp1/Xasp2</var>, and the vertical size by <var>Yasp1/Yasp2</var>.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="SetTextStyle"/>
+</seealso>
+</element>
+
+<element name="SetViewPort">
+<short>Set the graphical drawing window</short>
+<descr>
+Sets the current graphical viewport (window) to the rectangle defined by
+the top-left corner <var>(X1,Y1)</var> and the bottom-right corner <var>(X2,Y2)</var>.
+If <var>Clip</var> is true, anything drawn outside the viewport (window) will be
+clipped (i.e. not drawn). Coordinates specified after this call are relative
+to the top-left corner of the viewport.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GetViewSettings"/>
+</seealso>
+</element>
+
+<element name="SetVisualPage">
+<short>Set video page which is displayed.</short>
+<descr>
+<var>SetVisualPage</var> sets the video page to page number <var>Page</var>. 
+</descr>
+<errors>
+None
+</errors>
+<seealso>
+<link id="SetActivePage"/>
+</seealso>
+</element>
+
+<element name="SetWriteMode">
+<short>Specify binary operation to perform when drawing on screen</short>
+<descr>
+<p>
+<var>SetWriteMode</var> controls the drawing of lines on the screen. It controls
+the binary operation used when drawing lines on the screen. <var>Mode</var> can
+be one of the following pre-defined constants:
+</p>
+<dl>
+<dt>CopyPut</dt><dd>Draw as specified using current bitmask and color</dd>
+<dt>XORPut</dt><dd>Draw XOR-ing current bitmask and color</dd>
+</dl>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="SetColor"/>
+<link id="SetBkColor"/>
+<link id="SetLineStyle"/>
+<link id="SetFillStyle"/>
+</seealso>
+</element>
+
+<element name="TextHeight">
+<short>Return height (in pixels) of the given string</short>
+<descr>
+<var>TextHeight</var> returns the height (in pixels) of the string <var>S</var> in
+the current font and text-size.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TextWidth"/>
+</seealso>
+</element>
+
+<element name="TextWidth">
+<short>Return width (in pixels) of the given string</short>
+<descr>
+<var>TextHeight</var> returns the width (in pixels) of the string <var>S</var> in
+the current font and text-size.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TextHeight"/>
+</seealso>
+</element>
+
+
+</module>
+</package>
+</fpdoc-descriptions>
