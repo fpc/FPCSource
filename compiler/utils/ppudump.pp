@@ -669,7 +669,7 @@ var
   procoptions     : tprocoptions;
   i,params : longint;
   first    : boolean;
-  paraloc  : array[0..9] of byte;
+  paraloc  : array[0..10] of byte;
 begin
   write(space,'      Return type : ');
   readtype;
@@ -820,9 +820,22 @@ end;
 ****************************************************************************}
 
 procedure readsymbols;
-Const
-  vo_is_C_var = 2;
-Type
+type
+  { options for variables }
+  tvaroption=(vo_none,
+    vo_regable,
+    vo_is_C_var,
+    vo_is_external,
+    vo_is_dll_var,
+    vo_is_thread_var,
+    vo_fpuregable,
+    vo_is_local_copy,
+    vo_is_const,  { variable is declared as const (parameter) and can't be written to }
+    vo_is_exported,
+    vo_is_high_value
+  );
+  tvaroptions=set of tvaroption;
+
   pguid = ^tguid;
   tguid = packed record
     D1: LongWord;
@@ -830,6 +843,7 @@ Type
     D3: Word;
     D4: array[0..7] of Byte;
   end;
+
   absolutetyp = (tovar,toasm,toaddr);
   tconsttyp = (constnone,
     constord,conststring,constreal,constbool,
@@ -975,7 +989,7 @@ begin
              readtype;
              i:=getlongint;
              writeln(space,'     Options: ',i);
-             if (i and vo_is_C_var)<>0 then
+             if (vo_is_C_var in tvaroptions(i)) then
                writeln(space,' Mangledname: ',getstring);
            end;
 
@@ -1011,12 +1025,11 @@ begin
            begin
              readcommonsym('Absolute variable symbol ');
              writeln(space,'          Type: ',getbyte);
-             if read_member then
-               writeln(space,'       Address: ',getlongint);
+             writeln(space,'       Address: ',getlongint);
              write  (space,'      Var Type: ');
              readtype;
              writeln(space,'       Options: ',getlongint);
-             Write (space,'    Relocated to ');
+             Write (space,' Relocated to ');
              b:=getbyte;
              case absolutetyp(b) of
                tovar :
@@ -1897,7 +1910,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.34  2002-11-17 16:32:04  carl
+  Revision 1.35  2003-01-03 22:16:29  peter
+    * updated for absolutesym and varsym
+
+  Revision 1.34  2002/11/17 16:32:04  carl
     * memory optimization (3-4%) : cleanup of tai fields,
        cleanup of tdef and tsym fields.
     * make it work for m68k
