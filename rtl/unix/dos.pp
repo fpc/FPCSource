@@ -22,9 +22,9 @@ Const
 Type
 
   SearchRec =
-{$ifndef ARM}
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
     packed
-{$endif ARM}
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
     Record
   {Fill : array[1..21] of byte;  Fill replaced with below}
     SearchNum  : LongInt;     {to track which search this is}
@@ -836,7 +836,10 @@ End.
 
 {
   $Log$
-  Revision 1.33  2004-07-25 22:46:34  olle
+  Revision 1.34  2004-08-14 14:22:17  florian
+    * alignment for sparc fixed
+
+  Revision 1.33  2004/07/25 22:46:34  olle
     * envstr now returns empty string when index out of bounds
 
   Revision 1.32  2004/03/14 18:42:39  peter
