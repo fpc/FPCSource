@@ -1170,22 +1170,32 @@ begin
 end;
 
 function SearchObjectForSymbol(O: PSymbol): PObjectSymbol;
-var I,Idx: sw_integer;
+function ScanObjectCollection(Parent: PObjectSymbol): PObjectSymbol;
+var I: sw_integer;
     OS,P: PObjectSymbol;
     ObjectC: PObjectSymbolCollection;
 begin
   P:=nil;
-  if ObjectTree<>nil then
+  if Parent<>nil then
+  if Parent^.Descendants<>nil then
   begin
-    ObjectC:=ObjectTree^.Descendants;
+    ObjectC:=Parent^.Descendants;
     for I:=0 to ObjectC^.Count-1 do
       begin
         OS:=ObjectC^.At(I);
         if OS^.Symbol=O then
           begin P:=OS; Break; end;
+        if OS^.Descendants<>nil then
+          begin
+            P:=ScanObjectCollection(OS);
+            if P<>nil then Break;
+          end;
       end;
   end;
-  SearchObjectForSymbol:=P;
+  ScanObjectCollection:=P;
+end;
+begin
+  SearchObjectForSymbol:=ScanObjectCollection(ObjectTree);
 end;
 
 
@@ -1222,7 +1232,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  1999-04-14 18:59:52  peter
+  Revision 1.14  1999-04-15 09:01:32  peter
+    * fixed set loading
+    * object inheritance support for browser
+
+  Revision 1.13  1999/04/14 18:59:52  peter
     * fixed wrong variable names
 
   Revision 1.12  1999/04/10 16:15:00  peter

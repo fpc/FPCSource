@@ -473,68 +473,8 @@ implementation
            end
          else
 
-           { is one of the operands a string?,
-             chararrays are also handled as strings (after conversion) }
-           if (rd^.deftype=stringdef) or (ld^.deftype=stringdef) or
-              (is_chararray(rd) and is_chararray(ld)) then
-            begin
-              if is_widestring(rd) or is_widestring(ld) then
-                begin
-                   if not(is_widestring(rd)) then
-                     p^.right:=gentypeconvnode(p^.right,cwidestringdef);
-                   if not(is_widestring(ld)) then
-                     p^.left:=gentypeconvnode(p^.left,cwidestringdef);
-                   p^.resulttype:=cwidestringdef;
-                   { this is only for add, the comparisaion is handled later }
-                   p^.location.loc:=LOC_REGISTER;
-                end
-              else if is_ansistring(rd) or is_ansistring(ld) then
-                begin
-                   if not(is_ansistring(rd)) then
-                     p^.right:=gentypeconvnode(p^.right,cansistringdef);
-                   if not(is_ansistring(ld)) then
-                     p^.left:=gentypeconvnode(p^.left,cansistringdef);
-                   p^.resulttype:=cansistringdef;
-                   { this is only for add, the comparisaion is handled later }
-                   p^.location.loc:=LOC_REGISTER;
-                end
-              else if is_longstring(rd) or is_longstring(ld) then
-                begin
-                   if not(is_longstring(rd)) then
-                     p^.right:=gentypeconvnode(p^.right,clongstringdef);
-                   if not(is_longstring(ld)) then
-                     p^.left:=gentypeconvnode(p^.left,clongstringdef);
-                   p^.resulttype:=clongstringdef;
-                   { this is only for add, the comparisaion is handled later }
-                   p^.location.loc:=LOC_MEM;
-                end
-              else
-                begin
-                   if not(is_shortstring(rd)) then
-                     p^.right:=gentypeconvnode(p^.right,cshortstringdef);
-                   if not(is_shortstring(ld)) then
-                     p^.left:=gentypeconvnode(p^.left,cshortstringdef);
-                   p^.resulttype:=cshortstringdef;
-                   { this is only for add, the comparisaion is handled later }
-                   p^.location.loc:=LOC_MEM;
-                end;
-              { only if there is a type cast we need to do again }
-              { the first pass                                   }
-              if p^.left^.treetype=typeconvn then
-                firstpass(p^.left);
-              if p^.right^.treetype=typeconvn then
-                firstpass(p^.right);
-              { here we call STRCONCAT or STRCMP or STRCOPY }
-              procinfo.flags:=procinfo.flags or pi_do_call;
-              if p^.location.loc=LOC_MEM then
-                calcregisters(p,0,0,0)
-              else
-                calcregisters(p,1,0,0);
-              convdone:=true;
-           end
-         else
-
-         { left side a setdef ? }
+         { left side a setdef, must be before string processing,
+           else array constructor can be seen as array of char (PFV) }
            if (ld^.deftype=setdef) or is_array_constructor(ld) then
              begin
              { convert array constructors to sets }
@@ -700,6 +640,67 @@ implementation
                   end;
               convdone:=true;
             end
+         else
+
+           { is one of the operands a string?,
+             chararrays are also handled as strings (after conversion) }
+           if (rd^.deftype=stringdef) or (ld^.deftype=stringdef) or
+              (is_chararray(rd) and is_chararray(ld)) then
+            begin
+              if is_widestring(rd) or is_widestring(ld) then
+                begin
+                   if not(is_widestring(rd)) then
+                     p^.right:=gentypeconvnode(p^.right,cwidestringdef);
+                   if not(is_widestring(ld)) then
+                     p^.left:=gentypeconvnode(p^.left,cwidestringdef);
+                   p^.resulttype:=cwidestringdef;
+                   { this is only for add, the comparisaion is handled later }
+                   p^.location.loc:=LOC_REGISTER;
+                end
+              else if is_ansistring(rd) or is_ansistring(ld) then
+                begin
+                   if not(is_ansistring(rd)) then
+                     p^.right:=gentypeconvnode(p^.right,cansistringdef);
+                   if not(is_ansistring(ld)) then
+                     p^.left:=gentypeconvnode(p^.left,cansistringdef);
+                   p^.resulttype:=cansistringdef;
+                   { this is only for add, the comparisaion is handled later }
+                   p^.location.loc:=LOC_REGISTER;
+                end
+              else if is_longstring(rd) or is_longstring(ld) then
+                begin
+                   if not(is_longstring(rd)) then
+                     p^.right:=gentypeconvnode(p^.right,clongstringdef);
+                   if not(is_longstring(ld)) then
+                     p^.left:=gentypeconvnode(p^.left,clongstringdef);
+                   p^.resulttype:=clongstringdef;
+                   { this is only for add, the comparisaion is handled later }
+                   p^.location.loc:=LOC_MEM;
+                end
+              else
+                begin
+                   if not(is_shortstring(rd)) then
+                     p^.right:=gentypeconvnode(p^.right,cshortstringdef);
+                   if not(is_shortstring(ld)) then
+                     p^.left:=gentypeconvnode(p^.left,cshortstringdef);
+                   p^.resulttype:=cshortstringdef;
+                   { this is only for add, the comparisaion is handled later }
+                   p^.location.loc:=LOC_MEM;
+                end;
+              { only if there is a type cast we need to do again }
+              { the first pass                                   }
+              if p^.left^.treetype=typeconvn then
+                firstpass(p^.left);
+              if p^.right^.treetype=typeconvn then
+                firstpass(p^.right);
+              { here we call STRCONCAT or STRCMP or STRCOPY }
+              procinfo.flags:=procinfo.flags or pi_do_call;
+              if p^.location.loc=LOC_MEM then
+                calcregisters(p,0,0,0)
+              else
+                calcregisters(p,1,0,0);
+              convdone:=true;
+           end
          else
 
          { is one a real float ? }
@@ -1016,7 +1017,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  1999-04-08 11:34:00  peter
+  Revision 1.25  1999-04-15 09:01:34  peter
+    * fixed set loading
+    * object inheritance support for browser
+
+  Revision 1.24  1999/04/08 11:34:00  peter
     * int/int warning removed, only the hint is left
 
   Revision 1.23  1999/03/02 22:52:19  peter

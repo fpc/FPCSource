@@ -145,8 +145,9 @@ unit tree;
           tc_array_2_pointer,
           tc_pointer_2_array,
           tc_int_2_int,
-          tc_bool_2_int,
           tc_int_2_bool,
+          tc_bool_2_bool,
+          tc_bool_2_int,
           tc_real_2_real,
           tc_int_2_real,
           tc_int_2_fix,
@@ -1713,7 +1714,11 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.71  1999-03-31 13:55:28  peter
+  Revision 1.72  1999-04-15 09:01:35  peter
+    * fixed set loading
+    * object inheritance support for browser
+
+  Revision 1.71  1999/03/31 13:55:28  peter
     * assembler inlining working for ag386bin
 
   Revision 1.70  1999/03/26 00:05:49  peter

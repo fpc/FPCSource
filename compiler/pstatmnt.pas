@@ -797,7 +797,6 @@ unit pstatmnt;
         var
           p,p2 : ptree;
           ht : ttoken;
-          store_allow : boolean;
           again : boolean; { dummy for do_proc_call }
           destrukname : stringid;
           sym : psym;
@@ -1265,7 +1264,11 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.76  1999-04-14 18:41:25  daniel
+  Revision 1.77  1999-04-15 09:01:33  peter
+    * fixed set loading
+    * object inheritance support for browser
+
+  Revision 1.76  1999/04/14 18:41:25  daniel
   * Better use of routines in pbase and symtable. 4k code removed.
 
   Revision 1.75  1999/04/14 09:14:53  peter
