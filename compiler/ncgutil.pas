@@ -1285,7 +1285,7 @@ implementation
         if (current_procinfo.procdef.proctypeoption=potype_constructor) then
           begin
 {$ifdef newra}
-            r:=rg.getexplicitregint(NR_FUNCTION_RETURN_REG);
+            r:=rg.getexplicitregisterint(list,NR_FUNCTION_RETURN_REG);
 {$else}
             r.enum:=R_INTREGISTER;
             r.number:=NR_FUNCTION_RETURN_REG;
@@ -1331,8 +1331,8 @@ implementation
                begin
                  uses_acchi:=true;
 {$ifdef newra}
-                 r:=rg.getexplicitregint(NR_FUNCTION_RETURN64_LOW_REG);
-                 r2:=rg.getexplicitregint(NR_FUNCTION_RETURN64_HIGH_REG);
+                 r:=rg.getexplicitregisterint(list,NR_FUNCTION_RETURN64_LOW_REG);
+                 r2:=rg.getexplicitregisterint(list,NR_FUNCTION_RETURN64_HIGH_REG);
 {$else}
                  r.enum:=R_INTREGISTER;
                  r.number:=NR_FUNCTION_RETURN64_LOW_REG;
@@ -1347,7 +1347,7 @@ implementation
 {$endif cpu64bit}
                begin
 {$ifdef newra}
-                 hreg:=rg.getexplicitregint(NR_FUNCTION_RETURN_REG);
+                 hreg:=rg.getexplicitregisterint(list,NR_FUNCTION_RETURN_REG);
 {$else}
                  hreg.enum:=R_INTREGISTER;
                  hreg.number:=NR_FUNCTION_RETURN_REG;
@@ -1379,8 +1379,8 @@ implementation
                   begin
                     uses_acchi:=true;
 {$ifdef newra}
-                    r:=rg.getexplicitregint(NR_FUNCTION_RETURN64_LOW_REG);
-                    r2:=rg.getexplicitregint(NR_FUNCTION_RETURN64_HIGH_REG);
+                    r:=rg.getexplicitregisterint(list,NR_FUNCTION_RETURN64_LOW_REG);
+                    r2:=rg.getexplicitregisterint(list,NR_FUNCTION_RETURN64_HIGH_REG);
 {$else}
                     r.enum:=R_INTREGISTER;
                     r.number:=NR_FUNCTION_RETURN64_LOW_REG;
@@ -1395,7 +1395,7 @@ implementation
 {$endif cpu64bit}
                   begin
 {$ifdef newra}
-                    hreg:=rg.getexplicitregint(NR_FUNCTION_RETURN_REG);
+                    hreg:=rg.getexplicitregisterint(list,NR_FUNCTION_RETURN_REG);
 {$else}
                     hreg.enum:=R_INTREGISTER;
                     hreg.number:=NR_FUNCTION_RETURN_REG;
@@ -2002,7 +2002,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.126  2003-06-17 16:32:44  peter
+  Revision 1.127  2003-06-17 18:13:51  jonas
+    * fixed -dnewra compilation problems
+
+  Revision 1.126  2003/06/17 16:32:44  peter
     * alloc register for function result
 
   Revision 1.125  2003/06/13 21:19:30  peter
