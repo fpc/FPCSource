@@ -69,7 +69,7 @@ vpath %.pp $(INC) $(PROCINC)
 #
 
 %$(OEXT) : %.as
-        as -o $*$(OEXT) $*.as
+        $(AS) -o $*$(OEXT) $*.as
 
 
 #
