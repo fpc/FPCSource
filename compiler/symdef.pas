@@ -518,6 +518,7 @@ interface
           procedure derefimpl;override;
           function  getsymtable(t:tgetsymtable):tsymtable;override;
           function  haspara:boolean;
+          function gettypename : string;override;
           function  mangledname : string;
           procedure setmangledname(const s : string);
           procedure load_references(ppufile:tcompilerppufile;locals:boolean);
@@ -3815,6 +3816,12 @@ implementation
       end;
 
 
+    function tprocdef.gettypename : string;
+      begin
+         gettypename := FullProcName+';'+ProcCallOptionStr[proccalloption];
+      end;
+
+
     function tprocdef.mangledname : string;
       var
         s  : string;
@@ -5546,7 +5553,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.118  2002-12-27 15:23:09  peter
+  Revision 1.119  2002-12-29 18:25:59  peter
+    * tprocdef.gettypename implemented
+
+  Revision 1.118  2002/12/27 15:23:09  peter
     * write class methods in fullname
 
   Revision 1.117  2002/12/15 19:34:31  florian
