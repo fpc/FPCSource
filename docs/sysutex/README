@@ -12,3 +12,11 @@ ex9.pp contains an example of the DecodeDate function.
 ex10.pp contains an example of the DecodeTime function.
 ex11.pp contains an example of the EncodeDate function.
 ex12.pp contains an example of the EncodeTime function.
+ex13.pp contains an example of the FileDateToDateTime function.
+ex14.pp contains an example of the FormatDateTime function.
+ex14.pp contains an example of the FormatDateTime function.
+ex15.pp contains an example of the IncMonth function.
+ex16.pp contains an example of the IsLeapYear function.
+ex17.pp contains an example of the MSecsToTimeStamp function.
+ex18.pp contains an example of the Now function.
+ex19.pp contains an example of the StrToDate function.
