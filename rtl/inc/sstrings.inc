@@ -663,8 +663,13 @@ end;
     { high(int64) produces 0 in version 1.0 (JM) }
     with qwordrec(maxint64) do
       begin
+{$ifdef ENDIAN_LITTLE}
         l1 := longint($ffffffff);
         l2 := $7fffffff;
+{$else ENDIAN_LITTLE}
+        l1 := $7fffffff;
+        l2 := longint($ffffffff);
+{$endif ENDIAN_LITTLE}
       end;
     with qwordrec(maxqword) do
       begin
@@ -862,7 +867,10 @@ end;
 
 {
   $Log$
-  Revision 1.30  2004-05-01 23:55:18  peter
+  Revision 1.31  2004-11-02 22:38:58  jonas
+    * fixed endianess bug in fpc_val_int64_shortstr() (webtbf/tw2128)
+
+  Revision 1.30  2004/05/01 23:55:18  peter
     * replace strlenint with sizeint
 
   Revision 1.29  2004/05/01 20:52:50  peter
