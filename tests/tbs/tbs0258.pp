@@ -1,3 +1,6 @@
+{$ifdef fpc}
+{$mode tp}
+{$endif fpc}
 program test_set;
 
 uses erroru;
@@ -17,9 +20,7 @@ procedure test;
    begin
       for i:=1 to 32 do x[i]:=$ff;
       i:=1;
-      if i in [1,3,5,8,11,14,15] then
-        writeln('1 is in [1,3,5,8,11,14,15]')
-      else
+      if not(i in [1,3,5,8,11,14,15]) then
         begin
            writeln('Error in set');
            error;
@@ -31,21 +32,21 @@ procedure test;
            error;
         end;
       i:=257;
-      if i in [1,3,5,8,11,14,15] then
+      if not(i in [1,3,5,8,11,14,15]) then
         begin
-           writeln('Error : 257 is in [1,3,5,8,11,14,15]');
+           writeln('Error : 257 isn''t in [1,3,5,8,11,14,15]');
            error;
         end;
       l:=-1;
-      if l in [1,3,5,8,11,14,15,255] then
+      if not(l in [1,3,5,8,11,14,15,255]) then
         begin
-           writeln('Error : -127 is in [1,3,5,8,11,14,15,255]');
+           writeln('Error : -1 isn''t in [1,3,5,8,11,14,15,255]');
            error;
         end;
       i:=257;
-      if l in [1,3,5,8,11,14,15,255] then
+      if not(l in [1,3,5,8,11,14,15,255]) then
         begin
-           writeln('Error : longint(257) is in [1,3,5,8,11,14,15,255]');
+           writeln('Error : longint(257) isn''t in [1,3,5,8,11,14,15,255]');
            error;
         end;
       for i:=1 to 32 do x[i]:=0;

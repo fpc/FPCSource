@@ -1,4 +1,4 @@
-{$OPT=-Or}
+{ $OPT=-Or}
 {$maxfpuregisters 3}
 uses
    dotest;
