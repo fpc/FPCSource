@@ -673,8 +673,8 @@ implementation
                  { just emit a warning, delphi gives an    }
                  { error, only if the type definition of   }
                  { of the string is less  < 255 characters }
-                 if (tstringconstnode(right).len
-                  > tstringdef(left.resulttype.def).len) then
+                 if not is_open_string(left.resulttype.def) and
+                    (tstringconstnode(right).len > tstringdef(left.resulttype.def).len) then
                     cgmessage(type_w_string_too_long);
                  inserttypeconv(right,left.resulttype);
                  if (tstringconstnode(right).len=0) then
@@ -1257,7 +1257,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.82  2003-03-28 19:16:56  peter
+  Revision 1.83  2003-04-11 15:01:23  peter
+    * fix bug 2438
+
+  Revision 1.82  2003/03/28 19:16:56  peter
     * generic constructor working for i386
     * remove fixed self register
     * esi added as address register for i386
