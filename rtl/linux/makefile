@@ -37,6 +37,22 @@ CPU=i386
 #CPU=m68k
 endif
 
+# Do you want smartlinking enabled (YES/NO) ?
+ifndef SMARTLINK
+SMARTLINK=YES
+endif
+
+# Name of library ?
+# If this is set, all units will be put in the same library.
+# If it is empty (default), the units will be left in separate files.
+LIBNAME=
+#LIBNAME=fpc
+
+# Should the library be shared or static (only if LIBNAME is set).
+# Set this to 'shared' or 'static'.
+# Setting this to shared will disable smart linking.
+LIBTYPE=shared
+
 # What compiler to use ?
 ifndef PP
 PP=ppc386
@@ -53,8 +69,6 @@ ifndef PPUMOVE
 PPUMOVE=ppumove
 endif
 
-# Set this to 'shared' or 'static'
-LIBTYPE=shared
 
 # AOUT should be defined in main makefile.
 # But you can set it here too.
@@ -111,6 +125,28 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 # Check if we need C library.
 ifeq ($(LINK_TO_C),YES)
 override OPT:=$(OPT) -dCRTLIB
+endif
+
+
+# Smart linking requested ?
+ifeq ($(SMARTLINK),YES)
+# no use with shared libs.
+ifneq ($(LIBNAME),)
+ifneq ($(LIBTYPE),shared)
+override OPT:=$(OPT) -Xl
+endif
+else
+override OPT:=$(OPT) -Xl
+endif
+endif
+
+ifneq ($(LIBNAME),)
+override OPT:=$(OPT) -o$(LIBNAME)
+ifeq ($(LIBTYPE),shared)
+override OPT:=$(OPT) -CD
+else
+override OPT:=$(OPT) -CS
+endif
 endif
 
 # Define Linux Units
@@ -296,7 +332,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.17  1998-08-15 17:08:09  peter
+# Revision 1.18  1998-08-16 10:22:57  michael
+# Added library support, and smartlinking
+#
+# Revision 1.17  1998/08/15 17:08:09  peter
 #   + support for cprt0.o
 #
 #
