@@ -2365,6 +2365,8 @@ raise exceptions in an \var{except} block.
 
 \item [ Syntax error while parsing a conditional compiling expression ]
 \item [ Evaluating a conditional compiling expression ]
+There is an error in the expression following the \var{\{\$if \}} compiler
+directive.
 \item [ Keyword redefined as macro has no effect ]
 You cannot redefine Pascal keywords with macros. If you, for instance would
 want to redefine the exit command you'd get this error. 
@@ -2380,11 +2382,35 @@ The compiler expects a floating point expression, and gets something else.
 When compiling in \var{\{\$V+ \}} mode, the string you pass as a parameter
 should be of the exact same type as the declared parameter of the procedure.
 \item [ Only class methods can be referred with class references ]
+This error occurs in a situation like the following:
+\begin{verbatim}
+Type :
+   Tclass = Class of Tobject;
+
+Var C : TClass;
+
+begin
+...
+C.free
+\end{verbatim}
+\var{Free} is not a class method and hence cannot be called with a class
+reference.
 \item [ Only class methods can be accessed in class methods ]
+This is related to the previous error. You cannot call a method of an object
+from a inside a class method. The following code would produce this error:
+\begin{verbatim}
+class procedure tobject.x;
+
+begin
+  free
+\end{verbatim}
+Because free is a normal method of a class it cannot be called from a class
+method.
 \item [ Constant and CASE types do not match ]
 One of the labels is not of the same type as the case variable.
 \item [ The symbol can't be exported from a library ]
-You're trying to export something which cannot be exported.
+You can only export procedures and functions when you write a library. You
+cannot export variables or constants.
 \item [ A virtual method must be overridden using the OVERRIDE directive: ]
 A method that is declared \var{virtual} in a parent class, should be
 overridden in the descendent class with the \var{override} directive. If you
@@ -2396,7 +2422,15 @@ exist.
 \item [ No member is provided to access property ]
 You specified no \var{read} directive for a property. 
 \item [ Illegal symbol for property access ]
-There is an error in the \var{read} directive for a property.
+There is an error in the \var{read} or \var{write} directives for an array 
+property. When you declare an array property, you can only access it with 
+procedures and functions. The following code woud cause such an error.
+\begin{verbatim}
+tmyobject = class
+  i : integer;
+  property x [i : integer]: integer read I write i;
+\end{verbatim}
+ 
 \item [ Cannot write a protected field of an object ]
 Fields that are declared in a \var{protected} section of an object or class
 declaration cannot be accessed outside that objects methods.
@@ -2423,10 +2457,21 @@ value.
 \item [ Use of unsupported feature! ]
 You're trying to force the compiler into doing something it cannot do yet.
 \item [ absolute can only be associated to ONE variable ]
-You cannot specify more than one variable after the \var{absolute} directive.
+You cannot specify more than one variable before the \var{absolute} directive.
+Thus, the following construct will provide this error:
+\begin{verbatim}
+Var Z : Longint;
+    X,Y : Longint absolute Z;
+\end{verbatim}
 \item [ absolute can only be associated a var or const ]
-You can only specify a \var{absolute} directive after a variable or constant
-declaration.
+The address of a \var{absolute} directive can only point to a variable or
+constant. Therefore, the following code will produce this error:
+\begin{verbatim}
+  Procedure X;
+
+ var p : longint absolute x;
+\end{verbatim}
+
 \item [ succ or pred on enums with assignments not possible ]
 When you declared an enumeration type which has assignments in it, as in C,
 like in the following:
@@ -2464,7 +2509,17 @@ You declared a class, but you didn't implement it.
 You specify a field of a record or object, and the record or object doesn't
 contains such a field.
 \item [ The use of a far pointer isn't allowed there ]
+Free Pascal doesn't support far pointers, so you cannot take the address of
+an expression which has a far reference as a result. The \var{mem} construct
+has a far reference as a result, so the following code will produce this
+error:
+\begin{verbatim}
+var p : pointer;
+...
+p:=@mem[a000:000];
+\end{verbatim}
 \item [ procedure call with stackframe ESP/SP ]
+A procedure doesn't need a complete stack-frame, so it is omitted.
 \item [ Abstract methods can't be called directly ]
 You cannot call an abstract method directy, instead you must call a
 overriding child method, because an abstract method isn't implemented. 
