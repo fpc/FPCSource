@@ -1,7 +1,8 @@
+{*****************************************************************************}
 {
     $Id$
-    This file is part of the Free Pascal run time library.
-    Copyright (c) 2003 by the Free Pascal development team
+    This file is part of the Free Pascal's "Free Components Library".
+    Copyright (c) 2003 by Mazen NEIFER of the Free Pascal development team
 
     BMP writer implementation.
     
@@ -11,8 +12,8 @@
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
- **********************************************************************}
+}
+{*****************************************************************************}
 {$mode objfpc}{$h+}
 unit FPWriteBMP;
 
@@ -133,7 +134,10 @@ initialization
 end.
 {
 $Log$
-Revision 1.4  2003-09-08 14:08:48  mazen
+Revision 1.5  2003-09-09 11:28:23  mazen
+* fixing copyright section in the file header
+
+Revision 1.4  2003/09/08 14:08:48  mazen
 - all common defintions are now included into bmpcomn unit
 - removed erronous code (causing exception)
 
