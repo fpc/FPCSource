@@ -401,7 +401,9 @@
          { true, if for sets subtractions the extra not should generated }
          extra_not : boolean;
 
+{$ifdef SUPPORT_MMX}
          mmxbase : tmmxtype;
+{$endif SUPPORT_MMX}
 
       begin
          if (p^.left^.resulttype^.deftype=stringdef) then
@@ -1271,7 +1273,13 @@
 
 {
      $Log$
-     Revision 1.7  1998-05-01 16:38:44  florian
+     Revision 1.8  1998-05-11 13:07:53  peter
+       + $ifdef NEWPPU for the new ppuformat
+       + $define GDB not longer required
+       * removed all warnings and stripped some log comments
+       * no findfirst/findnext anymore to remove smartlink *.o files
+
+     Revision 1.7  1998/05/01 16:38:44  florian
        * handling of private and protected fixed
        + change_keywords_to_tp implemented to remove
          keywords which aren't supported by tp
@@ -1295,51 +1303,4 @@
 
      Revision 1.3  1998/04/08 11:34:22  peter
        * nasm works (linux only tested)
-
-     Revision 1.2  1998/03/28 23:09:55  florian
-       * secondin bugfix (m68k and i386)
-       * overflow checking bugfix (m68k and i386) -- pretty useless in
-         secondadd, since everything is done using 32-bit
-       * loading pointer to routines hopefully fixed (m68k)
-       * flags problem with calls to RTL internal routines fixed (still strcmp
-         to fix) (m68k)
-       * #ELSE was still incorrect (didn't take care of the previous level)
-       * problem with filenames in the command line solved
-       * problem with mangledname solved
-       * linking name problem solved (was case insensitive)
-       * double id problem and potential crash solved
-       * stop after first error
-       * and=>test problem removed
-       * correct read for all float types
-       * 2 sigsegv fixes and a cosmetic fix for Internal Error
-       * push/pop is now correct optimized (=> mov (%esp),reg)
-
-     Revision 1.1.1.1  1998/03/25 11:18:12  root
-     * Restored version
-
-     Revision 1.15  1998/03/10 23:48:36  florian
-       * a couple of bug fixes to get the compiler with -OGaxz compiler, sadly
-         enough, it doesn't run
-
-     Revision 1.14  1998/03/10 01:17:18  peter
-       * all files have the same header
-       * messages are fully implemented, EXTDEBUG uses Comment()
-       + AG... files for the Assembler generation
-
-     Revision 1.13  1998/03/09 10:44:38  peter
-       + string='', string<>'', string:='', string:=char optimizes (the first 2
-         were already in cg68k2)
-
-     Revision 1.12  1998/03/06 00:52:16  peter
-       * replaced all old messages from errore.msg, only ExtDebug and some
-         Comment() calls are left
-       * fixed options.pas
-
-     Revision 1.11  1998/03/02 01:48:30  peter
-       * renamed target_DOS to target_GO32V1
-       + new verbose system, merged old errors and verbose units into one new
-         verbose.pas, so errors.pas is obsolete
-
-     Revision 1.10  1998/02/15 21:27:50  florian
-     *** empty log message ***
 }

@@ -44,7 +44,6 @@ type
     objfile,
     srcfile,
     as_bin   : string;
-    smartcnt : longint;
   {outfile}
     outcnt   : longint;
     outbuf   : array[0..AsmOutSize-1] of char;
@@ -70,6 +69,9 @@ type
 Procedure GenerateAsm(const fn:string);
 Procedure OnlyAsm(const fn:string);
 
+var
+  SmartLinkFilesCnt : longint;
+Function SmartLinkPath(const s:string):string;
 
 Implementation
 
@@ -88,15 +90,29 @@ uses
   ;
 
 
+{*****************************************************************************
+                               SmartLink Helpers
+*****************************************************************************}
+
+Function SmartLinkPath(const s:string):string;
+var
+    p : dirstr;
+    n : namestr;
+    e : extstr;
+begin
+  FSplit(s,p,n,e);
+  SmartLinkPath:=FixFileName(n+target_info.smartext);
+end;
+
+{*****************************************************************************
+                                  TAsmList
+*****************************************************************************}
+
 Function DoPipe:boolean;
 begin
   DoPipe:=use_pipe and (not WriteAsmFile) and (current_module^.output_format=of_o);
 end;
 
-
-{*****************************************************************************
-                       TAsmList Calling and Name
-*****************************************************************************}
 
 const
   lastas  : byte=255;
@@ -175,7 +191,7 @@ begin
   DoAssemble:=true;
   if DoPipe then
    exit;
-  if (smartcnt<=1) and (not externasm) then
+  if (SmartLinkFilesCnt<=1) and (not externasm) then
    Message1(exec_i_assembling,name);
   s:=target_asm.asmcmd;
   Replace(s,'$ASM',AsmFile);
@@ -187,11 +203,11 @@ end;
 
 procedure TAsmList.NextSmartName;
 begin
-  inc(smartcnt);
-  if smartcnt>999999 then
+  inc(SmartLinkFilesCnt);
+  if SmartLinkFilesCnt>999999 then
    Comment(V_Fatal,'Too many assembler files');
-  AsmFile:=Path+FixFileName('as'+tostr(smartcnt)+target_info.asmext);
-  ObjFile:=Path+FixFileName('as'+tostr(smartcnt)+target_info.objext);
+  AsmFile:=Path+FixFileName('as'+tostr(SmartLinkFilesCnt)+target_info.asmext);
+  ObjFile:=Path+FixFileName('as'+tostr(SmartLinkFilesCnt)+target_info.objext);
 end;
 
 
@@ -336,7 +352,7 @@ begin
   objfile:=path+name+target_info.objext;
   OutCnt:=0;
 {Smartlinking}
-  smartcnt:=0;
+  SmartLinkFilesCnt:=0;
   if smartlink then
    begin
      path:=SmartLinkPath(name);
@@ -397,10 +413,17 @@ begin
   dispose(a,Done);
 end;
 
+
 end.
 {
   $Log$
-  Revision 1.7  1998-05-07 00:17:00  peter
+  Revision 1.8  1998-05-11 13:07:53  peter
+    + $ifdef NEWPPU for the new ppuformat
+    + $define GDB not longer required
+    * removed all warnings and stripped some log comments
+    * no findfirst/findnext anymore to remove smartlink *.o files
+
+  Revision 1.7  1998/05/07 00:17:00  peter
     * smartlinking for sets
     + consts labels are now concated/generated in hcodegen
     * moved some cpu code to cga and some none cpu depended code from cga

@@ -99,7 +99,6 @@ end;
 Procedure _comment(Level:Longint;const s:string);
 var
   hs : string;
-  i  : longint;
 begin
   if (verbosity and Level)=Level then
    begin
@@ -131,19 +130,12 @@ begin
           if (verbosity and Level)=V_Fatal then
            hs:=rh_errorstr;
        end;
-     if (Level<$100) and Assigned(current_module) and
-        Assigned(current_module^.current_inputfile) then
-      hs:=current_module^.current_inputfile^.get_file_line+' '+hs;
-(* {$ifdef USE_RHIDE}
-    What was this ??? I did not code that (PM)
-     if (Level<$100) then
-      begin
-        i:=length(hs)+1;
-        hs:=hs+lowercase(Copy(s,1,5))+Copy(s,6,255);
-      end
-     else
-{$endif USE_RHIDE} *)
-      hs:=hs+s;
+     if (Level<$100) and Assigned(current_module) and Assigned(current_module^.current_inputfile) then
+       hs:=current_module^.current_inputfile^.get_file_line+' '+hs;
+   { add the message to the text }
+
+     hs:=hs+s;
+
 {$ifdef FPC}
      if UseStdErr and (Level<$100) then
       begin
@@ -249,7 +241,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  1998-04-30 15:59:43  pierre
+  Revision 1.6  1998-05-11 13:07:58  peter
+    + $ifdef NEWPPU for the new ppuformat
+    + $define GDB not longer required
+    * removed all warnings and stripped some log comments
+    * no findfirst/findnext anymore to remove smartlink *.o files
+
+  Revision 1.5  1998/04/30 15:59:43  pierre
     * GDB works again better :
       correct type info in one pass
     + UseTokenInfo for better source position
@@ -263,45 +261,4 @@ end.
     + started inline procedures
     + added starstarn : use ** for exponentiation (^ gave problems)
     + started UseTokenInfo cond to get accurate positions
-
-  Revision 1.2  1998/03/28 23:09:57  florian
-    * secondin bugfix (m68k and i386)
-    * overflow checking bugfix (m68k and i386) -- pretty useless in
-      secondadd, since everything is done using 32-bit
-    * loading pointer to routines hopefully fixed (m68k)
-    * flags problem with calls to RTL internal routines fixed (still strcmp
-      to fix) (m68k)
-    * #ELSE was still incorrect (didn't take care of the previous level)
-    * problem with filenames in the command line solved
-    * problem with mangledname solved
-    * linking name problem solved (was case insensitive)
-    * double id problem and potential crash solved
-    * stop after first error
-    * and=>test problem removed
-    * correct read for all float types
-    * 2 sigsegv fixes and a cosmetic fix for Internal Error
-    * push/pop is now correct optimized (=> mov (%esp),reg)
-
-  Revision 1.1.1.1  1998/03/25 11:18:15  root
-  * Restored version
-
-  Revision 1.6  1998/03/10 16:43:34  peter
-    * fixed Fatal error writting
-
-  Revision 1.5  1998/03/10 01:17:30  peter
-    * all files have the same header
-    * messages are fully implemented, EXTDEBUG uses Comment()
-    + AG... files for the Assembler generation
-
-  Revision 1.4  1998/03/06 00:53:02  peter
-    * replaced all old messages from errore.msg, only ExtDebug and some
-      Comment() calls are left
-    * fixed options.pas
-
-  Revision 1.3  1998/03/04 17:34:15  michael
-  + Changed ifdef FPK to ifdef FPC
-
-  Revision 1.2  1998/03/03 16:45:25  peter
-    + message support for assembler parsers
-
 }

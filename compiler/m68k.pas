@@ -903,10 +903,10 @@ type
 {$ifdef EXTDEBUG}
            lab2str:='ILLEGAL'
          else
-           lab2str:=target_info.labelprefix+tostr(l^.nb);
+           lab2str:=target_asm.labelprefix+tostr(l^.nb);
 {$else EXTDEBUG}
            internalerror(2000);
-         lab2str:=target_info.labelprefix+tostr(l^.nb);
+         lab2str:=target_asm.labelprefix+tostr(l^.nb);
 {$endif EXTDEBUG}
 
          l^.is_used:=true;
@@ -1642,100 +1642,17 @@ type
 end.
 {
   $Log$
-  Revision 1.2  1998-04-29 10:33:54  pierre
+  Revision 1.3  1998-05-11 13:07:54  peter
+    + $ifdef NEWPPU for the new ppuformat
+    + $define GDB not longer required
+    * removed all warnings and stripped some log comments
+    * no findfirst/findnext anymore to remove smartlink *.o files
+
+  Revision 1.2  1998/04/29 10:33:54  pierre
     + added some code for ansistring (not complete nor working yet)
     * corrected operator overloading
     * corrected nasm output
     + started inline procedures
     + added starstarn : use ** for exponentiation (^ gave problems)
     + started UseTokenInfo cond to get accurate positions
-
-  Revision 1.1.1.1  1998/03/25 11:18:13  root
-  * Restored version
-
-  Revision 1.13  1998/03/10 01:17:20  peter
-    * all files have the same header
-    * messages are fully implemented, EXTDEBUG uses Comment()
-    + AG... files for the Assembler generation
-
-  Revision 1.12  1998/03/09 12:58:11  peter
-    * FWait warning is only showed for Go32V2 and $E+
-    * opcode tables moved to i386.pas/m68k.pas to reduce circular uses (and
-      for m68k the same tables are removed)
-    + $E for i386
-
-  Revision 1.11  1998/03/06 00:52:24  peter
-    * replaced all old messages from errore.msg, only ExtDebug and some
-      Comment() calls are left
-    * fixed options.pas
-
-  Revision 1.10  1998/03/02 01:48:43  peter
-    * renamed target_DOS to target_GO32V1
-    + new verbose system, merged old errors and verbose units into one new
-      verbose.pas, so errors.pas is obsolete
-
-  Revision 1.9  1998/02/13 10:35:09  daniel
-  * Made Motorola version compilable.
-  * Fixed optimizer
-
-  Revision 1.8  1998/02/12 11:50:13  daniel
-  Yes! Finally! After three retries, my patch!
-
-  Changes:
-
-  Complete rewrite of psub.pas.
-  Added support for DLL's.
-  Compiler requires less memory.
-  Platform units for each platform.
-
-  Revision 1.7  1998/01/11 03:38:05  carl
-  * bugfix op_reg_const , op3t was never initialized
-
-  Revision 1.3  1997/12/09 13:46:42  carl
-  + renamed pai_labeled68k --> pai_labeled
-  + added extended size constant
-
-  Revision 1.2  1997/11/28 18:14:37  pierre
-   working version with several bug fixes
-
-  Revision 1.1.1.1  1997/11/27 08:32:57  michael
-  FPC Compiler CVS start
-
-
-  Pre-CVS log:
-
-  History:
-      30th september 1996:
-     + unit started
-      15th october 1996:
-     + tai386 added
-     + some code from asmgen moved to this unit
-      26th november 1996:
-     + tai386_labeled
-    ---------------------
-      3rd september 1997:
-     + unit started
-      5th september 1997:
-     + first version completed
-     24 september 1997:
-     + minor fixes regarding register conventions (CEC)
-     26 september 1997:
-     + added divs/muls tai68k constructor (CEC)
-     + added mc68020 instruction types (CEC)
-     + converted to work with v093 (CEC)
-    4th october 1997:
-    + version v95 (CEC)
-    + added floating point flags (CEC)
-    + added op_reg_const opcode for LINK instruction. (CEC)
-    + added floating point branch / flags (CEC)
-   2nd november 1997:
-     + instruction set for the 68000/68020/common FPU/common MMU is
-       now supposedely complete. (CEC).
-    20th november 1997:
-    * changed LOC_FPUREGISTER to LOC_FPU same as in i386.pas (PM)
-
-  What is left to do:
-    o  Create an opcode table to use in direct object output.
-    o  Create an instruction template for MOVEM instruction.
-
 }

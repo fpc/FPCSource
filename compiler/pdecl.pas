@@ -200,9 +200,9 @@ unit pdecl;
                 d:=new(pstringdef,init(p^.value))
 {$ifndef GDB}
                  else d:=new(pstringdef,init(255));
-{$else * GDB *}
+{$else GDB}
                  else d:=globaldef('SYSTEM.STRING');
-{$endif * GDB *}
+{$endif GDB}
 {$else UseAnsiString}
               if p^.value>255 then
                 d:=new(pstringdef,ansiinit(p^.value))
@@ -210,9 +210,9 @@ unit pdecl;
                 d:=new(pstringdef,init(p^.value))
 {$ifndef GDB}
                  else d:=new(pstringdef,init(255));
-{$else * GDB *}
+{$else GDB}
                  else d:=globaldef('SYSTEM.STRING');
-{$endif * GDB *}
+{$endif GDB}
               consume(RECKKLAMMER);
 {$endif UseAnsiString}
               disposetree(p);
@@ -221,9 +221,9 @@ unit pdecl;
              in ansistring mode ?? (PM) }
 {$ifndef GDB}
                  else d:=new(pstringdef,init(255));
-{$else * GDB *}
+{$else GDB}
                  else d:=globaldef('SYSTEM.STRING');
-{$endif * GDB *}
+{$endif GDB}
                  stringtype:=d;
           end;
 
@@ -339,11 +339,11 @@ unit pdecl;
                      {GDB doesn't like unnamed types !}
                      aktprocsym^.definition^.retdef:=
                        globaldef('boolean');
-{$Else * GDB *}
+{$Else GDB}
                      aktprocsym^.definition^.retdef:=
                         new(porddef,init(bool8bit,0,1));
 
-{$Endif * GDB *}
+{$Endif GDB}
                   end;
              end;
         end;
@@ -1008,7 +1008,7 @@ unit pdecl;
                datasegment^.concat(new(pai_stabs,init(strpnew('"vmt_'+aktclass^.owner^.name^+n+':S'+
                 typeglobalnumber('__vtbl_ptr_type')+'",'+tostr(N_STSYM)+',0,0,'+aktclass^.vmt_mangledname))));
            end;
-{$endif * GDB *}
+{$endif GDB}
          datasegment^.concat(new(pai_symbol,init_global(aktclass^.vmt_mangledname)));
 
          { determine the size with publicsyms^.datasize, because }
@@ -1370,10 +1370,6 @@ unit pdecl;
                     forwardsallowed:=true;
                  hp1:=single_type(hs);
                  p:=new(ppointerdef,init(hp1));
-{$ifndef GDB}
-                 if lasttypesym<>nil then
-                   save_forward(ppointerdef(p),lasttypesym);
-{$else * GDB *}
                  {I add big troubles here
                  with var p : ^byte in graph.putimage
                  because a save_forward was called and
@@ -1387,7 +1383,6 @@ unit pdecl;
                  if (lasttypesym<>nil)
                    and ((lasttypesym^.properties and sp_forwarddef)<>0) then
                      lasttypesym^.forwardpointer:=ppointerdef(p);
-{$endif * GDB *}
                  forwardsallowed:=false;
               end;
             _RECORD:
@@ -1792,7 +1787,13 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.16  1998-05-05 12:05:42  florian
+  Revision 1.17  1998-05-11 13:07:55  peter
+    + $ifdef NEWPPU for the new ppuformat
+    + $define GDB not longer required
+    * removed all warnings and stripped some log comments
+    * no findfirst/findnext anymore to remove smartlink *.o files
+
+  Revision 1.16  1998/05/05 12:05:42  florian
     * problems with properties fixed
     * crash fixed:  i:=l when i and l are undefined, was a problem with
       implementation of private/protected
@@ -1861,152 +1862,4 @@ end.
     * fixed the -Ss bug
     + warning for Virtual constructors
     * helppages updated with -TGO32V1
-
-  Revision 1.1.1.1  1998/03/25 11:18:14  root
-  * Restored version
-
-  Revision 1.31  1998/03/24 21:48:33  florian
-    * just a couple of fixes applied:
-         - problem with fixed16 solved
-         - internalerror 10005 problem fixed
-         - patch for assembler reading
-         - small optimizer fix
-         - mem is now supported
-
-  Revision 1.30  1998/03/21 23:59:39  florian
-    * indexed properties fixed
-    * ppu i/o of properties fixed
-    * field can be also used for write access
-    * overriding of properties
-
-  Revision 1.29  1998/03/18 22:50:11  florian
-    + fstp/fld optimization
-    * routines which contains asm aren't longer optimzed
-    * wrong ifdef TEST_FUNCRET corrected
-    * wrong data generation for array[0..n] of char = '01234'; fixed
-    * bug0097 is fixed partial
-    * bug0116 fixed (-Og doesn't use enter of the stack frame is greater than
-      65535)
-
-  Revision 1.28  1998/03/10 16:27:41  pierre
-    * better line info in stabs debug
-    * symtabletype and lexlevel separated into two fields of tsymtable
-    + ifdef MAKELIB for direct library output, not complete
-    + ifdef CHAINPROCSYMS for overloaded seach across units, not fully
-      working
-    + ifdef TESTFUNCRET for setting func result in underfunction, not
-      working
-
-  Revision 1.27  1998/03/10 01:17:23  peter
-    * all files have the same header
-    * messages are fully implemented, EXTDEBUG uses Comment()
-    + AG... files for the Assembler generation
-
-  Revision 1.26  1998/03/06 00:52:41  peter
-    * replaced all old messages from errore.msg, only ExtDebug and some
-      Comment() calls are left
-    * fixed options.pas
-
-  Revision 1.25  1998/03/05 22:43:49  florian
-    * some win32 support stuff added
-
-  Revision 1.24  1998/03/04 17:33:49  michael
-  + Changed ifdef FPK to ifdef FPC
-
-  Revision 1.23  1998/03/04 01:35:06  peter
-    * messages for unit-handling and assembler/linker
-    * the compiler compiles without -dGDB, but doesn't work yet
-    + -vh for Hint
-
-  Revision 1.22  1998/03/02 01:49:00  peter
-    * renamed target_DOS to target_GO32V1
-    + new verbose system, merged old errors and verbose units into one new
-      verbose.pas, so errors.pas is obsolete
-
-  Revision 1.21  1998/02/28 14:43:47  florian
-    * final implemenation of win32 imports
-    * extended tai_align to allow 8 and 16 byte aligns
-
-  Revision 1.20  1998/02/19 00:11:07  peter
-    * fixed -g to work again
-    * fixed some typos with the scriptobject
-
-  Revision 1.19  1998/02/13 10:35:23  daniel
-  * Made Motorola version compilable.
-  * Fixed optimizer
-
-  Revision 1.18  1998/02/12 17:19:19  florian
-    * fixed to get remake3 work, but needs additional fixes (output, I don't like
-      also that aktswitches isn't a pointer)
-
-  Revision 1.17  1998/02/12 11:50:25  daniel
-  Yes! Finally! After three retries, my patch!
-
-  Changes:
-
-  Complete rewrite of psub.pas.
-  Added support for DLL's.
-  Compiler requires less memory.
-  Platform units for each platform.
-
-  Revision 1.16  1998/02/11 21:56:36  florian
-    * bugfixes: bug0093, bug0053, bug0088, bug0087, bug0089
-
-  Revision 1.15  1998/02/06 10:34:25  florian
-    * bug0082 and bug0084 fixed
-
-  Revision 1.14  1998/02/02 11:56:49  pierre
-    * better line info for var statement
-
-  Revision 1.13  1998/01/30 21:25:31  carl
-    * bugfix #86 + checking of all other macros for crashes, fixed typeof
-       partly among others.
-
-  Revision 1.12  1998/01/23 17:12:19  pierre
-    * added some improvements for as and ld :
-      - doserror and dosexitcode treated separately
-      - PATH searched if doserror=2
-    + start of long and ansi string (far from complete)
-      in conditionnal UseLongString and UseAnsiString
-    * options.pas cleaned (some variables shifted to globals)gl
-
-  Revision 1.11  1998/01/21 21:25:46  florian
-    * small problem with variante records fixed:
-       case a : (x,y,z) of
-       ...
-      is now allowed
-
-  Revision 1.10  1998/01/13 23:11:13  florian
-    + class methods
-
-  Revision 1.9  1998/01/12 13:03:31  florian
-    + parsing of class methods implemented
-
-  Revision 1.8  1998/01/11 10:54:23  florian
-    + generic library support
-
-  Revision 1.7  1998/01/09 23:08:32  florian
-    + C++/Delphi styled //-comments
-    * some bugs in Delphi object model fixed
-    + override directive
-
-  Revision 1.6  1998/01/09 18:01:16  florian
-    * VIRTUAL isn't anymore a common keyword
-    + DYNAMIC is equal to VIRTUAL
-
-  Revision 1.5  1998/01/09 16:08:23  florian
-    * abstract methods call now abstracterrorproc if they are called
-      a class with an abstract method can be create with a class reference else
-      the compiler forbides this
-
-  Revision 1.4  1998/01/09 13:39:55  florian
-    * public, protected and private aren't anymore key words
-    + published is equal to public
-
-  Revision 1.3  1998/01/09 13:18:12  florian
-    + "forward" class declarations   (type tclass = class; )
-
-  Revision 1.2  1998/01/09 09:09:58  michael
-  + Initial implementation, second try
-
 }

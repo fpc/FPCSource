@@ -449,7 +449,6 @@ unit pexpr;
 
       var
          paras : ptree;
-         oldafterassignment : boolean;
          p2 : ptree;
 
       begin
@@ -929,8 +928,6 @@ unit pexpr;
 
       var
          possible_error : boolean;
-         storesymtablestack : psymtable;
-         actprocsym : pprocsym;
 
       begin
 {$ifdef UseTokenInfo}
@@ -1735,7 +1732,13 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.13  1998-05-06 08:38:45  pierre
+  Revision 1.14  1998-05-11 13:07:56  peter
+    + $ifdef NEWPPU for the new ppuformat
+    + $define GDB not longer required
+    * removed all warnings and stripped some log comments
+    * no findfirst/findnext anymore to remove smartlink *.o files
+
+  Revision 1.13  1998/05/06 08:38:45  pierre
     * better position info with UseTokenInfo
       UseTokenInfo greatly simplified
     + added check for changed tree after first time firstpass
@@ -1789,129 +1792,4 @@ end.
       in MEM parsing for go32v2
       better external symbol creation
       support for rhgdb.exe (lowercase file names)
-
-  Revision 1.2  1998/03/26 11:18:31  florian
-    - switch -Sa removed
-    - support of a:=b:=0 removed
-
-  Revision 1.1.1.1  1998/03/25 11:18:14  root
-  * Restored version
-
-  Revision 1.26  1998/03/24 21:48:33  florian
-    * just a couple of fixes applied:
-         - problem with fixed16 solved
-         - internalerror 10005 problem fixed
-         - patch for assembler reading
-         - small optimizer fix
-         - mem is now supported
-
-  Revision 1.25  1998/03/21 23:59:39  florian
-    * indexed properties fixed
-    * ppu i/o of properties fixed
-    * field can be also used for write access
-    * overriding of properties
-
-  Revision 1.24  1998/03/16 22:42:21  florian
-    * some fixes of Peter applied:
-      ofs problem, profiler support
-
-  Revision 1.23  1998/03/11 11:23:57  florian
-    * bug0081 and bug0109 fixed
-
-  Revision 1.22  1998/03/10 16:27:42  pierre
-    * better line info in stabs debug
-    * symtabletype and lexlevel separated into two fields of tsymtable
-    + ifdef MAKELIB for direct library output, not complete
-    + ifdef CHAINPROCSYMS for overloaded seach across units, not fully
-      working
-    + ifdef TESTFUNCRET for setting func result in underfunction, not
-      working
-
-  Revision 1.21  1998/03/10 01:17:24  peter
-    * all files have the same header
-    * messages are fully implemented, EXTDEBUG uses Comment()
-    + AG... files for the Assembler generation
-
-  Revision 1.20  1998/03/06 00:52:44  peter
-    * replaced all old messages from errore.msg, only ExtDebug and some
-      Comment() calls are left
-    * fixed options.pas
-
-  Revision 1.19  1998/03/02 01:49:02  peter
-    * renamed target_DOS to target_GO32V1
-    + new verbose system, merged old errors and verbose units into one new
-      verbose.pas, so errors.pas is obsolete
-
-  Revision 1.18  1998/03/01 22:46:18  florian
-    + some win95 linking stuff
-    * a couple of bugs fixed:
-      bug0055,bug0058,bug0059,bug0064,bug0072,bug0093,bug0095,bug0098
-
-  Revision 1.17  1998/02/27 21:24:06  florian
-    * dll support changed (dll name can be also a string contants)
-
-  Revision 1.16  1998/02/24 00:19:17  peter
-    * makefile works again (btw. linux does like any char after a \ )
-    * removed circular unit with assemble and files
-    * fixed a sigsegv in pexpr
-    * pmodule init unit/program is the almost the same, merged them
-
-  Revision 1.15  1998/02/13 10:35:24  daniel
-  * Made Motorola version compilable.
-  * Fixed optimizer
-
-  Revision 1.14  1998/02/12 17:19:20  florian
-    * fixed to get remake3 work, but needs additional fixes (output, I don't like
-      also that aktswitches isn't a pointer)
-
-  Revision 1.13  1998/02/12 11:50:26  daniel
-  Yes! Finally! After three retries, my patch!
-
-  Changes:
-
-  Complete rewrite of psub.pas.
-  Added support for DLL's.
-  Compiler requires less memory.
-  Platform units for each platform.
-
-  Revision 1.12  1998/02/11 21:56:37  florian
-    * bugfixes: bug0093, bug0053, bug0088, bug0087, bug0089
-
-  Revision 1.11  1998/02/01 22:41:11  florian
-    * clean up
-    + system.assigned([class])
-    + system.assigned([class of xxxx])
-    * first fixes of as and is-operator
-
-  Revision 1.10  1998/02/01 15:04:15  florian
-    * better error recovering
-    * some clean up
-
-  Revision 1.9  1998/01/30 21:27:05  carl
-    * partial bugfix #88, #89 and typeof and other inline functions
-      (these bugs have a deeper nesting level, and therefore i only fixed
-       the parser crashes - there is also a tree crash).
-
-  Revision 1.8  1998/01/26 17:31:01  florian
-    * stupid bug with self in class methods fixed
-
-  Revision 1.7  1998/01/25 22:29:02  florian
-    * a lot bug fixes on the DOM
-
-  Revision 1.6  1998/01/23 10:46:41  florian
-    * small problems with FCL object model fixed, objpas?.inc is compilable
-
-  Revision 1.5  1998/01/16 22:34:42  michael
-  * Changed 'conversation' to 'conversion'. Waayyy too much chatting going on
-    in this compiler :)
-
-  Revision 1.4  1998/01/16 18:03:15  florian
-    * small bug fixes, some stuff of delphi styled constructores added
-
-  Revision 1.3  1998/01/13 23:11:14  florian
-    + class methods
-
-  Revision 1.2  1998/01/09 09:09:59  michael
-  + Initial implementation, second try
-
 }

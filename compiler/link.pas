@@ -55,7 +55,7 @@ Type
        Function  DoExec(const command,para:string;info,useshell:boolean):boolean;
        Function  WriteResponseFile:Boolean;
        Function  MakeExecutable:boolean;
-       Procedure MakeStaticLibrary(const path:string);
+       Procedure MakeStaticLibrary(const path:string;filescnt:longint);
        Procedure MakeSharedLibrary;
      end;
      PLinker=^TLinker;
@@ -227,7 +227,7 @@ begin
      if useshell then
       shell(command+' '+para)
      else
-      exec(command,para); 
+      exec(command,para);
      swapvectors;
      if (dosexitcode<>0) then
       begin
@@ -403,13 +403,13 @@ begin
 end;
 
 
-Procedure TLinker.MakeStaticLibrary(const path:string);
+Procedure TLinker.MakeStaticLibrary(const path:string;filescnt:longint);
 var
   arbin   : string;
   arfound : boolean;
+  cnt     : longint;
   i       : word;
   f       : file;
-  Dir     : searchrec;
 begin
   arbin:=FindExe('ar',arfound);
   if (not arfound) and (not externlink) then
@@ -421,15 +421,13 @@ begin
 { Clean up }
   if (not writeasmfile) and (not externlink) then
    begin
-     findfirst(FixPath(path)+'*'+target_info.objext,$20,Dir);
-     while doserror=0 do
+     for cnt:=1to filescnt do
       begin
-        assign(f,FixPath(path)+dir.name);
+        assign(f,FixPath(path)+'as'+tostr(cnt)+target_info.objext);
         {$I-}
-        erase(f);
+         erase(f);
         {$I+}
         i:=ioresult;
-        findnext(dir);
       end;
      {$I-}
       rmdir(path);
@@ -448,7 +446,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  1998-05-08 09:21:20  michael
+  Revision 1.8  1998-05-11 13:07:54  peter
+    + $ifdef NEWPPU for the new ppuformat
+    + $define GDB not longer required
+    * removed all warnings and stripped some log comments
+    * no findfirst/findnext anymore to remove smartlink *.o files
+
+  Revision 1.7  1998/05/08 09:21:20  michael
   * Added missing -Fl message to messages file.
   * Corrected mangling of file names when doing Linklib
   * -Fl now actually WORKS.

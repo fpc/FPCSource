@@ -405,7 +405,7 @@ unit parser;
              if smartlink then
               begin
                 Linker.SetLibName(FileName);
-                Linker.MakeStaticLibrary(SmartLinkPath(FileName));
+                Linker.MakeStaticLibrary(SmartLinkPath(FileName),SmartLinkFilesCnt);
               end;
 
            { add the files for the linker from current_module, this must be
@@ -536,7 +536,13 @@ done:
 end.
 {
   $Log$
-  Revision 1.14  1998-05-06 18:36:53  peter
+  Revision 1.15  1998-05-11 13:07:54  peter
+    + $ifdef NEWPPU for the new ppuformat
+    + $define GDB not longer required
+    * removed all warnings and stripped some log comments
+    * no findfirst/findnext anymore to remove smartlink *.o files
+
+  Revision 1.14  1998/05/06 18:36:53  peter
     * tai_section extended with code,data,bss sections and enumerated type
     * ident 'compiled by FPC' moved to pmodules
     * small fix for smartlink

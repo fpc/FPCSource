@@ -41,6 +41,9 @@ unit pstatmnt;
     uses
        cobjects,scanner,globals,symtable,aasm,pass_1,
        types,hcodegen,files,verbose
+{$ifdef NEWPPU}
+       ,ppu
+{$endif}
        { processor specific stuff }
 {$ifdef i386}
        ,i386
@@ -128,7 +131,7 @@ unit pstatmnt;
       var
          { contains the label number of currently parsed case block }
          aktcaselabel : plabel;
-         wurzel : pcaserecord;
+         root : pcaserecord;
 
          { the typ of the case expression }
          casedef : pdef;
@@ -160,7 +163,7 @@ unit pstatmnt;
            getlabel(hcaselabel^._at);
            hcaselabel^._low:=l;
            hcaselabel^._high:=h;
-           insertlabel(wurzel);
+           insertlabel(root);
         end;
 
       var
@@ -181,7 +184,7 @@ unit pstatmnt;
 
          consume(_OF);
          inc(statement_level);
-         wurzel:=nil;
+         root:=nil;
          ranges:=false;
          instruc:=nil;
          repeat
@@ -248,7 +251,7 @@ unit pstatmnt;
            end;
          dec(statement_level);
 
-         code:=gencasenode(caseexpr,instruc,wurzel);
+         code:=gencasenode(caseexpr,instruc,root);
 
          code^.elseblock:=elseblock;
 
@@ -353,7 +356,7 @@ unit pstatmnt;
                             begin
                                symtab:=obj^.publicsyms;
                                withsymtable:=new(psymtable,init(symtable.withsymtable));
-                               withsymtable^.wurzel:=symtab^.wurzel;
+                               withsymtable^.root:=symtab^.root;
                                withsymtable^.next:=symtablestack;
                                symtablestack:=withsymtable;
                                obj:=obj^.childof;
@@ -364,7 +367,7 @@ unit pstatmnt;
                            symtab:=precdef(p^.resulttype)^.symtable;
                            levelcount:=1;
                            withsymtable:=new(psymtable,init(symtable.withsymtable));
-                           withsymtable^.wurzel:=symtab^.wurzel;
+                           withsymtable^.root:=symtab^.root;
                            withsymtable^.next:=symtablestack;
                            symtablestack:=withsymtable;
                         end;
@@ -1049,8 +1052,7 @@ unit pstatmnt;
                 end
             else
                 begin
-                    current_module^.flags:=current_module^.flags or
-                     uf_init;
+                    current_module^.flags:=current_module^.flags or uf_init;
                     block:=statement_block;
                 end
          else
@@ -1108,7 +1110,13 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.9  1998-05-06 08:38:46  pierre
+  Revision 1.10  1998-05-11 13:07:56  peter
+    + $ifdef NEWPPU for the new ppuformat
+    + $define GDB not longer required
+    * removed all warnings and stripped some log comments
+    * no findfirst/findnext anymore to remove smartlink *.o files
+
+  Revision 1.9  1998/05/06 08:38:46  pierre
     * better position info with UseTokenInfo
       UseTokenInfo greatly simplified
     + added check for changed tree after first time firstpass
@@ -1149,115 +1157,4 @@ end.
       nasm output OK (program still crashes at end
       and creates wrong assembler files !!)
       procsym types sym in tdef removed !!
-
-  Revision 1.3  1998/03/28 23:09:56  florian
-    * secondin bugfix (m68k and i386)
-    * overflow checking bugfix (m68k and i386) -- pretty useless in
-      secondadd, since everything is done using 32-bit
-    * loading pointer to routines hopefully fixed (m68k)
-    * flags problem with calls to RTL internal routines fixed (still strcmp
-      to fix) (m68k)
-    * #ELSE was still incorrect (didn't take care of the previous level)
-    * problem with filenames in the command line solved
-    * problem with mangledname solved
-    * linking name problem solved (was case insensitive)
-    * double id problem and potential crash solved
-    * stop after first error
-    * and=>test problem removed
-    * correct read for all float types
-    * 2 sigsegv fixes and a cosmetic fix for Internal Error
-    * push/pop is now correct optimized (=> mov (%esp),reg)
-
-  Revision 1.2  1998/03/26 11:18:31  florian
-    - switch -Sa removed
-    - support of a:=b:=0 removed
-
-  Revision 1.1.1.1  1998/03/25 11:18:15  root
-  * Restored version
-
-  Revision 1.21  1998/03/10 16:27:42  pierre
-    * better line info in stabs debug
-    * symtabletype and lexlevel separated into two fields of tsymtable
-    + ifdef MAKELIB for direct library output, not complete
-    + ifdef CHAINPROCSYMS for overloaded seach across units, not fully
-      working
-    + ifdef TESTFUNCRET for setting func result in underfunction, not
-      working
-
-  Revision 1.20  1998/03/10 04:18:26  carl
-   * wrong units were being used with m68k target
-
-  Revision 1.19  1998/03/10 01:17:25  peter
-    * all files have the same header
-    * messages are fully implemented, EXTDEBUG uses Comment()
-    + AG... files for the Assembler generation
-
-  Revision 1.18  1998/03/06 00:52:46  peter
-    * replaced all old messages from errore.msg, only ExtDebug and some
-      Comment() calls are left
-    * fixed options.pas
-
-  Revision 1.17  1998/03/02 01:49:07  peter
-    * renamed target_DOS to target_GO32V1
-    + new verbose system, merged old errors and verbose units into one new
-      verbose.pas, so errors.pas is obsolete
-
-  Revision 1.16  1998/02/22 23:03:30  peter
-    * renamed msource->mainsource and name->unitname
-    * optimized filename handling, filename is not seperate anymore with
-      path+name+ext, this saves stackspace and a lot of fsplit()'s
-    * recompiling of some units in libraries fixed
-    * shared libraries are working again
-    + $LINKLIB <lib> to support automatic linking to libraries
-    + libraries are saved/read from the ppufile, also allows more libraries
-      per ppufile
-
-  Revision 1.15  1998/02/21 03:33:54  carl
-    + mit assembler syntax support
-
-  Revision 1.14  1998/02/13 10:35:29  daniel
-  * Made Motorola version compilable.
-  * Fixed optimizer
-
-  Revision 1.13  1998/02/12 11:50:30  daniel
-  Yes! Finally! After three retries, my patch!
-
-  Changes:
-
-  Complete rewrite of psub.pas.
-  Added support for DLL's.
-  Compiler requires less memory.
-  Platform units for each platform.
-
-  Revision 1.12  1998/02/11 21:56:39  florian
-    * bugfixes: bug0093, bug0053, bug0088, bug0087, bug0089
-
-  Revision 1.11  1998/02/07 09:39:26  florian
-    * correct handling of in_main
-    + $D,$T,$X,$V like tp
-
-  Revision 1.10  1998/01/31 00:42:26  carl
-    +* Final bugfix #60 (working!) Type checking in case statements
-
-  Revision 1.7  1998/01/21 02:18:28  carl
-    * bugfix 79 (assembler_block now chooses the correct framepointer and
-      offset).
-
-  Revision 1.6  1998/01/16 22:34:43  michael
-  * Changed 'conversation' to 'conversion'. Waayyy too much chatting going on
-    in this compiler :)
-
-  Revision 1.5  1998/01/12 14:51:18  carl
-    - temporariliy removed case type checking until i know where the bug
-      comes from!
-
-  Revision 1.4  1998/01/11 19:23:49  carl
-    * bug fix number 60 (case statements type checking)
-
-  Revision 1.3  1998/01/11 10:54:25  florian
-    + generic library support
-
-  Revision 1.2  1998/01/09 09:10:02  michael
-  + Initial implementation, second try
-
 }

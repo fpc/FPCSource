@@ -1438,14 +1438,10 @@ unit pass_1;
     procedure firststringconst(var p : ptree);
 
       begin
-{$ifdef GDB}
          {why this !!! lost of dummy type definitions
          one per const string !!!
          p^.resulttype:=new(pstringdef,init(length(p^.values^)));}
          p^.resulttype:=cstringdef;
-{$Else GDB}
-         p^.resulttype:=new(pstringdef,init(length(p^.values^)));
-{$endif * GDB *}
          p^.location.loc:=LOC_MEM;
       end;
 
@@ -1625,10 +1621,6 @@ unit pass_1;
       end;
 
     procedure firstdoubleaddr(var p : ptree);
-
-      var
-         hp  : ptree;
-         hp2 : pdefcoll;
 
       begin
          make_not_regable(p^.left);
@@ -1949,7 +1941,7 @@ unit pass_1;
                 parraydef(harr)^.definition:=ppointerdef(p^.left^.resulttype)^.definition;
                 p^.left:=gentypeconvnode(p^.left,harr);
                 firstpass(p^.left);
-  
+
                 if codegenerror then
                   exit;
                 p^.resulttype:=parraydef(harr)^.definition
@@ -2198,10 +2190,6 @@ unit pass_1;
 
     procedure first_proc_to_procvar(var p : ptree);
 
-      var
-         hp : ptree;
-         hp2 : pdefcoll;
-
       begin
          firstpass(p^.left);
          if codegenerror then
@@ -2261,7 +2249,6 @@ unit pass_1;
 
           var
                  hp : ptree;
-                 hp2,hp3:Pdefcoll;
                  aprocdef : pprocdef;
                  proctype : tdeftype;
 
@@ -2668,7 +2655,6 @@ unit pass_1;
       var
          hp,procs,hp2 : pprocdefcoll;
          pd : pprocdef;
-         st : psymtable;
          actprocsym : pprocsym;
          def_from,def_to,conv_to : pdef;
          pt : ptree;
@@ -3293,23 +3279,19 @@ unit pass_1;
              if ret_in_param(p^.retdef) or
                 (@procinfo<>pprocinfo(p^.funcretprocinfo)) then
                p^.registers32:=1;
-{$ifdef GDB}
          if must_be_valid and not pprocinfo(p^.funcretprocinfo)^.funcret_is_valid then
            note(uninitialized_function_return);
          if count_ref then pprocinfo(p^.funcretprocinfo)^.funcret_is_valid:=true;
-{$endif * GDB *}
 {$else TEST_FUNCRET}
          p^.resulttype:=procinfo.retdef;
          p^.location.loc:=LOC_REFERENCE;
          if ret_in_param(procinfo.retdef) then
            p^.registers32:=1;
-{$ifdef GDB}
          if must_be_valid and
            not(procinfo.funcret_is_valid) {and
            ((procinfo.flags and pi_uses_asm)=0)} then
            Message(sym_w_function_result_not_set);
          if count_ref then procinfo.funcret_is_valid:=true;
-{$endif * GDB *}
 {$endif TEST_FUNCRET}
           end;
 
@@ -3320,7 +3302,6 @@ unit pass_1;
       var
          hp,hpp : ptree;
          isreal,store_valid,file_is_typed : boolean;
-         convtyp : tconverttype;
 
       procedure do_lowhigh(adef : pdef);
 
@@ -4891,7 +4872,13 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.17  1998-05-06 08:38:43  pierre
+  Revision 1.18  1998-05-11 13:07:55  peter
+    + $ifdef NEWPPU for the new ppuformat
+    + $define GDB not longer required
+    * removed all warnings and stripped some log comments
+    * no findfirst/findnext anymore to remove smartlink *.o files
+
+  Revision 1.17  1998/05/06 08:38:43  pierre
     * better position info with UseTokenInfo
       UseTokenInfo greatly simplified
     + added check for changed tree after first time firstpass
@@ -4966,242 +4953,4 @@ end.
   Revision 1.4  1998/04/07 22:45:04  florian
     * bug0092, bug0115 and bug0121 fixed
     + packed object/class/array
-
-  Revision 1.3  1998/03/28 23:09:56  florian
-    * secondin bugfix (m68k and i386)
-    * overflow checking bugfix (m68k and i386) -- pretty useless in
-      secondadd, since everything is done using 32-bit
-    * loading pointer to routines hopefully fixed (m68k)
-    * flags problem with calls to RTL internal routines fixed (still strcmp
-      to fix) (m68k)
-    * #ELSE was still incorrect (didn't take care of the previous level)
-    * problem with filenames in the command line solved
-    * problem with mangledname solved
-    * linking name problem solved (was case insensitive)
-    * double id problem and potential crash solved
-    * stop after first error
-    * and=>test problem removed
-    * correct read for all float types
-    * 2 sigsegv fixes and a cosmetic fix for Internal Error
-    * push/pop is now correct optimized (=> mov (%esp),reg)
-
-  Revision 1.2  1998/03/26 11:18:31  florian
-    - switch -Sa removed
-    - support of a:=b:=0 removed
-
-  Revision 1.1.1.1  1998/03/25 11:18:14  root
-  * Restored version
-
-  Revision 1.41  1998/03/13 22:45:59  florian
-    * small bug fixes applied
-
-  Revision 1.40  1998/03/10 23:48:36  florian
-    * a couple of bug fixes to get the compiler with -OGaxz compiler, sadly
-      enough, it doesn't run
-
-  Revision 1.39  1998/03/10 16:27:41  pierre
-    * better line info in stabs debug
-    * symtabletype and lexlevel separated into two fields of tsymtable
-    + ifdef MAKELIB for direct library output, not complete
-    + ifdef CHAINPROCSYMS for overloaded seach across units, not fully
-      working
-    + ifdef TESTFUNCRET for setting func result in underfunction, not
-      working
-
-  Revision 1.38  1998/03/10 01:11:11  peter
-    * removed one of my previous optimizations with string+char, which
-      generated wrong code
-
-  Revision 1.37  1998/03/09 10:44:38  peter
-    + string='', string<>'', string:='', string:=char optimizes (the first 2
-      were already in cg68k2)
-
-  Revision 1.36  1998/03/06 00:52:38  peter
-    * replaced all old messages from errore.msg, only ExtDebug and some
-      Comment() calls are left
-    * fixed options.pas
-
-  Revision 1.35  1998/03/04 08:38:19  florian
-    * problem with unary minus fixed
-
-  Revision 1.34  1998/03/03 01:08:31  florian
-    * bug0105 and bug0106 problem solved
-
-  Revision 1.33  1998/03/02 01:48:56  peter
-    * renamed target_DOS to target_GO32V1
-    + new verbose system, merged old errors and verbose units into one new
-      verbose.pas, so errors.pas is obsolete
-
-  Revision 1.32  1998/03/01 22:46:14  florian
-    + some win95 linking stuff
-    * a couple of bugs fixed:
-      bug0055,bug0058,bug0059,bug0064,bug0072,bug0093,bug0095,bug0098
-
-  Revision 1.31  1998/02/28 17:26:46  carl
-    * bugfix #47 and more checking for aprocdef
-
-  Revision 1.30  1998/02/13 10:35:20  daniel
-  * Made Motorola version compilable.
-  * Fixed optimizer
-
-  Revision 1.29  1998/02/12 17:19:16  florian
-    * fixed to get remake3 work, but needs additional fixes (output, I don't like
-      also that aktswitches isn't a pointer)
-
-  Revision 1.28  1998/02/12 11:50:23  daniel
-  Yes! Finally! After three retries, my patch!
-
-  Changes:
-
-  Complete rewrite of psub.pas.
-  Added support for DLL's.
-  Compiler requires less memory.
-  Platform units for each platform.
-
-  Revision 1.27  1998/02/11 21:56:34  florian
-    * bugfixes: bug0093, bug0053, bug0088, bug0087, bug0089
-
-  Revision 1.26  1998/02/07 23:05:03  florian
-    * once more MMX
-
-  Revision 1.25  1998/02/07 09:39:24  florian
-    * correct handling of in_main
-    + $D,$T,$X,$V like tp
-
-  Revision 1.24  1998/02/06 10:34:21  florian
-    * bug0082 and bug0084 fixed
-
-  Revision 1.23  1998/02/05 21:54:34  florian
-    + more MMX
-
-  Revision 1.22  1998/02/05 20:54:30  peter
-    * fixed a Sigsegv
-
-  Revision 1.21  1998/02/04 23:04:21  florian
-    + unary minus for mmx data types added
-
-  Revision 1.20  1998/02/04 22:00:56  florian
-    + NOT operator for mmx arrays
-
-  Revision 1.19  1998/02/04 14:38:49  florian
-    * clean up
-    * a lot of potential bugs removed adding some neccessary register allocations
-      (FPU!)
-    + allocation of MMX registers
-
-  Revision 1.18  1998/02/03 23:07:34  florian
-    * AS and IS do now a correct type checking
-    + is_convertable handles now also instances of classes
-
-  Revision 1.17  1998/02/01 19:40:51  florian
-    * clean up
-    * bug0029 fixed
-
-  Revision 1.16  1998/02/01 17:14:04  florian
-    + comparsion of class references
-
-  Revision 1.15  1998/01/30 21:23:59  carl
-    * bugfix of compiler crash with new/dispose (fourth crash of new bug)
-    * bugfix of write/read compiler crash
-
-  Revision 1.14  1998/01/25 22:29:00  florian
-    * a lot bug fixes on the DOM
-
-  Revision 1.13  1998/01/21 22:34:25  florian
-    + comparsion of Delphi classes
-
-  Revision 1.12  1998/01/21 21:29:55  florian
-    * some fixes for Delphi classes
-
-  Revision 1.11  1998/01/16 23:34:13  florian
-    + nil is compatible with class variable (tobject(x):=nil)
-
-  Revision 1.10  1998/01/16 22:34:40  michael
-  * Changed 'conversation' to 'conversion'. Waayyy too much chatting going on
-    in this compiler :)
-
-  Revision 1.9  1998/01/13 23:11:10  florian
-    + class methods
-
-  Revision 1.8  1998/01/07 00:17:01  michael
-  Restored released version (plus fixes) as current
-
-  Revision 1.7  1997/12/10 23:07:26  florian
-  * bugs fixed: 12,38 (also m68k),39,40,41
-  + warning if a system unit is without -Us compiled
-  + warning if a method is virtual and private (was an error)
-  * some indentions changed
-  + factor does a better error recovering (omit some crashes)
-  + problem with @type(x) removed (crashed the compiler)
-
-  Revision 1.6  1997/12/09 13:54:26  carl
-  + renamed some stuff (real types mostly)
-
-  Revision 1.5  1997/12/04 12:02:19  pierre
-     + added a counter of max firstpass's for a ptree
-       for debugging only in ifdef extdebug
-
-  Revision 1.4  1997/12/03 13:53:01  carl
-  + ifdef i386.
-
-  Revision 1.3  1997/11/29 15:38:43  florian
-  * bug0033 fixed
-  * duplicate strings are now really once generated (there was a bug)
-
-  Revision 1.2  1997/11/28 11:11:43  pierre
-     negativ real constants are not supported by nasm assembler
-
-  Revision 1.1.1.1  1997/11/27 08:32:59  michael
-  FPC Compiler CVS start
-
-
-  Pre-CVS log:
-
-    CEC    Carl-Eric Codere
-    FK     Florian Klaempfl
-    PM     Pierre Muller
-    +      feature added
-    -      removed
-    *      bug fixed or changed
-
-  History:
-       6th september 1997:
-         + added basic support for MC68000   (CEC)
-            (lines: 189,1860,1884 + ifdef m68k)
-      19th september 1997:
-         + added evalution of constant sets  (FK)
-         + empty and constant sets are now compatible with all other
-           set types (FK)
-      20th september 1997:
-         * p^.register32 bug in firstcalln (max with register32 of p^.left i.e. args) (PM)
-      24th september 1997:
-         * line_no and inputfile are now in firstpass saved (FK)
-      25th september 1997:
-         + support of high for open arrays (FK)
-         + the high parameter is now pushed for open arrays (FK)
-      1th october 1997:
-         + added support for unary minus operator and for:=overloading (PM)
-      2nd october 1997:
-         + added handling of in_ord_x (PM)
-           boolean to byte with ord is special because the location may be different
-      3rd october 1997:
-         + renamed ret_in_eax to ret_in_acc (CEC)
-         + find ifdef m68k to find other changes (CEC)
-         * bugfix or calc correct val for regs. for m68k in firstcalln (CEC)
-      4th october 1997:
-         + added code for in_pred_x in_succ_x
-           fails for enums with jumps (PM)
-     25th october 1997:
-         + direct evalution of pred and succ with const parameter (FK)
-      6th november 1997:
-         * added typeconversion for floatdef in write(ln) for text to s64real (PM)
-         + code for str with length arg rewritten (PM)
-      13th november 1997:
-         * floatdef in write(ln) for text for different types in RTL (PM)
-         * bug causing convertability from floatdef to orddef removed (PM)
-         * typecasting from voiddef to any type not allowed anymore (PM)
-         + handling of different real const to diff realtype (PM)
-      18th november 1997:
-         * changed first_type_conv function arg as var p : ptree
-           to be able to change the tree (PM)
 }

@@ -93,7 +93,9 @@ unit tgeni386;
 
       var
          r : tregister;
+{$ifdef SUPPORT_MMX}
          hr : preference;
+{$endif SUPPORT_MMX}
 
       begin
          usedinproc:=usedinproc or b;
@@ -146,8 +148,9 @@ unit tgeni386;
 
       var
          r : tregister;
+{$ifdef SUPPORT_MMX}
          hr : preference;
-
+{$endif SUPPORT_MMX}
       begin
          { restore in reverse order: }
 {$ifdef SUPPORT_MMX}
@@ -595,7 +598,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  1998-04-29 10:34:08  pierre
+  Revision 1.5  1998-05-11 13:07:58  peter
+    + $ifdef NEWPPU for the new ppuformat
+    + $define GDB not longer required
+    * removed all warnings and stripped some log comments
+    * no findfirst/findnext anymore to remove smartlink *.o files
+
+  Revision 1.4  1998/04/29 10:34:08  pierre
     + added some code for ansistring (not complete nor working yet)
     * corrected operator overloading
     * corrected nasm output
@@ -609,63 +618,5 @@ end.
 
   Revision 1.2  1998/04/09 15:46:39  florian
     + register allocation tracing stuff added
-
-  Revision 1.1.1.1  1998/03/25 11:18:15  root
-  * Restored version
-
-  Revision 1.9  2036/02/07 09:26:57  florian
-    * more fixes to get -Ox work
-
-  Revision 1.8  1998/03/10 01:17:30  peter
-    * all files have the same header
-    * messages are fully implemented, EXTDEBUG uses Comment()
-    + AG... files for the Assembler generation
-
-  Revision 1.7  1998/03/02 01:49:36  peter
-    * renamed target_DOS to target_GO32V1
-    + new verbose system, merged old errors and verbose units into one new
-      verbose.pas, so errors.pas is obsolete
-
-  Revision 1.6  1998/02/13 10:35:52  daniel
-  * Made Motorola version compilable.
-  * Fixed optimizer
-
-  Revision 1.5  1998/02/12 17:19:32  florian
-    * fixed to get remake3 work, but needs additional fixes (output, I don't like
-      also that aktswitches isn't a pointer)
-
-  Revision 1.4  1998/02/12 11:50:50  daniel
-  Yes! Finally! After three retries, my patch!
-
-  Changes:
-
-  Complete rewrite of psub.pas.
-  Added support for DLL's.
-  Compiler requires less memory.
-  Platform units for each platform.
-
-  Revision 1.3  1998/02/04 22:02:46  florian
-    + complete handling of MMX registers
-
-  Revision 1.2  1998/01/07 00:13:44  michael
-  Restored released version (plus fixes) as current
-
-  Revision 1.1.1.1  1997/11/27 08:33:03  michael
-  FPC Compiler CVS start
-
-  Pre-CVS log:
-
-  FK   Florian Klaempfl
-  PM   Pierre Muller
-  +    feature added
-  -    removed
-  *    bug fixed or changed
-
-  History (started with version 0.9.0):
-       7th december 1996:
-         * some code from Pierre Muller inserted
-           makes the use of the stack more efficient
-       20th november 1997:
-         * tempsize is multiple of 4 for alignment (PM), buggy commented (PM)
 }
 

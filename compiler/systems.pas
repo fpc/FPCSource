@@ -291,7 +291,7 @@ unit systems;
             linkcmd : '-oformat coff-go32 $OPT -o $EXE @$RES';
             stripopt   : '-s';
             groupstart : '-(';
-            groupend   : ')-';
+            groupend   : '-)';
             inputstart : '';
             inputend   : '';
             libprefix  : '-l'
@@ -301,7 +301,7 @@ unit systems;
             linkcmd : '-oformat coff-go32-exe $OPT -o $EXE @$RES';
             stripopt   : '-s';
             groupstart : '-(';
-            groupend   : ')-';
+            groupend   : '-)';
             inputstart : '';
             inputend   : '';
             libprefix  : '-l'
@@ -321,7 +321,7 @@ unit systems;
             linkcmd : '-o $EXE @$RES';
             stripopt   : '-s';
             groupstart : '-(';
-            groupend   : ')-';
+            groupend   : '-)';
             inputstart : '';
             inputend   : '';
             libprefix  : ''
@@ -519,7 +519,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  1998-05-06 08:38:49  pierre
+  Revision 1.10  1998-05-11 13:07:58  peter
+    + $ifdef NEWPPU for the new ppuformat
+    + $define GDB not longer required
+    * removed all warnings and stripped some log comments
+    * no findfirst/findnext anymore to remove smartlink *.o files
+
+  Revision 1.9  1998/05/06 08:38:49  pierre
     * better position info with UseTokenInfo
       UseTokenInfo greatly simplified
     + added check for changed tree after first time firstpass

@@ -622,23 +622,16 @@ const
 
 
     procedure dir_linkobject(t:tdirectivetoken);
-      var
-        path,hs : string;
-        found   : boolean;
       begin
         skipspace;
-        hs:=FixFileName(readstring);
-        current_module^.linkofiles.insert(hs);
+        current_module^.linkofiles.insert(FixFileName(readstring));
       end;
 
 
     procedure dir_linklib(t:tdirectivetoken);
-      var
-        hs : string;
       begin
         skipspace;
-        hs:=readstring;
-        current_module^.linkSharedLibs.insert(hs);
+        current_module^.linkSharedLibs.insert(readstring);
       end;
 
 
@@ -821,7 +814,13 @@ const
 
 {
   $Log$
-  Revision 1.7  1998-05-08 09:21:20  michael
+  Revision 1.8  1998-05-11 13:07:57  peter
+    + $ifdef NEWPPU for the new ppuformat
+    + $define GDB not longer required
+    * removed all warnings and stripped some log comments
+    * no findfirst/findnext anymore to remove smartlink *.o files
+
+  Revision 1.7  1998/05/08 09:21:20  michael
   * Added missing -Fl message to messages file.
   * Corrected mangling of file names when doing Linklib
   * -Fl now actually WORKS.

@@ -31,6 +31,9 @@ unit pmodules;
 {$ifdef GDB}
        ,gdb
 {$endif GDB}
+{$ifdef NEWPPU}
+       ,ppu
+{$endif}
        { parser specific stuff }
        ,pbase,pdecl,pstatmnt,psub
        { processor specific stuff }
@@ -270,13 +273,86 @@ unit pmodules;
          loaded_unit  : pmodule;
          b            : byte;
          checksum,
+{$ifndef NEWPPU}
          count,
+{$endif NEWPPU} 
+
          nextmapentry : longint;
          hs           : string;
       begin
          { init the map }
          new(hp^.map);
          nextmapentry:=1;
+
+{$ifdef NEWPPU}
+         { load the used units from interface }
+         b:=hp^.ppufile^.readentry;
+         if b=ibloadunit_int then
+          begin
+            while not hp^.ppufile^.endofentry do
+             begin
+               hs:=hp^.ppufile^.getstring;
+               checksum:=hp^.ppufile^.getlongint;
+
+               loaded_unit:=loadunit(hs,false,false);
+               if hp^.compiled then
+                exit;
+
+             { if the crc of a used unit is the same as written to the
+               PPU file, we needn't to recompile the current unit }
+               if (loaded_unit^.crc<>checksum) then
+                begin
+                { we have to compile the current unit remove stuff which isn't
+                  needed }
+                { forget the map }
+                  dispose(hp^.map);
+                  hp^.map:=nil;
+                { remove the ppufile }
+                  dispose(hp^.ppufile,done);
+                  hp^.ppufile:=nil;
+                { recompile or give an fatal error }
+                  if not(hp^.sources_avail) then
+                   Message1(unit_f_cant_compile_unit,hp^.unitname^)
+                  else
+                   compile(hp^.mainsource^,compile_system);
+                  exit;
+                end;
+
+             { setup the map entry for deref }
+               hp^.map^[nextmapentry]:=loaded_unit^.symtable;
+               inc(nextmapentry);
+               if nextmapentry>maxunits then
+                Message(unit_f_too_much_units);
+             end;
+          { ok, now load the unit }
+            hp^.symtable:=new(punitsymtable,load(hp^.unitname^));
+
+          { if this is the system unit insert the intern symbols }
+            if compile_system then
+              insertinternsyms(psymtable(hp^.symtable));
+          end;
+
+       { now only read the implementation part }
+         hp^.in_implementation:=true;
+
+       { load the used units from implementation }
+         b:=hp^.ppufile^.readentry;
+         if b=ibloadunit_imp then
+          begin
+            while not hp^.ppufile^.endofentry do
+             begin
+               hs:=hp^.ppufile^.getstring;
+               checksum:=hp^.ppufile^.getlongint;
+
+               loaded_unit:=loadunit(hs,false,false);
+               if hp^.compiled then
+                exit;
+             end;
+          end;
+         hp^.ppufile^.close;
+{!         dispose(hp^.ppufile,done);}
+
+{$else}
 
          { load the used units from interface }
          hp^.ppufile^.read_data(b,1,count);
@@ -318,7 +394,6 @@ unit pmodules;
               { read until ibend }
               hp^.ppufile^.read_data(b,1,count);
            end;
-
          { ok, now load the unit }
          hp^.symtable:=new(punitsymtable,load(hp^.unitname^));
 
@@ -367,6 +442,7 @@ unit pmodules;
               hp^.ppufile^.read_data(b,1,count);
            end;
          hp^.ppufile^.close;
+{$endif}
          dispose(hp^.map);
          hp^.map:=nil;
       end;
@@ -439,7 +515,11 @@ unit pmodules;
                     OnlyAsm(hp^.asmfilename^);
                  { we should know there the PPU file else it's an error and
                    we can't load the unit }
+{$ifdef NEWPPU}
+{                  if hp^.ppufile^.name^<>'' then}
+{$else}
                   if hp^.ppufile^.name^<>'' then
+{$endif}
                     load_ppu(hp,compile_system);
                  { add the files for the linker }
                   addlinkerfiles(hp);
@@ -1010,7 +1090,13 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.11  1998-05-06 18:36:53  peter
+  Revision 1.12  1998-05-11 13:07:56  peter
+    + $ifdef NEWPPU for the new ppuformat
+    + $define GDB not longer required
+    * removed all warnings and stripped some log comments
+    * no findfirst/findnext anymore to remove smartlink *.o files
+
+  Revision 1.11  1998/05/06 18:36:53  peter
     * tai_section extended with code,data,bss sections and enumerated type
     * ident 'compiled by FPC' moved to pmodules
     * small fix for smartlink

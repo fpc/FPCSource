@@ -51,7 +51,7 @@
 {$ifdef FPC}
    {$ifndef GDB}
       { people can try to compile without GDB }
-      {$error The compiler switch GDB must be defined}
+      { $error The compiler switch GDB must be defined}
    {$endif GDB}
    { but I386 or M68K must be defined }
    { and only one of the two }
@@ -379,7 +379,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  1998-05-08 09:21:57  michael
+  Revision 1.9  1998-05-11 13:07:56  peter
+    + $ifdef NEWPPU for the new ppuformat
+    + $define GDB not longer required
+    * removed all warnings and stripped some log comments
+    * no findfirst/findnext anymore to remove smartlink *.o files
+
+  Revision 1.8  1998/05/08 09:21:57  michael
   + Librarysearchpath is now a linker object field;
 
   Revision 1.7  1998/05/04 17:54:28  peter
