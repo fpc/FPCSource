@@ -67,8 +67,8 @@ type
        { taken from systems.pas }
        ttarget =
        (
-             target_none,                { 0 }
-             obsolete_target_i386_GO32V1,{ 1 }
+             target_none,               { 0 }
+             target_i386_GO32V1,        { 1 }
              target_i386_GO32V2,        { 2 }
              target_i386_linux,         { 3 }
              target_i386_OS2,           { 4 }
@@ -88,12 +88,14 @@ type
              target_m68k_netbsd,        { 18 }
              target_i386_Netware,       { 19 }
              target_i386_qnx,           { 20 }
-             target_i386_wdosx          { 21 }
+             target_i386_wdosx,         { 21 }
+             target_sparc_sunos,        { 22 }
+             target_sparc_linux         { 23 }
        );
 const
-  Targets : array[ttarget] of string[12]=(
+  Targets : array[ttarget] of string[16]=(
   { 0 }   'none',
-  { 1 }   '<obsolete>',
+  { 1 }   'GO32V1',
   { 2 }   'GO32V2',
   { 3 }   'Linux-i386',
   { 4 }   'OS/2',
@@ -113,7 +115,9 @@ const
   { 18 }  'NetBSD-m68k',
   { 19 }  'Netware',
   { 20 }  'Qnx-i386',
-  { 21 }  'WDOSX-i386'
+  { 21 }  'WDOSX-i386',
+  { 22 }  'Solaris-sparc',
+  { 23 }  'Linux-sparc'
   );
 begin
   if w<=ord(high(ttarget)) then
@@ -132,11 +136,13 @@ type
              i386,                     { 1 }
              m68k,                     { 2 }
              alpha,                    { 3 }
-             powerpc                   { 4 }
+             powerpc,                  { 4 }
+             sparc,                    { 5 }
+             vm                        { 6 }
        );
 const
   CpuTxt : array[ttargetcpu] of string[7]=
-    ('none','i386','m68k','alpha','powerpc');
+    ('none','i386','m68k','alpha','powerpc','sparc','vis');
 begin
   if w<=ord(high(ttargetcpu)) then
     Cpu2Str:=CpuTxt[ttargetcpu(w)]
@@ -1694,7 +1700,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2002-04-04 19:06:14  peter
+  Revision 1.18  2002-04-07 10:23:36  carl
+  + added vm / sparc targets
+
+  Revision 1.17  2002/04/04 19:06:14  peter
     * removed unused units
     * use tlocation.size in cg.a_*loc*() routines
 
