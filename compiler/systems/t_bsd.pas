@@ -490,8 +490,8 @@ end;
 
 function TLinkerBSD.MakeExecutable:boolean;
 var
-  binstr : String;
-  cmdstr  : AnsiString;
+  binstr,
+  cmdstr  : string;
   success : boolean;
   DynLinkStr : string[60];
   StaticStr,
@@ -547,8 +547,8 @@ end;
 
 Function TLinkerBSD.MakeSharedLibrary:boolean;
 var
-  binstr : String;
-  cmdstr  : AnsiString;
+  binstr,
+  cmdstr  : string;
   success : boolean;
 begin
   MakeSharedLibrary:=false;
@@ -627,8 +627,8 @@ initialization
 end.
 {
   $Log$
-  Revision 1.20  2004-09-22 15:14:37  mazen
-  * use SysUtils unit instead of Dos Unit
+  Revision 1.21  2004-09-22 15:25:14  mazen
+  * Fix error committing : previous version must be in branch USE_SYSUTILS
 
   Revision 1.19  2004/06/20 08:55:32  florian
     * logs truncated

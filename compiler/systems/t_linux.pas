@@ -425,8 +425,8 @@ end;
 
 function TLinkerLinux.MakeExecutable:boolean;
 var
-  binstr : String;
-  cmdstr  : AnsiString;
+  binstr,
+  cmdstr  : string;
   success : boolean;
   DynLinkStr : string[60];
   StaticStr,
@@ -479,8 +479,8 @@ var
   InitStr,
   FiniStr,
   SoNameStr : string[80];
-  binstr : String;
-  cmdstr  : AnsiString;
+  binstr,
+  cmdstr  : string;
   success : boolean;
 begin
   MakeSharedLibrary:=false;
@@ -572,8 +572,8 @@ end.
 
 {
   $Log$
-  Revision 1.22  2004-09-22 15:14:37  mazen
-  * use SysUtils unit instead of Dos Unit
+  Revision 1.23  2004-09-22 15:25:14  mazen
+  * Fix error committing : previous version must be in branch USE_SYSUTILS
 
   Revision 1.21  2004/09/21 17:25:13  peter
     * paraloc branch merged

@@ -211,8 +211,8 @@ end;
 
 function TLinkerGo32v2.MakeExecutable:boolean;
 var
-  binstr : String;
-  cmdstr : AnsiString;
+  binstr,
+  cmdstr  : string;
   success : boolean;
   StripStr : string[40];
 begin
@@ -362,8 +362,8 @@ initialization
 end.
 {
   $Log$
-  Revision 1.5  2004-09-22 15:14:37  mazen
-  * use SysUtils unit instead of Dos Unit
+  Revision 1.6  2004-09-22 15:25:14  mazen
+  * Fix error committing : previous version must be in branch USE_SYSUTILS
 
   Revision 1.4  2004/06/20 08:55:32  florian
     * logs truncated

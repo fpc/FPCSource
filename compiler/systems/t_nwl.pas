@@ -547,8 +547,8 @@ Const
 
 function TLinkerNetwlibc.MakeNetwareLoadableModule (isLib : boolean):boolean;
 var
-  binstr : String;
-  cmdstr : AnsiString;
+  binstr,
+  cmdstr,
   xdcname : string;
   success  : boolean;
   StripStr : string[2];
@@ -651,8 +651,8 @@ initialization
 end.
 {
   $Log$
-  Revision 1.4  2004-09-22 15:14:37  mazen
-  * use SysUtils unit instead of Dos Unit
+  Revision 1.5  2004-09-22 15:25:14  mazen
+  * Fix error committing : previous version must be in branch USE_SYSUTILS
 
   Revision 1.3  2004/09/19 18:10:32  armin
   * added library support

@@ -515,8 +515,8 @@ end;
 
 function TLinkerNetware.MakeExecutable:boolean;
 var
-  binstr : String;
-  cmdstr   : AnsiString;
+  binstr,
+  cmdstr   : string;
   success  : boolean;
   StripStr : string[2];
 begin
@@ -580,8 +580,8 @@ initialization
 end.
 {
   $Log$
-  Revision 1.15  2004-09-22 15:14:37  mazen
-  * use SysUtils unit instead of Dos Unit
+  Revision 1.16  2004-09-22 15:25:14  mazen
+  * Fix error committing : previous version must be in branch USE_SYSUTILS
 
   Revision 1.14  2004/08/30 11:17:34  armin
   * added support for libc
