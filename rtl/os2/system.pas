@@ -136,7 +136,7 @@ procedure syscall; external name '___SYSCALL';
 ***************************************************************************}
 
 {$S-}
-procedure st1(stack_size:longint);[public,alias: 'STACKCHECK'];
+procedure st1(stack_size:longint);[public,alias: 'FPC_STACKCHECK'];
 
 begin
     { called when trying to get local stack }
@@ -881,7 +881,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-10-15 20:43:10  hajny
+  Revision 1.3  2000-11-11 23:12:39  hajny
+    * stackcheck alias corrected
+
+  Revision 1.2  2000/10/15 20:43:10  hajny
     * ChDir correction, unit name changed
 
   Revision 1.1  2000/10/15 08:19:49  peter
