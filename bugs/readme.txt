@@ -220,3 +220,5 @@ bug0161.pp   internal error when trying to create a set with another set as
 bug0163.pp   missing <= and >= operators for sets.
 bug0165.pp   missing range check code for enumerated types.
 bug0166.pp   forward type used in declaration crashes instead of error
+bug0167.pp   crash when declaring a procedure with same name as object type
+bug0168.pp   set:=set+element is allowed (should be: set:=set+[element])
