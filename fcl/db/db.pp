@@ -1769,7 +1769,7 @@ begin
       Break;
     end;
   if (Result=Nil) Then
-    DatabaseErrorFmt(SIndexNotFound, [IndexName], DataSet);
+    DatabaseErrorFmt(SIndexNotFound, [IndexName], FDataSet);
 end;
 
 function TIndexDefs.FindIndexForFields(const Fields: string): TIndexDef;
@@ -1866,8 +1866,8 @@ end.
 
 {
   $Log$
-  Revision 1.40  2005-03-18 11:53:14  michael
-  + Fixed typo in provided patch
+  Revision 1.41  2005-03-18 11:54:56  michael
+  + Fixed second typo in provided patch
 
   Revision 1.39  2005/03/18 10:17:34  michael
   + Patch to IndexDefs from Alexandrov Alexandru
