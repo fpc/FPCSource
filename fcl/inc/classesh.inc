@@ -22,8 +22,11 @@ type
    HRSRC = longint;
    THANDLE = longint;
    TComponentName = string;
+{$ifdef ver1_0}
+   // 1.1 and above has interfaces
    IUnknown = class(TObject);
    TGUID = longint;
+{$endif ver1_0}
    HMODULE = longint;
 
    TPoint = record
@@ -1242,7 +1245,11 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
 {
   $Log$
-  Revision 1.9  2001-04-13 18:03:51  peter
+  Revision 1.10  2001-05-14 21:17:24  florian
+    * TGUID and IUnknown is defined in the system unit by
+      1.1 and above
+
+  Revision 1.9  2001/04/13 18:03:51  peter
     * added tthread.destroy override
 
   Revision 1.8  2001/02/09 20:38:28  sg
