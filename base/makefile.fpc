@@ -421,11 +421,7 @@ endif
 
 # set the directory where to install the units.
 ifndef UNITINSTALLDIR
-ifdef inlinux
-UNITINSTALLDIR=$(BASEINSTALLDIR)/$(UNITPREFIX)
-else
 UNITINSTALLDIR=$(BASEINSTALLDIR)/$(UNITPREFIX)/$(OS_TARGET)
-endif
 endif
 
 # set the directory where to install the units.
@@ -1025,11 +1021,17 @@ endif
 
 #
 # $Log$
-# Revision 1.33  1999-06-13 22:43:23  peter
+# Revision 1.34  1999-06-18 10:11:18  peter
+#   * merged
+#
+# Revision 1.33  1999/06/13 22:43:23  peter
 #   * merged from fixes
 #
 # Revision 1.32  1999/06/11 13:31:14  hajny
 #   * fixes for OS/2
+#
+# Revision 1.31.2.2  1999/06/18 10:07:27  peter
+#   * rtl/linux and units/linux also for linux installs
 #
 # Revision 1.31.2.1  1999/06/13 22:36:38  peter
 #   * install msg files in msg/ instead of bin for not linux

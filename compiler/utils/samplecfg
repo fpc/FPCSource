@@ -138,22 +138,55 @@ cat <<EOFCFG > /etc/ppc386.cfg
 # searchpath for includefiles
 #-Fi/pp/inc;/pp/rtl/inc
 
-# searchpath for units (does the same as -Up)
-# For statically, smartlinked units
-#IFDEF FPC_LINK_STATIC
--Fu$1/rtl/static
--Fu$1/units/static
+# searchpath for units and other system dependent things
+#IFDEF Go32V1
+  #IFDEF FPC_LINK_STATIC
+    -Fu$1/rtl/go32v1/static
+    -Fu$1/units/go32v1/static
+  #ENDIF
+  -Fu$1/rtl/go32v1
+  -Fu$1/units/go32v1
 #ENDIF
-# For Dynamically linked units
-#IFDEF FPC_LINK_DYNAMIC
--Fu$1/rtl/shared
--Fu$1/units/shared
+#IFDEF Go32V2
+  #IFDEF FPC_LINK_STATIC
+    -Fu$1/rtl/go32v2/static
+    -Fu$1/units/go32v2/static
+  #ENDIF
+  -Fu$1/rtl/go32v2
+  -Fu$1/units/go32v2
 #ENDIF
-# For normal units
--Fu$1/rtl
--Fu$1/units
-#-Fu/pp/units;/pp/rtl/dos/go32v2
-#-Fu/usr/lib/ppc/units;/usr/lib/ppc/linuxunits
+#IFDEF Win32
+  #IFDEF FPC_LINK_STATIC
+    -Fu$1/rtl/win32/static
+    -Fu$1/units/win32/static
+  #ENDIF
+  -Fu$1/rtl/win32
+  -Fu$1/units/win32
+#ENDIF
+#IFDEF OS2
+  #IFDEF FPC_LINK_STATIC
+    -Fu$1/rtl/os2/static
+    -Fu$1/units/os2/static
+  #ENDIF
+  -Fu$1/rtl/os2
+  -Fu$1/units/os2
+#ENDIF
+#IFDEF Linux
+  # For statically, smartlinked units
+  #IFDEF FPC_LINK_STATIC
+    -Fu$1/rtl/static
+    -Fu$1/units/static
+  #ENDIF
+  # For Dynamically linked units
+  #IFDEF FPC_LINK_DYNAMIC
+    -Fu$1/rtl/shared
+    -Fu$1/units/shared
+  #ENDIF
+  -Fu$1/rtl/linux
+  -Fu$1/units/linux
+  #-Fu~/pp/units;~/pp/rtl/linux
+  #-Fu/usr/lib/fpc/0.99.12/units;/usr/lib/fpc/0.99.12/rtl
+#ENDIF
 
 # searchpath for libraries
 -Fl$GCCDIR
