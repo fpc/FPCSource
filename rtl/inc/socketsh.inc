@@ -11,6 +11,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+
+
+{$ifdef FreeBSD}
+{$DEFINE SOCK_HAS_SINLEN}		// BSD definition of scoketaddr
+{$endif}
+Type
+{$ifdef SOCK_HAS_SINLEN}
+    sa_family_t=cuchar;
+{$else}
+    sa_family_t=cushort;
+{$endif} 
+
 Const
   { Socket types }
   SOCK_STREAM     = 1;               { stream (connection) socket   }
@@ -52,111 +64,35 @@ Const
   MSG_NOSIGNAL = $4000;              { Do not generate SIGPIPE }
   MSG_MORE     = $8000;              { Sender will send more }
 
-
-{$Ifdef Unix}
-{$ifndef BSD}
-{ For setsockoptions(2) }
-         SOL_SOCKET  =   1;
-         SO_DEBUG    =   1;
-         SO_REUSEADDR=   2;
-         SO_TYPE     =   3;
-         SO_ERROR    =   4;
-         SO_DONTROUTE=   5;
-         SO_BROADCAST=   6;
-         SO_SNDBUF   =   7;
-         SO_RCVBUF   =   8;
-         SO_KEEPALIVE=   9;
-         SO_OOBINLINE=   10;
-         SO_NO_CHECK =   11;
-         SO_PRIORITY =   12;
-         SO_LINGER   =   13;
-         SO_BSDCOMPAT=   14;
-{ To add :         SO_REUSEPORT 15 }
-         SO_PASSCRED=    16;
-         SO_PEERCRED=    17;
-         SO_RCVLOWAT=    18;
-         SO_SNDLOWAT=    19;
-         SO_RCVTIMEO=    20;
-         SO_SNDTIMEO=    21;
-
-{ Security levels - as per NRL IPv6 - don't actually do anything }
-
-         SO_SECURITY_AUTHENTICATION      =   22;
-         SO_SECURITY_ENCRYPTION_TRANSPORT=   23;
-         SO_SECURITY_ENCRYPTION_NETWORK  =   24;
-
-         SO_BINDTODEVICE=   25;
-
-{ Socket filtering }
-
-         SO_ATTACH_FILTER=  26;
-         SO_DETACH_FILTER=  27;
-         SO_PEERNAME     =  28;
-         SO_TIMESTAMP    = 29;
-         SCM_TIMESTAMP   = SO_TIMESTAMP;
-         SO_ACCEPTCONN   = 30;
-         
-                  
-        SHUT_RD         =0;             { shut down the reading side }
-        SHUT_WR         =1;             { shut down the writing side }
-        SHUT_RDWR       =2;             { shut down both sides }
-         
-{$ELSE}
-        SOL_SOCKET = $FFFF;
-        SO_DEBUG         =$0001;        { turn on debugging info recording }
-        SO_ACCEPTCONN    =$0002;        { socket has had listen() }
-        SO_REUSEADDR     =$0004;        { allow local address reuse }
-        SO_KEEPALIVE     =$0008;        { keep connections alive }
-        SO_DONTROUTE     =$0010;        { just use interface addresses }
-        SO_BROADCAST     =$0020;        { permit sending of broadcast msgs }
-        SO_USELOOPBACK   =$0040;        { bypass hardware when possible }
-        SO_LINGER        =$0080;        { linger on close if data present }
-        SO_OOBINLINE     =$0100;        { leave received OOB data in line }
-        SO_REUSEPORT     =$0200;        { allow local address & port reuse }
-        SO_TIMESTAMP     =$0400;        { timestamp received dgram traffic }
-
-{
- * Additional options, not kept in so_options.
- }
-        SO_SNDBUF        =$1001;        { send buffer size }
-        SO_RCVBUF        =$1002;        { receive buffer size }
-        SO_SNDLOWAT      =$1003;        { send low-water mark }
-        SO_RCVLOWAT      =$1004;        { receive low-water mark }
-        SO_SNDTIMEO      =$1005;        { send timeout }
-        SO_RCVTIMEO      =$1006;        { receive timeout }
-        SO_ERROR         =$1007;        { get error status and clear }
-        SO_TYPE          =$1008;        { get socket type }
-
-
-        SHUT_RD         =0;             { shut down the reading side }
-        SHUT_WR         =1;             { shut down the writing side }
-        SHUT_RDWR       =2;             { shut down both sides }
-
-{$endif}
-{$ENDIF}
-
 const
   { Two constants to determine whether part of soket is for in or output }
   S_IN = 0;
   S_OUT = 1;
 
 Type
+  in_addr = packed record
+	     s_addr  : cuint32;		// inaddr_t=cuint32
+            end; 
+
   TSockAddr = packed Record
-    {$ifdef BSD}
-     len : byte;
-     family:byte;
-    {$ELSE}
-     family:word;  { was byte, fixed }
-    {$ENDIF}
-    data  :array [0..13] of char;
+  {$ifdef SOCK_HAS_SINLEN}
+     sa_len     : cuchar;
+  {$endif}
+     sa_family  : sa_family_t;
+     sa_data    : array [0..13] of char;
     end;
+  pSockAddr = ^TSockAddr;
 
   TInetSockAddr = packed Record
-    family:Word;
-    port  :Word;
-    addr  :Cardinal;
-    pad   :array [1..8] of byte; { to get to the size of sockaddr... }
+  {$ifdef SOCK_HAS_SINLEN}
+     sin_len     : cuchar;
+  {$endif}
+     sin_family  : sa_family_t;
+     sin_port    : cushort;
+     sin_addr    : in_addr;
+     pad         : array [0..7] of char; { to get to the size of sockaddr... }
   end;
+  pInetSockAddr = ^TInetSockAddr;
 
   Tin6_addr = packed record
   case byte of
@@ -168,26 +104,43 @@ Type
     5: (s6_addr16 : array[0..7] of smallint);
     6: (s6_addr32 : array[0..3] of LongInt);
   end;
+  pIn6_Addr=^TIn6_addr;
 
   TInetSockAddr6 = packed Record
-    {$ifdef BSD}  // as per RFC 2553
-      sin6_len   : byte;
-      sin6_family: byte;
-    {$ELSE}
-      sin6_family: word;
-    {$ENDIF}
-    sin6_port     : Word;
-    sin6_flowinfo : LongInt;
+    {$ifdef SOCKET_HAS_SINLEN}  // as per RFC 2553
+      sin6_len    : byte;
+    {$endif}
+    sin6_family   : sa_family_t;
+    sin6_port     : cuint16;
+    sin6_flowinfo : cuint32;
     sin6_addr     : Tin6_addr;
-    sin6_scope_id : LongInt;
+    sin6_scope_id : cuint32;
   end;
+
   sockaddr_in6 = TInetSockAddr6;
   psockaddr_in6 = ^sockaddr_in6;
 
-  TSockArray = Array[1..2] of Longint;
+  TSockPairArray = Array[0..1] of Longint;
+  TSockArray     = Array[1..2] of Longint; 		//legacy
 
 Var
-  SocketError:Longint;
+  SocketError:cint;
+
+function  fpsocket      (domain:cint; xtype:cint; protocol: cint):cint; maybelibc
+function  fprecv        (s:cint; buf: pointer; len: size_t; flags: cint):ssize_t; maybelibc
+function  fprecvfrom    (s:cint; buf: pointer; len: size_t; flags: cint; from : psockaddr; fromlen : psocklen):ssize_t; maybelibc
+function  fpsend        (s:cint; msg:pointer; len:size_t; flags:cint):ssize_t; maybelibc
+function  fpsendto      (s:cint; msg:pointer; len:size_t; flags:cint; tox :psockaddr; tolen: tsocklen):ssize_t; maybelibc
+function  fpbind        (s:cint; addrx : psockaddr; addrlen : tsocklen):cint;  maybelibc
+function  fplisten      (s:cint; backlog : cint):cint;                          maybelibc
+function  fpaccept      (s:cint; addrx : psockaddr; addrlen : psocklen):cint; maybelibc
+function  fpconnect     (s:cint; name  : psockaddr; namelen : tsocklen):cint;  maybelibc
+function  fpshutdown    (s:cint; how:cint):cint; maybelibc
+function  fpgetsockname (s:cint; name  : psockaddr; namelen : psocklen):cint; maybelibc
+function  fpgetpeername (s:cint; name  : psockaddr; namelen : psocklen):cint; maybelibc
+function  fpgetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen : psocklen):cint; maybelibc
+function  fpsetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen : tsocklen):cint; maybelibc
+function  fpsocketpair  (d:cint; xtype:cint; protocol:cint; sv:pcint):cint; maybelibc
 
 {Basic Socket Functions}
 Function Socket(Domain,SocketType,Protocol:Longint):Longint;
@@ -195,7 +148,7 @@ Function CloseSocket(Sock:Longint):Longint;
 Function Send(Sock:Longint;Const Buf;BufLen,Flags:Longint):Longint;
 Function SendTo(Sock:Longint;Const Buf;BufLen,Flags:Longint;Var Addr; AddrLen : Longint):Longint;
 Function Recv(Sock:Longint;Var Buf;BufLen,Flags:Longint):Longint;
-Function RecvFrom(Sock : Longint; Var Buf; Buflen,Flags : Longint; Var Addr; AddrLen : Integer) : longint;
+Function RecvFrom(Sock : Longint; Var Buf; Buflen,Flags : Longint; Var Addr; var AddrLen : longInt) : longint;
 Function Bind(Sock:Longint;Const Addr;AddrLen:Longint):Boolean;
 Function Listen (Sock,MaxConnect:Longint):Boolean;
 Function Accept(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;
@@ -203,7 +156,7 @@ Function Connect(Sock:Longint;Const Addr;Addrlen:Longint):boolean;
 Function Shutdown(Sock:Longint;How:Longint):Longint;
 Function GetSocketName(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;
 Function GetPeerName(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;
-Function SetSocketOptions(Sock,Level,OptName:Longint;Const OptVal;optlen:longint):Longint;
+Function SetSocketOptions(Sock,Level,OptName:Longint;const OptVal;optlen:longint):Longint;
 Function GetSocketOptions(Sock,Level,OptName:Longint;Var OptVal;Var optlen:longint):Longint;
 Function SocketPair(Domain,SocketType,Protocol:Longint;var Pair:TSockArray):Longint;
 
@@ -221,7 +174,10 @@ Function Connect(Sock:longint;const addr:TInetSockAddr;var SockIn,SockOut:file):
 
 {
   $Log$
-  Revision 1.12  2003-11-23 11:00:07  michael
+  Revision 1.13  2004-03-16 18:03:37  marco
+   * first changes sockets units
+
+  Revision 1.12  2003/11/23 11:00:07  michael
   + Added IPV6 patch from Johannes Berg
 
   Revision 1.11  2003/11/22 16:28:56  michael

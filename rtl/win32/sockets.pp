@@ -16,8 +16,23 @@ unit Sockets;
 
 Interface
 
+{$macro on}
+{$define maybelibc:=}
+
   Uses
      windows,winsock;
+
+Type
+  cushort=word;
+  cuint16=word;
+  cuint32=cardinal;
+  size_t =cuint32;
+  ssize_t=cuint16;
+  cint   =longint;
+  pcint  =^cint;
+  tsocklen=cint;
+  psocklen=^tsocklen;
+
 
   Const
      AF_MAX          = WinSock.AF_MAX;
@@ -35,13 +50,176 @@ Implementation
                           Basic Socket Functions
 ******************************************************************************}
 
-Function socket(Domain,SocketType,Protocol:Longint):Longint;
+
+
+//function fprecvmsg     (s:cint; msg: pmsghdr; flags:cint):ssize_t; 
+//function fpsendmsg 	(s:cint; hdr: pmsghdr; flags:cint):ssize; 
+
+//function fpsocket 	(domain:cint; xtype:cint; protocol: cint):cint; 
+
+
+function fpsocket 	(domain:cint; xtype:cint; protocol: cint):cint; 
 begin
-  Socket:=WinSock.Socket(Domain,SocketType,ProtoCol);
-  if Socket<0 then
+  fpSocket:=WinSock.Socket(Domain,xtype,ProtoCol);
+  if fpSocket<0 then
     SocketError:=WSAGetLastError
   else
     SocketError:=0;
+end;
+
+function fpsend (s:cint; msg:pointer; len:size_t; flags:cint):ssize_t; 
+begin
+  fpSend:=WinSock.Send(S,msg,len,flags);
+  if fpSend<0 then
+    SocketError:=WSAGetLastError
+  else
+    SocketError:=0;
+end;
+
+function fpsendto (s:cint; msg:pointer; len:size_t; flags:cint; tox :psockaddr; tolen: tsocklen):ssize_t; 
+begin
+  // Dubious construct, this should be checked. (IPV6 fails ?)
+  fpSendTo:=WinSock.SendTo(S,msg,Len,Flags,Winsock.TSockAddr(tox^),toLen);
+  if fpSendTo<0 then
+    SocketError:=WSAGetLastError
+  else
+    SocketError:=0;
+end;
+
+function fprecv 	(s:cint; buf: pointer; len: size_t; flags: cint):ssize_t; 
+begin
+  fpRecv:=WinSock.Recv(S,Buf,Len,Flags);
+  if fpRecv<0 then
+    SocketError:=WSAGetLastError
+  else
+    SocketError:=0;
+end;
+
+function fprecvfrom    (s:cint; buf: pointer; len: size_t; flags: cint; from : psockaddr; fromlen : psocklen):ssize_t; 
+
+begin
+fpRecvFrom:=WinSock.RecvFrom(S,Buf,Len,Flags,Winsock.TSockAddr(from^),FromLen^);
+  if fpRecvFrom<0 then
+    SocketError:=WSAGetLastError
+  else
+    SocketError:=0;
+end;
+
+function fpconnect     (s:cint; name  : psockaddr; namelen : tsocklen):cint;  
+
+begin
+  fpConnect:=WinSock.Connect(S,WinSock.TSockAddr(name^),nameLen);
+  if fpConnect<0 then
+    SocketError:=WSAGetLastError
+  else
+    SocketError:=0;
+end;
+
+function fpshutdown 	(s:cint; how:cint):cint; 
+begin
+  fpShutDown:=WinSock.ShutDown(S,How);
+  if fpShutDown<0 then
+    SocketError:=WSAGetLastError
+  else
+    SocketError:=0;
+end;
+
+Function socket(Domain,SocketType,Protocol:Longint):Longint;
+begin
+  socket:=fpsocket(Domain,sockettype,protocol);
+end;
+
+Function Send(Sock:Longint;Const Buf;BufLen,Flags:Longint):Longint;
+
+begin
+  send:=fpsend(sock,@buf,buflen,flags);
+end;
+
+Function SendTo(Sock:Longint;Const Buf;BufLen,Flags:Longint;Var Addr; AddrLen : Longint):Longint;
+
+begin
+  sendto:=fpsendto(sock,@buf,buflen,flags,@addr,addrlen);
+end;
+
+Function Recv(Sock:Longint;Var Buf;BufLen,Flags:Longint):Longint;
+begin
+  Recv:=fpRecv(Sock,@Buf,BufLen,Flags);
+end;
+
+Function RecvFrom(Sock : Longint; Var Buf; Buflen,Flags : Longint; Var Addr; var AddrLen : longint) : longint;
+begin
+  RecvFrom:=fpRecvFrom(Sock,@Buf,BufLen,Flags,@Addr,@AddrLen);
+end;
+
+function fpbind (s:cint; addrx : psockaddr; addrlen : tsocklen):cint;  
+
+begin
+  fpbind:=WinSock.Bind(S,WinSock.PSockAddr(Addrx),AddrLen);
+  if fpbind<0 then
+       SocketError:=WSAGetLastError
+  else
+       SocketError:=0;
+end;
+
+function fplisten      (s:cint; backlog : cint):cint;                          
+
+begin
+  fplisten:=WinSock.Listen(S,backlog);
+  if fplisten<0 then
+       SocketError:=WSAGetLastError
+  else
+       SocketError:=0;
+end;
+
+function fpaccept      (s:cint; addrx : psockaddr; addrlen : psocklen):cint; 
+begin
+  fpAccept:=WinSock.Accept(S,WinSock.PSockAddr(Addrx),plongint(@AddrLen));
+  if fpAccept<0 then
+    SocketError:=WSAGetLastError
+  else
+    SocketError:=0;
+end;
+
+function fpgetsockname (s:cint; name  : psockaddr; namelen : psocklen):cint; 
+
+begin
+  fpGetSockName:=WinSock.GetSockName(S,WinSock.TSockAddr(name^),nameLen^);
+  if fpGetSockName<0 then
+    SocketError:=WSAGetLastError
+  else
+    SocketError:=0;
+end;
+
+function fpgetpeername (s:cint; name  : psockaddr; namelen : psocklen):cint; 
+begin
+  fpGetPeerName:=WinSock.GetPeerName(S,WinSock.TSockAddr(name^),NameLen^);
+  if fpGetPeerName<0 then
+    SocketError:=WSAGetLastError
+  else
+    SocketError:=0;
+end;
+
+function fpgetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen : psocklen):cint; 
+begin
+  fpGetSockOpt:=WinSock.GetSockOpt(S,Level,OptName,OptVal,OptLen^);
+  if fpGetSockOpt<0 then
+    SocketError:=WSAGetLastError
+  else
+    SocketError:=0;
+end;
+
+function fpsetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen :tsocklen):cint; 
+
+begin
+  fpSetSockOpt:=WinSock.SetSockOpt(S,Level,OptName,OptVal,OptLen);
+  if fpSetSockOpt<0 then
+    SocketError:=WSAGetLastError
+  else
+    SocketError:=0;
+end;
+
+function fpsocketpair  (d:cint; xtype:cint; protocol:cint; sv:pcint):cint; 
+begin
 end;
 
 Function CloseSocket(Sock:Longint):Longint;
@@ -55,154 +233,64 @@ begin
   end else
   begin
     CloseSocket := 0;
-    SocketError := 0;
+    SocketError := 0;	
   end;
-end;
-
-Function Send(Sock:Longint;Const Buf;BufLen,Flags:Longint):Longint;
-begin
-  Send:=WinSock.Send(Sock,Buf,BufLen,Flags);
-  if Send<0 then
-    SocketError:=WSAGetLastError
-  else
-    SocketError:=0;
-end;
-
-Function SendTo(Sock:Longint;Const Buf;BufLen,Flags:Longint;Var Addr; AddrLen : Longint):Longint;
-begin
-  // Dubious construct, this should be checked.
-  SendTo:=WinSock.SendTo(Sock,Buf,BufLen,Flags,Winsock.TSockAddr(Addr),AddrLen);
-  if SendTo<0 then
-    SocketError:=WSAGetLastError
-  else
-    SocketError:=0;
-end;
-
-Function Recv(Sock:Longint;Var Buf;BufLen,Flags:Longint):Longint;
-begin
-  Recv:=WinSock.Recv(Sock,Buf,BufLen,Flags);
-  if Recv<0 then
-    SocketError:=WSAGetLastError
-  else
-    SocketError:=0;
-end;
-
-
-Function RecvFrom(Sock : Longint; Var Buf; Buflen,Flags : Longint; Var Addr; AddrLen : Integer) : longint;
-
-begin
-  RecvFrom:=WinSock.RecvFrom(Sock,Buf,BufLen,Flags,Winsock.TSockAddr(Addr),AddrLen);
-  if RecvFrom<0 then
-    SocketError:=WSAGetLastError
-  else
-    SocketError:=0;
 end;
 
 Function Bind(Sock:Longint;Const Addr;AddrLen:Longint):Boolean;
 
-  var
-     l : longint;
-
 begin
-  l:=WinSock.Bind(Sock,WinSock.PSockAddr(@Addr),AddrLen);
-  if l<0 then
-    begin
-       SocketError:=WSAGetLastError;
-       Bind:=false;
-    end
-  else
-    begin
-       SocketError:=0;
-       Bind:=true;
-    end;
+  bind:=fpBind(Sock,@Addr,AddrLen)=0;
 end;
 
 Function Listen(Sock,MaxConnect:Longint):Boolean;
 
-  var
-     l : longint;
-
 begin
-  l:=WinSock.Listen(Sock,MaxConnect);
-  if l<0 then
-    begin
-       SocketError:=WSAGetLastError;
-       Listen:=false;
-    end
-  else
-    begin
-       SocketError:=0;
-       Listen:=true;
-    end;
+  Listen:=fplisten(Sock,MaxConnect)=0;
 end;
 
 Function Accept(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;
+
 begin
-  Accept:=WinSock.Accept(Sock,WinSock.PSockAddr(@Addr),plongint(@AddrLen));
-  if Accept<0 then
-    SocketError:=WSAGetLastError
-  else
-    SocketError:=0;
+  Accept:=FPAccept(sock,@addr,@addrlen);
+end;
+
+Function Shutdown(Sock:Longint;How:Longint):Longint;
+
+begin
+ shutdown:=fpshutdown(sock,how);
 end;
 
 Function Connect(Sock:Longint;Const Addr;Addrlen:Longint):Boolean;
 
 begin
-  Connect:=WinSock.Connect(Sock,WinSock.TSockAddr(Addr),AddrLen)=0;
-  if not Connect then
-    SocketError:=WSAGetLastError
-  else
-    SocketError:=0;
-end;
-
-Function Shutdown(Sock:Longint;How:Longint):Longint;
-begin
-  ShutDown:=WinSock.ShutDown(Sock,How);
-  if ShutDown<0 then
-    SocketError:=WSAGetLastError
-  else
-    SocketError:=0;
+ connect:=fpconnect(sock,@addr,addrlen)=0;
 end;
 
 Function GetSocketName(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;
 begin
-  GetSocketName:=WinSock.GetSockName(Sock,WinSock.TSockAddr(Addr),AddrLen);
-  if GetSocketName<0 then
-    SocketError:=WSAGetLastError
-  else
-    SocketError:=0;
+ GetSocketName:=fpGetSockName(sock,@addr,@addrlen);
 end;
 
 Function GetPeerName(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;
 begin
-  GetPeerName:=WinSock.GetPeerName(Sock,WinSock.TSockAddr(Addr),AddrLen);
-  if GetPeerName<0 then
-    SocketError:=WSAGetLastError
-  else
-    SocketError:=0;
-end;
-
-Function SetSocketOptions(Sock,Level,OptName:Longint;Const OptVal;optlen:longint):Longint;
-begin
-  SetSocketOptions:=WinSock.SetSockOpt(Sock,Level,OptName,OptVal,OptLen);
-  if SetSocketOptions<0 then
-    SocketError:=WSAGetLastError
-  else
-    SocketError:=0;
+ GetPeerName:=fpGetPeerName(Sock,@addr,@addrlen);
 end;
 
 Function GetSocketOptions(Sock,Level,OptName:Longint;Var OptVal;Var optlen:longint):Longint;
 begin
-  GetSocketOptions:=WinSock.GetSockOpt(Sock,Level,OptName,OptVal,OptLen);
-  if GetSocketOptions<0 then
-    SocketError:=WSAGetLastError
-  else
-    SocketError:=0;
+ GetSocketOptions:=fpGetSockOpt(sock,level,optname,@optval,@optlen);
+end;
+
+Function SetSocketOptions(Sock,Level,OptName:Longint;Const OptVal;optlen:longint):Longint;
+
+begin
+ SetSocketOptions:=fpsetsockopt(sock,level,optname,@optval,optlen);
 end;
 
 Function SocketPair(Domain,SocketType,Protocol:Longint;var Pair:TSockArray):Longint;
 begin
-  // SocketPair:=SocketCall(Socket_Sys_SocketPair,Domain,SocketType,Protocol,longint(@Pair),0,0);
+  // SocketPair:=SocketCall(Socket_Sys_SocketPair,Domain,SocketType,Protocol,longint(@Pair),0,0);a
 end;
 
 
@@ -301,7 +389,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.12  2003-09-17 15:06:36  peter
+  Revision 1.13  2004-03-16 18:03:37  marco
+   * first changes sockets units
+
+  Revision 1.12  2003/09/17 15:06:36  peter
     * stdcall patch
 
   Revision 1.11  2003/03/23 17:47:15  armin

@@ -89,9 +89,58 @@ Const
   PF_NETGRAPH     =AF_NETGRAPH;
   PF_MAX          =AF_MAX;
 
+{ For setsockoptions(2) }
+         SOL_SOCKET  =   1;
+         SO_DEBUG    =   1;
+         SO_REUSEADDR=   2;
+         SO_TYPE     =   3;
+         SO_ERROR    =   4;
+         SO_DONTROUTE=   5;
+         SO_BROADCAST=   6;
+         SO_SNDBUF   =   7;
+         SO_RCVBUF   =   8;
+         SO_KEEPALIVE=   9;
+         SO_OOBINLINE=   10;
+         SO_NO_CHECK =   11;
+         SO_PRIORITY =   12;
+         SO_LINGER   =   13;
+         SO_BSDCOMPAT=   14;
+{ To add :         SO_REUSEPORT 15 }
+         SO_PASSCRED=    16;
+         SO_PEERCRED=    17;
+         SO_RCVLOWAT=    18;
+         SO_SNDLOWAT=    19;
+         SO_RCVTIMEO=    20;
+         SO_SNDTIMEO=    21;
+
+{ Security levels - as per NRL IPv6 - don't actually do anything }
+
+         SO_SECURITY_AUTHENTICATION      =   22;
+         SO_SECURITY_ENCRYPTION_TRANSPORT=   23;
+         SO_SECURITY_ENCRYPTION_NETWORK  =   24;
+
+         SO_BINDTODEVICE=   25;
+
+{ Socket filtering }
+
+         SO_ATTACH_FILTER=  26;
+         SO_DETACH_FILTER=  27;
+         SO_PEERNAME     =  28;
+         SO_TIMESTAMP    = 29;
+         SCM_TIMESTAMP   = SO_TIMESTAMP;
+         SO_ACCEPTCONN   = 30;
+         
+                  
+        SHUT_RD         =0;             { shut down the reading side }
+        SHUT_WR         =1;             { shut down the writing side }
+        SHUT_RDWR       =2;             { shut down both sides }
+
 {
    $Log$
-   Revision 1.1  2004-03-09 19:41:31  marco
+   Revision 1.2  2004-03-16 18:03:37  marco
+    * first changes sockets units
+
+   Revision 1.1  2004/03/09 19:41:31  marco
     * header for sockets unit
 
 }
