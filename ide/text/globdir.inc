@@ -67,3 +67,8 @@
   {.$define NOOBJREG}
   {$define NODEBUG}
 {$endif}
+
+{$ifdef DEBUG}
+  { include Undo/Redo code from Visa Harvey }
+  {$define Undo}
+{$endif DEBUG}
