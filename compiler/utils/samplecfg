@@ -176,6 +176,8 @@ cat <<EOFCFG > $thefile
 -Fu$1/units/\$target
 -Fu$1/units/\$target/*
 -Fu$1/units/\$target/rtl
+# search path for cross compiled units
+-Fu$1/cross/\$fpccpu-\$target/units/*
 #-Fu~/fpc/packages/*;~/fpc/rtl/linux
 
 # searchpath for libraries
