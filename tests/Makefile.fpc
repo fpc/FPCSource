@@ -389,6 +389,8 @@ endif
 	-rm -f $(LOG) $(LONGLOG) faillist ts_fail tf_fail ex_fail
 	-rm -f fpcmaked ppas.sh ppas.bat retcode
 
+full : clean all_compilations allexec
+
 info :
 	@echo This Makefile allows to test the compiler
 	@echo compilation of 'ts*.pp' should succeed
