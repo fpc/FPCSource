@@ -152,6 +152,124 @@ ViewPortType = Record
 end;
 \end{verbatim}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Functions and procedures by category
+\section{Function list by category}
+What follows is a listing of the available functions, grouped by category.
+For each function there is a reference to the page where you can find the
+function.
+\subsection{Initialization}
+Initialization of the graphics screen.
+\begin{funclist}
+\procref{ClearDevice}{Empty the graphics screen}
+\procref{CloseGraph}{Finish drawing session, return to text mode}
+\procref{DetectGraph}{Detect graphical modes}
+\procref{GetAspectRatio}{Get aspect ratio of screen}
+\procref{GetModeRange}{Get range of valid modes for current driver}
+\procref{GraphDefaults}{Set defaults}
+\funcref{GetDriverName}{Return name of graphical driver}
+\funcref{GetGraphMode}{Return current or last used graphics mode}
+\funcref{GetMaxMode}{Get maximum mode for current driver}
+\funcref{GetModeName}{Get name of current mode}
+\funcref{GraphErrorMsg}{String representation of graphical error}
+\funcref{GraphResult}{Result of last drawing operation}
+\procref{InitGraph}{Initialize graphics drivers}
+\funcref{InstallUserDriver}{Install a new driver}
+\funcref{RegisterBGIDriver}{Register a new driver}
+\procref{RestoreCRTMode}{Go back to text mode}
+\procref{SetGraphBufSize}{Set buffer size for graphical operations}
+\procref{SetGraphMode}{Set graphical mode}
+\end{funclist}
+
+\subsection{screen management}
+General drawing screen management functions.
+\begin{funclist}
+\procref{ClearViewPort}{Clear the current viewport}
+\procref{GetImage}{Copy image from screen to memory}
+\funcref{GetMaxX}{Get maximum X coordinate}
+\funcref{GetMaxY}{Get maximum Y coordinate}
+\funcref{GetX}{Get current X position}
+\funcref{GetY}{Get current Y position}
+\funcref{ImageSize}{Get size of selected image}
+\procref{GetViewSettings}{Get current viewport settings}
+\procref{PutImage}{Copy image from memory to screen}
+\procref{SetActivePage}{Set active video page}
+\procref{SetAspectRatio}{Set aspect ratio for drawing routines}
+\procref{SetViewPort}{Set current viewport}
+\procref{SetVisualPage}{Set visual page}
+\procref{SetWriteMode}{Set write mode for screen operations}
+\end{funclist}
+
+\subsection{Color management}
+All functions related to color management.
+\begin{funclist}
+\funcref{GetBkColor}{Get current background color}
+\funcref{GetColor}{Get current foreground color}
+\procref{GetDefaultPalette}{Get default palette entries}
+\funcref{GetMaxColor}{Get maximum valid color}
+\funcref{GetPaletteSize}{Get size of palette for current mode}
+\funcref{GetPixel}{Get color of selected pixel}
+\procref{GetPalette}{Get palette entry}
+\procref{SetAllPallette}{Set all colors in palette}
+\procref{SetBkColor}{Set background color}
+\procref{SetColor}{Set foreground color}
+\procref{SetPalette}{Set palette entry}
+\procref{SetRGBPalette}{Set palette entry with RGB values}
+\end{funclist}
+
+\subsection{Drawing primitives}
+Functions for simple drawing.
+\begin{funclist}
+\procref{Arc}{Draw an arc}
+\procref{Circle}{Draw a complete circle}
+\procref{DrawPoly}{Draw a polygone with N points}
+\procref{Ellipse}{Draw an ellipse}
+\procref{GetArcCoords}{Get arc coordinates}
+\procref{GetLineSettings}{Get current line drawing settings}
+\procref{Line}{Draw line between 2 points}
+\procref{LineRel}{Draw line relative to current position}
+\procref{LineTo}{Draw line from current position to absolute position}
+\procref{MoveRel}{Move cursor relative to current position}
+\procref{MoveTo}{Move cursor to absolute position}
+\procref{PieSlice}{Draw a pie slice}
+\procref{PutPixel}{Draw 1 pixel}
+\procref{Rectangle}{Draw a non-filled rectangle}
+\procref{Sector}{Draw a sector}
+\procref{SetLineStyle}{Set current line drawing style}
+\end{funclist}
+
+\subsection{Filled drawings}
+Functions for drawing filled regions.
+\begin{funclist}
+\procref{Bar3D}{Draw a filled 3D-style bar}
+\procref{Bar}{Draw a filled rectangle}
+\procref{FloodFill}{Fill starting from coordinate}
+\procref{FillEllipse}{Draw a filled ellipse}
+\procref{FillPoly}{Draw a filled polygone}
+\procref{GetFillPattern}{Get current fill pattern}
+\procref{GetFillSettings}{Get current fill settings}
+\procref{SetFillPattern}{Set current fill pattern}
+\procref{SetFillStyle}{Set current fill settings}
+\end{funclist}
+
+\subsection{Text and font handling}
+Functions to set texts on the screen.
+\begin{funclist}
+\procref{GetTextSettings}{Get current text settings}
+\funcref{InstallUserFont}{Install a new font}
+\procref{OutText}{Write text at current cursor position}
+\procref{OutTextXY}{Write text at coordinates X,Y}
+\funcref{RegisterBGIFont}{Register a new font}
+\procref{SetTextJustify}{Set text justification}
+\procref{SetTextStyle}{Set text style}
+\procref{SetUserCharSize}{Set text size}
+\funcref{TextHeight}{Calculate height of text}
+\funcref{TextWidth}{Calculate width of text}
+\end{funclist}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Functions and procedures
 \section{Functions and procedures}
 
 \begin{procedure}{Arc}
