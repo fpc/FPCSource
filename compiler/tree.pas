@@ -1472,11 +1472,11 @@ unit tree;
                      comment(v_warning,'labnumber field different');
                      error_found:=true;
                   end;
-                  if oldp^.realtyp<>p^.realtyp then
+                  { if oldp^.realtyp<>p^.realtyp then
                   begin
                      comment(v_warning,'realtyp field different');
                      error_found:=true;
-                  end;
+                  end; }
                end;
            end;
          if not error_found then
@@ -1708,7 +1708,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.78  1999-05-12 00:20:03  peter
+  Revision 1.79  1999-05-17 13:00:36  pierre
+   * old field suppressed was still in debug code
+
+  Revision 1.78  1999/05/12 00:20:03  peter
     * removed R_DEFAULT_SEG
     * uniform float names
 
