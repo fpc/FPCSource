@@ -1582,7 +1582,9 @@ type
               { do we know the procedure to call ? }
               if not(assigned(procdefinition)) then
                 begin
-                   candidates:=tcallcandidates.create(symtableprocentry,symtableproc,left,(nf_isproperty in flags));
+                   candidates:=tcallcandidates.create(symtableprocentry,symtableproc,left,(nf_isproperty in flags),
+                     { ignore possible private in delphi mode for anon. inherited (FK) }
+                     (m_delphi in aktmodeswitches) and (cnf_anon_inherited in callnodeflags));
 
                    { no procedures found? then there is something wrong
                      with the parameter size or the procedures are
@@ -2496,7 +2498,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.276  2005-01-19 22:19:41  peter
+  Revision 1.277  2005-02-01 22:50:50  florian
+    * inherited; works now in delphi mode for private methods; looks like a delphi bug
+
+  Revision 1.276  2005/01/19 22:19:41  peter
     * unit mapping rewrite
     * new derefmap added
 
