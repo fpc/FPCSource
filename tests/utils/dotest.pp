@@ -664,6 +664,7 @@ begin
         if (not Config.ShouldFail) and DoExecute then
          begin
            if FileExists(ForceExtension(PPFile,'ppu')) or
+              FileExists(ForceExtension(PPFile,'ppo')) or
               FileExists(ForceExtension(PPFile,'ppw')) then
              begin
                AddLog(ForceExtension(PPFile,'elg'),'Skipping test run because it is a unit '+PPFileInfo);
@@ -684,7 +685,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2002-01-29 13:24:16  pierre
+  Revision 1.13  2002-03-03 13:27:28  hajny
+    + added support for OS/2 units (.ppo)
+
+  Revision 1.12  2002/01/29 13:24:16  pierre
    + also generate .elg file for units
 
   Revision 1.11  2002/01/29 12:51:08  pierre
