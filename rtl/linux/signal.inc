@@ -242,9 +242,53 @@ type
 {$endif cpusparc}
 
 {$ifdef cpux86_64}
-{ get it from glibc/sysdeps/unix/sysv/linux/x86_64/sys/uncontext.h }
+
+  p_fpstate = ^_fpstate;
+  _fpstate = packed record
+    cwd,
+    swd,
+    twd,    // Note this is not the same as the 32bit/x87/FSAVE twd
+    fop : word;
+    rip,
+    rdp : qword;
+    mxcsr,
+    mxcsr_mask : dword;
+    st_space : array[0..31] of dword;  // 8*16 bytes for each FP-reg
+    xmm_space : array[0..63] of dword; // 16*16 bytes for each XMM-reg
+    reserved2 : array[0..23] of dword;
+  end;
+
   PSigContextRec = ^SigContextRec;
-  SigContextRec = record
+  SigContextRec = packed record
+    __pad00 : array[0..4] of qword;
+    r8,
+    r9,
+    r10,
+    r11,
+    r12,
+    r13,
+    r14,
+    r15,
+    rdi,
+    rsi,
+    rbp,
+    rbx,
+    rdx,
+    rax,
+    rcx,
+    rsp,
+    rip,
+    eflags : qword;
+    cs,
+    gs,
+    fs,
+    __pad0 : word;
+    err,
+    trapno,
+    oldmask,
+    cr2 : qword;
+    fpstate : p_fpstate;       // zero when no FPU context */
+    reserved1 : array[0..7] of qword;
   end;
 {$endif cpux86_64}
 
@@ -376,7 +420,10 @@ type
 
 {
   $Log$
-  Revision 1.18  2004-04-27 20:47:00  florian
+  Revision 1.19  2004-05-01 15:59:17  florian
+    * x86_64 exception handling fixed
+
+  Revision 1.18  2004/04/27 20:47:00  florian
     * tried to fix x86-64 signal handling
 
   Revision 1.17  2004/03/27 14:35:13  florian

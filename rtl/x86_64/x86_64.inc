@@ -343,9 +343,19 @@ const
   FPU_StackOverflow = $40;
   FPU_ExceptionMask = $ff;
 
+{$define FPC_SYSTEM_HAS_SYSRESETFPU}
+Procedure SysResetFPU;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
+asm
+    fninit
+    fldcw   fpucw
+end;
+
 {
   $Log$
-  Revision 1.11  2004-04-29 19:50:13  peter
+  Revision 1.12  2004-05-01 15:59:17  florian
+    * x86_64 exception handling fixed
+
+  Revision 1.11  2004/04/29 19:50:13  peter
     * x86-64 fixes
 
   Revision 1.10  2004/04/26 15:55:01  peter

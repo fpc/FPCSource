@@ -15,6 +15,13 @@
 
  ****************************************************************************
 }
+{$ifdef CPUARM}
+{$define RTSIGACTION}
+{$endif CPUARM}
+
+{$ifdef CPUx86_64}
+{$define RTSIGACTION}
+{$endif CPUx86_64}
 
 {$I syscallh.inc}
 {$I ostypes.inc}
@@ -205,14 +212,6 @@ end;
   If Act is non-nil, it is used to specify the new action.
   If OldAct is non-nil the previous action is saved there.
 }
-
-{$ifdef CPUARM}
-{$define RTSIGACTION}
-{$endif CPUARM}
-
-{$ifdef CPUx86_64}
-{$define RTSIGACTION}
-{$endif CPUx86_64}
 
 function Fpsigaction(sig: cint; act : psigactionrec; oact : psigactionrec): cint; [public, alias : 'FPC_SYSC_SIGACTION'];
 
@@ -452,6 +451,27 @@ begin
   Fpreadlink:=do_syscall(syscall_nr_readlink, TSysParam(name),TSysParam(linkname),maxlen);
 end;
 
+
+function FPSigProcMask(how:cint;nset : psigset;oset : psigset):cint; [public, alias : 'FPC_SYSC_SIGPROCMASK'];
+
+{
+  Change the list of currently blocked signals.
+  How determines which signals will be blocked :
+   SigBlock   : Add SSet to the current list of blocked signals
+   SigUnBlock : Remove the signals in SSet from the list of blocked signals.
+   SigSetMask : Set the list of blocked signals to SSet
+  if OldSSet is non-null, the old set will be saved there.
+}
+
+begin
+{$ifdef RTSIGACTION}
+  FPsigprocmask:=do_syscall(syscall_nr_rt_sigprocmask,TSysParam(how),TSysParam(nset),TSysParam(oset),TSysParam(8));
+{$else RTSIGACTION}
+  FPsigprocmask:=do_syscall(syscall_nr_sigprocmask,TSysParam(how),TSysParam(nset),TSysParam(oset),TSysParam(8));
+{$endif RTSIGACTION}
+end;
+
+
 Function FpNanoSleep(req : ptimespec;rem : ptimespec):cint; [public, alias : 'FPC_SYSC_NANOSLEEP'];
 begin
   FpNanoSleep:=Do_SysCall(syscall_nr_nanosleep,TSysParam(req),TSysParam(rem));
@@ -509,7 +529,10 @@ end;
 
 {
  $Log$
- Revision 1.23  2004-04-27 20:47:00  florian
+ Revision 1.24  2004-05-01 15:59:17  florian
+   * x86_64 exception handling fixed
+
+ Revision 1.23  2004/04/27 20:47:00  florian
    * tried to fix x86-64 signal handling
 
  Revision 1.22  2004/04/25 07:18:49  florian

@@ -507,8 +507,6 @@ var
   act: SigActionRec;
 
 Procedure InstallSignals;
-var
-  oldact: SigActionRec;
 begin
   { Initialize the sigaction structure }
   { all flags and information set to zero }
@@ -516,7 +514,11 @@ begin
   { initialize handler                    }
   act.sa_handler := signalhandler(@SignalToRunError);
 {$ifdef RTSIGACTION}
-  act.sa_flags:=4;
+  act.sa_flags:=4
+{$ifdef x86_64}
+    or $4000000
+{$endif x86_64}
+    ;
 {$endif RTSIGACTION}
   FpSigAction(SIGFPE,@act,nil);
   FpSigAction(SIGSEGV,@act,nil);
@@ -584,7 +586,10 @@ end;
 
 {
  $Log$
- Revision 1.16  2004-04-27 20:47:00  florian
+ Revision 1.17  2004-05-01 15:59:17  florian
+   * x86_64 exception handling fixed
+
+ Revision 1.16  2004/04/27 20:47:00  florian
    * tried to fix x86-64 signal handling
 
  Revision 1.15  2004/04/22 21:16:35  peter
