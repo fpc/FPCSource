@@ -2526,6 +2526,16 @@ procedure DosFlatToSel; cdecl;
 {typecast result to TFarPtr}
 function FlatToSel (APtr: pointer): cardinal;
 
+{Allocate Count dwords in a memory block unique in each thread. A maximum
+ of 8 dwords can be allocated at a time, the total size of the thread local
+ memory area is 128 bytes; FPC 1.1+ uses one dword from this for internal
+ multi-threading support, leaving 124 bytes to programmers.}
+function DosAllocThreadLocalMemory (Count: cardinal; var P: pointer): longint;
+                                                                         cdecl;
+
+{Deallocate a previously allocated space in the thread local memory area.}
+function DosFreeThreadLocalMemory (P: pointer): longint; cdecl;
+
 {***************************************************************************}
 implementation
 {***************************************************************************}
@@ -3924,6 +3934,15 @@ function FlatToSel (APtr: pointer): cardinal; assembler;
   call DosFlatToSel
  end;
 
+function DosAllocThreadLocalMemory (Count: cardinal; var P: pointer): longint;
+                                                                         cdecl;
+
+external 'DOSCALLS' index 454;
+
+function DosFreeThreadLocalMemory (P: pointer): longint; cdecl;
+
+external 'DOSCALLS' index 455;
+
 (* Todo:
 
 function DosRawReadNPipe ...; cdecl;
@@ -3992,7 +4011,10 @@ external 'DOSCALLS' index 582;
 end.
 {
   $Log$
-  Revision 1.7  2001-01-14 18:59:13  hajny
+  Revision 1.8  2001-01-23 20:28:05  hajny
+    + DosAllocThreadLocalMemory
+
+  Revision 1.7  2001/01/14 18:59:13  hajny
     * more compatibility changes (semaphores)
 
   Revision 1.6  2000/12/21 21:12:43  hajny
