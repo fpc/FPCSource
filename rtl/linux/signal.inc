@@ -37,6 +37,42 @@ Const
   SIG_IGN = 1 ;
   SIG_ERR = -1 ;
 
+{$ifdef cpusparc}
+  SIGHUP     = 1;
+  SIGINT     = 2;
+  SIGQUIT    = 3;
+  SIGILL     = 4;
+  SIGTRAP    = 5;
+  SIGABRT    = 6;
+  SIGIOT     = 6;
+  SIGEMT     = 7;  
+  SIGFPE     = 8;
+  SIGKILL    = 9;
+  SIGBUS     = 10;
+  SIGSEGV    = 11;
+  SIGSYS     = 12;
+  SIGPIPE    = 13;
+  SIGALRM    = 14;
+  SIGTERM    = 15;
+  SIGURG     = 16;
+  SIGSTOP    = 17;
+  SIGTSTP    = 18;
+  SIGCONT    = 19;
+  SIGCHLD    = 20;
+  SIGTTIN    = 21;
+  SIGTTOU    = 22;
+  SIGIO      = 23;
+  SIGPOLL    = SIGIO;
+  SIGXCPU    = 24;
+  SIGXFSZ    = 25;
+  SIGVTALRM  = 26;
+  SIGPROF    = 27;
+  SIGWINCH   = 28;
+  SIGLOST    = 29;
+  SIGPWR     = SIGLOST;
+  SIGUSR1    = 30;
+  SIGUSR2    = 31;
+{$else cpusparc}
   SIGHUP     = 1;
   SIGINT     = 2;
   SIGQUIT    = 3;
@@ -70,6 +106,7 @@ Const
   SIGPOLL    = SIGIO;
   SIGPWR     = 30;
   SIGUNUSED  = 31;
+{$endif cpusparc}
 
 
 const
@@ -420,7 +457,10 @@ type
 
 {
   $Log$
-  Revision 1.19  2004-05-01 15:59:17  florian
+  Revision 1.20  2004-05-27 23:15:43  peter
+    * sparc signals added between $ifdef cpusparc
+
+  Revision 1.19  2004/05/01 15:59:17  florian
     * x86_64 exception handling fixed
 
   Revision 1.18  2004/04/27 20:47:00  florian
