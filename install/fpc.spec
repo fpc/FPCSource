@@ -131,6 +131,7 @@ fi
 %{fpcdir}
 %doc %{docdir}/NEWS
 %doc %{docdir}/README
+%doc %{docdir}/readme.ide
 %doc %{docdir}/faq*
 %doc %{exampledir}/*
 %{_mandir}/*/*
