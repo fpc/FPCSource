@@ -426,7 +426,8 @@ const
 
      DontConsiderShiftState: boolean  = false;
      ToClipCmds         : TCommandSet = ([cmCut,cmCopy,cmCopyWin]);
-     FromClipCmds       : TCommandSet = ([cmPaste,cmPasteWin]);
+     FromClipCmds       : TCommandSet = ([cmPaste]);
+     FromWinClipCmds    : TCommandSet = ([cmPasteWin]);
      NulClipCmds        : TCommandSet = ([cmClear]);
      UndoCmd            : TCommandSet = ([cmUndo]);
      RedoCmd            : TCommandSet = ([cmRedo]);
@@ -4182,6 +4183,9 @@ begin
   CanPaste:=(Clipboard<>nil) and ((Clipboard^.SelStart.X<>Clipboard^.SelEnd.X) or
        (Clipboard^.SelStart.Y<>Clipboard^.SelEnd.Y));
   SetCmdState(FromClipCmds,CanPaste  and (Clipboard<>@Self));
+{$ifdef WinClipSupported}
+  SetCmdState(FromWinClipCmds,GetTextWinClipboardSize>0);
+{$endif WinClipSupported}
   SetCmdState(UndoCmd,(UndoList^.count>0));
   SetCmdState(RedoCmd,(RedoList^.count>0));
   Message(Application,evBroadcast,cmCommandSetChanged,nil);
@@ -4927,7 +4931,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.59  1999-11-03 09:39:23  peter
+  Revision 1.60  1999-11-05 13:49:13  pierre
+   * WinPaste depends on avalaible Clipboard data
+
+  Revision 1.59  1999/11/03 09:39:23  peter
     * fixed uppercase filenames
     * savetostream did twice a -1 on the linecount, so the lastline of a
       file wasn't saved correctly
