@@ -7,7 +7,8 @@ main=rtl
 
 [target]
 loaders=
-units=system strings objpas macpas heaptrc getopts macostp macutils unixutil dos objects matrix
+units=system strings objpas macpas heaptrc getopts macostp macutils \
+      unixutil dos objects matrix cmem charset
 #      exec  \
 #      crt printer \
 #      lineinfo  graph \
@@ -136,7 +137,7 @@ objects$(PPUEXT) : $(INC)/objects.pp system$(PPUEXT)
         $(COMPILER) $(INC)/objects.pp $(REDIR)
 
 #
-# Other RTL Units
+# Other system-independent RTL Units
 #
 
 getopts$(PPUEXT) : $(INC)/getopts.pp strings$(PPUEXT) system$(PPUEXT)
@@ -147,3 +148,8 @@ heaptrc$(PPUEXT) : $(INC)/heaptrc.pp system$(PPUEXT)
 				
 unixutil$(PPUEXT) : ../unix/unixutil.pp
         $(COMPILER) ../unix/unixutil.pp $(REDIR)				
+				
+charset$(PPUEXT) : $(INC)/charset.pp system$(PPUEXT)
+				
+cmem$(PPUEXT) : $(INC)/cmem.pp system$(PPUEXT)
+				
