@@ -30,10 +30,10 @@ unit cpupi;
 
     uses
        cutils,
-       cgbase,cpuinfo;
+       cgbase,cpuinfo,psub;
 
     type
-       tppcprocinfo = class(tprocinfo)
+       tppcprocinfo = class(tcgprocinfo)
           { overall size of allocated stack space, currently this is used for the PowerPC only }
           localsize : aword;
 
@@ -122,7 +122,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2003-05-17 14:05:30  jonas
+  Revision 1.19  2003-05-22 21:34:11  peter
+    * inherite from tcgprocinfo
+
+  Revision 1.18  2003/05/17 14:05:30  jonas
     * fixed para/localst calculations (note to self: don't commit at
       extremely late/early hours :)
 
