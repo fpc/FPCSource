@@ -483,9 +483,11 @@ implementation
           if FHasSection[Rule2Sec[rule]] then
            hs:=hs+' fpc_'+rule2str[rule];
           { include target dirs, but not for info and targets that
-            call other targets with a only extra settings }
+            call other targets with a only extra settings, if the
+            section was not included, then still process the targets }
           if CheckTargetVariable('target_dirs') and
-             not(rule in [r_info,r_shared,r_smart,r_debug,r_distinstall]) then
+             (not(rule in [r_info,r_shared,r_smart,r_debug,r_distinstall]) or
+              not FHasSection[Rule2Sec[rule]]) then
            begin
              if CheckVariable('default_dir') then
               hs:=hs+' $(addsuffix _'+rule2str[rule]+',$(DEFAULT_DIR))'
@@ -834,7 +836,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  2001-06-04 21:42:57  peter
+  Revision 1.10  2001-06-04 22:18:16  peter
+    * Still process subdirs if a target has no section defined
+
+  Revision 1.9  2001/06/04 21:42:57  peter
     * Arguments added
     * Start of Package.fpc creation
 
