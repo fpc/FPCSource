@@ -113,9 +113,11 @@ end;
 Function GetQuotedString (Var P : Pchar) : AnsiString;
 
 Var P1,L : Pchar;
+    ReplaceQuotes : boolean;
 
 begin
   Result:='';
+  ReplaceQuotes := False;
   P1:=P+1;
   While P1^<>#0 do
     begin
@@ -124,6 +126,7 @@ begin
          if (P1[1]<>'"') then
           break;
          inc(p1);
+         ReplaceQuotes := True;
        end;
       inc(p1);
     end;
@@ -136,6 +139,8 @@ begin
     Move (P^,L^,P1-P);
     P:=P1+1;
     end;
+  if ReplaceQuotes then
+    result := StringReplace (result, '""', '"', [rfReplaceAll]);
 end;
 
 
@@ -1035,7 +1040,10 @@ end;
 
 {
   $Log$
-  Revision 1.12  2002-09-07 15:15:25  peter
+  Revision 1.13  2002-10-10 12:50:40  michael
+  + Fix for handling of double quotes in getquotedstring from Luk Vandelaer (luk.vandelaer@wisa.be)
+
+  Revision 1.12  2002/09/07 15:15:25  peter
     * old logs removed and tabs fixed
 
   Revision 1.11  2002/07/17 11:52:01  florian
