@@ -1772,7 +1772,9 @@ implementation
                               end;
                             consume(_ID);
                           end;
-
+                        variantdef:
+                          begin
+                          end;
                         classrefdef:
                           begin
                              classh:=tobjectdef(tclassrefdef(p1.resulttype.def).pointertype.def);
@@ -2506,7 +2508,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.50  2001-11-02 23:16:51  peter
+  Revision 1.51  2001-11-14 01:12:44  florian
+    * variant paramter passing and functions results fixed
+
+  Revision 1.50  2001/11/02 23:16:51  peter
     * removed obsolete chainprocsym and test_procsym code
 
   Revision 1.49  2001/11/02 22:58:05  peter

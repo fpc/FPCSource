@@ -785,6 +785,7 @@ implementation
            ((def.deftype=stringdef) and (tstringdef(def).string_typ in [st_shortstring,st_longstring])) or
            ((def.deftype=procvardef) and (po_methodpointer in tprocvardef(def).procoptions)) or
            ((def.deftype=objectdef) and is_object(def)) or
+           (def.deftype=variantdef) or
            ((def.deftype=setdef) and (tsetdef(def).settype<>smallset));
       end;
 
@@ -1868,7 +1869,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.56  2001-11-02 23:24:12  jonas
+  Revision 1.57  2001-11-14 01:12:45  florian
+    * variant paramter passing and functions results fixed
+
+  Revision 1.56  2001/11/02 23:24:12  jonas
     * fixed web bug 1665 (allow char to chararray type conversion) ("merged")
 
   Revision 1.55  2001/11/02 22:58:09  peter
