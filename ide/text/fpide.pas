@@ -738,7 +738,7 @@ begin
      AppendMenuItem(FileMenu^.SubMenu,NewLine(nil));
   for I:=1 to RecentFileCount do
   begin
-    P:=NewItem('~'+IntToStr(I)+'~. '+ShrinkPath(SmartPath(RecentFiles[I].FileName),27),' ',
+    P:=NewItem('~'+IntToStr(I)+'~ '+ShrinkPath(SmartPath(RecentFiles[I].FileName),27),' ',
         kbNoKey,cmRecentFileBase+I,hcRecentFileBase+I,nil);
     AppendMenuItem(FileMenu^.SubMenu,P);
   end;
@@ -854,7 +854,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.43  1999-11-10 17:19:06  pierre
+  Revision 1.44  1999-11-25 00:26:49  pierre
+   * RecentFiles missed the last char
+
+  Revision 1.43  1999/11/10 17:19:06  pierre
    * Use DosExecute from Fpredir unit
 
   Revision 1.42  1999/10/27 12:10:42  pierre
